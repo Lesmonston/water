@@ -1,0 +1,66 @@
+{"argv":["--test","--test-concurrency=1","--test-reporter=tap","tools/fs-fixture-kit/tests/materialize.test.mjs"],"exitCode":1,"error":null}
+--- stdout ---
+TAP version 13
+# Subtest: fixture_manifest_and_cases
+ok 1 - fixture_manifest_and_cases
+  ---
+  duration_ms: 164.0607
+  type: 'test'
+  ...
+# Subtest: fixture_materialization
+ok 2 - fixture_materialization
+  ---
+  duration_ms: 237.1022
+  type: 'test'
+  ...
+# Subtest: fixture_paths_and_collisions
+not ok 3 - fixture_paths_and_collisions
+  ---
+  duration_ms: 12.9634
+  type: 'test'
+  location: 'F:\\new\\smaltalk\\water\\.worktrees\\d\\tools\\fs-fixture-kit\\tests\\materialize.test.mjs:344:1'
+  failureType: 'testCodeFailure'
+  error: |-
+    "run-UPPER"
+    + actual - expected
+    
+    + 'collision'
+    - 'invalid_run_id'
+    
+  code: 'ERR_ASSERTION'
+  name: 'AssertionError'
+  expected: 'invalid_run_id'
+  actual: 'collision'
+  operator: 'strictEqual'
+  stack: |-
+    Object.<anonymous> (file:///F:/new/smaltalk/water/.worktrees/d/tools/fs-fixture-kit/tests/materialize.test.mjs:358:16)
+    expectedException (node:assert:578:17)
+    expectsError (node:assert:703:21)
+    strict.rejects (node:assert:769:3)
+    async TestContext.<anonymous> (file:///F:/new/smaltalk/water/.worktrees/d/tools/fs-fixture-kit/tests/materialize.test.mjs:354:5)
+    async Test.run (node:internal/test_runner/test:1313:7)
+    async Test.processPendingSubtests (node:internal/test_runner/test:897:7)
+  ...
+# Subtest: fixture_link_capabilities
+ok 4 - fixture_link_capabilities
+  ---
+  duration_ms: 33.8993
+  type: 'test'
+  ...
+# Subtest: fixture_declarative_faults
+ok 5 - fixture_declarative_faults
+  ---
+  duration_ms: 54.357
+  type: 'test'
+  ...
+1..5
+# tests 5
+# suites 0
+# pass 4
+# fail 1
+# cancelled 0
+# skipped 0
+# todo 0
+# duration_ms 635.7054
+
+--- stderr ---
