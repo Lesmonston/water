@@ -1,0 +1,29 @@
+{
+  "version": "water.catalog.sources.v1",
+  "official_hosts": {
+    "pip": [
+      "pip.pypa.io"
+    ],
+    "uv": [
+      "docs.astral.sh"
+    ],
+    "npm": [
+      "docs.npmjs.com"
+    ],
+    "pnpm": [
+      "pnpm.io"
+    ],
+    "huggingface": [
+      "huggingface.co"
+    ],
+    "ollama": [
+      "docs.ollama.com"
+    ]
+  },
+  "rules": [
+    "HTTPS only, no URL credentials",
+    "At least two distinct pages per tool, fragments do not create a second page",
+    "Exact hostname match; do not accept suffix lookalikes",
+    "This host policy is a provenance filter, not proof that a page supports a claim"
+  ]
+}

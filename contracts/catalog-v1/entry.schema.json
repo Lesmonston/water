@@ -1,0 +1,398 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "urn:water:catalog:entry:v1",
+  "title": "Water discovery-only tool entry",
+  "type": "object",
+  "properties": {
+    "catalog_version": {
+      "const": "water.catalog.v1"
+    },
+    "tool_id": {
+      "enum": [
+        "pip",
+        "uv",
+        "npm",
+        "pnpm",
+        "huggingface",
+        "ollama"
+      ]
+    },
+    "name": {
+      "type": "string",
+      "minLength": 1
+    },
+    "reviewed_on": {
+      "type": "string",
+      "pattern": "^[0-9]{4}-[0-9]{2}-[0-9]{2}(?![\\s\\S])"
+    },
+    "runtime_verified": {
+      "const": false
+    },
+    "platforms": {
+      "type": "object",
+      "properties": {
+        "windows": {
+          "type": "object",
+          "properties": {
+            "root_candidates": {
+              "type": "array",
+              "items": {
+                "type": "object",
+                "properties": {
+                  "source": {
+                    "enum": [
+                      "native_query",
+                      "environment",
+                      "configuration",
+                      "default_hint"
+                    ]
+                  },
+                  "key": {
+                    "type": "string",
+                    "minLength": 1
+                  },
+                  "path_template": {
+                    "anyOf": [
+                      {
+                        "type": "string",
+                        "minLength": 1
+                      },
+                      {
+                        "type": "null"
+                      }
+                    ]
+                  },
+                  "purpose": {
+                    "enum": [
+                      "download_cache",
+                      "build_cache",
+                      "shared_store",
+                      "model_store",
+                      "mixed_state"
+                    ]
+                  },
+                  "evidence_confidence": {
+                    "enum": [
+                      "documented",
+                      "version_sensitive",
+                      "unknown"
+                    ]
+                  },
+                  "version_note": {
+                    "type": "string",
+                    "minLength": 1
+                  },
+                  "source_ids": {
+                    "type": "array",
+                    "items": {
+                      "type": "string",
+                      "minLength": 1
+                    },
+                    "minItems": 1
+                  }
+                },
+                "required": [
+                  "source",
+                  "key",
+                  "path_template",
+                  "purpose",
+                  "evidence_confidence",
+                  "version_note",
+                  "source_ids"
+                ],
+                "additionalProperties": false
+              },
+              "minItems": 1
+            },
+            "protected_subpaths": {
+              "type": "array",
+              "items": {
+                "type": "object",
+                "properties": {
+                  "path_hint": {
+                    "type": "string",
+                    "minLength": 1
+                  },
+                  "reason": {
+                    "type": "string",
+                    "minLength": 1
+                  },
+                  "source_ids": {
+                    "type": "array",
+                    "items": {
+                      "type": "string",
+                      "minLength": 1
+                    },
+                    "minItems": 1
+                  }
+                },
+                "required": [
+                  "path_hint",
+                  "reason",
+                  "source_ids"
+                ],
+                "additionalProperties": false
+              },
+              "minItems": 0
+            },
+            "notes": {
+              "type": "array",
+              "items": {
+                "type": "string",
+                "minLength": 1
+              },
+              "minItems": 1
+            }
+          },
+          "required": [
+            "root_candidates",
+            "protected_subpaths",
+            "notes"
+          ],
+          "additionalProperties": false
+        },
+        "macos": {
+          "type": "object",
+          "properties": {
+            "root_candidates": {
+              "type": "array",
+              "items": {
+                "type": "object",
+                "properties": {
+                  "source": {
+                    "enum": [
+                      "native_query",
+                      "environment",
+                      "configuration",
+                      "default_hint"
+                    ]
+                  },
+                  "key": {
+                    "type": "string",
+                    "minLength": 1
+                  },
+                  "path_template": {
+                    "anyOf": [
+                      {
+                        "type": "string",
+                        "minLength": 1
+                      },
+                      {
+                        "type": "null"
+                      }
+                    ]
+                  },
+                  "purpose": {
+                    "enum": [
+                      "download_cache",
+                      "build_cache",
+                      "shared_store",
+                      "model_store",
+                      "mixed_state"
+                    ]
+                  },
+                  "evidence_confidence": {
+                    "enum": [
+                      "documented",
+                      "version_sensitive",
+                      "unknown"
+                    ]
+                  },
+                  "version_note": {
+                    "type": "string",
+                    "minLength": 1
+                  },
+                  "source_ids": {
+                    "type": "array",
+                    "items": {
+                      "type": "string",
+                      "minLength": 1
+                    },
+                    "minItems": 1
+                  }
+                },
+                "required": [
+                  "source",
+                  "key",
+                  "path_template",
+                  "purpose",
+                  "evidence_confidence",
+                  "version_note",
+                  "source_ids"
+                ],
+                "additionalProperties": false
+              },
+              "minItems": 1
+            },
+            "protected_subpaths": {
+              "type": "array",
+              "items": {
+                "type": "object",
+                "properties": {
+                  "path_hint": {
+                    "type": "string",
+                    "minLength": 1
+                  },
+                  "reason": {
+                    "type": "string",
+                    "minLength": 1
+                  },
+                  "source_ids": {
+                    "type": "array",
+                    "items": {
+                      "type": "string",
+                      "minLength": 1
+                    },
+                    "minItems": 1
+                  }
+                },
+                "required": [
+                  "path_hint",
+                  "reason",
+                  "source_ids"
+                ],
+                "additionalProperties": false
+              },
+              "minItems": 0
+            },
+            "notes": {
+              "type": "array",
+              "items": {
+                "type": "string",
+                "minLength": 1
+              },
+              "minItems": 1
+            }
+          },
+          "required": [
+            "root_candidates",
+            "protected_subpaths",
+            "notes"
+          ],
+          "additionalProperties": false
+        }
+      },
+      "required": [
+        "windows",
+        "macos"
+      ],
+      "additionalProperties": false
+    },
+    "assets": {
+      "type": "array",
+      "items": {
+        "type": "object",
+        "properties": {
+          "kind": {
+            "enum": [
+              "cache",
+              "environment",
+              "model",
+              "credential",
+              "configuration",
+              "history",
+              "database",
+              "unknown"
+            ]
+          },
+          "description": {
+            "type": "string",
+            "minLength": 1
+          },
+          "default_action": {
+            "const": "display_only"
+          },
+          "risk_note": {
+            "type": "string",
+            "minLength": 1
+          },
+          "source_ids": {
+            "type": "array",
+            "items": {
+              "type": "string",
+              "minLength": 1
+            },
+            "minItems": 1
+          }
+        },
+        "required": [
+          "kind",
+          "description",
+          "default_action",
+          "risk_note",
+          "source_ids"
+        ],
+        "additionalProperties": false
+      },
+      "minItems": 1
+    },
+    "sources": {
+      "type": "array",
+      "items": {
+        "type": "object",
+        "properties": {
+          "id": {
+            "type": "string",
+            "minLength": 1
+          },
+          "url": {
+            "type": "string",
+            "minLength": 1
+          },
+          "supports": {
+            "type": "array",
+            "items": {
+              "type": "string",
+              "minLength": 1
+            },
+            "minItems": 1
+          },
+          "verified_on": {
+            "type": "string",
+            "pattern": "^[0-9]{4}-[0-9]{2}-[0-9]{2}(?![\\s\\S])"
+          }
+        },
+        "required": [
+          "id",
+          "url",
+          "supports",
+          "verified_on"
+        ],
+        "additionalProperties": false
+      },
+      "minItems": 2
+    },
+    "constraints": {
+      "type": "object",
+      "properties": {
+        "discovery_only": {
+          "const": true
+        },
+        "can_scan": {
+          "const": false
+        },
+        "can_delete": {
+          "const": false
+        }
+      },
+      "required": [
+        "discovery_only",
+        "can_scan",
+        "can_delete"
+      ],
+      "additionalProperties": false
+    }
+  },
+  "required": [
+    "catalog_version",
+    "tool_id",
+    "name",
+    "reviewed_on",
+    "runtime_verified",
+    "platforms",
+    "assets",
+    "sources",
+    "constraints"
+  ],
+  "additionalProperties": false
+}
