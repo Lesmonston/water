@@ -1,4 +1,8 @@
-# 当前安排：F受控夹具扫描READY
+# 当前安排：F执行中，G/H/I并行READY
+
+2026-10-17最新：用户要求多张并行任务，新增G/H/I已分别完成独立树、精确基线、36新锁/五旧锁58唯一文件与实际baseline。三票READY待分别外贴，见[四线计划](PARALLEL-NEXT-PLAN-20261017.md)及[派前回执](PARALLEL-NEXT-READY-REPORT.md)，入口[PASTE-G](PASTE-G.txt)、[PASTE-H](PASTE-H.txt)、[PASTE-I](PASTE-I.txt)。F已观察到原树实现/负控文件，RUNNING未收单，原执行者继续，不重复派票。下面F READY及后续串行安排为历史，G/H/I不等待F实现。
+
+## F原派前记录（历史）
 
 总控当前更新（2026-10-17）：A/B/C/D/E均VERIFIED，旧票不重复外贴。F已冻结22项新材料并通过实际Windows baseline/fixtures预检，独立f树精确基线`fc114eb81125cef7d374deddc95144bcd9aee748`，READY待用户外贴，未记DISPATCHED/RUNNING。见[F正式票](../tickets/WATER-W1-F-SCAN-LAB-20261017.md)及[派前回执](SCAN-LAB-READY-REPORT.md)。
 

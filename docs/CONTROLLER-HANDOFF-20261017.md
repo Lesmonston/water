@@ -2,7 +2,13 @@
 
 2026-10-17。项目：`F:/new/smaltalk/water`。供后续总控接手与Keeper ingest；未写共享Vault或其他项目。
 
-## 当前交接：F已READY
+## 当前交接：F执行中，G/H/I并行READY
+
+用户要求一次安排更多并行票。总控已冻结ADR-007、G/H/I协议及36项共享新锁，五旧锁58唯一文件保持；独立g/h/i树精确基线`045ab4f0d01edd573828fbc8cca988e1ad37efee`，tag water-w1-parallel-next-base-20261017。G/H真实Node24/Rust1.95/MSVC离线基线与A/E资产检查通过，I隔离Chrome空白页通过；17份G预期/11份H输入经真实A校验，4份I数据由真实E投影生成。无G/H/I产品目录、行为测试/bridge或真实界面验收。
+
+F原树出现packages/fixture-scan及行为红/负控证据，按元数据记RUNNING，开始时间未知，无完成报告，未读其在途实现或改树。F原22锁/基线/helper/分配保持。A–E继续VERIFIED，旧产品不改。G/H/I均READY未确认外贴，总控未启动实现代理；入口[四线计划](dispatch/wave1/PARALLEL-NEXT-PLAN-20261017.md)，[派前回执](dispatch/wave1/PARALLEL-NEXT-READY-REPORT.md)列准确证据。用户分别转贴G/H/I即可；收单后总控独立验收再集成，F→G实际链路后验证，分类/真实scope/Tauri/macOS/发布另排。
+
+## F原派前交接（历史）
 
 用户要求推进后续任务。A/B/C/D/E均已VERIFIED（Windows范围），不重复外贴；F已完成ADR-006/scan-lab-v1接口/六测试/四负控及22项冻结，独立f树基线`fc114eb81125cef7d374deddc95144bcd9aee748`，tag water-w1-scan-lab-base-20261017。实际Node24/Rust1.95/MSVC baseline与fixtures预检通过，四份旧锁43唯一文件保持，旧产品及根Cargo不变。
 

@@ -1,5 +1,7 @@
 # Rust受控扫描：草案已由正式F协议替代
 
+当前并行更新：F已观察到实现中；G/H/I独立接口和预检已完成READY，均不依赖F在途代码。报告组装以冻结F JSON协议先实现，不再等待F后才出票。见[四线计划](PARALLEL-NEXT-PLAN-20261017.md)；本页关于后续顺序的文字属于F原派前历史。
+
 2026-10-17当前：F已完成接口/六测试/四负控及22项冻结，独立f树和Windows基线/夹具探针通过，READY待用户外贴。正式依据为[F票](../tickets/WATER-W1-F-SCAN-LAB-20261017.md)、[ADR-006](../../decisions/ADR-006-controlled-scan-lab.md)与[派前回执](SCAN-LAB-READY-REPORT.md)。F产品尚不存在，六产品测试和实际扫描bridge未运行。
 
 采用独立packages/fixture-scan workspace/锁，保持根Cargo及旧产品不变。下文“独占root Cargo”的原设想已经取消，仅保留历史，不授权执行。F仅面向自有静止合成夹具；Windows身份Unknown，macOS未实测，不提供生产竞态保证。F验收后再冻结分类/报告转换与正式桌面接线。

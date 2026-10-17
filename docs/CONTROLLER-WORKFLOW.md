@@ -97,6 +97,8 @@ READY只表示总控已准备好，不表示用户已转贴。得到用户已贴
 
 ## 当前落实程度
 
+最新并行更新：用户要求一次多安排，按ADR-007新增G报告组装/H白名单汇总/I报告阅读界面，三独占树/目录、共同精确架构基线和36新冻结/五旧锁、实际各自baseline通过，READY待分别外贴。G/H/I只依赖已验收模块及冻结输入协议，不依赖F在途实现；F按任务文件启动证据记RUNNING，原票继续。总控未自动启动实现者，真实集成后验收。见[并行计划](dispatch/wave1/PARALLEL-NEXT-PLAN-20261017.md)和[派前回执](dispatch/wave1/PARALLEL-NEXT-READY-REPORT.md)；以下为历史更新。
+
 当前更新（2026-10-17）：A/B/C/D/E均VERIFIED（Windows范围）；F新受控扫描协议/六测试清单、22项锁、独立f树、精确基线与实际baseline/fixtures预检已完成，READY待用户外贴。F产品尚不存在，不把预检当六产品测试通过。总控只写规划/契约/验收工具，未自动启动实现者。见[F派前回执](dispatch/wave1/SCAN-LAB-READY-REPORT.md)及[正式票](dispatch/tickets/WATER-W1-F-SCAN-LAB-20261017.md)；以下追加为历史。
 
 本流程及模板已建立。B/C补充单01已通过独立复验及集成门，VERIFIED（当前Windows范围）；A保持独立补单状态。总控没有自动启动实现者或代修产品。详情见 [第一轮计划](dispatch/wave1/PLAN.md)及[BC复验与集成报告](acceptance/wave1/controller/WATER-W1-BC-ADDENDUM-01-REVIEW-20261017.md)，原退回记录继续保留。

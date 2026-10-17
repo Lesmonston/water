@@ -2,7 +2,7 @@
 
 面向 Windows、macOS AI 开发者的本地存储分析与安全清理助手。
 
-**当前阶段：A/B/C/D/E已验收集成（当前Windows范围）。F受控夹具扫描票已冻结并通过派前检查，READY待用户外贴；F产品、正式桌面接线和删除能力尚未实现。**
+**当前阶段：A/B/C/D/E已验收集成（当前Windows范围）。F已观察到执行中；新增G报告组装、H白名单汇总导出、I报告阅读界面均READY，可分别外贴并行实现。新产品行为、正式桌面接线和删除能力尚未验收。**
 
 用户指定本项目所有后续开发均位于 `smaltalk/water`，由 Codex 担任总控。
 
@@ -21,7 +21,7 @@
 
 已纳入的独立产物：[Rust契约库](crates/water-contracts/README.md)、[六工具规则数据包](packages/tool-catalog/README.md)、[固定数据只读原型](prototypes/readonly-dashboard/README)、[合成夹具工厂](tools/fs-fixture-kit/README.md)、[内存报告展示投影](packages/report-view/README.md)。[B/C复验](docs/acceptance/wave1/controller/WATER-W1-BC-ADDENDUM-01-REVIEW-20261017.md)、[D补单复验](docs/acceptance/wave1/controller/WATER-W1-D-ADDENDUM-01-REVIEW-20261017.md)与[E复验](docs/acceptance/wave1/controller/WATER-W1-E-REVIEW-20261017.md)记录Windows范围和未验证项；这些产物尚未接真实扫描或正式桌面界面。
 
-[当前E验收记录](docs/acceptance/wave1/controller/WATER-W1-E-REVIEW-20261017.md)与[后续安排](docs/dispatch/wave1/NEXT-BATCH-20261017.md)：现有五票无需重复外贴；下一张[F受控只读扫描票](docs/dispatch/tickets/WATER-W1-F-SCAN-LAB-20261017.md)已READY。派前只运行基线和合成夹具/标准库探针，扫描产品行为须实现后验收。
+[当前E验收记录](docs/acceptance/wave1/controller/WATER-W1-E-REVIEW-20261017.md)与[四线并行安排](docs/dispatch/wave1/PARALLEL-NEXT-PLAN-20261017.md)：A–E无需重复外贴，F原执行者继续；新增G/H/I各有独立工作树、基线、冻结协议及实际派前证据，不等待F实现。主线未集成这些新产品，真实链路由总控后验收。
 
 ## 研究输入
 

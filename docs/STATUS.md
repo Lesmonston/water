@@ -21,9 +21,15 @@
 
 ## 下一步
 
-A/B/C/D/E已VERIFIED并集成，现有五票无需重复外贴。F受控夹具扫描票已READY，见[正式票](dispatch/tickets/WATER-W1-F-SCAN-LAB-20261017.md)及[派前回执](dispatch/wave1/SCAN-LAB-READY-REPORT.md)。F仅实现自有合成夹具元数据遍历；产品尚不存在，未运行六产品测试/真实桥接，尚未记DISPATCHED。分类、正式桌面接线、真实用户目录及清理另排。
+A/B/C/D/E已VERIFIED并集成，旧票不重复派。F树已出现实现及负控文件，按启动证据记RUNNING，未收单/验收，原票和冻结保持。新增G/H/I均READY，分别交三个执行者即可与F并行；见[四线安排](dispatch/wave1/PARALLEL-NEXT-PLAN-20261017.md)及[派前回执](dispatch/wave1/PARALLEL-NEXT-READY-REPORT.md)。新票不依赖F在途实现，真实F→G及G/H/E/I集成后验收；真实用户目录、分类、Tauri与清理另排。
 
-## F派前完成（2026-10-17，当前）
+## G/H/I并行派前完成（2026-10-17，当前）
+
+- 三树g/h/i、各自worker/water-w1-*，共同架构基线`045ab4f0d01edd573828fbc8cca988e1ad37efee`、tag water-w1-parallel-next-base-20261017。36项新冻结和五旧锁58唯一文件一致，A–F原基线/helper/锁保持。
+- G/H的Node24/Rust1.95/MSVC离线基线及真实A/E资产核对通过：17份G预期报告、11份H来源报告均经A校验，4份I资产由真实E投影生成。I的Node24/隔离Chrome空白页探针通过。G/H/I生产目录尚不存在，未运行新产品测试/bridge/UI；macOS未验证。
+- G全未知保护报告+完整facts sidecar，H固定白名单汇总且不承诺匿名不可关联，I只读合成报告阅读。三票独占目录/构建状态，无物理fixture/真实数据权限。均READY未确认外贴，总控未自动启动实现者；F继续原票，实际开始时间未知。
+
+## F派前完成（2026-10-17，历史派前）
 
 - 独立f树/worker/water-w1-f，精确基线`fc114eb81125cef7d374deddc95144bcd9aee748`，tag water-w1-scan-lab-base-20261017；22项新冻结及四份旧锁43唯一文件一致。A–E产品、原基线/helper/锁及根Cargo不变。
 - Node24.16/Rust1.95/MSVC基线通过，Windows身份API编译探针按预期拒绝不稳定API；Windows身份约定Unknown。prepare工具在f树.local准备11正常run/6负例，实际均创建，81057内容字节，44快照一致；std探针确认硬链接文件长度及两种目录链接reparse属性。

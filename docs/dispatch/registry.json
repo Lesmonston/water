@@ -4,7 +4,7 @@
   "mode": "manual-external-paste",
   "controller": "Codex",
   "projectRoot": "F:/new/smaltalk/water",
-  "stage": "wave1-controlled-scan-ready",
+  "stage": "wave1-four-parallel-lanes",
   "activeWave": "water-wave1",
   "slots": [
     {
@@ -53,6 +53,30 @@
       "branch": "worker/water-w1-f",
       "baseline": "fc114eb81125cef7d374deddc95144bcd9aee748",
       "task": "WATER-W1-F",
+      "state": "running-observed"
+    },
+    {
+      "id": "g",
+      "path": "F:/new/smaltalk/water/.worktrees/g",
+      "branch": "worker/water-w1-g",
+      "baseline": "045ab4f0d01edd573828fbc8cca988e1ad37efee",
+      "task": "WATER-W1-G",
+      "state": "ready-awaiting-manual-paste"
+    },
+    {
+      "id": "h",
+      "path": "F:/new/smaltalk/water/.worktrees/h",
+      "branch": "worker/water-w1-h",
+      "baseline": "045ab4f0d01edd573828fbc8cca988e1ad37efee",
+      "task": "WATER-W1-H",
+      "state": "ready-awaiting-manual-paste"
+    },
+    {
+      "id": "i",
+      "path": "F:/new/smaltalk/water/.worktrees/i",
+      "branch": "worker/water-w1-i",
+      "baseline": "045ab4f0d01edd573828fbc8cca988e1ad37efee",
+      "task": "WATER-W1-I",
       "state": "ready-awaiting-manual-paste"
     }
   ],
@@ -298,7 +322,7 @@
     {
       "id": "WATER-W1-F",
       "title": "Controlled fixture metadata scanner",
-      "status": "READY",
+      "status": "RUNNING",
       "kind": "scan_lab",
       "slot": "f",
       "worktree": "F:/new/smaltalk/water/.worktrees/f",
@@ -356,9 +380,215 @@
       "probeStatus": "PASSED",
       "probeEvidence": "docs/acceptance/wave1/controller/w1-f-preflight-20261017/2026-10-17T13-02-21.212Z-18332-fixtures-result.json",
       "readyOn": "2026-10-17",
-      "readinessScope": "Windows controller baseline, owned synthetic preparation and std metadata probes only; no F product test or scanner invocation."
+      "readinessScope": "Windows controller baseline, owned synthetic preparation and std metadata probes only; no F product test or scanner invocation.",
+      "activityObservedAt": "2026-10-17T13:38:23.231Z",
+      "activityEvidence": "Controller observed task-owned untracked packages/fixture-scan and F behavior-red/negative-control evidence in the assigned f tree; start time unknown, no submission or review."
+    },
+    {
+      "slot": "g",
+      "id": "WATER-W1-G",
+      "title": "Conservative scan report assembly",
+      "packageName": "water-scan-report",
+      "crateName": "water_scan_report",
+      "outputRoot": "packages/scan-report",
+      "testTarget": "report_v1",
+      "contract": "scan-report-v1",
+      "ticketName": "SCAN-REPORT",
+      "bridgeSource": "scripts/acceptance/scan-report-bridge.rs",
+      "expectedTests": [
+        "report_strict_input",
+        "report_coverage_and_issues",
+        "report_conservative_findings",
+        "report_size_identity_and_overlap",
+        "report_public_roundtrip"
+      ],
+      "dependsOn": [
+        "WATER-W1-A",
+        "WATER-W1-E"
+      ],
+      "status": "READY",
+      "kind": "parallel_next_rust",
+      "worktree": "F:/new/smaltalk/water/.worktrees/g",
+      "branch": "worker/water-w1-g",
+      "baseCommit": "045ab4f0d01edd573828fbc8cca988e1ad37efee",
+      "snapshotRef": "refs/tags/water-w1-parallel-next-base-20261017",
+      "ticket": "docs/dispatch/tickets/WATER-W1-G-SCAN-REPORT-20261017.md",
+      "report": "docs/dispatch/reports/WATER-W1-G-REPORT.md",
+      "helper": "scripts/parallel-next-rust-check.mjs",
+      "workerRules": "docs/dispatch/W1-PARALLEL-NEXT-WORKER-RULES.md",
+      "contractLock": "contracts/parallel-next-v1/freeze.lock.json",
+      "testFile": "packages/scan-report/tests/report_v1.rs",
+      "expectedFinalModes": [
+        "fmt",
+        "test",
+        "clippy",
+        "metadata",
+        "bridge"
+      ],
+      "allowedFiles": [
+        "packages/scan-report/Cargo.toml",
+        "packages/scan-report/Cargo.lock",
+        "packages/scan-report/README.md",
+        "packages/scan-report/tests/report_v1.rs",
+        "docs/dispatch/reports/WATER-W1-G-REPORT.md"
+      ],
+      "allowedPrefixes": [
+        "packages/scan-report/src/",
+        "docs/acceptance/wave1/g/"
+      ],
+      "allowLockfileGeneration": true,
+      "model": null,
+      "modelAssignment": "user-arranged; report actual engine/model",
+      "dispatchedAt": null,
+      "startedAt": null,
+      "baselineStatus": "PASSED",
+      "preflightEvidence": "docs/dispatch/wave1/PARALLEL-NEXT-READY-REPORT.md",
+      "cargoCacheSource": "F:/new/smaltalk/water/.worktrees/a/.local/cargo-home/registry",
+      "caseFile": "contracts/scan-report-v1/cases.json",
+      "protocolDependencies": [
+        "contracts/scan-lab-v1/freeze.lock.json"
+      ],
+      "manifest": "docs/dispatch/wave1/manifest.json",
+      "baselineEvidence": "docs/acceptance/wave1/controller/w1-parallel-next-preflight-20261017/g/2026-10-17T13-35-56.563Z-24600-baseline-result.json",
+      "readyOn": "2026-10-17",
+      "readinessScope": "Windows Node/Rust/MSVC offline baseline and actual verified A/E synthetic assets; new product not tested."
+    },
+    {
+      "slot": "h",
+      "id": "WATER-W1-H",
+      "title": "Whitelist summary export",
+      "packageName": "water-summary-export",
+      "crateName": "water_summary_export",
+      "outputRoot": "packages/summary-export",
+      "testTarget": "export_v1",
+      "contract": "summary-export-v1",
+      "ticketName": "SUMMARY-EXPORT",
+      "bridgeSource": "scripts/acceptance/summary-export-bridge.rs",
+      "expectedTests": [
+        "export_whitelist",
+        "export_validation",
+        "export_precision_and_totals",
+        "export_counts_and_status",
+        "export_invariance_and_purity"
+      ],
+      "dependsOn": [
+        "WATER-W1-A"
+      ],
+      "status": "READY",
+      "kind": "parallel_next_rust",
+      "worktree": "F:/new/smaltalk/water/.worktrees/h",
+      "branch": "worker/water-w1-h",
+      "baseCommit": "045ab4f0d01edd573828fbc8cca988e1ad37efee",
+      "snapshotRef": "refs/tags/water-w1-parallel-next-base-20261017",
+      "ticket": "docs/dispatch/tickets/WATER-W1-H-SUMMARY-EXPORT-20261017.md",
+      "report": "docs/dispatch/reports/WATER-W1-H-REPORT.md",
+      "helper": "scripts/parallel-next-rust-check.mjs",
+      "workerRules": "docs/dispatch/W1-PARALLEL-NEXT-WORKER-RULES.md",
+      "contractLock": "contracts/parallel-next-v1/freeze.lock.json",
+      "testFile": "packages/summary-export/tests/export_v1.rs",
+      "expectedFinalModes": [
+        "fmt",
+        "test",
+        "clippy",
+        "metadata",
+        "bridge"
+      ],
+      "allowedFiles": [
+        "packages/summary-export/Cargo.toml",
+        "packages/summary-export/Cargo.lock",
+        "packages/summary-export/README.md",
+        "packages/summary-export/tests/export_v1.rs",
+        "docs/dispatch/reports/WATER-W1-H-REPORT.md"
+      ],
+      "allowedPrefixes": [
+        "packages/summary-export/src/",
+        "docs/acceptance/wave1/h/"
+      ],
+      "allowLockfileGeneration": true,
+      "model": null,
+      "modelAssignment": "user-arranged; report actual engine/model",
+      "dispatchedAt": null,
+      "startedAt": null,
+      "baselineStatus": "PASSED",
+      "preflightEvidence": "docs/dispatch/wave1/PARALLEL-NEXT-READY-REPORT.md",
+      "cargoCacheSource": "F:/new/smaltalk/water/.worktrees/a/.local/cargo-home/registry",
+      "caseFile": "contracts/summary-export-v1/cases.json",
+      "manifest": "docs/dispatch/wave1/manifest.json",
+      "baselineEvidence": "docs/acceptance/wave1/controller/w1-parallel-next-preflight-20261017/h/2026-10-17T13-35-56.563Z-9880-baseline-result.json",
+      "readyOn": "2026-10-17",
+      "readinessScope": "Windows Node/Rust/MSVC offline baseline and actual verified A/E synthetic assets; new product not tested."
+    },
+    {
+      "slot": "i",
+      "id": "WATER-W1-I",
+      "title": "E report view reader",
+      "outputRoot": "prototypes/report-reader",
+      "contract": "report-reader-v1",
+      "ticketName": "REPORT-READER",
+      "expectedTests": [
+        "reader_input_and_preservation",
+        "reader_bigint_filters",
+        "reader_totals_and_unknown"
+      ],
+      "expectedBrowserTests": [
+        "reader_live_interactions",
+        "reader_scope_layout_and_readonly"
+      ],
+      "dependsOn": [
+        "WATER-W1-E"
+      ],
+      "status": "READY",
+      "kind": "report_reader",
+      "worktree": "F:/new/smaltalk/water/.worktrees/i",
+      "branch": "worker/water-w1-i",
+      "baseCommit": "045ab4f0d01edd573828fbc8cca988e1ad37efee",
+      "snapshotRef": "refs/tags/water-w1-parallel-next-base-20261017",
+      "ticket": "docs/dispatch/tickets/WATER-W1-I-REPORT-READER-20261017.md",
+      "report": "docs/dispatch/reports/WATER-W1-I-REPORT.md",
+      "helper": "scripts/parallel-next-reader-check.mjs",
+      "workerRules": "docs/dispatch/W1-PARALLEL-NEXT-WORKER-RULES.md",
+      "contractLock": "contracts/parallel-next-v1/freeze.lock.json",
+      "testFile": "prototypes/report-reader/tests/model.test.mjs",
+      "expectedFinalModes": [
+        "check",
+        "test",
+        "browser"
+      ],
+      "allowedFiles": [
+        "prototypes/report-reader/index.html",
+        "prototypes/report-reader/styles.css",
+        "prototypes/report-reader/app.mjs",
+        "prototypes/report-reader/model.mjs",
+        "prototypes/report-reader/server.mjs",
+        "prototypes/report-reader/README.md",
+        "prototypes/report-reader/tests/model.test.mjs",
+        "prototypes/report-reader/tests/browser.test.mjs",
+        "docs/dispatch/reports/WATER-W1-I-REPORT.md"
+      ],
+      "allowedPrefixes": [
+        "docs/acceptance/wave1/i/"
+      ],
+      "allowLockfileGeneration": false,
+      "model": null,
+      "modelAssignment": "user-arranged; report actual engine/model",
+      "dispatchedAt": null,
+      "startedAt": null,
+      "baselineStatus": "PASSED",
+      "preflightEvidence": "docs/dispatch/wave1/PARALLEL-NEXT-READY-REPORT.md",
+      "browserTestFile": "prototypes/report-reader/tests/browser.test.mjs",
+      "syntaxFiles": [
+        "prototypes/report-reader/app.mjs",
+        "prototypes/report-reader/model.mjs",
+        "prototypes/report-reader/server.mjs",
+        "prototypes/report-reader/tests/model.test.mjs",
+        "prototypes/report-reader/tests/browser.test.mjs"
+      ],
+      "manifest": "docs/dispatch/wave1/manifest.json",
+      "baselineEvidence": "docs/acceptance/wave1/controller/w1-parallel-next-preflight-20261017/i/2026-10-17T13-35-59.345Z-4584-baseline-result.json",
+      "readyOn": "2026-10-17",
+      "readinessScope": "Node 24 and isolated existing-browser blank page; frozen actual E projections; new UI not tested."
     }
   ],
   "testHelper": "per-task helper; A defaults unchanged",
-  "note": "A-E verified in Windows scope; F READY after contract freeze and baseline/fixtures preflight. No automatic implementation worker; product tests, scanner bridge and macOS unverified."
+  "note": "A-E verified; F implementation observed RUNNING at original base. G/H/I READY for separate manual external pastes; no automatically started implementation worker. All new product behavior and macOS unverified."
 }
