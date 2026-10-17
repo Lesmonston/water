@@ -4,7 +4,7 @@
   "mode": "manual-external-paste",
   "controller": "Codex",
   "projectRoot": "F:/new/smaltalk/water",
-  "stage": "wave1-b-c-verified-a-revision",
+  "stage": "wave1-next-batch-a-revision-d-ready",
   "activeWave": "water-wave1",
   "slots": [
     {
@@ -30,6 +30,14 @@
       "baseline": "e92f39647c91d9ce077d592583c3352626d3402b",
       "task": "WATER-W1-C",
       "state": "verified-preserved"
+    },
+    {
+      "id": "d",
+      "path": "F:/new/smaltalk/water/.worktrees/d",
+      "branch": "worker/water-w1-d",
+      "baseline": "7007c65d5845c3fe5938d920e930c8bcb7ffc4e0",
+      "task": "WATER-W1-D",
+      "state": "prepared-not-started"
     }
   ],
   "tasks": [
@@ -55,7 +63,8 @@
       ],
       "resumeFromCommit": "475c4703be3c455089b8080b53e084d4721b10f7",
       "revisionReport": "docs/dispatch/reports/WATER-W1-A-ADDENDUM-01-REPORT.md",
-      "revisionDispatchStatus": "PREPARED_AWAITING_USER_PASTE"
+      "revisionDispatchStatus": "PREPARED_AWAITING_USER_PASTE",
+      "reissuePreparedAt": "2026-10-17T09:21:11.685Z"
     },
     {
       "id": "WATER-W1-B",
@@ -136,8 +145,29 @@
       "verifiedAt": "2026-10-17T08:17:02.433Z",
       "verificationScope": "Windows Node 24 metadata and synthetic local-browser prototype; no real scan/cleanup, cross-module wiring or macOS runtime.",
       "integrationReceipt": "docs/acceptance/wave1/controller/w1-bc-integration-20261017/2026-10-17T08-16-34.091Z-5868-result.json"
+    },
+    {
+      "id": "WATER-W1-D",
+      "title": "受控文件系统夹具工厂",
+      "status": "READY",
+      "manifest": "docs/dispatch/wave1/manifest.json",
+      "ticket": "docs/dispatch/tickets/WATER-W1-D-FIXTURE-LAB-20261017.md",
+      "worktree": "F:/new/smaltalk/water/.worktrees/d",
+      "branch": "worker/water-w1-d",
+      "baseCommit": "7007c65d5845c3fe5938d920e930c8bcb7ffc4e0",
+      "report": "docs/dispatch/reports/WATER-W1-D-REPORT.md",
+      "helper": "scripts/fixture-check.mjs",
+      "contractLock": "contracts/fixture-lab-v1/freeze.lock.json",
+      "dispatchedAt": null,
+      "startedAt": null,
+      "baselineStatus": "PASSED",
+      "probeStatus": "PASSED",
+      "preflightEvidence": "docs/dispatch/wave1/FIXTURE-READY-REPORT.md",
+      "baselineEvidence": "docs/acceptance/wave1/controller/w1-next-batch-20261017/d-baseline.json",
+      "probeEvidence": "docs/acceptance/wave1/controller/w1-next-batch-20261017/d-probe.json",
+      "readyOn": "2026-10-17"
     }
   ],
   "testHelper": "per-task helper; A defaults unchanged",
-  "note": "B/C addendum 01 accepted and independently integrated/verified on Windows. Accepted product trees unchanged. A retains its previous revision state; real scan/cleanup and macOS are unverified."
+  "note": "Next batch: existing A addendum 01 plus independent D fixture kit READY, baseline/probe passed. B/C remain verified; no implementation worker started by controller."
 }

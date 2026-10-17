@@ -1,6 +1,6 @@
 # Water 架构基线
 
-状态：设计方案，代码尚未实现。对应 [ADR-001](decisions/ADR-001-independent-core.md)。
+状态：生产内核设计基线；B/C独立元数据/原型已验收，Rust契约待A修订，正式扫描器未实现。对应 [ADR-001](decisions/ADR-001-independent-core.md)。
 
 第一轮的具体数据与Rust API见 [scan v1契约](../contracts/v1/README.md)；工程顺序、工具链及限定范围见 [ADR-002](decisions/ADR-002-wave1-contract-bootstrap.md)。契约材料已冻结不代表Rust实现已存在。
 
@@ -11,6 +11,8 @@
 这不是最终版本锁定；下一阶段确认本机 Rust/MSVC、Windows WebView2、macOS 构建条件、依赖许可证与最低系统版本后冻结 lockfile。Tauri capabilities 可限制暴露给 WebView 的能力，但自定义 Rust 命令仍需自行校验，框架不代替对象级安全。[Tauri 安全边界](https://v2.tauri.app/security/)、[Capabilities](https://v2.tauri.app/security/capabilities/)、[分发](https://v2.tauri.app/distribute/)
 
 当前立项辅助脚本使用 Node 内置模块，无运行时第三方依赖；不等于产品选择 Node 做文件系统核心。
+
+[ADR-004](decisions/ADR-004-fixture-lab-before-scanner.md)追加独立D测试资产工具：Node只在本项目.local生成合成文件/链接和未来故障计划，供后续Rust扫描验收使用；没有遍历扫描/分类或清理能力。正式核心接口仍由总控在A验收后单独冻结。
 
 ## 分层与信任边界
 

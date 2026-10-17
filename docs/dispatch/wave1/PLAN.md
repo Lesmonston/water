@@ -8,6 +8,8 @@
 
 最新：B/C补充单已通过单票门、六项独立边界及独立集成门，VERIFIED（当前Windows范围）；受测整合提交为`d002c0c1d91db47fb8a685a07e0115ac9ad189c9`，主线纳入两产物。[当前复验报告](../../acceptance/wave1/controller/WATER-W1-BC-ADDENDUM-01-REVIEW-20261017.md)优先于上面的历史状态，A仍独立，后置扫描票未派。
 
+下一批已准备[A补单续做+D夹具工厂](NEXT-BATCH-20261017.md)：D精确r1基线/8冻结/Node24/链接probe通过，READY等待用户外贴，不改变A/B/C原权限。下一张Rust核心仅DRAFT，不给依赖未验收A的实现票。
+
 | 票 | 内容 | 前置与边界 |
 |---|---|---|
 | WATER-W1-A | Rust workspace、water-contracts、固定序列化/语义校验、定向测试 | 架构基线已提交；没有扫描/删除/UI |

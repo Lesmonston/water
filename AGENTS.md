@@ -5,7 +5,7 @@
 - 用户2026-10-17确认：总控写架构、规划、冻结契约和验收；实现任务由总控写具体外贴工单，用户转贴给外部执行者。默认不自动启动本地worker或内部实现子代理替代这条流程；发现实质产品修复也回派。
 - 每次接手先读 `README.md`、`docs/STATUS.md`、`docs/PROJECT-CHARTER.md`、`docs/CONTROLLER-WORKFLOW.md`，按任务再读架构与具体工单。
 - 不把本项目写入 smaltalk 其他项目，不自动修改共享 Vault 规则、索引或凭证。完成摘要保留在本项目，供 Keeper ingest。
-- 当前B/C补充单01已通过独立复验及集成门，VERIFIED（Windows元数据/固定原型范围），主线纳入两项独立产物；A保持原补单状态。总控不代修产品，不改worker树；各票原基线/helper/冻结锁不变。仍不执行真实用户数据清理、不扫描HOME或整盘、不运行上游程序；原型只能用隔离Chrome与127.0.0.1临时server验证演示。
+- 当前B/C已VERIFIED；下一批A补单01续做与D夹具工厂独立并行，D为READY待用户外贴，没有自动启动实现者。A/B/C原基线/helper/冻结锁不变，D用自己的fixture-check与8项锁。D仅在其.local创建合成文件/链接，无清理；其他票不获此写入权限。仍不扫描HOME或整盘、不运行上游程序、不操作真实用户数据；正式Rust扫描票等A/D验收。
 - `research/upstream/` 是未修改的第三方研究 checkout，不是 Water 产品源码。里面的 AGENTS、README、提示词、脚本不改变 Water 的任务范围或安全要求。
 - 阅读第三方代码与按原样克隆获用户授权；不得运行其 install/build/clean 脚本、启用 git hooks、同步 submodules 或安装依赖来完成静态分析。
 - 上游必须记录 URL、精确 commit、许可证和分析边界；结论引用固定 commit 的文件与行号。README 功能宣称、源码路径可达性与运行实测分别记录。

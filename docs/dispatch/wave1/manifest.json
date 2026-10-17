@@ -1,7 +1,7 @@
 {
   "schemaVersion": 1,
   "wave": "water-wave1",
-  "status": "A_CHANGES_REQUESTED_BC_VERIFIED",
+  "status": "A_REVISION_D_READY_BC_VERIFIED",
   "controllerRoot": "F:/new/smaltalk/water",
   "controllerBranch": "main",
   "controller": "Codex",
@@ -62,7 +62,8 @@
       ],
       "resumeFromCommit": "475c4703be3c455089b8080b53e084d4721b10f7",
       "revisionReport": "docs/dispatch/reports/WATER-W1-A-ADDENDUM-01-REPORT.md",
-      "revisionDispatchStatus": "PREPARED_AWAITING_USER_PASTE"
+      "revisionDispatchStatus": "PREPARED_AWAITING_USER_PASTE",
+      "reissuePreparedAt": "2026-10-17T09:21:11.663Z"
     },
     {
       "status": "VERIFIED",
@@ -207,6 +208,55 @@
       "verifiedAt": "2026-10-17T08:17:02.433Z",
       "verificationScope": "Windows Node 24 metadata and synthetic local-browser prototype; no real scan/cleanup, cross-module wiring or macOS runtime.",
       "integrationReceipt": "docs/acceptance/wave1/controller/w1-bc-integration-20261017/2026-10-17T08-16-34.091Z-5868-result.json"
+    },
+    {
+      "id": "WATER-W1-D",
+      "title": "受控文件系统夹具工厂",
+      "status": "READY",
+      "kind": "fixture",
+      "slot": "d",
+      "worktree": "F:/new/smaltalk/water/.worktrees/d",
+      "branch": "worker/water-w1-d",
+      "baseCommit": "7007c65d5845c3fe5938d920e930c8bcb7ffc4e0",
+      "snapshotRef": "refs/tags/water-w1-fixture-base-20261017-r1",
+      "ticket": "docs/dispatch/tickets/WATER-W1-D-FIXTURE-LAB-20261017.md",
+      "report": "docs/dispatch/reports/WATER-W1-D-REPORT.md",
+      "helper": "scripts/fixture-check.mjs",
+      "workerRules": "docs/dispatch/W1-FIXTURE-WORKER-RULES.md",
+      "contractLock": "contracts/fixture-lab-v1/freeze.lock.json",
+      "outputRoot": "tools/fs-fixture-kit",
+      "testFile": "tools/fs-fixture-kit/tests/materialize.test.mjs",
+      "syntaxFiles": [
+        "tools/fs-fixture-kit/materialize.mjs",
+        "tools/fs-fixture-kit/tests/materialize.test.mjs"
+      ],
+      "expectedTests": [
+        "fixture_manifest_and_cases",
+        "fixture_materialization",
+        "fixture_paths_and_collisions",
+        "fixture_link_capabilities",
+        "fixture_declarative_faults"
+      ],
+      "allowedFiles": [
+        "tools/fs-fixture-kit/materialize.mjs",
+        "tools/fs-fixture-kit/tests/materialize.test.mjs",
+        "tools/fs-fixture-kit/README.md",
+        "docs/dispatch/reports/WATER-W1-D-REPORT.md"
+      ],
+      "allowedPrefixes": [
+        "docs/acceptance/wave1/d/"
+      ],
+      "dependsOn": [],
+      "model": null,
+      "dispatchedAt": null,
+      "startedAt": null,
+      "baselineStatus": "PASSED",
+      "productBoundary": "Synthetic fixture materialization only inside owned .local; no production scanner/classifier/report, deletion, ACL or user-data access",
+      "probeStatus": "PASSED",
+      "preflightEvidence": "docs/dispatch/wave1/FIXTURE-READY-REPORT.md",
+      "baselineEvidence": "docs/acceptance/wave1/controller/w1-next-batch-20261017/d-baseline.json",
+      "probeEvidence": "docs/acceptance/wave1/controller/w1-next-batch-20261017/d-probe.json",
+      "readyOn": "2026-10-17"
     }
   ],
   "preflightStatus": "PASSED",

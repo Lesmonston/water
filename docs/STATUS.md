@@ -19,7 +19,14 @@
 
 ## 下一步
 
-B/C补充单01已通过单票与独立集成验收，VERIFIED（Windows元数据/固定原型范围），主线纳入两项产物。A补单保留原独立状态；后置扫描/正式接线仍等待必要前置验收。本次未代修产品，没有真实扫描/清理。
+B/C已VERIFIED并集成。下一批[A补单01](dispatch/tickets/WATER-W1-A-ADDENDUM-01-20261017.md)续做与[D夹具工厂](dispatch/tickets/WATER-W1-D-FIXTURE-LAB-20261017.md)独立并行，D为READY等待用户外贴。正式Rust扫描器/分类器/接线继续等待前置验收；没有真实用户扫描或清理。
+
+## 下一批派前完成（2026-10-17，当前）
+
+- A仍为干净原提交475c470，9项冻结一致，未见补单新提交/回执；原补单01及续做起点保持，不由总控代修。
+- D树`.worktrees/d`、分支worker/water-w1-d，基线`7007c65d5845c3fe5938d920e930c8bcb7ffc4e0`，tag water-w1-fixture-base-20261017-r1。独立8项冻结、Node24、干净baseline及3种链接probe实际通过；11case/57node/575内容字节/18负例已准备。产品工厂未实现，五产品测试尚未运行，macOS未验证。
+- [下一批计划](dispatch/wave1/NEXT-BATCH-20261017.md)与[派前回执](dispatch/wave1/FIXTURE-READY-REPORT.md)给出实际证据。D只在自己的.local创建合成夹具，不扫描/分类/删除；权限/取消计划仅为未来验收输入。
+- B/C状态和原A/B/C工具/冻结锁不改；总控只读复核、架构与验收，未自动启动实现者。正式核心边界在NEXT-CORE-DRAFT，尚非可派票。
 
 ## B/C补充单01复验（2026-10-17，当前）
 

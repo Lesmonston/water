@@ -1,0 +1,42 @@
+{
+  "recordedAt": "2026-10-17T09:22:18.471Z",
+  "productTestsRun": false,
+  "checks": [
+    {
+      "name": "project",
+      "command": "node scripts/verify-project.mjs --with-upstreams",
+      "chunk_id": "c565ee",
+      "wall_time_seconds": 4.6753695,
+      "exit_code": 0,
+      "original_token_count": 94,
+      "output": "{\n  \"status\": \"passed\",\n  \"markdownFiles\": 59,\n  \"localLinks\": 223,\n  \"pinnedSourceLinks\": 182,\n  \"externalPinnedSourceLinks\": 4,\n  \"dispatchRegistryTasks\": 4,\n  \"workflowSourceRecords\": 14,\n  \"upstreams\": 5,\n  \"checkedLocalSnapshots\": 5,\n  \"mode\": \"with-upstreams\",\n  \"boundary\": \"Metadata, provenance and handoff checks only; no upstream runtime or cleanup safety test.\"\n}\n"
+    },
+    {
+      "name": "fixture-assets",
+      "command": "node scripts/verify-fixture-assets.mjs",
+      "chunk_id": "1078d8",
+      "wall_time_seconds": 0.4842484,
+      "exit_code": 0,
+      "original_token_count": 33,
+      "output": "{\n  \"status\": \"passed\",\n  \"cases\": 11,\n  \"nodes\": 57,\n  \"contentBytes\": 575,\n  \"negativeCases\": 18,\n  \"productTestsRun\": false\n}\n"
+    },
+    {
+      "name": "syntax-whitespace",
+      "command": "node --check scripts/fixture-check.mjs; node --check scripts/verify-fixture-assets.mjs; git diff --check",
+      "chunk_id": "1646e2",
+      "wall_time_seconds": 0.6377943,
+      "exit_code": 0,
+      "original_token_count": 0,
+      "output": ""
+    },
+    {
+      "name": "preservation",
+      "command": "Node SHA256 and assignment preservation audit",
+      "chunk_id": "72e62f",
+      "wall_time_seconds": 2.3407431,
+      "exit_code": 0,
+      "original_token_count": 40,
+      "output": "{\n  \"status\": \"passed\",\n  \"scanFrozenFiles\": 9,\n  \"parallelFrozenFiles\": 9,\n  \"fixtureFrozenFiles\": 8,\n  \"aAndDTreesClean\": true,\n  \"productTestsRun\": false\n}\n"
+    }
+  ]
+}
