@@ -9,6 +9,7 @@ const ids = (rows) => rows.map((row) => row.id);
 const select = (options = {}, rows = findings) => selectFindings(rows, {
   query: '', tool: 'all', category: 'all', risk: 'all', sort: 'size_desc', ...options,
 });
+const finding = (id, title, logical_bytes) => ({ ...findings[0], id, title, logical_bytes });
 
 test('prototype_bigint_order', () => {
   assert.deepEqual(ids(select({ sort: 'size_asc' })), [
@@ -26,6 +27,35 @@ test('prototype_bigint_order', () => {
   assert.deepEqual(ids(select({ sort: 'size_asc' }, ties)), ['zero', 'first', 'second', 'null']);
   assert.deepEqual(ids(select({ sort: 'size_desc' }, ties)), ['first', 'second', 'zero', 'null']);
   assert.deepEqual(ids(select({ sort: 'name_asc' }, ties)), ['first', 'second', 'zero', 'null']);
+  const unknownNames = [
+    finding('unknown-z', 'z', null),
+    finding('unknown-a', 'a', null),
+    finding('known', 'm', '1'),
+  ];
+  assert.deepEqual(ids(select({ sort: 'name_asc' }, unknownNames)), ['known', 'unknown-a', 'unknown-z'],
+    'name_asc must sort titles within the unknown-size group');
+  const mixedNames = [
+    finding('unknown-z-first', 'z', null),
+    finding('known-m', 'm', '2'),
+    finding('unknown-a-first', 'a', null),
+    finding('known-b-first', 'B', '1'),
+    finding('unknown-a-second', 'A', null),
+    finding('known-b-second', 'b', '1'),
+    finding('unknown-z-second', 'Z', null),
+  ];
+  const mixedBefore = structuredClone(mixedNames);
+  assert.deepEqual(ids(select({ sort: 'name_asc' }, mixedNames)), [
+    'known-b-first', 'known-b-second', 'known-m',
+    'unknown-a-first', 'unknown-a-second', 'unknown-z-first', 'unknown-z-second',
+  ], 'name_asc sorts both groups and preserves case-insensitive name ties');
+  const stableUnknowns = ['unknown-z-first', 'unknown-a-first', 'unknown-a-second', 'unknown-z-second'];
+  assert.deepEqual(ids(select({ sort: 'size_asc' }, mixedNames)), [
+    'known-b-first', 'known-b-second', 'known-m', ...stableUnknowns,
+  ], 'size_asc keeps all unknowns last in input order');
+  assert.deepEqual(ids(select({ sort: 'size_desc' }, mixedNames)), [
+    'known-m', 'known-b-first', 'known-b-second', ...stableUnknowns,
+  ], 'size_desc keeps all unknowns last in input order');
+  assert.deepEqual(mixedNames, mixedBefore, 'sorting constructed unknown groups must not mutate input');
   const named = select({ sort: 'name_asc' });
   assert.equal(named.at(-1).id, 'vector-data');
   for (let i = 1; i < named.length - 1; i++) {

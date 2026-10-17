@@ -4,12 +4,13 @@ export function selectFindings(findings, {
 } = {}) {
   const needle = query.toLowerCase();
   const sorted = [...findings].sort((a, b) => {
-    if (a.logical_bytes === null) return b.logical_bytes === null ? 0 : 1;
-    if (b.logical_bytes === null) return -1;
+    const aUnknown = a.logical_bytes === null, bUnknown = b.logical_bytes === null;
+    if (aUnknown !== bUnknown) return aUnknown ? 1 : -1;
     if (sort === 'name_asc') {
       const left = a.title.toLowerCase(), right = b.title.toLowerCase();
       return left < right ? -1 : left > right ? 1 : 0;
     }
+    if (aUnknown) return 0;
     const left = BigInt(a.logical_bytes), right = BigInt(b.logical_bytes);
     const order = left < right ? -1 : left > right ? 1 : 0;
     return sort === 'size_asc' ? order : -order;
