@@ -1,0 +1,61 @@
+{"binary":"C:\\Users\\37310\\.rustup\\toolchains\\1.95.0-x86_64-pc-windows-msvc\\bin\\cargo.exe","argv":["test","--offline","--locked","--manifest-path","F:\\new\\smaltalk\\water\\.worktrees\\j\\packages\\lab-session\\Cargo.toml","-p","water-lab-session","--test","session_v1","--","--test-threads=1","--format","pretty"],"exitCode":101,"error":null,"log":"2026-10-17T16-40-44.106Z-20696-red-behavior-expected-red.log"}
+--- stdout ---
+
+running 5 tests
+test session_cancellation_and_progress ... FAILED
+test session_errors_and_bounds ... FAILED
+test session_identity_and_protection ... FAILED
+test session_native_composition ... FAILED
+test session_snapshot_wire ... FAILED
+
+failures:
+
+---- session_cancellation_and_progress stdout ----
+
+thread 'session_cancellation_and_progress' (12248) panicked at tests\session_v1.rs:58:12:
+J_BEHAVIOR: controlled public entry must compose a successful snapshot: SessionError { code: OpenRejected, field: "/open" }
+note: run with `RUST_BACKTRACE=1` environment variable to display a backtrace
+
+---- session_errors_and_bounds stdout ----
+J physical negative cases=6
+
+thread 'session_errors_and_bounds' (37300) panicked at tests\session_v1.rs:490:5:
+assertion `left == right` failed
+  left: SessionError { code: OpenRejected, field: "/open" }
+ right: SessionError { code: AssemblyRejected, field: "/assembly" }
+
+---- session_identity_and_protection stdout ----
+
+thread 'session_identity_and_protection' (36232) panicked at tests\session_v1.rs:58:12:
+J_BEHAVIOR: controlled public entry must compose a successful snapshot: SessionError { code: OpenRejected, field: "/open" }
+
+---- session_native_composition stdout ----
+
+thread 'session_native_composition' (37856) panicked at tests\session_v1.rs:58:12:
+J_BEHAVIOR: controlled public entry must compose a successful snapshot: SessionError { code: OpenRejected, field: "/open" }
+
+---- session_snapshot_wire stdout ----
+
+thread 'session_snapshot_wire' (36452) panicked at tests\session_v1.rs:58:12:
+J_BEHAVIOR: controlled public entry must compose a successful snapshot: SessionError { code: OpenRejected, field: "/open" }
+
+
+failures:
+    session_cancellation_and_progress
+    session_errors_and_bounds
+    session_identity_and_protection
+    session_native_composition
+    session_snapshot_wire
+
+test result: FAILED. 0 passed; 5 failed; 0 ignored; 0 measured; 0 filtered out; finished in 0.02s
+
+
+--- stderr ---
+   Compiling water-report-view v0.1.0 (F:\new\smaltalk\water\.worktrees\j\packages\report-view)
+   Compiling water-scan-report v0.1.0 (F:\new\smaltalk\water\.worktrees\j\packages\scan-report)
+   Compiling water-scan v0.1.0 (F:\new\smaltalk\water\.worktrees\j\packages\fixture-scan)
+   Compiling water-summary-export v0.1.0 (F:\new\smaltalk\water\.worktrees\j\packages\summary-export)
+   Compiling water-lab-session v0.1.0 (F:\new\smaltalk\water\.worktrees\j\packages\lab-session)
+    Finished `test` profile [unoptimized + debuginfo] target(s) in 12.59s
+     Running tests\session_v1.rs (.local\j-target\debug\deps\session_v1-32c79d9348e6b053.exe)
+error: test failed, to rerun pass `-p water-lab-session --test session_v1`

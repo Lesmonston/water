@@ -1,0 +1,984 @@
+#![forbid(unsafe_code)]
+
+use serde_json::{Value, json};
+use std::cell::RefCell;
+use std::ffi::OsString;
+use std::path::Path;
+use water_contracts::v1::{
+    self as contract, Activity, AggregateMethod, Category, Confidence, Coverage, OpaqueId,
+    Platform, ProtectionReason, Recoverability, ReferenceState, Risk, ScanStatus, ScopeOrigin,
+    SharedState,
+};
+use water_lab_session::v1::{
+    SessionError, SessionErrorCode, SessionSnapshot, inspect_fixture, inspect_fixture_with_io,
+    to_json,
+};
+use water_scan::fixture_v1::*;
+use water_scan_report::v1::{ReportContext, ScopeContext, assemble_json};
+
+fn index() -> Value {
+    let root = Path::new(env!("CARGO_MANIFEST_DIR"))
+        .parent()
+        .unwrap()
+        .parent()
+        .unwrap();
+    let expected = root.join(".local/checks/WATER-W1-F/active-fixtures.json");
+    let supplied = std::env::var_os("WATER_SESSION_FIXTURE_INDEX").expect("frozen helper index");
+    assert_eq!(Path::new(&supplied), expected);
+    let value: Value = serde_json::from_str(&std::fs::read_to_string(expected).unwrap()).unwrap();
+    assert_eq!(value["index_version"], "water.scan-lab-fixtures.v1");
+    assert_eq!(Path::new(value["worktree"].as_str().unwrap()), root);
+    assert_eq!(value["runs"].as_array().unwrap().len(), 11);
+    assert_eq!(value["negative"].as_array().unwrap().len(), 6);
+    value
+}
+
+fn run_data<'a>(index: &'a Value, case: &str) -> &'a Value {
+    index["runs"]
+        .as_array()
+        .unwrap()
+        .iter()
+        .find(|run| run["case_id"] == case)
+        .unwrap()
+}
+
+fn run_id(run: &Value) -> &str {
+    run["run_id"].as_str().unwrap()
+}
+
+fn scan_id() -> OpaqueId {
+    OpaqueId::new("session-test-declaration").unwrap()
+}
+
+fn options() -> ScanOptions {
+    ScanOptions::new(16, 128, 1024).unwrap()
+}
+
+fn accepted(result: Result<SessionSnapshot, SessionError>) -> SessionSnapshot {
+    result.expect("J_BEHAVIOR: controlled public entry must compose a successful snapshot")
+}
+
+fn native(run: &Value, options: &ScanOptions) -> SessionSnapshot {
+    accepted(inspect_fixture(
+        run_id(run),
+        &scan_id(),
+        options,
+        &CancelToken::new(),
+    ))
+}
+
+fn direct(run: &Value, options: &ScanOptions) -> ScanFacts {
+    let fixture = open_fixture_run(run_id(run)).unwrap();
+    scan_fixture(&fixture, options, &CancelToken::new()).unwrap()
+}
+
+fn platform() -> Platform {
+    if cfg!(target_os = "windows") {
+        Platform::Windows
+    } else {
+        assert!(cfg!(target_os = "macos"));
+        Platform::Macos
+    }
+}
+
+fn assert_composition(snapshot: &SessionSnapshot, facts: &ScanFacts, id: &OpaqueId) {
+    let input = serde_json::to_string(facts).unwrap();
+    assert_eq!(
+        snapshot.source_facts(),
+        &serde_json::to_value(facts).unwrap(),
+        "J_FACTS_PRESERVED: complete facts, identities, depths and issue provenance"
+    );
+    assert!(
+        snapshot.summary().totals.logical_bytes.is_none(),
+        "J_SUMMARY_UNKNOWN: unknown logical total remains null"
+    );
+    let context = ReportContext {
+        scan_id: id.clone(),
+        platform: platform(),
+        scopes: facts
+            .scopes
+            .iter()
+            .map(|scope| ScopeContext {
+                scope_id: scope.scope_id.clone(),
+                label: format!("Synthetic {}", scope.scope_id.as_str()),
+                origin: ScopeOrigin::UserSelected,
+            })
+            .collect(),
+    };
+    let bundle = assemble_json(&input, &context).unwrap();
+    let report = contract::parse_report(&contract::to_json(bundle.report()).unwrap()).unwrap();
+    contract::validate_report(snapshot.report()).unwrap();
+    assert_eq!(snapshot.report(), &report);
+    let view = water_report_view::v1::project_report(&report).unwrap();
+    let summary = water_summary_export::v1::summarize_report(&report).unwrap();
+    assert_eq!(snapshot.view(), &view);
+    assert_eq!(snapshot.summary(), &summary);
+    let expected = json!({
+        "session_version": "water.lab-session.v1",
+        "data_kind": "controlled_fixture_metadata",
+        "source_facts": bundle.source_facts(),
+        "report": report,
+        "view": view,
+        "summary": summary
+    });
+    assert_eq!(serde_json::to_value(snapshot).unwrap(), expected);
+    let encoded = to_json(snapshot).unwrap();
+    assert!(encoded.len() <= 16_777_216);
+    assert_eq!(serde_json::from_str::<Value>(&encoded).unwrap(), expected);
+}
+
+#[derive(Debug)]
+struct Call {
+    operation: &'static str,
+    scope: String,
+    path: String,
+    limit: Option<usize>,
+}
+
+#[derive(Default)]
+struct Trace {
+    calls: RefCell<Vec<Call>>,
+    fault: Option<(&'static str, &'static str, IoFaultKind)>,
+    invalid_file_size: bool,
+}
+
+impl Trace {
+    fn fault(operation: &'static str, path: &'static str, kind: IoFaultKind) -> Self {
+        Self {
+            fault: Some((operation, path, kind)),
+            ..Self::default()
+        }
+    }
+
+    fn record(
+        &self,
+        operation: &'static str,
+        node: &ScanNodePath,
+        limit: Option<usize>,
+    ) -> Result<(), IoFault> {
+        let debug = format!("{node:?}");
+        assert!(!debug.contains(".local") && !debug.contains(env!("CARGO_MANIFEST_DIR")));
+        self.calls.borrow_mut().push(Call {
+            operation,
+            scope: node.scope_id().as_str().to_owned(),
+            path: node.run_relative_path().as_str().to_owned(),
+            limit,
+        });
+        if let Some((op, path, kind)) = &self.fault
+            && operation == *op
+            && node.run_relative_path().as_str() == *path
+        {
+            return Err(IoFault {
+                kind: kind.clone(),
+                injected: true,
+            });
+        }
+        Ok(())
+    }
+
+    fn has(&self, operation: &str, path: &str) -> bool {
+        self.calls
+            .borrow()
+            .iter()
+            .any(|call| call.operation == operation && call.path == path)
+    }
+}
+
+impl ReadOnlyIo for Trace {
+    fn inspect(&self, node: &ScanNodePath) -> Result<NodeMetadata, IoFault> {
+        self.record("inspect", node, None)?;
+        let mut metadata = NativeIo.inspect(node)?;
+        // Only this deliberately invalid trusted metadata adapter changes a length.
+        if self.invalid_file_size && metadata.kind == EntryKind::File {
+            metadata.logical_bytes = None;
+        }
+        Ok(metadata)
+    }
+
+    fn list_names(&self, node: &ScanNodePath, limit: usize) -> Result<Vec<OsString>, IoFault> {
+        self.record("read_dir", node, Some(limit))?;
+        NativeIo.list_names(node, limit)
+    }
+}
+
+struct Observer {
+    cancel: CancelToken,
+    after: u32,
+    progress: RefCell<Vec<ScanProgress>>,
+}
+
+impl Observer {
+    fn new(cancel: &CancelToken, after: u32) -> Self {
+        Self {
+            cancel: cancel.clone(),
+            after,
+            progress: RefCell::new(Vec::new()),
+        }
+    }
+}
+
+impl ScanObserver for Observer {
+    fn on_entry(&self, progress: &ScanProgress) {
+        self.progress.borrow_mut().push(progress.clone());
+        if progress.recorded_entries == self.after {
+            self.cancel.cancel();
+        }
+    }
+}
+
+fn observed(
+    run: &Value,
+    options: &ScanOptions,
+    after: u32,
+) -> (SessionSnapshot, Vec<ScanProgress>) {
+    let cancel = CancelToken::new();
+    let observer = Observer::new(&cancel, after);
+    let snapshot = accepted(inspect_fixture_with_io(
+        run_id(run),
+        &scan_id(),
+        options,
+        &cancel,
+        &NativeIo,
+        &observer,
+    ));
+    let direct_cancel = CancelToken::new();
+    let direct_observer = Observer::new(&direct_cancel, after);
+    let fixture = open_fixture_run(run_id(run)).unwrap();
+    let facts = scan_fixture_with_io(
+        &fixture,
+        options,
+        &direct_cancel,
+        &NativeIo,
+        &direct_observer,
+    )
+    .unwrap();
+    assert_eq!(
+        snapshot.report().status,
+        facts.status,
+        "J_CANCEL_SHARED: observer uses caller token"
+    );
+    assert_eq!(cancel.is_cancelled(), direct_cancel.is_cancelled());
+    assert_eq!(
+        *observer.progress.borrow(),
+        *direct_observer.progress.borrow()
+    );
+    assert_composition(&snapshot, &facts, &scan_id());
+    let progress = observer.progress.into_inner();
+    (snapshot, progress)
+}
+
+fn paths(snapshot: &SessionSnapshot, scope: usize) -> Vec<&str> {
+    snapshot.source_facts()["scopes"][scope]["entries"]
+        .as_array()
+        .unwrap()
+        .iter()
+        .map(|entry| entry["relative_path"].as_str().unwrap())
+        .collect()
+}
+
+#[test]
+fn session_native_composition() {
+    let index = index();
+    let matrix: Value =
+        serde_json::from_str(include_str!("../../../contracts/scan-lab-v1/matrix.json")).unwrap();
+    let mut entries = 0;
+    let mut scopes = 0;
+    let mut unsupported = 0;
+    for (run, expected) in index["runs"]
+        .as_array()
+        .unwrap()
+        .iter()
+        .zip(matrix["cases"].as_array().unwrap())
+    {
+        assert_eq!(run["case_id"], expected["case_id"]);
+        let opts = ScanOptions::new(
+            expected["options"]["max_depth"].as_u64().unwrap() as u32,
+            expected["options"]["max_entries"].as_u64().unwrap() as u32,
+            expected["options"]["max_dir_entries"].as_u64().unwrap() as u32,
+        )
+        .unwrap();
+        let snapshot = native(run, &opts);
+        let facts = direct(run, &opts);
+        assert_composition(&snapshot, &facts, &scan_id());
+        for (actual, expected_scope) in facts
+            .scopes
+            .iter()
+            .zip(expected["scopes"].as_array().unwrap())
+        {
+            let available: Vec<Value> = expected_scope["native_entries"]
+                .as_array()
+                .unwrap()
+                .iter()
+                .filter_map(|entry| {
+                    let node = run["nodes"]
+                        .as_array()
+                        .unwrap()
+                        .iter()
+                        .find(|node| node["path"] == entry["run_relative_path"])
+                        .unwrap();
+                    if node["status"] != "created" {
+                        assert_eq!(node["status"], "unsupported");
+                        unsupported += 1;
+                        return None;
+                    }
+                    Some(
+                        json!({"relative_path": entry["relative_path"], "depth": entry["depth"],
+                        "kind": entry["kind"], "logical_bytes": entry["logical_bytes"]}),
+                    )
+                })
+                .collect();
+            let observed: Vec<Value> = actual
+                .entries
+                .iter()
+                .map(|entry| {
+                    json!({
+                        "relative_path": entry.relative_path, "depth": entry.depth,
+                        "kind": entry.kind, "logical_bytes": entry.logical_bytes
+                    })
+                })
+                .collect();
+            assert_eq!(observed, available, "{}", run["case_id"]);
+            assert_eq!(
+                actual.scope_id.as_str(),
+                expected_scope["scope_id"].as_str().unwrap()
+            );
+            assert_eq!(
+                actual.relative_root.as_str(),
+                expected_scope["relative_root"].as_str().unwrap()
+            );
+            assert_eq!(
+                serde_json::to_value(actual.coverage).unwrap(),
+                expected_scope["native_coverage"]
+            );
+            assert_eq!(
+                serde_json::to_value(&actual.issues).unwrap(),
+                expected_scope["native_issues"]
+            );
+            assert_eq!(actual.visited_entries as usize, observed.len());
+            entries += actual.entries.len();
+            scopes += 1;
+        }
+        assert_eq!(
+            facts.scopes.len(),
+            expected["scopes"].as_array().unwrap().len()
+        );
+        assert_eq!(
+            facts.recorded_entries as usize,
+            snapshot.report().findings.len()
+        );
+        assert_eq!(
+            snapshot.report().totals.scanned_entries,
+            facts.recorded_entries
+        );
+        assert_eq!(
+            snapshot.report().totals.skipped_entries,
+            facts.visited_entries - facts.recorded_entries
+        );
+        for (scope, fact) in snapshot.report().scopes.iter().zip(&facts.scopes) {
+            assert_eq!(scope.scope_id, fact.scope_id);
+            assert_eq!(scope.coverage, fact.coverage);
+            assert_eq!(scope.label, format!("Synthetic {}", fact.scope_id.as_str()));
+            assert_eq!(scope.origin, ScopeOrigin::UserSelected);
+            assert_eq!(scope.platform, platform());
+        }
+    }
+    assert_eq!(scopes, 12);
+    assert_eq!(entries + unsupported, 39);
+    eprintln!(
+        "J native cases=11 scopes={scopes} entries={entries} unsupported_entries={unsupported}"
+    );
+}
+
+#[test]
+fn session_cancellation_and_progress() {
+    let index = index();
+    let overlap = run_data(&index, "overlapping-scopes");
+    let token = CancelToken::new();
+    token.clone().cancel();
+    let io = Trace::default();
+    let observer = Observer::new(&token, u32::MAX);
+    let snapshot = accepted(inspect_fixture_with_io(
+        run_id(overlap),
+        &scan_id(),
+        &ScanOptions::new(0, 1, 1).unwrap(),
+        &token,
+        &io,
+        &observer,
+    ));
+    assert_eq!(
+        snapshot.report().status,
+        ScanStatus::Cancelled,
+        "J_CANCEL_SHARED: pre-cancelled clone"
+    );
+    assert!(
+        io.calls.borrow().is_empty(),
+        "J_CANCEL_SHARED: no scanning IO after opening"
+    );
+    assert!(observer.progress.borrow().is_empty());
+    assert!(snapshot.report().findings.is_empty());
+    for scope in snapshot.source_facts()["scopes"].as_array().unwrap() {
+        assert_eq!(scope["coverage"], "cancelled");
+        assert_eq!(scope["entries"], json!([]));
+        assert_eq!(
+            scope["issues"],
+            json!([{"code":"cancelled", "relative_path":null,
+            "origin":"control", "operation":"cancel"}])
+        );
+    }
+    let default = accepted(inspect_fixture(
+        run_id(overlap),
+        &scan_id(),
+        &options(),
+        &token,
+    ));
+    let fixture = open_fixture_run(run_id(overlap)).unwrap();
+    let facts = scan_fixture(&fixture, &options(), &token).unwrap();
+    assert_composition(&default, &facts, &scan_id());
+
+    let flat = run_data(&index, "cancel-plan");
+    for max_entries in [1, 128] {
+        let (snapshot, progress) =
+            observed(flat, &ScanOptions::new(16, max_entries, 1024).unwrap(), 1);
+        assert_eq!(snapshot.report().status, ScanStatus::Cancelled);
+        assert_eq!(paths(&snapshot, 0), ["a.txt"]);
+        assert_eq!(progress.len(), 1);
+        assert_eq!(
+            (progress[0].visited_entries, progress[0].recorded_entries),
+            (1, 1)
+        );
+    }
+    let (last, progress) = observed(flat, &ScanOptions::new(16, 3, 1024).unwrap(), 3);
+    assert_eq!(last.report().status, ScanStatus::Completed);
+    assert!(last.report().issues.is_empty());
+    assert_eq!(
+        progress
+            .iter()
+            .map(|p| (p.visited_entries, p.recorded_entries))
+            .collect::<Vec<_>>(),
+        [(1, 1), (2, 2), (3, 3)]
+    );
+
+    let (first_directory, _) = observed(overlap, &ScanOptions::new(1, 1, 1024).unwrap(), 1);
+    assert_eq!(paths(&first_directory, 0), ["nested"]);
+    assert_eq!(first_directory.report().status, ScanStatus::Cancelled);
+    assert!(
+        first_directory
+            .report()
+            .issues
+            .iter()
+            .all(|issue| issue.code == contract::IssueCode::Cancelled)
+    );
+    let (cross, progress) = observed(overlap, &options(), 3);
+    assert_eq!(cross.report().scopes[0].coverage, Coverage::Complete);
+    assert_eq!(cross.report().scopes[1].coverage, Coverage::Cancelled);
+    assert_eq!(paths(&cross, 1).len(), 0);
+    assert_eq!(progress.len(), 3);
+    let (all, progress) = observed(overlap, &options(), u32::MAX);
+    assert_eq!(all.report().status, ScanStatus::Completed);
+    assert_eq!(progress.len(), 4);
+    assert_eq!(progress[3].scope_id.as_str(), "scope-inner");
+    for (i, item) in progress.iter().enumerate() {
+        assert_eq!(item.visited_entries as usize, i + 1);
+        assert_eq!(item.recorded_entries as usize, i + 1);
+        let finding = &all.report().findings[i];
+        assert_eq!(item.scope_id, finding.scope_id);
+        assert_eq!(item.relative_path, finding.relative_path);
+    }
+}
+
+fn assert_error(error: SessionError, code: SessionErrorCode, field: &'static str) {
+    assert_eq!(
+        error,
+        SessionError {
+            code: code.clone(),
+            field
+        }
+    );
+    assert_eq!(error.to_string(), format!("{code:?} at {field}"));
+    assert_eq!(error.clone(), error);
+    assert!(std::error::Error::source(&error).is_none());
+    let display = format!("{error} {error:?}");
+    for forbidden in [
+        "CANARY_PRIVATE",
+        "run-",
+        ".local",
+        "marker",
+        "scope/",
+        "F:",
+        "C:",
+    ] {
+        assert!(!display.contains(forbidden));
+    }
+}
+
+#[test]
+fn session_errors_and_bounds() {
+    let index = index();
+    let negatives: Value = serde_json::from_str(include_str!(
+        "../../../contracts/scan-lab-v1/negative-inputs.json"
+    ))
+    .unwrap();
+    let id = OpaqueId::new("CANARY_PRIVATE-declaration").unwrap();
+    for run in negatives["invalid_run_ids"]
+        .as_array()
+        .unwrap()
+        .iter()
+        .map(|value| value.as_str().unwrap())
+        .chain(["../CANARY_PRIVATE", "run-CANARY_PRIVATE"])
+    {
+        let io = Trace::default();
+        assert_error(
+            inspect_fixture_with_io(
+                run,
+                &id,
+                &options(),
+                &CancelToken::new(),
+                &io,
+                &NoopObserver,
+            )
+            .unwrap_err(),
+            SessionErrorCode::OpenRejected,
+            "/open",
+        );
+        assert!(io.calls.borrow().is_empty());
+    }
+    let mut created = 0;
+    for item in index["negative"].as_array().unwrap() {
+        if item["status"] == "unsupported" {
+            assert!(["linked_run", "linked_ancestor"].contains(&item["id"].as_str().unwrap()));
+            assert!(
+                ["EPERM", "EACCES", "ENOSYS", "ENOTSUP", "EOPNOTSUPP"]
+                    .contains(&item["error_code"].as_str().unwrap())
+            );
+            eprintln!(
+                "J negative unsupported: {} {}",
+                item["id"], item["error_code"]
+            );
+            continue;
+        }
+        assert_eq!(item["status"], "created");
+        let io = Trace::default();
+        assert_error(
+            inspect_fixture_with_io(
+                run_id(item),
+                &id,
+                &options(),
+                &CancelToken::new(),
+                &io,
+                &NoopObserver,
+            )
+            .unwrap_err(),
+            SessionErrorCode::OpenRejected,
+            "/open",
+        );
+        assert!(io.calls.borrow().is_empty());
+        created += 1;
+    }
+    assert!(created >= 4);
+    eprintln!("J physical negative cases={created}");
+    let flat = run_data(&index, "cancel-plan");
+    let io = Trace {
+        invalid_file_size: true,
+        ..Trace::default()
+    };
+    assert_error(
+        inspect_fixture_with_io(
+            run_id(flat),
+            &id,
+            &options(),
+            &CancelToken::new(),
+            &io,
+            &NoopObserver,
+        )
+        .unwrap_err(),
+        SessionErrorCode::AssemblyRejected,
+        "/assembly",
+    );
+    assert!(io.has("inspect", "scope/a.txt"));
+
+    for (opts, count, status, code, operation) in [
+        (
+            ScanOptions::new(0, 128, 1024).unwrap(),
+            0,
+            ScanStatus::Partial,
+            Some("depth_limit"),
+            "budget",
+        ),
+        (
+            ScanOptions::new(16, 2, 1024).unwrap(),
+            2,
+            ScanStatus::Partial,
+            Some("entry_limit"),
+            "budget",
+        ),
+        (
+            ScanOptions::new(16, 3, 1024).unwrap(),
+            3,
+            ScanStatus::Completed,
+            None,
+            "budget",
+        ),
+        (
+            ScanOptions::new(16, 128, 1).unwrap(),
+            0,
+            ScanStatus::Partial,
+            Some("entry_limit"),
+            "read_dir",
+        ),
+    ] {
+        let io = Trace::default();
+        let snapshot = accepted(inspect_fixture_with_io(
+            run_id(flat),
+            &scan_id(),
+            &opts,
+            &CancelToken::new(),
+            &io,
+            &NoopObserver,
+        ));
+        assert_eq!(snapshot.report().status, status);
+        assert_eq!(snapshot.report().findings.len(), count);
+        assert_composition(&snapshot, &direct(flat, &opts), &scan_id());
+        if let Some(code) = code {
+            assert_eq!(
+                snapshot.source_facts()["scopes"][0]["issues"][0],
+                json!({
+                    "code":code, "relative_path":"", "origin":"policy", "operation":operation
+                })
+            );
+        }
+        if count < 3 {
+            assert!(!io.has("inspect", "scope/c.txt"));
+        }
+        for call in io
+            .calls
+            .borrow()
+            .iter()
+            .filter(|call| call.operation == "read_dir")
+        {
+            assert_eq!(call.limit, Some(opts.max_dir_entries() as usize));
+        }
+    }
+    let overlap = run_data(&index, "overlapping-scopes");
+    let opts = ScanOptions::new(16, 3, 1024).unwrap();
+    let budget = native(overlap, &opts);
+    assert_eq!(budget.report().status, ScanStatus::Partial);
+    assert_eq!(budget.report().scopes[0].coverage, Coverage::Complete);
+    assert_eq!(budget.report().scopes[1].coverage, Coverage::Partial);
+    assert!(paths(&budget, 1).is_empty());
+    assert_composition(&budget, &direct(overlap, &opts), &scan_id());
+
+    // Display contracts for unreachable variants are type checks, not runtime branch coverage.
+    for (code, field) in [
+        (SessionErrorCode::OpenRejected, "/open"),
+        (SessionErrorCode::ScanRejected, "/scan"),
+        (SessionErrorCode::AssemblyRejected, "/assembly"),
+        (SessionErrorCode::ProjectionRejected, "/view"),
+        (SessionErrorCode::SummaryRejected, "/summary"),
+        (SessionErrorCode::SnapshotTooLarge, "/snapshot"),
+        (SessionErrorCode::SerializationFailed, "/snapshot"),
+    ] {
+        assert_error(
+            SessionError {
+                code: code.clone(),
+                field,
+            },
+            code,
+            field,
+        );
+    }
+}
+
+fn faulted(
+    run: &Value,
+    operation: &'static str,
+    path: &'static str,
+    kind: IoFaultKind,
+) -> SessionSnapshot {
+    let io = Trace::fault(operation, path, kind.clone());
+    let snapshot = accepted(inspect_fixture_with_io(
+        run_id(run),
+        &scan_id(),
+        &options(),
+        &CancelToken::new(),
+        &io,
+        &NoopObserver,
+    ));
+    let fixture = open_fixture_run(run_id(run)).unwrap();
+    let facts = scan_fixture_with_io(
+        &fixture,
+        &options(),
+        &CancelToken::new(),
+        &Trace::fault(operation, path, kind),
+        &NoopObserver,
+    )
+    .unwrap();
+    assert_composition(&snapshot, &facts, &scan_id());
+    snapshot
+}
+
+#[test]
+fn session_identity_and_protection() {
+    let index = index();
+    for run in index["runs"].as_array().unwrap() {
+        let snapshot = native(run, &options());
+        let facts = direct(run, &options());
+        assert_composition(&snapshot, &facts, &scan_id());
+        assert_eq!(
+            snapshot.report().totals.method,
+            AggregateMethod::Unavailable
+        );
+        assert!(snapshot.report().totals.logical_bytes.is_none());
+        assert!(snapshot.report().totals.allocated_bytes.is_none());
+        assert_eq!(snapshot.summary().totals, snapshot.report().totals);
+        assert_eq!(
+            snapshot.summary().counts.findings as usize,
+            snapshot.report().findings.len()
+        );
+        assert_eq!(
+            snapshot.summary().category_counts.unknown,
+            facts.recorded_entries
+        );
+        assert_eq!(
+            snapshot.summary().risk_counts.protected,
+            facts.recorded_entries
+        );
+        for (finding, entry) in snapshot
+            .report()
+            .findings
+            .iter()
+            .zip(facts.scopes.iter().flat_map(|scope| &scope.entries))
+        {
+            assert_eq!(finding.category, Category::Unknown);
+            assert_eq!(finding.risk, Risk::Protected);
+            assert_eq!(finding.recoverability, Recoverability::Unknown);
+            assert_eq!(finding.activity, Activity::Unknown);
+            assert_eq!(finding.confidence, Confidence::Unknown);
+            assert!(finding.tool.is_none());
+            assert_eq!(finding.references.state, ReferenceState::Unknown);
+            assert!(finding.references.project_ids.is_empty());
+            assert_eq!(finding.size.shared, SharedState::Unknown);
+            assert!(
+                finding
+                    .protection_reasons
+                    .contains(&ProtectionReason::UnknownOwnership)
+            );
+            assert!(
+                finding
+                    .protection_reasons
+                    .contains(&ProtectionReason::IncompleteEvidence)
+            );
+            assert_eq!(finding.size.logical_bytes, entry.logical_bytes);
+            assert!(finding.size.allocated_bytes.is_none() && entry.allocated_bytes.is_none());
+            assert!(finding.size.reclaimable_lower_bytes.is_none());
+            assert!(finding.size.reclaimable_upper_bytes.is_none());
+            assert_eq!(entry.logical_bytes.is_some(), entry.kind == EntryKind::File);
+            if cfg!(target_os = "windows") {
+                assert_eq!(entry.identity.kind, IdentityKind::Unknown);
+                assert!(entry.identity.device.is_none());
+                assert!(entry.identity.inode.is_none());
+                assert!(entry.identity.link_count.is_none());
+            }
+        }
+    }
+    let overlap = native(run_data(&index, "overlapping-scopes"), &options());
+    assert_eq!(overlap.report().findings.len(), 4);
+    assert_eq!(
+        paths(&overlap, 0),
+        ["nested", "nested/shared.txt", "root.txt"]
+    );
+    assert_eq!(paths(&overlap, 1), ["shared.txt"]);
+    assert_ne!(
+        overlap.report().findings[1].finding_id,
+        overlap.report().findings[3].finding_id
+    );
+    assert_eq!(
+        overlap.report().findings[1].size.logical_bytes,
+        overlap.report().findings[3].size.logical_bytes
+    );
+    assert!(
+        overlap.report().findings[0]
+            .protection_reasons
+            .contains(&ProtectionReason::ProtectedDescendant)
+    );
+    let hardlinks = run_data(&index, "hardlink-pair");
+    let pair = native(hardlinks, &options());
+    for node in hardlinks["nodes"]
+        .as_array()
+        .unwrap()
+        .iter()
+        .filter(|node| node["kind"] != "directory")
+    {
+        if node["status"] == "created" {
+            let relative = node["path"]
+                .as_str()
+                .unwrap()
+                .strip_prefix("scope/")
+                .unwrap();
+            assert!(paths(&pair, 0).contains(&relative));
+        }
+    }
+    if hardlinks["status"] == "complete" {
+        assert_eq!(paths(&pair, 0), ["alias.bin", "original.bin"]);
+        assert_eq!(
+            pair.report().findings[0].size.logical_bytes,
+            pair.report().findings[1].size.logical_bytes
+        );
+    }
+    for case in ["scope-prefix", "directory-links"] {
+        let run = run_data(&index, case);
+        let io = Trace::default();
+        let snapshot = accepted(inspect_fixture_with_io(
+            run_id(run),
+            &scan_id(),
+            &options(),
+            &CancelToken::new(),
+            &io,
+            &NoopObserver,
+        ));
+        assert_composition(&snapshot, &direct(run, &options()), &scan_id());
+        for call in io.calls.borrow().iter() {
+            assert_eq!(call.scope, "scope-1");
+            assert!(call.path == "scope" || call.path.starts_with("scope/"));
+            assert!(!call.path.starts_with("scope-prefix") && !call.path.contains("outside/"));
+        }
+        for entry in snapshot.source_facts()["scopes"][0]["entries"]
+            .as_array()
+            .unwrap()
+        {
+            if entry["kind"] == "link" {
+                let path = format!("scope/{}", entry["relative_path"].as_str().unwrap());
+                assert!(!io.has("read_dir", &path));
+            }
+        }
+    }
+
+    let permission = run_data(&index, "permission-plan");
+    let denied = faulted(
+        permission,
+        "read_dir",
+        "scope/blocked",
+        IoFaultKind::PermissionDenied,
+    );
+    assert_eq!(denied.report().status, ScanStatus::Partial);
+    assert_eq!(paths(&denied, 0), ["a.txt", "blocked"]);
+    assert_eq!(
+        denied.source_facts()["scopes"][0]["issues"],
+        json!([{
+            "code":"permission_denied", "relative_path":"blocked", "origin":"injected", "operation":"read_dir"
+        }])
+    );
+    assert_eq!(
+        denied.report().issues[0].message,
+        "Scan lab issue; origin=injected; operation=read_dir."
+    );
+    let ordinary = native(permission, &options());
+    assert_eq!(ordinary.report().status, ScanStatus::Completed);
+    assert!(paths(&ordinary, 0).contains(&"blocked/synthetic.txt"));
+    assert!(ordinary.report().issues.is_empty());
+    let changed = faulted(
+        run_data(&index, "overlapping-scopes"),
+        "inspect",
+        "scope/nested/shared.txt",
+        IoFaultKind::RootChanged,
+    );
+    assert_eq!(changed.report().status, ScanStatus::Partial);
+    assert_eq!(paths(&changed, 0), ["nested"]);
+    assert!(paths(&changed, 1).is_empty());
+    for scope in changed.source_facts()["scopes"].as_array().unwrap() {
+        assert_eq!(scope["coverage"], "partial");
+        assert_eq!(scope["issues"][0]["code"], "root_changed");
+        assert_eq!(scope["issues"][0]["origin"], "injected");
+        assert_eq!(scope["issues"][0]["operation"], "root_guard");
+    }
+    let missing = faulted(
+        run_data(&index, "cancel-plan"),
+        "inspect",
+        "scope/b.txt",
+        IoFaultKind::NotFound,
+    );
+    assert_eq!(missing.source_facts()["visited_entries"], 3);
+    assert_eq!(missing.source_facts()["recorded_entries"], 2);
+    assert_eq!(paths(&missing, 0), ["a.txt", "c.txt"]);
+    assert_eq!(missing.report().totals.skipped_entries, 1);
+}
+
+#[test]
+fn session_snapshot_wire() {
+    let index = index();
+    let cases: Value =
+        serde_json::from_str(include_str!("../../../contracts/lab-session-v1/cases.json")).unwrap();
+    let opts = options();
+    let original_opts = opts.clone();
+    let id = OpaqueId::new("wire-CANARY_PRIVATE-declaration").unwrap();
+    let original_id = id.clone();
+    for case in [
+        "project-markers",
+        "unicode-spaces",
+        "depth-budget",
+        "entry-budget",
+        "overlapping-scopes",
+    ] {
+        let run = run_data(&index, case);
+        let token = CancelToken::new();
+        let first = accepted(inspect_fixture(run_id(run), &id, &opts, &token));
+        let second = accepted(inspect_fixture_with_io(
+            run_id(run),
+            &id,
+            &opts,
+            &token,
+            &NativeIo,
+            &NoopObserver,
+        ));
+        assert_eq!(first, second);
+        assert_eq!(first.clone(), first);
+        assert_eq!(opts, original_opts);
+        assert_eq!(id, original_id);
+        assert!(!token.is_cancelled());
+        assert_composition(&first, &direct(run, &opts), &id);
+        let encoded = to_json(&first).unwrap();
+        assert_eq!(encoded, to_json(&second).unwrap());
+        assert!(encoded.len() <= cases["max_snapshot_bytes"].as_u64().unwrap() as usize);
+        let value: Value = serde_json::from_str(&encoded).unwrap();
+        let mut fields: Vec<&str> = value
+            .as_object()
+            .unwrap()
+            .keys()
+            .map(String::as_str)
+            .collect();
+        let mut expected: Vec<&str> = cases["snapshot_fields"]
+            .as_array()
+            .unwrap()
+            .iter()
+            .map(|field| field.as_str().unwrap())
+            .collect();
+        fields.sort_unstable();
+        expected.sort_unstable();
+        assert_eq!(fields, expected);
+        assert_eq!(value["session_version"], "water.lab-session.v1");
+        assert_eq!(value["data_kind"], "controlled_fixture_metadata");
+        assert_eq!(value["report"]["scan_id"], id.as_str());
+        assert_eq!(value["source_facts"]["run_id"], run["run_id"]);
+        assert_eq!(value["source_facts"]["case_id"], case);
+        assert_eq!(value["view"], serde_json::to_value(first.view()).unwrap());
+        assert_eq!(
+            value["summary"],
+            serde_json::to_value(first.summary()).unwrap()
+        );
+        let summary = value["summary"].as_object().unwrap();
+        assert_eq!(summary.len(), 8);
+        assert!(!value["summary"].to_string().contains(id.as_str()));
+        for text in [&encoded, &format!("{first:?}")] {
+            assert!(!text.contains(".local") && !text.contains(env!("CARGO_MANIFEST_DIR")));
+            assert!(!text.contains("absolute_path") && !text.contains("run_root"));
+        }
+        for entry in value["source_facts"]["scopes"]
+            .as_array()
+            .unwrap()
+            .iter()
+            .flat_map(|scope| scope["entries"].as_array().unwrap())
+        {
+            assert!(entry["logical_bytes"].is_null() || entry["logical_bytes"].is_string());
+            assert!(entry["allocated_bytes"].is_null());
+        }
+    }
+}

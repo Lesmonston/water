@@ -1,0 +1,155 @@
+//! A bounded, immutable snapshot of the controlled metadata pipeline.
+
+use serde::Serialize;
+use serde_json::Value;
+use water_contracts::v1::{self as contract, OpaqueId, Platform, ScanReport, ScopeOrigin};
+use water_report_view::v1::ReportView;
+use water_scan::fixture_v1::{
+    CancelToken, NativeIo, NoopObserver, ReadOnlyIo, ScanObserver, ScanOptions, open_fixture_run,
+    scan_fixture_with_io,
+};
+use water_scan_report::v1::{ReportContext, ScopeContext, assemble_json};
+use water_summary_export::v1::SummaryExport;
+
+const MAX_SNAPSHOT_BYTES: usize = 16_777_216;
+
+#[derive(Debug, Clone, PartialEq, Serialize)]
+pub struct SessionSnapshot {
+    session_version: &'static str,
+    data_kind: &'static str,
+    source_facts: Value,
+    report: ScanReport,
+    view: ReportView,
+    summary: SummaryExport,
+}
+
+impl SessionSnapshot {
+    pub fn source_facts(&self) -> &Value {
+        &self.source_facts
+    }
+
+    pub fn report(&self) -> &ScanReport {
+        &self.report
+    }
+
+    pub fn view(&self) -> &ReportView {
+        &self.view
+    }
+
+    pub fn summary(&self) -> &SummaryExport {
+        &self.summary
+    }
+}
+
+#[derive(Debug, Clone, PartialEq, Eq)]
+pub enum SessionErrorCode {
+    OpenRejected,
+    ScanRejected,
+    AssemblyRejected,
+    ProjectionRejected,
+    SummaryRejected,
+    SnapshotTooLarge,
+    SerializationFailed,
+}
+
+#[derive(Debug, Clone, PartialEq, Eq)]
+pub struct SessionError {
+    pub code: SessionErrorCode,
+    pub field: &'static str,
+}
+
+impl SessionError {
+    fn new(code: SessionErrorCode) -> Self {
+        let field = match code {
+            SessionErrorCode::OpenRejected => "/open",
+            SessionErrorCode::ScanRejected => "/scan",
+            SessionErrorCode::AssemblyRejected => "/assembly",
+            SessionErrorCode::ProjectionRejected => "/view",
+            SessionErrorCode::SummaryRejected => "/summary",
+            SessionErrorCode::SnapshotTooLarge | SessionErrorCode::SerializationFailed => {
+                "/snapshot"
+            }
+        };
+        Self { code, field }
+    }
+}
+
+impl std::fmt::Display for SessionError {
+    fn fmt(&self, formatter: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
+        write!(formatter, "{:?} at {}", self.code, self.field)
+    }
+}
+
+impl std::error::Error for SessionError {}
+
+pub fn inspect_fixture(
+    run_id: &str,
+    scan_id: &OpaqueId,
+    options: &ScanOptions,
+    cancel: &CancelToken,
+) -> Result<SessionSnapshot, SessionError> {
+    inspect_fixture_with_io(run_id, scan_id, options, cancel, &NativeIo, &NoopObserver)
+}
+
+pub fn inspect_fixture_with_io<I: ReadOnlyIo, O: ScanObserver>(
+    run_id: &str,
+    scan_id: &OpaqueId,
+    options: &ScanOptions,
+    cancel: &CancelToken,
+    io: &I,
+    observer: &O,
+) -> Result<SessionSnapshot, SessionError> {
+    let run =
+        open_fixture_run(run_id).map_err(|_| SessionError::new(SessionErrorCode::OpenRejected))?;
+    let facts = scan_fixture_with_io(&run, options, cancel, io, observer)
+        .map_err(|_| SessionError::new(SessionErrorCode::ScanRejected))?;
+    let input = serde_json::to_string(&facts)
+        .map_err(|_| SessionError::new(SessionErrorCode::SerializationFailed))?;
+    let context = ReportContext {
+        scan_id: scan_id.clone(),
+        // F rejects unsupported platforms before this context is constructed.
+        platform: if cfg!(target_os = "windows") {
+            Platform::Windows
+        } else {
+            Platform::Macos
+        },
+        scopes: facts
+            .scopes
+            .iter()
+            .map(|scope| ScopeContext {
+                scope_id: scope.scope_id.clone(),
+                label: format!("Synthetic {}", scope.scope_id.as_str()),
+                origin: ScopeOrigin::UserSelected,
+            })
+            .collect(),
+    };
+    let bundle = assemble_json(&input, &context)
+        .map_err(|_| SessionError::new(SessionErrorCode::AssemblyRejected))?;
+    let encoded_report = contract::to_json(bundle.report())
+        .map_err(|_| SessionError::new(SessionErrorCode::AssemblyRejected))?;
+    let report = contract::parse_report(&encoded_report)
+        .map_err(|_| SessionError::new(SessionErrorCode::AssemblyRejected))?;
+    let view = water_report_view::v1::project_report(&report)
+        .map_err(|_| SessionError::new(SessionErrorCode::ProjectionRejected))?;
+    let summary = water_summary_export::v1::summarize_report(&report)
+        .map_err(|_| SessionError::new(SessionErrorCode::SummaryRejected))?;
+    let snapshot = SessionSnapshot {
+        session_version: "water.lab-session.v1",
+        data_kind: "controlled_fixture_metadata",
+        source_facts: serde_json::json!({}),
+        report,
+        view,
+        summary,
+    };
+    to_json(&snapshot)?;
+    Ok(snapshot)
+}
+
+pub fn to_json(snapshot: &SessionSnapshot) -> Result<String, SessionError> {
+    let encoded = serde_json::to_string(snapshot)
+        .map_err(|_| SessionError::new(SessionErrorCode::SerializationFailed))?;
+    if encoded.len() > MAX_SNAPSHOT_BYTES {
+        return Err(SessionError::new(SessionErrorCode::SnapshotTooLarge));
+    }
+    Ok(encoded)
+}

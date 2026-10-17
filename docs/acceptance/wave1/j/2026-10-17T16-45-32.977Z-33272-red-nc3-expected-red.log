@@ -1,0 +1,55 @@
+{"binary":"C:\\Users\\37310\\.rustup\\toolchains\\1.95.0-x86_64-pc-windows-msvc\\bin\\cargo.exe","argv":["test","--offline","--locked","--manifest-path","F:\\new\\smaltalk\\water\\.worktrees\\j\\packages\\lab-session\\Cargo.toml","-p","water-lab-session","--test","session_v1","--","--test-threads=1","--format","pretty"],"exitCode":101,"error":null,"log":"2026-10-17T16-45-32.977Z-33272-red-nc3-expected-red.log"}
+--- stdout ---
+
+running 5 tests
+test session_cancellation_and_progress ... FAILED
+test session_errors_and_bounds ... FAILED
+test session_identity_and_protection ... FAILED
+test session_native_composition ... FAILED
+test session_snapshot_wire ... FAILED
+
+failures:
+
+---- session_cancellation_and_progress stdout ----
+
+thread 'session_cancellation_and_progress' (38116) panicked at tests\session_v1.rs:90:5:
+J_SUMMARY_UNKNOWN: unknown logical total remains null
+note: run with `RUST_BACKTRACE=1` environment variable to display a backtrace
+
+---- session_errors_and_bounds stdout ----
+J physical negative cases=6
+
+thread 'session_errors_and_bounds' (12124) panicked at tests\session_v1.rs:90:5:
+J_SUMMARY_UNKNOWN: unknown logical total remains null
+
+---- session_identity_and_protection stdout ----
+
+thread 'session_identity_and_protection' (18908) panicked at tests\session_v1.rs:90:5:
+J_SUMMARY_UNKNOWN: unknown logical total remains null
+
+---- session_native_composition stdout ----
+
+thread 'session_native_composition' (9480) panicked at tests\session_v1.rs:90:5:
+J_SUMMARY_UNKNOWN: unknown logical total remains null
+
+---- session_snapshot_wire stdout ----
+
+thread 'session_snapshot_wire' (41492) panicked at tests\session_v1.rs:90:5:
+J_SUMMARY_UNKNOWN: unknown logical total remains null
+
+
+failures:
+    session_cancellation_and_progress
+    session_errors_and_bounds
+    session_identity_and_protection
+    session_native_composition
+    session_snapshot_wire
+
+test result: FAILED. 0 passed; 5 failed; 0 ignored; 0 measured; 0 filtered out; finished in 0.15s
+
+
+--- stderr ---
+   Compiling water-lab-session v0.1.0 (F:\new\smaltalk\water\.worktrees\j\packages\lab-session)
+    Finished `test` profile [unoptimized + debuginfo] target(s) in 2.78s
+     Running tests\session_v1.rs (.local\j-target\debug\deps\session_v1-32c79d9348e6b053.exe)
+error: test failed, to rerun pass `-p water-lab-session --test session_v1`

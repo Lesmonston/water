@@ -1,0 +1,28 @@
+{"binary":"C:\\Users\\37310\\.rustup\\toolchains\\1.95.0-x86_64-pc-windows-msvc\\bin\\cargo.exe","argv":["clippy","--offline","--locked","--manifest-path","F:\\new\\smaltalk\\water\\.worktrees\\j\\packages\\lab-session\\Cargo.toml","-p","water-lab-session","--all-targets","--","-D","warnings"],"exitCode":101,"error":null,"log":"2026-10-17T16-42-00.977Z-8928-clippy-5.log"}
+--- stdout ---
+
+--- stderr ---
+    Checking serde_core v1.0.229
+    Checking zmij v1.0.23
+    Checking itoa v1.0.18
+    Checking memchr v2.8.3
+    Checking serde_json v1.0.151
+    Checking serde v1.0.229
+    Checking water-contracts v0.1.0 (F:\new\smaltalk\water\.worktrees\j\crates\water-contracts)
+    Checking water-summary-export v0.1.0 (F:\new\smaltalk\water\.worktrees\j\packages\summary-export)
+    Checking water-scan-report v0.1.0 (F:\new\smaltalk\water\.worktrees\j\packages\scan-report)
+    Checking water-report-view v0.1.0 (F:\new\smaltalk\water\.worktrees\j\packages\report-view)
+    Checking water-scan v0.1.0 (F:\new\smaltalk\water\.worktrees\j\packages\fixture-scan)
+    Checking water-lab-session v0.1.0 (F:\new\smaltalk\water\.worktrees\j\packages\lab-session)
+error: this assertion has a constant value
+  --> tests\session_v1.rs:79:9
+   |
+79 |         assert!(cfg!(target_os = "macos"));
+   |         ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+   |
+   = help: consider moving this into a const block: `const { assert!(..) }`
+   = help: for further information visit https://rust-lang.github.io/rust-clippy/rust-1.95.0/index.html#assertions_on_constants
+   = note: `-D clippy::assertions-on-constants` implied by `-D warnings`
+   = help: to override `-D warnings` add `#[allow(clippy::assertions_on_constants)]`
+
+error: could not compile `water-lab-session` (test "session_v1") due to 1 previous error

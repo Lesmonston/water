@@ -1,0 +1,93 @@
+//! A bounded, immutable snapshot of the controlled metadata pipeline.
+
+use serde::Serialize;
+use serde_json::Value;
+use water_contracts::v1::{OpaqueId, ScanReport};
+use water_report_view::v1::ReportView;
+use water_scan::fixture_v1::{
+    CancelToken, NativeIo, NoopObserver, ReadOnlyIo, ScanObserver, ScanOptions,
+};
+use water_summary_export::v1::SummaryExport;
+
+#[derive(Debug, Clone, PartialEq, Serialize)]
+pub struct SessionSnapshot {
+    session_version: &'static str,
+    data_kind: &'static str,
+    source_facts: Value,
+    report: ScanReport,
+    view: ReportView,
+    summary: SummaryExport,
+}
+
+impl SessionSnapshot {
+    pub fn source_facts(&self) -> &Value {
+        &self.source_facts
+    }
+
+    pub fn report(&self) -> &ScanReport {
+        &self.report
+    }
+
+    pub fn view(&self) -> &ReportView {
+        &self.view
+    }
+
+    pub fn summary(&self) -> &SummaryExport {
+        &self.summary
+    }
+}
+
+#[derive(Debug, Clone, PartialEq, Eq)]
+pub enum SessionErrorCode {
+    OpenRejected,
+    ScanRejected,
+    AssemblyRejected,
+    ProjectionRejected,
+    SummaryRejected,
+    SnapshotTooLarge,
+    SerializationFailed,
+}
+
+#[derive(Debug, Clone, PartialEq, Eq)]
+pub struct SessionError {
+    pub code: SessionErrorCode,
+    pub field: &'static str,
+}
+
+impl std::fmt::Display for SessionError {
+    fn fmt(&self, formatter: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
+        write!(formatter, "{:?} at {}", self.code, self.field)
+    }
+}
+
+impl std::error::Error for SessionError {}
+
+pub fn inspect_fixture(
+    run_id: &str,
+    scan_id: &OpaqueId,
+    options: &ScanOptions,
+    cancel: &CancelToken,
+) -> Result<SessionSnapshot, SessionError> {
+    inspect_fixture_with_io(run_id, scan_id, options, cancel, &NativeIo, &NoopObserver)
+}
+
+pub fn inspect_fixture_with_io<I: ReadOnlyIo, O: ScanObserver>(
+    _run_id: &str,
+    _scan_id: &OpaqueId,
+    _options: &ScanOptions,
+    _cancel: &CancelToken,
+    _io: &I,
+    _observer: &O,
+) -> Result<SessionSnapshot, SessionError> {
+    Err(SessionError {
+        code: SessionErrorCode::OpenRejected,
+        field: "/open",
+    })
+}
+
+pub fn to_json(_snapshot: &SessionSnapshot) -> Result<String, SessionError> {
+    Err(SessionError {
+        code: SessionErrorCode::SerializationFailed,
+        field: "/snapshot",
+    })
+}

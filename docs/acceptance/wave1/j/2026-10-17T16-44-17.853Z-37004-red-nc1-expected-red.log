@@ -1,0 +1,41 @@
+{"binary":"C:\\Users\\37310\\.rustup\\toolchains\\1.95.0-x86_64-pc-windows-msvc\\bin\\cargo.exe","argv":["test","--offline","--locked","--manifest-path","F:\\new\\smaltalk\\water\\.worktrees\\j\\packages\\lab-session\\Cargo.toml","-p","water-lab-session","--test","session_v1","--","--test-threads=1","--format","pretty"],"exitCode":101,"error":null,"log":"2026-10-17T16-44-17.853Z-37004-red-nc1-expected-red.log"}
+--- stdout ---
+
+running 5 tests
+test session_cancellation_and_progress ... FAILED
+test session_errors_and_bounds ... ok
+test session_identity_and_protection ... ok
+test session_native_composition ... ok
+test session_snapshot_wire ... ok
+
+failures:
+
+---- session_cancellation_and_progress stdout ----
+
+thread 'session_cancellation_and_progress' (29092) panicked at tests\session_v1.rs:407:5:
+assertion `left == right` failed: J_CANCEL_SHARED: pre-cancelled clone
+  left: Partial
+ right: Cancelled
+note: run with `RUST_BACKTRACE=1` environment variable to display a backtrace
+
+
+failures:
+    session_cancellation_and_progress
+
+test result: FAILED. 4 passed; 1 failed; 0 ignored; 0 measured; 0 filtered out; finished in 0.79s
+
+
+--- stderr ---
+   Compiling water-lab-session v0.1.0 (F:\new\smaltalk\water\.worktrees\j\packages\lab-session)
+warning: unused variable: `cancel`
+  --> src\v1.rs:98:5
+   |
+98 |     cancel: &CancelToken,
+   |     ^^^^^^ help: if this is intentional, prefix it with an underscore: `_cancel`
+   |
+   = note: `#[warn(unused_variables)]` (part of `#[warn(unused)]`) on by default
+
+warning: `water-lab-session` (lib) generated 1 warning (run `cargo fix --lib -p water-lab-session` to apply 1 suggestion)
+    Finished `test` profile [unoptimized + debuginfo] target(s) in 2.15s
+     Running tests\session_v1.rs (.local\j-target\debug\deps\session_v1-32c79d9348e6b053.exe)
+error: test failed, to rerun pass `-p water-lab-session --test session_v1`
