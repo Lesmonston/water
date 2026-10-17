@@ -1,0 +1,22 @@
+{"binary":"C:\\Users\\37310\\.rustup\\toolchains\\1.95.0-x86_64-pc-windows-msvc\\bin\\cargo.exe","argv":["clippy","--offline","--locked","--manifest-path","F:\\new\\smaltalk\\water\\.worktrees\\h\\packages\\summary-export\\Cargo.toml","-p","water-summary-export","--all-targets","--","-D","warnings"],"exitCode":101,"error":null,"log":"2026-10-17T14-29-51.673Z-35636-clippy-6.log"}
+--- stdout ---
+
+--- stderr ---
+    Checking serde_core v1.0.229
+    Checking zmij v1.0.23
+    Checking itoa v1.0.18
+    Checking memchr v2.8.3
+    Checking serde_json v1.0.151
+    Checking serde v1.0.229
+    Checking water-contracts v0.1.0 (F:\new\smaltalk\water\.worktrees\h\crates\water-contracts)
+    Checking water-summary-export v0.1.0 (F:\new\smaltalk\water\.worktrees\h\packages\summary-export)
+error: unused import: `ByteCount`
+ --> tests\export_v1.rs:8:5
+  |
+8 |     ByteCount, Category, ContractError, ContractErrorCode, OpaqueId, RelativePath, Risk,
+  |     ^^^^^^^^^
+  |
+  = note: `-D unused-imports` implied by `-D warnings`
+  = help: to override `-D warnings` add `#[allow(unused_imports)]`
+
+error: could not compile `water-summary-export` (test "export_v1") due to 1 previous error

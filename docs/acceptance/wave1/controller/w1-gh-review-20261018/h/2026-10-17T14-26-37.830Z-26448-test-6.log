@@ -1,0 +1,64 @@
+{"binary":"C:\\Users\\37310\\.rustup\\toolchains\\1.95.0-x86_64-pc-windows-msvc\\bin\\cargo.exe","argv":["test","--offline","--locked","--manifest-path","F:\\new\\smaltalk\\water\\.worktrees\\h\\packages\\summary-export\\Cargo.toml","-p","water-summary-export","--test","export_v1","--","--test-threads=1","--format","pretty"],"exitCode":101,"error":null,"log":"2026-10-17T14-26-37.830Z-26448-test-6.log"}
+--- stdout ---
+
+--- stderr ---
+   Compiling water-summary-export v0.1.0 (F:\new\smaltalk\water\.worktrees\h\packages\summary-export)
+error[E0631]: type mismatch in function arguments
+   --> tests\export_v1.rs:615:45
+    |
+615 |             export.totals.logical_bytes.map(ByteCount::get),
+    |                                         --- ^^^^^^^^^^^^^^
+    |                                         |   |
+    |                                         |   expected due to this
+    |                                         |   found signature defined here
+    |                                         required by a bound introduced by this call
+    |
+    = note: expected function signature `fn(ByteCount) -> _`
+               found function signature `fn(&ByteCount) -> _`
+note: required by a bound in `Option::<T>::map`
+   --> /rustc/59807616e1fa2540724bfbac14d7976d7e4a3860/library\core\src\option.rs:1160:4
+help: consider wrapping the function in a closure
+    |
+615 |             export.totals.logical_bytes.map(|arg0: ByteCount| ByteCount::get(&arg0)),
+    |                                             +++++++++++++++++               +++++++
+
+error[E0631]: type mismatch in function arguments
+   --> tests\export_v1.rs:626:46
+    |
+626 |     assert_eq!(wide.totals.logical_bytes.map(ByteCount::get), Some(37));
+    |                                          --- ^^^^^^^^^^^^^^
+    |                                          |   |
+    |                                          |   expected due to this
+    |                                          |   found signature defined here
+    |                                          required by a bound introduced by this call
+    |
+    = note: expected function signature `fn(ByteCount) -> _`
+               found function signature `fn(&ByteCount) -> _`
+note: required by a bound in `Option::<T>::map`
+   --> /rustc/59807616e1fa2540724bfbac14d7976d7e4a3860/library\core\src\option.rs:1160:4
+help: consider wrapping the function in a closure
+    |
+626 |     assert_eq!(wide.totals.logical_bytes.map(|arg0: ByteCount| ByteCount::get(&arg0)), Some(37));
+    |                                              +++++++++++++++++               +++++++
+
+error[E0631]: type mismatch in function arguments
+   --> tests\export_v1.rs:648:51
+    |
+648 |     assert_eq!(composite.totals.logical_bytes.map(ByteCount::get), Some(37));
+    |                                               --- ^^^^^^^^^^^^^^
+    |                                               |   |
+    |                                               |   expected due to this
+    |                                               |   found signature defined here
+    |                                               required by a bound introduced by this call
+    |
+    = note: expected function signature `fn(ByteCount) -> _`
+               found function signature `fn(&ByteCount) -> _`
+note: required by a bound in `Option::<T>::map`
+   --> /rustc/59807616e1fa2540724bfbac14d7976d7e4a3860/library\core\src\option.rs:1160:4
+help: consider wrapping the function in a closure
+    |
+648 |     assert_eq!(composite.totals.logical_bytes.map(|arg0: ByteCount| ByteCount::get(&arg0)), Some(37));
+    |                                                   +++++++++++++++++               +++++++
+
+For more information about this error, try `rustc --explain E0631`.
+error: could not compile `water-summary-export` (test "export_v1") due to 3 previous errors

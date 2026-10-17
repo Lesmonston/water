@@ -61,7 +61,7 @@
       "branch": "worker/water-w1-g",
       "baseline": "045ab4f0d01edd573828fbc8cca988e1ad37efee",
       "task": "WATER-W1-G",
-      "state": "ready-awaiting-manual-paste"
+      "state": "accepted-awaiting-integration"
     },
     {
       "id": "h",
@@ -69,7 +69,7 @@
       "branch": "worker/water-w1-h",
       "baseline": "045ab4f0d01edd573828fbc8cca988e1ad37efee",
       "task": "WATER-W1-H",
-      "state": "ready-awaiting-manual-paste"
+      "state": "accepted-awaiting-integration"
     },
     {
       "id": "i",
@@ -428,7 +428,7 @@
         "WATER-W1-A",
         "WATER-W1-E"
       ],
-      "status": "READY",
+      "status": "ACCEPTED",
       "kind": "parallel_next_rust",
       "worktree": "F:/new/smaltalk/water/.worktrees/g",
       "branch": "worker/water-w1-g",
@@ -459,7 +459,7 @@
         "docs/acceptance/wave1/g/"
       ],
       "allowLockfileGeneration": true,
-      "model": null,
+      "model": "Grok 4.7 (worker self-report)",
       "modelAssignment": "user-arranged; report actual engine/model",
       "dispatchedAt": null,
       "startedAt": null,
@@ -473,7 +473,18 @@
       "manifest": "docs/dispatch/wave1/manifest.json",
       "baselineEvidence": "docs/acceptance/wave1/controller/w1-parallel-next-preflight-20261017/g/2026-10-17T13-35-56.563Z-24600-baseline-result.json",
       "readyOn": "2026-10-17",
-      "readinessScope": "Windows Node/Rust/MSVC offline baseline and actual verified A/E synthetic assets; new product not tested."
+      "readinessScope": "Windows Node/Rust/MSVC offline baseline and actual verified A/E synthetic assets; new product not tested.",
+      "submittedCommit": "85c64d5104960a7c2d0613298361a1bbcaf49fd5",
+      "acceptedCommit": "85c64d5104960a7c2d0613298361a1bbcaf49fd5",
+      "testedImplementationCommit": "4ae559b3c84856994bb09e252834987518982f70",
+      "submissionObservedAt": "2026-10-17T15:23:05.418Z",
+      "acceptedOn": "2026-10-18",
+      "macOS": "unverified",
+      "controllerReview": "docs/acceptance/wave1/controller/WATER-W1-GH-REVIEW-20261018.md",
+      "controllerReviewReceipt": "docs/acceptance/wave1/controller/w1-gh-review-20261018/g/2026-10-17T15-18-53.360Z-4120-result.json",
+      "integrationBranch": "controller/water-w1-gh-20261018",
+      "integrationWorktree": "F:/new/smaltalk/water/.worktrees/integration-gh-20261018",
+      "evidenceLimitations": "Pre-implementation behavior-red ordering not established by available records; complete current negative-control red/green logs verified."
     },
     {
       "slot": "h",
@@ -496,7 +507,7 @@
       "dependsOn": [
         "WATER-W1-A"
       ],
-      "status": "READY",
+      "status": "ACCEPTED",
       "kind": "parallel_next_rust",
       "worktree": "F:/new/smaltalk/water/.worktrees/h",
       "branch": "worker/water-w1-h",
@@ -527,7 +538,7 @@
         "docs/acceptance/wave1/h/"
       ],
       "allowLockfileGeneration": true,
-      "model": null,
+      "model": "Grok 4.7 (worker self-report)",
       "modelAssignment": "user-arranged; report actual engine/model",
       "dispatchedAt": null,
       "startedAt": null,
@@ -538,7 +549,18 @@
       "manifest": "docs/dispatch/wave1/manifest.json",
       "baselineEvidence": "docs/acceptance/wave1/controller/w1-parallel-next-preflight-20261017/h/2026-10-17T13-35-56.563Z-9880-baseline-result.json",
       "readyOn": "2026-10-17",
-      "readinessScope": "Windows Node/Rust/MSVC offline baseline and actual verified A/E synthetic assets; new product not tested."
+      "readinessScope": "Windows Node/Rust/MSVC offline baseline and actual verified A/E synthetic assets; new product not tested.",
+      "submittedCommit": "cab41d1ab826a39bdd19bac619dfc2975177eb8b",
+      "acceptedCommit": "cab41d1ab826a39bdd19bac619dfc2975177eb8b",
+      "testedImplementationCommit": "52748c5895f485aa54f65c6943ab8bf74fd95ddb",
+      "submissionObservedAt": "2026-10-17T15:23:05.418Z",
+      "acceptedOn": "2026-10-18",
+      "macOS": "unverified",
+      "controllerReview": "docs/acceptance/wave1/controller/WATER-W1-GH-REVIEW-20261018.md",
+      "controllerReviewReceipt": "docs/acceptance/wave1/controller/w1-gh-review-20261018/h/2026-10-17T15-18-53.365Z-27584-result.json",
+      "integrationBranch": "controller/water-w1-gh-20261018",
+      "integrationWorktree": "F:/new/smaltalk/water/.worktrees/integration-gh-20261018",
+      "evidenceLimitations": "Pre-implementation behavior-red ordering not established by available records; complete current negative-control red/green logs verified."
     },
     {
       "slot": "i",

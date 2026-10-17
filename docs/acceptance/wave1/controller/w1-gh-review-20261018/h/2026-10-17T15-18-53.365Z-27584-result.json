@@ -1,0 +1,574 @@
+{
+  "task": "WATER-W1-H",
+  "expectedHead": "cab41d1ab826a39bdd19bac619dfc2975177eb8b",
+  "startedAt": "2026-10-17T15:18:53.367Z",
+  "commands": [
+    {
+      "binary": "git",
+      "argv": [
+        "-c",
+        "core.hooksPath=NUL",
+        "-c",
+        "core.fsmonitor=false",
+        "rev-parse",
+        "HEAD"
+      ],
+      "cwd": "F:\\new\\smaltalk\\water\\.worktrees\\h",
+      "exitCode": 0,
+      "error": null,
+      "log": "2026-10-17T15-18-53.365Z-27584-0.log"
+    },
+    {
+      "binary": "git",
+      "argv": [
+        "-c",
+        "core.hooksPath=NUL",
+        "-c",
+        "core.fsmonitor=false",
+        "status",
+        "--porcelain=v1",
+        "--untracked-files=all"
+      ],
+      "cwd": "F:\\new\\smaltalk\\water\\.worktrees\\h",
+      "exitCode": 0,
+      "error": null,
+      "log": "2026-10-17T15-18-53.365Z-27584-1.log"
+    },
+    {
+      "binary": "git",
+      "argv": [
+        "-c",
+        "core.hooksPath=NUL",
+        "-c",
+        "core.fsmonitor=false",
+        "branch",
+        "--show-current"
+      ],
+      "cwd": "F:\\new\\smaltalk\\water\\.worktrees\\h",
+      "exitCode": 0,
+      "error": null,
+      "log": "2026-10-17T15-18-53.365Z-27584-2.log"
+    },
+    {
+      "binary": "git",
+      "argv": [
+        "-c",
+        "core.hooksPath=NUL",
+        "-c",
+        "core.fsmonitor=false",
+        "merge-base",
+        "--is-ancestor",
+        "045ab4f0d01edd573828fbc8cca988e1ad37efee",
+        "HEAD"
+      ],
+      "cwd": "F:\\new\\smaltalk\\water\\.worktrees\\h",
+      "exitCode": 0,
+      "error": null,
+      "log": "2026-10-17T15-18-53.365Z-27584-3.log"
+    },
+    {
+      "binary": "git",
+      "argv": [
+        "-c",
+        "core.hooksPath=NUL",
+        "-c",
+        "core.fsmonitor=false",
+        "diff",
+        "--name-only",
+        "--no-renames",
+        "045ab4f0d01edd573828fbc8cca988e1ad37efee",
+        "HEAD"
+      ],
+      "cwd": "F:\\new\\smaltalk\\water\\.worktrees\\h",
+      "exitCode": 0,
+      "error": null,
+      "log": "2026-10-17T15-18-53.365Z-27584-4.log"
+    },
+    {
+      "binary": "git",
+      "argv": [
+        "-c",
+        "core.hooksPath=NUL",
+        "-c",
+        "core.fsmonitor=false",
+        "diff",
+        "--name-only",
+        "52748c5895f485aa54f65c6943ab8bf74fd95ddb",
+        "cab41d1ab826a39bdd19bac619dfc2975177eb8b"
+      ],
+      "cwd": "F:\\new\\smaltalk\\water\\.worktrees\\h",
+      "exitCode": 0,
+      "error": null,
+      "log": "2026-10-17T15-18-53.365Z-27584-5.log"
+    },
+    {
+      "binary": "git",
+      "argv": [
+        "-c",
+        "core.hooksPath=NUL",
+        "-c",
+        "core.fsmonitor=false",
+        "rev-parse",
+        "HEAD:packages/summary-export"
+      ],
+      "cwd": "F:\\new\\smaltalk\\water\\.worktrees\\h",
+      "exitCode": 0,
+      "error": null,
+      "log": "2026-10-17T15-18-53.365Z-27584-6.log"
+    },
+    {
+      "binary": "C:\\Users\\37310\\.cargo\\bin\\rustup.exe",
+      "argv": [
+        "which",
+        "rustc",
+        "--toolchain",
+        "1.95.0"
+      ],
+      "cwd": "F:\\new\\smaltalk\\water\\.worktrees\\h",
+      "exitCode": 0,
+      "error": null,
+      "log": "2026-10-17T15-18-53.365Z-27584-7.log"
+    },
+    {
+      "binary": "C:\\Users\\37310\\.cargo\\bin\\rustup.exe",
+      "argv": [
+        "which",
+        "cargo",
+        "--toolchain",
+        "1.95.0"
+      ],
+      "cwd": "F:\\new\\smaltalk\\water\\.worktrees\\h",
+      "exitCode": 0,
+      "error": null,
+      "log": "2026-10-17T15-18-53.365Z-27584-8.log"
+    },
+    {
+      "binary": "C:\\Users\\37310\\.rustup\\toolchains\\1.95.0-x86_64-pc-windows-msvc\\bin\\rustc.exe",
+      "argv": [
+        "--version"
+      ],
+      "cwd": "F:\\new\\smaltalk\\water\\.worktrees\\h",
+      "exitCode": 0,
+      "error": null,
+      "log": "2026-10-17T15-18-53.365Z-27584-9.log"
+    },
+    {
+      "binary": "C:\\Users\\37310\\.rustup\\toolchains\\1.95.0-x86_64-pc-windows-msvc\\bin\\cargo.exe",
+      "argv": [
+        "build",
+        "--manifest-path",
+        "F:\\new\\smaltalk\\water\\.worktrees\\h\\packages\\summary-export\\Cargo.toml",
+        "--offline",
+        "--locked",
+        "--lib"
+      ],
+      "cwd": "F:\\new\\smaltalk\\water\\.worktrees\\h",
+      "exitCode": 0,
+      "error": null,
+      "log": "2026-10-17T15-18-53.365Z-27584-10.log"
+    },
+    {
+      "binary": "C:\\Users\\37310\\.rustup\\toolchains\\1.95.0-x86_64-pc-windows-msvc\\bin\\rustc.exe",
+      "argv": [
+        "--edition=2024",
+        "--crate-name",
+        "controller_h_boundaries",
+        "--test",
+        "F:\\new\\smaltalk\\water\\scripts\\acceptance\\summary-export-boundaries.rs",
+        "-L",
+        "dependency=F:\\new\\smaltalk\\water\\.worktrees\\h\\.local\\h-target\\debug\\deps",
+        "--extern",
+        "water_summary_export=F:\\new\\smaltalk\\water\\.worktrees\\h\\.local\\h-target\\debug\\deps\\libwater_summary_export-87a0823f29c4eeba.rlib",
+        "--extern",
+        "water_contracts=F:\\new\\smaltalk\\water\\.worktrees\\h\\.local\\h-target\\debug\\deps\\libwater_contracts-04ba41615ee2fcb5.rlib",
+        "--extern",
+        "serde_json=F:\\new\\smaltalk\\water\\.worktrees\\h\\.local\\h-target\\debug\\deps\\libserde_json-c243626af514ec1f.rlib",
+        "-o",
+        "F:\\new\\smaltalk\\water\\.worktrees\\h\\.local\\h-tmp\\2026-10-17T15-18-53.365Z-27584-controller-boundaries.exe"
+      ],
+      "cwd": "F:\\new\\smaltalk\\water\\.worktrees\\h",
+      "exitCode": 0,
+      "error": null,
+      "log": "2026-10-17T15-18-53.365Z-27584-11.log"
+    },
+    {
+      "binary": "F:\\new\\smaltalk\\water\\.worktrees\\h\\.local\\h-tmp\\2026-10-17T15-18-53.365Z-27584-controller-boundaries.exe",
+      "argv": [
+        "--test-threads=1",
+        "--nocapture"
+      ],
+      "cwd": "F:\\new\\smaltalk\\water\\.worktrees\\h",
+      "exitCode": 0,
+      "error": null,
+      "log": "2026-10-17T15-18-53.365Z-27584-12.log"
+    },
+    {
+      "binary": "git",
+      "argv": [
+        "-c",
+        "core.hooksPath=NUL",
+        "-c",
+        "core.fsmonitor=false",
+        "rev-parse",
+        "HEAD"
+      ],
+      "cwd": "F:\\new\\smaltalk\\water\\.worktrees\\h",
+      "exitCode": 0,
+      "error": null,
+      "log": "2026-10-17T15-18-53.365Z-27584-13.log"
+    },
+    {
+      "binary": "git",
+      "argv": [
+        "-c",
+        "core.hooksPath=NUL",
+        "-c",
+        "core.fsmonitor=false",
+        "status",
+        "--porcelain=v1",
+        "--untracked-files=all"
+      ],
+      "cwd": "F:\\new\\smaltalk\\water\\.worktrees\\h",
+      "exitCode": 0,
+      "error": null,
+      "log": "2026-10-17T15-18-53.365Z-27584-14.log"
+    }
+  ],
+  "before": {
+    "head": "cab41d1ab826a39bdd19bac619dfc2975177eb8b",
+    "status": ""
+  },
+  "changedFiles": 54,
+  "implementation": "52748c5895f485aa54f65c6943ab8bf74fd95ddb",
+  "reportOnlyFiles": 48,
+  "productTree": "c109f4aca0348d96ee7ce8d4eb2b8619e48bd2f9",
+  "products": [
+    {
+      "path": "packages/summary-export/Cargo.lock",
+      "sha256": "6b059108919670d79a0d46fd977df3a01837c66e04b32a37d06e54b418d90902"
+    },
+    {
+      "path": "packages/summary-export/Cargo.toml",
+      "sha256": "de7b0f2370488044339b41271776d58eebc7024d304ea105546d533a1743f897"
+    },
+    {
+      "path": "packages/summary-export/README.md",
+      "sha256": "4bd2501141eebfbd3b52f490b7f6076002b107cba079849c0efe8e5e9f528e63"
+    },
+    {
+      "path": "packages/summary-export/src/lib.rs",
+      "sha256": "19db46f8ac3c773c8925c923c3633172aaf7f1f62dece5ac6afba0dbb5962639"
+    },
+    {
+      "path": "packages/summary-export/src/v1.rs",
+      "sha256": "3180e0d286c2ed33f761c5179879aabff91c7ad5619370380b96270734b63c68"
+    },
+    {
+      "path": "packages/summary-export/tests/export_v1.rs",
+      "sha256": "7df93e441f1a8fb61400953305df2d43eef7c6afd34d79a3a59dca9e4d133d01"
+    }
+  ],
+  "frozenFiles": 83,
+  "workerRawFiles": [
+    {
+      "file": "2026-10-17T14-11-47.555Z-29428-baseline-result.json",
+      "bytes": 9396,
+      "sha256": "99d0eeaac38f4ac3545a8e321654114d3d0ba8961602a965a33fae7b9d086db3"
+    },
+    {
+      "file": "2026-10-17T14-25-21.942Z-3144-lock-6.log",
+      "bytes": 59490,
+      "sha256": "14190a9f5c1b1b8fd7dff28f427e0964f392dff11d7eeb0e00f5494608b56b17"
+    },
+    {
+      "file": "2026-10-17T14-25-21.942Z-3144-lock-result.json",
+      "bytes": 7473,
+      "sha256": "0de53c38ffee1c0bc9ede9abb68f9f26e717b4f928f1ed4a54623e4007c6bb2f"
+    },
+    {
+      "file": "2026-10-17T14-25-44.228Z-6816-fmt-6.log",
+      "bytes": 331,
+      "sha256": "56585dbf3b3c854760514f9b431ec66b93fe468d43b369be169a77b02b0ef572"
+    },
+    {
+      "file": "2026-10-17T14-25-44.228Z-6816-fmt-result.json",
+      "bytes": 7496,
+      "sha256": "89f674b4996dbb7131f309c4656c38975a688adc8ef4238f7de3d14c6788da31"
+    },
+    {
+      "file": "2026-10-17T14-26-37.830Z-26448-test-6.log",
+      "bytes": 3853,
+      "sha256": "880e168919f2fabca9b2c66c7cbc9969e090b6139c1c16cad37fd1e329308b26"
+    },
+    {
+      "file": "2026-10-17T14-26-37.830Z-26448-test-result.json",
+      "bytes": 7914,
+      "sha256": "59375fad0629cf4024c0a0cca9bae32d5cda8d7d54eddc0ad7f202b2425991b8"
+    },
+    {
+      "file": "2026-10-17T14-28-19.125Z-36620-test-6.log",
+      "bytes": 1408,
+      "sha256": "66ae5b73776ab1046a85e1029e413e83690a21d6165afc26a522dfeea48611f1"
+    },
+    {
+      "file": "2026-10-17T14-28-19.125Z-36620-test-result.json",
+      "bytes": 7718,
+      "sha256": "aacf65cdeb414eb88f6e91377eda77a33c4bf2a8aa3f532a8b789c16492db25f"
+    },
+    {
+      "file": "2026-10-17T14-29-51.673Z-35636-clippy-6.log",
+      "bytes": 1179,
+      "sha256": "77f5811a816a936e176004160418c141ac7b4972203404bf8a8f3dd8b65ee2bb"
+    },
+    {
+      "file": "2026-10-17T14-29-51.673Z-35636-clippy-result.json",
+      "bytes": 7877,
+      "sha256": "f51c5ab1247f2d24d1a6284fda58eaa577e2df2c40a267cb1b4bd774b2466436"
+    },
+    {
+      "file": "2026-10-17T14-31-16.338Z-30296-clippy-6.log",
+      "bytes": 585,
+      "sha256": "3d55b800130b00776c056e0f9d280cd130bbc05a5c19bf9675f0218ebe740a7e"
+    },
+    {
+      "file": "2026-10-17T14-31-16.338Z-30296-clippy-result.json",
+      "bytes": 7681,
+      "sha256": "9c0d6495c31075c5d5166e43d50a5adb197f794aed0a8d300083de8d568af4a4"
+    },
+    {
+      "file": "2026-10-17T14-32-02.509Z-40424-metadata-result.json",
+      "bytes": 7170,
+      "sha256": "a765c302be39e59f6ffef0d087358d3d04dd8680f7bde6480b47e537e2554752"
+    },
+    {
+      "file": "2026-10-17T14-32-32.333Z-42392-bridge-6.log",
+      "bytes": 453,
+      "sha256": "97b2cd161ec07d7661644db201c0192aa2a61a1803d1560790d59e1d46c24c31"
+    },
+    {
+      "file": "2026-10-17T14-32-32.333Z-42392-bridge-7.log",
+      "bytes": 993,
+      "sha256": "2a120e02e0c3e8aeaa2c3a96f2d61fd0a6c6ed2d8e00babe72cf74bd73ee9359"
+    },
+    {
+      "file": "2026-10-17T14-32-32.333Z-42392-bridge-8.log",
+      "bytes": 6764,
+      "sha256": "9e6519eba677dda3a6a7de283e3366f55251e040044bb73f44bad0d2c1e24fae"
+    },
+    {
+      "file": "2026-10-17T14-32-32.333Z-42392-bridge-result.json",
+      "bytes": 9271,
+      "sha256": "0d186f52de4bef59d0bd9da8ffc2fe3a5b3515e80b09ffe9af52dceaa8358557"
+    },
+    {
+      "file": "2026-10-17T14-33-57.519Z-38684-test-6.log",
+      "bytes": 3490,
+      "sha256": "d4dcacd0d326842bc53a4f81fa8c305c2c9377e14e753222357f8e613d06e2b0"
+    },
+    {
+      "file": "2026-10-17T14-33-57.519Z-38684-test-result.json",
+      "bytes": 7914,
+      "sha256": "d622576cf71fb7cabd82c2ea321beb85af74142be29e9c9183bd0bd457e958c6"
+    },
+    {
+      "file": "2026-10-17T14-34-39.956Z-43660-test-6.log",
+      "bytes": 992,
+      "sha256": "bdecb928ecf6958753f6bf7e0ab0549c53294d22f5dc61baa05d6ed79997a94b"
+    },
+    {
+      "file": "2026-10-17T14-34-39.956Z-43660-test-result.json",
+      "bytes": 7718,
+      "sha256": "dcbb424349bca447d82639eced9f0feab76a33b4929f8d439a301b3c4ef3ea75"
+    },
+    {
+      "file": "2026-10-17T14-35-18.712Z-27432-test-6.log",
+      "bytes": 1707,
+      "sha256": "064fa51115dfd3c8461fdd779fea25265feac44075284169c9da92268eca7ab2"
+    },
+    {
+      "file": "2026-10-17T14-35-18.712Z-27432-test-result.json",
+      "bytes": 7914,
+      "sha256": "887c2ceef540e1ecae57bdc96c646c0e38bd8495f14dc9dd98e3b2a8d01c8a38"
+    },
+    {
+      "file": "2026-10-17T14-36-47.360Z-34048-test-6.log",
+      "bytes": 992,
+      "sha256": "40a791faf2f0b99b9db254f278974b7a433b12ce604d5a89a657c12488bfe88e"
+    },
+    {
+      "file": "2026-10-17T14-36-47.360Z-34048-test-result.json",
+      "bytes": 7718,
+      "sha256": "955ce4d3e72effdfea001dbd011de414680e5ec8af2a4edefe1a4af964ef5c19"
+    },
+    {
+      "file": "2026-10-17T14-38-06.685Z-39332-test-6.log",
+      "bytes": 3146,
+      "sha256": "a860c7dbea21661bfbd2b4eaf3f65fcf61654d0c70b51821ac666fad2c50b43f"
+    },
+    {
+      "file": "2026-10-17T14-38-06.685Z-39332-test-result.json",
+      "bytes": 7914,
+      "sha256": "6620abe819fea8664bb1344672e74bc4a816a99c1b9aac5037104bc3e5489711"
+    },
+    {
+      "file": "2026-10-17T14-39-49.691Z-39328-test-6.log",
+      "bytes": 993,
+      "sha256": "c89f24b8e95bdc19474da3f69e5603b9ef6f82780aa2281c1c8a811d1806f266"
+    },
+    {
+      "file": "2026-10-17T14-39-49.691Z-39328-test-result.json",
+      "bytes": 7718,
+      "sha256": "5d5657044f39c02382ccfb872cf187696a962720260ad15f322d77b64bbce8a5"
+    },
+    {
+      "file": "2026-10-17T14-41-39.615Z-34096-test-6.log",
+      "bytes": 2379,
+      "sha256": "9fc3b8d822e7499de1a9b69693362d542e226c0fb4f9f935d408c8632c6fe83c"
+    },
+    {
+      "file": "2026-10-17T14-41-39.615Z-34096-test-result.json",
+      "bytes": 7914,
+      "sha256": "1b659262ec86c28835553f8cec8fc5e0d5c08cfaa9a6c3f4f6844239722cab49"
+    },
+    {
+      "file": "2026-10-17T14-43-01.946Z-2916-test-6.log",
+      "bytes": 991,
+      "sha256": "cc91ac94a542b7ac7859964f980caa02784cd0a6fe1c1d763c787dda6e089888"
+    },
+    {
+      "file": "2026-10-17T14-43-01.946Z-2916-test-result.json",
+      "bytes": 7705,
+      "sha256": "3113c79fb401c0d0b3353dcc3be2c419877c5c114e9be26f25409e6d5566ce8b"
+    },
+    {
+      "file": "2026-10-17T14-45-28.104Z-24000-fmt-6.log",
+      "bytes": 332,
+      "sha256": "fe3a1e1d282852adf0c3bd672fb22f1efa031c064ef270ab1dcfdad3d10b6ee4"
+    },
+    {
+      "file": "2026-10-17T14-45-28.104Z-24000-fmt-result.json",
+      "bytes": 7032,
+      "sha256": "d5d86c7f02d2ae69ed4fa0accf223c41cdb7ddba878eb8f7f4f28672d8086507"
+    },
+    {
+      "file": "2026-10-17T14-45-42.124Z-19808-test-6.log",
+      "bytes": 890,
+      "sha256": "fb90709e96f2a07e835a563beb079ba78ad7a23a721a1a91e4f5ac5ebf5625c1"
+    },
+    {
+      "file": "2026-10-17T14-45-42.124Z-19808-test-result.json",
+      "bytes": 7241,
+      "sha256": "c59b7fc641fc567e2e0bbf6b4246aa3eb5e2d5d191d6ad3ca4db473f5ce48022"
+    },
+    {
+      "file": "2026-10-17T14-45-51.524Z-26372-clippy-6.log",
+      "bytes": 585,
+      "sha256": "166707f22e8df11ae388868677293f16a9bdb5282b322b3f9ace04cebde0fc66"
+    },
+    {
+      "file": "2026-10-17T14-45-51.524Z-26372-clippy-result.json",
+      "bytes": 7204,
+      "sha256": "60928baaae595a170dd11001836f5cc1896bcbd09aae21c068ec2d808dbb8e28"
+    },
+    {
+      "file": "2026-10-17T14-46-14.438Z-20144-metadata-5.log",
+      "bytes": 59495,
+      "sha256": "7ce0d04a57483585ae178edeb77fbabdcbf63ec5d03a12f8869c695b3e2c18fb"
+    },
+    {
+      "file": "2026-10-17T14-46-14.438Z-20144-metadata-result.json",
+      "bytes": 6693,
+      "sha256": "bce934f3dd5fcc67ce25f21b58c857b9ab9ea739402b0a2cf5772c21a40164cc"
+    },
+    {
+      "file": "2026-10-17T14-46-26.931Z-6488-bridge-6.log",
+      "bytes": 452,
+      "sha256": "e25718923beb706c98012d3f3194264772532f4c224340e95ba9f29c1a0934fd"
+    },
+    {
+      "file": "2026-10-17T14-46-26.931Z-6488-bridge-7.log",
+      "bytes": 991,
+      "sha256": "b3b702b18303c0cbbb893a8acc50d4c59b48ee05917fce7e7435bf097eb9dcc5"
+    },
+    {
+      "file": "2026-10-17T14-46-26.931Z-6488-bridge-8.log",
+      "bytes": 6762,
+      "sha256": "e29e0138981f7c92480a63da2860db11fb545e1d9a684122999cef6c84dc9731"
+    },
+    {
+      "file": "2026-10-17T14-46-26.931Z-6488-bridge-result.json",
+      "bytes": 8777,
+      "sha256": "29e0badfa420ff79fb0f87e02f41ca1c529623e0be4c34a044aa9afb97993911"
+    }
+  ],
+  "negativeControls": [
+    {
+      "label": "blank-finding-count",
+      "red": "2026-10-17T14-33-57.519Z-38684-test-result.json",
+      "green": "2026-10-17T14-34-39.956Z-43660-test-result.json",
+      "hashesAndTargetVerified": true
+    },
+    {
+      "label": "skip-validate",
+      "red": "2026-10-17T14-35-18.712Z-27432-test-result.json",
+      "green": "2026-10-17T14-36-47.360Z-34048-test-result.json",
+      "hashesAndTargetVerified": true
+    },
+    {
+      "label": "leak-scan-id",
+      "red": "2026-10-17T14-38-06.685Z-39332-test-result.json",
+      "green": "2026-10-17T14-39-49.691Z-39328-test-result.json",
+      "hashesAndTargetVerified": true
+    },
+    {
+      "label": "unknown-totals-zero",
+      "red": "2026-10-17T14-41-39.615Z-34096-test-result.json",
+      "green": "2026-10-17T14-43-01.946Z-2916-test-result.json",
+      "hashesAndTargetVerified": true
+    }
+  ],
+  "finalGates": [
+    {
+      "mode": "fmt",
+      "receipt": "2026-10-17T15-11-04.694Z-25564-fmt-result.json"
+    },
+    {
+      "mode": "test",
+      "receipt": "2026-10-17T15-11-44.036Z-37152-test-result.json"
+    },
+    {
+      "mode": "clippy",
+      "receipt": "2026-10-17T15-12-05.034Z-31152-clippy-result.json"
+    },
+    {
+      "mode": "metadata",
+      "receipt": "2026-10-17T15-12-12.198Z-42816-metadata-result.json"
+    },
+    {
+      "mode": "bridge",
+      "receipt": "2026-10-17T15-12-25.148Z-3156-bridge-result.json"
+    }
+  ],
+  "linkedArtifacts": [
+    {
+      "path": "F:\\new\\smaltalk\\water\\.worktrees\\h\\.local\\h-target\\debug\\deps\\libwater_summary_export-87a0823f29c4eeba.rlib",
+      "sha256": "7a54946f665ec83e638f4f3eae615f032e098bc130024b0c296c9c6a5fc05832"
+    },
+    {
+      "path": "F:\\new\\smaltalk\\water\\.worktrees\\h\\.local\\h-target\\debug\\deps\\libwater_contracts-04ba41615ee2fcb5.rlib",
+      "sha256": "f4240d568cc2e0271b6df59b6043ce213c0e86ea46f03617d716b56a71f98676"
+    },
+    {
+      "path": "F:\\new\\smaltalk\\water\\.worktrees\\h\\.local\\h-target\\debug\\deps\\libserde_json-c243626af514ec1f.rlib",
+      "sha256": "34ef05893110c5bc6a2e8547049ce70c2482e8df4c5ac14898b72727b3995077"
+    }
+  ],
+  "independentTests": 3,
+  "after": {
+    "head": "cab41d1ab826a39bdd19bac619dfc2975177eb8b",
+    "status": ""
+  },
+  "endedAt": "2026-10-17T15:19:01.136Z",
+  "status": "passed",
+  "error": null
+}
