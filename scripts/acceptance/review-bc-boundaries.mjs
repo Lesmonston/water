@@ -9,7 +9,10 @@ import { openBrowser } from '../browser-lab.mjs';
 
 const root = resolve(dirname(fileURLToPath(import.meta.url)), '../..');
 const args = process.argv.slice(2);
-assert.equal(args.length, 4); assert.equal(args[0], '--b-head'); assert.equal(args[2], '--c-head');
+assert([4, 6].includes(args.length)); assert.equal(args[0], '--b-head'); assert.equal(args[2], '--c-head');
+if (args.length === 6) assert.equal(args[4], '--evidence-dir');
+const evidenceDirectory = args[5] ?? 'docs/acceptance/wave1/controller/w1-bc-review-20261017';
+assert(evidenceDirectory.startsWith('docs/acceptance/wave1/controller/'));
 const heads = { b: args[1], c: args[3] };
 for (const head of Object.values(heads)) assert.match(head, /^[a-f0-9]{40}$/);
 const manifest = JSON.parse(readFileSync(join(root, 'docs/dispatch/wave1/manifest.json'), 'utf8'));
@@ -25,7 +28,7 @@ function localDirectory(path) {
   }
   return current;
 }
-const output = localDirectory('docs/acceptance/wave1/controller/w1-bc-review-20261017');
+const output = localDirectory(evidenceDirectory);
 const sha = (path) => createHash('sha256').update(readFileSync(path)).digest('hex');
 const record = { startedAt: new Date().toISOString(), heads, node: process.version,
   runnerSha256: sha(fileURLToPath(import.meta.url)), lanes: {}, checks: [] };

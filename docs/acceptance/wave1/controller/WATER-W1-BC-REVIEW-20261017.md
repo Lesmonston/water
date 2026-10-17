@@ -57,6 +57,6 @@ Node v24.16.0，Windows。全部命令加`--final`，前后同一干净提交。
 
 ## 独立证据与交接
 
-[总控runner](../../../../scripts/acceptance/review-bc-boundaries.mjs)仅从原库公开入口处理合成数据，并启动自己的本地服务/隔离Chrome；不修改worker产品。当前runner源码哈希与[有效最终receipt](w1-bc-review-20261017/2026-10-17T06-44-33.119Z-38844-boundary-result.json)相同：6个检查，3通过/3目标断言失败，退出1。B合法包、两项C标识检查通过；B两例绕过及C名称排序失败。较早两次探针receipt同目录保留，最终一次为判定依据。
+[总控runner](../../../../scripts/acceptance/review-bc-boundaries.mjs)仅从原库公开入口处理合成数据，并启动自己的本地服务/隔离Chrome；不修改worker产品。当次runner（主线`d3e600f`版本）的源码哈希与[有效最终receipt](w1-bc-review-20261017/2026-10-17T06-44-33.119Z-38844-boundary-result.json)相同：6个检查，3通过/3目标断言失败，退出1。B合法包、两项C标识检查通过；B两例绕过及C名称排序失败。较早两次探针receipt同目录保留，最终一次为判定依据。后续复验仅增加证据输出目录参数，原断言和本次归档不改。
 
 本次不集成B/C、不代修产品；两张编号补单绑定各自精确提交，原基线/9项冻结锁/helper/测试名不变，仅补单报告新增白名单。A不受影响，后置扫描/正式接线仍未派出。Windows元数据与浏览器验证已做；macOS、真实扫描/分类、容量去重/回收/恢复、Rust/Tauri接线、安装签名与发布仍未验证。

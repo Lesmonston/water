@@ -4,7 +4,7 @@
   "mode": "manual-external-paste",
   "controller": "Codex",
   "projectRoot": "F:/new/smaltalk/water",
-  "stage": "wave1-a-b-c-changes-requested",
+  "stage": "wave1-b-c-accepted-pending-integration",
   "activeWave": "water-wave1",
   "slots": [
     {
@@ -21,7 +21,7 @@
       "branch": "worker/water-w1-b",
       "baseline": "e92f39647c91d9ce077d592583c3352626d3402b",
       "task": "WATER-W1-B",
-      "state": "awaiting-external-addendum-01"
+      "state": "accepted-awaiting-controller-integration"
     },
     {
       "id": "c",
@@ -29,7 +29,7 @@
       "branch": "worker/water-w1-c",
       "baseline": "e92f39647c91d9ce077d592583c3352626d3402b",
       "task": "WATER-W1-C",
-      "state": "awaiting-external-addendum-01"
+      "state": "accepted-awaiting-controller-integration"
     }
   ],
   "tasks": [
@@ -60,7 +60,7 @@
     {
       "id": "WATER-W1-B",
       "title": "工具发现与保护规则数据包",
-      "status": "CHANGES_REQUESTED",
+      "status": "ACCEPTED",
       "activityObservedAt": "2026-10-17T06:20:10.846Z",
       "activityEvidence": "Task-owned catalog implementation/tests/evidence observed as uncommitted files; no completion report notification.",
       "manifest": "docs/dispatch/wave1/manifest.json",
@@ -75,19 +75,26 @@
       "startedAt": null,
       "submittedCommit": "d05eae7b5a0fe5c952744336a776a8c5ee1b2873",
       "submissionObservedAt": "2026-10-17T06:48:41.323Z",
-      "controllerReview": "docs/acceptance/wave1/controller/WATER-W1-BC-REVIEW-20261017.md",
+      "controllerReview": "docs/acceptance/wave1/controller/WATER-W1-BC-ADDENDUM-01-REVIEW-20261017.md",
       "addenda": [
         "docs/dispatch/tickets/WATER-W1-B-ADDENDUM-01-20261017.md"
       ],
       "revisionReport": "docs/dispatch/reports/WATER-W1-B-ADDENDUM-01-REPORT.md",
-      "revisionDispatchStatus": "PREPARED_AWAITING_USER_PASTE",
+      "revisionDispatchStatus": "COMPLETED_ACCEPTED",
       "resumeFromCommit": "d05eae7b5a0fe5c952744336a776a8c5ee1b2873",
-      "reviewedCommit": "d05eae7b5a0fe5c952744336a776a8c5ee1b2873"
+      "reviewedCommit": "5b88fd0c5f306df5586e8c8445d45f39940e8597",
+      "previousControllerReview": "docs/acceptance/wave1/controller/WATER-W1-BC-REVIEW-20261017.md",
+      "revisionSubmittedCommit": "5b88fd0c5f306df5586e8c8445d45f39940e8597",
+      "revisionSubmissionObservedAt": "2026-10-17T08:11:29.334Z",
+      "acceptedAt": "2026-10-17T08:11:29.334Z",
+      "model": "gpt-6.1-sol (user completion screenshot)",
+      "modelEvidence": "User screenshot header gpt-6.1-sol · xhigh; worker self-report only generic GPT-6.",
+      "acceptedCommit": "5b88fd0c5f306df5586e8c8445d45f39940e8597"
     },
     {
       "id": "WATER-W1-C",
       "title": "只读桌面交互原型",
-      "status": "CHANGES_REQUESTED",
+      "status": "ACCEPTED",
       "activityObservedAt": "2026-10-17T06:20:10.846Z",
       "activityEvidence": "Task-owned readonly prototype implementation/tests observed as uncommitted files; no completion report notification.",
       "manifest": "docs/dispatch/wave1/manifest.json",
@@ -102,16 +109,23 @@
       "startedAt": null,
       "submittedCommit": "93e2509882f3090883c8ccaedf2fb30e83dba49a",
       "submissionObservedAt": "2026-10-17T06:48:41.323Z",
-      "controllerReview": "docs/acceptance/wave1/controller/WATER-W1-BC-REVIEW-20261017.md",
+      "controllerReview": "docs/acceptance/wave1/controller/WATER-W1-BC-ADDENDUM-01-REVIEW-20261017.md",
       "addenda": [
         "docs/dispatch/tickets/WATER-W1-C-ADDENDUM-01-20261017.md"
       ],
       "revisionReport": "docs/dispatch/reports/WATER-W1-C-ADDENDUM-01-REPORT.md",
-      "revisionDispatchStatus": "PREPARED_AWAITING_USER_PASTE",
+      "revisionDispatchStatus": "COMPLETED_ACCEPTED",
       "resumeFromCommit": "93e2509882f3090883c8ccaedf2fb30e83dba49a",
-      "reviewedCommit": "93e2509882f3090883c8ccaedf2fb30e83dba49a"
+      "reviewedCommit": "d8cc6979813ecf2ff03898d40b8ae217b1df29f8",
+      "previousControllerReview": "docs/acceptance/wave1/controller/WATER-W1-BC-REVIEW-20261017.md",
+      "revisionSubmittedCommit": "d8cc6979813ecf2ff03898d40b8ae217b1df29f8",
+      "revisionSubmissionObservedAt": "2026-10-17T08:11:29.334Z",
+      "acceptedAt": "2026-10-17T08:11:29.334Z",
+      "model": "gpt-6.1-sol (user completion screenshot)",
+      "modelEvidence": "User screenshot header gpt-6.1-sol · xhigh; worker self-report only generic GPT-6.",
+      "acceptedCommit": "d8cc6979813ecf2ff03898d40b8ae217b1df29f8"
     }
   ],
   "testHelper": "per-task helper; A defaults unchanged",
-  "note": "All original submissions reviewed; separate addendum 01 for A/B/C awaits user paste. No worker product integrated. C browser first navigation timed out; unchanged retry passed."
+  "note": "B/C addendum 01 passed controller focused and independent boundary checks; accepted for local integration. A retains its previous revision state."
 }

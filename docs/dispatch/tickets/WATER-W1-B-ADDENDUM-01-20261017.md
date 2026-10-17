@@ -2,6 +2,8 @@
 
 总控：Codex。2026-10-17。CHANGES_REQUESTED，待用户转贴。本单绑定[原工单](WATER-W1-B-CATALOG-20261017.md)，修复原纯校验API的构造输入边界，不改冻结协议或六工具事实数据。
 
+后续状态：本补单已交回并经总控独立复验ACCEPTED，等待独立集成门；不再按首次续做段重复执行。最新状态见主manifest及[复验报告](../../acceptance/wave1/controller/WATER-W1-BC-ADDENDUM-01-REVIEW-20261017.md)，下文保留原派单约束。
+
 | 项 | 唯一值 |
 |---|---|
 | 工作树/分支 | `F:/new/smaltalk/water/.worktrees/b` / `worker/water-w1-b` |

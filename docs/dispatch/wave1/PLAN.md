@@ -6,6 +6,8 @@
 
 后续B/C完成通知已收，现分别CHANGES_REQUESTED：B原门通过但构造数组跳过来源/顺序校验，见[B补充单01](../tickets/WATER-W1-B-ADDENDUM-01-20261017.md)与PASTE-B-01.txt；C原门重跑通过且截图已看，但未知容量组名称排序失败，见[C补充单01](../tickets/WATER-W1-C-ADDENDUM-01-20261017.md)与PASTE-C-01.txt。三补单互不依赖，各回原执行者续做，main没有提前集成产品代码。
 
+最新：B/C补充单已交回，所有单票门和六项独立反例复验通过，ACCEPTED；总控在独立集成树继续验证，再决定推进main。[当前复验报告](../../acceptance/wave1/controller/WATER-W1-BC-ADDENDUM-01-REVIEW-20261017.md)优先于上面的历史状态，A仍独立。
+
 | 票 | 内容 | 前置与边界 |
 |---|---|---|
 | WATER-W1-A | Rust workspace、water-contracts、固定序列化/语义校验、定向测试 | 架构基线已提交；没有扫描/删除/UI |

@@ -1,0 +1,29 @@
+{
+  "recordedAt": "2026-10-17T08:15:17.144Z",
+  "checks": [
+    {
+      "command": "node scripts/verify-project.mjs --with-upstreams",
+      "chunk_id": "d3c696",
+      "wall_time_seconds": 2.1349898,
+      "exit_code": 0,
+      "original_token_count": 94,
+      "output": "{\n  \"status\": \"passed\",\n  \"markdownFiles\": 46,\n  \"localLinks\": 111,\n  \"pinnedSourceLinks\": 182,\n  \"externalPinnedSourceLinks\": 4,\n  \"dispatchRegistryTasks\": 3,\n  \"workflowSourceRecords\": 14,\n  \"upstreams\": 5,\n  \"checkedLocalSnapshots\": 5,\n  \"mode\": \"with-upstreams\",\n  \"boundary\": \"Metadata, provenance and handoff checks only; no upstream runtime or cleanup safety test.\"\n}\n"
+    },
+    {
+      "command": "node --check scripts/acceptance/check-bc-integration.mjs",
+      "chunk_id": "c23169",
+      "wall_time_seconds": 0.2780942,
+      "exit_code": 0,
+      "original_token_count": 0,
+      "output": ""
+    },
+    {
+      "command": "git diff --check",
+      "chunk_id": "40bbd7",
+      "wall_time_seconds": 0.2706852,
+      "exit_code": 0,
+      "original_token_count": 0,
+      "output": ""
+    }
+  ]
+}
