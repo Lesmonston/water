@@ -97,6 +97,8 @@ READY只表示总控已准备好，不表示用户已转贴。得到用户已贴
 
 ## 当前落实程度
 
+当前更新（2026-10-17）：A/B/C/D/E均VERIFIED（Windows范围）；F新受控扫描协议/六测试清单、22项锁、独立f树、精确基线与实际baseline/fixtures预检已完成，READY待用户外贴。F产品尚不存在，不把预检当六产品测试通过。总控只写规划/契约/验收工具，未自动启动实现者。见[F派前回执](dispatch/wave1/SCAN-LAB-READY-REPORT.md)及[正式票](dispatch/tickets/WATER-W1-F-SCAN-LAB-20261017.md)；以下追加为历史。
+
 本流程及模板已建立。B/C补充单01已通过独立复验及集成门，VERIFIED（当前Windows范围）；A保持独立补单状态。总控没有自动启动实现者或代修产品。详情见 [第一轮计划](dispatch/wave1/PLAN.md)及[BC复验与集成报告](acceptance/wave1/controller/WATER-W1-BC-ADDENDUM-01-REVIEW-20261017.md)，原退回记录继续保留。
 
 最新追加：用户要求下一批，已准备A原补单续做和独立D夹具工厂。D的新槽位/8项锁/Node基线与能力probe通过，READY待外贴；没有提前发依赖A的扫描器。见[下一批具体安排](dispatch/wave1/NEXT-BATCH-20261017.md)，不是新一轮实现已开始的声明。

@@ -1,5 +1,7 @@
 # 第一轮：契约底座
 
+**当前（2026-10-17）：A/B/C/D/E已VERIFIED；F受控扫描已完成22项冻结、独立f树、Windows基线与有界夹具/原生探针，READY待用户外贴。** [正式F票](../tickets/WATER-W1-F-SCAN-LAB-20261017.md)、[派前回执](SCAN-LAB-READY-REPORT.md)与[当前安排](NEXT-BATCH-20261017.md)优先；以下为阶段历史。F产品和六测试/实际桥接未实现或运行，未自动启动实现者。F验收后再排分类/报告与正式桌面，不改旧票或根Cargo。
+
 总控：Codex。A契约底座继续，追加两张独立并行票B/C；实际状态以manifest为准。调度补充见ADR-003，A冻结不改。
 
 2026-10-17收单：A原四门总控复跑通过，独立wire枚举边界失败，CHANGES_REQUESTED未集成；[补充单01](../tickets/WATER-W1-A-ADDENDUM-01-20261017.md)已准备，外贴句见PASTE-A-01.txt。收尾时B/C均观察到各自实现文件，记独立RUNNING，未验收；本次不改其票面或工作树。

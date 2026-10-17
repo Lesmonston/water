@@ -4,7 +4,7 @@
   "mode": "manual-external-paste",
   "controller": "Codex",
   "projectRoot": "F:/new/smaltalk/water",
-  "stage": "wave1-tickets-verified-scan-api-draft",
+  "stage": "wave1-controlled-scan-ready",
   "activeWave": "water-wave1",
   "slots": [
     {
@@ -46,6 +46,14 @@
       "baseline": "1fce65323daf79c9f74ff84d86883692e4cb1b3e",
       "task": "WATER-W1-E",
       "state": "verified-preserved"
+    },
+    {
+      "id": "f",
+      "path": "F:/new/smaltalk/water/.worktrees/f",
+      "branch": "worker/water-w1-f",
+      "baseline": "fc114eb81125cef7d374deddc95144bcd9aee748",
+      "task": "WATER-W1-F",
+      "state": "ready-awaiting-manual-paste"
     }
   ],
   "tasks": [
@@ -286,8 +294,71 @@
       "integrationReceipt": "docs/acceptance/wave1/controller/w1-e-integration-20261017/2026-10-17T12-18-25.706Z-12020-result.json",
       "verifiedAt": "2026-10-17T12:19:40.325Z",
       "verificationScope": "Windows Rust 1.95 offline in-memory report projection, five Rust tests, real Rust/JSON/C model bridge and four independent boundaries; no UI, real scanner, cleanup, redacted export or macOS runtime."
+    },
+    {
+      "id": "WATER-W1-F",
+      "title": "Controlled fixture metadata scanner",
+      "status": "READY",
+      "kind": "scan_lab",
+      "slot": "f",
+      "worktree": "F:/new/smaltalk/water/.worktrees/f",
+      "branch": "worker/water-w1-f",
+      "baseCommit": "fc114eb81125cef7d374deddc95144bcd9aee748",
+      "snapshotRef": "refs/tags/water-w1-scan-lab-base-20261017",
+      "ticket": "docs/dispatch/tickets/WATER-W1-F-SCAN-LAB-20261017.md",
+      "report": "docs/dispatch/reports/WATER-W1-F-REPORT.md",
+      "helper": "scripts/scan-lab-check.mjs",
+      "workerRules": "docs/dispatch/W1-SCAN-LAB-WORKER-RULES.md",
+      "contractLock": "contracts/scan-lab-v1/freeze.lock.json",
+      "outputRoot": "packages/fixture-scan",
+      "testFile": "packages/fixture-scan/tests/scan_v1.rs",
+      "expectedTests": [
+        "scan_native_fixtures",
+        "scan_scope_and_links",
+        "scan_budgets_and_order",
+        "scan_faults_and_coverage",
+        "scan_cancellation",
+        "scan_identity_and_readonly"
+      ],
+      "expectedFinalModes": [
+        "fmt",
+        "test",
+        "clippy",
+        "metadata",
+        "bridge"
+      ],
+      "allowedFiles": [
+        "packages/fixture-scan/Cargo.toml",
+        "packages/fixture-scan/Cargo.lock",
+        "packages/fixture-scan/README.md",
+        "packages/fixture-scan/tests/scan_v1.rs",
+        "docs/dispatch/reports/WATER-W1-F-REPORT.md"
+      ],
+      "allowedPrefixes": [
+        "packages/fixture-scan/src/",
+        "docs/acceptance/wave1/f/"
+      ],
+      "allowLockfileGeneration": true,
+      "cargoCacheSource": "F:/new/smaltalk/water/.worktrees/a/.local/cargo-home/registry",
+      "dependsOn": [
+        "WATER-W1-A",
+        "WATER-W1-D"
+      ],
+      "model": null,
+      "modelAssignment": "user-arranged; report actual engine/model",
+      "dispatchedAt": null,
+      "startedAt": null,
+      "baselineStatus": "PASSED",
+      "preflightEvidence": "docs/dispatch/wave1/SCAN-LAB-READY-REPORT.md",
+      "productBoundary": "Independent std-only read-only metadata traversal of owned frozen synthetic fixtures; no payload reads, arbitrary roots, production race guarantee, report assembly, classification, UI, export or cleanup.",
+      "manifest": "docs/dispatch/wave1/manifest.json",
+      "baselineEvidence": "docs/acceptance/wave1/controller/w1-f-preflight-20261017/2026-10-17T13-01-59.231Z-22844-baseline-result.json",
+      "probeStatus": "PASSED",
+      "probeEvidence": "docs/acceptance/wave1/controller/w1-f-preflight-20261017/2026-10-17T13-02-21.212Z-18332-fixtures-result.json",
+      "readyOn": "2026-10-17",
+      "readinessScope": "Windows controller baseline, owned synthetic preparation and std metadata probes only; no F product test or scanner invocation."
     }
   ],
   "testHelper": "per-task helper; A defaults unchanged",
-  "note": "A/B/C/D/E verified in Windows scope. Existing tickets complete; next Rust scanner API/test freeze and preflight remain pending, no F READY ticket."
+  "note": "A-E verified in Windows scope; F READY after contract freeze and baseline/fixtures preflight. No automatic implementation worker; product tests, scanner bridge and macOS unverified."
 }

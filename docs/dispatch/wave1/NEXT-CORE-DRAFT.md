@@ -1,4 +1,10 @@
-# 下一张Rust只读扫描票的边界草案
+# Rust受控扫描：草案已由正式F协议替代
+
+2026-10-17当前：F已完成接口/六测试/四负控及22项冻结，独立f树和Windows基线/夹具探针通过，READY待用户外贴。正式依据为[F票](../tickets/WATER-W1-F-SCAN-LAB-20261017.md)、[ADR-006](../../decisions/ADR-006-controlled-scan-lab.md)与[派前回执](SCAN-LAB-READY-REPORT.md)。F产品尚不存在，六产品测试和实际扫描bridge未运行。
+
+采用独立packages/fixture-scan workspace/锁，保持根Cargo及旧产品不变。下文“独占root Cargo”的原设想已经取消，仅保留历史，不授权执行。F仅面向自有静止合成夹具；Windows身份Unknown，macOS未实测，不提供生产竞态保证。F验收后再冻结分类/报告转换与正式桌面接线。
+
+## 原边界草案（历史）
 
 总控草案，DRAFT，不可外贴执行。A补单01及D夹具资产均已独立验收和集成（Windows范围）；剩余前置为准确接口/测试冻结、独立工作树、工具链基线及派前检查。当前不创建water-scan空壳、不改根Cargo或冻结v1。
 

@@ -21,7 +21,13 @@
 
 ## 下一步
 
-A/B/C/D/E已VERIFIED并集成，现有五票无需重复外贴。正式Rust扫描器的接口/测试冻结与派前检查尚未完成，没有可外贴扫描票；分类/正式桌面接线另排，没有真实用户扫描或清理。
+A/B/C/D/E已VERIFIED并集成，现有五票无需重复外贴。F受控夹具扫描票已READY，见[正式票](dispatch/tickets/WATER-W1-F-SCAN-LAB-20261017.md)及[派前回执](dispatch/wave1/SCAN-LAB-READY-REPORT.md)。F仅实现自有合成夹具元数据遍历；产品尚不存在，未运行六产品测试/真实桥接，尚未记DISPATCHED。分类、正式桌面接线、真实用户目录及清理另排。
+
+## F派前完成（2026-10-17，当前）
+
+- 独立f树/worker/water-w1-f，精确基线`fc114eb81125cef7d374deddc95144bcd9aee748`，tag water-w1-scan-lab-base-20261017；22项新冻结及四份旧锁43唯一文件一致。A–E产品、原基线/helper/锁及根Cargo不变。
+- Node24.16/Rust1.95/MSVC基线通过，Windows身份API编译探针按预期拒绝不稳定API；Windows身份约定Unknown。prepare工具在f树.local准备11正常run/6负例，实际均创建，81057内容字节，44快照一致；std探针确认硬链接文件长度及两种目录链接reparse属性。
+- READY待用户外贴，不代表已启动。F仅冻结prepare工具可新建合成文件/链接，Rust生产/测试只读；没有普通文件内容读取、真实用户scope授权、生产竞态保证、分类/报告组装、UI、删除或macOS验收。没有自动启动实现代理。
 
 ## E验收集成（2026-10-17，当前）
 

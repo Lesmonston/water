@@ -1,4 +1,20 @@
-# 当前安排：A/B/C/D/E已收口，准备扫描接口
+# 当前安排：F受控夹具扫描READY
+
+总控当前更新（2026-10-17）：A/B/C/D/E均VERIFIED，旧票不重复外贴。F已冻结22项新材料并通过实际Windows baseline/fixtures预检，独立f树精确基线`fc114eb81125cef7d374deddc95144bcd9aee748`，READY待用户外贴，未记DISPATCHED/RUNNING。见[F正式票](../tickets/WATER-W1-F-SCAN-LAB-20261017.md)及[派前回执](SCAN-LAB-READY-REPORT.md)。
+
+唯一当前外贴句见[PASTE-F.txt](PASTE-F.txt)：
+
+```text
+请读取 F:/new/smaltalk/water/docs/dispatch/tickets/WATER-W1-F-SCAN-LAB-20261017.md，开始执行任务。
+```
+
+F用独立workspace/锁/helper，仅冻结prepare工具可在f树.local新建有界合成文件/链接；Rust生产和测试只读。11正常run/6负例、81057内容字节、44快照及Windows原生链接探针通过，F产品尚不存在，六产品测试和真实桥接待实现后运行。E不获物理fixture权限，macOS未验证。没有自动启动实现者。
+
+F交回后，总控核回执/实现SHA/diff/白名单/新旧锁，复跑六测试与五final门及独立边界，在隔离集成树验收。实质修复发编号补单。F通过后再冻结分类/报告组装与版本化规则接入，随后正式桌面；真实用户scope/竞态安全、脱敏导出、macOS实机和发布另行放行。M1尚未完成。
+
+以下安排为历史，旧PASTE入口不重复执行。
+
+## 原扫描接口准备（历史）
 
 总控：Codex。日期：2026-10-17。仍属water-wave1，A/B/C/D/E已VERIFIED保留；现有票不重复派出或改其已验收代码。M1目标尚未完成。
 

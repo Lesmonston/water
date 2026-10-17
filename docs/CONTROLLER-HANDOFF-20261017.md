@@ -2,6 +2,14 @@
 
 2026-10-17。项目：`F:/new/smaltalk/water`。供后续总控接手与Keeper ingest；未写共享Vault或其他项目。
 
+## 当前交接：F已READY
+
+用户要求推进后续任务。A/B/C/D/E均已VERIFIED（Windows范围），不重复外贴；F已完成ADR-006/scan-lab-v1接口/六测试/四负控及22项冻结，独立f树基线`fc114eb81125cef7d374deddc95144bcd9aee748`，tag water-w1-scan-lab-base-20261017。实际Node24/Rust1.95/MSVC baseline与fixtures预检通过，四份旧锁43唯一文件保持，旧产品及根Cargo不变。
+
+F仅冻结prepare工具在f树.local新建合成run，实际11正常+6负例、81057内容字节、44快照；Windows硬链接及symlink/junction元数据探针通过，稳定身份API不可用的编译拒绝为预期证据。F产品尚不存在，六产品测试/实际扫描桥接未运行，Mac/真实ACL/生产竞态未验证。总控没有启动实现者、清理、push或发布。
+
+当前唯一下一步是用户外贴[F正式票](dispatch/tickets/WATER-W1-F-SCAN-LAB-20261017.md)，入口[PASTE-F](dispatch/wave1/PASTE-F.txt)。READY不等于已外贴。完成后总控核SHA/diff/锁并独立复测及集成，实质修复回派；分类/报告/桌面后排。证据与限制见[F派前回执](dispatch/wave1/SCAN-LAB-READY-REPORT.md)。以下为原接手与验收历史，不执行其中旧外贴句。
+
 用户要求接手失效对话`codex:f62e8a21-24f9-488a-904d-a3050525a155`，随后确认A/D已完成，要求直接验收。未恢复旧聊天；依据项目材料、Git、原回执与本轮实测。
 
 ## 已完成

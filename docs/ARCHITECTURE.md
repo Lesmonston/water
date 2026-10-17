@@ -1,6 +1,6 @@
 # Water 架构基线
 
-状态：生产内核设计基线；A/B/C/D/E已验收集成（Windows范围），E仅桥接C纯模型；正式扫描器接口/测试未冻结、产品未实现。对应 [ADR-001](decisions/ADR-001-independent-core.md)。
+状态：生产内核设计基线；A/B/C/D/E已验收集成（Windows范围），E仅桥接C纯模型；F受控扫描协议已冻结、派前通过，产品未实现。对应 [ADR-001](decisions/ADR-001-independent-core.md)。
 
 第一轮的具体数据与Rust API见 [scan v1契约](../contracts/v1/README.md)；工程顺序、工具链及限定范围见 [ADR-002](decisions/ADR-002-wave1-contract-bootstrap.md)。契约材料已冻结不代表Rust实现已存在。
 
@@ -15,6 +15,8 @@
 [ADR-004](decisions/ADR-004-fixture-lab-before-scanner.md)追加独立D测试资产工具：Node只在本项目.local生成合成文件/链接和未来故障计划，供后续Rust扫描验收使用；没有遍历扫描/分类或清理能力。正式核心接口仍由总控在A验收后单独冻结。
 
 [ADR-005](decisions/ADR-005-independent-report-view.md)追加独立E内存展示投影：自有Rust workspace使用已验收A校验入口，输出新视图协议，验收桥接C纯模型；不接C页面、扫描facts或正式脱敏导出，不改根Cargo，且不依赖D。
+
+[ADR-006](decisions/ADR-006-controlled-scan-lab.md)与[Scan Lab v1](../contracts/scan-lab-v1/SPEC.md)冻结F独立workspace：只遍历本树.local中的受控D夹具，私有路径token、严格marker、NativeIo、取消与预算；输出元数据facts，不接Finding/ScanReport。Windows身份Unknown、Mac接口仅设计；无普通文件内容读取、汇总或生产TOCTOU保证。F已READY，产品与六测试/实际桥接尚待外贴实现。
 
 ## 分层与信任边界
 
