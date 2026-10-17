@@ -1,3 +1,5 @@
+use serde::Serialize;
+use serde::de::DeserializeOwned;
 use serde_json::{Value, json};
 use water_contracts::v1::*;
 
@@ -247,6 +249,242 @@ fn constructed_report_validation() {
     );
 }
 
+const REPORT_ENUM_SLOTS: &[(&str, &str)] = &[
+    ("/schema_version", "SchemaVersion"),
+    ("/status", "ScanStatus"),
+    ("/scopes/0/platform", "Platform"),
+    ("/scopes/0/origin", "ScopeOrigin"),
+    ("/scopes/0/coverage", "Coverage"),
+    ("/findings/0/tool/root_source", "LocationSource"),
+    ("/findings/0/category", "Category"),
+    ("/findings/0/risk", "Risk"),
+    ("/findings/0/recoverability", "Recoverability"),
+    ("/findings/0/activity", "Activity"),
+    ("/findings/0/confidence", "Confidence"),
+    ("/findings/0/evidence/0/code", "EvidenceCode"),
+    ("/findings/0/evidence/0/source", "EvidenceSource"),
+    ("/findings/0/protection_reasons/0", "ProtectionReason"),
+    ("/findings/0/references/state", "ReferenceState"),
+    ("/findings/0/size/method", "SizeMethod"),
+    ("/findings/0/size/confidence", "EstimateConfidence"),
+    ("/findings/0/size/shared", "SharedState"),
+    ("/totals/method", "AggregateMethod"),
+    ("/issues/0/code", "IssueCode"),
+];
+
+fn schema_document() -> Value {
+    serde_json::from_str(include_str!(
+        "../../../contracts/v1/scan-report.schema.json"
+    ))
+    .expect("frozen schema must be JSON")
+}
+
+fn schema_wire_literals(schema: &Value, name: &str) -> Vec<String> {
+    let definition = &schema["$defs"][name];
+    assert_eq!(definition["type"], "string", "{name}: schema type");
+    if name == "SchemaVersion" {
+        assert!(
+            !definition["enum"].is_array(),
+            "SchemaVersion material is const, not an enum array"
+        );
+        return vec![
+            definition["const"]
+                .as_str()
+                .expect("SchemaVersion const")
+                .to_owned(),
+        ];
+    }
+    definition["enum"]
+        .as_array()
+        .unwrap_or_else(|| panic!("{name}: expected a string enum array"))
+        .iter()
+        .map(|value| {
+            value
+                .as_str()
+                .unwrap_or_else(|| panic!("{name}: enum entry must be a string"))
+                .to_owned()
+        })
+        .collect()
+}
+
+fn string_boundary_report() -> Value {
+    let mut report = base_value();
+    report["status"] = json!("partial");
+    report["totals"]["coverage_complete"] = json!(false);
+    report["findings"][0]["risk"] = json!("protected");
+    report["findings"][0]["protection_reasons"] = json!(["user_pinned"]);
+    report["issues"] = json!([{
+        "code": "unsupported",
+        "scope_id": "scope-1",
+        "relative_path": null,
+        "message": "Synthetic string-boundary fixture."
+    }]);
+    report
+}
+
+fn check_wire_enum<T>(schema: &Value, name: &str, failures: &mut Vec<String>) -> usize
+where
+    T: DeserializeOwned + Serialize,
+{
+    let literals = schema_wire_literals(schema, name);
+    assert!(!literals.is_empty(), "{name}: missing wire literals");
+    for literal in &literals {
+        match serde_json::from_str::<T>(&json!(literal).to_string()) {
+            Ok(parsed) => {
+                let serialized = serde_json::to_value(&parsed).expect("serialize wire enum");
+                if serialized != Value::String(literal.clone()) {
+                    failures.push(format!(
+                        "{name}: round trip changed {literal:?} into {serialized}"
+                    ));
+                }
+            }
+            Err(error) => failures.push(format!(
+                "{name}: rejected schema string {literal:?}: {error}"
+            )),
+        }
+        let object = json!({ literal: null }).to_string();
+        if serde_json::from_str::<T>(&object).is_ok() {
+            failures.push(format!("{name}: accepted object {object}"));
+        }
+    }
+    let tagged = json!({ literals[0].clone(): true }).to_string();
+    if serde_json::from_str::<T>(&tagged).is_ok() {
+        failures.push(format!("{name}: accepted object {tagged}"));
+    }
+    for sample in [
+        json!([]),
+        json!([literals[0].clone()]),
+        Value::Null,
+        json!(true),
+        json!(false),
+        json!(0),
+        json!(-1),
+        json!("DO_NOT_ECHO_CANARY_7f98"),
+    ] {
+        if serde_json::from_str::<T>(&sample.to_string()).is_ok() {
+            failures.push(format!("{name}: accepted {sample}"));
+        }
+    }
+    literals.len()
+}
+
+fn check_report_enum_slots(failures: &mut Vec<String>) {
+    let report = string_boundary_report();
+    if let Err(error) = parse_report(&report.to_string()) {
+        failures.push(format!(
+            "string-boundary carrier report was rejected: {error}"
+        ));
+        return;
+    }
+    for (pointer, name) in REPORT_ENUM_SLOTS {
+        let Some(literal) = report
+            .pointer(pointer)
+            .and_then(Value::as_str)
+            .map(str::to_owned)
+        else {
+            failures.push(format!("{pointer} ({name}): missing schema string"));
+            continue;
+        };
+        let mut object_input = report.clone();
+        let mut object = serde_json::Map::new();
+        object.insert(literal.clone(), Value::Null);
+        *object_input.pointer_mut(pointer).unwrap() = Value::Object(object);
+        match parse_report(&object_input.to_string()) {
+            Err(error)
+                if error.code == ContractErrorCode::InvalidShape
+                    && !error.to_string().contains(&literal)
+                    && !error.to_string().contains("DO_NOT_ECHO_CANARY_7f98") => {}
+            Ok(_) => failures.push(format!("{pointer} ({name}): accepted object")),
+            Err(error) => failures.push(format!(
+                "{pointer} ({name}): expected InvalidShape without input echo, actual {error}"
+            )),
+        }
+        for sample in [
+            json!([]),
+            Value::Null,
+            json!(true),
+            json!(false),
+            json!(0),
+            json!(-1),
+            json!("DO_NOT_ECHO_CANARY_7f98"),
+            json!({"DO_NOT_ECHO_CANARY_7f98": null}),
+        ] {
+            let mut input = report.clone();
+            *input.pointer_mut(pointer).unwrap() = sample.clone();
+            match parse_report(&input.to_string()) {
+                Err(error)
+                    if error.code == ContractErrorCode::InvalidShape
+                        && !error.to_string().contains("DO_NOT_ECHO_CANARY_7f98")
+                        && !error.to_string().contains(&literal) => {}
+                Ok(_) => failures.push(format!("{pointer} ({name}): accepted {sample}")),
+                Err(error) => failures.push(format!(
+                    "{pointer} ({name}): expected InvalidShape for {sample}, actual {error}"
+                )),
+            }
+        }
+    }
+}
+
+fn assert_wire_enum_boundaries() {
+    let schema = schema_document();
+    let defined = schema["$defs"]
+        .as_object()
+        .expect("schema defs")
+        .values()
+        .filter(|value| {
+            value["type"] == "string" && (value["enum"].is_array() || value["const"].is_string())
+        })
+        .count();
+    assert_eq!(defined, 20, "frozen public string enums");
+    assert_eq!(REPORT_ENUM_SLOTS.len(), 20, "report enum positions");
+    let mut failures = Vec::new();
+    let mut literals = 0;
+    let mut types = 0;
+    macro_rules! check {
+        ($($name:ident),+ $(,)?) => {
+            $(
+                literals += check_wire_enum::<$name>(&schema, stringify!($name), &mut failures);
+                types += 1;
+            )+
+        };
+    }
+    check!(
+        SchemaVersion,
+        Platform,
+        ScopeOrigin,
+        Coverage,
+        ScanStatus,
+        LocationSource,
+        Category,
+        Risk,
+        Recoverability,
+        Activity,
+        Confidence,
+        ProtectionReason,
+        EvidenceCode,
+        EvidenceSource,
+        SizeMethod,
+        EstimateConfidence,
+        SharedState,
+        ReferenceState,
+        AggregateMethod,
+        IssueCode,
+    );
+    assert_eq!(types, 20, "direct wire enum types");
+    assert_eq!(literals, 93, "direct wire enum literals");
+    check_report_enum_slots(&mut failures);
+    let accepted = failures
+        .iter()
+        .filter(|line| line.contains("accepted"))
+        .count();
+    let details = failures.join("\n");
+    assert!(
+        failures.is_empty(),
+        "{accepted} non-string wire values accepted across {} boundary failures:\n{details}",
+        failures.len()
+    );
+}
+
 #[test]
 fn raw_json_and_resource_limits() {
     let data = cases();
@@ -314,4 +552,5 @@ fn raw_json_and_resource_limits() {
             &format!("object required at {path}"),
         );
     }
+    assert_wire_enum_boundaries();
 }

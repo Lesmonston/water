@@ -228,142 +228,182 @@ macro_rules! dto {
     };
 }
 
+// JSON Schema requires a string. Derived Serde also accepts the externally
+// tagged unit object {"variant": null}; read the string before matching it.
+fn deserialize_wire_string<'de, D>(deserializer: D) -> Result<String, D::Error>
+where
+    D: Deserializer<'de>,
+{
+    String::deserialize(deserializer)
+}
+
 macro_rules! wire_enum {
-    ($name:ident { $($variant:ident),* $(,)? }) => {
-        #[derive(Debug, Clone, Copy, PartialEq, Eq, Hash, Serialize, Deserialize)]
-        #[serde(rename_all = "snake_case")]
-        pub enum $name { $($variant),* }
+    ($name:ident { $($variant:ident = $wire:literal),* $(,)? }) => {
+        #[derive(Debug, Clone, Copy, PartialEq, Eq, Hash, Serialize)]
+        pub enum $name {
+            $(
+                #[serde(rename = $wire)]
+                $variant
+            ),*
+        }
+
+        impl<'de> Deserialize<'de> for $name {
+            fn deserialize<D: Deserializer<'de>>(deserializer: D) -> Result<Self, D::Error> {
+                let value = deserialize_wire_string(deserializer)?;
+                match value.as_str() {
+                    $($wire => Ok(Self::$variant),)*
+                    _ => Err(serde::de::Error::custom("expected a schema string")),
+                }
+            }
+        }
     };
 }
 
-#[derive(Debug, Clone, Copy, PartialEq, Eq, Hash, Serialize, Deserialize)]
+#[derive(Debug, Clone, Copy, PartialEq, Eq, Hash, Serialize)]
 pub enum SchemaVersion {
     #[serde(rename = "water.scan.v1")]
     WaterScanV1,
 }
 
-wire_enum!(Platform { Windows, Macos });
+impl<'de> Deserialize<'de> for SchemaVersion {
+    fn deserialize<D: Deserializer<'de>>(deserializer: D) -> Result<Self, D::Error> {
+        let value = deserialize_wire_string(deserializer)?;
+        match value.as_str() {
+            "water.scan.v1" => Ok(Self::WaterScanV1),
+            _ => Err(serde::de::Error::custom("expected a schema string")),
+        }
+    }
+}
+
+wire_enum!(Platform {
+    Windows = "windows",
+    Macos = "macos",
+});
 wire_enum!(ScopeOrigin {
-    UserSelected,
-    ConfigDiscovered
+    UserSelected = "user_selected",
+    ConfigDiscovered = "config_discovered",
 });
 wire_enum!(Coverage {
-    Complete,
-    Partial,
-    Cancelled
+    Complete = "complete",
+    Partial = "partial",
+    Cancelled = "cancelled",
 });
 wire_enum!(ScanStatus {
-    Completed,
-    Partial,
-    Cancelled
+    Completed = "completed",
+    Partial = "partial",
+    Cancelled = "cancelled",
 });
 wire_enum!(LocationSource {
-    Config,
-    Native,
-    Marker,
-    DefaultPath,
-    Unknown
+    Config = "config",
+    Native = "native",
+    Marker = "marker",
+    DefaultPath = "default_path",
+    Unknown = "unknown",
 });
 wire_enum!(Category {
-    DownloadCache,
-    BuildCache,
-    Environment,
-    Model,
-    Experiment,
-    History,
-    Database,
-    Credential,
-    Source,
-    Temporary,
-    Unknown,
+    DownloadCache = "download_cache",
+    BuildCache = "build_cache",
+    Environment = "environment",
+    Model = "model",
+    Experiment = "experiment",
+    History = "history",
+    Database = "database",
+    Credential = "credential",
+    Source = "source",
+    Temporary = "temporary",
+    Unknown = "unknown",
 });
 wire_enum!(Risk {
-    Low,
-    Review,
-    High,
-    Protected
+    Low = "low",
+    Review = "review",
+    High = "high",
+    Protected = "protected",
 });
 wire_enum!(Recoverability {
-    Rebuild,
-    Redownload,
-    Conditional,
-    Unknown,
-    NotApplicable
+    Rebuild = "rebuild",
+    Redownload = "redownload",
+    Conditional = "conditional",
+    Unknown = "unknown",
+    NotApplicable = "not_applicable",
 });
 wire_enum!(Activity {
-    Running,
-    Recent,
-    NotObserved,
-    Unknown
+    Running = "running",
+    Recent = "recent",
+    NotObserved = "not_observed",
+    Unknown = "unknown",
 });
 wire_enum!(Confidence {
-    Native,
-    VerifiedStructure,
-    PathOnly,
-    Unknown
+    Native = "native",
+    VerifiedStructure = "verified_structure",
+    PathOnly = "path_only",
+    Unknown = "unknown",
 });
 wire_enum!(ProtectionReason {
-    Credential,
-    UniqueAsset,
-    Active,
-    UnknownOwnership,
-    IncompleteEvidence,
-    SourceRoot,
-    SystemRoot,
-    UserHome,
-    ProtectedDescendant,
-    UserPinned,
+    Credential = "credential",
+    UniqueAsset = "unique_asset",
+    Active = "active",
+    UnknownOwnership = "unknown_ownership",
+    IncompleteEvidence = "incomplete_evidence",
+    SourceRoot = "source_root",
+    SystemRoot = "system_root",
+    UserHome = "user_home",
+    ProtectedDescendant = "protected_descendant",
+    UserPinned = "user_pinned",
 });
 wire_enum!(EvidenceCode {
-    NativeInventory,
-    StructureMatch,
-    ConfiguredLocation,
-    Marker,
-    TimestampHint,
-    Reference,
-    IncompleteScan,
-    Unknown,
+    NativeInventory = "native_inventory",
+    StructureMatch = "structure_match",
+    ConfiguredLocation = "configured_location",
+    Marker = "marker",
+    TimestampHint = "timestamp_hint",
+    Reference = "reference",
+    IncompleteScan = "incomplete_scan",
+    Unknown = "unknown",
 });
 wire_enum!(EvidenceSource {
-    NativeTool,
-    Config,
-    Filesystem,
-    Rule,
-    Heuristic
+    NativeTool = "native_tool",
+    Config = "config",
+    Filesystem = "filesystem",
+    Rule = "rule",
+    Heuristic = "heuristic",
 });
 wire_enum!(SizeMethod {
-    Unknown,
-    LogicalSum,
-    FileIdentityAllocated,
-    ToolReport
+    Unknown = "unknown",
+    LogicalSum = "logical_sum",
+    FileIdentityAllocated = "file_identity_allocated",
+    ToolReport = "tool_report",
 });
 wire_enum!(EstimateConfidence {
-    Unknown,
-    Estimated,
-    Measured
+    Unknown = "unknown",
+    Estimated = "estimated",
+    Measured = "measured",
 });
-wire_enum!(SharedState { Yes, No, Unknown });
+wire_enum!(SharedState {
+    Yes = "yes",
+    No = "no",
+    Unknown = "unknown",
+});
 wire_enum!(ReferenceState {
-    Known,
-    Partial,
-    Unknown
+    Known = "known",
+    Partial = "partial",
+    Unknown = "unknown",
 });
 wire_enum!(AggregateMethod {
-    Unavailable,
-    FileIdentityDeduplicated,
-    ToolReport
+    Unavailable = "unavailable",
+    FileIdentityDeduplicated = "file_identity_deduplicated",
+    ToolReport = "tool_report",
 });
 wire_enum!(IssueCode {
-    PermissionDenied,
-    IoError,
-    LinkSkipped,
-    OutsideScope,
-    PathUnrepresentable,
-    DepthLimit,
-    EntryLimit,
-    Cancelled,
-    RootChanged,
-    Unsupported,
+    PermissionDenied = "permission_denied",
+    IoError = "io_error",
+    LinkSkipped = "link_skipped",
+    OutsideScope = "outside_scope",
+    PathUnrepresentable = "path_unrepresentable",
+    DepthLimit = "depth_limit",
+    EntryLimit = "entry_limit",
+    Cancelled = "cancelled",
+    RootChanged = "root_changed",
+    Unsupported = "unsupported",
 });
 
 dto!(ScopeDescriptor {
