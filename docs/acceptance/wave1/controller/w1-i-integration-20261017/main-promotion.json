@@ -1,0 +1,275 @@
+{
+  "task": "WATER-W1-I",
+  "startedAt": "2026-10-17T15:07:28.506Z",
+  "localVerificationDate": "2026-10-18",
+  "timezone": "Asia/Tokyo",
+  "style": "ff-only",
+  "integrationTestedCommit": "0f855cfd68a086e79658a05b2e86803998f2add0",
+  "commands": [
+    {
+      "binary": "git",
+      "argv": [
+        "-c",
+        "core.hooksPath=NUL",
+        "-c",
+        "core.fsmonitor=false",
+        "-c",
+        "commit.gpgSign=false",
+        "branch",
+        "--show-current"
+      ],
+      "exitCode": 0,
+      "stdout": "main\n",
+      "stderr": ""
+    },
+    {
+      "binary": "git",
+      "argv": [
+        "-c",
+        "core.hooksPath=NUL",
+        "-c",
+        "core.fsmonitor=false",
+        "-c",
+        "commit.gpgSign=false",
+        "status",
+        "--porcelain=v1",
+        "--untracked-files=all"
+      ],
+      "exitCode": 0,
+      "stdout": "",
+      "stderr": ""
+    },
+    {
+      "binary": "git",
+      "argv": [
+        "-c",
+        "core.hooksPath=NUL",
+        "-c",
+        "core.fsmonitor=false",
+        "-c",
+        "commit.gpgSign=false",
+        "rev-parse",
+        "HEAD"
+      ],
+      "exitCode": 0,
+      "stdout": "bed74ea7bec9526fe36a8c7b090bfe66b380b45c\n",
+      "stderr": ""
+    },
+    {
+      "binary": "git",
+      "argv": [
+        "-c",
+        "core.hooksPath=NUL",
+        "-c",
+        "core.fsmonitor=false",
+        "-c",
+        "commit.gpgSign=false",
+        "rev-parse",
+        "controller/water-w1-i-20261017"
+      ],
+      "exitCode": 0,
+      "stdout": "fb9bf30ad55002482f60707edd6844d6388dc584\n",
+      "stderr": ""
+    },
+    {
+      "binary": "git",
+      "argv": [
+        "-c",
+        "core.hooksPath=NUL",
+        "-c",
+        "core.fsmonitor=false",
+        "-c",
+        "commit.gpgSign=false",
+        "-C",
+        ".worktrees/integration-i-20261017",
+        "status",
+        "--porcelain=v1",
+        "--untracked-files=all"
+      ],
+      "exitCode": 0,
+      "stdout": "",
+      "stderr": ""
+    },
+    {
+      "binary": "git",
+      "argv": [
+        "-c",
+        "core.hooksPath=NUL",
+        "-c",
+        "core.fsmonitor=false",
+        "-c",
+        "commit.gpgSign=false",
+        "diff",
+        "--name-only",
+        "0f855cfd68a086e79658a05b2e86803998f2add0",
+        "fb9bf30ad55002482f60707edd6844d6388dc584",
+        "--",
+        "prototypes",
+        "packages",
+        "crates",
+        "tools",
+        "scripts",
+        "contracts"
+      ],
+      "exitCode": 0,
+      "stdout": "",
+      "stderr": ""
+    },
+    {
+      "binary": "git",
+      "argv": [
+        "-c",
+        "core.hooksPath=NUL",
+        "-c",
+        "core.fsmonitor=false",
+        "-c",
+        "commit.gpgSign=false",
+        "merge",
+        "--ff-only",
+        "--quiet",
+        "fb9bf30ad55002482f60707edd6844d6388dc584"
+      ],
+      "exitCode": 0,
+      "stdout": "",
+      "stderr": "Updating files:  46% (55/118)\rUpdating files:  47% (56/118)\rUpdating files:  48% (57/118)\rUpdating files:  49% (58/118)\rUpdating files:  50% (59/118)\rUpdating files:  51% (61/118)\rUpdating files:  52% (62/118)\rUpdating files:  53% (63/118)\rUpdating files:  54% (64/118)\rUpdating files:  55% (65/118)\rUpdating files:  56% (67/118)\rUpdating files:  57% (68/118)\rUpdating files:  58% (69/118)\rUpdating files:  59% (70/118)\rUpdating files:  60% (71/118)\rUpdating files:  61% (72/118)\rUpdating files:  62% (74/118)\rUpdating files:  63% (75/118)\rUpdating files:  64% (76/118)\rUpdating files:  65% (77/118)\rUpdating files:  66% (78/118)\rUpdating files:  67% (80/118)\rUpdating files:  68% (81/118)\rUpdating files:  69% (82/118)\rUpdating files:  70% (83/118)\rUpdating files:  71% (84/118)\rUpdating files:  72% (85/118)\rUpdating files:  73% (87/118)\rUpdating files:  74% (88/118)\rUpdating files:  75% (89/118)\rUpdating files:  76% (90/118)\rUpdating files:  77% (91/118)\rUpdating files:  78% (93/118)\rUpdating files:  79% (94/118)\rUpdating files:  80% (95/118)\rUpdating files:  81% (96/118)\rUpdating files:  82% (97/118)\rUpdating files:  83% (98/118)\rUpdating files:  84% (100/118)\rUpdating files:  85% (101/118)\rUpdating files:  86% (102/118)\rUpdating files:  87% (103/118)\rUpdating files:  88% (104/118)\rUpdating files:  89% (106/118)\rUpdating files:  90% (107/118)\rUpdating files:  91% (108/118)\rUpdating files:  92% (109/118)\rUpdating files:  93% (110/118)\rUpdating files:  94% (111/118)\rUpdating files:  95% (113/118)\rUpdating files:  96% (114/118)\rUpdating files:  97% (115/118)\rUpdating files:  98% (116/118)\rUpdating files:  99% (117/118)\rUpdating files: 100% (118/118)\rUpdating files: 100% (118/118), done.\n"
+    },
+    {
+      "binary": "git",
+      "argv": [
+        "-c",
+        "core.hooksPath=NUL",
+        "-c",
+        "core.fsmonitor=false",
+        "-c",
+        "commit.gpgSign=false",
+        "rev-parse",
+        "HEAD"
+      ],
+      "exitCode": 0,
+      "stdout": "fb9bf30ad55002482f60707edd6844d6388dc584\n",
+      "stderr": ""
+    },
+    {
+      "binary": "git",
+      "argv": [
+        "-c",
+        "core.hooksPath=NUL",
+        "-c",
+        "core.fsmonitor=false",
+        "-c",
+        "commit.gpgSign=false",
+        "status",
+        "--porcelain=v1",
+        "--untracked-files=all"
+      ],
+      "exitCode": 0,
+      "stdout": "",
+      "stderr": ""
+    },
+    {
+      "binary": "git",
+      "argv": [
+        "-c",
+        "core.hooksPath=NUL",
+        "-c",
+        "core.fsmonitor=false",
+        "-c",
+        "commit.gpgSign=false",
+        "rev-parse",
+        "HEAD:prototypes/report-reader"
+      ],
+      "exitCode": 0,
+      "stdout": "d64f9e6bd07bed3af36344663b26046eaae0e520\n",
+      "stderr": ""
+    },
+    {
+      "binary": "git",
+      "argv": [
+        "-c",
+        "core.hooksPath=NUL",
+        "-c",
+        "core.fsmonitor=false",
+        "-c",
+        "commit.gpgSign=false",
+        "rev-parse",
+        "da0fa3e0006ad4a02432b5b53d4f29c865f32f67:prototypes/report-reader"
+      ],
+      "exitCode": 0,
+      "stdout": "d64f9e6bd07bed3af36344663b26046eaae0e520\n",
+      "stderr": ""
+    },
+    {
+      "binary": "node",
+      "argv": [
+        "scripts/verify-project.mjs"
+      ],
+      "exitCode": 0,
+      "stdout": "{\n  \"status\": \"passed\",\n  \"markdownFiles\": 100,\n  \"localLinks\": 395,\n  \"pinnedSourceLinks\": 182,\n  \"externalPinnedSourceLinks\": 10,\n  \"dispatchRegistryTasks\": 9,\n  \"workflowSourceRecords\": 14,\n  \"upstreams\": 5,\n  \"checkedLocalSnapshots\": 5,\n  \"mode\": \"documents-and-available-snapshots\",\n  \"boundary\": \"Metadata, provenance and handoff checks only; no upstream runtime or cleanup safety test.\"\n}\n",
+      "stderr": ""
+    },
+    {
+      "binary": "git",
+      "argv": [
+        "-c",
+        "core.hooksPath=NUL",
+        "-c",
+        "core.fsmonitor=false",
+        "-c",
+        "commit.gpgSign=false",
+        "-C",
+        ".worktrees/i",
+        "rev-parse",
+        "HEAD"
+      ],
+      "exitCode": 0,
+      "stdout": "da0fa3e0006ad4a02432b5b53d4f29c865f32f67\n",
+      "stderr": ""
+    },
+    {
+      "binary": "git",
+      "argv": [
+        "-c",
+        "core.hooksPath=NUL",
+        "-c",
+        "core.fsmonitor=false",
+        "-c",
+        "commit.gpgSign=false",
+        "-C",
+        ".worktrees/i",
+        "status",
+        "--porcelain=v1",
+        "--untracked-files=all"
+      ],
+      "exitCode": 0,
+      "stdout": "",
+      "stderr": ""
+    }
+  ],
+  "from": "bed74ea7bec9526fe36a8c7b090bfe66b380b45c",
+  "to": "fb9bf30ad55002482f60707edd6844d6388dc584",
+  "productTree": "d64f9e6bd07bed3af36344663b26046eaae0e520",
+  "frozenFiles": 83,
+  "workerFiles": 43,
+  "workerByteIdenticalFiles": 41,
+  "checkoutLineEndingDifferences": [
+    "prototypes/report-reader/index.html",
+    "prototypes/report-reader/styles.css"
+  ],
+  "documents": {
+    "status": "passed",
+    "markdownFiles": 100,
+    "localLinks": 395,
+    "pinnedSourceLinks": 182,
+    "externalPinnedSourceLinks": 10,
+    "dispatchRegistryTasks": 9,
+    "workflowSourceRecords": 14,
+    "upstreams": 5,
+    "checkedLocalSnapshots": 5,
+    "mode": "documents-and-available-snapshots",
+    "boundary": "Metadata, provenance and handoff checks only; no upstream runtime or cleanup safety test."
+  },
+  "status": "passed",
+  "endedAt": "2026-10-17T15:07:55.820Z",
+  "macOS": "unverified",
+  "scannerOrBrowserExecutedDuringPromotion": false
+}
