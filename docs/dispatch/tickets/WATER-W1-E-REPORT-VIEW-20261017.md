@@ -2,6 +2,8 @@
 
 总控：Codex。日期：2026-10-17。正式状态看主检出manifest。E与D补单01独立并行，仅依赖已验收A/C；不实现扫描器或桌面接线。
 
+当前更新：E已通过单票及隔离集成复验，接收HEAD `b285a0e15f6e514b0e90e793ab83f63f85db05d9`，VERIFIED（Windows范围）。见[总控验收报告](../../acceptance/wave1/controller/WATER-W1-E-REVIEW-20261017.md)。以下为历史执行票面，不再外贴重做。
+
 | 项 | 唯一值 |
 |---|---|
 | 权威票 | `F:/new/smaltalk/water/docs/dispatch/tickets/WATER-W1-E-REPORT-VIEW-20261017.md` |

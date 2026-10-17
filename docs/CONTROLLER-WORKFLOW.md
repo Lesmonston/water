@@ -106,3 +106,5 @@ READY只表示总控已准备好，不表示用户已转贴。得到用户已贴
 后续安排更新：ADR-005允许同一波次独立E报告展示投影与D修订并行；E只依赖已验收A/C，新锁/helper/自有workspace不改旧票。E基线实际通过、READY待外贴，产品未实现；正式扫描票仍等D验收。见[E派前回执](dispatch/wave1/REPORT-VIEW-READY-REPORT.md)。
 
 最新验收：D补单01已通过单票及隔离集成，VERIFIED；A/B/C和E冻结/分配保持。正式扫描的D前置已满足，仍需接口/测试冻结、独立树与派前检查，不把已有草案当外贴票。见[D复验/集成报告](acceptance/wave1/controller/WATER-W1-D-ADDENDUM-01-REVIEW-20261017.md)。
+
+E收口：单票五门、实际Rust/JSON/C九断言、四独立内存测试及隔离集成均通过，VERIFIED（Windows范围）。现有A/B/C/D/E五票均已验收，M1仍未完成；下一张扫描票要新接口/测试冻结及派前检查，旧票不重复执行。见[E复验/集成报告](acceptance/wave1/controller/WATER-W1-E-REVIEW-20261017.md)。

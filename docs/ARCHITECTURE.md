@@ -1,6 +1,6 @@
 # Water 架构基线
 
-状态：生产内核设计基线；A/B/C/D已验收集成（Windows范围）；E独立展示投影READY，正式扫描器接口/测试未冻结、产品未实现。对应 [ADR-001](decisions/ADR-001-independent-core.md)。
+状态：生产内核设计基线；A/B/C/D/E已验收集成（Windows范围），E仅桥接C纯模型；正式扫描器接口/测试未冻结、产品未实现。对应 [ADR-001](decisions/ADR-001-independent-core.md)。
 
 第一轮的具体数据与Rust API见 [scan v1契约](../contracts/v1/README.md)；工程顺序、工具链及限定范围见 [ADR-002](decisions/ADR-002-wave1-contract-bootstrap.md)。契约材料已冻结不代表Rust实现已存在。
 

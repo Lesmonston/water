@@ -1,6 +1,6 @@
 # WATER-W1-E 总控复验与集成
 
-2026-10-17，总控Codex。结论：E单票ACCEPTED，隔离集成结果另记；A/B/C/D既有验收与全部旧锁保持。没有自动启动实现者或代修产品。
+2026-10-17，总控Codex。结论：E单票及隔离集成通过，VERIFIED（Windows范围）；A/B/C/D既有验收与全部旧锁保持。没有自动启动实现者或代修产品。
 
 ## 接收与范围
 
@@ -35,6 +35,10 @@ bridge实际构建E库，编译冻结Rust程序，调用project_json并Serialize
 
 ## 集成与限制
 
-单票通过后在独立E集成树复跑离线五门、真实Rust→JSON→C九断言及四独立测试；最终SHA、receipt、原字节审计及main推进后续追加。集成仅构建/日志，不授予E物理fixture权限。
+单票通过后在`.worktrees/integration-e-20261017`、controller/water-w1-e-20261017无冲突合并已接收提交。实际受测SHA`d5f08d8f36b12db29a210ddb6b53fa413b20584f`，前后干净不变；[集成receipt](w1-e-integration-20261017/2026-10-17T12-18-25.706Z-12020-result.json)共30命令全部退出0。独立缓存副本、离线构建与新target下，metadata/fmt/五Rust测试/clippy、真实Rust→JSON→C九断言及四独立测试全部通过。
+
+43项唯一冻结文件一致，E产品tree为`4bd58bd101785eab26065ac52c8326e5f4ce1911`，与接收提交相同；A/B/C/D产品tree及根Cargo/锁未变，根workspace仍仅有A。43份worker产品/测试、源证据和回执实际字节均一致；[31项集成归档与源文件hash](w1-e-integration-20261017/archive-manifest.json)可复核。集成仅构建/日志，没有物理fixture。
+
+受测SHA之后只补文档和证据，不变产品或测试；main仅在上述检查完成后快进，推进记录单独保留。没有因未变A/B/C/D内容而重复其产品测试或浏览器测试。
 
 这只是内存展示投影；没有正式页面/IPC接线、扫描、分类、脱敏导出或删除。没有macOS实测。全部前置通过后，正式Rust扫描仍需新的接口/测试冻结与派前检查；当前无可执行F票。

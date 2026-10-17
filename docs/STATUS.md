@@ -21,13 +21,19 @@
 
 ## 下一步
 
-A/B/C/D已VERIFIED并集成。[E独立报告展示投影](dispatch/tickets/WATER-W1-E-REPORT-VIEW-20261017.md)继续原票，READY待外贴，产品尚未实现。D扫描前置已满足，但正式Rust扫描器的接口/测试冻结与派前检查尚未完成，没有可外贴扫描票；分类/正式桌面接线另排，没有真实用户扫描或清理。
+A/B/C/D/E已VERIFIED并集成，现有五票无需重复外贴。正式Rust扫描器的接口/测试冻结与派前检查尚未完成，没有可外贴扫描票；分类/正式桌面接线另排，没有真实用户扫描或清理。
+
+## E验收集成（2026-10-17，当前）
+
+- 接收HEAD `b285a0e15f6e514b0e90e793ab83f63f85db05d9`，干净；受测实现5b23f9c。42新增文件全部在白名单，19冻结及根Cargo/旧产品不变，实现后只有证据/报告。总控五final门、实际Rust→JSON→C九断言与四项独立内存边界首次全过。
+- 隔离受测提交`d5f08d8f36b12db29a210ddb6b53fa413b20584f`在离线新target重复通过五Rust测试、fmt/clippy/metadata、真实桥接九断言与四独立测试；43唯一冻结一致，43份worker文件原字节保持，A/B/C/D产品tree未变。
+- E为VERIFIED（Windows范围），详见[E复验/集成报告](acceptance/wave1/controller/WATER-W1-E-REVIEW-20261017.md)。没有物理fixture、正式UI/IPC、扫描/清理或macOS验收；现有票已收口不等于M1完成，下一张扫描票仍为DRAFT。
 
 ## D补单01验收集成（2026-10-17，当前）
 
 - 接收HEAD `711c38c9d626c4ceb624a48173356887c913d9c7`，干净；补单三产品/12新记录符合白名单，8冻结及旧证据不变。原check/五测试与独立19边界总控首次全过。
 - 隔离受测提交`4e44ee6d3eca2cfd691bc30f298dff3c606e14f9`：两语法、五测试、19独立边界全过，43唯一冻结一致；D产品tree与接收提交相同，A/B/C及E冻结未变。20个合成run仅在集成树.local，未清理。37份源证据原字节一致，Windows三链接能力实际通过，macOS未验证。
-- D为VERIFIED，详见[本轮复验/集成报告](acceptance/wave1/controller/WATER-W1-D-ADDENDUM-01-REVIEW-20261017.md)。E未改树、原基线/19锁/READY分配保持；没有自动启动实现者。
+- D为VERIFIED，详见[本轮复验/集成报告](acceptance/wave1/controller/WATER-W1-D-ADDENDUM-01-REVIEW-20261017.md)。该轮未改E树或分配；E后续状态见本页最新验收段，没有自动启动实现者。
 
 ## D修订/E展示投影安排（2026-10-17，历史派前）
 

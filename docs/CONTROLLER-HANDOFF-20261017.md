@@ -34,3 +34,7 @@ NC-07坏态源码未归档、其坏态hash不能独立重建的证据限制已�
 ## D补单收口更新
 
 D补单01已交回，接收711c38c、受测实现ff99fb2。总控check/五测试及原19项独立边界全部通过；隔离集成受测`4e44ee6d3eca2cfd691bc30f298dff3c606e14f9`也全部通过，43唯一冻结一致、37份源证据字节保持。D为VERIFIED（Windows范围），A/B/C和E分配不变。20个集成合成run仅在自己的.local，无清理、真实扫描或macOS验收。详见[D复验/集成报告](acceptance/wave1/controller/WATER-W1-D-ADDENDUM-01-REVIEW-20261017.md)。D不再外贴；E继续原票，扫描新接口/测试/派前检查尚未完成，F仍DRAFT。
+
+## E收口更新
+
+E接收`b285a0e15f6e514b0e90e793ab83f63f85db05d9`、受测实现5b23f9c。总控五final门、真实Rust→JSON→C纯模型九断言和四独立内存测试全部通过；隔离受测`d5f08d8f36b12db29a210ddb6b53fa413b20584f`用新target离线复测也全部通过。43唯一冻结保持，43份worker产品/证据/回执原字节一致，A/B/C/D和根Cargo未变。E为VERIFIED（Windows范围），没有页面/IPC、扫描、脱敏导出或macOS实测。详见[E复验/集成报告](acceptance/wave1/controller/WATER-W1-E-REVIEW-20261017.md)。A/B/C/D/E旧票不再外贴；现有票收口不等于M1完成，下一张正式扫描票仍待新接口/测试冻结与派前检查。

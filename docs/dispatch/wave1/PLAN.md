@@ -16,6 +16,8 @@
 
 最新收口：D补单01已通过单票与隔离集成五测试/19独立边界，VERIFIED并纳入主线，D无需再外贴。E分配/19冻结不变，继续原票。正式扫描的D前置已满足，仍需新接口/测试冻结与派前检查，尚无F正式票。见[D复验报告](../../acceptance/wave1/controller/WATER-W1-D-ADDENDUM-01-REVIEW-20261017.md)。
 
+当前收口：E也已通过单票和隔离集成五门、实际桥接九断言及四独立边界，VERIFIED并纳入主线。A/B/C/D/E现有票均不重复派出；扫描接口/测试冻结仍未完成，F继续DRAFT。见[E复验报告](../../acceptance/wave1/controller/WATER-W1-E-REVIEW-20261017.md)。
+
 | 票 | 内容 | 前置与边界 |
 |---|---|---|
 | WATER-W1-A | Rust workspace、water-contracts、固定序列化/语义校验、定向测试 | 架构基线已提交；没有扫描/删除/UI |
