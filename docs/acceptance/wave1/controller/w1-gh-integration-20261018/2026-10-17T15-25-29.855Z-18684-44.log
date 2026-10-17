@@ -1,0 +1,15 @@
+{"binary":"C:\\Users\\37310\\.rustup\\toolchains\\1.95.0-x86_64-pc-windows-msvc\\bin\\rustc.exe","argv":["--edition=2024","--crate-name","controller_gh_boundaries","--test","F:\\new\\smaltalk\\water\\.worktrees\\integration-gh-20261018\\scripts\\acceptance\\summary-export-boundaries.rs","-L","dependency=F:\\new\\smaltalk\\water\\.worktrees\\integration-gh-20261018\\.local\\gh-target\\debug\\deps","--extern","water_summary_export=F:\\new\\smaltalk\\water\\.worktrees\\integration-gh-20261018\\.local\\gh-target\\debug\\deps\\libwater_summary_export-3daf7e66977322a3.rlib","--extern","water_contracts=F:\\new\\smaltalk\\water\\.worktrees\\integration-gh-20261018\\.local\\gh-target\\debug\\deps\\libwater_contracts-56ccb621fc68b7c8.rlib","--extern","serde_json=F:\\new\\smaltalk\\water\\.worktrees\\integration-gh-20261018\\.local\\gh-target\\debug\\deps\\libserde_json-c243626af514ec1f.rlib","-o","F:\\new\\smaltalk\\water\\.worktrees\\integration-gh-20261018\\.local\\gh-tmp\\WATER-W1-H-independent.exe"],"exitCode":0,"error":null,"log":"2026-10-17T15-25-29.855Z-18684-44.log"}
+--- stdout ---
+
+--- stderr ---
+warning: value assigned to `actual` is never read
+  --> F:\new\smaltalk\water\.worktrees\integration-gh-20261018\scripts\acceptance\summary-export-boundaries.rs:74:5
+   |
+74 |     actual.totals.logical_bytes = None; assert!(altered.totals.logical_bytes.is_some()); assert_eq!(report, base());
+   |     ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+   |
+   = help: maybe it is overwritten before being read?
+   = note: `#[warn(unused_assignments)]` (part of `#[warn(unused)]`) on by default
+
+warning: 1 warning emitted
+

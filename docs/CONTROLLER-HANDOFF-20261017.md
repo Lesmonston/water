@@ -2,7 +2,11 @@
 
 2026-10-17。项目：`F:/new/smaltalk/water`。供后续总控接手与Keeper ingest；未写共享Vault或其他项目。
 
-## 当前交接：A–F及I已VERIFIED，G/H保持READY
+## 当前交接：A–I已VERIFIED，受控真实库/模型链路通过
+
+G接收85c64d5/受测4ae559b，H接收cab41d1/受测52748c5。原各五门、五测试及七独立测试通过；统一隔离受测`e383ece84f2943fe099106f2e121643417bbe346`用新target离线重测全过，实际F原生11case/12scope/39entry及两个控制样本经G/A/E/H和I模型通过，44快照一致。83冻结、A–F/I产品与根Cargo不变，114份worker文件原字节保持。[G/H验收报告](acceptance/wave1/controller/WATER-W1-GH-REVIEW-20261018.md)及同目录main-promotion.json给出精确提交与历史证据限制。A–I旧票不重复外贴；下一步仍需真实用户scope安全、分类/工具适配、扫描报告页面/桌面接线和macOS，M1未完成。没有自动实现者、真实数据、清理、push或发布。
+
+## 此前交接：A–F及I已VERIFIED，G/H保持READY（历史）
 
 I接收da0fa3e、受测实现8888c26，原三个final门、模型三/浏览器二与87独立边界通过。隔离受测`0f855cfd68a086e79658a05b2e86803998f2add0`完成三项真实生产逻辑负控及逐次完整五测恢复、最终五测与87独立边界，三张新截图实际查看；83冻结、A–F产品与43份文件Git内容保持，41份字节一致，HTML/CSS仅checkout换行差异。[I验收报告](acceptance/wave1/controller/WATER-W1-I-REVIEW-20261017.md)记录证据和历史先红缺口；main推进另存归档main-promotion.json。G/H原READY分配保持，未自动启动实现者；真实扫描链路、桌面、真实数据与macOS仍未验证，M1未完成。
 

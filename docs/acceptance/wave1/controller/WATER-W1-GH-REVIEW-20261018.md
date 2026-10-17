@@ -1,6 +1,6 @@
 # WATER-W1-G/H 总控验收与集成
 
-2026-10-18（Asia/Tokyo），总控 Codex。当前：G/H单票 ACCEPTED，统一隔离集成尚未运行，暂不标 VERIFIED。没有改worker源码、测试、冻结或旧产品。
+2026-10-18（Asia/Tokyo），总控 Codex。结论：G/H单票及统一隔离集成全部通过，VERIFIED（Windows范围）。没有改worker源码、测试、冻结或旧产品。
 
 ## 接收与单票检查
 
@@ -29,4 +29,8 @@ G报告未提供独立的实现前行为红；H把计数0称为先红，但可�
 
 ## 集成与边界
 
-统一隔离集成与真实F→G→A→E/H→I纯模型链路待实际运行后补入。只允许冻结prepare在控制树.local新建一批有界合成夹具，库只读，不触真实用户目录；I页面没有扫描结果输入接口，本轮不把库/模型联测称为正式页面接线。A–F及I旧产品/冻结保持，macOS、真实用户scope、生产竞态、分类、去重容量、桌面与删除未验收，M1未完成。没有自动启动实现者、清理、push或发布。
+统一隔离树`.worktrees/integration-gh-20261018`、分支`controller/water-w1-gh-20261018`无冲突合并两票；实际受测SHA为`e383ece84f2943fe099106f2e121643417bbe346`，前后干净不变。[集成receipt](w1-gh-integration-20261018/2026-10-17T15-25-29.855Z-18684-result.json)记录新私有缓存/target、离线jobs1下，G/H各五测试、fmt/clippy/metadata、原桥接与七个独立Rust测试首次全过。
+
+真实链路由控制Rust程序调用F公开入口、Serialize真实facts交G、A JSON往返，再调用E两入口与H两入口，最后将真实E输出交既有I模型的assertReportView/selectFindings/summarizeView。原生11 case/12 scope/39 entry由冻结matrix逐项核对；另有预取消及Injected PermissionDenied两个控制样本，共13个链路样本。每项验证完整facts sidecar、全未知保护、计数和来源totals未知。没有用expected代替程序输出；I页面未接此链路。
+
+冻结prepare仅在本树.local新建11正常+6负例有界合成run，内容字节81717，44快照一致；没有ACL/移动/清理。83唯一冻结、A–F及I产品tree和根Cargo保持；G产品tree `0bd0579c6301eaf6ff489a594545a603b11aa92c`、H产品tree `c109f4aca0348d96ee7ce8d4eb2b8619e48bd2f9`与接收提交相同。[114份worker文件](w1-gh-integration-20261018/worker-byte-manifest.json)全部物理字节一致。[原始集成归档](w1-gh-integration-20261018/archive-manifest.json)记录53文件hash。受测SHA后只补文档/台账/证据；main快进推进另存同目录main-promotion.json。只允许冻结prepare在控制树.local新建一批有界合成夹具，库只读，不触真实用户目录；I页面没有扫描结果输入接口，本轮不把库/模型联测称为正式页面接线。A–F及I旧产品/冻结保持，macOS、真实用户scope、生产竞态、分类、去重容量、桌面与删除未验收，M1未完成。没有自动启动实现者、清理、push或发布。

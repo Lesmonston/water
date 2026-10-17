@@ -2,7 +2,11 @@
 
 日期：2026-10-17。总控：Codex。所有手工项目产物位于 `F:/new/smaltalk/water`。
 
-## I验收追加（2026-10-18，最新）
+## G/H验收追加（2026-10-18，最新）
+
+G接收85c64d5、H接收cab41d1，原各五门/五测试及七独立测试通过；隔离受测`e383ece84f2943fe099106f2e121643417bbe346`新target离线重测全部通过，真实受控F→G→A→E/H→I模型链路覆盖11原生和2控制样本，44快照一致。83冻结、旧产品及114份worker文件不变。A–I均VERIFIED（Windows范围），见[G/H验收报告](acceptance/wave1/controller/WATER-W1-GH-REVIEW-20261018.md)。历史实现前先红顺序未证实；M1、真实scope、分类、实际页面/桌面/macOS/删除未完成。项目内已保存推进与交接证据，没有写共享Vault。
+
+## I验收追加（2026-10-18，历史收口）
 
 I接收da0fa3e，原三门/五测试与87独立边界通过；隔离受测`0f855cfd68a086e79658a05b2e86803998f2add0`重建三坏态，完整五测目标红及恢复绿、最终检查全过，三张截图实际查看。83冻结、A–F产品及43份文件Git内容不变（41份字节一致，HTML/CSS仅checkout换行差异）。A–F及I均VERIFIED（Windows范围），G/H原分配保持。[I验收报告](acceptance/wave1/controller/WATER-W1-I-REVIEW-20261017.md)保留历史先红证据限制，当前三负控完整原始证据已补验；无真实数据/扫描链路/桌面/macOS验收，M1未完成。
 

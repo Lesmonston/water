@@ -4,7 +4,7 @@
   "mode": "manual-external-paste",
   "controller": "Codex",
   "projectRoot": "F:/new/smaltalk/water",
-  "stage": "wave1-abcdefi-verified-gh-ready",
+  "stage": "wave1-abcdefghi-verified",
   "activeWave": "water-wave1",
   "slots": [
     {
@@ -61,7 +61,7 @@
       "branch": "worker/water-w1-g",
       "baseline": "045ab4f0d01edd573828fbc8cca988e1ad37efee",
       "task": "WATER-W1-G",
-      "state": "accepted-awaiting-integration"
+      "state": "verified-preserved"
     },
     {
       "id": "h",
@@ -69,7 +69,7 @@
       "branch": "worker/water-w1-h",
       "baseline": "045ab4f0d01edd573828fbc8cca988e1ad37efee",
       "task": "WATER-W1-H",
-      "state": "accepted-awaiting-integration"
+      "state": "verified-preserved"
     },
     {
       "id": "i",
@@ -428,7 +428,7 @@
         "WATER-W1-A",
         "WATER-W1-E"
       ],
-      "status": "ACCEPTED",
+      "status": "VERIFIED",
       "kind": "parallel_next_rust",
       "worktree": "F:/new/smaltalk/water/.worktrees/g",
       "branch": "worker/water-w1-g",
@@ -484,7 +484,18 @@
       "controllerReviewReceipt": "docs/acceptance/wave1/controller/w1-gh-review-20261018/g/2026-10-17T15-18-53.360Z-4120-result.json",
       "integrationBranch": "controller/water-w1-gh-20261018",
       "integrationWorktree": "F:/new/smaltalk/water/.worktrees/integration-gh-20261018",
-      "evidenceLimitations": "Pre-implementation behavior-red ordering not established by available records; complete current negative-control red/green logs verified."
+      "evidenceLimitations": "Pre-implementation behavior-red ordering not established by available records; complete current negative-control red/green logs verified.",
+      "integratedOn": "2026-10-18",
+      "verifiedOn": "2026-10-18",
+      "verifiedPlatforms": [
+        "Windows"
+      ],
+      "unverifiedPlatforms": [
+        "macOS"
+      ],
+      "integrationCommit": "e383ece84f2943fe099106f2e121643417bbe346",
+      "integrationReceipt": "docs/acceptance/wave1/controller/w1-gh-integration-20261018/2026-10-17T15-25-29.855Z-18684-result.json",
+      "verificationScope": "Frozen synthetic memory module and controlled integration: original five gates, independent Rust checks, actual F metadata -> G -> A -> E/H -> I model passed. No live I page, desktop, real-user scope, classification, deduplicated capacity or cleanup."
     },
     {
       "slot": "h",
@@ -507,7 +518,7 @@
       "dependsOn": [
         "WATER-W1-A"
       ],
-      "status": "ACCEPTED",
+      "status": "VERIFIED",
       "kind": "parallel_next_rust",
       "worktree": "F:/new/smaltalk/water/.worktrees/h",
       "branch": "worker/water-w1-h",
@@ -560,7 +571,18 @@
       "controllerReviewReceipt": "docs/acceptance/wave1/controller/w1-gh-review-20261018/h/2026-10-17T15-18-53.365Z-27584-result.json",
       "integrationBranch": "controller/water-w1-gh-20261018",
       "integrationWorktree": "F:/new/smaltalk/water/.worktrees/integration-gh-20261018",
-      "evidenceLimitations": "Pre-implementation behavior-red ordering not established by available records; complete current negative-control red/green logs verified."
+      "evidenceLimitations": "Pre-implementation behavior-red ordering not established by available records; complete current negative-control red/green logs verified.",
+      "integratedOn": "2026-10-18",
+      "verifiedOn": "2026-10-18",
+      "verifiedPlatforms": [
+        "Windows"
+      ],
+      "unverifiedPlatforms": [
+        "macOS"
+      ],
+      "integrationCommit": "e383ece84f2943fe099106f2e121643417bbe346",
+      "integrationReceipt": "docs/acceptance/wave1/controller/w1-gh-integration-20261018/2026-10-17T15-25-29.855Z-18684-result.json",
+      "verificationScope": "Frozen synthetic memory module and controlled integration: original five gates, independent Rust checks, actual F metadata -> G -> A -> E/H -> I model passed. No live I page, desktop, real-user scope, classification, deduplicated capacity or cleanup."
     },
     {
       "slot": "i",
