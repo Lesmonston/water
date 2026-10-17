@@ -1,0 +1,62 @@
+[
+    {
+        "testsSha256":  "cca361b415feace87982125aa12b367b73d42994a59c514c74f0e8563a961e8e",
+        "id":  "NC1",
+        "originalSha256":  "6b0a7ad9d9b480e6bc73c50c2a5c9eb7fd41eadf2ee24c2b0f083c38d13dbc6d",
+        "originalMtime":  "2026-10-17T13:29:03.0832980Z",
+        "backup":  "native-original.rs.txt",
+        "path":  "packages/fixture-scan/src/fixture_v1/native.rs",
+        "mutatedSha256":  "d30cc9b6829df0b9425457097b4e6e375600796b9db18b29984f8f65fb019057",
+        "restoredSha256":  "6b0a7ad9d9b480e6bc73c50c2a5c9eb7fd41eadf2ee24c2b0f083c38d13dbc6d",
+        "restoredMtime":  "2026-10-17T13:35:41.9026713Z",
+        "redReceipt":  "2026-10-17T13-34-53.220Z-13648-test-result.json",
+        "greenReceipt":  "2026-10-17T13-35-42.710Z-25156-test-result.json",
+        "mutation":  "NativeIo inspect: Link -\u003e Directory; independent list_names recheck retained",
+        "recoveryRecompiled":  true
+    },
+    {
+        "testsSha256":  "cca361b415feace87982125aa12b367b73d42994a59c514c74f0e8563a961e8e",
+        "id":  "NC2",
+        "originalSha256":  "90203966baa154132772cf4a168fc71ed1c50680d368dd3b2481d9b526d6bb0b",
+        "originalMtime":  "2026-10-17T13:30:55.6786439Z",
+        "backup":  "walk-original.rs.txt",
+        "path":  "packages/fixture-scan/src/fixture_v1/walk.rs",
+        "mutatedSha256":  "0539b5eee9a46a066c31b53446d938cce9e104f2b39bb07d26ce2cbed63c256a",
+        "restoredSha256":  "90203966baa154132772cf4a168fc71ed1c50680d368dd3b2481d9b526d6bb0b",
+        "restoredMtime":  "2026-10-17T13:38:03.9888290Z",
+        "redReceipt":  "2026-10-17T13-37-01.723Z-16000-test-result.json",
+        "greenReceipt":  "2026-10-17T13-38-04.484Z-15204-test-result.json",
+        "mutation":  "visited == max_entries -\u003e visited == max_entries + 1",
+        "recoveryRecompiled":  true
+    },
+    {
+        "testsSha256":  "cca361b415feace87982125aa12b367b73d42994a59c514c74f0e8563a961e8e",
+        "id":  "NC3",
+        "originalSha256":  "b1392be07a25f18c1731bc5366d8d92f0bb7de999a8ff2f70ea94acc634f2044",
+        "originalMtime":  "2026-10-17T13:29:03.0647261Z",
+        "backup":  "api-original.rs.txt",
+        "path":  "packages/fixture-scan/src/fixture_v1.rs",
+        "mutatedSha256":  "2151a8f2fde70c4b48a28b424b15bed6de3e11e0e3e7f183b1c0aadd417aa6ce",
+        "restoredSha256":  "b1392be07a25f18c1731bc5366d8d92f0bb7de999a8ff2f70ea94acc634f2044",
+        "restoredMtime":  "2026-10-17T13:39:32.4496055Z",
+        "redReceipt":  "2026-10-17T13-39-17.556Z-40224-test-result.json",
+        "greenReceipt":  "2026-10-17T13-39-32.741Z-18028-test-result.json",
+        "mutation":  "CancelToken::is_cancelled loads shared atomic but returns false",
+        "recoveryRecompiled":  true
+    },
+    {
+        "testsSha256":  "cca361b415feace87982125aa12b367b73d42994a59c514c74f0e8563a961e8e",
+        "id":  "NC4",
+        "originalSha256":  "90203966baa154132772cf4a168fc71ed1c50680d368dd3b2481d9b526d6bb0b",
+        "originalMtime":  "2026-10-17T13:30:55.6786439Z",
+        "backup":  "walk-original.rs.txt",
+        "path":  "packages/fixture-scan/src/fixture_v1/walk.rs",
+        "mutatedSha256":  "bf1b740369e2784ea0282c2fc7609c2dac6deea7a81a65d0de12b479231f7d04",
+        "restoredSha256":  "90203966baa154132772cf4a168fc71ed1c50680d368dd3b2481d9b526d6bb0b",
+        "restoredMtime":  "2026-10-17T13:40:45.2945628Z",
+        "redReceipt":  "2026-10-17T13-40-24.809Z-21120-test-result.json",
+        "greenReceipt":  "2026-10-17T13-40-46.239Z-38576-test-result.json",
+        "mutation":  "PermissionDenied list_names error -\u003e empty successful batch",
+        "recoveryRecompiled":  true
+    }
+]
