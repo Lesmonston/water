@@ -1,0 +1,142 @@
+{"binary":"C:\\Users\\37310\\.rustup\\toolchains\\1.95.0-x86_64-pc-windows-msvc\\bin\\cargo.exe","argv":["test","--locked","-p","water-contracts","--test","contract_v1","--","--test-threads=1","--format","pretty"],"cwd":"F:\\new\\smaltalk\\water\\.worktrees\\a","startedAt":"2026-10-17T09:44:43.791Z","endedAt":"2026-10-17T09:44:47.120Z","exitCode":101,"signal":null,"error":null}
+--- stdout ---
+
+running 5 tests
+test byte_count_round_trip ... ok
+test conformance_reports ... ok
+test constructed_report_validation ... ok
+test primitive_validation ... ok
+test raw_json_and_resource_limits ... FAILED
+
+failures:
+
+---- raw_json_and_resource_limits stdout ----
+
+thread 'raw_json_and_resource_limits' (28260) panicked at crates\water-contracts\tests\contract_v1.rs:471:5:
+113 non-string wire values accepted across 113 boundary failures:
+SchemaVersion: accepted object {"water.scan.v1":null}
+Platform: accepted object {"windows":null}
+Platform: accepted object {"macos":null}
+ScopeOrigin: accepted object {"user_selected":null}
+ScopeOrigin: accepted object {"config_discovered":null}
+Coverage: accepted object {"complete":null}
+Coverage: accepted object {"partial":null}
+Coverage: accepted object {"cancelled":null}
+ScanStatus: accepted object {"completed":null}
+ScanStatus: accepted object {"partial":null}
+ScanStatus: accepted object {"cancelled":null}
+LocationSource: accepted object {"config":null}
+LocationSource: accepted object {"native":null}
+LocationSource: accepted object {"marker":null}
+LocationSource: accepted object {"default_path":null}
+LocationSource: accepted object {"unknown":null}
+Category: accepted object {"download_cache":null}
+Category: accepted object {"build_cache":null}
+Category: accepted object {"environment":null}
+Category: accepted object {"model":null}
+Category: accepted object {"experiment":null}
+Category: accepted object {"history":null}
+Category: accepted object {"database":null}
+Category: accepted object {"credential":null}
+Category: accepted object {"source":null}
+Category: accepted object {"temporary":null}
+Category: accepted object {"unknown":null}
+Risk: accepted object {"low":null}
+Risk: accepted object {"review":null}
+Risk: accepted object {"high":null}
+Risk: accepted object {"protected":null}
+Recoverability: accepted object {"rebuild":null}
+Recoverability: accepted object {"redownload":null}
+Recoverability: accepted object {"conditional":null}
+Recoverability: accepted object {"unknown":null}
+Recoverability: accepted object {"not_applicable":null}
+Activity: accepted object {"running":null}
+Activity: accepted object {"recent":null}
+Activity: accepted object {"not_observed":null}
+Activity: accepted object {"unknown":null}
+Confidence: accepted object {"native":null}
+Confidence: accepted object {"verified_structure":null}
+Confidence: accepted object {"path_only":null}
+Confidence: accepted object {"unknown":null}
+ProtectionReason: accepted object {"credential":null}
+ProtectionReason: accepted object {"unique_asset":null}
+ProtectionReason: accepted object {"active":null}
+ProtectionReason: accepted object {"unknown_ownership":null}
+ProtectionReason: accepted object {"incomplete_evidence":null}
+ProtectionReason: accepted object {"source_root":null}
+ProtectionReason: accepted object {"system_root":null}
+ProtectionReason: accepted object {"user_home":null}
+ProtectionReason: accepted object {"protected_descendant":null}
+ProtectionReason: accepted object {"user_pinned":null}
+EvidenceCode: accepted object {"native_inventory":null}
+EvidenceCode: accepted object {"structure_match":null}
+EvidenceCode: accepted object {"configured_location":null}
+EvidenceCode: accepted object {"marker":null}
+EvidenceCode: accepted object {"timestamp_hint":null}
+EvidenceCode: accepted object {"reference":null}
+EvidenceCode: accepted object {"incomplete_scan":null}
+EvidenceCode: accepted object {"unknown":null}
+EvidenceSource: accepted object {"native_tool":null}
+EvidenceSource: accepted object {"config":null}
+EvidenceSource: accepted object {"filesystem":null}
+EvidenceSource: accepted object {"rule":null}
+EvidenceSource: accepted object {"heuristic":null}
+SizeMethod: accepted object {"unknown":null}
+SizeMethod: accepted object {"logical_sum":null}
+SizeMethod: accepted object {"file_identity_allocated":null}
+SizeMethod: accepted object {"tool_report":null}
+EstimateConfidence: accepted object {"unknown":null}
+EstimateConfidence: accepted object {"estimated":null}
+EstimateConfidence: accepted object {"measured":null}
+SharedState: accepted object {"yes":null}
+SharedState: accepted object {"no":null}
+SharedState: accepted object {"unknown":null}
+ReferenceState: accepted object {"known":null}
+ReferenceState: accepted object {"partial":null}
+ReferenceState: accepted object {"unknown":null}
+AggregateMethod: accepted object {"unavailable":null}
+AggregateMethod: accepted object {"file_identity_deduplicated":null}
+AggregateMethod: accepted object {"tool_report":null}
+IssueCode: accepted object {"permission_denied":null}
+IssueCode: accepted object {"io_error":null}
+IssueCode: accepted object {"link_skipped":null}
+IssueCode: accepted object {"outside_scope":null}
+IssueCode: accepted object {"path_unrepresentable":null}
+IssueCode: accepted object {"depth_limit":null}
+IssueCode: accepted object {"entry_limit":null}
+IssueCode: accepted object {"cancelled":null}
+IssueCode: accepted object {"root_changed":null}
+IssueCode: accepted object {"unsupported":null}
+/schema_version (SchemaVersion): accepted object
+/status (ScanStatus): accepted object
+/scopes/0/platform (Platform): accepted object
+/scopes/0/origin (ScopeOrigin): accepted object
+/scopes/0/coverage (Coverage): accepted object
+/findings/0/tool/root_source (LocationSource): accepted object
+/findings/0/category (Category): accepted object
+/findings/0/risk (Risk): accepted object
+/findings/0/recoverability (Recoverability): accepted object
+/findings/0/activity (Activity): accepted object
+/findings/0/confidence (Confidence): accepted object
+/findings/0/evidence/0/code (EvidenceCode): accepted object
+/findings/0/evidence/0/source (EvidenceSource): accepted object
+/findings/0/protection_reasons/0 (ProtectionReason): accepted object
+/findings/0/references/state (ReferenceState): accepted object
+/findings/0/size/method (SizeMethod): accepted object
+/findings/0/size/confidence (EstimateConfidence): accepted object
+/findings/0/size/shared (SharedState): accepted object
+/totals/method (AggregateMethod): accepted object
+/issues/0/code (IssueCode): accepted object
+note: run with `RUST_BACKTRACE=1` environment variable to display a backtrace
+
+
+failures:
+    raw_json_and_resource_limits
+
+test result: FAILED. 4 passed; 1 failed; 0 ignored; 0 measured; 0 filtered out; finished in 3.07s
+
+
+--- stderr ---
+    Finished `test` profile [unoptimized + debuginfo] target(s) in 0.13s
+     Running tests\contract_v1.rs (.local\target\debug\deps\contract_v1-30630d86c79a905c.exe)
+error: test failed, to rerun pass `-p water-contracts --test contract_v1`

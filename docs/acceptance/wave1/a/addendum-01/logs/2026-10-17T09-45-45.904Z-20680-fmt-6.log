@@ -1,0 +1,53 @@
+{"binary":"C:\\Users\\37310\\.rustup\\toolchains\\1.95.0-x86_64-pc-windows-msvc\\bin\\cargo.exe","argv":["fmt","--manifest-path","crates/water-contracts/Cargo.toml","--","--check"],"cwd":"F:\\new\\smaltalk\\water\\.worktrees\\a","startedAt":"2026-10-17T09:45:47.981Z","endedAt":"2026-10-17T09:45:49.697Z","exitCode":1,"signal":null,"error":null}
+--- stdout ---
+Diff in \\?\F:\new\smaltalk\water\.worktrees\a\crates\water-contracts\tests\contract_v1.rs:287:
+             !definition["enum"].is_array(),
+             "SchemaVersion material is const, not an enum array"
+         );
+-        return vec![definition["const"]
+-            .as_str()
+-            .expect("SchemaVersion const")
+-            .to_owned()];
++        return vec![
++            definition["const"]
++                .as_str()
++                .expect("SchemaVersion const")
++                .to_owned(),
++        ];
+     }
+     definition["enum"]
+         .as_array()
+Diff in \\?\F:\new\smaltalk\water\.worktrees\a\crates\water-contracts\tests\contract_v1.rs:336:
+                     ));
+                 }
+             }
+-            Err(error) => failures.push(format!("{name}: rejected schema string {literal:?}: {error}")),
++            Err(error) => failures.push(format!(
++                "{name}: rejected schema string {literal:?}: {error}"
++            )),
+         }
+         let object = json!({ literal: null }).to_string();
+         if serde_json::from_str::<T>(&object).is_ok() {
+Diff in \\?\F:\new\smaltalk\water\.worktrees\a\crates\water-contracts\tests\contract_v1.rs:367:
+ fn check_report_enum_slots(failures: &mut Vec<String>) {
+     let report = string_boundary_report();
+     if let Err(error) = parse_report(&report.to_string()) {
+-        failures.push(format!("string-boundary carrier report was rejected: {error}"));
++        failures.push(format!(
++            "string-boundary carrier report was rejected: {error}"
++        ));
+         return;
+     }
+     for (pointer, name) in REPORT_ENUM_SLOTS {
+Diff in \\?\F:\new\smaltalk\water\.worktrees\a\crates\water-contracts\tests\contract_v1.rs:374:
+-        let Some(literal) = report.pointer(pointer).and_then(Value::as_str).map(str::to_owned) else {
++        let Some(literal) = report
++            .pointer(pointer)
++            .and_then(Value::as_str)
++            .map(str::to_owned)
++        else {
+             failures.push(format!("{pointer} ({name}): missing schema string"));
+             continue;
+         };
+
+--- stderr ---
