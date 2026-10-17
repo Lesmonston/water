@@ -6,6 +6,7 @@ import {cpSync,existsSync,lstatSync,mkdirSync,readFileSync,readdirSync,realpathS
 import {homedir} from 'node:os';
 import {dirname,isAbsolute,join,relative,resolve} from 'node:path';
 import {fileURLToPath,pathToFileURL} from 'node:url';
+import {selectCargoArtifacts} from './cargo-artifacts.mjs';
 const root=resolve(dirname(fileURLToPath(import.meta.url)),'../..'),args=process.argv.slice(2);
 assert.equal(args[0],'--mode');assert(['plan','run'].includes(args[1]));const run=args[1]==='run';
 assert.equal(args.length,run?4:2);if(run){assert.equal(args[2],'--expected-head');assert.match(args[3],/^[a-f0-9]{40}$/);}
@@ -47,8 +48,8 @@ try{
     const cargoArgs=['--manifest-path',join(root,j.outputRoot,'Cargo.toml')];
     const meta=JSON.parse(command(cargo,['metadata','--offline','--locked','--format-version','1',...cargoArgs],180000));assert.equal(meta.workspace_members.length,1);assert(meta.packages.some(p=>p.name==='water-lab-session'));
     command(cargo,['fmt',...cargoArgs,'--','--check'],180000);const rustTests=command(cargo,['test','--offline','--locked',...cargoArgs,'--test','session_v1','--','--test-threads=1','--format','pretty'],180000);assert.deepEqual([...rustTests.matchAll(/^test ([a-z0-9_]+) \.\.\. ok$/gm)].map(m=>m[1]).sort(),[...j.expectedTests].sort());assert(rustTests.includes('5 passed; 0 failed; 0 ignored; 0 measured; 0 filtered out'));
-    command(cargo,['clippy','--offline','--locked',...cargoArgs,'--all-targets','--','-D','warnings'],180000);command(cargo,['build','--offline','--locked',...cargoArgs,'--lib'],180000);
-    const deps=join(target,'debug/deps'),names=['water_lab_session','water_scan','water_scan_report','water_report_view','water_summary_export','water_contracts','serde_json'];const externs=names.flatMap(name=>{const list=readdirSync(deps).filter(n=>n.startsWith('lib'+name+'-')&&n.endsWith('.rlib'));assert.equal(list.length,1,name);return ['--extern',name+'='+join(deps,list[0])];});
+    command(cargo,['clippy','--offline','--locked',...cargoArgs,'--all-targets','--','-D','warnings'],180000);const buildOutput=command(cargo,['build','--offline','--locked',...cargoArgs,'--lib','--message-format=json'],180000);
+    const deps=join(target,'debug/deps'),names=['water_lab_session','water_scan','water_scan_report','water_report_view','water_summary_export','water_contracts','serde_json'];record.cargoArtifacts=selectCargoArtifacts(meta,buildOutput,'water-lab-session',names,deps);const externs=record.cargoArtifacts.flatMap(a=>['--extern',a.crate+'='+a.filename]);
     const compile=(source,name)=>{const binary=join(temp,stamp+'-'+name+'.exe');command(rustc,['--edition=2024','--crate-name',name,join(root,'scripts/acceptance',source),'-L','dependency='+deps,...externs,'-o',binary],180000);return JSON.parse(command(binary,[state.active]));};
     const known=compile('scan-report-summary-pipeline.rs','controller_known_session'),actual=compile('lab-session-bridge.rs','controller_actual_session');assert.equal(actual.snapshots.length,13);
     const expected=known.cases.map(c=>({session_version:'water.lab-session.v1',data_kind:'controlled_fixture_metadata',source_facts:c.facts,report:c.bundle.report,view:c.view,summary:c.summary}));equalJSON(actual.snapshots,expected);
