@@ -2,7 +2,7 @@
 
 总控：Codex。2026-10-17。CHANGES_REQUESTED，待用户转贴。本单绑定[原工单](WATER-W1-C-PROTOTYPE-20261017.md)，修复公开model API的排序边界，不改变冻结fixture和界面方向。
 
-后续状态：本补单已交回并经总控独立复验ACCEPTED，等待独立集成门；不再按首次续做段重复执行。最新状态见主manifest及[复验报告](../../acceptance/wave1/controller/WATER-W1-BC-ADDENDUM-01-REVIEW-20261017.md)，下文保留原派单约束。
+后续状态：本补单已交回并经总控独立复验及集成门通过，VERIFIED（当前Windows范围）；不再按首次续做段重复执行。最新状态见主manifest及[复验报告](../../acceptance/wave1/controller/WATER-W1-BC-ADDENDUM-01-REVIEW-20261017.md)，下文保留原派单约束。
 
 | 项 | 唯一值 |
 |---|---|

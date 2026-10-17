@@ -1,6 +1,6 @@
 # B/C补充单01复验与集成
 
-日期：2026-10-17。当前结论：**B、C单票ACCEPTED，独立集成验证待执行**。A保持原单独状态，不在本次复验范围。最终主线集成结果在本报告末尾更新。
+日期：2026-10-17。最终结论：**B、C补充单01通过单票及独立集成验收，VERIFIED（当前Windows范围）**。A保持原单独状态，不在本次复验范围。集成测试提交与证据见末尾；未接真实扫描/清理。
 
 ## 已复核提交
 
@@ -40,10 +40,22 @@ node scripts/acceptance/review-bc-boundaries.mjs --b-head 5b88fd0c5f306df5586e8c
 
 ## 集成安排与边界
 
-总控将从当前主线创建`controller/water-w1-bc-20261017`独立树，仅合入上述两个接收提交。使用[集成门](../../../../scripts/acceptance/check-bc-integration.mjs)核对目录Git tree与接收提交一致，复跑7项模块语法、B五测试/C五模型/两浏览器，以及真实公开入口反例和文档元数据。通过前不推进main、不改worker树。
+总控从检查点`6f8ac197224f66eee6252d4b9144af08411d18d9`建立`controller/water-w1-bc-20261017`独立树，仅合入上述两个接收提交，没有冲突或产品修正。[集成门](../../../../scripts/acceptance/check-bc-integration.mjs)核对目录Git tree与接收提交一致，复跑7项模块语法、B五测试/C五模型/两浏览器，以及真实公开入口反例和文档元数据。测试期间main仍停在检查点，worker树未改。
 
 这次集成仅指元数据包与固定数据原型纳入同一仓库，二者尚未互相接线，也未接Rust、真实扫描或清理。Windows检查不代表macOS；历史浏览器导航偶发超时未因本轮通过而被宣布修复。六工具运行、文件身份、实际容量/回收/恢复、打包签名及发布仍未验证。
 
 ## 集成结果
 
-待独立集成树验证完成后由总控补记真实提交与receipt。
+实际集成测试SHA：`d002c0c1d91db47fb8a685a07e0115ac9ad189c9`。运行位置：`.worktrees/integration-bc-20261017`。
+
+```powershell
+node scripts/acceptance/check-bc-integration.mjs --expected-head d002c0c1d91db47fb8a685a07e0115ac9ad189c9
+```
+
+[原始集成receipt](w1-bc-integration-20261017/2026-10-17T08-16-34.091Z-5868-result.json)退出0，首次通过，无重试。前后同一干净SHA，18项冻结哈希一致；B五项、C五项、浏览器两项名称/数量精确且零skip/todo/cancelled；原两例数组拒绝与未知名称排序通过，语法及文档/契约资产校验通过。集成树没有上游checkout，研究元数据门按非strict模式运行；主线收尾另作with-upstreams核对。
+
+[归档清单](w1-bc-integration-20261017/archive-manifest.json)保存26次命令的原始日志、receipt和5份DOM/图片，均记录SHA256。总控已查看集成门的1440/900及详情截图，和单票画面一致。Git tree核对：B=`999977839468c76c4ce6c30d0d4a4fdfdd5e5915`，C=`5bcdc4ab9505a9b87e684eda2b0beb567dfc6fbd`，与各接收提交完全一致。
+
+通过后只补总控文档/台账/证据，再由main快进接收集成树；这一步没有产品或测试变更。B/C原树和提交保留，不清理或重用。main纳入元数据包与只读演示，不表示B数据已接到C、A契约库已通过或M1真实扫描完成。
+
+集成回放另发现Git换行转换会改变部分历史日志与JSON证据的字节哈希。总控仅在`docs/acceptance/wave1/b/`、`c/`为TXT/JSON设置`-text`，从原worker复制已核验的原始证据字节；逐项确认与Git版本仅有CRLF/LF差异，没有内容变更。详见[原字节恢复记录](w1-bc-integration-20261017/evidence-line-endings.json)。恢复后C两批53份manifest证据及B37份保护哈希全部一致；worker树与产品目录不变。原始TAP空白保留，后续空白检查单列排除这两个原始证据目录，源码/普通文档仍正常检查。

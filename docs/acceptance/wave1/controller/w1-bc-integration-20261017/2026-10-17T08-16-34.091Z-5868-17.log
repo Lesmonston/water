@@ -1,0 +1,130 @@
+{"binary":"C:\\Program Files\\nodejs\\node.exe","argv":["--test","--test-concurrency=1","--test-reporter=tap","packages/tool-catalog/tests/catalog.test.mjs"],"cwd":"F:\\new\\smaltalk\\water\\.worktrees\\integration-bc-20261017","startedAt":"2026-10-17T08:16:36.253Z","endedAt":"2026-10-17T08:16:36.706Z","exitCode":0,"error":null,"signal":null,"log":"2026-10-17T08-16-34.091Z-5868-17.log"}
+--- stdout ---
+TAP version 13
+# Subtest: catalog_shape_and_tools
+ok 1 - catalog_shape_and_tools
+  ---
+  duration_ms: 9.638
+  type: 'test'
+  ...
+# Subtest: catalog_platforms_and_sources
+ok 2 - catalog_platforms_and_sources
+  ---
+  duration_ms: 40.0131
+  type: 'test'
+  ...
+# Subtest: catalog_protection_boundaries
+ok 3 - catalog_protection_boundaries
+  ---
+  duration_ms: 28.9836
+  type: 'test'
+  ...
+# Subtest: catalog_mutation_rejections
+ok 4 - catalog_mutation_rejections
+  ---
+  duration_ms: 114.5128
+  type: 'test'
+  ...
+# mutation rejected: missing_platform
+# mutation rejected: missing_tool
+# mutation rejected: duplicate_tool
+# mutation rejected: index_version
+# mutation rejected: entry_version
+# mutation rejected: unknown_field
+# mutation rejected: missing_explicit_null
+# mutation rejected: dangling_source
+# mutation rejected: duplicate_source_ref
+# mutation rejected: duplicate_source_id
+# mutation rejected: runtime_claim
+# mutation rejected: delete_capability
+# mutation rejected: executable_field
+# mutation rejected: asset_action
+# mutation rejected: empty_root_list
+# mutation rejected: bad_date
+# mutation rejected: root_command
+# mutation rejected: shell_substitution
+# mutation rejected: undefined_variable
+# mutation rejected: extra_platform
+# mutation rejected: wrong_type
+# mutation rejected: missing_constraint
+# mutation rejected: no_sources
+# mutation rejected: prototype_object
+# inherited_source_forEach: valid=false, inherited_calls=0
+# array_boundary methods /index/tools: valid=false, inherited_calls=0
+# array_boundary accessors /index/tools: valid=false, inherited_calls=0
+# array_boundary null /index/tools: valid=false, inherited_calls=0
+# array_boundary methods /entries/pip/assets/0/source_ids: valid=false, inherited_calls=0
+# array_boundary accessors /entries/pip/assets/0/source_ids: valid=false, inherited_calls=0
+# array_boundary null /entries/pip/assets/0/source_ids: valid=false, inherited_calls=0
+# array_boundary methods /entries/pip/sources: valid=false, inherited_calls=0
+# array_boundary accessors /entries/pip/sources: valid=false, inherited_calls=0
+# array_boundary null /entries/pip/sources: valid=false, inherited_calls=0
+# array_boundary methods /entries/pip/sources/0/supports: valid=false, inherited_calls=0
+# array_boundary accessors /entries/pip/sources/0/supports: valid=false, inherited_calls=0
+# array_boundary null /entries/pip/sources/0/supports: valid=false, inherited_calls=0
+# array_boundary methods /entries/pip/assets: valid=false, inherited_calls=0
+# array_boundary accessors /entries/pip/assets: valid=false, inherited_calls=0
+# array_boundary null /entries/pip/assets: valid=false, inherited_calls=0
+# array_boundary methods /entries/pip/platforms/windows/root_candidates: valid=false, inherited_calls=0
+# array_boundary accessors /entries/pip/platforms/windows/root_candidates: valid=false, inherited_calls=0
+# array_boundary null /entries/pip/platforms/windows/root_candidates: valid=false, inherited_calls=0
+# array_boundary methods /entries/pip/platforms/windows/protected_subpaths: valid=false, inherited_calls=0
+# array_boundary accessors /entries/pip/platforms/windows/protected_subpaths: valid=false, inherited_calls=0
+# array_boundary null /entries/pip/platforms/windows/protected_subpaths: valid=false, inherited_calls=0
+# array_boundary methods /entries/pip/platforms/windows/notes: valid=false, inherited_calls=0
+# array_boundary accessors /entries/pip/platforms/windows/notes: valid=false, inherited_calls=0
+# array_boundary null /entries/pip/platforms/windows/notes: valid=false, inherited_calls=0
+# array_boundary methods /entries/pip/platforms/windows/root_candidates/0/source_ids: valid=false, inherited_calls=0
+# array_boundary accessors /entries/pip/platforms/windows/root_candidates/0/source_ids: valid=false, inherited_calls=0
+# array_boundary null /entries/pip/platforms/windows/root_candidates/0/source_ids: valid=false, inherited_calls=0
+# array_boundary methods /entries/pip/platforms/windows/protected_subpaths/0/source_ids: valid=false, inherited_calls=0
+# array_boundary accessors /entries/pip/platforms/windows/protected_subpaths/0/source_ids: valid=false, inherited_calls=0
+# array_boundary null /entries/pip/platforms/windows/protected_subpaths/0/source_ids: valid=false, inherited_calls=0
+# array_boundary methods /entries/pip/platforms/macos/root_candidates: valid=false, inherited_calls=0
+# array_boundary accessors /entries/pip/platforms/macos/root_candidates: valid=false, inherited_calls=0
+# array_boundary null /entries/pip/platforms/macos/root_candidates: valid=false, inherited_calls=0
+# array_boundary methods /entries/pip/platforms/macos/protected_subpaths: valid=false, inherited_calls=0
+# array_boundary accessors /entries/pip/platforms/macos/protected_subpaths: valid=false, inherited_calls=0
+# array_boundary null /entries/pip/platforms/macos/protected_subpaths: valid=false, inherited_calls=0
+# array_boundary methods /entries/pip/platforms/macos/notes: valid=false, inherited_calls=0
+# array_boundary accessors /entries/pip/platforms/macos/notes: valid=false, inherited_calls=0
+# array_boundary null /entries/pip/platforms/macos/notes: valid=false, inherited_calls=0
+# array_boundary methods /entries/pip/platforms/macos/root_candidates/0/source_ids: valid=false, inherited_calls=0
+# array_boundary accessors /entries/pip/platforms/macos/root_candidates/0/source_ids: valid=false, inherited_calls=0
+# array_boundary null /entries/pip/platforms/macos/root_candidates/0/source_ids: valid=false, inherited_calls=0
+# array_boundary methods /entries/pip/platforms/macos/protected_subpaths/0/source_ids: valid=false, inherited_calls=0
+# array_boundary accessors /entries/pip/platforms/macos/protected_subpaths/0/source_ids: valid=false, inherited_calls=0
+# array_boundary null /entries/pip/platforms/macos/protected_subpaths/0/source_ids: valid=false, inherited_calls=0
+# Subtest: catalog_purity
+ok 5 - catalog_purity
+  ---
+  duration_ms: 37.9931
+  type: 'test'
+  ...
+# inherited_tools_some: valid=false, inherited_calls=0
+# frozen_array_boundary /index/tools: valid=false, inherited_calls=0
+# frozen_array_boundary /entries/pip/assets/0/source_ids: valid=false, inherited_calls=0
+# frozen_array_boundary /entries/pip/sources: valid=false, inherited_calls=0
+# frozen_array_boundary /entries/pip/sources/0/supports: valid=false, inherited_calls=0
+# frozen_array_boundary /entries/pip/assets: valid=false, inherited_calls=0
+# frozen_array_boundary /entries/pip/platforms/windows/root_candidates: valid=false, inherited_calls=0
+# frozen_array_boundary /entries/pip/platforms/windows/protected_subpaths: valid=false, inherited_calls=0
+# frozen_array_boundary /entries/pip/platforms/windows/notes: valid=false, inherited_calls=0
+# frozen_array_boundary /entries/pip/platforms/windows/root_candidates/0/source_ids: valid=false, inherited_calls=0
+# frozen_array_boundary /entries/pip/platforms/windows/protected_subpaths/0/source_ids: valid=false, inherited_calls=0
+# frozen_array_boundary /entries/pip/platforms/macos/root_candidates: valid=false, inherited_calls=0
+# frozen_array_boundary /entries/pip/platforms/macos/protected_subpaths: valid=false, inherited_calls=0
+# frozen_array_boundary /entries/pip/platforms/macos/notes: valid=false, inherited_calls=0
+# frozen_array_boundary /entries/pip/platforms/macos/root_candidates/0/source_ids: valid=false, inherited_calls=0
+# frozen_array_boundary /entries/pip/platforms/macos/protected_subpaths/0/source_ids: valid=false, inherited_calls=0
+1..5
+# tests 5
+# suites 0
+# pass 5
+# fail 0
+# cancelled 0
+# skipped 0
+# todo 0
+# duration_ms 362.0675
+
+--- stderr ---

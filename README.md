@@ -2,7 +2,7 @@
 
 面向 Windows、macOS AI 开发者的本地存储分析与安全清理助手。
 
-**当前阶段：B/C补充单01复验通过，正在独立集成验证；A补单保持单独状态。尚无真实扫描或删除能力。**
+**当前阶段：B/C补充单01已通过单票和本地集成验收，主线包含规则数据包与只读原型；A仍单独待验收。尚无真实扫描或删除能力。**
 
 用户指定本项目所有后续开发均位于 `smaltalk/water`，由 Codex 担任总控。
 
@@ -19,6 +19,8 @@
 - [原始调研](research/sources/ai-developer-cleaner-research-2026-10-17.zh-CN.md)
 - [代理协作规则](AGENTS.md)
 
+已纳入的独立产物：[六工具规则数据包](packages/tool-catalog/README.md)、[固定数据只读原型及启动说明](prototypes/readonly-dashboard/README)。[复验与集成报告](docs/acceptance/wave1/controller/WATER-W1-BC-ADDENDUM-01-REVIEW-20261017.md)记录Windows范围和未验证项；两项产物尚未接真实扫描或相互接线。
+
 ## 研究输入
 
 第三方项目保留在 `research/upstream/`，该目录被 Water Git 忽略。精确来源、commit 与许可证摘要记录在 [upstreams.lock.json](research/upstreams.lock.json)，审阅结论记录在 `research/reviews/`。它们不是产品依赖，也没有被复制到产品源码中。
@@ -29,4 +31,4 @@ Water 的发布许可证、定价与商标名称尚未最终确定；`water` 是
 
 ## 后续协作
 
-Codex负责架构、规划、契约、工单和验收；用户把总控准备好的一行指令转贴给执行者；执行者在独立工作树提交代码与回执，总控复核后集成。见 [派单登记](docs/dispatch/registry.json) 与 [本轮计划](docs/dispatch/wave1/PLAN.md)：B/C单票已通过，集成另验，总控没有自动代替用户启动实现者或修产品代码。
+Codex负责架构、规划、契约、工单和验收；用户把总控准备好的一行指令转贴给执行者；执行者在独立工作树提交代码与回执，总控复核后集成。见 [派单登记](docs/dispatch/registry.json) 与 [本轮计划](docs/dispatch/wave1/PLAN.md)：B/C已验收集成，A仍独立，总控没有自动代替用户启动实现者或修产品代码。

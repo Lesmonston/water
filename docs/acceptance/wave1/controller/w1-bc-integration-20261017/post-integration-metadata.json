@@ -1,0 +1,32 @@
+{
+  "recordedAt": "2026-10-17T08:24:46.293Z",
+  "checks": [
+    {
+      "name": "project",
+      "command": "node scripts/verify-project.mjs",
+      "chunk_id": "362307",
+      "wall_time_seconds": 0.5870672,
+      "exit_code": 0,
+      "original_token_count": 99,
+      "output": "{\n  \"status\": \"passed\",\n  \"markdownFiles\": 52,\n  \"localLinks\": 203,\n  \"pinnedSourceLinks\": 0,\n  \"externalPinnedSourceLinks\": 186,\n  \"dispatchRegistryTasks\": 3,\n  \"workflowSourceRecords\": 14,\n  \"upstreams\": 5,\n  \"checkedLocalSnapshots\": 0,\n  \"mode\": \"documents-and-available-snapshots\",\n  \"boundary\": \"Metadata, provenance and handoff checks only; no upstream runtime or cleanup safety test.\"\n}\n"
+    },
+    {
+      "name": "product-unchanged",
+      "command": "git diff --name-only -- packages prototypes contracts scripts/parallel-check.mjs scripts/browser-lab.mjs scripts/worker-check.mjs",
+      "chunk_id": "c32406",
+      "wall_time_seconds": 0.3467817,
+      "exit_code": 0,
+      "original_token_count": 0,
+      "output": ""
+    },
+    {
+      "name": "source-whitespace",
+      "command": "git diff --check -- . ':(exclude)docs/acceptance/wave1/b' ':(exclude)docs/acceptance/wave1/c'",
+      "chunk_id": "e868e6",
+      "wall_time_seconds": 0.3662222,
+      "exit_code": 0,
+      "original_token_count": 0,
+      "output": ""
+    }
+  ]
+}

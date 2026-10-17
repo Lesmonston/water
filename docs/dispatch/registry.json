@@ -4,7 +4,7 @@
   "mode": "manual-external-paste",
   "controller": "Codex",
   "projectRoot": "F:/new/smaltalk/water",
-  "stage": "wave1-b-c-accepted-pending-integration",
+  "stage": "wave1-b-c-verified-a-revision",
   "activeWave": "water-wave1",
   "slots": [
     {
@@ -21,7 +21,7 @@
       "branch": "worker/water-w1-b",
       "baseline": "e92f39647c91d9ce077d592583c3352626d3402b",
       "task": "WATER-W1-B",
-      "state": "accepted-awaiting-controller-integration"
+      "state": "verified-preserved"
     },
     {
       "id": "c",
@@ -29,7 +29,7 @@
       "branch": "worker/water-w1-c",
       "baseline": "e92f39647c91d9ce077d592583c3352626d3402b",
       "task": "WATER-W1-C",
-      "state": "accepted-awaiting-controller-integration"
+      "state": "verified-preserved"
     }
   ],
   "tasks": [
@@ -60,7 +60,7 @@
     {
       "id": "WATER-W1-B",
       "title": "工具发现与保护规则数据包",
-      "status": "ACCEPTED",
+      "status": "VERIFIED",
       "activityObservedAt": "2026-10-17T06:20:10.846Z",
       "activityEvidence": "Task-owned catalog implementation/tests/evidence observed as uncommitted files; no completion report notification.",
       "manifest": "docs/dispatch/wave1/manifest.json",
@@ -80,7 +80,7 @@
         "docs/dispatch/tickets/WATER-W1-B-ADDENDUM-01-20261017.md"
       ],
       "revisionReport": "docs/dispatch/reports/WATER-W1-B-ADDENDUM-01-REPORT.md",
-      "revisionDispatchStatus": "COMPLETED_ACCEPTED",
+      "revisionDispatchStatus": "COMPLETED_VERIFIED",
       "resumeFromCommit": "d05eae7b5a0fe5c952744336a776a8c5ee1b2873",
       "reviewedCommit": "5b88fd0c5f306df5586e8c8445d45f39940e8597",
       "previousControllerReview": "docs/acceptance/wave1/controller/WATER-W1-BC-REVIEW-20261017.md",
@@ -89,12 +89,18 @@
       "acceptedAt": "2026-10-17T08:11:29.334Z",
       "model": "gpt-6.1-sol (user completion screenshot)",
       "modelEvidence": "User screenshot header gpt-6.1-sol · xhigh; worker self-report only generic GPT-6.",
-      "acceptedCommit": "5b88fd0c5f306df5586e8c8445d45f39940e8597"
+      "acceptedCommit": "5b88fd0c5f306df5586e8c8445d45f39940e8597",
+      "integrationCommit": "d002c0c1d91db47fb8a685a07e0115ac9ad189c9",
+      "integrationBranch": "controller/water-w1-bc-20261017",
+      "integrationWorktree": "F:/new/smaltalk/water/.worktrees/integration-bc-20261017",
+      "verifiedAt": "2026-10-17T08:17:02.433Z",
+      "verificationScope": "Windows Node 24 metadata and synthetic local-browser prototype; no real scan/cleanup, cross-module wiring or macOS runtime.",
+      "integrationReceipt": "docs/acceptance/wave1/controller/w1-bc-integration-20261017/2026-10-17T08-16-34.091Z-5868-result.json"
     },
     {
       "id": "WATER-W1-C",
       "title": "只读桌面交互原型",
-      "status": "ACCEPTED",
+      "status": "VERIFIED",
       "activityObservedAt": "2026-10-17T06:20:10.846Z",
       "activityEvidence": "Task-owned readonly prototype implementation/tests observed as uncommitted files; no completion report notification.",
       "manifest": "docs/dispatch/wave1/manifest.json",
@@ -114,7 +120,7 @@
         "docs/dispatch/tickets/WATER-W1-C-ADDENDUM-01-20261017.md"
       ],
       "revisionReport": "docs/dispatch/reports/WATER-W1-C-ADDENDUM-01-REPORT.md",
-      "revisionDispatchStatus": "COMPLETED_ACCEPTED",
+      "revisionDispatchStatus": "COMPLETED_VERIFIED",
       "resumeFromCommit": "93e2509882f3090883c8ccaedf2fb30e83dba49a",
       "reviewedCommit": "d8cc6979813ecf2ff03898d40b8ae217b1df29f8",
       "previousControllerReview": "docs/acceptance/wave1/controller/WATER-W1-BC-REVIEW-20261017.md",
@@ -123,9 +129,15 @@
       "acceptedAt": "2026-10-17T08:11:29.334Z",
       "model": "gpt-6.1-sol (user completion screenshot)",
       "modelEvidence": "User screenshot header gpt-6.1-sol · xhigh; worker self-report only generic GPT-6.",
-      "acceptedCommit": "d8cc6979813ecf2ff03898d40b8ae217b1df29f8"
+      "acceptedCommit": "d8cc6979813ecf2ff03898d40b8ae217b1df29f8",
+      "integrationCommit": "d002c0c1d91db47fb8a685a07e0115ac9ad189c9",
+      "integrationBranch": "controller/water-w1-bc-20261017",
+      "integrationWorktree": "F:/new/smaltalk/water/.worktrees/integration-bc-20261017",
+      "verifiedAt": "2026-10-17T08:17:02.433Z",
+      "verificationScope": "Windows Node 24 metadata and synthetic local-browser prototype; no real scan/cleanup, cross-module wiring or macOS runtime.",
+      "integrationReceipt": "docs/acceptance/wave1/controller/w1-bc-integration-20261017/2026-10-17T08-16-34.091Z-5868-result.json"
     }
   ],
   "testHelper": "per-task helper; A defaults unchanged",
-  "note": "B/C addendum 01 passed controller focused and independent boundary checks; accepted for local integration. A retains its previous revision state."
+  "note": "B/C addendum 01 accepted and independently integrated/verified on Windows. Accepted product trees unchanged. A retains its previous revision state; real scan/cleanup and macOS are unverified."
 }
