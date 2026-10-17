@@ -1,7 +1,7 @@
 {
   "schemaVersion": 1,
   "wave": "water-wave1",
-  "status": "ABCDE_VERIFIED_F_RUNNING_GHI_READY",
+  "status": "ABCDE_VERIFIED_F_ACCEPTED_GHI_READY",
   "controllerRoot": "F:/new/smaltalk/water",
   "controllerBranch": "main",
   "controller": "Codex",
@@ -370,7 +370,7 @@
     {
       "id": "WATER-W1-F",
       "title": "Controlled fixture metadata scanner",
-      "status": "RUNNING",
+      "status": "ACCEPTED",
       "kind": "scan_lab",
       "slot": "f",
       "worktree": "F:/new/smaltalk/water/.worktrees/f",
@@ -416,7 +416,7 @@
         "WATER-W1-A",
         "WATER-W1-D"
       ],
-      "model": null,
+      "model": "Codex / GPT-6 (worker self-report; exact subversion unverified)",
       "modelAssignment": "user-arranged; report actual engine/model",
       "dispatchedAt": null,
       "startedAt": null,
@@ -429,7 +429,18 @@
       "readyOn": "2026-10-17",
       "readinessScope": "Windows controller baseline, owned synthetic preparation and std metadata probes only; no F product test or scanner invocation.",
       "activityObservedAt": "2026-10-17T13:38:23.227Z",
-      "activityEvidence": "Controller observed task-owned untracked packages/fixture-scan and F behavior-red/negative-control evidence in the assigned f tree; start time unknown, no submission or review."
+      "activityEvidence": "Controller observed task-owned untracked packages/fixture-scan and F behavior-red/negative-control evidence in the assigned f tree; start time unknown, no submission or review.",
+      "submittedCommit": "65e928d3c193e58db758eaf8f0022c975c3ca24d",
+      "acceptedCommit": "65e928d3c193e58db758eaf8f0022c975c3ca24d",
+      "testedImplementationCommit": "3f3acbd7cf3726c10f7a759c8fc79301f2a4069e",
+      "controllerReview": "docs/acceptance/wave1/controller/WATER-W1-F-REVIEW-20261017.md",
+      "controllerReviewReceipt": "docs/acceptance/wave1/controller/w1-f-review-20261017/2026-10-17T14-24-09.544Z-17504-result.json",
+      "acceptedOn": "2026-10-17",
+      "submissionObservedAt": "2026-10-17T14:25:53.302Z",
+      "firstCheckStartedAt": "2026-10-17T13:17:49.695Z",
+      "macOS": "unverified",
+      "integrationBranch": "controller/water-w1-f-20261017",
+      "integrationWorktree": "F:\\new\\smaltalk\\water/.worktrees/integration-f-20261017"
     },
     {
       "slot": "g",
