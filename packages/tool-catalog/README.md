@@ -24,6 +24,8 @@ const result = validateCatalog(index, entries);
 
 校验器逐层拒绝未知/缺失字段、不完整工具/平台、无效枚举/日期、非数据对象/访问器、来源悬空/重复和能力提升。来源必须是冻结的精确官方主机，使用 HTTPS、无 URL 凭证，每工具至少两条不同页面；fragment 和 query 不产生额外页面。字段错误位置采用固定字段名及数组下标，未知键和值不进入错误输出。
 
+数组必须使用当前校验域的 `Array.prototype`。自定义原型与 null 原型数组在语义访问前返回 `shape`，错误指向数组；不会调用其继承方法、迭代器或访问器。自有字段和元素仍按描述符检查，缺位或自有访问器同样拒绝。普通 JSON 数组和深冻结输入保持支持；本接口不处理任意 Proxy 陷阱或全局内建被篡改的环境。
+
 `path_template` 只接受 `null` 或以 `~` / 已定义变量提示开头的展示语法，不接受命令、替换、glob、URL、未定义变量或 `..` 段。当前变量集合按工具限定为条目使用的 `LOCALAPPDATA`、`PIP_CACHE_DIR`、`UV_CACHE_DIR`、`XDG_CACHE_HOME`、`npm_config_cache`/`NPM_CONFIG_CACHE`、`PNPM_HOME`、`XDG_DATA_HOME`、`HF_HOME`、`HF_HUB_CACHE`、`USERPROFILE`、`OLLAMA_MODELS`。这是元数据语法检查，不是路径授权或执行安全机制。
 
 从本工作树根运行固定检查：
@@ -34,5 +36,7 @@ node scripts/parallel-check.mjs --task WATER-W1-B --mode test
 ```
 
 测试精确包含五个顶层用例，覆盖六工具正向输入、来源与 lookalike 主机、保护边界、24 项命名内存变体和额外逐层字段变体、深冻结/隔离环境哨兵下的重复调用。有效负控及原字节恢复证据位于 [验收目录](../../docs/acceptance/wave1/b/)。提交后的 `--final` 检查要求同一干净实现 SHA。
+
+补充单01在原测试内增加继承 forEach 跳过悬空来源、继承 some 跳过固定顺序的回归，以及各数组层级的自定义/null 原型、继承访问器和深冻结拒绝检查。先红、NC-04 及恢复证据单独保存在 [addendum-01](../../docs/acceptance/wave1/b/addendum-01/)，原数据及历史证据不变。
 
 当前仅在 Windows / Node 24.16.0 执行元数据单元测试。六工具均未运行，未核对任何真实路径、文件身份、占用、锁、项目引用、容量或恢复。macOS 工具行为与 Node 测试均未实测。本包未接入 Rust/Tauri/扫描器，后续接入及版本适配需要单独工单与总控验收。没有新依赖、安装、真实扫描或清理。

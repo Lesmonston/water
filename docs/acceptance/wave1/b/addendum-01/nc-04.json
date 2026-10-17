@@ -1,0 +1,26 @@
+{
+    "control":  "NC-04",
+    "mutation":  "Remove custom/null array prototype rejection before semantic access",
+    "target":  "if (!Array.isArray(value) || Object.getPrototypeOf(value) !== Array.prototype)",
+    "replacement":  "if (!Array.isArray(value))",
+    "helperExitCode":  1,
+    "originalSha256":  "7ac515f15ebbdf42f66a6d3fcb80f6c4140e70ecfbc986cabb1b599b6f293c92",
+    "mutantSha256":  "56d538c832f6d836cdf2c5c90fa6946459a65f56d28b28b8b8df596c7cd63146",
+    "restoredSha256":  "7ac515f15ebbdf42f66a6d3fcb80f6c4140e70ecfbc986cabb1b599b6f293c92",
+    "testsBeforeSha256":  "ac19eac3e7d8d49dda61626c340c8cd9330d3660abd36db982f32e44dcc219ea",
+    "testsAfterSha256":  "ac19eac3e7d8d49dda61626c340c8cd9330d3660abd36db982f32e44dcc219ea",
+    "helperReceipt":  "F:\\new\\smaltalk\\water\\.worktrees\\b\\.local\\checks\\WATER-W1-B\\2026-10-17T07-59-25.557Z-21012-test-result.json",
+    "testLog":  "F:\\new\\smaltalk\\water\\.worktrees\\b\\.local\\checks\\WATER-W1-B\\2026-10-17T07-59-25.557Z-21012-test-0.log",
+    "assertions":  [
+                       "inherited_source_forEach: inherited input behavior must not run",
+                       "inherited_tools_some: inherited input behavior must not run"
+                   ],
+    "summary":  {
+                    "todo":  0,
+                    "fail":  2,
+                    "pass":  3,
+                    "tests":  5,
+                    "skipped":  0,
+                    "cancelled":  0
+                }
+}

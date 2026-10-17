@@ -89,7 +89,8 @@ export function validateCatalog(index, entries) {
         else walk(descriptors[key].value, child, path + '/' + key, tool);
       }
     } else if (schema.type === 'array') {
-      if (!Array.isArray(value)) { fail('shape', path); return; }
+      // Reject custom/null prototypes before semantic checks can observe inherited behavior.
+      if (!Array.isArray(value) || Object.getPrototypeOf(value) !== Array.prototype) { fail('shape', path); return; }
       if (value.length < schema.min) fail('shape', path);
       const descriptors = Object.getOwnPropertyDescriptors(value);
       for (const key of Reflect.ownKeys(descriptors)) {

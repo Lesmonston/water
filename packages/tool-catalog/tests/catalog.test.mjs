@@ -22,6 +22,53 @@ function rejects(change, code, path, label) {
   }
 }
 
+const sourceRefsSite = {
+  select: (d) => d.entries.pip.assets[0].source_ids,
+  path: '/entries/pip/assets/0/source_ids',
+};
+const toolsSite = { select: (d) => d.index.tools, path: '/index/tools' };
+const arraySites = [
+  toolsSite, sourceRefsSite,
+  { select: (d) => d.entries.pip.sources, path: '/entries/pip/sources' },
+  { select: (d) => d.entries.pip.sources[0].supports, path: '/entries/pip/sources/0/supports' },
+  { select: (d) => d.entries.pip.assets, path: '/entries/pip/assets' },
+];
+for (const name of ['windows', 'macos']) {
+  for (const field of ['root_candidates', 'protected_subpaths', 'notes'])
+    arraySites.push({ select: (d) => d.entries.pip.platforms[name][field], path: '/entries/pip/platforms/' + name + '/' + field });
+  for (const field of ['root_candidates', 'protected_subpaths'])
+    arraySites.push({ select: (d) => d.entries.pip.platforms[name][field][0].source_ids,
+      path: '/entries/pip/platforms/' + name + '/' + field + '/0/source_ids' });
+}
+
+function rejectsArrayPrototype(data, site, mode, label, t, freezeInput = (d) => d) {
+  const array = site.select(data);
+  let calls = 0;
+  const forbidden = () => { calls++; throw new Error('inherited input behavior executed'); };
+  if (mode === 'null') Object.setPrototypeOf(array, null);
+  else {
+    const prototype = Object.create(Array.prototype);
+    for (const key of ['some', 'forEach', Symbol.iterator])
+      Object.defineProperty(prototype, key, mode === 'accessors' ? { get: forbidden } :
+        { value: key === 'some' ? () => { calls++; return false; } :
+          key === 'forEach' ? () => { calls++; } : forbidden });
+    Object.setPrototypeOf(array, prototype);
+  }
+  freezeInput(data);
+  const before = Object.getOwnPropertyDescriptors(array), prototype = Object.getPrototypeOf(array);
+  let result;
+  assert.doesNotThrow(() => { result = validateCatalog(data.index, data.entries); }, label + ': structured rejection');
+  t.diagnostic(label + ': valid=' + result.valid + ', inherited_calls=' + calls);
+  assert.equal(calls, 0, label + ': inherited input behavior must not run');
+  assert.equal(result.valid, false, label + ': constructed array must be rejected');
+  assert(result.errors.some((error) => error.code === 'shape' && error.path === site.path),
+    label + ': shape must identify the array at ' + site.path);
+  assert.equal(Object.getPrototypeOf(array), prototype, label + ': prototype unchanged');
+  assert.deepEqual(Object.getOwnPropertyDescriptors(array), before, label + ': descriptors unchanged');
+  for (const error of result.errors) assert.deepEqual(Object.keys(error).sort(), ['code', 'path']);
+  assert.doesNotMatch(JSON.stringify(result.errors), /missing-controller-source/);
+}
+
 test('catalog_shape_and_tools', () => {
   assert.deepEqual(index, { catalog_version: 'water.catalog.v1', tools });
   assert.deepEqual(Object.keys(entries), tools);
@@ -152,9 +199,15 @@ test('catalog_mutation_rejections', (t) => {
   data.entries.pip['private-field-name'] = 'private-field-value';
   const errors = JSON.stringify(validateCatalog(data.index, data.entries).errors);
   assert.doesNotMatch(errors, /private-field/);
+
+  const inheritedRefs = clone();
+  inheritedRefs.entries.pip.assets[0].source_ids = ['missing-controller-source'];
+  rejectsArrayPrototype(inheritedRefs, sourceRefsSite, 'methods', 'inherited_source_forEach', t);
+  for (const site of arraySites) for (const mode of ['methods', 'accessors', 'null'])
+    rejectsArrayPrototype(clone(), site, mode, 'array_boundary ' + mode + ' ' + site.path, t);
 });
 
-test('catalog_purity', () => {
+test('catalog_purity', (t) => {
   const freeze = (value) => {
     if (value && typeof value === 'object') { Object.values(value).forEach(freeze); Object.freeze(value); }
     return value;
@@ -164,6 +217,13 @@ test('catalog_purity', () => {
   for (let i = 0; i < 3; i++) assert.deepEqual(validateCatalog(data.index, data.entries), first);
   assert.deepEqual(first, { valid: true, errors: [] });
   assert.equal(JSON.stringify(data), before);
+
+  const inheritedOrder = clone();
+  inheritedOrder.index.tools.reverse();
+  rejectsArrayPrototype(inheritedOrder, toolsSite, 'methods', 'inherited_tools_some', t, freeze);
+  for (const site of arraySites)
+    rejectsArrayPrototype(clone(), site, 'accessors', 'frozen_array_boundary ' + site.path, t, freeze);
+
   const source = readFileSync(new URL('../validate.mjs', import.meta.url), 'utf8');
   assert.doesNotMatch(source, /\b(?:import|require|eval)\s*(?:\(|[{*'"])/);
   // Execute the same implementation in an isolated realm: no ambient Node, filesystem or network.
