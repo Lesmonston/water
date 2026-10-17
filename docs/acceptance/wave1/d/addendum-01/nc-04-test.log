@@ -1,0 +1,62 @@
+{"argv":["--test","--test-concurrency=1","--test-reporter=tap","tools/fs-fixture-kit/tests/materialize.test.mjs"],"exitCode":1,"error":null}
+--- stdout ---
+TAP version 13
+# Subtest: fixture_manifest_and_cases
+not ok 1 - fixture_manifest_and_cases
+  ---
+  duration_ms: 258.72
+  type: 'test'
+  location: 'F:\\new\\smaltalk\\water\\.worktrees\\d\\tools\\fs-fixture-kit\\tests\\materialize.test.mjs:141:1'
+  failureType: 'testCodeFailure'
+  error: |-
+    /cases 4294967295
+    
+    true !== false
+    
+  code: 'ERR_ASSERTION'
+  name: 'AssertionError'
+  expected: false
+  actual: true
+  operator: 'strictEqual'
+  stack: |-
+    TestContext.<anonymous> (file:///F:/new/smaltalk/water/.worktrees/d/tools/fs-fixture-kit/tests/materialize.test.mjs:235:14)
+    Test.runInAsyncScope (node:async_hooks:227:14)
+    Test.run (node:internal/test_runner/test:1306:25)
+    Test.start (node:internal/test_runner/test:1177:17)
+    startSubtestAfterBootstrap (node:internal/test_runner/harness:385:17)
+  ...
+# Subtest: fixture_materialization
+ok 2 - fixture_materialization
+  ---
+  duration_ms: 304.0284
+  type: 'test'
+  ...
+# Subtest: fixture_paths_and_collisions
+ok 3 - fixture_paths_and_collisions
+  ---
+  duration_ms: 82.844
+  type: 'test'
+  ...
+# Subtest: fixture_link_capabilities
+ok 4 - fixture_link_capabilities
+  ---
+  duration_ms: 47.8703
+  type: 'test'
+  ...
+# Subtest: fixture_declarative_faults
+ok 5 - fixture_declarative_faults
+  ---
+  duration_ms: 264.8254
+  type: 'test'
+  ...
+1..5
+# tests 5
+# suites 0
+# pass 4
+# fail 1
+# cancelled 0
+# skipped 0
+# todo 0
+# duration_ms 1230.6198
+
+--- stderr ---

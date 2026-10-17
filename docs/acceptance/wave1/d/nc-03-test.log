@@ -1,0 +1,92 @@
+{"argv":["--test","--test-concurrency=1","--test-reporter=tap","tools/fs-fixture-kit/tests/materialize.test.mjs"],"exitCode":1,"error":null}
+--- stdout ---
+TAP version 13
+# Subtest: fixture_manifest_and_cases
+ok 1 - fixture_manifest_and_cases
+  ---
+  duration_ms: 149.1553
+  type: 'test'
+  ...
+# Subtest: fixture_materialization
+ok 2 - fixture_materialization
+  ---
+  duration_ms: 201.7395
+  type: 'test'
+  ...
+# Subtest: fixture_paths_and_collisions
+ok 3 - fixture_paths_and_collisions
+  ---
+  duration_ms: 60.1507
+  type: 'test'
+  ...
+# Subtest: fixture_link_capabilities
+ok 4 - fixture_link_capabilities
+  ---
+  duration_ms: 35.0164
+  type: 'test'
+  ...
+# Subtest: fixture_declarative_faults
+not ok 5 - fixture_declarative_faults
+  ---
+  duration_ms: 31.1831
+  type: 'test'
+  location: 'F:\\new\\smaltalk\\water\\.worktrees\\d\\tools\\fs-fixture-kit\\tests\\materialize.test.mjs:521:1'
+  failureType: 'testCodeFailure'
+  error: |-
+    permission-plan
+    + actual - expected
+    
+      {
+        cancel_after_entries: null,
+        expected_issue_codes: [
+          'permission_denied'
+        ],
+    +   faults: [],
+    -   faults: [
+    -     {
+    -       code: 'permission_denied',
+    -       operation: 'read_dir',
+    -       path: 'scope/blocked'
+    -     }
+    -   ],
+        max_depth: 16,
+        max_entries: 128
+      }
+    
+  code: 'ERR_ASSERTION'
+  name: 'AssertionError'
+  expected:
+    max_depth: 16
+    max_entries: 128
+    cancel_after_entries: ~
+    faults:
+      0:
+        operation: 'read_dir'
+        path: 'scope/blocked'
+        code: 'permission_denied'
+    expected_issue_codes:
+      0: 'permission_denied'
+  actual:
+    max_depth: 16
+    max_entries: 128
+    cancel_after_entries: ~
+    faults:
+    expected_issue_codes:
+      0: 'permission_denied'
+  operator: 'deepStrictEqual'
+  stack: |-
+    TestContext.<anonymous> (file:///F:/new/smaltalk/water/.worktrees/d/tools/fs-fixture-kit/tests/materialize.test.mjs:528:12)
+    async Test.run (node:internal/test_runner/test:1313:7)
+    async Test.processPendingSubtests (node:internal/test_runner/test:897:7)
+  ...
+1..5
+# tests 5
+# suites 0
+# pass 4
+# fail 1
+# cancelled 0
+# skipped 0
+# todo 0
+# duration_ms 627.4614
+
+--- stderr ---
