@@ -2,6 +2,10 @@
 
 日期：2026-10-17。总控：Codex。所有手工项目产物位于 `F:/new/smaltalk/water`。
 
+## F验收追加（2026-10-17，最新）
+
+F接收65e928d，总控原五门/真实11case、12scope、39entry桥接及五独立测试通过；隔离受测`55266ed9a1fc79d4b3a2bedaa8c09f06f1f3e40d`新target离线重测通过。六锁83唯一文件和A–E产品不变，353份worker文件原字节保持。A–F均VERIFIED（Windows范围），G/H/I原READY分配保持；M1、macOS、真实跨模块链路/用户scope/分类/桌面/删除未完成。[F验收报告](acceptance/wave1/controller/WATER-W1-F-REVIEW-20261017.md)及推进记录为准，未写共享Vault。以下W0摘要为历史。
+
 ## 结果
 
 - 创建Water项目目录与独立本地Git；新增项目协作规则与状态入口。

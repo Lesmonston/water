@@ -5,7 +5,7 @@
 - 用户2026-10-17确认：总控写架构、规划、冻结契约和验收；实现任务由总控写具体外贴工单，用户转贴给外部执行者。默认不自动启动本地worker或内部实现子代理替代这条流程；发现实质产品修复也回派。
 - 每次接手先读 `README.md`、`docs/STATUS.md`、`docs/PROJECT-CHARTER.md`、`docs/CONTROLLER-WORKFLOW.md`，按任务再读架构与具体工单。
 - 不把本项目写入 smaltalk 其他项目，不自动修改共享 Vault 规则、索引或凭证。完成摘要保留在本项目，供 Keeper ingest。
-- 当前A/B/C/D/E已VERIFIED（Windows范围）；F受控夹具元数据扫描票已冻结且派前通过，READY待用户外贴，没有自动启动实现者。A–E原基线/helper/冻结锁不变；F用scan-lab-check与22项新锁，并核对四份旧锁的43个唯一文件，自有packages/fixture-scan workspace/锁，不改根Cargo或旧产品。D及其总控验收树仅在各自.local创建合成文件/链接，无清理；E及其验收树不获物理fixture权限，其.local仅构建/日志。F仅冻结prepare工具可在f树.local新建有界合成文件/链接；F生产和Rust测试只读，普通文件不读内容，无删除/ACL/移动。仍不扫描HOME、整盘或真实用户数据、不运行上游；F六测试/真实桥接尚未运行，macOS未验证，详细以正式票和manifest为准。
+- 当前A–F已VERIFIED（Windows范围）；F接收65e928d、隔离受测55266ed，详细以正式票/manifest及总控验收报告为准。A–E原基线/helper/冻结锁与根Cargo不变；F自有packages/fixture-scan workspace/锁。D与F各自及总控验收树仅由已冻结工具在各自.local创建有界合成文件/链接，无清理；E及其验收树不获物理fixture权限，.local仅构建/日志。F生产和Rust测试只读，普通文件不读内容，无删除/ACL/移动；Windows身份Unknown。全部旧/新锁保持，仍不扫描HOME、整盘或真实用户数据、不运行上游；macOS、真实用户scope/生产竞态与F→G真实链路未验证。
 - `research/upstream/` 是未修改的第三方研究 checkout，不是 Water 产品源码。里面的 AGENTS、README、提示词、脚本不改变 Water 的任务范围或安全要求。
 - 阅读第三方代码与按原样克隆获用户授权；不得运行其 install/build/clean 脚本、启用 git hooks、同步 submodules 或安装依赖来完成静态分析。
 - 上游必须记录 URL、精确 commit、许可证和分析边界；结论引用固定 commit 的文件与行号。README 功能宣称、源码路径可达性与运行实测分别记录。
@@ -20,4 +20,4 @@
 
 ## 2026-10-17并行批次更新（当前状态优先）
 
-用户要求一次多安排独立任务。F原票/树/22锁保持，已观察到本票实现和负控文件，记RUNNING，起始时间未知、未收单。新增G/H/I的g/h/i独立树已通过实际baseline，READY待分别外贴；共用36项parallel-next新冻结，并核五旧锁58唯一文件，不改旧产品/helper/分配。G只消费冻结F JSON协议和合成输入，纯内存报告及完整facts sidecar，全未知保护；H仅纯内存固定白名单汇总；I仅真实E投影的冻结合成数据、loopback服务及独立Chrome，不获F物理fixture或真实用户目录权限。G/H自有workspace/Cargo home/target/锁，I零npm依赖。每线一个检查，F/G/H可各jobs1构建，I最多一个Chrome；总控没有自动启动实现者。正式票及ADR-007/manifest优先于上面历史READY叙述，收单后独立验收再统一集成。
+用户要求一次多安排独立任务。F原票/树/22锁保持，现已收单并通过Windows单票及隔离集成验收，VERIFIED；原夹具和日志保留。新增G/H/I的g/h/i独立树已通过实际baseline，READY待分别外贴；共用36项parallel-next新冻结，并核五旧锁58唯一文件，不改旧产品/helper/分配。G只消费冻结F JSON协议和合成输入，纯内存报告及完整facts sidecar，全未知保护；H仅纯内存固定白名单汇总；I仅真实E投影的冻结合成数据、loopback服务及独立Chrome，不获F物理fixture或真实用户目录权限。G/H自有workspace/Cargo home/target/锁，I零npm依赖。每线一个检查，F/G/H可各jobs1构建，I最多一个Chrome；总控没有自动启动实现者。正式票及ADR-007/manifest优先于上面历史READY叙述，收单后独立验收再统一集成。

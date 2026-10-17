@@ -1,10 +1,10 @@
 # WATER-W1-F 总控验收与隔离集成
 
-2026-10-17，总控 Codex。当前结论：单票 ACCEPTED（Windows 范围）；隔离集成尚未运行，暂不标 VERIFIED。接手来源为用户指定的失效对话 `codex:d0fbb74c-aa85-4f95-ad3f-7e55a79d63a0`，以项目文件、Git 和本轮实测为依据，没有恢复旧聊天。
+2026-10-17，总控 Codex。结论：F 单票及隔离集成全部通过，VERIFIED（Windows 范围）。接手来源为用户指定的失效对话 `codex:d0fbb74c-aa85-4f95-ad3f-7e55a79d63a0`，以项目文件、Git 和本轮实测为依据，没有恢复旧聊天。
 
 ## 接收与范围
 
-接收 HEAD `65e928d3c193e58db758eaf8f0022c975c3ca24d`，`worker/water-w1-f`，工作树干净；实现及执行者五 final 门共同受测提交为 `3f3acbd7cf3726c10f7a759c8fc79301f2a4069e`。精确基线 `fc114eb81125cef7d374deddc95144bcd9aee748` 为祖先。全部差异在正式票白名单：独立包九个产品/测试文件，其余为 F 回执与证据；后加提交没有产品或测试变化。
+接收 HEAD `65e928d3c193e58db758eaf8f0022c975c3ca24d`，`worker/water-w1-f`，工作树干净；实现及执行者五 final 门共同受测提交为 `3f3acbd7cf3726c10f7a759c8fc79301f2a4069e`。精确基线 `fc114eb81125cef7d374deddc95144bcd9aee748` 为祖先。353 项新增差异全部在正式票白名单：独立包九个产品/测试文件，其余为 F 回执与证据；后加提交没有产品或测试变化。
 
 总控核对 22 项 F 冻结及四份旧锁，并核对 A/B/C/D/E 产品 tree 与原基线一致。未改根 Cargo、旧产品、旧 helper 或冻结锁；未修改执行者源代码。实际模型为执行者自报 Codex / GPT-6，细分版本无独立平台证据。
 
@@ -30,8 +30,14 @@
 
 总控新归档脚本首次因原 helper 的早期审计命令没有 log 字段而失败，产品尚未执行独立测试；仅修正总控归档循环后重新完整运行通过，失败 receipt 同目录保留。原五 final 门未失败，没有修改断言或门槛。
 
+收尾台账检查首次误将 registry 独有的 manifest 字段及两份台账各自的历史观测时间要求完全相同，属总控行政校验假设错误；改为逐项核共同契约/验收字段，保留历史观测元数据。此检查没有运行或修改产品；最终收尾检查记录在集成目录 closeout-checks.json。
+
 ## 集成与限制
 
-计划在 Water 内独立 `integration-f-20261017` 树合并接收提交，使用私有离线 Cargo 缓存、新 target，并仅由冻结 prepare 在该树 `.local` 新建一批有界合成夹具。集成测试结果与精确 SHA 待实际运行后补入。
+在 `.worktrees/integration-f-20261017`、`controller/water-w1-f-20261017` 无冲突合并接收提交。实际受测 SHA 为 `55266ed9a1fc79d4b3a2bedaa8c09f06f1f3e40d`，前后干净不变；[集成 receipt](w1-f-integration-20261017/2026-10-17T14-28-30.728Z-32012-result.json) 记录 34 条命令全部退出 0。私有离线缓存与新 target 下，metadata/fmt、六 Rust 测试、Clippy、真实 Rust 原生扫描桥接及五项总控独立检查首次全部通过，根 workspace 仍仅 A。
+
+全部六份冻结锁覆盖的 83 个唯一文件一致，F 产品 tree 为 `ffb12d8d897df82eaa3760dc38a6dd18b4b0cfa2`，与接收提交完全相同；A–E 产品 tree 未变。[353 份 worker 文件逐字节清单](w1-f-integration-20261017/worker-byte-manifest.json) 核实源代码、测试、回执和证据原字节保持；[35 份原始集成归档](w1-f-integration-20261017/archive-manifest.json) 给出长度和 hash。
+
+冻结 prepare 仅在集成树 `.local` 新建一批 11 正常 run/6 负例，共 81687 内容字节；三种链接实际可用，扫描桥接 11/12/39，44 快照一致。无 ACL/移动/删除或清理，worker 原夹具未变。受测 SHA 后只更新文档、台账和证据；主线通过快进纳入，推进的精确提交另存同目录 main-promotion.json。
 
 macOS 未编译/运行；真实 ACL 权限失败、真实 ReadDir 迭代错误、恶意并发替换、真实用户 scope 授权均未实测。无普通文件内容识别、分类、回收量汇总、真实 F→G 链路、E/UI/IPC 接线或删除；M1 尚未完成。G/H/I 原分配、基线、冻结和状态保持，本轮没有自动启动实现者、清理、push 或发布。

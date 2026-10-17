@@ -5,7 +5,7 @@
 | 阶段 | 产出 | 放行条件 | 当前状态 |
 |---|---|---|---|
 | M0 正式立项 | 本地仓库、立项书、需求、安全架构、五个源码审阅、许可和来源锁定 | 文档一致；固定commit可追溯；无上游代码混入 | 已完成 |
-| M1 只读 Alpha | 核心契约、受限fixture扫描、少量工具适配、解释与导出 | 范围不越界、未知保护、容量不重复、取消/权限错误可见 | A–E已VERIFIED；F执行中，G/H/I并行READY，跨模块链路未验收 |
+| M1 只读 Alpha | 核心契约、受限fixture扫描、少量工具适配、解释与导出 | 范围不越界、未知保护、容量不重复、取消/权限错误可见 | A–F已VERIFIED（Windows）；G/H/I保持READY，跨模块链路未验收 |
 | M2 受控清理 | 原生工具动作、具体计划、执行前复核、journal与恢复说明 | 安全矩阵通过；小范围闭环；无任意路径或shell能力 | 待开始 |
 | M3 双平台 Beta | Windows/macOS实机、签名分发方案、升级与恢复验证 | 两平台真实证据；已知风险和支持边界明确 | 待开始 |
 | M4 收费验证 | 小规模目标用户试用和真实付款实验 | 明确价值、支持成本、退款/授权方案与发布授权 | 待开始 |
@@ -15,7 +15,7 @@
 | 工单 | 任务 | 依赖 | 验收归属 |
 |---|---|---|---|
 | W0 | [立项与源码研究](tasks/W0-INIT-AND-RESEARCH.md) | 用户授权 | 总控 |
-| W1 | [只读内核与fixture](tasks/W1-READONLY-CORE.md)，当前[F/G/H/I并行](dispatch/wave1/PARALLEL-NEXT-PLAN-20261017.md) | A–E已验收；F执行中，G/H/I冻结及各自派前通过 | 用户分别外贴；总控验收/集成 |
+| W1 | [只读内核与fixture](tasks/W1-READONLY-CORE.md)，当前[F/G/H/I并行](dispatch/wave1/PARALLEL-NEXT-PLAN-20261017.md) | A–F已验收；G/H/I冻结及各自派前通过 | 用户分别外贴；总控验收/集成 |
 | W2 | 版本化规则注册表、pip/uv/npm/pnpm只读发现 | W1契约 | 规则与内核分别审阅 |
 | W3 | HF/Ollama/LM Studio只读inventory与共享空间视图 | W1/W2 | 模型资产保护验收 |
 | W4 | 桌面壳与报告界面 | W1稳定契约 | 总控，双平台可用性 |
@@ -25,4 +25,4 @@
 
 ## 执行方式（用户2026-10-17确认）
 
-总控负责架构/契约/规划/验收，实现单由用户分别外贴。A–E已验收集成；F执行中，G保守报告组装/H白名单汇总/I报告阅读界面READY，四线独立并行，不等待F产品。各票验收后总控接F→G→E/I、报告→H真实链路，实质修复回派；分类、真实scope安全、Tauri/macOS与发布另排。见[总控流程](CONTROLLER-WORKFLOW.md)、[ADR-007](decisions/ADR-007-parallel-report-export-reader.md)和[登记](dispatch/registry.json)。
+总控负责架构/契约/规划/验收，实现单由用户分别外贴。A–F已验收集成（Windows范围）；G保守报告组装/H白名单汇总/I报告阅读界面保持READY，三线原分配不变。各票验收后总控接F→G→E/I、报告→H真实链路，实质修复回派；分类、真实scope安全、Tauri/macOS与发布另排。见[总控流程](CONTROLLER-WORKFLOW.md)、[ADR-007](decisions/ADR-007-parallel-report-export-reader.md)和[登记](dispatch/registry.json)。

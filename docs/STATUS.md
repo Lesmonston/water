@@ -2,7 +2,7 @@
 
 更新时间：2026-10-17。
 
-本次总控接手的结果与下一条外贴指令见[接手验收摘要](CONTROLLER-HANDOFF-20261017.md)；当前任务状态仍以本页和registry/manifest为准。
+本次总控接手结果与后续事项见[接手验收摘要](CONTROLLER-HANDOFF-20261017.md)；当前任务状态仍以本页和registry/manifest为准。
 
 ## 已确认
 
@@ -21,13 +21,19 @@
 
 ## 下一步
 
-A/B/C/D/E已VERIFIED并集成，旧票不重复派。F树已出现实现及负控文件，按启动证据记RUNNING，未收单/验收，原票和冻结保持。新增G/H/I均READY，分别交三个执行者即可与F并行；见[四线安排](dispatch/wave1/PARALLEL-NEXT-PLAN-20261017.md)及[派前回执](dispatch/wave1/PARALLEL-NEXT-READY-REPORT.md)。新票不依赖F在途实现，真实F→G及G/H/E/I集成后验收；真实用户目录、分类、Tauri与清理另排。
+A–F均VERIFIED（Windows范围），旧票不重复外贴。G/H/I原READY、树/基线/冻结和分配保持；本轮只收F，没有启动实现者。G/H/I交付后再逐票验收，真实F→G及G/H/E/I链路、分类、真实用户scope、Tauri和macOS另排，M1尚未完成。
 
-## G/H/I并行派前完成（2026-10-17，当前）
+## F验收集成（2026-10-17，最新）
+
+- 接收干净HEAD `65e928d3c193e58db758eaf8f0022c975c3ca24d`，受测实现3f3acbd；353新增文件均在白名单，后加76文件只为报告/证据，九个产品/测试文件不变。总控原五final门、真实扫描11 case/12 scope/39 entry、五项独立边界全部通过；327份worker原始日志/receipt与现场一致，四负控目标红与恢复记录核对通过。
+- 隔离受测SHA `55266ed9a1fc79d4b3a2bedaa8c09f06f1f3e40d`：新target离线六Rust测试、fmt/clippy/metadata、真实桥接及五独立测试首次通过，六锁83唯一文件与A–E产品tree不变；353份worker文件原字节保持。冻结prepare仅在集成树.local新建一批11+6有界合成run，44快照一致，无清理。
+- F为VERIFIED（Windows范围），[验收报告](acceptance/wave1/controller/WATER-W1-F-REVIEW-20261017.md)及集成证据已归档。普通文件不读内容、Windows identity恒Unknown；macOS、真实ACL/ReadDir迭代失败、生产竞态、真实用户授权及F→G/E/UI链路未验证，没有分类/回收量汇总/删除。
+
+## G/H/I并行派前完成（2026-10-17，历史派前，READY分配保持）
 
 - 三树g/h/i、各自worker/water-w1-*，共同架构基线`045ab4f0d01edd573828fbc8cca988e1ad37efee`、tag water-w1-parallel-next-base-20261017。36项新冻结和五旧锁58唯一文件一致，A–F原基线/helper/锁保持。
 - G/H的Node24/Rust1.95/MSVC离线基线及真实A/E资产核对通过：17份G预期报告、11份H来源报告均经A校验，4份I资产由真实E投影生成。I的Node24/隔离Chrome空白页探针通过。G/H/I生产目录尚不存在，未运行新产品测试/bridge/UI；macOS未验证。
-- G全未知保护报告+完整facts sidecar，H固定白名单汇总且不承诺匿名不可关联，I只读合成报告阅读。三票独占目录/构建状态，无物理fixture/真实数据权限。均READY未确认外贴，总控未自动启动实现者；F继续原票，实际开始时间未知。
+- G全未知保护报告+完整facts sidecar，H固定白名单汇总且不承诺匿名不可关联，I只读合成报告阅读。三票独占目录/构建状态，无物理fixture/真实数据权限。原派前时均READY未确认外贴，总控未自动启动实现者；当时F继续原票。F最新验收结果见上节。
 
 ## F派前完成（2026-10-17，历史派前）
 

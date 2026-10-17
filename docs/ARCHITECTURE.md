@@ -1,6 +1,6 @@
 # Water 架构基线
 
-状态：生产内核设计基线；A/B/C/D/E已验收集成（Windows范围），E仅桥接C纯模型；F执行中，G/H/I独立READY，新产品未集成验收。对应 [ADR-001](decisions/ADR-001-independent-core.md)。
+状态：生产内核设计基线；A–F已验收集成（Windows范围），E仅桥接C纯模型，F仅扫描受控合成元数据；G/H/I独立READY，跨模块真实链路未验收。对应 [ADR-001](decisions/ADR-001-independent-core.md)。
 
 第一轮的具体数据与Rust API见 [scan v1契约](../contracts/v1/README.md)；工程顺序、工具链及限定范围见 [ADR-002](decisions/ADR-002-wave1-contract-bootstrap.md)。契约材料已冻结不代表Rust实现已存在。
 
@@ -16,9 +16,9 @@
 
 [ADR-005](decisions/ADR-005-independent-report-view.md)追加独立E内存展示投影：自有Rust workspace使用已验收A校验入口，输出新视图协议，验收桥接C纯模型；不接C页面、扫描facts或正式脱敏导出，不改根Cargo，且不依赖D。
 
-[ADR-006](decisions/ADR-006-controlled-scan-lab.md)与[Scan Lab v1](../contracts/scan-lab-v1/SPEC.md)冻结F独立workspace：只遍历本树.local中的受控D夹具，私有路径token、严格marker、NativeIo、取消与预算；输出元数据facts，不接Finding/ScanReport。Windows身份Unknown、Mac接口仅设计；无普通文件内容读取、汇总或生产TOCTOU保证。F原派前已通过，现已观察到实现，尚未总控收单验收。
+[ADR-006](decisions/ADR-006-controlled-scan-lab.md)与[Scan Lab v1](../contracts/scan-lab-v1/SPEC.md)冻结F独立workspace：只遍历本树.local中的受控D夹具，私有路径token、严格marker、NativeIo、取消与预算；输出元数据facts，不接Finding/ScanReport。Windows身份Unknown、Mac接口仅设计；无普通文件内容读取、汇总或生产TOCTOU保证。F已通过单票与隔离集成验收（Windows范围），见[F验收报告](acceptance/wave1/controller/WATER-W1-F-REVIEW-20261017.md)。
 
-[ADR-007](decisions/ADR-007-parallel-report-export-reader.md)新增独立G/H/I：G从冻结F JSON事实组装全未知保护报告，并用完整sidecar保留A无法表示的身份/来源；H从经A验证的报告构造无直接标识/自由文本的白名单汇总；I消费真实E投影生成的冻结合成视图，提供状态/覆盖/来源容量/筛选/详情。G/H不依赖F crate，I不依赖G/H，因此可与F同时实现。F已观察到实现；G/H/I派前基线通过READY，真实跨模块接线及新产品行为未验收，不修改根Cargo或旧产品。
+[ADR-007](decisions/ADR-007-parallel-report-export-reader.md)新增独立G/H/I：G从冻结F JSON事实组装全未知保护报告，并用完整sidecar保留A无法表示的身份/来源；H从经A验证的报告构造无直接标识/自由文本的白名单汇总；I消费真实E投影生成的冻结合成视图，提供状态/覆盖/来源容量/筛选/详情。G/H不依赖F crate，I不依赖G/H，因此可与F同时实现。F已VERIFIED；G/H/I派前基线通过READY，其产品行为与真实跨模块接线未验收，不修改根Cargo或旧产品。
 
 ## 分层与信任边界
 

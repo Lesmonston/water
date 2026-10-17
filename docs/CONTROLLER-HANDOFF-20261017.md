@@ -2,7 +2,13 @@
 
 2026-10-17。项目：`F:/new/smaltalk/water`。供后续总控接手与Keeper ingest；未写共享Vault或其他项目。
 
-## 当前交接：F执行中，G/H/I并行READY
+## 当前交接：F已VERIFIED，G/H/I保持READY
+
+本轮接手用户指定失效对话`codex:d0fbb74c-aa85-4f95-ad3f-7e55a79d63a0`，只收F。接收65e928d、受测实现3f3acbd；原五final门、实际11/12/39原生桥接与五独立测试通过。隔离受测`55266ed9a1fc79d4b3a2bedaa8c09f06f1f3e40d`在新target离线六Rust测试/fmt/clippy/metadata、真实桥接与五独立测试首次通过，83唯一冻结不变，353份worker文件原字节保持。F为VERIFIED（Windows范围），主线推进精确SHA见[F验收报告](acceptance/wave1/controller/WATER-W1-F-REVIEW-20261017.md)及归档main-promotion.json。
+
+G/H/I原READY/树/基线/冻结/分配保持，无自动实现者。下一步收G/H/I各自交付再验收并接真实F→G/E/H/I链路；macOS、真实scope授权、分类、桌面与删除均未验收，M1未完成。仅冻结prepare在集成树.local创建一批11+6合成run，保留所有夹具/日志，无清理、push或发布。以下为历史派前记录。
+
+## 此前交接：F执行中，G/H/I并行READY（历史）
 
 用户要求一次安排更多并行票。总控已冻结ADR-007、G/H/I协议及36项共享新锁，五旧锁58唯一文件保持；独立g/h/i树精确基线`045ab4f0d01edd573828fbc8cca988e1ad37efee`，tag water-w1-parallel-next-base-20261017。G/H真实Node24/Rust1.95/MSVC离线基线与A/E资产检查通过，I隔离Chrome空白页通过；17份G预期/11份H输入经真实A校验，4份I数据由真实E投影生成。无G/H/I产品目录、行为测试/bridge或真实界面验收。
 
