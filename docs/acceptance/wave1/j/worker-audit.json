@@ -1,0 +1,6704 @@
+{
+  "task": "WATER-W1-J",
+  "result": "blocked",
+  "implementationCommit": "b6fd1fe6566ad79dbcca6c420988c9bb40c47d80",
+  "engine": "Codex",
+  "model": "GPT-6 (session identity; finer model build not supplied)",
+  "windowsOnly": true,
+  "rawHelperFiles": 341,
+  "rawHelperReceipts": 21,
+  "archiveEntries": 350,
+  "frozen": {
+    "newEntries": 65,
+    "inheritedUnique": 83,
+    "totalUnique": 132,
+    "verified": true
+  },
+  "finalModes": [
+    {
+      "receipt": "2026-10-17T16-47-04.799Z-2200-fmt-result.json",
+      "mode": "fmt",
+      "status": "passed",
+      "error": null
+    },
+    {
+      "receipt": "2026-10-17T16-47-40.103Z-29428-test-result.json",
+      "mode": "test",
+      "status": "passed",
+      "error": null
+    },
+    {
+      "receipt": "2026-10-17T16-48-20.976Z-26948-clippy-result.json",
+      "mode": "clippy",
+      "status": "passed",
+      "error": null
+    },
+    {
+      "receipt": "2026-10-17T16-49-00.145Z-13012-metadata-result.json",
+      "mode": "metadata",
+      "status": "passed",
+      "error": null
+    },
+    {
+      "receipt": "2026-10-17T16-49-09.736Z-42532-bridge-result.json",
+      "mode": "bridge",
+      "status": "failed",
+      "error": "water_scan\n\n2 !== 1\n"
+    }
+  ],
+  "sourceState": {
+    "files": [
+      {
+        "path": "packages/lab-session/src/lib.rs",
+        "sha256": "5b796be694e142245c84474df47b63bdee17cb9713b8f256637dbdebbb6bbc46",
+        "mtimeMs": 1792255045233.9973,
+        "snapshot": "2026-10-17T16-49-09.736Z-42532-bridge-source-0.txt",
+        "test": false
+      },
+      {
+        "path": "packages/lab-session/src/v1.rs",
+        "sha256": "5e8d815dc39542eafa3add169837b1a0e42cbabd374c159276f9662311d4cc12",
+        "mtimeMs": 1792255561328.6472,
+        "snapshot": "2026-10-17T16-49-09.736Z-42532-bridge-source-1.txt",
+        "test": false
+      },
+      {
+        "path": "packages/lab-session/tests/session_v1.rs",
+        "sha256": "f8bab5c0f72cdcf694b2016a09cf476a74a657af810492aadec5a1bcc2dc422d",
+        "mtimeMs": 1792255377178.2654,
+        "snapshot": "2026-10-17T16-49-09.736Z-42532-bridge-source-2.txt",
+        "test": true
+      }
+    ],
+    "productionHash": "383366d38209bd20b1066ec0ac9975317a85f0b89beec6cdde66ba9003320d6f",
+    "testHash": "bd8ac0891023a9929c13d9ab8e273289fa12b812673b2a1f0b44a1ede3cee89a"
+  },
+  "proofAudit": [
+    {
+      "label": "behavior",
+      "red": "2026-10-17T16-43-04.610Z-25072-red-behavior-result.json",
+      "restored": "2026-10-17T16-43-47.077Z-2132-suite-result.json",
+      "target": "J_BEHAVIOR",
+      "testExitCode": 101,
+      "originalFileSha256": "5e8d815dc39542eafa3add169837b1a0e42cbabd374c159276f9662311d4cc12",
+      "mutatedFileSha256": "dc76806a4f38fc3e0f361c899a9472a8fe3d74a20a98ef98d0947728ddf5bc33",
+      "restoredFileSha256": "5e8d815dc39542eafa3add169837b1a0e42cbabd374c159276f9662311d4cc12",
+      "originalProductionHash": "383366d38209bd20b1066ec0ac9975317a85f0b89beec6cdde66ba9003320d6f",
+      "mutatedProductionHash": "c7b0f3e7ea8a646679f6df0dfc9b04893a725c1897848d3cb255807ba7e1e06a",
+      "restoredProductionHash": "383366d38209bd20b1066ec0ac9975317a85f0b89beec6cdde66ba9003320d6f",
+      "testHash": "bd8ac0891023a9929c13d9ab8e273289fa12b812673b2a1f0b44a1ede3cee89a",
+      "redStartedAt": "2026-10-17T16:43:05.955Z",
+      "redEndedAt": "2026-10-17T16:43:15.556Z",
+      "restoredStartedAt": "2026-10-17T16:43:48.050Z",
+      "restoredEndedAt": "2026-10-17T16:44:02.248Z",
+      "mutatedSourceSnapshot": "2026-10-17T16-43-04.610Z-25072-red-behavior-source-1.txt",
+      "restoredSourceSnapshot": "2026-10-17T16-43-47.077Z-2132-suite-source-1.txt",
+      "redLog": "2026-10-17T16-43-04.610Z-25072-red-behavior-expected-red.log",
+      "restoredLogs": [
+        "2026-10-17T16-43-47.077Z-2132-suite-1.log",
+        "2026-10-17T16-43-47.077Z-2132-suite-2.log",
+        "2026-10-17T16-43-47.077Z-2132-suite-3.log",
+        "2026-10-17T16-43-47.077Z-2132-suite-4.log",
+        "2026-10-17T16-43-47.077Z-2132-suite-5.log",
+        "2026-10-17T16-43-47.077Z-2132-suite-6.log",
+        "2026-10-17T16-43-47.077Z-2132-suite-7.log",
+        "2026-10-17T16-43-47.077Z-2132-suite-8.log",
+        "2026-10-17T16-43-47.077Z-2132-suite-9.log",
+        "2026-10-17T16-43-47.077Z-2132-suite-10.log",
+        "2026-10-17T16-43-47.077Z-2132-suite-11.log",
+        "2026-10-17T16-43-47.077Z-2132-suite-12.log"
+      ]
+    },
+    {
+      "label": "nc1",
+      "red": "2026-10-17T16-44-17.853Z-37004-red-nc1-result.json",
+      "restored": "2026-10-17T16-44-35.038Z-28632-suite-result.json",
+      "target": "J_CANCEL_SHARED",
+      "testExitCode": 101,
+      "originalFileSha256": "5e8d815dc39542eafa3add169837b1a0e42cbabd374c159276f9662311d4cc12",
+      "mutatedFileSha256": "1641482e162c4609fb289f8a55b4f2584ee3595e8ce22820a7a21eb4d872bebb",
+      "restoredFileSha256": "5e8d815dc39542eafa3add169837b1a0e42cbabd374c159276f9662311d4cc12",
+      "originalProductionHash": "383366d38209bd20b1066ec0ac9975317a85f0b89beec6cdde66ba9003320d6f",
+      "mutatedProductionHash": "c5c687b9cfa5a361281c02ed0776adbc3dcc7dbb894f97e055bc4c7f9068eccf",
+      "restoredProductionHash": "383366d38209bd20b1066ec0ac9975317a85f0b89beec6cdde66ba9003320d6f",
+      "testHash": "bd8ac0891023a9929c13d9ab8e273289fa12b812673b2a1f0b44a1ede3cee89a",
+      "redStartedAt": "2026-10-17T16:44:19.140Z",
+      "redEndedAt": "2026-10-17T16:44:24.319Z",
+      "restoredStartedAt": "2026-10-17T16:44:36.700Z",
+      "restoredEndedAt": "2026-10-17T16:44:41.186Z",
+      "mutatedSourceSnapshot": "2026-10-17T16-44-17.853Z-37004-red-nc1-source-1.txt",
+      "restoredSourceSnapshot": "2026-10-17T16-44-35.038Z-28632-suite-source-1.txt",
+      "redLog": "2026-10-17T16-44-17.853Z-37004-red-nc1-expected-red.log",
+      "restoredLogs": [
+        "2026-10-17T16-44-35.038Z-28632-suite-1.log",
+        "2026-10-17T16-44-35.038Z-28632-suite-2.log",
+        "2026-10-17T16-44-35.038Z-28632-suite-3.log",
+        "2026-10-17T16-44-35.038Z-28632-suite-4.log",
+        "2026-10-17T16-44-35.038Z-28632-suite-5.log",
+        "2026-10-17T16-44-35.038Z-28632-suite-6.log",
+        "2026-10-17T16-44-35.038Z-28632-suite-7.log",
+        "2026-10-17T16-44-35.038Z-28632-suite-8.log",
+        "2026-10-17T16-44-35.038Z-28632-suite-9.log",
+        "2026-10-17T16-44-35.038Z-28632-suite-10.log",
+        "2026-10-17T16-44-35.038Z-28632-suite-11.log",
+        "2026-10-17T16-44-35.038Z-28632-suite-12.log"
+      ]
+    },
+    {
+      "label": "nc2",
+      "red": "2026-10-17T16-44-47.120Z-26260-red-nc2-result.json",
+      "restored": "2026-10-17T16-45-06.851Z-11716-suite-result.json",
+      "target": "J_FACTS_PRESERVED",
+      "testExitCode": 101,
+      "originalFileSha256": "5e8d815dc39542eafa3add169837b1a0e42cbabd374c159276f9662311d4cc12",
+      "mutatedFileSha256": "eef8d21f47ca05af91581e5da42adedaec3b01c3a36ce6c787d6f62bdb6e05da",
+      "restoredFileSha256": "5e8d815dc39542eafa3add169837b1a0e42cbabd374c159276f9662311d4cc12",
+      "originalProductionHash": "383366d38209bd20b1066ec0ac9975317a85f0b89beec6cdde66ba9003320d6f",
+      "mutatedProductionHash": "f88836ee4b3f9ca3bd9b0a7b4b452b51880e5be7d82044de7e107559ea2fecab",
+      "restoredProductionHash": "383366d38209bd20b1066ec0ac9975317a85f0b89beec6cdde66ba9003320d6f",
+      "testHash": "bd8ac0891023a9929c13d9ab8e273289fa12b812673b2a1f0b44a1ede3cee89a",
+      "redStartedAt": "2026-10-17T16:44:49.715Z",
+      "redEndedAt": "2026-10-17T16:44:56.283Z",
+      "restoredStartedAt": "2026-10-17T16:45:09.191Z",
+      "restoredEndedAt": "2026-10-17T16:45:18.657Z",
+      "mutatedSourceSnapshot": "2026-10-17T16-44-47.120Z-26260-red-nc2-source-1.txt",
+      "restoredSourceSnapshot": "2026-10-17T16-45-06.851Z-11716-suite-source-1.txt",
+      "redLog": "2026-10-17T16-44-47.120Z-26260-red-nc2-expected-red.log",
+      "restoredLogs": [
+        "2026-10-17T16-45-06.851Z-11716-suite-1.log",
+        "2026-10-17T16-45-06.851Z-11716-suite-2.log",
+        "2026-10-17T16-45-06.851Z-11716-suite-3.log",
+        "2026-10-17T16-45-06.851Z-11716-suite-4.log",
+        "2026-10-17T16-45-06.851Z-11716-suite-5.log",
+        "2026-10-17T16-45-06.851Z-11716-suite-6.log",
+        "2026-10-17T16-45-06.851Z-11716-suite-7.log",
+        "2026-10-17T16-45-06.851Z-11716-suite-8.log",
+        "2026-10-17T16-45-06.851Z-11716-suite-9.log",
+        "2026-10-17T16-45-06.851Z-11716-suite-10.log",
+        "2026-10-17T16-45-06.851Z-11716-suite-11.log",
+        "2026-10-17T16-45-06.851Z-11716-suite-12.log"
+      ]
+    },
+    {
+      "label": "nc3",
+      "red": "2026-10-17T16-45-32.977Z-33272-red-nc3-result.json",
+      "restored": "2026-10-17T16-46-02.086Z-12764-suite-result.json",
+      "target": "J_SUMMARY_UNKNOWN",
+      "testExitCode": 101,
+      "originalFileSha256": "5e8d815dc39542eafa3add169837b1a0e42cbabd374c159276f9662311d4cc12",
+      "mutatedFileSha256": "3e4fa8bbfbc6929ff9315b22a12ba4d92964e5be98b216837efa5ea908cec084",
+      "restoredFileSha256": "5e8d815dc39542eafa3add169837b1a0e42cbabd374c159276f9662311d4cc12",
+      "originalProductionHash": "383366d38209bd20b1066ec0ac9975317a85f0b89beec6cdde66ba9003320d6f",
+      "mutatedProductionHash": "8327d0ef637d489289dd28ff28f8aba287d577c4efd0f7728dfb150dcdb3a6c3",
+      "restoredProductionHash": "383366d38209bd20b1066ec0ac9975317a85f0b89beec6cdde66ba9003320d6f",
+      "testHash": "bd8ac0891023a9929c13d9ab8e273289fa12b812673b2a1f0b44a1ede3cee89a",
+      "redStartedAt": "2026-10-17T16:45:40.372Z",
+      "redEndedAt": "2026-10-17T16:45:47.345Z",
+      "restoredStartedAt": "2026-10-17T16:46:05.018Z",
+      "restoredEndedAt": "2026-10-17T16:46:15.151Z",
+      "mutatedSourceSnapshot": "2026-10-17T16-45-32.977Z-33272-red-nc3-source-1.txt",
+      "restoredSourceSnapshot": "2026-10-17T16-46-02.086Z-12764-suite-source-1.txt",
+      "redLog": "2026-10-17T16-45-32.977Z-33272-red-nc3-expected-red.log",
+      "restoredLogs": [
+        "2026-10-17T16-46-02.086Z-12764-suite-1.log",
+        "2026-10-17T16-46-02.086Z-12764-suite-2.log",
+        "2026-10-17T16-46-02.086Z-12764-suite-3.log",
+        "2026-10-17T16-46-02.086Z-12764-suite-4.log",
+        "2026-10-17T16-46-02.086Z-12764-suite-5.log",
+        "2026-10-17T16-46-02.086Z-12764-suite-6.log",
+        "2026-10-17T16-46-02.086Z-12764-suite-7.log",
+        "2026-10-17T16-46-02.086Z-12764-suite-8.log",
+        "2026-10-17T16-46-02.086Z-12764-suite-9.log",
+        "2026-10-17T16-46-02.086Z-12764-suite-10.log",
+        "2026-10-17T16-46-02.086Z-12764-suite-11.log",
+        "2026-10-17T16-46-02.086Z-12764-suite-12.log"
+      ]
+    }
+  ],
+  "rlibs": [
+    {
+      "name": "libwater_contracts-59eefedcfbf13a84.rlib",
+      "bytes": 8376014
+    },
+    {
+      "name": "libwater_lab_session-9a9cf80d7c27ab77.rlib",
+      "bytes": 2338614
+    },
+    {
+      "name": "libwater_report_view-bc978809457c1096.rlib",
+      "bytes": 1244554
+    },
+    {
+      "name": "libwater_report_view-d5c44213b86c7371.rlib",
+      "bytes": 1247266
+    },
+    {
+      "name": "libwater_scan-6175956180c46223.rlib",
+      "bytes": 6981486
+    },
+    {
+      "name": "libwater_scan-68ef1203b54365ff.rlib",
+      "bytes": 6975828
+    },
+    {
+      "name": "libwater_scan_report-1e18e55450c023a8.rlib",
+      "bytes": 4687158
+    },
+    {
+      "name": "libwater_scan_report-812b63a677380b99.rlib",
+      "bytes": 4691382
+    },
+    {
+      "name": "libwater_summary_export-5d7cc4aa0e43fe1b.rlib",
+      "bytes": 147978
+    },
+    {
+      "name": "libwater_summary_export-6f364859c1f7a713.rlib",
+      "bytes": 148574
+    }
+  ],
+  "artifactPaths": [
+    {
+      "directory": "water-scan-68ef1203b54365ff",
+      "pathFingerprint": "10763286916239946207",
+      "profile": "8731458305071235362",
+      "rustc": "8891013984288978370",
+      "archive": "artifact-fingerprint-water-scan-68ef1203b54365ff.json"
+    },
+    {
+      "directory": "water-scan-6175956180c46223",
+      "pathFingerprint": "9320430806962458371",
+      "profile": "8731458305071235362",
+      "rustc": "8891013984288978370",
+      "archive": "artifact-fingerprint-water-scan-6175956180c46223.json"
+    },
+    {
+      "directory": "water-scan-report-1e18e55450c023a8",
+      "pathFingerprint": "10763286916239946207",
+      "profile": "8731458305071235362",
+      "rustc": "8891013984288978370",
+      "archive": "artifact-fingerprint-water-scan-report-1e18e55450c023a8.json"
+    },
+    {
+      "directory": "water-scan-report-812b63a677380b99",
+      "pathFingerprint": "6704589335812629137",
+      "profile": "8731458305071235362",
+      "rustc": "8891013984288978370",
+      "archive": "artifact-fingerprint-water-scan-report-812b63a677380b99.json"
+    },
+    {
+      "directory": "water-report-view-bc978809457c1096",
+      "pathFingerprint": "10763286916239946207",
+      "profile": "8731458305071235362",
+      "rustc": "8891013984288978370",
+      "archive": "artifact-fingerprint-water-report-view-bc978809457c1096.json"
+    },
+    {
+      "directory": "water-report-view-d5c44213b86c7371",
+      "pathFingerprint": "7948401398782964908",
+      "profile": "8731458305071235362",
+      "rustc": "8891013984288978370",
+      "archive": "artifact-fingerprint-water-report-view-d5c44213b86c7371.json"
+    },
+    {
+      "directory": "water-summary-export-5d7cc4aa0e43fe1b",
+      "pathFingerprint": "10763286916239946207",
+      "profile": "8731458305071235362",
+      "rustc": "8891013984288978370",
+      "archive": "artifact-fingerprint-water-summary-export-5d7cc4aa0e43fe1b.json"
+    },
+    {
+      "directory": "water-summary-export-6f364859c1f7a713",
+      "pathFingerprint": "11285465394688890193",
+      "profile": "8731458305071235362",
+      "rustc": "8891013984288978370",
+      "archive": "artifact-fingerprint-water-summary-export-6f364859c1f7a713.json"
+    }
+  ],
+  "sourceLocations": [
+    {
+      "line": 94,
+      "text": "    const deps=join(target,'debug/deps'),externs=names=>names.flatMap(name=>{const list=readdirSync(deps).filter(n=>n.startsWith('lib'+name+'-')&&n.endsWith('.rlib'));assert.equal(list.length,1,name);return['--extern',name+'='+join(deps,list[0])];});"
+    },
+    {
+      "line": 96,
+      "text": "    const knownPipeline=()=>{const binary=join(temp,ctx.stamp+'-known-pipeline.exe');command(rustc,['--edition=2024','--crate-name','session_known_pipeline',join(root,'scripts/acceptance/scan-report-summary-pipeline.rs'),'-L','dependency='+deps,...externs(oldNames),'-o',binary],180000);return JSON.parse(command(binary,[state.active]));};"
+    },
+    {
+      "line": 115,
+      "text": "      if(mode==='bridge'){"
+    }
+  ],
+  "blockingCondition": "Frozen helper requires exactly one matching rlib; J dependency builds coexist with standalone baseline artifacts. water_scan has two; bridge stops before compiling either comparison program.",
+  "noCleanupOrHelperMutation": true,
+  "actualBridgeExecuted": false,
+  "jToKPageVerified": false,
+  "testLintHistory": {
+    "originalBehavior": "2026-10-17T16-40-44.106Z-20696-red-behavior-result.json",
+    "lintFailure": "2026-10-17T16-42-00.977Z-8928-clippy-result.json",
+    "change": "Only test platform selection changed from cfg constant assertion to std::env::consts::OS match; no behavioral assertion removed.",
+    "repeatedBehavior": "2026-10-17T16-43-04.610Z-25072-red-behavior-result.json",
+    "limitation": "Original behavior red preceded the first implementation on earlier test bytes. Same-final-test behavior red was re-recorded after the lint fix, before restoring that implementation. Do not claim the exact final test bytes existed before the first implementation."
+  },
+  "checks": [
+    {
+      "name": "2026-10-17T16-02-42.645Z-10008-baseline-result.json",
+      "mode": "baseline",
+      "finalGate": false,
+      "status": "passed",
+      "head": "4d1bc5eb8dd19efe830a1e8407984fa2f479febb",
+      "startedAt": "2026-10-17T16:02:56.093Z",
+      "endedAt": "2026-10-17T16:04:10.205Z",
+      "error": null,
+      "executedTests": 0,
+      "observedExpectedFailure": false,
+      "commands": [
+        {
+          "argv": [
+            "-c",
+            "core.hooksPath=NUL",
+            "-c",
+            "core.fsmonitor=false",
+            "rev-parse",
+            "--path-format=absolute",
+            "--git-common-dir"
+          ],
+          "exitCode": 0,
+          "error": null,
+          "log": null
+        },
+        {
+          "argv": [
+            "-c",
+            "core.hooksPath=NUL",
+            "-c",
+            "core.fsmonitor=false",
+            "branch",
+            "--show-current"
+          ],
+          "exitCode": 0,
+          "error": null,
+          "log": null
+        },
+        {
+          "argv": [
+            "-c",
+            "core.hooksPath=NUL",
+            "-c",
+            "core.fsmonitor=false",
+            "merge-base",
+            "--is-ancestor",
+            "4d1bc5eb8dd19efe830a1e8407984fa2f479febb",
+            "HEAD"
+          ],
+          "exitCode": 0,
+          "error": null,
+          "log": null
+        },
+        {
+          "argv": [
+            "-c",
+            "core.hooksPath=NUL",
+            "-c",
+            "core.fsmonitor=false",
+            "diff",
+            "--no-renames",
+            "--name-only",
+            "-z",
+            "4d1bc5eb8dd19efe830a1e8407984fa2f479febb",
+            "HEAD"
+          ],
+          "exitCode": 0,
+          "error": null,
+          "log": null
+        },
+        {
+          "argv": [
+            "-c",
+            "core.hooksPath=NUL",
+            "-c",
+            "core.fsmonitor=false",
+            "diff",
+            "--no-renames",
+            "--name-only",
+            "-z",
+            "HEAD"
+          ],
+          "exitCode": 0,
+          "error": null,
+          "log": null
+        },
+        {
+          "argv": [
+            "-c",
+            "core.hooksPath=NUL",
+            "-c",
+            "core.fsmonitor=false",
+            "ls-files",
+            "--others",
+            "--exclude-standard",
+            "-z"
+          ],
+          "exitCode": 0,
+          "error": null,
+          "log": null
+        },
+        {
+          "argv": [
+            "-c",
+            "core.hooksPath=NUL",
+            "-c",
+            "core.fsmonitor=false",
+            "rev-parse",
+            "HEAD"
+          ],
+          "exitCode": 0,
+          "error": null,
+          "log": null
+        },
+        {
+          "argv": [
+            "-c",
+            "core.hooksPath=NUL",
+            "-c",
+            "core.fsmonitor=false",
+            "status",
+            "--porcelain",
+            "--untracked-files=all"
+          ],
+          "exitCode": 0,
+          "error": null,
+          "log": null
+        },
+        {
+          "argv": [
+            "which",
+            "rustc",
+            "--toolchain",
+            "1.95.0"
+          ],
+          "exitCode": 0,
+          "error": null,
+          "log": "2026-10-17T16-02-42.645Z-10008-baseline-1.log"
+        },
+        {
+          "argv": [
+            "which",
+            "cargo",
+            "--toolchain",
+            "1.95.0"
+          ],
+          "exitCode": 0,
+          "error": null,
+          "log": "2026-10-17T16-02-42.645Z-10008-baseline-2.log"
+        },
+        {
+          "argv": [
+            "--version"
+          ],
+          "exitCode": 0,
+          "error": null,
+          "log": "2026-10-17T16-02-42.645Z-10008-baseline-3.log"
+        },
+        {
+          "argv": [
+            "build",
+            "--manifest-path",
+            "packages/fixture-scan/Cargo.toml",
+            "--offline",
+            "--locked",
+            "--lib"
+          ],
+          "exitCode": 0,
+          "error": null,
+          "log": "2026-10-17T16-02-42.645Z-10008-baseline-4.log"
+        },
+        {
+          "argv": [
+            "build",
+            "--manifest-path",
+            "packages/scan-report/Cargo.toml",
+            "--offline",
+            "--locked",
+            "--lib"
+          ],
+          "exitCode": 0,
+          "error": null,
+          "log": "2026-10-17T16-02-42.645Z-10008-baseline-5.log"
+        },
+        {
+          "argv": [
+            "build",
+            "--manifest-path",
+            "packages/report-view/Cargo.toml",
+            "--offline",
+            "--locked",
+            "--lib"
+          ],
+          "exitCode": 0,
+          "error": null,
+          "log": "2026-10-17T16-02-42.645Z-10008-baseline-6.log"
+        },
+        {
+          "argv": [
+            "build",
+            "--manifest-path",
+            "packages/summary-export/Cargo.toml",
+            "--offline",
+            "--locked",
+            "--lib"
+          ],
+          "exitCode": 0,
+          "error": null,
+          "log": "2026-10-17T16-02-42.645Z-10008-baseline-7.log"
+        },
+        {
+          "argv": [
+            "--edition=2024",
+            "--crate-name",
+            "session_known_pipeline",
+            "F:\\new\\smaltalk\\water\\.worktrees\\j\\scripts\\acceptance\\scan-report-summary-pipeline.rs",
+            "-L",
+            "dependency=F:\\new\\smaltalk\\water\\.worktrees\\j\\.local\\j-target\\debug\\deps",
+            "--extern",
+            "water_scan=F:\\new\\smaltalk\\water\\.worktrees\\j\\.local\\j-target\\debug\\deps\\libwater_scan-68ef1203b54365ff.rlib",
+            "--extern",
+            "water_scan_report=F:\\new\\smaltalk\\water\\.worktrees\\j\\.local\\j-target\\debug\\deps\\libwater_scan_report-1e18e55450c023a8.rlib",
+            "--extern",
+            "water_report_view=F:\\new\\smaltalk\\water\\.worktrees\\j\\.local\\j-target\\debug\\deps\\libwater_report_view-bc978809457c1096.rlib",
+            "--extern",
+            "water_summary_export=F:\\new\\smaltalk\\water\\.worktrees\\j\\.local\\j-target\\debug\\deps\\libwater_summary_export-5d7cc4aa0e43fe1b.rlib",
+            "--extern",
+            "water_contracts=F:\\new\\smaltalk\\water\\.worktrees\\j\\.local\\j-target\\debug\\deps\\libwater_contracts-59eefedcfbf13a84.rlib",
+            "--extern",
+            "serde_json=F:\\new\\smaltalk\\water\\.worktrees\\j\\.local\\j-target\\debug\\deps\\libserde_json-c243626af514ec1f.rlib",
+            "-o",
+            "F:\\new\\smaltalk\\water\\.worktrees\\j\\.local\\j-tmp\\2026-10-17T16-02-42.645Z-10008-known-pipeline.exe"
+          ],
+          "exitCode": 0,
+          "error": null,
+          "log": "2026-10-17T16-02-42.645Z-10008-baseline-8.log"
+        },
+        {
+          "argv": [
+            "F:\\new\\smaltalk\\water\\.worktrees\\j\\.local\\checks\\WATER-W1-F\\active-fixtures.json"
+          ],
+          "exitCode": 0,
+          "error": null,
+          "log": "2026-10-17T16-02-42.645Z-10008-baseline-9.log"
+        },
+        {
+          "argv": [
+            "-c",
+            "core.hooksPath=NUL",
+            "-c",
+            "core.fsmonitor=false",
+            "branch",
+            "--show-current"
+          ],
+          "exitCode": 0,
+          "error": null,
+          "log": "2026-10-17T16-02-42.645Z-10008-baseline-10.log"
+        },
+        {
+          "argv": [
+            "-c",
+            "core.hooksPath=NUL",
+            "-c",
+            "core.fsmonitor=false",
+            "merge-base",
+            "--is-ancestor",
+            "4d1bc5eb8dd19efe830a1e8407984fa2f479febb",
+            "HEAD"
+          ],
+          "exitCode": 0,
+          "error": null,
+          "log": "2026-10-17T16-02-42.645Z-10008-baseline-11.log"
+        },
+        {
+          "argv": [
+            "-c",
+            "core.hooksPath=NUL",
+            "-c",
+            "core.fsmonitor=false",
+            "diff",
+            "--no-renames",
+            "--name-only",
+            "-z",
+            "4d1bc5eb8dd19efe830a1e8407984fa2f479febb",
+            "HEAD"
+          ],
+          "exitCode": 0,
+          "error": null,
+          "log": "2026-10-17T16-02-42.645Z-10008-baseline-12.log"
+        },
+        {
+          "argv": [
+            "-c",
+            "core.hooksPath=NUL",
+            "-c",
+            "core.fsmonitor=false",
+            "diff",
+            "--no-renames",
+            "--name-only",
+            "-z",
+            "HEAD"
+          ],
+          "exitCode": 0,
+          "error": null,
+          "log": "2026-10-17T16-02-42.645Z-10008-baseline-13.log"
+        },
+        {
+          "argv": [
+            "-c",
+            "core.hooksPath=NUL",
+            "-c",
+            "core.fsmonitor=false",
+            "ls-files",
+            "--others",
+            "--exclude-standard",
+            "-z"
+          ],
+          "exitCode": 0,
+          "error": null,
+          "log": "2026-10-17T16-02-42.645Z-10008-baseline-14.log"
+        },
+        {
+          "argv": [
+            "-c",
+            "core.hooksPath=NUL",
+            "-c",
+            "core.fsmonitor=false",
+            "rev-parse",
+            "HEAD"
+          ],
+          "exitCode": 0,
+          "error": null,
+          "log": "2026-10-17T16-02-42.645Z-10008-baseline-15.log"
+        },
+        {
+          "argv": [
+            "-c",
+            "core.hooksPath=NUL",
+            "-c",
+            "core.fsmonitor=false",
+            "status",
+            "--porcelain",
+            "--untracked-files=all"
+          ],
+          "exitCode": 0,
+          "error": null,
+          "log": "2026-10-17T16-02-42.645Z-10008-baseline-16.log"
+        }
+      ]
+    },
+    {
+      "name": "2026-10-17T16-07-56.055Z-39632-baseline-result.json",
+      "mode": "baseline",
+      "finalGate": false,
+      "status": "passed",
+      "head": "bc409f4af8cb2d51b2f67341ad46637cfa5e66f3",
+      "startedAt": "2026-10-17T16:08:10.104Z",
+      "endedAt": "2026-10-17T16:08:27.774Z",
+      "error": null,
+      "executedTests": 0,
+      "observedExpectedFailure": false,
+      "commands": [
+        {
+          "argv": [
+            "-c",
+            "core.hooksPath=NUL",
+            "-c",
+            "core.fsmonitor=false",
+            "rev-parse",
+            "--path-format=absolute",
+            "--git-common-dir"
+          ],
+          "exitCode": 0,
+          "error": null,
+          "log": null
+        },
+        {
+          "argv": [
+            "-c",
+            "core.hooksPath=NUL",
+            "-c",
+            "core.fsmonitor=false",
+            "branch",
+            "--show-current"
+          ],
+          "exitCode": 0,
+          "error": null,
+          "log": null
+        },
+        {
+          "argv": [
+            "-c",
+            "core.hooksPath=NUL",
+            "-c",
+            "core.fsmonitor=false",
+            "merge-base",
+            "--is-ancestor",
+            "bc409f4af8cb2d51b2f67341ad46637cfa5e66f3",
+            "HEAD"
+          ],
+          "exitCode": 0,
+          "error": null,
+          "log": null
+        },
+        {
+          "argv": [
+            "-c",
+            "core.hooksPath=NUL",
+            "-c",
+            "core.fsmonitor=false",
+            "diff",
+            "--no-renames",
+            "--name-only",
+            "-z",
+            "bc409f4af8cb2d51b2f67341ad46637cfa5e66f3",
+            "HEAD"
+          ],
+          "exitCode": 0,
+          "error": null,
+          "log": null
+        },
+        {
+          "argv": [
+            "-c",
+            "core.hooksPath=NUL",
+            "-c",
+            "core.fsmonitor=false",
+            "diff",
+            "--no-renames",
+            "--name-only",
+            "-z",
+            "HEAD"
+          ],
+          "exitCode": 0,
+          "error": null,
+          "log": null
+        },
+        {
+          "argv": [
+            "-c",
+            "core.hooksPath=NUL",
+            "-c",
+            "core.fsmonitor=false",
+            "ls-files",
+            "--others",
+            "--exclude-standard",
+            "-z"
+          ],
+          "exitCode": 0,
+          "error": null,
+          "log": null
+        },
+        {
+          "argv": [
+            "-c",
+            "core.hooksPath=NUL",
+            "-c",
+            "core.fsmonitor=false",
+            "rev-parse",
+            "HEAD"
+          ],
+          "exitCode": 0,
+          "error": null,
+          "log": null
+        },
+        {
+          "argv": [
+            "-c",
+            "core.hooksPath=NUL",
+            "-c",
+            "core.fsmonitor=false",
+            "status",
+            "--porcelain",
+            "--untracked-files=all"
+          ],
+          "exitCode": 0,
+          "error": null,
+          "log": null
+        },
+        {
+          "argv": [
+            "which",
+            "rustc",
+            "--toolchain",
+            "1.95.0"
+          ],
+          "exitCode": 0,
+          "error": null,
+          "log": "2026-10-17T16-07-56.055Z-39632-baseline-1.log"
+        },
+        {
+          "argv": [
+            "which",
+            "cargo",
+            "--toolchain",
+            "1.95.0"
+          ],
+          "exitCode": 0,
+          "error": null,
+          "log": "2026-10-17T16-07-56.055Z-39632-baseline-2.log"
+        },
+        {
+          "argv": [
+            "--version"
+          ],
+          "exitCode": 0,
+          "error": null,
+          "log": "2026-10-17T16-07-56.055Z-39632-baseline-3.log"
+        },
+        {
+          "argv": [
+            "build",
+            "--manifest-path",
+            "packages/fixture-scan/Cargo.toml",
+            "--offline",
+            "--locked",
+            "--lib"
+          ],
+          "exitCode": 0,
+          "error": null,
+          "log": "2026-10-17T16-07-56.055Z-39632-baseline-4.log"
+        },
+        {
+          "argv": [
+            "build",
+            "--manifest-path",
+            "packages/scan-report/Cargo.toml",
+            "--offline",
+            "--locked",
+            "--lib"
+          ],
+          "exitCode": 0,
+          "error": null,
+          "log": "2026-10-17T16-07-56.055Z-39632-baseline-5.log"
+        },
+        {
+          "argv": [
+            "build",
+            "--manifest-path",
+            "packages/report-view/Cargo.toml",
+            "--offline",
+            "--locked",
+            "--lib"
+          ],
+          "exitCode": 0,
+          "error": null,
+          "log": "2026-10-17T16-07-56.055Z-39632-baseline-6.log"
+        },
+        {
+          "argv": [
+            "build",
+            "--manifest-path",
+            "packages/summary-export/Cargo.toml",
+            "--offline",
+            "--locked",
+            "--lib"
+          ],
+          "exitCode": 0,
+          "error": null,
+          "log": "2026-10-17T16-07-56.055Z-39632-baseline-7.log"
+        },
+        {
+          "argv": [
+            "--edition=2024",
+            "--crate-name",
+            "session_known_pipeline",
+            "F:\\new\\smaltalk\\water\\.worktrees\\j\\scripts\\acceptance\\scan-report-summary-pipeline.rs",
+            "-L",
+            "dependency=F:\\new\\smaltalk\\water\\.worktrees\\j\\.local\\j-target\\debug\\deps",
+            "--extern",
+            "water_scan=F:\\new\\smaltalk\\water\\.worktrees\\j\\.local\\j-target\\debug\\deps\\libwater_scan-68ef1203b54365ff.rlib",
+            "--extern",
+            "water_scan_report=F:\\new\\smaltalk\\water\\.worktrees\\j\\.local\\j-target\\debug\\deps\\libwater_scan_report-1e18e55450c023a8.rlib",
+            "--extern",
+            "water_report_view=F:\\new\\smaltalk\\water\\.worktrees\\j\\.local\\j-target\\debug\\deps\\libwater_report_view-bc978809457c1096.rlib",
+            "--extern",
+            "water_summary_export=F:\\new\\smaltalk\\water\\.worktrees\\j\\.local\\j-target\\debug\\deps\\libwater_summary_export-5d7cc4aa0e43fe1b.rlib",
+            "--extern",
+            "water_contracts=F:\\new\\smaltalk\\water\\.worktrees\\j\\.local\\j-target\\debug\\deps\\libwater_contracts-59eefedcfbf13a84.rlib",
+            "--extern",
+            "serde_json=F:\\new\\smaltalk\\water\\.worktrees\\j\\.local\\j-target\\debug\\deps\\libserde_json-c243626af514ec1f.rlib",
+            "-o",
+            "F:\\new\\smaltalk\\water\\.worktrees\\j\\.local\\j-tmp\\2026-10-17T16-07-56.055Z-39632-known-pipeline.exe"
+          ],
+          "exitCode": 0,
+          "error": null,
+          "log": "2026-10-17T16-07-56.055Z-39632-baseline-8.log"
+        },
+        {
+          "argv": [
+            "F:\\new\\smaltalk\\water\\.worktrees\\j\\.local\\checks\\WATER-W1-F\\active-fixtures.json"
+          ],
+          "exitCode": 0,
+          "error": null,
+          "log": "2026-10-17T16-07-56.055Z-39632-baseline-9.log"
+        },
+        {
+          "argv": [
+            "-c",
+            "core.hooksPath=NUL",
+            "-c",
+            "core.fsmonitor=false",
+            "branch",
+            "--show-current"
+          ],
+          "exitCode": 0,
+          "error": null,
+          "log": "2026-10-17T16-07-56.055Z-39632-baseline-10.log"
+        },
+        {
+          "argv": [
+            "-c",
+            "core.hooksPath=NUL",
+            "-c",
+            "core.fsmonitor=false",
+            "merge-base",
+            "--is-ancestor",
+            "bc409f4af8cb2d51b2f67341ad46637cfa5e66f3",
+            "HEAD"
+          ],
+          "exitCode": 0,
+          "error": null,
+          "log": "2026-10-17T16-07-56.055Z-39632-baseline-11.log"
+        },
+        {
+          "argv": [
+            "-c",
+            "core.hooksPath=NUL",
+            "-c",
+            "core.fsmonitor=false",
+            "diff",
+            "--no-renames",
+            "--name-only",
+            "-z",
+            "bc409f4af8cb2d51b2f67341ad46637cfa5e66f3",
+            "HEAD"
+          ],
+          "exitCode": 0,
+          "error": null,
+          "log": "2026-10-17T16-07-56.055Z-39632-baseline-12.log"
+        },
+        {
+          "argv": [
+            "-c",
+            "core.hooksPath=NUL",
+            "-c",
+            "core.fsmonitor=false",
+            "diff",
+            "--no-renames",
+            "--name-only",
+            "-z",
+            "HEAD"
+          ],
+          "exitCode": 0,
+          "error": null,
+          "log": "2026-10-17T16-07-56.055Z-39632-baseline-13.log"
+        },
+        {
+          "argv": [
+            "-c",
+            "core.hooksPath=NUL",
+            "-c",
+            "core.fsmonitor=false",
+            "ls-files",
+            "--others",
+            "--exclude-standard",
+            "-z"
+          ],
+          "exitCode": 0,
+          "error": null,
+          "log": "2026-10-17T16-07-56.055Z-39632-baseline-14.log"
+        },
+        {
+          "argv": [
+            "-c",
+            "core.hooksPath=NUL",
+            "-c",
+            "core.fsmonitor=false",
+            "rev-parse",
+            "HEAD"
+          ],
+          "exitCode": 0,
+          "error": null,
+          "log": "2026-10-17T16-07-56.055Z-39632-baseline-15.log"
+        },
+        {
+          "argv": [
+            "-c",
+            "core.hooksPath=NUL",
+            "-c",
+            "core.fsmonitor=false",
+            "status",
+            "--porcelain",
+            "--untracked-files=all"
+          ],
+          "exitCode": 0,
+          "error": null,
+          "log": "2026-10-17T16-07-56.055Z-39632-baseline-16.log"
+        }
+      ]
+    },
+    {
+      "name": "2026-10-17T16-35-15.271Z-33908-baseline-result.json",
+      "mode": "baseline",
+      "finalGate": false,
+      "status": "passed",
+      "head": "bc409f4af8cb2d51b2f67341ad46637cfa5e66f3",
+      "startedAt": "2026-10-17T16:35:16.528Z",
+      "endedAt": "2026-10-17T16:35:23.978Z",
+      "error": null,
+      "executedTests": 0,
+      "observedExpectedFailure": false,
+      "commands": [
+        {
+          "argv": [
+            "-c",
+            "core.hooksPath=NUL",
+            "-c",
+            "core.fsmonitor=false",
+            "rev-parse",
+            "--path-format=absolute",
+            "--git-common-dir"
+          ],
+          "exitCode": 0,
+          "error": null,
+          "log": null
+        },
+        {
+          "argv": [
+            "-c",
+            "core.hooksPath=NUL",
+            "-c",
+            "core.fsmonitor=false",
+            "branch",
+            "--show-current"
+          ],
+          "exitCode": 0,
+          "error": null,
+          "log": null
+        },
+        {
+          "argv": [
+            "-c",
+            "core.hooksPath=NUL",
+            "-c",
+            "core.fsmonitor=false",
+            "merge-base",
+            "--is-ancestor",
+            "bc409f4af8cb2d51b2f67341ad46637cfa5e66f3",
+            "HEAD"
+          ],
+          "exitCode": 0,
+          "error": null,
+          "log": null
+        },
+        {
+          "argv": [
+            "-c",
+            "core.hooksPath=NUL",
+            "-c",
+            "core.fsmonitor=false",
+            "diff",
+            "--no-renames",
+            "--name-only",
+            "-z",
+            "bc409f4af8cb2d51b2f67341ad46637cfa5e66f3",
+            "HEAD"
+          ],
+          "exitCode": 0,
+          "error": null,
+          "log": null
+        },
+        {
+          "argv": [
+            "-c",
+            "core.hooksPath=NUL",
+            "-c",
+            "core.fsmonitor=false",
+            "diff",
+            "--no-renames",
+            "--name-only",
+            "-z",
+            "HEAD"
+          ],
+          "exitCode": 0,
+          "error": null,
+          "log": null
+        },
+        {
+          "argv": [
+            "-c",
+            "core.hooksPath=NUL",
+            "-c",
+            "core.fsmonitor=false",
+            "ls-files",
+            "--others",
+            "--exclude-standard",
+            "-z"
+          ],
+          "exitCode": 0,
+          "error": null,
+          "log": null
+        },
+        {
+          "argv": [
+            "-c",
+            "core.hooksPath=NUL",
+            "-c",
+            "core.fsmonitor=false",
+            "rev-parse",
+            "HEAD"
+          ],
+          "exitCode": 0,
+          "error": null,
+          "log": null
+        },
+        {
+          "argv": [
+            "-c",
+            "core.hooksPath=NUL",
+            "-c",
+            "core.fsmonitor=false",
+            "status",
+            "--porcelain",
+            "--untracked-files=all"
+          ],
+          "exitCode": 0,
+          "error": null,
+          "log": null
+        },
+        {
+          "argv": [
+            "which",
+            "rustc",
+            "--toolchain",
+            "1.95.0"
+          ],
+          "exitCode": 0,
+          "error": null,
+          "log": "2026-10-17T16-35-15.271Z-33908-baseline-1.log"
+        },
+        {
+          "argv": [
+            "which",
+            "cargo",
+            "--toolchain",
+            "1.95.0"
+          ],
+          "exitCode": 0,
+          "error": null,
+          "log": "2026-10-17T16-35-15.271Z-33908-baseline-2.log"
+        },
+        {
+          "argv": [
+            "--version"
+          ],
+          "exitCode": 0,
+          "error": null,
+          "log": "2026-10-17T16-35-15.271Z-33908-baseline-3.log"
+        },
+        {
+          "argv": [
+            "build",
+            "--manifest-path",
+            "packages/fixture-scan/Cargo.toml",
+            "--offline",
+            "--locked",
+            "--lib"
+          ],
+          "exitCode": 0,
+          "error": null,
+          "log": "2026-10-17T16-35-15.271Z-33908-baseline-4.log"
+        },
+        {
+          "argv": [
+            "build",
+            "--manifest-path",
+            "packages/scan-report/Cargo.toml",
+            "--offline",
+            "--locked",
+            "--lib"
+          ],
+          "exitCode": 0,
+          "error": null,
+          "log": "2026-10-17T16-35-15.271Z-33908-baseline-5.log"
+        },
+        {
+          "argv": [
+            "build",
+            "--manifest-path",
+            "packages/report-view/Cargo.toml",
+            "--offline",
+            "--locked",
+            "--lib"
+          ],
+          "exitCode": 0,
+          "error": null,
+          "log": "2026-10-17T16-35-15.271Z-33908-baseline-6.log"
+        },
+        {
+          "argv": [
+            "build",
+            "--manifest-path",
+            "packages/summary-export/Cargo.toml",
+            "--offline",
+            "--locked",
+            "--lib"
+          ],
+          "exitCode": 0,
+          "error": null,
+          "log": "2026-10-17T16-35-15.271Z-33908-baseline-7.log"
+        },
+        {
+          "argv": [
+            "--edition=2024",
+            "--crate-name",
+            "session_known_pipeline",
+            "F:\\new\\smaltalk\\water\\.worktrees\\j\\scripts\\acceptance\\scan-report-summary-pipeline.rs",
+            "-L",
+            "dependency=F:\\new\\smaltalk\\water\\.worktrees\\j\\.local\\j-target\\debug\\deps",
+            "--extern",
+            "water_scan=F:\\new\\smaltalk\\water\\.worktrees\\j\\.local\\j-target\\debug\\deps\\libwater_scan-68ef1203b54365ff.rlib",
+            "--extern",
+            "water_scan_report=F:\\new\\smaltalk\\water\\.worktrees\\j\\.local\\j-target\\debug\\deps\\libwater_scan_report-1e18e55450c023a8.rlib",
+            "--extern",
+            "water_report_view=F:\\new\\smaltalk\\water\\.worktrees\\j\\.local\\j-target\\debug\\deps\\libwater_report_view-bc978809457c1096.rlib",
+            "--extern",
+            "water_summary_export=F:\\new\\smaltalk\\water\\.worktrees\\j\\.local\\j-target\\debug\\deps\\libwater_summary_export-5d7cc4aa0e43fe1b.rlib",
+            "--extern",
+            "water_contracts=F:\\new\\smaltalk\\water\\.worktrees\\j\\.local\\j-target\\debug\\deps\\libwater_contracts-59eefedcfbf13a84.rlib",
+            "--extern",
+            "serde_json=F:\\new\\smaltalk\\water\\.worktrees\\j\\.local\\j-target\\debug\\deps\\libserde_json-c243626af514ec1f.rlib",
+            "-o",
+            "F:\\new\\smaltalk\\water\\.worktrees\\j\\.local\\j-tmp\\2026-10-17T16-35-15.271Z-33908-known-pipeline.exe"
+          ],
+          "exitCode": 0,
+          "error": null,
+          "log": "2026-10-17T16-35-15.271Z-33908-baseline-8.log"
+        },
+        {
+          "argv": [
+            "F:\\new\\smaltalk\\water\\.worktrees\\j\\.local\\checks\\WATER-W1-F\\active-fixtures.json"
+          ],
+          "exitCode": 0,
+          "error": null,
+          "log": "2026-10-17T16-35-15.271Z-33908-baseline-9.log"
+        },
+        {
+          "argv": [
+            "-c",
+            "core.hooksPath=NUL",
+            "-c",
+            "core.fsmonitor=false",
+            "branch",
+            "--show-current"
+          ],
+          "exitCode": 0,
+          "error": null,
+          "log": "2026-10-17T16-35-15.271Z-33908-baseline-10.log"
+        },
+        {
+          "argv": [
+            "-c",
+            "core.hooksPath=NUL",
+            "-c",
+            "core.fsmonitor=false",
+            "merge-base",
+            "--is-ancestor",
+            "bc409f4af8cb2d51b2f67341ad46637cfa5e66f3",
+            "HEAD"
+          ],
+          "exitCode": 0,
+          "error": null,
+          "log": "2026-10-17T16-35-15.271Z-33908-baseline-11.log"
+        },
+        {
+          "argv": [
+            "-c",
+            "core.hooksPath=NUL",
+            "-c",
+            "core.fsmonitor=false",
+            "diff",
+            "--no-renames",
+            "--name-only",
+            "-z",
+            "bc409f4af8cb2d51b2f67341ad46637cfa5e66f3",
+            "HEAD"
+          ],
+          "exitCode": 0,
+          "error": null,
+          "log": "2026-10-17T16-35-15.271Z-33908-baseline-12.log"
+        },
+        {
+          "argv": [
+            "-c",
+            "core.hooksPath=NUL",
+            "-c",
+            "core.fsmonitor=false",
+            "diff",
+            "--no-renames",
+            "--name-only",
+            "-z",
+            "HEAD"
+          ],
+          "exitCode": 0,
+          "error": null,
+          "log": "2026-10-17T16-35-15.271Z-33908-baseline-13.log"
+        },
+        {
+          "argv": [
+            "-c",
+            "core.hooksPath=NUL",
+            "-c",
+            "core.fsmonitor=false",
+            "ls-files",
+            "--others",
+            "--exclude-standard",
+            "-z"
+          ],
+          "exitCode": 0,
+          "error": null,
+          "log": "2026-10-17T16-35-15.271Z-33908-baseline-14.log"
+        },
+        {
+          "argv": [
+            "-c",
+            "core.hooksPath=NUL",
+            "-c",
+            "core.fsmonitor=false",
+            "rev-parse",
+            "HEAD"
+          ],
+          "exitCode": 0,
+          "error": null,
+          "log": "2026-10-17T16-35-15.271Z-33908-baseline-15.log"
+        },
+        {
+          "argv": [
+            "-c",
+            "core.hooksPath=NUL",
+            "-c",
+            "core.fsmonitor=false",
+            "status",
+            "--porcelain",
+            "--untracked-files=all"
+          ],
+          "exitCode": 0,
+          "error": null,
+          "log": "2026-10-17T16-35-15.271Z-33908-baseline-16.log"
+        }
+      ]
+    },
+    {
+      "name": "2026-10-17T16-40-20.171Z-43988-lock-result.json",
+      "mode": "lock",
+      "finalGate": false,
+      "status": "passed",
+      "head": "bc409f4af8cb2d51b2f67341ad46637cfa5e66f3",
+      "startedAt": "2026-10-17T16:40:22.488Z",
+      "endedAt": "2026-10-17T16:40:28.734Z",
+      "error": null,
+      "executedTests": 0,
+      "observedExpectedFailure": false,
+      "commands": [
+        {
+          "argv": [
+            "-c",
+            "core.hooksPath=NUL",
+            "-c",
+            "core.fsmonitor=false",
+            "rev-parse",
+            "--path-format=absolute",
+            "--git-common-dir"
+          ],
+          "exitCode": 0,
+          "error": null,
+          "log": null
+        },
+        {
+          "argv": [
+            "-c",
+            "core.hooksPath=NUL",
+            "-c",
+            "core.fsmonitor=false",
+            "branch",
+            "--show-current"
+          ],
+          "exitCode": 0,
+          "error": null,
+          "log": null
+        },
+        {
+          "argv": [
+            "-c",
+            "core.hooksPath=NUL",
+            "-c",
+            "core.fsmonitor=false",
+            "merge-base",
+            "--is-ancestor",
+            "bc409f4af8cb2d51b2f67341ad46637cfa5e66f3",
+            "HEAD"
+          ],
+          "exitCode": 0,
+          "error": null,
+          "log": null
+        },
+        {
+          "argv": [
+            "-c",
+            "core.hooksPath=NUL",
+            "-c",
+            "core.fsmonitor=false",
+            "diff",
+            "--no-renames",
+            "--name-only",
+            "-z",
+            "bc409f4af8cb2d51b2f67341ad46637cfa5e66f3",
+            "HEAD"
+          ],
+          "exitCode": 0,
+          "error": null,
+          "log": null
+        },
+        {
+          "argv": [
+            "-c",
+            "core.hooksPath=NUL",
+            "-c",
+            "core.fsmonitor=false",
+            "diff",
+            "--no-renames",
+            "--name-only",
+            "-z",
+            "HEAD"
+          ],
+          "exitCode": 0,
+          "error": null,
+          "log": null
+        },
+        {
+          "argv": [
+            "-c",
+            "core.hooksPath=NUL",
+            "-c",
+            "core.fsmonitor=false",
+            "ls-files",
+            "--others",
+            "--exclude-standard",
+            "-z"
+          ],
+          "exitCode": 0,
+          "error": null,
+          "log": null
+        },
+        {
+          "argv": [
+            "-c",
+            "core.hooksPath=NUL",
+            "-c",
+            "core.fsmonitor=false",
+            "rev-parse",
+            "HEAD"
+          ],
+          "exitCode": 0,
+          "error": null,
+          "log": null
+        },
+        {
+          "argv": [
+            "-c",
+            "core.hooksPath=NUL",
+            "-c",
+            "core.fsmonitor=false",
+            "status",
+            "--porcelain",
+            "--untracked-files=all"
+          ],
+          "exitCode": 0,
+          "error": null,
+          "log": null
+        },
+        {
+          "argv": [
+            "which",
+            "rustc",
+            "--toolchain",
+            "1.95.0"
+          ],
+          "exitCode": 0,
+          "error": null,
+          "log": "2026-10-17T16-40-20.171Z-43988-lock-1.log"
+        },
+        {
+          "argv": [
+            "which",
+            "cargo",
+            "--toolchain",
+            "1.95.0"
+          ],
+          "exitCode": 0,
+          "error": null,
+          "log": "2026-10-17T16-40-20.171Z-43988-lock-2.log"
+        },
+        {
+          "argv": [
+            "--version"
+          ],
+          "exitCode": 0,
+          "error": null,
+          "log": "2026-10-17T16-40-20.171Z-43988-lock-3.log"
+        },
+        {
+          "argv": [
+            "generate-lockfile",
+            "--offline",
+            "--manifest-path",
+            "F:\\new\\smaltalk\\water\\.worktrees\\j\\packages\\lab-session\\Cargo.toml"
+          ],
+          "exitCode": 0,
+          "error": null,
+          "log": "2026-10-17T16-40-20.171Z-43988-lock-4.log"
+        },
+        {
+          "argv": [
+            "metadata",
+            "--offline",
+            "--locked",
+            "--format-version",
+            "1",
+            "--manifest-path",
+            "F:\\new\\smaltalk\\water\\.worktrees\\j\\packages\\lab-session\\Cargo.toml"
+          ],
+          "exitCode": 0,
+          "error": null,
+          "log": "2026-10-17T16-40-20.171Z-43988-lock-5.log"
+        },
+        {
+          "argv": [
+            "-c",
+            "core.hooksPath=NUL",
+            "-c",
+            "core.fsmonitor=false",
+            "branch",
+            "--show-current"
+          ],
+          "exitCode": 0,
+          "error": null,
+          "log": "2026-10-17T16-40-20.171Z-43988-lock-6.log"
+        },
+        {
+          "argv": [
+            "-c",
+            "core.hooksPath=NUL",
+            "-c",
+            "core.fsmonitor=false",
+            "merge-base",
+            "--is-ancestor",
+            "bc409f4af8cb2d51b2f67341ad46637cfa5e66f3",
+            "HEAD"
+          ],
+          "exitCode": 0,
+          "error": null,
+          "log": "2026-10-17T16-40-20.171Z-43988-lock-7.log"
+        },
+        {
+          "argv": [
+            "-c",
+            "core.hooksPath=NUL",
+            "-c",
+            "core.fsmonitor=false",
+            "diff",
+            "--no-renames",
+            "--name-only",
+            "-z",
+            "bc409f4af8cb2d51b2f67341ad46637cfa5e66f3",
+            "HEAD"
+          ],
+          "exitCode": 0,
+          "error": null,
+          "log": "2026-10-17T16-40-20.171Z-43988-lock-8.log"
+        },
+        {
+          "argv": [
+            "-c",
+            "core.hooksPath=NUL",
+            "-c",
+            "core.fsmonitor=false",
+            "diff",
+            "--no-renames",
+            "--name-only",
+            "-z",
+            "HEAD"
+          ],
+          "exitCode": 0,
+          "error": null,
+          "log": "2026-10-17T16-40-20.171Z-43988-lock-9.log"
+        },
+        {
+          "argv": [
+            "-c",
+            "core.hooksPath=NUL",
+            "-c",
+            "core.fsmonitor=false",
+            "ls-files",
+            "--others",
+            "--exclude-standard",
+            "-z"
+          ],
+          "exitCode": 0,
+          "error": null,
+          "log": "2026-10-17T16-40-20.171Z-43988-lock-10.log"
+        },
+        {
+          "argv": [
+            "-c",
+            "core.hooksPath=NUL",
+            "-c",
+            "core.fsmonitor=false",
+            "rev-parse",
+            "HEAD"
+          ],
+          "exitCode": 0,
+          "error": null,
+          "log": "2026-10-17T16-40-20.171Z-43988-lock-11.log"
+        },
+        {
+          "argv": [
+            "-c",
+            "core.hooksPath=NUL",
+            "-c",
+            "core.fsmonitor=false",
+            "status",
+            "--porcelain",
+            "--untracked-files=all"
+          ],
+          "exitCode": 0,
+          "error": null,
+          "log": "2026-10-17T16-40-20.171Z-43988-lock-12.log"
+        }
+      ]
+    },
+    {
+      "name": "2026-10-17T16-40-44.106Z-20696-red-behavior-result.json",
+      "mode": "red-behavior",
+      "finalGate": false,
+      "status": "passed",
+      "head": "bc409f4af8cb2d51b2f67341ad46637cfa5e66f3",
+      "startedAt": "2026-10-17T16:40:45.399Z",
+      "endedAt": "2026-10-17T16:41:01.404Z",
+      "error": null,
+      "executedTests": 5,
+      "observedExpectedFailure": true,
+      "commands": [
+        {
+          "argv": [
+            "-c",
+            "core.hooksPath=NUL",
+            "-c",
+            "core.fsmonitor=false",
+            "rev-parse",
+            "--path-format=absolute",
+            "--git-common-dir"
+          ],
+          "exitCode": 0,
+          "error": null,
+          "log": null
+        },
+        {
+          "argv": [
+            "-c",
+            "core.hooksPath=NUL",
+            "-c",
+            "core.fsmonitor=false",
+            "branch",
+            "--show-current"
+          ],
+          "exitCode": 0,
+          "error": null,
+          "log": null
+        },
+        {
+          "argv": [
+            "-c",
+            "core.hooksPath=NUL",
+            "-c",
+            "core.fsmonitor=false",
+            "merge-base",
+            "--is-ancestor",
+            "bc409f4af8cb2d51b2f67341ad46637cfa5e66f3",
+            "HEAD"
+          ],
+          "exitCode": 0,
+          "error": null,
+          "log": null
+        },
+        {
+          "argv": [
+            "-c",
+            "core.hooksPath=NUL",
+            "-c",
+            "core.fsmonitor=false",
+            "diff",
+            "--no-renames",
+            "--name-only",
+            "-z",
+            "bc409f4af8cb2d51b2f67341ad46637cfa5e66f3",
+            "HEAD"
+          ],
+          "exitCode": 0,
+          "error": null,
+          "log": null
+        },
+        {
+          "argv": [
+            "-c",
+            "core.hooksPath=NUL",
+            "-c",
+            "core.fsmonitor=false",
+            "diff",
+            "--no-renames",
+            "--name-only",
+            "-z",
+            "HEAD"
+          ],
+          "exitCode": 0,
+          "error": null,
+          "log": null
+        },
+        {
+          "argv": [
+            "-c",
+            "core.hooksPath=NUL",
+            "-c",
+            "core.fsmonitor=false",
+            "ls-files",
+            "--others",
+            "--exclude-standard",
+            "-z"
+          ],
+          "exitCode": 0,
+          "error": null,
+          "log": null
+        },
+        {
+          "argv": [
+            "-c",
+            "core.hooksPath=NUL",
+            "-c",
+            "core.fsmonitor=false",
+            "rev-parse",
+            "HEAD"
+          ],
+          "exitCode": 0,
+          "error": null,
+          "log": null
+        },
+        {
+          "argv": [
+            "-c",
+            "core.hooksPath=NUL",
+            "-c",
+            "core.fsmonitor=false",
+            "status",
+            "--porcelain",
+            "--untracked-files=all"
+          ],
+          "exitCode": 0,
+          "error": null,
+          "log": null
+        },
+        {
+          "argv": [
+            "which",
+            "rustc",
+            "--toolchain",
+            "1.95.0"
+          ],
+          "exitCode": 0,
+          "error": null,
+          "log": "2026-10-17T16-40-44.106Z-20696-red-behavior-1.log"
+        },
+        {
+          "argv": [
+            "which",
+            "cargo",
+            "--toolchain",
+            "1.95.0"
+          ],
+          "exitCode": 0,
+          "error": null,
+          "log": "2026-10-17T16-40-44.106Z-20696-red-behavior-2.log"
+        },
+        {
+          "argv": [
+            "--version"
+          ],
+          "exitCode": 0,
+          "error": null,
+          "log": "2026-10-17T16-40-44.106Z-20696-red-behavior-3.log"
+        },
+        {
+          "argv": [
+            "metadata",
+            "--offline",
+            "--locked",
+            "--format-version",
+            "1",
+            "--manifest-path",
+            "F:\\new\\smaltalk\\water\\.worktrees\\j\\packages\\lab-session\\Cargo.toml"
+          ],
+          "exitCode": 0,
+          "error": null,
+          "log": "2026-10-17T16-40-44.106Z-20696-red-behavior-4.log"
+        },
+        {
+          "argv": [
+            "test",
+            "--offline",
+            "--locked",
+            "--manifest-path",
+            "F:\\new\\smaltalk\\water\\.worktrees\\j\\packages\\lab-session\\Cargo.toml",
+            "-p",
+            "water-lab-session",
+            "--test",
+            "session_v1",
+            "--",
+            "--test-threads=1",
+            "--format",
+            "pretty"
+          ],
+          "exitCode": 101,
+          "error": null,
+          "log": "2026-10-17T16-40-44.106Z-20696-red-behavior-expected-red.log"
+        },
+        {
+          "argv": [
+            "-c",
+            "core.hooksPath=NUL",
+            "-c",
+            "core.fsmonitor=false",
+            "branch",
+            "--show-current"
+          ],
+          "exitCode": 0,
+          "error": null,
+          "log": "2026-10-17T16-40-44.106Z-20696-red-behavior-5.log"
+        },
+        {
+          "argv": [
+            "-c",
+            "core.hooksPath=NUL",
+            "-c",
+            "core.fsmonitor=false",
+            "merge-base",
+            "--is-ancestor",
+            "bc409f4af8cb2d51b2f67341ad46637cfa5e66f3",
+            "HEAD"
+          ],
+          "exitCode": 0,
+          "error": null,
+          "log": "2026-10-17T16-40-44.106Z-20696-red-behavior-6.log"
+        },
+        {
+          "argv": [
+            "-c",
+            "core.hooksPath=NUL",
+            "-c",
+            "core.fsmonitor=false",
+            "diff",
+            "--no-renames",
+            "--name-only",
+            "-z",
+            "bc409f4af8cb2d51b2f67341ad46637cfa5e66f3",
+            "HEAD"
+          ],
+          "exitCode": 0,
+          "error": null,
+          "log": "2026-10-17T16-40-44.106Z-20696-red-behavior-7.log"
+        },
+        {
+          "argv": [
+            "-c",
+            "core.hooksPath=NUL",
+            "-c",
+            "core.fsmonitor=false",
+            "diff",
+            "--no-renames",
+            "--name-only",
+            "-z",
+            "HEAD"
+          ],
+          "exitCode": 0,
+          "error": null,
+          "log": "2026-10-17T16-40-44.106Z-20696-red-behavior-8.log"
+        },
+        {
+          "argv": [
+            "-c",
+            "core.hooksPath=NUL",
+            "-c",
+            "core.fsmonitor=false",
+            "ls-files",
+            "--others",
+            "--exclude-standard",
+            "-z"
+          ],
+          "exitCode": 0,
+          "error": null,
+          "log": "2026-10-17T16-40-44.106Z-20696-red-behavior-9.log"
+        },
+        {
+          "argv": [
+            "-c",
+            "core.hooksPath=NUL",
+            "-c",
+            "core.fsmonitor=false",
+            "rev-parse",
+            "HEAD"
+          ],
+          "exitCode": 0,
+          "error": null,
+          "log": "2026-10-17T16-40-44.106Z-20696-red-behavior-10.log"
+        },
+        {
+          "argv": [
+            "-c",
+            "core.hooksPath=NUL",
+            "-c",
+            "core.fsmonitor=false",
+            "status",
+            "--porcelain",
+            "--untracked-files=all"
+          ],
+          "exitCode": 0,
+          "error": null,
+          "log": "2026-10-17T16-40-44.106Z-20696-red-behavior-11.log"
+        }
+      ]
+    },
+    {
+      "name": "2026-10-17T16-41-49.191Z-23524-fmt-result.json",
+      "mode": "fmt",
+      "finalGate": false,
+      "status": "passed",
+      "head": "bc409f4af8cb2d51b2f67341ad46637cfa5e66f3",
+      "startedAt": "2026-10-17T16:41:51.977Z",
+      "endedAt": "2026-10-17T16:41:55.686Z",
+      "error": null,
+      "executedTests": 0,
+      "observedExpectedFailure": false,
+      "commands": [
+        {
+          "argv": [
+            "-c",
+            "core.hooksPath=NUL",
+            "-c",
+            "core.fsmonitor=false",
+            "rev-parse",
+            "--path-format=absolute",
+            "--git-common-dir"
+          ],
+          "exitCode": 0,
+          "error": null,
+          "log": null
+        },
+        {
+          "argv": [
+            "-c",
+            "core.hooksPath=NUL",
+            "-c",
+            "core.fsmonitor=false",
+            "branch",
+            "--show-current"
+          ],
+          "exitCode": 0,
+          "error": null,
+          "log": null
+        },
+        {
+          "argv": [
+            "-c",
+            "core.hooksPath=NUL",
+            "-c",
+            "core.fsmonitor=false",
+            "merge-base",
+            "--is-ancestor",
+            "bc409f4af8cb2d51b2f67341ad46637cfa5e66f3",
+            "HEAD"
+          ],
+          "exitCode": 0,
+          "error": null,
+          "log": null
+        },
+        {
+          "argv": [
+            "-c",
+            "core.hooksPath=NUL",
+            "-c",
+            "core.fsmonitor=false",
+            "diff",
+            "--no-renames",
+            "--name-only",
+            "-z",
+            "bc409f4af8cb2d51b2f67341ad46637cfa5e66f3",
+            "HEAD"
+          ],
+          "exitCode": 0,
+          "error": null,
+          "log": null
+        },
+        {
+          "argv": [
+            "-c",
+            "core.hooksPath=NUL",
+            "-c",
+            "core.fsmonitor=false",
+            "diff",
+            "--no-renames",
+            "--name-only",
+            "-z",
+            "HEAD"
+          ],
+          "exitCode": 0,
+          "error": null,
+          "log": null
+        },
+        {
+          "argv": [
+            "-c",
+            "core.hooksPath=NUL",
+            "-c",
+            "core.fsmonitor=false",
+            "ls-files",
+            "--others",
+            "--exclude-standard",
+            "-z"
+          ],
+          "exitCode": 0,
+          "error": null,
+          "log": null
+        },
+        {
+          "argv": [
+            "-c",
+            "core.hooksPath=NUL",
+            "-c",
+            "core.fsmonitor=false",
+            "rev-parse",
+            "HEAD"
+          ],
+          "exitCode": 0,
+          "error": null,
+          "log": null
+        },
+        {
+          "argv": [
+            "-c",
+            "core.hooksPath=NUL",
+            "-c",
+            "core.fsmonitor=false",
+            "status",
+            "--porcelain",
+            "--untracked-files=all"
+          ],
+          "exitCode": 0,
+          "error": null,
+          "log": null
+        },
+        {
+          "argv": [
+            "which",
+            "rustc",
+            "--toolchain",
+            "1.95.0"
+          ],
+          "exitCode": 0,
+          "error": null,
+          "log": "2026-10-17T16-41-49.191Z-23524-fmt-1.log"
+        },
+        {
+          "argv": [
+            "which",
+            "cargo",
+            "--toolchain",
+            "1.95.0"
+          ],
+          "exitCode": 0,
+          "error": null,
+          "log": "2026-10-17T16-41-49.191Z-23524-fmt-2.log"
+        },
+        {
+          "argv": [
+            "--version"
+          ],
+          "exitCode": 0,
+          "error": null,
+          "log": "2026-10-17T16-41-49.191Z-23524-fmt-3.log"
+        },
+        {
+          "argv": [
+            "metadata",
+            "--offline",
+            "--locked",
+            "--format-version",
+            "1",
+            "--manifest-path",
+            "F:\\new\\smaltalk\\water\\.worktrees\\j\\packages\\lab-session\\Cargo.toml"
+          ],
+          "exitCode": 0,
+          "error": null,
+          "log": "2026-10-17T16-41-49.191Z-23524-fmt-4.log"
+        },
+        {
+          "argv": [
+            "fmt",
+            "--manifest-path",
+            "F:\\new\\smaltalk\\water\\.worktrees\\j\\packages\\lab-session\\Cargo.toml",
+            "--",
+            "--check"
+          ],
+          "exitCode": 0,
+          "error": null,
+          "log": "2026-10-17T16-41-49.191Z-23524-fmt-5.log"
+        },
+        {
+          "argv": [
+            "-c",
+            "core.hooksPath=NUL",
+            "-c",
+            "core.fsmonitor=false",
+            "branch",
+            "--show-current"
+          ],
+          "exitCode": 0,
+          "error": null,
+          "log": "2026-10-17T16-41-49.191Z-23524-fmt-6.log"
+        },
+        {
+          "argv": [
+            "-c",
+            "core.hooksPath=NUL",
+            "-c",
+            "core.fsmonitor=false",
+            "merge-base",
+            "--is-ancestor",
+            "bc409f4af8cb2d51b2f67341ad46637cfa5e66f3",
+            "HEAD"
+          ],
+          "exitCode": 0,
+          "error": null,
+          "log": "2026-10-17T16-41-49.191Z-23524-fmt-7.log"
+        },
+        {
+          "argv": [
+            "-c",
+            "core.hooksPath=NUL",
+            "-c",
+            "core.fsmonitor=false",
+            "diff",
+            "--no-renames",
+            "--name-only",
+            "-z",
+            "bc409f4af8cb2d51b2f67341ad46637cfa5e66f3",
+            "HEAD"
+          ],
+          "exitCode": 0,
+          "error": null,
+          "log": "2026-10-17T16-41-49.191Z-23524-fmt-8.log"
+        },
+        {
+          "argv": [
+            "-c",
+            "core.hooksPath=NUL",
+            "-c",
+            "core.fsmonitor=false",
+            "diff",
+            "--no-renames",
+            "--name-only",
+            "-z",
+            "HEAD"
+          ],
+          "exitCode": 0,
+          "error": null,
+          "log": "2026-10-17T16-41-49.191Z-23524-fmt-9.log"
+        },
+        {
+          "argv": [
+            "-c",
+            "core.hooksPath=NUL",
+            "-c",
+            "core.fsmonitor=false",
+            "ls-files",
+            "--others",
+            "--exclude-standard",
+            "-z"
+          ],
+          "exitCode": 0,
+          "error": null,
+          "log": "2026-10-17T16-41-49.191Z-23524-fmt-10.log"
+        },
+        {
+          "argv": [
+            "-c",
+            "core.hooksPath=NUL",
+            "-c",
+            "core.fsmonitor=false",
+            "rev-parse",
+            "HEAD"
+          ],
+          "exitCode": 0,
+          "error": null,
+          "log": "2026-10-17T16-41-49.191Z-23524-fmt-11.log"
+        },
+        {
+          "argv": [
+            "-c",
+            "core.hooksPath=NUL",
+            "-c",
+            "core.fsmonitor=false",
+            "status",
+            "--porcelain",
+            "--untracked-files=all"
+          ],
+          "exitCode": 0,
+          "error": null,
+          "log": "2026-10-17T16-41-49.191Z-23524-fmt-12.log"
+        }
+      ]
+    },
+    {
+      "name": "2026-10-17T16-42-00.977Z-8928-clippy-result.json",
+      "mode": "clippy",
+      "finalGate": false,
+      "status": "failed",
+      "head": "bc409f4af8cb2d51b2f67341ad46637cfa5e66f3",
+      "startedAt": "2026-10-17T16:42:02.403Z",
+      "endedAt": "2026-10-17T16:42:14.551Z",
+      "error": "Focused command failed: clippy --offline --locked --manifest-path F:\\new\\smaltalk\\water\\.worktrees\\j\\packages\\lab-session\\Cargo.toml -p water-lab-session --all-targets -- -D warnings",
+      "executedTests": 0,
+      "observedExpectedFailure": false,
+      "commands": [
+        {
+          "argv": [
+            "-c",
+            "core.hooksPath=NUL",
+            "-c",
+            "core.fsmonitor=false",
+            "rev-parse",
+            "--path-format=absolute",
+            "--git-common-dir"
+          ],
+          "exitCode": 0,
+          "error": null,
+          "log": null
+        },
+        {
+          "argv": [
+            "-c",
+            "core.hooksPath=NUL",
+            "-c",
+            "core.fsmonitor=false",
+            "branch",
+            "--show-current"
+          ],
+          "exitCode": 0,
+          "error": null,
+          "log": null
+        },
+        {
+          "argv": [
+            "-c",
+            "core.hooksPath=NUL",
+            "-c",
+            "core.fsmonitor=false",
+            "merge-base",
+            "--is-ancestor",
+            "bc409f4af8cb2d51b2f67341ad46637cfa5e66f3",
+            "HEAD"
+          ],
+          "exitCode": 0,
+          "error": null,
+          "log": null
+        },
+        {
+          "argv": [
+            "-c",
+            "core.hooksPath=NUL",
+            "-c",
+            "core.fsmonitor=false",
+            "diff",
+            "--no-renames",
+            "--name-only",
+            "-z",
+            "bc409f4af8cb2d51b2f67341ad46637cfa5e66f3",
+            "HEAD"
+          ],
+          "exitCode": 0,
+          "error": null,
+          "log": null
+        },
+        {
+          "argv": [
+            "-c",
+            "core.hooksPath=NUL",
+            "-c",
+            "core.fsmonitor=false",
+            "diff",
+            "--no-renames",
+            "--name-only",
+            "-z",
+            "HEAD"
+          ],
+          "exitCode": 0,
+          "error": null,
+          "log": null
+        },
+        {
+          "argv": [
+            "-c",
+            "core.hooksPath=NUL",
+            "-c",
+            "core.fsmonitor=false",
+            "ls-files",
+            "--others",
+            "--exclude-standard",
+            "-z"
+          ],
+          "exitCode": 0,
+          "error": null,
+          "log": null
+        },
+        {
+          "argv": [
+            "-c",
+            "core.hooksPath=NUL",
+            "-c",
+            "core.fsmonitor=false",
+            "rev-parse",
+            "HEAD"
+          ],
+          "exitCode": 0,
+          "error": null,
+          "log": null
+        },
+        {
+          "argv": [
+            "-c",
+            "core.hooksPath=NUL",
+            "-c",
+            "core.fsmonitor=false",
+            "status",
+            "--porcelain",
+            "--untracked-files=all"
+          ],
+          "exitCode": 0,
+          "error": null,
+          "log": null
+        },
+        {
+          "argv": [
+            "which",
+            "rustc",
+            "--toolchain",
+            "1.95.0"
+          ],
+          "exitCode": 0,
+          "error": null,
+          "log": "2026-10-17T16-42-00.977Z-8928-clippy-1.log"
+        },
+        {
+          "argv": [
+            "which",
+            "cargo",
+            "--toolchain",
+            "1.95.0"
+          ],
+          "exitCode": 0,
+          "error": null,
+          "log": "2026-10-17T16-42-00.977Z-8928-clippy-2.log"
+        },
+        {
+          "argv": [
+            "--version"
+          ],
+          "exitCode": 0,
+          "error": null,
+          "log": "2026-10-17T16-42-00.977Z-8928-clippy-3.log"
+        },
+        {
+          "argv": [
+            "metadata",
+            "--offline",
+            "--locked",
+            "--format-version",
+            "1",
+            "--manifest-path",
+            "F:\\new\\smaltalk\\water\\.worktrees\\j\\packages\\lab-session\\Cargo.toml"
+          ],
+          "exitCode": 0,
+          "error": null,
+          "log": "2026-10-17T16-42-00.977Z-8928-clippy-4.log"
+        },
+        {
+          "argv": [
+            "clippy",
+            "--offline",
+            "--locked",
+            "--manifest-path",
+            "F:\\new\\smaltalk\\water\\.worktrees\\j\\packages\\lab-session\\Cargo.toml",
+            "-p",
+            "water-lab-session",
+            "--all-targets",
+            "--",
+            "-D",
+            "warnings"
+          ],
+          "exitCode": 101,
+          "error": null,
+          "log": "2026-10-17T16-42-00.977Z-8928-clippy-5.log"
+        },
+        {
+          "argv": [
+            "-c",
+            "core.hooksPath=NUL",
+            "-c",
+            "core.fsmonitor=false",
+            "branch",
+            "--show-current"
+          ],
+          "exitCode": 0,
+          "error": null,
+          "log": "2026-10-17T16-42-00.977Z-8928-clippy-6.log"
+        },
+        {
+          "argv": [
+            "-c",
+            "core.hooksPath=NUL",
+            "-c",
+            "core.fsmonitor=false",
+            "merge-base",
+            "--is-ancestor",
+            "bc409f4af8cb2d51b2f67341ad46637cfa5e66f3",
+            "HEAD"
+          ],
+          "exitCode": 0,
+          "error": null,
+          "log": "2026-10-17T16-42-00.977Z-8928-clippy-7.log"
+        },
+        {
+          "argv": [
+            "-c",
+            "core.hooksPath=NUL",
+            "-c",
+            "core.fsmonitor=false",
+            "diff",
+            "--no-renames",
+            "--name-only",
+            "-z",
+            "bc409f4af8cb2d51b2f67341ad46637cfa5e66f3",
+            "HEAD"
+          ],
+          "exitCode": 0,
+          "error": null,
+          "log": "2026-10-17T16-42-00.977Z-8928-clippy-8.log"
+        },
+        {
+          "argv": [
+            "-c",
+            "core.hooksPath=NUL",
+            "-c",
+            "core.fsmonitor=false",
+            "diff",
+            "--no-renames",
+            "--name-only",
+            "-z",
+            "HEAD"
+          ],
+          "exitCode": 0,
+          "error": null,
+          "log": "2026-10-17T16-42-00.977Z-8928-clippy-9.log"
+        },
+        {
+          "argv": [
+            "-c",
+            "core.hooksPath=NUL",
+            "-c",
+            "core.fsmonitor=false",
+            "ls-files",
+            "--others",
+            "--exclude-standard",
+            "-z"
+          ],
+          "exitCode": 0,
+          "error": null,
+          "log": "2026-10-17T16-42-00.977Z-8928-clippy-10.log"
+        },
+        {
+          "argv": [
+            "-c",
+            "core.hooksPath=NUL",
+            "-c",
+            "core.fsmonitor=false",
+            "rev-parse",
+            "HEAD"
+          ],
+          "exitCode": 0,
+          "error": null,
+          "log": "2026-10-17T16-42-00.977Z-8928-clippy-11.log"
+        },
+        {
+          "argv": [
+            "-c",
+            "core.hooksPath=NUL",
+            "-c",
+            "core.fsmonitor=false",
+            "status",
+            "--porcelain",
+            "--untracked-files=all"
+          ],
+          "exitCode": 0,
+          "error": null,
+          "log": "2026-10-17T16-42-00.977Z-8928-clippy-12.log"
+        }
+      ]
+    },
+    {
+      "name": "2026-10-17T16-43-04.610Z-25072-red-behavior-result.json",
+      "mode": "red-behavior",
+      "finalGate": false,
+      "status": "passed",
+      "head": "bc409f4af8cb2d51b2f67341ad46637cfa5e66f3",
+      "startedAt": "2026-10-17T16:43:05.955Z",
+      "endedAt": "2026-10-17T16:43:15.556Z",
+      "error": null,
+      "executedTests": 5,
+      "observedExpectedFailure": true,
+      "commands": [
+        {
+          "argv": [
+            "-c",
+            "core.hooksPath=NUL",
+            "-c",
+            "core.fsmonitor=false",
+            "rev-parse",
+            "--path-format=absolute",
+            "--git-common-dir"
+          ],
+          "exitCode": 0,
+          "error": null,
+          "log": null
+        },
+        {
+          "argv": [
+            "-c",
+            "core.hooksPath=NUL",
+            "-c",
+            "core.fsmonitor=false",
+            "branch",
+            "--show-current"
+          ],
+          "exitCode": 0,
+          "error": null,
+          "log": null
+        },
+        {
+          "argv": [
+            "-c",
+            "core.hooksPath=NUL",
+            "-c",
+            "core.fsmonitor=false",
+            "merge-base",
+            "--is-ancestor",
+            "bc409f4af8cb2d51b2f67341ad46637cfa5e66f3",
+            "HEAD"
+          ],
+          "exitCode": 0,
+          "error": null,
+          "log": null
+        },
+        {
+          "argv": [
+            "-c",
+            "core.hooksPath=NUL",
+            "-c",
+            "core.fsmonitor=false",
+            "diff",
+            "--no-renames",
+            "--name-only",
+            "-z",
+            "bc409f4af8cb2d51b2f67341ad46637cfa5e66f3",
+            "HEAD"
+          ],
+          "exitCode": 0,
+          "error": null,
+          "log": null
+        },
+        {
+          "argv": [
+            "-c",
+            "core.hooksPath=NUL",
+            "-c",
+            "core.fsmonitor=false",
+            "diff",
+            "--no-renames",
+            "--name-only",
+            "-z",
+            "HEAD"
+          ],
+          "exitCode": 0,
+          "error": null,
+          "log": null
+        },
+        {
+          "argv": [
+            "-c",
+            "core.hooksPath=NUL",
+            "-c",
+            "core.fsmonitor=false",
+            "ls-files",
+            "--others",
+            "--exclude-standard",
+            "-z"
+          ],
+          "exitCode": 0,
+          "error": null,
+          "log": null
+        },
+        {
+          "argv": [
+            "-c",
+            "core.hooksPath=NUL",
+            "-c",
+            "core.fsmonitor=false",
+            "rev-parse",
+            "HEAD"
+          ],
+          "exitCode": 0,
+          "error": null,
+          "log": null
+        },
+        {
+          "argv": [
+            "-c",
+            "core.hooksPath=NUL",
+            "-c",
+            "core.fsmonitor=false",
+            "status",
+            "--porcelain",
+            "--untracked-files=all"
+          ],
+          "exitCode": 0,
+          "error": null,
+          "log": null
+        },
+        {
+          "argv": [
+            "which",
+            "rustc",
+            "--toolchain",
+            "1.95.0"
+          ],
+          "exitCode": 0,
+          "error": null,
+          "log": "2026-10-17T16-43-04.610Z-25072-red-behavior-1.log"
+        },
+        {
+          "argv": [
+            "which",
+            "cargo",
+            "--toolchain",
+            "1.95.0"
+          ],
+          "exitCode": 0,
+          "error": null,
+          "log": "2026-10-17T16-43-04.610Z-25072-red-behavior-2.log"
+        },
+        {
+          "argv": [
+            "--version"
+          ],
+          "exitCode": 0,
+          "error": null,
+          "log": "2026-10-17T16-43-04.610Z-25072-red-behavior-3.log"
+        },
+        {
+          "argv": [
+            "metadata",
+            "--offline",
+            "--locked",
+            "--format-version",
+            "1",
+            "--manifest-path",
+            "F:\\new\\smaltalk\\water\\.worktrees\\j\\packages\\lab-session\\Cargo.toml"
+          ],
+          "exitCode": 0,
+          "error": null,
+          "log": "2026-10-17T16-43-04.610Z-25072-red-behavior-4.log"
+        },
+        {
+          "argv": [
+            "test",
+            "--offline",
+            "--locked",
+            "--manifest-path",
+            "F:\\new\\smaltalk\\water\\.worktrees\\j\\packages\\lab-session\\Cargo.toml",
+            "-p",
+            "water-lab-session",
+            "--test",
+            "session_v1",
+            "--",
+            "--test-threads=1",
+            "--format",
+            "pretty"
+          ],
+          "exitCode": 101,
+          "error": null,
+          "log": "2026-10-17T16-43-04.610Z-25072-red-behavior-expected-red.log"
+        },
+        {
+          "argv": [
+            "-c",
+            "core.hooksPath=NUL",
+            "-c",
+            "core.fsmonitor=false",
+            "branch",
+            "--show-current"
+          ],
+          "exitCode": 0,
+          "error": null,
+          "log": "2026-10-17T16-43-04.610Z-25072-red-behavior-5.log"
+        },
+        {
+          "argv": [
+            "-c",
+            "core.hooksPath=NUL",
+            "-c",
+            "core.fsmonitor=false",
+            "merge-base",
+            "--is-ancestor",
+            "bc409f4af8cb2d51b2f67341ad46637cfa5e66f3",
+            "HEAD"
+          ],
+          "exitCode": 0,
+          "error": null,
+          "log": "2026-10-17T16-43-04.610Z-25072-red-behavior-6.log"
+        },
+        {
+          "argv": [
+            "-c",
+            "core.hooksPath=NUL",
+            "-c",
+            "core.fsmonitor=false",
+            "diff",
+            "--no-renames",
+            "--name-only",
+            "-z",
+            "bc409f4af8cb2d51b2f67341ad46637cfa5e66f3",
+            "HEAD"
+          ],
+          "exitCode": 0,
+          "error": null,
+          "log": "2026-10-17T16-43-04.610Z-25072-red-behavior-7.log"
+        },
+        {
+          "argv": [
+            "-c",
+            "core.hooksPath=NUL",
+            "-c",
+            "core.fsmonitor=false",
+            "diff",
+            "--no-renames",
+            "--name-only",
+            "-z",
+            "HEAD"
+          ],
+          "exitCode": 0,
+          "error": null,
+          "log": "2026-10-17T16-43-04.610Z-25072-red-behavior-8.log"
+        },
+        {
+          "argv": [
+            "-c",
+            "core.hooksPath=NUL",
+            "-c",
+            "core.fsmonitor=false",
+            "ls-files",
+            "--others",
+            "--exclude-standard",
+            "-z"
+          ],
+          "exitCode": 0,
+          "error": null,
+          "log": "2026-10-17T16-43-04.610Z-25072-red-behavior-9.log"
+        },
+        {
+          "argv": [
+            "-c",
+            "core.hooksPath=NUL",
+            "-c",
+            "core.fsmonitor=false",
+            "rev-parse",
+            "HEAD"
+          ],
+          "exitCode": 0,
+          "error": null,
+          "log": "2026-10-17T16-43-04.610Z-25072-red-behavior-10.log"
+        },
+        {
+          "argv": [
+            "-c",
+            "core.hooksPath=NUL",
+            "-c",
+            "core.fsmonitor=false",
+            "status",
+            "--porcelain",
+            "--untracked-files=all"
+          ],
+          "exitCode": 0,
+          "error": null,
+          "log": "2026-10-17T16-43-04.610Z-25072-red-behavior-11.log"
+        }
+      ]
+    },
+    {
+      "name": "2026-10-17T16-43-34.256Z-26208-clippy-result.json",
+      "mode": "clippy",
+      "finalGate": false,
+      "status": "passed",
+      "head": "bc409f4af8cb2d51b2f67341ad46637cfa5e66f3",
+      "startedAt": "2026-10-17T16:43:36.420Z",
+      "endedAt": "2026-10-17T16:43:39.663Z",
+      "error": null,
+      "executedTests": 0,
+      "observedExpectedFailure": false,
+      "commands": [
+        {
+          "argv": [
+            "-c",
+            "core.hooksPath=NUL",
+            "-c",
+            "core.fsmonitor=false",
+            "rev-parse",
+            "--path-format=absolute",
+            "--git-common-dir"
+          ],
+          "exitCode": 0,
+          "error": null,
+          "log": null
+        },
+        {
+          "argv": [
+            "-c",
+            "core.hooksPath=NUL",
+            "-c",
+            "core.fsmonitor=false",
+            "branch",
+            "--show-current"
+          ],
+          "exitCode": 0,
+          "error": null,
+          "log": null
+        },
+        {
+          "argv": [
+            "-c",
+            "core.hooksPath=NUL",
+            "-c",
+            "core.fsmonitor=false",
+            "merge-base",
+            "--is-ancestor",
+            "bc409f4af8cb2d51b2f67341ad46637cfa5e66f3",
+            "HEAD"
+          ],
+          "exitCode": 0,
+          "error": null,
+          "log": null
+        },
+        {
+          "argv": [
+            "-c",
+            "core.hooksPath=NUL",
+            "-c",
+            "core.fsmonitor=false",
+            "diff",
+            "--no-renames",
+            "--name-only",
+            "-z",
+            "bc409f4af8cb2d51b2f67341ad46637cfa5e66f3",
+            "HEAD"
+          ],
+          "exitCode": 0,
+          "error": null,
+          "log": null
+        },
+        {
+          "argv": [
+            "-c",
+            "core.hooksPath=NUL",
+            "-c",
+            "core.fsmonitor=false",
+            "diff",
+            "--no-renames",
+            "--name-only",
+            "-z",
+            "HEAD"
+          ],
+          "exitCode": 0,
+          "error": null,
+          "log": null
+        },
+        {
+          "argv": [
+            "-c",
+            "core.hooksPath=NUL",
+            "-c",
+            "core.fsmonitor=false",
+            "ls-files",
+            "--others",
+            "--exclude-standard",
+            "-z"
+          ],
+          "exitCode": 0,
+          "error": null,
+          "log": null
+        },
+        {
+          "argv": [
+            "-c",
+            "core.hooksPath=NUL",
+            "-c",
+            "core.fsmonitor=false",
+            "rev-parse",
+            "HEAD"
+          ],
+          "exitCode": 0,
+          "error": null,
+          "log": null
+        },
+        {
+          "argv": [
+            "-c",
+            "core.hooksPath=NUL",
+            "-c",
+            "core.fsmonitor=false",
+            "status",
+            "--porcelain",
+            "--untracked-files=all"
+          ],
+          "exitCode": 0,
+          "error": null,
+          "log": null
+        },
+        {
+          "argv": [
+            "which",
+            "rustc",
+            "--toolchain",
+            "1.95.0"
+          ],
+          "exitCode": 0,
+          "error": null,
+          "log": "2026-10-17T16-43-34.256Z-26208-clippy-1.log"
+        },
+        {
+          "argv": [
+            "which",
+            "cargo",
+            "--toolchain",
+            "1.95.0"
+          ],
+          "exitCode": 0,
+          "error": null,
+          "log": "2026-10-17T16-43-34.256Z-26208-clippy-2.log"
+        },
+        {
+          "argv": [
+            "--version"
+          ],
+          "exitCode": 0,
+          "error": null,
+          "log": "2026-10-17T16-43-34.256Z-26208-clippy-3.log"
+        },
+        {
+          "argv": [
+            "metadata",
+            "--offline",
+            "--locked",
+            "--format-version",
+            "1",
+            "--manifest-path",
+            "F:\\new\\smaltalk\\water\\.worktrees\\j\\packages\\lab-session\\Cargo.toml"
+          ],
+          "exitCode": 0,
+          "error": null,
+          "log": "2026-10-17T16-43-34.256Z-26208-clippy-4.log"
+        },
+        {
+          "argv": [
+            "clippy",
+            "--offline",
+            "--locked",
+            "--manifest-path",
+            "F:\\new\\smaltalk\\water\\.worktrees\\j\\packages\\lab-session\\Cargo.toml",
+            "-p",
+            "water-lab-session",
+            "--all-targets",
+            "--",
+            "-D",
+            "warnings"
+          ],
+          "exitCode": 0,
+          "error": null,
+          "log": "2026-10-17T16-43-34.256Z-26208-clippy-5.log"
+        },
+        {
+          "argv": [
+            "-c",
+            "core.hooksPath=NUL",
+            "-c",
+            "core.fsmonitor=false",
+            "branch",
+            "--show-current"
+          ],
+          "exitCode": 0,
+          "error": null,
+          "log": "2026-10-17T16-43-34.256Z-26208-clippy-6.log"
+        },
+        {
+          "argv": [
+            "-c",
+            "core.hooksPath=NUL",
+            "-c",
+            "core.fsmonitor=false",
+            "merge-base",
+            "--is-ancestor",
+            "bc409f4af8cb2d51b2f67341ad46637cfa5e66f3",
+            "HEAD"
+          ],
+          "exitCode": 0,
+          "error": null,
+          "log": "2026-10-17T16-43-34.256Z-26208-clippy-7.log"
+        },
+        {
+          "argv": [
+            "-c",
+            "core.hooksPath=NUL",
+            "-c",
+            "core.fsmonitor=false",
+            "diff",
+            "--no-renames",
+            "--name-only",
+            "-z",
+            "bc409f4af8cb2d51b2f67341ad46637cfa5e66f3",
+            "HEAD"
+          ],
+          "exitCode": 0,
+          "error": null,
+          "log": "2026-10-17T16-43-34.256Z-26208-clippy-8.log"
+        },
+        {
+          "argv": [
+            "-c",
+            "core.hooksPath=NUL",
+            "-c",
+            "core.fsmonitor=false",
+            "diff",
+            "--no-renames",
+            "--name-only",
+            "-z",
+            "HEAD"
+          ],
+          "exitCode": 0,
+          "error": null,
+          "log": "2026-10-17T16-43-34.256Z-26208-clippy-9.log"
+        },
+        {
+          "argv": [
+            "-c",
+            "core.hooksPath=NUL",
+            "-c",
+            "core.fsmonitor=false",
+            "ls-files",
+            "--others",
+            "--exclude-standard",
+            "-z"
+          ],
+          "exitCode": 0,
+          "error": null,
+          "log": "2026-10-17T16-43-34.256Z-26208-clippy-10.log"
+        },
+        {
+          "argv": [
+            "-c",
+            "core.hooksPath=NUL",
+            "-c",
+            "core.fsmonitor=false",
+            "rev-parse",
+            "HEAD"
+          ],
+          "exitCode": 0,
+          "error": null,
+          "log": "2026-10-17T16-43-34.256Z-26208-clippy-11.log"
+        },
+        {
+          "argv": [
+            "-c",
+            "core.hooksPath=NUL",
+            "-c",
+            "core.fsmonitor=false",
+            "status",
+            "--porcelain",
+            "--untracked-files=all"
+          ],
+          "exitCode": 0,
+          "error": null,
+          "log": "2026-10-17T16-43-34.256Z-26208-clippy-12.log"
+        }
+      ]
+    },
+    {
+      "name": "2026-10-17T16-43-47.077Z-2132-suite-result.json",
+      "mode": "suite",
+      "finalGate": false,
+      "status": "passed",
+      "head": "bc409f4af8cb2d51b2f67341ad46637cfa5e66f3",
+      "startedAt": "2026-10-17T16:43:48.050Z",
+      "endedAt": "2026-10-17T16:44:02.248Z",
+      "error": null,
+      "executedTests": 5,
+      "observedExpectedFailure": false,
+      "commands": [
+        {
+          "argv": [
+            "-c",
+            "core.hooksPath=NUL",
+            "-c",
+            "core.fsmonitor=false",
+            "rev-parse",
+            "--path-format=absolute",
+            "--git-common-dir"
+          ],
+          "exitCode": 0,
+          "error": null,
+          "log": null
+        },
+        {
+          "argv": [
+            "-c",
+            "core.hooksPath=NUL",
+            "-c",
+            "core.fsmonitor=false",
+            "branch",
+            "--show-current"
+          ],
+          "exitCode": 0,
+          "error": null,
+          "log": null
+        },
+        {
+          "argv": [
+            "-c",
+            "core.hooksPath=NUL",
+            "-c",
+            "core.fsmonitor=false",
+            "merge-base",
+            "--is-ancestor",
+            "bc409f4af8cb2d51b2f67341ad46637cfa5e66f3",
+            "HEAD"
+          ],
+          "exitCode": 0,
+          "error": null,
+          "log": null
+        },
+        {
+          "argv": [
+            "-c",
+            "core.hooksPath=NUL",
+            "-c",
+            "core.fsmonitor=false",
+            "diff",
+            "--no-renames",
+            "--name-only",
+            "-z",
+            "bc409f4af8cb2d51b2f67341ad46637cfa5e66f3",
+            "HEAD"
+          ],
+          "exitCode": 0,
+          "error": null,
+          "log": null
+        },
+        {
+          "argv": [
+            "-c",
+            "core.hooksPath=NUL",
+            "-c",
+            "core.fsmonitor=false",
+            "diff",
+            "--no-renames",
+            "--name-only",
+            "-z",
+            "HEAD"
+          ],
+          "exitCode": 0,
+          "error": null,
+          "log": null
+        },
+        {
+          "argv": [
+            "-c",
+            "core.hooksPath=NUL",
+            "-c",
+            "core.fsmonitor=false",
+            "ls-files",
+            "--others",
+            "--exclude-standard",
+            "-z"
+          ],
+          "exitCode": 0,
+          "error": null,
+          "log": null
+        },
+        {
+          "argv": [
+            "-c",
+            "core.hooksPath=NUL",
+            "-c",
+            "core.fsmonitor=false",
+            "rev-parse",
+            "HEAD"
+          ],
+          "exitCode": 0,
+          "error": null,
+          "log": null
+        },
+        {
+          "argv": [
+            "-c",
+            "core.hooksPath=NUL",
+            "-c",
+            "core.fsmonitor=false",
+            "status",
+            "--porcelain",
+            "--untracked-files=all"
+          ],
+          "exitCode": 0,
+          "error": null,
+          "log": null
+        },
+        {
+          "argv": [
+            "which",
+            "rustc",
+            "--toolchain",
+            "1.95.0"
+          ],
+          "exitCode": 0,
+          "error": null,
+          "log": "2026-10-17T16-43-47.077Z-2132-suite-1.log"
+        },
+        {
+          "argv": [
+            "which",
+            "cargo",
+            "--toolchain",
+            "1.95.0"
+          ],
+          "exitCode": 0,
+          "error": null,
+          "log": "2026-10-17T16-43-47.077Z-2132-suite-2.log"
+        },
+        {
+          "argv": [
+            "--version"
+          ],
+          "exitCode": 0,
+          "error": null,
+          "log": "2026-10-17T16-43-47.077Z-2132-suite-3.log"
+        },
+        {
+          "argv": [
+            "metadata",
+            "--offline",
+            "--locked",
+            "--format-version",
+            "1",
+            "--manifest-path",
+            "F:\\new\\smaltalk\\water\\.worktrees\\j\\packages\\lab-session\\Cargo.toml"
+          ],
+          "exitCode": 0,
+          "error": null,
+          "log": "2026-10-17T16-43-47.077Z-2132-suite-4.log"
+        },
+        {
+          "argv": [
+            "test",
+            "--offline",
+            "--locked",
+            "--manifest-path",
+            "F:\\new\\smaltalk\\water\\.worktrees\\j\\packages\\lab-session\\Cargo.toml",
+            "-p",
+            "water-lab-session",
+            "--test",
+            "session_v1",
+            "--",
+            "--test-threads=1",
+            "--format",
+            "pretty"
+          ],
+          "exitCode": 0,
+          "error": null,
+          "log": "2026-10-17T16-43-47.077Z-2132-suite-5.log"
+        },
+        {
+          "argv": [
+            "-c",
+            "core.hooksPath=NUL",
+            "-c",
+            "core.fsmonitor=false",
+            "branch",
+            "--show-current"
+          ],
+          "exitCode": 0,
+          "error": null,
+          "log": "2026-10-17T16-43-47.077Z-2132-suite-6.log"
+        },
+        {
+          "argv": [
+            "-c",
+            "core.hooksPath=NUL",
+            "-c",
+            "core.fsmonitor=false",
+            "merge-base",
+            "--is-ancestor",
+            "bc409f4af8cb2d51b2f67341ad46637cfa5e66f3",
+            "HEAD"
+          ],
+          "exitCode": 0,
+          "error": null,
+          "log": "2026-10-17T16-43-47.077Z-2132-suite-7.log"
+        },
+        {
+          "argv": [
+            "-c",
+            "core.hooksPath=NUL",
+            "-c",
+            "core.fsmonitor=false",
+            "diff",
+            "--no-renames",
+            "--name-only",
+            "-z",
+            "bc409f4af8cb2d51b2f67341ad46637cfa5e66f3",
+            "HEAD"
+          ],
+          "exitCode": 0,
+          "error": null,
+          "log": "2026-10-17T16-43-47.077Z-2132-suite-8.log"
+        },
+        {
+          "argv": [
+            "-c",
+            "core.hooksPath=NUL",
+            "-c",
+            "core.fsmonitor=false",
+            "diff",
+            "--no-renames",
+            "--name-only",
+            "-z",
+            "HEAD"
+          ],
+          "exitCode": 0,
+          "error": null,
+          "log": "2026-10-17T16-43-47.077Z-2132-suite-9.log"
+        },
+        {
+          "argv": [
+            "-c",
+            "core.hooksPath=NUL",
+            "-c",
+            "core.fsmonitor=false",
+            "ls-files",
+            "--others",
+            "--exclude-standard",
+            "-z"
+          ],
+          "exitCode": 0,
+          "error": null,
+          "log": "2026-10-17T16-43-47.077Z-2132-suite-10.log"
+        },
+        {
+          "argv": [
+            "-c",
+            "core.hooksPath=NUL",
+            "-c",
+            "core.fsmonitor=false",
+            "rev-parse",
+            "HEAD"
+          ],
+          "exitCode": 0,
+          "error": null,
+          "log": "2026-10-17T16-43-47.077Z-2132-suite-11.log"
+        },
+        {
+          "argv": [
+            "-c",
+            "core.hooksPath=NUL",
+            "-c",
+            "core.fsmonitor=false",
+            "status",
+            "--porcelain",
+            "--untracked-files=all"
+          ],
+          "exitCode": 0,
+          "error": null,
+          "log": "2026-10-17T16-43-47.077Z-2132-suite-12.log"
+        }
+      ]
+    },
+    {
+      "name": "2026-10-17T16-44-17.853Z-37004-red-nc1-result.json",
+      "mode": "red-nc1",
+      "finalGate": false,
+      "status": "passed",
+      "head": "bc409f4af8cb2d51b2f67341ad46637cfa5e66f3",
+      "startedAt": "2026-10-17T16:44:19.140Z",
+      "endedAt": "2026-10-17T16:44:24.319Z",
+      "error": null,
+      "executedTests": 5,
+      "observedExpectedFailure": true,
+      "commands": [
+        {
+          "argv": [
+            "-c",
+            "core.hooksPath=NUL",
+            "-c",
+            "core.fsmonitor=false",
+            "rev-parse",
+            "--path-format=absolute",
+            "--git-common-dir"
+          ],
+          "exitCode": 0,
+          "error": null,
+          "log": null
+        },
+        {
+          "argv": [
+            "-c",
+            "core.hooksPath=NUL",
+            "-c",
+            "core.fsmonitor=false",
+            "branch",
+            "--show-current"
+          ],
+          "exitCode": 0,
+          "error": null,
+          "log": null
+        },
+        {
+          "argv": [
+            "-c",
+            "core.hooksPath=NUL",
+            "-c",
+            "core.fsmonitor=false",
+            "merge-base",
+            "--is-ancestor",
+            "bc409f4af8cb2d51b2f67341ad46637cfa5e66f3",
+            "HEAD"
+          ],
+          "exitCode": 0,
+          "error": null,
+          "log": null
+        },
+        {
+          "argv": [
+            "-c",
+            "core.hooksPath=NUL",
+            "-c",
+            "core.fsmonitor=false",
+            "diff",
+            "--no-renames",
+            "--name-only",
+            "-z",
+            "bc409f4af8cb2d51b2f67341ad46637cfa5e66f3",
+            "HEAD"
+          ],
+          "exitCode": 0,
+          "error": null,
+          "log": null
+        },
+        {
+          "argv": [
+            "-c",
+            "core.hooksPath=NUL",
+            "-c",
+            "core.fsmonitor=false",
+            "diff",
+            "--no-renames",
+            "--name-only",
+            "-z",
+            "HEAD"
+          ],
+          "exitCode": 0,
+          "error": null,
+          "log": null
+        },
+        {
+          "argv": [
+            "-c",
+            "core.hooksPath=NUL",
+            "-c",
+            "core.fsmonitor=false",
+            "ls-files",
+            "--others",
+            "--exclude-standard",
+            "-z"
+          ],
+          "exitCode": 0,
+          "error": null,
+          "log": null
+        },
+        {
+          "argv": [
+            "-c",
+            "core.hooksPath=NUL",
+            "-c",
+            "core.fsmonitor=false",
+            "rev-parse",
+            "HEAD"
+          ],
+          "exitCode": 0,
+          "error": null,
+          "log": null
+        },
+        {
+          "argv": [
+            "-c",
+            "core.hooksPath=NUL",
+            "-c",
+            "core.fsmonitor=false",
+            "status",
+            "--porcelain",
+            "--untracked-files=all"
+          ],
+          "exitCode": 0,
+          "error": null,
+          "log": null
+        },
+        {
+          "argv": [
+            "which",
+            "rustc",
+            "--toolchain",
+            "1.95.0"
+          ],
+          "exitCode": 0,
+          "error": null,
+          "log": "2026-10-17T16-44-17.853Z-37004-red-nc1-1.log"
+        },
+        {
+          "argv": [
+            "which",
+            "cargo",
+            "--toolchain",
+            "1.95.0"
+          ],
+          "exitCode": 0,
+          "error": null,
+          "log": "2026-10-17T16-44-17.853Z-37004-red-nc1-2.log"
+        },
+        {
+          "argv": [
+            "--version"
+          ],
+          "exitCode": 0,
+          "error": null,
+          "log": "2026-10-17T16-44-17.853Z-37004-red-nc1-3.log"
+        },
+        {
+          "argv": [
+            "metadata",
+            "--offline",
+            "--locked",
+            "--format-version",
+            "1",
+            "--manifest-path",
+            "F:\\new\\smaltalk\\water\\.worktrees\\j\\packages\\lab-session\\Cargo.toml"
+          ],
+          "exitCode": 0,
+          "error": null,
+          "log": "2026-10-17T16-44-17.853Z-37004-red-nc1-4.log"
+        },
+        {
+          "argv": [
+            "test",
+            "--offline",
+            "--locked",
+            "--manifest-path",
+            "F:\\new\\smaltalk\\water\\.worktrees\\j\\packages\\lab-session\\Cargo.toml",
+            "-p",
+            "water-lab-session",
+            "--test",
+            "session_v1",
+            "--",
+            "--test-threads=1",
+            "--format",
+            "pretty"
+          ],
+          "exitCode": 101,
+          "error": null,
+          "log": "2026-10-17T16-44-17.853Z-37004-red-nc1-expected-red.log"
+        },
+        {
+          "argv": [
+            "-c",
+            "core.hooksPath=NUL",
+            "-c",
+            "core.fsmonitor=false",
+            "branch",
+            "--show-current"
+          ],
+          "exitCode": 0,
+          "error": null,
+          "log": "2026-10-17T16-44-17.853Z-37004-red-nc1-5.log"
+        },
+        {
+          "argv": [
+            "-c",
+            "core.hooksPath=NUL",
+            "-c",
+            "core.fsmonitor=false",
+            "merge-base",
+            "--is-ancestor",
+            "bc409f4af8cb2d51b2f67341ad46637cfa5e66f3",
+            "HEAD"
+          ],
+          "exitCode": 0,
+          "error": null,
+          "log": "2026-10-17T16-44-17.853Z-37004-red-nc1-6.log"
+        },
+        {
+          "argv": [
+            "-c",
+            "core.hooksPath=NUL",
+            "-c",
+            "core.fsmonitor=false",
+            "diff",
+            "--no-renames",
+            "--name-only",
+            "-z",
+            "bc409f4af8cb2d51b2f67341ad46637cfa5e66f3",
+            "HEAD"
+          ],
+          "exitCode": 0,
+          "error": null,
+          "log": "2026-10-17T16-44-17.853Z-37004-red-nc1-7.log"
+        },
+        {
+          "argv": [
+            "-c",
+            "core.hooksPath=NUL",
+            "-c",
+            "core.fsmonitor=false",
+            "diff",
+            "--no-renames",
+            "--name-only",
+            "-z",
+            "HEAD"
+          ],
+          "exitCode": 0,
+          "error": null,
+          "log": "2026-10-17T16-44-17.853Z-37004-red-nc1-8.log"
+        },
+        {
+          "argv": [
+            "-c",
+            "core.hooksPath=NUL",
+            "-c",
+            "core.fsmonitor=false",
+            "ls-files",
+            "--others",
+            "--exclude-standard",
+            "-z"
+          ],
+          "exitCode": 0,
+          "error": null,
+          "log": "2026-10-17T16-44-17.853Z-37004-red-nc1-9.log"
+        },
+        {
+          "argv": [
+            "-c",
+            "core.hooksPath=NUL",
+            "-c",
+            "core.fsmonitor=false",
+            "rev-parse",
+            "HEAD"
+          ],
+          "exitCode": 0,
+          "error": null,
+          "log": "2026-10-17T16-44-17.853Z-37004-red-nc1-10.log"
+        },
+        {
+          "argv": [
+            "-c",
+            "core.hooksPath=NUL",
+            "-c",
+            "core.fsmonitor=false",
+            "status",
+            "--porcelain",
+            "--untracked-files=all"
+          ],
+          "exitCode": 0,
+          "error": null,
+          "log": "2026-10-17T16-44-17.853Z-37004-red-nc1-11.log"
+        }
+      ]
+    },
+    {
+      "name": "2026-10-17T16-44-35.038Z-28632-suite-result.json",
+      "mode": "suite",
+      "finalGate": false,
+      "status": "passed",
+      "head": "bc409f4af8cb2d51b2f67341ad46637cfa5e66f3",
+      "startedAt": "2026-10-17T16:44:36.700Z",
+      "endedAt": "2026-10-17T16:44:41.186Z",
+      "error": null,
+      "executedTests": 5,
+      "observedExpectedFailure": false,
+      "commands": [
+        {
+          "argv": [
+            "-c",
+            "core.hooksPath=NUL",
+            "-c",
+            "core.fsmonitor=false",
+            "rev-parse",
+            "--path-format=absolute",
+            "--git-common-dir"
+          ],
+          "exitCode": 0,
+          "error": null,
+          "log": null
+        },
+        {
+          "argv": [
+            "-c",
+            "core.hooksPath=NUL",
+            "-c",
+            "core.fsmonitor=false",
+            "branch",
+            "--show-current"
+          ],
+          "exitCode": 0,
+          "error": null,
+          "log": null
+        },
+        {
+          "argv": [
+            "-c",
+            "core.hooksPath=NUL",
+            "-c",
+            "core.fsmonitor=false",
+            "merge-base",
+            "--is-ancestor",
+            "bc409f4af8cb2d51b2f67341ad46637cfa5e66f3",
+            "HEAD"
+          ],
+          "exitCode": 0,
+          "error": null,
+          "log": null
+        },
+        {
+          "argv": [
+            "-c",
+            "core.hooksPath=NUL",
+            "-c",
+            "core.fsmonitor=false",
+            "diff",
+            "--no-renames",
+            "--name-only",
+            "-z",
+            "bc409f4af8cb2d51b2f67341ad46637cfa5e66f3",
+            "HEAD"
+          ],
+          "exitCode": 0,
+          "error": null,
+          "log": null
+        },
+        {
+          "argv": [
+            "-c",
+            "core.hooksPath=NUL",
+            "-c",
+            "core.fsmonitor=false",
+            "diff",
+            "--no-renames",
+            "--name-only",
+            "-z",
+            "HEAD"
+          ],
+          "exitCode": 0,
+          "error": null,
+          "log": null
+        },
+        {
+          "argv": [
+            "-c",
+            "core.hooksPath=NUL",
+            "-c",
+            "core.fsmonitor=false",
+            "ls-files",
+            "--others",
+            "--exclude-standard",
+            "-z"
+          ],
+          "exitCode": 0,
+          "error": null,
+          "log": null
+        },
+        {
+          "argv": [
+            "-c",
+            "core.hooksPath=NUL",
+            "-c",
+            "core.fsmonitor=false",
+            "rev-parse",
+            "HEAD"
+          ],
+          "exitCode": 0,
+          "error": null,
+          "log": null
+        },
+        {
+          "argv": [
+            "-c",
+            "core.hooksPath=NUL",
+            "-c",
+            "core.fsmonitor=false",
+            "status",
+            "--porcelain",
+            "--untracked-files=all"
+          ],
+          "exitCode": 0,
+          "error": null,
+          "log": null
+        },
+        {
+          "argv": [
+            "which",
+            "rustc",
+            "--toolchain",
+            "1.95.0"
+          ],
+          "exitCode": 0,
+          "error": null,
+          "log": "2026-10-17T16-44-35.038Z-28632-suite-1.log"
+        },
+        {
+          "argv": [
+            "which",
+            "cargo",
+            "--toolchain",
+            "1.95.0"
+          ],
+          "exitCode": 0,
+          "error": null,
+          "log": "2026-10-17T16-44-35.038Z-28632-suite-2.log"
+        },
+        {
+          "argv": [
+            "--version"
+          ],
+          "exitCode": 0,
+          "error": null,
+          "log": "2026-10-17T16-44-35.038Z-28632-suite-3.log"
+        },
+        {
+          "argv": [
+            "metadata",
+            "--offline",
+            "--locked",
+            "--format-version",
+            "1",
+            "--manifest-path",
+            "F:\\new\\smaltalk\\water\\.worktrees\\j\\packages\\lab-session\\Cargo.toml"
+          ],
+          "exitCode": 0,
+          "error": null,
+          "log": "2026-10-17T16-44-35.038Z-28632-suite-4.log"
+        },
+        {
+          "argv": [
+            "test",
+            "--offline",
+            "--locked",
+            "--manifest-path",
+            "F:\\new\\smaltalk\\water\\.worktrees\\j\\packages\\lab-session\\Cargo.toml",
+            "-p",
+            "water-lab-session",
+            "--test",
+            "session_v1",
+            "--",
+            "--test-threads=1",
+            "--format",
+            "pretty"
+          ],
+          "exitCode": 0,
+          "error": null,
+          "log": "2026-10-17T16-44-35.038Z-28632-suite-5.log"
+        },
+        {
+          "argv": [
+            "-c",
+            "core.hooksPath=NUL",
+            "-c",
+            "core.fsmonitor=false",
+            "branch",
+            "--show-current"
+          ],
+          "exitCode": 0,
+          "error": null,
+          "log": "2026-10-17T16-44-35.038Z-28632-suite-6.log"
+        },
+        {
+          "argv": [
+            "-c",
+            "core.hooksPath=NUL",
+            "-c",
+            "core.fsmonitor=false",
+            "merge-base",
+            "--is-ancestor",
+            "bc409f4af8cb2d51b2f67341ad46637cfa5e66f3",
+            "HEAD"
+          ],
+          "exitCode": 0,
+          "error": null,
+          "log": "2026-10-17T16-44-35.038Z-28632-suite-7.log"
+        },
+        {
+          "argv": [
+            "-c",
+            "core.hooksPath=NUL",
+            "-c",
+            "core.fsmonitor=false",
+            "diff",
+            "--no-renames",
+            "--name-only",
+            "-z",
+            "bc409f4af8cb2d51b2f67341ad46637cfa5e66f3",
+            "HEAD"
+          ],
+          "exitCode": 0,
+          "error": null,
+          "log": "2026-10-17T16-44-35.038Z-28632-suite-8.log"
+        },
+        {
+          "argv": [
+            "-c",
+            "core.hooksPath=NUL",
+            "-c",
+            "core.fsmonitor=false",
+            "diff",
+            "--no-renames",
+            "--name-only",
+            "-z",
+            "HEAD"
+          ],
+          "exitCode": 0,
+          "error": null,
+          "log": "2026-10-17T16-44-35.038Z-28632-suite-9.log"
+        },
+        {
+          "argv": [
+            "-c",
+            "core.hooksPath=NUL",
+            "-c",
+            "core.fsmonitor=false",
+            "ls-files",
+            "--others",
+            "--exclude-standard",
+            "-z"
+          ],
+          "exitCode": 0,
+          "error": null,
+          "log": "2026-10-17T16-44-35.038Z-28632-suite-10.log"
+        },
+        {
+          "argv": [
+            "-c",
+            "core.hooksPath=NUL",
+            "-c",
+            "core.fsmonitor=false",
+            "rev-parse",
+            "HEAD"
+          ],
+          "exitCode": 0,
+          "error": null,
+          "log": "2026-10-17T16-44-35.038Z-28632-suite-11.log"
+        },
+        {
+          "argv": [
+            "-c",
+            "core.hooksPath=NUL",
+            "-c",
+            "core.fsmonitor=false",
+            "status",
+            "--porcelain",
+            "--untracked-files=all"
+          ],
+          "exitCode": 0,
+          "error": null,
+          "log": "2026-10-17T16-44-35.038Z-28632-suite-12.log"
+        }
+      ]
+    },
+    {
+      "name": "2026-10-17T16-44-47.120Z-26260-red-nc2-result.json",
+      "mode": "red-nc2",
+      "finalGate": false,
+      "status": "passed",
+      "head": "bc409f4af8cb2d51b2f67341ad46637cfa5e66f3",
+      "startedAt": "2026-10-17T16:44:49.715Z",
+      "endedAt": "2026-10-17T16:44:56.283Z",
+      "error": null,
+      "executedTests": 5,
+      "observedExpectedFailure": true,
+      "commands": [
+        {
+          "argv": [
+            "-c",
+            "core.hooksPath=NUL",
+            "-c",
+            "core.fsmonitor=false",
+            "rev-parse",
+            "--path-format=absolute",
+            "--git-common-dir"
+          ],
+          "exitCode": 0,
+          "error": null,
+          "log": null
+        },
+        {
+          "argv": [
+            "-c",
+            "core.hooksPath=NUL",
+            "-c",
+            "core.fsmonitor=false",
+            "branch",
+            "--show-current"
+          ],
+          "exitCode": 0,
+          "error": null,
+          "log": null
+        },
+        {
+          "argv": [
+            "-c",
+            "core.hooksPath=NUL",
+            "-c",
+            "core.fsmonitor=false",
+            "merge-base",
+            "--is-ancestor",
+            "bc409f4af8cb2d51b2f67341ad46637cfa5e66f3",
+            "HEAD"
+          ],
+          "exitCode": 0,
+          "error": null,
+          "log": null
+        },
+        {
+          "argv": [
+            "-c",
+            "core.hooksPath=NUL",
+            "-c",
+            "core.fsmonitor=false",
+            "diff",
+            "--no-renames",
+            "--name-only",
+            "-z",
+            "bc409f4af8cb2d51b2f67341ad46637cfa5e66f3",
+            "HEAD"
+          ],
+          "exitCode": 0,
+          "error": null,
+          "log": null
+        },
+        {
+          "argv": [
+            "-c",
+            "core.hooksPath=NUL",
+            "-c",
+            "core.fsmonitor=false",
+            "diff",
+            "--no-renames",
+            "--name-only",
+            "-z",
+            "HEAD"
+          ],
+          "exitCode": 0,
+          "error": null,
+          "log": null
+        },
+        {
+          "argv": [
+            "-c",
+            "core.hooksPath=NUL",
+            "-c",
+            "core.fsmonitor=false",
+            "ls-files",
+            "--others",
+            "--exclude-standard",
+            "-z"
+          ],
+          "exitCode": 0,
+          "error": null,
+          "log": null
+        },
+        {
+          "argv": [
+            "-c",
+            "core.hooksPath=NUL",
+            "-c",
+            "core.fsmonitor=false",
+            "rev-parse",
+            "HEAD"
+          ],
+          "exitCode": 0,
+          "error": null,
+          "log": null
+        },
+        {
+          "argv": [
+            "-c",
+            "core.hooksPath=NUL",
+            "-c",
+            "core.fsmonitor=false",
+            "status",
+            "--porcelain",
+            "--untracked-files=all"
+          ],
+          "exitCode": 0,
+          "error": null,
+          "log": null
+        },
+        {
+          "argv": [
+            "which",
+            "rustc",
+            "--toolchain",
+            "1.95.0"
+          ],
+          "exitCode": 0,
+          "error": null,
+          "log": "2026-10-17T16-44-47.120Z-26260-red-nc2-1.log"
+        },
+        {
+          "argv": [
+            "which",
+            "cargo",
+            "--toolchain",
+            "1.95.0"
+          ],
+          "exitCode": 0,
+          "error": null,
+          "log": "2026-10-17T16-44-47.120Z-26260-red-nc2-2.log"
+        },
+        {
+          "argv": [
+            "--version"
+          ],
+          "exitCode": 0,
+          "error": null,
+          "log": "2026-10-17T16-44-47.120Z-26260-red-nc2-3.log"
+        },
+        {
+          "argv": [
+            "metadata",
+            "--offline",
+            "--locked",
+            "--format-version",
+            "1",
+            "--manifest-path",
+            "F:\\new\\smaltalk\\water\\.worktrees\\j\\packages\\lab-session\\Cargo.toml"
+          ],
+          "exitCode": 0,
+          "error": null,
+          "log": "2026-10-17T16-44-47.120Z-26260-red-nc2-4.log"
+        },
+        {
+          "argv": [
+            "test",
+            "--offline",
+            "--locked",
+            "--manifest-path",
+            "F:\\new\\smaltalk\\water\\.worktrees\\j\\packages\\lab-session\\Cargo.toml",
+            "-p",
+            "water-lab-session",
+            "--test",
+            "session_v1",
+            "--",
+            "--test-threads=1",
+            "--format",
+            "pretty"
+          ],
+          "exitCode": 101,
+          "error": null,
+          "log": "2026-10-17T16-44-47.120Z-26260-red-nc2-expected-red.log"
+        },
+        {
+          "argv": [
+            "-c",
+            "core.hooksPath=NUL",
+            "-c",
+            "core.fsmonitor=false",
+            "branch",
+            "--show-current"
+          ],
+          "exitCode": 0,
+          "error": null,
+          "log": "2026-10-17T16-44-47.120Z-26260-red-nc2-5.log"
+        },
+        {
+          "argv": [
+            "-c",
+            "core.hooksPath=NUL",
+            "-c",
+            "core.fsmonitor=false",
+            "merge-base",
+            "--is-ancestor",
+            "bc409f4af8cb2d51b2f67341ad46637cfa5e66f3",
+            "HEAD"
+          ],
+          "exitCode": 0,
+          "error": null,
+          "log": "2026-10-17T16-44-47.120Z-26260-red-nc2-6.log"
+        },
+        {
+          "argv": [
+            "-c",
+            "core.hooksPath=NUL",
+            "-c",
+            "core.fsmonitor=false",
+            "diff",
+            "--no-renames",
+            "--name-only",
+            "-z",
+            "bc409f4af8cb2d51b2f67341ad46637cfa5e66f3",
+            "HEAD"
+          ],
+          "exitCode": 0,
+          "error": null,
+          "log": "2026-10-17T16-44-47.120Z-26260-red-nc2-7.log"
+        },
+        {
+          "argv": [
+            "-c",
+            "core.hooksPath=NUL",
+            "-c",
+            "core.fsmonitor=false",
+            "diff",
+            "--no-renames",
+            "--name-only",
+            "-z",
+            "HEAD"
+          ],
+          "exitCode": 0,
+          "error": null,
+          "log": "2026-10-17T16-44-47.120Z-26260-red-nc2-8.log"
+        },
+        {
+          "argv": [
+            "-c",
+            "core.hooksPath=NUL",
+            "-c",
+            "core.fsmonitor=false",
+            "ls-files",
+            "--others",
+            "--exclude-standard",
+            "-z"
+          ],
+          "exitCode": 0,
+          "error": null,
+          "log": "2026-10-17T16-44-47.120Z-26260-red-nc2-9.log"
+        },
+        {
+          "argv": [
+            "-c",
+            "core.hooksPath=NUL",
+            "-c",
+            "core.fsmonitor=false",
+            "rev-parse",
+            "HEAD"
+          ],
+          "exitCode": 0,
+          "error": null,
+          "log": "2026-10-17T16-44-47.120Z-26260-red-nc2-10.log"
+        },
+        {
+          "argv": [
+            "-c",
+            "core.hooksPath=NUL",
+            "-c",
+            "core.fsmonitor=false",
+            "status",
+            "--porcelain",
+            "--untracked-files=all"
+          ],
+          "exitCode": 0,
+          "error": null,
+          "log": "2026-10-17T16-44-47.120Z-26260-red-nc2-11.log"
+        }
+      ]
+    },
+    {
+      "name": "2026-10-17T16-45-06.851Z-11716-suite-result.json",
+      "mode": "suite",
+      "finalGate": false,
+      "status": "passed",
+      "head": "bc409f4af8cb2d51b2f67341ad46637cfa5e66f3",
+      "startedAt": "2026-10-17T16:45:09.191Z",
+      "endedAt": "2026-10-17T16:45:18.657Z",
+      "error": null,
+      "executedTests": 5,
+      "observedExpectedFailure": false,
+      "commands": [
+        {
+          "argv": [
+            "-c",
+            "core.hooksPath=NUL",
+            "-c",
+            "core.fsmonitor=false",
+            "rev-parse",
+            "--path-format=absolute",
+            "--git-common-dir"
+          ],
+          "exitCode": 0,
+          "error": null,
+          "log": null
+        },
+        {
+          "argv": [
+            "-c",
+            "core.hooksPath=NUL",
+            "-c",
+            "core.fsmonitor=false",
+            "branch",
+            "--show-current"
+          ],
+          "exitCode": 0,
+          "error": null,
+          "log": null
+        },
+        {
+          "argv": [
+            "-c",
+            "core.hooksPath=NUL",
+            "-c",
+            "core.fsmonitor=false",
+            "merge-base",
+            "--is-ancestor",
+            "bc409f4af8cb2d51b2f67341ad46637cfa5e66f3",
+            "HEAD"
+          ],
+          "exitCode": 0,
+          "error": null,
+          "log": null
+        },
+        {
+          "argv": [
+            "-c",
+            "core.hooksPath=NUL",
+            "-c",
+            "core.fsmonitor=false",
+            "diff",
+            "--no-renames",
+            "--name-only",
+            "-z",
+            "bc409f4af8cb2d51b2f67341ad46637cfa5e66f3",
+            "HEAD"
+          ],
+          "exitCode": 0,
+          "error": null,
+          "log": null
+        },
+        {
+          "argv": [
+            "-c",
+            "core.hooksPath=NUL",
+            "-c",
+            "core.fsmonitor=false",
+            "diff",
+            "--no-renames",
+            "--name-only",
+            "-z",
+            "HEAD"
+          ],
+          "exitCode": 0,
+          "error": null,
+          "log": null
+        },
+        {
+          "argv": [
+            "-c",
+            "core.hooksPath=NUL",
+            "-c",
+            "core.fsmonitor=false",
+            "ls-files",
+            "--others",
+            "--exclude-standard",
+            "-z"
+          ],
+          "exitCode": 0,
+          "error": null,
+          "log": null
+        },
+        {
+          "argv": [
+            "-c",
+            "core.hooksPath=NUL",
+            "-c",
+            "core.fsmonitor=false",
+            "rev-parse",
+            "HEAD"
+          ],
+          "exitCode": 0,
+          "error": null,
+          "log": null
+        },
+        {
+          "argv": [
+            "-c",
+            "core.hooksPath=NUL",
+            "-c",
+            "core.fsmonitor=false",
+            "status",
+            "--porcelain",
+            "--untracked-files=all"
+          ],
+          "exitCode": 0,
+          "error": null,
+          "log": null
+        },
+        {
+          "argv": [
+            "which",
+            "rustc",
+            "--toolchain",
+            "1.95.0"
+          ],
+          "exitCode": 0,
+          "error": null,
+          "log": "2026-10-17T16-45-06.851Z-11716-suite-1.log"
+        },
+        {
+          "argv": [
+            "which",
+            "cargo",
+            "--toolchain",
+            "1.95.0"
+          ],
+          "exitCode": 0,
+          "error": null,
+          "log": "2026-10-17T16-45-06.851Z-11716-suite-2.log"
+        },
+        {
+          "argv": [
+            "--version"
+          ],
+          "exitCode": 0,
+          "error": null,
+          "log": "2026-10-17T16-45-06.851Z-11716-suite-3.log"
+        },
+        {
+          "argv": [
+            "metadata",
+            "--offline",
+            "--locked",
+            "--format-version",
+            "1",
+            "--manifest-path",
+            "F:\\new\\smaltalk\\water\\.worktrees\\j\\packages\\lab-session\\Cargo.toml"
+          ],
+          "exitCode": 0,
+          "error": null,
+          "log": "2026-10-17T16-45-06.851Z-11716-suite-4.log"
+        },
+        {
+          "argv": [
+            "test",
+            "--offline",
+            "--locked",
+            "--manifest-path",
+            "F:\\new\\smaltalk\\water\\.worktrees\\j\\packages\\lab-session\\Cargo.toml",
+            "-p",
+            "water-lab-session",
+            "--test",
+            "session_v1",
+            "--",
+            "--test-threads=1",
+            "--format",
+            "pretty"
+          ],
+          "exitCode": 0,
+          "error": null,
+          "log": "2026-10-17T16-45-06.851Z-11716-suite-5.log"
+        },
+        {
+          "argv": [
+            "-c",
+            "core.hooksPath=NUL",
+            "-c",
+            "core.fsmonitor=false",
+            "branch",
+            "--show-current"
+          ],
+          "exitCode": 0,
+          "error": null,
+          "log": "2026-10-17T16-45-06.851Z-11716-suite-6.log"
+        },
+        {
+          "argv": [
+            "-c",
+            "core.hooksPath=NUL",
+            "-c",
+            "core.fsmonitor=false",
+            "merge-base",
+            "--is-ancestor",
+            "bc409f4af8cb2d51b2f67341ad46637cfa5e66f3",
+            "HEAD"
+          ],
+          "exitCode": 0,
+          "error": null,
+          "log": "2026-10-17T16-45-06.851Z-11716-suite-7.log"
+        },
+        {
+          "argv": [
+            "-c",
+            "core.hooksPath=NUL",
+            "-c",
+            "core.fsmonitor=false",
+            "diff",
+            "--no-renames",
+            "--name-only",
+            "-z",
+            "bc409f4af8cb2d51b2f67341ad46637cfa5e66f3",
+            "HEAD"
+          ],
+          "exitCode": 0,
+          "error": null,
+          "log": "2026-10-17T16-45-06.851Z-11716-suite-8.log"
+        },
+        {
+          "argv": [
+            "-c",
+            "core.hooksPath=NUL",
+            "-c",
+            "core.fsmonitor=false",
+            "diff",
+            "--no-renames",
+            "--name-only",
+            "-z",
+            "HEAD"
+          ],
+          "exitCode": 0,
+          "error": null,
+          "log": "2026-10-17T16-45-06.851Z-11716-suite-9.log"
+        },
+        {
+          "argv": [
+            "-c",
+            "core.hooksPath=NUL",
+            "-c",
+            "core.fsmonitor=false",
+            "ls-files",
+            "--others",
+            "--exclude-standard",
+            "-z"
+          ],
+          "exitCode": 0,
+          "error": null,
+          "log": "2026-10-17T16-45-06.851Z-11716-suite-10.log"
+        },
+        {
+          "argv": [
+            "-c",
+            "core.hooksPath=NUL",
+            "-c",
+            "core.fsmonitor=false",
+            "rev-parse",
+            "HEAD"
+          ],
+          "exitCode": 0,
+          "error": null,
+          "log": "2026-10-17T16-45-06.851Z-11716-suite-11.log"
+        },
+        {
+          "argv": [
+            "-c",
+            "core.hooksPath=NUL",
+            "-c",
+            "core.fsmonitor=false",
+            "status",
+            "--porcelain",
+            "--untracked-files=all"
+          ],
+          "exitCode": 0,
+          "error": null,
+          "log": "2026-10-17T16-45-06.851Z-11716-suite-12.log"
+        }
+      ]
+    },
+    {
+      "name": "2026-10-17T16-45-32.977Z-33272-red-nc3-result.json",
+      "mode": "red-nc3",
+      "finalGate": false,
+      "status": "passed",
+      "head": "bc409f4af8cb2d51b2f67341ad46637cfa5e66f3",
+      "startedAt": "2026-10-17T16:45:40.372Z",
+      "endedAt": "2026-10-17T16:45:47.345Z",
+      "error": null,
+      "executedTests": 5,
+      "observedExpectedFailure": true,
+      "commands": [
+        {
+          "argv": [
+            "-c",
+            "core.hooksPath=NUL",
+            "-c",
+            "core.fsmonitor=false",
+            "rev-parse",
+            "--path-format=absolute",
+            "--git-common-dir"
+          ],
+          "exitCode": 0,
+          "error": null,
+          "log": null
+        },
+        {
+          "argv": [
+            "-c",
+            "core.hooksPath=NUL",
+            "-c",
+            "core.fsmonitor=false",
+            "branch",
+            "--show-current"
+          ],
+          "exitCode": 0,
+          "error": null,
+          "log": null
+        },
+        {
+          "argv": [
+            "-c",
+            "core.hooksPath=NUL",
+            "-c",
+            "core.fsmonitor=false",
+            "merge-base",
+            "--is-ancestor",
+            "bc409f4af8cb2d51b2f67341ad46637cfa5e66f3",
+            "HEAD"
+          ],
+          "exitCode": 0,
+          "error": null,
+          "log": null
+        },
+        {
+          "argv": [
+            "-c",
+            "core.hooksPath=NUL",
+            "-c",
+            "core.fsmonitor=false",
+            "diff",
+            "--no-renames",
+            "--name-only",
+            "-z",
+            "bc409f4af8cb2d51b2f67341ad46637cfa5e66f3",
+            "HEAD"
+          ],
+          "exitCode": 0,
+          "error": null,
+          "log": null
+        },
+        {
+          "argv": [
+            "-c",
+            "core.hooksPath=NUL",
+            "-c",
+            "core.fsmonitor=false",
+            "diff",
+            "--no-renames",
+            "--name-only",
+            "-z",
+            "HEAD"
+          ],
+          "exitCode": 0,
+          "error": null,
+          "log": null
+        },
+        {
+          "argv": [
+            "-c",
+            "core.hooksPath=NUL",
+            "-c",
+            "core.fsmonitor=false",
+            "ls-files",
+            "--others",
+            "--exclude-standard",
+            "-z"
+          ],
+          "exitCode": 0,
+          "error": null,
+          "log": null
+        },
+        {
+          "argv": [
+            "-c",
+            "core.hooksPath=NUL",
+            "-c",
+            "core.fsmonitor=false",
+            "rev-parse",
+            "HEAD"
+          ],
+          "exitCode": 0,
+          "error": null,
+          "log": null
+        },
+        {
+          "argv": [
+            "-c",
+            "core.hooksPath=NUL",
+            "-c",
+            "core.fsmonitor=false",
+            "status",
+            "--porcelain",
+            "--untracked-files=all"
+          ],
+          "exitCode": 0,
+          "error": null,
+          "log": null
+        },
+        {
+          "argv": [
+            "which",
+            "rustc",
+            "--toolchain",
+            "1.95.0"
+          ],
+          "exitCode": 0,
+          "error": null,
+          "log": "2026-10-17T16-45-32.977Z-33272-red-nc3-1.log"
+        },
+        {
+          "argv": [
+            "which",
+            "cargo",
+            "--toolchain",
+            "1.95.0"
+          ],
+          "exitCode": 0,
+          "error": null,
+          "log": "2026-10-17T16-45-32.977Z-33272-red-nc3-2.log"
+        },
+        {
+          "argv": [
+            "--version"
+          ],
+          "exitCode": 0,
+          "error": null,
+          "log": "2026-10-17T16-45-32.977Z-33272-red-nc3-3.log"
+        },
+        {
+          "argv": [
+            "metadata",
+            "--offline",
+            "--locked",
+            "--format-version",
+            "1",
+            "--manifest-path",
+            "F:\\new\\smaltalk\\water\\.worktrees\\j\\packages\\lab-session\\Cargo.toml"
+          ],
+          "exitCode": 0,
+          "error": null,
+          "log": "2026-10-17T16-45-32.977Z-33272-red-nc3-4.log"
+        },
+        {
+          "argv": [
+            "test",
+            "--offline",
+            "--locked",
+            "--manifest-path",
+            "F:\\new\\smaltalk\\water\\.worktrees\\j\\packages\\lab-session\\Cargo.toml",
+            "-p",
+            "water-lab-session",
+            "--test",
+            "session_v1",
+            "--",
+            "--test-threads=1",
+            "--format",
+            "pretty"
+          ],
+          "exitCode": 101,
+          "error": null,
+          "log": "2026-10-17T16-45-32.977Z-33272-red-nc3-expected-red.log"
+        },
+        {
+          "argv": [
+            "-c",
+            "core.hooksPath=NUL",
+            "-c",
+            "core.fsmonitor=false",
+            "branch",
+            "--show-current"
+          ],
+          "exitCode": 0,
+          "error": null,
+          "log": "2026-10-17T16-45-32.977Z-33272-red-nc3-5.log"
+        },
+        {
+          "argv": [
+            "-c",
+            "core.hooksPath=NUL",
+            "-c",
+            "core.fsmonitor=false",
+            "merge-base",
+            "--is-ancestor",
+            "bc409f4af8cb2d51b2f67341ad46637cfa5e66f3",
+            "HEAD"
+          ],
+          "exitCode": 0,
+          "error": null,
+          "log": "2026-10-17T16-45-32.977Z-33272-red-nc3-6.log"
+        },
+        {
+          "argv": [
+            "-c",
+            "core.hooksPath=NUL",
+            "-c",
+            "core.fsmonitor=false",
+            "diff",
+            "--no-renames",
+            "--name-only",
+            "-z",
+            "bc409f4af8cb2d51b2f67341ad46637cfa5e66f3",
+            "HEAD"
+          ],
+          "exitCode": 0,
+          "error": null,
+          "log": "2026-10-17T16-45-32.977Z-33272-red-nc3-7.log"
+        },
+        {
+          "argv": [
+            "-c",
+            "core.hooksPath=NUL",
+            "-c",
+            "core.fsmonitor=false",
+            "diff",
+            "--no-renames",
+            "--name-only",
+            "-z",
+            "HEAD"
+          ],
+          "exitCode": 0,
+          "error": null,
+          "log": "2026-10-17T16-45-32.977Z-33272-red-nc3-8.log"
+        },
+        {
+          "argv": [
+            "-c",
+            "core.hooksPath=NUL",
+            "-c",
+            "core.fsmonitor=false",
+            "ls-files",
+            "--others",
+            "--exclude-standard",
+            "-z"
+          ],
+          "exitCode": 0,
+          "error": null,
+          "log": "2026-10-17T16-45-32.977Z-33272-red-nc3-9.log"
+        },
+        {
+          "argv": [
+            "-c",
+            "core.hooksPath=NUL",
+            "-c",
+            "core.fsmonitor=false",
+            "rev-parse",
+            "HEAD"
+          ],
+          "exitCode": 0,
+          "error": null,
+          "log": "2026-10-17T16-45-32.977Z-33272-red-nc3-10.log"
+        },
+        {
+          "argv": [
+            "-c",
+            "core.hooksPath=NUL",
+            "-c",
+            "core.fsmonitor=false",
+            "status",
+            "--porcelain",
+            "--untracked-files=all"
+          ],
+          "exitCode": 0,
+          "error": null,
+          "log": "2026-10-17T16-45-32.977Z-33272-red-nc3-11.log"
+        }
+      ]
+    },
+    {
+      "name": "2026-10-17T16-46-02.086Z-12764-suite-result.json",
+      "mode": "suite",
+      "finalGate": false,
+      "status": "passed",
+      "head": "bc409f4af8cb2d51b2f67341ad46637cfa5e66f3",
+      "startedAt": "2026-10-17T16:46:05.018Z",
+      "endedAt": "2026-10-17T16:46:15.151Z",
+      "error": null,
+      "executedTests": 5,
+      "observedExpectedFailure": false,
+      "commands": [
+        {
+          "argv": [
+            "-c",
+            "core.hooksPath=NUL",
+            "-c",
+            "core.fsmonitor=false",
+            "rev-parse",
+            "--path-format=absolute",
+            "--git-common-dir"
+          ],
+          "exitCode": 0,
+          "error": null,
+          "log": null
+        },
+        {
+          "argv": [
+            "-c",
+            "core.hooksPath=NUL",
+            "-c",
+            "core.fsmonitor=false",
+            "branch",
+            "--show-current"
+          ],
+          "exitCode": 0,
+          "error": null,
+          "log": null
+        },
+        {
+          "argv": [
+            "-c",
+            "core.hooksPath=NUL",
+            "-c",
+            "core.fsmonitor=false",
+            "merge-base",
+            "--is-ancestor",
+            "bc409f4af8cb2d51b2f67341ad46637cfa5e66f3",
+            "HEAD"
+          ],
+          "exitCode": 0,
+          "error": null,
+          "log": null
+        },
+        {
+          "argv": [
+            "-c",
+            "core.hooksPath=NUL",
+            "-c",
+            "core.fsmonitor=false",
+            "diff",
+            "--no-renames",
+            "--name-only",
+            "-z",
+            "bc409f4af8cb2d51b2f67341ad46637cfa5e66f3",
+            "HEAD"
+          ],
+          "exitCode": 0,
+          "error": null,
+          "log": null
+        },
+        {
+          "argv": [
+            "-c",
+            "core.hooksPath=NUL",
+            "-c",
+            "core.fsmonitor=false",
+            "diff",
+            "--no-renames",
+            "--name-only",
+            "-z",
+            "HEAD"
+          ],
+          "exitCode": 0,
+          "error": null,
+          "log": null
+        },
+        {
+          "argv": [
+            "-c",
+            "core.hooksPath=NUL",
+            "-c",
+            "core.fsmonitor=false",
+            "ls-files",
+            "--others",
+            "--exclude-standard",
+            "-z"
+          ],
+          "exitCode": 0,
+          "error": null,
+          "log": null
+        },
+        {
+          "argv": [
+            "-c",
+            "core.hooksPath=NUL",
+            "-c",
+            "core.fsmonitor=false",
+            "rev-parse",
+            "HEAD"
+          ],
+          "exitCode": 0,
+          "error": null,
+          "log": null
+        },
+        {
+          "argv": [
+            "-c",
+            "core.hooksPath=NUL",
+            "-c",
+            "core.fsmonitor=false",
+            "status",
+            "--porcelain",
+            "--untracked-files=all"
+          ],
+          "exitCode": 0,
+          "error": null,
+          "log": null
+        },
+        {
+          "argv": [
+            "which",
+            "rustc",
+            "--toolchain",
+            "1.95.0"
+          ],
+          "exitCode": 0,
+          "error": null,
+          "log": "2026-10-17T16-46-02.086Z-12764-suite-1.log"
+        },
+        {
+          "argv": [
+            "which",
+            "cargo",
+            "--toolchain",
+            "1.95.0"
+          ],
+          "exitCode": 0,
+          "error": null,
+          "log": "2026-10-17T16-46-02.086Z-12764-suite-2.log"
+        },
+        {
+          "argv": [
+            "--version"
+          ],
+          "exitCode": 0,
+          "error": null,
+          "log": "2026-10-17T16-46-02.086Z-12764-suite-3.log"
+        },
+        {
+          "argv": [
+            "metadata",
+            "--offline",
+            "--locked",
+            "--format-version",
+            "1",
+            "--manifest-path",
+            "F:\\new\\smaltalk\\water\\.worktrees\\j\\packages\\lab-session\\Cargo.toml"
+          ],
+          "exitCode": 0,
+          "error": null,
+          "log": "2026-10-17T16-46-02.086Z-12764-suite-4.log"
+        },
+        {
+          "argv": [
+            "test",
+            "--offline",
+            "--locked",
+            "--manifest-path",
+            "F:\\new\\smaltalk\\water\\.worktrees\\j\\packages\\lab-session\\Cargo.toml",
+            "-p",
+            "water-lab-session",
+            "--test",
+            "session_v1",
+            "--",
+            "--test-threads=1",
+            "--format",
+            "pretty"
+          ],
+          "exitCode": 0,
+          "error": null,
+          "log": "2026-10-17T16-46-02.086Z-12764-suite-5.log"
+        },
+        {
+          "argv": [
+            "-c",
+            "core.hooksPath=NUL",
+            "-c",
+            "core.fsmonitor=false",
+            "branch",
+            "--show-current"
+          ],
+          "exitCode": 0,
+          "error": null,
+          "log": "2026-10-17T16-46-02.086Z-12764-suite-6.log"
+        },
+        {
+          "argv": [
+            "-c",
+            "core.hooksPath=NUL",
+            "-c",
+            "core.fsmonitor=false",
+            "merge-base",
+            "--is-ancestor",
+            "bc409f4af8cb2d51b2f67341ad46637cfa5e66f3",
+            "HEAD"
+          ],
+          "exitCode": 0,
+          "error": null,
+          "log": "2026-10-17T16-46-02.086Z-12764-suite-7.log"
+        },
+        {
+          "argv": [
+            "-c",
+            "core.hooksPath=NUL",
+            "-c",
+            "core.fsmonitor=false",
+            "diff",
+            "--no-renames",
+            "--name-only",
+            "-z",
+            "bc409f4af8cb2d51b2f67341ad46637cfa5e66f3",
+            "HEAD"
+          ],
+          "exitCode": 0,
+          "error": null,
+          "log": "2026-10-17T16-46-02.086Z-12764-suite-8.log"
+        },
+        {
+          "argv": [
+            "-c",
+            "core.hooksPath=NUL",
+            "-c",
+            "core.fsmonitor=false",
+            "diff",
+            "--no-renames",
+            "--name-only",
+            "-z",
+            "HEAD"
+          ],
+          "exitCode": 0,
+          "error": null,
+          "log": "2026-10-17T16-46-02.086Z-12764-suite-9.log"
+        },
+        {
+          "argv": [
+            "-c",
+            "core.hooksPath=NUL",
+            "-c",
+            "core.fsmonitor=false",
+            "ls-files",
+            "--others",
+            "--exclude-standard",
+            "-z"
+          ],
+          "exitCode": 0,
+          "error": null,
+          "log": "2026-10-17T16-46-02.086Z-12764-suite-10.log"
+        },
+        {
+          "argv": [
+            "-c",
+            "core.hooksPath=NUL",
+            "-c",
+            "core.fsmonitor=false",
+            "rev-parse",
+            "HEAD"
+          ],
+          "exitCode": 0,
+          "error": null,
+          "log": "2026-10-17T16-46-02.086Z-12764-suite-11.log"
+        },
+        {
+          "argv": [
+            "-c",
+            "core.hooksPath=NUL",
+            "-c",
+            "core.fsmonitor=false",
+            "status",
+            "--porcelain",
+            "--untracked-files=all"
+          ],
+          "exitCode": 0,
+          "error": null,
+          "log": "2026-10-17T16-46-02.086Z-12764-suite-12.log"
+        }
+      ]
+    },
+    {
+      "name": "2026-10-17T16-47-04.799Z-2200-fmt-result.json",
+      "mode": "fmt",
+      "finalGate": true,
+      "status": "passed",
+      "head": "b6fd1fe6566ad79dbcca6c420988c9bb40c47d80",
+      "startedAt": "2026-10-17T16:47:12.131Z",
+      "endedAt": "2026-10-17T16:47:15.226Z",
+      "error": null,
+      "executedTests": 0,
+      "observedExpectedFailure": false,
+      "commands": [
+        {
+          "argv": [
+            "-c",
+            "core.hooksPath=NUL",
+            "-c",
+            "core.fsmonitor=false",
+            "rev-parse",
+            "--path-format=absolute",
+            "--git-common-dir"
+          ],
+          "exitCode": 0,
+          "error": null,
+          "log": null
+        },
+        {
+          "argv": [
+            "-c",
+            "core.hooksPath=NUL",
+            "-c",
+            "core.fsmonitor=false",
+            "branch",
+            "--show-current"
+          ],
+          "exitCode": 0,
+          "error": null,
+          "log": null
+        },
+        {
+          "argv": [
+            "-c",
+            "core.hooksPath=NUL",
+            "-c",
+            "core.fsmonitor=false",
+            "merge-base",
+            "--is-ancestor",
+            "bc409f4af8cb2d51b2f67341ad46637cfa5e66f3",
+            "HEAD"
+          ],
+          "exitCode": 0,
+          "error": null,
+          "log": null
+        },
+        {
+          "argv": [
+            "-c",
+            "core.hooksPath=NUL",
+            "-c",
+            "core.fsmonitor=false",
+            "diff",
+            "--no-renames",
+            "--name-only",
+            "-z",
+            "bc409f4af8cb2d51b2f67341ad46637cfa5e66f3",
+            "HEAD"
+          ],
+          "exitCode": 0,
+          "error": null,
+          "log": null
+        },
+        {
+          "argv": [
+            "-c",
+            "core.hooksPath=NUL",
+            "-c",
+            "core.fsmonitor=false",
+            "diff",
+            "--no-renames",
+            "--name-only",
+            "-z",
+            "HEAD"
+          ],
+          "exitCode": 0,
+          "error": null,
+          "log": null
+        },
+        {
+          "argv": [
+            "-c",
+            "core.hooksPath=NUL",
+            "-c",
+            "core.fsmonitor=false",
+            "ls-files",
+            "--others",
+            "--exclude-standard",
+            "-z"
+          ],
+          "exitCode": 0,
+          "error": null,
+          "log": null
+        },
+        {
+          "argv": [
+            "-c",
+            "core.hooksPath=NUL",
+            "-c",
+            "core.fsmonitor=false",
+            "rev-parse",
+            "HEAD"
+          ],
+          "exitCode": 0,
+          "error": null,
+          "log": null
+        },
+        {
+          "argv": [
+            "-c",
+            "core.hooksPath=NUL",
+            "-c",
+            "core.fsmonitor=false",
+            "status",
+            "--porcelain",
+            "--untracked-files=all"
+          ],
+          "exitCode": 0,
+          "error": null,
+          "log": null
+        },
+        {
+          "argv": [
+            "which",
+            "rustc",
+            "--toolchain",
+            "1.95.0"
+          ],
+          "exitCode": 0,
+          "error": null,
+          "log": "2026-10-17T16-47-04.799Z-2200-fmt-1.log"
+        },
+        {
+          "argv": [
+            "which",
+            "cargo",
+            "--toolchain",
+            "1.95.0"
+          ],
+          "exitCode": 0,
+          "error": null,
+          "log": "2026-10-17T16-47-04.799Z-2200-fmt-2.log"
+        },
+        {
+          "argv": [
+            "--version"
+          ],
+          "exitCode": 0,
+          "error": null,
+          "log": "2026-10-17T16-47-04.799Z-2200-fmt-3.log"
+        },
+        {
+          "argv": [
+            "metadata",
+            "--offline",
+            "--locked",
+            "--format-version",
+            "1",
+            "--manifest-path",
+            "F:\\new\\smaltalk\\water\\.worktrees\\j\\packages\\lab-session\\Cargo.toml"
+          ],
+          "exitCode": 0,
+          "error": null,
+          "log": "2026-10-17T16-47-04.799Z-2200-fmt-4.log"
+        },
+        {
+          "argv": [
+            "fmt",
+            "--manifest-path",
+            "F:\\new\\smaltalk\\water\\.worktrees\\j\\packages\\lab-session\\Cargo.toml",
+            "--",
+            "--check"
+          ],
+          "exitCode": 0,
+          "error": null,
+          "log": "2026-10-17T16-47-04.799Z-2200-fmt-5.log"
+        },
+        {
+          "argv": [
+            "-c",
+            "core.hooksPath=NUL",
+            "-c",
+            "core.fsmonitor=false",
+            "branch",
+            "--show-current"
+          ],
+          "exitCode": 0,
+          "error": null,
+          "log": "2026-10-17T16-47-04.799Z-2200-fmt-6.log"
+        },
+        {
+          "argv": [
+            "-c",
+            "core.hooksPath=NUL",
+            "-c",
+            "core.fsmonitor=false",
+            "merge-base",
+            "--is-ancestor",
+            "bc409f4af8cb2d51b2f67341ad46637cfa5e66f3",
+            "HEAD"
+          ],
+          "exitCode": 0,
+          "error": null,
+          "log": "2026-10-17T16-47-04.799Z-2200-fmt-7.log"
+        },
+        {
+          "argv": [
+            "-c",
+            "core.hooksPath=NUL",
+            "-c",
+            "core.fsmonitor=false",
+            "diff",
+            "--no-renames",
+            "--name-only",
+            "-z",
+            "bc409f4af8cb2d51b2f67341ad46637cfa5e66f3",
+            "HEAD"
+          ],
+          "exitCode": 0,
+          "error": null,
+          "log": "2026-10-17T16-47-04.799Z-2200-fmt-8.log"
+        },
+        {
+          "argv": [
+            "-c",
+            "core.hooksPath=NUL",
+            "-c",
+            "core.fsmonitor=false",
+            "diff",
+            "--no-renames",
+            "--name-only",
+            "-z",
+            "HEAD"
+          ],
+          "exitCode": 0,
+          "error": null,
+          "log": "2026-10-17T16-47-04.799Z-2200-fmt-9.log"
+        },
+        {
+          "argv": [
+            "-c",
+            "core.hooksPath=NUL",
+            "-c",
+            "core.fsmonitor=false",
+            "ls-files",
+            "--others",
+            "--exclude-standard",
+            "-z"
+          ],
+          "exitCode": 0,
+          "error": null,
+          "log": "2026-10-17T16-47-04.799Z-2200-fmt-10.log"
+        },
+        {
+          "argv": [
+            "-c",
+            "core.hooksPath=NUL",
+            "-c",
+            "core.fsmonitor=false",
+            "rev-parse",
+            "HEAD"
+          ],
+          "exitCode": 0,
+          "error": null,
+          "log": "2026-10-17T16-47-04.799Z-2200-fmt-11.log"
+        },
+        {
+          "argv": [
+            "-c",
+            "core.hooksPath=NUL",
+            "-c",
+            "core.fsmonitor=false",
+            "status",
+            "--porcelain",
+            "--untracked-files=all"
+          ],
+          "exitCode": 0,
+          "error": null,
+          "log": "2026-10-17T16-47-04.799Z-2200-fmt-12.log"
+        }
+      ]
+    },
+    {
+      "name": "2026-10-17T16-47-40.103Z-29428-test-result.json",
+      "mode": "test",
+      "finalGate": true,
+      "status": "passed",
+      "head": "b6fd1fe6566ad79dbcca6c420988c9bb40c47d80",
+      "startedAt": "2026-10-17T16:47:44.615Z",
+      "endedAt": "2026-10-17T16:47:53.195Z",
+      "error": null,
+      "executedTests": 5,
+      "observedExpectedFailure": false,
+      "commands": [
+        {
+          "argv": [
+            "-c",
+            "core.hooksPath=NUL",
+            "-c",
+            "core.fsmonitor=false",
+            "rev-parse",
+            "--path-format=absolute",
+            "--git-common-dir"
+          ],
+          "exitCode": 0,
+          "error": null,
+          "log": null
+        },
+        {
+          "argv": [
+            "-c",
+            "core.hooksPath=NUL",
+            "-c",
+            "core.fsmonitor=false",
+            "branch",
+            "--show-current"
+          ],
+          "exitCode": 0,
+          "error": null,
+          "log": null
+        },
+        {
+          "argv": [
+            "-c",
+            "core.hooksPath=NUL",
+            "-c",
+            "core.fsmonitor=false",
+            "merge-base",
+            "--is-ancestor",
+            "bc409f4af8cb2d51b2f67341ad46637cfa5e66f3",
+            "HEAD"
+          ],
+          "exitCode": 0,
+          "error": null,
+          "log": null
+        },
+        {
+          "argv": [
+            "-c",
+            "core.hooksPath=NUL",
+            "-c",
+            "core.fsmonitor=false",
+            "diff",
+            "--no-renames",
+            "--name-only",
+            "-z",
+            "bc409f4af8cb2d51b2f67341ad46637cfa5e66f3",
+            "HEAD"
+          ],
+          "exitCode": 0,
+          "error": null,
+          "log": null
+        },
+        {
+          "argv": [
+            "-c",
+            "core.hooksPath=NUL",
+            "-c",
+            "core.fsmonitor=false",
+            "diff",
+            "--no-renames",
+            "--name-only",
+            "-z",
+            "HEAD"
+          ],
+          "exitCode": 0,
+          "error": null,
+          "log": null
+        },
+        {
+          "argv": [
+            "-c",
+            "core.hooksPath=NUL",
+            "-c",
+            "core.fsmonitor=false",
+            "ls-files",
+            "--others",
+            "--exclude-standard",
+            "-z"
+          ],
+          "exitCode": 0,
+          "error": null,
+          "log": null
+        },
+        {
+          "argv": [
+            "-c",
+            "core.hooksPath=NUL",
+            "-c",
+            "core.fsmonitor=false",
+            "rev-parse",
+            "HEAD"
+          ],
+          "exitCode": 0,
+          "error": null,
+          "log": null
+        },
+        {
+          "argv": [
+            "-c",
+            "core.hooksPath=NUL",
+            "-c",
+            "core.fsmonitor=false",
+            "status",
+            "--porcelain",
+            "--untracked-files=all"
+          ],
+          "exitCode": 0,
+          "error": null,
+          "log": null
+        },
+        {
+          "argv": [
+            "which",
+            "rustc",
+            "--toolchain",
+            "1.95.0"
+          ],
+          "exitCode": 0,
+          "error": null,
+          "log": "2026-10-17T16-47-40.103Z-29428-test-1.log"
+        },
+        {
+          "argv": [
+            "which",
+            "cargo",
+            "--toolchain",
+            "1.95.0"
+          ],
+          "exitCode": 0,
+          "error": null,
+          "log": "2026-10-17T16-47-40.103Z-29428-test-2.log"
+        },
+        {
+          "argv": [
+            "--version"
+          ],
+          "exitCode": 0,
+          "error": null,
+          "log": "2026-10-17T16-47-40.103Z-29428-test-3.log"
+        },
+        {
+          "argv": [
+            "metadata",
+            "--offline",
+            "--locked",
+            "--format-version",
+            "1",
+            "--manifest-path",
+            "F:\\new\\smaltalk\\water\\.worktrees\\j\\packages\\lab-session\\Cargo.toml"
+          ],
+          "exitCode": 0,
+          "error": null,
+          "log": "2026-10-17T16-47-40.103Z-29428-test-4.log"
+        },
+        {
+          "argv": [
+            "test",
+            "--offline",
+            "--locked",
+            "--manifest-path",
+            "F:\\new\\smaltalk\\water\\.worktrees\\j\\packages\\lab-session\\Cargo.toml",
+            "-p",
+            "water-lab-session",
+            "--test",
+            "session_v1",
+            "--",
+            "--test-threads=1",
+            "--format",
+            "pretty"
+          ],
+          "exitCode": 0,
+          "error": null,
+          "log": "2026-10-17T16-47-40.103Z-29428-test-5.log"
+        },
+        {
+          "argv": [
+            "-c",
+            "core.hooksPath=NUL",
+            "-c",
+            "core.fsmonitor=false",
+            "branch",
+            "--show-current"
+          ],
+          "exitCode": 0,
+          "error": null,
+          "log": "2026-10-17T16-47-40.103Z-29428-test-6.log"
+        },
+        {
+          "argv": [
+            "-c",
+            "core.hooksPath=NUL",
+            "-c",
+            "core.fsmonitor=false",
+            "merge-base",
+            "--is-ancestor",
+            "bc409f4af8cb2d51b2f67341ad46637cfa5e66f3",
+            "HEAD"
+          ],
+          "exitCode": 0,
+          "error": null,
+          "log": "2026-10-17T16-47-40.103Z-29428-test-7.log"
+        },
+        {
+          "argv": [
+            "-c",
+            "core.hooksPath=NUL",
+            "-c",
+            "core.fsmonitor=false",
+            "diff",
+            "--no-renames",
+            "--name-only",
+            "-z",
+            "bc409f4af8cb2d51b2f67341ad46637cfa5e66f3",
+            "HEAD"
+          ],
+          "exitCode": 0,
+          "error": null,
+          "log": "2026-10-17T16-47-40.103Z-29428-test-8.log"
+        },
+        {
+          "argv": [
+            "-c",
+            "core.hooksPath=NUL",
+            "-c",
+            "core.fsmonitor=false",
+            "diff",
+            "--no-renames",
+            "--name-only",
+            "-z",
+            "HEAD"
+          ],
+          "exitCode": 0,
+          "error": null,
+          "log": "2026-10-17T16-47-40.103Z-29428-test-9.log"
+        },
+        {
+          "argv": [
+            "-c",
+            "core.hooksPath=NUL",
+            "-c",
+            "core.fsmonitor=false",
+            "ls-files",
+            "--others",
+            "--exclude-standard",
+            "-z"
+          ],
+          "exitCode": 0,
+          "error": null,
+          "log": "2026-10-17T16-47-40.103Z-29428-test-10.log"
+        },
+        {
+          "argv": [
+            "-c",
+            "core.hooksPath=NUL",
+            "-c",
+            "core.fsmonitor=false",
+            "rev-parse",
+            "HEAD"
+          ],
+          "exitCode": 0,
+          "error": null,
+          "log": "2026-10-17T16-47-40.103Z-29428-test-11.log"
+        },
+        {
+          "argv": [
+            "-c",
+            "core.hooksPath=NUL",
+            "-c",
+            "core.fsmonitor=false",
+            "status",
+            "--porcelain",
+            "--untracked-files=all"
+          ],
+          "exitCode": 0,
+          "error": null,
+          "log": "2026-10-17T16-47-40.103Z-29428-test-12.log"
+        }
+      ]
+    },
+    {
+      "name": "2026-10-17T16-48-20.976Z-26948-clippy-result.json",
+      "mode": "clippy",
+      "finalGate": true,
+      "status": "passed",
+      "head": "b6fd1fe6566ad79dbcca6c420988c9bb40c47d80",
+      "startedAt": "2026-10-17T16:48:27.503Z",
+      "endedAt": "2026-10-17T16:48:31.262Z",
+      "error": null,
+      "executedTests": 0,
+      "observedExpectedFailure": false,
+      "commands": [
+        {
+          "argv": [
+            "-c",
+            "core.hooksPath=NUL",
+            "-c",
+            "core.fsmonitor=false",
+            "rev-parse",
+            "--path-format=absolute",
+            "--git-common-dir"
+          ],
+          "exitCode": 0,
+          "error": null,
+          "log": null
+        },
+        {
+          "argv": [
+            "-c",
+            "core.hooksPath=NUL",
+            "-c",
+            "core.fsmonitor=false",
+            "branch",
+            "--show-current"
+          ],
+          "exitCode": 0,
+          "error": null,
+          "log": null
+        },
+        {
+          "argv": [
+            "-c",
+            "core.hooksPath=NUL",
+            "-c",
+            "core.fsmonitor=false",
+            "merge-base",
+            "--is-ancestor",
+            "bc409f4af8cb2d51b2f67341ad46637cfa5e66f3",
+            "HEAD"
+          ],
+          "exitCode": 0,
+          "error": null,
+          "log": null
+        },
+        {
+          "argv": [
+            "-c",
+            "core.hooksPath=NUL",
+            "-c",
+            "core.fsmonitor=false",
+            "diff",
+            "--no-renames",
+            "--name-only",
+            "-z",
+            "bc409f4af8cb2d51b2f67341ad46637cfa5e66f3",
+            "HEAD"
+          ],
+          "exitCode": 0,
+          "error": null,
+          "log": null
+        },
+        {
+          "argv": [
+            "-c",
+            "core.hooksPath=NUL",
+            "-c",
+            "core.fsmonitor=false",
+            "diff",
+            "--no-renames",
+            "--name-only",
+            "-z",
+            "HEAD"
+          ],
+          "exitCode": 0,
+          "error": null,
+          "log": null
+        },
+        {
+          "argv": [
+            "-c",
+            "core.hooksPath=NUL",
+            "-c",
+            "core.fsmonitor=false",
+            "ls-files",
+            "--others",
+            "--exclude-standard",
+            "-z"
+          ],
+          "exitCode": 0,
+          "error": null,
+          "log": null
+        },
+        {
+          "argv": [
+            "-c",
+            "core.hooksPath=NUL",
+            "-c",
+            "core.fsmonitor=false",
+            "rev-parse",
+            "HEAD"
+          ],
+          "exitCode": 0,
+          "error": null,
+          "log": null
+        },
+        {
+          "argv": [
+            "-c",
+            "core.hooksPath=NUL",
+            "-c",
+            "core.fsmonitor=false",
+            "status",
+            "--porcelain",
+            "--untracked-files=all"
+          ],
+          "exitCode": 0,
+          "error": null,
+          "log": null
+        },
+        {
+          "argv": [
+            "which",
+            "rustc",
+            "--toolchain",
+            "1.95.0"
+          ],
+          "exitCode": 0,
+          "error": null,
+          "log": "2026-10-17T16-48-20.976Z-26948-clippy-1.log"
+        },
+        {
+          "argv": [
+            "which",
+            "cargo",
+            "--toolchain",
+            "1.95.0"
+          ],
+          "exitCode": 0,
+          "error": null,
+          "log": "2026-10-17T16-48-20.976Z-26948-clippy-2.log"
+        },
+        {
+          "argv": [
+            "--version"
+          ],
+          "exitCode": 0,
+          "error": null,
+          "log": "2026-10-17T16-48-20.976Z-26948-clippy-3.log"
+        },
+        {
+          "argv": [
+            "metadata",
+            "--offline",
+            "--locked",
+            "--format-version",
+            "1",
+            "--manifest-path",
+            "F:\\new\\smaltalk\\water\\.worktrees\\j\\packages\\lab-session\\Cargo.toml"
+          ],
+          "exitCode": 0,
+          "error": null,
+          "log": "2026-10-17T16-48-20.976Z-26948-clippy-4.log"
+        },
+        {
+          "argv": [
+            "clippy",
+            "--offline",
+            "--locked",
+            "--manifest-path",
+            "F:\\new\\smaltalk\\water\\.worktrees\\j\\packages\\lab-session\\Cargo.toml",
+            "-p",
+            "water-lab-session",
+            "--all-targets",
+            "--",
+            "-D",
+            "warnings"
+          ],
+          "exitCode": 0,
+          "error": null,
+          "log": "2026-10-17T16-48-20.976Z-26948-clippy-5.log"
+        },
+        {
+          "argv": [
+            "-c",
+            "core.hooksPath=NUL",
+            "-c",
+            "core.fsmonitor=false",
+            "branch",
+            "--show-current"
+          ],
+          "exitCode": 0,
+          "error": null,
+          "log": "2026-10-17T16-48-20.976Z-26948-clippy-6.log"
+        },
+        {
+          "argv": [
+            "-c",
+            "core.hooksPath=NUL",
+            "-c",
+            "core.fsmonitor=false",
+            "merge-base",
+            "--is-ancestor",
+            "bc409f4af8cb2d51b2f67341ad46637cfa5e66f3",
+            "HEAD"
+          ],
+          "exitCode": 0,
+          "error": null,
+          "log": "2026-10-17T16-48-20.976Z-26948-clippy-7.log"
+        },
+        {
+          "argv": [
+            "-c",
+            "core.hooksPath=NUL",
+            "-c",
+            "core.fsmonitor=false",
+            "diff",
+            "--no-renames",
+            "--name-only",
+            "-z",
+            "bc409f4af8cb2d51b2f67341ad46637cfa5e66f3",
+            "HEAD"
+          ],
+          "exitCode": 0,
+          "error": null,
+          "log": "2026-10-17T16-48-20.976Z-26948-clippy-8.log"
+        },
+        {
+          "argv": [
+            "-c",
+            "core.hooksPath=NUL",
+            "-c",
+            "core.fsmonitor=false",
+            "diff",
+            "--no-renames",
+            "--name-only",
+            "-z",
+            "HEAD"
+          ],
+          "exitCode": 0,
+          "error": null,
+          "log": "2026-10-17T16-48-20.976Z-26948-clippy-9.log"
+        },
+        {
+          "argv": [
+            "-c",
+            "core.hooksPath=NUL",
+            "-c",
+            "core.fsmonitor=false",
+            "ls-files",
+            "--others",
+            "--exclude-standard",
+            "-z"
+          ],
+          "exitCode": 0,
+          "error": null,
+          "log": "2026-10-17T16-48-20.976Z-26948-clippy-10.log"
+        },
+        {
+          "argv": [
+            "-c",
+            "core.hooksPath=NUL",
+            "-c",
+            "core.fsmonitor=false",
+            "rev-parse",
+            "HEAD"
+          ],
+          "exitCode": 0,
+          "error": null,
+          "log": "2026-10-17T16-48-20.976Z-26948-clippy-11.log"
+        },
+        {
+          "argv": [
+            "-c",
+            "core.hooksPath=NUL",
+            "-c",
+            "core.fsmonitor=false",
+            "status",
+            "--porcelain",
+            "--untracked-files=all"
+          ],
+          "exitCode": 0,
+          "error": null,
+          "log": "2026-10-17T16-48-20.976Z-26948-clippy-12.log"
+        }
+      ]
+    },
+    {
+      "name": "2026-10-17T16-49-00.145Z-13012-metadata-result.json",
+      "mode": "metadata",
+      "finalGate": true,
+      "status": "passed",
+      "head": "b6fd1fe6566ad79dbcca6c420988c9bb40c47d80",
+      "startedAt": "2026-10-17T16:49:01.255Z",
+      "endedAt": "2026-10-17T16:49:03.233Z",
+      "error": null,
+      "executedTests": 0,
+      "observedExpectedFailure": false,
+      "commands": [
+        {
+          "argv": [
+            "-c",
+            "core.hooksPath=NUL",
+            "-c",
+            "core.fsmonitor=false",
+            "rev-parse",
+            "--path-format=absolute",
+            "--git-common-dir"
+          ],
+          "exitCode": 0,
+          "error": null,
+          "log": null
+        },
+        {
+          "argv": [
+            "-c",
+            "core.hooksPath=NUL",
+            "-c",
+            "core.fsmonitor=false",
+            "branch",
+            "--show-current"
+          ],
+          "exitCode": 0,
+          "error": null,
+          "log": null
+        },
+        {
+          "argv": [
+            "-c",
+            "core.hooksPath=NUL",
+            "-c",
+            "core.fsmonitor=false",
+            "merge-base",
+            "--is-ancestor",
+            "bc409f4af8cb2d51b2f67341ad46637cfa5e66f3",
+            "HEAD"
+          ],
+          "exitCode": 0,
+          "error": null,
+          "log": null
+        },
+        {
+          "argv": [
+            "-c",
+            "core.hooksPath=NUL",
+            "-c",
+            "core.fsmonitor=false",
+            "diff",
+            "--no-renames",
+            "--name-only",
+            "-z",
+            "bc409f4af8cb2d51b2f67341ad46637cfa5e66f3",
+            "HEAD"
+          ],
+          "exitCode": 0,
+          "error": null,
+          "log": null
+        },
+        {
+          "argv": [
+            "-c",
+            "core.hooksPath=NUL",
+            "-c",
+            "core.fsmonitor=false",
+            "diff",
+            "--no-renames",
+            "--name-only",
+            "-z",
+            "HEAD"
+          ],
+          "exitCode": 0,
+          "error": null,
+          "log": null
+        },
+        {
+          "argv": [
+            "-c",
+            "core.hooksPath=NUL",
+            "-c",
+            "core.fsmonitor=false",
+            "ls-files",
+            "--others",
+            "--exclude-standard",
+            "-z"
+          ],
+          "exitCode": 0,
+          "error": null,
+          "log": null
+        },
+        {
+          "argv": [
+            "-c",
+            "core.hooksPath=NUL",
+            "-c",
+            "core.fsmonitor=false",
+            "rev-parse",
+            "HEAD"
+          ],
+          "exitCode": 0,
+          "error": null,
+          "log": null
+        },
+        {
+          "argv": [
+            "-c",
+            "core.hooksPath=NUL",
+            "-c",
+            "core.fsmonitor=false",
+            "status",
+            "--porcelain",
+            "--untracked-files=all"
+          ],
+          "exitCode": 0,
+          "error": null,
+          "log": null
+        },
+        {
+          "argv": [
+            "which",
+            "rustc",
+            "--toolchain",
+            "1.95.0"
+          ],
+          "exitCode": 0,
+          "error": null,
+          "log": "2026-10-17T16-49-00.145Z-13012-metadata-1.log"
+        },
+        {
+          "argv": [
+            "which",
+            "cargo",
+            "--toolchain",
+            "1.95.0"
+          ],
+          "exitCode": 0,
+          "error": null,
+          "log": "2026-10-17T16-49-00.145Z-13012-metadata-2.log"
+        },
+        {
+          "argv": [
+            "--version"
+          ],
+          "exitCode": 0,
+          "error": null,
+          "log": "2026-10-17T16-49-00.145Z-13012-metadata-3.log"
+        },
+        {
+          "argv": [
+            "metadata",
+            "--offline",
+            "--locked",
+            "--format-version",
+            "1",
+            "--manifest-path",
+            "F:\\new\\smaltalk\\water\\.worktrees\\j\\packages\\lab-session\\Cargo.toml"
+          ],
+          "exitCode": 0,
+          "error": null,
+          "log": "2026-10-17T16-49-00.145Z-13012-metadata-4.log"
+        },
+        {
+          "argv": [
+            "-c",
+            "core.hooksPath=NUL",
+            "-c",
+            "core.fsmonitor=false",
+            "branch",
+            "--show-current"
+          ],
+          "exitCode": 0,
+          "error": null,
+          "log": "2026-10-17T16-49-00.145Z-13012-metadata-5.log"
+        },
+        {
+          "argv": [
+            "-c",
+            "core.hooksPath=NUL",
+            "-c",
+            "core.fsmonitor=false",
+            "merge-base",
+            "--is-ancestor",
+            "bc409f4af8cb2d51b2f67341ad46637cfa5e66f3",
+            "HEAD"
+          ],
+          "exitCode": 0,
+          "error": null,
+          "log": "2026-10-17T16-49-00.145Z-13012-metadata-6.log"
+        },
+        {
+          "argv": [
+            "-c",
+            "core.hooksPath=NUL",
+            "-c",
+            "core.fsmonitor=false",
+            "diff",
+            "--no-renames",
+            "--name-only",
+            "-z",
+            "bc409f4af8cb2d51b2f67341ad46637cfa5e66f3",
+            "HEAD"
+          ],
+          "exitCode": 0,
+          "error": null,
+          "log": "2026-10-17T16-49-00.145Z-13012-metadata-7.log"
+        },
+        {
+          "argv": [
+            "-c",
+            "core.hooksPath=NUL",
+            "-c",
+            "core.fsmonitor=false",
+            "diff",
+            "--no-renames",
+            "--name-only",
+            "-z",
+            "HEAD"
+          ],
+          "exitCode": 0,
+          "error": null,
+          "log": "2026-10-17T16-49-00.145Z-13012-metadata-8.log"
+        },
+        {
+          "argv": [
+            "-c",
+            "core.hooksPath=NUL",
+            "-c",
+            "core.fsmonitor=false",
+            "ls-files",
+            "--others",
+            "--exclude-standard",
+            "-z"
+          ],
+          "exitCode": 0,
+          "error": null,
+          "log": "2026-10-17T16-49-00.145Z-13012-metadata-9.log"
+        },
+        {
+          "argv": [
+            "-c",
+            "core.hooksPath=NUL",
+            "-c",
+            "core.fsmonitor=false",
+            "rev-parse",
+            "HEAD"
+          ],
+          "exitCode": 0,
+          "error": null,
+          "log": "2026-10-17T16-49-00.145Z-13012-metadata-10.log"
+        },
+        {
+          "argv": [
+            "-c",
+            "core.hooksPath=NUL",
+            "-c",
+            "core.fsmonitor=false",
+            "status",
+            "--porcelain",
+            "--untracked-files=all"
+          ],
+          "exitCode": 0,
+          "error": null,
+          "log": "2026-10-17T16-49-00.145Z-13012-metadata-11.log"
+        }
+      ]
+    },
+    {
+      "name": "2026-10-17T16-49-09.736Z-42532-bridge-result.json",
+      "mode": "bridge",
+      "finalGate": true,
+      "status": "failed",
+      "head": "b6fd1fe6566ad79dbcca6c420988c9bb40c47d80",
+      "startedAt": "2026-10-17T16:49:11.617Z",
+      "endedAt": "2026-10-17T16:49:14.109Z",
+      "error": "water_scan\n\n2 !== 1\n",
+      "executedTests": 0,
+      "observedExpectedFailure": false,
+      "commands": [
+        {
+          "argv": [
+            "-c",
+            "core.hooksPath=NUL",
+            "-c",
+            "core.fsmonitor=false",
+            "rev-parse",
+            "--path-format=absolute",
+            "--git-common-dir"
+          ],
+          "exitCode": 0,
+          "error": null,
+          "log": null
+        },
+        {
+          "argv": [
+            "-c",
+            "core.hooksPath=NUL",
+            "-c",
+            "core.fsmonitor=false",
+            "branch",
+            "--show-current"
+          ],
+          "exitCode": 0,
+          "error": null,
+          "log": null
+        },
+        {
+          "argv": [
+            "-c",
+            "core.hooksPath=NUL",
+            "-c",
+            "core.fsmonitor=false",
+            "merge-base",
+            "--is-ancestor",
+            "bc409f4af8cb2d51b2f67341ad46637cfa5e66f3",
+            "HEAD"
+          ],
+          "exitCode": 0,
+          "error": null,
+          "log": null
+        },
+        {
+          "argv": [
+            "-c",
+            "core.hooksPath=NUL",
+            "-c",
+            "core.fsmonitor=false",
+            "diff",
+            "--no-renames",
+            "--name-only",
+            "-z",
+            "bc409f4af8cb2d51b2f67341ad46637cfa5e66f3",
+            "HEAD"
+          ],
+          "exitCode": 0,
+          "error": null,
+          "log": null
+        },
+        {
+          "argv": [
+            "-c",
+            "core.hooksPath=NUL",
+            "-c",
+            "core.fsmonitor=false",
+            "diff",
+            "--no-renames",
+            "--name-only",
+            "-z",
+            "HEAD"
+          ],
+          "exitCode": 0,
+          "error": null,
+          "log": null
+        },
+        {
+          "argv": [
+            "-c",
+            "core.hooksPath=NUL",
+            "-c",
+            "core.fsmonitor=false",
+            "ls-files",
+            "--others",
+            "--exclude-standard",
+            "-z"
+          ],
+          "exitCode": 0,
+          "error": null,
+          "log": null
+        },
+        {
+          "argv": [
+            "-c",
+            "core.hooksPath=NUL",
+            "-c",
+            "core.fsmonitor=false",
+            "rev-parse",
+            "HEAD"
+          ],
+          "exitCode": 0,
+          "error": null,
+          "log": null
+        },
+        {
+          "argv": [
+            "-c",
+            "core.hooksPath=NUL",
+            "-c",
+            "core.fsmonitor=false",
+            "status",
+            "--porcelain",
+            "--untracked-files=all"
+          ],
+          "exitCode": 0,
+          "error": null,
+          "log": null
+        },
+        {
+          "argv": [
+            "which",
+            "rustc",
+            "--toolchain",
+            "1.95.0"
+          ],
+          "exitCode": 0,
+          "error": null,
+          "log": "2026-10-17T16-49-09.736Z-42532-bridge-1.log"
+        },
+        {
+          "argv": [
+            "which",
+            "cargo",
+            "--toolchain",
+            "1.95.0"
+          ],
+          "exitCode": 0,
+          "error": null,
+          "log": "2026-10-17T16-49-09.736Z-42532-bridge-2.log"
+        },
+        {
+          "argv": [
+            "--version"
+          ],
+          "exitCode": 0,
+          "error": null,
+          "log": "2026-10-17T16-49-09.736Z-42532-bridge-3.log"
+        },
+        {
+          "argv": [
+            "metadata",
+            "--offline",
+            "--locked",
+            "--format-version",
+            "1",
+            "--manifest-path",
+            "F:\\new\\smaltalk\\water\\.worktrees\\j\\packages\\lab-session\\Cargo.toml"
+          ],
+          "exitCode": 0,
+          "error": null,
+          "log": "2026-10-17T16-49-09.736Z-42532-bridge-4.log"
+        },
+        {
+          "argv": [
+            "build",
+            "--offline",
+            "--locked",
+            "--manifest-path",
+            "F:\\new\\smaltalk\\water\\.worktrees\\j\\packages\\lab-session\\Cargo.toml",
+            "--lib"
+          ],
+          "exitCode": 0,
+          "error": null,
+          "log": "2026-10-17T16-49-09.736Z-42532-bridge-5.log"
+        },
+        {
+          "argv": [
+            "-c",
+            "core.hooksPath=NUL",
+            "-c",
+            "core.fsmonitor=false",
+            "branch",
+            "--show-current"
+          ],
+          "exitCode": 0,
+          "error": null,
+          "log": "2026-10-17T16-49-09.736Z-42532-bridge-6.log"
+        },
+        {
+          "argv": [
+            "-c",
+            "core.hooksPath=NUL",
+            "-c",
+            "core.fsmonitor=false",
+            "merge-base",
+            "--is-ancestor",
+            "bc409f4af8cb2d51b2f67341ad46637cfa5e66f3",
+            "HEAD"
+          ],
+          "exitCode": 0,
+          "error": null,
+          "log": "2026-10-17T16-49-09.736Z-42532-bridge-7.log"
+        },
+        {
+          "argv": [
+            "-c",
+            "core.hooksPath=NUL",
+            "-c",
+            "core.fsmonitor=false",
+            "diff",
+            "--no-renames",
+            "--name-only",
+            "-z",
+            "bc409f4af8cb2d51b2f67341ad46637cfa5e66f3",
+            "HEAD"
+          ],
+          "exitCode": 0,
+          "error": null,
+          "log": "2026-10-17T16-49-09.736Z-42532-bridge-8.log"
+        },
+        {
+          "argv": [
+            "-c",
+            "core.hooksPath=NUL",
+            "-c",
+            "core.fsmonitor=false",
+            "diff",
+            "--no-renames",
+            "--name-only",
+            "-z",
+            "HEAD"
+          ],
+          "exitCode": 0,
+          "error": null,
+          "log": "2026-10-17T16-49-09.736Z-42532-bridge-9.log"
+        },
+        {
+          "argv": [
+            "-c",
+            "core.hooksPath=NUL",
+            "-c",
+            "core.fsmonitor=false",
+            "ls-files",
+            "--others",
+            "--exclude-standard",
+            "-z"
+          ],
+          "exitCode": 0,
+          "error": null,
+          "log": "2026-10-17T16-49-09.736Z-42532-bridge-10.log"
+        },
+        {
+          "argv": [
+            "-c",
+            "core.hooksPath=NUL",
+            "-c",
+            "core.fsmonitor=false",
+            "rev-parse",
+            "HEAD"
+          ],
+          "exitCode": 0,
+          "error": null,
+          "log": "2026-10-17T16-49-09.736Z-42532-bridge-11.log"
+        },
+        {
+          "argv": [
+            "-c",
+            "core.hooksPath=NUL",
+            "-c",
+            "core.fsmonitor=false",
+            "status",
+            "--porcelain",
+            "--untracked-files=all"
+          ],
+          "exitCode": 0,
+          "error": null,
+          "log": "2026-10-17T16-49-09.736Z-42532-bridge-12.log"
+        }
+      ]
+    }
+  ]
+}

@@ -1,0 +1,63 @@
+{"binary":"C:\\Users\\37310\\.rustup\\toolchains\\1.95.0-x86_64-pc-windows-msvc\\bin\\cargo.exe","argv":["test","--offline","--locked","--manifest-path","F:\\new\\smaltalk\\water\\.worktrees\\j\\packages\\lab-session\\Cargo.toml","-p","water-lab-session","--test","session_v1","--","--test-threads=1","--format","pretty"],"exitCode":101,"error":null,"log":"2026-10-17T16-44-47.120Z-26260-red-nc2-expected-red.log"}
+--- stdout ---
+
+running 5 tests
+test session_cancellation_and_progress ... FAILED
+test session_errors_and_bounds ... FAILED
+test session_identity_and_protection ... FAILED
+test session_native_composition ... FAILED
+test session_snapshot_wire ... FAILED
+
+failures:
+
+---- session_cancellation_and_progress stdout ----
+
+thread 'session_cancellation_and_progress' (8440) panicked at tests\session_v1.rs:418:63:
+called `Option::unwrap()` on a `None` value
+note: run with `RUST_BACKTRACE=1` environment variable to display a backtrace
+
+---- session_errors_and_bounds stdout ----
+J physical negative cases=6
+
+thread 'session_errors_and_bounds' (18036) panicked at tests\session_v1.rs:85:5:
+assertion `left == right` failed: J_FACTS_PRESERVED: complete facts, identities, depths and issue provenance
+  left: Object {}
+ right: Object {"case_id": String("cancel-plan"), "facts_version": String("water.scan-lab.v1"), "recorded_entries": Number(0), "run_id": String("run-e6b818e5-8d18-47ae-8dff-2609b86c3c82"), "scopes": Array [Object {"coverage": String("partial"), "entries": Array [], "issues": Array [Object {"code": String("depth_limit"), "operation": String("budget"), "origin": String("policy"), "relative_path": String("")}], "relative_root": String("scope"), "scope_id": String("scope-1"), "visited_entries": Number(0)}], "status": String("partial"), "visited_entries": Number(0)}
+
+---- session_identity_and_protection stdout ----
+
+thread 'session_identity_and_protection' (19696) panicked at tests\session_v1.rs:85:5:
+assertion `left == right` failed: J_FACTS_PRESERVED: complete facts, identities, depths and issue provenance
+  left: Object {}
+ right: Object {"case_id": String("project-markers"), "facts_version": String("water.scan-lab.v1"), "recorded_entries": Number(6), "run_id": String("run-985ab8ba-ea1e-416e-bc6c-41ded4ada93b"), "scopes": Array [Object {"coverage": String("complete"), "entries": Array [Object {"allocated_bytes": Null, "depth": Number(1), "identity": Object {"device": Null, "inode": Null, "kind": String("unknown"), "link_count": Null}, "kind": String("directory"), "logical_bytes": Null, "relative_path": String(".git")}, Object {"allocated_bytes": Null, "depth": Number(2), "identity": Object {"device": Null, "inode": Null, "kind": String("unknown"), "link_count": Null}, "kind": String("file"), "logical_bytes": String("26"), "relative_path": String(".git/HEAD")}, Object {"allocated_bytes": Null, "depth": Number(1), "identity": Object {"device": Null, "inode": Null, "kind": String("unknown"), "link_count": Null}, "kind": String("file"), "logical_bytes": String("50"), "relative_path": String("package.json")}, Object {"allocated_bytes": Null, "depth": Number(1), "identity": Object {"device": Null, "inode": Null, "kind": String("unknown"), "link_count": Null}, "kind": String("file"), "logical_bytes": String("61"), "relative_path": String("pyproject.toml")}, Object {"allocated_bytes": Null, "depth": Number(1), "identity": Object {"device": Null, "inode": Null, "kind": String("unknown"), "link_count": Null}, "kind": String("directory"), "logical_bytes": Null, "relative_path": String("src")}, Object {"allocated_bytes": Null, "depth": Number(2), "identity": Object {"device": Null, "inode": Null, "kind": String("unknown"), "link_count": Null}, "kind": String("file"), "logical_bytes": String("36"), "relative_path": String("src/main.py")}], "issues": Array [], "relative_root": String("scope"), "scope_id": String("scope-1"), "visited_entries": Number(6)}], "status": String("completed"), "visited_entries": Number(6)}
+
+---- session_native_composition stdout ----
+
+thread 'session_native_composition' (38000) panicked at tests\session_v1.rs:85:5:
+assertion `left == right` failed: J_FACTS_PRESERVED: complete facts, identities, depths and issue provenance
+  left: Object {}
+ right: Object {"case_id": String("project-markers"), "facts_version": String("water.scan-lab.v1"), "recorded_entries": Number(6), "run_id": String("run-985ab8ba-ea1e-416e-bc6c-41ded4ada93b"), "scopes": Array [Object {"coverage": String("complete"), "entries": Array [Object {"allocated_bytes": Null, "depth": Number(1), "identity": Object {"device": Null, "inode": Null, "kind": String("unknown"), "link_count": Null}, "kind": String("directory"), "logical_bytes": Null, "relative_path": String(".git")}, Object {"allocated_bytes": Null, "depth": Number(2), "identity": Object {"device": Null, "inode": Null, "kind": String("unknown"), "link_count": Null}, "kind": String("file"), "logical_bytes": String("26"), "relative_path": String(".git/HEAD")}, Object {"allocated_bytes": Null, "depth": Number(1), "identity": Object {"device": Null, "inode": Null, "kind": String("unknown"), "link_count": Null}, "kind": String("file"), "logical_bytes": String("50"), "relative_path": String("package.json")}, Object {"allocated_bytes": Null, "depth": Number(1), "identity": Object {"device": Null, "inode": Null, "kind": String("unknown"), "link_count": Null}, "kind": String("file"), "logical_bytes": String("61"), "relative_path": String("pyproject.toml")}, Object {"allocated_bytes": Null, "depth": Number(1), "identity": Object {"device": Null, "inode": Null, "kind": String("unknown"), "link_count": Null}, "kind": String("directory"), "logical_bytes": Null, "relative_path": String("src")}, Object {"allocated_bytes": Null, "depth": Number(2), "identity": Object {"device": Null, "inode": Null, "kind": String("unknown"), "link_count": Null}, "kind": String("file"), "logical_bytes": String("36"), "relative_path": String("src/main.py")}], "issues": Array [], "relative_root": String("scope"), "scope_id": String("scope-1"), "visited_entries": Number(6)}], "status": String("completed"), "visited_entries": Number(6)}
+
+---- session_snapshot_wire stdout ----
+
+thread 'session_snapshot_wire' (30020) panicked at tests\session_v1.rs:85:5:
+assertion `left == right` failed: J_FACTS_PRESERVED: complete facts, identities, depths and issue provenance
+  left: Object {}
+ right: Object {"case_id": String("project-markers"), "facts_version": String("water.scan-lab.v1"), "recorded_entries": Number(6), "run_id": String("run-985ab8ba-ea1e-416e-bc6c-41ded4ada93b"), "scopes": Array [Object {"coverage": String("complete"), "entries": Array [Object {"allocated_bytes": Null, "depth": Number(1), "identity": Object {"device": Null, "inode": Null, "kind": String("unknown"), "link_count": Null}, "kind": String("directory"), "logical_bytes": Null, "relative_path": String(".git")}, Object {"allocated_bytes": Null, "depth": Number(2), "identity": Object {"device": Null, "inode": Null, "kind": String("unknown"), "link_count": Null}, "kind": String("file"), "logical_bytes": String("26"), "relative_path": String(".git/HEAD")}, Object {"allocated_bytes": Null, "depth": Number(1), "identity": Object {"device": Null, "inode": Null, "kind": String("unknown"), "link_count": Null}, "kind": String("file"), "logical_bytes": String("50"), "relative_path": String("package.json")}, Object {"allocated_bytes": Null, "depth": Number(1), "identity": Object {"device": Null, "inode": Null, "kind": String("unknown"), "link_count": Null}, "kind": String("file"), "logical_bytes": String("61"), "relative_path": String("pyproject.toml")}, Object {"allocated_bytes": Null, "depth": Number(1), "identity": Object {"device": Null, "inode": Null, "kind": String("unknown"), "link_count": Null}, "kind": String("directory"), "logical_bytes": Null, "relative_path": String("src")}, Object {"allocated_bytes": Null, "depth": Number(2), "identity": Object {"device": Null, "inode": Null, "kind": String("unknown"), "link_count": Null}, "kind": String("file"), "logical_bytes": String("36"), "relative_path": String("src/main.py")}], "issues": Array [], "relative_root": String("scope"), "scope_id": String("scope-1"), "visited_entries": Number(6)}], "status": String("completed"), "visited_entries": Number(6)}
+
+
+failures:
+    session_cancellation_and_progress
+    session_errors_and_bounds
+    session_identity_and_protection
+    session_native_composition
+    session_snapshot_wire
+
+test result: FAILED. 0 passed; 5 failed; 0 ignored; 0 measured; 0 filtered out; finished in 0.16s
+
+
+--- stderr ---
+   Compiling water-lab-session v0.1.0 (F:\new\smaltalk\water\.worktrees\j\packages\lab-session)
+    Finished `test` profile [unoptimized + debuginfo] target(s) in 2.38s
+     Running tests\session_v1.rs (.local\j-target\debug\deps\session_v1-32c79d9348e6b053.exe)
+error: test failed, to rerun pass `-p water-lab-session --test session_v1`

@@ -1,0 +1,365 @@
+{
+  "task": "WATER-W1-J",
+  "mode": "red-nc1",
+  "finalGate": false,
+  "startedAt": "2026-10-17T16:44:19.140Z",
+  "before": {
+    "head": "bc409f4af8cb2d51b2f67341ad46637cfa5e66f3",
+    "status": "?? packages/lab-session/Cargo.lock\n?? packages/lab-session/Cargo.toml\n?? packages/lab-session/README.md\n?? packages/lab-session/src/lib.rs\n?? packages/lab-session/src/v1.rs\n?? packages/lab-session/tests/session_v1.rs"
+  },
+  "node": "v24.16.0",
+  "productTestsRun": true,
+  "frozenFiles": 65,
+  "commands": [
+    {
+      "binary": "git",
+      "argv": [
+        "-c",
+        "core.hooksPath=NUL",
+        "-c",
+        "core.fsmonitor=false",
+        "rev-parse",
+        "--path-format=absolute",
+        "--git-common-dir"
+      ],
+      "exitCode": 0,
+      "error": null
+    },
+    {
+      "binary": "git",
+      "argv": [
+        "-c",
+        "core.hooksPath=NUL",
+        "-c",
+        "core.fsmonitor=false",
+        "branch",
+        "--show-current"
+      ],
+      "exitCode": 0,
+      "error": null
+    },
+    {
+      "binary": "git",
+      "argv": [
+        "-c",
+        "core.hooksPath=NUL",
+        "-c",
+        "core.fsmonitor=false",
+        "merge-base",
+        "--is-ancestor",
+        "bc409f4af8cb2d51b2f67341ad46637cfa5e66f3",
+        "HEAD"
+      ],
+      "exitCode": 0,
+      "error": null
+    },
+    {
+      "binary": "git",
+      "argv": [
+        "-c",
+        "core.hooksPath=NUL",
+        "-c",
+        "core.fsmonitor=false",
+        "diff",
+        "--no-renames",
+        "--name-only",
+        "-z",
+        "bc409f4af8cb2d51b2f67341ad46637cfa5e66f3",
+        "HEAD"
+      ],
+      "exitCode": 0,
+      "error": null
+    },
+    {
+      "binary": "git",
+      "argv": [
+        "-c",
+        "core.hooksPath=NUL",
+        "-c",
+        "core.fsmonitor=false",
+        "diff",
+        "--no-renames",
+        "--name-only",
+        "-z",
+        "HEAD"
+      ],
+      "exitCode": 0,
+      "error": null
+    },
+    {
+      "binary": "git",
+      "argv": [
+        "-c",
+        "core.hooksPath=NUL",
+        "-c",
+        "core.fsmonitor=false",
+        "ls-files",
+        "--others",
+        "--exclude-standard",
+        "-z"
+      ],
+      "exitCode": 0,
+      "error": null
+    },
+    {
+      "binary": "git",
+      "argv": [
+        "-c",
+        "core.hooksPath=NUL",
+        "-c",
+        "core.fsmonitor=false",
+        "rev-parse",
+        "HEAD"
+      ],
+      "exitCode": 0,
+      "error": null
+    },
+    {
+      "binary": "git",
+      "argv": [
+        "-c",
+        "core.hooksPath=NUL",
+        "-c",
+        "core.fsmonitor=false",
+        "status",
+        "--porcelain",
+        "--untracked-files=all"
+      ],
+      "exitCode": 0,
+      "error": null
+    },
+    {
+      "binary": "C:\\Users\\37310\\.cargo\\bin\\rustup.exe",
+      "argv": [
+        "which",
+        "rustc",
+        "--toolchain",
+        "1.95.0"
+      ],
+      "exitCode": 0,
+      "error": null,
+      "log": "2026-10-17T16-44-17.853Z-37004-red-nc1-1.log"
+    },
+    {
+      "binary": "C:\\Users\\37310\\.cargo\\bin\\rustup.exe",
+      "argv": [
+        "which",
+        "cargo",
+        "--toolchain",
+        "1.95.0"
+      ],
+      "exitCode": 0,
+      "error": null,
+      "log": "2026-10-17T16-44-17.853Z-37004-red-nc1-2.log"
+    },
+    {
+      "binary": "C:\\Users\\37310\\.rustup\\toolchains\\1.95.0-x86_64-pc-windows-msvc\\bin\\rustc.exe",
+      "argv": [
+        "--version"
+      ],
+      "exitCode": 0,
+      "error": null,
+      "log": "2026-10-17T16-44-17.853Z-37004-red-nc1-3.log"
+    },
+    {
+      "binary": "C:\\Users\\37310\\.rustup\\toolchains\\1.95.0-x86_64-pc-windows-msvc\\bin\\cargo.exe",
+      "argv": [
+        "metadata",
+        "--offline",
+        "--locked",
+        "--format-version",
+        "1",
+        "--manifest-path",
+        "F:\\new\\smaltalk\\water\\.worktrees\\j\\packages\\lab-session\\Cargo.toml"
+      ],
+      "exitCode": 0,
+      "error": null,
+      "log": "2026-10-17T16-44-17.853Z-37004-red-nc1-4.log"
+    },
+    {
+      "binary": "C:\\Users\\37310\\.rustup\\toolchains\\1.95.0-x86_64-pc-windows-msvc\\bin\\cargo.exe",
+      "argv": [
+        "test",
+        "--offline",
+        "--locked",
+        "--manifest-path",
+        "F:\\new\\smaltalk\\water\\.worktrees\\j\\packages\\lab-session\\Cargo.toml",
+        "-p",
+        "water-lab-session",
+        "--test",
+        "session_v1",
+        "--",
+        "--test-threads=1",
+        "--format",
+        "pretty"
+      ],
+      "exitCode": 101,
+      "error": null,
+      "log": "2026-10-17T16-44-17.853Z-37004-red-nc1-expected-red.log"
+    },
+    {
+      "binary": "git",
+      "argv": [
+        "-c",
+        "core.hooksPath=NUL",
+        "-c",
+        "core.fsmonitor=false",
+        "branch",
+        "--show-current"
+      ],
+      "exitCode": 0,
+      "error": null,
+      "log": "2026-10-17T16-44-17.853Z-37004-red-nc1-5.log"
+    },
+    {
+      "binary": "git",
+      "argv": [
+        "-c",
+        "core.hooksPath=NUL",
+        "-c",
+        "core.fsmonitor=false",
+        "merge-base",
+        "--is-ancestor",
+        "bc409f4af8cb2d51b2f67341ad46637cfa5e66f3",
+        "HEAD"
+      ],
+      "exitCode": 0,
+      "error": null,
+      "log": "2026-10-17T16-44-17.853Z-37004-red-nc1-6.log"
+    },
+    {
+      "binary": "git",
+      "argv": [
+        "-c",
+        "core.hooksPath=NUL",
+        "-c",
+        "core.fsmonitor=false",
+        "diff",
+        "--no-renames",
+        "--name-only",
+        "-z",
+        "bc409f4af8cb2d51b2f67341ad46637cfa5e66f3",
+        "HEAD"
+      ],
+      "exitCode": 0,
+      "error": null,
+      "log": "2026-10-17T16-44-17.853Z-37004-red-nc1-7.log"
+    },
+    {
+      "binary": "git",
+      "argv": [
+        "-c",
+        "core.hooksPath=NUL",
+        "-c",
+        "core.fsmonitor=false",
+        "diff",
+        "--no-renames",
+        "--name-only",
+        "-z",
+        "HEAD"
+      ],
+      "exitCode": 0,
+      "error": null,
+      "log": "2026-10-17T16-44-17.853Z-37004-red-nc1-8.log"
+    },
+    {
+      "binary": "git",
+      "argv": [
+        "-c",
+        "core.hooksPath=NUL",
+        "-c",
+        "core.fsmonitor=false",
+        "ls-files",
+        "--others",
+        "--exclude-standard",
+        "-z"
+      ],
+      "exitCode": 0,
+      "error": null,
+      "log": "2026-10-17T16-44-17.853Z-37004-red-nc1-9.log"
+    },
+    {
+      "binary": "git",
+      "argv": [
+        "-c",
+        "core.hooksPath=NUL",
+        "-c",
+        "core.fsmonitor=false",
+        "rev-parse",
+        "HEAD"
+      ],
+      "exitCode": 0,
+      "error": null,
+      "log": "2026-10-17T16-44-17.853Z-37004-red-nc1-10.log"
+    },
+    {
+      "binary": "git",
+      "argv": [
+        "-c",
+        "core.hooksPath=NUL",
+        "-c",
+        "core.fsmonitor=false",
+        "status",
+        "--porcelain",
+        "--untracked-files=all"
+      ],
+      "exitCode": 0,
+      "error": null,
+      "log": "2026-10-17T16-44-17.853Z-37004-red-nc1-11.log"
+    }
+  ],
+  "assets": {
+    "actualCaptures": 4,
+    "provenance": "413ed914e65e002cd517216fc62c250bceb96c595afaffa0fc2cf4528ff096e4",
+    "newJImplementationTested": false,
+    "newKProductTested": false
+  },
+  "fixtures": {
+    "runs": 11,
+    "negatives": 6,
+    "contentBytes": 81057,
+    "active": "F:\\new\\smaltalk\\water\\.worktrees\\j\\.local\\checks\\WATER-W1-F\\active-fixtures.json"
+  },
+  "sourceState": {
+    "files": [
+      {
+        "path": "packages/lab-session/src/lib.rs",
+        "sha256": "5b796be694e142245c84474df47b63bdee17cb9713b8f256637dbdebbb6bbc46",
+        "mtimeMs": 1792255045233.9973,
+        "snapshot": "2026-10-17T16-44-17.853Z-37004-red-nc1-source-0.txt",
+        "test": false
+      },
+      {
+        "path": "packages/lab-session/src/v1.rs",
+        "sha256": "1641482e162c4609fb289f8a55b4f2584ee3595e8ce22820a7a21eb4d872bebb",
+        "mtimeMs": 1792255457442.0461,
+        "snapshot": "2026-10-17T16-44-17.853Z-37004-red-nc1-source-1.txt",
+        "test": false
+      },
+      {
+        "path": "packages/lab-session/tests/session_v1.rs",
+        "sha256": "f8bab5c0f72cdcf694b2016a09cf476a74a657af810492aadec5a1bcc2dc422d",
+        "mtimeMs": 1792255377178.2654,
+        "snapshot": "2026-10-17T16-44-17.853Z-37004-red-nc1-source-2.txt",
+        "test": true
+      }
+    ],
+    "productionHash": "c5c687b9cfa5a361281c02ed0776adbc3dcc7dbb894f97e055bc4c7f9068eccf",
+    "testHash": "bd8ac0891023a9929c13d9ab8e273289fa12b812673b2a1f0b44a1ede3cee89a"
+  },
+  "observedExpectedFailure": true,
+  "expectation": {
+    "label": "nc1",
+    "target": "J_CANCEL_SHARED",
+    "testExitCode": 101
+  },
+  "executedTests": 5,
+  "snapshotFiles": 44,
+  "after": {
+    "head": "bc409f4af8cb2d51b2f67341ad46637cfa5e66f3",
+    "status": "?? packages/lab-session/Cargo.lock\n?? packages/lab-session/Cargo.toml\n?? packages/lab-session/README.md\n?? packages/lab-session/src/lib.rs\n?? packages/lab-session/src/v1.rs\n?? packages/lab-session/tests/session_v1.rs"
+  },
+  "endedAt": "2026-10-17T16:44:24.319Z",
+  "status": "passed",
+  "error": null
+}
