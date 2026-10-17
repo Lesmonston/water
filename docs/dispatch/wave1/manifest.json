@@ -1,7 +1,7 @@
 {
   "schemaVersion": 1,
   "wave": "water-wave1",
-  "status": "A_SUBMITTED_BC_READY",
+  "status": "A_CHANGES_REQUESTED_BC_RUNNING",
   "controllerRoot": "F:/new/smaltalk/water",
   "controllerBranch": "main",
   "controller": "Codex",
@@ -15,7 +15,7 @@
     {
       "id": "WATER-W1-A",
       "title": "Rust工程底座与scan v1契约实现",
-      "status": "SUBMITTED",
+      "status": "CHANGES_REQUESTED",
       "slot": "a",
       "worktree": "F:/new/smaltalk/water/.worktrees/a",
       "branch": "worker/water-w1-a",
@@ -39,24 +39,33 @@
         "crates/water-contracts/Cargo.toml",
         "crates/water-contracts/README.md",
         "crates/water-contracts/tests/contract_v1.rs",
-        "docs/dispatch/reports/WATER-W1-A-REPORT.md"
+        "docs/dispatch/reports/WATER-W1-A-REPORT.md",
+        "docs/dispatch/reports/WATER-W1-A-ADDENDUM-01-REPORT.md"
       ],
       "allowedPrefixes": [
         "crates/water-contracts/src/",
         "docs/acceptance/wave1/a/"
       ],
       "productBoundary": "DTO/serialization/validation only; no filesystem scanning, process execution, UI or cleanup",
-      "model": null,
+      "model": "Codex / GPT-6 (worker self-report)",
       "modelAssignment": "user-arranged; report actual engine/model",
       "dispatchedAt": null,
       "startedAt": null,
       "baselineStatus": "PASSED",
       "submittedCommit": "475c4703be3c455089b8080b53e084d4721b10f7",
       "submissionObservedAt": "2026-10-17T06:04:28.047Z",
-      "submissionEvidence": "Clean worker tree, committed completion report first line observed; no controller acceptance yet."
+      "submissionEvidence": "Original clean submission retained; four controller gates passed but independent enum boundary checks failed.",
+      "reviewedCommit": "475c4703be3c455089b8080b53e084d4721b10f7",
+      "controllerReview": "docs/acceptance/wave1/controller/WATER-W1-A-REVIEW-20261017.md",
+      "addenda": ["docs/dispatch/tickets/WATER-W1-A-ADDENDUM-01-20261017.md"],
+      "resumeFromCommit": "475c4703be3c455089b8080b53e084d4721b10f7",
+      "revisionReport": "docs/dispatch/reports/WATER-W1-A-ADDENDUM-01-REPORT.md",
+      "revisionDispatchStatus": "PREPARED_AWAITING_USER_PASTE"
     },
     {
-      "status": "READY",
+      "status": "RUNNING",
+      "activityObservedAt": "2026-10-17T06:20:10.846Z",
+      "activityEvidence": "Assigned B tree contains uncommitted packages/tool-catalog metadata, validator, tests and task evidence; no completion notification received. Controller did not start a worker.",
       "baseCommit": "e92f39647c91d9ce077d592583c3352626d3402b",
       "snapshotRef": "refs/tags/water-w1-parallel-base-20261017",
       "contractLock": "contracts/parallel-v1/freeze.lock.json",
@@ -99,7 +108,9 @@
       "preflightEvidence": "docs/acceptance/wave1/controller/b-initial-baseline.json"
     },
     {
-      "status": "READY",
+      "status": "RUNNING",
+      "activityObservedAt": "2026-10-17T06:20:10.846Z",
+      "activityEvidence": "Assigned C tree contains uncommitted prototypes/readonly-dashboard implementation and tests; no completion notification received. Controller did not start a worker.",
       "baseCommit": "e92f39647c91d9ce077d592583c3352626d3402b",
       "snapshotRef": "refs/tags/water-w1-parallel-base-20261017",
       "contractLock": "contracts/parallel-v1/freeze.lock.json",

@@ -19,7 +19,14 @@
 
 ## 下一步
 
-A已观察到提交与完成回执，状态SUBMITTED待总控独立验收；[WATER-W1-B规则包](dispatch/tickets/WATER-W1-B-CATALOG-20261017.md)与[WATER-W1-C交互原型](dispatch/tickets/WATER-W1-C-PROTOTYPE-20261017.md)各自READY，可交两个执行者并行。扫描器、分类器与正式集成仍等前置验收。
+A总控验收结论为CHANGES_REQUESTED，未集成；[补充单01](dispatch/tickets/WATER-W1-A-ADDENDUM-01-20261017.md)已准备，交回A执行者修复wire枚举对象形状问题。[WATER-W1-B规则包](dispatch/tickets/WATER-W1-B-CATALOG-20261017.md)与[WATER-W1-C交互原型](dispatch/tickets/WATER-W1-C-PROTOTYPE-20261017.md)已观察到独立实现文件，记RUNNING，尚无完成通知/验收。扫描器、分类器与正式集成仍等前置验收。
+
+## A独立验收（2026-10-17）
+
+- 对干净提交`475c4703be3c455089b8080b53e084d4721b10f7`复跑fmt/test/clippy/metadata全部通过，五个测试真实执行。239文件均在原票范围，9项冻结哈希不变，报告提交未夹带产品变更。
+- 总控独立harness链接原库，正例通过；20种wire枚举的93种对象形式、报告20个枚举位置均错误接受，违反字符串Schema，两个目标断言失败。因此不验收合入，发补充单01，不修改worker产品代码。
+- [验收报告及证据](acceptance/wave1/controller/WATER-W1-A-REVIEW-20261017.md)已归档。补单起点仍是原提交，基线/helper/冻结锁不变，B/C独立。补单已准备不代表用户已转贴；B/C则于06:20Z观察到各自未提交实现文件，按启动证据记RUNNING，实际开始时间未知。
+- Windows Rust契约检查已实际运行；macOS未验证。main仅有架构/调度/验收材料，没有集成A库或真实扫描/清理能力。以下原派前记录为历史事实，最新状态以本节与manifest为准。
 
 ## 并行追加与最新观察（2026-10-17）
 
@@ -46,7 +53,7 @@ A已观察到提交与完成回执，状态SUBMITTED待总控独立验收；[WAT
 
 ## 未完成与验证限制
 
-- 已核实PATH没有cargo/rustc，但默认cargo目录中的代理与精确Rust 1.95.0、rustfmt/clippy及MSVC工具可用，water内链接探针成功；无需先安装或修改全局环境。Rust依赖编译与合同测试尚未运行。
+- 已核实PATH没有cargo/rustc，但默认cargo目录中的代理与精确Rust 1.95.0、rustfmt/clippy及MSVC工具可用；无需先安装或修改全局环境。A树Rust编译与原合同测试已独立通过，补充枚举边界失败待回派；不是已集成或macOS验证。
 - 当前机器为Windows；macOS行为、签名、安装包、真实容量及恢复能力均未验证。
 - 产品许可证、定价、品牌与远程仓库尚未冻结；没有公开发布、推送、收款或联系上游。
 - 各上游的静态风险均不是已复现漏洞；Water也没有因此获得安全认证或独有功能证明。

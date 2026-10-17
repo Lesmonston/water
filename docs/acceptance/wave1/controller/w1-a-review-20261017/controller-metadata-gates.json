@@ -1,0 +1,42 @@
+{
+  "recordedAt": "2026-10-17T06:19:33.570Z",
+  "boundary": "Controller metadata/syntax/whitespace gates only; product acceptance remains CHANGES_REQUESTED.",
+  "checks": [
+    {
+      "name": "project",
+      "command": "node scripts/verify-project.mjs --with-upstreams",
+      "chunk_id": "630ccd",
+      "wall_time_seconds": 8.6748751,
+      "exit_code": 0,
+      "original_token_count": 94,
+      "output": "{\n  \"status\": \"passed\",\n  \"markdownFiles\": 42,\n  \"localLinks\": 74,\n  \"pinnedSourceLinks\": 182,\n  \"externalPinnedSourceLinks\": 4,\n  \"dispatchRegistryTasks\": 3,\n  \"workflowSourceRecords\": 14,\n  \"upstreams\": 5,\n  \"checkedLocalSnapshots\": 5,\n  \"mode\": \"with-upstreams\",\n  \"boundary\": \"Metadata, provenance and handoff checks only; no upstream runtime or cleanup safety test.\"\n}\n"
+    },
+    {
+      "name": "contracts",
+      "command": "node scripts/verify-contract-assets.mjs",
+      "chunk_id": "0032cb",
+      "wall_time_seconds": 0.4325055,
+      "exit_code": 0,
+      "original_token_count": 105,
+      "output": "{\n  \"status\": \"passed\",\n  \"reportCases\": 66,\n  \"positiveInputs\": 16,\n  \"structuralRejections\": 27,\n  \"semanticInputsPrepared\": 23,\n  \"rawJsonCases\": 6,\n  \"constructedCases\": 6,\n  \"resourceCasesPrepared\": 2,\n  \"productTestsRun\": false,\n  \"boundary\": \"Validates controller assets and primitive structure/u64 range. Cross-report semantics and all Rust entry points remain the worker and controller acceptance target.\"\n}\n"
+    },
+    {
+      "name": "runner_syntax",
+      "command": "node --check scripts/acceptance/review-contract-wire.mjs",
+      "chunk_id": "f21266",
+      "wall_time_seconds": 0.424779,
+      "exit_code": 0,
+      "original_token_count": 0,
+      "output": ""
+    },
+    {
+      "name": "diff_whitespace",
+      "command": "git diff --check",
+      "chunk_id": "5eb7a5",
+      "wall_time_seconds": 0.8954775,
+      "exit_code": 0,
+      "original_token_count": 0,
+      "output": ""
+    }
+  ]
+}

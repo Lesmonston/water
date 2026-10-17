@@ -1,0 +1,338 @@
+{
+  "task": "WATER-W1-A",
+  "expectedHead": "475c4703be3c455089b8080b53e084d4721b10f7",
+  "startedAt": "2026-10-17T06:14:22.739Z",
+  "commands": [
+    {
+      "binary": "git",
+      "argv": [
+        "-c",
+        "core.hooksPath=NUL",
+        "-c",
+        "core.fsmonitor=false",
+        "rev-parse",
+        "HEAD"
+      ],
+      "cwd": "F:\\new\\smaltalk\\water\\.worktrees\\a",
+      "startedAt": "2026-10-17T06:14:22.766Z",
+      "endedAt": "2026-10-17T06:14:22.899Z",
+      "exitCode": 0,
+      "signal": null,
+      "error": null,
+      "stdout": "475c4703be3c455089b8080b53e084d4721b10f7\n",
+      "stderr": ""
+    },
+    {
+      "binary": "git",
+      "argv": [
+        "-c",
+        "core.hooksPath=NUL",
+        "-c",
+        "core.fsmonitor=false",
+        "branch",
+        "--show-current"
+      ],
+      "cwd": "F:\\new\\smaltalk\\water\\.worktrees\\a",
+      "startedAt": "2026-10-17T06:14:22.899Z",
+      "endedAt": "2026-10-17T06:14:23.059Z",
+      "exitCode": 0,
+      "signal": null,
+      "error": null,
+      "stdout": "worker/water-w1-a\n",
+      "stderr": ""
+    },
+    {
+      "binary": "git",
+      "argv": [
+        "-c",
+        "core.hooksPath=NUL",
+        "-c",
+        "core.fsmonitor=false",
+        "status",
+        "--porcelain",
+        "--untracked-files=all"
+      ],
+      "cwd": "F:\\new\\smaltalk\\water\\.worktrees\\a",
+      "startedAt": "2026-10-17T06:14:23.060Z",
+      "endedAt": "2026-10-17T06:14:23.199Z",
+      "exitCode": 0,
+      "signal": null,
+      "error": null,
+      "stdout": "",
+      "stderr": ""
+    },
+    {
+      "binary": "git",
+      "argv": [
+        "-c",
+        "core.hooksPath=NUL",
+        "-c",
+        "core.fsmonitor=false",
+        "merge-base",
+        "--is-ancestor",
+        "a1e68364d47e137f8b66543eb95d35bb04424c78",
+        "HEAD"
+      ],
+      "cwd": "F:\\new\\smaltalk\\water\\.worktrees\\a",
+      "startedAt": "2026-10-17T06:14:23.199Z",
+      "endedAt": "2026-10-17T06:14:23.347Z",
+      "exitCode": 0,
+      "signal": null,
+      "error": null,
+      "stdout": "",
+      "stderr": ""
+    },
+    {
+      "binary": "git",
+      "argv": [
+        "-c",
+        "core.hooksPath=NUL",
+        "-c",
+        "core.fsmonitor=false",
+        "diff",
+        "--no-renames",
+        "--name-only",
+        "a1e68364d47e137f8b66543eb95d35bb04424c78",
+        "HEAD"
+      ],
+      "cwd": "F:\\new\\smaltalk\\water\\.worktrees\\a",
+      "startedAt": "2026-10-17T06:14:23.347Z",
+      "endedAt": "2026-10-17T06:14:23.459Z",
+      "exitCode": 0,
+      "signal": null,
+      "error": null,
+      "stdout": "Cargo.lock\nCargo.toml\ncrates/water-contracts/Cargo.toml\ncrates/water-contracts/README.md\ncrates/water-contracts/src/lib.rs\ncrates/water-contracts/src/v1.rs\ncrates/water-contracts/tests/contract_v1.rs\ndocs/acceptance/wave1/a/NC-01-broken-helper.log\ndocs/acceptance/wave1/a/NC-01-restored-helper.log\ndocs/acceptance/wave1/a/NC-01.json\ndocs/acceptance/wave1/a/NC-02-broken-helper.log\ndocs/acceptance/wave1/a/NC-02-restored-helper.log\ndocs/acceptance/wave1/a/NC-02.json\ndocs/acceptance/wave1/a/NC-03-broken-helper.log\ndocs/acceptance/wave1/a/NC-03-restored-helper.log\ndocs/acceptance/wave1/a/NC-03.json\ndocs/acceptance/wave1/a/NC-04-broken-helper.log\ndocs/acceptance/wave1/a/NC-04-restored-helper.log\ndocs/acceptance/wave1/a/NC-04.json\ndocs/acceptance/wave1/a/NC-05-broken-helper.log\ndocs/acceptance/wave1/a/NC-05-restored-helper.log\ndocs/acceptance/wave1/a/NC-05.json\ndocs/acceptance/wave1/a/NC-06-broken-helper.log\ndocs/acceptance/wave1/a/NC-06-restored-helper.log\ndocs/acceptance/wave1/a/NC-06.json\ndocs/acceptance/wave1/a/check-index.json\ndocs/acceptance/wave1/a/checks/2026-10-17T05-45-10.855Z-30656-baseline-1.log\ndocs/acceptance/wave1/a/checks/2026-10-17T05-45-10.855Z-30656-baseline-2.log\ndocs/acceptance/wave1/a/checks/2026-10-17T05-45-10.855Z-30656-baseline-3.log\ndocs/acceptance/wave1/a/checks/2026-10-17T05-45-10.855Z-30656-baseline-4.log\ndocs/acceptance/wave1/a/checks/2026-10-17T05-45-10.855Z-30656-baseline-5.log\ndocs/acceptance/wave1/a/checks/2026-10-17T05-45-10.855Z-30656-baseline-6.log\ndocs/acceptance/wave1/a/checks/2026-10-17T05-45-10.855Z-30656-baseline-result.json\ndocs/acceptance/wave1/a/checks/2026-10-17T05-46-25.560Z-40904-lock-1.log\ndocs/acceptance/wave1/a/checks/2026-10-17T05-46-25.560Z-40904-lock-2.log\ndocs/acceptance/wave1/a/checks/2026-10-17T05-46-25.560Z-40904-lock-3.log\ndocs/acceptance/wave1/a/checks/2026-10-17T05-46-25.560Z-40904-lock-4.log\ndocs/acceptance/wave1/a/checks/2026-10-17T05-46-25.560Z-40904-lock-5.log\ndocs/acceptance/wave1/a/checks/2026-10-17T05-46-25.560Z-40904-lock-6.log\ndocs/acceptance/wave1/a/checks/2026-10-17T05-46-25.560Z-40904-lock-result.json\ndocs/acceptance/wave1/a/checks/2026-10-17T05-47-58.072Z-41312-fetch-1.log\ndocs/acceptance/wave1/a/checks/2026-10-17T05-47-58.072Z-41312-fetch-2.log\ndocs/acceptance/wave1/a/checks/2026-10-17T05-47-58.072Z-41312-fetch-3.log\ndocs/acceptance/wave1/a/checks/2026-10-17T05-47-58.072Z-41312-fetch-4.log\ndocs/acceptance/wave1/a/checks/2026-10-17T05-47-58.072Z-41312-fetch-5.log\ndocs/acceptance/wave1/a/checks/2026-10-17T05-47-58.072Z-41312-fetch-6.log\ndocs/acceptance/wave1/a/checks/2026-10-17T05-47-58.072Z-41312-fetch-result.json\ndocs/acceptance/wave1/a/checks/2026-10-17T05-49-46.498Z-23424-fmt-1.log\ndocs/acceptance/wave1/a/checks/2026-10-17T05-49-46.498Z-23424-fmt-2.log\ndocs/acceptance/wave1/a/checks/2026-10-17T05-49-46.498Z-23424-fmt-3.log\ndocs/acceptance/wave1/a/checks/2026-10-17T05-49-46.498Z-23424-fmt-4.log\ndocs/acceptance/wave1/a/checks/2026-10-17T05-49-46.498Z-23424-fmt-5.log\ndocs/acceptance/wave1/a/checks/2026-10-17T05-49-46.498Z-23424-fmt-6.log.json\ndocs/acceptance/wave1/a/checks/2026-10-17T05-49-46.498Z-23424-fmt-result.json\ndocs/acceptance/wave1/a/checks/2026-10-17T05-50-00.397Z-17068-test-1.log\ndocs/acceptance/wave1/a/checks/2026-10-17T05-50-00.397Z-17068-test-2.log\ndocs/acceptance/wave1/a/checks/2026-10-17T05-50-00.397Z-17068-test-3.log\ndocs/acceptance/wave1/a/checks/2026-10-17T05-50-00.397Z-17068-test-4.log\ndocs/acceptance/wave1/a/checks/2026-10-17T05-50-00.397Z-17068-test-5.log\ndocs/acceptance/wave1/a/checks/2026-10-17T05-50-00.397Z-17068-test-6.log\ndocs/acceptance/wave1/a/checks/2026-10-17T05-50-00.397Z-17068-test-7.log\ndocs/acceptance/wave1/a/checks/2026-10-17T05-50-00.397Z-17068-test-result.json\ndocs/acceptance/wave1/a/checks/2026-10-17T05-51-16.223Z-41816-test-1.log\ndocs/acceptance/wave1/a/checks/2026-10-17T05-51-16.223Z-41816-test-2.log\ndocs/acceptance/wave1/a/checks/2026-10-17T05-51-16.223Z-41816-test-3.log\ndocs/acceptance/wave1/a/checks/2026-10-17T05-51-16.223Z-41816-test-4.log\ndocs/acceptance/wave1/a/checks/2026-10-17T05-51-16.223Z-41816-test-5.log\ndocs/acceptance/wave1/a/checks/2026-10-17T05-51-16.223Z-41816-test-6.log\ndocs/acceptance/wave1/a/checks/2026-10-17T05-51-16.223Z-41816-test-7.log\ndocs/acceptance/wave1/a/checks/2026-10-17T05-51-16.223Z-41816-test-result.json\ndocs/acceptance/wave1/a/checks/2026-10-17T05-52-01.545Z-36040-fmt-1.log\ndocs/acceptance/wave1/a/checks/2026-10-17T05-52-01.545Z-36040-fmt-2.log\ndocs/acceptance/wave1/a/checks/2026-10-17T05-52-01.545Z-36040-fmt-3.log\ndocs/acceptance/wave1/a/checks/2026-10-17T05-52-01.545Z-36040-fmt-4.log\ndocs/acceptance/wave1/a/checks/2026-10-17T05-52-01.545Z-36040-fmt-5.log\ndocs/acceptance/wave1/a/checks/2026-10-17T05-52-01.545Z-36040-fmt-6.log\ndocs/acceptance/wave1/a/checks/2026-10-17T05-52-01.545Z-36040-fmt-result.json\ndocs/acceptance/wave1/a/checks/2026-10-17T05-52-46.421Z-43460-fmt-1.log\ndocs/acceptance/wave1/a/checks/2026-10-17T05-52-46.421Z-43460-fmt-2.log\ndocs/acceptance/wave1/a/checks/2026-10-17T05-52-46.421Z-43460-fmt-3.log\ndocs/acceptance/wave1/a/checks/2026-10-17T05-52-46.421Z-43460-fmt-4.log\ndocs/acceptance/wave1/a/checks/2026-10-17T05-52-46.421Z-43460-fmt-5.log\ndocs/acceptance/wave1/a/checks/2026-10-17T05-52-46.421Z-43460-fmt-6.log\ndocs/acceptance/wave1/a/checks/2026-10-17T05-52-46.421Z-43460-fmt-result.json\ndocs/acceptance/wave1/a/checks/2026-10-17T05-52-50.249Z-26620-clippy-1.log\ndocs/acceptance/wave1/a/checks/2026-10-17T05-52-50.249Z-26620-clippy-2.log\ndocs/acceptance/wave1/a/checks/2026-10-17T05-52-50.249Z-26620-clippy-3.log\ndocs/acceptance/wave1/a/checks/2026-10-17T05-52-50.249Z-26620-clippy-4.log\ndocs/acceptance/wave1/a/checks/2026-10-17T05-52-50.249Z-26620-clippy-5.log\ndocs/acceptance/wave1/a/checks/2026-10-17T05-52-50.249Z-26620-clippy-6.log\ndocs/acceptance/wave1/a/checks/2026-10-17T05-52-50.249Z-26620-clippy-result.json\ndocs/acceptance/wave1/a/checks/2026-10-17T05-53-20.834Z-23612-test-1.log\ndocs/acceptance/wave1/a/checks/2026-10-17T05-53-20.834Z-23612-test-2.log\ndocs/acceptance/wave1/a/checks/2026-10-17T05-53-20.834Z-23612-test-3.log\ndocs/acceptance/wave1/a/checks/2026-10-17T05-53-20.834Z-23612-test-4.log\ndocs/acceptance/wave1/a/checks/2026-10-17T05-53-20.834Z-23612-test-5.log\ndocs/acceptance/wave1/a/checks/2026-10-17T05-53-20.834Z-23612-test-6.log\ndocs/acceptance/wave1/a/checks/2026-10-17T05-53-20.834Z-23612-test-7.log\ndocs/acceptance/wave1/a/checks/2026-10-17T05-53-20.834Z-23612-test-result.json\ndocs/acceptance/wave1/a/checks/2026-10-17T05-53-34.810Z-27016-metadata-1.log\ndocs/acceptance/wave1/a/checks/2026-10-17T05-53-34.810Z-27016-metadata-2.log\ndocs/acceptance/wave1/a/checks/2026-10-17T05-53-34.810Z-27016-metadata-3.log\ndocs/acceptance/wave1/a/checks/2026-10-17T05-53-34.810Z-27016-metadata-4.log\ndocs/acceptance/wave1/a/checks/2026-10-17T05-53-34.810Z-27016-metadata-5.log\ndocs/acceptance/wave1/a/checks/2026-10-17T05-53-34.810Z-27016-metadata-6.log\ndocs/acceptance/wave1/a/checks/2026-10-17T05-53-34.810Z-27016-metadata-result.json\ndocs/acceptance/wave1/a/checks/2026-10-17T05-54-37.875Z-9896-test-1.log\ndocs/acceptance/wave1/a/checks/2026-10-17T05-54-37.875Z-9896-test-2.log\ndocs/acceptance/wave1/a/checks/2026-10-17T05-54-37.875Z-9896-test-3.log\ndocs/acceptance/wave1/a/checks/2026-10-17T05-54-37.875Z-9896-test-4.log\ndocs/acceptance/wave1/a/checks/2026-10-17T05-54-37.875Z-9896-test-5.log\ndocs/acceptance/wave1/a/checks/2026-10-17T05-54-37.875Z-9896-test-6.log\ndocs/acceptance/wave1/a/checks/2026-10-17T05-54-37.875Z-9896-test-7.log\ndocs/acceptance/wave1/a/checks/2026-10-17T05-54-37.875Z-9896-test-result.json\ndocs/acceptance/wave1/a/checks/2026-10-17T05-54-45.371Z-24392-test-1.log\ndocs/acceptance/wave1/a/checks/2026-10-17T05-54-45.371Z-24392-test-2.log\ndocs/acceptance/wave1/a/checks/2026-10-17T05-54-45.371Z-24392-test-3.log\ndocs/acceptance/wave1/a/checks/2026-10-17T05-54-45.371Z-24392-test-4.log\ndocs/acceptance/wave1/a/checks/2026-10-17T05-54-45.371Z-24392-test-5.log\ndocs/acceptance/wave1/a/checks/2026-10-17T05-54-45.371Z-24392-test-6.log\ndocs/acceptance/wave1/a/checks/2026-10-17T05-54-45.371Z-24392-test-7.log\ndocs/acceptance/wave1/a/checks/2026-10-17T05-54-45.371Z-24392-test-result.json\ndocs/acceptance/wave1/a/checks/2026-10-17T05-54-51.359Z-40392-test-1.log\ndocs/acceptance/wave1/a/checks/2026-10-17T05-54-51.359Z-40392-test-2.log\ndocs/acceptance/wave1/a/checks/2026-10-17T05-54-51.359Z-40392-test-3.log\ndocs/acceptance/wave1/a/checks/2026-10-17T05-54-51.359Z-40392-test-4.log\ndocs/acceptance/wave1/a/checks/2026-10-17T05-54-51.359Z-40392-test-5.log\ndocs/acceptance/wave1/a/checks/2026-10-17T05-54-51.359Z-40392-test-6.log\ndocs/acceptance/wave1/a/checks/2026-10-17T05-54-51.359Z-40392-test-7.log\ndocs/acceptance/wave1/a/checks/2026-10-17T05-54-51.359Z-40392-test-result.json\ndocs/acceptance/wave1/a/checks/2026-10-17T05-54-59.430Z-38648-test-1.log\ndocs/acceptance/wave1/a/checks/2026-10-17T05-54-59.430Z-38648-test-2.log\ndocs/acceptance/wave1/a/checks/2026-10-17T05-54-59.430Z-38648-test-3.log\ndocs/acceptance/wave1/a/checks/2026-10-17T05-54-59.430Z-38648-test-4.log\ndocs/acceptance/wave1/a/checks/2026-10-17T05-54-59.430Z-38648-test-5.log\ndocs/acceptance/wave1/a/checks/2026-10-17T05-54-59.430Z-38648-test-6.log\ndocs/acceptance/wave1/a/checks/2026-10-17T05-54-59.430Z-38648-test-7.log\ndocs/acceptance/wave1/a/checks/2026-10-17T05-54-59.430Z-38648-test-result.json\ndocs/acceptance/wave1/a/checks/2026-10-17T05-55-17.536Z-6844-test-1.log\ndocs/acceptance/wave1/a/checks/2026-10-17T05-55-17.536Z-6844-test-2.log\ndocs/acceptance/wave1/a/checks/2026-10-17T05-55-17.536Z-6844-test-3.log\ndocs/acceptance/wave1/a/checks/2026-10-17T05-55-17.536Z-6844-test-4.log\ndocs/acceptance/wave1/a/checks/2026-10-17T05-55-17.536Z-6844-test-5.log\ndocs/acceptance/wave1/a/checks/2026-10-17T05-55-17.536Z-6844-test-6.log\ndocs/acceptance/wave1/a/checks/2026-10-17T05-55-17.536Z-6844-test-7.log\ndocs/acceptance/wave1/a/checks/2026-10-17T05-55-17.536Z-6844-test-result.json\ndocs/acceptance/wave1/a/checks/2026-10-17T05-55-23.672Z-2308-test-1.log\ndocs/acceptance/wave1/a/checks/2026-10-17T05-55-23.672Z-2308-test-2.log\ndocs/acceptance/wave1/a/checks/2026-10-17T05-55-23.672Z-2308-test-3.log\ndocs/acceptance/wave1/a/checks/2026-10-17T05-55-23.672Z-2308-test-4.log\ndocs/acceptance/wave1/a/checks/2026-10-17T05-55-23.672Z-2308-test-5.log\ndocs/acceptance/wave1/a/checks/2026-10-17T05-55-23.672Z-2308-test-6.log\ndocs/acceptance/wave1/a/checks/2026-10-17T05-55-23.672Z-2308-test-7.log\ndocs/acceptance/wave1/a/checks/2026-10-17T05-55-23.672Z-2308-test-result.json\ndocs/acceptance/wave1/a/checks/2026-10-17T05-55-30.206Z-25952-test-1.log\ndocs/acceptance/wave1/a/checks/2026-10-17T05-55-30.206Z-25952-test-2.log\ndocs/acceptance/wave1/a/checks/2026-10-17T05-55-30.206Z-25952-test-3.log\ndocs/acceptance/wave1/a/checks/2026-10-17T05-55-30.206Z-25952-test-4.log\ndocs/acceptance/wave1/a/checks/2026-10-17T05-55-30.206Z-25952-test-5.log\ndocs/acceptance/wave1/a/checks/2026-10-17T05-55-30.206Z-25952-test-6.log\ndocs/acceptance/wave1/a/checks/2026-10-17T05-55-30.206Z-25952-test-7.log\ndocs/acceptance/wave1/a/checks/2026-10-17T05-55-30.206Z-25952-test-result.json\ndocs/acceptance/wave1/a/checks/2026-10-17T05-55-37.591Z-30204-test-1.log\ndocs/acceptance/wave1/a/checks/2026-10-17T05-55-37.591Z-30204-test-2.log\ndocs/acceptance/wave1/a/checks/2026-10-17T05-55-37.591Z-30204-test-3.log\ndocs/acceptance/wave1/a/checks/2026-10-17T05-55-37.591Z-30204-test-4.log\ndocs/acceptance/wave1/a/checks/2026-10-17T05-55-37.591Z-30204-test-5.log\ndocs/acceptance/wave1/a/checks/2026-10-17T05-55-37.591Z-30204-test-6.log\ndocs/acceptance/wave1/a/checks/2026-10-17T05-55-37.591Z-30204-test-7.log\ndocs/acceptance/wave1/a/checks/2026-10-17T05-55-37.591Z-30204-test-result.json\ndocs/acceptance/wave1/a/checks/2026-10-17T05-56-04.536Z-41668-test-1.log\ndocs/acceptance/wave1/a/checks/2026-10-17T05-56-04.536Z-41668-test-2.log\ndocs/acceptance/wave1/a/checks/2026-10-17T05-56-04.536Z-41668-test-3.log\ndocs/acceptance/wave1/a/checks/2026-10-17T05-56-04.536Z-41668-test-4.log\ndocs/acceptance/wave1/a/checks/2026-10-17T05-56-04.536Z-41668-test-5.log\ndocs/acceptance/wave1/a/checks/2026-10-17T05-56-04.536Z-41668-test-6.log\ndocs/acceptance/wave1/a/checks/2026-10-17T05-56-04.536Z-41668-test-7.log\ndocs/acceptance/wave1/a/checks/2026-10-17T05-56-04.536Z-41668-test-result.json\ndocs/acceptance/wave1/a/checks/2026-10-17T05-56-11.619Z-3884-test-1.log\ndocs/acceptance/wave1/a/checks/2026-10-17T05-56-11.619Z-3884-test-2.log\ndocs/acceptance/wave1/a/checks/2026-10-17T05-56-11.619Z-3884-test-3.log\ndocs/acceptance/wave1/a/checks/2026-10-17T05-56-11.619Z-3884-test-4.log\ndocs/acceptance/wave1/a/checks/2026-10-17T05-56-11.619Z-3884-test-5.log\ndocs/acceptance/wave1/a/checks/2026-10-17T05-56-11.619Z-3884-test-6.log\ndocs/acceptance/wave1/a/checks/2026-10-17T05-56-11.619Z-3884-test-7.log\ndocs/acceptance/wave1/a/checks/2026-10-17T05-56-11.619Z-3884-test-result.json\ndocs/acceptance/wave1/a/checks/2026-10-17T05-56-19.290Z-20776-test-1.log\ndocs/acceptance/wave1/a/checks/2026-10-17T05-56-19.290Z-20776-test-2.log\ndocs/acceptance/wave1/a/checks/2026-10-17T05-56-19.290Z-20776-test-3.log\ndocs/acceptance/wave1/a/checks/2026-10-17T05-56-19.290Z-20776-test-4.log\ndocs/acceptance/wave1/a/checks/2026-10-17T05-56-19.290Z-20776-test-5.log\ndocs/acceptance/wave1/a/checks/2026-10-17T05-56-19.290Z-20776-test-6.log\ndocs/acceptance/wave1/a/checks/2026-10-17T05-56-19.290Z-20776-test-7.log\ndocs/acceptance/wave1/a/checks/2026-10-17T05-56-19.290Z-20776-test-result.json\ndocs/acceptance/wave1/a/checks/2026-10-17T05-56-27.143Z-43928-test-1.log\ndocs/acceptance/wave1/a/checks/2026-10-17T05-56-27.143Z-43928-test-2.log\ndocs/acceptance/wave1/a/checks/2026-10-17T05-56-27.143Z-43928-test-3.log\ndocs/acceptance/wave1/a/checks/2026-10-17T05-56-27.143Z-43928-test-4.log\ndocs/acceptance/wave1/a/checks/2026-10-17T05-56-27.143Z-43928-test-5.log\ndocs/acceptance/wave1/a/checks/2026-10-17T05-56-27.143Z-43928-test-6.log\ndocs/acceptance/wave1/a/checks/2026-10-17T05-56-27.143Z-43928-test-7.log\ndocs/acceptance/wave1/a/checks/2026-10-17T05-56-27.143Z-43928-test-result.json\ndocs/acceptance/wave1/a/checks/2026-10-17T05-59-06.433Z-3728-fmt-1.log\ndocs/acceptance/wave1/a/checks/2026-10-17T05-59-06.433Z-3728-fmt-2.log\ndocs/acceptance/wave1/a/checks/2026-10-17T05-59-06.433Z-3728-fmt-3.log\ndocs/acceptance/wave1/a/checks/2026-10-17T05-59-06.433Z-3728-fmt-4.log\ndocs/acceptance/wave1/a/checks/2026-10-17T05-59-06.433Z-3728-fmt-5.log\ndocs/acceptance/wave1/a/checks/2026-10-17T05-59-06.433Z-3728-fmt-6.log\ndocs/acceptance/wave1/a/checks/2026-10-17T05-59-06.433Z-3728-fmt-result.json\ndocs/acceptance/wave1/a/checks/2026-10-17T05-59-14.480Z-14744-test-1.log\ndocs/acceptance/wave1/a/checks/2026-10-17T05-59-14.480Z-14744-test-2.log\ndocs/acceptance/wave1/a/checks/2026-10-17T05-59-14.480Z-14744-test-3.log\ndocs/acceptance/wave1/a/checks/2026-10-17T05-59-14.480Z-14744-test-4.log\ndocs/acceptance/wave1/a/checks/2026-10-17T05-59-14.480Z-14744-test-5.log\ndocs/acceptance/wave1/a/checks/2026-10-17T05-59-14.480Z-14744-test-6.log\ndocs/acceptance/wave1/a/checks/2026-10-17T05-59-14.480Z-14744-test-7.log\ndocs/acceptance/wave1/a/checks/2026-10-17T05-59-14.480Z-14744-test-result.json\ndocs/acceptance/wave1/a/checks/2026-10-17T05-59-30.253Z-44020-clippy-1.log\ndocs/acceptance/wave1/a/checks/2026-10-17T05-59-30.253Z-44020-clippy-2.log\ndocs/acceptance/wave1/a/checks/2026-10-17T05-59-30.253Z-44020-clippy-3.log\ndocs/acceptance/wave1/a/checks/2026-10-17T05-59-30.253Z-44020-clippy-4.log\ndocs/acceptance/wave1/a/checks/2026-10-17T05-59-30.253Z-44020-clippy-5.log\ndocs/acceptance/wave1/a/checks/2026-10-17T05-59-30.253Z-44020-clippy-6.log\ndocs/acceptance/wave1/a/checks/2026-10-17T05-59-30.253Z-44020-clippy-result.json\ndocs/acceptance/wave1/a/checks/2026-10-17T05-59-34.243Z-31300-metadata-1.log\ndocs/acceptance/wave1/a/checks/2026-10-17T05-59-34.243Z-31300-metadata-2.log\ndocs/acceptance/wave1/a/checks/2026-10-17T05-59-34.243Z-31300-metadata-3.log\ndocs/acceptance/wave1/a/checks/2026-10-17T05-59-34.243Z-31300-metadata-4.log\ndocs/acceptance/wave1/a/checks/2026-10-17T05-59-34.243Z-31300-metadata-5.log\ndocs/acceptance/wave1/a/checks/2026-10-17T05-59-34.243Z-31300-metadata-6.log\ndocs/acceptance/wave1/a/checks/2026-10-17T05-59-34.243Z-31300-metadata-result.json\ndocs/acceptance/wave1/a/contract-assets-verification.json\ndocs/acceptance/wave1/a/coverage.json\ndocs/acceptance/wave1/a/final-gates.json\ndocs/acceptance/wave1/a/implementation-files.json\ndocs/acceptance/wave1/a/initial-red-v1-source.txt\ndocs/acceptance/wave1/a/initial-red.json\ndocs/dispatch/reports/WATER-W1-A-REPORT.md\nrust-toolchain.toml\n",
+      "stderr": ""
+    },
+    {
+      "binary": "C:\\Users\\37310\\.cargo\\bin\\rustup.exe",
+      "argv": [
+        "which",
+        "rustc",
+        "--toolchain",
+        "1.95.0"
+      ],
+      "cwd": "F:\\new\\smaltalk\\water",
+      "startedAt": "2026-10-17T06:14:23.808Z",
+      "endedAt": "2026-10-17T06:14:23.932Z",
+      "exitCode": 0,
+      "signal": null,
+      "error": null,
+      "stdout": "C:\\Users\\37310\\.rustup\\toolchains\\1.95.0-x86_64-pc-windows-msvc\\bin\\rustc.exe\n",
+      "stderr": ""
+    },
+    {
+      "binary": "C:\\Users\\37310\\.rustup\\toolchains\\1.95.0-x86_64-pc-windows-msvc\\bin\\rustc.exe",
+      "argv": [
+        "--version"
+      ],
+      "cwd": "F:\\new\\smaltalk\\water",
+      "startedAt": "2026-10-17T06:14:23.933Z",
+      "endedAt": "2026-10-17T06:14:24.718Z",
+      "exitCode": 0,
+      "signal": null,
+      "error": null,
+      "stdout": "rustc 1.95.0 (59807616e 2026-04-14)\n",
+      "stderr": ""
+    },
+    {
+      "binary": "C:\\Users\\37310\\.rustup\\toolchains\\1.95.0-x86_64-pc-windows-msvc\\bin\\rustc.exe",
+      "argv": [
+        "--edition=2024",
+        "--crate-name",
+        "controller_contract_wire",
+        "--test",
+        "F:\\new\\smaltalk\\water\\scripts\\acceptance\\contract-wire-boundaries.rs",
+        "-L",
+        "dependency=F:\\new\\smaltalk\\water\\.worktrees\\a\\.local\\target\\debug\\deps",
+        "--extern",
+        "water_contracts=F:\\new\\smaltalk\\water\\.worktrees\\a\\.local\\target\\debug\\deps\\libwater_contracts-b9d86d04a692a4c7.rlib",
+        "--extern",
+        "serde_json=F:\\new\\smaltalk\\water\\.worktrees\\a\\.local\\target\\debug\\deps\\libserde_json-c243626af514ec1f.rlib",
+        "--extern",
+        "serde=F:\\new\\smaltalk\\water\\.worktrees\\a\\.local\\target\\debug\\deps\\libserde-9537c049fdbe0d13.rlib",
+        "-o",
+        "F:\\new\\smaltalk\\water\\.local\\controller\\a-wire-2026-10-17T06-14-22.738Z-8960\\contract-wire-boundaries.exe"
+      ],
+      "cwd": "F:\\new\\smaltalk\\water",
+      "startedAt": "2026-10-17T06:14:24.791Z",
+      "endedAt": "2026-10-17T06:14:30.028Z",
+      "exitCode": 0,
+      "signal": null,
+      "error": null,
+      "stdout": "",
+      "stderr": ""
+    },
+    {
+      "binary": "F:\\new\\smaltalk\\water\\.local\\controller\\a-wire-2026-10-17T06-14-22.738Z-8960\\contract-wire-boundaries.exe",
+      "argv": [
+        "--test-threads=1",
+        "--nocapture"
+      ],
+      "cwd": "F:\\new\\smaltalk\\water",
+      "startedAt": "2026-10-17T06:14:30.028Z",
+      "endedAt": "2026-10-17T06:14:30.509Z",
+      "exitCode": 101,
+      "signal": null,
+      "error": null,
+      "stdout": "\nrunning 3 tests\ntest enum_types_accept_only_schema_strings ... SchemaVersion: accepted non-string {\"water.scan.v1\":null}\nPlatform: accepted non-string {\"windows\":null}\nPlatform: accepted non-string {\"macos\":null}\nScopeOrigin: accepted non-string {\"user_selected\":null}\nScopeOrigin: accepted non-string {\"config_discovered\":null}\nCoverage: accepted non-string {\"complete\":null}\nCoverage: accepted non-string {\"partial\":null}\nCoverage: accepted non-string {\"cancelled\":null}\nScanStatus: accepted non-string {\"completed\":null}\nScanStatus: accepted non-string {\"partial\":null}\nScanStatus: accepted non-string {\"cancelled\":null}\nLocationSource: accepted non-string {\"config\":null}\nLocationSource: accepted non-string {\"native\":null}\nLocationSource: accepted non-string {\"marker\":null}\nLocationSource: accepted non-string {\"default_path\":null}\nLocationSource: accepted non-string {\"unknown\":null}\nCategory: accepted non-string {\"download_cache\":null}\nCategory: accepted non-string {\"build_cache\":null}\nCategory: accepted non-string {\"environment\":null}\nCategory: accepted non-string {\"model\":null}\nCategory: accepted non-string {\"experiment\":null}\nCategory: accepted non-string {\"history\":null}\nCategory: accepted non-string {\"database\":null}\nCategory: accepted non-string {\"credential\":null}\nCategory: accepted non-string {\"source\":null}\nCategory: accepted non-string {\"temporary\":null}\nCategory: accepted non-string {\"unknown\":null}\nRisk: accepted non-string {\"low\":null}\nRisk: accepted non-string {\"review\":null}\nRisk: accepted non-string {\"high\":null}\nRisk: accepted non-string {\"protected\":null}\nRecoverability: accepted non-string {\"rebuild\":null}\nRecoverability: accepted non-string {\"redownload\":null}\nRecoverability: accepted non-string {\"conditional\":null}\nRecoverability: accepted non-string {\"unknown\":null}\nRecoverability: accepted non-string {\"not_applicable\":null}\nActivity: accepted non-string {\"running\":null}\nActivity: accepted non-string {\"recent\":null}\nActivity: accepted non-string {\"not_observed\":null}\nActivity: accepted non-string {\"unknown\":null}\nConfidence: accepted non-string {\"native\":null}\nConfidence: accepted non-string {\"verified_structure\":null}\nConfidence: accepted non-string {\"path_only\":null}\nConfidence: accepted non-string {\"unknown\":null}\nProtectionReason: accepted non-string {\"credential\":null}\nProtectionReason: accepted non-string {\"unique_asset\":null}\nProtectionReason: accepted non-string {\"active\":null}\nProtectionReason: accepted non-string {\"unknown_ownership\":null}\nProtectionReason: accepted non-string {\"incomplete_evidence\":null}\nProtectionReason: accepted non-string {\"source_root\":null}\nProtectionReason: accepted non-string {\"system_root\":null}\nProtectionReason: accepted non-string {\"user_home\":null}\nProtectionReason: accepted non-string {\"protected_descendant\":null}\nProtectionReason: accepted non-string {\"user_pinned\":null}\nEvidenceCode: accepted non-string {\"native_inventory\":null}\nEvidenceCode: accepted non-string {\"structure_match\":null}\nEvidenceCode: accepted non-string {\"configured_location\":null}\nEvidenceCode: accepted non-string {\"marker\":null}\nEvidenceCode: accepted non-string {\"timestamp_hint\":null}\nEvidenceCode: accepted non-string {\"reference\":null}\nEvidenceCode: accepted non-string {\"incomplete_scan\":null}\nEvidenceCode: accepted non-string {\"unknown\":null}\nEvidenceSource: accepted non-string {\"native_tool\":null}\nEvidenceSource: accepted non-string {\"config\":null}\nEvidenceSource: accepted non-string {\"filesystem\":null}\nEvidenceSource: accepted non-string {\"rule\":null}\nEvidenceSource: accepted non-string {\"heuristic\":null}\nSizeMethod: accepted non-string {\"unknown\":null}\nSizeMethod: accepted non-string {\"logical_sum\":null}\nSizeMethod: accepted non-string {\"file_identity_allocated\":null}\nSizeMethod: accepted non-string {\"tool_report\":null}\nEstimateConfidence: accepted non-string {\"unknown\":null}\nEstimateConfidence: accepted non-string {\"estimated\":null}\nEstimateConfidence: accepted non-string {\"measured\":null}\nSharedState: accepted non-string {\"yes\":null}\nSharedState: accepted non-string {\"no\":null}\nSharedState: accepted non-string {\"unknown\":null}\nReferenceState: accepted non-string {\"known\":null}\nReferenceState: accepted non-string {\"partial\":null}\nReferenceState: accepted non-string {\"unknown\":null}\nAggregateMethod: accepted non-string {\"unavailable\":null}\nAggregateMethod: accepted non-string {\"file_identity_deduplicated\":null}\nAggregateMethod: accepted non-string {\"tool_report\":null}\nIssueCode: accepted non-string {\"permission_denied\":null}\nIssueCode: accepted non-string {\"io_error\":null}\nIssueCode: accepted non-string {\"link_skipped\":null}\nIssueCode: accepted non-string {\"outside_scope\":null}\nIssueCode: accepted non-string {\"path_unrepresentable\":null}\nIssueCode: accepted non-string {\"depth_limit\":null}\nIssueCode: accepted non-string {\"entry_limit\":null}\nIssueCode: accepted non-string {\"cancelled\":null}\nIssueCode: accepted non-string {\"root_changed\":null}\nIssueCode: accepted non-string {\"unsupported\":null}\nFAILED\ntest positive_base_round_trip_preserves_the_dto ... ok\ntest report_entry_rejects_enum_objects_at_all_twenty_positions ... /schema_version: expected InvalidShape, actual accepted\n/status: expected InvalidShape, actual accepted\n/scopes/0/platform: expected InvalidShape, actual accepted\n/scopes/0/origin: expected InvalidShape, actual accepted\n/scopes/0/coverage: expected InvalidShape, actual accepted\n/findings/0/tool/root_source: expected InvalidShape, actual accepted\n/findings/0/category: expected InvalidShape, actual accepted\n/findings/0/risk: expected InvalidShape, actual accepted\n/findings/0/recoverability: expected InvalidShape, actual accepted\n/findings/0/activity: expected InvalidShape, actual accepted\n/findings/0/confidence: expected InvalidShape, actual accepted\n/findings/0/evidence/0/code: expected InvalidShape, actual accepted\n/findings/0/evidence/0/source: expected InvalidShape, actual accepted\n/findings/0/protection_reasons/0: expected InvalidShape, actual accepted\n/findings/0/references/state: expected InvalidShape, actual accepted\n/findings/0/size/method: expected InvalidShape, actual accepted\n/findings/0/size/confidence: expected InvalidShape, actual accepted\n/findings/0/size/shared: expected InvalidShape, actual accepted\n/totals/method: expected InvalidShape, actual accepted\n/issues/0/code: expected InvalidShape, actual accepted\nFAILED\n\nfailures:\n\nfailures:\n    enum_types_accept_only_schema_strings\n    report_entry_rejects_enum_objects_at_all_twenty_positions\n\ntest result: FAILED. 1 passed; 2 failed; 0 ignored; 0 measured; 0 filtered out; finished in 0.04s\n\n",
+      "stderr": "\nthread 'enum_types_accept_only_schema_strings' (26864) panicked at F:\\new\\smaltalk\\water\\scripts\\acceptance\\contract-wire-boundaries.rs:46:5:\n93 non-string enum values accepted\nnote: run with `RUST_BACKTRACE=1` environment variable to display a backtrace\n\nthread 'report_entry_rejects_enum_objects_at_all_twenty_positions' (43908) panicked at F:\\new\\smaltalk\\water\\scripts\\acceptance\\contract-wire-boundaries.rs:87:5:\n20 report enum objects accepted or misclassified\n"
+    },
+    {
+      "binary": "git",
+      "argv": [
+        "-c",
+        "core.hooksPath=NUL",
+        "-c",
+        "core.fsmonitor=false",
+        "rev-parse",
+        "HEAD"
+      ],
+      "cwd": "F:\\new\\smaltalk\\water\\.worktrees\\a",
+      "startedAt": "2026-10-17T06:14:30.509Z",
+      "endedAt": "2026-10-17T06:14:30.769Z",
+      "exitCode": 0,
+      "signal": null,
+      "error": null,
+      "stdout": "475c4703be3c455089b8080b53e084d4721b10f7\n",
+      "stderr": ""
+    },
+    {
+      "binary": "git",
+      "argv": [
+        "-c",
+        "core.hooksPath=NUL",
+        "-c",
+        "core.fsmonitor=false",
+        "status",
+        "--porcelain",
+        "--untracked-files=all"
+      ],
+      "cwd": "F:\\new\\smaltalk\\water\\.worktrees\\a",
+      "startedAt": "2026-10-17T06:14:30.769Z",
+      "endedAt": "2026-10-17T06:14:31.546Z",
+      "exitCode": 0,
+      "signal": null,
+      "error": null,
+      "stdout": "",
+      "stderr": ""
+    }
+  ],
+  "changedFileCount": 239,
+  "frozenFileCount": 9,
+  "productFiles": [
+    {
+      "path": "Cargo.lock",
+      "sha256": "2ab4644fca93d33480e87caf20f1072f4a0a33ff518f5299fce955340443c2dd"
+    },
+    {
+      "path": "Cargo.toml",
+      "sha256": "d96b95034e54637bdfb11488d6574fcd4c50c8e4710143619e67446fc10f03e2"
+    },
+    {
+      "path": "crates/water-contracts/Cargo.toml",
+      "sha256": "e43fd55db8e7cc1dae85c8401b95cb73f5243f2af3d2dd785003dfdd96652e41"
+    },
+    {
+      "path": "crates/water-contracts/README.md",
+      "sha256": "aea2e9a767f1ccc0f4e1f506a9cee087173c9cdbb725a477266b5fd7976aeaae"
+    },
+    {
+      "path": "crates/water-contracts/src/lib.rs",
+      "sha256": "1a9d577687a8f52149de2be5e15accbfe5f267d23eed3411b6e8c7766ddc38dd"
+    },
+    {
+      "path": "crates/water-contracts/src/v1.rs",
+      "sha256": "f39ea8d8619f05030a0c6cc33e85ba17142061f9352552199ac832596a9bfa72"
+    },
+    {
+      "path": "crates/water-contracts/tests/contract_v1.rs",
+      "sha256": "bc39854f3ba14c482a2acf7e2558ebfe739c02ebc4bb04597befa2916bbe4cd2"
+    },
+    {
+      "path": "rust-toolchain.toml",
+      "sha256": "97aab3493c1fb14fe9a21c760433577f434714f5725bbb176e67048dde581afe"
+    }
+  ],
+  "gates": [
+    {
+      "mode": "fmt",
+      "receipt": "2026-10-17T06-11-38.715Z-33516-fmt-result.json",
+      "artifacts": [
+        "2026-10-17T06-11-38.715Z-33516-fmt-result.json",
+        "2026-10-17T06-11-38.715Z-33516-fmt-1.log",
+        "2026-10-17T06-11-38.715Z-33516-fmt-2.log",
+        "2026-10-17T06-11-38.715Z-33516-fmt-3.log",
+        "2026-10-17T06-11-38.715Z-33516-fmt-4.log",
+        "2026-10-17T06-11-38.715Z-33516-fmt-5.log",
+        "2026-10-17T06-11-38.715Z-33516-fmt-6.log"
+      ],
+      "status": "passed"
+    },
+    {
+      "mode": "test",
+      "receipt": "2026-10-17T06-11-43.345Z-25128-test-result.json",
+      "artifacts": [
+        "2026-10-17T06-11-43.345Z-25128-test-result.json",
+        "2026-10-17T06-11-43.345Z-25128-test-1.log",
+        "2026-10-17T06-11-43.345Z-25128-test-2.log",
+        "2026-10-17T06-11-43.345Z-25128-test-3.log",
+        "2026-10-17T06-11-43.345Z-25128-test-4.log",
+        "2026-10-17T06-11-43.345Z-25128-test-5.log",
+        "2026-10-17T06-11-43.345Z-25128-test-6.log",
+        "2026-10-17T06-11-43.345Z-25128-test-7.log"
+      ],
+      "status": "passed"
+    },
+    {
+      "mode": "clippy",
+      "receipt": "2026-10-17T06-12-14.262Z-39044-clippy-result.json",
+      "artifacts": [
+        "2026-10-17T06-12-14.262Z-39044-clippy-result.json",
+        "2026-10-17T06-12-14.262Z-39044-clippy-1.log",
+        "2026-10-17T06-12-14.262Z-39044-clippy-2.log",
+        "2026-10-17T06-12-14.262Z-39044-clippy-3.log",
+        "2026-10-17T06-12-14.262Z-39044-clippy-4.log",
+        "2026-10-17T06-12-14.262Z-39044-clippy-5.log",
+        "2026-10-17T06-12-14.262Z-39044-clippy-6.log"
+      ],
+      "status": "passed"
+    },
+    {
+      "mode": "metadata",
+      "receipt": "2026-10-17T06-12-17.390Z-23556-metadata-result.json",
+      "artifacts": [
+        "2026-10-17T06-12-17.390Z-23556-metadata-result.json",
+        "2026-10-17T06-12-17.390Z-23556-metadata-1.log",
+        "2026-10-17T06-12-17.390Z-23556-metadata-2.log",
+        "2026-10-17T06-12-17.390Z-23556-metadata-3.log",
+        "2026-10-17T06-12-17.390Z-23556-metadata-4.log",
+        "2026-10-17T06-12-17.390Z-23556-metadata-5.log",
+        "2026-10-17T06-12-17.390Z-23556-metadata-6.log"
+      ],
+      "status": "passed"
+    }
+  ],
+  "rustVersion": "rustc 1.95.0 (59807616e 2026-04-14)",
+  "linkedArtifacts": [
+    {
+      "name": "water_contracts",
+      "path": "F:\\new\\smaltalk\\water\\.worktrees\\a\\.local\\target\\debug\\deps\\libwater_contracts-b9d86d04a692a4c7.rlib",
+      "sha256": "4893a51d8eab52099176ef6a67378486eb97aeda64659b5c6c2129a2d05fdc8a"
+    },
+    {
+      "name": "serde_json",
+      "path": "F:\\new\\smaltalk\\water\\.worktrees\\a\\.local\\target\\debug\\deps\\libserde_json-c243626af514ec1f.rlib",
+      "sha256": "5a88a3ac132f599a9c58a91a3adc4e378b29fbbf7d25513cfc5307c8b3bd6d92"
+    },
+    {
+      "name": "serde",
+      "path": "F:\\new\\smaltalk\\water\\.worktrees\\a\\.local\\target\\debug\\deps\\libserde-9537c049fdbe0d13.rlib",
+      "sha256": "d073caac0cda325e9edb16492e9da6465d2de4f51ca59c6a60c64cd1ba9497f3"
+    }
+  ],
+  "harnessSha256": "0d1d84e7b2cdb5d077140bc15f9912f9f8099ec2aaa898c5922a84fbb2c29333",
+  "testExitCode": 101,
+  "acceptanceStatus": "changes_requested",
+  "endedAt": "2026-10-17T06:14:31.549Z"
+}

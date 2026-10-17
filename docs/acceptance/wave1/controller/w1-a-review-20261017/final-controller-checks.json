@@ -1,0 +1,21 @@
+{
+  "recordedAt": "2026-10-17T06:21:47.818Z",
+  "checks": [
+    {
+      "command": "node scripts/verify-project.mjs --with-upstreams",
+      "chunk_id": "2e70c7",
+      "wall_time_seconds": 8.7962723,
+      "exit_code": 0,
+      "original_token_count": 94,
+      "output": "{\n  \"status\": \"passed\",\n  \"markdownFiles\": 42,\n  \"localLinks\": 76,\n  \"pinnedSourceLinks\": 182,\n  \"externalPinnedSourceLinks\": 4,\n  \"dispatchRegistryTasks\": 3,\n  \"workflowSourceRecords\": 14,\n  \"upstreams\": 5,\n  \"checkedLocalSnapshots\": 5,\n  \"mode\": \"with-upstreams\",\n  \"boundary\": \"Metadata, provenance and handoff checks only; no upstream runtime or cleanup safety test.\"\n}\n"
+    },
+    {
+      "command": "node scripts/verify-contract-assets.mjs",
+      "chunk_id": "b0c45c",
+      "wall_time_seconds": 0.4919172,
+      "exit_code": 0,
+      "original_token_count": 105,
+      "output": "{\n  \"status\": \"passed\",\n  \"reportCases\": 66,\n  \"positiveInputs\": 16,\n  \"structuralRejections\": 27,\n  \"semanticInputsPrepared\": 23,\n  \"rawJsonCases\": 6,\n  \"constructedCases\": 6,\n  \"resourceCasesPrepared\": 2,\n  \"productTestsRun\": false,\n  \"boundary\": \"Validates controller assets and primitive structure/u64 range. Cross-report semantics and all Rust entry points remain the worker and controller acceptance target.\"\n}\n"
+    }
+  ]
+}

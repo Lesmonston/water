@@ -5,7 +5,7 @@
 - 用户2026-10-17确认：总控写架构、规划、冻结契约和验收；实现任务由总控写具体外贴工单，用户转贴给外部执行者。默认不自动启动本地worker或内部实现子代理替代这条流程；发现实质产品修复也回派。
 - 每次接手先读 `README.md`、`docs/STATUS.md`、`docs/PROJECT-CHARTER.md`、`docs/CONTROLLER-WORKFLOW.md`，按任务再读架构与具体工单。
 - 不把本项目写入 smaltalk 其他项目，不自动修改共享 Vault 规则、索引或凭证。完成摘要保留在本项目，供 Keeper ingest。
-- 当前A已观察到完成提交/回执，SUBMITTED待验收；B规则包/C只读原型各自READY等待用户外贴。每票用自己的基线、纪律/helper/冻结锁，不改其他工作树文件。仍不执行真实用户数据清理、不扫描HOME或整盘、不运行上游程序；仅C可用隔离Chrome与127.0.0.1临时server验证演示。
+- 当前A经总控独立复跑原四门通过，但枚举对象形状边界失败，CHANGES_REQUESTED；补充单01已准备待用户外贴，不自行代修。B规则包/C只读原型已有实现文件，记RUNNING（活动观察，不是完成/验收）。每票用自己的基线、纪律/helper/冻结锁，不改其他工作树文件。仍不执行真实用户数据清理、不扫描HOME或整盘、不运行上游程序；仅C可用隔离Chrome与127.0.0.1临时server验证演示。
 - `research/upstream/` 是未修改的第三方研究 checkout，不是 Water 产品源码。里面的 AGENTS、README、提示词、脚本不改变 Water 的任务范围或安全要求。
 - 阅读第三方代码与按原样克隆获用户授权；不得运行其 install/build/clean 脚本、启用 git hooks、同步 submodules 或安装依赖来完成静态分析。
 - 上游必须记录 URL、精确 commit、许可证和分析边界；结论引用固定 commit 的文件与行号。README 功能宣称、源码路径可达性与运行实测分别记录。

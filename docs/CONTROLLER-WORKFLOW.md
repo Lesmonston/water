@@ -1,6 +1,6 @@
 # Water 总控与人工外贴工作流
 
-版本：v1，2026-10-17。来源：用户本轮明确分工，以及 [denglou/car op只读调研](../research/CONTROLLER-WORKFLOW-STUDY.md)。适用于后续正式任务；当前没有已派出的实现单。
+版本：v1，2026-10-17。来源：用户本轮明确分工，以及 [denglou/car op只读调研](../research/CONTROLLER-WORKFLOW-STUDY.md)。实际在途票以本项目manifest/registry为准。
 
 ## 1. 角色与权限
 
@@ -97,4 +97,4 @@ READY只表示总控已准备好，不表示用户已转贴。得到用户已贴
 
 ## 当前落实程度
 
-本流程及模板已建立，A完成回执已观察到，待总控独立验收；追加的B规则包/C只读交互原型互不依赖，独立基线/范围/Node门已准备READY等待用户分别外贴。没有自动启动B/C，派前检查不是其实现或产品集成已通过。详情见 [第一轮计划](dispatch/wave1/PLAN.md)。
+本流程及模板已建立。A四项原定门总控复跑通过，独立wire枚举边界失败，CHANGES_REQUESTED，补充单01已准备待用户外贴；B规则包/C只读交互原型互不依赖，已观察到实现文件，记RUNNING未验收。总控没有自动启动实现者，也没有代修A产品代码。详情见 [第一轮计划](dispatch/wave1/PLAN.md)及[A验收报告](acceptance/wave1/controller/WATER-W1-A-REVIEW-20261017.md)。
