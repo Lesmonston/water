@@ -4,7 +4,7 @@
   "mode": "manual-external-paste",
   "controller": "Codex",
   "projectRoot": "F:/new/smaltalk/water",
-  "stage": "wave1-jk-ready",
+  "stage": "wave1-jk-running",
   "activeWave": "water-wave1",
   "slots": [
     {
@@ -85,7 +85,7 @@
       "branch": "worker/water-w1-j",
       "baseline": "bc409f4af8cb2d51b2f67341ad46637cfa5e66f3",
       "task": "WATER-W1-J",
-      "state": "ready-awaiting-manual-paste"
+      "state": "running-implementation-observed"
     },
     {
       "id": "k",
@@ -93,7 +93,7 @@
       "branch": "worker/water-w1-k",
       "baseline": "bc409f4af8cb2d51b2f67341ad46637cfa5e66f3",
       "task": "WATER-W1-K",
-      "state": "ready-awaiting-manual-paste"
+      "state": "running-implementation-observed"
     }
   ],
   "tasks": [
@@ -695,7 +695,7 @@
     {
       "id": "WATER-W1-J",
       "title": "Controlled read-only scan session",
-      "status": "READY",
+      "status": "RUNNING",
       "kind": "lab_session",
       "slot": "j",
       "worktree": "F:/new/smaltalk/water/.worktrees/j",
@@ -763,12 +763,21 @@
       "preflightEvidence": "docs/dispatch/wave1/SESSION-BATCH-READY-REPORT.md",
       "readinessScope": "Windows offline existing dependencies and actual owned F pipeline only; J product absent and untested.",
       "newProductTestsRun": false,
-      "controllerBaselineOnly": true
+      "controllerBaselineOnly": true,
+      "dispatchConfirmedAt": "2026-10-17T16:40:30.446Z",
+      "dispatchEvidence": "User confirmed just pasting the current J/K tickets in this conversation; exact paste time not independently known.",
+      "dispatchTiming": "dispatchedAt retained null; dispatchConfirmedAt is the confirmation receipt time.",
+      "activityObservedAt": "2026-10-17T16:40:30.446Z",
+      "firstObservedWorkerCheck": "2026-10-17T16:40:22.488Z",
+      "activityEvidence": "At 2026-10-17T16:40:31.742Z, six uncommitted product paths and new lock receipt 2026-10-17T16-40-20.171Z-43988-lock-result.json were observed. User confirmed dispatch; exact implementation start/model unknown.",
+      "implementationObserved": true,
+      "implementationAudit": "docs/acceptance/wave1/controller/w1-session-page-plan-20261018/2026-10-17T16-40-31.742Z-dispatch-audit.json",
+      "latestObservedCheck": "docs/acceptance/wave1/controller/w1-session-page-plan-20261018/water-w1-j/2026-10-17T16-40-20.171Z-43988-lock-result.json"
     },
     {
       "id": "WATER-W1-K",
       "title": "Caller-supplied session reader",
-      "status": "READY",
+      "status": "RUNNING",
       "kind": "lab_reader",
       "slot": "k",
       "worktree": "F:/new/smaltalk/water/.worktrees/k",
@@ -849,9 +858,18 @@
       "preflightEvidence": "docs/dispatch/wave1/SESSION-BATCH-READY-REPORT.md",
       "readinessScope": "Node24/I-model source assets and isolated Chrome blank page only; K product absent and untested.",
       "newProductTestsRun": false,
-      "controllerBaselineOnly": true
+      "controllerBaselineOnly": true,
+      "dispatchConfirmedAt": "2026-10-17T16:40:30.446Z",
+      "dispatchEvidence": "User confirmed just pasting the current J/K tickets in this conversation; exact paste time not independently known.",
+      "dispatchTiming": "dispatchedAt retained null; dispatchConfirmedAt is the confirmation receipt time.",
+      "activityObservedAt": "2026-10-17T16:40:30.446Z",
+      "firstObservedWorkerCheck": "2026-10-17T16:34:58.220Z",
+      "activityEvidence": "At 2026-10-17T16:40:31.742Z, eight uncommitted product paths and new baseline receipt 2026-10-17T16-34-54.684Z-40372-baseline-result.json were observed. User confirmed dispatch; exact implementation start/model unknown.",
+      "implementationObserved": true,
+      "implementationAudit": "docs/acceptance/wave1/controller/w1-session-page-plan-20261018/2026-10-17T16-40-31.742Z-dispatch-audit.json",
+      "latestObservedCheck": "docs/acceptance/wave1/controller/w1-session-page-plan-20261018/water-w1-k/2026-10-17T16-34-54.684Z-40372-baseline-result.json"
     }
   ],
   "testHelper": "per-task helper; A defaults unchanged",
-  "note": "A-E verified; F implementation observed RUNNING at original base. G/H/I READY for separate manual external pastes; no automatically started implementation worker. All new product behavior and macOS unverified."
+  "note": "A-I and four addenda VERIFIED in Windows scope; no old outstanding dispatches. User confirmed J/K external pastes, both RUNNING with product files observed, awaiting reports and controller acceptance. No implementation worker automatically started; real user scopes, desktop and macOS unverified."
 }

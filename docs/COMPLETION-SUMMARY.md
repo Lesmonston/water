@@ -2,7 +2,11 @@
 
 日期：2026-10-17。总控：Codex。所有手工项目产物位于 `F:/new/smaltalk/water`。
 
-## J/K派前追加（2026-10-18，最新）
+## J/K派发核对追加（2026-10-18，最新）
+
+用户已确认刚转贴，两树均已出现实现文件，J/K登记RUNNING待回执；J新增锁检查及K新增baseline已归档。旧A–I仍已验收，没有其他未结外贴单。真实页面验收方案和guarded runner已准备，plan通过、run未执行，132冻结/两树分配不变。见[核对记录](acceptance/wave1/controller/w1-session-page-plan-20261018/DISPATCH-AUDIT-20261018.md)，不得重复派同槽位或冒称新产品通过。
+
+## J/K派前追加（2026-10-18，历史派前）
 
 用户询问漏派并要求继续。旧九单/四补单均已验收，无旧未派或在途；新J会话库、K调用方供数页面共用r1基线`bc409f4af8cb2d51b2f67341ad46637cfa5e66f3`，65新冻结/132唯一文件及j/k独立树、真实baseline通过，READY待用户分别外贴。J只在自有.local由冻结工具生成一批11+6合成夹具，K仅内存数据/独立Chrome；新产品未实现，没有自动启动实现者。详见[派前回执](dispatch/wave1/SESSION-BATCH-READY-REPORT.md)，M1、真实scope/分类/桌面/macOS/删除未完成。
 

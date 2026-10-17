@@ -21,9 +21,15 @@
 
 ## 下一步
 
-A–I及A/B/C/D补单全部VERIFIED（Windows范围），旧漏派/在途单为0。新增J受控会话库、K调用方供数页面均READY，用户可分别外贴；未自动启动实现者，新产品尚不存在。完成后总控验真实J→K页面；真实scope安全、分类/工具适配、Tauri/macOS与删除另排，M1尚未完成。
+A–I及A/B/C/D补单全部VERIFIED（Windows范围），旧漏派/在途单为0。用户已确认刚外贴新增J受控会话库和K调用方供数页面，两树均已出现实现文件，登记RUNNING待回执。总控未自动启动实现者。完成后总控验真实J→K页面；真实scope安全、分类/工具适配、Tauri/macOS与删除另排，M1尚未完成。
 
-## J/K派前完成（2026-10-18，最新）
+## J/K已外贴与验收准备（2026-10-18，最新）
+
+- 用户确认“我刚贴出去”；东京01:40:31审计已见J六个、K八个未提交实现文件。J新增锁检查、K东京01:34:58–01:35:04新增启动baseline与总控派前记录不同，原字节已归档。没有完成报告，实际开工/转贴时刻和执行模型仍未知。
+- 当前J/K均RUNNING，分配/基线/132冻结不变，勿重复派同槽位。旧九单仍已验收，其他未结外贴单为0。
+- [本轮核对记录](acceptance/wave1/controller/w1-session-page-plan-20261018/DISPATCH-AUDIT-20261018.md)及[后续真实页面验收方案](acceptance/wave1/controller/SESSION-PAGE-INTEGRATION-PLAN-20261018.md)已准备；仅plan模式通过，总控未运行J/K产品或真实页面验收。
+
+## J/K派前完成（2026-10-18，历史派前）
 
 - 两树j/k独立，基线`bc409f4af8cb2d51b2f67341ad46637cfa5e66f3`、tag water-w1-session-batch-base-20261018-r1。65项新锁、六旧锁83唯一文件（合计132）一致，旧产品/任务/槽位/根Cargo不变。
 - J实际Node24/Rust1.95/MSVC、现有13场景链路/11原生12scope39entry通过，44快照一致；仅冻结prepare在j.local新建一批11+6、81057字节合成run，r1复用。K四份实际捕获/I模型和独立Chrome空白页通过，无物理fixture权限。

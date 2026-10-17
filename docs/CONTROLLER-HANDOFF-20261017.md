@@ -2,7 +2,11 @@
 
 2026-10-17。项目：`F:/new/smaltalk/water`。供后续总控接手与Keeper ingest；未写共享Vault或其他项目。
 
-## 当前交接：旧单已收口，J/K新单READY
+## 当前交接：旧单已收口，J/K刚外贴
+
+用户已确认“我刚贴出去”，东京01:40:31审计已见J六个、K八个未提交实现文件，两单均记RUNNING待回执。J新增锁检查与K东京01:34:58–01:35:04新增baseline原字节已归档。此前只看Git HEAD/源码不能排除.local中的启动活动；[最新核对记录](acceptance/wave1/controller/w1-session-page-plan-20261018/DISPATCH-AUDIT-20261018.md)已补证。分配/基线/冻结保持，不重复派出。真实J→K页面验收方案/runner已准备，plan通过，run未执行。
+
+## 此前交接：旧单已收口，J/K新单READY（历史）
 
 用户询问是否漏派并要求继续安排。核九个旧任务和13份原票/补单均已覆盖VERIFIED，旧九树在接收提交且干净，0旧未派/在途。部分B/C/D原票和草案已加归档提示，不再重复执行。
 

@@ -1,0 +1,38 @@
+{
+  "checkedAt": "2026-10-17T16:46:21.077Z",
+  "scope": "Controller dispatch metadata and acceptance preparation only",
+  "syntax": {
+    "command": "node --check scripts/acceptance/check-session-page-integration.mjs",
+    "exitCode": 0
+  },
+  "plan": {
+    "command": "node scripts/acceptance/check-session-page-integration.mjs --mode plan",
+    "exitCode": 0,
+    "receipt": "2026-10-17T16-45-34.341Z-6040-result.json",
+    "frozenFiles": 132,
+    "newProductsTested": false,
+    "actualJtoKPage": false
+  },
+  "documents": {
+    "command": "node scripts/verify-project.mjs",
+    "exitCode": 0,
+    "result": {
+      "status": "passed",
+      "markdownFiles": 115,
+      "localLinks": 441,
+      "pinnedSourceLinks": 182,
+      "externalPinnedSourceLinks": 10,
+      "dispatchRegistryTasks": 11,
+      "workflowSourceRecords": 14,
+      "upstreams": 5,
+      "checkedLocalSnapshots": 5,
+      "mode": "documents-and-available-snapshots",
+      "boundary": "Metadata, provenance and handoff checks only; no upstream runtime or cleanup safety test."
+    }
+  },
+  "whitespace": {
+    "command": "git diff --check",
+    "exitCode": 0
+  },
+  "workersStartedByController": false
+}

@@ -2,7 +2,7 @@
 
 面向 Windows、macOS AI 开发者的本地存储分析与安全清理助手。
 
-**当前阶段：A–I均已验收集成（Windows范围），没有旧漏派或在途单。新J受控会话库、K调用方供数页面已通过派前检查，READY待分别外贴；新产品尚未实现。真实用户目录、分类、桌面/macOS和删除仍未验收，M1未完成。**
+**当前阶段：A–I均已验收集成（Windows范围），没有旧漏派或在途单。新J受控会话库、K调用方供数页面已确认外贴，两树均已出现实现文件，登记RUNNING；尚无完成回执，新产品尚未验收。真实用户目录、分类、桌面/macOS和删除仍未验收，M1未完成。**
 
 用户指定本项目所有后续开发均位于 `smaltalk/water`，由 Codex 担任总控。
 
@@ -33,7 +33,7 @@ Water 的发布许可证、定价与商标名称尚未最终确定；`water` 是
 
 ## 下一批
 
-[本次J/K安排](docs/dispatch/wave1/SESSION-BATCH-PLAN-20261018.md)及[实际派前回执](docs/dispatch/wave1/SESSION-BATCH-READY-REPORT.md)：两树独立、同一冻结r1基线，J只组合现有受控链路，K从调用方接内存快照。A–I及四补单无需重贴；W2–W5/真实scope/桌面/macOS属于后续规划，未伪装成待派READY单。
+[本次J/K安排](docs/dispatch/wave1/SESSION-BATCH-PLAN-20261018.md)及[实际派前回执](docs/dispatch/wave1/SESSION-BATCH-READY-REPORT.md)：两树独立、同一冻结r1基线；用户已确认刚外贴，J/K均已见实现活动，RUNNING待回执。J只组合现有受控链路，K从调用方接内存快照。A–I及四补单无需重贴；W2–W5/真实scope/桌面/macOS属于后续规划，未伪装成待派READY单。
 
 ## 后续协作
 

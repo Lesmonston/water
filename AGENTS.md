@@ -1,6 +1,6 @@
 # Water 项目协作规则
 
-最新状态（2026-10-18）：A–I及四补单均已VERIFIED（Windows范围），没有旧漏派/在途。新增J受控会话/K调用方供数页面READY待分别外贴，独立j/k树、r1基线bc409f4、65新冻结与六旧锁合计132唯一文件、实际baseline通过；新产品未实现，没有自动启动实现者。仅冻结prepare在J本树.local新建一批有界合成run，Rust只读；K无物理fixture权限，仅调用方内存bundle/固定静态文件/独立Chrome。新helper保存完整红/恢复和源码，final核当前字节证据。J→K真实页面后验；真实用户scope、分类、桌面/macOS和删除未验证，M1未完成。正式票/manifest及派前回执优先于以下历史叙述。
+最新状态（2026-10-18）：A–I及四补单均已VERIFIED（Windows范围），没有旧漏派/在途。用户已确认刚外贴J/K，两树均已出现实现文件，登记RUNNING待回执；J新增锁检查、K新增baseline亦已归档。独立j/k树、r1基线bc409f4、65新冻结与六旧锁合计132唯一文件、实际baseline通过；新产品尚未交付验收，没有自动启动实现者；勿重复派同一槽位。仅冻结prepare在J本树.local新建一批有界合成run，Rust只读；K无物理fixture权限，仅调用方内存bundle/固定静态文件/独立Chrome。新helper保存完整红/恢复和源码，final核当前字节证据。J→K真实页面后验；真实用户scope、分类、桌面/macOS和删除未验证，M1未完成。正式票/manifest及派前回执优先于以下历史叙述。
 
 - 项目根：`F:/new/smaltalk/water`。用户指定后续开发、研究、文档、脚本与本项目产物全部放在此目录内。
 - Codex 是项目总控，负责范围、任务分派、接口、集成、安全复核和验收。用户保留产品与发布决定权。
