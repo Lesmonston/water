@@ -4,7 +4,7 @@
   "mode": "manual-external-paste",
   "controller": "Codex",
   "projectRoot": "F:/new/smaltalk/water",
-  "stage": "wave1-abc-verified-d-revision",
+  "stage": "wave1-d-revision-e-ready",
   "activeWave": "water-wave1",
   "slots": [
     {
@@ -38,6 +38,14 @@
       "baseline": "7007c65d5845c3fe5938d920e930c8bcb7ffc4e0",
       "task": "WATER-W1-D",
       "state": "awaiting-external-addendum-01"
+    },
+    {
+      "id": "e",
+      "path": "F:/new/smaltalk/water/.worktrees/e",
+      "branch": "worker/water-w1-e",
+      "baseline": "1fce65323daf79c9f74ff84d86883692e4cb1b3e",
+      "task": "WATER-W1-E",
+      "state": "prepared-not-started"
     }
   ],
   "tasks": [
@@ -194,8 +202,66 @@
       "revisionDispatchStatus": "PREPARED_AWAITING_USER_PASTE",
       "model": "Cursor / Grok 4.7 (worker self-report)",
       "modelEvidence": "D original report; no independent platform model verification."
+    },
+    {
+      "id": "WATER-W1-E",
+      "title": "独立报告展示投影",
+      "status": "READY",
+      "kind": "report_view",
+      "slot": "e",
+      "worktree": "F:/new/smaltalk/water/.worktrees/e",
+      "branch": "worker/water-w1-e",
+      "baseCommit": "1fce65323daf79c9f74ff84d86883692e4cb1b3e",
+      "snapshotRef": "refs/tags/water-w1-report-view-base-20261017",
+      "ticket": "docs/dispatch/tickets/WATER-W1-E-REPORT-VIEW-20261017.md",
+      "report": "docs/dispatch/reports/WATER-W1-E-REPORT.md",
+      "helper": "scripts/report-view-check.mjs",
+      "workerRules": "docs/dispatch/W1-REPORT-VIEW-WORKER-RULES.md",
+      "contractLock": "contracts/report-view-v1/freeze.lock.json",
+      "outputRoot": "packages/report-view",
+      "testFile": "packages/report-view/tests/view_v1.rs",
+      "expectedTests": [
+        "view_projection",
+        "view_validation",
+        "view_precision_and_totals",
+        "view_preservation_and_purity",
+        "view_mapping_edges"
+      ],
+      "expectedFinalModes": [
+        "fmt",
+        "test",
+        "clippy",
+        "metadata",
+        "bridge"
+      ],
+      "allowedFiles": [
+        "packages/report-view/Cargo.toml",
+        "packages/report-view/Cargo.lock",
+        "packages/report-view/README.md",
+        "packages/report-view/tests/view_v1.rs",
+        "docs/dispatch/reports/WATER-W1-E-REPORT.md"
+      ],
+      "allowedPrefixes": [
+        "packages/report-view/src/",
+        "docs/acceptance/wave1/e/"
+      ],
+      "allowLockfileGeneration": true,
+      "cargoCacheSource": "F:/new/smaltalk/water/.worktrees/a/.local/cargo-home/registry",
+      "dependsOn": [
+        "WATER-W1-A",
+        "WATER-W1-C"
+      ],
+      "model": null,
+      "dispatchedAt": null,
+      "startedAt": null,
+      "baselineStatus": "PASSED",
+      "productBoundary": "Pure Rust in-memory report projection via verified A; C model bridge only; own workspace/lock; no scanner, FS, UI, IPC, export or cleanup.",
+      "manifest": "docs/dispatch/wave1/manifest.json",
+      "baselineEvidence": "docs/acceptance/wave1/controller/w1-e-preflight-20261017/2026-10-17T11-15-38.971Z-42200-baseline-result.json",
+      "preflightEvidence": "docs/dispatch/wave1/REPORT-VIEW-READY-REPORT.md",
+      "readyOn": "2026-10-17"
     }
   ],
   "testHelper": "per-task helper; A defaults unchanged",
-  "note": "Controller takeover: A/B/C verified in Windows scope; D original gate passed but independent array-property validation failed, addendum 01 awaits user paste. No scanner ticket released."
+  "note": "D addendum 01 and independent E report view READY can be pasted to separate external conversations; no implementation worker started by controller. A/B/C preserved."
 }

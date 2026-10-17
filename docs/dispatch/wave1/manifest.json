@@ -1,7 +1,7 @@
 {
   "schemaVersion": 1,
   "wave": "water-wave1",
-  "status": "ABC_VERIFIED_D_CHANGES_REQUESTED",
+  "status": "ABC_VERIFIED_D_REVISION_E_READY",
   "controllerRoot": "F:/new/smaltalk/water",
   "controllerBranch": "main",
   "controller": "Codex",
@@ -283,6 +283,63 @@
       "revisionReport": "docs/dispatch/reports/WATER-W1-D-ADDENDUM-01-REPORT.md",
       "revisionDispatchStatus": "PREPARED_AWAITING_USER_PASTE",
       "modelEvidence": "D original report; no independent platform model verification."
+    },
+    {
+      "id": "WATER-W1-E",
+      "title": "独立报告展示投影",
+      "status": "READY",
+      "kind": "report_view",
+      "slot": "e",
+      "worktree": "F:/new/smaltalk/water/.worktrees/e",
+      "branch": "worker/water-w1-e",
+      "baseCommit": "1fce65323daf79c9f74ff84d86883692e4cb1b3e",
+      "snapshotRef": "refs/tags/water-w1-report-view-base-20261017",
+      "ticket": "docs/dispatch/tickets/WATER-W1-E-REPORT-VIEW-20261017.md",
+      "report": "docs/dispatch/reports/WATER-W1-E-REPORT.md",
+      "helper": "scripts/report-view-check.mjs",
+      "workerRules": "docs/dispatch/W1-REPORT-VIEW-WORKER-RULES.md",
+      "contractLock": "contracts/report-view-v1/freeze.lock.json",
+      "outputRoot": "packages/report-view",
+      "testFile": "packages/report-view/tests/view_v1.rs",
+      "expectedTests": [
+        "view_projection",
+        "view_validation",
+        "view_precision_and_totals",
+        "view_preservation_and_purity",
+        "view_mapping_edges"
+      ],
+      "expectedFinalModes": [
+        "fmt",
+        "test",
+        "clippy",
+        "metadata",
+        "bridge"
+      ],
+      "allowedFiles": [
+        "packages/report-view/Cargo.toml",
+        "packages/report-view/Cargo.lock",
+        "packages/report-view/README.md",
+        "packages/report-view/tests/view_v1.rs",
+        "docs/dispatch/reports/WATER-W1-E-REPORT.md"
+      ],
+      "allowedPrefixes": [
+        "packages/report-view/src/",
+        "docs/acceptance/wave1/e/"
+      ],
+      "allowLockfileGeneration": true,
+      "cargoCacheSource": "F:/new/smaltalk/water/.worktrees/a/.local/cargo-home/registry",
+      "dependsOn": [
+        "WATER-W1-A",
+        "WATER-W1-C"
+      ],
+      "model": null,
+      "dispatchedAt": null,
+      "startedAt": null,
+      "baselineStatus": "PASSED",
+      "productBoundary": "Pure Rust in-memory report projection via verified A; C model bridge only; own workspace/lock; no scanner, FS, UI, IPC, export or cleanup.",
+      "baselineEvidence": "docs/acceptance/wave1/controller/w1-e-preflight-20261017/2026-10-17T11-15-38.971Z-42200-baseline-result.json",
+      "preflightEvidence": "docs/dispatch/wave1/REPORT-VIEW-READY-REPORT.md",
+      "readyOn": "2026-10-17"
     }
   ],
   "preflightStatus": "PASSED",

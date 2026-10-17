@@ -21,7 +21,14 @@
 
 ## 下一步
 
-A/B/C已VERIFIED并集成。A补单01通过总控单票及隔离集成复验；D原单已收单复验，原五测试通过但独立校验边界失败，发[D补单01](dispatch/tickets/WATER-W1-D-ADDENDUM-01-20261017.md)待用户外贴。正式Rust扫描器/分类器/接线继续等待前置验收；没有真实用户扫描或清理。
+A/B/C已VERIFIED并集成。[D补单01](dispatch/tickets/WATER-W1-D-ADDENDUM-01-20261017.md)与[E独立报告展示投影](dispatch/tickets/WATER-W1-E-REPORT-VIEW-20261017.md)可并行外贴；E基线通过、READY，产品尚未实现。正式Rust扫描器仍等D修订验收及新接口冻结；分类/正式桌面接线另排，没有真实用户扫描或清理。
+
+## D修订/E展示投影安排（2026-10-17，当前）
+
+- D仍为干净b92d5b8，无补单新提交/回执；原补单01、起点、helper和8锁保持，不重复派原单或由总控代修。
+- E仅依赖已验收A/C，独立`.worktrees/e`、worker/water-w1-e、基线`1fce65323daf79c9f74ff84d86883692e4cb1b3e`。19冻结、Node24/Rust1.95/MSVC链接baseline实际通过，READY待用户外贴；未运行五产品测试或实际E桥接。
+- E使用独立packages/report-view workspace/锁，生产逻辑纯内存，不修改根Cargo、A/B/C/D、旧helper或旧锁，不接C页面/IPC。四合法/六非法输入经实际A校验，C对预期数据兼容检查通过，不等于E实现通过。
+- [本批安排与后续顺序](dispatch/wave1/NEXT-BATCH-20261017.md)、[E派前回执](dispatch/wave1/REPORT-VIEW-READY-REPORT.md)及registry/manifest为当前依据。总控未自动启动实现者；READY不等于已经外贴。
 
 ## 总控接手与A/D验收（2026-10-17，当前）
 

@@ -12,6 +12,8 @@
 
 接手后的最新状态：A补单已通过单票及隔离集成复验，VERIFIED并纳入主线；D已收单，原五测试通过但独立数组未知属性校验失败，CHANGES_REQUESTED，[补单01](../tickets/WATER-W1-D-ADDENDUM-01-20261017.md)待外贴。上面的派前与RUNNING状态为历史；当前以[A/D验收报告](../../acceptance/wave1/controller/WATER-W1-AD-REVIEW-20261017.md)和manifest为准。
 
+当前追加E独立报告展示投影：只依赖已验收A/C，不依赖D，独立workspace/19锁/精确e树基线通过，READY待外贴。D补单01与E可并行，详见[本批安排](NEXT-BATCH-20261017.md)与[E派前回执](REPORT-VIEW-READY-REPORT.md)。扫描票仍为DRAFT，不因E准备完成而放行。
+
 | 票 | 内容 | 前置与边界 |
 |---|---|---|
 | WATER-W1-A | Rust workspace、water-contracts、固定序列化/语义校验、定向测试 | 架构基线已提交；没有扫描/删除/UI |

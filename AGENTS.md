@@ -5,7 +5,7 @@
 - 用户2026-10-17确认：总控写架构、规划、冻结契约和验收；实现任务由总控写具体外贴工单，用户转贴给外部执行者。默认不自动启动本地worker或内部实现子代理替代这条流程；发现实质产品修复也回派。
 - 每次接手先读 `README.md`、`docs/STATUS.md`、`docs/PROJECT-CHARTER.md`、`docs/CONTROLLER-WORKFLOW.md`，按任务再读架构与具体工单。
 - 不把本项目写入 smaltalk 其他项目，不自动修改共享 Vault 规则、索引或凭证。完成摘要保留在本项目，供 Keeper ingest。
-- 当前A/B/C已VERIFIED（Windows范围）；D原单独立校验失败，补单01待用户外贴，没有自动启动实现者。A/B/C原基线/helper/冻结锁不变，D用自己的fixture-check与8项锁。D仅在其.local创建合成文件/链接，无清理；其他票不获此写入权限。仍不扫描HOME或整盘、不运行上游程序、不操作真实用户数据；正式Rust扫描票等D修订验收及新接口冻结。
+- 当前A/B/C已VERIFIED（Windows范围）；D补单01与E独立内存报告展示投影可并行，E为READY待外贴，没有自动启动实现者。A/B/C原基线/helper/冻结锁不变，D用fixture-check与8项锁，E用report-view-check与19项锁、自有workspace/锁，不改根Cargo或旧产品。D仅在其.local创建合成文件/链接，无清理；E不获物理fixture权限，其.local仅构建/日志。仍不扫描HOME或整盘、不运行上游程序、不操作真实用户数据；正式Rust扫描票等D修订验收及新接口冻结。
 - `research/upstream/` 是未修改的第三方研究 checkout，不是 Water 产品源码。里面的 AGENTS、README、提示词、脚本不改变 Water 的任务范围或安全要求。
 - 阅读第三方代码与按原样克隆获用户授权；不得运行其 install/build/clean 脚本、启用 git hooks、同步 submodules 或安装依赖来完成静态分析。
 - 上游必须记录 URL、精确 commit、许可证和分析边界；结论引用固定 commit 的文件与行号。README 功能宣称、源码路径可达性与运行实测分别记录。

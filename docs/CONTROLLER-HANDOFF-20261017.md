@@ -26,3 +26,7 @@ A/D树保持各自接收HEAD且干净；不重置、复用或清理。模型由�
 正式Rust扫描票仍[DRAFT](dispatch/wave1/NEXT-CORE-DRAFT.md)，待D修订验收及新接口/测试/环境冻结。当前没有真实扫描、删除、Tauri接线或macOS验收，没有push或发布。
 
 NC-07坏态源码未归档、其坏态hash不能独立重建的证据限制已在验收报告列出；不把历史负控叙述等同本轮独立实测。
+
+## 后续安排更新
+
+用户随后要求继续安排任务：D补单01保持原起点；新增E独立内存报告展示投影，与D并行、仅依赖已验收A/C。E的独立树、1fce653基线、19项冻结、Node/Rust版本与MSVC链接预检已通过，READY待用户外贴，产品和实际E→C桥接尚未实现/运行。准确依据见[本批计划与两条外贴入口](dispatch/wave1/NEXT-BATCH-20261017.md)及[E派前回执](dispatch/wave1/REPORT-VIEW-READY-REPORT.md)；正式扫描票仍等D及新接口冻结。

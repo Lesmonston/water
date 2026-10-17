@@ -14,6 +14,8 @@
 
 [ADR-004](decisions/ADR-004-fixture-lab-before-scanner.md)追加独立D测试资产工具：Node只在本项目.local生成合成文件/链接和未来故障计划，供后续Rust扫描验收使用；没有遍历扫描/分类或清理能力。正式核心接口仍由总控在A验收后单独冻结。
 
+[ADR-005](decisions/ADR-005-independent-report-view.md)追加独立E内存展示投影：自有Rust workspace使用已验收A校验入口，输出新视图协议，验收桥接C纯模型；不接C页面、扫描facts或正式脱敏导出，不改根Cargo，且不依赖D。
+
 ## 分层与信任边界
 
 ```mermaid

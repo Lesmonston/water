@@ -102,3 +102,5 @@ READY只表示总控已准备好，不表示用户已转贴。得到用户已贴
 最新追加：用户要求下一批，已准备A原补单续做和独立D夹具工厂。D的新槽位/8项锁/Node基线与能力probe通过，READY待外贴；没有提前发依赖A的扫描器。见[下一批具体安排](dispatch/wave1/NEXT-BATCH-20261017.md)，不是新一轮实现已开始的声明。
 
 接手复验更新：A补单01单票及总控隔离集成均通过，VERIFIED并纳入主线；D原五测试通过但独立数组未知属性校验失败，发补单01待用户外贴。以上READY是历史派前状态，当前事实见[A/D验收报告](acceptance/wave1/controller/WATER-W1-AD-REVIEW-20261017.md)。
+
+后续安排更新：ADR-005允许同一波次独立E报告展示投影与D修订并行；E只依赖已验收A/C，新锁/helper/自有workspace不改旧票。E基线实际通过、READY待外贴，产品未实现；正式扫描票仍等D验收。见[E派前回执](dispatch/wave1/REPORT-VIEW-READY-REPORT.md)。
