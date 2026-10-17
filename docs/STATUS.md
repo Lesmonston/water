@@ -15,13 +15,21 @@
 - 原始调研已复制到research/sources；第三方checkout在research/upstream，未修改、未跟踪进Water Git。
 - 首轮校验通过：19份Markdown、26处本地文档链接、182处固定commit源码引用；5个checkout的HEAD、origin、许可证哈希及洁净状态一致。
 - 另有4处Mole Windows固定commit文档引用没有本地checkout，只做了网络核对；未把它们算作本地实现验证。
-- 暂定独立Rust内核 + Tauri 2 + TypeScript/React。尚未实现产品代码，尚未运行竞品或真实清理。
+- M0当时暂定独立Rust内核 + Tauri 2 + TypeScript/React。当前已实现的B/C和A契约状态见下文，尚未运行竞品或真实清理。
 
 ## 下一步
 
-B/C已VERIFIED并集成。下一批[A补单01](dispatch/tickets/WATER-W1-A-ADDENDUM-01-20261017.md)续做与[D夹具工厂](dispatch/tickets/WATER-W1-D-FIXTURE-LAB-20261017.md)独立并行，D为READY等待用户外贴。正式Rust扫描器/分类器/接线继续等待前置验收；没有真实用户扫描或清理。
+B/C已VERIFIED并集成。A补单01已通过总控单票复验，进行隔离集成；D原单已收单复验，原五测试通过但独立校验边界失败，发[D补单01](dispatch/tickets/WATER-W1-D-ADDENDUM-01-20261017.md)待用户外贴。正式Rust扫描器/分类器/接线继续等待前置验收；没有真实用户扫描或清理。
 
-## 下一批派前完成（2026-10-17，当前）
+## 总控接手与A/D验收（2026-10-17，当前）
+
+- 用户指定接手失效对话`codex:f62e8a21-24f9-488a-904d-a3050525a155`，随后明确A/D已完成、直接验收。以项目材料和实际Git为准，未恢复旧聊天内容。
+- A接收HEAD `5e32f51cc2fe5be6c3516a492a7a75f7a63a2015`干净，9冻结一致；补单只改两个产品文件。总控四门及独立wire三测试首次全过，单票ACCEPTED，隔离集成结果另记。
+- D接收HEAD `b92d5b8dff8802d1e403e59c08eb1cd4fb175f5f`干净，8冻结一致；check及五测试首次全过，但纯校验的六类数组/18个非索引属性变体错误接受，CHANGES_REQUESTED，补单01已准备。未集成D。
+- B/C产品tree与接收提交完全一致，保留VERIFIED；两个只读辅助仅审计材料，没有实现或发单权限。
+- 详见[本轮验收报告](acceptance/wave1/controller/WATER-W1-AD-REVIEW-20261017.md)。本会话环境cwd已是water，仍对每条项目命令显式指定工作目录；旧会话目录切换失败不套用于本会话。
+
+## 下一批派前完成（2026-10-17，历史）
 
 - A仍为干净原提交475c470，9项冻结一致，未见补单新提交/回执；原补单01及续做起点保持，不由总控代修。
 - D树`.worktrees/d`、分支worker/water-w1-d，基线`7007c65d5845c3fe5938d920e930c8bcb7ffc4e0`，tag water-w1-fixture-base-20261017-r1。独立8项冻结、Node24、干净baseline及3种链接probe实际通过；11case/57node/575内容字节/18负例已准备。产品工厂未实现，五产品测试尚未运行，macOS未验证。
@@ -64,7 +72,7 @@ B/C已VERIFIED并集成。下一批[A补单01](dispatch/tickets/WATER-W1-A-ADDEN
 - [正式票](dispatch/tickets/WATER-W1-A-CONTRACTS-20261017.md)、权威manifest、工作树、报告与证据父目录均存在；[派前回执](dispatch/wave1/CONTROLLER-READY-REPORT.md)记录已做/未做检查。
 - 初次仅A的READY记录现已被后续提交观察及B/C追加更新；该节保留初次派前证据，最新状态以本页“下一步”、独立验收及registry为准。
 
-## 最新协作约定（2026-10-17）
+## 协作约定及初次登记（2026-10-17，初次状态为历史）
 
 - 用户指定总控写架构、规划和验收；实现单由总控写外贴指令、用户转贴，不自动启动实现worker替代人工外贴。
 - 已只读学习car op的契约/工单/manifest/检查入口及denglou的独立槽位/行为与反向验收方法，未修改或运行这些项目。
@@ -74,10 +82,10 @@ B/C已VERIFIED并集成。下一批[A补单01](dispatch/tickets/WATER-W1-A-ADDEN
 
 ## 未完成与验证限制
 
-- 已核实PATH没有cargo/rustc，但默认cargo目录中的代理与精确Rust 1.95.0、rustfmt/clippy及MSVC工具可用；无需先安装或修改全局环境。A树Rust编译与原合同测试已独立通过，补充枚举边界失败待回派；不是已集成或macOS验证。
+- 已核实PATH没有cargo/rustc，但默认cargo目录中的代理与精确Rust 1.95.0、rustfmt/clippy及MSVC工具可用；无需先安装或修改全局环境。A补单的原门与独立枚举边界已通过；单票与集成状态分开记录，macOS未验证。
 - 当前机器为Windows；macOS行为、签名、安装包、真实容量及恢复能力均未验证。
 - 产品许可证、定价、品牌与远程仓库尚未冻结；没有公开发布、推送、收款或联系上游。
 - 各上游的静态风险均不是已复现漏洞；Water也没有因此获得安全认证或独有功能证明。
-- 会话平台的目录切换接口尚未将新仓库识别为observed worktree，切换未成功；当前会话环境根仍是smaltalk。所有项目命令必须显式设置workdir为water，所有文件仍只写water；不要声称平台会话目录已经切换。
+- 旧会话曾遇到目录切换接口未识别observed worktree；此为历史限制。本次接手环境cwd为`F:/new/smaltalk/water`，所有项目产物仍只写Water。
 
 本轮完成记录见 [COMPLETION-SUMMARY.md](COMPLETION-SUMMARY.md)。全部后续项目工作继续在water内，由总控统一分派与验收。

@@ -2,6 +2,8 @@
 
 总控：Codex。日期：2026-10-17。状态：CHANGES_REQUESTED，等待用户转贴给A执行者。
 
+后续总控收单：本补单已完成，接收HEAD `5e32f51cc2fe5be6c3516a492a7a75f7a63a2015`通过单票复验；不再从下列历史起点重做。当前集成状态看[验收报告](../../acceptance/wave1/controller/WATER-W1-AD-REVIEW-20261017.md)及主manifest；本页原票面保留供追溯。
+
 本单绑定[原工单](WATER-W1-A-CONTRACTS-20261017.md)，仅修复原冻结Schema的实现偏差，不更改契约。主检出manifest为权威；本单优先于原单的首次开工/回执规则，其余原规则继续适用。
 
 | 项 | 唯一值 |

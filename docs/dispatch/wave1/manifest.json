@@ -1,7 +1,7 @@
 {
   "schemaVersion": 1,
   "wave": "water-wave1",
-  "status": "A_REVISION_D_READY_BC_VERIFIED",
+  "status": "A_ACCEPTED_D_CHANGES_REQUESTED_BC_VERIFIED",
   "controllerRoot": "F:/new/smaltalk/water",
   "controllerBranch": "main",
   "controller": "Codex",
@@ -15,7 +15,7 @@
     {
       "id": "WATER-W1-A",
       "title": "Rust工程底座与scan v1契约实现",
-      "status": "CHANGES_REQUESTED",
+      "status": "ACCEPTED",
       "slot": "a",
       "worktree": "F:/new/smaltalk/water/.worktrees/a",
       "branch": "worker/water-w1-a",
@@ -47,7 +47,7 @@
         "docs/acceptance/wave1/a/"
       ],
       "productBoundary": "DTO/serialization/validation only; no filesystem scanning, process execution, UI or cleanup",
-      "model": "Codex / GPT-6 (worker self-report)",
+      "model": "Cursor / Grok 4.7 (worker self-report)",
       "modelAssignment": "user-arranged; report actual engine/model",
       "dispatchedAt": null,
       "startedAt": null,
@@ -55,15 +55,22 @@
       "submittedCommit": "475c4703be3c455089b8080b53e084d4721b10f7",
       "submissionObservedAt": "2026-10-17T06:04:28.047Z",
       "submissionEvidence": "Original clean submission retained; four controller gates passed but independent enum boundary checks failed.",
-      "reviewedCommit": "475c4703be3c455089b8080b53e084d4721b10f7",
-      "controllerReview": "docs/acceptance/wave1/controller/WATER-W1-A-REVIEW-20261017.md",
+      "reviewedCommit": "5e32f51cc2fe5be6c3516a492a7a75f7a63a2015",
+      "controllerReview": "docs/acceptance/wave1/controller/WATER-W1-AD-REVIEW-20261017.md",
       "addenda": [
         "docs/dispatch/tickets/WATER-W1-A-ADDENDUM-01-20261017.md"
       ],
       "resumeFromCommit": "475c4703be3c455089b8080b53e084d4721b10f7",
       "revisionReport": "docs/dispatch/reports/WATER-W1-A-ADDENDUM-01-REPORT.md",
-      "revisionDispatchStatus": "PREPARED_AWAITING_USER_PASTE",
-      "reissuePreparedAt": "2026-10-17T09:21:11.663Z"
+      "revisionDispatchStatus": "COMPLETED_ACCEPTED",
+      "reissuePreparedAt": "2026-10-17T09:21:11.663Z",
+      "revisionSubmittedCommit": "5e32f51cc2fe5be6c3516a492a7a75f7a63a2015",
+      "revisionImplementationCommit": "e25564f941f10295b1f90ce565b070149ec53302",
+      "revisionSubmissionObservedAt": "2026-10-17T10:22:58.489Z",
+      "acceptedCommit": "5e32f51cc2fe5be6c3516a492a7a75f7a63a2015",
+      "acceptedAt": "2026-10-17T10:22:58.489Z",
+      "previousControllerReview": "docs/acceptance/wave1/controller/WATER-W1-A-REVIEW-20261017.md",
+      "modelEvidence": "A addendum 01 report; no independent platform model verification."
     },
     {
       "status": "VERIFIED",
@@ -212,7 +219,7 @@
     {
       "id": "WATER-W1-D",
       "title": "受控文件系统夹具工厂",
-      "status": "READY",
+      "status": "CHANGES_REQUESTED",
       "kind": "fixture",
       "slot": "d",
       "worktree": "F:/new/smaltalk/water/.worktrees/d",
@@ -241,13 +248,14 @@
         "tools/fs-fixture-kit/materialize.mjs",
         "tools/fs-fixture-kit/tests/materialize.test.mjs",
         "tools/fs-fixture-kit/README.md",
-        "docs/dispatch/reports/WATER-W1-D-REPORT.md"
+        "docs/dispatch/reports/WATER-W1-D-REPORT.md",
+        "docs/dispatch/reports/WATER-W1-D-ADDENDUM-01-REPORT.md"
       ],
       "allowedPrefixes": [
         "docs/acceptance/wave1/d/"
       ],
       "dependsOn": [],
-      "model": null,
+      "model": "Cursor / Grok 4.7 (worker self-report)",
       "dispatchedAt": null,
       "startedAt": null,
       "baselineStatus": "PASSED",
@@ -256,7 +264,19 @@
       "preflightEvidence": "docs/dispatch/wave1/FIXTURE-READY-REPORT.md",
       "baselineEvidence": "docs/acceptance/wave1/controller/w1-next-batch-20261017/d-baseline.json",
       "probeEvidence": "docs/acceptance/wave1/controller/w1-next-batch-20261017/d-probe.json",
-      "readyOn": "2026-10-17"
+      "readyOn": "2026-10-17",
+      "submittedCommit": "b92d5b8dff8802d1e403e59c08eb1cd4fb175f5f",
+      "implementationCommit": "58fc5973a1d68555bbd41fdf4c6d2990cbff870d",
+      "submissionObservedAt": "2026-10-17T10:22:58.489Z",
+      "reviewedCommit": "b92d5b8dff8802d1e403e59c08eb1cd4fb175f5f",
+      "controllerReview": "docs/acceptance/wave1/controller/WATER-W1-AD-REVIEW-20261017.md",
+      "addenda": [
+        "docs/dispatch/tickets/WATER-W1-D-ADDENDUM-01-20261017.md"
+      ],
+      "resumeFromCommit": "b92d5b8dff8802d1e403e59c08eb1cd4fb175f5f",
+      "revisionReport": "docs/dispatch/reports/WATER-W1-D-ADDENDUM-01-REPORT.md",
+      "revisionDispatchStatus": "PREPARED_AWAITING_USER_PASTE",
+      "modelEvidence": "D original report; no independent platform model verification."
     }
   ],
   "preflightStatus": "PASSED",

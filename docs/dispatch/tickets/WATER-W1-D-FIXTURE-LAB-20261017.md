@@ -2,6 +2,8 @@
 
 总控：Codex。正式状态看主检出manifest。这是与A补单并行的独立实现票；不依赖未验收A，不实现扫描内核。
 
+2026-10-17总控收单复验：原check/五测试通过，独立数组未知属性边界失败，CHANGES_REQUESTED。续做先读[补单01](WATER-W1-D-ADDENDUM-01-20261017.md)，替代本票首次baseline/probe与回执规则；其余冻结契约和权限不变。
+
 | 项 | 唯一值 |
 |---|---|
 | 权威票 | `F:/new/smaltalk/water/docs/dispatch/tickets/WATER-W1-D-FIXTURE-LAB-20261017.md` |

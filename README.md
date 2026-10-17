@@ -2,7 +2,7 @@
 
 面向 Windows、macOS AI 开发者的本地存储分析与安全清理助手。
 
-**当前阶段：B/C已验收集成；下一批为A补单修复与D测试夹具工厂，可独立并行。D已完成派前检查，等待用户外贴；尚无真实扫描或删除能力。**
+**当前阶段：B/C已验收集成；A补单01单票验收通过，进行隔离集成；D原单已验收退回补单01，待用户外贴。尚无真实扫描或删除能力。**
 
 用户指定本项目所有后续开发均位于 `smaltalk/water`，由 Codex 担任总控。
 
@@ -21,7 +21,7 @@
 
 已纳入的独立产物：[六工具规则数据包](packages/tool-catalog/README.md)、[固定数据只读原型及启动说明](prototypes/readonly-dashboard/README)。[复验与集成报告](docs/acceptance/wave1/controller/WATER-W1-BC-ADDENDUM-01-REVIEW-20261017.md)记录Windows范围和未验证项；两项产物尚未接真实扫描或相互接线。
 
-[下一批安排与外贴入口](docs/dispatch/wave1/NEXT-BATCH-20261017.md)：A修复既有契约；D准备后续Rust扫描验收需要的合成目录。基线、权限和命令均已落到具体票面。
+[当前验收与接手记录](docs/acceptance/wave1/controller/WATER-W1-AD-REVIEW-20261017.md)与[外贴入口](docs/dispatch/wave1/NEXT-BATCH-20261017.md)：A已通过单票复验；D需拒绝数组上的非索引属性。正式Rust扫描票继续等待前置验收。
 
 ## 研究输入
 

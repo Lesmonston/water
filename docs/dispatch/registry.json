@@ -4,7 +4,7 @@
   "mode": "manual-external-paste",
   "controller": "Codex",
   "projectRoot": "F:/new/smaltalk/water",
-  "stage": "wave1-next-batch-a-revision-d-ready",
+  "stage": "wave1-a-accepted-d-revision-bc-verified",
   "activeWave": "water-wave1",
   "slots": [
     {
@@ -13,7 +13,7 @@
       "branch": "worker/water-w1-a",
       "baseline": "a1e68364d47e137f8b66543eb95d35bb04424c78",
       "task": "WATER-W1-A",
-      "state": "awaiting-external-addendum-01"
+      "state": "accepted-awaiting-controller-integration"
     },
     {
       "id": "b",
@@ -37,14 +37,14 @@
       "branch": "worker/water-w1-d",
       "baseline": "7007c65d5845c3fe5938d920e930c8bcb7ffc4e0",
       "task": "WATER-W1-D",
-      "state": "prepared-not-started"
+      "state": "awaiting-external-addendum-01"
     }
   ],
   "tasks": [
     {
       "id": "WATER-W1-A",
       "title": "Rust工程底座与scan v1契约实现",
-      "status": "CHANGES_REQUESTED",
+      "status": "ACCEPTED",
       "manifest": "docs/dispatch/wave1/manifest.json",
       "ticket": "docs/dispatch/tickets/WATER-W1-A-CONTRACTS-20261017.md",
       "worktree": "F:/new/smaltalk/water/.worktrees/a",
@@ -57,14 +57,23 @@
       "startedAt": null,
       "submittedCommit": "475c4703be3c455089b8080b53e084d4721b10f7",
       "submissionObservedAt": "2026-10-17T06:04:28.047Z",
-      "controllerReview": "docs/acceptance/wave1/controller/WATER-W1-A-REVIEW-20261017.md",
+      "controllerReview": "docs/acceptance/wave1/controller/WATER-W1-AD-REVIEW-20261017.md",
       "addenda": [
         "docs/dispatch/tickets/WATER-W1-A-ADDENDUM-01-20261017.md"
       ],
       "resumeFromCommit": "475c4703be3c455089b8080b53e084d4721b10f7",
       "revisionReport": "docs/dispatch/reports/WATER-W1-A-ADDENDUM-01-REPORT.md",
-      "revisionDispatchStatus": "PREPARED_AWAITING_USER_PASTE",
-      "reissuePreparedAt": "2026-10-17T09:21:11.685Z"
+      "revisionDispatchStatus": "COMPLETED_ACCEPTED",
+      "reissuePreparedAt": "2026-10-17T09:21:11.685Z",
+      "revisionSubmittedCommit": "5e32f51cc2fe5be6c3516a492a7a75f7a63a2015",
+      "revisionImplementationCommit": "e25564f941f10295b1f90ce565b070149ec53302",
+      "revisionSubmissionObservedAt": "2026-10-17T10:22:58.489Z",
+      "acceptedCommit": "5e32f51cc2fe5be6c3516a492a7a75f7a63a2015",
+      "acceptedAt": "2026-10-17T10:22:58.489Z",
+      "reviewedCommit": "5e32f51cc2fe5be6c3516a492a7a75f7a63a2015",
+      "previousControllerReview": "docs/acceptance/wave1/controller/WATER-W1-A-REVIEW-20261017.md",
+      "model": "Cursor / Grok 4.7 (worker self-report)",
+      "modelEvidence": "A addendum 01 report; no independent platform model verification."
     },
     {
       "id": "WATER-W1-B",
@@ -149,7 +158,7 @@
     {
       "id": "WATER-W1-D",
       "title": "受控文件系统夹具工厂",
-      "status": "READY",
+      "status": "CHANGES_REQUESTED",
       "manifest": "docs/dispatch/wave1/manifest.json",
       "ticket": "docs/dispatch/tickets/WATER-W1-D-FIXTURE-LAB-20261017.md",
       "worktree": "F:/new/smaltalk/water/.worktrees/d",
@@ -165,9 +174,22 @@
       "preflightEvidence": "docs/dispatch/wave1/FIXTURE-READY-REPORT.md",
       "baselineEvidence": "docs/acceptance/wave1/controller/w1-next-batch-20261017/d-baseline.json",
       "probeEvidence": "docs/acceptance/wave1/controller/w1-next-batch-20261017/d-probe.json",
-      "readyOn": "2026-10-17"
+      "readyOn": "2026-10-17",
+      "submittedCommit": "b92d5b8dff8802d1e403e59c08eb1cd4fb175f5f",
+      "implementationCommit": "58fc5973a1d68555bbd41fdf4c6d2990cbff870d",
+      "submissionObservedAt": "2026-10-17T10:22:58.489Z",
+      "reviewedCommit": "b92d5b8dff8802d1e403e59c08eb1cd4fb175f5f",
+      "controllerReview": "docs/acceptance/wave1/controller/WATER-W1-AD-REVIEW-20261017.md",
+      "addenda": [
+        "docs/dispatch/tickets/WATER-W1-D-ADDENDUM-01-20261017.md"
+      ],
+      "resumeFromCommit": "b92d5b8dff8802d1e403e59c08eb1cd4fb175f5f",
+      "revisionReport": "docs/dispatch/reports/WATER-W1-D-ADDENDUM-01-REPORT.md",
+      "revisionDispatchStatus": "PREPARED_AWAITING_USER_PASTE",
+      "model": "Cursor / Grok 4.7 (worker self-report)",
+      "modelEvidence": "D original report; no independent platform model verification."
     }
   ],
   "testHelper": "per-task helper; A defaults unchanged",
-  "note": "Next batch: existing A addendum 01 plus independent D fixture kit READY, baseline/probe passed. B/C remain verified; no implementation worker started by controller."
+  "note": "Controller takeover: A addendum accepted, isolated integration pending; D original tests passed but independent array-property validation failed, addendum 01 prepared. B/C unchanged."
 }
