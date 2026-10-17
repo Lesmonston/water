@@ -1,0 +1,28 @@
+{
+  "id": "NC-01",
+  "sourcePath": "crates/water-contracts/src/v1.rs",
+  "line": 87,
+  "expectedTest": "byte_count_round_trip",
+  "expectedCase": "must be a decimal string",
+  "originalText": "serializer.serialize_str(&self.0.to_string())",
+  "replacementText": "serializer.serialize_u64(self.0)",
+  "sha256Before": "f39ea8d8619f05030a0c6cc33e85ba17142061f9352552199ac832596a9bfa72",
+  "sha256Broken": "7becdc8e489c98280a7811a8d97abb3f694776e6f148effe06e98e0a1533b207",
+  "sha256Restored": "f39ea8d8619f05030a0c6cc33e85ba17142061f9352552199ac832596a9bfa72",
+  "command": "node scripts/worker-check.mjs --task WATER-W1-A --mode test",
+  "broken": {
+    "exitCode": 1,
+    "receipt": ".local/checks/WATER-W1-A/2026-10-17T05-54-37.875Z-9896-test-result.json",
+    "helperLog": "NC-01-broken-helper.log",
+    "summary": "test result: FAILED. 3 passed; 2 failed; 0 ignored; 0 measured; 0 filtered out; finished in 1.64s",
+    "cargoExitCode": 101
+  },
+  "restored": {
+    "exitCode": 0,
+    "receipt": ".local/checks/WATER-W1-A/2026-10-17T05-54-45.371Z-24392-test-result.json",
+    "helperLog": "NC-01-restored-helper.log",
+    "summary": "test result: ok. 5 passed; 0 failed; 0 ignored; 0 measured; 0 filtered out; finished in 1.97s"
+  },
+  "valid": true,
+  "changedLine": 87
+}

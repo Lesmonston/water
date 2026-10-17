@@ -1,0 +1,16 @@
+{
+  "command": "node scripts/worker-check.mjs --task WATER-W1-A --mode test",
+  "receipt": "checks/2026-10-17T05-50-00.397Z-17068-test-result.json",
+  "helperExitCode": 1,
+  "cargoExitCode": 101,
+  "result": "3 passed; 2 failed; 0 ignored; 0 measured; 0 filtered out",
+  "assertions": [
+    "conformance_reports: control_in_text",
+    "constructed_report_validation: constructed_empty_evidence: validate"
+  ],
+  "productionSource": "initial-red-v1-source.txt",
+  "productionSha256": "4dcb3a81bc1b9d6ad78faf4ca30200ae5a8c64a4bd3185af41049b197a24aa07",
+  "testsSha256": "97fca4ec508ef925b39e5b665e324e5809ad49d8f23724f55b4f9a97a05091d8",
+  "missingBehavior": "validate_report returned Ok without checking shape or semantics",
+  "laterTestChanges": "Rustfmt layout; primitive order reversed without filtering; added boundary assertions"
+}

@@ -1,0 +1,35 @@
+{"binary":"C:\\Users\\37310\\.rustup\\toolchains\\1.95.0-x86_64-pc-windows-msvc\\bin\\cargo.exe","argv":["test","--locked","-p","water-contracts","--test","contract_v1","--","--test-threads=1","--format","pretty"],"cwd":"F:\\new\\smaltalk\\water\\.worktrees\\a","startedAt":"2026-10-17T05:54:56.158Z","endedAt":"2026-10-17T05:54:58.534Z","exitCode":101,"signal":null,"error":null}
+--- stdout ---
+
+running 5 tests
+test byte_count_round_trip ... ok
+test conformance_reports ... FAILED
+test constructed_report_validation ... ok
+test primitive_validation ... FAILED
+test raw_json_and_resource_limits ... ok
+
+failures:
+
+---- conformance_reports stdout ----
+
+thread 'conformance_reports' (10872) panicked at crates\water-contracts\tests\contract_v1.rs:47:24:
+leading_zero_bytes: ScanReport { schema_version: WaterScanV1, scan_id: OpaqueId("scan-fixture-1"), status: Completed, scopes: [ScopeDescriptor { scope_id: OpaqueId("scope-1"), label: "Fixture A", platform: Windows, origin: UserSelected, coverage: Complete }], findings: [Finding { finding_id: OpaqueId("finding-1"), scope_id: OpaqueId("scope-1"), relative_path: RelativePath("project/.cache/ruff"), tool: Some(ToolDescriptor { tool_id: OpaqueId("ruff"), name: "Ruff fixture", version: Some("0.0-fixture"), root_source: Marker }), rule_version: "1", category: BuildCache, risk: Review, recoverability: Rebuild, activity: Unknown, confidence: VerifiedStructure, evidence: [Evidence { code: StructureMatch, source: Filesystem, summary: "Fictional fixture metadata only; not a real scan." }], protection_reasons: [], references: ReferenceSummary { state: Unknown, project_ids: [] }, size: SizeEstimate { logical_bytes: Some(ByteCount(1)), allocated_bytes: None, reclaimable_lower_bytes: None, reclaimable_upper_bytes: None, method: LogicalSum, confidence: Estimated, shared: Unknown } }], issues: [], totals: ScanTotals { logical_bytes: None, allocated_bytes: None, method: Unavailable, coverage_complete: true, scanned_entries: 3, skipped_entries: 0 } }
+note: run with `RUST_BACKTRACE=1` environment variable to display a backtrace
+
+---- primitive_validation stdout ----
+
+thread 'primitive_validation' (35912) panicked at crates\water-contracts\tests\contract_v1.rs:47:24:
+byte_count: "01": ()
+
+
+failures:
+    conformance_reports
+    primitive_validation
+
+test result: FAILED. 3 passed; 2 failed; 0 ignored; 0 measured; 0 filtered out; finished in 1.92s
+
+
+--- stderr ---
+    Finished `test` profile [unoptimized + debuginfo] target(s) in 0.06s
+     Running tests\contract_v1.rs (.local\target\debug\deps\contract_v1-30630d86c79a905c.exe)
+error: test failed, to rerun pass `-p water-contracts --test contract_v1`

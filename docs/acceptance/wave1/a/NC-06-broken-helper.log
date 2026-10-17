@@ -1,0 +1,46 @@
+{
+  "task": "WATER-W1-A",
+  "mode": "test",
+  "finalGate": false,
+  "startedAt": "2026-10-17T05:56:21.104Z",
+  "before": {
+    "head": "a1e68364d47e137f8b66543eb95d35bb04424c78",
+    "status": "?? Cargo.lock\n?? Cargo.toml\n?? crates/water-contracts/Cargo.toml\n?? crates/water-contracts/README.md\n?? crates/water-contracts/src/lib.rs\n?? crates/water-contracts/src/v1.rs\n?? crates/water-contracts/tests/contract_v1.rs\n?? docs/acceptance/wave1/a/NC-01.json\n?? docs/acceptance/wave1/a/NC-02.json\n?? docs/acceptance/wave1/a/NC-03.json\n?? docs/acceptance/wave1/a/NC-04.json\n?? docs/acceptance/wave1/a/NC-05.json\n?? docs/acceptance/wave1/a/initial-red-v1-source.txt\n?? rust-toolchain.toml"
+  },
+  "productTestsRun": true,
+  "rustVersion": "rustc 1.95.0 (59807616e 2026-04-14)",
+  "cargoVersion": "cargo 1.95.0 (f2d3ce0bd 2026-03-21)",
+  "after": {
+    "head": "a1e68364d47e137f8b66543eb95d35bb04424c78",
+    "status": "?? Cargo.lock\n?? Cargo.toml\n?? crates/water-contracts/Cargo.toml\n?? crates/water-contracts/README.md\n?? crates/water-contracts/src/lib.rs\n?? crates/water-contracts/src/v1.rs\n?? crates/water-contracts/tests/contract_v1.rs\n?? docs/acceptance/wave1/a/NC-01.json\n?? docs/acceptance/wave1/a/NC-02.json\n?? docs/acceptance/wave1/a/NC-03.json\n?? docs/acceptance/wave1/a/NC-04.json\n?? docs/acceptance/wave1/a/NC-05.json\n?? docs/acceptance/wave1/a/initial-red-v1-source.txt\n?? rust-toolchain.toml"
+  },
+  "endedAt": "2026-10-17T05:56:27.030Z",
+  "status": "failed",
+  "error": "Command failed: C:\\Users\\37310\\.rustup\\toolchains\\1.95.0-x86_64-pc-windows-msvc\\bin\\cargo.exe (exit 101, no signal)",
+  "receipt": "F:\\new\\smaltalk\\water\\.worktrees\\a\\.local\\checks\\WATER-W1-A\\2026-10-17T05-56-19.290Z-20776-test-result.json"
+}
+
+running 5 tests
+test byte_count_round_trip ... ok
+test conformance_reports ... ok
+test constructed_report_validation ... FAILED
+test primitive_validation ... ok
+test raw_json_and_resource_limits ... ok
+
+failures:
+
+---- constructed_report_validation stdout ----
+
+thread 'constructed_report_validation' (39652) panicked at crates\water-contracts\tests\contract_v1.rs:47:24:
+constructed_empty_evidence: to_json: "{\"schema_version\":\"water.scan.v1\",\"scan_id\":\"scan-fixture-1\",\"status\":\"completed\",\"scopes\":[{\"scope_id\":\"scope-1\",\"label\":\"Fixture A\",\"platform\":\"windows\",\"origin\":\"user_selected\",\"coverage\":\"complete\"}],\"findings\":[{\"finding_id\":\"finding-1\",\"scope_id\":\"scope-1\",\"relative_path\":\"project/.cache/ruff\",\"tool\":{\"tool_id\":\"ruff\",\"name\":\"Ruff fixture\",\"version\":\"0.0-fixture\",\"root_source\":\"marker\"},\"rule_version\":\"1\",\"category\":\"build_cache\",\"risk\":\"review\",\"recoverability\":\"rebuild\",\"activity\":\"unknown\",\"confidence\":\"verified_structure\",\"evidence\":[],\"protection_reasons\":[],\"references\":{\"state\":\"unknown\",\"project_ids\":[]},\"size\":{\"logical_bytes\":\"9007199254740993\",\"allocated_bytes\":null,\"reclaimable_lower_bytes\":null,\"reclaimable_upper_bytes\":null,\"method\":\"logical_sum\",\"confidence\":\"estimated\",\"shared\":\"unknown\"}}],\"issues\":[],\"totals\":{\"logical_bytes\":null,\"allocated_bytes\":null,\"method\":\"unavailable\",\"coverage_complete\":true,\"scanned_entries\":3,\"skipped_entries\":0}}"
+note: run with `RUST_BACKTRACE=1` environment variable to display a backtrace
+
+
+failures:
+    constructed_report_validation
+
+test result: FAILED. 4 passed; 1 failed; 0 ignored; 0 measured; 0 filtered out; finished in 1.83s
+
+    Finished `test` profile [unoptimized + debuginfo] target(s) in 0.08s
+     Running tests\contract_v1.rs (.local\target\debug\deps\contract_v1-30630d86c79a905c.exe)
+error: test failed, to rerun pass `-p water-contracts --test contract_v1`
