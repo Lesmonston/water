@@ -1,0 +1,199 @@
+{
+  "catalog_version": "water.catalog.v1",
+  "tool_id": "pip",
+  "name": "pip",
+  "reviewed_on": "2026-10-17",
+  "runtime_verified": false,
+  "platforms": {
+    "windows": {
+      "root_candidates": [
+        {
+          "source": "native_query",
+          "key": "pip_cache_dir",
+          "path_template": null,
+          "purpose": "download_cache",
+          "evidence_confidence": "documented",
+          "version_note": "pip cache dir 自 20.1 提供；这里只记查询标记，不执行工具。",
+          "source_ids": [
+            "caching"
+          ]
+        },
+        {
+          "source": "environment",
+          "key": "PIP_CACHE_DIR",
+          "path_template": "$PIP_CACHE_DIR",
+          "purpose": "download_cache",
+          "evidence_confidence": "documented",
+          "version_note": "实际进程环境可设置缓存，不读取本机变量。",
+          "source_ids": [
+            "options"
+          ]
+        },
+        {
+          "source": "configuration",
+          "key": "cache-dir",
+          "path_template": null,
+          "purpose": "download_cache",
+          "evidence_confidence": "documented",
+          "version_note": "有效缓存受命令行及配置影响。",
+          "source_ids": [
+            "options",
+            "configuration"
+          ]
+        },
+        {
+          "source": "default_hint",
+          "key": "windows_default",
+          "path_template": "%LOCALAPPDATA%\\pip\\Cache",
+          "purpose": "download_cache",
+          "evidence_confidence": "documented",
+          "version_note": "仅未被配置覆盖时的 Windows 默认线索。",
+          "source_ids": [
+            "caching"
+          ]
+        }
+      ],
+      "protected_subpaths": [
+        {
+          "path_hint": "各级 pip.ini / pip.conf 与 PIP_CONFIG_FILE 指向的配置",
+          "reason": "Water 策略：配置保护，不能因定义缓存位置而成为清理对象。",
+          "source_ids": [
+            "configuration"
+          ]
+        }
+      ],
+      "notes": [
+        "官方事实：HTTP 缓存与本地构建 wheel 的内部布局非稳定接口，可在任意两个版本之间变化。",
+        "官方事实：命令行覆盖环境，环境覆盖配置；配置包含全局/用户/环境层及 PIP_CONFIG_FILE。",
+        "Water 策略：每个可信解释器单独核对版本和有效根；Water 进程环境不能代表 IDE/其他解释器。重下载不是回滚。",
+        "Windows 原生进程资料；未实测，不覆盖 WSL/容器。"
+      ]
+    },
+    "macos": {
+      "root_candidates": [
+        {
+          "source": "native_query",
+          "key": "pip_cache_dir",
+          "path_template": null,
+          "purpose": "download_cache",
+          "evidence_confidence": "documented",
+          "version_note": "pip cache dir 自 20.1 提供；这里只记查询标记，不执行工具。",
+          "source_ids": [
+            "caching"
+          ]
+        },
+        {
+          "source": "environment",
+          "key": "PIP_CACHE_DIR",
+          "path_template": "$PIP_CACHE_DIR",
+          "purpose": "download_cache",
+          "evidence_confidence": "documented",
+          "version_note": "实际进程环境可设置缓存，不读取本机变量。",
+          "source_ids": [
+            "options"
+          ]
+        },
+        {
+          "source": "configuration",
+          "key": "cache-dir",
+          "path_template": null,
+          "purpose": "download_cache",
+          "evidence_confidence": "documented",
+          "version_note": "有效缓存受命令行及配置影响。",
+          "source_ids": [
+            "options",
+            "configuration"
+          ]
+        },
+        {
+          "source": "environment",
+          "key": "XDG_CACHE_HOME",
+          "path_template": "$XDG_CACHE_HOME/pip",
+          "purpose": "download_cache",
+          "evidence_confidence": "version_sensitive",
+          "version_note": "官方记载 macOS 自 pip 26.2 尊重此变量；旧版本需复核。",
+          "source_ids": [
+            "caching"
+          ]
+        },
+        {
+          "source": "default_hint",
+          "key": "macos_default",
+          "path_template": "~/Library/Caches/pip",
+          "purpose": "download_cache",
+          "evidence_confidence": "documented",
+          "version_note": "仅默认线索；26.2 起还需考虑 XDG_CACHE_HOME。",
+          "source_ids": [
+            "caching"
+          ]
+        }
+      ],
+      "protected_subpaths": [
+        {
+          "path_hint": "各级 pip.ini / pip.conf 与 PIP_CONFIG_FILE 指向的配置",
+          "reason": "Water 策略：配置保护，不能因定义缓存位置而成为清理对象。",
+          "source_ids": [
+            "configuration"
+          ]
+        }
+      ],
+      "notes": [
+        "官方事实：HTTP 缓存与本地构建 wheel 的内部布局非稳定接口，可在任意两个版本之间变化。",
+        "官方事实：命令行覆盖环境，环境覆盖配置；配置包含全局/用户/环境层及 PIP_CONFIG_FILE。",
+        "Water 策略：每个可信解释器单独核对版本和有效根；Water 进程环境不能代表 IDE/其他解释器。重下载不是回滚。",
+        "macOS 仅文档核对，未实测。"
+      ]
+    }
+  },
+  "assets": [
+    {
+      "kind": "cache",
+      "description": "HTTP 缓存与构建 wheel",
+      "default_action": "display_only",
+      "risk_note": "Water 策略：离线依赖、构建成本和私有包再获取未知时保护；不按年龄或 http/http-v2 名称判可删。",
+      "source_ids": [
+        "caching"
+      ]
+    },
+    {
+      "kind": "configuration",
+      "description": "pip 多层配置",
+      "default_action": "display_only",
+      "risk_note": "Water 策略：保留配置及其祖先目录。",
+      "source_ids": [
+        "configuration"
+      ]
+    }
+  ],
+  "sources": [
+    {
+      "id": "caching",
+      "url": "https://pip.pypa.io/en/stable/topics/caching/",
+      "supports": [
+        "缓存职责、路径、查询版本及布局变化"
+      ],
+      "verified_on": "2026-10-17"
+    },
+    {
+      "id": "configuration",
+      "url": "https://pip.pypa.io/en/stable/topics/configuration/",
+      "supports": [
+        "配置层级及覆盖顺序"
+      ],
+      "verified_on": "2026-10-17"
+    },
+    {
+      "id": "options",
+      "url": "https://pip.pypa.io/en/stable/cli/pip/",
+      "supports": [
+        "cache-dir 与 PIP_CACHE_DIR"
+      ],
+      "verified_on": "2026-10-17"
+    }
+  ],
+  "constraints": {
+    "discovery_only": true,
+    "can_scan": false,
+    "can_delete": false
+  }
+}

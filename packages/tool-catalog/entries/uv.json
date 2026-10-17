@@ -1,0 +1,210 @@
+{
+  "catalog_version": "water.catalog.v1",
+  "tool_id": "uv",
+  "name": "uv",
+  "reviewed_on": "2026-10-17",
+  "runtime_verified": false,
+  "platforms": {
+    "windows": {
+      "root_candidates": [
+        {
+          "source": "environment",
+          "key": "UV_CACHE_DIR",
+          "path_template": "$UV_CACHE_DIR",
+          "purpose": "build_cache",
+          "evidence_confidence": "documented",
+          "version_note": "官方记录自 0.0.5 提供；不据此声明支持版本上界。",
+          "source_ids": [
+            "environment"
+          ]
+        },
+        {
+          "source": "configuration",
+          "key": "cache-dir",
+          "path_template": null,
+          "purpose": "build_cache",
+          "evidence_confidence": "documented",
+          "version_note": "uv.toml 可设缓存位置，本包不解析配置。",
+          "source_ids": [
+            "settings",
+            "configuration"
+          ]
+        },
+        {
+          "source": "default_hint",
+          "key": "windows_default",
+          "path_template": "%LOCALAPPDATA%\\uv\\cache",
+          "purpose": "build_cache",
+          "evidence_confidence": "documented",
+          "version_note": "Windows 默认线索，另有 Known Folder 回退，不在此解析。",
+          "source_ids": [
+            "storage"
+          ]
+        }
+      ],
+      "protected_subpaths": [
+        {
+          "path_hint": "缓存内部所有桶、锁及集中项目环境",
+          "reason": "官方禁止直接修改缓存；Water 策略：保持仅展示，不绕过锁。",
+          "source_ids": [
+            "cache"
+          ]
+        },
+        {
+          "path_hint": "项目环境、托管 Python、工具环境及持久数据",
+          "reason": "官方区分这些存储职责；Water 策略：不把环境与持久状态混同缓存。",
+          "source_ids": [
+            "storage"
+          ]
+        }
+      ],
+      "notes": [
+        "官方事实：uv 禁止直接修改缓存；缓存桶带版本，共用根不代表各版本可共享每个条目。",
+        "官方事实：prune 可移除集中项目环境，不能解释为只删下载残留。",
+        "官方事实：命令行覆盖环境，环境覆盖持久配置；项目/用户/系统配置另有合并规则。",
+        "Water 策略：候选数组不实现统一优先级；目标版本、进程环境、有效配置和锁须由未来适配器核对。",
+        "Windows 原生进程资料；未实测，不覆盖 WSL/容器。"
+      ]
+    },
+    "macos": {
+      "root_candidates": [
+        {
+          "source": "environment",
+          "key": "UV_CACHE_DIR",
+          "path_template": "$UV_CACHE_DIR",
+          "purpose": "build_cache",
+          "evidence_confidence": "documented",
+          "version_note": "官方记录自 0.0.5 提供；不据此声明支持版本上界。",
+          "source_ids": [
+            "environment"
+          ]
+        },
+        {
+          "source": "configuration",
+          "key": "cache-dir",
+          "path_template": null,
+          "purpose": "build_cache",
+          "evidence_confidence": "documented",
+          "version_note": "uv.toml 可设缓存位置，本包不解析配置。",
+          "source_ids": [
+            "settings",
+            "configuration"
+          ]
+        },
+        {
+          "source": "environment",
+          "key": "XDG_CACHE_HOME",
+          "path_template": "$XDG_CACHE_HOME/uv",
+          "purpose": "build_cache",
+          "evidence_confidence": "documented",
+          "version_note": "macOS 使用 XDG 约定；显式配置须另核对。",
+          "source_ids": [
+            "storage"
+          ]
+        },
+        {
+          "source": "default_hint",
+          "key": "macos_default",
+          "path_template": "~/.cache/uv",
+          "purpose": "build_cache",
+          "evidence_confidence": "documented",
+          "version_note": "无显式配置/XDG 值时的默认线索。",
+          "source_ids": [
+            "storage"
+          ]
+        }
+      ],
+      "protected_subpaths": [
+        {
+          "path_hint": "缓存内部所有桶、锁及集中项目环境",
+          "reason": "官方禁止直接修改缓存；Water 策略：保持仅展示，不绕过锁。",
+          "source_ids": [
+            "cache"
+          ]
+        },
+        {
+          "path_hint": "项目环境、托管 Python、工具环境及持久数据",
+          "reason": "官方区分这些存储职责；Water 策略：不把环境与持久状态混同缓存。",
+          "source_ids": [
+            "storage"
+          ]
+        }
+      ],
+      "notes": [
+        "官方事实：uv 禁止直接修改缓存；缓存桶带版本，共用根不代表各版本可共享每个条目。",
+        "官方事实：prune 可移除集中项目环境，不能解释为只删下载残留。",
+        "官方事实：命令行覆盖环境，环境覆盖持久配置；项目/用户/系统配置另有合并规则。",
+        "Water 策略：候选数组不实现统一优先级；目标版本、进程环境、有效配置和锁须由未来适配器核对。",
+        "macOS 仅文档核对，未实测。"
+      ]
+    }
+  },
+  "assets": [
+    {
+      "kind": "cache",
+      "description": "版本化构建与下载缓存",
+      "default_action": "display_only",
+      "risk_note": "Water 策略：不手改删；共享关系及构建成本未知时保护。",
+      "source_ids": [
+        "cache"
+      ]
+    },
+    {
+      "kind": "environment",
+      "description": "集中项目环境及其他 uv 管理环境",
+      "default_action": "display_only",
+      "risk_note": "Water 策略：即使位于缓存中也属于环境管理，默认保护。",
+      "source_ids": [
+        "cache",
+        "storage"
+      ]
+    }
+  ],
+  "sources": [
+    {
+      "id": "cache",
+      "url": "https://docs.astral.sh/uv/concepts/cache/",
+      "supports": [
+        "禁止直接修改、版本化桶、集中项目环境和锁"
+      ],
+      "verified_on": "2026-10-17"
+    },
+    {
+      "id": "storage",
+      "url": "https://docs.astral.sh/uv/reference/storage/",
+      "supports": [
+        "Windows/macOS 默认目录及职责区分"
+      ],
+      "verified_on": "2026-10-17"
+    },
+    {
+      "id": "settings",
+      "url": "https://docs.astral.sh/uv/reference/settings/",
+      "supports": [
+        "cache-dir 配置项"
+      ],
+      "verified_on": "2026-10-17"
+    },
+    {
+      "id": "environment",
+      "url": "https://docs.astral.sh/uv/reference/environment/",
+      "supports": [
+        "UV_CACHE_DIR 覆盖默认缓存"
+      ],
+      "verified_on": "2026-10-17"
+    },
+    {
+      "id": "configuration",
+      "url": "https://docs.astral.sh/uv/concepts/configuration-files/",
+      "supports": [
+        "配置覆盖顺序"
+      ],
+      "verified_on": "2026-10-17"
+    }
+  ],
+  "constraints": {
+    "discovery_only": true,
+    "can_scan": false,
+    "can_delete": false
+  }
+}
