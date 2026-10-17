@@ -1,0 +1,53 @@
+<!doctype html>
+<html lang="zh-CN">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <meta name="color-scheme" content="light">
+  <title>Water · 示例占用分析</title>
+  <link rel="stylesheet" href="/styles.css">
+  <script type="module" src="/app.mjs"></script>
+</head>
+<body>
+  <header class="app-header">
+    <div class="brand"><span class="brand-mark" aria-hidden="true">w</span><strong>Water</strong><span class="brand-caption">本地存储工作台</span></div>
+    <span class="demo-badge" data-testid="demo-badge">示例数据 · 只读演示</span>
+  </header>
+  <main>
+    <section class="page-heading" aria-labelledby="page-title">
+      <div><p class="eyebrow">存储盘点 / 示例工作区</p><h1 id="page-title">示例占用分析</h1><p class="subtitle">查看用途与识别依据，了解每一项为何需要保留。</p></div>
+      <div class="scenario-field"><label for="scenario">结果状态示例</label><select id="scenario" data-testid="scenario-select"><option value="partial">部分读取演示</option><option value="cancelled">已取消演示</option></select></div>
+    </section>
+    <section class="summary" aria-label="示例总览">
+      <div class="stat"><span class="stat-label">示例条目</span><strong data-testid="summary-count" id="summary-count">—</strong><span class="stat-note" id="unknown-count">正在载入固定示例</span></div>
+      <div class="stat"><span class="stat-label">默认保护</span><strong id="protected-count">—</strong><span class="stat-note">独有资产或证据不足</span></div>
+      <div class="stat"><span class="stat-label">总逻辑占用</span><strong class="text-value">待去重</strong><span class="stat-note">共享或重叠项不直接相加</span></div>
+      <div class="stat"><span class="stat-label">可回收空间</span><strong class="text-value">未估算</strong><span class="stat-note">逻辑大小不代表可释放空间</span></div>
+    </section>
+    <div class="status-banner" data-testid="status-banner" role="status" id="status-banner">正在载入示例数据…</div>
+    <section class="workspace" aria-label="占用项浏览">
+      <div class="filters">
+        <div class="search-field"><label for="search">搜索条目</label><input id="search" data-testid="search-input" type="search" placeholder="搜索名称或相对路径" autocomplete="off" spellcheck="false"></div>
+        <div><label for="tool">工具</label><select id="tool" data-testid="tool-filter"><option value="all">全部工具</option></select></div>
+        <div><label for="category">类别</label><select id="category" data-testid="category-filter"><option value="all">全部类别</option></select></div>
+        <div><label for="risk">风险</label><select id="risk" data-testid="risk-filter"><option value="all">全部风险</option><option value="protected">默认保护</option><option value="review">需要复核</option></select></div>
+        <button type="button" class="reset-button" data-testid="reset-filters" id="reset">重置筛选</button>
+      </div>
+      <div class="list-toolbar"><div><h2>占用项 <span id="visible-count" aria-live="polite">0 / 8</span></h2><p>逻辑大小 · 单项展示，未去重</p></div><div class="sort-field"><label for="sort">排序</label><select id="sort" data-testid="sort-select"><option value="size_desc">大小：从大到小</option><option value="size_asc">大小：从小到大</option><option value="name_asc">名称：升序</option></select></div></div>
+      <div class="column-labels" aria-hidden="true"><span>名称 / 相对路径</span><span>工具 / 类别</span><span class="align-right">逻辑大小</span><span>风险判断</span><span class="align-right">操作</span></div>
+      <ul class="finding-list" data-testid="finding-list" id="finding-list" aria-label="示例占用项"></ul>
+      <div class="empty-state" data-testid="empty-state" id="empty-state" hidden><strong>没有符合条件的条目</strong><p>调整搜索词，或重置筛选以查看全部 8 个示例。</p><button type="button" id="empty-reset">重置筛选</button></div>
+      <footer class="list-footer"><span>全部路径均为虚构的相对路径。</span><span>精度边界 A / B 是大整数示例，不代表真实磁盘。</span></footer>
+    </section>
+    <p class="page-note">本页仅浏览固定示例。未访问本机目录，也未执行扫描或空间变更。</p>
+  </main>
+  <dialog class="detail-panel" data-testid="detail-panel" id="detail" aria-labelledby="detail-title">
+    <div class="detail-header"><span class="eyebrow">占用项详情</span><button type="button" class="close-button" data-testid="detail-close" id="detail-close" aria-label="关闭详情">关闭 <span aria-hidden="true">×</span></button></div>
+    <h2 id="detail-title"></h2><p id="detail-subtitle" class="subtitle"></p>
+    <p class="detail-demo">示例数据 · 只读演示</p>
+    <dl id="detail-fields"></dl>
+    <p class="detail-note">此面板只展示判断依据，不提供文件操作。可重新下载不等于可回滚。</p>
+    <p class="keyboard-hint"><kbd>Esc</kbd> 关闭详情并返回列表</p>
+  </dialog>
+</body>
+</html>
