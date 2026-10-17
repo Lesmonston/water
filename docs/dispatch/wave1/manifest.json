@@ -1,0 +1,58 @@
+{
+  "schemaVersion": 1,
+  "wave": "water-wave1",
+  "status": "READY",
+  "controllerRoot": "F:/new/smaltalk/water",
+  "controllerBranch": "main",
+  "controller": "Codex",
+  "mode": "manual-external-paste",
+  "baseCommit": "a1e68364d47e137f8b66543eb95d35bb04424c78",
+  "contractLock": "contracts/v1/freeze.lock.json",
+  "workerRules": "docs/dispatch/W1-WORKER-RULES.md",
+  "helper": "scripts/worker-check.mjs",
+  "fullGateOwner": "controller",
+  "tasks": [
+    {
+      "id": "WATER-W1-A",
+      "title": "Rust工程底座与scan v1契约实现",
+      "status": "READY",
+      "slot": "a",
+      "worktree": "F:/new/smaltalk/water/.worktrees/a",
+      "branch": "worker/water-w1-a",
+      "baseCommit": "a1e68364d47e137f8b66543eb95d35bb04424c78",
+      "snapshotRef": "refs/tags/water-w1-base-20261017",
+      "ticket": "docs/dispatch/tickets/WATER-W1-A-CONTRACTS-20261017.md",
+      "report": "docs/dispatch/reports/WATER-W1-A-REPORT.md",
+      "expectedTests": [
+        "conformance_reports",
+        "byte_count_round_trip",
+        "primitive_validation",
+        "constructed_report_validation",
+        "raw_json_and_resource_limits"
+      ],
+      "allowLockfileGeneration": true,
+      "dependsOn": [],
+      "allowedFiles": [
+        "Cargo.toml",
+        "Cargo.lock",
+        "rust-toolchain.toml",
+        "crates/water-contracts/Cargo.toml",
+        "crates/water-contracts/README.md",
+        "crates/water-contracts/tests/contract_v1.rs",
+        "docs/dispatch/reports/WATER-W1-A-REPORT.md"
+      ],
+      "allowedPrefixes": [
+        "crates/water-contracts/src/",
+        "docs/acceptance/wave1/a/"
+      ],
+      "productBoundary": "DTO/serialization/validation only; no filesystem scanning, process execution, UI or cleanup",
+      "model": null,
+      "modelAssignment": "user-arranged; report actual engine/model",
+      "dispatchedAt": null,
+      "startedAt": null,
+      "baselineStatus": "PASSED"
+    }
+  ],
+  "preflightStatus": "PASSED",
+  "preflightEvidence": "docs/acceptance/wave1/controller/w1-a-initial-baseline.json"
+}

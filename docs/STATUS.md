@@ -19,14 +19,22 @@
 
 ## 下一步
 
-[W1只读内核与fixture](tasks/W1-READONLY-CORE.md) 为下一阶段：总控确认工具链与双平台构建要求、冻结具体数据契约，准备独立工作树/基线和检查，再拆成可外贴的实现票。用户转贴后由执行者实现，总控验收。真实清理执行器属于后续单独验收的里程碑。
+[W1只读内核与fixture](tasks/W1-READONLY-CORE.md)的首单[WATER-W1-A](dispatch/tickets/WATER-W1-A-CONTRACTS-20261017.md)已READY，等待用户外贴：实现Rust workspace与scan v1 DTO/序列化/语义验证和定向测试。总控随后收回执独立验收；扫描、分类、导出等依赖它的票暂未发出。
+
+## 第一轮派前完成（2026-10-17）
+
+- 已冻结 [scan v1契约](../contracts/v1/README.md)、完整Rust API和9项文件哈希；准备66组报告输入、6组raw JSON、6组手工DTO、2组资源边界及基础值材料。
+- 架构基线为`a1e68364d47e137f8b66543eb95d35bb04424c78`，tag `water-w1-base-20261017`。
+- 槽位a：`F:/new/smaltalk/water/.worktrees/a`，`worker/water-w1-a`，HEAD精确为基线，状态干净。baseline实际运行通过（冻结哈希、分支、Rust1.95.0与MSVC链接探针），未运行产品测试。
+- [正式票](dispatch/tickets/WATER-W1-A-CONTRACTS-20261017.md)、权威manifest、工作树、报告与证据父目录均存在；[派前回执](dispatch/wave1/CONTROLLER-READY-REPORT.md)记录已做/未做检查。
+- 只准备1张READY票；dispatchedAt/startedAt仍为null，没有自动启动实现者或内部实现子代理。用户转贴后有明确证据再改状态。
 
 ## 最新协作约定（2026-10-17）
 
 - 用户指定总控写架构、规划和验收；实现单由总控写外贴指令、用户转贴，不自动启动实现worker替代人工外贴。
 - 已只读学习car op的契约/工单/manifest/检查入口及denglou的独立槽位/行为与反向验收方法，未修改或运行这些项目。
 - 已落地 [CONTROLLER-WORKFLOW.md](CONTROLLER-WORKFLOW.md)、工单/回执模板和空登记；完整依据见 [学习记录](../research/CONTROLLER-WORKFLOW-STUDY.md)。
-- 当前无活动波次、工作槽位或外贴实现票。尚未冻结W1的具体代码契约与测试命令；本轮不提前派单。
+- 最初的空台账阶段已结束；当前唯一活动波次water-wave1、槽位a已准备、WATER-W1-A为READY。依赖它的后置实现票未派；READY不表示执行中。
 - 本轮校验通过：25份Markdown、42处本地链接、182处固定本地源码引用、5个上游checkout；外贴登记0任务、工作流来源14份。只验证文档/来源元数据，不是产品行为测试。
 
 ## 未完成与验证限制

@@ -15,7 +15,7 @@
 | 工单 | 任务 | 依赖 | 验收归属 |
 |---|---|---|---|
 | W0 | [立项与源码研究](tasks/W0-INIT-AND-RESEARCH.md) | 用户授权 | 总控 |
-| W1 | [只读内核与fixture](tasks/W1-READONLY-CORE.md) | W0 | 总控；安全独立复核 |
+| W1 | [只读内核与fixture](tasks/W1-READONLY-CORE.md)，首单[WATER-W1-A契约底座](dispatch/tickets/WATER-W1-A-CONTRACTS-20261017.md)已READY | W0与冻结架构 | 用户外贴实现；总控验收 |
 | W2 | 版本化规则注册表、pip/uv/npm/pnpm只读发现 | W1契约 | 规则与内核分别审阅 |
 | W3 | HF/Ollama/LM Studio只读inventory与共享空间视图 | W1/W2 | 模型资产保护验收 |
 | W4 | 桌面壳与报告界面 | W1稳定契约 | 总控，双平台可用性 |
@@ -25,4 +25,4 @@
 
 ## 执行方式（用户2026-10-17确认）
 
-总控负责架构/契约/规划/验收，其他实现单由用户人工外贴。W1等是阶段任务，需总控进一步拆成具备真实路径、基线、文件范围、测试和回执的具体票才能发出。本轮只学习并落实工作流，当前无活动外贴单。见 [总控流程](CONTROLLER-WORKFLOW.md) 和 [登记](dispatch/registry.json)。
+总控负责架构/契约/规划/验收，其他实现单由用户人工外贴。阶段任务拆成具备真实路径、基线、范围、测试与回执的具体票；当前第一轮只准备WATER-W1-A，状态READY等待转贴，没有实现者已启动的证据。见 [总控流程](CONTROLLER-WORKFLOW.md) 和 [登记](dispatch/registry.json)。

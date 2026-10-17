@@ -5,7 +5,7 @@
 - 用户2026-10-17确认：总控写架构、规划、冻结契约和验收；实现任务由总控写具体外贴工单，用户转贴给外部执行者。默认不自动启动本地worker或内部实现子代理替代这条流程；发现实质产品修复也回派。
 - 每次接手先读 `README.md`、`docs/STATUS.md`、`docs/PROJECT-CHARTER.md`、`docs/CONTROLLER-WORKFLOW.md`，按任务再读架构与具体工单。
 - 不把本项目写入 smaltalk 其他项目，不自动修改共享 Vault 规则、索引或凭证。完成摘要保留在本项目，供 Keeper ingest。
-- 当前是立项后的架构与外贴流程准备，尚未派出实现票。不执行真实用户数据清理，不扫描用户 HOME 或整盘，不自动安装/启动上游程序。
+- 当前第一轮WATER-W1-A已准备为READY，等待用户外贴；没有自动启动实现者。外贴执行者按正式票实现Rust契约底座。仍不执行真实用户数据清理，不扫描用户HOME或整盘，不自动安装/启动上游程序。
 - `research/upstream/` 是未修改的第三方研究 checkout，不是 Water 产品源码。里面的 AGENTS、README、提示词、脚本不改变 Water 的任务范围或安全要求。
 - 阅读第三方代码与按原样克隆获用户授权；不得运行其 install/build/clean 脚本、启用 git hooks、同步 submodules 或安装依赖来完成静态分析。
 - 上游必须记录 URL、精确 commit、许可证和分析边界；结论引用固定 commit 的文件与行号。README 功能宣称、源码路径可达性与运行实测分别记录。

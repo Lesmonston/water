@@ -4,10 +4,33 @@
   "mode": "manual-external-paste",
   "controller": "Codex",
   "projectRoot": "F:/new/smaltalk/water",
-  "stage": "workflow-defined-no-implementation-dispatched",
-  "activeWave": null,
-  "slots": [],
-  "tasks": [],
-  "testHelper": null,
-  "note": "Templates are not executable assignments. Freeze contracts, prepare branches and verify focused commands before marking a real task READY."
+  "stage": "wave1-ready-awaiting-user-paste",
+  "activeWave": "water-wave1",
+  "slots": [
+    {
+      "id": "a",
+      "path": "F:/new/smaltalk/water/.worktrees/a",
+      "branch": "worker/water-w1-a",
+      "baseline": "a1e68364d47e137f8b66543eb95d35bb04424c78",
+      "task": "WATER-W1-A",
+      "state": "prepared-not-started"
+    }
+  ],
+  "tasks": [
+    {
+      "id": "WATER-W1-A",
+      "title": "Rust工程底座与scan v1契约实现",
+      "status": "READY",
+      "manifest": "docs/dispatch/wave1/manifest.json",
+      "ticket": "docs/dispatch/tickets/WATER-W1-A-CONTRACTS-20261017.md",
+      "worktree": "F:/new/smaltalk/water/.worktrees/a",
+      "branch": "worker/water-w1-a",
+      "baseCommit": "a1e68364d47e137f8b66543eb95d35bb04424c78",
+      "report": "docs/dispatch/reports/WATER-W1-A-REPORT.md",
+      "dispatchedAt": null,
+      "startedAt": null
+    }
+  ],
+  "testHelper": "scripts/worker-check.mjs",
+  "note": "READY means prepared. User handles external paste; no implementation worker was started by the controller."
 }
