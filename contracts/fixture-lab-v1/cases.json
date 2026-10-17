@@ -1,0 +1,589 @@
+{
+  "fixture_version": "water.fixture.v1",
+  "cases": [
+    {
+      "case_id": "project-markers",
+      "description": "Synthetic Node/Python source markers and a fake Git directory.",
+      "nodes": [
+        {
+          "kind": "directory",
+          "path": "scope",
+          "content": null,
+          "target": null
+        },
+        {
+          "kind": "directory",
+          "path": "scope/src",
+          "content": null,
+          "target": null
+        },
+        {
+          "kind": "directory",
+          "path": "scope/.git",
+          "content": null,
+          "target": null
+        },
+        {
+          "kind": "file",
+          "path": "scope/package.json",
+          "content": "{\"name\":\"water-synthetic-fixture\",\"private\":true}\n",
+          "target": null
+        },
+        {
+          "kind": "file",
+          "path": "scope/pyproject.toml",
+          "content": "[project]\nname = \"water-synthetic-fixture\"\nversion = \"0.0.0\"\n",
+          "target": null
+        },
+        {
+          "kind": "file",
+          "path": "scope/src/main.py",
+          "content": "# Synthetic fixture; never execute.\n",
+          "target": null
+        },
+        {
+          "kind": "file",
+          "path": "scope/.git/HEAD",
+          "content": "ref: refs/heads/synthetic\n",
+          "target": null
+        }
+      ],
+      "scopes": [
+        {
+          "scope_id": "scope-1",
+          "path": "scope"
+        }
+      ],
+      "canaries": [],
+      "scanner_plan": {
+        "max_depth": 16,
+        "max_entries": 128,
+        "cancel_after_entries": null,
+        "faults": [],
+        "expected_issue_codes": []
+      }
+    },
+    {
+      "case_id": "mixed-assets",
+      "description": "Misleading cache names contain synthetic model/history/database/token assets.",
+      "nodes": [
+        {
+          "kind": "directory",
+          "path": "scope",
+          "content": null,
+          "target": null
+        },
+        {
+          "kind": "directory",
+          "path": "scope/cache",
+          "content": null,
+          "target": null
+        },
+        {
+          "kind": "directory",
+          "path": "scope/cache/models",
+          "content": null,
+          "target": null
+        },
+        {
+          "kind": "directory",
+          "path": "scope/cache/history",
+          "content": null,
+          "target": null
+        },
+        {
+          "kind": "directory",
+          "path": "scope/cache/data",
+          "content": null,
+          "target": null
+        },
+        {
+          "kind": "directory",
+          "path": "scope/cache/credentials",
+          "content": null,
+          "target": null
+        },
+        {
+          "kind": "file",
+          "path": "scope/cache/models/custom.gguf",
+          "content": "NOT_A_REAL_MODEL\n",
+          "target": null
+        },
+        {
+          "kind": "file",
+          "path": "scope/cache/history/session.json",
+          "content": "{\"synthetic\":true,\"user_conversation\":false}\n",
+          "target": null
+        },
+        {
+          "kind": "file",
+          "path": "scope/cache/data/index.sqlite",
+          "content": "NOT_A_REAL_DATABASE\n",
+          "target": null
+        },
+        {
+          "kind": "file",
+          "path": "scope/cache/credentials/token.txt",
+          "content": "WATER_SYNTHETIC_TOKEN_NOT_A_SECRET\n",
+          "target": null
+        },
+        {
+          "kind": "file",
+          "path": "scope/cache/README.txt",
+          "content": "A cache-shaped name grants no deletion permission.\n",
+          "target": null
+        }
+      ],
+      "scopes": [
+        {
+          "scope_id": "scope-1",
+          "path": "scope"
+        }
+      ],
+      "canaries": [],
+      "scanner_plan": {
+        "max_depth": 16,
+        "max_entries": 128,
+        "cancel_after_entries": null,
+        "faults": [],
+        "expected_issue_codes": []
+      }
+    },
+    {
+      "case_id": "scope-prefix",
+      "description": "A similarly prefixed sibling must remain outside the chosen scope.",
+      "nodes": [
+        {
+          "kind": "directory",
+          "path": "scope",
+          "content": null,
+          "target": null
+        },
+        {
+          "kind": "directory",
+          "path": "scope-other",
+          "content": null,
+          "target": null
+        },
+        {
+          "kind": "file",
+          "path": "scope/inside.txt",
+          "content": "SYNTHETIC_INSIDE\n",
+          "target": null
+        },
+        {
+          "kind": "file",
+          "path": "scope-other/canary.txt",
+          "content": "SYNTHETIC_OUTSIDE_SCOPE\n",
+          "target": null
+        }
+      ],
+      "scopes": [
+        {
+          "scope_id": "scope-1",
+          "path": "scope"
+        }
+      ],
+      "canaries": [
+        "scope-other/canary.txt"
+      ],
+      "scanner_plan": {
+        "max_depth": 16,
+        "max_entries": 128,
+        "cancel_after_entries": null,
+        "faults": [],
+        "expected_issue_codes": []
+      }
+    },
+    {
+      "case_id": "overlapping-scopes",
+      "description": "Both scopes are declared; factory does not deduplicate scan results.",
+      "nodes": [
+        {
+          "kind": "directory",
+          "path": "scope",
+          "content": null,
+          "target": null
+        },
+        {
+          "kind": "directory",
+          "path": "scope/nested",
+          "content": null,
+          "target": null
+        },
+        {
+          "kind": "file",
+          "path": "scope/root.txt",
+          "content": "ROOT\n",
+          "target": null
+        },
+        {
+          "kind": "file",
+          "path": "scope/nested/shared.txt",
+          "content": "OVERLAPPING_SCOPE_FIXTURE\n",
+          "target": null
+        }
+      ],
+      "scopes": [
+        {
+          "scope_id": "scope-outer",
+          "path": "scope"
+        },
+        {
+          "scope_id": "scope-inner",
+          "path": "scope/nested"
+        }
+      ],
+      "canaries": [],
+      "scanner_plan": {
+        "max_depth": 16,
+        "max_entries": 128,
+        "cancel_after_entries": null,
+        "faults": [],
+        "expected_issue_codes": []
+      }
+    },
+    {
+      "case_id": "unicode-spaces",
+      "description": "Portable Unicode, space and emoji names.",
+      "nodes": [
+        {
+          "kind": "directory",
+          "path": "scope",
+          "content": null,
+          "target": null
+        },
+        {
+          "kind": "directory",
+          "path": "scope/资料 空格",
+          "content": null,
+          "target": null
+        },
+        {
+          "kind": "file",
+          "path": "scope/资料 空格/café-😀.txt",
+          "content": "合成测试数据 / synthetic only\n",
+          "target": null
+        }
+      ],
+      "scopes": [
+        {
+          "scope_id": "scope-1",
+          "path": "scope"
+        }
+      ],
+      "canaries": [],
+      "scanner_plan": {
+        "max_depth": 16,
+        "max_entries": 128,
+        "cancel_after_entries": null,
+        "faults": [],
+        "expected_issue_codes": []
+      }
+    },
+    {
+      "case_id": "hardlink-pair",
+      "description": "Two names for one synthetic file, where hardlinks are supported.",
+      "nodes": [
+        {
+          "kind": "directory",
+          "path": "scope",
+          "content": null,
+          "target": null
+        },
+        {
+          "kind": "file",
+          "path": "scope/original.bin",
+          "content": "DATA123\n",
+          "target": null
+        },
+        {
+          "kind": "hardlink",
+          "path": "scope/alias.bin",
+          "content": null,
+          "target": "scope/original.bin"
+        }
+      ],
+      "scopes": [
+        {
+          "scope_id": "scope-1",
+          "path": "scope"
+        }
+      ],
+      "canaries": [],
+      "scanner_plan": {
+        "max_depth": 16,
+        "max_entries": 128,
+        "cancel_after_entries": null,
+        "faults": [],
+        "expected_issue_codes": []
+      }
+    },
+    {
+      "case_id": "directory-links",
+      "description": "Links point outside the scope but stay inside this owned fixture run.",
+      "nodes": [
+        {
+          "kind": "directory",
+          "path": "scope",
+          "content": null,
+          "target": null
+        },
+        {
+          "kind": "directory",
+          "path": "outside-target",
+          "content": null,
+          "target": null
+        },
+        {
+          "kind": "file",
+          "path": "scope/inside.txt",
+          "content": "INSIDE\n",
+          "target": null
+        },
+        {
+          "kind": "file",
+          "path": "outside-target/canary.txt",
+          "content": "DO_NOT_SCAN_OUTSIDE_SELECTED_SCOPE\n",
+          "target": null
+        },
+        {
+          "kind": "symlink_dir",
+          "path": "scope/symbolic-outside",
+          "content": null,
+          "target": "outside-target"
+        },
+        {
+          "kind": "junction_dir",
+          "path": "scope/junction-outside",
+          "content": null,
+          "target": "outside-target"
+        }
+      ],
+      "scopes": [
+        {
+          "scope_id": "scope-1",
+          "path": "scope"
+        }
+      ],
+      "canaries": [
+        "outside-target/canary.txt"
+      ],
+      "scanner_plan": {
+        "max_depth": 16,
+        "max_entries": 128,
+        "cancel_after_entries": null,
+        "faults": [],
+        "expected_issue_codes": []
+      }
+    },
+    {
+      "case_id": "depth-budget",
+      "description": "Physical deep tree; depth_limit is a future scanner expectation.",
+      "nodes": [
+        {
+          "kind": "directory",
+          "path": "scope",
+          "content": null,
+          "target": null
+        },
+        {
+          "kind": "directory",
+          "path": "scope/l1",
+          "content": null,
+          "target": null
+        },
+        {
+          "kind": "directory",
+          "path": "scope/l1/l2",
+          "content": null,
+          "target": null
+        },
+        {
+          "kind": "directory",
+          "path": "scope/l1/l2/l3",
+          "content": null,
+          "target": null
+        },
+        {
+          "kind": "file",
+          "path": "scope/root.txt",
+          "content": "SHALLOW\n",
+          "target": null
+        },
+        {
+          "kind": "file",
+          "path": "scope/l1/l2/l3/deep.txt",
+          "content": "DEEP\n",
+          "target": null
+        }
+      ],
+      "scopes": [
+        {
+          "scope_id": "scope-1",
+          "path": "scope"
+        }
+      ],
+      "canaries": [],
+      "scanner_plan": {
+        "max_depth": 2,
+        "max_entries": 128,
+        "cancel_after_entries": null,
+        "faults": [],
+        "expected_issue_codes": [
+          "depth_limit"
+        ]
+      }
+    },
+    {
+      "case_id": "entry-budget",
+      "description": "Four ordinary entries; future scanner entry limit is two.",
+      "nodes": [
+        {
+          "kind": "directory",
+          "path": "scope",
+          "content": null,
+          "target": null
+        },
+        {
+          "kind": "file",
+          "path": "scope/a.txt",
+          "content": "A\n",
+          "target": null
+        },
+        {
+          "kind": "file",
+          "path": "scope/b.txt",
+          "content": "B\n",
+          "target": null
+        },
+        {
+          "kind": "file",
+          "path": "scope/c.txt",
+          "content": "C\n",
+          "target": null
+        },
+        {
+          "kind": "file",
+          "path": "scope/d.txt",
+          "content": "D\n",
+          "target": null
+        }
+      ],
+      "scopes": [
+        {
+          "scope_id": "scope-1",
+          "path": "scope"
+        }
+      ],
+      "canaries": [],
+      "scanner_plan": {
+        "max_depth": 16,
+        "max_entries": 2,
+        "cancel_after_entries": null,
+        "faults": [],
+        "expected_issue_codes": [
+          "entry_limit"
+        ]
+      }
+    },
+    {
+      "case_id": "permission-plan",
+      "description": "Declarative permission failure; no ACL or mode changes.",
+      "nodes": [
+        {
+          "kind": "directory",
+          "path": "scope",
+          "content": null,
+          "target": null
+        },
+        {
+          "kind": "directory",
+          "path": "scope/blocked",
+          "content": null,
+          "target": null
+        },
+        {
+          "kind": "file",
+          "path": "scope/a.txt",
+          "content": "READABLE\n",
+          "target": null
+        },
+        {
+          "kind": "file",
+          "path": "scope/blocked/synthetic.txt",
+          "content": "NOT_ACTUALLY_ACCESS_DENIED\n",
+          "target": null
+        }
+      ],
+      "scopes": [
+        {
+          "scope_id": "scope-1",
+          "path": "scope"
+        }
+      ],
+      "canaries": [],
+      "scanner_plan": {
+        "max_depth": 16,
+        "max_entries": 128,
+        "cancel_after_entries": null,
+        "faults": [
+          {
+            "operation": "read_dir",
+            "path": "scope/blocked",
+            "code": "permission_denied"
+          }
+        ],
+        "expected_issue_codes": [
+          "permission_denied"
+        ]
+      }
+    },
+    {
+      "case_id": "cancel-plan",
+      "description": "Declarative cancellation; factory does not run a scanner.",
+      "nodes": [
+        {
+          "kind": "directory",
+          "path": "scope",
+          "content": null,
+          "target": null
+        },
+        {
+          "kind": "file",
+          "path": "scope/a.txt",
+          "content": "FIRST\n",
+          "target": null
+        },
+        {
+          "kind": "file",
+          "path": "scope/b.txt",
+          "content": "SECOND\n",
+          "target": null
+        },
+        {
+          "kind": "file",
+          "path": "scope/c.txt",
+          "content": "THIRD\n",
+          "target": null
+        }
+      ],
+      "scopes": [
+        {
+          "scope_id": "scope-1",
+          "path": "scope"
+        }
+      ],
+      "canaries": [],
+      "scanner_plan": {
+        "max_depth": 16,
+        "max_entries": 128,
+        "cancel_after_entries": 1,
+        "faults": [],
+        "expected_issue_codes": [
+          "cancelled"
+        ]
+      }
+    }
+  ]
+}

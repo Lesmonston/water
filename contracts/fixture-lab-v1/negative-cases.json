@@ -1,0 +1,288 @@
+{
+  "fixture_version": "water.fixture.v1",
+  "mutations": [
+    {
+      "id": "missing_version",
+      "operations": [
+        {
+          "op": "remove",
+          "path": "/fixture_version"
+        }
+      ],
+      "expected": {
+        "code": "shape",
+        "path": "/fixture_version"
+      }
+    },
+    {
+      "id": "unknown_case_field",
+      "operations": [
+        {
+          "op": "add",
+          "path": "/cases/0/command",
+          "value": "NEVER_EXECUTE"
+        }
+      ],
+      "expected": {
+        "code": "shape",
+        "path": "/cases/0"
+      }
+    },
+    {
+      "id": "parent_traversal",
+      "operations": [
+        {
+          "op": "replace",
+          "path": "/cases/0/nodes/1/path",
+          "value": "../outside"
+        }
+      ],
+      "expected": {
+        "code": "unsafe_path",
+        "path": "/cases/0/nodes/1/path"
+      }
+    },
+    {
+      "id": "missing_explicit_null",
+      "operations": [
+        {
+          "op": "remove",
+          "path": "/cases/0/nodes/0/target"
+        }
+      ],
+      "expected": {
+        "code": "shape",
+        "path": "/cases/0/nodes/0/target"
+      }
+    },
+    {
+      "id": "duplicate_node",
+      "operations": [
+        {
+          "op": "add",
+          "path": "/cases/0/nodes/-",
+          "value": {
+            "kind": "directory",
+            "path": "scope",
+            "content": null,
+            "target": null
+          }
+        }
+      ],
+      "expected": {
+        "code": "reference",
+        "path": "/cases/0/nodes/7/path"
+      }
+    },
+    {
+      "id": "dangling_hardlink",
+      "operations": [
+        {
+          "op": "replace",
+          "path": "/cases/5/nodes/2/target",
+          "value": "not-declared"
+        }
+      ],
+      "expected": {
+        "code": "reference",
+        "path": "/cases/5/nodes/2/target"
+      }
+    },
+    {
+      "id": "directory_link_to_file",
+      "operations": [
+        {
+          "op": "replace",
+          "path": "/cases/6/nodes/4/target",
+          "value": "scope/inside.txt"
+        }
+      ],
+      "expected": {
+        "code": "reference",
+        "path": "/cases/6/nodes/4/target"
+      }
+    },
+    {
+      "id": "scope_to_link",
+      "operations": [
+        {
+          "op": "replace",
+          "path": "/cases/6/scopes/0/path",
+          "value": "scope/symbolic-outside"
+        }
+      ],
+      "expected": {
+        "code": "reference",
+        "path": "/cases/6/scopes/0/path"
+      }
+    },
+    {
+      "id": "duplicate_scope",
+      "operations": [
+        {
+          "op": "add",
+          "path": "/cases/3/scopes/-",
+          "value": {
+            "scope_id": "scope-outer",
+            "path": "scope"
+          }
+        }
+      ],
+      "expected": {
+        "code": "reference",
+        "path": "/cases/3/scopes/2/scope_id"
+      }
+    },
+    {
+      "id": "missing_canary",
+      "operations": [
+        {
+          "op": "replace",
+          "path": "/cases/2/canaries/0",
+          "value": "scope-other/missing.txt"
+        }
+      ],
+      "expected": {
+        "code": "reference",
+        "path": "/cases/2/canaries/0"
+      }
+    },
+    {
+      "id": "invalid_depth",
+      "operations": [
+        {
+          "op": "replace",
+          "path": "/cases/7/scanner_plan/max_depth",
+          "value": -1
+        }
+      ],
+      "expected": {
+        "code": "limit",
+        "path": "/cases/7/scanner_plan/max_depth"
+      }
+    },
+    {
+      "id": "permission_operation_escalation",
+      "operations": [
+        {
+          "op": "replace",
+          "path": "/cases/9/scanner_plan/faults/0/operation",
+          "value": "chmod"
+        }
+      ],
+      "expected": {
+        "code": "shape",
+        "path": "/cases/9/scanner_plan/faults/0/operation"
+      }
+    },
+    {
+      "id": "content_budget",
+      "operations": [
+        {
+          "op": "replace",
+          "path": "/cases/0/nodes/3/content",
+          "value_generator": {
+            "kind": "ascii_x",
+            "count": 65537
+          }
+        }
+      ],
+      "expected": {
+        "code": "limit",
+        "path": "/cases/0/nodes"
+      }
+    },
+    {
+      "id": "missing_parent",
+      "operations": [
+        {
+          "op": "replace",
+          "path": "/cases/0/nodes/5/path",
+          "value": "scope/missing/main.py"
+        }
+      ],
+      "expected": {
+        "code": "reference",
+        "path": "/cases/0/nodes/5/path"
+      }
+    },
+    {
+      "id": "descendant_of_link",
+      "operations": [
+        {
+          "op": "add",
+          "path": "/cases/6/nodes/-",
+          "value": {
+            "kind": "file",
+            "path": "scope/symbolic-outside/child.txt",
+            "content": "SYNTHETIC\n",
+            "target": null
+          }
+        }
+      ],
+      "expected": {
+        "code": "reference",
+        "path": "/cases/6/nodes/6/path"
+      }
+    },
+    {
+      "id": "unknown_case_id",
+      "operations": [
+        {
+          "op": "replace",
+          "path": "/cases/0/case_id",
+          "value": "not-a-frozen-case"
+        }
+      ],
+      "expected": {
+        "code": "shape",
+        "path": "/cases/0/case_id"
+      }
+    },
+    {
+      "id": "absolute_link_target",
+      "operations": [
+        {
+          "op": "replace",
+          "path": "/cases/6/nodes/4/target",
+          "value": "/tmp/real"
+        }
+      ],
+      "expected": {
+        "code": "unsafe_path",
+        "path": "/cases/6/nodes/4/target"
+      }
+    },
+    {
+      "id": "empty_scopes",
+      "operations": [
+        {
+          "op": "replace",
+          "path": "/cases/0/scopes",
+          "value": []
+        }
+      ],
+      "expected": {
+        "code": "shape",
+        "path": "/cases/0/scopes"
+      }
+    }
+  ],
+  "invalid_run_ids": [
+    "",
+    ".",
+    "..",
+    "../escape",
+    "/tmp/escape",
+    "C:\\escape",
+    "run/a",
+    "run-",
+    "BAD_CASE",
+    "run-UPPER",
+    "run-safe\n",
+    "run-safe\r",
+    "run-safe\r\n",
+    "run-safe ",
+    "run-safe "
+  ]
+}
