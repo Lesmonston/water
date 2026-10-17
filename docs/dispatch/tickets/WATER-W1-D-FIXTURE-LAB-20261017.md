@@ -2,6 +2,8 @@
 
 总控：Codex。正式状态看主检出manifest。这是与A补单并行的独立实现票；不依赖未验收A，不实现扫描内核。
 
+当前更新：补单01已通过总控单票复验及隔离集成，D为VERIFIED（Windows范围），见[验收报告](../../acceptance/wave1/controller/WATER-W1-D-ADDENDUM-01-REVIEW-20261017.md)。本页派前与退回说明保留为历史，不再外贴重做。
+
 2026-10-17总控收单复验：原check/五测试通过，独立数组未知属性边界失败，CHANGES_REQUESTED。续做先读[补单01](WATER-W1-D-ADDENDUM-01-20261017.md)，替代本票首次baseline/probe与回执规则；其余冻结契约和权限不变。
 
 | 项 | 唯一值 |

@@ -14,6 +14,8 @@
 
 当前追加E独立报告展示投影：只依赖已验收A/C，不依赖D，独立workspace/19锁/精确e树基线通过，READY待外贴。D补单01与E可并行，详见[本批安排](NEXT-BATCH-20261017.md)与[E派前回执](REPORT-VIEW-READY-REPORT.md)。扫描票仍为DRAFT，不因E准备完成而放行。
 
+最新收口：D补单01已通过单票与隔离集成五测试/19独立边界，VERIFIED并纳入主线，D无需再外贴。E分配/19冻结不变，继续原票。正式扫描的D前置已满足，仍需新接口/测试冻结与派前检查，尚无F正式票。见[D复验报告](../../acceptance/wave1/controller/WATER-W1-D-ADDENDUM-01-REVIEW-20261017.md)。
+
 | 票 | 内容 | 前置与边界 |
 |---|---|---|
 | WATER-W1-A | Rust workspace、water-contracts、固定序列化/语义校验、定向测试 | 架构基线已提交；没有扫描/删除/UI |

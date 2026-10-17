@@ -4,7 +4,7 @@
   "mode": "manual-external-paste",
   "controller": "Codex",
   "projectRoot": "F:/new/smaltalk/water",
-  "stage": "wave1-d-accepted-e-ready",
+  "stage": "wave1-abcd-verified-e-ready",
   "activeWave": "water-wave1",
   "slots": [
     {
@@ -37,7 +37,7 @@
       "branch": "worker/water-w1-d",
       "baseline": "7007c65d5845c3fe5938d920e930c8bcb7ffc4e0",
       "task": "WATER-W1-D",
-      "state": "accepted-awaiting-controller-integration"
+      "state": "verified-preserved"
     },
     {
       "id": "e",
@@ -172,7 +172,7 @@
     {
       "id": "WATER-W1-D",
       "title": "受控文件系统夹具工厂",
-      "status": "ACCEPTED",
+      "status": "VERIFIED",
       "manifest": "docs/dispatch/wave1/manifest.json",
       "ticket": "docs/dispatch/tickets/WATER-W1-D-FIXTURE-LAB-20261017.md",
       "worktree": "F:/new/smaltalk/water/.worktrees/d",
@@ -199,7 +199,7 @@
       ],
       "resumeFromCommit": "b92d5b8dff8802d1e403e59c08eb1cd4fb175f5f",
       "revisionReport": "docs/dispatch/reports/WATER-W1-D-ADDENDUM-01-REPORT.md",
-      "revisionDispatchStatus": "COMPLETED_ACCEPTED",
+      "revisionDispatchStatus": "COMPLETED_VERIFIED",
       "model": "Cursor / Grok 4.7 (worker self-report)",
       "modelEvidence": "D original report; no independent platform model verification.",
       "revisionSubmittedCommit": "711c38c9d626c4ceb624a48173356887c913d9c7",
@@ -207,7 +207,13 @@
       "revisionSubmissionObservedAt": "2026-10-17T11:39:56.118Z",
       "acceptedCommit": "711c38c9d626c4ceb624a48173356887c913d9c7",
       "acceptedAt": "2026-10-17T11:39:56.118Z",
-      "previousControllerReview": "docs/acceptance/wave1/controller/WATER-W1-AD-REVIEW-20261017.md"
+      "previousControllerReview": "docs/acceptance/wave1/controller/WATER-W1-AD-REVIEW-20261017.md",
+      "integrationCommit": "4e44ee6d3eca2cfd691bc30f298dff3c606e14f9",
+      "integrationBranch": "controller/water-w1-d-20261017",
+      "integrationWorktree": "F:/new/smaltalk/water/.worktrees/integration-d-20261017",
+      "integrationReceipt": "docs/acceptance/wave1/controller/w1-d-integration-20261017/2026-10-17T11-42-12.106Z-13988-result.json",
+      "verifiedAt": "2026-10-17T11:42:30.236Z",
+      "verificationScope": "Windows Node 24 synthetic fixture materialization and pure manifest boundaries; hardlink/symlink/junction supported locally; no scanner, cleanup, real ACL faults or macOS runtime."
     },
     {
       "id": "WATER-W1-E",
@@ -269,5 +275,5 @@
     }
   ],
   "testHelper": "per-task helper; A defaults unchanged",
-  "note": "D addendum 01 accepted after focused tests and 19 independent boundaries; isolated integration pending. E assignment and original freezes unchanged."
+  "note": "A/B/C/D verified in Windows scope; E unchanged READY. D scanner prerequisite satisfied; new scanner API/test freeze and preflight remain pending."
 }

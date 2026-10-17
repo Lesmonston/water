@@ -2,6 +2,8 @@
 
 总控：Codex。日期：2026-10-17。CHANGES_REQUESTED，待用户外贴。绑定[原单](WATER-W1-D-FIXTURE-LAB-20261017.md)，不改冻结契约、helper、基线或原五测试名。
 
+当前更新：本补单已完成并通过总控单票及隔离集成，接收HEAD `711c38c9d626c4ceb624a48173356887c913d9c7`，VERIFIED（Windows范围）。见[验收报告](../../acceptance/wave1/controller/WATER-W1-D-ADDENDUM-01-REVIEW-20261017.md)。下文是历史执行票面，不从b92d起点重复执行。
+
 | 项 | 唯一值 |
 |---|---|
 | 权威补单 | `F:/new/smaltalk/water/docs/dispatch/tickets/WATER-W1-D-ADDENDUM-01-20261017.md` |

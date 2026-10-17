@@ -21,16 +21,22 @@
 
 ## 下一步
 
-A/B/C已VERIFIED并集成。[D补单01](dispatch/tickets/WATER-W1-D-ADDENDUM-01-20261017.md)与[E独立报告展示投影](dispatch/tickets/WATER-W1-E-REPORT-VIEW-20261017.md)可并行外贴；E基线通过、READY，产品尚未实现。正式Rust扫描器仍等D修订验收及新接口冻结；分类/正式桌面接线另排，没有真实用户扫描或清理。
+A/B/C/D已VERIFIED并集成。[E独立报告展示投影](dispatch/tickets/WATER-W1-E-REPORT-VIEW-20261017.md)继续原票，READY待外贴，产品尚未实现。D扫描前置已满足，但正式Rust扫描器的接口/测试冻结与派前检查尚未完成，没有可外贴扫描票；分类/正式桌面接线另排，没有真实用户扫描或清理。
 
-## D修订/E展示投影安排（2026-10-17，当前）
+## D补单01验收集成（2026-10-17，当前）
+
+- 接收HEAD `711c38c9d626c4ceb624a48173356887c913d9c7`，干净；补单三产品/12新记录符合白名单，8冻结及旧证据不变。原check/五测试与独立19边界总控首次全过。
+- 隔离受测提交`4e44ee6d3eca2cfd691bc30f298dff3c606e14f9`：两语法、五测试、19独立边界全过，43唯一冻结一致；D产品tree与接收提交相同，A/B/C及E冻结未变。20个合成run仅在集成树.local，未清理。37份源证据原字节一致，Windows三链接能力实际通过，macOS未验证。
+- D为VERIFIED，详见[本轮复验/集成报告](acceptance/wave1/controller/WATER-W1-D-ADDENDUM-01-REVIEW-20261017.md)。E未改树、原基线/19锁/READY分配保持；没有自动启动实现者。
+
+## D修订/E展示投影安排（2026-10-17，历史派前）
 
 - D仍为干净b92d5b8，无补单新提交/回执；原补单01、起点、helper和8锁保持，不重复派原单或由总控代修。
 - E仅依赖已验收A/C，独立`.worktrees/e`、worker/water-w1-e、基线`1fce65323daf79c9f74ff84d86883692e4cb1b3e`。19冻结、Node24/Rust1.95/MSVC链接baseline实际通过，READY待用户外贴；未运行五产品测试或实际E桥接。
 - E使用独立packages/report-view workspace/锁，生产逻辑纯内存，不修改根Cargo、A/B/C/D、旧helper或旧锁，不接C页面/IPC。四合法/六非法输入经实际A校验，C对预期数据兼容检查通过，不等于E实现通过。
 - [本批安排与后续顺序](dispatch/wave1/NEXT-BATCH-20261017.md)、[E派前回执](dispatch/wave1/REPORT-VIEW-READY-REPORT.md)及registry/manifest为当前依据。总控未自动启动实现者；READY不等于已经外贴。
 
-## 总控接手与A/D验收（2026-10-17，当前）
+## 总控接手与A验收/D原单退回（2026-10-17，历史）
 
 - 用户指定接手失效对话`codex:f62e8a21-24f9-488a-904d-a3050525a155`，随后明确A/D已完成、直接验收。以项目材料和实际Git为准，未恢复旧聊天内容。
 - A接收HEAD `5e32f51cc2fe5be6c3516a492a7a75f7a63a2015`干净，9冻结一致；补单只改两个产品文件。总控四门及独立wire三测试首次全过。隔离受测提交`74fa13b23729405fc11069e04d6c50b015c6a138`离线五契约/三wire测试及fmt/clippy/metadata全部通过，26冻结与B/C目录tree一致，已VERIFIED并纳入主线。
