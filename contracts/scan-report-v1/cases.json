@@ -1,0 +1,4905 @@
+{
+  "golden_cases": [
+    {
+      "id": "project-markers",
+      "input": {
+        "facts_version": "water.scan-lab.v1",
+        "run_id": "run-synthetic-project-markers",
+        "case_id": "project-markers",
+        "status": "completed",
+        "visited_entries": 6,
+        "recorded_entries": 6,
+        "scopes": [
+          {
+            "scope_id": "scope-1",
+            "relative_root": "scope",
+            "coverage": "complete",
+            "visited_entries": 6,
+            "entries": [
+              {
+                "relative_path": ".git",
+                "kind": "directory",
+                "depth": 1,
+                "logical_bytes": null,
+                "allocated_bytes": null,
+                "identity": {
+                  "kind": "unknown",
+                  "device": null,
+                  "inode": null,
+                  "link_count": null
+                }
+              },
+              {
+                "relative_path": ".git/HEAD",
+                "kind": "file",
+                "depth": 2,
+                "logical_bytes": "26",
+                "allocated_bytes": null,
+                "identity": {
+                  "kind": "unknown",
+                  "device": null,
+                  "inode": null,
+                  "link_count": null
+                }
+              },
+              {
+                "relative_path": "package.json",
+                "kind": "file",
+                "depth": 1,
+                "logical_bytes": "50",
+                "allocated_bytes": null,
+                "identity": {
+                  "kind": "unknown",
+                  "device": null,
+                  "inode": null,
+                  "link_count": null
+                }
+              },
+              {
+                "relative_path": "pyproject.toml",
+                "kind": "file",
+                "depth": 1,
+                "logical_bytes": "61",
+                "allocated_bytes": null,
+                "identity": {
+                  "kind": "unknown",
+                  "device": null,
+                  "inode": null,
+                  "link_count": null
+                }
+              },
+              {
+                "relative_path": "src",
+                "kind": "directory",
+                "depth": 1,
+                "logical_bytes": null,
+                "allocated_bytes": null,
+                "identity": {
+                  "kind": "unknown",
+                  "device": null,
+                  "inode": null,
+                  "link_count": null
+                }
+              },
+              {
+                "relative_path": "src/main.py",
+                "kind": "file",
+                "depth": 2,
+                "logical_bytes": "36",
+                "allocated_bytes": null,
+                "identity": {
+                  "kind": "unknown",
+                  "device": null,
+                  "inode": null,
+                  "link_count": null
+                }
+              }
+            ],
+            "issues": []
+          }
+        ]
+      },
+      "context": {
+        "scan_id": "assembly-synthetic",
+        "platform": "windows",
+        "scopes": [
+          {
+            "scope_id": "scope-1",
+            "label": "Synthetic scope-1",
+            "origin": "config_discovered"
+          }
+        ]
+      },
+      "expected_bundle": {
+        "bundle_version": "water.scan-report.v1",
+        "report": {
+          "schema_version": "water.scan.v1",
+          "scan_id": "assembly-synthetic",
+          "status": "completed",
+          "scopes": [
+            {
+              "scope_id": "scope-1",
+              "label": "Synthetic scope-1",
+              "origin": "config_discovered",
+              "platform": "windows",
+              "coverage": "complete"
+            }
+          ],
+          "findings": [
+            {
+              "finding_id": "entry-1",
+              "scope_id": "scope-1",
+              "relative_path": ".git",
+              "tool": null,
+              "rule_version": "scan-report-v1",
+              "category": "unknown",
+              "risk": "protected",
+              "recoverability": "unknown",
+              "activity": "unknown",
+              "confidence": "unknown",
+              "evidence": [
+                {
+                  "code": "unknown",
+                  "source": "filesystem",
+                  "summary": "Metadata observation only; classification and ownership are unverified."
+                }
+              ],
+              "protection_reasons": [
+                "unknown_ownership",
+                "incomplete_evidence",
+                "protected_descendant"
+              ],
+              "references": {
+                "state": "unknown",
+                "project_ids": []
+              },
+              "size": {
+                "logical_bytes": null,
+                "allocated_bytes": null,
+                "reclaimable_lower_bytes": null,
+                "reclaimable_upper_bytes": null,
+                "method": "unknown",
+                "confidence": "unknown",
+                "shared": "unknown"
+              }
+            },
+            {
+              "finding_id": "entry-2",
+              "scope_id": "scope-1",
+              "relative_path": ".git/HEAD",
+              "tool": null,
+              "rule_version": "scan-report-v1",
+              "category": "unknown",
+              "risk": "protected",
+              "recoverability": "unknown",
+              "activity": "unknown",
+              "confidence": "unknown",
+              "evidence": [
+                {
+                  "code": "unknown",
+                  "source": "filesystem",
+                  "summary": "Metadata observation only; classification and ownership are unverified."
+                }
+              ],
+              "protection_reasons": [
+                "unknown_ownership",
+                "incomplete_evidence"
+              ],
+              "references": {
+                "state": "unknown",
+                "project_ids": []
+              },
+              "size": {
+                "logical_bytes": "26",
+                "allocated_bytes": null,
+                "reclaimable_lower_bytes": null,
+                "reclaimable_upper_bytes": null,
+                "method": "logical_sum",
+                "confidence": "measured",
+                "shared": "unknown"
+              }
+            },
+            {
+              "finding_id": "entry-3",
+              "scope_id": "scope-1",
+              "relative_path": "package.json",
+              "tool": null,
+              "rule_version": "scan-report-v1",
+              "category": "unknown",
+              "risk": "protected",
+              "recoverability": "unknown",
+              "activity": "unknown",
+              "confidence": "unknown",
+              "evidence": [
+                {
+                  "code": "unknown",
+                  "source": "filesystem",
+                  "summary": "Metadata observation only; classification and ownership are unverified."
+                }
+              ],
+              "protection_reasons": [
+                "unknown_ownership",
+                "incomplete_evidence"
+              ],
+              "references": {
+                "state": "unknown",
+                "project_ids": []
+              },
+              "size": {
+                "logical_bytes": "50",
+                "allocated_bytes": null,
+                "reclaimable_lower_bytes": null,
+                "reclaimable_upper_bytes": null,
+                "method": "logical_sum",
+                "confidence": "measured",
+                "shared": "unknown"
+              }
+            },
+            {
+              "finding_id": "entry-4",
+              "scope_id": "scope-1",
+              "relative_path": "pyproject.toml",
+              "tool": null,
+              "rule_version": "scan-report-v1",
+              "category": "unknown",
+              "risk": "protected",
+              "recoverability": "unknown",
+              "activity": "unknown",
+              "confidence": "unknown",
+              "evidence": [
+                {
+                  "code": "unknown",
+                  "source": "filesystem",
+                  "summary": "Metadata observation only; classification and ownership are unverified."
+                }
+              ],
+              "protection_reasons": [
+                "unknown_ownership",
+                "incomplete_evidence"
+              ],
+              "references": {
+                "state": "unknown",
+                "project_ids": []
+              },
+              "size": {
+                "logical_bytes": "61",
+                "allocated_bytes": null,
+                "reclaimable_lower_bytes": null,
+                "reclaimable_upper_bytes": null,
+                "method": "logical_sum",
+                "confidence": "measured",
+                "shared": "unknown"
+              }
+            },
+            {
+              "finding_id": "entry-5",
+              "scope_id": "scope-1",
+              "relative_path": "src",
+              "tool": null,
+              "rule_version": "scan-report-v1",
+              "category": "unknown",
+              "risk": "protected",
+              "recoverability": "unknown",
+              "activity": "unknown",
+              "confidence": "unknown",
+              "evidence": [
+                {
+                  "code": "unknown",
+                  "source": "filesystem",
+                  "summary": "Metadata observation only; classification and ownership are unverified."
+                }
+              ],
+              "protection_reasons": [
+                "unknown_ownership",
+                "incomplete_evidence",
+                "protected_descendant"
+              ],
+              "references": {
+                "state": "unknown",
+                "project_ids": []
+              },
+              "size": {
+                "logical_bytes": null,
+                "allocated_bytes": null,
+                "reclaimable_lower_bytes": null,
+                "reclaimable_upper_bytes": null,
+                "method": "unknown",
+                "confidence": "unknown",
+                "shared": "unknown"
+              }
+            },
+            {
+              "finding_id": "entry-6",
+              "scope_id": "scope-1",
+              "relative_path": "src/main.py",
+              "tool": null,
+              "rule_version": "scan-report-v1",
+              "category": "unknown",
+              "risk": "protected",
+              "recoverability": "unknown",
+              "activity": "unknown",
+              "confidence": "unknown",
+              "evidence": [
+                {
+                  "code": "unknown",
+                  "source": "filesystem",
+                  "summary": "Metadata observation only; classification and ownership are unverified."
+                }
+              ],
+              "protection_reasons": [
+                "unknown_ownership",
+                "incomplete_evidence"
+              ],
+              "references": {
+                "state": "unknown",
+                "project_ids": []
+              },
+              "size": {
+                "logical_bytes": "36",
+                "allocated_bytes": null,
+                "reclaimable_lower_bytes": null,
+                "reclaimable_upper_bytes": null,
+                "method": "logical_sum",
+                "confidence": "measured",
+                "shared": "unknown"
+              }
+            }
+          ],
+          "issues": [],
+          "totals": {
+            "logical_bytes": null,
+            "allocated_bytes": null,
+            "method": "unavailable",
+            "coverage_complete": true,
+            "scanned_entries": 6,
+            "skipped_entries": 0
+          }
+        },
+        "source_facts": {
+          "facts_version": "water.scan-lab.v1",
+          "run_id": "run-synthetic-project-markers",
+          "case_id": "project-markers",
+          "status": "completed",
+          "visited_entries": 6,
+          "recorded_entries": 6,
+          "scopes": [
+            {
+              "scope_id": "scope-1",
+              "relative_root": "scope",
+              "coverage": "complete",
+              "visited_entries": 6,
+              "entries": [
+                {
+                  "relative_path": ".git",
+                  "kind": "directory",
+                  "depth": 1,
+                  "logical_bytes": null,
+                  "allocated_bytes": null,
+                  "identity": {
+                    "kind": "unknown",
+                    "device": null,
+                    "inode": null,
+                    "link_count": null
+                  }
+                },
+                {
+                  "relative_path": ".git/HEAD",
+                  "kind": "file",
+                  "depth": 2,
+                  "logical_bytes": "26",
+                  "allocated_bytes": null,
+                  "identity": {
+                    "kind": "unknown",
+                    "device": null,
+                    "inode": null,
+                    "link_count": null
+                  }
+                },
+                {
+                  "relative_path": "package.json",
+                  "kind": "file",
+                  "depth": 1,
+                  "logical_bytes": "50",
+                  "allocated_bytes": null,
+                  "identity": {
+                    "kind": "unknown",
+                    "device": null,
+                    "inode": null,
+                    "link_count": null
+                  }
+                },
+                {
+                  "relative_path": "pyproject.toml",
+                  "kind": "file",
+                  "depth": 1,
+                  "logical_bytes": "61",
+                  "allocated_bytes": null,
+                  "identity": {
+                    "kind": "unknown",
+                    "device": null,
+                    "inode": null,
+                    "link_count": null
+                  }
+                },
+                {
+                  "relative_path": "src",
+                  "kind": "directory",
+                  "depth": 1,
+                  "logical_bytes": null,
+                  "allocated_bytes": null,
+                  "identity": {
+                    "kind": "unknown",
+                    "device": null,
+                    "inode": null,
+                    "link_count": null
+                  }
+                },
+                {
+                  "relative_path": "src/main.py",
+                  "kind": "file",
+                  "depth": 2,
+                  "logical_bytes": "36",
+                  "allocated_bytes": null,
+                  "identity": {
+                    "kind": "unknown",
+                    "device": null,
+                    "inode": null,
+                    "link_count": null
+                  }
+                }
+              ],
+              "issues": []
+            }
+          ]
+        }
+      }
+    },
+    {
+      "id": "mixed-assets",
+      "input": {
+        "facts_version": "water.scan-lab.v1",
+        "run_id": "run-synthetic-mixed-assets",
+        "case_id": "mixed-assets",
+        "status": "completed",
+        "visited_entries": 10,
+        "recorded_entries": 10,
+        "scopes": [
+          {
+            "scope_id": "scope-1",
+            "relative_root": "scope",
+            "coverage": "complete",
+            "visited_entries": 10,
+            "entries": [
+              {
+                "relative_path": "cache",
+                "kind": "directory",
+                "depth": 1,
+                "logical_bytes": null,
+                "allocated_bytes": null,
+                "identity": {
+                  "kind": "unknown",
+                  "device": null,
+                  "inode": null,
+                  "link_count": null
+                }
+              },
+              {
+                "relative_path": "cache/README.txt",
+                "kind": "file",
+                "depth": 2,
+                "logical_bytes": "51",
+                "allocated_bytes": null,
+                "identity": {
+                  "kind": "unknown",
+                  "device": null,
+                  "inode": null,
+                  "link_count": null
+                }
+              },
+              {
+                "relative_path": "cache/credentials",
+                "kind": "directory",
+                "depth": 2,
+                "logical_bytes": null,
+                "allocated_bytes": null,
+                "identity": {
+                  "kind": "unknown",
+                  "device": null,
+                  "inode": null,
+                  "link_count": null
+                }
+              },
+              {
+                "relative_path": "cache/credentials/token.txt",
+                "kind": "file",
+                "depth": 3,
+                "logical_bytes": "35",
+                "allocated_bytes": null,
+                "identity": {
+                  "kind": "unknown",
+                  "device": null,
+                  "inode": null,
+                  "link_count": null
+                }
+              },
+              {
+                "relative_path": "cache/data",
+                "kind": "directory",
+                "depth": 2,
+                "logical_bytes": null,
+                "allocated_bytes": null,
+                "identity": {
+                  "kind": "unknown",
+                  "device": null,
+                  "inode": null,
+                  "link_count": null
+                }
+              },
+              {
+                "relative_path": "cache/data/index.sqlite",
+                "kind": "file",
+                "depth": 3,
+                "logical_bytes": "20",
+                "allocated_bytes": null,
+                "identity": {
+                  "kind": "unknown",
+                  "device": null,
+                  "inode": null,
+                  "link_count": null
+                }
+              },
+              {
+                "relative_path": "cache/history",
+                "kind": "directory",
+                "depth": 2,
+                "logical_bytes": null,
+                "allocated_bytes": null,
+                "identity": {
+                  "kind": "unknown",
+                  "device": null,
+                  "inode": null,
+                  "link_count": null
+                }
+              },
+              {
+                "relative_path": "cache/history/session.json",
+                "kind": "file",
+                "depth": 3,
+                "logical_bytes": "45",
+                "allocated_bytes": null,
+                "identity": {
+                  "kind": "unknown",
+                  "device": null,
+                  "inode": null,
+                  "link_count": null
+                }
+              },
+              {
+                "relative_path": "cache/models",
+                "kind": "directory",
+                "depth": 2,
+                "logical_bytes": null,
+                "allocated_bytes": null,
+                "identity": {
+                  "kind": "unknown",
+                  "device": null,
+                  "inode": null,
+                  "link_count": null
+                }
+              },
+              {
+                "relative_path": "cache/models/custom.gguf",
+                "kind": "file",
+                "depth": 3,
+                "logical_bytes": "17",
+                "allocated_bytes": null,
+                "identity": {
+                  "kind": "unknown",
+                  "device": null,
+                  "inode": null,
+                  "link_count": null
+                }
+              }
+            ],
+            "issues": []
+          }
+        ]
+      },
+      "context": {
+        "scan_id": "assembly-synthetic",
+        "platform": "windows",
+        "scopes": [
+          {
+            "scope_id": "scope-1",
+            "label": "Synthetic scope-1",
+            "origin": "config_discovered"
+          }
+        ]
+      },
+      "expected_bundle": {
+        "bundle_version": "water.scan-report.v1",
+        "report": {
+          "schema_version": "water.scan.v1",
+          "scan_id": "assembly-synthetic",
+          "status": "completed",
+          "scopes": [
+            {
+              "scope_id": "scope-1",
+              "label": "Synthetic scope-1",
+              "origin": "config_discovered",
+              "platform": "windows",
+              "coverage": "complete"
+            }
+          ],
+          "findings": [
+            {
+              "finding_id": "entry-1",
+              "scope_id": "scope-1",
+              "relative_path": "cache",
+              "tool": null,
+              "rule_version": "scan-report-v1",
+              "category": "unknown",
+              "risk": "protected",
+              "recoverability": "unknown",
+              "activity": "unknown",
+              "confidence": "unknown",
+              "evidence": [
+                {
+                  "code": "unknown",
+                  "source": "filesystem",
+                  "summary": "Metadata observation only; classification and ownership are unverified."
+                }
+              ],
+              "protection_reasons": [
+                "unknown_ownership",
+                "incomplete_evidence",
+                "protected_descendant"
+              ],
+              "references": {
+                "state": "unknown",
+                "project_ids": []
+              },
+              "size": {
+                "logical_bytes": null,
+                "allocated_bytes": null,
+                "reclaimable_lower_bytes": null,
+                "reclaimable_upper_bytes": null,
+                "method": "unknown",
+                "confidence": "unknown",
+                "shared": "unknown"
+              }
+            },
+            {
+              "finding_id": "entry-2",
+              "scope_id": "scope-1",
+              "relative_path": "cache/README.txt",
+              "tool": null,
+              "rule_version": "scan-report-v1",
+              "category": "unknown",
+              "risk": "protected",
+              "recoverability": "unknown",
+              "activity": "unknown",
+              "confidence": "unknown",
+              "evidence": [
+                {
+                  "code": "unknown",
+                  "source": "filesystem",
+                  "summary": "Metadata observation only; classification and ownership are unverified."
+                }
+              ],
+              "protection_reasons": [
+                "unknown_ownership",
+                "incomplete_evidence"
+              ],
+              "references": {
+                "state": "unknown",
+                "project_ids": []
+              },
+              "size": {
+                "logical_bytes": "51",
+                "allocated_bytes": null,
+                "reclaimable_lower_bytes": null,
+                "reclaimable_upper_bytes": null,
+                "method": "logical_sum",
+                "confidence": "measured",
+                "shared": "unknown"
+              }
+            },
+            {
+              "finding_id": "entry-3",
+              "scope_id": "scope-1",
+              "relative_path": "cache/credentials",
+              "tool": null,
+              "rule_version": "scan-report-v1",
+              "category": "unknown",
+              "risk": "protected",
+              "recoverability": "unknown",
+              "activity": "unknown",
+              "confidence": "unknown",
+              "evidence": [
+                {
+                  "code": "unknown",
+                  "source": "filesystem",
+                  "summary": "Metadata observation only; classification and ownership are unverified."
+                }
+              ],
+              "protection_reasons": [
+                "unknown_ownership",
+                "incomplete_evidence",
+                "protected_descendant"
+              ],
+              "references": {
+                "state": "unknown",
+                "project_ids": []
+              },
+              "size": {
+                "logical_bytes": null,
+                "allocated_bytes": null,
+                "reclaimable_lower_bytes": null,
+                "reclaimable_upper_bytes": null,
+                "method": "unknown",
+                "confidence": "unknown",
+                "shared": "unknown"
+              }
+            },
+            {
+              "finding_id": "entry-4",
+              "scope_id": "scope-1",
+              "relative_path": "cache/credentials/token.txt",
+              "tool": null,
+              "rule_version": "scan-report-v1",
+              "category": "unknown",
+              "risk": "protected",
+              "recoverability": "unknown",
+              "activity": "unknown",
+              "confidence": "unknown",
+              "evidence": [
+                {
+                  "code": "unknown",
+                  "source": "filesystem",
+                  "summary": "Metadata observation only; classification and ownership are unverified."
+                }
+              ],
+              "protection_reasons": [
+                "unknown_ownership",
+                "incomplete_evidence"
+              ],
+              "references": {
+                "state": "unknown",
+                "project_ids": []
+              },
+              "size": {
+                "logical_bytes": "35",
+                "allocated_bytes": null,
+                "reclaimable_lower_bytes": null,
+                "reclaimable_upper_bytes": null,
+                "method": "logical_sum",
+                "confidence": "measured",
+                "shared": "unknown"
+              }
+            },
+            {
+              "finding_id": "entry-5",
+              "scope_id": "scope-1",
+              "relative_path": "cache/data",
+              "tool": null,
+              "rule_version": "scan-report-v1",
+              "category": "unknown",
+              "risk": "protected",
+              "recoverability": "unknown",
+              "activity": "unknown",
+              "confidence": "unknown",
+              "evidence": [
+                {
+                  "code": "unknown",
+                  "source": "filesystem",
+                  "summary": "Metadata observation only; classification and ownership are unverified."
+                }
+              ],
+              "protection_reasons": [
+                "unknown_ownership",
+                "incomplete_evidence",
+                "protected_descendant"
+              ],
+              "references": {
+                "state": "unknown",
+                "project_ids": []
+              },
+              "size": {
+                "logical_bytes": null,
+                "allocated_bytes": null,
+                "reclaimable_lower_bytes": null,
+                "reclaimable_upper_bytes": null,
+                "method": "unknown",
+                "confidence": "unknown",
+                "shared": "unknown"
+              }
+            },
+            {
+              "finding_id": "entry-6",
+              "scope_id": "scope-1",
+              "relative_path": "cache/data/index.sqlite",
+              "tool": null,
+              "rule_version": "scan-report-v1",
+              "category": "unknown",
+              "risk": "protected",
+              "recoverability": "unknown",
+              "activity": "unknown",
+              "confidence": "unknown",
+              "evidence": [
+                {
+                  "code": "unknown",
+                  "source": "filesystem",
+                  "summary": "Metadata observation only; classification and ownership are unverified."
+                }
+              ],
+              "protection_reasons": [
+                "unknown_ownership",
+                "incomplete_evidence"
+              ],
+              "references": {
+                "state": "unknown",
+                "project_ids": []
+              },
+              "size": {
+                "logical_bytes": "20",
+                "allocated_bytes": null,
+                "reclaimable_lower_bytes": null,
+                "reclaimable_upper_bytes": null,
+                "method": "logical_sum",
+                "confidence": "measured",
+                "shared": "unknown"
+              }
+            },
+            {
+              "finding_id": "entry-7",
+              "scope_id": "scope-1",
+              "relative_path": "cache/history",
+              "tool": null,
+              "rule_version": "scan-report-v1",
+              "category": "unknown",
+              "risk": "protected",
+              "recoverability": "unknown",
+              "activity": "unknown",
+              "confidence": "unknown",
+              "evidence": [
+                {
+                  "code": "unknown",
+                  "source": "filesystem",
+                  "summary": "Metadata observation only; classification and ownership are unverified."
+                }
+              ],
+              "protection_reasons": [
+                "unknown_ownership",
+                "incomplete_evidence",
+                "protected_descendant"
+              ],
+              "references": {
+                "state": "unknown",
+                "project_ids": []
+              },
+              "size": {
+                "logical_bytes": null,
+                "allocated_bytes": null,
+                "reclaimable_lower_bytes": null,
+                "reclaimable_upper_bytes": null,
+                "method": "unknown",
+                "confidence": "unknown",
+                "shared": "unknown"
+              }
+            },
+            {
+              "finding_id": "entry-8",
+              "scope_id": "scope-1",
+              "relative_path": "cache/history/session.json",
+              "tool": null,
+              "rule_version": "scan-report-v1",
+              "category": "unknown",
+              "risk": "protected",
+              "recoverability": "unknown",
+              "activity": "unknown",
+              "confidence": "unknown",
+              "evidence": [
+                {
+                  "code": "unknown",
+                  "source": "filesystem",
+                  "summary": "Metadata observation only; classification and ownership are unverified."
+                }
+              ],
+              "protection_reasons": [
+                "unknown_ownership",
+                "incomplete_evidence"
+              ],
+              "references": {
+                "state": "unknown",
+                "project_ids": []
+              },
+              "size": {
+                "logical_bytes": "45",
+                "allocated_bytes": null,
+                "reclaimable_lower_bytes": null,
+                "reclaimable_upper_bytes": null,
+                "method": "logical_sum",
+                "confidence": "measured",
+                "shared": "unknown"
+              }
+            },
+            {
+              "finding_id": "entry-9",
+              "scope_id": "scope-1",
+              "relative_path": "cache/models",
+              "tool": null,
+              "rule_version": "scan-report-v1",
+              "category": "unknown",
+              "risk": "protected",
+              "recoverability": "unknown",
+              "activity": "unknown",
+              "confidence": "unknown",
+              "evidence": [
+                {
+                  "code": "unknown",
+                  "source": "filesystem",
+                  "summary": "Metadata observation only; classification and ownership are unverified."
+                }
+              ],
+              "protection_reasons": [
+                "unknown_ownership",
+                "incomplete_evidence",
+                "protected_descendant"
+              ],
+              "references": {
+                "state": "unknown",
+                "project_ids": []
+              },
+              "size": {
+                "logical_bytes": null,
+                "allocated_bytes": null,
+                "reclaimable_lower_bytes": null,
+                "reclaimable_upper_bytes": null,
+                "method": "unknown",
+                "confidence": "unknown",
+                "shared": "unknown"
+              }
+            },
+            {
+              "finding_id": "entry-10",
+              "scope_id": "scope-1",
+              "relative_path": "cache/models/custom.gguf",
+              "tool": null,
+              "rule_version": "scan-report-v1",
+              "category": "unknown",
+              "risk": "protected",
+              "recoverability": "unknown",
+              "activity": "unknown",
+              "confidence": "unknown",
+              "evidence": [
+                {
+                  "code": "unknown",
+                  "source": "filesystem",
+                  "summary": "Metadata observation only; classification and ownership are unverified."
+                }
+              ],
+              "protection_reasons": [
+                "unknown_ownership",
+                "incomplete_evidence"
+              ],
+              "references": {
+                "state": "unknown",
+                "project_ids": []
+              },
+              "size": {
+                "logical_bytes": "17",
+                "allocated_bytes": null,
+                "reclaimable_lower_bytes": null,
+                "reclaimable_upper_bytes": null,
+                "method": "logical_sum",
+                "confidence": "measured",
+                "shared": "unknown"
+              }
+            }
+          ],
+          "issues": [],
+          "totals": {
+            "logical_bytes": null,
+            "allocated_bytes": null,
+            "method": "unavailable",
+            "coverage_complete": true,
+            "scanned_entries": 10,
+            "skipped_entries": 0
+          }
+        },
+        "source_facts": {
+          "facts_version": "water.scan-lab.v1",
+          "run_id": "run-synthetic-mixed-assets",
+          "case_id": "mixed-assets",
+          "status": "completed",
+          "visited_entries": 10,
+          "recorded_entries": 10,
+          "scopes": [
+            {
+              "scope_id": "scope-1",
+              "relative_root": "scope",
+              "coverage": "complete",
+              "visited_entries": 10,
+              "entries": [
+                {
+                  "relative_path": "cache",
+                  "kind": "directory",
+                  "depth": 1,
+                  "logical_bytes": null,
+                  "allocated_bytes": null,
+                  "identity": {
+                    "kind": "unknown",
+                    "device": null,
+                    "inode": null,
+                    "link_count": null
+                  }
+                },
+                {
+                  "relative_path": "cache/README.txt",
+                  "kind": "file",
+                  "depth": 2,
+                  "logical_bytes": "51",
+                  "allocated_bytes": null,
+                  "identity": {
+                    "kind": "unknown",
+                    "device": null,
+                    "inode": null,
+                    "link_count": null
+                  }
+                },
+                {
+                  "relative_path": "cache/credentials",
+                  "kind": "directory",
+                  "depth": 2,
+                  "logical_bytes": null,
+                  "allocated_bytes": null,
+                  "identity": {
+                    "kind": "unknown",
+                    "device": null,
+                    "inode": null,
+                    "link_count": null
+                  }
+                },
+                {
+                  "relative_path": "cache/credentials/token.txt",
+                  "kind": "file",
+                  "depth": 3,
+                  "logical_bytes": "35",
+                  "allocated_bytes": null,
+                  "identity": {
+                    "kind": "unknown",
+                    "device": null,
+                    "inode": null,
+                    "link_count": null
+                  }
+                },
+                {
+                  "relative_path": "cache/data",
+                  "kind": "directory",
+                  "depth": 2,
+                  "logical_bytes": null,
+                  "allocated_bytes": null,
+                  "identity": {
+                    "kind": "unknown",
+                    "device": null,
+                    "inode": null,
+                    "link_count": null
+                  }
+                },
+                {
+                  "relative_path": "cache/data/index.sqlite",
+                  "kind": "file",
+                  "depth": 3,
+                  "logical_bytes": "20",
+                  "allocated_bytes": null,
+                  "identity": {
+                    "kind": "unknown",
+                    "device": null,
+                    "inode": null,
+                    "link_count": null
+                  }
+                },
+                {
+                  "relative_path": "cache/history",
+                  "kind": "directory",
+                  "depth": 2,
+                  "logical_bytes": null,
+                  "allocated_bytes": null,
+                  "identity": {
+                    "kind": "unknown",
+                    "device": null,
+                    "inode": null,
+                    "link_count": null
+                  }
+                },
+                {
+                  "relative_path": "cache/history/session.json",
+                  "kind": "file",
+                  "depth": 3,
+                  "logical_bytes": "45",
+                  "allocated_bytes": null,
+                  "identity": {
+                    "kind": "unknown",
+                    "device": null,
+                    "inode": null,
+                    "link_count": null
+                  }
+                },
+                {
+                  "relative_path": "cache/models",
+                  "kind": "directory",
+                  "depth": 2,
+                  "logical_bytes": null,
+                  "allocated_bytes": null,
+                  "identity": {
+                    "kind": "unknown",
+                    "device": null,
+                    "inode": null,
+                    "link_count": null
+                  }
+                },
+                {
+                  "relative_path": "cache/models/custom.gguf",
+                  "kind": "file",
+                  "depth": 3,
+                  "logical_bytes": "17",
+                  "allocated_bytes": null,
+                  "identity": {
+                    "kind": "unknown",
+                    "device": null,
+                    "inode": null,
+                    "link_count": null
+                  }
+                }
+              ],
+              "issues": []
+            }
+          ]
+        }
+      }
+    },
+    {
+      "id": "scope-prefix",
+      "input": {
+        "facts_version": "water.scan-lab.v1",
+        "run_id": "run-synthetic-scope-prefix",
+        "case_id": "scope-prefix",
+        "status": "completed",
+        "visited_entries": 1,
+        "recorded_entries": 1,
+        "scopes": [
+          {
+            "scope_id": "scope-1",
+            "relative_root": "scope",
+            "coverage": "complete",
+            "visited_entries": 1,
+            "entries": [
+              {
+                "relative_path": "inside.txt",
+                "kind": "file",
+                "depth": 1,
+                "logical_bytes": "17",
+                "allocated_bytes": null,
+                "identity": {
+                  "kind": "unknown",
+                  "device": null,
+                  "inode": null,
+                  "link_count": null
+                }
+              }
+            ],
+            "issues": []
+          }
+        ]
+      },
+      "context": {
+        "scan_id": "assembly-synthetic",
+        "platform": "windows",
+        "scopes": [
+          {
+            "scope_id": "scope-1",
+            "label": "Synthetic scope-1",
+            "origin": "config_discovered"
+          }
+        ]
+      },
+      "expected_bundle": {
+        "bundle_version": "water.scan-report.v1",
+        "report": {
+          "schema_version": "water.scan.v1",
+          "scan_id": "assembly-synthetic",
+          "status": "completed",
+          "scopes": [
+            {
+              "scope_id": "scope-1",
+              "label": "Synthetic scope-1",
+              "origin": "config_discovered",
+              "platform": "windows",
+              "coverage": "complete"
+            }
+          ],
+          "findings": [
+            {
+              "finding_id": "entry-1",
+              "scope_id": "scope-1",
+              "relative_path": "inside.txt",
+              "tool": null,
+              "rule_version": "scan-report-v1",
+              "category": "unknown",
+              "risk": "protected",
+              "recoverability": "unknown",
+              "activity": "unknown",
+              "confidence": "unknown",
+              "evidence": [
+                {
+                  "code": "unknown",
+                  "source": "filesystem",
+                  "summary": "Metadata observation only; classification and ownership are unverified."
+                }
+              ],
+              "protection_reasons": [
+                "unknown_ownership",
+                "incomplete_evidence"
+              ],
+              "references": {
+                "state": "unknown",
+                "project_ids": []
+              },
+              "size": {
+                "logical_bytes": "17",
+                "allocated_bytes": null,
+                "reclaimable_lower_bytes": null,
+                "reclaimable_upper_bytes": null,
+                "method": "logical_sum",
+                "confidence": "measured",
+                "shared": "unknown"
+              }
+            }
+          ],
+          "issues": [],
+          "totals": {
+            "logical_bytes": null,
+            "allocated_bytes": null,
+            "method": "unavailable",
+            "coverage_complete": true,
+            "scanned_entries": 1,
+            "skipped_entries": 0
+          }
+        },
+        "source_facts": {
+          "facts_version": "water.scan-lab.v1",
+          "run_id": "run-synthetic-scope-prefix",
+          "case_id": "scope-prefix",
+          "status": "completed",
+          "visited_entries": 1,
+          "recorded_entries": 1,
+          "scopes": [
+            {
+              "scope_id": "scope-1",
+              "relative_root": "scope",
+              "coverage": "complete",
+              "visited_entries": 1,
+              "entries": [
+                {
+                  "relative_path": "inside.txt",
+                  "kind": "file",
+                  "depth": 1,
+                  "logical_bytes": "17",
+                  "allocated_bytes": null,
+                  "identity": {
+                    "kind": "unknown",
+                    "device": null,
+                    "inode": null,
+                    "link_count": null
+                  }
+                }
+              ],
+              "issues": []
+            }
+          ]
+        }
+      }
+    },
+    {
+      "id": "overlapping-scopes",
+      "input": {
+        "facts_version": "water.scan-lab.v1",
+        "run_id": "run-synthetic-overlapping-scopes",
+        "case_id": "overlapping-scopes",
+        "status": "completed",
+        "visited_entries": 4,
+        "recorded_entries": 4,
+        "scopes": [
+          {
+            "scope_id": "scope-outer",
+            "relative_root": "scope",
+            "coverage": "complete",
+            "visited_entries": 3,
+            "entries": [
+              {
+                "relative_path": "nested",
+                "kind": "directory",
+                "depth": 1,
+                "logical_bytes": null,
+                "allocated_bytes": null,
+                "identity": {
+                  "kind": "unknown",
+                  "device": null,
+                  "inode": null,
+                  "link_count": null
+                }
+              },
+              {
+                "relative_path": "nested/shared.txt",
+                "kind": "file",
+                "depth": 2,
+                "logical_bytes": "26",
+                "allocated_bytes": null,
+                "identity": {
+                  "kind": "unknown",
+                  "device": null,
+                  "inode": null,
+                  "link_count": null
+                }
+              },
+              {
+                "relative_path": "root.txt",
+                "kind": "file",
+                "depth": 1,
+                "logical_bytes": "5",
+                "allocated_bytes": null,
+                "identity": {
+                  "kind": "unknown",
+                  "device": null,
+                  "inode": null,
+                  "link_count": null
+                }
+              }
+            ],
+            "issues": []
+          },
+          {
+            "scope_id": "scope-inner",
+            "relative_root": "scope/nested",
+            "coverage": "complete",
+            "visited_entries": 1,
+            "entries": [
+              {
+                "relative_path": "shared.txt",
+                "kind": "file",
+                "depth": 1,
+                "logical_bytes": "26",
+                "allocated_bytes": null,
+                "identity": {
+                  "kind": "unknown",
+                  "device": null,
+                  "inode": null,
+                  "link_count": null
+                }
+              }
+            ],
+            "issues": []
+          }
+        ]
+      },
+      "context": {
+        "scan_id": "assembly-synthetic",
+        "platform": "windows",
+        "scopes": [
+          {
+            "scope_id": "scope-outer",
+            "label": "Synthetic scope-outer",
+            "origin": "config_discovered"
+          },
+          {
+            "scope_id": "scope-inner",
+            "label": "Synthetic scope-inner",
+            "origin": "config_discovered"
+          }
+        ]
+      },
+      "expected_bundle": {
+        "bundle_version": "water.scan-report.v1",
+        "report": {
+          "schema_version": "water.scan.v1",
+          "scan_id": "assembly-synthetic",
+          "status": "completed",
+          "scopes": [
+            {
+              "scope_id": "scope-outer",
+              "label": "Synthetic scope-outer",
+              "origin": "config_discovered",
+              "platform": "windows",
+              "coverage": "complete"
+            },
+            {
+              "scope_id": "scope-inner",
+              "label": "Synthetic scope-inner",
+              "origin": "config_discovered",
+              "platform": "windows",
+              "coverage": "complete"
+            }
+          ],
+          "findings": [
+            {
+              "finding_id": "entry-1",
+              "scope_id": "scope-outer",
+              "relative_path": "nested",
+              "tool": null,
+              "rule_version": "scan-report-v1",
+              "category": "unknown",
+              "risk": "protected",
+              "recoverability": "unknown",
+              "activity": "unknown",
+              "confidence": "unknown",
+              "evidence": [
+                {
+                  "code": "unknown",
+                  "source": "filesystem",
+                  "summary": "Metadata observation only; classification and ownership are unverified."
+                }
+              ],
+              "protection_reasons": [
+                "unknown_ownership",
+                "incomplete_evidence",
+                "protected_descendant"
+              ],
+              "references": {
+                "state": "unknown",
+                "project_ids": []
+              },
+              "size": {
+                "logical_bytes": null,
+                "allocated_bytes": null,
+                "reclaimable_lower_bytes": null,
+                "reclaimable_upper_bytes": null,
+                "method": "unknown",
+                "confidence": "unknown",
+                "shared": "unknown"
+              }
+            },
+            {
+              "finding_id": "entry-2",
+              "scope_id": "scope-outer",
+              "relative_path": "nested/shared.txt",
+              "tool": null,
+              "rule_version": "scan-report-v1",
+              "category": "unknown",
+              "risk": "protected",
+              "recoverability": "unknown",
+              "activity": "unknown",
+              "confidence": "unknown",
+              "evidence": [
+                {
+                  "code": "unknown",
+                  "source": "filesystem",
+                  "summary": "Metadata observation only; classification and ownership are unverified."
+                }
+              ],
+              "protection_reasons": [
+                "unknown_ownership",
+                "incomplete_evidence"
+              ],
+              "references": {
+                "state": "unknown",
+                "project_ids": []
+              },
+              "size": {
+                "logical_bytes": "26",
+                "allocated_bytes": null,
+                "reclaimable_lower_bytes": null,
+                "reclaimable_upper_bytes": null,
+                "method": "logical_sum",
+                "confidence": "measured",
+                "shared": "unknown"
+              }
+            },
+            {
+              "finding_id": "entry-3",
+              "scope_id": "scope-outer",
+              "relative_path": "root.txt",
+              "tool": null,
+              "rule_version": "scan-report-v1",
+              "category": "unknown",
+              "risk": "protected",
+              "recoverability": "unknown",
+              "activity": "unknown",
+              "confidence": "unknown",
+              "evidence": [
+                {
+                  "code": "unknown",
+                  "source": "filesystem",
+                  "summary": "Metadata observation only; classification and ownership are unverified."
+                }
+              ],
+              "protection_reasons": [
+                "unknown_ownership",
+                "incomplete_evidence"
+              ],
+              "references": {
+                "state": "unknown",
+                "project_ids": []
+              },
+              "size": {
+                "logical_bytes": "5",
+                "allocated_bytes": null,
+                "reclaimable_lower_bytes": null,
+                "reclaimable_upper_bytes": null,
+                "method": "logical_sum",
+                "confidence": "measured",
+                "shared": "unknown"
+              }
+            },
+            {
+              "finding_id": "entry-4",
+              "scope_id": "scope-inner",
+              "relative_path": "shared.txt",
+              "tool": null,
+              "rule_version": "scan-report-v1",
+              "category": "unknown",
+              "risk": "protected",
+              "recoverability": "unknown",
+              "activity": "unknown",
+              "confidence": "unknown",
+              "evidence": [
+                {
+                  "code": "unknown",
+                  "source": "filesystem",
+                  "summary": "Metadata observation only; classification and ownership are unverified."
+                }
+              ],
+              "protection_reasons": [
+                "unknown_ownership",
+                "incomplete_evidence"
+              ],
+              "references": {
+                "state": "unknown",
+                "project_ids": []
+              },
+              "size": {
+                "logical_bytes": "26",
+                "allocated_bytes": null,
+                "reclaimable_lower_bytes": null,
+                "reclaimable_upper_bytes": null,
+                "method": "logical_sum",
+                "confidence": "measured",
+                "shared": "unknown"
+              }
+            }
+          ],
+          "issues": [],
+          "totals": {
+            "logical_bytes": null,
+            "allocated_bytes": null,
+            "method": "unavailable",
+            "coverage_complete": true,
+            "scanned_entries": 4,
+            "skipped_entries": 0
+          }
+        },
+        "source_facts": {
+          "facts_version": "water.scan-lab.v1",
+          "run_id": "run-synthetic-overlapping-scopes",
+          "case_id": "overlapping-scopes",
+          "status": "completed",
+          "visited_entries": 4,
+          "recorded_entries": 4,
+          "scopes": [
+            {
+              "scope_id": "scope-outer",
+              "relative_root": "scope",
+              "coverage": "complete",
+              "visited_entries": 3,
+              "entries": [
+                {
+                  "relative_path": "nested",
+                  "kind": "directory",
+                  "depth": 1,
+                  "logical_bytes": null,
+                  "allocated_bytes": null,
+                  "identity": {
+                    "kind": "unknown",
+                    "device": null,
+                    "inode": null,
+                    "link_count": null
+                  }
+                },
+                {
+                  "relative_path": "nested/shared.txt",
+                  "kind": "file",
+                  "depth": 2,
+                  "logical_bytes": "26",
+                  "allocated_bytes": null,
+                  "identity": {
+                    "kind": "unknown",
+                    "device": null,
+                    "inode": null,
+                    "link_count": null
+                  }
+                },
+                {
+                  "relative_path": "root.txt",
+                  "kind": "file",
+                  "depth": 1,
+                  "logical_bytes": "5",
+                  "allocated_bytes": null,
+                  "identity": {
+                    "kind": "unknown",
+                    "device": null,
+                    "inode": null,
+                    "link_count": null
+                  }
+                }
+              ],
+              "issues": []
+            },
+            {
+              "scope_id": "scope-inner",
+              "relative_root": "scope/nested",
+              "coverage": "complete",
+              "visited_entries": 1,
+              "entries": [
+                {
+                  "relative_path": "shared.txt",
+                  "kind": "file",
+                  "depth": 1,
+                  "logical_bytes": "26",
+                  "allocated_bytes": null,
+                  "identity": {
+                    "kind": "unknown",
+                    "device": null,
+                    "inode": null,
+                    "link_count": null
+                  }
+                }
+              ],
+              "issues": []
+            }
+          ]
+        }
+      }
+    },
+    {
+      "id": "unicode-spaces",
+      "input": {
+        "facts_version": "water.scan-lab.v1",
+        "run_id": "run-synthetic-unicode-spaces",
+        "case_id": "unicode-spaces",
+        "status": "completed",
+        "visited_entries": 2,
+        "recorded_entries": 2,
+        "scopes": [
+          {
+            "scope_id": "scope-1",
+            "relative_root": "scope",
+            "coverage": "complete",
+            "visited_entries": 2,
+            "entries": [
+              {
+                "relative_path": "资料 空格",
+                "kind": "directory",
+                "depth": 1,
+                "logical_bytes": null,
+                "allocated_bytes": null,
+                "identity": {
+                  "kind": "unknown",
+                  "device": null,
+                  "inode": null,
+                  "link_count": null
+                }
+              },
+              {
+                "relative_path": "资料 空格/café-😀.txt",
+                "kind": "file",
+                "depth": 2,
+                "logical_bytes": "36",
+                "allocated_bytes": null,
+                "identity": {
+                  "kind": "unknown",
+                  "device": null,
+                  "inode": null,
+                  "link_count": null
+                }
+              }
+            ],
+            "issues": []
+          }
+        ]
+      },
+      "context": {
+        "scan_id": "assembly-synthetic",
+        "platform": "windows",
+        "scopes": [
+          {
+            "scope_id": "scope-1",
+            "label": "Synthetic scope-1",
+            "origin": "config_discovered"
+          }
+        ]
+      },
+      "expected_bundle": {
+        "bundle_version": "water.scan-report.v1",
+        "report": {
+          "schema_version": "water.scan.v1",
+          "scan_id": "assembly-synthetic",
+          "status": "completed",
+          "scopes": [
+            {
+              "scope_id": "scope-1",
+              "label": "Synthetic scope-1",
+              "origin": "config_discovered",
+              "platform": "windows",
+              "coverage": "complete"
+            }
+          ],
+          "findings": [
+            {
+              "finding_id": "entry-1",
+              "scope_id": "scope-1",
+              "relative_path": "资料 空格",
+              "tool": null,
+              "rule_version": "scan-report-v1",
+              "category": "unknown",
+              "risk": "protected",
+              "recoverability": "unknown",
+              "activity": "unknown",
+              "confidence": "unknown",
+              "evidence": [
+                {
+                  "code": "unknown",
+                  "source": "filesystem",
+                  "summary": "Metadata observation only; classification and ownership are unverified."
+                }
+              ],
+              "protection_reasons": [
+                "unknown_ownership",
+                "incomplete_evidence",
+                "protected_descendant"
+              ],
+              "references": {
+                "state": "unknown",
+                "project_ids": []
+              },
+              "size": {
+                "logical_bytes": null,
+                "allocated_bytes": null,
+                "reclaimable_lower_bytes": null,
+                "reclaimable_upper_bytes": null,
+                "method": "unknown",
+                "confidence": "unknown",
+                "shared": "unknown"
+              }
+            },
+            {
+              "finding_id": "entry-2",
+              "scope_id": "scope-1",
+              "relative_path": "资料 空格/café-😀.txt",
+              "tool": null,
+              "rule_version": "scan-report-v1",
+              "category": "unknown",
+              "risk": "protected",
+              "recoverability": "unknown",
+              "activity": "unknown",
+              "confidence": "unknown",
+              "evidence": [
+                {
+                  "code": "unknown",
+                  "source": "filesystem",
+                  "summary": "Metadata observation only; classification and ownership are unverified."
+                }
+              ],
+              "protection_reasons": [
+                "unknown_ownership",
+                "incomplete_evidence"
+              ],
+              "references": {
+                "state": "unknown",
+                "project_ids": []
+              },
+              "size": {
+                "logical_bytes": "36",
+                "allocated_bytes": null,
+                "reclaimable_lower_bytes": null,
+                "reclaimable_upper_bytes": null,
+                "method": "logical_sum",
+                "confidence": "measured",
+                "shared": "unknown"
+              }
+            }
+          ],
+          "issues": [],
+          "totals": {
+            "logical_bytes": null,
+            "allocated_bytes": null,
+            "method": "unavailable",
+            "coverage_complete": true,
+            "scanned_entries": 2,
+            "skipped_entries": 0
+          }
+        },
+        "source_facts": {
+          "facts_version": "water.scan-lab.v1",
+          "run_id": "run-synthetic-unicode-spaces",
+          "case_id": "unicode-spaces",
+          "status": "completed",
+          "visited_entries": 2,
+          "recorded_entries": 2,
+          "scopes": [
+            {
+              "scope_id": "scope-1",
+              "relative_root": "scope",
+              "coverage": "complete",
+              "visited_entries": 2,
+              "entries": [
+                {
+                  "relative_path": "资料 空格",
+                  "kind": "directory",
+                  "depth": 1,
+                  "logical_bytes": null,
+                  "allocated_bytes": null,
+                  "identity": {
+                    "kind": "unknown",
+                    "device": null,
+                    "inode": null,
+                    "link_count": null
+                  }
+                },
+                {
+                  "relative_path": "资料 空格/café-😀.txt",
+                  "kind": "file",
+                  "depth": 2,
+                  "logical_bytes": "36",
+                  "allocated_bytes": null,
+                  "identity": {
+                    "kind": "unknown",
+                    "device": null,
+                    "inode": null,
+                    "link_count": null
+                  }
+                }
+              ],
+              "issues": []
+            }
+          ]
+        }
+      }
+    },
+    {
+      "id": "hardlink-pair",
+      "input": {
+        "facts_version": "water.scan-lab.v1",
+        "run_id": "run-synthetic-hardlink-pair",
+        "case_id": "hardlink-pair",
+        "status": "completed",
+        "visited_entries": 2,
+        "recorded_entries": 2,
+        "scopes": [
+          {
+            "scope_id": "scope-1",
+            "relative_root": "scope",
+            "coverage": "complete",
+            "visited_entries": 2,
+            "entries": [
+              {
+                "relative_path": "alias.bin",
+                "kind": "file",
+                "depth": 1,
+                "logical_bytes": "8",
+                "allocated_bytes": null,
+                "identity": {
+                  "kind": "unknown",
+                  "device": null,
+                  "inode": null,
+                  "link_count": null
+                }
+              },
+              {
+                "relative_path": "original.bin",
+                "kind": "file",
+                "depth": 1,
+                "logical_bytes": "8",
+                "allocated_bytes": null,
+                "identity": {
+                  "kind": "unknown",
+                  "device": null,
+                  "inode": null,
+                  "link_count": null
+                }
+              }
+            ],
+            "issues": []
+          }
+        ]
+      },
+      "context": {
+        "scan_id": "assembly-synthetic",
+        "platform": "windows",
+        "scopes": [
+          {
+            "scope_id": "scope-1",
+            "label": "Synthetic scope-1",
+            "origin": "config_discovered"
+          }
+        ]
+      },
+      "expected_bundle": {
+        "bundle_version": "water.scan-report.v1",
+        "report": {
+          "schema_version": "water.scan.v1",
+          "scan_id": "assembly-synthetic",
+          "status": "completed",
+          "scopes": [
+            {
+              "scope_id": "scope-1",
+              "label": "Synthetic scope-1",
+              "origin": "config_discovered",
+              "platform": "windows",
+              "coverage": "complete"
+            }
+          ],
+          "findings": [
+            {
+              "finding_id": "entry-1",
+              "scope_id": "scope-1",
+              "relative_path": "alias.bin",
+              "tool": null,
+              "rule_version": "scan-report-v1",
+              "category": "unknown",
+              "risk": "protected",
+              "recoverability": "unknown",
+              "activity": "unknown",
+              "confidence": "unknown",
+              "evidence": [
+                {
+                  "code": "unknown",
+                  "source": "filesystem",
+                  "summary": "Metadata observation only; classification and ownership are unverified."
+                }
+              ],
+              "protection_reasons": [
+                "unknown_ownership",
+                "incomplete_evidence"
+              ],
+              "references": {
+                "state": "unknown",
+                "project_ids": []
+              },
+              "size": {
+                "logical_bytes": "8",
+                "allocated_bytes": null,
+                "reclaimable_lower_bytes": null,
+                "reclaimable_upper_bytes": null,
+                "method": "logical_sum",
+                "confidence": "measured",
+                "shared": "unknown"
+              }
+            },
+            {
+              "finding_id": "entry-2",
+              "scope_id": "scope-1",
+              "relative_path": "original.bin",
+              "tool": null,
+              "rule_version": "scan-report-v1",
+              "category": "unknown",
+              "risk": "protected",
+              "recoverability": "unknown",
+              "activity": "unknown",
+              "confidence": "unknown",
+              "evidence": [
+                {
+                  "code": "unknown",
+                  "source": "filesystem",
+                  "summary": "Metadata observation only; classification and ownership are unverified."
+                }
+              ],
+              "protection_reasons": [
+                "unknown_ownership",
+                "incomplete_evidence"
+              ],
+              "references": {
+                "state": "unknown",
+                "project_ids": []
+              },
+              "size": {
+                "logical_bytes": "8",
+                "allocated_bytes": null,
+                "reclaimable_lower_bytes": null,
+                "reclaimable_upper_bytes": null,
+                "method": "logical_sum",
+                "confidence": "measured",
+                "shared": "unknown"
+              }
+            }
+          ],
+          "issues": [],
+          "totals": {
+            "logical_bytes": null,
+            "allocated_bytes": null,
+            "method": "unavailable",
+            "coverage_complete": true,
+            "scanned_entries": 2,
+            "skipped_entries": 0
+          }
+        },
+        "source_facts": {
+          "facts_version": "water.scan-lab.v1",
+          "run_id": "run-synthetic-hardlink-pair",
+          "case_id": "hardlink-pair",
+          "status": "completed",
+          "visited_entries": 2,
+          "recorded_entries": 2,
+          "scopes": [
+            {
+              "scope_id": "scope-1",
+              "relative_root": "scope",
+              "coverage": "complete",
+              "visited_entries": 2,
+              "entries": [
+                {
+                  "relative_path": "alias.bin",
+                  "kind": "file",
+                  "depth": 1,
+                  "logical_bytes": "8",
+                  "allocated_bytes": null,
+                  "identity": {
+                    "kind": "unknown",
+                    "device": null,
+                    "inode": null,
+                    "link_count": null
+                  }
+                },
+                {
+                  "relative_path": "original.bin",
+                  "kind": "file",
+                  "depth": 1,
+                  "logical_bytes": "8",
+                  "allocated_bytes": null,
+                  "identity": {
+                    "kind": "unknown",
+                    "device": null,
+                    "inode": null,
+                    "link_count": null
+                  }
+                }
+              ],
+              "issues": []
+            }
+          ]
+        }
+      }
+    },
+    {
+      "id": "directory-links",
+      "input": {
+        "facts_version": "water.scan-lab.v1",
+        "run_id": "run-synthetic-directory-links",
+        "case_id": "directory-links",
+        "status": "completed",
+        "visited_entries": 3,
+        "recorded_entries": 3,
+        "scopes": [
+          {
+            "scope_id": "scope-1",
+            "relative_root": "scope",
+            "coverage": "complete",
+            "visited_entries": 3,
+            "entries": [
+              {
+                "relative_path": "inside.txt",
+                "kind": "file",
+                "depth": 1,
+                "logical_bytes": "7",
+                "allocated_bytes": null,
+                "identity": {
+                  "kind": "unknown",
+                  "device": null,
+                  "inode": null,
+                  "link_count": null
+                }
+              },
+              {
+                "relative_path": "junction-outside",
+                "kind": "link",
+                "depth": 1,
+                "logical_bytes": null,
+                "allocated_bytes": null,
+                "identity": {
+                  "kind": "unknown",
+                  "device": null,
+                  "inode": null,
+                  "link_count": null
+                }
+              },
+              {
+                "relative_path": "symbolic-outside",
+                "kind": "link",
+                "depth": 1,
+                "logical_bytes": null,
+                "allocated_bytes": null,
+                "identity": {
+                  "kind": "unknown",
+                  "device": null,
+                  "inode": null,
+                  "link_count": null
+                }
+              }
+            ],
+            "issues": []
+          }
+        ]
+      },
+      "context": {
+        "scan_id": "assembly-synthetic",
+        "platform": "windows",
+        "scopes": [
+          {
+            "scope_id": "scope-1",
+            "label": "Synthetic scope-1",
+            "origin": "config_discovered"
+          }
+        ]
+      },
+      "expected_bundle": {
+        "bundle_version": "water.scan-report.v1",
+        "report": {
+          "schema_version": "water.scan.v1",
+          "scan_id": "assembly-synthetic",
+          "status": "completed",
+          "scopes": [
+            {
+              "scope_id": "scope-1",
+              "label": "Synthetic scope-1",
+              "origin": "config_discovered",
+              "platform": "windows",
+              "coverage": "complete"
+            }
+          ],
+          "findings": [
+            {
+              "finding_id": "entry-1",
+              "scope_id": "scope-1",
+              "relative_path": "inside.txt",
+              "tool": null,
+              "rule_version": "scan-report-v1",
+              "category": "unknown",
+              "risk": "protected",
+              "recoverability": "unknown",
+              "activity": "unknown",
+              "confidence": "unknown",
+              "evidence": [
+                {
+                  "code": "unknown",
+                  "source": "filesystem",
+                  "summary": "Metadata observation only; classification and ownership are unverified."
+                }
+              ],
+              "protection_reasons": [
+                "unknown_ownership",
+                "incomplete_evidence"
+              ],
+              "references": {
+                "state": "unknown",
+                "project_ids": []
+              },
+              "size": {
+                "logical_bytes": "7",
+                "allocated_bytes": null,
+                "reclaimable_lower_bytes": null,
+                "reclaimable_upper_bytes": null,
+                "method": "logical_sum",
+                "confidence": "measured",
+                "shared": "unknown"
+              }
+            },
+            {
+              "finding_id": "entry-2",
+              "scope_id": "scope-1",
+              "relative_path": "junction-outside",
+              "tool": null,
+              "rule_version": "scan-report-v1",
+              "category": "unknown",
+              "risk": "protected",
+              "recoverability": "unknown",
+              "activity": "unknown",
+              "confidence": "unknown",
+              "evidence": [
+                {
+                  "code": "unknown",
+                  "source": "filesystem",
+                  "summary": "Metadata observation only; classification and ownership are unverified."
+                }
+              ],
+              "protection_reasons": [
+                "unknown_ownership",
+                "incomplete_evidence"
+              ],
+              "references": {
+                "state": "unknown",
+                "project_ids": []
+              },
+              "size": {
+                "logical_bytes": null,
+                "allocated_bytes": null,
+                "reclaimable_lower_bytes": null,
+                "reclaimable_upper_bytes": null,
+                "method": "unknown",
+                "confidence": "unknown",
+                "shared": "unknown"
+              }
+            },
+            {
+              "finding_id": "entry-3",
+              "scope_id": "scope-1",
+              "relative_path": "symbolic-outside",
+              "tool": null,
+              "rule_version": "scan-report-v1",
+              "category": "unknown",
+              "risk": "protected",
+              "recoverability": "unknown",
+              "activity": "unknown",
+              "confidence": "unknown",
+              "evidence": [
+                {
+                  "code": "unknown",
+                  "source": "filesystem",
+                  "summary": "Metadata observation only; classification and ownership are unverified."
+                }
+              ],
+              "protection_reasons": [
+                "unknown_ownership",
+                "incomplete_evidence"
+              ],
+              "references": {
+                "state": "unknown",
+                "project_ids": []
+              },
+              "size": {
+                "logical_bytes": null,
+                "allocated_bytes": null,
+                "reclaimable_lower_bytes": null,
+                "reclaimable_upper_bytes": null,
+                "method": "unknown",
+                "confidence": "unknown",
+                "shared": "unknown"
+              }
+            }
+          ],
+          "issues": [],
+          "totals": {
+            "logical_bytes": null,
+            "allocated_bytes": null,
+            "method": "unavailable",
+            "coverage_complete": true,
+            "scanned_entries": 3,
+            "skipped_entries": 0
+          }
+        },
+        "source_facts": {
+          "facts_version": "water.scan-lab.v1",
+          "run_id": "run-synthetic-directory-links",
+          "case_id": "directory-links",
+          "status": "completed",
+          "visited_entries": 3,
+          "recorded_entries": 3,
+          "scopes": [
+            {
+              "scope_id": "scope-1",
+              "relative_root": "scope",
+              "coverage": "complete",
+              "visited_entries": 3,
+              "entries": [
+                {
+                  "relative_path": "inside.txt",
+                  "kind": "file",
+                  "depth": 1,
+                  "logical_bytes": "7",
+                  "allocated_bytes": null,
+                  "identity": {
+                    "kind": "unknown",
+                    "device": null,
+                    "inode": null,
+                    "link_count": null
+                  }
+                },
+                {
+                  "relative_path": "junction-outside",
+                  "kind": "link",
+                  "depth": 1,
+                  "logical_bytes": null,
+                  "allocated_bytes": null,
+                  "identity": {
+                    "kind": "unknown",
+                    "device": null,
+                    "inode": null,
+                    "link_count": null
+                  }
+                },
+                {
+                  "relative_path": "symbolic-outside",
+                  "kind": "link",
+                  "depth": 1,
+                  "logical_bytes": null,
+                  "allocated_bytes": null,
+                  "identity": {
+                    "kind": "unknown",
+                    "device": null,
+                    "inode": null,
+                    "link_count": null
+                  }
+                }
+              ],
+              "issues": []
+            }
+          ]
+        }
+      }
+    },
+    {
+      "id": "depth-budget",
+      "input": {
+        "facts_version": "water.scan-lab.v1",
+        "run_id": "run-synthetic-depth-budget",
+        "case_id": "depth-budget",
+        "status": "partial",
+        "visited_entries": 3,
+        "recorded_entries": 3,
+        "scopes": [
+          {
+            "scope_id": "scope-1",
+            "relative_root": "scope",
+            "coverage": "partial",
+            "visited_entries": 3,
+            "entries": [
+              {
+                "relative_path": "l1",
+                "kind": "directory",
+                "depth": 1,
+                "logical_bytes": null,
+                "allocated_bytes": null,
+                "identity": {
+                  "kind": "unknown",
+                  "device": null,
+                  "inode": null,
+                  "link_count": null
+                }
+              },
+              {
+                "relative_path": "l1/l2",
+                "kind": "directory",
+                "depth": 2,
+                "logical_bytes": null,
+                "allocated_bytes": null,
+                "identity": {
+                  "kind": "unknown",
+                  "device": null,
+                  "inode": null,
+                  "link_count": null
+                }
+              },
+              {
+                "relative_path": "root.txt",
+                "kind": "file",
+                "depth": 1,
+                "logical_bytes": "8",
+                "allocated_bytes": null,
+                "identity": {
+                  "kind": "unknown",
+                  "device": null,
+                  "inode": null,
+                  "link_count": null
+                }
+              }
+            ],
+            "issues": [
+              {
+                "code": "depth_limit",
+                "relative_path": "l1/l2",
+                "origin": "policy",
+                "operation": "budget"
+              }
+            ]
+          }
+        ]
+      },
+      "context": {
+        "scan_id": "assembly-synthetic",
+        "platform": "windows",
+        "scopes": [
+          {
+            "scope_id": "scope-1",
+            "label": "Synthetic scope-1",
+            "origin": "config_discovered"
+          }
+        ]
+      },
+      "expected_bundle": {
+        "bundle_version": "water.scan-report.v1",
+        "report": {
+          "schema_version": "water.scan.v1",
+          "scan_id": "assembly-synthetic",
+          "status": "partial",
+          "scopes": [
+            {
+              "scope_id": "scope-1",
+              "label": "Synthetic scope-1",
+              "origin": "config_discovered",
+              "platform": "windows",
+              "coverage": "partial"
+            }
+          ],
+          "findings": [
+            {
+              "finding_id": "entry-1",
+              "scope_id": "scope-1",
+              "relative_path": "l1",
+              "tool": null,
+              "rule_version": "scan-report-v1",
+              "category": "unknown",
+              "risk": "protected",
+              "recoverability": "unknown",
+              "activity": "unknown",
+              "confidence": "unknown",
+              "evidence": [
+                {
+                  "code": "unknown",
+                  "source": "filesystem",
+                  "summary": "Metadata observation only; classification and ownership are unverified."
+                }
+              ],
+              "protection_reasons": [
+                "unknown_ownership",
+                "incomplete_evidence",
+                "protected_descendant"
+              ],
+              "references": {
+                "state": "unknown",
+                "project_ids": []
+              },
+              "size": {
+                "logical_bytes": null,
+                "allocated_bytes": null,
+                "reclaimable_lower_bytes": null,
+                "reclaimable_upper_bytes": null,
+                "method": "unknown",
+                "confidence": "unknown",
+                "shared": "unknown"
+              }
+            },
+            {
+              "finding_id": "entry-2",
+              "scope_id": "scope-1",
+              "relative_path": "l1/l2",
+              "tool": null,
+              "rule_version": "scan-report-v1",
+              "category": "unknown",
+              "risk": "protected",
+              "recoverability": "unknown",
+              "activity": "unknown",
+              "confidence": "unknown",
+              "evidence": [
+                {
+                  "code": "unknown",
+                  "source": "filesystem",
+                  "summary": "Metadata observation only; classification and ownership are unverified."
+                }
+              ],
+              "protection_reasons": [
+                "unknown_ownership",
+                "incomplete_evidence"
+              ],
+              "references": {
+                "state": "unknown",
+                "project_ids": []
+              },
+              "size": {
+                "logical_bytes": null,
+                "allocated_bytes": null,
+                "reclaimable_lower_bytes": null,
+                "reclaimable_upper_bytes": null,
+                "method": "unknown",
+                "confidence": "unknown",
+                "shared": "unknown"
+              }
+            },
+            {
+              "finding_id": "entry-3",
+              "scope_id": "scope-1",
+              "relative_path": "root.txt",
+              "tool": null,
+              "rule_version": "scan-report-v1",
+              "category": "unknown",
+              "risk": "protected",
+              "recoverability": "unknown",
+              "activity": "unknown",
+              "confidence": "unknown",
+              "evidence": [
+                {
+                  "code": "unknown",
+                  "source": "filesystem",
+                  "summary": "Metadata observation only; classification and ownership are unverified."
+                }
+              ],
+              "protection_reasons": [
+                "unknown_ownership",
+                "incomplete_evidence"
+              ],
+              "references": {
+                "state": "unknown",
+                "project_ids": []
+              },
+              "size": {
+                "logical_bytes": "8",
+                "allocated_bytes": null,
+                "reclaimable_lower_bytes": null,
+                "reclaimable_upper_bytes": null,
+                "method": "logical_sum",
+                "confidence": "measured",
+                "shared": "unknown"
+              }
+            }
+          ],
+          "issues": [
+            {
+              "code": "depth_limit",
+              "scope_id": "scope-1",
+              "relative_path": "l1/l2",
+              "message": "Scan lab issue; origin=policy; operation=budget."
+            }
+          ],
+          "totals": {
+            "logical_bytes": null,
+            "allocated_bytes": null,
+            "method": "unavailable",
+            "coverage_complete": false,
+            "scanned_entries": 3,
+            "skipped_entries": 0
+          }
+        },
+        "source_facts": {
+          "facts_version": "water.scan-lab.v1",
+          "run_id": "run-synthetic-depth-budget",
+          "case_id": "depth-budget",
+          "status": "partial",
+          "visited_entries": 3,
+          "recorded_entries": 3,
+          "scopes": [
+            {
+              "scope_id": "scope-1",
+              "relative_root": "scope",
+              "coverage": "partial",
+              "visited_entries": 3,
+              "entries": [
+                {
+                  "relative_path": "l1",
+                  "kind": "directory",
+                  "depth": 1,
+                  "logical_bytes": null,
+                  "allocated_bytes": null,
+                  "identity": {
+                    "kind": "unknown",
+                    "device": null,
+                    "inode": null,
+                    "link_count": null
+                  }
+                },
+                {
+                  "relative_path": "l1/l2",
+                  "kind": "directory",
+                  "depth": 2,
+                  "logical_bytes": null,
+                  "allocated_bytes": null,
+                  "identity": {
+                    "kind": "unknown",
+                    "device": null,
+                    "inode": null,
+                    "link_count": null
+                  }
+                },
+                {
+                  "relative_path": "root.txt",
+                  "kind": "file",
+                  "depth": 1,
+                  "logical_bytes": "8",
+                  "allocated_bytes": null,
+                  "identity": {
+                    "kind": "unknown",
+                    "device": null,
+                    "inode": null,
+                    "link_count": null
+                  }
+                }
+              ],
+              "issues": [
+                {
+                  "code": "depth_limit",
+                  "relative_path": "l1/l2",
+                  "origin": "policy",
+                  "operation": "budget"
+                }
+              ]
+            }
+          ]
+        }
+      }
+    },
+    {
+      "id": "entry-budget",
+      "input": {
+        "facts_version": "water.scan-lab.v1",
+        "run_id": "run-synthetic-entry-budget",
+        "case_id": "entry-budget",
+        "status": "partial",
+        "visited_entries": 2,
+        "recorded_entries": 2,
+        "scopes": [
+          {
+            "scope_id": "scope-1",
+            "relative_root": "scope",
+            "coverage": "partial",
+            "visited_entries": 2,
+            "entries": [
+              {
+                "relative_path": "a.txt",
+                "kind": "file",
+                "depth": 1,
+                "logical_bytes": "2",
+                "allocated_bytes": null,
+                "identity": {
+                  "kind": "unknown",
+                  "device": null,
+                  "inode": null,
+                  "link_count": null
+                }
+              },
+              {
+                "relative_path": "b.txt",
+                "kind": "file",
+                "depth": 1,
+                "logical_bytes": "2",
+                "allocated_bytes": null,
+                "identity": {
+                  "kind": "unknown",
+                  "device": null,
+                  "inode": null,
+                  "link_count": null
+                }
+              }
+            ],
+            "issues": [
+              {
+                "code": "entry_limit",
+                "relative_path": "",
+                "origin": "policy",
+                "operation": "budget"
+              }
+            ]
+          }
+        ]
+      },
+      "context": {
+        "scan_id": "assembly-synthetic",
+        "platform": "windows",
+        "scopes": [
+          {
+            "scope_id": "scope-1",
+            "label": "Synthetic scope-1",
+            "origin": "config_discovered"
+          }
+        ]
+      },
+      "expected_bundle": {
+        "bundle_version": "water.scan-report.v1",
+        "report": {
+          "schema_version": "water.scan.v1",
+          "scan_id": "assembly-synthetic",
+          "status": "partial",
+          "scopes": [
+            {
+              "scope_id": "scope-1",
+              "label": "Synthetic scope-1",
+              "origin": "config_discovered",
+              "platform": "windows",
+              "coverage": "partial"
+            }
+          ],
+          "findings": [
+            {
+              "finding_id": "entry-1",
+              "scope_id": "scope-1",
+              "relative_path": "a.txt",
+              "tool": null,
+              "rule_version": "scan-report-v1",
+              "category": "unknown",
+              "risk": "protected",
+              "recoverability": "unknown",
+              "activity": "unknown",
+              "confidence": "unknown",
+              "evidence": [
+                {
+                  "code": "unknown",
+                  "source": "filesystem",
+                  "summary": "Metadata observation only; classification and ownership are unverified."
+                }
+              ],
+              "protection_reasons": [
+                "unknown_ownership",
+                "incomplete_evidence"
+              ],
+              "references": {
+                "state": "unknown",
+                "project_ids": []
+              },
+              "size": {
+                "logical_bytes": "2",
+                "allocated_bytes": null,
+                "reclaimable_lower_bytes": null,
+                "reclaimable_upper_bytes": null,
+                "method": "logical_sum",
+                "confidence": "measured",
+                "shared": "unknown"
+              }
+            },
+            {
+              "finding_id": "entry-2",
+              "scope_id": "scope-1",
+              "relative_path": "b.txt",
+              "tool": null,
+              "rule_version": "scan-report-v1",
+              "category": "unknown",
+              "risk": "protected",
+              "recoverability": "unknown",
+              "activity": "unknown",
+              "confidence": "unknown",
+              "evidence": [
+                {
+                  "code": "unknown",
+                  "source": "filesystem",
+                  "summary": "Metadata observation only; classification and ownership are unverified."
+                }
+              ],
+              "protection_reasons": [
+                "unknown_ownership",
+                "incomplete_evidence"
+              ],
+              "references": {
+                "state": "unknown",
+                "project_ids": []
+              },
+              "size": {
+                "logical_bytes": "2",
+                "allocated_bytes": null,
+                "reclaimable_lower_bytes": null,
+                "reclaimable_upper_bytes": null,
+                "method": "logical_sum",
+                "confidence": "measured",
+                "shared": "unknown"
+              }
+            }
+          ],
+          "issues": [
+            {
+              "code": "entry_limit",
+              "scope_id": "scope-1",
+              "relative_path": "",
+              "message": "Scan lab issue; origin=policy; operation=budget."
+            }
+          ],
+          "totals": {
+            "logical_bytes": null,
+            "allocated_bytes": null,
+            "method": "unavailable",
+            "coverage_complete": false,
+            "scanned_entries": 2,
+            "skipped_entries": 0
+          }
+        },
+        "source_facts": {
+          "facts_version": "water.scan-lab.v1",
+          "run_id": "run-synthetic-entry-budget",
+          "case_id": "entry-budget",
+          "status": "partial",
+          "visited_entries": 2,
+          "recorded_entries": 2,
+          "scopes": [
+            {
+              "scope_id": "scope-1",
+              "relative_root": "scope",
+              "coverage": "partial",
+              "visited_entries": 2,
+              "entries": [
+                {
+                  "relative_path": "a.txt",
+                  "kind": "file",
+                  "depth": 1,
+                  "logical_bytes": "2",
+                  "allocated_bytes": null,
+                  "identity": {
+                    "kind": "unknown",
+                    "device": null,
+                    "inode": null,
+                    "link_count": null
+                  }
+                },
+                {
+                  "relative_path": "b.txt",
+                  "kind": "file",
+                  "depth": 1,
+                  "logical_bytes": "2",
+                  "allocated_bytes": null,
+                  "identity": {
+                    "kind": "unknown",
+                    "device": null,
+                    "inode": null,
+                    "link_count": null
+                  }
+                }
+              ],
+              "issues": [
+                {
+                  "code": "entry_limit",
+                  "relative_path": "",
+                  "origin": "policy",
+                  "operation": "budget"
+                }
+              ]
+            }
+          ]
+        }
+      }
+    },
+    {
+      "id": "permission-plan",
+      "input": {
+        "facts_version": "water.scan-lab.v1",
+        "run_id": "run-synthetic-permission-plan",
+        "case_id": "permission-plan",
+        "status": "completed",
+        "visited_entries": 3,
+        "recorded_entries": 3,
+        "scopes": [
+          {
+            "scope_id": "scope-1",
+            "relative_root": "scope",
+            "coverage": "complete",
+            "visited_entries": 3,
+            "entries": [
+              {
+                "relative_path": "a.txt",
+                "kind": "file",
+                "depth": 1,
+                "logical_bytes": "9",
+                "allocated_bytes": null,
+                "identity": {
+                  "kind": "unknown",
+                  "device": null,
+                  "inode": null,
+                  "link_count": null
+                }
+              },
+              {
+                "relative_path": "blocked",
+                "kind": "directory",
+                "depth": 1,
+                "logical_bytes": null,
+                "allocated_bytes": null,
+                "identity": {
+                  "kind": "unknown",
+                  "device": null,
+                  "inode": null,
+                  "link_count": null
+                }
+              },
+              {
+                "relative_path": "blocked/synthetic.txt",
+                "kind": "file",
+                "depth": 2,
+                "logical_bytes": "27",
+                "allocated_bytes": null,
+                "identity": {
+                  "kind": "unknown",
+                  "device": null,
+                  "inode": null,
+                  "link_count": null
+                }
+              }
+            ],
+            "issues": []
+          }
+        ]
+      },
+      "context": {
+        "scan_id": "assembly-synthetic",
+        "platform": "windows",
+        "scopes": [
+          {
+            "scope_id": "scope-1",
+            "label": "Synthetic scope-1",
+            "origin": "config_discovered"
+          }
+        ]
+      },
+      "expected_bundle": {
+        "bundle_version": "water.scan-report.v1",
+        "report": {
+          "schema_version": "water.scan.v1",
+          "scan_id": "assembly-synthetic",
+          "status": "completed",
+          "scopes": [
+            {
+              "scope_id": "scope-1",
+              "label": "Synthetic scope-1",
+              "origin": "config_discovered",
+              "platform": "windows",
+              "coverage": "complete"
+            }
+          ],
+          "findings": [
+            {
+              "finding_id": "entry-1",
+              "scope_id": "scope-1",
+              "relative_path": "a.txt",
+              "tool": null,
+              "rule_version": "scan-report-v1",
+              "category": "unknown",
+              "risk": "protected",
+              "recoverability": "unknown",
+              "activity": "unknown",
+              "confidence": "unknown",
+              "evidence": [
+                {
+                  "code": "unknown",
+                  "source": "filesystem",
+                  "summary": "Metadata observation only; classification and ownership are unverified."
+                }
+              ],
+              "protection_reasons": [
+                "unknown_ownership",
+                "incomplete_evidence"
+              ],
+              "references": {
+                "state": "unknown",
+                "project_ids": []
+              },
+              "size": {
+                "logical_bytes": "9",
+                "allocated_bytes": null,
+                "reclaimable_lower_bytes": null,
+                "reclaimable_upper_bytes": null,
+                "method": "logical_sum",
+                "confidence": "measured",
+                "shared": "unknown"
+              }
+            },
+            {
+              "finding_id": "entry-2",
+              "scope_id": "scope-1",
+              "relative_path": "blocked",
+              "tool": null,
+              "rule_version": "scan-report-v1",
+              "category": "unknown",
+              "risk": "protected",
+              "recoverability": "unknown",
+              "activity": "unknown",
+              "confidence": "unknown",
+              "evidence": [
+                {
+                  "code": "unknown",
+                  "source": "filesystem",
+                  "summary": "Metadata observation only; classification and ownership are unverified."
+                }
+              ],
+              "protection_reasons": [
+                "unknown_ownership",
+                "incomplete_evidence",
+                "protected_descendant"
+              ],
+              "references": {
+                "state": "unknown",
+                "project_ids": []
+              },
+              "size": {
+                "logical_bytes": null,
+                "allocated_bytes": null,
+                "reclaimable_lower_bytes": null,
+                "reclaimable_upper_bytes": null,
+                "method": "unknown",
+                "confidence": "unknown",
+                "shared": "unknown"
+              }
+            },
+            {
+              "finding_id": "entry-3",
+              "scope_id": "scope-1",
+              "relative_path": "blocked/synthetic.txt",
+              "tool": null,
+              "rule_version": "scan-report-v1",
+              "category": "unknown",
+              "risk": "protected",
+              "recoverability": "unknown",
+              "activity": "unknown",
+              "confidence": "unknown",
+              "evidence": [
+                {
+                  "code": "unknown",
+                  "source": "filesystem",
+                  "summary": "Metadata observation only; classification and ownership are unverified."
+                }
+              ],
+              "protection_reasons": [
+                "unknown_ownership",
+                "incomplete_evidence"
+              ],
+              "references": {
+                "state": "unknown",
+                "project_ids": []
+              },
+              "size": {
+                "logical_bytes": "27",
+                "allocated_bytes": null,
+                "reclaimable_lower_bytes": null,
+                "reclaimable_upper_bytes": null,
+                "method": "logical_sum",
+                "confidence": "measured",
+                "shared": "unknown"
+              }
+            }
+          ],
+          "issues": [],
+          "totals": {
+            "logical_bytes": null,
+            "allocated_bytes": null,
+            "method": "unavailable",
+            "coverage_complete": true,
+            "scanned_entries": 3,
+            "skipped_entries": 0
+          }
+        },
+        "source_facts": {
+          "facts_version": "water.scan-lab.v1",
+          "run_id": "run-synthetic-permission-plan",
+          "case_id": "permission-plan",
+          "status": "completed",
+          "visited_entries": 3,
+          "recorded_entries": 3,
+          "scopes": [
+            {
+              "scope_id": "scope-1",
+              "relative_root": "scope",
+              "coverage": "complete",
+              "visited_entries": 3,
+              "entries": [
+                {
+                  "relative_path": "a.txt",
+                  "kind": "file",
+                  "depth": 1,
+                  "logical_bytes": "9",
+                  "allocated_bytes": null,
+                  "identity": {
+                    "kind": "unknown",
+                    "device": null,
+                    "inode": null,
+                    "link_count": null
+                  }
+                },
+                {
+                  "relative_path": "blocked",
+                  "kind": "directory",
+                  "depth": 1,
+                  "logical_bytes": null,
+                  "allocated_bytes": null,
+                  "identity": {
+                    "kind": "unknown",
+                    "device": null,
+                    "inode": null,
+                    "link_count": null
+                  }
+                },
+                {
+                  "relative_path": "blocked/synthetic.txt",
+                  "kind": "file",
+                  "depth": 2,
+                  "logical_bytes": "27",
+                  "allocated_bytes": null,
+                  "identity": {
+                    "kind": "unknown",
+                    "device": null,
+                    "inode": null,
+                    "link_count": null
+                  }
+                }
+              ],
+              "issues": []
+            }
+          ]
+        }
+      }
+    },
+    {
+      "id": "cancel-plan",
+      "input": {
+        "facts_version": "water.scan-lab.v1",
+        "run_id": "run-synthetic-cancel-plan",
+        "case_id": "cancel-plan",
+        "status": "completed",
+        "visited_entries": 3,
+        "recorded_entries": 3,
+        "scopes": [
+          {
+            "scope_id": "scope-1",
+            "relative_root": "scope",
+            "coverage": "complete",
+            "visited_entries": 3,
+            "entries": [
+              {
+                "relative_path": "a.txt",
+                "kind": "file",
+                "depth": 1,
+                "logical_bytes": "6",
+                "allocated_bytes": null,
+                "identity": {
+                  "kind": "unknown",
+                  "device": null,
+                  "inode": null,
+                  "link_count": null
+                }
+              },
+              {
+                "relative_path": "b.txt",
+                "kind": "file",
+                "depth": 1,
+                "logical_bytes": "7",
+                "allocated_bytes": null,
+                "identity": {
+                  "kind": "unknown",
+                  "device": null,
+                  "inode": null,
+                  "link_count": null
+                }
+              },
+              {
+                "relative_path": "c.txt",
+                "kind": "file",
+                "depth": 1,
+                "logical_bytes": "6",
+                "allocated_bytes": null,
+                "identity": {
+                  "kind": "unknown",
+                  "device": null,
+                  "inode": null,
+                  "link_count": null
+                }
+              }
+            ],
+            "issues": []
+          }
+        ]
+      },
+      "context": {
+        "scan_id": "assembly-synthetic",
+        "platform": "windows",
+        "scopes": [
+          {
+            "scope_id": "scope-1",
+            "label": "Synthetic scope-1",
+            "origin": "config_discovered"
+          }
+        ]
+      },
+      "expected_bundle": {
+        "bundle_version": "water.scan-report.v1",
+        "report": {
+          "schema_version": "water.scan.v1",
+          "scan_id": "assembly-synthetic",
+          "status": "completed",
+          "scopes": [
+            {
+              "scope_id": "scope-1",
+              "label": "Synthetic scope-1",
+              "origin": "config_discovered",
+              "platform": "windows",
+              "coverage": "complete"
+            }
+          ],
+          "findings": [
+            {
+              "finding_id": "entry-1",
+              "scope_id": "scope-1",
+              "relative_path": "a.txt",
+              "tool": null,
+              "rule_version": "scan-report-v1",
+              "category": "unknown",
+              "risk": "protected",
+              "recoverability": "unknown",
+              "activity": "unknown",
+              "confidence": "unknown",
+              "evidence": [
+                {
+                  "code": "unknown",
+                  "source": "filesystem",
+                  "summary": "Metadata observation only; classification and ownership are unverified."
+                }
+              ],
+              "protection_reasons": [
+                "unknown_ownership",
+                "incomplete_evidence"
+              ],
+              "references": {
+                "state": "unknown",
+                "project_ids": []
+              },
+              "size": {
+                "logical_bytes": "6",
+                "allocated_bytes": null,
+                "reclaimable_lower_bytes": null,
+                "reclaimable_upper_bytes": null,
+                "method": "logical_sum",
+                "confidence": "measured",
+                "shared": "unknown"
+              }
+            },
+            {
+              "finding_id": "entry-2",
+              "scope_id": "scope-1",
+              "relative_path": "b.txt",
+              "tool": null,
+              "rule_version": "scan-report-v1",
+              "category": "unknown",
+              "risk": "protected",
+              "recoverability": "unknown",
+              "activity": "unknown",
+              "confidence": "unknown",
+              "evidence": [
+                {
+                  "code": "unknown",
+                  "source": "filesystem",
+                  "summary": "Metadata observation only; classification and ownership are unverified."
+                }
+              ],
+              "protection_reasons": [
+                "unknown_ownership",
+                "incomplete_evidence"
+              ],
+              "references": {
+                "state": "unknown",
+                "project_ids": []
+              },
+              "size": {
+                "logical_bytes": "7",
+                "allocated_bytes": null,
+                "reclaimable_lower_bytes": null,
+                "reclaimable_upper_bytes": null,
+                "method": "logical_sum",
+                "confidence": "measured",
+                "shared": "unknown"
+              }
+            },
+            {
+              "finding_id": "entry-3",
+              "scope_id": "scope-1",
+              "relative_path": "c.txt",
+              "tool": null,
+              "rule_version": "scan-report-v1",
+              "category": "unknown",
+              "risk": "protected",
+              "recoverability": "unknown",
+              "activity": "unknown",
+              "confidence": "unknown",
+              "evidence": [
+                {
+                  "code": "unknown",
+                  "source": "filesystem",
+                  "summary": "Metadata observation only; classification and ownership are unverified."
+                }
+              ],
+              "protection_reasons": [
+                "unknown_ownership",
+                "incomplete_evidence"
+              ],
+              "references": {
+                "state": "unknown",
+                "project_ids": []
+              },
+              "size": {
+                "logical_bytes": "6",
+                "allocated_bytes": null,
+                "reclaimable_lower_bytes": null,
+                "reclaimable_upper_bytes": null,
+                "method": "logical_sum",
+                "confidence": "measured",
+                "shared": "unknown"
+              }
+            }
+          ],
+          "issues": [],
+          "totals": {
+            "logical_bytes": null,
+            "allocated_bytes": null,
+            "method": "unavailable",
+            "coverage_complete": true,
+            "scanned_entries": 3,
+            "skipped_entries": 0
+          }
+        },
+        "source_facts": {
+          "facts_version": "water.scan-lab.v1",
+          "run_id": "run-synthetic-cancel-plan",
+          "case_id": "cancel-plan",
+          "status": "completed",
+          "visited_entries": 3,
+          "recorded_entries": 3,
+          "scopes": [
+            {
+              "scope_id": "scope-1",
+              "relative_root": "scope",
+              "coverage": "complete",
+              "visited_entries": 3,
+              "entries": [
+                {
+                  "relative_path": "a.txt",
+                  "kind": "file",
+                  "depth": 1,
+                  "logical_bytes": "6",
+                  "allocated_bytes": null,
+                  "identity": {
+                    "kind": "unknown",
+                    "device": null,
+                    "inode": null,
+                    "link_count": null
+                  }
+                },
+                {
+                  "relative_path": "b.txt",
+                  "kind": "file",
+                  "depth": 1,
+                  "logical_bytes": "7",
+                  "allocated_bytes": null,
+                  "identity": {
+                    "kind": "unknown",
+                    "device": null,
+                    "inode": null,
+                    "link_count": null
+                  }
+                },
+                {
+                  "relative_path": "c.txt",
+                  "kind": "file",
+                  "depth": 1,
+                  "logical_bytes": "6",
+                  "allocated_bytes": null,
+                  "identity": {
+                    "kind": "unknown",
+                    "device": null,
+                    "inode": null,
+                    "link_count": null
+                  }
+                }
+              ],
+              "issues": []
+            }
+          ]
+        }
+      }
+    },
+    {
+      "id": "fault-and-cancel",
+      "input": {
+        "facts_version": "water.scan-lab.v1",
+        "run_id": "run-synthetic-fault",
+        "case_id": "synthetic-fault",
+        "status": "cancelled",
+        "visited_entries": 3,
+        "recorded_entries": 2,
+        "scopes": [
+          {
+            "scope_id": "scope-1",
+            "relative_root": "scope",
+            "coverage": "cancelled",
+            "visited_entries": 3,
+            "entries": [
+              {
+                "relative_path": "a.txt",
+                "kind": "file",
+                "depth": 1,
+                "logical_bytes": "2",
+                "allocated_bytes": null,
+                "identity": {
+                  "kind": "unknown",
+                  "device": null,
+                  "inode": null,
+                  "link_count": null
+                }
+              },
+              {
+                "relative_path": "b.txt",
+                "kind": "file",
+                "depth": 1,
+                "logical_bytes": "2",
+                "allocated_bytes": null,
+                "identity": {
+                  "kind": "unknown",
+                  "device": null,
+                  "inode": null,
+                  "link_count": null
+                }
+              }
+            ],
+            "issues": [
+              {
+                "code": "permission_denied",
+                "relative_path": "a.txt",
+                "origin": "injected",
+                "operation": "inspect"
+              },
+              {
+                "code": "cancelled",
+                "relative_path": "",
+                "origin": "control",
+                "operation": "cancel"
+              }
+            ]
+          }
+        ]
+      },
+      "context": {
+        "scan_id": "assembly-synthetic",
+        "platform": "windows",
+        "scopes": [
+          {
+            "scope_id": "scope-1",
+            "label": "Synthetic scope-1",
+            "origin": "config_discovered"
+          }
+        ]
+      },
+      "expected_bundle": {
+        "bundle_version": "water.scan-report.v1",
+        "report": {
+          "schema_version": "water.scan.v1",
+          "scan_id": "assembly-synthetic",
+          "status": "cancelled",
+          "scopes": [
+            {
+              "scope_id": "scope-1",
+              "label": "Synthetic scope-1",
+              "origin": "config_discovered",
+              "platform": "windows",
+              "coverage": "cancelled"
+            }
+          ],
+          "findings": [
+            {
+              "finding_id": "entry-1",
+              "scope_id": "scope-1",
+              "relative_path": "a.txt",
+              "tool": null,
+              "rule_version": "scan-report-v1",
+              "category": "unknown",
+              "risk": "protected",
+              "recoverability": "unknown",
+              "activity": "unknown",
+              "confidence": "unknown",
+              "evidence": [
+                {
+                  "code": "unknown",
+                  "source": "filesystem",
+                  "summary": "Metadata observation only; classification and ownership are unverified."
+                }
+              ],
+              "protection_reasons": [
+                "unknown_ownership",
+                "incomplete_evidence"
+              ],
+              "references": {
+                "state": "unknown",
+                "project_ids": []
+              },
+              "size": {
+                "logical_bytes": "2",
+                "allocated_bytes": null,
+                "reclaimable_lower_bytes": null,
+                "reclaimable_upper_bytes": null,
+                "method": "logical_sum",
+                "confidence": "measured",
+                "shared": "unknown"
+              }
+            },
+            {
+              "finding_id": "entry-2",
+              "scope_id": "scope-1",
+              "relative_path": "b.txt",
+              "tool": null,
+              "rule_version": "scan-report-v1",
+              "category": "unknown",
+              "risk": "protected",
+              "recoverability": "unknown",
+              "activity": "unknown",
+              "confidence": "unknown",
+              "evidence": [
+                {
+                  "code": "unknown",
+                  "source": "filesystem",
+                  "summary": "Metadata observation only; classification and ownership are unverified."
+                }
+              ],
+              "protection_reasons": [
+                "unknown_ownership",
+                "incomplete_evidence"
+              ],
+              "references": {
+                "state": "unknown",
+                "project_ids": []
+              },
+              "size": {
+                "logical_bytes": "2",
+                "allocated_bytes": null,
+                "reclaimable_lower_bytes": null,
+                "reclaimable_upper_bytes": null,
+                "method": "logical_sum",
+                "confidence": "measured",
+                "shared": "unknown"
+              }
+            }
+          ],
+          "issues": [
+            {
+              "code": "permission_denied",
+              "scope_id": "scope-1",
+              "relative_path": "a.txt",
+              "message": "Scan lab issue; origin=injected; operation=inspect."
+            },
+            {
+              "code": "cancelled",
+              "scope_id": "scope-1",
+              "relative_path": "",
+              "message": "Scan lab issue; origin=control; operation=cancel."
+            }
+          ],
+          "totals": {
+            "logical_bytes": null,
+            "allocated_bytes": null,
+            "method": "unavailable",
+            "coverage_complete": false,
+            "scanned_entries": 2,
+            "skipped_entries": 1
+          }
+        },
+        "source_facts": {
+          "facts_version": "water.scan-lab.v1",
+          "run_id": "run-synthetic-fault",
+          "case_id": "synthetic-fault",
+          "status": "cancelled",
+          "visited_entries": 3,
+          "recorded_entries": 2,
+          "scopes": [
+            {
+              "scope_id": "scope-1",
+              "relative_root": "scope",
+              "coverage": "cancelled",
+              "visited_entries": 3,
+              "entries": [
+                {
+                  "relative_path": "a.txt",
+                  "kind": "file",
+                  "depth": 1,
+                  "logical_bytes": "2",
+                  "allocated_bytes": null,
+                  "identity": {
+                    "kind": "unknown",
+                    "device": null,
+                    "inode": null,
+                    "link_count": null
+                  }
+                },
+                {
+                  "relative_path": "b.txt",
+                  "kind": "file",
+                  "depth": 1,
+                  "logical_bytes": "2",
+                  "allocated_bytes": null,
+                  "identity": {
+                    "kind": "unknown",
+                    "device": null,
+                    "inode": null,
+                    "link_count": null
+                  }
+                }
+              ],
+              "issues": [
+                {
+                  "code": "permission_denied",
+                  "relative_path": "a.txt",
+                  "origin": "injected",
+                  "operation": "inspect"
+                },
+                {
+                  "code": "cancelled",
+                  "relative_path": "",
+                  "origin": "control",
+                  "operation": "cancel"
+                }
+              ]
+            }
+          ]
+        }
+      }
+    },
+    {
+      "id": "unix-identity-max",
+      "input": {
+        "facts_version": "water.scan-lab.v1",
+        "run_id": "run-synthetic-unix",
+        "case_id": "synthetic-unix",
+        "status": "completed",
+        "visited_entries": 2,
+        "recorded_entries": 2,
+        "scopes": [
+          {
+            "scope_id": "scope-1",
+            "relative_root": "scope",
+            "coverage": "complete",
+            "visited_entries": 2,
+            "entries": [
+              {
+                "relative_path": "alias.bin",
+                "kind": "file",
+                "depth": 1,
+                "logical_bytes": "18446744073709551615",
+                "allocated_bytes": null,
+                "identity": {
+                  "kind": "unix",
+                  "device": "1",
+                  "inode": "99",
+                  "link_count": "2"
+                }
+              },
+              {
+                "relative_path": "original.bin",
+                "kind": "file",
+                "depth": 1,
+                "logical_bytes": "18446744073709551615",
+                "allocated_bytes": null,
+                "identity": {
+                  "kind": "unix",
+                  "device": "1",
+                  "inode": "99",
+                  "link_count": "2"
+                }
+              }
+            ],
+            "issues": []
+          }
+        ]
+      },
+      "context": {
+        "scan_id": "assembly-synthetic",
+        "platform": "macos",
+        "scopes": [
+          {
+            "scope_id": "scope-1",
+            "label": "Synthetic scope-1",
+            "origin": "config_discovered"
+          }
+        ]
+      },
+      "expected_bundle": {
+        "bundle_version": "water.scan-report.v1",
+        "report": {
+          "schema_version": "water.scan.v1",
+          "scan_id": "assembly-synthetic",
+          "status": "completed",
+          "scopes": [
+            {
+              "scope_id": "scope-1",
+              "label": "Synthetic scope-1",
+              "origin": "config_discovered",
+              "platform": "macos",
+              "coverage": "complete"
+            }
+          ],
+          "findings": [
+            {
+              "finding_id": "entry-1",
+              "scope_id": "scope-1",
+              "relative_path": "alias.bin",
+              "tool": null,
+              "rule_version": "scan-report-v1",
+              "category": "unknown",
+              "risk": "protected",
+              "recoverability": "unknown",
+              "activity": "unknown",
+              "confidence": "unknown",
+              "evidence": [
+                {
+                  "code": "unknown",
+                  "source": "filesystem",
+                  "summary": "Metadata observation only; classification and ownership are unverified."
+                }
+              ],
+              "protection_reasons": [
+                "unknown_ownership",
+                "incomplete_evidence"
+              ],
+              "references": {
+                "state": "unknown",
+                "project_ids": []
+              },
+              "size": {
+                "logical_bytes": "18446744073709551615",
+                "allocated_bytes": null,
+                "reclaimable_lower_bytes": null,
+                "reclaimable_upper_bytes": null,
+                "method": "logical_sum",
+                "confidence": "measured",
+                "shared": "unknown"
+              }
+            },
+            {
+              "finding_id": "entry-2",
+              "scope_id": "scope-1",
+              "relative_path": "original.bin",
+              "tool": null,
+              "rule_version": "scan-report-v1",
+              "category": "unknown",
+              "risk": "protected",
+              "recoverability": "unknown",
+              "activity": "unknown",
+              "confidence": "unknown",
+              "evidence": [
+                {
+                  "code": "unknown",
+                  "source": "filesystem",
+                  "summary": "Metadata observation only; classification and ownership are unverified."
+                }
+              ],
+              "protection_reasons": [
+                "unknown_ownership",
+                "incomplete_evidence"
+              ],
+              "references": {
+                "state": "unknown",
+                "project_ids": []
+              },
+              "size": {
+                "logical_bytes": "18446744073709551615",
+                "allocated_bytes": null,
+                "reclaimable_lower_bytes": null,
+                "reclaimable_upper_bytes": null,
+                "method": "logical_sum",
+                "confidence": "measured",
+                "shared": "unknown"
+              }
+            }
+          ],
+          "issues": [],
+          "totals": {
+            "logical_bytes": null,
+            "allocated_bytes": null,
+            "method": "unavailable",
+            "coverage_complete": true,
+            "scanned_entries": 2,
+            "skipped_entries": 0
+          }
+        },
+        "source_facts": {
+          "facts_version": "water.scan-lab.v1",
+          "run_id": "run-synthetic-unix",
+          "case_id": "synthetic-unix",
+          "status": "completed",
+          "visited_entries": 2,
+          "recorded_entries": 2,
+          "scopes": [
+            {
+              "scope_id": "scope-1",
+              "relative_root": "scope",
+              "coverage": "complete",
+              "visited_entries": 2,
+              "entries": [
+                {
+                  "relative_path": "alias.bin",
+                  "kind": "file",
+                  "depth": 1,
+                  "logical_bytes": "18446744073709551615",
+                  "allocated_bytes": null,
+                  "identity": {
+                    "kind": "unix",
+                    "device": "1",
+                    "inode": "99",
+                    "link_count": "2"
+                  }
+                },
+                {
+                  "relative_path": "original.bin",
+                  "kind": "file",
+                  "depth": 1,
+                  "logical_bytes": "18446744073709551615",
+                  "allocated_bytes": null,
+                  "identity": {
+                    "kind": "unix",
+                    "device": "1",
+                    "inode": "99",
+                    "link_count": "2"
+                  }
+                }
+              ],
+              "issues": []
+            }
+          ]
+        }
+      }
+    },
+    {
+      "id": "pre-cancelled",
+      "input": {
+        "facts_version": "water.scan-lab.v1",
+        "run_id": "run-synthetic-empty",
+        "case_id": "synthetic-empty",
+        "status": "cancelled",
+        "visited_entries": 0,
+        "recorded_entries": 0,
+        "scopes": [
+          {
+            "scope_id": "s",
+            "relative_root": "scope",
+            "coverage": "cancelled",
+            "visited_entries": 0,
+            "entries": [],
+            "issues": [
+              {
+                "code": "cancelled",
+                "relative_path": null,
+                "origin": "control",
+                "operation": "cancel"
+              }
+            ]
+          }
+        ]
+      },
+      "context": {
+        "scan_id": "assembly-synthetic",
+        "platform": "windows",
+        "scopes": [
+          {
+            "scope_id": "s",
+            "label": "Synthetic s",
+            "origin": "config_discovered"
+          }
+        ]
+      },
+      "expected_bundle": {
+        "bundle_version": "water.scan-report.v1",
+        "report": {
+          "schema_version": "water.scan.v1",
+          "scan_id": "assembly-synthetic",
+          "status": "cancelled",
+          "scopes": [
+            {
+              "scope_id": "s",
+              "label": "Synthetic s",
+              "origin": "config_discovered",
+              "platform": "windows",
+              "coverage": "cancelled"
+            }
+          ],
+          "findings": [],
+          "issues": [
+            {
+              "code": "cancelled",
+              "scope_id": "s",
+              "relative_path": null,
+              "message": "Scan lab issue; origin=control; operation=cancel."
+            }
+          ],
+          "totals": {
+            "logical_bytes": null,
+            "allocated_bytes": null,
+            "method": "unavailable",
+            "coverage_complete": false,
+            "scanned_entries": 0,
+            "skipped_entries": 0
+          }
+        },
+        "source_facts": {
+          "facts_version": "water.scan-lab.v1",
+          "run_id": "run-synthetic-empty",
+          "case_id": "synthetic-empty",
+          "status": "cancelled",
+          "visited_entries": 0,
+          "recorded_entries": 0,
+          "scopes": [
+            {
+              "scope_id": "s",
+              "relative_root": "scope",
+              "coverage": "cancelled",
+              "visited_entries": 0,
+              "entries": [],
+              "issues": [
+                {
+                  "code": "cancelled",
+                  "relative_path": null,
+                  "origin": "control",
+                  "operation": "cancel"
+                }
+              ]
+            }
+          ]
+        }
+      }
+    },
+    {
+      "id": "path-boundary-and-kinds",
+      "input": {
+        "facts_version": "water.scan-lab.v1",
+        "run_id": "run-synthetic-boundary",
+        "case_id": "synthetic-boundary",
+        "status": "completed",
+        "visited_entries": 5,
+        "recorded_entries": 5,
+        "scopes": [
+          {
+            "scope_id": "scope-1",
+            "relative_root": "scope",
+            "coverage": "complete",
+            "visited_entries": 5,
+            "entries": [
+              {
+                "relative_path": "a",
+                "kind": "directory",
+                "depth": 1,
+                "logical_bytes": null,
+                "allocated_bytes": null,
+                "identity": {
+                  "kind": "unknown",
+                  "device": null,
+                  "inode": null,
+                  "link_count": null
+                }
+              },
+              {
+                "relative_path": "ab",
+                "kind": "file",
+                "depth": 1,
+                "logical_bytes": "0",
+                "allocated_bytes": null,
+                "identity": {
+                  "kind": "unknown",
+                  "device": null,
+                  "inode": null,
+                  "link_count": null
+                }
+              },
+              {
+                "relative_path": "cache/模型 %2e%2e",
+                "kind": "file",
+                "depth": 2,
+                "logical_bytes": "9007199254740993",
+                "allocated_bytes": null,
+                "identity": {
+                  "kind": "unknown",
+                  "device": null,
+                  "inode": null,
+                  "link_count": null
+                }
+              },
+              {
+                "relative_path": "odd",
+                "kind": "other",
+                "depth": 1,
+                "logical_bytes": null,
+                "allocated_bytes": null,
+                "identity": {
+                  "kind": "unknown",
+                  "device": null,
+                  "inode": null,
+                  "link_count": null
+                }
+              },
+              {
+                "relative_path": "alias",
+                "kind": "link",
+                "depth": 1,
+                "logical_bytes": null,
+                "allocated_bytes": null,
+                "identity": {
+                  "kind": "unknown",
+                  "device": null,
+                  "inode": null,
+                  "link_count": null
+                }
+              }
+            ],
+            "issues": []
+          }
+        ]
+      },
+      "context": {
+        "scan_id": "assembly-synthetic",
+        "platform": "windows",
+        "scopes": [
+          {
+            "scope_id": "scope-1",
+            "label": "Synthetic scope-1",
+            "origin": "config_discovered"
+          }
+        ]
+      },
+      "expected_bundle": {
+        "bundle_version": "water.scan-report.v1",
+        "report": {
+          "schema_version": "water.scan.v1",
+          "scan_id": "assembly-synthetic",
+          "status": "completed",
+          "scopes": [
+            {
+              "scope_id": "scope-1",
+              "label": "Synthetic scope-1",
+              "origin": "config_discovered",
+              "platform": "windows",
+              "coverage": "complete"
+            }
+          ],
+          "findings": [
+            {
+              "finding_id": "entry-1",
+              "scope_id": "scope-1",
+              "relative_path": "a",
+              "tool": null,
+              "rule_version": "scan-report-v1",
+              "category": "unknown",
+              "risk": "protected",
+              "recoverability": "unknown",
+              "activity": "unknown",
+              "confidence": "unknown",
+              "evidence": [
+                {
+                  "code": "unknown",
+                  "source": "filesystem",
+                  "summary": "Metadata observation only; classification and ownership are unverified."
+                }
+              ],
+              "protection_reasons": [
+                "unknown_ownership",
+                "incomplete_evidence"
+              ],
+              "references": {
+                "state": "unknown",
+                "project_ids": []
+              },
+              "size": {
+                "logical_bytes": null,
+                "allocated_bytes": null,
+                "reclaimable_lower_bytes": null,
+                "reclaimable_upper_bytes": null,
+                "method": "unknown",
+                "confidence": "unknown",
+                "shared": "unknown"
+              }
+            },
+            {
+              "finding_id": "entry-2",
+              "scope_id": "scope-1",
+              "relative_path": "ab",
+              "tool": null,
+              "rule_version": "scan-report-v1",
+              "category": "unknown",
+              "risk": "protected",
+              "recoverability": "unknown",
+              "activity": "unknown",
+              "confidence": "unknown",
+              "evidence": [
+                {
+                  "code": "unknown",
+                  "source": "filesystem",
+                  "summary": "Metadata observation only; classification and ownership are unverified."
+                }
+              ],
+              "protection_reasons": [
+                "unknown_ownership",
+                "incomplete_evidence"
+              ],
+              "references": {
+                "state": "unknown",
+                "project_ids": []
+              },
+              "size": {
+                "logical_bytes": "0",
+                "allocated_bytes": null,
+                "reclaimable_lower_bytes": null,
+                "reclaimable_upper_bytes": null,
+                "method": "logical_sum",
+                "confidence": "measured",
+                "shared": "unknown"
+              }
+            },
+            {
+              "finding_id": "entry-3",
+              "scope_id": "scope-1",
+              "relative_path": "cache/模型 %2e%2e",
+              "tool": null,
+              "rule_version": "scan-report-v1",
+              "category": "unknown",
+              "risk": "protected",
+              "recoverability": "unknown",
+              "activity": "unknown",
+              "confidence": "unknown",
+              "evidence": [
+                {
+                  "code": "unknown",
+                  "source": "filesystem",
+                  "summary": "Metadata observation only; classification and ownership are unverified."
+                }
+              ],
+              "protection_reasons": [
+                "unknown_ownership",
+                "incomplete_evidence"
+              ],
+              "references": {
+                "state": "unknown",
+                "project_ids": []
+              },
+              "size": {
+                "logical_bytes": "9007199254740993",
+                "allocated_bytes": null,
+                "reclaimable_lower_bytes": null,
+                "reclaimable_upper_bytes": null,
+                "method": "logical_sum",
+                "confidence": "measured",
+                "shared": "unknown"
+              }
+            },
+            {
+              "finding_id": "entry-4",
+              "scope_id": "scope-1",
+              "relative_path": "odd",
+              "tool": null,
+              "rule_version": "scan-report-v1",
+              "category": "unknown",
+              "risk": "protected",
+              "recoverability": "unknown",
+              "activity": "unknown",
+              "confidence": "unknown",
+              "evidence": [
+                {
+                  "code": "unknown",
+                  "source": "filesystem",
+                  "summary": "Metadata observation only; classification and ownership are unverified."
+                }
+              ],
+              "protection_reasons": [
+                "unknown_ownership",
+                "incomplete_evidence"
+              ],
+              "references": {
+                "state": "unknown",
+                "project_ids": []
+              },
+              "size": {
+                "logical_bytes": null,
+                "allocated_bytes": null,
+                "reclaimable_lower_bytes": null,
+                "reclaimable_upper_bytes": null,
+                "method": "unknown",
+                "confidence": "unknown",
+                "shared": "unknown"
+              }
+            },
+            {
+              "finding_id": "entry-5",
+              "scope_id": "scope-1",
+              "relative_path": "alias",
+              "tool": null,
+              "rule_version": "scan-report-v1",
+              "category": "unknown",
+              "risk": "protected",
+              "recoverability": "unknown",
+              "activity": "unknown",
+              "confidence": "unknown",
+              "evidence": [
+                {
+                  "code": "unknown",
+                  "source": "filesystem",
+                  "summary": "Metadata observation only; classification and ownership are unverified."
+                }
+              ],
+              "protection_reasons": [
+                "unknown_ownership",
+                "incomplete_evidence"
+              ],
+              "references": {
+                "state": "unknown",
+                "project_ids": []
+              },
+              "size": {
+                "logical_bytes": null,
+                "allocated_bytes": null,
+                "reclaimable_lower_bytes": null,
+                "reclaimable_upper_bytes": null,
+                "method": "unknown",
+                "confidence": "unknown",
+                "shared": "unknown"
+              }
+            }
+          ],
+          "issues": [],
+          "totals": {
+            "logical_bytes": null,
+            "allocated_bytes": null,
+            "method": "unavailable",
+            "coverage_complete": true,
+            "scanned_entries": 5,
+            "skipped_entries": 0
+          }
+        },
+        "source_facts": {
+          "facts_version": "water.scan-lab.v1",
+          "run_id": "run-synthetic-boundary",
+          "case_id": "synthetic-boundary",
+          "status": "completed",
+          "visited_entries": 5,
+          "recorded_entries": 5,
+          "scopes": [
+            {
+              "scope_id": "scope-1",
+              "relative_root": "scope",
+              "coverage": "complete",
+              "visited_entries": 5,
+              "entries": [
+                {
+                  "relative_path": "a",
+                  "kind": "directory",
+                  "depth": 1,
+                  "logical_bytes": null,
+                  "allocated_bytes": null,
+                  "identity": {
+                    "kind": "unknown",
+                    "device": null,
+                    "inode": null,
+                    "link_count": null
+                  }
+                },
+                {
+                  "relative_path": "ab",
+                  "kind": "file",
+                  "depth": 1,
+                  "logical_bytes": "0",
+                  "allocated_bytes": null,
+                  "identity": {
+                    "kind": "unknown",
+                    "device": null,
+                    "inode": null,
+                    "link_count": null
+                  }
+                },
+                {
+                  "relative_path": "cache/模型 %2e%2e",
+                  "kind": "file",
+                  "depth": 2,
+                  "logical_bytes": "9007199254740993",
+                  "allocated_bytes": null,
+                  "identity": {
+                    "kind": "unknown",
+                    "device": null,
+                    "inode": null,
+                    "link_count": null
+                  }
+                },
+                {
+                  "relative_path": "odd",
+                  "kind": "other",
+                  "depth": 1,
+                  "logical_bytes": null,
+                  "allocated_bytes": null,
+                  "identity": {
+                    "kind": "unknown",
+                    "device": null,
+                    "inode": null,
+                    "link_count": null
+                  }
+                },
+                {
+                  "relative_path": "alias",
+                  "kind": "link",
+                  "depth": 1,
+                  "logical_bytes": null,
+                  "allocated_bytes": null,
+                  "identity": {
+                    "kind": "unknown",
+                    "device": null,
+                    "inode": null,
+                    "link_count": null
+                  }
+                }
+              ],
+              "issues": []
+            }
+          ]
+        }
+      }
+    },
+    {
+      "id": "completed-then-cancelled",
+      "input": {
+        "facts_version": "water.scan-lab.v1",
+        "run_id": "run-synthetic-multi-cancel",
+        "case_id": "synthetic-multi-cancel",
+        "status": "cancelled",
+        "visited_entries": 3,
+        "recorded_entries": 3,
+        "scopes": [
+          {
+            "scope_id": "scope-outer",
+            "relative_root": "scope",
+            "coverage": "complete",
+            "visited_entries": 3,
+            "entries": [
+              {
+                "relative_path": "nested",
+                "kind": "directory",
+                "depth": 1,
+                "logical_bytes": null,
+                "allocated_bytes": null,
+                "identity": {
+                  "kind": "unknown",
+                  "device": null,
+                  "inode": null,
+                  "link_count": null
+                }
+              },
+              {
+                "relative_path": "nested/shared.txt",
+                "kind": "file",
+                "depth": 2,
+                "logical_bytes": "26",
+                "allocated_bytes": null,
+                "identity": {
+                  "kind": "unknown",
+                  "device": null,
+                  "inode": null,
+                  "link_count": null
+                }
+              },
+              {
+                "relative_path": "root.txt",
+                "kind": "file",
+                "depth": 1,
+                "logical_bytes": "5",
+                "allocated_bytes": null,
+                "identity": {
+                  "kind": "unknown",
+                  "device": null,
+                  "inode": null,
+                  "link_count": null
+                }
+              }
+            ],
+            "issues": []
+          },
+          {
+            "scope_id": "scope-inner",
+            "relative_root": "scope/nested",
+            "coverage": "cancelled",
+            "visited_entries": 0,
+            "entries": [],
+            "issues": [
+              {
+                "code": "cancelled",
+                "relative_path": null,
+                "origin": "control",
+                "operation": "cancel"
+              }
+            ]
+          }
+        ]
+      },
+      "context": {
+        "scan_id": "assembly-synthetic",
+        "platform": "windows",
+        "scopes": [
+          {
+            "scope_id": "scope-outer",
+            "label": "Synthetic scope-outer",
+            "origin": "config_discovered"
+          },
+          {
+            "scope_id": "scope-inner",
+            "label": "Synthetic scope-inner",
+            "origin": "config_discovered"
+          }
+        ]
+      },
+      "expected_bundle": {
+        "bundle_version": "water.scan-report.v1",
+        "report": {
+          "schema_version": "water.scan.v1",
+          "scan_id": "assembly-synthetic",
+          "status": "cancelled",
+          "scopes": [
+            {
+              "scope_id": "scope-outer",
+              "label": "Synthetic scope-outer",
+              "origin": "config_discovered",
+              "platform": "windows",
+              "coverage": "complete"
+            },
+            {
+              "scope_id": "scope-inner",
+              "label": "Synthetic scope-inner",
+              "origin": "config_discovered",
+              "platform": "windows",
+              "coverage": "cancelled"
+            }
+          ],
+          "findings": [
+            {
+              "finding_id": "entry-1",
+              "scope_id": "scope-outer",
+              "relative_path": "nested",
+              "tool": null,
+              "rule_version": "scan-report-v1",
+              "category": "unknown",
+              "risk": "protected",
+              "recoverability": "unknown",
+              "activity": "unknown",
+              "confidence": "unknown",
+              "evidence": [
+                {
+                  "code": "unknown",
+                  "source": "filesystem",
+                  "summary": "Metadata observation only; classification and ownership are unverified."
+                }
+              ],
+              "protection_reasons": [
+                "unknown_ownership",
+                "incomplete_evidence",
+                "protected_descendant"
+              ],
+              "references": {
+                "state": "unknown",
+                "project_ids": []
+              },
+              "size": {
+                "logical_bytes": null,
+                "allocated_bytes": null,
+                "reclaimable_lower_bytes": null,
+                "reclaimable_upper_bytes": null,
+                "method": "unknown",
+                "confidence": "unknown",
+                "shared": "unknown"
+              }
+            },
+            {
+              "finding_id": "entry-2",
+              "scope_id": "scope-outer",
+              "relative_path": "nested/shared.txt",
+              "tool": null,
+              "rule_version": "scan-report-v1",
+              "category": "unknown",
+              "risk": "protected",
+              "recoverability": "unknown",
+              "activity": "unknown",
+              "confidence": "unknown",
+              "evidence": [
+                {
+                  "code": "unknown",
+                  "source": "filesystem",
+                  "summary": "Metadata observation only; classification and ownership are unverified."
+                }
+              ],
+              "protection_reasons": [
+                "unknown_ownership",
+                "incomplete_evidence"
+              ],
+              "references": {
+                "state": "unknown",
+                "project_ids": []
+              },
+              "size": {
+                "logical_bytes": "26",
+                "allocated_bytes": null,
+                "reclaimable_lower_bytes": null,
+                "reclaimable_upper_bytes": null,
+                "method": "logical_sum",
+                "confidence": "measured",
+                "shared": "unknown"
+              }
+            },
+            {
+              "finding_id": "entry-3",
+              "scope_id": "scope-outer",
+              "relative_path": "root.txt",
+              "tool": null,
+              "rule_version": "scan-report-v1",
+              "category": "unknown",
+              "risk": "protected",
+              "recoverability": "unknown",
+              "activity": "unknown",
+              "confidence": "unknown",
+              "evidence": [
+                {
+                  "code": "unknown",
+                  "source": "filesystem",
+                  "summary": "Metadata observation only; classification and ownership are unverified."
+                }
+              ],
+              "protection_reasons": [
+                "unknown_ownership",
+                "incomplete_evidence"
+              ],
+              "references": {
+                "state": "unknown",
+                "project_ids": []
+              },
+              "size": {
+                "logical_bytes": "5",
+                "allocated_bytes": null,
+                "reclaimable_lower_bytes": null,
+                "reclaimable_upper_bytes": null,
+                "method": "logical_sum",
+                "confidence": "measured",
+                "shared": "unknown"
+              }
+            }
+          ],
+          "issues": [
+            {
+              "code": "cancelled",
+              "scope_id": "scope-inner",
+              "relative_path": null,
+              "message": "Scan lab issue; origin=control; operation=cancel."
+            }
+          ],
+          "totals": {
+            "logical_bytes": null,
+            "allocated_bytes": null,
+            "method": "unavailable",
+            "coverage_complete": false,
+            "scanned_entries": 3,
+            "skipped_entries": 0
+          }
+        },
+        "source_facts": {
+          "facts_version": "water.scan-lab.v1",
+          "run_id": "run-synthetic-multi-cancel",
+          "case_id": "synthetic-multi-cancel",
+          "status": "cancelled",
+          "visited_entries": 3,
+          "recorded_entries": 3,
+          "scopes": [
+            {
+              "scope_id": "scope-outer",
+              "relative_root": "scope",
+              "coverage": "complete",
+              "visited_entries": 3,
+              "entries": [
+                {
+                  "relative_path": "nested",
+                  "kind": "directory",
+                  "depth": 1,
+                  "logical_bytes": null,
+                  "allocated_bytes": null,
+                  "identity": {
+                    "kind": "unknown",
+                    "device": null,
+                    "inode": null,
+                    "link_count": null
+                  }
+                },
+                {
+                  "relative_path": "nested/shared.txt",
+                  "kind": "file",
+                  "depth": 2,
+                  "logical_bytes": "26",
+                  "allocated_bytes": null,
+                  "identity": {
+                    "kind": "unknown",
+                    "device": null,
+                    "inode": null,
+                    "link_count": null
+                  }
+                },
+                {
+                  "relative_path": "root.txt",
+                  "kind": "file",
+                  "depth": 1,
+                  "logical_bytes": "5",
+                  "allocated_bytes": null,
+                  "identity": {
+                    "kind": "unknown",
+                    "device": null,
+                    "inode": null,
+                    "link_count": null
+                  }
+                }
+              ],
+              "issues": []
+            },
+            {
+              "scope_id": "scope-inner",
+              "relative_root": "scope/nested",
+              "coverage": "cancelled",
+              "visited_entries": 0,
+              "entries": [],
+              "issues": [
+                {
+                  "code": "cancelled",
+                  "relative_path": null,
+                  "origin": "control",
+                  "operation": "cancel"
+                }
+              ]
+            }
+          ]
+        }
+      }
+    },
+    {
+      "id": "exact-two53",
+      "input": {
+        "facts_version": "water.scan-lab.v1",
+        "run_id": "run-synthetic-two53",
+        "case_id": "synthetic-two53",
+        "status": "completed",
+        "visited_entries": 2,
+        "recorded_entries": 2,
+        "scopes": [
+          {
+            "scope_id": "scope-1",
+            "relative_root": "scope",
+            "coverage": "complete",
+            "visited_entries": 2,
+            "entries": [
+              {
+                "relative_path": "alias.bin",
+                "kind": "file",
+                "depth": 1,
+                "logical_bytes": "9007199254740992",
+                "allocated_bytes": null,
+                "identity": {
+                  "kind": "unknown",
+                  "device": null,
+                  "inode": null,
+                  "link_count": null
+                }
+              },
+              {
+                "relative_path": "original.bin",
+                "kind": "file",
+                "depth": 1,
+                "logical_bytes": "8",
+                "allocated_bytes": null,
+                "identity": {
+                  "kind": "unknown",
+                  "device": null,
+                  "inode": null,
+                  "link_count": null
+                }
+              }
+            ],
+            "issues": []
+          }
+        ]
+      },
+      "context": {
+        "scan_id": "assembly-synthetic",
+        "platform": "windows",
+        "scopes": [
+          {
+            "scope_id": "scope-1",
+            "label": "Synthetic scope-1",
+            "origin": "config_discovered"
+          }
+        ]
+      },
+      "expected_bundle": {
+        "bundle_version": "water.scan-report.v1",
+        "report": {
+          "schema_version": "water.scan.v1",
+          "scan_id": "assembly-synthetic",
+          "status": "completed",
+          "scopes": [
+            {
+              "scope_id": "scope-1",
+              "label": "Synthetic scope-1",
+              "origin": "config_discovered",
+              "platform": "windows",
+              "coverage": "complete"
+            }
+          ],
+          "findings": [
+            {
+              "finding_id": "entry-1",
+              "scope_id": "scope-1",
+              "relative_path": "alias.bin",
+              "tool": null,
+              "rule_version": "scan-report-v1",
+              "category": "unknown",
+              "risk": "protected",
+              "recoverability": "unknown",
+              "activity": "unknown",
+              "confidence": "unknown",
+              "evidence": [
+                {
+                  "code": "unknown",
+                  "source": "filesystem",
+                  "summary": "Metadata observation only; classification and ownership are unverified."
+                }
+              ],
+              "protection_reasons": [
+                "unknown_ownership",
+                "incomplete_evidence"
+              ],
+              "references": {
+                "state": "unknown",
+                "project_ids": []
+              },
+              "size": {
+                "logical_bytes": "9007199254740992",
+                "allocated_bytes": null,
+                "reclaimable_lower_bytes": null,
+                "reclaimable_upper_bytes": null,
+                "method": "logical_sum",
+                "confidence": "measured",
+                "shared": "unknown"
+              }
+            },
+            {
+              "finding_id": "entry-2",
+              "scope_id": "scope-1",
+              "relative_path": "original.bin",
+              "tool": null,
+              "rule_version": "scan-report-v1",
+              "category": "unknown",
+              "risk": "protected",
+              "recoverability": "unknown",
+              "activity": "unknown",
+              "confidence": "unknown",
+              "evidence": [
+                {
+                  "code": "unknown",
+                  "source": "filesystem",
+                  "summary": "Metadata observation only; classification and ownership are unverified."
+                }
+              ],
+              "protection_reasons": [
+                "unknown_ownership",
+                "incomplete_evidence"
+              ],
+              "references": {
+                "state": "unknown",
+                "project_ids": []
+              },
+              "size": {
+                "logical_bytes": "8",
+                "allocated_bytes": null,
+                "reclaimable_lower_bytes": null,
+                "reclaimable_upper_bytes": null,
+                "method": "logical_sum",
+                "confidence": "measured",
+                "shared": "unknown"
+              }
+            }
+          ],
+          "issues": [],
+          "totals": {
+            "logical_bytes": null,
+            "allocated_bytes": null,
+            "method": "unavailable",
+            "coverage_complete": true,
+            "scanned_entries": 2,
+            "skipped_entries": 0
+          }
+        },
+        "source_facts": {
+          "facts_version": "water.scan-lab.v1",
+          "run_id": "run-synthetic-two53",
+          "case_id": "synthetic-two53",
+          "status": "completed",
+          "visited_entries": 2,
+          "recorded_entries": 2,
+          "scopes": [
+            {
+              "scope_id": "scope-1",
+              "relative_root": "scope",
+              "coverage": "complete",
+              "visited_entries": 2,
+              "entries": [
+                {
+                  "relative_path": "alias.bin",
+                  "kind": "file",
+                  "depth": 1,
+                  "logical_bytes": "9007199254740992",
+                  "allocated_bytes": null,
+                  "identity": {
+                    "kind": "unknown",
+                    "device": null,
+                    "inode": null,
+                    "link_count": null
+                  }
+                },
+                {
+                  "relative_path": "original.bin",
+                  "kind": "file",
+                  "depth": 1,
+                  "logical_bytes": "8",
+                  "allocated_bytes": null,
+                  "identity": {
+                    "kind": "unknown",
+                    "device": null,
+                    "inode": null,
+                    "link_count": null
+                  }
+                }
+              ],
+              "issues": []
+            }
+          ]
+        }
+      }
+    }
+  ],
+  "raw_cases": [
+    {
+      "id": "duplicate-key",
+      "input": "{\"facts_version\":\"water.scan-lab.v1\",\"facts_version\":\"water.scan-lab.v1\",\"run_id\":\"run-synthetic-project-markers\",\"case_id\":\"project-markers\",\"status\":\"completed\",\"visited_entries\":6,\"recorded_entries\":6,\"scopes\":[{\"scope_id\":\"scope-1\",\"relative_root\":\"scope\",\"coverage\":\"complete\",\"visited_entries\":6,\"entries\":[{\"relative_path\":\".git\",\"kind\":\"directory\",\"depth\":1,\"logical_bytes\":null,\"allocated_bytes\":null,\"identity\":{\"kind\":\"unknown\",\"device\":null,\"inode\":null,\"link_count\":null}},{\"relative_path\":\".git/HEAD\",\"kind\":\"file\",\"depth\":2,\"logical_bytes\":\"26\",\"allocated_bytes\":null,\"identity\":{\"kind\":\"unknown\",\"device\":null,\"inode\":null,\"link_count\":null}},{\"relative_path\":\"package.json\",\"kind\":\"file\",\"depth\":1,\"logical_bytes\":\"50\",\"allocated_bytes\":null,\"identity\":{\"kind\":\"unknown\",\"device\":null,\"inode\":null,\"link_count\":null}},{\"relative_path\":\"pyproject.toml\",\"kind\":\"file\",\"depth\":1,\"logical_bytes\":\"61\",\"allocated_bytes\":null,\"identity\":{\"kind\":\"unknown\",\"device\":null,\"inode\":null,\"link_count\":null}},{\"relative_path\":\"src\",\"kind\":\"directory\",\"depth\":1,\"logical_bytes\":null,\"allocated_bytes\":null,\"identity\":{\"kind\":\"unknown\",\"device\":null,\"inode\":null,\"link_count\":null}},{\"relative_path\":\"src/main.py\",\"kind\":\"file\",\"depth\":2,\"logical_bytes\":\"36\",\"allocated_bytes\":null,\"identity\":{\"kind\":\"unknown\",\"device\":null,\"inode\":null,\"link_count\":null}}],\"issues\":[]}]}",
+      "code": "InvalidFacts"
+    },
+    {
+      "id": "syntax",
+      "input": "{\"canary\":\"G_ERROR_CANARY\",",
+      "code": "InvalidJson"
+    }
+  ],
+  "mutation_cases": [
+    {
+      "id": "unknown-field",
+      "mutation": "add root.extra",
+      "code": "InvalidFacts"
+    },
+    {
+      "id": "missing-nullable",
+      "mutation": "remove first entry.allocated_bytes",
+      "code": "InvalidFacts"
+    },
+    {
+      "id": "object-enum",
+      "mutation": "first kind becomes {\"file\":null}",
+      "code": "InvalidFacts"
+    },
+    {
+      "id": "positional-scope",
+      "mutation": "first scope becomes array of its values",
+      "code": "InvalidFacts"
+    },
+    {
+      "id": "invalid-byte",
+      "mutation": "first file logical_bytes becomes number 1",
+      "code": "InvalidFacts"
+    },
+    {
+      "id": "depth",
+      "mutation": "first entry.depth becomes 0",
+      "code": "InvalidFacts"
+    },
+    {
+      "id": "duplicate-path",
+      "mutation": "append clone first entry and increment counts",
+      "code": "InvalidFacts"
+    },
+    {
+      "id": "counter",
+      "mutation": "top visited_entries += 1",
+      "code": "InvalidFacts"
+    },
+    {
+      "id": "context-order",
+      "mutation": "context first scope_id becomes other",
+      "code": "InvalidContext"
+    },
+    {
+      "id": "context-label",
+      "mutation": "context first label becomes empty",
+      "code": "InvalidContext"
+    }
+  ],
+  "negative_base": "project-markers"
+}

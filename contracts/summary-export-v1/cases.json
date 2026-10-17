@@ -1,0 +1,2300 @@
+{
+  "golden_cases": [
+    {
+      "id": "base",
+      "input": {
+        "schema_version": "water.scan.v1",
+        "scan_id": "scan-fixture-1",
+        "status": "completed",
+        "scopes": [
+          {
+            "scope_id": "scope-1",
+            "label": "Fixture A",
+            "platform": "windows",
+            "origin": "user_selected",
+            "coverage": "complete"
+          }
+        ],
+        "findings": [
+          {
+            "finding_id": "finding-1",
+            "scope_id": "scope-1",
+            "relative_path": "project/.cache/ruff",
+            "tool": {
+              "tool_id": "ruff",
+              "name": "Ruff fixture",
+              "version": "0.0-fixture",
+              "root_source": "marker"
+            },
+            "rule_version": "1",
+            "category": "build_cache",
+            "risk": "review",
+            "recoverability": "rebuild",
+            "activity": "unknown",
+            "confidence": "verified_structure",
+            "evidence": [
+              {
+                "code": "structure_match",
+                "source": "filesystem",
+                "summary": "Fictional fixture metadata only; not a real scan."
+              }
+            ],
+            "protection_reasons": [],
+            "references": {
+              "state": "unknown",
+              "project_ids": []
+            },
+            "size": {
+              "logical_bytes": "9007199254740993",
+              "allocated_bytes": null,
+              "reclaimable_lower_bytes": null,
+              "reclaimable_upper_bytes": null,
+              "method": "logical_sum",
+              "confidence": "estimated",
+              "shared": "unknown"
+            }
+          }
+        ],
+        "issues": [],
+        "totals": {
+          "logical_bytes": null,
+          "allocated_bytes": null,
+          "method": "unavailable",
+          "coverage_complete": true,
+          "scanned_entries": 3,
+          "skipped_entries": 0
+        }
+      },
+      "expected": {
+        "export_version": "water.summary-export.v1",
+        "source_schema_version": "water.scan.v1",
+        "read_only": true,
+        "status": "completed",
+        "counts": {
+          "scopes": 1,
+          "findings": 1,
+          "issues": 0
+        },
+        "risk_counts": {
+          "low": 0,
+          "review": 1,
+          "high": 0,
+          "protected": 0
+        },
+        "category_counts": {
+          "download_cache": 0,
+          "build_cache": 1,
+          "environment": 0,
+          "model": 0,
+          "experiment": 0,
+          "history": 0,
+          "database": 0,
+          "credential": 0,
+          "source": 0,
+          "temporary": 0,
+          "unknown": 0
+        },
+        "totals": {
+          "logical_bytes": null,
+          "allocated_bytes": null,
+          "method": "unavailable",
+          "coverage_complete": true,
+          "scanned_entries": 3,
+          "skipped_entries": 0
+        }
+      }
+    },
+    {
+      "id": "composite_partial",
+      "input": {
+        "schema_version": "water.scan.v1",
+        "scan_id": "scan-view-composite",
+        "status": "partial",
+        "scopes": [
+          {
+            "scope_id": "scope-1",
+            "label": "Fixture A",
+            "platform": "windows",
+            "origin": "user_selected",
+            "coverage": "partial"
+          },
+          {
+            "scope_id": "scope-2",
+            "label": "Fixture B",
+            "platform": "macos",
+            "origin": "config_discovered",
+            "coverage": "complete"
+          }
+        ],
+        "findings": [
+          {
+            "finding_id": "big-before",
+            "scope_id": "scope-1",
+            "relative_path": "same/path",
+            "tool": {
+              "tool_id": "all",
+              "name": "all fixture",
+              "version": "0.0-fixture",
+              "root_source": "marker"
+            },
+            "rule_version": "1",
+            "category": "build_cache",
+            "risk": "review",
+            "recoverability": "redownload",
+            "activity": "recent",
+            "confidence": "verified_structure",
+            "evidence": [
+              {
+                "code": "structure_match",
+                "source": "filesystem",
+                "summary": "Fictional fixture metadata only; not a real scan."
+              }
+            ],
+            "protection_reasons": [],
+            "references": {
+              "state": "unknown",
+              "project_ids": []
+            },
+            "size": {
+              "logical_bytes": "9007199254740993",
+              "allocated_bytes": null,
+              "reclaimable_lower_bytes": null,
+              "reclaimable_upper_bytes": null,
+              "method": "logical_sum",
+              "confidence": "estimated",
+              "shared": "unknown"
+            }
+          },
+          {
+            "finding_id": "big-after",
+            "scope_id": "scope-1",
+            "relative_path": "other/cache",
+            "tool": {
+              "tool_id": "unknown",
+              "name": "unknown fixture",
+              "version": "0.0-fixture",
+              "root_source": "marker"
+            },
+            "rule_version": "1",
+            "category": "build_cache",
+            "risk": "high",
+            "recoverability": "conditional",
+            "activity": "unknown",
+            "confidence": "verified_structure",
+            "evidence": [
+              {
+                "code": "structure_match",
+                "source": "filesystem",
+                "summary": "Fictional fixture metadata only; not a real scan."
+              }
+            ],
+            "protection_reasons": [],
+            "references": {
+              "state": "unknown",
+              "project_ids": []
+            },
+            "size": {
+              "logical_bytes": "9007199254740992",
+              "allocated_bytes": null,
+              "reclaimable_lower_bytes": null,
+              "reclaimable_upper_bytes": null,
+              "method": "logical_sum",
+              "confidence": "estimated",
+              "shared": "unknown"
+            }
+          },
+          {
+            "finding_id": "zero",
+            "scope_id": "scope-1",
+            "relative_path": "z-zero",
+            "tool": null,
+            "rule_version": "1",
+            "category": "build_cache",
+            "risk": "low",
+            "recoverability": "not_applicable",
+            "activity": "not_observed",
+            "confidence": "verified_structure",
+            "evidence": [
+              {
+                "code": "structure_match",
+                "source": "filesystem",
+                "summary": "Fictional fixture metadata only; not a real scan."
+              }
+            ],
+            "protection_reasons": [],
+            "references": {
+              "state": "known",
+              "project_ids": []
+            },
+            "size": {
+              "logical_bytes": "0",
+              "allocated_bytes": null,
+              "reclaimable_lower_bytes": null,
+              "reclaimable_upper_bytes": null,
+              "method": "logical_sum",
+              "confidence": "estimated",
+              "shared": "unknown"
+            }
+          },
+          {
+            "finding_id": "unknown-first",
+            "scope_id": "scope-1",
+            "relative_path": "z-unknown",
+            "tool": null,
+            "rule_version": "1",
+            "category": "unknown",
+            "risk": "protected",
+            "recoverability": "unknown",
+            "activity": "unknown",
+            "confidence": "unknown",
+            "evidence": [
+              {
+                "code": "structure_match",
+                "source": "filesystem",
+                "summary": "Fictional fixture metadata only; not a real scan."
+              }
+            ],
+            "protection_reasons": [
+              "unique_asset"
+            ],
+            "references": {
+              "state": "unknown",
+              "project_ids": []
+            },
+            "size": {
+              "logical_bytes": null,
+              "allocated_bytes": null,
+              "reclaimable_lower_bytes": null,
+              "reclaimable_upper_bytes": null,
+              "method": "unknown",
+              "confidence": "unknown",
+              "shared": "unknown"
+            }
+          },
+          {
+            "finding_id": "max",
+            "scope_id": "scope-1",
+            "relative_path": "project/模型 %2e%2e/<tag>",
+            "tool": {
+              "tool_id": "no_tool",
+              "name": "no_tool fixture",
+              "version": "0.0-fixture",
+              "root_source": "marker"
+            },
+            "rule_version": "1",
+            "category": "model",
+            "risk": "protected",
+            "recoverability": "conditional",
+            "activity": "running",
+            "confidence": "verified_structure",
+            "evidence": [
+              {
+                "code": "structure_match",
+                "source": "filesystem",
+                "summary": "<script>literal text</script>"
+              },
+              {
+                "code": "reference",
+                "source": "rule",
+                "summary": "Unicode 模型 and %2e%2e stay literal"
+              }
+            ],
+            "protection_reasons": [
+              "unique_asset"
+            ],
+            "references": {
+              "state": "unknown",
+              "project_ids": []
+            },
+            "size": {
+              "logical_bytes": "18446744073709551615",
+              "allocated_bytes": null,
+              "reclaimable_lower_bytes": null,
+              "reclaimable_upper_bytes": null,
+              "method": "logical_sum",
+              "confidence": "estimated",
+              "shared": "unknown"
+            }
+          },
+          {
+            "finding_id": "unknown-last",
+            "scope_id": "scope-1",
+            "relative_path": "a-unknown",
+            "tool": {
+              "tool_id": "tool_all",
+              "name": "<img src=x onerror=literal>",
+              "version": "0.0-fixture",
+              "root_source": "marker"
+            },
+            "rule_version": "1",
+            "category": "unknown",
+            "risk": "protected",
+            "recoverability": "unknown",
+            "activity": "unknown",
+            "confidence": "path_only",
+            "evidence": [
+              {
+                "code": "structure_match",
+                "source": "filesystem",
+                "summary": "Fictional fixture metadata only; not a real scan."
+              }
+            ],
+            "protection_reasons": [
+              "unique_asset"
+            ],
+            "references": {
+              "state": "unknown",
+              "project_ids": []
+            },
+            "size": {
+              "logical_bytes": null,
+              "allocated_bytes": null,
+              "reclaimable_lower_bytes": null,
+              "reclaimable_upper_bytes": null,
+              "method": "unknown",
+              "confidence": "unknown",
+              "shared": "unknown"
+            }
+          },
+          {
+            "finding_id": "scope-root",
+            "scope_id": "scope-2",
+            "relative_path": "",
+            "tool": {
+              "tool_id": "ruff",
+              "name": "ruff fixture",
+              "version": "0.0-fixture",
+              "root_source": "marker"
+            },
+            "rule_version": "1",
+            "category": "build_cache",
+            "risk": "protected",
+            "recoverability": "rebuild",
+            "activity": "unknown",
+            "confidence": "verified_structure",
+            "evidence": [
+              {
+                "code": "structure_match",
+                "source": "filesystem",
+                "summary": "Fictional fixture metadata only; not a real scan."
+              }
+            ],
+            "protection_reasons": [
+              "source_root",
+              "protected_descendant"
+            ],
+            "references": {
+              "state": "unknown",
+              "project_ids": []
+            },
+            "size": {
+              "logical_bytes": "1",
+              "allocated_bytes": null,
+              "reclaimable_lower_bytes": null,
+              "reclaimable_upper_bytes": null,
+              "method": "logical_sum",
+              "confidence": "estimated",
+              "shared": "unknown"
+            }
+          },
+          {
+            "finding_id": "duplicate-title",
+            "scope_id": "scope-2",
+            "relative_path": "same/path",
+            "tool": {
+              "tool_id": "ruff",
+              "name": "ruff fixture",
+              "version": "0.0-fixture",
+              "root_source": "marker"
+            },
+            "rule_version": "1",
+            "category": "build_cache",
+            "risk": "review",
+            "recoverability": "rebuild",
+            "activity": "unknown",
+            "confidence": "verified_structure",
+            "evidence": [
+              {
+                "code": "structure_match",
+                "source": "filesystem",
+                "summary": "Fictional fixture metadata only; not a real scan."
+              }
+            ],
+            "protection_reasons": [],
+            "references": {
+              "state": "unknown",
+              "project_ids": []
+            },
+            "size": {
+              "logical_bytes": "2",
+              "allocated_bytes": null,
+              "reclaimable_lower_bytes": null,
+              "reclaimable_upper_bytes": null,
+              "method": "logical_sum",
+              "confidence": "estimated",
+              "shared": "unknown"
+            }
+          }
+        ],
+        "issues": [
+          {
+            "code": "permission_denied",
+            "scope_id": "scope-1",
+            "relative_path": "unreadable",
+            "message": "Synthetic input only; no ACL was changed."
+          }
+        ],
+        "totals": {
+          "logical_bytes": "37",
+          "allocated_bytes": null,
+          "method": "file_identity_deduplicated",
+          "coverage_complete": false,
+          "scanned_entries": 8,
+          "skipped_entries": 1
+        }
+      },
+      "expected": {
+        "export_version": "water.summary-export.v1",
+        "source_schema_version": "water.scan.v1",
+        "read_only": true,
+        "status": "partial",
+        "counts": {
+          "scopes": 2,
+          "findings": 8,
+          "issues": 1
+        },
+        "risk_counts": {
+          "low": 1,
+          "review": 2,
+          "high": 1,
+          "protected": 4
+        },
+        "category_counts": {
+          "download_cache": 0,
+          "build_cache": 5,
+          "environment": 0,
+          "model": 1,
+          "experiment": 0,
+          "history": 0,
+          "database": 0,
+          "credential": 0,
+          "source": 0,
+          "temporary": 0,
+          "unknown": 2
+        },
+        "totals": {
+          "logical_bytes": "37",
+          "allocated_bytes": null,
+          "method": "file_identity_deduplicated",
+          "coverage_complete": false,
+          "scanned_entries": 8,
+          "skipped_entries": 1
+        }
+      }
+    },
+    {
+      "id": "cancelled",
+      "input": {
+        "schema_version": "water.scan.v1",
+        "scan_id": "scan-view-cancelled",
+        "status": "cancelled",
+        "scopes": [
+          {
+            "scope_id": "scope-1",
+            "label": "Fixture A",
+            "platform": "windows",
+            "origin": "user_selected",
+            "coverage": "cancelled"
+          }
+        ],
+        "findings": [
+          {
+            "finding_id": "finding-1",
+            "scope_id": "scope-1",
+            "relative_path": "project/.cache/ruff",
+            "tool": {
+              "tool_id": "ruff",
+              "name": "Ruff fixture",
+              "version": "0.0-fixture",
+              "root_source": "marker"
+            },
+            "rule_version": "1",
+            "category": "unknown",
+            "risk": "protected",
+            "recoverability": "rebuild",
+            "activity": "unknown",
+            "confidence": "unknown",
+            "evidence": [
+              {
+                "code": "structure_match",
+                "source": "filesystem",
+                "summary": "Fictional fixture metadata only; not a real scan."
+              }
+            ],
+            "protection_reasons": [
+              "unknown_ownership"
+            ],
+            "references": {
+              "state": "unknown",
+              "project_ids": []
+            },
+            "size": {
+              "logical_bytes": null,
+              "allocated_bytes": null,
+              "reclaimable_lower_bytes": null,
+              "reclaimable_upper_bytes": null,
+              "method": "unknown",
+              "confidence": "unknown",
+              "shared": "unknown"
+            }
+          }
+        ],
+        "issues": [
+          {
+            "code": "cancelled",
+            "scope_id": "scope-1",
+            "relative_path": null,
+            "message": "Synthetic cancelled input."
+          }
+        ],
+        "totals": {
+          "logical_bytes": null,
+          "allocated_bytes": null,
+          "method": "unavailable",
+          "coverage_complete": false,
+          "scanned_entries": 3,
+          "skipped_entries": 0
+        }
+      },
+      "expected": {
+        "export_version": "water.summary-export.v1",
+        "source_schema_version": "water.scan.v1",
+        "read_only": true,
+        "status": "cancelled",
+        "counts": {
+          "scopes": 1,
+          "findings": 1,
+          "issues": 1
+        },
+        "risk_counts": {
+          "low": 0,
+          "review": 0,
+          "high": 0,
+          "protected": 1
+        },
+        "category_counts": {
+          "download_cache": 0,
+          "build_cache": 0,
+          "environment": 0,
+          "model": 0,
+          "experiment": 0,
+          "history": 0,
+          "database": 0,
+          "credential": 0,
+          "source": 0,
+          "temporary": 0,
+          "unknown": 1
+        },
+        "totals": {
+          "logical_bytes": null,
+          "allocated_bytes": null,
+          "method": "unavailable",
+          "coverage_complete": false,
+          "scanned_entries": 3,
+          "skipped_entries": 0
+        }
+      }
+    },
+    {
+      "id": "empty_completed",
+      "input": {
+        "schema_version": "water.scan.v1",
+        "scan_id": "scan-view-empty",
+        "status": "completed",
+        "scopes": [
+          {
+            "scope_id": "scope-1",
+            "label": "Fixture A",
+            "platform": "windows",
+            "origin": "user_selected",
+            "coverage": "complete"
+          }
+        ],
+        "findings": [],
+        "issues": [],
+        "totals": {
+          "logical_bytes": null,
+          "allocated_bytes": null,
+          "method": "unavailable",
+          "coverage_complete": true,
+          "scanned_entries": 0,
+          "skipped_entries": 0
+        }
+      },
+      "expected": {
+        "export_version": "water.summary-export.v1",
+        "source_schema_version": "water.scan.v1",
+        "read_only": true,
+        "status": "completed",
+        "counts": {
+          "scopes": 1,
+          "findings": 0,
+          "issues": 0
+        },
+        "risk_counts": {
+          "low": 0,
+          "review": 0,
+          "high": 0,
+          "protected": 0
+        },
+        "category_counts": {
+          "download_cache": 0,
+          "build_cache": 0,
+          "environment": 0,
+          "model": 0,
+          "experiment": 0,
+          "history": 0,
+          "database": 0,
+          "credential": 0,
+          "source": 0,
+          "temporary": 0,
+          "unknown": 0
+        },
+        "totals": {
+          "logical_bytes": null,
+          "allocated_bytes": null,
+          "method": "unavailable",
+          "coverage_complete": true,
+          "scanned_entries": 0,
+          "skipped_entries": 0
+        }
+      }
+    },
+    {
+      "id": "all-categories-canary",
+      "input": {
+        "schema_version": "water.scan.v1",
+        "scan_id": "H_SCAN_CANARY",
+        "status": "completed",
+        "scopes": [
+          {
+            "scope_id": "scope-1",
+            "label": "H_LABEL_CANARY",
+            "platform": "windows",
+            "origin": "user_selected",
+            "coverage": "complete"
+          }
+        ],
+        "findings": [
+          {
+            "finding_id": "H_FINDING_CANARY_0",
+            "scope_id": "scope-1",
+            "relative_path": "H_PATH_CANARY_0",
+            "tool": {
+              "tool_id": "H_TOOL_CANARY",
+              "name": "H_NAME_CANARY",
+              "version": "H_VERSION_CANARY",
+              "root_source": "config"
+            },
+            "rule_version": "H_RULE_CANARY",
+            "category": "download_cache",
+            "risk": "low",
+            "recoverability": "rebuild",
+            "activity": "unknown",
+            "confidence": "native",
+            "evidence": [
+              {
+                "code": "unknown",
+                "source": "heuristic",
+                "summary": "H_EVIDENCE_CANARY"
+              }
+            ],
+            "protection_reasons": [],
+            "references": {
+              "state": "known",
+              "project_ids": [
+                "H_PROJECT_CANARY"
+              ]
+            },
+            "size": {
+              "logical_bytes": "9007199254740993",
+              "allocated_bytes": null,
+              "reclaimable_lower_bytes": null,
+              "reclaimable_upper_bytes": null,
+              "method": "logical_sum",
+              "confidence": "estimated",
+              "shared": "unknown"
+            }
+          },
+          {
+            "finding_id": "H_FINDING_CANARY_1",
+            "scope_id": "scope-1",
+            "relative_path": "H_PATH_CANARY_1",
+            "tool": {
+              "tool_id": "H_TOOL_CANARY",
+              "name": "H_NAME_CANARY",
+              "version": "H_VERSION_CANARY",
+              "root_source": "config"
+            },
+            "rule_version": "H_RULE_CANARY",
+            "category": "build_cache",
+            "risk": "review",
+            "recoverability": "rebuild",
+            "activity": "unknown",
+            "confidence": "native",
+            "evidence": [
+              {
+                "code": "unknown",
+                "source": "heuristic",
+                "summary": "H_EVIDENCE_CANARY"
+              }
+            ],
+            "protection_reasons": [],
+            "references": {
+              "state": "known",
+              "project_ids": [
+                "H_PROJECT_CANARY"
+              ]
+            },
+            "size": {
+              "logical_bytes": "1",
+              "allocated_bytes": null,
+              "reclaimable_lower_bytes": null,
+              "reclaimable_upper_bytes": null,
+              "method": "logical_sum",
+              "confidence": "estimated",
+              "shared": "unknown"
+            }
+          },
+          {
+            "finding_id": "H_FINDING_CANARY_2",
+            "scope_id": "scope-1",
+            "relative_path": "H_PATH_CANARY_2",
+            "tool": {
+              "tool_id": "H_TOOL_CANARY",
+              "name": "H_NAME_CANARY",
+              "version": "H_VERSION_CANARY",
+              "root_source": "config"
+            },
+            "rule_version": "H_RULE_CANARY",
+            "category": "environment",
+            "risk": "high",
+            "recoverability": "rebuild",
+            "activity": "unknown",
+            "confidence": "native",
+            "evidence": [
+              {
+                "code": "unknown",
+                "source": "heuristic",
+                "summary": "H_EVIDENCE_CANARY"
+              }
+            ],
+            "protection_reasons": [],
+            "references": {
+              "state": "known",
+              "project_ids": [
+                "H_PROJECT_CANARY"
+              ]
+            },
+            "size": {
+              "logical_bytes": "1",
+              "allocated_bytes": null,
+              "reclaimable_lower_bytes": null,
+              "reclaimable_upper_bytes": null,
+              "method": "logical_sum",
+              "confidence": "estimated",
+              "shared": "unknown"
+            }
+          },
+          {
+            "finding_id": "H_FINDING_CANARY_3",
+            "scope_id": "scope-1",
+            "relative_path": "H_PATH_CANARY_3",
+            "tool": {
+              "tool_id": "H_TOOL_CANARY",
+              "name": "H_NAME_CANARY",
+              "version": "H_VERSION_CANARY",
+              "root_source": "config"
+            },
+            "rule_version": "H_RULE_CANARY",
+            "category": "temporary",
+            "risk": "protected",
+            "recoverability": "rebuild",
+            "activity": "unknown",
+            "confidence": "native",
+            "evidence": [
+              {
+                "code": "unknown",
+                "source": "heuristic",
+                "summary": "H_EVIDENCE_CANARY"
+              }
+            ],
+            "protection_reasons": [
+              "unique_asset"
+            ],
+            "references": {
+              "state": "known",
+              "project_ids": [
+                "H_PROJECT_CANARY"
+              ]
+            },
+            "size": {
+              "logical_bytes": "1",
+              "allocated_bytes": null,
+              "reclaimable_lower_bytes": null,
+              "reclaimable_upper_bytes": null,
+              "method": "logical_sum",
+              "confidence": "estimated",
+              "shared": "unknown"
+            }
+          },
+          {
+            "finding_id": "H_FINDING_CANARY_4",
+            "scope_id": "scope-1",
+            "relative_path": "H_PATH_CANARY_4",
+            "tool": {
+              "tool_id": "H_TOOL_CANARY",
+              "name": "H_NAME_CANARY",
+              "version": "H_VERSION_CANARY",
+              "root_source": "config"
+            },
+            "rule_version": "H_RULE_CANARY",
+            "category": "model",
+            "risk": "protected",
+            "recoverability": "rebuild",
+            "activity": "unknown",
+            "confidence": "native",
+            "evidence": [
+              {
+                "code": "unknown",
+                "source": "heuristic",
+                "summary": "H_EVIDENCE_CANARY"
+              }
+            ],
+            "protection_reasons": [
+              "unique_asset"
+            ],
+            "references": {
+              "state": "known",
+              "project_ids": [
+                "H_PROJECT_CANARY"
+              ]
+            },
+            "size": {
+              "logical_bytes": "1",
+              "allocated_bytes": null,
+              "reclaimable_lower_bytes": null,
+              "reclaimable_upper_bytes": null,
+              "method": "logical_sum",
+              "confidence": "estimated",
+              "shared": "unknown"
+            }
+          },
+          {
+            "finding_id": "H_FINDING_CANARY_5",
+            "scope_id": "scope-1",
+            "relative_path": "H_PATH_CANARY_5",
+            "tool": {
+              "tool_id": "H_TOOL_CANARY",
+              "name": "H_NAME_CANARY",
+              "version": "H_VERSION_CANARY",
+              "root_source": "config"
+            },
+            "rule_version": "H_RULE_CANARY",
+            "category": "experiment",
+            "risk": "protected",
+            "recoverability": "rebuild",
+            "activity": "unknown",
+            "confidence": "native",
+            "evidence": [
+              {
+                "code": "unknown",
+                "source": "heuristic",
+                "summary": "H_EVIDENCE_CANARY"
+              }
+            ],
+            "protection_reasons": [
+              "unique_asset"
+            ],
+            "references": {
+              "state": "known",
+              "project_ids": [
+                "H_PROJECT_CANARY"
+              ]
+            },
+            "size": {
+              "logical_bytes": "1",
+              "allocated_bytes": null,
+              "reclaimable_lower_bytes": null,
+              "reclaimable_upper_bytes": null,
+              "method": "logical_sum",
+              "confidence": "estimated",
+              "shared": "unknown"
+            }
+          },
+          {
+            "finding_id": "H_FINDING_CANARY_6",
+            "scope_id": "scope-1",
+            "relative_path": "H_PATH_CANARY_6",
+            "tool": {
+              "tool_id": "H_TOOL_CANARY",
+              "name": "H_NAME_CANARY",
+              "version": "H_VERSION_CANARY",
+              "root_source": "config"
+            },
+            "rule_version": "H_RULE_CANARY",
+            "category": "history",
+            "risk": "protected",
+            "recoverability": "rebuild",
+            "activity": "unknown",
+            "confidence": "native",
+            "evidence": [
+              {
+                "code": "unknown",
+                "source": "heuristic",
+                "summary": "H_EVIDENCE_CANARY"
+              }
+            ],
+            "protection_reasons": [
+              "unique_asset"
+            ],
+            "references": {
+              "state": "known",
+              "project_ids": [
+                "H_PROJECT_CANARY"
+              ]
+            },
+            "size": {
+              "logical_bytes": "1",
+              "allocated_bytes": null,
+              "reclaimable_lower_bytes": null,
+              "reclaimable_upper_bytes": null,
+              "method": "logical_sum",
+              "confidence": "estimated",
+              "shared": "unknown"
+            }
+          },
+          {
+            "finding_id": "H_FINDING_CANARY_7",
+            "scope_id": "scope-1",
+            "relative_path": "H_PATH_CANARY_7",
+            "tool": {
+              "tool_id": "H_TOOL_CANARY",
+              "name": "H_NAME_CANARY",
+              "version": "H_VERSION_CANARY",
+              "root_source": "config"
+            },
+            "rule_version": "H_RULE_CANARY",
+            "category": "database",
+            "risk": "protected",
+            "recoverability": "rebuild",
+            "activity": "unknown",
+            "confidence": "native",
+            "evidence": [
+              {
+                "code": "unknown",
+                "source": "heuristic",
+                "summary": "H_EVIDENCE_CANARY"
+              }
+            ],
+            "protection_reasons": [
+              "unique_asset"
+            ],
+            "references": {
+              "state": "known",
+              "project_ids": [
+                "H_PROJECT_CANARY"
+              ]
+            },
+            "size": {
+              "logical_bytes": "1",
+              "allocated_bytes": null,
+              "reclaimable_lower_bytes": null,
+              "reclaimable_upper_bytes": null,
+              "method": "logical_sum",
+              "confidence": "estimated",
+              "shared": "unknown"
+            }
+          },
+          {
+            "finding_id": "H_FINDING_CANARY_8",
+            "scope_id": "scope-1",
+            "relative_path": "H_PATH_CANARY_8",
+            "tool": {
+              "tool_id": "H_TOOL_CANARY",
+              "name": "H_NAME_CANARY",
+              "version": "H_VERSION_CANARY",
+              "root_source": "config"
+            },
+            "rule_version": "H_RULE_CANARY",
+            "category": "credential",
+            "risk": "protected",
+            "recoverability": "rebuild",
+            "activity": "unknown",
+            "confidence": "native",
+            "evidence": [
+              {
+                "code": "unknown",
+                "source": "heuristic",
+                "summary": "H_EVIDENCE_CANARY"
+              }
+            ],
+            "protection_reasons": [
+              "unique_asset"
+            ],
+            "references": {
+              "state": "known",
+              "project_ids": [
+                "H_PROJECT_CANARY"
+              ]
+            },
+            "size": {
+              "logical_bytes": "1",
+              "allocated_bytes": null,
+              "reclaimable_lower_bytes": null,
+              "reclaimable_upper_bytes": null,
+              "method": "logical_sum",
+              "confidence": "estimated",
+              "shared": "unknown"
+            }
+          },
+          {
+            "finding_id": "H_FINDING_CANARY_9",
+            "scope_id": "scope-1",
+            "relative_path": "H_PATH_CANARY_9",
+            "tool": {
+              "tool_id": "H_TOOL_CANARY",
+              "name": "H_NAME_CANARY",
+              "version": "H_VERSION_CANARY",
+              "root_source": "config"
+            },
+            "rule_version": "H_RULE_CANARY",
+            "category": "source",
+            "risk": "protected",
+            "recoverability": "rebuild",
+            "activity": "unknown",
+            "confidence": "native",
+            "evidence": [
+              {
+                "code": "unknown",
+                "source": "heuristic",
+                "summary": "H_EVIDENCE_CANARY"
+              }
+            ],
+            "protection_reasons": [
+              "unique_asset"
+            ],
+            "references": {
+              "state": "known",
+              "project_ids": [
+                "H_PROJECT_CANARY"
+              ]
+            },
+            "size": {
+              "logical_bytes": "1",
+              "allocated_bytes": null,
+              "reclaimable_lower_bytes": null,
+              "reclaimable_upper_bytes": null,
+              "method": "logical_sum",
+              "confidence": "estimated",
+              "shared": "unknown"
+            }
+          },
+          {
+            "finding_id": "H_FINDING_CANARY_10",
+            "scope_id": "scope-1",
+            "relative_path": "H_PATH_CANARY_10",
+            "tool": {
+              "tool_id": "H_TOOL_CANARY",
+              "name": "H_NAME_CANARY",
+              "version": "H_VERSION_CANARY",
+              "root_source": "config"
+            },
+            "rule_version": "H_RULE_CANARY",
+            "category": "unknown",
+            "risk": "protected",
+            "recoverability": "rebuild",
+            "activity": "unknown",
+            "confidence": "native",
+            "evidence": [
+              {
+                "code": "unknown",
+                "source": "heuristic",
+                "summary": "H_EVIDENCE_CANARY"
+              }
+            ],
+            "protection_reasons": [
+              "unique_asset"
+            ],
+            "references": {
+              "state": "known",
+              "project_ids": [
+                "H_PROJECT_CANARY"
+              ]
+            },
+            "size": {
+              "logical_bytes": "1",
+              "allocated_bytes": null,
+              "reclaimable_lower_bytes": null,
+              "reclaimable_upper_bytes": null,
+              "method": "logical_sum",
+              "confidence": "estimated",
+              "shared": "unknown"
+            }
+          }
+        ],
+        "issues": [],
+        "totals": {
+          "logical_bytes": "37",
+          "allocated_bytes": null,
+          "method": "tool_report",
+          "coverage_complete": true,
+          "scanned_entries": 4294967295,
+          "skipped_entries": 4294967295
+        }
+      },
+      "expected": {
+        "export_version": "water.summary-export.v1",
+        "source_schema_version": "water.scan.v1",
+        "read_only": true,
+        "status": "completed",
+        "counts": {
+          "scopes": 1,
+          "findings": 11,
+          "issues": 0
+        },
+        "risk_counts": {
+          "low": 1,
+          "review": 1,
+          "high": 1,
+          "protected": 8
+        },
+        "category_counts": {
+          "download_cache": 1,
+          "build_cache": 1,
+          "environment": 1,
+          "model": 1,
+          "experiment": 1,
+          "history": 1,
+          "database": 1,
+          "credential": 1,
+          "source": 1,
+          "temporary": 1,
+          "unknown": 1
+        },
+        "totals": {
+          "logical_bytes": "37",
+          "allocated_bytes": null,
+          "method": "tool_report",
+          "coverage_complete": true,
+          "scanned_entries": 4294967295,
+          "skipped_entries": 4294967295
+        }
+      }
+    },
+    {
+      "id": "total-0",
+      "input": {
+        "schema_version": "water.scan.v1",
+        "scan_id": "scan-fixture-1",
+        "status": "completed",
+        "scopes": [
+          {
+            "scope_id": "scope-1",
+            "label": "Fixture A",
+            "platform": "windows",
+            "origin": "user_selected",
+            "coverage": "complete"
+          }
+        ],
+        "findings": [
+          {
+            "finding_id": "finding-1",
+            "scope_id": "scope-1",
+            "relative_path": "project/.cache/ruff",
+            "tool": {
+              "tool_id": "ruff",
+              "name": "Ruff fixture",
+              "version": "0.0-fixture",
+              "root_source": "marker"
+            },
+            "rule_version": "1",
+            "category": "build_cache",
+            "risk": "review",
+            "recoverability": "rebuild",
+            "activity": "unknown",
+            "confidence": "verified_structure",
+            "evidence": [
+              {
+                "code": "structure_match",
+                "source": "filesystem",
+                "summary": "Fictional fixture metadata only; not a real scan."
+              }
+            ],
+            "protection_reasons": [],
+            "references": {
+              "state": "unknown",
+              "project_ids": []
+            },
+            "size": {
+              "logical_bytes": "9007199254740993",
+              "allocated_bytes": null,
+              "reclaimable_lower_bytes": null,
+              "reclaimable_upper_bytes": null,
+              "method": "logical_sum",
+              "confidence": "estimated",
+              "shared": "unknown"
+            }
+          }
+        ],
+        "issues": [],
+        "totals": {
+          "logical_bytes": "0",
+          "allocated_bytes": null,
+          "method": "tool_report",
+          "coverage_complete": true,
+          "scanned_entries": 3,
+          "skipped_entries": 0
+        }
+      },
+      "expected": {
+        "export_version": "water.summary-export.v1",
+        "source_schema_version": "water.scan.v1",
+        "read_only": true,
+        "status": "completed",
+        "counts": {
+          "scopes": 1,
+          "findings": 1,
+          "issues": 0
+        },
+        "risk_counts": {
+          "low": 0,
+          "review": 1,
+          "high": 0,
+          "protected": 0
+        },
+        "category_counts": {
+          "download_cache": 0,
+          "build_cache": 1,
+          "environment": 0,
+          "model": 0,
+          "experiment": 0,
+          "history": 0,
+          "database": 0,
+          "credential": 0,
+          "source": 0,
+          "temporary": 0,
+          "unknown": 0
+        },
+        "totals": {
+          "logical_bytes": "0",
+          "allocated_bytes": null,
+          "method": "tool_report",
+          "coverage_complete": true,
+          "scanned_entries": 3,
+          "skipped_entries": 0
+        }
+      }
+    },
+    {
+      "id": "total-9007199254740992",
+      "input": {
+        "schema_version": "water.scan.v1",
+        "scan_id": "scan-fixture-1",
+        "status": "completed",
+        "scopes": [
+          {
+            "scope_id": "scope-1",
+            "label": "Fixture A",
+            "platform": "windows",
+            "origin": "user_selected",
+            "coverage": "complete"
+          }
+        ],
+        "findings": [
+          {
+            "finding_id": "finding-1",
+            "scope_id": "scope-1",
+            "relative_path": "project/.cache/ruff",
+            "tool": {
+              "tool_id": "ruff",
+              "name": "Ruff fixture",
+              "version": "0.0-fixture",
+              "root_source": "marker"
+            },
+            "rule_version": "1",
+            "category": "build_cache",
+            "risk": "review",
+            "recoverability": "rebuild",
+            "activity": "unknown",
+            "confidence": "verified_structure",
+            "evidence": [
+              {
+                "code": "structure_match",
+                "source": "filesystem",
+                "summary": "Fictional fixture metadata only; not a real scan."
+              }
+            ],
+            "protection_reasons": [],
+            "references": {
+              "state": "unknown",
+              "project_ids": []
+            },
+            "size": {
+              "logical_bytes": "9007199254740993",
+              "allocated_bytes": null,
+              "reclaimable_lower_bytes": null,
+              "reclaimable_upper_bytes": null,
+              "method": "logical_sum",
+              "confidence": "estimated",
+              "shared": "unknown"
+            }
+          }
+        ],
+        "issues": [],
+        "totals": {
+          "logical_bytes": "9007199254740992",
+          "allocated_bytes": null,
+          "method": "tool_report",
+          "coverage_complete": true,
+          "scanned_entries": 3,
+          "skipped_entries": 0
+        }
+      },
+      "expected": {
+        "export_version": "water.summary-export.v1",
+        "source_schema_version": "water.scan.v1",
+        "read_only": true,
+        "status": "completed",
+        "counts": {
+          "scopes": 1,
+          "findings": 1,
+          "issues": 0
+        },
+        "risk_counts": {
+          "low": 0,
+          "review": 1,
+          "high": 0,
+          "protected": 0
+        },
+        "category_counts": {
+          "download_cache": 0,
+          "build_cache": 1,
+          "environment": 0,
+          "model": 0,
+          "experiment": 0,
+          "history": 0,
+          "database": 0,
+          "credential": 0,
+          "source": 0,
+          "temporary": 0,
+          "unknown": 0
+        },
+        "totals": {
+          "logical_bytes": "9007199254740992",
+          "allocated_bytes": null,
+          "method": "tool_report",
+          "coverage_complete": true,
+          "scanned_entries": 3,
+          "skipped_entries": 0
+        }
+      }
+    },
+    {
+      "id": "total-9007199254740993",
+      "input": {
+        "schema_version": "water.scan.v1",
+        "scan_id": "scan-fixture-1",
+        "status": "completed",
+        "scopes": [
+          {
+            "scope_id": "scope-1",
+            "label": "Fixture A",
+            "platform": "windows",
+            "origin": "user_selected",
+            "coverage": "complete"
+          }
+        ],
+        "findings": [
+          {
+            "finding_id": "finding-1",
+            "scope_id": "scope-1",
+            "relative_path": "project/.cache/ruff",
+            "tool": {
+              "tool_id": "ruff",
+              "name": "Ruff fixture",
+              "version": "0.0-fixture",
+              "root_source": "marker"
+            },
+            "rule_version": "1",
+            "category": "build_cache",
+            "risk": "review",
+            "recoverability": "rebuild",
+            "activity": "unknown",
+            "confidence": "verified_structure",
+            "evidence": [
+              {
+                "code": "structure_match",
+                "source": "filesystem",
+                "summary": "Fictional fixture metadata only; not a real scan."
+              }
+            ],
+            "protection_reasons": [],
+            "references": {
+              "state": "unknown",
+              "project_ids": []
+            },
+            "size": {
+              "logical_bytes": "9007199254740993",
+              "allocated_bytes": null,
+              "reclaimable_lower_bytes": null,
+              "reclaimable_upper_bytes": null,
+              "method": "logical_sum",
+              "confidence": "estimated",
+              "shared": "unknown"
+            }
+          }
+        ],
+        "issues": [],
+        "totals": {
+          "logical_bytes": "9007199254740993",
+          "allocated_bytes": null,
+          "method": "tool_report",
+          "coverage_complete": true,
+          "scanned_entries": 3,
+          "skipped_entries": 0
+        }
+      },
+      "expected": {
+        "export_version": "water.summary-export.v1",
+        "source_schema_version": "water.scan.v1",
+        "read_only": true,
+        "status": "completed",
+        "counts": {
+          "scopes": 1,
+          "findings": 1,
+          "issues": 0
+        },
+        "risk_counts": {
+          "low": 0,
+          "review": 1,
+          "high": 0,
+          "protected": 0
+        },
+        "category_counts": {
+          "download_cache": 0,
+          "build_cache": 1,
+          "environment": 0,
+          "model": 0,
+          "experiment": 0,
+          "history": 0,
+          "database": 0,
+          "credential": 0,
+          "source": 0,
+          "temporary": 0,
+          "unknown": 0
+        },
+        "totals": {
+          "logical_bytes": "9007199254740993",
+          "allocated_bytes": null,
+          "method": "tool_report",
+          "coverage_complete": true,
+          "scanned_entries": 3,
+          "skipped_entries": 0
+        }
+      }
+    },
+    {
+      "id": "total-18446744073709551615",
+      "input": {
+        "schema_version": "water.scan.v1",
+        "scan_id": "scan-fixture-1",
+        "status": "completed",
+        "scopes": [
+          {
+            "scope_id": "scope-1",
+            "label": "Fixture A",
+            "platform": "windows",
+            "origin": "user_selected",
+            "coverage": "complete"
+          }
+        ],
+        "findings": [
+          {
+            "finding_id": "finding-1",
+            "scope_id": "scope-1",
+            "relative_path": "project/.cache/ruff",
+            "tool": {
+              "tool_id": "ruff",
+              "name": "Ruff fixture",
+              "version": "0.0-fixture",
+              "root_source": "marker"
+            },
+            "rule_version": "1",
+            "category": "build_cache",
+            "risk": "review",
+            "recoverability": "rebuild",
+            "activity": "unknown",
+            "confidence": "verified_structure",
+            "evidence": [
+              {
+                "code": "structure_match",
+                "source": "filesystem",
+                "summary": "Fictional fixture metadata only; not a real scan."
+              }
+            ],
+            "protection_reasons": [],
+            "references": {
+              "state": "unknown",
+              "project_ids": []
+            },
+            "size": {
+              "logical_bytes": "9007199254740993",
+              "allocated_bytes": null,
+              "reclaimable_lower_bytes": null,
+              "reclaimable_upper_bytes": null,
+              "method": "logical_sum",
+              "confidence": "estimated",
+              "shared": "unknown"
+            }
+          }
+        ],
+        "issues": [],
+        "totals": {
+          "logical_bytes": "18446744073709551615",
+          "allocated_bytes": null,
+          "method": "tool_report",
+          "coverage_complete": true,
+          "scanned_entries": 3,
+          "skipped_entries": 0
+        }
+      },
+      "expected": {
+        "export_version": "water.summary-export.v1",
+        "source_schema_version": "water.scan.v1",
+        "read_only": true,
+        "status": "completed",
+        "counts": {
+          "scopes": 1,
+          "findings": 1,
+          "issues": 0
+        },
+        "risk_counts": {
+          "low": 0,
+          "review": 1,
+          "high": 0,
+          "protected": 0
+        },
+        "category_counts": {
+          "download_cache": 0,
+          "build_cache": 1,
+          "environment": 0,
+          "model": 0,
+          "experiment": 0,
+          "history": 0,
+          "database": 0,
+          "credential": 0,
+          "source": 0,
+          "temporary": 0,
+          "unknown": 0
+        },
+        "totals": {
+          "logical_bytes": "18446744073709551615",
+          "allocated_bytes": null,
+          "method": "tool_report",
+          "coverage_complete": true,
+          "scanned_entries": 3,
+          "skipped_entries": 0
+        }
+      }
+    },
+    {
+      "id": "total-unknown",
+      "input": {
+        "schema_version": "water.scan.v1",
+        "scan_id": "scan-fixture-1",
+        "status": "completed",
+        "scopes": [
+          {
+            "scope_id": "scope-1",
+            "label": "Fixture A",
+            "platform": "windows",
+            "origin": "user_selected",
+            "coverage": "complete"
+          }
+        ],
+        "findings": [
+          {
+            "finding_id": "finding-1",
+            "scope_id": "scope-1",
+            "relative_path": "project/.cache/ruff",
+            "tool": {
+              "tool_id": "ruff",
+              "name": "Ruff fixture",
+              "version": "0.0-fixture",
+              "root_source": "marker"
+            },
+            "rule_version": "1",
+            "category": "build_cache",
+            "risk": "review",
+            "recoverability": "rebuild",
+            "activity": "unknown",
+            "confidence": "verified_structure",
+            "evidence": [
+              {
+                "code": "structure_match",
+                "source": "filesystem",
+                "summary": "Fictional fixture metadata only; not a real scan."
+              }
+            ],
+            "protection_reasons": [],
+            "references": {
+              "state": "unknown",
+              "project_ids": []
+            },
+            "size": {
+              "logical_bytes": "9007199254740993",
+              "allocated_bytes": null,
+              "reclaimable_lower_bytes": null,
+              "reclaimable_upper_bytes": null,
+              "method": "logical_sum",
+              "confidence": "estimated",
+              "shared": "unknown"
+            }
+          }
+        ],
+        "issues": [],
+        "totals": {
+          "logical_bytes": null,
+          "allocated_bytes": null,
+          "method": "unavailable",
+          "coverage_complete": true,
+          "scanned_entries": 3,
+          "skipped_entries": 0
+        }
+      },
+      "expected": {
+        "export_version": "water.summary-export.v1",
+        "source_schema_version": "water.scan.v1",
+        "read_only": true,
+        "status": "completed",
+        "counts": {
+          "scopes": 1,
+          "findings": 1,
+          "issues": 0
+        },
+        "risk_counts": {
+          "low": 0,
+          "review": 1,
+          "high": 0,
+          "protected": 0
+        },
+        "category_counts": {
+          "download_cache": 0,
+          "build_cache": 1,
+          "environment": 0,
+          "model": 0,
+          "experiment": 0,
+          "history": 0,
+          "database": 0,
+          "credential": 0,
+          "source": 0,
+          "temporary": 0,
+          "unknown": 0
+        },
+        "totals": {
+          "logical_bytes": null,
+          "allocated_bytes": null,
+          "method": "unavailable",
+          "coverage_complete": true,
+          "scanned_entries": 3,
+          "skipped_entries": 0
+        }
+      }
+    },
+    {
+      "id": "all-fields-partial-canary",
+      "input": {
+        "schema_version": "water.scan.v1",
+        "scan_id": "H_SCAN_CANARY",
+        "status": "partial",
+        "scopes": [
+          {
+            "scope_id": "H_SCOPE_CANARY",
+            "label": "H_LABEL_CANARY",
+            "platform": "windows",
+            "origin": "user_selected",
+            "coverage": "partial"
+          }
+        ],
+        "findings": [
+          {
+            "finding_id": "H_FINDING_CANARY_0",
+            "scope_id": "H_SCOPE_CANARY",
+            "relative_path": "H_PATH_CANARY_0",
+            "tool": {
+              "tool_id": "H_TOOL_CANARY",
+              "name": "H_NAME_CANARY",
+              "version": "H_VERSION_CANARY",
+              "root_source": "config"
+            },
+            "rule_version": "H_RULE_CANARY",
+            "category": "download_cache",
+            "risk": "low",
+            "recoverability": "rebuild",
+            "activity": "unknown",
+            "confidence": "native",
+            "evidence": [
+              {
+                "code": "unknown",
+                "source": "heuristic",
+                "summary": "H_EVIDENCE_CANARY"
+              }
+            ],
+            "protection_reasons": [],
+            "references": {
+              "state": "known",
+              "project_ids": [
+                "H_PROJECT_CANARY"
+              ]
+            },
+            "size": {
+              "logical_bytes": "9007199254740993",
+              "allocated_bytes": null,
+              "reclaimable_lower_bytes": null,
+              "reclaimable_upper_bytes": null,
+              "method": "logical_sum",
+              "confidence": "estimated",
+              "shared": "unknown"
+            }
+          },
+          {
+            "finding_id": "H_FINDING_CANARY_1",
+            "scope_id": "H_SCOPE_CANARY",
+            "relative_path": "H_PATH_CANARY_1",
+            "tool": {
+              "tool_id": "H_TOOL_CANARY",
+              "name": "H_NAME_CANARY",
+              "version": "H_VERSION_CANARY",
+              "root_source": "config"
+            },
+            "rule_version": "H_RULE_CANARY",
+            "category": "build_cache",
+            "risk": "review",
+            "recoverability": "rebuild",
+            "activity": "unknown",
+            "confidence": "native",
+            "evidence": [
+              {
+                "code": "unknown",
+                "source": "heuristic",
+                "summary": "H_EVIDENCE_CANARY"
+              }
+            ],
+            "protection_reasons": [],
+            "references": {
+              "state": "known",
+              "project_ids": [
+                "H_PROJECT_CANARY"
+              ]
+            },
+            "size": {
+              "logical_bytes": "1",
+              "allocated_bytes": null,
+              "reclaimable_lower_bytes": null,
+              "reclaimable_upper_bytes": null,
+              "method": "logical_sum",
+              "confidence": "estimated",
+              "shared": "unknown"
+            }
+          },
+          {
+            "finding_id": "H_FINDING_CANARY_2",
+            "scope_id": "H_SCOPE_CANARY",
+            "relative_path": "H_PATH_CANARY_2",
+            "tool": {
+              "tool_id": "H_TOOL_CANARY",
+              "name": "H_NAME_CANARY",
+              "version": "H_VERSION_CANARY",
+              "root_source": "config"
+            },
+            "rule_version": "H_RULE_CANARY",
+            "category": "environment",
+            "risk": "high",
+            "recoverability": "rebuild",
+            "activity": "unknown",
+            "confidence": "native",
+            "evidence": [
+              {
+                "code": "unknown",
+                "source": "heuristic",
+                "summary": "H_EVIDENCE_CANARY"
+              }
+            ],
+            "protection_reasons": [],
+            "references": {
+              "state": "known",
+              "project_ids": [
+                "H_PROJECT_CANARY"
+              ]
+            },
+            "size": {
+              "logical_bytes": "1",
+              "allocated_bytes": null,
+              "reclaimable_lower_bytes": null,
+              "reclaimable_upper_bytes": null,
+              "method": "logical_sum",
+              "confidence": "estimated",
+              "shared": "unknown"
+            }
+          },
+          {
+            "finding_id": "H_FINDING_CANARY_3",
+            "scope_id": "H_SCOPE_CANARY",
+            "relative_path": "H_PATH_CANARY_3",
+            "tool": {
+              "tool_id": "H_TOOL_CANARY",
+              "name": "H_NAME_CANARY",
+              "version": "H_VERSION_CANARY",
+              "root_source": "config"
+            },
+            "rule_version": "H_RULE_CANARY",
+            "category": "temporary",
+            "risk": "protected",
+            "recoverability": "rebuild",
+            "activity": "unknown",
+            "confidence": "native",
+            "evidence": [
+              {
+                "code": "unknown",
+                "source": "heuristic",
+                "summary": "H_EVIDENCE_CANARY"
+              }
+            ],
+            "protection_reasons": [
+              "unique_asset"
+            ],
+            "references": {
+              "state": "known",
+              "project_ids": [
+                "H_PROJECT_CANARY"
+              ]
+            },
+            "size": {
+              "logical_bytes": "1",
+              "allocated_bytes": null,
+              "reclaimable_lower_bytes": null,
+              "reclaimable_upper_bytes": null,
+              "method": "logical_sum",
+              "confidence": "estimated",
+              "shared": "unknown"
+            }
+          },
+          {
+            "finding_id": "H_FINDING_CANARY_4",
+            "scope_id": "H_SCOPE_CANARY",
+            "relative_path": "H_PATH_CANARY_4",
+            "tool": {
+              "tool_id": "H_TOOL_CANARY",
+              "name": "H_NAME_CANARY",
+              "version": "H_VERSION_CANARY",
+              "root_source": "config"
+            },
+            "rule_version": "H_RULE_CANARY",
+            "category": "model",
+            "risk": "protected",
+            "recoverability": "rebuild",
+            "activity": "unknown",
+            "confidence": "native",
+            "evidence": [
+              {
+                "code": "unknown",
+                "source": "heuristic",
+                "summary": "H_EVIDENCE_CANARY"
+              }
+            ],
+            "protection_reasons": [
+              "unique_asset"
+            ],
+            "references": {
+              "state": "known",
+              "project_ids": [
+                "H_PROJECT_CANARY"
+              ]
+            },
+            "size": {
+              "logical_bytes": "1",
+              "allocated_bytes": null,
+              "reclaimable_lower_bytes": null,
+              "reclaimable_upper_bytes": null,
+              "method": "logical_sum",
+              "confidence": "estimated",
+              "shared": "unknown"
+            }
+          },
+          {
+            "finding_id": "H_FINDING_CANARY_5",
+            "scope_id": "H_SCOPE_CANARY",
+            "relative_path": "H_PATH_CANARY_5",
+            "tool": {
+              "tool_id": "H_TOOL_CANARY",
+              "name": "H_NAME_CANARY",
+              "version": "H_VERSION_CANARY",
+              "root_source": "config"
+            },
+            "rule_version": "H_RULE_CANARY",
+            "category": "experiment",
+            "risk": "protected",
+            "recoverability": "rebuild",
+            "activity": "unknown",
+            "confidence": "native",
+            "evidence": [
+              {
+                "code": "unknown",
+                "source": "heuristic",
+                "summary": "H_EVIDENCE_CANARY"
+              }
+            ],
+            "protection_reasons": [
+              "unique_asset"
+            ],
+            "references": {
+              "state": "known",
+              "project_ids": [
+                "H_PROJECT_CANARY"
+              ]
+            },
+            "size": {
+              "logical_bytes": "1",
+              "allocated_bytes": null,
+              "reclaimable_lower_bytes": null,
+              "reclaimable_upper_bytes": null,
+              "method": "logical_sum",
+              "confidence": "estimated",
+              "shared": "unknown"
+            }
+          },
+          {
+            "finding_id": "H_FINDING_CANARY_6",
+            "scope_id": "H_SCOPE_CANARY",
+            "relative_path": "H_PATH_CANARY_6",
+            "tool": {
+              "tool_id": "H_TOOL_CANARY",
+              "name": "H_NAME_CANARY",
+              "version": "H_VERSION_CANARY",
+              "root_source": "config"
+            },
+            "rule_version": "H_RULE_CANARY",
+            "category": "history",
+            "risk": "protected",
+            "recoverability": "rebuild",
+            "activity": "unknown",
+            "confidence": "native",
+            "evidence": [
+              {
+                "code": "unknown",
+                "source": "heuristic",
+                "summary": "H_EVIDENCE_CANARY"
+              }
+            ],
+            "protection_reasons": [
+              "unique_asset"
+            ],
+            "references": {
+              "state": "known",
+              "project_ids": [
+                "H_PROJECT_CANARY"
+              ]
+            },
+            "size": {
+              "logical_bytes": "1",
+              "allocated_bytes": null,
+              "reclaimable_lower_bytes": null,
+              "reclaimable_upper_bytes": null,
+              "method": "logical_sum",
+              "confidence": "estimated",
+              "shared": "unknown"
+            }
+          },
+          {
+            "finding_id": "H_FINDING_CANARY_7",
+            "scope_id": "H_SCOPE_CANARY",
+            "relative_path": "H_PATH_CANARY_7",
+            "tool": {
+              "tool_id": "H_TOOL_CANARY",
+              "name": "H_NAME_CANARY",
+              "version": "H_VERSION_CANARY",
+              "root_source": "config"
+            },
+            "rule_version": "H_RULE_CANARY",
+            "category": "database",
+            "risk": "protected",
+            "recoverability": "rebuild",
+            "activity": "unknown",
+            "confidence": "native",
+            "evidence": [
+              {
+                "code": "unknown",
+                "source": "heuristic",
+                "summary": "H_EVIDENCE_CANARY"
+              }
+            ],
+            "protection_reasons": [
+              "unique_asset"
+            ],
+            "references": {
+              "state": "known",
+              "project_ids": [
+                "H_PROJECT_CANARY"
+              ]
+            },
+            "size": {
+              "logical_bytes": "1",
+              "allocated_bytes": null,
+              "reclaimable_lower_bytes": null,
+              "reclaimable_upper_bytes": null,
+              "method": "logical_sum",
+              "confidence": "estimated",
+              "shared": "unknown"
+            }
+          },
+          {
+            "finding_id": "H_FINDING_CANARY_8",
+            "scope_id": "H_SCOPE_CANARY",
+            "relative_path": "H_PATH_CANARY_8",
+            "tool": {
+              "tool_id": "H_TOOL_CANARY",
+              "name": "H_NAME_CANARY",
+              "version": "H_VERSION_CANARY",
+              "root_source": "config"
+            },
+            "rule_version": "H_RULE_CANARY",
+            "category": "credential",
+            "risk": "protected",
+            "recoverability": "rebuild",
+            "activity": "unknown",
+            "confidence": "native",
+            "evidence": [
+              {
+                "code": "unknown",
+                "source": "heuristic",
+                "summary": "H_EVIDENCE_CANARY"
+              }
+            ],
+            "protection_reasons": [
+              "unique_asset"
+            ],
+            "references": {
+              "state": "known",
+              "project_ids": [
+                "H_PROJECT_CANARY"
+              ]
+            },
+            "size": {
+              "logical_bytes": "1",
+              "allocated_bytes": null,
+              "reclaimable_lower_bytes": null,
+              "reclaimable_upper_bytes": null,
+              "method": "logical_sum",
+              "confidence": "estimated",
+              "shared": "unknown"
+            }
+          },
+          {
+            "finding_id": "H_FINDING_CANARY_9",
+            "scope_id": "H_SCOPE_CANARY",
+            "relative_path": "H_PATH_CANARY_9",
+            "tool": {
+              "tool_id": "H_TOOL_CANARY",
+              "name": "H_NAME_CANARY",
+              "version": "H_VERSION_CANARY",
+              "root_source": "config"
+            },
+            "rule_version": "H_RULE_CANARY",
+            "category": "source",
+            "risk": "protected",
+            "recoverability": "rebuild",
+            "activity": "unknown",
+            "confidence": "native",
+            "evidence": [
+              {
+                "code": "unknown",
+                "source": "heuristic",
+                "summary": "H_EVIDENCE_CANARY"
+              }
+            ],
+            "protection_reasons": [
+              "unique_asset"
+            ],
+            "references": {
+              "state": "known",
+              "project_ids": [
+                "H_PROJECT_CANARY"
+              ]
+            },
+            "size": {
+              "logical_bytes": "1",
+              "allocated_bytes": null,
+              "reclaimable_lower_bytes": null,
+              "reclaimable_upper_bytes": null,
+              "method": "logical_sum",
+              "confidence": "estimated",
+              "shared": "unknown"
+            }
+          },
+          {
+            "finding_id": "H_FINDING_CANARY_10",
+            "scope_id": "H_SCOPE_CANARY",
+            "relative_path": "H_PATH_CANARY_10",
+            "tool": {
+              "tool_id": "H_TOOL_CANARY",
+              "name": "H_NAME_CANARY",
+              "version": "H_VERSION_CANARY",
+              "root_source": "config"
+            },
+            "rule_version": "H_RULE_CANARY",
+            "category": "unknown",
+            "risk": "protected",
+            "recoverability": "rebuild",
+            "activity": "unknown",
+            "confidence": "native",
+            "evidence": [
+              {
+                "code": "unknown",
+                "source": "heuristic",
+                "summary": "H_EVIDENCE_CANARY"
+              }
+            ],
+            "protection_reasons": [
+              "unique_asset"
+            ],
+            "references": {
+              "state": "known",
+              "project_ids": [
+                "H_PROJECT_CANARY"
+              ]
+            },
+            "size": {
+              "logical_bytes": "1",
+              "allocated_bytes": null,
+              "reclaimable_lower_bytes": null,
+              "reclaimable_upper_bytes": null,
+              "method": "logical_sum",
+              "confidence": "estimated",
+              "shared": "unknown"
+            }
+          }
+        ],
+        "issues": [
+          {
+            "code": "io_error",
+            "scope_id": "H_SCOPE_CANARY",
+            "relative_path": "H_ISSUE_PATH_CANARY",
+            "message": "H_ISSUE_MESSAGE_CANARY"
+          }
+        ],
+        "totals": {
+          "logical_bytes": "37",
+          "allocated_bytes": null,
+          "method": "tool_report",
+          "coverage_complete": false,
+          "scanned_entries": 4294967295,
+          "skipped_entries": 4294967295
+        }
+      },
+      "expected": {
+        "export_version": "water.summary-export.v1",
+        "source_schema_version": "water.scan.v1",
+        "read_only": true,
+        "status": "partial",
+        "counts": {
+          "scopes": 1,
+          "findings": 11,
+          "issues": 1
+        },
+        "risk_counts": {
+          "low": 1,
+          "review": 1,
+          "high": 1,
+          "protected": 8
+        },
+        "category_counts": {
+          "download_cache": 1,
+          "build_cache": 1,
+          "environment": 1,
+          "model": 1,
+          "experiment": 1,
+          "history": 1,
+          "database": 1,
+          "credential": 1,
+          "source": 1,
+          "temporary": 1,
+          "unknown": 1
+        },
+        "totals": {
+          "logical_bytes": "37",
+          "allocated_bytes": null,
+          "method": "tool_report",
+          "coverage_complete": false,
+          "scanned_entries": 4294967295,
+          "skipped_entries": 4294967295
+        }
+      }
+    }
+  ],
+  "canaries": [
+    "H_SCAN_CANARY",
+    "H_LABEL_CANARY",
+    "H_FINDING_CANARY",
+    "H_PATH_CANARY",
+    "H_TOOL_CANARY",
+    "H_NAME_CANARY",
+    "H_VERSION_CANARY",
+    "H_RULE_CANARY",
+    "H_EVIDENCE_CANARY",
+    "H_PROJECT_CANARY",
+    "H_SCOPE_CANARY",
+    "H_ISSUE_PATH_CANARY",
+    "H_ISSUE_MESSAGE_CANARY"
+  ],
+  "constructed_cases": [
+    "unsafe classification",
+    "unknown scope",
+    "inconsistent coverage",
+    "invalid size",
+    "overlong summary",
+    "excess scope count"
+  ],
+  "raw_cases": [
+    {
+      "id": "bad_json",
+      "input": "{",
+      "code": "InvalidJson"
+    },
+    {
+      "id": "root_array",
+      "input": "[]",
+      "code": "InvalidShape"
+    },
+    {
+      "id": "duplicate_schema",
+      "input": "{\"schema_version\":\"water.scan.v1\",\"schema_version\":\"water.scan.v1\",\"scan_id\":\"scan-fixture-1\",\"status\":\"completed\",\"scopes\":[{\"scope_id\":\"scope-1\",\"label\":\"Fixture A\",\"platform\":\"windows\",\"origin\":\"user_selected\",\"coverage\":\"complete\"}],\"findings\":[{\"finding_id\":\"finding-1\",\"scope_id\":\"scope-1\",\"relative_path\":\"project/.cache/ruff\",\"tool\":{\"tool_id\":\"ruff\",\"name\":\"Ruff fixture\",\"version\":\"0.0-fixture\",\"root_source\":\"marker\"},\"rule_version\":\"1\",\"category\":\"build_cache\",\"risk\":\"review\",\"recoverability\":\"rebuild\",\"activity\":\"unknown\",\"confidence\":\"verified_structure\",\"evidence\":[{\"code\":\"structure_match\",\"source\":\"filesystem\",\"summary\":\"Fictional fixture metadata only; not a real scan.\"}],\"protection_reasons\":[],\"references\":{\"state\":\"unknown\",\"project_ids\":[]},\"size\":{\"logical_bytes\":\"9007199254740993\",\"allocated_bytes\":null,\"reclaimable_lower_bytes\":null,\"reclaimable_upper_bytes\":null,\"method\":\"logical_sum\",\"confidence\":\"estimated\",\"shared\":\"unknown\"}}],\"issues\":[],\"totals\":{\"logical_bytes\":null,\"allocated_bytes\":null,\"method\":\"unavailable\",\"coverage_complete\":true,\"scanned_entries\":3,\"skipped_entries\":0}}",
+      "code": "InvalidShape"
+    },
+    {
+      "id": "object_enum",
+      "input": "{\"schema_version\":{\"water.scan.v1\":null},\"scan_id\":\"scan-fixture-1\",\"status\":\"completed\",\"scopes\":[{\"scope_id\":\"scope-1\",\"label\":\"Fixture A\",\"platform\":\"windows\",\"origin\":\"user_selected\",\"coverage\":\"complete\"}],\"findings\":[{\"finding_id\":\"finding-1\",\"scope_id\":\"scope-1\",\"relative_path\":\"project/.cache/ruff\",\"tool\":{\"tool_id\":\"ruff\",\"name\":\"Ruff fixture\",\"version\":\"0.0-fixture\",\"root_source\":\"marker\"},\"rule_version\":\"1\",\"category\":\"build_cache\",\"risk\":\"review\",\"recoverability\":\"rebuild\",\"activity\":\"unknown\",\"confidence\":\"verified_structure\",\"evidence\":[{\"code\":\"structure_match\",\"source\":\"filesystem\",\"summary\":\"Fictional fixture metadata only; not a real scan.\"}],\"protection_reasons\":[],\"references\":{\"state\":\"unknown\",\"project_ids\":[]},\"size\":{\"logical_bytes\":\"9007199254740993\",\"allocated_bytes\":null,\"reclaimable_lower_bytes\":null,\"reclaimable_upper_bytes\":null,\"method\":\"logical_sum\",\"confidence\":\"estimated\",\"shared\":\"unknown\"}}],\"issues\":[],\"totals\":{\"logical_bytes\":null,\"allocated_bytes\":null,\"method\":\"unavailable\",\"coverage_complete\":true,\"scanned_entries\":3,\"skipped_entries\":0}}",
+      "code": "InvalidShape"
+    },
+    {
+      "id": "missing_nullable",
+      "input": "{\"schema_version\":\"water.scan.v1\",\"scan_id\":\"scan-fixture-1\",\"status\":\"completed\",\"scopes\":[{\"scope_id\":\"scope-1\",\"label\":\"Fixture A\",\"platform\":\"windows\",\"origin\":\"user_selected\",\"coverage\":\"complete\"}],\"findings\":[{\"finding_id\":\"finding-1\",\"scope_id\":\"scope-1\",\"relative_path\":\"project/.cache/ruff\",\"tool\":{\"tool_id\":\"ruff\",\"name\":\"Ruff fixture\",\"root_source\":\"marker\"},\"rule_version\":\"1\",\"category\":\"build_cache\",\"risk\":\"review\",\"recoverability\":\"rebuild\",\"activity\":\"unknown\",\"confidence\":\"verified_structure\",\"evidence\":[{\"code\":\"structure_match\",\"source\":\"filesystem\",\"summary\":\"Fictional fixture metadata only; not a real scan.\"}],\"protection_reasons\":[],\"references\":{\"state\":\"unknown\",\"project_ids\":[]},\"size\":{\"logical_bytes\":\"9007199254740993\",\"allocated_bytes\":null,\"reclaimable_lower_bytes\":null,\"reclaimable_upper_bytes\":null,\"method\":\"logical_sum\",\"confidence\":\"estimated\",\"shared\":\"unknown\"}}],\"issues\":[],\"totals\":{\"logical_bytes\":null,\"allocated_bytes\":null,\"method\":\"unavailable\",\"coverage_complete\":true,\"scanned_entries\":3,\"skipped_entries\":0}}",
+      "code": "InvalidShape"
+    },
+    {
+      "id": "canary_enum",
+      "input": "{\"schema_version\":\"water.scan.v1\",\"scan_id\":\"scan-fixture-1\",\"status\":\"completed\",\"scopes\":[{\"scope_id\":\"scope-1\",\"label\":\"Fixture A\",\"platform\":\"windows\",\"origin\":\"user_selected\",\"coverage\":\"complete\"}],\"findings\":[{\"finding_id\":\"finding-1\",\"scope_id\":\"scope-1\",\"relative_path\":\"project/.cache/ruff\",\"tool\":{\"tool_id\":\"ruff\",\"name\":\"Ruff fixture\",\"version\":\"0.0-fixture\",\"root_source\":\"marker\"},\"rule_version\":\"1\",\"category\":\"DO_NOT_ECHO_CANARY_7f98\",\"risk\":\"review\",\"recoverability\":\"rebuild\",\"activity\":\"unknown\",\"confidence\":\"verified_structure\",\"evidence\":[{\"code\":\"structure_match\",\"source\":\"filesystem\",\"summary\":\"Fictional fixture metadata only; not a real scan.\"}],\"protection_reasons\":[],\"references\":{\"state\":\"unknown\",\"project_ids\":[]},\"size\":{\"logical_bytes\":\"9007199254740993\",\"allocated_bytes\":null,\"reclaimable_lower_bytes\":null,\"reclaimable_upper_bytes\":null,\"method\":\"logical_sum\",\"confidence\":\"estimated\",\"shared\":\"unknown\"}}],\"issues\":[],\"totals\":{\"logical_bytes\":null,\"allocated_bytes\":null,\"method\":\"unavailable\",\"coverage_complete\":true,\"scanned_entries\":3,\"skipped_entries\":0}}",
+      "code": "InvalidShape"
+    }
+  ]
+}
