@@ -2,6 +2,8 @@
 
 更新时间：2026-10-17。
 
+本次总控接手的结果与下一条外贴指令见[接手验收摘要](CONTROLLER-HANDOFF-20261017.md)；当前任务状态仍以本页和registry/manifest为准。
+
 ## 已确认
 
 - 用户授权正式立项，项目根为 `F:/new/smaltalk/water`，总控为 Codex。
