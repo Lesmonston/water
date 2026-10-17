@@ -109,10 +109,17 @@ try {
     assert(pkg.targets.some((t) => t.name === 'view_v1' && t.kind.includes('test'))); assert(pkg.targets.every((t) => !t.kind.includes('custom-build')));
     assert.equal(pkg.dependencies.length, 3); assert(pkg.dependencies.every((d) => d.kind === null));
     for (const [name, req] of [['serde', '=1.0.229'], ['serde_json', '=1.0.151']]) assert.equal(pkg.dependencies.find((d) => d.name === name)?.req, req);
+    for (const name of ['serde', 'serde_json']) {
+      const dependency = pkg.dependencies.find((d) => d.name === name);
+      assert(!dependency.path && dependency.source === 'registry+https://github.com/rust-lang/crates.io-index', 'Registry dependency replaced by a local/source override');
+    }
     assert.deepEqual(pkg.dependencies.find((d) => d.name === 'serde').features, ['derive']);
     assert.deepEqual(pkg.dependencies.find((d) => d.name === 'serde_json').features, []);
     assert(pkg.dependencies.every((d) => d.optional === false && d.uses_default_features === true));
-    const a = pkg.dependencies.find((d) => d.name === 'water-contracts'); assert(a && a.path && same(a.path, join(root, 'crates/water-contracts')));
+    const a = pkg.dependencies.find((d) => d.name === 'water-contracts'); assert(a && a.source === null && a.path && same(a.path, join(root, 'crates/water-contracts')));
+    const localPackages = meta.packages.filter((p) => p.source === null);
+    assert.deepEqual(localPackages.map((p) => p.name).sort(), ['water-contracts', 'water-report-view']);
+    assert(same(localPackages.find((p) => p.name === 'water-contracts').manifest_path, join(root, 'crates/water-contracts/Cargo.toml')));
     const lockEntries = (path) => readFileSync(path, 'utf8').split('[[package]]').map((block) => ({ name: /^name = "([^"]+)"/m.exec(block)?.[1], version: /^version = "([^"]+)"/m.exec(block)?.[1], source: /^source = "([^"]+)"/m.exec(block)?.[1], checksum: /^checksum = "([^"]+)"/m.exec(block)?.[1] }));
     const locked = lockEntries(join(root, 'Cargo.lock')), ownLock = lockEntries(join(root, 'packages/report-view/Cargo.lock'));
     for (const p of meta.packages.filter((p) => p.source !== null)) {
