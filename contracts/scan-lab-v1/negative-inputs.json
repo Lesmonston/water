@@ -1,0 +1,71 @@
+{
+  "invalid_run_ids": [
+    "",
+    "run-",
+    "run-UPPER",
+    "../escape",
+    "run-a/child",
+    "run-a\\child",
+    "C:/outside",
+    "/outside",
+    "run-a\n",
+    "run-a\r",
+    "run-a ",
+    "run-a ",
+    "run-..",
+    "run-aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa"
+  ],
+  "negative_fixtures": [
+    {
+      "id": "traversal_marker",
+      "expected": "InvalidMarker"
+    },
+    {
+      "id": "duplicate_marker",
+      "expected": "InvalidMarker"
+    },
+    {
+      "id": "oversized_marker",
+      "expected": "InvalidMarker"
+    },
+    {
+      "id": "missing_marker",
+      "expected": "InvalidMarker"
+    },
+    {
+      "id": "linked_run",
+      "expected": "UnsafeRoot"
+    },
+    {
+      "id": "linked_ancestor",
+      "expected": "UnsafeRoot"
+    }
+  ],
+  "invalid_options": [
+    {
+      "max_depth": 65,
+      "max_entries": 10,
+      "max_dir_entries": 10
+    },
+    {
+      "max_depth": 0,
+      "max_entries": 0,
+      "max_dir_entries": 10
+    },
+    {
+      "max_depth": 0,
+      "max_entries": 10001,
+      "max_dir_entries": 10
+    },
+    {
+      "max_depth": 0,
+      "max_entries": 1,
+      "max_dir_entries": 0
+    },
+    {
+      "max_depth": 0,
+      "max_entries": 1,
+      "max_dir_entries": 1025
+    }
+  ]
+}

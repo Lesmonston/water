@@ -1,0 +1,550 @@
+{
+  "facts_version": "water.scan-lab.v1",
+  "note": "Native runs do not apply declarative permission/cancel faults. Unsupported physical links are filtered from expected entries by the helper.",
+  "cases": [
+    {
+      "case_id": "project-markers",
+      "options": {
+        "max_depth": 16,
+        "max_entries": 128,
+        "max_dir_entries": 1024
+      },
+      "scopes": [
+        {
+          "scope_id": "scope-1",
+          "relative_root": "scope",
+          "native_entries": [
+            {
+              "relative_path": ".git",
+              "run_relative_path": "scope/.git",
+              "kind": "directory",
+              "depth": 1,
+              "logical_bytes": null
+            },
+            {
+              "relative_path": ".git/HEAD",
+              "run_relative_path": "scope/.git/HEAD",
+              "kind": "file",
+              "depth": 2,
+              "logical_bytes": "26"
+            },
+            {
+              "relative_path": "package.json",
+              "run_relative_path": "scope/package.json",
+              "kind": "file",
+              "depth": 1,
+              "logical_bytes": "50"
+            },
+            {
+              "relative_path": "pyproject.toml",
+              "run_relative_path": "scope/pyproject.toml",
+              "kind": "file",
+              "depth": 1,
+              "logical_bytes": "61"
+            },
+            {
+              "relative_path": "src",
+              "run_relative_path": "scope/src",
+              "kind": "directory",
+              "depth": 1,
+              "logical_bytes": null
+            },
+            {
+              "relative_path": "src/main.py",
+              "run_relative_path": "scope/src/main.py",
+              "kind": "file",
+              "depth": 2,
+              "logical_bytes": "36"
+            }
+          ],
+          "native_coverage": "complete",
+          "native_issues": []
+        }
+      ]
+    },
+    {
+      "case_id": "mixed-assets",
+      "options": {
+        "max_depth": 16,
+        "max_entries": 128,
+        "max_dir_entries": 1024
+      },
+      "scopes": [
+        {
+          "scope_id": "scope-1",
+          "relative_root": "scope",
+          "native_entries": [
+            {
+              "relative_path": "cache",
+              "run_relative_path": "scope/cache",
+              "kind": "directory",
+              "depth": 1,
+              "logical_bytes": null
+            },
+            {
+              "relative_path": "cache/README.txt",
+              "run_relative_path": "scope/cache/README.txt",
+              "kind": "file",
+              "depth": 2,
+              "logical_bytes": "51"
+            },
+            {
+              "relative_path": "cache/credentials",
+              "run_relative_path": "scope/cache/credentials",
+              "kind": "directory",
+              "depth": 2,
+              "logical_bytes": null
+            },
+            {
+              "relative_path": "cache/credentials/token.txt",
+              "run_relative_path": "scope/cache/credentials/token.txt",
+              "kind": "file",
+              "depth": 3,
+              "logical_bytes": "35"
+            },
+            {
+              "relative_path": "cache/data",
+              "run_relative_path": "scope/cache/data",
+              "kind": "directory",
+              "depth": 2,
+              "logical_bytes": null
+            },
+            {
+              "relative_path": "cache/data/index.sqlite",
+              "run_relative_path": "scope/cache/data/index.sqlite",
+              "kind": "file",
+              "depth": 3,
+              "logical_bytes": "20"
+            },
+            {
+              "relative_path": "cache/history",
+              "run_relative_path": "scope/cache/history",
+              "kind": "directory",
+              "depth": 2,
+              "logical_bytes": null
+            },
+            {
+              "relative_path": "cache/history/session.json",
+              "run_relative_path": "scope/cache/history/session.json",
+              "kind": "file",
+              "depth": 3,
+              "logical_bytes": "45"
+            },
+            {
+              "relative_path": "cache/models",
+              "run_relative_path": "scope/cache/models",
+              "kind": "directory",
+              "depth": 2,
+              "logical_bytes": null
+            },
+            {
+              "relative_path": "cache/models/custom.gguf",
+              "run_relative_path": "scope/cache/models/custom.gguf",
+              "kind": "file",
+              "depth": 3,
+              "logical_bytes": "17"
+            }
+          ],
+          "native_coverage": "complete",
+          "native_issues": []
+        }
+      ]
+    },
+    {
+      "case_id": "scope-prefix",
+      "options": {
+        "max_depth": 16,
+        "max_entries": 128,
+        "max_dir_entries": 1024
+      },
+      "scopes": [
+        {
+          "scope_id": "scope-1",
+          "relative_root": "scope",
+          "native_entries": [
+            {
+              "relative_path": "inside.txt",
+              "run_relative_path": "scope/inside.txt",
+              "kind": "file",
+              "depth": 1,
+              "logical_bytes": "17"
+            }
+          ],
+          "native_coverage": "complete",
+          "native_issues": []
+        }
+      ]
+    },
+    {
+      "case_id": "overlapping-scopes",
+      "options": {
+        "max_depth": 16,
+        "max_entries": 128,
+        "max_dir_entries": 1024
+      },
+      "scopes": [
+        {
+          "scope_id": "scope-outer",
+          "relative_root": "scope",
+          "native_entries": [
+            {
+              "relative_path": "nested",
+              "run_relative_path": "scope/nested",
+              "kind": "directory",
+              "depth": 1,
+              "logical_bytes": null
+            },
+            {
+              "relative_path": "nested/shared.txt",
+              "run_relative_path": "scope/nested/shared.txt",
+              "kind": "file",
+              "depth": 2,
+              "logical_bytes": "26"
+            },
+            {
+              "relative_path": "root.txt",
+              "run_relative_path": "scope/root.txt",
+              "kind": "file",
+              "depth": 1,
+              "logical_bytes": "5"
+            }
+          ],
+          "native_coverage": "complete",
+          "native_issues": []
+        },
+        {
+          "scope_id": "scope-inner",
+          "relative_root": "scope/nested",
+          "native_entries": [
+            {
+              "relative_path": "shared.txt",
+              "run_relative_path": "scope/nested/shared.txt",
+              "kind": "file",
+              "depth": 1,
+              "logical_bytes": "26"
+            }
+          ],
+          "native_coverage": "complete",
+          "native_issues": []
+        }
+      ]
+    },
+    {
+      "case_id": "unicode-spaces",
+      "options": {
+        "max_depth": 16,
+        "max_entries": 128,
+        "max_dir_entries": 1024
+      },
+      "scopes": [
+        {
+          "scope_id": "scope-1",
+          "relative_root": "scope",
+          "native_entries": [
+            {
+              "relative_path": "资料 空格",
+              "run_relative_path": "scope/资料 空格",
+              "kind": "directory",
+              "depth": 1,
+              "logical_bytes": null
+            },
+            {
+              "relative_path": "资料 空格/café-😀.txt",
+              "run_relative_path": "scope/资料 空格/café-😀.txt",
+              "kind": "file",
+              "depth": 2,
+              "logical_bytes": "36"
+            }
+          ],
+          "native_coverage": "complete",
+          "native_issues": []
+        }
+      ]
+    },
+    {
+      "case_id": "hardlink-pair",
+      "options": {
+        "max_depth": 16,
+        "max_entries": 128,
+        "max_dir_entries": 1024
+      },
+      "scopes": [
+        {
+          "scope_id": "scope-1",
+          "relative_root": "scope",
+          "native_entries": [
+            {
+              "relative_path": "alias.bin",
+              "run_relative_path": "scope/alias.bin",
+              "kind": "file",
+              "depth": 1,
+              "logical_bytes": "8"
+            },
+            {
+              "relative_path": "original.bin",
+              "run_relative_path": "scope/original.bin",
+              "kind": "file",
+              "depth": 1,
+              "logical_bytes": "8"
+            }
+          ],
+          "native_coverage": "complete",
+          "native_issues": []
+        }
+      ]
+    },
+    {
+      "case_id": "directory-links",
+      "options": {
+        "max_depth": 16,
+        "max_entries": 128,
+        "max_dir_entries": 1024
+      },
+      "scopes": [
+        {
+          "scope_id": "scope-1",
+          "relative_root": "scope",
+          "native_entries": [
+            {
+              "relative_path": "inside.txt",
+              "run_relative_path": "scope/inside.txt",
+              "kind": "file",
+              "depth": 1,
+              "logical_bytes": "7"
+            },
+            {
+              "relative_path": "junction-outside",
+              "run_relative_path": "scope/junction-outside",
+              "kind": "link",
+              "depth": 1,
+              "logical_bytes": null
+            },
+            {
+              "relative_path": "symbolic-outside",
+              "run_relative_path": "scope/symbolic-outside",
+              "kind": "link",
+              "depth": 1,
+              "logical_bytes": null
+            }
+          ],
+          "native_coverage": "complete",
+          "native_issues": []
+        }
+      ]
+    },
+    {
+      "case_id": "depth-budget",
+      "options": {
+        "max_depth": 2,
+        "max_entries": 128,
+        "max_dir_entries": 1024
+      },
+      "scopes": [
+        {
+          "scope_id": "scope-1",
+          "relative_root": "scope",
+          "native_entries": [
+            {
+              "relative_path": "l1",
+              "run_relative_path": "scope/l1",
+              "kind": "directory",
+              "depth": 1,
+              "logical_bytes": null
+            },
+            {
+              "relative_path": "l1/l2",
+              "run_relative_path": "scope/l1/l2",
+              "kind": "directory",
+              "depth": 2,
+              "logical_bytes": null
+            },
+            {
+              "relative_path": "root.txt",
+              "run_relative_path": "scope/root.txt",
+              "kind": "file",
+              "depth": 1,
+              "logical_bytes": "8"
+            }
+          ],
+          "native_coverage": "partial",
+          "native_issues": [
+            {
+              "code": "depth_limit",
+              "relative_path": "l1/l2",
+              "origin": "policy",
+              "operation": "budget"
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "case_id": "entry-budget",
+      "options": {
+        "max_depth": 16,
+        "max_entries": 2,
+        "max_dir_entries": 1024
+      },
+      "scopes": [
+        {
+          "scope_id": "scope-1",
+          "relative_root": "scope",
+          "native_entries": [
+            {
+              "relative_path": "a.txt",
+              "run_relative_path": "scope/a.txt",
+              "kind": "file",
+              "depth": 1,
+              "logical_bytes": "2"
+            },
+            {
+              "relative_path": "b.txt",
+              "run_relative_path": "scope/b.txt",
+              "kind": "file",
+              "depth": 1,
+              "logical_bytes": "2"
+            }
+          ],
+          "native_coverage": "partial",
+          "native_issues": [
+            {
+              "code": "entry_limit",
+              "relative_path": "",
+              "origin": "policy",
+              "operation": "budget"
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "case_id": "permission-plan",
+      "options": {
+        "max_depth": 16,
+        "max_entries": 128,
+        "max_dir_entries": 1024
+      },
+      "scopes": [
+        {
+          "scope_id": "scope-1",
+          "relative_root": "scope",
+          "native_entries": [
+            {
+              "relative_path": "a.txt",
+              "run_relative_path": "scope/a.txt",
+              "kind": "file",
+              "depth": 1,
+              "logical_bytes": "9"
+            },
+            {
+              "relative_path": "blocked",
+              "run_relative_path": "scope/blocked",
+              "kind": "directory",
+              "depth": 1,
+              "logical_bytes": null
+            },
+            {
+              "relative_path": "blocked/synthetic.txt",
+              "run_relative_path": "scope/blocked/synthetic.txt",
+              "kind": "file",
+              "depth": 2,
+              "logical_bytes": "27"
+            }
+          ],
+          "native_coverage": "complete",
+          "native_issues": []
+        }
+      ]
+    },
+    {
+      "case_id": "cancel-plan",
+      "options": {
+        "max_depth": 16,
+        "max_entries": 128,
+        "max_dir_entries": 1024
+      },
+      "scopes": [
+        {
+          "scope_id": "scope-1",
+          "relative_root": "scope",
+          "native_entries": [
+            {
+              "relative_path": "a.txt",
+              "run_relative_path": "scope/a.txt",
+              "kind": "file",
+              "depth": 1,
+              "logical_bytes": "6"
+            },
+            {
+              "relative_path": "b.txt",
+              "run_relative_path": "scope/b.txt",
+              "kind": "file",
+              "depth": 1,
+              "logical_bytes": "7"
+            },
+            {
+              "relative_path": "c.txt",
+              "run_relative_path": "scope/c.txt",
+              "kind": "file",
+              "depth": 1,
+              "logical_bytes": "6"
+            }
+          ],
+          "native_coverage": "complete",
+          "native_issues": []
+        }
+      ]
+    }
+  ],
+  "controlled_overrides": {
+    "permission-plan": {
+      "entries": [
+        "a.txt",
+        "blocked"
+      ],
+      "coverage": "partial",
+      "issues": [
+        {
+          "code": "permission_denied",
+          "relative_path": "blocked",
+          "origin": "injected",
+          "operation": "read_dir"
+        }
+      ]
+    },
+    "cancel-plan": {
+      "entries": [
+        "a.txt"
+      ],
+      "coverage": "cancelled",
+      "issues": [
+        {
+          "code": "cancelled",
+          "relative_path": "",
+          "origin": "control",
+          "operation": "cancel"
+        }
+      ]
+    }
+  },
+  "boundaries": {
+    "flat_exact_entry_budget": "completed without entry_limit when no next candidate",
+    "flat_cancel_after_last_record": "completed",
+    "overlap_budget_3": {
+      "outer_entries": 3,
+      "inner_entries": 0,
+      "status": "partial"
+    },
+    "max_depth_zero": {
+      "entries": 0,
+      "code": "depth_limit",
+      "relative_path": ""
+    },
+    "directory_batch_limit": {
+      "entries": 0,
+      "code": "entry_limit",
+      "origin": "policy",
+      "operation": "read_dir"
+    }
+  }
+}
