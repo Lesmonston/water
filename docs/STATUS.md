@@ -19,7 +19,14 @@
 
 ## 下一步
 
-[W1只读内核与fixture](tasks/W1-READONLY-CORE.md)的首单[WATER-W1-A](dispatch/tickets/WATER-W1-A-CONTRACTS-20261017.md)已READY，等待用户外贴：实现Rust workspace与scan v1 DTO/序列化/语义验证和定向测试。总控随后收回执独立验收；扫描、分类、导出等依赖它的票暂未发出。
+A已观察到提交与完成回执，状态SUBMITTED待总控独立验收；[WATER-W1-B规则包](dispatch/tickets/WATER-W1-B-CATALOG-20261017.md)与[WATER-W1-C交互原型](dispatch/tickets/WATER-W1-C-PROTOTYPE-20261017.md)各自READY，可交两个执行者并行。扫描器、分类器与正式集成仍等前置验收。
+
+## 并行追加与最新观察（2026-10-17）
+
+- ADR-003追加两条独立交付线：B六工具发现/保护元数据与Node纯校验，C固定虚构数据的只读交互原型。它们互不依赖，也不依赖A的在途Rust产物。
+- B/C分别在`.worktrees/b`、`.worktrees/c`，分支worker/water-w1-b与worker/water-w1-c，精确基线`e92f39647c91d9ce077d592583c3352626d3402b`，tag water-w1-parallel-base-20261017。各自Node24/冻结哈希/分支/洁净baseline通过；C隔离Chrome空白页探针通过，不是原型UI已验收。
+- A树未被修改/同步/切分支；原契约锁、权限、默认Rust helper/rules不变。现观察A HEAD=`475c4703be3c455089b8080b53e084d4721b10f7`且有完成报告、工作树干净，已记SUBMITTED，尚未读实现或复测，不宣称验收通过。
+- B/C任务级helper/rules/lock与A不同；用户分别转贴，dispatchedAt/startedAt仍null，没有自动启动B/C。见[本轮计划](dispatch/wave1/PLAN.md)与[并行派前回执](dispatch/wave1/PARALLEL-READY-REPORT.md)。
 
 ## 第一轮派前完成（2026-10-17）
 
@@ -27,7 +34,7 @@
 - 架构基线为`a1e68364d47e137f8b66543eb95d35bb04424c78`，tag `water-w1-base-20261017`。
 - 槽位a：`F:/new/smaltalk/water/.worktrees/a`，`worker/water-w1-a`，HEAD精确为基线，状态干净。baseline实际运行通过（冻结哈希、分支、Rust1.95.0与MSVC链接探针），未运行产品测试。
 - [正式票](dispatch/tickets/WATER-W1-A-CONTRACTS-20261017.md)、权威manifest、工作树、报告与证据父目录均存在；[派前回执](dispatch/wave1/CONTROLLER-READY-REPORT.md)记录已做/未做检查。
-- 只准备1张READY票；dispatchedAt/startedAt仍为null，没有自动启动实现者或内部实现子代理。用户转贴后有明确证据再改状态。
+- 初次仅A的READY记录现已被后续提交观察及B/C追加更新；该节保留初次派前证据，最新状态以本页“并行追加”及registry为准。
 
 ## 最新协作约定（2026-10-17）
 

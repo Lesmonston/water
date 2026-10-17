@@ -1,7 +1,7 @@
 {
   "schemaVersion": 1,
   "wave": "water-wave1",
-  "status": "READY",
+  "status": "A_SUBMITTED_BC_READY",
   "controllerRoot": "F:/new/smaltalk/water",
   "controllerBranch": "main",
   "controller": "Codex",
@@ -15,7 +15,7 @@
     {
       "id": "WATER-W1-A",
       "title": "Rust工程底座与scan v1契约实现",
-      "status": "READY",
+      "status": "SUBMITTED",
       "slot": "a",
       "worktree": "F:/new/smaltalk/water/.worktrees/a",
       "branch": "worker/water-w1-a",
@@ -50,9 +50,107 @@
       "modelAssignment": "user-arranged; report actual engine/model",
       "dispatchedAt": null,
       "startedAt": null,
-      "baselineStatus": "PASSED"
+      "baselineStatus": "PASSED",
+      "submittedCommit": "475c4703be3c455089b8080b53e084d4721b10f7",
+      "submissionObservedAt": "2026-10-17T06:04:28.047Z",
+      "submissionEvidence": "Clean worker tree, committed completion report first line observed; no controller acceptance yet."
+    },
+    {
+      "status": "READY",
+      "baseCommit": "e92f39647c91d9ce077d592583c3352626d3402b",
+      "snapshotRef": "refs/tags/water-w1-parallel-base-20261017",
+      "contractLock": "contracts/parallel-v1/freeze.lock.json",
+      "workerRules": "docs/dispatch/PARALLEL-WORKER-RULES.md",
+      "helper": "scripts/parallel-check.mjs",
+      "dependsOn": [],
+      "model": null,
+      "dispatchedAt": null,
+      "startedAt": null,
+      "id": "WATER-W1-B",
+      "title": "工具发现与保护规则数据包",
+      "kind": "catalog",
+      "slot": "b",
+      "worktree": "F:/new/smaltalk/water/.worktrees/b",
+      "branch": "worker/water-w1-b",
+      "ticket": "docs/dispatch/tickets/WATER-W1-B-CATALOG-20261017.md",
+      "report": "docs/dispatch/reports/WATER-W1-B-REPORT.md",
+      "outputRoot": "packages/tool-catalog",
+      "testFile": "packages/tool-catalog/tests/catalog.test.mjs",
+      "expectedTests": [
+        "catalog_shape_and_tools",
+        "catalog_platforms_and_sources",
+        "catalog_protection_boundaries",
+        "catalog_mutation_rejections",
+        "catalog_purity"
+      ],
+      "syntaxFiles": [
+        "packages/tool-catalog/validate.mjs",
+        "packages/tool-catalog/tests/catalog.test.mjs"
+      ],
+      "allowedFiles": [
+        "docs/dispatch/reports/WATER-W1-B-REPORT.md"
+      ],
+      "allowedPrefixes": [
+        "packages/tool-catalog/",
+        "docs/acceptance/wave1/b/"
+      ],
+      "productBoundary": "Metadata-only catalog and pure validator; no real discovery/scanning/execution",
+      "baselineStatus": "PASSED",
+      "preflightEvidence": "docs/acceptance/wave1/controller/b-initial-baseline.json"
+    },
+    {
+      "status": "READY",
+      "baseCommit": "e92f39647c91d9ce077d592583c3352626d3402b",
+      "snapshotRef": "refs/tags/water-w1-parallel-base-20261017",
+      "contractLock": "contracts/parallel-v1/freeze.lock.json",
+      "workerRules": "docs/dispatch/PARALLEL-WORKER-RULES.md",
+      "helper": "scripts/parallel-check.mjs",
+      "dependsOn": [],
+      "model": null,
+      "dispatchedAt": null,
+      "startedAt": null,
+      "id": "WATER-W1-C",
+      "title": "只读桌面交互原型",
+      "kind": "prototype",
+      "slot": "c",
+      "worktree": "F:/new/smaltalk/water/.worktrees/c",
+      "branch": "worker/water-w1-c",
+      "ticket": "docs/dispatch/tickets/WATER-W1-C-PROTOTYPE-20261017.md",
+      "report": "docs/dispatch/reports/WATER-W1-C-REPORT.md",
+      "outputRoot": "prototypes/readonly-dashboard",
+      "testFile": "prototypes/readonly-dashboard/tests/model.test.mjs",
+      "browserTestFile": "prototypes/readonly-dashboard/tests/browser.test.mjs",
+      "expectedTests": [
+        "prototype_bigint_order",
+        "prototype_filters",
+        "prototype_format_and_unknown",
+        "prototype_no_mutation",
+        "prototype_no_false_reclaim"
+      ],
+      "expectedBrowserTests": [
+        "prototype_live_interactions",
+        "prototype_scope_and_layout"
+      ],
+      "syntaxFiles": [
+        "prototypes/readonly-dashboard/app.mjs",
+        "prototypes/readonly-dashboard/model.mjs",
+        "prototypes/readonly-dashboard/server.mjs",
+        "prototypes/readonly-dashboard/tests/model.test.mjs",
+        "prototypes/readonly-dashboard/tests/browser.test.mjs"
+      ],
+      "allowedFiles": [
+        "docs/dispatch/reports/WATER-W1-C-REPORT.md"
+      ],
+      "allowedPrefixes": [
+        "prototypes/readonly-dashboard/",
+        "docs/acceptance/wave1/c/"
+      ],
+      "productBoundary": "Synthetic read-only demo; no Rust/Tauri/real scan, cleanup or uploads",
+      "baselineStatus": "PASSED",
+      "preflightEvidence": "docs/acceptance/wave1/controller/c-initial-baseline.json"
     }
   ],
   "preflightStatus": "PASSED",
-  "preflightEvidence": "docs/acceptance/wave1/controller/w1-a-initial-baseline.json"
+  "preflightEvidence": "docs/acceptance/wave1/controller/w1-a-initial-baseline.json",
+  "parallelDecision": "docs/decisions/ADR-003-independent-parallel-lanes.md"
 }
