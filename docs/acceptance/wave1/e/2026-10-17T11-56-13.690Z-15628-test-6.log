@@ -1,0 +1,48 @@
+{"binary":"C:\\Users\\37310\\.rustup\\toolchains\\1.95.0-x86_64-pc-windows-msvc\\bin\\cargo.exe","argv":["test","--offline","--locked","--manifest-path","F:\\new\\smaltalk\\water\\.worktrees\\e\\packages\\report-view\\Cargo.toml","-p","water-report-view","--test","view_v1","--","--test-threads=1","--format","pretty"],"exitCode":101,"error":null,"log":"2026-10-17T11-56-13.690Z-15628-test-6.log"}
+--- stdout ---
+
+running 5 tests
+test view_mapping_edges ... ok
+test view_precision_and_totals ... FAILED
+test view_preservation_and_purity ... FAILED
+test view_projection ... FAILED
+test view_validation ... ok
+
+failures:
+
+---- view_precision_and_totals stdout ----
+
+thread 'view_precision_and_totals' (40156) panicked at tests\view_v1.rs:525:5:
+assertion `left == right` failed: 2^53+1 must not pass through f64
+  left: Some(9007199254740992)
+ right: Some(9007199254740993)
+note: run with `RUST_BACKTRACE=1` environment variable to display a backtrace
+
+---- view_preservation_and_purity stdout ----
+
+thread 'view_preservation_and_purity' (21116) panicked at tests\view_v1.rs:615:13:
+assertion `left == right` failed
+  left: Some(ByteCount(9007199254740992))
+ right: Some(ByteCount(9007199254740993))
+
+---- view_projection stdout ----
+
+thread 'view_projection' (17724) panicked at tests\view_v1.rs:274:5:
+assertion `left == right` failed: base: projected value
+  left: Object {"findings": Array [Object {"activity": String("unknown"), "category": String("build_cache"), "confidence": String("verified_structure"), "evidence": String("Fictional fixture metadata only; not a real scan."), "evidence_items": Array [Object {"code": String("structure_match"), "source": String("filesystem"), "summary": String("Fictional fixture metadata only; not a real scan.")}], "id": String("finding-1"), "logical_bytes": String("9007199254740992"), "protection_reasons": Array [], "recoverability": String("rebuild"), "references": Object {"project_ids": Array [], "state": String("unknown")}, "relative_path": String("project/.cache/ruff"), "risk": String("review"), "rule_version": String("1"), "scope_id": String("scope-1"), "size": Object {"allocated_bytes": Null, "confidence": String("estimated"), "logical_bytes": String("9007199254740993"), "method": String("logical_sum"), "reclaimable_lower_bytes": Null, "reclaimable_upper_bytes": Null, "shared": String("unknown")}, "source_tool": Object {"name": String("Ruff fixture"), "root_source": String("marker"), "tool_id": String("ruff"), "version": String("0.0-fixture")}, "title": String("project/.cache/ruff"), "tool_id": String("tool:ruff"), "tool_name": String("Ruff fixture")}], "issues": Array [], "read_only": Bool(true), "scan_id": String("scan-fixture-1"), "scopes": Array [Object {"coverage": String("complete"), "label": String("Fixture A"), "origin": String("user_selected"), "platform": String("windows"), "scope_id": String("scope-1")}], "source_schema_version": String("water.scan.v1"), "status": String("completed"), "totals": Object {"allocated_bytes": Null, "coverage_complete": Bool(true), "logical_bytes": Null, "method": String("unavailable"), "scanned_entries": Number(3), "skipped_entries": Number(0)}, "view_version": String("water.report-view.v1")}
+ right: Object {"findings": Array [Object {"activity": String("unknown"), "category": String("build_cache"), "confidence": String("verified_structure"), "evidence": String("Fictional fixture metadata only; not a real scan."), "evidence_items": Array [Object {"code": String("structure_match"), "source": String("filesystem"), "summary": String("Fictional fixture metadata only; not a real scan.")}], "id": String("finding-1"), "logical_bytes": String("9007199254740993"), "protection_reasons": Array [], "recoverability": String("rebuild"), "references": Object {"project_ids": Array [], "state": String("unknown")}, "relative_path": String("project/.cache/ruff"), "risk": String("review"), "rule_version": String("1"), "scope_id": String("scope-1"), "size": Object {"allocated_bytes": Null, "confidence": String("estimated"), "logical_bytes": String("9007199254740993"), "method": String("logical_sum"), "reclaimable_lower_bytes": Null, "reclaimable_upper_bytes": Null, "shared": String("unknown")}, "source_tool": Object {"name": String("Ruff fixture"), "root_source": String("marker"), "tool_id": String("ruff"), "version": String("0.0-fixture")}, "title": String("project/.cache/ruff"), "tool_id": String("tool:ruff"), "tool_name": String("Ruff fixture")}], "issues": Array [], "read_only": Bool(true), "scan_id": String("scan-fixture-1"), "scopes": Array [Object {"coverage": String("complete"), "label": String("Fixture A"), "origin": String("user_selected"), "platform": String("windows"), "scope_id": String("scope-1")}], "source_schema_version": String("water.scan.v1"), "status": String("completed"), "totals": Object {"allocated_bytes": Null, "coverage_complete": Bool(true), "logical_bytes": Null, "method": String("unavailable"), "scanned_entries": Number(3), "skipped_entries": Number(0)}, "view_version": String("water.report-view.v1")}
+
+
+failures:
+    view_precision_and_totals
+    view_preservation_and_purity
+    view_projection
+
+test result: FAILED. 2 passed; 3 failed; 0 ignored; 0 measured; 0 filtered out; finished in 0.04s
+
+
+--- stderr ---
+   Compiling water-report-view v0.1.0 (F:\new\smaltalk\water\.worktrees\e\packages\report-view)
+    Finished `test` profile [unoptimized + debuginfo] target(s) in 2.12s
+     Running tests\view_v1.rs (.local\report-view-target\debug\deps\view_v1-d65201a3e735a0c3.exe)
+error: test failed, to rerun pass `-p water-report-view --test view_v1`

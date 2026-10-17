@@ -1,0 +1,39 @@
+{
+  "file": "packages/report-view/src/v1.rs",
+  "algorithm": "sha256",
+  "submittedSourceSha256": "3287c666150a5f3d2dd55aa59d0e1bd7cbefdcc3860810697f0596039752a601",
+  "controls": [
+    {
+      "label": "skip-validate",
+      "originalSha": "3287c666150a5f3d2dd55aa59d0e1bd7cbefdcc3860810697f0596039752a601",
+      "badSha": "95e2a4befec6eb35332b26d28b8e9e5cc8afe6e67ba9cdf7b888e10146cc5df5",
+      "restoredSha": "3287c666150a5f3d2dd55aa59d0e1bd7cbefdcc3860810697f0596039752a601",
+      "assertion": "illegal DTO must fail view_validation",
+      "failedReceipt": "F:\\new\\smaltalk\\water\\.worktrees\\e\\.local\\checks\\WATER-W1-E\\2026-10-17T11-56-04.915Z-20352-test-result.json",
+      "restoredReceipt": "F:\\new\\smaltalk\\water\\.worktrees\\e\\.local\\checks\\WATER-W1-E\\2026-10-17T11-56-08.784Z-39356-test-result.json"
+    },
+    {
+      "label": "f64-logical-bytes",
+      "originalSha": "3287c666150a5f3d2dd55aa59d0e1bd7cbefdcc3860810697f0596039752a601",
+      "badSha": "2a780c21215706994293480327d85de9b4d4ff8a1bd5b7816db2164dc9c3c097",
+      "restoredSha": "3287c666150a5f3d2dd55aa59d0e1bd7cbefdcc3860810697f0596039752a601",
+      "assertion": "2^53+1 must not pass through f64",
+      "failedReceipt": "F:\\new\\smaltalk\\water\\.worktrees\\e\\.local\\checks\\WATER-W1-E\\2026-10-17T11-56-13.690Z-15628-test-result.json",
+      "restoredReceipt": "F:\\new\\smaltalk\\water\\.worktrees\\e\\.local\\checks\\WATER-W1-E\\2026-10-17T11-56-18.131Z-40780-test-result.json"
+    },
+    {
+      "label": "unknown-totals-zero",
+      "originalSha": "3287c666150a5f3d2dd55aa59d0e1bd7cbefdcc3860810697f0596039752a601",
+      "badSha": "15e088db6ea541672f83c1b966a7b9ce55105d232f098f085db3b671be3efbd1",
+      "restoredSha": "3287c666150a5f3d2dd55aa59d0e1bd7cbefdcc3860810697f0596039752a601",
+      "assertion": "unknown source totals.logical_bytes must stay null",
+      "failedReceipt": "F:\\new\\smaltalk\\water\\.worktrees\\e\\.local\\checks\\WATER-W1-E\\2026-10-17T11-56-22.878Z-21616-test-result.json",
+      "restoredReceipt": "F:\\new\\smaltalk\\water\\.worktrees\\e\\.local\\checks\\WATER-W1-E\\2026-10-17T11-56-28.770Z-27812-test-result.json"
+    }
+  ],
+  "behavioralRed": {
+    "note": "Compiled library returned no findings. All five tests failed; view_projection and view_validation failed by assertion.",
+    "receipt": "2026-10-17T11-45-46.616Z-38224-test-result.json",
+    "log": "2026-10-17T11-45-46.616Z-38224-test-6.log"
+  }
+}
