@@ -103,6 +103,13 @@ function readDataObject(value, pointer, fields, errors) {
   return out;
 }
 
+function canonicalIndex(key, length) {
+  if (typeof key !== 'string' || !/^(0|[1-9][0-9]*)$/.test(key)) return false;
+  const value = Number(key);
+  if (!Number.isInteger(value) || String(value) !== key) return false;
+  return value >= 0 && value < 4294967295 && value < length;
+}
+
 function readArray(value, pointer, errors) {
   if (!Array.isArray(value) || Object.getPrototypeOf(value) !== Array.prototype) {
     push(errors, 'shape', pointer);
@@ -110,21 +117,35 @@ function readArray(value, pointer, errors) {
   }
   const descriptors = Object.getOwnPropertyDescriptors(value);
   const keys = Reflect.ownKeys(value);
+  const lengthDesc = descriptors.length;
+  const length = lengthDesc && !lengthDesc.get && !lengthDesc.set && typeof lengthDesc.value === 'number' && Number.isInteger(lengthDesc.value) && lengthDesc.value >= 0
+    ? lengthDesc.value
+    : null;
   let blocked = false;
   for (const key of keys) {
-    const text = typeof key === 'string' ? key : '';
-    if (typeof key !== 'string' || (text !== 'length' && !/^(0|[1-9][0-9]*)$/.test(text))) {
+    if (typeof key !== 'string') {
+      push(errors, 'shape', pointer);
+      blocked = true;
+      continue;
+    }
+    if (key === 'length') {
+      if (descriptors[key].get || descriptors[key].set) {
+        push(errors, 'shape', pointer);
+        blocked = true;
+      }
+      continue;
+    }
+    if (length === null || !canonicalIndex(key, length)) {
       push(errors, 'shape', pointer);
       blocked = true;
       continue;
     }
     if (descriptors[key].get || descriptors[key].set) {
-      push(errors, 'shape', text === 'length' ? pointer : childPath(pointer, text));
+      push(errors, 'shape', childPath(pointer, key));
       blocked = true;
     }
   }
-  const lengthDesc = descriptors.length;
-  if (!lengthDesc || lengthDesc.get || lengthDesc.set || typeof lengthDesc.value !== 'number' || !Number.isInteger(lengthDesc.value) || lengthDesc.value < 0) {
+  if (length === null) {
     push(errors, 'shape', pointer);
     return null;
   }

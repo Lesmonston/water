@@ -220,6 +220,27 @@ test('fixture_manifest_and_cases', async () => {
     assert.equal(blob.includes('SENTINEL_UNKNOWN_VALUE'), false, pointer);
   }
 
+  const arrayPointers = ['/cases', '/cases/0/nodes', '/cases/0/scopes', '/cases/0/canaries', '/cases/0/scanner_plan/faults', '/cases/0/scanner_plan/expected_issue_codes'];
+  const nonIndexKeys = ['4294967295', '9007199254740992', '999999999999999999999999999999'];
+  for (const pointer of arrayPointers) {
+    for (const key of nonIndexKeys) {
+      const copy = structuredClone(manifest);
+      let target = copy;
+      for (const part of decodePointer(pointer)) target = Array.isArray(target) ? target[Number(part)] : target[part];
+      const lengthBefore = target.length;
+      Object.defineProperty(target, key, { value: 'CONTROLLER_UNKNOWN_ARRAY_DATA', enumerable: true, configurable: true });
+      assert.equal(target.length, lengthBefore, `${pointer} ${key}`);
+      deepFreeze(copy);
+      const result = validateFixtureManifest(copy);
+      assert.equal(result.valid, false, `${pointer} ${key}`);
+      assertErrorShape(result);
+      assert.equal(containsError(result, 'shape', pointer), true, `${pointer} ${key} ${JSON.stringify(result.errors)}`);
+      const blob = JSON.stringify(result.errors);
+      assert.equal(blob.includes(key), false, `${pointer} ${key}`);
+      assert.equal(blob.includes('CONTROLLER_UNKNOWN_ARRAY_DATA'), false, pointer);
+    }
+  }
+
   let accessorHits = 0;
   const accessor = structuredClone(manifest);
   Object.defineProperty(accessor.cases[0], 'description', {

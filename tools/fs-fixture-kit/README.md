@@ -15,7 +15,7 @@ await materializeCase(caseId, {});
 await materializeCase(caseId, { run_id });
 ```
 
-`validateFixtureManifest` 是纯函数。它只接受普通数据对象和数组，不读环境、磁盘或网络，也不改输入。成功时返回 `{ valid: true, errors: [] }`。失败时 `valid` 为 false，`errors` 每项只有 `code` 和 `path`。`code` 为 `shape`、`unsafe_path`、`reference` 或 `limit`。
+`validateFixtureManifest` 是纯函数。它只接受普通数据对象和数组，不读环境、磁盘或网络，也不改输入。成功时返回 `{ valid: true, errors: [] }`。失败时 `valid` 为 false，`errors` 每项只有 `code` 和 `path`。`code` 为 `shape`、`unsafe_path`、`reference` 或 `limit`。数组上除 `length` 和落在 length 内的规范索引外，数字形式的普通属性也是 `shape`，错误路径停在该数组本身，不回显键或值。
 
 `materializeCase` 每次从本文件位置读取 `contracts/fixture-lab-v1/cases.json`，先做同一套校验，再写入一个新 run。`caseId` 必须是冻结清单里的字符串。`options` 可以省略，也可以是 `{}` 或仅含 `run_id` 的普通数据对象；访问器不会被执行。省略 `run_id` 时生成 `run-` 加 UUID。给定的 `run_id` 必须完整匹配 `run-[a-z0-9][a-z0-9-]{0,47}`，尾部换行一律拒绝。
 
