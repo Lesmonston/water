@@ -2,7 +2,11 @@
 
 2026-10-17。项目：`F:/new/smaltalk/water`。供后续总控接手与Keeper ingest；未写共享Vault或其他项目。
 
-## 当前交接：F已VERIFIED，G/H/I保持READY
+## 当前交接：A–F及I已VERIFIED，G/H保持READY
+
+I接收da0fa3e、受测实现8888c26，原三个final门、模型三/浏览器二与87独立边界通过。隔离受测`0f855cfd68a086e79658a05b2e86803998f2add0`完成三项真实生产逻辑负控及逐次完整五测恢复、最终五测与87独立边界，三张新截图实际查看；83冻结、A–F产品与43份文件Git内容保持，41份字节一致，HTML/CSS仅checkout换行差异。[I验收报告](acceptance/wave1/controller/WATER-W1-I-REVIEW-20261017.md)记录证据和历史先红缺口；main推进另存归档main-promotion.json。G/H原READY分配保持，未自动启动实现者；真实扫描链路、桌面、真实数据与macOS仍未验证，M1未完成。
+
+## 此前交接：F已VERIFIED，G/H/I保持READY（历史）
 
 本轮接手用户指定失效对话`codex:d0fbb74c-aa85-4f95-ad3f-7e55a79d63a0`，只收F。接收65e928d、受测实现3f3acbd；原五final门、实际11/12/39原生桥接与五独立测试通过。隔离受测`55266ed9a1fc79d4b3a2bedaa8c09f06f1f3e40d`在新target离线六Rust测试/fmt/clippy/metadata、真实桥接与五独立测试首次通过，83唯一冻结不变，353份worker文件原字节保持。F为VERIFIED（Windows范围），主线推进精确SHA见[F验收报告](acceptance/wave1/controller/WATER-W1-F-REVIEW-20261017.md)及归档main-promotion.json。
 

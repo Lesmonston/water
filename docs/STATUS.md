@@ -1,6 +1,6 @@
 # Water 状态与交接
 
-更新时间：2026-10-17。
+更新时间：2026-10-18（Asia/Tokyo）。
 
 本次总控接手结果与后续事项见[接手验收摘要](CONTROLLER-HANDOFF-20261017.md)；当前任务状态仍以本页和registry/manifest为准。
 
@@ -21,9 +21,15 @@
 
 ## 下一步
 
-A–F均VERIFIED（Windows范围），旧票不重复外贴。G/H/I原READY、树/基线/冻结和分配保持；本轮只收F，没有启动实现者。G/H/I交付后再逐票验收，真实F→G及G/H/E/I链路、分类、真实用户scope、Tauri和macOS另排，M1尚未完成。
+A–F及I均VERIFIED（Windows范围），旧票不重复外贴。G/H原READY、树/基线/冻结和分配保持；本轮收I，没有启动实现者。G/H交付后再逐票验收；真实F→G及报告→E/H/I链路、分类、真实用户scope、Tauri和macOS另排，M1尚未完成。
 
-## F验收集成（2026-10-17，最新）
+## I验收集成（2026-10-18，最新）
+
+- 接收干净HEAD da0fa3e、受测实现8888c26，43新增文件均在白名单，后加35文件只为报告/证据。总控check/test/browser三个final门、模型三/浏览器二测试与87项独立模型/HTTP边界全部通过，三张实际截图已看。
+- 隔离受测`0f855cfd68a086e79658a05b2e86803998f2add0`原五测试、三个独立完整红/绿负控、最终check/五测试与87独立检查通过，83唯一冻结与A–F产品tree不变，43份文件Git内容保持，41份字节一致，HTML/CSS仅checkout换行差异。历史先红次序与worker完整负控输出缺失如实保留限制；总控独立复验的完整日志和坏态源码已归档。
+- I为VERIFIED（Windows范围），见[I验收报告](acceptance/wave1/controller/WATER-W1-I-REVIEW-20261017.md)。仅冻结E投影合成报告、loopback和隔离Chrome，无真实数据/扫描器/桌面/IPC接线，macOS未验证。
+
+## F验收集成（2026-10-17，已完成）
 
 - 接收干净HEAD `65e928d3c193e58db758eaf8f0022c975c3ca24d`，受测实现3f3acbd；353新增文件均在白名单，后加76文件只为报告/证据，九个产品/测试文件不变。总控原五final门、真实扫描11 case/12 scope/39 entry、五项独立边界全部通过；327份worker原始日志/receipt与现场一致，四负控目标红与恢复记录核对通过。
 - 隔离受测SHA `55266ed9a1fc79d4b3a2bedaa8c09f06f1f3e40d`：新target离线六Rust测试、fmt/clippy/metadata、真实桥接及五独立测试首次通过，六锁83唯一文件与A–E产品tree不变；353份worker文件原字节保持。冻结prepare仅在集成树.local新建一批11+6有界合成run，44快照一致，无清理。

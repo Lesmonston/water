@@ -1,10 +1,10 @@
 {
   "schemaVersion": 1,
-  "updatedOn": "2026-10-17",
+  "updatedOn": "2026-10-18",
   "mode": "manual-external-paste",
   "controller": "Codex",
   "projectRoot": "F:/new/smaltalk/water",
-  "stage": "wave1-f-verified-ghi-ready",
+  "stage": "wave1-abcdefi-verified-gh-ready",
   "activeWave": "water-wave1",
   "slots": [
     {
@@ -77,7 +77,7 @@
       "branch": "worker/water-w1-i",
       "baseline": "045ab4f0d01edd573828fbc8cca988e1ad37efee",
       "task": "WATER-W1-I",
-      "state": "accepted-awaiting-integration"
+      "state": "verified-preserved"
     }
   ],
   "tasks": [
@@ -559,7 +559,7 @@
       "dependsOn": [
         "WATER-W1-E"
       ],
-      "status": "ACCEPTED",
+      "status": "VERIFIED",
       "kind": "report_reader",
       "worktree": "F:/new/smaltalk/water/.worktrees/i",
       "branch": "worker/water-w1-i",
@@ -619,7 +619,18 @@
       "macOS": "unverified",
       "integrationBranch": "controller/water-w1-i-20261017",
       "integrationWorktree": "F:/new/smaltalk/water/.worktrees/integration-i-20261017",
-      "evidenceLimitations": "Historical pre-implementation behavior red and full worker negative-control output unavailable; current behavior and test sensitivity to be reverified by controller isolation."
+      "evidenceLimitations": "Worker pre-implementation red order and full historical mutation logs unverified. Controller independently reconstructed all three mutation hashes and reran complete five-test red/green controls in isolated integration; full new raw evidence archived.",
+      "integrationCommit": "0f855cfd68a086e79658a05b2e86803998f2add0",
+      "integrationReceipt": "docs/acceptance/wave1/controller/w1-i-integration-20261017/2026-10-17T14-57-53.983Z-7940-result.json",
+      "integratedOn": "2026-10-18",
+      "verifiedOn": "2026-10-18",
+      "verifiedPlatforms": [
+        "Windows"
+      ],
+      "unverifiedPlatforms": [
+        "macOS"
+      ],
+      "verificationScope": "Frozen synthetic E JSON reader only; three original gates, 87 public API/HTTP checks, actual isolated browser and three complete independent negative controls passed. No desktop, real-user data or scanner integration."
     }
   ],
   "testHelper": "per-task helper; A defaults unchanged",

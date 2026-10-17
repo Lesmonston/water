@@ -97,6 +97,8 @@ READY只表示总控已准备好，不表示用户已转贴。得到用户已贴
 
 ## 当前落实程度
 
+最新I验收：接收da0fa3e、受测实现8888c26，原三门/五测试与87项独立边界通过；隔离受测0f855cf独立重建三坏态，完整五测命中目标红并逐次恢复绿，最终检查全部通过。83唯一冻结及A–F产品、43份文件Git内容保持，41份字节一致，HTML/CSS仅checkout换行差异。I为VERIFIED（Windows范围），G/H原分配不变；[I验收报告](acceptance/wave1/controller/WATER-W1-I-REVIEW-20261017.md)说明历史证据缺口与当前复验，不冒称历史先红已证明。
+
 最新验收：F接收65e928d、受测实现3f3acbd，总控五final门和五独立边界通过；隔离受测55266ed以新target离线重跑六Rust测试/真实扫描桥接/独立边界全部通过，83唯一冻结、A–E产品及353份worker文件原字节保持，VERIFIED（Windows范围）。[F验收报告](acceptance/wave1/controller/WATER-W1-F-REVIEW-20261017.md)记录精确SHA和限制；G/H/I原分配保持，没有自动启动实现者，macOS和真实链路未验证。
 
 此前并行更新（历史）：用户要求一次多安排，按ADR-007新增G报告组装/H白名单汇总/I报告阅读界面，三独占树/目录、共同精确架构基线和36新冻结/五旧锁、实际各自baseline通过，READY待分别外贴。G/H/I只依赖已验收模块及冻结输入协议，不依赖F在途实现；F按任务文件启动证据记RUNNING，原票继续。总控未自动启动实现者，真实集成后验收。见[并行计划](dispatch/wave1/PARALLEL-NEXT-PLAN-20261017.md)和[派前回执](dispatch/wave1/PARALLEL-NEXT-READY-REPORT.md)；以下为历史更新。

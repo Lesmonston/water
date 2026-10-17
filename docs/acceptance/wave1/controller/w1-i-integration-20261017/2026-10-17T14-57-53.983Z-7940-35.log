@@ -1,0 +1,58 @@
+{"binary":"C:\\Program Files\\nodejs\\node.exe","argv":["--test","--test-concurrency=1","--test-reporter=tap","prototypes/report-reader/tests/browser.test.mjs"],"exitCode":1,"error":null,"log":"2026-10-17T14-57-53.983Z-7940-35.log"}
+--- stdout ---
+TAP version 13
+# Subtest: reader_live_interactions
+not ok 1 - reader_live_interactions
+  ---
+  duration_ms: 7400.9046
+  type: 'test'
+  location: 'F:\\new\\smaltalk\\water\\.worktrees\\integration-i-20261017\\prototypes\\report-reader\\tests\\browser.test.mjs:82:1'
+  failureType: 'testCodeFailure'
+  error: |-
+    HTML literal must not create an img element
+    
+    2 !== 0
+    
+  code: 'ERR_ASSERTION'
+  name: 'AssertionError'
+  expected: 0
+  actual: 2
+  operator: 'strictEqual'
+  stack: |-
+    TestContext.<anonymous> (file:///F:/new/smaltalk/water/.worktrees/integration-i-20261017/prototypes/report-reader/tests/browser.test.mjs:132:12)
+    async Test.run (node:internal/test_runner/test:1313:7)
+    async startSubtestAfterBootstrap (node:internal/test_runner/harness:385:3)
+  ...
+# Subtest: reader_scope_layout_and_readonly
+not ok 2 - reader_scope_layout_and_readonly
+  ---
+  duration_ms: 5148.7518
+  type: 'test'
+  location: 'F:\\new\\smaltalk\\water\\.worktrees\\integration-i-20261017\\prototypes\\report-reader\\tests\\browser.test.mjs:172:1'
+  failureType: 'testCodeFailure'
+  error: |-
+    HTML literal must not create img or script elements
+    
+    4 !== 0
+    
+  code: 'ERR_ASSERTION'
+  name: 'AssertionError'
+  expected: 0
+  actual: 4
+  operator: 'strictEqual'
+  stack: |-
+    TestContext.<anonymous> (file:///F:/new/smaltalk/water/.worktrees/integration-i-20261017/prototypes/report-reader/tests/browser.test.mjs:245:14)
+    async Test.run (node:internal/test_runner/test:1313:7)
+    async Test.processPendingSubtests (node:internal/test_runner/test:897:7)
+  ...
+1..2
+# tests 2
+# suites 0
+# pass 0
+# fail 2
+# cancelled 0
+# skipped 0
+# todo 0
+# duration_ms 13561.6975
+
+--- stderr ---

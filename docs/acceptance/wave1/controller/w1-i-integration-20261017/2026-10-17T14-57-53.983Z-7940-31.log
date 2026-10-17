@@ -1,0 +1,42 @@
+{"binary":"C:\\Program Files\\nodejs\\node.exe","argv":["--test","--test-concurrency=1","--test-reporter=tap","prototypes/report-reader/tests/browser.test.mjs"],"exitCode":1,"error":null,"log":"2026-10-17T14-57-53.983Z-7940-31.log"}
+--- stdout ---
+TAP version 13
+# Subtest: reader_live_interactions
+not ok 1 - reader_live_interactions
+  ---
+  duration_ms: 5184.7945
+  type: 'test'
+  location: 'F:\\new\\smaltalk\\water\\.worktrees\\integration-i-20261017\\prototypes\\report-reader\\tests\\browser.test.mjs:82:1'
+  failureType: 'testCodeFailure'
+  error: |-
+    The input did not match the regular expression /37/. Input:
+    
+    '来源总量0 B来源方法 file_identity_deduplicated非本页求和精确逻辑字节 0分配 未知已扫描 8，跳过 1'
+    
+  code: 'ERR_ASSERTION'
+  name: 'AssertionError'
+  expected:
+  actual: '来源总量0 B来源方法 file_identity_deduplicated非本页求和精确逻辑字节 0分配 未知已扫描 8，跳过 1'
+  operator: 'match'
+  stack: |-
+    TestContext.<anonymous> (file:///F:/new/smaltalk/water/.worktrees/integration-i-20261017/prototypes/report-reader/tests/browser.test.mjs:94:12)
+    async Test.run (node:internal/test_runner/test:1313:7)
+    async startSubtestAfterBootstrap (node:internal/test_runner/harness:385:3)
+  ...
+# Subtest: reader_scope_layout_and_readonly
+ok 2 - reader_scope_layout_and_readonly
+  ---
+  duration_ms: 17170.2302
+  type: 'test'
+  ...
+1..2
+# tests 2
+# suites 0
+# pass 1
+# fail 1
+# cancelled 0
+# skipped 0
+# todo 0
+# duration_ms 22581.6779
+
+--- stderr ---

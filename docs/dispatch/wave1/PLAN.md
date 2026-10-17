@@ -1,6 +1,6 @@
 # 第一轮：契约底座
 
-**当前（2026-10-17）：A–F已VERIFIED（Windows范围），F单票与隔离集成通过；G/H/I原READY分配保持。** 见[四线计划](PARALLEL-NEXT-PLAN-20261017.md)及[派前回执](PARALLEL-NEXT-READY-REPORT.md)。G消费冻结F JSON协议，不等待F crate；H只依赖A，I消费已验证E。新产品行为/真实链路未验收，未自动启动实现者，不改旧票/根Cargo；以下为阶段历史。
+**当前（2026-10-18）：A–F及I已VERIFIED（Windows范围），F和I单票与隔离集成通过；G/H原READY分配保持。** 见[四线计划](PARALLEL-NEXT-PLAN-20261017.md)及[派前回执](PARALLEL-NEXT-READY-REPORT.md)。G消费冻结F JSON协议，不等待F crate；H只依赖A，I消费已验证E。新产品行为/真实链路未验收，未自动启动实现者，不改旧票/根Cargo；以下为阶段历史。
 
 总控：Codex。A契约底座继续，追加两张独立并行票B/C；实际状态以manifest为准。调度补充见ADR-003，A冻结不改。
 

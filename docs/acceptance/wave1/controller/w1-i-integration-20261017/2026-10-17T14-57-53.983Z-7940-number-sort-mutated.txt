@@ -1,0 +1,321 @@
+// Read-only display helpers for water.report-view.v1. No filesystem authority.
+
+const VIEW_VERSION = 'water.report-view.v1';
+const SCHEMA_VERSION = 'water.scan.v1';
+const U64_MAX = 18446744073709551615n;
+const FIXED_ERROR = 'Unsupported report view.';
+
+const STATUS = new Set(['completed', 'partial', 'cancelled']);
+const PLATFORM = new Set(['windows', 'macos']);
+const ORIGIN = new Set(['user_selected', 'config_discovered']);
+const COVERAGE = new Set(['complete', 'partial', 'cancelled']);
+const CATEGORY = new Set(['download_cache', 'build_cache', 'environment', 'model', 'experiment', 'history', 'database', 'credential', 'source', 'temporary', 'unknown']);
+const RISK = new Set(['low', 'review', 'high', 'protected']);
+const RECOVERABILITY = new Set(['rebuild', 'redownload', 'conditional', 'unknown', 'not_applicable']);
+const ACTIVITY = new Set(['running', 'recent', 'not_observed', 'unknown']);
+const CONFIDENCE = new Set(['native', 'verified_structure', 'path_only', 'unknown']);
+const PROTECTION = new Set(['credential', 'unique_asset', 'active', 'unknown_ownership', 'incomplete_evidence', 'source_root', 'system_root', 'user_home', 'protected_descendant', 'user_pinned']);
+const EVIDENCE_CODE = new Set(['native_inventory', 'structure_match', 'configured_location', 'marker', 'timestamp_hint', 'reference', 'incomplete_scan', 'unknown']);
+const EVIDENCE_SOURCE = new Set(['native_tool', 'config', 'filesystem', 'rule', 'heuristic']);
+const SIZE_METHOD = new Set(['unknown', 'logical_sum', 'file_identity_allocated', 'tool_report']);
+const ESTIMATE_CONFIDENCE = new Set(['unknown', 'estimated', 'measured']);
+const SHARED = new Set(['yes', 'no', 'unknown']);
+const LOCATION = new Set(['config', 'native', 'marker', 'default_path', 'unknown']);
+const REFERENCE_STATE = new Set(['known', 'partial', 'unknown']);
+const ISSUE_CODE = new Set(['permission_denied', 'io_error', 'link_skipped', 'outside_scope', 'path_unrepresentable', 'depth_limit', 'entry_limit', 'cancelled', 'root_changed', 'unsupported']);
+const TOTAL_METHOD = new Set(['unavailable', 'file_identity_deduplicated', 'tool_report']);
+const SORTS = new Set(['size_asc', 'size_desc', 'name_asc']);
+const ROOT_REASONS = new Set(['source_root', 'system_root', 'user_home', 'protected_descendant']);
+const ID_TEXT = /^[A-Za-z0-9][A-Za-z0-9_-]{0,63}$/;
+const BYTE_TEXT = /^(0|[1-9][0-9]{0,19})$/;
+
+function reject() {
+  throw new Error(FIXED_ERROR);
+}
+
+function isObject(value) {
+  return value !== null && typeof value === 'object' && !Array.isArray(value);
+}
+
+function exact(value, keys) {
+  if (!isObject(value)) reject();
+  const actual = Object.keys(value);
+  if (actual.length !== keys.length) reject();
+  for (const key of keys) {
+    if (!Object.prototype.hasOwnProperty.call(value, key)) reject();
+  }
+}
+
+function oneOf(value, allowed) {
+  if (typeof value !== 'string' || !allowed.has(value)) reject();
+}
+
+function scalarLength(value) {
+  return [...value].length;
+}
+
+function text(value, min, max) {
+  if (typeof value !== 'string') reject();
+  const count = scalarLength(value);
+  if (count < min || count > max || /[\u0000-\u001F\u007F]/.test(value)) reject();
+}
+
+function identifier(value) {
+  if (typeof value !== 'string' || !ID_TEXT.test(value)) reject();
+}
+
+function byteCount(value, nullable) {
+  if (value === null && nullable) return null;
+  if (typeof value !== 'string' || !BYTE_TEXT.test(value)) reject();
+  const parsed = BigInt(value);
+  if (parsed > U64_MAX) reject();
+  return parsed;
+}
+
+function relativePath(value) {
+  if (typeof value !== 'string' || scalarLength(value) > 4096) reject();
+  if (value.includes('\\') || value.includes(':') || /[\u0000-\u001F\u007F]/.test(value)) reject();
+  if (value === '') return;
+  if (value.startsWith('/') || value.endsWith('/')) reject();
+  for (const part of value.split('/')) {
+    if (!part || part === '.' || part === '..') reject();
+  }
+}
+
+function integerField(value) {
+  if (typeof value !== 'number' || !Number.isInteger(value) || value < 0 || value > 4294967295) reject();
+}
+
+function assertTool(tool) {
+  if (tool === null) return;
+  exact(tool, ['tool_id', 'name', 'version', 'root_source']);
+  identifier(tool.tool_id);
+  text(tool.name, 1, 80);
+  if (tool.version !== null) text(tool.version, 1, 64);
+  oneOf(tool.root_source, LOCATION);
+}
+
+function assertSize(size) {
+  exact(size, ['logical_bytes', 'allocated_bytes', 'reclaimable_lower_bytes', 'reclaimable_upper_bytes', 'method', 'confidence', 'shared']);
+  const logical = byteCount(size.logical_bytes, true);
+  const allocated = byteCount(size.allocated_bytes, true);
+  if (size.reclaimable_lower_bytes !== null || size.reclaimable_upper_bytes !== null) reject();
+  oneOf(size.method, SIZE_METHOD);
+  oneOf(size.confidence, ESTIMATE_CONFIDENCE);
+  oneOf(size.shared, SHARED);
+  if (size.method === 'unknown') {
+    if (logical !== null || allocated !== null || size.confidence !== 'unknown') reject();
+  } else if ((logical === null && allocated === null) || size.confidence === 'unknown') {
+    reject();
+  }
+}
+
+function assertStatus(view) {
+  const cancelledScopes = new Set(view.scopes.filter((scope) => scope.coverage === 'cancelled').map((scope) => scope.scope_id));
+  const cancelledIssues = view.issues.filter((issue) => issue.code === 'cancelled');
+  if (view.status === 'completed') {
+    if (!view.totals.coverage_complete || view.issues.length !== 0 || view.scopes.some((scope) => scope.coverage !== 'complete')) reject();
+    return;
+  }
+  if (view.totals.coverage_complete) reject();
+  if (view.status === 'partial') {
+    if (cancelledScopes.size !== 0 || cancelledIssues.length !== 0) reject();
+    if (view.issues.length === 0 && view.scopes.every((scope) => scope.coverage === 'complete')) reject();
+    return;
+  }
+  if (view.status !== 'cancelled' || cancelledScopes.size === 0) reject();
+  const issueScopes = new Set(cancelledIssues.map((issue) => issue.scope_id));
+  if (issueScopes.size !== cancelledScopes.size || [...cancelledScopes].some((id) => !issueScopes.has(id))) reject();
+}
+
+export function assertReportView(view) {
+  exact(view, ['view_version', 'read_only', 'source_schema_version', 'scan_id', 'status', 'scopes', 'findings', 'issues', 'totals']);
+  if (view.view_version !== VIEW_VERSION || view.read_only !== true || view.source_schema_version !== SCHEMA_VERSION) reject();
+  identifier(view.scan_id);
+  oneOf(view.status, STATUS);
+  if (!Array.isArray(view.scopes) || view.scopes.length < 1 || view.scopes.length > 64) reject();
+  if (!Array.isArray(view.findings) || view.findings.length > 100000) reject();
+  if (!Array.isArray(view.issues) || view.issues.length > 100000) reject();
+
+  const scopes = new Map();
+  for (const scope of view.scopes) {
+    exact(scope, ['scope_id', 'label', 'platform', 'origin', 'coverage']);
+    identifier(scope.scope_id);
+    text(scope.label, 1, 80);
+    oneOf(scope.platform, PLATFORM);
+    oneOf(scope.origin, ORIGIN);
+    oneOf(scope.coverage, COVERAGE);
+    if (scopes.has(scope.scope_id)) reject();
+    scopes.set(scope.scope_id, scope);
+  }
+
+  const findingIds = new Set();
+  for (const finding of view.findings) {
+    exact(finding, ['id', 'scope_id', 'title', 'relative_path', 'tool_id', 'tool_name', 'source_tool', 'rule_version', 'category', 'risk', 'recoverability', 'activity', 'confidence', 'evidence', 'evidence_items', 'protection_reasons', 'references', 'logical_bytes', 'size']);
+    identifier(finding.id);
+    identifier(finding.scope_id);
+    if (findingIds.has(finding.id) || !scopes.has(finding.scope_id)) reject();
+    findingIds.add(finding.id);
+    relativePath(finding.relative_path);
+    const scope = scopes.get(finding.scope_id);
+    if (finding.title !== (finding.relative_path === '' ? scope.label : finding.relative_path)) reject();
+    text(finding.rule_version, 1, 32);
+    oneOf(finding.category, CATEGORY);
+    oneOf(finding.risk, RISK);
+    oneOf(finding.recoverability, RECOVERABILITY);
+    oneOf(finding.activity, ACTIVITY);
+    oneOf(finding.confidence, CONFIDENCE);
+    assertTool(finding.source_tool);
+    if (finding.source_tool === null) {
+      if (finding.tool_id !== 'no_tool' || finding.tool_name !== 'Unknown tool') reject();
+    } else if (finding.tool_id !== `tool:${finding.source_tool.tool_id}` || finding.tool_name !== finding.source_tool.name) {
+      reject();
+    }
+    if (!Array.isArray(finding.evidence_items) || finding.evidence_items.length < 1 || finding.evidence_items.length > 64) reject();
+    for (const item of finding.evidence_items) {
+      exact(item, ['code', 'source', 'summary']);
+      oneOf(item.code, EVIDENCE_CODE);
+      oneOf(item.source, EVIDENCE_SOURCE);
+      text(item.summary, 1, 280);
+    }
+    if (finding.evidence !== finding.evidence_items.map((item) => item.summary).join('\n')) reject();
+    if (!Array.isArray(finding.protection_reasons) || finding.protection_reasons.length > 64) reject();
+    for (const reason of finding.protection_reasons) oneOf(reason, PROTECTION);
+    if ((finding.risk === 'protected') !== (finding.protection_reasons.length > 0)) reject();
+    if (finding.relative_path === '' && !finding.protection_reasons.some((reason) => ROOT_REASONS.has(reason))) reject();
+    exact(finding.references, ['state', 'project_ids']);
+    oneOf(finding.references.state, REFERENCE_STATE);
+    if (!Array.isArray(finding.references.project_ids) || finding.references.project_ids.length > 10000) reject();
+    const projects = new Set();
+    for (const project of finding.references.project_ids) {
+      identifier(project);
+      if (projects.has(project)) reject();
+      projects.add(project);
+    }
+    if (finding.references.state === 'unknown' && finding.references.project_ids.length !== 0) reject();
+    assertSize(finding.size);
+    const logical = byteCount(finding.logical_bytes, true);
+    const sized = byteCount(finding.size.logical_bytes, true);
+    if (logical !== sized || finding.logical_bytes !== finding.size.logical_bytes) reject();
+  }
+
+  for (const issue of view.issues) {
+    exact(issue, ['code', 'scope_id', 'relative_path', 'message']);
+    oneOf(issue.code, ISSUE_CODE);
+    identifier(issue.scope_id);
+    if (!scopes.has(issue.scope_id)) reject();
+    if (issue.relative_path !== null) relativePath(issue.relative_path);
+    text(issue.message, 1, 280);
+  }
+
+  exact(view.totals, ['logical_bytes', 'allocated_bytes', 'method', 'coverage_complete', 'scanned_entries', 'skipped_entries']);
+  const totalLogical = byteCount(view.totals.logical_bytes, true);
+  const totalAllocated = byteCount(view.totals.allocated_bytes, true);
+  oneOf(view.totals.method, TOTAL_METHOD);
+  if (typeof view.totals.coverage_complete !== 'boolean') reject();
+  integerField(view.totals.scanned_entries);
+  integerField(view.totals.skipped_entries);
+  if (view.totals.method === 'unavailable') {
+    if (totalLogical !== null || totalAllocated !== null) reject();
+  } else if (totalLogical === null && totalAllocated === null) {
+    reject();
+  }
+  assertStatus(view);
+}
+
+function compareCodePoints(left, right) {
+  const a = [...left.toLowerCase()];
+  const b = [...right.toLowerCase()];
+  const length = Math.min(a.length, b.length);
+  for (let index = 0; index < length; index += 1) {
+    const delta = a[index].codePointAt(0) - b[index].codePointAt(0);
+    if (delta !== 0) return delta < 0 ? -1 : 1;
+  }
+  if (a.length === b.length) return 0;
+  return a.length < b.length ? -1 : 1;
+}
+
+function filtersOf(filters) {
+  if (!isObject(filters)) reject();
+  for (const key of Object.keys(filters)) {
+    if (!['query', 'scope', 'tool', 'category', 'risk', 'sort'].includes(key)) reject();
+  }
+  const query = filters.query ?? '';
+  const scope = filters.scope ?? 'all';
+  const tool = filters.tool ?? 'all';
+  const category = filters.category ?? 'all';
+  const risk = filters.risk ?? 'all';
+  const sort = filters.sort ?? 'size_desc';
+  if (typeof query !== 'string' || typeof scope !== 'string' || typeof tool !== 'string') reject();
+  if (scope !== 'all') identifier(scope);
+  if (tool.length > 128) reject();
+  if (category !== 'all') oneOf(category, CATEGORY);
+  if (risk !== 'all') oneOf(risk, RISK);
+  if (!SORTS.has(sort)) reject();
+  return { query, scope, tool, category, risk, sort };
+}
+
+export function selectFindings(view, filters = {}) {
+  assertReportView(view);
+  const selected = filtersOf(filters);
+  const needle = selected.query.toLowerCase();
+  return view.findings.filter((finding) =>
+    (selected.scope === 'all' || finding.scope_id === selected.scope) &&
+    (selected.tool === 'all' || finding.tool_id === selected.tool) &&
+    (selected.category === 'all' || finding.category === selected.category) &&
+    (selected.risk === 'all' || finding.risk === selected.risk) &&
+    (finding.title.toLowerCase().includes(needle) || finding.relative_path.toLowerCase().includes(needle)),
+  ).sort((a, b) => {
+    const aUnknown = a.logical_bytes === null;
+    const bUnknown = b.logical_bytes === null;
+    if (aUnknown !== bUnknown) return aUnknown ? 1 : -1;
+    if (selected.sort === 'name_asc') return compareCodePoints(a.title, b.title);
+    if (aUnknown) return 0;
+    const left = Number(a.logical_bytes);
+    const right = Number(b.logical_bytes);
+    if (left === right) return 0;
+    const order = left < right ? -1 : 1;
+    return selected.sort === 'size_asc' ? order : -order;
+  });
+}
+
+export function formatBytes(decimalOrNull) {
+  if (decimalOrNull === null) return '未知';
+  if (typeof decimalOrNull !== 'string' || !BYTE_TEXT.test(decimalOrNull)) reject();
+  const bytes = BigInt(decimalOrNull);
+  if (bytes > U64_MAX) reject();
+  const units = ['B', 'KiB', 'MiB', 'GiB', 'TiB', 'PiB', 'EiB'];
+  let unit = 0;
+  let divisor = 1n;
+  while (unit < units.length - 1 && bytes >= divisor * 1024n) {
+    divisor *= 1024n;
+    unit += 1;
+  }
+  const tenths = bytes * 10n / divisor;
+  const fraction = tenths % 10n;
+  const whole = tenths / 10n;
+  return fraction === 0n ? `${whole} ${units[unit]}` : `${whole}.${fraction} ${units[unit]}`;
+}
+
+export function summarizeView(view) {
+  assertReportView(view);
+  let protectedCount = 0;
+  let unknownSizeCount = 0;
+  for (const finding of view.findings) {
+    if (finding.risk === 'protected') protectedCount += 1;
+    if (finding.logical_bytes === null) unknownSizeCount += 1;
+  }
+  return {
+    count: view.findings.length,
+    protected_count: protectedCount,
+    unknown_size_count: unknownSizeCount,
+    source_totals: {
+      logical_bytes: view.totals.logical_bytes,
+      allocated_bytes: view.totals.allocated_bytes,
+      method: view.totals.method,
+      coverage_complete: view.totals.coverage_complete,
+      scanned_entries: view.totals.scanned_entries,
+      skipped_entries: view.totals.skipped_entries,
+    },
+  };
+}
