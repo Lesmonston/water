@@ -1,0 +1,384 @@
+//! Frozen `water.scan.v1` data types and validation entry points.
+//!
+//! These types carry observations. Paths, IDs and risk labels grant no access
+//! to files and never authorize a scan or a cleanup operation.
+
+use serde::{Deserialize, Deserializer, Serialize, Serializer};
+use std::{fmt, str::FromStr};
+
+const MAX_JSON_BYTES: usize = 8_388_608;
+
+#[derive(Debug, Clone, PartialEq, Eq)]
+pub enum ContractErrorCode {
+    InvalidJson,
+    InvalidShape,
+    InvalidByteCount,
+    InvalidId,
+    InvalidRelativePath,
+    DuplicateId,
+    UnknownScope,
+    InconsistentReport,
+    UnsafeClassification,
+    InvalidSize,
+}
+
+#[derive(Debug, Clone, PartialEq, Eq)]
+pub struct ContractError {
+    pub code: ContractErrorCode,
+    pub field: String,
+}
+
+impl ContractError {
+    fn new(code: ContractErrorCode, field: &str) -> Self {
+        Self {
+            code,
+            field: field.to_owned(),
+        }
+    }
+}
+
+impl fmt::Display for ContractError {
+    fn fmt(&self, formatter: &mut fmt::Formatter<'_>) -> fmt::Result {
+        write!(formatter, "{:?} at {}", self.code, self.field)
+    }
+}
+
+impl std::error::Error for ContractError {}
+
+#[derive(Debug, Clone, Copy, PartialEq, Eq, Hash)]
+pub struct ByteCount(u64);
+
+impl ByteCount {
+    pub fn new(value: u64) -> Self {
+        Self(value)
+    }
+
+    pub fn get(&self) -> u64 {
+        self.0
+    }
+}
+
+impl FromStr for ByteCount {
+    type Err = ContractError;
+
+    fn from_str(value: &str) -> Result<Self, Self::Err> {
+        if value.is_empty()
+            || (value.len() > 1 && value.starts_with('0'))
+            || !value.bytes().all(|byte| byte.is_ascii_digit())
+        {
+            return Err(ContractError::new(
+                ContractErrorCode::InvalidByteCount,
+                "byte_count",
+            ));
+        }
+        value.parse::<u64>().map(Self).map_err(|_| {
+            ContractError::new(ContractErrorCode::InvalidByteCount, "byte_count")
+        })
+    }
+}
+
+impl Serialize for ByteCount {
+    fn serialize<S: Serializer>(&self, serializer: S) -> Result<S::Ok, S::Error> {
+        serializer.serialize_str(&self.0.to_string())
+    }
+}
+
+impl<'de> Deserialize<'de> for ByteCount {
+    fn deserialize<D: Deserializer<'de>>(deserializer: D) -> Result<Self, D::Error> {
+        let value = String::deserialize(deserializer)?;
+        value.parse().map_err(serde::de::Error::custom)
+    }
+}
+
+#[derive(Debug, Clone, PartialEq, Eq, Hash)]
+pub struct OpaqueId(String);
+
+impl OpaqueId {
+    pub fn new(value: impl Into<String>) -> Result<Self, ContractError> {
+        let value = value.into();
+        let bytes = value.as_bytes();
+        if bytes.is_empty()
+            || bytes.len() > 64
+            || !bytes[0].is_ascii_alphanumeric()
+            || !bytes
+                .iter()
+                .all(|byte| byte.is_ascii_alphanumeric() || matches!(byte, b'_' | b'-'))
+        {
+            return Err(ContractError::new(ContractErrorCode::InvalidId, "opaque_id"));
+        }
+        Ok(Self(value))
+    }
+
+    pub fn as_str(&self) -> &str {
+        &self.0
+    }
+}
+
+impl Serialize for OpaqueId {
+    fn serialize<S: Serializer>(&self, serializer: S) -> Result<S::Ok, S::Error> {
+        serializer.serialize_str(&self.0)
+    }
+}
+
+impl<'de> Deserialize<'de> for OpaqueId {
+    fn deserialize<D: Deserializer<'de>>(deserializer: D) -> Result<Self, D::Error> {
+        Self::new(String::deserialize(deserializer)?).map_err(serde::de::Error::custom)
+    }
+}
+
+fn ascii_control(character: char) -> bool {
+    character <= '\u{1f}' || character == '\u{7f}'
+}
+
+#[derive(Debug, Clone, PartialEq, Eq, Hash)]
+pub struct RelativePath(String);
+
+impl RelativePath {
+    pub fn new(value: impl Into<String>) -> Result<Self, ContractError> {
+        let value = value.into();
+        if value.chars().count() > 4096
+            || value
+                .chars()
+                .any(|character| ascii_control(character) || matches!(character, '\\' | ':'))
+            || (!value.is_empty()
+                && value
+                    .split('/')
+                    .any(|segment| matches!(segment, "" | "." | "..")))
+        {
+            return Err(ContractError::new(
+                ContractErrorCode::InvalidRelativePath,
+                "relative_path",
+            ));
+        }
+        Ok(Self(value))
+    }
+
+    pub fn as_str(&self) -> &str {
+        &self.0
+    }
+}
+
+impl Serialize for RelativePath {
+    fn serialize<S: Serializer>(&self, serializer: S) -> Result<S::Ok, S::Error> {
+        serializer.serialize_str(&self.0)
+    }
+}
+
+impl<'de> Deserialize<'de> for RelativePath {
+    fn deserialize<D: Deserializer<'de>>(deserializer: D) -> Result<Self, D::Error> {
+        Self::new(String::deserialize(deserializer)?).map_err(serde::de::Error::custom)
+    }
+}
+
+// A custom deserializer makes a nullable property required. An absent field
+// must not take Serde's usual missing-Option shortcut.
+fn required_nullable<'de, D, T>(deserializer: D) -> Result<Option<T>, D::Error>
+where
+    D: Deserializer<'de>,
+    T: Deserialize<'de>,
+{
+    Option::<T>::deserialize(deserializer)
+}
+
+// Deserialize maps only: derive alone also accepts positional JSON arrays for
+// structs, which would violate the object-only wire schema. The inner derive
+// rejects unknown and duplicate fields, including duplicate explicit nulls.
+macro_rules! dto {
+    ($name:ident { $($(#[$attribute:meta])* $field:ident: $ty:ty),* $(,)? }) => {
+        #[derive(Debug, Clone, PartialEq, Serialize)]
+        pub struct $name {
+            $(pub $field: $ty),*
+        }
+
+        impl<'de> Deserialize<'de> for $name {
+            fn deserialize<D: Deserializer<'de>>(deserializer: D) -> Result<Self, D::Error> {
+                #[derive(Deserialize)]
+                #[serde(deny_unknown_fields)]
+                struct Fields {
+                    $($(#[$attribute])* $field: $ty),*
+                }
+
+                struct MapVisitor;
+                impl<'de> serde::de::Visitor<'de> for MapVisitor {
+                    type Value = $name;
+
+                    fn expecting(&self, formatter: &mut fmt::Formatter<'_>) -> fmt::Result {
+                        formatter.write_str(concat!("a ", stringify!($name), " object"))
+                    }
+
+                    fn visit_map<A: serde::de::MapAccess<'de>>(
+                        self,
+                        map: A,
+                    ) -> Result<Self::Value, A::Error> {
+                        let fields = Fields::deserialize(serde::de::value::MapAccessDeserializer::new(map))?;
+                        Ok($name { $($field: fields.$field),* })
+                    }
+                }
+                deserializer.deserialize_map(MapVisitor)
+            }
+        }
+    };
+}
+
+macro_rules! wire_enum {
+    ($name:ident { $($variant:ident),* $(,)? }) => {
+        #[derive(Debug, Clone, Copy, PartialEq, Eq, Hash, Serialize, Deserialize)]
+        #[serde(rename_all = "snake_case")]
+        pub enum $name { $($variant),* }
+    };
+}
+
+#[derive(Debug, Clone, Copy, PartialEq, Eq, Hash, Serialize, Deserialize)]
+pub enum SchemaVersion {
+    #[serde(rename = "water.scan.v1")]
+    WaterScanV1,
+}
+
+wire_enum!(Platform { Windows, Macos });
+wire_enum!(ScopeOrigin { UserSelected, ConfigDiscovered });
+wire_enum!(Coverage { Complete, Partial, Cancelled });
+wire_enum!(ScanStatus { Completed, Partial, Cancelled });
+wire_enum!(LocationSource { Config, Native, Marker, DefaultPath, Unknown });
+wire_enum!(Category {
+    DownloadCache, BuildCache, Environment, Model, Experiment, History,
+    Database, Credential, Source, Temporary, Unknown,
+});
+wire_enum!(Risk { Low, Review, High, Protected });
+wire_enum!(Recoverability { Rebuild, Redownload, Conditional, Unknown, NotApplicable });
+wire_enum!(Activity { Running, Recent, NotObserved, Unknown });
+wire_enum!(Confidence { Native, VerifiedStructure, PathOnly, Unknown });
+wire_enum!(ProtectionReason {
+    Credential, UniqueAsset, Active, UnknownOwnership, IncompleteEvidence,
+    SourceRoot, SystemRoot, UserHome, ProtectedDescendant, UserPinned,
+});
+wire_enum!(EvidenceCode {
+    NativeInventory, StructureMatch, ConfiguredLocation, Marker,
+    TimestampHint, Reference, IncompleteScan, Unknown,
+});
+wire_enum!(EvidenceSource { NativeTool, Config, Filesystem, Rule, Heuristic });
+wire_enum!(SizeMethod { Unknown, LogicalSum, FileIdentityAllocated, ToolReport });
+wire_enum!(EstimateConfidence { Unknown, Estimated, Measured });
+wire_enum!(SharedState { Yes, No, Unknown });
+wire_enum!(ReferenceState { Known, Partial, Unknown });
+wire_enum!(AggregateMethod { Unavailable, FileIdentityDeduplicated, ToolReport });
+wire_enum!(IssueCode {
+    PermissionDenied, IoError, LinkSkipped, OutsideScope, PathUnrepresentable,
+    DepthLimit, EntryLimit, Cancelled, RootChanged, Unsupported,
+});
+
+dto!(ScopeDescriptor {
+    scope_id: OpaqueId,
+    label: String,
+    platform: Platform,
+    origin: ScopeOrigin,
+    coverage: Coverage,
+});
+
+dto!(ToolDescriptor {
+    tool_id: OpaqueId,
+    name: String,
+    #[serde(deserialize_with = "required_nullable")]
+    version: Option<String>,
+    root_source: LocationSource,
+});
+
+dto!(Evidence {
+    code: EvidenceCode,
+    source: EvidenceSource,
+    summary: String,
+});
+
+dto!(ReferenceSummary {
+    state: ReferenceState,
+    project_ids: Vec<OpaqueId>,
+});
+
+dto!(SizeEstimate {
+    #[serde(deserialize_with = "required_nullable")]
+    logical_bytes: Option<ByteCount>,
+    #[serde(deserialize_with = "required_nullable")]
+    allocated_bytes: Option<ByteCount>,
+    #[serde(deserialize_with = "required_nullable")]
+    reclaimable_lower_bytes: Option<ByteCount>,
+    #[serde(deserialize_with = "required_nullable")]
+    reclaimable_upper_bytes: Option<ByteCount>,
+    method: SizeMethod,
+    confidence: EstimateConfidence,
+    shared: SharedState,
+});
+
+dto!(Finding {
+    finding_id: OpaqueId,
+    scope_id: OpaqueId,
+    relative_path: RelativePath,
+    #[serde(deserialize_with = "required_nullable")]
+    tool: Option<ToolDescriptor>,
+    rule_version: String,
+    category: Category,
+    risk: Risk,
+    recoverability: Recoverability,
+    activity: Activity,
+    confidence: Confidence,
+    evidence: Vec<Evidence>,
+    protection_reasons: Vec<ProtectionReason>,
+    references: ReferenceSummary,
+    size: SizeEstimate,
+});
+
+dto!(ScanIssue {
+    code: IssueCode,
+    scope_id: OpaqueId,
+    #[serde(deserialize_with = "required_nullable")]
+    relative_path: Option<RelativePath>,
+    message: String,
+});
+
+dto!(ScanTotals {
+    #[serde(deserialize_with = "required_nullable")]
+    logical_bytes: Option<ByteCount>,
+    #[serde(deserialize_with = "required_nullable")]
+    allocated_bytes: Option<ByteCount>,
+    method: AggregateMethod,
+    coverage_complete: bool,
+    scanned_entries: u32,
+    skipped_entries: u32,
+});
+
+dto!(ScanReport {
+    schema_version: SchemaVersion,
+    scan_id: OpaqueId,
+    status: ScanStatus,
+    scopes: Vec<ScopeDescriptor>,
+    findings: Vec<Finding>,
+    issues: Vec<ScanIssue>,
+    totals: ScanTotals,
+});
+
+/// Parse syntax first, then deserialize the original input without losing keys.
+pub fn parse_report(input: &str) -> Result<ScanReport, ContractError> {
+    if input.len() > MAX_JSON_BYTES {
+        return Err(ContractError::new(ContractErrorCode::InvalidShape, "/"));
+    }
+    serde_json::from_str::<serde_json::Value>(input)
+        .map_err(|_| ContractError::new(ContractErrorCode::InvalidJson, "/"))?;
+    let report = serde_json::from_str(input)
+        .map_err(|_| ContractError::new(ContractErrorCode::InvalidShape, "/"))?;
+    validate_report(&report)?;
+    Ok(report)
+}
+
+/// Validate a directly constructed DTO before it crosses a public boundary.
+pub fn validate_report(_report: &ScanReport) -> Result<(), ContractError> {
+    Ok(())
+}
+
+/// Produce compact JSON only after validating the entire report.
+pub fn to_json(report: &ScanReport) -> Result<String, ContractError> {
+    validate_report(report)?;
+    let output = serde_json::to_string(report)
+        .map_err(|_| ContractError::new(ContractErrorCode::InvalidShape, "/"))?;
+    if output.len() > MAX_JSON_BYTES {
+        return Err(ContractError::new(ContractErrorCode::InvalidShape, "/"));
+    }
+    Ok(output)
+}

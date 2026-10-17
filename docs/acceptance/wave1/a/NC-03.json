@@ -1,0 +1,28 @@
+{
+  "id": "NC-03",
+  "sourcePath": "crates/water-contracts/src/v1.rs",
+  "line": 502,
+  "expectedTest": "conformance_reports",
+  "expectedCase": "unknown_scope",
+  "originalText": "    for (index, finding) in report.findings.iter().enumerate() {\n        if !scope_ids.contains(&finding.scope_id) {\n            return Err(ContractError::new(\n                ContractErrorCode::UnknownScope,\n                &format!(\"/findings/{index}/scope_id\"),\n            ));\n        }\n    }\n",
+  "replacementText": "",
+  "sha256Before": "f39ea8d8619f05030a0c6cc33e85ba17142061f9352552199ac832596a9bfa72",
+  "sha256Broken": "59fddce77332c8750e6266fb1b1fee63270505b1bd0f55091642a9fafb3828e9",
+  "sha256Restored": "f39ea8d8619f05030a0c6cc33e85ba17142061f9352552199ac832596a9bfa72",
+  "command": "node scripts/worker-check.mjs --task WATER-W1-A --mode test",
+  "broken": {
+    "exitCode": 1,
+    "receipt": ".local/checks/WATER-W1-A/2026-10-17T05-55-17.536Z-6844-test-result.json",
+    "helperLog": "NC-03-broken-helper.log",
+    "summary": "test result: FAILED. 3 passed; 2 failed; 0 ignored; 0 measured; 0 filtered out; finished in 1.90s",
+    "cargoExitCode": 101
+  },
+  "restored": {
+    "exitCode": 0,
+    "receipt": ".local/checks/WATER-W1-A/2026-10-17T05-55-23.672Z-2308-test-result.json",
+    "helperLog": "NC-03-restored-helper.log",
+    "summary": "test result: ok. 5 passed; 0 failed; 0 ignored; 0 measured; 0 filtered out; finished in 1.70s"
+  },
+  "valid": true,
+  "changedLine": 502
+}

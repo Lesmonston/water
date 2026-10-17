@@ -1,0 +1,28 @@
+{
+  "id": "NC-04",
+  "sourcePath": "crates/water-contracts/src/v1.rs",
+  "line": 532,
+  "expectedTest": "conformance_reports",
+  "expectedCase": "protected_descendant_missing_propagation",
+  "originalText": "    validate_ancestor_protection(report)?;\n",
+  "replacementText": "",
+  "sha256Before": "f39ea8d8619f05030a0c6cc33e85ba17142061f9352552199ac832596a9bfa72",
+  "sha256Broken": "a13088b0247dc807ed66a65a81c58f39799dc67a6a005f615ec3498f53c50817",
+  "sha256Restored": "f39ea8d8619f05030a0c6cc33e85ba17142061f9352552199ac832596a9bfa72",
+  "command": "node scripts/worker-check.mjs --task WATER-W1-A --mode test",
+  "broken": {
+    "exitCode": 1,
+    "receipt": ".local/checks/WATER-W1-A/2026-10-17T05-55-30.206Z-25952-test-result.json",
+    "helperLog": "NC-04-broken-helper.log",
+    "summary": "test result: FAILED. 4 passed; 1 failed; 0 ignored; 0 measured; 0 filtered out; finished in 1.95s",
+    "cargoExitCode": 101
+  },
+  "restored": {
+    "exitCode": 0,
+    "receipt": ".local/checks/WATER-W1-A/2026-10-17T05-55-37.591Z-30204-test-result.json",
+    "helperLog": "NC-04-restored-helper.log",
+    "summary": "test result: ok. 5 passed; 0 failed; 0 ignored; 0 measured; 0 filtered out; finished in 2.01s"
+  },
+  "valid": true,
+  "changedLine": 532
+}

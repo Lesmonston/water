@@ -1,0 +1,28 @@
+{
+  "id": "NC-05",
+  "sourcePath": "crates/water-contracts/src/v1.rs",
+  "line": 396,
+  "expectedTest": "conformance_reports",
+  "expectedCase": "missing_nullable_field",
+  "originalText": "dto!(SizeEstimate {\n    #[serde(deserialize_with = \"required_nullable\")]\n    logical_bytes: Option<ByteCount>,\n    #[serde(deserialize_with = \"required_nullable\")]\n    allocated_bytes: Option<ByteCount>,",
+  "replacementText": "dto!(SizeEstimate {\n    #[serde(deserialize_with = \"required_nullable\")]\n    logical_bytes: Option<ByteCount>,\n    #[serde(default, deserialize_with = \"required_nullable\")]\n    allocated_bytes: Option<ByteCount>,",
+  "sha256Before": "f39ea8d8619f05030a0c6cc33e85ba17142061f9352552199ac832596a9bfa72",
+  "sha256Broken": "343639ca49b30ad7eff14114696dad36ba21998241fe8b95bf6303b5a735f9f4",
+  "sha256Restored": "f39ea8d8619f05030a0c6cc33e85ba17142061f9352552199ac832596a9bfa72",
+  "command": "node scripts/worker-check.mjs --task WATER-W1-A --mode test",
+  "broken": {
+    "exitCode": 1,
+    "receipt": ".local/checks/WATER-W1-A/2026-10-17T05-56-04.536Z-41668-test-result.json",
+    "helperLog": "NC-05-broken-helper.log",
+    "summary": "test result: FAILED. 4 passed; 1 failed; 0 ignored; 0 measured; 0 filtered out; finished in 2.04s",
+    "cargoExitCode": 101
+  },
+  "restored": {
+    "exitCode": 0,
+    "receipt": ".local/checks/WATER-W1-A/2026-10-17T05-56-11.619Z-3884-test-result.json",
+    "helperLog": "NC-05-restored-helper.log",
+    "summary": "test result: ok. 5 passed; 0 failed; 0 ignored; 0 measured; 0 filtered out; finished in 2.17s"
+  },
+  "valid": true,
+  "changedLine": 399
+}

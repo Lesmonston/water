@@ -1,0 +1,46 @@
+{
+  "task": "WATER-W1-A",
+  "mode": "test",
+  "finalGate": false,
+  "startedAt": "2026-10-17T05:56:05.011Z",
+  "before": {
+    "head": "a1e68364d47e137f8b66543eb95d35bb04424c78",
+    "status": "?? Cargo.lock\n?? Cargo.toml\n?? crates/water-contracts/Cargo.toml\n?? crates/water-contracts/README.md\n?? crates/water-contracts/src/lib.rs\n?? crates/water-contracts/src/v1.rs\n?? crates/water-contracts/tests/contract_v1.rs\n?? docs/acceptance/wave1/a/NC-01.json\n?? docs/acceptance/wave1/a/NC-02.json\n?? docs/acceptance/wave1/a/NC-03.json\n?? docs/acceptance/wave1/a/NC-04.json\n?? docs/acceptance/wave1/a/initial-red-v1-source.txt\n?? rust-toolchain.toml"
+  },
+  "productTestsRun": true,
+  "rustVersion": "rustc 1.95.0 (59807616e 2026-04-14)",
+  "cargoVersion": "cargo 1.95.0 (f2d3ce0bd 2026-03-21)",
+  "after": {
+    "head": "a1e68364d47e137f8b66543eb95d35bb04424c78",
+    "status": "?? Cargo.lock\n?? Cargo.toml\n?? crates/water-contracts/Cargo.toml\n?? crates/water-contracts/README.md\n?? crates/water-contracts/src/lib.rs\n?? crates/water-contracts/src/v1.rs\n?? crates/water-contracts/tests/contract_v1.rs\n?? docs/acceptance/wave1/a/NC-01.json\n?? docs/acceptance/wave1/a/NC-02.json\n?? docs/acceptance/wave1/a/NC-03.json\n?? docs/acceptance/wave1/a/NC-04.json\n?? docs/acceptance/wave1/a/initial-red-v1-source.txt\n?? rust-toolchain.toml"
+  },
+  "endedAt": "2026-10-17T05:56:11.514Z",
+  "status": "failed",
+  "error": "Command failed: C:\\Users\\37310\\.rustup\\toolchains\\1.95.0-x86_64-pc-windows-msvc\\bin\\cargo.exe (exit 101, no signal)",
+  "receipt": "F:\\new\\smaltalk\\water\\.worktrees\\a\\.local\\checks\\WATER-W1-A\\2026-10-17T05-56-04.536Z-41668-test-result.json"
+}
+
+running 5 tests
+test byte_count_round_trip ... ok
+test conformance_reports ... FAILED
+test constructed_report_validation ... ok
+test primitive_validation ... ok
+test raw_json_and_resource_limits ... ok
+
+failures:
+
+---- conformance_reports stdout ----
+
+thread 'conformance_reports' (19896) panicked at crates\water-contracts\tests\contract_v1.rs:47:24:
+missing_nullable_field: ScanReport { schema_version: WaterScanV1, scan_id: OpaqueId("scan-fixture-1"), status: Completed, scopes: [ScopeDescriptor { scope_id: OpaqueId("scope-1"), label: "Fixture A", platform: Windows, origin: UserSelected, coverage: Complete }], findings: [Finding { finding_id: OpaqueId("finding-1"), scope_id: OpaqueId("scope-1"), relative_path: RelativePath("project/.cache/ruff"), tool: Some(ToolDescriptor { tool_id: OpaqueId("ruff"), name: "Ruff fixture", version: Some("0.0-fixture"), root_source: Marker }), rule_version: "1", category: BuildCache, risk: Review, recoverability: Rebuild, activity: Unknown, confidence: VerifiedStructure, evidence: [Evidence { code: StructureMatch, source: Filesystem, summary: "Fictional fixture metadata only; not a real scan." }], protection_reasons: [], references: ReferenceSummary { state: Unknown, project_ids: [] }, size: SizeEstimate { logical_bytes: Some(ByteCount(9007199254740993)), allocated_bytes: None, reclaimable_lower_bytes: None, reclaimable_upper_bytes: None, method: LogicalSum, confidence: Estimated, shared: Unknown } }], issues: [], totals: ScanTotals { logical_bytes: None, allocated_bytes: None, method: Unavailable, coverage_complete: true, scanned_entries: 3, skipped_entries: 0 } }
+note: run with `RUST_BACKTRACE=1` environment variable to display a backtrace
+
+
+failures:
+    conformance_reports
+
+test result: FAILED. 4 passed; 1 failed; 0 ignored; 0 measured; 0 filtered out; finished in 2.04s
+
+    Finished `test` profile [unoptimized + debuginfo] target(s) in 0.07s
+     Running tests\contract_v1.rs (.local\target\debug\deps\contract_v1-30630d86c79a905c.exe)
+error: test failed, to rerun pass `-p water-contracts --test contract_v1`
