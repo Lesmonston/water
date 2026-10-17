@@ -1,5 +1,7 @@
 # WATER-W1-J：受控扫描会话库
 
+当前归档状态（2026-10-18）：J已由总控独立验收集成，VERIFIED（Windows），不再外贴或重跑初次baseline。原bridge工具失败及总控勘误均保留，见[验收报告](../../acceptance/wave1/controller/WATER-W1-J-REVIEW-20261018.md)。以下为原派前票面，原helper/冻结未改。
+
 总控Codex，2026-10-18。当前正式状态以主检出manifest为准；没有READY前不执行。A/F/G/E/H均VERIFIED（Windows范围）。新J产品尚未实现，派前依赖实测不能当作J功能通过。
 
 | 项 | 唯一值 |

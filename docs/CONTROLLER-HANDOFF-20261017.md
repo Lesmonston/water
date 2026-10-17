@@ -2,7 +2,11 @@
 
 2026-10-17。项目：`F:/new/smaltalk/water`。供后续总控接手与Keeper ingest；未写共享Vault或其他项目。
 
-## 当前交接：旧单已收口，J/K刚外贴
+## 当前交接：J已验收集成，K待回执
+
+J接收1dfa82c、实现b6fd1fe、隔离受测d14e1f1。原四final复跑全过；原bridge工具失败保留，总控按Cargo实际图选rlib后，在四组真实重复产物共存时通过13快照六字段比较、Native11/12/39、五产品/三工具测试及44内容快照。359份交付字节及132冻结保持，产品未改，J为VERIFIED（Windows）。K任务/helper/锁未改，仍RUNNING待回执；真实J→K页面、真实scope/分类/桌面/macOS及删除后排。见[J验收报告](acceptance/wave1/controller/WATER-W1-J-REVIEW-20261018.md)。无须为总控工具问题重贴J实现单。
+
+## 此前交接：旧单已收口，J/K刚外贴
 
 用户已确认“我刚贴出去”，东京01:40:31审计已见J六个、K八个未提交实现文件，两单均记RUNNING待回执。J新增锁检查与K东京01:34:58–01:35:04新增baseline原字节已归档。此前只看Git HEAD/源码不能排除.local中的启动活动；[最新核对记录](acceptance/wave1/controller/w1-session-page-plan-20261018/DISPATCH-AUDIT-20261018.md)已补证。分配/基线/冻结保持，不重复派出。真实J→K页面验收方案/runner已准备，plan通过，run未执行。
 

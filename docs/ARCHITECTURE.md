@@ -20,7 +20,7 @@
 
 [ADR-007](decisions/ADR-007-parallel-report-export-reader.md)新增独立G/H/I：G从冻结F JSON事实组装全未知保护报告，并用完整sidecar保留A无法表示的身份/来源；H从经A验证的报告构造无直接标识/自由文本的白名单汇总；I消费真实E投影生成的冻结合成视图，提供状态/覆盖/来源容量/筛选/详情。G/H不依赖F crate，I不依赖G/H，因此可与F同时实现。A–I已VERIFIED（Windows范围）；G/H产品及实际F→G→A→E/H→I模型联测通过，I页面和正式桌面尚未接扫描链路，不修改根Cargo或旧产品。
 
-[ADR-008](decisions/ADR-008-controlled-session-and-supplied-reader.md)新增J/K独立线：J受控会话库只调用已验收F/G/A/E/H，返回冻结六字段快照；K页面只消费调用方内存bundle，复用I模型，不等J在途实现。65新冻结/132唯一文件、j/k独立r1树及真实派前通过，READY未启动实现者。[派前回执](dispatch/wave1/SESSION-BATCH-READY-REPORT.md)说明新产品未实现；真实J→K页面由总控后验，真实用户scope和桌面未放行。
+[ADR-008](decisions/ADR-008-controlled-session-and-supplied-reader.md)新增J/K独立线：J受控会话库调用已验收F/G/A/E/H，已通过[独立验收及集成](acceptance/wave1/controller/WATER-W1-J-REVIEW-20261018.md)（Windows范围），真实13快照与独立旧链路一致；K页面消费调用方内存bundle，保持原单RUNNING待回执。132冻结及旧产品保持；J→K真实页面、真实用户scope和桌面尚未验收。
 
 ## 分层与信任边界
 

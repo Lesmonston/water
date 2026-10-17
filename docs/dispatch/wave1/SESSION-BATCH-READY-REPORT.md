@@ -1,6 +1,6 @@
 # J/K派前完成回执
 
-派发更新（2026-10-18）：用户已确认刚外贴；J/K两树均已出现实现文件，均记RUNNING待回执。J新增锁检查及K新增baseline已归档。下文READY和产品不存在是本回执形成时的派前事实，不要重复派单。
+收单更新（2026-10-18）：J已VERIFIED（Windows），总控工具勘误后真实13快照验收通过，原bridge失败保留；K原单RUNNING待回执。下文READY和产品不存在是派前历史，不重复派单。见[J验收报告](../../acceptance/wave1/controller/WATER-W1-J-REVIEW-20261018.md)。
 
 2026-10-18（Asia/Tokyo），总控Codex。J/K均READY待用户分别外贴，未启动实现者。A–I九单及A/B/C/D四补单已收口，没有旧漏派/在途单；[旧台账审计](../../acceptance/wave1/controller/w1-session-batch-preflight-20261018/old-task-audit.json)核九树接收HEAD/干净及13份原票/补单。旧B/C/D票和被F替代的草案已加归档提示，不再重复外贴。
 

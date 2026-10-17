@@ -2,7 +2,7 @@
 
 2026-10-18，总控Codex。用户要求继续安排，首先核对是否漏派：九个A–I任务全部VERIFIED，13份原票/补单均归入已验收任务，九树在接收HEAD且干净；旧未派/在途任务为0。[台账审计](../../acceptance/wave1/controller/w1-session-batch-preflight-20261018/old-task-audit.json)记录实际Git与报告。旧CHANGES_REQUESTED/待外贴文字为历史，NEXT-CORE-DRAFT已被F正式票替代，不是漏派单。
 
-当前派发更新：用户已确认刚外贴J/K，两树均已出现实现文件，均记RUNNING待回执；J新增锁检查及K新增baseline已归档。不要重复派同一槽位。下方为原派前分工，最新状态以manifest为准。
+当前收单更新：J已通过总控工具勘误后的独立13快照验收并集成，VERIFIED（Windows），产品未改，原bridge失败记录保留。K保持原单RUNNING待回执，不重复派出。见[J验收报告](../../acceptance/wave1/controller/WATER-W1-J-REVIEW-20261018.md)；下方为原派前分工。
 
 | 票 | 独占产物 | 本次可观察结果 | 前置 |
 |---|---|---|---|

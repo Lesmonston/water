@@ -2,7 +2,11 @@
 
 日期：2026-10-17。总控：Codex。所有手工项目产物位于 `F:/new/smaltalk/water`。
 
-## J/K派发核对追加（2026-10-18，最新）
+## J验收集成追加（2026-10-18，最新）
+
+J接收1dfa82c、实现b6fd1fe、隔离受测d14e1f1。原四final复跑全过；原bridge工具失败保留，总控按Cargo实际图选rlib后，在四组真实重复产物共存时通过13快照六字段比较、Native11/12/39、五产品/三工具测试及44内容快照。359份交付字节及132冻结保持，产品未改，J为VERIFIED（Windows）。K任务/helper/锁未改，仍RUNNING待回执；真实J→K页面、真实scope/分类/桌面/macOS及删除后排。见[J验收报告](acceptance/wave1/controller/WATER-W1-J-REVIEW-20261018.md)。无须为总控工具问题重贴J实现单。
+
+## J/K派发核对追加（2026-10-18，历史）
 
 用户已确认刚转贴，两树均已出现实现文件，J/K登记RUNNING待回执；J新增锁检查及K新增baseline已归档。旧A–I仍已验收，没有其他未结外贴单。真实页面验收方案和guarded runner已准备，plan通过、run未执行，132冻结/两树分配不变。见[核对记录](acceptance/wave1/controller/w1-session-page-plan-20261018/DISPATCH-AUDIT-20261018.md)，不得重复派同槽位或冒称新产品通过。
 

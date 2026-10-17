@@ -97,9 +97,9 @@ READY只表示总控已准备好，不表示用户已转贴。得到用户已贴
 
 ## 当前落实程度
 
-最新派发核对：用户确认刚外贴J/K；两树均已出现实现文件，登记RUNNING，J新增锁检查及K新增baseline已归档；尚无完成报告。基线/冻结不改，不重复派同槽位。后续验收runner仅plan检查通过，真实J→K页面仍待交付后验证，见[核对记录](acceptance/wave1/controller/w1-session-page-plan-20261018/DISPATCH-AUDIT-20261018.md)。
+最新收单：J受阻来自总控bridge产物选择器，原失败保留；总控工具勘误后在隔离d14e1f1完成实际重复产物回归和13真实快照比较，未修改产品或原helper/锁，已VERIFIED（Windows）。K保持原单RUNNING待回执，没有其他未结票；J→K真实页面后验。见[J验收报告](acceptance/wave1/controller/WATER-W1-J-REVIEW-20261018.md)。
 
-最新派前：旧九单A–I和四补单均已验收，无旧漏派/在途；按ADR-008新增J/K，两独立r1树及65新冻结/六旧锁132唯一文件，J依赖实际受控链路与K资产/隔离Chrome基线通过，READY待分别外贴。仅冻结prepare在J本树.local创建一批夹具；K无物理fixture权限。新产品未实现，没有自动实现者；[派前回执](dispatch/wave1/SESSION-BATCH-READY-REPORT.md)优先于旧READY/返工描述。新helper保留完整红/恢复与源码，final核对证据字节，避免将事后负控称作已证明的历史先红。
+此前派前（历史）：旧九单A–I和四补单均已验收，无旧漏派/在途；按ADR-008新增J/K，两独立r1树及65新冻结/六旧锁132唯一文件，J依赖实际受控链路与K资产/隔离Chrome基线通过，READY待分别外贴。仅冻结prepare在J本树.local创建一批夹具；K无物理fixture权限。新产品未实现，没有自动实现者；[派前回执](dispatch/wave1/SESSION-BATCH-READY-REPORT.md)优先于旧READY/返工描述。新helper保留完整红/恢复与源码，final核对证据字节，避免将事后负控称作已证明的历史先红。
 
 最新G/H验收：两票原各五门与五测试、G四/H三独立测试通过，统一隔离受测e383ece用新target离线复测及受控真实F→G→A→E/H→I模型链路通过。83唯一冻结和旧产品不变，114份worker文件原字节一致；A–I均VERIFIED（Windows范围）。[G/H验收报告](acceptance/wave1/controller/WATER-W1-GH-REVIEW-20261018.md)保留历史先红次序未证实的限制。I页面、真实用户scope、分类、桌面/macOS及删除后排。
 

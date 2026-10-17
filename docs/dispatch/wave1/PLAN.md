@@ -1,6 +1,6 @@
 # 第一轮：契约底座
 
-**当前（2026-10-18）：A–I及四补单已收口，无旧漏派/在途；新J受控会话/K调用方供数页面已确认外贴，两树均见实现文件，RUNNING待回执；新产品尚未验收。** 见[本批安排](SESSION-BATCH-PLAN-20261018.md)和[派前回执](SESSION-BATCH-READY-REPORT.md)。总控未自动启动实现者，不改旧票/根Cargo；[四线计划](PARALLEL-NEXT-PLAN-20261017.md)、[派前回执](PARALLEL-NEXT-READY-REPORT.md)及以下内容保留阶段历史，当前状态以manifest及最新验收报告为准。
+**当前（2026-10-18）：A–J及四补单均已VERIFIED（Windows范围），仅K仍RUNNING待回执，没有旧漏派单。** J的总控bridge工具阻塞经独立勘误和真实13快照复测解决，产品未改，见[J验收报告](../../acceptance/wave1/controller/WATER-W1-J-REVIEW-20261018.md)。K原分配/基线/helper/锁保持；实际J→K页面待K收单后验。以下为阶段历史。
 
 总控：Codex。A契约底座继续，追加两张独立并行票B/C；实际状态以manifest为准。调度补充见ADR-003，A冻结不改。
 

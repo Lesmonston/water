@@ -10,6 +10,6 @@
 
 独立验收运行于`.worktrees/integration-j-20261018`、`controller/water-w1-j-20261018`，要求显式干净受测SHA。只允许未改冻结prepare在此树.local创建一批有界11+6合成run（不超过24run/1MiB）；Rust只读、普通payload不读、无ACL/移动/删除或清理。私有离线Cargo home/target、jobs1，保留所有产物。先在该target构建旧四workspace，再构建真实J，必须实际留下重复water_scan产物，确认旧断言会拒绝而新选择器能编译运行两条真实链路。
 
-总控复跑原前四final门，并在隔离候选提交运行`node scripts/acceptance/check-lab-session.mjs --expected-head <实际完整SHA>`。该命令不授权外贴执行者运行，票面正式参数将记录在实际receipt；此文中的参数说明不是可外贴模板。若发现产品缺陷则编号回派；仅当独立门通过，才可由总控接受和集成未修改的J实现。当前脚本准备和选择器三测试通过，真实隔离回归尚未运行。
+总控复跑原前四final门，并在隔离候选提交运行`node scripts/acceptance/check-lab-session.mjs --expected-head <实际完整SHA>`。该命令不授权外贴执行者运行，票面正式参数将记录在实际receipt；此文中的参数说明不是可外贴模板。若发现产品缺陷则编号回派；仅当独立门通过，才可由总控接受和集成未修改的J实现。准备时仅脚本和选择器三测试通过。后续隔离受测d14e1f1已通过真实重复产物回归和13快照比较，见[J验收报告](WATER-W1-J-REVIEW-20261018.md)。
 
 macOS、真实用户目录、生产竞态、桌面和删除未验证，M1未完成。
