@@ -1,0 +1,612 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "urn:water:scan:v1",
+  "title": "Water M1 local scan report v1",
+  "description": "Frozen controller-owned structure. SEMANTICS.md defines relations, risk invariants and Rust API; not a cleanup authorization or default public export.",
+  "$ref": "#/$defs/ScanReport",
+  "$defs": {
+    "SchemaVersion": {
+      "type": "string",
+      "const": "water.scan.v1"
+    },
+    "ByteCount": {
+      "type": "string",
+      "pattern": "^(?:0|[1-9][0-9]*)(?![\\s\\S])",
+      "maxLength": 20,
+      "description": "Canonical ASCII u64 decimal string; semantic implementation also enforces <= 18446744073709551615."
+    },
+    "OpaqueId": {
+      "type": "string",
+      "pattern": "^[A-Za-z0-9][A-Za-z0-9_-]{0,63}(?![\\s\\S])"
+    },
+    "RelativePath": {
+      "type": "string",
+      "maxLength": 4096,
+      "pattern": "^(?:|(?!(?:\\.|\\.\\.)(?:/|(?![\\s\\S])))[^/\\\\:\\u0000-\\u001F\\u007F]+(?:/(?!(?:\\.|\\.\\.)(?:/|(?![\\s\\S])))[^/\\\\:\\u0000-\\u001F\\u007F]+)*)(?![\\s\\S])"
+    },
+    "Platform": {
+      "type": "string",
+      "enum": [
+        "windows",
+        "macos"
+      ]
+    },
+    "ScopeOrigin": {
+      "type": "string",
+      "enum": [
+        "user_selected",
+        "config_discovered"
+      ]
+    },
+    "Coverage": {
+      "type": "string",
+      "enum": [
+        "complete",
+        "partial",
+        "cancelled"
+      ]
+    },
+    "ScanStatus": {
+      "type": "string",
+      "enum": [
+        "completed",
+        "partial",
+        "cancelled"
+      ]
+    },
+    "LocationSource": {
+      "type": "string",
+      "enum": [
+        "config",
+        "native",
+        "marker",
+        "default_path",
+        "unknown"
+      ]
+    },
+    "Category": {
+      "type": "string",
+      "enum": [
+        "download_cache",
+        "build_cache",
+        "environment",
+        "model",
+        "experiment",
+        "history",
+        "database",
+        "credential",
+        "source",
+        "temporary",
+        "unknown"
+      ]
+    },
+    "Risk": {
+      "type": "string",
+      "enum": [
+        "low",
+        "review",
+        "high",
+        "protected"
+      ]
+    },
+    "Recoverability": {
+      "type": "string",
+      "enum": [
+        "rebuild",
+        "redownload",
+        "conditional",
+        "unknown",
+        "not_applicable"
+      ]
+    },
+    "Activity": {
+      "type": "string",
+      "enum": [
+        "running",
+        "recent",
+        "not_observed",
+        "unknown"
+      ]
+    },
+    "Confidence": {
+      "type": "string",
+      "enum": [
+        "native",
+        "verified_structure",
+        "path_only",
+        "unknown"
+      ]
+    },
+    "ProtectionReason": {
+      "type": "string",
+      "enum": [
+        "credential",
+        "unique_asset",
+        "active",
+        "unknown_ownership",
+        "incomplete_evidence",
+        "source_root",
+        "system_root",
+        "user_home",
+        "protected_descendant",
+        "user_pinned"
+      ]
+    },
+    "EvidenceCode": {
+      "type": "string",
+      "enum": [
+        "native_inventory",
+        "structure_match",
+        "configured_location",
+        "marker",
+        "timestamp_hint",
+        "reference",
+        "incomplete_scan",
+        "unknown"
+      ]
+    },
+    "EvidenceSource": {
+      "type": "string",
+      "enum": [
+        "native_tool",
+        "config",
+        "filesystem",
+        "rule",
+        "heuristic"
+      ]
+    },
+    "SizeMethod": {
+      "type": "string",
+      "enum": [
+        "unknown",
+        "logical_sum",
+        "file_identity_allocated",
+        "tool_report"
+      ]
+    },
+    "EstimateConfidence": {
+      "type": "string",
+      "enum": [
+        "unknown",
+        "estimated",
+        "measured"
+      ]
+    },
+    "SharedState": {
+      "type": "string",
+      "enum": [
+        "yes",
+        "no",
+        "unknown"
+      ]
+    },
+    "ReferenceState": {
+      "type": "string",
+      "enum": [
+        "known",
+        "partial",
+        "unknown"
+      ]
+    },
+    "AggregateMethod": {
+      "type": "string",
+      "enum": [
+        "unavailable",
+        "file_identity_deduplicated",
+        "tool_report"
+      ]
+    },
+    "IssueCode": {
+      "type": "string",
+      "enum": [
+        "permission_denied",
+        "io_error",
+        "link_skipped",
+        "outside_scope",
+        "path_unrepresentable",
+        "depth_limit",
+        "entry_limit",
+        "cancelled",
+        "root_changed",
+        "unsupported"
+      ]
+    },
+    "ScopeDescriptor": {
+      "type": "object",
+      "properties": {
+        "scope_id": {
+          "$ref": "#/$defs/OpaqueId"
+        },
+        "label": {
+          "type": "string",
+          "minLength": 1,
+          "maxLength": 80,
+          "pattern": "^[^\\u0000-\\u001F\\u007F]*(?![\\s\\S])"
+        },
+        "platform": {
+          "$ref": "#/$defs/Platform"
+        },
+        "origin": {
+          "$ref": "#/$defs/ScopeOrigin"
+        },
+        "coverage": {
+          "$ref": "#/$defs/Coverage"
+        }
+      },
+      "required": [
+        "scope_id",
+        "label",
+        "platform",
+        "origin",
+        "coverage"
+      ],
+      "additionalProperties": false
+    },
+    "ToolDescriptor": {
+      "type": "object",
+      "properties": {
+        "tool_id": {
+          "$ref": "#/$defs/OpaqueId"
+        },
+        "name": {
+          "type": "string",
+          "minLength": 1,
+          "maxLength": 80,
+          "pattern": "^[^\\u0000-\\u001F\\u007F]*(?![\\s\\S])"
+        },
+        "version": {
+          "anyOf": [
+            {
+              "type": "string",
+              "minLength": 1,
+              "maxLength": 64,
+              "pattern": "^[^\\u0000-\\u001F\\u007F]*(?![\\s\\S])"
+            },
+            {
+              "type": "null"
+            }
+          ]
+        },
+        "root_source": {
+          "$ref": "#/$defs/LocationSource"
+        }
+      },
+      "required": [
+        "tool_id",
+        "name",
+        "version",
+        "root_source"
+      ],
+      "additionalProperties": false
+    },
+    "Evidence": {
+      "type": "object",
+      "properties": {
+        "code": {
+          "$ref": "#/$defs/EvidenceCode"
+        },
+        "source": {
+          "$ref": "#/$defs/EvidenceSource"
+        },
+        "summary": {
+          "type": "string",
+          "minLength": 1,
+          "maxLength": 280,
+          "pattern": "^[^\\u0000-\\u001F\\u007F]*(?![\\s\\S])"
+        }
+      },
+      "required": [
+        "code",
+        "source",
+        "summary"
+      ],
+      "additionalProperties": false
+    },
+    "ReferenceSummary": {
+      "type": "object",
+      "properties": {
+        "state": {
+          "$ref": "#/$defs/ReferenceState"
+        },
+        "project_ids": {
+          "type": "array",
+          "items": {
+            "$ref": "#/$defs/OpaqueId"
+          },
+          "minItems": 0,
+          "maxItems": 10000
+        }
+      },
+      "required": [
+        "state",
+        "project_ids"
+      ],
+      "additionalProperties": false
+    },
+    "SizeEstimate": {
+      "type": "object",
+      "properties": {
+        "logical_bytes": {
+          "anyOf": [
+            {
+              "$ref": "#/$defs/ByteCount"
+            },
+            {
+              "type": "null"
+            }
+          ]
+        },
+        "allocated_bytes": {
+          "anyOf": [
+            {
+              "$ref": "#/$defs/ByteCount"
+            },
+            {
+              "type": "null"
+            }
+          ]
+        },
+        "reclaimable_lower_bytes": {
+          "anyOf": [
+            {
+              "$ref": "#/$defs/ByteCount"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "description": "M1 semantic validation requires null; non-null constructed DTO values return InvalidSize."
+        },
+        "reclaimable_upper_bytes": {
+          "anyOf": [
+            {
+              "$ref": "#/$defs/ByteCount"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "description": "M1 semantic validation requires null; non-null constructed DTO values return InvalidSize."
+        },
+        "method": {
+          "$ref": "#/$defs/SizeMethod"
+        },
+        "confidence": {
+          "$ref": "#/$defs/EstimateConfidence"
+        },
+        "shared": {
+          "$ref": "#/$defs/SharedState"
+        }
+      },
+      "required": [
+        "logical_bytes",
+        "allocated_bytes",
+        "reclaimable_lower_bytes",
+        "reclaimable_upper_bytes",
+        "method",
+        "confidence",
+        "shared"
+      ],
+      "additionalProperties": false
+    },
+    "Finding": {
+      "type": "object",
+      "properties": {
+        "finding_id": {
+          "$ref": "#/$defs/OpaqueId"
+        },
+        "scope_id": {
+          "$ref": "#/$defs/OpaqueId"
+        },
+        "relative_path": {
+          "$ref": "#/$defs/RelativePath"
+        },
+        "tool": {
+          "anyOf": [
+            {
+              "$ref": "#/$defs/ToolDescriptor"
+            },
+            {
+              "type": "null"
+            }
+          ]
+        },
+        "rule_version": {
+          "type": "string",
+          "minLength": 1,
+          "maxLength": 32,
+          "pattern": "^[^\\u0000-\\u001F\\u007F]*(?![\\s\\S])"
+        },
+        "category": {
+          "$ref": "#/$defs/Category"
+        },
+        "risk": {
+          "$ref": "#/$defs/Risk"
+        },
+        "recoverability": {
+          "$ref": "#/$defs/Recoverability"
+        },
+        "activity": {
+          "$ref": "#/$defs/Activity"
+        },
+        "confidence": {
+          "$ref": "#/$defs/Confidence"
+        },
+        "evidence": {
+          "type": "array",
+          "items": {
+            "$ref": "#/$defs/Evidence"
+          },
+          "minItems": 1,
+          "maxItems": 64
+        },
+        "protection_reasons": {
+          "type": "array",
+          "items": {
+            "$ref": "#/$defs/ProtectionReason"
+          },
+          "minItems": 0,
+          "maxItems": 64
+        },
+        "references": {
+          "$ref": "#/$defs/ReferenceSummary"
+        },
+        "size": {
+          "$ref": "#/$defs/SizeEstimate"
+        }
+      },
+      "required": [
+        "finding_id",
+        "scope_id",
+        "relative_path",
+        "tool",
+        "rule_version",
+        "category",
+        "risk",
+        "recoverability",
+        "activity",
+        "confidence",
+        "evidence",
+        "protection_reasons",
+        "references",
+        "size"
+      ],
+      "additionalProperties": false
+    },
+    "ScanIssue": {
+      "type": "object",
+      "properties": {
+        "code": {
+          "$ref": "#/$defs/IssueCode"
+        },
+        "scope_id": {
+          "$ref": "#/$defs/OpaqueId"
+        },
+        "relative_path": {
+          "anyOf": [
+            {
+              "$ref": "#/$defs/RelativePath"
+            },
+            {
+              "type": "null"
+            }
+          ]
+        },
+        "message": {
+          "type": "string",
+          "minLength": 1,
+          "maxLength": 280,
+          "pattern": "^[^\\u0000-\\u001F\\u007F]*(?![\\s\\S])"
+        }
+      },
+      "required": [
+        "code",
+        "scope_id",
+        "relative_path",
+        "message"
+      ],
+      "additionalProperties": false
+    },
+    "ScanTotals": {
+      "type": "object",
+      "properties": {
+        "logical_bytes": {
+          "anyOf": [
+            {
+              "$ref": "#/$defs/ByteCount"
+            },
+            {
+              "type": "null"
+            }
+          ]
+        },
+        "allocated_bytes": {
+          "anyOf": [
+            {
+              "$ref": "#/$defs/ByteCount"
+            },
+            {
+              "type": "null"
+            }
+          ]
+        },
+        "method": {
+          "$ref": "#/$defs/AggregateMethod"
+        },
+        "coverage_complete": {
+          "type": "boolean"
+        },
+        "scanned_entries": {
+          "type": "integer",
+          "minimum": 0,
+          "maximum": 4294967295
+        },
+        "skipped_entries": {
+          "type": "integer",
+          "minimum": 0,
+          "maximum": 4294967295
+        }
+      },
+      "required": [
+        "logical_bytes",
+        "allocated_bytes",
+        "method",
+        "coverage_complete",
+        "scanned_entries",
+        "skipped_entries"
+      ],
+      "additionalProperties": false
+    },
+    "ScanReport": {
+      "type": "object",
+      "properties": {
+        "schema_version": {
+          "$ref": "#/$defs/SchemaVersion"
+        },
+        "scan_id": {
+          "$ref": "#/$defs/OpaqueId"
+        },
+        "status": {
+          "$ref": "#/$defs/ScanStatus"
+        },
+        "scopes": {
+          "type": "array",
+          "items": {
+            "$ref": "#/$defs/ScopeDescriptor"
+          },
+          "minItems": 1,
+          "maxItems": 64
+        },
+        "findings": {
+          "type": "array",
+          "items": {
+            "$ref": "#/$defs/Finding"
+          },
+          "minItems": 0,
+          "maxItems": 100000
+        },
+        "issues": {
+          "type": "array",
+          "items": {
+            "$ref": "#/$defs/ScanIssue"
+          },
+          "minItems": 0,
+          "maxItems": 100000
+        },
+        "totals": {
+          "$ref": "#/$defs/ScanTotals"
+        }
+      },
+      "required": [
+        "schema_version",
+        "scan_id",
+        "status",
+        "scopes",
+        "findings",
+        "issues",
+        "totals"
+      ],
+      "additionalProperties": false
+    }
+  }
+}

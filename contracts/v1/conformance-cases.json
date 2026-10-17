@@ -1,0 +1,1226 @@
+{
+  "schemaVersion": 1,
+  "contract": "water.scan.v1",
+  "base": "examples/valid-report.json",
+  "patchSemantics": "RFC6902 add/replace/remove subset; values are exact JSON, preserve decimal byte strings.",
+  "cases": [
+    {
+      "id": "base",
+      "operations": [],
+      "expected": "ok"
+    },
+    {
+      "id": "u64_max",
+      "operations": [
+        {
+          "op": "replace",
+          "path": "/findings/0/size/logical_bytes",
+          "value": "18446744073709551615"
+        }
+      ],
+      "expected": "ok"
+    },
+    {
+      "id": "zero_known",
+      "operations": [
+        {
+          "op": "replace",
+          "path": "/findings/0/size/logical_bytes",
+          "value": "0"
+        }
+      ],
+      "expected": "ok"
+    },
+    {
+      "id": "unicode_path",
+      "operations": [
+        {
+          "op": "replace",
+          "path": "/findings/0/relative_path",
+          "value": "项目/缓存/ruff"
+        }
+      ],
+      "expected": "ok"
+    },
+    {
+      "id": "literal_percent_path",
+      "operations": [
+        {
+          "op": "replace",
+          "path": "/findings/0/relative_path",
+          "value": "project/%2e%2e/cache"
+        }
+      ],
+      "expected": "ok"
+    },
+    {
+      "id": "unicode_scalar_label_80",
+      "operations": [
+        {
+          "op": "replace",
+          "path": "/scopes/0/label",
+          "value": "😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀"
+        }
+      ],
+      "expected": "ok"
+    },
+    {
+      "id": "unknown_protected",
+      "operations": [
+        {
+          "op": "replace",
+          "path": "/findings/0/category",
+          "value": "unknown"
+        },
+        {
+          "op": "replace",
+          "path": "/findings/0/risk",
+          "value": "protected"
+        },
+        {
+          "op": "replace",
+          "path": "/findings/0/confidence",
+          "value": "unknown"
+        },
+        {
+          "op": "replace",
+          "path": "/findings/0/recoverability",
+          "value": "unknown"
+        },
+        {
+          "op": "replace",
+          "path": "/findings/0/protection_reasons",
+          "value": [
+            "unknown_ownership"
+          ]
+        }
+      ],
+      "expected": "ok"
+    },
+    {
+      "id": "cancelled_coherent",
+      "operations": [
+        {
+          "op": "replace",
+          "path": "/status",
+          "value": "cancelled"
+        },
+        {
+          "op": "replace",
+          "path": "/scopes/0/coverage",
+          "value": "cancelled"
+        },
+        {
+          "op": "replace",
+          "path": "/findings",
+          "value": []
+        },
+        {
+          "op": "replace",
+          "path": "/issues",
+          "value": [
+            {
+              "code": "cancelled",
+              "scope_id": "scope-1",
+              "relative_path": null,
+              "message": "Fixture cancelled."
+            }
+          ]
+        },
+        {
+          "op": "replace",
+          "path": "/totals/coverage_complete",
+          "value": false
+        }
+      ],
+      "expected": "ok"
+    },
+    {
+      "id": "partial_coherent",
+      "operations": [
+        {
+          "op": "replace",
+          "path": "/status",
+          "value": "partial"
+        },
+        {
+          "op": "replace",
+          "path": "/scopes/0/coverage",
+          "value": "partial"
+        },
+        {
+          "op": "replace",
+          "path": "/issues",
+          "value": [
+            {
+              "code": "permission_denied",
+              "scope_id": "scope-1",
+              "relative_path": "restricted",
+              "message": "Fixture unreadable."
+            }
+          ]
+        },
+        {
+          "op": "replace",
+          "path": "/totals/coverage_complete",
+          "value": false
+        }
+      ],
+      "expected": "ok"
+    },
+    {
+      "id": "numeric_bytes",
+      "operations": [
+        {
+          "op": "replace",
+          "path": "/findings/0/size/logical_bytes",
+          "value": 9007199254740992
+        }
+      ],
+      "expected": "InvalidShape"
+    },
+    {
+      "id": "leading_zero_bytes",
+      "operations": [
+        {
+          "op": "replace",
+          "path": "/findings/0/size/logical_bytes",
+          "value": "01"
+        }
+      ],
+      "expected": "InvalidShape"
+    },
+    {
+      "id": "signed_bytes",
+      "operations": [
+        {
+          "op": "replace",
+          "path": "/findings/0/size/logical_bytes",
+          "value": "+1"
+        }
+      ],
+      "expected": "InvalidShape"
+    },
+    {
+      "id": "overflow_bytes",
+      "operations": [
+        {
+          "op": "replace",
+          "path": "/findings/0/size/logical_bytes",
+          "value": "18446744073709551616"
+        }
+      ],
+      "expected": "InvalidShape"
+    },
+    {
+      "id": "negative_bytes",
+      "operations": [
+        {
+          "op": "replace",
+          "path": "/findings/0/size/logical_bytes",
+          "value": "-1"
+        }
+      ],
+      "expected": "InvalidShape"
+    },
+    {
+      "id": "unicode_digits",
+      "operations": [
+        {
+          "op": "replace",
+          "path": "/findings/0/size/logical_bytes",
+          "value": "１２"
+        }
+      ],
+      "expected": "InvalidShape"
+    },
+    {
+      "id": "exponent_bytes",
+      "operations": [
+        {
+          "op": "replace",
+          "path": "/findings/0/size/logical_bytes",
+          "value": "1e3"
+        }
+      ],
+      "expected": "InvalidShape"
+    },
+    {
+      "id": "missing_nullable_field",
+      "operations": [
+        {
+          "op": "remove",
+          "path": "/findings/0/size/allocated_bytes"
+        }
+      ],
+      "expected": "InvalidShape"
+    },
+    {
+      "id": "missing_nullable_tool",
+      "operations": [
+        {
+          "op": "remove",
+          "path": "/findings/0/tool"
+        }
+      ],
+      "expected": "InvalidShape"
+    },
+    {
+      "id": "missing_nullable_version",
+      "operations": [
+        {
+          "op": "remove",
+          "path": "/findings/0/tool/version"
+        }
+      ],
+      "expected": "InvalidShape"
+    },
+    {
+      "id": "unknown_top_field",
+      "operations": [
+        {
+          "op": "add",
+          "path": "/cleanup",
+          "value": true
+        }
+      ],
+      "expected": "InvalidShape"
+    },
+    {
+      "id": "unknown_nested_field",
+      "operations": [
+        {
+          "op": "add",
+          "path": "/findings/0/size/freed",
+          "value": "1"
+        }
+      ],
+      "expected": "InvalidShape"
+    },
+    {
+      "id": "unknown_enum",
+      "operations": [
+        {
+          "op": "replace",
+          "path": "/findings/0/activity",
+          "value": "idle_forever"
+        }
+      ],
+      "expected": "InvalidShape"
+    },
+    {
+      "id": "control_in_text",
+      "operations": [
+        {
+          "op": "replace",
+          "path": "/findings/0/evidence/0/summary",
+          "value": "line1\nline2"
+        }
+      ],
+      "expected": "InvalidShape"
+    },
+    {
+      "id": "long_unicode_label",
+      "operations": [
+        {
+          "op": "replace",
+          "path": "/scopes/0/label",
+          "value": "😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀"
+        }
+      ],
+      "expected": "InvalidShape"
+    },
+    {
+      "id": "path_parent",
+      "operations": [
+        {
+          "op": "replace",
+          "path": "/findings/0/relative_path",
+          "value": "a/../b"
+        }
+      ],
+      "expected": "InvalidShape"
+    },
+    {
+      "id": "path_absolute",
+      "operations": [
+        {
+          "op": "replace",
+          "path": "/findings/0/relative_path",
+          "value": "/tmp/cache"
+        }
+      ],
+      "expected": "InvalidShape"
+    },
+    {
+      "id": "path_windows",
+      "operations": [
+        {
+          "op": "replace",
+          "path": "/findings/0/relative_path",
+          "value": "C:\\cache"
+        }
+      ],
+      "expected": "InvalidShape"
+    },
+    {
+      "id": "path_empty_segment",
+      "operations": [
+        {
+          "op": "replace",
+          "path": "/findings/0/relative_path",
+          "value": "a//b"
+        }
+      ],
+      "expected": "InvalidShape"
+    },
+    {
+      "id": "path_dot",
+      "operations": [
+        {
+          "op": "replace",
+          "path": "/findings/0/relative_path",
+          "value": "a/./b"
+        }
+      ],
+      "expected": "InvalidShape"
+    },
+    {
+      "id": "path_backslash",
+      "operations": [
+        {
+          "op": "replace",
+          "path": "/findings/0/relative_path",
+          "value": "a\\b"
+        }
+      ],
+      "expected": "InvalidShape"
+    },
+    {
+      "id": "empty_id",
+      "operations": [
+        {
+          "op": "replace",
+          "path": "/scan_id",
+          "value": ""
+        }
+      ],
+      "expected": "InvalidShape"
+    },
+    {
+      "id": "duplicate_scope",
+      "operations": [
+        {
+          "op": "add",
+          "path": "/scopes/-",
+          "value": {
+            "scope_id": "scope-1",
+            "label": "Fixture A",
+            "platform": "windows",
+            "origin": "user_selected",
+            "coverage": "complete"
+          }
+        }
+      ],
+      "expected": "DuplicateId"
+    },
+    {
+      "id": "duplicate_finding",
+      "operations": [
+        {
+          "op": "add",
+          "path": "/findings/-",
+          "value": {
+            "finding_id": "finding-1",
+            "scope_id": "scope-1",
+            "relative_path": "project/.cache/ruff",
+            "tool": {
+              "tool_id": "ruff",
+              "name": "Ruff fixture",
+              "version": "0.0-fixture",
+              "root_source": "marker"
+            },
+            "rule_version": "1",
+            "category": "build_cache",
+            "risk": "review",
+            "recoverability": "rebuild",
+            "activity": "unknown",
+            "confidence": "verified_structure",
+            "evidence": [
+              {
+                "code": "structure_match",
+                "source": "filesystem",
+                "summary": "Fictional fixture metadata only; not a real scan."
+              }
+            ],
+            "protection_reasons": [],
+            "references": {
+              "state": "unknown",
+              "project_ids": []
+            },
+            "size": {
+              "logical_bytes": "9007199254740993",
+              "allocated_bytes": null,
+              "reclaimable_lower_bytes": null,
+              "reclaimable_upper_bytes": null,
+              "method": "logical_sum",
+              "confidence": "estimated",
+              "shared": "unknown"
+            }
+          }
+        }
+      ],
+      "expected": "DuplicateId"
+    },
+    {
+      "id": "unknown_scope",
+      "operations": [
+        {
+          "op": "replace",
+          "path": "/findings/0/scope_id",
+          "value": "not-scanned"
+        }
+      ],
+      "expected": "UnknownScope"
+    },
+    {
+      "id": "completed_has_issue",
+      "operations": [
+        {
+          "op": "replace",
+          "path": "/issues",
+          "value": [
+            {
+              "code": "io_error",
+              "scope_id": "scope-1",
+              "relative_path": null,
+              "message": "Fixture IO error."
+            }
+          ]
+        }
+      ],
+      "expected": "InconsistentReport"
+    },
+    {
+      "id": "completed_partial_scope",
+      "operations": [
+        {
+          "op": "replace",
+          "path": "/scopes/0/coverage",
+          "value": "partial"
+        }
+      ],
+      "expected": "InconsistentReport"
+    },
+    {
+      "id": "partial_without_reason",
+      "operations": [
+        {
+          "op": "replace",
+          "path": "/status",
+          "value": "partial"
+        },
+        {
+          "op": "replace",
+          "path": "/totals/coverage_complete",
+          "value": false
+        }
+      ],
+      "expected": "InconsistentReport"
+    },
+    {
+      "id": "cancelled_without_evidence",
+      "operations": [
+        {
+          "op": "replace",
+          "path": "/status",
+          "value": "cancelled"
+        },
+        {
+          "op": "replace",
+          "path": "/totals/coverage_complete",
+          "value": false
+        }
+      ],
+      "expected": "InconsistentReport"
+    },
+    {
+      "id": "unknown_size_carries_number",
+      "operations": [
+        {
+          "op": "replace",
+          "path": "/findings/0/size/method",
+          "value": "unknown"
+        },
+        {
+          "op": "replace",
+          "path": "/findings/0/size/confidence",
+          "value": "unknown"
+        }
+      ],
+      "expected": "InvalidSize"
+    },
+    {
+      "id": "known_size_without_value",
+      "operations": [
+        {
+          "op": "replace",
+          "path": "/findings/0/size/logical_bytes",
+          "value": null
+        }
+      ],
+      "expected": "InvalidSize"
+    },
+    {
+      "id": "totals_unavailable_carries_number",
+      "operations": [
+        {
+          "op": "replace",
+          "path": "/totals/logical_bytes",
+          "value": "1"
+        }
+      ],
+      "expected": "InvalidSize"
+    },
+    {
+      "id": "unknown_is_review",
+      "operations": [
+        {
+          "op": "replace",
+          "path": "/findings/0/category",
+          "value": "unknown"
+        }
+      ],
+      "expected": "UnsafeClassification"
+    },
+    {
+      "id": "path_only_is_review",
+      "operations": [
+        {
+          "op": "replace",
+          "path": "/findings/0/confidence",
+          "value": "path_only"
+        }
+      ],
+      "expected": "UnsafeClassification"
+    },
+    {
+      "id": "running_is_review",
+      "operations": [
+        {
+          "op": "replace",
+          "path": "/findings/0/activity",
+          "value": "running"
+        }
+      ],
+      "expected": "UnsafeClassification"
+    },
+    {
+      "id": "model_is_review",
+      "operations": [
+        {
+          "op": "replace",
+          "path": "/findings/0/category",
+          "value": "model"
+        }
+      ],
+      "expected": "UnsafeClassification"
+    },
+    {
+      "id": "protected_without_reason",
+      "operations": [
+        {
+          "op": "replace",
+          "path": "/findings/0/risk",
+          "value": "protected"
+        }
+      ],
+      "expected": "UnsafeClassification"
+    },
+    {
+      "id": "reason_without_protected",
+      "operations": [
+        {
+          "op": "replace",
+          "path": "/findings/0/protection_reasons",
+          "value": [
+            "user_pinned"
+          ]
+        }
+      ],
+      "expected": "UnsafeClassification"
+    },
+    {
+      "id": "scope_root_is_review",
+      "operations": [
+        {
+          "op": "replace",
+          "path": "/findings/0/relative_path",
+          "value": ""
+        }
+      ],
+      "expected": "UnsafeClassification"
+    },
+    {
+      "id": "unknown_reference_claims_project",
+      "operations": [
+        {
+          "op": "replace",
+          "path": "/findings/0/references/project_ids",
+          "value": [
+            "project-1"
+          ]
+        }
+      ],
+      "expected": "InconsistentReport"
+    },
+    {
+      "id": "null_tool_explicit",
+      "operations": [
+        {
+          "op": "replace",
+          "path": "/findings/0/tool",
+          "value": null
+        }
+      ],
+      "expected": "ok"
+    },
+    {
+      "id": "null_version_explicit",
+      "operations": [
+        {
+          "op": "replace",
+          "path": "/findings/0/tool/version",
+          "value": null
+        }
+      ],
+      "expected": "ok"
+    },
+    {
+      "id": "null_measurement_explicit",
+      "operations": [
+        {
+          "op": "replace",
+          "path": "/findings/0/size/logical_bytes",
+          "value": null
+        },
+        {
+          "op": "replace",
+          "path": "/findings/0/size/allocated_bytes",
+          "value": "4096"
+        },
+        {
+          "op": "replace",
+          "path": "/findings/0/size/method",
+          "value": "file_identity_allocated"
+        }
+      ],
+      "expected": "ok"
+    },
+    {
+      "id": "unicode_separator_path",
+      "operations": [
+        {
+          "op": "replace",
+          "path": "/findings/0/relative_path",
+          "value": "a/ / "
+        }
+      ],
+      "expected": "ok"
+    },
+    {
+      "id": "unicode_separator_text",
+      "operations": [
+        {
+          "op": "replace",
+          "path": "/scopes/0/label",
+          "value": "line separator "
+        }
+      ],
+      "expected": "ok"
+    },
+    {
+      "id": "byte_trailing_newline",
+      "operations": [
+        {
+          "op": "replace",
+          "path": "/findings/0/size/logical_bytes",
+          "value": "1\n"
+        }
+      ],
+      "expected": "InvalidShape"
+    },
+    {
+      "id": "id_trailing_newline",
+      "operations": [
+        {
+          "op": "replace",
+          "path": "/scan_id",
+          "value": "id\n"
+        }
+      ],
+      "expected": "InvalidShape"
+    },
+    {
+      "id": "text_trailing_newline",
+      "operations": [
+        {
+          "op": "replace",
+          "path": "/scopes/0/label",
+          "value": "label\n"
+        }
+      ],
+      "expected": "InvalidShape"
+    },
+    {
+      "id": "path_trailing_newline",
+      "operations": [
+        {
+          "op": "replace",
+          "path": "/findings/0/relative_path",
+          "value": "a\n"
+        }
+      ],
+      "expected": "InvalidShape"
+    },
+    {
+      "id": "empty_evidence",
+      "operations": [
+        {
+          "op": "replace",
+          "path": "/findings/0/evidence",
+          "value": []
+        }
+      ],
+      "expected": "InvalidShape"
+    },
+    {
+      "id": "reclaimable_non_null",
+      "operations": [
+        {
+          "op": "replace",
+          "path": "/findings/0/size/reclaimable_upper_bytes",
+          "value": "1"
+        }
+      ],
+      "expected": "InvalidSize"
+    },
+    {
+      "id": "partial_references_not_protected",
+      "operations": [
+        {
+          "op": "replace",
+          "path": "/findings/0/references/state",
+          "value": "partial"
+        }
+      ],
+      "expected": "UnsafeClassification"
+    },
+    {
+      "id": "cancelled_issue_on_complete_scope",
+      "operations": [
+        {
+          "op": "replace",
+          "path": "/status",
+          "value": "cancelled"
+        },
+        {
+          "op": "replace",
+          "path": "/scopes/0/coverage",
+          "value": "cancelled"
+        },
+        {
+          "op": "add",
+          "path": "/scopes/-",
+          "value": {
+            "scope_id": "scope-2",
+            "label": "Fixture B",
+            "platform": "macos",
+            "origin": "user_selected",
+            "coverage": "complete"
+          }
+        },
+        {
+          "op": "replace",
+          "path": "/issues",
+          "value": [
+            {
+              "code": "cancelled",
+              "scope_id": "scope-1",
+              "relative_path": null,
+              "message": "Fixture cancelled."
+            },
+            {
+              "code": "cancelled",
+              "scope_id": "scope-2",
+              "relative_path": null,
+              "message": "Fixture cancelled."
+            }
+          ]
+        },
+        {
+          "op": "replace",
+          "path": "/totals/coverage_complete",
+          "value": false
+        }
+      ],
+      "expected": "InconsistentReport"
+    },
+    {
+      "id": "cancelled_scope_without_issue",
+      "operations": [
+        {
+          "op": "replace",
+          "path": "/status",
+          "value": "cancelled"
+        },
+        {
+          "op": "replace",
+          "path": "/scopes/0/coverage",
+          "value": "cancelled"
+        },
+        {
+          "op": "add",
+          "path": "/scopes/-",
+          "value": {
+            "scope_id": "scope-2",
+            "label": "Fixture B",
+            "platform": "macos",
+            "origin": "user_selected",
+            "coverage": "cancelled"
+          }
+        },
+        {
+          "op": "replace",
+          "path": "/issues",
+          "value": [
+            {
+              "code": "cancelled",
+              "scope_id": "scope-1",
+              "relative_path": null,
+              "message": "Fixture cancelled."
+            }
+          ]
+        },
+        {
+          "op": "replace",
+          "path": "/totals/coverage_complete",
+          "value": false
+        }
+      ],
+      "expected": "InconsistentReport"
+    },
+    {
+      "id": "protected_descendant_missing_propagation",
+      "operations": [
+        {
+          "op": "add",
+          "path": "/findings/-",
+          "value": {
+            "finding_id": "finding-child",
+            "scope_id": "scope-1",
+            "relative_path": "project/.cache/ruff/private",
+            "tool": {
+              "tool_id": "ruff",
+              "name": "Ruff fixture",
+              "version": "0.0-fixture",
+              "root_source": "marker"
+            },
+            "rule_version": "1",
+            "category": "credential",
+            "risk": "protected",
+            "recoverability": "rebuild",
+            "activity": "unknown",
+            "confidence": "verified_structure",
+            "evidence": [
+              {
+                "code": "structure_match",
+                "source": "filesystem",
+                "summary": "Fictional fixture metadata only; not a real scan."
+              }
+            ],
+            "protection_reasons": [
+              "credential"
+            ],
+            "references": {
+              "state": "unknown",
+              "project_ids": []
+            },
+            "size": {
+              "logical_bytes": "9007199254740993",
+              "allocated_bytes": null,
+              "reclaimable_lower_bytes": null,
+              "reclaimable_upper_bytes": null,
+              "method": "logical_sum",
+              "confidence": "estimated",
+              "shared": "unknown"
+            }
+          }
+        }
+      ],
+      "expected": "UnsafeClassification"
+    },
+    {
+      "id": "protected_descendant_propagated",
+      "operations": [
+        {
+          "op": "replace",
+          "path": "/findings/0/risk",
+          "value": "protected"
+        },
+        {
+          "op": "replace",
+          "path": "/findings/0/protection_reasons",
+          "value": [
+            "protected_descendant"
+          ]
+        },
+        {
+          "op": "add",
+          "path": "/findings/-",
+          "value": {
+            "finding_id": "finding-child",
+            "scope_id": "scope-1",
+            "relative_path": "project/.cache/ruff/private",
+            "tool": {
+              "tool_id": "ruff",
+              "name": "Ruff fixture",
+              "version": "0.0-fixture",
+              "root_source": "marker"
+            },
+            "rule_version": "1",
+            "category": "credential",
+            "risk": "protected",
+            "recoverability": "rebuild",
+            "activity": "unknown",
+            "confidence": "verified_structure",
+            "evidence": [
+              {
+                "code": "structure_match",
+                "source": "filesystem",
+                "summary": "Fictional fixture metadata only; not a real scan."
+              }
+            ],
+            "protection_reasons": [
+              "credential"
+            ],
+            "references": {
+              "state": "unknown",
+              "project_ids": []
+            },
+            "size": {
+              "logical_bytes": "9007199254740993",
+              "allocated_bytes": null,
+              "reclaimable_lower_bytes": null,
+              "reclaimable_upper_bytes": null,
+              "method": "logical_sum",
+              "confidence": "estimated",
+              "shared": "unknown"
+            }
+          }
+        }
+      ],
+      "expected": "ok"
+    },
+    {
+      "id": "segment_prefix_not_ancestor",
+      "operations": [
+        {
+          "op": "add",
+          "path": "/findings/-",
+          "value": {
+            "finding_id": "finding-child",
+            "scope_id": "scope-1",
+            "relative_path": "project/.cache/ruff2/private",
+            "tool": {
+              "tool_id": "ruff",
+              "name": "Ruff fixture",
+              "version": "0.0-fixture",
+              "root_source": "marker"
+            },
+            "rule_version": "1",
+            "category": "credential",
+            "risk": "protected",
+            "recoverability": "rebuild",
+            "activity": "unknown",
+            "confidence": "verified_structure",
+            "evidence": [
+              {
+                "code": "structure_match",
+                "source": "filesystem",
+                "summary": "Fictional fixture metadata only; not a real scan."
+              }
+            ],
+            "protection_reasons": [
+              "credential"
+            ],
+            "references": {
+              "state": "unknown",
+              "project_ids": []
+            },
+            "size": {
+              "logical_bytes": "9007199254740993",
+              "allocated_bytes": null,
+              "reclaimable_lower_bytes": null,
+              "reclaimable_upper_bytes": null,
+              "method": "logical_sum",
+              "confidence": "estimated",
+              "shared": "unknown"
+            }
+          }
+        }
+      ],
+      "expected": "ok"
+    }
+  ],
+  "primitiveCases": {
+    "byte_count": {
+      "valid": [
+        "0",
+        "1",
+        "9007199254740993",
+        "18446744073709551615"
+      ],
+      "invalid": [
+        "",
+        "00",
+        "01",
+        "+1",
+        "-1",
+        " 1",
+        "1 ",
+        "1.0",
+        "1e3",
+        "１２",
+        "18446744073709551616",
+        "1\n",
+        "1\r\n"
+      ],
+      "error": "InvalidByteCount"
+    },
+    "opaque_id": {
+      "valid": [
+        "a",
+        "scan-1",
+        "X_2"
+      ],
+      "invalid": [
+        "",
+        "../x",
+        "x/y",
+        "x:y",
+        "白",
+        "aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa",
+        "id\n"
+      ],
+      "error": "InvalidId"
+    },
+    "relative_path": {
+      "valid": [
+        "",
+        "a",
+        "a/b",
+        ".cache/ruff",
+        "项目/缓存",
+        "a/%2e%2e/b",
+        "a/ / ",
+        "a/. "
+      ],
+      "invalid": [
+        ".",
+        "..",
+        "a/../b",
+        "/a",
+        "a/",
+        "a//b",
+        "a\\b",
+        "C:/a",
+        "a:\u0000",
+        "a\n"
+      ],
+      "error": "InvalidRelativePath"
+    }
+  },
+  "rawJsonCases": [
+    {
+      "id": "malformed_object",
+      "input": "{",
+      "expected": "InvalidJson"
+    },
+    {
+      "id": "trailing_json",
+      "input": "{} {}",
+      "expected": "InvalidJson"
+    },
+    {
+      "id": "null_root",
+      "input": "null",
+      "expected": "InvalidShape"
+    },
+    {
+      "id": "array_root",
+      "input": "[]",
+      "expected": "InvalidShape"
+    },
+    {
+      "id": "duplicate_top_key",
+      "input": "{\"schema_version\":\"water.scan.v1\",\"scan_id\":\"scan-fixture-1\",\"scan_id\":\"scan-other\",\"status\":\"completed\",\"scopes\":[{\"scope_id\":\"scope-1\",\"label\":\"Fixture A\",\"platform\":\"windows\",\"origin\":\"user_selected\",\"coverage\":\"complete\"}],\"findings\":[{\"finding_id\":\"finding-1\",\"scope_id\":\"scope-1\",\"relative_path\":\"project/.cache/ruff\",\"tool\":{\"tool_id\":\"ruff\",\"name\":\"Ruff fixture\",\"version\":\"0.0-fixture\",\"root_source\":\"marker\"},\"rule_version\":\"1\",\"category\":\"build_cache\",\"risk\":\"review\",\"recoverability\":\"rebuild\",\"activity\":\"unknown\",\"confidence\":\"verified_structure\",\"evidence\":[{\"code\":\"structure_match\",\"source\":\"filesystem\",\"summary\":\"Fictional fixture metadata only; not a real scan.\"}],\"protection_reasons\":[],\"references\":{\"state\":\"unknown\",\"project_ids\":[]},\"size\":{\"logical_bytes\":\"9007199254740993\",\"allocated_bytes\":null,\"reclaimable_lower_bytes\":null,\"reclaimable_upper_bytes\":null,\"method\":\"logical_sum\",\"confidence\":\"estimated\",\"shared\":\"unknown\"}}],\"issues\":[],\"totals\":{\"logical_bytes\":null,\"allocated_bytes\":null,\"method\":\"unavailable\",\"coverage_complete\":true,\"scanned_entries\":3,\"skipped_entries\":0}}",
+      "expected": "InvalidShape",
+      "reason": "duplicate-object-key"
+    },
+    {
+      "id": "duplicate_nullable_key",
+      "input": "{\"schema_version\":\"water.scan.v1\",\"scan_id\":\"scan-fixture-1\",\"status\":\"completed\",\"scopes\":[{\"scope_id\":\"scope-1\",\"label\":\"Fixture A\",\"platform\":\"windows\",\"origin\":\"user_selected\",\"coverage\":\"complete\"}],\"findings\":[{\"finding_id\":\"finding-1\",\"scope_id\":\"scope-1\",\"relative_path\":\"project/.cache/ruff\",\"tool\":{\"tool_id\":\"ruff\",\"name\":\"Ruff fixture\",\"version\":\"0.0-fixture\",\"root_source\":\"marker\"},\"rule_version\":\"1\",\"category\":\"build_cache\",\"risk\":\"review\",\"recoverability\":\"rebuild\",\"activity\":\"unknown\",\"confidence\":\"verified_structure\",\"evidence\":[{\"code\":\"structure_match\",\"source\":\"filesystem\",\"summary\":\"Fictional fixture metadata only; not a real scan.\"}],\"protection_reasons\":[],\"references\":{\"state\":\"unknown\",\"project_ids\":[]},\"size\":{\"logical_bytes\":\"9007199254740993\",\"allocated_bytes\":null,\"allocated_bytes\":\"1\",\"reclaimable_lower_bytes\":null,\"reclaimable_upper_bytes\":null,\"method\":\"logical_sum\",\"confidence\":\"estimated\",\"shared\":\"unknown\"}}],\"issues\":[],\"totals\":{\"logical_bytes\":null,\"allocated_bytes\":null,\"method\":\"unavailable\",\"coverage_complete\":true,\"scanned_entries\":3,\"skipped_entries\":0}}",
+      "expected": "InvalidShape",
+      "reason": "duplicate-object-key"
+    }
+  ],
+  "constructedCases": [
+    {
+      "id": "constructed_empty_evidence",
+      "mutation": "evidence_empty",
+      "expected": "InvalidShape"
+    },
+    {
+      "id": "constructed_65_scopes",
+      "mutation": "scopes_65_unique",
+      "expected": "InvalidShape"
+    },
+    {
+      "id": "constructed_65_evidence",
+      "mutation": "evidence_65",
+      "expected": "InvalidShape"
+    },
+    {
+      "id": "constructed_model_review",
+      "mutation": "model_risk_review",
+      "expected": "UnsafeClassification"
+    },
+    {
+      "id": "constructed_reclaimable_value",
+      "mutation": "reclaimable_upper_one",
+      "expected": "InvalidSize"
+    },
+    {
+      "id": "constructed_unknown_scope",
+      "mutation": "unknown_scope",
+      "expected": "UnknownScope"
+    }
+  ],
+  "resourceCases": [
+    {
+      "id": "parse_input_above_8mib",
+      "entry": "parse_report",
+      "inputGenerator": "ascii_spaces",
+      "byteCount": 8388609,
+      "expected": "InvalidShape"
+    },
+    {
+      "id": "serialize_constructed_report_above_8mib",
+      "entry": "to_json",
+      "inputGenerator": "clone_valid_findings_unique_ids",
+      "findingCount": 20000,
+      "expected": "InvalidShape"
+    }
+  ]
+}

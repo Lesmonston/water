@@ -2,6 +2,8 @@
 
 状态：设计方案，代码尚未实现。对应 [ADR-001](decisions/ADR-001-independent-core.md)。
 
+第一轮的具体数据与Rust API见 [scan v1契约](../contracts/v1/README.md)；工程顺序、工具链及限定范围见 [ADR-002](decisions/ADR-002-wave1-contract-bootstrap.md)。契约材料已冻结不代表Rust实现已存在。
+
 ## 技术方向
 
 暂选 Rust 核心 + Tauri 2 桌面壳 + TypeScript/React 界面。Rust 内核负责识别、证据、容量与计划；UI 负责展示与用户选择。优先建立可独立测试的核心，不先复制竞品界面或将其整个项目 fork 为 Water。

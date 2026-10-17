@@ -76,7 +76,7 @@ for (const item of manifest.upstreams) {
 function markdownFiles(dir) {
   const found = [];
   for (const item of readdirSync(dir, { withFileTypes: true })) {
-    if (['.git', '.worktrees', 'upstream', 'node_modules', 'target'].includes(item.name)) continue;
+    if (['.git', '.worktrees', '.local', 'upstream', 'node_modules', 'target'].includes(item.name)) continue;
     const path = resolve(dir, item.name);
     if (item.isDirectory()) found.push(...markdownFiles(path));
     else if (item.isFile() && item.name.endsWith('.md')) found.push(path);

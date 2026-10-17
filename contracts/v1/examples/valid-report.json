@@ -1,0 +1,63 @@
+{
+  "schema_version": "water.scan.v1",
+  "scan_id": "scan-fixture-1",
+  "status": "completed",
+  "scopes": [
+    {
+      "scope_id": "scope-1",
+      "label": "Fixture A",
+      "platform": "windows",
+      "origin": "user_selected",
+      "coverage": "complete"
+    }
+  ],
+  "findings": [
+    {
+      "finding_id": "finding-1",
+      "scope_id": "scope-1",
+      "relative_path": "project/.cache/ruff",
+      "tool": {
+        "tool_id": "ruff",
+        "name": "Ruff fixture",
+        "version": "0.0-fixture",
+        "root_source": "marker"
+      },
+      "rule_version": "1",
+      "category": "build_cache",
+      "risk": "review",
+      "recoverability": "rebuild",
+      "activity": "unknown",
+      "confidence": "verified_structure",
+      "evidence": [
+        {
+          "code": "structure_match",
+          "source": "filesystem",
+          "summary": "Fictional fixture metadata only; not a real scan."
+        }
+      ],
+      "protection_reasons": [],
+      "references": {
+        "state": "unknown",
+        "project_ids": []
+      },
+      "size": {
+        "logical_bytes": "9007199254740993",
+        "allocated_bytes": null,
+        "reclaimable_lower_bytes": null,
+        "reclaimable_upper_bytes": null,
+        "method": "logical_sum",
+        "confidence": "estimated",
+        "shared": "unknown"
+      }
+    }
+  ],
+  "issues": [],
+  "totals": {
+    "logical_bytes": null,
+    "allocated_bytes": null,
+    "method": "unavailable",
+    "coverage_complete": true,
+    "scanned_entries": 3,
+    "skipped_entries": 0
+  }
+}
