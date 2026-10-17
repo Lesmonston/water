@@ -59,3 +59,5 @@ node scripts/acceptance/check-bc-integration.mjs --expected-head d002c0c1d91db47
 通过后只补总控文档/台账/证据，再由main快进接收集成树；这一步没有产品或测试变更。B/C原树和提交保留，不清理或重用。main纳入元数据包与只读演示，不表示B数据已接到C、A契约库已通过或M1真实扫描完成。
 
 集成回放另发现Git换行转换会改变部分历史日志与JSON证据的字节哈希。总控仅在`docs/acceptance/wave1/b/`、`c/`为TXT/JSON设置`-text`，从原worker复制已核验的原始证据字节；逐项确认与Git版本仅有CRLF/LF差异，没有内容变更。详见[原字节恢复记录](w1-bc-integration-20261017/evidence-line-endings.json)。恢复后C两批53份manifest证据及B37份保护哈希全部一致；worker树与产品目录不变。原始TAP空白保留，后续空白检查单列排除这两个原始证据目录，源码/普通文档仍正常检查。
+
+main已从检查点快进至`c98f924f3e27d328636de55fc53426831d21bf46`，产品tree保持以上值。[主线收尾记录](w1-bc-integration-20261017/main-promotion.json)确认with-upstreams检查通过、5个上游checkout仍干净，以及86份原始证据、C53/B37记录和32份集成归档在main实际checkout中全部匹配。最后仅追加此收尾记录与文档，不改产品或测试。

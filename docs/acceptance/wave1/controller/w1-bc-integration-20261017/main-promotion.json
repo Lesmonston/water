@@ -1,0 +1,40 @@
+{
+  "recordedAt": "2026-10-17T08:27:45.005Z",
+  "fromMain": "6f8ac197224f66eee6252d4b9144af08411d18d9",
+  "promotedCommit": "c98f924f3e27d328636de55fc53426831d21bf46",
+  "testedIntegrationCommit": "d002c0c1d91db47fb8a685a07e0115ac9ad189c9",
+  "method": "local fast-forward",
+  "productTrees": {
+    "catalog": "999977839468c76c4ce6c30d0d4a4fdfdd5e5915",
+    "prototype": "5bcdc4ab9505a9b87e684eda2b0beb567dfc6fbd"
+  },
+  "checks": [
+    {
+      "name": "project",
+      "command": "node scripts/verify-project.mjs --with-upstreams",
+      "chunk_id": "2daef1",
+      "wall_time_seconds": 2.363644,
+      "exit_code": 0,
+      "original_token_count": 94,
+      "output": "{\n  \"status\": \"passed\",\n  \"markdownFiles\": 52,\n  \"localLinks\": 203,\n  \"pinnedSourceLinks\": 182,\n  \"externalPinnedSourceLinks\": 4,\n  \"dispatchRegistryTasks\": 3,\n  \"workflowSourceRecords\": 14,\n  \"upstreams\": 5,\n  \"checkedLocalSnapshots\": 5,\n  \"mode\": \"with-upstreams\",\n  \"boundary\": \"Metadata, provenance and handoff checks only; no upstream runtime or cleanup safety test.\"\n}\n"
+    },
+    {
+      "name": "evidence",
+      "command": "Node SHA256 audit of main checkout evidence",
+      "chunk_id": "d5144e",
+      "wall_time_seconds": 0.393517,
+      "exit_code": 0,
+      "original_token_count": 34,
+      "output": "{\n  \"status\": \"passed\",\n  \"preservedRawEvidence\": 86,\n  \"cManifestRows\": 53,\n  \"bProtectedRows\": 37,\n  \"controllerArchiveFiles\": 32\n}\n"
+    },
+    {
+      "name": "worker-preservation",
+      "command": "git -C .worktrees/b rev-parse HEAD; git -C .worktrees/b status --porcelain; git -C .worktrees/c rev-parse HEAD; git -C .worktrees/c status --porcelain",
+      "chunk_id": "6a92d3",
+      "wall_time_seconds": 0.4399683,
+      "exit_code": 0,
+      "original_token_count": 21,
+      "output": "5b88fd0c5f306df5586e8c8445d45f39940e8597\nd8cc6979813ecf2ff03898d40b8ae217b1df29f8\n"
+    }
+  ]
+}
