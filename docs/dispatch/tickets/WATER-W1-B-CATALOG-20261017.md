@@ -2,6 +2,8 @@
 
 总控：Codex。独立并行票，用户安排模型。当前状态以主检出wave1 manifest为准；不依赖A实现，也不读取A在途代码。
 
+2026-10-17收单后，原门总控复跑通过，独立构造数组边界失败，当前CHANGES_REQUESTED；续做以[补充单01](WATER-W1-B-ADDENDUM-01-20261017.md)的起点/范围/新回执为准，其余冻结规则不变。
+
 | 项 | 值 |
 |---|---|
 | 权威票面 | `F:/new/smaltalk/water/docs/dispatch/tickets/WATER-W1-B-CATALOG-20261017.md` |

@@ -1,0 +1,42 @@
+{
+  "recordedAt": "2026-10-17T06:50:45.430Z",
+  "boundary": "Controller documentation, metadata and syntax gates; B/C product acceptance remains CHANGES_REQUESTED.",
+  "checks": [
+    {
+      "name": "project",
+      "command": "node scripts/verify-project.mjs --with-upstreams",
+      "chunk_id": "ff6a79",
+      "wall_time_seconds": 4.0887948,
+      "exit_code": 0,
+      "original_token_count": 94,
+      "output": "{\n  \"status\": \"passed\",\n  \"markdownFiles\": 45,\n  \"localLinks\": 100,\n  \"pinnedSourceLinks\": 182,\n  \"externalPinnedSourceLinks\": 4,\n  \"dispatchRegistryTasks\": 3,\n  \"workflowSourceRecords\": 14,\n  \"upstreams\": 5,\n  \"checkedLocalSnapshots\": 5,\n  \"mode\": \"with-upstreams\",\n  \"boundary\": \"Metadata, provenance and handoff checks only; no upstream runtime or cleanup safety test.\"\n}\n"
+    },
+    {
+      "name": "contracts",
+      "command": "node scripts/verify-contract-assets.mjs",
+      "chunk_id": "9d2281",
+      "wall_time_seconds": 0.718493,
+      "exit_code": 0,
+      "original_token_count": 105,
+      "output": "{\n  \"status\": \"passed\",\n  \"reportCases\": 66,\n  \"positiveInputs\": 16,\n  \"structuralRejections\": 27,\n  \"semanticInputsPrepared\": 23,\n  \"rawJsonCases\": 6,\n  \"constructedCases\": 6,\n  \"resourceCasesPrepared\": 2,\n  \"productTestsRun\": false,\n  \"boundary\": \"Validates controller assets and primitive structure/u64 range. Cross-report semantics and all Rust entry points remain the worker and controller acceptance target.\"\n}\n"
+    },
+    {
+      "name": "syntax",
+      "command": "node --check scripts/acceptance/review-bc-boundaries.mjs",
+      "chunk_id": "88d0c5",
+      "wall_time_seconds": 0.5854764,
+      "exit_code": 0,
+      "original_token_count": 0,
+      "output": ""
+    },
+    {
+      "name": "scope-and-whitespace",
+      "command": "git diff --check; git diff --name-only -- contracts scripts/parallel-check.mjs scripts/browser-lab.mjs scripts/worker-check.mjs",
+      "chunk_id": "aac7a9",
+      "wall_time_seconds": 0.7133595,
+      "exit_code": 0,
+      "original_token_count": 0,
+      "output": ""
+    }
+  ]
+}

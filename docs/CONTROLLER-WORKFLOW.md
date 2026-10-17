@@ -97,4 +97,4 @@ READY只表示总控已准备好，不表示用户已转贴。得到用户已贴
 
 ## 当前落实程度
 
-本流程及模板已建立。A四项原定门总控复跑通过，独立wire枚举边界失败，CHANGES_REQUESTED，补充单01已准备待用户外贴；B规则包/C只读交互原型互不依赖，已观察到实现文件，记RUNNING未验收。总控没有自动启动实现者，也没有代修A产品代码。详情见 [第一轮计划](dispatch/wave1/PLAN.md)及[A验收报告](acceptance/wave1/controller/WATER-W1-A-REVIEW-20261017.md)。
+本流程及模板已建立。A/B/C原交付均已独立验收，各发现具体边界缺陷，CHANGES_REQUESTED，各自补充单01已准备；B/C仍互不依赖。总控没有自动启动实现者、代修产品或提前合入。详情见 [第一轮计划](dispatch/wave1/PLAN.md)、[A验收报告](acceptance/wave1/controller/WATER-W1-A-REVIEW-20261017.md)及[BC验收报告](acceptance/wave1/controller/WATER-W1-BC-REVIEW-20261017.md)。

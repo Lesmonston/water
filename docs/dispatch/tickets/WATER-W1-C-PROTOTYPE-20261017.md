@@ -2,6 +2,8 @@
 
 总控：Codex。独立并行票，用户安排模型。只做示例数据原型，不依赖A的Rust输出或B未完成的catalog。
 
+2026-10-17收单后，总控复跑原门并查看截图，独立模型名称排序边界失败，当前CHANGES_REQUESTED；续做以[补充单01](WATER-W1-C-ADDENDUM-01-20261017.md)的起点/范围/新回执为准，其余冻结规则不变。
+
 | 项 | 值 |
 |---|---|
 | 权威票面 | `F:/new/smaltalk/water/docs/dispatch/tickets/WATER-W1-C-PROTOTYPE-20261017.md` |

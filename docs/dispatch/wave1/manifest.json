@@ -1,7 +1,7 @@
 {
   "schemaVersion": 1,
   "wave": "water-wave1",
-  "status": "A_CHANGES_REQUESTED_BC_RUNNING",
+  "status": "ABC_CHANGES_REQUESTED",
   "controllerRoot": "F:/new/smaltalk/water",
   "controllerBranch": "main",
   "controller": "Codex",
@@ -57,13 +57,15 @@
       "submissionEvidence": "Original clean submission retained; four controller gates passed but independent enum boundary checks failed.",
       "reviewedCommit": "475c4703be3c455089b8080b53e084d4721b10f7",
       "controllerReview": "docs/acceptance/wave1/controller/WATER-W1-A-REVIEW-20261017.md",
-      "addenda": ["docs/dispatch/tickets/WATER-W1-A-ADDENDUM-01-20261017.md"],
+      "addenda": [
+        "docs/dispatch/tickets/WATER-W1-A-ADDENDUM-01-20261017.md"
+      ],
       "resumeFromCommit": "475c4703be3c455089b8080b53e084d4721b10f7",
       "revisionReport": "docs/dispatch/reports/WATER-W1-A-ADDENDUM-01-REPORT.md",
       "revisionDispatchStatus": "PREPARED_AWAITING_USER_PASTE"
     },
     {
-      "status": "RUNNING",
+      "status": "CHANGES_REQUESTED",
       "activityObservedAt": "2026-10-17T06:20:10.846Z",
       "activityEvidence": "Assigned B tree contains uncommitted packages/tool-catalog metadata, validator, tests and task evidence; no completion notification received. Controller did not start a worker.",
       "baseCommit": "e92f39647c91d9ce077d592583c3352626d3402b",
@@ -72,7 +74,7 @@
       "workerRules": "docs/dispatch/PARALLEL-WORKER-RULES.md",
       "helper": "scripts/parallel-check.mjs",
       "dependsOn": [],
-      "model": null,
+      "model": "Codex / GPT-6 (worker self-report)",
       "dispatchedAt": null,
       "startedAt": null,
       "id": "WATER-W1-B",
@@ -97,7 +99,8 @@
         "packages/tool-catalog/tests/catalog.test.mjs"
       ],
       "allowedFiles": [
-        "docs/dispatch/reports/WATER-W1-B-REPORT.md"
+        "docs/dispatch/reports/WATER-W1-B-REPORT.md",
+        "docs/dispatch/reports/WATER-W1-B-ADDENDUM-01-REPORT.md"
       ],
       "allowedPrefixes": [
         "packages/tool-catalog/",
@@ -105,10 +108,20 @@
       ],
       "productBoundary": "Metadata-only catalog and pure validator; no real discovery/scanning/execution",
       "baselineStatus": "PASSED",
-      "preflightEvidence": "docs/acceptance/wave1/controller/b-initial-baseline.json"
+      "preflightEvidence": "docs/acceptance/wave1/controller/b-initial-baseline.json",
+      "submittedCommit": "d05eae7b5a0fe5c952744336a776a8c5ee1b2873",
+      "submissionObservedAt": "2026-10-17T06:48:41.323Z",
+      "controllerReview": "docs/acceptance/wave1/controller/WATER-W1-BC-REVIEW-20261017.md",
+      "addenda": [
+        "docs/dispatch/tickets/WATER-W1-B-ADDENDUM-01-20261017.md"
+      ],
+      "revisionReport": "docs/dispatch/reports/WATER-W1-B-ADDENDUM-01-REPORT.md",
+      "revisionDispatchStatus": "PREPARED_AWAITING_USER_PASTE",
+      "resumeFromCommit": "d05eae7b5a0fe5c952744336a776a8c5ee1b2873",
+      "reviewedCommit": "d05eae7b5a0fe5c952744336a776a8c5ee1b2873"
     },
     {
-      "status": "RUNNING",
+      "status": "CHANGES_REQUESTED",
       "activityObservedAt": "2026-10-17T06:20:10.846Z",
       "activityEvidence": "Assigned C tree contains uncommitted prototypes/readonly-dashboard implementation and tests; no completion notification received. Controller did not start a worker.",
       "baseCommit": "e92f39647c91d9ce077d592583c3352626d3402b",
@@ -117,7 +130,7 @@
       "workerRules": "docs/dispatch/PARALLEL-WORKER-RULES.md",
       "helper": "scripts/parallel-check.mjs",
       "dependsOn": [],
-      "model": null,
+      "model": "Codex / GPT-6 (worker self-report)",
       "dispatchedAt": null,
       "startedAt": null,
       "id": "WATER-W1-C",
@@ -150,7 +163,8 @@
         "prototypes/readonly-dashboard/tests/browser.test.mjs"
       ],
       "allowedFiles": [
-        "docs/dispatch/reports/WATER-W1-C-REPORT.md"
+        "docs/dispatch/reports/WATER-W1-C-REPORT.md",
+        "docs/dispatch/reports/WATER-W1-C-ADDENDUM-01-REPORT.md"
       ],
       "allowedPrefixes": [
         "prototypes/readonly-dashboard/",
@@ -158,7 +172,17 @@
       ],
       "productBoundary": "Synthetic read-only demo; no Rust/Tauri/real scan, cleanup or uploads",
       "baselineStatus": "PASSED",
-      "preflightEvidence": "docs/acceptance/wave1/controller/c-initial-baseline.json"
+      "preflightEvidence": "docs/acceptance/wave1/controller/c-initial-baseline.json",
+      "submittedCommit": "93e2509882f3090883c8ccaedf2fb30e83dba49a",
+      "submissionObservedAt": "2026-10-17T06:48:41.323Z",
+      "controllerReview": "docs/acceptance/wave1/controller/WATER-W1-BC-REVIEW-20261017.md",
+      "addenda": [
+        "docs/dispatch/tickets/WATER-W1-C-ADDENDUM-01-20261017.md"
+      ],
+      "revisionReport": "docs/dispatch/reports/WATER-W1-C-ADDENDUM-01-REPORT.md",
+      "revisionDispatchStatus": "PREPARED_AWAITING_USER_PASTE",
+      "resumeFromCommit": "93e2509882f3090883c8ccaedf2fb30e83dba49a",
+      "reviewedCommit": "93e2509882f3090883c8ccaedf2fb30e83dba49a"
     }
   ],
   "preflightStatus": "PASSED",

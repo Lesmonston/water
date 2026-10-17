@@ -19,7 +19,14 @@
 
 ## 下一步
 
-A总控验收结论为CHANGES_REQUESTED，未集成；[补充单01](dispatch/tickets/WATER-W1-A-ADDENDUM-01-20261017.md)已准备，交回A执行者修复wire枚举对象形状问题。[WATER-W1-B规则包](dispatch/tickets/WATER-W1-B-CATALOG-20261017.md)与[WATER-W1-C交互原型](dispatch/tickets/WATER-W1-C-PROTOTYPE-20261017.md)已观察到独立实现文件，记RUNNING，尚无完成通知/验收。扫描器、分类器与正式集成仍等前置验收。
+三票原交付均已独立验收，CHANGES_REQUESTED未集成。分别交回原执行者做[A补充单01](dispatch/tickets/WATER-W1-A-ADDENDUM-01-20261017.md)、[B补充单01](dispatch/tickets/WATER-W1-B-ADDENDUM-01-20261017.md)、[C补充单01](dispatch/tickets/WATER-W1-C-ADDENDUM-01-20261017.md)，互不依赖。扫描器、分类器与正式集成仍等前置验收；总控未代修产品。
+
+## B/C独立验收（2026-10-17，当前）
+
+- B提交`d05eae7b5a0fe5c952744336a776a8c5ee1b2873`：check/test总控复跑通过，六工具17页官方来源独立审查未发现具体数据错误；构造数组可用继承方法跳过来源/固定顺序校验，两例真实失败，开B补单01。
+- C提交`93e2509882f3090883c8ccaedf2fb30e83dba49a`：check/五模型测试通过，浏览器首次Page.navigate超时，同提交未改代码重跑两测试通过；截图已实际查看。多个未知容量项在name_asc下没有按名称排序，开C补单01。八个固定详情滚动时只读提示文字仍可见，不列该候选缺陷。
+- B的30处文件差异、C的39处文件差异均在白名单；各9项并行冻结哈希一致。后加报告未夹带产品变更，两树保持原提交和干净状态。报告、日志、截图、独立边界与历史哈希核对见[BC验收报告](acceptance/wave1/controller/WATER-W1-BC-REVIEW-20261017.md)。
+- 各补单续做SHA/新回执已写进主manifest，新增报告白名单，其余原基线/helper/冻结锁不变。补单已准备不等于已外贴或开工；没有合入A/B/C产品、真实扫描/清理或macOS验收。
 
 ## A独立验收（2026-10-17）
 
@@ -28,7 +35,7 @@ A总控验收结论为CHANGES_REQUESTED，未集成；[补充单01](dispatch/tic
 - [验收报告及证据](acceptance/wave1/controller/WATER-W1-A-REVIEW-20261017.md)已归档。补单起点仍是原提交，基线/helper/冻结锁不变，B/C独立。补单已准备不代表用户已转贴；B/C则于06:20Z观察到各自未提交实现文件，按启动证据记RUNNING，实际开始时间未知。
 - Windows Rust契约检查已实际运行；macOS未验证。main仅有架构/调度/验收材料，没有集成A库或真实扫描/清理能力。以下原派前记录为历史事实，最新状态以本节与manifest为准。
 
-## 并行追加与最新观察（2026-10-17）
+## 并行追加与旧观察（2026-10-17，历史）
 
 - ADR-003追加两条独立交付线：B六工具发现/保护元数据与Node纯校验，C固定虚构数据的只读交互原型。它们互不依赖，也不依赖A的在途Rust产物。
 - B/C分别在`.worktrees/b`、`.worktrees/c`，分支worker/water-w1-b与worker/water-w1-c，精确基线`e92f39647c91d9ce077d592583c3352626d3402b`，tag water-w1-parallel-base-20261017。各自Node24/冻结哈希/分支/洁净baseline通过；C隔离Chrome空白页探针通过，不是原型UI已验收。
@@ -41,7 +48,7 @@ A总控验收结论为CHANGES_REQUESTED，未集成；[补充单01](dispatch/tic
 - 架构基线为`a1e68364d47e137f8b66543eb95d35bb04424c78`，tag `water-w1-base-20261017`。
 - 槽位a：`F:/new/smaltalk/water/.worktrees/a`，`worker/water-w1-a`，HEAD精确为基线，状态干净。baseline实际运行通过（冻结哈希、分支、Rust1.95.0与MSVC链接探针），未运行产品测试。
 - [正式票](dispatch/tickets/WATER-W1-A-CONTRACTS-20261017.md)、权威manifest、工作树、报告与证据父目录均存在；[派前回执](dispatch/wave1/CONTROLLER-READY-REPORT.md)记录已做/未做检查。
-- 初次仅A的READY记录现已被后续提交观察及B/C追加更新；该节保留初次派前证据，最新状态以本页“并行追加”及registry为准。
+- 初次仅A的READY记录现已被后续提交观察及B/C追加更新；该节保留初次派前证据，最新状态以本页“下一步”、独立验收及registry为准。
 
 ## 最新协作约定（2026-10-17）
 

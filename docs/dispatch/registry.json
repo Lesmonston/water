@@ -4,7 +4,7 @@
   "mode": "manual-external-paste",
   "controller": "Codex",
   "projectRoot": "F:/new/smaltalk/water",
-  "stage": "wave1-a-changes-requested-b-c-running",
+  "stage": "wave1-a-b-c-changes-requested",
   "activeWave": "water-wave1",
   "slots": [
     {
@@ -21,7 +21,7 @@
       "branch": "worker/water-w1-b",
       "baseline": "e92f39647c91d9ce077d592583c3352626d3402b",
       "task": "WATER-W1-B",
-      "state": "running-observed"
+      "state": "awaiting-external-addendum-01"
     },
     {
       "id": "c",
@@ -29,7 +29,7 @@
       "branch": "worker/water-w1-c",
       "baseline": "e92f39647c91d9ce077d592583c3352626d3402b",
       "task": "WATER-W1-C",
-      "state": "running-observed"
+      "state": "awaiting-external-addendum-01"
     }
   ],
   "tasks": [
@@ -50,7 +50,9 @@
       "submittedCommit": "475c4703be3c455089b8080b53e084d4721b10f7",
       "submissionObservedAt": "2026-10-17T06:04:28.047Z",
       "controllerReview": "docs/acceptance/wave1/controller/WATER-W1-A-REVIEW-20261017.md",
-      "addenda": ["docs/dispatch/tickets/WATER-W1-A-ADDENDUM-01-20261017.md"],
+      "addenda": [
+        "docs/dispatch/tickets/WATER-W1-A-ADDENDUM-01-20261017.md"
+      ],
       "resumeFromCommit": "475c4703be3c455089b8080b53e084d4721b10f7",
       "revisionReport": "docs/dispatch/reports/WATER-W1-A-ADDENDUM-01-REPORT.md",
       "revisionDispatchStatus": "PREPARED_AWAITING_USER_PASTE"
@@ -58,7 +60,7 @@
     {
       "id": "WATER-W1-B",
       "title": "工具发现与保护规则数据包",
-      "status": "RUNNING",
+      "status": "CHANGES_REQUESTED",
       "activityObservedAt": "2026-10-17T06:20:10.846Z",
       "activityEvidence": "Task-owned catalog implementation/tests/evidence observed as uncommitted files; no completion report notification.",
       "manifest": "docs/dispatch/wave1/manifest.json",
@@ -70,12 +72,22 @@
       "helper": "scripts/parallel-check.mjs",
       "contractLock": "contracts/parallel-v1/freeze.lock.json",
       "dispatchedAt": null,
-      "startedAt": null
+      "startedAt": null,
+      "submittedCommit": "d05eae7b5a0fe5c952744336a776a8c5ee1b2873",
+      "submissionObservedAt": "2026-10-17T06:48:41.323Z",
+      "controllerReview": "docs/acceptance/wave1/controller/WATER-W1-BC-REVIEW-20261017.md",
+      "addenda": [
+        "docs/dispatch/tickets/WATER-W1-B-ADDENDUM-01-20261017.md"
+      ],
+      "revisionReport": "docs/dispatch/reports/WATER-W1-B-ADDENDUM-01-REPORT.md",
+      "revisionDispatchStatus": "PREPARED_AWAITING_USER_PASTE",
+      "resumeFromCommit": "d05eae7b5a0fe5c952744336a776a8c5ee1b2873",
+      "reviewedCommit": "d05eae7b5a0fe5c952744336a776a8c5ee1b2873"
     },
     {
       "id": "WATER-W1-C",
       "title": "只读桌面交互原型",
-      "status": "RUNNING",
+      "status": "CHANGES_REQUESTED",
       "activityObservedAt": "2026-10-17T06:20:10.846Z",
       "activityEvidence": "Task-owned readonly prototype implementation/tests observed as uncommitted files; no completion report notification.",
       "manifest": "docs/dispatch/wave1/manifest.json",
@@ -87,9 +99,19 @@
       "helper": "scripts/parallel-check.mjs",
       "contractLock": "contracts/parallel-v1/freeze.lock.json",
       "dispatchedAt": null,
-      "startedAt": null
+      "startedAt": null,
+      "submittedCommit": "93e2509882f3090883c8ccaedf2fb30e83dba49a",
+      "submissionObservedAt": "2026-10-17T06:48:41.323Z",
+      "controllerReview": "docs/acceptance/wave1/controller/WATER-W1-BC-REVIEW-20261017.md",
+      "addenda": [
+        "docs/dispatch/tickets/WATER-W1-C-ADDENDUM-01-20261017.md"
+      ],
+      "revisionReport": "docs/dispatch/reports/WATER-W1-C-ADDENDUM-01-REPORT.md",
+      "revisionDispatchStatus": "PREPARED_AWAITING_USER_PASTE",
+      "resumeFromCommit": "93e2509882f3090883c8ccaedf2fb30e83dba49a",
+      "reviewedCommit": "93e2509882f3090883c8ccaedf2fb30e83dba49a"
     }
   ],
   "testHelper": "per-task helper; A defaults unchanged",
-  "note": "A four final gates passed; controller enum boundary checks failed. Addendum 01 awaits user paste, no integration. Independent B/C activity observed; exact start times unknown, no completion notification or acceptance yet."
+  "note": "All original submissions reviewed; separate addendum 01 for A/B/C awaits user paste. No worker product integrated. C browser first navigation timed out; unchanged retry passed."
 }
