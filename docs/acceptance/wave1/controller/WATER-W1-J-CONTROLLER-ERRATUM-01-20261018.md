@@ -4,7 +4,7 @@
 
 已核原helper在完成J构建后枚举整个deps目录，要求每个同名前缀rlib恰好一份；现场water_scan确有两份，原bridge在编译比较程序前退出。旧独立workspace与J依赖构建产生不同产物，目录唯一性不能证明当前Cargo构建图。359新增文件均在原白名单，六产品文件自实现提交后未改，350原始证据与来源逐字节一致，132冻结一致。详见[接收审计](w1-j-review-20261018/intake-audit.json)。
 
-原断言：每个crate在整个deps目录只能匹配一份rlib。替代断言：成功的本次`cargo build --message-format=json`与实际metadata解析图中，每个所需crate必须对应唯一可达package_id、lib目标及非test的rlib产物；路径必须留在本验收树私有deps，实际文件必须存在且不是链接。无产物、多解、构建失败或越界都拒绝。保留全部历史产物，不按时间、目录顺序或第一份候选猜测。
+原断言：每个crate在整个deps目录只能匹配一份rlib。替代断言：成功的本次`cargo build --message-format=json`与实际metadata解析图中，每个所需crate必须对应唯一可达package_id、lib目标及非test的rlib产物；依赖路径必须留在本验收树私有target/debug/deps，根包另允许Cargo明确报告的固定target/debug/libwater_lab_session.rlib，实际文件必须存在且不是链接。无产物、多解、构建失败或越界都拒绝。保留全部历史产物，不按时间、目录顺序或第一份候选猜测。
 
 以下要求全部保持：真实J公开入口及独立F/G/A/E/H程序、13快照六字段逐值比较、11原生case/12scope/39entry、44内容快照、五产品测试、fmt/clippy/metadata、原行为红与三负控的完整输出和恢复字节证据。选择器还需三项定向测试和真实重复产物回归。原冻结helper及七份锁不变，K任务对象和工作树不变；J→K实际页面仍等K收单后单独验。
 

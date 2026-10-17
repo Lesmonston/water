@@ -1,6 +1,6 @@
 // Select only library artifacts emitted by one successful Cargo build graph.
 import assert from 'node:assert/strict';
-import {dirname,isAbsolute,resolve} from 'node:path';
+import {basename,dirname,isAbsolute,resolve} from 'node:path';
 export function selectCargoArtifacts(metadata,stdout,packageName,crateNames,depsDirectory){
   const messages=stdout.trim().split(/\r?\n/).filter(Boolean).map(line=>JSON.parse(line));
   assert(messages.some(m=>m.reason==='build-finished'&&m.success===true),'Cargo build did not finish successfully');
@@ -13,7 +13,9 @@ export function selectCargoArtifacts(metadata,stdout,packageName,crateNames,deps
     assert.equal(packages.length,1,'Ambiguous graph package for '+crate);const pkg=packages[0];
     const files=new Set(messages.filter(m=>m.reason==='compiler-artifact'&&m.package_id===pkg.id&&m.target.name===crate&&m.target.kind.includes('lib')&&m.profile.test===false).flatMap(m=>m.filenames.filter(f=>f.endsWith('.rlib'))));
     assert.equal(files.size,1,'Missing or ambiguous Cargo artifact for '+crate);const filename=[...files][0];
-    assert(isAbsolute(filename));assert.equal(resolve(dirname(filename)).toLowerCase(),resolve(depsDirectory).toLowerCase(),'Artifact outside private dependency directory');
+    assert(isAbsolute(filename));const parent=resolve(dirname(filename)).toLowerCase(),deps=resolve(depsDirectory).toLowerCase();
+    const rootOutput=pkg.id===roots[0].id&&parent===resolve(dirname(depsDirectory)).toLowerCase()&&basename(filename)==='lib'+crate+'.rlib';
+    assert(parent===deps||rootOutput,'Artifact outside private dependency directory or fixed root library');
     return {crate,packageId:pkg.id,filename};
   });
 }

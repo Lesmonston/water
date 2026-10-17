@@ -1,9 +1,10 @@
-import assert from 'node:assert/strict';import test from 'node:test';import {resolve,join} from 'node:path';
+import assert from 'node:assert/strict';import test from 'node:test';import {resolve,join,dirname} from 'node:path';
 import {selectCargoArtifacts} from './cargo-artifacts.mjs';
 const deps=resolve('.local/cargo-artifact-unit/deps');
 const metadata={packages:[{id:'j',name:'water-lab-session',targets:[{name:'water_lab_session',kind:['lib']}]},{id:'scan',name:'water-scan',targets:[{name:'water_scan',kind:['lib']}]},{id:'other-scan',name:'old-scan',targets:[{name:'water_scan',kind:['lib']}]}],resolve:{nodes:[{id:'j',dependencies:['scan']},{id:'scan',dependencies:[]}]}};
 const artifact=(id,crate,file)=>({reason:'compiler-artifact',package_id:id,target:{name:crate,kind:['lib']},profile:{test:false},filenames:[join(deps,file)],fresh:true});
 const current=artifact('scan','water_scan','libwater_scan-current.rlib'),root=artifact('j','water_lab_session','libwater_lab_session-current.rlib');
+root.filenames=[join(dirname(deps),'libwater_lab_session.rlib')];
 const encode=events=>[...events,{reason:'build-finished',success:true}].map(x=>JSON.stringify(x)).join('\n');
 test('cargo_selects_current_graph_with_old_artifacts',()=>{const result=selectCargoArtifacts(metadata,encode([artifact('other-scan','water_scan','libwater_scan-old.rlib'),current,root]),'water-lab-session',['water_scan','water_lab_session'],deps);assert.deepEqual(result.map(x=>x.filename),current.filenames.concat(root.filenames));});
 test('cargo_rejects_missing_and_ambiguous_graph_outputs',()=>{assert.throws(()=>selectCargoArtifacts(metadata,encode([root]),'water-lab-session',['water_scan'],deps),/Missing or ambiguous/);assert.throws(()=>selectCargoArtifacts(metadata,encode([current,artifact('scan','water_scan','libwater_scan-ambiguous.rlib')]),'water-lab-session',['water_scan'],deps),/Missing or ambiguous/);});
