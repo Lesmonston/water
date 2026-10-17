@@ -1,0 +1,82 @@
+{"argv":["--test","--test-concurrency=1","--test-reporter=tap","prototypes/readonly-dashboard/tests/model.test.mjs"],"mutation":"false-reclaim","exitCode":1}
+--- stdout ---
+TAP version 13
+# Subtest: prototype_bigint_order
+ok 1 - prototype_bigint_order
+  ---
+  duration_ms: 3.5076
+  type: 'test'
+  ...
+# Subtest: prototype_filters
+ok 2 - prototype_filters
+  ---
+  duration_ms: 6.5551
+  type: 'test'
+  ...
+# Subtest: prototype_format_and_unknown
+ok 3 - prototype_format_and_unknown
+  ---
+  duration_ms: 0.3974
+  type: 'test'
+  ...
+# Subtest: prototype_no_mutation
+ok 4 - prototype_no_mutation
+  ---
+  duration_ms: 0.7311
+  type: 'test'
+  ...
+# Subtest: prototype_no_false_reclaim
+not ok 5 - prototype_no_false_reclaim
+  ---
+  duration_ms: 1.409
+  type: 'test'
+  location: 'F:\\new\\smaltalk\\water\\.worktrees\\c\\prototypes\\readonly-dashboard\\tests\\model.test.mjs:86:1'
+  failureType: 'testCodeFailure'
+  error: |-
+    potentially overlapping findings must not produce total or reclaimable bytes
+    + actual - expected
+    
+      {
+        count: 8,
+        logical_total_bytes: null,
+        protected_count: 6,
+    +   reclaimable_bytes: '123',
+    -   reclaimable_bytes: null,
+        unknown_size_count: 1
+      }
+    
+  code: 'ERR_ASSERTION'
+  name: 'AssertionError'
+  expected:
+    count: 8
+    protected_count: 6
+    unknown_size_count: 1
+    logical_total_bytes: ~
+    reclaimable_bytes: ~
+  actual:
+    count: 8
+    protected_count: 6
+    unknown_size_count: 1
+    logical_total_bytes: ~
+    reclaimable_bytes: '123'
+  operator: 'deepStrictEqual'
+  stack: |-
+    TestContext.<anonymous> (file:///F:/new/smaltalk/water/.worktrees/c/prototypes/readonly-dashboard/tests/model.test.mjs:87:10)
+    Test.runInAsyncScope (node:async_hooks:227:14)
+    Test.run (node:internal/test_runner/test:1306:25)
+    Test.processPendingSubtests (node:internal/test_runner/test:897:18)
+    Test.postRun (node:internal/test_runner/test:1447:19)
+    Test.run (node:internal/test_runner/test:1372:12)
+    async Test.processPendingSubtests (node:internal/test_runner/test:897:7)
+  ...
+1..5
+# tests 5
+# suites 0
+# pass 4
+# fail 1
+# cancelled 0
+# skipped 0
+# todo 0
+# duration_ms 177.2718
+
+--- stderr ---

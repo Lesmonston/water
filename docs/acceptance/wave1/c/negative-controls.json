@@ -1,0 +1,61 @@
+{
+  "records": [
+    {
+      "id": "bigint-number",
+      "from": "const left = BigInt(a.logical_bytes), right = BigInt(b.logical_bytes);",
+      "to": "const left = Number(a.logical_bytes), right = Number(b.logical_bytes);",
+      "target": "prototype_bigint_order",
+      "assertion": "ascending boundary B must precede A by one byte",
+      "argv": [
+        "--test",
+        "--test-concurrency=1",
+        "--test-reporter=tap",
+        "prototypes/readonly-dashboard/tests/model.test.mjs"
+      ],
+      "exitCode": 1,
+      "log": ".local/checks/WATER-W1-C/negative-bigint-number.log",
+      "beforeSha256": "dab662d8ab374092fe6c28947b11b95d1cbb090c6d74059f2bf72d2fa29da6b9",
+      "mutantSha256": "3eaff808c6ee31f7cd8a42c82cd4b875ecc135d30181a5d73dc8a36aa1d24913",
+      "restoredSha256": "dab662d8ab374092fe6c28947b11b95d1cbb090c6d74059f2bf72d2fa29da6b9",
+      "restoredByteForByte": true
+    },
+    {
+      "id": "in-place-sort",
+      "from": "const sorted = [...findings].sort(",
+      "to": "const sorted = findings.sort(",
+      "target": "prototype_no_mutation",
+      "assertion": "selectFindings must not sort or mutate input",
+      "argv": [
+        "--test",
+        "--test-concurrency=1",
+        "--test-reporter=tap",
+        "prototypes/readonly-dashboard/tests/model.test.mjs"
+      ],
+      "exitCode": 1,
+      "log": ".local/checks/WATER-W1-C/negative-in-place-sort.log",
+      "beforeSha256": "dab662d8ab374092fe6c28947b11b95d1cbb090c6d74059f2bf72d2fa29da6b9",
+      "mutantSha256": "da2feb6472aea750e75ba088bd0f2fe2f08c0b88e55912b2116d6ab47b26e05a",
+      "restoredSha256": "dab662d8ab374092fe6c28947b11b95d1cbb090c6d74059f2bf72d2fa29da6b9",
+      "restoredByteForByte": true
+    },
+    {
+      "id": "false-reclaim",
+      "from": "reclaimable_bytes: null,",
+      "to": "reclaimable_bytes: '123',",
+      "target": "prototype_no_false_reclaim",
+      "assertion": "potentially overlapping findings must not produce total or reclaimable bytes",
+      "argv": [
+        "--test",
+        "--test-concurrency=1",
+        "--test-reporter=tap",
+        "prototypes/readonly-dashboard/tests/model.test.mjs"
+      ],
+      "exitCode": 1,
+      "log": ".local/checks/WATER-W1-C/negative-false-reclaim.log",
+      "beforeSha256": "dab662d8ab374092fe6c28947b11b95d1cbb090c6d74059f2bf72d2fa29da6b9",
+      "mutantSha256": "8480fe31826445b4aa1c608cf9aecad3e36ae643bcf117d5bed4667d1f5873e3",
+      "restoredSha256": "dab662d8ab374092fe6c28947b11b95d1cbb090c6d74059f2bf72d2fa29da6b9",
+      "restoredByteForByte": true
+    }
+  ]
+}

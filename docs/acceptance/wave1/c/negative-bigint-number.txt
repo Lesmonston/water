@@ -1,0 +1,89 @@
+{"argv":["--test","--test-concurrency=1","--test-reporter=tap","prototypes/readonly-dashboard/tests/model.test.mjs"],"mutation":"bigint-number","exitCode":1}
+--- stdout ---
+TAP version 13
+# Subtest: prototype_bigint_order
+not ok 1 - prototype_bigint_order
+  ---
+  duration_ms: 6.4024
+  type: 'test'
+  location: 'F:\\new\\smaltalk\\water\\.worktrees\\c\\prototypes\\readonly-dashboard\\tests\\model.test.mjs:13:1'
+  failureType: 'testCodeFailure'
+  error: |-
+    ascending boundary B must precede A by one byte
+    + actual - expected
+    
+      [
+        'agent-history',
+        'uv-build',
+        'pip-wheels',
+        'hf-qwen',
+        'ollama-local',
+    +   'large-a',
+        'large-b',
+    -   'large-a',
+        'vector-data'
+      ]
+    
+  code: 'ERR_ASSERTION'
+  name: 'AssertionError'
+  expected:
+    0: 'agent-history'
+    1: 'uv-build'
+    2: 'pip-wheels'
+    3: 'hf-qwen'
+    4: 'ollama-local'
+    5: 'large-b'
+    6: 'large-a'
+    7: 'vector-data'
+  actual:
+    0: 'agent-history'
+    1: 'uv-build'
+    2: 'pip-wheels'
+    3: 'hf-qwen'
+    4: 'ollama-local'
+    5: 'large-a'
+    6: 'large-b'
+    7: 'vector-data'
+  operator: 'deepStrictEqual'
+  stack: |-
+    TestContext.<anonymous> (file:///F:/new/smaltalk/water/.worktrees/c/prototypes/readonly-dashboard/tests/model.test.mjs:14:10)
+    Test.runInAsyncScope (node:async_hooks:227:14)
+    Test.run (node:internal/test_runner/test:1306:25)
+    Test.start (node:internal/test_runner/test:1177:17)
+    startSubtestAfterBootstrap (node:internal/test_runner/harness:385:17)
+  ...
+# Subtest: prototype_filters
+ok 2 - prototype_filters
+  ---
+  duration_ms: 9.2686
+  type: 'test'
+  ...
+# Subtest: prototype_format_and_unknown
+ok 3 - prototype_format_and_unknown
+  ---
+  duration_ms: 0.4997
+  type: 'test'
+  ...
+# Subtest: prototype_no_mutation
+ok 4 - prototype_no_mutation
+  ---
+  duration_ms: 1.6757
+  type: 'test'
+  ...
+# Subtest: prototype_no_false_reclaim
+ok 5 - prototype_no_false_reclaim
+  ---
+  duration_ms: 0.4468
+  type: 'test'
+  ...
+1..5
+# tests 5
+# suites 0
+# pass 4
+# fail 1
+# cancelled 0
+# skipped 0
+# todo 0
+# duration_ms 193.5441
+
+--- stderr ---
