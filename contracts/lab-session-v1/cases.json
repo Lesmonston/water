@@ -1,0 +1,66 @@
+{
+  "fixture_version": "water.lab-session-cases.v1",
+  "matrix": "contracts/scan-lab-v1/matrix.json",
+  "negative_inputs": "contracts/scan-lab-v1/negative-inputs.json",
+  "native": {
+    "cases": 11,
+    "scopes": 12,
+    "entries_if_all_supported": 39
+  },
+  "controlled": [
+    "pre_cancelled_overlapping_scopes",
+    "injected_permission_plan"
+  ],
+  "snapshot_fields": [
+    "session_version",
+    "data_kind",
+    "source_facts",
+    "report",
+    "view",
+    "summary"
+  ],
+  "max_snapshot_bytes": 16777216,
+  "errors": [
+    [
+      "OpenRejected",
+      "/open"
+    ],
+    [
+      "ScanRejected",
+      "/scan"
+    ],
+    [
+      "AssemblyRejected",
+      "/assembly"
+    ],
+    [
+      "ProjectionRejected",
+      "/view"
+    ],
+    [
+      "SummaryRejected",
+      "/summary"
+    ],
+    [
+      "SnapshotTooLarge",
+      "/snapshot"
+    ],
+    [
+      "SerializationFailed",
+      "/snapshot"
+    ]
+  ],
+  "proof_targets": {
+    "behavior": "J_BEHAVIOR",
+    "nc1": "J_CANCEL_SHARED",
+    "nc2": "J_FACTS_PRESERVED",
+    "nc3": "J_SUMMARY_UNKNOWN"
+  },
+  "tests": [
+    "session_native_composition",
+    "session_cancellation_and_progress",
+    "session_errors_and_bounds",
+    "session_identity_and_protection",
+    "session_snapshot_wire"
+  ]
+}

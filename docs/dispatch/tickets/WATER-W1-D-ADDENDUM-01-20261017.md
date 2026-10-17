@@ -1,5 +1,7 @@
 # WATER-W1-D 补充单01：拒绝数组上的非索引属性
 
+归档状态（2026-10-18）：本票及所绑补单已完成并VERIFIED（Windows范围），不再外贴。下文“返工/待外贴/首次起点”均为历史；当前以[验收报告](../../acceptance/wave1/controller/WATER-W1-D-ADDENDUM-01-REVIEW-20261017.md)和主manifest为准。
+
 总控：Codex。日期：2026-10-17。CHANGES_REQUESTED，待用户外贴。绑定[原单](WATER-W1-D-FIXTURE-LAB-20261017.md)，不改冻结契约、helper、基线或原五测试名。
 
 当前更新：本补单已完成并通过总控单票及隔离集成，接收HEAD `711c38c9d626c4ceb624a48173356887c913d9c7`，VERIFIED（Windows范围）。见[验收报告](../../acceptance/wave1/controller/WATER-W1-D-ADDENDUM-01-REVIEW-20261017.md)。下文是历史执行票面，不从b92d起点重复执行。

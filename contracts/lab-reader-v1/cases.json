@@ -1,0 +1,51 @@
+{
+  "fixture_version": "water.lab-reader-cases.v1",
+  "snapshots": [
+    {
+      "scan_id": "pipeline-0",
+      "case_id": "project-markers",
+      "status": "completed",
+      "role": "native_completed"
+    },
+    {
+      "scan_id": "pipeline-7",
+      "case_id": "depth-budget",
+      "status": "partial",
+      "role": "native_partial"
+    },
+    {
+      "scan_id": "pipeline-11",
+      "case_id": "overlapping-scopes",
+      "status": "cancelled",
+      "role": "controlled_pre_cancelled"
+    },
+    {
+      "scan_id": "pipeline-12",
+      "case_id": "permission-plan",
+      "status": "partial",
+      "role": "controlled_injected_permission"
+    }
+  ],
+  "invalid_mutations": [
+    "missing-session-version",
+    "wrong-data-kind",
+    "missing-nullable",
+    "wrong-view-scan-id",
+    "wrong-status",
+    "wrong-count",
+    "wrong-path",
+    "wrong-totals",
+    "duplicate-scan-id",
+    "unknown-top-field"
+  ],
+  "memory_variants": {
+    "synthetic_only": true,
+    "bigint_values": [
+      "9007199254740992",
+      "9007199254740993",
+      "18446744073709551615"
+    ],
+    "html_relative_path": "html/<img src=x onerror=literal>",
+    "instructions": "Use a File entry in first snapshot. Synchronize its source_facts relative_path/depth/logical_bytes, report finding relative_path/size.logical_bytes and view relative_path/title/logical_bytes/size.logical_bytes. All totals stay unknown. Rename scan_id consistently in report/view for separate caller bundles. These are synthetic memory variants, not physical F captures."
+  }
+}

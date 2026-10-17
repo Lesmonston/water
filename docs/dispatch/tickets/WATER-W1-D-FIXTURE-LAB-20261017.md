@@ -1,5 +1,7 @@
 # WATER-W1-D：受控文件系统夹具工厂
 
+归档状态（2026-10-18）：本票及所绑补单已完成并VERIFIED（Windows范围），不再外贴。下文“返工/待外贴/首次起点”均为历史；当前以[验收报告](../../acceptance/wave1/controller/WATER-W1-D-ADDENDUM-01-REVIEW-20261017.md)和主manifest为准。
+
 总控：Codex。正式状态看主检出manifest。这是与A补单并行的独立实现票；不依赖未验收A，不实现扫描内核。
 
 当前更新：补单01已通过总控单票复验及隔离集成，D为VERIFIED（Windows范围），见[验收报告](../../acceptance/wave1/controller/WATER-W1-D-ADDENDUM-01-REVIEW-20261017.md)。本页派前与退回说明保留为历史，不再外贴重做。

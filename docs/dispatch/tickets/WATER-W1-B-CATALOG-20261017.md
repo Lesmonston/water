@@ -1,5 +1,7 @@
 # WATER-W1-B：工具发现与保护规则数据包
 
+归档状态（2026-10-18）：本票及所绑补单已完成并VERIFIED（Windows范围），不再外贴。下文“返工/待外贴/首次起点”均为历史；当前以[验收报告](../../acceptance/wave1/controller/WATER-W1-BC-ADDENDUM-01-REVIEW-20261017.md)和主manifest为准。
+
 总控：Codex。独立并行票，用户安排模型。当前状态以主检出wave1 manifest为准；不依赖A实现，也不读取A在途代码。
 
 2026-10-17收单后，原门总控复跑通过，独立构造数组边界失败，当前CHANGES_REQUESTED；续做以[补充单01](WATER-W1-B-ADDENDUM-01-20261017.md)的起点/范围/新回执为准，其余冻结规则不变。

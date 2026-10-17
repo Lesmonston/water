@@ -1,5 +1,7 @@
 # WATER-W1-C：只读桌面交互原型
 
+归档状态（2026-10-18）：本票及所绑补单已完成并VERIFIED（Windows范围），不再外贴。下文“返工/待外贴/首次起点”均为历史；当前以[验收报告](../../acceptance/wave1/controller/WATER-W1-BC-ADDENDUM-01-REVIEW-20261017.md)和主manifest为准。
+
 总控：Codex。独立并行票，用户安排模型。只做示例数据原型，不依赖A的Rust输出或B未完成的catalog。
 
 2026-10-17收单后，总控复跑原门并查看截图，独立模型名称排序边界失败，当前CHANGES_REQUESTED；续做以[补充单01](WATER-W1-C-ADDENDUM-01-20261017.md)的起点/范围/新回执为准，其余冻结规则不变。
