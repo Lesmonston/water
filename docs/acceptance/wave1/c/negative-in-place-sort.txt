@@ -1,0 +1,453 @@
+{"argv":["--test","--test-concurrency=1","--test-reporter=tap","prototypes/readonly-dashboard/tests/model.test.mjs"],"mutation":"in-place-sort","exitCode":1}
+--- stdout ---
+TAP version 13
+# Subtest: prototype_bigint_order
+ok 1 - prototype_bigint_order
+  ---
+  duration_ms: 4.2732
+  type: 'test'
+  ...
+# Subtest: prototype_filters
+ok 2 - prototype_filters
+  ---
+  duration_ms: 8.5949
+  type: 'test'
+  ...
+# Subtest: prototype_format_and_unknown
+ok 3 - prototype_format_and_unknown
+  ---
+  duration_ms: 0.4815
+  type: 'test'
+  ...
+# Subtest: prototype_no_mutation
+not ok 4 - prototype_no_mutation
+  ---
+  duration_ms: 7.792
+  type: 'test'
+  location: 'F:\\new\\smaltalk\\water\\.worktrees\\c\\prototypes\\readonly-dashboard\\tests\\model.test.mjs:69:1'
+  failureType: 'testCodeFailure'
+  error: |-
+    selectFindings must not sort or mutate input
+    + actual - expected
+    ... Skipped lines
+    
+      [
+        {
+    +     activity: 'recent',
+    +     category: 'history',
+    +     evidence: '示例：包含历史与恢复上下文。',
+    +     id: 'agent-history',
+    +     logical_bytes: '268435456',
+    -     activity: 'unknown',
+    -     category: 'unknown',
+    -     evidence: '虚构大数，专用于验证整数精度，不代表真实磁盘。',
+    -     id: 'large-a',
+    -     logical_bytes: '9007199254740993',
+          protection_reasons: [
+    +       'unique_asset'
+    -       'unknown_ownership'
+          ],
+          recoverability: 'unknown',
+    +     relative_path: 'demo-project/history',
+    -     relative_path: 'demo-project/boundary-a',
+          risk: 'protected',
+    +     title: 'AI 编程会话记录',
+    +     tool_id: 'agent',
+    +     tool_name: 'AI 编程工具'
+    -     title: '精度边界示例 A',
+    -     tool_id: 'unknown',
+    -     tool_name: '未知工具'
+        },
+        {
+    +     activity: 'not_observed',
+    +     category: 'build_cache',
+    +     evidence: '示例：构建缓存，未来仅通过原生工具管理。',
+    +     id: 'uv-build',
+    +     logical_bytes: '2147483648',
+    +     protection_reasons: [],
+    +     recoverability: 'rebuild',
+    +     relative_path: 'demo-project/cache/uv',
+    +     risk: 'review',
+    +     title: 'uv 编译缓存',
+    +     tool_id: 'uv',
+    +     tool_name: 'uv'
+    +   },
+    +   {
+          activity: 'unknown',
+    +     category: 'download_cache',
+    +     evidence: '示例：已匹配下载缓存结构，实际工具版本待核对。',
+    +     id: 'pip-wheels',
+    +     logical_bytes: '4294967296',
+    +     protection_reasons: [],
+    +     recoverability: 'redownload',
+    +     relative_path: 'demo-project/cache/pip',
+    +     risk: 'review',
+    +     title: 'pip 下载缓存',
+    +     tool_id: 'pip',
+    +     tool_name: 'pip'
+    +   },
+    +   {
+    +     activity: 'unknown',
+    +     category: 'model',
+    +     evidence: '示例：模型版本可能与其他项目共享数据。',
+    +     id: 'hf-qwen',
+    +     logical_bytes: '8589934592',
+    -     category: 'unknown',
+    -     evidence: '与边界A相差1字节，排序不能丢失精度。',
+    -     id: 'large-b',
+    -     logical_bytes: '9007199254740992',
+          protection_reasons: [
+    +       'unique_asset'
+    -       'unknown_ownership'
+          ],
+    +     recoverability: 'conditional',
+    +     relative_path: 'demo-project/models/qwen',
+    -     recoverability: 'unknown',
+    -     relative_path: 'demo-project/boundary-b',
+          risk: 'protected',
+    +     title: 'Qwen 模型版本',
+    +     tool_id: 'huggingface',
+    +     tool_name: 'Hugging Face'
+    -     title: '精度边界示例 B',
+    -     tool_id: 'unknown',
+    -     tool_name: '未知工具'
+        },
+        {
+          activity: 'recent',
+          category: 'model',
+          evidence: '示例：无法确认有远端备份。',
+    ...
+          activity: 'unknown',
+    +     category: 'unknown',
+    +     evidence: '与边界A相差1字节，排序不能丢失精度。',
+    +     id: 'large-b',
+    +     logical_bytes: '9007199254740992',
+    -     category: 'model',
+    -     evidence: '示例：模型版本可能与其他项目共享数据。',
+    -     id: 'hf-qwen',
+    -     logical_bytes: '8589934592',
+          protection_reasons: [
+    +       'unknown_ownership'
+    -       'unique_asset'
+          ],
+    +     recoverability: 'unknown',
+    +     relative_path: 'demo-project/boundary-b',
+    -     recoverability: 'conditional',
+    -     relative_path: 'demo-project/models/qwen',
+          risk: 'protected',
+    +     title: '精度边界示例 B',
+    +     tool_id: 'unknown',
+    +     tool_name: '未知工具'
+    -     title: 'Qwen 模型版本',
+    -     tool_id: 'huggingface',
+    -     tool_name: 'Hugging Face'
+        },
+        {
+          activity: 'unknown',
+    +     category: 'unknown',
+    +     evidence: '虚构大数，专用于验证整数精度，不代表真实磁盘。',
+    +     id: 'large-a',
+    +     logical_bytes: '9007199254740993',
+    -     category: 'download_cache',
+    -     evidence: '示例：已匹配下载缓存结构，实际工具版本待核对。',
+    -     id: 'pip-wheels',
+    -     logical_bytes: '4294967296',
+    -     protection_reasons: [],
+    -     recoverability: 'redownload',
+    -     relative_path: 'demo-project/cache/pip',
+    -     risk: 'review',
+    -     title: 'pip 下载缓存',
+    -     tool_id: 'pip',
+    -     tool_name: 'pip'
+    -   },
+    -   {
+    -     activity: 'not_observed',
+    -     category: 'build_cache',
+    -     evidence: '示例：构建缓存，未来仅通过原生工具管理。',
+    -     id: 'uv-build',
+    -     logical_bytes: '2147483648',
+    -     protection_reasons: [],
+    -     recoverability: 'rebuild',
+    -     relative_path: 'demo-project/cache/uv',
+    -     risk: 'review',
+    -     title: 'uv 编译缓存',
+    -     tool_id: 'uv',
+    -     tool_name: 'uv'
+    -   },
+    -   {
+    -     activity: 'recent',
+    -     category: 'history',
+    -     evidence: '示例：包含历史与恢复上下文。',
+    -     id: 'agent-history',
+    -     logical_bytes: '268435456',
+          protection_reasons: [
+    +       'unknown_ownership'
+    -       'unique_asset'
+          ],
+          recoverability: 'unknown',
+    +     relative_path: 'demo-project/boundary-a',
+    -     relative_path: 'demo-project/history',
+          risk: 'protected',
+    +     title: '精度边界示例 A',
+    +     tool_id: 'unknown',
+    +     tool_name: '未知工具'
+    -     title: 'AI 编程会话记录',
+    -     tool_id: 'agent',
+    -     tool_name: 'AI 编程工具'
+        },
+        {
+          activity: 'unknown',
+          category: 'database',
+          evidence: '示例：权限不足，不能将未知容量显示成零。',
+    
+  code: 'ERR_ASSERTION'
+  name: 'AssertionError'
+  expected:
+    0:
+      id: 'large-a'
+      title: '精度边界示例 A'
+      tool_id: 'unknown'
+      tool_name: '未知工具'
+      category: 'unknown'
+      risk: 'protected'
+      logical_bytes: '9007199254740993'
+      relative_path: 'demo-project/boundary-a'
+      evidence: '虚构大数，专用于验证整数精度，不代表真实磁盘。'
+      activity: 'unknown'
+      recoverability: 'unknown'
+      protection_reasons:
+        0: 'unknown_ownership'
+    1:
+      id: 'large-b'
+      title: '精度边界示例 B'
+      tool_id: 'unknown'
+      tool_name: '未知工具'
+      category: 'unknown'
+      risk: 'protected'
+      logical_bytes: '9007199254740992'
+      relative_path: 'demo-project/boundary-b'
+      evidence: '与边界A相差1字节，排序不能丢失精度。'
+      activity: 'unknown'
+      recoverability: 'unknown'
+      protection_reasons:
+        0: 'unknown_ownership'
+    2:
+      id: 'ollama-local'
+      title: '自定义本地模型'
+      tool_id: 'ollama'
+      tool_name: 'Ollama'
+      category: 'model'
+      risk: 'protected'
+      logical_bytes: '12884901888'
+      relative_path: 'demo-project/models/custom'
+      evidence: '示例：无法确认有远端备份。'
+      activity: 'recent'
+      recoverability: 'unknown'
+      protection_reasons:
+        0: 'unique_asset'
+    3:
+      id: 'hf-qwen'
+      title: 'Qwen 模型版本'
+      tool_id: 'huggingface'
+      tool_name: 'Hugging Face'
+      category: 'model'
+      risk: 'protected'
+      logical_bytes: '8589934592'
+      relative_path: 'demo-project/models/qwen'
+      evidence: '示例：模型版本可能与其他项目共享数据。'
+      activity: 'unknown'
+      recoverability: 'conditional'
+      protection_reasons:
+        0: 'unique_asset'
+    4:
+      id: 'pip-wheels'
+      title: 'pip 下载缓存'
+      tool_id: 'pip'
+      tool_name: 'pip'
+      category: 'download_cache'
+      risk: 'review'
+      logical_bytes: '4294967296'
+      relative_path: 'demo-project/cache/pip'
+      evidence: '示例：已匹配下载缓存结构，实际工具版本待核对。'
+      activity: 'unknown'
+      recoverability: 'redownload'
+      protection_reasons:
+    5:
+      id: 'uv-build'
+      title: 'uv 编译缓存'
+      tool_id: 'uv'
+      tool_name: 'uv'
+      category: 'build_cache'
+      risk: 'review'
+      logical_bytes: '2147483648'
+      relative_path: 'demo-project/cache/uv'
+      evidence: '示例：构建缓存，未来仅通过原生工具管理。'
+      activity: 'not_observed'
+      recoverability: 'rebuild'
+      protection_reasons:
+    6:
+      id: 'agent-history'
+      title: 'AI 编程会话记录'
+      tool_id: 'agent'
+      tool_name: 'AI 编程工具'
+      category: 'history'
+      risk: 'protected'
+      logical_bytes: '268435456'
+      relative_path: 'demo-project/history'
+      evidence: '示例：包含历史与恢复上下文。'
+      activity: 'recent'
+      recoverability: 'unknown'
+      protection_reasons:
+        0: 'unique_asset'
+    7:
+      id: 'vector-data'
+      title: '本地知识库'
+      tool_id: 'chroma'
+      tool_name: 'Chroma'
+      category: 'database'
+      risk: 'protected'
+      logical_bytes: ~
+      relative_path: 'demo-project/knowledge'
+      evidence: '示例：权限不足，不能将未知容量显示成零。'
+      activity: 'unknown'
+      recoverability: 'unknown'
+      protection_reasons:
+        0: 'incomplete_evidence'
+  actual:
+    0:
+      id: 'agent-history'
+      title: 'AI 编程会话记录'
+      tool_id: 'agent'
+      tool_name: 'AI 编程工具'
+      category: 'history'
+      risk: 'protected'
+      logical_bytes: '268435456'
+      relative_path: 'demo-project/history'
+      evidence: '示例：包含历史与恢复上下文。'
+      activity: 'recent'
+      recoverability: 'unknown'
+      protection_reasons:
+        0: 'unique_asset'
+    1:
+      id: 'uv-build'
+      title: 'uv 编译缓存'
+      tool_id: 'uv'
+      tool_name: 'uv'
+      category: 'build_cache'
+      risk: 'review'
+      logical_bytes: '2147483648'
+      relative_path: 'demo-project/cache/uv'
+      evidence: '示例：构建缓存，未来仅通过原生工具管理。'
+      activity: 'not_observed'
+      recoverability: 'rebuild'
+      protection_reasons:
+    2:
+      id: 'pip-wheels'
+      title: 'pip 下载缓存'
+      tool_id: 'pip'
+      tool_name: 'pip'
+      category: 'download_cache'
+      risk: 'review'
+      logical_bytes: '4294967296'
+      relative_path: 'demo-project/cache/pip'
+      evidence: '示例：已匹配下载缓存结构，实际工具版本待核对。'
+      activity: 'unknown'
+      recoverability: 'redownload'
+      protection_reasons:
+    3:
+      id: 'hf-qwen'
+      title: 'Qwen 模型版本'
+      tool_id: 'huggingface'
+      tool_name: 'Hugging Face'
+      category: 'model'
+      risk: 'protected'
+      logical_bytes: '8589934592'
+      relative_path: 'demo-project/models/qwen'
+      evidence: '示例：模型版本可能与其他项目共享数据。'
+      activity: 'unknown'
+      recoverability: 'conditional'
+      protection_reasons:
+        0: 'unique_asset'
+    4:
+      id: 'ollama-local'
+      title: '自定义本地模型'
+      tool_id: 'ollama'
+      tool_name: 'Ollama'
+      category: 'model'
+      risk: 'protected'
+      logical_bytes: '12884901888'
+      relative_path: 'demo-project/models/custom'
+      evidence: '示例：无法确认有远端备份。'
+      activity: 'recent'
+      recoverability: 'unknown'
+      protection_reasons:
+        0: 'unique_asset'
+    5:
+      id: 'large-b'
+      title: '精度边界示例 B'
+      tool_id: 'unknown'
+      tool_name: '未知工具'
+      category: 'unknown'
+      risk: 'protected'
+      logical_bytes: '9007199254740992'
+      relative_path: 'demo-project/boundary-b'
+      evidence: '与边界A相差1字节，排序不能丢失精度。'
+      activity: 'unknown'
+      recoverability: 'unknown'
+      protection_reasons:
+        0: 'unknown_ownership'
+    6:
+      id: 'large-a'
+      title: '精度边界示例 A'
+      tool_id: 'unknown'
+      tool_name: '未知工具'
+      category: 'unknown'
+      risk: 'protected'
+      logical_bytes: '9007199254740993'
+      relative_path: 'demo-project/boundary-a'
+      evidence: '虚构大数，专用于验证整数精度，不代表真实磁盘。'
+      activity: 'unknown'
+      recoverability: 'unknown'
+      protection_reasons:
+        0: 'unknown_ownership'
+    7:
+      id: 'vector-data'
+      title: '本地知识库'
+      tool_id: 'chroma'
+      tool_name: 'Chroma'
+      category: 'database'
+      risk: 'protected'
+      logical_bytes: ~
+      relative_path: 'demo-project/knowledge'
+      evidence: '示例：权限不足，不能将未知容量显示成零。'
+      activity: 'unknown'
+      recoverability: 'unknown'
+      protection_reasons:
+        0: 'incomplete_evidence'
+  operator: 'deepStrictEqual'
+  stack: |-
+    TestContext.<anonymous> (file:///F:/new/smaltalk/water/.worktrees/c/prototypes/readonly-dashboard/tests/model.test.mjs:73:10)
+    Test.runInAsyncScope (node:async_hooks:227:14)
+    Test.run (node:internal/test_runner/test:1306:25)
+    Test.processPendingSubtests (node:internal/test_runner/test:897:18)
+    Test.postRun (node:internal/test_runner/test:1447:19)
+    Test.run (node:internal/test_runner/test:1372:12)
+    async Test.processPendingSubtests (node:internal/test_runner/test:897:7)
+  ...
+# Subtest: prototype_no_false_reclaim
+ok 5 - prototype_no_false_reclaim
+  ---
+  duration_ms: 0.7328
+  type: 'test'
+  ...
+1..5
+# tests 5
+# suites 0
+# pass 4
+# fail 1
+# cancelled 0
+# skipped 0
+# todo 0
+# duration_ms 193.5082
+
+--- stderr ---

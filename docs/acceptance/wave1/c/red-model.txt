@@ -1,0 +1,193 @@
+{"argv":["--test","--test-concurrency=1","--test-reporter=tap","prototypes/readonly-dashboard/tests/model.test.mjs"],"startedAt":"2026-10-17T06:11:36.588Z","endedAt":"2026-10-17T06:11:37.633Z","exitCode":1,"error":null}
+--- stdout ---
+TAP version 13
+# Subtest: prototype_bigint_order
+not ok 1 - prototype_bigint_order
+  ---
+  duration_ms: 7.588
+  type: 'test'
+  location: 'F:\\new\\smaltalk\\water\\.worktrees\\c\\prototypes\\readonly-dashboard\\tests\\model.test.mjs:13:1'
+  failureType: 'testCodeFailure'
+  error: |-
+    ascending boundary B must precede A by one byte
+    + actual - expected
+    
+      [
+    +   'pip-wheels',
+    -   'agent-history',
+        'uv-build',
+    -   'pip-wheels',
+        'hf-qwen',
+        'ollama-local',
+    +   'agent-history',
+    +   'vector-data',
+    +   'large-a',
+        'large-b',
+    -   'large-a',
+    -   'vector-data'
+      ]
+    
+  code: 'ERR_ASSERTION'
+  name: 'AssertionError'
+  expected:
+    0: 'agent-history'
+    1: 'uv-build'
+    2: 'pip-wheels'
+    3: 'hf-qwen'
+    4: 'ollama-local'
+    5: 'large-b'
+    6: 'large-a'
+    7: 'vector-data'
+  actual:
+    0: 'pip-wheels'
+    1: 'uv-build'
+    2: 'hf-qwen'
+    3: 'ollama-local'
+    4: 'agent-history'
+    5: 'vector-data'
+    6: 'large-a'
+    7: 'large-b'
+  operator: 'deepStrictEqual'
+  stack: |-
+    TestContext.<anonymous> (file:///F:/new/smaltalk/water/.worktrees/c/prototypes/readonly-dashboard/tests/model.test.mjs:14:10)
+    Test.runInAsyncScope (node:async_hooks:227:14)
+    Test.run (node:internal/test_runner/test:1306:25)
+    Test.start (node:internal/test_runner/test:1177:17)
+    startSubtestAfterBootstrap (node:internal/test_runner/harness:385:17)
+  ...
+# Subtest: prototype_filters
+not ok 2 - prototype_filters
+  ---
+  duration_ms: 2.4653
+  type: 'test'
+  location: 'F:\\new\\smaltalk\\water\\.worktrees\\c\\prototypes\\readonly-dashboard\\tests\\model.test.mjs:36:1'
+  failureType: 'testCodeFailure'
+  error: |-
+    {"tool":"all","category":"all","risk":"all","query":"模型"}
+    + actual - expected
+    
+      [
+    +   'agent-history',
+        'hf-qwen',
+    +   'large-a',
+    +   'large-b',
+        'ollama-local',
+    +   'pip-wheels',
+    +   'uv-build',
+    +   'vector-data'
+      ]
+    
+  code: 'ERR_ASSERTION'
+  name: 'AssertionError'
+  expected:
+    0: 'hf-qwen'
+    1: 'ollama-local'
+  actual:
+    0: 'agent-history'
+    1: 'hf-qwen'
+    2: 'large-a'
+    3: 'large-b'
+    4: 'ollama-local'
+    5: 'pip-wheels'
+    6: 'uv-build'
+    7: 'vector-data'
+  operator: 'deepStrictEqual'
+  stack: |-
+    TestContext.<anonymous> (file:///F:/new/smaltalk/water/.worktrees/c/prototypes/readonly-dashboard/tests/model.test.mjs:46:18)
+    Test.runInAsyncScope (node:async_hooks:227:14)
+    Test.run (node:internal/test_runner/test:1306:25)
+    Test.processPendingSubtests (node:internal/test_runner/test:897:18)
+    Test.postRun (node:internal/test_runner/test:1447:19)
+    Test.run (node:internal/test_runner/test:1372:12)
+    async startSubtestAfterBootstrap (node:internal/test_runner/harness:385:3)
+  ...
+# Subtest: prototype_format_and_unknown
+not ok 3 - prototype_format_and_unknown
+  ---
+  duration_ms: 1.3898
+  type: 'test'
+  location: 'F:\\new\\smaltalk\\water\\.worktrees\\c\\prototypes\\readonly-dashboard\\tests\\model.test.mjs:59:1'
+  failureType: 'testCodeFailure'
+  error: |-
+    format null with decimal truncation
+    
+    '0 B' !== '未知'
+    
+  code: 'ERR_ASSERTION'
+  name: 'AssertionError'
+  expected: '未知'
+  actual: '0 B'
+  operator: 'strictEqual'
+  stack: |-
+    TestContext.<anonymous> (file:///F:/new/smaltalk/water/.worktrees/c/prototypes/readonly-dashboard/tests/model.test.mjs:66:13)
+    Test.runInAsyncScope (node:async_hooks:227:14)
+    Test.run (node:internal/test_runner/test:1306:25)
+    Test.processPendingSubtests (node:internal/test_runner/test:897:18)
+    Test.postRun (node:internal/test_runner/test:1447:19)
+    Test.run (node:internal/test_runner/test:1372:12)
+    async Test.processPendingSubtests (node:internal/test_runner/test:897:7)
+  ...
+# Subtest: prototype_no_mutation
+ok 4 - prototype_no_mutation
+  ---
+  duration_ms: 1.7818
+  type: 'test'
+  ...
+# Subtest: prototype_no_false_reclaim
+not ok 5 - prototype_no_false_reclaim
+  ---
+  duration_ms: 0.8809
+  type: 'test'
+  location: 'F:\\new\\smaltalk\\water\\.worktrees\\c\\prototypes\\readonly-dashboard\\tests\\model.test.mjs:86:1'
+  failureType: 'testCodeFailure'
+  error: |-
+    potentially overlapping findings must not produce total or reclaimable bytes
+    + actual - expected
+    
+      {
+        count: 8,
+    +   logical_total_bytes: '0',
+    +   protected_count: 0,
+    +   reclaimable_bytes: '0',
+    +   unknown_size_count: 0
+    -   logical_total_bytes: null,
+    -   protected_count: 6,
+    -   reclaimable_bytes: null,
+    -   unknown_size_count: 1
+      }
+    
+  code: 'ERR_ASSERTION'
+  name: 'AssertionError'
+  expected:
+    count: 8
+    protected_count: 6
+    unknown_size_count: 1
+    logical_total_bytes: ~
+    reclaimable_bytes: ~
+  actual:
+    count: 8
+    protected_count: 0
+    unknown_size_count: 0
+    logical_total_bytes: '0'
+    reclaimable_bytes: '0'
+  operator: 'deepStrictEqual'
+  stack: |-
+    TestContext.<anonymous> (file:///F:/new/smaltalk/water/.worktrees/c/prototypes/readonly-dashboard/tests/model.test.mjs:87:10)
+    Test.runInAsyncScope (node:async_hooks:227:14)
+    Test.run (node:internal/test_runner/test:1306:25)
+    Test.processPendingSubtests (node:internal/test_runner/test:897:18)
+    Test.postRun (node:internal/test_runner/test:1447:19)
+    Test.run (node:internal/test_runner/test:1372:12)
+    async Test.processPendingSubtests (node:internal/test_runner/test:897:7)
+  ...
+1..5
+# tests 5
+# suites 0
+# pass 1
+# fail 4
+# cancelled 0
+# skipped 0
+# todo 0
+# duration_ms 674.2852
+
+--- stderr ---

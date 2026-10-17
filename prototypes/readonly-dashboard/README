@@ -1,0 +1,44 @@
+# Water 只读占用分析原型
+
+本目录仅展示 water.prototype.v1 的 8 条固定虚构数据。不是 A 的
+ScanReport，不接 Rust/Tauri，不访问用户目录，不执行扫描、清理或上传。
+默认 partial，可切换 cancelled；状态切换不会产生新的扫描结果。
+
+在本工作树根目录，使用已安装的 Node 24：
+
+    node prototypes/readonly-dashboard/server.mjs
+
+终端会输出 http://127.0.0.1:<临时端口>。可在专用测试浏览器中访问。
+按 Ctrl+C 停止服务；程序不自动打开普通浏览器，也不后台常驻。
+
+定向验证（逐条运行，无需安装依赖）：
+
+    node scripts/parallel-check.mjs --task WATER-W1-C --mode check
+    node scripts/parallel-check.mjs --task WATER-W1-C --mode test
+    node scripts/parallel-check.mjs --task WATER-W1-C --mode browser
+
+最终门在实现已提交且工作树干净时，分别追加 --final。
+浏览器测试使用冻结的 scripts/browser-lab.mjs 与既有 Chrome/Edge，
+profile、日志及截图仅写本树 .local；try/finally 关闭浏览器与临时服务。
+不下载浏览器、不使用用户 profile、不禁用浏览器 sandbox。
+仅在 Windows 既有 Chrome 上验证，不代表 macOS/Tauri 验证。
+
+交互：名称或相对路径的字面子串搜索（不区分大小写），工具/类别/风险
+精确组合筛选，大小双向与名称升序排序。重置恢复筛选与默认排序，保留
+所选示例状态。Tab 到“查看详情”后 Enter 可打开；Esc 关闭并回焦原按钮。
+
+容量：排序用 BigInt；未知始终末尾。二进制单位 B 到 EiB，以整数算术
+截断到最多一位小数，省略 .0，例如 1126 B → 1 KiB，1127 B → 1.1 KiB。
+详情保留精确十进制字节值。未知显示“未知”，不当作 0 B。
+总逻辑占用待去重，可回收空间未估算；不累加可能共享/重叠的数据。
+A/B 是相差 1 字节的虚构大数，格式化后同为 8 PiB，不代表真实磁盘。
+
+服务边界：startServer({port:0}) 只绑定 127.0.0.1，返回 {url,close}，
+close 可 await 且可重复调用。只允许精确 GET/HEAD 路径：/、/index.html、
+/styles.css、/app.mjs、/model.mjs、/demo-data.json；拒绝查询、编码路径、
+目录、测试文件及 server 源码。检查 Host 与资源 realpath，不暴露仓库根。
+CSP 仅允许同源脚本、样式与数据连接，禁用其他资源、表单提交及嵌入。
+内容均由 textContent/安全 DOM 生成，无外部字体、图标、图片或依赖。
+
+演示输入逐字节复制自 contracts/prototype-v1/demo-data.json，源 fixture
+不变。后续接入真实后端需要另立工单与安全复核。本票完成仅表示提交待验收。

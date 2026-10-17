@@ -1,0 +1,58 @@
+{"argv":["--test","--test-concurrency=1","--test-reporter=tap","prototypes/readonly-dashboard/tests/browser.test.mjs"],"startedAt":"2026-10-17T06:17:59.559Z","endedAt":"2026-10-17T06:18:10.060Z","exitCode":1,"error":null}
+--- stdout ---
+TAP version 13
+# Subtest: prototype_live_interactions
+not ok 1 - prototype_live_interactions
+  ---
+  duration_ms: 5659.9004
+  type: 'test'
+  location: 'F:\\new\\smaltalk\\water\\.worktrees\\c\\prototypes\\readonly-dashboard\\tests\\browser.test.mjs:53:1'
+  failureType: 'testCodeFailure'
+  error: |-
+    keyboard opens the real dialog
+    
+    false !== true
+    
+  code: 'ERR_ASSERTION'
+  name: 'AssertionError'
+  expected: true
+  actual: false
+  operator: 'strictEqual'
+  stack: |-
+    TestContext.<anonymous> (file:///F:/new/smaltalk/water/.worktrees/c/prototypes/readonly-dashboard/tests/browser.test.mjs:90:12)
+    async Test.run (node:internal/test_runner/test:1313:7)
+    async startSubtestAfterBootstrap (node:internal/test_runner/harness:385:3)
+  ...
+# Subtest: prototype_scope_and_layout
+not ok 2 - prototype_scope_and_layout
+  ---
+  duration_ms: 4464.9131
+  type: 'test'
+  location: 'F:\\new\\smaltalk\\water\\.worktrees\\c\\prototypes\\readonly-dashboard\\tests\\browser.test.mjs:130:1'
+  failureType: 'testCodeFailure'
+  error: |-
+    Expected values to be strictly equal:
+    
+    1425 !== 1440
+    
+  code: 'ERR_ASSERTION'
+  name: 'AssertionError'
+  expected: 1440
+  actual: 1425
+  operator: 'strictEqual'
+  stack: |-
+    TestContext.<anonymous> (file:///F:/new/smaltalk/water/.worktrees/c/prototypes/readonly-dashboard/tests/browser.test.mjs:184:14)
+    async Test.run (node:internal/test_runner/test:1313:7)
+    async Test.processPendingSubtests (node:internal/test_runner/test:897:7)
+  ...
+1..2
+# tests 2
+# suites 0
+# pass 0
+# fail 2
+# cancelled 0
+# skipped 0
+# todo 0
+# duration_ms 10345.2166
+
+--- stderr ---

@@ -1,0 +1,21 @@
+{
+  "id": "NC-04",
+  "task": "WATER-W1-C",
+  "addendum": "01",
+  "from": "    const aUnknown = a.logical_bytes === null, bUnknown = b.logical_bytes === null;",
+  "to": "    const aUnknown = a.logical_bytes === null, bUnknown = b.logical_bytes === null;\n    if (aUnknown && bUnknown) return 0;",
+  "argv": [
+    "--test",
+    "--test-concurrency=1",
+    "--test-reporter=tap",
+    "prototypes/readonly-dashboard/tests/model.test.mjs"
+  ],
+  "exitCode": 1,
+  "target": "prototype_bigint_order",
+  "assertion": "name_asc must sort titles within the unknown-size group",
+  "beforeSha256": "ca2cb39e5ccf3e50172a67c8d5d7e5f060c1e59b9db48b9f469040207922c085",
+  "mutantSha256": "1d568ed9bb1d9c5957abd33bd7b120f9012560837074ec1c6019ef320d363084",
+  "restoredSha256": "ca2cb39e5ccf3e50172a67c8d5d7e5f060c1e59b9db48b9f469040207922c085",
+  "restoredByteForByte": true,
+  "log": ".local/checks/WATER-W1-C/addendum-01/nc-04.log"
+}
