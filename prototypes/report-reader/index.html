@@ -1,0 +1,132 @@
+<!doctype html>
+<html lang="zh-CN">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <meta name="color-scheme" content="light">
+  <title>Water · 合成报告阅读</title>
+  <link rel="stylesheet" href="/styles.css">
+  <script type="module" src="/app.mjs"></script>
+</head>
+<body>
+  <header class="app-header">
+    <div class="brand">
+      <span class="brand-mark" aria-hidden="true">w</span>
+      <strong>Water</strong>
+      <span class="brand-caption">报告阅读</span>
+    </div>
+    <p class="readonly-badge" data-testid="readonly-badge">合成报告 · 只读</p>
+  </header>
+  <main>
+    <section class="page-heading" aria-labelledby="page-title">
+      <div>
+        <p class="eyebrow">只读视图</p>
+        <h1 id="page-title">合成报告阅读</h1>
+        <p class="subtitle">浏览已投影的四份合成报告。页面不扫描、不删除、不导入文件。</p>
+      </div>
+      <div class="report-field">
+        <label for="report">报告</label>
+        <select id="report" data-testid="report-select"></select>
+      </div>
+    </section>
+    <section class="summary" aria-label="整份报告摘要">
+      <div class="stat">
+        <span class="stat-label">条目</span>
+        <strong data-testid="summary-count" id="summary-count">—</strong>
+        <span class="stat-note" id="unknown-count">正在载入合成报告</span>
+      </div>
+      <div class="stat">
+        <span class="stat-label">保护</span>
+        <strong data-testid="protected-count" id="protected-count">—</strong>
+        <span class="stat-note">整份报告计数</span>
+      </div>
+      <div class="stat" data-testid="source-totals" id="source-totals">
+        <span class="stat-label">来源总量</span>
+        <strong class="text-value">—</strong>
+        <span class="stat-note">来源方法，非本页求和</span>
+      </div>
+      <div class="stat" data-testid="coverage-summary" id="coverage-summary">
+        <span class="stat-label">覆盖</span>
+        <strong class="text-value">—</strong>
+      </div>
+    </section>
+    <div class="status-banner" data-testid="status-banner" id="status-banner" role="status">正在载入合成报告…</div>
+    <section class="issues" data-testid="issues-summary" id="issues-summary" aria-label="问题"></section>
+    <section class="workspace" aria-label="条目">
+      <div class="filters">
+        <div class="search-field">
+          <label for="search">搜索</label>
+          <input id="search" data-testid="search-input" type="search" placeholder="名称或相对路径" autocomplete="off" spellcheck="false">
+        </div>
+        <div>
+          <label for="scope">scope</label>
+          <select id="scope" data-testid="scope-filter"></select>
+        </div>
+        <div>
+          <label for="tool">工具键</label>
+          <select id="tool" data-testid="tool-filter"></select>
+        </div>
+        <div>
+          <label for="category">类别</label>
+          <select id="category" data-testid="category-filter"></select>
+        </div>
+        <div>
+          <label for="risk">风险</label>
+          <select id="risk" data-testid="risk-filter">
+            <option value="all">全部风险</option>
+            <option value="low">低 low</option>
+            <option value="review">复核 review</option>
+            <option value="high">高 high</option>
+            <option value="protected">保护 protected</option>
+          </select>
+        </div>
+        <button type="button" class="reset-button" data-testid="reset-filters" id="reset-filters">重置筛选</button>
+      </div>
+      <div class="list-toolbar">
+        <div>
+          <h2>条目 <span id="visible-count" data-testid="visible-count" aria-live="polite">0 / 0</span></h2>
+          <p>筛选结果单独计数，不改来源总量。</p>
+        </div>
+        <div class="sort-field">
+          <label for="sort">排序</label>
+          <select id="sort" data-testid="sort-select">
+            <option value="size_desc">大小从大到小</option>
+            <option value="size_asc">大小从小到大</option>
+            <option value="name_asc">名称升序</option>
+          </select>
+        </div>
+      </div>
+      <div class="column-labels" aria-hidden="true">
+        <span>名称 / 路径</span>
+        <span>工具键 / scope</span>
+        <span>风险 / 类别 / 活动 / 恢复</span>
+        <span class="align-right">大小</span>
+        <span class="align-right">详情</span>
+      </div>
+      <ul class="finding-list" data-testid="finding-list" id="finding-list" aria-label="报告条目"></ul>
+      <div class="empty-state" data-testid="empty-state" id="empty-state" hidden>
+        <strong id="empty-title">没有可显示的条目</strong>
+        <p id="empty-copy">重置筛选，或换一份报告。</p>
+        <button type="button" id="empty-reset" data-testid="empty-reset">重置筛选</button>
+      </div>
+      <footer class="list-footer">
+        <span>路径只作文本，不是操作目标。</span>
+        <span>合成数据，不代表本机磁盘。</span>
+      </footer>
+    </section>
+    <p class="page-note">本页只读取四份冻结合成报告。没有目录选择、上传、下载、扫描或删除。</p>
+  </main>
+  <dialog class="detail-panel" data-testid="detail-panel" id="detail" aria-labelledby="detail-title">
+    <div class="detail-header">
+      <span class="eyebrow">条目详情</span>
+      <button type="button" class="close-button" data-testid="detail-close" id="detail-close">关闭</button>
+    </div>
+    <p class="readonly-badge detail-readonly">合成报告 · 只读</p>
+    <h2 id="detail-title"></h2>
+    <p id="detail-subtitle" class="subtitle"></p>
+    <dl id="detail-fields"></dl>
+    <p class="detail-note">详情只展示来源字段。可重新下载不是回滚，逻辑大小不是已释放空间。</p>
+    <p class="keyboard-hint"><kbd>Esc</kbd> 关闭并返回原按钮</p>
+  </dialog>
+</body>
+</html>
