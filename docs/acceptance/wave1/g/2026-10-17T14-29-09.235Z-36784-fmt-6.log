@@ -1,0 +1,166 @@
+{"binary":"C:\\Users\\37310\\.rustup\\toolchains\\1.95.0-x86_64-pc-windows-msvc\\bin\\cargo.exe","argv":["fmt","--manifest-path","F:\\new\\smaltalk\\water\\.worktrees\\g\\packages\\scan-report\\Cargo.toml","--","--check"],"exitCode":1,"error":null,"log":"2026-10-17T14-29-09.235Z-36784-fmt-6.log"}
+--- stdout ---
+Diff in \\?\F:\new\smaltalk\water\.worktrees\g\packages\scan-report\src\v1.rs:2:
+ //!
+ //! The context describes the report. It does not authorize path access.
+ 
++use serde::Serialize;
+ use serde::de::value::MapAccessDeserializer;
+ use serde::de::{Deserialize, Deserializer, MapAccess, Visitor};
+-use serde::Serialize;
+ use std::collections::HashSet;
+ use std::fmt;
+ use water_contracts::v1::{
+Diff in \\?\F:\new\smaltalk\water\.worktrees\g\packages\scan-report\src\v1.rs:11:
+-    AggregateMethod, ByteCount, Category, Confidence, Coverage, EstimateConfidence, Evidence,
+-    EvidenceCode, EvidenceSource, IssueCode, OpaqueId, Platform, ProtectionReason, Recoverability,
+-    ReferenceState, ReferenceSummary, RelativePath, Risk, ScanIssue, ScanReport, ScanStatus,
+-    ScanTotals, SchemaVersion, ScopeDescriptor, ScopeOrigin, SharedState, SizeEstimate, SizeMethod,
+-    Activity, validate_report, to_json,
++    Activity, AggregateMethod, ByteCount, Category, Confidence, Coverage, EstimateConfidence,
++    Evidence, EvidenceCode, EvidenceSource, IssueCode, OpaqueId, Platform, ProtectionReason,
++    Recoverability, ReferenceState, ReferenceSummary, RelativePath, Risk, ScanIssue, ScanReport,
++    ScanStatus, ScanTotals, SchemaVersion, ScopeDescriptor, ScopeOrigin, SharedState, SizeEstimate,
++    SizeMethod, to_json, validate_report,
+ };
+ 
+ const MAX_JSON_BYTES: usize = 8_388_608;
+Diff in \\?\F:\new\smaltalk\water\.worktrees\g\packages\scan-report\src\v1.rs:304:
+     }
+     match identity.kind {
+         IdentityKind::Unknown => {
+-            if identity.device.is_some() || identity.inode.is_some() || identity.link_count.is_some()
++            if identity.device.is_some()
++                || identity.inode.is_some()
++                || identity.link_count.is_some()
+             {
+                 return Err(invalid_facts());
+             }
+Diff in \\?\F:\new\smaltalk\water\.worktrees\g\packages\scan-report\src\v1.rs:313:
+             if !matches!(kind, EntryKind::File | EntryKind::Directory) {
+                 return Err(invalid_facts());
+             }
+-            let (Some(inode), Some(link_count)) = (identity.inode.as_ref(), identity.link_count.as_ref())
++            let (Some(inode), Some(link_count)) =
++                (identity.inode.as_ref(), identity.link_count.as_ref())
+             else {
+                 return Err(invalid_facts());
+             };
+Diff in \\?\F:\new\smaltalk\water\.worktrees\g\packages\scan-report\src\v1.rs:328:
+ fn validate_entry(entry: &EntryFact, platform: Platform) -> Result<(), AssemblyError> {
+     let path = entry.relative_path.as_str();
+     let segments = path.split('/').count();
+-    if path.is_empty() || entry.depth == 0 || entry.depth > 64 || segments != entry.depth as usize
+-    {
++    if path.is_empty() || entry.depth == 0 || entry.depth > 64 || segments != entry.depth as usize {
+         return Err(invalid_facts());
+     }
+     let logical_ok = match entry.kind {
+Diff in \\?\F:\new\smaltalk\water\.worktrees\g\packages\scan-report\src\v1.rs:421:
+         visited_sum = visited_sum
+             .checked_add(scope.visited_entries)
+             .ok_or_else(invalid_facts)?;
+-        recorded_sum = recorded_sum.checked_add(recorded).ok_or_else(invalid_facts)?;
++        recorded_sum = recorded_sum
++            .checked_add(recorded)
++            .ok_or_else(invalid_facts)?;
+         issue_sum = issue_sum.checked_add(issues).ok_or_else(invalid_facts)?;
+         if issue_sum > 100_000 {
+             return Err(invalid_facts());
+Diff in \\?\F:\new\smaltalk\water\.worktrees\g\packages\scan-report\tests\report_v1.rs:147:
+         }
+         let recorded = case["input"]["recorded_entries"].as_u64().unwrap() as usize;
+         let visited = case["input"]["visited_entries"].as_u64().unwrap();
+-        assert_eq!(report.findings.len(), recorded, "recorded entries stay findings");
++        assert_eq!(
++            report.findings.len(),
++            recorded,
++            "recorded entries stay findings"
++        );
+         assert_eq!(u64::from(report.totals.scanned_entries), recorded as u64);
+         assert_eq!(
+             u64::from(report.totals.skipped_entries),
+Diff in \\?\F:\new\smaltalk\water\.worktrees\g\packages\scan-report\tests\report_v1.rs:265:
+         duplicate_path[key] = (duplicate_path[key].as_u64().unwrap() + 1).into();
+     }
+     duplicate_path["scopes"][0]["visited_entries"] =
+-        (duplicate_path["scopes"][0]["visited_entries"].as_u64().unwrap() + 1).into();
++        (duplicate_path["scopes"][0]["visited_entries"]
++            .as_u64()
++            .unwrap()
++            + 1)
++        .into();
+     fresh_reject(duplicate_path, AssemblyErrorCode::InvalidFacts);
+ 
+     let mut counter = input.clone();
+Diff in \\?\F:\new\smaltalk\water\.worktrees\g\packages\scan-report\tests\report_v1.rs:601:
+         .iter()
+         .find(|finding| finding.relative_path.as_str() == ".git")
+         .unwrap();
+-    assert!(git
+-        .protection_reasons
+-        .contains(&ProtectionReason::ProtectedDescendant));
++    assert!(
++        git.protection_reasons
++            .contains(&ProtectionReason::ProtectedDescendant)
++    );
+     let head = markers
+         .report()
+         .findings
+Diff in \\?\F:\new\smaltalk\water\.worktrees\g\packages\scan-report\tests\report_v1.rs:610:
+         .iter()
+         .find(|finding| finding.relative_path.as_str() == ".git/HEAD")
+         .unwrap();
+-    assert!(!head
+-        .protection_reasons
+-        .contains(&ProtectionReason::ProtectedDescendant));
++    assert!(
++        !head
++            .protection_reasons
++            .contains(&ProtectionReason::ProtectedDescendant)
++    );
+ 
+     let mixed = assemble_case(&golden("mixed-assets"));
+     for needle in [
+Diff in \\?\F:\new\smaltalk\water\.worktrees\g\packages\scan-report\tests\report_v1.rs:640:
+         .iter()
+         .find(|finding| finding.relative_path.as_str() == "cache")
+         .unwrap();
+-    assert!(cache_dir
+-        .protection_reasons
+-        .contains(&ProtectionReason::ProtectedDescendant));
++    assert!(
++        cache_dir
++            .protection_reasons
++            .contains(&ProtectionReason::ProtectedDescendant)
++    );
+ }
+ 
+ #[test]
+Diff in \\?\F:\new\smaltalk\water\.worktrees\g\packages\scan-report\tests\report_v1.rs:703:
+ 
+     let exact = assemble_case(&golden("exact-two53"));
+     assert_eq!(
+-        exact.report().findings[0]
+-            .size
+-            .logical_bytes
+-            .unwrap()
+-            .get(),
++        exact.report().findings[0].size.logical_bytes.unwrap().get(),
+         9_007_199_254_740_992
+     );
+     let boundary = assemble_case(&golden("path-boundary-and-kinds"));
+Diff in \\?\F:\new\smaltalk\water\.worktrees\g\packages\scan-report\tests\report_v1.rs:717:
+         .iter()
+         .find(|finding| finding.relative_path.as_str().contains('模'))
+         .unwrap();
+-    assert_eq!(wide.size.logical_bytes.unwrap().get(), 9_007_199_254_740_993);
++    assert_eq!(
++        wide.size.logical_bytes.unwrap().get(),
++        9_007_199_254_740_993
++    );
+     let zero = boundary
+         .report()
+         .findings
+
+--- stderr ---
