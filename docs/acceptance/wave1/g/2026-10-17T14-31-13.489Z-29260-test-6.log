@@ -1,0 +1,436 @@
+{"binary":"C:\\Users\\37310\\.rustup\\toolchains\\1.95.0-x86_64-pc-windows-msvc\\bin\\cargo.exe","argv":["test","--offline","--locked","--manifest-path","F:\\new\\smaltalk\\water\\.worktrees\\g\\packages\\scan-report\\Cargo.toml","-p","water-scan-report","--test","report_v1","--","--test-threads=1","--format","pretty"],"exitCode":101,"error":null,"log":"2026-10-17T14-31-13.489Z-29260-test-6.log"}
+--- stdout ---
+
+--- stderr ---
+   Compiling water-scan-report v0.1.0 (F:\new\smaltalk\water\.worktrees\g\packages\scan-report)
+error: cannot find derive macro `Deserialize` in this scope
+   --> src\v1.rs:130:26
+    |
+130 |                   #[derive(Deserialize)]
+    |                            ^^^^^^^^^^^
+...
+210 | / dto!(FileIdentity {
+211 | |     kind: IdentityKind,
+212 | |     #[serde(deserialize_with = "required_nullable")]
+213 | |     device: Option<ByteCount>,
+...   |
+217 | |     link_count: Option<ByteCount>,
+218 | | });
+    | |__- in this macro invocation
+    |
+   ::: F:\new\smaltalk\water\.worktrees\g\.local\g-cargo-home\registry\src\index.crates.io-1949cf8c6b5b557f\serde_derive-1.0.229\src\lib.rs:114:1
+    |
+114 |   pub fn derive_serialize(input: TokenStream) -> TokenStream {
+    |   ---------------------------------------------------------- similarly named derive macro `Serialize` defined here
+    |
+note: `Deserialize` is imported here, but it is only a trait, without a derive macro
+   --> src\v1.rs:7:17
+    |
+  7 | use serde::de::{Deserialize, Deserializer, MapAccess, Visitor};
+    |                 ^^^^^^^^^^^
+    = note: this error originates in the macro `dto` (in Nightly builds, run with -Z macro-backtrace for more info)
+help: a derive macro with a similar name exists
+    |
+130 -                 #[derive(Deserialize)]
+130 +                 #[derive(Serialize)]
+    |
+
+error: cannot find attribute `serde` in this scope
+   --> src\v1.rs:131:19
+    |
+131 |                   #[serde(deny_unknown_fields)]
+    |                     ^^^^^
+...
+210 | / dto!(FileIdentity {
+211 | |     kind: IdentityKind,
+212 | |     #[serde(deserialize_with = "required_nullable")]
+213 | |     device: Option<ByteCount>,
+...   |
+217 | |     link_count: Option<ByteCount>,
+218 | | });
+    | |__- in this macro invocation
+    |
+    = note: `serde` is an attribute that can be used by the derive macros `Deserialize` and `Serialize`, you might be missing a `derive` attribute
+    = note: `serde` is in scope, but it is a crate, not an attribute
+    = note: this error originates in the macro `dto` (in Nightly builds, run with -Z macro-backtrace for more info)
+
+error: cannot find attribute `serde` in this scope
+   --> src\v1.rs:212:7
+    |
+212 |     #[serde(deserialize_with = "required_nullable")]
+    |       ^^^^^
+    |
+    = note: `serde` is an attribute that can be used by the derive macros `Deserialize` and `Serialize`, you might be missing a `derive` attribute
+    = note: `serde` is in scope, but it is a crate, not an attribute
+
+error: cannot find attribute `serde` in this scope
+   --> src\v1.rs:214:7
+    |
+214 |     #[serde(deserialize_with = "required_nullable")]
+    |       ^^^^^
+    |
+    = note: `serde` is an attribute that can be used by the derive macros `Deserialize` and `Serialize`, you might be missing a `derive` attribute
+    = note: `serde` is in scope, but it is a crate, not an attribute
+
+error: cannot find attribute `serde` in this scope
+   --> src\v1.rs:216:7
+    |
+216 |     #[serde(deserialize_with = "required_nullable")]
+    |       ^^^^^
+    |
+    = note: `serde` is an attribute that can be used by the derive macros `Deserialize` and `Serialize`, you might be missing a `derive` attribute
+    = note: `serde` is in scope, but it is a crate, not an attribute
+
+error: cannot find derive macro `Deserialize` in this scope
+   --> src\v1.rs:130:26
+    |
+130 |                   #[derive(Deserialize)]
+    |                            ^^^^^^^^^^^
+...
+220 | / dto!(EntryFact {
+221 | |     relative_path: RelativePath,
+222 | |     depth: u32,
+223 | |     kind: EntryKind,
+...   |
+228 | |     identity: FileIdentity,
+229 | | });
+    | |__- in this macro invocation
+    |
+   ::: F:\new\smaltalk\water\.worktrees\g\.local\g-cargo-home\registry\src\index.crates.io-1949cf8c6b5b557f\serde_derive-1.0.229\src\lib.rs:114:1
+    |
+114 |   pub fn derive_serialize(input: TokenStream) -> TokenStream {
+    |   ---------------------------------------------------------- similarly named derive macro `Serialize` defined here
+    |
+note: `Deserialize` is imported here, but it is only a trait, without a derive macro
+   --> src\v1.rs:7:17
+    |
+  7 | use serde::de::{Deserialize, Deserializer, MapAccess, Visitor};
+    |                 ^^^^^^^^^^^
+    = note: this error originates in the macro `dto` (in Nightly builds, run with -Z macro-backtrace for more info)
+help: a derive macro with a similar name exists
+    |
+130 -                 #[derive(Deserialize)]
+130 +                 #[derive(Serialize)]
+    |
+
+error: cannot find attribute `serde` in this scope
+   --> src\v1.rs:131:19
+    |
+131 |                   #[serde(deny_unknown_fields)]
+    |                     ^^^^^
+...
+220 | / dto!(EntryFact {
+221 | |     relative_path: RelativePath,
+222 | |     depth: u32,
+223 | |     kind: EntryKind,
+...   |
+228 | |     identity: FileIdentity,
+229 | | });
+    | |__- in this macro invocation
+    |
+    = note: `serde` is an attribute that can be used by the derive macros `Deserialize` and `Serialize`, you might be missing a `derive` attribute
+    = note: `serde` is in scope, but it is a crate, not an attribute
+    = note: this error originates in the macro `dto` (in Nightly builds, run with -Z macro-backtrace for more info)
+
+error: cannot find attribute `serde` in this scope
+   --> src\v1.rs:224:7
+    |
+224 |     #[serde(deserialize_with = "required_nullable")]
+    |       ^^^^^
+    |
+    = note: `serde` is an attribute that can be used by the derive macros `Deserialize` and `Serialize`, you might be missing a `derive` attribute
+    = note: `serde` is in scope, but it is a crate, not an attribute
+
+error: cannot find attribute `serde` in this scope
+   --> src\v1.rs:226:7
+    |
+226 |     #[serde(deserialize_with = "required_nullable")]
+    |       ^^^^^
+    |
+    = note: `serde` is an attribute that can be used by the derive macros `Deserialize` and `Serialize`, you might be missing a `derive` attribute
+    = note: `serde` is in scope, but it is a crate, not an attribute
+
+error: cannot find derive macro `Deserialize` in this scope
+   --> src\v1.rs:130:26
+    |
+130 |                   #[derive(Deserialize)]
+    |                            ^^^^^^^^^^^
+...
+231 | / dto!(FactIssue {
+232 | |     code: IssueCode,
+233 | |     #[serde(deserialize_with = "required_nullable")]
+234 | |     relative_path: Option<RelativePath>,
+235 | |     origin: IssueOrigin,
+236 | |     operation: IssueOperation,
+237 | | });
+    | |__- in this macro invocation
+    |
+   ::: F:\new\smaltalk\water\.worktrees\g\.local\g-cargo-home\registry\src\index.crates.io-1949cf8c6b5b557f\serde_derive-1.0.229\src\lib.rs:114:1
+    |
+114 |   pub fn derive_serialize(input: TokenStream) -> TokenStream {
+    |   ---------------------------------------------------------- similarly named derive macro `Serialize` defined here
+    |
+note: `Deserialize` is imported here, but it is only a trait, without a derive macro
+   --> src\v1.rs:7:17
+    |
+  7 | use serde::de::{Deserialize, Deserializer, MapAccess, Visitor};
+    |                 ^^^^^^^^^^^
+    = note: this error originates in the macro `dto` (in Nightly builds, run with -Z macro-backtrace for more info)
+help: a derive macro with a similar name exists
+    |
+130 -                 #[derive(Deserialize)]
+130 +                 #[derive(Serialize)]
+    |
+
+error: cannot find attribute `serde` in this scope
+   --> src\v1.rs:131:19
+    |
+131 |                   #[serde(deny_unknown_fields)]
+    |                     ^^^^^
+...
+231 | / dto!(FactIssue {
+232 | |     code: IssueCode,
+233 | |     #[serde(deserialize_with = "required_nullable")]
+234 | |     relative_path: Option<RelativePath>,
+235 | |     origin: IssueOrigin,
+236 | |     operation: IssueOperation,
+237 | | });
+    | |__- in this macro invocation
+    |
+    = note: `serde` is an attribute that can be used by the derive macros `Deserialize` and `Serialize`, you might be missing a `derive` attribute
+    = note: `serde` is in scope, but it is a crate, not an attribute
+    = note: this error originates in the macro `dto` (in Nightly builds, run with -Z macro-backtrace for more info)
+
+error: cannot find attribute `serde` in this scope
+   --> src\v1.rs:233:7
+    |
+233 |     #[serde(deserialize_with = "required_nullable")]
+    |       ^^^^^
+    |
+    = note: `serde` is an attribute that can be used by the derive macros `Deserialize` and `Serialize`, you might be missing a `derive` attribute
+    = note: `serde` is in scope, but it is a crate, not an attribute
+
+error: cannot find derive macro `Deserialize` in this scope
+   --> src\v1.rs:130:26
+    |
+130 |                   #[derive(Deserialize)]
+    |                            ^^^^^^^^^^^
+...
+239 | / dto!(ScopeFacts {
+240 | |     scope_id: OpaqueId,
+241 | |     relative_root: RelativePath,
+242 | |     coverage: Coverage,
+...   |
+245 | |     issues: Vec<FactIssue>,
+246 | | });
+    | |__- in this macro invocation
+    |
+   ::: F:\new\smaltalk\water\.worktrees\g\.local\g-cargo-home\registry\src\index.crates.io-1949cf8c6b5b557f\serde_derive-1.0.229\src\lib.rs:114:1
+    |
+114 |   pub fn derive_serialize(input: TokenStream) -> TokenStream {
+    |   ---------------------------------------------------------- similarly named derive macro `Serialize` defined here
+    |
+note: `Deserialize` is imported here, but it is only a trait, without a derive macro
+   --> src\v1.rs:7:17
+    |
+  7 | use serde::de::{Deserialize, Deserializer, MapAccess, Visitor};
+    |                 ^^^^^^^^^^^
+    = note: this error originates in the macro `dto` (in Nightly builds, run with -Z macro-backtrace for more info)
+help: a derive macro with a similar name exists
+    |
+130 -                 #[derive(Deserialize)]
+130 +                 #[derive(Serialize)]
+    |
+
+error: cannot find attribute `serde` in this scope
+   --> src\v1.rs:131:19
+    |
+131 |                   #[serde(deny_unknown_fields)]
+    |                     ^^^^^
+...
+239 | / dto!(ScopeFacts {
+240 | |     scope_id: OpaqueId,
+241 | |     relative_root: RelativePath,
+242 | |     coverage: Coverage,
+...   |
+245 | |     issues: Vec<FactIssue>,
+246 | | });
+    | |__- in this macro invocation
+    |
+    = note: `serde` is an attribute that can be used by the derive macros `Deserialize` and `Serialize`, you might be missing a `derive` attribute
+    = note: `serde` is in scope, but it is a crate, not an attribute
+    = note: this error originates in the macro `dto` (in Nightly builds, run with -Z macro-backtrace for more info)
+
+error: cannot find derive macro `Deserialize` in this scope
+   --> src\v1.rs:130:26
+    |
+130 |                   #[derive(Deserialize)]
+    |                            ^^^^^^^^^^^
+...
+248 | / dto!(ScanFacts {
+249 | |     facts_version: String,
+250 | |     run_id: String,
+251 | |     case_id: String,
+...   |
+255 | |     scopes: Vec<ScopeFacts>,
+256 | | });
+    | |__- in this macro invocation
+    |
+   ::: F:\new\smaltalk\water\.worktrees\g\.local\g-cargo-home\registry\src\index.crates.io-1949cf8c6b5b557f\serde_derive-1.0.229\src\lib.rs:114:1
+    |
+114 |   pub fn derive_serialize(input: TokenStream) -> TokenStream {
+    |   ---------------------------------------------------------- similarly named derive macro `Serialize` defined here
+    |
+note: `Deserialize` is imported here, but it is only a trait, without a derive macro
+   --> src\v1.rs:7:17
+    |
+  7 | use serde::de::{Deserialize, Deserializer, MapAccess, Visitor};
+    |                 ^^^^^^^^^^^
+    = note: this error originates in the macro `dto` (in Nightly builds, run with -Z macro-backtrace for more info)
+help: a derive macro with a similar name exists
+    |
+130 -                 #[derive(Deserialize)]
+130 +                 #[derive(Serialize)]
+    |
+
+error: cannot find attribute `serde` in this scope
+   --> src\v1.rs:131:19
+    |
+131 |                   #[serde(deny_unknown_fields)]
+    |                     ^^^^^
+...
+248 | / dto!(ScanFacts {
+249 | |     facts_version: String,
+250 | |     run_id: String,
+251 | |     case_id: String,
+...   |
+255 | |     scopes: Vec<ScopeFacts>,
+256 | | });
+    | |__- in this macro invocation
+    |
+    = note: `serde` is an attribute that can be used by the derive macros `Deserialize` and `Serialize`, you might be missing a `derive` attribute
+    = note: `serde` is in scope, but it is a crate, not an attribute
+    = note: this error originates in the macro `dto` (in Nightly builds, run with -Z macro-backtrace for more info)
+
+error[E0599]: no function or associated item named `deserialize` found for struct `<FileIdentity as Deserialize<'de>>::deserialize::Fields` in the current scope
+   --> src\v1.rs:146:37
+    |
+132 |                   struct Fields {
+    |                   ------------- function or associated item `deserialize` not found for this struct
+...
+146 |                               Fields::deserialize(MapAccessDeserializer::new(map))?;
+    |                                       ^^^^^^^^^^^ function or associated item not found in `<FileIdentity as Deserialize<'de>>::deserialize::Fields`
+...
+210 | / dto!(FileIdentity {
+211 | |     kind: IdentityKind,
+212 | |     #[serde(deserialize_with = "required_nullable")]
+213 | |     device: Option<ByteCount>,
+...   |
+217 | |     link_count: Option<ByteCount>,
+218 | | });
+    | |__- in this macro invocation
+    |
+    = help: items from traits can only be used if the trait is implemented and in scope
+    = note: the following traits define an item `deserialize`, perhaps you need to implement one of them:
+            candidate #1: `Deserialize`
+            candidate #2: `DeserializeSeed`
+    = note: this error originates in the macro `dto` (in Nightly builds, run with -Z macro-backtrace for more info)
+
+error[E0599]: no function or associated item named `deserialize` found for struct `<EntryFact as Deserialize<'de>>::deserialize::Fields` in the current scope
+   --> src\v1.rs:146:37
+    |
+132 |                   struct Fields {
+    |                   ------------- function or associated item `deserialize` not found for this struct
+...
+146 |                               Fields::deserialize(MapAccessDeserializer::new(map))?;
+    |                                       ^^^^^^^^^^^ function or associated item not found in `<EntryFact as Deserialize<'de>>::deserialize::Fields`
+...
+220 | / dto!(EntryFact {
+221 | |     relative_path: RelativePath,
+222 | |     depth: u32,
+223 | |     kind: EntryKind,
+...   |
+228 | |     identity: FileIdentity,
+229 | | });
+    | |__- in this macro invocation
+    |
+    = help: items from traits can only be used if the trait is implemented and in scope
+    = note: the following traits define an item `deserialize`, perhaps you need to implement one of them:
+            candidate #1: `Deserialize`
+            candidate #2: `DeserializeSeed`
+    = note: this error originates in the macro `dto` (in Nightly builds, run with -Z macro-backtrace for more info)
+
+error[E0599]: no function or associated item named `deserialize` found for struct `<FactIssue as Deserialize<'de>>::deserialize::Fields` in the current scope
+   --> src\v1.rs:146:37
+    |
+132 |                   struct Fields {
+    |                   ------------- function or associated item `deserialize` not found for this struct
+...
+146 |                               Fields::deserialize(MapAccessDeserializer::new(map))?;
+    |                                       ^^^^^^^^^^^ function or associated item not found in `<FactIssue as Deserialize<'de>>::deserialize::Fields`
+...
+231 | / dto!(FactIssue {
+232 | |     code: IssueCode,
+233 | |     #[serde(deserialize_with = "required_nullable")]
+234 | |     relative_path: Option<RelativePath>,
+235 | |     origin: IssueOrigin,
+236 | |     operation: IssueOperation,
+237 | | });
+    | |__- in this macro invocation
+    |
+    = help: items from traits can only be used if the trait is implemented and in scope
+    = note: the following traits define an item `deserialize`, perhaps you need to implement one of them:
+            candidate #1: `Deserialize`
+            candidate #2: `DeserializeSeed`
+    = note: this error originates in the macro `dto` (in Nightly builds, run with -Z macro-backtrace for more info)
+
+error[E0599]: no function or associated item named `deserialize` found for struct `<ScopeFacts as Deserialize<'de>>::deserialize::Fields` in the current scope
+   --> src\v1.rs:146:37
+    |
+132 |                   struct Fields {
+    |                   ------------- function or associated item `deserialize` not found for this struct
+...
+146 |                               Fields::deserialize(MapAccessDeserializer::new(map))?;
+    |                                       ^^^^^^^^^^^ function or associated item not found in `<ScopeFacts as Deserialize<'de>>::deserialize::Fields`
+...
+239 | / dto!(ScopeFacts {
+240 | |     scope_id: OpaqueId,
+241 | |     relative_root: RelativePath,
+242 | |     coverage: Coverage,
+...   |
+245 | |     issues: Vec<FactIssue>,
+246 | | });
+    | |__- in this macro invocation
+    |
+    = help: items from traits can only be used if the trait is implemented and in scope
+    = note: the following traits define an item `deserialize`, perhaps you need to implement one of them:
+            candidate #1: `Deserialize`
+            candidate #2: `DeserializeSeed`
+    = note: this error originates in the macro `dto` (in Nightly builds, run with -Z macro-backtrace for more info)
+
+error[E0599]: no function or associated item named `deserialize` found for struct `<ScanFacts as Deserialize<'de>>::deserialize::Fields` in the current scope
+   --> src\v1.rs:146:37
+    |
+132 |                   struct Fields {
+    |                   ------------- function or associated item `deserialize` not found for this struct
+...
+146 |                               Fields::deserialize(MapAccessDeserializer::new(map))?;
+    |                                       ^^^^^^^^^^^ function or associated item not found in `<ScanFacts as Deserialize<'de>>::deserialize::Fields`
+...
+248 | / dto!(ScanFacts {
+249 | |     facts_version: String,
+250 | |     run_id: String,
+251 | |     case_id: String,
+...   |
+255 | |     scopes: Vec<ScopeFacts>,
+256 | | });
+    | |__- in this macro invocation
+    |
+    = help: items from traits can only be used if the trait is implemented and in scope
+    = note: the following traits define an item `deserialize`, perhaps you need to implement one of them:
+            candidate #1: `Deserialize`
+            candidate #2: `DeserializeSeed`
+    = note: this error originates in the macro `dto` (in Nightly builds, run with -Z macro-backtrace for more info)
+
+For more information about this error, try `rustc --explain E0599`.
+error: could not compile `water-scan-report` (lib) due to 21 previous errors

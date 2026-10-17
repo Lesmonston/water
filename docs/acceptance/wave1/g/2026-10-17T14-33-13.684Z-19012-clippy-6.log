@@ -1,0 +1,49 @@
+{"binary":"C:\\Users\\37310\\.rustup\\toolchains\\1.95.0-x86_64-pc-windows-msvc\\bin\\cargo.exe","argv":["clippy","--offline","--locked","--manifest-path","F:\\new\\smaltalk\\water\\.worktrees\\g\\packages\\scan-report\\Cargo.toml","-p","water-scan-report","--all-targets","--","-D","warnings"],"exitCode":101,"error":null,"log":"2026-10-17T14-33-13.684Z-19012-clippy-6.log"}
+--- stdout ---
+
+--- stderr ---
+    Checking serde_core v1.0.229
+    Checking zmij v1.0.23
+    Checking itoa v1.0.18
+    Checking memchr v2.8.3
+    Checking serde_json v1.0.151
+    Checking serde v1.0.229
+    Checking water-contracts v0.1.0 (F:\new\smaltalk\water\.worktrees\g\crates\water-contracts)
+    Checking water-scan-report v0.1.0 (F:\new\smaltalk\water\.worktrees\g\packages\scan-report)
+error: method `wire` is never used
+   --> src\v1.rs:177:16
+    |
+176 |           impl $name {
+    |           ---------- method in this implementation
+177 |               fn wire(self) -> &'static str {
+    |                  ^^^^
+...
+186 | / wire_enum!(EntryKind {
+187 | |     File = "file",
+188 | |     Directory = "directory",
+189 | |     Link = "link",
+190 | |     Other = "other",
+191 | | });
+    | |__- in this macro invocation
+    |
+    = note: `-D dead-code` implied by `-D warnings`
+    = help: to override `-D warnings` add `#[expect(dead_code)]` or `#[allow(dead_code)]`
+    = note: this error originates in the macro `wire_enum` (in Nightly builds, run with -Z macro-backtrace for more info)
+
+error: method `wire` is never used
+   --> src\v1.rs:177:16
+    |
+176 |           impl $name {
+    |           ---------- method in this implementation
+177 |               fn wire(self) -> &'static str {
+    |                  ^^^^
+...
+192 | / wire_enum!(IdentityKind {
+193 | |     Unknown = "unknown",
+194 | |     Unix = "unix",
+195 | | });
+    | |__- in this macro invocation
+    |
+    = note: this error originates in the macro `wire_enum` (in Nightly builds, run with -Z macro-backtrace for more info)
+
+error: could not compile `water-scan-report` (lib) due to 2 previous errors
