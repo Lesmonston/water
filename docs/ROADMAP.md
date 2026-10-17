@@ -5,7 +5,7 @@
 | 阶段 | 产出 | 放行条件 | 当前状态 |
 |---|---|---|---|
 | M0 正式立项 | 本地仓库、立项书、需求、安全架构、五个源码审阅、许可和来源锁定 | 文档一致；固定commit可追溯；无上游代码混入 | 已完成 |
-| M1 只读 Alpha | 核心契约、受限fixture扫描、少量工具适配、解释与导出 | 范围不越界、未知保护、容量不重复、取消/权限错误可见 | A–I已VERIFIED（Windows）；受控真实库/模型链路通过，真实scope/分类/页面接线未完成 |
+| M1 只读 Alpha | 核心契约、受限fixture扫描、少量工具适配、解释与导出 | 范围不越界、未知保护、容量不重复、取消/权限错误可见 | A–I已VERIFIED（Windows）；新J会话/K供数页面READY；真实scope/分类/桌面未完成 |
 | M2 受控清理 | 原生工具动作、具体计划、执行前复核、journal与恢复说明 | 安全矩阵通过；小范围闭环；无任意路径或shell能力 | 待开始 |
 | M3 双平台 Beta | Windows/macOS实机、签名分发方案、升级与恢复验证 | 两平台真实证据；已知风险和支持边界明确 | 待开始 |
 | M4 收费验证 | 小规模目标用户试用和真实付款实验 | 明确价值、支持成本、退款/授权方案与发布授权 | 待开始 |
@@ -15,7 +15,7 @@
 | 工单 | 任务 | 依赖 | 验收归属 |
 |---|---|---|---|
 | W0 | [立项与源码研究](tasks/W0-INIT-AND-RESEARCH.md) | 用户授权 | 总控 |
-| W1 | [只读内核与fixture](tasks/W1-READONLY-CORE.md)，当前[F/G/H/I并行](dispatch/wave1/PARALLEL-NEXT-PLAN-20261017.md) | A–I单票与受控库/模型链路已验收；未放行真实用户scope/桌面 | 用户分别外贴；总控验收/集成 |
+| W1 | [只读内核与fixture](tasks/W1-READONLY-CORE.md)，当前[J/K并行](dispatch/wave1/SESSION-BATCH-PLAN-20261018.md) | A–I已验收；J/K冻结/独立树/实际baseline通过READY；未放行真实用户scope/桌面 | 用户分别外贴；总控验收/集成 |
 | W2 | 版本化规则注册表、pip/uv/npm/pnpm只读发现 | W1契约 | 规则与内核分别审阅 |
 | W3 | HF/Ollama/LM Studio只读inventory与共享空间视图 | W1/W2 | 模型资产保护验收 |
 | W4 | 桌面壳与报告界面 | W1稳定契约 | 总控，双平台可用性 |

@@ -2,7 +2,13 @@
 
 2026-10-17。项目：`F:/new/smaltalk/water`。供后续总控接手与Keeper ingest；未写共享Vault或其他项目。
 
-## 当前交接：A–I已VERIFIED，受控真实库/模型链路通过
+## 当前交接：旧单已收口，J/K新单READY
+
+用户询问是否漏派并要求继续安排。核九个旧任务和13份原票/补单均已覆盖VERIFIED，旧九树在接收提交且干净，0旧未派/在途。部分B/C/D原票和草案已加归档提示，不再重复执行。
+
+新J受控会话库、K调用方供数页面可并行外贴；共同r1基线`bc409f4af8cb2d51b2f67341ad46637cfa5e66f3`，65项新锁/六旧锁132唯一文件一致。J现有依赖链路13场景/44快照、K实际四快照/I模型及隔离Chrome空白页预检通过，J/K产品尚不存在，未启动实现者。仅冻结prepare在j树.local新建一批11+6合成run，r1复用；K不获物理fixture权限。[本批正式入口与实际证据](dispatch/wave1/SESSION-BATCH-READY-REPORT.md)为准，READY不等于已外贴。双票验收后将真实J JSON传K.startServer验页面；真实用户scope、分类、桌面/macOS与删除后排，M1未完成。
+
+## 此前交接：A–I已VERIFIED，受控真实库/模型链路通过（历史）
 
 G接收85c64d5/受测4ae559b，H接收cab41d1/受测52748c5。原各五门、五测试及七独立测试通过；统一隔离受测`e383ece84f2943fe099106f2e121643417bbe346`用新target离线重测全过，实际F原生11case/12scope/39entry及两个控制样本经G/A/E/H和I模型通过，44快照一致。83冻结、A–F/I产品与根Cargo不变，114份worker文件原字节保持。[G/H验收报告](acceptance/wave1/controller/WATER-W1-GH-REVIEW-20261018.md)及同目录main-promotion.json给出精确提交与历史证据限制。A–I旧票不重复外贴；下一步仍需真实用户scope安全、分类/工具适配、扫描报告页面/桌面接线和macOS，M1未完成。没有自动实现者、真实数据、清理、push或发布。
 

@@ -2,7 +2,11 @@
 
 日期：2026-10-17。总控：Codex。所有手工项目产物位于 `F:/new/smaltalk/water`。
 
-## G/H验收追加（2026-10-18，最新）
+## J/K派前追加（2026-10-18，最新）
+
+用户询问漏派并要求继续。旧九单/四补单均已验收，无旧未派或在途；新J会话库、K调用方供数页面共用r1基线`bc409f4af8cb2d51b2f67341ad46637cfa5e66f3`，65新冻结/132唯一文件及j/k独立树、真实baseline通过，READY待用户分别外贴。J只在自有.local由冻结工具生成一批11+6合成夹具，K仅内存数据/独立Chrome；新产品未实现，没有自动启动实现者。详见[派前回执](dispatch/wave1/SESSION-BATCH-READY-REPORT.md)，M1、真实scope/分类/桌面/macOS/删除未完成。
+
+## G/H验收追加（2026-10-18，历史收口）
 
 G接收85c64d5、H接收cab41d1，原各五门/五测试及七独立测试通过；隔离受测`e383ece84f2943fe099106f2e121643417bbe346`新target离线重测全部通过，真实受控F→G→A→E/H→I模型链路覆盖11原生和2控制样本，44快照一致。83冻结、旧产品及114份worker文件不变。A–I均VERIFIED（Windows范围），见[G/H验收报告](acceptance/wave1/controller/WATER-W1-GH-REVIEW-20261018.md)。历史实现前先红顺序未证实；M1、真实scope、分类、实际页面/桌面/macOS/删除未完成。项目内已保存推进与交接证据，没有写共享Vault。
 

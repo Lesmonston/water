@@ -1,7 +1,7 @@
 {
   "schemaVersion": 1,
   "wave": "water-wave1",
-  "status": "ABCDEFGHI_VERIFIED_WINDOWS",
+  "status": "ABCDEFGHI_VERIFIED_JK_READY",
   "controllerRoot": "F:/new/smaltalk/water",
   "controllerBranch": "main",
   "controller": "Codex",
@@ -719,6 +719,165 @@
         "macOS"
       ],
       "verificationScope": "Frozen synthetic E JSON reader only; three original gates, 87 public API/HTTP checks, actual isolated browser and three complete independent negative controls passed. No desktop, real-user data or scanner integration."
+    },
+    {
+      "id": "WATER-W1-J",
+      "title": "Controlled read-only scan session",
+      "status": "READY",
+      "kind": "lab_session",
+      "slot": "j",
+      "worktree": "F:/new/smaltalk/water/.worktrees/j",
+      "branch": "worker/water-w1-j",
+      "baseCommit": "bc409f4af8cb2d51b2f67341ad46637cfa5e66f3",
+      "snapshotRef": "refs/tags/water-w1-session-batch-base-20261018-r1",
+      "ticket": "docs/dispatch/tickets/WATER-W1-J-LAB-SESSION-20261018.md",
+      "report": "docs/dispatch/reports/WATER-W1-J-REPORT.md",
+      "helper": "scripts/session-batch-check.mjs",
+      "workerRules": "docs/dispatch/W1-SESSION-BATCH-WORKER-RULES.md",
+      "contractLock": "contracts/session-batch-v1/freeze.lock.json",
+      "outputRoot": "packages/lab-session",
+      "testFiles": [
+        "packages/lab-session/tests/session_v1.rs"
+      ],
+      "testFile": "packages/lab-session/tests/session_v1.rs",
+      "expectedTests": [
+        "session_native_composition",
+        "session_cancellation_and_progress",
+        "session_errors_and_bounds",
+        "session_identity_and_protection",
+        "session_snapshot_wire"
+      ],
+      "expectedBrowserTests": [],
+      "expectedFinalModes": [
+        "fmt",
+        "test",
+        "clippy",
+        "metadata",
+        "bridge"
+      ],
+      "proofTargets": {
+        "behavior": "J_BEHAVIOR",
+        "nc1": "J_CANCEL_SHARED",
+        "nc2": "J_FACTS_PRESERVED",
+        "nc3": "J_SUMMARY_UNKNOWN"
+      },
+      "allowedFiles": [
+        "packages/lab-session/Cargo.toml",
+        "packages/lab-session/Cargo.lock",
+        "packages/lab-session/README.md",
+        "packages/lab-session/tests/session_v1.rs",
+        "docs/dispatch/reports/WATER-W1-J-REPORT.md"
+      ],
+      "allowedPrefixes": [
+        "packages/lab-session/src/",
+        "docs/acceptance/wave1/j/"
+      ],
+      "allowLockfileGeneration": true,
+      "cargoCacheSource": "F:/new/smaltalk/water/.worktrees/a/.local/cargo-home/registry",
+      "dependsOn": [
+        "WATER-W1-A",
+        "WATER-W1-F",
+        "WATER-W1-G",
+        "WATER-W1-E",
+        "WATER-W1-H"
+      ],
+      "model": null,
+      "modelAssignment": "user-arranged; report actual engine/model",
+      "dispatchedAt": null,
+      "startedAt": null,
+      "readyOn": "2026-10-18",
+      "baselineStatus": "PASSED",
+      "baselineEvidence": "docs/acceptance/wave1/controller/w1-session-batch-preflight-20261018/j/2026-10-17T16-07-56.055Z-39632-baseline-result.json",
+      "preflightEvidence": "docs/dispatch/wave1/SESSION-BATCH-READY-REPORT.md",
+      "readinessScope": "Windows offline existing dependencies and actual owned F pipeline only; J product absent and untested.",
+      "newProductTestsRun": false,
+      "controllerBaselineOnly": true
+    },
+    {
+      "id": "WATER-W1-K",
+      "title": "Caller-supplied session reader",
+      "status": "READY",
+      "kind": "lab_reader",
+      "slot": "k",
+      "worktree": "F:/new/smaltalk/water/.worktrees/k",
+      "branch": "worker/water-w1-k",
+      "baseCommit": "bc409f4af8cb2d51b2f67341ad46637cfa5e66f3",
+      "snapshotRef": "refs/tags/water-w1-session-batch-base-20261018-r1",
+      "ticket": "docs/dispatch/tickets/WATER-W1-K-LAB-READER-20261018.md",
+      "report": "docs/dispatch/reports/WATER-W1-K-REPORT.md",
+      "helper": "scripts/session-batch-check.mjs",
+      "workerRules": "docs/dispatch/W1-SESSION-BATCH-WORKER-RULES.md",
+      "contractLock": "contracts/session-batch-v1/freeze.lock.json",
+      "outputRoot": "prototypes/lab-reader",
+      "testFiles": [
+        "prototypes/lab-reader/tests/model.test.mjs",
+        "prototypes/lab-reader/tests/browser.test.mjs"
+      ],
+      "testFile": "prototypes/lab-reader/tests/model.test.mjs",
+      "expectedTests": [
+        "reader_session_contract",
+        "reader_session_selection",
+        "reader_session_summary"
+      ],
+      "expectedBrowserTests": [
+        "reader_session_live_input",
+        "reader_session_scope_and_layout"
+      ],
+      "expectedFinalModes": [
+        "check",
+        "test",
+        "browser"
+      ],
+      "proofTargets": {
+        "behavior": "K_BEHAVIOR",
+        "nc1": "K_SERVER_INPUT",
+        "nc2": "K_TOTAL_UNKNOWN",
+        "nc3": "K_TEXT_LITERAL"
+      },
+      "allowedFiles": [
+        "prototypes/lab-reader/index.html",
+        "prototypes/lab-reader/styles.css",
+        "prototypes/lab-reader/app.mjs",
+        "prototypes/lab-reader/model.mjs",
+        "prototypes/lab-reader/server.mjs",
+        "prototypes/lab-reader/README.md",
+        "prototypes/lab-reader/tests/model.test.mjs",
+        "prototypes/lab-reader/tests/browser.test.mjs",
+        "docs/dispatch/reports/WATER-W1-K-REPORT.md"
+      ],
+      "allowedPrefixes": [
+        "docs/acceptance/wave1/k/"
+      ],
+      "allowLockfileGeneration": false,
+      "productionFiles": [
+        "prototypes/lab-reader/index.html",
+        "prototypes/lab-reader/styles.css",
+        "prototypes/lab-reader/app.mjs",
+        "prototypes/lab-reader/model.mjs",
+        "prototypes/lab-reader/server.mjs"
+      ],
+      "dependsOn": [
+        "WATER-W1-I"
+      ],
+      "model": null,
+      "modelAssignment": "user-arranged; report actual engine/model",
+      "dispatchedAt": null,
+      "startedAt": null,
+      "syntaxFiles": [
+        "prototypes/lab-reader/app.mjs",
+        "prototypes/lab-reader/model.mjs",
+        "prototypes/lab-reader/server.mjs",
+        "prototypes/lab-reader/tests/model.test.mjs",
+        "prototypes/lab-reader/tests/browser.test.mjs"
+      ],
+      "browserTestFile": "prototypes/lab-reader/tests/browser.test.mjs",
+      "readyOn": "2026-10-18",
+      "baselineStatus": "PASSED",
+      "baselineEvidence": "docs/acceptance/wave1/controller/w1-session-batch-preflight-20261018/k/2026-10-17T16-07-56.009Z-25504-baseline-result.json",
+      "preflightEvidence": "docs/dispatch/wave1/SESSION-BATCH-READY-REPORT.md",
+      "readinessScope": "Node24/I-model source assets and isolated Chrome blank page only; K product absent and untested.",
+      "newProductTestsRun": false,
+      "controllerBaselineOnly": true
     }
   ],
   "preflightStatus": "PASSED",
