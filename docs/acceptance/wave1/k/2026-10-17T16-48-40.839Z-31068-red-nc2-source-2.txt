@@ -1,0 +1,121 @@
+import { assertSessionBundle, selectSnapshot, summarizeSnapshot, selectFindings, formatBytes } from './model.mjs';
+
+const byId = (id) => document.getElementById(id);
+const controls = Object.fromEntries([['query', 'search'], ['scope', 'scope'], ['tool', 'tool'], ['category', 'category'], ['risk', 'risk'], ['sort', 'sort']].map(([key, id]) => [key, byId(id)]));
+const dialog = byId('detail');
+let bundle, current, returnFocus;
+
+function node(tag, className, value) {
+  const node = document.createElement(tag);
+  if (className) node.className = className;
+  if (value !== undefined) node.textContent = String(value);
+  return node;
+}
+function set(id, value) { byId(id).textContent = String(value); }
+function option(value, label) {
+  const result = node('option', '', label);
+  result.value = value;
+  return result;
+}
+function resetFilters() {
+  controls.query.value = '';
+  for (const key of ['scope', 'tool', 'category', 'risk']) controls[key].value = 'all';
+  controls.sort.value = 'size_desc';
+}
+function dynamicFilters(view) {
+  controls.scope.replaceChildren(option('all', '全部 scope'), ...view.scopes.map((s) => option(s.scope_id, s.scope_id)));
+  const tools = new Map(view.findings.map((f) => [f.tool_id, f.tool_name]));
+  controls.tool.replaceChildren(option('all', '全部工具键'), ...Array.from(tools, ([id, name]) => option(id, `${name} · ${id}`)));
+  controls.category.replaceChildren(option('all', '全部类别'), ...[...new Set(view.findings.map((f) => f.category))].map((c) => option(c, c)));
+}
+function renderSummary() {
+  const summary = summarizeSnapshot(current), totals = { ...summary.source_totals, logical_bytes: summary.source_totals.logical_bytes ?? '0', allocated_bytes: summary.source_totals.allocated_bytes ?? '0' };
+  set('summary-count', summary.finding_count); set('protected-count', summary.protected_count);
+  set('unknown-count', summary.unknown_size_count); set('issues-count', summary.issue_count);
+  byId('source-totals').replaceChildren(
+    node('h2', '', '来源总量'), node('strong', '', formatBytes(totals.logical_bytes)),
+    node('p', '', `逻辑字节 ${totals.logical_bytes ?? '未知'} · 分配字节 ${totals.allocated_bytes ?? '未知'}`),
+    node('p', '', `来源方法 ${totals.method} · 非本页求和`),
+    node('p', '', `记录 ${totals.scanned_entries} · 跳过 ${totals.skipped_entries}`),
+  );
+  byId('coverage-summary').replaceChildren(
+    node('h2', '', '来源覆盖'), node('strong', '', totals.coverage_complete ? '完整' : '未完整'),
+    ...current.source_facts.scopes.map((s) => node('p', '', `${s.scope_id} · ${s.coverage} · 相对根 ${s.relative_root}`)),
+  );
+  const status = byId('status-banner');
+  status.dataset.status = current.view.status;
+  status.replaceChildren(node('strong', '', current.view.status), node('span', '', current.view.scan_id), node('span', '', current.source_facts.case_id));
+  const issues = current.source_facts.scopes.flatMap((s) => s.issues.map((issue) => ({ ...issue, scope_id: s.scope_id })));
+  byId('issues-summary').replaceChildren(node('h2', '', '来源问题'),
+    ...(issues.length ? issues.map((issue) => node('p', issue.origin === 'injected' ? 'injected-note' : '', `${issue.code} · ${issue.scope_id} · ${issue.relative_path ?? '无相对路径'} · origin=${issue.origin} · operation=${issue.operation}${issue.origin === 'injected' ? ' · 受控注入记录' : ''}`)) : [node('p', '', '无问题记录')]),
+  );
+  const h = current.summary;
+  byId('whitelist-counts').replaceChildren(
+    ...Object.entries(h.counts).map(([k, v]) => node('span', '', `${k}: ${v}`)),
+    ...Object.entries(h.risk_counts).map(([k, v]) => node('span', '', `${k}: ${v}`)),
+    ...Object.entries(h.category_counts).map(([k, v]) => node('span', '', `${k}: ${v}`)),
+  );
+}
+function showDetails(finding, trigger) {
+  returnFocus = trigger;
+  const scope = current.source_facts.scopes.find((s) => s.scope_id === finding.scope_id);
+  const metadata = scope.entries.find((e) => e.relative_path === finding.relative_path);
+  set('detail-title', finding.title);
+  const fields = [
+    ['scope 相对根', scope.relative_root],
+    ['scope 描述', current.view.scopes.find((s) => s.scope_id === scope.scope_id)],
+    ...Object.entries(finding),
+    ['kind', metadata.kind], ['depth', metadata.depth], ['identity', metadata.identity],
+    ['metadata allocated_bytes', metadata.allocated_bytes],
+  ];
+  byId('detail-fields').replaceChildren(...fields.flatMap(([label, value]) => [node('dt', '', label), node('dd', '', typeof value === 'string' ? value : JSON.stringify(value, null, 2))]));
+  dialog.showModal();
+  byId('detail-close').focus();
+}
+function renderFindings() {
+  const rows = selectFindings(current.view, Object.fromEntries(Object.entries(controls).map(([key, control]) => [key, control.value])));
+  set('visible-count', `${rows.length} / ${current.view.findings.length}`);
+  byId('empty-state').hidden = rows.length !== 0;
+  set('empty-title', current.view.findings.length ? '没有符合筛选的条目' : '这份来源快照没有条目');
+  byId('finding-list').replaceChildren(...rows.map((finding) => {
+    const row = node('li', 'finding-row'); row.dataset.findingId = finding.id;
+    const main = node('div', 'finding-main');
+    main.append(node('span', 'finding-title', finding.title), node('span', 'finding-note', finding.id));
+    const tool = node('div', 'finding-tool', finding.scope_id);
+    tool.append(node('span', '', `${finding.tool_id} · ${finding.tool_name}`));
+    const meta = node('div', 'finding-meta');
+    meta.append(node('span', 'risk-label', finding.risk), node('small', '', finding.category), node('small', '', `${finding.activity} · ${finding.recoverability}`));
+    const button = node('button', 'detail-button', '详情'); button.type = 'button';
+    button.setAttribute('aria-label', `查看 ${finding.title} 详情`); button.setAttribute('aria-haspopup', 'dialog');
+    button.addEventListener('click', () => showDetails(finding, button));
+    row.append(main, tool, meta, node('span', 'finding-size', formatBytes(finding.logical_bytes)), button);
+    return row;
+  }));
+}
+function showSnapshot(id) {
+  if (dialog.open) { returnFocus = undefined; dialog.close(); }
+  current = selectSnapshot(bundle, id);
+  dynamicFilters(current.view); resetFilters(); renderSummary(); renderFindings();
+}
+byId('detail-close').addEventListener('click', () => dialog.close());
+dialog.addEventListener('cancel', (event) => { event.preventDefault(); dialog.close(); });
+dialog.addEventListener('close', () => { if (returnFocus?.isConnected) returnFocus.focus(); });
+
+try {
+  const response = await fetch('/sessions.json', { cache: 'no-store', credentials: 'omit', redirect: 'error' });
+  if (!response.ok) throw new Error('Unsupported lab session.');
+  bundle = await response.json(); assertSessionBundle(bundle);
+  const picker = byId('session');
+  picker.replaceChildren(...bundle.snapshots.map((s) => option(s.view.scan_id, `${s.view.scan_id} · ${s.source_facts.case_id} · ${s.view.status}`)));
+  picker.addEventListener('change', () => showSnapshot(picker.value));
+  controls.query.addEventListener('input', renderFindings);
+  for (const key of ['scope', 'tool', 'category', 'risk', 'sort']) controls[key].addEventListener('change', renderFindings);
+  for (const id of ['reset-filters', 'empty-reset']) byId(id).addEventListener('click', () => { resetFilters(); renderFindings(); });
+  picker.value = bundle.snapshots[0].view.scan_id;
+  showSnapshot(picker.value);
+} catch {
+  set('status-banner', '会话无法显示。Unsupported lab session.');
+  for (const control of document.querySelectorAll('input,select,button')) control.disabled = true;
+} finally {
+  document.body.dataset.ready = 'true';
+}

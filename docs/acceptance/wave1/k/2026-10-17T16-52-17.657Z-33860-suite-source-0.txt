@@ -1,0 +1,58 @@
+<!doctype html>
+<html lang="zh-CN">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width,initial-scale=1">
+  <meta name="color-scheme" content="light">
+  <title>Water · 受控会话阅读</title>
+  <link rel="stylesheet" href="/styles.css">
+  <script type="module" src="/app.mjs"></script>
+</head>
+<body>
+  <header class="app-header">
+    <div class="brand"><span class="brand-mark" aria-hidden="true">w</span><strong>Water</strong><span class="brand-caption">会话阅读</span></div>
+    <div class="scope-notice"><p class="readonly-badge" data-testid="readonly-badge">受控夹具扫描 · 只读</p><span>非真实用户目录</span></div>
+  </header>
+  <main>
+    <section class="page-heading" aria-labelledby="page-title">
+      <div><p class="eyebrow">受控实验 / 会话快照</p><h1 id="page-title">读懂每一份观察</h1><p class="subtitle">浏览调用方提供的元数据快照，保留来源状态、未知项与保护依据。</p></div>
+      <div class="session-field"><label for="session">会话</label><select id="session" data-testid="session-select"></select></div>
+    </section>
+    <div id="status-banner" data-testid="status-banner" class="status-banner" role="status">正在载入会话…</div>
+    <section class="metrics" aria-label="整份会话计数">
+      <div class="metric"><span>观察条目</span><strong id="summary-count" data-testid="summary-count">—</strong><small>整份快照</small></div>
+      <div class="metric"><span>受到保护</span><strong id="protected-count" data-testid="protected-count">—</strong><small>分类与归属仍未知</small></div>
+      <div class="metric"><span>大小未知</span><strong id="unknown-count">—</strong><small>未知保持未知</small></div>
+      <div class="metric"><span>来源问题</span><strong id="issues-count" data-testid="issues-count">—</strong><small>覆盖限制与来源记录</small></div>
+    </section>
+    <section class="source-grid" aria-label="来源与覆盖">
+      <div class="source-block" id="source-totals" data-testid="source-totals"></div>
+      <div class="source-block" id="coverage-summary" data-testid="coverage-summary"></div>
+    </section>
+    <section class="issues" id="issues-summary" data-testid="issues-summary" aria-label="来源问题"></section>
+    <details class="whitelist"><summary>白名单汇总计数</summary><div id="whitelist-counts" data-testid="whitelist-counts"></div></details>
+    <section class="workspace" aria-labelledby="findings-heading">
+      <div class="filters">
+        <div class="search-field"><label for="search">搜索相对路径</label><input id="search" data-testid="search-input" type="search" placeholder="按名称或相对路径查找" autocomplete="off" spellcheck="false"></div>
+        <div><label for="scope">scope</label><select id="scope" data-testid="scope-filter"></select></div>
+        <div><label for="tool">工具键</label><select id="tool" data-testid="tool-filter"></select></div>
+        <div><label for="category">类别</label><select id="category" data-testid="category-filter"></select></div>
+        <div><label for="risk">风险</label><select id="risk" data-testid="risk-filter"><option value="all">全部风险</option><option value="low">low</option><option value="review">review</option><option value="high">high</option><option value="protected">protected</option></select></div>
+        <button type="button" id="reset-filters" data-testid="reset-filters">重置筛选</button>
+      </div>
+      <div class="list-toolbar"><div><h2 id="findings-heading">观察条目 <span id="visible-count" data-testid="visible-count" aria-live="polite">0 / 0</span></h2><p>筛选结果单独计数，来源总量保持原值。</p></div><div class="sort-field"><label for="sort">排序</label><select id="sort" data-testid="sort-select"><option value="size_desc">大小从大到小</option><option value="size_asc">大小从小到大</option><option value="name_asc">名称升序</option></select></div></div>
+      <div class="column-labels" aria-hidden="true"><span>相对路径</span><span>scope / 工具</span><span>风险 / 分类</span><span class="align-right">逻辑大小</span><span></span></div>
+      <ul class="finding-list" id="finding-list" aria-label="会话条目"></ul>
+      <div id="empty-state" data-testid="empty-state" class="empty-state" hidden><strong id="empty-title">没有符合筛选的条目</strong><p>可重置筛选，或选择另一份会话。</p><button type="button" id="empty-reset" data-testid="empty-reset">重置筛选</button></div>
+      <footer class="list-footer"><span>路径仅作文本展示</span><span>元数据观察不等于可回收空间</span></footer>
+    </section>
+    <p class="page-note">受控合成数据 · 本页只阅读已提供的快照。</p>
+  </main>
+  <dialog id="detail" data-testid="detail-panel" class="detail-panel" aria-labelledby="detail-title">
+    <div class="detail-header"><span class="eyebrow">观察详情</span><button type="button" id="detail-close" data-testid="detail-close">关闭</button></div>
+    <p class="readonly-badge detail-readonly">受控夹具扫描 · 只读</p>
+    <h2 id="detail-title"></h2><p class="subtitle">非真实用户目录 · 原值与元数据</p>
+    <dl id="detail-fields"></dl><p class="keyboard-hint"><kbd>Esc</kbd> 关闭并返回原按钮</p>
+  </dialog>
+</body>
+</html>
