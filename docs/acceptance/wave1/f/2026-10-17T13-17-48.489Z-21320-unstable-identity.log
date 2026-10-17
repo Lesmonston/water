@@ -1,0 +1,19 @@
+error[E0658]: use of unstable library feature `windows_by_handle`
+ --> F:\new\smaltalk\water\.worktrees\f\.local\checks\WATER-W1-F\2026-10-17T13-17-48.489Z-21320-unstable-identity.rs:1:84
+  |
+1 | use std::os::windows::fs::MetadataExt; fn probe(m: &std::fs::Metadata) { let _ = m.file_index(); let _ = m.volume_serial_number(); } ...
+  |                                                                                    ^^^^^^^^^^
+  |
+  = note: see issue #63010 <https://github.com/rust-lang/rust/issues/63010> for more information
+
+error[E0658]: use of unstable library feature `windows_by_handle`
+ --> F:\new\smaltalk\water\.worktrees\f\.local\checks\WATER-W1-F\2026-10-17T13-17-48.489Z-21320-unstable-identity.rs:1:108
+  |
+1 | use std::os::windows::fs::MetadataExt; fn probe(m: &std::fs::Metadata) { let _ = m.file_index(); let _ = m.volume_serial_number(); } ...
+  |                                                                                                            ^^^^^^^^^^^^^^^^^^^^
+  |
+  = note: see issue #63010 <https://github.com/rust-lang/rust/issues/63010> for more information
+
+error: aborting due to 2 previous errors
+
+For more information about this error, try `rustc --explain E0658`.

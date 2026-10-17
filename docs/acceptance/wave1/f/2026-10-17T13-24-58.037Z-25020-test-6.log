@@ -1,0 +1,102 @@
+{"binary":"C:\\Users\\37310\\.rustup\\toolchains\\1.95.0-x86_64-pc-windows-msvc\\bin\\cargo.exe","argv":["test","--offline","--locked","--manifest-path","F:\\new\\smaltalk\\water\\.worktrees\\f\\packages\\fixture-scan\\Cargo.toml","-p","water-scan","--test","scan_v1","--","--test-threads=1","--format","pretty"],"exitCode":101,"error":null,"log":"2026-10-17T13-24-58.037Z-25020-test-6.log"}
+--- stdout ---
+
+running 6 tests
+test scan_budgets_and_order ... FAILED
+test scan_cancellation ... FAILED
+test scan_faults_and_coverage ... FAILED
+test scan_identity_and_readonly ... FAILED
+test scan_native_fixtures ... FAILED
+test scan_scope_and_links ... FAILED
+
+failures:
+
+---- scan_budgets_and_order stdout ----
+
+thread 'scan_budgets_and_order' (7336) panicked at tests\scan_v1.rs:207:5:
+assertion `left == right` failed
+  left: Completed
+ right: Partial
+note: run with `RUST_BACKTRACE=1` environment variable to display a backtrace
+
+---- scan_cancellation stdout ----
+
+thread 'scan_cancellation' (18260) panicked at tests\scan_v1.rs:362:5:
+assertion `left == right` failed
+  left: Completed
+ right: Cancelled
+
+---- scan_faults_and_coverage stdout ----
+
+thread 'scan_faults_and_coverage' (12636) panicked at tests\scan_v1.rs:272:5:
+assertion `left == right` failed: permission denial must mark partial coverage
+  left: Completed
+ right: Partial
+
+---- scan_identity_and_readonly stdout ----
+
+thread 'scan_identity_and_readonly' (16200) panicked at tests\scan_v1.rs:414:9:
+real metadata facts must exist
+
+---- scan_native_fixtures stdout ----
+
+thread 'scan_native_fixtures' (20816) panicked at tests\scan_v1.rs:129:13:
+assertion `left == right` failed: native entries for project-markers
+  left: []
+ right: [Object {"depth": Number(1), "kind": String("directory"), "logical_bytes": Null, "relative_path": String(".git")}, Object {"depth": Number(2), "kind": String("file"), "logical_bytes": String("26"), "relative_path": String(".git/HEAD")}, Object {"depth": Number(1), "kind": String("file"), "logical_bytes": String("50"), "relative_path": String("package.json")}, Object {"depth": Number(1), "kind": String("file"), "logical_bytes": String("61"), "relative_path": String("pyproject.toml")}, Object {"depth": Number(1), "kind": String("directory"), "logical_bytes": Null, "relative_path": String("src")}, Object {"depth": Number(2), "kind": String("file"), "logical_bytes": String("36"), "relative_path": String("src/main.py")}]
+
+---- scan_scope_and_links stdout ----
+
+thread 'scan_scope_and_links' (43972) panicked at tests\scan_v1.rs:183:9:
+assertion failed: paths(&facts, 0).contains(&"inside.txt")
+
+
+failures:
+    scan_budgets_and_order
+    scan_cancellation
+    scan_faults_and_coverage
+    scan_identity_and_readonly
+    scan_native_fixtures
+    scan_scope_and_links
+
+test result: FAILED. 0 passed; 6 failed; 0 ignored; 0 measured; 0 filtered out; finished in 0.15s
+
+
+--- stderr ---
+   Compiling proc-macro2 v1.0.107
+   Compiling quote v1.0.47
+   Compiling unicode-ident v1.0.27
+   Compiling serde_core v1.0.229
+   Compiling zmij v1.0.23
+   Compiling syn v3.0.9
+   Compiling serde_json v1.0.151
+   Compiling serde v1.0.229
+   Compiling serde_derive v1.0.229
+   Compiling memchr v2.8.3
+   Compiling itoa v1.0.18
+   Compiling water-contracts v0.1.0 (F:\new\smaltalk\water\.worktrees\f\crates\water-contracts)
+   Compiling water-scan v0.1.0 (F:\new\smaltalk\water\.worktrees\f\packages\fixture-scan)
+warning: field `guards` is never read
+  --> src\fixture_v1.rs:51:5
+   |
+48 | struct Scope {
+   |        ----- field in this struct
+...
+51 |     guards: Arc<Vec<Guard>>,
+   |     ^^^^^^
+   |
+   = note: `#[warn(dead_code)]` (part of `#[warn(unused)]`) on by default
+
+warning: field `root` is never read
+  --> src\fixture_v1.rs:57:5
+   |
+54 | pub struct FixtureRun {
+   |            ---------- field in this struct
+...
+57 |     root: PathBuf,
+   |     ^^^^
+
+warning: `water-scan` (lib) generated 2 warnings
+    Finished `test` profile [unoptimized + debuginfo] target(s) in 43.03s
+     Running tests\scan_v1.rs (.local\scan-lab-target\debug\deps\scan_v1-747e723d66ec87fa.exe)
+error: test failed, to rerun pass `-p water-scan --test scan_v1`

@@ -1,0 +1,24 @@
+{"binary":"C:\\Users\\37310\\.rustup\\toolchains\\1.95.0-x86_64-pc-windows-msvc\\bin\\cargo.exe","argv":["clippy","--offline","--locked","--manifest-path","F:\\new\\smaltalk\\water\\.worktrees\\f\\packages\\fixture-scan\\Cargo.toml","-p","water-scan","--all-targets","--","-D","warnings"],"exitCode":101,"error":null,"log":"2026-10-17T13-30-56.405Z-19348-clippy-6.log"}
+--- stdout ---
+
+--- stderr ---
+    Checking water-scan v0.1.0 (F:\new\smaltalk\water\.worktrees\f\packages\fixture-scan)
+error: the borrowed expression implements the required traits
+   --> tests\scan_v1.rs:230:38
+    |
+230 |                 serde_json::to_value(&actual.coverage).unwrap(),
+    |                                      ^^^^^^^^^^^^^^^^ help: change this to: `actual.coverage`
+    |
+    = help: for further information visit https://rust-lang.github.io/rust-clippy/rust-1.95.0/index.html#needless_borrows_for_generic_args
+    = note: `-D clippy::needless-borrows-for-generic-args` implied by `-D warnings`
+    = help: to override `-D warnings` add `#[allow(clippy::needless_borrows_for_generic_args)]`
+
+error: the borrowed expression implements the required traits
+   --> tests\scan_v1.rs:719:38
+    |
+719 |                 serde_json::to_value(&result.scopes[0].coverage).unwrap(),
+    |                                      ^^^^^^^^^^^^^^^^^^^^^^^^^^ help: change this to: `result.scopes[0].coverage`
+    |
+    = help: for further information visit https://rust-lang.github.io/rust-clippy/rust-1.95.0/index.html#needless_borrows_for_generic_args
+
+error: could not compile `water-scan` (test "scan_v1") due to 2 previous errors

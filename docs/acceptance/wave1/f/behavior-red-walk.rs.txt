@@ -1,0 +1,11 @@
+use super::*;
+
+// Compilable behavioral-red starting point. Replaced by traversal after the first test run.
+pub fn scan_fixture_with_io<I: ReadOnlyIo, O: ScanObserver>(
+    run: &FixtureRun, _options: &ScanOptions, _cancel: &CancelToken, _io: &I, _observer: &O,
+) -> Result<ScanFacts, ScanError> {
+    Ok(ScanFacts { facts_version: "water.scan-lab.v1", run_id: run.run_id.clone(), case_id: run.case_id.clone(),
+        status: ScanStatus::Completed, visited_entries: 0, recorded_entries: 0,
+        scopes: run.scopes.iter().map(|scope| ScopeFacts { scope_id: scope.id.clone(), relative_root: scope.relative.clone(),
+            coverage: Coverage::Complete, visited_entries: 0, entries: Vec::new(), issues: Vec::new() }).collect() })
+}

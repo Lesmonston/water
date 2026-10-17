@@ -1,0 +1,332 @@
+{
+  "task": "WATER-W1-F",
+  "mode": "test",
+  "finalGate": false,
+  "startedAt": "2026-10-17T13:33:29.722Z",
+  "before": {
+    "head": "fc114eb81125cef7d374deddc95144bcd9aee748",
+    "status": "?? docs/acceptance/wave1/f/behavior-red-hashes.json\n?? docs/acceptance/wave1/f/behavior-red-walk.rs.txt\n?? packages/fixture-scan/Cargo.lock\n?? packages/fixture-scan/Cargo.toml\n?? packages/fixture-scan/README.md\n?? packages/fixture-scan/src/fixture_v1.rs\n?? packages/fixture-scan/src/fixture_v1/marker.rs\n?? packages/fixture-scan/src/fixture_v1/native.rs\n?? packages/fixture-scan/src/fixture_v1/walk.rs\n?? packages/fixture-scan/src/lib.rs\n?? packages/fixture-scan/tests/scan_v1.rs"
+  },
+  "node": "v24.16.0",
+  "commands": [
+    {
+      "binary": "git",
+      "argv": [
+        "-c",
+        "core.hooksPath=NUL",
+        "-c",
+        "core.fsmonitor=false",
+        "rev-parse",
+        "--path-format=absolute",
+        "--git-common-dir"
+      ],
+      "exitCode": 0,
+      "error": null
+    },
+    {
+      "binary": "git",
+      "argv": [
+        "-c",
+        "core.hooksPath=NUL",
+        "-c",
+        "core.fsmonitor=false",
+        "branch",
+        "--show-current"
+      ],
+      "exitCode": 0,
+      "error": null
+    },
+    {
+      "binary": "git",
+      "argv": [
+        "-c",
+        "core.hooksPath=NUL",
+        "-c",
+        "core.fsmonitor=false",
+        "merge-base",
+        "--is-ancestor",
+        "fc114eb81125cef7d374deddc95144bcd9aee748",
+        "HEAD"
+      ],
+      "exitCode": 0,
+      "error": null
+    },
+    {
+      "binary": "git",
+      "argv": [
+        "-c",
+        "core.hooksPath=NUL",
+        "-c",
+        "core.fsmonitor=false",
+        "diff",
+        "--no-renames",
+        "--name-only",
+        "-z",
+        "fc114eb81125cef7d374deddc95144bcd9aee748",
+        "HEAD"
+      ],
+      "exitCode": 0,
+      "error": null
+    },
+    {
+      "binary": "git",
+      "argv": [
+        "-c",
+        "core.hooksPath=NUL",
+        "-c",
+        "core.fsmonitor=false",
+        "diff",
+        "--no-renames",
+        "--name-only",
+        "-z",
+        "HEAD"
+      ],
+      "exitCode": 0,
+      "error": null
+    },
+    {
+      "binary": "git",
+      "argv": [
+        "-c",
+        "core.hooksPath=NUL",
+        "-c",
+        "core.fsmonitor=false",
+        "ls-files",
+        "--others",
+        "--exclude-standard",
+        "-z"
+      ],
+      "exitCode": 0,
+      "error": null
+    },
+    {
+      "binary": "git",
+      "argv": [
+        "-c",
+        "core.hooksPath=NUL",
+        "-c",
+        "core.fsmonitor=false",
+        "rev-parse",
+        "HEAD"
+      ],
+      "exitCode": 0,
+      "error": null
+    },
+    {
+      "binary": "git",
+      "argv": [
+        "-c",
+        "core.hooksPath=NUL",
+        "-c",
+        "core.fsmonitor=false",
+        "status",
+        "--porcelain",
+        "--untracked-files=all"
+      ],
+      "exitCode": 0,
+      "error": null
+    },
+    {
+      "binary": "C:\\Users\\37310\\.cargo\\bin\\rustup.exe",
+      "argv": [
+        "which",
+        "rustc",
+        "--toolchain",
+        "1.95.0"
+      ],
+      "exitCode": 0,
+      "error": null,
+      "log": "2026-10-17T13-33-28.836Z-31336-test-1.log"
+    },
+    {
+      "binary": "C:\\Users\\37310\\.cargo\\bin\\rustup.exe",
+      "argv": [
+        "which",
+        "cargo",
+        "--toolchain",
+        "1.95.0"
+      ],
+      "exitCode": 0,
+      "error": null,
+      "log": "2026-10-17T13-33-28.836Z-31336-test-2.log"
+    },
+    {
+      "binary": "C:\\Users\\37310\\.rustup\\toolchains\\1.95.0-x86_64-pc-windows-msvc\\bin\\rustc.exe",
+      "argv": [
+        "--version"
+      ],
+      "exitCode": 0,
+      "error": null,
+      "log": "2026-10-17T13-33-28.836Z-31336-test-3.log"
+    },
+    {
+      "binary": "C:\\Users\\37310\\.rustup\\toolchains\\1.95.0-x86_64-pc-windows-msvc\\bin\\cargo.exe",
+      "argv": [
+        "--version"
+      ],
+      "exitCode": 0,
+      "error": null,
+      "log": "2026-10-17T13-33-28.836Z-31336-test-4.log"
+    },
+    {
+      "binary": "C:\\Users\\37310\\.rustup\\toolchains\\1.95.0-x86_64-pc-windows-msvc\\bin\\cargo.exe",
+      "argv": [
+        "metadata",
+        "--offline",
+        "--locked",
+        "--format-version",
+        "1",
+        "--manifest-path",
+        "F:\\new\\smaltalk\\water\\.worktrees\\f\\packages\\fixture-scan\\Cargo.toml"
+      ],
+      "exitCode": 0,
+      "error": null,
+      "log": "2026-10-17T13-33-28.836Z-31336-test-5.log"
+    },
+    {
+      "binary": "C:\\Users\\37310\\.rustup\\toolchains\\1.95.0-x86_64-pc-windows-msvc\\bin\\cargo.exe",
+      "argv": [
+        "test",
+        "--offline",
+        "--locked",
+        "--manifest-path",
+        "F:\\new\\smaltalk\\water\\.worktrees\\f\\packages\\fixture-scan\\Cargo.toml",
+        "-p",
+        "water-scan",
+        "--test",
+        "scan_v1",
+        "--",
+        "--test-threads=1",
+        "--format",
+        "pretty"
+      ],
+      "exitCode": 0,
+      "error": null,
+      "log": "2026-10-17T13-33-28.836Z-31336-test-6.log"
+    },
+    {
+      "binary": "git",
+      "argv": [
+        "-c",
+        "core.hooksPath=NUL",
+        "-c",
+        "core.fsmonitor=false",
+        "branch",
+        "--show-current"
+      ],
+      "exitCode": 0,
+      "error": null,
+      "log": "2026-10-17T13-33-28.836Z-31336-test-7.log"
+    },
+    {
+      "binary": "git",
+      "argv": [
+        "-c",
+        "core.hooksPath=NUL",
+        "-c",
+        "core.fsmonitor=false",
+        "merge-base",
+        "--is-ancestor",
+        "fc114eb81125cef7d374deddc95144bcd9aee748",
+        "HEAD"
+      ],
+      "exitCode": 0,
+      "error": null,
+      "log": "2026-10-17T13-33-28.836Z-31336-test-8.log"
+    },
+    {
+      "binary": "git",
+      "argv": [
+        "-c",
+        "core.hooksPath=NUL",
+        "-c",
+        "core.fsmonitor=false",
+        "diff",
+        "--no-renames",
+        "--name-only",
+        "-z",
+        "fc114eb81125cef7d374deddc95144bcd9aee748",
+        "HEAD"
+      ],
+      "exitCode": 0,
+      "error": null,
+      "log": "2026-10-17T13-33-28.836Z-31336-test-9.log"
+    },
+    {
+      "binary": "git",
+      "argv": [
+        "-c",
+        "core.hooksPath=NUL",
+        "-c",
+        "core.fsmonitor=false",
+        "diff",
+        "--no-renames",
+        "--name-only",
+        "-z",
+        "HEAD"
+      ],
+      "exitCode": 0,
+      "error": null,
+      "log": "2026-10-17T13-33-28.836Z-31336-test-10.log"
+    },
+    {
+      "binary": "git",
+      "argv": [
+        "-c",
+        "core.hooksPath=NUL",
+        "-c",
+        "core.fsmonitor=false",
+        "ls-files",
+        "--others",
+        "--exclude-standard",
+        "-z"
+      ],
+      "exitCode": 0,
+      "error": null,
+      "log": "2026-10-17T13-33-28.836Z-31336-test-11.log"
+    },
+    {
+      "binary": "git",
+      "argv": [
+        "-c",
+        "core.hooksPath=NUL",
+        "-c",
+        "core.fsmonitor=false",
+        "rev-parse",
+        "HEAD"
+      ],
+      "exitCode": 0,
+      "error": null,
+      "log": "2026-10-17T13-33-28.836Z-31336-test-12.log"
+    },
+    {
+      "binary": "git",
+      "argv": [
+        "-c",
+        "core.hooksPath=NUL",
+        "-c",
+        "core.fsmonitor=false",
+        "status",
+        "--porcelain",
+        "--untracked-files=all"
+      ],
+      "exitCode": 0,
+      "error": null,
+      "log": "2026-10-17T13-33-28.836Z-31336-test-13.log"
+    }
+  ],
+  "productTestsRun": true,
+  "scannerInvocationAttempted": true,
+  "frozenFiles": 22,
+  "rustVersion": "rustc 1.95.0 (59807616e 2026-04-14)",
+  "cargoVersion": "cargo 1.95.0 (f2d3ce0bd 2026-03-21)",
+  "executedTests": 6,
+  "snapshotFiles": 44,
+  "after": {
+    "head": "fc114eb81125cef7d374deddc95144bcd9aee748",
+    "status": "?? docs/acceptance/wave1/f/behavior-red-hashes.json\n?? docs/acceptance/wave1/f/behavior-red-walk.rs.txt\n?? packages/fixture-scan/Cargo.lock\n?? packages/fixture-scan/Cargo.toml\n?? packages/fixture-scan/README.md\n?? packages/fixture-scan/src/fixture_v1.rs\n?? packages/fixture-scan/src/fixture_v1/marker.rs\n?? packages/fixture-scan/src/fixture_v1/native.rs\n?? packages/fixture-scan/src/fixture_v1/walk.rs\n?? packages/fixture-scan/src/lib.rs\n?? packages/fixture-scan/tests/scan_v1.rs"
+  },
+  "endedAt": "2026-10-17T13:33:35.904Z",
+  "status": "passed",
+  "error": null
+}

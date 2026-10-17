@@ -1,0 +1,31 @@
+{"binary":"C:\\Users\\37310\\.rustup\\toolchains\\1.95.0-x86_64-pc-windows-msvc\\bin\\cargo.exe","argv":["clippy","--offline","--locked","--manifest-path","F:\\new\\smaltalk\\water\\.worktrees\\f\\packages\\fixture-scan\\Cargo.toml","-p","water-scan","--all-targets","--","-D","warnings"],"exitCode":101,"error":null,"log":"2026-10-17T13-29-42.868Z-19080-clippy-6.log"}
+--- stdout ---
+
+--- stderr ---
+    Checking serde_core v1.0.229
+    Checking zmij v1.0.23
+    Checking itoa v1.0.18
+    Checking memchr v2.8.3
+    Checking serde_json v1.0.151
+    Checking serde v1.0.229
+    Checking water-contracts v0.1.0 (F:\new\smaltalk\water\.worktrees\f\crates\water-contracts)
+    Checking water-scan v0.1.0 (F:\new\smaltalk\water\.worktrees\f\packages\fixture-scan)
+error: using `clone` on type `Coverage` which implements the `Copy` trait
+   --> src\fixture_v1\walk.rs:115:26
+    |
+115 |         scope.coverage = self.coverage.clone();
+    |                          ^^^^^^^^^^^^^^^^^^^^^ help: try removing the `clone` call: `self.coverage`
+    |
+    = help: for further information visit https://rust-lang.github.io/rust-clippy/rust-1.95.0/index.html#clone_on_copy
+    = note: `-D clippy::clone-on-copy` implied by `-D warnings`
+    = help: to override `-D warnings` add `#[allow(clippy::clone_on_copy)]`
+
+error: using `clone` on type `IssueCode` which implements the `Copy` trait
+   --> src\fixture_v1\walk.rs:117:19
+    |
+117 |             code: self.code.clone(),
+    |                   ^^^^^^^^^^^^^^^^^ help: try removing the `clone` call: `self.code`
+    |
+    = help: for further information visit https://rust-lang.github.io/rust-clippy/rust-1.95.0/index.html#clone_on_copy
+
+error: could not compile `water-scan` (lib) due to 2 previous errors
