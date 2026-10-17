@@ -1,0 +1,48 @@
+{"binary":"C:\\Users\\37310\\.rustup\\toolchains\\1.95.0-x86_64-pc-windows-msvc\\bin\\cargo.exe","argv":["test","--offline","--locked","--manifest-path","F:\\new\\smaltalk\\water\\.worktrees\\h\\packages\\summary-export\\Cargo.toml","-p","water-summary-export","--test","export_v1","--","--test-threads=1","--format","pretty"],"exitCode":101,"error":null,"log":"2026-10-17T14-33-57.519Z-38684-test-6.log"}
+--- stdout ---
+
+running 5 tests
+test export_counts_and_status ... FAILED
+test export_invariance_and_purity ... ok
+test export_precision_and_totals ... ok
+test export_validation ... FAILED
+test export_whitelist ... FAILED
+
+failures:
+
+---- export_counts_and_status stdout ----
+
+thread 'export_counts_and_status' (17824) panicked at tests\export_v1.rs:680:9:
+assertion `left == right` failed: base
+  left: 0
+ right: 1
+note: run with `RUST_BACKTRACE=1` environment variable to display a backtrace
+
+---- export_validation stdout ----
+
+thread 'export_validation' (4408) panicked at tests\export_v1.rs:465:13:
+assertion `left == right` failed: base: finding count
+  left: 0
+ right: 1
+
+---- export_whitelist stdout ----
+
+thread 'export_whitelist' (26208) panicked at tests\export_v1.rs:440:9:
+assertion `left == right` failed: base: expected summary
+  left: Object {"category_counts": Object {"build_cache": Number(1), "credential": Number(0), "database": Number(0), "download_cache": Number(0), "environment": Number(0), "experiment": Number(0), "history": Number(0), "model": Number(0), "source": Number(0), "temporary": Number(0), "unknown": Number(0)}, "counts": Object {"findings": Number(0), "issues": Number(0), "scopes": Number(1)}, "export_version": String("water.summary-export.v1"), "read_only": Bool(true), "risk_counts": Object {"high": Number(0), "low": Number(0), "protected": Number(0), "review": Number(1)}, "source_schema_version": String("water.scan.v1"), "status": String("completed"), "totals": Object {"allocated_bytes": Null, "coverage_complete": Bool(true), "logical_bytes": Null, "method": String("unavailable"), "scanned_entries": Number(3), "skipped_entries": Number(0)}}
+ right: Object {"category_counts": Object {"build_cache": Number(1), "credential": Number(0), "database": Number(0), "download_cache": Number(0), "environment": Number(0), "experiment": Number(0), "history": Number(0), "model": Number(0), "source": Number(0), "temporary": Number(0), "unknown": Number(0)}, "counts": Object {"findings": Number(1), "issues": Number(0), "scopes": Number(1)}, "export_version": String("water.summary-export.v1"), "read_only": Bool(true), "risk_counts": Object {"high": Number(0), "low": Number(0), "protected": Number(0), "review": Number(1)}, "source_schema_version": String("water.scan.v1"), "status": String("completed"), "totals": Object {"allocated_bytes": Null, "coverage_complete": Bool(true), "logical_bytes": Null, "method": String("unavailable"), "scanned_entries": Number(3), "skipped_entries": Number(0)}}
+
+
+failures:
+    export_counts_and_status
+    export_validation
+    export_whitelist
+
+test result: FAILED. 2 passed; 3 failed; 0 ignored; 0 measured; 0 filtered out; finished in 0.25s
+
+
+--- stderr ---
+   Compiling water-summary-export v0.1.0 (F:\new\smaltalk\water\.worktrees\h\packages\summary-export)
+    Finished `test` profile [unoptimized + debuginfo] target(s) in 3.03s
+     Running tests\export_v1.rs (.local\h-target\debug\deps\export_v1-d5f886f6563f4928.exe)
+error: test failed, to rerun pass `-p water-summary-export --test export_v1`

@@ -1,0 +1,48 @@
+{
+  "file": "packages/summary-export/src/v1.rs",
+  "algorithm": "sha256",
+  "submittedSourceSha256": "3180e0d286c2ed33f761c5179879aabff91c7ad5619370380b96270734b63c68",
+  "submittedBytes": 4459,
+  "controls": [
+    {
+      "label": "blank-finding-count",
+      "originalSha": "3180e0d286c2ed33f761c5179879aabff91c7ad5619370380b96270734b63c68",
+      "badSha": "ae411571488038a4059b26767e512ae5a584147a66277823d883f35ca83a0cab",
+      "restoredSha": "3180e0d286c2ed33f761c5179879aabff91c7ad5619370380b96270734b63c68",
+      "restoredMtimeMs": 1792247667451.8347,
+      "assertion": "base: finding count left 0 right 1",
+      "failedReceipt": "docs/acceptance/wave1/h/2026-10-17T14-33-57.519Z-38684-test-result.json",
+      "restoredReceipt": "docs/acceptance/wave1/h/2026-10-17T14-34-39.956Z-43660-test-result.json"
+    },
+    {
+      "label": "skip-validate",
+      "originalSha": "3180e0d286c2ed33f761c5179879aabff91c7ad5619370380b96270734b63c68",
+      "badSha": "a4acb61e1c9827bd0b43aa44a21511b2385c1e4b8f3d096a2913eb1e8df67931",
+      "restoredSha": "3180e0d286c2ed33f761c5179879aabff91c7ad5619370380b96270734b63c68",
+      "restoredMtimeMs": 1792247781535.6558,
+      "assertion": "unsafe classification: illegal DTO must fail export_validation",
+      "failedReceipt": "docs/acceptance/wave1/h/2026-10-17T14-35-18.712Z-27432-test-result.json",
+      "restoredReceipt": "docs/acceptance/wave1/h/2026-10-17T14-36-47.360Z-34048-test-result.json"
+    },
+    {
+      "label": "leak-scan-id",
+      "originalSha": "3180e0d286c2ed33f761c5179879aabff91c7ad5619370380b96270734b63c68",
+      "badSha": "0bfd6e2ace63ab5495718c6a7ec81c6f2e45f06c4b3dc5d2ad9584c462ef2831",
+      "restoredSha": "3180e0d286c2ed33f761c5179879aabff91c7ad5619370380b96270734b63c68",
+      "restoredMtimeMs": 1792247943688.367,
+      "assertion": "all-categories-canary: exact keys/canary H_SCAN_CANARY and scan_id",
+      "failedReceipt": "docs/acceptance/wave1/h/2026-10-17T14-38-06.685Z-39332-test-result.json",
+      "restoredReceipt": "docs/acceptance/wave1/h/2026-10-17T14-39-49.691Z-39328-test-result.json"
+    },
+    {
+      "label": "unknown-totals-zero",
+      "originalSha": "3180e0d286c2ed33f761c5179879aabff91c7ad5619370380b96270734b63c68",
+      "badSha": "c7fe6f37a378af4d80fa4ecb68e99bd3e66918f333630c2be3ed2793cba33dd6",
+      "restoredSha": "3180e0d286c2ed33f761c5179879aabff91c7ad5619370380b96270734b63c68",
+      "restoredMtimeMs": 1792248163465.976,
+      "assertion": "unknown totals.logical_bytes must stay null",
+      "failedReceipt": "docs/acceptance/wave1/h/2026-10-17T14-41-39.615Z-34096-test-result.json",
+      "restoredReceipt": "docs/acceptance/wave1/h/2026-10-17T14-43-01.946Z-2916-test-result.json"
+    }
+  ]
+}

@@ -1,0 +1,38 @@
+{"binary":"C:\\Users\\37310\\.rustup\\toolchains\\1.95.0-x86_64-pc-windows-msvc\\bin\\cargo.exe","argv":["test","--offline","--locked","--manifest-path","F:\\new\\smaltalk\\water\\.worktrees\\h\\packages\\summary-export\\Cargo.toml","-p","water-summary-export","--test","export_v1","--","--test-threads=1","--format","pretty"],"exitCode":101,"error":null,"log":"2026-10-17T14-38-06.685Z-39332-test-6.log"}
+--- stdout ---
+
+running 5 tests
+test export_counts_and_status ... ok
+test export_invariance_and_purity ... FAILED
+test export_precision_and_totals ... ok
+test export_validation ... ok
+test export_whitelist ... FAILED
+
+failures:
+
+---- export_invariance_and_purity stdout ----
+
+thread 'export_invariance_and_purity' (23140) panicked at tests\export_v1.rs:831:5:
+assertion `left == right` failed: consistent ids, text, and tool fields must not change the summary
+  left: SummaryExport { export_version: "water.summary-export.v1", source_schema_version: WaterScanV1, read_only: true, status: Partial, counts: ReportCounts { scopes: 2, findings: 8, issues: 1 }, risk_counts: RiskCounts { low: 1, review: 2, high: 1, protected: 4 }, category_counts: CategoryCounts { download_cache: 0, build_cache: 5, environment: 0, model: 1, experiment: 0, history: 0, database: 0, credential: 0, source: 0, temporary: 0, unknown: 2 }, totals: ScanTotals { logical_bytes: Some(ByteCount(37)), allocated_bytes: None, method: FileIdentityDeduplicated, coverage_complete: false, scanned_entries: 8, skipped_entries: 1 }, scan_id: OpaqueId("scan-retargeted") }
+ right: SummaryExport { export_version: "water.summary-export.v1", source_schema_version: WaterScanV1, read_only: true, status: Partial, counts: ReportCounts { scopes: 2, findings: 8, issues: 1 }, risk_counts: RiskCounts { low: 1, review: 2, high: 1, protected: 4 }, category_counts: CategoryCounts { download_cache: 0, build_cache: 5, environment: 0, model: 1, experiment: 0, history: 0, database: 0, credential: 0, source: 0, temporary: 0, unknown: 2 }, totals: ScanTotals { logical_bytes: Some(ByteCount(37)), allocated_bytes: None, method: FileIdentityDeduplicated, coverage_complete: false, scanned_entries: 8, skipped_entries: 1 }, scan_id: OpaqueId("scan-view-composite") }
+note: run with `RUST_BACKTRACE=1` environment variable to display a backtrace
+
+---- export_whitelist stdout ----
+
+thread 'export_whitelist' (29116) panicked at tests\export_v1.rs:410:9:
+all-categories-canary: exact keys/canary canary ["H_SCAN_CANARY"]; exact keys {"category_counts", "counts", "export_version", "read_only", "risk_counts", "scan_id", "source_schema_version", "status", "totals"}
+
+
+failures:
+    export_invariance_and_purity
+    export_whitelist
+
+test result: FAILED. 3 passed; 2 failed; 0 ignored; 0 measured; 0 filtered out; finished in 0.23s
+
+
+--- stderr ---
+   Compiling water-summary-export v0.1.0 (F:\new\smaltalk\water\.worktrees\h\packages\summary-export)
+    Finished `test` profile [unoptimized + debuginfo] target(s) in 4.79s
+     Running tests\export_v1.rs (.local\h-target\debug\deps\export_v1-d5f886f6563f4928.exe)
+error: test failed, to rerun pass `-p water-summary-export --test export_v1`

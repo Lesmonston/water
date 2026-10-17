@@ -1,0 +1,46 @@
+{"binary":"C:\\Users\\37310\\.rustup\\toolchains\\1.95.0-x86_64-pc-windows-msvc\\bin\\cargo.exe","argv":["test","--offline","--locked","--manifest-path","F:\\new\\smaltalk\\water\\.worktrees\\h\\packages\\summary-export\\Cargo.toml","-p","water-summary-export","--test","export_v1","--","--test-threads=1","--format","pretty"],"exitCode":101,"error":null,"log":"2026-10-17T14-41-39.615Z-34096-test-6.log"}
+--- stdout ---
+
+running 5 tests
+test export_counts_and_status ... ok
+test export_invariance_and_purity ... ok
+test export_precision_and_totals ... FAILED
+test export_validation ... FAILED
+test export_whitelist ... FAILED
+
+failures:
+
+---- export_precision_and_totals stdout ----
+
+thread 'export_precision_and_totals' (15408) panicked at tests\export_v1.rs:564:5:
+unknown totals.logical_bytes must stay null
+note: run with `RUST_BACKTRACE=1` environment variable to display a backtrace
+
+---- export_validation stdout ----
+
+thread 'export_validation' (12748) panicked at tests\export_v1.rs:470:13:
+assertion `left == right` failed: base: totals copied
+  left: ScanTotals { logical_bytes: Some(ByteCount(0)), allocated_bytes: None, method: Unavailable, coverage_complete: true, scanned_entries: 3, skipped_entries: 0 }
+ right: ScanTotals { logical_bytes: None, allocated_bytes: None, method: Unavailable, coverage_complete: true, scanned_entries: 3, skipped_entries: 0 }
+
+---- export_whitelist stdout ----
+
+thread 'export_whitelist' (31376) panicked at tests\export_v1.rs:430:9:
+assertion `left == right` failed
+  left: ScanTotals { logical_bytes: Some(ByteCount(0)), allocated_bytes: None, method: Unavailable, coverage_complete: true, scanned_entries: 3, skipped_entries: 0 }
+ right: ScanTotals { logical_bytes: None, allocated_bytes: None, method: Unavailable, coverage_complete: true, scanned_entries: 3, skipped_entries: 0 }
+
+
+failures:
+    export_precision_and_totals
+    export_validation
+    export_whitelist
+
+test result: FAILED. 2 passed; 3 failed; 0 ignored; 0 measured; 0 filtered out; finished in 0.11s
+
+
+--- stderr ---
+   Compiling water-summary-export v0.1.0 (F:\new\smaltalk\water\.worktrees\h\packages\summary-export)
+    Finished `test` profile [unoptimized + debuginfo] target(s) in 3.85s
+     Running tests\export_v1.rs (.local\h-target\debug\deps\export_v1-d5f886f6563f4928.exe)
+error: test failed, to rerun pass `-p water-summary-export --test export_v1`
