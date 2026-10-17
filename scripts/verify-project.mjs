@@ -25,8 +25,23 @@ const required = [
   'docs/tasks/W0-INIT-AND-RESEARCH.md', 'docs/tasks/W1-READONLY-CORE.md',
   'research/OPEN-SOURCE-ANALYSIS.md', 'research/README.md',
   'research/sources/ai-developer-cleaner-research-2026-10-17.zh-CN.md',
+  'docs/CONTROLLER-WORKFLOW.md', 'docs/dispatch/README.md',
+  'docs/dispatch/templates/WORK-ORDER.md', 'docs/dispatch/templates/REPORT.md',
+  'research/CONTROLLER-WORKFLOW-STUDY.md',
 ];
 for (const file of required) assert(existsSync(resolve(root, file)), `Missing ${file}`);
+const dispatchRegistry = JSON.parse(readFileSync(resolve(root, 'docs/dispatch/registry.json'), 'utf8'));
+assert.equal(dispatchRegistry.schemaVersion, 1);
+assert.equal(dispatchRegistry.mode, 'manual-external-paste');
+assert(Array.isArray(dispatchRegistry.slots) && Array.isArray(dispatchRegistry.tasks));
+assert.equal(new Set(dispatchRegistry.tasks.map((task) => task.id)).size, dispatchRegistry.tasks.length);
+const workflowSources = JSON.parse(readFileSync(resolve(root, 'research/controller-workflow-sources.json'), 'utf8'));
+assert.equal(workflowSources.schemaVersion, 1);
+assert.equal(workflowSources.mode, 'local-read-only-workflow-study');
+assert.equal(workflowSources.contentCopied, false);
+assert.equal(workflowSources.sourceProgramsExecuted, false);
+assert(workflowSources.sources.length > 0);
+for (const source of workflowSources.sources) assert.match(source.sha256, /^[a-f0-9]{64}$/);
 const manifest = JSON.parse(readFileSync(resolve(root, 'research/upstreams.lock.json'), 'utf8'));
 assert.equal(manifest.schemaVersion, 1);
 assert.equal(manifest.productCodeReused, false);
@@ -61,7 +76,7 @@ for (const item of manifest.upstreams) {
 function markdownFiles(dir) {
   const found = [];
   for (const item of readdirSync(dir, { withFileTypes: true })) {
-    if (['.git', 'upstream', 'node_modules', 'target'].includes(item.name)) continue;
+    if (['.git', '.worktrees', 'upstream', 'node_modules', 'target'].includes(item.name)) continue;
     const path = resolve(dir, item.name);
     if (item.isDirectory()) found.push(...markdownFiles(path));
     else if (item.isFile() && item.name.endsWith('.md')) found.push(path);
@@ -121,6 +136,8 @@ assert(!existsSync(resolve(root, '.gitmodules')), 'No upstream submodules expect
 console.log(JSON.stringify({
   status: 'passed', markdownFiles: markdown.length, localLinks, pinnedSourceLinks,
   externalPinnedSourceLinks,
+  dispatchRegistryTasks: dispatchRegistry.tasks.length,
+  workflowSourceRecords: workflowSources.sources.length,
   upstreams: manifest.upstreams.length, checkedLocalSnapshots: checkedSnapshots,
   mode: strict ? 'with-upstreams' : 'documents-and-available-snapshots',
   boundary: 'Metadata, provenance and handoff checks only; no upstream runtime or cleanup safety test.',

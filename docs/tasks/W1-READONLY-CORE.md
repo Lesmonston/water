@@ -1,10 +1,10 @@
 # W1：只读内核与fixture验证
 
-状态：W0已完成，下一项待开始。负责人：总控分派；尚未实现。
+状态：W0已完成；仍为阶段任务，尚未形成可外贴的READY实现票。总控先写具体架构、冻结契约并准备基线/工作树/检查；用户外贴后由执行者实现，总控验收。当前尚未实现。
 
 ## 交付
 
-1. 按架构定义ScanScope、Finding、Evidence、SizeEstimate与状态枚举；无删除/命令执行接口。
+1. 总控先冻结ScanScope、Finding、Evidence、SizeEstimate与状态/错误语义；执行者按其实现，不能自行改契约。无删除/命令执行接口。
 2. 独立Rust核心，先命令行fixture入口，不绑定UI与用户HOME。
 3. 受控目录遍历：取消、深度/资源限制、显式scope、重叠根去重、链接不跟随、partial与权限错误。
 4. Node/Python项目marker只读识别；名称命中保持弱证据，不直接给低风险建议。
