@@ -1,0 +1,1181 @@
+{
+  "view_version": "water.report-view.v1",
+  "golden_cases": [
+    {
+      "id": "base",
+      "input": {
+        "schema_version": "water.scan.v1",
+        "scan_id": "scan-fixture-1",
+        "status": "completed",
+        "scopes": [
+          {
+            "scope_id": "scope-1",
+            "label": "Fixture A",
+            "platform": "windows",
+            "origin": "user_selected",
+            "coverage": "complete"
+          }
+        ],
+        "findings": [
+          {
+            "finding_id": "finding-1",
+            "scope_id": "scope-1",
+            "relative_path": "project/.cache/ruff",
+            "tool": {
+              "tool_id": "ruff",
+              "name": "Ruff fixture",
+              "version": "0.0-fixture",
+              "root_source": "marker"
+            },
+            "rule_version": "1",
+            "category": "build_cache",
+            "risk": "review",
+            "recoverability": "rebuild",
+            "activity": "unknown",
+            "confidence": "verified_structure",
+            "evidence": [
+              {
+                "code": "structure_match",
+                "source": "filesystem",
+                "summary": "Fictional fixture metadata only; not a real scan."
+              }
+            ],
+            "protection_reasons": [],
+            "references": {
+              "state": "unknown",
+              "project_ids": []
+            },
+            "size": {
+              "logical_bytes": "9007199254740993",
+              "allocated_bytes": null,
+              "reclaimable_lower_bytes": null,
+              "reclaimable_upper_bytes": null,
+              "method": "logical_sum",
+              "confidence": "estimated",
+              "shared": "unknown"
+            }
+          }
+        ],
+        "issues": [],
+        "totals": {
+          "logical_bytes": null,
+          "allocated_bytes": null,
+          "method": "unavailable",
+          "coverage_complete": true,
+          "scanned_entries": 3,
+          "skipped_entries": 0
+        }
+      },
+      "expected": {
+        "view_version": "water.report-view.v1",
+        "read_only": true,
+        "source_schema_version": "water.scan.v1",
+        "scan_id": "scan-fixture-1",
+        "status": "completed",
+        "scopes": [
+          {
+            "scope_id": "scope-1",
+            "label": "Fixture A",
+            "platform": "windows",
+            "origin": "user_selected",
+            "coverage": "complete"
+          }
+        ],
+        "findings": [
+          {
+            "id": "finding-1",
+            "scope_id": "scope-1",
+            "title": "project/.cache/ruff",
+            "relative_path": "project/.cache/ruff",
+            "tool_id": "tool:ruff",
+            "tool_name": "Ruff fixture",
+            "source_tool": {
+              "tool_id": "ruff",
+              "name": "Ruff fixture",
+              "version": "0.0-fixture",
+              "root_source": "marker"
+            },
+            "rule_version": "1",
+            "category": "build_cache",
+            "risk": "review",
+            "recoverability": "rebuild",
+            "activity": "unknown",
+            "confidence": "verified_structure",
+            "evidence": "Fictional fixture metadata only; not a real scan.",
+            "evidence_items": [
+              {
+                "code": "structure_match",
+                "source": "filesystem",
+                "summary": "Fictional fixture metadata only; not a real scan."
+              }
+            ],
+            "protection_reasons": [],
+            "references": {
+              "state": "unknown",
+              "project_ids": []
+            },
+            "logical_bytes": "9007199254740993",
+            "size": {
+              "logical_bytes": "9007199254740993",
+              "allocated_bytes": null,
+              "reclaimable_lower_bytes": null,
+              "reclaimable_upper_bytes": null,
+              "method": "logical_sum",
+              "confidence": "estimated",
+              "shared": "unknown"
+            }
+          }
+        ],
+        "issues": [],
+        "totals": {
+          "logical_bytes": null,
+          "allocated_bytes": null,
+          "method": "unavailable",
+          "coverage_complete": true,
+          "scanned_entries": 3,
+          "skipped_entries": 0
+        }
+      }
+    },
+    {
+      "id": "composite_partial",
+      "input": {
+        "schema_version": "water.scan.v1",
+        "scan_id": "scan-view-composite",
+        "status": "partial",
+        "scopes": [
+          {
+            "scope_id": "scope-1",
+            "label": "Fixture A",
+            "platform": "windows",
+            "origin": "user_selected",
+            "coverage": "partial"
+          },
+          {
+            "scope_id": "scope-2",
+            "label": "Fixture B",
+            "platform": "macos",
+            "origin": "config_discovered",
+            "coverage": "complete"
+          }
+        ],
+        "findings": [
+          {
+            "finding_id": "big-before",
+            "scope_id": "scope-1",
+            "relative_path": "same/path",
+            "tool": {
+              "tool_id": "all",
+              "name": "all fixture",
+              "version": "0.0-fixture",
+              "root_source": "marker"
+            },
+            "rule_version": "1",
+            "category": "build_cache",
+            "risk": "review",
+            "recoverability": "redownload",
+            "activity": "recent",
+            "confidence": "verified_structure",
+            "evidence": [
+              {
+                "code": "structure_match",
+                "source": "filesystem",
+                "summary": "Fictional fixture metadata only; not a real scan."
+              }
+            ],
+            "protection_reasons": [],
+            "references": {
+              "state": "unknown",
+              "project_ids": []
+            },
+            "size": {
+              "logical_bytes": "9007199254740993",
+              "allocated_bytes": null,
+              "reclaimable_lower_bytes": null,
+              "reclaimable_upper_bytes": null,
+              "method": "logical_sum",
+              "confidence": "estimated",
+              "shared": "unknown"
+            }
+          },
+          {
+            "finding_id": "big-after",
+            "scope_id": "scope-1",
+            "relative_path": "other/cache",
+            "tool": {
+              "tool_id": "unknown",
+              "name": "unknown fixture",
+              "version": "0.0-fixture",
+              "root_source": "marker"
+            },
+            "rule_version": "1",
+            "category": "build_cache",
+            "risk": "high",
+            "recoverability": "conditional",
+            "activity": "unknown",
+            "confidence": "verified_structure",
+            "evidence": [
+              {
+                "code": "structure_match",
+                "source": "filesystem",
+                "summary": "Fictional fixture metadata only; not a real scan."
+              }
+            ],
+            "protection_reasons": [],
+            "references": {
+              "state": "unknown",
+              "project_ids": []
+            },
+            "size": {
+              "logical_bytes": "9007199254740992",
+              "allocated_bytes": null,
+              "reclaimable_lower_bytes": null,
+              "reclaimable_upper_bytes": null,
+              "method": "logical_sum",
+              "confidence": "estimated",
+              "shared": "unknown"
+            }
+          },
+          {
+            "finding_id": "zero",
+            "scope_id": "scope-1",
+            "relative_path": "z-zero",
+            "tool": null,
+            "rule_version": "1",
+            "category": "build_cache",
+            "risk": "low",
+            "recoverability": "not_applicable",
+            "activity": "not_observed",
+            "confidence": "verified_structure",
+            "evidence": [
+              {
+                "code": "structure_match",
+                "source": "filesystem",
+                "summary": "Fictional fixture metadata only; not a real scan."
+              }
+            ],
+            "protection_reasons": [],
+            "references": {
+              "state": "known",
+              "project_ids": []
+            },
+            "size": {
+              "logical_bytes": "0",
+              "allocated_bytes": null,
+              "reclaimable_lower_bytes": null,
+              "reclaimable_upper_bytes": null,
+              "method": "logical_sum",
+              "confidence": "estimated",
+              "shared": "unknown"
+            }
+          },
+          {
+            "finding_id": "unknown-first",
+            "scope_id": "scope-1",
+            "relative_path": "z-unknown",
+            "tool": null,
+            "rule_version": "1",
+            "category": "unknown",
+            "risk": "protected",
+            "recoverability": "unknown",
+            "activity": "unknown",
+            "confidence": "unknown",
+            "evidence": [
+              {
+                "code": "structure_match",
+                "source": "filesystem",
+                "summary": "Fictional fixture metadata only; not a real scan."
+              }
+            ],
+            "protection_reasons": [
+              "unique_asset"
+            ],
+            "references": {
+              "state": "unknown",
+              "project_ids": []
+            },
+            "size": {
+              "logical_bytes": null,
+              "allocated_bytes": null,
+              "reclaimable_lower_bytes": null,
+              "reclaimable_upper_bytes": null,
+              "method": "unknown",
+              "confidence": "unknown",
+              "shared": "unknown"
+            }
+          },
+          {
+            "finding_id": "max",
+            "scope_id": "scope-1",
+            "relative_path": "project/模型 %2e%2e/<tag>",
+            "tool": {
+              "tool_id": "no_tool",
+              "name": "no_tool fixture",
+              "version": "0.0-fixture",
+              "root_source": "marker"
+            },
+            "rule_version": "1",
+            "category": "model",
+            "risk": "protected",
+            "recoverability": "conditional",
+            "activity": "running",
+            "confidence": "verified_structure",
+            "evidence": [
+              {
+                "code": "structure_match",
+                "source": "filesystem",
+                "summary": "<script>literal text</script>"
+              },
+              {
+                "code": "reference",
+                "source": "rule",
+                "summary": "Unicode 模型 and %2e%2e stay literal"
+              }
+            ],
+            "protection_reasons": [
+              "unique_asset"
+            ],
+            "references": {
+              "state": "unknown",
+              "project_ids": []
+            },
+            "size": {
+              "logical_bytes": "18446744073709551615",
+              "allocated_bytes": null,
+              "reclaimable_lower_bytes": null,
+              "reclaimable_upper_bytes": null,
+              "method": "logical_sum",
+              "confidence": "estimated",
+              "shared": "unknown"
+            }
+          },
+          {
+            "finding_id": "unknown-last",
+            "scope_id": "scope-1",
+            "relative_path": "a-unknown",
+            "tool": {
+              "tool_id": "tool_all",
+              "name": "<img src=x onerror=literal>",
+              "version": "0.0-fixture",
+              "root_source": "marker"
+            },
+            "rule_version": "1",
+            "category": "unknown",
+            "risk": "protected",
+            "recoverability": "unknown",
+            "activity": "unknown",
+            "confidence": "path_only",
+            "evidence": [
+              {
+                "code": "structure_match",
+                "source": "filesystem",
+                "summary": "Fictional fixture metadata only; not a real scan."
+              }
+            ],
+            "protection_reasons": [
+              "unique_asset"
+            ],
+            "references": {
+              "state": "unknown",
+              "project_ids": []
+            },
+            "size": {
+              "logical_bytes": null,
+              "allocated_bytes": null,
+              "reclaimable_lower_bytes": null,
+              "reclaimable_upper_bytes": null,
+              "method": "unknown",
+              "confidence": "unknown",
+              "shared": "unknown"
+            }
+          },
+          {
+            "finding_id": "scope-root",
+            "scope_id": "scope-2",
+            "relative_path": "",
+            "tool": {
+              "tool_id": "ruff",
+              "name": "ruff fixture",
+              "version": "0.0-fixture",
+              "root_source": "marker"
+            },
+            "rule_version": "1",
+            "category": "build_cache",
+            "risk": "protected",
+            "recoverability": "rebuild",
+            "activity": "unknown",
+            "confidence": "verified_structure",
+            "evidence": [
+              {
+                "code": "structure_match",
+                "source": "filesystem",
+                "summary": "Fictional fixture metadata only; not a real scan."
+              }
+            ],
+            "protection_reasons": [
+              "source_root",
+              "protected_descendant"
+            ],
+            "references": {
+              "state": "unknown",
+              "project_ids": []
+            },
+            "size": {
+              "logical_bytes": "1",
+              "allocated_bytes": null,
+              "reclaimable_lower_bytes": null,
+              "reclaimable_upper_bytes": null,
+              "method": "logical_sum",
+              "confidence": "estimated",
+              "shared": "unknown"
+            }
+          },
+          {
+            "finding_id": "duplicate-title",
+            "scope_id": "scope-2",
+            "relative_path": "same/path",
+            "tool": {
+              "tool_id": "ruff",
+              "name": "ruff fixture",
+              "version": "0.0-fixture",
+              "root_source": "marker"
+            },
+            "rule_version": "1",
+            "category": "build_cache",
+            "risk": "review",
+            "recoverability": "rebuild",
+            "activity": "unknown",
+            "confidence": "verified_structure",
+            "evidence": [
+              {
+                "code": "structure_match",
+                "source": "filesystem",
+                "summary": "Fictional fixture metadata only; not a real scan."
+              }
+            ],
+            "protection_reasons": [],
+            "references": {
+              "state": "unknown",
+              "project_ids": []
+            },
+            "size": {
+              "logical_bytes": "2",
+              "allocated_bytes": null,
+              "reclaimable_lower_bytes": null,
+              "reclaimable_upper_bytes": null,
+              "method": "logical_sum",
+              "confidence": "estimated",
+              "shared": "unknown"
+            }
+          }
+        ],
+        "issues": [
+          {
+            "code": "permission_denied",
+            "scope_id": "scope-1",
+            "relative_path": "unreadable",
+            "message": "Synthetic input only; no ACL was changed."
+          }
+        ],
+        "totals": {
+          "logical_bytes": "37",
+          "allocated_bytes": null,
+          "method": "file_identity_deduplicated",
+          "coverage_complete": false,
+          "scanned_entries": 8,
+          "skipped_entries": 1
+        }
+      },
+      "expected": {
+        "view_version": "water.report-view.v1",
+        "read_only": true,
+        "source_schema_version": "water.scan.v1",
+        "scan_id": "scan-view-composite",
+        "status": "partial",
+        "scopes": [
+          {
+            "scope_id": "scope-1",
+            "label": "Fixture A",
+            "platform": "windows",
+            "origin": "user_selected",
+            "coverage": "partial"
+          },
+          {
+            "scope_id": "scope-2",
+            "label": "Fixture B",
+            "platform": "macos",
+            "origin": "config_discovered",
+            "coverage": "complete"
+          }
+        ],
+        "findings": [
+          {
+            "id": "big-before",
+            "scope_id": "scope-1",
+            "title": "same/path",
+            "relative_path": "same/path",
+            "tool_id": "tool:all",
+            "tool_name": "all fixture",
+            "source_tool": {
+              "tool_id": "all",
+              "name": "all fixture",
+              "version": "0.0-fixture",
+              "root_source": "marker"
+            },
+            "rule_version": "1",
+            "category": "build_cache",
+            "risk": "review",
+            "recoverability": "redownload",
+            "activity": "recent",
+            "confidence": "verified_structure",
+            "evidence": "Fictional fixture metadata only; not a real scan.",
+            "evidence_items": [
+              {
+                "code": "structure_match",
+                "source": "filesystem",
+                "summary": "Fictional fixture metadata only; not a real scan."
+              }
+            ],
+            "protection_reasons": [],
+            "references": {
+              "state": "unknown",
+              "project_ids": []
+            },
+            "logical_bytes": "9007199254740993",
+            "size": {
+              "logical_bytes": "9007199254740993",
+              "allocated_bytes": null,
+              "reclaimable_lower_bytes": null,
+              "reclaimable_upper_bytes": null,
+              "method": "logical_sum",
+              "confidence": "estimated",
+              "shared": "unknown"
+            }
+          },
+          {
+            "id": "big-after",
+            "scope_id": "scope-1",
+            "title": "other/cache",
+            "relative_path": "other/cache",
+            "tool_id": "tool:unknown",
+            "tool_name": "unknown fixture",
+            "source_tool": {
+              "tool_id": "unknown",
+              "name": "unknown fixture",
+              "version": "0.0-fixture",
+              "root_source": "marker"
+            },
+            "rule_version": "1",
+            "category": "build_cache",
+            "risk": "high",
+            "recoverability": "conditional",
+            "activity": "unknown",
+            "confidence": "verified_structure",
+            "evidence": "Fictional fixture metadata only; not a real scan.",
+            "evidence_items": [
+              {
+                "code": "structure_match",
+                "source": "filesystem",
+                "summary": "Fictional fixture metadata only; not a real scan."
+              }
+            ],
+            "protection_reasons": [],
+            "references": {
+              "state": "unknown",
+              "project_ids": []
+            },
+            "logical_bytes": "9007199254740992",
+            "size": {
+              "logical_bytes": "9007199254740992",
+              "allocated_bytes": null,
+              "reclaimable_lower_bytes": null,
+              "reclaimable_upper_bytes": null,
+              "method": "logical_sum",
+              "confidence": "estimated",
+              "shared": "unknown"
+            }
+          },
+          {
+            "id": "zero",
+            "scope_id": "scope-1",
+            "title": "z-zero",
+            "relative_path": "z-zero",
+            "tool_id": "no_tool",
+            "tool_name": "Unknown tool",
+            "source_tool": null,
+            "rule_version": "1",
+            "category": "build_cache",
+            "risk": "low",
+            "recoverability": "not_applicable",
+            "activity": "not_observed",
+            "confidence": "verified_structure",
+            "evidence": "Fictional fixture metadata only; not a real scan.",
+            "evidence_items": [
+              {
+                "code": "structure_match",
+                "source": "filesystem",
+                "summary": "Fictional fixture metadata only; not a real scan."
+              }
+            ],
+            "protection_reasons": [],
+            "references": {
+              "state": "known",
+              "project_ids": []
+            },
+            "logical_bytes": "0",
+            "size": {
+              "logical_bytes": "0",
+              "allocated_bytes": null,
+              "reclaimable_lower_bytes": null,
+              "reclaimable_upper_bytes": null,
+              "method": "logical_sum",
+              "confidence": "estimated",
+              "shared": "unknown"
+            }
+          },
+          {
+            "id": "unknown-first",
+            "scope_id": "scope-1",
+            "title": "z-unknown",
+            "relative_path": "z-unknown",
+            "tool_id": "no_tool",
+            "tool_name": "Unknown tool",
+            "source_tool": null,
+            "rule_version": "1",
+            "category": "unknown",
+            "risk": "protected",
+            "recoverability": "unknown",
+            "activity": "unknown",
+            "confidence": "unknown",
+            "evidence": "Fictional fixture metadata only; not a real scan.",
+            "evidence_items": [
+              {
+                "code": "structure_match",
+                "source": "filesystem",
+                "summary": "Fictional fixture metadata only; not a real scan."
+              }
+            ],
+            "protection_reasons": [
+              "unique_asset"
+            ],
+            "references": {
+              "state": "unknown",
+              "project_ids": []
+            },
+            "logical_bytes": null,
+            "size": {
+              "logical_bytes": null,
+              "allocated_bytes": null,
+              "reclaimable_lower_bytes": null,
+              "reclaimable_upper_bytes": null,
+              "method": "unknown",
+              "confidence": "unknown",
+              "shared": "unknown"
+            }
+          },
+          {
+            "id": "max",
+            "scope_id": "scope-1",
+            "title": "project/模型 %2e%2e/<tag>",
+            "relative_path": "project/模型 %2e%2e/<tag>",
+            "tool_id": "tool:no_tool",
+            "tool_name": "no_tool fixture",
+            "source_tool": {
+              "tool_id": "no_tool",
+              "name": "no_tool fixture",
+              "version": "0.0-fixture",
+              "root_source": "marker"
+            },
+            "rule_version": "1",
+            "category": "model",
+            "risk": "protected",
+            "recoverability": "conditional",
+            "activity": "running",
+            "confidence": "verified_structure",
+            "evidence": "<script>literal text</script>\nUnicode 模型 and %2e%2e stay literal",
+            "evidence_items": [
+              {
+                "code": "structure_match",
+                "source": "filesystem",
+                "summary": "<script>literal text</script>"
+              },
+              {
+                "code": "reference",
+                "source": "rule",
+                "summary": "Unicode 模型 and %2e%2e stay literal"
+              }
+            ],
+            "protection_reasons": [
+              "unique_asset"
+            ],
+            "references": {
+              "state": "unknown",
+              "project_ids": []
+            },
+            "logical_bytes": "18446744073709551615",
+            "size": {
+              "logical_bytes": "18446744073709551615",
+              "allocated_bytes": null,
+              "reclaimable_lower_bytes": null,
+              "reclaimable_upper_bytes": null,
+              "method": "logical_sum",
+              "confidence": "estimated",
+              "shared": "unknown"
+            }
+          },
+          {
+            "id": "unknown-last",
+            "scope_id": "scope-1",
+            "title": "a-unknown",
+            "relative_path": "a-unknown",
+            "tool_id": "tool:tool_all",
+            "tool_name": "<img src=x onerror=literal>",
+            "source_tool": {
+              "tool_id": "tool_all",
+              "name": "<img src=x onerror=literal>",
+              "version": "0.0-fixture",
+              "root_source": "marker"
+            },
+            "rule_version": "1",
+            "category": "unknown",
+            "risk": "protected",
+            "recoverability": "unknown",
+            "activity": "unknown",
+            "confidence": "path_only",
+            "evidence": "Fictional fixture metadata only; not a real scan.",
+            "evidence_items": [
+              {
+                "code": "structure_match",
+                "source": "filesystem",
+                "summary": "Fictional fixture metadata only; not a real scan."
+              }
+            ],
+            "protection_reasons": [
+              "unique_asset"
+            ],
+            "references": {
+              "state": "unknown",
+              "project_ids": []
+            },
+            "logical_bytes": null,
+            "size": {
+              "logical_bytes": null,
+              "allocated_bytes": null,
+              "reclaimable_lower_bytes": null,
+              "reclaimable_upper_bytes": null,
+              "method": "unknown",
+              "confidence": "unknown",
+              "shared": "unknown"
+            }
+          },
+          {
+            "id": "scope-root",
+            "scope_id": "scope-2",
+            "title": "Fixture B",
+            "relative_path": "",
+            "tool_id": "tool:ruff",
+            "tool_name": "ruff fixture",
+            "source_tool": {
+              "tool_id": "ruff",
+              "name": "ruff fixture",
+              "version": "0.0-fixture",
+              "root_source": "marker"
+            },
+            "rule_version": "1",
+            "category": "build_cache",
+            "risk": "protected",
+            "recoverability": "rebuild",
+            "activity": "unknown",
+            "confidence": "verified_structure",
+            "evidence": "Fictional fixture metadata only; not a real scan.",
+            "evidence_items": [
+              {
+                "code": "structure_match",
+                "source": "filesystem",
+                "summary": "Fictional fixture metadata only; not a real scan."
+              }
+            ],
+            "protection_reasons": [
+              "source_root",
+              "protected_descendant"
+            ],
+            "references": {
+              "state": "unknown",
+              "project_ids": []
+            },
+            "logical_bytes": "1",
+            "size": {
+              "logical_bytes": "1",
+              "allocated_bytes": null,
+              "reclaimable_lower_bytes": null,
+              "reclaimable_upper_bytes": null,
+              "method": "logical_sum",
+              "confidence": "estimated",
+              "shared": "unknown"
+            }
+          },
+          {
+            "id": "duplicate-title",
+            "scope_id": "scope-2",
+            "title": "same/path",
+            "relative_path": "same/path",
+            "tool_id": "tool:ruff",
+            "tool_name": "ruff fixture",
+            "source_tool": {
+              "tool_id": "ruff",
+              "name": "ruff fixture",
+              "version": "0.0-fixture",
+              "root_source": "marker"
+            },
+            "rule_version": "1",
+            "category": "build_cache",
+            "risk": "review",
+            "recoverability": "rebuild",
+            "activity": "unknown",
+            "confidence": "verified_structure",
+            "evidence": "Fictional fixture metadata only; not a real scan.",
+            "evidence_items": [
+              {
+                "code": "structure_match",
+                "source": "filesystem",
+                "summary": "Fictional fixture metadata only; not a real scan."
+              }
+            ],
+            "protection_reasons": [],
+            "references": {
+              "state": "unknown",
+              "project_ids": []
+            },
+            "logical_bytes": "2",
+            "size": {
+              "logical_bytes": "2",
+              "allocated_bytes": null,
+              "reclaimable_lower_bytes": null,
+              "reclaimable_upper_bytes": null,
+              "method": "logical_sum",
+              "confidence": "estimated",
+              "shared": "unknown"
+            }
+          }
+        ],
+        "issues": [
+          {
+            "code": "permission_denied",
+            "scope_id": "scope-1",
+            "relative_path": "unreadable",
+            "message": "Synthetic input only; no ACL was changed."
+          }
+        ],
+        "totals": {
+          "logical_bytes": "37",
+          "allocated_bytes": null,
+          "method": "file_identity_deduplicated",
+          "coverage_complete": false,
+          "scanned_entries": 8,
+          "skipped_entries": 1
+        }
+      }
+    },
+    {
+      "id": "cancelled",
+      "input": {
+        "schema_version": "water.scan.v1",
+        "scan_id": "scan-view-cancelled",
+        "status": "cancelled",
+        "scopes": [
+          {
+            "scope_id": "scope-1",
+            "label": "Fixture A",
+            "platform": "windows",
+            "origin": "user_selected",
+            "coverage": "cancelled"
+          }
+        ],
+        "findings": [
+          {
+            "finding_id": "finding-1",
+            "scope_id": "scope-1",
+            "relative_path": "project/.cache/ruff",
+            "tool": {
+              "tool_id": "ruff",
+              "name": "Ruff fixture",
+              "version": "0.0-fixture",
+              "root_source": "marker"
+            },
+            "rule_version": "1",
+            "category": "unknown",
+            "risk": "protected",
+            "recoverability": "rebuild",
+            "activity": "unknown",
+            "confidence": "unknown",
+            "evidence": [
+              {
+                "code": "structure_match",
+                "source": "filesystem",
+                "summary": "Fictional fixture metadata only; not a real scan."
+              }
+            ],
+            "protection_reasons": [
+              "unknown_ownership"
+            ],
+            "references": {
+              "state": "unknown",
+              "project_ids": []
+            },
+            "size": {
+              "logical_bytes": null,
+              "allocated_bytes": null,
+              "reclaimable_lower_bytes": null,
+              "reclaimable_upper_bytes": null,
+              "method": "unknown",
+              "confidence": "unknown",
+              "shared": "unknown"
+            }
+          }
+        ],
+        "issues": [
+          {
+            "code": "cancelled",
+            "scope_id": "scope-1",
+            "relative_path": null,
+            "message": "Synthetic cancelled input."
+          }
+        ],
+        "totals": {
+          "logical_bytes": null,
+          "allocated_bytes": null,
+          "method": "unavailable",
+          "coverage_complete": false,
+          "scanned_entries": 3,
+          "skipped_entries": 0
+        }
+      },
+      "expected": {
+        "view_version": "water.report-view.v1",
+        "read_only": true,
+        "source_schema_version": "water.scan.v1",
+        "scan_id": "scan-view-cancelled",
+        "status": "cancelled",
+        "scopes": [
+          {
+            "scope_id": "scope-1",
+            "label": "Fixture A",
+            "platform": "windows",
+            "origin": "user_selected",
+            "coverage": "cancelled"
+          }
+        ],
+        "findings": [
+          {
+            "id": "finding-1",
+            "scope_id": "scope-1",
+            "title": "project/.cache/ruff",
+            "relative_path": "project/.cache/ruff",
+            "tool_id": "tool:ruff",
+            "tool_name": "Ruff fixture",
+            "source_tool": {
+              "tool_id": "ruff",
+              "name": "Ruff fixture",
+              "version": "0.0-fixture",
+              "root_source": "marker"
+            },
+            "rule_version": "1",
+            "category": "unknown",
+            "risk": "protected",
+            "recoverability": "rebuild",
+            "activity": "unknown",
+            "confidence": "unknown",
+            "evidence": "Fictional fixture metadata only; not a real scan.",
+            "evidence_items": [
+              {
+                "code": "structure_match",
+                "source": "filesystem",
+                "summary": "Fictional fixture metadata only; not a real scan."
+              }
+            ],
+            "protection_reasons": [
+              "unknown_ownership"
+            ],
+            "references": {
+              "state": "unknown",
+              "project_ids": []
+            },
+            "logical_bytes": null,
+            "size": {
+              "logical_bytes": null,
+              "allocated_bytes": null,
+              "reclaimable_lower_bytes": null,
+              "reclaimable_upper_bytes": null,
+              "method": "unknown",
+              "confidence": "unknown",
+              "shared": "unknown"
+            }
+          }
+        ],
+        "issues": [
+          {
+            "code": "cancelled",
+            "scope_id": "scope-1",
+            "relative_path": null,
+            "message": "Synthetic cancelled input."
+          }
+        ],
+        "totals": {
+          "logical_bytes": null,
+          "allocated_bytes": null,
+          "method": "unavailable",
+          "coverage_complete": false,
+          "scanned_entries": 3,
+          "skipped_entries": 0
+        }
+      }
+    },
+    {
+      "id": "empty_completed",
+      "input": {
+        "schema_version": "water.scan.v1",
+        "scan_id": "scan-view-empty",
+        "status": "completed",
+        "scopes": [
+          {
+            "scope_id": "scope-1",
+            "label": "Fixture A",
+            "platform": "windows",
+            "origin": "user_selected",
+            "coverage": "complete"
+          }
+        ],
+        "findings": [],
+        "issues": [],
+        "totals": {
+          "logical_bytes": null,
+          "allocated_bytes": null,
+          "method": "unavailable",
+          "coverage_complete": true,
+          "scanned_entries": 0,
+          "skipped_entries": 0
+        }
+      },
+      "expected": {
+        "view_version": "water.report-view.v1",
+        "read_only": true,
+        "source_schema_version": "water.scan.v1",
+        "scan_id": "scan-view-empty",
+        "status": "completed",
+        "scopes": [
+          {
+            "scope_id": "scope-1",
+            "label": "Fixture A",
+            "platform": "windows",
+            "origin": "user_selected",
+            "coverage": "complete"
+          }
+        ],
+        "findings": [],
+        "issues": [],
+        "totals": {
+          "logical_bytes": null,
+          "allocated_bytes": null,
+          "method": "unavailable",
+          "coverage_complete": true,
+          "scanned_entries": 0,
+          "skipped_entries": 0
+        }
+      }
+    }
+  ],
+  "raw_cases": [
+    {
+      "id": "bad_json",
+      "input": "{",
+      "code": "InvalidJson"
+    },
+    {
+      "id": "root_array",
+      "input": "[]",
+      "code": "InvalidShape"
+    },
+    {
+      "id": "duplicate_schema",
+      "input": "{\"schema_version\":\"water.scan.v1\",\"schema_version\":\"water.scan.v1\",\"scan_id\":\"scan-fixture-1\",\"status\":\"completed\",\"scopes\":[{\"scope_id\":\"scope-1\",\"label\":\"Fixture A\",\"platform\":\"windows\",\"origin\":\"user_selected\",\"coverage\":\"complete\"}],\"findings\":[{\"finding_id\":\"finding-1\",\"scope_id\":\"scope-1\",\"relative_path\":\"project/.cache/ruff\",\"tool\":{\"tool_id\":\"ruff\",\"name\":\"Ruff fixture\",\"version\":\"0.0-fixture\",\"root_source\":\"marker\"},\"rule_version\":\"1\",\"category\":\"build_cache\",\"risk\":\"review\",\"recoverability\":\"rebuild\",\"activity\":\"unknown\",\"confidence\":\"verified_structure\",\"evidence\":[{\"code\":\"structure_match\",\"source\":\"filesystem\",\"summary\":\"Fictional fixture metadata only; not a real scan.\"}],\"protection_reasons\":[],\"references\":{\"state\":\"unknown\",\"project_ids\":[]},\"size\":{\"logical_bytes\":\"9007199254740993\",\"allocated_bytes\":null,\"reclaimable_lower_bytes\":null,\"reclaimable_upper_bytes\":null,\"method\":\"logical_sum\",\"confidence\":\"estimated\",\"shared\":\"unknown\"}}],\"issues\":[],\"totals\":{\"logical_bytes\":null,\"allocated_bytes\":null,\"method\":\"unavailable\",\"coverage_complete\":true,\"scanned_entries\":3,\"skipped_entries\":0}}",
+      "code": "InvalidShape"
+    },
+    {
+      "id": "object_enum",
+      "input": "{\"schema_version\":{\"water.scan.v1\":null},\"scan_id\":\"scan-fixture-1\",\"status\":\"completed\",\"scopes\":[{\"scope_id\":\"scope-1\",\"label\":\"Fixture A\",\"platform\":\"windows\",\"origin\":\"user_selected\",\"coverage\":\"complete\"}],\"findings\":[{\"finding_id\":\"finding-1\",\"scope_id\":\"scope-1\",\"relative_path\":\"project/.cache/ruff\",\"tool\":{\"tool_id\":\"ruff\",\"name\":\"Ruff fixture\",\"version\":\"0.0-fixture\",\"root_source\":\"marker\"},\"rule_version\":\"1\",\"category\":\"build_cache\",\"risk\":\"review\",\"recoverability\":\"rebuild\",\"activity\":\"unknown\",\"confidence\":\"verified_structure\",\"evidence\":[{\"code\":\"structure_match\",\"source\":\"filesystem\",\"summary\":\"Fictional fixture metadata only; not a real scan.\"}],\"protection_reasons\":[],\"references\":{\"state\":\"unknown\",\"project_ids\":[]},\"size\":{\"logical_bytes\":\"9007199254740993\",\"allocated_bytes\":null,\"reclaimable_lower_bytes\":null,\"reclaimable_upper_bytes\":null,\"method\":\"logical_sum\",\"confidence\":\"estimated\",\"shared\":\"unknown\"}}],\"issues\":[],\"totals\":{\"logical_bytes\":null,\"allocated_bytes\":null,\"method\":\"unavailable\",\"coverage_complete\":true,\"scanned_entries\":3,\"skipped_entries\":0}}",
+      "code": "InvalidShape"
+    },
+    {
+      "id": "missing_nullable",
+      "input": "{\"schema_version\":\"water.scan.v1\",\"scan_id\":\"scan-fixture-1\",\"status\":\"completed\",\"scopes\":[{\"scope_id\":\"scope-1\",\"label\":\"Fixture A\",\"platform\":\"windows\",\"origin\":\"user_selected\",\"coverage\":\"complete\"}],\"findings\":[{\"finding_id\":\"finding-1\",\"scope_id\":\"scope-1\",\"relative_path\":\"project/.cache/ruff\",\"tool\":{\"tool_id\":\"ruff\",\"name\":\"Ruff fixture\",\"root_source\":\"marker\"},\"rule_version\":\"1\",\"category\":\"build_cache\",\"risk\":\"review\",\"recoverability\":\"rebuild\",\"activity\":\"unknown\",\"confidence\":\"verified_structure\",\"evidence\":[{\"code\":\"structure_match\",\"source\":\"filesystem\",\"summary\":\"Fictional fixture metadata only; not a real scan.\"}],\"protection_reasons\":[],\"references\":{\"state\":\"unknown\",\"project_ids\":[]},\"size\":{\"logical_bytes\":\"9007199254740993\",\"allocated_bytes\":null,\"reclaimable_lower_bytes\":null,\"reclaimable_upper_bytes\":null,\"method\":\"logical_sum\",\"confidence\":\"estimated\",\"shared\":\"unknown\"}}],\"issues\":[],\"totals\":{\"logical_bytes\":null,\"allocated_bytes\":null,\"method\":\"unavailable\",\"coverage_complete\":true,\"scanned_entries\":3,\"skipped_entries\":0}}",
+      "code": "InvalidShape"
+    },
+    {
+      "id": "canary_enum",
+      "input": "{\"schema_version\":\"water.scan.v1\",\"scan_id\":\"scan-fixture-1\",\"status\":\"completed\",\"scopes\":[{\"scope_id\":\"scope-1\",\"label\":\"Fixture A\",\"platform\":\"windows\",\"origin\":\"user_selected\",\"coverage\":\"complete\"}],\"findings\":[{\"finding_id\":\"finding-1\",\"scope_id\":\"scope-1\",\"relative_path\":\"project/.cache/ruff\",\"tool\":{\"tool_id\":\"ruff\",\"name\":\"Ruff fixture\",\"version\":\"0.0-fixture\",\"root_source\":\"marker\"},\"rule_version\":\"1\",\"category\":\"DO_NOT_ECHO_CANARY_7f98\",\"risk\":\"review\",\"recoverability\":\"rebuild\",\"activity\":\"unknown\",\"confidence\":\"verified_structure\",\"evidence\":[{\"code\":\"structure_match\",\"source\":\"filesystem\",\"summary\":\"Fictional fixture metadata only; not a real scan.\"}],\"protection_reasons\":[],\"references\":{\"state\":\"unknown\",\"project_ids\":[]},\"size\":{\"logical_bytes\":\"9007199254740993\",\"allocated_bytes\":null,\"reclaimable_lower_bytes\":null,\"reclaimable_upper_bytes\":null,\"method\":\"logical_sum\",\"confidence\":\"estimated\",\"shared\":\"unknown\"}}],\"issues\":[],\"totals\":{\"logical_bytes\":null,\"allocated_bytes\":null,\"method\":\"unavailable\",\"coverage_complete\":true,\"scanned_entries\":3,\"skipped_entries\":0}}",
+      "code": "InvalidShape"
+    }
+  ],
+  "constructed_cases": [
+    {
+      "id": "model_without_protection",
+      "mutation": "finding[0].category=Model; risk remains Review",
+      "code": "UnsafeClassification"
+    },
+    {
+      "id": "non_null_reclaimable",
+      "mutation": "finding[0].size.reclaimable_lower_bytes=Some(ByteCount::new(1))",
+      "code": "InvalidSize"
+    },
+    {
+      "id": "unknown_scope",
+      "mutation": "finding[0].scope_id=OpaqueId::new(\"missing-scope\")",
+      "code": "UnknownScope"
+    },
+    {
+      "id": "inconsistent_status",
+      "mutation": "status=Partial while scope complete, issues empty and totals coverage_complete=true",
+      "code": "InconsistentReport"
+    }
+  ],
+  "bridge": {
+    "size_desc": [
+      "max",
+      "big-before",
+      "big-after",
+      "duplicate-title",
+      "scope-root",
+      "zero",
+      "unknown-first",
+      "unknown-last"
+    ],
+    "size_asc": [
+      "zero",
+      "scope-root",
+      "duplicate-title",
+      "big-after",
+      "big-before",
+      "max",
+      "unknown-first",
+      "unknown-last"
+    ],
+    "tool_all": [
+      "big-before"
+    ],
+    "no_tool": [
+      "zero",
+      "unknown-first"
+    ],
+    "real_no_tool": [
+      "max"
+    ],
+    "summary": {
+      "count": 8,
+      "protected_count": 4,
+      "unknown_size_count": 2,
+      "logical_total_bytes": null,
+      "reclaimable_bytes": null
+    },
+    "format_max": "15.9 EiB"
+  }
+}
