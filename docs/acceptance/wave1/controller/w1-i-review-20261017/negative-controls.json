@@ -1,0 +1,128 @@
+[
+  {
+    "name": "number-sort",
+    "file": "prototypes/report-reader/model.mjs",
+    "before": "bf97d16fc5c770f467e69192f3f156f0c1d1559f6b2801cdde754aa4dd3db859",
+    "during": "ac7402da7cc09867a96985b645d5bb74750675422c72354d6b156b0efd3c95b3",
+    "after": "bf97d16fc5c770f467e69192f3f156f0c1d1559f6b2801cdde754aa4dd3db859",
+    "red": [
+      {
+        "name": "model",
+        "status": 1,
+        "error": null,
+        "failed": [
+          "reader_bigint_filters"
+        ],
+        "messages": [
+          "not ok 2 - reader_bigint_filters",
+          "    2^53 must sort before 2^53+1; Number comparison collapses the pair",
+          "  code: 'ERR_ASSERTION'",
+          "  name: 'AssertionError'",
+          "    Test.run (node:internal/test_runner/test:1372:12)"
+        ]
+      },
+      {
+        "name": "browser",
+        "status": 1,
+        "error": null,
+        "failed": [
+          "reader_live_interactions"
+        ],
+        "messages": [
+          "not ok 1 - reader_live_interactions",
+          "    2^53 must sort before 2^53+1",
+          "  code: 'ERR_ASSERTION'",
+          "  name: 'AssertionError'"
+        ]
+      }
+    ],
+    "green": [
+      0,
+      0
+    ]
+  },
+  {
+    "name": "source-total-sum-or-zero",
+    "file": "prototypes/report-reader/model.mjs",
+    "before": "bf97d16fc5c770f467e69192f3f156f0c1d1559f6b2801cdde754aa4dd3db859",
+    "during": "d1017161306d7cf8110408b13bc851c5fbb518a4141dd7fcbff9cd987803d44e",
+    "after": "bf97d16fc5c770f467e69192f3f156f0c1d1559f6b2801cdde754aa4dd3db859",
+    "red": [
+      {
+        "name": "model",
+        "status": 1,
+        "error": null,
+        "failed": [
+          "reader_totals_and_unknown"
+        ],
+        "messages": [
+          "not ok 3 - reader_totals_and_unknown",
+          "  code: 'ERR_ASSERTION'",
+          "  name: 'AssertionError'",
+          "    Test.run (node:internal/test_runner/test:1372:12)"
+        ]
+      },
+      {
+        "name": "browser",
+        "status": 1,
+        "error": null,
+        "failed": [
+          "reader_live_interactions"
+        ],
+        "messages": [
+          "not ok 1 - reader_live_interactions",
+          "    The input did not match the regular expression /37/. Input:",
+          "    '来源总量0 B来源方法 file_identity_deduplicated非本页求和精确逻辑字节 0分配 未知已扫描 8，跳过 1'",
+          "  code: 'ERR_ASSERTION'",
+          "  name: 'AssertionError'",
+          "  actual: '来源总量0 B来源方法 file_identity_deduplicated非本页求和精确逻辑字节 0分配 未知已扫描 8，跳过 1'"
+        ]
+      }
+    ],
+    "green": [
+      0,
+      0
+    ]
+  },
+  {
+    "name": "inner-html",
+    "file": "prototypes/report-reader/app.mjs",
+    "before": "a3240d710bad316ccb59d7600e17038bc2c504aee7dcecd0fd58dce0ef085e2f",
+    "during": "e97354332c7a6c031a5f6841c07856ad046e221d5605f1b5f310f4dcc86b201e",
+    "after": "a3240d710bad316ccb59d7600e17038bc2c504aee7dcecd0fd58dce0ef085e2f",
+    "red": [
+      {
+        "name": "model",
+        "status": 0,
+        "error": null,
+        "failed": [],
+        "messages": [
+          "# duration_ms 179.3799"
+        ]
+      },
+      {
+        "name": "browser",
+        "status": 1,
+        "error": null,
+        "failed": [
+          "reader_live_interactions",
+          "reader_scope_layout_and_readonly"
+        ],
+        "messages": [
+          "not ok 1 - reader_live_interactions",
+          "    HTML literal must not create an img element",
+          "  code: 'ERR_ASSERTION'",
+          "  name: 'AssertionError'",
+          "not ok 2 - reader_scope_layout_and_readonly",
+          "    HTML literal must not create img or script elements",
+          "  code: 'ERR_ASSERTION'",
+          "  name: 'AssertionError'"
+        ]
+      }
+    ],
+    "green": [
+      0,
+      0
+    ]
+  }
+]

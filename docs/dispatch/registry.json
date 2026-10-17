@@ -77,7 +77,7 @@
       "branch": "worker/water-w1-i",
       "baseline": "045ab4f0d01edd573828fbc8cca988e1ad37efee",
       "task": "WATER-W1-I",
-      "state": "ready-awaiting-manual-paste"
+      "state": "accepted-awaiting-integration"
     }
   ],
   "tasks": [
@@ -559,7 +559,7 @@
       "dependsOn": [
         "WATER-W1-E"
       ],
-      "status": "READY",
+      "status": "ACCEPTED",
       "kind": "report_reader",
       "worktree": "F:/new/smaltalk/water/.worktrees/i",
       "branch": "worker/water-w1-i",
@@ -591,7 +591,7 @@
         "docs/acceptance/wave1/i/"
       ],
       "allowLockfileGeneration": false,
-      "model": null,
+      "model": "Cursor / Grok 4.7 (worker self-report)",
       "modelAssignment": "user-arranged; report actual engine/model",
       "dispatchedAt": null,
       "startedAt": null,
@@ -608,7 +608,18 @@
       "manifest": "docs/dispatch/wave1/manifest.json",
       "baselineEvidence": "docs/acceptance/wave1/controller/w1-parallel-next-preflight-20261017/i/2026-10-17T13-35-59.345Z-4584-baseline-result.json",
       "readyOn": "2026-10-17",
-      "readinessScope": "Node 24 and isolated existing-browser blank page; frozen actual E projections; new UI not tested."
+      "readinessScope": "Node 24 and isolated existing-browser blank page; frozen actual E projections; new UI not tested.",
+      "submittedCommit": "da0fa3e0006ad4a02432b5b53d4f29c865f32f67",
+      "acceptedCommit": "da0fa3e0006ad4a02432b5b53d4f29c865f32f67",
+      "testedImplementationCommit": "8888c26a92ca8f503e63d486d243faa09612042e",
+      "submissionObservedAt": "2026-10-17T14:56:59.302Z",
+      "controllerReview": "docs/acceptance/wave1/controller/WATER-W1-I-REVIEW-20261017.md",
+      "controllerReviewReceipt": "docs/acceptance/wave1/controller/w1-i-review-20261017/2026-10-17T14-53-02.542Z-43940-boundaries-result.json",
+      "acceptedOn": "2026-10-17",
+      "macOS": "unverified",
+      "integrationBranch": "controller/water-w1-i-20261017",
+      "integrationWorktree": "F:/new/smaltalk/water/.worktrees/integration-i-20261017",
+      "evidenceLimitations": "Historical pre-implementation behavior red and full worker negative-control output unavailable; current behavior and test sensitivity to be reverified by controller isolation."
     }
   ],
   "testHelper": "per-task helper; A defaults unchanged",
