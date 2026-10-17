@@ -1,0 +1,39 @@
+{"binary":"C:\\Users\\37310\\.rustup\\toolchains\\1.95.0-x86_64-pc-windows-msvc\\bin\\cargo.exe","argv":["test","--offline","--locked","--manifest-path","F:\\new\\smaltalk\\water\\.worktrees\\e\\packages\\report-view\\Cargo.toml","-p","water-report-view","--test","view_v1","--","--test-threads=1","--format","pretty"],"exitCode":101,"error":null,"log":"2026-10-17T11-55-20.113Z-18708-test-6.log"}
+--- stdout ---
+
+running 5 tests
+test view_mapping_edges ... ok
+test view_precision_and_totals ... ok
+test view_preservation_and_purity ... ok
+test view_projection ... ok
+test view_validation ... FAILED
+
+failures:
+
+---- view_validation stdout ----
+
+thread 'view_validation' (37820) panicked at tests\view_v1.rs:491:9:
+model_without_protection: illegal DTO must fail view_validation
+note: run with `RUST_BACKTRACE=1` environment variable to display a backtrace
+
+
+failures:
+    view_validation
+
+test result: FAILED. 4 passed; 1 failed; 0 ignored; 0 measured; 0 filtered out; finished in 0.05s
+
+
+--- stderr ---
+   Compiling water-report-view v0.1.0 (F:\new\smaltalk\water\.worktrees\e\packages\report-view)
+warning: unused import: `validate_report`
+  --> src\v1.rs:13:5
+   |
+13 |     validate_report,
+   |     ^^^^^^^^^^^^^^^
+   |
+   = note: `#[warn(unused_imports)]` (part of `#[warn(unused)]`) on by default
+
+warning: `water-report-view` (lib) generated 1 warning (run `cargo fix --lib -p water-report-view` to apply 1 suggestion)
+    Finished `test` profile [unoptimized + debuginfo] target(s) in 1.17s
+     Running tests\view_v1.rs (.local\report-view-target\debug\deps\view_v1-d65201a3e735a0c3.exe)
+error: test failed, to rerun pass `-p water-report-view --test view_v1`

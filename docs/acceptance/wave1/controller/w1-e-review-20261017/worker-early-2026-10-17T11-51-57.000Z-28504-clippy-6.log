@@ -1,0 +1,23 @@
+{"binary":"C:\\Users\\37310\\.rustup\\toolchains\\1.95.0-x86_64-pc-windows-msvc\\bin\\cargo.exe","argv":["clippy","--offline","--locked","--manifest-path","F:\\new\\smaltalk\\water\\.worktrees\\e\\packages\\report-view\\Cargo.toml","-p","water-report-view","--all-targets","--","-D","warnings"],"exitCode":101,"error":null,"log":"2026-10-17T11-51-57.000Z-28504-clippy-6.log"}
+--- stdout ---
+
+--- stderr ---
+    Checking serde_core v1.0.229
+    Checking zmij v1.0.23
+    Checking itoa v1.0.18
+    Checking memchr v2.8.3
+    Checking serde_json v1.0.151
+    Checking serde v1.0.229
+    Checking water-contracts v0.1.0 (F:\new\smaltalk\water\.worktrees\e\crates\water-contracts)
+    Checking water-report-view v0.1.0 (F:\new\smaltalk\water\.worktrees\e\packages\report-view)
+error: using `clone` on type `Option<ByteCount>` which implements the `Copy` trait
+   --> src\v1.rs:127:24
+    |
+127 |         logical_bytes: finding.size.logical_bytes.clone(),
+    |                        ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^ help: try removing the `clone` call: `finding.size.logical_bytes`
+    |
+    = help: for further information visit https://rust-lang.github.io/rust-clippy/rust-1.95.0/index.html#clone_on_copy
+    = note: `-D clippy::clone-on-copy` implied by `-D warnings`
+    = help: to override `-D warnings` add `#[allow(clippy::clone_on_copy)]`
+
+error: could not compile `water-report-view` (lib) due to 1 previous error

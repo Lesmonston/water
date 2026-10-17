@@ -1,0 +1,98 @@
+{"binary":"C:\\Users\\37310\\.rustup\\toolchains\\1.95.0-x86_64-pc-windows-msvc\\bin\\cargo.exe","argv":["test","--offline","--locked","--manifest-path","F:\\new\\smaltalk\\water\\.worktrees\\e\\packages\\report-view\\Cargo.toml","-p","water-report-view","--test","view_v1","--","--test-threads=1","--format","pretty"],"exitCode":101,"error":null,"log":"2026-10-17T11-44-21.992Z-41520-test-6.log"}
+--- stdout ---
+
+--- stderr ---
+   Compiling proc-macro2 v1.0.107
+   Compiling unicode-ident v1.0.27
+   Compiling quote v1.0.47
+   Compiling serde_core v1.0.229
+   Compiling zmij v1.0.23
+   Compiling syn v3.0.9
+   Compiling serde_json v1.0.151
+   Compiling serde v1.0.229
+   Compiling serde_derive v1.0.229
+   Compiling itoa v1.0.18
+   Compiling memchr v2.8.3
+   Compiling water-contracts v0.1.0 (F:\new\smaltalk\water\.worktrees\e\crates\water-contracts)
+   Compiling water-report-view v0.1.0 (F:\new\smaltalk\water\.worktrees\e\packages\report-view)
+warning: function `project_finding` is never used
+  --> src\v1.rs:86:4
+   |
+86 | fn project_finding(finding: &Finding, labels: &HashMap<&str, &str>) -> FindingView {
+   |    ^^^^^^^^^^^^^^^
+   |
+   = note: `#[warn(dead_code)]` (part of `#[warn(unused)]`) on by default
+
+warning: `water-report-view` (lib) generated 1 warning
+error[E0277]: the trait bound `Risk: Ord` is not satisfied
+   --> tests\view_v1.rs:670:73
+    |
+670 |     let risks: BTreeSet<_> = view.findings.iter().map(|item| item.risk).collect();
+    |                                                                         ^^^^^^^ the trait `Ord` is not implemented for `Risk`
+    |
+help: the trait `FromIterator<T>` is implemented for `BTreeSet<T>`
+   --> /rustc/59807616e1fa2540724bfbac14d7976d7e4a3860/library\alloc\src\collections\btree\set.rs:1468:0
+    = note: required for `BTreeSet<Risk>` to implement `FromIterator<Risk>`
+note: required by a bound in `collect`
+   --> /rustc/59807616e1fa2540724bfbac14d7976d7e4a3860/library\core\src\iter\traits\iterator.rs:2051:4
+
+error[E0277]: the trait bound `Activity: Ord` is not satisfied
+   --> tests\view_v1.rs:671:82
+    |
+671 |     let activities: BTreeSet<_> = view.findings.iter().map(|item| item.activity).collect();
+    |                                                                                  ^^^^^^^ the trait `Ord` is not implemented for `Activity`
+    |
+help: the trait `FromIterator<T>` is implemented for `BTreeSet<T>`
+   --> /rustc/59807616e1fa2540724bfbac14d7976d7e4a3860/library\alloc\src\collections\btree\set.rs:1468:0
+    = note: required for `BTreeSet<Activity>` to implement `FromIterator<Activity>`
+note: required by a bound in `collect`
+   --> /rustc/59807616e1fa2540724bfbac14d7976d7e4a3860/library\core\src\iter\traits\iterator.rs:2051:4
+
+error[E0277]: the trait bound `Recoverability: Ord` is not satisfied
+   --> tests\view_v1.rs:676:10
+    |
+676 |         .collect();
+    |          ^^^^^^^ the trait `Ord` is not implemented for `Recoverability`
+    |
+help: the trait `FromIterator<T>` is implemented for `BTreeSet<T>`
+   --> /rustc/59807616e1fa2540724bfbac14d7976d7e4a3860/library\alloc\src\collections\btree\set.rs:1468:0
+    = note: required for `BTreeSet<Recoverability>` to implement `FromIterator<Recoverability>`
+note: required by a bound in `collect`
+   --> /rustc/59807616e1fa2540724bfbac14d7976d7e4a3860/library\core\src\iter\traits\iterator.rs:2051:4
+
+error[E0382]: borrow of partially moved value: `projected_error`
+   --> tests\view_v1.rs:358:19
+    |
+356 |     assert_eq!(code_name(projected_error.code), expected, "{context}: code");
+    |                          -------------------- value partially moved here
+357 |     assert!(
+358 |         !rendered(&projected_error).contains("DO_NOT_ECHO_CANARY_7f98"),
+    |                   ^^^^^^^^^^^^^^^^ value borrowed here after partial move
+    |
+    = note: partial move occurs because `projected_error.code` has type `ContractErrorCode`, which does not implement the `Copy` trait
+
+error[E0382]: borrow of partially moved value: `actual`
+   --> tests\view_v1.rs:496:27
+    |
+492 |             code_name(actual.code),
+    |                       ----------- value partially moved here
+...
+496 |         assert!(!rendered(&actual).contains("DO_NOT_ECHO_CANARY_7f98"));
+    |                           ^^^^^^^ value borrowed here after partial move
+    |
+    = note: partial move occurs because `actual.code` has type `ContractErrorCode`, which does not implement the `Copy` trait
+
+warning: variable does not need to be mutable
+   --> tests\view_v1.rs:578:13
+    |
+578 |         let mut report = before.clone();
+    |             ----^^^^^^
+    |             |
+    |             help: remove this `mut`
+    |
+    = note: `#[warn(unused_mut)]` (part of `#[warn(unused)]`) on by default
+
+Some errors have detailed explanations: E0277, E0382.
+For more information about an error, try `rustc --explain E0277`.
+warning: `water-report-view` (test "view_v1") generated 1 warning
+error: could not compile `water-report-view` (test "view_v1") due to 5 previous errors; 1 warning emitted

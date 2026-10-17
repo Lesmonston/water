@@ -1,0 +1,196 @@
+{"binary":"C:\\Users\\37310\\.rustup\\toolchains\\1.95.0-x86_64-pc-windows-msvc\\bin\\cargo.exe","argv":["fmt","--manifest-path","F:\\new\\smaltalk\\water\\.worktrees\\e\\packages\\report-view\\Cargo.toml","--","--check"],"exitCode":1,"error":null,"log":"2026-10-17T11-42-40.468Z-17996-fmt-6.log"}
+--- stdout ---
+Diff in \\?\F:\new\smaltalk\water\.worktrees\e\packages\report-view\src\v1.rs:7:
+ 
+ use serde::Serialize;
+ use water_contracts::v1::{
+-    parse_report, validate_report, Activity, Category, Confidence, ContractError, Evidence,
+-    Finding, OpaqueId, ProtectionReason, Recoverability, ReferenceSummary, RelativePath, Risk,
+-    ScanIssue, ScanReport, ScanStatus, ScanTotals, SchemaVersion, ScopeDescriptor, SizeEstimate,
+-    ToolDescriptor,
++    Activity, Category, Confidence, ContractError, Evidence, Finding, OpaqueId, ProtectionReason,
++    Recoverability, ReferenceSummary, RelativePath, Risk, ScanIssue, ScanReport, ScanStatus,
++    ScanTotals, SchemaVersion, ScopeDescriptor, SizeEstimate, ToolDescriptor, parse_report,
++    validate_report,
+ };
+ 
+ const VIEW_VERSION: &str = "water.report-view.v1";
+Diff in \\?\F:\new\smaltalk\water\.worktrees\e\packages\report-view\src\v1.rs:97:
+         path.to_owned()
+     };
+     let (tool_id, tool_name) = match &finding.tool {
+-        Some(tool) => (
+-            format!("tool:{}", tool.tool_id.as_str()),
+-            tool.name.clone(),
+-        ),
++        Some(tool) => (format!("tool:{}", tool.tool_id.as_str()), tool.name.clone()),
+         None => ("no_tool".to_owned(), "Unknown tool".to_owned()),
+     };
+     let evidence = finding
+Diff in \\?\F:\new\smaltalk\water\.worktrees\e\packages\report-view\tests\view_v1.rs:5:
+ 
+ use serde_json::Value;
+ use water_contracts::v1::{
+-    parse_report, validate_report, ByteCount, Category, ContractError, ContractErrorCode,
+-    OpaqueId, Risk, ScanReport, ScanStatus,
++    ByteCount, Category, ContractError, ContractErrorCode, OpaqueId, Risk, ScanReport, ScanStatus,
++    parse_report, validate_report,
+ };
+-use water_report_view::v1::{project_json, project_report, FindingView, ReportView};
++use water_report_view::v1::{FindingView, ReportView, project_json, project_report};
+ 
+ const VIEW_CASES: &str = include_str!("../../../contracts/report-view-v1/cases.json");
+ const CONTRACT_CASES: &str = include_str!("../../../contracts/v1/conformance-cases.json");
+Diff in \\?\F:\new\smaltalk\water\.worktrees\e\packages\report-view\tests\view_v1.rs:290:
+     let case = golden(id);
+     let report = parse_report(&case.input).unwrap_or_else(|error| panic!("{id}: {error}"));
+     let view = project_json(&case.input).unwrap_or_else(|error| panic!("{id}: {error}"));
+-    assert_eq!(project_report(&report).unwrap(), view, "{id}: entries differ");
++    assert_eq!(
++        project_report(&report).unwrap(),
++        view,
++        "{id}: entries differ"
++    );
+     (report, view)
+ }
+ 
+Diff in \\?\F:\new\smaltalk\water\.worktrees\e\packages\report-view\tests\view_v1.rs:345:
+     let projected = project_json(input);
+     let parsed_error = parsed.expect_err(context);
+     let projected_error = projected.expect_err(context);
+-    assert_eq!(projected_error, parsed_error, "{context}: error must come from A");
++    assert_eq!(
++        projected_error, parsed_error,
++        "{context}: error must come from A"
++    );
+     assert_eq!(code_name(projected_error.code), expected, "{context}: code");
+     assert!(
+         !rendered(&projected_error).contains("DO_NOT_ECHO_CANARY_7f98"),
+Diff in \\?\F:\new\smaltalk\water\.worktrees\e\packages\report-view\tests\view_v1.rs:395:
+             serde_json::from_str::<Value>(&case.expected).unwrap(),
+             embedded["expected"]
+         );
+-        let report = parse_report(&case.input).unwrap_or_else(|error| panic!("{}: {error}", case.id));
++        let report =
++            parse_report(&case.input).unwrap_or_else(|error| panic!("{}: {error}", case.id));
+         let from_json =
+             project_json(&case.input).unwrap_or_else(|error| panic!("{}: {error}", case.id));
+         let from_dto =
+Diff in \\?\F:\new\smaltalk\water\.worktrees\e\packages\report-view\tests\view_v1.rs:424:
+         if expected == "ok" {
+             let report = parse_report(&input).unwrap_or_else(|error| panic!("{id}: {error}"));
+             let view = project_json(&input).unwrap_or_else(|error| panic!("{id}: {error}"));
+-            assert_eq!(view.findings.len(), report.findings.len(), "{id}: finding count");
++            assert_eq!(
++                view.findings.len(),
++                report.findings.len(),
++                "{id}: finding count"
++            );
+             assert_eq!(project_report(&report).unwrap(), view, "{id}: dto entry");
+         } else {
+             assert_rejected(&input, expected, id);
+Diff in \\?\F:\new\smaltalk\water\.worktrees\e\packages\report-view\tests\view_v1.rs:459:
+     assert!(raw_ids.contains("object_enum"));
+     assert!(raw_ids.contains("canary_enum"));
+ 
+-    let constructed = view_cases()["constructed_cases"].as_array().cloned().unwrap();
++    let constructed = view_cases()["constructed_cases"]
++        .as_array()
++        .cloned()
++        .unwrap();
+     assert_eq!(constructed.len(), 4);
+     let mut seen = BTreeSet::new();
+     for case in &constructed {
+Diff in \\?\F:\new\smaltalk\water\.worktrees\e\packages\report-view\tests\view_v1.rs:469:
+         mutate_constructed(&mut report, id);
+         let expected = validate_report(&report).expect_err(id);
+         let actual = project_report(&report).expect_err(id);
+-        assert_eq!(actual, expected, "{id}: dto error must equal validate_report");
+-        assert_eq!(code_name(actual.code), case["code"].as_str().unwrap(), "{id}");
++        assert_eq!(
++            actual, expected,
++            "{id}: dto error must equal validate_report"
++        );
++        assert_eq!(
++            code_name(actual.code),
++            case["code"].as_str().unwrap(),
++            "{id}"
++        );
+         assert!(!rendered(&actual).contains("DO_NOT_ECHO_CANARY_7f98"));
+     }
+ }
+Diff in \\?\F:\new\smaltalk\water\.worktrees\e\packages\report-view\tests\view_v1.rs:502:
+     );
+     assert!(unknown_first.logical_bytes.is_none());
+     assert!(unknown_last.logical_bytes.is_none());
+-    for item in [&zero, &boundary, &beyond, &max, &unknown_first, &unknown_last] {
++    for item in [
++        &zero,
++        &boundary,
++        &beyond,
++        &max,
++        &unknown_first,
++        &unknown_last,
++    ] {
+         assert_eq!(item.logical_bytes, item.size.logical_bytes);
+         assert!(item.size.reclaimable_lower_bytes.is_none());
+         assert!(item.size.reclaimable_upper_bytes.is_none());
+Diff in \\?\F:\new\smaltalk\water\.worktrees\e\packages\report-view\tests\view_v1.rs:517:
+     assert!(json.contains("\"logical_bytes\":null"));
+ 
+     assert_eq!(view.totals, report.totals);
+-    assert_eq!(view.totals.logical_bytes.as_ref().map(ByteCount::get), Some(37));
++    assert_eq!(
++        view.totals.logical_bytes.as_ref().map(ByteCount::get),
++        Some(37)
++    );
+     let summed: u128 = view
+         .findings
+         .iter()
+Diff in \\?\F:\new\smaltalk\water\.worktrees\e\packages\report-view\tests\view_v1.rs:524:
+-        .filter_map(|item| item.logical_bytes.as_ref().map(|count| u128::from(count.get())))
++        .filter_map(|item| {
++            item.logical_bytes
++                .as_ref()
++                .map(|count| u128::from(count.get()))
++        })
+         .sum();
+     assert_ne!(summed, 37, "source totals must not become a finding sum");
+     assert_eq!(view.findings.len(), 8);
+Diff in \\?\F:\new\smaltalk\water\.worktrees\e\packages\report-view\tests\view_v1.rs:590:
+     assert_ne!(left.id, right.id);
+ 
+     let (_, empty) = project_golden("empty_completed");
+-    assert!(empty.findings.is_empty(), "empty findings must not be invented");
++    assert!(
++        empty.findings.is_empty(),
++        "empty findings must not be invented"
++    );
+ }
+ 
+ #[test]
+Diff in \\?\F:\new\smaltalk\water\.worktrees\e\packages\report-view\tests\view_v1.rs:605:
+     assert_eq!(absent.tool_name, "Unknown tool");
+     assert_eq!(real_all.tool_id, "tool:all");
+     assert_eq!(
+-        real_all.source_tool.as_ref().map(|tool| tool.tool_id.as_str()),
++        real_all
++            .source_tool
++            .as_ref()
++            .map(|tool| tool.tool_id.as_str()),
+         Some("all")
+     );
+     assert_eq!(real_unknown.tool_id, "tool:unknown");
+Diff in \\?\F:\new\smaltalk\water\.worktrees\e\packages\report-view\tests\view_v1.rs:612:
+     assert_eq!(real_no_tool.tool_id, "tool:no_tool");
+-    let keys: BTreeSet<&str> = view.findings.iter().map(|item| item.tool_id.as_str()).collect();
++    let keys: BTreeSet<&str> = view
++        .findings
++        .iter()
++        .map(|item| item.tool_id.as_str())
++        .collect();
+     assert!(keys.contains("no_tool"));
+     assert!(keys.contains("tool:all"));
+     assert!(keys.contains("tool:unknown"));
+
+--- stderr ---
