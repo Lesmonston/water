@@ -1,0 +1,126 @@
+{"argv":["--test","--test-concurrency=1","--test-reporter=tap","packages/tool-catalog/tests/catalog.test.mjs"],"startedAt":"2026-10-17T06:15:12.722Z","endedAt":"2026-10-17T06:15:13.887Z","exitCode":1,"error":null}
+--- stdout ---
+TAP version 13
+# Subtest: catalog_shape_and_tools
+not ok 1 - catalog_shape_and_tools
+  ---
+  duration_ms: 31.6564
+  type: 'test'
+  location: 'F:\\new\\smaltalk\\water\\.worktrees\\b\\packages\\tool-catalog\\tests\\catalog.test.mjs:25:1'
+  failureType: 'testCodeFailure'
+  error: |-
+    missing tool: invalid input must be rejected
+
+    true !== false
+
+  code: 'ERR_ASSERTION'
+  name: 'AssertionError'
+  expected: false
+  actual: true
+  operator: 'strictEqual'
+  stack: |-
+    rejects (file:///F:/new/smaltalk/water/.worktrees/b/packages/tool-catalog/tests/catalog.test.mjs:16:10)
+    TestContext.<anonymous> (file:///F:/new/smaltalk/water/.worktrees/b/packages/tool-catalog/tests/catalog.test.mjs:30:3)
+    Test.runInAsyncScope (node:async_hooks:227:14)
+    Test.run (node:internal/test_runner/test:1306:25)
+    Test.start (node:internal/test_runner/test:1177:17)
+    startSubtestAfterBootstrap (node:internal/test_runner/harness:385:17)
+  ...
+# Subtest: catalog_platforms_and_sources
+not ok 2 - catalog_platforms_and_sources
+  ---
+  duration_ms: 14.0359
+  type: 'test'
+  location: 'F:\\new\\smaltalk\\water\\.worktrees\\b\\packages\\tool-catalog\\tests\\catalog.test.mjs:35:1'
+  failureType: 'testCodeFailure'
+  error: |-
+    pip exact official source: invalid input must be rejected
+
+    true !== false
+
+  code: 'ERR_ASSERTION'
+  name: 'AssertionError'
+  expected: false
+  actual: true
+  operator: 'strictEqual'
+  stack: |-
+    rejects (file:///F:/new/smaltalk/water/.worktrees/b/packages/tool-catalog/tests/catalog.test.mjs:16:10)
+    TestContext.<anonymous> (file:///F:/new/smaltalk/water/.worktrees/b/packages/tool-catalog/tests/catalog.test.mjs:59:32)
+    Test.runInAsyncScope (node:async_hooks:227:14)
+    Test.run (node:internal/test_runner/test:1306:25)
+    Test.processPendingSubtests (node:internal/test_runner/test:897:18)
+    Test.postRun (node:internal/test_runner/test:1447:19)
+    Test.run (node:internal/test_runner/test:1372:12)
+    async startSubtestAfterBootstrap (node:internal/test_runner/harness:385:3)
+  ...
+# Subtest: catalog_protection_boundaries
+not ok 3 - catalog_protection_boundaries
+  ---
+  duration_ms: 1.8677
+  type: 'test'
+  location: 'F:\\new\\smaltalk\\water\\.worktrees\\b\\packages\\tool-catalog\\tests\\catalog.test.mjs:69:1'
+  failureType: 'testCodeFailure'
+  error: |-
+    pip runtime claim: invalid input must be rejected
+
+    true !== false
+
+  code: 'ERR_ASSERTION'
+  name: 'AssertionError'
+  expected: false
+  actual: true
+  operator: 'strictEqual'
+  stack: |-
+    rejects (file:///F:/new/smaltalk/water/.worktrees/b/packages/tool-catalog/tests/catalog.test.mjs:16:10)
+    TestContext.<anonymous> (file:///F:/new/smaltalk/water/.worktrees/b/packages/tool-catalog/tests/catalog.test.mjs:74:5)
+    Test.runInAsyncScope (node:async_hooks:227:14)
+    Test.run (node:internal/test_runner/test:1306:25)
+    Test.processPendingSubtests (node:internal/test_runner/test:897:18)
+    Test.postRun (node:internal/test_runner/test:1447:19)
+    Test.run (node:internal/test_runner/test:1372:12)
+    async Test.processPendingSubtests (node:internal/test_runner/test:897:7)
+  ...
+# Subtest: catalog_mutation_rejections
+not ok 4 - catalog_mutation_rejections
+  ---
+  duration_ms: 12.4948
+  type: 'test'
+  location: 'F:\\new\\smaltalk\\water\\.worktrees\\b\\packages\\tool-catalog\\tests\\catalog.test.mjs:97:1'
+  failureType: 'testCodeFailure'
+  error: |-
+    missing_platform: invalid input must be rejected
+
+    true !== false
+
+  code: 'ERR_ASSERTION'
+  name: 'AssertionError'
+  expected: false
+  actual: true
+  operator: 'strictEqual'
+  stack: |-
+    rejects (file:///F:/new/smaltalk/water/.worktrees/b/packages/tool-catalog/tests/catalog.test.mjs:16:10)
+    TestContext.<anonymous> (file:///F:/new/smaltalk/water/.worktrees/b/packages/tool-catalog/tests/catalog.test.mjs:125:5)
+    Test.runInAsyncScope (node:async_hooks:227:14)
+    Test.run (node:internal/test_runner/test:1306:25)
+    Test.processPendingSubtests (node:internal/test_runner/test:897:18)
+    Test.postRun (node:internal/test_runner/test:1447:19)
+    Test.run (node:internal/test_runner/test:1372:12)
+    async Test.processPendingSubtests (node:internal/test_runner/test:897:7)
+  ...
+# Subtest: catalog_purity
+ok 5 - catalog_purity
+  ---
+  duration_ms: 47.5558
+  type: 'test'
+  ...
+1..5
+# tests 5
+# suites 0
+# pass 1
+# fail 4
+# cancelled 0
+# skipped 0
+# todo 0
+# duration_ms 781.3482
+
+--- stderr ---

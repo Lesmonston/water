@@ -1,0 +1,238 @@
+{
+  "catalog_version": "water.catalog.v1",
+  "tool_id": "pnpm",
+  "name": "pnpm",
+  "reviewed_on": "2026-10-17",
+  "runtime_verified": false,
+  "platforms": {
+    "windows": {
+      "root_candidates": [
+        {
+          "source": "native_query",
+          "key": "pnpm_store_path",
+          "path_template": null,
+          "purpose": "shared_store",
+          "evidence_confidence": "documented",
+          "version_note": "工具返回活动 store 路径；本包不运行或推定版本子目录。",
+          "source_ids": [
+            "store"
+          ]
+        },
+        {
+          "source": "configuration",
+          "key": "storeDir",
+          "path_template": null,
+          "purpose": "shared_store",
+          "evidence_confidence": "version_sensitive",
+          "version_note": "当前文档使用 storeDir；旧版设置位置/拼写及布局需按版本复核。",
+          "source_ids": [
+            "settings",
+            "store_settings"
+          ]
+        },
+        {
+          "source": "environment",
+          "key": "PNPM_HOME",
+          "path_template": "$PNPM_HOME/store",
+          "purpose": "shared_store",
+          "evidence_confidence": "version_sensitive",
+          "version_note": "当前默认推导可采用 PNPM_HOME/store；不是固定跨版本根。",
+          "source_ids": [
+            "store_settings"
+          ]
+        },
+        {
+          "source": "environment",
+          "key": "XDG_DATA_HOME",
+          "path_template": "$XDG_DATA_HOME/pnpm/store",
+          "purpose": "shared_store",
+          "evidence_confidence": "version_sensitive",
+          "version_note": "当前 storeDir 默认在 PNPM_HOME 后列出 XDG_DATA_HOME 线索。",
+          "source_ids": [
+            "store_settings"
+          ]
+        },
+        {
+          "source": "default_hint",
+          "key": "windows_default",
+          "path_template": "%LOCALAPPDATA%\\pnpm\\store",
+          "purpose": "shared_store",
+          "evidence_confidence": "version_sensitive",
+          "version_note": "文档默认 AppData/Local 路径；磁盘/硬链接条件会影响实际 store。",
+          "source_ids": [
+            "store_settings"
+          ]
+        }
+      ],
+      "protected_subpaths": [
+        {
+          "path_hint": "store 内容、项目注册及共享虚拟 store 链接",
+          "reason": "官方涉及多项目引用及版本化布局；Water 策略：不手删内部文件。",
+          "source_ids": [
+            "store"
+          ]
+        },
+        {
+          "path_hint": "项目 node_modules、硬链接关系与工作区配置",
+          "reason": "官方说明同盘硬链接与跨盘复制；Water 策略：环境和配置单独保护。",
+          "source_ids": [
+            "store_settings",
+            "settings"
+          ]
+        }
+      ],
+      "notes": [
+        "官方事实：活动 store 应由工具查询确认；包可跨项目共享，硬链接受文件系统限制。",
+        "官方事实：当前文档涉及 pnpm v11/v12 项目注册和全局虚拟 store 行为，不能套用所有旧版本。",
+        "官方事实：当前设置页将普通配置与 .npmrc 的认证/registry 设置分开；本包不解析或实现跨版本优先级。",
+        "Water 策略：项目配置、命令行、目标进程环境和磁盘需结合版本核对；不根据文件年龄判可删，不将共享逻辑大小叠加为释放量；重下载不是回滚。",
+        "Windows 原生进程资料；未实测，不覆盖 WSL/容器。"
+      ]
+    },
+    "macos": {
+      "root_candidates": [
+        {
+          "source": "native_query",
+          "key": "pnpm_store_path",
+          "path_template": null,
+          "purpose": "shared_store",
+          "evidence_confidence": "documented",
+          "version_note": "工具返回活动 store 路径；本包不运行或推定版本子目录。",
+          "source_ids": [
+            "store"
+          ]
+        },
+        {
+          "source": "configuration",
+          "key": "storeDir",
+          "path_template": null,
+          "purpose": "shared_store",
+          "evidence_confidence": "version_sensitive",
+          "version_note": "当前文档使用 storeDir；旧版设置位置/拼写及布局需按版本复核。",
+          "source_ids": [
+            "settings",
+            "store_settings"
+          ]
+        },
+        {
+          "source": "environment",
+          "key": "PNPM_HOME",
+          "path_template": "$PNPM_HOME/store",
+          "purpose": "shared_store",
+          "evidence_confidence": "version_sensitive",
+          "version_note": "当前默认推导可采用 PNPM_HOME/store；不是固定跨版本根。",
+          "source_ids": [
+            "store_settings"
+          ]
+        },
+        {
+          "source": "environment",
+          "key": "XDG_DATA_HOME",
+          "path_template": "$XDG_DATA_HOME/pnpm/store",
+          "purpose": "shared_store",
+          "evidence_confidence": "version_sensitive",
+          "version_note": "当前 storeDir 默认在 PNPM_HOME 后列出 XDG_DATA_HOME 线索。",
+          "source_ids": [
+            "store_settings"
+          ]
+        },
+        {
+          "source": "default_hint",
+          "key": "macos_default",
+          "path_template": "~/Library/pnpm/store",
+          "purpose": "shared_store",
+          "evidence_confidence": "version_sensitive",
+          "version_note": "仅默认线索；按磁盘/硬链接条件可有多个 store。",
+          "source_ids": [
+            "store_settings"
+          ]
+        }
+      ],
+      "protected_subpaths": [
+        {
+          "path_hint": "store 内容、项目注册及共享虚拟 store 链接",
+          "reason": "官方涉及多项目引用及版本化布局；Water 策略：不手删内部文件。",
+          "source_ids": [
+            "store"
+          ]
+        },
+        {
+          "path_hint": "项目 node_modules、硬链接关系与工作区配置",
+          "reason": "官方说明同盘硬链接与跨盘复制；Water 策略：环境和配置单独保护。",
+          "source_ids": [
+            "store_settings",
+            "settings"
+          ]
+        }
+      ],
+      "notes": [
+        "官方事实：活动 store 应由工具查询确认；包可跨项目共享，硬链接受文件系统限制。",
+        "官方事实：当前文档涉及 pnpm v11/v12 项目注册和全局虚拟 store 行为，不能套用所有旧版本。",
+        "官方事实：当前设置页将普通配置与 .npmrc 的认证/registry 设置分开；本包不解析或实现跨版本优先级。",
+        "Water 策略：项目配置、命令行、目标进程环境和磁盘需结合版本核对；不根据文件年龄判可删，不将共享逻辑大小叠加为释放量；重下载不是回滚。",
+        "macOS 仅文档核对，未实测。"
+      ]
+    }
+  },
+  "assets": [
+    {
+      "kind": "cache",
+      "description": "跨项目共享 store 内容与索引",
+      "default_action": "display_only",
+      "risk_note": "Water 策略：未来安装、分支切换及离线环境可能仍需旧内容。",
+      "source_ids": [
+        "store"
+      ]
+    },
+    {
+      "kind": "environment",
+      "description": "项目依赖及与 store 的文件关联",
+      "default_action": "display_only",
+      "risk_note": "Water 策略：引用未知即保护；逻辑大小不是实际可释放量。",
+      "source_ids": [
+        "store_settings",
+        "store"
+      ]
+    },
+    {
+      "kind": "configuration",
+      "description": "工作区与全局配置",
+      "default_action": "display_only",
+      "risk_note": "Water 策略：配置及认证状态保护。",
+      "source_ids": [
+        "settings"
+      ]
+    }
+  ],
+  "sources": [
+    {
+      "id": "store",
+      "url": "https://pnpm.io/cli/store",
+      "supports": [
+        "活动路径、项目共享与版本变化"
+      ],
+      "verified_on": "2026-10-17"
+    },
+    {
+      "id": "store_settings",
+      "url": "https://pnpm.io/settings/store",
+      "supports": [
+        "storeDir 默认推导、磁盘和硬链接"
+      ],
+      "verified_on": "2026-10-17"
+    },
+    {
+      "id": "settings",
+      "url": "https://pnpm.io/settings",
+      "supports": [
+        "当前配置与认证设置边界"
+      ],
+      "verified_on": "2026-10-17"
+    }
+  ],
+  "constraints": {
+    "discovery_only": true,
+    "can_scan": false,
+    "can_delete": false
+  }
+}

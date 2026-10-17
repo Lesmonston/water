@@ -1,0 +1,266 @@
+{
+  "catalog_version": "water.catalog.v1",
+  "tool_id": "huggingface",
+  "name": "Hugging Face Hub",
+  "reviewed_on": "2026-10-17",
+  "runtime_verified": false,
+  "platforms": {
+    "windows": {
+      "root_candidates": [
+        {
+          "source": "configuration",
+          "key": "cache_dir",
+          "path_template": null,
+          "purpose": "model_store",
+          "evidence_confidence": "documented",
+          "version_note": "调用级参数可另指 Hub 缓存；本包不读取应用参数。",
+          "source_ids": [
+            "cache"
+          ]
+        },
+        {
+          "source": "environment",
+          "key": "HF_HUB_CACHE",
+          "path_template": "$HF_HUB_CACHE",
+          "purpose": "model_store",
+          "evidence_confidence": "documented",
+          "version_note": "Hub 仓库缓存可独立重定向，不应只看 HF_HOME。",
+          "source_ids": [
+            "environment"
+          ]
+        },
+        {
+          "source": "environment",
+          "key": "HF_HOME",
+          "path_template": "$HF_HOME",
+          "purpose": "mixed_state",
+          "evidence_confidence": "documented",
+          "version_note": "同根可容纳 token 和缓存；整个根不是可删缓存。",
+          "source_ids": [
+            "environment"
+          ]
+        },
+        {
+          "source": "default_hint",
+          "key": "hub_under_hf_home",
+          "path_template": "$HF_HOME/hub",
+          "purpose": "model_store",
+          "evidence_confidence": "documented",
+          "version_note": "未被 HF_HUB_CACHE 覆盖时的派生默认。",
+          "source_ids": [
+            "environment"
+          ]
+        },
+        {
+          "source": "environment",
+          "key": "XDG_CACHE_HOME",
+          "path_template": "$XDG_CACHE_HOME/huggingface/hub",
+          "purpose": "model_store",
+          "evidence_confidence": "documented",
+          "version_note": "HF_HOME 未设时才用于派生默认；还需核对 Hub 或调用级覆盖。",
+          "source_ids": [
+            "environment"
+          ]
+        },
+        {
+          "source": "default_hint",
+          "key": "hub_default",
+          "path_template": "~/.cache/huggingface/hub",
+          "purpose": "model_store",
+          "evidence_confidence": "version_sensitive",
+          "version_note": "Python Hub 默认提示；Windows symlink 支持不同会影响布局。",
+          "source_ids": [
+            "cache",
+            "environment"
+          ]
+        }
+      ],
+      "protected_subpaths": [
+        {
+          "path_hint": "$HF_HOME/token 或 HF_TOKEN_PATH 指向的文件",
+          "reason": "官方记录 token 与缓存可共存；Water 策略：凭证及混合状态祖先根保护。",
+          "source_ids": [
+            "environment"
+          ]
+        },
+        {
+          "path_hint": "Hub 模型、revision、refs、blobs 与 snapshots",
+          "reason": "官方描述 revision 间共享及新布局跨仓共享；Water 策略：引用、唯一性或离线需求未知时保护。",
+          "source_ids": [
+            "cache"
+          ]
+        },
+        {
+          "path_hint": "$HF_HOME/assets 与 $HF_HOME/xet",
+          "reason": "官方描述下游资产与上传暂存；Water 策略：名称不能证明数据可删或已备份。",
+          "source_ids": [
+            "environment",
+            "cache"
+          ]
+        }
+      ],
+      "notes": [
+        "官方事实：HF_HUB_CACHE 可改 Hub 位置；HF_HOME 未设时才用 XDG_CACHE_HOME 派生；cache_dir 可另指位置。",
+        "官方事实：snapshots 可共用 blob，新布局也能跨仓共享；Windows 不支持 symlink 时使用降级布局。",
+        "Water 策略：没有 branch/tag 引用不代表项目没有按 commit 使用；模型唯一性、来源和再获取条件未知时保护。",
+        "Water 策略：SDK 版本、调用参数与目标进程环境待核对；不展开路径或读取 token，不以逻辑大小承诺释放量。",
+        "Windows 原生进程资料；未实测，不覆盖 WSL/容器。"
+      ]
+    },
+    "macos": {
+      "root_candidates": [
+        {
+          "source": "configuration",
+          "key": "cache_dir",
+          "path_template": null,
+          "purpose": "model_store",
+          "evidence_confidence": "documented",
+          "version_note": "调用级参数可另指 Hub 缓存；本包不读取应用参数。",
+          "source_ids": [
+            "cache"
+          ]
+        },
+        {
+          "source": "environment",
+          "key": "HF_HUB_CACHE",
+          "path_template": "$HF_HUB_CACHE",
+          "purpose": "model_store",
+          "evidence_confidence": "documented",
+          "version_note": "Hub 仓库缓存可独立重定向，不应只看 HF_HOME。",
+          "source_ids": [
+            "environment"
+          ]
+        },
+        {
+          "source": "environment",
+          "key": "HF_HOME",
+          "path_template": "$HF_HOME",
+          "purpose": "mixed_state",
+          "evidence_confidence": "documented",
+          "version_note": "同根可容纳 token 和缓存；整个根不是可删缓存。",
+          "source_ids": [
+            "environment"
+          ]
+        },
+        {
+          "source": "default_hint",
+          "key": "hub_under_hf_home",
+          "path_template": "$HF_HOME/hub",
+          "purpose": "model_store",
+          "evidence_confidence": "documented",
+          "version_note": "未被 HF_HUB_CACHE 覆盖时的派生默认。",
+          "source_ids": [
+            "environment"
+          ]
+        },
+        {
+          "source": "environment",
+          "key": "XDG_CACHE_HOME",
+          "path_template": "$XDG_CACHE_HOME/huggingface/hub",
+          "purpose": "model_store",
+          "evidence_confidence": "documented",
+          "version_note": "HF_HOME 未设时才用于派生默认；还需核对 Hub 或调用级覆盖。",
+          "source_ids": [
+            "environment"
+          ]
+        },
+        {
+          "source": "default_hint",
+          "key": "hub_default",
+          "path_template": "~/.cache/huggingface/hub",
+          "purpose": "model_store",
+          "evidence_confidence": "version_sensitive",
+          "version_note": "Python Hub 默认提示；Windows symlink 支持不同会影响布局。",
+          "source_ids": [
+            "cache",
+            "environment"
+          ]
+        }
+      ],
+      "protected_subpaths": [
+        {
+          "path_hint": "$HF_HOME/token 或 HF_TOKEN_PATH 指向的文件",
+          "reason": "官方记录 token 与缓存可共存；Water 策略：凭证及混合状态祖先根保护。",
+          "source_ids": [
+            "environment"
+          ]
+        },
+        {
+          "path_hint": "Hub 模型、revision、refs、blobs 与 snapshots",
+          "reason": "官方描述 revision 间共享及新布局跨仓共享；Water 策略：引用、唯一性或离线需求未知时保护。",
+          "source_ids": [
+            "cache"
+          ]
+        },
+        {
+          "path_hint": "$HF_HOME/assets 与 $HF_HOME/xet",
+          "reason": "官方描述下游资产与上传暂存；Water 策略：名称不能证明数据可删或已备份。",
+          "source_ids": [
+            "environment",
+            "cache"
+          ]
+        }
+      ],
+      "notes": [
+        "官方事实：HF_HUB_CACHE 可改 Hub 位置；HF_HOME 未设时才用 XDG_CACHE_HOME 派生；cache_dir 可另指位置。",
+        "官方事实：snapshots 可共用 blob，新布局也能跨仓共享；Windows 不支持 symlink 时使用降级布局。",
+        "Water 策略：没有 branch/tag 引用不代表项目没有按 commit 使用；模型唯一性、来源和再获取条件未知时保护。",
+        "Water 策略：SDK 版本、调用参数与目标进程环境待核对；不展开路径或读取 token，不以逻辑大小承诺释放量。",
+        "macOS 仅文档核对，未实测。"
+      ]
+    }
+  },
+  "assets": [
+    {
+      "kind": "model",
+      "description": "Hub 模型与固定 revision 内容",
+      "default_action": "display_only",
+      "risk_note": "Water 策略：公共下载也可能是离线唯一可用副本；独有权重和训练成果默认保护。",
+      "source_ids": [
+        "cache"
+      ]
+    },
+    {
+      "kind": "credential",
+      "description": "HF_HOME 中或 HF_TOKEN_PATH 指定的 token",
+      "default_action": "display_only",
+      "risk_note": "Water 策略：凭证及其混合根不得整根清理；本包不读取 token。",
+      "source_ids": [
+        "environment"
+      ]
+    },
+    {
+      "kind": "unknown",
+      "description": "下游 assets 与 Xet 暂存",
+      "default_action": "display_only",
+      "risk_note": "Water 策略：用途、上传完成与重建条件未知时保护。",
+      "source_ids": [
+        "environment",
+        "cache"
+      ]
+    }
+  ],
+  "sources": [
+    {
+      "id": "cache",
+      "url": "https://huggingface.co/docs/huggingface_hub/guides/manage-cache",
+      "supports": [
+        "调用级位置、revision/blob 共享与 Windows 链接差异"
+      ],
+      "verified_on": "2026-10-17"
+    },
+    {
+      "id": "environment",
+      "url": "https://huggingface.co/docs/huggingface_hub/en/package_reference/environment_variables",
+      "supports": [
+        "HF_HOME 混合状态、token、Hub/Xet/assets 与 XDG 条件"
+      ],
+      "verified_on": "2026-10-17"
+    }
+  ],
+  "constraints": {
+    "discovery_only": true,
+    "can_scan": false,
+    "can_delete": false
+  }
+}

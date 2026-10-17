@@ -1,0 +1,172 @@
+{
+  "catalog_version": "water.catalog.v1",
+  "tool_id": "npm",
+  "name": "npm",
+  "reviewed_on": "2026-10-17",
+  "runtime_verified": false,
+  "platforms": {
+    "windows": {
+      "root_candidates": [
+        {
+          "source": "environment",
+          "key": "npm_config_cache",
+          "path_template": "$npm_config_cache",
+          "purpose": "download_cache",
+          "evidence_confidence": "documented",
+          "version_note": "npm v11 文档；变量不区分大小写，脚本内小写值还会影响结果。",
+          "source_ids": [
+            "config"
+          ]
+        },
+        {
+          "source": "configuration",
+          "key": "cache",
+          "path_template": null,
+          "purpose": "download_cache",
+          "evidence_confidence": "documented",
+          "version_note": "有效 cache 可由命令行及多层 npmrc 改变。",
+          "source_ids": [
+            "config",
+            "cache"
+          ]
+        },
+        {
+          "source": "default_hint",
+          "key": "windows_default",
+          "path_template": "%LOCALAPPDATA%\\npm-cache",
+          "purpose": "download_cache",
+          "evidence_confidence": "documented",
+          "version_note": "仅 v11 文档默认线索，其他版本需复核。",
+          "source_ids": [
+            "cache"
+          ]
+        }
+      ],
+      "protected_subpaths": [
+        {
+          "path_hint": "项目/用户/全局 npmrc",
+          "reason": "官方配置页说明认证项及配置层级；Water 策略：配置/凭证及其祖先目录保护，不读取凭证。",
+          "source_ids": [
+            "config"
+          ]
+        },
+        {
+          "path_hint": "有效 cache 内的 _cacache",
+          "reason": "官方将其视作不透明缓存；Water 策略：本票没有内部扫描/删除权限。",
+          "source_ids": [
+            "cache"
+          ]
+        }
+      ],
+      "notes": [
+        "官方事实：命令行、环境、npmrc、默认值按原生优先级决定有效配置；Water 进程环境不能代表目标 npm。",
+        "官方事实：verify 会垃圾回收并校验缓存，不能用作只读发现；缓存不是可靠持久备份。",
+        "Water 策略：项目依赖与源码不因相邻路径而进入缓存范围；重下载不等于回滚。",
+        "Windows 原生进程资料；未实测，不覆盖 WSL/容器。"
+      ]
+    },
+    "macos": {
+      "root_candidates": [
+        {
+          "source": "environment",
+          "key": "npm_config_cache",
+          "path_template": "$npm_config_cache",
+          "purpose": "download_cache",
+          "evidence_confidence": "documented",
+          "version_note": "npm v11 文档；变量不区分大小写，脚本内小写值还会影响结果。",
+          "source_ids": [
+            "config"
+          ]
+        },
+        {
+          "source": "configuration",
+          "key": "cache",
+          "path_template": null,
+          "purpose": "download_cache",
+          "evidence_confidence": "documented",
+          "version_note": "有效 cache 可由命令行及多层 npmrc 改变。",
+          "source_ids": [
+            "config",
+            "cache"
+          ]
+        },
+        {
+          "source": "default_hint",
+          "key": "macos_default",
+          "path_template": "~/.npm",
+          "purpose": "download_cache",
+          "evidence_confidence": "documented",
+          "version_note": "v11 POSIX 默认线索；macOS 配置未实测。",
+          "source_ids": [
+            "cache"
+          ]
+        }
+      ],
+      "protected_subpaths": [
+        {
+          "path_hint": "项目/用户/全局 npmrc",
+          "reason": "官方配置页说明认证项及配置层级；Water 策略：配置/凭证及其祖先目录保护，不读取凭证。",
+          "source_ids": [
+            "config"
+          ]
+        },
+        {
+          "path_hint": "有效 cache 内的 _cacache",
+          "reason": "官方将其视作不透明缓存；Water 策略：本票没有内部扫描/删除权限。",
+          "source_ids": [
+            "cache"
+          ]
+        }
+      ],
+      "notes": [
+        "官方事实：命令行、环境、npmrc、默认值按原生优先级决定有效配置；Water 进程环境不能代表目标 npm。",
+        "官方事实：verify 会垃圾回收并校验缓存，不能用作只读发现；缓存不是可靠持久备份。",
+        "Water 策略：项目依赖与源码不因相邻路径而进入缓存范围；重下载不等于回滚。",
+        "macOS 仅文档核对，未实测。"
+      ]
+    }
+  },
+  "assets": [
+    {
+      "kind": "cache",
+      "description": "内容寻址的包及 HTTP 缓存",
+      "default_action": "display_only",
+      "risk_note": "Water 策略：离线可用性、私有包再获取和重建成本未知时保护。",
+      "source_ids": [
+        "cache"
+      ]
+    },
+    {
+      "kind": "credential",
+      "description": "npmrc 中可能存在的认证项",
+      "default_action": "display_only",
+      "risk_note": "Water 策略：凭证保护，不读取其内容。",
+      "source_ids": [
+        "config"
+      ]
+    }
+  ],
+  "sources": [
+    {
+      "id": "cache",
+      "url": "https://docs.npmjs.com/cli/v11/commands/npm-cache/",
+      "supports": [
+        "缓存默认、不透明布局、verify 修改行为"
+      ],
+      "verified_on": "2026-10-17"
+    },
+    {
+      "id": "config",
+      "url": "https://docs.npmjs.com/cli/v11/using-npm/config/",
+      "supports": [
+        "配置顺序、环境及 npmrc 认证"
+      ],
+      "verified_on": "2026-10-17"
+    }
+  ],
+  "constraints": {
+    "discovery_only": true,
+    "can_scan": false,
+    "can_delete": false
+  }
+}

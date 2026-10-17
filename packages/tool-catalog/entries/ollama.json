@@ -1,0 +1,149 @@
+{
+  "catalog_version": "water.catalog.v1",
+  "tool_id": "ollama",
+  "name": "Ollama",
+  "reviewed_on": "2026-10-17",
+  "runtime_verified": false,
+  "platforms": {
+    "windows": {
+      "root_candidates": [
+        {
+          "source": "environment",
+          "key": "OLLAMA_MODELS",
+          "path_template": "$OLLAMA_MODELS",
+          "purpose": "model_store",
+          "evidence_confidence": "documented",
+          "version_note": "需实际 Ollama 应用/服务继承的环境，不能用 Water 进程代替。",
+          "source_ids": [
+            "faq"
+          ]
+        },
+        {
+          "source": "default_hint",
+          "key": "windows_default",
+          "path_template": "%USERPROFILE%\\.ollama\\models",
+          "purpose": "model_store",
+          "evidence_confidence": "documented",
+          "version_note": "用户目录下的文档默认；账号和自定义位置待核对。",
+          "source_ids": [
+            "faq"
+          ]
+        }
+      ],
+      "protected_subpaths": [
+        {
+          "path_hint": "模型根、模型 blob 与导入/自建模型",
+          "reason": "官方支持从既有模型、Safetensors 或 GGUF 构建；Water 策略：自建模型可能是唯一资产，不手删内部 blob。",
+          "source_ids": [
+            "modelfile"
+          ]
+        },
+        {
+          "path_hint": "Modelfile、参数与模板",
+          "reason": "官方定义模型行为；Water 策略：将模型定义作为配置/成果保护。",
+          "source_ids": [
+            "modelfile"
+          ]
+        }
+      ],
+      "notes": [
+        "官方事实：OLLAMA_MODELS 可改变默认根；Windows 与 macOS 应用继承环境方式不同。",
+        "官方事实：可从用户本地权重构建模型；Modelfile 文档不构成稳定内部删除协议。",
+        "Water 策略：版本、模型引用、服务身份、唯一性和离线可用性待核对；不把模型根当纯下载缓存，不承诺释放空间或可回滚。",
+        "Windows 原生进程资料；未实测，不覆盖 WSL/容器。"
+      ]
+    },
+    "macos": {
+      "root_candidates": [
+        {
+          "source": "environment",
+          "key": "OLLAMA_MODELS",
+          "path_template": "$OLLAMA_MODELS",
+          "purpose": "model_store",
+          "evidence_confidence": "documented",
+          "version_note": "macOS 应用服务环境与当前 shell 可不同。",
+          "source_ids": [
+            "faq"
+          ]
+        },
+        {
+          "source": "default_hint",
+          "key": "macos_default",
+          "path_template": "~/.ollama/models",
+          "purpose": "model_store",
+          "evidence_confidence": "documented",
+          "version_note": "文档默认线索，版本和实际位置未实测。",
+          "source_ids": [
+            "faq"
+          ]
+        }
+      ],
+      "protected_subpaths": [
+        {
+          "path_hint": "模型根、模型 blob 与导入/自建模型",
+          "reason": "官方支持从既有模型、Safetensors 或 GGUF 构建；Water 策略：自建模型可能是唯一资产，不手删内部 blob。",
+          "source_ids": [
+            "modelfile"
+          ]
+        },
+        {
+          "path_hint": "Modelfile、参数与模板",
+          "reason": "官方定义模型行为；Water 策略：将模型定义作为配置/成果保护。",
+          "source_ids": [
+            "modelfile"
+          ]
+        }
+      ],
+      "notes": [
+        "官方事实：OLLAMA_MODELS 可改变默认根；Windows 与 macOS 应用继承环境方式不同。",
+        "官方事实：可从用户本地权重构建模型；Modelfile 文档不构成稳定内部删除协议。",
+        "Water 策略：版本、模型引用、服务身份、唯一性和离线可用性待核对；不把模型根当纯下载缓存，不承诺释放空间或可回滚。",
+        "macOS 仅文档核对，未实测。"
+      ]
+    }
+  },
+  "assets": [
+    {
+      "kind": "model",
+      "description": "下载、导入与自建模型",
+      "default_action": "display_only",
+      "risk_note": "Water 策略：独有权重、自建模型默认保护；无备份证据不承诺可重获。",
+      "source_ids": [
+        "modelfile",
+        "faq"
+      ]
+    },
+    {
+      "kind": "configuration",
+      "description": "Modelfile 定义、模板与参数",
+      "default_action": "display_only",
+      "risk_note": "Water 策略：视为用户模型成果保护。",
+      "source_ids": [
+        "modelfile"
+      ]
+    }
+  ],
+  "sources": [
+    {
+      "id": "faq",
+      "url": "https://docs.ollama.com/faq",
+      "supports": [
+        "Windows/macOS 默认位置、OLLAMA_MODELS 与应用环境"
+      ],
+      "verified_on": "2026-10-17"
+    },
+    {
+      "id": "modelfile",
+      "url": "https://docs.ollama.com/modelfile",
+      "supports": [
+        "本地权重自建模型与模型定义"
+      ],
+      "verified_on": "2026-10-17"
+    }
+  ],
+  "constraints": {
+    "discovery_only": true,
+    "can_scan": false,
+    "can_delete": false
+  }
+}
