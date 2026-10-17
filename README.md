@@ -2,7 +2,7 @@
 
 面向 Windows、macOS AI 开发者的本地存储分析与安全清理助手。
 
-**当前阶段：B/C已验收集成；A补单01单票验收通过，进行隔离集成；D原单已验收退回补单01，待用户外贴。尚无真实扫描或删除能力。**
+**当前阶段：A/B/C已验收集成（当前Windows范围）；D原单已验收退回补单01，待用户外贴。尚无真实扫描或删除能力。**
 
 用户指定本项目所有后续开发均位于 `smaltalk/water`，由 Codex 担任总控。
 
@@ -21,7 +21,7 @@
 
 已纳入的独立产物：[六工具规则数据包](packages/tool-catalog/README.md)、[固定数据只读原型及启动说明](prototypes/readonly-dashboard/README)。[复验与集成报告](docs/acceptance/wave1/controller/WATER-W1-BC-ADDENDUM-01-REVIEW-20261017.md)记录Windows范围和未验证项；两项产物尚未接真实扫描或相互接线。
 
-[当前验收与接手记录](docs/acceptance/wave1/controller/WATER-W1-AD-REVIEW-20261017.md)与[外贴入口](docs/dispatch/wave1/NEXT-BATCH-20261017.md)：A已通过单票复验；D需拒绝数组上的非索引属性。正式Rust扫描票继续等待前置验收。
+[当前验收与接手记录](docs/acceptance/wave1/controller/WATER-W1-AD-REVIEW-20261017.md)与[外贴入口](docs/dispatch/wave1/NEXT-BATCH-20261017.md)：A已通过单票及隔离集成复验；D需拒绝数组上的非索引属性。正式Rust扫描票继续等待前置验收。
 
 ## 研究输入
 
@@ -33,4 +33,4 @@ Water 的发布许可证、定价与商标名称尚未最终确定；`water` 是
 
 ## 后续协作
 
-Codex负责架构、规划、契约、工单和验收；用户把总控准备好的一行指令转贴给执行者；执行者在独立工作树提交代码与回执，总控复核后集成。见 [派单登记](docs/dispatch/registry.json) 与 [本轮计划](docs/dispatch/wave1/PLAN.md)：B/C已验收集成，A仍独立，总控没有自动代替用户启动实现者或修产品代码。
+Codex负责架构、规划、契约、工单和验收；用户把总控准备好的一行指令转贴给执行者；执行者在独立工作树提交代码与回执，总控复核后集成。见 [派单登记](docs/dispatch/registry.json) 与 [本轮计划](docs/dispatch/wave1/PLAN.md)：A/B/C已验收集成，D按补单续做，总控没有自动代替用户启动实现者或修产品代码。

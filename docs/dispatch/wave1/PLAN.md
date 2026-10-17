@@ -10,7 +10,7 @@
 
 下一批已准备[A补单续做+D夹具工厂](NEXT-BATCH-20261017.md)：D精确r1基线/8冻结/Node24/链接probe通过，READY等待用户外贴，不改变A/B/C原权限。下一张Rust核心仅DRAFT，不给依赖未验收A的实现票。
 
-接手后的最新状态：A补单已收单并通过单票复验，进行隔离集成；D已收单，原五测试通过但独立数组未知属性校验失败，CHANGES_REQUESTED，[补单01](../tickets/WATER-W1-D-ADDENDUM-01-20261017.md)待外贴。上面的派前与RUNNING状态为历史；当前以[A/D验收报告](../../acceptance/wave1/controller/WATER-W1-AD-REVIEW-20261017.md)和manifest为准。
+接手后的最新状态：A补单已通过单票及隔离集成复验，VERIFIED并纳入主线；D已收单，原五测试通过但独立数组未知属性校验失败，CHANGES_REQUESTED，[补单01](../tickets/WATER-W1-D-ADDENDUM-01-20261017.md)待外贴。上面的派前与RUNNING状态为历史；当前以[A/D验收报告](../../acceptance/wave1/controller/WATER-W1-AD-REVIEW-20261017.md)和manifest为准。
 
 | 票 | 内容 | 前置与边界 |
 |---|---|---|

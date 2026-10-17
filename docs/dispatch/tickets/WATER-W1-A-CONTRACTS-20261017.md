@@ -2,7 +2,7 @@
 
 总控：Codex。日期：2026-10-17。正式状态看主检出 `docs/dispatch/wave1/manifest.json`。这是一张实现票，模型由用户安排。
 
-2026-10-17总控收单后发现wire枚举形状缺陷，当前CHANGES_REQUESTED；续做请先读[补充单01](WATER-W1-A-ADDENDUM-01-20261017.md)。补单绑定已提交HEAD，替代本票首次baseline/回执规则；其余冻结契约和权限仍适用。
+原单曾因wire枚举形状缺陷退回，[补充单01](WATER-W1-A-ADDENDUM-01-20261017.md)现已通过复验及隔离集成，VERIFIED（Windows范围）。本页开工说明保留为历史，不重复派出。当前依据见主manifest与总控验收报告。
 
 | 项 | 值 |
 |---|---|

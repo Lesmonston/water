@@ -2,7 +2,7 @@
 
 2026-10-17，总控Codex。接手来源为用户指定的失效对话`codex:f62e8a21-24f9-488a-904d-a3050525a155`；未恢复其聊天内容，依据项目材料、Git与实测。用户随后明确A/D已完成、直接验收。
 
-结论：A单票ACCEPTED，隔离集成结果在下节单独登记；D为CHANGES_REQUESTED，发[补单01](../../../dispatch/tickets/WATER-W1-D-ADDENDUM-01-20261017.md)。B/C既有VERIFIED保留。没有自动启动实现者或代修产品。
+结论：A单票及隔离集成通过，VERIFIED（Windows范围）；D为CHANGES_REQUESTED，发[补单01](../../../dispatch/tickets/WATER-W1-D-ADDENDUM-01-20261017.md)。B/C既有VERIFIED保留。没有自动启动实现者或代修产品。
 
 ## 提交与完整性
 
@@ -43,6 +43,12 @@ D原三项负控可见目标AssertionError，后续恢复及最终门通过；�
 
 ## 集成与限制
 
-A的集成提交、检查与main推进将在独立集成树完成后追加；单票通过不冒充集成通过。D修订验收前正式Rust扫描票仍为DRAFT。当前没有真实扫描、删除、Tauri接线或macOS验收。
+A独立集成树为`.worktrees/integration-a-20261017`、分支`controller/water-w1-a-20261017`。从接手验收提交89ba273合并已接收A，无冲突，实际受测提交`74fa13b23729405fc11069e04d6c50b015c6a138`。
+
+[集成receipt](w1-a-integration-20261017/2026-10-17T10-26-33.854Z-33840-result.json)的30个命令全部退出0，前后保持同一干净提交：独立target与已安装缓存副本、离线构建；metadata/fmt/五契约测试/clippy及三项实际库wire边界全部通过。26项冻结哈希一致，Cargo三个根文件及crate tree与接收提交一致；B/C tree不变，未集成D产品。没有因B/C产品未变而重复浏览器测试。
+
+合并checkout将274份A原始证据自动换成CRLF。总控新增A证据目录的字节保留属性，仅在集成树恢复这274份文件至worker原字节；全部328份源证据与接收提交Git blob一致，未改历史内容。详见[逐文件字节审计](w1-a-integration-20261017/evidence-byte-audit.json)。[31项集成日志归档哈希](w1-a-integration-20261017/archive-manifest.json)供后续复核。受测提交之后仅补文档、字节保留属性和证据，未变产品/测试，故不重复Rust门。
+
+主线只在上述门通过后快进至含验收记录的集成分支，实际推进记录单独保存在同一证据目录。D修订验收前正式Rust扫描票仍为DRAFT。当前没有真实扫描、删除、Tauri接线或macOS验收。
 
 本轮仅总控与两个只读审计辅助；辅助没有实现、发单或写文件权限。所有产物留在Water内，不写共享Vault/其他项目，也未访问失效对话的本机会话/凭证目录。
