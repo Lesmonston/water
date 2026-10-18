@@ -1,6 +1,6 @@
 # Water 架构基线
 
-状态：生产内核设计基线；A–I已验收集成（Windows范围）。真实受控F→G→A→E/H→I模型链路通过，F仅扫描合成元数据，I页面仍读冻结合成报告；真实用户scope、分类和桌面接线未验收。对应 [ADR-001](decisions/ADR-001-independent-core.md)。
+状态：生产内核设计基线；A–K已验收集成（Windows受控合成范围）。真实J→K双尺寸13会话页面通过，F仍仅扫描合成元数据，I旧页面仍读冻结合成报告；真实用户scope、分类提升和桌面接线未验收。对应 [ADR-001](decisions/ADR-001-independent-core.md)。
 
 第一轮的具体数据与Rust API见 [scan v1契约](../contracts/v1/README.md)；工程顺序、工具链及限定范围见 [ADR-002](decisions/ADR-002-wave1-contract-bootstrap.md)。契约材料已冻结不代表Rust实现已存在。
 
@@ -20,7 +20,7 @@
 
 [ADR-007](decisions/ADR-007-parallel-report-export-reader.md)新增独立G/H/I：G从冻结F JSON事实组装全未知保护报告，并用完整sidecar保留A无法表示的身份/来源；H从经A验证的报告构造无直接标识/自由文本的白名单汇总；I消费真实E投影生成的冻结合成视图，提供状态/覆盖/来源容量/筛选/详情。G/H不依赖F crate，I不依赖G/H，因此可与F同时实现。A–I已VERIFIED（Windows范围）；G/H产品及实际F→G→A→E/H→I模型联测通过，I页面和正式桌面尚未接扫描链路，不修改根Cargo或旧产品。
 
-[ADR-008](decisions/ADR-008-controlled-session-and-supplied-reader.md)新增J/K独立线：J受控会话库调用已验收F/G/A/E/H，已通过[独立验收及集成](acceptance/wave1/controller/WATER-W1-J-REVIEW-20261018.md)（Windows范围），真实13快照与独立旧链路一致；K页面消费调用方内存bundle，保持原单RUNNING待回执。132冻结及旧产品保持；J→K真实页面、真实用户scope和桌面尚未验收。
+[ADR-008](decisions/ADR-008-controlled-session-and-supplied-reader.md)新增J/K独立线：J受控会话库调用已验收F/G/A/E/H，已通过[独立验收及集成](acceptance/wave1/controller/WATER-W1-J-REVIEW-20261018.md)（Windows范围），真实13快照与独立旧链路一致；K页面消费调用方内存bundle，补单01已通过真实J→K双尺寸13会话验收并集成。旧产品及151总冻结保持；真实用户scope和桌面尚未验收。
 
 ## 分层与信任边界
 

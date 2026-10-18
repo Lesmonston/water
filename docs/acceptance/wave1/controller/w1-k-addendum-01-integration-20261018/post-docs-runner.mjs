@@ -1,0 +1,7 @@
+import assert from 'node:assert/strict';
+import {readFileSync,writeFileSync} from 'node:fs';
+const replace=(p,a,b)=>{const t=readFileSync(p,'utf8');assert(t.includes(a),p);writeFileSync(p,t.replace(a,b));};
+replace('docs/dispatch/wave1/EVIDENCE-BATCH-PLAN-20261018.md','原k树与prototypes/lab-reader；当前RUNNING','原k树与prototypes/lab-reader；补单01已VERIFIED，不重贴');
+replace('docs/dispatch/wave1/EVIDENCE-BATCH-READY-REPORT.md','# L/M实际派前回执','# L/M实际派前回执\n\n后续状态（2026-10-18）：K补单01已完成[独立复验和真实J→K页面集成](../../acceptance/wave1/controller/WATER-W1-K-ADDENDUM-01-REVIEW-20261018.md)，VERIFIED（Windows受控范围）；L/M原任务对象与分配保持。以下为派前时的原记录，不把其中K的RUNNING描述当作当前状态。');
+replace('docs/ARCHITECTURE.md','状态：生产内核设计基线；A–I已验收集成（Windows范围）。真实受控F→G→A→E/H→I模型链路通过，F仅扫描合成元数据，I页面仍读冻结合成报告；真实用户scope、分类和桌面接线未验收。','状态：生产内核设计基线；A–K已验收集成（Windows受控合成范围）。真实J→K双尺寸13会话页面通过，F仍仅扫描合成元数据，I旧页面仍读冻结合成报告；真实用户scope、分类提升和桌面接线未验收。');
+for(const p of ['docs/dispatch/wave1/manifest.json','docs/dispatch/registry.json']){const d=JSON.parse(readFileSync(p,'utf8')),j=d.tasks.find(t=>t.id==='WATER-W1-J');j.originalControllerEvidenceScope=j.controllerEvidenceScope;j.controllerEvidenceScope='Windows controlled synthetic scope: J five Rust tests/fmt/clippy/metadata, real 13 snapshots equal independent F/G/A/E/H, native 11 cases/12 scopes/39 entries, actual J-to-K HTTP and all 13 live selections at both sizes. Retained fixtures only; 44 content snapshots unchanged. No real-user scopes or macOS runtime.';writeFileSync(p,JSON.stringify(d,null,2)+'\n');}

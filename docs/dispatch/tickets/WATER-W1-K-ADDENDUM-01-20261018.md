@@ -1,5 +1,7 @@
 # WATER-W1-K 补充单01：接受并展示 scope 根上的合法问题
 
+归档状态（2026-10-18）：本补单已VERIFIED（Windows受控合成范围），不再外贴或从e717519重做。以下为原票面约束；当前以主manifest和[总控复验报告](../../acceptance/wave1/controller/WATER-W1-K-ADDENDUM-01-REVIEW-20261018.md)为准。
+
 总控 Codex，2026-10-18。CHANGES_REQUESTED，补单已准备、待用户外贴。绑定[原 K 工单](WATER-W1-K-LAB-READER-20261018.md)。原基线、分支、132 冻结、helper、五测试名及物理权限不变。
 
 | 项 | 唯一值 |

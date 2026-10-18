@@ -21,9 +21,13 @@
 
 ## 下一步
 
-A–J及四旧补单保持VERIFIED（Windows）。K已收单，原门/独立边界通过，但真实J→K原集成失败并退回；[补充单01](dispatch/tickets/WATER-W1-K-ADDENDUM-01-20261018.md)已见启动审计和指定回归输入，现记RUNNING；精确转贴时刻未知，没有完成回执。L/M独立侧车已READY待分别外贴，见下方派前记录。真实scope安全、分类、Tauri/macOS与删除另排，M1尚未完成。
+A–K及五补单均VERIFIED（Windows受控合成范围），真实J→K页面通过，见[K补单复验报告](acceptance/wave1/controller/WATER-W1-K-ADDENDUM-01-REVIEW-20261018.md)。L/M保持原票和分配。真实scope安全、分类提升、Tauri/macOS与删除另排，M1尚未完成。
 
-## L/M派前完成（2026-10-18，最新）
+## K补单复验与真实J→K页面通过（2026-10-18，最新）
+
+K补单01接收886db33、受测e283d77，隔离95704fe完成原三门/五测试、133独立API/HTTP检查、根路径及三原负控的完整五测红/逐次恢复绿。真实J13快照与独立F/G/A/E/H逐值一致，直接供K服务并在1440×1000和900×800真实选择全部13份会话、核scope根issue与取消空态。仅复用原11+6/81717字节夹具，44内容快照通过，151冻结、1085份K及359份J交付字节保持。A–K及五补单均VERIFIED（Windows受控合成范围），原f16972f失败保留；L/M原任务对象、分配、基线/helper不变，真实用户scope、分类提升、桌面/macOS、卷唯一/回收量和删除未验证，M1未完成。见[总控复验报告](acceptance/wave1/controller/WATER-W1-K-ADDENDUM-01-REVIEW-20261018.md)。没有重造/清理夹具、修改L/M或接触真实用户数据。
+
+## L/M派前完成（2026-10-18，历史派前）
 
 L项目标记证据和M容量观察账本两票已完成正式冻结/独立树/实际离线baseline，READY待用户分别外贴；共同r1基线82e1580，38新锁/七旧锁合计151唯一文件，10+15合成输入及11错误实测通过。新产品未实现、五测试未运行，L/M无物理fixture或真实用户目录权限；K补单原任务对象/基线/helper/132旧冻结保持RUNNING，无自动实现者。见[正式批次](dispatch/wave1/EVIDENCE-BATCH-PLAN-20261018.md)、[派前回执](dispatch/wave1/EVIDENCE-BATCH-READY-REPORT.md)及票面。两个新执行对话各接一票；READY不等于已转贴。真实J→K、真实scope、桌面/macOS及删除仍未验收，M1未完成。
 

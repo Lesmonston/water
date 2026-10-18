@@ -2,7 +2,11 @@
 
 2026-10-17。项目：`F:/new/smaltalk/water`。供后续总控接手与Keeper ingest；未写共享Vault或其他项目。
 
-## 当前交接：K补单继续，L/M正式票READY待分别外贴
+## 当前交接：K补单已VERIFIED，真实受控J→K页面通过
+
+K补单01接收886db33、受测e283d77，隔离95704fe完成原三门/五测试、133独立API/HTTP检查、根路径及三原负控的完整五测红/逐次恢复绿。真实J13快照与独立F/G/A/E/H逐值一致，直接供K服务并在1440×1000和900×800真实选择全部13份会话、核scope根issue与取消空态。仅复用原11+6/81717字节夹具，44内容快照通过，151冻结、1085份K及359份J交付字节保持。A–K及五补单均VERIFIED（Windows受控合成范围），原f16972f失败保留；L/M原任务对象、分配、基线/helper不变，真实用户scope、分类提升、桌面/macOS、卷唯一/回收量和删除未验证，M1未完成。见[K补单复验报告](acceptance/wave1/controller/WATER-W1-K-ADDENDUM-01-REVIEW-20261018.md)。后续按L/M原票收单，不重复派K或旧槽位。
+
+## 此前交接：K补单继续，L/M正式票READY（历史）
 
 L项目标记证据和M容量观察账本两票已完成正式冻结/独立树/实际离线baseline，READY待用户分别外贴；共同r1基线82e1580，38新锁/七旧锁合计151唯一文件，10+15合成输入及11错误实测通过。新产品未实现、五测试未运行，L/M无物理fixture或真实用户目录权限；K补单原任务对象/基线/helper/132旧冻结保持RUNNING，无自动实现者。见[派前回执](dispatch/wave1/EVIDENCE-BATCH-READY-REPORT.md)。原未派基线2e6a742及派前失败保留，r1只修新证据属性自有LF；不重复派K或旧槽位。真实J→K页面/真实用户scope/桌面/macOS仍未验收，M1未完成。
 

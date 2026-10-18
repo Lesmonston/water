@@ -1,0 +1,752 @@
+{
+  "startedAt": "2026-10-18T04:31:18.609Z",
+  "integration": true,
+  "controls": [
+    {
+      "label": "behavior",
+      "path": "prototypes/lab-reader/model.mjs",
+      "original": "cb19c23f76a609070bef9ec1a4357bf51465924674ac6c6fb246601953fc4f4b",
+      "bad": "d507a7411a4a387f8e2d3d1ae701a4aad33af73d7b8fd68458286b955f668138",
+      "red": true,
+      "restored": "cb19c23f76a609070bef9ec1a4357bf51465924674ac6c6fb246601953fc4f4b",
+      "green": true
+    },
+    {
+      "label": "nc1",
+      "path": "prototypes/lab-reader/server.mjs",
+      "original": "cf92f6af5872020f0ee0e6db85d20b198e5e33c814b2d652fc58db10180567e4",
+      "bad": "1c0aecd0a0a6c24ab886e605113330251bb9d8bef95e2a080cf0afe4edeaa09e",
+      "red": true,
+      "restored": "cf92f6af5872020f0ee0e6db85d20b198e5e33c814b2d652fc58db10180567e4",
+      "green": true
+    },
+    {
+      "label": "nc2",
+      "path": "prototypes/lab-reader/app.mjs",
+      "original": "796e9cfa20fb20851d40be2f7a04a8f0fba97ee673917d7918a63f36e86eaac4",
+      "bad": "d1d6b0b13d594d22786a6d9ffae3bb3771881e2ed69ac098b5a4a051c4b41d09",
+      "red": true,
+      "restored": "796e9cfa20fb20851d40be2f7a04a8f0fba97ee673917d7918a63f36e86eaac4",
+      "green": true
+    },
+    {
+      "label": "nc3",
+      "path": "prototypes/lab-reader/app.mjs",
+      "original": "796e9cfa20fb20851d40be2f7a04a8f0fba97ee673917d7918a63f36e86eaac4",
+      "bad": "153da60edf0c359b31af38344b822e846c2cf908b1edc0ca7c4faba9d59e6525",
+      "red": true,
+      "restored": "796e9cfa20fb20851d40be2f7a04a8f0fba97ee673917d7918a63f36e86eaac4",
+      "green": true
+    }
+  ],
+  "addendum": true,
+  "cases": [
+    {
+      "id": "actual-I-function-identity",
+      "status": "passed"
+    },
+    {
+      "id": "source-preserved:pipeline-0",
+      "status": "passed"
+    },
+    {
+      "id": "source-preserved:pipeline-7",
+      "status": "passed"
+    },
+    {
+      "id": "source-preserved:pipeline-11",
+      "status": "passed"
+    },
+    {
+      "id": "source-preserved:pipeline-12",
+      "status": "passed"
+    },
+    {
+      "id": "reject:bundle-version",
+      "status": "passed"
+    },
+    {
+      "id": "reject:snapshot-count-zero",
+      "status": "passed"
+    },
+    {
+      "id": "reject:snapshot-count-65",
+      "status": "passed"
+    },
+    {
+      "id": "reject:duplicate-id",
+      "status": "passed"
+    },
+    {
+      "id": "reject:snapshot-extra",
+      "status": "passed"
+    },
+    {
+      "id": "reject:data-kind",
+      "status": "passed"
+    },
+    {
+      "id": "reject:facts-count",
+      "status": "passed"
+    },
+    {
+      "id": "reject:facts-scope",
+      "status": "passed"
+    },
+    {
+      "id": "reject:report-id",
+      "status": "passed"
+    },
+    {
+      "id": "reject:summary-count",
+      "status": "passed"
+    },
+    {
+      "id": "reject:summary-extra",
+      "status": "passed"
+    },
+    {
+      "id": "reject:risk-zero-bucket",
+      "status": "passed"
+    },
+    {
+      "id": "reject:category-zero-bucket",
+      "status": "passed"
+    },
+    {
+      "id": "reject:read-only",
+      "status": "passed"
+    },
+    {
+      "id": "reject:totals-null-to-zero",
+      "status": "passed"
+    },
+    {
+      "id": "reject:entry-depth",
+      "status": "passed"
+    },
+    {
+      "id": "reject:entry-identity",
+      "status": "passed"
+    },
+    {
+      "id": "reject:entry-traversal",
+      "status": "passed"
+    },
+    {
+      "id": "reject:protected-risk",
+      "status": "passed"
+    },
+    {
+      "id": "reject-selection:missing",
+      "status": "passed"
+    },
+    {
+      "id": "reject-selection:null",
+      "status": "passed"
+    },
+    {
+      "id": "reject-selection:undefined",
+      "status": "passed"
+    },
+    {
+      "id": "reject-selection:../file",
+      "status": "passed"
+    },
+    {
+      "id": "reject-port:-1",
+      "status": "passed"
+    },
+    {
+      "id": "reject-port:65536",
+      "status": "passed"
+    },
+    {
+      "id": "reject-port:1.2",
+      "status": "passed"
+    },
+    {
+      "id": "reject-port:0",
+      "status": "passed"
+    },
+    {
+      "id": "reject-port:null",
+      "status": "passed"
+    },
+    {
+      "id": "missing-bundle-no-fallback",
+      "status": "passed"
+    },
+    {
+      "id": "deep-caller-capture",
+      "status": "passed"
+    },
+    {
+      "id": "get-head-headers:/",
+      "status": "passed"
+    },
+    {
+      "id": "method:POST:/",
+      "status": "passed"
+    },
+    {
+      "id": "method:PUT:/",
+      "status": "passed"
+    },
+    {
+      "id": "method:DELETE:/",
+      "status": "passed"
+    },
+    {
+      "id": "method:OPTIONS:/",
+      "status": "passed"
+    },
+    {
+      "id": "host:localhost:59975:/",
+      "status": "passed"
+    },
+    {
+      "id": "host:attacker.example:/",
+      "status": "passed"
+    },
+    {
+      "id": "host:127.0.0.1:1:/",
+      "status": "passed"
+    },
+    {
+      "id": "query:/",
+      "status": "passed"
+    },
+    {
+      "id": "get-head-headers:/styles.css",
+      "status": "passed"
+    },
+    {
+      "id": "method:POST:/styles.css",
+      "status": "passed"
+    },
+    {
+      "id": "method:PUT:/styles.css",
+      "status": "passed"
+    },
+    {
+      "id": "method:DELETE:/styles.css",
+      "status": "passed"
+    },
+    {
+      "id": "method:OPTIONS:/styles.css",
+      "status": "passed"
+    },
+    {
+      "id": "host:localhost:59975:/styles.css",
+      "status": "passed"
+    },
+    {
+      "id": "host:attacker.example:/styles.css",
+      "status": "passed"
+    },
+    {
+      "id": "host:127.0.0.1:1:/styles.css",
+      "status": "passed"
+    },
+    {
+      "id": "query:/styles.css",
+      "status": "passed"
+    },
+    {
+      "id": "get-head-headers:/app.mjs",
+      "status": "passed"
+    },
+    {
+      "id": "method:POST:/app.mjs",
+      "status": "passed"
+    },
+    {
+      "id": "method:PUT:/app.mjs",
+      "status": "passed"
+    },
+    {
+      "id": "method:DELETE:/app.mjs",
+      "status": "passed"
+    },
+    {
+      "id": "method:OPTIONS:/app.mjs",
+      "status": "passed"
+    },
+    {
+      "id": "host:localhost:59975:/app.mjs",
+      "status": "passed"
+    },
+    {
+      "id": "host:attacker.example:/app.mjs",
+      "status": "passed"
+    },
+    {
+      "id": "host:127.0.0.1:1:/app.mjs",
+      "status": "passed"
+    },
+    {
+      "id": "query:/app.mjs",
+      "status": "passed"
+    },
+    {
+      "id": "get-head-headers:/model.mjs",
+      "status": "passed"
+    },
+    {
+      "id": "method:POST:/model.mjs",
+      "status": "passed"
+    },
+    {
+      "id": "method:PUT:/model.mjs",
+      "status": "passed"
+    },
+    {
+      "id": "method:DELETE:/model.mjs",
+      "status": "passed"
+    },
+    {
+      "id": "method:OPTIONS:/model.mjs",
+      "status": "passed"
+    },
+    {
+      "id": "host:localhost:59975:/model.mjs",
+      "status": "passed"
+    },
+    {
+      "id": "host:attacker.example:/model.mjs",
+      "status": "passed"
+    },
+    {
+      "id": "host:127.0.0.1:1:/model.mjs",
+      "status": "passed"
+    },
+    {
+      "id": "query:/model.mjs",
+      "status": "passed"
+    },
+    {
+      "id": "get-head-headers:/report-reader/model.mjs",
+      "status": "passed"
+    },
+    {
+      "id": "I-model-exact-served-bytes",
+      "status": "passed"
+    },
+    {
+      "id": "method:POST:/report-reader/model.mjs",
+      "status": "passed"
+    },
+    {
+      "id": "method:PUT:/report-reader/model.mjs",
+      "status": "passed"
+    },
+    {
+      "id": "method:DELETE:/report-reader/model.mjs",
+      "status": "passed"
+    },
+    {
+      "id": "method:OPTIONS:/report-reader/model.mjs",
+      "status": "passed"
+    },
+    {
+      "id": "host:localhost:59975:/report-reader/model.mjs",
+      "status": "passed"
+    },
+    {
+      "id": "host:attacker.example:/report-reader/model.mjs",
+      "status": "passed"
+    },
+    {
+      "id": "host:127.0.0.1:1:/report-reader/model.mjs",
+      "status": "passed"
+    },
+    {
+      "id": "query:/report-reader/model.mjs",
+      "status": "passed"
+    },
+    {
+      "id": "get-head-headers:/sessions.json",
+      "status": "passed"
+    },
+    {
+      "id": "method:POST:/sessions.json",
+      "status": "passed"
+    },
+    {
+      "id": "method:PUT:/sessions.json",
+      "status": "passed"
+    },
+    {
+      "id": "method:DELETE:/sessions.json",
+      "status": "passed"
+    },
+    {
+      "id": "method:OPTIONS:/sessions.json",
+      "status": "passed"
+    },
+    {
+      "id": "host:localhost:59975:/sessions.json",
+      "status": "passed"
+    },
+    {
+      "id": "host:attacker.example:/sessions.json",
+      "status": "passed"
+    },
+    {
+      "id": "host:127.0.0.1:1:/sessions.json",
+      "status": "passed"
+    },
+    {
+      "id": "query:/sessions.json",
+      "status": "passed"
+    },
+    {
+      "id": "raw-reject://sessions.json",
+      "status": "passed"
+    },
+    {
+      "id": "raw-reject:/x/../sessions.json",
+      "status": "passed"
+    },
+    {
+      "id": "raw-reject:/%73essions.json",
+      "status": "passed"
+    },
+    {
+      "id": "raw-reject:/sessions.json/",
+      "status": "passed"
+    },
+    {
+      "id": "raw-reject:/sessions.json%3fx",
+      "status": "passed"
+    },
+    {
+      "id": "raw-reject:/../README.md",
+      "status": "passed"
+    },
+    {
+      "id": "raw-reject:/%2e%2e/README.md",
+      "status": "passed"
+    },
+    {
+      "id": "raw-reject:/..%5cREADME.md",
+      "status": "passed"
+    },
+    {
+      "id": "raw-reject:/app.mjs#fragment",
+      "status": "passed"
+    },
+    {
+      "id": "raw-reject:/contracts/lab-reader-v1/sessions.json",
+      "status": "passed"
+    },
+    {
+      "id": "raw-reject:/server.mjs",
+      "status": "passed"
+    },
+    {
+      "id": "raw-reject:/favicon.ico",
+      "status": "passed"
+    },
+    {
+      "id": "raw-reject:/sessions.json\\x",
+      "status": "passed"
+    },
+    {
+      "id": "closed-server-refused",
+      "status": "passed"
+    },
+    {
+      "id": "actual-J-accepted:pipeline-0",
+      "status": "passed"
+    },
+    {
+      "id": "actual-J-accepted:pipeline-1",
+      "status": "passed"
+    },
+    {
+      "id": "actual-J-accepted:pipeline-2",
+      "status": "passed"
+    },
+    {
+      "id": "actual-J-accepted:pipeline-3",
+      "status": "passed"
+    },
+    {
+      "id": "actual-J-accepted:pipeline-4",
+      "status": "passed"
+    },
+    {
+      "id": "actual-J-accepted:pipeline-5",
+      "status": "passed"
+    },
+    {
+      "id": "actual-J-accepted:pipeline-6",
+      "status": "passed"
+    },
+    {
+      "id": "actual-J-accepted:pipeline-7",
+      "status": "passed"
+    },
+    {
+      "id": "actual-J-accepted:pipeline-8",
+      "status": "passed"
+    },
+    {
+      "id": "actual-J-accepted:pipeline-9",
+      "status": "passed"
+    },
+    {
+      "id": "actual-J-accepted:pipeline-10",
+      "status": "passed"
+    },
+    {
+      "id": "actual-J-accepted:pipeline-11",
+      "status": "passed"
+    },
+    {
+      "id": "actual-J-accepted:pipeline-12",
+      "status": "passed"
+    },
+    {
+      "id": "root-issue-accepted:",
+      "status": "passed"
+    },
+    {
+      "id": "root-issue-accepted:null",
+      "status": "passed"
+    },
+    {
+      "id": "root-issue-accepted:nested/root.txt",
+      "status": "passed"
+    },
+    {
+      "id": "root-issue-accepted:literal/<img src=x onerror=literal>",
+      "status": "passed"
+    },
+    {
+      "id": "root-issue-invalid:\"/absolute\"",
+      "status": "passed"
+    },
+    {
+      "id": "root-issue-invalid:\"C:/absolute\"",
+      "status": "passed"
+    },
+    {
+      "id": "root-issue-invalid:\"a\\\\b\"",
+      "status": "passed"
+    },
+    {
+      "id": "root-issue-invalid:\".\"",
+      "status": "passed"
+    },
+    {
+      "id": "root-issue-invalid:\"..\"",
+      "status": "passed"
+    },
+    {
+      "id": "root-issue-invalid:\"a/../b\"",
+      "status": "passed"
+    },
+    {
+      "id": "root-issue-invalid:\"a//b\"",
+      "status": "passed"
+    },
+    {
+      "id": "root-issue-invalid:\"a/\"",
+      "status": "passed"
+    },
+    {
+      "id": "root-issue-invalid:\"a\\nb\"",
+      "status": "passed"
+    },
+    {
+      "id": "root-issue-invalid:\"\\u0000\"",
+      "status": "passed"
+    },
+    {
+      "id": "scope-root-still-nonempty",
+      "status": "passed"
+    },
+    {
+      "id": "actual-J-all-13-captured",
+      "status": "passed"
+    }
+  ],
+  "commands": [
+    {
+      "binary": "git",
+      "argv": [
+        "-c",
+        "core.hooksPath=NUL",
+        "-c",
+        "core.fsmonitor=false",
+        "rev-parse",
+        "HEAD"
+      ],
+      "exitCode": 0,
+      "error": null,
+      "log": "2026-10-18T04-31-18.608Z-32188-0.log"
+    },
+    {
+      "binary": "git",
+      "argv": [
+        "-c",
+        "core.hooksPath=NUL",
+        "-c",
+        "core.fsmonitor=false",
+        "status",
+        "--porcelain=v1",
+        "--untracked-files=all"
+      ],
+      "exitCode": 0,
+      "error": null,
+      "log": "2026-10-18T04-31-18.608Z-32188-1.log"
+    },
+    {
+      "binary": "C:\\Program Files\\nodejs\\node.exe",
+      "argv": [
+        "--test",
+        "--test-concurrency=1",
+        "--test-reporter=tap",
+        "prototypes/lab-reader/tests/model.test.mjs",
+        "prototypes/lab-reader/tests/browser.test.mjs"
+      ],
+      "exitCode": 1,
+      "error": null,
+      "log": "2026-10-18T04-31-18.608Z-32188-2.log"
+    },
+    {
+      "binary": "C:\\Program Files\\nodejs\\node.exe",
+      "argv": [
+        "--test",
+        "--test-concurrency=1",
+        "--test-reporter=tap",
+        "prototypes/lab-reader/tests/model.test.mjs",
+        "prototypes/lab-reader/tests/browser.test.mjs"
+      ],
+      "exitCode": 0,
+      "error": null,
+      "log": "2026-10-18T04-31-18.608Z-32188-3.log"
+    },
+    {
+      "binary": "C:\\Program Files\\nodejs\\node.exe",
+      "argv": [
+        "--test",
+        "--test-concurrency=1",
+        "--test-reporter=tap",
+        "prototypes/lab-reader/tests/model.test.mjs",
+        "prototypes/lab-reader/tests/browser.test.mjs"
+      ],
+      "exitCode": 1,
+      "error": null,
+      "log": "2026-10-18T04-31-18.608Z-32188-4.log"
+    },
+    {
+      "binary": "C:\\Program Files\\nodejs\\node.exe",
+      "argv": [
+        "--test",
+        "--test-concurrency=1",
+        "--test-reporter=tap",
+        "prototypes/lab-reader/tests/model.test.mjs",
+        "prototypes/lab-reader/tests/browser.test.mjs"
+      ],
+      "exitCode": 0,
+      "error": null,
+      "log": "2026-10-18T04-31-18.608Z-32188-5.log"
+    },
+    {
+      "binary": "C:\\Program Files\\nodejs\\node.exe",
+      "argv": [
+        "--test",
+        "--test-concurrency=1",
+        "--test-reporter=tap",
+        "prototypes/lab-reader/tests/model.test.mjs",
+        "prototypes/lab-reader/tests/browser.test.mjs"
+      ],
+      "exitCode": 1,
+      "error": null,
+      "log": "2026-10-18T04-31-18.608Z-32188-6.log"
+    },
+    {
+      "binary": "C:\\Program Files\\nodejs\\node.exe",
+      "argv": [
+        "--test",
+        "--test-concurrency=1",
+        "--test-reporter=tap",
+        "prototypes/lab-reader/tests/model.test.mjs",
+        "prototypes/lab-reader/tests/browser.test.mjs"
+      ],
+      "exitCode": 0,
+      "error": null,
+      "log": "2026-10-18T04-31-18.608Z-32188-7.log"
+    },
+    {
+      "binary": "C:\\Program Files\\nodejs\\node.exe",
+      "argv": [
+        "--test",
+        "--test-concurrency=1",
+        "--test-reporter=tap",
+        "prototypes/lab-reader/tests/model.test.mjs",
+        "prototypes/lab-reader/tests/browser.test.mjs"
+      ],
+      "exitCode": 1,
+      "error": null,
+      "log": "2026-10-18T04-31-18.608Z-32188-8.log"
+    },
+    {
+      "binary": "C:\\Program Files\\nodejs\\node.exe",
+      "argv": [
+        "--test",
+        "--test-concurrency=1",
+        "--test-reporter=tap",
+        "prototypes/lab-reader/tests/model.test.mjs",
+        "prototypes/lab-reader/tests/browser.test.mjs"
+      ],
+      "exitCode": 0,
+      "error": null,
+      "log": "2026-10-18T04-31-18.608Z-32188-9.log"
+    },
+    {
+      "binary": "git",
+      "argv": [
+        "-c",
+        "core.hooksPath=NUL",
+        "-c",
+        "core.fsmonitor=false",
+        "rev-parse",
+        "HEAD"
+      ],
+      "exitCode": 0,
+      "error": null,
+      "log": "2026-10-18T04-31-18.608Z-32188-10.log"
+    },
+    {
+      "binary": "git",
+      "argv": [
+        "-c",
+        "core.hooksPath=NUL",
+        "-c",
+        "core.fsmonitor=false",
+        "status",
+        "--porcelain=v1",
+        "--untracked-files=all"
+      ],
+      "exitCode": 0,
+      "error": null,
+      "log": "2026-10-18T04-31-18.608Z-32188-11.log"
+    }
+  ],
+  "before": {
+    "head": "95704fee2710d778f0f822303ce4c084a279e940",
+    "status": ""
+  },
+  "after": {
+    "head": "95704fee2710d778f0f822303ce4c084a279e940",
+    "status": ""
+  },
+  "endedAt": "2026-10-18T04:35:23.977Z",
+  "status": "passed",
+  "error": null
+}

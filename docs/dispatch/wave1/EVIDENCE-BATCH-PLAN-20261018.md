@@ -4,7 +4,7 @@
 
 | 线 | 产物 | 已验收依赖 | 独占范围 |
 |---|---|---|---|
-| K补单01 | 修复合法scope根issue空串与页面展示 | 原K/I及实际J回归输入 | 原k树与prototypes/lab-reader；当前RUNNING |
+| K补单01 | 修复合法scope根issue空串与页面展示 | 原K/I及实际J回归输入 | 原k树与prototypes/lab-reader；补单01已VERIFIED，不重贴 |
 | L | 四种Node/Python文件名标记候选证据侧车 | A/G和冻结facts JSON | 新l树、packages/project-evidence |
 | M | 观察逻辑长度、已知身份分组与Unknown/冲突账本 | A/G和冻结facts JSON | 新m树、packages/size-ledger |
 

@@ -1,0 +1,78 @@
+{"binary":"C:\\Program Files\\nodejs\\node.exe","argv":["--test","--test-concurrency=1","--test-reporter=tap","prototypes/lab-reader/tests/model.test.mjs","prototypes/lab-reader/tests/browser.test.mjs"],"exitCode":1,"error":null,"log":"2026-10-18T04-31-18.608Z-32188-8.log"}
+--- stdout ---
+TAP version 13
+# Subtest: reader_session_live_input
+not ok 1 - reader_session_live_input
+  ---
+  duration_ms: 5083.8443
+  type: 'test'
+  location: 'F:\\new\\smaltalk\\water\\.worktrees\\integration-jk-20261018\\prototypes\\lab-reader\\tests\\browser.test.mjs:95:1'
+  failureType: 'testCodeFailure'
+  error: |-
+    K_TEXT_LITERAL: dynamic text must not create img/script elements
+    
+    2 !== 0
+    
+  code: 'ERR_ASSERTION'
+  name: 'AssertionError'
+  expected: 0
+  actual: 2
+  operator: 'strictEqual'
+  stack: |-
+    literal (file:///F:/new/smaltalk/water/.worktrees/integration-jk-20261018/prototypes/lab-reader/tests/browser.test.mjs:92:10)
+    async TestContext.<anonymous> (file:///F:/new/smaltalk/water/.worktrees/integration-jk-20261018/prototypes/lab-reader/tests/browser.test.mjs:112:9)
+    async Test.run (node:internal/test_runner/test:1313:7)
+    async startSubtestAfterBootstrap (node:internal/test_runner/harness:385:3)
+  ...
+# Subtest: reader_session_scope_and_layout
+not ok 2 - reader_session_scope_and_layout
+  ---
+  duration_ms: 3946.1435
+  type: 'test'
+  location: 'F:\\new\\smaltalk\\water\\.worktrees\\integration-jk-20261018\\prototypes\\lab-reader\\tests\\browser.test.mjs:261:1'
+  failureType: 'testCodeFailure'
+  error: |-
+    K_TEXT_LITERAL: dynamic text must not create img/script elements
+    
+    2 !== 0
+    
+  code: 'ERR_ASSERTION'
+  name: 'AssertionError'
+  expected: 0
+  actual: 2
+  operator: 'strictEqual'
+  stack: |-
+    literal (file:///F:/new/smaltalk/water/.worktrees/integration-jk-20261018/prototypes/lab-reader/tests/browser.test.mjs:92:10)
+    async TestContext.<anonymous> (file:///F:/new/smaltalk/water/.worktrees/integration-jk-20261018/prototypes/lab-reader/tests/browser.test.mjs:304:7)
+    async Test.run (node:internal/test_runner/test:1313:7)
+    async Test.processPendingSubtests (node:internal/test_runner/test:897:7)
+  ...
+# Subtest: reader_session_contract
+ok 3 - reader_session_contract
+  ---
+  duration_ms: 100.0087
+  type: 'test'
+  ...
+# Subtest: reader_session_selection
+ok 4 - reader_session_selection
+  ---
+  duration_ms: 10.0648
+  type: 'test'
+  ...
+# Subtest: reader_session_summary
+ok 5 - reader_session_summary
+  ---
+  duration_ms: 2.5011
+  type: 'test'
+  ...
+1..5
+# tests 5
+# suites 0
+# pass 3
+# fail 2
+# cancelled 0
+# skipped 0
+# todo 0
+# duration_ms 9687.3833
+
+--- stderr ---
