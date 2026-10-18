@@ -1,0 +1,58 @@
+{"binary":"C:\\Program Files\\nodejs\\node.exe","argv":["--test","--test-concurrency=1","--test-reporter=tap","prototypes/lab-reader/tests/model.test.mjs","prototypes/lab-reader/tests/browser.test.mjs"],"exitCode":null,"error":"ETIMEDOUT","log":"2026-10-17T16-38-26.202Z-33384-red-behavior-expected-red.log"}
+--- stdout ---
+TAP version 13
+# Subtest: reader_session_live_input
+not ok 1 - reader_session_live_input
+  ---
+  duration_ms: 3910.3019
+  type: 'test'
+  location: 'F:\\new\\smaltalk\\water\\.worktrees\\k\\prototypes\\lab-reader\\tests\\browser.test.mjs:86:1'
+  failureType: 'testCodeFailure'
+  error: |-
+    K_BEHAVIOR: all caller scan IDs must reach the real page
+    + actual - expected
+    
+    + []
+    - [
+    -   'caller-alpha',
+    -   'pipeline-7',
+    -   'pipeline-11',
+    -   'pipeline-12'
+    - ]
+    
+  code: 'ERR_ASSERTION'
+  name: 'AssertionError'
+  expected:
+    0: 'caller-alpha'
+    1: 'pipeline-7'
+    2: 'pipeline-11'
+    3: 'pipeline-12'
+  actual:
+  operator: 'deepStrictEqual'
+  stack: |-
+    TestContext.<anonymous> (file:///F:/new/smaltalk/water/.worktrees/k/prototypes/lab-reader/tests/browser.test.mjs:99:14)
+    async Test.run (node:internal/test_runner/test:1313:7)
+    async startSubtestAfterBootstrap (node:internal/test_runner/harness:385:3)
+  ...
+# Subtest: reader_session_scope_and_layout
+not ok 2 - reader_session_scope_and_layout
+  ---
+  duration_ms: 14.0869
+  type: 'test'
+  location: 'F:\\new\\smaltalk\\water\\.worktrees\\k\\prototypes\\lab-reader\\tests\\browser.test.mjs:177:1'
+  failureType: 'testCodeFailure'
+  error: 'Missing expected rejection (Error).'
+  code: 'ERR_ASSERTION'
+  name: 'AssertionError'
+  expected:
+    name: 'Error'
+    message: 'Unsupported lab session.'
+  operator: 'rejects'
+  stack: |-
+    process.processTicksAndRejections (node:internal/process/task_queues:104:5)
+    async TestContext.<anonymous> (file:///F:/new/smaltalk/water/.worktrees/k/prototypes/lab-reader/tests/browser.test.mjs:182:3)
+    async Test.run (node:internal/test_runner/test:1313:7)
+    async Test.processPendingSubtests (node:internal/test_runner/test:897:7)
+  ...
+
+--- stderr ---

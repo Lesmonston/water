@@ -47,7 +47,7 @@ function renderSummary() {
   status.replaceChildren(node('strong', '', current.view.status), node('span', '', current.view.scan_id), node('span', '', current.source_facts.case_id));
   const issues = current.source_facts.scopes.flatMap((s) => s.issues.map((issue) => ({ ...issue, scope_id: s.scope_id })));
   byId('issues-summary').replaceChildren(node('h2', '', '来源问题'),
-    ...(issues.length ? issues.map((issue) => node('p', issue.origin === 'injected' ? 'injected-note' : '', `${issue.code} · ${issue.scope_id} · ${issue.relative_path ?? '无相对路径'} · origin=${issue.origin} · operation=${issue.operation}${issue.origin === 'injected' ? ' · 受控注入记录' : ''}`)) : [node('p', '', '无问题记录')]),
+    ...(issues.length ? issues.map((issue) => node('p', issue.origin === 'injected' ? 'injected-note' : '', `${issue.code} · ${issue.scope_id} · ${issue.relative_path === '' ? 'scope 根' : issue.relative_path ?? '无相对路径'} · origin=${issue.origin} · operation=${issue.operation}${issue.origin === 'injected' ? ' · 受控注入记录' : ''}`)) : [node('p', '', '无问题记录')]),
   );
   const h = current.summary;
   byId('whitelist-counts').replaceChildren(

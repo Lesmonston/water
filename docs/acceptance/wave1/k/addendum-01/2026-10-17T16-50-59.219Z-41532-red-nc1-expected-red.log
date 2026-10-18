@@ -1,0 +1,2813 @@
+{"binary":"C:\\Program Files\\nodejs\\node.exe","argv":["--test","--test-concurrency=1","--test-reporter=tap","prototypes/lab-reader/tests/model.test.mjs","prototypes/lab-reader/tests/browser.test.mjs"],"exitCode":1,"error":null,"log":"2026-10-17T16-50-59.219Z-41532-red-nc1-expected-red.log"}
+--- stdout ---
+TAP version 13
+# Subtest: reader_session_live_input
+not ok 1 - reader_session_live_input
+  ---
+  duration_ms: 69.8354
+  type: 'test'
+  location: 'F:\\new\\smaltalk\\water\\.worktrees\\k\\prototypes\\lab-reader\\tests\\browser.test.mjs:90:1'
+  failureType: 'testCodeFailure'
+  error: |-
+    K_SERVER_INPUT: serve all caller snapshots from an immutable JSON copy
+    + actual - expected
+    ... Skipped lines
+    
+      {
+        bundle_version: 'water.lab-reader-bundle.v1',
+        snapshots: [
+          {
+            data_kind: 'controlled_fixture_metadata',
+    ...
+          },
+    -     {
+    -       data_kind: 'controlled_fixture_metadata',
+    -       report: {
+    -         findings: [
+    -           {
+    -             activity: 'unknown',
+    -             category: 'unknown',
+    -             confidence: 'unknown',
+    -             evidence: [
+    -               {
+    -                 code: 'unknown',
+    -                 source: 'filesystem',
+    -                 summary: 'Metadata observation only; classification and ownership are unverified.'
+    -               }
+    -             ],
+    -             finding_id: 'entry-1',
+    -             protection_reasons: [
+    -               'unknown_ownership',
+    -               'incomplete_evidence',
+    -               'protected_descendant'
+    -             ],
+    -             recoverability: 'unknown',
+    -             references: {
+    -               project_ids: [],
+    -               state: 'unknown'
+    -             },
+    -             relative_path: 'l1',
+    -             risk: 'protected',
+    -             rule_version: 'scan-report-v1',
+    -             scope_id: 'scope-1',
+    -             size: {
+    -               allocated_bytes: null,
+    -               confidence: 'unknown',
+    -               logical_bytes: null,
+    -               method: 'unknown',
+    -               reclaimable_lower_bytes: null,
+    -               reclaimable_upper_bytes: null,
+    -               shared: 'unknown'
+    -             },
+    -             tool: null
+    -           },
+    -           {
+    -             activity: 'unknown',
+    -             category: 'unknown',
+    -             confidence: 'unknown',
+    -             evidence: [
+    -               {
+    -                 code: 'unknown',
+    -                 source: 'filesystem',
+    -                 summary: 'Metadata observation only; classification and ownership are unverified.'
+    -               }
+    -             ],
+    -             finding_id: 'entry-2',
+    -             protection_reasons: [
+    -               'unknown_ownership',
+    -               'incomplete_evidence'
+    -             ],
+    -             recoverability: 'unknown',
+    -             references: {
+    -               project_ids: [],
+    -               state: 'unknown'
+    -             },
+    -             relative_path: 'l1/l2',
+    -             risk: 'protected',
+    -             rule_version: 'scan-report-v1',
+    -             scope_id: 'scope-1',
+    -             size: {
+    -               allocated_bytes: null,
+    -               confidence: 'unknown',
+    -               logical_bytes: null,
+    -               method: 'unknown',
+    -               reclaimable_lower_bytes: null,
+    -               reclaimable_upper_bytes: null,
+    -               shared: 'unknown'
+    -             },
+    -             tool: null
+    -           },
+    -           {
+    -             activity: 'unknown',
+    -             category: 'unknown',
+    -             confidence: 'unknown',
+    -             evidence: [
+    -               {
+    -                 code: 'unknown',
+    -                 source: 'filesystem',
+    -                 summary: 'Metadata observation only; classification and ownership are unverified.'
+    -               }
+    -             ],
+    -             finding_id: 'entry-3',
+    -             protection_reasons: [
+    -               'unknown_ownership',
+    -               'incomplete_evidence'
+    -             ],
+    -             recoverability: 'unknown',
+    -             references: {
+    -               project_ids: [],
+    -               state: 'unknown'
+    -             },
+    -             relative_path: 'root.txt',
+    -             risk: 'protected',
+    -             rule_version: 'scan-report-v1',
+    -             scope_id: 'scope-1',
+    -             size: {
+    -               allocated_bytes: null,
+    -               confidence: 'measured',
+    -               logical_bytes: '8',
+    -               method: 'logical_sum',
+    -               reclaimable_lower_bytes: null,
+    -               reclaimable_upper_bytes: null,
+    -               shared: 'unknown'
+    -             },
+    -             tool: null
+    -           }
+    -         ],
+    -         issues: [
+    -           {
+    -             code: 'depth_limit',
+    -             message: 'Scan lab issue; origin=policy; operation=budget.',
+    -             relative_path: 'l1/l2',
+    -             scope_id: 'scope-1'
+    -           }
+    -         ],
+    -         scan_id: 'pipeline-7',
+    -         schema_version: 'water.scan.v1',
+    -         scopes: [
+    -           {
+    -             coverage: 'partial',
+    -             label: 'Synthetic scope-1',
+    -             origin: 'user_selected',
+    -             platform: 'windows',
+    -             scope_id: 'scope-1'
+    -           }
+    -         ],
+    -         status: 'partial',
+    -         totals: {
+    -           allocated_bytes: null,
+    -           coverage_complete: false,
+    -           logical_bytes: null,
+    -           method: 'unavailable',
+    -           scanned_entries: 3,
+    -           skipped_entries: 0
+    -         }
+    -       },
+    -       session_version: 'water.lab-session.v1',
+    -       source_facts: {
+    -         case_id: 'depth-budget',
+    -         facts_version: 'water.scan-lab.v1',
+    -         recorded_entries: 3,
+    -         run_id: 'run-aaadbecd-40fa-4005-9242-bd78291fb915',
+    -         scopes: [
+    -           {
+    -             coverage: 'partial',
+    -             entries: [
+    -               {
+    -                 allocated_bytes: null,
+    -                 depth: 1,
+    -                 identity: {
+    -                   device: null,
+    -                   inode: null,
+    -                   kind: 'unknown',
+    -                   link_count: null
+    -                 },
+    -                 kind: 'directory',
+    -                 logical_bytes: null,
+    -                 relative_path: 'l1'
+    -               },
+    -               {
+    -                 allocated_bytes: null,
+    -                 depth: 2,
+    -                 identity: {
+    -                   device: null,
+    -                   inode: null,
+    -                   kind: 'unknown',
+    -                   link_count: null
+    -                 },
+    -                 kind: 'directory',
+    -                 logical_bytes: null,
+    -                 relative_path: 'l1/l2'
+    -               },
+    -               {
+    -                 allocated_bytes: null,
+    -                 depth: 1,
+    -                 identity: {
+    -                   device: null,
+    -                   inode: null,
+    -                   kind: 'unknown',
+    -                   link_count: null
+    -                 },
+    -                 kind: 'file',
+    -                 logical_bytes: '8',
+    -                 relative_path: 'root.txt'
+    -               }
+    -             ],
+    -             issues: [
+    -               {
+    -                 code: 'depth_limit',
+    -                 operation: 'budget',
+    -                 origin: 'policy',
+    -                 relative_path: 'l1/l2'
+    -               }
+    -             ],
+    -             relative_root: 'scope',
+    -             scope_id: 'scope-1',
+    -             visited_entries: 3
+    -           }
+    -         ],
+    -         status: 'partial',
+    -         visited_entries: 3
+    -       },
+    -       summary: {
+    -         category_counts: {
+    -           build_cache: 0,
+    -           credential: 0,
+    -           database: 0,
+    -           download_cache: 0,
+    -           environment: 0,
+    -           experiment: 0,
+    -           history: 0,
+    -           model: 0,
+    -           source: 0,
+    -           temporary: 0,
+    -           unknown: 3
+    -         },
+    -         counts: {
+    -           findings: 3,
+    -           issues: 1,
+    -           scopes: 1
+    -         },
+    -         export_version: 'water.summary-export.v1',
+    -         read_only: true,
+    -         risk_counts: {
+    -           high: 0,
+    -           low: 0,
+    -           protected: 3,
+    -           review: 0
+    -         },
+    -         source_schema_version: 'water.scan.v1',
+    -         status: 'partial',
+    -         totals: {
+    -           allocated_bytes: null,
+    -           coverage_complete: false,
+    -           logical_bytes: null,
+    -           method: 'unavailable',
+    -           scanned_entries: 3,
+    -           skipped_entries: 0
+    -         }
+    -       },
+    -       view: {
+    -         findings: [
+    -           {
+    -             activity: 'unknown',
+    -             category: 'unknown',
+    -             confidence: 'unknown',
+    -             evidence: 'Metadata observation only; classification and ownership are unverified.',
+    -             evidence_items: [
+    -               {
+    -                 code: 'unknown',
+    -                 source: 'filesystem',
+    -                 summary: 'Metadata observation only; classification and ownership are unverified.'
+    -               }
+    -             ],
+    -             id: 'entry-1',
+    -             logical_bytes: null,
+    -             protection_reasons: [
+    -               'unknown_ownership',
+    -               'incomplete_evidence',
+    -               'protected_descendant'
+    -             ],
+    -             recoverability: 'unknown',
+    -             references: {
+    -               project_ids: [],
+    -               state: 'unknown'
+    -             },
+    -             relative_path: 'l1',
+    -             risk: 'protected',
+    -             rule_version: 'scan-report-v1',
+    -             scope_id: 'scope-1',
+    -             size: {
+    -               allocated_bytes: null,
+    -               confidence: 'unknown',
+    -               logical_bytes: null,
+    -               method: 'unknown',
+    -               reclaimable_lower_bytes: null,
+    -               reclaimable_upper_bytes: null,
+    -               shared: 'unknown'
+    -             },
+    -             source_tool: null,
+    -             title: 'l1',
+    -             tool_id: 'no_tool',
+    -             tool_name: 'Unknown tool'
+    -           },
+    -           {
+    -             activity: 'unknown',
+    -             category: 'unknown',
+    -             confidence: 'unknown',
+    -             evidence: 'Metadata observation only; classification and ownership are unverified.',
+    -             evidence_items: [
+    -               {
+    -                 code: 'unknown',
+    -                 source: 'filesystem',
+    -                 summary: 'Metadata observation only; classification and ownership are unverified.'
+    -               }
+    -             ],
+    -             id: 'entry-2',
+    -             logical_bytes: null,
+    -             protection_reasons: [
+    -               'unknown_ownership',
+    -               'incomplete_evidence'
+    -             ],
+    -             recoverability: 'unknown',
+    -             references: {
+    -               project_ids: [],
+    -               state: 'unknown'
+    -             },
+    -             relative_path: 'l1/l2',
+    -             risk: 'protected',
+    -             rule_version: 'scan-report-v1',
+    -             scope_id: 'scope-1',
+    -             size: {
+    -               allocated_bytes: null,
+    -               confidence: 'unknown',
+    -               logical_bytes: null,
+    -               method: 'unknown',
+    -               reclaimable_lower_bytes: null,
+    -               reclaimable_upper_bytes: null,
+    -               shared: 'unknown'
+    -             },
+    -             source_tool: null,
+    -             title: 'l1/l2',
+    -             tool_id: 'no_tool',
+    -             tool_name: 'Unknown tool'
+    -           },
+    -           {
+    -             activity: 'unknown',
+    -             category: 'unknown',
+    -             confidence: 'unknown',
+    -             evidence: 'Metadata observation only; classification and ownership are unverified.',
+    -             evidence_items: [
+    -               {
+    -                 code: 'unknown',
+    -                 source: 'filesystem',
+    -                 summary: 'Metadata observation only; classification and ownership are unverified.'
+    -               }
+    -             ],
+    -             id: 'entry-3',
+    -             logical_bytes: '8',
+    -             protection_reasons: [
+    -               'unknown_ownership',
+    -               'incomplete_evidence'
+    -             ],
+    -             recoverability: 'unknown',
+    -             references: {
+    -               project_ids: [],
+    -               state: 'unknown'
+    -             },
+    -             relative_path: 'root.txt',
+    -             risk: 'protected',
+    -             rule_version: 'scan-report-v1',
+    -             scope_id: 'scope-1',
+    -             size: {
+    -               allocated_bytes: null,
+    -               confidence: 'measured',
+    -               logical_bytes: '8',
+    -               method: 'logical_sum',
+    -               reclaimable_lower_bytes: null,
+    -               reclaimable_upper_bytes: null,
+    -               shared: 'unknown'
+    -             },
+    -             source_tool: null,
+    -             title: 'root.txt',
+    -             tool_id: 'no_tool',
+    -             tool_name: 'Unknown tool'
+    -           }
+    -         ],
+    -         issues: [
+    -           {
+    -             code: 'depth_limit',
+    -             message: 'Scan lab issue; origin=policy; operation=budget.',
+    -             relative_path: 'l1/l2',
+    -             scope_id: 'scope-1'
+    -           }
+    -         ],
+    -         read_only: true,
+    -         scan_id: 'pipeline-7',
+    -         scopes: [
+    -           {
+    -             coverage: 'partial',
+    -             label: 'Synthetic scope-1',
+    -             origin: 'user_selected',
+    -             platform: 'windows',
+    -             scope_id: 'scope-1'
+    -           }
+    -         ],
+    -         source_schema_version: 'water.scan.v1',
+    -         status: 'partial',
+    -         totals: {
+    -           allocated_bytes: null,
+    -           coverage_complete: false,
+    -           logical_bytes: null,
+    -           method: 'unavailable',
+    -           scanned_entries: 3,
+    -           skipped_entries: 0
+    -         },
+    -         view_version: 'water.report-view.v1'
+    -       }
+    -     },
+    -     {
+    -       data_kind: 'controlled_fixture_metadata',
+    -       report: {
+    -         findings: [],
+    -         issues: [
+    -           {
+    -             code: 'cancelled',
+    -             message: 'Scan lab issue; origin=control; operation=cancel.',
+    -             relative_path: null,
+    -             scope_id: 'scope-outer'
+    -           },
+    -           {
+    -             code: 'cancelled',
+    -             message: 'Scan lab issue; origin=control; operation=cancel.',
+    -             relative_path: null,
+    -             scope_id: 'scope-inner'
+    -           }
+    -         ],
+    -         scan_id: 'pipeline-11',
+    -         schema_version: 'water.scan.v1',
+    -         scopes: [
+    -           {
+    -             coverage: 'cancelled',
+    -             label: 'Synthetic scope-outer',
+    -             origin: 'user_selected',
+    -             platform: 'windows',
+    -             scope_id: 'scope-outer'
+    -           },
+    -           {
+    -             coverage: 'cancelled',
+    -             label: 'Synthetic scope-inner',
+    -             origin: 'user_selected',
+    -             platform: 'windows',
+    -             scope_id: 'scope-inner'
+    -           }
+    -         ],
+    -         status: 'cancelled',
+    -         totals: {
+    -           allocated_bytes: null,
+    -           coverage_complete: false,
+    -           logical_bytes: null,
+    -           method: 'unavailable',
+    -           scanned_entries: 0,
+    -           skipped_entries: 0
+    -         }
+    -       },
+    -       session_version: 'water.lab-session.v1',
+    -       source_facts: {
+    -         case_id: 'overlapping-scopes',
+    -         facts_version: 'water.scan-lab.v1',
+    -         recorded_entries: 0,
+    -         run_id: 'run-244377bf-2c6f-4d35-844a-98c08ccedb2d',
+    -         scopes: [
+    -           {
+    -             coverage: 'cancelled',
+    -             entries: [],
+    -             issues: [
+    -               {
+    -                 code: 'cancelled',
+    -                 operation: 'cancel',
+    -                 origin: 'control',
+    -                 relative_path: null
+    -               }
+    -             ],
+    -             relative_root: 'scope',
+    -             scope_id: 'scope-outer',
+    -             visited_entries: 0
+    -           },
+    -           {
+    -             coverage: 'cancelled',
+    -             entries: [],
+    -             issues: [
+    -               {
+    -                 code: 'cancelled',
+    -                 operation: 'cancel',
+    -                 origin: 'control',
+    -                 relative_path: null
+    -               }
+    -             ],
+    -             relative_root: 'scope/nested',
+    -             scope_id: 'scope-inner',
+    -             visited_entries: 0
+    -           }
+    -         ],
+    -         status: 'cancelled',
+    -         visited_entries: 0
+    -       },
+    -       summary: {
+    -         category_counts: {
+    -           build_cache: 0,
+    -           credential: 0,
+    -           database: 0,
+    -           download_cache: 0,
+    -           environment: 0,
+    -           experiment: 0,
+    -           history: 0,
+    -           model: 0,
+    -           source: 0,
+    -           temporary: 0,
+    -           unknown: 0
+    -         },
+    -         counts: {
+    -           findings: 0,
+    -           issues: 2,
+    -           scopes: 2
+    -         },
+    -         export_version: 'water.summary-export.v1',
+    -         read_only: true,
+    -         risk_counts: {
+    -           high: 0,
+    -           low: 0,
+    -           protected: 0,
+    -           review: 0
+    -         },
+    -         source_schema_version: 'water.scan.v1',
+    -         status: 'cancelled',
+    -         totals: {
+    -           allocated_bytes: null,
+    -           coverage_complete: false,
+    -           logical_bytes: null,
+    -           method: 'unavailable',
+    -           scanned_entries: 0,
+    -           skipped_entries: 0
+    -         }
+    -       },
+    -       view: {
+    -         findings: [],
+    -         issues: [
+    -           {
+    -             code: 'cancelled',
+    -             message: 'Scan lab issue; origin=control; operation=cancel.',
+    -             relative_path: null,
+    -             scope_id: 'scope-outer'
+    -           },
+    -           {
+    -             code: 'cancelled',
+    -             message: 'Scan lab issue; origin=control; operation=cancel.',
+    -             relative_path: null,
+    -             scope_id: 'scope-inner'
+    -           }
+    -         ],
+    -         read_only: true,
+    -         scan_id: 'pipeline-11',
+    -         scopes: [
+    -           {
+    -             coverage: 'cancelled',
+    -             label: 'Synthetic scope-outer',
+    -             origin: 'user_selected',
+    -             platform: 'windows',
+    -             scope_id: 'scope-outer'
+    -           },
+    -           {
+    -             coverage: 'cancelled',
+    -             label: 'Synthetic scope-inner',
+    -             origin: 'user_selected',
+    -             platform: 'windows',
+    -             scope_id: 'scope-inner'
+    -           }
+    -         ],
+    -         source_schema_version: 'water.scan.v1',
+    -         status: 'cancelled',
+    -         totals: {
+    -           allocated_bytes: null,
+    -           coverage_complete: false,
+    -           logical_bytes: null,
+    -           method: 'unavailable',
+    -           scanned_entries: 0,
+    -           skipped_entries: 0
+    -         },
+    -         view_version: 'water.report-view.v1'
+    -       }
+    -     },
+    -     {
+    -       data_kind: 'controlled_fixture_metadata',
+    -       report: {
+    -         findings: [
+    -           {
+    -             activity: 'unknown',
+    -             category: 'unknown',
+    -             confidence: 'unknown',
+    -             evidence: [
+    -               {
+    -                 code: 'unknown',
+    -                 source: 'filesystem',
+    -                 summary: 'Metadata observation only; classification and ownership are unverified.'
+    -               }
+    -             ],
+    -             finding_id: 'entry-1',
+    -             protection_reasons: [
+    -               'unknown_ownership',
+    -               'incomplete_evidence'
+    -             ],
+    -             recoverability: 'unknown',
+    -             references: {
+    -               project_ids: [],
+    -               state: 'unknown'
+    -             },
+    -             relative_path: 'a.txt',
+    -             risk: 'protected',
+    -             rule_version: 'scan-report-v1',
+    -             scope_id: 'scope-1',
+    -             size: {
+    -               allocated_bytes: null,
+    -               confidence: 'measured',
+    -               logical_bytes: '9',
+    -               method: 'logical_sum',
+    -               reclaimable_lower_bytes: null,
+    -               reclaimable_upper_bytes: null,
+    -               shared: 'unknown'
+    -             },
+    -             tool: null
+    -           },
+    -           {
+    -             activity: 'unknown',
+    -             category: 'unknown',
+    -             confidence: 'unknown',
+    -             evidence: [
+    -               {
+    -                 code: 'unknown',
+    -                 source: 'filesystem',
+    -                 summary: 'Metadata observation only; classification and ownership are unverified.'
+    -               }
+    -             ],
+    -             finding_id: 'entry-2',
+    -             protection_reasons: [
+    -               'unknown_ownership',
+    -               'incomplete_evidence'
+    -             ],
+    -             recoverability: 'unknown',
+    -             references: {
+    -               project_ids: [],
+    -               state: 'unknown'
+    -             },
+    -             relative_path: 'blocked',
+    -             risk: 'protected',
+    -             rule_version: 'scan-report-v1',
+    -             scope_id: 'scope-1',
+    -             size: {
+    -               allocated_bytes: null,
+    -               confidence: 'unknown',
+    -               logical_bytes: null,
+    -               method: 'unknown',
+    -               reclaimable_lower_bytes: null,
+    -               reclaimable_upper_bytes: null,
+    -               shared: 'unknown'
+    -             },
+    -             tool: null
+    -           }
+    -         ],
+    -         issues: [
+    -           {
+    -             code: 'permission_denied',
+    -             message: 'Scan lab issue; origin=injected; operation=read_dir.',
+    -             relative_path: 'blocked',
+    -             scope_id: 'scope-1'
+    -           }
+    -         ],
+    -         scan_id: 'pipeline-12',
+    -         schema_version: 'water.scan.v1',
+    -         scopes: [
+    -           {
+    -             coverage: 'partial',
+    -             label: 'Synthetic scope-1',
+    -             origin: 'user_selected',
+    -             platform: 'windows',
+    -             scope_id: 'scope-1'
+    -           }
+    -         ],
+    -         status: 'partial',
+    -         totals: {
+    -           allocated_bytes: null,
+    -           coverage_complete: false,
+    -           logical_bytes: null,
+    -           method: 'unavailable',
+    -           scanned_entries: 2,
+    -           skipped_entries: 0
+    -         }
+    -       },
+    -       session_version: 'water.lab-session.v1',
+    -       source_facts: {
+    -         case_id: 'permission-plan',
+    -         facts_version: 'water.scan-lab.v1',
+    -         recorded_entries: 2,
+    -         run_id: 'run-1be69e2a-b726-46a6-a35e-095087e0c40f',
+    -         scopes: [
+    -           {
+    -             coverage: 'partial',
+    -             entries: [
+    -               {
+    -                 allocated_bytes: null,
+    -                 depth: 1,
+    -                 identity: {
+    -                   device: null,
+    -                   inode: null,
+    -                   kind: 'unknown',
+    -                   link_count: null
+    -                 },
+    -                 kind: 'file',
+    -                 logical_bytes: '9',
+    -                 relative_path: 'a.txt'
+    -               },
+    -               {
+    -                 allocated_bytes: null,
+    -                 depth: 1,
+    -                 identity: {
+    -                   device: null,
+    -                   inode: null,
+    -                   kind: 'unknown',
+    -                   link_count: null
+    -                 },
+    -                 kind: 'directory',
+    -                 logical_bytes: null,
+    -                 relative_path: 'blocked'
+    -               }
+    -             ],
+    -             issues: [
+    -               {
+    -                 code: 'permission_denied',
+    -                 operation: 'read_dir',
+    -                 origin: 'injected',
+    -                 relative_path: 'blocked'
+    -               }
+    -             ],
+    -             relative_root: 'scope',
+    -             scope_id: 'scope-1',
+    -             visited_entries: 2
+    -           }
+    -         ],
+    -         status: 'partial',
+    -         visited_entries: 2
+    -       },
+    -       summary: {
+    -         category_counts: {
+    -           build_cache: 0,
+    -           credential: 0,
+    -           database: 0,
+    -           download_cache: 0,
+    -           environment: 0,
+    -           experiment: 0,
+    -           history: 0,
+    -           model: 0,
+    -           source: 0,
+    -           temporary: 0,
+    -           unknown: 2
+    -         },
+    -         counts: {
+    -           findings: 2,
+    -           issues: 1,
+    -           scopes: 1
+    -         },
+    -         export_version: 'water.summary-export.v1',
+    -         read_only: true,
+    -         risk_counts: {
+    -           high: 0,
+    -           low: 0,
+    -           protected: 2,
+    -           review: 0
+    -         },
+    -         source_schema_version: 'water.scan.v1',
+    -         status: 'partial',
+    -         totals: {
+    -           allocated_bytes: null,
+    -           coverage_complete: false,
+    -           logical_bytes: null,
+    -           method: 'unavailable',
+    -           scanned_entries: 2,
+    -           skipped_entries: 0
+    -         }
+    -       },
+    -       view: {
+    -         findings: [
+    -           {
+    -             activity: 'unknown',
+    -             category: 'unknown',
+    -             confidence: 'unknown',
+    -             evidence: 'Metadata observation only; classification and ownership are unverified.',
+    -             evidence_items: [
+    -               {
+    -                 code: 'unknown',
+    -                 source: 'filesystem',
+    -                 summary: 'Metadata observation only; classification and ownership are unverified.'
+    -               }
+    -             ],
+    -             id: 'entry-1',
+    -             logical_bytes: '9',
+    -             protection_reasons: [
+    -               'unknown_ownership',
+    -               'incomplete_evidence'
+    -             ],
+    -             recoverability: 'unknown',
+    -             references: {
+    -               project_ids: [],
+    -               state: 'unknown'
+    -             },
+    -             relative_path: 'a.txt',
+    -             risk: 'protected',
+    -             rule_version: 'scan-report-v1',
+    -             scope_id: 'scope-1',
+    -             size: {
+    -               allocated_bytes: null,
+    -               confidence: 'measured',
+    -               logical_bytes: '9',
+    -               method: 'logical_sum',
+    -               reclaimable_lower_bytes: null,
+    -               reclaimable_upper_bytes: null,
+    -               shared: 'unknown'
+    -             },
+    -             source_tool: null,
+    -             title: 'a.txt',
+    -             tool_id: 'no_tool',
+    -             tool_name: 'Unknown tool'
+    -           },
+    -           {
+    -             activity: 'unknown',
+    -             category: 'unknown',
+    -             confidence: 'unknown',
+    -             evidence: 'Metadata observation only; classification and ownership are unverified.',
+    -             evidence_items: [
+    -               {
+    -                 code: 'unknown',
+    -                 source: 'filesystem',
+    -                 summary: 'Metadata observation only; classification and ownership are unverified.'
+    -               }
+    -             ],
+    -             id: 'entry-2',
+    -             logical_bytes: null,
+    -             protection_reasons: [
+    -               'unknown_ownership',
+    -               'incomplete_evidence'
+    -             ],
+    -             recoverability: 'unknown',
+    -             references: {
+    -               project_ids: [],
+    -               state: 'unknown'
+    -             },
+    -             relative_path: 'blocked',
+    -             risk: 'protected',
+    -             rule_version: 'scan-report-v1',
+    -             scope_id: 'scope-1',
+    -             size: {
+    -               allocated_bytes: null,
+    -               confidence: 'unknown',
+    -               logical_bytes: null,
+    -               method: 'unknown',
+    -               reclaimable_lower_bytes: null,
+    -               reclaimable_upper_bytes: null,
+    -               shared: 'unknown'
+    -             },
+    -             source_tool: null,
+    -             title: 'blocked',
+    -             tool_id: 'no_tool',
+    -             tool_name: 'Unknown tool'
+    -           }
+    -         ],
+    -         issues: [
+    -           {
+    -             code: 'permission_denied',
+    -             message: 'Scan lab issue; origin=injected; operation=read_dir.',
+    -             relative_path: 'blocked',
+    -             scope_id: 'scope-1'
+    -           }
+    -         ],
+    -         read_only: true,
+    -         scan_id: 'pipeline-12',
+    -         scopes: [
+    -           {
+    -             coverage: 'partial',
+    -             label: 'Synthetic scope-1',
+    -             origin: 'user_selected',
+    -             platform: 'windows',
+    -             scope_id: 'scope-1'
+    -           }
+    -         ],
+    -         source_schema_version: 'water.scan.v1',
+    -         status: 'partial',
+    -         totals: {
+    -           allocated_bytes: null,
+    -           coverage_complete: false,
+    -           logical_bytes: null,
+    -           method: 'unavailable',
+    -           scanned_entries: 2,
+    -           skipped_entries: 0
+    -         },
+    -         view_version: 'water.report-view.v1'
+    -       }
+    -     }
+        ]
+      }
+    
+  code: 'ERR_ASSERTION'
+  name: 'AssertionError'
+  expected:
+    bundle_version: 'water.lab-reader-bundle.v1'
+    snapshots:
+      0:
+        session_version: 'water.lab-session.v1'
+        data_kind: 'controlled_fixture_metadata'
+        source_facts:
+          case_id: 'project-markers'
+          facts_version: 'water.scan-lab.v1'
+          recorded_entries: 6
+          run_id: 'run-64f79e70-8cc9-404b-b7fa-fdba51cbeb04'
+          scopes:
+            0:
+              coverage: 'complete'
+              entries:
+                0:
+                  allocated_bytes: ~
+                  depth: 1
+                  identity:
+                    device: ~
+                    inode: ~
+                    kind: 'unknown'
+                    link_count: ~
+                  kind: 'directory'
+                  logical_bytes: ~
+                  relative_path: '.git'
+                1:
+                  allocated_bytes: ~
+                  depth: 2
+                  identity:
+                    device: ~
+                    inode: ~
+                    kind: 'unknown'
+                    link_count: ~
+                  kind: 'file'
+                  logical_bytes: '9007199254740993'
+                  relative_path: 'html/<img src=x onerror=literal>'
+                2:
+                  allocated_bytes: ~
+                  depth: 4
+                  identity:
+                    device: ~
+                    inode: ~
+                    kind: 'unknown'
+                    link_count: ~
+                  kind: 'file'
+                  logical_bytes: '9007199254740992'
+                  relative_path: 'unicode/模型-长长长长长长长长长长长长长长长长长长长长长长长长长长长长长长长长长长长长长长长长长长长长长长长长长长长长长长长长长长长长长长长长长长长长长长长长长长长长长长长长长长长长长长长长长长长长长长长长长长长长长长长长长长长长长长长长长长长长长长长长长长长长长长长长长长长长长长长长长长长长长长长长长长长长长长长长长长长长长长长长/<script>literal</script>'
+                3:
+                  allocated_bytes: ~
+                  depth: 1
+                  identity:
+                    device: ~
+                    inode: ~
+                    kind: 'unknown'
+                    link_count: ~
+                  kind: 'file'
+                  logical_bytes: '18446744073709551615'
+                  relative_path: 'pyproject.toml'
+                4:
+                  allocated_bytes: ~
+                  depth: 1
+                  identity:
+                    device: ~
+                    inode: ~
+                    kind: 'unknown'
+                    link_count: ~
+                  kind: 'directory'
+                  logical_bytes: ~
+                  relative_path: 'src'
+                5:
+                  allocated_bytes: ~
+                  depth: 2
+                  identity:
+                    device: ~
+                    inode: ~
+                    kind: 'unknown'
+                    link_count: ~
+                  kind: 'file'
+                  logical_bytes: '9007199254740992'
+                  relative_path: 'src/main.py'
+              issues:
+              relative_root: 'scope'
+              scope_id: 'scope-1'
+              visited_entries: 6
+          status: 'completed'
+          visited_entries: 6
+        report:
+          findings:
+            0:
+              activity: 'unknown'
+              category: 'unknown'
+              confidence: 'unknown'
+              evidence:
+                0:
+                  code: 'unknown'
+                  source: 'filesystem'
+                  summary: 'Metadata observation only; classification and ownership are unverified.'
+              finding_id: 'entry-1'
+              protection_reasons:
+                0: 'unknown_ownership'
+                1: 'incomplete_evidence'
+                2: 'protected_descendant'
+              recoverability: 'unknown'
+              references:
+                project_ids:
+                state: 'unknown'
+              relative_path: '.git'
+              risk: 'protected'
+              rule_version: 'scan-report-v1'
+              scope_id: 'scope-1'
+              size:
+                allocated_bytes: ~
+                confidence: 'unknown'
+                logical_bytes: ~
+                method: 'unknown'
+                reclaimable_lower_bytes: ~
+                reclaimable_upper_bytes: ~
+                shared: 'unknown'
+              tool: ~
+            1:
+              activity: 'unknown'
+              category: 'unknown'
+              confidence: 'unknown'
+              evidence:
+                0:
+                  code: 'unknown'
+                  source: 'filesystem'
+                  summary: 'Metadata observation only; classification and ownership are unverified.'
+              finding_id: 'entry-2'
+              protection_reasons:
+                0: 'unknown_ownership'
+                1: 'incomplete_evidence'
+              recoverability: 'unknown'
+              references:
+                project_ids:
+                state: 'unknown'
+              relative_path: 'html/<img src=x onerror=literal>'
+              risk: 'protected'
+              rule_version: 'scan-report-v1'
+              scope_id: 'scope-1'
+              size:
+                allocated_bytes: ~
+                confidence: 'measured'
+                logical_bytes: '9007199254740993'
+                method: 'logical_sum'
+                reclaimable_lower_bytes: ~
+                reclaimable_upper_bytes: ~
+                shared: 'unknown'
+              tool: ~
+            2:
+              activity: 'unknown'
+              category: 'unknown'
+              confidence: 'unknown'
+              evidence:
+                0:
+                  code: 'unknown'
+                  source: 'filesystem'
+                  summary: 'Metadata observation only; classification and ownership are unverified.'
+              finding_id: 'entry-3'
+              protection_reasons:
+                0: 'unknown_ownership'
+                1: 'incomplete_evidence'
+              recoverability: 'unknown'
+              references:
+                project_ids:
+                state: 'unknown'
+              relative_path: 'unicode/模型-长长长长长长长长长长长长长长长长长长长长长长长长长长长长长长长长长长长长长长长长长长长长长长长长长长长长长长长长长长长长长长长长长长长长长长长长长长长长长长长长长长长长长长长长长长长长长长长长长长长长长长长长长长长长长长长长长长长长长长长长长长长长长长长长长长长长长长长长长长长长长长长长长长长长长长长长长长长长长长长长/<script>literal</script>'
+              risk: 'protected'
+              rule_version: 'scan-report-v1'
+              scope_id: 'scope-1'
+              size:
+                allocated_bytes: ~
+                confidence: 'measured'
+                logical_bytes: '9007199254740992'
+                method: 'logical_sum'
+                reclaimable_lower_bytes: ~
+                reclaimable_upper_bytes: ~
+                shared: 'unknown'
+              tool: ~
+            3:
+              activity: 'unknown'
+              category: 'unknown'
+              confidence: 'unknown'
+              evidence:
+                0:
+                  code: 'unknown'
+                  source: 'filesystem'
+                  summary: 'Metadata observation only; classification and ownership are unverified.'
+              finding_id: 'entry-4'
+              protection_reasons:
+                0: 'unknown_ownership'
+                1: 'incomplete_evidence'
+              recoverability: 'unknown'
+              references:
+                project_ids:
+                state: 'unknown'
+              relative_path: 'pyproject.toml'
+              risk: 'protected'
+              rule_version: 'scan-report-v1'
+              scope_id: 'scope-1'
+              size:
+                allocated_bytes: ~
+                confidence: 'measured'
+                logical_bytes: '18446744073709551615'
+                method: 'logical_sum'
+                reclaimable_lower_bytes: ~
+                reclaimable_upper_bytes: ~
+                shared: 'unknown'
+              tool: ~
+            4:
+              activity: 'unknown'
+              category: 'unknown'
+              confidence: 'unknown'
+              evidence:
+                0:
+                  code: 'unknown'
+                  source: 'filesystem'
+                  summary: 'Metadata observation only; classification and ownership are unverified.'
+              finding_id: 'entry-5'
+              protection_reasons:
+                0: 'unknown_ownership'
+                1: 'incomplete_evidence'
+                2: 'protected_descendant'
+              recoverability: 'unknown'
+              references:
+                project_ids:
+                state: 'unknown'
+              relative_path: 'src'
+              risk: 'protected'
+              rule_version: 'scan-report-v1'
+              scope_id: 'scope-1'
+              size:
+                allocated_bytes: ~
+                confidence: 'unknown'
+                logical_bytes: ~
+                method: 'unknown'
+                reclaimable_lower_bytes: ~
+                reclaimable_upper_bytes: ~
+                shared: 'unknown'
+              tool: ~
+            5:
+              activity: 'unknown'
+              category: 'unknown'
+              confidence: 'unknown'
+              evidence:
+                0:
+                  code: 'unknown'
+                  source: 'filesystem'
+                  summary: 'Metadata observation only; classification and ownership are unverified.'
+              finding_id: 'entry-6'
+              protection_reasons:
+                0: 'unknown_ownership'
+                1: 'incomplete_evidence'
+              recoverability: 'unknown'
+              references:
+                project_ids:
+                state: 'unknown'
+              relative_path: 'src/main.py'
+              risk: 'protected'
+              rule_version: 'scan-report-v1'
+              scope_id: 'scope-1'
+              size:
+                allocated_bytes: ~
+                confidence: 'measured'
+                logical_bytes: '9007199254740992'
+                method: 'logical_sum'
+                reclaimable_lower_bytes: ~
+                reclaimable_upper_bytes: ~
+                shared: 'unknown'
+              tool: ~
+          issues:
+          scan_id: 'caller-alpha'
+          schema_version: 'water.scan.v1'
+          scopes:
+            0:
+              coverage: 'complete'
+              label: 'Synthetic scope-1'
+              origin: 'user_selected'
+              platform: 'windows'
+              scope_id: 'scope-1'
+          status: 'completed'
+          totals:
+            allocated_bytes: ~
+            coverage_complete: true
+            logical_bytes: ~
+            method: 'unavailable'
+            scanned_entries: 6
+            skipped_entries: 0
+        view:
+          findings:
+            0:
+              activity: 'unknown'
+              category: 'unknown'
+              confidence: 'unknown'
+              evidence: 'Metadata observation only; classification and ownership are unverified.'
+              evidence_items:
+                0:
+                  code: 'unknown'
+                  source: 'filesystem'
+                  summary: 'Metadata observation only; classification and ownership are unverified.'
+              id: 'entry-1'
+              logical_bytes: ~
+              protection_reasons:
+                0: 'unknown_ownership'
+                1: 'incomplete_evidence'
+                2: 'protected_descendant'
+              recoverability: 'unknown'
+              references:
+                project_ids:
+                state: 'unknown'
+              relative_path: '.git'
+              risk: 'protected'
+              rule_version: 'scan-report-v1'
+              scope_id: 'scope-1'
+              size:
+                allocated_bytes: ~
+                confidence: 'unknown'
+                logical_bytes: ~
+                method: 'unknown'
+                reclaimable_lower_bytes: ~
+                reclaimable_upper_bytes: ~
+                shared: 'unknown'
+              source_tool: ~
+              title: '.git'
+              tool_id: 'no_tool'
+              tool_name: 'Unknown tool'
+            1:
+              activity: 'unknown'
+              category: 'unknown'
+              confidence: 'unknown'
+              evidence: 'Metadata observation only; classification and ownership are unverified.'
+              evidence_items:
+                0:
+                  code: 'unknown'
+                  source: 'filesystem'
+                  summary: 'Metadata observation only; classification and ownership are unverified.'
+              id: 'entry-2'
+              logical_bytes: '9007199254740993'
+              protection_reasons:
+                0: 'unknown_ownership'
+                1: 'incomplete_evidence'
+              recoverability: 'unknown'
+              references:
+                project_ids:
+                state: 'unknown'
+              relative_path: 'html/<img src=x onerror=literal>'
+              risk: 'protected'
+              rule_version: 'scan-report-v1'
+              scope_id: 'scope-1'
+              size:
+                allocated_bytes: ~
+                confidence: 'measured'
+                logical_bytes: '9007199254740993'
+                method: 'logical_sum'
+                reclaimable_lower_bytes: ~
+                reclaimable_upper_bytes: ~
+                shared: 'unknown'
+              source_tool: ~
+              title: 'html/<img src=x onerror=literal>'
+              tool_id: 'no_tool'
+              tool_name: 'Unknown tool'
+            2:
+              activity: 'unknown'
+              category: 'unknown'
+              confidence: 'unknown'
+              evidence: 'Metadata observation only; classification and ownership are unverified.'
+              evidence_items:
+                0:
+                  code: 'unknown'
+                  source: 'filesystem'
+                  summary: 'Metadata observation only; classification and ownership are unverified.'
+              id: 'entry-3'
+              logical_bytes: '9007199254740992'
+              protection_reasons:
+                0: 'unknown_ownership'
+                1: 'incomplete_evidence'
+              recoverability: 'unknown'
+              references:
+                project_ids:
+                state: 'unknown'
+              relative_path: 'unicode/模型-长长长长长长长长长长长长长长长长长长长长长长长长长长长长长长长长长长长长长长长长长长长长长长长长长长长长长长长长长长长长长长长长长长长长长长长长长长长长长长长长长长长长长长长长长长长长长长长长长长长长长长长长长长长长长长长长长长长长长长长长长长长长长长长长长长长长长长长长长长长长长长长长长长长长长长长长长长长长长长长长/<script>literal</script>'
+              risk: 'protected'
+              rule_version: 'scan-report-v1'
+              scope_id: 'scope-1'
+              size:
+                allocated_bytes: ~
+                confidence: 'measured'
+                logical_bytes: '9007199254740992'
+                method: 'logical_sum'
+                reclaimable_lower_bytes: ~
+                reclaimable_upper_bytes: ~
+                shared: 'unknown'
+              source_tool: ~
+              title: 'unicode/模型-长长长长长长长长长长长长长长长长长长长长长长长长长长长长长长长长长长长长长长长长长长长长长长长长长长长长长长长长长长长长长长长长长长长长长长长长长长长长长长长长长长长长长长长长长长长长长长长长长长长长长长长长长长长长长长长长长长长长长长长长长长长长长长长长长长长长长长长长长长长长长长长长长长长长长长长长长长长长长长长长/<script>literal</script>'
+              tool_id: 'no_tool'
+              tool_name: 'Unknown tool'
+            3:
+              activity: 'unknown'
+              category: 'unknown'
+              confidence: 'unknown'
+              evidence: 'Metadata observation only; classification and ownership are unverified.'
+              evidence_items:
+                0:
+                  code: 'unknown'
+                  source: 'filesystem'
+                  summary: 'Metadata observation only; classification and ownership are unverified.'
+              id: 'entry-4'
+              logical_bytes: '18446744073709551615'
+              protection_reasons:
+                0: 'unknown_ownership'
+                1: 'incomplete_evidence'
+              recoverability: 'unknown'
+              references:
+                project_ids:
+                state: 'unknown'
+              relative_path: 'pyproject.toml'
+              risk: 'protected'
+              rule_version: 'scan-report-v1'
+              scope_id: 'scope-1'
+              size:
+                allocated_bytes: ~
+                confidence: 'measured'
+                logical_bytes: '18446744073709551615'
+                method: 'logical_sum'
+                reclaimable_lower_bytes: ~
+                reclaimable_upper_bytes: ~
+                shared: 'unknown'
+              source_tool: ~
+              title: 'pyproject.toml'
+              tool_id: 'no_tool'
+              tool_name: 'Unknown tool'
+            4:
+              activity: 'unknown'
+              category: 'unknown'
+              confidence: 'unknown'
+              evidence: 'Metadata observation only; classification and ownership are unverified.'
+              evidence_items:
+                0:
+                  code: 'unknown'
+                  source: 'filesystem'
+                  summary: 'Metadata observation only; classification and ownership are unverified.'
+              id: 'entry-5'
+              logical_bytes: ~
+              protection_reasons:
+                0: 'unknown_ownership'
+                1: 'incomplete_evidence'
+                2: 'protected_descendant'
+              recoverability: 'unknown'
+              references:
+                project_ids:
+                state: 'unknown'
+              relative_path: 'src'
+              risk: 'protected'
+              rule_version: 'scan-report-v1'
+              scope_id: 'scope-1'
+              size:
+                allocated_bytes: ~
+                confidence: 'unknown'
+                logical_bytes: ~
+                method: 'unknown'
+                reclaimable_lower_bytes: ~
+                reclaimable_upper_bytes: ~
+                shared: 'unknown'
+              source_tool: ~
+              title: 'src'
+              tool_id: 'no_tool'
+              tool_name: 'Unknown tool'
+            5:
+              activity: 'unknown'
+              category: 'unknown'
+              confidence: 'unknown'
+              evidence: 'Metadata observation only; classification and ownership are unverified.'
+              evidence_items:
+                0:
+                  code: 'unknown'
+                  source: 'filesystem'
+                  summary: 'Metadata observation only; classification and ownership are unverified.'
+              id: 'entry-6'
+              logical_bytes: '9007199254740992'
+              protection_reasons:
+                0: 'unknown_ownership'
+                1: 'incomplete_evidence'
+              recoverability: 'unknown'
+              references:
+                project_ids:
+                state: 'unknown'
+              relative_path: 'src/main.py'
+              risk: 'protected'
+              rule_version: 'scan-report-v1'
+              scope_id: 'scope-1'
+              size:
+                allocated_bytes: ~
+                confidence: 'measured'
+                logical_bytes: '9007199254740992'
+                method: 'logical_sum'
+                reclaimable_lower_bytes: ~
+                reclaimable_upper_bytes: ~
+                shared: 'unknown'
+              source_tool: ~
+              title: 'src/main.py'
+              tool_id: 'no_tool'
+              tool_name: 'Unknown tool'
+          issues:
+          read_only: true
+          scan_id: 'caller-alpha'
+          scopes:
+            0:
+              coverage: 'complete'
+              label: 'Synthetic scope-1'
+              origin: 'user_selected'
+              platform: 'windows'
+              scope_id: 'scope-1'
+          source_schema_version: 'water.scan.v1'
+          status: 'completed'
+          totals:
+            allocated_bytes: ~
+            coverage_complete: true
+            logical_bytes: ~
+            method: 'unavailable'
+            scanned_entries: 6
+            skipped_entries: 0
+          view_version: 'water.report-view.v1'
+        summary:
+          category_counts:
+            build_cache: 0
+            credential: 0
+            database: 0
+            download_cache: 0
+            environment: 0
+            experiment: 0
+            history: 0
+            model: 0
+            source: 0
+            temporary: 0
+            unknown: 6
+          counts:
+            findings: 6
+            issues: 0
+            scopes: 1
+          export_version: 'water.summary-export.v1'
+          read_only: true
+          risk_counts:
+            high: 0
+            low: 0
+            protected: 6
+            review: 0
+          source_schema_version: 'water.scan.v1'
+          status: 'completed'
+          totals:
+            allocated_bytes: ~
+            coverage_complete: true
+            logical_bytes: ~
+            method: 'unavailable'
+            scanned_entries: 6
+            skipped_entries: 0
+      1:
+        session_version: 'water.lab-session.v1'
+        data_kind: 'controlled_fixture_metadata'
+        source_facts:
+          case_id: 'depth-budget'
+          facts_version: 'water.scan-lab.v1'
+          recorded_entries: 3
+          run_id: 'run-aaadbecd-40fa-4005-9242-bd78291fb915'
+          scopes:
+            0:
+              coverage: 'partial'
+              entries:
+                0:
+                  allocated_bytes: ~
+                  depth: 1
+                  identity:
+                    device: ~
+                    inode: ~
+                    kind: 'unknown'
+                    link_count: ~
+                  kind: 'directory'
+                  logical_bytes: ~
+                  relative_path: 'l1'
+                1:
+                  allocated_bytes: ~
+                  depth: 2
+                  identity:
+                    device: ~
+                    inode: ~
+                    kind: 'unknown'
+                    link_count: ~
+                  kind: 'directory'
+                  logical_bytes: ~
+                  relative_path: 'l1/l2'
+                2:
+                  allocated_bytes: ~
+                  depth: 1
+                  identity:
+                    device: ~
+                    inode: ~
+                    kind: 'unknown'
+                    link_count: ~
+                  kind: 'file'
+                  logical_bytes: '8'
+                  relative_path: 'root.txt'
+              issues:
+                0:
+                  code: 'depth_limit'
+                  operation: 'budget'
+                  origin: 'policy'
+                  relative_path: 'l1/l2'
+              relative_root: 'scope'
+              scope_id: 'scope-1'
+              visited_entries: 3
+          status: 'partial'
+          visited_entries: 3
+        report:
+          findings:
+            0:
+              activity: 'unknown'
+              category: 'unknown'
+              confidence: 'unknown'
+              evidence:
+                0:
+                  code: 'unknown'
+                  source: 'filesystem'
+                  summary: 'Metadata observation only; classification and ownership are unverified.'
+              finding_id: 'entry-1'
+              protection_reasons:
+                0: 'unknown_ownership'
+                1: 'incomplete_evidence'
+                2: 'protected_descendant'
+              recoverability: 'unknown'
+              references:
+                project_ids:
+                state: 'unknown'
+              relative_path: 'l1'
+              risk: 'protected'
+              rule_version: 'scan-report-v1'
+              scope_id: 'scope-1'
+              size:
+                allocated_bytes: ~
+                confidence: 'unknown'
+                logical_bytes: ~
+                method: 'unknown'
+                reclaimable_lower_bytes: ~
+                reclaimable_upper_bytes: ~
+                shared: 'unknown'
+              tool: ~
+            1:
+              activity: 'unknown'
+              category: 'unknown'
+              confidence: 'unknown'
+              evidence:
+                0:
+                  code: 'unknown'
+                  source: 'filesystem'
+                  summary: 'Metadata observation only; classification and ownership are unverified.'
+              finding_id: 'entry-2'
+              protection_reasons:
+                0: 'unknown_ownership'
+                1: 'incomplete_evidence'
+              recoverability: 'unknown'
+              references:
+                project_ids:
+                state: 'unknown'
+              relative_path: 'l1/l2'
+              risk: 'protected'
+              rule_version: 'scan-report-v1'
+              scope_id: 'scope-1'
+              size:
+                allocated_bytes: ~
+                confidence: 'unknown'
+                logical_bytes: ~
+                method: 'unknown'
+                reclaimable_lower_bytes: ~
+                reclaimable_upper_bytes: ~
+                shared: 'unknown'
+              tool: ~
+            2:
+              activity: 'unknown'
+              category: 'unknown'
+              confidence: 'unknown'
+              evidence:
+                0:
+                  code: 'unknown'
+                  source: 'filesystem'
+                  summary: 'Metadata observation only; classification and ownership are unverified.'
+              finding_id: 'entry-3'
+              protection_reasons:
+                0: 'unknown_ownership'
+                1: 'incomplete_evidence'
+              recoverability: 'unknown'
+              references:
+                project_ids:
+                state: 'unknown'
+              relative_path: 'root.txt'
+              risk: 'protected'
+              rule_version: 'scan-report-v1'
+              scope_id: 'scope-1'
+              size:
+                allocated_bytes: ~
+                confidence: 'measured'
+                logical_bytes: '8'
+                method: 'logical_sum'
+                reclaimable_lower_bytes: ~
+                reclaimable_upper_bytes: ~
+                shared: 'unknown'
+              tool: ~
+          issues:
+            0:
+              code: 'depth_limit'
+              message: 'Scan lab issue; origin=policy; operation=budget.'
+              relative_path: 'l1/l2'
+              scope_id: 'scope-1'
+          scan_id: 'pipeline-7'
+          schema_version: 'water.scan.v1'
+          scopes:
+            0:
+              coverage: 'partial'
+              label: 'Synthetic scope-1'
+              origin: 'user_selected'
+              platform: 'windows'
+              scope_id: 'scope-1'
+          status: 'partial'
+          totals:
+            allocated_bytes: ~
+            coverage_complete: false
+            logical_bytes: ~
+            method: 'unavailable'
+            scanned_entries: 3
+            skipped_entries: 0
+        view:
+          findings:
+            0:
+              activity: 'unknown'
+              category: 'unknown'
+              confidence: 'unknown'
+              evidence: 'Metadata observation only; classification and ownership are unverified.'
+              evidence_items:
+                0:
+                  code: 'unknown'
+                  source: 'filesystem'
+                  summary: 'Metadata observation only; classification and ownership are unverified.'
+              id: 'entry-1'
+              logical_bytes: ~
+              protection_reasons:
+                0: 'unknown_ownership'
+                1: 'incomplete_evidence'
+                2: 'protected_descendant'
+              recoverability: 'unknown'
+              references:
+                project_ids:
+                state: 'unknown'
+              relative_path: 'l1'
+              risk: 'protected'
+              rule_version: 'scan-report-v1'
+              scope_id: 'scope-1'
+              size:
+                allocated_bytes: ~
+                confidence: 'unknown'
+                logical_bytes: ~
+                method: 'unknown'
+                reclaimable_lower_bytes: ~
+                reclaimable_upper_bytes: ~
+                shared: 'unknown'
+              source_tool: ~
+              title: 'l1'
+              tool_id: 'no_tool'
+              tool_name: 'Unknown tool'
+            1:
+              activity: 'unknown'
+              category: 'unknown'
+              confidence: 'unknown'
+              evidence: 'Metadata observation only; classification and ownership are unverified.'
+              evidence_items:
+                0:
+                  code: 'unknown'
+                  source: 'filesystem'
+                  summary: 'Metadata observation only; classification and ownership are unverified.'
+              id: 'entry-2'
+              logical_bytes: ~
+              protection_reasons:
+                0: 'unknown_ownership'
+                1: 'incomplete_evidence'
+              recoverability: 'unknown'
+              references:
+                project_ids:
+                state: 'unknown'
+              relative_path: 'l1/l2'
+              risk: 'protected'
+              rule_version: 'scan-report-v1'
+              scope_id: 'scope-1'
+              size:
+                allocated_bytes: ~
+                confidence: 'unknown'
+                logical_bytes: ~
+                method: 'unknown'
+                reclaimable_lower_bytes: ~
+                reclaimable_upper_bytes: ~
+                shared: 'unknown'
+              source_tool: ~
+              title: 'l1/l2'
+              tool_id: 'no_tool'
+              tool_name: 'Unknown tool'
+            2:
+              activity: 'unknown'
+              category: 'unknown'
+              confidence: 'unknown'
+              evidence: 'Metadata observation only; classification and ownership are unverified.'
+              evidence_items:
+                0:
+                  code: 'unknown'
+                  source: 'filesystem'
+                  summary: 'Metadata observation only; classification and ownership are unverified.'
+              id: 'entry-3'
+              logical_bytes: '8'
+              protection_reasons:
+                0: 'unknown_ownership'
+                1: 'incomplete_evidence'
+              recoverability: 'unknown'
+              references:
+                project_ids:
+                state: 'unknown'
+              relative_path: 'root.txt'
+              risk: 'protected'
+              rule_version: 'scan-report-v1'
+              scope_id: 'scope-1'
+              size:
+                allocated_bytes: ~
+                confidence: 'measured'
+                logical_bytes: '8'
+                method: 'logical_sum'
+                reclaimable_lower_bytes: ~
+                reclaimable_upper_bytes: ~
+                shared: 'unknown'
+              source_tool: ~
+              title: 'root.txt'
+              tool_id: 'no_tool'
+              tool_name: 'Unknown tool'
+          issues:
+            0:
+              code: 'depth_limit'
+              message: 'Scan lab issue; origin=policy; operation=budget.'
+              relative_path: 'l1/l2'
+              scope_id: 'scope-1'
+          read_only: true
+          scan_id: 'pipeline-7'
+          scopes:
+            0:
+              coverage: 'partial'
+              label: 'Synthetic scope-1'
+              origin: 'user_selected'
+              platform: 'windows'
+              scope_id: 'scope-1'
+          source_schema_version: 'water.scan.v1'
+          status: 'partial'
+          totals:
+            allocated_bytes: ~
+            coverage_complete: false
+            logical_bytes: ~
+            method: 'unavailable'
+            scanned_entries: 3
+            skipped_entries: 0
+          view_version: 'water.report-view.v1'
+        summary:
+          category_counts:
+            build_cache: 0
+            credential: 0
+            database: 0
+            download_cache: 0
+            environment: 0
+            experiment: 0
+            history: 0
+            model: 0
+            source: 0
+            temporary: 0
+            unknown: 3
+          counts:
+            findings: 3
+            issues: 1
+            scopes: 1
+          export_version: 'water.summary-export.v1'
+          read_only: true
+          risk_counts:
+            high: 0
+            low: 0
+            protected: 3
+            review: 0
+          source_schema_version: 'water.scan.v1'
+          status: 'partial'
+          totals:
+            allocated_bytes: ~
+            coverage_complete: false
+            logical_bytes: ~
+            method: 'unavailable'
+            scanned_entries: 3
+            skipped_entries: 0
+      2:
+        session_version: 'water.lab-session.v1'
+        data_kind: 'controlled_fixture_metadata'
+        source_facts:
+          case_id: 'overlapping-scopes'
+          facts_version: 'water.scan-lab.v1'
+          recorded_entries: 0
+          run_id: 'run-244377bf-2c6f-4d35-844a-98c08ccedb2d'
+          scopes:
+            0:
+              coverage: 'cancelled'
+              entries:
+              issues:
+                0:
+                  code: 'cancelled'
+                  operation: 'cancel'
+                  origin: 'control'
+                  relative_path: ~
+              relative_root: 'scope'
+              scope_id: 'scope-outer'
+              visited_entries: 0
+            1:
+              coverage: 'cancelled'
+              entries:
+              issues:
+                0:
+                  code: 'cancelled'
+                  operation: 'cancel'
+                  origin: 'control'
+                  relative_path: ~
+              relative_root: 'scope/nested'
+              scope_id: 'scope-inner'
+              visited_entries: 0
+          status: 'cancelled'
+          visited_entries: 0
+        report:
+          findings:
+          issues:
+            0:
+              code: 'cancelled'
+              message: 'Scan lab issue; origin=control; operation=cancel.'
+              relative_path: ~
+              scope_id: 'scope-outer'
+            1:
+              code: 'cancelled'
+              message: 'Scan lab issue; origin=control; operation=cancel.'
+              relative_path: ~
+              scope_id: 'scope-inner'
+          scan_id: 'pipeline-11'
+          schema_version: 'water.scan.v1'
+          scopes:
+            0:
+              coverage: 'cancelled'
+              label: 'Synthetic scope-outer'
+              origin: 'user_selected'
+              platform: 'windows'
+              scope_id: 'scope-outer'
+            1:
+              coverage: 'cancelled'
+              label: 'Synthetic scope-inner'
+              origin: 'user_selected'
+              platform: 'windows'
+              scope_id: 'scope-inner'
+          status: 'cancelled'
+          totals:
+            allocated_bytes: ~
+            coverage_complete: false
+            logical_bytes: ~
+            method: 'unavailable'
+            scanned_entries: 0
+            skipped_entries: 0
+        view:
+          findings:
+          issues:
+            0:
+              code: 'cancelled'
+              message: 'Scan lab issue; origin=control; operation=cancel.'
+              relative_path: ~
+              scope_id: 'scope-outer'
+            1:
+              code: 'cancelled'
+              message: 'Scan lab issue; origin=control; operation=cancel.'
+              relative_path: ~
+              scope_id: 'scope-inner'
+          read_only: true
+          scan_id: 'pipeline-11'
+          scopes:
+            0:
+              coverage: 'cancelled'
+              label: 'Synthetic scope-outer'
+              origin: 'user_selected'
+              platform: 'windows'
+              scope_id: 'scope-outer'
+            1:
+              coverage: 'cancelled'
+              label: 'Synthetic scope-inner'
+              origin: 'user_selected'
+              platform: 'windows'
+              scope_id: 'scope-inner'
+          source_schema_version: 'water.scan.v1'
+          status: 'cancelled'
+          totals:
+            allocated_bytes: ~
+            coverage_complete: false
+            logical_bytes: ~
+            method: 'unavailable'
+            scanned_entries: 0
+            skipped_entries: 0
+          view_version: 'water.report-view.v1'
+        summary:
+          category_counts:
+            build_cache: 0
+            credential: 0
+            database: 0
+            download_cache: 0
+            environment: 0
+            experiment: 0
+            history: 0
+            model: 0
+            source: 0
+            temporary: 0
+            unknown: 0
+          counts:
+            findings: 0
+            issues: 2
+            scopes: 2
+          export_version: 'water.summary-export.v1'
+          read_only: true
+          risk_counts:
+            high: 0
+            low: 0
+            protected: 0
+            review: 0
+          source_schema_version: 'water.scan.v1'
+          status: 'cancelled'
+          totals:
+            allocated_bytes: ~
+            coverage_complete: false
+            logical_bytes: ~
+            method: 'unavailable'
+            scanned_entries: 0
+            skipped_entries: 0
+      3:
+        session_version: 'water.lab-session.v1'
+        data_kind: 'controlled_fixture_metadata'
+        source_facts:
+          case_id: 'permission-plan'
+          facts_version: 'water.scan-lab.v1'
+          recorded_entries: 2
+          run_id: 'run-1be69e2a-b726-46a6-a35e-095087e0c40f'
+          scopes:
+            0:
+              coverage: 'partial'
+              entries:
+                0:
+                  allocated_bytes: ~
+                  depth: 1
+                  identity:
+                    device: ~
+                    inode: ~
+                    kind: 'unknown'
+                    link_count: ~
+                  kind: 'file'
+                  logical_bytes: '9'
+                  relative_path: 'a.txt'
+                1:
+                  allocated_bytes: ~
+                  depth: 1
+                  identity:
+                    device: ~
+                    inode: ~
+                    kind: 'unknown'
+                    link_count: ~
+                  kind: 'directory'
+                  logical_bytes: ~
+                  relative_path: 'blocked'
+              issues:
+                0:
+                  code: 'permission_denied'
+                  operation: 'read_dir'
+                  origin: 'injected'
+                  relative_path: 'blocked'
+              relative_root: 'scope'
+              scope_id: 'scope-1'
+              visited_entries: 2
+          status: 'partial'
+          visited_entries: 2
+        report:
+          findings:
+            0:
+              activity: 'unknown'
+              category: 'unknown'
+              confidence: 'unknown'
+              evidence:
+                0:
+                  code: 'unknown'
+                  source: 'filesystem'
+                  summary: 'Metadata observation only; classification and ownership are unverified.'
+              finding_id: 'entry-1'
+              protection_reasons:
+                0: 'unknown_ownership'
+                1: 'incomplete_evidence'
+              recoverability: 'unknown'
+              references:
+                project_ids:
+                state: 'unknown'
+              relative_path: 'a.txt'
+              risk: 'protected'
+              rule_version: 'scan-report-v1'
+              scope_id: 'scope-1'
+              size:
+                allocated_bytes: ~
+                confidence: 'measured'
+                logical_bytes: '9'
+                method: 'logical_sum'
+                reclaimable_lower_bytes: ~
+                reclaimable_upper_bytes: ~
+                shared: 'unknown'
+              tool: ~
+            1:
+              activity: 'unknown'
+              category: 'unknown'
+              confidence: 'unknown'
+              evidence:
+                0:
+                  code: 'unknown'
+                  source: 'filesystem'
+                  summary: 'Metadata observation only; classification and ownership are unverified.'
+              finding_id: 'entry-2'
+              protection_reasons:
+                0: 'unknown_ownership'
+                1: 'incomplete_evidence'
+              recoverability: 'unknown'
+              references:
+                project_ids:
+                state: 'unknown'
+              relative_path: 'blocked'
+              risk: 'protected'
+              rule_version: 'scan-report-v1'
+              scope_id: 'scope-1'
+              size:
+                allocated_bytes: ~
+                confidence: 'unknown'
+                logical_bytes: ~
+                method: 'unknown'
+                reclaimable_lower_bytes: ~
+                reclaimable_upper_bytes: ~
+                shared: 'unknown'
+              tool: ~
+          issues:
+            0:
+              code: 'permission_denied'
+              message: 'Scan lab issue; origin=injected; operation=read_dir.'
+              relative_path: 'blocked'
+              scope_id: 'scope-1'
+          scan_id: 'pipeline-12'
+          schema_version: 'water.scan.v1'
+          scopes:
+            0:
+              coverage: 'partial'
+              label: 'Synthetic scope-1'
+              origin: 'user_selected'
+              platform: 'windows'
+              scope_id: 'scope-1'
+          status: 'partial'
+          totals:
+            allocated_bytes: ~
+            coverage_complete: false
+            logical_bytes: ~
+            method: 'unavailable'
+            scanned_entries: 2
+            skipped_entries: 0
+        view:
+          findings:
+            0:
+              activity: 'unknown'
+              category: 'unknown'
+              confidence: 'unknown'
+              evidence: 'Metadata observation only; classification and ownership are unverified.'
+              evidence_items:
+                0:
+                  code: 'unknown'
+                  source: 'filesystem'
+                  summary: 'Metadata observation only; classification and ownership are unverified.'
+              id: 'entry-1'
+              logical_bytes: '9'
+              protection_reasons:
+                0: 'unknown_ownership'
+                1: 'incomplete_evidence'
+              recoverability: 'unknown'
+              references:
+                project_ids:
+                state: 'unknown'
+              relative_path: 'a.txt'
+              risk: 'protected'
+              rule_version: 'scan-report-v1'
+              scope_id: 'scope-1'
+              size:
+                allocated_bytes: ~
+                confidence: 'measured'
+                logical_bytes: '9'
+                method: 'logical_sum'
+                reclaimable_lower_bytes: ~
+                reclaimable_upper_bytes: ~
+                shared: 'unknown'
+              source_tool: ~
+              title: 'a.txt'
+              tool_id: 'no_tool'
+              tool_name: 'Unknown tool'
+            1:
+              activity: 'unknown'
+              category: 'unknown'
+              confidence: 'unknown'
+              evidence: 'Metadata observation only; classification and ownership are unverified.'
+              evidence_items:
+                0:
+                  code: 'unknown'
+                  source: 'filesystem'
+                  summary: 'Metadata observation only; classification and ownership are unverified.'
+              id: 'entry-2'
+              logical_bytes: ~
+              protection_reasons:
+                0: 'unknown_ownership'
+                1: 'incomplete_evidence'
+              recoverability: 'unknown'
+              references:
+                project_ids:
+                state: 'unknown'
+              relative_path: 'blocked'
+              risk: 'protected'
+              rule_version: 'scan-report-v1'
+              scope_id: 'scope-1'
+              size:
+                allocated_bytes: ~
+                confidence: 'unknown'
+                logical_bytes: ~
+                method: 'unknown'
+                reclaimable_lower_bytes: ~
+                reclaimable_upper_bytes: ~
+                shared: 'unknown'
+              source_tool: ~
+              title: 'blocked'
+              tool_id: 'no_tool'
+              tool_name: 'Unknown tool'
+          issues:
+            0:
+              code: 'permission_denied'
+              message: 'Scan lab issue; origin=injected; operation=read_dir.'
+              relative_path: 'blocked'
+              scope_id: 'scope-1'
+          read_only: true
+          scan_id: 'pipeline-12'
+          scopes:
+            0:
+              coverage: 'partial'
+              label: 'Synthetic scope-1'
+              origin: 'user_selected'
+              platform: 'windows'
+              scope_id: 'scope-1'
+          source_schema_version: 'water.scan.v1'
+          status: 'partial'
+          totals:
+            allocated_bytes: ~
+            coverage_complete: false
+            logical_bytes: ~
+            method: 'unavailable'
+            scanned_entries: 2
+            skipped_entries: 0
+          view_version: 'water.report-view.v1'
+        summary:
+          category_counts:
+            build_cache: 0
+            credential: 0
+            database: 0
+            download_cache: 0
+            environment: 0
+            experiment: 0
+            history: 0
+            model: 0
+            source: 0
+            temporary: 0
+            unknown: 2
+          counts:
+            findings: 2
+            issues: 1
+            scopes: 1
+          export_version: 'water.summary-export.v1'
+          read_only: true
+          risk_counts:
+            high: 0
+            low: 0
+            protected: 2
+            review: 0
+          source_schema_version: 'water.scan.v1'
+          status: 'partial'
+          totals:
+            allocated_bytes: ~
+            coverage_complete: false
+            logical_bytes: ~
+            method: 'unavailable'
+            scanned_entries: 2
+            skipped_entries: 0
+  actual:
+    bundle_version: 'water.lab-reader-bundle.v1'
+    snapshots:
+      0:
+        session_version: 'water.lab-session.v1'
+        data_kind: 'controlled_fixture_metadata'
+        source_facts:
+          case_id: 'project-markers'
+          facts_version: 'water.scan-lab.v1'
+          recorded_entries: 6
+          run_id: 'run-64f79e70-8cc9-404b-b7fa-fdba51cbeb04'
+          scopes:
+            0:
+              coverage: 'complete'
+              entries:
+                0:
+                  allocated_bytes: ~
+                  depth: 1
+                  identity:
+                    device: ~
+                    inode: ~
+                    kind: 'unknown'
+                    link_count: ~
+                  kind: 'directory'
+                  logical_bytes: ~
+                  relative_path: '.git'
+                1:
+                  allocated_bytes: ~
+                  depth: 2
+                  identity:
+                    device: ~
+                    inode: ~
+                    kind: 'unknown'
+                    link_count: ~
+                  kind: 'file'
+                  logical_bytes: '9007199254740993'
+                  relative_path: 'html/<img src=x onerror=literal>'
+                2:
+                  allocated_bytes: ~
+                  depth: 4
+                  identity:
+                    device: ~
+                    inode: ~
+                    kind: 'unknown'
+                    link_count: ~
+                  kind: 'file'
+                  logical_bytes: '9007199254740992'
+                  relative_path: 'unicode/模型-长长长长长长长长长长长长长长长长长长长长长长长长长长长长长长长长长长长长长长长长长长长长长长长长长长长长长长长长长长长长长长长长长长长长长长长长长长长长长长长长长长长长长长长长长长长长长长长长长长长长长长长长长长长长长长长长长长长长长长长长长长长长长长长长长长长长长长长长长长长长长长长长长长长长长长长长长长长长长长长长/<script>literal</script>'
+                3:
+                  allocated_bytes: ~
+                  depth: 1
+                  identity:
+                    device: ~
+                    inode: ~
+                    kind: 'unknown'
+                    link_count: ~
+                  kind: 'file'
+                  logical_bytes: '18446744073709551615'
+                  relative_path: 'pyproject.toml'
+                4:
+                  allocated_bytes: ~
+                  depth: 1
+                  identity:
+                    device: ~
+                    inode: ~
+                    kind: 'unknown'
+                    link_count: ~
+                  kind: 'directory'
+                  logical_bytes: ~
+                  relative_path: 'src'
+                5:
+                  allocated_bytes: ~
+                  depth: 2
+                  identity:
+                    device: ~
+                    inode: ~
+                    kind: 'unknown'
+                    link_count: ~
+                  kind: 'file'
+                  logical_bytes: '9007199254740992'
+                  relative_path: 'src/main.py'
+              issues:
+              relative_root: 'scope'
+              scope_id: 'scope-1'
+              visited_entries: 6
+          status: 'completed'
+          visited_entries: 6
+        report:
+          findings:
+            0:
+              activity: 'unknown'
+              category: 'unknown'
+              confidence: 'unknown'
+              evidence:
+                0:
+                  code: 'unknown'
+                  source: 'filesystem'
+                  summary: 'Metadata observation only; classification and ownership are unverified.'
+              finding_id: 'entry-1'
+              protection_reasons:
+                0: 'unknown_ownership'
+                1: 'incomplete_evidence'
+                2: 'protected_descendant'
+              recoverability: 'unknown'
+              references:
+                project_ids:
+                state: 'unknown'
+              relative_path: '.git'
+              risk: 'protected'
+              rule_version: 'scan-report-v1'
+              scope_id: 'scope-1'
+              size:
+                allocated_bytes: ~
+                confidence: 'unknown'
+                logical_bytes: ~
+                method: 'unknown'
+                reclaimable_lower_bytes: ~
+                reclaimable_upper_bytes: ~
+                shared: 'unknown'
+              tool: ~
+            1:
+              activity: 'unknown'
+              category: 'unknown'
+              confidence: 'unknown'
+              evidence:
+                0:
+                  code: 'unknown'
+                  source: 'filesystem'
+                  summary: 'Metadata observation only; classification and ownership are unverified.'
+              finding_id: 'entry-2'
+              protection_reasons:
+                0: 'unknown_ownership'
+                1: 'incomplete_evidence'
+              recoverability: 'unknown'
+              references:
+                project_ids:
+                state: 'unknown'
+              relative_path: 'html/<img src=x onerror=literal>'
+              risk: 'protected'
+              rule_version: 'scan-report-v1'
+              scope_id: 'scope-1'
+              size:
+                allocated_bytes: ~
+                confidence: 'measured'
+                logical_bytes: '9007199254740993'
+                method: 'logical_sum'
+                reclaimable_lower_bytes: ~
+                reclaimable_upper_bytes: ~
+                shared: 'unknown'
+              tool: ~
+            2:
+              activity: 'unknown'
+              category: 'unknown'
+              confidence: 'unknown'
+              evidence:
+                0:
+                  code: 'unknown'
+                  source: 'filesystem'
+                  summary: 'Metadata observation only; classification and ownership are unverified.'
+              finding_id: 'entry-3'
+              protection_reasons:
+                0: 'unknown_ownership'
+                1: 'incomplete_evidence'
+              recoverability: 'unknown'
+              references:
+                project_ids:
+                state: 'unknown'
+              relative_path: 'unicode/模型-长长长长长长长长长长长长长长长长长长长长长长长长长长长长长长长长长长长长长长长长长长长长长长长长长长长长长长长长长长长长长长长长长长长长长长长长长长长长长长长长长长长长长长长长长长长长长长长长长长长长长长长长长长长长长长长长长长长长长长长长长长长长长长长长长长长长长长长长长长长长长长长长长长长长长长长长长长长长长长长长/<script>literal</script>'
+              risk: 'protected'
+              rule_version: 'scan-report-v1'
+              scope_id: 'scope-1'
+              size:
+                allocated_bytes: ~
+                confidence: 'measured'
+                logical_bytes: '9007199254740992'
+                method: 'logical_sum'
+                reclaimable_lower_bytes: ~
+                reclaimable_upper_bytes: ~
+                shared: 'unknown'
+              tool: ~
+            3:
+              activity: 'unknown'
+              category: 'unknown'
+              confidence: 'unknown'
+              evidence:
+                0:
+                  code: 'unknown'
+                  source: 'filesystem'
+                  summary: 'Metadata observation only; classification and ownership are unverified.'
+              finding_id: 'entry-4'
+              protection_reasons:
+                0: 'unknown_ownership'
+                1: 'incomplete_evidence'
+              recoverability: 'unknown'
+              references:
+                project_ids:
+                state: 'unknown'
+              relative_path: 'pyproject.toml'
+              risk: 'protected'
+              rule_version: 'scan-report-v1'
+              scope_id: 'scope-1'
+              size:
+                allocated_bytes: ~
+                confidence: 'measured'
+                logical_bytes: '18446744073709551615'
+                method: 'logical_sum'
+                reclaimable_lower_bytes: ~
+                reclaimable_upper_bytes: ~
+                shared: 'unknown'
+              tool: ~
+            4:
+              activity: 'unknown'
+              category: 'unknown'
+              confidence: 'unknown'
+              evidence:
+                0:
+                  code: 'unknown'
+                  source: 'filesystem'
+                  summary: 'Metadata observation only; classification and ownership are unverified.'
+              finding_id: 'entry-5'
+              protection_reasons:
+                0: 'unknown_ownership'
+                1: 'incomplete_evidence'
+                2: 'protected_descendant'
+              recoverability: 'unknown'
+              references:
+                project_ids:
+                state: 'unknown'
+              relative_path: 'src'
+              risk: 'protected'
+              rule_version: 'scan-report-v1'
+              scope_id: 'scope-1'
+              size:
+                allocated_bytes: ~
+                confidence: 'unknown'
+                logical_bytes: ~
+                method: 'unknown'
+                reclaimable_lower_bytes: ~
+                reclaimable_upper_bytes: ~
+                shared: 'unknown'
+              tool: ~
+            5:
+              activity: 'unknown'
+              category: 'unknown'
+              confidence: 'unknown'
+              evidence:
+                0:
+                  code: 'unknown'
+                  source: 'filesystem'
+                  summary: 'Metadata observation only; classification and ownership are unverified.'
+              finding_id: 'entry-6'
+              protection_reasons:
+                0: 'unknown_ownership'
+                1: 'incomplete_evidence'
+              recoverability: 'unknown'
+              references:
+                project_ids:
+                state: 'unknown'
+              relative_path: 'src/main.py'
+              risk: 'protected'
+              rule_version: 'scan-report-v1'
+              scope_id: 'scope-1'
+              size:
+                allocated_bytes: ~
+                confidence: 'measured'
+                logical_bytes: '9007199254740992'
+                method: 'logical_sum'
+                reclaimable_lower_bytes: ~
+                reclaimable_upper_bytes: ~
+                shared: 'unknown'
+              tool: ~
+          issues:
+          scan_id: 'caller-alpha'
+          schema_version: 'water.scan.v1'
+          scopes:
+            0:
+              coverage: 'complete'
+              label: 'Synthetic scope-1'
+              origin: 'user_selected'
+              platform: 'windows'
+              scope_id: 'scope-1'
+          status: 'completed'
+          totals:
+            allocated_bytes: ~
+            coverage_complete: true
+            logical_bytes: ~
+            method: 'unavailable'
+            scanned_entries: 6
+            skipped_entries: 0
+        view:
+          findings:
+            0:
+              activity: 'unknown'
+              category: 'unknown'
+              confidence: 'unknown'
+              evidence: 'Metadata observation only; classification and ownership are unverified.'
+              evidence_items:
+                0:
+                  code: 'unknown'
+                  source: 'filesystem'
+                  summary: 'Metadata observation only; classification and ownership are unverified.'
+              id: 'entry-1'
+              logical_bytes: ~
+              protection_reasons:
+                0: 'unknown_ownership'
+                1: 'incomplete_evidence'
+                2: 'protected_descendant'
+              recoverability: 'unknown'
+              references:
+                project_ids:
+                state: 'unknown'
+              relative_path: '.git'
+              risk: 'protected'
+              rule_version: 'scan-report-v1'
+              scope_id: 'scope-1'
+              size:
+                allocated_bytes: ~
+                confidence: 'unknown'
+                logical_bytes: ~
+                method: 'unknown'
+                reclaimable_lower_bytes: ~
+                reclaimable_upper_bytes: ~
+                shared: 'unknown'
+              source_tool: ~
+              title: '.git'
+              tool_id: 'no_tool'
+              tool_name: 'Unknown tool'
+            1:
+              activity: 'unknown'
+              category: 'unknown'
+              confidence: 'unknown'
+              evidence: 'Metadata observation only; classification and ownership are unverified.'
+              evidence_items:
+                0:
+                  code: 'unknown'
+                  source: 'filesystem'
+                  summary: 'Metadata observation only; classification and ownership are unverified.'
+              id: 'entry-2'
+              logical_bytes: '9007199254740993'
+              protection_reasons:
+                0: 'unknown_ownership'
+                1: 'incomplete_evidence'
+              recoverability: 'unknown'
+              references:
+                project_ids:
+                state: 'unknown'
+              relative_path: 'html/<img src=x onerror=literal>'
+              risk: 'protected'
+              rule_version: 'scan-report-v1'
+              scope_id: 'scope-1'
+              size:
+                allocated_bytes: ~
+                confidence: 'measured'
+                logical_bytes: '9007199254740993'
+                method: 'logical_sum'
+                reclaimable_lower_bytes: ~
+                reclaimable_upper_bytes: ~
+                shared: 'unknown'
+              source_tool: ~
+              title: 'html/<img src=x onerror=literal>'
+              tool_id: 'no_tool'
+              tool_name: 'Unknown tool'
+            2:
+              activity: 'unknown'
+              category: 'unknown'
+              confidence: 'unknown'
+              evidence: 'Metadata observation only; classification and ownership are unverified.'
+              evidence_items:
+                0:
+                  code: 'unknown'
+                  source: 'filesystem'
+                  summary: 'Metadata observation only; classification and ownership are unverified.'
+              id: 'entry-3'
+              logical_bytes: '9007199254740992'
+              protection_reasons:
+                0: 'unknown_ownership'
+                1: 'incomplete_evidence'
+              recoverability: 'unknown'
+              references:
+                project_ids:
+                state: 'unknown'
+              relative_path: 'unicode/模型-长长长长长长长长长长长长长长长长长长长长长长长长长长长长长长长长长长长长长长长长长长长长长长长长长长长长长长长长长长长长长长长长长长长长长长长长长长长长长长长长长长长长长长长长长长长长长长长长长长长长长长长长长长长长长长长长长长长长长长长长长长长长长长长长长长长长长长长长长长长长长长长长长长长长长长长长长长长长长长长长/<script>literal</script>'
+              risk: 'protected'
+              rule_version: 'scan-report-v1'
+              scope_id: 'scope-1'
+              size:
+                allocated_bytes: ~
+                confidence: 'measured'
+                logical_bytes: '9007199254740992'
+                method: 'logical_sum'
+                reclaimable_lower_bytes: ~
+                reclaimable_upper_bytes: ~
+                shared: 'unknown'
+              source_tool: ~
+              title: 'unicode/模型-长长长长长长长长长长长长长长长长长长长长长长长长长长长长长长长长长长长长长长长长长长长长长长长长长长长长长长长长长长长长长长长长长长长长长长长长长长长长长长长长长长长长长长长长长长长长长长长长长长长长长长长长长长长长长长长长长长长长长长长长长长长长长长长长长长长长长长长长长长长长长长长长长长长长长长长长长长长长长长长长/<script>literal</script>'
+              tool_id: 'no_tool'
+              tool_name: 'Unknown tool'
+            3:
+              activity: 'unknown'
+              category: 'unknown'
+              confidence: 'unknown'
+              evidence: 'Metadata observation only; classification and ownership are unverified.'
+              evidence_items:
+                0:
+                  code: 'unknown'
+                  source: 'filesystem'
+                  summary: 'Metadata observation only; classification and ownership are unverified.'
+              id: 'entry-4'
+              logical_bytes: '18446744073709551615'
+              protection_reasons:
+                0: 'unknown_ownership'
+                1: 'incomplete_evidence'
+              recoverability: 'unknown'
+              references:
+                project_ids:
+                state: 'unknown'
+              relative_path: 'pyproject.toml'
+              risk: 'protected'
+              rule_version: 'scan-report-v1'
+              scope_id: 'scope-1'
+              size:
+                allocated_bytes: ~
+                confidence: 'measured'
+                logical_bytes: '18446744073709551615'
+                method: 'logical_sum'
+                reclaimable_lower_bytes: ~
+                reclaimable_upper_bytes: ~
+                shared: 'unknown'
+              source_tool: ~
+              title: 'pyproject.toml'
+              tool_id: 'no_tool'
+              tool_name: 'Unknown tool'
+            4:
+              activity: 'unknown'
+              category: 'unknown'
+              confidence: 'unknown'
+              evidence: 'Metadata observation only; classification and ownership are unverified.'
+              evidence_items:
+                0:
+                  code: 'unknown'
+                  source: 'filesystem'
+                  summary: 'Metadata observation only; classification and ownership are unverified.'
+              id: 'entry-5'
+              logical_bytes: ~
+              protection_reasons:
+                0: 'unknown_ownership'
+                1: 'incomplete_evidence'
+                2: 'protected_descendant'
+              recoverability: 'unknown'
+              references:
+                project_ids:
+                state: 'unknown'
+              relative_path: 'src'
+              risk: 'protected'
+              rule_version: 'scan-report-v1'
+              scope_id: 'scope-1'
+              size:
+                allocated_bytes: ~
+                confidence: 'unknown'
+                logical_bytes: ~
+                method: 'unknown'
+                reclaimable_lower_bytes: ~
+                reclaimable_upper_bytes: ~
+                shared: 'unknown'
+              source_tool: ~
+              title: 'src'
+              tool_id: 'no_tool'
+              tool_name: 'Unknown tool'
+            5:
+              activity: 'unknown'
+              category: 'unknown'
+              confidence: 'unknown'
+              evidence: 'Metadata observation only; classification and ownership are unverified.'
+              evidence_items:
+                0:
+                  code: 'unknown'
+                  source: 'filesystem'
+                  summary: 'Metadata observation only; classification and ownership are unverified.'
+              id: 'entry-6'
+              logical_bytes: '9007199254740992'
+              protection_reasons:
+                0: 'unknown_ownership'
+                1: 'incomplete_evidence'
+              recoverability: 'unknown'
+              references:
+                project_ids:
+                state: 'unknown'
+              relative_path: 'src/main.py'
+              risk: 'protected'
+              rule_version: 'scan-report-v1'
+              scope_id: 'scope-1'
+              size:
+                allocated_bytes: ~
+                confidence: 'measured'
+                logical_bytes: '9007199254740992'
+                method: 'logical_sum'
+                reclaimable_lower_bytes: ~
+                reclaimable_upper_bytes: ~
+                shared: 'unknown'
+              source_tool: ~
+              title: 'src/main.py'
+              tool_id: 'no_tool'
+              tool_name: 'Unknown tool'
+          issues:
+          read_only: true
+          scan_id: 'caller-alpha'
+          scopes:
+            0:
+              coverage: 'complete'
+              label: 'Synthetic scope-1'
+              origin: 'user_selected'
+              platform: 'windows'
+              scope_id: 'scope-1'
+          source_schema_version: 'water.scan.v1'
+          status: 'completed'
+          totals:
+            allocated_bytes: ~
+            coverage_complete: true
+            logical_bytes: ~
+            method: 'unavailable'
+            scanned_entries: 6
+            skipped_entries: 0
+          view_version: 'water.report-view.v1'
+        summary:
+          category_counts:
+            build_cache: 0
+            credential: 0
+            database: 0
+            download_cache: 0
+            environment: 0
+            experiment: 0
+            history: 0
+            model: 0
+            source: 0
+            temporary: 0
+            unknown: 6
+          counts:
+            findings: 6
+            issues: 0
+            scopes: 1
+          export_version: 'water.summary-export.v1'
+          read_only: true
+          risk_counts:
+            high: 0
+            low: 0
+            protected: 6
+            review: 0
+          source_schema_version: 'water.scan.v1'
+          status: 'completed'
+          totals:
+            allocated_bytes: ~
+            coverage_complete: true
+            logical_bytes: ~
+            method: 'unavailable'
+            scanned_entries: 6
+            skipped_entries: 0
+  operator: 'deepStrictEqual'
+  stack: |-
+    TestContext.<anonymous> (file:///F:/new/smaltalk/water/.worktrees/k/prototypes/lab-reader/tests/browser.test.mjs:99:14)
+    process.processTicksAndRejections (node:internal/process/task_queues:104:5)
+    async Test.run (node:internal/test_runner/test:1313:7)
+    async startSubtestAfterBootstrap (node:internal/test_runner/harness:385:3)
+  ...
+# Subtest: reader_session_scope_and_layout
+ok 2 - reader_session_scope_and_layout
+  ---
+  duration_ms: 7759.4685
+  type: 'test'
+  ...
+# Subtest: reader_session_contract
+ok 3 - reader_session_contract
+  ---
+  duration_ms: 57.4137
+  type: 'test'
+  ...
+# Subtest: reader_session_selection
+ok 4 - reader_session_selection
+  ---
+  duration_ms: 9.5968
+  type: 'test'
+  ...
+# Subtest: reader_session_summary
+ok 5 - reader_session_summary
+  ---
+  duration_ms: 6.7107
+  type: 'test'
+  ...
+1..5
+# tests 5
+# suites 0
+# pass 4
+# fail 1
+# cancelled 0
+# skipped 0
+# todo 0
+# duration_ms 8201.9239
+
+--- stderr ---

@@ -116,7 +116,7 @@ function validateSnapshot(snapshot) {
       exact(issue, ['code', 'relative_path', 'origin', 'operation']);
       requireValue(['native', 'injected', 'control', 'policy'].includes(issue.origin));
       requireValue(['inspect', 'read_dir', 'budget', 'cancel', 'root_guard'].includes(issue.operation));
-      if (issue.relative_path !== null) path(issue.relative_path);
+      if (issue.relative_path !== null && issue.relative_path !== '') path(issue.relative_path);
       issues.push({ code: issue.code, scope_id: scope.scope_id, relative_path: issue.relative_path, message: `Scan lab issue; origin=${issue.origin}; operation=${issue.operation}.` });
     }
   });

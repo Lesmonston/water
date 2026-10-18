@@ -1,0 +1,69 @@
+{"binary":"C:\\Program Files\\nodejs\\node.exe","argv":["--test","--test-concurrency=1","--test-reporter=tap","prototypes/lab-reader/tests/model.test.mjs","prototypes/lab-reader/tests/browser.test.mjs"],"exitCode":1,"error":null,"log":"2026-10-17T16-48-54.696Z-11172-suite-1.log"}
+--- stdout ---
+TAP version 13
+# Subtest: reader_session_live_input
+not ok 1 - reader_session_live_input
+  ---
+  duration_ms: 7858.8226
+  type: 'test'
+  location: 'F:\\new\\smaltalk\\water\\.worktrees\\k\\prototypes\\lab-reader\\tests\\browser.test.mjs:90:1'
+  failureType: 'testCodeFailure'
+  error: |-
+    Expected values to be strictly deep-equal:
+    + actual - expected
+    
+      Comparison {
+    +   code: 'ECONNRESET'
+    -   code: 'ECONNREFUSED'
+      }
+    
+  code: 'ERR_ASSERTION'
+  name: 'AssertionError'
+  expected:
+    code: 'ECONNREFUSED'
+  actual:
+  error: 'read ECONNRESET'
+  stack: |-
+    TCP.onStreamRead (node:internal/stream_base_commons:216:20)
+  operator: 'rejects'
+  stack: |-
+    process.processTicksAndRejections (node:internal/process/task_queues:104:5)
+    async TestContext.<anonymous> (file:///F:/new/smaltalk/water/.worktrees/k/prototypes/lab-reader/tests/browser.test.mjs:177:5)
+    async Test.run (node:internal/test_runner/test:1313:7)
+    async startSubtestAfterBootstrap (node:internal/test_runner/harness:385:3)
+  ...
+# Subtest: reader_session_scope_and_layout
+ok 2 - reader_session_scope_and_layout
+  ---
+  duration_ms: 8521.907
+  type: 'test'
+  ...
+# Subtest: reader_session_contract
+ok 3 - reader_session_contract
+  ---
+  duration_ms: 37.8192
+  type: 'test'
+  ...
+# Subtest: reader_session_selection
+ok 4 - reader_session_selection
+  ---
+  duration_ms: 8.6024
+  type: 'test'
+  ...
+# Subtest: reader_session_summary
+ok 5 - reader_session_summary
+  ---
+  duration_ms: 4.4093
+  type: 'test'
+  ...
+1..5
+# tests 5
+# suites 0
+# pass 4
+# fail 1
+# cancelled 0
+# skipped 0
+# todo 0
+# duration_ms 31196.8449
+
+--- stderr ---
