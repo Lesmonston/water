@@ -1,0 +1,51 @@
+--- stdout ---
+
+running 5 tests
+test registry_confirmation ... ok
+test registry_permits_and_replay ... FAILED
+test registry_public_native_bridge ... FAILED
+test registry_registration ... FAILED
+test registry_revocation_and_owner ... FAILED
+
+failures:
+
+---- registry_permits_and_replay stdout ----
+
+thread 'registry_permits_and_replay' (27488) panicked at tests\registry_v1.rs:380:5:
+assertion failed: registry.is_empty()
+note: run with `RUST_BACKTRACE=1` environment variable to display a backtrace
+
+---- registry_public_native_bridge stdout ----
+
+thread 'registry_public_native_bridge' (23472) panicked at tests\registry_v1.rs:80:5:
+assertion `left == right` failed: public revocation
+  left: None
+ right: Some(InvalidCapability)
+
+---- registry_registration stdout ----
+
+thread 'registry_registration' (10192) panicked at tests\registry_v1.rs:148:5:
+assertion failed: one.is_empty()
+
+---- registry_revocation_and_owner stdout ----
+
+thread 'registry_revocation_and_owner' (18184) panicked at tests\registry_v1.rs:80:5:
+assertion `left == right` failed: P_REVOKED: revoke must remove active registration and attempt
+  left: None
+ right: Some(InvalidCapability)
+
+
+failures:
+    registry_permits_and_replay
+    registry_public_native_bridge
+    registry_registration
+    registry_revocation_and_owner
+
+test result: FAILED. 1 passed; 4 failed; 0 ignored; 0 measured; 0 filtered out; finished in 0.02s
+
+
+--- stderr ---
+   Compiling water-scope-registry v0.1.0 (F:\new\smaltalk\water\.worktrees\p\packages\scope-registry)
+    Finished `test` profile [unoptimized + debuginfo] target(s) in 2.20s
+     Running tests\registry_v1.rs (.local\next-target\debug\deps\registry_v1-1403bd5c4a61c7e9.exe)
+error: test failed, to rerun pass `--test registry_v1`

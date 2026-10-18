@@ -1,0 +1,115 @@
+//! Compilable API skeleton, before implementing the frozen lifecycle.
+
+use std::fmt;
+use water_contracts::v1::OpaqueId;
+use water_native_root::v1::{RootError, RootObservation};
+
+#[derive(Debug, Clone, PartialEq, Eq)]
+pub enum RegistryError {
+    InvalidCapacity,
+    RegistryFull,
+    DuplicateScope,
+    DuplicateRoot,
+    InvalidCapability,
+    WrongState,
+    RootChanged,
+    Native(RootError),
+}
+
+impl fmt::Display for RegistryError {
+    fn fmt(&self, f: &mut fmt::Formatter<'_>) -> fmt::Result {
+        match self {
+            Self::Native(error) => error.fmt(f),
+            error => write!(f, "{error:?}"),
+        }
+    }
+}
+
+impl std::error::Error for RegistryError {}
+
+pub struct Registry {
+    _private: (),
+}
+
+pub struct PendingSelection {
+    scope_id: OpaqueId,
+}
+
+pub struct RegisteredScope {
+    scope_id: OpaqueId,
+}
+
+pub struct ScanPermit {
+    scope_id: OpaqueId,
+}
+
+impl PendingSelection {
+    pub fn scope_id(&self) -> &OpaqueId {
+        &self.scope_id
+    }
+}
+
+impl RegisteredScope {
+    pub fn scope_id(&self) -> &OpaqueId {
+        &self.scope_id
+    }
+}
+
+impl ScanPermit {
+    pub fn scope_id(&self) -> &OpaqueId {
+        &self.scope_id
+    }
+}
+
+impl Registry {
+    pub fn new(capacity: usize) -> Result<Self, RegistryError> {
+        if !(1..=16).contains(&capacity) {
+            return Err(RegistryError::InvalidCapacity);
+        }
+        Ok(Self { _private: () })
+    }
+
+    pub fn len(&self) -> usize {
+        0
+    }
+
+    pub fn is_empty(&self) -> bool {
+        true
+    }
+
+    pub fn prepare(&mut self, _: &OpaqueId, _: &str) -> Result<PendingSelection, RegistryError> {
+        Err(RegistryError::WrongState)
+    }
+
+    pub fn preview(&self, _: &PendingSelection) -> Result<RootObservation, RegistryError> {
+        Err(RegistryError::WrongState)
+    }
+
+    pub fn confirm(&mut self, _: &PendingSelection) -> Result<RegisteredScope, RegistryError> {
+        Err(RegistryError::WrongState)
+    }
+
+    pub fn decline(&mut self, _: &PendingSelection) -> Result<(), RegistryError> {
+        Err(RegistryError::WrongState)
+    }
+
+    pub fn begin_scan(&mut self, _: &RegisteredScope) -> Result<ScanPermit, RegistryError> {
+        Err(RegistryError::WrongState)
+    }
+
+    pub fn check_permit(&self, _: &ScanPermit) -> Result<RootObservation, RegistryError> {
+        Err(RegistryError::WrongState)
+    }
+
+    pub fn finish(&mut self, _: &ScanPermit) -> Result<(), RegistryError> {
+        Err(RegistryError::WrongState)
+    }
+
+    pub fn cancel(&mut self, _: &RegisteredScope) -> Result<(), RegistryError> {
+        Err(RegistryError::WrongState)
+    }
+
+    pub fn revoke(&mut self, _: &RegisteredScope) -> Result<(), RegistryError> {
+        Err(RegistryError::WrongState)
+    }
+}

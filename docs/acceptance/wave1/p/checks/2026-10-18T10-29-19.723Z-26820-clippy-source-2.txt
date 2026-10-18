@@ -1,0 +1,26 @@
+[workspace]
+members = ["."]
+resolver = "3"
+
+[package]
+name = "water-scope-registry"
+version = "0.1.0"
+edition = "2024"
+rust-version = "1.95"
+publish = false
+autotests = false
+autoexamples = false
+autobenches = false
+autobins = false
+
+[lib]
+name = "water_scope_registry"
+path = "src/lib.rs"
+
+[[test]]
+name = "registry_v1"
+path = "tests/registry_v1.rs"
+
+[dependencies]
+water-contracts = { path = "../../crates/water-contracts" }
+water-native-root = { path = "../native-root" }

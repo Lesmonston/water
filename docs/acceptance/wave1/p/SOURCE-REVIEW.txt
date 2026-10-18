@@ -1,0 +1,38 @@
+WATER-W1-P source review at tested implementation 2e963bba0c6b968299880198eb4f1bb8a8100108
+
+packages/scope-registry/src/lib.rs: forbid(unsafe_code); only pub mod v1.
+src/v1.rs:30-66: Registry, PendingSelection, RegisteredScope and ScanPermit have private fields.
+Registry owns capacity, owner Arc and entries. Each entry owns its registration Arc, N DirectoryLease and state.
+Capability bindings retain owner and registration Arcs; ScanPermit also retains its attempt Arc.
+These retained Arcs prevent allocator address reuse from reviving an older retained capability.
+No capability derives or implements Clone, Debug, Default or serde traits. No capability literal constructor is public.
+The only capability methods are immutable scope_id getters at lines 86-102.
+
+src/v1.rs:124-155: prepare checks full, then duplicate scope, then actual N open, then root identity.
+All insertion occurs after checks. A rejected native lease drops by ownership on DuplicateRoot.
+Root identity equality uses the original N observation (kind is fixed by N, with volume_serial and file_id).
+Neither Entry nor Binding stores a path, File, raw handle or serialized permission token.
+
+src/v1.rs:242-250: entry_index checks owner pointer equality, then registration pointer equality.
+All capability entry points call this before state checks and native refresh.
+src/v1.rs:206-212: permit validation additionally requires the current active attempt pointer.
+src/v1.rs:157-240: pending/confirmed/active transitions match SPEC, with no mutation on rejected operations.
+finish calls check_permit before clearing an attempt; cancel and revoke remain available without refresh.
+Decline/revoke remove the owning entry. Registry drop releases entries by ordinary Rust/N File RAII.
+No kernel handle-count or resource-leak stress measurement was performed.
+
+src/v1.rs:77-83: refresh propagates N errors and rejects identity mismatch as RootChanged.
+preview/confirm/begin/check all call this before returning success or issuing a new capability.
+These refresh-error and RootChanged branches were reviewed statically only: the fixed owned native handles
+did not yield those failures in the authorized unchanged synthetic fixtures. No fake observation, IO mock,
+test-only switch, forged capability or destructive fixture manipulation was added to force them.
+
+Native observations are returned unchanged from N; all three authorization/traversal/race flags stay false.
+P production imports only std fmt/Arc, A OpaqueId and N lease/observation/error/public open.
+It performs no directory enumeration, ordinary content read, path persistence, file write, environment/time/log,
+network/process operation, extra FFI or unsafe operation. Test-only IO reads the frozen P index and uses N metadata.
+Capabilities do not enable a traversal API. No native picker, user gesture authentication or external wire is implemented.
+Ancestor/descendant overlap remains allowed and is explicitly tested. Production races and macOS remain unverified.
+
+Compiled external privacy evidence: PRIVACY-COMPILE.json; one positive control and 29 expected rejections.
+Five final gates: GATE-SUMMARY.json. Red/restore source bytes and logs: checks/ and NEGATIVE-CONTROLS.json.

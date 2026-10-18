@@ -1,0 +1,352 @@
+{
+  "task": "WATER-W1-P",
+  "mode": "lock",
+  "finalGate": false,
+  "startedAt": "2026-10-18T10:22:41.052Z",
+  "before": {
+    "head": "34badd897b8983cffbb57e03a9df9e6af52f7b8f",
+    "status": "?? docs/acceptance/wave1/p/INITIAL-FREEZE-AUDIT.json\n?? packages/scope-registry/Cargo.toml\n?? packages/scope-registry/src/lib.rs\n?? packages/scope-registry/src/v1.rs\n?? packages/scope-registry/tests/registry_v1.rs"
+  },
+  "node": "v24.16.0",
+  "productTestsRun": false,
+  "frozenFiles": 51,
+  "commands": [
+    {
+      "binary": "git",
+      "argv": [
+        "-c",
+        "core.hooksPath=NUL",
+        "-c",
+        "core.fsmonitor=false",
+        "rev-parse",
+        "--path-format=absolute",
+        "--git-common-dir"
+      ],
+      "exitCode": 0,
+      "error": null
+    },
+    {
+      "binary": "git",
+      "argv": [
+        "-c",
+        "core.hooksPath=NUL",
+        "-c",
+        "core.fsmonitor=false",
+        "branch",
+        "--show-current"
+      ],
+      "exitCode": 0,
+      "error": null
+    },
+    {
+      "binary": "git",
+      "argv": [
+        "-c",
+        "core.hooksPath=NUL",
+        "-c",
+        "core.fsmonitor=false",
+        "merge-base",
+        "--is-ancestor",
+        "34badd897b8983cffbb57e03a9df9e6af52f7b8f",
+        "HEAD"
+      ],
+      "exitCode": 0,
+      "error": null
+    },
+    {
+      "binary": "git",
+      "argv": [
+        "-c",
+        "core.hooksPath=NUL",
+        "-c",
+        "core.fsmonitor=false",
+        "diff",
+        "--no-renames",
+        "--name-only",
+        "-z",
+        "34badd897b8983cffbb57e03a9df9e6af52f7b8f",
+        "HEAD"
+      ],
+      "exitCode": 0,
+      "error": null
+    },
+    {
+      "binary": "git",
+      "argv": [
+        "-c",
+        "core.hooksPath=NUL",
+        "-c",
+        "core.fsmonitor=false",
+        "diff",
+        "--no-renames",
+        "--name-only",
+        "-z",
+        "HEAD"
+      ],
+      "exitCode": 0,
+      "error": null
+    },
+    {
+      "binary": "git",
+      "argv": [
+        "-c",
+        "core.hooksPath=NUL",
+        "-c",
+        "core.fsmonitor=false",
+        "ls-files",
+        "--others",
+        "--exclude-standard",
+        "-z"
+      ],
+      "exitCode": 0,
+      "error": null
+    },
+    {
+      "binary": "git",
+      "argv": [
+        "-c",
+        "core.hooksPath=NUL",
+        "-c",
+        "core.fsmonitor=false",
+        "rev-parse",
+        "HEAD"
+      ],
+      "exitCode": 0,
+      "error": null
+    },
+    {
+      "binary": "git",
+      "argv": [
+        "-c",
+        "core.hooksPath=NUL",
+        "-c",
+        "core.fsmonitor=false",
+        "status",
+        "--porcelain",
+        "--untracked-files=all"
+      ],
+      "exitCode": 0,
+      "error": null
+    },
+    {
+      "binary": "C:\\Users\\37310\\.cargo\\bin\\rustup.exe",
+      "argv": [
+        "which",
+        "rustc",
+        "--toolchain",
+        "1.95.0"
+      ],
+      "exitCode": 0,
+      "error": null,
+      "log": "2026-10-18T10-22-38.909Z-43748-lock-1.log"
+    },
+    {
+      "binary": "C:\\Users\\37310\\.cargo\\bin\\rustup.exe",
+      "argv": [
+        "which",
+        "cargo",
+        "--toolchain",
+        "1.95.0"
+      ],
+      "exitCode": 0,
+      "error": null,
+      "log": "2026-10-18T10-22-38.909Z-43748-lock-2.log"
+    },
+    {
+      "binary": "C:\\Users\\37310\\.rustup\\toolchains\\1.95.0-x86_64-pc-windows-msvc\\bin\\rustc.exe",
+      "argv": [
+        "--version"
+      ],
+      "exitCode": 0,
+      "error": null,
+      "log": "2026-10-18T10-22-38.909Z-43748-lock-3.log"
+    },
+    {
+      "binary": "C:\\Users\\37310\\.rustup\\toolchains\\1.95.0-x86_64-pc-windows-msvc\\bin\\cargo.exe",
+      "argv": [
+        "generate-lockfile",
+        "--offline",
+        "--manifest-path",
+        "packages/scope-registry/Cargo.toml"
+      ],
+      "exitCode": 0,
+      "error": null,
+      "log": "2026-10-18T10-22-38.909Z-43748-lock-4.log"
+    },
+    {
+      "binary": "C:\\Users\\37310\\.rustup\\toolchains\\1.95.0-x86_64-pc-windows-msvc\\bin\\cargo.exe",
+      "argv": [
+        "metadata",
+        "--offline",
+        "--locked",
+        "--format-version",
+        "1",
+        "--manifest-path",
+        "packages/scope-registry/Cargo.toml"
+      ],
+      "exitCode": 0,
+      "error": null,
+      "log": "2026-10-18T10-22-38.909Z-43748-lock-5.log"
+    },
+    {
+      "binary": "git",
+      "argv": [
+        "-c",
+        "core.hooksPath=NUL",
+        "-c",
+        "core.fsmonitor=false",
+        "branch",
+        "--show-current"
+      ],
+      "exitCode": 0,
+      "error": null,
+      "log": "2026-10-18T10-22-38.909Z-43748-lock-6.log"
+    },
+    {
+      "binary": "git",
+      "argv": [
+        "-c",
+        "core.hooksPath=NUL",
+        "-c",
+        "core.fsmonitor=false",
+        "merge-base",
+        "--is-ancestor",
+        "34badd897b8983cffbb57e03a9df9e6af52f7b8f",
+        "HEAD"
+      ],
+      "exitCode": 0,
+      "error": null,
+      "log": "2026-10-18T10-22-38.909Z-43748-lock-7.log"
+    },
+    {
+      "binary": "git",
+      "argv": [
+        "-c",
+        "core.hooksPath=NUL",
+        "-c",
+        "core.fsmonitor=false",
+        "diff",
+        "--no-renames",
+        "--name-only",
+        "-z",
+        "34badd897b8983cffbb57e03a9df9e6af52f7b8f",
+        "HEAD"
+      ],
+      "exitCode": 0,
+      "error": null,
+      "log": "2026-10-18T10-22-38.909Z-43748-lock-8.log"
+    },
+    {
+      "binary": "git",
+      "argv": [
+        "-c",
+        "core.hooksPath=NUL",
+        "-c",
+        "core.fsmonitor=false",
+        "diff",
+        "--no-renames",
+        "--name-only",
+        "-z",
+        "HEAD"
+      ],
+      "exitCode": 0,
+      "error": null,
+      "log": "2026-10-18T10-22-38.909Z-43748-lock-9.log"
+    },
+    {
+      "binary": "git",
+      "argv": [
+        "-c",
+        "core.hooksPath=NUL",
+        "-c",
+        "core.fsmonitor=false",
+        "ls-files",
+        "--others",
+        "--exclude-standard",
+        "-z"
+      ],
+      "exitCode": 0,
+      "error": null,
+      "log": "2026-10-18T10-22-38.909Z-43748-lock-10.log"
+    },
+    {
+      "binary": "git",
+      "argv": [
+        "-c",
+        "core.hooksPath=NUL",
+        "-c",
+        "core.fsmonitor=false",
+        "rev-parse",
+        "HEAD"
+      ],
+      "exitCode": 0,
+      "error": null,
+      "log": "2026-10-18T10-22-38.909Z-43748-lock-11.log"
+    },
+    {
+      "binary": "git",
+      "argv": [
+        "-c",
+        "core.hooksPath=NUL",
+        "-c",
+        "core.fsmonitor=false",
+        "status",
+        "--porcelain",
+        "--untracked-files=all"
+      ],
+      "exitCode": 0,
+      "error": null,
+      "log": "2026-10-18T10-22-38.909Z-43748-lock-12.log"
+    }
+  ],
+  "fixtures": {
+    "index": "F:\\new\\smaltalk\\water\\.worktrees\\p\\.local\\scope-fixtures\\index.json",
+    "sha256": "4eaaa2a470445ab6afacb3fceb94a7bf1db67932b514c06d7feaf7b1b9236020",
+    "ordinaryFileCount": 0,
+    "contentBytes": 0,
+    "junctions": 1
+  },
+  "sourceState": {
+    "files": [
+      {
+        "path": "packages/scope-registry/src/lib.rs",
+        "sha256": "4e8179129c3f2ea2fdff245f29e6663edb7454ffe801c0339ae4683674946beb",
+        "snapshot": "2026-10-18T10-22-38.909Z-43748-lock-source-0.txt",
+        "test": false
+      },
+      {
+        "path": "packages/scope-registry/src/v1.rs",
+        "sha256": "ee745b6f6de1017fe9076e19a4bfe36e14c6d5d3d4508d3ffd1bf6ef5033ec3e",
+        "snapshot": "2026-10-18T10-22-38.909Z-43748-lock-source-1.txt",
+        "test": false
+      },
+      {
+        "path": "packages/scope-registry/Cargo.toml",
+        "sha256": "24618f6ffad2cf3991bcdaaddd62872cddbb00b5cbd036388f1f977dba6ad95a",
+        "snapshot": "2026-10-18T10-22-38.909Z-43748-lock-source-2.txt",
+        "test": false
+      },
+      {
+        "path": "packages/scope-registry/Cargo.lock",
+        "sha256": "dc523ee1f595263c40443597185124f7b8f55c171e4f1d1ea529df6d14ce273b",
+        "snapshot": "2026-10-18T10-22-38.909Z-43748-lock-source-3.txt",
+        "test": false
+      },
+      {
+        "path": "packages/scope-registry/tests/registry_v1.rs",
+        "sha256": "ce10854089ac5c725a1ae1b81fab86d86e9629c7d14f9fc4a74de7f812140608",
+        "snapshot": "2026-10-18T10-22-38.909Z-43748-lock-source-4.txt",
+        "test": true
+      }
+    ],
+    "productionHash": "fe9c5a86cd7a8b7733e32abf0d99ebf37850f82a02b1348d71de6540811e1fbd",
+    "testHash": "6db0050542193064464f13f6394aeddba9b79979cfdae97e2f9a5a29e465b6db"
+  },
+  "after": {
+    "head": "34badd897b8983cffbb57e03a9df9e6af52f7b8f",
+    "status": "?? docs/acceptance/wave1/p/INITIAL-FREEZE-AUDIT.json\n?? packages/scope-registry/Cargo.lock\n?? packages/scope-registry/Cargo.toml\n?? packages/scope-registry/src/lib.rs\n?? packages/scope-registry/src/v1.rs\n?? packages/scope-registry/tests/registry_v1.rs"
+  },
+  "endedAt": "2026-10-18T10:22:44.986Z",
+  "status": "passed",
+  "error": null
+}

@@ -1,0 +1,54 @@
+--- stdout ---
+
+running 5 tests
+test registry_confirmation ... FAILED
+test registry_permits_and_replay ... FAILED
+test registry_public_native_bridge ... FAILED
+test registry_registration ... FAILED
+test registry_revocation_and_owner ... FAILED
+
+failures:
+
+---- registry_confirmation stdout ----
+
+thread 'registry_confirmation' (31812) panicked at tests\registry_v1.rs:70:33:
+P_BEHAVIOR: prepare must retain a pending lease: WrongState
+note: run with `RUST_BACKTRACE=1` environment variable to display a backtrace
+
+---- registry_permits_and_replay stdout ----
+
+thread 'registry_permits_and_replay' (31196) panicked at tests\registry_v1.rs:70:33:
+P_BEHAVIOR: prepare must retain a pending lease: WrongState
+
+---- registry_public_native_bridge stdout ----
+
+thread 'registry_public_native_bridge' (29832) panicked at tests\registry_v1.rs:70:33:
+P_BEHAVIOR: prepare must retain a pending lease: WrongState
+
+---- registry_registration stdout ----
+
+thread 'registry_registration' (4712) panicked at tests\registry_v1.rs:70:33:
+P_BEHAVIOR: prepare must retain a pending lease: WrongState
+
+---- registry_revocation_and_owner stdout ----
+
+thread 'registry_revocation_and_owner' (43872) panicked at tests\registry_v1.rs:70:33:
+P_BEHAVIOR: prepare must retain a pending lease: WrongState
+
+
+failures:
+    registry_confirmation
+    registry_permits_and_replay
+    registry_public_native_bridge
+    registry_registration
+    registry_revocation_and_owner
+
+test result: FAILED. 0 passed; 5 failed; 0 ignored; 0 measured; 0 filtered out; finished in 0.06s
+
+
+--- stderr ---
+   Compiling water-native-root v0.1.0 (F:\new\smaltalk\water\.worktrees\p\packages\native-root)
+   Compiling water-scope-registry v0.1.0 (F:\new\smaltalk\water\.worktrees\p\packages\scope-registry)
+    Finished `test` profile [unoptimized + debuginfo] target(s) in 8.79s
+     Running tests\registry_v1.rs (.local\next-target\debug\deps\registry_v1-1403bd5c4a61c7e9.exe)
+error: test failed, to rerun pass `--test registry_v1`
