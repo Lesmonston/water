@@ -1,0 +1,728 @@
+{
+  "task": "WATER-W1-L",
+  "implementation": "7a545fd1a00d17116d435604233a8a4bd9d08651",
+  "frozenUniqueFiles": 151,
+  "baseline": [
+    {
+      "file": "2026-10-18T04-07-06.175Z-43512-baseline-result.json",
+      "startedAt": "2026-10-18T04:07:07.815Z",
+      "status": "passed",
+      "assets": {
+        "validatedProjectInputs": 10,
+        "validatedLedgerInputs": 15,
+        "sourceErrors": 11,
+        "realGAndA": true,
+        "newProductsTested": false,
+        "filesystemScanned": false
+      }
+    },
+    {
+      "file": "2026-10-18T04-28-26.118Z-40316-baseline-result.json",
+      "startedAt": "2026-10-18T04:28:32.580Z",
+      "status": "passed",
+      "assets": {
+        "validatedProjectInputs": 10,
+        "validatedLedgerInputs": 15,
+        "sourceErrors": 11,
+        "realGAndA": true,
+        "newProductsTested": false,
+        "filesystemScanned": false
+      }
+    }
+  ],
+  "finals": [
+    {
+      "file": "2026-10-18T04-37-14.914Z-9344-fmt-result.json",
+      "mode": "fmt",
+      "startedAt": "2026-10-18T04:37:16.530Z",
+      "endedAt": "2026-10-18T04:37:18.812Z",
+      "head": "7a545fd1a00d17116d435604233a8a4bd9d08651",
+      "status": "passed",
+      "proofAudit": [
+        {
+          "label": "behavior",
+          "red": "2026-10-18T04-32-11.141Z-34424-red-behavior-result.json",
+          "restored": "2026-10-18T04-34-58.716Z-632-suite-result.json"
+        },
+        {
+          "label": "nc1",
+          "red": "2026-10-18T04-35-22.692Z-2092-red-nc1-result.json",
+          "restored": "2026-10-18T04-35-36.009Z-12304-suite-result.json"
+        },
+        {
+          "label": "nc2",
+          "red": "2026-10-18T04-35-52.521Z-40860-red-nc2-result.json",
+          "restored": "2026-10-18T04-36-13.380Z-26584-suite-result.json"
+        },
+        {
+          "label": "nc3",
+          "red": "2026-10-18T04-36-31.639Z-34464-red-nc3-result.json",
+          "restored": "2026-10-18T04-36-47.641Z-28188-suite-result.json"
+        }
+      ]
+    },
+    {
+      "file": "2026-10-18T04-37-23.011Z-9560-test-result.json",
+      "mode": "test",
+      "startedAt": "2026-10-18T04:37:25.498Z",
+      "endedAt": "2026-10-18T04:37:33.039Z",
+      "head": "7a545fd1a00d17116d435604233a8a4bd9d08651",
+      "status": "passed",
+      "executedTests": 5,
+      "proofAudit": [
+        {
+          "label": "behavior",
+          "red": "2026-10-18T04-32-11.141Z-34424-red-behavior-result.json",
+          "restored": "2026-10-18T04-34-58.716Z-632-suite-result.json"
+        },
+        {
+          "label": "nc1",
+          "red": "2026-10-18T04-35-22.692Z-2092-red-nc1-result.json",
+          "restored": "2026-10-18T04-35-36.009Z-12304-suite-result.json"
+        },
+        {
+          "label": "nc2",
+          "red": "2026-10-18T04-35-52.521Z-40860-red-nc2-result.json",
+          "restored": "2026-10-18T04-36-13.380Z-26584-suite-result.json"
+        },
+        {
+          "label": "nc3",
+          "red": "2026-10-18T04-36-31.639Z-34464-red-nc3-result.json",
+          "restored": "2026-10-18T04-36-47.641Z-28188-suite-result.json"
+        }
+      ]
+    },
+    {
+      "file": "2026-10-18T04-37-46.863Z-15356-clippy-result.json",
+      "mode": "clippy",
+      "startedAt": "2026-10-18T04:37:49.230Z",
+      "endedAt": "2026-10-18T04:37:51.459Z",
+      "head": "7a545fd1a00d17116d435604233a8a4bd9d08651",
+      "status": "passed",
+      "proofAudit": [
+        {
+          "label": "behavior",
+          "red": "2026-10-18T04-32-11.141Z-34424-red-behavior-result.json",
+          "restored": "2026-10-18T04-34-58.716Z-632-suite-result.json"
+        },
+        {
+          "label": "nc1",
+          "red": "2026-10-18T04-35-22.692Z-2092-red-nc1-result.json",
+          "restored": "2026-10-18T04-35-36.009Z-12304-suite-result.json"
+        },
+        {
+          "label": "nc2",
+          "red": "2026-10-18T04-35-52.521Z-40860-red-nc2-result.json",
+          "restored": "2026-10-18T04-36-13.380Z-26584-suite-result.json"
+        },
+        {
+          "label": "nc3",
+          "red": "2026-10-18T04-36-31.639Z-34464-red-nc3-result.json",
+          "restored": "2026-10-18T04-36-47.641Z-28188-suite-result.json"
+        }
+      ]
+    },
+    {
+      "file": "2026-10-18T04-37-57.095Z-35188-metadata-result.json",
+      "mode": "metadata",
+      "startedAt": "2026-10-18T04:37:58.422Z",
+      "endedAt": "2026-10-18T04:37:59.780Z",
+      "head": "7a545fd1a00d17116d435604233a8a4bd9d08651",
+      "status": "passed",
+      "proofAudit": [
+        {
+          "label": "behavior",
+          "red": "2026-10-18T04-32-11.141Z-34424-red-behavior-result.json",
+          "restored": "2026-10-18T04-34-58.716Z-632-suite-result.json"
+        },
+        {
+          "label": "nc1",
+          "red": "2026-10-18T04-35-22.692Z-2092-red-nc1-result.json",
+          "restored": "2026-10-18T04-35-36.009Z-12304-suite-result.json"
+        },
+        {
+          "label": "nc2",
+          "red": "2026-10-18T04-35-52.521Z-40860-red-nc2-result.json",
+          "restored": "2026-10-18T04-36-13.380Z-26584-suite-result.json"
+        },
+        {
+          "label": "nc3",
+          "red": "2026-10-18T04-36-31.639Z-34464-red-nc3-result.json",
+          "restored": "2026-10-18T04-36-47.641Z-28188-suite-result.json"
+        }
+      ]
+    },
+    {
+      "file": "2026-10-18T04-38-03.856Z-42356-bridge-result.json",
+      "mode": "bridge",
+      "startedAt": "2026-10-18T04:38:05.332Z",
+      "endedAt": "2026-10-18T04:38:07.596Z",
+      "head": "7a545fd1a00d17116d435604233a8a4bd9d08651",
+      "status": "passed",
+      "bridge": {
+        "actualPublicEntry": true,
+        "actualGValidation": true,
+        "cases": 10,
+        "sourceRejections": 11,
+        "filesystemScanned": false
+      },
+      "proofAudit": [
+        {
+          "label": "behavior",
+          "red": "2026-10-18T04-32-11.141Z-34424-red-behavior-result.json",
+          "restored": "2026-10-18T04-34-58.716Z-632-suite-result.json"
+        },
+        {
+          "label": "nc1",
+          "red": "2026-10-18T04-35-22.692Z-2092-red-nc1-result.json",
+          "restored": "2026-10-18T04-35-36.009Z-12304-suite-result.json"
+        },
+        {
+          "label": "nc2",
+          "red": "2026-10-18T04-35-52.521Z-40860-red-nc2-result.json",
+          "restored": "2026-10-18T04-36-13.380Z-26584-suite-result.json"
+        },
+        {
+          "label": "nc3",
+          "red": "2026-10-18T04-36-31.639Z-34464-red-nc3-result.json",
+          "restored": "2026-10-18T04-36-47.641Z-28188-suite-result.json"
+        }
+      ]
+    }
+  ],
+  "proofs": [
+    {
+      "label": "behavior",
+      "target": "L_BEHAVIOR",
+      "original": null,
+      "mutated": {
+        "receipt": "2026-10-18T04-32-11.141Z-34424-red-behavior-result.json",
+        "files": [
+          {
+            "path": "packages/project-evidence/src/lib.rs",
+            "sha256": "f794758eb4e2826334133088b76b6520320dc5cd359525cb379a714cc46af8c4",
+            "mtimeMs": 1792297819304.488,
+            "snapshot": "2026-10-18T04-32-11.141Z-34424-red-behavior-source-0.txt",
+            "test": false
+          },
+          {
+            "path": "packages/project-evidence/src/v1.rs",
+            "sha256": "18eee50ac9d68e1c19503e223483965a302903b03a240f16c6856221806549b6",
+            "mtimeMs": 1792297819306.4985,
+            "snapshot": "2026-10-18T04-32-11.141Z-34424-red-behavior-source-1.txt",
+            "test": false
+          },
+          {
+            "path": "packages/project-evidence/tests/evidence_v1.rs",
+            "sha256": "336d33c8fb2e937ee9a78902235008cc277f5b78c6813eae3dcee4427a7225e3",
+            "mtimeMs": 1792297930603.2205,
+            "snapshot": "2026-10-18T04-32-11.141Z-34424-red-behavior-source-2.txt",
+            "test": true
+          }
+        ],
+        "productionHash": "5a34a4a5ebaa68f2286ddce544ee90b76cf526c3b16fdf73158aaaf33287af74",
+        "testHash": "d31429ce401f0bafefd46dfbc76cb809f407da7b6ab69a15f6cee9a512767118"
+      },
+      "restored": {
+        "receipt": "2026-10-18T04-34-58.716Z-632-suite-result.json",
+        "files": [
+          {
+            "path": "packages/project-evidence/src/lib.rs",
+            "sha256": "f794758eb4e2826334133088b76b6520320dc5cd359525cb379a714cc46af8c4",
+            "mtimeMs": 1792297819304.488,
+            "snapshot": "2026-10-18T04-34-58.716Z-632-suite-source-0.txt",
+            "test": false
+          },
+          {
+            "path": "packages/project-evidence/src/v1.rs",
+            "sha256": "d59c3b78288580f802ef450244dd24832cae9fa52d981c971a1f9314eab44f57",
+            "mtimeMs": 1792298076349.9934,
+            "snapshot": "2026-10-18T04-34-58.716Z-632-suite-source-1.txt",
+            "test": false
+          },
+          {
+            "path": "packages/project-evidence/tests/evidence_v1.rs",
+            "sha256": "336d33c8fb2e937ee9a78902235008cc277f5b78c6813eae3dcee4427a7225e3",
+            "mtimeMs": 1792297930603.2205,
+            "snapshot": "2026-10-18T04-34-58.716Z-632-suite-source-2.txt",
+            "test": true
+          }
+        ],
+        "productionHash": "669fee774df737fda9c5e0c0c2d2aacac393af4eea59aca2b817b7c9c8003da8",
+        "testHash": "d31429ce401f0bafefd46dfbc76cb809f407da7b6ab69a15f6cee9a512767118"
+      }
+    },
+    {
+      "label": "nc1",
+      "target": "L_FILE_ONLY",
+      "original": {
+        "receipt": "2026-10-18T04-34-58.716Z-632-suite-result.json",
+        "files": [
+          {
+            "path": "packages/project-evidence/src/lib.rs",
+            "sha256": "f794758eb4e2826334133088b76b6520320dc5cd359525cb379a714cc46af8c4",
+            "mtimeMs": 1792297819304.488,
+            "snapshot": "2026-10-18T04-34-58.716Z-632-suite-source-0.txt",
+            "test": false
+          },
+          {
+            "path": "packages/project-evidence/src/v1.rs",
+            "sha256": "d59c3b78288580f802ef450244dd24832cae9fa52d981c971a1f9314eab44f57",
+            "mtimeMs": 1792298076349.9934,
+            "snapshot": "2026-10-18T04-34-58.716Z-632-suite-source-1.txt",
+            "test": false
+          },
+          {
+            "path": "packages/project-evidence/tests/evidence_v1.rs",
+            "sha256": "336d33c8fb2e937ee9a78902235008cc277f5b78c6813eae3dcee4427a7225e3",
+            "mtimeMs": 1792297930603.2205,
+            "snapshot": "2026-10-18T04-34-58.716Z-632-suite-source-2.txt",
+            "test": true
+          }
+        ],
+        "productionHash": "669fee774df737fda9c5e0c0c2d2aacac393af4eea59aca2b817b7c9c8003da8",
+        "testHash": "d31429ce401f0bafefd46dfbc76cb809f407da7b6ab69a15f6cee9a512767118"
+      },
+      "mutated": {
+        "receipt": "2026-10-18T04-35-22.692Z-2092-red-nc1-result.json",
+        "files": [
+          {
+            "path": "packages/project-evidence/src/lib.rs",
+            "sha256": "f794758eb4e2826334133088b76b6520320dc5cd359525cb379a714cc46af8c4",
+            "mtimeMs": 1792297819304.488,
+            "snapshot": "2026-10-18T04-35-22.692Z-2092-red-nc1-source-0.txt",
+            "test": false
+          },
+          {
+            "path": "packages/project-evidence/src/v1.rs",
+            "sha256": "1e7bab9094576b4128f340f06cf29efab1af80c28d4a5e899dc8fca343ba6be9",
+            "mtimeMs": 1792298121724.527,
+            "snapshot": "2026-10-18T04-35-22.692Z-2092-red-nc1-source-1.txt",
+            "test": false
+          },
+          {
+            "path": "packages/project-evidence/tests/evidence_v1.rs",
+            "sha256": "336d33c8fb2e937ee9a78902235008cc277f5b78c6813eae3dcee4427a7225e3",
+            "mtimeMs": 1792297930603.2205,
+            "snapshot": "2026-10-18T04-35-22.692Z-2092-red-nc1-source-2.txt",
+            "test": true
+          }
+        ],
+        "productionHash": "6cc226900efe063302dbb959a0d8deb10cafbab397f19d7c04ee3831cfcca9d4",
+        "testHash": "d31429ce401f0bafefd46dfbc76cb809f407da7b6ab69a15f6cee9a512767118"
+      },
+      "restored": {
+        "receipt": "2026-10-18T04-35-36.009Z-12304-suite-result.json",
+        "files": [
+          {
+            "path": "packages/project-evidence/src/lib.rs",
+            "sha256": "f794758eb4e2826334133088b76b6520320dc5cd359525cb379a714cc46af8c4",
+            "mtimeMs": 1792297819304.488,
+            "snapshot": "2026-10-18T04-35-36.009Z-12304-suite-source-0.txt",
+            "test": false
+          },
+          {
+            "path": "packages/project-evidence/src/v1.rs",
+            "sha256": "d59c3b78288580f802ef450244dd24832cae9fa52d981c971a1f9314eab44f57",
+            "mtimeMs": 1792298135547.9165,
+            "snapshot": "2026-10-18T04-35-36.009Z-12304-suite-source-1.txt",
+            "test": false
+          },
+          {
+            "path": "packages/project-evidence/tests/evidence_v1.rs",
+            "sha256": "336d33c8fb2e937ee9a78902235008cc277f5b78c6813eae3dcee4427a7225e3",
+            "mtimeMs": 1792297930603.2205,
+            "snapshot": "2026-10-18T04-35-36.009Z-12304-suite-source-2.txt",
+            "test": true
+          }
+        ],
+        "productionHash": "669fee774df737fda9c5e0c0c2d2aacac393af4eea59aca2b817b7c9c8003da8",
+        "testHash": "d31429ce401f0bafefd46dfbc76cb809f407da7b6ab69a15f6cee9a512767118"
+      }
+    },
+    {
+      "label": "nc2",
+      "target": "L_FILENAME_ONLY",
+      "original": {
+        "receipt": "2026-10-18T04-35-36.009Z-12304-suite-result.json",
+        "files": [
+          {
+            "path": "packages/project-evidence/src/lib.rs",
+            "sha256": "f794758eb4e2826334133088b76b6520320dc5cd359525cb379a714cc46af8c4",
+            "mtimeMs": 1792297819304.488,
+            "snapshot": "2026-10-18T04-35-36.009Z-12304-suite-source-0.txt",
+            "test": false
+          },
+          {
+            "path": "packages/project-evidence/src/v1.rs",
+            "sha256": "d59c3b78288580f802ef450244dd24832cae9fa52d981c971a1f9314eab44f57",
+            "mtimeMs": 1792298135547.9165,
+            "snapshot": "2026-10-18T04-35-36.009Z-12304-suite-source-1.txt",
+            "test": false
+          },
+          {
+            "path": "packages/project-evidence/tests/evidence_v1.rs",
+            "sha256": "336d33c8fb2e937ee9a78902235008cc277f5b78c6813eae3dcee4427a7225e3",
+            "mtimeMs": 1792297930603.2205,
+            "snapshot": "2026-10-18T04-35-36.009Z-12304-suite-source-2.txt",
+            "test": true
+          }
+        ],
+        "productionHash": "669fee774df737fda9c5e0c0c2d2aacac393af4eea59aca2b817b7c9c8003da8",
+        "testHash": "d31429ce401f0bafefd46dfbc76cb809f407da7b6ab69a15f6cee9a512767118"
+      },
+      "mutated": {
+        "receipt": "2026-10-18T04-35-52.521Z-40860-red-nc2-result.json",
+        "files": [
+          {
+            "path": "packages/project-evidence/src/lib.rs",
+            "sha256": "f794758eb4e2826334133088b76b6520320dc5cd359525cb379a714cc46af8c4",
+            "mtimeMs": 1792297819304.488,
+            "snapshot": "2026-10-18T04-35-52.521Z-40860-red-nc2-source-0.txt",
+            "test": false
+          },
+          {
+            "path": "packages/project-evidence/src/v1.rs",
+            "sha256": "d6a0de2fbf9657b580f2784ce2280a44d36c630e84c49de1d50ee2ae3de92c03",
+            "mtimeMs": 1792298151842.236,
+            "snapshot": "2026-10-18T04-35-52.521Z-40860-red-nc2-source-1.txt",
+            "test": false
+          },
+          {
+            "path": "packages/project-evidence/tests/evidence_v1.rs",
+            "sha256": "336d33c8fb2e937ee9a78902235008cc277f5b78c6813eae3dcee4427a7225e3",
+            "mtimeMs": 1792297930603.2205,
+            "snapshot": "2026-10-18T04-35-52.521Z-40860-red-nc2-source-2.txt",
+            "test": true
+          }
+        ],
+        "productionHash": "c5738e5022626be1f0dbcc3b03852cc9f89c61853ce7510ece33135843ffc0e2",
+        "testHash": "d31429ce401f0bafefd46dfbc76cb809f407da7b6ab69a15f6cee9a512767118"
+      },
+      "restored": {
+        "receipt": "2026-10-18T04-36-13.380Z-26584-suite-result.json",
+        "files": [
+          {
+            "path": "packages/project-evidence/src/lib.rs",
+            "sha256": "f794758eb4e2826334133088b76b6520320dc5cd359525cb379a714cc46af8c4",
+            "mtimeMs": 1792297819304.488,
+            "snapshot": "2026-10-18T04-36-13.380Z-26584-suite-source-0.txt",
+            "test": false
+          },
+          {
+            "path": "packages/project-evidence/src/v1.rs",
+            "sha256": "d59c3b78288580f802ef450244dd24832cae9fa52d981c971a1f9314eab44f57",
+            "mtimeMs": 1792298172833.0552,
+            "snapshot": "2026-10-18T04-36-13.380Z-26584-suite-source-1.txt",
+            "test": false
+          },
+          {
+            "path": "packages/project-evidence/tests/evidence_v1.rs",
+            "sha256": "336d33c8fb2e937ee9a78902235008cc277f5b78c6813eae3dcee4427a7225e3",
+            "mtimeMs": 1792297930603.2205,
+            "snapshot": "2026-10-18T04-36-13.380Z-26584-suite-source-2.txt",
+            "test": true
+          }
+        ],
+        "productionHash": "669fee774df737fda9c5e0c0c2d2aacac393af4eea59aca2b817b7c9c8003da8",
+        "testHash": "d31429ce401f0bafefd46dfbc76cb809f407da7b6ab69a15f6cee9a512767118"
+      }
+    },
+    {
+      "label": "nc3",
+      "target": "L_SOURCE_TOTALS",
+      "original": {
+        "receipt": "2026-10-18T04-36-13.380Z-26584-suite-result.json",
+        "files": [
+          {
+            "path": "packages/project-evidence/src/lib.rs",
+            "sha256": "f794758eb4e2826334133088b76b6520320dc5cd359525cb379a714cc46af8c4",
+            "mtimeMs": 1792297819304.488,
+            "snapshot": "2026-10-18T04-36-13.380Z-26584-suite-source-0.txt",
+            "test": false
+          },
+          {
+            "path": "packages/project-evidence/src/v1.rs",
+            "sha256": "d59c3b78288580f802ef450244dd24832cae9fa52d981c971a1f9314eab44f57",
+            "mtimeMs": 1792298172833.0552,
+            "snapshot": "2026-10-18T04-36-13.380Z-26584-suite-source-1.txt",
+            "test": false
+          },
+          {
+            "path": "packages/project-evidence/tests/evidence_v1.rs",
+            "sha256": "336d33c8fb2e937ee9a78902235008cc277f5b78c6813eae3dcee4427a7225e3",
+            "mtimeMs": 1792297930603.2205,
+            "snapshot": "2026-10-18T04-36-13.380Z-26584-suite-source-2.txt",
+            "test": true
+          }
+        ],
+        "productionHash": "669fee774df737fda9c5e0c0c2d2aacac393af4eea59aca2b817b7c9c8003da8",
+        "testHash": "d31429ce401f0bafefd46dfbc76cb809f407da7b6ab69a15f6cee9a512767118"
+      },
+      "mutated": {
+        "receipt": "2026-10-18T04-36-31.639Z-34464-red-nc3-result.json",
+        "files": [
+          {
+            "path": "packages/project-evidence/src/lib.rs",
+            "sha256": "f794758eb4e2826334133088b76b6520320dc5cd359525cb379a714cc46af8c4",
+            "mtimeMs": 1792297819304.488,
+            "snapshot": "2026-10-18T04-36-31.639Z-34464-red-nc3-source-0.txt",
+            "test": false
+          },
+          {
+            "path": "packages/project-evidence/src/v1.rs",
+            "sha256": "f97d618497309de64f1cf4ada4ed375e89fb6959db78bb7aa8a68f1254e09d9a",
+            "mtimeMs": 1792298190313.7495,
+            "snapshot": "2026-10-18T04-36-31.639Z-34464-red-nc3-source-1.txt",
+            "test": false
+          },
+          {
+            "path": "packages/project-evidence/tests/evidence_v1.rs",
+            "sha256": "336d33c8fb2e937ee9a78902235008cc277f5b78c6813eae3dcee4427a7225e3",
+            "mtimeMs": 1792297930603.2205,
+            "snapshot": "2026-10-18T04-36-31.639Z-34464-red-nc3-source-2.txt",
+            "test": true
+          }
+        ],
+        "productionHash": "7dffee23fd4d167fe5b15a18a635e7615b391f7c217b5a9160d54d083d03dcca",
+        "testHash": "d31429ce401f0bafefd46dfbc76cb809f407da7b6ab69a15f6cee9a512767118"
+      },
+      "restored": {
+        "receipt": "2026-10-18T04-36-47.641Z-28188-suite-result.json",
+        "files": [
+          {
+            "path": "packages/project-evidence/src/lib.rs",
+            "sha256": "f794758eb4e2826334133088b76b6520320dc5cd359525cb379a714cc46af8c4",
+            "mtimeMs": 1792297819304.488,
+            "snapshot": "2026-10-18T04-36-47.641Z-28188-suite-source-0.txt",
+            "test": false
+          },
+          {
+            "path": "packages/project-evidence/src/v1.rs",
+            "sha256": "d59c3b78288580f802ef450244dd24832cae9fa52d981c971a1f9314eab44f57",
+            "mtimeMs": 1792298206923.8115,
+            "snapshot": "2026-10-18T04-36-47.641Z-28188-suite-source-1.txt",
+            "test": false
+          },
+          {
+            "path": "packages/project-evidence/tests/evidence_v1.rs",
+            "sha256": "336d33c8fb2e937ee9a78902235008cc277f5b78c6813eae3dcee4427a7225e3",
+            "mtimeMs": 1792297930603.2205,
+            "snapshot": "2026-10-18T04-36-47.641Z-28188-suite-source-2.txt",
+            "test": true
+          }
+        ],
+        "productionHash": "669fee774df737fda9c5e0c0c2d2aacac393af4eea59aca2b817b7c9c8003da8",
+        "testHash": "d31429ce401f0bafefd46dfbc76cb809f407da7b6ab69a15f6cee9a512767118"
+      }
+    }
+  ],
+  "failedChecks": [
+    {
+      "file": "2026-10-18T04-30-47.992Z-29828-fmt-result.json",
+      "mode": "fmt",
+      "error": "Focused command failed: fmt --manifest-path F:\\new\\smaltalk\\water\\.worktrees\\l\\packages\\project-evidence\\Cargo.toml -- --check"
+    },
+    {
+      "file": "2026-10-18T04-33-23.553Z-8988-fmt-result.json",
+      "mode": "fmt",
+      "error": "Focused command failed: fmt --manifest-path F:\\new\\smaltalk\\water\\.worktrees\\l\\packages\\project-evidence\\Cargo.toml -- --check"
+    },
+    {
+      "file": "2026-10-18T04-33-41.445Z-39884-clippy-result.json",
+      "mode": "clippy",
+      "error": "Focused command failed: clippy --offline --locked --manifest-path F:\\new\\smaltalk\\water\\.worktrees\\l\\packages\\project-evidence\\Cargo.toml -p water-project-evidence --all-targets -- -D warnings"
+    }
+  ],
+  "allChecks": [
+    {
+      "file": "2026-10-18T04-07-06.175Z-43512-baseline-result.json",
+      "mode": "baseline",
+      "finalGate": false,
+      "status": "passed",
+      "startedAt": "2026-10-18T04:07:07.815Z",
+      "endedAt": "2026-10-18T04:08:10.583Z"
+    },
+    {
+      "file": "2026-10-18T04-28-26.118Z-40316-baseline-result.json",
+      "mode": "baseline",
+      "finalGate": false,
+      "status": "passed",
+      "startedAt": "2026-10-18T04:28:32.580Z",
+      "endedAt": "2026-10-18T04:28:42.052Z"
+    },
+    {
+      "file": "2026-10-18T04-30-30.417Z-43368-lock-result.json",
+      "mode": "lock",
+      "finalGate": false,
+      "status": "passed",
+      "startedAt": "2026-10-18T04:30:32.878Z",
+      "endedAt": "2026-10-18T04:30:35.220Z"
+    },
+    {
+      "file": "2026-10-18T04-30-47.992Z-29828-fmt-result.json",
+      "mode": "fmt",
+      "finalGate": false,
+      "status": "failed",
+      "startedAt": "2026-10-18T04:30:55.638Z",
+      "endedAt": "2026-10-18T04:30:59.247Z"
+    },
+    {
+      "file": "2026-10-18T04-31-16.494Z-29520-red-behavior-result.json",
+      "mode": "red-behavior",
+      "finalGate": false,
+      "status": "passed",
+      "startedAt": "2026-10-18T04:31:22.449Z",
+      "endedAt": "2026-10-18T04:31:43.469Z",
+      "expectedRustExitCode": 101
+    },
+    {
+      "file": "2026-10-18T04-32-11.141Z-34424-red-behavior-result.json",
+      "mode": "red-behavior",
+      "finalGate": false,
+      "status": "passed",
+      "startedAt": "2026-10-18T04:32:13.101Z",
+      "endedAt": "2026-10-18T04:32:23.306Z",
+      "expectedRustExitCode": 101
+    },
+    {
+      "file": "2026-10-18T04-32-59.012Z-31816-suite-result.json",
+      "mode": "suite",
+      "finalGate": false,
+      "status": "passed",
+      "startedAt": "2026-10-18T04:33:04.944Z",
+      "endedAt": "2026-10-18T04:33:18.197Z"
+    },
+    {
+      "file": "2026-10-18T04-33-23.553Z-8988-fmt-result.json",
+      "mode": "fmt",
+      "finalGate": false,
+      "status": "failed",
+      "startedAt": "2026-10-18T04:33:27.007Z",
+      "endedAt": "2026-10-18T04:33:35.851Z"
+    },
+    {
+      "file": "2026-10-18T04-33-41.445Z-39884-clippy-result.json",
+      "mode": "clippy",
+      "finalGate": false,
+      "status": "failed",
+      "startedAt": "2026-10-18T04:33:43.245Z",
+      "endedAt": "2026-10-18T04:34:07.069Z"
+    },
+    {
+      "file": "2026-10-18T04-34-07.935Z-23356-fmt-result.json",
+      "mode": "fmt",
+      "finalGate": false,
+      "status": "passed",
+      "startedAt": "2026-10-18T04:34:10.567Z",
+      "endedAt": "2026-10-18T04:34:21.724Z"
+    },
+    {
+      "file": "2026-10-18T04-34-37.134Z-43812-clippy-result.json",
+      "mode": "clippy",
+      "finalGate": false,
+      "status": "passed",
+      "startedAt": "2026-10-18T04:34:41.957Z",
+      "endedAt": "2026-10-18T04:34:48.494Z"
+    },
+    {
+      "file": "2026-10-18T04-34-58.716Z-632-suite-result.json",
+      "mode": "suite",
+      "finalGate": false,
+      "status": "passed",
+      "startedAt": "2026-10-18T04:35:00.932Z",
+      "endedAt": "2026-10-18T04:35:09.105Z"
+    },
+    {
+      "file": "2026-10-18T04-35-22.692Z-2092-red-nc1-result.json",
+      "mode": "red-nc1",
+      "finalGate": false,
+      "status": "passed",
+      "startedAt": "2026-10-18T04:35:23.982Z",
+      "endedAt": "2026-10-18T04:35:29.802Z",
+      "expectedRustExitCode": 101
+    },
+    {
+      "file": "2026-10-18T04-35-36.009Z-12304-suite-result.json",
+      "mode": "suite",
+      "finalGate": false,
+      "status": "passed",
+      "startedAt": "2026-10-18T04:35:37.858Z",
+      "endedAt": "2026-10-18T04:35:51.216Z"
+    },
+    {
+      "file": "2026-10-18T04-35-52.521Z-40860-red-nc2-result.json",
+      "mode": "red-nc2",
+      "finalGate": false,
+      "status": "passed",
+      "startedAt": "2026-10-18T04:35:54.124Z",
+      "endedAt": "2026-10-18T04:36:03.508Z",
+      "expectedRustExitCode": 101
+    },
+    {
+      "file": "2026-10-18T04-36-13.380Z-26584-suite-result.json",
+      "mode": "suite",
+      "finalGate": false,
+      "status": "passed",
+      "startedAt": "2026-10-18T04:36:18.685Z",
+      "endedAt": "2026-10-18T04:36:30.223Z"
+    },
+    {
+      "file": "2026-10-18T04-36-31.639Z-34464-red-nc3-result.json",
+      "mode": "red-nc3",
+      "finalGate": false,
+      "status": "passed",
+      "startedAt": "2026-10-18T04:36:35.819Z",
+      "endedAt": "2026-10-18T04:36:46.355Z",
+      "expectedRustExitCode": 101
+    },
+    {
+      "file": "2026-10-18T04-36-47.641Z-28188-suite-result.json",
+      "mode": "suite",
+      "finalGate": false,
+      "status": "passed",
+      "startedAt": "2026-10-18T04:36:49.188Z",
+      "endedAt": "2026-10-18T04:36:59.385Z"
+    },
+    {
+      "file": "2026-10-18T04-37-14.914Z-9344-fmt-result.json",
+      "mode": "fmt",
+      "finalGate": true,
+      "status": "passed",
+      "startedAt": "2026-10-18T04:37:16.530Z",
+      "endedAt": "2026-10-18T04:37:18.812Z"
+    },
+    {
+      "file": "2026-10-18T04-37-23.011Z-9560-test-result.json",
+      "mode": "test",
+      "finalGate": true,
+      "status": "passed",
+      "startedAt": "2026-10-18T04:37:25.498Z",
+      "endedAt": "2026-10-18T04:37:33.039Z"
+    },
+    {
+      "file": "2026-10-18T04-37-46.863Z-15356-clippy-result.json",
+      "mode": "clippy",
+      "finalGate": true,
+      "status": "passed",
+      "startedAt": "2026-10-18T04:37:49.230Z",
+      "endedAt": "2026-10-18T04:37:51.459Z"
+    },
+    {
+      "file": "2026-10-18T04-37-57.095Z-35188-metadata-result.json",
+      "mode": "metadata",
+      "finalGate": true,
+      "status": "passed",
+      "startedAt": "2026-10-18T04:37:58.422Z",
+      "endedAt": "2026-10-18T04:37:59.780Z"
+    },
+    {
+      "file": "2026-10-18T04-38-03.856Z-42356-bridge-result.json",
+      "mode": "bridge",
+      "finalGate": true,
+      "status": "passed",
+      "startedAt": "2026-10-18T04:38:05.332Z",
+      "endedAt": "2026-10-18T04:38:07.596Z"
+    }
+  ]
+}

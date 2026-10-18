@@ -1,0 +1,40 @@
+{"binary":"C:\\Users\\37310\\.rustup\\toolchains\\1.95.0-x86_64-pc-windows-msvc\\bin\\cargo.exe","argv":["clippy","--offline","--locked","--manifest-path","F:\\new\\smaltalk\\water\\.worktrees\\l\\packages\\project-evidence\\Cargo.toml","-p","water-project-evidence","--all-targets","--","-D","warnings"],"exitCode":101,"error":null,"log":"2026-10-18T04-33-41.445Z-39884-clippy-5.log"}
+--- stdout ---
+
+--- stderr ---
+    Checking serde_core v1.0.229
+    Checking zmij v1.0.23
+    Checking memchr v2.8.3
+    Checking itoa v1.0.18
+    Checking serde_json v1.0.151
+    Checking serde v1.0.229
+    Checking water-contracts v0.1.0 (F:\new\smaltalk\water\.worktrees\l\crates\water-contracts)
+    Checking water-scan-report v0.1.0 (F:\new\smaltalk\water\.worktrees\l\packages\scan-report)
+    Checking water-project-evidence v0.1.0 (F:\new\smaltalk\water\.worktrees\l\packages\project-evidence)
+error: using `clone` on type `Coverage` which implements the `Copy` trait
+   --> src\v1.rs:112:33
+    |
+112 |                 scope_coverage: descriptor.coverage.clone(),
+    |                                 ^^^^^^^^^^^^^^^^^^^^^^^^^^^ help: try removing the `clone` call: `descriptor.coverage`
+    |
+    = help: for further information visit https://rust-lang.github.io/rust-clippy/rust-1.95.0/index.html#clone_on_copy
+    = note: `-D clippy::clone-on-copy` implied by `-D warnings`
+    = help: to override `-D warnings` add `#[allow(clippy::clone_on_copy)]`
+
+error: using `clone` on type `Platform` which implements the `Copy` trait
+   --> src\v1.rs:124:19
+    |
+124 |         platform: context.platform.clone(),
+    |                   ^^^^^^^^^^^^^^^^^^^^^^^^ help: try removing the `clone` call: `context.platform`
+    |
+    = help: for further information visit https://rust-lang.github.io/rust-clippy/rust-1.95.0/index.html#clone_on_copy
+
+error: using `clone` on type `ScanStatus` which implements the `Copy` trait
+   --> src\v1.rs:125:17
+    |
+125 |         status: report.status.clone(),
+    |                 ^^^^^^^^^^^^^^^^^^^^^ help: try removing the `clone` call: `report.status`
+    |
+    = help: for further information visit https://rust-lang.github.io/rust-clippy/rust-1.95.0/index.html#clone_on_copy
+
+error: could not compile `water-project-evidence` (lib) due to 3 previous errors

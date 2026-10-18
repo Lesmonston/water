@@ -1,0 +1,352 @@
+{
+  "task": "WATER-W1-L",
+  "mode": "red-behavior",
+  "finalGate": false,
+  "startedAt": "2026-10-18T04:31:22.449Z",
+  "before": {
+    "head": "82e158079066bf795fb89fafa933bc2d7fc00bd5",
+    "status": "?? packages/project-evidence/Cargo.lock\n?? packages/project-evidence/Cargo.toml\n?? packages/project-evidence/src/lib.rs\n?? packages/project-evidence/src/v1.rs\n?? packages/project-evidence/tests/evidence_v1.rs"
+  },
+  "node": "v24.16.0",
+  "productTestsRun": true,
+  "frozenFiles": 38,
+  "commands": [
+    {
+      "binary": "git",
+      "argv": [
+        "-c",
+        "core.hooksPath=NUL",
+        "-c",
+        "core.fsmonitor=false",
+        "rev-parse",
+        "--path-format=absolute",
+        "--git-common-dir"
+      ],
+      "exitCode": 0,
+      "error": null
+    },
+    {
+      "binary": "git",
+      "argv": [
+        "-c",
+        "core.hooksPath=NUL",
+        "-c",
+        "core.fsmonitor=false",
+        "branch",
+        "--show-current"
+      ],
+      "exitCode": 0,
+      "error": null
+    },
+    {
+      "binary": "git",
+      "argv": [
+        "-c",
+        "core.hooksPath=NUL",
+        "-c",
+        "core.fsmonitor=false",
+        "merge-base",
+        "--is-ancestor",
+        "82e158079066bf795fb89fafa933bc2d7fc00bd5",
+        "HEAD"
+      ],
+      "exitCode": 0,
+      "error": null
+    },
+    {
+      "binary": "git",
+      "argv": [
+        "-c",
+        "core.hooksPath=NUL",
+        "-c",
+        "core.fsmonitor=false",
+        "diff",
+        "--no-renames",
+        "--name-only",
+        "-z",
+        "82e158079066bf795fb89fafa933bc2d7fc00bd5",
+        "HEAD"
+      ],
+      "exitCode": 0,
+      "error": null
+    },
+    {
+      "binary": "git",
+      "argv": [
+        "-c",
+        "core.hooksPath=NUL",
+        "-c",
+        "core.fsmonitor=false",
+        "diff",
+        "--no-renames",
+        "--name-only",
+        "-z",
+        "HEAD"
+      ],
+      "exitCode": 0,
+      "error": null
+    },
+    {
+      "binary": "git",
+      "argv": [
+        "-c",
+        "core.hooksPath=NUL",
+        "-c",
+        "core.fsmonitor=false",
+        "ls-files",
+        "--others",
+        "--exclude-standard",
+        "-z"
+      ],
+      "exitCode": 0,
+      "error": null
+    },
+    {
+      "binary": "git",
+      "argv": [
+        "-c",
+        "core.hooksPath=NUL",
+        "-c",
+        "core.fsmonitor=false",
+        "rev-parse",
+        "HEAD"
+      ],
+      "exitCode": 0,
+      "error": null
+    },
+    {
+      "binary": "git",
+      "argv": [
+        "-c",
+        "core.hooksPath=NUL",
+        "-c",
+        "core.fsmonitor=false",
+        "status",
+        "--porcelain",
+        "--untracked-files=all"
+      ],
+      "exitCode": 0,
+      "error": null
+    },
+    {
+      "binary": "C:\\Users\\37310\\.cargo\\bin\\rustup.exe",
+      "argv": [
+        "which",
+        "rustc",
+        "--toolchain",
+        "1.95.0"
+      ],
+      "exitCode": 0,
+      "error": null,
+      "log": "2026-10-18T04-31-16.494Z-29520-red-behavior-1.log"
+    },
+    {
+      "binary": "C:\\Users\\37310\\.cargo\\bin\\rustup.exe",
+      "argv": [
+        "which",
+        "cargo",
+        "--toolchain",
+        "1.95.0"
+      ],
+      "exitCode": 0,
+      "error": null,
+      "log": "2026-10-18T04-31-16.494Z-29520-red-behavior-2.log"
+    },
+    {
+      "binary": "C:\\Users\\37310\\.rustup\\toolchains\\1.95.0-x86_64-pc-windows-msvc\\bin\\rustc.exe",
+      "argv": [
+        "--version"
+      ],
+      "exitCode": 0,
+      "error": null,
+      "log": "2026-10-18T04-31-16.494Z-29520-red-behavior-3.log"
+    },
+    {
+      "binary": "C:\\Users\\37310\\.rustup\\toolchains\\1.95.0-x86_64-pc-windows-msvc\\bin\\cargo.exe",
+      "argv": [
+        "metadata",
+        "--offline",
+        "--locked",
+        "--format-version",
+        "1",
+        "--manifest-path",
+        "F:\\new\\smaltalk\\water\\.worktrees\\l\\packages\\project-evidence\\Cargo.toml"
+      ],
+      "exitCode": 0,
+      "error": null,
+      "log": "2026-10-18T04-31-16.494Z-29520-red-behavior-4.log"
+    },
+    {
+      "binary": "C:\\Users\\37310\\.rustup\\toolchains\\1.95.0-x86_64-pc-windows-msvc\\bin\\cargo.exe",
+      "argv": [
+        "test",
+        "--offline",
+        "--locked",
+        "--manifest-path",
+        "F:\\new\\smaltalk\\water\\.worktrees\\l\\packages\\project-evidence\\Cargo.toml",
+        "-p",
+        "water-project-evidence",
+        "--test",
+        "evidence_v1",
+        "--",
+        "--test-threads=1",
+        "--format",
+        "pretty"
+      ],
+      "exitCode": 101,
+      "error": null,
+      "log": "2026-10-18T04-31-16.494Z-29520-red-behavior-expected-red.log"
+    },
+    {
+      "binary": "git",
+      "argv": [
+        "-c",
+        "core.hooksPath=NUL",
+        "-c",
+        "core.fsmonitor=false",
+        "branch",
+        "--show-current"
+      ],
+      "exitCode": 0,
+      "error": null,
+      "log": "2026-10-18T04-31-16.494Z-29520-red-behavior-5.log"
+    },
+    {
+      "binary": "git",
+      "argv": [
+        "-c",
+        "core.hooksPath=NUL",
+        "-c",
+        "core.fsmonitor=false",
+        "merge-base",
+        "--is-ancestor",
+        "82e158079066bf795fb89fafa933bc2d7fc00bd5",
+        "HEAD"
+      ],
+      "exitCode": 0,
+      "error": null,
+      "log": "2026-10-18T04-31-16.494Z-29520-red-behavior-6.log"
+    },
+    {
+      "binary": "git",
+      "argv": [
+        "-c",
+        "core.hooksPath=NUL",
+        "-c",
+        "core.fsmonitor=false",
+        "diff",
+        "--no-renames",
+        "--name-only",
+        "-z",
+        "82e158079066bf795fb89fafa933bc2d7fc00bd5",
+        "HEAD"
+      ],
+      "exitCode": 0,
+      "error": null,
+      "log": "2026-10-18T04-31-16.494Z-29520-red-behavior-7.log"
+    },
+    {
+      "binary": "git",
+      "argv": [
+        "-c",
+        "core.hooksPath=NUL",
+        "-c",
+        "core.fsmonitor=false",
+        "diff",
+        "--no-renames",
+        "--name-only",
+        "-z",
+        "HEAD"
+      ],
+      "exitCode": 0,
+      "error": null,
+      "log": "2026-10-18T04-31-16.494Z-29520-red-behavior-8.log"
+    },
+    {
+      "binary": "git",
+      "argv": [
+        "-c",
+        "core.hooksPath=NUL",
+        "-c",
+        "core.fsmonitor=false",
+        "ls-files",
+        "--others",
+        "--exclude-standard",
+        "-z"
+      ],
+      "exitCode": 0,
+      "error": null,
+      "log": "2026-10-18T04-31-16.494Z-29520-red-behavior-9.log"
+    },
+    {
+      "binary": "git",
+      "argv": [
+        "-c",
+        "core.hooksPath=NUL",
+        "-c",
+        "core.fsmonitor=false",
+        "rev-parse",
+        "HEAD"
+      ],
+      "exitCode": 0,
+      "error": null,
+      "log": "2026-10-18T04-31-16.494Z-29520-red-behavior-10.log"
+    },
+    {
+      "binary": "git",
+      "argv": [
+        "-c",
+        "core.hooksPath=NUL",
+        "-c",
+        "core.fsmonitor=false",
+        "status",
+        "--porcelain",
+        "--untracked-files=all"
+      ],
+      "exitCode": 0,
+      "error": null,
+      "log": "2026-10-18T04-31-16.494Z-29520-red-behavior-11.log"
+    }
+  ],
+  "sourceState": {
+    "files": [
+      {
+        "path": "packages/project-evidence/src/lib.rs",
+        "sha256": "f794758eb4e2826334133088b76b6520320dc5cd359525cb379a714cc46af8c4",
+        "mtimeMs": 1792297819304.488,
+        "snapshot": "2026-10-18T04-31-16.494Z-29520-red-behavior-source-0.txt",
+        "test": false
+      },
+      {
+        "path": "packages/project-evidence/src/v1.rs",
+        "sha256": "18eee50ac9d68e1c19503e223483965a302903b03a240f16c6856221806549b6",
+        "mtimeMs": 1792297819306.4985,
+        "snapshot": "2026-10-18T04-31-16.494Z-29520-red-behavior-source-1.txt",
+        "test": false
+      },
+      {
+        "path": "packages/project-evidence/tests/evidence_v1.rs",
+        "sha256": "52982d211d1e15f29af4a59eda3aa343fc03676b3ebe76bfb92b80183a3b241a",
+        "mtimeMs": 1792297875982.9338,
+        "snapshot": "2026-10-18T04-31-16.494Z-29520-red-behavior-source-2.txt",
+        "test": true
+      }
+    ],
+    "productionHash": "5a34a4a5ebaa68f2286ddce544ee90b76cf526c3b16fdf73158aaaf33287af74",
+    "testHash": "ee706e9071863372c663f244bfc9419895cb08421ffc9955921e3120de58d547"
+  },
+  "observedExpectedFailure": true,
+  "executedTests": 5,
+  "expectation": {
+    "label": "behavior",
+    "target": "L_BEHAVIOR",
+    "testExitCode": 101
+  },
+  "after": {
+    "head": "82e158079066bf795fb89fafa933bc2d7fc00bd5",
+    "status": "?? packages/project-evidence/Cargo.lock\n?? packages/project-evidence/Cargo.toml\n?? packages/project-evidence/src/lib.rs\n?? packages/project-evidence/src/v1.rs\n?? packages/project-evidence/tests/evidence_v1.rs"
+  },
+  "endedAt": "2026-10-18T04:31:43.469Z",
+  "status": "passed",
+  "error": null
+}
