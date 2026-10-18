@@ -1,0 +1,52 @@
+{
+  "task": "WATER-W1-U",
+  "status": "SUBMITTED",
+  "worktree": "F:/new/smaltalk/water/.worktrees/u",
+  "branch": "worker/water-w1-u",
+  "base_commit": "3d0faefa97267a6aa57f880a315a2cde7fe06e98",
+  "implementation_commit": "39ea9ff30426d4c211f0eada6d85f3d3a87dd43d",
+  "report_commit": "19f8f6ea73a423a3fc09258b57acde98c412091b",
+  "report": "docs/dispatch/reports/WATER-W1-U-REPORT.md",
+  "report_sha256": "725e4be60e3d3eaabd6d8cb441de361fd12c910494db5f59fc8b88c55ca111df",
+  "all_final_gates_on_same_clean_implementation": true,
+  "final_gates": [
+    {
+      "command": "node scripts/parallel-wave-check.mjs --task WATER-W1-U --mode fmt --final",
+      "receipt": "docs/acceptance/wave1/u/helper/2026-10-18T15-09-34.078Z-33160-fmt-result.json",
+      "exit_code": 0,
+      "status": "passed"
+    },
+    {
+      "command": "node scripts/parallel-wave-check.mjs --task WATER-W1-U --mode test --final",
+      "receipt": "docs/acceptance/wave1/u/helper/2026-10-18T15-09-41.526Z-36188-test-result.json",
+      "exit_code": 0,
+      "status": "passed"
+    },
+    {
+      "command": "node scripts/parallel-wave-check.mjs --task WATER-W1-U --mode clippy --final",
+      "receipt": "docs/acceptance/wave1/u/helper/2026-10-18T15-09-51.407Z-40296-clippy-result.json",
+      "exit_code": 0,
+      "status": "passed"
+    },
+    {
+      "command": "node scripts/parallel-wave-check.mjs --task WATER-W1-U --mode metadata --final",
+      "receipt": "docs/acceptance/wave1/u/helper/2026-10-18T15-10-00.859Z-10016-metadata-result.json",
+      "exit_code": 0,
+      "status": "passed"
+    },
+    {
+      "command": "node scripts/parallel-wave-check.mjs --task WATER-W1-U --mode bridge --final",
+      "receipt": "docs/acceptance/wave1/u/helper/2026-10-18T15-10-10.698Z-32792-bridge-result.json",
+      "exit_code": 0,
+      "status": "passed"
+    }
+  ],
+  "frozen_unique_files": 291,
+  "archived_files": 390,
+  "archive_git_blobs_equal_original_source_bytes": true,
+  "report_commit_changed_only_evidence_and_report": true,
+  "report_commit_changed_files": 397,
+  "implementation_git_blobs_equal_tested_and_current": true,
+  "clean_after_report_commit": true,
+  "delivery_note": "This metadata is committed separately so the report commit can be recorded without a self-referential SHA. The final checkout HEAD adds only this metadata; product, tests, report and archived evidence remain unchanged. Controller acceptance and integration are pending."
+}
