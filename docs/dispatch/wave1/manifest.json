@@ -1173,7 +1173,7 @@
     {
       "id": "WATER-W1-N",
       "title": "Windows native directory observation",
-      "status": "READY",
+      "status": "IN_REVIEW",
       "kind": "native_root",
       "slot": "n",
       "worktree": "F:/new/smaltalk/water/.worktrees/n",
@@ -1226,12 +1226,12 @@
       "dependsOn": [
         "WATER-W1-A"
       ],
-      "model": null,
+      "model": "GPT-6 (worker self-report; finer deployment ID unavailable)",
       "modelAssignment": "user-arranged; report actual engine/model",
       "dispatchedAt": null,
       "startedAt": null,
       "baselineStatus": "PASSED",
-      "newProductTestsRun": false,
+      "newProductTestsRun": true,
       "physicalFixturePermission": true,
       "preflightEvidence": "docs/dispatch/wave1/NEXT-CORE-READY-REPORT.md",
       "macOS": "unverified",
@@ -1241,12 +1241,16 @@
       "testFile": "packages/native-root/tests/native_root_v1.rs",
       "baselineEvidence": "docs/acceptance/wave1/controller/w1-next-core-preflight-20261018/n/2026-10-18T05-36-25.271Z-17412-baseline-result.json",
       "readyOn": "2026-10-18",
-      "readinessScope": "Windows private offline A/serde build, 35-byte bounded fixture with two junctions, native ABI and two-directory identity. No N product/tests or directory enumeration."
+      "readinessScope": "Windows private offline A/serde build, 35-byte bounded fixture with two junctions, native ABI and two-directory identity. No N product/tests or directory enumeration.",
+      "submittedCommit": "d3fd65f67ba6a9f2d60b702d411dcff07687fbb7",
+      "testedImplementationCommit": "f894d64f88f69efda1ddfa78cb9dc31255a8b5e3",
+      "submissionObservedAt": "2026-10-18T08:56:54.544Z",
+      "engine": "Codex"
     },
     {
       "id": "WATER-W1-O",
       "title": "Evidence and observed-size reader",
-      "status": "READY",
+      "status": "IN_REVIEW",
       "kind": "evidence_reader",
       "slot": "o",
       "worktree": "F:/new/smaltalk/water/.worktrees/o",
@@ -1309,12 +1313,12 @@
         "WATER-W1-L",
         "WATER-W1-M"
       ],
-      "model": null,
+      "model": "GPT-6 (worker self-report; finer deployment ID unavailable)",
       "modelAssignment": "user-arranged; report actual engine/model",
       "dispatchedAt": null,
       "startedAt": null,
       "baselineStatus": "PASSED",
-      "newProductTestsRun": false,
+      "newProductTestsRun": true,
       "physicalFixturePermission": false,
       "preflightEvidence": "docs/dispatch/wave1/NEXT-CORE-READY-REPORT.md",
       "macOS": "unverified",
@@ -1334,7 +1338,11 @@
       ],
       "baselineEvidence": "docs/acceptance/wave1/controller/w1-next-core-preflight-20261018/o/2026-10-18T05-36-25.288Z-35448-baseline-result.json",
       "readyOn": "2026-10-18",
-      "readinessScope": "18 inputs from actual accepted APIs, retained J13 and five synthetic memory variants; real K model and isolated blank Chrome. No O product/tests or physical fixtures."
+      "readinessScope": "18 inputs from actual accepted APIs, retained J13 and five synthetic memory variants; real K model and isolated blank Chrome. No O product/tests or physical fixtures.",
+      "submittedCommit": "5a4ad207d988be32bf14f192b1745436b097fefc",
+      "testedImplementationCommit": "62a8ef12eae55f8414a1c24a774905f4769e6a26",
+      "submissionObservedAt": "2026-10-18T08:57:03.482Z",
+      "engine": "Codex"
     }
   ],
   "preflightStatus": "PASSED",

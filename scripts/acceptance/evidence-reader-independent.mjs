@@ -1,0 +1,31 @@
+// Controller-only independent caller/model/HTTP/browser acceptance on frozen memory inputs.
+import assert from 'node:assert/strict';
+import {readFileSync} from 'node:fs';
+import {request} from 'node:http';
+import {assertEvidenceBundle,formatLedgerBytes,selectSnapshot} from '../../prototypes/evidence-reader/model.mjs';
+import {startServer} from '../../prototypes/evidence-reader/server.mjs';
+import {openBrowser} from '../browser-lab.mjs';
+const source=JSON.parse(readFileSync(new URL('../../contracts/evidence-reader-v1/sessions.json',import.meta.url),'utf8')),clone=()=>structuredClone(source),error={message:'Unsupported evidence bundle.'};let checks=0;
+function reject(change){const b=clone();change(b);assert.throws(()=>assertEvidenceBundle(b),error);checks++;}
+assert.equal(assertEvidenceBundle(source),source);assert.equal(selectSnapshot(source,'unregistered'),null);checks+=2;
+for(const field of ['scan_id','source_run_id','platform','status','read_only','source_facts','source_totals'])for(const kind of ['project_evidence','size_ledger'])reject(b=>b.snapshots[0][kind][field]=field==='read_only'?false:'canary');
+for(const field of ['evidence_version','rules_version','counts','candidates'])reject(b=>b.snapshots[17].project_evidence[field]=null);
+for(const field of ['format_verified','tool_version_known','project_membership_verified'])reject(b=>b.snapshots[17].project_evidence.candidates[0][field]=true);
+for(const field of ['action','risk','rule_id','finding_id','scope_id','parent_relative_path','scope_coverage','evidence_strength'])reject(b=>b.snapshots[17].project_evidence.candidates[0][field]='wrong');
+for(const field of ['known_identity_logical_bytes','identity_deduplicated_logical_bytes','volume_unique_allocated_bytes','reclaimable_bytes'])reject(b=>b.snapshots[14].size_ledger[field]='0');
+for(const field of ['observed_file_logical_bytes','unknown_identity_observed_logical_bytes','scope_coverage_complete','observed_set_identity_complete'])reject(b=>b.snapshots[0].size_ledger[field]=field.endsWith('bytes')?'0':!b.snapshots[0].size_ledger[field]);
+reject(b=>b.snapshots[13].size_ledger.identity_groups[0].entry_refs.pop());reject(b=>b.snapshots[13].size_ledger.identity_groups[0].entry_refs.push(b.snapshots[13].size_ledger.identity_groups[0].entry_refs[0]));reject(b=>b.snapshots[0].size_ledger.unknown_identity_entries.pop());reject(b=>b.snapshots[13].size_ledger.identity_groups[0].device='999');reject(b=>b.snapshots[15].size_ledger.identity_groups[0].state='consistent');reject(b=>b.snapshots[0].source_kind='real_user_scan');reject(b=>b.snapshots.push(b.snapshots[0]));reject(b=>b.snapshots=[]);reject(b=>b.snapshots[0].extra=true);
+for(const v of ['00','01','+1','-1','1.0',' 1','1 ','340282366920938463463374607431768211456',0,undefined,{},'1e5']){assert.throws(()=>formatLedgerBytes(v),error);checks++;}assert.equal(formatLedgerBytes('340282366920938463463374607431768211455'),'340282366920938463463374607431768211455 B');checks++;
+function raw(url,path,method='GET',host){const u=new URL(url);return new Promise((resolve,reject)=>{const req=request({hostname:'127.0.0.1',port:u.port,path,method,headers:{Host:host??u.host}},res=>{let bytes=[];res.on('data',b=>bytes.push(b));res.on('end',()=>resolve({status:res.statusCode,headers:res.headers,body:Buffer.concat(bytes).toString('utf8')}));});req.on('error',reject);req.end();});}
+const caller=clone();for(const [i,s]of caller.snapshots.entries())s.session.report.scan_id=s.session.view.scan_id=s.project_evidence.scan_id=s.size_ledger.scan_id='controller-live-'+i;
+const expected=structuredClone(caller),service=await startServer({bundle:caller});let browser;
+try{
+ assert.equal(service.server.address().address,'127.0.0.1');caller.snapshots.length=0;const got=await raw(service.url,'/evidence.json');assert.deepEqual(JSON.parse(got.body),expected);assert.equal(got.headers['access-control-allow-origin'],undefined);assert.equal(got.headers['cache-control'],'no-store');checks+=4;
+ for(const p of ['/','/styles.css','/app.mjs','/model.mjs','/lab-reader/model.mjs','/report-reader/model.mjs','/evidence.json']){const get=await raw(service.url,p),head=await raw(service.url,p,'HEAD');assert.equal(get.status,200);assert.equal(head.status,200);assert.equal(head.body,'');assert.equal(head.headers['content-length'],String(Buffer.byteLength(get.body)));checks+=4;}
+ for(const p of ['/?x','/evidence.json?x','/evidence.json#x','/%65vidence.json','//evidence.json','/../Cargo.toml','/%2e%2e/Cargo.toml','/styles.css/','/favicon.ico']){const x=await raw(service.url,p);assert.equal(x.status,404);assert.equal(x.body,'Report resource unavailable.');checks+=2;}
+ assert.equal((await raw(service.url,'/','GET','localhost:'+new URL(service.url).port)).status,403);assert.equal((await raw(service.url,'/','POST')).status,405);checks+=2;
+ browser=await openBrowser({width:900,height:800});await browser.goto(service.url);await browser.waitFor('document.body.dataset.ready === "true"');assert.deepEqual(await browser.evaluate('Array.from(document.querySelector("#session").options,n=>n.value)'),expected.snapshots.map(s=>s.session.view.scan_id));checks++;
+ for(const [i,s]of expected.snapshots.entries()){await browser.evaluate(`(()=>{const e=document.querySelector('#session');e.value=${JSON.stringify(s.session.view.scan_id)};e.dispatchEvent(new Event('change'));})()`);assert.equal(await browser.evaluate('document.querySelector("#ledger-observed").textContent'),s.size_ledger.observed_file_logical_bytes+' B');assert.equal(await browser.evaluate('document.querySelector("#ledger-deduplicated").textContent'),formatLedgerBytes(s.size_ledger.identity_deduplicated_logical_bytes));assert((await browser.evaluate('document.querySelector("#source-kind").textContent')).includes(s.source_kind));assert(await browser.evaluate('document.documentElement.scrollWidth<=innerWidth'));checks+=4;if(i===16)assert.equal(await browser.evaluate('document.querySelector("#ledger-observed").textContent'),'36893488147419103230 B');}
+ await browser.screenshot('controller-evidence-reader-900x800.png');
+}finally{await browser?.close();await service.close();}
+console.log(JSON.stringify({checks,actualFrozenSnapshots:18,renamedCallerSnapshots:18,realServerAndHTTPAndChrome:true,physicalFixtureAccess:false,newScan:false}));
