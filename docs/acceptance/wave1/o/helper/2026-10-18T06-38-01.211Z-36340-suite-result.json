@@ -1,0 +1,331 @@
+{
+  "task": "WATER-W1-O",
+  "mode": "suite",
+  "finalGate": false,
+  "startedAt": "2026-10-18T06:38:02.951Z",
+  "before": {
+    "head": "75cf4db7607a382673a2146ca69732a5110c1579",
+    "status": "?? docs/acceptance/wave1/o/START-AUDIT.json\n?? prototypes/evidence-reader/README.md\n?? prototypes/evidence-reader/app.mjs\n?? prototypes/evidence-reader/index.html\n?? prototypes/evidence-reader/model.mjs\n?? prototypes/evidence-reader/server.mjs\n?? prototypes/evidence-reader/styles.css\n?? prototypes/evidence-reader/tests/browser.test.mjs\n?? prototypes/evidence-reader/tests/model.test.mjs"
+  },
+  "node": "v24.16.0",
+  "productTestsRun": true,
+  "frozenFiles": 98,
+  "commands": [
+    {
+      "binary": "git",
+      "argv": [
+        "-c",
+        "core.hooksPath=NUL",
+        "-c",
+        "core.fsmonitor=false",
+        "rev-parse",
+        "--path-format=absolute",
+        "--git-common-dir"
+      ],
+      "exitCode": 0,
+      "error": null
+    },
+    {
+      "binary": "git",
+      "argv": [
+        "-c",
+        "core.hooksPath=NUL",
+        "-c",
+        "core.fsmonitor=false",
+        "branch",
+        "--show-current"
+      ],
+      "exitCode": 0,
+      "error": null
+    },
+    {
+      "binary": "git",
+      "argv": [
+        "-c",
+        "core.hooksPath=NUL",
+        "-c",
+        "core.fsmonitor=false",
+        "merge-base",
+        "--is-ancestor",
+        "75cf4db7607a382673a2146ca69732a5110c1579",
+        "HEAD"
+      ],
+      "exitCode": 0,
+      "error": null
+    },
+    {
+      "binary": "git",
+      "argv": [
+        "-c",
+        "core.hooksPath=NUL",
+        "-c",
+        "core.fsmonitor=false",
+        "diff",
+        "--no-renames",
+        "--name-only",
+        "-z",
+        "75cf4db7607a382673a2146ca69732a5110c1579",
+        "HEAD"
+      ],
+      "exitCode": 0,
+      "error": null
+    },
+    {
+      "binary": "git",
+      "argv": [
+        "-c",
+        "core.hooksPath=NUL",
+        "-c",
+        "core.fsmonitor=false",
+        "diff",
+        "--no-renames",
+        "--name-only",
+        "-z",
+        "HEAD"
+      ],
+      "exitCode": 0,
+      "error": null
+    },
+    {
+      "binary": "git",
+      "argv": [
+        "-c",
+        "core.hooksPath=NUL",
+        "-c",
+        "core.fsmonitor=false",
+        "ls-files",
+        "--others",
+        "--exclude-standard",
+        "-z"
+      ],
+      "exitCode": 0,
+      "error": null
+    },
+    {
+      "binary": "git",
+      "argv": [
+        "-c",
+        "core.hooksPath=NUL",
+        "-c",
+        "core.fsmonitor=false",
+        "rev-parse",
+        "HEAD"
+      ],
+      "exitCode": 0,
+      "error": null
+    },
+    {
+      "binary": "git",
+      "argv": [
+        "-c",
+        "core.hooksPath=NUL",
+        "-c",
+        "core.fsmonitor=false",
+        "status",
+        "--porcelain",
+        "--untracked-files=all"
+      ],
+      "exitCode": 0,
+      "error": null
+    },
+    {
+      "binary": "C:\\Program Files\\nodejs\\node.exe",
+      "argv": [
+        "--test",
+        "--test-concurrency=1",
+        "--test-reporter=tap",
+        "prototypes/evidence-reader/tests/model.test.mjs",
+        "prototypes/evidence-reader/tests/browser.test.mjs"
+      ],
+      "exitCode": 0,
+      "error": null,
+      "log": "2026-10-18T06-38-01.211Z-36340-suite-1.log"
+    },
+    {
+      "binary": "git",
+      "argv": [
+        "-c",
+        "core.hooksPath=NUL",
+        "-c",
+        "core.fsmonitor=false",
+        "branch",
+        "--show-current"
+      ],
+      "exitCode": 0,
+      "error": null,
+      "log": "2026-10-18T06-38-01.211Z-36340-suite-2.log"
+    },
+    {
+      "binary": "git",
+      "argv": [
+        "-c",
+        "core.hooksPath=NUL",
+        "-c",
+        "core.fsmonitor=false",
+        "merge-base",
+        "--is-ancestor",
+        "75cf4db7607a382673a2146ca69732a5110c1579",
+        "HEAD"
+      ],
+      "exitCode": 0,
+      "error": null,
+      "log": "2026-10-18T06-38-01.211Z-36340-suite-3.log"
+    },
+    {
+      "binary": "git",
+      "argv": [
+        "-c",
+        "core.hooksPath=NUL",
+        "-c",
+        "core.fsmonitor=false",
+        "diff",
+        "--no-renames",
+        "--name-only",
+        "-z",
+        "75cf4db7607a382673a2146ca69732a5110c1579",
+        "HEAD"
+      ],
+      "exitCode": 0,
+      "error": null,
+      "log": "2026-10-18T06-38-01.211Z-36340-suite-4.log"
+    },
+    {
+      "binary": "git",
+      "argv": [
+        "-c",
+        "core.hooksPath=NUL",
+        "-c",
+        "core.fsmonitor=false",
+        "diff",
+        "--no-renames",
+        "--name-only",
+        "-z",
+        "HEAD"
+      ],
+      "exitCode": 0,
+      "error": null,
+      "log": "2026-10-18T06-38-01.211Z-36340-suite-5.log"
+    },
+    {
+      "binary": "git",
+      "argv": [
+        "-c",
+        "core.hooksPath=NUL",
+        "-c",
+        "core.fsmonitor=false",
+        "ls-files",
+        "--others",
+        "--exclude-standard",
+        "-z"
+      ],
+      "exitCode": 0,
+      "error": null,
+      "log": "2026-10-18T06-38-01.211Z-36340-suite-6.log"
+    },
+    {
+      "binary": "git",
+      "argv": [
+        "-c",
+        "core.hooksPath=NUL",
+        "-c",
+        "core.fsmonitor=false",
+        "rev-parse",
+        "HEAD"
+      ],
+      "exitCode": 0,
+      "error": null,
+      "log": "2026-10-18T06-38-01.211Z-36340-suite-7.log"
+    },
+    {
+      "binary": "git",
+      "argv": [
+        "-c",
+        "core.hooksPath=NUL",
+        "-c",
+        "core.fsmonitor=false",
+        "status",
+        "--porcelain",
+        "--untracked-files=all"
+      ],
+      "exitCode": 0,
+      "error": null,
+      "log": "2026-10-18T06-38-01.211Z-36340-suite-8.log"
+    }
+  ],
+  "assets": {
+    "retainedJ": 13,
+    "syntheticMemory": 5,
+    "realAcceptedAPIs": true,
+    "newProductTested": false
+  },
+  "sourceState": {
+    "files": [
+      {
+        "path": "prototypes/evidence-reader/index.html",
+        "sha256": "becf813211e434594ab275043651a08c5230f509323f93851c93957ff6ca2650",
+        "snapshot": "2026-10-18T06-38-01.211Z-36340-suite-source-0.txt",
+        "test": false
+      },
+      {
+        "path": "prototypes/evidence-reader/styles.css",
+        "sha256": "03799fe9864af9464d9185a0758889be03d421808e9561569ae3091a1ec4e8c3",
+        "snapshot": "2026-10-18T06-38-01.211Z-36340-suite-source-1.txt",
+        "test": false
+      },
+      {
+        "path": "prototypes/evidence-reader/app.mjs",
+        "sha256": "8073f8f0a474257669454bd34b6ec148e81b991a1ce330c2f2be872710d74357",
+        "snapshot": "2026-10-18T06-38-01.211Z-36340-suite-source-2.txt",
+        "test": false
+      },
+      {
+        "path": "prototypes/evidence-reader/model.mjs",
+        "sha256": "f63b018699856159c44d226a59aa135fd669e8b961a7a557b97c28601e0752ca",
+        "snapshot": "2026-10-18T06-38-01.211Z-36340-suite-source-3.txt",
+        "test": false
+      },
+      {
+        "path": "prototypes/evidence-reader/server.mjs",
+        "sha256": "3cf47a3c7781afdc913b004d2e825cba89a518aa89a8e6ec4e636e2d160ecf37",
+        "snapshot": "2026-10-18T06-38-01.211Z-36340-suite-source-4.txt",
+        "test": false
+      },
+      {
+        "path": "prototypes/evidence-reader/tests/model.test.mjs",
+        "sha256": "79d313836a7682a365c8fd36f18c4616fc39442f1bb683eb7d2ba2f804ba2faa",
+        "snapshot": "2026-10-18T06-38-01.211Z-36340-suite-source-5.txt",
+        "test": true
+      },
+      {
+        "path": "prototypes/evidence-reader/tests/browser.test.mjs",
+        "sha256": "dd576e2d4875e98e0bf5342f43e33c8df3b2fdc75b3f898ac39f4ecb97841627",
+        "snapshot": "2026-10-18T06-38-01.211Z-36340-suite-source-6.txt",
+        "test": true
+      }
+    ],
+    "productionHash": "d5aaea3f46a353a378904b1d2147753e800fe17f224a4afa3afdf83c2b210f83",
+    "testHash": "d3e40735c62840ea7cb0eddc52ee1bd1105075566872e03caf4e30a3b537099c"
+  },
+  "executedTests": 5,
+  "screenshots": [
+    {
+      "file": "2026-10-18T06-38-01.211Z-36340-suite-evidence-reader-1440x1000.png",
+      "sha256": "9745ca4186f7daa3abaaf2c90a85872eec93819b5e5d426902fa0cafcf3792cb"
+    },
+    {
+      "file": "2026-10-18T06-38-01.211Z-36340-suite-evidence-reader-900x800.png",
+      "sha256": "831ebbde99ffe44660a9b038d271a153e10bb19ab8407cc15ba47267329191b8"
+    },
+    {
+      "file": "2026-10-18T06-38-01.211Z-36340-suite-evidence-reader-detail.png",
+      "sha256": "09238160fa28b15611d88051016ed5987abf7ac93ae795703a7d0c3a3b320295"
+    }
+  ],
+  "after": {
+    "head": "75cf4db7607a382673a2146ca69732a5110c1579",
+    "status": "?? docs/acceptance/wave1/o/START-AUDIT.json\n?? prototypes/evidence-reader/README.md\n?? prototypes/evidence-reader/app.mjs\n?? prototypes/evidence-reader/index.html\n?? prototypes/evidence-reader/model.mjs\n?? prototypes/evidence-reader/server.mjs\n?? prototypes/evidence-reader/styles.css\n?? prototypes/evidence-reader/tests/browser.test.mjs\n?? prototypes/evidence-reader/tests/model.test.mjs"
+  },
+  "endedAt": "2026-10-18T06:38:26.961Z",
+  "status": "passed",
+  "error": null
+}

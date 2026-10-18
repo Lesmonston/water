@@ -1,0 +1,77 @@
+--- stdout ---
+TAP version 13
+# Subtest: evidence_reader_live_input
+not ok 1 - evidence_reader_live_input
+  ---
+  duration_ms: 7647.6309
+  type: 'test'
+  location: 'F:\\new\\smaltalk\\water\\.worktrees\\o\\prototypes\\evidence-reader\\tests\\browser.test.mjs:80:1'
+  failureType: 'testCodeFailure'
+  error: |-
+    O_TEXT_LITERAL: dynamic input must remain text
+    
+    1 !== 0
+    
+  code: 'ERR_ASSERTION'
+  name: 'AssertionError'
+  expected: 0
+  actual: 1
+  operator: 'strictEqual'
+  stack: |-
+    literal (file:///F:/new/smaltalk/water/.worktrees/o/prototypes/evidence-reader/tests/browser.test.mjs:76:10)
+    async TestContext.<anonymous> (file:///F:/new/smaltalk/water/.worktrees/o/prototypes/evidence-reader/tests/browser.test.mjs:97:7)
+    async Test.run (node:internal/test_runner/test:1313:7)
+    async startSubtestAfterBootstrap (node:internal/test_runner/harness:385:3)
+  ...
+# Subtest: evidence_reader_layout_and_safety
+not ok 2 - evidence_reader_layout_and_safety
+  ---
+  duration_ms: 5695.5113
+  type: 'test'
+  location: 'F:\\new\\smaltalk\\water\\.worktrees\\o\\prototypes\\evidence-reader\\tests\\browser.test.mjs:173:1'
+  failureType: 'testCodeFailure'
+  error: |-
+    O_TEXT_LITERAL: dynamic input must remain text
+    
+    1 !== 0
+    
+  code: 'ERR_ASSERTION'
+  name: 'AssertionError'
+  expected: 0
+  actual: 1
+  operator: 'strictEqual'
+  stack: |-
+    literal (file:///F:/new/smaltalk/water/.worktrees/o/prototypes/evidence-reader/tests/browser.test.mjs:76:10)
+    async TestContext.<anonymous> (file:///F:/new/smaltalk/water/.worktrees/o/prototypes/evidence-reader/tests/browser.test.mjs:217:7)
+    async Test.run (node:internal/test_runner/test:1313:7)
+    async Test.processPendingSubtests (node:internal/test_runner/test:897:7)
+  ...
+# Subtest: evidence_reader_bundle
+ok 3 - evidence_reader_bundle
+  ---
+  duration_ms: 451.5757
+  type: 'test'
+  ...
+# Subtest: evidence_reader_selection
+ok 4 - evidence_reader_selection
+  ---
+  duration_ms: 67.0702
+  type: 'test'
+  ...
+# Subtest: evidence_reader_annotations
+ok 5 - evidence_reader_annotations
+  ---
+  duration_ms: 495.1817
+  type: 'test'
+  ...
+1..5
+# tests 5
+# suites 0
+# pass 3
+# fail 2
+# cancelled 0
+# skipped 0
+# todo 0
+# duration_ms 15345.2738
+
+--- stderr ---

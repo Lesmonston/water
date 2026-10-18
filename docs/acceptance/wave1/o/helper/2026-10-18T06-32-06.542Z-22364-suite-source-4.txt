@@ -1,0 +1,73 @@
+import { createServer } from 'node:http';
+import { readFile, realpath } from 'node:fs/promises';
+import { dirname, isAbsolute, join, relative, resolve } from 'node:path';
+import { fileURLToPath } from 'node:url';
+import { assertEvidenceBundle } from './model.mjs';
+
+const here = dirname(fileURLToPath(import.meta.url));
+const unavailable = 'Report resource unavailable.';
+const csp = "default-src 'none';script-src 'self';style-src 'self';connect-src 'self';form-action 'none';frame-ancestors 'none';base-uri 'none'";
+
+// No CLI, environment or fixture fallback. Only caller-owned memory crosses here.
+export async function startServer({bundle, port = 0} = {}) {
+  assertEvidenceBundle(bundle);
+  if (!Number.isInteger(port) || port < 0 || port > 65535) throw new RangeError('Invalid local port');
+  let captured;
+  try {
+    captured = Buffer.from(JSON.stringify(bundle), 'utf8');
+    if (captured.length > 67108864) throw new Error();
+  } catch { throw new Error('Unsupported evidence bundle.'); }
+  const routes = new Map();
+  try {
+    const directories = [here, resolve(here, '../lab-reader'), resolve(here, '../report-reader')];
+    for (const dir of directories) if (await realpath(dir) !== dir) throw new Error();
+    for (const [url, dir, file, type] of [
+      ['/', here, 'index.html', 'text/html'], ['/styles.css', here, 'styles.css', 'text/css'],
+      ['/app.mjs', here, 'app.mjs', 'text/javascript'], ['/model.mjs', here, 'model.mjs', 'text/javascript'],
+      ['/lab-reader/model.mjs', directories[1], 'model.mjs', 'text/javascript'],
+      ['/report-reader/model.mjs', directories[2], 'model.mjs', 'text/javascript'],
+    ]) routes.set(url, {path: join(dir, file), dir, type: type + '; charset=utf-8'});
+    for (const route of routes.values()) await fixedFile(route);
+  } catch { throw new Error(unavailable); }
+  async function fixedFile(route) {
+    const canonical = await realpath(route.path), rel = relative(route.dir, canonical);
+    if (canonical !== route.path || rel.startsWith('..') || isAbsolute(rel)) throw new Error(unavailable);
+    return canonical;
+  }
+  let expectedHost;
+  const server = createServer(async (req, res) => {
+    res.setHeader('Connection', 'close');
+    res.setHeader('Content-Security-Policy', csp);
+    res.setHeader('X-Content-Type-Options', 'nosniff');
+    res.setHeader('Referrer-Policy', 'no-referrer');
+    res.setHeader('Cache-Control', 'no-store');
+    function fail(status) {
+      if (status === 405) res.setHeader('Allow', 'GET, HEAD');
+      res.writeHead(status, {'Content-Type': 'text/plain; charset=utf-8', 'Content-Length': Buffer.byteLength(unavailable)});
+      res.end(req.method === 'HEAD' ? undefined : unavailable);
+    }
+    if (req.headers.host !== expectedHost) return fail(403);
+    if (req.method !== 'GET' && req.method !== 'HEAD') return fail(405);
+    const route = routes.get(req.url);
+    if (req.url !== '/evidence.json' && !route) return fail(404);
+    try {
+      const body = req.url === '/evidence.json' ? captured : await readFile(await fixedFile(route));
+      res.writeHead(200, {'Content-Type': req.url === '/evidence.json' ? 'application/json; charset=utf-8' : route.type, 'Content-Length': body.length});
+      res.end(req.method === 'HEAD' ? undefined : body);
+    } catch { fail(404); }
+  });
+  await new Promise((accept, reject) => {
+    server.once('error', reject);
+    server.listen(port, '127.0.0.1', () => {
+      expectedHost = `127.0.0.1:${server.address().port}`;
+      server.off('error', reject); accept();
+    });
+  });
+  let closing;
+  return {server, url: `http://${expectedHost}`, async close() {
+    closing ??= new Promise((accept, reject) => {
+      server.close(error => error ? reject(error) : accept()); server.closeAllConnections();
+    });
+    return closing;
+  }};
+}

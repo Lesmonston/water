@@ -1,0 +1,60 @@
+{"binary":"C:\\Program Files\\nodejs\\node.exe","argv":["--test","--test-concurrency=1","--test-reporter=tap","prototypes/evidence-reader/tests/model.test.mjs","prototypes/evidence-reader/tests/browser.test.mjs"],"exitCode":1,"error":null,"log":"2026-10-18T06-28-08.213Z-25692-suite-1.log"}
+--- stdout ---
+TAP version 13
+# Subtest: evidence_reader_live_input
+ok 1 - evidence_reader_live_input
+  ---
+  duration_ms: 11930.5893
+  type: 'test'
+  ...
+# Subtest: evidence_reader_layout_and_safety
+not ok 2 - evidence_reader_layout_and_safety
+  ---
+  duration_ms: 9963.753
+  type: 'test'
+  location: 'F:\\new\\smaltalk\\water\\.worktrees\\o\\prototypes\\evidence-reader\\tests\\browser.test.mjs:173:1'
+  failureType: 'testCodeFailure'
+  error: |-
+    Expected values to be strictly equal:
+    
+    false !== true
+    
+  code: 'ERR_ASSERTION'
+  name: 'AssertionError'
+  expected: true
+  actual: false
+  operator: 'strictEqual'
+  stack: |-
+    TestContext.<anonymous> (file:///F:/new/smaltalk/water/.worktrees/o/prototypes/evidence-reader/tests/browser.test.mjs:224:14)
+    async Test.run (node:internal/test_runner/test:1313:7)
+    async Test.processPendingSubtests (node:internal/test_runner/test:897:7)
+  ...
+# Subtest: evidence_reader_bundle
+ok 3 - evidence_reader_bundle
+  ---
+  duration_ms: 453.2208
+  type: 'test'
+  ...
+# Subtest: evidence_reader_selection
+ok 4 - evidence_reader_selection
+  ---
+  duration_ms: 82.8997
+  type: 'test'
+  ...
+# Subtest: evidence_reader_annotations
+ok 5 - evidence_reader_annotations
+  ---
+  duration_ms: 653.458
+  type: 'test'
+  ...
+1..5
+# tests 5
+# suites 0
+# pass 4
+# fail 1
+# cancelled 0
+# skipped 0
+# todo 0
+# duration_ms 23932.5399
+
+--- stderr ---

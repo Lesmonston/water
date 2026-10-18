@@ -1,0 +1,52 @@
+{"binary":"C:\\Program Files\\nodejs\\node.exe","argv":["--test","--test-concurrency=1","--test-reporter=tap","prototypes/evidence-reader/tests/model.test.mjs","prototypes/evidence-reader/tests/browser.test.mjs"],"exitCode":1,"error":null,"log":"2026-10-18T06-31-05.115Z-19808-suite-1.log"}
+--- stdout ---
+TAP version 13
+# Subtest: evidence_reader_live_input
+not ok 1 - evidence_reader_live_input
+  ---
+  duration_ms: 12438.2245
+  type: 'test'
+  location: 'F:\\new\\smaltalk\\water\\.worktrees\\o\\prototypes\\evidence-reader\\tests\\browser.test.mjs:80:1'
+  failureType: 'testCodeFailure'
+  error: 'CDP timeout: Page.navigate'
+  code: 'ERR_TEST_FAILURE'
+  stack: |-
+    Timeout._onTimeout (file:///F:/new/smaltalk/water/.worktrees/o/scripts/browser-lab.mjs:73:89)
+    listOnTimeout (node:internal/timers:605:17)
+    process.processTimers (node:internal/timers:541:7)
+  ...
+# Subtest: evidence_reader_layout_and_safety
+ok 2 - evidence_reader_layout_and_safety
+  ---
+  duration_ms: 13142.335
+  type: 'test'
+  ...
+# Subtest: evidence_reader_bundle
+ok 3 - evidence_reader_bundle
+  ---
+  duration_ms: 316.7191
+  type: 'test'
+  ...
+# Subtest: evidence_reader_selection
+ok 4 - evidence_reader_selection
+  ---
+  duration_ms: 57.6292
+  type: 'test'
+  ...
+# Subtest: evidence_reader_annotations
+ok 5 - evidence_reader_annotations
+  ---
+  duration_ms: 484.7122
+  type: 'test'
+  ...
+1..5
+# tests 5
+# suites 0
+# pass 4
+# fail 1
+# cancelled 0
+# skipped 0
+# todo 0
+# duration_ms 28296.0285
+
+--- stderr ---
