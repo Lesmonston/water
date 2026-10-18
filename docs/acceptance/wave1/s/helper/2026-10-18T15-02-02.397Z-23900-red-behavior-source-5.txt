@@ -1,0 +1,168 @@
+#![forbid(unsafe_code)]
+
+use std::{env, fs, path::Path};
+use water_contracts::v1::OpaqueId;
+use water_native_picker::v1::{PickerError, PickerOptions, SelectedScope, select_scope};
+use water_native_root::v1::{self as native, RootError};
+use water_scope_registry::v1::{Registry, RegistryError};
+
+struct Fixtures {
+    root: String,
+    other: String,
+    junction: String,
+}
+
+impl Fixtures {
+    fn load() -> Self {
+        let tree = Path::new(env!("CARGO_MANIFEST_DIR"))
+            .parent()
+            .unwrap()
+            .parent()
+            .unwrap();
+        let expected_index = tree.join(".local/picker-fixtures/index.json");
+        assert_eq!(Path::new(&env::var("WATER_PICKER_INDEX").unwrap()), expected_index);
+        let index = fs::read_to_string(&expected_index).unwrap();
+        assert!(index.contains("\"fixture_version\": \"water.picker-fixtures.v1\""));
+        assert!(index.contains("\"ordinary_file_count\": 0"));
+        assert!(index.contains("\"content_bytes\": 0"));
+        // This frozen index has ASCII strings and only escaped backslashes.
+        // Read the actual fields; never substitute a preselected result path.
+        let field = |key: &str| -> String {
+            let prefix = format!("\"{key}\": \"");
+            let line = index.lines().map(str::trim).find(|l| l.starts_with(&prefix)).unwrap();
+            let encoded = line.strip_prefix(&prefix).unwrap().trim_end_matches(',').strip_suffix('"').unwrap();
+            let value = encoded.replace("\\\\", "\\");
+            assert!(!value.contains(['"', '\n', '\r']));
+            value
+        };
+        let fixture = Self { root: field("root"), other: field("other"), junction: field("junction") };
+        let base = tree.join(".local/picker-fixtures/batch-v1");
+        for (value, leaf) in [(&fixture.root, "root"), (&fixture.other, "other"), (&fixture.junction, "junction")] {
+            assert_eq!(Path::new(value), base.join(leaf));
+        }
+        fixture
+    }
+}
+
+fn id(value: &str) -> OpaqueId { OpaqueId::new(value).unwrap() }
+
+fn choose(registry: &mut Registry, scope_id: &OpaqueId, root: &str, action: &str) -> Result<Option<SelectedScope>, PickerError> {
+    let options = PickerOptions::new(root).unwrap();
+    eprintln!("WATER_PICKER_CASE {action}");
+    select_scope(registry, scope_id, &options)
+}
+
+#[test]
+fn picker_options_and_errors() {
+    for path in ["", "relative", "F:\\", "\\\\server\\share", "F:\\a\\..\\b", "F:\\CON", "F:\\bad\0path", "F:\\trailing "] {
+        assert!(matches!(PickerOptions::new(path), Err(PickerError::Root(RootError::InvalidPath))), "S_BEHAVIOR pure lexical rejection");
+    }
+    // A lexically valid absent directory proves construction performs no IO.
+    let absent = PickerOptions::new("W:\\Water-picker-options-only");
+    assert!(absent.is_ok(), "S_BEHAVIOR lexical construction only");
+    for error in [PickerError::UnsupportedPlatform, PickerError::ApartmentUnavailable, PickerError::DialogFailed, PickerError::InvalidSelection] {
+        assert_eq!(error.to_string(), format!("{error:?} at /picker"), "S_BEHAVIOR fixed private error");
+        assert_eq!(error.clone(), error);
+        let _: &dyn std::error::Error = &error;
+    }
+    assert_eq!(PickerError::Root(RootError::ReparsePoint).to_string(), RootError::ReparsePoint.to_string());
+    assert_eq!(PickerError::Source(RegistryError::RegistryFull).to_string(), RegistryError::RegistryFull.to_string());
+    let fixture = Fixtures::load();
+    let mut registry = Registry::new(2).unwrap();
+    let options = PickerOptions::new(&fixture.junction).unwrap();
+    // No window marker: a real N rejection must happen before any modal UI.
+    assert!(matches!(select_scope(&mut registry, &id("invalid-initial"), &options), Err(PickerError::Root(RootError::ReparsePoint))), "S_BEHAVIOR initial junction rejected before dialog");
+    assert!(registry.is_empty());
+}
+
+#[test]
+fn picker_native_cancel() {
+    let f = Fixtures::load();
+    let mut registry = Registry::new(1).unwrap();
+    let result = choose(&mut registry, &id("cancelled"), &f.root, "cancel");
+    assert!(matches!(result, Ok(None)), "S_BEHAVIOR S_CANCELLED actual cancellation is None");
+    assert!(registry.is_empty(), "S_BEHAVIOR cancellation consumes no slot");
+    let pending = registry.prepare(&id("after-cancel"), &f.other).unwrap();
+    registry.decline(&pending).unwrap();
+    assert!(registry.is_empty());
+}
+
+#[test]
+fn picker_native_confirm() {
+    let f = Fixtures::load();
+    let mut registry = Registry::new(2).unwrap();
+    let scope_id = id("native-confirm");
+    let result = choose(&mut registry, &scope_id, &f.root, "select");
+    assert!(matches!(result, Ok(Some(_))), "S_BEHAVIOR actual GetResult selection registers");
+    let selected = result.unwrap().unwrap();
+    assert_eq!(selected.scope().scope_id(), &scope_id, "S_BEHAVIOR S_SCOPE_ID caller scope preserved");
+    assert!(selected.root_path().eq_ignore_ascii_case(&f.root), "S_BEHAVIOR actual filesystem result path");
+    assert_eq!(registry.len(), 1, "S_BEHAVIOR S_REGISTERED selection remains registered");
+    let permit = registry.begin_scan(selected.scope()).expect("S_BEHAVIOR S_REGISTERED usable capability");
+    let observed = registry.check_permit(&permit).unwrap();
+    let independent = native::open_directory(&scope_id, &f.root).unwrap();
+    assert_eq!(observed.identity(), independent.observation().identity(), "S_BEHAVIOR real root identity from N");
+    assert_eq!(observed.scope_id(), &scope_id, "S_BEHAVIOR S_SCOPE_ID N observation");
+    assert!(!observed.authorization_granted());
+    assert!(!observed.traversal_allowed());
+    assert!(!observed.race_protection_verified());
+    registry.finish(&permit).unwrap();
+    registry.revoke(selected.scope()).unwrap();
+}
+
+#[test]
+fn picker_registry_failures() {
+    let f = Fixtures::load();
+    let mut full = Registry::new(1).unwrap();
+    let pending = full.prepare(&id("occupied"), &f.other).unwrap();
+    let existing = full.confirm(&pending).unwrap();
+    let result = choose(&mut full, &id("full-choice"), &f.root, "select");
+    assert!(matches!(result, Err(PickerError::Source(RegistryError::RegistryFull))), "S_BEHAVIOR actual selection respects full registry");
+    assert_eq!(full.len(), 1, "S_BEHAVIOR no full-registry leak");
+    let permit = full.begin_scan(&existing).unwrap();
+    full.finish(&permit).unwrap();
+    full.revoke(&existing).unwrap();
+    let mut registry = Registry::new(2).unwrap();
+    let scope_id = id("duplicate");
+    let result = choose(&mut registry, &scope_id, &f.root, "select");
+    assert!(matches!(result, Ok(Some(_))), "S_BEHAVIOR first choice registers");
+    let selected = result.unwrap().unwrap();
+    let duplicate_id = choose(&mut registry, &scope_id, &f.other, "select");
+    assert!(matches!(duplicate_id, Err(PickerError::Source(RegistryError::DuplicateScope))), "S_BEHAVIOR S_SCOPE_ID duplicate ID rejected");
+    let duplicate_root = choose(&mut registry, &id("root-alias"), &f.root, "select");
+    assert!(matches!(duplicate_root, Err(PickerError::Source(RegistryError::DuplicateRoot))), "S_BEHAVIOR duplicate actual identity rejected");
+    assert_eq!(registry.len(), 1, "S_BEHAVIOR failures leave only existing scope");
+    let pending = registry.prepare(&id("remaining-slot"), &f.other).unwrap();
+    registry.decline(&pending).unwrap();
+    let permit = registry.begin_scan(selected.scope()).expect("S_BEHAVIOR S_REGISTERED existing scope preserved");
+    registry.finish(&permit).unwrap();
+    registry.revoke(selected.scope()).unwrap();
+    assert!(registry.is_empty());
+}
+
+#[test]
+fn picker_public_lifecycle() {
+    let f = Fixtures::load();
+    let mut registry = Registry::new(2).unwrap();
+    let scope_id = id("public-lifecycle");
+    let result = choose(&mut registry, &scope_id, &f.other, "select");
+    assert!(matches!(result, Ok(Some(_))), "S_BEHAVIOR public selection returns capability");
+    let selected = result.unwrap().unwrap();
+    assert_eq!(selected.scope().scope_id(), &scope_id, "S_BEHAVIOR S_SCOPE_ID public getter");
+    assert!(selected.root_path().eq_ignore_ascii_case(&f.other));
+    let mut foreign = Registry::new(2).unwrap();
+    assert!(matches!(foreign.begin_scan(selected.scope()), Err(RegistryError::InvalidCapability)));
+    let permit = registry.begin_scan(selected.scope()).expect("S_BEHAVIOR S_REGISTERED public begin");
+    assert_eq!(permit.scope_id(), &scope_id);
+    let observation = registry.check_permit(&permit).unwrap();
+    assert_eq!(observation.identity(), native::open_directory(&scope_id, &f.other).unwrap().observation().identity());
+    assert!(matches!(registry.begin_scan(selected.scope()), Err(RegistryError::WrongState)));
+    registry.finish(&permit).unwrap();
+    assert!(matches!(registry.check_permit(&permit), Err(RegistryError::InvalidCapability)));
+    let next = registry.begin_scan(selected.scope()).unwrap();
+    registry.check_permit(&next).unwrap();
+    registry.revoke(selected.scope()).unwrap();
+    assert!(registry.is_empty());
+    assert!(matches!(registry.check_permit(&next), Err(RegistryError::InvalidCapability)));
+    assert!(matches!(registry.begin_scan(selected.scope()), Err(RegistryError::InvalidCapability)));
+}

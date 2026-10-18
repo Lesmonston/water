@@ -1,0 +1,335 @@
+{
+  "task": "WATER-W1-S",
+  "mode": "baseline",
+  "finalGate": false,
+  "startedAt": "2026-10-18T14:33:58.653Z",
+  "before": {
+    "head": "3d0faefa97267a6aa57f880a315a2cde7fe06e98",
+    "status": ""
+  },
+  "node": "v24.16.0",
+  "productTestsRun": false,
+  "frozenFiles": 94,
+  "commands": [
+    {
+      "binary": "git",
+      "argv": [
+        "-c",
+        "core.hooksPath=NUL",
+        "-c",
+        "core.fsmonitor=false",
+        "rev-parse",
+        "--path-format=absolute",
+        "--git-common-dir"
+      ],
+      "exitCode": 0,
+      "error": null
+    },
+    {
+      "binary": "git",
+      "argv": [
+        "-c",
+        "core.hooksPath=NUL",
+        "-c",
+        "core.fsmonitor=false",
+        "branch",
+        "--show-current"
+      ],
+      "exitCode": 0,
+      "error": null
+    },
+    {
+      "binary": "git",
+      "argv": [
+        "-c",
+        "core.hooksPath=NUL",
+        "-c",
+        "core.fsmonitor=false",
+        "merge-base",
+        "--is-ancestor",
+        "3d0faefa97267a6aa57f880a315a2cde7fe06e98",
+        "HEAD"
+      ],
+      "exitCode": 0,
+      "error": null
+    },
+    {
+      "binary": "git",
+      "argv": [
+        "-c",
+        "core.hooksPath=NUL",
+        "-c",
+        "core.fsmonitor=false",
+        "diff",
+        "--no-renames",
+        "--name-only",
+        "-z",
+        "3d0faefa97267a6aa57f880a315a2cde7fe06e98",
+        "HEAD"
+      ],
+      "exitCode": 0,
+      "error": null
+    },
+    {
+      "binary": "git",
+      "argv": [
+        "-c",
+        "core.hooksPath=NUL",
+        "-c",
+        "core.fsmonitor=false",
+        "diff",
+        "--no-renames",
+        "--name-only",
+        "-z",
+        "HEAD"
+      ],
+      "exitCode": 0,
+      "error": null
+    },
+    {
+      "binary": "git",
+      "argv": [
+        "-c",
+        "core.hooksPath=NUL",
+        "-c",
+        "core.fsmonitor=false",
+        "ls-files",
+        "--others",
+        "--exclude-standard",
+        "-z"
+      ],
+      "exitCode": 0,
+      "error": null
+    },
+    {
+      "binary": "git",
+      "argv": [
+        "-c",
+        "core.hooksPath=NUL",
+        "-c",
+        "core.fsmonitor=false",
+        "rev-parse",
+        "HEAD"
+      ],
+      "exitCode": 0,
+      "error": null
+    },
+    {
+      "binary": "git",
+      "argv": [
+        "-c",
+        "core.hooksPath=NUL",
+        "-c",
+        "core.fsmonitor=false",
+        "status",
+        "--porcelain",
+        "--untracked-files=all"
+      ],
+      "exitCode": 0,
+      "error": null
+    },
+    {
+      "binary": "C:\\Users\\37310\\.cargo\\bin\\rustup.exe",
+      "argv": [
+        "which",
+        "rustc",
+        "--toolchain",
+        "1.95.0"
+      ],
+      "exitCode": 0,
+      "error": null,
+      "log": "2026-10-18T14-33-54.991Z-34804-baseline-1.log"
+    },
+    {
+      "binary": "C:\\Users\\37310\\.cargo\\bin\\rustup.exe",
+      "argv": [
+        "which",
+        "cargo",
+        "--toolchain",
+        "1.95.0"
+      ],
+      "exitCode": 0,
+      "error": null,
+      "log": "2026-10-18T14-33-54.991Z-34804-baseline-2.log"
+    },
+    {
+      "binary": "C:\\Users\\37310\\.rustup\\toolchains\\1.95.0-x86_64-pc-windows-msvc\\bin\\rustc.exe",
+      "argv": [
+        "--version"
+      ],
+      "exitCode": 0,
+      "error": null,
+      "log": "2026-10-18T14-33-54.991Z-34804-baseline-3.log"
+    },
+    {
+      "binary": "C:\\Users\\37310\\.rustup\\toolchains\\1.95.0-x86_64-pc-windows-msvc\\bin\\cargo.exe",
+      "argv": [
+        "metadata",
+        "--offline",
+        "--locked",
+        "--format-version",
+        "1",
+        "--manifest-path",
+        "tools/parallel-wave-probe/Cargo.toml"
+      ],
+      "exitCode": 0,
+      "error": null,
+      "log": "2026-10-18T14-33-54.991Z-34804-baseline-4.log"
+    },
+    {
+      "binary": "C:\\Users\\37310\\.rustup\\toolchains\\1.95.0-x86_64-pc-windows-msvc\\bin\\cargo.exe",
+      "argv": [
+        "build",
+        "--offline",
+        "--locked",
+        "--message-format=json",
+        "--manifest-path",
+        "tools/parallel-wave-probe/Cargo.toml"
+      ],
+      "exitCode": 0,
+      "error": null,
+      "log": "2026-10-18T14-33-54.991Z-34804-baseline-5.log"
+    },
+    {
+      "binary": "C:\\Program Files\\nodejs\\node.exe",
+      "argv": [
+        "scripts/picker-test-driver.mjs",
+        "F:\\new\\smaltalk\\water\\.worktrees\\s\\.local\\next-target\\debug\\water-wave-probe.exe",
+        "picker",
+        "F:\\new\\smaltalk\\water\\.worktrees\\s\\.local\\picker-fixtures\\batch-v1\\root"
+      ],
+      "exitCode": 0,
+      "error": null,
+      "log": "2026-10-18T14-33-54.991Z-34804-baseline-6.log"
+    },
+    {
+      "binary": "git",
+      "argv": [
+        "-c",
+        "core.hooksPath=NUL",
+        "-c",
+        "core.fsmonitor=false",
+        "branch",
+        "--show-current"
+      ],
+      "exitCode": 0,
+      "error": null,
+      "log": "2026-10-18T14-33-54.991Z-34804-baseline-7.log"
+    },
+    {
+      "binary": "git",
+      "argv": [
+        "-c",
+        "core.hooksPath=NUL",
+        "-c",
+        "core.fsmonitor=false",
+        "merge-base",
+        "--is-ancestor",
+        "3d0faefa97267a6aa57f880a315a2cde7fe06e98",
+        "HEAD"
+      ],
+      "exitCode": 0,
+      "error": null,
+      "log": "2026-10-18T14-33-54.991Z-34804-baseline-8.log"
+    },
+    {
+      "binary": "git",
+      "argv": [
+        "-c",
+        "core.hooksPath=NUL",
+        "-c",
+        "core.fsmonitor=false",
+        "diff",
+        "--no-renames",
+        "--name-only",
+        "-z",
+        "3d0faefa97267a6aa57f880a315a2cde7fe06e98",
+        "HEAD"
+      ],
+      "exitCode": 0,
+      "error": null,
+      "log": "2026-10-18T14-33-54.991Z-34804-baseline-9.log"
+    },
+    {
+      "binary": "git",
+      "argv": [
+        "-c",
+        "core.hooksPath=NUL",
+        "-c",
+        "core.fsmonitor=false",
+        "diff",
+        "--no-renames",
+        "--name-only",
+        "-z",
+        "HEAD"
+      ],
+      "exitCode": 0,
+      "error": null,
+      "log": "2026-10-18T14-33-54.991Z-34804-baseline-10.log"
+    },
+    {
+      "binary": "git",
+      "argv": [
+        "-c",
+        "core.hooksPath=NUL",
+        "-c",
+        "core.fsmonitor=false",
+        "ls-files",
+        "--others",
+        "--exclude-standard",
+        "-z"
+      ],
+      "exitCode": 0,
+      "error": null,
+      "log": "2026-10-18T14-33-54.991Z-34804-baseline-11.log"
+    },
+    {
+      "binary": "git",
+      "argv": [
+        "-c",
+        "core.hooksPath=NUL",
+        "-c",
+        "core.fsmonitor=false",
+        "rev-parse",
+        "HEAD"
+      ],
+      "exitCode": 0,
+      "error": null,
+      "log": "2026-10-18T14-33-54.991Z-34804-baseline-12.log"
+    },
+    {
+      "binary": "git",
+      "argv": [
+        "-c",
+        "core.hooksPath=NUL",
+        "-c",
+        "core.fsmonitor=false",
+        "status",
+        "--porcelain",
+        "--untracked-files=all"
+      ],
+      "exitCode": 0,
+      "error": null,
+      "log": "2026-10-18T14-33-54.991Z-34804-baseline-13.log"
+    }
+  ],
+  "cacheCopiedFrom": "F:\\new\\smaltalk\\water\\.worktrees\\a\\.local\\cargo-home\\registry",
+  "baseline": {
+    "S_product_tested": false,
+    "actual_N_P": true,
+    "native_modal_cancel": true,
+    "native_modal_get_result": true,
+    "ordinary_content_read": false,
+    "scan_performed": false,
+    "fixtureIndex": "F:\\new\\smaltalk\\water\\.worktrees\\s\\.local\\picker-fixtures\\index.json",
+    "fixtureSha256": "0b4fdbbbc4c42ec917d54e2d13d8b632284bf7b698768a3d1473a3688f87bd69"
+  },
+  "newProductTested": false,
+  "after": {
+    "head": "3d0faefa97267a6aa57f880a315a2cde7fe06e98",
+    "status": ""
+  },
+  "endedAt": "2026-10-18T14:34:46.798Z",
+  "status": "passed",
+  "error": null
+}
