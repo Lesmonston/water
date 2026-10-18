@@ -1,0 +1,52 @@
+WATER-W1-T preparation and diagnostic command notes
+
+The authoritative raw focused-gate stdout/stderr, source snapshots and receipts
+are archived in helper/ by ARCHIVE.json. This file records ancillary commands.
+
+1. Initial PowerShell document reads used the shell's legacy output encoding and
+   were truncated by the tool output budget. Required current material was read
+   again with Get-Content -Encoding UTF8 and UTF-8 Console.OutputEncoding.
+   One assumed path scripts/lib/browser-lab.mjs did not exist; the actual frozen
+   scripts/browser-lab.mjs was subsequently read. No dependency was installed.
+
+2. First implementation suite, 2026-10-18T15-04-24.193Z-26764: exit 1, 4/5 pass.
+   Native Enter in the new test driver omitted text/unmodifiedText='\r'; dialog
+   open/focus assertions failed. The first behavior-red predates this correction
+   and is retained as historical evidence, not the final current-test proof.
+
+3. Inline node --input-type=module diagnostic (exit 0): startServer with the
+   frozen in-memory bundle, openBrowser, focus .detail-button, dispatch Enter
+   keyDown/keyUp with windowsVirtualKeyCode=13. Before: hasFocus=true/open=false;
+   after: hasFocus=true/open=false. Page.bringToFront repeated the same result.
+   A second inline diagnostic (exit 0) supplied text/unmodifiedText='\r': recorded
+   keydown, keypress, click, keyup, and open=true. Both browser/server pairs were
+   closed in finally, their private browser profiles were retained.
+
+4. Corrected-driver suite, 2026-10-18T15-06-15.031Z-42176: exit 1, 4/5 pass.
+   Enter/Escape now worked, but Tab from the sole close button did not leave a
+   focused element inside the dialog. Product fix: make the full E field list
+   keyboard focusable/scrollable (tabindex=0, accessible label). The next full
+   suite passed. The second failure's three screenshots were copied unchanged
+   to keyboard-suite-failure/ before the next run.
+
+5. Behavior-replay mutation preparation inline node command: exit 1, 'No mutation'.
+   Model had already been restored to the original permissive skeleton. A second
+   attempted replacement of Chinese unknown text did not match through the
+   PowerShell stdin encoding. App remained unchanged. The ensuing valid replay
+   therefore mutated only the model (no validation, first snapshot, view export).
+   mutation-behavior.json and the red receipt/source snapshots record exactly
+   this state. Model was immediately restored by original bytes, SHA256 checked,
+   then the complete suite passed. Later mutations used ASCII or code points.
+
+6. All nc1/nc2/nc3 preparations and byte restorations exited 0. Mutation journals
+   record exact changes, original/bad/restored hashes and source snapshot paths.
+   No test was changed for these controls. No test-only production switches.
+
+7. Read-only environment check: Node v24.16.0; Windows x64; existing Chrome
+   C:/Program Files/Google/Chrome/Application/chrome.exe product 155.0.8059.80.
+   Existing Edge product 155.0.4283.62 was observed but not selected: frozen
+   browser-lab chooses installed Chrome first. No environment/browser changes.
+
+8. Git inspection/status/diff checks and explicit-path staging/commits use the
+   assigned T tree/branch. Hooks/fsmonitor disabled for commits. No reset, clean,
+   merge, rebase, push, third-party script, physical fixture or user-data scan.
