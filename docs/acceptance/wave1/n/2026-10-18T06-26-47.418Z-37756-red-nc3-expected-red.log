@@ -1,0 +1,35 @@
+--- stdout ---
+
+running 5 tests
+test root_lifetime_and_errors ... ok
+test root_native_identity ... FAILED
+test root_observation_wire ... FAILED
+test root_path_validation ... ok
+test root_reparse_boundaries ... ok
+
+failures:
+
+---- root_native_identity stdout ----
+
+thread 'root_native_identity' (32464) panicked at tests\native_root_v1.rs:44:5:
+N_NO_AUTHORITY: observation must never grant authority or verify races
+note: run with `RUST_BACKTRACE=1` environment variable to display a backtrace
+
+---- root_observation_wire stdout ----
+
+thread 'root_observation_wire' (11828) panicked at tests\native_root_v1.rs:44:5:
+N_NO_AUTHORITY: observation must never grant authority or verify races
+
+
+failures:
+    root_native_identity
+    root_observation_wire
+
+test result: FAILED. 3 passed; 2 failed; 0 ignored; 0 measured; 0 filtered out; finished in 0.12s
+
+
+--- stderr ---
+   Compiling water-native-root v0.1.0 (F:\new\smaltalk\water\.worktrees\n\packages\native-root)
+    Finished `test` profile [unoptimized + debuginfo] target(s) in 2.76s
+     Running tests\native_root_v1.rs (.local\next-target\debug\deps\native_root_v1-a3fa4bab1fbaa153.exe)
+error: test failed, to rerun pass `--test native_root_v1`

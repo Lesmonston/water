@@ -1,0 +1,56 @@
+--- stdout ---
+
+running 5 tests
+test root_lifetime_and_errors ... FAILED
+test root_native_identity ... FAILED
+test root_observation_wire ... FAILED
+test root_path_validation ... FAILED
+test root_reparse_boundaries ... FAILED
+
+failures:
+
+---- root_lifetime_and_errors stdout ----
+
+thread 'root_lifetime_and_errors' (33968) panicked at tests\native_root_v1.rs:36:33:
+N_BEHAVIOR: valid native directory rejected: InvalidPath
+note: run with `RUST_BACKTRACE=1` environment variable to display a backtrace
+
+---- root_native_identity stdout ----
+
+thread 'root_native_identity' (37952) panicked at tests\native_root_v1.rs:36:33:
+N_BEHAVIOR: valid native directory rejected: InvalidPath
+
+---- root_observation_wire stdout ----
+
+thread 'root_observation_wire' (2492) panicked at tests\native_root_v1.rs:36:33:
+N_BEHAVIOR: valid native directory rejected: InvalidPath
+
+---- root_path_validation stdout ----
+
+thread 'root_path_validation' (12368) panicked at tests\native_root_v1.rs:76:9:
+assertion `left == right` failed: "C:/alpha"
+  left: Err(InvalidPath)
+ right: Ok(())
+
+---- root_reparse_boundaries stdout ----
+
+thread 'root_reparse_boundaries' (36124) panicked at tests\native_root_v1.rs:231:9:
+N_REPARSE_ROOT: junction or junction ancestor must be rejected
+
+
+failures:
+    root_lifetime_and_errors
+    root_native_identity
+    root_observation_wire
+    root_path_validation
+    root_reparse_boundaries
+
+test result: FAILED. 0 passed; 5 failed; 0 ignored; 0 measured; 0 filtered out; finished in 0.00s
+
+
+--- stderr ---
+   Compiling water-contracts v0.1.0 (F:\new\smaltalk\water\.worktrees\n\crates\water-contracts)
+   Compiling water-native-root v0.1.0 (F:\new\smaltalk\water\.worktrees\n\packages\native-root)
+    Finished `test` profile [unoptimized + debuginfo] target(s) in 9.13s
+     Running tests\native_root_v1.rs (.local\next-target\debug\deps\native_root_v1-a3fa4bab1fbaa153.exe)
+error: test failed, to rerun pass `--test native_root_v1`
