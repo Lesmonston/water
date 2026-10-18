@@ -1,0 +1,53 @@
+--- stdout ---
+
+running 5 tests
+test manifest_field_limits ... FAILED
+test manifest_privacy_and_purity ... FAILED
+test manifest_public_wire ... FAILED
+test manifest_raw_validation ... FAILED
+test manifest_structure ... FAILED
+
+failures:
+
+---- manifest_field_limits stdout ----
+
+thread 'manifest_field_limits' (20372) panicked at tests\manifest_v1.rs:31:46:
+U_BEHAVIOR valid input: InvalidJson
+note: run with `RUST_BACKTRACE=1` environment variable to display a backtrace
+
+---- manifest_privacy_and_purity stdout ----
+
+thread 'manifest_privacy_and_purity' (26820) panicked at tests\manifest_v1.rs:31:46:
+U_BEHAVIOR valid input: InvalidJson
+
+---- manifest_public_wire stdout ----
+
+thread 'manifest_public_wire' (3904) panicked at tests\manifest_v1.rs:582:10:
+U_BEHAVIOR public API: InvalidJson
+
+---- manifest_raw_validation stdout ----
+
+thread 'manifest_raw_validation' (20808) panicked at tests\manifest_v1.rs:31:46:
+U_BEHAVIOR valid input: InvalidJson
+
+---- manifest_structure stdout ----
+
+thread 'manifest_structure' (39032) panicked at tests\manifest_v1.rs:31:46:
+U_BEHAVIOR valid input: InvalidJson
+
+
+failures:
+    manifest_field_limits
+    manifest_privacy_and_purity
+    manifest_public_wire
+    manifest_raw_validation
+    manifest_structure
+
+test result: FAILED. 0 passed; 5 failed; 0 ignored; 0 measured; 0 filtered out; finished in 0.00s
+
+
+--- stderr ---
+   Compiling water-node-manifest v0.1.0 (F:\new\smaltalk\water\.worktrees\u\packages\node-manifest)
+    Finished `test` profile [unoptimized + debuginfo] target(s) in 1.94s
+     Running tests\manifest_v1.rs (.local\next-target\debug\deps\manifest_v1-b00d03e720de1f08.exe)
+error: test failed, to rerun pass `--test manifest_v1`

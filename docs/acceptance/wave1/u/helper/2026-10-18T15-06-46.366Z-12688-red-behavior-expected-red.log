@@ -1,0 +1,100 @@
+--- stdout ---
+
+running 5 tests
+test manifest_field_limits ... FAILED
+test manifest_privacy_and_purity ... FAILED
+test manifest_public_wire ... FAILED
+test manifest_raw_validation ... FAILED
+test manifest_structure ... FAILED
+
+failures:
+
+---- manifest_field_limits stdout ----
+
+thread 'manifest_field_limits' (11980) panicked at tests\manifest_v1.rs:31:46:
+U_BEHAVIOR valid input: InvalidJson
+note: run with `RUST_BACKTRACE=1` environment variable to display a backtrace
+
+---- manifest_privacy_and_purity stdout ----
+
+thread 'manifest_privacy_and_purity' (13460) panicked at tests\manifest_v1.rs:31:46:
+U_BEHAVIOR valid input: InvalidJson
+
+---- manifest_public_wire stdout ----
+
+thread 'manifest_public_wire' (21064) panicked at tests\manifest_v1.rs:587:10:
+U_BEHAVIOR public API: InvalidJson
+
+---- manifest_raw_validation stdout ----
+
+thread 'manifest_raw_validation' (21256) panicked at tests\manifest_v1.rs:31:46:
+U_BEHAVIOR valid input: InvalidJson
+
+---- manifest_structure stdout ----
+
+thread 'manifest_structure' (42332) panicked at tests\manifest_v1.rs:31:46:
+U_BEHAVIOR valid input: InvalidJson
+
+
+failures:
+    manifest_field_limits
+    manifest_privacy_and_purity
+    manifest_public_wire
+    manifest_raw_validation
+    manifest_structure
+
+test result: FAILED. 0 passed; 5 failed; 0 ignored; 0 measured; 0 filtered out; finished in 0.00s
+
+
+--- stderr ---
+   Compiling water-node-manifest v0.1.0 (F:\new\smaltalk\water\.worktrees\u\packages\node-manifest)
+warning: function `text` is never used
+  --> src\v1.rs:67:4
+   |
+67 | fn text(value: &Node, min: usize, max: usize, controls_allowed: bool) -> Result<(), ManifestError> {
+   |    ^^^^
+   |
+   = note: `#[warn(dead_code)]` (part of `#[warn(unused)]`) on by default
+
+warning: function `string_bounds` is never used
+  --> src\v1.rs:74:4
+   |
+74 | fn string_bounds(
+   |    ^^^^^^^^^^^^^
+
+warning: function `map_count` is never used
+  --> src\v1.rs:90:4
+   |
+90 | fn map_count(value: &Node, scripts: bool) -> Result<u32, ManifestError> {
+   |    ^^^^^^^^^
+
+warning: function `validate_syntax` is never used
+   --> src\v1.rs:112:4
+    |
+112 | fn validate_syntax(raw: &str) -> Result<(), ManifestError> {
+    |    ^^^^^^^^^^^^^^^
+
+warning: enum `Node` is never used
+   --> src\v1.rs:154:6
+    |
+154 | enum Node {
+    |      ^^^^
+
+warning: struct `NodeSeed` is never constructed
+   --> src\v1.rs:162:8
+    |
+162 | struct NodeSeed<'a> {
+    |        ^^^^^^^^
+
+warning: method `fail` is never used
+   --> src\v1.rs:175:8
+    |
+174 | impl NodeSeed<'_> {
+    | ----------------- method in this implementation
+175 |     fn fail<E: de::Error>(&mut self, fault: ManifestError) -> E {
+    |        ^^^^
+
+warning: `water-node-manifest` (lib) generated 7 warnings
+    Finished `test` profile [unoptimized + debuginfo] target(s) in 1.73s
+     Running tests\manifest_v1.rs (.local\next-target\debug\deps\manifest_v1-b00d03e720de1f08.exe)
+error: test failed, to rerun pass `--test manifest_v1`

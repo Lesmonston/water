@@ -1,0 +1,359 @@
+{
+  "task": "WATER-W1-U",
+  "mode": "red-nc1",
+  "finalGate": false,
+  "startedAt": "2026-10-18T15:07:19.923Z",
+  "before": {
+    "head": "3d0faefa97267a6aa57f880a315a2cde7fe06e98",
+    "status": "?? docs/acceptance/wave1/u/final-v1-original.txt\n?? packages/node-manifest/Cargo.lock\n?? packages/node-manifest/Cargo.toml\n?? packages/node-manifest/README.md\n?? packages/node-manifest/src/lib.rs\n?? packages/node-manifest/src/v1.rs\n?? packages/node-manifest/tests/manifest_v1.rs"
+  },
+  "node": "v24.16.0",
+  "productTestsRun": true,
+  "frozenFiles": 94,
+  "commands": [
+    {
+      "binary": "git",
+      "argv": [
+        "-c",
+        "core.hooksPath=NUL",
+        "-c",
+        "core.fsmonitor=false",
+        "rev-parse",
+        "--path-format=absolute",
+        "--git-common-dir"
+      ],
+      "exitCode": 0,
+      "error": null
+    },
+    {
+      "binary": "git",
+      "argv": [
+        "-c",
+        "core.hooksPath=NUL",
+        "-c",
+        "core.fsmonitor=false",
+        "branch",
+        "--show-current"
+      ],
+      "exitCode": 0,
+      "error": null
+    },
+    {
+      "binary": "git",
+      "argv": [
+        "-c",
+        "core.hooksPath=NUL",
+        "-c",
+        "core.fsmonitor=false",
+        "merge-base",
+        "--is-ancestor",
+        "3d0faefa97267a6aa57f880a315a2cde7fe06e98",
+        "HEAD"
+      ],
+      "exitCode": 0,
+      "error": null
+    },
+    {
+      "binary": "git",
+      "argv": [
+        "-c",
+        "core.hooksPath=NUL",
+        "-c",
+        "core.fsmonitor=false",
+        "diff",
+        "--no-renames",
+        "--name-only",
+        "-z",
+        "3d0faefa97267a6aa57f880a315a2cde7fe06e98",
+        "HEAD"
+      ],
+      "exitCode": 0,
+      "error": null
+    },
+    {
+      "binary": "git",
+      "argv": [
+        "-c",
+        "core.hooksPath=NUL",
+        "-c",
+        "core.fsmonitor=false",
+        "diff",
+        "--no-renames",
+        "--name-only",
+        "-z",
+        "HEAD"
+      ],
+      "exitCode": 0,
+      "error": null
+    },
+    {
+      "binary": "git",
+      "argv": [
+        "-c",
+        "core.hooksPath=NUL",
+        "-c",
+        "core.fsmonitor=false",
+        "ls-files",
+        "--others",
+        "--exclude-standard",
+        "-z"
+      ],
+      "exitCode": 0,
+      "error": null
+    },
+    {
+      "binary": "git",
+      "argv": [
+        "-c",
+        "core.hooksPath=NUL",
+        "-c",
+        "core.fsmonitor=false",
+        "rev-parse",
+        "HEAD"
+      ],
+      "exitCode": 0,
+      "error": null
+    },
+    {
+      "binary": "git",
+      "argv": [
+        "-c",
+        "core.hooksPath=NUL",
+        "-c",
+        "core.fsmonitor=false",
+        "status",
+        "--porcelain",
+        "--untracked-files=all"
+      ],
+      "exitCode": 0,
+      "error": null
+    },
+    {
+      "binary": "C:\\Users\\37310\\.cargo\\bin\\rustup.exe",
+      "argv": [
+        "which",
+        "rustc",
+        "--toolchain",
+        "1.95.0"
+      ],
+      "exitCode": 0,
+      "error": null,
+      "log": "2026-10-18T15-07-18.021Z-20640-red-nc1-1.log"
+    },
+    {
+      "binary": "C:\\Users\\37310\\.cargo\\bin\\rustup.exe",
+      "argv": [
+        "which",
+        "cargo",
+        "--toolchain",
+        "1.95.0"
+      ],
+      "exitCode": 0,
+      "error": null,
+      "log": "2026-10-18T15-07-18.021Z-20640-red-nc1-2.log"
+    },
+    {
+      "binary": "C:\\Users\\37310\\.rustup\\toolchains\\1.95.0-x86_64-pc-windows-msvc\\bin\\rustc.exe",
+      "argv": [
+        "--version"
+      ],
+      "exitCode": 0,
+      "error": null,
+      "log": "2026-10-18T15-07-18.021Z-20640-red-nc1-3.log"
+    },
+    {
+      "binary": "C:\\Users\\37310\\.rustup\\toolchains\\1.95.0-x86_64-pc-windows-msvc\\bin\\cargo.exe",
+      "argv": [
+        "metadata",
+        "--offline",
+        "--locked",
+        "--format-version",
+        "1",
+        "--manifest-path",
+        "packages/node-manifest/Cargo.toml"
+      ],
+      "exitCode": 0,
+      "error": null,
+      "log": "2026-10-18T15-07-18.021Z-20640-red-nc1-4.log"
+    },
+    {
+      "binary": "C:\\Users\\37310\\.rustup\\toolchains\\1.95.0-x86_64-pc-windows-msvc\\bin\\cargo.exe",
+      "argv": [
+        "test",
+        "--offline",
+        "--locked",
+        "--manifest-path",
+        "packages/node-manifest/Cargo.toml",
+        "--test",
+        "manifest_v1",
+        "--",
+        "--test-threads=1",
+        "--format",
+        "pretty"
+      ],
+      "exitCode": 101,
+      "error": null,
+      "log": "2026-10-18T15-07-18.021Z-20640-red-nc1-expected-red.log"
+    },
+    {
+      "binary": "git",
+      "argv": [
+        "-c",
+        "core.hooksPath=NUL",
+        "-c",
+        "core.fsmonitor=false",
+        "branch",
+        "--show-current"
+      ],
+      "exitCode": 0,
+      "error": null,
+      "log": "2026-10-18T15-07-18.021Z-20640-red-nc1-5.log"
+    },
+    {
+      "binary": "git",
+      "argv": [
+        "-c",
+        "core.hooksPath=NUL",
+        "-c",
+        "core.fsmonitor=false",
+        "merge-base",
+        "--is-ancestor",
+        "3d0faefa97267a6aa57f880a315a2cde7fe06e98",
+        "HEAD"
+      ],
+      "exitCode": 0,
+      "error": null,
+      "log": "2026-10-18T15-07-18.021Z-20640-red-nc1-6.log"
+    },
+    {
+      "binary": "git",
+      "argv": [
+        "-c",
+        "core.hooksPath=NUL",
+        "-c",
+        "core.fsmonitor=false",
+        "diff",
+        "--no-renames",
+        "--name-only",
+        "-z",
+        "3d0faefa97267a6aa57f880a315a2cde7fe06e98",
+        "HEAD"
+      ],
+      "exitCode": 0,
+      "error": null,
+      "log": "2026-10-18T15-07-18.021Z-20640-red-nc1-7.log"
+    },
+    {
+      "binary": "git",
+      "argv": [
+        "-c",
+        "core.hooksPath=NUL",
+        "-c",
+        "core.fsmonitor=false",
+        "diff",
+        "--no-renames",
+        "--name-only",
+        "-z",
+        "HEAD"
+      ],
+      "exitCode": 0,
+      "error": null,
+      "log": "2026-10-18T15-07-18.021Z-20640-red-nc1-8.log"
+    },
+    {
+      "binary": "git",
+      "argv": [
+        "-c",
+        "core.hooksPath=NUL",
+        "-c",
+        "core.fsmonitor=false",
+        "ls-files",
+        "--others",
+        "--exclude-standard",
+        "-z"
+      ],
+      "exitCode": 0,
+      "error": null,
+      "log": "2026-10-18T15-07-18.021Z-20640-red-nc1-9.log"
+    },
+    {
+      "binary": "git",
+      "argv": [
+        "-c",
+        "core.hooksPath=NUL",
+        "-c",
+        "core.fsmonitor=false",
+        "rev-parse",
+        "HEAD"
+      ],
+      "exitCode": 0,
+      "error": null,
+      "log": "2026-10-18T15-07-18.021Z-20640-red-nc1-10.log"
+    },
+    {
+      "binary": "git",
+      "argv": [
+        "-c",
+        "core.hooksPath=NUL",
+        "-c",
+        "core.fsmonitor=false",
+        "status",
+        "--porcelain",
+        "--untracked-files=all"
+      ],
+      "exitCode": 0,
+      "error": null,
+      "log": "2026-10-18T15-07-18.021Z-20640-red-nc1-11.log"
+    }
+  ],
+  "sourceState": {
+    "files": [
+      {
+        "path": "packages/node-manifest/src/lib.rs",
+        "sha256": "36e5cec8ccacc9250e6c6cd3e410d3fab20196f753364fa33d58f7d61f8016e4",
+        "snapshot": "2026-10-18T15-07-18.021Z-20640-red-nc1-source-0.txt",
+        "test": false
+      },
+      {
+        "path": "packages/node-manifest/src/v1.rs",
+        "sha256": "7721e63a296e83509ae505d0919813403a9687b052f9869d814b2c7e3414ab48",
+        "snapshot": "2026-10-18T15-07-18.021Z-20640-red-nc1-source-1.txt",
+        "test": false
+      },
+      {
+        "path": "packages/node-manifest/Cargo.toml",
+        "sha256": "db9812b52e31c2e4e194a1de0846c28e676a244a3e42287204ce3cf4dd40cac6",
+        "snapshot": "2026-10-18T15-07-18.021Z-20640-red-nc1-source-2.txt",
+        "test": false
+      },
+      {
+        "path": "packages/node-manifest/Cargo.lock",
+        "sha256": "aa7ef6a9ad5c0a9094989e74ac22390f53ac8f02d4e5cc2fcc2686d962c13e98",
+        "snapshot": "2026-10-18T15-07-18.021Z-20640-red-nc1-source-3.txt",
+        "test": false
+      },
+      {
+        "path": "packages/node-manifest/tests/manifest_v1.rs",
+        "sha256": "f5214fcbb5b3f023bdb528a0f154198f2e193ef3bf5bce9dbcfbbe8576071a1c",
+        "snapshot": "2026-10-18T15-07-18.021Z-20640-red-nc1-source-4.txt",
+        "test": true
+      }
+    ],
+    "productionHash": "12d83bde4e55221ad9ed0ef9e5c85b2973f26ab680a6bf7aaf83bd9b7f028938",
+    "testHash": "83c4f4ea9d186b9648801d1af718d9397c40708a0f099e2e902da7d9f394ff6f"
+  },
+  "observedExpectedFailure": true,
+  "executedTests": 5,
+  "expectation": {
+    "label": "nc1",
+    "target": "U_DUPLICATE_UNKNOWN",
+    "testExitCode": 101
+  },
+  "after": {
+    "head": "3d0faefa97267a6aa57f880a315a2cde7fe06e98",
+    "status": "?? docs/acceptance/wave1/u/final-v1-original.txt\n?? packages/node-manifest/Cargo.lock\n?? packages/node-manifest/Cargo.toml\n?? packages/node-manifest/README.md\n?? packages/node-manifest/src/lib.rs\n?? packages/node-manifest/src/v1.rs\n?? packages/node-manifest/tests/manifest_v1.rs"
+  },
+  "endedAt": "2026-10-18T15:07:25.274Z",
+  "status": "passed",
+  "error": null
+}

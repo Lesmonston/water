@@ -1,0 +1,59 @@
+use serde::Serialize;
+use std::fmt;
+
+#[derive(Debug, Clone, PartialEq, Eq)]
+pub enum ManifestError {
+    InputTooLarge,
+    InvalidJson,
+    DuplicateKey,
+    NestingTooDeep,
+    InvalidShape,
+    InvalidField,
+    TooManyEntries,
+    SerializationFailed,
+}
+
+impl fmt::Display for ManifestError {
+    fn fmt(&self, f: &mut fmt::Formatter<'_>) -> fmt::Result {
+        write!(f, "{self:?} at /manifest")
+    }
+}
+
+impl std::error::Error for ManifestError {}
+
+#[derive(Debug, Clone, PartialEq, Eq, Serialize)]
+pub struct ManifestEvidence {
+    manifest_version: &'static str,
+    source_kind: &'static str,
+    read_only: bool,
+    format_verified: bool,
+    project_membership_verified: bool,
+    tool_version_known: bool,
+    action: &'static str,
+    risk: &'static str,
+    ecosystem: &'static str,
+    evidence_strength: &'static str,
+    recognized_field_count: u32,
+    has_name: bool,
+    has_version: bool,
+    declared_private: Option<bool>,
+    counts: ManifestCounts,
+}
+
+#[derive(Debug, Clone, PartialEq, Eq, Serialize)]
+pub struct ManifestCounts {
+    scripts: u32,
+    dependencies: u32,
+    dev_dependencies: u32,
+    peer_dependencies: u32,
+    optional_dependencies: u32,
+    workspace_patterns: u32,
+}
+
+pub fn analyze_package_json(_raw: &str) -> Result<ManifestEvidence, ManifestError> {
+    Err(ManifestError::InvalidJson)
+}
+
+pub fn to_json(evidence: &ManifestEvidence) -> Result<String, ManifestError> {
+    serde_json::to_string(evidence).map_err(|_| ManifestError::SerializationFailed)
+}

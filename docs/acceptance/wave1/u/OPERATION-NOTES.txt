@@ -1,0 +1,71 @@
+WATER-W1-U exploratory-tool notes (transcribed from this session's tool outputs).
+These are not byte-exact helper logs, behavioral-red evidence, or infrastructure
+failures disguised as product failures. All actual helper outputs are archived
+byte-for-byte under helper/ and indexed by ARCHIVE.json.
+
+1. The initial PowerShell Get-Content output used the host's legacy encoding and
+   was truncated. Required documents were re-read using -Encoding UTF8 and a UTF8
+   console. No file was changed by these reads.
+
+2. An exploratory node -e read of the controller manifest lost JavaScript quotes
+   at the PowerShell/native command boundary. Exit 1; output:
+   const m=require(./docs/dispatch/wave1/manifest.json); console.log(JSON.stringify(m,null,2));
+                   ^
+   Expression expected
+   SyntaxError: Unexpected token '.'
+   The manifest was then read with Get-Content/ConvertFrom-Json, successfully.
+
+3. An exploratory rg path used a literal wildcard in an intermediate path:
+   .local/next-cargo-home/registry/src/*/serde_json-1.0.151/src/de.rs
+   rg reported: The filename, directory name, or volume label syntax is incorrect.
+   (os error 123). Resolved the already-private dependency source directory with
+   Get-ChildItem, then used rg on its exact path. No dependency was installed.
+
+4. Before NC1, a PowerShell mutation guard incorrectly used String.Split with a
+   string argument, which selected delimiter-character semantics. Exit 1:
+   Mutation target mismatch
+   At line:2 char:606
+   CategoryInfo: OperationStopped: (Mutation target mismatch:String) [], RuntimeException
+   FullyQualifiedErrorId: Mutation target mismatch
+   The good-source snapshot had been written, but the guard stopped before any
+   product mutation. Replaced this orchestration guard with Regex.Matches using
+   Regex.Escape and an exact-one-match check. No helper was changed.
+
+5. The first NC1 run executed all five tests (4 pass, 1 fail), but the earliest
+   rejecting assertion lacked the required U_DUPLICATE_UNKNOWN message. Helper
+   exit 1: Missing target U_DUPLICATE_UNKNOWN. Its raw source snapshots, test log,
+   result and immediate original-byte restore/green are all preserved:
+   2026-10-18T15-05-19.024Z-30804-red-nc1-*
+   2026-10-18T15-05-45.045Z-35700-suite-*
+   This attempt is NOT counted as accepted NC1 evidence. The only test revision
+   added contextual failure labels to expect_err messages; no assertion, input,
+   test count or expected behavior was removed or weakened. Replayed the actual
+   no-parser/InvalidJson behavior on the final test bytes, restored the original
+   implementation, then re-ran all three production mutations and restorations.
+   The first genuine pre-implementation red remains separately archived:
+   2026-10-18T15-02-10.060Z-38360-red-behavior-*
+   The final-byte behavior replay is explicitly post-implementation:
+   2026-10-18T15-06-46.366Z-12688-red-behavior-*
+
+6. During evidence staging, exec_command returned a still-running session. The
+   orchestration mistakenly began the dependent commit before waiting for it.
+   The staging process and attempted commit/status refresh contended for the U
+   index lock. Both reported:
+   fatal: Unable to create 'F:/new/smaltalk/water/.git/worktrees/u/index.lock': File exists.
+   Another git process seems to be running in this repository, or the lock file may be stale
+   The staging Node assertion reported actual 128, expected 0; the commit command
+   itself failed (the containing PowerShell call later exited 0 due to successful
+   rev-parse/status commands, so that call's final exit was not treated as a
+   successful commit). Waited for staging session 9444, which exited 1. Checked
+   Test-Path for the exact index.lock: False. No lock file was removed or any
+   process interrupted. Re-staged the explicit ticket-only file lists and
+   committed sequentially after the staging command completed. Product code,
+   tested SHA and raw helper evidence were unaffected. Subsequent Git operations
+   use checked native exit codes and do not treat shell-tail exit as commit proof.
+
+There were no compile failures, timeouts, product-suite failures on restored good
+code, or failed final gates. The behavior replay compiled with expected unused
+private-parser warnings because the public analyzer was temporarily replaced by
+its original InvalidJson skeleton; those warnings are preserved in its raw log.
+No reset, cleanup, fetch, dependency installation, global configuration change,
+merge, push, physical fixture action or actual package.json acquisition occurred.
