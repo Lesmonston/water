@@ -4,7 +4,7 @@
   "mode": "manual-external-paste",
   "controller": "Codex",
   "projectRoot": "F:/new/smaltalk/water",
-  "stage": "wave1-abcdefghijklmno-verified",
+  "stage": "wave1-abcdefghijklmno-verified-p-q-ready",
   "activeWave": "water-wave1",
   "slots": [
     {
@@ -126,6 +126,22 @@
       "baseline": "75cf4db7607a382673a2146ca69732a5110c1579",
       "task": "WATER-W1-O",
       "state": "verified-preserved"
+    },
+    {
+      "id": "p",
+      "path": "F:/new/smaltalk/water/.worktrees/p",
+      "branch": "worker/water-w1-p",
+      "baseline": "34badd897b8983cffbb57e03a9df9e6af52f7b8f",
+      "task": "WATER-W1-P",
+      "state": "ready-awaiting-user-paste"
+    },
+    {
+      "id": "q",
+      "path": "F:/new/smaltalk/water/.worktrees/q",
+      "branch": "worker/water-w1-q",
+      "baseline": "34badd897b8983cffbb57e03a9df9e6af52f7b8f",
+      "task": "WATER-W1-Q",
+      "state": "ready-awaiting-user-paste"
     }
   ],
   "tasks": [
@@ -1383,8 +1399,156 @@
       "integrationTestedCommit": "3c604ec5660c2bc8502ad9c1b99ef2f83a524ea5",
       "integrationReceipt": "docs/acceptance/wave1/controller/w1-no-review-20261018/integration/2026-10-18T09-14-54.061Z-34792-result.json",
       "verificationScope": "Original three final gates, isolated full-five suites and three actual-source full-five red/restore/green controls; independent model/HTTP/caller-fed server/Chrome checks with 18 renamed snapshots, Unknown/conflict/u128 and fresh two-viewport/detail screenshots. No fresh filesystem scan, user scope, desktop or macOS verification."
+    },
+    {
+      "id": "WATER-W1-P",
+      "title": "Directory scope registry and in-process scan permits",
+      "status": "READY",
+      "kind": "scope_registry",
+      "slot": "p",
+      "worktree": "F:/new/smaltalk/water/.worktrees/p",
+      "branch": "worker/water-w1-p",
+      "baseCommit": "34badd897b8983cffbb57e03a9df9e6af52f7b8f",
+      "snapshotRef": "refs/tags/water-w1-scope-export-base-20261018",
+      "ticket": "docs/dispatch/tickets/WATER-W1-P-SCOPE-REGISTRY-20261018.md",
+      "report": "docs/dispatch/reports/WATER-W1-P-REPORT.md",
+      "helper": "scripts/scope-export-check.mjs",
+      "workerRules": "docs/dispatch/W1-SCOPE-EXPORT-WORKER-RULES.md",
+      "contractLock": "contracts/scope-export-v1/freeze.lock.json",
+      "outputRoot": "packages/scope-registry",
+      "packageName": "water-scope-registry",
+      "crateName": "water_scope_registry",
+      "testTarget": "registry_v1",
+      "testFile": "packages/scope-registry/tests/registry_v1.rs",
+      "testFiles": [
+        "packages/scope-registry/tests/registry_v1.rs"
+      ],
+      "expectedTests": [
+        "registry_registration",
+        "registry_confirmation",
+        "registry_permits_and_replay",
+        "registry_revocation_and_owner",
+        "registry_public_native_bridge"
+      ],
+      "expectedBrowserTests": [],
+      "expectedFinalModes": [
+        "fmt",
+        "test",
+        "clippy",
+        "metadata",
+        "bridge"
+      ],
+      "proofTargets": {
+        "behavior": "P_BEHAVIOR",
+        "nc1": "P_SINGLE_ACTIVE",
+        "nc2": "P_OWNER_BOUND",
+        "nc3": "P_REVOKED"
+      },
+      "allowedFiles": [
+        "packages/scope-registry/Cargo.toml",
+        "packages/scope-registry/Cargo.lock",
+        "packages/scope-registry/README.md",
+        "packages/scope-registry/tests/registry_v1.rs",
+        "docs/dispatch/reports/WATER-W1-P-REPORT.md"
+      ],
+      "allowedPrefixes": [
+        "packages/scope-registry/src/",
+        "docs/acceptance/wave1/p/"
+      ],
+      "allowLockfileGeneration": true,
+      "cargoCacheSource": "F:/new/smaltalk/water/.worktrees/a/.local/cargo-home/registry",
+      "dependsOn": [
+        "WATER-W1-A",
+        "WATER-W1-N"
+      ],
+      "model": null,
+      "modelAssignment": "user-arranged; worker reports actual engine/model",
+      "dispatchedAt": null,
+      "startedAt": null,
+      "baselineStatus": "PASSED",
+      "newProductTestsRun": false,
+      "physicalFixturePermission": true,
+      "preflightEvidence": "docs/dispatch/wave1/SCOPE-EXPORT-READY-REPORT.md",
+      "macOS": "unverified",
+      "baselineEvidence": "docs/acceptance/wave1/controller/w1-scope-export-preflight-20261018/p/2026-10-18T09-51-26.587Z-16452-baseline-result.json",
+      "readyOn": "2026-10-18",
+      "readinessScope": "Windows private offline real A/N build and native metadata probe over four bounded synthetic directories/one junction/zero ordinary content; alias identity and reparse rejection passed. No new P product, lifecycle tests, native picker or traversal."
+    },
+    {
+      "id": "WATER-W1-Q",
+      "title": "Default redacted structural report",
+      "status": "READY",
+      "kind": "redacted_report",
+      "slot": "q",
+      "worktree": "F:/new/smaltalk/water/.worktrees/q",
+      "branch": "worker/water-w1-q",
+      "baseCommit": "34badd897b8983cffbb57e03a9df9e6af52f7b8f",
+      "snapshotRef": "refs/tags/water-w1-scope-export-base-20261018",
+      "ticket": "docs/dispatch/tickets/WATER-W1-Q-REDACTED-REPORT-20261018.md",
+      "report": "docs/dispatch/reports/WATER-W1-Q-REPORT.md",
+      "helper": "scripts/scope-export-check.mjs",
+      "workerRules": "docs/dispatch/W1-SCOPE-EXPORT-WORKER-RULES.md",
+      "contractLock": "contracts/scope-export-v1/freeze.lock.json",
+      "outputRoot": "packages/redacted-report",
+      "packageName": "water-redacted-report",
+      "crateName": "water_redacted_report",
+      "testTarget": "redaction_v1",
+      "testFile": "packages/redacted-report/tests/redaction_v1.rs",
+      "testFiles": [
+        "packages/redacted-report/tests/redaction_v1.rs"
+      ],
+      "expectedTests": [
+        "redaction_structure",
+        "redaction_source_validation",
+        "redaction_aliases_and_privacy",
+        "redaction_precision_and_status",
+        "redaction_public_wire"
+      ],
+      "expectedBrowserTests": [],
+      "expectedFinalModes": [
+        "fmt",
+        "test",
+        "clippy",
+        "metadata",
+        "bridge"
+      ],
+      "proofTargets": {
+        "behavior": "Q_BEHAVIOR",
+        "nc1": "Q_NO_FREE_TEXT",
+        "nc2": "Q_SCOPE_ASSOCIATION",
+        "nc3": "Q_UNKNOWN_PRESERVED"
+      },
+      "allowedFiles": [
+        "packages/redacted-report/Cargo.toml",
+        "packages/redacted-report/Cargo.lock",
+        "packages/redacted-report/README.md",
+        "packages/redacted-report/tests/redaction_v1.rs",
+        "docs/dispatch/reports/WATER-W1-Q-REPORT.md"
+      ],
+      "allowedPrefixes": [
+        "packages/redacted-report/src/",
+        "docs/acceptance/wave1/q/"
+      ],
+      "allowLockfileGeneration": true,
+      "cargoCacheSource": "F:/new/smaltalk/water/.worktrees/a/.local/cargo-home/registry",
+      "dependsOn": [
+        "WATER-W1-A",
+        "WATER-W1-H"
+      ],
+      "model": null,
+      "modelAssignment": "user-arranged; worker reports actual engine/model",
+      "dispatchedAt": null,
+      "startedAt": null,
+      "baselineStatus": "PASSED",
+      "newProductTestsRun": false,
+      "physicalFixturePermission": false,
+      "preflightEvidence": "docs/dispatch/wave1/SCOPE-EXPORT-READY-REPORT.md",
+      "macOS": "unverified",
+      "baselineEvidence": "docs/acceptance/wave1/controller/w1-scope-export-preflight-20261018/q/2026-10-18T09-51-26.619Z-42332-baseline-result.json",
+      "readyOn": "2026-10-18",
+      "readinessScope": "Private offline actual A/H validation of 24 reports (11 H, 13 retained J) and nine original raw errors/provenance hashes. No new Q product/tests or export file/UI."
     }
   ],
   "testHelper": "per-task helper; A defaults unchanged",
-  "note": "A-O and five addenda VERIFIED within Windows controlled scope; no outstanding external tickets. N native directory observation and O L/M annotation page accepted. No user-scope authorization/traversal, fresh scan, desktop/macOS or deletion. M1 incomplete."
+  "note": "A-O and five addenda remain VERIFIED. P scope registry/Q redacted report READY after actual independent exact-base Windows baselines, await separate user paste. No automatic implementers. No native picker/user gesture authentication, traversal, real-user data access, desktop or deletion; M1 incomplete."
 }

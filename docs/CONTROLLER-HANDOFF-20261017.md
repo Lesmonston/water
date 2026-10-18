@@ -2,7 +2,11 @@
 
 2026-10-17。项目：`F:/new/smaltalk/water`。供后续总控接手与Keeper ingest；未写共享Vault或其他项目。
 
-## 当前交接：N/O已VERIFIED并集成，无未结外贴票
+## 当前交接：P/Q正式READY，待分别外贴
+
+A–O及五补单保持VERIFIED（Windows受控范围）；P范围登记/进程内许可、Q默认脱敏逐项报告已完成冻结、独立树和实际离线baseline，READY待用户分别外贴。新产品未实现、各五测试未运行，无自动实现者，M1仍未完成。共同精确基线34badd897b8983cffbb57e03a9df9e6af52f7b8f，51新锁条目/九旧锁合计227唯一冻结，p/q两树实际baseline通过。P仅本树4合成目录/1junction、普通内容0字节，真实N身份/alias/reparse probe；Q真实A/H的24输入/9错误/来源hash，无物理fixture。详[当前派前回执](dispatch/wave1/SCOPE-EXPORT-READY-REPORT.md)、[ADR-011](decisions/ADR-011-scope-registry-and-redacted-report.md)及PASTE-P/Q。P确认不是原生用户手势鉴真，Q不是磁盘/UI导出；收单后独立验收，再接原生选择到有界遍历/桌面闭环。旧A–O原对象、冻结和现场保持。
+
+## 此前交接：N/O已VERIFIED并集成（历史）
 
 A–O及五补单均VERIFIED（Windows受控范围），无未结外贴票。N原生目录身份基础和O项目证据/容量页面已通过独立复验与隔离集成；真实选择授权/范围注册、有界遍历、详细脱敏导出/桌面、macOS和删除未验收，M1仍未完成。N接收d3fd65f/原受测f894d64，O接收5a4ad20/原受测62a8ef1，隔离受测3c604ec。全部原final门、新私有target、六项真实源码完整五红/恢复五绿、独立native三测试/四项编译拒绝、真实服务HTTP/Chrome检查通过。198冻结和657份worker交付原字节保持；只读复用原35字节/两个junction，无新物理fixture。见[N/O总控验收](acceptance/wave1/controller/WATER-W1-NO-REVIEW-20261018.md)。下一阶段先冻结选择授权/范围注册与句柄边界有界遍历纵向单；没有新的READY票或自动实现者。
 

@@ -21,9 +21,15 @@
 
 ## 下一步
 
-A–O及五补单均VERIFIED（Windows受控范围），无未结外贴票。N原生目录身份基础和O项目证据/容量页面已通过独立复验与隔离集成；真实选择授权/范围注册、有界遍历、详细脱敏导出/桌面、macOS和删除未验收，M1仍未完成。原票不重贴，见[N/O总控验收](acceptance/wave1/controller/WATER-W1-NO-REVIEW-20261018.md)。
+A–O及五补单保持VERIFIED（Windows受控范围）；P范围登记/进程内许可、Q默认脱敏逐项报告已完成冻结、独立树和实际离线baseline，READY待用户分别外贴。新产品未实现、各五测试未运行，无自动实现者，M1仍未完成。原票不重贴，见[P/Q实际派前回执](dispatch/wave1/SCOPE-EXPORT-READY-REPORT.md)。
 
-## N/O复验及隔离集成通过（2026-10-18，最新）
+## P/Q派前通过（2026-10-18，最新）
+
+共同精确基线34badd897b8983cffbb57e03a9df9e6af52f7b8f，独立p/q树/分支及初始干净状态、51新锁条目/九旧锁合计227唯一冻结实核通过。P在本树仅创建4个合成目录/1junction、普通内容0字节，私有离线真实A/N和原生身份/别名/重解析检查通过；Q私有离线真实A/H、24份报告和9原raw错误/来源hash通过。详[正式派前回执](dispatch/wave1/SCOPE-EXPORT-READY-REPORT.md)。
+
+P/Q产品未实现、各五测试未运行；READY不等于已外贴/RUNNING。P只支持待实现的可信进程内许可状态机，不提供原生picker/IPC或遍历；Q只返回默认脱敏内存报告，不写文件/上传/UI，也不保证匿名。旧A–O及五补单/分配/基线/helper/198旧冻结/旧产品/根Cargo和所有旧现场保持，无自动实现者。后续须接原生用户选择、permit到句柄边界有界遍历和桌面导出，M1未完成。
+
+## N/O复验及隔离集成通过（2026-10-18，历史收口）
 
 N接收d3fd65f/原受测f894d64，O接收5a4ad20/原受测62a8ef1，隔离受测3c604ec。原N五final/O三final复跑通过；新私有离线target重跑N五测/格式/clippy/metadata/bridge，O完整五测/语法通过，两票各三项真实源码负控逐次完整五红/原字节恢复五绿。独立native三测试/四项编译拒绝和实际内存服务→HTTP→Chrome检查通过，详情见[N/O总控验收](acceptance/wave1/controller/WATER-W1-NO-REVIEW-20261018.md)。
 
