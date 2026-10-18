@@ -1,0 +1,7 @@
+import { selectFindings, formatBytes } from '../report-reader/model.mjs';
+export { selectFindings, formatBytes };
+
+// Runnable first-red skeleton: bundle consistency and selected export are pending.
+export function assertReviewBundle(bundle) { return bundle; }
+export function selectSnapshot(bundle, scanId) { return bundle.snapshots[0] ?? null; }
+export function exportText(bundle, scanId) { return JSON.stringify(bundle.snapshots[0].view); }

@@ -1,0 +1,64 @@
+<!doctype html>
+<html lang="zh-CN">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width,initial-scale=1">
+  <meta name="color-scheme" content="light">
+  <title>Water · 报告预览</title>
+  <link rel="stylesheet" href="/styles.css">
+  <script type="module" src="/app.mjs"></script>
+</head>
+<body>
+  <header class="app-header">
+    <div class="brand"><span class="brand-mark" aria-hidden="true">w</span><strong>Water</strong><span class="brand-caption">报告预览</span></div>
+    <div class="scope-notice"><p class="readonly-badge" id="readonly-badge">受控来源 · 只读</p><span>非真实用户目录</span></div>
+  </header>
+  <main>
+    <section class="page-heading" aria-labelledby="page-title">
+      <div><p class="eyebrow">受控实验 / 默认脱敏导出</p><h1 id="page-title">看清报告，保留未知</h1><p class="subtitle">阅读调用方提供的完整快照，下载去除路径与自由文本的报告。</p></div>
+      <div class="session-field"><label for="snapshot">报告快照</label><select id="snapshot"></select></div>
+    </section>
+    <div id="status-banner" class="status-banner" role="status">正在载入报告…</div>
+    <section class="metrics" aria-label="整份报告计数">
+      <div class="metric"><span>观察条目</span><strong id="summary-count">—</strong><small>整份快照</small></div>
+      <div class="metric"><span>受到保护</span><strong id="protected-count">—</strong><small>保留原风险分类</small></div>
+      <div class="metric"><span>大小未知</span><strong id="unknown-count">—</strong><small>未知保持未知</small></div>
+      <div class="metric"><span>来源问题</span><strong id="issues-count">—</strong><small>覆盖限制与来源记录</small></div>
+    </section>
+    <p class="provenance" id="source-kind"></p>
+    <section class="source-grid" aria-label="来源与覆盖">
+      <div class="source-block" id="source-totals"></div>
+      <div class="source-block" id="coverage-summary"></div>
+    </section>
+    <section class="issues" id="issues-summary" aria-label="来源问题"></section>
+    <details class="whitelist"><summary>整份报告的类别与风险计数</summary><pre id="summary-buckets"></pre></details>
+    <section class="workspace" aria-labelledby="findings-heading">
+      <div class="filters">
+        <div class="search-field"><label for="search">搜索相对路径</label><input id="search" type="search" placeholder="按名称或相对路径查找" autocomplete="off" spellcheck="false"></div>
+        <div><label for="scope">scope</label><select id="scope"></select></div>
+        <div><label for="tool">工具键</label><select id="tool"></select></div>
+        <div><label for="category">类别</label><select id="category"></select></div>
+        <div><label for="risk">风险</label><select id="risk"><option value="all">全部风险</option><option>low</option><option>review</option><option>high</option><option>protected</option></select></div>
+        <button type="button" id="reset-filters">重置筛选</button>
+      </div>
+      <div class="list-toolbar"><div><h2 id="findings-heading">观察条目 <span id="visible-count" aria-live="polite">0 / 0</span></h2><p>筛选结果单独计数，来源总量保持原值。</p></div><div class="sort-field"><label for="sort">排序</label><select id="sort"><option value="size_desc">大小从大到小</option><option value="size_asc">大小从小到大</option><option value="name_asc">名称升序</option></select></div></div>
+      <div class="column-labels" aria-hidden="true"><span>相对路径</span><span>scope / 工具</span><span>风险 / 分类</span><span class="align-right">逻辑大小</span><span></span></div>
+      <ul class="finding-list" id="finding-list" aria-label="报告条目"></ul>
+      <div id="empty-state" class="empty-state" hidden><strong id="empty-title"></strong><p>没有观察条目不表示磁盘为空。可重置筛选或选择另一份快照。</p></div>
+      <footer class="list-footer"><span>路径仅作文本展示</span><span>来源总量非本页求和</span></footer>
+    </section>
+    <section class="export-block" aria-labelledby="export-title">
+      <div class="export-heading"><div><p class="eyebrow">默认脱敏 / 完整报告</p><h2 id="export-title">下载前预览</h2></div><a id="download" class="download-button" href="/exports/1.json" download>下载脱敏报告</a></div>
+      <p>已去除直接标识、路径、工具信息与自由文本。局部序号仍保留结构关联，精确数量、大小与顺序仍可能关联来源；不保证匿名。</p>
+      <p>下方是当前快照的完整 Q 原文本；筛选不会改变下载内容。</p>
+      <pre id="export-preview" tabindex="0" aria-label="完整脱敏 JSON 预览"></pre>
+    </section>
+    <p class="page-note">调用方内存供数 · 本页没有发起新扫描，未接真实用户目录。</p>
+  </main>
+  <dialog id="detail" class="detail-panel" aria-labelledby="detail-title">
+    <div class="detail-header"><span class="eyebrow">报告详情</span><button type="button" id="detail-close">关闭</button></div>
+    <p class="readonly-badge">受控来源 · 只读</p><h2 id="detail-title"></h2><p class="subtitle">非真实用户目录 · 完整 E 展示字段</p>
+    <dl id="detail-fields"></dl><p class="keyboard-hint"><kbd>Esc</kbd> 关闭并返回原按钮</p>
+  </dialog>
+</body>
+</html>

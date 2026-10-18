@@ -1,0 +1,80 @@
+import { assertReviewBundle, selectFindings, formatBytes, exportText } from './model.mjs';
+
+const byId = id => document.getElementById(id);
+const controls = Object.fromEntries(['query','scope','tool','category','risk','sort'].map(key => [key, byId(key === 'query' ? 'search' : key)]));
+const dialog = byId('detail');
+let bundle, current, returnFocus;
+function node(tag, className, value) {
+  const result = document.createElement(tag);
+  if (className) result.className = className;
+  if (value !== undefined) result.textContent = String(value);
+  return result;
+}
+function set(id, value) { byId(id).textContent = String(value); }
+function option(value, label) { const n = node('option', '', label); n.value = value; return n; }
+function bytes(value) { return value === null ? '未知' : `${formatBytes(value)} · ${value} B`; }
+function reset() {
+  controls.query.value = '';
+  for (const k of ['scope','tool','category','risk']) controls[k].value = 'all';
+  controls.sort.value = 'size_desc';
+}
+function detail(f, button) {
+  returnFocus = button;
+  set('detail-title', f.title);
+  byId('detail-fields').replaceChildren(...Object.entries(f).flatMap(([key, value]) => [
+    node('dt', '', key), node('dd', '', typeof value === 'string' ? value : JSON.stringify(value, null, 2)),
+  ]));
+  dialog.showModal();
+}
+function renderList() {
+  const filters = Object.fromEntries(Object.entries(controls).map(([k, n]) => [k, n.value]));
+  const findings = selectFindings(current.view, filters);
+  set('visible-count', `${findings.length} / ${current.view.findings.length}`);
+  byId('finding-list').replaceChildren(...findings.map(f => {
+    const row = node('li', 'finding-row'); row.dataset.findingId = f.id;
+    const main = node('div', 'finding-main'); main.append(node('span', 'finding-title', f.title), node('span', 'finding-note', f.evidence));
+    const tool = node('div', 'finding-tool', f.scope_id); tool.append(node('span', '', `${f.tool_name} · ${f.tool_id}`));
+    const meta = node('div', 'finding-meta'); meta.append(node('span', 'risk-label', f.risk), node('small', '', f.category));
+    const button = node('button', 'detail-button', '详情'); button.type = 'button'; button.setAttribute('aria-label', `详情：${f.title}`);
+    button.addEventListener('click', () => detail(f, button));
+    row.append(main, tool, meta, node('div', 'finding-size', bytes(f.logical_bytes)), button);
+    return row;
+  }));
+  byId('empty-state').hidden = findings.length !== 0;
+  set('empty-title', current.view.findings.length ? '没有符合筛选的条目' : current.view.status === 'cancelled' ? '来源已取消，未提供观察条目' : '来源没有观察条目');
+}
+function renderSnapshot() {
+  current = bundle.snapshots.find(s => s.view.scan_id === byId('snapshot').value);
+  const { view, summary } = current, totals = view.totals;
+  set('status-banner', `${view.status} · ${view.scan_id} · ${view.scopes.length} scope · 覆盖完整=${totals.coverage_complete}`);
+  byId('status-banner').dataset.status = view.status;
+  set('summary-count', summary.counts.findings); set('protected-count', summary.risk_counts.protected);
+  set('unknown-count', view.findings.filter(f => f.logical_bytes === null).length); set('issues-count', summary.counts.issues);
+  set('source-kind', `${current.source_kind} · ${current.source_kind === 'retained_j_capture' ? '保留的 J 受控捕获' : '合成内存样本'}；来源类型为调用方声明，未经真实性认证。本页没有发起新扫描。`);
+  byId('source-totals').replaceChildren(node('h2', '', '来源总量'), node('strong', '', bytes(totals.logical_bytes)),
+    node('p', '', `分配字节 ${bytes(totals.allocated_bytes)}`), node('p', '', `来源方法 ${totals.method} · 非本页求和，筛选不重算`),
+    node('p', '', `scanned_entries=${totals.scanned_entries} · skipped_entries=${totals.skipped_entries}`));
+  byId('coverage-summary').replaceChildren(node('h2', '', '范围覆盖'), ...view.scopes.map(s => node('p', '', `${s.scope_id} · ${s.label} · ${s.platform} · ${s.origin} · ${s.coverage}`)));
+  byId('issues-summary').replaceChildren(node('h2', '', `来源问题 · ${view.issues.length}`), ...view.issues.map(i => node('p', '', `${i.code} · ${i.scope_id} · ${i.relative_path === '' ? 'scope 根' : i.relative_path ?? '未指定路径'} · ${i.message}`)));
+  set('summary-buckets', JSON.stringify({ risk_counts: summary.risk_counts, category_counts: summary.category_counts }, null, 2));
+  controls.scope.replaceChildren(option('all', '全部 scope'), ...view.scopes.map(s => option(s.scope_id, s.scope_id)));
+  controls.tool.replaceChildren(option('all', '全部工具键'), ...[...new Map(view.findings.map(f => [f.tool_id, f.tool_name]))].map(([id, name]) => option(id, `${name} · ${id}`)));
+  controls.category.replaceChildren(option('all', '全部类别'), ...[...new Set(view.findings.map(f => f.category))].map(c => option(c, c)));
+  reset(); renderList();
+  set('export-preview', exportText(bundle, view.scan_id));
+  const ordinal = bundle.snapshots.indexOf(current) + 1;
+  byId('download').setAttribute('href', `/exports/${ordinal}.json`);
+  byId('download').setAttribute('download', `water-report-${ordinal}.json`);
+}
+for (const n of Object.values(controls)) { n.addEventListener('input', renderList); n.addEventListener('change', renderList); }
+byId('reset-filters').addEventListener('click', () => { reset(); renderList(); });
+byId('detail-close').addEventListener('click', () => dialog.close());
+dialog.addEventListener('close', () => returnFocus?.focus());
+byId('snapshot').addEventListener('change', renderSnapshot);
+try {
+  const response = await fetch('/reports.json');
+  if (!response.ok) throw new Error();
+  bundle = await response.json(); assertReviewBundle(bundle);
+  byId('snapshot').replaceChildren(...bundle.snapshots.map(s => option(s.view.scan_id, `${s.view.scan_id} · ${s.view.status}`)));
+  renderSnapshot(); document.body.dataset.ready = 'true';
+} catch { set('status-banner', '报告不可用。仅支持已校验的受控报告。'); byId('download').removeAttribute('href'); }
