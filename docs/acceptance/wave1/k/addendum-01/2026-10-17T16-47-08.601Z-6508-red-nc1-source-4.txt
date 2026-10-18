@@ -1,0 +1,73 @@
+import { createServer } from 'node:http';
+import { readFile, realpath } from 'node:fs/promises';
+import { dirname, isAbsolute, join, relative, resolve } from 'node:path';
+import { fileURLToPath } from 'node:url';
+import { assertSessionBundle } from './model.mjs';
+
+const here = dirname(fileURLToPath(import.meta.url));
+const unavailable = 'Report resource unavailable.';
+const csp = "default-src 'none';script-src 'self';style-src 'self';connect-src 'self';form-action 'none';frame-ancestors 'none';base-uri 'none'";
+
+export async function startServer({ bundle, port = 0 } = {}) {
+  assertSessionBundle(bundle);
+  if (!Number.isInteger(port) || port < 0 || port > 65535) throw new RangeError('Invalid local port');
+  let captured;
+  try {
+    captured = Buffer.from(JSON.stringify({ ...bundle, snapshots: bundle.snapshots.slice(0, 1) }), 'utf8');
+    if (captured.length > 33554432) throw new Error();
+  } catch { throw new Error('Unsupported lab session.'); }
+  const packageDir = await realpath(here);
+  const originalDir = await realpath(resolve(here, '../report-reader'));
+  if (packageDir !== here || originalDir !== resolve(here, '../report-reader')) throw new Error(unavailable);
+  const routes = new Map([
+    ['/', [join(packageDir, 'index.html'), 'text/html; charset=utf-8', packageDir]],
+    ['/styles.css', [join(packageDir, 'styles.css'), 'text/css; charset=utf-8', packageDir]],
+    ['/app.mjs', [join(packageDir, 'app.mjs'), 'text/javascript; charset=utf-8', packageDir]],
+    ['/model.mjs', [join(packageDir, 'model.mjs'), 'text/javascript; charset=utf-8', packageDir]],
+    ['/report-reader/model.mjs', [join(originalDir, 'model.mjs'), 'text/javascript; charset=utf-8', originalDir]],
+  ]);
+  async function fixedFile(route) {
+    const canonical = await realpath(route[0]);
+    const rel = relative(route[2], canonical);
+    if (canonical !== route[0] || rel.startsWith('..') || isAbsolute(rel)) throw new Error(unavailable);
+    return canonical;
+  }
+  for (const route of routes.values()) await fixedFile(route);
+  let expectedHost;
+  const server = createServer(async (req, res) => {
+    res.setHeader('Content-Security-Policy', csp);
+    res.setHeader('X-Content-Type-Options', 'nosniff');
+    res.setHeader('Referrer-Policy', 'no-referrer');
+    res.setHeader('Cache-Control', 'no-store');
+    function fail(status) {
+      if (status === 405) res.setHeader('Allow', 'GET, HEAD');
+      res.writeHead(status, { 'Content-Type': 'text/plain; charset=utf-8', 'Content-Length': Buffer.byteLength(unavailable) });
+      res.end(req.method === 'HEAD' ? undefined : unavailable);
+    }
+    if (req.headers.host !== expectedHost) return fail(403);
+    if (req.method !== 'GET' && req.method !== 'HEAD') return fail(405);
+    const route = routes.get(req.url);
+    if (req.url !== '/sessions.json' && !route) return fail(404);
+    try {
+      const body = req.url === '/sessions.json' ? captured : await readFile(await fixedFile(route));
+      res.writeHead(200, { 'Content-Type': req.url === '/sessions.json' ? 'application/json; charset=utf-8' : route[1], 'Content-Length': body.length });
+      res.end(req.method === 'HEAD' ? undefined : body);
+    } catch { fail(404); }
+  });
+  await new Promise((accept, reject) => {
+    server.once('error', reject);
+    server.listen(port, '127.0.0.1', () => {
+      expectedHost = `127.0.0.1:${server.address().port}`;
+      server.off('error', reject);
+      accept();
+    });
+  });
+  let closing;
+  return { url: `http://${expectedHost}`, async close() {
+    closing ??= new Promise((accept, reject) => {
+      server.close((error) => error ? reject(error) : accept());
+      server.closeAllConnections();
+    });
+    return closing;
+  } };
+}

@@ -1,0 +1,95 @@
+{"binary":"C:\\Program Files\\nodejs\\node.exe","argv":["--test","--test-concurrency=1","--test-reporter=tap","prototypes/lab-reader/tests/model.test.mjs","prototypes/lab-reader/tests/browser.test.mjs"],"exitCode":1,"error":null,"log":"2026-10-18T03-45-32.865Z-20372-red-behavior-expected-red.log"}
+--- stdout ---
+TAP version 13
+# Subtest: reader_session_live_input
+not ok 1 - reader_session_live_input
+  ---
+  duration_ms: 12444.8821
+  type: 'test'
+  location: 'F:\\new\\smaltalk\\water\\.worktrees\\k\\prototypes\\lab-reader\\tests\\browser.test.mjs:95:1'
+  failureType: 'testCodeFailure'
+  error: |-
+    Got unwanted rejection: K_BEHAVIOR K_ROOT_ISSUE_PATH: the real supplied J root issue must reach HTTP and the page
+    Actual message: "Unsupported lab session."
+  code: 'ERR_ASSERTION'
+  name: 'AssertionError'
+  actual:
+  error: 'Unsupported lab session.'
+  stack: |-
+    assertSessionBundle (file:///F:/new/smaltalk/water/.worktrees/k/prototypes/lab-reader/model.mjs:145:19)
+    startServer (file:///F:/new/smaltalk/water/.worktrees/k/prototypes/lab-reader/server.mjs:12:3)
+    file:///F:/new/smaltalk/water/.worktrees/k/prototypes/lab-reader/tests/browser.test.mjs:189:61
+    waitForActual (node:assert:632:21)
+    strict.doesNotReject (node:assert:789:39)
+    TestContext.<anonymous> (file:///F:/new/smaltalk/water/.worktrees/k/prototypes/lab-reader/tests/browser.test.mjs:189:18)
+    process.processTicksAndRejections (node:internal/process/task_queues:104:5)
+    async Test.run (node:internal/test_runner/test:1313:7)
+    async startSubtestAfterBootstrap (node:internal/test_runner/harness:385:3)
+  operator: 'doesNotReject'
+  stack: |-
+    process.processTicksAndRejections (node:internal/process/task_queues:104:5)
+    async TestContext.<anonymous> (file:///F:/new/smaltalk/water/.worktrees/k/prototypes/lab-reader/tests/browser.test.mjs:189:5)
+    async Test.run (node:internal/test_runner/test:1313:7)
+    async startSubtestAfterBootstrap (node:internal/test_runner/harness:385:3)
+  ...
+# Subtest: reader_session_scope_and_layout
+ok 2 - reader_session_scope_and_layout
+  ---
+  duration_ms: 9408.9269
+  type: 'test'
+  ...
+# Subtest: reader_session_contract
+not ok 3 - reader_session_contract
+  ---
+  duration_ms: 60.6288
+  type: 'test'
+  location: 'F:\\new\\smaltalk\\water\\.worktrees\\k\\prototypes\\lab-reader\\tests\\model.test.mjs:39:1'
+  failureType: 'testCodeFailure'
+  error: |-
+    Got unwanted exception: K_BEHAVIOR K_ROOT_ISSUE_PATH: accept the actual J bundle with a scope-root issue
+    Actual message: "Unsupported lab session."
+  code: 'ERR_ASSERTION'
+  name: 'AssertionError'
+  actual:
+  error: 'Unsupported lab session.'
+  stack: |-
+    assertSessionBundle (file:///F:/new/smaltalk/water/.worktrees/k/prototypes/lab-reader/model.mjs:145:19)
+    file:///F:/new/smaltalk/water/.worktrees/k/prototypes/lab-reader/tests/model.test.mjs:105:29
+    getActual (node:assert:611:5)
+    strict.doesNotThrow (node:assert:779:32)
+    TestContext.<anonymous> (file:///F:/new/smaltalk/water/.worktrees/k/prototypes/lab-reader/tests/model.test.mjs:105:10)
+    Test.runInAsyncScope (node:async_hooks:227:14)
+    Test.run (node:internal/test_runner/test:1306:25)
+    Test.start (node:internal/test_runner/test:1177:17)
+    startSubtestAfterBootstrap (node:internal/test_runner/harness:385:17)
+  operator: 'doesNotThrow'
+  stack: |-
+    TestContext.<anonymous> (file:///F:/new/smaltalk/water/.worktrees/k/prototypes/lab-reader/tests/model.test.mjs:105:10)
+    Test.runInAsyncScope (node:async_hooks:227:14)
+    Test.run (node:internal/test_runner/test:1306:25)
+    Test.start (node:internal/test_runner/test:1177:17)
+    startSubtestAfterBootstrap (node:internal/test_runner/harness:385:17)
+  ...
+# Subtest: reader_session_selection
+ok 4 - reader_session_selection
+  ---
+  duration_ms: 11.5492
+  type: 'test'
+  ...
+# Subtest: reader_session_summary
+ok 5 - reader_session_summary
+  ---
+  duration_ms: 2.7518
+  type: 'test'
+  ...
+1..5
+# tests 5
+# suites 0
+# pass 3
+# fail 2
+# cancelled 0
+# skipped 0
+# todo 0
+# duration_ms 22381.5389
+
+--- stderr ---

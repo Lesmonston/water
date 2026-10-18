@@ -1,0 +1,333 @@
+import test from 'node:test';
+import assert from 'node:assert/strict';
+import { request } from 'node:http';
+import { readFileSync } from 'node:fs';
+import { createHash } from 'node:crypto';
+import { startServer } from '../server.mjs';
+import { openBrowser } from '../../../scripts/browser-lab.mjs';
+
+const source = JSON.parse(readFileSync(new URL('../../../contracts/lab-reader-v1/sessions.json', import.meta.url), 'utf8'));
+const cases = JSON.parse(readFileSync(new URL('../../../contracts/lab-reader-v1/cases.json', import.meta.url), 'utf8'));
+const actualBytes = readFileSync(new URL('../../../docs/acceptance/wave1/k/addendum-01/actual-j-regression-bundle.json', import.meta.url));
+assert.equal(actualBytes.length, 169500);
+assert.equal(createHash('sha256').update(actualBytes).digest('hex'), 'd7ba80c113ef357b3ba675a9f51bacd8dc151734a458e6e5b6bdc450e15f9b62');
+const actualJ = JSON.parse(actualBytes);
+const clone = (v) => structuredClone(v);
+const selector = (id) => `[data-testid="${id}"]`;
+const element = (id) => `document.querySelector(${JSON.stringify(selector(id))})`;
+const text = (browser, id) => browser.evaluate(`${element(id)}.textContent`);
+const rowIds = 'Array.from(document.querySelectorAll("[data-finding-id]"), n => n.dataset.findingId)';
+
+// Synthetic memory variants synchronized through facts/report/view, not F captures.
+function callerBundle(second = false) {
+  const b = clone(source), s = b.snapshots[0];
+  s.report.scan_id = s.view.scan_id = second ? 'caller-beta' : 'caller-alpha';
+  const entries = s.source_facts.scopes[0].entries;
+  const files = entries.map((e, i) => e.kind === 'file' ? i : -1).filter((i) => i >= 0);
+  const sizes = [cases.memory_variants.bigint_values[1], cases.memory_variants.bigint_values[0], cases.memory_variants.bigint_values[2], cases.memory_variants.bigint_values[0]];
+  files.forEach((index, n) => {
+    const entry = entries[index];
+    if (n === 0) entry.relative_path = cases.memory_variants.html_relative_path;
+    if (n === 1) entry.relative_path = 'unicode/模型-' + '长'.repeat(160) + '/<script>literal</script>';
+    entry.depth = entry.relative_path.split('/').length;
+    entry.logical_bytes = sizes[n];
+    s.report.findings[index].relative_path = entry.relative_path;
+    s.report.findings[index].size.logical_bytes = sizes[n];
+    Object.assign(s.view.findings[index], { relative_path: entry.relative_path, title: entry.relative_path, logical_bytes: sizes[n] });
+    s.view.findings[index].size.logical_bytes = sizes[n];
+  });
+  if (second) b.snapshots = [b.snapshots[2], s, b.snapshots[1]];
+  return b;
+}
+
+function raw(url, path, { method = 'GET', host } = {}) {
+  const parsed = new URL(url);
+  return new Promise((resolve, reject) => {
+    const req = request({ hostname: '127.0.0.1', port: parsed.port, path, method, headers: { Host: host ?? parsed.host } }, (res) => {
+      const chunks = [];
+      res.on('data', (chunk) => chunks.push(chunk));
+      res.on('end', () => resolve({ status: res.statusCode, headers: res.headers, body: Buffer.concat(chunks).toString('utf8') }));
+    });
+    req.on('error', reject);
+    req.end();
+  });
+}
+
+async function key(browser, name, code, virtualKey) {
+  await browser.send('Input.dispatchKeyEvent', { type: 'keyDown', key: name, code, windowsVirtualKeyCode: virtualKey, ...(name === 'Enter' ? { text: '\r', unmodifiedText: '\r' } : {}) });
+  await browser.send('Input.dispatchKeyEvent', { type: 'keyUp', key: name, code, windowsVirtualKeyCode: virtualKey });
+}
+async function click(browser, css) {
+  const point = await browser.evaluate(`(() => { const n = document.querySelector(${JSON.stringify(css)}); n.scrollIntoView({block:'center'}); const r = n.getBoundingClientRect(); return {x:r.x+r.width/2,y:r.y+r.height/2}; })()`);
+  await browser.send('Input.dispatchMouseEvent', { type: 'mousePressed', button: 'left', clickCount: 1, ...point });
+  await browser.send('Input.dispatchMouseEvent', { type: 'mouseReleased', button: 'left', clickCount: 1, ...point });
+}
+async function choose(browser, id, value) {
+  await browser.evaluate(`(() => {const n=${element(id)}; n.focus(); n.value=${JSON.stringify(value)}; n.dispatchEvent(new Event('change',{bubbles:true}));})()`);
+}
+async function search(browser, value) {
+  await click(browser, selector('search-input'));
+  await browser.evaluate(`${element('search-input')}.select()`);
+  await key(browser, 'Backspace', 'Backspace', 8);
+  if (value) await browser.send('Input.insertText', { text: value });
+}
+async function watch(browser, url) {
+  const observed = { requests: [], exceptions: [], violations: [] };
+  await browser.send('Network.enable');
+  await browser.send('Log.enable');
+  browser.onEvent((event) => {
+    if (event.method === 'Network.requestWillBeSent') observed.requests.push(event.params.request.url);
+    if (event.method === 'Runtime.exceptionThrown') observed.exceptions.push(event.params.exceptionDetails);
+    if (event.method === 'Log.entryAdded' && event.params.entry.level === 'error') {
+      const entry = event.params.entry;
+      // Chrome may ask for its implicit favicon; it is deliberately outside the six routes.
+      if (!(entry.url === url + '/favicon.ico' && entry.text.includes('404'))) observed.violations.push(entry.text);
+    }
+  });
+  await browser.goto(url);
+  await browser.waitFor('document.body.dataset.ready === "true"');
+  return observed;
+}
+async function literal(browser) {
+  assert.equal(await browser.evaluate('document.querySelectorAll("img,script:not([src])").length'), 0, 'K_TEXT_LITERAL: dynamic text must not create img/script elements');
+}
+
+test('reader_session_live_input', async () => {
+  for (const second of [false, true]) {
+    const input = callerBundle(second), captured = clone(input);
+    const server = await startServer({ bundle: input });
+    let browser;
+    try {
+      input.snapshots[0].view.scan_id = 'mutated-after-start';
+      input.snapshots.splice(1);
+      const response = await raw(server.url, '/sessions.json');
+      assert.deepEqual(JSON.parse(response.body), captured, 'K_SERVER_INPUT: serve all caller snapshots from an immutable JSON copy');
+      browser = await openBrowser();
+      const observed = await watch(browser, server.url);
+      const ids = captured.snapshots.map((s) => s.view.scan_id);
+      assert.deepEqual(await browser.evaluate(`Array.from(${element('session-select')}.options, o=>o.value)`), ids, 'K_BEHAVIOR: all caller scan IDs must reach the real page');
+      assert.equal(await browser.evaluate(`${element('session-select')}.value`), ids[0]);
+      for (const s of captured.snapshots) {
+        await choose(browser, 'session-select', s.view.scan_id);
+        await literal(browser);
+        assert.match(await text(browser, 'status-banner'), new RegExp(s.view.status));
+        assert.equal(await text(browser, 'summary-count'), String(s.view.findings.length));
+        assert.equal(await text(browser, 'protected-count'), String(s.view.findings.length));
+        assert.match(await text(browser, 'issues-count'), new RegExp(String(s.summary.counts.issues)));
+        assert.match(await text(browser, 'source-totals'), /未知/, 'K_TOTAL_UNKNOWN: page must preserve source unknown');
+        assert.doesNotMatch(await text(browser, 'source-totals'), /0 B/);
+        assert.match(await text(browser, 'source-totals'), /unavailable/);
+        assert.match(await text(browser, 'source-totals'), /非本页求和/);
+        for (const scope of s.source_facts.scopes) {
+          const coverage = await text(browser, 'coverage-summary');
+          for (const part of [scope.scope_id, scope.coverage, scope.relative_root]) assert(coverage.includes(part), part);
+        }
+        for (const scope of s.source_facts.scopes) for (const issue of scope.issues) {
+          const displayed = await text(browser, 'issues-summary');
+          for (const part of [issue.code, issue.origin, issue.operation]) assert(displayed.includes(part), part);
+          if (issue.origin === 'injected') assert(displayed.includes('注入') && !displayed.includes('真实ACL失败'));
+        }
+        const counts = await text(browser, 'whitelist-counts');
+        for (const [k, v] of Object.entries(s.summary.risk_counts)) assert(counts.includes(`${k}: ${v}`), k);
+        for (const [k, v] of Object.entries(s.summary.category_counts)) assert(counts.includes(`${k}: ${v}`), k);
+      }
+      const active = second ? 'caller-beta' : 'caller-alpha';
+      await choose(browser, 'session-select', active);
+      await literal(browser);
+      assert.deepEqual(await browser.evaluate(rowIds), ['entry-4', 'entry-2', 'entry-3', 'entry-6', 'entry-1', 'entry-5']);
+      await search(browser, 'HTML/<IMG');
+      for (const [id, value] of [['scope-filter', 'scope-1'], ['tool-filter', 'no_tool'], ['category-filter', 'unknown'], ['risk-filter', 'protected']]) await choose(browser, id, value);
+      assert.deepEqual(await browser.evaluate(rowIds), ['entry-2']);
+      assert.match(await text(browser, 'visible-count'), /1 \/ 6/);
+      assert.equal(await text(browser, 'summary-count'), '6');
+      await choose(browser, 'risk-filter', 'low');
+      assert.deepEqual(await browser.evaluate(rowIds), []);
+      assert.equal(await browser.evaluate(`${element('empty-state')}.hidden`), false);
+      await click(browser, selector('empty-reset'));
+      assert.equal((await browser.evaluate(rowIds)).length, 6);
+      assert.equal(await browser.evaluate(`${element('search-input')}.value`), '');
+      for (const id of ['scope-filter', 'tool-filter', 'category-filter', 'risk-filter']) assert.equal(await browser.evaluate(`${element(id)}.value`), 'all');
+      await choose(browser, 'sort-select', 'size_asc');
+      assert.deepEqual(await browser.evaluate(rowIds), ['entry-3', 'entry-6', 'entry-2', 'entry-4', 'entry-1', 'entry-5']);
+      await choose(browser, 'sort-select', 'name_asc');
+      assert.deepEqual((await browser.evaluate(rowIds)).slice(-2), ['entry-1', 'entry-5']);
+      await click(browser, selector('reset-filters'));
+      assert.equal(await browser.evaluate(`${element('sort-select')}.value`), 'size_desc');
+      const trigger = '[data-finding-id="entry-2"] button';
+      await browser.evaluate(`document.querySelector(${JSON.stringify(trigger)}).focus()`);
+      await key(browser, 'Enter', 'Enter', 13);
+      assert.equal(await browser.evaluate(`${element('detail-panel')}.open`), true);
+      await literal(browser);
+      const detail = await text(browser, 'detail-panel');
+      for (const part of ['html/<img src=x onerror=literal>', 'source_tool', 'rule_version', 'scan-report-v1', 'size', '9007199254740993', 'evidence_items', 'references', 'unknown_ownership', 'incomplete_evidence', 'kind', 'file', 'depth', 'identity', 'scope', '受控夹具扫描 · 只读']) assert(detail.includes(part), part);
+      assert.equal(await browser.evaluate('document.activeElement.dataset.testid'), 'detail-close');
+      await browser.screenshot('.local/browser-lab/lab-reader-detail.png');
+      await key(browser, 'Escape', 'Escape', 27);
+      assert.equal(await browser.evaluate(`${element('detail-panel')}.open`), false);
+      assert.equal(await browser.evaluate(`document.activeElement===document.querySelector(${JSON.stringify(trigger)})`), true);
+      await click(browser, trigger);
+      await click(browser, selector('detail-close'));
+      assert.equal(await browser.evaluate(`${element('detail-panel')}.open`), false);
+      assert.equal(await browser.evaluate(`document.activeElement===document.querySelector(${JSON.stringify(trigger)})`), true);
+      await search(browser, 'html');
+      await choose(browser, 'session-select', ids.find((id) => id !== active));
+      assert.equal(await browser.evaluate(`${element('search-input')}.value`), '');
+      assert.equal(await browser.evaluate(`${element('scope-filter')}.value`), 'all');
+      assert.deepEqual(observed.exceptions, []);
+      assert.deepEqual(observed.violations, []);
+      assert(observed.requests.every((url) => url.startsWith(server.url + '/')));
+    } finally {
+      try { await browser?.close(); } finally { await server.close(); }
+    }
+    await assert.rejects(raw(server.url, '/'), { code: 'ECONNREFUSED' });
+  }
+
+  const input = clone(actualJ), before = clone(input);
+  let server, browser;
+  const rootMarker = 'K_BEHAVIOR K_ROOT_ISSUE_PATH: the real supplied J root issue must reach HTTP and the page';
+  try {
+    await assert.doesNotReject(async () => { server = await startServer({ bundle: input }); }, rootMarker);
+    assert.deepEqual(input, before);
+    assert.deepEqual(JSON.parse((await raw(server.url, '/sessions.json')).body), before, 'K_SERVER_INPUT: all 13 actual J snapshots must reach HTTP unchanged');
+    browser = await openBrowser();
+    const observed = await watch(browser, server.url);
+    assert.deepEqual(await browser.evaluate(`Array.from(${element('session-select')}.options, option => option.value)`), before.snapshots.map((s) => s.view.scan_id));
+    assert.equal(await browser.evaluate(`${element('session-select')}.value`), before.snapshots[0].view.scan_id);
+    await choose(browser, 'session-select', 'pipeline-8');
+    assert.match(await text(browser, 'status-banner'), /pipeline-8/);
+    assert.match(await text(browser, 'status-banner'), /entry-budget/);
+    assert.match(await text(browser, 'status-banner'), /partial/);
+    assert.equal(await text(browser, 'summary-count'), '2');
+    assert.equal(await text(browser, 'protected-count'), '2');
+    assert.equal(await text(browser, 'issues-count'), '1');
+    assert.deepEqual(await browser.evaluate(rowIds), ['entry-1', 'entry-2']);
+    const displayed = await text(browser, 'issues-summary');
+    assert(displayed.includes('scope 根'), rootMarker);
+    assert(!displayed.includes('无相对路径'), rootMarker);
+    for (const part of ['scope-1', 'entry_limit', 'origin=policy', 'operation=budget']) assert(displayed.includes(part), part);
+    assert.equal(await browser.evaluate(`${element('issues-summary')}.querySelectorAll('p').length`), 1);
+    assert.match(await text(browser, 'source-totals'), /未知/, 'K_TOTAL_UNKNOWN: actual J source totals remain unknown');
+    assert.doesNotMatch(await text(browser, 'source-totals'), /0 B/);
+    assert.match(await text(browser, 'source-totals'), /unavailable/);
+    await literal(browser);
+    await browser.screenshot('.local/browser-lab/lab-reader-root-issue.png');
+    for (const id of ['pipeline-11', 'pipeline-7', 'pipeline-12', 'pipeline-0']) {
+      const snapshot = before.snapshots.find((s) => s.view.scan_id === id);
+      await choose(browser, 'session-select', id);
+      assert.match(await text(browser, 'status-banner'), new RegExp(snapshot.view.status));
+      assert.equal(await text(browser, 'summary-count'), String(snapshot.view.findings.length));
+      assert.equal(await text(browser, 'protected-count'), String(snapshot.view.findings.length));
+      assert.equal(await text(browser, 'issues-count'), String(snapshot.summary.counts.issues));
+      if (id === 'pipeline-11') {
+        assert((await text(browser, 'issues-summary')).includes('无相对路径'));
+        assert(!(await text(browser, 'issues-summary')).includes('scope 根'));
+      }
+      if (id === 'pipeline-7') assert((await text(browser, 'issues-summary')).includes('l1/l2'));
+      if (id === 'pipeline-12') assert((await text(browser, 'issues-summary')).includes('受控注入记录'));
+    }
+    assert.deepEqual(observed.exceptions, []);
+    assert.deepEqual(observed.violations, []);
+    assert(observed.requests.every((url) => url.startsWith(server.url + '/')));
+    assert.deepEqual(input, before);
+  } finally {
+    try { await browser?.close(); } finally { await server?.close(); }
+  }
+
+  // Display-only memory variants, not additional physical captures.
+  for (const [relativePath, expected] of [[null, '无相对路径'], ['parent/文件.txt', 'parent/文件.txt'], ['literal/<img src=x onerror=literal>', 'literal/<img src=x onerror=literal>']]) {
+    const snapshot = clone(actualJ.snapshots.find((s) => s.view.scan_id === 'pipeline-8'));
+    for (const issue of [snapshot.source_facts.scopes[0].issues[0], snapshot.report.issues[0], snapshot.view.issues[0]]) issue.relative_path = relativePath;
+    const variant = { bundle_version: actualJ.bundle_version, snapshots: [snapshot] };
+    const server = await startServer({ bundle: variant });
+    let browser;
+    try {
+      assert.deepEqual(JSON.parse((await raw(server.url, '/sessions.json')).body), variant);
+      browser = await openBrowser();
+      const observed = await watch(browser, server.url);
+      const displayed = await text(browser, 'issues-summary');
+      assert(displayed.includes(expected), rootMarker);
+      assert(!displayed.includes('scope 根'), rootMarker);
+      if (relativePath !== null) assert(!displayed.includes('无相对路径'), rootMarker);
+      await literal(browser);
+      assert.deepEqual(observed.exceptions, []);
+      assert.deepEqual(observed.violations, []);
+      assert(observed.requests.every((url) => url.startsWith(server.url + '/')));
+    } finally {
+      try { await browser?.close(); } finally { await server.close(); }
+    }
+  }
+});
+
+test('reader_session_scope_and_layout', async () => {
+  const expectedError = { name: 'Error', message: 'Unsupported lab session.' };
+  async function rejectsStart(options, error) {
+    let unexpectedlyOpened;
+    try {
+      await assert.rejects((async () => { unexpectedlyOpened = await startServer(options); })(), error);
+    } finally { await unexpectedlyOpened?.close(); }
+  }
+  await rejectsStart(undefined, expectedError);
+  for (const port of [-1, 65536, 0.5, '0', null]) await rejectsStart({ bundle: source, port }, { name: 'RangeError', message: 'Invalid local port' });
+  const bad = clone(source); bad.snapshots[0].summary.counts.findings++;
+  await rejectsStart({ bundle: bad }, expectedError);
+  const server = await startServer({ bundle: callerBundle() });
+  let browser;
+  try {
+    const csp = "default-src 'none';script-src 'self';style-src 'self';connect-src 'self';form-action 'none';frame-ancestors 'none';base-uri 'none'";
+    const routes = new Map([['/', 'text/html'], ['/styles.css', 'text/css'], ['/app.mjs', 'text/javascript'], ['/model.mjs', 'text/javascript'], ['/report-reader/model.mjs', 'text/javascript'], ['/sessions.json', 'application/json']]);
+    for (const [path, type] of routes) {
+      const response = await raw(server.url, path);
+      assert.equal(response.status, 200, path);
+      assert(response.headers['content-type'].startsWith(type));
+      assert.equal(response.headers['content-security-policy'], csp);
+      assert.equal(response.headers['x-content-type-options'], 'nosniff');
+      assert.equal(response.headers['access-control-allow-origin'], undefined);
+      const head = await raw(server.url, path, { method: 'HEAD' });
+      assert.equal(head.status, 200); assert.equal(head.body, '');
+      assert.equal(head.headers['content-length'], response.headers['content-length']);
+      assert.equal((await raw(server.url, path, { method: 'POST' })).status, 405);
+      assert.equal((await raw(server.url, path, { host: 'external.example' })).status, 403);
+      const query = await raw(server.url, path + '?x=1');
+      assert.equal(query.status, 404); assert.equal(query.body, 'Report resource unavailable.');
+    }
+    assert.equal((await raw(server.url, '/report-reader/model.mjs')).body, readFileSync(new URL('../../report-reader/model.mjs', import.meta.url), 'utf8'));
+    for (const host of ['localhost:' + new URL(server.url).port, '127.0.0.1:1', new URL(server.url).host + '.example']) assert.equal((await raw(server.url, '/', { host })).status, 403);
+    for (const path of ['/../README.md', '/%2e%2e/README.md', '/%2E%2E%2fREADME.md', '/%252e%252e/README.md', '/..\\README.md', '/%5c..%5cREADME.md', '/%00', '//sessions.json', '/contracts/lab-reader-v1/sessions.json', '/.git', '/.env', '/tests/', '/server.mjs', '/README.md', '/styles.css/../server.mjs', '/?path=../../README.md', '/index.html', '/app.mjs/', '/reports.json']) {
+      const result = await raw(server.url, path);
+      assert.equal(result.status, 404, path); assert.equal(result.body, 'Report resource unavailable.');
+    }
+    for (const [width, height] of [[1440, 1000], [900, 800]]) {
+      browser = await openBrowser({ width, height });
+      const observed = await watch(browser, server.url);
+      assert.equal(await text(browser, 'readonly-badge'), '受控夹具扫描 · 只读', 'K_BEHAVIOR: persistent scope declaration');
+      assert.equal((await browser.evaluate(rowIds)).length, 6, 'K_BEHAVIOR: supplied snapshot entries');
+      await literal(browser);
+      const layout = await browser.evaluate(`(() => ({width:innerWidth,height:innerHeight,client:document.documentElement.clientWidth,scroll:document.documentElement.scrollWidth,body:document.body.scrollWidth,
+        overflow:Array.from(document.querySelectorAll('body *')).filter(n=>{if(!n.getClientRects().length)return false;const r=n.getBoundingClientRect();return r.left < -1 || r.right > document.documentElement.clientWidth+1;}).map(n=>n.id||n.tagName),
+        labels:Array.from(document.querySelectorAll('input,select')).every(n=>document.querySelector('label[for="'+n.id+'"]')),
+        controls:Array.from(document.querySelectorAll('button')).map(n=>n.textContent.trim()),
+        files:document.querySelectorAll('input[type=file]').length,links:document.querySelectorAll('a[href]').length,
+        external:Array.from(document.querySelectorAll('[src],link[href]')).map(n=>n.src||n.href).filter(u=>!u.startsWith(location.origin+'/')),text:document.body.textContent}))()`);
+      assert.equal(layout.width, width); assert.equal(layout.height, height);
+      assert(layout.scroll <= layout.client && layout.body <= layout.client);
+      assert.deepEqual(layout.overflow, []); assert(layout.labels);
+      assert.equal(layout.files, 0); assert.equal(layout.links, 0); assert.deepEqual(layout.external, []);
+      assert(layout.controls.every((label) => !/^(清理|删除|迁移|扫描|取消扫描|上传|下载|执行|导入)/.test(label)));
+      assert(layout.text.includes('非真实用户目录'));
+      await browser.screenshot(`.local/browser-lab/lab-reader-${width}x${height}.png`);
+      await click(browser, '[data-finding-id="entry-3"] button');
+      assert.equal(await browser.evaluate(`${element('detail-panel')}.open`), true);
+      await literal(browser);
+      assert((await text(browser, 'detail-panel')).includes('<script>literal</script>'));
+      assert.equal(await browser.evaluate('document.documentElement.scrollWidth <= document.documentElement.clientWidth'), true);
+      await key(browser, 'Escape', 'Escape', 27);
+      await browser.evaluate('window.scrollTo(0,document.body.scrollHeight)');
+      assert.equal(await browser.evaluate(`(() => {const r=${element('readonly-badge')}.getBoundingClientRect();return r.top>=0&&r.bottom<=innerHeight;})()`), true);
+      assert.deepEqual(observed.exceptions, []); assert.deepEqual(observed.violations, []);
+      assert(observed.requests.every((url) => url.startsWith(server.url + '/')));
+      await browser.close(); browser = undefined;
+    }
+  } finally {
+    try { await browser?.close(); } finally { await server.close(); }
+  }
+});

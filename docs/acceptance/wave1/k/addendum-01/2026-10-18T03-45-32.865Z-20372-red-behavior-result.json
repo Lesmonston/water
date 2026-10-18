@@ -1,0 +1,330 @@
+{
+  "task": "WATER-W1-K",
+  "mode": "red-behavior",
+  "finalGate": false,
+  "startedAt": "2026-10-18T03:45:37.202Z",
+  "before": {
+    "head": "e717519a14f5d561c0ba18aa7d5299870828aa5a",
+    "status": "M prototypes/lab-reader/README.md\n M prototypes/lab-reader/app.mjs\n M prototypes/lab-reader/tests/browser.test.mjs\n M prototypes/lab-reader/tests/model.test.mjs\n?? docs/acceptance/wave1/k/addendum-01/START-AUDIT.json\n?? docs/acceptance/wave1/k/addendum-01/actual-j-regression-bundle.json"
+  },
+  "node": "v24.16.0",
+  "productTestsRun": true,
+  "frozenFiles": 65,
+  "commands": [
+    {
+      "binary": "git",
+      "argv": [
+        "-c",
+        "core.hooksPath=NUL",
+        "-c",
+        "core.fsmonitor=false",
+        "rev-parse",
+        "--path-format=absolute",
+        "--git-common-dir"
+      ],
+      "exitCode": 0,
+      "error": null
+    },
+    {
+      "binary": "git",
+      "argv": [
+        "-c",
+        "core.hooksPath=NUL",
+        "-c",
+        "core.fsmonitor=false",
+        "branch",
+        "--show-current"
+      ],
+      "exitCode": 0,
+      "error": null
+    },
+    {
+      "binary": "git",
+      "argv": [
+        "-c",
+        "core.hooksPath=NUL",
+        "-c",
+        "core.fsmonitor=false",
+        "merge-base",
+        "--is-ancestor",
+        "bc409f4af8cb2d51b2f67341ad46637cfa5e66f3",
+        "HEAD"
+      ],
+      "exitCode": 0,
+      "error": null
+    },
+    {
+      "binary": "git",
+      "argv": [
+        "-c",
+        "core.hooksPath=NUL",
+        "-c",
+        "core.fsmonitor=false",
+        "diff",
+        "--no-renames",
+        "--name-only",
+        "-z",
+        "bc409f4af8cb2d51b2f67341ad46637cfa5e66f3",
+        "HEAD"
+      ],
+      "exitCode": 0,
+      "error": null
+    },
+    {
+      "binary": "git",
+      "argv": [
+        "-c",
+        "core.hooksPath=NUL",
+        "-c",
+        "core.fsmonitor=false",
+        "diff",
+        "--no-renames",
+        "--name-only",
+        "-z",
+        "HEAD"
+      ],
+      "exitCode": 0,
+      "error": null
+    },
+    {
+      "binary": "git",
+      "argv": [
+        "-c",
+        "core.hooksPath=NUL",
+        "-c",
+        "core.fsmonitor=false",
+        "ls-files",
+        "--others",
+        "--exclude-standard",
+        "-z"
+      ],
+      "exitCode": 0,
+      "error": null
+    },
+    {
+      "binary": "git",
+      "argv": [
+        "-c",
+        "core.hooksPath=NUL",
+        "-c",
+        "core.fsmonitor=false",
+        "rev-parse",
+        "HEAD"
+      ],
+      "exitCode": 0,
+      "error": null
+    },
+    {
+      "binary": "git",
+      "argv": [
+        "-c",
+        "core.hooksPath=NUL",
+        "-c",
+        "core.fsmonitor=false",
+        "status",
+        "--porcelain",
+        "--untracked-files=all"
+      ],
+      "exitCode": 0,
+      "error": null
+    },
+    {
+      "binary": "C:\\Program Files\\nodejs\\node.exe",
+      "argv": [
+        "--test",
+        "--test-concurrency=1",
+        "--test-reporter=tap",
+        "prototypes/lab-reader/tests/model.test.mjs",
+        "prototypes/lab-reader/tests/browser.test.mjs"
+      ],
+      "exitCode": 1,
+      "error": null,
+      "log": "2026-10-18T03-45-32.865Z-20372-red-behavior-expected-red.log"
+    },
+    {
+      "binary": "git",
+      "argv": [
+        "-c",
+        "core.hooksPath=NUL",
+        "-c",
+        "core.fsmonitor=false",
+        "branch",
+        "--show-current"
+      ],
+      "exitCode": 0,
+      "error": null,
+      "log": "2026-10-18T03-45-32.865Z-20372-red-behavior-1.log"
+    },
+    {
+      "binary": "git",
+      "argv": [
+        "-c",
+        "core.hooksPath=NUL",
+        "-c",
+        "core.fsmonitor=false",
+        "merge-base",
+        "--is-ancestor",
+        "bc409f4af8cb2d51b2f67341ad46637cfa5e66f3",
+        "HEAD"
+      ],
+      "exitCode": 0,
+      "error": null,
+      "log": "2026-10-18T03-45-32.865Z-20372-red-behavior-2.log"
+    },
+    {
+      "binary": "git",
+      "argv": [
+        "-c",
+        "core.hooksPath=NUL",
+        "-c",
+        "core.fsmonitor=false",
+        "diff",
+        "--no-renames",
+        "--name-only",
+        "-z",
+        "bc409f4af8cb2d51b2f67341ad46637cfa5e66f3",
+        "HEAD"
+      ],
+      "exitCode": 0,
+      "error": null,
+      "log": "2026-10-18T03-45-32.865Z-20372-red-behavior-3.log"
+    },
+    {
+      "binary": "git",
+      "argv": [
+        "-c",
+        "core.hooksPath=NUL",
+        "-c",
+        "core.fsmonitor=false",
+        "diff",
+        "--no-renames",
+        "--name-only",
+        "-z",
+        "HEAD"
+      ],
+      "exitCode": 0,
+      "error": null,
+      "log": "2026-10-18T03-45-32.865Z-20372-red-behavior-4.log"
+    },
+    {
+      "binary": "git",
+      "argv": [
+        "-c",
+        "core.hooksPath=NUL",
+        "-c",
+        "core.fsmonitor=false",
+        "ls-files",
+        "--others",
+        "--exclude-standard",
+        "-z"
+      ],
+      "exitCode": 0,
+      "error": null,
+      "log": "2026-10-18T03-45-32.865Z-20372-red-behavior-5.log"
+    },
+    {
+      "binary": "git",
+      "argv": [
+        "-c",
+        "core.hooksPath=NUL",
+        "-c",
+        "core.fsmonitor=false",
+        "rev-parse",
+        "HEAD"
+      ],
+      "exitCode": 0,
+      "error": null,
+      "log": "2026-10-18T03-45-32.865Z-20372-red-behavior-6.log"
+    },
+    {
+      "binary": "git",
+      "argv": [
+        "-c",
+        "core.hooksPath=NUL",
+        "-c",
+        "core.fsmonitor=false",
+        "status",
+        "--porcelain",
+        "--untracked-files=all"
+      ],
+      "exitCode": 0,
+      "error": null,
+      "log": "2026-10-18T03-45-32.865Z-20372-red-behavior-7.log"
+    }
+  ],
+  "assets": {
+    "actualCaptures": 4,
+    "provenance": "413ed914e65e002cd517216fc62c250bceb96c595afaffa0fc2cf4528ff096e4",
+    "newJImplementationTested": false,
+    "newKProductTested": false
+  },
+  "sourceState": {
+    "files": [
+      {
+        "path": "prototypes/lab-reader/index.html",
+        "sha256": "93fec288a171b6ee71c20acc017712b2b51ffb2c301235e4f320dccc1da919c3",
+        "mtimeMs": 1792255824740.5435,
+        "snapshot": "2026-10-18T03-45-32.865Z-20372-red-behavior-source-0.txt",
+        "test": false
+      },
+      {
+        "path": "prototypes/lab-reader/styles.css",
+        "sha256": "1e810bda416ac4390b869b4f3f5bd0d9a7101d3345e10f60e0e92cfc3fae0ac1",
+        "mtimeMs": 1792255824742.7053,
+        "snapshot": "2026-10-18T03-45-32.865Z-20372-red-behavior-source-1.txt",
+        "test": false
+      },
+      {
+        "path": "prototypes/lab-reader/app.mjs",
+        "sha256": "796e9cfa20fb20851d40be2f7a04a8f0fba97ee673917d7918a63f36e86eaac4",
+        "mtimeMs": 1792295029755.6604,
+        "snapshot": "2026-10-18T03-45-32.865Z-20372-red-behavior-source-2.txt",
+        "test": false
+      },
+      {
+        "path": "prototypes/lab-reader/model.mjs",
+        "sha256": "d507a7411a4a387f8e2d3d1ae701a4aad33af73d7b8fd68458286b955f668138",
+        "mtimeMs": 1792295132627.7092,
+        "snapshot": "2026-10-18T03-45-32.865Z-20372-red-behavior-source-3.txt",
+        "test": false
+      },
+      {
+        "path": "prototypes/lab-reader/server.mjs",
+        "sha256": "cf92f6af5872020f0ee0e6db85d20b198e5e33c814b2d652fc58db10180567e4",
+        "mtimeMs": 1792255870210.3352,
+        "snapshot": "2026-10-18T03-45-32.865Z-20372-red-behavior-source-4.txt",
+        "test": false
+      },
+      {
+        "path": "prototypes/lab-reader/tests/model.test.mjs",
+        "sha256": "a18157bda8f63faad7a9e02549bafee19b81d3299a04c15771daa57d6f5ab1e0",
+        "mtimeMs": 1792294984007.7068,
+        "snapshot": "2026-10-18T03-45-32.865Z-20372-red-behavior-source-5.txt",
+        "test": true
+      },
+      {
+        "path": "prototypes/lab-reader/tests/browser.test.mjs",
+        "sha256": "c445d8f2c18d6093890fae45630b53966688573152feb834c80c2d90e8434766",
+        "mtimeMs": 1792294965129.614,
+        "snapshot": "2026-10-18T03-45-32.865Z-20372-red-behavior-source-6.txt",
+        "test": true
+      }
+    ],
+    "productionHash": "308692250b1e419f6a6410a9dfe30a5f3996279b1af06bcc09b8ac19cc8808d3",
+    "testHash": "18a1824843a65366f5e232515fe3e1133534ad1a50fdbe627412d8dbe8e8b6d7"
+  },
+  "observedExpectedFailure": true,
+  "expectation": {
+    "label": "behavior",
+    "target": "K_BEHAVIOR",
+    "testExitCode": 1
+  },
+  "executedTests": 5,
+  "after": {
+    "head": "e717519a14f5d561c0ba18aa7d5299870828aa5a",
+    "status": "M prototypes/lab-reader/README.md\n M prototypes/lab-reader/app.mjs\n M prototypes/lab-reader/tests/browser.test.mjs\n M prototypes/lab-reader/tests/model.test.mjs\n?? docs/acceptance/wave1/k/addendum-01/START-AUDIT.json\n?? docs/acceptance/wave1/k/addendum-01/actual-j-regression-bundle.json"
+  },
+  "endedAt": "2026-10-18T03:46:05.232Z",
+  "status": "passed",
+  "error": null
+}

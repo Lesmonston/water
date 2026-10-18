@@ -2,11 +2,16 @@ import test from 'node:test';
 import assert from 'node:assert/strict';
 import { request } from 'node:http';
 import { readFileSync } from 'node:fs';
+import { createHash } from 'node:crypto';
 import { startServer } from '../server.mjs';
 import { openBrowser } from '../../../scripts/browser-lab.mjs';
 
 const source = JSON.parse(readFileSync(new URL('../../../contracts/lab-reader-v1/sessions.json', import.meta.url), 'utf8'));
 const cases = JSON.parse(readFileSync(new URL('../../../contracts/lab-reader-v1/cases.json', import.meta.url), 'utf8'));
+const actualBytes = readFileSync(new URL('../../../docs/acceptance/wave1/k/addendum-01/actual-j-regression-bundle.json', import.meta.url));
+assert.equal(actualBytes.length, 169500);
+assert.equal(createHash('sha256').update(actualBytes).digest('hex'), 'd7ba80c113ef357b3ba675a9f51bacd8dc151734a458e6e5b6bdc450e15f9b62');
+const actualJ = JSON.parse(actualBytes);
 const clone = (v) => structuredClone(v);
 const selector = (id) => `[data-testid="${id}"]`;
 const element = (id) => `document.querySelector(${JSON.stringify(selector(id))})`;
@@ -175,6 +180,81 @@ test('reader_session_live_input', async () => {
       try { await browser?.close(); } finally { await server.close(); }
     }
     await assert.rejects(raw(server.url, '/'), { code: 'ECONNREFUSED' });
+  }
+
+  const input = clone(actualJ), before = clone(input);
+  let server, browser;
+  const rootMarker = 'K_BEHAVIOR K_ROOT_ISSUE_PATH: the real supplied J root issue must reach HTTP and the page';
+  try {
+    await assert.doesNotReject(async () => { server = await startServer({ bundle: input }); }, rootMarker);
+    assert.deepEqual(input, before);
+    assert.deepEqual(JSON.parse((await raw(server.url, '/sessions.json')).body), before, 'K_SERVER_INPUT: all 13 actual J snapshots must reach HTTP unchanged');
+    browser = await openBrowser();
+    const observed = await watch(browser, server.url);
+    assert.deepEqual(await browser.evaluate(`Array.from(${element('session-select')}.options, option => option.value)`), before.snapshots.map((s) => s.view.scan_id));
+    assert.equal(await browser.evaluate(`${element('session-select')}.value`), before.snapshots[0].view.scan_id);
+    await choose(browser, 'session-select', 'pipeline-8');
+    assert.match(await text(browser, 'status-banner'), /pipeline-8/);
+    assert.match(await text(browser, 'status-banner'), /entry-budget/);
+    assert.match(await text(browser, 'status-banner'), /partial/);
+    assert.equal(await text(browser, 'summary-count'), '2');
+    assert.equal(await text(browser, 'protected-count'), '2');
+    assert.equal(await text(browser, 'issues-count'), '1');
+    assert.deepEqual(await browser.evaluate(rowIds), ['entry-1', 'entry-2']);
+    const displayed = await text(browser, 'issues-summary');
+    assert(displayed.includes('scope 根'), rootMarker);
+    assert(!displayed.includes('无相对路径'), rootMarker);
+    for (const part of ['scope-1', 'entry_limit', 'origin=policy', 'operation=budget']) assert(displayed.includes(part), part);
+    assert.equal(await browser.evaluate(`${element('issues-summary')}.querySelectorAll('p').length`), 1);
+    assert.match(await text(browser, 'source-totals'), /未知/, 'K_TOTAL_UNKNOWN: actual J source totals remain unknown');
+    assert.doesNotMatch(await text(browser, 'source-totals'), /0 B/);
+    assert.match(await text(browser, 'source-totals'), /unavailable/);
+    await literal(browser);
+    await browser.screenshot('.local/browser-lab/lab-reader-root-issue.png');
+    for (const id of ['pipeline-11', 'pipeline-7', 'pipeline-12', 'pipeline-0']) {
+      const snapshot = before.snapshots.find((s) => s.view.scan_id === id);
+      await choose(browser, 'session-select', id);
+      assert.match(await text(browser, 'status-banner'), new RegExp(snapshot.view.status));
+      assert.equal(await text(browser, 'summary-count'), String(snapshot.view.findings.length));
+      assert.equal(await text(browser, 'protected-count'), String(snapshot.view.findings.length));
+      assert.equal(await text(browser, 'issues-count'), String(snapshot.summary.counts.issues));
+      if (id === 'pipeline-11') {
+        assert((await text(browser, 'issues-summary')).includes('无相对路径'));
+        assert(!(await text(browser, 'issues-summary')).includes('scope 根'));
+      }
+      if (id === 'pipeline-7') assert((await text(browser, 'issues-summary')).includes('l1/l2'));
+      if (id === 'pipeline-12') assert((await text(browser, 'issues-summary')).includes('受控注入记录'));
+    }
+    assert.deepEqual(observed.exceptions, []);
+    assert.deepEqual(observed.violations, []);
+    assert(observed.requests.every((url) => url.startsWith(server.url + '/')));
+    assert.deepEqual(input, before);
+  } finally {
+    try { await browser?.close(); } finally { await server?.close(); }
+  }
+
+  // Display-only memory variants, not additional physical captures.
+  for (const [relativePath, expected] of [[null, '无相对路径'], ['parent/文件.txt', 'parent/文件.txt'], ['literal/<img src=x onerror=literal>', 'literal/<img src=x onerror=literal>']]) {
+    const snapshot = clone(actualJ.snapshots.find((s) => s.view.scan_id === 'pipeline-8'));
+    for (const issue of [snapshot.source_facts.scopes[0].issues[0], snapshot.report.issues[0], snapshot.view.issues[0]]) issue.relative_path = relativePath;
+    const variant = { bundle_version: actualJ.bundle_version, snapshots: [snapshot] };
+    const server = await startServer({ bundle: variant });
+    let browser;
+    try {
+      assert.deepEqual(JSON.parse((await raw(server.url, '/sessions.json')).body), variant);
+      browser = await openBrowser();
+      const observed = await watch(browser, server.url);
+      const displayed = await text(browser, 'issues-summary');
+      assert(displayed.includes(expected), rootMarker);
+      assert(!displayed.includes('scope 根'), rootMarker);
+      if (relativePath !== null) assert(!displayed.includes('无相对路径'), rootMarker);
+      await literal(browser);
+      assert.deepEqual(observed.exceptions, []);
+      assert.deepEqual(observed.violations, []);
+      assert(observed.requests.every((url) => url.startsWith(server.url + '/')));
+    } finally {
+      try { await browser?.close(); } finally { await server.close(); }
+    }
   }
 });
 
