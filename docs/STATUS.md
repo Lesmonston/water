@@ -21,9 +21,15 @@
 
 ## 下一步
 
-A–Q及五补单均VERIFIED（Windows受控范围），无未结外贴票。P范围登记/进程内许可与Q默认脱敏内存报告已通过独立复验和隔离集成；原生用户选择、permit到有界遍历、桌面文件保存/macOS/删除未验收，M1仍未完成。原票不重贴，见[P/Q验收报告](acceptance/wave1/controller/WATER-W1-PQ-REVIEW-20261018.md)。
+A–Q及五补单保持VERIFIED（Windows受控范围）；R许可约束的原生遍历→A报告→Q脱敏纵向单已冻结、建独立树并通过实际离线baseline，READY待用户外贴。新R产品未实现、五测试未运行，无自动实现者，M1仍未完成。旧票不重贴，见[R正式派前回执](dispatch/wave1/NATIVE-SCAN-READY-REPORT.md)。
 
-## P/Q独立验收及隔离集成通过（2026-10-18，最新）
+## R原生遍历派前通过（2026-10-18，最新）
+
+独立r树/worker分支共同精确基线dd09c3b8801b86a0059f3fb73fe8a250acb1d89e，61新锁条目/十旧锁合计255唯一冻结、初始干净/产品目录不存在与实际offline baseline通过。真实P/N许可根ID→原生枚举句柄ID、父句柄单名Nt打开、硬链接ID相同/14字节逻辑长度、junction自身打开及根一层7个名称通过；真实已验收Q/A/H桥接24报告/9错误通过。详[派前回执](dispatch/wave1/NATIVE-SCAN-READY-REPORT.md)。
+
+R新产品未实现、递归和五测试未运行，无自动实现者，READY不等于已外贴/RUNNING。R将许可、原生有界元数据、A保守报告与Q脱敏接为纵向单；原生选择器另单。仅本次controller与r新固定fixture，旧227冻结/旧产品/任务对象/根Cargo和旧现场保持；无普通内容读取/真实用户数据、删除或cleanup。M1用户闭环、恶意竞态、macOS和桌面保存仍未完成。
+
+## P/Q独立验收及隔离集成通过（2026-10-18，历史收口）
 
 P接收39dfdfd/原受测2e963bb，Q接收d6e135d/原受测d46b93d，隔离受测c88c557。两票原各五final复跑、新私有离线target各五测试/格式/clippy/metadata/真实公开桥接通过；各三真实生产负控逐次完整五红/恢复五绿，六个独立生命周期/脱敏关联与来源校验测试、P 24/Q 3编译拒绝及两个成功对照通过。227唯一冻结和755份worker交付原字节保持，详[P/Q验收报告](acceptance/wave1/controller/WATER-W1-PQ-REVIEW-20261018.md)。
 

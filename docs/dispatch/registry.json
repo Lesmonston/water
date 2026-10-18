@@ -4,7 +4,7 @@
   "mode": "manual-external-paste",
   "controller": "Codex",
   "projectRoot": "F:/new/smaltalk/water",
-  "stage": "wave1-abcdefghijklmnopq-verified",
+  "stage": "wave1-abcdefghijklmnopq-verified-r-ready",
   "activeWave": "water-wave1",
   "slots": [
     {
@@ -142,6 +142,14 @@
       "baseline": "34badd897b8983cffbb57e03a9df9e6af52f7b8f",
       "task": "WATER-W1-Q",
       "state": "verified-preserved"
+    },
+    {
+      "id": "r",
+      "path": "F:/new/smaltalk/water/.worktrees/r",
+      "branch": "worker/water-w1-r",
+      "baseline": "dd09c3b8801b86a0059f3fb73fe8a250acb1d89e",
+      "task": "WATER-W1-R",
+      "state": "ready-awaiting-user-paste"
     }
   ],
   "tasks": [
@@ -1591,8 +1599,84 @@
       "integrationTestedCommit": "c88c557625630e079870f2b801e2d2fd50215174",
       "integrationReceipt": "docs/acceptance/wave1/controller/w1-pq-review-20261018/integration/2026-10-18T11-10-36.200Z-43252-result.json",
       "verificationScope": "Original five final gates replayed; fresh private offline target repeats five tests/fmt/clippy/metadata/real Q-A-H bridge over 24 goldens and nine raw errors, three actual-source full-five red/restore/green controls, three independent redaction invariance/association/source validation tests, three compile rejections with Serialize positive control. Pure memory; no export file/UI, fresh scan, macOS or anonymity guarantee."
+    },
+    {
+      "id": "WATER-W1-R",
+      "title": "Permit-bound Windows native metadata scan and redacted report",
+      "status": "READY",
+      "kind": "native_scan",
+      "slot": "r",
+      "worktree": "F:/new/smaltalk/water/.worktrees/r",
+      "branch": "worker/water-w1-r",
+      "baseCommit": "dd09c3b8801b86a0059f3fb73fe8a250acb1d89e",
+      "snapshotRef": "refs/tags/water-w1-native-scan-base-20261018",
+      "ticket": "docs/dispatch/tickets/WATER-W1-R-NATIVE-SCAN-20261018.md",
+      "report": "docs/dispatch/reports/WATER-W1-R-REPORT.md",
+      "helper": "scripts/native-scan-check.mjs",
+      "workerRules": "docs/dispatch/W1-NATIVE-SCAN-WORKER-RULES.md",
+      "contractLock": "contracts/native-scan-v1/freeze.lock.json",
+      "outputRoot": "packages/native-scan",
+      "packageName": "water-native-scan",
+      "crateName": "water_native_scan",
+      "testTarget": "native_scan_v1",
+      "testFile": "packages/native-scan/tests/native_scan_v1.rs",
+      "testFiles": [
+        "packages/native-scan/tests/native_scan_v1.rs"
+      ],
+      "expectedTests": [
+        "native_scope_and_identity",
+        "native_directory_decoding",
+        "native_metadata_no_follow",
+        "native_budgets_and_cancellation",
+        "native_report_and_redaction"
+      ],
+      "expectedBrowserTests": [],
+      "expectedFinalModes": [
+        "fmt",
+        "test",
+        "clippy",
+        "metadata",
+        "bridge"
+      ],
+      "proofTargets": {
+        "behavior": "R_BEHAVIOR",
+        "nc1": "R_ROOT_BINDING",
+        "nc2": "R_NO_FOLLOW",
+        "nc3": "R_CANCELLED"
+      },
+      "allowedFiles": [
+        "packages/native-scan/Cargo.toml",
+        "packages/native-scan/Cargo.lock",
+        "packages/native-scan/README.md",
+        "packages/native-scan/tests/native_scan_v1.rs",
+        "docs/dispatch/reports/WATER-W1-R-REPORT.md"
+      ],
+      "allowedPrefixes": [
+        "packages/native-scan/src/",
+        "docs/acceptance/wave1/r/"
+      ],
+      "allowLockfileGeneration": true,
+      "cargoCacheSource": "F:/new/smaltalk/water/.worktrees/a/.local/cargo-home/registry",
+      "dependsOn": [
+        "WATER-W1-A",
+        "WATER-W1-N",
+        "WATER-W1-P",
+        "WATER-W1-Q"
+      ],
+      "model": null,
+      "modelAssignment": "user-arranged; worker reports actual engine/model",
+      "dispatchedAt": null,
+      "startedAt": null,
+      "baselineStatus": "PASSED",
+      "newProductTestsRun": false,
+      "physicalFixturePermission": true,
+      "preflightEvidence": "docs/dispatch/wave1/NATIVE-SCAN-READY-REPORT.md",
+      "macOS": "unverified",
+      "baselineEvidence": "docs/acceptance/wave1/controller/w1-native-scan-preflight-20261018/r/2026-10-18T11-54-08.686Z-29488-baseline-result.json",
+      "readyOn": "2026-10-18",
+      "readinessScope": "Windows x64 Node24/Rust1.95/MSVC, private offline real P/N/A native root binding, relative NT opens, hardlink ID and 14-byte length, no-follow junction, bounded one-level directory names and actual accepted Q/A/H 24 reports/9 errors. No R product, recursive scan, new five tests or native picker."
     }
   ],
   "testHelper": "per-task helper; A defaults unchanged",
-  "note": "A-Q and five addenda VERIFIED within Windows controlled scope. No outstanding external tickets; P in-process scope lifecycle and Q default structural redaction accepted. No native user gesture/picker, permit-bound traversal, desktop file export, real-user scope, macOS or deletion validation; M1 incomplete."
+  "note": "A-Q and five addenda remain VERIFIED. R permit-bound native scan READY after exact-base private offline native ABI/dependency baseline; await user paste, no automatic implementer. Native picker/real user gesture, real-user scope, desktop/macOS/deletion and M1 incomplete."
 }

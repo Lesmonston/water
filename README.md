@@ -2,7 +2,7 @@
 
 面向 Windows、macOS AI 开发者的本地存储分析与安全清理助手。
 
-**当前阶段：A–Q及五补单均VERIFIED（Windows受控范围），无未结外贴票。P范围登记/进程内许可与Q默认脱敏内存报告已通过独立复验和隔离集成；原生用户选择、permit到有界遍历、桌面文件保存/macOS/删除未验收，M1仍未完成。**
+**当前阶段：A–Q及五补单保持VERIFIED（Windows受控范围）；R许可约束的原生遍历→A报告→Q脱敏纵向单已冻结、建独立树并通过实际离线baseline，READY待用户外贴。新R产品未实现、五测试未运行，无自动实现者，M1仍未完成。**
 
 用户指定本项目所有后续开发均位于 `smaltalk/water`，由 Codex 担任总控。
 
@@ -35,7 +35,7 @@ Water 的发布许可证、定价与商标名称尚未最终确定；`water` 是
 
 ## 当前外贴与在途
 
-P/Q已验收并集成，原票不重贴；见[P/Q验收报告](docs/acceptance/wave1/controller/WATER-W1-PQ-REVIEW-20261018.md)。当前无待贴/在途工单；下一阶段按ADR-011推进原生选择到有界元数据遍历与桌面导出接线。下面为旧批次记录。
+当前外贴[R原生遍历工单](docs/dispatch/tickets/WATER-W1-R-NATIVE-SCAN-20261018.md)，在新r执行对话实现；[实际派前回执](docs/dispatch/wave1/NATIVE-SCAN-READY-REPORT.md)已归档。R不接原生选择器或桌面保存，旧票不重贴。下面为旧批次记录。
 
 [本次J/K安排](docs/dispatch/wave1/SESSION-BATCH-PLAN-20261018.md)及[实际派前回执](docs/dispatch/wave1/SESSION-BATCH-READY-REPORT.md)：两树独立、同一冻结r1基线；J已通过[独立验收及集成](docs/acceptance/wave1/controller/WATER-W1-J-REVIEW-20261018.md)，K[补充单01已通过独立复验及真实J→K页面集成](docs/acceptance/wave1/controller/WATER-W1-K-ADDENDUM-01-REVIEW-20261018.md)，原失败历史保留。J只组合现有受控链路，K从调用方接内存快照。A–I及四补单无需重贴；W2–W5/真实scope/桌面/macOS属于后续规划，未伪装成待派READY单。
 
@@ -43,4 +43,4 @@ P/Q已验收并集成，原票不重贴；见[P/Q验收报告](docs/acceptance/w
 
 Codex负责架构、规划、契约、工单和验收；用户把总控准备好的一行指令转贴给执行者；执行者在独立工作树提交代码与回执，总控复核后集成。见 [派单登记](docs/dispatch/registry.json) 与 [本轮计划](docs/dispatch/wave1/PLAN.md)：A–I已验收集成，总控没有自动代替用户启动实现者或修产品代码。
 
-[L/M单票及隔离集成验收](docs/acceptance/wave1/controller/WATER-W1-LM-REVIEW-20261018.md)已完成，原正式票无需重贴。P/Q也已VERIFIED，当前无未结外贴票。后续新票仍须冻结契约、独立树和实际基线后由用户转贴。
+[L/M单票及隔离集成验收](docs/acceptance/wave1/controller/WATER-W1-LM-REVIEW-20261018.md)已完成，原正式票无需重贴。P/Q也已VERIFIED；R新增READY待用户外贴，尚无新执行者启动证据。收单后仍由总控独立验收集成。
