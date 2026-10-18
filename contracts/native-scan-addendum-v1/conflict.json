@@ -1,0 +1,113 @@
+{
+  "task": "WATER-W1-R",
+  "blocker": "R-001",
+  "evidenceKind": "static_source_analysis_only",
+  "executed": false,
+  "sourceCommit": "dd09c3b8801b86a0059f3fb73fe8a250acb1d89e",
+  "input_report": {
+    "schema_version": "water.scan.v1",
+    "scan_id": "native-conflict-review",
+    "status": "completed",
+    "scopes": [
+      {
+        "scope_id": "scope-native",
+        "label": "Selected directory",
+        "platform": "windows",
+        "origin": "user_selected",
+        "coverage": "complete"
+      }
+    ],
+    "findings": [
+      {
+        "finding_id": "entry-1",
+        "scope_id": "scope-native",
+        "relative_path": "dir",
+        "tool": null,
+        "rule_version": "native-scan-v1",
+        "category": "unknown",
+        "risk": "protected",
+        "recoverability": "unknown",
+        "activity": "unknown",
+        "confidence": "unknown",
+        "evidence": [
+          {
+            "code": "unknown",
+            "source": "filesystem",
+            "summary": "Native metadata observation only; classification and ownership are unverified."
+          }
+        ],
+        "protection_reasons": [
+          "unknown_ownership",
+          "incomplete_evidence"
+        ],
+        "references": {
+          "state": "unknown",
+          "project_ids": []
+        },
+        "size": {
+          "logical_bytes": null,
+          "allocated_bytes": null,
+          "reclaimable_lower_bytes": null,
+          "reclaimable_upper_bytes": null,
+          "method": "unknown",
+          "confidence": "unknown",
+          "shared": "unknown"
+        }
+      },
+      {
+        "finding_id": "entry-2",
+        "scope_id": "scope-native",
+        "relative_path": "dir/inner.txt",
+        "tool": null,
+        "rule_version": "native-scan-v1",
+        "category": "unknown",
+        "risk": "protected",
+        "recoverability": "unknown",
+        "activity": "unknown",
+        "confidence": "unknown",
+        "evidence": [
+          {
+            "code": "unknown",
+            "source": "filesystem",
+            "summary": "Native metadata observation only; classification and ownership are unverified."
+          }
+        ],
+        "protection_reasons": [
+          "unknown_ownership",
+          "incomplete_evidence"
+        ],
+        "references": {
+          "state": "unknown",
+          "project_ids": []
+        },
+        "size": {
+          "logical_bytes": null,
+          "allocated_bytes": null,
+          "reclaimable_lower_bytes": null,
+          "reclaimable_upper_bytes": null,
+          "method": "unknown",
+          "confidence": "unknown",
+          "shared": "unknown"
+        }
+      }
+    ],
+    "issues": [],
+    "totals": {
+      "logical_bytes": null,
+      "allocated_bytes": null,
+      "method": "unavailable",
+      "coverage_complete": true,
+      "scanned_entries": 2,
+      "skipped_entries": 0
+    }
+  },
+  "predicted_A_error": {
+    "code": "UnsafeClassification",
+    "field": "/findings/0/protection_reasons"
+  },
+  "full_eight_entry_fixture_predicted_A_error": {
+    "code": "UnsafeClassification",
+    "field": "/findings/2/protection_reasons"
+  },
+  "proposed_control": "Append protected_descendant only to findings with recorded protected descendants; requires controller contract amendment."
+}
