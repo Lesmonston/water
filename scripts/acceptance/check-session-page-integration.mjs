@@ -9,7 +9,7 @@ import {fileURLToPath,pathToFileURL} from 'node:url';
 import {selectCargoArtifacts} from './cargo-artifacts.mjs';
 const root=resolve(dirname(fileURLToPath(import.meta.url)),'../..'),args=process.argv.slice(2);
 assert.equal(args[0],'--mode');assert(['plan','run'].includes(args[1]));const run=args[1]==='run';
-assert.equal(args.length,run?4:2);if(run){assert.equal(args[2],'--expected-head');assert.match(args[3],/^[a-f0-9]{40}$/);}
+const reuseOnly=args.includes('--reuse-fixtures-only');assert.equal(args.length,run?4+Number(reuseOnly):2);if(run){assert.equal(args[2],'--expected-head');assert.match(args[3],/^[a-f0-9]{40}$/);if(reuseOnly)assert.equal(args[4],'--reuse-fixtures-only');}
 assert.equal(realpathSync(root).toLowerCase(),realpathSync(process.cwd()).toLowerCase());
 const json=p=>JSON.parse(readFileSync(join(root,p),'utf8')),sha=p=>createHash('sha256').update(readFileSync(join(root,p))).digest('hex');
 function local(parts){let p=root;for(const part of parts.split('/')){assert(part&&!['.','..'].includes(part));p=join(p,part);if(!existsSync(p))mkdirSync(p);assert(lstatSync(p).isDirectory()&&!lstatSync(p).isSymbolicLink());const rel=relative(realpathSync(root),realpathSync(p));assert(rel&&!rel.startsWith('..')&&!isAbsolute(rel));}return p;}
@@ -26,7 +26,7 @@ let failure;
 try{
   const manifest=json('docs/dispatch/wave1/manifest.json'),j=manifest.tasks.find(t=>t.id==='WATER-W1-J'),k=manifest.tasks.find(t=>t.id==='WATER-W1-K');assert(j&&k);
   record.before=snapshot();record.tasks=[j,k].map(t=>({id:t.id,status:t.status,baseCommit:t.baseCommit,acceptedCommit:t.acceptedCommit??null}));
-  const frozen=new Map();for(const name of ['v1','parallel-v1','fixture-lab-v1','report-view-v1','scan-lab-v1','parallel-next-v1','session-batch-v1'])for(const f of json('contracts/'+name+'/freeze.lock.json').files){assert.equal(sha(f.path),f.sha256,f.path);frozen.set(f.path,f.sha256);}assert.equal(frozen.size,132);record.frozenFiles=frozen.size;
+  const frozen=new Map(),hasEvidenceLock=existsSync(join(root,'contracts/evidence-batch-v1/freeze.lock.json'));for(const name of ['v1','parallel-v1','fixture-lab-v1','report-view-v1','scan-lab-v1','parallel-next-v1','session-batch-v1',...(hasEvidenceLock?['evidence-batch-v1']:[])])for(const f of json('contracts/'+name+'/freeze.lock.json').files){assert.equal(sha(f.path),f.sha256,f.path);frozen.set(f.path,f.sha256);}assert.equal(frozen.size,hasEvidenceLock?151:132);record.frozenFiles=frozen.size;
   if(!run){
     assert.equal(git(['branch','--show-current']),'main');
     assert(existsSync(join(root,j.ticket))&&existsSync(join(root,k.ticket)));
@@ -44,7 +44,7 @@ try{
     const rustup=join(homedir(),'.cargo/bin/rustup.exe'),rustc=command(rustup,['which','rustc','--toolchain','1.95.0']),cargo=command(rustup,['which','cargo','--toolchain','1.95.0']);assert(command(rustc,['--version']).startsWith('rustc 1.95.0 '));
     Object.assign(env,{RUSTUP_TOOLCHAIN:'1.95.0',RUSTC:rustc,RUSTDOC:join(dirname(rustc),'rustdoc.exe'),CARGO_HOME:home,CARGO_TARGET_DIR:target,CARGO_BUILD_JOBS:'1',CARGO_NET_OFFLINE:'true',CARGO_TERM_COLOR:'never',TEMP:temp,TMP:temp,TMPDIR:temp});const pathKey=Object.keys(env).find(key=>key.toLowerCase()==='path')??'PATH';env[pathKey]=dirname(rustc)+';'+(env[pathKey]??'');
     const prepare=await import(pathToFileURL(join(root,'scripts/prepare-scan-fixtures.mjs'))),hasIndex=existsSync(join(root,'.local/checks/WATER-W1-F/active-fixtures.json'));
-    const state=hasIndex?prepare.readActiveFixtures():await prepare.prepareScanFixtures();record.physicalFixturesCreated=!hasIndex;record.fixtures={runs:state.index.runs.length,negatives:state.index.negative.length,contentBytes:state.index.content_bytes};env.WATER_SESSION_FIXTURE_INDEX=state.active;
+    assert(!reuseOnly||hasIndex,'Required retained fixture index missing; do not create a replacement batch');const state=hasIndex?prepare.readActiveFixtures():await prepare.prepareScanFixtures();record.physicalFixturesCreated=!hasIndex;record.reuseFixturesOnly=reuseOnly;record.fixtures={runs:state.index.runs.length,negatives:state.index.negative.length,contentBytes:state.index.content_bytes};env.WATER_SESSION_FIXTURE_INDEX=state.active;
     const cargoArgs=['--manifest-path',join(root,j.outputRoot,'Cargo.toml')];
     const meta=JSON.parse(command(cargo,['metadata','--offline','--locked','--format-version','1',...cargoArgs],180000));assert.equal(meta.workspace_members.length,1);assert(meta.packages.some(p=>p.name==='water-lab-session'));
     command(cargo,['fmt',...cargoArgs,'--','--check'],180000);const rustTests=command(cargo,['test','--offline','--locked',...cargoArgs,'--test','session_v1','--','--test-threads=1','--format','pretty'],180000);assert.deepEqual([...rustTests.matchAll(/^test ([a-z0-9_]+) \.\.\. ok$/gm)].map(m=>m[1]).sort(),[...j.expectedTests].sort());assert(rustTests.includes('5 passed; 0 failed; 0 ignored; 0 measured; 0 filtered out'));
@@ -59,23 +59,25 @@ try{
     const supplied=structuredClone(originalBundle),{startServer}=await import(pathToFileURL(join(root,k.outputRoot,'server.mjs'))),server=await startServer({bundle:supplied});
     const {openBrowser}=await import(pathToFileURL(join(root,'scripts/browser-lab.mjs')));let browser;
     try{
-      equalJSON(await http(server),originalBundle);supplied.snapshots.length=1;equalJSON(await http(server),originalBundle);
+      equalJSON(await http(server),originalBundle);supplied.snapshots[0].view.findings[0].relative_path='caller-mutation-after-start';supplied.snapshots.length=1;equalJSON(await http(server),originalBundle);
       record.pages=[];const allIds=originalBundle.snapshots.map(s=>s.view.scan_id);
       for(const [width,height]of [[1440,1000],[900,800]]){
         browser=await openBrowser({width,height});const requests=[],exceptions=[];browser.onEvent(e=>{if(e.method==='Network.requestWillBeSent')requests.push(e.params.request.url);if(e.method==='Runtime.exceptionThrown')exceptions.push(e.params.exceptionDetails.text);});await browser.send('Network.enable');await browser.goto(server.url);
         const picker=`Array.from(document.querySelectorAll('select')).find(s=>${JSON.stringify(allIds)}.every(id=>Array.from(s.options).some(o=>o.value===id)))`;
         await browser.waitFor(`document.readyState==='complete' && Boolean(${picker})`);
         const visibleText=`Array.from(document.querySelectorAll('body *')).filter(e=>!e.closest('select,option,script,style')&&e.getClientRects().length&&getComputedStyle(e).visibility!=='hidden').map(e=>Array.from(e.childNodes).filter(n=>n.nodeType===Node.TEXT_NODE).map(n=>n.textContent).join('')).join('\\n')`;
-        for(const index of [0,12,11]){
+        const selected=[];for(const index of [...Array.from({length:11},(_,i)=>i),12,11]){
           const s=originalBundle.snapshots[index];await browser.evaluate(`(()=>{const s=${picker};s.value=${JSON.stringify(s.view.scan_id)};s.dispatchEvent(new Event('change',{bubbles:true}));})()`);
           const expectedPaths=s.view.findings.map(f=>f.relative_path),previousPaths=originalBundle.snapshots[12].view.findings.map(f=>f.relative_path);
           await browser.waitFor(`(()=>{const t=${visibleText};return ${index===11?JSON.stringify(previousPaths)+'.every(p=>!t.includes(p))':JSON.stringify(expectedPaths)+'.every(p=>t.includes(p))'};})()`);
           const text=await browser.evaluate(visibleText);assert(text.includes('受控夹具扫描')&&text.includes('只读'));
+          const rows=await browser.evaluate('Array.from(document.querySelectorAll("[data-finding-id]"),e=>e.dataset.findingId)');assert.equal(rows.length,s.view.findings.length);assert.deepEqual([...rows].sort(),s.view.findings.map(f=>f.id).sort());assert(text.includes(s.view.scan_id)&&text.includes(s.view.status)&&text.includes(s.source_facts.case_id));selected.push({scanId:s.view.scan_id,status:s.view.status,rows:rows.length});
+          if(index===8){assert(text.includes('scope 根')&&text.includes('entry_limit')&&text.includes('origin=policy')&&text.includes('operation=budget'));const file='.local/browser-lab/'+stamp+'-actual-root-issue-'+width+'x'+height+'.png';await browser.screenshot(file);record.rootIssueScreenshots??=[];record.rootIssueScreenshots.push(file);}
           if(index!==11)for(const f of s.view.findings)assert(text.includes(f.relative_path),'Actual J path missing from page: '+f.relative_path);
           else for(const f of originalBundle.snapshots[12].view.findings)assert(!text.includes(f.relative_path),'Cancelled empty J snapshot retained previous rows');
         }
         const layout=await browser.evaluate('({width:innerWidth,client:document.documentElement.clientWidth,document:document.documentElement.scrollWidth,body:document.body.scrollWidth})');assert.equal(layout.width,width);assert(layout.document<=layout.client&&layout.body<=layout.client);assert.deepEqual(exceptions,[]);assert(requests.every(url=>url.startsWith(server.url+'/')));
-        const file='.local/browser-lab/'+stamp+'-actual-session-'+width+'x'+height+'.png';await browser.screenshot(file);record.pages.push({width,height,screenshot:file,layout,requestCount:requests.length,actualJInput:true});await browser.close();browser=undefined;
+        const file='.local/browser-lab/'+stamp+'-actual-session-'+width+'x'+height+'.png';await browser.screenshot(file);record.pages.push({width,height,screenshot:file,layout,requestCount:requests.length,actualJInput:true,selected});await browser.close();browser=undefined;
       }
       record.directCallerBundlePreserved=true;record.actualJtoKPage=true;record.noResponseInterception=true;
     }finally{try{await browser?.close();}finally{await server.close();}}
