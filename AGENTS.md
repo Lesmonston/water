@@ -1,10 +1,11 @@
 # Water 项目协作规则
 
-最新状态（2026-10-18）：A–Q及五补单保持VERIFIED（Windows受控范围）；R许可约束的原生遍历→A报告→Q脱敏纵向单已冻结、建独立树并通过实际离线baseline，READY待用户外贴。新R产品未实现、五测试未运行，无自动实现者，M1仍未完成。R精确基线dd09c3b，61新锁条目/十旧锁227唯一文件，合计255唯一冻结。只由新冻结工具在本次controller/r各自.local建4子目录/6文件条目含1硬链接/1junction，payload字面60字节、含硬链接逻辑74字节；Rust探针只读index/元数据、一层枚举，无内容读取/递归。真实P/N根ID、Nt父句柄相对打开、硬链接ID/14字节长度和junction不跟随、已验收Q的24报告/9错误通过；不代表R实现或五测试通过。旧任务对象/基线/helper/227旧冻结/产品/根Cargo/旧树夹具日志保持。原生选择器/真实用户手势、真实用户scope/生产竞态/macOS/桌面/删除未验收。正式票/manifest及NATIVE-SCAN-READY-REPORT优先于以下历史叙述。
+最新状态（2026-10-18）：A–Q及五补单保持VERIFIED（Windows受控范围）；已收R受阻回执，真实A复现祖先保护契约冲突，补单01追加冻结/续做检查通过、READY待原执行者外贴。S原生选择、T脱敏预览下载、U内存Node清单三独立票已冻结、建树并各自实际baseline通过，READY可并行外贴。R/S/T/U新产品和五测试均未实现/运行，无自动实现者，M1仍未完成。 原R基线dd09c3b、受阻acefcf1和255旧冻结保留；总控仅追加六文件提交c0e2025为续做起点。S/T/U共同精确基线3d0faef，94新锁条目/12继承锁、291唯一冻结；R附加锁16条目/261唯一。仅冻结工具在新controller/s各创建4空目录/1junction、0普通内容；S是实际OS窗口与N/P探针，不是新S实现。T实际24份A/E/H/Q/I供数、9原错误及点击下载1379字节通过。正式票/manifest及PARALLEL-WAVE-READY-REPORT优先于以下历史。
 
 - 项目根：`F:/new/smaltalk/water`。用户指定后续开发、研究、文档、脚本与本项目产物全部放在此目录内。
 - Codex 是项目总控，负责范围、任务分派、接口、集成、安全复核和验收。用户保留产品与发布决定权。
 - 用户2026-10-17确认：总控写架构、规划、冻结契约和验收；实现任务由总控写具体外贴工单，用户转贴给外部执行者。默认不自动启动本地worker或内部实现子代理替代这条流程；发现实质产品修复也回派。
+- 用户2026-10-18要求后续按波次，一次出齐所有已满足前置且文件无争写的独立票；单个在途阻塞不阻挡无依赖票。强依赖等验收后下一波，不伪造READY。
 - 每次接手先读 `README.md`、`docs/STATUS.md`、`docs/PROJECT-CHARTER.md`、`docs/CONTROLLER-WORKFLOW.md`，按任务再读架构与具体工单。
 - 不把本项目写入 smaltalk 其他项目，不自动修改共享 Vault 规则、索引或凭证。完成摘要保留在本项目，供 Keeper ingest。
 - 当前A–F已VERIFIED（Windows范围）；F接收65e928d、隔离受测55266ed，详细以正式票/manifest及总控验收报告为准。A–E原基线/helper/冻结锁与根Cargo不变；F自有packages/fixture-scan workspace/锁。D与F各自及总控验收树仅由已冻结工具在各自.local创建有界合成文件/链接，无清理；E及其验收树不获物理fixture权限，.local仅构建/日志。F生产和Rust测试只读，普通文件不读内容，无删除/ACL/移动；Windows身份Unknown。全部旧/新锁保持，仍不扫描HOME、整盘或真实用户数据、不运行上游；macOS、真实用户scope/生产竞态与F→G真实链路未验证。

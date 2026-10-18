@@ -1,0 +1,27 @@
+{"binary":"C:\\Program Files\\nodejs\\node.exe","argv":["scripts/picker-test-driver.mjs","F:\\new\\smaltalk\\water\\.local\\next-target\\debug\\water-wave-probe.exe","picker","F:\\new\\smaltalk\\water\\.local\\picker-fixtures\\batch-v1\\root"],"exitCode":1,"error":null}
+
+---stderr---
+WATER_PICKER_CASE cancel
+Controlled picker button unavailable
+At F:\new\smaltalk\water\scripts\picker-ui-action.ps1:19 char:61
++ ... n.Current.IsEnabled) { throw 'Controlled picker button unavailable' }
++                            ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+    + CategoryInfo          : OperationStopped: (Controlled picker button unavailable:String) [], RuntimeException
+    + FullyQualifiedErrorId : Controlled picker button unavailable
+ 
+node:internal/modules/run_main:107
+    triggerUncaughtException(
+    ^
+
+AssertionError [ERR_ASSERTION]: Controlled UI action failed
+    at file:///F:/new/smaltalk/water/scripts/picker-test-driver.mjs:9:120
+    at process.processTicksAndRejections (node:internal/process/task_queues:104:5) {
+  generatedMessage: false,
+  code: 'ERR_ASSERTION',
+  actual: false,
+  expected: true,
+  operator: '==',
+  diff: 'simple'
+}
+
+Node.js v24.16.0

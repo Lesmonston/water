@@ -2,7 +2,15 @@
 
 2026-10-17。项目：`F:/new/smaltalk/water`。供后续总控接手与Keeper ingest；未写共享Vault或其他项目。
 
-## 当前交接：R正式READY，待用户外贴
+## 当前交接：R补单01与S/T/U同波READY（2026-10-18）
+
+A–Q及五补单保持VERIFIED（Windows受控范围）。R受阻回执acefcf1已收，真实A复现固定两原因与祖先保护冲突；补单01按实际记录后代追加第三原因，原dd09c3b/255冻结/helper/报告/夹具保持。总控仅在原r分支追加六个控制材料文件提交c0e2025，resume实际通过，补单READY待原对话续做。
+
+S原生选择、T脱敏预览下载、U内存Node清单三票独立s/t/u树，共同精确3d0faefa97267a6aa57f880a315a2cde7fe06e98与water-w1-parallel-wave-base-20261018标签，94锁条目/12继承锁/291唯一冻结，各自实际baseline通过。S真实OS窗口取消/结果到N/P，T实际24报告/9错误/点击下载1379字节，U既有serde与合成11golden/19raw输入；全部新产品和五测试未实现/运行，无自动实现者，M1未完成。
+
+用户要求后续按波次一次出齐所有可独立实现/验收的票，已写工作流与AGENTS。四份现在可并行外贴：[正式入口与原始证据](dispatch/wave1/PARALLEL-WAVE-READY-REPORT.md)、[本波及下一波依赖](dispatch/wave1/PARALLEL-WAVE-PLAN-20261018.md)。R补单原对话，S/T/U各新对话，尚无外贴/启动证据，不记RUNNING。各线收单独立验收、总控统一集成；纵向宿主选择→P→R→报告页等待R/S/T验收后再出单，不抢做实现。
+
+## 此前交接：R正式READY（原票历史，现由补单01续做）
 
 A–Q及五补单保持VERIFIED（Windows受控范围）；R许可约束的原生遍历→A报告→Q脱敏纵向单已冻结、建独立树并通过实际离线baseline，READY待用户外贴。新R产品未实现、五测试未运行，无自动实现者，M1仍未完成。精确基线dd09c3b8801b86a0059f3fb73fe8a250acb1d89e，61新锁条目/十旧锁合计255唯一冻结，r独立树实际baseline通过：真实P/N身份、Nt父句柄相对打开、硬链接/14字节长度、junction本体、一层7名称，以及旧Q/A/H的24报告/9错误。仅新controller/r fixture保留，Rust不读普通内容；不是R产品/递归五测通过。详[派前回执](dispatch/wave1/NATIVE-SCAN-READY-REPORT.md)和[ADR-012](decisions/ADR-012-permit-bound-native-scan.md)，外贴句PASTE-R；收单独立验收后再接原生选择器/桌面闭环。旧任务/227旧冻结/产品/根Cargo/旧树日志保持，无自动实现者。
 

@@ -1,0 +1,128 @@
+{
+  "lane": "T",
+  "stamp": "2026-10-18T14-29-57.401Z-23124",
+  "commands": [
+    {
+      "binary": "C:\\Users\\37310\\.cargo\\bin\\rustup.exe",
+      "argv": [
+        "which",
+        "rustc",
+        "--toolchain",
+        "1.95.0"
+      ],
+      "exitCode": 0,
+      "log": "2026-10-18T14-29-57.401Z-23124-T-0.log"
+    },
+    {
+      "binary": "C:\\Users\\37310\\.cargo\\bin\\rustup.exe",
+      "argv": [
+        "which",
+        "cargo",
+        "--toolchain",
+        "1.95.0"
+      ],
+      "exitCode": 0,
+      "log": "2026-10-18T14-29-57.401Z-23124-T-1.log"
+    },
+    {
+      "binary": "C:\\Users\\37310\\.rustup\\toolchains\\1.95.0-x86_64-pc-windows-msvc\\bin\\rustc.exe",
+      "argv": [
+        "--version"
+      ],
+      "exitCode": 0,
+      "log": "2026-10-18T14-29-57.401Z-23124-T-2.log"
+    },
+    {
+      "binary": "C:\\Users\\37310\\.rustup\\toolchains\\1.95.0-x86_64-pc-windows-msvc\\bin\\cargo.exe",
+      "argv": [
+        "metadata",
+        "--offline",
+        "--locked",
+        "--format-version",
+        "1",
+        "--manifest-path",
+        "tools/parallel-wave-probe/Cargo.toml"
+      ],
+      "exitCode": 0,
+      "log": "2026-10-18T14-29-57.401Z-23124-T-3.log"
+    },
+    {
+      "binary": "C:\\Users\\37310\\.rustup\\toolchains\\1.95.0-x86_64-pc-windows-msvc\\bin\\cargo.exe",
+      "argv": [
+        "build",
+        "--offline",
+        "--locked",
+        "--message-format=json",
+        "--manifest-path",
+        "tools/parallel-wave-probe/Cargo.toml"
+      ],
+      "exitCode": 0,
+      "log": "2026-10-18T14-29-57.401Z-23124-T-4.log"
+    },
+    {
+      "binary": "F:\\new\\smaltalk\\water\\.local\\next-target\\debug\\water-wave-probe.exe",
+      "argv": [
+        "review"
+      ],
+      "exitCode": 0,
+      "log": "2026-10-18T14-29-57.401Z-23124-T-5.log"
+    },
+    {
+      "binary": "C:\\Users\\37310\\.rustup\\toolchains\\1.95.0-x86_64-pc-windows-msvc\\bin\\rustc.exe",
+      "argv": [
+        "--edition=2024",
+        "--crate-name",
+        "accepted_q",
+        "scripts/acceptance/redacted-report-bridge.rs",
+        "-L",
+        "dependency=F:\\new\\smaltalk\\water\\.local\\next-target\\debug\\deps",
+        "--extern",
+        "water_redacted_report=F:\\new\\smaltalk\\water\\.local\\next-target\\debug\\deps\\libwater_redacted_report-a4d342b44a6a4c42.rlib",
+        "--extern",
+        "water_summary_export=F:\\new\\smaltalk\\water\\.local\\next-target\\debug\\deps\\libwater_summary_export-f3fc75de20b64f97.rlib",
+        "--extern",
+        "water_contracts=F:\\new\\smaltalk\\water\\.local\\next-target\\debug\\deps\\libwater_contracts-03746b148f2454ba.rlib",
+        "--extern",
+        "serde_json=F:\\new\\smaltalk\\water\\.local\\next-target\\debug\\deps\\libserde_json-c243626af514ec1f.rlib",
+        "-o",
+        "F:\\new\\smaltalk\\water\\.local\\next-tmp\\2026-10-18T14-29-57.401Z-23124-accepted-q.exe"
+      ],
+      "exitCode": 0,
+      "log": "2026-10-18T14-29-57.401Z-23124-T-6.log"
+    },
+    {
+      "binary": "F:\\new\\smaltalk\\water\\.local\\next-tmp\\2026-10-18T14-29-57.401Z-23124-accepted-q.exe",
+      "argv": [],
+      "exitCode": 0,
+      "log": "2026-10-18T14-29-57.401Z-23124-T-7.log"
+    },
+    {
+      "binary": "C:\\Program Files\\nodejs\\node.exe",
+      "argv": [
+        "scripts/acceptance/review-download-probe.mjs"
+      ],
+      "exitCode": 0,
+      "log": "2026-10-18T14-29-57.401Z-23124-T-8.log"
+    }
+  ],
+  "result": {
+    "actual_A_E_H_Q_I": true,
+    "reports": 24,
+    "acceptedQ": {
+      "actual_Q_A_H": true,
+      "cases": 24,
+      "export_file_written": false,
+      "filesystem_scanned": false,
+      "raw_errors": 9
+    },
+    "download": {
+      "actual_browser_click_attachment_download": true,
+      "bytes": 1379,
+      "filename": "water-report-1.json",
+      "destination": "F:\\new\\smaltalk\\water\\.local\\browser-lab\\download-probe-5i7OqC",
+      "new_T_product_tested": false
+    },
+    "newProductTested": false
+  },
+  "status": "passed"
+}

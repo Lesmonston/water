@@ -4,7 +4,7 @@
   "mode": "manual-external-paste",
   "controller": "Codex",
   "projectRoot": "F:/new/smaltalk/water",
-  "stage": "wave1-abcdefghijklmnopq-verified-r-ready",
+  "stage": "wave1-a-q-verified-r-addendum01-ready-stu-ready",
   "activeWave": "water-wave1",
   "slots": [
     {
@@ -149,6 +149,31 @@
       "branch": "worker/water-w1-r",
       "baseline": "dd09c3b8801b86a0059f3fb73fe8a250acb1d89e",
       "task": "WATER-W1-R",
+      "state": "changes-requested-addendum01-ready",
+      "addendum01Resume": "c0e20252c87b22fde8c83c4487d24e7a5ca06011"
+    },
+    {
+      "id": "s",
+      "path": "F:/new/smaltalk/water/.worktrees/s",
+      "branch": "worker/water-w1-s",
+      "baseline": "3d0faefa97267a6aa57f880a315a2cde7fe06e98",
+      "task": "WATER-W1-S",
+      "state": "ready-awaiting-user-paste"
+    },
+    {
+      "id": "t",
+      "path": "F:/new/smaltalk/water/.worktrees/t",
+      "branch": "worker/water-w1-t",
+      "baseline": "3d0faefa97267a6aa57f880a315a2cde7fe06e98",
+      "task": "WATER-W1-T",
+      "state": "ready-awaiting-user-paste"
+    },
+    {
+      "id": "u",
+      "path": "F:/new/smaltalk/water/.worktrees/u",
+      "branch": "worker/water-w1-u",
+      "baseline": "3d0faefa97267a6aa57f880a315a2cde7fe06e98",
+      "task": "WATER-W1-U",
       "state": "ready-awaiting-user-paste"
     }
   ],
@@ -1603,7 +1628,7 @@
     {
       "id": "WATER-W1-R",
       "title": "Permit-bound Windows native metadata scan and redacted report",
-      "status": "READY",
+      "status": "CHANGES_REQUESTED",
       "kind": "native_scan",
       "slot": "r",
       "worktree": "F:/new/smaltalk/water/.worktrees/r",
@@ -1649,7 +1674,14 @@
         "packages/native-scan/Cargo.lock",
         "packages/native-scan/README.md",
         "packages/native-scan/tests/native_scan_v1.rs",
-        "docs/dispatch/reports/WATER-W1-R-REPORT.md"
+        "docs/dispatch/reports/WATER-W1-R-REPORT.md",
+        "contracts/native-scan-addendum-v1/SPEC.md",
+        "contracts/native-scan-addendum-v1/conflict.json",
+        "scripts/acceptance/native-scan-addendum-bridge.rs",
+        "scripts/acceptance/native-scan-addendum-probe.rs",
+        "scripts/native-scan-addendum-check.mjs",
+        "contracts/native-scan-addendum-v1/freeze.lock.json",
+        "docs/dispatch/reports/WATER-W1-R-ADDENDUM-01-REPORT.md"
       ],
       "allowedPrefixes": [
         "packages/native-scan/src/",
@@ -1666,7 +1698,7 @@
       "model": null,
       "modelAssignment": "user-arranged; worker reports actual engine/model",
       "dispatchedAt": null,
-      "startedAt": null,
+      "startedAt": "2026-10-18T14:08:18.049Z",
       "baselineStatus": "PASSED",
       "newProductTestsRun": false,
       "physicalFixturePermission": true,
@@ -1674,9 +1706,256 @@
       "macOS": "unverified",
       "baselineEvidence": "docs/acceptance/wave1/controller/w1-native-scan-preflight-20261018/r/2026-10-18T11-54-08.686Z-29488-baseline-result.json",
       "readyOn": "2026-10-18",
-      "readinessScope": "Windows x64 Node24/Rust1.95/MSVC, private offline real P/N/A native root binding, relative NT opens, hardlink ID and 14-byte length, no-follow junction, bounded one-level directory names and actual accepted Q/A/H 24 reports/9 errors. No R product, recursive scan, new five tests or native picker."
+      "readinessScope": "Windows x64 Node24/Rust1.95/MSVC, private offline real P/N/A native root binding, relative NT opens, hardlink ID and 14-byte length, no-follow junction, bounded one-level directory names and actual accepted Q/A/H 24 reports/9 errors. No R product, recursive scan, new five tests or native picker.",
+      "blockedReportCommit": "acefcf1f5fa16ff7580a219f1a2d06baaf9fdb2e",
+      "blocker": "R-001: frozen fixed protection reasons conflict with actual A ancestor protection",
+      "addendum01": {
+        "id": "WATER-W1-R-ADDENDUM-01",
+        "status": "READY",
+        "ticket": "docs/dispatch/tickets/WATER-W1-R-ADDENDUM-01-20261018.md",
+        "contractLock": "contracts/native-scan-addendum-v1/freeze.lock.json",
+        "helper": "scripts/native-scan-addendum-check.mjs",
+        "resumeCommit": "c0e20252c87b22fde8c83c4487d24e7a5ca06011",
+        "report": "docs/dispatch/reports/WATER-W1-R-ADDENDUM-01-REPORT.md",
+        "baselineStatus": "PASSED",
+        "newProductTestsRun": false,
+        "baselineEvidence": "docs/acceptance/wave1/controller/w1-parallel-wave-preflight-20261018/r/2026-10-18T14-33-55.065Z-36388-resume-result.json",
+        "preflightEvidence": "docs/dispatch/wave1/PARALLEL-WAVE-READY-REPORT.md",
+        "readyOn": "2026-10-18",
+        "dispatchedAt": null,
+        "startedAt": null
+      }
+    },
+    {
+      "id": "WATER-W1-S",
+      "title": "Windows原生单目录选择与真实N/P登记",
+      "status": "READY",
+      "slot": "s",
+      "worktree": "F:/new/smaltalk/water/.worktrees/s",
+      "branch": "worker/water-w1-s",
+      "baseCommit": "3d0faefa97267a6aa57f880a315a2cde7fe06e98",
+      "snapshotRef": "refs/tags/water-w1-parallel-wave-base-20261018",
+      "ticket": "docs/dispatch/tickets/WATER-W1-S-NATIVE-PICKER-20261018.md",
+      "report": "docs/dispatch/reports/WATER-W1-S-REPORT.md",
+      "contractLock": "contracts/parallel-wave-v1/freeze.lock.json",
+      "workerRules": "docs/dispatch/W1-PARALLEL-WAVE-WORKER-RULES.md",
+      "helper": "scripts/parallel-wave-check.mjs",
+      "outputRoot": "packages/native-picker",
+      "spec": "contracts/native-picker-v1/SPEC.md",
+      "testFiles": [
+        "packages/native-picker/tests/picker_v1.rs"
+      ],
+      "expectedTests": [
+        "picker_options_and_errors",
+        "picker_native_cancel",
+        "picker_native_confirm",
+        "picker_registry_failures",
+        "picker_public_lifecycle"
+      ],
+      "expectedBrowserTests": [],
+      "expectedFinalModes": [
+        "fmt",
+        "test",
+        "clippy",
+        "metadata",
+        "bridge"
+      ],
+      "proofTargets": {
+        "behavior": "S_BEHAVIOR",
+        "nc1": "S_CANCELLED",
+        "nc2": "S_SCOPE_ID",
+        "nc3": "S_REGISTERED"
+      },
+      "allowedFiles": [
+        "packages/native-picker/Cargo.toml",
+        "packages/native-picker/Cargo.lock",
+        "packages/native-picker/README.md",
+        "packages/native-picker/tests/picker_v1.rs",
+        "docs/dispatch/reports/WATER-W1-S-REPORT.md"
+      ],
+      "allowedPrefixes": [
+        "packages/native-picker/src/",
+        "docs/acceptance/wave1/s/"
+      ],
+      "allowLockfileGeneration": true,
+      "cargoCacheSource": "F:/new/smaltalk/water/.worktrees/a/.local/cargo-home/registry",
+      "dependsOn": [
+        "WATER-W1-A",
+        "WATER-W1-N",
+        "WATER-W1-P"
+      ],
+      "model": null,
+      "modelAssignment": "user-arranged; worker reports actual engine/model",
+      "dispatchedAt": null,
+      "startedAt": null,
+      "baselineStatus": "PASSED",
+      "newProductTestsRun": false,
+      "physicalFixturePermission": true,
+      "macOS": "unverified",
+      "packageName": "water-native-picker",
+      "crateName": "water_native_picker",
+      "testTarget": "picker_v1",
+      "testFile": "packages/native-picker/tests/picker_v1.rs",
+      "baselineEvidence": "docs/acceptance/wave1/controller/w1-parallel-wave-preflight-20261018/s/2026-10-18T14-33-54.991Z-34804-baseline-result.json",
+      "preflightEvidence": "docs/dispatch/wave1/PARALLEL-WAVE-READY-REPORT.md",
+      "readyOn": "2026-10-18",
+      "readinessScope": "Controlled Windows actual modal cancel/GetResult path and real N/P lifecycle, empty fixed fixture; no new S product/test suite."
+    },
+    {
+      "id": "WATER-W1-T",
+      "title": "实际报告预览与默认Q脱敏JSON下载",
+      "status": "READY",
+      "slot": "t",
+      "worktree": "F:/new/smaltalk/water/.worktrees/t",
+      "branch": "worker/water-w1-t",
+      "baseCommit": "3d0faefa97267a6aa57f880a315a2cde7fe06e98",
+      "snapshotRef": "refs/tags/water-w1-parallel-wave-base-20261018",
+      "ticket": "docs/dispatch/tickets/WATER-W1-T-SCAN-REVIEW-20261018.md",
+      "report": "docs/dispatch/reports/WATER-W1-T-REPORT.md",
+      "contractLock": "contracts/parallel-wave-v1/freeze.lock.json",
+      "workerRules": "docs/dispatch/W1-PARALLEL-WAVE-WORKER-RULES.md",
+      "helper": "scripts/parallel-wave-check.mjs",
+      "outputRoot": "prototypes/scan-review",
+      "spec": "contracts/scan-review-v1/SPEC.md",
+      "testFiles": [
+        "prototypes/scan-review/tests/model.test.mjs",
+        "prototypes/scan-review/tests/browser.test.mjs"
+      ],
+      "expectedTests": [
+        "review_bundle_validation",
+        "review_selection_and_privacy",
+        "review_export_bytes"
+      ],
+      "expectedBrowserTests": [
+        "review_live_input_and_download",
+        "review_layout_and_safety"
+      ],
+      "expectedFinalModes": [
+        "check",
+        "test",
+        "browser"
+      ],
+      "proofTargets": {
+        "behavior": "T_BEHAVIOR",
+        "nc1": "T_REDACTED_ONLY",
+        "nc2": "T_SELECTED_EXPORT",
+        "nc3": "T_UNKNOWN_PRESERVED"
+      },
+      "allowedFiles": [
+        "prototypes/scan-review/index.html",
+        "prototypes/scan-review/styles.css",
+        "prototypes/scan-review/app.mjs",
+        "prototypes/scan-review/model.mjs",
+        "prototypes/scan-review/server.mjs",
+        "prototypes/scan-review/tests/model.test.mjs",
+        "prototypes/scan-review/tests/browser.test.mjs",
+        "prototypes/scan-review/README.md",
+        "docs/dispatch/reports/WATER-W1-T-REPORT.md"
+      ],
+      "allowedPrefixes": [
+        "docs/acceptance/wave1/t/"
+      ],
+      "allowLockfileGeneration": false,
+      "cargoCacheSource": "F:/new/smaltalk/water/.worktrees/a/.local/cargo-home/registry",
+      "dependsOn": [
+        "WATER-W1-A",
+        "WATER-W1-E",
+        "WATER-W1-H",
+        "WATER-W1-I",
+        "WATER-W1-Q"
+      ],
+      "model": null,
+      "modelAssignment": "user-arranged; worker reports actual engine/model",
+      "dispatchedAt": null,
+      "startedAt": null,
+      "baselineStatus": "PASSED",
+      "newProductTestsRun": false,
+      "physicalFixturePermission": false,
+      "macOS": "unverified",
+      "productionFiles": [
+        "prototypes/scan-review/index.html",
+        "prototypes/scan-review/styles.css",
+        "prototypes/scan-review/app.mjs",
+        "prototypes/scan-review/model.mjs",
+        "prototypes/scan-review/server.mjs"
+      ],
+      "baselineEvidence": "docs/acceptance/wave1/controller/w1-parallel-wave-preflight-20261018/t/2026-10-18T14-33-54.998Z-42184-baseline-result.json",
+      "preflightEvidence": "docs/dispatch/wave1/PARALLEL-WAVE-READY-REPORT.md",
+      "readyOn": "2026-10-18",
+      "readinessScope": "Real accepted A/E/H/Q/I 24 reports and Q nine errors, headless actual click/attachment/private file bytes; no new T product/test suite."
+    },
+    {
+      "id": "WATER-W1-U",
+      "title": "package.json纯内存结构证据",
+      "status": "READY",
+      "slot": "u",
+      "worktree": "F:/new/smaltalk/water/.worktrees/u",
+      "branch": "worker/water-w1-u",
+      "baseCommit": "3d0faefa97267a6aa57f880a315a2cde7fe06e98",
+      "snapshotRef": "refs/tags/water-w1-parallel-wave-base-20261018",
+      "ticket": "docs/dispatch/tickets/WATER-W1-U-NODE-MANIFEST-20261018.md",
+      "report": "docs/dispatch/reports/WATER-W1-U-REPORT.md",
+      "contractLock": "contracts/parallel-wave-v1/freeze.lock.json",
+      "workerRules": "docs/dispatch/W1-PARALLEL-WAVE-WORKER-RULES.md",
+      "helper": "scripts/parallel-wave-check.mjs",
+      "outputRoot": "packages/node-manifest",
+      "spec": "contracts/node-manifest-v1/SPEC.md",
+      "testFiles": [
+        "packages/node-manifest/tests/manifest_v1.rs"
+      ],
+      "expectedTests": [
+        "manifest_structure",
+        "manifest_raw_validation",
+        "manifest_field_limits",
+        "manifest_privacy_and_purity",
+        "manifest_public_wire"
+      ],
+      "expectedBrowserTests": [],
+      "expectedFinalModes": [
+        "fmt",
+        "test",
+        "clippy",
+        "metadata",
+        "bridge"
+      ],
+      "proofTargets": {
+        "behavior": "U_BEHAVIOR",
+        "nc1": "U_DUPLICATE_UNKNOWN",
+        "nc2": "U_NO_OWNERSHIP",
+        "nc3": "U_NO_CONTENT_LEAK"
+      },
+      "allowedFiles": [
+        "packages/node-manifest/Cargo.toml",
+        "packages/node-manifest/Cargo.lock",
+        "packages/node-manifest/README.md",
+        "packages/node-manifest/tests/manifest_v1.rs",
+        "docs/dispatch/reports/WATER-W1-U-REPORT.md"
+      ],
+      "allowedPrefixes": [
+        "packages/node-manifest/src/",
+        "docs/acceptance/wave1/u/"
+      ],
+      "allowLockfileGeneration": true,
+      "cargoCacheSource": "F:/new/smaltalk/water/.worktrees/a/.local/cargo-home/registry",
+      "dependsOn": [],
+      "model": null,
+      "modelAssignment": "user-arranged; worker reports actual engine/model",
+      "dispatchedAt": null,
+      "startedAt": null,
+      "baselineStatus": "PASSED",
+      "newProductTestsRun": false,
+      "physicalFixturePermission": false,
+      "macOS": "unverified",
+      "packageName": "water-node-manifest",
+      "crateName": "water_node_manifest",
+      "testTarget": "manifest_v1",
+      "testFile": "packages/node-manifest/tests/manifest_v1.rs",
+      "baselineEvidence": "docs/acceptance/wave1/controller/w1-parallel-wave-preflight-20261018/u/2026-10-18T14-33-55.027Z-29604-baseline-result.json",
+      "preflightEvidence": "docs/dispatch/wave1/PARALLEL-WAVE-READY-REPORT.md",
+      "readyOn": "2026-10-18",
+      "readinessScope": "Existing offline serde dependencies, 11 synthetic memory goldens and 19 raw error inputs; no new U product/parser tests."
     }
   ],
   "testHelper": "per-task helper; A defaults unchanged",
-  "note": "A-Q and five addenda remain VERIFIED. R permit-bound native scan READY after exact-base private offline native ABI/dependency baseline; await user paste, no automatic implementer. Native picker/real user gesture, real-user scope, desktop/macOS/deletion and M1 incomplete."
+  "note": "R blocked report acefcf1 received; actual A/Q reproduced contract conflict and additive correction, original base/helper/255 freeze/report preserved. R addendum01 READY from controller overlay c0e2025; S/T/U READY at 3d0faef after real independent baselines, no products/new suites or automatic implementers. User dispatches all four lines in parallel."
 }

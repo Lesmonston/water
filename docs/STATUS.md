@@ -21,9 +21,15 @@
 
 ## 下一步
 
-A–Q及五补单保持VERIFIED（Windows受控范围）；R许可约束的原生遍历→A报告→Q脱敏纵向单已冻结、建独立树并通过实际离线baseline，READY待用户外贴。新R产品未实现、五测试未运行，无自动实现者，M1仍未完成。旧票不重贴，见[R正式派前回执](dispatch/wave1/NATIVE-SCAN-READY-REPORT.md)。
+A–Q及五补单保持VERIFIED（Windows受控范围）；已收R受阻回执，真实A复现祖先保护契约冲突，补单01追加冻结/续做检查通过、READY待原执行者外贴。S原生选择、T脱敏预览下载、U内存Node清单三独立票已冻结、建树并各自实际baseline通过，READY可并行外贴。R/S/T/U新产品和五测试均未实现/运行，无自动实现者，M1仍未完成。旧票不重贴，见[R正式派前回执](dispatch/wave1/NATIVE-SCAN-READY-REPORT.md)。
 
-## R原生遍历派前通过（2026-10-18，最新）
+## 本波派前通过（2026-10-18，最新）
+
+R原受阻报告提交acefcf1，原基线/helper/255冻结保持；补单01正确修订为按实际已记录后代追加protected_descendant，controller-only c0e2025追加材料后resume通过。S/T/U同基线3d0faef、三独立干净树、94新锁/12继承锁/291唯一冻结及实际各自baseline通过。S真实窗口取消/结果→N/P；T实际24报告/9错误/点击下载；U现有serde离线和11golden/19raw输入，仅表示具备开工条件。四份外贴入口和原始证据见[本波正式回执](dispatch/wave1/PARALLEL-WAVE-READY-REPORT.md)。
+
+用户要求今后按波次出齐独立任务，已写入工作流。没有自动实现者或新产品/五测试，R仍CHANGES_REQUESTED而补单READY，S/T/U READY未外贴；下一波纵向宿主集成等待R/S/T交付。M1、真实用户scope、生产竞态、macOS、桌面与删除未验收。
+
+## R原生遍历原派前通过（2026-10-18，历史）
 
 独立r树/worker分支共同精确基线dd09c3b8801b86a0059f3fb73fe8a250acb1d89e，61新锁条目/十旧锁合计255唯一冻结、初始干净/产品目录不存在与实际offline baseline通过。真实P/N许可根ID→原生枚举句柄ID、父句柄单名Nt打开、硬链接ID相同/14字节逻辑长度、junction自身打开及根一层7个名称通过；真实已验收Q/A/H桥接24报告/9错误通过。详[派前回执](dispatch/wave1/NATIVE-SCAN-READY-REPORT.md)。
 

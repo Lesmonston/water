@@ -1,0 +1,35 @@
+{"binary":"C:\\Program Files\\nodejs\\node.exe","argv":["scripts/picker-test-driver.mjs","F:\\new\\smaltalk\\water\\.local\\next-target\\debug\\water-wave-probe.exe","picker","F:\\new\\smaltalk\\water\\.local\\picker-fixtures\\batch-v1\\root"],"exitCode":1,"error":null}
+
+---stderr---
+WATER_PICKER_CASE cancel
+WATER_PICKER_CASE select
+Controlled picker button unavailable
+At F:\new\smaltalk\water\scripts\picker-ui-action.ps1:27 char:5
++     throw 'Controlled picker button unavailable'
++     ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+    + CategoryInfo          : OperationStopped: (Controlled picker button unavailable:String) [], RuntimeException
+    + FullyQualifiedErrorId : Controlled picker button unavailable
+ 
+Controlled picker window not found
+At F:\new\smaltalk\water\scripts\picker-ui-action.ps1:15 char:26
++ if ($null -eq $window) { throw 'Controlled picker window not found' }
++                          ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+    + CategoryInfo          : OperationStopped: (Controlled picker window not found:String) [], RuntimeException
+    + FullyQualifiedErrorId : Controlled picker window not found
+ 
+node:internal/modules/run_main:107
+    triggerUncaughtException(
+    ^
+
+AssertionError [ERR_ASSERTION]: Controlled UI action failed
+    at file:///F:/new/smaltalk/water/scripts/picker-test-driver.mjs:9:120
+    at process.processTicksAndRejections (node:internal/process/task_queues:104:5) {
+  generatedMessage: false,
+  code: 'ERR_ASSERTION',
+  actual: false,
+  expected: true,
+  operator: '==',
+  diff: 'simple'
+}
+
+Node.js v24.16.0

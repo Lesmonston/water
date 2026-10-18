@@ -1,0 +1,103 @@
+{
+  "lane": "T",
+  "stamp": "2026-10-18T14-25-19.461Z-30684",
+  "commands": [
+    {
+      "binary": "C:\\Users\\37310\\.cargo\\bin\\rustup.exe",
+      "argv": [
+        "which",
+        "rustc",
+        "--toolchain",
+        "1.95.0"
+      ],
+      "exitCode": 0,
+      "log": "2026-10-18T14-25-19.461Z-30684-T-0.log"
+    },
+    {
+      "binary": "C:\\Users\\37310\\.cargo\\bin\\rustup.exe",
+      "argv": [
+        "which",
+        "cargo",
+        "--toolchain",
+        "1.95.0"
+      ],
+      "exitCode": 0,
+      "log": "2026-10-18T14-25-19.461Z-30684-T-1.log"
+    },
+    {
+      "binary": "C:\\Users\\37310\\.rustup\\toolchains\\1.95.0-x86_64-pc-windows-msvc\\bin\\rustc.exe",
+      "argv": [
+        "--version"
+      ],
+      "exitCode": 0,
+      "log": "2026-10-18T14-25-19.461Z-30684-T-2.log"
+    },
+    {
+      "binary": "C:\\Users\\37310\\.rustup\\toolchains\\1.95.0-x86_64-pc-windows-msvc\\bin\\cargo.exe",
+      "argv": [
+        "generate-lockfile",
+        "--offline",
+        "--manifest-path",
+        "tools/parallel-wave-probe/Cargo.toml"
+      ],
+      "exitCode": 0,
+      "log": "2026-10-18T14-25-19.461Z-30684-T-3.log"
+    },
+    {
+      "binary": "C:\\Users\\37310\\.rustup\\toolchains\\1.95.0-x86_64-pc-windows-msvc\\bin\\cargo.exe",
+      "argv": [
+        "metadata",
+        "--offline",
+        "--locked",
+        "--format-version",
+        "1",
+        "--manifest-path",
+        "tools/parallel-wave-probe/Cargo.toml"
+      ],
+      "exitCode": 0,
+      "log": "2026-10-18T14-25-19.461Z-30684-T-4.log"
+    },
+    {
+      "binary": "C:\\Users\\37310\\.rustup\\toolchains\\1.95.0-x86_64-pc-windows-msvc\\bin\\cargo.exe",
+      "argv": [
+        "build",
+        "--offline",
+        "--locked",
+        "--message-format=json",
+        "--manifest-path",
+        "tools/parallel-wave-probe/Cargo.toml"
+      ],
+      "exitCode": 0,
+      "log": "2026-10-18T14-25-19.461Z-30684-T-5.log"
+    },
+    {
+      "binary": "F:\\new\\smaltalk\\water\\.local\\next-target\\debug\\water-wave-probe.exe",
+      "argv": [
+        "review"
+      ],
+      "exitCode": 0,
+      "log": "2026-10-18T14-25-19.461Z-30684-T-6.log"
+    },
+    {
+      "binary": "C:\\Program Files\\nodejs\\node.exe",
+      "argv": [
+        "scripts/acceptance/review-download-probe.mjs"
+      ],
+      "exitCode": 0,
+      "log": "2026-10-18T14-25-19.461Z-30684-T-7.log"
+    }
+  ],
+  "result": {
+    "actual_A_E_H_Q": true,
+    "reports": 24,
+    "download": {
+      "actual_browser_click_attachment_download": true,
+      "bytes": 1379,
+      "filename": "water-report-1.json",
+      "destination": "F:\\new\\smaltalk\\water\\.local\\browser-lab\\download-probe-wvYktg",
+      "new_T_product_tested": false
+    },
+    "newProductTested": false
+  },
+  "status": "passed"
+}
