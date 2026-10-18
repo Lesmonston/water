@@ -1,0 +1,518 @@
+{
+  "startedAt": "2026-10-18T09:14:54.063Z",
+  "commands": [
+    {
+      "binary": "git",
+      "argv": [
+        "-c",
+        "core.hooksPath=NUL",
+        "-c",
+        "core.fsmonitor=false",
+        "rev-parse",
+        "HEAD"
+      ],
+      "exitCode": 0,
+      "error": null,
+      "log": "2026-10-18T09-14-54.061Z-34792-0.log"
+    },
+    {
+      "binary": "git",
+      "argv": [
+        "-c",
+        "core.hooksPath=NUL",
+        "-c",
+        "core.fsmonitor=false",
+        "status",
+        "--porcelain=v1",
+        "--untracked-files=all"
+      ],
+      "exitCode": 0,
+      "error": null,
+      "log": "2026-10-18T09-14-54.061Z-34792-1.log"
+    },
+    {
+      "binary": "git",
+      "argv": [
+        "-c",
+        "core.hooksPath=NUL",
+        "-c",
+        "core.fsmonitor=false",
+        "merge-base",
+        "--is-ancestor",
+        "767fd66e53c0f2fd694d07c1f6b6accb49c8c89d",
+        "HEAD"
+      ],
+      "exitCode": 0,
+      "error": null,
+      "log": "2026-10-18T09-14-54.061Z-34792-2.log"
+    },
+    {
+      "binary": "git",
+      "argv": [
+        "-c",
+        "core.hooksPath=NUL",
+        "-c",
+        "core.fsmonitor=false",
+        "diff",
+        "--name-only",
+        "767fd66e53c0f2fd694d07c1f6b6accb49c8c89d",
+        "HEAD"
+      ],
+      "exitCode": 0,
+      "error": null,
+      "log": "2026-10-18T09-14-54.061Z-34792-3.log"
+    },
+    {
+      "binary": "git",
+      "argv": [
+        "-c",
+        "core.hooksPath=NUL",
+        "-c",
+        "core.fsmonitor=false",
+        "rev-parse",
+        "--path-format=absolute",
+        "--git-common-dir"
+      ],
+      "exitCode": 0,
+      "error": null,
+      "log": "2026-10-18T09-14-54.061Z-34792-4.log"
+    },
+    {
+      "binary": "git",
+      "argv": [
+        "-c",
+        "core.hooksPath=NUL",
+        "-c",
+        "core.fsmonitor=false",
+        "diff",
+        "--name-only",
+        "75cf4db7607a382673a2146ca69732a5110c1579",
+        "d3fd65f67ba6a9f2d60b702d411dcff07687fbb7"
+      ],
+      "exitCode": 0,
+      "error": null,
+      "log": "2026-10-18T09-14-54.061Z-34792-5.log"
+    },
+    {
+      "binary": "git",
+      "argv": [
+        "-c",
+        "core.hooksPath=NUL",
+        "-c",
+        "core.fsmonitor=false",
+        "diff",
+        "--name-only",
+        "75cf4db7607a382673a2146ca69732a5110c1579",
+        "5a4ad207d988be32bf14f192b1745436b097fefc"
+      ],
+      "exitCode": 0,
+      "error": null,
+      "log": "2026-10-18T09-14-54.061Z-34792-6.log"
+    },
+    {
+      "binary": "C:\\Users\\37310\\.cargo\\bin\\rustup.exe",
+      "argv": [
+        "which",
+        "rustc",
+        "--toolchain",
+        "1.95.0"
+      ],
+      "exitCode": 0,
+      "error": null,
+      "log": "2026-10-18T09-14-54.061Z-34792-7.log"
+    },
+    {
+      "binary": "C:\\Users\\37310\\.cargo\\bin\\rustup.exe",
+      "argv": [
+        "which",
+        "cargo",
+        "--toolchain",
+        "1.95.0"
+      ],
+      "exitCode": 0,
+      "error": null,
+      "log": "2026-10-18T09-14-54.061Z-34792-8.log"
+    },
+    {
+      "binary": "C:\\Users\\37310\\.rustup\\toolchains\\1.95.0-x86_64-pc-windows-msvc\\bin\\rustc.exe",
+      "argv": [
+        "--version"
+      ],
+      "exitCode": 0,
+      "error": null,
+      "log": "2026-10-18T09-14-54.061Z-34792-9.log"
+    },
+    {
+      "binary": "C:\\Users\\37310\\.rustup\\toolchains\\1.95.0-x86_64-pc-windows-msvc\\bin\\cargo.exe",
+      "argv": [
+        "metadata",
+        "--offline",
+        "--locked",
+        "--format-version",
+        "1",
+        "--manifest-path",
+        "packages/native-root/Cargo.toml"
+      ],
+      "exitCode": 0,
+      "error": null,
+      "log": "2026-10-18T09-14-54.061Z-34792-10.log"
+    },
+    {
+      "binary": "C:\\Users\\37310\\.rustup\\toolchains\\1.95.0-x86_64-pc-windows-msvc\\bin\\cargo.exe",
+      "argv": [
+        "build",
+        "--offline",
+        "--locked",
+        "--lib",
+        "--message-format=json",
+        "--manifest-path",
+        "packages/native-root/Cargo.toml"
+      ],
+      "exitCode": 0,
+      "error": null,
+      "log": "2026-10-18T09-14-54.061Z-34792-11.log"
+    },
+    {
+      "binary": "C:\\Users\\37310\\.rustup\\toolchains\\1.95.0-x86_64-pc-windows-msvc\\bin\\rustc.exe",
+      "argv": [
+        "--edition=2024",
+        "--test",
+        "--crate-name",
+        "native_independent",
+        "scripts/acceptance/native-root-independent.rs",
+        "-L",
+        "dependency=F:\\new\\smaltalk\\water\\.worktrees\\integration-no-20261018\\.local\\next-target\\debug\\deps",
+        "--extern",
+        "water_native_root=F:\\new\\smaltalk\\water\\.worktrees\\integration-no-20261018\\.local\\next-target\\debug\\libwater_native_root.rlib",
+        "--extern",
+        "water_contracts=F:\\new\\smaltalk\\water\\.worktrees\\integration-no-20261018\\.local\\next-target\\debug\\deps\\libwater_contracts-8111003d52201830.rlib",
+        "--extern",
+        "serde_json=F:\\new\\smaltalk\\water\\.worktrees\\integration-no-20261018\\.local\\next-target\\debug\\deps\\libserde_json-c243626af514ec1f.rlib",
+        "-o",
+        "F:\\new\\smaltalk\\water\\.worktrees\\integration-no-20261018\\.local\\next-tmp\\2026-10-18T09-14-54.061Z-34792-independent.exe"
+      ],
+      "exitCode": 0,
+      "error": null,
+      "log": "2026-10-18T09-14-54.061Z-34792-12.log"
+    },
+    {
+      "binary": "F:\\new\\smaltalk\\water\\.worktrees\\integration-no-20261018\\.local\\next-tmp\\2026-10-18T09-14-54.061Z-34792-independent.exe",
+      "argv": [
+        "--test-threads=1",
+        "--format",
+        "pretty"
+      ],
+      "exitCode": 0,
+      "error": null,
+      "log": "2026-10-18T09-14-54.061Z-34792-13.log"
+    },
+    {
+      "binary": "C:\\Users\\37310\\.rustup\\toolchains\\1.95.0-x86_64-pc-windows-msvc\\bin\\rustc.exe",
+      "argv": [
+        "--edition=2024",
+        "--crate-name",
+        "native_bridge",
+        "scripts/acceptance/native-root-bridge.rs",
+        "-L",
+        "dependency=F:\\new\\smaltalk\\water\\.worktrees\\integration-no-20261018\\.local\\next-target\\debug\\deps",
+        "--extern",
+        "water_native_root=F:\\new\\smaltalk\\water\\.worktrees\\integration-no-20261018\\.local\\next-target\\debug\\libwater_native_root.rlib",
+        "--extern",
+        "water_contracts=F:\\new\\smaltalk\\water\\.worktrees\\integration-no-20261018\\.local\\next-target\\debug\\deps\\libwater_contracts-8111003d52201830.rlib",
+        "--extern",
+        "serde_json=F:\\new\\smaltalk\\water\\.worktrees\\integration-no-20261018\\.local\\next-target\\debug\\deps\\libserde_json-c243626af514ec1f.rlib",
+        "-o",
+        "F:\\new\\smaltalk\\water\\.worktrees\\integration-no-20261018\\.local\\next-tmp\\2026-10-18T09-14-54.061Z-34792-bridge.exe"
+      ],
+      "exitCode": 0,
+      "error": null,
+      "log": "2026-10-18T09-14-54.061Z-34792-14.log"
+    },
+    {
+      "binary": "F:\\new\\smaltalk\\water\\.worktrees\\integration-no-20261018\\.local\\next-tmp\\2026-10-18T09-14-54.061Z-34792-bridge.exe",
+      "argv": [],
+      "exitCode": 0,
+      "error": null,
+      "log": "2026-10-18T09-14-54.061Z-34792-15.log"
+    },
+    {
+      "binary": "C:\\Users\\37310\\.rustup\\toolchains\\1.95.0-x86_64-pc-windows-msvc\\bin\\rustc.exe",
+      "argv": [
+        "--edition=2024",
+        "--crate-name",
+        "lease_clone",
+        "F:\\new\\smaltalk\\water\\.worktrees\\integration-no-20261018\\.local\\next-tmp\\2026-10-18T09-14-54.061Z-34792-lease_clone.rs",
+        "-L",
+        "dependency=F:\\new\\smaltalk\\water\\.worktrees\\integration-no-20261018\\.local\\next-target\\debug\\deps",
+        "--extern",
+        "water_native_root=F:\\new\\smaltalk\\water\\.worktrees\\integration-no-20261018\\.local\\next-target\\debug\\libwater_native_root.rlib",
+        "--extern",
+        "water_contracts=F:\\new\\smaltalk\\water\\.worktrees\\integration-no-20261018\\.local\\next-target\\debug\\deps\\libwater_contracts-8111003d52201830.rlib",
+        "--extern",
+        "serde_json=F:\\new\\smaltalk\\water\\.worktrees\\integration-no-20261018\\.local\\next-target\\debug\\deps\\libserde_json-c243626af514ec1f.rlib",
+        "-o",
+        "F:\\new\\smaltalk\\water\\.worktrees\\integration-no-20261018\\.local\\next-tmp\\2026-10-18T09-14-54.061Z-34792-lease_clone.exe"
+      ],
+      "exitCode": 1,
+      "error": null,
+      "log": "2026-10-18T09-14-54.061Z-34792-16.log"
+    },
+    {
+      "binary": "C:\\Users\\37310\\.rustup\\toolchains\\1.95.0-x86_64-pc-windows-msvc\\bin\\rustc.exe",
+      "argv": [
+        "--edition=2024",
+        "--crate-name",
+        "lease_debug",
+        "F:\\new\\smaltalk\\water\\.worktrees\\integration-no-20261018\\.local\\next-tmp\\2026-10-18T09-14-54.061Z-34792-lease_debug.rs",
+        "-L",
+        "dependency=F:\\new\\smaltalk\\water\\.worktrees\\integration-no-20261018\\.local\\next-target\\debug\\deps",
+        "--extern",
+        "water_native_root=F:\\new\\smaltalk\\water\\.worktrees\\integration-no-20261018\\.local\\next-target\\debug\\libwater_native_root.rlib",
+        "--extern",
+        "water_contracts=F:\\new\\smaltalk\\water\\.worktrees\\integration-no-20261018\\.local\\next-target\\debug\\deps\\libwater_contracts-8111003d52201830.rlib",
+        "--extern",
+        "serde_json=F:\\new\\smaltalk\\water\\.worktrees\\integration-no-20261018\\.local\\next-target\\debug\\deps\\libserde_json-c243626af514ec1f.rlib",
+        "-o",
+        "F:\\new\\smaltalk\\water\\.worktrees\\integration-no-20261018\\.local\\next-tmp\\2026-10-18T09-14-54.061Z-34792-lease_debug.exe"
+      ],
+      "exitCode": 1,
+      "error": null,
+      "log": "2026-10-18T09-14-54.061Z-34792-17.log"
+    },
+    {
+      "binary": "C:\\Users\\37310\\.rustup\\toolchains\\1.95.0-x86_64-pc-windows-msvc\\bin\\rustc.exe",
+      "argv": [
+        "--edition=2024",
+        "--crate-name",
+        "identity_mutation",
+        "F:\\new\\smaltalk\\water\\.worktrees\\integration-no-20261018\\.local\\next-tmp\\2026-10-18T09-14-54.061Z-34792-identity_mutation.rs",
+        "-L",
+        "dependency=F:\\new\\smaltalk\\water\\.worktrees\\integration-no-20261018\\.local\\next-target\\debug\\deps",
+        "--extern",
+        "water_native_root=F:\\new\\smaltalk\\water\\.worktrees\\integration-no-20261018\\.local\\next-target\\debug\\libwater_native_root.rlib",
+        "--extern",
+        "water_contracts=F:\\new\\smaltalk\\water\\.worktrees\\integration-no-20261018\\.local\\next-target\\debug\\deps\\libwater_contracts-8111003d52201830.rlib",
+        "--extern",
+        "serde_json=F:\\new\\smaltalk\\water\\.worktrees\\integration-no-20261018\\.local\\next-target\\debug\\deps\\libserde_json-c243626af514ec1f.rlib",
+        "-o",
+        "F:\\new\\smaltalk\\water\\.worktrees\\integration-no-20261018\\.local\\next-tmp\\2026-10-18T09-14-54.061Z-34792-identity_mutation.exe"
+      ],
+      "exitCode": 1,
+      "error": null,
+      "log": "2026-10-18T09-14-54.061Z-34792-18.log"
+    },
+    {
+      "binary": "C:\\Users\\37310\\.rustup\\toolchains\\1.95.0-x86_64-pc-windows-msvc\\bin\\rustc.exe",
+      "argv": [
+        "--edition=2024",
+        "--crate-name",
+        "observation_mutation",
+        "F:\\new\\smaltalk\\water\\.worktrees\\integration-no-20261018\\.local\\next-tmp\\2026-10-18T09-14-54.061Z-34792-observation_mutation.rs",
+        "-L",
+        "dependency=F:\\new\\smaltalk\\water\\.worktrees\\integration-no-20261018\\.local\\next-target\\debug\\deps",
+        "--extern",
+        "water_native_root=F:\\new\\smaltalk\\water\\.worktrees\\integration-no-20261018\\.local\\next-target\\debug\\libwater_native_root.rlib",
+        "--extern",
+        "water_contracts=F:\\new\\smaltalk\\water\\.worktrees\\integration-no-20261018\\.local\\next-target\\debug\\deps\\libwater_contracts-8111003d52201830.rlib",
+        "--extern",
+        "serde_json=F:\\new\\smaltalk\\water\\.worktrees\\integration-no-20261018\\.local\\next-target\\debug\\deps\\libserde_json-c243626af514ec1f.rlib",
+        "-o",
+        "F:\\new\\smaltalk\\water\\.worktrees\\integration-no-20261018\\.local\\next-tmp\\2026-10-18T09-14-54.061Z-34792-observation_mutation.exe"
+      ],
+      "exitCode": 1,
+      "error": null,
+      "log": "2026-10-18T09-14-54.061Z-34792-19.log"
+    },
+    {
+      "binary": "C:\\Program Files\\nodejs\\node.exe",
+      "argv": [
+        "scripts/acceptance/evidence-reader-independent.mjs"
+      ],
+      "exitCode": 0,
+      "error": null,
+      "log": "2026-10-18T09-14-54.061Z-34792-20.log"
+    },
+    {
+      "binary": "git",
+      "argv": [
+        "-c",
+        "core.hooksPath=NUL",
+        "-c",
+        "core.fsmonitor=false",
+        "rev-parse",
+        "HEAD"
+      ],
+      "exitCode": 0,
+      "error": null,
+      "log": "2026-10-18T09-14-54.061Z-34792-21.log"
+    },
+    {
+      "binary": "git",
+      "argv": [
+        "-c",
+        "core.hooksPath=NUL",
+        "-c",
+        "core.fsmonitor=false",
+        "status",
+        "--porcelain=v1",
+        "--untracked-files=all"
+      ],
+      "exitCode": 0,
+      "error": null,
+      "log": "2026-10-18T09-14-54.061Z-34792-22.log"
+    }
+  ],
+  "controls": [
+    {
+      "task": "WATER-W1-N",
+      "label": "nc1",
+      "path": "packages/native-root/src/native_windows.rs",
+      "original": "c6c3e296a7d2ec4ca8cc5f308442b0d04fbf8aa746118ec749c7e42d69f529b7",
+      "bad": "d3f82203f5f9aebe3c8216b55fd3b749fd308aae4d768dbaa27409e0300dcd42",
+      "fullRed": true,
+      "restored": "c6c3e296a7d2ec4ca8cc5f308442b0d04fbf8aa746118ec749c7e42d69f529b7",
+      "fullGreen": true
+    },
+    {
+      "task": "WATER-W1-N",
+      "label": "nc2",
+      "path": "packages/native-root/src/native_windows.rs",
+      "original": "c6c3e296a7d2ec4ca8cc5f308442b0d04fbf8aa746118ec749c7e42d69f529b7",
+      "bad": "9b91c2e5ef43998c6a748e93403c231c92c10fc7ff7de0854d68aff8cf60fde9",
+      "fullRed": true,
+      "restored": "c6c3e296a7d2ec4ca8cc5f308442b0d04fbf8aa746118ec749c7e42d69f529b7",
+      "fullGreen": true
+    },
+    {
+      "task": "WATER-W1-N",
+      "label": "nc3",
+      "path": "packages/native-root/src/v1.rs",
+      "original": "7e6aeebb32f77a7534ea4c98da4f3a84f178b6fbca287c74846fe446d6aac3fc",
+      "bad": "41ee35edb8d98e59bac05cf88cc4be55caeced67289081c87b5240b55bf4c276",
+      "fullRed": true,
+      "restored": "7e6aeebb32f77a7534ea4c98da4f3a84f178b6fbca287c74846fe446d6aac3fc",
+      "fullGreen": true
+    },
+    {
+      "task": "WATER-W1-O",
+      "label": "nc1",
+      "path": "prototypes/evidence-reader/server.mjs",
+      "original": "3cf47a3c7781afdc913b004d2e825cba89a518aa89a8e6ec4e636e2d160ecf37",
+      "bad": "372e11c9079b1878f08ea1a507e1947d51e4287c2079aca581f339846861a2e0",
+      "fullRed": true,
+      "restored": "3cf47a3c7781afdc913b004d2e825cba89a518aa89a8e6ec4e636e2d160ecf37",
+      "fullGreen": true
+    },
+    {
+      "task": "WATER-W1-O",
+      "label": "nc2",
+      "path": "prototypes/evidence-reader/app.mjs",
+      "original": "8073f8f0a474257669454bd34b6ec148e81b991a1ce330c2f2be872710d74357",
+      "bad": "204343194ed4b0435be3d48e37978de0ef3941e9b1420c9fde19d80a200d4af3",
+      "fullRed": true,
+      "restored": "8073f8f0a474257669454bd34b6ec148e81b991a1ce330c2f2be872710d74357",
+      "fullGreen": true
+    },
+    {
+      "task": "WATER-W1-O",
+      "label": "nc3",
+      "path": "prototypes/evidence-reader/app.mjs",
+      "original": "8073f8f0a474257669454bd34b6ec148e81b991a1ce330c2f2be872710d74357",
+      "bad": "1b925412f667036aa33eff7cd7bf4241fd9589014c3689eb91faf85107d7c740",
+      "fullRed": true,
+      "restored": "8073f8f0a474257669454bd34b6ec148e81b991a1ce330c2f2be872710d74357",
+      "fullGreen": true
+    }
+  ],
+  "deliveredFilesVerified": 657,
+  "retainedFixture": {
+    "indexSha256": "8cbadee8cd3048ec1c509338c2f58fd33713eda2550f04546b7cbed0e7d3cfb7",
+    "contentBytes": 35,
+    "junctions": 2,
+    "newFixture": false
+  },
+  "newPhysicalFixtures": false,
+  "realUserDataAccess": false,
+  "continuation": {
+    "receipt": "2026-10-18T09-07-08.422Z-36624-result.json",
+    "sha256": "2ee304975af896b15f4652059531c61bd250d88caad08524df09f503fa6656a8",
+    "reason": "Controller rustEnvironment command third argument is timeout; original integration wrapper interpreted it as expected exit. Cargo metadata actually succeeded. No product/tests changed; completed full suites and six source controls preserved.",
+    "controllerOnlyDiff": [
+      "scripts/acceptance/evidence-reader-independent.mjs"
+    ]
+  },
+  "before": {
+    "head": "3c604ec5660c2bc8502ad9c1b99ef2f83a524ea5",
+    "status": ""
+  },
+  "cargoGraphs": [
+    [
+      {
+        "crate": "water_native_root",
+        "packageId": "path+file:///F:/new/smaltalk/water/.worktrees/integration-no-20261018/packages/native-root#water-native-root@0.1.0",
+        "filename": "F:\\new\\smaltalk\\water\\.worktrees\\integration-no-20261018\\.local\\next-target\\debug\\libwater_native_root.rlib"
+      },
+      {
+        "crate": "water_contracts",
+        "packageId": "path+file:///F:/new/smaltalk/water/.worktrees/integration-no-20261018/crates/water-contracts#0.1.0",
+        "filename": "F:\\new\\smaltalk\\water\\.worktrees\\integration-no-20261018\\.local\\next-target\\debug\\deps\\libwater_contracts-8111003d52201830.rlib"
+      },
+      {
+        "crate": "serde_json",
+        "packageId": "registry+https://github.com/rust-lang/crates.io-index#serde_json@1.0.151",
+        "filename": "F:\\new\\smaltalk\\water\\.worktrees\\integration-no-20261018\\.local\\next-target\\debug\\deps\\libserde_json-c243626af514ec1f.rlib"
+      }
+    ]
+  ],
+  "independentNativeTests": 3,
+  "nativeBridge": {
+    "actual_N_public_API": true,
+    "authorization_granted": false,
+    "directory_enumerated": false,
+    "identity_a": {
+      "file_id": "049c2300000002000000000000000000",
+      "kind": "windows_file_id_128",
+      "volume_serial": "13601514066450889474"
+    },
+    "identity_b": {
+      "file_id": "079c2300000002000000000000000000",
+      "kind": "windows_file_id_128",
+      "volume_serial": "13601514066450889474"
+    },
+    "reparse_cases": 3
+  },
+  "compileGuards": [
+    {
+      "name": "lease_clone",
+      "code": "E0277"
+    },
+    {
+      "name": "lease_debug",
+      "code": "E0277"
+    },
+    {
+      "name": "identity_mutation",
+      "code": "E0616"
+    },
+    {
+      "name": "observation_mutation",
+      "code": "E0616"
+    }
+  ],
+  "independentReader": {
+    "checks": 186,
+    "actualFrozenSnapshots": 18,
+    "renamedCallerSnapshots": 18,
+    "realServerAndHTTPAndChrome": true,
+    "physicalFixtureAccess": false,
+    "newScan": false
+  },
+  "frozenFilesVerified": 198,
+  "after": {
+    "head": "3c604ec5660c2bc8502ad9c1b99ef2f83a524ea5",
+    "status": ""
+  },
+  "endedAt": "2026-10-18T09:15:21.829Z",
+  "status": "passed",
+  "error": null
+}

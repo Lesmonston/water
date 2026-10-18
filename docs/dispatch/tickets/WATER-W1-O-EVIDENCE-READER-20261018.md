@@ -1,5 +1,7 @@
 # WATER-W1-O：项目证据与容量观察页面
 
+归档状态（2026-10-18）：VERIFIED（Windows受控范围），原票不再外贴或从基线重做。以下为原执行票，当前以manifest及[总控验收报告](../../acceptance/wave1/controller/WATER-W1-NO-REVIEW-20261018.md)为准。
+
 总控2026-10-18。执行前主manifest必须为READY；用户转贴后一个新执行对话独占本票。只依赖已验收A/G/E/H/I/J/K/L/M及冻结供数，与N完全独立。
 
 | 项 | 唯一值 |

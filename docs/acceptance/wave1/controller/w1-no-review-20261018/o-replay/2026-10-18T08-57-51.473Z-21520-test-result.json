@@ -1,0 +1,338 @@
+{
+  "task": "WATER-W1-O",
+  "mode": "test",
+  "finalGate": true,
+  "startedAt": "2026-10-18T08:57:53.086Z",
+  "before": {
+    "head": "5a4ad207d988be32bf14f192b1745436b097fefc",
+    "status": ""
+  },
+  "node": "v24.16.0",
+  "productTestsRun": true,
+  "frozenFiles": 98,
+  "commands": [
+    {
+      "binary": "git",
+      "argv": [
+        "-c",
+        "core.hooksPath=NUL",
+        "-c",
+        "core.fsmonitor=false",
+        "rev-parse",
+        "--path-format=absolute",
+        "--git-common-dir"
+      ],
+      "exitCode": 0,
+      "error": null
+    },
+    {
+      "binary": "git",
+      "argv": [
+        "-c",
+        "core.hooksPath=NUL",
+        "-c",
+        "core.fsmonitor=false",
+        "branch",
+        "--show-current"
+      ],
+      "exitCode": 0,
+      "error": null
+    },
+    {
+      "binary": "git",
+      "argv": [
+        "-c",
+        "core.hooksPath=NUL",
+        "-c",
+        "core.fsmonitor=false",
+        "merge-base",
+        "--is-ancestor",
+        "75cf4db7607a382673a2146ca69732a5110c1579",
+        "HEAD"
+      ],
+      "exitCode": 0,
+      "error": null
+    },
+    {
+      "binary": "git",
+      "argv": [
+        "-c",
+        "core.hooksPath=NUL",
+        "-c",
+        "core.fsmonitor=false",
+        "diff",
+        "--no-renames",
+        "--name-only",
+        "-z",
+        "75cf4db7607a382673a2146ca69732a5110c1579",
+        "HEAD"
+      ],
+      "exitCode": 0,
+      "error": null
+    },
+    {
+      "binary": "git",
+      "argv": [
+        "-c",
+        "core.hooksPath=NUL",
+        "-c",
+        "core.fsmonitor=false",
+        "diff",
+        "--no-renames",
+        "--name-only",
+        "-z",
+        "HEAD"
+      ],
+      "exitCode": 0,
+      "error": null
+    },
+    {
+      "binary": "git",
+      "argv": [
+        "-c",
+        "core.hooksPath=NUL",
+        "-c",
+        "core.fsmonitor=false",
+        "ls-files",
+        "--others",
+        "--exclude-standard",
+        "-z"
+      ],
+      "exitCode": 0,
+      "error": null
+    },
+    {
+      "binary": "git",
+      "argv": [
+        "-c",
+        "core.hooksPath=NUL",
+        "-c",
+        "core.fsmonitor=false",
+        "rev-parse",
+        "HEAD"
+      ],
+      "exitCode": 0,
+      "error": null
+    },
+    {
+      "binary": "git",
+      "argv": [
+        "-c",
+        "core.hooksPath=NUL",
+        "-c",
+        "core.fsmonitor=false",
+        "status",
+        "--porcelain",
+        "--untracked-files=all"
+      ],
+      "exitCode": 0,
+      "error": null
+    },
+    {
+      "binary": "C:\\Program Files\\nodejs\\node.exe",
+      "argv": [
+        "--test",
+        "--test-concurrency=1",
+        "--test-reporter=tap",
+        "prototypes/evidence-reader/tests/model.test.mjs"
+      ],
+      "exitCode": 0,
+      "error": null,
+      "log": "2026-10-18T08-57-51.473Z-21520-test-1.log"
+    },
+    {
+      "binary": "git",
+      "argv": [
+        "-c",
+        "core.hooksPath=NUL",
+        "-c",
+        "core.fsmonitor=false",
+        "branch",
+        "--show-current"
+      ],
+      "exitCode": 0,
+      "error": null,
+      "log": "2026-10-18T08-57-51.473Z-21520-test-2.log"
+    },
+    {
+      "binary": "git",
+      "argv": [
+        "-c",
+        "core.hooksPath=NUL",
+        "-c",
+        "core.fsmonitor=false",
+        "merge-base",
+        "--is-ancestor",
+        "75cf4db7607a382673a2146ca69732a5110c1579",
+        "HEAD"
+      ],
+      "exitCode": 0,
+      "error": null,
+      "log": "2026-10-18T08-57-51.473Z-21520-test-3.log"
+    },
+    {
+      "binary": "git",
+      "argv": [
+        "-c",
+        "core.hooksPath=NUL",
+        "-c",
+        "core.fsmonitor=false",
+        "diff",
+        "--no-renames",
+        "--name-only",
+        "-z",
+        "75cf4db7607a382673a2146ca69732a5110c1579",
+        "HEAD"
+      ],
+      "exitCode": 0,
+      "error": null,
+      "log": "2026-10-18T08-57-51.473Z-21520-test-4.log"
+    },
+    {
+      "binary": "git",
+      "argv": [
+        "-c",
+        "core.hooksPath=NUL",
+        "-c",
+        "core.fsmonitor=false",
+        "diff",
+        "--no-renames",
+        "--name-only",
+        "-z",
+        "HEAD"
+      ],
+      "exitCode": 0,
+      "error": null,
+      "log": "2026-10-18T08-57-51.473Z-21520-test-5.log"
+    },
+    {
+      "binary": "git",
+      "argv": [
+        "-c",
+        "core.hooksPath=NUL",
+        "-c",
+        "core.fsmonitor=false",
+        "ls-files",
+        "--others",
+        "--exclude-standard",
+        "-z"
+      ],
+      "exitCode": 0,
+      "error": null,
+      "log": "2026-10-18T08-57-51.473Z-21520-test-6.log"
+    },
+    {
+      "binary": "git",
+      "argv": [
+        "-c",
+        "core.hooksPath=NUL",
+        "-c",
+        "core.fsmonitor=false",
+        "rev-parse",
+        "HEAD"
+      ],
+      "exitCode": 0,
+      "error": null,
+      "log": "2026-10-18T08-57-51.473Z-21520-test-7.log"
+    },
+    {
+      "binary": "git",
+      "argv": [
+        "-c",
+        "core.hooksPath=NUL",
+        "-c",
+        "core.fsmonitor=false",
+        "status",
+        "--porcelain",
+        "--untracked-files=all"
+      ],
+      "exitCode": 0,
+      "error": null,
+      "log": "2026-10-18T08-57-51.473Z-21520-test-8.log"
+    }
+  ],
+  "assets": {
+    "retainedJ": 13,
+    "syntheticMemory": 5,
+    "realAcceptedAPIs": true,
+    "newProductTested": false
+  },
+  "sourceState": {
+    "files": [
+      {
+        "path": "prototypes/evidence-reader/index.html",
+        "sha256": "becf813211e434594ab275043651a08c5230f509323f93851c93957ff6ca2650",
+        "snapshot": "2026-10-18T08-57-51.473Z-21520-test-source-0.txt",
+        "test": false
+      },
+      {
+        "path": "prototypes/evidence-reader/styles.css",
+        "sha256": "03799fe9864af9464d9185a0758889be03d421808e9561569ae3091a1ec4e8c3",
+        "snapshot": "2026-10-18T08-57-51.473Z-21520-test-source-1.txt",
+        "test": false
+      },
+      {
+        "path": "prototypes/evidence-reader/app.mjs",
+        "sha256": "8073f8f0a474257669454bd34b6ec148e81b991a1ce330c2f2be872710d74357",
+        "snapshot": "2026-10-18T08-57-51.473Z-21520-test-source-2.txt",
+        "test": false
+      },
+      {
+        "path": "prototypes/evidence-reader/model.mjs",
+        "sha256": "f63b018699856159c44d226a59aa135fd669e8b961a7a557b97c28601e0752ca",
+        "snapshot": "2026-10-18T08-57-51.473Z-21520-test-source-3.txt",
+        "test": false
+      },
+      {
+        "path": "prototypes/evidence-reader/server.mjs",
+        "sha256": "3cf47a3c7781afdc913b004d2e825cba89a518aa89a8e6ec4e636e2d160ecf37",
+        "snapshot": "2026-10-18T08-57-51.473Z-21520-test-source-4.txt",
+        "test": false
+      },
+      {
+        "path": "prototypes/evidence-reader/tests/model.test.mjs",
+        "sha256": "79d313836a7682a365c8fd36f18c4616fc39442f1bb683eb7d2ba2f804ba2faa",
+        "snapshot": "2026-10-18T08-57-51.473Z-21520-test-source-5.txt",
+        "test": true
+      },
+      {
+        "path": "prototypes/evidence-reader/tests/browser.test.mjs",
+        "sha256": "dd576e2d4875e98e0bf5342f43e33c8df3b2fdc75b3f898ac39f4ecb97841627",
+        "snapshot": "2026-10-18T08-57-51.473Z-21520-test-source-6.txt",
+        "test": true
+      }
+    ],
+    "productionHash": "d5aaea3f46a353a378904b1d2147753e800fe17f224a4afa3afdf83c2b210f83",
+    "testHash": "d3e40735c62840ea7cb0eddc52ee1bd1105075566872e03caf4e30a3b537099c"
+  },
+  "proofAudit": [
+    {
+      "label": "behavior",
+      "red": "2026-10-18T06-24-10.293Z-15924-red-behavior-result.json",
+      "restored": "2026-10-18T06-32-06.542Z-22364-suite-result.json"
+    },
+    {
+      "label": "nc1",
+      "red": "2026-10-18T06-33-07.122Z-7568-red-nc1-result.json",
+      "restored": "2026-10-18T06-33-50.992Z-2620-suite-result.json"
+    },
+    {
+      "label": "nc2",
+      "red": "2026-10-18T06-34-48.219Z-31704-red-nc2-result.json",
+      "restored": "2026-10-18T06-35-27.767Z-36712-suite-result.json"
+    },
+    {
+      "label": "nc3",
+      "red": "2026-10-18T06-36-07.785Z-24300-red-nc3-result.json",
+      "restored": "2026-10-18T06-38-01.211Z-36340-suite-result.json"
+    }
+  ],
+  "executedTests": 3,
+  "after": {
+    "head": "5a4ad207d988be32bf14f192b1745436b097fefc",
+    "status": ""
+  },
+  "endedAt": "2026-10-18T08:57:55.268Z",
+  "status": "passed",
+  "error": null
+}

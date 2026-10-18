@@ -4,7 +4,7 @@
   "mode": "manual-external-paste",
   "controller": "Codex",
   "projectRoot": "F:/new/smaltalk/water",
-  "stage": "wave1-n-o-in-review",
+  "stage": "wave1-abcdefghijklmno-verified",
   "activeWave": "water-wave1",
   "slots": [
     {
@@ -117,7 +117,7 @@
       "branch": "worker/water-w1-n",
       "baseline": "75cf4db7607a382673a2146ca69732a5110c1579",
       "task": "WATER-W1-N",
-      "state": "in-review-preserved"
+      "state": "verified-preserved"
     },
     {
       "id": "o",
@@ -125,7 +125,7 @@
       "branch": "worker/water-w1-o",
       "baseline": "75cf4db7607a382673a2146ca69732a5110c1579",
       "task": "WATER-W1-O",
-      "state": "in-review-preserved"
+      "state": "verified-preserved"
     }
   ],
   "tasks": [
@@ -1177,7 +1177,7 @@
     {
       "id": "WATER-W1-N",
       "title": "Windows native directory observation",
-      "status": "IN_REVIEW",
+      "status": "VERIFIED",
       "kind": "native_root",
       "slot": "n",
       "worktree": "F:/new/smaltalk/water/.worktrees/n",
@@ -1249,12 +1249,30 @@
       "submittedCommit": "d3fd65f67ba6a9f2d60b702d411dcff07687fbb7",
       "testedImplementationCommit": "f894d64f88f69efda1ddfa78cb9dc31255a8b5e3",
       "submissionObservedAt": "2026-10-18T08:56:54.544Z",
-      "engine": "Codex"
+      "engine": "Codex",
+      "acceptedCommit": "d3fd65f67ba6a9f2d60b702d411dcff07687fbb7",
+      "acceptedOn": "2026-10-18",
+      "integratedOn": "2026-10-18",
+      "verifiedOn": "2026-10-18",
+      "verifiedPlatforms": [
+        "Windows"
+      ],
+      "unverifiedPlatforms": [
+        "macOS"
+      ],
+      "controllerReview": "docs/acceptance/wave1/controller/WATER-W1-NO-REVIEW-20261018.md",
+      "controllerReviewReceipt": "docs/acceptance/wave1/controller/w1-no-review-20261018/original-review/2026-10-18T08-56-51.390Z-16028-result.json",
+      "integrationBranch": "controller/water-w1-no-20261018",
+      "integrationWorktree": "F:/new/smaltalk/water/.worktrees/integration-no-20261018",
+      "integrationCommit": "3c604ec5660c2bc8502ad9c1b99ef2f83a524ea5",
+      "integrationTestedCommit": "3c604ec5660c2bc8502ad9c1b99ef2f83a524ea5",
+      "integrationReceipt": "docs/acceptance/wave1/controller/w1-no-review-20261018/integration/2026-10-18T09-14-54.061Z-34792-result.json",
+      "verificationScope": "Windows fixed local volume; original five final gates, fresh private-target five tests/fmt/clippy/metadata/native bridge, three actual-source full-five red/restore/green controls, three independent API/path tests and four compile-rejection guards. Reused retained 35-byte/two-junction fixture read-only. No authorization/traversal, production race, user data or macOS verification."
     },
     {
       "id": "WATER-W1-O",
       "title": "Evidence and observed-size reader",
-      "status": "IN_REVIEW",
+      "status": "VERIFIED",
       "kind": "evidence_reader",
       "slot": "o",
       "worktree": "F:/new/smaltalk/water/.worktrees/o",
@@ -1346,9 +1364,27 @@
       "submittedCommit": "5a4ad207d988be32bf14f192b1745436b097fefc",
       "testedImplementationCommit": "62a8ef12eae55f8414a1c24a774905f4769e6a26",
       "submissionObservedAt": "2026-10-18T08:57:03.482Z",
-      "engine": "Codex"
+      "engine": "Codex",
+      "acceptedCommit": "5a4ad207d988be32bf14f192b1745436b097fefc",
+      "acceptedOn": "2026-10-18",
+      "integratedOn": "2026-10-18",
+      "verifiedOn": "2026-10-18",
+      "verifiedPlatforms": [
+        "Windows"
+      ],
+      "unverifiedPlatforms": [
+        "macOS"
+      ],
+      "controllerReview": "docs/acceptance/wave1/controller/WATER-W1-NO-REVIEW-20261018.md",
+      "controllerReviewReceipt": "docs/acceptance/wave1/controller/w1-no-review-20261018/original-review/2026-10-18T08-56-51.390Z-16028-result.json",
+      "integrationBranch": "controller/water-w1-no-20261018",
+      "integrationWorktree": "F:/new/smaltalk/water/.worktrees/integration-no-20261018",
+      "integrationCommit": "3c604ec5660c2bc8502ad9c1b99ef2f83a524ea5",
+      "integrationTestedCommit": "3c604ec5660c2bc8502ad9c1b99ef2f83a524ea5",
+      "integrationReceipt": "docs/acceptance/wave1/controller/w1-no-review-20261018/integration/2026-10-18T09-14-54.061Z-34792-result.json",
+      "verificationScope": "Original three final gates, isolated full-five suites and three actual-source full-five red/restore/green controls; independent model/HTTP/caller-fed server/Chrome checks with 18 renamed snapshots, Unknown/conflict/u128 and fresh two-viewport/detail screenshots. No fresh filesystem scan, user scope, desktop or macOS verification."
     }
   ],
   "testHelper": "per-task helper; A defaults unchanged",
-  "note": "A-M and five addenda VERIFIED, preserved. N/O READY after independent exact-base Windows baselines; await separate user paste, no automatic implementers. N native-root foundation, O L/M annotation page. M1 incomplete; no real-user data authorization."
+  "note": "A-O and five addenda VERIFIED within Windows controlled scope; no outstanding external tickets. N native directory observation and O L/M annotation page accepted. No user-scope authorization/traversal, fresh scan, desktop/macOS or deletion. M1 incomplete."
 }

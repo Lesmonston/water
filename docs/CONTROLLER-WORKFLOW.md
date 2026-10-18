@@ -97,7 +97,7 @@ READY只表示总控已准备好，不表示用户已转贴。得到用户已贴
 
 ## 当前落实程度
 
-当前2026-10-18：N原生目录身份基础、O证据与容量页面正式READY，两独立树共同75cf4db精确基线及实际baseline通过，198唯一冻结。用户分别外贴，未自动启动实现者；新产品/五测试尚不存在。N只有冻结本树35字节/两个junction的元数据与ABI权限，O只有内存/隔离Chrome；真实选择授权、遍历/竞态/用户数据/桌面/macOS/删除未放行。[当前派前回执](dispatch/wave1/NEXT-CORE-READY-REPORT.md)优先于下面旧批状态。A–M及五补单保持VERIFIED，原对象和现场不变。
+当前2026-10-18：A–O及五补单均VERIFIED（Windows受控范围），无未结外贴票。N原生目录身份基础和O项目证据/容量页面已通过独立复验与隔离集成；真实选择授权/范围注册、有界遍历、详细脱敏导出/桌面、macOS和删除未验收，M1仍未完成。原N五final/O三final、新私有构建/六真实负控和独立native/HTTP/Chrome验证通过；198冻结和657份交付字节保持，详[N/O总控验收](acceptance/wave1/controller/WATER-W1-NO-REVIEW-20261018.md)。没有代修产品或自动启动实现者，旧树/夹具/日志保持。
 
 最新L/M验收：L接收d821b11/受测7a545fd，M接收88c7bd3/受测03f60ae，隔离受测df17e0a。两票原各五final/五测试通过，新私有target重复通过各五测试/格式/clippy/metadata/桥接；六项真实生产负控逐次完整五测红/原字节恢复绿，四项独立Rust边界与保留的真实J13快照→G→L/M公开入口回放通过。151冻结、A–K任务对象/旧产品/根Cargo及771份worker交付字节保持。A–M及五补单均VERIFIED（Windows受控合成范围），未结外贴单为0；L仅文件名候选、M仅观察逻辑长度与身份提示，不代表分类提升/卷唯一或回收量。未重新扫描或访问物理fixture；真实用户scope、身份IO、L/M页面/桌面接线、macOS和删除未验证，M1未完成。见[L/M验收报告](acceptance/wave1/controller/WATER-W1-LM-REVIEW-20261018.md)。
 

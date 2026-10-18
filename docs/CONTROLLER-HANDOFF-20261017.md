@@ -2,7 +2,11 @@
 
 2026-10-17。项目：`F:/new/smaltalk/water`。供后续总控接手与Keeper ingest；未写共享Vault或其他项目。
 
-## 当前交接：N/O正式READY，待分别外贴
+## 当前交接：N/O已VERIFIED并集成，无未结外贴票
+
+A–O及五补单均VERIFIED（Windows受控范围），无未结外贴票。N原生目录身份基础和O项目证据/容量页面已通过独立复验与隔离集成；真实选择授权/范围注册、有界遍历、详细脱敏导出/桌面、macOS和删除未验收，M1仍未完成。N接收d3fd65f/原受测f894d64，O接收5a4ad20/原受测62a8ef1，隔离受测3c604ec。全部原final门、新私有target、六项真实源码完整五红/恢复五绿、独立native三测试/四项编译拒绝、真实服务HTTP/Chrome检查通过。198冻结和657份worker交付原字节保持；只读复用原35字节/两个junction，无新物理fixture。见[N/O总控验收](acceptance/wave1/controller/WATER-W1-NO-REVIEW-20261018.md)。下一阶段先冻结选择授权/范围注册与句柄边界有界遍历纵向单；没有新的READY票或自动实现者。
+
+## 此前交接：N/O正式READY（历史）
 
 2026-10-18新增N原生目录身份基础、O项目证据与容量页面，两独立n/o树、共同精确基线75cf4db7607a382673a2146ca69732a5110c1579、98新锁条目/八旧锁合计198唯一冻结和实际baseline通过。N冻结本树35字节/两个junction、私有离线A/serde、Win32 FileIdInfo ABI与两目录身份通过；O真实旧API的13保留J+5内存变体、K模型及隔离Chrome空白页通过。新产品未实现、各五测试未运行，没有自动启动实现者，用户分别外贴PASTE-N/O。A–M原对象/旧产品/根Cargo/现场保持。详[当前派前报告](dispatch/wave1/NEXT-CORE-READY-REPORT.md)和[M1交付计划](M1-DELIVERY-PLAN.md)。后续收单独立验收，再推进选择授权/范围注册和句柄边界遍历；真实用户scope、macOS、卷唯一/回收量、桌面与删除仍未验证，M1未完成。
 

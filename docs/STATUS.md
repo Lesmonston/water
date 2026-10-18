@@ -21,9 +21,15 @@
 
 ## 下一步
 
-A–M及五补单均VERIFIED（Windows受控合成范围），原票不重贴。新增N Windows目录身份基础、O项目证据与容量页面两票READY，用户分别外贴后实现；没有自动启动执行者。[M1交付计划](M1-DELIVERY-PLAN.md)说明“用户可用只读Alpha”及其缺口，当前未完成。
+A–O及五补单均VERIFIED（Windows受控范围），无未结外贴票。N原生目录身份基础和O项目证据/容量页面已通过独立复验与隔离集成；真实选择授权/范围注册、有界遍历、详细脱敏导出/桌面、macOS和删除未验收，M1仍未完成。原票不重贴，见[N/O总控验收](acceptance/wave1/controller/WATER-W1-NO-REVIEW-20261018.md)。
 
-## N/O派前通过（2026-10-18，最新）
+## N/O复验及隔离集成通过（2026-10-18，最新）
+
+N接收d3fd65f/原受测f894d64，O接收5a4ad20/原受测62a8ef1，隔离受测3c604ec。原N五final/O三final复跑通过；新私有离线target重跑N五测/格式/clippy/metadata/bridge，O完整五测/语法通过，两票各三项真实源码负控逐次完整五红/原字节恢复五绿。独立native三测试/四项编译拒绝和实际内存服务→HTTP→Chrome检查通过，详情见[N/O总控验收](acceptance/wave1/controller/WATER-W1-NO-REVIEW-20261018.md)。
+
+198唯一冻结和657份worker交付原字节保持。只读复用n原35字节/两个junction/index，无新建/清理fixture或真实用户数据动作；O展示13保留J捕获及5内存变体，没有新扫描。LF/CRLF检出及索引缓存失败/恢复记录保留，未改产品。当前无未结外贴票，M1用户闭环仍未完成。
+
+## N/O派前通过（2026-10-18，历史）
 
 两独立树/分支共同精确基线75cf4db7607a382673a2146ca69732a5110c1579，98新锁条目及八旧锁合计198唯一文件实际核验。N在本树.local由冻结工具准备35字节/两个junction，私有离线A/serde及Win32 ABI/同目录稳定ID、不同目录不同ID通过；O的13真实保留J捕获与5内存变体经真实G/A/E/H/L/M和K模型，隔离Chrome空白页通过。详[正式派前回执](dispatch/wave1/NEXT-CORE-READY-REPORT.md)。
 

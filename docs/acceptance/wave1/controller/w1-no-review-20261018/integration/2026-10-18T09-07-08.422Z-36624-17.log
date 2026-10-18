@@ -1,0 +1,35 @@
+--- stdout ---
+
+running 5 tests
+test root_lifetime_and_errors ... FAILED
+test root_native_identity ... ok
+test root_observation_wire ... ok
+test root_path_validation ... ok
+test root_reparse_boundaries ... FAILED
+
+failures:
+
+---- root_lifetime_and_errors stdout ----
+
+thread 'root_lifetime_and_errors' (35232) panicked at tests\native_root_v1.rs:325:22:
+unexpected successful open
+note: run with `RUST_BACKTRACE=1` environment variable to display a backtrace
+
+---- root_reparse_boundaries stdout ----
+
+thread 'root_reparse_boundaries' (15616) panicked at tests\native_root_v1.rs:231:9:
+N_REPARSE_ROOT: junction or junction ancestor must be rejected
+
+
+failures:
+    root_lifetime_and_errors
+    root_reparse_boundaries
+
+test result: FAILED. 3 passed; 2 failed; 0 ignored; 0 measured; 0 filtered out; finished in 0.11s
+
+
+--- stderr ---
+   Compiling water-native-root v0.1.0 (F:\new\smaltalk\water\.worktrees\integration-no-20261018\packages\native-root)
+    Finished `test` profile [unoptimized + debuginfo] target(s) in 4.03s
+     Running tests\native_root_v1.rs (.local\next-target\debug\deps\native_root_v1-7a5825f95496eccc.exe)
+error: test failed, to rerun pass `--test native_root_v1`
