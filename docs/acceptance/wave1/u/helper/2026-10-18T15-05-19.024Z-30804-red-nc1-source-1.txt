@@ -1,0 +1,319 @@
+//! Strict structural evidence from caller text. No package identity is retained.
+use serde::de::{self, DeserializeSeed, IgnoredAny, MapAccess, SeqAccess, Visitor};
+use serde::{Deserialize, Serialize};
+use std::collections::BTreeMap;
+use std::fmt;
+
+#[derive(Debug, Clone, PartialEq, Eq)]
+pub enum ManifestError {
+    InputTooLarge,
+    InvalidJson,
+    DuplicateKey,
+    NestingTooDeep,
+    InvalidShape,
+    InvalidField,
+    TooManyEntries,
+    SerializationFailed,
+}
+
+impl fmt::Display for ManifestError {
+    fn fmt(&self, f: &mut fmt::Formatter<'_>) -> fmt::Result {
+        write!(f, "{self:?} at /manifest")
+    }
+}
+
+impl std::error::Error for ManifestError {}
+
+#[derive(Debug, Clone, PartialEq, Eq, Serialize)]
+pub struct ManifestEvidence {
+    manifest_version: &'static str,
+    source_kind: &'static str,
+    read_only: bool,
+    format_verified: bool,
+    project_membership_verified: bool,
+    tool_version_known: bool,
+    action: &'static str,
+    risk: &'static str,
+    ecosystem: &'static str,
+    evidence_strength: &'static str,
+    recognized_field_count: u32,
+    has_name: bool,
+    has_version: bool,
+    declared_private: Option<bool>,
+    counts: ManifestCounts,
+}
+
+#[derive(Debug, Clone, PartialEq, Eq, Serialize)]
+pub struct ManifestCounts {
+    scripts: u32,
+    dependencies: u32,
+    dev_dependencies: u32,
+    peer_dependencies: u32,
+    optional_dependencies: u32,
+    workspace_patterns: u32,
+}
+
+/// Validate the complete raw document before interpreting its nine known fields.
+/// Size precedes syntax; syntax precedes duplicate/depth and shape/field errors.
+pub fn analyze_package_json(raw: &str) -> Result<ManifestEvidence, ManifestError> {
+    if raw.len() > 262144 {
+        return Err(ManifestError::InputTooLarge);
+    }
+    validate_syntax(raw)?;
+    let mut fault = None;
+    let mut parser = serde_json::Deserializer::from_str(raw);
+    let root = NodeSeed {
+        depth: 0,
+        fault: &mut fault,
+    }
+    .deserialize(&mut parser)
+    .map_err(|_| fault.unwrap_or(ManifestError::InvalidJson))?;
+    parser.end().map_err(|_| ManifestError::InvalidJson)?;
+    let Node::Object(root) = root else {
+        return Err(ManifestError::InvalidShape);
+    };
+    let mut evidence = ManifestEvidence {
+        manifest_version: "water.node-manifest.v1",
+        source_kind: "caller_supplied_text",
+        read_only: true,
+        format_verified: true,
+        project_membership_verified: false,
+        tool_version_known: false,
+        action: "display_only",
+        risk: "protected",
+        ecosystem: "node",
+        evidence_strength: "parsed_structure",
+        recognized_field_count: 0,
+        has_name: false,
+        has_version: false,
+        declared_private: None,
+        counts: ManifestCounts {
+            scripts: 0,
+            dependencies: 0,
+            dev_dependencies: 0,
+            peer_dependencies: 0,
+            optional_dependencies: 0,
+            workspace_patterns: 0,
+        },
+    };
+    for (key, value) in &root {
+        match key.as_str() {
+            "name" => {
+                text(value, 1, 256, false)?;
+                evidence.has_name = true;
+            }
+            "version" => {
+                text(value, 1, 256, false)?;
+                evidence.has_version = true;
+            }
+            "private" => {
+                let Node::Bool(value) = value else {
+                    return Err(ManifestError::InvalidField);
+                };
+                evidence.declared_private = Some(*value);
+            }
+            "scripts" => evidence.counts.scripts = map_count(value, true)?,
+            "dependencies" => evidence.counts.dependencies = map_count(value, false)?,
+            "devDependencies" => evidence.counts.dev_dependencies = map_count(value, false)?,
+            "peerDependencies" => evidence.counts.peer_dependencies = map_count(value, false)?,
+            "optionalDependencies" => {
+                evidence.counts.optional_dependencies = map_count(value, false)?
+            }
+            "workspaces" => {
+                let Node::Array(items) = value else {
+                    return Err(ManifestError::InvalidField);
+                };
+                if items.len() > 128 {
+                    return Err(ManifestError::TooManyEntries);
+                }
+                for item in items {
+                    text(item, 1, 256, false)?;
+                }
+                evidence.counts.workspace_patterns = items.len() as u32;
+            }
+            _ => continue,
+        }
+        evidence.recognized_field_count += 1;
+    }
+    Ok(evidence)
+}
+
+/// Serialize only evidence produced by the validated, private construction path.
+pub fn to_json(evidence: &ManifestEvidence) -> Result<String, ManifestError> {
+    serde_json::to_string(evidence).map_err(|_| ManifestError::SerializationFailed)
+}
+
+fn text(value: &Node, min: usize, max: usize, controls_allowed: bool) -> Result<(), ManifestError> {
+    let Node::String(value) = value else {
+        return Err(ManifestError::InvalidField);
+    };
+    string_bounds(value, min, max, controls_allowed)
+}
+
+fn string_bounds(
+    value: &str,
+    min: usize,
+    max: usize,
+    controls_allowed: bool,
+) -> Result<(), ManifestError> {
+    let length = value.chars().count();
+    if length < min
+        || length > max
+        || (!controls_allowed && value.chars().any(|c| c.is_ascii_control()))
+    {
+        return Err(ManifestError::InvalidField);
+    }
+    Ok(())
+}
+
+fn map_count(value: &Node, scripts: bool) -> Result<u32, ManifestError> {
+    let Node::Object(items) = value else {
+        return Err(ManifestError::InvalidField);
+    };
+    if items.len() > if scripts { 128 } else { 4096 } {
+        return Err(ManifestError::TooManyEntries);
+    }
+    for (key, value) in items {
+        if scripts {
+            text(value, 0, 4096, true)?;
+        } else {
+            string_bounds(key, 1, 256, false)?;
+            text(value, 1, 2048, false)?;
+        }
+    }
+    Ok(items.len() as u32)
+}
+
+// IgnoredAny checks the entire grammar using serde_json's iterative skip path,
+// so even input thousands of containers deep cannot exhaust the call stack.
+// Its skip path intentionally does not decode Unicode escapes or check numeric
+// representability. Validate each scalar token too, before any semantic error.
+fn validate_syntax(raw: &str) -> Result<(), ManifestError> {
+    let mut parser = serde_json::Deserializer::from_str(raw);
+    IgnoredAny::deserialize(&mut parser).map_err(|_| ManifestError::InvalidJson)?;
+    parser.end().map_err(|_| ManifestError::InvalidJson)?;
+    let bytes = raw.as_bytes();
+    let mut index = 0;
+    while index < bytes.len() {
+        let start = index;
+        match bytes[index] {
+            b'"' => {
+                index += 1;
+                while index < bytes.len() {
+                    match bytes[index] {
+                        b'\\' => index += 2,
+                        b'"' => {
+                            index += 1;
+                            break;
+                        }
+                        _ => index += 1,
+                    }
+                }
+                serde_json::from_str::<String>(&raw[start..index])
+                    .map_err(|_| ManifestError::InvalidJson)?;
+            }
+            b'-' | b'0'..=b'9' => {
+                index += 1;
+                while index < bytes.len()
+                    && matches!(bytes[index], b'0'..=b'9' | b'.' | b'e' | b'E' | b'+' | b'-')
+                {
+                    index += 1;
+                }
+                serde_json::from_str::<serde_json::Number>(&raw[start..index])
+                    .map_err(|_| ManifestError::InvalidJson)?;
+            }
+            _ => index += 1,
+        }
+    }
+    Ok(())
+}
+
+// Transient bounded tree, never serialized or returned. Numbers/null have no
+// structural contribution; floats are neither stored nor used in arithmetic.
+enum Node {
+    Object(BTreeMap<String, Node>),
+    Array(Vec<Node>),
+    String(String),
+    Bool(bool),
+    Other,
+}
+
+struct NodeSeed<'a> {
+    depth: usize,
+    fault: &'a mut Option<ManifestError>,
+}
+
+impl<'de> DeserializeSeed<'de> for NodeSeed<'_> {
+    type Value = Node;
+    fn deserialize<D: de::Deserializer<'de>>(self, deserializer: D) -> Result<Node, D::Error> {
+        deserializer.deserialize_any(self)
+    }
+}
+
+impl NodeSeed<'_> {
+    fn fail<E: de::Error>(&mut self, fault: ManifestError) -> E {
+        *self.fault = Some(fault);
+        E::custom("invalid manifest")
+    }
+}
+
+impl<'de> Visitor<'de> for NodeSeed<'_> {
+    type Value = Node;
+    fn expecting(&self, f: &mut fmt::Formatter<'_>) -> fmt::Result {
+        f.write_str("JSON value")
+    }
+    fn visit_bool<E: de::Error>(self, value: bool) -> Result<Node, E> {
+        Ok(Node::Bool(value))
+    }
+    fn visit_str<E: de::Error>(self, value: &str) -> Result<Node, E> {
+        Ok(Node::String(value.to_owned()))
+    }
+    fn visit_string<E: de::Error>(self, value: String) -> Result<Node, E> {
+        Ok(Node::String(value))
+    }
+    fn visit_i64<E: de::Error>(self, _value: i64) -> Result<Node, E> {
+        Ok(Node::Other)
+    }
+    fn visit_u64<E: de::Error>(self, _value: u64) -> Result<Node, E> {
+        Ok(Node::Other)
+    }
+    fn visit_f64<E: de::Error>(self, _value: f64) -> Result<Node, E> {
+        Ok(Node::Other)
+    }
+    fn visit_unit<E: de::Error>(self) -> Result<Node, E> {
+        Ok(Node::Other)
+    }
+    fn visit_map<A: MapAccess<'de>>(mut self, mut access: A) -> Result<Node, A::Error> {
+        self.depth += 1;
+        if self.depth > 32 {
+            return Err(self.fail(ManifestError::NestingTooDeep));
+        }
+        let mut items = BTreeMap::new();
+        while let Some(key) = access.next_key::<String>()? {
+            let duplicate = items.contains_key(&key);
+            if duplicate && self.depth == 1 {
+                return Err(self.fail(ManifestError::DuplicateKey));
+            }
+            let value = access.next_value_seed(NodeSeed {
+                depth: self.depth,
+                fault: self.fault,
+            })?;
+            items.insert(key, value);
+        }
+        Ok(Node::Object(items))
+    }
+    fn visit_seq<A: SeqAccess<'de>>(mut self, mut access: A) -> Result<Node, A::Error> {
+        self.depth += 1;
+        if self.depth > 32 {
+            return Err(self.fail(ManifestError::NestingTooDeep));
+        }
+        let mut items = Vec::new();
+        while let Some(value) = access.next_element_seed(NodeSeed {
+            depth: self.depth,
+            fault: self.fault,
+        })? {
+            items.push(value);
+        }
+        Ok(Node::Array(items))
+    }
+}

@@ -1,0 +1,433 @@
+{
+  "task": "WATER-W1-U",
+  "mode": "bridge",
+  "finalGate": true,
+  "startedAt": "2026-10-18T15:10:12.080Z",
+  "before": {
+    "head": "39ea9ff30426d4c211f0eada6d85f3d3a87dd43d",
+    "status": ""
+  },
+  "node": "v24.16.0",
+  "productTestsRun": true,
+  "frozenFiles": 94,
+  "commands": [
+    {
+      "binary": "git",
+      "argv": [
+        "-c",
+        "core.hooksPath=NUL",
+        "-c",
+        "core.fsmonitor=false",
+        "rev-parse",
+        "--path-format=absolute",
+        "--git-common-dir"
+      ],
+      "exitCode": 0,
+      "error": null
+    },
+    {
+      "binary": "git",
+      "argv": [
+        "-c",
+        "core.hooksPath=NUL",
+        "-c",
+        "core.fsmonitor=false",
+        "branch",
+        "--show-current"
+      ],
+      "exitCode": 0,
+      "error": null
+    },
+    {
+      "binary": "git",
+      "argv": [
+        "-c",
+        "core.hooksPath=NUL",
+        "-c",
+        "core.fsmonitor=false",
+        "merge-base",
+        "--is-ancestor",
+        "3d0faefa97267a6aa57f880a315a2cde7fe06e98",
+        "HEAD"
+      ],
+      "exitCode": 0,
+      "error": null
+    },
+    {
+      "binary": "git",
+      "argv": [
+        "-c",
+        "core.hooksPath=NUL",
+        "-c",
+        "core.fsmonitor=false",
+        "diff",
+        "--no-renames",
+        "--name-only",
+        "-z",
+        "3d0faefa97267a6aa57f880a315a2cde7fe06e98",
+        "HEAD"
+      ],
+      "exitCode": 0,
+      "error": null
+    },
+    {
+      "binary": "git",
+      "argv": [
+        "-c",
+        "core.hooksPath=NUL",
+        "-c",
+        "core.fsmonitor=false",
+        "diff",
+        "--no-renames",
+        "--name-only",
+        "-z",
+        "HEAD"
+      ],
+      "exitCode": 0,
+      "error": null
+    },
+    {
+      "binary": "git",
+      "argv": [
+        "-c",
+        "core.hooksPath=NUL",
+        "-c",
+        "core.fsmonitor=false",
+        "ls-files",
+        "--others",
+        "--exclude-standard",
+        "-z"
+      ],
+      "exitCode": 0,
+      "error": null
+    },
+    {
+      "binary": "git",
+      "argv": [
+        "-c",
+        "core.hooksPath=NUL",
+        "-c",
+        "core.fsmonitor=false",
+        "rev-parse",
+        "HEAD"
+      ],
+      "exitCode": 0,
+      "error": null
+    },
+    {
+      "binary": "git",
+      "argv": [
+        "-c",
+        "core.hooksPath=NUL",
+        "-c",
+        "core.fsmonitor=false",
+        "status",
+        "--porcelain",
+        "--untracked-files=all"
+      ],
+      "exitCode": 0,
+      "error": null
+    },
+    {
+      "binary": "C:\\Users\\37310\\.cargo\\bin\\rustup.exe",
+      "argv": [
+        "which",
+        "rustc",
+        "--toolchain",
+        "1.95.0"
+      ],
+      "exitCode": 0,
+      "error": null,
+      "log": "2026-10-18T15-10-10.698Z-32792-bridge-1.log"
+    },
+    {
+      "binary": "C:\\Users\\37310\\.cargo\\bin\\rustup.exe",
+      "argv": [
+        "which",
+        "cargo",
+        "--toolchain",
+        "1.95.0"
+      ],
+      "exitCode": 0,
+      "error": null,
+      "log": "2026-10-18T15-10-10.698Z-32792-bridge-2.log"
+    },
+    {
+      "binary": "C:\\Users\\37310\\.rustup\\toolchains\\1.95.0-x86_64-pc-windows-msvc\\bin\\rustc.exe",
+      "argv": [
+        "--version"
+      ],
+      "exitCode": 0,
+      "error": null,
+      "log": "2026-10-18T15-10-10.698Z-32792-bridge-3.log"
+    },
+    {
+      "binary": "C:\\Users\\37310\\.rustup\\toolchains\\1.95.0-x86_64-pc-windows-msvc\\bin\\cargo.exe",
+      "argv": [
+        "metadata",
+        "--offline",
+        "--locked",
+        "--format-version",
+        "1",
+        "--manifest-path",
+        "packages/node-manifest/Cargo.toml"
+      ],
+      "exitCode": 0,
+      "error": null,
+      "log": "2026-10-18T15-10-10.698Z-32792-bridge-4.log"
+    },
+    {
+      "binary": "C:\\Users\\37310\\.rustup\\toolchains\\1.95.0-x86_64-pc-windows-msvc\\bin\\cargo.exe",
+      "argv": [
+        "metadata",
+        "--offline",
+        "--locked",
+        "--format-version",
+        "1",
+        "--manifest-path",
+        "packages/node-manifest/Cargo.toml"
+      ],
+      "exitCode": 0,
+      "error": null,
+      "log": "2026-10-18T15-10-10.698Z-32792-bridge-5.log"
+    },
+    {
+      "binary": "C:\\Users\\37310\\.rustup\\toolchains\\1.95.0-x86_64-pc-windows-msvc\\bin\\cargo.exe",
+      "argv": [
+        "build",
+        "--offline",
+        "--locked",
+        "--lib",
+        "--message-format=json",
+        "--manifest-path",
+        "packages/node-manifest/Cargo.toml"
+      ],
+      "exitCode": 0,
+      "error": null,
+      "log": "2026-10-18T15-10-10.698Z-32792-bridge-6.log"
+    },
+    {
+      "binary": "C:\\Users\\37310\\.rustup\\toolchains\\1.95.0-x86_64-pc-windows-msvc\\bin\\rustc.exe",
+      "argv": [
+        "--edition=2024",
+        "--crate-name",
+        "node_manifest_bridge",
+        "scripts/acceptance/node-manifest-bridge.rs",
+        "-L",
+        "dependency=F:\\new\\smaltalk\\water\\.worktrees\\u\\.local\\next-target\\debug\\deps",
+        "--extern",
+        "water_node_manifest=F:\\new\\smaltalk\\water\\.worktrees\\u\\.local\\next-target\\debug\\libwater_node_manifest.rlib",
+        "--extern",
+        "serde_json=F:\\new\\smaltalk\\water\\.worktrees\\u\\.local\\next-target\\debug\\deps\\libserde_json-c243626af514ec1f.rlib",
+        "-o",
+        "F:\\new\\smaltalk\\water\\.worktrees\\u\\.local\\next-tmp\\2026-10-18T15-10-10.698Z-32792-node_manifest_bridge.exe"
+      ],
+      "exitCode": 0,
+      "error": null,
+      "log": "2026-10-18T15-10-10.698Z-32792-bridge-7.log"
+    },
+    {
+      "binary": "F:\\new\\smaltalk\\water\\.worktrees\\u\\.local\\next-tmp\\2026-10-18T15-10-10.698Z-32792-node_manifest_bridge.exe",
+      "argv": [],
+      "exitCode": 0,
+      "error": null,
+      "log": "2026-10-18T15-10-10.698Z-32792-bridge-8.log"
+    },
+    {
+      "binary": "git",
+      "argv": [
+        "-c",
+        "core.hooksPath=NUL",
+        "-c",
+        "core.fsmonitor=false",
+        "branch",
+        "--show-current"
+      ],
+      "exitCode": 0,
+      "error": null,
+      "log": "2026-10-18T15-10-10.698Z-32792-bridge-9.log"
+    },
+    {
+      "binary": "git",
+      "argv": [
+        "-c",
+        "core.hooksPath=NUL",
+        "-c",
+        "core.fsmonitor=false",
+        "merge-base",
+        "--is-ancestor",
+        "3d0faefa97267a6aa57f880a315a2cde7fe06e98",
+        "HEAD"
+      ],
+      "exitCode": 0,
+      "error": null,
+      "log": "2026-10-18T15-10-10.698Z-32792-bridge-10.log"
+    },
+    {
+      "binary": "git",
+      "argv": [
+        "-c",
+        "core.hooksPath=NUL",
+        "-c",
+        "core.fsmonitor=false",
+        "diff",
+        "--no-renames",
+        "--name-only",
+        "-z",
+        "3d0faefa97267a6aa57f880a315a2cde7fe06e98",
+        "HEAD"
+      ],
+      "exitCode": 0,
+      "error": null,
+      "log": "2026-10-18T15-10-10.698Z-32792-bridge-11.log"
+    },
+    {
+      "binary": "git",
+      "argv": [
+        "-c",
+        "core.hooksPath=NUL",
+        "-c",
+        "core.fsmonitor=false",
+        "diff",
+        "--no-renames",
+        "--name-only",
+        "-z",
+        "HEAD"
+      ],
+      "exitCode": 0,
+      "error": null,
+      "log": "2026-10-18T15-10-10.698Z-32792-bridge-12.log"
+    },
+    {
+      "binary": "git",
+      "argv": [
+        "-c",
+        "core.hooksPath=NUL",
+        "-c",
+        "core.fsmonitor=false",
+        "ls-files",
+        "--others",
+        "--exclude-standard",
+        "-z"
+      ],
+      "exitCode": 0,
+      "error": null,
+      "log": "2026-10-18T15-10-10.698Z-32792-bridge-13.log"
+    },
+    {
+      "binary": "git",
+      "argv": [
+        "-c",
+        "core.hooksPath=NUL",
+        "-c",
+        "core.fsmonitor=false",
+        "rev-parse",
+        "HEAD"
+      ],
+      "exitCode": 0,
+      "error": null,
+      "log": "2026-10-18T15-10-10.698Z-32792-bridge-14.log"
+    },
+    {
+      "binary": "git",
+      "argv": [
+        "-c",
+        "core.hooksPath=NUL",
+        "-c",
+        "core.fsmonitor=false",
+        "status",
+        "--porcelain",
+        "--untracked-files=all"
+      ],
+      "exitCode": 0,
+      "error": null,
+      "log": "2026-10-18T15-10-10.698Z-32792-bridge-15.log"
+    }
+  ],
+  "sourceState": {
+    "files": [
+      {
+        "path": "packages/node-manifest/src/lib.rs",
+        "sha256": "36e5cec8ccacc9250e6c6cd3e410d3fab20196f753364fa33d58f7d61f8016e4",
+        "snapshot": "2026-10-18T15-10-10.698Z-32792-bridge-source-0.txt",
+        "test": false
+      },
+      {
+        "path": "packages/node-manifest/src/v1.rs",
+        "sha256": "ab824c920abf7945fc02f78970d991f9d281a9b0ccbee83058ac8fbe6679e156",
+        "snapshot": "2026-10-18T15-10-10.698Z-32792-bridge-source-1.txt",
+        "test": false
+      },
+      {
+        "path": "packages/node-manifest/Cargo.toml",
+        "sha256": "db9812b52e31c2e4e194a1de0846c28e676a244a3e42287204ce3cf4dd40cac6",
+        "snapshot": "2026-10-18T15-10-10.698Z-32792-bridge-source-2.txt",
+        "test": false
+      },
+      {
+        "path": "packages/node-manifest/Cargo.lock",
+        "sha256": "aa7ef6a9ad5c0a9094989e74ac22390f53ac8f02d4e5cc2fcc2686d962c13e98",
+        "snapshot": "2026-10-18T15-10-10.698Z-32792-bridge-source-3.txt",
+        "test": false
+      },
+      {
+        "path": "packages/node-manifest/tests/manifest_v1.rs",
+        "sha256": "f5214fcbb5b3f023bdb528a0f154198f2e193ef3bf5bce9dbcfbbe8576071a1c",
+        "snapshot": "2026-10-18T15-10-10.698Z-32792-bridge-source-4.txt",
+        "test": true
+      }
+    ],
+    "productionHash": "ebfca70f7831115586dfbf87d2b20bd8067f9088bf71db02450c9459a8b01609",
+    "testHash": "83c4f4ea9d186b9648801d1af718d9397c40708a0f099e2e902da7d9f394ff6f"
+  },
+  "proofAudit": [
+    {
+      "label": "behavior",
+      "red": "2026-10-18T15-06-46.366Z-12688-red-behavior-result.json",
+      "restored": "2026-10-18T15-07-02.087Z-2572-suite-result.json"
+    },
+    {
+      "label": "nc1",
+      "red": "2026-10-18T15-07-18.021Z-20640-red-nc1-result.json",
+      "restored": "2026-10-18T15-07-34.585Z-41888-suite-result.json"
+    },
+    {
+      "label": "nc2",
+      "red": "2026-10-18T15-07-49.368Z-39624-red-nc2-result.json",
+      "restored": "2026-10-18T15-08-03.371Z-14148-suite-result.json"
+    },
+    {
+      "label": "nc3",
+      "red": "2026-10-18T15-08-15.822Z-41532-red-nc3-result.json",
+      "restored": "2026-10-18T15-08-31.956Z-25284-suite-result.json"
+    }
+  ],
+  "cargoGraphs": [
+    [
+      {
+        "crate": "water_node_manifest",
+        "packageId": "path+file:///F:/new/smaltalk/water/.worktrees/u/packages/node-manifest#water-node-manifest@0.1.0",
+        "filename": "F:\\new\\smaltalk\\water\\.worktrees\\u\\.local\\next-target\\debug\\libwater_node_manifest.rlib"
+      },
+      {
+        "crate": "serde_json",
+        "packageId": "registry+https://github.com/rust-lang/crates.io-index#serde_json@1.0.151",
+        "filename": "F:\\new\\smaltalk\\water\\.worktrees\\u\\.local\\next-target\\debug\\deps\\libserde_json-c243626af514ec1f.rlib"
+      }
+    ]
+  ],
+  "bridge": {
+    "actual_U_public_API": true,
+    "dynamic_limits": true,
+    "errors": 19,
+    "filesystem_scanned": false,
+    "valid": 11
+  },
+  "after": {
+    "head": "39ea9ff30426d4c211f0eada6d85f3d3a87dd43d",
+    "status": ""
+  },
+  "endedAt": "2026-10-18T15:10:15.240Z",
+  "status": "passed",
+  "error": null
+}

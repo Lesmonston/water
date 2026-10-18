@@ -1,0 +1,47 @@
+--- stdout ---
+
+running 5 tests
+test manifest_field_limits ... ok
+test manifest_privacy_and_purity ... FAILED
+test manifest_public_wire ... FAILED
+test manifest_raw_validation ... ok
+test manifest_structure ... FAILED
+
+failures:
+
+---- manifest_privacy_and_purity stdout ----
+
+thread 'manifest_privacy_and_purity' (14420) panicked at tests\manifest_v1.rs:81:5:
+assertion `left == right` failed: U_NO_CONTENT_LEAK U_BEHAVIOR exact output whitelist
+  left: ["action", "counts", "declared_private", "ecosystem", "evidence_strength", "format_verified", "has_name", "has_version", "manifest_version", "name", "project_membership_verified", "read_only", "recognized_field_count", "risk", "source_kind", "tool_version_known"]
+ right: ["action", "counts", "declared_private", "ecosystem", "evidence_strength", "format_verified", "has_name", "has_version", "manifest_version", "project_membership_verified", "read_only", "recognized_field_count", "risk", "source_kind", "tool_version_known"]
+note: run with `RUST_BACKTRACE=1` environment variable to display a backtrace
+
+---- manifest_public_wire stdout ----
+
+thread 'manifest_public_wire' (4608) panicked at tests\manifest_v1.rs:81:5:
+assertion `left == right` failed: U_NO_CONTENT_LEAK U_BEHAVIOR exact output whitelist
+  left: ["action", "counts", "declared_private", "ecosystem", "evidence_strength", "format_verified", "has_name", "has_version", "manifest_version", "name", "project_membership_verified", "read_only", "recognized_field_count", "risk", "source_kind", "tool_version_known"]
+ right: ["action", "counts", "declared_private", "ecosystem", "evidence_strength", "format_verified", "has_name", "has_version", "manifest_version", "project_membership_verified", "read_only", "recognized_field_count", "risk", "source_kind", "tool_version_known"]
+
+---- manifest_structure stdout ----
+
+thread 'manifest_structure' (39276) panicked at tests\manifest_v1.rs:143:9:
+assertion `left == right` failed: U_BEHAVIOR full golden "empty"
+  left: Object {"action": String("display_only"), "counts": Object {"dependencies": Number(0), "dev_dependencies": Number(0), "optional_dependencies": Number(0), "peer_dependencies": Number(0), "scripts": Number(0), "workspace_patterns": Number(0)}, "declared_private": Null, "ecosystem": String("node"), "evidence_strength": String("parsed_structure"), "format_verified": Bool(true), "has_name": Bool(false), "has_version": Bool(false), "manifest_version": String("water.node-manifest.v1"), "name": Null, "project_membership_verified": Bool(false), "read_only": Bool(true), "recognized_field_count": Number(0), "risk": String("protected"), "source_kind": String("caller_supplied_text"), "tool_version_known": Bool(false)}
+ right: Object {"action": String("display_only"), "counts": Object {"dependencies": Number(0), "dev_dependencies": Number(0), "optional_dependencies": Number(0), "peer_dependencies": Number(0), "scripts": Number(0), "workspace_patterns": Number(0)}, "declared_private": Null, "ecosystem": String("node"), "evidence_strength": String("parsed_structure"), "format_verified": Bool(true), "has_name": Bool(false), "has_version": Bool(false), "manifest_version": String("water.node-manifest.v1"), "project_membership_verified": Bool(false), "read_only": Bool(true), "recognized_field_count": Number(0), "risk": String("protected"), "source_kind": String("caller_supplied_text"), "tool_version_known": Bool(false)}
+
+
+failures:
+    manifest_privacy_and_purity
+    manifest_public_wire
+    manifest_structure
+
+test result: FAILED. 2 passed; 3 failed; 0 ignored; 0 measured; 0 filtered out; finished in 0.31s
+
+
+--- stderr ---
+   Compiling water-node-manifest v0.1.0 (F:\new\smaltalk\water\.worktrees\u\packages\node-manifest)
+    Finished `test` profile [unoptimized + debuginfo] target(s) in 2.14s
+     Running tests\manifest_v1.rs (.local\next-target\debug\deps\manifest_v1-b00d03e720de1f08.exe)
+error: test failed, to rerun pass `--test manifest_v1`
