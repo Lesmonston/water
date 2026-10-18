@@ -1,0 +1,95 @@
+{
+  "kind": "T",
+  "startedAt": "2026-10-18T15:52:58.882Z",
+  "tasks": [
+    {
+      "lane": "T",
+      "id": "WATER-W1-T",
+      "head": "df00405c029e81d3b7e93b5a6d24e95d185099fd",
+      "implementation": "f26f727b715f06d97bd8a5c13e6e40225a2f6d68",
+      "evidence": "docs/acceptance/wave1/t",
+      "raw": "helper",
+      "files": 311,
+      "originalGates": [
+        {
+          "mode": "check",
+          "receipt": "F:\\new\\smaltalk\\water\\.worktrees\\t\\.local\\checks\\WATER-W1-T\\2026-10-18T15-52-59.044Z-43416-check-result.json"
+        },
+        {
+          "mode": "test",
+          "receipt": "F:\\new\\smaltalk\\water\\.worktrees\\t\\.local\\checks\\WATER-W1-T\\2026-10-18T15-53-03.945Z-27200-test-result.json"
+        },
+        {
+          "mode": "browser",
+          "receipt": "F:\\new\\smaltalk\\water\\.worktrees\\t\\.local\\checks\\WATER-W1-T\\2026-10-18T15-47-04.824Z-15356-browser-result.json"
+        }
+      ]
+    }
+  ],
+  "commands": [
+    {
+      "cwd": "F:/new/smaltalk/water/.worktrees/t",
+      "binary": "git",
+      "argv": [
+        "-c",
+        "core.hooksPath=NUL",
+        "-c",
+        "core.fsmonitor=false",
+        "rev-parse",
+        "HEAD"
+      ],
+      "exitCode": 0,
+      "error": null,
+      "log": "2026-10-18T15-52-58.881Z-19172-T-0.log"
+    },
+    {
+      "cwd": "F:/new/smaltalk/water/.worktrees/t",
+      "binary": "C:\\Program Files\\nodejs\\node.exe",
+      "argv": [
+        "scripts/parallel-wave-check.mjs",
+        "--task",
+        "WATER-W1-T",
+        "--mode",
+        "check",
+        "--final"
+      ],
+      "exitCode": 0,
+      "error": null,
+      "log": "2026-10-18T15-52-58.881Z-19172-T-1.log"
+    },
+    {
+      "cwd": "F:/new/smaltalk/water/.worktrees/t",
+      "binary": "C:\\Program Files\\nodejs\\node.exe",
+      "argv": [
+        "scripts/parallel-wave-check.mjs",
+        "--task",
+        "WATER-W1-T",
+        "--mode",
+        "test",
+        "--final"
+      ],
+      "exitCode": 0,
+      "error": null,
+      "log": "2026-10-18T15-52-58.881Z-19172-T-2.log"
+    },
+    {
+      "cwd": "F:/new/smaltalk/water/.worktrees/t",
+      "binary": "git",
+      "argv": [
+        "-c",
+        "core.hooksPath=NUL",
+        "-c",
+        "core.fsmonitor=false",
+        "status",
+        "--porcelain=v1",
+        "--untracked-files=all"
+      ],
+      "exitCode": 0,
+      "error": null,
+      "log": "2026-10-18T15-52-58.881Z-19172-T-3.log"
+    }
+  ],
+  "endedAt": "2026-10-18T15:53:09.904Z",
+  "status": "passed",
+  "error": null
+}

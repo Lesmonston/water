@@ -1,5 +1,8 @@
 # WATER-W1-R 补充单01：祖先保护契约冲突修订
 
+归档状态（2026-10-19）：本票已VERIFIED并集成（Windows受控范围），不再外贴或运行首次baseline/resume。当前以manifest和[RTU总控验收](../../acceptance/wave1/controller/WATER-W1-RTU-REVIEW-20261019.md)为准，以下为原票历史。
+
+
 总控2026-10-18。绑定原票 WATER-W1-R、原基线 dd09c3b8801b86a0059f3fb73fe8a250acb1d89e。原R任务CHANGES_REQUESTED；本补单是否READY以主manifest addendum01为准。由原r执行对话续做，不再派另一个执行者。
 
 | 项 | 唯一值 |

@@ -2,7 +2,7 @@
 
 面向 Windows、macOS AI 开发者的本地存储分析与安全清理助手。
 
-**当前阶段：A–Q、S及五补单保持VERIFIED（Windows受控范围）。S原生目录选择已通过独立验收并集成；R补单01、T脱敏下载、U内存清单保持原波次分配，等待各自回执。没有自动实现者；原生宿主到R/报告页的完整用户闭环、真实用户scope、macOS和桌面尚未验收，M1仍未完成。**
+**当前阶段：A–U及六补单已VERIFIED（Windows受控范围）。本波R补单01、T脱敏预览下载、U内存Node清单已独立验收并集成；旧R受阻现场及所有原树/夹具/冻结保持。当前无未结外贴票或新READY票，无自动实现者。原生宿主到报告页的完整用户闭环尚未实现，真实用户scope、生产竞态、macOS和桌面未验收，M1仍未完成。**
 
 用户指定本项目所有后续开发均位于 `smaltalk/water`，由 Codex 担任总控。
 
@@ -23,7 +23,7 @@
 
 [当前F验收记录](docs/acceptance/wave1/controller/WATER-W1-F-REVIEW-20261017.md)与[并行安排](docs/dispatch/wave1/PARALLEL-NEXT-PLAN-20261017.md)：A–F无需重复外贴。I已通过[单票与隔离集成](docs/acceptance/wave1/controller/WATER-W1-I-REVIEW-20261017.md)，G/H也已[验收并完成受控真实库/模型链路](docs/acceptance/wave1/controller/WATER-W1-GH-REVIEW-20261018.md)。A–I旧票不重复外贴；实际I页面/桌面与真实用户scope后排。
 
-新增已验收产物：[Windows原生目录观察](packages/native-root/README.md)、[原生目录选择](packages/native-picker/README.md)、[项目证据与容量页面](prototypes/evidence-reader/README.md)。另有[目录范围登记](packages/scope-registry/README.md)和[默认脱敏内存报告](packages/redacted-report/README.md)。当前仍限受控只读范围。
+新增已验收产物：[Windows原生目录观察](packages/native-root/README.md)、[原生目录选择](packages/native-picker/README.md)、[项目证据与容量页面](prototypes/evidence-reader/README.md)。另有[目录范围登记](packages/scope-registry/README.md)和[默认脱敏内存报告](packages/redacted-report/README.md)。另有[原生有界元数据遍历](packages/native-scan/README.md)、[脱敏预览下载](prototypes/scan-review/README.md)和[内存Node清单证据](packages/node-manifest/README.md)。当前仍限受控只读范围。
 
 ## 研究输入
 
@@ -33,9 +33,9 @@
 
 Water 的发布许可证、定价与商标名称尚未最终确定；`water` 是工作代号。没有远程仓库、发布包或上线动作。
 
-## 当前外贴与在途
+## 当前验收与下一波
 
-S已[独立验收集成](docs/acceptance/wave1/controller/WATER-W1-S-REVIEW-20261019.md)，不再外贴；原波次的[R补单01](docs/dispatch/tickets/WATER-W1-R-ADDENDUM-01-20261018.md)给原r对话，继续按原票推进；[T脱敏下载](docs/dispatch/tickets/WATER-W1-T-SCAN-REVIEW-20261018.md)与[U内存清单](docs/dispatch/tickets/WATER-W1-U-NODE-MANIFEST-20261018.md)分配保持。[本波计划](docs/dispatch/wave1/PARALLEL-WAVE-PLAN-20261018.md)和[实际派前回执](docs/dispatch/wave1/PARALLEL-WAVE-READY-REPORT.md)记录依赖、基线和证据；后续继续按波次出齐独立票。下面为历史批次。
+[R补单01/T/U已验收并集成](docs/acceptance/wave1/controller/WATER-W1-RTU-REVIEW-20261019.md)，S也已VERIFIED，本波全部收口，旧票不重贴。下一波按[依赖计划](docs/dispatch/wave1/AFTER-RTU-NEXT-WAVE-PLAN-20261019.md)准备原生宿主与页面接线；需先冻结真实原生来源协议、独立工单和实际baseline，再一起出齐可并行票。下面为历史批次。
 
 [本次J/K安排](docs/dispatch/wave1/SESSION-BATCH-PLAN-20261018.md)及[实际派前回执](docs/dispatch/wave1/SESSION-BATCH-READY-REPORT.md)：两树独立、同一冻结r1基线；J已通过[独立验收及集成](docs/acceptance/wave1/controller/WATER-W1-J-REVIEW-20261018.md)，K[补充单01已通过独立复验及真实J→K页面集成](docs/acceptance/wave1/controller/WATER-W1-K-ADDENDUM-01-REVIEW-20261018.md)，原失败历史保留。J只组合现有受控链路，K从调用方接内存快照。A–I及四补单无需重贴；W2–W5/真实scope/桌面/macOS属于后续规划，未伪装成待派READY单。
 
@@ -43,4 +43,4 @@ S已[独立验收集成](docs/acceptance/wave1/controller/WATER-W1-S-REVIEW-2026
 
 Codex负责架构、规划、契约、工单和验收；用户把总控准备好的一行指令转贴给执行者；执行者在独立工作树提交代码与回执，总控复核后集成。见 [派单登记](docs/dispatch/registry.json) 与 [本轮计划](docs/dispatch/wave1/PLAN.md)：A–I已验收集成，总控没有自动代替用户启动实现者或修产品代码。
 
-[L/M单票及隔离集成验收](docs/acceptance/wave1/controller/WATER-W1-LM-REVIEW-20261018.md)已完成，原正式票无需重贴。P/Q已VERIFIED；R已收受阻回执并发补单01，S已VERIFIED，T/U保持原单等待回执。收单后仍由总控独立验收集成。
+[L/M单票及隔离集成验收](docs/acceptance/wave1/controller/WATER-W1-LM-REVIEW-20261018.md)已完成，原正式票无需重贴。A–U及六补单均已VERIFIED（Windows受控范围），无未结外贴票。完整宿主用户闭环仍待下一波。

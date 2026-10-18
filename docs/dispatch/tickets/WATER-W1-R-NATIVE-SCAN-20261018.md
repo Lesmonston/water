@@ -1,6 +1,6 @@
 # WATER-W1-R：许可约束的原生遍历与默认脱敏报告
 
-**最新：已收R-001受阻报告，原票现为CHANGES_REQUESTED。请原r对话读取[补充单01](WATER-W1-R-ADDENDUM-01-20261018.md)，从c0e2025干净起点续做；不要重新执行本票首次baseline或从dd09c3b重置。原固定两保护原因规则由追加SPEC替代，其它原要求保持。下文为原票历史。**
+**最新（2026-10-19）：原票及补单01已VERIFIED并集成（Windows受控范围），不再外贴、首次baseline或resume。R-001已通过补单修订与实际验收关闭；原受阻报告/基线/冻结保留。当前以manifest和[RTU总控验收](../../acceptance/wave1/controller/WATER-W1-RTU-REVIEW-20261019.md)为准。下文为原票历史。**
 
 
 总控2026-10-18。主manifest为READY后，用户外贴给一个新执行对话才开始。本票纵向接P→真实原生元数据→A→Q；不等待或实现原生选择器。

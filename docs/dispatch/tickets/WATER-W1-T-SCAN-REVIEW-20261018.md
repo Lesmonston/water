@@ -1,5 +1,8 @@
 # WATER-W1-T：实际报告预览与默认Q脱敏JSON下载
 
+归档状态（2026-10-19）：本票已VERIFIED并集成（Windows受控范围），不再外贴或运行首次baseline/resume。当前以manifest和[RTU总控验收](../../acceptance/wave1/controller/WATER-W1-RTU-REVIEW-20261019.md)为准，以下为原票历史。
+
+
 总控2026-10-18。正式可执行票；状态以主manifest的本票记录为准，只有READY且baselineStatus=PASSED才开工。用户手动外贴，不自动启动实现者。本波R补单/S/T/U可以并行。
 
 | 项 | 唯一值 |

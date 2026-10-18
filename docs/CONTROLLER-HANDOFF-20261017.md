@@ -2,7 +2,11 @@
 
 2026-10-17。项目：`F:/new/smaltalk/water`。供后续总控接手与Keeper ingest；未写共享Vault或其他项目。
 
-## 当前交接：S已VERIFIED，R补单/T/U继续原波次（2026-10-19）
+## 当前交接：本波全部VERIFIED，等待新宿主协议（2026-10-19）
+
+A–U及六补单已VERIFIED（Windows受控范围）。本波R补单01、T脱敏预览下载、U内存Node清单已独立验收并集成；旧R受阻现场及所有原树/夹具/冻结保持。当前无未结外贴票或新READY票，无自动实现者。原生宿主到报告页的完整用户闭环尚未实现，真实用户scope、生产竞态、macOS和桌面未验收，M1仍未完成。 R/T/U隔离受测ae5d34a，原13 final/九完整五红恢复/九独立测试/21编译拒绝通过；1487交付路径和291冻结保持。[总控验收](acceptance/wave1/controller/WATER-W1-RTU-REVIEW-20261019.md)。下一波先冻结原生来源协议，再并行宿主/页面，当前无新READY票。
+
+## 此前交接：S已VERIFIED，R补单/T/U继续原波次（历史）
 
 A–Q、S及五补单保持VERIFIED（Windows受控范围）。S原生目录选择已通过独立验收并集成；R补单01、T脱敏下载、U内存清单保持原波次分配，等待各自回执。没有自动实现者；原生宿主到R/报告页的完整用户闭环、真实用户scope、macOS和桌面尚未验收，M1仍未完成。 S接收fcf422a、受测ececf1c、隔离9586a75；五原final、三完整五红恢复、三独立COM/真实不同目录选择及13编译拒绝/成功对照通过，385交付字节/291冻结保持。[S验收及证据](acceptance/wave1/controller/WATER-W1-S-REVIEW-20261019.md)。
 

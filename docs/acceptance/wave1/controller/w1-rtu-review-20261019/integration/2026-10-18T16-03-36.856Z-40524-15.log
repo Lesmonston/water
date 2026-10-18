@@ -1,0 +1,52 @@
+--- stdout ---
+
+running 5 tests
+test native_budgets_and_cancellation ... FAILED
+test native_directory_decoding ... ok
+test native_metadata_no_follow ... FAILED
+test native_report_and_redaction ... ok
+test native_scope_and_identity ... ok
+
+failures:
+
+---- native_budgets_and_cancellation stdout ----
+
+thread 'native_budgets_and_cancellation' (9888) panicked at tests\native_scan_v1.rs:465:5:
+assertion `left == right` failed
+  left: 3
+ right: 2
+note: run with `RUST_BACKTRACE=1` environment variable to display a backtrace
+
+---- native_metadata_no_follow stdout ----
+
+thread 'native_metadata_no_follow' (28104) panicked at tests\native_scan_v1.rs:383:5:
+assertion `left == right` failed: R_NO_FOLLOW: reparse classification must precede traversal
+  left: String("directory")
+ right: "link"
+
+
+failures:
+    native_budgets_and_cancellation
+    native_metadata_no_follow
+
+test result: FAILED. 3 passed; 2 failed; 0 ignored; 0 measured; 0 filtered out; finished in 0.05s
+
+
+--- stderr ---
+   Compiling water-native-scan v0.1.0 (F:\new\smaltalk\water\.worktrees\controller-rtu-accept-20261019\packages\native-scan)
+warning: variant `Link` is never constructed
+   --> src\v1.rs:132:5
+    |
+129 | pub(crate) enum Kind {
+    |                 ---- variant in this enum
+...
+132 |     Link,
+    |     ^^^^
+    |
+    = note: `Kind` has derived impls for the traits `Clone` and `Debug`, but these are intentionally ignored during dead code analysis
+    = note: `#[warn(dead_code)]` (part of `#[warn(unused)]`) on by default
+
+warning: `water-native-scan` (lib) generated 1 warning
+    Finished `test` profile [unoptimized + debuginfo] target(s) in 1.44s
+     Running tests\native_scan_v1.rs (.local\next-target\debug\deps\native_scan_v1-8a379e053e951142.exe)
+error: test failed, to rerun pass `--test native_scan_v1`

@@ -1,0 +1,29 @@
+--- stdout ---
+
+running 5 tests
+test manifest_field_limits ... ok
+test manifest_privacy_and_purity ... ok
+test manifest_public_wire ... ok
+test manifest_raw_validation ... FAILED
+test manifest_structure ... ok
+
+failures:
+
+---- manifest_raw_validation stdout ----
+
+thread 'manifest_raw_validation' (22964) panicked at tests\manifest_v1.rs:210:14:
+U_DUPLICATE_UNKNOWN U_BEHAVIOR raw error "duplicate-unknown": ManifestEvidence { manifest_version: "water.node-manifest.v1", source_kind: "caller_supplied_text", read_only: true, format_verified: true, project_membership_verified: false, tool_version_known: false, action: "display_only", risk: "protected", ecosystem: "node", evidence_strength: "parsed_structure", recognized_field_count: 0, has_name: false, has_version: false, declared_private: None, counts: ManifestCounts { scripts: 0, dependencies: 0, dev_dependencies: 0, peer_dependencies: 0, optional_dependencies: 0, workspace_patterns: 0 } }
+note: run with `RUST_BACKTRACE=1` environment variable to display a backtrace
+
+
+failures:
+    manifest_raw_validation
+
+test result: FAILED. 4 passed; 1 failed; 0 ignored; 0 measured; 0 filtered out; finished in 0.23s
+
+
+--- stderr ---
+   Compiling water-node-manifest v0.1.0 (F:\new\smaltalk\water\.worktrees\controller-rtu-accept-20261019\packages\node-manifest)
+    Finished `test` profile [unoptimized + debuginfo] target(s) in 1.32s
+     Running tests\manifest_v1.rs (.local\next-target\debug\deps\manifest_v1-b00d03e720de1f08.exe)
+error: test failed, to rerun pass `--test manifest_v1`

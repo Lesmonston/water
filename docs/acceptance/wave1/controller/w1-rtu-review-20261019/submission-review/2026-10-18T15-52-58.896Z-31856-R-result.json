@@ -1,0 +1,133 @@
+{
+  "kind": "R",
+  "startedAt": "2026-10-18T15:52:58.898Z",
+  "tasks": [
+    {
+      "lane": "R",
+      "id": "WATER-W1-R",
+      "head": "a8386d81302433d95cbd8d6f229383382352d272",
+      "implementation": "a7cbe2bf6311282bc33f291122a31fb907577b41",
+      "evidence": "docs/acceptance/wave1/r/addendum-01",
+      "raw": "checks",
+      "files": 702,
+      "originalGates": [
+        {
+          "mode": "fmt",
+          "receipt": "F:\\new\\smaltalk\\water\\.worktrees\\r\\.local\\checks\\WATER-W1-R\\2026-10-18T15-52-59.070Z-2092-fmt-result.json"
+        },
+        {
+          "mode": "test",
+          "receipt": "F:\\new\\smaltalk\\water\\.worktrees\\r\\.local\\checks\\WATER-W1-R\\2026-10-18T15-47-07.250Z-26388-test-result.json"
+        },
+        {
+          "mode": "clippy",
+          "receipt": "F:\\new\\smaltalk\\water\\.worktrees\\r\\.local\\checks\\WATER-W1-R\\2026-10-18T15-53-09.917Z-38924-clippy-result.json"
+        },
+        {
+          "mode": "metadata",
+          "receipt": "F:\\new\\smaltalk\\water\\.worktrees\\r\\.local\\checks\\WATER-W1-R\\2026-10-18T15-53-19.751Z-9484-metadata-result.json"
+        },
+        {
+          "mode": "bridge",
+          "receipt": "F:\\new\\smaltalk\\water\\.worktrees\\r\\.local\\checks\\WATER-W1-R\\2026-10-18T15-53-29.097Z-35448-bridge-result.json"
+        }
+      ]
+    }
+  ],
+  "commands": [
+    {
+      "cwd": "F:/new/smaltalk/water/.worktrees/r",
+      "binary": "git",
+      "argv": [
+        "-c",
+        "core.hooksPath=NUL",
+        "-c",
+        "core.fsmonitor=false",
+        "rev-parse",
+        "HEAD"
+      ],
+      "exitCode": 0,
+      "error": null,
+      "log": "2026-10-18T15-52-58.896Z-31856-R-0.log"
+    },
+    {
+      "cwd": "F:/new/smaltalk/water/.worktrees/r",
+      "binary": "C:\\Program Files\\nodejs\\node.exe",
+      "argv": [
+        "scripts/native-scan-addendum-check.mjs",
+        "--task",
+        "WATER-W1-R",
+        "--mode",
+        "fmt",
+        "--final"
+      ],
+      "exitCode": 0,
+      "error": null,
+      "log": "2026-10-18T15-52-58.896Z-31856-R-1.log"
+    },
+    {
+      "cwd": "F:/new/smaltalk/water/.worktrees/r",
+      "binary": "C:\\Program Files\\nodejs\\node.exe",
+      "argv": [
+        "scripts/native-scan-addendum-check.mjs",
+        "--task",
+        "WATER-W1-R",
+        "--mode",
+        "clippy",
+        "--final"
+      ],
+      "exitCode": 0,
+      "error": null,
+      "log": "2026-10-18T15-52-58.896Z-31856-R-2.log"
+    },
+    {
+      "cwd": "F:/new/smaltalk/water/.worktrees/r",
+      "binary": "C:\\Program Files\\nodejs\\node.exe",
+      "argv": [
+        "scripts/native-scan-addendum-check.mjs",
+        "--task",
+        "WATER-W1-R",
+        "--mode",
+        "metadata",
+        "--final"
+      ],
+      "exitCode": 0,
+      "error": null,
+      "log": "2026-10-18T15-52-58.896Z-31856-R-3.log"
+    },
+    {
+      "cwd": "F:/new/smaltalk/water/.worktrees/r",
+      "binary": "C:\\Program Files\\nodejs\\node.exe",
+      "argv": [
+        "scripts/native-scan-addendum-check.mjs",
+        "--task",
+        "WATER-W1-R",
+        "--mode",
+        "bridge",
+        "--final"
+      ],
+      "exitCode": 0,
+      "error": null,
+      "log": "2026-10-18T15-52-58.896Z-31856-R-4.log"
+    },
+    {
+      "cwd": "F:/new/smaltalk/water/.worktrees/r",
+      "binary": "git",
+      "argv": [
+        "-c",
+        "core.hooksPath=NUL",
+        "-c",
+        "core.fsmonitor=false",
+        "status",
+        "--porcelain=v1",
+        "--untracked-files=all"
+      ],
+      "exitCode": 0,
+      "error": null,
+      "log": "2026-10-18T15-52-58.896Z-31856-R-5.log"
+    }
+  ],
+  "endedAt": "2026-10-18T15:53:37.685Z",
+  "status": "passed",
+  "error": null
+}

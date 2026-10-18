@@ -1,7 +1,7 @@
 {
   "schemaVersion": 1,
   "wave": "water-wave1",
-  "status": "A_Q_S_VERIFIED_R_ADDENDUM_T_U_PENDING",
+  "status": "A_U_AND_SIX_ADDENDA_VERIFIED",
   "controllerRoot": "F:/new/smaltalk/water",
   "controllerBranch": "main",
   "controller": "Codex",
@@ -1575,7 +1575,7 @@
     {
       "id": "WATER-W1-R",
       "title": "Permit-bound Windows native metadata scan and redacted report",
-      "status": "CHANGES_REQUESTED",
+      "status": "VERIFIED",
       "kind": "native_scan",
       "slot": "r",
       "worktree": "F:/new/smaltalk/water/.worktrees/r",
@@ -1642,12 +1642,12 @@
         "WATER-W1-P",
         "WATER-W1-Q"
       ],
-      "model": null,
+      "model": "GPT-6 series (worker self-report; finer deployment unavailable)",
       "modelAssignment": "user-arranged; worker reports actual engine/model",
       "dispatchedAt": null,
       "startedAt": "2026-10-18T14:08:18.049Z",
       "baselineStatus": "PASSED",
-      "newProductTestsRun": false,
+      "newProductTestsRun": true,
       "physicalFixturePermission": true,
       "preflightEvidence": "docs/dispatch/wave1/NATIVE-SCAN-READY-REPORT.md",
       "macOS": "unverified",
@@ -1655,23 +1655,64 @@
       "readyOn": "2026-10-18",
       "readinessScope": "Windows x64 Node24/Rust1.95/MSVC, private offline real P/N/A native root binding, relative NT opens, hardlink ID and 14-byte length, no-follow junction, bounded one-level directory names and actual accepted Q/A/H 24 reports/9 errors. No R product, recursive scan, new five tests or native picker.",
       "blockedReportCommit": "acefcf1f5fa16ff7580a219f1a2d06baaf9fdb2e",
-      "blocker": "R-001: frozen fixed protection reasons conflict with actual A ancestor protection",
+      "blocker": null,
       "addendum01": {
         "id": "WATER-W1-R-ADDENDUM-01",
-        "status": "READY",
+        "status": "VERIFIED",
         "ticket": "docs/dispatch/tickets/WATER-W1-R-ADDENDUM-01-20261018.md",
         "contractLock": "contracts/native-scan-addendum-v1/freeze.lock.json",
         "helper": "scripts/native-scan-addendum-check.mjs",
         "resumeCommit": "c0e20252c87b22fde8c83c4487d24e7a5ca06011",
         "report": "docs/dispatch/reports/WATER-W1-R-ADDENDUM-01-REPORT.md",
         "baselineStatus": "PASSED",
-        "newProductTestsRun": false,
+        "newProductTestsRun": true,
         "baselineEvidence": "docs/acceptance/wave1/controller/w1-parallel-wave-preflight-20261018/r/2026-10-18T14-33-55.065Z-36388-resume-result.json",
         "preflightEvidence": "docs/dispatch/wave1/PARALLEL-WAVE-READY-REPORT.md",
         "readyOn": "2026-10-18",
         "dispatchedAt": null,
-        "startedAt": null
-      }
+        "startedAt": null,
+        "submittedCommit": "a8386d81302433d95cbd8d6f229383382352d272",
+        "testedImplementationCommit": "a7cbe2bf6311282bc33f291122a31fb907577b41",
+        "acceptedCommit": "a8386d81302433d95cbd8d6f229383382352d272",
+        "acceptedOn": "2026-10-19",
+        "verifiedOn": "2026-10-19",
+        "controllerReview": "docs/acceptance/wave1/controller/WATER-W1-R-ADDENDUM-01-REVIEW-20261019.md",
+        "integrationCommit": "ae5d34a9eda43ec8908f8115fe1456b23f2fb90f",
+        "integrationReceipt": "docs/acceptance/wave1/controller/w1-rtu-review-20261019/integration/2026-10-18T16-03-36.856Z-40524-result.json"
+      },
+      "submittedCommit": "a8386d81302433d95cbd8d6f229383382352d272",
+      "testedImplementationCommit": "a7cbe2bf6311282bc33f291122a31fb907577b41",
+      "submissionObservedAt": "2026-10-18T15:51:25.500Z",
+      "engine": "OpenAI Codex",
+      "acceptedCommit": "a8386d81302433d95cbd8d6f229383382352d272",
+      "acceptedOn": "2026-10-19",
+      "integratedOn": "2026-10-19",
+      "verifiedOn": "2026-10-19",
+      "verifiedPlatforms": [
+        "Windows"
+      ],
+      "unverifiedPlatforms": [
+        "macOS"
+      ],
+      "controllerReview": "docs/acceptance/wave1/controller/WATER-W1-R-ADDENDUM-01-REVIEW-20261019.md",
+      "controllerCombinedReview": "docs/acceptance/wave1/controller/WATER-W1-RTU-REVIEW-20261019.md",
+      "controllerReviewReceipt": "docs/acceptance/wave1/controller/w1-rtu-review-20261019/submission-review/2026-10-18T15-52-58.896Z-31856-R-result.json",
+      "integrationBranch": "controller/water-w1-rtu-20261019",
+      "integrationWorktree": "F:/new/smaltalk/water/.worktrees/controller-rtu-accept-20261019",
+      "integrationCommit": "ae5d34a9eda43ec8908f8115fe1456b23f2fb90f",
+      "integrationTestedCommit": "ae5d34a9eda43ec8908f8115fe1456b23f2fb90f",
+      "integrationReceipt": "docs/acceptance/wave1/controller/w1-rtu-review-20261019/integration/2026-10-18T16-03-36.856Z-40524-result.json",
+      "verificationScope": "Controlled Windows x64. Five original final modes replayed; private offline five tests/fmt/clippy/metadata/real P-R-A-Q bridges; three actual-source complete-five red/byte-restore/green controls; three independent budget/cancellation/permit tests; 13 compile rejections and positive control. Retained original fixed fixture only, no new physical data.",
+      "resolvedBlockers": [
+        {
+          "id": "R-001",
+          "description": "R-001: frozen fixed protection reasons conflict with actual A ancestor protection",
+          "resolvedBy": "WATER-W1-R-ADDENDUM-01",
+          "resolvedOn": "2026-10-19"
+        }
+      ],
+      "latestReport": "docs/dispatch/reports/WATER-W1-R-ADDENDUM-01-REPORT.md",
+      "acceptedReport": "docs/dispatch/reports/WATER-W1-R-ADDENDUM-01-REPORT.md"
     },
     {
       "id": "WATER-W1-S",
@@ -1773,7 +1814,7 @@
     {
       "id": "WATER-W1-T",
       "title": "实际报告预览与默认Q脱敏JSON下载",
-      "status": "READY",
+      "status": "VERIFIED",
       "slot": "t",
       "worktree": "F:/new/smaltalk/water/.worktrees/t",
       "branch": "worker/water-w1-t",
@@ -1833,12 +1874,12 @@
         "WATER-W1-I",
         "WATER-W1-Q"
       ],
-      "model": null,
+      "model": "GPT-6 series (worker self-report; finer deployment unavailable)",
       "modelAssignment": "user-arranged; worker reports actual engine/model",
       "dispatchedAt": null,
       "startedAt": null,
       "baselineStatus": "PASSED",
-      "newProductTestsRun": false,
+      "newProductTestsRun": true,
       "physicalFixturePermission": false,
       "macOS": "unverified",
       "productionFiles": [
@@ -1851,12 +1892,35 @@
       "baselineEvidence": "docs/acceptance/wave1/controller/w1-parallel-wave-preflight-20261018/t/2026-10-18T14-33-54.998Z-42184-baseline-result.json",
       "preflightEvidence": "docs/dispatch/wave1/PARALLEL-WAVE-READY-REPORT.md",
       "readyOn": "2026-10-18",
-      "readinessScope": "Real accepted A/E/H/Q/I 24 reports and Q nine errors, headless actual click/attachment/private file bytes; no new T product/test suite."
+      "readinessScope": "Real accepted A/E/H/Q/I 24 reports and Q nine errors, headless actual click/attachment/private file bytes; no new T product/test suite.",
+      "submittedCommit": "df00405c029e81d3b7e93b5a6d24e95d185099fd",
+      "testedImplementationCommit": "f26f727b715f06d97bd8a5c13e6e40225a2f6d68",
+      "submissionObservedAt": "2026-10-18T15:51:27.546Z",
+      "engine": "OpenAI Codex",
+      "acceptedCommit": "df00405c029e81d3b7e93b5a6d24e95d185099fd",
+      "acceptedOn": "2026-10-19",
+      "integratedOn": "2026-10-19",
+      "verifiedOn": "2026-10-19",
+      "verifiedPlatforms": [
+        "Windows"
+      ],
+      "unverifiedPlatforms": [
+        "macOS"
+      ],
+      "controllerReview": "docs/acceptance/wave1/controller/WATER-W1-T-REVIEW-20261019.md",
+      "controllerCombinedReview": "docs/acceptance/wave1/controller/WATER-W1-RTU-REVIEW-20261019.md",
+      "controllerReviewReceipt": "docs/acceptance/wave1/controller/w1-rtu-review-20261019/submission-review/2026-10-18T15-52-58.881Z-19172-T-result.json",
+      "integrationBranch": "controller/water-w1-rtu-20261019",
+      "integrationWorktree": "F:/new/smaltalk/water/.worktrees/controller-rtu-accept-20261019",
+      "integrationCommit": "ae5d34a9eda43ec8908f8115fe1456b23f2fb90f",
+      "integrationTestedCommit": "ae5d34a9eda43ec8908f8115fe1456b23f2fb90f",
+      "integrationReceipt": "docs/acceptance/wave1/controller/w1-rtu-review-20261019/integration/2026-10-18T16-03-36.856Z-40524-result.json",
+      "verificationScope": "Controlled Windows real loopback Chrome. Three original final modes replayed; full five tests and three actual-source complete-five red/byte-restore/green controls; three independent model/HTTP/actual-click download tests and dual-size screenshots. Original actual A/E/H/Q/I 24 reports retained; no R-origin relabeling or native host product."
     },
     {
       "id": "WATER-W1-U",
       "title": "package.json纯内存结构证据",
-      "status": "READY",
+      "status": "VERIFIED",
       "slot": "u",
       "worktree": "F:/new/smaltalk/water/.worktrees/u",
       "branch": "worker/water-w1-u",
@@ -1907,12 +1971,12 @@
       "allowLockfileGeneration": true,
       "cargoCacheSource": "F:/new/smaltalk/water/.worktrees/a/.local/cargo-home/registry",
       "dependsOn": [],
-      "model": null,
+      "model": "GPT-6 series (worker self-report; finer deployment unavailable)",
       "modelAssignment": "user-arranged; worker reports actual engine/model",
       "dispatchedAt": null,
       "startedAt": null,
       "baselineStatus": "PASSED",
-      "newProductTestsRun": false,
+      "newProductTestsRun": true,
       "physicalFixturePermission": false,
       "macOS": "unverified",
       "packageName": "water-node-manifest",
@@ -1922,7 +1986,30 @@
       "baselineEvidence": "docs/acceptance/wave1/controller/w1-parallel-wave-preflight-20261018/u/2026-10-18T14-33-55.027Z-29604-baseline-result.json",
       "preflightEvidence": "docs/dispatch/wave1/PARALLEL-WAVE-READY-REPORT.md",
       "readyOn": "2026-10-18",
-      "readinessScope": "Existing offline serde dependencies, 11 synthetic memory goldens and 19 raw error inputs; no new U product/parser tests."
+      "readinessScope": "Existing offline serde dependencies, 11 synthetic memory goldens and 19 raw error inputs; no new U product/parser tests.",
+      "submittedCommit": "545df673885fae0a90922261cbae14f694ebfe62",
+      "testedImplementationCommit": "39ea9ff30426d4c211f0eada6d85f3d3a87dd43d",
+      "submissionObservedAt": "2026-10-18T15:51:30.146Z",
+      "engine": "OpenAI Codex",
+      "acceptedCommit": "545df673885fae0a90922261cbae14f694ebfe62",
+      "acceptedOn": "2026-10-19",
+      "integratedOn": "2026-10-19",
+      "verifiedOn": "2026-10-19",
+      "verifiedPlatforms": [
+        "Windows"
+      ],
+      "unverifiedPlatforms": [
+        "macOS"
+      ],
+      "controllerReview": "docs/acceptance/wave1/controller/WATER-W1-U-REVIEW-20261019.md",
+      "controllerCombinedReview": "docs/acceptance/wave1/controller/WATER-W1-RTU-REVIEW-20261019.md",
+      "controllerReviewReceipt": "docs/acceptance/wave1/controller/w1-rtu-review-20261019/submission-review/2026-10-18T15-52-58.920Z-22448-U-result.json",
+      "integrationBranch": "controller/water-w1-rtu-20261019",
+      "integrationWorktree": "F:/new/smaltalk/water/.worktrees/controller-rtu-accept-20261019",
+      "integrationCommit": "ae5d34a9eda43ec8908f8115fe1456b23f2fb90f",
+      "integrationTestedCommit": "ae5d34a9eda43ec8908f8115fe1456b23f2fb90f",
+      "integrationReceipt": "docs/acceptance/wave1/controller/w1-rtu-review-20261019/integration/2026-10-18T16-03-36.856Z-40524-result.json",
+      "verificationScope": "Controlled Windows offline memory validation. Five original final modes replayed; private offline five tests/fmt/clippy/metadata/public bridge; three actual-source complete-five red/byte-restore/green controls; three dynamic raw text/privacy/limit tests; eight compile rejections and positive control. No content acquisition or classification promotion."
     }
   ],
   "preflightStatus": "PASSED",
@@ -1938,5 +2025,16 @@
   "nativeScanPreflightStatus": "PASSED",
   "parallelWaveDecision": "docs/decisions/ADR-013-wave-batch-native-picker-export-manifest.md",
   "parallelWavePreflightStatus": "PASSED",
-  "parallelWavePreflightEvidence": "docs/dispatch/wave1/PARALLEL-WAVE-READY-REPORT.md"
+  "parallelWavePreflightEvidence": "docs/dispatch/wave1/PARALLEL-WAVE-READY-REPORT.md",
+  "lastAcceptedBatch": {
+    "tasks": [
+      "WATER-W1-R-ADDENDUM-01",
+      "WATER-W1-T",
+      "WATER-W1-U"
+    ],
+    "status": "VERIFIED",
+    "review": "docs/acceptance/wave1/controller/WATER-W1-RTU-REVIEW-20261019.md",
+    "integrationCommit": "ae5d34a9eda43ec8908f8115fe1456b23f2fb90f",
+    "date": "2026-10-19"
+  }
 }

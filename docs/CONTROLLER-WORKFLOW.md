@@ -97,6 +97,8 @@ READY只表示总控已准备好，不表示用户已转贴。得到用户已贴
 
 ## 当前落实程度
 
+最新2026-10-19：A–U及六补单已VERIFIED（Windows受控范围）。本波R补单01、T脱敏预览下载、U内存Node清单已独立验收并集成；旧R受阻现场及所有原树/夹具/冻结保持。当前无未结外贴票或新READY票，无自动实现者。原生宿主到报告页的完整用户闭环尚未实现，真实用户scope、生产竞态、macOS和桌面未验收，M1仍未完成。 [RTU验收](acceptance/wave1/controller/WATER-W1-RTU-REVIEW-20261019.md)优先于以下派前/在途历史。
+
 最新2026-10-19：A–Q、S及五补单保持VERIFIED（Windows受控范围）。S原生目录选择已通过独立验收并集成；R补单01、T脱敏下载、U内存清单保持原波次分配，等待各自回执。没有自动实现者；原生宿主到R/报告页的完整用户闭环、真实用户scope、macOS和桌面尚未验收，M1仍未完成。 [S总控验收](acceptance/wave1/controller/WATER-W1-S-REVIEW-20261019.md)记录受测SHA和原始证据；以下派前状态均为历史。
 
 当前2026-10-18：A–Q及五补单保持VERIFIED（Windows受控范围）；已收R受阻回执，真实A复现祖先保护契约冲突，补单01追加冻结/续做检查通过、READY待原执行者外贴。S原生选择、T脱敏预览下载、U内存Node清单三独立票已冻结、建树并各自实际baseline通过，READY可并行外贴。R/S/T/U新产品和五测试均未实现/运行，无自动实现者，M1仍未完成。R精确dd09c3b基线、255唯一冻结和实际原生ABI/旧Q依赖baseline通过；仅固定新controller/r fixture的一层元数据，R产品和递归未运行，详[派前回执](dispatch/wave1/NATIVE-SCAN-READY-REPORT.md)。P/Q及旧A–Q现场保持，未扩大到真实用户数据或原生选择器。

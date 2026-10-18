@@ -1,0 +1,638 @@
+#![forbid(unsafe_code)]
+
+use serde::Serialize;
+use serde_json::{Value, json};
+use water_node_manifest::v1::{ManifestError as E, analyze_package_json, to_json};
+
+const CASES: &str = include_str!("../../../contracts/node-manifest-v1/cases.json");
+const FIELDS: [&str; 9] = [
+    "name",
+    "version",
+    "private",
+    "scripts",
+    "dependencies",
+    "devDependencies",
+    "peerDependencies",
+    "optionalDependencies",
+    "workspaces",
+];
+const DEPENDENCIES: [&str; 4] = [
+    "dependencies",
+    "devDependencies",
+    "peerDependencies",
+    "optionalDependencies",
+];
+
+fn cases() -> Value {
+    serde_json::from_str(CASES).unwrap()
+}
+
+fn wire(raw: &str) -> Value {
+    let evidence = analyze_package_json(raw).expect("U_BEHAVIOR valid input");
+    serde_json::from_str(&to_json(&evidence).expect("U_BEHAVIOR serialize"))
+        .expect("U_BEHAVIOR valid wire JSON")
+}
+
+fn error(raw: &str, expected: E, label: &str) {
+    let actual = analyze_package_json(raw)
+        .expect_err(&format!("U_BEHAVIOR {label}: input must be rejected"));
+    assert_eq!(actual, expected, "U_BEHAVIOR {label}");
+    assert_eq!(
+        actual.to_string(),
+        format!("{expected:?} at /manifest"),
+        "U_BEHAVIOR safe error"
+    );
+}
+
+fn field_raw(field: &str, value: Value) -> String {
+    json!({field: value}).to_string()
+}
+
+fn keys(value: &Value) -> Vec<&str> {
+    let mut keys: Vec<_> = value
+        .as_object()
+        .expect("U_BEHAVIOR object wire")
+        .keys()
+        .map(String::as_str)
+        .collect();
+    keys.sort_unstable();
+    keys
+}
+
+fn strict_wire(value: &Value) {
+    let mut expected = vec![
+        "manifest_version",
+        "source_kind",
+        "read_only",
+        "format_verified",
+        "project_membership_verified",
+        "tool_version_known",
+        "action",
+        "risk",
+        "ecosystem",
+        "evidence_strength",
+        "recognized_field_count",
+        "has_name",
+        "has_version",
+        "declared_private",
+        "counts",
+    ];
+    expected.sort_unstable();
+    assert_eq!(
+        keys(value),
+        expected,
+        "U_NO_CONTENT_LEAK U_BEHAVIOR exact output whitelist"
+    );
+    assert_eq!(
+        keys(&value["counts"]),
+        vec![
+            "dependencies",
+            "dev_dependencies",
+            "optional_dependencies",
+            "peer_dependencies",
+            "scripts",
+            "workspace_patterns"
+        ],
+        "U_NO_CONTENT_LEAK U_BEHAVIOR exact counts whitelist"
+    );
+    for (key, expected) in [
+        ("manifest_version", "water.node-manifest.v1"),
+        ("source_kind", "caller_supplied_text"),
+        ("action", "display_only"),
+        ("risk", "protected"),
+        ("ecosystem", "node"),
+        ("evidence_strength", "parsed_structure"),
+    ] {
+        assert_eq!(value[key], expected, "U_BEHAVIOR fixed marker {key}");
+    }
+    for key in ["read_only", "format_verified"] {
+        assert_eq!(value[key], true, "U_BEHAVIOR verified syntax only");
+    }
+    assert_eq!(
+        value["project_membership_verified"], false,
+        "U_NO_OWNERSHIP U_BEHAVIOR membership stays unverified"
+    );
+    assert_eq!(
+        value["tool_version_known"], false,
+        "U_NO_OWNERSHIP U_BEHAVIOR version stays unknown"
+    );
+    for key in ["has_name", "has_version"] {
+        assert!(value[key].is_boolean(), "U_BEHAVIOR presence boolean");
+    }
+    assert!(
+        value["declared_private"].is_null() || value["declared_private"].is_boolean(),
+        "U_BEHAVIOR private option"
+    );
+    for count in std::iter::once(&value["recognized_field_count"])
+        .chain(value["counts"].as_object().unwrap().values())
+    {
+        assert!(
+            count.as_u64().is_some_and(|n| n <= u32::MAX.into()),
+            "U_BEHAVIOR u32 count"
+        );
+    }
+}
+
+#[test]
+fn manifest_structure() {
+    let cases = cases();
+    let valid = cases["valid"].as_array().unwrap();
+    assert_eq!(valid.len(), 11, "U_BEHAVIOR all frozen goldens");
+    for case in valid {
+        let value = wire(case["raw"].as_str().unwrap());
+        assert_eq!(
+            value, case["expected"],
+            "U_BEHAVIOR full golden {}",
+            case["id"]
+        );
+        strict_wire(&value);
+    }
+    for (index, field) in FIELDS.iter().enumerate() {
+        let value = match index {
+            0 | 1 => json!("a"),
+            2 => json!(false),
+            8 => json!([]),
+            _ => json!({}),
+        };
+        let single = wire(&field_raw(field, value));
+        assert_eq!(
+            single["recognized_field_count"], 1,
+            "U_BEHAVIOR field provided {field}"
+        );
+        assert_eq!(single["has_name"], index == 0, "U_BEHAVIOR name presence");
+        assert_eq!(
+            single["has_version"],
+            index == 1,
+            "U_BEHAVIOR version presence"
+        );
+        strict_wire(&single);
+    }
+    let all = valid.iter().find(|c| c["id"] == "all").unwrap();
+    let renamed = valid
+        .iter()
+        .find(|c| c["id"] == "renamed-reordered")
+        .unwrap();
+    assert_eq!(
+        wire(all["raw"].as_str().unwrap()),
+        wire(renamed["raw"].as_str().unwrap()),
+        "U_BEHAVIOR order and free text invariant"
+    );
+    let overlap = wire(r#"{"dependencies":{"x":"1"},"optionalDependencies":{"x":"2"}}"#);
+    assert_eq!(
+        overlap["counts"]["dependencies"], 1,
+        "U_BEHAVIOR separate declarations"
+    );
+    assert_eq!(
+        overlap["counts"]["optional_dependencies"], 1,
+        "U_BEHAVIOR no dedup across fields"
+    );
+}
+
+#[test]
+fn manifest_raw_validation() {
+    assert_eq!(
+        wire("{}")["recognized_field_count"],
+        0,
+        "U_BEHAVIOR empty valid manifest"
+    );
+    let cases = cases();
+    assert_eq!(
+        cases["errors"].as_array().unwrap().len(),
+        19,
+        "U_BEHAVIOR all frozen raw errors"
+    );
+    for case in cases["errors"].as_array().unwrap() {
+        let label = match case["id"].as_str().unwrap() {
+            "duplicate-unknown" | "duplicate-array" => "U_DUPLICATE_UNKNOWN",
+            _ => "U_BEHAVIOR",
+        };
+        let actual = analyze_package_json(case["raw"].as_str().unwrap())
+            .expect_err(&format!("{label} U_BEHAVIOR raw error {}", case["id"]));
+        assert_eq!(
+            actual.to_string(),
+            format!("{} at /manifest", case["error"].as_str().unwrap()),
+            "U_DUPLICATE_UNKNOWN U_BEHAVIOR frozen raw {}",
+            case["id"]
+        );
+    }
+    for raw in [
+        r#"{"metadata":{"nested":{"key":1,"key":2}}}"#,
+        r#"{"metadata":[{"key":0,"\u006bey":1}]}"#,
+        r#"{"metadata":{"":1,"":2}}"#,
+        r#"{"metadata":{"emoji😀":0,"emoji\ud83d\ude00":1}}"#,
+        r#"{"metadata":[[{}, {"x":1,"x":2}]]}"#,
+    ] {
+        error(
+            raw,
+            E::DuplicateKey,
+            "U_DUPLICATE_UNKNOWN unknown nested raw keys",
+        );
+    }
+    for field in [
+        "scripts",
+        "dependencies",
+        "devDependencies",
+        "peerDependencies",
+        "optionalDependencies",
+    ] {
+        error(
+            &format!(r#"{{"{field}":{{"x":"1","\u0078":"2"}}}}"#),
+            E::DuplicateKey,
+            "known map duplicate",
+        );
+    }
+    for raw in ["true", "false", "1", "1.2", r#""hello""#] {
+        error(raw, E::InvalidShape, "non-object root");
+    }
+    for raw in [
+        "",
+        " \n\t",
+        "\u{feff}{}",
+        r#"{"a":1,"a":2,}"#,
+        r#"{"metadata":{"a":1,"a":2},"broken":]}"#,
+        r#"{"a":0,"a":1,"bad":"\ud800"}"#,
+        r#"{"a":0,"a":1,"bad":1e400}"#,
+        r#"{"a":0,"a":1,"bad":[01]}"#,
+        r#"{"x":1e400}"#,
+        r#"{"x":"\udc00"}"#,
+        "{}//comment",
+        "{\"x\":NaN}",
+        "{\"x\":Infinity}",
+        "{}\0",
+    ] {
+        error(raw, E::InvalidJson, "syntax has priority");
+    }
+    for depth in [33, 256, 4096] {
+        let malformed = format!(
+            r#"{{"x":{}0{},"a":1,"a":2,}}"#,
+            "[".repeat(depth),
+            "]".repeat(depth)
+        );
+        error(&malformed, E::InvalidJson, "syntax before excessive depth");
+        let valid = format!(r#"{{"x":{}0{}}}"#, "[".repeat(depth), "]".repeat(depth));
+        error(&valid, E::NestingTooDeep, "bounded recursive conversion");
+    }
+    assert_eq!(
+        wire(r#"{"a":{"x":1},"b":{"x":2},"metadata":[1,-2,1.5,1e30,true,null]}"#),
+        wire("{}"),
+        "U_BEHAVIOR keys scoped to their object"
+    );
+    for field in FIELDS {
+        for value in [
+            Value::Null,
+            json!(12),
+            json!([]),
+            json!({}),
+            json!(true),
+            json!("text"),
+        ] {
+            let allowed = match field {
+                "name" | "version" => value.is_string(),
+                "private" => value.is_boolean(),
+                "workspaces" => value.is_array(),
+                _ => value.is_object(),
+            };
+            if !allowed {
+                error(
+                    &field_raw(field, value),
+                    E::InvalidField,
+                    "strict field type including null",
+                );
+            }
+        }
+    }
+}
+
+#[test]
+fn manifest_field_limits() {
+    assert_eq!(
+        wire("{}")["counts"]["scripts"],
+        0,
+        "U_BEHAVIOR zero default count"
+    );
+    for (field, count_key, limit) in [
+        ("scripts", "scripts", 128),
+        ("dependencies", "dependencies", 4096),
+        ("devDependencies", "dev_dependencies", 4096),
+        ("peerDependencies", "peer_dependencies", 4096),
+        ("optionalDependencies", "optional_dependencies", 4096),
+    ] {
+        let mut map = serde_json::Map::new();
+        for n in 0..limit {
+            map.insert(format!("dep-{n}"), json!("1"));
+        }
+        let value = wire(&field_raw(field, Value::Object(map.clone())));
+        assert_eq!(
+            value["counts"][count_key], limit,
+            "U_BEHAVIOR inclusive entry limit {field}"
+        );
+        map.insert("overflow".into(), json!("1"));
+        error(
+            &field_raw(field, Value::Object(map)),
+            E::TooManyEntries,
+            "individual map entry limit",
+        );
+    }
+    for n in [0, 1, 128] {
+        assert_eq!(
+            wire(&field_raw("workspaces", json!(vec!["x/*"; n])))["counts"]["workspace_patterns"],
+            n,
+            "U_BEHAVIOR workspace declared count"
+        );
+    }
+    error(
+        &field_raw("workspaces", json!(vec!["x/*"; 129])),
+        E::TooManyEntries,
+        "workspace entry limit",
+    );
+    for depth in [1, 2, 31, 32] {
+        let raw = if depth == 1 {
+            "{}".into()
+        } else {
+            format!(
+                r#"{{"x":{}0{}}}"#,
+                "[".repeat(depth - 1),
+                "]".repeat(depth - 1)
+            )
+        };
+        assert_eq!(
+            wire(&raw),
+            wire("{}"),
+            "U_BEHAVIOR exact container depth {depth}"
+        );
+    }
+    for raw in [
+        format!(r#"{{"x":{}0{}}}"#, "[".repeat(32), "]".repeat(32)),
+        format!("{}0{}", r#"{"x":"#.repeat(33), "}".repeat(33)),
+    ] {
+        error(&raw, E::NestingTooDeep, "depth33 fails");
+    }
+    let max = format!(r#"{{"x":"{}"}}"#, "a".repeat(262136));
+    assert_eq!(max.len(), 262144);
+    assert_eq!(wire(&max), wire("{}"), "U_BEHAVIOR max byte size accepted");
+    error(&(max + " "), E::InputTooLarge, "byte size first");
+    let unicode_max = format!(r#"{{"x":"{}"}}"#, "😀".repeat(65534));
+    assert_eq!(unicode_max.len(), 262144);
+    assert_eq!(
+        wire(&unicode_max),
+        wire("{}"),
+        "U_BEHAVIOR byte bound independent of chars"
+    );
+    error(
+        &(unicode_max + "a"),
+        E::InputTooLarge,
+        "byte size before syntax",
+    );
+    error(
+        &"[".repeat(262145),
+        E::InputTooLarge,
+        "size before depth and malformed syntax",
+    );
+    for field in ["name", "version"] {
+        for n in [1, 256] {
+            assert!(
+                analyze_package_json(&field_raw(field, json!("😀".repeat(n)))).is_ok(),
+                "U_BEHAVIOR unicode scalar name/version limit"
+            );
+        }
+        for n in [0, 257] {
+            error(
+                &field_raw(field, json!("😀".repeat(n))),
+                E::InvalidField,
+                "name/version char bounds",
+            );
+        }
+    }
+    for field in DEPENDENCIES {
+        for (key_n, value_n) in [(1, 1), (256, 2048)] {
+            assert!(
+                analyze_package_json(&field_raw(
+                    field,
+                    json!({"名".repeat(key_n): "😀".repeat(value_n)})
+                ))
+                .is_ok(),
+                "U_BEHAVIOR dependency Unicode upper bounds {field}"
+            );
+        }
+        for (key_n, value_n) in [(0, 1), (257, 1), (1, 0), (1, 2049)] {
+            error(
+                &field_raw(field, json!({"名".repeat(key_n): "😀".repeat(value_n)})),
+                E::InvalidField,
+                "dependency key/value char bounds",
+            );
+        }
+    }
+    for n in [0, 1, 4096] {
+        assert_eq!(
+            wire(&field_raw("scripts", json!({"": "😀".repeat(n)})))["counts"]["scripts"],
+            1,
+            "U_BEHAVIOR script Unicode limit; empty key unrestricted"
+        );
+    }
+    error(
+        &field_raw("scripts", json!({"x":"😀".repeat(4097)})),
+        E::InvalidField,
+        "script text limit",
+    );
+    for n in [1, 256] {
+        assert_eq!(
+            wire(&field_raw("workspaces", json!(["😀".repeat(n)])))["counts"]["workspace_patterns"],
+            1,
+            "U_BEHAVIOR workspace Unicode bounds"
+        );
+    }
+    for n in [0, 257] {
+        error(
+            &field_raw("workspaces", json!(["😀".repeat(n)])),
+            E::InvalidField,
+            "workspace char bounds",
+        );
+    }
+    for value in [Value::Null, json!(1), json!(true), json!([]), json!({})] {
+        error(
+            &field_raw("workspaces", json!([value.clone()])),
+            E::InvalidField,
+            "workspace item type",
+        );
+        error(
+            &field_raw("scripts", json!({"x": value.clone()})),
+            E::InvalidField,
+            "script value type",
+        );
+        for field in DEPENDENCIES {
+            error(
+                &field_raw(field, json!({"x":value.clone()})),
+                E::InvalidField,
+                "dependency value type",
+            );
+        }
+    }
+    for codepoint in (0..=31).chain(std::iter::once(127)) {
+        let control = char::from_u32(codepoint).unwrap().to_string();
+        for field in ["name", "version"] {
+            error(
+                &field_raw(field, json!(format!("a{control}"))),
+                E::InvalidField,
+                "ASCII controls and DEL",
+            );
+        }
+        error(
+            &field_raw("workspaces", json!([format!("a{control}")])),
+            E::InvalidField,
+            "workspace controls",
+        );
+        for field in DEPENDENCIES {
+            error(
+                &field_raw(field, json!({format!("a{control}"): "1"})),
+                E::InvalidField,
+                "dependency key controls",
+            );
+            error(
+                &field_raw(field, json!({"x":format!("1{control}")})),
+                E::InvalidField,
+                "dependency range controls",
+            );
+        }
+        assert_eq!(
+            wire(&field_raw("scripts", json!({control.clone():control})))["counts"]["scripts"],
+            1,
+            "U_BEHAVIOR script control text allowed"
+        );
+    }
+    assert!(analyze_package_json(r#"{"name":"\u0085","version":"\u200d","dependencies":{" ":" "},"workspaces":[" ../unexpanded/** "]}"#).is_ok(), "U_BEHAVIOR no extra package semantics or glob resolution");
+}
+
+#[test]
+fn manifest_privacy_and_purity() {
+    let raw = String::from(
+        r#"{"name":"CANARY_NAME_A","version":"CANARY_VERSION_A","scripts":{"CANARY_SCRIPT_KEY":"CANARY_SCRIPT_TEXT"},"dependencies":{"CANARY_DEP_NAME":"CANARY_RANGE"},"workspaces":["F:/CANARY_PATH/**"],"metadata":{"secret":"CANARY_SECRET"}}"#,
+    );
+    let untouched = raw.clone();
+    let original = wire(&raw);
+    strict_wire(&original);
+    let renamed = wire(
+        r#"{"metadata":[{"other":null}],"workspaces":["different/*"],"dependencies":{"different":"2"},"scripts":{"other":"different script"},"version":"B","name":"B"}"#,
+    );
+    assert_eq!(
+        original, renamed,
+        "U_NO_CONTENT_LEAK U_BEHAVIOR renaming and unknown metadata cannot affect output"
+    );
+    let evidence = analyze_package_json(&raw).expect("U_BEHAVIOR valid private evidence");
+    for text in [to_json(&evidence).unwrap(), format!("{evidence:?}")] {
+        assert!(
+            !text.contains("CANARY") && !text.contains("F:/"),
+            "U_NO_CONTENT_LEAK U_BEHAVIOR no caller content in wire or Debug"
+        );
+    }
+    for _ in 0..16 {
+        assert_eq!(
+            analyze_package_json(&raw).unwrap(),
+            evidence,
+            "U_BEHAVIOR repeatable immutable analysis"
+        );
+        assert_eq!(
+            wire(&raw),
+            original,
+            "U_BEHAVIOR deterministic serialization"
+        );
+    }
+    assert_eq!(raw, untouched, "U_BEHAVIOR input unchanged");
+    for field in ["name", "version", "metadata"] {
+        let bad = format!(r#"{{"{field}":"CANARY_SECRET","bad":"\q"}}"#);
+        let err = analyze_package_json(&bad).unwrap_err();
+        assert_eq!(err, E::InvalidJson, "U_BEHAVIOR invalid raw");
+        assert_eq!(
+            err.to_string(),
+            "InvalidJson at /manifest",
+            "U_NO_CONTENT_LEAK U_BEHAVIOR error hides field/text"
+        );
+        assert!(
+            !format!("{err:?}").contains("CANARY"),
+            "U_NO_CONTENT_LEAK U_BEHAVIOR error Debug"
+        );
+    }
+    let source = concat!(include_str!("../src/lib.rs"), include_str!("../src/v1.rs"));
+    for forbidden in [
+        "std::fs",
+        "std::env",
+        "std::process",
+        "std::net",
+        "std::time",
+        "SystemTime",
+        "Command::",
+        "include_str!",
+        "include_bytes!",
+        "unsafe {",
+    ] {
+        assert!(
+            !source.contains(forbidden),
+            "U_BEHAVIOR production pure memory source: {forbidden}"
+        );
+    }
+    assert!(
+        source.contains("#![forbid(unsafe_code)]"),
+        "U_BEHAVIOR unsafe forbidden at crate root"
+    );
+}
+
+#[test]
+fn manifest_public_wire() {
+    fn traits<T: std::fmt::Debug + Clone + PartialEq + Eq + Serialize>(value: &T) {
+        assert_eq!(value, &value.clone(), "U_BEHAVIOR evidence traits");
+    }
+    fn error_traits<T: std::error::Error + Clone + PartialEq + Eq>(value: &T) {
+        assert_eq!(value, &value.clone(), "U_BEHAVIOR error traits");
+    }
+    let evidence = analyze_package_json(r#"{"private":false,"scripts":{},"workspaces":[]}"#)
+        .expect("U_BEHAVIOR public API");
+    traits(&evidence);
+    let text = to_json(&evidence).expect("U_BEHAVIOR public serialization");
+    let direct = serde_json::to_string(&evidence).unwrap();
+    assert_eq!(
+        text, direct,
+        "U_BEHAVIOR Serialize and to_json byte equality"
+    );
+    let value: Value = serde_json::from_str(&text).unwrap();
+    assert_eq!(
+        value,
+        serde_json::to_value(&evidence).unwrap(),
+        "U_BEHAVIOR direct Serialize equality"
+    );
+    assert_eq!(
+        value["declared_private"], false,
+        "U_BEHAVIOR explicit false preserved"
+    );
+    strict_wire(&value);
+    for case in cases()["valid"].as_array().unwrap() {
+        let e = analyze_package_json(case["raw"].as_str().unwrap()).unwrap();
+        assert_eq!(
+            to_json(&e).unwrap(),
+            serde_json::to_string(&e).unwrap(),
+            "U_BEHAVIOR all Serialize bytes"
+        );
+        let v: Value = serde_json::from_str(&to_json(&e).unwrap()).unwrap();
+        assert_eq!(v, case["expected"], "U_BEHAVIOR public golden");
+        strict_wire(&v);
+    }
+    for err in [
+        E::InputTooLarge,
+        E::InvalidJson,
+        E::DuplicateKey,
+        E::NestingTooDeep,
+        E::InvalidShape,
+        E::InvalidField,
+        E::TooManyEntries,
+        E::SerializationFailed,
+    ] {
+        error_traits(&err);
+        assert_eq!(
+            err.to_string(),
+            format!("{err:?} at /manifest"),
+            "U_BEHAVIOR exact error display"
+        );
+        assert!(
+            std::error::Error::source(&err).is_none(),
+            "U_BEHAVIOR no serde error disclosure"
+        );
+    }
+}
