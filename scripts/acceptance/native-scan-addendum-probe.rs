@@ -1,0 +1,5 @@
+// Controller memory-only reproduction of R-001 using actual accepted A/Q.
+#![forbid(unsafe_code)]
+use serde_json::{Value,json};
+use water_contracts::v1 as a;
+fn main(){let input:Value=serde_json::from_str(include_str!("../../contracts/native-scan-addendum-v1/conflict.json")).unwrap();let raw=input["input_report"].to_string();let error=a::parse_report(&raw).unwrap_err();assert_eq!(error.to_string(),"UnsafeClassification at /findings/0/protection_reasons");let mut fixed=input["input_report"].clone();fixed["findings"][0]["protection_reasons"].as_array_mut().unwrap().push(json!("protected_descendant"));let report=a::parse_report(&fixed.to_string()).unwrap();a::validate_report(&report).unwrap();water_redacted_report::v1::redact_report(&report).unwrap();fixed["findings"].as_array_mut().unwrap().truncate(1);fixed["findings"][0]["protection_reasons"].as_array_mut().unwrap().truncate(2);fixed["totals"]["scanned_entries"]=json!(1);a::parse_report(&fixed.to_string()).unwrap();println!("{}",json!({"actual_A_Q":true,"old_error":error.to_string(),"ancestor_third_reason_accepted":true,"leaf_base_reasons_accepted":true,"R_product_tested":false,"filesystem_scanned":false}));}

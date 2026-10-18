@@ -1,0 +1,9 @@
+{
+ "batch_version":"water.parallel-wave.v1",
+ "tasks":{
+  "WATER-W1-S":{"tests":["picker_options_and_errors","picker_native_cancel","picker_native_confirm","picker_registry_failures","picker_public_lifecycle"],"proof_targets":{"behavior":"S_BEHAVIOR","nc1":"S_CANCELLED","nc2":"S_SCOPE_ID","nc3":"S_REGISTERED"},"final_modes":["fmt","test","clippy","metadata","bridge"]},
+  "WATER-W1-T":{"tests":["review_bundle_validation","review_selection_and_privacy","review_export_bytes"],"browser_tests":["review_live_input_and_download","review_layout_and_safety"],"proof_targets":{"behavior":"T_BEHAVIOR","nc1":"T_REDACTED_ONLY","nc2":"T_SELECTED_EXPORT","nc3":"T_UNKNOWN_PRESERVED"},"final_modes":["check","test","browser"]},
+  "WATER-W1-U":{"tests":["manifest_structure","manifest_raw_validation","manifest_field_limits","manifest_privacy_and_purity","manifest_public_wire"],"proof_targets":{"behavior":"U_BEHAVIOR","nc1":"U_DUPLICATE_UNKNOWN","nc2":"U_NO_OWNERSHIP","nc3":"U_NO_CONTENT_LEAK"},"final_modes":["fmt","test","clippy","metadata","bridge"]}
+ },
+ "rust_version":"1.95.0","node_major":24,"offline":true,"cargo_jobs":1,"per_command_timeout_ms":180000,"one_gate_per_tree":true,"chrome_instances_T":1,"native_dialogs_S":1
+}

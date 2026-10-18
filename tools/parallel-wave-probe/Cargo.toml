@@ -1,0 +1,19 @@
+[package]
+name = "water-wave-probe"
+version = "0.1.0"
+edition = "2024"
+rust-version = "1.95"
+publish = false
+
+[workspace]
+members = ["."]
+resolver = "3"
+
+[dependencies]
+water-contracts = { path = "../../crates/water-contracts" }
+water-report-view = { path = "../../packages/report-view" }
+water-summary-export = { path = "../../packages/summary-export" }
+water-redacted-report = { path = "../../packages/redacted-report" }
+water-native-root = { path = "../../packages/native-root" }
+water-scope-registry = { path = "../../packages/scope-registry" }
+serde_json = "=1.0.151"

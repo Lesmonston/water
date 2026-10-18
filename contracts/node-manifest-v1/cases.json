@@ -1,0 +1,420 @@
+{
+  "fixture_version": "water.node-manifest.cases.v1",
+  "valid": [
+    {
+      "id": "empty",
+      "raw": "{}",
+      "expected": {
+        "manifest_version": "water.node-manifest.v1",
+        "source_kind": "caller_supplied_text",
+        "read_only": true,
+        "format_verified": true,
+        "project_membership_verified": false,
+        "tool_version_known": false,
+        "action": "display_only",
+        "risk": "protected",
+        "ecosystem": "node",
+        "evidence_strength": "parsed_structure",
+        "recognized_field_count": 0,
+        "has_name": false,
+        "has_version": false,
+        "declared_private": null,
+        "counts": {
+          "scripts": 0,
+          "dependencies": 0,
+          "dev_dependencies": 0,
+          "peer_dependencies": 0,
+          "optional_dependencies": 0,
+          "workspace_patterns": 0
+        }
+      }
+    },
+    {
+      "id": "unknown",
+      "raw": "{\"metadata\":{\"secret\":\"CANARY_PRIVATE\",\"items\":[1,true,null]}}",
+      "expected": {
+        "manifest_version": "water.node-manifest.v1",
+        "source_kind": "caller_supplied_text",
+        "read_only": true,
+        "format_verified": true,
+        "project_membership_verified": false,
+        "tool_version_known": false,
+        "action": "display_only",
+        "risk": "protected",
+        "ecosystem": "node",
+        "evidence_strength": "parsed_structure",
+        "recognized_field_count": 0,
+        "has_name": false,
+        "has_version": false,
+        "declared_private": null,
+        "counts": {
+          "scripts": 0,
+          "dependencies": 0,
+          "dev_dependencies": 0,
+          "peer_dependencies": 0,
+          "optional_dependencies": 0,
+          "workspace_patterns": 0
+        }
+      }
+    },
+    {
+      "id": "name",
+      "raw": "{\"name\":\"CANARY_NAME\"}",
+      "expected": {
+        "manifest_version": "water.node-manifest.v1",
+        "source_kind": "caller_supplied_text",
+        "read_only": true,
+        "format_verified": true,
+        "project_membership_verified": false,
+        "tool_version_known": false,
+        "action": "display_only",
+        "risk": "protected",
+        "ecosystem": "node",
+        "evidence_strength": "parsed_structure",
+        "recognized_field_count": 1,
+        "has_name": true,
+        "has_version": false,
+        "declared_private": null,
+        "counts": {
+          "scripts": 0,
+          "dependencies": 0,
+          "dev_dependencies": 0,
+          "peer_dependencies": 0,
+          "optional_dependencies": 0,
+          "workspace_patterns": 0
+        }
+      }
+    },
+    {
+      "id": "version",
+      "raw": "{\"version\":\"CANARY_VERSION\"}",
+      "expected": {
+        "manifest_version": "water.node-manifest.v1",
+        "source_kind": "caller_supplied_text",
+        "read_only": true,
+        "format_verified": true,
+        "project_membership_verified": false,
+        "tool_version_known": false,
+        "action": "display_only",
+        "risk": "protected",
+        "ecosystem": "node",
+        "evidence_strength": "parsed_structure",
+        "recognized_field_count": 1,
+        "has_name": false,
+        "has_version": true,
+        "declared_private": null,
+        "counts": {
+          "scripts": 0,
+          "dependencies": 0,
+          "dev_dependencies": 0,
+          "peer_dependencies": 0,
+          "optional_dependencies": 0,
+          "workspace_patterns": 0
+        }
+      }
+    },
+    {
+      "id": "private-false",
+      "raw": "{\"private\":false}",
+      "expected": {
+        "manifest_version": "water.node-manifest.v1",
+        "source_kind": "caller_supplied_text",
+        "read_only": true,
+        "format_verified": true,
+        "project_membership_verified": false,
+        "tool_version_known": false,
+        "action": "display_only",
+        "risk": "protected",
+        "ecosystem": "node",
+        "evidence_strength": "parsed_structure",
+        "recognized_field_count": 1,
+        "has_name": false,
+        "has_version": false,
+        "declared_private": false,
+        "counts": {
+          "scripts": 0,
+          "dependencies": 0,
+          "dev_dependencies": 0,
+          "peer_dependencies": 0,
+          "optional_dependencies": 0,
+          "workspace_patterns": 0
+        }
+      }
+    },
+    {
+      "id": "private-true",
+      "raw": "{\"private\":true}",
+      "expected": {
+        "manifest_version": "water.node-manifest.v1",
+        "source_kind": "caller_supplied_text",
+        "read_only": true,
+        "format_verified": true,
+        "project_membership_verified": false,
+        "tool_version_known": false,
+        "action": "display_only",
+        "risk": "protected",
+        "ecosystem": "node",
+        "evidence_strength": "parsed_structure",
+        "recognized_field_count": 1,
+        "has_name": false,
+        "has_version": false,
+        "declared_private": true,
+        "counts": {
+          "scripts": 0,
+          "dependencies": 0,
+          "dev_dependencies": 0,
+          "peer_dependencies": 0,
+          "optional_dependencies": 0,
+          "workspace_patterns": 0
+        }
+      }
+    },
+    {
+      "id": "scripts",
+      "raw": "{\"scripts\":{\"build\":\"CANARY_SCRIPT\",\"empty\":\"\",\"control\":\"a\\nb\"}}",
+      "expected": {
+        "manifest_version": "water.node-manifest.v1",
+        "source_kind": "caller_supplied_text",
+        "read_only": true,
+        "format_verified": true,
+        "project_membership_verified": false,
+        "tool_version_known": false,
+        "action": "display_only",
+        "risk": "protected",
+        "ecosystem": "node",
+        "evidence_strength": "parsed_structure",
+        "recognized_field_count": 1,
+        "has_name": false,
+        "has_version": false,
+        "declared_private": null,
+        "counts": {
+          "scripts": 3,
+          "dependencies": 0,
+          "dev_dependencies": 0,
+          "peer_dependencies": 0,
+          "optional_dependencies": 0,
+          "workspace_patterns": 0
+        }
+      }
+    },
+    {
+      "id": "all",
+      "raw": "{\"name\":\"CANARY_NAME\",\"version\":\"CANARY_VERSION\",\"private\":false,\"scripts\":{\"build\":\"CANARY_SCRIPT\"},\"dependencies\":{\"CANARY_DEP\":\"^1\"},\"devDependencies\":{\"dev\":\"*\"},\"peerDependencies\":{\"peer\":\">=1\"},\"optionalDependencies\":{\"CANARY_DEP\":\"2\"},\"workspaces\":[\"CANARY_WORKSPACE/*\"],\"unknown\":{\"secret\":\"CANARY_PRIVATE\"}}",
+      "expected": {
+        "manifest_version": "water.node-manifest.v1",
+        "source_kind": "caller_supplied_text",
+        "read_only": true,
+        "format_verified": true,
+        "project_membership_verified": false,
+        "tool_version_known": false,
+        "action": "display_only",
+        "risk": "protected",
+        "ecosystem": "node",
+        "evidence_strength": "parsed_structure",
+        "recognized_field_count": 9,
+        "has_name": true,
+        "has_version": true,
+        "declared_private": false,
+        "counts": {
+          "scripts": 1,
+          "dependencies": 1,
+          "dev_dependencies": 1,
+          "peer_dependencies": 1,
+          "optional_dependencies": 1,
+          "workspace_patterns": 1
+        }
+      }
+    },
+    {
+      "id": "renamed-reordered",
+      "raw": "{\"unknown\":0,\"workspaces\":[\"different/*\"],\"optionalDependencies\":{\"optional\":\"3\"},\"peerDependencies\":{\"peer2\":\"~2\"},\"devDependencies\":{\"dev2\":\"*\"},\"dependencies\":{\"dep2\":\"1\"},\"scripts\":{\"run\":\"other\"},\"private\":false,\"version\":\"other\",\"name\":\"other\"}",
+      "expected": {
+        "manifest_version": "water.node-manifest.v1",
+        "source_kind": "caller_supplied_text",
+        "read_only": true,
+        "format_verified": true,
+        "project_membership_verified": false,
+        "tool_version_known": false,
+        "action": "display_only",
+        "risk": "protected",
+        "ecosystem": "node",
+        "evidence_strength": "parsed_structure",
+        "recognized_field_count": 9,
+        "has_name": true,
+        "has_version": true,
+        "declared_private": false,
+        "counts": {
+          "scripts": 1,
+          "dependencies": 1,
+          "dev_dependencies": 1,
+          "peer_dependencies": 1,
+          "optional_dependencies": 1,
+          "workspace_patterns": 1
+        }
+      }
+    },
+    {
+      "id": "unicode",
+      "raw": "{\"name\":\"名名名名名名名名名名名名名名名名名名名名名名名名名名名名名名名名名名名名名名名名名名名名名名名名名名名名名名名名名名名名名名名名名名名名名名名名名名名名名名名名名名名名名名名名名名名名名名名名名名名名名名名名名名名名名名名名名名名名名名名名名名名名名名名名名名名名名名名名名名名名名名名名名名名名名名名名名名名名名名名名名名名名名名名名名名名名名名名名名名名名名名名名名名名名名名名名名名名名名名名名名名名名名名名名名名名名名名名名名名名名名名名名名名名名名名名名名名名名名名名名名名名名名名名名名名名名名名名名\",\"version\":\"😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀\",\"workspaces\":[\"a\"]}",
+      "expected": {
+        "manifest_version": "water.node-manifest.v1",
+        "source_kind": "caller_supplied_text",
+        "read_only": true,
+        "format_verified": true,
+        "project_membership_verified": false,
+        "tool_version_known": false,
+        "action": "display_only",
+        "risk": "protected",
+        "ecosystem": "node",
+        "evidence_strength": "parsed_structure",
+        "recognized_field_count": 3,
+        "has_name": true,
+        "has_version": true,
+        "declared_private": null,
+        "counts": {
+          "scripts": 0,
+          "dependencies": 0,
+          "dev_dependencies": 0,
+          "peer_dependencies": 0,
+          "optional_dependencies": 0,
+          "workspace_patterns": 1
+        }
+      }
+    },
+    {
+      "id": "empty-collections",
+      "raw": "{\"scripts\":{},\"dependencies\":{},\"workspaces\":[]}",
+      "expected": {
+        "manifest_version": "water.node-manifest.v1",
+        "source_kind": "caller_supplied_text",
+        "read_only": true,
+        "format_verified": true,
+        "project_membership_verified": false,
+        "tool_version_known": false,
+        "action": "display_only",
+        "risk": "protected",
+        "ecosystem": "node",
+        "evidence_strength": "parsed_structure",
+        "recognized_field_count": 3,
+        "has_name": false,
+        "has_version": false,
+        "declared_private": null,
+        "counts": {
+          "scripts": 0,
+          "dependencies": 0,
+          "dev_dependencies": 0,
+          "peer_dependencies": 0,
+          "optional_dependencies": 0,
+          "workspace_patterns": 0
+        }
+      }
+    }
+  ],
+  "errors": [
+    {
+      "id": "syntax",
+      "raw": "{",
+      "error": "InvalidJson"
+    },
+    {
+      "id": "trailing",
+      "raw": "{} {}",
+      "error": "InvalidJson"
+    },
+    {
+      "id": "duplicate-then-bad",
+      "raw": "{\"a\":1,\"a\":2,}",
+      "error": "InvalidJson"
+    },
+    {
+      "id": "root-array",
+      "raw": "[]",
+      "error": "InvalidShape"
+    },
+    {
+      "id": "root-null",
+      "raw": "null",
+      "error": "InvalidShape"
+    },
+    {
+      "id": "duplicate-root",
+      "raw": "{\"x\":1,\"x\":2}",
+      "error": "DuplicateKey"
+    },
+    {
+      "id": "duplicate-unknown",
+      "raw": "{\"meta\":{\"hidden\":1,\"hidden\":2}}",
+      "error": "DuplicateKey"
+    },
+    {
+      "id": "duplicate-array",
+      "raw": "{\"meta\":[{\"a\":1,\"a\":2}]}",
+      "error": "DuplicateKey"
+    },
+    {
+      "id": "duplicate-escaped",
+      "raw": "{\"a\":1,\"\\u0061\":2}",
+      "error": "DuplicateKey"
+    },
+    {
+      "id": "private-null",
+      "raw": "{\"private\":null}",
+      "error": "InvalidField"
+    },
+    {
+      "id": "name-number",
+      "raw": "{\"name\":2}",
+      "error": "InvalidField"
+    },
+    {
+      "id": "name-empty",
+      "raw": "{\"name\":\"\"}",
+      "error": "InvalidField"
+    },
+    {
+      "id": "name-control",
+      "raw": "{\"name\":\"a\\nb\"}",
+      "error": "InvalidField"
+    },
+    {
+      "id": "deps-null",
+      "raw": "{\"dependencies\":null}",
+      "error": "InvalidField"
+    },
+    {
+      "id": "dep-value",
+      "raw": "{\"dependencies\":{\"x\":1}}",
+      "error": "InvalidField"
+    },
+    {
+      "id": "dep-key",
+      "raw": "{\"dependencies\":{\"\":\"1\"}}",
+      "error": "InvalidField"
+    },
+    {
+      "id": "workspace-object",
+      "raw": "{\"workspaces\":{\"packages\":[\"x\"]}}",
+      "error": "InvalidField"
+    },
+    {
+      "id": "workspace-empty",
+      "raw": "{\"workspaces\":[\"\"]}",
+      "error": "InvalidField"
+    },
+    {
+      "id": "scripts-value",
+      "raw": "{\"scripts\":{\"a\":1}}",
+      "error": "InvalidField"
+    }
+  ],
+  "dynamic_required": [
+    "depth32-pass-depth33-fail",
+    "262144-bytes-pass-262145-fail",
+    "scripts128-pass-129-fail",
+    "each-dependency4096-pass-4097-fail",
+    "workspaces128-pass-129-fail",
+    "unicode-char-limits",
+    "malformed-syntax-precedence",
+    "privacy-renaming-and-purity"
+  ]
+}
