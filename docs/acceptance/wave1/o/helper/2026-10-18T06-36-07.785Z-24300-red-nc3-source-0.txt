@@ -1,0 +1,70 @@
+<!doctype html>
+<html lang="zh-CN">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width,initial-scale=1">
+  <meta name="color-scheme" content="light">
+  <title>Water · 证据与容量观察</title>
+  <link rel="stylesheet" href="/styles.css">
+  <script type="module" src="/app.mjs"></script>
+</head>
+<body>
+  <header class="app-header">
+    <div class="brand"><span class="brand-mark" aria-hidden="true">w</span><strong>Water</strong><span class="brand-caption">证据与容量</span></div>
+    <div class="scope-notice"><p class="readonly-badge" data-testid="readonly-badge">受控夹具扫描 · 只读</p><span>非真实用户目录</span></div>
+  </header>
+  <main>
+    <section class="page-heading" aria-labelledby="page-title">
+      <div><p class="eyebrow">受控实验 / 项目证据与容量</p><h1 id="page-title">证据有边界，容量有依据</h1><p class="subtitle">阅读调用方提供的快照、文件名候选与身份账本，保留每一处未知。</p></div>
+      <div class="session-field"><label for="session">会话</label><select id="session" data-testid="session-select"></select></div>
+    </section>
+    <div id="status-banner" data-testid="status-banner" class="status-banner" role="status">正在载入会话…</div>
+    <section class="metrics" aria-label="整份会话计数">
+      <div class="metric"><span>观察条目</span><strong id="summary-count" data-testid="summary-count">—</strong><small>整份快照</small></div>
+      <div class="metric"><span>受到保护</span><strong id="protected-count" data-testid="protected-count">—</strong><small>分类与归属仍未知</small></div>
+      <div class="metric"><span>大小未知</span><strong id="unknown-count">—</strong><small>未知保持未知</small></div>
+      <div class="metric"><span>来源问题</span><strong id="issues-count" data-testid="issues-count">—</strong><small>覆盖限制与来源记录</small></div>
+    </section>
+    <p class="provenance" id="source-kind" data-testid="source-kind"></p>
+    <section class="ledger-grid" aria-label="整份快照的观察账本">
+      <div class="source-block"><h2>观察 File 逻辑字节</h2><strong id="ledger-observed" data-testid="ledger-observed">—</strong><p>逐条相加，重复身份也计入</p></div>
+      <div class="source-block"><h2>已知身份组一次字节</h2><strong id="ledger-known" data-testid="ledger-known">—</strong><p>任一身份组冲突时为 Unknown</p></div>
+      <div class="source-block"><h2>Unknown 身份观察字节</h2><strong id="ledger-unknown" data-testid="ledger-unknown">—</strong><p>未知身份文件逐条保留</p></div>
+      <div class="source-block"><h2>观察集合身份去重字节</h2><strong id="ledger-deduplicated" data-testid="ledger-deduplicated">—</strong><p>身份未完整或有冲突时为 Unknown</p></div>
+    </section>
+    <div class="ledger-boundaries"><p id="identity-complete" data-testid="identity-complete"></p><p id="scope-complete" data-testid="scope-complete"></p><p>卷唯一分配字节 <strong id="volume-unique" data-testid="volume-unique">Unknown</strong> · 可回收字节 <strong id="reclaimable" data-testid="reclaimable">Unknown</strong></p><p>硬链接组不代表卷唯一分配或可回收量；空观察集合不表示磁盘为空。</p></div>
+    <section class="source-grid" aria-label="来源与覆盖">
+      <div class="source-block" id="source-totals" data-testid="source-totals"></div>
+      <div class="source-block" id="coverage-summary" data-testid="coverage-summary"></div>
+    </section>
+    <section class="issues" id="issues-summary" data-testid="issues-summary" aria-label="来源问题"></section>
+    <section class="annotation-grid" aria-label="项目候选与身份分组">
+      <div class="source-block" id="annotations-candidates" data-testid="annotations-candidates"></div>
+      <div class="source-block" id="identity-groups" data-testid="identity-groups"></div>
+    </section>
+    <details class="whitelist"><summary>白名单汇总计数</summary><div id="whitelist-counts" data-testid="whitelist-counts"></div></details>
+    <section class="workspace" aria-labelledby="findings-heading">
+      <div class="filters">
+        <div class="search-field"><label for="search">搜索相对路径</label><input id="search" data-testid="search-input" type="search" placeholder="按名称或相对路径查找" autocomplete="off" spellcheck="false"></div>
+        <div><label for="scope">scope</label><select id="scope" data-testid="scope-filter"></select></div>
+        <div><label for="tool">工具键</label><select id="tool" data-testid="tool-filter"></select></div>
+        <div><label for="category">类别</label><select id="category" data-testid="category-filter"></select></div>
+        <div><label for="risk">风险</label><select id="risk" data-testid="risk-filter"><option value="all">全部风险</option><option value="low">low</option><option value="review">review</option><option value="high">high</option><option value="protected">protected</option></select></div>
+        <button type="button" id="reset-filters" data-testid="reset-filters">重置筛选</button>
+      </div>
+      <div class="list-toolbar"><div><h2 id="findings-heading">观察条目 <span id="visible-count" data-testid="visible-count" aria-live="polite">0 / 0</span></h2><p>筛选结果单独计数，来源总量保持原值。</p></div><div class="sort-field"><label for="sort">排序</label><select id="sort" data-testid="sort-select"><option value="size_desc">大小从大到小</option><option value="size_asc">大小从小到大</option><option value="name_asc">名称升序</option></select></div></div>
+      <div class="column-labels" aria-hidden="true"><span>相对路径</span><span>scope / 工具</span><span>风险 / 分类</span><span class="align-right">逻辑大小</span><span></span></div>
+      <ul class="finding-list" id="finding-list" data-testid="finding-list" aria-label="会话条目"></ul>
+      <div id="empty-state" data-testid="empty-state" class="empty-state" hidden><strong id="empty-title">没有符合筛选的条目</strong><p>可重置筛选，或选择另一份快照。没有观察条目不表示磁盘为空。</p><button type="button" id="empty-reset" data-testid="empty-reset">重置筛选</button></div>
+      <footer class="list-footer"><span>路径仅作文本展示</span><span>filename_only 候选保持 display_only / protected</span></footer>
+    </section>
+    <p class="page-note">调用方内存供数 · 本页只阅读已提供的快照，未接真实用户目录。</p>
+  </main>
+  <dialog id="detail" data-testid="detail-panel" class="detail-panel" aria-labelledby="detail-title">
+    <div class="detail-header"><span class="eyebrow">观察详情</span><button type="button" id="detail-close" data-testid="detail-close">关闭</button></div>
+    <p class="readonly-badge detail-readonly">受控夹具扫描 · 只读</p>
+    <h2 id="detail-title"></h2><p class="subtitle">非真实用户目录 · 原值与元数据</p>
+    <dl id="detail-fields"></dl><p class="keyboard-hint"><kbd>Esc</kbd> 关闭并返回原按钮</p>
+  </dialog>
+</body>
+</html>

@@ -1,0 +1,115 @@
+import { assertSessionBundle } from '../lab-reader/model.mjs';
+export { selectFindings } from '../report-reader/model.mjs';
+
+const ERROR = 'Unsupported evidence bundle.';
+const U128_MAX = 340282366920938463463374607431768211455n;
+const rules = new Map([
+  ['package.json', ['node-package-json', 'node']],
+  ['package-lock.json', ['node-package-lock', 'node']],
+  ['pyproject.toml', ['python-pyproject', 'python']],
+  ['requirements.txt', ['python-requirements', 'python']],
+]);
+function requireValue(value) { if (!value) throw new Error(ERROR); }
+function object(v) { return v !== null && typeof v === 'object' && !Array.isArray(v); }
+function exact(v, keys) {
+  requireValue(object(v) && Object.keys(v).length === keys.length && keys.every(k => Object.hasOwn(v, k)));
+}
+function same(a, b) {
+  if (a === b) return true;
+  if (Array.isArray(a) || Array.isArray(b)) return Array.isArray(a) && Array.isArray(b) && a.length === b.length && a.every((v, i) => same(v, b[i]));
+  return object(a) && object(b) && Object.keys(a).length === Object.keys(b).length && Object.keys(a).every(k => Object.hasOwn(b, k) && same(a[k], b[k]));
+}
+function bytes(value) {
+  requireValue(typeof value === 'string' && /^(0|[1-9][0-9]{0,38})$/.test(value) && BigInt(value) <= U128_MAX);
+  return value;
+}
+function sorted(set) { return [...set].sort((a, b) => BigInt(a) < BigInt(b) ? -1 : BigInt(a) > BigInt(b) ? 1 : 0); }
+
+// Display consistency only: real K/I validate the session first. Matching derived
+// annotations does not authenticate a caller, authorize a scope, or replace Rust G/L/M.
+function annotations(snapshot) {
+  exact(snapshot, ['source_kind', 'session', 'project_evidence', 'size_ledger']);
+  requireValue(['retained_j_capture', 'synthetic_memory'].includes(snapshot.source_kind));
+  const {session: s, project_evidence: l, size_ledger: m} = snapshot;
+  const header = {
+    read_only: true, scan_id: s.view.scan_id, source_run_id: s.source_facts.run_id,
+    platform: s.view.scopes[0].platform, status: s.view.status,
+    source_facts: s.source_facts, source_totals: s.report.totals,
+  };
+  const candidates = [], unknown = [], groups = new Map();
+  let entries = 0, nonFileMarkers = 0, files = 0, knownFiles = 0;
+  let observed = 0n, unknownBytes = 0n;
+  // One source-order pass; identity keys and entry refs never require all-pairs lookup.
+  for (const scope of s.source_facts.scopes) {
+    for (const entry of scope.entries) {
+      const ref = {finding_id: `entry-${++entries}`, scope_id: scope.scope_id};
+      const slash = entry.relative_path.lastIndexOf('/');
+      const rule = rules.get(entry.relative_path.slice(slash + 1));
+      if (rule) {
+        if (entry.kind !== 'file') nonFileMarkers++;
+        else candidates.push({
+          ...ref, relative_path: entry.relative_path, parent_relative_path: entry.relative_path.slice(0, Math.max(0, slash)),
+          rule_id: rule[0], ecosystem: rule[1], evidence_strength: 'filename_only',
+          format_verified: false, tool_version_known: false, project_membership_verified: false,
+          scope_coverage: scope.coverage, action: 'display_only', risk: 'protected',
+        });
+      }
+      if (entry.kind !== 'file') continue;
+      files++; observed += BigInt(entry.logical_bytes);
+      if (entry.identity.kind === 'unknown') {
+        unknown.push(ref); unknownBytes += BigInt(entry.logical_bytes);
+      } else {
+        knownFiles++;
+        const {device, inode, link_count: links} = entry.identity;
+        const key = device + ':' + inode;
+        if (!groups.has(key)) groups.set(key, {device, inode, lengths: new Set(), links: new Set(), refs: []});
+        const g = groups.get(key);
+        g.lengths.add(entry.logical_bytes); g.links.add(links); g.refs.push(ref);
+      }
+    }
+  }
+  const identityGroups = []; let conflicts = 0, knownBytes = 0n;
+  for (const g of groups.values()) {
+    const lengths = sorted(g.lengths), links = sorted(g.links);
+    const conflict = lengths.length !== 1 || links.length !== 1;
+    if (conflict) conflicts++; else knownBytes += BigInt(lengths[0]);
+    identityGroups.push({device: g.device, inode: g.inode, state: conflict ? 'conflicting' : 'consistent',
+      logical_bytes: conflict ? null : lengths[0], logical_byte_values: lengths, link_count_values: links, entry_refs: g.refs});
+  }
+  const complete = unknown.length === 0 && conflicts === 0;
+  const expectedL = {
+    evidence_version: 'water.project-evidence.v1', rules_version: 'water.project-marker-rules.v1', ...header,
+    counts: {scopes: s.source_facts.scopes.length, entries, candidates: candidates.length, non_file_marker_names: nonFileMarkers}, candidates,
+  };
+  const expectedM = {
+    ledger_version: 'water.size-ledger.v1', ...header,
+    counts: {scopes: s.source_facts.scopes.length, entries, file_entries: files, non_file_entries: entries - files,
+      known_identity_file_entries: knownFiles, unknown_identity_file_entries: unknown.length,
+      known_identity_groups: groups.size, conflicting_identity_groups: conflicts},
+    scope_coverage_complete: s.view.status === 'completed', observed_file_logical_bytes: observed.toString(),
+    known_identity_logical_bytes: conflicts ? null : knownBytes.toString(),
+    unknown_identity_observed_logical_bytes: unknownBytes.toString(),
+    identity_deduplicated_logical_bytes: complete ? knownBytes.toString() : null,
+    observed_set_identity_complete: complete, volume_unique_allocated_bytes: null, reclaimable_bytes: null,
+    identity_groups: identityGroups, unknown_identity_entries: unknown,
+  };
+  // Equality includes exact nested keys, counts, ordering and every original ref.
+  // Source totals are compared to the original session, never calculated or replaced.
+  requireValue(same(l, expectedL) && same(m, expectedM));
+}
+export function assertEvidenceBundle(bundle) {
+  try {
+    exact(bundle, ['bundle_version', 'snapshots']);
+    requireValue(bundle.bundle_version === 'water.evidence-reader-bundle.v1' && Array.isArray(bundle.snapshots) && bundle.snapshots.length >= 1 && bundle.snapshots.length <= 32);
+    assertSessionBundle({bundle_version: 'water.lab-reader-bundle.v1', snapshots: bundle.snapshots.map(s => s.session)});
+    bundle.snapshots.forEach(annotations);
+    return bundle;
+  } catch { throw new Error(ERROR); }
+}
+export function selectSnapshot(bundle, scanId) {
+  assertEvidenceBundle(bundle);
+  return bundle.snapshots.find(s => s.session.view.scan_id === scanId) ?? null;
+}
+export function formatLedgerBytes(value) {
+  return value === null ? 'Unknown' : bytes(value) + ' B';
+}

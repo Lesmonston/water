@@ -1,0 +1,171 @@
+--- stdout ---
+TAP version 13
+# Subtest: evidence_reader_live_input
+not ok 1 - evidence_reader_live_input
+  ---
+  duration_ms: 10.2503
+  type: 'test'
+  location: 'F:\\new\\smaltalk\\water\\.worktrees\\o\\prototypes\\evidence-reader\\tests\\browser.test.mjs:80:1'
+  failureType: 'testCodeFailure'
+  error: |-
+    Got unwanted rejection: O_BEHAVIOR: real caller input must start
+    Actual message: "Unsupported evidence bundle."
+  code: 'ERR_ASSERTION'
+  name: 'AssertionError'
+  actual:
+  error: 'Unsupported evidence bundle.'
+  stack: |-
+    assertEvidenceBundle (file:///F:/new/smaltalk/water/.worktrees/o/prototypes/evidence-reader/model.mjs:2:48)
+    startServer (file:///F:/new/smaltalk/water/.worktrees/o/prototypes/evidence-reader/server.mjs:2:50)
+    file:///F:/new/smaltalk/water/.worktrees/o/prototypes/evidence-reader/tests/browser.test.mjs:85:62
+    waitForActual (node:assert:632:21)
+    strict.doesNotReject (node:assert:789:39)
+    TestContext.<anonymous> (file:///F:/new/smaltalk/water/.worktrees/o/prototypes/evidence-reader/tests/browser.test.mjs:85:20)
+    Test.runInAsyncScope (node:async_hooks:227:14)
+    Test.run (node:internal/test_runner/test:1306:25)
+    Test.start (node:internal/test_runner/test:1177:17)
+    startSubtestAfterBootstrap (node:internal/test_runner/harness:385:17)
+  operator: 'doesNotReject'
+  stack: |-
+    async TestContext.<anonymous> (file:///F:/new/smaltalk/water/.worktrees/o/prototypes/evidence-reader/tests/browser.test.mjs:85:7)
+    async Test.run (node:internal/test_runner/test:1313:7)
+    async startSubtestAfterBootstrap (node:internal/test_runner/harness:385:3)
+  ...
+# Subtest: evidence_reader_layout_and_safety
+not ok 2 - evidence_reader_layout_and_safety
+  ---
+  duration_ms: 6.2642
+  type: 'test'
+  location: 'F:\\new\\smaltalk\\water\\.worktrees\\o\\prototypes\\evidence-reader\\tests\\browser.test.mjs:173:1'
+  failureType: 'testCodeFailure'
+  error: |-
+    Expected values to be strictly deep-equal:
+    + actual - expected
+    
+      Comparison {
+    +   message: 'Unsupported evidence bundle.',
+    +   name: 'Error'
+    -   message: 'Invalid local port',
+    -   name: 'RangeError'
+      }
+    
+  code: 'ERR_ASSERTION'
+  name: 'AssertionError'
+  expected:
+    name: 'RangeError'
+    message: 'Invalid local port'
+  actual:
+  error: 'Unsupported evidence bundle.'
+  stack: |-
+    assertEvidenceBundle (file:///F:/new/smaltalk/water/.worktrees/o/prototypes/evidence-reader/model.mjs:2:48)
+    startServer (file:///F:/new/smaltalk/water/.worktrees/o/prototypes/evidence-reader/server.mjs:2:50)
+    file:///F:/new/smaltalk/water/.worktrees/o/prototypes/evidence-reader/tests/browser.test.mjs:177:60
+    rejectsStart (file:///F:/new/smaltalk/water/.worktrees/o/prototypes/evidence-reader/tests/browser.test.mjs:177:83)
+    TestContext.<anonymous> (file:///F:/new/smaltalk/water/.worktrees/o/prototypes/evidence-reader/tests/browser.test.mjs:182:57)
+    async Test.run (node:internal/test_runner/test:1313:7)
+    async Test.processPendingSubtests (node:internal/test_runner/test:897:7)
+  operator: 'rejects'
+  stack: |-
+    async rejectsStart (file:///F:/new/smaltalk/water/.worktrees/o/prototypes/evidence-reader/tests/browser.test.mjs:177:10)
+    async TestContext.<anonymous> (file:///F:/new/smaltalk/water/.worktrees/o/prototypes/evidence-reader/tests/browser.test.mjs:182:51)
+    async Test.run (node:internal/test_runner/test:1313:7)
+    async Test.processPendingSubtests (node:internal/test_runner/test:897:7)
+  ...
+# Subtest: evidence_reader_bundle
+not ok 3 - evidence_reader_bundle
+  ---
+  duration_ms: 8.6622
+  type: 'test'
+  location: 'F:\\new\\smaltalk\\water\\.worktrees\\o\\prototypes\\evidence-reader\\tests\\model.test.mjs:21:1'
+  failureType: 'testCodeFailure'
+  error: |-
+    Got unwanted exception: O_BEHAVIOR: complete accepted bundle must validate
+    Actual message: "Unsupported evidence bundle."
+  code: 'ERR_ASSERTION'
+  name: 'AssertionError'
+  actual:
+  error: 'Unsupported evidence bundle.'
+  stack: |-
+    Module.assertEvidenceBundle (file:///F:/new/smaltalk/water/.worktrees/o/prototypes/evidence-reader/model.mjs:2:48)
+    file:///F:/new/smaltalk/water/.worktrees/o/prototypes/evidence-reader/tests/model.test.mjs:24:35
+    getActual (node:assert:611:5)
+    strict.doesNotThrow (node:assert:779:32)
+    TestContext.<anonymous> (file:///F:/new/smaltalk/water/.worktrees/o/prototypes/evidence-reader/tests/model.test.mjs:24:10)
+    Test.runInAsyncScope (node:async_hooks:227:14)
+    Test.run (node:internal/test_runner/test:1306:25)
+    Test.start (node:internal/test_runner/test:1177:17)
+    startSubtestAfterBootstrap (node:internal/test_runner/harness:385:17)
+  operator: 'doesNotThrow'
+  stack: |-
+    TestContext.<anonymous> (file:///F:/new/smaltalk/water/.worktrees/o/prototypes/evidence-reader/tests/model.test.mjs:24:10)
+    Test.runInAsyncScope (node:async_hooks:227:14)
+    Test.run (node:internal/test_runner/test:1306:25)
+    Test.start (node:internal/test_runner/test:1177:17)
+    startSubtestAfterBootstrap (node:internal/test_runner/harness:385:17)
+  ...
+# Subtest: evidence_reader_selection
+not ok 4 - evidence_reader_selection
+  ---
+  duration_ms: 5.5186
+  type: 'test'
+  location: 'F:\\new\\smaltalk\\water\\.worktrees\\o\\prototypes\\evidence-reader\\tests\\model.test.mjs:58:1'
+  failureType: 'testCodeFailure'
+  error: 'Unsupported evidence bundle.'
+  code: 'ERR_TEST_FAILURE'
+  stack: |-
+    assertEvidenceBundle (file:///F:/new/smaltalk/water/.worktrees/o/prototypes/evidence-reader/model.mjs:2:48)
+    Module.selectSnapshot (file:///F:/new/smaltalk/water/.worktrees/o/prototypes/evidence-reader/model.mjs:3:50)
+    TestContext.<anonymous> (file:///F:/new/smaltalk/water/.worktrees/o/prototypes/evidence-reader/tests/model.test.mjs:62:24)
+    Test.runInAsyncScope (node:async_hooks:227:14)
+    Test.run (node:internal/test_runner/test:1306:25)
+    Test.processPendingSubtests (node:internal/test_runner/test:897:18)
+    Test.postRun (node:internal/test_runner/test:1447:19)
+    Test.run (node:internal/test_runner/test:1372:12)
+    async startSubtestAfterBootstrap (node:internal/test_runner/harness:385:3)
+  ...
+# Subtest: evidence_reader_annotations
+not ok 5 - evidence_reader_annotations
+  ---
+  duration_ms: 0.8052
+  type: 'test'
+  location: 'F:\\new\\smaltalk\\water\\.worktrees\\o\\prototypes\\evidence-reader\\tests\\model.test.mjs:78:1'
+  failureType: 'testCodeFailure'
+  error: |-
+    Got unwanted exception: O_BEHAVIOR: annotations valid
+    Actual message: "Unsupported evidence bundle."
+  code: 'ERR_ASSERTION'
+  name: 'AssertionError'
+  actual:
+  error: 'Unsupported evidence bundle.'
+  stack: |-
+    Module.assertEvidenceBundle (file:///F:/new/smaltalk/water/.worktrees/o/prototypes/evidence-reader/model.mjs:2:48)
+    file:///F:/new/smaltalk/water/.worktrees/o/prototypes/evidence-reader/tests/model.test.mjs:79:35
+    getActual (node:assert:611:5)
+    strict.doesNotThrow (node:assert:779:32)
+    TestContext.<anonymous> (file:///F:/new/smaltalk/water/.worktrees/o/prototypes/evidence-reader/tests/model.test.mjs:79:10)
+    Test.runInAsyncScope (node:async_hooks:227:14)
+    Test.run (node:internal/test_runner/test:1306:25)
+    Test.processPendingSubtests (node:internal/test_runner/test:897:18)
+    Test.postRun (node:internal/test_runner/test:1447:19)
+    Test.run (node:internal/test_runner/test:1372:12)
+  operator: 'doesNotThrow'
+  stack: |-
+    TestContext.<anonymous> (file:///F:/new/smaltalk/water/.worktrees/o/prototypes/evidence-reader/tests/model.test.mjs:79:10)
+    Test.runInAsyncScope (node:async_hooks:227:14)
+    Test.run (node:internal/test_runner/test:1306:25)
+    Test.processPendingSubtests (node:internal/test_runner/test:897:18)
+    Test.postRun (node:internal/test_runner/test:1447:19)
+    Test.run (node:internal/test_runner/test:1372:12)
+    async Test.processPendingSubtests (node:internal/test_runner/test:897:7)
+  ...
+1..5
+# tests 5
+# suites 0
+# pass 0
+# fail 5
+# cancelled 0
+# skipped 0
+# todo 0
+# duration_ms 401.6716
+
+--- stderr ---

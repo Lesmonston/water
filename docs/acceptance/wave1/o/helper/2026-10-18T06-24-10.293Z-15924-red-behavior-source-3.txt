@@ -1,0 +1,4 @@
+export { selectFindings } from '../report-reader/model.mjs';
+export function assertEvidenceBundle() { throw new Error('Unsupported evidence bundle.'); }
+export function selectSnapshot(bundle, scanId) { assertEvidenceBundle(bundle); return null; }
+export function formatLedgerBytes(value) { return value === null ? 'Unknown' : value + ' B'; }

@@ -1,0 +1,153 @@
+import { assertEvidenceBundle, selectSnapshot, selectFindings, formatLedgerBytes } from './model.mjs';
+
+const byId = id => document.getElementById(id);
+const controls = Object.fromEntries([['query','search'],['scope','scope'],['tool','tool'],['category','category'],['risk','risk'],['sort','sort']].map(([key,id]) => [key,byId(id)]));
+const dialog = byId('detail');
+let bundle, current, returnFocus, entries, candidates, groups;
+
+function node(tag, className, value) {
+  const result = document.createElement(tag);
+  if (className) result.className = className;
+  if (value !== undefined) result.textContent = String(value);
+  return result;
+}
+function set(id, value) { byId(id).textContent = String(value); }
+function option(value, label) {
+  const result = node('option', '', label); result.value = value; return result;
+}
+function json(value) { return JSON.stringify(value, null, 2); }
+function resetFilters() {
+  controls.query.value = '';
+  for (const key of ['scope','tool','category','risk']) controls[key].value = 'all';
+  controls.sort.value = 'size_desc';
+}
+function dynamicFilters(view) {
+  controls.scope.replaceChildren(option('all','全部 scope'), ...view.scopes.map(s => option(s.scope_id,s.scope_id)));
+  const tools = new Map(view.findings.map(f => [f.tool_id,f.tool_name]));
+  controls.tool.replaceChildren(option('all','全部工具键'), ...Array.from(tools, ([id,name]) => option(id,`${name} · ${id}`)));
+  controls.category.replaceChildren(option('all','全部类别'), ...[...new Set(view.findings.map(f => f.category))].map(c => option(c,c)));
+}
+function renderSummary() {
+  const s = current.session, view = s.view, l = current.project_evidence, m = current.size_ledger, totals = view.totals;
+  set('summary-count',view.findings.length);
+  set('protected-count',view.findings.filter(f => f.risk === 'protected').length);
+  set('unknown-count',view.findings.filter(f => f.logical_bytes === null).length);
+  set('issues-count',view.issues.length);
+  set('source-kind', current.source_kind === 'retained_j_capture'
+    ? 'retained_j_capture · 保留的 J 受控捕获；本页没有发起新扫描。来源类型为调用方声明，未经真实性认证。'
+    : 'synthetic_memory · 人工内存样本，非 J 新扫描；Unix 身份不代表 macOS 实机验证。来源类型为调用方声明，未经真实性认证。');
+  set('ledger-observed',formatLedgerBytes(m.observed_file_logical_bytes));
+  set('ledger-known',formatLedgerBytes(m.known_identity_logical_bytes));
+  set('ledger-unknown',formatLedgerBytes(m.unknown_identity_observed_logical_bytes));
+  set('ledger-deduplicated',formatLedgerBytes(m.identity_deduplicated_logical_bytes));
+  set('volume-unique',formatLedgerBytes(m.volume_unique_allocated_bytes));
+  set('reclaimable',formatLedgerBytes(m.reclaimable_bytes));
+  set('identity-complete',`观察集合身份完整性 observed_set_identity_complete=${m.observed_set_identity_complete} · Unknown 文件 ${m.counts.unknown_identity_file_entries} · 冲突组 ${m.counts.conflicting_identity_groups}`);
+  set('scope-complete',`scope 覆盖 scope_coverage_complete=${m.scope_coverage_complete} · 与观察集合身份完整性分别记录`);
+  byId('source-totals').replaceChildren(node('h2','','来源总量'),node('strong','',formatLedgerBytes(totals.logical_bytes)),
+    node('p','',`逻辑字节 ${totals.logical_bytes ?? 'Unknown'} · 分配字节 ${totals.allocated_bytes ?? 'Unknown'}`),
+    node('p','',`来源方法 ${totals.method} · 非本页求和，筛选不改变来源总量`),
+    node('pre','',json(totals)));
+  byId('coverage-summary').replaceChildren(node('h2','','来源覆盖'),node('strong','',totals.coverage_complete ? '完整' : '未完整'),
+    ...s.source_facts.scopes.map(scope => node('p','',`${scope.scope_id} · ${scope.coverage} · 相对根 ${scope.relative_root}`)));
+  const banner = byId('status-banner'); banner.dataset.status = view.status;
+  banner.replaceChildren(node('strong','',view.status),node('span','',view.scan_id),node('span','',s.source_facts.case_id),node('span','',m.platform));
+  const issues = s.source_facts.scopes.flatMap(scope => scope.issues.map(issue => ({...issue,scope_id:scope.scope_id})));
+  byId('issues-summary').replaceChildren(node('h2','','来源问题'), ...(issues.length ? issues.map(issue => node('p',issue.origin === 'injected' ? 'injected-note' : '',
+    `${issue.code} · ${issue.scope_id} · ${issue.relative_path === '' ? 'scope 根' : issue.relative_path ?? '无相对路径'} · origin=${issue.origin} · operation=${issue.operation}${issue.origin === 'injected' ? ' · 受控注入记录' : ''}`)) : [node('p','','无问题记录')]));
+  byId('annotations-candidates').replaceChildren(node('h2','',`文件名弱候选 · ${l.counts.candidates}`),
+    node('p','','filename_only · format_verified=false · tool_version_known=false · project_membership_verified=false'),
+    node('p','','只展示 display_only / protected；未验证格式、工具版本或项目归属。'),
+    node('p','',`同名非文件 ${l.counts.non_file_marker_names}`),
+    ...(l.candidates.length ? l.candidates.map(c => {
+      const item = node('div','annotation-item');
+      item.append(node('strong','',c.relative_path),node('p','',`${c.rule_id} · ${c.ecosystem} · ${c.finding_id} / ${c.scope_id}`),
+        node('p','',`父路径 ${c.parent_relative_path === '' ? 'scope 根' : c.parent_relative_path} · ${c.scope_coverage}`));
+      return item;
+    }) : [node('p','','本次已记录条目没有文件名候选。')]));
+  byId('identity-groups').replaceChildren(node('h2','',`已知身份组 · ${m.counts.known_identity_groups}`),
+    node('p','','分组仅限本份观察；未观测的链接不作推断。'),
+    ...m.identity_groups.map(g => {
+      const item = node('div','annotation-item');
+      item.append(node('strong','',`device=${g.device} · inode=${g.inode} · ${g.state}`),
+        node('p','',`组字节 ${formatLedgerBytes(g.logical_bytes)} · 长度值 ${g.logical_byte_values.join(', ')} · link_count 值 ${g.link_count_values.join(', ')}`),
+        node('p','',g.entry_refs.map(r => `${r.finding_id} / ${r.scope_id}`).join(' · ')));
+      return item;
+    }), node('p','',`Unknown 身份条目 ${m.counts.unknown_identity_file_entries}`),
+    ...m.unknown_identity_entries.map(r => node('p','',`${r.finding_id} / ${r.scope_id}`)));
+  const h = s.summary;
+  byId('whitelist-counts').replaceChildren(...[h.counts,h.risk_counts,h.category_counts,m.counts].flatMap(counts => Object.entries(counts).map(([k,v]) => node('span','',`${k}: ${v}`))));
+}
+function showDetails(finding, trigger) {
+  returnFocus = trigger;
+  const s = current.session, {scope,entry} = entries.get(finding.id);
+  set('detail-title',finding.title);
+  const fields = [
+    ['source_kind',current.source_kind], ['scan_id',s.view.scan_id], ['platform',current.size_ledger.platform],
+    ['source_run_id',s.source_facts.run_id], ['status',s.view.status],
+    ['scope',s.view.scopes.find(v => v.scope_id === scope.scope_id)], ['scope 相对根',scope.relative_root],
+    ['scope issues',scope.issues], ...Object.entries(finding), ['original_entry',entry], ['identity',entry.identity],
+    ['project_evidence',candidates.get(finding.id) ?? null],
+    ['project_evidence counts',current.project_evidence.counts],
+    ['size_ledger group',groups.get(finding.id) ?? null],
+    ['size_ledger unknown_identity_entry',entry.kind === 'file' && entry.identity.kind === 'unknown' ? {finding_id:finding.id,scope_id:finding.scope_id} : null],
+    ['size_ledger counts',current.size_ledger.counts],
+    ['source_totals',current.size_ledger.source_totals],
+    ['观察集合身份完整性',current.size_ledger.observed_set_identity_complete],
+    ['scope 覆盖',current.size_ledger.scope_coverage_complete],
+    ['说明','文件名候选只作展示；身份分组不代表卷唯一分配或可回收量。'],
+  ];
+  byId('detail-fields').replaceChildren(...fields.flatMap(([label,value]) => [node('dt','',label),node('dd','',typeof value === 'string' ? value : json(value))]));
+  dialog.showModal(); byId('detail-close').focus();
+}
+function renderFindings() {
+  const view = current.session.view;
+  const rows = selectFindings(view,Object.fromEntries(Object.entries(controls).map(([key,control]) => [key,control.value])));
+  set('visible-count',`${rows.length} / ${view.findings.length}`);
+  byId('empty-state').hidden = rows.length !== 0;
+  set('empty-title',view.findings.length ? '没有符合筛选的条目' : '这份来源快照没有观察条目');
+  byId('finding-list').replaceChildren(...rows.map(f => {
+    const row = node('li','finding-row'); row.dataset.findingId = f.id;
+    const main = node('div','finding-main');
+    main.append(node('span','finding-title',f.title),node('span','finding-note',`${f.id} · ${entries.get(f.id).entry.kind}${candidates.has(f.id) ? ' · filename_only 候选' : ''}`));
+    const tool = node('div','finding-tool',f.scope_id); tool.append(node('span','',`${f.tool_id} · ${f.tool_name}`));
+    const meta = node('div','finding-meta'); meta.append(node('span','risk-label',f.risk),node('small','',f.category),node('small','',`${f.activity} · ${f.recoverability}`));
+    const button = node('button','detail-button','详情'); button.type = 'button';
+    button.setAttribute('aria-label',`查看 ${f.title} 详情`); button.setAttribute('aria-haspopup','dialog');
+    button.addEventListener('click',() => showDetails(f,button));
+    row.append(main,tool,meta,node('span','finding-size',formatLedgerBytes(f.logical_bytes)),button); return row;
+  }));
+}
+function showSnapshot(id) {
+  if (dialog.open) { returnFocus = undefined; dialog.close(); }
+  current = selectSnapshot(bundle,id);
+  entries = new Map(); let i = 0;
+  for (const scope of current.session.source_facts.scopes) for (const entry of scope.entries) entries.set(`entry-${++i}`,{scope,entry});
+  candidates = new Map(current.project_evidence.candidates.map(c => [c.finding_id,c]));
+  groups = new Map();
+  for (const g of current.size_ledger.identity_groups) for (const ref of g.entry_refs) groups.set(ref.finding_id,g);
+  dynamicFilters(current.session.view); resetFilters(); renderSummary(); renderFindings();
+}
+byId('detail-close').addEventListener('click',() => dialog.close());
+// The close button is the dialog's only interactive control. Keep Tab (including
+// Shift+Tab) inside it rather than moving to browser chrome at the tab boundary.
+dialog.addEventListener('keydown',event => {
+  if (event.key === 'Tab') {event.preventDefault();byId('detail-close').focus();}
+});
+dialog.addEventListener('cancel',event => {event.preventDefault();dialog.close();});
+dialog.addEventListener('close',() => {if(returnFocus?.isConnected)returnFocus.focus();});
+try {
+  const response = await fetch('/evidence.json',{cache:'no-store',credentials:'omit',redirect:'error'});
+  if (!response.ok) throw new Error();
+  bundle = await response.json(); assertEvidenceBundle(bundle);
+  const picker = byId('session');
+  picker.replaceChildren(...bundle.snapshots.map(s => option(s.session.view.scan_id,`${s.session.view.scan_id} · ${s.session.source_facts.case_id} · ${s.session.view.status}`)));
+  picker.addEventListener('change',() => showSnapshot(picker.value));
+  controls.query.addEventListener('input',renderFindings);
+  for (const key of ['scope','tool','category','risk','sort']) controls[key].addEventListener('change',renderFindings);
+  for (const id of ['reset-filters','empty-reset']) byId(id).addEventListener('click',() => {resetFilters();renderFindings();});
+  picker.value = bundle.snapshots[0].session.view.scan_id; showSnapshot(picker.value);
+} catch {
+  set('status-banner','证据无法显示。Unsupported evidence bundle.');
+  for (const control of document.querySelectorAll('input,select,button')) control.disabled = true;
+} finally { document.body.dataset.ready = 'true'; }
