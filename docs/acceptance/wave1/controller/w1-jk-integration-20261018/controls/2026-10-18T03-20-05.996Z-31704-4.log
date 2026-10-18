@@ -1,0 +1,56 @@
+{"binary":"C:\\Program Files\\nodejs\\node.exe","argv":["--test","--test-concurrency=1","--test-reporter=tap","prototypes/lab-reader/tests/model.test.mjs","prototypes/lab-reader/tests/browser.test.mjs"],"exitCode":1,"error":null,"log":"2026-10-18T03-20-05.996Z-31704-4.log"}
+--- stdout ---
+TAP version 13
+# Subtest: reader_session_live_input
+not ok 1 - reader_session_live_input
+  ---
+  duration_ms: 3462.5236
+  type: 'test'
+  location: 'F:\\new\\smaltalk\\water\\.worktrees\\integration-jk-20261018\\prototypes\\lab-reader\\tests\\browser.test.mjs:90:1'
+  failureType: 'testCodeFailure'
+  error: 'K_TOTAL_UNKNOWN: page must preserve source unknown'
+  code: 'ERR_ASSERTION'
+  name: 'AssertionError'
+  expected:
+  actual: '来源总量0 B逻辑字节 0 · 分配字节 0来源方法 unavailable · 非本页求和记录 6 · 跳过 0'
+  operator: 'match'
+  stack: |-
+    TestContext.<anonymous> (file:///F:/new/smaltalk/water/.worktrees/integration-jk-20261018/prototypes/lab-reader/tests/browser.test.mjs:112:16)
+    async Test.run (node:internal/test_runner/test:1313:7)
+    async startSubtestAfterBootstrap (node:internal/test_runner/harness:385:3)
+  ...
+# Subtest: reader_session_scope_and_layout
+ok 2 - reader_session_scope_and_layout
+  ---
+  duration_ms: 8111.7524
+  type: 'test'
+  ...
+# Subtest: reader_session_contract
+ok 3 - reader_session_contract
+  ---
+  duration_ms: 63.8248
+  type: 'test'
+  ...
+# Subtest: reader_session_selection
+ok 4 - reader_session_selection
+  ---
+  duration_ms: 9.7706
+  type: 'test'
+  ...
+# Subtest: reader_session_summary
+ok 5 - reader_session_summary
+  ---
+  duration_ms: 7.0562
+  type: 'test'
+  ...
+1..5
+# tests 5
+# suites 0
+# pass 4
+# fail 1
+# cancelled 0
+# skipped 0
+# todo 0
+# duration_ms 12262.0923
+
+--- stderr ---

@@ -1,0 +1,26 @@
+# Size Ledger v1：观察集合的逻辑长度与身份分组
+
+遵从../evidence-batch-v1/COMMON.md。packages/size-ledger，package water-size-ledger，lib water_size_ledger，pub mod v1，唯一tests/ledger_v1.rs，输出类型SizeLedger。analyze_json/to_json和错误按共同规范，只接受一份经真实G验证的facts/context，不能跨调用缓存或合并来源。
+
+wire严格字段：ledger_version="water.size-ledger.v1"、共同头read_only/scan_id/source_run_id/platform/status/source_facts/source_totals，以及counts、scope_coverage_complete、observed_file_logical_bytes、known_identity_logical_bytes、unknown_identity_observed_logical_bytes、identity_deduplicated_logical_bytes、observed_set_identity_complete、volume_unique_allocated_bytes、reclaimable_bytes、identity_groups、unknown_identity_entries。
+
+counts严格八个u32：scopes、entries、file_entries、non_file_entries、known_identity_file_entries、unknown_identity_file_entries、known_identity_groups、conflicting_identity_groups。entries为recorded_entries；仅File参与逻辑字节和身份分组，Directory/Link/Other逻辑null不能当0B文件或拿目录Unix身份分组。
+
+File逻辑长度由G保证规范u64十进制字符串。所有累加用u128整数和checked加法（<=10000*u64::MAX，合法输入不会u128溢出），Serialize字节结果为规范十进制字符串，允许超过u64::MAX，不能复用A ByteCount限制到u64，也不能float/Number/wrap/saturate。输出不重新写回A报告。
+
+- observed_file_logical_bytes：全部已记录File的逻辑长度之和，重复身份也逐条计入，名字表明它只是观察条目之和。
+- unknown_identity_observed_logical_bytes：Unknown身份File逐条长度和。
+- 已知File身份只能是G验证后macos上下文的Unix(device,inode,link_count)。分组key仅同一输入内的(device,inode)，device不同不可合并，link_count不是key；Windows所有身份Unknown，不推断同名/同大小/重叠scope即同文件。
+- 分组按首次遇到顺序；每组entry_refs按原顺序，严格{finding_id,scope_id}，finding_id沿G全entry顺序。logical_byte_values和link_count_values分别为该组去重后按数值升序的十进制字符串数组。
+- 同组逻辑长度或link_count不一致时state="conflicting"、logical_bytes=null，不能任取最小/最大/最后值；否则state="consistent"且logical_bytes为唯一原长度。未观测的硬链接数量不推断。
+- 每组严格{device,inode,state,logical_bytes,logical_byte_values,link_count_values,entry_refs}。Unknown File不合并，原序输出unknown_identity_entries，每项严格{finding_id,scope_id}。
+- known_identity_logical_bytes：每个已知组只计一次；存在任一conflicting组则null，否则为组长度和（无组为"0"）。
+- observed_set_identity_complete：unknown_identity_file_entries==0且conflicting_identity_groups==0；identity_deduplicated_logical_bytes只有该条件真才为known_identity_logical_bytes，否则null。无File时该观察集合为空，布尔true、字节"0"，不声称scope磁盘为空。
+- scope_coverage_complete仅来源status==completed；partial/cancelled不变成全盘完整。不完整scope也可对已观察集合得到值，但它不是scope总大小。
+- volume_unique_allocated_bytes和reclaimable_bytes恒null；已知inode不证明APFS共享块/卷唯一分配空间、删除可释放或所有链接已覆盖。旧source_totals逐值clone，不能用上面新指标替换来源null。
+
+相同路径/长度的Unknown仍分别保留；不同scope同路径不能用文本去重。分组范围限定同一API输入/context；不同run/平台/扫描不能隐式共享身份域。完整source_facts照抄，使来源kind/depth/identity/根issue/覆盖没有丢失。算法应O(n log n)或期望O(n)，不得对10000条目全配对。
+
+cases.json提供完整golden和G错误，raw_inputs.json沿用共同原始错误。唯一五顶层：ledger_observed_sizes、ledger_identity_groups、ledger_unknown_and_coverage、ledger_validation、ledger_public_wire_and_purity。覆盖u64max两项相加超过u64、2^53邻值、0、Unknown同名/同长不合并、同身份跨scope合并、不同device不合并、长度冲突、link_count冲突、Directory Unix身份排除、partial/cancelled/空观察集合、根issue空串、两份run分别调用无状态污染。source错误与G原code/field相等，全部golden输出精确键/值和输入不变。
+
+行为红M_BEHAVIOR。三个实改源码负控：nc1 Unknown按路径/长度归并或把identity_deduplicated_logical_bytes从null提升为观察和，命中M_UNKNOWN_IDENTITY；nc2真实累加经f64或u64回绕/饱和，命中M_INTEGER_PRECISION；nc3冲突组仍给出精确去重值，命中M_CONFLICT_UNKNOWN。每项完整五测红及原字节恢复suite按COMMON执行。人工Unix样本只验证算法，macOS身份采集/文件系统仍未实测。

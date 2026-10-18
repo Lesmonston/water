@@ -1,0 +1,2027 @@
+{
+  "fixture_version": "water.project-evidence-v1.cases",
+  "golden_cases": [
+    {
+      "id": "project-markers",
+      "input": {
+        "facts_version": "water.scan-lab.v1",
+        "run_id": "run-synthetic-project-markers",
+        "case_id": "project-markers",
+        "status": "completed",
+        "visited_entries": 6,
+        "recorded_entries": 6,
+        "scopes": [
+          {
+            "scope_id": "scope-1",
+            "relative_root": "scope",
+            "coverage": "complete",
+            "visited_entries": 6,
+            "entries": [
+              {
+                "relative_path": ".git",
+                "kind": "directory",
+                "depth": 1,
+                "logical_bytes": null,
+                "allocated_bytes": null,
+                "identity": {
+                  "kind": "unknown",
+                  "device": null,
+                  "inode": null,
+                  "link_count": null
+                }
+              },
+              {
+                "relative_path": ".git/HEAD",
+                "kind": "file",
+                "depth": 2,
+                "logical_bytes": "26",
+                "allocated_bytes": null,
+                "identity": {
+                  "kind": "unknown",
+                  "device": null,
+                  "inode": null,
+                  "link_count": null
+                }
+              },
+              {
+                "relative_path": "package.json",
+                "kind": "file",
+                "depth": 1,
+                "logical_bytes": "50",
+                "allocated_bytes": null,
+                "identity": {
+                  "kind": "unknown",
+                  "device": null,
+                  "inode": null,
+                  "link_count": null
+                }
+              },
+              {
+                "relative_path": "pyproject.toml",
+                "kind": "file",
+                "depth": 1,
+                "logical_bytes": "61",
+                "allocated_bytes": null,
+                "identity": {
+                  "kind": "unknown",
+                  "device": null,
+                  "inode": null,
+                  "link_count": null
+                }
+              },
+              {
+                "relative_path": "src",
+                "kind": "directory",
+                "depth": 1,
+                "logical_bytes": null,
+                "allocated_bytes": null,
+                "identity": {
+                  "kind": "unknown",
+                  "device": null,
+                  "inode": null,
+                  "link_count": null
+                }
+              },
+              {
+                "relative_path": "src/main.py",
+                "kind": "file",
+                "depth": 2,
+                "logical_bytes": "36",
+                "allocated_bytes": null,
+                "identity": {
+                  "kind": "unknown",
+                  "device": null,
+                  "inode": null,
+                  "link_count": null
+                }
+              }
+            ],
+            "issues": []
+          }
+        ]
+      },
+      "context": {
+        "scan_id": "assembly-synthetic",
+        "platform": "windows",
+        "scopes": [
+          {
+            "scope_id": "scope-1",
+            "label": "Synthetic scope-1",
+            "origin": "config_discovered"
+          }
+        ]
+      },
+      "expected": {
+        "evidence_version": "water.project-evidence.v1",
+        "rules_version": "water.project-marker-rules.v1",
+        "counts": {
+          "scopes": 1,
+          "entries": 6,
+          "candidates": 2,
+          "non_file_marker_names": 0
+        },
+        "candidates": [
+          {
+            "finding_id": "entry-3",
+            "scope_id": "scope-1",
+            "relative_path": "package.json",
+            "parent_relative_path": "",
+            "rule_id": "node-package-json",
+            "ecosystem": "node",
+            "evidence_strength": "filename_only",
+            "format_verified": false,
+            "tool_version_known": false,
+            "project_membership_verified": false,
+            "scope_coverage": "complete",
+            "action": "display_only",
+            "risk": "protected"
+          },
+          {
+            "finding_id": "entry-4",
+            "scope_id": "scope-1",
+            "relative_path": "pyproject.toml",
+            "parent_relative_path": "",
+            "rule_id": "python-pyproject",
+            "ecosystem": "python",
+            "evidence_strength": "filename_only",
+            "format_verified": false,
+            "tool_version_known": false,
+            "project_membership_verified": false,
+            "scope_coverage": "complete",
+            "action": "display_only",
+            "risk": "protected"
+          }
+        ],
+        "read_only": true,
+        "scan_id": "assembly-synthetic",
+        "source_run_id": "run-synthetic-project-markers",
+        "platform": "windows",
+        "status": "completed",
+        "source_facts": {
+          "facts_version": "water.scan-lab.v1",
+          "run_id": "run-synthetic-project-markers",
+          "case_id": "project-markers",
+          "status": "completed",
+          "visited_entries": 6,
+          "recorded_entries": 6,
+          "scopes": [
+            {
+              "scope_id": "scope-1",
+              "relative_root": "scope",
+              "coverage": "complete",
+              "visited_entries": 6,
+              "entries": [
+                {
+                  "relative_path": ".git",
+                  "kind": "directory",
+                  "depth": 1,
+                  "logical_bytes": null,
+                  "allocated_bytes": null,
+                  "identity": {
+                    "kind": "unknown",
+                    "device": null,
+                    "inode": null,
+                    "link_count": null
+                  }
+                },
+                {
+                  "relative_path": ".git/HEAD",
+                  "kind": "file",
+                  "depth": 2,
+                  "logical_bytes": "26",
+                  "allocated_bytes": null,
+                  "identity": {
+                    "kind": "unknown",
+                    "device": null,
+                    "inode": null,
+                    "link_count": null
+                  }
+                },
+                {
+                  "relative_path": "package.json",
+                  "kind": "file",
+                  "depth": 1,
+                  "logical_bytes": "50",
+                  "allocated_bytes": null,
+                  "identity": {
+                    "kind": "unknown",
+                    "device": null,
+                    "inode": null,
+                    "link_count": null
+                  }
+                },
+                {
+                  "relative_path": "pyproject.toml",
+                  "kind": "file",
+                  "depth": 1,
+                  "logical_bytes": "61",
+                  "allocated_bytes": null,
+                  "identity": {
+                    "kind": "unknown",
+                    "device": null,
+                    "inode": null,
+                    "link_count": null
+                  }
+                },
+                {
+                  "relative_path": "src",
+                  "kind": "directory",
+                  "depth": 1,
+                  "logical_bytes": null,
+                  "allocated_bytes": null,
+                  "identity": {
+                    "kind": "unknown",
+                    "device": null,
+                    "inode": null,
+                    "link_count": null
+                  }
+                },
+                {
+                  "relative_path": "src/main.py",
+                  "kind": "file",
+                  "depth": 2,
+                  "logical_bytes": "36",
+                  "allocated_bytes": null,
+                  "identity": {
+                    "kind": "unknown",
+                    "device": null,
+                    "inode": null,
+                    "link_count": null
+                  }
+                }
+              ],
+              "issues": []
+            }
+          ]
+        },
+        "source_totals": {
+          "allocated_bytes": null,
+          "coverage_complete": true,
+          "logical_bytes": null,
+          "method": "unavailable",
+          "scanned_entries": 6,
+          "skipped_entries": 0
+        }
+      }
+    },
+    {
+      "id": "four-root-rules",
+      "input": {
+        "facts_version": "water.scan-lab.v1",
+        "run_id": "run-four-root-rules",
+        "case_id": "four-root-rules",
+        "status": "completed",
+        "visited_entries": 4,
+        "recorded_entries": 4,
+        "scopes": [
+          {
+            "scope_id": "scope-1",
+            "relative_root": "scope",
+            "coverage": "complete",
+            "visited_entries": 4,
+            "entries": [
+              {
+                "relative_path": "package.json",
+                "depth": 1,
+                "kind": "file",
+                "logical_bytes": "1",
+                "allocated_bytes": null,
+                "identity": {
+                  "kind": "unknown",
+                  "device": null,
+                  "inode": null,
+                  "link_count": null
+                }
+              },
+              {
+                "relative_path": "package-lock.json",
+                "depth": 1,
+                "kind": "file",
+                "logical_bytes": "1",
+                "allocated_bytes": null,
+                "identity": {
+                  "kind": "unknown",
+                  "device": null,
+                  "inode": null,
+                  "link_count": null
+                }
+              },
+              {
+                "relative_path": "pyproject.toml",
+                "depth": 1,
+                "kind": "file",
+                "logical_bytes": "1",
+                "allocated_bytes": null,
+                "identity": {
+                  "kind": "unknown",
+                  "device": null,
+                  "inode": null,
+                  "link_count": null
+                }
+              },
+              {
+                "relative_path": "requirements.txt",
+                "depth": 1,
+                "kind": "file",
+                "logical_bytes": "1",
+                "allocated_bytes": null,
+                "identity": {
+                  "kind": "unknown",
+                  "device": null,
+                  "inode": null,
+                  "link_count": null
+                }
+              }
+            ],
+            "issues": []
+          }
+        ]
+      },
+      "context": {
+        "scan_id": "evidence-four-root-rules",
+        "platform": "windows",
+        "scopes": [
+          {
+            "scope_id": "scope-1",
+            "label": "Synthetic scope-1",
+            "origin": "user_selected"
+          }
+        ]
+      },
+      "expected": {
+        "evidence_version": "water.project-evidence.v1",
+        "rules_version": "water.project-marker-rules.v1",
+        "counts": {
+          "scopes": 1,
+          "entries": 4,
+          "candidates": 4,
+          "non_file_marker_names": 0
+        },
+        "candidates": [
+          {
+            "finding_id": "entry-1",
+            "scope_id": "scope-1",
+            "relative_path": "package.json",
+            "parent_relative_path": "",
+            "rule_id": "node-package-json",
+            "ecosystem": "node",
+            "evidence_strength": "filename_only",
+            "format_verified": false,
+            "tool_version_known": false,
+            "project_membership_verified": false,
+            "scope_coverage": "complete",
+            "action": "display_only",
+            "risk": "protected"
+          },
+          {
+            "finding_id": "entry-2",
+            "scope_id": "scope-1",
+            "relative_path": "package-lock.json",
+            "parent_relative_path": "",
+            "rule_id": "node-package-lock",
+            "ecosystem": "node",
+            "evidence_strength": "filename_only",
+            "format_verified": false,
+            "tool_version_known": false,
+            "project_membership_verified": false,
+            "scope_coverage": "complete",
+            "action": "display_only",
+            "risk": "protected"
+          },
+          {
+            "finding_id": "entry-3",
+            "scope_id": "scope-1",
+            "relative_path": "pyproject.toml",
+            "parent_relative_path": "",
+            "rule_id": "python-pyproject",
+            "ecosystem": "python",
+            "evidence_strength": "filename_only",
+            "format_verified": false,
+            "tool_version_known": false,
+            "project_membership_verified": false,
+            "scope_coverage": "complete",
+            "action": "display_only",
+            "risk": "protected"
+          },
+          {
+            "finding_id": "entry-4",
+            "scope_id": "scope-1",
+            "relative_path": "requirements.txt",
+            "parent_relative_path": "",
+            "rule_id": "python-requirements",
+            "ecosystem": "python",
+            "evidence_strength": "filename_only",
+            "format_verified": false,
+            "tool_version_known": false,
+            "project_membership_verified": false,
+            "scope_coverage": "complete",
+            "action": "display_only",
+            "risk": "protected"
+          }
+        ],
+        "read_only": true,
+        "scan_id": "evidence-four-root-rules",
+        "source_run_id": "run-four-root-rules",
+        "platform": "windows",
+        "status": "completed",
+        "source_facts": {
+          "facts_version": "water.scan-lab.v1",
+          "run_id": "run-four-root-rules",
+          "case_id": "four-root-rules",
+          "status": "completed",
+          "visited_entries": 4,
+          "recorded_entries": 4,
+          "scopes": [
+            {
+              "scope_id": "scope-1",
+              "relative_root": "scope",
+              "coverage": "complete",
+              "visited_entries": 4,
+              "entries": [
+                {
+                  "relative_path": "package.json",
+                  "depth": 1,
+                  "kind": "file",
+                  "logical_bytes": "1",
+                  "allocated_bytes": null,
+                  "identity": {
+                    "kind": "unknown",
+                    "device": null,
+                    "inode": null,
+                    "link_count": null
+                  }
+                },
+                {
+                  "relative_path": "package-lock.json",
+                  "depth": 1,
+                  "kind": "file",
+                  "logical_bytes": "1",
+                  "allocated_bytes": null,
+                  "identity": {
+                    "kind": "unknown",
+                    "device": null,
+                    "inode": null,
+                    "link_count": null
+                  }
+                },
+                {
+                  "relative_path": "pyproject.toml",
+                  "depth": 1,
+                  "kind": "file",
+                  "logical_bytes": "1",
+                  "allocated_bytes": null,
+                  "identity": {
+                    "kind": "unknown",
+                    "device": null,
+                    "inode": null,
+                    "link_count": null
+                  }
+                },
+                {
+                  "relative_path": "requirements.txt",
+                  "depth": 1,
+                  "kind": "file",
+                  "logical_bytes": "1",
+                  "allocated_bytes": null,
+                  "identity": {
+                    "kind": "unknown",
+                    "device": null,
+                    "inode": null,
+                    "link_count": null
+                  }
+                }
+              ],
+              "issues": []
+            }
+          ]
+        },
+        "source_totals": {
+          "allocated_bytes": null,
+          "coverage_complete": true,
+          "logical_bytes": null,
+          "method": "unavailable",
+          "scanned_entries": 4,
+          "skipped_entries": 0
+        }
+      }
+    },
+    {
+      "id": "paths-and-case",
+      "input": {
+        "facts_version": "water.scan-lab.v1",
+        "run_id": "run-paths-and-case",
+        "case_id": "paths-and-case",
+        "status": "completed",
+        "visited_entries": 7,
+        "recorded_entries": 7,
+        "scopes": [
+          {
+            "scope_id": "scope-1",
+            "relative_root": "scope",
+            "coverage": "complete",
+            "visited_entries": 7,
+            "entries": [
+              {
+                "relative_path": "a",
+                "depth": 1,
+                "kind": "directory",
+                "logical_bytes": null,
+                "allocated_bytes": null,
+                "identity": {
+                  "kind": "unknown",
+                  "device": null,
+                  "inode": null,
+                  "link_count": null
+                }
+              },
+              {
+                "relative_path": "a/package.json",
+                "depth": 2,
+                "kind": "file",
+                "logical_bytes": "1",
+                "allocated_bytes": null,
+                "identity": {
+                  "kind": "unknown",
+                  "device": null,
+                  "inode": null,
+                  "link_count": null
+                }
+              },
+              {
+                "relative_path": "ab/package.json",
+                "depth": 2,
+                "kind": "file",
+                "logical_bytes": "1",
+                "allocated_bytes": null,
+                "identity": {
+                  "kind": "unknown",
+                  "device": null,
+                  "inode": null,
+                  "link_count": null
+                }
+              },
+              {
+                "relative_path": "PACKAGE.JSON",
+                "depth": 1,
+                "kind": "file",
+                "logical_bytes": "1",
+                "allocated_bytes": null,
+                "identity": {
+                  "kind": "unknown",
+                  "device": null,
+                  "inode": null,
+                  "link_count": null
+                }
+              },
+              {
+                "relative_path": "package.json.bak",
+                "depth": 1,
+                "kind": "file",
+                "logical_bytes": "1",
+                "allocated_bytes": null,
+                "identity": {
+                  "kind": "unknown",
+                  "device": null,
+                  "inode": null,
+                  "link_count": null
+                }
+              },
+              {
+                "relative_path": "cache/pyproject.toml",
+                "depth": 2,
+                "kind": "file",
+                "logical_bytes": "1",
+                "allocated_bytes": null,
+                "identity": {
+                  "kind": "unknown",
+                  "device": null,
+                  "inode": null,
+                  "link_count": null
+                }
+              },
+              {
+                "relative_path": "unicode/模型/requirements.txt",
+                "depth": 3,
+                "kind": "file",
+                "logical_bytes": "1",
+                "allocated_bytes": null,
+                "identity": {
+                  "kind": "unknown",
+                  "device": null,
+                  "inode": null,
+                  "link_count": null
+                }
+              }
+            ],
+            "issues": []
+          }
+        ]
+      },
+      "context": {
+        "scan_id": "evidence-paths-and-case",
+        "platform": "windows",
+        "scopes": [
+          {
+            "scope_id": "scope-1",
+            "label": "Synthetic scope-1",
+            "origin": "user_selected"
+          }
+        ]
+      },
+      "expected": {
+        "evidence_version": "water.project-evidence.v1",
+        "rules_version": "water.project-marker-rules.v1",
+        "counts": {
+          "scopes": 1,
+          "entries": 7,
+          "candidates": 4,
+          "non_file_marker_names": 0
+        },
+        "candidates": [
+          {
+            "finding_id": "entry-2",
+            "scope_id": "scope-1",
+            "relative_path": "a/package.json",
+            "parent_relative_path": "a",
+            "rule_id": "node-package-json",
+            "ecosystem": "node",
+            "evidence_strength": "filename_only",
+            "format_verified": false,
+            "tool_version_known": false,
+            "project_membership_verified": false,
+            "scope_coverage": "complete",
+            "action": "display_only",
+            "risk": "protected"
+          },
+          {
+            "finding_id": "entry-3",
+            "scope_id": "scope-1",
+            "relative_path": "ab/package.json",
+            "parent_relative_path": "ab",
+            "rule_id": "node-package-json",
+            "ecosystem": "node",
+            "evidence_strength": "filename_only",
+            "format_verified": false,
+            "tool_version_known": false,
+            "project_membership_verified": false,
+            "scope_coverage": "complete",
+            "action": "display_only",
+            "risk": "protected"
+          },
+          {
+            "finding_id": "entry-6",
+            "scope_id": "scope-1",
+            "relative_path": "cache/pyproject.toml",
+            "parent_relative_path": "cache",
+            "rule_id": "python-pyproject",
+            "ecosystem": "python",
+            "evidence_strength": "filename_only",
+            "format_verified": false,
+            "tool_version_known": false,
+            "project_membership_verified": false,
+            "scope_coverage": "complete",
+            "action": "display_only",
+            "risk": "protected"
+          },
+          {
+            "finding_id": "entry-7",
+            "scope_id": "scope-1",
+            "relative_path": "unicode/模型/requirements.txt",
+            "parent_relative_path": "unicode/模型",
+            "rule_id": "python-requirements",
+            "ecosystem": "python",
+            "evidence_strength": "filename_only",
+            "format_verified": false,
+            "tool_version_known": false,
+            "project_membership_verified": false,
+            "scope_coverage": "complete",
+            "action": "display_only",
+            "risk": "protected"
+          }
+        ],
+        "read_only": true,
+        "scan_id": "evidence-paths-and-case",
+        "source_run_id": "run-paths-and-case",
+        "platform": "windows",
+        "status": "completed",
+        "source_facts": {
+          "facts_version": "water.scan-lab.v1",
+          "run_id": "run-paths-and-case",
+          "case_id": "paths-and-case",
+          "status": "completed",
+          "visited_entries": 7,
+          "recorded_entries": 7,
+          "scopes": [
+            {
+              "scope_id": "scope-1",
+              "relative_root": "scope",
+              "coverage": "complete",
+              "visited_entries": 7,
+              "entries": [
+                {
+                  "relative_path": "a",
+                  "depth": 1,
+                  "kind": "directory",
+                  "logical_bytes": null,
+                  "allocated_bytes": null,
+                  "identity": {
+                    "kind": "unknown",
+                    "device": null,
+                    "inode": null,
+                    "link_count": null
+                  }
+                },
+                {
+                  "relative_path": "a/package.json",
+                  "depth": 2,
+                  "kind": "file",
+                  "logical_bytes": "1",
+                  "allocated_bytes": null,
+                  "identity": {
+                    "kind": "unknown",
+                    "device": null,
+                    "inode": null,
+                    "link_count": null
+                  }
+                },
+                {
+                  "relative_path": "ab/package.json",
+                  "depth": 2,
+                  "kind": "file",
+                  "logical_bytes": "1",
+                  "allocated_bytes": null,
+                  "identity": {
+                    "kind": "unknown",
+                    "device": null,
+                    "inode": null,
+                    "link_count": null
+                  }
+                },
+                {
+                  "relative_path": "PACKAGE.JSON",
+                  "depth": 1,
+                  "kind": "file",
+                  "logical_bytes": "1",
+                  "allocated_bytes": null,
+                  "identity": {
+                    "kind": "unknown",
+                    "device": null,
+                    "inode": null,
+                    "link_count": null
+                  }
+                },
+                {
+                  "relative_path": "package.json.bak",
+                  "depth": 1,
+                  "kind": "file",
+                  "logical_bytes": "1",
+                  "allocated_bytes": null,
+                  "identity": {
+                    "kind": "unknown",
+                    "device": null,
+                    "inode": null,
+                    "link_count": null
+                  }
+                },
+                {
+                  "relative_path": "cache/pyproject.toml",
+                  "depth": 2,
+                  "kind": "file",
+                  "logical_bytes": "1",
+                  "allocated_bytes": null,
+                  "identity": {
+                    "kind": "unknown",
+                    "device": null,
+                    "inode": null,
+                    "link_count": null
+                  }
+                },
+                {
+                  "relative_path": "unicode/模型/requirements.txt",
+                  "depth": 3,
+                  "kind": "file",
+                  "logical_bytes": "1",
+                  "allocated_bytes": null,
+                  "identity": {
+                    "kind": "unknown",
+                    "device": null,
+                    "inode": null,
+                    "link_count": null
+                  }
+                }
+              ],
+              "issues": []
+            }
+          ]
+        },
+        "source_totals": {
+          "allocated_bytes": null,
+          "coverage_complete": true,
+          "logical_bytes": null,
+          "method": "unavailable",
+          "scanned_entries": 7,
+          "skipped_entries": 0
+        }
+      }
+    },
+    {
+      "id": "non-file-markers",
+      "input": {
+        "facts_version": "water.scan-lab.v1",
+        "run_id": "run-non-file-markers",
+        "case_id": "non-file-markers",
+        "status": "completed",
+        "visited_entries": 4,
+        "recorded_entries": 4,
+        "scopes": [
+          {
+            "scope_id": "scope-1",
+            "relative_root": "scope",
+            "coverage": "complete",
+            "visited_entries": 4,
+            "entries": [
+              {
+                "relative_path": "package.json",
+                "depth": 1,
+                "kind": "directory",
+                "logical_bytes": null,
+                "allocated_bytes": null,
+                "identity": {
+                  "kind": "unknown",
+                  "device": null,
+                  "inode": null,
+                  "link_count": null
+                }
+              },
+              {
+                "relative_path": "nested/package-lock.json",
+                "depth": 2,
+                "kind": "link",
+                "logical_bytes": null,
+                "allocated_bytes": null,
+                "identity": {
+                  "kind": "unknown",
+                  "device": null,
+                  "inode": null,
+                  "link_count": null
+                }
+              },
+              {
+                "relative_path": "pyproject.toml",
+                "depth": 1,
+                "kind": "other",
+                "logical_bytes": null,
+                "allocated_bytes": null,
+                "identity": {
+                  "kind": "unknown",
+                  "device": null,
+                  "inode": null,
+                  "link_count": null
+                }
+              },
+              {
+                "relative_path": "requirements.txt",
+                "depth": 1,
+                "kind": "file",
+                "logical_bytes": "1",
+                "allocated_bytes": null,
+                "identity": {
+                  "kind": "unknown",
+                  "device": null,
+                  "inode": null,
+                  "link_count": null
+                }
+              }
+            ],
+            "issues": []
+          }
+        ]
+      },
+      "context": {
+        "scan_id": "evidence-non-file-markers",
+        "platform": "windows",
+        "scopes": [
+          {
+            "scope_id": "scope-1",
+            "label": "Synthetic scope-1",
+            "origin": "user_selected"
+          }
+        ]
+      },
+      "expected": {
+        "evidence_version": "water.project-evidence.v1",
+        "rules_version": "water.project-marker-rules.v1",
+        "counts": {
+          "scopes": 1,
+          "entries": 4,
+          "candidates": 1,
+          "non_file_marker_names": 3
+        },
+        "candidates": [
+          {
+            "finding_id": "entry-4",
+            "scope_id": "scope-1",
+            "relative_path": "requirements.txt",
+            "parent_relative_path": "",
+            "rule_id": "python-requirements",
+            "ecosystem": "python",
+            "evidence_strength": "filename_only",
+            "format_verified": false,
+            "tool_version_known": false,
+            "project_membership_verified": false,
+            "scope_coverage": "complete",
+            "action": "display_only",
+            "risk": "protected"
+          }
+        ],
+        "read_only": true,
+        "scan_id": "evidence-non-file-markers",
+        "source_run_id": "run-non-file-markers",
+        "platform": "windows",
+        "status": "completed",
+        "source_facts": {
+          "facts_version": "water.scan-lab.v1",
+          "run_id": "run-non-file-markers",
+          "case_id": "non-file-markers",
+          "status": "completed",
+          "visited_entries": 4,
+          "recorded_entries": 4,
+          "scopes": [
+            {
+              "scope_id": "scope-1",
+              "relative_root": "scope",
+              "coverage": "complete",
+              "visited_entries": 4,
+              "entries": [
+                {
+                  "relative_path": "package.json",
+                  "depth": 1,
+                  "kind": "directory",
+                  "logical_bytes": null,
+                  "allocated_bytes": null,
+                  "identity": {
+                    "kind": "unknown",
+                    "device": null,
+                    "inode": null,
+                    "link_count": null
+                  }
+                },
+                {
+                  "relative_path": "nested/package-lock.json",
+                  "depth": 2,
+                  "kind": "link",
+                  "logical_bytes": null,
+                  "allocated_bytes": null,
+                  "identity": {
+                    "kind": "unknown",
+                    "device": null,
+                    "inode": null,
+                    "link_count": null
+                  }
+                },
+                {
+                  "relative_path": "pyproject.toml",
+                  "depth": 1,
+                  "kind": "other",
+                  "logical_bytes": null,
+                  "allocated_bytes": null,
+                  "identity": {
+                    "kind": "unknown",
+                    "device": null,
+                    "inode": null,
+                    "link_count": null
+                  }
+                },
+                {
+                  "relative_path": "requirements.txt",
+                  "depth": 1,
+                  "kind": "file",
+                  "logical_bytes": "1",
+                  "allocated_bytes": null,
+                  "identity": {
+                    "kind": "unknown",
+                    "device": null,
+                    "inode": null,
+                    "link_count": null
+                  }
+                }
+              ],
+              "issues": []
+            }
+          ]
+        },
+        "source_totals": {
+          "allocated_bytes": null,
+          "coverage_complete": true,
+          "logical_bytes": null,
+          "method": "unavailable",
+          "scanned_entries": 4,
+          "skipped_entries": 0
+        }
+      }
+    },
+    {
+      "id": "cross-scope-markers",
+      "input": {
+        "facts_version": "water.scan-lab.v1",
+        "run_id": "run-cross-scope-markers",
+        "case_id": "cross-scope-markers",
+        "status": "completed",
+        "visited_entries": 2,
+        "recorded_entries": 2,
+        "scopes": [
+          {
+            "scope_id": "scope-1",
+            "relative_root": "scope/a",
+            "coverage": "complete",
+            "visited_entries": 1,
+            "entries": [
+              {
+                "relative_path": "package.json",
+                "depth": 1,
+                "kind": "file",
+                "logical_bytes": "1",
+                "allocated_bytes": null,
+                "identity": {
+                  "kind": "unknown",
+                  "device": null,
+                  "inode": null,
+                  "link_count": null
+                }
+              }
+            ],
+            "issues": []
+          },
+          {
+            "scope_id": "scope-2",
+            "relative_root": "scope/ab",
+            "coverage": "complete",
+            "visited_entries": 1,
+            "entries": [
+              {
+                "relative_path": "package.json",
+                "depth": 1,
+                "kind": "file",
+                "logical_bytes": "1",
+                "allocated_bytes": null,
+                "identity": {
+                  "kind": "unknown",
+                  "device": null,
+                  "inode": null,
+                  "link_count": null
+                }
+              }
+            ],
+            "issues": []
+          }
+        ]
+      },
+      "context": {
+        "scan_id": "evidence-cross-scope-markers",
+        "platform": "windows",
+        "scopes": [
+          {
+            "scope_id": "scope-1",
+            "label": "Synthetic scope-1",
+            "origin": "user_selected"
+          },
+          {
+            "scope_id": "scope-2",
+            "label": "Synthetic scope-2",
+            "origin": "user_selected"
+          }
+        ]
+      },
+      "expected": {
+        "evidence_version": "water.project-evidence.v1",
+        "rules_version": "water.project-marker-rules.v1",
+        "counts": {
+          "scopes": 2,
+          "entries": 2,
+          "candidates": 2,
+          "non_file_marker_names": 0
+        },
+        "candidates": [
+          {
+            "finding_id": "entry-1",
+            "scope_id": "scope-1",
+            "relative_path": "package.json",
+            "parent_relative_path": "",
+            "rule_id": "node-package-json",
+            "ecosystem": "node",
+            "evidence_strength": "filename_only",
+            "format_verified": false,
+            "tool_version_known": false,
+            "project_membership_verified": false,
+            "scope_coverage": "complete",
+            "action": "display_only",
+            "risk": "protected"
+          },
+          {
+            "finding_id": "entry-2",
+            "scope_id": "scope-2",
+            "relative_path": "package.json",
+            "parent_relative_path": "",
+            "rule_id": "node-package-json",
+            "ecosystem": "node",
+            "evidence_strength": "filename_only",
+            "format_verified": false,
+            "tool_version_known": false,
+            "project_membership_verified": false,
+            "scope_coverage": "complete",
+            "action": "display_only",
+            "risk": "protected"
+          }
+        ],
+        "read_only": true,
+        "scan_id": "evidence-cross-scope-markers",
+        "source_run_id": "run-cross-scope-markers",
+        "platform": "windows",
+        "status": "completed",
+        "source_facts": {
+          "facts_version": "water.scan-lab.v1",
+          "run_id": "run-cross-scope-markers",
+          "case_id": "cross-scope-markers",
+          "status": "completed",
+          "visited_entries": 2,
+          "recorded_entries": 2,
+          "scopes": [
+            {
+              "scope_id": "scope-1",
+              "relative_root": "scope/a",
+              "coverage": "complete",
+              "visited_entries": 1,
+              "entries": [
+                {
+                  "relative_path": "package.json",
+                  "depth": 1,
+                  "kind": "file",
+                  "logical_bytes": "1",
+                  "allocated_bytes": null,
+                  "identity": {
+                    "kind": "unknown",
+                    "device": null,
+                    "inode": null,
+                    "link_count": null
+                  }
+                }
+              ],
+              "issues": []
+            },
+            {
+              "scope_id": "scope-2",
+              "relative_root": "scope/ab",
+              "coverage": "complete",
+              "visited_entries": 1,
+              "entries": [
+                {
+                  "relative_path": "package.json",
+                  "depth": 1,
+                  "kind": "file",
+                  "logical_bytes": "1",
+                  "allocated_bytes": null,
+                  "identity": {
+                    "kind": "unknown",
+                    "device": null,
+                    "inode": null,
+                    "link_count": null
+                  }
+                }
+              ],
+              "issues": []
+            }
+          ]
+        },
+        "source_totals": {
+          "allocated_bytes": null,
+          "coverage_complete": true,
+          "logical_bytes": null,
+          "method": "unavailable",
+          "scanned_entries": 2,
+          "skipped_entries": 0
+        }
+      }
+    },
+    {
+      "id": "partial-root-issue",
+      "input": {
+        "facts_version": "water.scan-lab.v1",
+        "run_id": "run-partial-root-issue",
+        "case_id": "partial-root-issue",
+        "status": "partial",
+        "visited_entries": 2,
+        "recorded_entries": 2,
+        "scopes": [
+          {
+            "scope_id": "scope-1",
+            "relative_root": "scope",
+            "coverage": "partial",
+            "visited_entries": 2,
+            "entries": [
+              {
+                "relative_path": "package.json",
+                "depth": 1,
+                "kind": "file",
+                "logical_bytes": "1",
+                "allocated_bytes": null,
+                "identity": {
+                  "kind": "unknown",
+                  "device": null,
+                  "inode": null,
+                  "link_count": null
+                }
+              },
+              {
+                "relative_path": "other.bin",
+                "depth": 1,
+                "kind": "file",
+                "logical_bytes": "1",
+                "allocated_bytes": null,
+                "identity": {
+                  "kind": "unknown",
+                  "device": null,
+                  "inode": null,
+                  "link_count": null
+                }
+              }
+            ],
+            "issues": [
+              {
+                "code": "entry_limit",
+                "relative_path": "",
+                "origin": "policy",
+                "operation": "budget"
+              }
+            ]
+          }
+        ]
+      },
+      "context": {
+        "scan_id": "evidence-partial-root-issue",
+        "platform": "windows",
+        "scopes": [
+          {
+            "scope_id": "scope-1",
+            "label": "Synthetic scope-1",
+            "origin": "user_selected"
+          }
+        ]
+      },
+      "expected": {
+        "evidence_version": "water.project-evidence.v1",
+        "rules_version": "water.project-marker-rules.v1",
+        "counts": {
+          "scopes": 1,
+          "entries": 2,
+          "candidates": 1,
+          "non_file_marker_names": 0
+        },
+        "candidates": [
+          {
+            "finding_id": "entry-1",
+            "scope_id": "scope-1",
+            "relative_path": "package.json",
+            "parent_relative_path": "",
+            "rule_id": "node-package-json",
+            "ecosystem": "node",
+            "evidence_strength": "filename_only",
+            "format_verified": false,
+            "tool_version_known": false,
+            "project_membership_verified": false,
+            "scope_coverage": "partial",
+            "action": "display_only",
+            "risk": "protected"
+          }
+        ],
+        "read_only": true,
+        "scan_id": "evidence-partial-root-issue",
+        "source_run_id": "run-partial-root-issue",
+        "platform": "windows",
+        "status": "partial",
+        "source_facts": {
+          "facts_version": "water.scan-lab.v1",
+          "run_id": "run-partial-root-issue",
+          "case_id": "partial-root-issue",
+          "status": "partial",
+          "visited_entries": 2,
+          "recorded_entries": 2,
+          "scopes": [
+            {
+              "scope_id": "scope-1",
+              "relative_root": "scope",
+              "coverage": "partial",
+              "visited_entries": 2,
+              "entries": [
+                {
+                  "relative_path": "package.json",
+                  "depth": 1,
+                  "kind": "file",
+                  "logical_bytes": "1",
+                  "allocated_bytes": null,
+                  "identity": {
+                    "kind": "unknown",
+                    "device": null,
+                    "inode": null,
+                    "link_count": null
+                  }
+                },
+                {
+                  "relative_path": "other.bin",
+                  "depth": 1,
+                  "kind": "file",
+                  "logical_bytes": "1",
+                  "allocated_bytes": null,
+                  "identity": {
+                    "kind": "unknown",
+                    "device": null,
+                    "inode": null,
+                    "link_count": null
+                  }
+                }
+              ],
+              "issues": [
+                {
+                  "code": "entry_limit",
+                  "relative_path": "",
+                  "origin": "policy",
+                  "operation": "budget"
+                }
+              ]
+            }
+          ]
+        },
+        "source_totals": {
+          "allocated_bytes": null,
+          "coverage_complete": false,
+          "logical_bytes": null,
+          "method": "unavailable",
+          "scanned_entries": 2,
+          "skipped_entries": 0
+        }
+      }
+    },
+    {
+      "id": "cancelled-observed",
+      "input": {
+        "facts_version": "water.scan-lab.v1",
+        "run_id": "run-cancelled-observed",
+        "case_id": "cancelled-observed",
+        "status": "cancelled",
+        "visited_entries": 1,
+        "recorded_entries": 1,
+        "scopes": [
+          {
+            "scope_id": "scope-1",
+            "relative_root": "scope",
+            "coverage": "cancelled",
+            "visited_entries": 1,
+            "entries": [
+              {
+                "relative_path": "pyproject.toml",
+                "depth": 1,
+                "kind": "file",
+                "logical_bytes": "1",
+                "allocated_bytes": null,
+                "identity": {
+                  "kind": "unknown",
+                  "device": null,
+                  "inode": null,
+                  "link_count": null
+                }
+              }
+            ],
+            "issues": [
+              {
+                "code": "cancelled",
+                "relative_path": "",
+                "origin": "control",
+                "operation": "cancel"
+              }
+            ]
+          }
+        ]
+      },
+      "context": {
+        "scan_id": "evidence-cancelled-observed",
+        "platform": "windows",
+        "scopes": [
+          {
+            "scope_id": "scope-1",
+            "label": "Synthetic scope-1",
+            "origin": "user_selected"
+          }
+        ]
+      },
+      "expected": {
+        "evidence_version": "water.project-evidence.v1",
+        "rules_version": "water.project-marker-rules.v1",
+        "counts": {
+          "scopes": 1,
+          "entries": 1,
+          "candidates": 1,
+          "non_file_marker_names": 0
+        },
+        "candidates": [
+          {
+            "finding_id": "entry-1",
+            "scope_id": "scope-1",
+            "relative_path": "pyproject.toml",
+            "parent_relative_path": "",
+            "rule_id": "python-pyproject",
+            "ecosystem": "python",
+            "evidence_strength": "filename_only",
+            "format_verified": false,
+            "tool_version_known": false,
+            "project_membership_verified": false,
+            "scope_coverage": "cancelled",
+            "action": "display_only",
+            "risk": "protected"
+          }
+        ],
+        "read_only": true,
+        "scan_id": "evidence-cancelled-observed",
+        "source_run_id": "run-cancelled-observed",
+        "platform": "windows",
+        "status": "cancelled",
+        "source_facts": {
+          "facts_version": "water.scan-lab.v1",
+          "run_id": "run-cancelled-observed",
+          "case_id": "cancelled-observed",
+          "status": "cancelled",
+          "visited_entries": 1,
+          "recorded_entries": 1,
+          "scopes": [
+            {
+              "scope_id": "scope-1",
+              "relative_root": "scope",
+              "coverage": "cancelled",
+              "visited_entries": 1,
+              "entries": [
+                {
+                  "relative_path": "pyproject.toml",
+                  "depth": 1,
+                  "kind": "file",
+                  "logical_bytes": "1",
+                  "allocated_bytes": null,
+                  "identity": {
+                    "kind": "unknown",
+                    "device": null,
+                    "inode": null,
+                    "link_count": null
+                  }
+                }
+              ],
+              "issues": [
+                {
+                  "code": "cancelled",
+                  "relative_path": "",
+                  "origin": "control",
+                  "operation": "cancel"
+                }
+              ]
+            }
+          ]
+        },
+        "source_totals": {
+          "allocated_bytes": null,
+          "coverage_complete": false,
+          "logical_bytes": null,
+          "method": "unavailable",
+          "scanned_entries": 1,
+          "skipped_entries": 0
+        }
+      }
+    },
+    {
+      "id": "empty-completed",
+      "input": {
+        "facts_version": "water.scan-lab.v1",
+        "run_id": "run-empty-completed",
+        "case_id": "empty-completed",
+        "status": "completed",
+        "visited_entries": 0,
+        "recorded_entries": 0,
+        "scopes": [
+          {
+            "scope_id": "scope-1",
+            "relative_root": "scope",
+            "coverage": "complete",
+            "visited_entries": 0,
+            "entries": [],
+            "issues": []
+          }
+        ]
+      },
+      "context": {
+        "scan_id": "evidence-empty-completed",
+        "platform": "windows",
+        "scopes": [
+          {
+            "scope_id": "scope-1",
+            "label": "Synthetic scope-1",
+            "origin": "user_selected"
+          }
+        ]
+      },
+      "expected": {
+        "evidence_version": "water.project-evidence.v1",
+        "rules_version": "water.project-marker-rules.v1",
+        "counts": {
+          "scopes": 1,
+          "entries": 0,
+          "candidates": 0,
+          "non_file_marker_names": 0
+        },
+        "candidates": [],
+        "read_only": true,
+        "scan_id": "evidence-empty-completed",
+        "source_run_id": "run-empty-completed",
+        "platform": "windows",
+        "status": "completed",
+        "source_facts": {
+          "facts_version": "water.scan-lab.v1",
+          "run_id": "run-empty-completed",
+          "case_id": "empty-completed",
+          "status": "completed",
+          "visited_entries": 0,
+          "recorded_entries": 0,
+          "scopes": [
+            {
+              "scope_id": "scope-1",
+              "relative_root": "scope",
+              "coverage": "complete",
+              "visited_entries": 0,
+              "entries": [],
+              "issues": []
+            }
+          ]
+        },
+        "source_totals": {
+          "allocated_bytes": null,
+          "coverage_complete": true,
+          "logical_bytes": null,
+          "method": "unavailable",
+          "scanned_entries": 0,
+          "skipped_entries": 0
+        }
+      }
+    },
+    {
+      "id": "pre-cancelled",
+      "input": {
+        "facts_version": "water.scan-lab.v1",
+        "run_id": "run-pre-cancelled",
+        "case_id": "pre-cancelled",
+        "status": "cancelled",
+        "visited_entries": 0,
+        "recorded_entries": 0,
+        "scopes": [
+          {
+            "scope_id": "scope-1",
+            "relative_root": "scope",
+            "coverage": "cancelled",
+            "visited_entries": 0,
+            "entries": [],
+            "issues": [
+              {
+                "code": "cancelled",
+                "relative_path": null,
+                "origin": "control",
+                "operation": "cancel"
+              }
+            ]
+          }
+        ]
+      },
+      "context": {
+        "scan_id": "evidence-pre-cancelled",
+        "platform": "windows",
+        "scopes": [
+          {
+            "scope_id": "scope-1",
+            "label": "Synthetic scope-1",
+            "origin": "user_selected"
+          }
+        ]
+      },
+      "expected": {
+        "evidence_version": "water.project-evidence.v1",
+        "rules_version": "water.project-marker-rules.v1",
+        "counts": {
+          "scopes": 1,
+          "entries": 0,
+          "candidates": 0,
+          "non_file_marker_names": 0
+        },
+        "candidates": [],
+        "read_only": true,
+        "scan_id": "evidence-pre-cancelled",
+        "source_run_id": "run-pre-cancelled",
+        "platform": "windows",
+        "status": "cancelled",
+        "source_facts": {
+          "facts_version": "water.scan-lab.v1",
+          "run_id": "run-pre-cancelled",
+          "case_id": "pre-cancelled",
+          "status": "cancelled",
+          "visited_entries": 0,
+          "recorded_entries": 0,
+          "scopes": [
+            {
+              "scope_id": "scope-1",
+              "relative_root": "scope",
+              "coverage": "cancelled",
+              "visited_entries": 0,
+              "entries": [],
+              "issues": [
+                {
+                  "code": "cancelled",
+                  "relative_path": null,
+                  "origin": "control",
+                  "operation": "cancel"
+                }
+              ]
+            }
+          ]
+        },
+        "source_totals": {
+          "allocated_bytes": null,
+          "coverage_complete": false,
+          "logical_bytes": null,
+          "method": "unavailable",
+          "scanned_entries": 0,
+          "skipped_entries": 0
+        }
+      }
+    },
+    {
+      "id": "non-markers",
+      "input": {
+        "facts_version": "water.scan-lab.v1",
+        "run_id": "run-non-markers",
+        "case_id": "non-markers",
+        "status": "completed",
+        "visited_entries": 4,
+        "recorded_entries": 4,
+        "scopes": [
+          {
+            "scope_id": "scope-1",
+            "relative_root": "scope",
+            "coverage": "complete",
+            "visited_entries": 4,
+            "entries": [
+              {
+                "relative_path": "cache",
+                "depth": 1,
+                "kind": "file",
+                "logical_bytes": "1",
+                "allocated_bytes": null,
+                "identity": {
+                  "kind": "unknown",
+                  "device": null,
+                  "inode": null,
+                  "link_count": null
+                }
+              },
+              {
+                "relative_path": "model.bin",
+                "depth": 1,
+                "kind": "file",
+                "logical_bytes": "1",
+                "allocated_bytes": null,
+                "identity": {
+                  "kind": "unknown",
+                  "device": null,
+                  "inode": null,
+                  "link_count": null
+                }
+              },
+              {
+                "relative_path": "package.json.old",
+                "depth": 1,
+                "kind": "file",
+                "logical_bytes": "1",
+                "allocated_bytes": null,
+                "identity": {
+                  "kind": "unknown",
+                  "device": null,
+                  "inode": null,
+                  "link_count": null
+                }
+              },
+              {
+                "relative_path": "README.md",
+                "depth": 1,
+                "kind": "file",
+                "logical_bytes": "1",
+                "allocated_bytes": null,
+                "identity": {
+                  "kind": "unknown",
+                  "device": null,
+                  "inode": null,
+                  "link_count": null
+                }
+              }
+            ],
+            "issues": []
+          }
+        ]
+      },
+      "context": {
+        "scan_id": "evidence-non-markers",
+        "platform": "windows",
+        "scopes": [
+          {
+            "scope_id": "scope-1",
+            "label": "Synthetic scope-1",
+            "origin": "user_selected"
+          }
+        ]
+      },
+      "expected": {
+        "evidence_version": "water.project-evidence.v1",
+        "rules_version": "water.project-marker-rules.v1",
+        "counts": {
+          "scopes": 1,
+          "entries": 4,
+          "candidates": 0,
+          "non_file_marker_names": 0
+        },
+        "candidates": [],
+        "read_only": true,
+        "scan_id": "evidence-non-markers",
+        "source_run_id": "run-non-markers",
+        "platform": "windows",
+        "status": "completed",
+        "source_facts": {
+          "facts_version": "water.scan-lab.v1",
+          "run_id": "run-non-markers",
+          "case_id": "non-markers",
+          "status": "completed",
+          "visited_entries": 4,
+          "recorded_entries": 4,
+          "scopes": [
+            {
+              "scope_id": "scope-1",
+              "relative_root": "scope",
+              "coverage": "complete",
+              "visited_entries": 4,
+              "entries": [
+                {
+                  "relative_path": "cache",
+                  "depth": 1,
+                  "kind": "file",
+                  "logical_bytes": "1",
+                  "allocated_bytes": null,
+                  "identity": {
+                    "kind": "unknown",
+                    "device": null,
+                    "inode": null,
+                    "link_count": null
+                  }
+                },
+                {
+                  "relative_path": "model.bin",
+                  "depth": 1,
+                  "kind": "file",
+                  "logical_bytes": "1",
+                  "allocated_bytes": null,
+                  "identity": {
+                    "kind": "unknown",
+                    "device": null,
+                    "inode": null,
+                    "link_count": null
+                  }
+                },
+                {
+                  "relative_path": "package.json.old",
+                  "depth": 1,
+                  "kind": "file",
+                  "logical_bytes": "1",
+                  "allocated_bytes": null,
+                  "identity": {
+                    "kind": "unknown",
+                    "device": null,
+                    "inode": null,
+                    "link_count": null
+                  }
+                },
+                {
+                  "relative_path": "README.md",
+                  "depth": 1,
+                  "kind": "file",
+                  "logical_bytes": "1",
+                  "allocated_bytes": null,
+                  "identity": {
+                    "kind": "unknown",
+                    "device": null,
+                    "inode": null,
+                    "link_count": null
+                  }
+                }
+              ],
+              "issues": []
+            }
+          ]
+        },
+        "source_totals": {
+          "allocated_bytes": null,
+          "coverage_complete": true,
+          "logical_bytes": null,
+          "method": "unavailable",
+          "scanned_entries": 4,
+          "skipped_entries": 0
+        }
+      }
+    }
+  ],
+  "source_errors": [
+    {
+      "id": "g-duplicate-key",
+      "input": "{\"facts_version\":\"water.scan-lab.v1\",\"facts_version\":\"water.scan-lab.v1\",\"run_id\":\"run-synthetic-project-markers\",\"case_id\":\"project-markers\",\"status\":\"completed\",\"visited_entries\":6,\"recorded_entries\":6,\"scopes\":[{\"scope_id\":\"scope-1\",\"relative_root\":\"scope\",\"coverage\":\"complete\",\"visited_entries\":6,\"entries\":[{\"relative_path\":\".git\",\"kind\":\"directory\",\"depth\":1,\"logical_bytes\":null,\"allocated_bytes\":null,\"identity\":{\"kind\":\"unknown\",\"device\":null,\"inode\":null,\"link_count\":null}},{\"relative_path\":\".git/HEAD\",\"kind\":\"file\",\"depth\":2,\"logical_bytes\":\"26\",\"allocated_bytes\":null,\"identity\":{\"kind\":\"unknown\",\"device\":null,\"inode\":null,\"link_count\":null}},{\"relative_path\":\"package.json\",\"kind\":\"file\",\"depth\":1,\"logical_bytes\":\"50\",\"allocated_bytes\":null,\"identity\":{\"kind\":\"unknown\",\"device\":null,\"inode\":null,\"link_count\":null}},{\"relative_path\":\"pyproject.toml\",\"kind\":\"file\",\"depth\":1,\"logical_bytes\":\"61\",\"allocated_bytes\":null,\"identity\":{\"kind\":\"unknown\",\"device\":null,\"inode\":null,\"link_count\":null}},{\"relative_path\":\"src\",\"kind\":\"directory\",\"depth\":1,\"logical_bytes\":null,\"allocated_bytes\":null,\"identity\":{\"kind\":\"unknown\",\"device\":null,\"inode\":null,\"link_count\":null}},{\"relative_path\":\"src/main.py\",\"kind\":\"file\",\"depth\":2,\"logical_bytes\":\"36\",\"allocated_bytes\":null,\"identity\":{\"kind\":\"unknown\",\"device\":null,\"inode\":null,\"link_count\":null}}],\"issues\":[]}]}",
+      "context": {
+        "scan_id": "assembly-synthetic",
+        "platform": "windows",
+        "scopes": [
+          {
+            "scope_id": "scope-1",
+            "label": "Synthetic scope-1",
+            "origin": "config_discovered"
+          }
+        ]
+      },
+      "code": "InvalidFacts",
+      "field": "/facts"
+    },
+    {
+      "id": "g-syntax",
+      "input": "{\"canary\":\"G_ERROR_CANARY\",",
+      "context": {
+        "scan_id": "assembly-synthetic",
+        "platform": "windows",
+        "scopes": [
+          {
+            "scope_id": "scope-1",
+            "label": "Synthetic scope-1",
+            "origin": "config_discovered"
+          }
+        ]
+      },
+      "code": "InvalidJson",
+      "field": "/facts"
+    },
+    {
+      "id": "unknown-field",
+      "input": "{\"facts_version\":\"water.scan-lab.v1\",\"run_id\":\"run-error-base\",\"case_id\":\"error-base\",\"status\":\"completed\",\"visited_entries\":1,\"recorded_entries\":1,\"scopes\":[{\"scope_id\":\"scope-1\",\"relative_root\":\"scope\",\"coverage\":\"complete\",\"visited_entries\":1,\"entries\":[{\"relative_path\":\"package.json\",\"depth\":1,\"kind\":\"file\",\"logical_bytes\":\"1\",\"allocated_bytes\":null,\"identity\":{\"kind\":\"unknown\",\"device\":null,\"inode\":null,\"link_count\":null}}],\"issues\":[]}],\"extra\":\"LM_ERROR_CANARY\"}",
+      "context": {
+        "scan_id": "evidence-error-base",
+        "platform": "windows",
+        "scopes": [
+          {
+            "scope_id": "scope-1",
+            "label": "Synthetic scope-1",
+            "origin": "user_selected"
+          }
+        ]
+      },
+      "code": "InvalidFacts",
+      "field": "/facts"
+    },
+    {
+      "id": "missing-nullable",
+      "input": "{\"facts_version\":\"water.scan-lab.v1\",\"run_id\":\"run-error-base\",\"case_id\":\"error-base\",\"status\":\"completed\",\"visited_entries\":1,\"recorded_entries\":1,\"scopes\":[{\"scope_id\":\"scope-1\",\"relative_root\":\"scope\",\"coverage\":\"complete\",\"visited_entries\":1,\"entries\":[{\"relative_path\":\"package.json\",\"depth\":1,\"kind\":\"file\",\"logical_bytes\":\"1\",\"identity\":{\"kind\":\"unknown\",\"device\":null,\"inode\":null,\"link_count\":null}}],\"issues\":[]}]}",
+      "context": {
+        "scan_id": "evidence-error-base",
+        "platform": "windows",
+        "scopes": [
+          {
+            "scope_id": "scope-1",
+            "label": "Synthetic scope-1",
+            "origin": "user_selected"
+          }
+        ]
+      },
+      "code": "InvalidFacts",
+      "field": "/facts"
+    },
+    {
+      "id": "object-enum",
+      "input": "{\"facts_version\":\"water.scan-lab.v1\",\"run_id\":\"run-error-base\",\"case_id\":\"error-base\",\"status\":\"completed\",\"visited_entries\":1,\"recorded_entries\":1,\"scopes\":[{\"scope_id\":\"scope-1\",\"relative_root\":\"scope\",\"coverage\":\"complete\",\"visited_entries\":1,\"entries\":[{\"relative_path\":\"package.json\",\"depth\":1,\"kind\":{\"file\":null},\"logical_bytes\":\"1\",\"allocated_bytes\":null,\"identity\":{\"kind\":\"unknown\",\"device\":null,\"inode\":null,\"link_count\":null}}],\"issues\":[]}]}",
+      "context": {
+        "scan_id": "evidence-error-base",
+        "platform": "windows",
+        "scopes": [
+          {
+            "scope_id": "scope-1",
+            "label": "Synthetic scope-1",
+            "origin": "user_selected"
+          }
+        ]
+      },
+      "code": "InvalidFacts",
+      "field": "/facts"
+    },
+    {
+      "id": "counter",
+      "input": "{\"facts_version\":\"water.scan-lab.v1\",\"run_id\":\"run-error-base\",\"case_id\":\"error-base\",\"status\":\"completed\",\"visited_entries\":2,\"recorded_entries\":1,\"scopes\":[{\"scope_id\":\"scope-1\",\"relative_root\":\"scope\",\"coverage\":\"complete\",\"visited_entries\":1,\"entries\":[{\"relative_path\":\"package.json\",\"depth\":1,\"kind\":\"file\",\"logical_bytes\":\"1\",\"allocated_bytes\":null,\"identity\":{\"kind\":\"unknown\",\"device\":null,\"inode\":null,\"link_count\":null}}],\"issues\":[]}]}",
+      "context": {
+        "scan_id": "evidence-error-base",
+        "platform": "windows",
+        "scopes": [
+          {
+            "scope_id": "scope-1",
+            "label": "Synthetic scope-1",
+            "origin": "user_selected"
+          }
+        ]
+      },
+      "code": "InvalidFacts",
+      "field": "/facts"
+    },
+    {
+      "id": "empty-entry-path",
+      "input": "{\"facts_version\":\"water.scan-lab.v1\",\"run_id\":\"run-error-base\",\"case_id\":\"error-base\",\"status\":\"completed\",\"visited_entries\":1,\"recorded_entries\":1,\"scopes\":[{\"scope_id\":\"scope-1\",\"relative_root\":\"scope\",\"coverage\":\"complete\",\"visited_entries\":1,\"entries\":[{\"relative_path\":\"\",\"depth\":1,\"kind\":\"file\",\"logical_bytes\":\"1\",\"allocated_bytes\":null,\"identity\":{\"kind\":\"unknown\",\"device\":null,\"inode\":null,\"link_count\":null}}],\"issues\":[]}]}",
+      "context": {
+        "scan_id": "evidence-error-base",
+        "platform": "windows",
+        "scopes": [
+          {
+            "scope_id": "scope-1",
+            "label": "Synthetic scope-1",
+            "origin": "user_selected"
+          }
+        ]
+      },
+      "code": "InvalidFacts",
+      "field": "/facts"
+    },
+    {
+      "id": "windows-unix",
+      "input": "{\"facts_version\":\"water.scan-lab.v1\",\"run_id\":\"run-error-base\",\"case_id\":\"error-base\",\"status\":\"completed\",\"visited_entries\":1,\"recorded_entries\":1,\"scopes\":[{\"scope_id\":\"scope-1\",\"relative_root\":\"scope\",\"coverage\":\"complete\",\"visited_entries\":1,\"entries\":[{\"relative_path\":\"package.json\",\"depth\":1,\"kind\":\"file\",\"logical_bytes\":\"1\",\"allocated_bytes\":null,\"identity\":{\"kind\":\"unix\",\"device\":\"1\",\"inode\":\"7\",\"link_count\":\"2\"}}],\"issues\":[]}]}",
+      "context": {
+        "scan_id": "evidence-error-base",
+        "platform": "windows",
+        "scopes": [
+          {
+            "scope_id": "scope-1",
+            "label": "Synthetic scope-1",
+            "origin": "user_selected"
+          }
+        ]
+      },
+      "code": "InvalidFacts",
+      "field": "/facts"
+    },
+    {
+      "id": "context-id",
+      "input": "{\"facts_version\":\"water.scan-lab.v1\",\"run_id\":\"run-error-base\",\"case_id\":\"error-base\",\"status\":\"completed\",\"visited_entries\":1,\"recorded_entries\":1,\"scopes\":[{\"scope_id\":\"scope-1\",\"relative_root\":\"scope\",\"coverage\":\"complete\",\"visited_entries\":1,\"entries\":[{\"relative_path\":\"package.json\",\"depth\":1,\"kind\":\"file\",\"logical_bytes\":\"1\",\"allocated_bytes\":null,\"identity\":{\"kind\":\"unknown\",\"device\":null,\"inode\":null,\"link_count\":null}}],\"issues\":[]}]}",
+      "context": {
+        "scan_id": "evidence-error-base",
+        "platform": "windows",
+        "scopes": [
+          {
+            "scope_id": "wrong",
+            "label": "Synthetic scope-1",
+            "origin": "user_selected"
+          }
+        ]
+      },
+      "code": "InvalidContext",
+      "field": "/context"
+    },
+    {
+      "id": "context-label",
+      "input": "{\"facts_version\":\"water.scan-lab.v1\",\"run_id\":\"run-error-base\",\"case_id\":\"error-base\",\"status\":\"completed\",\"visited_entries\":1,\"recorded_entries\":1,\"scopes\":[{\"scope_id\":\"scope-1\",\"relative_root\":\"scope\",\"coverage\":\"complete\",\"visited_entries\":1,\"entries\":[{\"relative_path\":\"package.json\",\"depth\":1,\"kind\":\"file\",\"logical_bytes\":\"1\",\"allocated_bytes\":null,\"identity\":{\"kind\":\"unknown\",\"device\":null,\"inode\":null,\"link_count\":null}}],\"issues\":[]}]}",
+      "context": {
+        "scan_id": "evidence-error-base",
+        "platform": "windows",
+        "scopes": [
+          {
+            "scope_id": "scope-1",
+            "label": "",
+            "origin": "user_selected"
+          }
+        ]
+      },
+      "code": "InvalidContext",
+      "field": "/context"
+    },
+    {
+      "id": "duplicate-top-key",
+      "input": "{\"facts_version\":\"water.scan-lab.v1\",\"facts_version\":\"water.scan-lab.v1\",\"run_id\":\"run-error-base\",\"case_id\":\"error-base\",\"status\":\"completed\",\"visited_entries\":1,\"recorded_entries\":1,\"scopes\":[{\"scope_id\":\"scope-1\",\"relative_root\":\"scope\",\"coverage\":\"complete\",\"visited_entries\":1,\"entries\":[{\"relative_path\":\"package.json\",\"depth\":1,\"kind\":\"file\",\"logical_bytes\":\"1\",\"allocated_bytes\":null,\"identity\":{\"kind\":\"unknown\",\"device\":null,\"inode\":null,\"link_count\":null}}],\"issues\":[]}]}",
+      "context": {
+        "scan_id": "evidence-error-base",
+        "platform": "windows",
+        "scopes": [
+          {
+            "scope_id": "scope-1",
+            "label": "Synthetic scope-1",
+            "origin": "user_selected"
+          }
+        ]
+      },
+      "code": "InvalidFacts",
+      "field": "/facts"
+    }
+  ]
+}

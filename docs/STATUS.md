@@ -21,9 +21,23 @@
 
 ## 下一步
 
-A–J及A/B/C/D补单均VERIFIED（Windows范围），仅K仍RUNNING待回执，没有其他未结外贴单。J的总控bridge工具阻塞已通过独立勘误与实际13快照复测解决，产品未改。K收单后验真实J→K页面；真实scope安全、分类/工具适配、Tauri/macOS与删除另排，M1尚未完成。
+A–J及四旧补单保持VERIFIED（Windows）。K已收单，原门/独立边界通过，但真实J→K原集成失败并退回；[补充单01](dispatch/tickets/WATER-W1-K-ADDENDUM-01-20261018.md)已见启动审计和指定回归输入，现记RUNNING；精确转贴时刻未知，没有完成回执。L/M独立侧车已READY待分别外贴，见下方派前记录。真实scope安全、分类、Tauri/macOS与删除另排，M1尚未完成。
 
-## J验收集成（2026-10-18，最新）
+## L/M派前完成（2026-10-18，最新）
+
+L项目标记证据和M容量观察账本两票已完成正式冻结/独立树/实际离线baseline，READY待用户分别外贴；共同r1基线82e1580，38新锁/七旧锁合计151唯一文件，10+15合成输入及11错误实测通过。新产品未实现、五测试未运行，L/M无物理fixture或真实用户目录权限；K补单原任务对象/基线/helper/132旧冻结保持RUNNING，无自动实现者。见[正式批次](dispatch/wave1/EVIDENCE-BATCH-PLAN-20261018.md)、[派前回执](dispatch/wave1/EVIDENCE-BATCH-READY-REPORT.md)及票面。两个新执行对话各接一票；READY不等于已转贴。真实J→K、真实scope、桌面/macOS及删除仍未验收，M1未完成。
+
+## 并行评估与K补单启动（2026-10-18，历史）
+
+K原k树已出现补单01的START-AUDIT及169500字节回归bundle，HEAD/分支/来源hash正确，按启动证据记RUNNING；原失败未清除，真实J→K页面仍未验收。启动审计自报2026-10-18T03:41:50.355Z，精确转贴时刻未证实。见[启动观察](acceptance/wave1/controller/w1-parallel-assessment-20261018/k-start-observation.json)。
+
+[并行任务评估](dispatch/wave1/PARALLEL-ASSESSMENT-20261018.md)建议另拆项目标记证据侧车和容量观察账本两条纯内存模块线，均只依赖已验收协议，不碰K文件或真实用户数据。当前只是DRAFT，未准备新树/helper/冻结/正式票，未派出；总控没有自动启动实现者。
+
+## K收单与集成退回（2026-10-18，历史）
+
+K接收e717519、实现7d00355，原三门/五测试、104独立边界及隔离三负控/逐次完整五测恢复通过；隔离f16972f真实J13快照与独立链路逐值一致，但K拒绝entry-budget合法根issue空串，整个bundle未能启动服务，真实J→K页面未验收。K为CHANGES_REQUESTED，补充单01已准备待用户外贴给原执行者；原树干净，主线未纳入K产品，A–J及四旧补单保持VERIFIED（Windows）。132冻结、369份K和359份J交付字节保持；44内容快照通过，仅总控新树由冻结prepare创建11+6/81717字节合成run并全部保留。真实用户scope、分类、桌面/macOS及删除未验证，M1未完成。见[K总控验收报告](acceptance/wave1/controller/WATER-W1-K-REVIEW-20261018.md)。补单修复由原执行者完成，总控不代修；后续验收复用原总控集成树夹具，不清理或重造。
+
+## J验收集成（2026-10-18，历史收口）
 
 - 接收干净HEAD `1dfa82c014cbdb99024b0da48dd4b6bff9f9e3d8`、实现b6fd1fe，359新增文件均在白名单，六产品文件实现后未改，350原始证据核来源字节一致。原前四final总控复跑通过；原bridge final失败永久保留。
 - [工具勘误01](acceptance/wave1/controller/WATER-W1-J-CONTROLLER-ERRATUM-01-20261018.md)仅调整独立总控Cargo图产物选择，不改原helper/锁或K任务。隔离受测d14e1f1在实际四组重复rlib共存时通过五测试/格式/clippy/metadata、选择器三测试及真实13快照全值比较；Native11/12/39、44快照通过。

@@ -1,7 +1,7 @@
 {
   "schemaVersion": 1,
   "wave": "water-wave1",
-  "status": "ABCDEFGHIJ_VERIFIED_K_ACCEPTED",
+  "status": "ABCDEFGHIJ_VERIFIED_K_ADDENDUM_01_ACCEPTED_LM_READY",
   "controllerRoot": "F:/new/smaltalk/water",
   "controllerBranch": "main",
   "controller": "Codex",
@@ -872,7 +872,8 @@
         "prototypes/lab-reader/README.md",
         "prototypes/lab-reader/tests/model.test.mjs",
         "prototypes/lab-reader/tests/browser.test.mjs",
-        "docs/dispatch/reports/WATER-W1-K-REPORT.md"
+        "docs/dispatch/reports/WATER-W1-K-REPORT.md",
+        "docs/dispatch/reports/WATER-W1-K-ADDENDUM-01-REPORT.md"
       ],
       "allowedPrefixes": [
         "docs/acceptance/wave1/k/"
@@ -916,15 +917,193 @@
       "implementationObserved": true,
       "implementationAudit": "docs/acceptance/wave1/controller/w1-session-page-plan-20261018/2026-10-17T16-40-31.742Z-dispatch-audit.json",
       "latestObservedCheck": "docs/acceptance/wave1/controller/w1-session-page-plan-20261018/water-w1-k/2026-10-17T16-34-54.684Z-40372-baseline-result.json",
-      "submittedCommit": "e717519a14f5d561c0ba18aa7d5299870828aa5a",
-      "acceptedCommit": "e717519a14f5d561c0ba18aa7d5299870828aa5a",
-      "testedImplementationCommit": "7d0035582db8457a47d6c611ff02427296ba641c",
+      "submittedCommit": "886db33fcca265e0c1a06e1e155264c2d4689bb0",
+      "acceptedCommit": "886db33fcca265e0c1a06e1e155264c2d4689bb0",
+      "testedImplementationCommit": "e283d77f2b37c53d337e115e09b7b7219ae7d045",
       "submissionObservedAt": "2026-10-18T03:18:08.438Z",
       "engine": "Codex (worker self-report)",
       "acceptedOn": "2026-10-18",
       "macOS": "unverified",
-      "controllerReview": "docs/acceptance/wave1/controller/WATER-W1-K-REVIEW-20261018.md",
-      "controllerReviewReceipt": "docs/acceptance/wave1/controller/w1-k-review-20261018/boundaries/2026-10-18T03-16-47.264Z-38288-result.json"
+      "controllerReview": "docs/acceptance/wave1/controller/WATER-W1-K-ADDENDUM-01-REVIEW-20261018.md",
+      "controllerReviewReceipt": "docs/acceptance/wave1/controller/w1-k-addendum-01-review-20261018/boundaries/2026-10-18T04-27-01.997Z-37640-result.json",
+      "singleTicketGateStatus": "PASSED",
+      "integrationStatus": "RETEST_PENDING",
+      "failedIntegrationCommit": "f16972f81dab02e2a51ad0e4a408c01a405b9ea6",
+      "failedIntegrationWorktree": "F:/new/smaltalk/water/.worktrees/integration-jk-20261018",
+      "failedIntegrationReceipt": "docs/acceptance/wave1/controller/w1-jk-integration-20261018/session/2026-10-18T03-22-50.825Z-42740-result.json",
+      "controllerIntegrationBoundaries": "docs/acceptance/wave1/controller/w1-jk-integration-20261018/controls/2026-10-18T03-20-05.996Z-31704-result.json",
+      "addenda": [
+        "docs/dispatch/tickets/WATER-W1-K-ADDENDUM-01-20261018.md"
+      ],
+      "resumeFromCommit": "e717519a14f5d561c0ba18aa7d5299870828aa5a",
+      "addendumReport": "docs/dispatch/reports/WATER-W1-K-ADDENDUM-01-REPORT.md",
+      "addendumReadyOn": "2026-10-18",
+      "addendumDispatchedAt": null,
+      "addendumStatus": "ACCEPTED",
+      "addendumPreflight": "docs/acceptance/wave1/controller/w1-k-review-20261018/addendum-01-preflight.json",
+      "integrationFailure": "Actual J entry-budget root issue relative_path empty string is legal upstream but rejected by K model; entire supplied 13-snapshot server bundle rejected. No real J-to-K page started.",
+      "addendumReportedStartedAt": "2026-10-18T03:41:50.355Z",
+      "addendumActivityObservedAt": "2026-10-18T03:44:52.831Z",
+      "addendumActivityEvidence": "docs/acceptance/wave1/controller/w1-parallel-assessment-20261018/k-start-observation.json",
+      "addendumDispatchEvidence": "Actual startup audit and exact regression bundle observed in original k tree; exact user paste time unknown.",
+      "originalSubmittedCommit": "e717519a14f5d561c0ba18aa7d5299870828aa5a",
+      "originalAcceptedCommit": "e717519a14f5d561c0ba18aa7d5299870828aa5a",
+      "originalTestedImplementationCommit": "7d0035582db8457a47d6c611ff02427296ba641c",
+      "previousControllerReview": "docs/acceptance/wave1/controller/WATER-W1-K-REVIEW-20261018.md",
+      "revisionSubmittedCommit": "886db33fcca265e0c1a06e1e155264c2d4689bb0",
+      "revisionImplementationCommit": "e283d77f2b37c53d337e115e09b7b7219ae7d045",
+      "revisionSubmittedObservedAt": "2026-10-18T04:29:29.097Z",
+      "addendumAcceptedOn": "2026-10-18"
+    },
+    {
+      "id": "WATER-W1-L",
+      "title": "Project marker evidence",
+      "status": "READY",
+      "kind": "project_evidence",
+      "slot": "l",
+      "worktree": "F:/new/smaltalk/water/.worktrees/l",
+      "branch": "worker/water-w1-l",
+      "baseCommit": "82e158079066bf795fb89fafa933bc2d7fc00bd5",
+      "snapshotRef": "refs/tags/water-w1-evidence-batch-base-20261018-r1",
+      "ticket": "docs/dispatch/tickets/WATER-W1-L-PROJECT-EVIDENCE-20261018.md",
+      "report": "docs/dispatch/reports/WATER-W1-L-REPORT.md",
+      "helper": "scripts/evidence-batch-check.mjs",
+      "workerRules": "docs/dispatch/W1-EVIDENCE-BATCH-WORKER-RULES.md",
+      "contractLock": "contracts/evidence-batch-v1/freeze.lock.json",
+      "outputRoot": "packages/project-evidence",
+      "packageName": "water-project-evidence",
+      "crateName": "water_project_evidence",
+      "outputType": "ProjectEvidence",
+      "testTarget": "evidence_v1",
+      "testFile": "packages/project-evidence/tests/evidence_v1.rs",
+      "testFiles": [
+        "packages/project-evidence/tests/evidence_v1.rs"
+      ],
+      "expectedTests": [
+        "evidence_candidates",
+        "evidence_validation",
+        "evidence_coverage_and_paths",
+        "evidence_preservation_and_purity",
+        "evidence_public_wire"
+      ],
+      "expectedBrowserTests": [],
+      "expectedFinalModes": [
+        "fmt",
+        "test",
+        "clippy",
+        "metadata",
+        "bridge"
+      ],
+      "proofTargets": {
+        "behavior": "L_BEHAVIOR",
+        "nc1": "L_FILE_ONLY",
+        "nc2": "L_FILENAME_ONLY",
+        "nc3": "L_SOURCE_TOTALS"
+      },
+      "caseFile": "contracts/project-evidence-v1/cases.json",
+      "allowedFiles": [
+        "packages/project-evidence/Cargo.toml",
+        "packages/project-evidence/Cargo.lock",
+        "packages/project-evidence/README.md",
+        "packages/project-evidence/tests/evidence_v1.rs",
+        "docs/dispatch/reports/WATER-W1-L-REPORT.md"
+      ],
+      "allowedPrefixes": [
+        "packages/project-evidence/src/",
+        "docs/acceptance/wave1/l/"
+      ],
+      "allowLockfileGeneration": true,
+      "cargoCacheSource": "F:/new/smaltalk/water/.worktrees/a/.local/cargo-home/registry",
+      "dependsOn": [
+        "WATER-W1-A",
+        "WATER-W1-G"
+      ],
+      "model": null,
+      "modelAssignment": "user-arranged; report actual engine/model",
+      "dispatchedAt": null,
+      "startedAt": null,
+      "baselineStatus": "PASSED",
+      "newProductTestsRun": false,
+      "physicalFixturePermission": false,
+      "preflightEvidence": "docs/dispatch/wave1/EVIDENCE-BATCH-READY-REPORT.md",
+      "readyOn": "2026-10-18",
+      "baselineEvidence": "docs/acceptance/wave1/controller/w1-evidence-batch-preflight-20261018/l/2026-10-18T04-07-06.175Z-43512-baseline-result.json",
+      "readinessScope": "Windows Node24/Rust1.95/MSVC, private offline real G/A build, 10 L and 15 M synthetic inputs and 11 source errors. New products absent, no L/M tests or filesystem scans."
+    },
+    {
+      "id": "WATER-W1-M",
+      "title": "Observed size ledger",
+      "status": "READY",
+      "kind": "size_ledger",
+      "slot": "m",
+      "worktree": "F:/new/smaltalk/water/.worktrees/m",
+      "branch": "worker/water-w1-m",
+      "baseCommit": "82e158079066bf795fb89fafa933bc2d7fc00bd5",
+      "snapshotRef": "refs/tags/water-w1-evidence-batch-base-20261018-r1",
+      "ticket": "docs/dispatch/tickets/WATER-W1-M-SIZE-LEDGER-20261018.md",
+      "report": "docs/dispatch/reports/WATER-W1-M-REPORT.md",
+      "helper": "scripts/evidence-batch-check.mjs",
+      "workerRules": "docs/dispatch/W1-EVIDENCE-BATCH-WORKER-RULES.md",
+      "contractLock": "contracts/evidence-batch-v1/freeze.lock.json",
+      "outputRoot": "packages/size-ledger",
+      "packageName": "water-size-ledger",
+      "crateName": "water_size_ledger",
+      "outputType": "SizeLedger",
+      "testTarget": "ledger_v1",
+      "testFile": "packages/size-ledger/tests/ledger_v1.rs",
+      "testFiles": [
+        "packages/size-ledger/tests/ledger_v1.rs"
+      ],
+      "expectedTests": [
+        "ledger_observed_sizes",
+        "ledger_identity_groups",
+        "ledger_unknown_and_coverage",
+        "ledger_validation",
+        "ledger_public_wire_and_purity"
+      ],
+      "expectedBrowserTests": [],
+      "expectedFinalModes": [
+        "fmt",
+        "test",
+        "clippy",
+        "metadata",
+        "bridge"
+      ],
+      "proofTargets": {
+        "behavior": "M_BEHAVIOR",
+        "nc1": "M_UNKNOWN_IDENTITY",
+        "nc2": "M_INTEGER_PRECISION",
+        "nc3": "M_CONFLICT_UNKNOWN"
+      },
+      "caseFile": "contracts/size-ledger-v1/cases.json",
+      "allowedFiles": [
+        "packages/size-ledger/Cargo.toml",
+        "packages/size-ledger/Cargo.lock",
+        "packages/size-ledger/README.md",
+        "packages/size-ledger/tests/ledger_v1.rs",
+        "docs/dispatch/reports/WATER-W1-M-REPORT.md"
+      ],
+      "allowedPrefixes": [
+        "packages/size-ledger/src/",
+        "docs/acceptance/wave1/m/"
+      ],
+      "allowLockfileGeneration": true,
+      "cargoCacheSource": "F:/new/smaltalk/water/.worktrees/a/.local/cargo-home/registry",
+      "dependsOn": [
+        "WATER-W1-A",
+        "WATER-W1-G"
+      ],
+      "model": null,
+      "modelAssignment": "user-arranged; report actual engine/model",
+      "dispatchedAt": null,
+      "startedAt": null,
+      "baselineStatus": "PASSED",
+      "newProductTestsRun": false,
+      "physicalFixturePermission": false,
+      "preflightEvidence": "docs/dispatch/wave1/EVIDENCE-BATCH-READY-REPORT.md",
+      "readyOn": "2026-10-18",
+      "baselineEvidence": "docs/acceptance/wave1/controller/w1-evidence-batch-preflight-20261018/m/2026-10-18T04-07-06.183Z-30108-baseline-result.json",
+      "readinessScope": "Windows Node24/Rust1.95/MSVC, private offline real G/A build, 10 L and 15 M synthetic inputs and 11 source errors. New products absent, no L/M tests or filesystem scans."
     }
   ],
   "preflightStatus": "PASSED",

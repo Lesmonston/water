@@ -1,0 +1,93 @@
+{
+  "startedAt": "2026-10-18T04:00:52.440Z",
+  "commands": [
+    {
+      "binary": "C:\\Users\\37310\\.cargo\\bin\\rustup.exe",
+      "argv": [
+        "which",
+        "rustc",
+        "--toolchain",
+        "1.95.0"
+      ],
+      "exitCode": 0,
+      "error": null,
+      "log": "2026-10-18T04-00-52.438Z-37660-0.log"
+    },
+    {
+      "binary": "C:\\Users\\37310\\.cargo\\bin\\rustup.exe",
+      "argv": [
+        "which",
+        "cargo",
+        "--toolchain",
+        "1.95.0"
+      ],
+      "exitCode": 0,
+      "error": null,
+      "log": "2026-10-18T04-00-52.438Z-37660-1.log"
+    },
+    {
+      "binary": "C:\\Users\\37310\\.rustup\\toolchains\\1.95.0-x86_64-pc-windows-msvc\\bin\\cargo.exe",
+      "argv": [
+        "metadata",
+        "--offline",
+        "--locked",
+        "--format-version",
+        "1",
+        "--manifest-path",
+        "packages/scan-report/Cargo.toml"
+      ],
+      "exitCode": 0,
+      "error": null,
+      "log": "2026-10-18T04-00-52.438Z-37660-2.log"
+    },
+    {
+      "binary": "C:\\Users\\37310\\.rustup\\toolchains\\1.95.0-x86_64-pc-windows-msvc\\bin\\cargo.exe",
+      "argv": [
+        "build",
+        "--offline",
+        "--locked",
+        "--lib",
+        "--message-format=json",
+        "--manifest-path",
+        "packages/scan-report/Cargo.toml"
+      ],
+      "exitCode": 0,
+      "error": null,
+      "log": "2026-10-18T04-00-52.438Z-37660-3.log"
+    },
+    {
+      "binary": "C:\\Users\\37310\\.rustup\\toolchains\\1.95.0-x86_64-pc-windows-msvc\\bin\\rustc.exe",
+      "argv": [
+        "--edition=2024",
+        "--crate-name",
+        "evidence_source_probe",
+        "scripts/acceptance/evidence-source-probe.rs",
+        "-L",
+        "dependency=F:\\new\\smaltalk\\water\\.local\\evidence-assets-target\\debug\\deps",
+        "--extern",
+        "water_scan_report=F:\\new\\smaltalk\\water\\.local\\evidence-assets-target\\debug\\libwater_scan_report.rlib",
+        "--extern",
+        "water_contracts=F:\\new\\smaltalk\\water\\.local\\evidence-assets-target\\debug\\deps\\libwater_contracts-03746b148f2454ba.rlib",
+        "--extern",
+        "serde_json=F:\\new\\smaltalk\\water\\.local\\evidence-assets-target\\debug\\deps\\libserde_json-c243626af514ec1f.rlib",
+        "-o",
+        "F:\\new\\smaltalk\\water\\.local\\evidence-assets-tmp\\2026-10-18T04-00-52.438Z-37660-evidence-assets.exe"
+      ],
+      "exitCode": 0,
+      "error": null,
+      "log": "2026-10-18T04-00-52.438Z-37660-4.log"
+    },
+    {
+      "binary": "F:\\new\\smaltalk\\water\\.local\\evidence-assets-tmp\\2026-10-18T04-00-52.438Z-37660-evidence-assets.exe",
+      "argv": [],
+      "exitCode": 101,
+      "error": null,
+      "log": "2026-10-18T04-00-52.438Z-37660-5.log"
+    }
+  ],
+  "newProductsTested": false,
+  "physicalFixturesCreated": false,
+  "status": "failed",
+  "error": "{\"binary\":\"F:\\\\new\\\\smaltalk\\\\water\\\\.local\\\\evidence-assets-tmp\\\\2026-10-18T04-00-52.438Z-37660-evidence-assets.exe\",\"argv\":[],\"exitCode\":101,\"error\":null,\"log\":\"2026-10-18T04-00-52.438Z-37660-5.log\"}\n\nthread 'main' (17412) panicked at scripts/acceptance/evidence-source-probe.rs:5:739:\nassertion `left == right` failed: \"duplicate-top-key\"\n  left: \"InvalidFacts\"\n right: \"InvalidJson\"\nnote: run with `RUST_BACKTRACE=1` environment variable to display a backtrace\n",
+  "endedAt": "2026-10-18T04:02:09.233Z"
+}

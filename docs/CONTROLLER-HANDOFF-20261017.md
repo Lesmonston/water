@@ -2,7 +2,19 @@
 
 2026-10-17。项目：`F:/new/smaltalk/water`。供后续总控接手与Keeper ingest；未写共享Vault或其他项目。
 
-## 当前交接：J已验收集成，K待回执
+## 当前交接：K补单继续，L/M正式票READY待分别外贴
+
+L项目标记证据和M容量观察账本两票已完成正式冻结/独立树/实际离线baseline，READY待用户分别外贴；共同r1基线82e1580，38新锁/七旧锁合计151唯一文件，10+15合成输入及11错误实测通过。新产品未实现、五测试未运行，L/M无物理fixture或真实用户目录权限；K补单原任务对象/基线/helper/132旧冻结保持RUNNING，无自动实现者。见[派前回执](dispatch/wave1/EVIDENCE-BATCH-READY-REPORT.md)。原未派基线2e6a742及派前失败保留，r1只修新证据属性自有LF；不重复派K或旧槽位。真实J→K页面/真实用户scope/桌面/macOS仍未验收，M1未完成。
+
+## 此前交接：K补单RUNNING，两条候选DRAFT（历史）
+
+K原树已见补单启动审计及精确回归输入，依实际证据记RUNNING，无完成回执。可独立拆项目标记证据侧车、容量观察账本，见[并行评估](dispatch/wave1/PARALLEL-ASSESSMENT-20261018.md)；两条新线未冻结/无正式票/无派前基线，不得当READY执行。真实J→K原失败保留，主线未纳入K产品。
+
+## 此前交接：K集成退回，补充单01待外贴（历史）
+
+K接收e717519、实现7d00355，原三门/五测试、104独立边界及隔离三负控/逐次完整五测恢复通过；隔离f16972f真实J13快照与独立链路逐值一致，但K拒绝entry-budget合法根issue空串，整个bundle未能启动服务，真实J→K页面未验收。K为CHANGES_REQUESTED，补充单01已准备待用户外贴给原执行者；原树干净，主线未纳入K产品，A–J及四旧补单保持VERIFIED（Windows）。132冻结、369份K和359份J交付字节保持；44内容快照通过，仅总控新树由冻结prepare创建11+6/81717字节合成run并全部保留。真实用户scope、分类、桌面/macOS及删除未验证，M1未完成。见[K验收报告](acceptance/wave1/controller/WATER-W1-K-REVIEW-20261018.md)。指定会话ID当前无法读取，本次按项目正式材料接手，未声称读到原聊天；没有自动实现者。
+
+## 此前交接：J已验收集成，K待回执（历史）
 
 J接收1dfa82c、实现b6fd1fe、隔离受测d14e1f1。原四final复跑全过；原bridge工具失败保留，总控按Cargo实际图选rlib后，在四组真实重复产物共存时通过13快照六字段比较、Native11/12/39、五产品/三工具测试及44内容快照。359份交付字节及132冻结保持，产品未改，J为VERIFIED（Windows）。K任务/helper/锁未改，仍RUNNING待回执；真实J→K页面、真实scope/分类/桌面/macOS及删除后排。见[J验收报告](acceptance/wave1/controller/WATER-W1-J-REVIEW-20261018.md)。无须为总控工具问题重贴J实现单。
 

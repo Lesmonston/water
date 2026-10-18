@@ -1,0 +1,21 @@
+{
+  "batch_version": "water.evidence-batch.v1",
+  "tasks": {
+    "WATER-W1-L": {
+      "tests": ["evidence_candidates", "evidence_validation", "evidence_coverage_and_paths", "evidence_preservation_and_purity", "evidence_public_wire"],
+      "proof_targets": {"behavior": "L_BEHAVIOR", "nc1": "L_FILE_ONLY", "nc2": "L_FILENAME_ONLY", "nc3": "L_SOURCE_TOTALS"}
+    },
+    "WATER-W1-M": {
+      "tests": ["ledger_observed_sizes", "ledger_identity_groups", "ledger_unknown_and_coverage", "ledger_validation", "ledger_public_wire_and_purity"],
+      "proof_targets": {"behavior": "M_BEHAVIOR", "nc1": "M_UNKNOWN_IDENTITY", "nc2": "M_INTEGER_PRECISION", "nc3": "M_CONFLICT_UNKNOWN"}
+    }
+  },
+  "final_modes": ["fmt", "test", "clippy", "metadata", "bridge"],
+  "rust_version": "1.95.0",
+  "node_major": 24,
+  "per_command_timeout_ms": 180000,
+  "cargo_jobs": 1,
+  "offline": true,
+  "physical_fixture_permission": false,
+  "input_source": "Controller synthetic JSON validated by actual G and A; Unix fields do not prove platform IO."
+}

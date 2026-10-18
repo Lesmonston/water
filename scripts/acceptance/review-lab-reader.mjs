@@ -9,13 +9,13 @@ import {dirname,join,resolve} from 'node:path';
 import {fileURLToPath,pathToFileURL} from 'node:url';
 const root=resolve(dirname(fileURLToPath(import.meta.url)),'../..'),args=process.argv.slice(2);
 assert.equal(args[0],'--expected-head');assert.match(args[1],/^[a-f0-9]{40}$/);
-const integration=args.includes('--integration'),controls=args.includes('--controls');
-assert.equal(args.length,2+Number(integration)+Number(controls));assert(!controls||integration);
+const integration=args.includes('--integration'),controls=args.includes('--controls'),addendum=args.includes('--addendum-01');
+assert.equal(args.length,2+Number(integration)+Number(controls)+Number(addendum));assert(!controls||integration);
 const worker=integration?root:join(root,'.worktrees/k'),output=join(root,'.local/checks',integration?'controller-k-integration':'controller-k-review');
 mkdirSync(output,{recursive:true});
 const stamp=new Date().toISOString().replaceAll(':','-')+'-'+process.pid;
 const hash=b=>createHash('sha256').update(b).digest('hex');
-const record={startedAt:new Date().toISOString(),integration,controls,cases:[],commands:[]};
+const record={startedAt:new Date().toISOString(),integration,controls,addendum,cases:[],commands:[]};
 function command(binary,argv,timeout=30000,expected=0){const r=spawnSync(binary,argv,{cwd:worker,encoding:'utf8',shell:false,windowsHide:true,timeout,maxBuffer:32*1024*1024,env:{...process.env,NODE_OPTIONS:'',NODE_PATH:'',GIT_OPTIONAL_LOCKS:'0'}});const item={binary,argv,exitCode:r.status,error:r.error?.code??null,log:stamp+'-'+record.commands.length+'.log'};record.commands.push(item);writeFileSync(join(output,item.log),JSON.stringify(item)+'\n--- stdout ---\n'+(r.stdout??'')+'\n--- stderr ---\n'+(r.stderr??''),{flag:'wx'});assert(!r.error&&r.status===expected,'Command failed: '+argv.join(' '));return (r.stdout??'').trim();}
 const git=args=>command('git',['-c','core.hooksPath=NUL','-c','core.fsmonitor=false',...args]);
 const snapshot=()=>({head:git(['rev-parse','HEAD']),status:git(['status','--porcelain=v1','--untracked-files=all'])});
@@ -54,14 +54,25 @@ try{
     for(const path of ['//sessions.json','/x/../sessions.json','/%73essions.json','/sessions.json/','/sessions.json%3fx','/../README.md','/%2e%2e/README.md','/..%5cREADME.md','/app.mjs#fragment','/contracts/lab-reader-v1/sessions.json','/server.mjs','/favicon.ico','/sessions.json\\x'])await check('raw-reject:'+path,async()=>{const r=await raw(server.url,path);assert.equal(r.status,404);assert.equal(r.body.toString(),'Report resource unavailable.');});
   }finally{await server.close();}
   await check('closed-server-refused',()=>assert.rejects(raw(server.url,'/sessions.json'),{code:'ECONNREFUSED'}));
+  if(addendum){
+    const actual=JSON.parse(readFileSync(join(worker,'docs/acceptance/wave1/k/addendum-01/actual-j-regression-bundle.json'),'utf8'));
+    for(const s of actual.snapshots)await check('actual-J-accepted:'+s.view.scan_id,()=>{original.assertReportView(s.view);model.assertSessionBundle({bundle_version:actual.bundle_version,snapshots:[s]});});
+    const root=actual.snapshots.find(s=>s.source_facts.case_id==='entry-budget');assert(root);
+    const variant=path=>{const s=structuredClone(root);for(const issue of [s.source_facts.scopes[0].issues[0],s.report.issues[0],s.view.issues[0]])issue.relative_path=path;return {bundle_version:actual.bundle_version,snapshots:[s]};};
+    for(const path of ['',null,'nested/root.txt','literal/<img src=x onerror=literal>'])await check('root-issue-accepted:'+String(path),()=>{const b=variant(path),before=structuredClone(b);model.assertSessionBundle(b);assert.deepEqual(b,before);});
+    for(const path of ['/absolute','C:/absolute','a\\b','.', '..','a/../b','a//b','a/','a\nb','\u0000'])await check('root-issue-invalid:'+JSON.stringify(path),()=>assert.throws(()=>model.assertSessionBundle(variant(path)),rejected));
+    await check('scope-root-still-nonempty',()=>{const b=variant('');b.snapshots[0].source_facts.scopes[0].relative_root='';assert.throws(()=>model.assertSessionBundle(b),rejected);});
+    const supplied=structuredClone(actual),s=await startServer({bundle:supplied});try{const captured=structuredClone(supplied);supplied.snapshots[0].view.findings[0].relative_path='mutated';supplied.snapshots.length=1;await check('actual-J-all-13-captured',async()=>assert.deepEqual(JSON.parse((await raw(s.url,'/sessions.json')).body),captured));}finally{await s.close();}
+  }
   if(controls){
-    const archive=join(root,'docs/acceptance/wave1/k'),receipts=readdirSync(archive).filter(f=>f.endsWith('-result.json')).map(f=>({file:f,data:JSON.parse(readFileSync(join(archive,f),'utf8'))})),final=receipts.find(r=>r.data.finalGate&&r.data.mode==='browser').data;
+    const archive=join(root,'docs/acceptance/wave1/k',...(addendum?['addendum-01']:[])),receipts=readdirSync(archive).filter(f=>f.endsWith('-result.json')).map(f=>({file:f,data:JSON.parse(readFileSync(join(archive,f),'utf8'))}));
+    const final=addendum?JSON.parse(readFileSync(join(archive,JSON.parse(readFileSync(join(archive,'FINAL-GATES.json'),'utf8')).finals.find(f=>f.mode==='browser').name),'utf8')):receipts.find(r=>r.data.finalGate&&r.data.mode==='browser').data;
     record.controls=[];
-    for(const {label,red}of final.proofAudit.filter(p=>p.label!=='behavior')){
+    for(const {label,red}of final.proofAudit.filter(p=>addendum||p.label!=='behavior')){
       const state=JSON.parse(readFileSync(join(archive,red),'utf8')).sourceState,changed=state.files.filter(f=>!f.test&&f.sha256!==final.sourceState.files.find(s=>s.path===f.path).sha256);assert.equal(changed.length,1);
-      const f=changed[0];assert.equal(f.path,label==='nc1'?'prototypes/lab-reader/server.mjs':'prototypes/lab-reader/app.mjs');const path=join(root,f.path),saved=readFileSync(path),bad=readFileSync(join(archive,f.snapshot));assert.equal(hash(bad),f.sha256);assert.equal(hash(saved),final.sourceState.files.find(s=>s.path===f.path).sha256);
+      const f=changed[0];assert.equal(f.path,label==='behavior'?'prototypes/lab-reader/model.mjs':label==='nc1'?'prototypes/lab-reader/server.mjs':'prototypes/lab-reader/app.mjs');const path=join(root,f.path),saved=readFileSync(path),bad=readFileSync(join(archive,f.snapshot));assert.equal(hash(bad),f.sha256);assert.equal(hash(saved),final.sourceState.files.find(s=>s.path===f.path).sha256);
       const control={label,path:f.path,original:hash(saved),bad:hash(bad)};writeFileSync(join(output,stamp+'-'+label+'-bad-source.txt'),bad,{flag:'wx'});
-      try{writeFileSync(path,bad);const text=command(process.execPath,['--test','--test-concurrency=1','--test-reporter=tap','prototypes/lab-reader/tests/model.test.mjs','prototypes/lab-reader/tests/browser.test.mjs'],150000,1);assert.match(text,/# tests 5\r?\n/);assert.match(text,/# skipped 0\r?\n/);assert(text.includes({nc1:'K_SERVER_INPUT',nc2:'K_TOTAL_UNKNOWN',nc3:'K_TEXT_LITERAL'}[label]));assert(!/SyntaxError|ERR_MODULE_NOT_FOUND|CDP timeout|condition timed out/.test(text));control.red=true;}
+      try{writeFileSync(path,bad);const text=command(process.execPath,['--test','--test-concurrency=1','--test-reporter=tap','prototypes/lab-reader/tests/model.test.mjs','prototypes/lab-reader/tests/browser.test.mjs'],150000,1);assert.match(text,/# tests 5\r?\n/);assert.match(text,/# skipped 0\r?\n/);assert(text.includes({behavior:'K_ROOT_ISSUE_PATH',nc1:'K_SERVER_INPUT',nc2:'K_TOTAL_UNKNOWN',nc3:'K_TEXT_LITERAL'}[label]));assert(!/SyntaxError|ERR_MODULE_NOT_FOUND|CDP timeout|condition timed out/.test(text));control.red=true;}
       finally{writeFileSync(path,saved);control.restored=hash(readFileSync(path));assert.equal(control.restored,control.original);}
       const text=command(process.execPath,['--test','--test-concurrency=1','--test-reporter=tap','prototypes/lab-reader/tests/model.test.mjs','prototypes/lab-reader/tests/browser.test.mjs'],150000);assert.match(text,/# pass 5\r?\n/);assert.match(text,/# fail 0\r?\n/);control.green=true;record.controls.push(control);console.log(JSON.stringify({control:label,status:'red-restored-green'}));
     }

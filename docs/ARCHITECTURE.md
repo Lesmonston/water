@@ -81,3 +81,7 @@ Docker context、Buildx builder driver 与所有 node endpoint 分别核对；�
 操作journal需在变更前记录意图，变更后记录结果；崩溃后标不确定状态。普通隔离恢复和工具原生GC分开；重下载不是完整回滚。回收站/隔离仍占空间，恢复时不覆盖同名新文件。敏感路径在导出中脱敏，journal本地最小化留存。
 
 M1 不实现 executor；M2 先以少量动作完成完整闭环，再扩规则。网络授权/支付/遥测与本地扫描解耦，首版不接模型API。
+
+## 独立证据与容量侧车批次
+
+[ADR-009](decisions/ADR-009-independent-project-evidence-and-size-ledger.md)冻结L项目文件名标记候选和M容量观察账本，均先调用已验收G严格验证原始facts/context。L保持filename_only/未验证/保护，M区分观察逻辑长度、可信身份分组与未知/冲突，allocated/reclaimable仍未知，不回写旧报告或接K页面。两票在独立r1树通过实际A/G离线输入预检并READY，产品尚未实现；K补单仍原线，见[派前回执](dispatch/wave1/EVIDENCE-BATCH-READY-REPORT.md)。

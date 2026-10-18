@@ -97,7 +97,9 @@ READY只表示总控已准备好，不表示用户已转贴。得到用户已贴
 
 ## 当前落实程度
 
-最新收单：J受阻来自总控bridge产物选择器，原失败保留；总控工具勘误后在隔离d14e1f1完成实际重复产物回归和13真实快照比较，未修改产品或原helper/锁，已VERIFIED（Windows）。K保持原单RUNNING待回执，没有其他未结票；J→K真实页面后验。见[J验收报告](acceptance/wave1/controller/WATER-W1-J-REVIEW-20261018.md)。
+最新派前：L项目标记证据和M容量观察账本两票已完成正式冻结/独立树/实际离线baseline，READY待用户分别外贴；共同r1基线82e1580，38新锁/七旧锁合计151唯一文件，10+15合成输入及11错误实测通过。新产品未实现、五测试未运行，L/M无物理fixture或真实用户目录权限；K补单原任务对象/基线/helper/132旧冻结保持RUNNING，无自动实现者。具体按[两票正式派前回执](dispatch/wave1/EVIDENCE-BATCH-READY-REPORT.md)，不从准备文件推断已有人执行。
+
+最新收单：K接收e717519、实现7d00355，原三门/五测试、104独立边界及隔离三负控/逐次完整五测恢复通过；隔离f16972f真实J13快照与独立链路逐值一致，但K拒绝entry-budget合法根issue空串，整个bundle未能启动服务，真实J→K页面未验收。K补充单01已见启动审计与精确回归输入，现记RUNNING，主线未纳入K产品，A–J及四旧补单保持VERIFIED（Windows）。132冻结、369份K和359份J交付字节保持；44内容快照通过，仅总控新树由冻结prepare创建11+6/81717字节合成run并全部保留。真实用户scope、分类、桌面/macOS及删除未验证，M1未完成。见[K验收报告](acceptance/wave1/controller/WATER-W1-K-REVIEW-20261018.md)。原J工具失败/勘误历史保留，本次为已复现的K产品缺陷，按编号补单回派。
 
 此前派前（历史）：旧九单A–I和四补单均已验收，无旧漏派/在途；按ADR-008新增J/K，两独立r1树及65新冻结/六旧锁132唯一文件，J依赖实际受控链路与K资产/隔离Chrome基线通过，READY待分别外贴。仅冻结prepare在J本树.local创建一批夹具；K无物理fixture权限。新产品未实现，没有自动实现者；[派前回执](dispatch/wave1/SESSION-BATCH-READY-REPORT.md)优先于旧READY/返工描述。新helper保留完整红/恢复与源码，final核对证据字节，避免将事后负控称作已证明的历史先红。
 

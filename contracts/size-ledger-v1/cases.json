@@ -1,0 +1,2529 @@
+{
+  "fixture_version": "water.size-ledger-v1.cases",
+  "golden_cases": [
+    {
+      "id": "empty-set",
+      "input": {
+        "facts_version": "water.scan-lab.v1",
+        "run_id": "run-empty-set",
+        "case_id": "empty-set",
+        "status": "completed",
+        "visited_entries": 0,
+        "recorded_entries": 0,
+        "scopes": [
+          {
+            "scope_id": "scope-1",
+            "relative_root": "scope",
+            "coverage": "complete",
+            "visited_entries": 0,
+            "entries": [],
+            "issues": []
+          }
+        ]
+      },
+      "context": {
+        "scan_id": "evidence-empty-set",
+        "platform": "windows",
+        "scopes": [
+          {
+            "scope_id": "scope-1",
+            "label": "Synthetic scope-1",
+            "origin": "user_selected"
+          }
+        ]
+      },
+      "expected": {
+        "ledger_version": "water.size-ledger.v1",
+        "counts": {
+          "scopes": 1,
+          "entries": 0,
+          "file_entries": 0,
+          "non_file_entries": 0,
+          "known_identity_file_entries": 0,
+          "unknown_identity_file_entries": 0,
+          "known_identity_groups": 0,
+          "conflicting_identity_groups": 0
+        },
+        "scope_coverage_complete": true,
+        "observed_file_logical_bytes": "0",
+        "known_identity_logical_bytes": "0",
+        "unknown_identity_observed_logical_bytes": "0",
+        "identity_deduplicated_logical_bytes": "0",
+        "observed_set_identity_complete": true,
+        "volume_unique_allocated_bytes": null,
+        "reclaimable_bytes": null,
+        "identity_groups": [],
+        "unknown_identity_entries": [],
+        "read_only": true,
+        "scan_id": "evidence-empty-set",
+        "source_run_id": "run-empty-set",
+        "platform": "windows",
+        "status": "completed",
+        "source_facts": {
+          "facts_version": "water.scan-lab.v1",
+          "run_id": "run-empty-set",
+          "case_id": "empty-set",
+          "status": "completed",
+          "visited_entries": 0,
+          "recorded_entries": 0,
+          "scopes": [
+            {
+              "scope_id": "scope-1",
+              "relative_root": "scope",
+              "coverage": "complete",
+              "visited_entries": 0,
+              "entries": [],
+              "issues": []
+            }
+          ]
+        },
+        "source_totals": {
+          "allocated_bytes": null,
+          "coverage_complete": true,
+          "logical_bytes": null,
+          "method": "unavailable",
+          "scanned_entries": 0,
+          "skipped_entries": 0
+        }
+      }
+    },
+    {
+      "id": "unknown-pair",
+      "input": {
+        "facts_version": "water.scan-lab.v1",
+        "run_id": "run-unknown-pair",
+        "case_id": "unknown-pair",
+        "status": "completed",
+        "visited_entries": 2,
+        "recorded_entries": 2,
+        "scopes": [
+          {
+            "scope_id": "scope-1",
+            "relative_root": "scope",
+            "coverage": "complete",
+            "visited_entries": 2,
+            "entries": [
+              {
+                "relative_path": "a/same.bin",
+                "depth": 2,
+                "kind": "file",
+                "logical_bytes": "2",
+                "allocated_bytes": null,
+                "identity": {
+                  "kind": "unknown",
+                  "device": null,
+                  "inode": null,
+                  "link_count": null
+                }
+              },
+              {
+                "relative_path": "b/same.bin",
+                "depth": 2,
+                "kind": "file",
+                "logical_bytes": "2",
+                "allocated_bytes": null,
+                "identity": {
+                  "kind": "unknown",
+                  "device": null,
+                  "inode": null,
+                  "link_count": null
+                }
+              }
+            ],
+            "issues": []
+          }
+        ]
+      },
+      "context": {
+        "scan_id": "evidence-unknown-pair",
+        "platform": "windows",
+        "scopes": [
+          {
+            "scope_id": "scope-1",
+            "label": "Synthetic scope-1",
+            "origin": "user_selected"
+          }
+        ]
+      },
+      "expected": {
+        "ledger_version": "water.size-ledger.v1",
+        "counts": {
+          "scopes": 1,
+          "entries": 2,
+          "file_entries": 2,
+          "non_file_entries": 0,
+          "known_identity_file_entries": 0,
+          "unknown_identity_file_entries": 2,
+          "known_identity_groups": 0,
+          "conflicting_identity_groups": 0
+        },
+        "scope_coverage_complete": true,
+        "observed_file_logical_bytes": "4",
+        "known_identity_logical_bytes": "0",
+        "unknown_identity_observed_logical_bytes": "4",
+        "identity_deduplicated_logical_bytes": null,
+        "observed_set_identity_complete": false,
+        "volume_unique_allocated_bytes": null,
+        "reclaimable_bytes": null,
+        "identity_groups": [],
+        "unknown_identity_entries": [
+          {
+            "finding_id": "entry-1",
+            "scope_id": "scope-1"
+          },
+          {
+            "finding_id": "entry-2",
+            "scope_id": "scope-1"
+          }
+        ],
+        "read_only": true,
+        "scan_id": "evidence-unknown-pair",
+        "source_run_id": "run-unknown-pair",
+        "platform": "windows",
+        "status": "completed",
+        "source_facts": {
+          "facts_version": "water.scan-lab.v1",
+          "run_id": "run-unknown-pair",
+          "case_id": "unknown-pair",
+          "status": "completed",
+          "visited_entries": 2,
+          "recorded_entries": 2,
+          "scopes": [
+            {
+              "scope_id": "scope-1",
+              "relative_root": "scope",
+              "coverage": "complete",
+              "visited_entries": 2,
+              "entries": [
+                {
+                  "relative_path": "a/same.bin",
+                  "depth": 2,
+                  "kind": "file",
+                  "logical_bytes": "2",
+                  "allocated_bytes": null,
+                  "identity": {
+                    "kind": "unknown",
+                    "device": null,
+                    "inode": null,
+                    "link_count": null
+                  }
+                },
+                {
+                  "relative_path": "b/same.bin",
+                  "depth": 2,
+                  "kind": "file",
+                  "logical_bytes": "2",
+                  "allocated_bytes": null,
+                  "identity": {
+                    "kind": "unknown",
+                    "device": null,
+                    "inode": null,
+                    "link_count": null
+                  }
+                }
+              ],
+              "issues": []
+            }
+          ]
+        },
+        "source_totals": {
+          "allocated_bytes": null,
+          "coverage_complete": true,
+          "logical_bytes": null,
+          "method": "unavailable",
+          "scanned_entries": 2,
+          "skipped_entries": 0
+        }
+      }
+    },
+    {
+      "id": "bigint-adjacent",
+      "input": {
+        "facts_version": "water.scan-lab.v1",
+        "run_id": "run-bigint-adjacent",
+        "case_id": "bigint-adjacent",
+        "status": "completed",
+        "visited_entries": 2,
+        "recorded_entries": 2,
+        "scopes": [
+          {
+            "scope_id": "scope-1",
+            "relative_root": "scope",
+            "coverage": "complete",
+            "visited_entries": 2,
+            "entries": [
+              {
+                "relative_path": "a",
+                "depth": 1,
+                "kind": "file",
+                "logical_bytes": "9007199254740992",
+                "allocated_bytes": null,
+                "identity": {
+                  "kind": "unknown",
+                  "device": null,
+                  "inode": null,
+                  "link_count": null
+                }
+              },
+              {
+                "relative_path": "b",
+                "depth": 1,
+                "kind": "file",
+                "logical_bytes": "9007199254740993",
+                "allocated_bytes": null,
+                "identity": {
+                  "kind": "unknown",
+                  "device": null,
+                  "inode": null,
+                  "link_count": null
+                }
+              }
+            ],
+            "issues": []
+          }
+        ]
+      },
+      "context": {
+        "scan_id": "evidence-bigint-adjacent",
+        "platform": "windows",
+        "scopes": [
+          {
+            "scope_id": "scope-1",
+            "label": "Synthetic scope-1",
+            "origin": "user_selected"
+          }
+        ]
+      },
+      "expected": {
+        "ledger_version": "water.size-ledger.v1",
+        "counts": {
+          "scopes": 1,
+          "entries": 2,
+          "file_entries": 2,
+          "non_file_entries": 0,
+          "known_identity_file_entries": 0,
+          "unknown_identity_file_entries": 2,
+          "known_identity_groups": 0,
+          "conflicting_identity_groups": 0
+        },
+        "scope_coverage_complete": true,
+        "observed_file_logical_bytes": "18014398509481985",
+        "known_identity_logical_bytes": "0",
+        "unknown_identity_observed_logical_bytes": "18014398509481985",
+        "identity_deduplicated_logical_bytes": null,
+        "observed_set_identity_complete": false,
+        "volume_unique_allocated_bytes": null,
+        "reclaimable_bytes": null,
+        "identity_groups": [],
+        "unknown_identity_entries": [
+          {
+            "finding_id": "entry-1",
+            "scope_id": "scope-1"
+          },
+          {
+            "finding_id": "entry-2",
+            "scope_id": "scope-1"
+          }
+        ],
+        "read_only": true,
+        "scan_id": "evidence-bigint-adjacent",
+        "source_run_id": "run-bigint-adjacent",
+        "platform": "windows",
+        "status": "completed",
+        "source_facts": {
+          "facts_version": "water.scan-lab.v1",
+          "run_id": "run-bigint-adjacent",
+          "case_id": "bigint-adjacent",
+          "status": "completed",
+          "visited_entries": 2,
+          "recorded_entries": 2,
+          "scopes": [
+            {
+              "scope_id": "scope-1",
+              "relative_root": "scope",
+              "coverage": "complete",
+              "visited_entries": 2,
+              "entries": [
+                {
+                  "relative_path": "a",
+                  "depth": 1,
+                  "kind": "file",
+                  "logical_bytes": "9007199254740992",
+                  "allocated_bytes": null,
+                  "identity": {
+                    "kind": "unknown",
+                    "device": null,
+                    "inode": null,
+                    "link_count": null
+                  }
+                },
+                {
+                  "relative_path": "b",
+                  "depth": 1,
+                  "kind": "file",
+                  "logical_bytes": "9007199254740993",
+                  "allocated_bytes": null,
+                  "identity": {
+                    "kind": "unknown",
+                    "device": null,
+                    "inode": null,
+                    "link_count": null
+                  }
+                }
+              ],
+              "issues": []
+            }
+          ]
+        },
+        "source_totals": {
+          "allocated_bytes": null,
+          "coverage_complete": true,
+          "logical_bytes": null,
+          "method": "unavailable",
+          "scanned_entries": 2,
+          "skipped_entries": 0
+        }
+      }
+    },
+    {
+      "id": "beyond-u64",
+      "input": {
+        "facts_version": "water.scan-lab.v1",
+        "run_id": "run-beyond-u64",
+        "case_id": "beyond-u64",
+        "status": "completed",
+        "visited_entries": 2,
+        "recorded_entries": 2,
+        "scopes": [
+          {
+            "scope_id": "scope-1",
+            "relative_root": "scope",
+            "coverage": "complete",
+            "visited_entries": 2,
+            "entries": [
+              {
+                "relative_path": "a",
+                "depth": 1,
+                "kind": "file",
+                "logical_bytes": "18446744073709551615",
+                "allocated_bytes": null,
+                "identity": {
+                  "kind": "unknown",
+                  "device": null,
+                  "inode": null,
+                  "link_count": null
+                }
+              },
+              {
+                "relative_path": "b",
+                "depth": 1,
+                "kind": "file",
+                "logical_bytes": "18446744073709551615",
+                "allocated_bytes": null,
+                "identity": {
+                  "kind": "unknown",
+                  "device": null,
+                  "inode": null,
+                  "link_count": null
+                }
+              }
+            ],
+            "issues": []
+          }
+        ]
+      },
+      "context": {
+        "scan_id": "evidence-beyond-u64",
+        "platform": "windows",
+        "scopes": [
+          {
+            "scope_id": "scope-1",
+            "label": "Synthetic scope-1",
+            "origin": "user_selected"
+          }
+        ]
+      },
+      "expected": {
+        "ledger_version": "water.size-ledger.v1",
+        "counts": {
+          "scopes": 1,
+          "entries": 2,
+          "file_entries": 2,
+          "non_file_entries": 0,
+          "known_identity_file_entries": 0,
+          "unknown_identity_file_entries": 2,
+          "known_identity_groups": 0,
+          "conflicting_identity_groups": 0
+        },
+        "scope_coverage_complete": true,
+        "observed_file_logical_bytes": "36893488147419103230",
+        "known_identity_logical_bytes": "0",
+        "unknown_identity_observed_logical_bytes": "36893488147419103230",
+        "identity_deduplicated_logical_bytes": null,
+        "observed_set_identity_complete": false,
+        "volume_unique_allocated_bytes": null,
+        "reclaimable_bytes": null,
+        "identity_groups": [],
+        "unknown_identity_entries": [
+          {
+            "finding_id": "entry-1",
+            "scope_id": "scope-1"
+          },
+          {
+            "finding_id": "entry-2",
+            "scope_id": "scope-1"
+          }
+        ],
+        "read_only": true,
+        "scan_id": "evidence-beyond-u64",
+        "source_run_id": "run-beyond-u64",
+        "platform": "windows",
+        "status": "completed",
+        "source_facts": {
+          "facts_version": "water.scan-lab.v1",
+          "run_id": "run-beyond-u64",
+          "case_id": "beyond-u64",
+          "status": "completed",
+          "visited_entries": 2,
+          "recorded_entries": 2,
+          "scopes": [
+            {
+              "scope_id": "scope-1",
+              "relative_root": "scope",
+              "coverage": "complete",
+              "visited_entries": 2,
+              "entries": [
+                {
+                  "relative_path": "a",
+                  "depth": 1,
+                  "kind": "file",
+                  "logical_bytes": "18446744073709551615",
+                  "allocated_bytes": null,
+                  "identity": {
+                    "kind": "unknown",
+                    "device": null,
+                    "inode": null,
+                    "link_count": null
+                  }
+                },
+                {
+                  "relative_path": "b",
+                  "depth": 1,
+                  "kind": "file",
+                  "logical_bytes": "18446744073709551615",
+                  "allocated_bytes": null,
+                  "identity": {
+                    "kind": "unknown",
+                    "device": null,
+                    "inode": null,
+                    "link_count": null
+                  }
+                }
+              ],
+              "issues": []
+            }
+          ]
+        },
+        "source_totals": {
+          "allocated_bytes": null,
+          "coverage_complete": true,
+          "logical_bytes": null,
+          "method": "unavailable",
+          "scanned_entries": 2,
+          "skipped_entries": 0
+        }
+      }
+    },
+    {
+      "id": "known-hardlinks",
+      "input": {
+        "facts_version": "water.scan-lab.v1",
+        "run_id": "run-known-hardlinks",
+        "case_id": "known-hardlinks",
+        "status": "completed",
+        "visited_entries": 2,
+        "recorded_entries": 2,
+        "scopes": [
+          {
+            "scope_id": "scope-1",
+            "relative_root": "scope",
+            "coverage": "complete",
+            "visited_entries": 2,
+            "entries": [
+              {
+                "relative_path": "a",
+                "depth": 1,
+                "kind": "file",
+                "logical_bytes": "10",
+                "allocated_bytes": null,
+                "identity": {
+                  "kind": "unix",
+                  "device": "1",
+                  "inode": "7",
+                  "link_count": "2"
+                }
+              },
+              {
+                "relative_path": "b",
+                "depth": 1,
+                "kind": "file",
+                "logical_bytes": "10",
+                "allocated_bytes": null,
+                "identity": {
+                  "kind": "unix",
+                  "device": "1",
+                  "inode": "7",
+                  "link_count": "2"
+                }
+              }
+            ],
+            "issues": []
+          }
+        ]
+      },
+      "context": {
+        "scan_id": "evidence-known-hardlinks",
+        "platform": "macos",
+        "scopes": [
+          {
+            "scope_id": "scope-1",
+            "label": "Synthetic scope-1",
+            "origin": "user_selected"
+          }
+        ]
+      },
+      "expected": {
+        "ledger_version": "water.size-ledger.v1",
+        "counts": {
+          "scopes": 1,
+          "entries": 2,
+          "file_entries": 2,
+          "non_file_entries": 0,
+          "known_identity_file_entries": 2,
+          "unknown_identity_file_entries": 0,
+          "known_identity_groups": 1,
+          "conflicting_identity_groups": 0
+        },
+        "scope_coverage_complete": true,
+        "observed_file_logical_bytes": "20",
+        "known_identity_logical_bytes": "10",
+        "unknown_identity_observed_logical_bytes": "0",
+        "identity_deduplicated_logical_bytes": "10",
+        "observed_set_identity_complete": true,
+        "volume_unique_allocated_bytes": null,
+        "reclaimable_bytes": null,
+        "identity_groups": [
+          {
+            "device": "1",
+            "inode": "7",
+            "state": "consistent",
+            "logical_bytes": "10",
+            "logical_byte_values": [
+              "10"
+            ],
+            "link_count_values": [
+              "2"
+            ],
+            "entry_refs": [
+              {
+                "finding_id": "entry-1",
+                "scope_id": "scope-1"
+              },
+              {
+                "finding_id": "entry-2",
+                "scope_id": "scope-1"
+              }
+            ]
+          }
+        ],
+        "unknown_identity_entries": [],
+        "read_only": true,
+        "scan_id": "evidence-known-hardlinks",
+        "source_run_id": "run-known-hardlinks",
+        "platform": "macos",
+        "status": "completed",
+        "source_facts": {
+          "facts_version": "water.scan-lab.v1",
+          "run_id": "run-known-hardlinks",
+          "case_id": "known-hardlinks",
+          "status": "completed",
+          "visited_entries": 2,
+          "recorded_entries": 2,
+          "scopes": [
+            {
+              "scope_id": "scope-1",
+              "relative_root": "scope",
+              "coverage": "complete",
+              "visited_entries": 2,
+              "entries": [
+                {
+                  "relative_path": "a",
+                  "depth": 1,
+                  "kind": "file",
+                  "logical_bytes": "10",
+                  "allocated_bytes": null,
+                  "identity": {
+                    "kind": "unix",
+                    "device": "1",
+                    "inode": "7",
+                    "link_count": "2"
+                  }
+                },
+                {
+                  "relative_path": "b",
+                  "depth": 1,
+                  "kind": "file",
+                  "logical_bytes": "10",
+                  "allocated_bytes": null,
+                  "identity": {
+                    "kind": "unix",
+                    "device": "1",
+                    "inode": "7",
+                    "link_count": "2"
+                  }
+                }
+              ],
+              "issues": []
+            }
+          ]
+        },
+        "source_totals": {
+          "allocated_bytes": null,
+          "coverage_complete": true,
+          "logical_bytes": null,
+          "method": "unavailable",
+          "scanned_entries": 2,
+          "skipped_entries": 0
+        }
+      }
+    },
+    {
+      "id": "known-cross-scope",
+      "input": {
+        "facts_version": "water.scan-lab.v1",
+        "run_id": "run-known-cross-scope",
+        "case_id": "known-cross-scope",
+        "status": "completed",
+        "visited_entries": 2,
+        "recorded_entries": 2,
+        "scopes": [
+          {
+            "scope_id": "scope-1",
+            "relative_root": "scope",
+            "coverage": "complete",
+            "visited_entries": 1,
+            "entries": [
+              {
+                "relative_path": "same",
+                "depth": 1,
+                "kind": "file",
+                "logical_bytes": "10",
+                "allocated_bytes": null,
+                "identity": {
+                  "kind": "unix",
+                  "device": "1",
+                  "inode": "7",
+                  "link_count": "2"
+                }
+              }
+            ],
+            "issues": []
+          },
+          {
+            "scope_id": "scope-2",
+            "relative_root": "scope",
+            "coverage": "complete",
+            "visited_entries": 1,
+            "entries": [
+              {
+                "relative_path": "same",
+                "depth": 1,
+                "kind": "file",
+                "logical_bytes": "10",
+                "allocated_bytes": null,
+                "identity": {
+                  "kind": "unix",
+                  "device": "1",
+                  "inode": "7",
+                  "link_count": "2"
+                }
+              }
+            ],
+            "issues": []
+          }
+        ]
+      },
+      "context": {
+        "scan_id": "evidence-known-cross-scope",
+        "platform": "macos",
+        "scopes": [
+          {
+            "scope_id": "scope-1",
+            "label": "Synthetic scope-1",
+            "origin": "user_selected"
+          },
+          {
+            "scope_id": "scope-2",
+            "label": "Synthetic scope-2",
+            "origin": "user_selected"
+          }
+        ]
+      },
+      "expected": {
+        "ledger_version": "water.size-ledger.v1",
+        "counts": {
+          "scopes": 2,
+          "entries": 2,
+          "file_entries": 2,
+          "non_file_entries": 0,
+          "known_identity_file_entries": 2,
+          "unknown_identity_file_entries": 0,
+          "known_identity_groups": 1,
+          "conflicting_identity_groups": 0
+        },
+        "scope_coverage_complete": true,
+        "observed_file_logical_bytes": "20",
+        "known_identity_logical_bytes": "10",
+        "unknown_identity_observed_logical_bytes": "0",
+        "identity_deduplicated_logical_bytes": "10",
+        "observed_set_identity_complete": true,
+        "volume_unique_allocated_bytes": null,
+        "reclaimable_bytes": null,
+        "identity_groups": [
+          {
+            "device": "1",
+            "inode": "7",
+            "state": "consistent",
+            "logical_bytes": "10",
+            "logical_byte_values": [
+              "10"
+            ],
+            "link_count_values": [
+              "2"
+            ],
+            "entry_refs": [
+              {
+                "finding_id": "entry-1",
+                "scope_id": "scope-1"
+              },
+              {
+                "finding_id": "entry-2",
+                "scope_id": "scope-2"
+              }
+            ]
+          }
+        ],
+        "unknown_identity_entries": [],
+        "read_only": true,
+        "scan_id": "evidence-known-cross-scope",
+        "source_run_id": "run-known-cross-scope",
+        "platform": "macos",
+        "status": "completed",
+        "source_facts": {
+          "facts_version": "water.scan-lab.v1",
+          "run_id": "run-known-cross-scope",
+          "case_id": "known-cross-scope",
+          "status": "completed",
+          "visited_entries": 2,
+          "recorded_entries": 2,
+          "scopes": [
+            {
+              "scope_id": "scope-1",
+              "relative_root": "scope",
+              "coverage": "complete",
+              "visited_entries": 1,
+              "entries": [
+                {
+                  "relative_path": "same",
+                  "depth": 1,
+                  "kind": "file",
+                  "logical_bytes": "10",
+                  "allocated_bytes": null,
+                  "identity": {
+                    "kind": "unix",
+                    "device": "1",
+                    "inode": "7",
+                    "link_count": "2"
+                  }
+                }
+              ],
+              "issues": []
+            },
+            {
+              "scope_id": "scope-2",
+              "relative_root": "scope",
+              "coverage": "complete",
+              "visited_entries": 1,
+              "entries": [
+                {
+                  "relative_path": "same",
+                  "depth": 1,
+                  "kind": "file",
+                  "logical_bytes": "10",
+                  "allocated_bytes": null,
+                  "identity": {
+                    "kind": "unix",
+                    "device": "1",
+                    "inode": "7",
+                    "link_count": "2"
+                  }
+                }
+              ],
+              "issues": []
+            }
+          ]
+        },
+        "source_totals": {
+          "allocated_bytes": null,
+          "coverage_complete": true,
+          "logical_bytes": null,
+          "method": "unavailable",
+          "scanned_entries": 2,
+          "skipped_entries": 0
+        }
+      }
+    },
+    {
+      "id": "different-devices",
+      "input": {
+        "facts_version": "water.scan-lab.v1",
+        "run_id": "run-different-devices",
+        "case_id": "different-devices",
+        "status": "completed",
+        "visited_entries": 2,
+        "recorded_entries": 2,
+        "scopes": [
+          {
+            "scope_id": "scope-1",
+            "relative_root": "scope",
+            "coverage": "complete",
+            "visited_entries": 2,
+            "entries": [
+              {
+                "relative_path": "a",
+                "depth": 1,
+                "kind": "file",
+                "logical_bytes": "10",
+                "allocated_bytes": null,
+                "identity": {
+                  "kind": "unix",
+                  "device": "1",
+                  "inode": "7",
+                  "link_count": "2"
+                }
+              },
+              {
+                "relative_path": "b",
+                "depth": 1,
+                "kind": "file",
+                "logical_bytes": "10",
+                "allocated_bytes": null,
+                "identity": {
+                  "kind": "unix",
+                  "device": "2",
+                  "inode": "7",
+                  "link_count": "2"
+                }
+              }
+            ],
+            "issues": []
+          }
+        ]
+      },
+      "context": {
+        "scan_id": "evidence-different-devices",
+        "platform": "macos",
+        "scopes": [
+          {
+            "scope_id": "scope-1",
+            "label": "Synthetic scope-1",
+            "origin": "user_selected"
+          }
+        ]
+      },
+      "expected": {
+        "ledger_version": "water.size-ledger.v1",
+        "counts": {
+          "scopes": 1,
+          "entries": 2,
+          "file_entries": 2,
+          "non_file_entries": 0,
+          "known_identity_file_entries": 2,
+          "unknown_identity_file_entries": 0,
+          "known_identity_groups": 2,
+          "conflicting_identity_groups": 0
+        },
+        "scope_coverage_complete": true,
+        "observed_file_logical_bytes": "20",
+        "known_identity_logical_bytes": "20",
+        "unknown_identity_observed_logical_bytes": "0",
+        "identity_deduplicated_logical_bytes": "20",
+        "observed_set_identity_complete": true,
+        "volume_unique_allocated_bytes": null,
+        "reclaimable_bytes": null,
+        "identity_groups": [
+          {
+            "device": "1",
+            "inode": "7",
+            "state": "consistent",
+            "logical_bytes": "10",
+            "logical_byte_values": [
+              "10"
+            ],
+            "link_count_values": [
+              "2"
+            ],
+            "entry_refs": [
+              {
+                "finding_id": "entry-1",
+                "scope_id": "scope-1"
+              }
+            ]
+          },
+          {
+            "device": "2",
+            "inode": "7",
+            "state": "consistent",
+            "logical_bytes": "10",
+            "logical_byte_values": [
+              "10"
+            ],
+            "link_count_values": [
+              "2"
+            ],
+            "entry_refs": [
+              {
+                "finding_id": "entry-2",
+                "scope_id": "scope-1"
+              }
+            ]
+          }
+        ],
+        "unknown_identity_entries": [],
+        "read_only": true,
+        "scan_id": "evidence-different-devices",
+        "source_run_id": "run-different-devices",
+        "platform": "macos",
+        "status": "completed",
+        "source_facts": {
+          "facts_version": "water.scan-lab.v1",
+          "run_id": "run-different-devices",
+          "case_id": "different-devices",
+          "status": "completed",
+          "visited_entries": 2,
+          "recorded_entries": 2,
+          "scopes": [
+            {
+              "scope_id": "scope-1",
+              "relative_root": "scope",
+              "coverage": "complete",
+              "visited_entries": 2,
+              "entries": [
+                {
+                  "relative_path": "a",
+                  "depth": 1,
+                  "kind": "file",
+                  "logical_bytes": "10",
+                  "allocated_bytes": null,
+                  "identity": {
+                    "kind": "unix",
+                    "device": "1",
+                    "inode": "7",
+                    "link_count": "2"
+                  }
+                },
+                {
+                  "relative_path": "b",
+                  "depth": 1,
+                  "kind": "file",
+                  "logical_bytes": "10",
+                  "allocated_bytes": null,
+                  "identity": {
+                    "kind": "unix",
+                    "device": "2",
+                    "inode": "7",
+                    "link_count": "2"
+                  }
+                }
+              ],
+              "issues": []
+            }
+          ]
+        },
+        "source_totals": {
+          "allocated_bytes": null,
+          "coverage_complete": true,
+          "logical_bytes": null,
+          "method": "unavailable",
+          "scanned_entries": 2,
+          "skipped_entries": 0
+        }
+      }
+    },
+    {
+      "id": "length-conflict",
+      "input": {
+        "facts_version": "water.scan-lab.v1",
+        "run_id": "run-length-conflict",
+        "case_id": "length-conflict",
+        "status": "completed",
+        "visited_entries": 2,
+        "recorded_entries": 2,
+        "scopes": [
+          {
+            "scope_id": "scope-1",
+            "relative_root": "scope",
+            "coverage": "complete",
+            "visited_entries": 2,
+            "entries": [
+              {
+                "relative_path": "a",
+                "depth": 1,
+                "kind": "file",
+                "logical_bytes": "10",
+                "allocated_bytes": null,
+                "identity": {
+                  "kind": "unix",
+                  "device": "1",
+                  "inode": "7",
+                  "link_count": "2"
+                }
+              },
+              {
+                "relative_path": "b",
+                "depth": 1,
+                "kind": "file",
+                "logical_bytes": "11",
+                "allocated_bytes": null,
+                "identity": {
+                  "kind": "unix",
+                  "device": "1",
+                  "inode": "7",
+                  "link_count": "2"
+                }
+              }
+            ],
+            "issues": []
+          }
+        ]
+      },
+      "context": {
+        "scan_id": "evidence-length-conflict",
+        "platform": "macos",
+        "scopes": [
+          {
+            "scope_id": "scope-1",
+            "label": "Synthetic scope-1",
+            "origin": "user_selected"
+          }
+        ]
+      },
+      "expected": {
+        "ledger_version": "water.size-ledger.v1",
+        "counts": {
+          "scopes": 1,
+          "entries": 2,
+          "file_entries": 2,
+          "non_file_entries": 0,
+          "known_identity_file_entries": 2,
+          "unknown_identity_file_entries": 0,
+          "known_identity_groups": 1,
+          "conflicting_identity_groups": 1
+        },
+        "scope_coverage_complete": true,
+        "observed_file_logical_bytes": "21",
+        "known_identity_logical_bytes": null,
+        "unknown_identity_observed_logical_bytes": "0",
+        "identity_deduplicated_logical_bytes": null,
+        "observed_set_identity_complete": false,
+        "volume_unique_allocated_bytes": null,
+        "reclaimable_bytes": null,
+        "identity_groups": [
+          {
+            "device": "1",
+            "inode": "7",
+            "state": "conflicting",
+            "logical_bytes": null,
+            "logical_byte_values": [
+              "10",
+              "11"
+            ],
+            "link_count_values": [
+              "2"
+            ],
+            "entry_refs": [
+              {
+                "finding_id": "entry-1",
+                "scope_id": "scope-1"
+              },
+              {
+                "finding_id": "entry-2",
+                "scope_id": "scope-1"
+              }
+            ]
+          }
+        ],
+        "unknown_identity_entries": [],
+        "read_only": true,
+        "scan_id": "evidence-length-conflict",
+        "source_run_id": "run-length-conflict",
+        "platform": "macos",
+        "status": "completed",
+        "source_facts": {
+          "facts_version": "water.scan-lab.v1",
+          "run_id": "run-length-conflict",
+          "case_id": "length-conflict",
+          "status": "completed",
+          "visited_entries": 2,
+          "recorded_entries": 2,
+          "scopes": [
+            {
+              "scope_id": "scope-1",
+              "relative_root": "scope",
+              "coverage": "complete",
+              "visited_entries": 2,
+              "entries": [
+                {
+                  "relative_path": "a",
+                  "depth": 1,
+                  "kind": "file",
+                  "logical_bytes": "10",
+                  "allocated_bytes": null,
+                  "identity": {
+                    "kind": "unix",
+                    "device": "1",
+                    "inode": "7",
+                    "link_count": "2"
+                  }
+                },
+                {
+                  "relative_path": "b",
+                  "depth": 1,
+                  "kind": "file",
+                  "logical_bytes": "11",
+                  "allocated_bytes": null,
+                  "identity": {
+                    "kind": "unix",
+                    "device": "1",
+                    "inode": "7",
+                    "link_count": "2"
+                  }
+                }
+              ],
+              "issues": []
+            }
+          ]
+        },
+        "source_totals": {
+          "allocated_bytes": null,
+          "coverage_complete": true,
+          "logical_bytes": null,
+          "method": "unavailable",
+          "scanned_entries": 2,
+          "skipped_entries": 0
+        }
+      }
+    },
+    {
+      "id": "link-count-conflict",
+      "input": {
+        "facts_version": "water.scan-lab.v1",
+        "run_id": "run-link-count-conflict",
+        "case_id": "link-count-conflict",
+        "status": "completed",
+        "visited_entries": 2,
+        "recorded_entries": 2,
+        "scopes": [
+          {
+            "scope_id": "scope-1",
+            "relative_root": "scope",
+            "coverage": "complete",
+            "visited_entries": 2,
+            "entries": [
+              {
+                "relative_path": "a",
+                "depth": 1,
+                "kind": "file",
+                "logical_bytes": "10",
+                "allocated_bytes": null,
+                "identity": {
+                  "kind": "unix",
+                  "device": "1",
+                  "inode": "7",
+                  "link_count": "2"
+                }
+              },
+              {
+                "relative_path": "b",
+                "depth": 1,
+                "kind": "file",
+                "logical_bytes": "10",
+                "allocated_bytes": null,
+                "identity": {
+                  "kind": "unix",
+                  "device": "1",
+                  "inode": "7",
+                  "link_count": "3"
+                }
+              }
+            ],
+            "issues": []
+          }
+        ]
+      },
+      "context": {
+        "scan_id": "evidence-link-count-conflict",
+        "platform": "macos",
+        "scopes": [
+          {
+            "scope_id": "scope-1",
+            "label": "Synthetic scope-1",
+            "origin": "user_selected"
+          }
+        ]
+      },
+      "expected": {
+        "ledger_version": "water.size-ledger.v1",
+        "counts": {
+          "scopes": 1,
+          "entries": 2,
+          "file_entries": 2,
+          "non_file_entries": 0,
+          "known_identity_file_entries": 2,
+          "unknown_identity_file_entries": 0,
+          "known_identity_groups": 1,
+          "conflicting_identity_groups": 1
+        },
+        "scope_coverage_complete": true,
+        "observed_file_logical_bytes": "20",
+        "known_identity_logical_bytes": null,
+        "unknown_identity_observed_logical_bytes": "0",
+        "identity_deduplicated_logical_bytes": null,
+        "observed_set_identity_complete": false,
+        "volume_unique_allocated_bytes": null,
+        "reclaimable_bytes": null,
+        "identity_groups": [
+          {
+            "device": "1",
+            "inode": "7",
+            "state": "conflicting",
+            "logical_bytes": null,
+            "logical_byte_values": [
+              "10"
+            ],
+            "link_count_values": [
+              "2",
+              "3"
+            ],
+            "entry_refs": [
+              {
+                "finding_id": "entry-1",
+                "scope_id": "scope-1"
+              },
+              {
+                "finding_id": "entry-2",
+                "scope_id": "scope-1"
+              }
+            ]
+          }
+        ],
+        "unknown_identity_entries": [],
+        "read_only": true,
+        "scan_id": "evidence-link-count-conflict",
+        "source_run_id": "run-link-count-conflict",
+        "platform": "macos",
+        "status": "completed",
+        "source_facts": {
+          "facts_version": "water.scan-lab.v1",
+          "run_id": "run-link-count-conflict",
+          "case_id": "link-count-conflict",
+          "status": "completed",
+          "visited_entries": 2,
+          "recorded_entries": 2,
+          "scopes": [
+            {
+              "scope_id": "scope-1",
+              "relative_root": "scope",
+              "coverage": "complete",
+              "visited_entries": 2,
+              "entries": [
+                {
+                  "relative_path": "a",
+                  "depth": 1,
+                  "kind": "file",
+                  "logical_bytes": "10",
+                  "allocated_bytes": null,
+                  "identity": {
+                    "kind": "unix",
+                    "device": "1",
+                    "inode": "7",
+                    "link_count": "2"
+                  }
+                },
+                {
+                  "relative_path": "b",
+                  "depth": 1,
+                  "kind": "file",
+                  "logical_bytes": "10",
+                  "allocated_bytes": null,
+                  "identity": {
+                    "kind": "unix",
+                    "device": "1",
+                    "inode": "7",
+                    "link_count": "3"
+                  }
+                }
+              ],
+              "issues": []
+            }
+          ]
+        },
+        "source_totals": {
+          "allocated_bytes": null,
+          "coverage_complete": true,
+          "logical_bytes": null,
+          "method": "unavailable",
+          "scanned_entries": 2,
+          "skipped_entries": 0
+        }
+      }
+    },
+    {
+      "id": "non-file-unix",
+      "input": {
+        "facts_version": "water.scan-lab.v1",
+        "run_id": "run-non-file-unix",
+        "case_id": "non-file-unix",
+        "status": "completed",
+        "visited_entries": 4,
+        "recorded_entries": 4,
+        "scopes": [
+          {
+            "scope_id": "scope-1",
+            "relative_root": "scope",
+            "coverage": "complete",
+            "visited_entries": 4,
+            "entries": [
+              {
+                "relative_path": "dir",
+                "depth": 1,
+                "kind": "directory",
+                "logical_bytes": null,
+                "allocated_bytes": null,
+                "identity": {
+                  "kind": "unix",
+                  "device": "1",
+                  "inode": "9",
+                  "link_count": "2"
+                }
+              },
+              {
+                "relative_path": "zero",
+                "depth": 1,
+                "kind": "file",
+                "logical_bytes": "0",
+                "allocated_bytes": null,
+                "identity": {
+                  "kind": "unknown",
+                  "device": null,
+                  "inode": null,
+                  "link_count": null
+                }
+              },
+              {
+                "relative_path": "link",
+                "depth": 1,
+                "kind": "link",
+                "logical_bytes": null,
+                "allocated_bytes": null,
+                "identity": {
+                  "kind": "unknown",
+                  "device": null,
+                  "inode": null,
+                  "link_count": null
+                }
+              },
+              {
+                "relative_path": "other",
+                "depth": 1,
+                "kind": "other",
+                "logical_bytes": null,
+                "allocated_bytes": null,
+                "identity": {
+                  "kind": "unknown",
+                  "device": null,
+                  "inode": null,
+                  "link_count": null
+                }
+              }
+            ],
+            "issues": []
+          }
+        ]
+      },
+      "context": {
+        "scan_id": "evidence-non-file-unix",
+        "platform": "macos",
+        "scopes": [
+          {
+            "scope_id": "scope-1",
+            "label": "Synthetic scope-1",
+            "origin": "user_selected"
+          }
+        ]
+      },
+      "expected": {
+        "ledger_version": "water.size-ledger.v1",
+        "counts": {
+          "scopes": 1,
+          "entries": 4,
+          "file_entries": 1,
+          "non_file_entries": 3,
+          "known_identity_file_entries": 0,
+          "unknown_identity_file_entries": 1,
+          "known_identity_groups": 0,
+          "conflicting_identity_groups": 0
+        },
+        "scope_coverage_complete": true,
+        "observed_file_logical_bytes": "0",
+        "known_identity_logical_bytes": "0",
+        "unknown_identity_observed_logical_bytes": "0",
+        "identity_deduplicated_logical_bytes": null,
+        "observed_set_identity_complete": false,
+        "volume_unique_allocated_bytes": null,
+        "reclaimable_bytes": null,
+        "identity_groups": [],
+        "unknown_identity_entries": [
+          {
+            "finding_id": "entry-2",
+            "scope_id": "scope-1"
+          }
+        ],
+        "read_only": true,
+        "scan_id": "evidence-non-file-unix",
+        "source_run_id": "run-non-file-unix",
+        "platform": "macos",
+        "status": "completed",
+        "source_facts": {
+          "facts_version": "water.scan-lab.v1",
+          "run_id": "run-non-file-unix",
+          "case_id": "non-file-unix",
+          "status": "completed",
+          "visited_entries": 4,
+          "recorded_entries": 4,
+          "scopes": [
+            {
+              "scope_id": "scope-1",
+              "relative_root": "scope",
+              "coverage": "complete",
+              "visited_entries": 4,
+              "entries": [
+                {
+                  "relative_path": "dir",
+                  "depth": 1,
+                  "kind": "directory",
+                  "logical_bytes": null,
+                  "allocated_bytes": null,
+                  "identity": {
+                    "kind": "unix",
+                    "device": "1",
+                    "inode": "9",
+                    "link_count": "2"
+                  }
+                },
+                {
+                  "relative_path": "zero",
+                  "depth": 1,
+                  "kind": "file",
+                  "logical_bytes": "0",
+                  "allocated_bytes": null,
+                  "identity": {
+                    "kind": "unknown",
+                    "device": null,
+                    "inode": null,
+                    "link_count": null
+                  }
+                },
+                {
+                  "relative_path": "link",
+                  "depth": 1,
+                  "kind": "link",
+                  "logical_bytes": null,
+                  "allocated_bytes": null,
+                  "identity": {
+                    "kind": "unknown",
+                    "device": null,
+                    "inode": null,
+                    "link_count": null
+                  }
+                },
+                {
+                  "relative_path": "other",
+                  "depth": 1,
+                  "kind": "other",
+                  "logical_bytes": null,
+                  "allocated_bytes": null,
+                  "identity": {
+                    "kind": "unknown",
+                    "device": null,
+                    "inode": null,
+                    "link_count": null
+                  }
+                }
+              ],
+              "issues": []
+            }
+          ]
+        },
+        "source_totals": {
+          "allocated_bytes": null,
+          "coverage_complete": true,
+          "logical_bytes": null,
+          "method": "unavailable",
+          "scanned_entries": 4,
+          "skipped_entries": 0
+        }
+      }
+    },
+    {
+      "id": "mixed-identities",
+      "input": {
+        "facts_version": "water.scan-lab.v1",
+        "run_id": "run-mixed-identities",
+        "case_id": "mixed-identities",
+        "status": "completed",
+        "visited_entries": 2,
+        "recorded_entries": 2,
+        "scopes": [
+          {
+            "scope_id": "scope-1",
+            "relative_root": "scope",
+            "coverage": "complete",
+            "visited_entries": 2,
+            "entries": [
+              {
+                "relative_path": "a",
+                "depth": 1,
+                "kind": "file",
+                "logical_bytes": "10",
+                "allocated_bytes": null,
+                "identity": {
+                  "kind": "unix",
+                  "device": "1",
+                  "inode": "7",
+                  "link_count": "2"
+                }
+              },
+              {
+                "relative_path": "b",
+                "depth": 1,
+                "kind": "file",
+                "logical_bytes": "20",
+                "allocated_bytes": null,
+                "identity": {
+                  "kind": "unknown",
+                  "device": null,
+                  "inode": null,
+                  "link_count": null
+                }
+              }
+            ],
+            "issues": []
+          }
+        ]
+      },
+      "context": {
+        "scan_id": "evidence-mixed-identities",
+        "platform": "macos",
+        "scopes": [
+          {
+            "scope_id": "scope-1",
+            "label": "Synthetic scope-1",
+            "origin": "user_selected"
+          }
+        ]
+      },
+      "expected": {
+        "ledger_version": "water.size-ledger.v1",
+        "counts": {
+          "scopes": 1,
+          "entries": 2,
+          "file_entries": 2,
+          "non_file_entries": 0,
+          "known_identity_file_entries": 1,
+          "unknown_identity_file_entries": 1,
+          "known_identity_groups": 1,
+          "conflicting_identity_groups": 0
+        },
+        "scope_coverage_complete": true,
+        "observed_file_logical_bytes": "30",
+        "known_identity_logical_bytes": "10",
+        "unknown_identity_observed_logical_bytes": "20",
+        "identity_deduplicated_logical_bytes": null,
+        "observed_set_identity_complete": false,
+        "volume_unique_allocated_bytes": null,
+        "reclaimable_bytes": null,
+        "identity_groups": [
+          {
+            "device": "1",
+            "inode": "7",
+            "state": "consistent",
+            "logical_bytes": "10",
+            "logical_byte_values": [
+              "10"
+            ],
+            "link_count_values": [
+              "2"
+            ],
+            "entry_refs": [
+              {
+                "finding_id": "entry-1",
+                "scope_id": "scope-1"
+              }
+            ]
+          }
+        ],
+        "unknown_identity_entries": [
+          {
+            "finding_id": "entry-2",
+            "scope_id": "scope-1"
+          }
+        ],
+        "read_only": true,
+        "scan_id": "evidence-mixed-identities",
+        "source_run_id": "run-mixed-identities",
+        "platform": "macos",
+        "status": "completed",
+        "source_facts": {
+          "facts_version": "water.scan-lab.v1",
+          "run_id": "run-mixed-identities",
+          "case_id": "mixed-identities",
+          "status": "completed",
+          "visited_entries": 2,
+          "recorded_entries": 2,
+          "scopes": [
+            {
+              "scope_id": "scope-1",
+              "relative_root": "scope",
+              "coverage": "complete",
+              "visited_entries": 2,
+              "entries": [
+                {
+                  "relative_path": "a",
+                  "depth": 1,
+                  "kind": "file",
+                  "logical_bytes": "10",
+                  "allocated_bytes": null,
+                  "identity": {
+                    "kind": "unix",
+                    "device": "1",
+                    "inode": "7",
+                    "link_count": "2"
+                  }
+                },
+                {
+                  "relative_path": "b",
+                  "depth": 1,
+                  "kind": "file",
+                  "logical_bytes": "20",
+                  "allocated_bytes": null,
+                  "identity": {
+                    "kind": "unknown",
+                    "device": null,
+                    "inode": null,
+                    "link_count": null
+                  }
+                }
+              ],
+              "issues": []
+            }
+          ]
+        },
+        "source_totals": {
+          "allocated_bytes": null,
+          "coverage_complete": true,
+          "logical_bytes": null,
+          "method": "unavailable",
+          "scanned_entries": 2,
+          "skipped_entries": 0
+        }
+      }
+    },
+    {
+      "id": "partial-known",
+      "input": {
+        "facts_version": "water.scan-lab.v1",
+        "run_id": "run-partial-known",
+        "case_id": "partial-known",
+        "status": "partial",
+        "visited_entries": 1,
+        "recorded_entries": 1,
+        "scopes": [
+          {
+            "scope_id": "scope-1",
+            "relative_root": "scope",
+            "coverage": "partial",
+            "visited_entries": 1,
+            "entries": [
+              {
+                "relative_path": "a",
+                "depth": 1,
+                "kind": "file",
+                "logical_bytes": "10",
+                "allocated_bytes": null,
+                "identity": {
+                  "kind": "unix",
+                  "device": "1",
+                  "inode": "7",
+                  "link_count": "2"
+                }
+              }
+            ],
+            "issues": [
+              {
+                "code": "entry_limit",
+                "relative_path": "",
+                "origin": "policy",
+                "operation": "budget"
+              }
+            ]
+          }
+        ]
+      },
+      "context": {
+        "scan_id": "evidence-partial-known",
+        "platform": "macos",
+        "scopes": [
+          {
+            "scope_id": "scope-1",
+            "label": "Synthetic scope-1",
+            "origin": "user_selected"
+          }
+        ]
+      },
+      "expected": {
+        "ledger_version": "water.size-ledger.v1",
+        "counts": {
+          "scopes": 1,
+          "entries": 1,
+          "file_entries": 1,
+          "non_file_entries": 0,
+          "known_identity_file_entries": 1,
+          "unknown_identity_file_entries": 0,
+          "known_identity_groups": 1,
+          "conflicting_identity_groups": 0
+        },
+        "scope_coverage_complete": false,
+        "observed_file_logical_bytes": "10",
+        "known_identity_logical_bytes": "10",
+        "unknown_identity_observed_logical_bytes": "0",
+        "identity_deduplicated_logical_bytes": "10",
+        "observed_set_identity_complete": true,
+        "volume_unique_allocated_bytes": null,
+        "reclaimable_bytes": null,
+        "identity_groups": [
+          {
+            "device": "1",
+            "inode": "7",
+            "state": "consistent",
+            "logical_bytes": "10",
+            "logical_byte_values": [
+              "10"
+            ],
+            "link_count_values": [
+              "2"
+            ],
+            "entry_refs": [
+              {
+                "finding_id": "entry-1",
+                "scope_id": "scope-1"
+              }
+            ]
+          }
+        ],
+        "unknown_identity_entries": [],
+        "read_only": true,
+        "scan_id": "evidence-partial-known",
+        "source_run_id": "run-partial-known",
+        "platform": "macos",
+        "status": "partial",
+        "source_facts": {
+          "facts_version": "water.scan-lab.v1",
+          "run_id": "run-partial-known",
+          "case_id": "partial-known",
+          "status": "partial",
+          "visited_entries": 1,
+          "recorded_entries": 1,
+          "scopes": [
+            {
+              "scope_id": "scope-1",
+              "relative_root": "scope",
+              "coverage": "partial",
+              "visited_entries": 1,
+              "entries": [
+                {
+                  "relative_path": "a",
+                  "depth": 1,
+                  "kind": "file",
+                  "logical_bytes": "10",
+                  "allocated_bytes": null,
+                  "identity": {
+                    "kind": "unix",
+                    "device": "1",
+                    "inode": "7",
+                    "link_count": "2"
+                  }
+                }
+              ],
+              "issues": [
+                {
+                  "code": "entry_limit",
+                  "relative_path": "",
+                  "origin": "policy",
+                  "operation": "budget"
+                }
+              ]
+            }
+          ]
+        },
+        "source_totals": {
+          "allocated_bytes": null,
+          "coverage_complete": false,
+          "logical_bytes": null,
+          "method": "unavailable",
+          "scanned_entries": 1,
+          "skipped_entries": 0
+        }
+      }
+    },
+    {
+      "id": "cancelled-empty",
+      "input": {
+        "facts_version": "water.scan-lab.v1",
+        "run_id": "run-cancelled-empty",
+        "case_id": "cancelled-empty",
+        "status": "cancelled",
+        "visited_entries": 0,
+        "recorded_entries": 0,
+        "scopes": [
+          {
+            "scope_id": "scope-1",
+            "relative_root": "scope",
+            "coverage": "cancelled",
+            "visited_entries": 0,
+            "entries": [],
+            "issues": [
+              {
+                "code": "cancelled",
+                "relative_path": null,
+                "origin": "control",
+                "operation": "cancel"
+              }
+            ]
+          }
+        ]
+      },
+      "context": {
+        "scan_id": "evidence-cancelled-empty",
+        "platform": "windows",
+        "scopes": [
+          {
+            "scope_id": "scope-1",
+            "label": "Synthetic scope-1",
+            "origin": "user_selected"
+          }
+        ]
+      },
+      "expected": {
+        "ledger_version": "water.size-ledger.v1",
+        "counts": {
+          "scopes": 1,
+          "entries": 0,
+          "file_entries": 0,
+          "non_file_entries": 0,
+          "known_identity_file_entries": 0,
+          "unknown_identity_file_entries": 0,
+          "known_identity_groups": 0,
+          "conflicting_identity_groups": 0
+        },
+        "scope_coverage_complete": false,
+        "observed_file_logical_bytes": "0",
+        "known_identity_logical_bytes": "0",
+        "unknown_identity_observed_logical_bytes": "0",
+        "identity_deduplicated_logical_bytes": "0",
+        "observed_set_identity_complete": true,
+        "volume_unique_allocated_bytes": null,
+        "reclaimable_bytes": null,
+        "identity_groups": [],
+        "unknown_identity_entries": [],
+        "read_only": true,
+        "scan_id": "evidence-cancelled-empty",
+        "source_run_id": "run-cancelled-empty",
+        "platform": "windows",
+        "status": "cancelled",
+        "source_facts": {
+          "facts_version": "water.scan-lab.v1",
+          "run_id": "run-cancelled-empty",
+          "case_id": "cancelled-empty",
+          "status": "cancelled",
+          "visited_entries": 0,
+          "recorded_entries": 0,
+          "scopes": [
+            {
+              "scope_id": "scope-1",
+              "relative_root": "scope",
+              "coverage": "cancelled",
+              "visited_entries": 0,
+              "entries": [],
+              "issues": [
+                {
+                  "code": "cancelled",
+                  "relative_path": null,
+                  "origin": "control",
+                  "operation": "cancel"
+                }
+              ]
+            }
+          ]
+        },
+        "source_totals": {
+          "allocated_bytes": null,
+          "coverage_complete": false,
+          "logical_bytes": null,
+          "method": "unavailable",
+          "scanned_entries": 0,
+          "skipped_entries": 0
+        }
+      }
+    },
+    {
+      "id": "known-zero",
+      "input": {
+        "facts_version": "water.scan-lab.v1",
+        "run_id": "run-known-zero",
+        "case_id": "known-zero",
+        "status": "completed",
+        "visited_entries": 1,
+        "recorded_entries": 1,
+        "scopes": [
+          {
+            "scope_id": "scope-1",
+            "relative_root": "scope",
+            "coverage": "complete",
+            "visited_entries": 1,
+            "entries": [
+              {
+                "relative_path": "a",
+                "depth": 1,
+                "kind": "file",
+                "logical_bytes": "0",
+                "allocated_bytes": null,
+                "identity": {
+                  "kind": "unix",
+                  "device": "1",
+                  "inode": "7",
+                  "link_count": "1"
+                }
+              }
+            ],
+            "issues": []
+          }
+        ]
+      },
+      "context": {
+        "scan_id": "evidence-known-zero",
+        "platform": "macos",
+        "scopes": [
+          {
+            "scope_id": "scope-1",
+            "label": "Synthetic scope-1",
+            "origin": "user_selected"
+          }
+        ]
+      },
+      "expected": {
+        "ledger_version": "water.size-ledger.v1",
+        "counts": {
+          "scopes": 1,
+          "entries": 1,
+          "file_entries": 1,
+          "non_file_entries": 0,
+          "known_identity_file_entries": 1,
+          "unknown_identity_file_entries": 0,
+          "known_identity_groups": 1,
+          "conflicting_identity_groups": 0
+        },
+        "scope_coverage_complete": true,
+        "observed_file_logical_bytes": "0",
+        "known_identity_logical_bytes": "0",
+        "unknown_identity_observed_logical_bytes": "0",
+        "identity_deduplicated_logical_bytes": "0",
+        "observed_set_identity_complete": true,
+        "volume_unique_allocated_bytes": null,
+        "reclaimable_bytes": null,
+        "identity_groups": [
+          {
+            "device": "1",
+            "inode": "7",
+            "state": "consistent",
+            "logical_bytes": "0",
+            "logical_byte_values": [
+              "0"
+            ],
+            "link_count_values": [
+              "1"
+            ],
+            "entry_refs": [
+              {
+                "finding_id": "entry-1",
+                "scope_id": "scope-1"
+              }
+            ]
+          }
+        ],
+        "unknown_identity_entries": [],
+        "read_only": true,
+        "scan_id": "evidence-known-zero",
+        "source_run_id": "run-known-zero",
+        "platform": "macos",
+        "status": "completed",
+        "source_facts": {
+          "facts_version": "water.scan-lab.v1",
+          "run_id": "run-known-zero",
+          "case_id": "known-zero",
+          "status": "completed",
+          "visited_entries": 1,
+          "recorded_entries": 1,
+          "scopes": [
+            {
+              "scope_id": "scope-1",
+              "relative_root": "scope",
+              "coverage": "complete",
+              "visited_entries": 1,
+              "entries": [
+                {
+                  "relative_path": "a",
+                  "depth": 1,
+                  "kind": "file",
+                  "logical_bytes": "0",
+                  "allocated_bytes": null,
+                  "identity": {
+                    "kind": "unix",
+                    "device": "1",
+                    "inode": "7",
+                    "link_count": "1"
+                  }
+                }
+              ],
+              "issues": []
+            }
+          ]
+        },
+        "source_totals": {
+          "allocated_bytes": null,
+          "coverage_complete": true,
+          "logical_bytes": null,
+          "method": "unavailable",
+          "scanned_entries": 1,
+          "skipped_entries": 0
+        }
+      }
+    },
+    {
+      "id": "first-group-order",
+      "input": {
+        "facts_version": "water.scan-lab.v1",
+        "run_id": "run-first-group-order",
+        "case_id": "first-group-order",
+        "status": "completed",
+        "visited_entries": 3,
+        "recorded_entries": 3,
+        "scopes": [
+          {
+            "scope_id": "scope-1",
+            "relative_root": "scope",
+            "coverage": "complete",
+            "visited_entries": 3,
+            "entries": [
+              {
+                "relative_path": "a",
+                "depth": 1,
+                "kind": "file",
+                "logical_bytes": "4",
+                "allocated_bytes": null,
+                "identity": {
+                  "kind": "unix",
+                  "device": "2",
+                  "inode": "80",
+                  "link_count": "1"
+                }
+              },
+              {
+                "relative_path": "b",
+                "depth": 1,
+                "kind": "file",
+                "logical_bytes": "5",
+                "allocated_bytes": null,
+                "identity": {
+                  "kind": "unix",
+                  "device": "1",
+                  "inode": "1",
+                  "link_count": "2"
+                }
+              },
+              {
+                "relative_path": "c",
+                "depth": 1,
+                "kind": "file",
+                "logical_bytes": "4",
+                "allocated_bytes": null,
+                "identity": {
+                  "kind": "unix",
+                  "device": "2",
+                  "inode": "80",
+                  "link_count": "1"
+                }
+              }
+            ],
+            "issues": []
+          }
+        ]
+      },
+      "context": {
+        "scan_id": "evidence-first-group-order",
+        "platform": "macos",
+        "scopes": [
+          {
+            "scope_id": "scope-1",
+            "label": "Synthetic scope-1",
+            "origin": "user_selected"
+          }
+        ]
+      },
+      "expected": {
+        "ledger_version": "water.size-ledger.v1",
+        "counts": {
+          "scopes": 1,
+          "entries": 3,
+          "file_entries": 3,
+          "non_file_entries": 0,
+          "known_identity_file_entries": 3,
+          "unknown_identity_file_entries": 0,
+          "known_identity_groups": 2,
+          "conflicting_identity_groups": 0
+        },
+        "scope_coverage_complete": true,
+        "observed_file_logical_bytes": "13",
+        "known_identity_logical_bytes": "9",
+        "unknown_identity_observed_logical_bytes": "0",
+        "identity_deduplicated_logical_bytes": "9",
+        "observed_set_identity_complete": true,
+        "volume_unique_allocated_bytes": null,
+        "reclaimable_bytes": null,
+        "identity_groups": [
+          {
+            "device": "2",
+            "inode": "80",
+            "state": "consistent",
+            "logical_bytes": "4",
+            "logical_byte_values": [
+              "4"
+            ],
+            "link_count_values": [
+              "1"
+            ],
+            "entry_refs": [
+              {
+                "finding_id": "entry-1",
+                "scope_id": "scope-1"
+              },
+              {
+                "finding_id": "entry-3",
+                "scope_id": "scope-1"
+              }
+            ]
+          },
+          {
+            "device": "1",
+            "inode": "1",
+            "state": "consistent",
+            "logical_bytes": "5",
+            "logical_byte_values": [
+              "5"
+            ],
+            "link_count_values": [
+              "2"
+            ],
+            "entry_refs": [
+              {
+                "finding_id": "entry-2",
+                "scope_id": "scope-1"
+              }
+            ]
+          }
+        ],
+        "unknown_identity_entries": [],
+        "read_only": true,
+        "scan_id": "evidence-first-group-order",
+        "source_run_id": "run-first-group-order",
+        "platform": "macos",
+        "status": "completed",
+        "source_facts": {
+          "facts_version": "water.scan-lab.v1",
+          "run_id": "run-first-group-order",
+          "case_id": "first-group-order",
+          "status": "completed",
+          "visited_entries": 3,
+          "recorded_entries": 3,
+          "scopes": [
+            {
+              "scope_id": "scope-1",
+              "relative_root": "scope",
+              "coverage": "complete",
+              "visited_entries": 3,
+              "entries": [
+                {
+                  "relative_path": "a",
+                  "depth": 1,
+                  "kind": "file",
+                  "logical_bytes": "4",
+                  "allocated_bytes": null,
+                  "identity": {
+                    "kind": "unix",
+                    "device": "2",
+                    "inode": "80",
+                    "link_count": "1"
+                  }
+                },
+                {
+                  "relative_path": "b",
+                  "depth": 1,
+                  "kind": "file",
+                  "logical_bytes": "5",
+                  "allocated_bytes": null,
+                  "identity": {
+                    "kind": "unix",
+                    "device": "1",
+                    "inode": "1",
+                    "link_count": "2"
+                  }
+                },
+                {
+                  "relative_path": "c",
+                  "depth": 1,
+                  "kind": "file",
+                  "logical_bytes": "4",
+                  "allocated_bytes": null,
+                  "identity": {
+                    "kind": "unix",
+                    "device": "2",
+                    "inode": "80",
+                    "link_count": "1"
+                  }
+                }
+              ],
+              "issues": []
+            }
+          ]
+        },
+        "source_totals": {
+          "allocated_bytes": null,
+          "coverage_complete": true,
+          "logical_bytes": null,
+          "method": "unavailable",
+          "scanned_entries": 3,
+          "skipped_entries": 0
+        }
+      }
+    }
+  ],
+  "source_errors": [
+    {
+      "id": "g-duplicate-key",
+      "input": "{\"facts_version\":\"water.scan-lab.v1\",\"facts_version\":\"water.scan-lab.v1\",\"run_id\":\"run-synthetic-project-markers\",\"case_id\":\"project-markers\",\"status\":\"completed\",\"visited_entries\":6,\"recorded_entries\":6,\"scopes\":[{\"scope_id\":\"scope-1\",\"relative_root\":\"scope\",\"coverage\":\"complete\",\"visited_entries\":6,\"entries\":[{\"relative_path\":\".git\",\"kind\":\"directory\",\"depth\":1,\"logical_bytes\":null,\"allocated_bytes\":null,\"identity\":{\"kind\":\"unknown\",\"device\":null,\"inode\":null,\"link_count\":null}},{\"relative_path\":\".git/HEAD\",\"kind\":\"file\",\"depth\":2,\"logical_bytes\":\"26\",\"allocated_bytes\":null,\"identity\":{\"kind\":\"unknown\",\"device\":null,\"inode\":null,\"link_count\":null}},{\"relative_path\":\"package.json\",\"kind\":\"file\",\"depth\":1,\"logical_bytes\":\"50\",\"allocated_bytes\":null,\"identity\":{\"kind\":\"unknown\",\"device\":null,\"inode\":null,\"link_count\":null}},{\"relative_path\":\"pyproject.toml\",\"kind\":\"file\",\"depth\":1,\"logical_bytes\":\"61\",\"allocated_bytes\":null,\"identity\":{\"kind\":\"unknown\",\"device\":null,\"inode\":null,\"link_count\":null}},{\"relative_path\":\"src\",\"kind\":\"directory\",\"depth\":1,\"logical_bytes\":null,\"allocated_bytes\":null,\"identity\":{\"kind\":\"unknown\",\"device\":null,\"inode\":null,\"link_count\":null}},{\"relative_path\":\"src/main.py\",\"kind\":\"file\",\"depth\":2,\"logical_bytes\":\"36\",\"allocated_bytes\":null,\"identity\":{\"kind\":\"unknown\",\"device\":null,\"inode\":null,\"link_count\":null}}],\"issues\":[]}]}",
+      "context": {
+        "scan_id": "assembly-synthetic",
+        "platform": "windows",
+        "scopes": [
+          {
+            "scope_id": "scope-1",
+            "label": "Synthetic scope-1",
+            "origin": "config_discovered"
+          }
+        ]
+      },
+      "code": "InvalidFacts",
+      "field": "/facts"
+    },
+    {
+      "id": "g-syntax",
+      "input": "{\"canary\":\"G_ERROR_CANARY\",",
+      "context": {
+        "scan_id": "assembly-synthetic",
+        "platform": "windows",
+        "scopes": [
+          {
+            "scope_id": "scope-1",
+            "label": "Synthetic scope-1",
+            "origin": "config_discovered"
+          }
+        ]
+      },
+      "code": "InvalidJson",
+      "field": "/facts"
+    },
+    {
+      "id": "unknown-field",
+      "input": "{\"facts_version\":\"water.scan-lab.v1\",\"run_id\":\"run-error-base\",\"case_id\":\"error-base\",\"status\":\"completed\",\"visited_entries\":1,\"recorded_entries\":1,\"scopes\":[{\"scope_id\":\"scope-1\",\"relative_root\":\"scope\",\"coverage\":\"complete\",\"visited_entries\":1,\"entries\":[{\"relative_path\":\"package.json\",\"depth\":1,\"kind\":\"file\",\"logical_bytes\":\"1\",\"allocated_bytes\":null,\"identity\":{\"kind\":\"unknown\",\"device\":null,\"inode\":null,\"link_count\":null}}],\"issues\":[]}],\"extra\":\"LM_ERROR_CANARY\"}",
+      "context": {
+        "scan_id": "evidence-error-base",
+        "platform": "windows",
+        "scopes": [
+          {
+            "scope_id": "scope-1",
+            "label": "Synthetic scope-1",
+            "origin": "user_selected"
+          }
+        ]
+      },
+      "code": "InvalidFacts",
+      "field": "/facts"
+    },
+    {
+      "id": "missing-nullable",
+      "input": "{\"facts_version\":\"water.scan-lab.v1\",\"run_id\":\"run-error-base\",\"case_id\":\"error-base\",\"status\":\"completed\",\"visited_entries\":1,\"recorded_entries\":1,\"scopes\":[{\"scope_id\":\"scope-1\",\"relative_root\":\"scope\",\"coverage\":\"complete\",\"visited_entries\":1,\"entries\":[{\"relative_path\":\"package.json\",\"depth\":1,\"kind\":\"file\",\"logical_bytes\":\"1\",\"identity\":{\"kind\":\"unknown\",\"device\":null,\"inode\":null,\"link_count\":null}}],\"issues\":[]}]}",
+      "context": {
+        "scan_id": "evidence-error-base",
+        "platform": "windows",
+        "scopes": [
+          {
+            "scope_id": "scope-1",
+            "label": "Synthetic scope-1",
+            "origin": "user_selected"
+          }
+        ]
+      },
+      "code": "InvalidFacts",
+      "field": "/facts"
+    },
+    {
+      "id": "object-enum",
+      "input": "{\"facts_version\":\"water.scan-lab.v1\",\"run_id\":\"run-error-base\",\"case_id\":\"error-base\",\"status\":\"completed\",\"visited_entries\":1,\"recorded_entries\":1,\"scopes\":[{\"scope_id\":\"scope-1\",\"relative_root\":\"scope\",\"coverage\":\"complete\",\"visited_entries\":1,\"entries\":[{\"relative_path\":\"package.json\",\"depth\":1,\"kind\":{\"file\":null},\"logical_bytes\":\"1\",\"allocated_bytes\":null,\"identity\":{\"kind\":\"unknown\",\"device\":null,\"inode\":null,\"link_count\":null}}],\"issues\":[]}]}",
+      "context": {
+        "scan_id": "evidence-error-base",
+        "platform": "windows",
+        "scopes": [
+          {
+            "scope_id": "scope-1",
+            "label": "Synthetic scope-1",
+            "origin": "user_selected"
+          }
+        ]
+      },
+      "code": "InvalidFacts",
+      "field": "/facts"
+    },
+    {
+      "id": "counter",
+      "input": "{\"facts_version\":\"water.scan-lab.v1\",\"run_id\":\"run-error-base\",\"case_id\":\"error-base\",\"status\":\"completed\",\"visited_entries\":2,\"recorded_entries\":1,\"scopes\":[{\"scope_id\":\"scope-1\",\"relative_root\":\"scope\",\"coverage\":\"complete\",\"visited_entries\":1,\"entries\":[{\"relative_path\":\"package.json\",\"depth\":1,\"kind\":\"file\",\"logical_bytes\":\"1\",\"allocated_bytes\":null,\"identity\":{\"kind\":\"unknown\",\"device\":null,\"inode\":null,\"link_count\":null}}],\"issues\":[]}]}",
+      "context": {
+        "scan_id": "evidence-error-base",
+        "platform": "windows",
+        "scopes": [
+          {
+            "scope_id": "scope-1",
+            "label": "Synthetic scope-1",
+            "origin": "user_selected"
+          }
+        ]
+      },
+      "code": "InvalidFacts",
+      "field": "/facts"
+    },
+    {
+      "id": "empty-entry-path",
+      "input": "{\"facts_version\":\"water.scan-lab.v1\",\"run_id\":\"run-error-base\",\"case_id\":\"error-base\",\"status\":\"completed\",\"visited_entries\":1,\"recorded_entries\":1,\"scopes\":[{\"scope_id\":\"scope-1\",\"relative_root\":\"scope\",\"coverage\":\"complete\",\"visited_entries\":1,\"entries\":[{\"relative_path\":\"\",\"depth\":1,\"kind\":\"file\",\"logical_bytes\":\"1\",\"allocated_bytes\":null,\"identity\":{\"kind\":\"unknown\",\"device\":null,\"inode\":null,\"link_count\":null}}],\"issues\":[]}]}",
+      "context": {
+        "scan_id": "evidence-error-base",
+        "platform": "windows",
+        "scopes": [
+          {
+            "scope_id": "scope-1",
+            "label": "Synthetic scope-1",
+            "origin": "user_selected"
+          }
+        ]
+      },
+      "code": "InvalidFacts",
+      "field": "/facts"
+    },
+    {
+      "id": "windows-unix",
+      "input": "{\"facts_version\":\"water.scan-lab.v1\",\"run_id\":\"run-error-base\",\"case_id\":\"error-base\",\"status\":\"completed\",\"visited_entries\":1,\"recorded_entries\":1,\"scopes\":[{\"scope_id\":\"scope-1\",\"relative_root\":\"scope\",\"coverage\":\"complete\",\"visited_entries\":1,\"entries\":[{\"relative_path\":\"package.json\",\"depth\":1,\"kind\":\"file\",\"logical_bytes\":\"1\",\"allocated_bytes\":null,\"identity\":{\"kind\":\"unix\",\"device\":\"1\",\"inode\":\"7\",\"link_count\":\"2\"}}],\"issues\":[]}]}",
+      "context": {
+        "scan_id": "evidence-error-base",
+        "platform": "windows",
+        "scopes": [
+          {
+            "scope_id": "scope-1",
+            "label": "Synthetic scope-1",
+            "origin": "user_selected"
+          }
+        ]
+      },
+      "code": "InvalidFacts",
+      "field": "/facts"
+    },
+    {
+      "id": "context-id",
+      "input": "{\"facts_version\":\"water.scan-lab.v1\",\"run_id\":\"run-error-base\",\"case_id\":\"error-base\",\"status\":\"completed\",\"visited_entries\":1,\"recorded_entries\":1,\"scopes\":[{\"scope_id\":\"scope-1\",\"relative_root\":\"scope\",\"coverage\":\"complete\",\"visited_entries\":1,\"entries\":[{\"relative_path\":\"package.json\",\"depth\":1,\"kind\":\"file\",\"logical_bytes\":\"1\",\"allocated_bytes\":null,\"identity\":{\"kind\":\"unknown\",\"device\":null,\"inode\":null,\"link_count\":null}}],\"issues\":[]}]}",
+      "context": {
+        "scan_id": "evidence-error-base",
+        "platform": "windows",
+        "scopes": [
+          {
+            "scope_id": "wrong",
+            "label": "Synthetic scope-1",
+            "origin": "user_selected"
+          }
+        ]
+      },
+      "code": "InvalidContext",
+      "field": "/context"
+    },
+    {
+      "id": "context-label",
+      "input": "{\"facts_version\":\"water.scan-lab.v1\",\"run_id\":\"run-error-base\",\"case_id\":\"error-base\",\"status\":\"completed\",\"visited_entries\":1,\"recorded_entries\":1,\"scopes\":[{\"scope_id\":\"scope-1\",\"relative_root\":\"scope\",\"coverage\":\"complete\",\"visited_entries\":1,\"entries\":[{\"relative_path\":\"package.json\",\"depth\":1,\"kind\":\"file\",\"logical_bytes\":\"1\",\"allocated_bytes\":null,\"identity\":{\"kind\":\"unknown\",\"device\":null,\"inode\":null,\"link_count\":null}}],\"issues\":[]}]}",
+      "context": {
+        "scan_id": "evidence-error-base",
+        "platform": "windows",
+        "scopes": [
+          {
+            "scope_id": "scope-1",
+            "label": "",
+            "origin": "user_selected"
+          }
+        ]
+      },
+      "code": "InvalidContext",
+      "field": "/context"
+    },
+    {
+      "id": "duplicate-top-key",
+      "input": "{\"facts_version\":\"water.scan-lab.v1\",\"facts_version\":\"water.scan-lab.v1\",\"run_id\":\"run-error-base\",\"case_id\":\"error-base\",\"status\":\"completed\",\"visited_entries\":1,\"recorded_entries\":1,\"scopes\":[{\"scope_id\":\"scope-1\",\"relative_root\":\"scope\",\"coverage\":\"complete\",\"visited_entries\":1,\"entries\":[{\"relative_path\":\"package.json\",\"depth\":1,\"kind\":\"file\",\"logical_bytes\":\"1\",\"allocated_bytes\":null,\"identity\":{\"kind\":\"unknown\",\"device\":null,\"inode\":null,\"link_count\":null}}],\"issues\":[]}]}",
+      "context": {
+        "scan_id": "evidence-error-base",
+        "platform": "windows",
+        "scopes": [
+          {
+            "scope_id": "scope-1",
+            "label": "Synthetic scope-1",
+            "origin": "user_selected"
+          }
+        ]
+      },
+      "code": "InvalidFacts",
+      "field": "/facts"
+    }
+  ]
+}
