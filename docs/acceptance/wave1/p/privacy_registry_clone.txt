@@ -1,0 +1,3 @@
+#![forbid(unsafe_code)]
+use water_scope_registry::v1::*;
+fn bound<T: Clone>() {} pub fn check() { bound::<Registry>(); }

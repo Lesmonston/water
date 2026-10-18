@@ -1,0 +1,8 @@
+#![forbid(unsafe_code)]
+use water_scope_registry::v1::*;
+pub fn check(r: &Registry, p: &PendingSelection, s: &RegisteredScope, permit: &ScanPermit) {
+    let _ = Registry::new(1);
+    let _ = (r.len(), r.is_empty(), p.scope_id(), s.scope_id(), permit.scope_id());
+    let _ = serde_json::to_string(&1u64);
+    let _ = serde_json::from_str::<u64>("1");
+}

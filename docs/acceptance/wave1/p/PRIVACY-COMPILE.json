@@ -1,0 +1,542 @@
+{
+  "testedCommit": "2e963bba0c6b968299880198eb4f1bb8a8100108",
+  "finalBridgeReceipt": ".local/checks/WATER-W1-P/2026-10-18T10-29-29.120Z-43240-bridge-result.json",
+  "productionHash": "78dc90418ef86cf604cc537a9af5c85cdc48513b46626a5046f77ffbc9ff40ab",
+  "testHash": "be144d993ada0f69442bfd9869513b1db27dccdcffa7b78810574ad71212a4e2",
+  "rustc": "C:\\Users\\37310\\.rustup\\toolchains\\1.95.0-x86_64-pc-windows-msvc\\bin\\rustc.exe",
+  "positiveControls": 1,
+  "expectedRejections": 29,
+  "results": [
+    {
+      "name": "privacy_positive",
+      "expectedCompileRejection": false,
+      "exitCode": 0,
+      "source": "docs/acceptance/wave1/p/privacy_positive.txt",
+      "sourceSha256": "62a1cd705ba28b1ff18f208905afdd2b6ae18421a0581ab5fc92f9e183a51e52",
+      "log": "docs/acceptance/wave1/p/privacy_positive.log",
+      "errors": []
+    },
+    {
+      "name": "privacy_registry_clone",
+      "expectedCompileRejection": true,
+      "exitCode": 1,
+      "source": "docs/acceptance/wave1/p/privacy_registry_clone.txt",
+      "sourceSha256": "b41362d0a7a49452ec71d7fd6131b6a75d6765c71b9661f939331e0433903f1f",
+      "log": "docs/acceptance/wave1/p/privacy_registry_clone.log",
+      "errors": [
+        {
+          "code": "E0277",
+          "message": "the trait bound `water_scope_registry::v1::Registry: Clone` is not satisfied"
+        },
+        {
+          "code": null,
+          "message": "aborting due to 1 previous error"
+        }
+      ]
+    },
+    {
+      "name": "privacy_registry_debug",
+      "expectedCompileRejection": true,
+      "exitCode": 1,
+      "source": "docs/acceptance/wave1/p/privacy_registry_debug.txt",
+      "sourceSha256": "3c526f8b91c830b66ce29d608fcdacca8bd79e13b2ad4d5642099fc9ef014a41",
+      "log": "docs/acceptance/wave1/p/privacy_registry_debug.log",
+      "errors": [
+        {
+          "code": "E0277",
+          "message": "`water_scope_registry::v1::Registry` doesn't implement `Debug`"
+        },
+        {
+          "code": null,
+          "message": "aborting due to 1 previous error"
+        }
+      ]
+    },
+    {
+      "name": "privacy_registry_default",
+      "expectedCompileRejection": true,
+      "exitCode": 1,
+      "source": "docs/acceptance/wave1/p/privacy_registry_default.txt",
+      "sourceSha256": "d43a99fe0d1998d9f0423155d851ecf44b429e3a6770c1e80a9dca98aa2c050d",
+      "log": "docs/acceptance/wave1/p/privacy_registry_default.log",
+      "errors": [
+        {
+          "code": "E0277",
+          "message": "the trait bound `water_scope_registry::v1::Registry: Default` is not satisfied"
+        },
+        {
+          "code": null,
+          "message": "aborting due to 1 previous error"
+        }
+      ]
+    },
+    {
+      "name": "privacy_registry_serialize",
+      "expectedCompileRejection": true,
+      "exitCode": 1,
+      "source": "docs/acceptance/wave1/p/privacy_registry_serialize.txt",
+      "sourceSha256": "3e9ebffec871a615be3720248d4464d024b86f843416c3321b9094e455257a10",
+      "log": "docs/acceptance/wave1/p/privacy_registry_serialize.log",
+      "errors": [
+        {
+          "code": "E0277",
+          "message": "the trait bound `water_scope_registry::v1::Registry: serde::Serialize` is not satisfied"
+        },
+        {
+          "code": null,
+          "message": "aborting due to 1 previous error"
+        }
+      ]
+    },
+    {
+      "name": "privacy_registry_deserialize",
+      "expectedCompileRejection": true,
+      "exitCode": 1,
+      "source": "docs/acceptance/wave1/p/privacy_registry_deserialize.txt",
+      "sourceSha256": "94e02cc41bf76cf2ad0c99589b943ce9cd73fd3da071a5ee3a697179f72cfeab",
+      "log": "docs/acceptance/wave1/p/privacy_registry_deserialize.log",
+      "errors": [
+        {
+          "code": "E0277",
+          "message": "the trait bound `water_scope_registry::v1::Registry: serde::Deserialize<'de>` is not satisfied"
+        },
+        {
+          "code": null,
+          "message": "aborting due to 1 previous error"
+        }
+      ]
+    },
+    {
+      "name": "privacy_registry_constructor",
+      "expectedCompileRejection": true,
+      "exitCode": 1,
+      "source": "docs/acceptance/wave1/p/privacy_registry_constructor.txt",
+      "sourceSha256": "83dd2c7f73904f8d92f0486efa9f51f1782d219977b63dc206b590249f3d6a4b",
+      "log": "docs/acceptance/wave1/p/privacy_registry_constructor.log",
+      "errors": [
+        {
+          "code": null,
+          "message": "cannot construct `water_scope_registry::v1::Registry` with struct literal syntax due to private fields"
+        },
+        {
+          "code": null,
+          "message": "aborting due to 1 previous error"
+        }
+      ]
+    },
+    {
+      "name": "privacy_registry_field",
+      "expectedCompileRejection": true,
+      "exitCode": 1,
+      "source": "docs/acceptance/wave1/p/privacy_registry_field.txt",
+      "sourceSha256": "2f15d6d44a0678db5e995432e8a587f2b2176a4b0820dd107f721892f74850b7",
+      "log": "docs/acceptance/wave1/p/privacy_registry_field.log",
+      "errors": [
+        {
+          "code": "E0616",
+          "message": "field `owner` of struct `water_scope_registry::v1::Registry` is private"
+        },
+        {
+          "code": null,
+          "message": "aborting due to 1 previous error"
+        }
+      ]
+    },
+    {
+      "name": "privacy_pendingselection_clone",
+      "expectedCompileRejection": true,
+      "exitCode": 1,
+      "source": "docs/acceptance/wave1/p/privacy_pendingselection_clone.txt",
+      "sourceSha256": "51f66e49d58e726e6cd0e76a940257e96f9dc66c4d39952f9640d736861b2612",
+      "log": "docs/acceptance/wave1/p/privacy_pendingselection_clone.log",
+      "errors": [
+        {
+          "code": "E0277",
+          "message": "the trait bound `water_scope_registry::v1::PendingSelection: Clone` is not satisfied"
+        },
+        {
+          "code": null,
+          "message": "aborting due to 1 previous error"
+        }
+      ]
+    },
+    {
+      "name": "privacy_pendingselection_debug",
+      "expectedCompileRejection": true,
+      "exitCode": 1,
+      "source": "docs/acceptance/wave1/p/privacy_pendingselection_debug.txt",
+      "sourceSha256": "aa14aec5db578a43b079aef9dafa1fb4825d7089d47bc74997b6e75ee28537ea",
+      "log": "docs/acceptance/wave1/p/privacy_pendingselection_debug.log",
+      "errors": [
+        {
+          "code": "E0277",
+          "message": "`water_scope_registry::v1::PendingSelection` doesn't implement `Debug`"
+        },
+        {
+          "code": null,
+          "message": "aborting due to 1 previous error"
+        }
+      ]
+    },
+    {
+      "name": "privacy_pendingselection_default",
+      "expectedCompileRejection": true,
+      "exitCode": 1,
+      "source": "docs/acceptance/wave1/p/privacy_pendingselection_default.txt",
+      "sourceSha256": "09eccfba2bac1c4ac90bc8467d95aa303bf28382d0b0bc37bdebf31f99584ce6",
+      "log": "docs/acceptance/wave1/p/privacy_pendingselection_default.log",
+      "errors": [
+        {
+          "code": "E0277",
+          "message": "the trait bound `water_scope_registry::v1::PendingSelection: Default` is not satisfied"
+        },
+        {
+          "code": null,
+          "message": "aborting due to 1 previous error"
+        }
+      ]
+    },
+    {
+      "name": "privacy_pendingselection_serialize",
+      "expectedCompileRejection": true,
+      "exitCode": 1,
+      "source": "docs/acceptance/wave1/p/privacy_pendingselection_serialize.txt",
+      "sourceSha256": "8d7001f970200c4b7da288be155ae10f7c02f2b42041961acf8a5e4ed1a2819b",
+      "log": "docs/acceptance/wave1/p/privacy_pendingselection_serialize.log",
+      "errors": [
+        {
+          "code": "E0277",
+          "message": "the trait bound `water_scope_registry::v1::PendingSelection: serde::Serialize` is not satisfied"
+        },
+        {
+          "code": null,
+          "message": "aborting due to 1 previous error"
+        }
+      ]
+    },
+    {
+      "name": "privacy_pendingselection_deserialize",
+      "expectedCompileRejection": true,
+      "exitCode": 1,
+      "source": "docs/acceptance/wave1/p/privacy_pendingselection_deserialize.txt",
+      "sourceSha256": "21e1c7562dd1f2459127c87cb8d06ea1ec7cedb4f7f54da6045b874888cb97d8",
+      "log": "docs/acceptance/wave1/p/privacy_pendingselection_deserialize.log",
+      "errors": [
+        {
+          "code": "E0277",
+          "message": "the trait bound `water_scope_registry::v1::PendingSelection: serde::Deserialize<'de>` is not satisfied"
+        },
+        {
+          "code": null,
+          "message": "aborting due to 1 previous error"
+        }
+      ]
+    },
+    {
+      "name": "privacy_pendingselection_constructor",
+      "expectedCompileRejection": true,
+      "exitCode": 1,
+      "source": "docs/acceptance/wave1/p/privacy_pendingselection_constructor.txt",
+      "sourceSha256": "13e92a6ab5da4b7c82fe046de229a1b74920f391462e3588e42c2c2536171cac",
+      "log": "docs/acceptance/wave1/p/privacy_pendingselection_constructor.log",
+      "errors": [
+        {
+          "code": null,
+          "message": "cannot construct `water_scope_registry::v1::PendingSelection` with struct literal syntax due to private fields"
+        },
+        {
+          "code": null,
+          "message": "aborting due to 1 previous error"
+        }
+      ]
+    },
+    {
+      "name": "privacy_pendingselection_field",
+      "expectedCompileRejection": true,
+      "exitCode": 1,
+      "source": "docs/acceptance/wave1/p/privacy_pendingselection_field.txt",
+      "sourceSha256": "8dff1a06fab18062e1552df1137d2cff1a3d748f18d873f8a60061b3005f6c2b",
+      "log": "docs/acceptance/wave1/p/privacy_pendingselection_field.log",
+      "errors": [
+        {
+          "code": "E0616",
+          "message": "field `binding` of struct `water_scope_registry::v1::PendingSelection` is private"
+        },
+        {
+          "code": null,
+          "message": "aborting due to 1 previous error"
+        }
+      ]
+    },
+    {
+      "name": "privacy_registeredscope_clone",
+      "expectedCompileRejection": true,
+      "exitCode": 1,
+      "source": "docs/acceptance/wave1/p/privacy_registeredscope_clone.txt",
+      "sourceSha256": "3b61e71e32cb40d76d8e1ba22efad4037d2b1e8c9b7238b09ee1bf53022f9318",
+      "log": "docs/acceptance/wave1/p/privacy_registeredscope_clone.log",
+      "errors": [
+        {
+          "code": "E0277",
+          "message": "the trait bound `water_scope_registry::v1::RegisteredScope: Clone` is not satisfied"
+        },
+        {
+          "code": null,
+          "message": "aborting due to 1 previous error"
+        }
+      ]
+    },
+    {
+      "name": "privacy_registeredscope_debug",
+      "expectedCompileRejection": true,
+      "exitCode": 1,
+      "source": "docs/acceptance/wave1/p/privacy_registeredscope_debug.txt",
+      "sourceSha256": "c7069ae791e53edcf007fe3bc320f0796fef54dba0dd6fa26ab4cc2bd5cfc99c",
+      "log": "docs/acceptance/wave1/p/privacy_registeredscope_debug.log",
+      "errors": [
+        {
+          "code": "E0277",
+          "message": "`water_scope_registry::v1::RegisteredScope` doesn't implement `Debug`"
+        },
+        {
+          "code": null,
+          "message": "aborting due to 1 previous error"
+        }
+      ]
+    },
+    {
+      "name": "privacy_registeredscope_default",
+      "expectedCompileRejection": true,
+      "exitCode": 1,
+      "source": "docs/acceptance/wave1/p/privacy_registeredscope_default.txt",
+      "sourceSha256": "366521a66b54674b739c064f382261d755c84d551a94e0d91d97bb011eb2d9f8",
+      "log": "docs/acceptance/wave1/p/privacy_registeredscope_default.log",
+      "errors": [
+        {
+          "code": "E0277",
+          "message": "the trait bound `water_scope_registry::v1::RegisteredScope: Default` is not satisfied"
+        },
+        {
+          "code": null,
+          "message": "aborting due to 1 previous error"
+        }
+      ]
+    },
+    {
+      "name": "privacy_registeredscope_serialize",
+      "expectedCompileRejection": true,
+      "exitCode": 1,
+      "source": "docs/acceptance/wave1/p/privacy_registeredscope_serialize.txt",
+      "sourceSha256": "de70ba91edf884f9e624ba0c3fadf58348dd19a84e0f63bac6f08ad847405c0f",
+      "log": "docs/acceptance/wave1/p/privacy_registeredscope_serialize.log",
+      "errors": [
+        {
+          "code": "E0277",
+          "message": "the trait bound `water_scope_registry::v1::RegisteredScope: serde::Serialize` is not satisfied"
+        },
+        {
+          "code": null,
+          "message": "aborting due to 1 previous error"
+        }
+      ]
+    },
+    {
+      "name": "privacy_registeredscope_deserialize",
+      "expectedCompileRejection": true,
+      "exitCode": 1,
+      "source": "docs/acceptance/wave1/p/privacy_registeredscope_deserialize.txt",
+      "sourceSha256": "8a63e2e7c30b9ca5048fd02af13e2c806a934e5ed75918de9191259e35b835b6",
+      "log": "docs/acceptance/wave1/p/privacy_registeredscope_deserialize.log",
+      "errors": [
+        {
+          "code": "E0277",
+          "message": "the trait bound `water_scope_registry::v1::RegisteredScope: serde::Deserialize<'de>` is not satisfied"
+        },
+        {
+          "code": null,
+          "message": "aborting due to 1 previous error"
+        }
+      ]
+    },
+    {
+      "name": "privacy_registeredscope_constructor",
+      "expectedCompileRejection": true,
+      "exitCode": 1,
+      "source": "docs/acceptance/wave1/p/privacy_registeredscope_constructor.txt",
+      "sourceSha256": "e0d2bdd4a133e39a96ae85d76b4edf6758d42f16cc7ea359e08dc803108b8d67",
+      "log": "docs/acceptance/wave1/p/privacy_registeredscope_constructor.log",
+      "errors": [
+        {
+          "code": null,
+          "message": "cannot construct `water_scope_registry::v1::RegisteredScope` with struct literal syntax due to private fields"
+        },
+        {
+          "code": null,
+          "message": "aborting due to 1 previous error"
+        }
+      ]
+    },
+    {
+      "name": "privacy_registeredscope_field",
+      "expectedCompileRejection": true,
+      "exitCode": 1,
+      "source": "docs/acceptance/wave1/p/privacy_registeredscope_field.txt",
+      "sourceSha256": "ab6e9e8925ea1f1b92128657ed70285435194b7e25207c9b19fe5070c4880a48",
+      "log": "docs/acceptance/wave1/p/privacy_registeredscope_field.log",
+      "errors": [
+        {
+          "code": "E0616",
+          "message": "field `binding` of struct `water_scope_registry::v1::RegisteredScope` is private"
+        },
+        {
+          "code": null,
+          "message": "aborting due to 1 previous error"
+        }
+      ]
+    },
+    {
+      "name": "privacy_scanpermit_clone",
+      "expectedCompileRejection": true,
+      "exitCode": 1,
+      "source": "docs/acceptance/wave1/p/privacy_scanpermit_clone.txt",
+      "sourceSha256": "d2f8f3e1a2205b8e64545c529ca3d2328582fc5c8019fb91f632e195d21eaeac",
+      "log": "docs/acceptance/wave1/p/privacy_scanpermit_clone.log",
+      "errors": [
+        {
+          "code": "E0277",
+          "message": "the trait bound `water_scope_registry::v1::ScanPermit: Clone` is not satisfied"
+        },
+        {
+          "code": null,
+          "message": "aborting due to 1 previous error"
+        }
+      ]
+    },
+    {
+      "name": "privacy_scanpermit_debug",
+      "expectedCompileRejection": true,
+      "exitCode": 1,
+      "source": "docs/acceptance/wave1/p/privacy_scanpermit_debug.txt",
+      "sourceSha256": "be361997ea4b314d6d467615b0959ab43ed438edf46276219a096cc3d99c0aab",
+      "log": "docs/acceptance/wave1/p/privacy_scanpermit_debug.log",
+      "errors": [
+        {
+          "code": "E0277",
+          "message": "`water_scope_registry::v1::ScanPermit` doesn't implement `Debug`"
+        },
+        {
+          "code": null,
+          "message": "aborting due to 1 previous error"
+        }
+      ]
+    },
+    {
+      "name": "privacy_scanpermit_default",
+      "expectedCompileRejection": true,
+      "exitCode": 1,
+      "source": "docs/acceptance/wave1/p/privacy_scanpermit_default.txt",
+      "sourceSha256": "506c7aedab68e9a6e2f86b1d53e4da3f7be5377c79a0d50771644e929c8de2d1",
+      "log": "docs/acceptance/wave1/p/privacy_scanpermit_default.log",
+      "errors": [
+        {
+          "code": "E0277",
+          "message": "the trait bound `water_scope_registry::v1::ScanPermit: Default` is not satisfied"
+        },
+        {
+          "code": null,
+          "message": "aborting due to 1 previous error"
+        }
+      ]
+    },
+    {
+      "name": "privacy_scanpermit_serialize",
+      "expectedCompileRejection": true,
+      "exitCode": 1,
+      "source": "docs/acceptance/wave1/p/privacy_scanpermit_serialize.txt",
+      "sourceSha256": "dfe8939c29eb422fa0c91740b90d33c34a19bc9ef97249c41036f8dd8183818c",
+      "log": "docs/acceptance/wave1/p/privacy_scanpermit_serialize.log",
+      "errors": [
+        {
+          "code": "E0277",
+          "message": "the trait bound `water_scope_registry::v1::ScanPermit: serde::Serialize` is not satisfied"
+        },
+        {
+          "code": null,
+          "message": "aborting due to 1 previous error"
+        }
+      ]
+    },
+    {
+      "name": "privacy_scanpermit_deserialize",
+      "expectedCompileRejection": true,
+      "exitCode": 1,
+      "source": "docs/acceptance/wave1/p/privacy_scanpermit_deserialize.txt",
+      "sourceSha256": "ef7127116de040f9573682feedab263618a9389c36725c2a6e06f75090e1006a",
+      "log": "docs/acceptance/wave1/p/privacy_scanpermit_deserialize.log",
+      "errors": [
+        {
+          "code": "E0277",
+          "message": "the trait bound `water_scope_registry::v1::ScanPermit: serde::Deserialize<'de>` is not satisfied"
+        },
+        {
+          "code": null,
+          "message": "aborting due to 1 previous error"
+        }
+      ]
+    },
+    {
+      "name": "privacy_scanpermit_constructor",
+      "expectedCompileRejection": true,
+      "exitCode": 1,
+      "source": "docs/acceptance/wave1/p/privacy_scanpermit_constructor.txt",
+      "sourceSha256": "d20161897058d049d5404d2e682b7b43698dd73ba616c10ae058f0dd0e6962b3",
+      "log": "docs/acceptance/wave1/p/privacy_scanpermit_constructor.log",
+      "errors": [
+        {
+          "code": null,
+          "message": "cannot construct `water_scope_registry::v1::ScanPermit` with struct literal syntax due to private fields"
+        },
+        {
+          "code": null,
+          "message": "aborting due to 1 previous error"
+        }
+      ]
+    },
+    {
+      "name": "privacy_scanpermit_field",
+      "expectedCompileRejection": true,
+      "exitCode": 1,
+      "source": "docs/acceptance/wave1/p/privacy_scanpermit_field.txt",
+      "sourceSha256": "5554093aaffe1a9c5838be468122ae32a6be0058c724354a99c3083b39e4df7a",
+      "log": "docs/acceptance/wave1/p/privacy_scanpermit_field.log",
+      "errors": [
+        {
+          "code": "E0616",
+          "message": "field `binding` of struct `water_scope_registry::v1::ScanPermit` is private"
+        },
+        {
+          "code": null,
+          "message": "aborting due to 1 previous error"
+        }
+      ]
+    },
+    {
+      "name": "privacy_scanpermit_attempt",
+      "expectedCompileRejection": true,
+      "exitCode": 1,
+      "source": "docs/acceptance/wave1/p/privacy_scanpermit_attempt.txt",
+      "sourceSha256": "7a6344e8c0d1b87960ce6c546ae7990c9a7ff62edbdf9f0f481386cef776d490",
+      "log": "docs/acceptance/wave1/p/privacy_scanpermit_attempt.log",
+      "errors": [
+        {
+          "code": "E0616",
+          "message": "field `attempt` of struct `water_scope_registry::v1::ScanPermit` is private"
+        },
+        {
+          "code": null,
+          "message": "aborting due to 1 previous error"
+        }
+      ]
+    }
+  ]
+}

@@ -1,0 +1,32 @@
+WATER-W1-P observed failures and expected rejections, 2026-10-18
+
+Required behavioral red: all five tests executed and failed against the compiling API skeleton;
+Rust exit 101 with P_BEHAVIOR. The helper exited 0 after verifying the expected failure.
+Required nc1: all five executed, 4 passed/1 failed, Rust 101 with P_SINGLE_ACTIVE.
+Required nc2: all five executed, 3 passed/2 failed, Rust 101 with P_OWNER_BOUND.
+Required nc3: all five executed, 1 passed/4 failed, Rust 101 with P_REVOKED.
+Each mutated production source was immediately restored byte-for-byte, then all five tests passed.
+All 18 retained helper receipts have status passed (one is the existing controller preflight baseline).
+All five final gates ran clean at implementation 2e963bba0c6b968299880198eb4f1bb8a8100108.
+
+Required compile rejections: 29 external rustc metadata probes each exited 1 with the expected missing trait
+or privacy diagnostic; a shared graph/API/serde positive control exited 0. These are type/privacy evidence,
+not substitutes for the behavioral red or negative-control suite failures.
+
+Read-only discovery: rg initially included docs/adr, which does not exist; the actual ADR directory is docs/decisions.
+Read-only manifest inspection: a PowerShell-to-node -e quoting attempt stripped JavaScript string quotes and
+raised SyntaxError: Unexpected token '.' (Node 24.16.0, exit 1). Get-Content -Encoding UTF8/ConvertFrom-Json
+then read the authoritative manifest successfully. No files were changed by either discovery attempt.
+
+A precommit git diff --cached --check over raw runner evidence exited 2: six nc*-runner.log files contain
+one new blank line at EOF from the captured stdout/stderr separator. Evidence bytes were preserved.
+The subsequent explicit product/JSON whitespace check passed, then the implementation commit succeeded.
+This was a whitespace check over evidence; no helper, source, test or assertion was weakened.
+
+The first delivery-inventory audit used a Chinese report-title literal piped through PowerShell's ASCII
+output encoding. Node received question marks in that assertion and rejected the report-title comparison.
+The audit stopped before writing its JSON; the UTF-8 report itself was correct and unchanged.
+The rerun used ASCII JavaScript Unicode escapes for the exact same expected title and passed.
+
+No unexpected product-test, helper, format, clippy, metadata, bridge or privacy-probe failure occurred.
+Refresh-error/RootChanged runtime failures were not forced or observed; static review only, as SOURCE-REVIEW.txt states.
