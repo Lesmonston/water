@@ -1,5 +1,7 @@
 # L/M实际派前回执
 
+当前收口（2026-10-18）：L/M均已VERIFIED，单票及隔离集成通过，见[总控验收报告](../../acceptance/wave1/controller/WATER-W1-LM-REVIEW-20261018.md)。没有未结外贴单，下文READY/待贴/在途叙述保留为历史，不再执行。
+
 后续状态（2026-10-18）：K补单01已完成[独立复验和真实J→K页面集成](../../acceptance/wave1/controller/WATER-W1-K-ADDENDUM-01-REVIEW-20261018.md)，VERIFIED（Windows受控范围）；L/M原任务对象与分配保持。以下为派前时的原记录，不把其中K的RUNNING描述当作当前状态。
 
 2026-10-18，结论READY，待用户分别外贴。总控没有启动实现者；K补单仍在原k树RUNNING，未改变其任务对象、helper、基线、文件范围或权限。

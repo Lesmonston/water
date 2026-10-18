@@ -1,5 +1,7 @@
 # WATER-W1-M：容量观察账本
 
+归档状态（2026-10-18）：本票已VERIFIED（Windows受控内存范围），不再外贴或从r1重做；以下原票面为历史，当前以manifest及[总控验收报告](../../acceptance/wave1/controller/WATER-W1-LM-REVIEW-20261018.md)为准。
+
 总控Codex，2026-10-18。正式状态以主manifest为准，只有READY后执行。与L及K补单独立，无L输出或K页面依赖。
 
 | 项 | 唯一值 |

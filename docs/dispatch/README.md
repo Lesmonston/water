@@ -3,7 +3,7 @@
 当前模式：总控出单、用户外贴、执行者在独立树交付、总控验收集成。
 
 - [完整工作流](../CONTROLLER-WORKFLOW.md)
-- [当前登记](registry.json)：A–K及五补单VERIFIED（Windows受控合成范围）；L/M原票/分配保持，见[派前回执](wave1/EVIDENCE-BATCH-READY-REPORT.md)。
+- [当前登记](registry.json)：A–M及五补单VERIFIED（Windows受控范围），未结外贴单为0；旧票不重贴，见[L/M验收报告](../acceptance/wave1/controller/WATER-W1-LM-REVIEW-20261018.md)。
 - [第一轮计划](wave1/PLAN.md)与[正式工单](tickets/WATER-W1-A-CONTRACTS-20261017.md)。
 - [工单模板](templates/WORK-ORDER.md)
 - [回执模板](templates/REPORT.md)

@@ -1,5 +1,7 @@
 # L项目证据 / M容量观察账本外贴批次
 
+当前收口（2026-10-18）：L/M均已VERIFIED，单票及隔离集成通过，见[总控验收报告](../../acceptance/wave1/controller/WATER-W1-LM-REVIEW-20261018.md)。没有未结外贴单，下文READY/待贴/在途叙述保留为历史，不再执行。
+
 2026-10-18，总控Codex，按用户“你出单吧”准备。正式READY与实际派前证据以[EVIDENCE-BATCH-READY-REPORT](EVIDENCE-BATCH-READY-REPORT.md)和manifest为准；文档存在不表示已派出。
 
 | 线 | 产物 | 已验收依赖 | 独占范围 |

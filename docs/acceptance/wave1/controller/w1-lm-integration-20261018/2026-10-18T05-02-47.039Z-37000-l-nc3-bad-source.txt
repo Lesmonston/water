@@ -1,0 +1,166 @@
+//! Filename observations do not establish format, ownership, or permission.
+
+use serde::Serialize;
+use serde_json::Value;
+use std::fmt;
+use water_contracts::v1::{Coverage, OpaqueId, Platform, Risk, ScanStatus, ScanTotals};
+use water_scan_report::v1::{AssemblyError, ReportContext, assemble_json};
+
+const MAX_OUTPUT_BYTES: usize = 33_554_432;
+
+#[derive(Debug, Clone, PartialEq, Eq)]
+pub enum AnalysisError {
+    Source(AssemblyError),
+    OutputTooLarge,
+    SerializationFailed,
+}
+
+impl fmt::Display for AnalysisError {
+    fn fmt(&self, formatter: &mut fmt::Formatter<'_>) -> fmt::Result {
+        match self {
+            Self::Source(error) => error.fmt(formatter),
+            Self::OutputTooLarge => formatter.write_str("OutputTooLarge at /analysis"),
+            Self::SerializationFailed => formatter.write_str("SerializationFailed at /analysis"),
+        }
+    }
+}
+
+impl std::error::Error for AnalysisError {
+    fn source(&self) -> Option<&(dyn std::error::Error + 'static)> {
+        match self {
+            Self::Source(error) => Some(error),
+            _ => None,
+        }
+    }
+}
+
+#[derive(Debug, Clone, PartialEq, Serialize)]
+pub struct ProjectEvidence {
+    evidence_version: &'static str,
+    rules_version: &'static str,
+    read_only: bool,
+    scan_id: OpaqueId,
+    source_run_id: String,
+    platform: Platform,
+    status: ScanStatus,
+    source_facts: Value,
+    source_totals: ScanTotals,
+    counts: Counts,
+    candidates: Vec<Candidate>,
+}
+
+#[derive(Debug, Clone, PartialEq, Serialize)]
+struct Counts {
+    scopes: u32,
+    entries: u32,
+    candidates: u32,
+    non_file_marker_names: u32,
+}
+
+#[derive(Debug, Clone, PartialEq, Serialize)]
+struct Candidate {
+    finding_id: OpaqueId,
+    scope_id: OpaqueId,
+    relative_path: String,
+    parent_relative_path: String,
+    rule_id: &'static str,
+    ecosystem: &'static str,
+    evidence_strength: &'static str,
+    format_verified: bool,
+    tool_version_known: bool,
+    project_membership_verified: bool,
+    scope_coverage: Coverage,
+    action: &'static str,
+    risk: Risk,
+}
+
+/// Validate the original JSON with G before deriving any evidence.
+pub fn analyze_json(
+    input: &str,
+    context: &ReportContext,
+) -> Result<ProjectEvidence, AnalysisError> {
+    let bundle = assemble_json(input, context).map_err(AnalysisError::Source)?;
+    let report = bundle.report();
+    let facts = bundle.source_facts();
+    let mut candidates = Vec::new();
+    let mut non_file_marker_names = 0;
+    let mut findings = report.findings.iter();
+    // These shapes and the exact scope/entry correspondence are guaranteed by G.
+    for (scope, descriptor) in facts["scopes"]
+        .as_array()
+        .unwrap()
+        .iter()
+        .zip(&report.scopes)
+    {
+        for entry in scope["entries"].as_array().unwrap() {
+            let finding = findings.next().unwrap();
+            let path = finding.relative_path.as_str();
+            let (parent, basename) = path.rsplit_once('/').unwrap_or(("", path));
+            let Some((rule_id, ecosystem)) = marker_rule(basename) else {
+                continue;
+            };
+            if entry["kind"] != "file" {
+                non_file_marker_names += 1;
+                continue;
+            }
+            candidates.push(Candidate {
+                finding_id: finding.finding_id.clone(),
+                scope_id: finding.scope_id.clone(),
+                relative_path: path.to_owned(),
+                parent_relative_path: parent.to_owned(),
+                rule_id,
+                ecosystem,
+                evidence_strength: "filename_only",
+                format_verified: false,
+                tool_version_known: false,
+                project_membership_verified: false,
+                scope_coverage: descriptor.coverage,
+                action: "display_only",
+                risk: Risk::Protected,
+            });
+        }
+    }
+    let output = ProjectEvidence {
+        evidence_version: "water.project-evidence.v1",
+        rules_version: "water.project-marker-rules.v1",
+        read_only: true,
+        scan_id: report.scan_id.clone(),
+        source_run_id: facts["run_id"].as_str().unwrap().to_owned(),
+        platform: context.platform,
+        status: report.status,
+        source_facts: facts.clone(),
+        source_totals: {
+            let mut totals = report.totals.clone();
+            totals.logical_bytes = Some(water_contracts::v1::ByteCount::new(0));
+            totals
+        },
+        counts: Counts {
+            scopes: report.scopes.len() as u32,
+            entries: report.totals.scanned_entries,
+            candidates: candidates.len() as u32,
+            non_file_marker_names,
+        },
+        candidates,
+    };
+    to_json(&output)?;
+    Ok(output)
+}
+
+fn marker_rule(basename: &str) -> Option<(&'static str, &'static str)> {
+    match basename {
+        "package.json" => Some(("node-package-json", "node")),
+        "package-lock.json" => Some(("node-package-lock", "node")),
+        "pyproject.toml" => Some(("python-pyproject", "python")),
+        "requirements.txt" => Some(("python-requirements", "python")),
+        _ => None,
+    }
+}
+
+/// Encode the complete sidecar, retaining relative identifiers and unknowns.
+pub fn to_json(output: &ProjectEvidence) -> Result<String, AnalysisError> {
+    let encoded = serde_json::to_string(output).map_err(|_| AnalysisError::SerializationFailed)?;
+    if encoded.len() > MAX_OUTPUT_BYTES {
+        return Err(AnalysisError::OutputTooLarge);
+    }
+    Ok(encoded)
+}

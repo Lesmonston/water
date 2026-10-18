@@ -1,6 +1,6 @@
 # Water 架构基线
 
-状态：生产内核设计基线；A–K已验收集成（Windows受控合成范围）。真实J→K双尺寸13会话页面通过，F仍仅扫描合成元数据，I旧页面仍读冻结合成报告；真实用户scope、分类提升和桌面接线未验收。对应 [ADR-001](decisions/ADR-001-independent-core.md)。
+状态：生产内核设计基线；A–M已验收集成（Windows受控合成范围）。真实J→K双尺寸13会话页面通过，F仍仅扫描合成元数据，I旧页面仍读冻结合成报告；真实用户scope、分类提升和桌面接线未验收。对应 [ADR-001](decisions/ADR-001-independent-core.md)。
 
 第一轮的具体数据与Rust API见 [scan v1契约](../contracts/v1/README.md)；工程顺序、工具链及限定范围见 [ADR-002](decisions/ADR-002-wave1-contract-bootstrap.md)。契约材料已冻结不代表Rust实现已存在。
 
@@ -84,4 +84,4 @@ M1 不实现 executor；M2 先以少量动作完成完整闭环，再扩规则�
 
 ## 独立证据与容量侧车批次
 
-[ADR-009](decisions/ADR-009-independent-project-evidence-and-size-ledger.md)冻结L项目文件名标记候选和M容量观察账本，均先调用已验收G严格验证原始facts/context。L保持filename_only/未验证/保护，M区分观察逻辑长度、可信身份分组与未知/冲突，allocated/reclaimable仍未知，不回写旧报告或接K页面。两票在独立r1树通过实际A/G离线输入预检并READY，产品尚未实现；K补单仍原线，见[派前回执](dispatch/wave1/EVIDENCE-BATCH-READY-REPORT.md)。
+[ADR-009](decisions/ADR-009-independent-project-evidence-and-size-ledger.md)冻结L项目文件名标记候选和M容量观察账本，均先调用已验收G严格验证原始facts/context。L保持filename_only/未验证/保护，M区分观察逻辑长度、可信身份分组与未知/冲突，allocated/reclaimable仍未知，不回写旧报告或接K页面。两票已在隔离df17e0a通过独立复验和保留J实际捕获回放并集成，见[L/M验收报告](acceptance/wave1/controller/WATER-W1-LM-REVIEW-20261018.md)。它们尚未接K页面、真实scope或桌面；原派前记录保留。

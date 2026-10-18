@@ -1,7 +1,7 @@
 {
   "schemaVersion": 1,
   "wave": "water-wave1",
-  "status": "ABCDEFGHIJK_VERIFIED_LM_ACCEPTED",
+  "status": "ABCDEFGHIJKLM_VERIFIED",
   "controllerRoot": "F:/new/smaltalk/water",
   "controllerBranch": "main",
   "controller": "Codex",
@@ -977,7 +977,7 @@
     {
       "id": "WATER-W1-L",
       "title": "Project marker evidence",
-      "status": "ACCEPTED",
+      "status": "VERIFIED",
       "kind": "project_evidence",
       "slot": "l",
       "worktree": "F:/new/smaltalk/water/.worktrees/l",
@@ -1056,12 +1056,26 @@
       "engine": "Codex (worker self-report)",
       "macOS": "unverified",
       "controllerReview": "docs/acceptance/wave1/controller/WATER-W1-LM-REVIEW-20261018.md",
-      "controllerReviewReceipt": "docs/acceptance/wave1/controller/w1-lm-review-20261018/l/original-gates.json"
+      "controllerReviewReceipt": "docs/acceptance/wave1/controller/w1-lm-review-20261018/l/original-gates.json",
+      "integratedOn": "2026-10-18",
+      "verifiedOn": "2026-10-18",
+      "verifiedPlatforms": [
+        "Windows"
+      ],
+      "unverifiedPlatforms": [
+        "macOS"
+      ],
+      "integrationBranch": "controller/water-w1-lm-20261018",
+      "integrationWorktree": "F:/new/smaltalk/water/.worktrees/integration-lm-20261018",
+      "integrationCommit": "df17e0ae9ca54d77e66a0b38e6e98d81bcbfadab",
+      "integrationTestedCommit": "df17e0ae9ca54d77e66a0b38e6e98d81bcbfadab",
+      "integrationReceipt": "docs/acceptance/wave1/controller/w1-lm-integration-20261018/2026-10-18T05-02-47.039Z-37000-result.json",
+      "verificationScope": "Windows pure-memory module and controlled integration. Original five final gates and five tests passed; new private Cargo target repeats five tests/fmt/clippy/metadata/bridge, three exact-source negative controls with five-test red/restore/green per task, four independent Rust API checks, retained actual J 13-snapshot -> G -> L/M public API pipeline. No new physical scan, user scope, real identity IO, UI/K wiring, macOS or cleanup."
     },
     {
       "id": "WATER-W1-M",
       "title": "Observed size ledger",
-      "status": "ACCEPTED",
+      "status": "VERIFIED",
       "kind": "size_ledger",
       "slot": "m",
       "worktree": "F:/new/smaltalk/water/.worktrees/m",
@@ -1140,7 +1154,21 @@
       "engine": "Codex (worker self-report)",
       "macOS": "unverified",
       "controllerReview": "docs/acceptance/wave1/controller/WATER-W1-LM-REVIEW-20261018.md",
-      "controllerReviewReceipt": "docs/acceptance/wave1/controller/w1-lm-review-20261018/m/original-gates.json"
+      "controllerReviewReceipt": "docs/acceptance/wave1/controller/w1-lm-review-20261018/m/original-gates.json",
+      "integratedOn": "2026-10-18",
+      "verifiedOn": "2026-10-18",
+      "verifiedPlatforms": [
+        "Windows"
+      ],
+      "unverifiedPlatforms": [
+        "macOS"
+      ],
+      "integrationBranch": "controller/water-w1-lm-20261018",
+      "integrationWorktree": "F:/new/smaltalk/water/.worktrees/integration-lm-20261018",
+      "integrationCommit": "df17e0ae9ca54d77e66a0b38e6e98d81bcbfadab",
+      "integrationTestedCommit": "df17e0ae9ca54d77e66a0b38e6e98d81bcbfadab",
+      "integrationReceipt": "docs/acceptance/wave1/controller/w1-lm-integration-20261018/2026-10-18T05-02-47.039Z-37000-result.json",
+      "verificationScope": "Windows pure-memory module and controlled integration. Original five final gates and five tests passed; new private Cargo target repeats five tests/fmt/clippy/metadata/bridge, three exact-source negative controls with five-test red/restore/green per task, four independent Rust API checks, retained actual J 13-snapshot -> G -> L/M public API pipeline. No new physical scan, user scope, real identity IO, UI/K wiring, macOS or cleanup."
     }
   ],
   "preflightStatus": "PASSED",

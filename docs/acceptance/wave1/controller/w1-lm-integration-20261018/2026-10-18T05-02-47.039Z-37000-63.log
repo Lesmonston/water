@@ -1,0 +1,38 @@
+{"binary":"C:\\Users\\37310\\.rustup\\toolchains\\1.95.0-x86_64-pc-windows-msvc\\bin\\cargo.exe","argv":["test","--offline","--locked","--manifest-path","packages/size-ledger/Cargo.toml","--test","ledger_v1","--","--test-threads=1","--format","pretty"],"exitCode":101,"error":null,"log":"2026-10-18T05-02-47.039Z-37000-63.log"}
+--- stdout ---
+
+running 5 tests
+test ledger_identity_groups ... FAILED
+test ledger_observed_sizes ... ok
+test ledger_public_wire_and_purity ... FAILED
+test ledger_unknown_and_coverage ... ok
+test ledger_validation ... ok
+
+failures:
+
+---- ledger_identity_groups stdout ----
+
+thread 'ledger_identity_groups' (8056) panicked at tests\ledger_v1.rs:102:9:
+M_CONFLICT_UNKNOWN length-conflict
+note: run with `RUST_BACKTRACE=1` environment variable to display a backtrace
+
+---- ledger_public_wire_and_purity stdout ----
+
+thread 'ledger_public_wire_and_purity' (29244) panicked at tests\ledger_v1.rs:264:9:
+assertion `left == right` failed: M_BEHAVIOR complete public wire "length-conflict"
+  left: Object {"counts": Object {"conflicting_identity_groups": Number(1), "entries": Number(2), "file_entries": Number(2), "known_identity_file_entries": Number(2), "known_identity_groups": Number(1), "non_file_entries": Number(0), "scopes": Number(1), "unknown_identity_file_entries": Number(0)}, "identity_deduplicated_logical_bytes": String("10"), "identity_groups": Array [Object {"device": String("1"), "entry_refs": Array [Object {"finding_id": String("entry-1"), "scope_id": String("scope-1")}, Object {"finding_id": String("entry-2"), "scope_id": String("scope-1")}], "inode": String("7"), "link_count_values": Array [String("2")], "logical_byte_values": Array [String("10"), String("11")], "logical_bytes": String("10"), "state": String("conflicting")}], "known_identity_logical_bytes": String("10"), "ledger_version": String("water.size-ledger.v1"), "observed_file_logical_bytes": String("21"), "observed_set_identity_complete": Bool(false), "platform": String("macos"), "read_only": Bool(true), "reclaimable_bytes": Null, "scan_id": String("evidence-length-conflict"), "scope_coverage_complete": Bool(true), "source_facts": Object {"case_id": String("length-conflict"), "facts_version": String("water.scan-lab.v1"), "recorded_entries": Number(2), "run_id": String("run-length-conflict"), "scopes": Array [Object {"coverage": String("complete"), "entries": Array [Object {"allocated_bytes": Null, "depth": Number(1), "identity": Object {"device": String("1"), "inode": String("7"), "kind": String("unix"), "link_count": String("2")}, "kind": String("file"), "logical_bytes": String("10"), "relative_path": String("a")}, Object {"allocated_bytes": Null, "depth": Number(1), "identity": Object {"device": String("1"), "inode": String("7"), "kind": String("unix"), "link_count": String("2")}, "kind": String("file"), "logical_bytes": String("11"), "relative_path": String("b")}], "issues": Array [], "relative_root": String("scope"), "scope_id": String("scope-1"), "visited_entries": Number(2)}], "status": String("completed"), "visited_entries": Number(2)}, "source_run_id": String("run-length-conflict"), "source_totals": Object {"allocated_bytes": Null, "coverage_complete": Bool(true), "logical_bytes": Null, "method": String("unavailable"), "scanned_entries": Number(2), "skipped_entries": Number(0)}, "status": String("completed"), "unknown_identity_entries": Array [], "unknown_identity_observed_logical_bytes": String("0"), "volume_unique_allocated_bytes": Null}
+ right: Object {"counts": Object {"conflicting_identity_groups": Number(1), "entries": Number(2), "file_entries": Number(2), "known_identity_file_entries": Number(2), "known_identity_groups": Number(1), "non_file_entries": Number(0), "scopes": Number(1), "unknown_identity_file_entries": Number(0)}, "identity_deduplicated_logical_bytes": Null, "identity_groups": Array [Object {"device": String("1"), "entry_refs": Array [Object {"finding_id": String("entry-1"), "scope_id": String("scope-1")}, Object {"finding_id": String("entry-2"), "scope_id": String("scope-1")}], "inode": String("7"), "link_count_values": Array [String("2")], "logical_byte_values": Array [String("10"), String("11")], "logical_bytes": Null, "state": String("conflicting")}], "known_identity_logical_bytes": Null, "ledger_version": String("water.size-ledger.v1"), "observed_file_logical_bytes": String("21"), "observed_set_identity_complete": Bool(false), "platform": String("macos"), "read_only": Bool(true), "reclaimable_bytes": Null, "scan_id": String("evidence-length-conflict"), "scope_coverage_complete": Bool(true), "source_facts": Object {"case_id": String("length-conflict"), "facts_version": String("water.scan-lab.v1"), "recorded_entries": Number(2), "run_id": String("run-length-conflict"), "scopes": Array [Object {"coverage": String("complete"), "entries": Array [Object {"allocated_bytes": Null, "depth": Number(1), "identity": Object {"device": String("1"), "inode": String("7"), "kind": String("unix"), "link_count": String("2")}, "kind": String("file"), "logical_bytes": String("10"), "relative_path": String("a")}, Object {"allocated_bytes": Null, "depth": Number(1), "identity": Object {"device": String("1"), "inode": String("7"), "kind": String("unix"), "link_count": String("2")}, "kind": String("file"), "logical_bytes": String("11"), "relative_path": String("b")}], "issues": Array [], "relative_root": String("scope"), "scope_id": String("scope-1"), "visited_entries": Number(2)}], "status": String("completed"), "visited_entries": Number(2)}, "source_run_id": String("run-length-conflict"), "source_totals": Object {"allocated_bytes": Null, "coverage_complete": Bool(true), "logical_bytes": Null, "method": String("unavailable"), "scanned_entries": Number(2), "skipped_entries": Number(0)}, "status": String("completed"), "unknown_identity_entries": Array [], "unknown_identity_observed_logical_bytes": String("0"), "volume_unique_allocated_bytes": Null}
+
+
+failures:
+    ledger_identity_groups
+    ledger_public_wire_and_purity
+
+test result: FAILED. 3 passed; 2 failed; 0 ignored; 0 measured; 0 filtered out; finished in 0.11s
+
+
+--- stderr ---
+   Compiling water-size-ledger v0.1.0 (F:\new\smaltalk\water\.worktrees\integration-lm-20261018\packages\size-ledger)
+    Finished `test` profile [unoptimized + debuginfo] target(s) in 1.21s
+     Running tests\ledger_v1.rs (.local\controller-evidence-target\debug\deps\ledger_v1-8b8a5bb1b276f4c3.exe)
+error: test failed, to rerun pass `--test ledger_v1`

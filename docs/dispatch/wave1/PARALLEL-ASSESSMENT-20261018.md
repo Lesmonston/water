@@ -1,5 +1,7 @@
 # K补单期间的并行任务评估
 
+最终收口（2026-10-18）：L/M均已VERIFIED，见[验收报告](../../acceptance/wave1/controller/WATER-W1-LM-REVIEW-20261018.md)。下文DRAFT/READY状态为评估及派前时历史，不是待执行工单。
+
 2026-10-18，总控Codex。结论：可将K补单与下面两条独立模块线并行，优先推进M1的证据和容量缺口。两条新线目前均为DRAFT，尚无正式票、执行树、冻结接口、定向helper或实际派前检查，不能外贴执行。没有启动内部实现者。
 
 后续落实：用户已要求出单，L/M已完成[正式派前检查](EVIDENCE-BATCH-READY-REPORT.md)，现在为READY待分别外贴；以下DRAFT描述保留为评估时历史，不作为当前状态。
