@@ -1,0 +1,191 @@
+{
+  "source_errors": [
+    {
+      "id": "g-duplicate-key",
+      "input": "{\"facts_version\":\"water.scan-lab.v1\",\"facts_version\":\"water.scan-lab.v1\",\"run_id\":\"run-synthetic-project-markers\",\"case_id\":\"project-markers\",\"status\":\"completed\",\"visited_entries\":6,\"recorded_entries\":6,\"scopes\":[{\"scope_id\":\"scope-1\",\"relative_root\":\"scope\",\"coverage\":\"complete\",\"visited_entries\":6,\"entries\":[{\"relative_path\":\".git\",\"kind\":\"directory\",\"depth\":1,\"logical_bytes\":null,\"allocated_bytes\":null,\"identity\":{\"kind\":\"unknown\",\"device\":null,\"inode\":null,\"link_count\":null}},{\"relative_path\":\".git/HEAD\",\"kind\":\"file\",\"depth\":2,\"logical_bytes\":\"26\",\"allocated_bytes\":null,\"identity\":{\"kind\":\"unknown\",\"device\":null,\"inode\":null,\"link_count\":null}},{\"relative_path\":\"package.json\",\"kind\":\"file\",\"depth\":1,\"logical_bytes\":\"50\",\"allocated_bytes\":null,\"identity\":{\"kind\":\"unknown\",\"device\":null,\"inode\":null,\"link_count\":null}},{\"relative_path\":\"pyproject.toml\",\"kind\":\"file\",\"depth\":1,\"logical_bytes\":\"61\",\"allocated_bytes\":null,\"identity\":{\"kind\":\"unknown\",\"device\":null,\"inode\":null,\"link_count\":null}},{\"relative_path\":\"src\",\"kind\":\"directory\",\"depth\":1,\"logical_bytes\":null,\"allocated_bytes\":null,\"identity\":{\"kind\":\"unknown\",\"device\":null,\"inode\":null,\"link_count\":null}},{\"relative_path\":\"src/main.py\",\"kind\":\"file\",\"depth\":2,\"logical_bytes\":\"36\",\"allocated_bytes\":null,\"identity\":{\"kind\":\"unknown\",\"device\":null,\"inode\":null,\"link_count\":null}}],\"issues\":[]}]}",
+      "context": {
+        "scan_id": "assembly-synthetic",
+        "platform": "windows",
+        "scopes": [
+          {
+            "scope_id": "scope-1",
+            "label": "Synthetic scope-1",
+            "origin": "config_discovered"
+          }
+        ]
+      },
+      "code": "InvalidFacts",
+      "field": "/facts"
+    },
+    {
+      "id": "g-syntax",
+      "input": "{\"canary\":\"G_ERROR_CANARY\",",
+      "context": {
+        "scan_id": "assembly-synthetic",
+        "platform": "windows",
+        "scopes": [
+          {
+            "scope_id": "scope-1",
+            "label": "Synthetic scope-1",
+            "origin": "config_discovered"
+          }
+        ]
+      },
+      "code": "InvalidJson",
+      "field": "/facts"
+    },
+    {
+      "id": "unknown-field",
+      "input": "{\"facts_version\":\"water.scan-lab.v1\",\"run_id\":\"run-error-base\",\"case_id\":\"error-base\",\"status\":\"completed\",\"visited_entries\":1,\"recorded_entries\":1,\"scopes\":[{\"scope_id\":\"scope-1\",\"relative_root\":\"scope\",\"coverage\":\"complete\",\"visited_entries\":1,\"entries\":[{\"relative_path\":\"package.json\",\"depth\":1,\"kind\":\"file\",\"logical_bytes\":\"1\",\"allocated_bytes\":null,\"identity\":{\"kind\":\"unknown\",\"device\":null,\"inode\":null,\"link_count\":null}}],\"issues\":[]}],\"extra\":\"LM_ERROR_CANARY\"}",
+      "context": {
+        "scan_id": "evidence-error-base",
+        "platform": "windows",
+        "scopes": [
+          {
+            "scope_id": "scope-1",
+            "label": "Synthetic scope-1",
+            "origin": "user_selected"
+          }
+        ]
+      },
+      "code": "InvalidFacts",
+      "field": "/facts"
+    },
+    {
+      "id": "missing-nullable",
+      "input": "{\"facts_version\":\"water.scan-lab.v1\",\"run_id\":\"run-error-base\",\"case_id\":\"error-base\",\"status\":\"completed\",\"visited_entries\":1,\"recorded_entries\":1,\"scopes\":[{\"scope_id\":\"scope-1\",\"relative_root\":\"scope\",\"coverage\":\"complete\",\"visited_entries\":1,\"entries\":[{\"relative_path\":\"package.json\",\"depth\":1,\"kind\":\"file\",\"logical_bytes\":\"1\",\"identity\":{\"kind\":\"unknown\",\"device\":null,\"inode\":null,\"link_count\":null}}],\"issues\":[]}]}",
+      "context": {
+        "scan_id": "evidence-error-base",
+        "platform": "windows",
+        "scopes": [
+          {
+            "scope_id": "scope-1",
+            "label": "Synthetic scope-1",
+            "origin": "user_selected"
+          }
+        ]
+      },
+      "code": "InvalidFacts",
+      "field": "/facts"
+    },
+    {
+      "id": "object-enum",
+      "input": "{\"facts_version\":\"water.scan-lab.v1\",\"run_id\":\"run-error-base\",\"case_id\":\"error-base\",\"status\":\"completed\",\"visited_entries\":1,\"recorded_entries\":1,\"scopes\":[{\"scope_id\":\"scope-1\",\"relative_root\":\"scope\",\"coverage\":\"complete\",\"visited_entries\":1,\"entries\":[{\"relative_path\":\"package.json\",\"depth\":1,\"kind\":{\"file\":null},\"logical_bytes\":\"1\",\"allocated_bytes\":null,\"identity\":{\"kind\":\"unknown\",\"device\":null,\"inode\":null,\"link_count\":null}}],\"issues\":[]}]}",
+      "context": {
+        "scan_id": "evidence-error-base",
+        "platform": "windows",
+        "scopes": [
+          {
+            "scope_id": "scope-1",
+            "label": "Synthetic scope-1",
+            "origin": "user_selected"
+          }
+        ]
+      },
+      "code": "InvalidFacts",
+      "field": "/facts"
+    },
+    {
+      "id": "counter",
+      "input": "{\"facts_version\":\"water.scan-lab.v1\",\"run_id\":\"run-error-base\",\"case_id\":\"error-base\",\"status\":\"completed\",\"visited_entries\":2,\"recorded_entries\":1,\"scopes\":[{\"scope_id\":\"scope-1\",\"relative_root\":\"scope\",\"coverage\":\"complete\",\"visited_entries\":1,\"entries\":[{\"relative_path\":\"package.json\",\"depth\":1,\"kind\":\"file\",\"logical_bytes\":\"1\",\"allocated_bytes\":null,\"identity\":{\"kind\":\"unknown\",\"device\":null,\"inode\":null,\"link_count\":null}}],\"issues\":[]}]}",
+      "context": {
+        "scan_id": "evidence-error-base",
+        "platform": "windows",
+        "scopes": [
+          {
+            "scope_id": "scope-1",
+            "label": "Synthetic scope-1",
+            "origin": "user_selected"
+          }
+        ]
+      },
+      "code": "InvalidFacts",
+      "field": "/facts"
+    },
+    {
+      "id": "empty-entry-path",
+      "input": "{\"facts_version\":\"water.scan-lab.v1\",\"run_id\":\"run-error-base\",\"case_id\":\"error-base\",\"status\":\"completed\",\"visited_entries\":1,\"recorded_entries\":1,\"scopes\":[{\"scope_id\":\"scope-1\",\"relative_root\":\"scope\",\"coverage\":\"complete\",\"visited_entries\":1,\"entries\":[{\"relative_path\":\"\",\"depth\":1,\"kind\":\"file\",\"logical_bytes\":\"1\",\"allocated_bytes\":null,\"identity\":{\"kind\":\"unknown\",\"device\":null,\"inode\":null,\"link_count\":null}}],\"issues\":[]}]}",
+      "context": {
+        "scan_id": "evidence-error-base",
+        "platform": "windows",
+        "scopes": [
+          {
+            "scope_id": "scope-1",
+            "label": "Synthetic scope-1",
+            "origin": "user_selected"
+          }
+        ]
+      },
+      "code": "InvalidFacts",
+      "field": "/facts"
+    },
+    {
+      "id": "windows-unix",
+      "input": "{\"facts_version\":\"water.scan-lab.v1\",\"run_id\":\"run-error-base\",\"case_id\":\"error-base\",\"status\":\"completed\",\"visited_entries\":1,\"recorded_entries\":1,\"scopes\":[{\"scope_id\":\"scope-1\",\"relative_root\":\"scope\",\"coverage\":\"complete\",\"visited_entries\":1,\"entries\":[{\"relative_path\":\"package.json\",\"depth\":1,\"kind\":\"file\",\"logical_bytes\":\"1\",\"allocated_bytes\":null,\"identity\":{\"kind\":\"unix\",\"device\":\"1\",\"inode\":\"7\",\"link_count\":\"2\"}}],\"issues\":[]}]}",
+      "context": {
+        "scan_id": "evidence-error-base",
+        "platform": "windows",
+        "scopes": [
+          {
+            "scope_id": "scope-1",
+            "label": "Synthetic scope-1",
+            "origin": "user_selected"
+          }
+        ]
+      },
+      "code": "InvalidFacts",
+      "field": "/facts"
+    },
+    {
+      "id": "context-id",
+      "input": "{\"facts_version\":\"water.scan-lab.v1\",\"run_id\":\"run-error-base\",\"case_id\":\"error-base\",\"status\":\"completed\",\"visited_entries\":1,\"recorded_entries\":1,\"scopes\":[{\"scope_id\":\"scope-1\",\"relative_root\":\"scope\",\"coverage\":\"complete\",\"visited_entries\":1,\"entries\":[{\"relative_path\":\"package.json\",\"depth\":1,\"kind\":\"file\",\"logical_bytes\":\"1\",\"allocated_bytes\":null,\"identity\":{\"kind\":\"unknown\",\"device\":null,\"inode\":null,\"link_count\":null}}],\"issues\":[]}]}",
+      "context": {
+        "scan_id": "evidence-error-base",
+        "platform": "windows",
+        "scopes": [
+          {
+            "scope_id": "wrong",
+            "label": "Synthetic scope-1",
+            "origin": "user_selected"
+          }
+        ]
+      },
+      "code": "InvalidContext",
+      "field": "/context"
+    },
+    {
+      "id": "context-label",
+      "input": "{\"facts_version\":\"water.scan-lab.v1\",\"run_id\":\"run-error-base\",\"case_id\":\"error-base\",\"status\":\"completed\",\"visited_entries\":1,\"recorded_entries\":1,\"scopes\":[{\"scope_id\":\"scope-1\",\"relative_root\":\"scope\",\"coverage\":\"complete\",\"visited_entries\":1,\"entries\":[{\"relative_path\":\"package.json\",\"depth\":1,\"kind\":\"file\",\"logical_bytes\":\"1\",\"allocated_bytes\":null,\"identity\":{\"kind\":\"unknown\",\"device\":null,\"inode\":null,\"link_count\":null}}],\"issues\":[]}]}",
+      "context": {
+        "scan_id": "evidence-error-base",
+        "platform": "windows",
+        "scopes": [
+          {
+            "scope_id": "scope-1",
+            "label": "",
+            "origin": "user_selected"
+          }
+        ]
+      },
+      "code": "InvalidContext",
+      "field": "/context"
+    },
+    {
+      "id": "duplicate-top-key",
+      "input": "{\"facts_version\":\"water.scan-lab.v1\",\"facts_version\":\"water.scan-lab.v1\",\"run_id\":\"run-error-base\",\"case_id\":\"error-base\",\"status\":\"completed\",\"visited_entries\":1,\"recorded_entries\":1,\"scopes\":[{\"scope_id\":\"scope-1\",\"relative_root\":\"scope\",\"coverage\":\"complete\",\"visited_entries\":1,\"entries\":[{\"relative_path\":\"package.json\",\"depth\":1,\"kind\":\"file\",\"logical_bytes\":\"1\",\"allocated_bytes\":null,\"identity\":{\"kind\":\"unknown\",\"device\":null,\"inode\":null,\"link_count\":null}}],\"issues\":[]}]}",
+      "context": {
+        "scan_id": "evidence-error-base",
+        "platform": "windows",
+        "scopes": [
+          {
+            "scope_id": "scope-1",
+            "label": "Synthetic scope-1",
+            "origin": "user_selected"
+          }
+        ]
+      },
+      "code": "InvalidFacts",
+      "field": "/facts"
+    }
+  ]
+}
