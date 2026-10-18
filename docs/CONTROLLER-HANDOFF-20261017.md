@@ -2,7 +2,11 @@
 
 2026-10-17。项目：`F:/new/smaltalk/water`。供后续总控接手与Keeper ingest；未写共享Vault或其他项目。
 
-## 当前交接：P/Q正式READY，待分别外贴
+## 当前交接：P/Q已VERIFIED，无未结外贴票
+
+A–Q及五补单均VERIFIED（Windows受控范围），无未结外贴票。P范围登记/进程内许可与Q默认脱敏内存报告已通过独立复验和隔离集成；原生用户选择、permit到有界遍历、桌面文件保存/macOS/删除未验收，M1仍未完成。P接收39dfdfd/原受测2e963bb，Q接收d6e135d/原受测d46b93d，隔离受测c88c557；各五final和私有target五测/公开桥接、六真实源码负控完整五红/恢复五绿、六独立测试、27编译拒绝/两个成功对照通过。227冻结、755交付字节、A–O原对象/旧产品/根Cargo及旧现场保持。只读复用原P零普通内容夹具；P仅宿主声明、Q仅内存JSON，原生用户选择/permit到遍历/桌面/macOS未接。详[P/Q验收报告](acceptance/wave1/controller/WATER-W1-PQ-REVIEW-20261018.md)；下一步按ADR-011冻结纵向接线，当前没有新的READY票或自动实现者。
+
+## 此前交接：P/Q正式READY（历史）
 
 A–O及五补单保持VERIFIED（Windows受控范围）；P范围登记/进程内许可、Q默认脱敏逐项报告已完成冻结、独立树和实际离线baseline，READY待用户分别外贴。新产品未实现、各五测试未运行，无自动实现者，M1仍未完成。共同精确基线34badd897b8983cffbb57e03a9df9e6af52f7b8f，51新锁条目/九旧锁合计227唯一冻结，p/q两树实际baseline通过。P仅本树4合成目录/1junction、普通内容0字节，真实N身份/alias/reparse probe；Q真实A/H的24输入/9错误/来源hash，无物理fixture。详[当前派前回执](dispatch/wave1/SCOPE-EXPORT-READY-REPORT.md)、[ADR-011](decisions/ADR-011-scope-registry-and-redacted-report.md)及PASTE-P/Q。P确认不是原生用户手势鉴真，Q不是磁盘/UI导出；收单后独立验收，再接原生选择到有界遍历/桌面闭环。旧A–O原对象、冻结和现场保持。
 

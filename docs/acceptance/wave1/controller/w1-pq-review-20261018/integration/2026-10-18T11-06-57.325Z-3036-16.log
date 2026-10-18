@@ -1,0 +1,71 @@
+--- stdout ---
+
+running 5 tests
+test registry_confirmation ... FAILED
+test registry_permits_and_replay ... FAILED
+test registry_public_native_bridge ... FAILED
+test registry_registration ... FAILED
+test registry_revocation_and_owner ... FAILED
+
+failures:
+
+---- registry_confirmation stdout ----
+
+thread 'registry_confirmation' (37660) panicked at tests\registry_v1.rs:26:9:
+assertion `left == right` failed
+  left: "F:\\new\\smaltalk\\water\\.worktrees\\p\\.local\\scope-fixtures\\index.json"
+ right: "F:\\new\\smaltalk\\water\\.worktrees\\integration-pq-20261018\\.local/scope-fixtures/index.json"
+note: run with `RUST_BACKTRACE=1` environment variable to display a backtrace
+
+---- registry_permits_and_replay stdout ----
+
+thread 'registry_permits_and_replay' (32888) panicked at tests\registry_v1.rs:26:9:
+assertion `left == right` failed
+  left: "F:\\new\\smaltalk\\water\\.worktrees\\p\\.local\\scope-fixtures\\index.json"
+ right: "F:\\new\\smaltalk\\water\\.worktrees\\integration-pq-20261018\\.local/scope-fixtures/index.json"
+
+---- registry_public_native_bridge stdout ----
+
+thread 'registry_public_native_bridge' (11036) panicked at tests\registry_v1.rs:26:9:
+assertion `left == right` failed
+  left: "F:\\new\\smaltalk\\water\\.worktrees\\p\\.local\\scope-fixtures\\index.json"
+ right: "F:\\new\\smaltalk\\water\\.worktrees\\integration-pq-20261018\\.local/scope-fixtures/index.json"
+
+---- registry_registration stdout ----
+
+thread 'registry_registration' (20396) panicked at tests\registry_v1.rs:26:9:
+assertion `left == right` failed
+  left: "F:\\new\\smaltalk\\water\\.worktrees\\p\\.local\\scope-fixtures\\index.json"
+ right: "F:\\new\\smaltalk\\water\\.worktrees\\integration-pq-20261018\\.local/scope-fixtures/index.json"
+
+---- registry_revocation_and_owner stdout ----
+
+thread 'registry_revocation_and_owner' (31804) panicked at tests\registry_v1.rs:26:9:
+assertion `left == right` failed
+  left: "F:\\new\\smaltalk\\water\\.worktrees\\p\\.local\\scope-fixtures\\index.json"
+ right: "F:\\new\\smaltalk\\water\\.worktrees\\integration-pq-20261018\\.local/scope-fixtures/index.json"
+
+
+failures:
+    registry_confirmation
+    registry_permits_and_replay
+    registry_public_native_bridge
+    registry_registration
+    registry_revocation_and_owner
+
+test result: FAILED. 0 passed; 5 failed; 0 ignored; 0 measured; 0 filtered out; finished in 0.00s
+
+
+--- stderr ---
+   Compiling serde_core v1.0.229
+   Compiling zmij v1.0.23
+   Compiling memchr v2.8.3
+   Compiling itoa v1.0.18
+   Compiling serde_json v1.0.151
+   Compiling serde v1.0.229
+   Compiling water-contracts v0.1.0 (F:\new\smaltalk\water\.worktrees\integration-pq-20261018\crates\water-contracts)
+   Compiling water-native-root v0.1.0 (F:\new\smaltalk\water\.worktrees\integration-pq-20261018\packages\native-root)
+   Compiling water-scope-registry v0.1.0 (F:\new\smaltalk\water\.worktrees\integration-pq-20261018\packages\scope-registry)
+    Finished `test` profile [unoptimized + debuginfo] target(s) in 12.33s
+     Running tests\registry_v1.rs (.local\next-target\debug\deps\registry_v1-40cc85ff55270de9.exe)
+error: test failed, to rerun pass `--test registry_v1`

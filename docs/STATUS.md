@@ -21,9 +21,15 @@
 
 ## 下一步
 
-A–O及五补单保持VERIFIED（Windows受控范围）；P范围登记/进程内许可、Q默认脱敏逐项报告已完成冻结、独立树和实际离线baseline，READY待用户分别外贴。新产品未实现、各五测试未运行，无自动实现者，M1仍未完成。原票不重贴，见[P/Q实际派前回执](dispatch/wave1/SCOPE-EXPORT-READY-REPORT.md)。
+A–Q及五补单均VERIFIED（Windows受控范围），无未结外贴票。P范围登记/进程内许可与Q默认脱敏内存报告已通过独立复验和隔离集成；原生用户选择、permit到有界遍历、桌面文件保存/macOS/删除未验收，M1仍未完成。原票不重贴，见[P/Q验收报告](acceptance/wave1/controller/WATER-W1-PQ-REVIEW-20261018.md)。
 
-## P/Q派前通过（2026-10-18，最新）
+## P/Q独立验收及隔离集成通过（2026-10-18，最新）
+
+P接收39dfdfd/原受测2e963bb，Q接收d6e135d/原受测d46b93d，隔离受测c88c557。两票原各五final复跑、新私有离线target各五测试/格式/clippy/metadata/真实公开桥接通过；各三真实生产负控逐次完整五红/恢复五绿，六个独立生命周期/脱敏关联与来源校验测试、P 24/Q 3编译拒绝及两个成功对照通过。227唯一冻结和755份worker交付原字节保持，详[P/Q验收报告](acceptance/wave1/controller/WATER-W1-PQ-REVIEW-20261018.md)。
+
+只读复用p树原4合成目录/1junction/index，普通内容0字节，没有新建/清理fixture或真实数据扫描。P确认仅宿主声明，无原生手势鉴真/遍历；Q为默认脱敏内存JSON，未接文件保存/UI、未保证匿名。当前无未结外贴票，无新READY票或自动实现者，原生选择到有界遍历/桌面/macOS/M1仍待后续。
+
+## P/Q派前通过（2026-10-18，历史）
 
 共同精确基线34badd897b8983cffbb57e03a9df9e6af52f7b8f，独立p/q树/分支及初始干净状态、51新锁条目/九旧锁合计227唯一冻结实核通过。P在本树仅创建4个合成目录/1junction、普通内容0字节，私有离线真实A/N和原生身份/别名/重解析检查通过；Q私有离线真实A/H、24份报告和9原raw错误/来源hash通过。详[正式派前回执](dispatch/wave1/SCOPE-EXPORT-READY-REPORT.md)。
 

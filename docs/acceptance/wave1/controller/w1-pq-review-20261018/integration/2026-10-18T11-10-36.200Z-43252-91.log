@@ -1,0 +1,64 @@
+--- stdout ---
+
+running 5 tests
+test redaction_aliases_and_privacy ... FAILED
+test redaction_precision_and_status ... FAILED
+test redaction_public_wire ... FAILED
+test redaction_source_validation ... ok
+test redaction_structure ... FAILED
+
+failures:
+
+---- redaction_aliases_and_privacy stdout ----
+
+thread 'redaction_aliases_and_privacy' (20696) panicked at tests\redaction_v1.rs:464:9:
+assertion `left == right` failed: Q_NO_FREE_TEXT: IDs/text influenced output
+  left: RedactedReport { export_version: "water.redacted-report.v1", source_schema_version: WaterScanV1, read_only: true, redaction_profile: "structural_no_paths_v1", anonymity_guaranteed: false, summary: SummaryExport { export_version: "water.summary-export.v1", source_schema_version: WaterScanV1, read_only: true, status: Completed, counts: ReportCounts { scopes: 1, findings: 1, issues: 0 }, risk_counts: RiskCounts { low: 0, review: 1, high: 0, protected: 0 }, category_counts: CategoryCounts { download_cache: 0, build_cache: 1, environment: 0, model: 0, experiment: 0, history: 0, database: 0, credential: 0, source: 0, temporary: 0, unknown: 0 }, totals: ScanTotals { logical_bytes: None, allocated_bytes: None, method: Unavailable, coverage_complete: true, scanned_entries: 3, skipped_entries: 0 } }, scopes: [RedactedScope { scope_ref: "scope-1", platform: Windows, origin: UserSelected, coverage: Complete }], findings: [RedactedFinding { finding_ref: "Q_REDACTION_CANARY/project/.cache/ruff", scope_ref: "scope-1", has_tool: true, category: BuildCache, risk: Review, recoverability: Rebuild, activity: Unknown, confidence: VerifiedStructure, evidence: [RedactedEvidence { code: StructureMatch, source: Filesystem }], protection_reasons: [], references: RedactedReferences { state: Unknown, project_count: 0 }, size: SizeEstimate { logical_bytes: Some(ByteCount(9007199254740993)), allocated_bytes: None, reclaimable_lower_bytes: None, reclaimable_upper_bytes: None, method: LogicalSum, confidence: Estimated, shared: Unknown } }], issues: [] }
+ right: RedactedReport { export_version: "water.redacted-report.v1", source_schema_version: WaterScanV1, read_only: true, redaction_profile: "structural_no_paths_v1", anonymity_guaranteed: false, summary: SummaryExport { export_version: "water.summary-export.v1", source_schema_version: WaterScanV1, read_only: true, status: Completed, counts: ReportCounts { scopes: 1, findings: 1, issues: 0 }, risk_counts: RiskCounts { low: 0, review: 1, high: 0, protected: 0 }, category_counts: CategoryCounts { download_cache: 0, build_cache: 1, environment: 0, model: 0, experiment: 0, history: 0, database: 0, credential: 0, source: 0, temporary: 0, unknown: 0 }, totals: ScanTotals { logical_bytes: None, allocated_bytes: None, method: Unavailable, coverage_complete: true, scanned_entries: 3, skipped_entries: 0 } }, scopes: [RedactedScope { scope_ref: "scope-1", platform: Windows, origin: UserSelected, coverage: Complete }], findings: [RedactedFinding { finding_ref: "project/.cache/ruff", scope_ref: "scope-1", has_tool: true, category: BuildCache, risk: Review, recoverability: Rebuild, activity: Unknown, confidence: VerifiedStructure, evidence: [RedactedEvidence { code: StructureMatch, source: Filesystem }], protection_reasons: [], references: RedactedReferences { state: Unknown, project_count: 0 }, size: SizeEstimate { logical_bytes: Some(ByteCount(9007199254740993)), allocated_bytes: None, reclaimable_lower_bytes: None, reclaimable_upper_bytes: None, method: LogicalSum, confidence: Estimated, shared: Unknown } }], issues: [] }
+note: run with `RUST_BACKTRACE=1` environment variable to display a backtrace
+
+---- redaction_precision_and_status stdout ----
+
+thread 'redaction_precision_and_status' (33672) panicked at tests\redaction_v1.rs:104:9:
+assertion `left == right` failed: Q_NO_FREE_TEXT
+  left: String("project/.cache/ruff")
+ right: "finding-1"
+
+---- redaction_public_wire stdout ----
+
+thread 'redaction_public_wire' (39292) panicked at tests\redaction_v1.rs:645:9:
+assertion `left == right` failed: public full golden "h-base"
+  left: Object {"anonymity_guaranteed": Bool(false), "export_version": String("water.redacted-report.v1"), "findings": Array [Object {"activity": String("unknown"), "category": String("build_cache"), "confidence": String("verified_structure"), "evidence": Array [Object {"code": String("structure_match"), "source": String("filesystem")}], "finding_ref": String("project/.cache/ruff"), "has_tool": Bool(true), "protection_reasons": Array [], "recoverability": String("rebuild"), "references": Object {"project_count": Number(0), "state": String("unknown")}, "risk": String("review"), "scope_ref": String("scope-1"), "size": Object {"allocated_bytes": Null, "confidence": String("estimated"), "logical_bytes": String("9007199254740993"), "method": String("logical_sum"), "reclaimable_lower_bytes": Null, "reclaimable_upper_bytes": Null, "shared": String("unknown")}}], "issues": Array [], "read_only": Bool(true), "redaction_profile": String("structural_no_paths_v1"), "scopes": Array [Object {"coverage": String("complete"), "origin": String("user_selected"), "platform": String("windows"), "scope_ref": String("scope-1")}], "source_schema_version": String("water.scan.v1"), "summary": Object {"category_counts": Object {"build_cache": Number(1), "credential": Number(0), "database": Number(0), "download_cache": Number(0), "environment": Number(0), "experiment": Number(0), "history": Number(0), "model": Number(0), "source": Number(0), "temporary": Number(0), "unknown": Number(0)}, "counts": Object {"findings": Number(1), "issues": Number(0), "scopes": Number(1)}, "export_version": String("water.summary-export.v1"), "read_only": Bool(true), "risk_counts": Object {"high": Number(0), "low": Number(0), "protected": Number(0), "review": Number(1)}, "source_schema_version": String("water.scan.v1"), "status": String("completed"), "totals": Object {"allocated_bytes": Null, "coverage_complete": Bool(true), "logical_bytes": Null, "method": String("unavailable"), "scanned_entries": Number(3), "skipped_entries": Number(0)}}}
+ right: Object {"anonymity_guaranteed": Bool(false), "export_version": String("water.redacted-report.v1"), "findings": Array [Object {"activity": String("unknown"), "category": String("build_cache"), "confidence": String("verified_structure"), "evidence": Array [Object {"code": String("structure_match"), "source": String("filesystem")}], "finding_ref": String("finding-1"), "has_tool": Bool(true), "protection_reasons": Array [], "recoverability": String("rebuild"), "references": Object {"project_count": Number(0), "state": String("unknown")}, "risk": String("review"), "scope_ref": String("scope-1"), "size": Object {"allocated_bytes": Null, "confidence": String("estimated"), "logical_bytes": String("9007199254740993"), "method": String("logical_sum"), "reclaimable_lower_bytes": Null, "reclaimable_upper_bytes": Null, "shared": String("unknown")}}], "issues": Array [], "read_only": Bool(true), "redaction_profile": String("structural_no_paths_v1"), "scopes": Array [Object {"coverage": String("complete"), "origin": String("user_selected"), "platform": String("windows"), "scope_ref": String("scope-1")}], "source_schema_version": String("water.scan.v1"), "summary": Object {"category_counts": Object {"build_cache": Number(1), "credential": Number(0), "database": Number(0), "download_cache": Number(0), "environment": Number(0), "experiment": Number(0), "history": Number(0), "model": Number(0), "source": Number(0), "temporary": Number(0), "unknown": Number(0)}, "counts": Object {"findings": Number(1), "issues": Number(0), "scopes": Number(1)}, "export_version": String("water.summary-export.v1"), "read_only": Bool(true), "risk_counts": Object {"high": Number(0), "low": Number(0), "protected": Number(0), "review": Number(1)}, "source_schema_version": String("water.scan.v1"), "status": String("completed"), "totals": Object {"allocated_bytes": Null, "coverage_complete": Bool(true), "logical_bytes": Null, "method": String("unavailable"), "scanned_entries": Number(3), "skipped_entries": Number(0)}}}
+
+---- redaction_structure stdout ----
+
+thread 'redaction_structure' (37188) panicked at tests\redaction_v1.rs:104:9:
+assertion `left == right` failed: Q_NO_FREE_TEXT
+  left: String("project/.cache/ruff")
+ right: "finding-1"
+
+
+failures:
+    redaction_aliases_and_privacy
+    redaction_precision_and_status
+    redaction_public_wire
+    redaction_structure
+
+test result: FAILED. 1 passed; 4 failed; 0 ignored; 0 measured; 0 filtered out; finished in 0.25s
+
+
+--- stderr ---
+   Compiling water-redacted-report v0.1.0 (F:\new\smaltalk\water\.worktrees\integration-pq-20261018\packages\redacted-report)
+warning: unused variable: `index`
+   --> src\v1.rs:134:16
+    |
+134 |         .map(|(index, finding)| RedactedFinding {
+    |                ^^^^^ help: if this is intentional, prefix it with an underscore: `_index`
+    |
+    = note: `#[warn(unused_variables)]` (part of `#[warn(unused)]`) on by default
+
+warning: `water-redacted-report` (lib) generated 1 warning (run `cargo fix --lib -p water-redacted-report` to apply 1 suggestion)
+    Finished `test` profile [unoptimized + debuginfo] target(s) in 1.49s
+     Running tests\redaction_v1.rs (.local\next-target\debug\deps\redaction_v1-cac5fe4fc64a2d25.exe)
+error: test failed, to rerun pass `--test redaction_v1`

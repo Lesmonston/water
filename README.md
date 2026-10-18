@@ -2,7 +2,7 @@
 
 面向 Windows、macOS AI 开发者的本地存储分析与安全清理助手。
 
-**当前阶段：A–O及五补单保持VERIFIED（Windows受控范围）；P范围登记/进程内许可、Q默认脱敏逐项报告已完成冻结、独立树和实际离线baseline，READY待用户分别外贴。新产品未实现、各五测试未运行，无自动实现者，M1仍未完成。**
+**当前阶段：A–Q及五补单均VERIFIED（Windows受控范围），无未结外贴票。P范围登记/进程内许可与Q默认脱敏内存报告已通过独立复验和隔离集成；原生用户选择、permit到有界遍历、桌面文件保存/macOS/删除未验收，M1仍未完成。**
 
 用户指定本项目所有后续开发均位于 `smaltalk/water`，由 Codex 担任总控。
 
@@ -23,7 +23,7 @@
 
 [当前F验收记录](docs/acceptance/wave1/controller/WATER-W1-F-REVIEW-20261017.md)与[并行安排](docs/dispatch/wave1/PARALLEL-NEXT-PLAN-20261017.md)：A–F无需重复外贴。I已通过[单票与隔离集成](docs/acceptance/wave1/controller/WATER-W1-I-REVIEW-20261017.md)，G/H也已[验收并完成受控真实库/模型链路](docs/acceptance/wave1/controller/WATER-W1-GH-REVIEW-20261018.md)。A–I旧票不重复外贴；实际I页面/桌面与真实用户scope后排。
 
-新增已验收产物：[Windows原生目录观察](packages/native-root/README.md)、[项目证据与容量页面](prototypes/evidence-reader/README.md)。当前仍限受控只读范围。
+新增已验收产物：[Windows原生目录观察](packages/native-root/README.md)、[项目证据与容量页面](prototypes/evidence-reader/README.md)。另有[目录范围登记](packages/scope-registry/README.md)和[默认脱敏内存报告](packages/redacted-report/README.md)。当前仍限受控只读范围。
 
 ## 研究输入
 
@@ -35,7 +35,7 @@ Water 的发布许可证、定价与商标名称尚未最终确定；`water` 是
 
 ## 当前外贴与在途
 
-当前外贴[P范围登记工单](docs/dispatch/tickets/WATER-W1-P-SCOPE-REGISTRY-20261018.md)和[Q默认脱敏报告工单](docs/dispatch/tickets/WATER-W1-Q-REDACTED-REPORT-20261018.md)，分别用两个新执行对话；[实际派前回执](docs/dispatch/wave1/SCOPE-EXPORT-READY-REPORT.md)已归档。N/O原票不重贴。P不接原生选择器/遍历，Q不接文件保存/UI，真实用户闭环另验。下面为旧批次记录。
+P/Q已验收并集成，原票不重贴；见[P/Q验收报告](docs/acceptance/wave1/controller/WATER-W1-PQ-REVIEW-20261018.md)。当前无待贴/在途工单；下一阶段按ADR-011推进原生选择到有界元数据遍历与桌面导出接线。下面为旧批次记录。
 
 [本次J/K安排](docs/dispatch/wave1/SESSION-BATCH-PLAN-20261018.md)及[实际派前回执](docs/dispatch/wave1/SESSION-BATCH-READY-REPORT.md)：两树独立、同一冻结r1基线；J已通过[独立验收及集成](docs/acceptance/wave1/controller/WATER-W1-J-REVIEW-20261018.md)，K[补充单01已通过独立复验及真实J→K页面集成](docs/acceptance/wave1/controller/WATER-W1-K-ADDENDUM-01-REVIEW-20261018.md)，原失败历史保留。J只组合现有受控链路，K从调用方接内存快照。A–I及四补单无需重贴；W2–W5/真实scope/桌面/macOS属于后续规划，未伪装成待派READY单。
 
@@ -43,4 +43,4 @@ Water 的发布许可证、定价与商标名称尚未最终确定；`water` 是
 
 Codex负责架构、规划、契约、工单和验收；用户把总控准备好的一行指令转贴给执行者；执行者在独立工作树提交代码与回执，总控复核后集成。见 [派单登记](docs/dispatch/registry.json) 与 [本轮计划](docs/dispatch/wave1/PLAN.md)：A–I已验收集成，总控没有自动代替用户启动实现者或修产品代码。
 
-[L/M单票及隔离集成验收](docs/acceptance/wave1/controller/WATER-W1-LM-REVIEW-20261018.md)已完成，原正式票无需重贴。N/O亦已VERIFIED，P/Q新增READY待分别外贴；尚无新执行者启动证据，收单后总控独立验收集成。
+[L/M单票及隔离集成验收](docs/acceptance/wave1/controller/WATER-W1-LM-REVIEW-20261018.md)已完成，原正式票无需重贴。P/Q也已VERIFIED，当前无未结外贴票。后续新票仍须冻结契约、独立树和实际基线后由用户转贴。

@@ -1,0 +1,28 @@
+[workspace]
+members = ["."]
+resolver = "3"
+
+[package]
+name = "water-redacted-report"
+version = "0.1.0"
+edition = "2024"
+rust-version = "1.95"
+publish = false
+autotests = false
+autoexamples = false
+autobenches = false
+autobins = false
+
+[lib]
+name = "water_redacted_report"
+path = "src/lib.rs"
+
+[[test]]
+name = "redaction_v1"
+path = "tests/redaction_v1.rs"
+
+[dependencies]
+water-contracts = { path = "../../crates/water-contracts" }
+water-summary-export = { path = "../summary-export" }
+serde = { version = "=1.0.229", features = ["derive"] }
+serde_json = "=1.0.151"

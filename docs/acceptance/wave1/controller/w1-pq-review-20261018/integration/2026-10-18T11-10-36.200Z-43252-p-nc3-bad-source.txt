@@ -1,0 +1,253 @@
+//! Private, registry-bound capabilities over the native module's owned leases.
+
+use std::{fmt, sync::Arc};
+use water_contracts::v1::OpaqueId;
+use water_native_root::v1::{self as native, DirectoryLease, RootError, RootObservation};
+
+#[derive(Debug, Clone, PartialEq, Eq)]
+pub enum RegistryError {
+    InvalidCapacity,
+    RegistryFull,
+    DuplicateScope,
+    DuplicateRoot,
+    InvalidCapability,
+    WrongState,
+    RootChanged,
+    Native(RootError),
+}
+
+impl fmt::Display for RegistryError {
+    fn fmt(&self, f: &mut fmt::Formatter<'_>) -> fmt::Result {
+        match self {
+            Self::Native(error) => error.fmt(f),
+            error => write!(f, "{error:?}"),
+        }
+    }
+}
+
+impl std::error::Error for RegistryError {}
+
+pub struct Registry {
+    capacity: usize,
+    owner: Arc<()>,
+    entries: Vec<Entry>,
+}
+
+pub struct PendingSelection {
+    binding: Binding,
+}
+
+pub struct RegisteredScope {
+    binding: Binding,
+}
+
+pub struct ScanPermit {
+    binding: Binding,
+    attempt: Arc<()>,
+}
+
+struct Binding {
+    owner: Arc<()>,
+    registration: Arc<()>,
+    scope_id: OpaqueId,
+}
+
+struct Entry {
+    scope_id: OpaqueId,
+    registration: Arc<()>,
+    lease: DirectoryLease,
+    state: State,
+}
+
+enum State {
+    Pending,
+    Confirmed,
+    Active(Arc<()>),
+}
+
+impl Entry {
+    fn binding(&self, owner: &Arc<()>) -> Binding {
+        Binding {
+            owner: Arc::clone(owner),
+            registration: Arc::clone(&self.registration),
+            scope_id: self.scope_id.clone(),
+        }
+    }
+
+    fn refresh(&self) -> Result<RootObservation, RegistryError> {
+        let observation = self.lease.refresh().map_err(RegistryError::Native)?;
+        if observation.identity() != self.lease.observation().identity() {
+            return Err(RegistryError::RootChanged);
+        }
+        Ok(observation)
+    }
+}
+
+impl PendingSelection {
+    pub fn scope_id(&self) -> &OpaqueId {
+        &self.binding.scope_id
+    }
+}
+
+impl RegisteredScope {
+    pub fn scope_id(&self) -> &OpaqueId {
+        &self.binding.scope_id
+    }
+}
+
+impl ScanPermit {
+    pub fn scope_id(&self) -> &OpaqueId {
+        &self.binding.scope_id
+    }
+}
+
+impl Registry {
+    pub fn new(capacity: usize) -> Result<Self, RegistryError> {
+        if !(1..=16).contains(&capacity) {
+            return Err(RegistryError::InvalidCapacity);
+        }
+        Ok(Self {
+            capacity,
+            owner: Arc::new(()),
+            entries: Vec::new(),
+        })
+    }
+
+    pub fn len(&self) -> usize {
+        self.entries.len()
+    }
+
+    pub fn is_empty(&self) -> bool {
+        self.entries.is_empty()
+    }
+
+    pub fn prepare(
+        &mut self,
+        scope_id: &OpaqueId,
+        path: &str,
+    ) -> Result<PendingSelection, RegistryError> {
+        if self.len() >= self.capacity {
+            return Err(RegistryError::RegistryFull);
+        }
+        if self.entries.iter().any(|entry| &entry.scope_id == scope_id) {
+            return Err(RegistryError::DuplicateScope);
+        }
+        let lease = native::open_directory(scope_id, path).map_err(RegistryError::Native)?;
+        if self
+            .entries
+            .iter()
+            .any(|entry| entry.lease.observation().identity() == lease.observation().identity())
+        {
+            // The rejected lease drops here; no entry or authority has been issued.
+            return Err(RegistryError::DuplicateRoot);
+        }
+        let entry = Entry {
+            scope_id: scope_id.clone(),
+            registration: Arc::new(()),
+            lease,
+            state: State::Pending,
+        };
+        let pending = PendingSelection {
+            binding: entry.binding(&self.owner),
+        };
+        self.entries.push(entry);
+        Ok(pending)
+    }
+
+    pub fn preview(&self, pending: &PendingSelection) -> Result<RootObservation, RegistryError> {
+        let entry = &self.entries[self.entry_index(&pending.binding)?];
+        if !matches!(entry.state, State::Pending) {
+            return Err(RegistryError::WrongState);
+        }
+        entry.refresh()
+    }
+
+    /// Records the trusted Rust host's declaration, without authenticating a user gesture.
+    pub fn confirm(
+        &mut self,
+        pending: &PendingSelection,
+    ) -> Result<RegisteredScope, RegistryError> {
+        let index = self.entry_index(&pending.binding)?;
+        let entry = &mut self.entries[index];
+        if !matches!(entry.state, State::Pending) {
+            return Err(RegistryError::WrongState);
+        }
+        entry.refresh()?;
+        entry.state = State::Confirmed;
+        Ok(RegisteredScope {
+            binding: entry.binding(&self.owner),
+        })
+    }
+
+    pub fn decline(&mut self, pending: &PendingSelection) -> Result<(), RegistryError> {
+        let index = self.entry_index(&pending.binding)?;
+        if !matches!(self.entries[index].state, State::Pending) {
+            return Err(RegistryError::WrongState);
+        }
+        self.entries.remove(index);
+        Ok(())
+    }
+
+    pub fn begin_scan(&mut self, scope: &RegisteredScope) -> Result<ScanPermit, RegistryError> {
+        let index = self.entry_index(&scope.binding)?;
+        let entry = &mut self.entries[index];
+        if !matches!(entry.state, State::Confirmed) {
+            return Err(RegistryError::WrongState);
+        }
+        entry.refresh()?;
+        let attempt = Arc::new(());
+        entry.state = State::Active(Arc::clone(&attempt));
+        Ok(ScanPermit {
+            binding: entry.binding(&self.owner),
+            attempt,
+        })
+    }
+
+    pub fn check_permit(&self, permit: &ScanPermit) -> Result<RootObservation, RegistryError> {
+        let entry = &self.entries[self.entry_index(&permit.binding)?];
+        match &entry.state {
+            State::Active(attempt) if Arc::ptr_eq(attempt, &permit.attempt) => entry.refresh(),
+            _ => Err(RegistryError::InvalidCapability),
+        }
+    }
+
+    pub fn finish(&mut self, permit: &ScanPermit) -> Result<(), RegistryError> {
+        // Refresh and identity validation must succeed before clearing the attempt.
+        self.check_permit(permit)?;
+        let index = self.entry_index(&permit.binding)?;
+        self.entries[index].state = State::Confirmed;
+        Ok(())
+    }
+
+    pub fn cancel(&mut self, scope: &RegisteredScope) -> Result<(), RegistryError> {
+        let index = self.entry_index(&scope.binding)?;
+        let entry = &mut self.entries[index];
+        if !matches!(entry.state, State::Active(_)) {
+            return Err(RegistryError::WrongState);
+        }
+        entry.state = State::Confirmed;
+        Ok(())
+    }
+
+    pub fn revoke(&mut self, scope: &RegisteredScope) -> Result<(), RegistryError> {
+        let index = self.entry_index(&scope.binding)?;
+        if matches!(self.entries[index].state, State::Pending) {
+            return Err(RegistryError::WrongState);
+        }
+        // Intentionally broken: an active entry and its attempt survive revocation.
+        if !matches!(self.entries[index].state, State::Active(_)) {
+            self.entries.remove(index);
+        }
+        Ok(())
+    }
+
+    fn entry_index(&self, binding: &Binding) -> Result<usize, RegistryError> {
+        if !Arc::ptr_eq(&self.owner, &binding.owner) {
+            return Err(RegistryError::InvalidCapability);
+        }
+        self.entries
+            .iter()
+            .position(|entry| Arc::ptr_eq(&entry.registration, &binding.registration))
+            .ok_or(RegistryError::InvalidCapability)
+    }
+}

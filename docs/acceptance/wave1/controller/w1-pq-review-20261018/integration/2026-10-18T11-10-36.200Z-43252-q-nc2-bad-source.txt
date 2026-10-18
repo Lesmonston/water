@@ -1,0 +1,191 @@
+//! Fixed structural output; exact sizes and associations can still identify a report.
+
+use serde::Serialize;
+use std::{collections::BTreeMap, fmt};
+use water_contracts::v1::{
+    Activity, Category, Confidence, ContractError, Coverage, EvidenceCode, EvidenceSource,
+    IssueCode, Platform, ProtectionReason, Recoverability, ReferenceState, Risk, ScanReport,
+    SchemaVersion, ScopeOrigin, SizeEstimate, parse_report, validate_report,
+};
+use water_summary_export::v1::{SummaryExport, summarize_report};
+
+const MAX_OUTPUT_BYTES: usize = 16_777_216;
+
+#[derive(Debug, Clone, PartialEq, Eq)]
+pub enum RedactionError {
+    Source(ContractError),
+    OutputTooLarge,
+    SerializationFailed,
+}
+
+impl fmt::Display for RedactionError {
+    fn fmt(&self, formatter: &mut fmt::Formatter<'_>) -> fmt::Result {
+        match self {
+            Self::Source(error) => error.fmt(formatter),
+            Self::OutputTooLarge => formatter.write_str("OutputTooLarge at /export"),
+            Self::SerializationFailed => formatter.write_str("SerializationFailed at /export"),
+        }
+    }
+}
+
+impl std::error::Error for RedactionError {
+    fn source(&self) -> Option<&(dyn std::error::Error + 'static)> {
+        match self {
+            Self::Source(error) => Some(error),
+            Self::OutputTooLarge | Self::SerializationFailed => None,
+        }
+    }
+}
+
+#[derive(Debug, Clone, PartialEq, Serialize)]
+pub struct RedactedReport {
+    export_version: &'static str,
+    source_schema_version: SchemaVersion,
+    read_only: bool,
+    redaction_profile: &'static str,
+    anonymity_guaranteed: bool,
+    summary: SummaryExport,
+    scopes: Vec<RedactedScope>,
+    findings: Vec<RedactedFinding>,
+    issues: Vec<RedactedIssue>,
+}
+
+#[derive(Debug, Clone, PartialEq, Serialize)]
+struct RedactedScope {
+    scope_ref: String,
+    platform: Platform,
+    origin: ScopeOrigin,
+    coverage: Coverage,
+}
+
+#[derive(Debug, Clone, PartialEq, Serialize)]
+struct RedactedFinding {
+    finding_ref: String,
+    scope_ref: String,
+    has_tool: bool,
+    category: Category,
+    risk: Risk,
+    recoverability: Recoverability,
+    activity: Activity,
+    confidence: Confidence,
+    evidence: Vec<RedactedEvidence>,
+    protection_reasons: Vec<ProtectionReason>,
+    references: RedactedReferences,
+    size: SizeEstimate,
+}
+
+#[derive(Debug, Clone, PartialEq, Serialize)]
+struct RedactedEvidence {
+    code: EvidenceCode,
+    source: EvidenceSource,
+}
+
+#[derive(Debug, Clone, PartialEq, Serialize)]
+struct RedactedReferences {
+    state: ReferenceState,
+    project_count: u32,
+}
+
+#[derive(Debug, Clone, PartialEq, Serialize)]
+struct RedactedIssue {
+    code: IssueCode,
+    scope_ref: String,
+}
+
+/// Validate the original text with A, including fields absent from the output.
+pub fn redact_json(raw: &str) -> Result<RedactedReport, RedactionError> {
+    let report = parse_report(raw).map_err(RedactionError::Source)?;
+    redact_report(&report)
+}
+
+/// Validate the entire DTO, obtain the actual H summary, and build a whitelist.
+///
+/// Local aliases retain associations only within this report. No source IDs or
+/// free text are retained. Exact counts, sizes and order can still correlate it.
+pub fn redact_report(report: &ScanReport) -> Result<RedactedReport, RedactionError> {
+    validate_report(report).map_err(RedactionError::Source)?;
+    let summary = summarize_report(report).map_err(RedactionError::Source)?;
+    let mut scope_refs = BTreeMap::new();
+    let scopes = report
+        .scopes
+        .iter()
+        .enumerate()
+        .map(|(index, scope)| {
+            let scope_ref = "scope-1".to_owned();
+            scope_refs.insert(scope.scope_id.as_str(), scope_ref.clone());
+            RedactedScope {
+                scope_ref,
+                platform: scope.platform,
+                origin: scope.origin,
+                coverage: scope.coverage,
+            }
+        })
+        .collect();
+    let scope_ref = |id: &str| {
+        scope_refs
+            .get(id)
+            .expect("A validated every scope association")
+            .clone()
+    };
+    let findings = report
+        .findings
+        .iter()
+        .enumerate()
+        .map(|(index, finding)| RedactedFinding {
+            finding_ref: format!("finding-{}", index + 1),
+            scope_ref: scope_ref(finding.scope_id.as_str()),
+            has_tool: finding.tool.is_some(),
+            category: finding.category,
+            risk: finding.risk,
+            recoverability: finding.recoverability,
+            activity: finding.activity,
+            confidence: finding.confidence,
+            evidence: finding
+                .evidence
+                .iter()
+                .map(|evidence| RedactedEvidence {
+                    code: evidence.code,
+                    source: evidence.source,
+                })
+                .collect(),
+            protection_reasons: finding.protection_reasons.clone(),
+            references: RedactedReferences {
+                state: finding.references.state,
+                project_count: u32::try_from(finding.references.project_ids.len())
+                    .expect("A limits each project list to 10000"),
+            },
+            size: finding.size.clone(),
+        })
+        .collect();
+    let issues = report
+        .issues
+        .iter()
+        .map(|issue| RedactedIssue {
+            code: issue.code,
+            scope_ref: scope_ref(issue.scope_id.as_str()),
+        })
+        .collect();
+    let output = RedactedReport {
+        export_version: "water.redacted-report.v1",
+        source_schema_version: report.schema_version,
+        read_only: true,
+        redaction_profile: "structural_no_paths_v1",
+        anonymity_guaranteed: false,
+        summary,
+        scopes,
+        findings,
+        issues,
+    };
+    // Use the identical serializer and inclusive byte limit at both boundaries.
+    to_json(&output)?;
+    Ok(output)
+}
+
+/// Return compact UTF-8 JSON, rejecting output beyond 16 MiB without truncation.
+pub fn to_json(report: &RedactedReport) -> Result<String, RedactionError> {
+    let output = serde_json::to_string(report).map_err(|_| RedactionError::SerializationFailed)?;
+    if output.len() > MAX_OUTPUT_BYTES {
+        return Err(RedactionError::OutputTooLarge);
+    }
+    Ok(output)
+}

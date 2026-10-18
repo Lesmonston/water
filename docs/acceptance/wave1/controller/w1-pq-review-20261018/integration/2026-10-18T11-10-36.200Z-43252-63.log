@@ -1,0 +1,35 @@
+--- stdout ---
+
+running 5 tests
+test registry_confirmation ... FAILED
+test registry_permits_and_replay ... ok
+test registry_public_native_bridge ... ok
+test registry_registration ... ok
+test registry_revocation_and_owner ... FAILED
+
+failures:
+
+---- registry_confirmation stdout ----
+
+thread 'registry_confirmation' (21888) panicked at F:\new\smaltalk\water\.worktrees\p\packages\scope-registry\tests\registry_v1.rs:80:5:
+assertion `left == right` failed: old registration after ID reuse
+  left: None
+ right: Some(InvalidCapability)
+note: run with `RUST_BACKTRACE=1` environment variable to display a backtrace
+
+---- registry_revocation_and_owner stdout ----
+
+thread 'registry_revocation_and_owner' (36228) panicked at F:\new\smaltalk\water\.worktrees\p\packages\scope-registry\tests\registry_v1.rs:80:5:
+assertion `left == right` failed: P_OWNER_BOUND: foreign pending
+  left: None
+ right: Some(InvalidCapability)
+
+
+failures:
+    registry_confirmation
+    registry_revocation_and_owner
+
+test result: FAILED. 3 passed; 2 failed; 0 ignored; 0 measured; 0 filtered out; finished in 0.01s
+
+
+--- stderr ---

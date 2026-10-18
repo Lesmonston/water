@@ -1,0 +1,18 @@
+--- stdout ---
+
+--- stderr ---
+error[E0277]: `PendingSelection` doesn't implement `Debug`
+ --> F:\new\smaltalk\water\.worktrees\integration-pq-20261018\.local\next-tmp\2026-10-18T11-10-36.200Z-43252-p_pendingselection_7.rs:1:55
+  |
+1 | fn require<T:std::fmt::Debug>(){} fn main(){require::<water_scope_registry::v1::PendingSelection>();}
+  |                                                       ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^ the trait `Debug` is not implemented for `PendingSelection`
+  |
+note: required by a bound in `require`
+ --> F:\new\smaltalk\water\.worktrees\integration-pq-20261018\.local\next-tmp\2026-10-18T11-10-36.200Z-43252-p_pendingselection_7.rs:1:14
+  |
+1 | fn require<T:std::fmt::Debug>(){} fn main(){require::<water_scope_registry::v1::PendingSelection>();}
+  |              ^^^^^^^^^^^^^^^ required by this bound in `require`
+
+error: aborting due to 1 previous error
+
+For more information about this error, try `rustc --explain E0277`.

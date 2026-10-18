@@ -1,0 +1,47 @@
+--- stdout ---
+
+running 5 tests
+test registry_confirmation ... ok
+test registry_permits_and_replay ... FAILED
+test registry_public_native_bridge ... FAILED
+test registry_registration ... FAILED
+test registry_revocation_and_owner ... FAILED
+
+failures:
+
+---- registry_permits_and_replay stdout ----
+
+thread 'registry_permits_and_replay' (35996) panicked at F:\new\smaltalk\water\.worktrees\p\packages\scope-registry\tests\registry_v1.rs:380:5:
+assertion failed: registry.is_empty()
+note: run with `RUST_BACKTRACE=1` environment variable to display a backtrace
+
+---- registry_public_native_bridge stdout ----
+
+thread 'registry_public_native_bridge' (12252) panicked at F:\new\smaltalk\water\.worktrees\p\packages\scope-registry\tests\registry_v1.rs:80:5:
+assertion `left == right` failed: public revocation
+  left: None
+ right: Some(InvalidCapability)
+
+---- registry_registration stdout ----
+
+thread 'registry_registration' (9812) panicked at F:\new\smaltalk\water\.worktrees\p\packages\scope-registry\tests\registry_v1.rs:148:5:
+assertion failed: one.is_empty()
+
+---- registry_revocation_and_owner stdout ----
+
+thread 'registry_revocation_and_owner' (21404) panicked at F:\new\smaltalk\water\.worktrees\p\packages\scope-registry\tests\registry_v1.rs:80:5:
+assertion `left == right` failed: P_REVOKED: revoke must remove active registration and attempt
+  left: None
+ right: Some(InvalidCapability)
+
+
+failures:
+    registry_permits_and_replay
+    registry_public_native_bridge
+    registry_registration
+    registry_revocation_and_owner
+
+test result: FAILED. 1 passed; 4 failed; 0 ignored; 0 measured; 0 filtered out; finished in 0.01s
+
+
+--- stderr ---

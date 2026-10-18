@@ -1,5 +1,7 @@
 # WATER-W1-Q：默认脱敏的逐项报告
 
+归档状态（2026-10-18）：VERIFIED（Windows受控范围），原票不再外贴或从基线重做。以下原执行票仅作追溯，当前以manifest和[总控验收报告](../../acceptance/wave1/controller/WATER-W1-PQ-REVIEW-20261018.md)为准。
+
 总控2026-10-18。主manifest为READY后、用户外贴给一个新执行对话才开始；与P独立，仅依赖已验收A/H和冻结报告输入。
 
 | 项 | 唯一值 |

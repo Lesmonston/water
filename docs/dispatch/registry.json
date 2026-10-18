@@ -4,7 +4,7 @@
   "mode": "manual-external-paste",
   "controller": "Codex",
   "projectRoot": "F:/new/smaltalk/water",
-  "stage": "wave1-p-q-in-review",
+  "stage": "wave1-abcdefghijklmnopq-verified",
   "activeWave": "water-wave1",
   "slots": [
     {
@@ -133,7 +133,7 @@
       "branch": "worker/water-w1-p",
       "baseline": "34badd897b8983cffbb57e03a9df9e6af52f7b8f",
       "task": "WATER-W1-P",
-      "state": "in-review-preserved"
+      "state": "verified-preserved"
     },
     {
       "id": "q",
@@ -141,7 +141,7 @@
       "branch": "worker/water-w1-q",
       "baseline": "34badd897b8983cffbb57e03a9df9e6af52f7b8f",
       "task": "WATER-W1-Q",
-      "state": "in-review-preserved"
+      "state": "verified-preserved"
     }
   ],
   "tasks": [
@@ -1403,7 +1403,7 @@
     {
       "id": "WATER-W1-P",
       "title": "Directory scope registry and in-process scan permits",
-      "status": "IN_REVIEW",
+      "status": "VERIFIED",
       "kind": "scope_registry",
       "slot": "p",
       "worktree": "F:/new/smaltalk/water/.worktrees/p",
@@ -1476,12 +1476,30 @@
       "submittedCommit": "39dfdfd2bdb7f1196cd0f1765b9638c3aa6e7eda",
       "testedImplementationCommit": "2e963bba0c6b968299880198eb4f1bb8a8100108",
       "submissionObservedAt": "2026-10-18T10:59:53.317Z",
-      "engine": "Codex"
+      "engine": "Codex",
+      "acceptedCommit": "39dfdfd2bdb7f1196cd0f1765b9638c3aa6e7eda",
+      "acceptedOn": "2026-10-18",
+      "integratedOn": "2026-10-18",
+      "verifiedOn": "2026-10-18",
+      "verifiedPlatforms": [
+        "Windows"
+      ],
+      "unverifiedPlatforms": [
+        "macOS"
+      ],
+      "controllerReview": "docs/acceptance/wave1/controller/WATER-W1-PQ-REVIEW-20261018.md",
+      "controllerReviewReceipt": "docs/acceptance/wave1/controller/w1-pq-review-20261018/original-review/2026-10-18T10-59-50.989Z-20308-result.json",
+      "integrationBranch": "controller/water-w1-pq-20261018",
+      "integrationWorktree": "F:/new/smaltalk/water/.worktrees/integration-pq-20261018",
+      "integrationCommit": "c88c557625630e079870f2b801e2d2fd50215174",
+      "integrationTestedCommit": "c88c557625630e079870f2b801e2d2fd50215174",
+      "integrationReceipt": "docs/acceptance/wave1/controller/w1-pq-review-20261018/integration/2026-10-18T11-10-36.200Z-43252-result.json",
+      "verificationScope": "Original five final gates replayed; fresh private offline target repeats five tests/fmt/clippy/metadata/public P-N bridge, three actual-source full-five red/restore/green controls, three independent lifecycle tests and 24 compile rejections with positive control. Read-only reuse of retained four synthetic directories/one junction/zero ordinary content. No native user gesture authentication, traversal, race or macOS validation."
     },
     {
       "id": "WATER-W1-Q",
       "title": "Default redacted structural report",
-      "status": "IN_REVIEW",
+      "status": "VERIFIED",
       "kind": "redacted_report",
       "slot": "q",
       "worktree": "F:/new/smaltalk/water/.worktrees/q",
@@ -1554,9 +1572,27 @@
       "submittedCommit": "d6e135d35f9b5dbb2a915c0d21a9e2b01a29c8aa",
       "testedImplementationCommit": "d46b93d652de0ada6d4be0e18cf0d01c06080a75",
       "submissionObservedAt": "2026-10-18T10:59:57.394Z",
-      "engine": "Codex"
+      "engine": "Codex",
+      "acceptedCommit": "d6e135d35f9b5dbb2a915c0d21a9e2b01a29c8aa",
+      "acceptedOn": "2026-10-18",
+      "integratedOn": "2026-10-18",
+      "verifiedOn": "2026-10-18",
+      "verifiedPlatforms": [
+        "Windows"
+      ],
+      "unverifiedPlatforms": [
+        "macOS"
+      ],
+      "controllerReview": "docs/acceptance/wave1/controller/WATER-W1-PQ-REVIEW-20261018.md",
+      "controllerReviewReceipt": "docs/acceptance/wave1/controller/w1-pq-review-20261018/original-review/2026-10-18T10-59-50.989Z-20308-result.json",
+      "integrationBranch": "controller/water-w1-pq-20261018",
+      "integrationWorktree": "F:/new/smaltalk/water/.worktrees/integration-pq-20261018",
+      "integrationCommit": "c88c557625630e079870f2b801e2d2fd50215174",
+      "integrationTestedCommit": "c88c557625630e079870f2b801e2d2fd50215174",
+      "integrationReceipt": "docs/acceptance/wave1/controller/w1-pq-review-20261018/integration/2026-10-18T11-10-36.200Z-43252-result.json",
+      "verificationScope": "Original five final gates replayed; fresh private offline target repeats five tests/fmt/clippy/metadata/real Q-A-H bridge over 24 goldens and nine raw errors, three actual-source full-five red/restore/green controls, three independent redaction invariance/association/source validation tests, three compile rejections with Serialize positive control. Pure memory; no export file/UI, fresh scan, macOS or anonymity guarantee."
     }
   ],
   "testHelper": "per-task helper; A defaults unchanged",
-  "note": "A-O and five addenda remain VERIFIED. P scope registry/Q redacted report READY after actual independent exact-base Windows baselines, await separate user paste. No automatic implementers. No native picker/user gesture authentication, traversal, real-user data access, desktop or deletion; M1 incomplete."
+  "note": "A-Q and five addenda VERIFIED within Windows controlled scope. No outstanding external tickets; P in-process scope lifecycle and Q default structural redaction accepted. No native user gesture/picker, permit-bound traversal, desktop file export, real-user scope, macOS or deletion validation; M1 incomplete."
 }
