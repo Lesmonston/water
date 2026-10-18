@@ -1,6 +1,6 @@
 # 第一轮：契约底座
 
-**当前（2026-10-18）：A–J及四补单均已VERIFIED（Windows范围），仅K仍RUNNING待回执，没有旧漏派单。** J的总控bridge工具阻塞经独立勘误和真实13快照复测解决，产品未改，见[J验收报告](../../acceptance/wave1/controller/WATER-W1-J-REVIEW-20261018.md)。K原分配/基线/helper/锁保持；实际J→K页面待K收单后验。以下为阶段历史。
+**当前（2026-10-18）：A–J及四旧补单VERIFIED（Windows）；K收单集成退回，补充单01待用户外贴。** 原门全绿未覆盖合法scope根issue空串，真实J→K服务拒绝整份输入，产品未合主线。见[K验收报告](../../acceptance/wave1/controller/WATER-W1-K-REVIEW-20261018.md)与[补单](../tickets/WATER-W1-K-ADDENDUM-01-20261018.md)。原树/132冻结不变，没有其他未结单；以下为阶段历史。
 
 总控：Codex。A契约底座继续，追加两张独立并行票B/C；实际状态以manifest为准。调度补充见ADR-003，A冻结不改。
 

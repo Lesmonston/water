@@ -1,0 +1,109 @@
+{
+  "status": "defect-confirmed",
+  "observedAt": "2026-10-18T03:27:03.582Z",
+  "testedCommit": "f16972f81dab02e2a51ad0e4a408c01a405b9ea6",
+  "failureReceipt": ".worktrees/integration-jk-20261018/.local/checks/controller-session-page/2026-10-18T03-22-50.825Z-42740-result.json",
+  "bundleSha256": "d7ba80c113ef357b3ba675a9f51bacd8dc151734a458e6e5b6bdc450e15f9b62",
+  "bundleBytes": 169500,
+  "actualJAndIndependentPipelineEqual": true,
+  "allThirteenIViewsAccepted": true,
+  "snapshots": [
+    {
+      "index": 0,
+      "scanId": "pipeline-0",
+      "caseId": "project-markers",
+      "accepted": true
+    },
+    {
+      "index": 1,
+      "scanId": "pipeline-1",
+      "caseId": "mixed-assets",
+      "accepted": true
+    },
+    {
+      "index": 2,
+      "scanId": "pipeline-2",
+      "caseId": "scope-prefix",
+      "accepted": true
+    },
+    {
+      "index": 3,
+      "scanId": "pipeline-3",
+      "caseId": "overlapping-scopes",
+      "accepted": true
+    },
+    {
+      "index": 4,
+      "scanId": "pipeline-4",
+      "caseId": "unicode-spaces",
+      "accepted": true
+    },
+    {
+      "index": 5,
+      "scanId": "pipeline-5",
+      "caseId": "hardlink-pair",
+      "accepted": true
+    },
+    {
+      "index": 6,
+      "scanId": "pipeline-6",
+      "caseId": "directory-links",
+      "accepted": true
+    },
+    {
+      "index": 7,
+      "scanId": "pipeline-7",
+      "caseId": "depth-budget",
+      "accepted": true
+    },
+    {
+      "index": 8,
+      "scanId": "pipeline-8",
+      "caseId": "entry-budget",
+      "accepted": false
+    },
+    {
+      "index": 9,
+      "scanId": "pipeline-9",
+      "caseId": "permission-plan",
+      "accepted": true
+    },
+    {
+      "index": 10,
+      "scanId": "pipeline-10",
+      "caseId": "cancel-plan",
+      "accepted": true
+    },
+    {
+      "index": 11,
+      "scanId": "pipeline-11",
+      "caseId": "overlapping-scopes",
+      "accepted": true
+    },
+    {
+      "index": 12,
+      "scanId": "pipeline-12",
+      "caseId": "permission-plan",
+      "accepted": true
+    }
+  ],
+  "entireBundleServerRejected": true,
+  "diagnostic": "Only synchronized issue paths changed from empty to diagnostic-root-label; then K accepts. Pure memory localization, not a product fix or actual J output.",
+  "cause": {
+    "path": "prototypes/lab-reader/model.mjs",
+    "line": 119,
+    "reason": "Issue relative_path empty string is passed to the nonempty entry/root path validator."
+  },
+  "snapshotFiles": 44,
+  "frozenFiles": 132,
+  "fixtureBatch": {
+    "runs": 11,
+    "negatives": 6,
+    "contentBytes": 81717
+  },
+  "mainHead": "779b1db4b3f65a207bfbfd2ed6c16b6d67b16f40",
+  "workerHead": "e717519a14f5d561c0ba18aa7d5299870828aa5a",
+  "workerStatus": "",
+  "physicalFixturesCreated": false,
+  "productChanged": false
+}

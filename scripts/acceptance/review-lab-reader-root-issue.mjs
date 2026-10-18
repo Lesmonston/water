@@ -1,0 +1,30 @@
+// Read-only controller proof for a legal scope-root issue rejected by K.
+import assert from 'node:assert/strict';
+import {spawnSync} from 'node:child_process';
+import {createHash} from 'node:crypto';
+import {readFileSync,writeFileSync,readdirSync,mkdirSync} from 'node:fs';
+import {dirname,join,resolve} from 'node:path';
+import {fileURLToPath,pathToFileURL} from 'node:url';
+const root=resolve(dirname(fileURLToPath(import.meta.url)),'../..'),tree=join(root,'.worktrees/integration-jk-20261018'),args=process.argv.slice(2);
+assert.deepEqual(args,['--expected-head','f16972f81dab02e2a51ad0e4a408c01a405b9ea6']);
+const git=(cwd,argv)=>{const r=spawnSync('git',['-c','core.hooksPath=NUL','-c','core.fsmonitor=false',...argv],{cwd,encoding:'utf8',windowsHide:true});assert.equal(r.status,0,r.stderr);return r.stdout.trim();};
+const sha=b=>createHash('sha256').update(b).digest('hex'),json=p=>JSON.parse(readFileSync(p,'utf8'));
+const dir=join(tree,'.local/checks/controller-session-page'),prefix='2026-10-18T03-22-50.825Z-42740';
+const record=json(join(dir,prefix+'-result.json'));assert.equal(record.status,'failed');assert.equal(record.error,'Unsupported lab session.');assert.equal(record.before.head,args[1]);assert.equal(record.after.head,args[1]);assert.equal(git(tree,['status','--porcelain=v1','--untracked-files=all']),'');
+const bundleBytes=readFileSync(join(dir,prefix+'-actual-j-bundle.json')),bundle=JSON.parse(bundleBytes);
+const commandJSON=marker=>{const c=record.commands.find(c=>c.binary.endsWith(marker+'.exe'));assert(c&&c.exitCode===0);const raw=readFileSync(join(dir,c.log),'utf8');return JSON.parse(raw.split('\n--- stdout ---\n')[1].split('\n--- stderr ---\n')[0]);};
+const known=commandJSON('controller_known_session'),actual=commandJSON('controller_actual_session');
+assert.deepEqual(bundle.snapshots,actual.snapshots);assert.deepEqual(actual.snapshots,known.cases.map(c=>({session_version:'water.lab-session.v1',data_kind:'controlled_fixture_metadata',source_facts:c.facts,report:c.bundle.report,view:c.view,summary:c.summary})));
+const k=await import(pathToFileURL(join(tree,'prototypes/lab-reader/model.mjs'))),i=await import(pathToFileURL(join(tree,'prototypes/report-reader/model.mjs'))),{startServer}=await import(pathToFileURL(join(tree,'prototypes/lab-reader/server.mjs')));
+const snapshots=bundle.snapshots.map((s,index)=>{i.assertReportView(s.view);try{k.assertSessionBundle({bundle_version:bundle.bundle_version,snapshots:[s]});return {index,scanId:s.view.scan_id,caseId:s.source_facts.case_id,accepted:true};}catch(e){assert.equal(e.message,'Unsupported lab session.');return {index,scanId:s.view.scan_id,caseId:s.source_facts.case_id,accepted:false};}});
+assert.deepEqual(snapshots.filter(s=>!s.accepted).map(s=>s.index),[8]);
+const affected=bundle.snapshots[8];assert.equal(affected.source_facts.case_id,'entry-budget');assert.equal(affected.source_facts.scopes[0].issues[0].relative_path,'');assert.equal(affected.report.issues[0].relative_path,'');assert.equal(affected.view.issues[0].relative_path,'');
+await assert.rejects(startServer({bundle}),{name:'Error',message:'Unsupported lab session.'});
+const diagnostic=structuredClone(bundle);for(const path of [diagnostic.snapshots[8].source_facts.scopes[0].issues[0],diagnostic.snapshots[8].report.issues[0],diagnostic.snapshots[8].view.issues[0]])path.relative_path='diagnostic-root-label';k.assertSessionBundle(diagnostic);
+// This synchronized memory diagnostic isolates the rejected value; it is not a fix or J output.
+const prepare=await import(pathToFileURL(join(tree,'scripts/prepare-scan-fixtures.mjs'))),state=prepare.readActiveFixtures();const contentSnapshots=prepare.verifyScanSnapshots(state.index);
+const frozen=new Map();for(const name of ['v1','parallel-v1','fixture-lab-v1','report-view-v1','scan-lab-v1','parallel-next-v1','session-batch-v1'])for(const f of json(join(root,'contracts',name,'freeze.lock.json')).files){for(const base of [root,tree,join(root,'.worktrees/k')])assert.equal(sha(readFileSync(join(base,f.path))),f.sha256);frozen.set(f.path,f.sha256);}assert.equal(frozen.size,132);
+const output=join(root,'docs/acceptance/wave1/controller/w1-k-review-20261018');
+writeFileSync(join(output,'actual-j-regression-bundle.json'),bundleBytes,{flag:'wx'});
+const proof={status:'defect-confirmed',observedAt:new Date().toISOString(),testedCommit:args[1],failureReceipt:'.worktrees/integration-jk-20261018/.local/checks/controller-session-page/'+prefix+'-result.json',bundleSha256:sha(bundleBytes),bundleBytes:bundleBytes.length,actualJAndIndependentPipelineEqual:true,allThirteenIViewsAccepted:true,snapshots,entireBundleServerRejected:true,diagnostic:'Only synchronized issue paths changed from empty to diagnostic-root-label; then K accepts. Pure memory localization, not a product fix or actual J output.',cause:{path:'prototypes/lab-reader/model.mjs',line:119,reason:'Issue relative_path empty string is passed to the nonempty entry/root path validator.'},snapshotFiles:contentSnapshots,frozenFiles:132,fixtureBatch:record.fixtures,mainHead:git(root,['rev-parse','HEAD']),workerHead:git(join(root,'.worktrees/k'),['rev-parse','HEAD']),workerStatus:git(join(root,'.worktrees/k'),['status','--porcelain=v1','--untracked-files=all']),physicalFixturesCreated:false,productChanged:false};
+assert.equal(proof.workerStatus,'');writeFileSync(join(output,'root-issue-regression.json'),JSON.stringify(proof,null,2)+'\n',{flag:'wx'});console.log(JSON.stringify(proof,null,2));

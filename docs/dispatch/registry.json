@@ -4,7 +4,7 @@
   "mode": "manual-external-paste",
   "controller": "Codex",
   "projectRoot": "F:/new/smaltalk/water",
-  "stage": "wave1-k-accepted-jk-integration-pending",
+  "stage": "wave1-k-addendum-01-ready",
   "activeWave": "water-wave1",
   "slots": [
     {
@@ -93,7 +93,7 @@
       "branch": "worker/water-w1-k",
       "baseline": "bc409f4af8cb2d51b2f67341ad46637cfa5e66f3",
       "task": "WATER-W1-K",
-      "state": "accepted-preserved"
+      "state": "changes-requested-waiting-user-paste"
     }
   ],
   "tasks": [
@@ -797,7 +797,7 @@
     {
       "id": "WATER-W1-K",
       "title": "Caller-supplied session reader",
-      "status": "ACCEPTED",
+      "status": "CHANGES_REQUESTED",
       "kind": "lab_reader",
       "slot": "k",
       "worktree": "F:/new/smaltalk/water/.worktrees/k",
@@ -844,7 +844,8 @@
         "prototypes/lab-reader/README.md",
         "prototypes/lab-reader/tests/model.test.mjs",
         "prototypes/lab-reader/tests/browser.test.mjs",
-        "docs/dispatch/reports/WATER-W1-K-REPORT.md"
+        "docs/dispatch/reports/WATER-W1-K-REPORT.md",
+        "docs/dispatch/reports/WATER-W1-K-ADDENDUM-01-REPORT.md"
       ],
       "allowedPrefixes": [
         "docs/acceptance/wave1/k/"
@@ -896,9 +897,25 @@
       "acceptedOn": "2026-10-18",
       "macOS": "unverified",
       "controllerReview": "docs/acceptance/wave1/controller/WATER-W1-K-REVIEW-20261018.md",
-      "controllerReviewReceipt": "docs/acceptance/wave1/controller/w1-k-review-20261018/boundaries/2026-10-18T03-16-47.264Z-38288-result.json"
+      "controllerReviewReceipt": "docs/acceptance/wave1/controller/w1-k-review-20261018/boundaries/2026-10-18T03-16-47.264Z-38288-result.json",
+      "singleTicketGateStatus": "PASSED",
+      "integrationStatus": "FAILED",
+      "failedIntegrationCommit": "f16972f81dab02e2a51ad0e4a408c01a405b9ea6",
+      "failedIntegrationWorktree": "F:/new/smaltalk/water/.worktrees/integration-jk-20261018",
+      "failedIntegrationReceipt": "docs/acceptance/wave1/controller/w1-jk-integration-20261018/session/2026-10-18T03-22-50.825Z-42740-result.json",
+      "controllerIntegrationBoundaries": "docs/acceptance/wave1/controller/w1-jk-integration-20261018/controls/2026-10-18T03-20-05.996Z-31704-result.json",
+      "addenda": [
+        "docs/dispatch/tickets/WATER-W1-K-ADDENDUM-01-20261018.md"
+      ],
+      "resumeFromCommit": "e717519a14f5d561c0ba18aa7d5299870828aa5a",
+      "addendumReport": "docs/dispatch/reports/WATER-W1-K-ADDENDUM-01-REPORT.md",
+      "addendumReadyOn": "2026-10-18",
+      "addendumDispatchedAt": null,
+      "addendumStatus": "READY_WAITING_USER_PASTE",
+      "addendumPreflight": "docs/acceptance/wave1/controller/w1-k-review-20261018/addendum-01-preflight.json",
+      "integrationFailure": "Actual J entry-budget root issue relative_path empty string is legal upstream but rejected by K model; entire supplied 13-snapshot server bundle rejected. No real J-to-K page started."
     }
   ],
   "testHelper": "per-task helper; A defaults unchanged",
-  "note": "A-J VERIFIED; K single-ticket ACCEPTED, isolated integration and actual J-to-K page pending. No new tickets dispatched."
+  "note": "A-J and four existing addenda remain VERIFIED within Windows scope. K original gates passed, actual integration found a root-issue path defect; K addendum 01 prepared for same clean worker, not dispatched. Failed integration preserved, no K product on main. Real J-to-K page, real-user scopes, desktop and macOS unverified."
 }

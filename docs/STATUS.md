@@ -21,9 +21,13 @@
 
 ## 下一步
 
-A–J及A/B/C/D补单均VERIFIED（Windows范围），仅K仍RUNNING待回执，没有其他未结外贴单。J的总控bridge工具阻塞已通过独立勘误与实际13快照复测解决，产品未改。K收单后验真实J→K页面；真实scope安全、分类/工具适配、Tauri/macOS与删除另排，M1尚未完成。
+A–J及四旧补单保持VERIFIED（Windows）。K已收单，原门/独立边界通过，但真实J→K集成失败，现CHANGES_REQUESTED；[补充单01](dispatch/tickets/WATER-W1-K-ADDENDUM-01-20261018.md)已准备待用户外贴，未启动实现者。真实scope安全、分类、Tauri/macOS与删除另排，M1尚未完成。
 
-## J验收集成（2026-10-18，最新）
+## K收单与集成退回（2026-10-18，最新）
+
+K接收e717519、实现7d00355，原三门/五测试、104独立边界及隔离三负控/逐次完整五测恢复通过；隔离f16972f真实J13快照与独立链路逐值一致，但K拒绝entry-budget合法根issue空串，整个bundle未能启动服务，真实J→K页面未验收。K为CHANGES_REQUESTED，补充单01已准备待用户外贴给原执行者；原树干净，主线未纳入K产品，A–J及四旧补单保持VERIFIED（Windows）。132冻结、369份K和359份J交付字节保持；44内容快照通过，仅总控新树由冻结prepare创建11+6/81717字节合成run并全部保留。真实用户scope、分类、桌面/macOS及删除未验证，M1未完成。见[K总控验收报告](acceptance/wave1/controller/WATER-W1-K-REVIEW-20261018.md)。补单修复由原执行者完成，总控不代修；后续验收复用原总控集成树夹具，不清理或重造。
+
+## J验收集成（2026-10-18，历史收口）
 
 - 接收干净HEAD `1dfa82c014cbdb99024b0da48dd4b6bff9f9e3d8`、实现b6fd1fe，359新增文件均在白名单，六产品文件实现后未改，350原始证据核来源字节一致。原前四final总控复跑通过；原bridge final失败永久保留。
 - [工具勘误01](acceptance/wave1/controller/WATER-W1-J-CONTROLLER-ERRATUM-01-20261018.md)仅调整独立总控Cargo图产物选择，不改原helper/锁或K任务。隔离受测d14e1f1在实际四组重复rlib共存时通过五测试/格式/clippy/metadata、选择器三测试及真实13快照全值比较；Native11/12/39、44快照通过。

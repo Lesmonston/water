@@ -2,7 +2,11 @@
 
 日期：2026-10-17。总控：Codex。所有手工项目产物位于 `F:/new/smaltalk/water`。
 
-## J验收集成追加（2026-10-18，最新）
+## K收单与集成退回追加（2026-10-18，最新）
+
+K接收e717519、实现7d00355，原三门/五测试、104独立边界及隔离三负控/逐次完整五测恢复通过；隔离f16972f真实J13快照与独立链路逐值一致，但K拒绝entry-budget合法根issue空串，整个bundle未能启动服务，真实J→K页面未验收。K为CHANGES_REQUESTED，补充单01已准备待用户外贴给原执行者；原树干净，主线未纳入K产品，A–J及四旧补单保持VERIFIED（Windows）。132冻结、369份K和359份J交付字节保持；44内容快照通过，仅总控新树由冻结prepare创建11+6/81717字节合成run并全部保留。真实用户scope、分类、桌面/macOS及删除未验证，M1未完成。见[K验收报告](acceptance/wave1/controller/WATER-W1-K-REVIEW-20261018.md)。所有材料留在Water供Keeper ingest，未写共享Vault。
+
+## J验收集成追加（2026-10-18，历史收口）
 
 J接收1dfa82c、实现b6fd1fe、隔离受测d14e1f1。原四final复跑全过；原bridge工具失败保留，总控按Cargo实际图选rlib后，在四组真实重复产物共存时通过13快照六字段比较、Native11/12/39、五产品/三工具测试及44内容快照。359份交付字节及132冻结保持，产品未改，J为VERIFIED（Windows）。K任务/helper/锁未改，仍RUNNING待回执；真实J→K页面、真实scope/分类/桌面/macOS及删除后排。见[J验收报告](acceptance/wave1/controller/WATER-W1-J-REVIEW-20261018.md)。无须为总控工具问题重贴J实现单。
 
