@@ -1,0 +1,171 @@
+{
+  "startedAt": "2026-10-18T04:03:09.832Z",
+  "commands": [
+    {
+      "binary": "C:\\Users\\37310\\.cargo\\bin\\rustup.exe",
+      "argv": [
+        "which",
+        "rustc",
+        "--toolchain",
+        "1.95.0"
+      ],
+      "exitCode": 0,
+      "error": null,
+      "log": "2026-10-18T04-03-09.832Z-26428-0.log"
+    },
+    {
+      "binary": "C:\\Users\\37310\\.cargo\\bin\\rustup.exe",
+      "argv": [
+        "which",
+        "cargo",
+        "--toolchain",
+        "1.95.0"
+      ],
+      "exitCode": 0,
+      "error": null,
+      "log": "2026-10-18T04-03-09.832Z-26428-1.log"
+    },
+    {
+      "binary": "C:\\Users\\37310\\.rustup\\toolchains\\1.95.0-x86_64-pc-windows-msvc\\bin\\cargo.exe",
+      "argv": [
+        "metadata",
+        "--offline",
+        "--locked",
+        "--format-version",
+        "1",
+        "--manifest-path",
+        "packages/scan-report/Cargo.toml"
+      ],
+      "exitCode": 0,
+      "error": null,
+      "log": "2026-10-18T04-03-09.832Z-26428-2.log"
+    },
+    {
+      "binary": "C:\\Users\\37310\\.rustup\\toolchains\\1.95.0-x86_64-pc-windows-msvc\\bin\\cargo.exe",
+      "argv": [
+        "build",
+        "--offline",
+        "--locked",
+        "--lib",
+        "--message-format=json",
+        "--manifest-path",
+        "packages/scan-report/Cargo.toml"
+      ],
+      "exitCode": 0,
+      "error": null,
+      "log": "2026-10-18T04-03-09.832Z-26428-3.log"
+    },
+    {
+      "binary": "C:\\Users\\37310\\.rustup\\toolchains\\1.95.0-x86_64-pc-windows-msvc\\bin\\rustc.exe",
+      "argv": [
+        "--edition=2024",
+        "--crate-name",
+        "evidence_source_probe",
+        "scripts/acceptance/evidence-source-probe.rs",
+        "-L",
+        "dependency=F:\\new\\smaltalk\\water\\.local\\evidence-assets-target\\debug\\deps",
+        "--extern",
+        "water_scan_report=F:\\new\\smaltalk\\water\\.local\\evidence-assets-target\\debug\\libwater_scan_report.rlib",
+        "--extern",
+        "water_contracts=F:\\new\\smaltalk\\water\\.local\\evidence-assets-target\\debug\\deps\\libwater_contracts-03746b148f2454ba.rlib",
+        "--extern",
+        "serde_json=F:\\new\\smaltalk\\water\\.local\\evidence-assets-target\\debug\\deps\\libserde_json-c243626af514ec1f.rlib",
+        "-o",
+        "F:\\new\\smaltalk\\water\\.local\\evidence-assets-tmp\\2026-10-18T04-03-09.832Z-26428-evidence-assets.exe"
+      ],
+      "exitCode": 0,
+      "error": null,
+      "log": "2026-10-18T04-03-09.832Z-26428-4.log"
+    },
+    {
+      "binary": "F:\\new\\smaltalk\\water\\.local\\evidence-assets-tmp\\2026-10-18T04-03-09.832Z-26428-evidence-assets.exe",
+      "argv": [],
+      "exitCode": 0,
+      "error": null,
+      "log": "2026-10-18T04-03-09.832Z-26428-5.log"
+    }
+  ],
+  "newProductsTested": false,
+  "physicalFixturesCreated": false,
+  "validatedLInputs": 10,
+  "validatedMInputs": 15,
+  "actualGErrors": [
+    {
+      "code": "InvalidFacts",
+      "field": "/facts",
+      "id": "g-duplicate-key"
+    },
+    {
+      "code": "InvalidJson",
+      "field": "/facts",
+      "id": "g-syntax"
+    },
+    {
+      "code": "InvalidFacts",
+      "field": "/facts",
+      "id": "unknown-field"
+    },
+    {
+      "code": "InvalidFacts",
+      "field": "/facts",
+      "id": "missing-nullable"
+    },
+    {
+      "code": "InvalidFacts",
+      "field": "/facts",
+      "id": "object-enum"
+    },
+    {
+      "code": "InvalidFacts",
+      "field": "/facts",
+      "id": "counter"
+    },
+    {
+      "code": "InvalidFacts",
+      "field": "/facts",
+      "id": "empty-entry-path"
+    },
+    {
+      "code": "InvalidFacts",
+      "field": "/facts",
+      "id": "windows-unix"
+    },
+    {
+      "code": "InvalidContext",
+      "field": "/context",
+      "id": "context-id"
+    },
+    {
+      "code": "InvalidContext",
+      "field": "/context",
+      "id": "context-label"
+    },
+    {
+      "code": "InvalidFacts",
+      "field": "/facts",
+      "id": "duplicate-top-key"
+    }
+  ],
+  "artifacts": [
+    {
+      "crate": "water_scan_report",
+      "packageId": "path+file:///F:/new/smaltalk/water/packages/scan-report#water-scan-report@0.1.0",
+      "filename": "F:\\new\\smaltalk\\water\\.local\\evidence-assets-target\\debug\\libwater_scan_report.rlib"
+    },
+    {
+      "crate": "water_contracts",
+      "packageId": "path+file:///F:/new/smaltalk/water/crates/water-contracts#0.1.0",
+      "filename": "F:\\new\\smaltalk\\water\\.local\\evidence-assets-target\\debug\\deps\\libwater_contracts-03746b148f2454ba.rlib"
+    },
+    {
+      "crate": "serde_json",
+      "packageId": "registry+https://github.com/rust-lang/crates.io-index#serde_json@1.0.151",
+      "filename": "F:\\new\\smaltalk\\water\\.local\\evidence-assets-target\\debug\\deps\\libserde_json-c243626af514ec1f.rlib"
+    }
+  ],
+  "sourceProbe": "scripts/acceptance/evidence-source-probe.rs",
+  "seedsSha256": "86975b64bb796f20987eaee59a74c3ff4a689c76feb161129218aac714015924",
+  "status": "passed",
+  "error": null,
+  "endedAt": "2026-10-18T04:03:13.664Z"
+}

@@ -21,9 +21,13 @@
 
 ## 下一步
 
-A–J及四旧补单保持VERIFIED（Windows）。K已收单，原门/独立边界通过，但真实J→K原集成失败并退回；[补充单01](dispatch/tickets/WATER-W1-K-ADDENDUM-01-20261018.md)已见启动审计和指定回归输入，现记RUNNING；精确转贴时刻未知，没有完成回执。真实scope安全、分类、Tauri/macOS与删除另排，M1尚未完成。
+A–J及四旧补单保持VERIFIED（Windows）。K已收单，原门/独立边界通过，但真实J→K原集成失败并退回；[补充单01](dispatch/tickets/WATER-W1-K-ADDENDUM-01-20261018.md)已见启动审计和指定回归输入，现记RUNNING；精确转贴时刻未知，没有完成回执。L/M独立侧车已READY待分别外贴，见下方派前记录。真实scope安全、分类、Tauri/macOS与删除另排，M1尚未完成。
 
-## 并行评估与K补单启动（2026-10-18，最新）
+## L/M派前完成（2026-10-18，最新）
+
+L项目标记证据和M容量观察账本两票已完成正式冻结/独立树/实际离线baseline，READY待用户分别外贴；共同r1基线82e1580，38新锁/七旧锁合计151唯一文件，10+15合成输入及11错误实测通过。新产品未实现、五测试未运行，L/M无物理fixture或真实用户目录权限；K补单原任务对象/基线/helper/132旧冻结保持RUNNING，无自动实现者。见[正式批次](dispatch/wave1/EVIDENCE-BATCH-PLAN-20261018.md)、[派前回执](dispatch/wave1/EVIDENCE-BATCH-READY-REPORT.md)及票面。两个新执行对话各接一票；READY不等于已转贴。真实J→K、真实scope、桌面/macOS及删除仍未验收，M1未完成。
+
+## 并行评估与K补单启动（2026-10-18，历史）
 
 K原k树已出现补单01的START-AUDIT及169500字节回归bundle，HEAD/分支/来源hash正确，按启动证据记RUNNING；原失败未清除，真实J→K页面仍未验收。启动审计自报2026-10-18T03:41:50.355Z，精确转贴时刻未证实。见[启动观察](acceptance/wave1/controller/w1-parallel-assessment-20261018/k-start-observation.json)。
 

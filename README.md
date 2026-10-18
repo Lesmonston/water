@@ -31,12 +31,12 @@
 
 Water 的发布许可证、定价与商标名称尚未最终确定；`water` 是工作代号。没有远程仓库、发布包或上线动作。
 
-## 下一批
+## 当前外贴与在途
 
-[本次J/K安排](docs/dispatch/wave1/SESSION-BATCH-PLAN-20261018.md)及[实际派前回执](docs/dispatch/wave1/SESSION-BATCH-READY-REPORT.md)：两树独立、同一冻结r1基线；J已通过[独立验收及集成](docs/acceptance/wave1/controller/WATER-W1-J-REVIEW-20261018.md)，K集成失败，已准备[补充单01](docs/dispatch/tickets/WATER-W1-K-ADDENDUM-01-20261018.md)已观察到原执行者启动，详见[K验收报告](docs/acceptance/wave1/controller/WATER-W1-K-REVIEW-20261018.md)。J只组合现有受控链路，K从调用方接内存快照。A–I及四补单无需重贴；W2–W5/真实scope/桌面/macOS属于后续规划，未伪装成待派READY单。
+[本次J/K安排](docs/dispatch/wave1/SESSION-BATCH-PLAN-20261018.md)及[实际派前回执](docs/dispatch/wave1/SESSION-BATCH-READY-REPORT.md)：两树独立、同一冻结r1基线；J已通过[独立验收及集成](docs/acceptance/wave1/controller/WATER-W1-J-REVIEW-20261018.md)，K原集成失败，[补充单01](docs/dispatch/tickets/WATER-W1-K-ADDENDUM-01-20261018.md)已观察到原执行者启动，详见[K验收报告](docs/acceptance/wave1/controller/WATER-W1-K-REVIEW-20261018.md)。J只组合现有受控链路，K从调用方接内存快照。A–I及四补单无需重贴；W2–W5/真实scope/桌面/macOS属于后续规划，未伪装成待派READY单。
 
 ## 后续协作
 
 Codex负责架构、规划、契约、工单和验收；用户把总控准备好的一行指令转贴给执行者；执行者在独立工作树提交代码与回执，总控复核后集成。见 [派单登记](docs/dispatch/registry.json) 与 [本轮计划](docs/dispatch/wave1/PLAN.md)：A–I已验收集成，总控没有自动代替用户启动实现者或修产品代码。
 
-当前[并行评估](docs/dispatch/wave1/PARALLEL-ASSESSMENT-20261018.md)识别项目标记证据与容量观察账本两条独立候选；均为DRAFT，尚无正式票或READY基线。
+当前[两票外贴安排](docs/dispatch/wave1/EVIDENCE-BATCH-PLAN-20261018.md)及[实际派前回执](docs/dispatch/wave1/EVIDENCE-BATCH-READY-REPORT.md)：L项目标记证据和M容量观察账本两票已完成正式冻结/独立树/实际离线baseline，READY待用户分别外贴；共同r1基线82e1580，38新锁/七旧锁合计151唯一文件，10+15合成输入及11错误实测通过。新产品未实现、五测试未运行，L/M无物理fixture或真实用户目录权限；K补单原任务对象/基线/helper/132旧冻结保持RUNNING，无自动实现者。

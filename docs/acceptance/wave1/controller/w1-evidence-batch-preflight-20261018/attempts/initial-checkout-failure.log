@@ -1,0 +1,29 @@
+exitCode=1
+--- stdout ---
+
+--- stderr ---
+node:internal/modules/run_main:107
+    triggerUncaughtException(
+    ^
+
+AssertionError [ERR_ASSERTION]: Frozen file changed: docs/acceptance/wave1/l/.gitattributes
++ actual - expected
+
++ '4598d52b1b1856b3311cf2511f4667a50625e3ad67dead518e403d6fde9f45cf'
+- '9cd338abfb30ac3535d2164de0e42200e549573d09ff8615c5484bdff50988d1'
+
+    at audit (file:///F:/new/smaltalk/water/.worktrees/l/scripts/parallel-next-common.mjs:39:42)
+    at setup (file:///F:/new/smaltalk/water/.worktrees/l/scripts/parallel-next-common.mjs:50:3)
+    at file:///F:/new/smaltalk/water/.worktrees/l/scripts/evidence-batch-check.mjs:11:11
+    at ModuleJob.run (node:internal/modules/esm/module_job:439:25)
+    at async node:internal/modules/esm/loader:633:26
+    at async asyncRunEntryPointWithESMLoader (node:internal/modules/run_main:101:5) {
+  generatedMessage: false,
+  code: 'ERR_ASSERTION',
+  actual: '4598d52b1b1856b3311cf2511f4667a50625e3ad67dead518e403d6fde9f45cf',
+  expected: '9cd338abfb30ac3535d2164de0e42200e549573d09ff8615c5484bdff50988d1',
+  operator: 'strictEqual',
+  diff: 'simple'
+}
+
+Node.js v24.16.0

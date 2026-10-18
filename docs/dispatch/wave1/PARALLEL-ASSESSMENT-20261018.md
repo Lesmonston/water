@@ -2,7 +2,9 @@
 
 2026-10-18，总控Codex。结论：可将K补单与下面两条独立模块线并行，优先推进M1的证据和容量缺口。两条新线目前均为DRAFT，尚无正式票、执行树、冻结接口、定向helper或实际派前检查，不能外贴执行。没有启动内部实现者。
 
-## 当前事实
+后续落实：用户已要求出单，L/M已完成[正式派前检查](EVIDENCE-BATCH-READY-REPORT.md)，现在为READY待分别外贴；以下DRAFT描述保留为评估时历史，不作为当前状态。
+
+## 评估时事实
 
 - 核对主线 `f45e410e8e08c82fc8507aa9cd598e0efaccdadf`：A–J及四旧补单VERIFIED（Windows范围）；K产品未合主线，真实J→K页面未通过。
 - K补单已见实际启动材料：原k树新增START-AUDIT和指定回归bundle，审计自报启动时间2026-10-18T03:41:50.355Z，起点e717519、分支worker/water-w1-k、169500字节输入hash与补单一致。据实际材料将补单记RUNNING，精确转贴时刻仍未知。原始快照见[启动观察记录](../../acceptance/wave1/controller/w1-parallel-assessment-20261018/k-start-observation.json)。没有读取或修改在途产品实现。
