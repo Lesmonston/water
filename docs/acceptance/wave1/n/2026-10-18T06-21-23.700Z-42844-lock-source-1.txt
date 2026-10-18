@@ -1,0 +1,120 @@
+//! Frozen native-root v1 API. A lease never grants scope authority.
+#![deny(unsafe_code)]
+
+use serde::Serialize;
+use std::{fmt, fs::File};
+use water_contracts::v1::OpaqueId;
+
+#[derive(Debug, Clone, PartialEq, Eq)]
+pub enum RootError {
+    InvalidPath,
+    UnsupportedPlatform,
+    UnsupportedVolume,
+    ReparsePoint,
+    NotDirectory,
+    MetadataUnavailable,
+    OpenFailed,
+    IdentityUnavailable,
+    SerializationFailed,
+}
+
+impl fmt::Display for RootError {
+    fn fmt(&self, f: &mut fmt::Formatter<'_>) -> fmt::Result {
+        write!(f, "{self:?}")
+    }
+}
+
+impl std::error::Error for RootError {}
+
+#[derive(Debug, Clone, PartialEq, Eq, Serialize)]
+pub struct RootIdentity {
+    kind: &'static str,
+    volume_serial: String,
+    file_id: String,
+}
+
+impl RootIdentity {
+    pub fn kind(&self) -> &str {
+        self.kind
+    }
+    pub fn volume_serial(&self) -> &str {
+        &self.volume_serial
+    }
+    pub fn file_id(&self) -> &str {
+        &self.file_id
+    }
+}
+
+#[derive(Debug, Clone, PartialEq, Eq, Serialize)]
+pub struct RootObservation {
+    root_version: &'static str,
+    scope_id: OpaqueId,
+    platform: &'static str,
+    object_kind: &'static str,
+    read_only: bool,
+    identity: RootIdentity,
+    reparse_point: bool,
+    authorization_granted: bool,
+    traversal_allowed: bool,
+    race_protection_verified: bool,
+}
+
+impl RootObservation {
+    pub fn root_version(&self) -> &str {
+        self.root_version
+    }
+    pub fn scope_id(&self) -> &OpaqueId {
+        &self.scope_id
+    }
+    pub fn platform(&self) -> &str {
+        self.platform
+    }
+    pub fn object_kind(&self) -> &str {
+        self.object_kind
+    }
+    pub fn read_only(&self) -> bool {
+        self.read_only
+    }
+    pub fn identity(&self) -> &RootIdentity {
+        &self.identity
+    }
+    pub fn reparse_point(&self) -> bool {
+        self.reparse_point
+    }
+    pub fn authorization_granted(&self) -> bool {
+        self.authorization_granted
+    }
+    pub fn traversal_allowed(&self) -> bool {
+        self.traversal_allowed
+    }
+    pub fn race_protection_verified(&self) -> bool {
+        self.race_protection_verified
+    }
+}
+
+pub struct DirectoryLease {
+    _file: File,
+    observation: RootObservation,
+}
+
+impl DirectoryLease {
+    pub fn observation(&self) -> &RootObservation {
+        &self.observation
+    }
+    pub fn refresh(&self) -> Result<RootObservation, RootError> {
+        Err(RootError::IdentityUnavailable)
+    }
+}
+
+pub fn validate_windows_path(_path: &str) -> Result<(), RootError> {
+    Err(RootError::InvalidPath)
+}
+
+pub fn open_directory(_scope_id: &OpaqueId, path: &str) -> Result<DirectoryLease, RootError> {
+    validate_windows_path(path)?;
+    Err(RootError::OpenFailed)
+}
+
+pub fn to_json(observation: &RootObservation) -> Result<String, RootError> {
+    serde_json::to_string(observation).map_err(|_| RootError::SerializationFailed)
+}

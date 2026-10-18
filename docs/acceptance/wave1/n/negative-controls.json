@@ -1,0 +1,47 @@
+[
+  {
+    "mode": "red-nc1",
+    "path": "packages/native-root/src/native_windows.rs",
+    "from": "return Err(RootError::ReparsePoint);",
+    "to": "return Ok(());",
+    "change": "Reparse attributes return Ok while OPEN_REPARSE_POINT stays enabled",
+    "originalSha256": "c6c3e296a7d2ec4ca8cc5f308442b0d04fbf8aa746118ec749c7e42d69f529b7",
+    "brokenSha256": "d3f82203f5f9aebe3c8216b55fd3b749fd308aae4d768dbaa27409e0300dcd42",
+    "restoredSha256": "c6c3e296a7d2ec4ca8cc5f308442b0d04fbf8aa746118ec749c7e42d69f529b7",
+    "testSha256": "c441985a79316e665c16d250dae23068924b648a03e422141530247776aae067",
+    "redReceipt": "F:\\new\\smaltalk\\water\\.worktrees\\n\\.local\\checks\\WATER-W1-N\\2026-10-18T06-25-30.616Z-38948-red-nc1-result.json",
+    "restoredReceipt": "F:\\new\\smaltalk\\water\\.worktrees\\n\\.local\\checks\\WATER-W1-N\\2026-10-18T06-25-52.880Z-20784-suite-result.json",
+    "redProductionHash": "c56302b4c3cfe27e92cdbdcaaee8df75feabaf3f1424847b16a6b89f86e436a0",
+    "restoredProductionHash": "c5ffc558056d9f8136d678c472b260f15a5782cf1fd626a4deba50ab02758a46"
+  },
+  {
+    "mode": "red-nc2",
+    "path": "packages/native-root/src/native_windows.rs",
+    "from": "        identity.file_id,",
+    "to": "        [0; 16],",
+    "change": "Ignore native File ID output and substitute a constant",
+    "originalSha256": "c6c3e296a7d2ec4ca8cc5f308442b0d04fbf8aa746118ec749c7e42d69f529b7",
+    "brokenSha256": "9b91c2e5ef43998c6a748e93403c231c92c10fc7ff7de0854d68aff8cf60fde9",
+    "restoredSha256": "c6c3e296a7d2ec4ca8cc5f308442b0d04fbf8aa746118ec749c7e42d69f529b7",
+    "testSha256": "c441985a79316e665c16d250dae23068924b648a03e422141530247776aae067",
+    "redReceipt": "F:\\new\\smaltalk\\water\\.worktrees\\n\\.local\\checks\\WATER-W1-N\\2026-10-18T06-26-13.350Z-7428-red-nc2-result.json",
+    "restoredReceipt": "F:\\new\\smaltalk\\water\\.worktrees\\n\\.local\\checks\\WATER-W1-N\\2026-10-18T06-26-31.813Z-16676-suite-result.json",
+    "redProductionHash": "a80fbda3ad406910369e495b7e354926512da4b513205f4aadc76a30090c9da7",
+    "restoredProductionHash": "c5ffc558056d9f8136d678c472b260f15a5782cf1fd626a4deba50ab02758a46"
+  },
+  {
+    "mode": "red-nc3",
+    "path": "packages/native-root/src/v1.rs",
+    "from": "            authorization_granted: false,",
+    "to": "            authorization_granted: true,",
+    "change": "Raise authorization_granted in real observation construction",
+    "originalSha256": "7e6aeebb32f77a7534ea4c98da4f3a84f178b6fbca287c74846fe446d6aac3fc",
+    "brokenSha256": "41ee35edb8d98e59bac05cf88cc4be55caeced67289081c87b5240b55bf4c276",
+    "restoredSha256": "7e6aeebb32f77a7534ea4c98da4f3a84f178b6fbca287c74846fe446d6aac3fc",
+    "testSha256": "c441985a79316e665c16d250dae23068924b648a03e422141530247776aae067",
+    "redReceipt": "F:\\new\\smaltalk\\water\\.worktrees\\n\\.local\\checks\\WATER-W1-N\\2026-10-18T06-26-47.418Z-37756-red-nc3-result.json",
+    "restoredReceipt": "F:\\new\\smaltalk\\water\\.worktrees\\n\\.local\\checks\\WATER-W1-N\\2026-10-18T06-27-02.442Z-18808-suite-result.json",
+    "redProductionHash": "2092e111caa560deb31f1c08fec6b349b4dfda786d1ec6f7f82470bf73a21643",
+    "restoredProductionHash": "c5ffc558056d9f8136d678c472b260f15a5782cf1fd626a4deba50ab02758a46"
+  }
+]

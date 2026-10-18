@@ -1,0 +1,128 @@
+//! The only unsafe boundary: fixed drive type and two fixed handle information classes.
+use crate::v1::{RootError, RootIdentity};
+use std::{
+    ffi::c_void,
+    fs::{File, OpenOptions, symlink_metadata},
+    mem::{align_of, size_of},
+    os::windows::{
+        fs::{MetadataExt, OpenOptionsExt},
+        io::AsRawHandle,
+    },
+};
+
+const DIRECTORY: u32 = 0x10;
+const REPARSE_POINT: u32 = 0x400;
+
+#[repr(C)]
+struct AttributeTagInfo {
+    attributes: u32,
+    _reparse_tag: u32,
+}
+
+#[repr(C)]
+struct FileIdInfo {
+    volume_serial: u64,
+    file_id: [u8; 16],
+}
+
+const _: () = assert!(size_of::<AttributeTagInfo>() == 8);
+const _: () = assert!(align_of::<AttributeTagInfo>() == 4);
+const _: () = assert!(size_of::<FileIdInfo>() == 24);
+const _: () = assert!(align_of::<FileIdInfo>() == 8);
+
+// SAFETY: these declarations match the Win32 system ABI: HANDLE/LPVOID pointers,
+// DWORD u32, BOOL/FILE_INFO_BY_HANDLE_CLASS i32. No other native APIs are exposed.
+#[link(name = "kernel32")]
+unsafe extern "system" {
+    fn GetDriveTypeW(root: *const u16) -> u32;
+    fn GetFileInformationByHandleEx(
+        handle: *mut c_void,
+        class: i32,
+        buffer: *mut c_void,
+        size: u32,
+    ) -> i32;
+}
+
+fn directory_attributes(attributes: u32) -> Result<(), RootError> {
+    // Reject every reparse tag, including junctions, before checking directory kind.
+    if attributes & REPARSE_POINT != 0 {
+        return Ok(());
+    }
+    if attributes & DIRECTORY == 0 {
+        return Err(RootError::NotDirectory);
+    }
+    Ok(())
+}
+
+pub(crate) fn open(path: &str) -> Result<File, RootError> {
+    // Caller has already validated the ASCII drive prefix and complete spelling.
+    let root = [u16::from(path.as_bytes()[0]), b':' as u16, b'\\' as u16, 0];
+    // SAFETY: root is a live four-unit UTF-16 local drive root with trailing slash
+    // and NUL. The API only reads this buffer for the duration of the call.
+    if unsafe { GetDriveTypeW(root.as_ptr()) } != 3 {
+        return Err(RootError::UnsupportedVolume);
+    }
+
+    // Inspect only the named ancestors and final object; never list children.
+    // This precheck is an observation, and does not close a replacement race.
+    let mut prefix = path[..2].to_owned();
+    for segment in path[3..].split(['/', '\\']) {
+        prefix.push('\\');
+        prefix.push_str(segment);
+        let metadata = symlink_metadata(&prefix).map_err(|_| RootError::MetadataUnavailable)?;
+        directory_attributes(metadata.file_attributes())?;
+    }
+
+    OpenOptions::new()
+        .access_mode(0x80) // FILE_READ_ATTRIBUTES only; no LIST_DIRECTORY/READ_DATA.
+        .share_mode(7) // FILE_SHARE_READ | FILE_SHARE_WRITE | FILE_SHARE_DELETE.
+        .custom_flags(0x02000000 | 0x00200000) // BACKUP_SEMANTICS | OPEN_REPARSE_POINT.
+        .security_qos_flags(0x10000) // SECURITY_IDENTIFICATION (std also sets SQOS_PRESENT).
+        .open(path)
+        .map_err(|_| RootError::OpenFailed)
+}
+
+pub(crate) fn observe(file: &File) -> Result<RootIdentity, RootError> {
+    let mut attributes = AttributeTagInfo {
+        attributes: 0,
+        _reparse_tag: 0,
+    };
+    // SAFETY: the borrowed File keeps its owned, non-pipe HANDLE live throughout
+    // the call. Class 9 writes exactly this writable, aligned repr(C) 8-byte
+    // buffer. It is initialized beforehand and used only after nonzero success.
+    let success = unsafe {
+        GetFileInformationByHandleEx(
+            file.as_raw_handle(),
+            9,
+            (&mut attributes as *mut AttributeTagInfo).cast(),
+            size_of::<AttributeTagInfo>() as u32,
+        )
+    };
+    if success == 0 {
+        return Err(RootError::MetadataUnavailable);
+    }
+    directory_attributes(attributes.attributes)?;
+
+    let mut identity = FileIdInfo {
+        volume_serial: 0,
+        file_id: [0; 16],
+    };
+    // SAFETY: same live borrowed File HANDLE, without reopening a path. Class 18
+    // writes the aligned repr(C) 24-byte FileIdInfo buffer of exactly this size.
+    // Initialized storage is read only after nonzero success fills the output.
+    let success = unsafe {
+        GetFileInformationByHandleEx(
+            file.as_raw_handle(),
+            18,
+            (&mut identity as *mut FileIdInfo).cast(),
+            size_of::<FileIdInfo>() as u32,
+        )
+    };
+    if success == 0 {
+        return Err(RootError::IdentityUnavailable);
+    }
+    Ok(RootIdentity::from_native(
+        identity.volume_serial,
+        identity.file_id,
+    ))
+}
