@@ -1,0 +1,7 @@
+import assert from 'node:assert/strict';
+import {spawnSync} from 'node:child_process';
+import {readFileSync,writeFileSync,mkdirSync} from 'node:fs';
+import {join} from 'node:path';
+const slot=process.argv[2];assert(['l','m'].includes(slot));const id='WATER-W1-'+slot.toUpperCase(),worker=join(process.cwd(),'.worktrees',slot),out='docs/acceptance/wave1/controller/w1-lm-review-20261018/'+slot;mkdirSync(out,{recursive:true});const results=[];
+for(const mode of ['fmt','test','clippy','metadata','bridge']){const argv=['scripts/evidence-batch-check.mjs','--task',id,'--mode',mode,'--final'],r=spawnSync(process.execPath,argv,{cwd:worker,encoding:'utf8',windowsHide:true,shell:false,timeout:900000,maxBuffer:32*1024*1024});writeFileSync(join(out,'original-'+mode+'.log'),JSON.stringify({binary:process.execPath,argv,exitCode:r.status,error:r.error?.code??null})+'\n--- stdout ---\n'+(r.stdout??'')+'\n--- stderr ---\n'+(r.stderr??''),{flag:'wx'});assert(!r.error&&r.status===0,'Original gate failed: '+id+' '+mode);const info=JSON.parse(r.stdout),receipt=JSON.parse(readFileSync(info.receipt,'utf8'));assert.equal(receipt.status,'passed');results.push({mode,receipt:info.receipt,head:receipt.before.head,tests:receipt.executedTests??0,status:receipt.status});console.log(JSON.stringify({id,mode,status:'passed'}));}
+writeFileSync(join(out,'original-gates.json'),JSON.stringify(results,null,2)+'\n',{flag:'wx'});

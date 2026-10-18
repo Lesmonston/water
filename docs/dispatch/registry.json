@@ -4,7 +4,7 @@
   "mode": "manual-external-paste",
   "controller": "Codex",
   "projectRoot": "F:/new/smaltalk/water",
-  "stage": "wave1-abcdefghijk-verified-lm-ready",
+  "stage": "wave1-lm-accepted-integration-pending",
   "activeWave": "water-wave1",
   "slots": [
     {
@@ -101,7 +101,7 @@
       "branch": "worker/water-w1-l",
       "baseline": "82e158079066bf795fb89fafa933bc2d7fc00bd5",
       "task": "WATER-W1-L",
-      "state": "ready-waiting-user-paste"
+      "state": "accepted-integration-pending"
     },
     {
       "id": "m",
@@ -109,7 +109,7 @@
       "branch": "worker/water-w1-m",
       "baseline": "82e158079066bf795fb89fafa933bc2d7fc00bd5",
       "task": "WATER-W1-M",
-      "state": "ready-waiting-user-paste"
+      "state": "accepted-integration-pending"
     }
   ],
   "tasks": [
@@ -965,7 +965,7 @@
     {
       "id": "WATER-W1-L",
       "title": "Project marker evidence",
-      "status": "READY",
+      "status": "ACCEPTED",
       "kind": "project_evidence",
       "slot": "l",
       "worktree": "F:/new/smaltalk/water/.worktrees/l",
@@ -1025,22 +1025,31 @@
         "WATER-W1-A",
         "WATER-W1-G"
       ],
-      "model": null,
+      "model": "GPT-6 (worker session identity; finer build not supplied)",
       "modelAssignment": "user-arranged; report actual engine/model",
       "dispatchedAt": null,
       "startedAt": null,
       "baselineStatus": "PASSED",
-      "newProductTestsRun": false,
+      "newProductTestsRun": true,
       "physicalFixturePermission": false,
       "preflightEvidence": "docs/dispatch/wave1/EVIDENCE-BATCH-READY-REPORT.md",
       "readyOn": "2026-10-18",
       "baselineEvidence": "docs/acceptance/wave1/controller/w1-evidence-batch-preflight-20261018/l/2026-10-18T04-07-06.175Z-43512-baseline-result.json",
-      "readinessScope": "Windows Node24/Rust1.95/MSVC, private offline real G/A build, 10 L and 15 M synthetic inputs and 11 source errors. New products absent, no L/M tests or filesystem scans."
+      "readinessScope": "Windows Node24/Rust1.95/MSVC, private offline real G/A build, 10 L and 15 M synthetic inputs and 11 source errors. New products absent, no L/M tests or filesystem scans.",
+      "submittedCommit": "d821b11017b2362296e7bc9f62d8adee28003ddb",
+      "acceptedCommit": "d821b11017b2362296e7bc9f62d8adee28003ddb",
+      "testedImplementationCommit": "7a545fd1a00d17116d435604233a8a4bd9d08651",
+      "submissionObservedAt": "2026-10-18T04:53:31.781Z",
+      "acceptedOn": "2026-10-18",
+      "engine": "Codex (worker self-report)",
+      "macOS": "unverified",
+      "controllerReview": "docs/acceptance/wave1/controller/WATER-W1-LM-REVIEW-20261018.md",
+      "controllerReviewReceipt": "docs/acceptance/wave1/controller/w1-lm-review-20261018/l/original-gates.json"
     },
     {
       "id": "WATER-W1-M",
       "title": "Observed size ledger",
-      "status": "READY",
+      "status": "ACCEPTED",
       "kind": "size_ledger",
       "slot": "m",
       "worktree": "F:/new/smaltalk/water/.worktrees/m",
@@ -1100,19 +1109,28 @@
         "WATER-W1-A",
         "WATER-W1-G"
       ],
-      "model": null,
+      "model": "GPT-6 (worker session identity; finer build not supplied)",
       "modelAssignment": "user-arranged; report actual engine/model",
       "dispatchedAt": null,
       "startedAt": null,
       "baselineStatus": "PASSED",
-      "newProductTestsRun": false,
+      "newProductTestsRun": true,
       "physicalFixturePermission": false,
       "preflightEvidence": "docs/dispatch/wave1/EVIDENCE-BATCH-READY-REPORT.md",
       "readyOn": "2026-10-18",
       "baselineEvidence": "docs/acceptance/wave1/controller/w1-evidence-batch-preflight-20261018/m/2026-10-18T04-07-06.183Z-30108-baseline-result.json",
-      "readinessScope": "Windows Node24/Rust1.95/MSVC, private offline real G/A build, 10 L and 15 M synthetic inputs and 11 source errors. New products absent, no L/M tests or filesystem scans."
+      "readinessScope": "Windows Node24/Rust1.95/MSVC, private offline real G/A build, 10 L and 15 M synthetic inputs and 11 source errors. New products absent, no L/M tests or filesystem scans.",
+      "submittedCommit": "88c7bd3aa8c1edbe3acfef0571bbd9320caacd9a",
+      "acceptedCommit": "88c7bd3aa8c1edbe3acfef0571bbd9320caacd9a",
+      "testedImplementationCommit": "03f60aec13facf0e2b2c4c14e2b560608cc9fe72",
+      "submissionObservedAt": "2026-10-18T04:53:31.781Z",
+      "acceptedOn": "2026-10-18",
+      "engine": "Codex (worker self-report)",
+      "macOS": "unverified",
+      "controllerReview": "docs/acceptance/wave1/controller/WATER-W1-LM-REVIEW-20261018.md",
+      "controllerReviewReceipt": "docs/acceptance/wave1/controller/w1-lm-review-20261018/m/original-gates.json"
     }
   ],
   "testHelper": "per-task helper; A defaults unchanged",
-  "note": "A-K and all five addenda VERIFIED within Windows controlled synthetic scope. Actual J-to-K page passed with retained fixtures; previous integration failure kept. L/M task objects and allocations unchanged. Real-user scopes, classification uplift, desktop, macOS and cleanup unverified; M1 incomplete."
+  "note": "A-K remain verified in Windows scope; L M received and five original gates each passed, single-ticket accepted. New private-target integration and independent controls pending; no physical fixture or user-data permissions."
 }

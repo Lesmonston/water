@@ -1,0 +1,438 @@
+{
+  "task": "WATER-W1-M",
+  "mode": "bridge",
+  "finalGate": true,
+  "startedAt": "2026-10-18T04:53:52.106Z",
+  "before": {
+    "head": "88c7bd3aa8c1edbe3acfef0571bbd9320caacd9a",
+    "status": ""
+  },
+  "node": "v24.16.0",
+  "productTestsRun": true,
+  "frozenFiles": 38,
+  "commands": [
+    {
+      "binary": "git",
+      "argv": [
+        "-c",
+        "core.hooksPath=NUL",
+        "-c",
+        "core.fsmonitor=false",
+        "rev-parse",
+        "--path-format=absolute",
+        "--git-common-dir"
+      ],
+      "exitCode": 0,
+      "error": null
+    },
+    {
+      "binary": "git",
+      "argv": [
+        "-c",
+        "core.hooksPath=NUL",
+        "-c",
+        "core.fsmonitor=false",
+        "branch",
+        "--show-current"
+      ],
+      "exitCode": 0,
+      "error": null
+    },
+    {
+      "binary": "git",
+      "argv": [
+        "-c",
+        "core.hooksPath=NUL",
+        "-c",
+        "core.fsmonitor=false",
+        "merge-base",
+        "--is-ancestor",
+        "82e158079066bf795fb89fafa933bc2d7fc00bd5",
+        "HEAD"
+      ],
+      "exitCode": 0,
+      "error": null
+    },
+    {
+      "binary": "git",
+      "argv": [
+        "-c",
+        "core.hooksPath=NUL",
+        "-c",
+        "core.fsmonitor=false",
+        "diff",
+        "--no-renames",
+        "--name-only",
+        "-z",
+        "82e158079066bf795fb89fafa933bc2d7fc00bd5",
+        "HEAD"
+      ],
+      "exitCode": 0,
+      "error": null
+    },
+    {
+      "binary": "git",
+      "argv": [
+        "-c",
+        "core.hooksPath=NUL",
+        "-c",
+        "core.fsmonitor=false",
+        "diff",
+        "--no-renames",
+        "--name-only",
+        "-z",
+        "HEAD"
+      ],
+      "exitCode": 0,
+      "error": null
+    },
+    {
+      "binary": "git",
+      "argv": [
+        "-c",
+        "core.hooksPath=NUL",
+        "-c",
+        "core.fsmonitor=false",
+        "ls-files",
+        "--others",
+        "--exclude-standard",
+        "-z"
+      ],
+      "exitCode": 0,
+      "error": null
+    },
+    {
+      "binary": "git",
+      "argv": [
+        "-c",
+        "core.hooksPath=NUL",
+        "-c",
+        "core.fsmonitor=false",
+        "rev-parse",
+        "HEAD"
+      ],
+      "exitCode": 0,
+      "error": null
+    },
+    {
+      "binary": "git",
+      "argv": [
+        "-c",
+        "core.hooksPath=NUL",
+        "-c",
+        "core.fsmonitor=false",
+        "status",
+        "--porcelain",
+        "--untracked-files=all"
+      ],
+      "exitCode": 0,
+      "error": null
+    },
+    {
+      "binary": "C:\\Users\\37310\\.cargo\\bin\\rustup.exe",
+      "argv": [
+        "which",
+        "rustc",
+        "--toolchain",
+        "1.95.0"
+      ],
+      "exitCode": 0,
+      "error": null,
+      "log": "2026-10-18T04-53-49.539Z-21304-bridge-1.log"
+    },
+    {
+      "binary": "C:\\Users\\37310\\.cargo\\bin\\rustup.exe",
+      "argv": [
+        "which",
+        "cargo",
+        "--toolchain",
+        "1.95.0"
+      ],
+      "exitCode": 0,
+      "error": null,
+      "log": "2026-10-18T04-53-49.539Z-21304-bridge-2.log"
+    },
+    {
+      "binary": "C:\\Users\\37310\\.rustup\\toolchains\\1.95.0-x86_64-pc-windows-msvc\\bin\\rustc.exe",
+      "argv": [
+        "--version"
+      ],
+      "exitCode": 0,
+      "error": null,
+      "log": "2026-10-18T04-53-49.539Z-21304-bridge-3.log"
+    },
+    {
+      "binary": "C:\\Users\\37310\\.rustup\\toolchains\\1.95.0-x86_64-pc-windows-msvc\\bin\\cargo.exe",
+      "argv": [
+        "metadata",
+        "--offline",
+        "--locked",
+        "--format-version",
+        "1",
+        "--manifest-path",
+        "F:\\new\\smaltalk\\water\\.worktrees\\m\\packages\\size-ledger\\Cargo.toml"
+      ],
+      "exitCode": 0,
+      "error": null,
+      "log": "2026-10-18T04-53-49.539Z-21304-bridge-4.log"
+    },
+    {
+      "binary": "C:\\Users\\37310\\.rustup\\toolchains\\1.95.0-x86_64-pc-windows-msvc\\bin\\cargo.exe",
+      "argv": [
+        "metadata",
+        "--offline",
+        "--locked",
+        "--format-version",
+        "1",
+        "--manifest-path",
+        "F:\\new\\smaltalk\\water\\.worktrees\\m\\packages\\size-ledger\\Cargo.toml"
+      ],
+      "exitCode": 0,
+      "error": null,
+      "log": "2026-10-18T04-53-49.539Z-21304-bridge-5.log"
+    },
+    {
+      "binary": "C:\\Users\\37310\\.rustup\\toolchains\\1.95.0-x86_64-pc-windows-msvc\\bin\\cargo.exe",
+      "argv": [
+        "build",
+        "--offline",
+        "--locked",
+        "--lib",
+        "--message-format=json",
+        "--manifest-path",
+        "F:\\new\\smaltalk\\water\\.worktrees\\m\\packages\\size-ledger\\Cargo.toml"
+      ],
+      "exitCode": 0,
+      "error": null,
+      "log": "2026-10-18T04-53-49.539Z-21304-bridge-6.log"
+    },
+    {
+      "binary": "C:\\Users\\37310\\.rustup\\toolchains\\1.95.0-x86_64-pc-windows-msvc\\bin\\rustc.exe",
+      "argv": [
+        "--edition=2024",
+        "--cfg",
+        "evidence_m",
+        "--crate-name",
+        "evidence_batch_bridge",
+        "scripts/acceptance/evidence-batch-bridge.rs",
+        "-L",
+        "dependency=F:\\new\\smaltalk\\water\\.worktrees\\m\\.local\\evidence-target\\debug\\deps",
+        "--extern",
+        "water_size_ledger=F:\\new\\smaltalk\\water\\.worktrees\\m\\.local\\evidence-target\\debug\\libwater_size_ledger.rlib",
+        "--extern",
+        "water_scan_report=F:\\new\\smaltalk\\water\\.worktrees\\m\\.local\\evidence-target\\debug\\deps\\libwater_scan_report-fbc4c81591197d21.rlib",
+        "--extern",
+        "water_contracts=F:\\new\\smaltalk\\water\\.worktrees\\m\\.local\\evidence-target\\debug\\deps\\libwater_contracts-729282d24697d308.rlib",
+        "--extern",
+        "serde_json=F:\\new\\smaltalk\\water\\.worktrees\\m\\.local\\evidence-target\\debug\\deps\\libserde_json-c243626af514ec1f.rlib",
+        "-o",
+        "F:\\new\\smaltalk\\water\\.worktrees\\m\\.local\\evidence-tmp\\2026-10-18T04-53-49.539Z-21304-bridge.exe"
+      ],
+      "exitCode": 0,
+      "error": null,
+      "log": "2026-10-18T04-53-49.539Z-21304-bridge-7.log"
+    },
+    {
+      "binary": "F:\\new\\smaltalk\\water\\.worktrees\\m\\.local\\evidence-tmp\\2026-10-18T04-53-49.539Z-21304-bridge.exe",
+      "argv": [],
+      "exitCode": 0,
+      "error": null,
+      "log": "2026-10-18T04-53-49.539Z-21304-bridge-8.log"
+    },
+    {
+      "binary": "git",
+      "argv": [
+        "-c",
+        "core.hooksPath=NUL",
+        "-c",
+        "core.fsmonitor=false",
+        "branch",
+        "--show-current"
+      ],
+      "exitCode": 0,
+      "error": null,
+      "log": "2026-10-18T04-53-49.539Z-21304-bridge-9.log"
+    },
+    {
+      "binary": "git",
+      "argv": [
+        "-c",
+        "core.hooksPath=NUL",
+        "-c",
+        "core.fsmonitor=false",
+        "merge-base",
+        "--is-ancestor",
+        "82e158079066bf795fb89fafa933bc2d7fc00bd5",
+        "HEAD"
+      ],
+      "exitCode": 0,
+      "error": null,
+      "log": "2026-10-18T04-53-49.539Z-21304-bridge-10.log"
+    },
+    {
+      "binary": "git",
+      "argv": [
+        "-c",
+        "core.hooksPath=NUL",
+        "-c",
+        "core.fsmonitor=false",
+        "diff",
+        "--no-renames",
+        "--name-only",
+        "-z",
+        "82e158079066bf795fb89fafa933bc2d7fc00bd5",
+        "HEAD"
+      ],
+      "exitCode": 0,
+      "error": null,
+      "log": "2026-10-18T04-53-49.539Z-21304-bridge-11.log"
+    },
+    {
+      "binary": "git",
+      "argv": [
+        "-c",
+        "core.hooksPath=NUL",
+        "-c",
+        "core.fsmonitor=false",
+        "diff",
+        "--no-renames",
+        "--name-only",
+        "-z",
+        "HEAD"
+      ],
+      "exitCode": 0,
+      "error": null,
+      "log": "2026-10-18T04-53-49.539Z-21304-bridge-12.log"
+    },
+    {
+      "binary": "git",
+      "argv": [
+        "-c",
+        "core.hooksPath=NUL",
+        "-c",
+        "core.fsmonitor=false",
+        "ls-files",
+        "--others",
+        "--exclude-standard",
+        "-z"
+      ],
+      "exitCode": 0,
+      "error": null,
+      "log": "2026-10-18T04-53-49.539Z-21304-bridge-13.log"
+    },
+    {
+      "binary": "git",
+      "argv": [
+        "-c",
+        "core.hooksPath=NUL",
+        "-c",
+        "core.fsmonitor=false",
+        "rev-parse",
+        "HEAD"
+      ],
+      "exitCode": 0,
+      "error": null,
+      "log": "2026-10-18T04-53-49.539Z-21304-bridge-14.log"
+    },
+    {
+      "binary": "git",
+      "argv": [
+        "-c",
+        "core.hooksPath=NUL",
+        "-c",
+        "core.fsmonitor=false",
+        "status",
+        "--porcelain",
+        "--untracked-files=all"
+      ],
+      "exitCode": 0,
+      "error": null,
+      "log": "2026-10-18T04-53-49.539Z-21304-bridge-15.log"
+    }
+  ],
+  "sourceState": {
+    "files": [
+      {
+        "path": "packages/size-ledger/src/lib.rs",
+        "sha256": "c583415cf510e1438a6c3dfacd6fe64c6ca7ef4d6e520628f96c3a545975f0c4",
+        "mtimeMs": 1792297937288.8523,
+        "snapshot": "2026-10-18T04-53-49.539Z-21304-bridge-source-0.txt",
+        "test": false
+      },
+      {
+        "path": "packages/size-ledger/src/v1.rs",
+        "sha256": "bf6a9243a2f00d84bb867311b0cee51f3b7ad19f9701fc6efd8bf01b53fbe13f",
+        "mtimeMs": 1792298309792.2715,
+        "snapshot": "2026-10-18T04-53-49.539Z-21304-bridge-source-1.txt",
+        "test": false
+      },
+      {
+        "path": "packages/size-ledger/tests/ledger_v1.rs",
+        "sha256": "b7b5dae77e1d49d519623005d53a8d321d66a7d0e72733e4aa6a8d6ffcb8e468",
+        "mtimeMs": 1792297966063.9558,
+        "snapshot": "2026-10-18T04-53-49.539Z-21304-bridge-source-2.txt",
+        "test": true
+      }
+    ],
+    "productionHash": "47fec1af3aaa3e2fd19e0059debc18b7d5438c0528b2ce973037ada0fe2682da",
+    "testHash": "e6fb6aaaf68d567327f93f4e34c0a7023d5b8d1fba0457516e5e6dd13701c165"
+  },
+  "proofAudit": [
+    {
+      "label": "behavior",
+      "red": "2026-10-18T04-32-46.832Z-12564-red-behavior-result.json",
+      "restored": "2026-10-18T04-35-55.056Z-4712-suite-result.json"
+    },
+    {
+      "label": "nc1",
+      "red": "2026-10-18T04-37-27.013Z-8932-red-nc1-result.json",
+      "restored": "2026-10-18T04-37-34.726Z-3348-suite-result.json"
+    },
+    {
+      "label": "nc2",
+      "red": "2026-10-18T04-37-56.645Z-32764-red-nc2-result.json",
+      "restored": "2026-10-18T04-38-03.163Z-31996-suite-result.json"
+    },
+    {
+      "label": "nc3",
+      "red": "2026-10-18T04-38-23.860Z-41252-red-nc3-result.json",
+      "restored": "2026-10-18T04-38-29.872Z-15884-suite-result.json"
+    }
+  ],
+  "cargoArtifacts": [
+    {
+      "crate": "water_size_ledger",
+      "packageId": "path+file:///F:/new/smaltalk/water/.worktrees/m/packages/size-ledger#water-size-ledger@0.1.0",
+      "filename": "F:\\new\\smaltalk\\water\\.worktrees\\m\\.local\\evidence-target\\debug\\libwater_size_ledger.rlib"
+    },
+    {
+      "crate": "water_scan_report",
+      "packageId": "path+file:///F:/new/smaltalk/water/.worktrees/m/packages/scan-report#water-scan-report@0.1.0",
+      "filename": "F:\\new\\smaltalk\\water\\.worktrees\\m\\.local\\evidence-target\\debug\\deps\\libwater_scan_report-fbc4c81591197d21.rlib"
+    },
+    {
+      "crate": "water_contracts",
+      "packageId": "path+file:///F:/new/smaltalk/water/.worktrees/m/crates/water-contracts#0.1.0",
+      "filename": "F:\\new\\smaltalk\\water\\.worktrees\\m\\.local\\evidence-target\\debug\\deps\\libwater_contracts-729282d24697d308.rlib"
+    },
+    {
+      "crate": "serde_json",
+      "packageId": "registry+https://github.com/rust-lang/crates.io-index#serde_json@1.0.151",
+      "filename": "F:\\new\\smaltalk\\water\\.worktrees\\m\\.local\\evidence-target\\debug\\deps\\libserde_json-c243626af514ec1f.rlib"
+    }
+  ],
+  "bridge": {
+    "actualPublicEntry": true,
+    "actualGValidation": true,
+    "cases": 15,
+    "sourceRejections": 11,
+    "filesystemScanned": false
+  },
+  "after": {
+    "head": "88c7bd3aa8c1edbe3acfef0571bbd9320caacd9a",
+    "status": ""
+  },
+  "endedAt": "2026-10-18T04:53:59.315Z",
+  "status": "passed",
+  "error": null
+}

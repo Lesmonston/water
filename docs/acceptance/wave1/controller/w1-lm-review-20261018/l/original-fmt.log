@@ -1,0 +1,75 @@
+{"binary":"C:\\Program Files\\nodejs\\node.exe","argv":["scripts/evidence-batch-check.mjs","--task","WATER-W1-L","--mode","fmt","--final"],"exitCode":0,"error":null}
+--- stdout ---
+{
+  "task": "WATER-W1-L",
+  "mode": "fmt",
+  "finalGate": true,
+  "startedAt": "2026-10-18T04:53:26.306Z",
+  "before": {
+    "head": "d821b11017b2362296e7bc9f62d8adee28003ddb",
+    "status": ""
+  },
+  "node": "v24.16.0",
+  "productTestsRun": false,
+  "frozenFiles": 38,
+  "commands": 20,
+  "sourceState": {
+    "files": [
+      {
+        "path": "packages/project-evidence/src/lib.rs",
+        "sha256": "f794758eb4e2826334133088b76b6520320dc5cd359525cb379a714cc46af8c4",
+        "mtimeMs": 1792297819304.488,
+        "snapshot": "2026-10-18T04-53-24.580Z-8144-fmt-source-0.txt",
+        "test": false
+      },
+      {
+        "path": "packages/project-evidence/src/v1.rs",
+        "sha256": "d59c3b78288580f802ef450244dd24832cae9fa52d981c971a1f9314eab44f57",
+        "mtimeMs": 1792298206923.8115,
+        "snapshot": "2026-10-18T04-53-24.580Z-8144-fmt-source-1.txt",
+        "test": false
+      },
+      {
+        "path": "packages/project-evidence/tests/evidence_v1.rs",
+        "sha256": "336d33c8fb2e937ee9a78902235008cc277f5b78c6813eae3dcee4427a7225e3",
+        "mtimeMs": 1792297930603.2205,
+        "snapshot": "2026-10-18T04-53-24.580Z-8144-fmt-source-2.txt",
+        "test": true
+      }
+    ],
+    "productionHash": "669fee774df737fda9c5e0c0c2d2aacac393af4eea59aca2b817b7c9c8003da8",
+    "testHash": "d31429ce401f0bafefd46dfbc76cb809f407da7b6ab69a15f6cee9a512767118"
+  },
+  "proofAudit": [
+    {
+      "label": "behavior",
+      "red": "2026-10-18T04-32-11.141Z-34424-red-behavior-result.json",
+      "restored": "2026-10-18T04-34-58.716Z-632-suite-result.json"
+    },
+    {
+      "label": "nc1",
+      "red": "2026-10-18T04-35-22.692Z-2092-red-nc1-result.json",
+      "restored": "2026-10-18T04-35-36.009Z-12304-suite-result.json"
+    },
+    {
+      "label": "nc2",
+      "red": "2026-10-18T04-35-52.521Z-40860-red-nc2-result.json",
+      "restored": "2026-10-18T04-36-13.380Z-26584-suite-result.json"
+    },
+    {
+      "label": "nc3",
+      "red": "2026-10-18T04-36-31.639Z-34464-red-nc3-result.json",
+      "restored": "2026-10-18T04-36-47.641Z-28188-suite-result.json"
+    }
+  ],
+  "after": {
+    "head": "d821b11017b2362296e7bc9f62d8adee28003ddb",
+    "status": ""
+  },
+  "endedAt": "2026-10-18T04:53:30.742Z",
+  "status": "passed",
+  "error": null,
+  "receipt": "F:\\new\\smaltalk\\water\\.worktrees\\l\\.local\\checks\\WATER-W1-L\\2026-10-18T04-53-24.580Z-8144-fmt-result.json"
+}
+
+--- stderr ---
