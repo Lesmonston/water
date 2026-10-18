@@ -1,0 +1,50 @@
+--- stdout ---
+
+running 5 tests
+test picker_native_cancel ... FAILED
+test picker_native_confirm ... FAILED
+test picker_options_and_errors ... FAILED
+test picker_public_lifecycle ... FAILED
+test picker_registry_failures ... FAILED
+
+failures:
+
+failures:
+    picker_native_cancel
+    picker_native_confirm
+    picker_options_and_errors
+    picker_public_lifecycle
+    picker_registry_failures
+
+test result: FAILED. 0 passed; 5 failed; 0 ignored; 0 measured; 0 filtered out; finished in 3.68s
+
+
+--- stderr ---
+WATER_PICKER_CASE cancel
+WATER_UI_WINDOW 2596 #32770 visible=True
+WATER_UI_ACTION 2596 cancel
+
+thread 'picker_native_cancel' (37552) panicked at tests\picker_v1.rs:83:5:
+S_BEHAVIOR S_CANCELLED actual cancellation is None
+note: run with `RUST_BACKTRACE=1` environment variable to display a backtrace
+WATER_PICKER_CASE select
+WATER_UI_WINDOW 2596 #32770 visible=True
+WATER_UI_ACTION 2596 select
+
+thread 'picker_native_confirm' (19820) panicked at tests\picker_v1.rs:96:5:
+S_BEHAVIOR actual GetResult selection registers
+
+thread 'picker_options_and_errors' (26516) panicked at tests\picker_v1.rs:58:9:
+S_BEHAVIOR pure lexical rejection
+WATER_PICKER_CASE select
+WATER_UI_WINDOW 2596 #32770 visible=True
+WATER_UI_ACTION 2596 select
+
+thread 'picker_public_lifecycle' (37772) panicked at tests\picker_v1.rs:149:5:
+S_BEHAVIOR public selection returns capability
+WATER_PICKER_CASE select
+WATER_UI_WINDOW 2596 #32770 visible=True
+WATER_UI_ACTION 2596 select
+
+thread 'picker_registry_failures' (3252) panicked at tests\picker_v1.rs:120:5:
+S_BEHAVIOR actual selection respects full registry

@@ -1,0 +1,55 @@
+--- stdout ---
+
+running 5 tests
+test picker_native_cancel ... ok
+test picker_native_confirm ... FAILED
+test picker_options_and_errors ... ok
+test picker_public_lifecycle ... FAILED
+test picker_registry_failures ... FAILED
+
+failures:
+
+failures:
+    picker_native_confirm
+    picker_public_lifecycle
+    picker_registry_failures
+
+test result: FAILED. 2 passed; 3 failed; 0 ignored; 0 measured; 0 filtered out; finished in 9.03s
+
+
+--- stderr ---
+WATER_PICKER_CASE cancel
+WATER_UI_WINDOW 21216 #32770 visible=True
+WATER_UI_ACTION 21216 cancel
+WATER_PICKER_CASE select
+WATER_UI_WINDOW 21216 #32770 visible=True
+WATER_UI_ACTION 21216 select
+
+thread 'picker_native_confirm' (40168) panicked at tests\picker_v1.rs:170:5:
+assertion `left == right` failed: S_BEHAVIOR S_SCOPE_ID caller scope preserved
+  left: OpaqueId("picker-wrong-id")
+ right: OpaqueId("native-confirm")
+note: run with `RUST_BACKTRACE=1` environment variable to display a backtrace
+WATER_PICKER_CASE select
+WATER_UI_WINDOW 21216 #32770 visible=True
+WATER_UI_ACTION 21216 select
+
+thread 'picker_public_lifecycle' (22912) panicked at tests\picker_v1.rs:274:5:
+assertion `left == right` failed: S_BEHAVIOR S_SCOPE_ID public getter
+  left: OpaqueId("picker-wrong-id")
+ right: OpaqueId("public-lifecycle")
+WATER_PICKER_CASE select
+WATER_UI_WINDOW 21216 #32770 visible=True
+WATER_UI_ACTION 21216 select
+WATER_PICKER_CASE select
+WATER_UI_WINDOW 21216 #32770 visible=True
+WATER_UI_ACTION 21216 select
+WATER_PICKER_CASE select
+WATER_UI_WINDOW 21216 #32770 visible=True
+WATER_UI_ACTION 21216 select
+WATER_PICKER_CASE select
+WATER_UI_WINDOW 21216 #32770 visible=True
+WATER_UI_ACTION 21216 select
+
+thread 'picker_registry_failures' (10176) panicked at tests\picker_v1.rs:241:5:
+S_BEHAVIOR duplicate actual identity rejected

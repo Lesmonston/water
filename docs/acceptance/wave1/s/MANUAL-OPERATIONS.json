@@ -1,0 +1,42 @@
+{
+  "task": "WATER-W1-S",
+  "operations": [
+    {
+      "operation": "rustup run 1.95.0 rustfmt --edition 2024 with four explicit new Rust file paths",
+      "exitCode": 0,
+      "note": "Ran after initial behavioral red, before first passing suite and final-byte replay."
+    },
+    {
+      "operation": "git diff --cached --check on seven implementation files",
+      "exitCode": 0
+    },
+    {
+      "operation": "git -c core.hooksPath=NUL -c core.fsmonitor=false commit -m \"Implement native directory picker with N/P scope registration\"",
+      "exitCode": 0,
+      "commit": "ececf1ced87eb02cd75886677f330a9c8c72d7be"
+    },
+    {
+      "operation": "explicit evidence git add batches; raw archive/index blob verification",
+      "exitCode": 0,
+      "archiveFilesVerified": 372,
+      "stagedFilesAtCompletion": 376,
+      "stagedRawBytesMatch": true,
+      "productFilesStaged": 0
+    },
+    {
+      "operation": "git -c core.hooksPath=NUL -c core.fsmonitor=false commit -m \"Submit S picker report and raw verification evidence\" (premature attempt)",
+      "exitCode": 1,
+      "error": "fatal: Unable to create 'F:/new/smaltalk/water/.git/worktrees/s/index.lock': File exists.",
+      "cause": "The preceding explicit evidence staging/verification process had yielded a running session and had not finished. Commit was incorrectly started before waiting for it.",
+      "recovery": "Waited for the original staging process; it completed with exit 0 and verified all 376 staged file bytes. No lock removal, reset, clean or product change. Added this record and updated the report before retrying."
+    },
+    {
+      "operation": "read-only source lookup",
+      "note": "An attempted Get-Content of nonexistent tools/parallel-wave-probe/src/picker_windows.rs returned a nonterminating PowerShell path error. rg --files located the existing picker.rs, which was then read. No file was created or changed."
+    },
+    {
+      "operation": "read-only document display",
+      "note": "Initial PowerShell default encoding displayed mojibake; required documents were reread explicitly with UTF-8."
+    }
+  ]
+}

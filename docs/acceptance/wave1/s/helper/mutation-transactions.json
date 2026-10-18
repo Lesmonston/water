@@ -1,0 +1,54 @@
+[
+  {
+    "label": "behavior-replay",
+    "at": "2026-10-18T15:04:38.356Z",
+    "path": "packages/native-picker/src/v1.rs",
+    "original": "6f78599cf76fcded311a1054da92f13120091e2f1dcd26cdd96947584b1902b2",
+    "mutated": "8c96314ba5ae98ba622e8affdc6717f4ba327f70a068a977902cc41345a06312",
+    "note": "Post-implementation replay of the original missing lexical validation/registration defect; real native modal remains active."
+  },
+  {
+    "label": "behavior-replay-restored",
+    "at": "2026-10-18T15:04:58.757Z",
+    "allStableHashesVerified": true
+  },
+  {
+    "label": "nc1",
+    "at": "2026-10-18T15:05:22.684Z",
+    "path": "packages/native-picker/src/native_windows.rs",
+    "original": "0117f5022b8c658166531baaef5d87a7f624848753d08b6dbd2416acf132ebeb",
+    "mutated": "2ba51b11bf52bd6b5a3da95153860bf393af8408b302e7bcb5d8eb876dde6557",
+    "note": "Actual cancelled Show HRESULT now maps to DialogFailed instead of None."
+  },
+  {
+    "label": "nc1-restored",
+    "at": "2026-10-18T15:05:45.892Z",
+    "allStableHashesVerified": true
+  },
+  {
+    "label": "nc2",
+    "at": "2026-10-18T15:06:09.599Z",
+    "path": "packages/native-picker/src/v1.rs",
+    "original": "6f78599cf76fcded311a1054da92f13120091e2f1dcd26cdd96947584b1902b2",
+    "mutated": "7329689986c30031b54561ba359220df5b7e998e3e37a0852783cd565a082d32",
+    "note": "Real P.prepare now receives a wrong scope ID, while the native selected path stays unchanged."
+  },
+  {
+    "label": "nc2-restored",
+    "at": "2026-10-18T15:06:34.644Z",
+    "allStableHashesVerified": true
+  },
+  {
+    "label": "nc3",
+    "at": "2026-10-18T15:06:58.402Z",
+    "path": "packages/native-picker/src/v1.rs",
+    "original": "6f78599cf76fcded311a1054da92f13120091e2f1dcd26cdd96947584b1902b2",
+    "mutated": "f0b66454d3a384a1acaaa2329ccf7d0745619584db1e9a32fcdf82e64756c5c8",
+    "note": "The genuinely confirmed P scope is incorrectly revoked just before returning SelectedScope."
+  },
+  {
+    "label": "nc3-restored",
+    "at": "2026-10-18T15:07:21.693Z",
+    "allStableHashesVerified": true
+  }
+]
