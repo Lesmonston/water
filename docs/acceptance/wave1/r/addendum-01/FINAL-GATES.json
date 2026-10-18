@@ -1,0 +1,91 @@
+{
+  "task": "WATER-W1-R",
+  "addendum": 1,
+  "testedCommit": "a7cbe2bf6311282bc33f291122a31fb907577b41",
+  "productTests": 5,
+  "gates": [
+    {
+      "mode": "fmt",
+      "helperReceipt": "checks/2026-10-18T15-12-49.512Z-41836-fmt-result.json",
+      "wrapperReceipt": "checks/2026-10-18T15-12-48.518Z-42632-fmt-result.json",
+      "status": "passed",
+      "startedAt": "2026-10-18T15:12:50.724Z",
+      "endedAt": "2026-10-18T15:12:52.518Z",
+      "head": "a7cbe2bf6311282bc33f291122a31fb907577b41"
+    },
+    {
+      "mode": "test",
+      "helperReceipt": "checks/2026-10-18T15-12-59.486Z-40976-test-result.json",
+      "wrapperReceipt": "checks/2026-10-18T15-12-57.867Z-12012-test-result.json",
+      "status": "passed",
+      "startedAt": "2026-10-18T15:13:02.083Z",
+      "endedAt": "2026-10-18T15:13:03.854Z",
+      "head": "a7cbe2bf6311282bc33f291122a31fb907577b41"
+    },
+    {
+      "mode": "clippy",
+      "helperReceipt": "checks/2026-10-18T15-13-13.797Z-34608-clippy-result.json",
+      "wrapperReceipt": "checks/2026-10-18T15-13-12.239Z-25624-clippy-result.json",
+      "status": "passed",
+      "startedAt": "2026-10-18T15:13:15.172Z",
+      "endedAt": "2026-10-18T15:13:19.856Z",
+      "head": "a7cbe2bf6311282bc33f291122a31fb907577b41"
+    },
+    {
+      "mode": "metadata",
+      "helperReceipt": "checks/2026-10-18T15-13-30.355Z-30572-metadata-result.json",
+      "wrapperReceipt": "checks/2026-10-18T15-13-27.752Z-43032-metadata-result.json",
+      "status": "passed",
+      "startedAt": "2026-10-18T15:13:32.476Z",
+      "endedAt": "2026-10-18T15:13:37.075Z",
+      "head": "a7cbe2bf6311282bc33f291122a31fb907577b41"
+    },
+    {
+      "mode": "bridge",
+      "helperReceipt": "checks/2026-10-18T15-13-54.992Z-39016-bridge-result.json",
+      "wrapperReceipt": "checks/2026-10-18T15-13-53.213Z-29128-bridge-result.json",
+      "status": "passed",
+      "startedAt": "2026-10-18T15:13:57.041Z",
+      "endedAt": "2026-10-18T15:14:00.553Z",
+      "head": "a7cbe2bf6311282bc33f291122a31fb907577b41"
+    }
+  ],
+  "originalBridge": {
+    "actual_P_R_A_Q": true,
+    "decoder_invalid": 10,
+    "decoder_valid": 5,
+    "entries": 8,
+    "name_invalid": 22,
+    "name_valid": 9,
+    "native_picker_tested": false,
+    "ordinary_content_read": false,
+    "root_binding_and_cleanup": true
+  },
+  "addendumBridge": {
+    "actual_R_A_Q": true,
+    "exact_reason_order": true,
+    "full_and_depth_one": true
+  },
+  "failures": [
+    {
+      "receipt": "checks/2026-10-18T15-05-47.953Z-29116-clippy-result.json",
+      "mode": "clippy",
+      "error": "Focused command failed: scripts/native-scan-check.mjs --task WATER-W1-R --mode clippy"
+    },
+    {
+      "receipt": "checks/2026-10-18T15-05-49.153Z-31172-clippy-result.json",
+      "mode": "clippy",
+      "error": "Focused command failed: clippy --offline --locked --manifest-path packages/native-scan/Cargo.toml --all-targets -- -D warnings"
+    },
+    {
+      "receipt": "checks/2026-10-18T15-06-38.358Z-35940-clippy-result.json",
+      "mode": "clippy",
+      "error": "Focused command failed: scripts/native-scan-check.mjs --task WATER-W1-R --mode clippy"
+    },
+    {
+      "receipt": "checks/2026-10-18T15-06-40.236Z-40936-clippy-result.json",
+      "mode": "clippy",
+      "error": "Focused command failed: clippy --offline --locked --manifest-path packages/native-scan/Cargo.toml --all-targets -- -D warnings"
+    }
+  ]
+}

@@ -1,0 +1,105 @@
+{
+  "task": "WATER-W1-R",
+  "addendum": 1,
+  "testedCommit": "a7cbe2bf6311282bc33f291122a31fb907577b41",
+  "testHash": "f25e20a2e17f418535c42409e628afdf24745f60fe9584d858c38d89da78dca7",
+  "productionHash": "adb65f91733918acee7e7e723e3d14d010aa95bfd427ca3d8c51747646b57008",
+  "chains": [
+    {
+      "label": "behavior",
+      "red": "2026-10-18T15-08-40.997Z-36860-red-behavior-result.json",
+      "restored": "2026-10-18T15-09-13.332Z-36124-suite-result.json",
+      "target": "R_BEHAVIOR",
+      "testsExecuted": 5,
+      "testExitCode": 101,
+      "redSummary": "test result: FAILED. 1 passed; 4 failed; 0 ignored; 0 measured; 0 filtered out; finished in 0.01s",
+      "greenSummary": "test result: ok. 5 passed; 0 failed; 0 ignored; 0 measured; 0 filtered out; finished in 0.09s",
+      "redLog": "2026-10-18T15-08-40.997Z-36860-red-behavior-expected-red.log",
+      "greenLog": "2026-10-18T15-09-13.332Z-36124-suite-5.log",
+      "aggregate": {
+        "original": "adb65f91733918acee7e7e723e3d14d010aa95bfd427ca3d8c51747646b57008",
+        "bad": "4e9d1bad7984025012b794c56172cbc77b95761088052845b6e96e9f7fd204fa",
+        "restored": "adb65f91733918acee7e7e723e3d14d010aa95bfd427ca3d8c51747646b57008"
+      },
+      "changedFile": {
+        "label": "behavior",
+        "path": "packages/native-scan/src/v1.rs",
+        "original": "d4adae555d6e080266a9bc3aff75d9f557ebf37c4e4084cd8949476f96d410e0",
+        "bad": "7ec9ff4a545e6510bff28b5d89ee2477453a10b085dcbaf3fe35cdf78ae21ad1",
+        "restored": "d4adae555d6e080266a9bc3aff75d9f557ebf37c4e4084cd8949476f96d410e0"
+      }
+    },
+    {
+      "label": "nc1",
+      "red": "2026-10-18T15-09-58.368Z-30452-red-nc1-result.json",
+      "restored": "2026-10-18T15-10-17.838Z-24780-suite-result.json",
+      "target": "R_ROOT_BINDING",
+      "testsExecuted": 5,
+      "testExitCode": 101,
+      "redSummary": "test result: FAILED. 4 passed; 1 failed; 0 ignored; 0 measured; 0 filtered out; finished in 0.11s",
+      "greenSummary": "test result: ok. 5 passed; 0 failed; 0 ignored; 0 measured; 0 filtered out; finished in 0.10s",
+      "redLog": "2026-10-18T15-09-58.368Z-30452-red-nc1-expected-red.log",
+      "greenLog": "2026-10-18T15-10-17.838Z-24780-suite-5.log",
+      "aggregate": {
+        "original": "adb65f91733918acee7e7e723e3d14d010aa95bfd427ca3d8c51747646b57008",
+        "bad": "bc967398c69d54fb83a0a4d1cada54bfd006b2bca88c248ca0a38534ca6f3aeb",
+        "restored": "adb65f91733918acee7e7e723e3d14d010aa95bfd427ca3d8c51747646b57008"
+      },
+      "changedFile": {
+        "label": "nc1",
+        "path": "packages/native-scan/src/walk.rs",
+        "original": "52b0f077cbf57913c151ef0652b75b8894c91293a757b44efd0bf150a6a46255",
+        "bad": "38a7a30e3a4979eeb314d12b6d65983c8043bdabd16483836f9214ca704a9c23",
+        "restored": "52b0f077cbf57913c151ef0652b75b8894c91293a757b44efd0bf150a6a46255"
+      }
+    },
+    {
+      "label": "nc2",
+      "red": "2026-10-18T15-10-42.122Z-25920-red-nc2-result.json",
+      "restored": "2026-10-18T15-11-16.043Z-13388-suite-result.json",
+      "target": "R_NO_FOLLOW",
+      "testsExecuted": 5,
+      "testExitCode": 101,
+      "redSummary": "test result: FAILED. 3 passed; 2 failed; 0 ignored; 0 measured; 0 filtered out; finished in 0.05s",
+      "greenSummary": "test result: ok. 5 passed; 0 failed; 0 ignored; 0 measured; 0 filtered out; finished in 0.09s",
+      "redLog": "2026-10-18T15-10-42.122Z-25920-red-nc2-expected-red.log",
+      "greenLog": "2026-10-18T15-11-16.043Z-13388-suite-5.log",
+      "aggregate": {
+        "original": "adb65f91733918acee7e7e723e3d14d010aa95bfd427ca3d8c51747646b57008",
+        "bad": "ceb99f321b1f06960174019413f58adcdce41c4b32d3c3622d31af662210e87e",
+        "restored": "adb65f91733918acee7e7e723e3d14d010aa95bfd427ca3d8c51747646b57008"
+      },
+      "changedFile": {
+        "label": "nc2",
+        "path": "packages/native-scan/src/native_windows.rs",
+        "original": "67ee4f2437d37593bbcb39c18f49d4ed2eead73023f87c31fb28d32cbc6499d3",
+        "bad": "dd7c5318ced0ff0c446d8f1fa576fdcad37929e556df70e574ff88e54f7c5d31",
+        "restored": "67ee4f2437d37593bbcb39c18f49d4ed2eead73023f87c31fb28d32cbc6499d3"
+      }
+    },
+    {
+      "label": "nc3",
+      "red": "2026-10-18T15-11-32.669Z-31108-red-nc3-result.json",
+      "restored": "2026-10-18T15-11-52.515Z-30420-suite-result.json",
+      "target": "R_CANCELLED",
+      "testsExecuted": 5,
+      "testExitCode": 101,
+      "redSummary": "test result: FAILED. 3 passed; 2 failed; 0 ignored; 0 measured; 0 filtered out; finished in 0.07s",
+      "greenSummary": "test result: ok. 5 passed; 0 failed; 0 ignored; 0 measured; 0 filtered out; finished in 0.11s",
+      "redLog": "2026-10-18T15-11-32.669Z-31108-red-nc3-expected-red.log",
+      "greenLog": "2026-10-18T15-11-52.515Z-30420-suite-5.log",
+      "aggregate": {
+        "original": "adb65f91733918acee7e7e723e3d14d010aa95bfd427ca3d8c51747646b57008",
+        "bad": "fd35dfccad30325ee63dedccdefe383ecaa848fb72bbc3b7f03d3696d74ebba2",
+        "restored": "adb65f91733918acee7e7e723e3d14d010aa95bfd427ca3d8c51747646b57008"
+      },
+      "changedFile": {
+        "label": "nc3",
+        "path": "packages/native-scan/src/walk.rs",
+        "original": "52b0f077cbf57913c151ef0652b75b8894c91293a757b44efd0bf150a6a46255",
+        "bad": "359f147c0fd1e32cd08a0b3e96b041dd476bf05a6920a75aa3dee5ba55baa4c6",
+        "restored": "52b0f077cbf57913c151ef0652b75b8894c91293a757b44efd0bf150a6a46255"
+      }
+    }
+  ]
+}

@@ -1,0 +1,126 @@
+//! Native scan v1. Capabilities are issued only by the real scope registry.
+#![forbid(unsafe_code)]
+
+use std::{fmt, sync::{Arc, atomic::{AtomicBool, Ordering}}};
+use water_contracts::v1::{OpaqueId, RelativePath, ScanReport};
+use water_scope_registry::v1::{Registry, RegisteredScope, RegistryError};
+use water_native_root::v1::RootError;
+use water_redacted_report::v1::RedactionError;
+use serde::Serialize;
+use water_contracts::v1::{ByteCount, IssueCode, ScanStatus};
+
+#[derive(Debug, Clone, PartialEq, Eq)]
+pub enum NativeScanError {
+    Source(RegistryError), Root(RootError), Projection(water_contracts::v1::ContractError),
+    Redaction(RedactionError), UnsupportedPlatform, InvalidOptions, RootMismatch, NativeIo,
+    MalformedDirectoryBuffer, InvalidChildName, OutputTooLarge, SerializationFailed,
+}
+impl fmt::Display for NativeScanError {
+    fn fmt(&self, f: &mut fmt::Formatter<'_>) -> fmt::Result {
+        match self {
+            Self::Source(e) => e.fmt(f), Self::Root(e) => e.fmt(f),
+            Self::Projection(e) => e.fmt(f), Self::Redaction(e) => e.fmt(f),
+            other => write!(f, "{other:?} at /native_scan"),
+        }
+    }
+}
+impl std::error::Error for NativeScanError {}
+
+#[derive(Debug, Clone, PartialEq, Eq)]
+pub struct ScanOptions { max_depth:u32, max_entries:u32, max_dir_entries:u32 }
+impl ScanOptions {
+    pub fn new(max_depth:u32,max_entries:u32,max_dir_entries:u32)->Result<Self,NativeScanError>{
+        if max_depth>32 || !(1..=10000).contains(&max_entries) || !(1..=256).contains(&max_dir_entries) { return Err(NativeScanError::InvalidOptions); }
+        Ok(Self{max_depth,max_entries,max_dir_entries})
+    }
+    pub fn max_depth(&self)->u32{self.max_depth}
+    pub fn max_entries(&self)->u32{self.max_entries}
+    pub fn max_dir_entries(&self)->u32{self.max_dir_entries}
+}
+#[derive(Debug, Clone)]
+pub struct CancelToken { flag:Arc<AtomicBool> }
+// Cancellation is a fresh, explicit control object; the frozen API has no Default.
+#[allow(clippy::new_without_default)]
+impl CancelToken {
+    pub fn new()->Self{Self{flag:Arc::new(AtomicBool::new(false))}}
+    pub fn cancel(&self){self.flag.store(true,Ordering::Release);}
+    pub fn is_cancelled(&self)->bool{self.flag.load(Ordering::Acquire)}
+}
+pub struct ScanProgress { pub scan_id:OpaqueId,pub scope_id:OpaqueId,pub relative_path:RelativePath,pub visited_entries:u32,pub recorded_entries:u32 }
+pub trait ScanObserver { fn on_entry(&self,progress:&ScanProgress); }
+pub struct NoopObserver;
+impl ScanObserver for NoopObserver { fn on_entry(&self,_:&ScanProgress){} }
+#[derive(Debug,Clone,PartialEq,Eq,Serialize)]
+pub(crate) struct Identity {
+    pub(crate) volume_serial:String,
+    pub(crate) file_id:String,
+}
+impl Identity {
+    #[cfg(all(windows, target_arch = "x86_64"))]
+    pub(crate) fn from_root(id:&water_native_root::v1::RootIdentity)->Self {
+        Self{volume_serial:id.volume_serial().to_owned(),file_id:id.file_id().to_owned()}
+    }
+}
+#[derive(Debug,Clone,Copy,PartialEq,Eq,Serialize)]
+#[serde(rename_all="lowercase")]
+pub(crate) enum Kind { File, Directory, Link, Other }
+#[derive(Debug,Clone,PartialEq,Serialize)]
+pub(crate) struct Entry {
+    pub(crate) finding_id:OpaqueId,
+    pub(crate) relative_path:RelativePath,
+    pub(crate) depth:u32,
+    pub(crate) kind:Kind,
+    pub(crate) logical_bytes:Option<ByteCount>,
+    pub(crate) allocated_bytes:Option<ByteCount>,
+    pub(crate) native_identity:Option<Identity>,
+}
+#[derive(Debug,Clone,PartialEq,Serialize)]
+pub(crate) struct Issue {
+    pub(crate) code:IssueCode,
+    pub(crate) relative_path:Option<RelativePath>,
+    pub(crate) origin:&'static str,
+    pub(crate) operation:&'static str,
+}
+#[derive(Debug,Clone,PartialEq,Serialize)]
+pub struct NativeScan {
+    pub(crate) native_scan_version:&'static str,
+    pub(crate) source_kind:&'static str,
+    pub(crate) read_only:bool,
+    pub(crate) scan_id:OpaqueId,
+    pub(crate) scope_id:OpaqueId,
+    pub(crate) platform:&'static str,
+    pub(crate) confirmation_source:&'static str,
+    pub(crate) native_user_gesture_authenticated:bool,
+    pub(crate) race_protection_verified:bool,
+    pub(crate) root_identity:Identity,
+    pub(crate) status:ScanStatus,
+    pub(crate) visited_entries:u32,
+    pub(crate) recorded_entries:u32,
+    pub(crate) entries:Vec<Entry>,
+    pub(crate) issues:Vec<Issue>,
+    pub(crate) report:ScanReport,
+}
+impl NativeScan { pub fn report(&self)->&ScanReport{&self.report} }
+pub fn scan_registered(registry:&mut Registry,scope:&RegisteredScope,root_path:&str,scan_id:&OpaqueId,options:&ScanOptions,cancel:&CancelToken)->Result<NativeScan,NativeScanError>{
+    scan_registered_with_observer(registry,scope,root_path,scan_id,options,cancel,&NoopObserver)
+}
+pub fn scan_registered_with_observer<O:ScanObserver>(registry:&mut Registry,scope:&RegisteredScope,root_path:&str,scan_id:&OpaqueId,options:&ScanOptions,cancel:&CancelToken,observer:&O)->Result<NativeScan,NativeScanError>{
+    #[cfg(all(windows,target_arch="x86_64"))]
+    { crate::walk::run(registry,scope,root_path,scan_id,options,cancel,observer) }
+    #[cfg(not(all(windows,target_arch="x86_64")))]
+    { let _=(registry,scope,root_path,scan_id,options,cancel,observer); Err(NativeScanError::UnsupportedPlatform) }
+}
+pub fn to_json(scan:&NativeScan)->Result<String,NativeScanError>{
+    let result=serde_json::to_string(scan).map_err(|_|NativeScanError::SerializationFailed)?;
+    if result.len()>33_554_432 { return Err(NativeScanError::OutputTooLarge); }
+    Ok(result)
+}
+pub fn redacted_json(scan:&NativeScan)->Result<String,NativeScanError>{
+    let redacted=water_redacted_report::v1::redact_report(scan.report()).map_err(NativeScanError::Redaction)?;
+    water_redacted_report::v1::to_json(&redacted).map_err(NativeScanError::Redaction)
+}
+#[derive(Debug,Clone,PartialEq,Eq)]
+pub struct DirectoryRecord { pub(crate) name:Vec<u16>, pub(crate) attributes:u32 }
+impl DirectoryRecord { pub fn name_utf16(&self)->&[u16]{&self.name} pub fn attributes(&self)->u32{self.attributes} }
+pub fn decode_directory_buffer(buffer:&[u8])->Result<Vec<DirectoryRecord>,NativeScanError>{crate::decode::directory(buffer)}
+pub fn validate_child_name(name:&[u16])->Result<String,NativeScanError>{crate::decode::child(name)}

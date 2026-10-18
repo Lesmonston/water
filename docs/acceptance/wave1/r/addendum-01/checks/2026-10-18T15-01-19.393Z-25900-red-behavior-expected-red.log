@@ -1,0 +1,55 @@
+--- stdout ---
+
+running 5 tests
+test native_budgets_and_cancellation ... FAILED
+test native_directory_decoding ... FAILED
+test native_metadata_no_follow ... FAILED
+test native_report_and_redaction ... FAILED
+test native_scope_and_identity ... FAILED
+
+failures:
+
+---- native_budgets_and_cancellation stdout ----
+
+thread 'native_budgets_and_cancellation' (13168) panicked at tests\native_scan_v1.rs:31:10:
+R_BEHAVIOR: real registered scan must succeed: NativeIo
+note: run with `RUST_BACKTRACE=1` environment variable to display a backtrace
+
+---- native_directory_decoding stdout ----
+
+thread 'native_directory_decoding' (38848) panicked at tests\native_scan_v1.rs:150:55:
+R_BEHAVIOR: valid directory record: MalformedDirectoryBuffer
+
+---- native_metadata_no_follow stdout ----
+
+thread 'native_metadata_no_follow' (15276) panicked at tests\native_scan_v1.rs:31:10:
+R_BEHAVIOR: real registered scan must succeed: NativeIo
+
+---- native_report_and_redaction stdout ----
+
+thread 'native_report_and_redaction' (36228) panicked at tests\native_scan_v1.rs:31:10:
+R_BEHAVIOR: real registered scan must succeed: NativeIo
+
+---- native_scope_and_identity stdout ----
+
+thread 'native_scope_and_identity' (40316) panicked at tests\native_scan_v1.rs:114:5:
+assertion failed: matches!(result,Err(r::NativeScanError::Source(RegistryError::WrongState)))
+
+
+failures:
+    native_budgets_and_cancellation
+    native_directory_decoding
+    native_metadata_no_follow
+    native_report_and_redaction
+    native_scope_and_identity
+
+test result: FAILED. 0 passed; 5 failed; 0 ignored; 0 measured; 0 filtered out; finished in 0.03s
+
+
+--- stderr ---
+   Compiling water-redacted-report v0.1.0 (F:\new\smaltalk\water\.worktrees\r\packages\redacted-report)
+   Compiling water-scope-registry v0.1.0 (F:\new\smaltalk\water\.worktrees\r\packages\scope-registry)
+   Compiling water-native-scan v0.1.0 (F:\new\smaltalk\water\.worktrees\r\packages\native-scan)
+    Finished `test` profile [unoptimized + debuginfo] target(s) in 4.64s
+     Running tests\native_scan_v1.rs (.local\next-target\debug\deps\native_scan_v1-bb5651a761077305.exe)
+error: test failed, to rerun pass `--test native_scan_v1`

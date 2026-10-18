@@ -1,0 +1,38 @@
+{"binary":"C:\\Users\\37310\\.rustup\\toolchains\\1.95.0-x86_64-pc-windows-msvc\\bin\\cargo.exe","argv":["clippy","--offline","--locked","--manifest-path","packages/native-scan/Cargo.toml","--all-targets","--","-D","warnings"],"exitCode":101,"error":null,"log":"2026-10-18T15-05-49.153Z-31172-clippy-5.log"}
+--- stdout ---
+
+--- stderr ---
+    Checking serde_core v1.0.229
+    Checking zmij v1.0.23
+    Checking memchr v2.8.3
+    Checking itoa v1.0.18
+    Checking serde_json v1.0.151
+    Checking serde v1.0.229
+    Checking water-contracts v0.1.0 (F:\new\smaltalk\water\.worktrees\r\crates\water-contracts)
+    Checking water-summary-export v0.1.0 (F:\new\smaltalk\water\.worktrees\r\packages\summary-export)
+    Checking water-native-root v0.1.0 (F:\new\smaltalk\water\.worktrees\r\packages\native-root)
+    Checking water-scope-registry v0.1.0 (F:\new\smaltalk\water\.worktrees\r\packages\scope-registry)
+    Checking water-redacted-report v0.1.0 (F:\new\smaltalk\water\.worktrees\r\packages\redacted-report)
+    Checking water-native-scan v0.1.0 (F:\new\smaltalk\water\.worktrees\r\packages\native-scan)
+error: this `if` statement can be collapsed
+   --> src\walk.rs:294:13
+    |
+294 | /             if kind == Kind::Directory {
+295 | |                 if let Some(id) = observed_id {
+296 | |                     self.directory(&child, &id, &child_path, depth + 1);
+297 | |                 }
+298 | |             }
+    | |_____________^
+    |
+    = help: for further information visit https://rust-lang.github.io/rust-clippy/rust-1.95.0/index.html#collapsible_if
+    = note: `-D clippy::collapsible-if` implied by `-D warnings`
+    = help: to override `-D warnings` add `#[allow(clippy::collapsible_if)]`
+help: collapse nested if block
+    |
+294 ~             if kind == Kind::Directory
+295 ~                 && let Some(id) = observed_id {
+296 |                     self.directory(&child, &id, &child_path, depth + 1);
+297 ~                 }
+    |
+
+error: could not compile `water-native-scan` (lib) due to 1 previous error

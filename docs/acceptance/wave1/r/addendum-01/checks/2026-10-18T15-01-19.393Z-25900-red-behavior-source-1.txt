@@ -1,0 +1,64 @@
+//! Native scan v1. Capabilities are issued only by the real scope registry.
+#![forbid(unsafe_code)]
+
+use std::{fmt, sync::{Arc, atomic::{AtomicBool, Ordering}}};
+use water_contracts::v1::{OpaqueId, RelativePath, ScanReport};
+use water_scope_registry::v1::{Registry, RegisteredScope, RegistryError};
+use water_native_root::v1::RootError;
+use water_redacted_report::v1::RedactionError;
+
+#[derive(Debug, Clone, PartialEq, Eq)]
+pub enum NativeScanError {
+    Source(RegistryError), Root(RootError), Projection(water_contracts::v1::ContractError),
+    Redaction(RedactionError), UnsupportedPlatform, InvalidOptions, RootMismatch, NativeIo,
+    MalformedDirectoryBuffer, InvalidChildName, OutputTooLarge, SerializationFailed,
+}
+impl fmt::Display for NativeScanError {
+    fn fmt(&self, f: &mut fmt::Formatter<'_>) -> fmt::Result {
+        match self {
+            Self::Source(e) => e.fmt(f), Self::Root(e) => e.fmt(f),
+            Self::Projection(e) => e.fmt(f), Self::Redaction(e) => e.fmt(f),
+            other => write!(f, "{other:?} at /native_scan"),
+        }
+    }
+}
+impl std::error::Error for NativeScanError {}
+
+#[derive(Debug, Clone, PartialEq, Eq)]
+pub struct ScanOptions { max_depth:u32, max_entries:u32, max_dir_entries:u32 }
+impl ScanOptions {
+    pub fn new(max_depth:u32,max_entries:u32,max_dir_entries:u32)->Result<Self,NativeScanError>{
+        if max_depth>32 || !(1..=10000).contains(&max_entries) || !(1..=256).contains(&max_dir_entries) { return Err(NativeScanError::InvalidOptions); }
+        Ok(Self{max_depth,max_entries,max_dir_entries})
+    }
+    pub fn max_depth(&self)->u32{self.max_depth}
+    pub fn max_entries(&self)->u32{self.max_entries}
+    pub fn max_dir_entries(&self)->u32{self.max_dir_entries}
+}
+#[derive(Debug, Clone)]
+pub struct CancelToken { flag:Arc<AtomicBool> }
+// Cancellation is a fresh, explicit control object; the frozen API has no Default.
+#[allow(clippy::new_without_default)]
+impl CancelToken {
+    pub fn new()->Self{Self{flag:Arc::new(AtomicBool::new(false))}}
+    pub fn cancel(&self){self.flag.store(true,Ordering::Release);}
+    pub fn is_cancelled(&self)->bool{self.flag.load(Ordering::Acquire)}
+}
+pub struct ScanProgress { pub scan_id:OpaqueId,pub scope_id:OpaqueId,pub relative_path:RelativePath,pub visited_entries:u32,pub recorded_entries:u32 }
+pub trait ScanObserver { fn on_entry(&self,progress:&ScanProgress); }
+pub struct NoopObserver;
+impl ScanObserver for NoopObserver { fn on_entry(&self,_:&ScanProgress){} }
+#[derive(Debug,Clone,PartialEq)]
+pub struct NativeScan { report:ScanReport }
+impl NativeScan { pub fn report(&self)->&ScanReport{&self.report} }
+pub fn scan_registered(registry:&mut Registry,scope:&RegisteredScope,root_path:&str,scan_id:&OpaqueId,options:&ScanOptions,cancel:&CancelToken)->Result<NativeScan,NativeScanError>{
+    scan_registered_with_observer(registry,scope,root_path,scan_id,options,cancel,&NoopObserver)
+}
+pub fn scan_registered_with_observer<O:ScanObserver>(_:&mut Registry,_:&RegisteredScope,_:&str,_:&OpaqueId,_:&ScanOptions,_:&CancelToken,_:&O)->Result<NativeScan,NativeScanError>{Err(NativeScanError::NativeIo)}
+pub fn to_json(_:&NativeScan)->Result<String,NativeScanError>{Err(NativeScanError::SerializationFailed)}
+pub fn redacted_json(_:&NativeScan)->Result<String,NativeScanError>{Err(NativeScanError::SerializationFailed)}
+#[derive(Debug,Clone,PartialEq,Eq)]
+pub struct DirectoryRecord { name:Vec<u16>, attributes:u32 }
+impl DirectoryRecord { pub fn name_utf16(&self)->&[u16]{&self.name} pub fn attributes(&self)->u32{self.attributes} }
+pub fn decode_directory_buffer(_:&[u8])->Result<Vec<DirectoryRecord>,NativeScanError>{Err(NativeScanError::MalformedDirectoryBuffer)}
+pub fn validate_child_name(_:&[u16])->Result<String,NativeScanError>{Err(NativeScanError::InvalidChildName)}

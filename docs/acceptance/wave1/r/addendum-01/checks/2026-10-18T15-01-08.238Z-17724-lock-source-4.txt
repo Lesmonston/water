@@ -1,0 +1,336 @@
+#![forbid(unsafe_code)]
+
+use serde_json::{Value, json};
+use std::{cell::RefCell, panic::{AssertUnwindSafe, catch_unwind}};
+use water_contracts::v1::{self as a, OpaqueId};
+use water_native_root::v1 as n;
+use water_native_scan::v1 as r;
+use water_scope_registry::v1::{RegisteredScope, Registry, RegistryError};
+
+fn id(s: &str) -> OpaqueId { OpaqueId::new(s).unwrap() }
+fn fixture() -> Value {
+    // The frozen helper validates this single index and its bounded batch.
+    let path = std::env::var("WATER_NATIVE_WALK_INDEX").unwrap();
+    serde_json::from_str(&std::fs::read_to_string(path).unwrap()).unwrap()
+}
+fn path(i: &Value, key: &str) -> String { i[key].as_str().unwrap().to_owned() }
+fn under(i: &Value, child: &str) -> String {
+    std::path::Path::new(i["root"].as_str().unwrap()).join(child).to_str().unwrap().to_owned()
+}
+fn registered(root: &str) -> (Registry, RegisteredScope) {
+    let mut registry = Registry::new(4).unwrap();
+    let pending = registry.prepare(&id("r-private-scope"), root).unwrap();
+    let scope = registry.confirm(&pending).unwrap();
+    (registry, scope)
+}
+fn options(depth:u32, entries:u32, names:u32)->r::ScanOptions {
+    r::ScanOptions::new(depth,entries,names).unwrap()
+}
+fn scan(reg:&mut Registry, scope:&RegisteredScope, root:&str, opts:&r::ScanOptions)->r::NativeScan {
+    r::scan_registered(reg,scope,root,&id("r-private-scan"),opts,&r::CancelToken::new())
+        .expect("R_BEHAVIOR: real registered scan must succeed")
+}
+fn wire(scan:&r::NativeScan)->Value {
+    serde_json::from_str(&r::to_json(scan).unwrap()).unwrap()
+}
+fn reusable(reg:&mut Registry,scope:&RegisteredScope) {
+    let permit=reg.begin_scan(scope).expect("attempt must have been released");
+    reg.finish(&permit).unwrap();
+}
+fn issue(v:&Value, code:&str, relative:Value, origin:&str, operation:&str) {
+    assert!(v["issues"].as_array().unwrap().contains(&json!({
+        "code":code,"relative_path":relative,"origin":origin,"operation":operation
+    })), "missing issue {code}: {v}");
+}
+struct Observer {
+    cancel:r::CancelToken, at:u32, panic:bool, seen:RefCell<Vec<String>>,
+}
+impl Observer {
+    fn new(cancel:&r::CancelToken,at:u32,panic:bool)->Self {
+        Self{cancel:cancel.clone(),at,panic,seen:RefCell::new(Vec::new())}
+    }
+}
+impl r::ScanObserver for Observer {
+    fn on_entry(&self,p:&r::ScanProgress) {
+        assert_eq!(p.scan_id,id("r-private-scan"));
+        assert_eq!(p.scope_id,id("r-private-scope"));
+        let mut seen=self.seen.borrow_mut();
+        seen.push(p.relative_path.as_str().to_owned());
+        assert_eq!(p.recorded_entries,seen.len() as u32);
+        assert!(p.visited_entries>=p.recorded_entries);
+        if p.recorded_entries==self.at {
+            assert!(!self.panic,"observer unwind");
+            self.cancel.cancel();
+        }
+    }
+}
+fn observed(reg:&mut Registry,scope:&RegisteredScope,root:&str,opts:&r::ScanOptions,token:&r::CancelToken,observer:&Observer)->r::NativeScan {
+    r::scan_registered_with_observer(reg,scope,root,&id("r-private-scan"),opts,token,observer)
+        .expect("R_CANCELLED: observer scan must preserve facts")
+}
+fn check_reasons(scan:&r::NativeScan) {
+    a::validate_report(scan.report()).unwrap();
+    for f in &scan.report().findings {
+        let prefix=format!("{}/",f.relative_path.as_str());
+        let descendant=scan.report().findings.iter().any(|c|
+            c.scope_id==f.scope_id && c.risk==a::Risk::Protected &&
+            if f.relative_path.as_str().is_empty(){!c.relative_path.as_str().is_empty()}
+            else{c.relative_path.as_str().starts_with(&prefix)}
+        );
+        let mut expected=vec![a::ProtectionReason::UnknownOwnership,a::ProtectionReason::IncompleteEvidence];
+        if descendant { expected.push(a::ProtectionReason::ProtectedDescendant); }
+        assert_eq!(f.protection_reasons,expected);
+    }
+    assert_eq!(r::redacted_json(scan).unwrap(),
+        water_redacted_report::v1::to_json(&water_redacted_report::v1::redact_report(scan.report()).unwrap()).unwrap());
+}
+
+#[test]
+fn native_scope_and_identity() {
+    for (d,e,names) in [(33,1,1),(0,0,1),(0,10001,1),(0,1,0),(0,1,257)] {
+        assert_eq!(r::ScanOptions::new(d,e,names),Err(r::NativeScanError::InvalidOptions));
+    }
+    let opts=options(32,10000,256);
+    assert_eq!((opts.max_depth(),opts.max_entries(),opts.max_dir_entries()),(32,10000,256));
+    assert_eq!(opts,opts.clone());
+    for error in [r::NativeScanError::UnsupportedPlatform,r::NativeScanError::InvalidOptions,
+        r::NativeScanError::RootMismatch,r::NativeScanError::NativeIo,r::NativeScanError::MalformedDirectoryBuffer,
+        r::NativeScanError::InvalidChildName,r::NativeScanError::OutputTooLarge,r::NativeScanError::SerializationFailed] {
+        assert_eq!(error.to_string(),format!("{error:?} at /native_scan"));
+        assert_eq!(error,error.clone());
+    }
+    let source=r::NativeScanError::Source(RegistryError::WrongState);
+    assert_eq!(source.to_string(),RegistryError::WrongState.to_string());
+    assert_eq!(r::NativeScanError::Root(n::RootError::OpenFailed).to_string(),n::RootError::OpenFailed.to_string());
+    let contract=a::parse_report("{}").unwrap_err();
+    assert_eq!(r::NativeScanError::Projection(contract.clone()).to_string(),contract.to_string());
+    let redaction=water_redacted_report::v1::redact_json("{}").unwrap_err();
+    assert_eq!(r::NativeScanError::Redaction(redaction.clone()).to_string(),redaction.to_string());
+
+    let i=fixture(); let root=path(&i,"root");
+    let (mut reg,scope)=registered(&root);
+    let permit=reg.begin_scan(&scope).unwrap();
+    let result=r::scan_registered(&mut reg,&scope,&path(&i,"missing"),&id("busy"),&opts,&r::CancelToken::new());
+    assert!(matches!(result,Err(r::NativeScanError::Source(RegistryError::WrongState))));
+    assert!(reg.check_permit(&permit).is_ok(),"R must preserve the host's active attempt");
+    reg.finish(&permit).unwrap();
+    let mut foreign=Registry::new(1).unwrap();
+    assert!(matches!(r::scan_registered(&mut foreign,&scope,&path(&i,"missing"),&id("foreign"),&opts,&r::CancelToken::new()),
+        Err(r::NativeScanError::Source(RegistryError::InvalidCapability))));
+    let wrong=r::scan_registered(&mut reg,&scope,&path(&i,"trap"),&id("wrong"),&opts,&r::CancelToken::new());
+    assert_eq!(wrong.err().expect("R_ROOT_BINDING: wrong candidate root must be rejected"),r::NativeScanError::RootMismatch);
+    reusable(&mut reg,&scope);
+    assert!(matches!(r::scan_registered(&mut reg,&scope,&path(&i,"missing"),&id("missing"),&opts,&r::CancelToken::new()),Err(r::NativeScanError::Root(_))));
+    reusable(&mut reg,&scope);
+    assert!(matches!(r::scan_registered(&mut reg,&scope,&path(&i,"junction"),&id("link-root"),&opts,&r::CancelToken::new()),Err(r::NativeScanError::Root(_))));
+    reusable(&mut reg,&scope);
+    let full=scan(&mut reg,&scope,&root,&opts); reusable(&mut reg,&scope);
+    let observation=n::open_directory(scope.scope_id(),&root).unwrap();
+    assert_eq!(wire(&full)["root_identity"],json!({
+        "volume_serial":observation.observation().identity().volume_serial(),
+        "file_id":observation.observation().identity().file_id()
+    }));
+    reg.revoke(&scope).unwrap();
+    assert!(matches!(r::scan_registered(&mut reg,&scope,&root,&id("revoked"),&opts,&r::CancelToken::new()),Err(r::NativeScanError::Source(RegistryError::InvalidCapability))));
+    let pending=reg.prepare(scope.scope_id(),&root).unwrap();
+    let newer=reg.confirm(&pending).unwrap();
+    assert!(matches!(r::scan_registered(&mut reg,&scope,&root,&id("old"),&opts,&r::CancelToken::new()),Err(r::NativeScanError::Source(RegistryError::InvalidCapability))));
+    scan(&mut reg,&newer,&root,&opts); reusable(&mut reg,&newer);
+}
+
+#[test]
+fn native_directory_decoding() {
+    let cases:Value=serde_json::from_str(include_str!("../../../contracts/native-scan-v1/decoder-cases.json")).unwrap();
+    assert_eq!(cases["valid"].as_array().unwrap().len(),5);
+    assert_eq!(cases["invalid"].as_array().unwrap().len(),10);
+    assert_eq!(cases["names_valid"].as_array().unwrap().len(),9);
+    assert_eq!(cases["names_invalid"].as_array().unwrap().len(),22);
+    for c in cases["valid"].as_array().unwrap() {
+        let bytes:Vec<u8>=serde_json::from_value(c["bytes"].clone()).unwrap();
+        let actual=r::decode_directory_buffer(&bytes).expect("R_BEHAVIOR: valid directory record");
+        assert_eq!(actual.len(),c["records"].as_array().unwrap().len());
+        for (record,expected) in actual.iter().zip(c["records"].as_array().unwrap()) {
+            let name:Vec<u16>=serde_json::from_value(expected["name"].clone()).unwrap();
+            assert_eq!(record.name_utf16(),name);
+            assert_eq!(record.attributes(),expected["attributes"].as_u64().unwrap() as u32);
+            assert_eq!(*record,record.clone());
+        }
+    }
+    for c in cases["invalid"].as_array().unwrap() {
+        let bytes:Vec<u8>=if let Some(n)=c["zero_bytes"].as_u64(){vec![0;n as usize]}
+            else{serde_json::from_value(c["bytes"].clone()).unwrap()};
+        assert_eq!(r::decode_directory_buffer(&bytes),Err(r::NativeScanError::MalformedDirectoryBuffer));
+    }
+    for c in cases["names_valid"].as_array().unwrap() {
+        let name:Vec<u16>=serde_json::from_value(c["name"].clone()).unwrap();
+        assert_eq!(r::validate_child_name(&name).unwrap(),c["expected"].as_str().unwrap());
+    }
+    for c in cases["names_invalid"].as_array().unwrap() {
+        let name:Vec<u16>=serde_json::from_value(c["name"].clone()).unwrap();
+        assert_eq!(r::validate_child_name(&name),Err(r::NativeScanError::InvalidChildName));
+    }
+    assert_eq!(r::validate_child_name(&vec![97;255]).unwrap(),"a".repeat(255));
+    for s in ["CONIN$","conout$.txt","LPT³","COM9.foo","a\u{1f}b","a\u{7f}b"] {
+        assert_eq!(r::validate_child_name(&s.encode_utf16().collect::<Vec<_>>()),Err(r::NativeScanError::InvalidChildName));
+    }
+    // Every prefix shorter than the header is rejected without indexing a tail.
+    for len in 0..104 { assert!(r::decode_directory_buffer(&vec![0;len]).is_err()); }
+}
+
+#[test]
+fn native_metadata_no_follow() {
+    let i=fixture(); let root=path(&i,"root"); let (mut reg,scope)=registered(&root);
+    let full=scan(&mut reg,&scope,&root,&options(8,128,32)); let v=wire(&full);
+    assert_eq!(v["status"],"completed"); assert_eq!(v["visited_entries"],8); assert_eq!(v["recorded_entries"],8);
+    assert_eq!(v["issues"],json!([]));
+    let entries=v["entries"].as_array().unwrap(); assert_eq!(entries.len(),8);
+    for (k,(entry,expected)) in entries.iter().zip(i["expected_entries"].as_array().unwrap()).enumerate() {
+        assert_eq!(entry["finding_id"],format!("entry-{}",k+1));
+        assert_eq!(entry["relative_path"],expected[0]);
+        assert_eq!(entry["kind"],expected[1],"R_NO_FOLLOW: reparse entry stays Link");
+        assert_eq!(entry["logical_bytes"],expected[2]); assert_eq!(entry["depth"],expected[3]);
+        assert!(entry["allocated_bytes"].is_null());
+        assert_eq!(entry.as_object().unwrap().len(),7);
+        if expected[1]=="link" {
+            assert!(entry["native_identity"].is_null(),"R_NO_FOLLOW: no link target identity");
+        } else {
+            assert_eq!(entry["native_identity"]["volume_serial"],v["root_identity"]["volume_serial"]);
+            let hex=entry["native_identity"]["file_id"].as_str().unwrap();
+            assert_eq!(hex.len(),32); assert!(hex.bytes().all(|b|b.is_ascii_digit()||(b'a'..=b'f').contains(&b)));
+        }
+    }
+    assert_eq!(entries[0]["native_identity"],entries[1]["native_identity"]);
+    assert_eq!(entries[0]["logical_bytes"],"14"); assert_eq!(entries[7]["logical_bytes"],"0");
+    assert_eq!(entries[6]["relative_path"],"literal-秘密.txt");
+    let raw=r::to_json(&full).unwrap();
+    assert!(!raw.contains("TRAP_OUTSIDE"),"R_NO_FOLLOW: trap descendants must remain absent");
+    assert!(!raw.contains(&root)); assert!(!raw.contains("F:\\\\")); assert!(!raw.contains("F:/"));
+    assert_eq!(full,full.clone());
+    assert_eq!(full,scan(&mut reg,&scope,&root,&options(8,128,32)));
+    reusable(&mut reg,&scope);
+    let empty=under(&i,"empty"); let (mut er,es)=registered(&empty);
+    let e=scan(&mut er,&es,&empty,&options(8,8,8)); let ev=wire(&e);
+    assert_eq!(ev["status"],"completed"); assert_eq!(ev["entries"],json!([]));
+    assert_eq!(ev["visited_entries"],0); assert!(e.report().totals.logical_bytes.is_none());
+    reusable(&mut er,&es);
+}
+
+#[test]
+fn native_budgets_and_cancellation() {
+    let i=fixture(); let root=path(&i,"root"); let (mut reg,scope)=registered(&root);
+    let d0=wire(&scan(&mut reg,&scope,&root,&options(0,128,32)));
+    assert_eq!(d0["recorded_entries"],0); assert_eq!(d0["status"],"partial");
+    issue(&d0,"depth_limit",json!(""),"policy","budget"); reusable(&mut reg,&scope);
+    let d1=wire(&scan(&mut reg,&scope,&root,&options(1,128,32)));
+    assert_eq!(d1["recorded_entries"],7); assert_eq!(d1["status"],"partial");
+    assert_eq!(d1["issues"].as_array().unwrap().len(),2);
+    for p in ["dir","empty"] { issue(&d1,"depth_limit",json!(p),"policy","budget"); }
+    for limit in [1,3,4,7,8] {
+        let v=wire(&scan(&mut reg,&scope,&root,&options(8,limit,32)));
+        assert_eq!(v["visited_entries"],limit); assert_eq!(v["recorded_entries"],limit);
+        assert_eq!(v["status"],if limit==8{"completed"}else{"partial"});
+        if limit==8 { assert_eq!(v["issues"],json!([])); }
+        else { issue(&v,"entry_limit",json!(if limit==3{"dir"}else{""}),"policy","budget"); }
+        reusable(&mut reg,&scope);
+    }
+    for names in [1,6] {
+        let v=wire(&scan(&mut reg,&scope,&root,&options(8,128,names)));
+        assert_eq!(v["visited_entries"],0); assert_eq!(v["recorded_entries"],0);
+        issue(&v,"entry_limit",json!(""),"policy","enumerate");
+    }
+    assert_eq!(wire(&scan(&mut reg,&scope,&root,&options(8,128,7)))["status"],"completed");
+    let token=r::CancelToken::new(); assert!(!token.is_cancelled());
+    let clone=token.clone(); clone.cancel(); assert!(token.is_cancelled()); token.cancel();
+    let cancelled=r::scan_registered(&mut reg,&scope,&path(&i,"missing"),&id("pre-cancelled"),&options(0,1,1),&token)
+        .expect("R_CANCELLED: pre-cancel must avoid candidate IO");
+    let v=wire(&cancelled); assert_eq!(v["status"],"cancelled","R_CANCELLED");
+    assert_eq!(v["visited_entries"],0); issue(&v,"cancelled",Value::Null,"control","cancel");
+    reusable(&mut reg,&scope);
+    for at in [1,3,4,7,8] {
+        let token=r::CancelToken::new(); let observer=Observer::new(&token,at,false);
+        let s=observed(&mut reg,&scope,&root,&options(8,128,32),&token,&observer);
+        let v=wire(&s); assert_eq!(v["recorded_entries"],at,"R_CANCELLED: do not continue after observer cancellation");
+        assert_eq!(v["status"],if at==8{"completed"}else{"cancelled"},"R_CANCELLED");
+        assert_eq!(observer.seen.borrow().len(),at as usize);
+        if at!=8 { issue(&v,"cancelled",json!(if at==3{"dir"}else{""}),"control","cancel"); }
+        reusable(&mut reg,&scope);
+    }
+    let token=r::CancelToken::new(); let observer=Observer::new(&token,3,false);
+    let v=wire(&observed(&mut reg,&scope,&root,&options(1,3,32),&token,&observer));
+    assert_eq!(v["status"],"cancelled","R_CANCELLED: cancellation precedes depth/budget");
+    assert_eq!(v["issues"].as_array().unwrap().len(),1);
+    issue(&v,"cancelled",json!("dir"),"control","cancel");
+    reusable(&mut reg,&scope);
+    let token=r::CancelToken::new(); let observer=Observer::new(&token,1,true);
+    assert!(catch_unwind(AssertUnwindSafe(|| observed(&mut reg,&scope,&root,&options(8,128,32),&token,&observer))).is_err());
+    reusable(&mut reg,&scope);
+    scan(&mut reg,&scope,&root,&options(8,128,32));
+}
+
+#[test]
+fn native_report_and_redaction() {
+    let i=fixture(); let root=path(&i,"root"); let (mut reg,scope)=registered(&root);
+    let full=scan(&mut reg,&scope,&root,&options(8,128,32)); let v=wire(&full);
+    let mut keys:Vec<_>=v.as_object().unwrap().keys().map(String::as_str).collect(); keys.sort();
+    let mut expected_keys=vec!["native_scan_version","source_kind","read_only","scan_id","scope_id","platform",
+        "confirmation_source","native_user_gesture_authenticated","race_protection_verified","root_identity",
+        "status","visited_entries","recorded_entries","entries","issues","report"]; expected_keys.sort();
+    assert_eq!(keys,expected_keys);
+    assert_eq!(v["native_scan_version"],"water.native-scan.v1");
+    assert_eq!(v["source_kind"],"native_scope_metadata"); assert_eq!(v["read_only"],true);
+    assert_eq!(v["scan_id"],"r-private-scan"); assert_eq!(v["scope_id"],"r-private-scope");
+    assert_eq!(v["platform"],"windows"); assert_eq!(v["confirmation_source"],"trusted_in_process_declaration");
+    assert_eq!(v["native_user_gesture_authenticated"],false); assert_eq!(v["race_protection_verified"],false);
+    assert_eq!(v["root_identity"].as_object().unwrap().len(),2);
+    let expected_findings:Vec<_>=i["expected_entries"].as_array().unwrap().iter().enumerate().map(|(k,e)|json!({
+        "finding_id":format!("entry-{}",k+1),"scope_id":"r-private-scope","relative_path":e[0],"tool":null,
+        "rule_version":"native-scan-v1","category":"unknown","risk":"protected","recoverability":"unknown",
+        "activity":"unknown","confidence":"unknown",
+        "evidence":[{"code":"unknown","source":"filesystem","summary":"Native metadata observation only; classification and ownership are unverified."}],
+        "protection_reasons":if e[0]=="dir"{json!(["unknown_ownership","incomplete_evidence","protected_descendant"])}
+            else{json!(["unknown_ownership","incomplete_evidence"])},
+        "references":{"state":"unknown","project_ids":[]},
+        "size":{"logical_bytes":e[2],"allocated_bytes":null,"reclaimable_lower_bytes":null,"reclaimable_upper_bytes":null,
+            "method":if e[2].is_null(){"unknown"}else{"logical_sum"},
+            "confidence":if e[2].is_null(){"unknown"}else{"measured"},"shared":"unknown"}
+    })).collect();
+    assert_eq!(v["report"],json!({
+        "schema_version":"water.scan.v1","scan_id":"r-private-scan","status":"completed",
+        "scopes":[{"scope_id":"r-private-scope","label":"Selected directory","platform":"windows","origin":"user_selected","coverage":"complete"}],
+        "findings":expected_findings,"issues":[],
+        "totals":{"logical_bytes":null,"allocated_bytes":null,"method":"unavailable","coverage_complete":true,"scanned_entries":8,"skipped_entries":0}
+    }));
+    assert_eq!(a::parse_report(&a::to_json(full.report()).unwrap()).unwrap(),*full.report());
+    check_reasons(&full);
+    let export=r::redacted_json(&full).unwrap(); let q:Value=serde_json::from_str(&export).unwrap();
+    for secret in ["r-private-scan","r-private-scope","alpha.txt","dir/inner.txt","literal-秘密.txt","TRAP_OUTSIDE",
+        v["root_identity"]["file_id"].as_str().unwrap(),&root,"F:\\\\","F:/"] {
+        assert!(!export.contains(secret),"default export retained identifier {secret}");
+    }
+    assert_eq!(q["anonymity_guaranteed"],false); assert_eq!(q["read_only"],true);
+    assert_eq!(q["findings"].as_array().unwrap().len(),8);
+    for depth in [0,1] {
+        let s=scan(&mut reg,&scope,&root,&options(depth,128,32));
+        check_reasons(&s);
+        assert!(s.report().findings.iter().all(|f|f.protection_reasons.len()==2));
+        assert_eq!(s.report().status,a::ScanStatus::Partial);
+        for (ni,ai) in wire(&s)["issues"].as_array().unwrap().iter().zip(&s.report().issues) {
+            assert_eq!(serde_json::to_value(ai.code).unwrap(),ni["code"]);
+            assert_eq!(serde_json::to_value(&ai.relative_path).unwrap(),ni["relative_path"]);
+            assert_eq!(ai.message,"Native metadata issue."); assert_eq!(ai.scope_id,*scope.scope_id());
+        }
+    }
+    for count in [3,4] {
+        let s=scan(&mut reg,&scope,&root,&options(8,count,32)); check_reasons(&s);
+        assert_eq!(s.report().status,a::ScanStatus::Partial);
+        assert_eq!(s.report().findings[2].protection_reasons.len(),if count==4{3}else{2});
+        let token=r::CancelToken::new();let observer=Observer::new(&token,count,false);
+        let s=observed(&mut reg,&scope,&root,&options(8,128,32),&token,&observer); check_reasons(&s);
+        assert_eq!(s.report().status,a::ScanStatus::Cancelled,"R_CANCELLED");
+        assert_eq!(s.report().findings[2].protection_reasons.len(),if count==4{3}else{2});
+    }
+    let token=r::CancelToken::new(); token.cancel();
+    let s=r::scan_registered(&mut reg,&scope,&path(&i,"missing"),&id("no-io"),&options(8,128,32),&token).expect("R_CANCELLED");
+    check_reasons(&s); assert!(s.report().issues[0].relative_path.is_none());
+    reusable(&mut reg,&scope);
+}

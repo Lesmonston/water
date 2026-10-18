@@ -1,0 +1,205 @@
+--- stdout ---
+
+running 5 tests
+test native_budgets_and_cancellation ... FAILED
+test native_directory_decoding ... ok
+test native_metadata_no_follow ... FAILED
+test native_report_and_redaction ... FAILED
+test native_scope_and_identity ... FAILED
+
+failures:
+
+---- native_budgets_and_cancellation stdout ----
+
+thread 'native_budgets_and_cancellation' (41752) panicked at tests\native_scan_v1.rs:54:6:
+R_BEHAVIOR: real registered scan must succeed: NativeIo
+note: run with `RUST_BACKTRACE=1` environment variable to display a backtrace
+
+---- native_metadata_no_follow stdout ----
+
+thread 'native_metadata_no_follow' (31192) panicked at tests\native_scan_v1.rs:54:6:
+R_BEHAVIOR: real registered scan must succeed: NativeIo
+
+---- native_report_and_redaction stdout ----
+
+thread 'native_report_and_redaction' (22192) panicked at tests\native_scan_v1.rs:54:6:
+R_BEHAVIOR: real registered scan must succeed: NativeIo
+
+---- native_scope_and_identity stdout ----
+
+thread 'native_scope_and_identity' (25912) panicked at tests\native_scan_v1.rs:209:5:
+assertion failed: matches!(result, Err(r::NativeScanError::Source(RegistryError::WrongState)))
+
+
+failures:
+    native_budgets_and_cancellation
+    native_metadata_no_follow
+    native_report_and_redaction
+    native_scope_and_identity
+
+test result: FAILED. 1 passed; 4 failed; 0 ignored; 0 measured; 0 filtered out; finished in 0.01s
+
+
+--- stderr ---
+   Compiling water-native-scan v0.1.0 (F:\new\smaltalk\water\.worktrees\r\packages\native-scan)
+warning: trait `FixedInfo` is never used
+  --> src\native_windows.rs:95:7
+   |
+95 | trait FixedInfo: Default {
+   |       ^^^^^^^^^
+   |
+   = note: `#[warn(dead_code)]` (part of `#[warn(unused)]`) on by default
+
+warning: function `win_error` is never used
+   --> src\native_windows.rs:107:4
+    |
+107 | fn win_error() -> IssueCode {
+    |    ^^^^^^^^^
+
+warning: function `win_code` is never used
+   --> src\native_windows.rs:110:4
+    |
+110 | fn win_code(code: Option<i32>) -> IssueCode {
+    |    ^^^^^^^^
+
+warning: function `info` is never used
+   --> src\native_windows.rs:117:4
+    |
+117 | fn info<T: FixedInfo>(file: &File) -> Result<T, IssueCode> {
+    |    ^^^^
+
+warning: function `kind` is never used
+   --> src\native_windows.rs:132:15
+    |
+132 | pub(crate) fn kind(file: &File) -> Result<Kind, IssueCode> {
+    |               ^^^^
+
+warning: function `classify` is never used
+   --> src\native_windows.rs:136:4
+    |
+136 | fn classify(attributes: u32) -> Kind {
+    |    ^^^^^^^^
+
+warning: function `identity` is never used
+   --> src\native_windows.rs:147:15
+    |
+147 | pub(crate) fn identity(file: &File) -> Result<Identity, IssueCode> {
+    |               ^^^^^^^^
+
+warning: function `length` is never used
+   --> src\native_windows.rs:154:15
+    |
+154 | pub(crate) fn length(file: &File) -> Result<u64, IssueCode> {
+    |               ^^^^^^
+
+warning: function `open_root` is never used
+   --> src\native_windows.rs:161:15
+    |
+161 | pub(crate) fn open_root(path: &str) -> Result<File, IssueCode> {
+    |               ^^^^^^^^^
+
+warning: function `open_child` is never used
+   --> src\native_windows.rs:170:15
+    |
+170 | pub(crate) fn open_child(parent: &File, record: &DirectoryRecord) -> Result<File, IssueCode> {
+    |               ^^^^^^^^^^
+
+warning: enum `ListError` is never used
+   --> src\native_windows.rs:227:17
+    |
+227 | pub(crate) enum ListError {
+    |                 ^^^^^^^^^
+
+warning: function `list` is never used
+   --> src\native_windows.rs:232:15
+    |
+232 | pub(crate) fn list(file: &File, max: u32) -> Result<Vec<DirectoryRecord>, ListError> {
+    |               ^^^^
+
+warning: function `NtCreateFile` is never used
+  --> src\native_windows.rs:69:8
+   |
+69 |     fn NtCreateFile(
+   |        ^^^^^^^^^^^^
+
+warning: function `GetFileInformationByHandleEx` is never used
+  --> src\native_windows.rs:85:8
+   |
+85 |     fn GetFileInformationByHandleEx(
+   |        ^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+
+warning: function `assemble` is never used
+ --> src\output.rs:7:15
+  |
+7 | pub(crate) fn assemble(
+  |               ^^^^^^^^
+
+warning: associated function `from_root` is never used
+   --> src\v1.rs:120:19
+    |
+118 | impl Identity {
+    | ------------- associated function in this implementation
+119 |     #[cfg(all(windows, target_arch = "x86_64"))]
+120 |     pub(crate) fn from_root(id: &water_native_root::v1::RootIdentity) -> Self {
+    |                   ^^^^^^^^^
+
+warning: variants `File`, `Directory`, `Link`, and `Other` are never constructed
+   --> src\v1.rs:130:5
+    |
+129 | pub(crate) enum Kind {
+    |                 ---- variants in this enum
+130 |     File,
+    |     ^^^^
+131 |     Directory,
+    |     ^^^^^^^^^
+132 |     Link,
+    |     ^^^^
+133 |     Other,
+    |     ^^^^^
+    |
+    = note: `Kind` has derived impls for the traits `Clone` and `Debug`, but these are intentionally ignored during dead code analysis
+
+warning: struct `Attempt` is never constructed
+ --> src\walk.rs:9:8
+  |
+9 | struct Attempt<'a> {
+  |        ^^^^^^^
+
+warning: method `complete` is never used
+  --> src\walk.rs:16:8
+   |
+15 | impl Attempt<'_> {
+   | ---------------- method in this implementation
+16 |     fn complete(&mut self, status: ScanStatus) -> Result<(), NativeScanError> {
+   |        ^^^^^^^^
+
+warning: function `run` is never used
+  --> src\walk.rs:36:15
+   |
+36 | pub(crate) fn run<O: ScanObserver>(
+   |               ^^^
+
+warning: struct `Walker` is never constructed
+   --> src\walk.rs:108:8
+    |
+108 | struct Walker<'a, O> {
+    |        ^^^^^^
+
+warning: methods `issue`, `stop_cancelled`, and `directory` are never used
+   --> src\walk.rs:122:8
+    |
+121 | impl<O: ScanObserver> Walker<'_, O> {
+    | ----------------------------------- methods in this implementation
+122 |     fn issue(
+    |        ^^^^^
+...
+136 |     fn stop_cancelled(&mut self, path: Option<&RelativePath>) -> bool {
+    |        ^^^^^^^^^^^^^^
+...
+147 |     fn directory(&mut self, file: &File, identity: &Identity, path: &RelativePath, depth: u32) {
+    |        ^^^^^^^^^
+
+warning: `water-native-scan` (lib) generated 22 warnings
+    Finished `test` profile [unoptimized + debuginfo] target(s) in 3.80s
+     Running tests\native_scan_v1.rs (.local\next-target\debug\deps\native_scan_v1-bb5651a761077305.exe)
+error: test failed, to rerun pass `--test native_scan_v1`

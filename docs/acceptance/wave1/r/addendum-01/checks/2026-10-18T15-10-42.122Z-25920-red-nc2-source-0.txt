@@ -1,0 +1,92 @@
+//! Untrusted memory names only. These values never confer native access.
+#![forbid(unsafe_code)]
+
+use crate::v1::{DirectoryRecord, NativeScanError};
+use water_contracts::v1::RelativePath;
+
+pub(crate) fn directory(buffer: &[u8]) -> Result<Vec<DirectoryRecord>, NativeScanError> {
+    let bad = NativeScanError::MalformedDirectoryBuffer;
+    if !(104..=65536).contains(&buffer.len()) {
+        return Err(bad);
+    }
+    let mut offset = 0usize;
+    let mut records = Vec::new();
+    loop {
+        let header_end = offset.checked_add(104).ok_or_else(|| bad.clone())?;
+        if header_end > buffer.len() {
+            return Err(bad);
+        }
+        // All three fixed-width fields lie within the checked 104-byte header.
+        let u32at = |at: usize| {
+            u32::from_le_bytes(
+                buffer[offset + at..offset + at + 4]
+                    .try_into()
+                    .expect("checked header"),
+            )
+        };
+        let next = u32at(0) as usize;
+        let length = u32at(60) as usize;
+        let attributes = u32at(56);
+        if length == 0 || !length.is_multiple_of(2) {
+            return Err(bad);
+        }
+        let name_end = header_end.checked_add(length).ok_or_else(|| bad.clone())?;
+        if name_end > buffer.len() {
+            return Err(bad);
+        }
+        let name = buffer[header_end..name_end]
+            .chunks_exact(2)
+            .map(|b| u16::from_le_bytes([b[0], b[1]]))
+            .collect();
+        records.push(DirectoryRecord { name, attributes });
+        if next == 0 {
+            return Ok(records);
+        }
+        let next_offset = offset.checked_add(next).ok_or_else(|| bad.clone())?;
+        if !next.is_multiple_of(8)
+            || next_offset < name_end
+            || next_offset
+                .checked_add(104)
+                .is_none_or(|end| end > buffer.len())
+        {
+            return Err(bad);
+        }
+        offset = next_offset;
+    }
+}
+
+pub(crate) fn child(name: &[u16]) -> Result<String, NativeScanError> {
+    let bad = NativeScanError::InvalidChildName;
+    if !(1..=255).contains(&name.len()) {
+        return Err(bad);
+    }
+    let text = String::from_utf16(name).map_err(|_| bad.clone())?;
+    if matches!(text.as_str(), "." | "..")
+        || text.ends_with(['.', ' '])
+        || text.chars().any(|c| {
+            c <= '\u{1f}'
+                || c == '\u{7f}'
+                || matches!(c, '/' | '\\' | ':' | '<' | '>' | '"' | '|' | '?' | '*')
+        })
+    {
+        return Err(bad);
+    }
+    let stem = text
+        .split('.')
+        .next()
+        .unwrap_or("")
+        .trim_end_matches(' ')
+        .to_ascii_uppercase();
+    if matches!(
+        stem.as_str(),
+        "CON" | "PRN" | "AUX" | "NUL" | "CONIN$" | "CONOUT$"
+    ) || matches!(
+        stem.strip_prefix("COM")
+            .or_else(|| stem.strip_prefix("LPT")),
+        Some("1" | "2" | "3" | "4" | "5" | "6" | "7" | "8" | "9" | "¹" | "²" | "³")
+    ) {
+        return Err(bad);
+    }
+    RelativePath::new(&text).map_err(|_| bad)?;
+    Ok(text)
+}
