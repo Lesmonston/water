@@ -4,7 +4,7 @@
   "mode": "manual-external-paste",
   "controller": "Codex",
   "projectRoot": "F:/new/smaltalk/water",
-  "stage": "wave1-abcdefghijklmno-verified-p-q-ready",
+  "stage": "wave1-p-q-in-review",
   "activeWave": "water-wave1",
   "slots": [
     {
@@ -133,7 +133,7 @@
       "branch": "worker/water-w1-p",
       "baseline": "34badd897b8983cffbb57e03a9df9e6af52f7b8f",
       "task": "WATER-W1-P",
-      "state": "ready-awaiting-user-paste"
+      "state": "in-review-preserved"
     },
     {
       "id": "q",
@@ -141,7 +141,7 @@
       "branch": "worker/water-w1-q",
       "baseline": "34badd897b8983cffbb57e03a9df9e6af52f7b8f",
       "task": "WATER-W1-Q",
-      "state": "ready-awaiting-user-paste"
+      "state": "in-review-preserved"
     }
   ],
   "tasks": [
@@ -1403,7 +1403,7 @@
     {
       "id": "WATER-W1-P",
       "title": "Directory scope registry and in-process scan permits",
-      "status": "READY",
+      "status": "IN_REVIEW",
       "kind": "scope_registry",
       "slot": "p",
       "worktree": "F:/new/smaltalk/water/.worktrees/p",
@@ -1461,23 +1461,27 @@
         "WATER-W1-A",
         "WATER-W1-N"
       ],
-      "model": null,
+      "model": "GPT-6 (worker self-report; finer deployment ID unavailable)",
       "modelAssignment": "user-arranged; worker reports actual engine/model",
       "dispatchedAt": null,
       "startedAt": null,
       "baselineStatus": "PASSED",
-      "newProductTestsRun": false,
+      "newProductTestsRun": true,
       "physicalFixturePermission": true,
       "preflightEvidence": "docs/dispatch/wave1/SCOPE-EXPORT-READY-REPORT.md",
       "macOS": "unverified",
       "baselineEvidence": "docs/acceptance/wave1/controller/w1-scope-export-preflight-20261018/p/2026-10-18T09-51-26.587Z-16452-baseline-result.json",
       "readyOn": "2026-10-18",
-      "readinessScope": "Windows private offline real A/N build and native metadata probe over four bounded synthetic directories/one junction/zero ordinary content; alias identity and reparse rejection passed. No new P product, lifecycle tests, native picker or traversal."
+      "readinessScope": "Windows private offline real A/N build and native metadata probe over four bounded synthetic directories/one junction/zero ordinary content; alias identity and reparse rejection passed. No new P product, lifecycle tests, native picker or traversal.",
+      "submittedCommit": "39dfdfd2bdb7f1196cd0f1765b9638c3aa6e7eda",
+      "testedImplementationCommit": "2e963bba0c6b968299880198eb4f1bb8a8100108",
+      "submissionObservedAt": "2026-10-18T10:59:53.317Z",
+      "engine": "Codex"
     },
     {
       "id": "WATER-W1-Q",
       "title": "Default redacted structural report",
-      "status": "READY",
+      "status": "IN_REVIEW",
       "kind": "redacted_report",
       "slot": "q",
       "worktree": "F:/new/smaltalk/water/.worktrees/q",
@@ -1535,18 +1539,22 @@
         "WATER-W1-A",
         "WATER-W1-H"
       ],
-      "model": null,
+      "model": "GPT-6 (worker self-report; finer deployment ID unavailable)",
       "modelAssignment": "user-arranged; worker reports actual engine/model",
       "dispatchedAt": null,
       "startedAt": null,
       "baselineStatus": "PASSED",
-      "newProductTestsRun": false,
+      "newProductTestsRun": true,
       "physicalFixturePermission": false,
       "preflightEvidence": "docs/dispatch/wave1/SCOPE-EXPORT-READY-REPORT.md",
       "macOS": "unverified",
       "baselineEvidence": "docs/acceptance/wave1/controller/w1-scope-export-preflight-20261018/q/2026-10-18T09-51-26.619Z-42332-baseline-result.json",
       "readyOn": "2026-10-18",
-      "readinessScope": "Private offline actual A/H validation of 24 reports (11 H, 13 retained J) and nine original raw errors/provenance hashes. No new Q product/tests or export file/UI."
+      "readinessScope": "Private offline actual A/H validation of 24 reports (11 H, 13 retained J) and nine original raw errors/provenance hashes. No new Q product/tests or export file/UI.",
+      "submittedCommit": "d6e135d35f9b5dbb2a915c0d21a9e2b01a29c8aa",
+      "testedImplementationCommit": "d46b93d652de0ada6d4be0e18cf0d01c06080a75",
+      "submissionObservedAt": "2026-10-18T10:59:57.394Z",
+      "engine": "Codex"
     }
   ],
   "testHelper": "per-task helper; A defaults unchanged",
