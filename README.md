@@ -2,7 +2,7 @@
 
 面向 Windows、macOS AI 开发者的本地存储分析与安全清理助手。
 
-**当前阶段：A–M及五补单均已VERIFIED（Windows受控合成范围），未结外贴单为0。J→K页面、L/M独立内存侧车和保留J捕获回放通过；真实用户目录、分类提升、侧车页面/桌面接线、macOS和删除未验收，M1未完成。**
+**当前阶段：A–M及五补单VERIFIED（Windows受控范围）；N原生目录身份基础、O证据与容量页面两票独立基线通过，READY待分别外贴。新产品未实现、未自动启动执行者。[M1是用户可用的只读Alpha](docs/M1-DELIVERY-PLAN.md)，尚未完成。**
 
 用户指定本项目所有后续开发均位于 `smaltalk/water`，由 Codex 担任总控。
 
@@ -33,10 +33,12 @@ Water 的发布许可证、定价与商标名称尚未最终确定；`water` 是
 
 ## 当前外贴与在途
 
+当前仅外贴[N工单](docs/dispatch/tickets/WATER-W1-N-NATIVE-ROOT-20261018.md)和[O工单](docs/dispatch/tickets/WATER-W1-O-EVIDENCE-READER-20261018.md)，各用一个新执行对话；[派前证据](docs/dispatch/wave1/NEXT-CORE-READY-REPORT.md)已归档。N为Windows目录元数据/句柄身份基础，O显示真实L/M输出；不放行真实用户扫描、授权遍历或删除。下面为旧批次记录。
+
 [本次J/K安排](docs/dispatch/wave1/SESSION-BATCH-PLAN-20261018.md)及[实际派前回执](docs/dispatch/wave1/SESSION-BATCH-READY-REPORT.md)：两树独立、同一冻结r1基线；J已通过[独立验收及集成](docs/acceptance/wave1/controller/WATER-W1-J-REVIEW-20261018.md)，K[补充单01已通过独立复验及真实J→K页面集成](docs/acceptance/wave1/controller/WATER-W1-K-ADDENDUM-01-REVIEW-20261018.md)，原失败历史保留。J只组合现有受控链路，K从调用方接内存快照。A–I及四补单无需重贴；W2–W5/真实scope/桌面/macOS属于后续规划，未伪装成待派READY单。
 
 ## 后续协作
 
 Codex负责架构、规划、契约、工单和验收；用户把总控准备好的一行指令转贴给执行者；执行者在独立工作树提交代码与回执，总控复核后集成。见 [派单登记](docs/dispatch/registry.json) 与 [本轮计划](docs/dispatch/wave1/PLAN.md)：A–I已验收集成，总控没有自动代替用户启动实现者或修产品代码。
 
-[L/M单票及隔离集成验收](docs/acceptance/wave1/controller/WATER-W1-LM-REVIEW-20261018.md)已完成：两票VERIFIED，原正式票无需重贴。全部旧/新任务已收口，后续真实scope、侧车展示/桌面及macOS需新架构/契约/独立工单，当前没有新的READY或在途票。
+[L/M单票及隔离集成验收](docs/acceptance/wave1/controller/WATER-W1-LM-REVIEW-20261018.md)已完成，原正式票无需重贴。当前N/O为新增READY票，尚无已启动的新执行者；收单后由总控独立验收与集成。

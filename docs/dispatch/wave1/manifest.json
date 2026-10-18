@@ -1169,11 +1169,179 @@
       "integrationTestedCommit": "df17e0ae9ca54d77e66a0b38e6e98d81bcbfadab",
       "integrationReceipt": "docs/acceptance/wave1/controller/w1-lm-integration-20261018/2026-10-18T05-02-47.039Z-37000-result.json",
       "verificationScope": "Windows pure-memory module and controlled integration. Original five final gates and five tests passed; new private Cargo target repeats five tests/fmt/clippy/metadata/bridge, three exact-source negative controls with five-test red/restore/green per task, four independent Rust API checks, retained actual J 13-snapshot -> G -> L/M public API pipeline. No new physical scan, user scope, real identity IO, UI/K wiring, macOS or cleanup."
+    },
+    {
+      "id": "WATER-W1-N",
+      "title": "Windows native directory observation",
+      "status": "READY",
+      "kind": "native_root",
+      "slot": "n",
+      "worktree": "F:/new/smaltalk/water/.worktrees/n",
+      "branch": "worker/water-w1-n",
+      "baseCommit": "75cf4db7607a382673a2146ca69732a5110c1579",
+      "snapshotRef": "refs/tags/water-w1-next-core-base-20261018",
+      "ticket": "docs/dispatch/tickets/WATER-W1-N-NATIVE-ROOT-20261018.md",
+      "report": "docs/dispatch/reports/WATER-W1-N-REPORT.md",
+      "helper": "scripts/next-core-check.mjs",
+      "workerRules": "docs/dispatch/W1-NEXT-CORE-WORKER-RULES.md",
+      "contractLock": "contracts/next-core-v1/freeze.lock.json",
+      "outputRoot": "packages/native-root",
+      "testFiles": [
+        "packages/native-root/tests/native_root_v1.rs"
+      ],
+      "expectedTests": [
+        "root_path_validation",
+        "root_native_identity",
+        "root_reparse_boundaries",
+        "root_observation_wire",
+        "root_lifetime_and_errors"
+      ],
+      "expectedBrowserTests": [],
+      "expectedFinalModes": [
+        "fmt",
+        "test",
+        "clippy",
+        "metadata",
+        "bridge"
+      ],
+      "proofTargets": {
+        "behavior": "N_BEHAVIOR",
+        "nc1": "N_REPARSE_ROOT",
+        "nc2": "N_IDENTITY_HANDLE",
+        "nc3": "N_NO_AUTHORITY"
+      },
+      "allowedFiles": [
+        "packages/native-root/Cargo.toml",
+        "packages/native-root/Cargo.lock",
+        "packages/native-root/README.md",
+        "packages/native-root/tests/native_root_v1.rs",
+        "docs/dispatch/reports/WATER-W1-N-REPORT.md"
+      ],
+      "allowedPrefixes": [
+        "packages/native-root/src/",
+        "docs/acceptance/wave1/n/"
+      ],
+      "allowLockfileGeneration": true,
+      "cargoCacheSource": "F:/new/smaltalk/water/.worktrees/a/.local/cargo-home/registry",
+      "dependsOn": [
+        "WATER-W1-A"
+      ],
+      "model": null,
+      "modelAssignment": "user-arranged; report actual engine/model",
+      "dispatchedAt": null,
+      "startedAt": null,
+      "baselineStatus": "PASSED",
+      "newProductTestsRun": false,
+      "physicalFixturePermission": true,
+      "preflightEvidence": "docs/dispatch/wave1/NEXT-CORE-READY-REPORT.md",
+      "macOS": "unverified",
+      "packageName": "water-native-root",
+      "crateName": "water_native_root",
+      "testTarget": "native_root_v1",
+      "testFile": "packages/native-root/tests/native_root_v1.rs",
+      "baselineEvidence": "docs/acceptance/wave1/controller/w1-next-core-preflight-20261018/n/2026-10-18T05-36-25.271Z-17412-baseline-result.json",
+      "readyOn": "2026-10-18",
+      "readinessScope": "Windows private offline A/serde build, 35-byte bounded fixture with two junctions, native ABI and two-directory identity. No N product/tests or directory enumeration."
+    },
+    {
+      "id": "WATER-W1-O",
+      "title": "Evidence and observed-size reader",
+      "status": "READY",
+      "kind": "evidence_reader",
+      "slot": "o",
+      "worktree": "F:/new/smaltalk/water/.worktrees/o",
+      "branch": "worker/water-w1-o",
+      "baseCommit": "75cf4db7607a382673a2146ca69732a5110c1579",
+      "snapshotRef": "refs/tags/water-w1-next-core-base-20261018",
+      "ticket": "docs/dispatch/tickets/WATER-W1-O-EVIDENCE-READER-20261018.md",
+      "report": "docs/dispatch/reports/WATER-W1-O-REPORT.md",
+      "helper": "scripts/next-core-check.mjs",
+      "workerRules": "docs/dispatch/W1-NEXT-CORE-WORKER-RULES.md",
+      "contractLock": "contracts/next-core-v1/freeze.lock.json",
+      "outputRoot": "prototypes/evidence-reader",
+      "testFiles": [
+        "prototypes/evidence-reader/tests/model.test.mjs",
+        "prototypes/evidence-reader/tests/browser.test.mjs"
+      ],
+      "expectedTests": [
+        "evidence_reader_bundle",
+        "evidence_reader_selection",
+        "evidence_reader_annotations"
+      ],
+      "expectedBrowserTests": [
+        "evidence_reader_live_input",
+        "evidence_reader_layout_and_safety"
+      ],
+      "expectedFinalModes": [
+        "check",
+        "test",
+        "browser"
+      ],
+      "proofTargets": {
+        "behavior": "O_BEHAVIOR",
+        "nc1": "O_SERVER_CAPTURE",
+        "nc2": "O_LEDGER_UNKNOWN",
+        "nc3": "O_TEXT_LITERAL"
+      },
+      "allowedFiles": [
+        "prototypes/evidence-reader/README.md",
+        "prototypes/evidence-reader/index.html",
+        "prototypes/evidence-reader/styles.css",
+        "prototypes/evidence-reader/app.mjs",
+        "prototypes/evidence-reader/model.mjs",
+        "prototypes/evidence-reader/server.mjs",
+        "prototypes/evidence-reader/tests/model.test.mjs",
+        "prototypes/evidence-reader/tests/browser.test.mjs",
+        "docs/dispatch/reports/WATER-W1-O-REPORT.md"
+      ],
+      "allowedPrefixes": [
+        "docs/acceptance/wave1/o/"
+      ],
+      "allowLockfileGeneration": false,
+      "cargoCacheSource": "F:/new/smaltalk/water/.worktrees/a/.local/cargo-home/registry",
+      "dependsOn": [
+        "WATER-W1-G",
+        "WATER-W1-E",
+        "WATER-W1-H",
+        "WATER-W1-I",
+        "WATER-W1-J",
+        "WATER-W1-K",
+        "WATER-W1-L",
+        "WATER-W1-M"
+      ],
+      "model": null,
+      "modelAssignment": "user-arranged; report actual engine/model",
+      "dispatchedAt": null,
+      "startedAt": null,
+      "baselineStatus": "PASSED",
+      "newProductTestsRun": false,
+      "physicalFixturePermission": false,
+      "preflightEvidence": "docs/dispatch/wave1/NEXT-CORE-READY-REPORT.md",
+      "macOS": "unverified",
+      "productionFiles": [
+        "prototypes/evidence-reader/index.html",
+        "prototypes/evidence-reader/styles.css",
+        "prototypes/evidence-reader/app.mjs",
+        "prototypes/evidence-reader/model.mjs",
+        "prototypes/evidence-reader/server.mjs"
+      ],
+      "syntaxFiles": [
+        "prototypes/evidence-reader/app.mjs",
+        "prototypes/evidence-reader/model.mjs",
+        "prototypes/evidence-reader/server.mjs",
+        "prototypes/evidence-reader/tests/model.test.mjs",
+        "prototypes/evidence-reader/tests/browser.test.mjs"
+      ],
+      "baselineEvidence": "docs/acceptance/wave1/controller/w1-next-core-preflight-20261018/o/2026-10-18T05-36-25.288Z-35448-baseline-result.json",
+      "readyOn": "2026-10-18",
+      "readinessScope": "18 inputs from actual accepted APIs, retained J13 and five synthetic memory variants; real K model and isolated blank Chrome. No O product/tests or physical fixtures."
     }
   ],
   "preflightStatus": "PASSED",
   "preflightEvidence": "docs/acceptance/wave1/controller/w1-a-initial-baseline.json",
   "parallelDecision": "docs/decisions/ADR-003-independent-parallel-lanes.md",
   "parallelNextDecision": "docs/decisions/ADR-007-parallel-report-export-reader.md",
-  "parallelNextPreflightStatus": "PASSED"
+  "parallelNextPreflightStatus": "PASSED",
+  "nextCoreDecision": "docs/decisions/ADR-010-native-root-and-annotation-reader.md",
+  "nextCorePreflightStatus": "PASSED"
 }

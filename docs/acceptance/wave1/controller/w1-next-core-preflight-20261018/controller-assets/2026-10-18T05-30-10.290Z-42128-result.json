@@ -1,0 +1,276 @@
+{
+  "startedAt": "2026-10-18T05:30:10.295Z",
+  "commands": [
+    {
+      "binary": "C:\\Users\\37310\\.cargo\\bin\\rustup.exe",
+      "argv": [
+        "which",
+        "rustc",
+        "--toolchain",
+        "1.95.0"
+      ],
+      "exitCode": 0,
+      "error": null,
+      "log": "2026-10-18T05-30-10.290Z-42128-0.log"
+    },
+    {
+      "binary": "C:\\Users\\37310\\.cargo\\bin\\rustup.exe",
+      "argv": [
+        "which",
+        "cargo",
+        "--toolchain",
+        "1.95.0"
+      ],
+      "exitCode": 0,
+      "error": null,
+      "log": "2026-10-18T05-30-10.290Z-42128-1.log"
+    },
+    {
+      "binary": "C:\\Users\\37310\\.rustup\\toolchains\\1.95.0-x86_64-pc-windows-msvc\\bin\\rustc.exe",
+      "argv": [
+        "--version"
+      ],
+      "exitCode": 0,
+      "error": null,
+      "log": "2026-10-18T05-30-10.290Z-42128-2.log"
+    },
+    {
+      "binary": "C:\\Users\\37310\\.rustup\\toolchains\\1.95.0-x86_64-pc-windows-msvc\\bin\\rustc.exe",
+      "argv": [
+        "--edition=2024",
+        "--crate-name",
+        "native_root_abi",
+        "scripts/acceptance/native-root-probe.rs",
+        "-o",
+        "F:\\new\\smaltalk\\water\\.local\\next-tmp\\2026-10-18T05-30-10.290Z-42128-abi.exe"
+      ],
+      "exitCode": 0,
+      "error": null,
+      "log": "2026-10-18T05-30-10.290Z-42128-3.log"
+    },
+    {
+      "binary": "F:\\new\\smaltalk\\water\\.local\\next-tmp\\2026-10-18T05-30-10.290Z-42128-abi.exe",
+      "argv": [],
+      "exitCode": 0,
+      "error": null,
+      "log": "2026-10-18T05-30-10.290Z-42128-4.log"
+    },
+    {
+      "binary": "C:\\Users\\37310\\.rustup\\toolchains\\1.95.0-x86_64-pc-windows-msvc\\bin\\cargo.exe",
+      "argv": [
+        "metadata",
+        "--offline",
+        "--locked",
+        "--format-version",
+        "1",
+        "--manifest-path",
+        "packages/lab-session/Cargo.toml"
+      ],
+      "exitCode": 0,
+      "error": null,
+      "log": "2026-10-18T05-30-10.290Z-42128-5.log"
+    },
+    {
+      "binary": "C:\\Users\\37310\\.rustup\\toolchains\\1.95.0-x86_64-pc-windows-msvc\\bin\\cargo.exe",
+      "argv": [
+        "build",
+        "--offline",
+        "--locked",
+        "--lib",
+        "--message-format=json",
+        "--manifest-path",
+        "packages/lab-session/Cargo.toml"
+      ],
+      "exitCode": 0,
+      "error": null,
+      "log": "2026-10-18T05-30-10.290Z-42128-6.log"
+    },
+    {
+      "binary": "C:\\Users\\37310\\.rustup\\toolchains\\1.95.0-x86_64-pc-windows-msvc\\bin\\cargo.exe",
+      "argv": [
+        "metadata",
+        "--offline",
+        "--locked",
+        "--format-version",
+        "1",
+        "--manifest-path",
+        "packages/project-evidence/Cargo.toml"
+      ],
+      "exitCode": 0,
+      "error": null,
+      "log": "2026-10-18T05-30-10.290Z-42128-7.log"
+    },
+    {
+      "binary": "C:\\Users\\37310\\.rustup\\toolchains\\1.95.0-x86_64-pc-windows-msvc\\bin\\cargo.exe",
+      "argv": [
+        "build",
+        "--offline",
+        "--locked",
+        "--lib",
+        "--message-format=json",
+        "--manifest-path",
+        "packages/project-evidence/Cargo.toml"
+      ],
+      "exitCode": 0,
+      "error": null,
+      "log": "2026-10-18T05-30-10.290Z-42128-8.log"
+    },
+    {
+      "binary": "C:\\Users\\37310\\.rustup\\toolchains\\1.95.0-x86_64-pc-windows-msvc\\bin\\cargo.exe",
+      "argv": [
+        "metadata",
+        "--offline",
+        "--locked",
+        "--format-version",
+        "1",
+        "--manifest-path",
+        "packages/size-ledger/Cargo.toml"
+      ],
+      "exitCode": 0,
+      "error": null,
+      "log": "2026-10-18T05-30-10.290Z-42128-9.log"
+    },
+    {
+      "binary": "C:\\Users\\37310\\.rustup\\toolchains\\1.95.0-x86_64-pc-windows-msvc\\bin\\cargo.exe",
+      "argv": [
+        "build",
+        "--offline",
+        "--locked",
+        "--lib",
+        "--message-format=json",
+        "--manifest-path",
+        "packages/size-ledger/Cargo.toml"
+      ],
+      "exitCode": 0,
+      "error": null,
+      "log": "2026-10-18T05-30-10.290Z-42128-10.log"
+    },
+    {
+      "binary": "C:\\Users\\37310\\.rustup\\toolchains\\1.95.0-x86_64-pc-windows-msvc\\bin\\rustc.exe",
+      "argv": [
+        "--edition=2024",
+        "--crate-name",
+        "next_inputs",
+        "scripts/acceptance/prepare-next-core-inputs.rs",
+        "-L",
+        "dependency=F:\\new\\smaltalk\\water\\.local\\next-target\\debug\\deps",
+        "--extern",
+        "water_scan_report=F:\\new\\smaltalk\\water\\.local\\next-target\\debug\\deps\\libwater_scan_report-1e6472e39ca535c1.rlib",
+        "--extern",
+        "water_contracts=F:\\new\\smaltalk\\water\\.local\\next-target\\debug\\deps\\libwater_contracts-03746b148f2454ba.rlib",
+        "--extern",
+        "water_report_view=F:\\new\\smaltalk\\water\\.local\\next-target\\debug\\deps\\libwater_report_view-f40e34fbc27325ba.rlib",
+        "--extern",
+        "water_summary_export=F:\\new\\smaltalk\\water\\.local\\next-target\\debug\\deps\\libwater_summary_export-f3fc75de20b64f97.rlib",
+        "--extern",
+        "serde_json=F:\\new\\smaltalk\\water\\.local\\next-target\\debug\\deps\\libserde_json-c243626af514ec1f.rlib",
+        "--extern",
+        "water_project_evidence=F:\\new\\smaltalk\\water\\.local\\next-target\\debug\\libwater_project_evidence.rlib",
+        "--extern",
+        "water_size_ledger=F:\\new\\smaltalk\\water\\.local\\next-target\\debug\\libwater_size_ledger.rlib",
+        "-o",
+        "F:\\new\\smaltalk\\water\\.local\\next-tmp\\2026-10-18T05-30-10.290Z-42128-inputs.exe"
+      ],
+      "exitCode": 0,
+      "error": null,
+      "log": "2026-10-18T05-30-10.290Z-42128-11.log"
+    },
+    {
+      "binary": "F:\\new\\smaltalk\\water\\.local\\next-tmp\\2026-10-18T05-30-10.290Z-42128-inputs.exe",
+      "argv": [],
+      "exitCode": 101,
+      "error": null,
+      "log": "2026-10-18T05-30-10.290Z-42128-12.log"
+    }
+  ],
+  "newProductsTested": false,
+  "newScan": false,
+  "cacheCopiedFrom": "F:\\new\\smaltalk\\water\\.worktrees\\a\\.local\\cargo-home\\registry",
+  "nativeABI": {
+    "drive_type": 3,
+    "attributes_size": 8,
+    "identity_size": 24,
+    "volume_serial": "13601514066450889474",
+    "file_id_128": "4d612300000007000000000000000000",
+    "same_directory_identity": true,
+    "different_directory_identity": true,
+    "new_product_tested": false,
+    "directory_enumerated": false
+  },
+  "cargoGraphs": [
+    [
+      {
+        "crate": "water_scan_report",
+        "packageId": "path+file:///F:/new/smaltalk/water/packages/scan-report#water-scan-report@0.1.0",
+        "filename": "F:\\new\\smaltalk\\water\\.local\\next-target\\debug\\deps\\libwater_scan_report-1e6472e39ca535c1.rlib"
+      },
+      {
+        "crate": "water_contracts",
+        "packageId": "path+file:///F:/new/smaltalk/water/crates/water-contracts#0.1.0",
+        "filename": "F:\\new\\smaltalk\\water\\.local\\next-target\\debug\\deps\\libwater_contracts-03746b148f2454ba.rlib"
+      },
+      {
+        "crate": "water_report_view",
+        "packageId": "path+file:///F:/new/smaltalk/water/packages/report-view#water-report-view@0.1.0",
+        "filename": "F:\\new\\smaltalk\\water\\.local\\next-target\\debug\\deps\\libwater_report_view-f40e34fbc27325ba.rlib"
+      },
+      {
+        "crate": "water_summary_export",
+        "packageId": "path+file:///F:/new/smaltalk/water/packages/summary-export#water-summary-export@0.1.0",
+        "filename": "F:\\new\\smaltalk\\water\\.local\\next-target\\debug\\deps\\libwater_summary_export-f3fc75de20b64f97.rlib"
+      },
+      {
+        "crate": "serde_json",
+        "packageId": "registry+https://github.com/rust-lang/crates.io-index#serde_json@1.0.151",
+        "filename": "F:\\new\\smaltalk\\water\\.local\\next-target\\debug\\deps\\libserde_json-c243626af514ec1f.rlib"
+      }
+    ],
+    [
+      {
+        "crate": "water_project_evidence",
+        "packageId": "path+file:///F:/new/smaltalk/water/packages/project-evidence#water-project-evidence@0.1.0",
+        "filename": "F:\\new\\smaltalk\\water\\.local\\next-target\\debug\\libwater_project_evidence.rlib"
+      },
+      {
+        "crate": "water_scan_report",
+        "packageId": "path+file:///F:/new/smaltalk/water/packages/scan-report#water-scan-report@0.1.0",
+        "filename": "F:\\new\\smaltalk\\water\\.local\\next-target\\debug\\deps\\libwater_scan_report-1e6472e39ca535c1.rlib"
+      },
+      {
+        "crate": "water_contracts",
+        "packageId": "path+file:///F:/new/smaltalk/water/crates/water-contracts#0.1.0",
+        "filename": "F:\\new\\smaltalk\\water\\.local\\next-target\\debug\\deps\\libwater_contracts-03746b148f2454ba.rlib"
+      },
+      {
+        "crate": "serde_json",
+        "packageId": "registry+https://github.com/rust-lang/crates.io-index#serde_json@1.0.151",
+        "filename": "F:\\new\\smaltalk\\water\\.local\\next-target\\debug\\deps\\libserde_json-c243626af514ec1f.rlib"
+      }
+    ],
+    [
+      {
+        "crate": "water_size_ledger",
+        "packageId": "path+file:///F:/new/smaltalk/water/packages/size-ledger#water-size-ledger@0.1.0",
+        "filename": "F:\\new\\smaltalk\\water\\.local\\next-target\\debug\\libwater_size_ledger.rlib"
+      },
+      {
+        "crate": "water_scan_report",
+        "packageId": "path+file:///F:/new/smaltalk/water/packages/scan-report#water-scan-report@0.1.0",
+        "filename": "F:\\new\\smaltalk\\water\\.local\\next-target\\debug\\deps\\libwater_scan_report-1e6472e39ca535c1.rlib"
+      },
+      {
+        "crate": "water_contracts",
+        "packageId": "path+file:///F:/new/smaltalk/water/crates/water-contracts#0.1.0",
+        "filename": "F:\\new\\smaltalk\\water\\.local\\next-target\\debug\\deps\\libwater_contracts-03746b148f2454ba.rlib"
+      },
+      {
+        "crate": "serde_json",
+        "packageId": "registry+https://github.com/rust-lang/crates.io-index#serde_json@1.0.151",
+        "filename": "F:\\new\\smaltalk\\water\\.local\\next-target\\debug\\deps\\libserde_json-c243626af514ec1f.rlib"
+      }
+    ]
+  ],
+  "endedAt": "2026-10-18T05:31:15.242Z",
+  "status": "failed",
+  "error": "Command failed: 2026-10-18T05-30-10.290Z-42128-12.log\n\nthread 'main' (24476) panicked at scripts/acceptance/prepare-next-core-inputs.rs:10:139:\ncalled `Result::unwrap()` on an `Err` value: AssemblyError { code: InvalidFacts, field: \"/facts\" }\nnote: run with `RUST_BACKTRACE=1` environment variable to display a backtrace\n"
+}

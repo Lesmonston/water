@@ -21,9 +21,15 @@
 
 ## 下一步
 
-A–M及五补单均VERIFIED（Windows受控合成范围），未结外贴单为0。L/M已通过[独立复验和隔离集成](acceptance/wave1/controller/WATER-W1-LM-REVIEW-20261018.md)，原票不重贴。真实scope安全、分类提升、侧车展示/Tauri/macOS与删除另排，M1尚未完成。
+A–M及五补单均VERIFIED（Windows受控合成范围），原票不重贴。新增N Windows目录身份基础、O项目证据与容量页面两票READY，用户分别外贴后实现；没有自动启动执行者。[M1交付计划](M1-DELIVERY-PLAN.md)说明“用户可用只读Alpha”及其缺口，当前未完成。
 
-## L/M复验及隔离集成完成（2026-10-18，最新）
+## N/O派前通过（2026-10-18，最新）
+
+两独立树/分支共同精确基线75cf4db7607a382673a2146ca69732a5110c1579，98新锁条目及八旧锁合计198唯一文件实际核验。N在本树.local由冻结工具准备35字节/两个junction，私有离线A/serde及Win32 ABI/同目录稳定ID、不同目录不同ID通过；O的13真实保留J捕获与5内存变体经真实G/A/E/H/L/M和K模型，隔离Chrome空白页通过。详[正式派前回执](dispatch/wave1/NEXT-CORE-READY-REPORT.md)。
+
+N/O产品未实现，各五产品测试未运行；状态READY只表示准备完毕，待用户外贴。N不是选择授权或安全遍历，O只读调用方内存、没有新扫描；真实scope、分类提升、桌面/macOS/卷唯一与回收量/删除仍未验收。旧任务对象、所有冻结/helper/产品/根Cargo不改，旧树/夹具/日志保留。下一步收N/O后推进选择授权/范围注册与句柄边界有界遍历的纵向工单。
+
+## L/M复验及隔离集成完成（2026-10-18，历史收口）
 
 L接收d821b11/受测7a545fd，M接收88c7bd3/受测03f60ae，隔离受测df17e0a。两票原各五final/五测试通过，新私有target重复通过各五测试/格式/clippy/metadata/桥接；六项真实生产负控逐次完整五测红/原字节恢复绿，四项独立Rust边界与保留的真实J13快照→G→L/M公开入口回放通过。151冻结、A–K任务对象/旧产品/根Cargo及771份worker交付字节保持。A–M及五补单均VERIFIED（Windows受控合成范围），未结外贴单为0；L仅文件名候选、M仅观察逻辑长度与身份提示，不代表分类提升/卷唯一或回收量。未重新扫描或访问物理fixture；真实用户scope、身份IO、L/M页面/桌面接线、macOS和删除未验证，M1未完成。见[总控验收报告](acceptance/wave1/controller/WATER-W1-LM-REVIEW-20261018.md)。
 

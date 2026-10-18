@@ -2,7 +2,11 @@
 
 2026-10-17。项目：`F:/new/smaltalk/water`。供后续总控接手与Keeper ingest；未写共享Vault或其他项目。
 
-## 当前交接：A–M全部收口，未结外贴单为0
+## 当前交接：N/O正式READY，待分别外贴
+
+2026-10-18新增N原生目录身份基础、O项目证据与容量页面，两独立n/o树、共同精确基线75cf4db7607a382673a2146ca69732a5110c1579、98新锁条目/八旧锁合计198唯一冻结和实际baseline通过。N冻结本树35字节/两个junction、私有离线A/serde、Win32 FileIdInfo ABI与两目录身份通过；O真实旧API的13保留J+5内存变体、K模型及隔离Chrome空白页通过。新产品未实现、各五测试未运行，没有自动启动实现者，用户分别外贴PASTE-N/O。A–M原对象/旧产品/根Cargo/现场保持。详[当前派前报告](dispatch/wave1/NEXT-CORE-READY-REPORT.md)和[M1交付计划](M1-DELIVERY-PLAN.md)。后续收单独立验收，再推进选择授权/范围注册和句柄边界遍历；真实用户scope、macOS、卷唯一/回收量、桌面与删除仍未验证，M1未完成。
+
+## 此前交接：A–M全部收口（历史）
 
 L接收d821b11/受测7a545fd，M接收88c7bd3/受测03f60ae，隔离受测df17e0a。两票原各五final/五测试通过，新私有target重复通过各五测试/格式/clippy/metadata/桥接；六项真实生产负控逐次完整五测红/原字节恢复绿，四项独立Rust边界与保留的真实J13快照→G→L/M公开入口回放通过。151冻结、A–K任务对象/旧产品/根Cargo及771份worker交付字节保持。A–M及五补单均VERIFIED（Windows受控合成范围），未结外贴单为0；L仅文件名候选、M仅观察逻辑长度与身份提示，不代表分类提升/卷唯一或回收量。未重新扫描或访问物理fixture；真实用户scope、身份IO、L/M页面/桌面接线、macOS和删除未验证，M1未完成。见[L/M验收报告](acceptance/wave1/controller/WATER-W1-LM-REVIEW-20261018.md)。后续不重复派旧票，下一阶段先由总控冻结范围和验收，再准备独立树。
 

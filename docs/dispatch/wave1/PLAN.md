@@ -1,6 +1,6 @@
 # 第一轮：契约底座
 
-**当前（2026-10-18）：A–M及五补单VERIFIED（Windows受控合成范围），未结外贴单为0。** L/M单票与隔离df17e0a复验通过，771份交付原字节保持，151冻结及A–K不变；见[L/M验收报告](../../acceptance/wave1/controller/WATER-W1-LM-REVIEW-20261018.md)。真实scope、分类提升、侧车页面/桌面/macOS及删除另排，M1未完成。以下为阶段历史。
+**当前（2026-10-18）：A–M及五补单VERIFIED（Windows受控范围）；N/O两独立票READY待用户分别外贴。** 共同75cf4db精确基线、198唯一冻结和实际baseline通过，详[N/O派前回执](NEXT-CORE-READY-REPORT.md)。新产品未实现、各五测试未运行，无自动实现者；M1为用户可用只读Alpha，仍未完成，见[M1交付计划](../../M1-DELIVERY-PLAN.md)。旧票不重贴，以下为阶段历史。
 
 总控：Codex。A契约底座继续，追加两张独立并行票B/C；实际状态以manifest为准。调度补充见ADR-003，A冻结不改。
 
