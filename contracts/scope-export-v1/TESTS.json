@@ -1,0 +1,8 @@
+{
+ "batch_version":"water.scope-export.v1",
+ "tasks":{
+  "WATER-W1-P":{"tests":["registry_registration","registry_confirmation","registry_permits_and_replay","registry_revocation_and_owner","registry_public_native_bridge"],"proof_targets":{"behavior":"P_BEHAVIOR","nc1":"P_SINGLE_ACTIVE","nc2":"P_OWNER_BOUND","nc3":"P_REVOKED"}},
+  "WATER-W1-Q":{"tests":["redaction_structure","redaction_source_validation","redaction_aliases_and_privacy","redaction_precision_and_status","redaction_public_wire"],"proof_targets":{"behavior":"Q_BEHAVIOR","nc1":"Q_NO_FREE_TEXT","nc2":"Q_SCOPE_ASSOCIATION","nc3":"Q_UNKNOWN_PRESERVED"}}
+ },
+ "final_modes":["fmt","test","clippy","metadata","bridge"],"node_major":24,"rust_version":"1.95.0","offline":true,"cargo_jobs":1,"per_command_timeout_ms":180000
+}

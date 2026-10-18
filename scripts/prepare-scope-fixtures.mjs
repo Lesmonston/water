@@ -1,0 +1,11 @@
+// Frozen P-only bounded empty directory/junction fixture. No deletion or cleanup.
+import assert from 'node:assert/strict';
+import {createHash} from 'node:crypto';
+import {existsSync,lstatSync,mkdirSync,readFileSync,readdirSync,realpathSync,symlinkSync,writeFileSync} from 'node:fs';
+import {join} from 'node:path';
+const hash=b=>createHash('sha256').update(b).digest('hex');
+export function prepareScopeFixtures(ctx){
+ assert.equal(ctx.task.id,'WATER-W1-P');assert.equal(process.platform,'win32');const parent=ctx.local('.local/scope-fixtures'),base=join(parent,'batch-v1'),indexPath=join(parent,'index.json');
+ if(!existsSync(indexPath)){assert(!existsSync(base),'Partial fixture retained; do not recreate');mkdirSync(base);for(const p of ['root-a','root-a/nested','root-b','outside-trap'])mkdirSync(join(base,p));symlinkSync(join(base,'outside-trap'),join(base,'root-junction'),'junction');const index={fixture_version:'water.scope-fixtures.v1',base,normal_a:join(base,'root-a'),normal_b:join(base,'root-b'),nested:join(base,'root-a/nested'),alias:join(base,'root-a').replaceAll('\\','/'),reparse:join(base,'root-junction'),trap:join(base,'outside-trap'),ordinary_file_count:0,content_bytes:0};writeFileSync(indexPath,JSON.stringify(index,null,2)+'\n',{flag:'wx'});}
+ const bytes=readFileSync(indexPath),index=JSON.parse(bytes);assert.equal(index.fixture_version,'water.scope-fixtures.v1');assert.equal(index.base,base);assert.equal(index.ordinary_file_count,0);assert.equal(index.content_bytes,0);for(const [key,path]of Object.entries({normal_a:'root-a',normal_b:'root-b',nested:'root-a/nested',trap:'outside-trap',reparse:'root-junction'}))assert.equal(index[key],join(base,path));assert.equal(index.alias,index.normal_a.replaceAll('\\','/'));for(const p of [base,index.normal_a,index.normal_b,index.nested,index.trap]){assert(lstatSync(p).isDirectory()&&!lstatSync(p).isSymbolicLink());ctx.within(ctx.root,p);}for(const [p,names]of [[base,['outside-trap','root-a','root-b','root-junction']],[index.normal_a,['nested']],[index.normal_b,[]],[index.nested,[]],[index.trap,[]]])assert.deepEqual(readdirSync(p).sort(),names);assert(lstatSync(index.reparse).isSymbolicLink());assert.equal(realpathSync(index.reparse).toLowerCase(),realpathSync(index.trap).toLowerCase());return {index,indexPath,sha256:hash(bytes)};
+}

@@ -1,0 +1,7 @@
+// Controller actual Q/A/H public APIs against independently frozen full wire.
+#![forbid(unsafe_code)]
+use serde_json::{Value,json};
+use water_redacted_report::v1 as q;
+fn main(){let cases:Value=serde_json::from_str(include_str!("../../contracts/redacted-report-v1/cases.json")).unwrap();for c in cases["golden_cases"].as_array().unwrap(){let raw=c["input"].to_string();let source=water_contracts::v1::parse_report(&raw).unwrap();let output=q::redact_json(&raw).unwrap();let dto=q::redact_report(&source).unwrap();assert_eq!(output,dto);let value:Value=serde_json::from_str(&q::to_json(&output).unwrap()).unwrap();assert_eq!(value,c["expected"],"{}",c["id"]);assert_eq!(value,serde_json::to_value(&output).unwrap());assert_eq!(value["summary"],serde_json::to_value(water_summary_export::v1::summarize_report(&source).unwrap()).unwrap());for canary in cases["canaries"].as_array().unwrap(){assert!(!value.to_string().contains(canary.as_str().unwrap()));}}
+for c in cases["raw_errors"].as_array().unwrap(){let raw=c["input"].as_str().unwrap();let source=water_contracts::v1::parse_report(raw).unwrap_err();let actual=q::redact_json(raw).unwrap_err();assert!(matches!(&actual,q::RedactionError::Source(e)if e==&source));assert_eq!(actual.to_string(),source.to_string());}
+println!("{}",json!({"actual_Q_A_H":true,"cases":cases["golden_cases"].as_array().unwrap().len(),"raw_errors":cases["raw_errors"].as_array().unwrap().len(),"filesystem_scanned":false,"export_file_written":false}));}
