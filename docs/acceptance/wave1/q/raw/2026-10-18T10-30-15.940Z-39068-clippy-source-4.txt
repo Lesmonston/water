@@ -1,0 +1,685 @@
+#![forbid(unsafe_code)]
+
+use serde_json::{Value, json};
+use std::collections::{BTreeSet, HashMap};
+use water_contracts::v1 as a;
+use water_redacted_report::v1 as q;
+
+const GOLDEN: &str = include_str!("../../../contracts/redacted-report-v1/cases.json");
+const INPUTS: &str = include_str!("../../../contracts/redacted-report-v1/inputs.json");
+const OUTPUT_LIMIT: usize = 16_777_216;
+
+fn assets() -> Value {
+    serde_json::from_str(GOLDEN).unwrap()
+}
+
+fn source(id: &str) -> a::ScanReport {
+    let data = assets();
+    let case = data["golden_cases"]
+        .as_array()
+        .unwrap()
+        .iter()
+        .find(|case| case["id"] == id)
+        .unwrap();
+    a::parse_report(&case["input"].to_string()).unwrap()
+}
+
+fn exported(report: &a::ScanReport) -> q::RedactedReport {
+    q::redact_report(report).expect("Q_BEHAVIOR: valid source must produce a structural report")
+}
+
+fn wire(report: &a::ScanReport) -> Value {
+    let output = exported(report);
+    serde_json::from_str(&q::to_json(&output).expect("Q_BEHAVIOR: serialize output")).unwrap()
+}
+
+fn keys(value: &Value, expected: &[&str]) {
+    let actual: BTreeSet<&str> = value
+        .as_object()
+        .unwrap()
+        .keys()
+        .map(String::as_str)
+        .collect();
+    assert_eq!(actual, expected.iter().copied().collect(), "wire whitelist");
+}
+
+fn check_associations(report: &a::ScanReport, value: &Value) {
+    let expected_ref = |id: &a::OpaqueId| {
+        let index = report
+            .scopes
+            .iter()
+            .position(|scope| &scope.scope_id == id)
+            .unwrap();
+        json!(format!("scope-{}", index + 1))
+    };
+    assert_eq!(
+        value["scopes"].as_array().unwrap().len(),
+        report.scopes.len()
+    );
+    assert_eq!(
+        value["findings"].as_array().unwrap().len(),
+        report.findings.len()
+    );
+    assert_eq!(
+        value["issues"].as_array().unwrap().len(),
+        report.issues.len()
+    );
+    for (index, scope) in report.scopes.iter().enumerate() {
+        let row = &value["scopes"][index];
+        keys(row, &["scope_ref", "platform", "origin", "coverage"]);
+        assert_eq!(
+            row["scope_ref"],
+            expected_ref(&scope.scope_id),
+            "Q_SCOPE_ASSOCIATION"
+        );
+        assert_eq!(
+            row["platform"],
+            serde_json::to_value(scope.platform).unwrap()
+        );
+        assert_eq!(row["origin"], serde_json::to_value(scope.origin).unwrap());
+        assert_eq!(
+            row["coverage"],
+            serde_json::to_value(scope.coverage).unwrap()
+        );
+    }
+    for (index, finding) in report.findings.iter().enumerate() {
+        let row = &value["findings"][index];
+        keys(
+            row,
+            &[
+                "finding_ref",
+                "scope_ref",
+                "has_tool",
+                "category",
+                "risk",
+                "recoverability",
+                "activity",
+                "confidence",
+                "evidence",
+                "protection_reasons",
+                "references",
+                "size",
+            ],
+        );
+        assert_eq!(
+            row["finding_ref"],
+            format!("finding-{}", index + 1),
+            "Q_NO_FREE_TEXT"
+        );
+        assert_eq!(
+            row["scope_ref"],
+            expected_ref(&finding.scope_id),
+            "Q_SCOPE_ASSOCIATION"
+        );
+        let original = serde_json::to_value(finding).unwrap();
+        for field in [
+            "category",
+            "risk",
+            "recoverability",
+            "activity",
+            "confidence",
+            "protection_reasons",
+            "size",
+        ] {
+            assert_eq!(row[field], original[field], "preserve {field}");
+        }
+        assert_eq!(row["has_tool"], finding.tool.is_some());
+        keys(&row["references"], &["state", "project_count"]);
+        assert_eq!(row["references"]["state"], original["references"]["state"]);
+        assert_eq!(
+            row["references"]["project_count"],
+            finding.references.project_ids.len()
+        );
+        assert_eq!(
+            row["evidence"].as_array().unwrap().len(),
+            finding.evidence.len()
+        );
+        for (evidence, original) in row["evidence"]
+            .as_array()
+            .unwrap()
+            .iter()
+            .zip(&finding.evidence)
+        {
+            keys(evidence, &["code", "source"]);
+            assert_eq!(
+                evidence["code"],
+                serde_json::to_value(original.code).unwrap()
+            );
+            assert_eq!(
+                evidence["source"],
+                serde_json::to_value(original.source).unwrap()
+            );
+        }
+    }
+    for (index, issue) in report.issues.iter().enumerate() {
+        let row = &value["issues"][index];
+        keys(row, &["code", "scope_ref"]);
+        assert_eq!(
+            row["scope_ref"],
+            expected_ref(&issue.scope_id),
+            "Q_SCOPE_ASSOCIATION"
+        );
+        assert_eq!(row["code"], serde_json::to_value(issue.code).unwrap());
+    }
+}
+
+fn interleaved() -> a::ScanReport {
+    let mut report = source("h-composite_partial");
+    let original = report.findings.clone();
+    report.findings = [6, 0, 7, 1, 2, 3, 4, 5]
+        .map(|i| original[i].clone())
+        .to_vec();
+    report.issues.push(a::ScanIssue {
+        scope_id: report.scopes[1].scope_id.clone(),
+        code: a::IssueCode::IoError,
+        relative_path: None,
+        message: "Q_REDACTION_CANARY other scope".into(),
+    });
+    report.issues.reverse();
+    report.scopes.reverse();
+    a::validate_report(&report).unwrap();
+    report
+}
+
+fn all_enums() -> a::ScanReport {
+    let mut report = source("h-cancelled");
+    let finding = &mut report.findings[0];
+    finding.evidence = [
+        a::EvidenceCode::NativeInventory,
+        a::EvidenceCode::StructureMatch,
+        a::EvidenceCode::ConfiguredLocation,
+        a::EvidenceCode::Marker,
+        a::EvidenceCode::TimestampHint,
+        a::EvidenceCode::Reference,
+        a::EvidenceCode::IncompleteScan,
+        a::EvidenceCode::Unknown,
+    ]
+    .into_iter()
+    .enumerate()
+    .map(|(i, code)| a::Evidence {
+        code,
+        source: [
+            a::EvidenceSource::NativeTool,
+            a::EvidenceSource::Config,
+            a::EvidenceSource::Filesystem,
+            a::EvidenceSource::Rule,
+            a::EvidenceSource::Heuristic,
+        ][i % 5],
+        summary: "Q_REDACTION_CANARY evidence".into(),
+    })
+    .collect();
+    finding.protection_reasons = vec![
+        a::ProtectionReason::UserPinned,
+        a::ProtectionReason::ProtectedDescendant,
+        a::ProtectionReason::UserHome,
+        a::ProtectionReason::SystemRoot,
+        a::ProtectionReason::SourceRoot,
+        a::ProtectionReason::IncompleteEvidence,
+        a::ProtectionReason::UnknownOwnership,
+        a::ProtectionReason::Active,
+        a::ProtectionReason::UniqueAsset,
+        a::ProtectionReason::Credential,
+    ];
+    finding.references.state = a::ReferenceState::Partial;
+    finding.references.project_ids = vec![id("project-a"), id("project-b")];
+    report.issues = [
+        a::IssueCode::Unsupported,
+        a::IssueCode::RootChanged,
+        a::IssueCode::Cancelled,
+        a::IssueCode::EntryLimit,
+        a::IssueCode::DepthLimit,
+        a::IssueCode::PathUnrepresentable,
+        a::IssueCode::OutsideScope,
+        a::IssueCode::LinkSkipped,
+        a::IssueCode::IoError,
+        a::IssueCode::PermissionDenied,
+    ]
+    .into_iter()
+    .map(|code| a::ScanIssue {
+        code,
+        scope_id: report.scopes[0].scope_id.clone(),
+        relative_path: Some(a::RelativePath::new("").unwrap()),
+        message: "Q_REDACTION_CANARY issue".into(),
+    })
+    .collect();
+    a::validate_report(&report).unwrap();
+    report
+}
+
+fn id(value: &str) -> a::OpaqueId {
+    a::OpaqueId::new(value).unwrap()
+}
+
+fn rename(report: &mut a::ScanReport) {
+    report.scan_id = id("Q_REDACTION_CANARY_scan");
+    let scope_map: HashMap<_, _> = report
+        .scopes
+        .iter()
+        .enumerate()
+        .map(|(i, scope)| {
+            (
+                scope.scope_id.clone(),
+                id(&format!("Q_REDACTION_CANARY_scope_{i}")),
+            )
+        })
+        .collect();
+    let mut project_map = HashMap::new();
+    let mut tool_map = HashMap::new();
+    for scope in &mut report.scopes {
+        scope.scope_id = scope_map[&scope.scope_id].clone();
+        scope.label = "Q_REDACTION_CANARY 范围".into();
+    }
+    for (i, finding) in report.findings.iter_mut().enumerate() {
+        finding.finding_id = id(&format!("Q_REDACTION_CANARY_finding_{i}"));
+        finding.scope_id = scope_map[&finding.scope_id].clone();
+        if !finding.relative_path.as_str().is_empty() {
+            finding.relative_path = a::RelativePath::new(format!(
+                "Q_REDACTION_CANARY/{}",
+                finding.relative_path.as_str()
+            ))
+            .unwrap();
+        }
+        finding.rule_version = "Q_REDACTION_CANARY_rule".into();
+        if let Some(tool) = &mut finding.tool {
+            let next = id(&format!("Q_REDACTION_CANARY_tool_{}", tool_map.len()));
+            tool.tool_id = tool_map.entry(tool.tool_id.clone()).or_insert(next).clone();
+            tool.name = "Q_REDACTION_CANARY tool".into();
+            tool.version = Some("Q_REDACTION_CANARY version".into());
+            tool.root_source = a::LocationSource::Unknown;
+        }
+        for evidence in &mut finding.evidence {
+            evidence.summary = "Q_REDACTION_CANARY explanation".into();
+        }
+        for project in &mut finding.references.project_ids {
+            let next = id(&format!("Q_REDACTION_CANARY_project_{}", project_map.len()));
+            *project = project_map.entry(project.clone()).or_insert(next).clone();
+        }
+    }
+    for issue in &mut report.issues {
+        issue.scope_id = scope_map[&issue.scope_id].clone();
+        issue.relative_path = Some(a::RelativePath::new("Q_REDACTION_CANARY/issue").unwrap());
+        issue.message = "Q_REDACTION_CANARY message".into();
+    }
+}
+
+fn check_source_error(raw: &str) {
+    let expected = a::parse_report(raw).unwrap_err();
+    let actual = q::redact_json(raw).unwrap_err();
+    assert_eq!(actual, q::RedactionError::Source(expected.clone()));
+    assert_eq!(actual.to_string(), expected.to_string());
+    assert!(!format!("{actual:?} {actual}").contains("CANARY"));
+}
+
+#[test]
+fn redaction_structure() {
+    let data = assets();
+    let inputs: Value = serde_json::from_str(INPUTS).unwrap();
+    let cases = data["golden_cases"].as_array().unwrap();
+    assert_eq!(cases.len(), 24);
+    assert_eq!(inputs["cases"].as_array().unwrap().len(), 24);
+    for (case, input) in cases.iter().zip(inputs["cases"].as_array().unwrap()) {
+        assert_eq!(case["id"], input["id"]);
+        assert_eq!(case["input"], input["input"]);
+        let report = a::parse_report(&input["input"].to_string()).unwrap();
+        let value = wire(&report);
+        keys(
+            &value,
+            &[
+                "export_version",
+                "source_schema_version",
+                "read_only",
+                "redaction_profile",
+                "anonymity_guaranteed",
+                "summary",
+                "scopes",
+                "findings",
+                "issues",
+            ],
+        );
+        check_associations(&report, &value);
+        assert_eq!(
+            value, case["expected"],
+            "Q_BEHAVIOR: {} full golden",
+            case["id"]
+        );
+    }
+    let report = interleaved();
+    let value = wire(&report);
+    check_associations(&report, &value);
+    assert_eq!(
+        value["findings"][0]["scope_ref"], "scope-1",
+        "Q_SCOPE_ASSOCIATION"
+    );
+    assert_eq!(
+        value["findings"][1]["scope_ref"], "scope-2",
+        "Q_SCOPE_ASSOCIATION"
+    );
+    assert_eq!(
+        value["issues"][0]["scope_ref"], "scope-1",
+        "Q_SCOPE_ASSOCIATION"
+    );
+    assert_eq!(
+        value["issues"][1]["scope_ref"], "scope-2",
+        "Q_SCOPE_ASSOCIATION"
+    );
+    let enums = all_enums();
+    check_associations(&enums, &wire(&enums));
+    assert_eq!(
+        wire(&enums)["findings"][0]["references"]["project_count"],
+        2
+    );
+}
+
+#[test]
+fn redaction_source_validation() {
+    let data = assets();
+    let inputs: Value = serde_json::from_str(INPUTS).unwrap();
+    let errors = data["raw_errors"].as_array().unwrap();
+    assert_eq!(errors.len(), 9);
+    assert_eq!(inputs["raw_errors"].as_array().unwrap().len(), 9);
+    for (case, original) in errors.iter().zip(inputs["raw_errors"].as_array().unwrap()) {
+        assert_eq!(case["id"], original["id"]);
+        assert_eq!(case["input"], original["input"]);
+        let raw = case["input"].as_str().unwrap();
+        let expected = a::parse_report(raw).unwrap_err();
+        assert_eq!(format!("{:?}", expected.code), case["expected"]["code"]);
+        assert_eq!(expected.field, case["expected"]["field"]);
+        assert_eq!(expected.to_string(), case["expected"]["display"]);
+        check_source_error(raw);
+    }
+    let raw = a::to_json(&source("h-base")).unwrap();
+    for (key, value) in [("scan_id", "\"Q_REDACTION_CANARY\""), ("tool", "null")] {
+        let needle = format!("\"{key}\":");
+        let duplicate = raw.replacen(&needle, &format!("\"{key}\":{value},{needle}"), 1);
+        check_source_error(&duplicate);
+    }
+    let mut invalids = Vec::new();
+    for index in 0..18 {
+        let mut report = source("h-all-fields-partial-canary");
+        match index {
+            0 => report.scopes[0].label.clear(),
+            1 => report.findings[0].rule_version = "Q_REDACTION_CANARY".repeat(3),
+            2 => report.findings[0].tool.as_mut().unwrap().name.clear(),
+            3 => report.findings[0].tool.as_mut().unwrap().version = Some(String::new()),
+            4 => report.findings[0].evidence[0].summary = "Q_REDACTION_CANARY".repeat(20),
+            5 => report.issues[0].message.clear(),
+            6 => report.findings[0].scope_id = id("Q_REDACTION_CANARY_missing"),
+            7 => report.issues[0].scope_id = id("Q_REDACTION_CANARY_missing"),
+            8 => report.findings[1].finding_id = report.findings[0].finding_id.clone(),
+            9 => report.scopes.push(report.scopes[0].clone()),
+            10 => {
+                let project = report.findings[0].references.project_ids[0].clone();
+                report.findings[0].references.project_ids.push(project);
+            }
+            11 => report.findings[0].references.state = a::ReferenceState::Unknown,
+            12 => report.findings[0].size.reclaimable_lower_bytes = Some(a::ByteCount::new(0)),
+            13 => report.findings[0].size.method = a::SizeMethod::Unknown,
+            14 => report.findings[4].risk = a::Risk::Low,
+            15 => report.totals.coverage_complete = true,
+            16 => report.findings[0].evidence.clear(),
+            17 => report.scopes = vec![report.scopes[0].clone(); 65],
+            _ => unreachable!(),
+        }
+        invalids.push(report);
+    }
+    for report in invalids {
+        let before = report.clone();
+        let expected = a::validate_report(&report).unwrap_err();
+        let actual = q::redact_report(&report).unwrap_err();
+        assert_eq!(actual, q::RedactionError::Source(expected.clone()));
+        assert_eq!(actual.to_string(), expected.to_string());
+        assert!(!format!("{actual:?} {actual}").contains("CANARY"));
+        assert_eq!(report, before);
+    }
+    let over_input = " ".repeat(8_388_609);
+    check_source_error(&over_input);
+}
+
+#[test]
+fn redaction_aliases_and_privacy() {
+    let data = assets();
+    let canaries = data["canaries"].as_array().unwrap();
+    assert_eq!(canaries.len(), 14);
+    let mut planted = GOLDEN.to_owned();
+    for case in data["golden_cases"].as_array().unwrap() {
+        let mut report = a::parse_report(&case["input"].to_string()).unwrap();
+        let before = report.clone();
+        let output = exported(&report);
+        let bytes = q::to_json(&output).unwrap();
+        assert_eq!(report, before, "input changed");
+        for canary in canaries {
+            assert!(
+                !bytes.contains(canary.as_str().unwrap()),
+                "Q_NO_FREE_TEXT: {canary}"
+            );
+            assert!(
+                !format!("{output:?}").contains(canary.as_str().unwrap()),
+                "Q_NO_FREE_TEXT debug"
+            );
+        }
+        rename(&mut report);
+        a::validate_report(&report).unwrap();
+        planted.push_str(&a::to_json(&report).unwrap());
+        assert_ne!(report.scan_id, before.scan_id);
+        assert_eq!(
+            exported(&report),
+            output,
+            "Q_NO_FREE_TEXT: IDs/text influenced output"
+        );
+        assert_eq!(
+            q::to_json(&exported(&report)).unwrap(),
+            bytes,
+            "stable alias bytes"
+        );
+        assert_eq!(exported(&before), output, "repeated output");
+        check_associations(&report, &wire(&report));
+    }
+    for canary in canaries {
+        assert!(
+            planted.contains(canary.as_str().unwrap()),
+            "canary must be planted"
+        );
+    }
+    let mut report = interleaved();
+    rename(&mut report);
+    let value = wire(&report);
+    assert!(
+        !value.to_string().contains("Q_REDACTION_CANARY"),
+        "Q_NO_FREE_TEXT"
+    );
+    check_associations(&report, &value);
+    // Fixed aliases may coincide with original IDs; renaming them still gives identical output.
+    let original = source("h-base");
+    assert_eq!(original.scopes[0].scope_id.as_str(), "scope-1");
+    assert_eq!(original.findings[0].finding_id.as_str(), "finding-1");
+    let mut renamed = original.clone();
+    rename(&mut renamed);
+    assert_eq!(wire(&original), wire(&renamed));
+}
+
+#[test]
+fn redaction_precision_and_status() {
+    let base = source("h-base");
+    let value = wire(&base);
+    assert_eq!(
+        value["summary"]["totals"]["logical_bytes"],
+        Value::Null,
+        "Q_UNKNOWN_PRESERVED"
+    );
+    assert_eq!(value["summary"]["totals"]["allocated_bytes"], Value::Null);
+    assert_eq!(
+        value["findings"][0]["size"]["logical_bytes"],
+        "9007199254740993"
+    );
+    let data = assets();
+    let mut statuses = BTreeSet::new();
+    for case in data["golden_cases"].as_array().unwrap() {
+        let report = a::parse_report(&case["input"].to_string()).unwrap();
+        let value = wire(&report);
+        assert_eq!(
+            value["summary"],
+            serde_json::to_value(water_summary_export::v1::summarize_report(&report).unwrap())
+                .unwrap()
+        );
+        assert_eq!(
+            value["summary"]["totals"], case["input"]["totals"],
+            "Q_UNKNOWN_PRESERVED"
+        );
+        statuses.insert(value["summary"]["status"].as_str().unwrap().to_owned());
+        for (field, buckets) in [("risk", "risk_counts"), ("category", "category_counts")] {
+            for (name, count) in value["summary"][buckets].as_object().unwrap() {
+                let actual = value["findings"]
+                    .as_array()
+                    .unwrap()
+                    .iter()
+                    .filter(|row| row[field] == name.as_str())
+                    .count();
+                assert_eq!(*count, actual, "{field} bucket {name}");
+            }
+        }
+    }
+    assert_eq!(
+        statuses,
+        ["completed", "partial", "cancelled"]
+            .map(String::from)
+            .into_iter()
+            .collect()
+    );
+    for number in [
+        0,
+        (1_u64 << 53) - 1,
+        1_u64 << 53,
+        (1_u64 << 53) + 1,
+        u64::MAX,
+    ] {
+        let mut report = base.clone();
+        report.findings[0].size.logical_bytes = Some(a::ByteCount::new(number));
+        report.findings[0].size.allocated_bytes = Some(a::ByteCount::new(number));
+        report.totals.logical_bytes = Some(a::ByteCount::new(number));
+        report.totals.allocated_bytes = Some(a::ByteCount::new(number));
+        report.totals.method = a::AggregateMethod::ToolReport;
+        let value = wire(&report);
+        for row in [&value["summary"]["totals"], &value["findings"][0]["size"]] {
+            assert_eq!(row["logical_bytes"], number.to_string());
+            assert_eq!(row["allocated_bytes"], number.to_string());
+        }
+    }
+    let mut report = base.clone();
+    for (method, confidence, bytes) in [
+        (a::SizeMethod::Unknown, a::EstimateConfidence::Unknown, None),
+        (
+            a::SizeMethod::LogicalSum,
+            a::EstimateConfidence::Estimated,
+            Some(7),
+        ),
+        (
+            a::SizeMethod::FileIdentityAllocated,
+            a::EstimateConfidence::Measured,
+            Some(8),
+        ),
+        (
+            a::SizeMethod::ToolReport,
+            a::EstimateConfidence::Measured,
+            Some(9),
+        ),
+    ] {
+        for shared in [
+            a::SharedState::Yes,
+            a::SharedState::No,
+            a::SharedState::Unknown,
+        ] {
+            report.findings[0].size.method = method;
+            report.findings[0].size.confidence = confidence;
+            report.findings[0].size.logical_bytes = bytes.map(a::ByteCount::new);
+            report.findings[0].size.shared = shared;
+            check_associations(&report, &wire(&report));
+        }
+    }
+    let wide = source("h-all-categories-canary");
+    let value = wire(&wide);
+    assert_eq!(value["summary"]["totals"]["scanned_entries"], u32::MAX);
+    assert_eq!(value["summary"]["totals"]["skipped_entries"], u32::MAX);
+    assert_eq!(value["summary"]["totals"]["logical_bytes"], "37");
+    let sum: u128 = wide
+        .findings
+        .iter()
+        .map(|finding| u128::from(finding.size.logical_bytes.unwrap().get()))
+        .sum();
+    assert_ne!(sum, 37, "source totals differ from finding sum");
+    let empty = wire(&source("h-empty_completed"));
+    assert_eq!(empty["findings"], json!([]));
+    assert_eq!(empty["issues"], json!([]));
+    assert_eq!(
+        empty["summary"]["counts"],
+        json!({"scopes":1,"findings":0,"issues":0})
+    );
+    let mut many_projects = base.clone();
+    many_projects.findings[0].references.state = a::ReferenceState::Known;
+    many_projects.findings[0].references.project_ids =
+        (0..10_000).map(|i| id(&format!("project-{i}"))).collect();
+    assert_eq!(
+        wire(&many_projects)["findings"][0]["references"]["project_count"],
+        10_000
+    );
+}
+
+#[test]
+fn redaction_public_wire() {
+    fn output_traits<T: std::fmt::Debug + Clone + PartialEq + serde::Serialize>(_: &T) {}
+    fn error_traits<T: std::fmt::Debug + Clone + Eq + std::error::Error>(_: &T) {}
+    let data = assets();
+    for case in data["golden_cases"].as_array().unwrap() {
+        let raw = case["input"].to_string();
+        let source = a::parse_report(&raw).unwrap();
+        let before = source.clone();
+        let output = q::redact_json(&raw).expect("Q_BEHAVIOR: public JSON entry");
+        output_traits(&output);
+        assert_eq!(output, output.clone());
+        assert_eq!(output, exported(&source));
+        let bytes = q::to_json(&output).unwrap();
+        assert!(bytes.len() <= OUTPUT_LIMIT);
+        assert_eq!(bytes, q::to_json(&output).unwrap());
+        assert_eq!(bytes, serde_json::to_string(&output).unwrap());
+        let value: Value = serde_json::from_str(&bytes).unwrap();
+        assert_eq!(value, serde_json::to_value(&output).unwrap());
+        assert_eq!(value, case["expected"], "public full golden {}", case["id"]);
+        assert_eq!(source, before);
+        assert_eq!(value["anonymity_guaranteed"], false);
+        assert_eq!(value["read_only"], true);
+    }
+    for (error, display) in [
+        (
+            q::RedactionError::OutputTooLarge,
+            "OutputTooLarge at /export",
+        ),
+        (
+            q::RedactionError::SerializationFailed,
+            "SerializationFailed at /export",
+        ),
+    ] {
+        error_traits(&error);
+        assert_eq!(error.to_string(), display);
+        assert_eq!(error.clone(), error);
+        assert!(std::error::Error::source(&error).is_none());
+    }
+    // DTO validation permits reports larger than A's JSON input ceiling. Exercise
+    // the real output limit through the public DTO entry, without forging output.
+    let mut large = source("h-base");
+    large.findings[0].size.logical_bytes = Some(a::ByteCount::new(0));
+    let minimum_row_bytes = wire(&large)["findings"][0].to_string().len();
+    let count = OUTPUT_LIMIT / minimum_row_bytes + 1;
+    assert!(count <= 100_000);
+    let template = large.findings[0].clone();
+    large.findings = (0..count)
+        .map(|i| {
+            let mut finding = template.clone();
+            finding.finding_id = id(&format!("large-{i}"));
+            finding
+        })
+        .collect();
+    a::validate_report(&large).unwrap();
+    assert_eq!(
+        q::redact_report(&large),
+        Err(q::RedactionError::OutputTooLarge)
+    );
+}

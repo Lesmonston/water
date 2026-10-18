@@ -1,0 +1,54 @@
+//! Fixed structural output; exact sizes and associations can still identify a report.
+
+use serde::Serialize;
+use std::fmt;
+use water_contracts::v1::{ContractError, ScanReport, parse_report, validate_report};
+
+const MAX_OUTPUT_BYTES: usize = 16_777_216;
+
+#[derive(Debug, Clone, PartialEq, Eq)]
+pub enum RedactionError {
+    Source(ContractError),
+    OutputTooLarge,
+    SerializationFailed,
+}
+
+impl fmt::Display for RedactionError {
+    fn fmt(&self, formatter: &mut fmt::Formatter<'_>) -> fmt::Result {
+        match self {
+            Self::Source(error) => error.fmt(formatter),
+            Self::OutputTooLarge => formatter.write_str("OutputTooLarge at /export"),
+            Self::SerializationFailed => formatter.write_str("SerializationFailed at /export"),
+        }
+    }
+}
+
+impl std::error::Error for RedactionError {
+    fn source(&self) -> Option<&(dyn std::error::Error + 'static)> {
+        match self {
+            Self::Source(error) => Some(error),
+            Self::OutputTooLarge | Self::SerializationFailed => None,
+        }
+    }
+}
+
+#[derive(Debug, Clone, PartialEq, Serialize)]
+pub struct RedactedReport {}
+
+pub fn redact_json(raw: &str) -> Result<RedactedReport, RedactionError> {
+    let report = parse_report(raw).map_err(RedactionError::Source)?;
+    redact_report(&report)
+}
+
+pub fn redact_report(report: &ScanReport) -> Result<RedactedReport, RedactionError> {
+    validate_report(report).map_err(RedactionError::Source)?;
+    Err(RedactionError::SerializationFailed)
+}
+
+pub fn to_json(report: &RedactedReport) -> Result<String, RedactionError> {
+    let output = serde_json::to_string(report).map_err(|_| RedactionError::SerializationFailed)?;
+    if output.len() > MAX_OUTPUT_BYTES {
+        return Err(RedactionError::OutputTooLarge);
+    }
+    Ok(output)
+}

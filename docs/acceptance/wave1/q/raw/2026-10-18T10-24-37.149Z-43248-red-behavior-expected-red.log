@@ -1,0 +1,47 @@
+--- stdout ---
+
+running 5 tests
+test redaction_aliases_and_privacy ... FAILED
+test redaction_precision_and_status ... FAILED
+test redaction_public_wire ... FAILED
+test redaction_source_validation ... ok
+test redaction_structure ... FAILED
+
+failures:
+
+---- redaction_aliases_and_privacy stdout ----
+
+thread 'redaction_aliases_and_privacy' (30948) panicked at tests\redaction_v1.rs:28:30:
+Q_BEHAVIOR: valid source must produce a structural report: SerializationFailed
+note: run with `RUST_BACKTRACE=1` environment variable to display a backtrace
+
+---- redaction_precision_and_status stdout ----
+
+thread 'redaction_precision_and_status' (11516) panicked at tests\redaction_v1.rs:28:30:
+Q_BEHAVIOR: valid source must produce a structural report: SerializationFailed
+
+---- redaction_public_wire stdout ----
+
+thread 'redaction_public_wire' (34528) panicked at tests\redaction_v1.rs:635:43:
+Q_BEHAVIOR: public JSON entry: SerializationFailed
+
+---- redaction_structure stdout ----
+
+thread 'redaction_structure' (42476) panicked at tests\redaction_v1.rs:28:30:
+Q_BEHAVIOR: valid source must produce a structural report: SerializationFailed
+
+
+failures:
+    redaction_aliases_and_privacy
+    redaction_precision_and_status
+    redaction_public_wire
+    redaction_structure
+
+test result: FAILED. 1 passed; 4 failed; 0 ignored; 0 measured; 0 filtered out; finished in 0.34s
+
+
+--- stderr ---
+   Compiling water-redacted-report v0.1.0 (F:\new\smaltalk\water\.worktrees\q\packages\redacted-report)
+    Finished `test` profile [unoptimized + debuginfo] target(s) in 1.89s
+     Running tests\redaction_v1.rs (.local\next-target\debug\deps\redaction_v1-299118f7baa4ea9e.exe)
+error: test failed, to rerun pass `--test redaction_v1`

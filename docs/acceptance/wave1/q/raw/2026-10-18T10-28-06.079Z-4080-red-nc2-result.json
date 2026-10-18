@@ -1,0 +1,359 @@
+{
+  "task": "WATER-W1-Q",
+  "mode": "red-nc2",
+  "finalGate": false,
+  "startedAt": "2026-10-18T10:28:07.895Z",
+  "before": {
+    "head": "34badd897b8983cffbb57e03a9df9e6af52f7b8f",
+    "status": "?? docs/acceptance/wave1/q/nc1-restoration.json\n?? packages/redacted-report/Cargo.lock\n?? packages/redacted-report/Cargo.toml\n?? packages/redacted-report/README.md\n?? packages/redacted-report/src/lib.rs\n?? packages/redacted-report/src/v1.rs\n?? packages/redacted-report/tests/redaction_v1.rs"
+  },
+  "node": "v24.16.0",
+  "productTestsRun": true,
+  "frozenFiles": 51,
+  "commands": [
+    {
+      "binary": "git",
+      "argv": [
+        "-c",
+        "core.hooksPath=NUL",
+        "-c",
+        "core.fsmonitor=false",
+        "rev-parse",
+        "--path-format=absolute",
+        "--git-common-dir"
+      ],
+      "exitCode": 0,
+      "error": null
+    },
+    {
+      "binary": "git",
+      "argv": [
+        "-c",
+        "core.hooksPath=NUL",
+        "-c",
+        "core.fsmonitor=false",
+        "branch",
+        "--show-current"
+      ],
+      "exitCode": 0,
+      "error": null
+    },
+    {
+      "binary": "git",
+      "argv": [
+        "-c",
+        "core.hooksPath=NUL",
+        "-c",
+        "core.fsmonitor=false",
+        "merge-base",
+        "--is-ancestor",
+        "34badd897b8983cffbb57e03a9df9e6af52f7b8f",
+        "HEAD"
+      ],
+      "exitCode": 0,
+      "error": null
+    },
+    {
+      "binary": "git",
+      "argv": [
+        "-c",
+        "core.hooksPath=NUL",
+        "-c",
+        "core.fsmonitor=false",
+        "diff",
+        "--no-renames",
+        "--name-only",
+        "-z",
+        "34badd897b8983cffbb57e03a9df9e6af52f7b8f",
+        "HEAD"
+      ],
+      "exitCode": 0,
+      "error": null
+    },
+    {
+      "binary": "git",
+      "argv": [
+        "-c",
+        "core.hooksPath=NUL",
+        "-c",
+        "core.fsmonitor=false",
+        "diff",
+        "--no-renames",
+        "--name-only",
+        "-z",
+        "HEAD"
+      ],
+      "exitCode": 0,
+      "error": null
+    },
+    {
+      "binary": "git",
+      "argv": [
+        "-c",
+        "core.hooksPath=NUL",
+        "-c",
+        "core.fsmonitor=false",
+        "ls-files",
+        "--others",
+        "--exclude-standard",
+        "-z"
+      ],
+      "exitCode": 0,
+      "error": null
+    },
+    {
+      "binary": "git",
+      "argv": [
+        "-c",
+        "core.hooksPath=NUL",
+        "-c",
+        "core.fsmonitor=false",
+        "rev-parse",
+        "HEAD"
+      ],
+      "exitCode": 0,
+      "error": null
+    },
+    {
+      "binary": "git",
+      "argv": [
+        "-c",
+        "core.hooksPath=NUL",
+        "-c",
+        "core.fsmonitor=false",
+        "status",
+        "--porcelain",
+        "--untracked-files=all"
+      ],
+      "exitCode": 0,
+      "error": null
+    },
+    {
+      "binary": "C:\\Users\\37310\\.cargo\\bin\\rustup.exe",
+      "argv": [
+        "which",
+        "rustc",
+        "--toolchain",
+        "1.95.0"
+      ],
+      "exitCode": 0,
+      "error": null,
+      "log": "2026-10-18T10-28-06.079Z-4080-red-nc2-1.log"
+    },
+    {
+      "binary": "C:\\Users\\37310\\.cargo\\bin\\rustup.exe",
+      "argv": [
+        "which",
+        "cargo",
+        "--toolchain",
+        "1.95.0"
+      ],
+      "exitCode": 0,
+      "error": null,
+      "log": "2026-10-18T10-28-06.079Z-4080-red-nc2-2.log"
+    },
+    {
+      "binary": "C:\\Users\\37310\\.rustup\\toolchains\\1.95.0-x86_64-pc-windows-msvc\\bin\\rustc.exe",
+      "argv": [
+        "--version"
+      ],
+      "exitCode": 0,
+      "error": null,
+      "log": "2026-10-18T10-28-06.079Z-4080-red-nc2-3.log"
+    },
+    {
+      "binary": "C:\\Users\\37310\\.rustup\\toolchains\\1.95.0-x86_64-pc-windows-msvc\\bin\\cargo.exe",
+      "argv": [
+        "metadata",
+        "--offline",
+        "--locked",
+        "--format-version",
+        "1",
+        "--manifest-path",
+        "packages/redacted-report/Cargo.toml"
+      ],
+      "exitCode": 0,
+      "error": null,
+      "log": "2026-10-18T10-28-06.079Z-4080-red-nc2-4.log"
+    },
+    {
+      "binary": "C:\\Users\\37310\\.rustup\\toolchains\\1.95.0-x86_64-pc-windows-msvc\\bin\\cargo.exe",
+      "argv": [
+        "test",
+        "--offline",
+        "--locked",
+        "--manifest-path",
+        "packages/redacted-report/Cargo.toml",
+        "--test",
+        "redaction_v1",
+        "--",
+        "--test-threads=1",
+        "--format",
+        "pretty"
+      ],
+      "exitCode": 101,
+      "error": null,
+      "log": "2026-10-18T10-28-06.079Z-4080-red-nc2-expected-red.log"
+    },
+    {
+      "binary": "git",
+      "argv": [
+        "-c",
+        "core.hooksPath=NUL",
+        "-c",
+        "core.fsmonitor=false",
+        "branch",
+        "--show-current"
+      ],
+      "exitCode": 0,
+      "error": null,
+      "log": "2026-10-18T10-28-06.079Z-4080-red-nc2-5.log"
+    },
+    {
+      "binary": "git",
+      "argv": [
+        "-c",
+        "core.hooksPath=NUL",
+        "-c",
+        "core.fsmonitor=false",
+        "merge-base",
+        "--is-ancestor",
+        "34badd897b8983cffbb57e03a9df9e6af52f7b8f",
+        "HEAD"
+      ],
+      "exitCode": 0,
+      "error": null,
+      "log": "2026-10-18T10-28-06.079Z-4080-red-nc2-6.log"
+    },
+    {
+      "binary": "git",
+      "argv": [
+        "-c",
+        "core.hooksPath=NUL",
+        "-c",
+        "core.fsmonitor=false",
+        "diff",
+        "--no-renames",
+        "--name-only",
+        "-z",
+        "34badd897b8983cffbb57e03a9df9e6af52f7b8f",
+        "HEAD"
+      ],
+      "exitCode": 0,
+      "error": null,
+      "log": "2026-10-18T10-28-06.079Z-4080-red-nc2-7.log"
+    },
+    {
+      "binary": "git",
+      "argv": [
+        "-c",
+        "core.hooksPath=NUL",
+        "-c",
+        "core.fsmonitor=false",
+        "diff",
+        "--no-renames",
+        "--name-only",
+        "-z",
+        "HEAD"
+      ],
+      "exitCode": 0,
+      "error": null,
+      "log": "2026-10-18T10-28-06.079Z-4080-red-nc2-8.log"
+    },
+    {
+      "binary": "git",
+      "argv": [
+        "-c",
+        "core.hooksPath=NUL",
+        "-c",
+        "core.fsmonitor=false",
+        "ls-files",
+        "--others",
+        "--exclude-standard",
+        "-z"
+      ],
+      "exitCode": 0,
+      "error": null,
+      "log": "2026-10-18T10-28-06.079Z-4080-red-nc2-9.log"
+    },
+    {
+      "binary": "git",
+      "argv": [
+        "-c",
+        "core.hooksPath=NUL",
+        "-c",
+        "core.fsmonitor=false",
+        "rev-parse",
+        "HEAD"
+      ],
+      "exitCode": 0,
+      "error": null,
+      "log": "2026-10-18T10-28-06.079Z-4080-red-nc2-10.log"
+    },
+    {
+      "binary": "git",
+      "argv": [
+        "-c",
+        "core.hooksPath=NUL",
+        "-c",
+        "core.fsmonitor=false",
+        "status",
+        "--porcelain",
+        "--untracked-files=all"
+      ],
+      "exitCode": 0,
+      "error": null,
+      "log": "2026-10-18T10-28-06.079Z-4080-red-nc2-11.log"
+    }
+  ],
+  "sourceState": {
+    "files": [
+      {
+        "path": "packages/redacted-report/src/lib.rs",
+        "sha256": "5ee9489f2945b5826a4f9e513e55de4701aa0c8177f775b1a18e7b5c52f177bb",
+        "snapshot": "2026-10-18T10-28-06.079Z-4080-red-nc2-source-0.txt",
+        "test": false
+      },
+      {
+        "path": "packages/redacted-report/src/v1.rs",
+        "sha256": "fc093c9b44e5da68fe646d8083ca81389a7627056a9b4631150251bf619ae994",
+        "snapshot": "2026-10-18T10-28-06.079Z-4080-red-nc2-source-1.txt",
+        "test": false
+      },
+      {
+        "path": "packages/redacted-report/Cargo.toml",
+        "sha256": "4e60231f49b2e6c74b9052cb2efb16ee7cc160cfda9e21bd10850ca6a7394549",
+        "snapshot": "2026-10-18T10-28-06.079Z-4080-red-nc2-source-2.txt",
+        "test": false
+      },
+      {
+        "path": "packages/redacted-report/Cargo.lock",
+        "sha256": "fffab817927484560b8114eb868f2e0b04320cc6df3541d59fcd4b7f53372063",
+        "snapshot": "2026-10-18T10-28-06.079Z-4080-red-nc2-source-3.txt",
+        "test": false
+      },
+      {
+        "path": "packages/redacted-report/tests/redaction_v1.rs",
+        "sha256": "0daacf967810a32e86cbffe51e1b7c2ca327d472416e394da47b48b7fd6fe553",
+        "snapshot": "2026-10-18T10-28-06.079Z-4080-red-nc2-source-4.txt",
+        "test": true
+      }
+    ],
+    "productionHash": "611dfb33b473b3cc1e2497c91787b2d588b26ebdf95940b77d1fc293d42a7f0f",
+    "testHash": "2bfd3741af8e74e05c7ee0be9d4bb770c081a49d2a0e3c2ef8133edfee9af0ac"
+  },
+  "observedExpectedFailure": true,
+  "executedTests": 5,
+  "expectation": {
+    "label": "nc2",
+    "target": "Q_SCOPE_ASSOCIATION",
+    "testExitCode": 101
+  },
+  "after": {
+    "head": "34badd897b8983cffbb57e03a9df9e6af52f7b8f",
+    "status": "?? docs/acceptance/wave1/q/nc1-restoration.json\n?? packages/redacted-report/Cargo.lock\n?? packages/redacted-report/Cargo.toml\n?? packages/redacted-report/README.md\n?? packages/redacted-report/src/lib.rs\n?? packages/redacted-report/src/v1.rs\n?? packages/redacted-report/tests/redaction_v1.rs"
+  },
+  "endedAt": "2026-10-18T10:28:14.581Z",
+  "status": "passed",
+  "error": null
+}

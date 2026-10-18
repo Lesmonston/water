@@ -1,0 +1,96 @@
+{
+  "task": "WATER-W1-Q",
+  "status": "SUBMITTED_PENDING_CONTROLLER_REVIEW",
+  "engine": "Codex",
+  "model": "GPT-6 per session instructions; exact backend model identifier not exposed",
+  "subagentsUsed": false,
+  "baseline": "34badd897b8983cffbb57e03a9df9e6af52f7b8f",
+  "testedImplementation": "d46b93d652de0ada6d4be0e18cf0d01c06080a75",
+  "branch": "worker/water-w1-q",
+  "frozen": {
+    "newEntries": 51,
+    "inheritedLocks": 9,
+    "inheritedUnique": 198,
+    "totalUnique": 227,
+    "allHashesMatch": true
+  },
+  "productionHash": "1d0fea26accb0563a34284ca92ff37f5f64c0162da83c1a4d1344868b18fb150",
+  "testHash": "2bfd3741af8e74e05c7ee0be9d4bb770c081a49d2a0e3c2ef8133edfee9af0ac",
+  "finalGates": [
+    {
+      "mode": "fmt",
+      "receipt": "2026-10-18T10-29-53.277Z-29132-fmt-result.json",
+      "exitCode": 0,
+      "status": "passed"
+    },
+    {
+      "mode": "test",
+      "receipt": "2026-10-18T10-30-04.215Z-26748-test-result.json",
+      "exitCode": 0,
+      "status": "passed"
+    },
+    {
+      "mode": "clippy",
+      "receipt": "2026-10-18T10-30-15.940Z-39068-clippy-result.json",
+      "exitCode": 0,
+      "status": "passed"
+    },
+    {
+      "mode": "metadata",
+      "receipt": "2026-10-18T10-30-33.834Z-22720-metadata-result.json",
+      "exitCode": 0,
+      "status": "passed"
+    },
+    {
+      "mode": "bridge",
+      "receipt": "2026-10-18T10-30-41.644Z-28008-bridge-result.json",
+      "exitCode": 0,
+      "status": "passed"
+    }
+  ],
+  "proofs": [
+    {
+      "label": "behavior",
+      "red": "2026-10-18T10-24-37.149Z-43248-red-behavior-result.json",
+      "restored": "2026-10-18T10-25-47.160Z-24076-suite-result.json"
+    },
+    {
+      "label": "nc1",
+      "red": "2026-10-18T10-27-16.378Z-11244-red-nc1-result.json",
+      "restored": "2026-10-18T10-27-38.490Z-4252-suite-result.json"
+    },
+    {
+      "label": "nc2",
+      "red": "2026-10-18T10-28-06.079Z-4080-red-nc2-result.json",
+      "restored": "2026-10-18T10-28-18.896Z-39676-suite-result.json"
+    },
+    {
+      "label": "nc3",
+      "red": "2026-10-18T10-28-37.331Z-40500-red-nc3-result.json",
+      "restored": "2026-10-18T10-28-49.446Z-21900-suite-result.json"
+    }
+  ],
+  "bridge": {
+    "actual_Q_A_H": true,
+    "cases": 24,
+    "export_file_written": false,
+    "filesystem_scanned": false,
+    "raw_errors": 9
+  },
+  "rawEvidenceFiles": 338,
+  "outputLimit": {
+    "bytes": 16777216,
+    "oversizeValidDtoRejected": true,
+    "exactLimitAndOneByteBoundaryTested": false,
+    "toJsonOversizePrivateOutputForged": false,
+    "serializationFailureBranchForced": false,
+    "errorVariantDisplayTested": true
+  },
+  "unverified": [
+    "macOS runtime",
+    "desktop export or save dialogs",
+    "real user scopes and scanning",
+    "anonymity or unlinkability",
+    "deletion"
+  ]
+}
