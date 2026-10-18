@@ -1,0 +1,8 @@
+{
+  "batch_version":"water.next-core.v1",
+  "tasks":{
+    "WATER-W1-N":{"tests":["root_path_validation","root_native_identity","root_reparse_boundaries","root_observation_wire","root_lifetime_and_errors"],"proof_targets":{"behavior":"N_BEHAVIOR","nc1":"N_REPARSE_ROOT","nc2":"N_IDENTITY_HANDLE","nc3":"N_NO_AUTHORITY"},"final_modes":["fmt","test","clippy","metadata","bridge"]},
+    "WATER-W1-O":{"tests":["evidence_reader_bundle","evidence_reader_selection","evidence_reader_annotations"],"browser_tests":["evidence_reader_live_input","evidence_reader_layout_and_safety"],"proof_targets":{"behavior":"O_BEHAVIOR","nc1":"O_SERVER_CAPTURE","nc2":"O_LEDGER_UNKNOWN","nc3":"O_TEXT_LITERAL"},"final_modes":["check","test","browser"]}
+  },
+  "rust_version":"1.95.0","node_major":24,"cargo_jobs":1,"offline":true,"per_command_timeout_ms":180000,"chrome_instances":1
+}

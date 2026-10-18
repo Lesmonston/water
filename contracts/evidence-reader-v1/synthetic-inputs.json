@@ -1,0 +1,327 @@
+{
+  "synthetic_only": true,
+  "new_j_or_native_scan": false,
+  "cases": [
+    {
+      "id": "known-hardlinks",
+      "input": {
+        "facts_version": "water.scan-lab.v1",
+        "run_id": "run-10000000-0000-4000-8000-000000000001",
+        "case_id": "known-hardlinks",
+        "status": "completed",
+        "visited_entries": 2,
+        "recorded_entries": 2,
+        "scopes": [
+          {
+            "scope_id": "scope-1",
+            "relative_root": "scope",
+            "coverage": "complete",
+            "visited_entries": 2,
+            "entries": [
+              {
+                "relative_path": "a",
+                "depth": 1,
+                "kind": "file",
+                "logical_bytes": "10",
+                "allocated_bytes": null,
+                "identity": {
+                  "kind": "unix",
+                  "device": "1",
+                  "inode": "7",
+                  "link_count": "2"
+                }
+              },
+              {
+                "relative_path": "b",
+                "depth": 1,
+                "kind": "file",
+                "logical_bytes": "10",
+                "allocated_bytes": null,
+                "identity": {
+                  "kind": "unix",
+                  "device": "1",
+                  "inode": "7",
+                  "link_count": "2"
+                }
+              }
+            ],
+            "issues": []
+          }
+        ]
+      },
+      "context": {
+        "scan_id": "evidence-ui-known-hardlinks",
+        "platform": "macos",
+        "scopes": [
+          {
+            "scope_id": "scope-1",
+            "label": "Synthetic scope-1",
+            "origin": "user_selected"
+          }
+        ]
+      }
+    },
+    {
+      "id": "length-conflict",
+      "input": {
+        "facts_version": "water.scan-lab.v1",
+        "run_id": "run-10000000-0000-4000-8000-000000000002",
+        "case_id": "length-conflict",
+        "status": "completed",
+        "visited_entries": 2,
+        "recorded_entries": 2,
+        "scopes": [
+          {
+            "scope_id": "scope-1",
+            "relative_root": "scope",
+            "coverage": "complete",
+            "visited_entries": 2,
+            "entries": [
+              {
+                "relative_path": "a",
+                "depth": 1,
+                "kind": "file",
+                "logical_bytes": "10",
+                "allocated_bytes": null,
+                "identity": {
+                  "kind": "unix",
+                  "device": "1",
+                  "inode": "7",
+                  "link_count": "2"
+                }
+              },
+              {
+                "relative_path": "b",
+                "depth": 1,
+                "kind": "file",
+                "logical_bytes": "11",
+                "allocated_bytes": null,
+                "identity": {
+                  "kind": "unix",
+                  "device": "1",
+                  "inode": "7",
+                  "link_count": "2"
+                }
+              }
+            ],
+            "issues": []
+          }
+        ]
+      },
+      "context": {
+        "scan_id": "evidence-ui-length-conflict",
+        "platform": "macos",
+        "scopes": [
+          {
+            "scope_id": "scope-1",
+            "label": "Synthetic scope-1",
+            "origin": "user_selected"
+          }
+        ]
+      }
+    },
+    {
+      "id": "link-count-conflict",
+      "input": {
+        "facts_version": "water.scan-lab.v1",
+        "run_id": "run-10000000-0000-4000-8000-000000000003",
+        "case_id": "link-count-conflict",
+        "status": "completed",
+        "visited_entries": 2,
+        "recorded_entries": 2,
+        "scopes": [
+          {
+            "scope_id": "scope-1",
+            "relative_root": "scope",
+            "coverage": "complete",
+            "visited_entries": 2,
+            "entries": [
+              {
+                "relative_path": "a",
+                "depth": 1,
+                "kind": "file",
+                "logical_bytes": "10",
+                "allocated_bytes": null,
+                "identity": {
+                  "kind": "unix",
+                  "device": "1",
+                  "inode": "7",
+                  "link_count": "2"
+                }
+              },
+              {
+                "relative_path": "b",
+                "depth": 1,
+                "kind": "file",
+                "logical_bytes": "10",
+                "allocated_bytes": null,
+                "identity": {
+                  "kind": "unix",
+                  "device": "1",
+                  "inode": "7",
+                  "link_count": "3"
+                }
+              }
+            ],
+            "issues": []
+          }
+        ]
+      },
+      "context": {
+        "scan_id": "evidence-ui-link-count-conflict",
+        "platform": "macos",
+        "scopes": [
+          {
+            "scope_id": "scope-1",
+            "label": "Synthetic scope-1",
+            "origin": "user_selected"
+          }
+        ]
+      }
+    },
+    {
+      "id": "beyond-u64",
+      "input": {
+        "facts_version": "water.scan-lab.v1",
+        "run_id": "run-10000000-0000-4000-8000-000000000004",
+        "case_id": "beyond-u64",
+        "status": "completed",
+        "visited_entries": 2,
+        "recorded_entries": 2,
+        "scopes": [
+          {
+            "scope_id": "scope-1",
+            "relative_root": "scope",
+            "coverage": "complete",
+            "visited_entries": 2,
+            "entries": [
+              {
+                "relative_path": "a",
+                "depth": 1,
+                "kind": "file",
+                "logical_bytes": "18446744073709551615",
+                "allocated_bytes": null,
+                "identity": {
+                  "kind": "unknown",
+                  "device": null,
+                  "inode": null,
+                  "link_count": null
+                }
+              },
+              {
+                "relative_path": "b",
+                "depth": 1,
+                "kind": "file",
+                "logical_bytes": "18446744073709551615",
+                "allocated_bytes": null,
+                "identity": {
+                  "kind": "unknown",
+                  "device": null,
+                  "inode": null,
+                  "link_count": null
+                }
+              }
+            ],
+            "issues": []
+          }
+        ]
+      },
+      "context": {
+        "scan_id": "evidence-ui-beyond-u64",
+        "platform": "windows",
+        "scopes": [
+          {
+            "scope_id": "scope-1",
+            "label": "Synthetic scope-1",
+            "origin": "user_selected"
+          }
+        ]
+      }
+    },
+    {
+      "id": "four-root-rules",
+      "input": {
+        "facts_version": "water.scan-lab.v1",
+        "run_id": "run-10000000-0000-4000-8000-000000000005",
+        "case_id": "four-root-rules",
+        "status": "completed",
+        "visited_entries": 4,
+        "recorded_entries": 4,
+        "scopes": [
+          {
+            "scope_id": "scope-1",
+            "relative_root": "scope",
+            "coverage": "complete",
+            "visited_entries": 4,
+            "entries": [
+              {
+                "relative_path": "package.json",
+                "depth": 1,
+                "kind": "file",
+                "logical_bytes": "1",
+                "allocated_bytes": null,
+                "identity": {
+                  "kind": "unknown",
+                  "device": null,
+                  "inode": null,
+                  "link_count": null
+                }
+              },
+              {
+                "relative_path": "package-lock.json",
+                "depth": 1,
+                "kind": "file",
+                "logical_bytes": "1",
+                "allocated_bytes": null,
+                "identity": {
+                  "kind": "unknown",
+                  "device": null,
+                  "inode": null,
+                  "link_count": null
+                }
+              },
+              {
+                "relative_path": "pyproject.toml",
+                "depth": 1,
+                "kind": "file",
+                "logical_bytes": "1",
+                "allocated_bytes": null,
+                "identity": {
+                  "kind": "unknown",
+                  "device": null,
+                  "inode": null,
+                  "link_count": null
+                }
+              },
+              {
+                "relative_path": "requirements.txt",
+                "depth": 1,
+                "kind": "file",
+                "logical_bytes": "1",
+                "allocated_bytes": null,
+                "identity": {
+                  "kind": "unknown",
+                  "device": null,
+                  "inode": null,
+                  "link_count": null
+                }
+              }
+            ],
+            "issues": []
+          }
+        ]
+      },
+      "context": {
+        "scan_id": "evidence-ui-four-root-rules",
+        "platform": "windows",
+        "scopes": [
+          {
+            "scope_id": "scope-1",
+            "label": "Synthetic scope-1",
+            "origin": "user_selected"
+          }
+        ]
+      }
+    }
+  ]
+}

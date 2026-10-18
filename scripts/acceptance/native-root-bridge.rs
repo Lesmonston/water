@@ -1,0 +1,12 @@
+// Controller public API check; native paths only from the frozen local fixture index.
+#![forbid(unsafe_code)]
+use serde_json::{Value,json};
+use water_contracts::v1::OpaqueId;
+use water_native_root::v1::{self,RootError};
+fn main(){let index:Value=serde_json::from_str(&std::fs::read_to_string(std::env::var("WATER_NATIVE_ROOT_FIXTURE_INDEX").unwrap()).unwrap()).unwrap();let scope=OpaqueId::new("scope-native-controller").unwrap();
+ let a=v1::open_directory(&scope,index["normal_a"].as_str().unwrap()).unwrap();let b=v1::open_directory(&scope,index["normal_b"].as_str().unwrap()).unwrap();let va:Value=serde_json::from_str(&v1::to_json(a.observation()).unwrap()).unwrap();let vb:Value=serde_json::from_str(&v1::to_json(b.observation()).unwrap()).unwrap();assert_eq!(a.observation(),&a.refresh().unwrap());assert_ne!(va["identity"],vb["identity"]);assert_eq!(va.as_object().unwrap().len(),10);
+ assert_eq!(va["root_version"],"water.native-root.v1");assert_eq!(va["scope_id"],scope.as_str());assert_eq!(va["platform"],"windows");assert_eq!(va["object_kind"],"directory");assert_eq!(va["read_only"],true);for key in ["reparse_point","authorization_granted","traversal_allowed","race_protection_verified"]{assert_eq!(va[key],false);}
+ assert_eq!(va["identity"].as_object().unwrap().len(),3);assert_eq!(va["identity"]["kind"],"windows_file_id_128");let volume=va["identity"]["volume_serial"].as_str().unwrap();assert_eq!(volume.parse::<u64>().unwrap().to_string(),volume);let id=va["identity"]["file_id"].as_str().unwrap();assert!(id.len()==32&&id.bytes().all(|c|c.is_ascii_digit()||(b'a'..=b'f').contains(&c)));
+ for key in ["final_reparse","ancestor_reparse","ancestor_child"]{assert!(matches!(v1::open_directory(&scope,index[key].as_str().unwrap()),Err(RootError::ReparsePoint)));}assert!(matches!(v1::open_directory(&scope,index["file"].as_str().unwrap()),Err(RootError::NotDirectory)));assert!(matches!(v1::open_directory(&scope,index["missing"].as_str().unwrap()),Err(RootError::MetadataUnavailable)));
+ for invalid in ["", "F:/", "F:/a/../b", "F:/CON.txt", "F:/COM¹", "F:/a:stream", "F:/a//b", "F:/a ", "F:/a.", "\\\\server\\share\\a", "F:relative"]{assert_eq!(v1::validate_windows_path(invalid),Err(RootError::InvalidPath));}
+ println!("{}",json!({"actual_N_public_API":true,"identity_a":va["identity"],"identity_b":vb["identity"],"reparse_cases":3,"directory_enumerated":false,"authorization_granted":false}));}
