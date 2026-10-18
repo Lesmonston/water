@@ -21,9 +21,15 @@
 
 ## 下一步
 
-A–J及四旧补单保持VERIFIED（Windows）。K已收单，原门/独立边界通过，但真实J→K集成失败，现CHANGES_REQUESTED；[补充单01](dispatch/tickets/WATER-W1-K-ADDENDUM-01-20261018.md)已准备待用户外贴，未启动实现者。真实scope安全、分类、Tauri/macOS与删除另排，M1尚未完成。
+A–J及四旧补单保持VERIFIED（Windows）。K已收单，原门/独立边界通过，但真实J→K原集成失败并退回；[补充单01](dispatch/tickets/WATER-W1-K-ADDENDUM-01-20261018.md)已见启动审计和指定回归输入，现记RUNNING；精确转贴时刻未知，没有完成回执。真实scope安全、分类、Tauri/macOS与删除另排，M1尚未完成。
 
-## K收单与集成退回（2026-10-18，最新）
+## 并行评估与K补单启动（2026-10-18，最新）
+
+K原k树已出现补单01的START-AUDIT及169500字节回归bundle，HEAD/分支/来源hash正确，按启动证据记RUNNING；原失败未清除，真实J→K页面仍未验收。启动审计自报2026-10-18T03:41:50.355Z，精确转贴时刻未证实。见[启动观察](acceptance/wave1/controller/w1-parallel-assessment-20261018/k-start-observation.json)。
+
+[并行任务评估](dispatch/wave1/PARALLEL-ASSESSMENT-20261018.md)建议另拆项目标记证据侧车和容量观察账本两条纯内存模块线，均只依赖已验收协议，不碰K文件或真实用户数据。当前只是DRAFT，未准备新树/helper/冻结/正式票，未派出；总控没有自动启动实现者。
+
+## K收单与集成退回（2026-10-18，历史）
 
 K接收e717519、实现7d00355，原三门/五测试、104独立边界及隔离三负控/逐次完整五测恢复通过；隔离f16972f真实J13快照与独立链路逐值一致，但K拒绝entry-budget合法根issue空串，整个bundle未能启动服务，真实J→K页面未验收。K为CHANGES_REQUESTED，补充单01已准备待用户外贴给原执行者；原树干净，主线未纳入K产品，A–J及四旧补单保持VERIFIED（Windows）。132冻结、369份K和359份J交付字节保持；44内容快照通过，仅总控新树由冻结prepare创建11+6/81717字节合成run并全部保留。真实用户scope、分类、桌面/macOS及删除未验证，M1未完成。见[K总控验收报告](acceptance/wave1/controller/WATER-W1-K-REVIEW-20261018.md)。补单修复由原执行者完成，总控不代修；后续验收复用原总控集成树夹具，不清理或重造。
 

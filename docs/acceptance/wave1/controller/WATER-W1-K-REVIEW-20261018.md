@@ -1,6 +1,6 @@
 # WATER-W1-K 总控验收与 J→K 集成
 
-2026-10-18（Asia/Tokyo）。结论 CHANGES_REQUESTED。原单票门通过后暂记 ACCEPTED；真实集成发现K产品缺陷，已准备补充单01待用户转贴原执行者。K产品未合主线，未标 VERIFIED；总控未代修产品。
+2026-10-18（Asia/Tokyo）。结论 CHANGES_REQUESTED。原单票门通过后暂记 ACCEPTED；真实集成发现K产品缺陷，补充单01已见原执行者启动审计与精确回归输入，记RUNNING，尚未交回。K产品未合主线，未标 VERIFIED；总控未代修产品。
 
 接收干净 HEAD `e717519a14f5d561c0ba18aa7d5299870828aa5a`，受测实现 `7d0035582db8457a47d6c611ff02427296ba641c`，原基线 `bc409f4af8cb2d51b2f67341ad46637cfa5e66f3`。实际执行者 Codex / GPT-6（自报，细分 build 未提供）。
 
