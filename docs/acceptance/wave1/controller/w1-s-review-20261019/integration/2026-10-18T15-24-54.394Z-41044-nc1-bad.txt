@@ -1,0 +1,258 @@
+//! Private Windows x64 COM ABI. Only system COM objects enter these wrappers.
+use crate::v1::PickerError;
+use std::{ffi::c_void, marker::PhantomData, ptr, ptr::NonNull, rc::Rc};
+
+#[repr(C)]
+struct Guid {
+    a: u32,
+    b: u16,
+    c: u16,
+    d: [u8; 8],
+}
+
+const FILE_OPEN_DIALOG: Guid = Guid {
+    a: 0xdc1c5a9c,
+    b: 0xe88a,
+    c: 0x4dde,
+    d: [0xa5, 0xa1, 0x60, 0xf8, 0x2a, 0x20, 0xae, 0xf7],
+};
+const IID_FILE_OPEN_DIALOG: Guid = Guid {
+    a: 0xd57c7288,
+    b: 0xd4ad,
+    c: 0x4768,
+    d: [0xbe, 0x02, 0x9d, 0x96, 0x95, 0x32, 0xd9, 0x60],
+};
+const IID_SHELL_ITEM: Guid = Guid {
+    a: 0x43826d1e,
+    b: 0xe718,
+    c: 0x42ee,
+    d: [0xbc, 0x55, 0xa1, 0xe2, 0x61, 0xc3, 0x7b, 0xfe],
+};
+const CANCELLED: i32 = 0x800704c7_u32 as i32;
+const CHANGED_MODE: i32 = 0x80010106_u32 as i32;
+const OPTIONS: u32 = 0x02110868;
+
+// SAFETY: signatures match the Windows SDK's ole32 exports on Windows x64.
+#[link(name = "ole32")]
+unsafe extern "system" {
+    fn CoInitializeEx(reserved: *mut c_void, flags: u32) -> i32;
+    fn CoUninitialize();
+    fn CoCreateInstance(
+        class: *const Guid,
+        outer: *mut c_void,
+        context: u32,
+        iid: *const Guid,
+        out: *mut *mut c_void,
+    ) -> i32;
+    fn CoTaskMemFree(memory: *mut c_void);
+}
+
+// SAFETY: signature matches shell32; GUID/PWSTR/output pointers have C layout.
+#[link(name = "shell32")]
+unsafe extern "system" {
+    fn SHCreateItemFromParsingName(
+        name: *const u16,
+        bind_context: *mut c_void,
+        iid: *const Guid,
+        out: *mut *mut c_void,
+    ) -> i32;
+}
+
+#[repr(C)]
+struct UnknownVtable {
+    query_interface: usize,
+    add_ref: usize,
+    release: unsafe extern "system" fn(*mut c_void) -> u32,
+}
+
+// IFileOpenDialog inherits IFileDialog/IUnknown. Uncalled slots are pointer-sized.
+// Called slots: Release=2, Show=3, SetOptions=9, SetFolder=12, SetTitle=17,
+// SetOkButtonLabel=18, GetResult=20. All signatures use the Windows system ABI.
+#[repr(C)]
+struct DialogVtable {
+    unknown: UnknownVtable,
+    show: unsafe extern "system" fn(*mut c_void, *mut c_void) -> i32,
+    unused_4_8: [usize; 5],
+    set_options: unsafe extern "system" fn(*mut c_void, u32) -> i32,
+    unused_10_11: [usize; 2],
+    set_folder: unsafe extern "system" fn(*mut c_void, *mut c_void) -> i32,
+    unused_13_16: [usize; 4],
+    set_title: unsafe extern "system" fn(*mut c_void, *const u16) -> i32,
+    set_ok_button_label: unsafe extern "system" fn(*mut c_void, *const u16) -> i32,
+    unused_19: usize,
+    get_result: unsafe extern "system" fn(*mut c_void, *mut *mut c_void) -> i32,
+}
+
+// IShellItem: IUnknown slots 0..2, BindToHandler=3, GetParent=4, GetDisplayName=5.
+#[repr(C)]
+struct ItemVtable {
+    unknown: UnknownVtable,
+    unused_3_4: [usize; 2],
+    get_display_name: unsafe extern "system" fn(*mut c_void, u32, *mut *mut u16) -> i32,
+}
+
+#[repr(C)]
+struct Interface<V> {
+    vtable: *const V,
+}
+
+struct Com<V> {
+    pointer: NonNull<Interface<V>>,
+}
+
+impl<V> Com<V> {
+    // SAFETY: caller must supply a successful COM output for precisely V's IID,
+    // owning one reference on this thread, and keep its apartment alive.
+    unsafe fn from_output(result: i32, pointer: *mut c_void) -> Result<Self, PickerError> {
+        succeeded(result)?;
+        let pointer = NonNull::new(pointer.cast()).ok_or(PickerError::DialogFailed)?;
+        Ok(Self { pointer })
+    }
+
+    fn raw(&self) -> *mut c_void {
+        self.pointer.as_ptr().cast()
+    }
+
+    fn vtable(&self) -> &V {
+        // SAFETY: from_output's contract ensures an owned, live interface of V.
+        // COM guarantees its first pointer addresses a valid immutable vtable.
+        unsafe { &*self.pointer.as_ref().vtable }
+    }
+}
+
+impl<V> Drop for Com<V> {
+    fn drop(&mut self) {
+        // SAFETY: both private V types have IUnknown as their vtable prefix.
+        // The wrapper owns exactly one reference; Release is slot 2 and is called
+        // exactly once, before the apartment guard drops. Nothing uses it after.
+        unsafe {
+            let interface = self.pointer.cast::<Interface<UnknownVtable>>().as_ref();
+            ((*interface.vtable).release)(self.raw());
+        }
+    }
+}
+
+struct Apartment(PhantomData<Rc<()>>);
+
+impl Apartment {
+    fn enter() -> Result<Self, PickerError> {
+        // SAFETY: null is required; 6 means APARTMENTTHREADED|DISABLE_OLE1DDE.
+        // This synchronous call runs on the caller's thread, never another one.
+        let result = unsafe { CoInitializeEx(ptr::null_mut(), 6) };
+        match result {
+            0 | 1 => Ok(Self(PhantomData)),
+            CHANGED_MODE => Err(PickerError::ApartmentUnavailable),
+            _ => Err(PickerError::DialogFailed),
+        }
+    }
+}
+
+impl Drop for Apartment {
+    fn drop(&mut self) {
+        // SAFETY: the non-Send guard exists only after S_OK or S_FALSE and drops
+        // on the same thread, balancing exactly that successful initialization.
+        unsafe { CoUninitialize() };
+    }
+}
+
+struct TaskString(NonNull<u16>);
+
+impl TaskString {
+    fn decode(&self) -> Result<String, PickerError> {
+        for length in 0..32768 {
+            // SAFETY: GetDisplayName's successful output is a valid allocated
+            // NUL-terminated UTF-16 string. Read sequentially, stop at its NUL,
+            // and impose the contract's additional bound. The guard owns it.
+            if unsafe { *self.0.as_ptr().add(length) } == 0 {
+                // SAFETY: these length code units were just read before NUL,
+                // remain allocated, and are not mutated during this borrow.
+                let units = unsafe { std::slice::from_raw_parts(self.0.as_ptr(), length) };
+                return String::from_utf16(units).map_err(|_| PickerError::InvalidSelection);
+            }
+        }
+        Err(PickerError::InvalidSelection)
+    }
+}
+
+impl Drop for TaskString {
+    fn drop(&mut self) {
+        // SAFETY: only successful GetDisplayName PWSTRs create this guard.
+        // COM requires CoTaskMemFree; the single owner frees once on every path.
+        unsafe { CoTaskMemFree(self.0.as_ptr().cast()) };
+    }
+}
+
+fn succeeded(result: i32) -> Result<(), PickerError> {
+    if result < 0 {
+        Err(PickerError::DialogFailed)
+    } else {
+        Ok(())
+    }
+}
+
+fn wide(text: &str) -> Vec<u16> {
+    text.encode_utf16().chain(Some(0)).collect()
+}
+
+pub(crate) fn choose(initial_directory: &str) -> Result<Option<String>, PickerError> {
+    let _apartment = Apartment::enter()?;
+    let mut raw_dialog = ptr::null_mut();
+    // SAFETY: fixed CLSID/IID, in-process server=1, no aggregation; output is a
+    // writable local. No owning wrapper is formed from a failed HRESULT.
+    let dialog = unsafe {
+        let result = CoCreateInstance(
+            &FILE_OPEN_DIALOG,
+            ptr::null_mut(),
+            1,
+            &IID_FILE_OPEN_DIALOG,
+            &mut raw_dialog,
+        );
+        Com::<DialogVtable>::from_output(result, raw_dialog)?
+    };
+    let path = wide(initial_directory);
+    let mut raw_folder = ptr::null_mut();
+    // SAFETY: path is a live NUL-terminated string checked by N before entry;
+    // binding context is null, fixed IID_IShellItem and writable output match ABI.
+    let folder = unsafe {
+        let result = SHCreateItemFromParsingName(
+            path.as_ptr(),
+            ptr::null_mut(),
+            &IID_SHELL_ITEM,
+            &mut raw_folder,
+        );
+        Com::<ItemVtable>::from_output(result, raw_folder)?
+    };
+    let title = wide("Water - Select a read-only directory");
+    let label = wide("Use this directory");
+    let methods = dialog.vtable();
+    // SAFETY: live IFileOpenDialog, correctly typed slots 9/12/17/18, and live
+    // folder/UTF-16 buffers. Calls are synchronous; every HRESULT is checked.
+    unsafe {
+        succeeded((methods.set_options)(dialog.raw(), OPTIONS))?;
+        succeeded((methods.set_folder)(dialog.raw(), folder.raw()))?;
+        succeeded((methods.set_title)(dialog.raw(), title.as_ptr()))?;
+        succeeded((methods.set_ok_button_label)(dialog.raw(), label.as_ptr()))?;
+    }
+    // SAFETY: Show is slot 3 of the live dialog on its STA thread. Null owner is
+    // allowed. No result is queried before this real modal call succeeds.
+    let shown = unsafe { (methods.show)(dialog.raw(), ptr::null_mut()) };
+    if shown == CANCELLED {
+        return Err(PickerError::DialogFailed);
+    }
+    succeeded(shown)?;
+    let mut raw_selected = ptr::null_mut();
+    // SAFETY: successful Show permits GetResult (slot 20); writable output gets
+    // one IShellItem reference on success, owned until after string decoding.
+    let selected = unsafe {
+        let result = (methods.get_result)(dialog.raw(), &mut raw_selected);
+        Com::<ItemVtable>::from_output(result, raw_selected)?
+    };
+    let mut text = ptr::null_mut();
+    // SAFETY: live IShellItem slot 5, SIGDN_FILESYSPATH, writable PWSTR output;
+    // successful output is COM-task allocated and receives an immediate guard.
+    let result =
+        unsafe { (selected.vtable().get_display_name)(selected.raw(), 0x80058000, &mut text) };
+    succeeded(result)?;
+    let text = TaskString(NonNull::new(text).ok_or(PickerError::InvalidSelection)?);
+    text.decode().map(Some)
+}

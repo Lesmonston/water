@@ -1,0 +1,35 @@
+--- stdout ---
+
+running 3 tests
+test mta_rejection_preserves_host ... ok
+test nested_result_is_actual_selection ... FAILED
+test sta_nested_initialization_is_balanced ... FAILED
+
+failures:
+
+failures:
+    nested_result_is_actual_selection
+    sta_nested_initialization_is_balanced
+
+test result: FAILED. 1 passed; 2 failed; 0 ignored; 0 measured; 0 filtered out; finished in 4.18s
+
+
+--- stderr ---
+WATER_PICKER_REVIEW_CASE nested
+WATER_REVIEW_SELECTED 34188 nested
+WATER_REVIEW_ACTION 34188 nested
+
+thread 'nested_result_is_actual_selection' (21424) panicked at F:\new\smaltalk\water\scripts\acceptance\native-picker-independent.rs:14:1017:
+assertion `left == right` failed
+  left: Ok(1)
+ right: Err(-2147221008)
+note: run with `RUST_BACKTRACE=1` environment variable to display a backtrace
+WATER_PICKER_REVIEW_CASE cancel
+WATER_REVIEW_ACTION 34188 cancel
+WATER_PICKER_REVIEW_CASE cancel
+WATER_REVIEW_ACTION 34188 cancel
+
+thread 'sta_nested_initialization_is_balanced' (8704) panicked at F:\new\smaltalk\water\scripts\acceptance\native-picker-independent.rs:15:551:
+assertion `left == right` failed
+  left: Ok(1)
+ right: Err(-2147221008)

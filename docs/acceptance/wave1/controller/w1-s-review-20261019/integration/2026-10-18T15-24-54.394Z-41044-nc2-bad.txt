@@ -1,0 +1,90 @@
+//! Native picker v1; no path-based constructor for a confirmed selection.
+#![forbid(unsafe_code)]
+
+use std::fmt;
+use water_contracts::v1::OpaqueId;
+use water_native_root::v1::{self as native, RootError};
+use water_scope_registry::v1::{RegisteredScope, Registry, RegistryError};
+
+pub struct PickerOptions {
+    initial_directory: String,
+}
+
+impl PickerOptions {
+    pub fn new(initial_directory: &str) -> Result<Self, PickerError> {
+        native::validate_windows_path(initial_directory).map_err(PickerError::Root)?;
+        Ok(Self {
+            initial_directory: initial_directory.to_owned(),
+        })
+    }
+}
+
+pub struct SelectedScope {
+    scope: RegisteredScope,
+    root_path: String,
+}
+
+impl SelectedScope {
+    pub fn scope(&self) -> &RegisteredScope {
+        &self.scope
+    }
+
+    pub fn root_path(&self) -> &str {
+        &self.root_path
+    }
+}
+
+#[derive(Debug, Clone, PartialEq, Eq)]
+pub enum PickerError {
+    Root(RootError),
+    Source(RegistryError),
+    UnsupportedPlatform,
+    ApartmentUnavailable,
+    DialogFailed,
+    InvalidSelection,
+}
+
+impl fmt::Display for PickerError {
+    fn fmt(&self, f: &mut fmt::Formatter<'_>) -> fmt::Result {
+        match self {
+            Self::Root(error) => error.fmt(f),
+            Self::Source(error) => error.fmt(f),
+            error => write!(f, "{error:?} at /picker"),
+        }
+    }
+}
+
+impl std::error::Error for PickerError {}
+
+pub fn select_scope(
+    registry: &mut Registry,
+    scope_id: &OpaqueId,
+    options: &PickerOptions,
+) -> Result<Option<SelectedScope>, PickerError> {
+    #[cfg(all(target_os = "windows", target_arch = "x86_64"))]
+    {
+        let _initial = native::open_directory(scope_id, &options.initial_directory)
+            .map_err(PickerError::Root)?;
+        let Some(root_path) = crate::native_windows::choose(&options.initial_directory)? else {
+            return Ok(None);
+        };
+        let pending = registry
+            .prepare(&OpaqueId::new("picker-wrong-id").unwrap(), &root_path)
+            .map_err(PickerError::Source)?;
+        let scope = match registry.confirm(&pending) {
+            Ok(scope) => scope,
+            Err(error) => {
+                // This pending belongs only to this call. Preserve the original
+                // confirmation error, while releasing its slot and owned lease.
+                let _ = registry.decline(&pending);
+                return Err(PickerError::Source(error));
+            }
+        };
+        Ok(Some(SelectedScope { scope, root_path }))
+    }
+    #[cfg(not(all(target_os = "windows", target_arch = "x86_64")))]
+    {
+        let _ = (registry, scope_id, &options.initial_directory);
+        Err(PickerError::UnsupportedPlatform)
+    }
+}

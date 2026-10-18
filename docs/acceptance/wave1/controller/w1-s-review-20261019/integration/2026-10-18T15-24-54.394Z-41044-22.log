@@ -1,0 +1,50 @@
+--- stdout ---
+
+running 5 tests
+test picker_native_cancel ... ok
+test picker_native_confirm ... FAILED
+test picker_options_and_errors ... ok
+test picker_public_lifecycle ... FAILED
+test picker_registry_failures ... FAILED
+
+failures:
+
+failures:
+    picker_native_confirm
+    picker_public_lifecycle
+    picker_registry_failures
+
+test result: FAILED. 2 passed; 3 failed; 0 ignored; 0 measured; 0 filtered out; finished in 10.58s
+
+
+--- stderr ---
+WATER_PICKER_CASE cancel
+WATER_UI_WINDOW 8924 #32770 visible=True
+WATER_UI_ACTION 8924 cancel
+WATER_PICKER_CASE select
+WATER_UI_WINDOW 8924 #32770 visible=True
+WATER_UI_ACTION 8924 select
+
+thread 'picker_native_confirm' (35312) panicked at tests\picker_v1.rs:179:5:
+assertion `left == right` failed: S_BEHAVIOR S_REGISTERED selection remains registered
+  left: 0
+ right: 1
+note: run with `RUST_BACKTRACE=1` environment variable to display a backtrace
+WATER_PICKER_CASE select
+WATER_UI_WINDOW 8924 #32770 visible=True
+WATER_UI_ACTION 8924 select
+
+thread 'picker_public_lifecycle' (500) panicked at tests\picker_v1.rs:287:10:
+S_BEHAVIOR S_REGISTERED public begin: InvalidCapability
+WATER_PICKER_CASE select
+WATER_UI_WINDOW 8924 #32770 visible=True
+WATER_UI_ACTION 8924 select
+WATER_PICKER_CASE select
+WATER_UI_WINDOW 8924 #32770 visible=True
+WATER_UI_ACTION 8924 select
+WATER_PICKER_CASE select
+WATER_UI_WINDOW 8924 #32770 visible=True
+WATER_UI_ACTION 8924 select
+
+thread 'picker_registry_failures' (21152) panicked at tests\picker_v1.rs:233:5:
+S_BEHAVIOR S_SCOPE_ID duplicate ID rejected

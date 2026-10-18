@@ -1,0 +1,22 @@
+--- stdout ---
+
+running 3 tests
+test mta_rejection_preserves_host ... ok
+test nested_result_is_actual_selection ... ok
+test sta_nested_initialization_is_balanced ... ok
+
+test result: ok. 3 passed; 0 failed; 0 ignored; 0 measured; 0 filtered out; finished in 4.37s
+
+
+--- stderr ---
+WATER_REVIEW_APARTMENT Err(-2147221008)
+WATER_REVIEW_APARTMENT Err(-2147221008)
+WATER_PICKER_REVIEW_CASE nested
+WATER_REVIEW_SELECTED 2088 nested
+WATER_REVIEW_ACTION 2088 nested
+WATER_REVIEW_APARTMENT Ok((1, 1))
+WATER_PICKER_REVIEW_CASE cancel
+WATER_REVIEW_ACTION 2088 cancel
+WATER_PICKER_REVIEW_CASE cancel
+WATER_REVIEW_ACTION 2088 cancel
+WATER_REVIEW_APARTMENT Ok((1, 1))

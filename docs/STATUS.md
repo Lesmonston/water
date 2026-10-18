@@ -1,6 +1,6 @@
 # Water 状态与交接
 
-更新时间：2026-10-18（Asia/Tokyo）。
+更新时间：2026-10-19（Asia/Tokyo）。
 
 本次总控接手结果与后续事项见[接手验收摘要](CONTROLLER-HANDOFF-20261017.md)；当前任务状态仍以本页和registry/manifest为准。
 
@@ -21,9 +21,15 @@
 
 ## 下一步
 
-A–Q及五补单保持VERIFIED（Windows受控范围）；已收R受阻回执，真实A复现祖先保护契约冲突，补单01追加冻结/续做检查通过、READY待原执行者外贴。S原生选择、T脱敏预览下载、U内存Node清单三独立票已冻结、建树并各自实际baseline通过，READY可并行外贴。R/S/T/U新产品和五测试均未实现/运行，无自动实现者，M1仍未完成。旧票不重贴，见[R正式派前回执](dispatch/wave1/NATIVE-SCAN-READY-REPORT.md)。
+A–Q、S及五补单保持VERIFIED（Windows受控范围）。S原生目录选择已通过独立验收并集成；R补单01、T脱敏下载、U内存清单保持原波次分配，等待各自回执。没有自动实现者；原生宿主到R/报告页的完整用户闭环、真实用户scope、macOS和桌面尚未验收，M1仍未完成。
 
-## 本波派前通过（2026-10-18，最新）
+## S独立验收及集成通过（2026-10-19，最新）
+
+S接收fcf422a/原受测ececf1c，隔离受测9586a75已快进合入主线。五final复跑、私有离线构建和五测/格式/clippy/metadata/公开桥接、三个真实生产负控的完整五红→原字节恢复→五绿、三独立原生选择/COM用例、13编译拒绝与成功对照通过。385交付文件和291冻结保持。实际选择root/nested与初始root不同，真实GetResult路径和N/P身份逐项一致；MTA冲突保持宿主、STA嵌套初始化/释放按类型与限定符验证。
+
+原R补单/T/U及A–Q任务对象未改，无新派单/自动实现者。下一波纵向宿主接线等R/T验收，S不重贴；详[S总控验收](acceptance/wave1/controller/WATER-W1-S-REVIEW-20261019.md)。
+
+## 本波原派前通过（2026-10-18，历史，S已收口）
 
 R原受阻报告提交acefcf1，原基线/helper/255冻结保持；补单01正确修订为按实际已记录后代追加protected_descendant，controller-only c0e2025追加材料后resume通过。S/T/U同基线3d0faef、三独立干净树、94新锁/12继承锁/291唯一冻结及实际各自baseline通过。S真实窗口取消/结果→N/P；T实际24报告/9错误/点击下载；U现有serde离线和11golden/19raw输入，仅表示具备开工条件。四份外贴入口和原始证据见[本波正式回执](dispatch/wave1/PARALLEL-WAVE-READY-REPORT.md)。
 
