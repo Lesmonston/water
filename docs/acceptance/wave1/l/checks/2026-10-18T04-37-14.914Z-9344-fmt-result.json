@@ -1,0 +1,359 @@
+{
+  "task": "WATER-W1-L",
+  "mode": "fmt",
+  "finalGate": true,
+  "startedAt": "2026-10-18T04:37:16.530Z",
+  "before": {
+    "head": "7a545fd1a00d17116d435604233a8a4bd9d08651",
+    "status": ""
+  },
+  "node": "v24.16.0",
+  "productTestsRun": false,
+  "frozenFiles": 38,
+  "commands": [
+    {
+      "binary": "git",
+      "argv": [
+        "-c",
+        "core.hooksPath=NUL",
+        "-c",
+        "core.fsmonitor=false",
+        "rev-parse",
+        "--path-format=absolute",
+        "--git-common-dir"
+      ],
+      "exitCode": 0,
+      "error": null
+    },
+    {
+      "binary": "git",
+      "argv": [
+        "-c",
+        "core.hooksPath=NUL",
+        "-c",
+        "core.fsmonitor=false",
+        "branch",
+        "--show-current"
+      ],
+      "exitCode": 0,
+      "error": null
+    },
+    {
+      "binary": "git",
+      "argv": [
+        "-c",
+        "core.hooksPath=NUL",
+        "-c",
+        "core.fsmonitor=false",
+        "merge-base",
+        "--is-ancestor",
+        "82e158079066bf795fb89fafa933bc2d7fc00bd5",
+        "HEAD"
+      ],
+      "exitCode": 0,
+      "error": null
+    },
+    {
+      "binary": "git",
+      "argv": [
+        "-c",
+        "core.hooksPath=NUL",
+        "-c",
+        "core.fsmonitor=false",
+        "diff",
+        "--no-renames",
+        "--name-only",
+        "-z",
+        "82e158079066bf795fb89fafa933bc2d7fc00bd5",
+        "HEAD"
+      ],
+      "exitCode": 0,
+      "error": null
+    },
+    {
+      "binary": "git",
+      "argv": [
+        "-c",
+        "core.hooksPath=NUL",
+        "-c",
+        "core.fsmonitor=false",
+        "diff",
+        "--no-renames",
+        "--name-only",
+        "-z",
+        "HEAD"
+      ],
+      "exitCode": 0,
+      "error": null
+    },
+    {
+      "binary": "git",
+      "argv": [
+        "-c",
+        "core.hooksPath=NUL",
+        "-c",
+        "core.fsmonitor=false",
+        "ls-files",
+        "--others",
+        "--exclude-standard",
+        "-z"
+      ],
+      "exitCode": 0,
+      "error": null
+    },
+    {
+      "binary": "git",
+      "argv": [
+        "-c",
+        "core.hooksPath=NUL",
+        "-c",
+        "core.fsmonitor=false",
+        "rev-parse",
+        "HEAD"
+      ],
+      "exitCode": 0,
+      "error": null
+    },
+    {
+      "binary": "git",
+      "argv": [
+        "-c",
+        "core.hooksPath=NUL",
+        "-c",
+        "core.fsmonitor=false",
+        "status",
+        "--porcelain",
+        "--untracked-files=all"
+      ],
+      "exitCode": 0,
+      "error": null
+    },
+    {
+      "binary": "C:\\Users\\37310\\.cargo\\bin\\rustup.exe",
+      "argv": [
+        "which",
+        "rustc",
+        "--toolchain",
+        "1.95.0"
+      ],
+      "exitCode": 0,
+      "error": null,
+      "log": "2026-10-18T04-37-14.914Z-9344-fmt-1.log"
+    },
+    {
+      "binary": "C:\\Users\\37310\\.cargo\\bin\\rustup.exe",
+      "argv": [
+        "which",
+        "cargo",
+        "--toolchain",
+        "1.95.0"
+      ],
+      "exitCode": 0,
+      "error": null,
+      "log": "2026-10-18T04-37-14.914Z-9344-fmt-2.log"
+    },
+    {
+      "binary": "C:\\Users\\37310\\.rustup\\toolchains\\1.95.0-x86_64-pc-windows-msvc\\bin\\rustc.exe",
+      "argv": [
+        "--version"
+      ],
+      "exitCode": 0,
+      "error": null,
+      "log": "2026-10-18T04-37-14.914Z-9344-fmt-3.log"
+    },
+    {
+      "binary": "C:\\Users\\37310\\.rustup\\toolchains\\1.95.0-x86_64-pc-windows-msvc\\bin\\cargo.exe",
+      "argv": [
+        "metadata",
+        "--offline",
+        "--locked",
+        "--format-version",
+        "1",
+        "--manifest-path",
+        "F:\\new\\smaltalk\\water\\.worktrees\\l\\packages\\project-evidence\\Cargo.toml"
+      ],
+      "exitCode": 0,
+      "error": null,
+      "log": "2026-10-18T04-37-14.914Z-9344-fmt-4.log"
+    },
+    {
+      "binary": "C:\\Users\\37310\\.rustup\\toolchains\\1.95.0-x86_64-pc-windows-msvc\\bin\\cargo.exe",
+      "argv": [
+        "fmt",
+        "--manifest-path",
+        "F:\\new\\smaltalk\\water\\.worktrees\\l\\packages\\project-evidence\\Cargo.toml",
+        "--",
+        "--check"
+      ],
+      "exitCode": 0,
+      "error": null,
+      "log": "2026-10-18T04-37-14.914Z-9344-fmt-5.log"
+    },
+    {
+      "binary": "git",
+      "argv": [
+        "-c",
+        "core.hooksPath=NUL",
+        "-c",
+        "core.fsmonitor=false",
+        "branch",
+        "--show-current"
+      ],
+      "exitCode": 0,
+      "error": null,
+      "log": "2026-10-18T04-37-14.914Z-9344-fmt-6.log"
+    },
+    {
+      "binary": "git",
+      "argv": [
+        "-c",
+        "core.hooksPath=NUL",
+        "-c",
+        "core.fsmonitor=false",
+        "merge-base",
+        "--is-ancestor",
+        "82e158079066bf795fb89fafa933bc2d7fc00bd5",
+        "HEAD"
+      ],
+      "exitCode": 0,
+      "error": null,
+      "log": "2026-10-18T04-37-14.914Z-9344-fmt-7.log"
+    },
+    {
+      "binary": "git",
+      "argv": [
+        "-c",
+        "core.hooksPath=NUL",
+        "-c",
+        "core.fsmonitor=false",
+        "diff",
+        "--no-renames",
+        "--name-only",
+        "-z",
+        "82e158079066bf795fb89fafa933bc2d7fc00bd5",
+        "HEAD"
+      ],
+      "exitCode": 0,
+      "error": null,
+      "log": "2026-10-18T04-37-14.914Z-9344-fmt-8.log"
+    },
+    {
+      "binary": "git",
+      "argv": [
+        "-c",
+        "core.hooksPath=NUL",
+        "-c",
+        "core.fsmonitor=false",
+        "diff",
+        "--no-renames",
+        "--name-only",
+        "-z",
+        "HEAD"
+      ],
+      "exitCode": 0,
+      "error": null,
+      "log": "2026-10-18T04-37-14.914Z-9344-fmt-9.log"
+    },
+    {
+      "binary": "git",
+      "argv": [
+        "-c",
+        "core.hooksPath=NUL",
+        "-c",
+        "core.fsmonitor=false",
+        "ls-files",
+        "--others",
+        "--exclude-standard",
+        "-z"
+      ],
+      "exitCode": 0,
+      "error": null,
+      "log": "2026-10-18T04-37-14.914Z-9344-fmt-10.log"
+    },
+    {
+      "binary": "git",
+      "argv": [
+        "-c",
+        "core.hooksPath=NUL",
+        "-c",
+        "core.fsmonitor=false",
+        "rev-parse",
+        "HEAD"
+      ],
+      "exitCode": 0,
+      "error": null,
+      "log": "2026-10-18T04-37-14.914Z-9344-fmt-11.log"
+    },
+    {
+      "binary": "git",
+      "argv": [
+        "-c",
+        "core.hooksPath=NUL",
+        "-c",
+        "core.fsmonitor=false",
+        "status",
+        "--porcelain",
+        "--untracked-files=all"
+      ],
+      "exitCode": 0,
+      "error": null,
+      "log": "2026-10-18T04-37-14.914Z-9344-fmt-12.log"
+    }
+  ],
+  "sourceState": {
+    "files": [
+      {
+        "path": "packages/project-evidence/src/lib.rs",
+        "sha256": "f794758eb4e2826334133088b76b6520320dc5cd359525cb379a714cc46af8c4",
+        "mtimeMs": 1792297819304.488,
+        "snapshot": "2026-10-18T04-37-14.914Z-9344-fmt-source-0.txt",
+        "test": false
+      },
+      {
+        "path": "packages/project-evidence/src/v1.rs",
+        "sha256": "d59c3b78288580f802ef450244dd24832cae9fa52d981c971a1f9314eab44f57",
+        "mtimeMs": 1792298206923.8115,
+        "snapshot": "2026-10-18T04-37-14.914Z-9344-fmt-source-1.txt",
+        "test": false
+      },
+      {
+        "path": "packages/project-evidence/tests/evidence_v1.rs",
+        "sha256": "336d33c8fb2e937ee9a78902235008cc277f5b78c6813eae3dcee4427a7225e3",
+        "mtimeMs": 1792297930603.2205,
+        "snapshot": "2026-10-18T04-37-14.914Z-9344-fmt-source-2.txt",
+        "test": true
+      }
+    ],
+    "productionHash": "669fee774df737fda9c5e0c0c2d2aacac393af4eea59aca2b817b7c9c8003da8",
+    "testHash": "d31429ce401f0bafefd46dfbc76cb809f407da7b6ab69a15f6cee9a512767118"
+  },
+  "proofAudit": [
+    {
+      "label": "behavior",
+      "red": "2026-10-18T04-32-11.141Z-34424-red-behavior-result.json",
+      "restored": "2026-10-18T04-34-58.716Z-632-suite-result.json"
+    },
+    {
+      "label": "nc1",
+      "red": "2026-10-18T04-35-22.692Z-2092-red-nc1-result.json",
+      "restored": "2026-10-18T04-35-36.009Z-12304-suite-result.json"
+    },
+    {
+      "label": "nc2",
+      "red": "2026-10-18T04-35-52.521Z-40860-red-nc2-result.json",
+      "restored": "2026-10-18T04-36-13.380Z-26584-suite-result.json"
+    },
+    {
+      "label": "nc3",
+      "red": "2026-10-18T04-36-31.639Z-34464-red-nc3-result.json",
+      "restored": "2026-10-18T04-36-47.641Z-28188-suite-result.json"
+    }
+  ],
+  "after": {
+    "head": "7a545fd1a00d17116d435604233a8a4bd9d08651",
+    "status": ""
+  },
+  "endedAt": "2026-10-18T04:37:18.812Z",
+  "status": "passed",
+  "error": null
+}

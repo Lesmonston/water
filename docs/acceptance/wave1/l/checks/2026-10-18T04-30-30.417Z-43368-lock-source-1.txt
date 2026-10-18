@@ -1,0 +1,114 @@
+//! Filename observations do not establish format, ownership, or permission.
+
+use serde::Serialize;
+use serde_json::Value;
+use std::fmt;
+use water_contracts::v1::{Coverage, OpaqueId, Platform, Risk, ScanStatus, ScanTotals};
+use water_scan_report::v1::{AssemblyError, ReportContext, assemble_json};
+
+const MAX_OUTPUT_BYTES: usize = 33_554_432;
+
+#[derive(Debug, Clone, PartialEq, Eq)]
+pub enum AnalysisError {
+    Source(AssemblyError),
+    OutputTooLarge,
+    SerializationFailed,
+}
+
+impl fmt::Display for AnalysisError {
+    fn fmt(&self, formatter: &mut fmt::Formatter<'_>) -> fmt::Result {
+        match self {
+            Self::Source(error) => error.fmt(formatter),
+            Self::OutputTooLarge => formatter.write_str("OutputTooLarge at /analysis"),
+            Self::SerializationFailed => formatter.write_str("SerializationFailed at /analysis"),
+        }
+    }
+}
+
+impl std::error::Error for AnalysisError {
+    fn source(&self) -> Option<&(dyn std::error::Error + 'static)> {
+        match self {
+            Self::Source(error) => Some(error),
+            _ => None,
+        }
+    }
+}
+
+#[derive(Debug, Clone, PartialEq, Serialize)]
+pub struct ProjectEvidence {
+    evidence_version: &'static str,
+    rules_version: &'static str,
+    read_only: bool,
+    scan_id: OpaqueId,
+    source_run_id: String,
+    platform: Platform,
+    status: ScanStatus,
+    source_facts: Value,
+    source_totals: ScanTotals,
+    counts: Counts,
+    candidates: Vec<Candidate>,
+}
+
+#[derive(Debug, Clone, PartialEq, Serialize)]
+struct Counts {
+    scopes: u32,
+    entries: u32,
+    candidates: u32,
+    non_file_marker_names: u32,
+}
+
+#[derive(Debug, Clone, PartialEq, Serialize)]
+struct Candidate {
+    finding_id: OpaqueId,
+    scope_id: OpaqueId,
+    relative_path: String,
+    parent_relative_path: String,
+    rule_id: &'static str,
+    ecosystem: &'static str,
+    evidence_strength: &'static str,
+    format_verified: bool,
+    tool_version_known: bool,
+    project_membership_verified: bool,
+    scope_coverage: Coverage,
+    action: &'static str,
+    risk: Risk,
+}
+
+/// Validate the original JSON with G before deriving any evidence.
+pub fn analyze_json(
+    input: &str,
+    context: &ReportContext,
+) -> Result<ProjectEvidence, AnalysisError> {
+    let bundle = assemble_json(input, context).map_err(AnalysisError::Source)?;
+    let report = bundle.report();
+    let facts = bundle.source_facts();
+    let output = ProjectEvidence {
+        evidence_version: "water.project-evidence.v1",
+        rules_version: "water.project-marker-rules.v1",
+        read_only: true,
+        scan_id: report.scan_id.clone(),
+        source_run_id: facts["run_id"].as_str().unwrap().to_owned(),
+        platform: context.platform.clone(),
+        status: report.status.clone(),
+        source_facts: facts.clone(),
+        source_totals: report.totals.clone(),
+        counts: Counts {
+            scopes: report.scopes.len() as u32,
+            entries: report.totals.scanned_entries,
+            candidates: 0,
+            non_file_marker_names: 0,
+        },
+        candidates: Vec::new(),
+    };
+    to_json(&output)?;
+    Ok(output)
+}
+
+/// Encode the complete sidecar, retaining relative identifiers and unknowns.
+pub fn to_json(output: &ProjectEvidence) -> Result<String, AnalysisError> {
+    let encoded = serde_json::to_string(output).map_err(|_| AnalysisError::SerializationFailed)?;
+    if encoded.len() > MAX_OUTPUT_BYTES {
+        return Err(AnalysisError::OutputTooLarge);
+    }
+    Ok(encoded)
+}

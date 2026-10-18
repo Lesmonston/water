@@ -1,0 +1,18 @@
+{"binary":"C:\\Users\\37310\\.rustup\\toolchains\\1.95.0-x86_64-pc-windows-msvc\\bin\\cargo.exe","argv":["fmt","--manifest-path","F:\\new\\smaltalk\\water\\.worktrees\\l\\packages\\project-evidence\\Cargo.toml","--","--check"],"exitCode":1,"error":null,"log":"2026-10-18T04-33-23.553Z-8988-fmt-5.log"}
+--- stdout ---
+Diff in \\?\F:\new\smaltalk\water\.worktrees\l\packages\project-evidence\src\v1.rs:86:
+     let mut non_file_marker_names = 0;
+     let mut findings = report.findings.iter();
+     // These shapes and the exact scope/entry correspondence are guaranteed by G.
+-    for (scope, descriptor) in facts["scopes"].as_array().unwrap().iter().zip(&report.scopes) {
++    for (scope, descriptor) in facts["scopes"]
++        .as_array()
++        .unwrap()
++        .iter()
++        .zip(&report.scopes)
++    {
+         for entry in scope["entries"].as_array().unwrap() {
+             let finding = findings.next().unwrap();
+             let path = finding.relative_path.as_str();
+
+--- stderr ---

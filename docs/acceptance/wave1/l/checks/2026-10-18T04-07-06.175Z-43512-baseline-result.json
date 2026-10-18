@@ -1,0 +1,367 @@
+{
+  "task": "WATER-W1-L",
+  "mode": "baseline",
+  "finalGate": false,
+  "startedAt": "2026-10-18T04:07:07.815Z",
+  "before": {
+    "head": "82e158079066bf795fb89fafa933bc2d7fc00bd5",
+    "status": ""
+  },
+  "node": "v24.16.0",
+  "productTestsRun": false,
+  "frozenFiles": 38,
+  "commands": [
+    {
+      "binary": "git",
+      "argv": [
+        "-c",
+        "core.hooksPath=NUL",
+        "-c",
+        "core.fsmonitor=false",
+        "rev-parse",
+        "--path-format=absolute",
+        "--git-common-dir"
+      ],
+      "exitCode": 0,
+      "error": null
+    },
+    {
+      "binary": "git",
+      "argv": [
+        "-c",
+        "core.hooksPath=NUL",
+        "-c",
+        "core.fsmonitor=false",
+        "branch",
+        "--show-current"
+      ],
+      "exitCode": 0,
+      "error": null
+    },
+    {
+      "binary": "git",
+      "argv": [
+        "-c",
+        "core.hooksPath=NUL",
+        "-c",
+        "core.fsmonitor=false",
+        "merge-base",
+        "--is-ancestor",
+        "82e158079066bf795fb89fafa933bc2d7fc00bd5",
+        "HEAD"
+      ],
+      "exitCode": 0,
+      "error": null
+    },
+    {
+      "binary": "git",
+      "argv": [
+        "-c",
+        "core.hooksPath=NUL",
+        "-c",
+        "core.fsmonitor=false",
+        "diff",
+        "--no-renames",
+        "--name-only",
+        "-z",
+        "82e158079066bf795fb89fafa933bc2d7fc00bd5",
+        "HEAD"
+      ],
+      "exitCode": 0,
+      "error": null
+    },
+    {
+      "binary": "git",
+      "argv": [
+        "-c",
+        "core.hooksPath=NUL",
+        "-c",
+        "core.fsmonitor=false",
+        "diff",
+        "--no-renames",
+        "--name-only",
+        "-z",
+        "HEAD"
+      ],
+      "exitCode": 0,
+      "error": null
+    },
+    {
+      "binary": "git",
+      "argv": [
+        "-c",
+        "core.hooksPath=NUL",
+        "-c",
+        "core.fsmonitor=false",
+        "ls-files",
+        "--others",
+        "--exclude-standard",
+        "-z"
+      ],
+      "exitCode": 0,
+      "error": null
+    },
+    {
+      "binary": "git",
+      "argv": [
+        "-c",
+        "core.hooksPath=NUL",
+        "-c",
+        "core.fsmonitor=false",
+        "rev-parse",
+        "HEAD"
+      ],
+      "exitCode": 0,
+      "error": null
+    },
+    {
+      "binary": "git",
+      "argv": [
+        "-c",
+        "core.hooksPath=NUL",
+        "-c",
+        "core.fsmonitor=false",
+        "status",
+        "--porcelain",
+        "--untracked-files=all"
+      ],
+      "exitCode": 0,
+      "error": null
+    },
+    {
+      "binary": "C:\\Users\\37310\\.cargo\\bin\\rustup.exe",
+      "argv": [
+        "which",
+        "rustc",
+        "--toolchain",
+        "1.95.0"
+      ],
+      "exitCode": 0,
+      "error": null,
+      "log": "2026-10-18T04-07-06.175Z-43512-baseline-1.log"
+    },
+    {
+      "binary": "C:\\Users\\37310\\.cargo\\bin\\rustup.exe",
+      "argv": [
+        "which",
+        "cargo",
+        "--toolchain",
+        "1.95.0"
+      ],
+      "exitCode": 0,
+      "error": null,
+      "log": "2026-10-18T04-07-06.175Z-43512-baseline-2.log"
+    },
+    {
+      "binary": "C:\\Users\\37310\\.rustup\\toolchains\\1.95.0-x86_64-pc-windows-msvc\\bin\\rustc.exe",
+      "argv": [
+        "--version"
+      ],
+      "exitCode": 0,
+      "error": null,
+      "log": "2026-10-18T04-07-06.175Z-43512-baseline-3.log"
+    },
+    {
+      "binary": "C:\\Users\\37310\\.rustup\\toolchains\\1.95.0-x86_64-pc-windows-msvc\\bin\\cargo.exe",
+      "argv": [
+        "metadata",
+        "--offline",
+        "--locked",
+        "--format-version",
+        "1",
+        "--manifest-path",
+        "packages/scan-report/Cargo.toml"
+      ],
+      "exitCode": 0,
+      "error": null,
+      "log": "2026-10-18T04-07-06.175Z-43512-baseline-4.log"
+    },
+    {
+      "binary": "C:\\Users\\37310\\.rustup\\toolchains\\1.95.0-x86_64-pc-windows-msvc\\bin\\cargo.exe",
+      "argv": [
+        "build",
+        "--offline",
+        "--locked",
+        "--lib",
+        "--message-format=json",
+        "--manifest-path",
+        "packages/scan-report/Cargo.toml"
+      ],
+      "exitCode": 0,
+      "error": null,
+      "log": "2026-10-18T04-07-06.175Z-43512-baseline-5.log"
+    },
+    {
+      "binary": "C:\\Users\\37310\\.rustup\\toolchains\\1.95.0-x86_64-pc-windows-msvc\\bin\\rustc.exe",
+      "argv": [
+        "--edition=2024",
+        "--crate-name",
+        "evidence_source_probe",
+        "scripts/acceptance/evidence-source-probe.rs",
+        "-L",
+        "dependency=F:\\new\\smaltalk\\water\\.worktrees\\l\\.local\\evidence-target\\debug\\deps",
+        "--extern",
+        "water_scan_report=F:\\new\\smaltalk\\water\\.worktrees\\l\\.local\\evidence-target\\debug\\libwater_scan_report.rlib",
+        "--extern",
+        "water_contracts=F:\\new\\smaltalk\\water\\.worktrees\\l\\.local\\evidence-target\\debug\\deps\\libwater_contracts-762a56e9cc56c8ae.rlib",
+        "--extern",
+        "serde_json=F:\\new\\smaltalk\\water\\.worktrees\\l\\.local\\evidence-target\\debug\\deps\\libserde_json-c243626af514ec1f.rlib",
+        "-o",
+        "F:\\new\\smaltalk\\water\\.worktrees\\l\\.local\\evidence-tmp\\2026-10-18T04-07-06.175Z-43512-source-probe.exe"
+      ],
+      "exitCode": 0,
+      "error": null,
+      "log": "2026-10-18T04-07-06.175Z-43512-baseline-6.log"
+    },
+    {
+      "binary": "F:\\new\\smaltalk\\water\\.worktrees\\l\\.local\\evidence-tmp\\2026-10-18T04-07-06.175Z-43512-source-probe.exe",
+      "argv": [],
+      "exitCode": 0,
+      "error": null,
+      "log": "2026-10-18T04-07-06.175Z-43512-baseline-7.log"
+    },
+    {
+      "binary": "git",
+      "argv": [
+        "-c",
+        "core.hooksPath=NUL",
+        "-c",
+        "core.fsmonitor=false",
+        "branch",
+        "--show-current"
+      ],
+      "exitCode": 0,
+      "error": null,
+      "log": "2026-10-18T04-07-06.175Z-43512-baseline-8.log"
+    },
+    {
+      "binary": "git",
+      "argv": [
+        "-c",
+        "core.hooksPath=NUL",
+        "-c",
+        "core.fsmonitor=false",
+        "merge-base",
+        "--is-ancestor",
+        "82e158079066bf795fb89fafa933bc2d7fc00bd5",
+        "HEAD"
+      ],
+      "exitCode": 0,
+      "error": null,
+      "log": "2026-10-18T04-07-06.175Z-43512-baseline-9.log"
+    },
+    {
+      "binary": "git",
+      "argv": [
+        "-c",
+        "core.hooksPath=NUL",
+        "-c",
+        "core.fsmonitor=false",
+        "diff",
+        "--no-renames",
+        "--name-only",
+        "-z",
+        "82e158079066bf795fb89fafa933bc2d7fc00bd5",
+        "HEAD"
+      ],
+      "exitCode": 0,
+      "error": null,
+      "log": "2026-10-18T04-07-06.175Z-43512-baseline-10.log"
+    },
+    {
+      "binary": "git",
+      "argv": [
+        "-c",
+        "core.hooksPath=NUL",
+        "-c",
+        "core.fsmonitor=false",
+        "diff",
+        "--no-renames",
+        "--name-only",
+        "-z",
+        "HEAD"
+      ],
+      "exitCode": 0,
+      "error": null,
+      "log": "2026-10-18T04-07-06.175Z-43512-baseline-11.log"
+    },
+    {
+      "binary": "git",
+      "argv": [
+        "-c",
+        "core.hooksPath=NUL",
+        "-c",
+        "core.fsmonitor=false",
+        "ls-files",
+        "--others",
+        "--exclude-standard",
+        "-z"
+      ],
+      "exitCode": 0,
+      "error": null,
+      "log": "2026-10-18T04-07-06.175Z-43512-baseline-12.log"
+    },
+    {
+      "binary": "git",
+      "argv": [
+        "-c",
+        "core.hooksPath=NUL",
+        "-c",
+        "core.fsmonitor=false",
+        "rev-parse",
+        "HEAD"
+      ],
+      "exitCode": 0,
+      "error": null,
+      "log": "2026-10-18T04-07-06.175Z-43512-baseline-13.log"
+    },
+    {
+      "binary": "git",
+      "argv": [
+        "-c",
+        "core.hooksPath=NUL",
+        "-c",
+        "core.fsmonitor=false",
+        "status",
+        "--porcelain",
+        "--untracked-files=all"
+      ],
+      "exitCode": 0,
+      "error": null,
+      "log": "2026-10-18T04-07-06.175Z-43512-baseline-14.log"
+    }
+  ],
+  "cacheCopiedFrom": "F:\\new\\smaltalk\\water\\.worktrees\\a\\.local\\cargo-home\\registry",
+  "cargoArtifacts": [
+    {
+      "crate": "water_scan_report",
+      "packageId": "path+file:///F:/new/smaltalk/water/.worktrees/l/packages/scan-report#water-scan-report@0.1.0",
+      "filename": "F:\\new\\smaltalk\\water\\.worktrees\\l\\.local\\evidence-target\\debug\\libwater_scan_report.rlib"
+    },
+    {
+      "crate": "water_contracts",
+      "packageId": "path+file:///F:/new/smaltalk/water/.worktrees/l/crates/water-contracts#0.1.0",
+      "filename": "F:\\new\\smaltalk\\water\\.worktrees\\l\\.local\\evidence-target\\debug\\deps\\libwater_contracts-762a56e9cc56c8ae.rlib"
+    },
+    {
+      "crate": "serde_json",
+      "packageId": "registry+https://github.com/rust-lang/crates.io-index#serde_json@1.0.151",
+      "filename": "F:\\new\\smaltalk\\water\\.worktrees\\l\\.local\\evidence-target\\debug\\deps\\libserde_json-c243626af514ec1f.rlib"
+    }
+  ],
+  "assets": {
+    "validatedProjectInputs": 10,
+    "validatedLedgerInputs": 15,
+    "sourceErrors": 11,
+    "realGAndA": true,
+    "newProductsTested": false,
+    "filesystemScanned": false
+  },
+  "after": {
+    "head": "82e158079066bf795fb89fafa933bc2d7fc00bd5",
+    "status": ""
+  },
+  "endedAt": "2026-10-18T04:08:10.583Z",
+  "status": "passed",
+  "error": null
+}
