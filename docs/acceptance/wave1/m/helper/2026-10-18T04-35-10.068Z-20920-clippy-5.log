@@ -1,0 +1,32 @@
+{"binary":"C:\\Users\\37310\\.rustup\\toolchains\\1.95.0-x86_64-pc-windows-msvc\\bin\\cargo.exe","argv":["clippy","--offline","--locked","--manifest-path","F:\\new\\smaltalk\\water\\.worktrees\\m\\packages\\size-ledger\\Cargo.toml","-p","water-size-ledger","--all-targets","--","-D","warnings"],"exitCode":101,"error":null,"log":"2026-10-18T04-35-10.068Z-20920-clippy-5.log"}
+--- stdout ---
+
+--- stderr ---
+    Checking serde_core v1.0.229
+    Checking zmij v1.0.23
+    Checking memchr v2.8.3
+    Checking itoa v1.0.18
+    Checking serde_json v1.0.151
+    Checking serde v1.0.229
+    Checking water-contracts v0.1.0 (F:\new\smaltalk\water\.worktrees\m\crates\water-contracts)
+    Checking water-scan-report v0.1.0 (F:\new\smaltalk\water\.worktrees\m\packages\scan-report)
+    Checking water-size-ledger v0.1.0 (F:\new\smaltalk\water\.worktrees\m\packages\size-ledger)
+error: using `clone` on type `Platform` which implements the `Copy` trait
+   --> src\v1.rs:234:19
+    |
+234 |         platform: context.platform.clone(),
+    |                   ^^^^^^^^^^^^^^^^^^^^^^^^ help: try removing the `clone` call: `context.platform`
+    |
+    = help: for further information visit https://rust-lang.github.io/rust-clippy/rust-1.95.0/index.html#clone_on_copy
+    = note: `-D clippy::clone-on-copy` implied by `-D warnings`
+    = help: to override `-D warnings` add `#[allow(clippy::clone_on_copy)]`
+
+error: using `clone` on type `ScanStatus` which implements the `Copy` trait
+   --> src\v1.rs:235:17
+    |
+235 |         status: report.status.clone(),
+    |                 ^^^^^^^^^^^^^^^^^^^^^ help: try removing the `clone` call: `report.status`
+    |
+    = help: for further information visit https://rust-lang.github.io/rust-clippy/rust-1.95.0/index.html#clone_on_copy
+
+error: could not compile `water-size-ledger` (lib) due to 2 previous errors

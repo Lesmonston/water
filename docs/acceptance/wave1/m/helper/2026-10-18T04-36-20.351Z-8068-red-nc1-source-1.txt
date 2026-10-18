@@ -1,0 +1,260 @@
+//! Logical lengths describe observations, never allocated or reclaimable space.
+
+use serde::Serialize;
+use serde_json::Value;
+use std::collections::{BTreeSet, HashMap};
+use std::fmt;
+use water_contracts::v1::{OpaqueId, Platform, ScanStatus, ScanTotals};
+use water_scan_report::v1::{AssemblyError, ReportContext, assemble_json};
+
+const MAX_OUTPUT_BYTES: usize = 33_554_432;
+
+#[derive(Debug, Clone, PartialEq, Eq)]
+pub enum AnalysisError {
+    Source(AssemblyError),
+    OutputTooLarge,
+    SerializationFailed,
+}
+
+impl fmt::Display for AnalysisError {
+    fn fmt(&self, formatter: &mut fmt::Formatter<'_>) -> fmt::Result {
+        match self {
+            Self::Source(error) => error.fmt(formatter),
+            Self::OutputTooLarge => formatter.write_str("OutputTooLarge at /analysis"),
+            Self::SerializationFailed => formatter.write_str("SerializationFailed at /analysis"),
+        }
+    }
+}
+
+impl std::error::Error for AnalysisError {
+    fn source(&self) -> Option<&(dyn std::error::Error + 'static)> {
+        match self {
+            Self::Source(error) => Some(error),
+            _ => None,
+        }
+    }
+}
+
+#[derive(Debug, Clone, PartialEq, Serialize)]
+struct Counts {
+    scopes: u32,
+    entries: u32,
+    file_entries: u32,
+    non_file_entries: u32,
+    known_identity_file_entries: u32,
+    unknown_identity_file_entries: u32,
+    known_identity_groups: u32,
+    conflicting_identity_groups: u32,
+}
+
+#[derive(Debug, Clone, PartialEq, Serialize)]
+struct EntryRef {
+    finding_id: OpaqueId,
+    scope_id: OpaqueId,
+}
+
+#[derive(Debug, Clone, PartialEq, Serialize)]
+struct IdentityGroup {
+    device: String,
+    inode: String,
+    state: &'static str,
+    logical_bytes: Option<String>,
+    logical_byte_values: Vec<String>,
+    link_count_values: Vec<String>,
+    entry_refs: Vec<EntryRef>,
+}
+
+/// An immutable sidecar. Serialize for inspection; full facts are not redacted.
+#[derive(Debug, Clone, PartialEq, Serialize)]
+pub struct SizeLedger {
+    ledger_version: &'static str,
+    read_only: bool,
+    scan_id: OpaqueId,
+    source_run_id: String,
+    platform: Platform,
+    status: ScanStatus,
+    source_facts: Value,
+    source_totals: ScanTotals,
+    counts: Counts,
+    scope_coverage_complete: bool,
+    observed_file_logical_bytes: String,
+    known_identity_logical_bytes: Option<String>,
+    unknown_identity_observed_logical_bytes: String,
+    identity_deduplicated_logical_bytes: Option<String>,
+    observed_set_identity_complete: bool,
+    volume_unique_allocated_bytes: Option<String>,
+    reclaimable_bytes: Option<String>,
+    identity_groups: Vec<IdentityGroup>,
+    unknown_identity_entries: Vec<EntryRef>,
+}
+
+struct GroupBuilder {
+    device: u64,
+    inode: u64,
+    lengths: BTreeSet<u64>,
+    link_counts: BTreeSet<u64>,
+    entry_refs: Vec<EntryRef>,
+}
+
+fn validated_number(value: &Value) -> u64 {
+    value
+        .as_str()
+        .expect("G validates decimal strings")
+        .parse()
+        .expect("G validates u64 range")
+}
+
+fn checked_sum(current: u128, value: u64) -> u128 {
+    current
+        .checked_add(u128::from(value))
+        .expect("G bounds sums to at most 10000 u64 lengths")
+}
+
+fn count(value: usize) -> u32 {
+    u32::try_from(value).expect("G bounds all counts below u32 maximum")
+}
+
+pub fn analyze_json(input: &str, context: &ReportContext) -> Result<SizeLedger, AnalysisError> {
+    // Pass the original text, preserving duplicate keys for G's strict parser.
+    let bundle = assemble_json(input, context).map_err(AnalysisError::Source)?;
+    let report = bundle.report();
+    let facts = bundle.source_facts();
+    let mut counts = Counts {
+        scopes: count(report.scopes.len()),
+        entries: count(report.findings.len()),
+        file_entries: 0,
+        non_file_entries: 0,
+        known_identity_file_entries: 0,
+        unknown_identity_file_entries: 0,
+        known_identity_groups: 0,
+        conflicting_identity_groups: 0,
+    };
+    let mut observed_sum = 0;
+    let mut unknown_sum = 0;
+    let mut unknown_identity_entries = Vec::new();
+    let mut builders: Vec<GroupBuilder> = Vec::new();
+    let mut group_indices = HashMap::new();
+    let mut findings = report.findings.iter();
+    for scope in facts["scopes"].as_array().expect("G validates scopes") {
+        for entry in scope["entries"].as_array().expect("G validates entries") {
+            let finding = findings.next().expect("G maps every recorded entry");
+            if entry["kind"] != "file" {
+                counts.non_file_entries += 1;
+                continue;
+            }
+            counts.file_entries += 1;
+            let length = validated_number(&entry["logical_bytes"]);
+            observed_sum = checked_sum(observed_sum, length);
+            let entry_ref = EntryRef {
+                finding_id: finding.finding_id.clone(),
+                scope_id: finding.scope_id.clone(),
+            };
+            let identity = &entry["identity"];
+            if identity["kind"] == "unknown" {
+                counts.unknown_identity_file_entries += 1;
+                unknown_sum = checked_sum(unknown_sum, length);
+                unknown_identity_entries.push(entry_ref);
+            } else {
+                // G permits Unix identities only in a macOS context, for files
+                // and directories; directories have already been excluded.
+                counts.known_identity_file_entries += 1;
+                let device = validated_number(&identity["device"]);
+                let inode = validated_number(&identity["inode"]);
+                let index = *group_indices.entry((device, inode)).or_insert_with(|| {
+                    let index = builders.len();
+                    builders.push(GroupBuilder {
+                        device,
+                        inode,
+                        lengths: BTreeSet::new(),
+                        link_counts: BTreeSet::new(),
+                        entry_refs: Vec::new(),
+                    });
+                    index
+                });
+                let builder = &mut builders[index];
+                builder.lengths.insert(length);
+                builder
+                    .link_counts
+                    .insert(validated_number(&identity["link_count"]));
+                builder.entry_refs.push(entry_ref);
+            }
+        }
+    }
+    counts.known_identity_groups = count(builders.len());
+    let mut known_sum = 0;
+    let mut identity_groups = Vec::with_capacity(builders.len());
+    for builder in builders {
+        let consistent = builder.lengths.len() == 1 && builder.link_counts.len() == 1;
+        let logical_bytes = if consistent {
+            let length = *builder
+                .lengths
+                .first()
+                .expect("every group contains a file");
+            known_sum = checked_sum(known_sum, length);
+            Some(length.to_string())
+        } else {
+            counts.conflicting_identity_groups += 1;
+            None
+        };
+        identity_groups.push(IdentityGroup {
+            device: builder.device.to_string(),
+            inode: builder.inode.to_string(),
+            state: if consistent {
+                "consistent"
+            } else {
+                "conflicting"
+            },
+            logical_bytes,
+            logical_byte_values: builder.lengths.into_iter().map(|v| v.to_string()).collect(),
+            link_count_values: builder
+                .link_counts
+                .into_iter()
+                .map(|v| v.to_string())
+                .collect(),
+            entry_refs: builder.entry_refs,
+        });
+    }
+    let known_identity_logical_bytes =
+        (counts.conflicting_identity_groups == 0).then(|| known_sum.to_string());
+    let observed_set_identity_complete =
+        counts.unknown_identity_file_entries == 0 && counts.conflicting_identity_groups == 0;
+    let identity_deduplicated_logical_bytes = if observed_set_identity_complete {
+        known_identity_logical_bytes.clone()
+    } else {
+        Some(observed_sum.to_string())
+    };
+    let ledger = SizeLedger {
+        ledger_version: "water.size-ledger.v1",
+        read_only: true,
+        scan_id: report.scan_id.clone(),
+        source_run_id: facts["run_id"]
+            .as_str()
+            .expect("G validates run ID")
+            .to_owned(),
+        platform: context.platform,
+        status: report.status,
+        source_facts: facts.clone(),
+        source_totals: report.totals.clone(),
+        counts,
+        scope_coverage_complete: report.status == ScanStatus::Completed,
+        observed_file_logical_bytes: observed_sum.to_string(),
+        known_identity_logical_bytes,
+        unknown_identity_observed_logical_bytes: unknown_sum.to_string(),
+        identity_deduplicated_logical_bytes,
+        observed_set_identity_complete,
+        volume_unique_allocated_bytes: None,
+        reclaimable_bytes: None,
+        identity_groups,
+        unknown_identity_entries,
+    };
+    to_json(&ledger)?;
+    Ok(ledger)
+}
+
+pub fn to_json(output: &SizeLedger) -> Result<String, AnalysisError> {
+    let json = serde_json::to_string(output).map_err(|_| AnalysisError::SerializationFailed)?;
+    if json.len() > MAX_OUTPUT_BYTES {
+        return Err(AnalysisError::OutputTooLarge);
+    }
+    Ok(json)
+}
