@@ -4,7 +4,7 @@
   "mode": "manual-external-paste",
   "controller": "Codex",
   "projectRoot": "F:/new/smaltalk/water",
-  "stage": "wave1-j-verified-k-running",
+  "stage": "wave1-k-accepted-jk-integration-pending",
   "activeWave": "water-wave1",
   "slots": [
     {
@@ -93,7 +93,7 @@
       "branch": "worker/water-w1-k",
       "baseline": "bc409f4af8cb2d51b2f67341ad46637cfa5e66f3",
       "task": "WATER-W1-K",
-      "state": "running-implementation-observed"
+      "state": "accepted-preserved"
     }
   ],
   "tasks": [
@@ -797,7 +797,7 @@
     {
       "id": "WATER-W1-K",
       "title": "Caller-supplied session reader",
-      "status": "RUNNING",
+      "status": "ACCEPTED",
       "kind": "lab_reader",
       "slot": "k",
       "worktree": "F:/new/smaltalk/water/.worktrees/k",
@@ -860,7 +860,7 @@
       "dependsOn": [
         "WATER-W1-I"
       ],
-      "model": null,
+      "model": "GPT-6 (worker session identity; finer build not supplied)",
       "modelAssignment": "user-arranged; report actual engine/model",
       "dispatchedAt": null,
       "startedAt": null,
@@ -877,7 +877,7 @@
       "baselineEvidence": "docs/acceptance/wave1/controller/w1-session-batch-preflight-20261018/k/2026-10-17T16-07-56.009Z-25504-baseline-result.json",
       "preflightEvidence": "docs/dispatch/wave1/SESSION-BATCH-READY-REPORT.md",
       "readinessScope": "Node24/I-model source assets and isolated Chrome blank page only; K product absent and untested.",
-      "newProductTestsRun": false,
+      "newProductTestsRun": true,
       "controllerBaselineOnly": true,
       "dispatchConfirmedAt": "2026-10-17T16:40:30.446Z",
       "dispatchEvidence": "User confirmed just pasting the current J/K tickets in this conversation; exact paste time not independently known.",
@@ -887,9 +887,18 @@
       "activityEvidence": "At 2026-10-17T16:40:31.742Z, eight uncommitted product paths and new baseline receipt 2026-10-17T16-34-54.684Z-40372-baseline-result.json were observed. User confirmed dispatch; exact implementation start/model unknown.",
       "implementationObserved": true,
       "implementationAudit": "docs/acceptance/wave1/controller/w1-session-page-plan-20261018/2026-10-17T16-40-31.742Z-dispatch-audit.json",
-      "latestObservedCheck": "docs/acceptance/wave1/controller/w1-session-page-plan-20261018/water-w1-k/2026-10-17T16-34-54.684Z-40372-baseline-result.json"
+      "latestObservedCheck": "docs/acceptance/wave1/controller/w1-session-page-plan-20261018/water-w1-k/2026-10-17T16-34-54.684Z-40372-baseline-result.json",
+      "submittedCommit": "e717519a14f5d561c0ba18aa7d5299870828aa5a",
+      "acceptedCommit": "e717519a14f5d561c0ba18aa7d5299870828aa5a",
+      "testedImplementationCommit": "7d0035582db8457a47d6c611ff02427296ba641c",
+      "submissionObservedAt": "2026-10-18T03:18:08.441Z",
+      "engine": "Codex (worker self-report)",
+      "acceptedOn": "2026-10-18",
+      "macOS": "unverified",
+      "controllerReview": "docs/acceptance/wave1/controller/WATER-W1-K-REVIEW-20261018.md",
+      "controllerReviewReceipt": "docs/acceptance/wave1/controller/w1-k-review-20261018/boundaries/2026-10-18T03-16-47.264Z-38288-result.json"
     }
   ],
   "testHelper": "per-task helper; A defaults unchanged",
-  "note": "A-J and four addenda VERIFIED in Windows scope. K remains externally RUNNING awaiting its report; no other outstanding tickets. J controller tooling blocker resolved without product changes; original failed gate preserved. Real J-to-K page, real user scopes, desktop and macOS unverified."
+  "note": "A-J VERIFIED; K single-ticket ACCEPTED, isolated integration and actual J-to-K page pending. No new tickets dispatched."
 }
