@@ -1,0 +1,385 @@
+{
+  "task": "WATER-W1-R",
+  "mode": "suite",
+  "finalGate": false,
+  "startedAt": "2026-10-18T15:03:59.711Z",
+  "before": {
+    "head": "c0e20252c87b22fde8c83c4487d24e7a5ca06011",
+    "status": "?? packages/native-scan/Cargo.lock\n?? packages/native-scan/Cargo.toml\n?? packages/native-scan/src/decode.rs\n?? packages/native-scan/src/lib.rs\n?? packages/native-scan/src/native_windows.rs\n?? packages/native-scan/src/output.rs\n?? packages/native-scan/src/v1.rs\n?? packages/native-scan/src/walk.rs\n?? packages/native-scan/tests/native_scan_v1.rs"
+  },
+  "node": "v24.16.0",
+  "productTestsRun": true,
+  "frozenFiles": 61,
+  "commands": [
+    {
+      "binary": "git",
+      "argv": [
+        "-c",
+        "core.hooksPath=NUL",
+        "-c",
+        "core.fsmonitor=false",
+        "rev-parse",
+        "--path-format=absolute",
+        "--git-common-dir"
+      ],
+      "exitCode": 0,
+      "error": null
+    },
+    {
+      "binary": "git",
+      "argv": [
+        "-c",
+        "core.hooksPath=NUL",
+        "-c",
+        "core.fsmonitor=false",
+        "branch",
+        "--show-current"
+      ],
+      "exitCode": 0,
+      "error": null
+    },
+    {
+      "binary": "git",
+      "argv": [
+        "-c",
+        "core.hooksPath=NUL",
+        "-c",
+        "core.fsmonitor=false",
+        "merge-base",
+        "--is-ancestor",
+        "dd09c3b8801b86a0059f3fb73fe8a250acb1d89e",
+        "HEAD"
+      ],
+      "exitCode": 0,
+      "error": null
+    },
+    {
+      "binary": "git",
+      "argv": [
+        "-c",
+        "core.hooksPath=NUL",
+        "-c",
+        "core.fsmonitor=false",
+        "diff",
+        "--no-renames",
+        "--name-only",
+        "-z",
+        "dd09c3b8801b86a0059f3fb73fe8a250acb1d89e",
+        "HEAD"
+      ],
+      "exitCode": 0,
+      "error": null
+    },
+    {
+      "binary": "git",
+      "argv": [
+        "-c",
+        "core.hooksPath=NUL",
+        "-c",
+        "core.fsmonitor=false",
+        "diff",
+        "--no-renames",
+        "--name-only",
+        "-z",
+        "HEAD"
+      ],
+      "exitCode": 0,
+      "error": null
+    },
+    {
+      "binary": "git",
+      "argv": [
+        "-c",
+        "core.hooksPath=NUL",
+        "-c",
+        "core.fsmonitor=false",
+        "ls-files",
+        "--others",
+        "--exclude-standard",
+        "-z"
+      ],
+      "exitCode": 0,
+      "error": null
+    },
+    {
+      "binary": "git",
+      "argv": [
+        "-c",
+        "core.hooksPath=NUL",
+        "-c",
+        "core.fsmonitor=false",
+        "rev-parse",
+        "HEAD"
+      ],
+      "exitCode": 0,
+      "error": null
+    },
+    {
+      "binary": "git",
+      "argv": [
+        "-c",
+        "core.hooksPath=NUL",
+        "-c",
+        "core.fsmonitor=false",
+        "status",
+        "--porcelain",
+        "--untracked-files=all"
+      ],
+      "exitCode": 0,
+      "error": null
+    },
+    {
+      "binary": "C:\\Users\\37310\\.cargo\\bin\\rustup.exe",
+      "argv": [
+        "which",
+        "rustc",
+        "--toolchain",
+        "1.95.0"
+      ],
+      "exitCode": 0,
+      "error": null,
+      "log": "2026-10-18T15-03-58.729Z-20280-suite-1.log"
+    },
+    {
+      "binary": "C:\\Users\\37310\\.cargo\\bin\\rustup.exe",
+      "argv": [
+        "which",
+        "cargo",
+        "--toolchain",
+        "1.95.0"
+      ],
+      "exitCode": 0,
+      "error": null,
+      "log": "2026-10-18T15-03-58.729Z-20280-suite-2.log"
+    },
+    {
+      "binary": "C:\\Users\\37310\\.rustup\\toolchains\\1.95.0-x86_64-pc-windows-msvc\\bin\\rustc.exe",
+      "argv": [
+        "--version"
+      ],
+      "exitCode": 0,
+      "error": null,
+      "log": "2026-10-18T15-03-58.729Z-20280-suite-3.log"
+    },
+    {
+      "binary": "C:\\Users\\37310\\.rustup\\toolchains\\1.95.0-x86_64-pc-windows-msvc\\bin\\cargo.exe",
+      "argv": [
+        "metadata",
+        "--offline",
+        "--locked",
+        "--format-version",
+        "1",
+        "--manifest-path",
+        "packages/native-scan/Cargo.toml"
+      ],
+      "exitCode": 0,
+      "error": null,
+      "log": "2026-10-18T15-03-58.729Z-20280-suite-4.log"
+    },
+    {
+      "binary": "C:\\Users\\37310\\.rustup\\toolchains\\1.95.0-x86_64-pc-windows-msvc\\bin\\cargo.exe",
+      "argv": [
+        "test",
+        "--offline",
+        "--locked",
+        "--manifest-path",
+        "packages/native-scan/Cargo.toml",
+        "--test",
+        "native_scan_v1",
+        "--",
+        "--test-threads=1",
+        "--format",
+        "pretty"
+      ],
+      "exitCode": 0,
+      "error": null,
+      "log": "2026-10-18T15-03-58.729Z-20280-suite-5.log"
+    },
+    {
+      "binary": "git",
+      "argv": [
+        "-c",
+        "core.hooksPath=NUL",
+        "-c",
+        "core.fsmonitor=false",
+        "branch",
+        "--show-current"
+      ],
+      "exitCode": 0,
+      "error": null,
+      "log": "2026-10-18T15-03-58.729Z-20280-suite-6.log"
+    },
+    {
+      "binary": "git",
+      "argv": [
+        "-c",
+        "core.hooksPath=NUL",
+        "-c",
+        "core.fsmonitor=false",
+        "merge-base",
+        "--is-ancestor",
+        "dd09c3b8801b86a0059f3fb73fe8a250acb1d89e",
+        "HEAD"
+      ],
+      "exitCode": 0,
+      "error": null,
+      "log": "2026-10-18T15-03-58.729Z-20280-suite-7.log"
+    },
+    {
+      "binary": "git",
+      "argv": [
+        "-c",
+        "core.hooksPath=NUL",
+        "-c",
+        "core.fsmonitor=false",
+        "diff",
+        "--no-renames",
+        "--name-only",
+        "-z",
+        "dd09c3b8801b86a0059f3fb73fe8a250acb1d89e",
+        "HEAD"
+      ],
+      "exitCode": 0,
+      "error": null,
+      "log": "2026-10-18T15-03-58.729Z-20280-suite-8.log"
+    },
+    {
+      "binary": "git",
+      "argv": [
+        "-c",
+        "core.hooksPath=NUL",
+        "-c",
+        "core.fsmonitor=false",
+        "diff",
+        "--no-renames",
+        "--name-only",
+        "-z",
+        "HEAD"
+      ],
+      "exitCode": 0,
+      "error": null,
+      "log": "2026-10-18T15-03-58.729Z-20280-suite-9.log"
+    },
+    {
+      "binary": "git",
+      "argv": [
+        "-c",
+        "core.hooksPath=NUL",
+        "-c",
+        "core.fsmonitor=false",
+        "ls-files",
+        "--others",
+        "--exclude-standard",
+        "-z"
+      ],
+      "exitCode": 0,
+      "error": null,
+      "log": "2026-10-18T15-03-58.729Z-20280-suite-10.log"
+    },
+    {
+      "binary": "git",
+      "argv": [
+        "-c",
+        "core.hooksPath=NUL",
+        "-c",
+        "core.fsmonitor=false",
+        "rev-parse",
+        "HEAD"
+      ],
+      "exitCode": 0,
+      "error": null,
+      "log": "2026-10-18T15-03-58.729Z-20280-suite-11.log"
+    },
+    {
+      "binary": "git",
+      "argv": [
+        "-c",
+        "core.hooksPath=NUL",
+        "-c",
+        "core.fsmonitor=false",
+        "status",
+        "--porcelain",
+        "--untracked-files=all"
+      ],
+      "exitCode": 0,
+      "error": null,
+      "log": "2026-10-18T15-03-58.729Z-20280-suite-12.log"
+    }
+  ],
+  "fixtures": {
+    "index": "F:\\new\\smaltalk\\water\\.worktrees\\r\\.local\\native-walk-fixtures\\index.json",
+    "sha256": "584cd6c6c0ddbd913877b3e30aea9c88aa54e090dc6ad956a07f597be4728931",
+    "fileEntries": 6,
+    "literalPayloadBytes": 60,
+    "logicalFileEntryBytes": 74,
+    "junctions": 1
+  },
+  "sourceState": {
+    "files": [
+      {
+        "path": "packages/native-scan/src/decode.rs",
+        "sha256": "f21988abac0cbe4c9837180ae49cefa17d54fd640808c038550122e93092631c",
+        "snapshot": "2026-10-18T15-03-58.729Z-20280-suite-source-0.txt",
+        "test": false
+      },
+      {
+        "path": "packages/native-scan/src/lib.rs",
+        "sha256": "53c6a011e4a5bebd26032828bd46dbbd167fa2e55163926b925815220f9b24ad",
+        "snapshot": "2026-10-18T15-03-58.729Z-20280-suite-source-1.txt",
+        "test": false
+      },
+      {
+        "path": "packages/native-scan/src/native_windows.rs",
+        "sha256": "25b108062bcc3f2d5ec51d3e1e223da90194a2840f9491e8eff4d2d36acd2655",
+        "snapshot": "2026-10-18T15-03-58.729Z-20280-suite-source-2.txt",
+        "test": false
+      },
+      {
+        "path": "packages/native-scan/src/output.rs",
+        "sha256": "03b595a7a30f0900f2bef6e70b4beee0cdd3a046dfdbee0a52b30d0b1ae42105",
+        "snapshot": "2026-10-18T15-03-58.729Z-20280-suite-source-3.txt",
+        "test": false
+      },
+      {
+        "path": "packages/native-scan/src/v1.rs",
+        "sha256": "ecbe99488e094b0b872b533131cbbb663b3fd53f6771e5c8dcfeee1e861f0037",
+        "snapshot": "2026-10-18T15-03-58.729Z-20280-suite-source-4.txt",
+        "test": false
+      },
+      {
+        "path": "packages/native-scan/src/walk.rs",
+        "sha256": "4c80d26f480a3d7e59f7ab02597382520dc62062186ea73ae4f2b642135e6a1d",
+        "snapshot": "2026-10-18T15-03-58.729Z-20280-suite-source-5.txt",
+        "test": false
+      },
+      {
+        "path": "packages/native-scan/Cargo.toml",
+        "sha256": "5512caf3bc17d115f7f1cbde0f173db44b3fe08be42f602f81e52b5520feb25e",
+        "snapshot": "2026-10-18T15-03-58.729Z-20280-suite-source-6.txt",
+        "test": false
+      },
+      {
+        "path": "packages/native-scan/Cargo.lock",
+        "sha256": "691828e32d68047681ebc838e70fe226db31b7b7ab04df235d69e14efcd148e0",
+        "snapshot": "2026-10-18T15-03-58.729Z-20280-suite-source-7.txt",
+        "test": false
+      },
+      {
+        "path": "packages/native-scan/tests/native_scan_v1.rs",
+        "sha256": "0126f206b28f417f20afa4298e604eda44aedb90931e4b277280a95f4fcd62d5",
+        "snapshot": "2026-10-18T15-03-58.729Z-20280-suite-source-8.txt",
+        "test": true
+      }
+    ],
+    "productionHash": "b5b18c2b6cbf4bb5df46b44615e50c51b5744d55dc734a45144a21d8152fc18a",
+    "testHash": "d9e88f25d6035e515a033b317ffaac572e983520a56ce83e75169aeef81af58d"
+  },
+  "executedTests": 5,
+  "after": {
+    "head": "c0e20252c87b22fde8c83c4487d24e7a5ca06011",
+    "status": "?? packages/native-scan/Cargo.lock\n?? packages/native-scan/Cargo.toml\n?? packages/native-scan/src/decode.rs\n?? packages/native-scan/src/lib.rs\n?? packages/native-scan/src/native_windows.rs\n?? packages/native-scan/src/output.rs\n?? packages/native-scan/src/v1.rs\n?? packages/native-scan/src/walk.rs\n?? packages/native-scan/tests/native_scan_v1.rs"
+  },
+  "endedAt": "2026-10-18T15:04:07.657Z",
+  "status": "passed",
+  "error": null
+}

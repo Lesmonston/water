@@ -1,0 +1,128 @@
+{"binary":"C:\\Program Files\\nodejs\\node.exe","argv":["scripts/native-scan-check.mjs","--task","WATER-W1-R","--mode","clippy"],"exitCode":1,"error":null,"log":"2026-10-18T15-05-47.953Z-29116-clippy-1.log"}
+--- stdout ---
+{
+  "task": "WATER-W1-R",
+  "mode": "clippy",
+  "finalGate": false,
+  "startedAt": "2026-10-18T15:05:50.532Z",
+  "before": {
+    "head": "c0e20252c87b22fde8c83c4487d24e7a5ca06011",
+    "status": "?? packages/native-scan/Cargo.lock\n?? packages/native-scan/Cargo.toml\n?? packages/native-scan/README.md\n?? packages/native-scan/src/decode.rs\n?? packages/native-scan/src/lib.rs\n?? packages/native-scan/src/native_windows.rs\n?? packages/native-scan/src/output.rs\n?? packages/native-scan/src/v1.rs\n?? packages/native-scan/src/walk.rs\n?? packages/native-scan/tests/native_scan_v1.rs"
+  },
+  "node": "v24.16.0",
+  "productTestsRun": false,
+  "frozenFiles": 61,
+  "commands": 20,
+  "fixtures": {
+    "index": "F:\\new\\smaltalk\\water\\.worktrees\\r\\.local\\native-walk-fixtures\\index.json",
+    "sha256": "584cd6c6c0ddbd913877b3e30aea9c88aa54e090dc6ad956a07f597be4728931",
+    "fileEntries": 6,
+    "literalPayloadBytes": 60,
+    "logicalFileEntryBytes": 74,
+    "junctions": 1
+  },
+  "sourceState": {
+    "files": [
+      {
+        "path": "packages/native-scan/src/decode.rs",
+        "sha256": "b188a551925ffc0b1b3d9c60641ef22dfba4c835c5b5a00156baeaca41203397",
+        "snapshot": "2026-10-18T15-05-49.153Z-31172-clippy-source-0.txt",
+        "test": false
+      },
+      {
+        "path": "packages/native-scan/src/lib.rs",
+        "sha256": "b635fa021d3e0921ce9d690d54355b7b40f50b7baa4cb608a1cde059d5eef67d",
+        "snapshot": "2026-10-18T15-05-49.153Z-31172-clippy-source-1.txt",
+        "test": false
+      },
+      {
+        "path": "packages/native-scan/src/native_windows.rs",
+        "sha256": "67ee4f2437d37593bbcb39c18f49d4ed2eead73023f87c31fb28d32cbc6499d3",
+        "snapshot": "2026-10-18T15-05-49.153Z-31172-clippy-source-2.txt",
+        "test": false
+      },
+      {
+        "path": "packages/native-scan/src/output.rs",
+        "sha256": "74f4e6f3b14f8653dfba990368cbeed8fbeeee5ff164403fb8b4e58509fb2a48",
+        "snapshot": "2026-10-18T15-05-49.153Z-31172-clippy-source-3.txt",
+        "test": false
+      },
+      {
+        "path": "packages/native-scan/src/v1.rs",
+        "sha256": "d4adae555d6e080266a9bc3aff75d9f557ebf37c4e4084cd8949476f96d410e0",
+        "snapshot": "2026-10-18T15-05-49.153Z-31172-clippy-source-4.txt",
+        "test": false
+      },
+      {
+        "path": "packages/native-scan/src/walk.rs",
+        "sha256": "b72275629642ac5dfabad8ecf81c1db6b2f65515337fcafc3db0421d7eb31282",
+        "snapshot": "2026-10-18T15-05-49.153Z-31172-clippy-source-5.txt",
+        "test": false
+      },
+      {
+        "path": "packages/native-scan/Cargo.toml",
+        "sha256": "5512caf3bc17d115f7f1cbde0f173db44b3fe08be42f602f81e52b5520feb25e",
+        "snapshot": "2026-10-18T15-05-49.153Z-31172-clippy-source-6.txt",
+        "test": false
+      },
+      {
+        "path": "packages/native-scan/Cargo.lock",
+        "sha256": "691828e32d68047681ebc838e70fe226db31b7b7ab04df235d69e14efcd148e0",
+        "snapshot": "2026-10-18T15-05-49.153Z-31172-clippy-source-7.txt",
+        "test": false
+      },
+      {
+        "path": "packages/native-scan/tests/native_scan_v1.rs",
+        "sha256": "f5284aa8252dda67b748da9432c000057fed98b0837043e15ee61108cf0cbfb6",
+        "snapshot": "2026-10-18T15-05-49.153Z-31172-clippy-source-8.txt",
+        "test": true
+      }
+    ],
+    "productionHash": "dc34f5b71013f2b80899a9cc8089045492ba3379ceda9f97d5e153c76b3aae62",
+    "testHash": "1c7f1dae491481fc1d7e9d841eea3ecfe3bc0faa67a231a8d76b6cb7b5fab964"
+  },
+  "after": {
+    "head": "c0e20252c87b22fde8c83c4487d24e7a5ca06011",
+    "status": "?? packages/native-scan/Cargo.lock\n?? packages/native-scan/Cargo.toml\n?? packages/native-scan/README.md\n?? packages/native-scan/src/decode.rs\n?? packages/native-scan/src/lib.rs\n?? packages/native-scan/src/native_windows.rs\n?? packages/native-scan/src/output.rs\n?? packages/native-scan/src/v1.rs\n?? packages/native-scan/src/walk.rs\n?? packages/native-scan/tests/native_scan_v1.rs"
+  },
+  "endedAt": "2026-10-18T15:06:02.826Z",
+  "status": "failed",
+  "error": "Focused command failed: clippy --offline --locked --manifest-path packages/native-scan/Cargo.toml --all-targets -- -D warnings",
+  "receipt": "F:\\new\\smaltalk\\water\\.worktrees\\r\\.local\\checks\\WATER-W1-R\\2026-10-18T15-05-49.153Z-31172-clippy-result.json"
+}
+
+--- stderr ---
+    Checking serde_core v1.0.229
+    Checking zmij v1.0.23
+    Checking memchr v2.8.3
+    Checking itoa v1.0.18
+    Checking serde_json v1.0.151
+    Checking serde v1.0.229
+    Checking water-contracts v0.1.0 (F:\new\smaltalk\water\.worktrees\r\crates\water-contracts)
+    Checking water-summary-export v0.1.0 (F:\new\smaltalk\water\.worktrees\r\packages\summary-export)
+    Checking water-native-root v0.1.0 (F:\new\smaltalk\water\.worktrees\r\packages\native-root)
+    Checking water-scope-registry v0.1.0 (F:\new\smaltalk\water\.worktrees\r\packages\scope-registry)
+    Checking water-redacted-report v0.1.0 (F:\new\smaltalk\water\.worktrees\r\packages\redacted-report)
+    Checking water-native-scan v0.1.0 (F:\new\smaltalk\water\.worktrees\r\packages\native-scan)
+error: this `if` statement can be collapsed
+   --> src\walk.rs:294:13
+    |
+294 | /             if kind == Kind::Directory {
+295 | |                 if let Some(id) = observed_id {
+296 | |                     self.directory(&child, &id, &child_path, depth + 1);
+297 | |                 }
+298 | |             }
+    | |_____________^
+    |
+    = help: for further information visit https://rust-lang.github.io/rust-clippy/rust-1.95.0/index.html#collapsible_if
+    = note: `-D clippy::collapsible-if` implied by `-D warnings`
+    = help: to override `-D warnings` add `#[allow(clippy::collapsible_if)]`
+help: collapse nested if block
+    |
+294 ~             if kind == Kind::Directory
+295 ~                 && let Some(id) = observed_id {
+296 |                     self.directory(&child, &id, &child_path, depth + 1);
+297 ~                 }
+    |
+
+error: could not compile `water-native-scan` (lib) due to 1 previous error

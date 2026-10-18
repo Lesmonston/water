@@ -1,0 +1,18 @@
+{"binary":"C:\\Users\\37310\\.rustup\\toolchains\\1.95.0-x86_64-pc-windows-msvc\\bin\\cargo.exe","argv":["clippy","--offline","--locked","--manifest-path","packages/native-scan/Cargo.toml","--all-targets","--","-D","warnings"],"exitCode":101,"error":null,"log":"2026-10-18T15-06-40.236Z-40936-clippy-5.log"}
+--- stdout ---
+
+--- stderr ---
+    Checking water-native-scan v0.1.0 (F:\new\smaltalk\water\.worktrees\r\packages\native-scan)
+error: called `.err().expect()` on a `Result` value
+   --> tests\native_scan_v1.rs:240:14
+    |
+240 |               .err()
+    |  ______________^
+241 | |             .expect("R_ROOT_BINDING: wrong candidate root must be rejected"),
+    | |___________________^ help: try: `expect_err`
+    |
+    = help: for further information visit https://rust-lang.github.io/rust-clippy/rust-1.95.0/index.html#err_expect
+    = note: `-D clippy::err-expect` implied by `-D warnings`
+    = help: to override `-D warnings` add `#[allow(clippy::err_expect)]`
+
+error: could not compile `water-native-scan` (test "native_scan_v1") due to 1 previous error

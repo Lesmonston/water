@@ -1,0 +1,146 @@
+//! Actual A projection and validation, with ancestor protection over recorded facts.
+#![forbid(unsafe_code)]
+
+use crate::v1::{Entry, Identity, Issue, Kind, NativeScan, NativeScanError};
+use water_contracts::v1::*;
+
+pub(crate) fn assemble(
+    scan_id: &OpaqueId,
+    scope_id: &OpaqueId,
+    root_identity: Identity,
+    visited_entries: u32,
+    entries: Vec<Entry>,
+    issues: Vec<Issue>,
+    cancelled: bool,
+) -> Result<NativeScan, NativeScanError> {
+    let status = if cancelled {
+        ScanStatus::Cancelled
+    } else if issues.is_empty() {
+        ScanStatus::Completed
+    } else {
+        ScanStatus::Partial
+    };
+    let coverage = match status {
+        ScanStatus::Completed => Coverage::Complete,
+        ScanStatus::Partial => Coverage::Partial,
+        ScanStatus::Cancelled => Coverage::Cancelled,
+    };
+    let mut findings: Vec<_> = entries
+        .iter()
+        .map(|e| Finding {
+            finding_id: e.finding_id.clone(),
+            scope_id: scope_id.clone(),
+            relative_path: e.relative_path.clone(),
+            tool: None,
+            rule_version: "native-scan-v1".into(),
+            category: Category::Unknown,
+            risk: Risk::Protected,
+            recoverability: Recoverability::Unknown,
+            activity: Activity::Unknown,
+            confidence: Confidence::Unknown,
+            evidence: vec![Evidence {
+                code: EvidenceCode::Unknown,
+                source: EvidenceSource::Filesystem,
+                summary:
+                    "Native metadata observation only; classification and ownership are unverified."
+                        .into(),
+            }],
+            protection_reasons: vec![
+                ProtectionReason::UnknownOwnership,
+                ProtectionReason::IncompleteEvidence,
+            ],
+            references: ReferenceSummary {
+                state: ReferenceState::Unknown,
+                project_ids: vec![],
+            },
+            size: SizeEstimate {
+                logical_bytes: e.logical_bytes,
+                allocated_bytes: None,
+                reclaimable_lower_bytes: None,
+                reclaimable_upper_bytes: None,
+                method: if e.kind == Kind::File && e.logical_bytes.is_some() {
+                    SizeMethod::LogicalSum
+                } else {
+                    SizeMethod::Unknown
+                },
+                confidence: if e.kind == Kind::File && e.logical_bytes.is_some() {
+                    EstimateConfidence::Measured
+                } else {
+                    EstimateConfidence::Unknown
+                },
+                shared: SharedState::Unknown,
+            },
+        })
+        .collect();
+    // All findings share this registered scope and are protected. Binary search
+    // over the recorded paths uses the same segment prefix rule as A, O(n log n).
+    let mut paths: Vec<_> = entries.iter().map(|e| e.relative_path.as_str()).collect();
+    paths.sort_unstable();
+    for f in &mut findings {
+        let path = f.relative_path.as_str();
+        let has_descendant = if path.is_empty() {
+            paths.partition_point(|p| p.is_empty()) < paths.len()
+        } else {
+            let prefix = format!("{path}/");
+            paths
+                .get(paths.partition_point(|p| *p < prefix.as_str()))
+                .is_some_and(|p| p.starts_with(&prefix))
+        };
+        if has_descendant {
+            f.protection_reasons
+                .push(ProtectionReason::ProtectedDescendant);
+        }
+    }
+    let recorded_entries = entries.len() as u32;
+    let report = ScanReport {
+        schema_version: SchemaVersion::WaterScanV1,
+        scan_id: scan_id.clone(),
+        status,
+        scopes: vec![ScopeDescriptor {
+            scope_id: scope_id.clone(),
+            label: "Selected directory".into(),
+            platform: Platform::Windows,
+            origin: ScopeOrigin::UserSelected,
+            coverage,
+        }],
+        findings,
+        issues: issues
+            .iter()
+            .map(|issue| ScanIssue {
+                code: issue.code,
+                scope_id: scope_id.clone(),
+                relative_path: issue.relative_path.clone(),
+                message: "Native metadata issue.".into(),
+            })
+            .collect(),
+        totals: ScanTotals {
+            logical_bytes: None,
+            allocated_bytes: None,
+            method: AggregateMethod::Unavailable,
+            coverage_complete: status == ScanStatus::Completed,
+            scanned_entries: recorded_entries,
+            skipped_entries: visited_entries - recorded_entries,
+        },
+    };
+    validate_report(&report).map_err(NativeScanError::Projection)?;
+    let scan = NativeScan {
+        native_scan_version: "water.native-scan.v1",
+        source_kind: "native_scope_metadata",
+        read_only: true,
+        scan_id: scan_id.clone(),
+        scope_id: scope_id.clone(),
+        platform: "windows",
+        confirmation_source: "trusted_in_process_declaration",
+        native_user_gesture_authenticated: false,
+        race_protection_verified: false,
+        root_identity,
+        status,
+        visited_entries,
+        recorded_entries,
+        entries,
+        issues,
+        report,
+    };
+    crate::v1::to_json(&scan)?;
+    Ok(scan)
+}

@@ -1,0 +1,37 @@
+--- stdout ---
+
+running 5 tests
+test native_budgets_and_cancellation ... FAILED
+test native_directory_decoding ... ok
+test native_metadata_no_follow ... ok
+test native_report_and_redaction ... FAILED
+test native_scope_and_identity ... ok
+
+failures:
+
+---- native_budgets_and_cancellation stdout ----
+
+thread 'native_budgets_and_cancellation' (2896) panicked at tests\native_scan_v1.rs:514:6:
+R_CANCELLED: pre-cancel must avoid candidate IO: Root(MetadataUnavailable)
+note: run with `RUST_BACKTRACE=1` environment variable to display a backtrace
+
+---- native_report_and_redaction stdout ----
+
+thread 'native_report_and_redaction' (20944) panicked at tests\native_scan_v1.rs:718:9:
+assertion `left == right` failed: R_CANCELLED
+  left: Completed
+ right: Cancelled
+
+
+failures:
+    native_budgets_and_cancellation
+    native_report_and_redaction
+
+test result: FAILED. 3 passed; 2 failed; 0 ignored; 0 measured; 0 filtered out; finished in 0.07s
+
+
+--- stderr ---
+   Compiling water-native-scan v0.1.0 (F:\new\smaltalk\water\.worktrees\r\packages\native-scan)
+    Finished `test` profile [unoptimized + debuginfo] target(s) in 1.45s
+     Running tests\native_scan_v1.rs (.local\next-target\debug\deps\native_scan_v1-bb5651a761077305.exe)
+error: test failed, to rerun pass `--test native_scan_v1`

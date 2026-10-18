@@ -1,0 +1,404 @@
+{
+  "task": "WATER-W1-R",
+  "mode": "clippy",
+  "finalGate": true,
+  "startedAt": "2026-10-18T15:13:15.172Z",
+  "before": {
+    "head": "a7cbe2bf6311282bc33f291122a31fb907577b41",
+    "status": ""
+  },
+  "node": "v24.16.0",
+  "productTestsRun": false,
+  "frozenFiles": 61,
+  "commands": [
+    {
+      "binary": "git",
+      "argv": [
+        "-c",
+        "core.hooksPath=NUL",
+        "-c",
+        "core.fsmonitor=false",
+        "rev-parse",
+        "--path-format=absolute",
+        "--git-common-dir"
+      ],
+      "exitCode": 0,
+      "error": null
+    },
+    {
+      "binary": "git",
+      "argv": [
+        "-c",
+        "core.hooksPath=NUL",
+        "-c",
+        "core.fsmonitor=false",
+        "branch",
+        "--show-current"
+      ],
+      "exitCode": 0,
+      "error": null
+    },
+    {
+      "binary": "git",
+      "argv": [
+        "-c",
+        "core.hooksPath=NUL",
+        "-c",
+        "core.fsmonitor=false",
+        "merge-base",
+        "--is-ancestor",
+        "dd09c3b8801b86a0059f3fb73fe8a250acb1d89e",
+        "HEAD"
+      ],
+      "exitCode": 0,
+      "error": null
+    },
+    {
+      "binary": "git",
+      "argv": [
+        "-c",
+        "core.hooksPath=NUL",
+        "-c",
+        "core.fsmonitor=false",
+        "diff",
+        "--no-renames",
+        "--name-only",
+        "-z",
+        "dd09c3b8801b86a0059f3fb73fe8a250acb1d89e",
+        "HEAD"
+      ],
+      "exitCode": 0,
+      "error": null
+    },
+    {
+      "binary": "git",
+      "argv": [
+        "-c",
+        "core.hooksPath=NUL",
+        "-c",
+        "core.fsmonitor=false",
+        "diff",
+        "--no-renames",
+        "--name-only",
+        "-z",
+        "HEAD"
+      ],
+      "exitCode": 0,
+      "error": null
+    },
+    {
+      "binary": "git",
+      "argv": [
+        "-c",
+        "core.hooksPath=NUL",
+        "-c",
+        "core.fsmonitor=false",
+        "ls-files",
+        "--others",
+        "--exclude-standard",
+        "-z"
+      ],
+      "exitCode": 0,
+      "error": null
+    },
+    {
+      "binary": "git",
+      "argv": [
+        "-c",
+        "core.hooksPath=NUL",
+        "-c",
+        "core.fsmonitor=false",
+        "rev-parse",
+        "HEAD"
+      ],
+      "exitCode": 0,
+      "error": null
+    },
+    {
+      "binary": "git",
+      "argv": [
+        "-c",
+        "core.hooksPath=NUL",
+        "-c",
+        "core.fsmonitor=false",
+        "status",
+        "--porcelain",
+        "--untracked-files=all"
+      ],
+      "exitCode": 0,
+      "error": null
+    },
+    {
+      "binary": "C:\\Users\\37310\\.cargo\\bin\\rustup.exe",
+      "argv": [
+        "which",
+        "rustc",
+        "--toolchain",
+        "1.95.0"
+      ],
+      "exitCode": 0,
+      "error": null,
+      "log": "2026-10-18T15-13-13.797Z-34608-clippy-1.log"
+    },
+    {
+      "binary": "C:\\Users\\37310\\.cargo\\bin\\rustup.exe",
+      "argv": [
+        "which",
+        "cargo",
+        "--toolchain",
+        "1.95.0"
+      ],
+      "exitCode": 0,
+      "error": null,
+      "log": "2026-10-18T15-13-13.797Z-34608-clippy-2.log"
+    },
+    {
+      "binary": "C:\\Users\\37310\\.rustup\\toolchains\\1.95.0-x86_64-pc-windows-msvc\\bin\\rustc.exe",
+      "argv": [
+        "--version"
+      ],
+      "exitCode": 0,
+      "error": null,
+      "log": "2026-10-18T15-13-13.797Z-34608-clippy-3.log"
+    },
+    {
+      "binary": "C:\\Users\\37310\\.rustup\\toolchains\\1.95.0-x86_64-pc-windows-msvc\\bin\\cargo.exe",
+      "argv": [
+        "metadata",
+        "--offline",
+        "--locked",
+        "--format-version",
+        "1",
+        "--manifest-path",
+        "packages/native-scan/Cargo.toml"
+      ],
+      "exitCode": 0,
+      "error": null,
+      "log": "2026-10-18T15-13-13.797Z-34608-clippy-4.log"
+    },
+    {
+      "binary": "C:\\Users\\37310\\.rustup\\toolchains\\1.95.0-x86_64-pc-windows-msvc\\bin\\cargo.exe",
+      "argv": [
+        "clippy",
+        "--offline",
+        "--locked",
+        "--manifest-path",
+        "packages/native-scan/Cargo.toml",
+        "--all-targets",
+        "--",
+        "-D",
+        "warnings"
+      ],
+      "exitCode": 0,
+      "error": null,
+      "log": "2026-10-18T15-13-13.797Z-34608-clippy-5.log"
+    },
+    {
+      "binary": "git",
+      "argv": [
+        "-c",
+        "core.hooksPath=NUL",
+        "-c",
+        "core.fsmonitor=false",
+        "branch",
+        "--show-current"
+      ],
+      "exitCode": 0,
+      "error": null,
+      "log": "2026-10-18T15-13-13.797Z-34608-clippy-6.log"
+    },
+    {
+      "binary": "git",
+      "argv": [
+        "-c",
+        "core.hooksPath=NUL",
+        "-c",
+        "core.fsmonitor=false",
+        "merge-base",
+        "--is-ancestor",
+        "dd09c3b8801b86a0059f3fb73fe8a250acb1d89e",
+        "HEAD"
+      ],
+      "exitCode": 0,
+      "error": null,
+      "log": "2026-10-18T15-13-13.797Z-34608-clippy-7.log"
+    },
+    {
+      "binary": "git",
+      "argv": [
+        "-c",
+        "core.hooksPath=NUL",
+        "-c",
+        "core.fsmonitor=false",
+        "diff",
+        "--no-renames",
+        "--name-only",
+        "-z",
+        "dd09c3b8801b86a0059f3fb73fe8a250acb1d89e",
+        "HEAD"
+      ],
+      "exitCode": 0,
+      "error": null,
+      "log": "2026-10-18T15-13-13.797Z-34608-clippy-8.log"
+    },
+    {
+      "binary": "git",
+      "argv": [
+        "-c",
+        "core.hooksPath=NUL",
+        "-c",
+        "core.fsmonitor=false",
+        "diff",
+        "--no-renames",
+        "--name-only",
+        "-z",
+        "HEAD"
+      ],
+      "exitCode": 0,
+      "error": null,
+      "log": "2026-10-18T15-13-13.797Z-34608-clippy-9.log"
+    },
+    {
+      "binary": "git",
+      "argv": [
+        "-c",
+        "core.hooksPath=NUL",
+        "-c",
+        "core.fsmonitor=false",
+        "ls-files",
+        "--others",
+        "--exclude-standard",
+        "-z"
+      ],
+      "exitCode": 0,
+      "error": null,
+      "log": "2026-10-18T15-13-13.797Z-34608-clippy-10.log"
+    },
+    {
+      "binary": "git",
+      "argv": [
+        "-c",
+        "core.hooksPath=NUL",
+        "-c",
+        "core.fsmonitor=false",
+        "rev-parse",
+        "HEAD"
+      ],
+      "exitCode": 0,
+      "error": null,
+      "log": "2026-10-18T15-13-13.797Z-34608-clippy-11.log"
+    },
+    {
+      "binary": "git",
+      "argv": [
+        "-c",
+        "core.hooksPath=NUL",
+        "-c",
+        "core.fsmonitor=false",
+        "status",
+        "--porcelain",
+        "--untracked-files=all"
+      ],
+      "exitCode": 0,
+      "error": null,
+      "log": "2026-10-18T15-13-13.797Z-34608-clippy-12.log"
+    }
+  ],
+  "fixtures": {
+    "index": "F:\\new\\smaltalk\\water\\.worktrees\\r\\.local\\native-walk-fixtures\\index.json",
+    "sha256": "584cd6c6c0ddbd913877b3e30aea9c88aa54e090dc6ad956a07f597be4728931",
+    "fileEntries": 6,
+    "literalPayloadBytes": 60,
+    "logicalFileEntryBytes": 74,
+    "junctions": 1
+  },
+  "sourceState": {
+    "files": [
+      {
+        "path": "packages/native-scan/src/decode.rs",
+        "sha256": "b188a551925ffc0b1b3d9c60641ef22dfba4c835c5b5a00156baeaca41203397",
+        "snapshot": "2026-10-18T15-13-13.797Z-34608-clippy-source-0.txt",
+        "test": false
+      },
+      {
+        "path": "packages/native-scan/src/lib.rs",
+        "sha256": "b635fa021d3e0921ce9d690d54355b7b40f50b7baa4cb608a1cde059d5eef67d",
+        "snapshot": "2026-10-18T15-13-13.797Z-34608-clippy-source-1.txt",
+        "test": false
+      },
+      {
+        "path": "packages/native-scan/src/native_windows.rs",
+        "sha256": "67ee4f2437d37593bbcb39c18f49d4ed2eead73023f87c31fb28d32cbc6499d3",
+        "snapshot": "2026-10-18T15-13-13.797Z-34608-clippy-source-2.txt",
+        "test": false
+      },
+      {
+        "path": "packages/native-scan/src/output.rs",
+        "sha256": "74f4e6f3b14f8653dfba990368cbeed8fbeeee5ff164403fb8b4e58509fb2a48",
+        "snapshot": "2026-10-18T15-13-13.797Z-34608-clippy-source-3.txt",
+        "test": false
+      },
+      {
+        "path": "packages/native-scan/src/v1.rs",
+        "sha256": "d4adae555d6e080266a9bc3aff75d9f557ebf37c4e4084cd8949476f96d410e0",
+        "snapshot": "2026-10-18T15-13-13.797Z-34608-clippy-source-4.txt",
+        "test": false
+      },
+      {
+        "path": "packages/native-scan/src/walk.rs",
+        "sha256": "52b0f077cbf57913c151ef0652b75b8894c91293a757b44efd0bf150a6a46255",
+        "snapshot": "2026-10-18T15-13-13.797Z-34608-clippy-source-5.txt",
+        "test": false
+      },
+      {
+        "path": "packages/native-scan/Cargo.toml",
+        "sha256": "5512caf3bc17d115f7f1cbde0f173db44b3fe08be42f602f81e52b5520feb25e",
+        "snapshot": "2026-10-18T15-13-13.797Z-34608-clippy-source-6.txt",
+        "test": false
+      },
+      {
+        "path": "packages/native-scan/Cargo.lock",
+        "sha256": "691828e32d68047681ebc838e70fe226db31b7b7ab04df235d69e14efcd148e0",
+        "snapshot": "2026-10-18T15-13-13.797Z-34608-clippy-source-7.txt",
+        "test": false
+      },
+      {
+        "path": "packages/native-scan/tests/native_scan_v1.rs",
+        "sha256": "29a1dc49eba5f685fd4a216cd73c1b4e67cd232a8b0ee22a05d0c3296091ab87",
+        "snapshot": "2026-10-18T15-13-13.797Z-34608-clippy-source-8.txt",
+        "test": true
+      }
+    ],
+    "productionHash": "adb65f91733918acee7e7e723e3d14d010aa95bfd427ca3d8c51747646b57008",
+    "testHash": "f25e20a2e17f418535c42409e628afdf24745f60fe9584d858c38d89da78dca7"
+  },
+  "proofAudit": [
+    {
+      "label": "behavior",
+      "red": "2026-10-18T15-08-40.997Z-36860-red-behavior-result.json",
+      "restored": "2026-10-18T15-09-13.332Z-36124-suite-result.json"
+    },
+    {
+      "label": "nc1",
+      "red": "2026-10-18T15-09-58.368Z-30452-red-nc1-result.json",
+      "restored": "2026-10-18T15-10-17.838Z-24780-suite-result.json"
+    },
+    {
+      "label": "nc2",
+      "red": "2026-10-18T15-10-42.122Z-25920-red-nc2-result.json",
+      "restored": "2026-10-18T15-11-16.043Z-13388-suite-result.json"
+    },
+    {
+      "label": "nc3",
+      "red": "2026-10-18T15-11-32.669Z-31108-red-nc3-result.json",
+      "restored": "2026-10-18T15-11-52.515Z-30420-suite-result.json"
+    }
+  ],
+  "after": {
+    "head": "a7cbe2bf6311282bc33f291122a31fb907577b41",
+    "status": ""
+  },
+  "endedAt": "2026-10-18T15:13:19.856Z",
+  "status": "passed",
+  "error": null
+}

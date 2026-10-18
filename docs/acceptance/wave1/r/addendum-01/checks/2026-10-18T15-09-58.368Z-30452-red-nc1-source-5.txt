@@ -1,0 +1,303 @@
+//! Registered attempt lifetime and bounded traversal; no unsafe or path fallback.
+#![forbid(unsafe_code)]
+
+use crate::{native_windows as native, output, v1::*};
+use std::fs::File;
+use water_contracts::v1::{ByteCount, IssueCode, OpaqueId, RelativePath, ScanStatus};
+use water_scope_registry::v1::{RegisteredScope, Registry, ScanPermit};
+
+struct Attempt<'a> {
+    registry: &'a mut Registry,
+    scope: &'a RegisteredScope,
+    permit: ScanPermit,
+    active: bool,
+}
+impl Attempt<'_> {
+    fn complete(&mut self, status: ScanStatus) -> Result<(), NativeScanError> {
+        let result = if status == ScanStatus::Cancelled {
+            self.registry.cancel(self.scope)
+        } else {
+            self.registry.finish(&self.permit)
+        };
+        // On a refresh/finish failure Drop still cancels this active attempt.
+        result.map_err(NativeScanError::Source)?;
+        self.active = false;
+        Ok(())
+    }
+}
+impl Drop for Attempt<'_> {
+    fn drop(&mut self) {
+        if self.active {
+            let _ = self.registry.cancel(self.scope);
+        }
+    }
+}
+
+pub(crate) fn run<O: ScanObserver>(
+    registry: &mut Registry,
+    scope: &RegisteredScope,
+    root_path: &str,
+    scan_id: &OpaqueId,
+    options: &ScanOptions,
+    cancel: &CancelToken,
+    observer: &O,
+) -> Result<NativeScan, NativeScanError> {
+    // No guard exists until begin succeeds: never cancel somebody else's attempt.
+    let permit = registry
+        .begin_scan(scope)
+        .map_err(NativeScanError::Source)?;
+    let mut attempt = Attempt {
+        registry,
+        scope,
+        permit,
+        active: true,
+    };
+    let observation = attempt
+        .registry
+        .check_permit(&attempt.permit)
+        .map_err(NativeScanError::Source)?;
+    let expected = Identity::from_root(observation.identity());
+    let mut walker = Walker {
+        scan_id,
+        scope_id: scope.scope_id(),
+        options,
+        cancel,
+        observer,
+        root: &expected,
+        entries: Vec::new(),
+        issues: Vec::new(),
+        visited: 0,
+        cancelled: false,
+        exhausted: false,
+    };
+    if !walker.stop_cancelled(None) {
+        let candidate = water_native_root::v1::open_directory(scope.scope_id(), root_path)
+            .map_err(NativeScanError::Root)?;
+        if false && Identity::from_root(candidate.observation().identity()) != expected {
+            return Err(NativeScanError::RootMismatch);
+        }
+        // Only the root is opened by absolute path. No path string is retained by
+        // the walker, and all descendants are opened relative to live parent Files.
+        let root = native::open_root(root_path).map_err(|_| NativeScanError::NativeIo)?;
+        if native::kind(&root).map_err(|_| NativeScanError::NativeIo)? != Kind::Directory {
+            return Err(NativeScanError::NativeIo);
+        }
+        if false && native::identity(&root).map_err(|_| NativeScanError::NativeIo)? != expected {
+            return Err(NativeScanError::RootMismatch);
+        }
+        walker.directory(
+            &root,
+            &expected,
+            &RelativePath::new("").map_err(NativeScanError::Projection)?,
+            0,
+        );
+    }
+    let scan = output::assemble(
+        scan_id,
+        scope.scope_id(),
+        expected.clone(),
+        walker.visited,
+        walker.entries,
+        walker.issues,
+        walker.cancelled,
+    )?;
+    attempt.complete(scan.status)?;
+    Ok(scan)
+}
+
+struct Walker<'a, O> {
+    scan_id: &'a OpaqueId,
+    scope_id: &'a OpaqueId,
+    options: &'a ScanOptions,
+    cancel: &'a CancelToken,
+    observer: &'a O,
+    root: &'a Identity,
+    entries: Vec<Entry>,
+    issues: Vec<Issue>,
+    visited: u32,
+    cancelled: bool,
+    exhausted: bool,
+}
+impl<O: ScanObserver> Walker<'_, O> {
+    fn issue(
+        &mut self,
+        code: IssueCode,
+        path: Option<&RelativePath>,
+        origin: &'static str,
+        operation: &'static str,
+    ) {
+        self.issues.push(Issue {
+            code,
+            relative_path: path.cloned(),
+            origin,
+            operation,
+        });
+    }
+    fn stop_cancelled(&mut self, path: Option<&RelativePath>) -> bool {
+        if self.cancel.is_cancelled() {
+            if !self.cancelled {
+                self.issue(IssueCode::Cancelled, path, "control", "cancel");
+            }
+            self.cancelled = true;
+            true
+        } else {
+            false
+        }
+    }
+    fn directory(&mut self, file: &File, identity: &Identity, path: &RelativePath, depth: u32) {
+        if self.stop_cancelled(Some(path)) || self.exhausted {
+            return;
+        }
+        if depth == self.options.max_depth() {
+            self.issue(IssueCode::DepthLimit, Some(path), "policy", "budget");
+            return;
+        }
+        // Refresh the *same* owned directory before every list; no reopen by name.
+        match native::kind(file) {
+            Ok(Kind::Directory) => {}
+            Ok(_) => {
+                self.issue(IssueCode::RootChanged, Some(path), "native", "root_guard");
+                return;
+            }
+            Err(code) => {
+                self.issue(code, Some(path), "native", "root_guard");
+                return;
+            }
+        }
+        match native::identity(file) {
+            Ok(current) if &current == identity || identity == self.root => {}
+            Ok(_) => {
+                self.issue(IssueCode::RootChanged, Some(path), "native", "root_guard");
+                return;
+            }
+            Err(code) => {
+                self.issue(code, Some(path), "native", "root_guard");
+                return;
+            }
+        }
+        let records = match native::list(file, self.options.max_dir_entries()) {
+            Ok(records) => records,
+            Err(native::ListError::Limit) => {
+                self.issue(IssueCode::EntryLimit, Some(path), "policy", "enumerate");
+                return;
+            }
+            Err(native::ListError::Io(code)) => {
+                self.issue(code, Some(path), "native", "enumerate");
+                return;
+            }
+            Err(native::ListError::Decode) => {
+                self.issue(IssueCode::IoError, Some(path), "native", "decode");
+                return;
+            }
+        };
+        for record in records {
+            if self.stop_cancelled(Some(path)) || self.exhausted {
+                return;
+            }
+            if self.visited == self.options.max_entries() {
+                self.issue(IssueCode::EntryLimit, Some(path), "policy", "budget");
+                self.exhausted = true;
+                return;
+            }
+            self.visited += 1;
+            let child_path = validate_child_name(record.name_utf16()).and_then(|name| {
+                RelativePath::new(if path.as_str().is_empty() {
+                    name
+                } else {
+                    format!("{}/{name}", path.as_str())
+                })
+                .map_err(|_| NativeScanError::InvalidChildName)
+            });
+            let child_path = match child_path {
+                Ok(path) => path,
+                Err(_) => {
+                    self.issue(
+                        IssueCode::PathUnrepresentable,
+                        Some(path),
+                        "policy",
+                        "open_child",
+                    );
+                    continue;
+                }
+            };
+            let child = match native::open_child(file, &record) {
+                Ok(file) => file,
+                Err(code) => {
+                    self.issue(code, Some(&child_path), "native", "open_child");
+                    continue;
+                }
+            };
+            let kind = match native::kind(&child) {
+                Ok(kind) => kind,
+                Err(code) => {
+                    self.issue(code, Some(&child_path), "native", "metadata");
+                    continue;
+                }
+            };
+            if matches!(kind, Kind::File | Kind::Directory)
+                && (kind == Kind::Directory) != (record.attributes() & 0x10 != 0)
+            {
+                self.issue(
+                    IssueCode::RootChanged,
+                    Some(&child_path),
+                    "native",
+                    "metadata",
+                );
+                continue;
+            }
+            let mut observed_id = None;
+            let mut logical_bytes = None;
+            if matches!(kind, Kind::File | Kind::Directory) {
+                match native::identity(&child) {
+                    Ok(id) if id.volume_serial == self.root.volume_serial => {
+                        observed_id = Some(id);
+                    }
+                    Ok(_) => {
+                        self.issue(
+                            IssueCode::OutsideScope,
+                            Some(&child_path),
+                            "native",
+                            "metadata",
+                        );
+                        continue;
+                    }
+                    Err(_) => {
+                        self.issue(IssueCode::IoError, Some(&child_path), "native", "metadata")
+                    }
+                }
+                if kind == Kind::File {
+                    match native::length(&child) {
+                        Ok(bytes) => logical_bytes = Some(ByteCount::new(bytes)),
+                        Err(_) => {
+                            self.issue(IssueCode::IoError, Some(&child_path), "native", "metadata")
+                        }
+                    }
+                }
+            }
+            self.entries.push(Entry {
+                finding_id: OpaqueId::new(format!("entry-{}", self.entries.len() + 1))
+                    .expect("bounded generated ID"),
+                relative_path: child_path.clone(),
+                depth: depth + 1,
+                kind,
+                logical_bytes,
+                allocated_bytes: None,
+                native_identity: observed_id.clone(),
+            });
+            self.observer.on_entry(&ScanProgress {
+                scan_id: self.scan_id.clone(),
+                scope_id: self.scope_id.clone(),
+                relative_path: child_path.clone(),
+                visited_entries: self.visited,
+                recorded_entries: self.entries.len() as u32,
+            });
+            if kind == Kind::Directory
+                && let Some(id) = observed_id
+            {
+                self.directory(&child, &id, &child_path, depth + 1);
+            }
+            // No synthetic final operation: cancellation after the last file is
+            // not observed unless there is a real next candidate/directory step.
+        }
+    }
+}
