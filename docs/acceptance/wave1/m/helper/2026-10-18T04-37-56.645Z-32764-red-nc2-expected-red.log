@@ -1,0 +1,40 @@
+{"binary":"C:\\Users\\37310\\.rustup\\toolchains\\1.95.0-x86_64-pc-windows-msvc\\bin\\cargo.exe","argv":["test","--offline","--locked","--manifest-path","F:\\new\\smaltalk\\water\\.worktrees\\m\\packages\\size-ledger\\Cargo.toml","-p","water-size-ledger","--test","ledger_v1","--","--test-threads=1","--format","pretty"],"exitCode":101,"error":null,"log":"2026-10-18T04-37-56.645Z-32764-red-nc2-expected-red.log"}
+--- stdout ---
+
+running 5 tests
+test ledger_identity_groups ... ok
+test ledger_observed_sizes ... FAILED
+test ledger_public_wire_and_purity ... FAILED
+test ledger_unknown_and_coverage ... ok
+test ledger_validation ... ok
+
+failures:
+
+---- ledger_observed_sizes stdout ----
+
+thread 'ledger_observed_sizes' (33776) panicked at tests\ledger_v1.rs:58:5:
+assertion `left == right` failed: M_INTEGER_PRECISION: two u64 maxima must sum exactly
+  left: String("18446744073709551615")
+ right: "36893488147419103230"
+note: run with `RUST_BACKTRACE=1` environment variable to display a backtrace
+
+---- ledger_public_wire_and_purity stdout ----
+
+thread 'ledger_public_wire_and_purity' (9240) panicked at tests\ledger_v1.rs:264:9:
+assertion `left == right` failed: M_BEHAVIOR complete public wire "beyond-u64"
+  left: Object {"counts": Object {"conflicting_identity_groups": Number(0), "entries": Number(2), "file_entries": Number(2), "known_identity_file_entries": Number(0), "known_identity_groups": Number(0), "non_file_entries": Number(0), "scopes": Number(1), "unknown_identity_file_entries": Number(2)}, "identity_deduplicated_logical_bytes": Null, "identity_groups": Array [], "known_identity_logical_bytes": String("0"), "ledger_version": String("water.size-ledger.v1"), "observed_file_logical_bytes": String("18446744073709551615"), "observed_set_identity_complete": Bool(false), "platform": String("windows"), "read_only": Bool(true), "reclaimable_bytes": Null, "scan_id": String("evidence-beyond-u64"), "scope_coverage_complete": Bool(true), "source_facts": Object {"case_id": String("beyond-u64"), "facts_version": String("water.scan-lab.v1"), "recorded_entries": Number(2), "run_id": String("run-beyond-u64"), "scopes": Array [Object {"coverage": String("complete"), "entries": Array [Object {"allocated_bytes": Null, "depth": Number(1), "identity": Object {"device": Null, "inode": Null, "kind": String("unknown"), "link_count": Null}, "kind": String("file"), "logical_bytes": String("18446744073709551615"), "relative_path": String("a")}, Object {"allocated_bytes": Null, "depth": Number(1), "identity": Object {"device": Null, "inode": Null, "kind": String("unknown"), "link_count": Null}, "kind": String("file"), "logical_bytes": String("18446744073709551615"), "relative_path": String("b")}], "issues": Array [], "relative_root": String("scope"), "scope_id": String("scope-1"), "visited_entries": Number(2)}], "status": String("completed"), "visited_entries": Number(2)}, "source_run_id": String("run-beyond-u64"), "source_totals": Object {"allocated_bytes": Null, "coverage_complete": Bool(true), "logical_bytes": Null, "method": String("unavailable"), "scanned_entries": Number(2), "skipped_entries": Number(0)}, "status": String("completed"), "unknown_identity_entries": Array [Object {"finding_id": String("entry-1"), "scope_id": String("scope-1")}, Object {"finding_id": String("entry-2"), "scope_id": String("scope-1")}], "unknown_identity_observed_logical_bytes": String("18446744073709551615"), "volume_unique_allocated_bytes": Null}
+ right: Object {"counts": Object {"conflicting_identity_groups": Number(0), "entries": Number(2), "file_entries": Number(2), "known_identity_file_entries": Number(0), "known_identity_groups": Number(0), "non_file_entries": Number(0), "scopes": Number(1), "unknown_identity_file_entries": Number(2)}, "identity_deduplicated_logical_bytes": Null, "identity_groups": Array [], "known_identity_logical_bytes": String("0"), "ledger_version": String("water.size-ledger.v1"), "observed_file_logical_bytes": String("36893488147419103230"), "observed_set_identity_complete": Bool(false), "platform": String("windows"), "read_only": Bool(true), "reclaimable_bytes": Null, "scan_id": String("evidence-beyond-u64"), "scope_coverage_complete": Bool(true), "source_facts": Object {"case_id": String("beyond-u64"), "facts_version": String("water.scan-lab.v1"), "recorded_entries": Number(2), "run_id": String("run-beyond-u64"), "scopes": Array [Object {"coverage": String("complete"), "entries": Array [Object {"allocated_bytes": Null, "depth": Number(1), "identity": Object {"device": Null, "inode": Null, "kind": String("unknown"), "link_count": Null}, "kind": String("file"), "logical_bytes": String("18446744073709551615"), "relative_path": String("a")}, Object {"allocated_bytes": Null, "depth": Number(1), "identity": Object {"device": Null, "inode": Null, "kind": String("unknown"), "link_count": Null}, "kind": String("file"), "logical_bytes": String("18446744073709551615"), "relative_path": String("b")}], "issues": Array [], "relative_root": String("scope"), "scope_id": String("scope-1"), "visited_entries": Number(2)}], "status": String("completed"), "visited_entries": Number(2)}, "source_run_id": String("run-beyond-u64"), "source_totals": Object {"allocated_bytes": Null, "coverage_complete": Bool(true), "logical_bytes": Null, "method": String("unavailable"), "scanned_entries": Number(2), "skipped_entries": Number(0)}, "status": String("completed"), "unknown_identity_entries": Array [Object {"finding_id": String("entry-1"), "scope_id": String("scope-1")}, Object {"finding_id": String("entry-2"), "scope_id": String("scope-1")}], "unknown_identity_observed_logical_bytes": String("36893488147419103230"), "volume_unique_allocated_bytes": Null}
+
+
+failures:
+    ledger_observed_sizes
+    ledger_public_wire_and_purity
+
+test result: FAILED. 3 passed; 2 failed; 0 ignored; 0 measured; 0 filtered out; finished in 0.12s
+
+
+--- stderr ---
+   Compiling water-size-ledger v0.1.0 (F:\new\smaltalk\water\.worktrees\m\packages\size-ledger)
+    Finished `test` profile [unoptimized + debuginfo] target(s) in 1.81s
+     Running tests\ledger_v1.rs (.local\evidence-target\debug\deps\ledger_v1-0906f7558d8f7025.exe)
+error: test failed, to rerun pass `-p water-size-ledger --test ledger_v1`

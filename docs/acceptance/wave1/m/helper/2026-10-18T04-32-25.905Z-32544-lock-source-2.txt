@@ -1,0 +1,255 @@
+//! Only frozen synthetic data and in-memory variants; no filesystem identity IO.
+#![forbid(unsafe_code)]
+
+use serde_json::{Value, json};
+use water_contracts::v1::OpaqueId;
+use water_scan_report::v1::{ReportContext, ScopeContext, assemble_json};
+use water_size_ledger::v1::{AnalysisError, SizeLedger, analyze_json, to_json};
+
+fn cases() -> Value {
+    serde_json::from_str(include_str!("../../../contracts/size-ledger-v1/cases.json")).unwrap()
+}
+
+fn golden(id: &str) -> Value {
+    cases()["golden_cases"]
+        .as_array()
+        .unwrap()
+        .iter()
+        .find(|case| case["id"] == id)
+        .unwrap()
+        .clone()
+}
+
+fn context(value: &Value) -> ReportContext {
+    ReportContext {
+        scan_id: OpaqueId::new(value["scan_id"].as_str().unwrap()).unwrap(),
+        platform: serde_json::from_value(value["platform"].clone()).unwrap(),
+        scopes: value["scopes"]
+            .as_array()
+            .unwrap()
+            .iter()
+            .map(|scope| ScopeContext {
+                scope_id: OpaqueId::new(scope["scope_id"].as_str().unwrap()).unwrap(),
+                label: scope["label"].as_str().unwrap().to_owned(),
+                origin: serde_json::from_value(scope["origin"].clone()).unwrap(),
+            })
+            .collect(),
+    }
+}
+
+fn analyze(input: &Value, context: &ReportContext) -> Value {
+    let ledger = analyze_json(&input.to_string(), context).unwrap();
+    serde_json::from_str(&to_json(&ledger).unwrap()).unwrap()
+}
+
+fn output(id: &str) -> Value {
+    let case = golden(id);
+    analyze(&case["input"], &context(&case["context"]))
+}
+
+fn check_cases(ids: &[&str]) {
+    for id in ids {
+        assert_eq!(output(id), golden(id)["expected"], "M_BEHAVIOR golden {id}");
+    }
+}
+
+#[test]
+fn ledger_observed_sizes() {
+    assert_eq!(
+        output("beyond-u64")["observed_file_logical_bytes"],
+        "36893488147419103230",
+        "M_INTEGER_PRECISION: two u64 maxima must sum exactly"
+    );
+    assert_eq!(
+        output("bigint-adjacent")["observed_file_logical_bytes"],
+        "18014398509481985",
+        "M_INTEGER_PRECISION: adjacent values above 2^53"
+    );
+    check_cases(&["empty-set", "bigint-adjacent", "beyond-u64", "known-zero"]);
+
+    let case = golden("known-hardlinks");
+    let ctx = context(&case["context"]);
+    let mut input = case["input"].clone();
+    for entry in input["scopes"][0]["entries"].as_array_mut().unwrap() {
+        entry["logical_bytes"] = json!("18446744073709551615");
+    }
+    let actual = analyze(&input, &ctx);
+    assert_eq!(actual["observed_file_logical_bytes"], "36893488147419103230");
+    assert_eq!(actual["known_identity_logical_bytes"], "18446744073709551615");
+    assert_eq!(actual["identity_deduplicated_logical_bytes"], "18446744073709551615");
+
+    input["scopes"][0]["entries"][1]["identity"]["inode"] = json!("888");
+    let actual = analyze(&input, &ctx);
+    assert_eq!(
+        actual["known_identity_logical_bytes"],
+        "36893488147419103230",
+        "M_INTEGER_PRECISION: sum distinct known groups in u128"
+    );
+}
+
+#[test]
+fn ledger_identity_groups() {
+    for id in ["length-conflict", "link-count-conflict"] {
+        let actual = output(id);
+        assert!(actual["known_identity_logical_bytes"].is_null(), "M_CONFLICT_UNKNOWN {id}");
+        assert!(actual["identity_deduplicated_logical_bytes"].is_null(), "M_CONFLICT_UNKNOWN {id}");
+        assert!(actual["identity_groups"][0]["logical_bytes"].is_null(), "M_CONFLICT_UNKNOWN {id}");
+    }
+    check_cases(&[
+        "known-hardlinks",
+        "known-cross-scope",
+        "different-devices",
+        "length-conflict",
+        "link-count-conflict",
+        "non-file-unix",
+        "first-group-order",
+    ]);
+
+    let case = golden("known-hardlinks");
+    let mut input = case["input"].clone();
+    let ctx = context(&case["context"]);
+    let mut entries = Vec::new();
+    for (index, (bytes, links)) in [(10, 10), (2, 2), (10, 10), (0, 2)].iter().enumerate() {
+        let mut entry = input["scopes"][0]["entries"][0].clone();
+        entry["relative_path"] = json!(format!("item-{index}"));
+        entry["depth"] = json!(1);
+        entry["logical_bytes"] = json!(bytes.to_string());
+        entry["identity"]["link_count"] = json!(links.to_string());
+        entries.push(entry);
+    }
+    input["scopes"][0]["entries"] = json!(entries);
+    input["scopes"][0]["visited_entries"] = json!(4);
+    input["visited_entries"] = json!(4);
+    input["recorded_entries"] = json!(4);
+    let actual = analyze(&input, &ctx);
+    let group = &actual["identity_groups"][0];
+    assert_eq!(group["logical_byte_values"], json!(["0", "2", "10"]));
+    assert_eq!(group["link_count_values"], json!(["2", "10"]));
+    assert_eq!(group["entry_refs"].as_array().unwrap().len(), 4);
+    assert_eq!(group["entry_refs"][3]["finding_id"], "entry-4");
+    assert_eq!(actual["counts"]["conflicting_identity_groups"], 1);
+}
+
+#[test]
+fn ledger_unknown_and_coverage() {
+    for id in ["unknown-pair", "mixed-identities", "non-file-unix"] {
+        let actual = output(id);
+        assert!(actual["identity_deduplicated_logical_bytes"].is_null(), "M_UNKNOWN_IDENTITY {id}");
+        assert_eq!(actual["observed_set_identity_complete"], false, "M_UNKNOWN_IDENTITY {id}");
+    }
+    check_cases(&["unknown-pair", "mixed-identities", "partial-known", "cancelled-empty"]);
+    let empty = output("cancelled-empty");
+    assert_eq!(empty["observed_set_identity_complete"], true);
+    assert_eq!(empty["identity_deduplicated_logical_bytes"], "0");
+    assert_eq!(empty["scope_coverage_complete"], false);
+    assert_eq!(output("partial-known")["identity_deduplicated_logical_bytes"], "10");
+
+    let case = golden("known-cross-scope");
+    let mut input = case["input"].clone();
+    let ctx = context(&case["context"]);
+    for scope in input["scopes"].as_array_mut().unwrap() {
+        for entry in scope["entries"].as_array_mut().unwrap() {
+            entry["identity"] = json!({"kind":"unknown","device":null,"inode":null,"link_count":null});
+        }
+    }
+    let actual = analyze(&input, &ctx);
+    assert_eq!(actual["counts"]["unknown_identity_file_entries"], 2);
+    assert_eq!(actual["counts"]["known_identity_groups"], 0);
+    assert_eq!(actual["unknown_identity_entries"].as_array().unwrap().len(), 2);
+    assert!(actual["identity_deduplicated_logical_bytes"].is_null(), "M_UNKNOWN_IDENTITY across scopes");
+}
+
+fn assert_source_error(raw: &str, ctx: &ReportContext) {
+    let source = assemble_json(raw, ctx).unwrap_err();
+    let error = analyze_json(raw, ctx).unwrap_err();
+    assert_eq!(error, AnalysisError::Source(source.clone()));
+    assert_eq!(error.to_string(), source.to_string());
+    assert_eq!(error.clone(), error);
+    assert!(std::error::Error::source(&error).is_some());
+    assert!(!format!("{error} {error:?}").contains("CANARY"));
+}
+
+#[test]
+fn ledger_validation() {
+    let all = cases();
+    let errors = all["source_errors"].as_array().unwrap();
+    assert_eq!(errors.len(), 11);
+    for case in errors {
+        let raw = case["input"].as_str().unwrap();
+        let ctx = context(&case["context"]);
+        let source = assemble_json(raw, &ctx).unwrap_err();
+        assert_eq!(format!("{:?}", source.code), case["code"].as_str().unwrap());
+        assert_eq!(source.field, case["field"].as_str().unwrap());
+        assert_source_error(raw, &ctx);
+    }
+    let case = golden("unknown-pair");
+    let ctx = context(&case["context"]);
+    let raw = case["input"].to_string();
+    // Test nested duplicate keys through the actual public raw-text entry point.
+    let duplicate = raw.replacen("\"kind\":\"unknown\"", "\"kind\":\"unknown\",\"kind\":\"unknown\"", 1);
+    assert_ne!(duplicate, raw);
+    assert_source_error(&duplicate, &ctx);
+    let oversized = " ".repeat(8_388_609);
+    assert_source_error(&oversized, &ctx);
+    let cross = golden("known-cross-scope");
+    let mut wrong_order = context(&cross["context"]);
+    wrong_order.scopes.reverse();
+    assert_source_error(&cross["input"].to_string(), &wrong_order);
+    assert_eq!(AnalysisError::OutputTooLarge.to_string(), "OutputTooLarge at /analysis");
+    assert_eq!(AnalysisError::SerializationFailed.to_string(), "SerializationFailed at /analysis");
+}
+
+fn assert_public_traits<T: std::fmt::Debug + Clone + PartialEq + serde::Serialize>() {}
+
+#[test]
+fn ledger_public_wire_and_purity() {
+    assert_public_traits::<SizeLedger>();
+    for case in cases()["golden_cases"].as_array().unwrap() {
+        let input = case["input"].to_string();
+        let input_before = input.clone();
+        let ctx = context(&case["context"]);
+        let ctx_before = ctx.clone();
+        let bundle = assemble_json(&input, &ctx).unwrap();
+        let ledger = analyze_json(&input, &ctx).unwrap();
+        let text = to_json(&ledger).unwrap();
+        let actual: Value = serde_json::from_str(&text).unwrap();
+        assert_eq!(actual, case["expected"], "M_BEHAVIOR complete public wire {}", case["id"]);
+        assert_eq!(actual["source_facts"], *bundle.source_facts());
+        assert_eq!(actual["source_totals"], serde_json::to_value(&bundle.report().totals).unwrap());
+        assert!(actual["volume_unique_allocated_bytes"].is_null());
+        assert!(actual["reclaimable_bytes"].is_null());
+        assert_eq!(serde_json::to_value(ledger.clone()).unwrap(), actual);
+        assert_eq!(to_json(&ledger).unwrap(), text);
+        assert_eq!(analyze_json(&input, &ctx).unwrap(), ledger);
+        assert_eq!(input, input_before);
+        assert_eq!(ctx, ctx_before);
+        assert!(text.len() <= 33_554_432);
+    }
+
+    // Reuse one identity in independently changed runs, then revisit the first.
+    let case = golden("known-hardlinks");
+    let ctx_a = context(&case["context"]);
+    let first = analyze(&case["input"], &ctx_a);
+    let mut input_b = case["input"].clone();
+    input_b["run_id"] = json!("run-isolated-observation");
+    let mut ctx_b = ctx_a.clone();
+    ctx_b.scan_id = OpaqueId::new("another-observation").unwrap();
+    for entry in input_b["scopes"][0]["entries"].as_array_mut().unwrap() {
+        entry["logical_bytes"] = json!("31");
+    }
+    let second = analyze(&input_b, &ctx_b);
+    assert_eq!(second["identity_deduplicated_logical_bytes"], "31");
+    assert_eq!(second["source_run_id"], "run-isolated-observation");
+    assert_eq!(second["scan_id"], "another-observation");
+    assert_eq!(analyze(&case["input"], &ctx_a), first);
+
+    // IDs, paths and context labels are data, not dispatch keys.
+    input_b["case_id"] = json!("renamed-observation");
+    ctx_b.scopes[0].label = "Different synthetic label".to_owned();
+    for (index, entry) in input_b["scopes"][0]["entries"].as_array_mut().unwrap().iter_mut().enumerate() {
+        entry["relative_path"] = json!(format!("new-{index}"));
+        entry["depth"] = json!(1);
+    }
+    assert_eq!(analyze(&input_b, &ctx_b)["identity_deduplicated_logical_bytes"], "31");
+    assert_eq!(analyze(&case["input"], &ctx_a), first);
+}
