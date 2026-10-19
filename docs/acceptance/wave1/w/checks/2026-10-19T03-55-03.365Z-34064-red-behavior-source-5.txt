@@ -1,0 +1,80 @@
+import { createServer } from 'node:http';
+import { readFile, realpath } from 'node:fs/promises';
+import { dirname, isAbsolute, join, relative, resolve } from 'node:path';
+import { fileURLToPath } from 'node:url';
+import { assertReviewInput, exportText } from './model.mjs';
+
+const here = dirname(fileURLToPath(import.meta.url));
+const unavailable = 'Native review unavailable.';
+const csp = "default-src 'none';script-src 'self';style-src 'self';connect-src 'self';form-action 'none';frame-ancestors 'none';base-uri 'none'";
+
+// Only caller memory; capture synchronously before the first asynchronous operation.
+export async function startServer({ bundle, port = 0 } = {}) {
+  assertReviewInput(bundle);
+  if (!Number.isInteger(port) || port < 0 || port > 65535) throw new Error('Native review unavailable.');
+  let captured, exports;
+  try {
+    captured = Buffer.from(JSON.stringify(bundle), 'utf8');
+    if (captured.length > 67108864) throw new Error();
+    exports = bundle.snapshots.map(s => Buffer.from(JSON.stringify(s.view), 'utf8'));
+  } catch { throw new Error('Unsupported native review.'); }
+  const routes = new Map(), downloads = new Map();
+  exports.forEach((body, i) => downloads.set(`/exports/${i + 1}.json`, {
+    body, filename: `water-report-${i + 1}.json`,
+  }));
+  async function fixedFile(route) {
+    const canonical = await realpath(route.path), rel = relative(route.dir, canonical);
+    if (canonical !== route.path || rel.startsWith('..') || isAbsolute(rel)) throw new Error(unavailable);
+    return canonical;
+  }
+  try {
+    const reader = resolve(here, '../report-reader'), legacy = resolve(here, '../scan-review');
+    for (const dir of [here, reader, legacy]) if (await realpath(dir) !== dir) throw new Error();
+    for (const [url, dir, file, type] of [
+      ['/', here, 'index.html', 'text/html'], ['/styles.css', here, 'styles.css', 'text/css'],
+      ['/app.mjs', here, 'app.mjs', 'text/javascript'], ['/model.mjs', here, 'model.mjs', 'text/javascript'],
+      ['/scan-review/model.mjs', legacy, 'model.mjs', 'text/javascript'],
+      ['/report-reader/model.mjs', reader, 'model.mjs', 'text/javascript'],
+    ]) routes.set(url, { path: join(dir, file), dir, type: `${type};charset=utf-8` });
+    for (const route of routes.values()) await fixedFile(route);
+  } catch { throw new Error(unavailable); }
+  let expectedHost;
+  const server = createServer(async (req, res) => {
+    res.setHeader('Connection', 'close');
+    res.setHeader('Content-Security-Policy', csp);
+    res.setHeader('X-Content-Type-Options', 'nosniff');
+    res.setHeader('Referrer-Policy', 'no-referrer');
+    res.setHeader('Cache-Control', 'no-store');
+    function fail(status) {
+      if (status === 405) res.setHeader('Allow', 'GET, HEAD');
+      res.writeHead(status, { 'Content-Type': 'text/plain;charset=utf-8', 'Content-Length': Buffer.byteLength(unavailable) });
+      res.end(req.method === 'HEAD' ? undefined : unavailable);
+    }
+    if (req.headers.host !== expectedHost) return fail(403);
+    if (req.method !== 'GET' && req.method !== 'HEAD') return fail(405);
+    const route = routes.get(req.url), download = downloads.get(req.url);
+    if (req.url !== '/session.json' && !route && !download) return fail(404);
+    try {
+      const body = download ? download.body : req.url === '/session.json' ? captured : await readFile(await fixedFile(route));
+      const headers = { 'Content-Type': download || req.url === '/session.json' ? 'application/json;charset=utf-8' : route.type,
+        'Content-Length': body.length };
+      if (download) headers['Content-Disposition'] = `attachment; filename="${download.filename}"`;
+      res.writeHead(200, headers);
+      res.end(req.method === 'HEAD' ? undefined : body);
+    } catch { fail(404); }
+  });
+  await new Promise((accept, reject) => {
+    server.once('error', reject);
+    server.listen(port, '127.0.0.1', () => {
+      expectedHost = `127.0.0.1:${server.address().port}`;
+      server.off('error', reject); accept();
+    });
+  }).catch(() => { throw new Error(unavailable); });
+  let closing;
+  return { server, url: `http://${expectedHost}`, async close() {
+    closing ??= new Promise((accept, reject) => {
+      server.close(error => error ? reject(error) : accept()); server.closeAllConnections();
+    });
+    return closing;
+  } };
+}

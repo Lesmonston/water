@@ -1,0 +1,334 @@
+{
+  "task": "WATER-W1-W",
+  "mode": "suite",
+  "finalGate": false,
+  "startedAt": "2026-10-19T03:30:14.584Z",
+  "before": {
+    "head": "30a803537602211ed2a11c106c63fd27cefb260f",
+    "status": "?? prototypes/native-review/.gitattributes\n?? prototypes/native-review/app.mjs\n?? prototypes/native-review/host.mjs\n?? prototypes/native-review/index.html\n?? prototypes/native-review/launch.mjs\n?? prototypes/native-review/model.mjs\n?? prototypes/native-review/server.mjs\n?? prototypes/native-review/styles.css\n?? prototypes/native-review/tests/browser.test.mjs\n?? prototypes/native-review/tests/model.test.mjs"
+  },
+  "node": "v24.16.0",
+  "productTestsRun": true,
+  "frozenFiles": 104,
+  "commands": [
+    {
+      "binary": "git",
+      "argv": [
+        "-c",
+        "core.hooksPath=NUL",
+        "-c",
+        "core.fsmonitor=false",
+        "rev-parse",
+        "--path-format=absolute",
+        "--git-common-dir"
+      ],
+      "exitCode": 0,
+      "error": null
+    },
+    {
+      "binary": "git",
+      "argv": [
+        "-c",
+        "core.hooksPath=NUL",
+        "-c",
+        "core.fsmonitor=false",
+        "branch",
+        "--show-current"
+      ],
+      "exitCode": 0,
+      "error": null
+    },
+    {
+      "binary": "git",
+      "argv": [
+        "-c",
+        "core.hooksPath=NUL",
+        "-c",
+        "core.fsmonitor=false",
+        "merge-base",
+        "--is-ancestor",
+        "30a803537602211ed2a11c106c63fd27cefb260f",
+        "HEAD"
+      ],
+      "exitCode": 0,
+      "error": null
+    },
+    {
+      "binary": "git",
+      "argv": [
+        "-c",
+        "core.hooksPath=NUL",
+        "-c",
+        "core.fsmonitor=false",
+        "diff",
+        "--no-renames",
+        "--name-only",
+        "-z",
+        "30a803537602211ed2a11c106c63fd27cefb260f",
+        "HEAD"
+      ],
+      "exitCode": 0,
+      "error": null
+    },
+    {
+      "binary": "git",
+      "argv": [
+        "-c",
+        "core.hooksPath=NUL",
+        "-c",
+        "core.fsmonitor=false",
+        "diff",
+        "--no-renames",
+        "--name-only",
+        "-z",
+        "HEAD"
+      ],
+      "exitCode": 0,
+      "error": null
+    },
+    {
+      "binary": "git",
+      "argv": [
+        "-c",
+        "core.hooksPath=NUL",
+        "-c",
+        "core.fsmonitor=false",
+        "ls-files",
+        "--others",
+        "--exclude-standard",
+        "-z"
+      ],
+      "exitCode": 0,
+      "error": null
+    },
+    {
+      "binary": "git",
+      "argv": [
+        "-c",
+        "core.hooksPath=NUL",
+        "-c",
+        "core.fsmonitor=false",
+        "rev-parse",
+        "HEAD"
+      ],
+      "exitCode": 0,
+      "error": null
+    },
+    {
+      "binary": "git",
+      "argv": [
+        "-c",
+        "core.hooksPath=NUL",
+        "-c",
+        "core.fsmonitor=false",
+        "status",
+        "--porcelain",
+        "--untracked-files=all"
+      ],
+      "exitCode": 0,
+      "error": null
+    },
+    {
+      "binary": "C:\\Program Files\\nodejs\\node.exe",
+      "argv": [
+        "--test",
+        "--test-concurrency=1",
+        "--test-reporter=tap",
+        "prototypes/native-review/tests/model.test.mjs",
+        "prototypes/native-review/tests/browser.test.mjs"
+      ],
+      "exitCode": 0,
+      "error": null,
+      "log": "2026-10-19T03-30-13.610Z-30332-suite-1.log"
+    },
+    {
+      "binary": "git",
+      "argv": [
+        "-c",
+        "core.hooksPath=NUL",
+        "-c",
+        "core.fsmonitor=false",
+        "branch",
+        "--show-current"
+      ],
+      "exitCode": 0,
+      "error": null,
+      "log": "2026-10-19T03-30-13.610Z-30332-suite-2.log"
+    },
+    {
+      "binary": "git",
+      "argv": [
+        "-c",
+        "core.hooksPath=NUL",
+        "-c",
+        "core.fsmonitor=false",
+        "merge-base",
+        "--is-ancestor",
+        "30a803537602211ed2a11c106c63fd27cefb260f",
+        "HEAD"
+      ],
+      "exitCode": 0,
+      "error": null,
+      "log": "2026-10-19T03-30-13.610Z-30332-suite-3.log"
+    },
+    {
+      "binary": "git",
+      "argv": [
+        "-c",
+        "core.hooksPath=NUL",
+        "-c",
+        "core.fsmonitor=false",
+        "diff",
+        "--no-renames",
+        "--name-only",
+        "-z",
+        "30a803537602211ed2a11c106c63fd27cefb260f",
+        "HEAD"
+      ],
+      "exitCode": 0,
+      "error": null,
+      "log": "2026-10-19T03-30-13.610Z-30332-suite-4.log"
+    },
+    {
+      "binary": "git",
+      "argv": [
+        "-c",
+        "core.hooksPath=NUL",
+        "-c",
+        "core.fsmonitor=false",
+        "diff",
+        "--no-renames",
+        "--name-only",
+        "-z",
+        "HEAD"
+      ],
+      "exitCode": 0,
+      "error": null,
+      "log": "2026-10-19T03-30-13.610Z-30332-suite-5.log"
+    },
+    {
+      "binary": "git",
+      "argv": [
+        "-c",
+        "core.hooksPath=NUL",
+        "-c",
+        "core.fsmonitor=false",
+        "ls-files",
+        "--others",
+        "--exclude-standard",
+        "-z"
+      ],
+      "exitCode": 0,
+      "error": null,
+      "log": "2026-10-19T03-30-13.610Z-30332-suite-6.log"
+    },
+    {
+      "binary": "git",
+      "argv": [
+        "-c",
+        "core.hooksPath=NUL",
+        "-c",
+        "core.fsmonitor=false",
+        "rev-parse",
+        "HEAD"
+      ],
+      "exitCode": 0,
+      "error": null,
+      "log": "2026-10-19T03-30-13.610Z-30332-suite-7.log"
+    },
+    {
+      "binary": "git",
+      "argv": [
+        "-c",
+        "core.hooksPath=NUL",
+        "-c",
+        "core.fsmonitor=false",
+        "status",
+        "--porcelain",
+        "--untracked-files=all"
+      ],
+      "exitCode": 0,
+      "error": null,
+      "log": "2026-10-19T03-30-13.610Z-30332-suite-8.log"
+    }
+  ],
+  "sourceState": {
+    "files": [
+      {
+        "path": "prototypes/native-review/.gitattributes",
+        "sha256": "0f5f59fadbab5da08438dff0d18cc6ea4861367f142c849776b6f982a3e14753",
+        "snapshot": "2026-10-19T03-30-13.610Z-30332-suite-source-0.txt",
+        "test": false
+      },
+      {
+        "path": "prototypes/native-review/index.html",
+        "sha256": "95b94290c7c8b001e70b166d6f5bc366b333dd0b27156e6d5051f641f929e4ac",
+        "snapshot": "2026-10-19T03-30-13.610Z-30332-suite-source-1.txt",
+        "test": false
+      },
+      {
+        "path": "prototypes/native-review/styles.css",
+        "sha256": "2c3af60b8c788298bdade154f72f1797324690f3a40e2b4e9a1f985cf778f957",
+        "snapshot": "2026-10-19T03-30-13.610Z-30332-suite-source-2.txt",
+        "test": false
+      },
+      {
+        "path": "prototypes/native-review/model.mjs",
+        "sha256": "f9e1e4dad4acb0316d729f682bda50e6e091a2f6c0588570ea98df119ce9bb53",
+        "snapshot": "2026-10-19T03-30-13.610Z-30332-suite-source-3.txt",
+        "test": false
+      },
+      {
+        "path": "prototypes/native-review/app.mjs",
+        "sha256": "b9f2058a8d768ba4a8b759117a6d55d32e8fddee1d97fe955e3855564d04c1d4",
+        "snapshot": "2026-10-19T03-30-13.610Z-30332-suite-source-4.txt",
+        "test": false
+      },
+      {
+        "path": "prototypes/native-review/server.mjs",
+        "sha256": "d7eb52084eb400d5e7a1473601cb28b9042743da8c678ec0220daaca88cb64d0",
+        "snapshot": "2026-10-19T03-30-13.610Z-30332-suite-source-5.txt",
+        "test": false
+      },
+      {
+        "path": "prototypes/native-review/host.mjs",
+        "sha256": "d86f592ace13ceef7dabc46586aeb4c47030c0153f22abdb5c6befd4bb9bd1ee",
+        "snapshot": "2026-10-19T03-30-13.610Z-30332-suite-source-6.txt",
+        "test": false
+      },
+      {
+        "path": "prototypes/native-review/launch.mjs",
+        "sha256": "814114f9d36d34c62cd3602fc60a20ffea959af45113c86ee95cbcd2cc3b8161",
+        "snapshot": "2026-10-19T03-30-13.610Z-30332-suite-source-7.txt",
+        "test": false
+      },
+      {
+        "path": "prototypes/native-review/tests/model.test.mjs",
+        "sha256": "fd042fa257fa3d1331b72d971e0cb949545865edc3c6d24e63a59a17098142af",
+        "snapshot": "2026-10-19T03-30-13.610Z-30332-suite-source-8.txt",
+        "test": true
+      },
+      {
+        "path": "prototypes/native-review/tests/browser.test.mjs",
+        "sha256": "a8880181b6daeac95ca39bc35a48fec36b760ca40a2cdd6bae86ad1c2f85fff7",
+        "snapshot": "2026-10-19T03-30-13.610Z-30332-suite-source-9.txt",
+        "test": true
+      }
+    ],
+    "productionHash": "6d6876cbbe4235a97e74c5b4a7e862ec60984d2a8bb6ab1539feccc2ac5af854",
+    "testHash": "ddbbe11ecd344ba594070acd034e0e606a25645d351798519391d08ee2cc00c0"
+  },
+  "executedTests": 5,
+  "screenshots": [
+    "2026-10-19T03-30-13.610Z-30332-suite-native-review-1440x1000.png",
+    "2026-10-19T03-30-13.610Z-30332-suite-native-review-900x800.png",
+    "2026-10-19T03-30-13.610Z-30332-suite-native-review-cancel.png"
+  ],
+  "after": {
+    "head": "30a803537602211ed2a11c106c63fd27cefb260f",
+    "status": "?? prototypes/native-review/.gitattributes\n?? prototypes/native-review/app.mjs\n?? prototypes/native-review/host.mjs\n?? prototypes/native-review/index.html\n?? prototypes/native-review/launch.mjs\n?? prototypes/native-review/model.mjs\n?? prototypes/native-review/server.mjs\n?? prototypes/native-review/styles.css\n?? prototypes/native-review/tests/browser.test.mjs\n?? prototypes/native-review/tests/model.test.mjs"
+  },
+  "endedAt": "2026-10-19T03:30:37.222Z",
+  "status": "passed",
+  "error": null
+}

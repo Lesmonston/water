@@ -1,0 +1,140 @@
+import { assertReviewBundle, selectFindings, formatBytes } from '../scan-review/model.mjs';
+import { assertReportView } from '../report-reader/model.mjs';
+export { selectFindings, formatBytes };
+
+const fail = () => { throw new Error('Unsupported native review.'); };
+const encoder = new TextEncoder();
+const risks = ['low', 'review', 'high', 'protected'];
+const categories = ['download_cache', 'build_cache', 'environment', 'model', 'experiment', 'history', 'database', 'credential', 'source', 'temporary', 'unknown'];
+
+// Check descriptors before reading values. No caller getters or toJSON execute.
+function jsonData(value, ancestors = new Set()) {
+  if (value === null || typeof value === 'string' || typeof value === 'boolean') return;
+  if (typeof value === 'number' && Number.isFinite(value)) return;
+  if (!value || typeof value !== 'object' || ancestors.has(value)) fail();
+  const array = Array.isArray(value), proto = Object.getPrototypeOf(value);
+  if (array ? proto !== Array.prototype : proto !== Object.prototype && proto !== null) fail();
+  const descriptors = Object.getOwnPropertyDescriptors(value), keys = Reflect.ownKeys(descriptors);
+  if (array && keys.length !== value.length + 1) fail();
+  ancestors.add(value);
+  for (const key of keys) {
+    if (array && key === 'length') continue;
+    const d = descriptors[key];
+    if (typeof key !== 'string' || !d.enumerable || !Object.hasOwn(d, 'value')) fail();
+    if (array && (!/^(0|[1-9][0-9]*)$/.test(key) || Number(key) >= value.length)) fail();
+    jsonData(d.value, ancestors);
+  }
+  ancestors.delete(value);
+}
+function exact(value, keys) {
+  if (!value || typeof value !== 'object' || Array.isArray(value)) fail();
+  if (Object.keys(value).length !== keys.length || keys.some(k => !Object.hasOwn(value, k))) fail();
+}
+function same(actual, expected) {
+  if (expected === null || typeof expected !== 'object') { if (actual !== expected) fail(); return; }
+  if (Array.isArray(expected)) {
+    if (!Array.isArray(actual) || actual.length !== expected.length) fail();
+    expected.forEach((v, i) => same(actual[i], v));
+  } else {
+    exact(actual, Object.keys(expected));
+    for (const k of Object.keys(expected)) same(actual[k], expected[k]);
+  }
+}
+function nativePath(path, allowRoot = false) {
+  if (typeof path !== 'string' || !path.isWellFormed() || [...path].length > 4096) fail();
+  if (path === '' && allowRoot) return;
+  for (const name of path.split('/')) {
+    if (!name.length || name.length > 255 || name === '.' || name === '..' || /[. ]$/.test(name) || /[\x00-\x1f\x7f<>"|?*\\:]/.test(name)) fail();
+    // Rust R uses ASCII folding and trims only ASCII spaces from the stem.
+    const stem = name.split('.')[0].replace(/ +$/, '').replace(/[a-z]/g, c => String.fromCharCode(c.charCodeAt(0) - 32));
+    if (/^(CON|PRN|AUX|NUL|CONIN\$|CONOUT\$|(?:COM|LPT)[1-9¹²³])$/.test(stem)) fail();
+  }
+}
+function nativeSnapshot(snapshot, sessionId, limits) {
+  exact(snapshot, ['source_kind', 'view', 'summary', 'redacted_json']);
+  if (snapshot.source_kind !== 'native_scope_metadata') fail();
+  const { view, summary, redacted_json: text } = snapshot;
+  assertReportView(view);
+  if (view.scan_id !== sessionId || view.scopes.length !== 1) fail();
+  const scope = view.scopes[0];
+  same(scope, { scope_id: scope.scope_id, label: 'Selected directory', platform: 'windows', origin: 'user_selected', coverage: view.status === 'completed' ? 'complete' : view.status });
+  const paths = new Set(view.findings.map(f => f.relative_path));
+  if (paths.size !== view.findings.length) fail();
+  const ancestors = new Set();
+  for (const path of paths) {
+    const parts = path.split('/');
+    for (let i = 1; i < parts.length; i++) ancestors.add(parts.slice(0, i).join('/'));
+  }
+  const evidence = [{ code: 'unknown', source: 'filesystem', summary: 'Native metadata observation only; classification and ownership are unverified.' }];
+  view.findings.forEach((f, i) => {
+    nativePath(f.relative_path);
+    if (f.relative_path.split('/').length > limits.max_depth) fail();
+    const logical = f.logical_bytes;
+    if (ancestors.has(f.relative_path) && logical !== null) fail();
+    same(f, {
+      id: `entry-${i + 1}`, scope_id: scope.scope_id, title: f.relative_path, relative_path: f.relative_path,
+      tool_id: 'no_tool', tool_name: 'Unknown tool', source_tool: null, rule_version: 'native-scan-v1',
+      category: 'unknown', risk: 'protected', recoverability: 'unknown', activity: 'unknown', confidence: 'unknown',
+      evidence: evidence[0].summary, evidence_items: evidence,
+      protection_reasons: ['unknown_ownership', 'incomplete_evidence', ...(ancestors.has(f.relative_path) ? ['protected_descendant'] : [])],
+      references: { state: 'unknown', project_ids: [] }, logical_bytes: logical,
+      size: { logical_bytes: logical, allocated_bytes: null, reclaimable_lower_bytes: null, reclaimable_upper_bytes: null,
+        method: logical === null ? 'unknown' : 'logical_sum', confidence: logical === null ? 'unknown' : 'measured', shared: 'unknown' },
+    });
+  });
+  for (const i of view.issues) {
+    if (i.relative_path !== null) nativePath(i.relative_path, true);
+    if (i.scope_id !== scope.scope_id || i.message !== 'Native metadata issue.') fail();
+  }
+  same(view.totals, { logical_bytes: null, allocated_bytes: null, method: 'unavailable', coverage_complete: view.status === 'completed', scanned_entries: view.findings.length, skipped_entries: view.totals.skipped_entries });
+  if (view.totals.scanned_entries + view.totals.skipped_entries > limits.max_entries) fail();
+  const risk_counts = Object.fromEntries(risks.map(r => [r, r === 'protected' ? view.findings.length : 0]));
+  const category_counts = Object.fromEntries(categories.map(c => [c, c === 'unknown' ? view.findings.length : 0]));
+  same(summary, { export_version: 'water.summary-export.v1', source_schema_version: view.source_schema_version, read_only: true,
+    status: view.status, counts: { scopes: 1, findings: view.findings.length, issues: view.issues.length }, risk_counts, category_counts, totals: view.totals });
+  if (typeof text !== 'string' || text.length > 16777216 || encoder.encode(text).length > 16777216) fail();
+  const q = JSON.parse(text);
+  if (JSON.stringify(q) !== text) fail();
+  // A comparison projection only. Downloads always use the original Q string.
+  same(q, {
+    export_version: 'water.redacted-report.v1', source_schema_version: view.source_schema_version, read_only: true,
+    redaction_profile: 'structural_no_paths_v1', anonymity_guaranteed: false, summary,
+    scopes: [{ scope_ref: 'scope-1', platform: scope.platform, origin: scope.origin, coverage: scope.coverage }],
+    findings: view.findings.map((f, i) => ({ finding_ref: `finding-${i + 1}`, scope_ref: 'scope-1', has_tool: false,
+      category: f.category, risk: f.risk, recoverability: f.recoverability, activity: f.activity, confidence: f.confidence,
+      evidence: f.evidence_items.map(e => ({ code: e.code, source: e.source })), protection_reasons: f.protection_reasons,
+      references: { state: 'unknown', project_count: 0 }, size: f.size })),
+    issues: view.issues.map(i => ({ code: i.code, scope_ref: 'scope-1' })),
+  });
+}
+export function assertReviewInput(input) {
+  try {
+    jsonData(input);
+    if (input.bundle_version === 'water.scan-review-bundle.v1') assertReviewBundle(input);
+    else {
+      exact(input, ['bundle_version', 'session_id', 'read_only', 'selection', 'confirmation_source', 'policy', 'snapshots']);
+      if (input.bundle_version !== 'water.native-session-bundle.v1' || typeof input.session_id !== 'string' || !/^[A-Za-z0-9][A-Za-z0-9_-]{0,63}$/.test(input.session_id) || input.read_only !== true || input.confirmation_source !== 'native_directory_dialog') fail();
+      const { limits } = input.policy;
+      exact(limits, ['max_depth', 'max_entries', 'max_dir_entries']);
+      for (const [k, min, max] of [['max_depth', 0, 32], ['max_entries', 1, 10000], ['max_dir_entries', 1, 256]]) {
+        if (!Number.isInteger(limits[k]) || limits[k] < min || limits[k] > max) fail();
+      }
+      same(input.policy, { platform: 'windows', traversal: 'handle_relative_no_follow', ordinary_content_read: false, native_user_gesture_authenticated: false, race_protection_verified: false, coverage_basis: 'declared_policy', limits });
+      if (!Array.isArray(input.snapshots)) fail();
+      if (input.selection === 'cancelled') { if (input.snapshots.length) fail(); }
+      else if (input.selection === 'confirmed' && input.snapshots.length === 1) nativeSnapshot(input.snapshots[0], input.session_id, limits);
+      else fail();
+    }
+    if (encoder.encode(JSON.stringify(input)).length > 67108864) fail();
+    return input;
+  } catch { fail(); }
+}
+export function selectSnapshot(input, scanId) {
+  assertReviewInput(input);
+  return input.snapshots.find(s => s.view.scan_id === scanId) ?? null;
+}
+export function exportText(input, scanId) {
+  const snapshot = selectSnapshot(input, scanId);
+  if (!snapshot) fail();
+  return snapshot.redacted_json;
+}
