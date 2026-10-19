@@ -1,0 +1,8 @@
+{
+ "batch_version":"water.native-host-batch.v1",
+ "tasks":{
+  "WATER-W1-V":{"tests":["session_selection_cancelled","session_native_capture","session_cancellation_and_cleanup","session_errors_preserve_registry","session_public_wire_and_cli"],"proof_targets":{"behavior":"V_BEHAVIOR","nc1":"V_SELECTED_ROOT","nc2":"V_RELEASED","nc3":"V_NATIVE_SOURCE"},"final_modes":["fmt","test","clippy","metadata","bridge"]},
+  "WATER-W1-W":{"tests":["native_review_protocol","native_review_stream_and_launcher","native_review_http_and_privacy"],"browser_tests":["native_review_live_inputs_and_download","native_review_layout_cancel_and_safety"],"proof_targets":{"behavior":"W_BEHAVIOR","nc1":"W_Q_ONLY","nc2":"W_SELECTION_CANCELLED","nc3":"W_STREAM_BOUNDARY"},"final_modes":["check","test","browser"]}
+ },
+ "node_major":24,"rust_version":"1.95.0","offline":true,"cargo_jobs":1,"per_command_timeout_ms":180000,"one_gate_per_tree":true,"native_dialogs_V":1,"chrome_instances_W":1
+}

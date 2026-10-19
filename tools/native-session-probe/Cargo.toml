@@ -1,0 +1,20 @@
+[package]
+name = "water-native-session-probe"
+version = "0.1.0"
+edition = "2024"
+rust-version = "1.95"
+publish = false
+
+[workspace]
+members = ["."]
+resolver = "3"
+
+[dependencies]
+water-contracts = { path = "../../crates/water-contracts" }
+water-scope-registry = { path = "../../packages/scope-registry" }
+water-native-picker = { path = "../../packages/native-picker" }
+water-native-scan = { path = "../../packages/native-scan" }
+water-report-view = { path = "../../packages/report-view" }
+water-summary-export = { path = "../../packages/summary-export" }
+water-redacted-report = { path = "../../packages/redacted-report" }
+serde_json = "=1.0.151"
