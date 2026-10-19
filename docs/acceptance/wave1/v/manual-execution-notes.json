@@ -1,0 +1,35 @@
+{
+  "task": "WATER-W1-V",
+  "kind": "manual_execution_notes_not_raw_tool_output",
+  "actualAgent": "Codex; system identifies GPT-6; no delegated agents or external models",
+  "initialPreconditions": {
+    "branch": "worker/water-w1-v",
+    "head": "30a803537602211ed2a11c106c63fd27cefb260f",
+    "clean": true,
+    "productAbsent": true,
+    "controllerManifestStatus": "READY",
+    "baselineStatus": "PASSED"
+  },
+  "auxiliaryFailures": [
+    {
+      "operation": "Initial PowerShell text reads",
+      "result": "Non-UTF8 default rendering was unreadable; re-read with -Encoding UTF8."
+    },
+    {
+      "operation": "Read inferred contracts/native-session-v1/cases/PROVENANCE.md",
+      "result": "Path absent; read actual contracts/native-session-v1/PROVENANCE.json and SPEC/cases instead."
+    },
+    {
+      "operation": "Read inferred scripts/native-session-bridge.mjs",
+      "result": "Path absent; read actual scripts/acceptance/native-session-bridge.rs referenced by frozen helper."
+    },
+    {
+      "operation": "rustup run 1.95.0 rustfmt via PATH",
+      "result": "CommandNotFound; invoked installed USERPROFILE/.cargo/bin/rustup.exe explicitly, exit 0."
+    }
+  ],
+  "mutationRestoration": "Each mutation changed only src/v1.rs. Restored from manual-stable-v1.txt and compared Buffer equality before the next suite/mutation. Helper records all source hashes and final proofAudit binds four chains.",
+  "finalProductionChangesAfterTestedCommit": false,
+  "imagesProduced": 0,
+  "physicalPayloadsAddedOrRemovedByWorker": 0
+}

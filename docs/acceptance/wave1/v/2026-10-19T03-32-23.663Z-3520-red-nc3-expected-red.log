@@ -1,0 +1,66 @@
+--- stdout ---
+
+running 5 tests
+test session_cancellation_and_cleanup ... FAILED
+test session_errors_preserve_registry ... FAILED
+test session_native_capture ... FAILED
+test session_public_wire_and_cli ... FAILED
+test session_selection_cancelled ... ok
+
+failures:
+
+failures:
+    session_cancellation_and_cleanup
+    session_errors_preserve_registry
+    session_native_capture
+    session_public_wire_and_cli
+
+test result: FAILED. 1 passed; 4 failed; 0 ignored; 0 measured; 0 filtered out; finished in 10.34s
+
+
+--- stderr ---
+WATER_PICKER_CASE select
+WATER_UI_WINDOW 29132 #32770 visible=True
+WATER_UI_ACTION 29132 select
+
+thread 'session_cancellation_and_cleanup' (18524) panicked at tests\session_v1.rs:108:5:
+assertion `left == right` failed: V_NATIVE_SOURCE
+  left: String("synthetic_memory")
+ right: "native_scope_metadata"
+note: run with `RUST_BACKTRACE=1` environment variable to display a backtrace
+WATER_PICKER_CASE select
+WATER_UI_WINDOW 29132 #32770 visible=True
+WATER_UI_ACTION 29132 select
+WATER_PICKER_CASE select
+WATER_UI_WINDOW 29132 #32770 visible=True
+WATER_UI_ACTION 29132 select
+WATER_PICKER_CASE select
+WATER_UI_WINDOW 29132 #32770 visible=True
+WATER_UI_ACTION 29132 select
+WATER_PICKER_CASE select
+WATER_UI_WINDOW 29132 #32770 visible=True
+WATER_UI_ACTION 29132 select
+
+thread 'session_errors_preserve_registry' (25740) panicked at tests\session_v1.rs:108:5:
+assertion `left == right` failed: V_NATIVE_SOURCE
+  left: String("synthetic_memory")
+ right: "native_scope_metadata"
+WATER_PICKER_CASE select
+WATER_UI_WINDOW 29132 #32770 visible=True
+WATER_UI_ACTION 29132 select
+
+thread 'session_native_capture' (13764) panicked at tests\session_v1.rs:108:5:
+assertion `left == right` failed: V_NATIVE_SOURCE
+  left: String("synthetic_memory")
+ right: "native_scope_metadata"
+WATER_PICKER_CASE select
+WATER_UI_WINDOW 29132 #32770 visible=True
+WATER_UI_ACTION 29132 select
+
+thread 'session_public_wire_and_cli' (20884) panicked at tests\session_v1.rs:108:5:
+assertion `left == right` failed: V_NATIVE_SOURCE
+  left: String("synthetic_memory")
+ right: "native_scope_metadata"
+WATER_PICKER_CASE cancel
+WATER_UI_WINDOW 29132 #32770 visible=True
+WATER_UI_ACTION 29132 cancel

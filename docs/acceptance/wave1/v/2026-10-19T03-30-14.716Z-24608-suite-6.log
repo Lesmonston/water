@@ -1,0 +1,223 @@
+{"binary":"C:\\Program Files\\nodejs\\node.exe","argv":["scripts/native-session-test-driver.mjs","tests","F:\\new\\smaltalk\\water\\.worktrees\\v\\.local\\next-target\\debug\\deps\\session_v1-cdaa865e03c94ac5.exe","--test-threads=1","--format","pretty","--nocapture"],"exitCode":0,"error":null,"log":"2026-10-19T03-30-14.716Z-24608-suite-6.log"}
+--- stdout ---
+
+running 5 tests
+test session_cancellation_and_cleanup ... ok
+test session_errors_preserve_registry ... ok
+test session_native_capture ... ok
+test session_public_wire_and_cli ... ok
+test session_selection_cancelled ... ok
+
+test result: ok. 5 passed; 0 failed; 0 ignored; 0 measured; 0 filtered out; finished in 15.21s
+
+
+--- stderr ---
+WATER_PICKER_CASE select
+WATER_UI_WINDOW 12300 #32770 visible=True
+WATER_UI_ACTION 12300 select
+WATER_PICKER_CASE select
+WATER_UI_WINDOW 12300 #32770 visible=True
+WATER_UI_ACTION 12300 select
+WATER_PICKER_CASE select
+WATER_UI_WINDOW 12300 #32770 visible=True
+WATER_UI_ACTION 12300 select
+
+thread 'session_cancellation_and_cleanup' (21596) panicked at tests\session_v1.rs:155:9:
+controlled observer unwind
+note: run with `RUST_BACKTRACE=1` environment variable to display a backtrace
+WATER_PICKER_CASE select
+WATER_UI_WINDOW 12300 #32770 visible=True
+WATER_UI_ACTION 12300 select
+WATER_PICKER_CASE select
+WATER_UI_WINDOW 12300 #32770 visible=True
+WATER_UI_ACTION 12300 select
+WATER_PICKER_CASE select
+WATER_UI_WINDOW 12300 #32770 visible=True
+WATER_UI_ACTION 12300 select
+WATER_PICKER_CASE select
+WATER_UI_WINDOW 12300 #32770 visible=True
+WATER_UI_ACTION 12300 select
+WATER_PICKER_CASE select
+WATER_UI_WINDOW 12300 #32770 visible=True
+WATER_UI_ACTION 12300 select
+WATER_PICKER_CASE select
+WATER_UI_WINDOW 12300 #32770 visible=True
+WATER_UI_ACTION 12300 select
+WATER_PICKER_CASE select
+WATER_UI_WINDOW 12300 #32770 visible=True
+WATER_UI_ACTION 12300 select
+WATER_PICKER_CASE select
+WATER_UI_WINDOW 12300 #32770 visible=True
+WATER_UI_ACTION 12300 select
+WATER_PICKER_CASE select
+WATER_UI_WINDOW 12300 #32770 visible=True
+WATER_UI_ACTION 12300 select
+WATER_PICKER_CASE select
+WATER_UI_WINDOW 12300 #32770 visible=True
+WATER_UI_ACTION 12300 select
+WATER_PICKER_CASE select
+WATER_UI_WINDOW 12300 #32770 visible=True
+WATER_UI_ACTION 12300 select
+PRIVATE_API_PROOF 0 exit=Some(0)
+
+PRIVATE_API_PROOF 1 exit=Some(1)
+warning: unused imports: `SessionError` and `to_json`
+ --> <anon>:2:48
+  |
+2 | use water_native_session::v1::{SessionCapture, SessionError, to_json};
+  |                                                ^^^^^^^^^^^^  ^^^^^^^
+  |
+  = note: `#[warn(unused_imports)]` (part of `#[warn(unused)]`) on by default
+
+error[E0616]: field `snapshots` of struct `SessionCapture` is private
+ --> <anon>:3:54
+  |
+3 | fn main() { fn read(c: &SessionCapture) { let _ = &c.snapshots; } }
+  |                                                      ^^^^^^^^^ private field
+
+error: aborting due to 1 previous error; 1 warning emitted
+
+For more information about this error, try `rustc --explain E0616`.
+
+PRIVATE_API_PROOF 2 exit=Some(1)
+warning: unused imports: `SessionError` and `to_json`
+ --> <anon>:2:48
+  |
+2 | use water_native_session::v1::{SessionCapture, SessionError, to_json};
+  |                                                ^^^^^^^^^^^^  ^^^^^^^
+  |
+  = note: `#[warn(unused_imports)]` (part of `#[warn(unused)]`) on by default
+
+error[E0616]: field `read_only` of struct `SessionCapture` is private
+ --> <anon>:3:51
+  |
+3 | fn main() { fn mutate(c: &mut SessionCapture) { c.read_only = false; } }
+  |                                                   ^^^^^^^^^ private field
+
+error: aborting due to 1 previous error; 1 warning emitted
+
+For more information about this error, try `rustc --explain E0616`.
+
+PRIVATE_API_PROOF 3 exit=Some(1)
+warning: unused imports: `SessionError` and `to_json`
+ --> <anon>:2:48
+  |
+2 | use water_native_session::v1::{SessionCapture, SessionError, to_json};
+  |                                                ^^^^^^^^^^^^  ^^^^^^^
+  |
+  = note: `#[warn(unused_imports)]` (part of `#[warn(unused)]`) on by default
+
+error[E0616]: field `policy` of struct `SessionCapture` is private
+ --> <anon>:3:51
+  |
+3 | fn main() { fn mutate(c: &mut SessionCapture) { c.policy.ordinary_content_read = true; } }
+  |                                                   ^^^^^^ private field
+
+error: aborting due to 1 previous error; 1 warning emitted
+
+For more information about this error, try `rustc --explain E0616`.
+
+PRIVATE_API_PROOF 4 exit=Some(1)
+warning: unused imports: `SessionError` and `to_json`
+ --> <anon>:2:48
+  |
+2 | use water_native_session::v1::{SessionCapture, SessionError, to_json};
+  |                                                ^^^^^^^^^^^^  ^^^^^^^
+  |
+  = note: `#[warn(unused_imports)]` (part of `#[warn(unused)]`) on by default
+
+error: cannot construct `SessionCapture` with struct literal syntax due to private fields
+ --> <anon>:3:21
+  |
+3 | fn main() { let _ = SessionCapture {}; }
+  |                     ^^^^^^^^^^^^^^
+  |
+  = note: private fields that were not provided
+
+error: aborting due to 1 previous error; 1 warning emitted
+
+
+PRIVATE_API_PROOF 5 exit=Some(1)
+warning: unused imports: `SessionError` and `to_json`
+ --> <anon>:2:48
+  |
+2 | use water_native_session::v1::{SessionCapture, SessionError, to_json};
+  |                                                ^^^^^^^^^^^^  ^^^^^^^
+  |
+  = note: `#[warn(unused_imports)]` (part of `#[warn(unused)]`) on by default
+
+error[E0277]: the trait bound `SessionCapture: Default` is not satisfied
+ --> <anon>:3:37
+  |
+3 | fn main() { let _: SessionCapture = Default::default(); }
+  |                                     ^^^^^^^^^^^^^^^^^^ the trait `Default` is not implemented for `SessionCapture`
+
+error: aborting due to 1 previous error; 1 warning emitted
+
+For more information about this error, try `rustc --explain E0277`.
+
+PRIVATE_API_PROOF 6 exit=Some(1)
+warning: unused imports: `SessionError` and `to_json`
+ --> <anon>:2:48
+  |
+2 | use water_native_session::v1::{SessionCapture, SessionError, to_json};
+  |                                                ^^^^^^^^^^^^  ^^^^^^^
+  |
+  = note: `#[warn(unused_imports)]` (part of `#[warn(unused)]`) on by default
+
+error[E0277]: the trait bound `SessionCapture: serde::Deserialize<'de>` is not satisfied
+    --> <anon>:3:44
+     |
+   3 | fn main() { let _ = serde_json::from_str::<SessionCapture>("{}"); }
+     |                                            ^^^^^^^^^^^^^^ the trait `serde_core::de::Deserialize<'_>` is not implemented for `SessionCapture`
+     |
+     = note: for local types consider adding `#[derive(serde::Deserialize)]` to your `SessionCapture` type
+     = note: for types from other crates check whether the crate offers a `serde` feature flag
+     = help: the following other types implement trait `serde_core::de::Deserialize<'de>`:
+               &'a Path
+               &'a [u8]
+               &'a str
+               ()
+               (T,)
+               (T0, T1)
+               (T0, T1, T2)
+               (T0, T1, T2, T3)
+             and 173 others
+note: required by a bound in `serde_json::from_str`
+    --> F:\new\smaltalk\water\.worktrees\v\.local\next-cargo-home\registry\src\index.crates.io-1949cf8c6b5b557f\serde_json-1.0.151\src\de.rs:2711:8
+     |
+2709 | pub fn from_str<'a, T>(s: &'a str) -> Result<T>
+     |        -------- required by a bound in this function
+2710 | where
+2711 |     T: de::Deserialize<'a>,
+     |        ^^^^^^^^^^^^^^^^^^^ required by this bound in `from_str`
+
+error: aborting due to 1 previous error; 1 warning emitted
+
+For more information about this error, try `rustc --explain E0277`.
+
+PRIVATE_API_PROOF 7 exit=Some(1)
+warning: unused imports: `SessionError` and `to_json`
+ --> <anon>:2:48
+  |
+2 | use water_native_session::v1::{SessionCapture, SessionError, to_json};
+  |                                                ^^^^^^^^^^^^  ^^^^^^^
+  |
+  = note: `#[warn(unused_imports)]` (part of `#[warn(unused)]`) on by default
+
+error[E0599]: no function or associated item named `new` found for struct `SessionCapture` in the current scope
+ --> <anon>:3:37
+  |
+3 | fn main() { let _ = SessionCapture::new(); }
+  |                                     ^^^ function or associated item not found in `SessionCapture`
+  |
+help: there is a method `ne` with a similar name, but with different arguments
+ --> /rustc/59807616e1fa2540724bfbac14d7976d7e4a3860/library\core\src\cmp.rs:264:4
+
+error: aborting due to 1 previous error; 1 warning emitted
+
+For more information about this error, try `rustc --explain E0599`.
+
+WATER_PICKER_CASE cancel
+WATER_UI_WINDOW 12300 #32770 visible=True
+WATER_UI_ACTION 12300 cancel

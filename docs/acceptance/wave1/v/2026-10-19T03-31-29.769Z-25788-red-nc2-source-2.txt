@@ -1,0 +1,228 @@
+//! Native session v1. Only S can supply the selected root and its capability.
+
+use serde::Serialize;
+use std::fmt;
+use water_contracts::v1::{ContractError, OpaqueId};
+use water_native_picker::v1::{PickerError, PickerOptions, SelectedScope, select_scope};
+use water_native_scan::v1::{
+    CancelToken, NativeScanError, NoopObserver, ScanObserver, ScanOptions,
+};
+use water_redacted_report::v1::RedactionError;
+use water_report_view::v1::ReportView;
+use water_scope_registry::v1::{Registry, RegistryError};
+use water_summary_export::v1::SummaryExport;
+
+const MAX_OUTPUT_BYTES: usize = 67_108_864;
+const MAX_REDACTED_BYTES: usize = 16_777_216;
+
+#[derive(Debug, Clone, PartialEq, Eq)]
+pub enum SessionError {
+    Picker(PickerError),
+    Scan(NativeScanError),
+    Projection(ContractError),
+    Summary(ContractError),
+    Redaction(RedactionError),
+    Registry(RegistryError),
+    OutputTooLarge,
+    SerializationFailed,
+    InvalidArguments,
+}
+
+impl fmt::Display for SessionError {
+    fn fmt(&self, f: &mut fmt::Formatter<'_>) -> fmt::Result {
+        match self {
+            Self::Picker(e) => e.fmt(f),
+            Self::Scan(e) => e.fmt(f),
+            Self::Projection(e) | Self::Summary(e) => e.fmt(f),
+            Self::Redaction(e) => e.fmt(f),
+            Self::Registry(e) => e.fmt(f),
+            other => write!(f, "{other:?} at /native_session"),
+        }
+    }
+}
+
+impl std::error::Error for SessionError {
+    fn source(&self) -> Option<&(dyn std::error::Error + 'static)> {
+        match self {
+            Self::Picker(e) => Some(e),
+            Self::Scan(e) => Some(e),
+            Self::Projection(e) | Self::Summary(e) => Some(e),
+            Self::Redaction(e) => Some(e),
+            Self::Registry(e) => Some(e),
+            _ => None,
+        }
+    }
+}
+
+#[derive(Debug, Clone, PartialEq, Serialize)]
+pub struct SessionCapture {
+    bundle_version: &'static str,
+    session_id: OpaqueId,
+    read_only: bool,
+    selection: Selection,
+    confirmation_source: &'static str,
+    policy: Policy,
+    snapshots: Vec<Snapshot>,
+}
+
+#[derive(Debug, Clone, PartialEq, Serialize)]
+#[serde(rename_all = "lowercase")]
+enum Selection {
+    Cancelled,
+    Confirmed,
+}
+
+#[derive(Debug, Clone, PartialEq, Serialize)]
+struct Policy {
+    platform: &'static str,
+    traversal: &'static str,
+    ordinary_content_read: bool,
+    native_user_gesture_authenticated: bool,
+    race_protection_verified: bool,
+    coverage_basis: &'static str,
+    limits: Limits,
+}
+
+#[derive(Debug, Clone, PartialEq, Serialize)]
+struct Limits {
+    max_depth: u32,
+    max_entries: u32,
+    max_dir_entries: u32,
+}
+
+#[derive(Debug, Clone, PartialEq, Serialize)]
+struct Snapshot {
+    source_kind: &'static str,
+    view: ReportView,
+    summary: SummaryExport,
+    redacted_json: String,
+}
+
+// Own only the selection that S actually confirmed for this call. R's attempt
+// guard finishes first during unwinding, then this guard revokes its own scope.
+struct Registration<'a> {
+    registry: &'a mut Registry,
+    selected: SelectedScope,
+    released: bool,
+}
+
+impl Registration<'_> {
+    fn release(&mut self) -> Result<(), SessionError> {
+        self.released = true;
+        Ok(())
+    }
+}
+
+impl Drop for Registration<'_> {
+    fn drop(&mut self) {
+        if !self.released {
+            let _ = self.registry.revoke(self.selected.scope());
+        }
+    }
+}
+
+pub fn capture_session(
+    registry: &mut Registry,
+    scope_id: &OpaqueId,
+    session_id: &OpaqueId,
+    picker: &PickerOptions,
+    options: &ScanOptions,
+    cancel: &CancelToken,
+) -> Result<SessionCapture, SessionError> {
+    capture_session_with_observer(
+        registry,
+        scope_id,
+        session_id,
+        picker,
+        options,
+        cancel,
+        &NoopObserver,
+    )
+}
+
+pub fn capture_session_with_observer<O: ScanObserver>(
+    registry: &mut Registry,
+    scope_id: &OpaqueId,
+    session_id: &OpaqueId,
+    picker: &PickerOptions,
+    options: &ScanOptions,
+    cancel: &CancelToken,
+    observer: &O,
+) -> Result<SessionCapture, SessionError> {
+    let selected = select_scope(registry, scope_id, picker).map_err(SessionError::Picker)?;
+    let mut capture = SessionCapture {
+        bundle_version: "water.native-session-bundle.v1",
+        session_id: session_id.clone(),
+        read_only: true,
+        selection: Selection::Cancelled,
+        confirmation_source: "native_directory_dialog",
+        policy: Policy {
+            platform: "windows",
+            traversal: "handle_relative_no_follow",
+            ordinary_content_read: false,
+            native_user_gesture_authenticated: false,
+            race_protection_verified: false,
+            coverage_basis: "declared_policy",
+            limits: Limits {
+                max_depth: options.max_depth(),
+                max_entries: options.max_entries(),
+                max_dir_entries: options.max_dir_entries(),
+            },
+        },
+        snapshots: Vec::new(),
+    };
+    if let Some(selected) = selected {
+        let mut registration = Registration {
+            registry,
+            selected,
+            released: false,
+        };
+        capture.selection = Selection::Confirmed;
+        let native_scan = water_native_scan::v1::scan_registered_with_observer(
+            registration.registry,
+            registration.selected.scope(),
+            registration.selected.root_path(),
+            session_id,
+            options,
+            cancel,
+            observer,
+        )
+        .map_err(SessionError::Scan)?;
+        let report = native_scan.report();
+        let view =
+            water_report_view::v1::project_report(report).map_err(SessionError::Projection)?;
+        let summary =
+            water_summary_export::v1::summarize_report(report).map_err(SessionError::Summary)?;
+        let redacted =
+            water_redacted_report::v1::redact_report(report).map_err(SessionError::Redaction)?;
+        let redacted_json =
+            water_redacted_report::v1::to_json(&redacted).map_err(SessionError::Redaction)?;
+        capture.snapshots.push(Snapshot {
+            source_kind: "native_scope_metadata",
+            view,
+            summary,
+            redacted_json,
+        });
+        to_json(&capture)?;
+        registration.release()?;
+    } else {
+        to_json(&capture)?;
+    }
+    Ok(capture)
+}
+
+/// Serialize the private capture without changing Q's original UTF-8 string.
+pub fn to_json(capture: &SessionCapture) -> Result<String, SessionError> {
+    if capture
+        .snapshots
+        .iter()
+        .any(|snapshot| snapshot.redacted_json.len() > MAX_REDACTED_BYTES)
+    {
+        return Err(SessionError::OutputTooLarge);
+    }
+    let output = serde_json::to_string(capture).map_err(|_| SessionError::SerializationFailed)?;
+    if output.len() > MAX_OUTPUT_BYTES {
+        return Err(SessionError::OutputTooLarge);
+    }
+    Ok(output)
+}

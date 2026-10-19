@@ -1,0 +1,54 @@
+{
+  "task": "WATER-W1-V",
+  "command": [
+    "git",
+    "-c",
+    "core.hooksPath=NUL",
+    "-c",
+    "core.fsmonitor=false",
+    "diff",
+    "--cached",
+    "--check"
+  ],
+  "exitCode": 2,
+  "rawDiagnostics": "manual-archive-whitespace-check.log",
+  "warningCount": 334,
+  "affectedFiles": [
+    "docs/acceptance/wave1/v/2026-10-19T02-18-01.278Z-12416-baseline-6.log",
+    "docs/acceptance/wave1/v/2026-10-19T03-21-57.520Z-9580-baseline-6.log",
+    "docs/acceptance/wave1/v/2026-10-19T03-26-27.687Z-16056-red-behavior-expected-red.log",
+    "docs/acceptance/wave1/v/2026-10-19T03-27-12.011Z-19700-suite-6.log",
+    "docs/acceptance/wave1/v/2026-10-19T03-29-03.905Z-15672-suite-6.log",
+    "docs/acceptance/wave1/v/2026-10-19T03-29-51.254Z-1916-red-behavior-expected-red.log",
+    "docs/acceptance/wave1/v/2026-10-19T03-30-14.716Z-24608-suite-6.log",
+    "docs/acceptance/wave1/v/2026-10-19T03-30-41.877Z-22908-red-nc1-expected-red.log",
+    "docs/acceptance/wave1/v/2026-10-19T03-31-01.727Z-28864-suite-6.log",
+    "docs/acceptance/wave1/v/2026-10-19T03-31-29.769Z-25788-red-nc2-expected-red.log",
+    "docs/acceptance/wave1/v/2026-10-19T03-32-04.065Z-30736-suite-6.log",
+    "docs/acceptance/wave1/v/2026-10-19T03-32-23.663Z-3520-red-nc3-expected-red.log",
+    "docs/acceptance/wave1/v/2026-10-19T03-32-56.053Z-25244-suite-6.log",
+    "docs/acceptance/wave1/v/2026-10-19T03-33-47.371Z-26440-test-6.log",
+    "docs/acceptance/wave1/v/2026-10-19T03-34-58.394Z-17280-bridge-10.log",
+    "docs/acceptance/wave1/v/2026-10-19T03-34-58.394Z-17280-bridge-11.log",
+    "docs/acceptance/wave1/v/2026-10-19T03-34-58.394Z-17280-bridge-8.log"
+  ],
+  "reason": "Raw retained evidence contains original trailing whitespace/CRLF; must preserve bytes under frozen -text attributes. This optional all-evidence whitespace check is not a product final gate.",
+  "preservedOriginalEvidence": true,
+  "sourceAndReportWhitespaceCheck": {
+    "command": [
+      "git",
+      "-c",
+      "core.hooksPath=NUL",
+      "-c",
+      "core.fsmonitor=false",
+      "diff",
+      "--cached",
+      "--check",
+      "--",
+      "packages/native-session",
+      "docs/dispatch/reports/WATER-W1-V-REPORT.md"
+    ],
+    "exitCode": 0
+  },
+  "productChanged": false
+}
