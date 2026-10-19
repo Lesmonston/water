@@ -1,0 +1,77 @@
+use serde::Serialize;
+use std::fmt;
+use water_node_manifest::v1::ManifestEvidence;
+use water_scope_registry::v1::{Registry, ScanPermit};
+
+/// Additional trusted-host declaration, borrowing the actual live P capabilities.
+pub struct ManifestReadConsent<'a> {
+    registry: &'a Registry,
+    permit: &'a ScanPermit,
+}
+
+#[derive(Debug, Clone, PartialEq, Eq)]
+pub enum MarkerReadError {
+    Source,
+    InvalidPath,
+    RootMismatch,
+    NotRegularFile,
+    ReparsePoint,
+    MultipleLinks,
+    InputTooLarge,
+    Changed,
+    InvalidUtf8,
+    InvalidManifest,
+    NativeIo,
+    UnsupportedPlatform,
+    SerializationFailed,
+}
+
+impl fmt::Display for MarkerReadError {
+    fn fmt(&self, f: &mut fmt::Formatter<'_>) -> fmt::Result {
+        write!(f, "{self:?} at /root_marker")
+    }
+}
+
+impl std::error::Error for MarkerReadError {}
+
+#[derive(Debug, Clone, PartialEq, Serialize)]
+pub struct MarkerObservation {
+    marker_version: &'static str,
+    source_kind: &'static str,
+    read_only: bool,
+    ordinary_content_read: bool,
+    root_binding_verified: bool,
+    native_user_gesture_authenticated: bool,
+    race_protection_verified: bool,
+    project_membership_verified: bool,
+    risk: &'static str,
+    action: &'static str,
+    bytes_read: u32,
+    evidence: ManifestEvidence,
+}
+
+pub fn approve_package_json<'a>(
+    registry: &'a Registry,
+    permit: &'a ScanPermit,
+) -> Result<ManifestReadConsent<'a>, MarkerReadError> {
+    registry
+        .check_permit(permit)
+        .map_err(|_| MarkerReadError::Source)?;
+    Ok(ManifestReadConsent { registry, permit })
+}
+
+pub fn read_package_json(
+    consent: &ManifestReadConsent<'_>,
+    _root_path: &str,
+) -> Result<Option<MarkerObservation>, MarkerReadError> {
+    consent
+        .registry
+        .check_permit(consent.permit)
+        .map_err(|_| MarkerReadError::Source)?;
+    // Runnable behavior-first skeleton: manifest reading is not implemented yet.
+    Ok(None)
+}
+
+pub fn to_json(observation: &MarkerObservation) -> Result<String, MarkerReadError> {
+    serde_json::to_string(observation).map_err(|_| MarkerReadError::SerializationFailed)
+}

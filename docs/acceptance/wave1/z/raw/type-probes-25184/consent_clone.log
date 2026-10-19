@@ -1,0 +1,15 @@
+error[E0277]: the trait bound `water_root_marker::v1::ManifestReadConsent<'static>: Clone` is not satisfied
+ --> F:\new\smaltalk\water\.worktrees\z\.local/checks/WATER-W1-Z/type-probes-25184\consent_clone.txt:2:43
+  |
+2 | fn main() { fn need<T: Clone>() {} need::<ManifestReadConsent<'static>>(); }
+  |                                           ^^^^^^^^^^^^^^^^^^^^^^^^^^^^ the trait `Clone` is not implemented for `water_root_marker::v1::ManifestReadConsent<'static>`
+  |
+note: required by a bound in `need`
+ --> F:\new\smaltalk\water\.worktrees\z\.local/checks/WATER-W1-Z/type-probes-25184\consent_clone.txt:2:24
+  |
+2 | fn main() { fn need<T: Clone>() {} need::<ManifestReadConsent<'static>>(); }
+  |                        ^^^^^ required by this bound in `need`
+
+error: aborting due to 1 previous error
+
+For more information about this error, try `rustc --explain E0277`.

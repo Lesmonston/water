@@ -1,0 +1,320 @@
+//! Private Windows x64 ABI boundary; no raw handle escapes this module.
+#![allow(unsafe_code)]
+
+use crate::v1::MarkerReadError as E;
+use std::{
+    ffi::c_void,
+    fs::{File, OpenOptions},
+    io::Read,
+    mem::{align_of, size_of},
+    os::windows::{
+        fs::OpenOptionsExt,
+        io::{AsRawHandle, FromRawHandle},
+    },
+    ptr,
+};
+use water_native_root::v1::RootIdentity;
+
+const CAP: u64 = 262144;
+const DIRECTORY: u32 = 0x10;
+const DEVICE: u32 = 0x40;
+const REPARSE: u32 = 0x400;
+const READ_ATTRIBUTES: u32 = 0x80;
+const SYNCHRONIZE: u32 = 0x100000;
+const OPEN_REPARSE_POINT: u32 = 0x200000;
+
+#[repr(C)]
+struct UnicodeString {
+    length: u16,
+    maximum_length: u16,
+    buffer: *mut u16,
+}
+
+#[repr(C)]
+struct ObjectAttributes {
+    length: u32,
+    root_directory: *mut c_void,
+    object_name: *mut UnicodeString,
+    attributes: u32,
+    security_descriptor: *mut c_void,
+    security_qos: *mut c_void,
+}
+
+#[repr(C)]
+struct IoStatus {
+    status: usize,
+    information: usize,
+}
+
+#[repr(C)]
+#[derive(Default)]
+struct TagInfo {
+    attributes: u32,
+    tag: u32,
+}
+
+#[repr(C)]
+#[derive(Default, PartialEq, Eq)]
+struct IdentityInfo {
+    volume: u64,
+    id: [u8; 16],
+}
+
+impl IdentityInfo {
+    fn matches(&self, expected: &RootIdentity) -> bool {
+        expected.kind() == "windows_file_id_128"
+            && self.volume.to_string() == expected.volume_serial()
+            && self
+                .id
+                .iter()
+                .map(|byte| format!("{byte:02x}"))
+                .collect::<String>()
+                == expected.file_id()
+    }
+}
+
+#[repr(C)]
+#[derive(Default)]
+struct StandardInfo {
+    allocation_size: i64,
+    end_of_file: i64,
+    number_of_links: u32,
+    delete_pending: u8,
+    directory: u8,
+}
+
+const _: () = {
+    assert!(size_of::<usize>() == 8);
+    assert!(size_of::<UnicodeString>() == 16 && align_of::<UnicodeString>() == 8);
+    assert!(size_of::<ObjectAttributes>() == 48 && align_of::<ObjectAttributes>() == 8);
+    assert!(size_of::<IoStatus>() == 16 && align_of::<IoStatus>() == 8);
+    assert!(size_of::<TagInfo>() == 8 && align_of::<TagInfo>() == 4);
+    assert!(size_of::<IdentityInfo>() == 24 && align_of::<IdentityInfo>() == 8);
+    assert!(size_of::<StandardInfo>() == 24 && align_of::<StandardInfo>() == 8);
+};
+
+// SAFETY: these declarations match the Windows x64 system ABI. HANDLE and
+// buffers are pointers, ACCESS_MASK/ULONG are u32, NTSTATUS and BOOL are i32.
+#[link(name = "ntdll")]
+unsafe extern "system" {
+    fn NtCreateFile(
+        handle: *mut *mut c_void,
+        access: u32,
+        object: *const ObjectAttributes,
+        io: *mut IoStatus,
+        allocation: *const i64,
+        attributes: u32,
+        share: u32,
+        disposition: u32,
+        options: u32,
+        ea: *const c_void,
+        ea_length: u32,
+    ) -> i32;
+}
+
+// SAFETY: fixed Win32 HANDLE/FILE_INFO_BY_HANDLE_CLASS/LPVOID/DWORD signature.
+#[link(name = "kernel32")]
+unsafe extern "system" {
+    fn GetFileInformationByHandleEx(
+        handle: *mut c_void,
+        class: i32,
+        buffer: *mut c_void,
+        size: u32,
+    ) -> i32;
+}
+
+// Only these private integer-only repr(C) types may choose an information class.
+trait FixedInfo: Default {
+    const CLASS: i32;
+}
+impl FixedInfo for TagInfo {
+    const CLASS: i32 = 9;
+}
+impl FixedInfo for IdentityInfo {
+    const CLASS: i32 = 18;
+}
+impl FixedInfo for StandardInfo {
+    const CLASS: i32 = 1;
+}
+
+fn info<T: FixedInfo>(file: &File) -> Result<T, E> {
+    let mut value = T::default();
+    // SAFETY: File keeps its borrowed owned HANDLE live throughout this call.
+    // The closed private trait fixes class1/9/18, their initialized integer-only
+    // repr(C) layouts and asserted x64 sizes/alignments. Storage is writable for
+    // exactly size_of::<T>() bytes and read only after nonzero success.
+    let success = unsafe {
+        GetFileInformationByHandleEx(
+            file.as_raw_handle(),
+            T::CLASS,
+            (&mut value as *mut T).cast(),
+            size_of::<T>() as u32,
+        )
+    };
+    if success == 0 {
+        Err(E::NativeIo)
+    } else {
+        Ok(value)
+    }
+}
+
+fn attributes(file: &File, directory: bool) -> Result<(), E> {
+    let tag: TagInfo = info(file)?;
+    if tag.attributes & REPARSE != 0 {
+        return Err(E::ReparsePoint);
+    }
+    if tag.attributes & DEVICE != 0 || (tag.attributes & DIRECTORY != 0) != directory {
+        return Err(E::NotRegularFile);
+    }
+    Ok(())
+}
+
+fn root_state(root: &File, expected: &RootIdentity) -> Result<IdentityInfo, E> {
+    attributes(root, true)?;
+    let standard: StandardInfo = info(root)?;
+    if standard.delete_pending != 0 || standard.directory != 1 {
+        return Err(E::Changed);
+    }
+    let identity: IdentityInfo = info(root)?;
+    if !identity.matches(expected) {
+        return Err(E::RootMismatch);
+    }
+    Ok(identity)
+}
+
+fn verify_root_after(
+    root: &File,
+    registered: &RootIdentity,
+    before: &IdentityInfo,
+) -> Result<(), E> {
+    let after = root_state(root, registered).map_err(|error| match error {
+        E::RootMismatch => E::RootMismatch,
+        _ => E::Changed,
+    })?;
+    if &after != before {
+        return Err(E::RootMismatch);
+    }
+    Ok(())
+}
+
+#[derive(PartialEq, Eq)]
+struct FileState {
+    identity: IdentityInfo,
+    length: u64,
+}
+
+fn file_state(file: &File) -> Result<FileState, E> {
+    attributes(file, false)?;
+    let standard: StandardInfo = info(file)?;
+    if standard.directory != 0 {
+        return Err(E::NotRegularFile);
+    }
+    if standard.delete_pending != 0 {
+        return Err(E::Changed);
+    }
+    if false && standard.number_of_links != 1 {
+        return Err(E::MultipleLinks);
+    }
+    if standard.end_of_file < 0 {
+        return Err(E::NativeIo);
+    }
+    Ok(FileState {
+        identity: info(file)?,
+        length: standard.end_of_file as u64,
+    })
+}
+
+fn open_manifest(root: &File) -> Result<Option<File>, E> {
+    // No name argument, separators, alternate stream syntax, or fallback path.
+    let mut name: Vec<u16> = "package.json".encode_utf16().collect();
+    let mut text = UnicodeString {
+        length: (name.len() * 2) as u16,
+        maximum_length: (name.len() * 2) as u16,
+        buffer: name.as_mut_ptr(),
+    };
+    let object = ObjectAttributes {
+        length: size_of::<ObjectAttributes>() as u32,
+        root_directory: root.as_raw_handle(),
+        object_name: &mut text,
+        attributes: 0x40, // OBJ_CASE_INSENSITIVE.
+        security_descriptor: ptr::null_mut(),
+        security_qos: ptr::null_mut(),
+    };
+    let mut io = IoStatus {
+        status: 0,
+        information: 0,
+    };
+    let mut handle = ptr::null_mut();
+    // SAFETY: root is a live owned directory File. Its fixed single-component
+    // UTF-16 name, UnicodeString, ObjectAttributes and writable IoStatus outlive
+    // the synchronous call. Access is READ_DATA/READ_ATTRIBUTES/SYNCHRONIZE;
+    // FILE_OPEN never creates; share READ only; synchronous NON_DIRECTORY_FILE
+    // and OPEN_REPARSE_POINT never follow the final reparse point. No EA/writes.
+    let status = unsafe {
+        NtCreateFile(
+            &mut handle,
+            1 | READ_ATTRIBUTES | SYNCHRONIZE,
+            &object,
+            &mut io,
+            ptr::null(),
+            0,
+            1, // FILE_SHARE_READ only.
+            1, // FILE_OPEN only.
+            OPEN_REPARSE_POINT | 0x20 | 0x40,
+            ptr::null(),
+            0,
+        )
+    };
+    if status < 0 {
+        return match status as u32 {
+            0xC0000034 => Ok(None),               // STATUS_OBJECT_NAME_NOT_FOUND only.
+            0xC00000BA => Err(E::NotRegularFile), // STATUS_FILE_IS_A_DIRECTORY.
+            _ => Err(E::NativeIo),
+        };
+    }
+    if handle.is_null() || handle as isize == -1 {
+        return Err(E::NativeIo);
+    }
+    // SAFETY: successful synchronous NtCreateFile yielded a newly owned valid
+    // HANDLE checked against NULL/INVALID_HANDLE_VALUE. Ownership transfers once
+    // to File; every subsequent error and success drops it through normal RAII.
+    Ok(Some(unsafe { File::from_raw_handle(handle) }))
+}
+
+pub(crate) fn read(root_path: &str, registered: &RootIdentity) -> Result<Option<Vec<u8>>, E> {
+    // N has validated spelling, fixed volume, and named ancestor attributes.
+    // This independent root handle is revalidated against P, not against a path
+    // prefix or a second observation derived solely from this new handle.
+    let root = OpenOptions::new()
+        .access_mode(READ_ATTRIBUTES | SYNCHRONIZE)
+        .share_mode(7)
+        .custom_flags(0x02000000 | OPEN_REPARSE_POINT)
+        .security_qos_flags(0x10000)
+        .open(root_path)
+        .map_err(|_| E::NativeIo)?;
+    let before_root = root_state(&root, registered)?;
+    let Some(mut file) = open_manifest(&root)? else {
+        verify_root_after(&root, registered, &before_root)?;
+        return Ok(None);
+    };
+    let before = file_state(&file)?;
+    if before.length > CAP {
+        return Err(E::InputTooLarge);
+    }
+    let mut bytes = Vec::with_capacity(before.length as usize);
+    (&mut file)
+        .take(CAP + 1)
+        .read_to_end(&mut bytes)
+        .map_err(|_| E::NativeIo)?;
+    let after = file_state(&file).map_err(|_| E::Changed)?;
+    if after != before || bytes.len() as u64 != before.length {
+        return Err(E::Changed);
+    }
+    // The take bound is independent of the observed EOF and remains hard even
+    // under change. No bytes from any rejected result reach U or an observation.
+    if bytes.len() as u64 > CAP {
+        return Err(E::InputTooLarge);
+    }
+    verify_root_after(&root, registered, &before_root)?;
+    Ok(Some(bytes))
+}

@@ -1,0 +1,10 @@
+error: cannot construct `water_root_marker::v1::ManifestReadConsent<'_>` with struct literal syntax due to private fields
+ --> F:\new\smaltalk\water\.worktrees\z\.local/checks/WATER-W1-Z/type-probes-22532\consent_construct.txt:2:21
+  |
+2 | fn main() { let _ = ManifestReadConsent {}; }
+  |                     ^^^^^^^^^^^^^^^^^^^
+  |
+  = note: private fields `registry` and `permit` that were not provided
+
+error: aborting due to 1 previous error
+

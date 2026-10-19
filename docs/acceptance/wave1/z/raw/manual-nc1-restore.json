@@ -1,0 +1,38 @@
+﻿{
+    "mode":  "nc1",
+    "mutations":  [
+                      [
+                          "packages/root-marker/src/v1.rs",
+                          "if observed != registered {",
+                          "if false \u0026\u0026 observed != registered {"
+                      ],
+                      [
+                          "packages/root-marker/src/native_windows.rs",
+                          "if !identity.matches(expected) {",
+                          "if false \u0026\u0026 !identity.matches(expected) {"
+                      ]
+                  ],
+    "redExit":  0,
+    "restored":  true,
+    "restoredAt":  "2026-10-19T11:24:20.0022804Z",
+    "files":  {
+                  "value":  [
+                                {
+                                    "path":  "packages/root-marker/src/lib.rs",
+                                    "snapshot":  "F:\\new\\smaltalk\\water\\.worktrees\\z\\.local\\checks\\WATER-W1-Z\\stable-source-20261019\\0.txt",
+                                    "sha256":  "4e05d3667edc3030c375058ef665f5985c07afe79f80c253af82d8a596e8a56b"
+                                },
+                                {
+                                    "path":  "packages/root-marker/src/v1.rs",
+                                    "snapshot":  "F:\\new\\smaltalk\\water\\.worktrees\\z\\.local\\checks\\WATER-W1-Z\\stable-source-20261019\\1.txt",
+                                    "sha256":  "1391e8046a5f470e1d3278970dc63902b36eec8f1d2417b80fee6d48fa3fe6d2"
+                                },
+                                {
+                                    "path":  "packages/root-marker/src/native_windows.rs",
+                                    "snapshot":  "F:\\new\\smaltalk\\water\\.worktrees\\z\\.local\\checks\\WATER-W1-Z\\stable-source-20261019\\2.txt",
+                                    "sha256":  "126330970fa0617d373e05e21527a82692c57a503d8ec9f7b5b6dbf55c64f810"
+                                }
+                            ],
+                  "Count":  3
+              }
+}
