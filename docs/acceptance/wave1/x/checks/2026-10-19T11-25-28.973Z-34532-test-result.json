@@ -1,0 +1,496 @@
+{
+  "task": "WATER-W1-X",
+  "mode": "test",
+  "finalGate": false,
+  "startedAt": "2026-10-19T11:25:30.575Z",
+  "before": {
+    "head": "1c152a1ed317fb51498503de837bb228c50dc663",
+    "status": "?? packages/scan-host/Cargo.lock\n?? packages/scan-host/Cargo.toml\n?? packages/scan-host/README.md\n?? packages/scan-host/src/lib.rs\n?? packages/scan-host/src/main.rs\n?? packages/scan-host/src/request.rs\n?? packages/scan-host/src/runtime.rs\n?? packages/scan-host/src/state.rs\n?? packages/scan-host/src/wire.rs\n?? packages/scan-host/tests/host_v1.rs"
+  },
+  "node": "v24.16.0",
+  "productTestsRun": true,
+  "frozenFiles": 202,
+  "commands": [
+    {
+      "binary": "git",
+      "argv": [
+        "-c",
+        "core.hooksPath=NUL",
+        "-c",
+        "core.fsmonitor=false",
+        "rev-parse",
+        "--path-format=absolute",
+        "--git-common-dir"
+      ],
+      "exitCode": 0,
+      "error": null
+    },
+    {
+      "binary": "git",
+      "argv": [
+        "-c",
+        "core.hooksPath=NUL",
+        "-c",
+        "core.fsmonitor=false",
+        "branch",
+        "--show-current"
+      ],
+      "exitCode": 0,
+      "error": null
+    },
+    {
+      "binary": "git",
+      "argv": [
+        "-c",
+        "core.hooksPath=NUL",
+        "-c",
+        "core.fsmonitor=false",
+        "merge-base",
+        "--is-ancestor",
+        "1c152a1ed317fb51498503de837bb228c50dc663",
+        "HEAD"
+      ],
+      "exitCode": 0,
+      "error": null
+    },
+    {
+      "binary": "git",
+      "argv": [
+        "-c",
+        "core.hooksPath=NUL",
+        "-c",
+        "core.fsmonitor=false",
+        "diff",
+        "--no-renames",
+        "--name-only",
+        "-z",
+        "1c152a1ed317fb51498503de837bb228c50dc663",
+        "HEAD"
+      ],
+      "exitCode": 0,
+      "error": null
+    },
+    {
+      "binary": "git",
+      "argv": [
+        "-c",
+        "core.hooksPath=NUL",
+        "-c",
+        "core.fsmonitor=false",
+        "diff",
+        "--no-renames",
+        "--name-only",
+        "-z",
+        "HEAD"
+      ],
+      "exitCode": 0,
+      "error": null
+    },
+    {
+      "binary": "git",
+      "argv": [
+        "-c",
+        "core.hooksPath=NUL",
+        "-c",
+        "core.fsmonitor=false",
+        "ls-files",
+        "--others",
+        "--exclude-standard",
+        "-z"
+      ],
+      "exitCode": 0,
+      "error": null
+    },
+    {
+      "binary": "git",
+      "argv": [
+        "-c",
+        "core.hooksPath=NUL",
+        "-c",
+        "core.fsmonitor=false",
+        "rev-parse",
+        "HEAD"
+      ],
+      "exitCode": 0,
+      "error": null
+    },
+    {
+      "binary": "git",
+      "argv": [
+        "-c",
+        "core.hooksPath=NUL",
+        "-c",
+        "core.fsmonitor=false",
+        "status",
+        "--porcelain",
+        "--untracked-files=all"
+      ],
+      "exitCode": 0,
+      "error": null
+    },
+    {
+      "binary": "git",
+      "argv": [
+        "-c",
+        "core.hooksPath=NUL",
+        "-c",
+        "core.fsmonitor=false",
+        "hash-object",
+        "--path=prototypes/evidence-reader/index.html",
+        "prototypes/evidence-reader/index.html"
+      ],
+      "exitCode": 0,
+      "error": null,
+      "log": "2026-10-19T11-25-28.973Z-34532-test-1.log"
+    },
+    {
+      "binary": "git",
+      "argv": [
+        "-c",
+        "core.hooksPath=NUL",
+        "-c",
+        "core.fsmonitor=false",
+        "hash-object",
+        "--path=prototypes/evidence-reader/styles.css",
+        "prototypes/evidence-reader/styles.css"
+      ],
+      "exitCode": 0,
+      "error": null,
+      "log": "2026-10-19T11-25-28.973Z-34532-test-2.log"
+    },
+    {
+      "binary": "git",
+      "argv": [
+        "-c",
+        "core.hooksPath=NUL",
+        "-c",
+        "core.fsmonitor=false",
+        "hash-object",
+        "--path=prototypes/scan-review/index.html",
+        "prototypes/scan-review/index.html"
+      ],
+      "exitCode": 0,
+      "error": null,
+      "log": "2026-10-19T11-25-28.973Z-34532-test-3.log"
+    },
+    {
+      "binary": "git",
+      "argv": [
+        "-c",
+        "core.hooksPath=NUL",
+        "-c",
+        "core.fsmonitor=false",
+        "hash-object",
+        "--path=prototypes/scan-review/styles.css",
+        "prototypes/scan-review/styles.css"
+      ],
+      "exitCode": 0,
+      "error": null,
+      "log": "2026-10-19T11-25-28.973Z-34532-test-4.log"
+    },
+    {
+      "binary": "C:\\Users\\37310\\.cargo\\bin\\rustup.exe",
+      "argv": [
+        "which",
+        "rustc",
+        "--toolchain",
+        "1.95.0"
+      ],
+      "exitCode": 0,
+      "error": null,
+      "log": "2026-10-19T11-25-28.973Z-34532-test-5.log"
+    },
+    {
+      "binary": "C:\\Users\\37310\\.cargo\\bin\\rustup.exe",
+      "argv": [
+        "which",
+        "cargo",
+        "--toolchain",
+        "1.95.0"
+      ],
+      "exitCode": 0,
+      "error": null,
+      "log": "2026-10-19T11-25-28.973Z-34532-test-6.log"
+    },
+    {
+      "binary": "C:\\Users\\37310\\.rustup\\toolchains\\1.95.0-x86_64-pc-windows-msvc\\bin\\rustc.exe",
+      "argv": [
+        "--version"
+      ],
+      "exitCode": 0,
+      "error": null,
+      "log": "2026-10-19T11-25-28.973Z-34532-test-7.log"
+    },
+    {
+      "binary": "C:\\Users\\37310\\.rustup\\toolchains\\1.95.0-x86_64-pc-windows-msvc\\bin\\cargo.exe",
+      "argv": [
+        "metadata",
+        "--offline",
+        "--locked",
+        "--format-version",
+        "1",
+        "--manifest-path",
+        "packages/scan-host/Cargo.toml"
+      ],
+      "exitCode": 0,
+      "error": null,
+      "log": "2026-10-19T11-25-28.973Z-34532-test-8.log"
+    },
+    {
+      "binary": "C:\\Users\\37310\\.rustup\\toolchains\\1.95.0-x86_64-pc-windows-msvc\\bin\\cargo.exe",
+      "argv": [
+        "test",
+        "--offline",
+        "--locked",
+        "--manifest-path",
+        "packages/scan-host/Cargo.toml",
+        "--test",
+        "host_v1",
+        "--",
+        "--test-threads=1",
+        "--nocapture"
+      ],
+      "exitCode": 0,
+      "error": null,
+      "log": "2026-10-19T11-25-28.973Z-34532-test-9.log"
+    },
+    {
+      "binary": "git",
+      "argv": [
+        "-c",
+        "core.hooksPath=NUL",
+        "-c",
+        "core.fsmonitor=false",
+        "hash-object",
+        "--path=prototypes/evidence-reader/index.html",
+        "prototypes/evidence-reader/index.html"
+      ],
+      "exitCode": 0,
+      "error": null,
+      "log": "2026-10-19T11-25-28.973Z-34532-test-10.log"
+    },
+    {
+      "binary": "git",
+      "argv": [
+        "-c",
+        "core.hooksPath=NUL",
+        "-c",
+        "core.fsmonitor=false",
+        "hash-object",
+        "--path=prototypes/evidence-reader/styles.css",
+        "prototypes/evidence-reader/styles.css"
+      ],
+      "exitCode": 0,
+      "error": null,
+      "log": "2026-10-19T11-25-28.973Z-34532-test-11.log"
+    },
+    {
+      "binary": "git",
+      "argv": [
+        "-c",
+        "core.hooksPath=NUL",
+        "-c",
+        "core.fsmonitor=false",
+        "hash-object",
+        "--path=prototypes/scan-review/index.html",
+        "prototypes/scan-review/index.html"
+      ],
+      "exitCode": 0,
+      "error": null,
+      "log": "2026-10-19T11-25-28.973Z-34532-test-12.log"
+    },
+    {
+      "binary": "git",
+      "argv": [
+        "-c",
+        "core.hooksPath=NUL",
+        "-c",
+        "core.fsmonitor=false",
+        "hash-object",
+        "--path=prototypes/scan-review/styles.css",
+        "prototypes/scan-review/styles.css"
+      ],
+      "exitCode": 0,
+      "error": null,
+      "log": "2026-10-19T11-25-28.973Z-34532-test-13.log"
+    },
+    {
+      "binary": "git",
+      "argv": [
+        "-c",
+        "core.hooksPath=NUL",
+        "-c",
+        "core.fsmonitor=false",
+        "branch",
+        "--show-current"
+      ],
+      "exitCode": 0,
+      "error": null,
+      "log": "2026-10-19T11-25-28.973Z-34532-test-14.log"
+    },
+    {
+      "binary": "git",
+      "argv": [
+        "-c",
+        "core.hooksPath=NUL",
+        "-c",
+        "core.fsmonitor=false",
+        "merge-base",
+        "--is-ancestor",
+        "1c152a1ed317fb51498503de837bb228c50dc663",
+        "HEAD"
+      ],
+      "exitCode": 0,
+      "error": null,
+      "log": "2026-10-19T11-25-28.973Z-34532-test-15.log"
+    },
+    {
+      "binary": "git",
+      "argv": [
+        "-c",
+        "core.hooksPath=NUL",
+        "-c",
+        "core.fsmonitor=false",
+        "diff",
+        "--no-renames",
+        "--name-only",
+        "-z",
+        "1c152a1ed317fb51498503de837bb228c50dc663",
+        "HEAD"
+      ],
+      "exitCode": 0,
+      "error": null,
+      "log": "2026-10-19T11-25-28.973Z-34532-test-16.log"
+    },
+    {
+      "binary": "git",
+      "argv": [
+        "-c",
+        "core.hooksPath=NUL",
+        "-c",
+        "core.fsmonitor=false",
+        "diff",
+        "--no-renames",
+        "--name-only",
+        "-z",
+        "HEAD"
+      ],
+      "exitCode": 0,
+      "error": null,
+      "log": "2026-10-19T11-25-28.973Z-34532-test-17.log"
+    },
+    {
+      "binary": "git",
+      "argv": [
+        "-c",
+        "core.hooksPath=NUL",
+        "-c",
+        "core.fsmonitor=false",
+        "ls-files",
+        "--others",
+        "--exclude-standard",
+        "-z"
+      ],
+      "exitCode": 0,
+      "error": null,
+      "log": "2026-10-19T11-25-28.973Z-34532-test-18.log"
+    },
+    {
+      "binary": "git",
+      "argv": [
+        "-c",
+        "core.hooksPath=NUL",
+        "-c",
+        "core.fsmonitor=false",
+        "rev-parse",
+        "HEAD"
+      ],
+      "exitCode": 0,
+      "error": null,
+      "log": "2026-10-19T11-25-28.973Z-34532-test-19.log"
+    },
+    {
+      "binary": "git",
+      "argv": [
+        "-c",
+        "core.hooksPath=NUL",
+        "-c",
+        "core.fsmonitor=false",
+        "status",
+        "--porcelain",
+        "--untracked-files=all"
+      ],
+      "exitCode": 0,
+      "error": null,
+      "log": "2026-10-19T11-25-28.973Z-34532-test-20.log"
+    }
+  ],
+  "fixtureSha256": "cb0df725663c9ec321030f1b87e5d6b567438d85e65aed3b4616042e973cea71",
+  "sourceState": {
+    "files": [
+      {
+        "path": "packages/scan-host/src/lib.rs",
+        "sha256": "6062109174e59a07f616b92f54b8ab13e6f3fb6ed01d0e3c567e05d9f1af0c37",
+        "snapshot": "2026-10-19T11-25-28.973Z-34532-test-source-0.txt",
+        "test": false
+      },
+      {
+        "path": "packages/scan-host/src/main.rs",
+        "sha256": "edf9ffdaae7e4b8d683672d512cff98e77b556822905c450ed6de52774821a1b",
+        "snapshot": "2026-10-19T11-25-28.973Z-34532-test-source-1.txt",
+        "test": false
+      },
+      {
+        "path": "packages/scan-host/src/request.rs",
+        "sha256": "1fa940d78163164b7ca39870b530029ca5f8cc0964e89b048dcdd650da4d294b",
+        "snapshot": "2026-10-19T11-25-28.973Z-34532-test-source-2.txt",
+        "test": false
+      },
+      {
+        "path": "packages/scan-host/src/runtime.rs",
+        "sha256": "418d1841f9cb47bb3dce6d14414cf0aaf6e478ff27033240686300d6de2d9f80",
+        "snapshot": "2026-10-19T11-25-28.973Z-34532-test-source-3.txt",
+        "test": false
+      },
+      {
+        "path": "packages/scan-host/src/state.rs",
+        "sha256": "ba4ea979bd4b79af3ca89406aa466657646d66141bd84062aacc24634b58f98b",
+        "snapshot": "2026-10-19T11-25-28.973Z-34532-test-source-4.txt",
+        "test": false
+      },
+      {
+        "path": "packages/scan-host/src/wire.rs",
+        "sha256": "278450dbe45aa2ba0d94ac54f1eb8aa78e3f968a7ea467fd89db016493848f08",
+        "snapshot": "2026-10-19T11-25-28.973Z-34532-test-source-5.txt",
+        "test": false
+      },
+      {
+        "path": "packages/scan-host/Cargo.toml",
+        "sha256": "833bc3b4519ed14b30d6be9f1408c0cdac2e1eb951f9a870fed1df5178e2f972",
+        "snapshot": "2026-10-19T11-25-28.973Z-34532-test-source-6.txt",
+        "test": false
+      },
+      {
+        "path": "packages/scan-host/Cargo.lock",
+        "sha256": "c05f5492270e66f5eb6a08fc07896e28ec39653cd9b620a428c6a4d1e7e3ae78",
+        "snapshot": "2026-10-19T11-25-28.973Z-34532-test-source-7.txt",
+        "test": false
+      },
+      {
+        "path": "packages/scan-host/tests/host_v1.rs",
+        "sha256": "f8b2c99e5cf23184dbd2e8ac8cd5061eb834d86e1dd3f93f4d0668a33810d182",
+        "snapshot": "2026-10-19T11-25-28.973Z-34532-test-source-8.txt",
+        "test": true
+      }
+    ],
+    "productionHash": "cda343913f97d39cf0110ef560949090d69e0e72a38e72a0d9fcf6f822102ce7",
+    "testHash": "80ad24f7741ba07fa21a9765aaad36802dc0737c9a0a9d88722a61e6a28dbb9b"
+  },
+  "after": {
+    "head": "1c152a1ed317fb51498503de837bb228c50dc663",
+    "status": "?? packages/scan-host/Cargo.lock\n?? packages/scan-host/Cargo.toml\n?? packages/scan-host/README.md\n?? packages/scan-host/src/lib.rs\n?? packages/scan-host/src/main.rs\n?? packages/scan-host/src/request.rs\n?? packages/scan-host/src/runtime.rs\n?? packages/scan-host/src/state.rs\n?? packages/scan-host/src/wire.rs\n?? packages/scan-host/tests/host_v1.rs"
+  },
+  "endedAt": "2026-10-19T11:25:34.162Z",
+  "status": "passed",
+  "error": null
+}

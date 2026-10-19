@@ -1,0 +1,520 @@
+{
+  "task": "WATER-W1-X",
+  "mode": "red-nc2",
+  "finalGate": false,
+  "startedAt": "2026-10-19T11:25:41.653Z",
+  "before": {
+    "head": "1c152a1ed317fb51498503de837bb228c50dc663",
+    "status": "?? packages/scan-host/Cargo.lock\n?? packages/scan-host/Cargo.toml\n?? packages/scan-host/README.md\n?? packages/scan-host/src/lib.rs\n?? packages/scan-host/src/main.rs\n?? packages/scan-host/src/request.rs\n?? packages/scan-host/src/runtime.rs\n?? packages/scan-host/src/state.rs\n?? packages/scan-host/src/wire.rs\n?? packages/scan-host/tests/host_v1.rs"
+  },
+  "node": "v24.16.0",
+  "productTestsRun": true,
+  "frozenFiles": 202,
+  "commands": [
+    {
+      "binary": "git",
+      "argv": [
+        "-c",
+        "core.hooksPath=NUL",
+        "-c",
+        "core.fsmonitor=false",
+        "rev-parse",
+        "--path-format=absolute",
+        "--git-common-dir"
+      ],
+      "exitCode": 0,
+      "error": null
+    },
+    {
+      "binary": "git",
+      "argv": [
+        "-c",
+        "core.hooksPath=NUL",
+        "-c",
+        "core.fsmonitor=false",
+        "branch",
+        "--show-current"
+      ],
+      "exitCode": 0,
+      "error": null
+    },
+    {
+      "binary": "git",
+      "argv": [
+        "-c",
+        "core.hooksPath=NUL",
+        "-c",
+        "core.fsmonitor=false",
+        "merge-base",
+        "--is-ancestor",
+        "1c152a1ed317fb51498503de837bb228c50dc663",
+        "HEAD"
+      ],
+      "exitCode": 0,
+      "error": null
+    },
+    {
+      "binary": "git",
+      "argv": [
+        "-c",
+        "core.hooksPath=NUL",
+        "-c",
+        "core.fsmonitor=false",
+        "diff",
+        "--no-renames",
+        "--name-only",
+        "-z",
+        "1c152a1ed317fb51498503de837bb228c50dc663",
+        "HEAD"
+      ],
+      "exitCode": 0,
+      "error": null
+    },
+    {
+      "binary": "git",
+      "argv": [
+        "-c",
+        "core.hooksPath=NUL",
+        "-c",
+        "core.fsmonitor=false",
+        "diff",
+        "--no-renames",
+        "--name-only",
+        "-z",
+        "HEAD"
+      ],
+      "exitCode": 0,
+      "error": null
+    },
+    {
+      "binary": "git",
+      "argv": [
+        "-c",
+        "core.hooksPath=NUL",
+        "-c",
+        "core.fsmonitor=false",
+        "ls-files",
+        "--others",
+        "--exclude-standard",
+        "-z"
+      ],
+      "exitCode": 0,
+      "error": null
+    },
+    {
+      "binary": "git",
+      "argv": [
+        "-c",
+        "core.hooksPath=NUL",
+        "-c",
+        "core.fsmonitor=false",
+        "rev-parse",
+        "HEAD"
+      ],
+      "exitCode": 0,
+      "error": null
+    },
+    {
+      "binary": "git",
+      "argv": [
+        "-c",
+        "core.hooksPath=NUL",
+        "-c",
+        "core.fsmonitor=false",
+        "status",
+        "--porcelain",
+        "--untracked-files=all"
+      ],
+      "exitCode": 0,
+      "error": null
+    },
+    {
+      "binary": "git",
+      "argv": [
+        "-c",
+        "core.hooksPath=NUL",
+        "-c",
+        "core.fsmonitor=false",
+        "hash-object",
+        "--path=prototypes/evidence-reader/index.html",
+        "prototypes/evidence-reader/index.html"
+      ],
+      "exitCode": 0,
+      "error": null,
+      "log": "2026-10-19T11-25-40.648Z-16004-red-nc2-1.log"
+    },
+    {
+      "binary": "git",
+      "argv": [
+        "-c",
+        "core.hooksPath=NUL",
+        "-c",
+        "core.fsmonitor=false",
+        "hash-object",
+        "--path=prototypes/evidence-reader/styles.css",
+        "prototypes/evidence-reader/styles.css"
+      ],
+      "exitCode": 0,
+      "error": null,
+      "log": "2026-10-19T11-25-40.648Z-16004-red-nc2-2.log"
+    },
+    {
+      "binary": "git",
+      "argv": [
+        "-c",
+        "core.hooksPath=NUL",
+        "-c",
+        "core.fsmonitor=false",
+        "hash-object",
+        "--path=prototypes/scan-review/index.html",
+        "prototypes/scan-review/index.html"
+      ],
+      "exitCode": 0,
+      "error": null,
+      "log": "2026-10-19T11-25-40.648Z-16004-red-nc2-3.log"
+    },
+    {
+      "binary": "git",
+      "argv": [
+        "-c",
+        "core.hooksPath=NUL",
+        "-c",
+        "core.fsmonitor=false",
+        "hash-object",
+        "--path=prototypes/scan-review/styles.css",
+        "prototypes/scan-review/styles.css"
+      ],
+      "exitCode": 0,
+      "error": null,
+      "log": "2026-10-19T11-25-40.648Z-16004-red-nc2-4.log"
+    },
+    {
+      "binary": "C:\\Users\\37310\\.cargo\\bin\\rustup.exe",
+      "argv": [
+        "which",
+        "rustc",
+        "--toolchain",
+        "1.95.0"
+      ],
+      "exitCode": 0,
+      "error": null,
+      "log": "2026-10-19T11-25-40.648Z-16004-red-nc2-5.log"
+    },
+    {
+      "binary": "C:\\Users\\37310\\.cargo\\bin\\rustup.exe",
+      "argv": [
+        "which",
+        "cargo",
+        "--toolchain",
+        "1.95.0"
+      ],
+      "exitCode": 0,
+      "error": null,
+      "log": "2026-10-19T11-25-40.648Z-16004-red-nc2-6.log"
+    },
+    {
+      "binary": "C:\\Users\\37310\\.rustup\\toolchains\\1.95.0-x86_64-pc-windows-msvc\\bin\\rustc.exe",
+      "argv": [
+        "--version"
+      ],
+      "exitCode": 0,
+      "error": null,
+      "log": "2026-10-19T11-25-40.648Z-16004-red-nc2-7.log"
+    },
+    {
+      "binary": "C:\\Users\\37310\\.rustup\\toolchains\\1.95.0-x86_64-pc-windows-msvc\\bin\\cargo.exe",
+      "argv": [
+        "metadata",
+        "--offline",
+        "--locked",
+        "--format-version",
+        "1",
+        "--manifest-path",
+        "packages/scan-host/Cargo.toml"
+      ],
+      "exitCode": 0,
+      "error": null,
+      "log": "2026-10-19T11-25-40.648Z-16004-red-nc2-8.log"
+    },
+    {
+      "binary": "C:\\Users\\37310\\.rustup\\toolchains\\1.95.0-x86_64-pc-windows-msvc\\bin\\cargo.exe",
+      "argv": [
+        "build",
+        "--offline",
+        "--locked",
+        "--manifest-path",
+        "packages/scan-host/Cargo.toml",
+        "--bin",
+        "water-scan-host"
+      ],
+      "exitCode": 0,
+      "error": null,
+      "log": "2026-10-19T11-25-40.648Z-16004-red-nc2-9.log"
+    },
+    {
+      "binary": "C:\\Program Files\\nodejs\\node.exe",
+      "argv": [
+        "scripts/acceptance/interactive-host-driver.mjs",
+        "native-cancel"
+      ],
+      "exitCode": 1,
+      "error": null,
+      "log": "2026-10-19T11-25-40.648Z-16004-red-nc2-negative.log"
+    },
+    {
+      "binary": "git",
+      "argv": [
+        "-c",
+        "core.hooksPath=NUL",
+        "-c",
+        "core.fsmonitor=false",
+        "hash-object",
+        "--path=prototypes/evidence-reader/index.html",
+        "prototypes/evidence-reader/index.html"
+      ],
+      "exitCode": 0,
+      "error": null,
+      "log": "2026-10-19T11-25-40.648Z-16004-red-nc2-10.log"
+    },
+    {
+      "binary": "git",
+      "argv": [
+        "-c",
+        "core.hooksPath=NUL",
+        "-c",
+        "core.fsmonitor=false",
+        "hash-object",
+        "--path=prototypes/evidence-reader/styles.css",
+        "prototypes/evidence-reader/styles.css"
+      ],
+      "exitCode": 0,
+      "error": null,
+      "log": "2026-10-19T11-25-40.648Z-16004-red-nc2-11.log"
+    },
+    {
+      "binary": "git",
+      "argv": [
+        "-c",
+        "core.hooksPath=NUL",
+        "-c",
+        "core.fsmonitor=false",
+        "hash-object",
+        "--path=prototypes/scan-review/index.html",
+        "prototypes/scan-review/index.html"
+      ],
+      "exitCode": 0,
+      "error": null,
+      "log": "2026-10-19T11-25-40.648Z-16004-red-nc2-12.log"
+    },
+    {
+      "binary": "git",
+      "argv": [
+        "-c",
+        "core.hooksPath=NUL",
+        "-c",
+        "core.fsmonitor=false",
+        "hash-object",
+        "--path=prototypes/scan-review/styles.css",
+        "prototypes/scan-review/styles.css"
+      ],
+      "exitCode": 0,
+      "error": null,
+      "log": "2026-10-19T11-25-40.648Z-16004-red-nc2-13.log"
+    },
+    {
+      "binary": "git",
+      "argv": [
+        "-c",
+        "core.hooksPath=NUL",
+        "-c",
+        "core.fsmonitor=false",
+        "branch",
+        "--show-current"
+      ],
+      "exitCode": 0,
+      "error": null,
+      "log": "2026-10-19T11-25-40.648Z-16004-red-nc2-14.log"
+    },
+    {
+      "binary": "git",
+      "argv": [
+        "-c",
+        "core.hooksPath=NUL",
+        "-c",
+        "core.fsmonitor=false",
+        "merge-base",
+        "--is-ancestor",
+        "1c152a1ed317fb51498503de837bb228c50dc663",
+        "HEAD"
+      ],
+      "exitCode": 0,
+      "error": null,
+      "log": "2026-10-19T11-25-40.648Z-16004-red-nc2-15.log"
+    },
+    {
+      "binary": "git",
+      "argv": [
+        "-c",
+        "core.hooksPath=NUL",
+        "-c",
+        "core.fsmonitor=false",
+        "diff",
+        "--no-renames",
+        "--name-only",
+        "-z",
+        "1c152a1ed317fb51498503de837bb228c50dc663",
+        "HEAD"
+      ],
+      "exitCode": 0,
+      "error": null,
+      "log": "2026-10-19T11-25-40.648Z-16004-red-nc2-16.log"
+    },
+    {
+      "binary": "git",
+      "argv": [
+        "-c",
+        "core.hooksPath=NUL",
+        "-c",
+        "core.fsmonitor=false",
+        "diff",
+        "--no-renames",
+        "--name-only",
+        "-z",
+        "HEAD"
+      ],
+      "exitCode": 0,
+      "error": null,
+      "log": "2026-10-19T11-25-40.648Z-16004-red-nc2-17.log"
+    },
+    {
+      "binary": "git",
+      "argv": [
+        "-c",
+        "core.hooksPath=NUL",
+        "-c",
+        "core.fsmonitor=false",
+        "ls-files",
+        "--others",
+        "--exclude-standard",
+        "-z"
+      ],
+      "exitCode": 0,
+      "error": null,
+      "log": "2026-10-19T11-25-40.648Z-16004-red-nc2-18.log"
+    },
+    {
+      "binary": "git",
+      "argv": [
+        "-c",
+        "core.hooksPath=NUL",
+        "-c",
+        "core.fsmonitor=false",
+        "rev-parse",
+        "HEAD"
+      ],
+      "exitCode": 0,
+      "error": null,
+      "log": "2026-10-19T11-25-40.648Z-16004-red-nc2-19.log"
+    },
+    {
+      "binary": "git",
+      "argv": [
+        "-c",
+        "core.hooksPath=NUL",
+        "-c",
+        "core.fsmonitor=false",
+        "status",
+        "--porcelain",
+        "--untracked-files=all"
+      ],
+      "exitCode": 0,
+      "error": null,
+      "log": "2026-10-19T11-25-40.648Z-16004-red-nc2-20.log"
+    }
+  ],
+  "fixtureSha256": "cb0df725663c9ec321030f1b87e5d6b567438d85e65aed3b4616042e973cea71",
+  "sourceState": {
+    "files": [
+      {
+        "path": "packages/scan-host/src/lib.rs",
+        "sha256": "6062109174e59a07f616b92f54b8ab13e6f3fb6ed01d0e3c567e05d9f1af0c37",
+        "snapshot": "2026-10-19T11-25-40.648Z-16004-red-nc2-source-0.txt",
+        "test": false
+      },
+      {
+        "path": "packages/scan-host/src/main.rs",
+        "sha256": "edf9ffdaae7e4b8d683672d512cff98e77b556822905c450ed6de52774821a1b",
+        "snapshot": "2026-10-19T11-25-40.648Z-16004-red-nc2-source-1.txt",
+        "test": false
+      },
+      {
+        "path": "packages/scan-host/src/request.rs",
+        "sha256": "1fa940d78163164b7ca39870b530029ca5f8cc0964e89b048dcdd650da4d294b",
+        "snapshot": "2026-10-19T11-25-40.648Z-16004-red-nc2-source-2.txt",
+        "test": false
+      },
+      {
+        "path": "packages/scan-host/src/runtime.rs",
+        "sha256": "7869b74fa801460a451c9d1603444969fa417dd16a18e3047e37405794614307",
+        "snapshot": "2026-10-19T11-25-40.648Z-16004-red-nc2-source-3.txt",
+        "test": false
+      },
+      {
+        "path": "packages/scan-host/src/state.rs",
+        "sha256": "ba4ea979bd4b79af3ca89406aa466657646d66141bd84062aacc24634b58f98b",
+        "snapshot": "2026-10-19T11-25-40.648Z-16004-red-nc2-source-4.txt",
+        "test": false
+      },
+      {
+        "path": "packages/scan-host/src/wire.rs",
+        "sha256": "278450dbe45aa2ba0d94ac54f1eb8aa78e3f968a7ea467fd89db016493848f08",
+        "snapshot": "2026-10-19T11-25-40.648Z-16004-red-nc2-source-5.txt",
+        "test": false
+      },
+      {
+        "path": "packages/scan-host/Cargo.toml",
+        "sha256": "833bc3b4519ed14b30d6be9f1408c0cdac2e1eb951f9a870fed1df5178e2f972",
+        "snapshot": "2026-10-19T11-25-40.648Z-16004-red-nc2-source-6.txt",
+        "test": false
+      },
+      {
+        "path": "packages/scan-host/Cargo.lock",
+        "sha256": "c05f5492270e66f5eb6a08fc07896e28ec39653cd9b620a428c6a4d1e7e3ae78",
+        "snapshot": "2026-10-19T11-25-40.648Z-16004-red-nc2-source-7.txt",
+        "test": false
+      },
+      {
+        "path": "packages/scan-host/tests/host_v1.rs",
+        "sha256": "f8b2c99e5cf23184dbd2e8ac8cd5061eb834d86e1dd3f93f4d0668a33810d182",
+        "snapshot": "2026-10-19T11-25-40.648Z-16004-red-nc2-source-8.txt",
+        "test": true
+      }
+    ],
+    "productionHash": "5b97a6f26d4c2852777c45386a3846a967ba7f697e73bf724c004cb958534422",
+    "testHash": "80ad24f7741ba07fa21a9765aaad36802dc0737c9a0a9d88722a61e6a28dbb9b"
+  },
+  "nativeDialogReservations": 1,
+  "observedExpectedFailure": true,
+  "expectation": {
+    "target": "X_CANCEL_TOKEN",
+    "exitCode": 1
+  },
+  "nativeDialogs": 1,
+  "native": {
+    "mode": "native-cancel",
+    "newXProduct": true,
+    "nativeDialogs": 1,
+    "completed": [],
+    "status": "failed",
+    "error": "X_CANCEL_TOKEN: actual V must receive the cancelled shared token\n+ actual - expected\n\n+ 'completed'\n- 'cancelled'\n",
+    "events": 12,
+    "receipt": "F:\\new\\smaltalk\\water\\.worktrees\\x\\.local\\checks\\interactive-driver\\2026-10-19T11-25-44.231Z-18688-native-cancel.json"
+  },
+  "after": {
+    "head": "1c152a1ed317fb51498503de837bb228c50dc663",
+    "status": "?? packages/scan-host/Cargo.lock\n?? packages/scan-host/Cargo.toml\n?? packages/scan-host/README.md\n?? packages/scan-host/src/lib.rs\n?? packages/scan-host/src/main.rs\n?? packages/scan-host/src/request.rs\n?? packages/scan-host/src/runtime.rs\n?? packages/scan-host/src/state.rs\n?? packages/scan-host/src/wire.rs\n?? packages/scan-host/tests/host_v1.rs"
+  },
+  "endedAt": "2026-10-19T11:25:45.597Z",
+  "status": "passed",
+  "error": null
+}

@@ -1,0 +1,51 @@
+{"binary":"C:\\Users\\37310\\.rustup\\toolchains\\1.95.0-x86_64-pc-windows-msvc\\bin\\cargo.exe","argv":["test","--offline","--locked","--manifest-path","packages/scan-host/Cargo.toml","--test","host_v1","--","--test-threads=1","--nocapture"],"exitCode":101,"error":null}
+
+running 4 tests
+test host_job_state ... FAILED
+test host_progress_cancellation ... FAILED
+test host_request_boundary ... FAILED
+test host_wire_privacy ... FAILED
+
+failures:
+
+failures:
+    host_job_state
+    host_progress_cancellation
+    host_request_boundary
+    host_wire_privacy
+
+test result: FAILED. 0 passed; 4 failed; 0 ignored; 0 measured; 0 filtered out; finished in 0.00s
+
+
+   Compiling water-native-session v0.1.0 (F:\new\smaltalk\water\.worktrees\x\packages\native-session)
+   Compiling water-scan-host v0.1.0 (F:\new\smaltalk\water\.worktrees\x\packages\scan-host)
+warning: field `used` is never read
+  --> src\state.rs:26:5
+   |
+25 | pub struct HostState {
+   |            --------- field in this struct
+26 |     used: HashSet<OpaqueId>,
+   |     ^^^^
+   |
+   = note: `HostState` has a derived impl for the trait `Debug`, but this is intentionally ignored during dead code analysis
+   = note: `#[warn(dead_code)]` (part of `#[warn(unused)]`) on by default
+
+warning: `water-scan-host` (lib) generated 1 warning
+    Finished `test` profile [unoptimized + debuginfo] target(s) in 4.74s
+     Running tests\host_v1.rs (.local\next-target\debug\deps\host_v1-18c791074042866c.exe)
+
+thread 'host_job_state' (32028) panicked at tests\host_v1.rs:125:5:
+X_BEHAVIOR: a valid idle start must admit a real native job
+note: run with `RUST_BACKTRACE=1` environment variable to display a backtrace
+
+thread 'host_progress_cancellation' (21496) panicked at tests\host_v1.rs:171:41:
+called `Result::unwrap()` on an `Err` value: NativeFailure
+
+thread 'host_request_boundary' (18868) panicked at tests\host_v1.rs:77:9:
+assertion `left == right` failed: invalid request accepted
+  left: Ok(Shutdown)
+ right: Err(InvalidRequest)
+
+thread 'host_wire_privacy' (19264) panicked at tests\host_v1.rs:268:31:
+called `Result::unwrap()` on an `Err` value: NativeFailure
+error: test failed, to rerun pass `--test host_v1`

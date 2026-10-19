@@ -1,0 +1,103 @@
+{
+  "fixture_version": "water.native-walk-fixtures.v1",
+  "base": "F:\\new\\smaltalk\\water\\.worktrees\\x\\.local\\native-walk-fixtures\\batch-v1",
+  "root": "F:\\new\\smaltalk\\water\\.worktrees\\x\\.local\\native-walk-fixtures\\batch-v1\\root",
+  "trap": "F:\\new\\smaltalk\\water\\.worktrees\\x\\.local\\native-walk-fixtures\\batch-v1\\trap",
+  "junction": "F:\\new\\smaltalk\\water\\.worktrees\\x\\.local\\native-walk-fixtures\\batch-v1\\root\\junction",
+  "missing": "F:\\new\\smaltalk\\water\\.worktrees\\x\\.local\\native-walk-fixtures\\batch-v1\\not-created",
+  "root_names": [
+    "alias-alpha.txt",
+    "alpha.txt",
+    "dir",
+    "empty",
+    "junction",
+    "literal-秘密.txt",
+    "zero.bin"
+  ],
+  "files": [
+    {
+      "path": "F:\\new\\smaltalk\\water\\.worktrees\\x\\.local\\native-walk-fixtures\\batch-v1\\root\\alpha.txt",
+      "bytes": 14,
+      "sha256": "f68bb23ac39c5e4515ed45d040f5f563c84e8dd49e1a12024e405a8886bfb7be"
+    },
+    {
+      "path": "F:\\new\\smaltalk\\water\\.worktrees\\x\\.local\\native-walk-fixtures\\batch-v1\\root\\dir\\inner.txt",
+      "bytes": 14,
+      "sha256": "7c8344f79667c5526991d0e15c253c297090bbcf1178bb66ff6de6b4a03c986b"
+    },
+    {
+      "path": "F:\\new\\smaltalk\\water\\.worktrees\\x\\.local\\native-walk-fixtures\\batch-v1\\root\\literal-秘密.txt",
+      "bytes": 16,
+      "sha256": "a75e38cad0fd55b250fb50ed97ef6d1147a4147f47e5f850a0eb4d1413f9ad3f"
+    },
+    {
+      "path": "F:\\new\\smaltalk\\water\\.worktrees\\x\\.local\\native-walk-fixtures\\batch-v1\\root\\zero.bin",
+      "bytes": 0,
+      "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+    },
+    {
+      "path": "F:\\new\\smaltalk\\water\\.worktrees\\x\\.local\\native-walk-fixtures\\batch-v1\\trap\\TRAP_OUTSIDE.txt",
+      "bytes": 16,
+      "sha256": "65c73ca57e3406467c9eef0b288b393eb33b75476ea060751eabc54e7dc29c91"
+    },
+    {
+      "path": "F:\\new\\smaltalk\\water\\.worktrees\\x\\.local\\native-walk-fixtures\\batch-v1\\root\\alias-alpha.txt",
+      "bytes": 14,
+      "sha256": "f68bb23ac39c5e4515ed45d040f5f563c84e8dd49e1a12024e405a8886bfb7be"
+    }
+  ],
+  "file_entries": 6,
+  "literal_payload_bytes": 60,
+  "logical_file_entry_bytes": 74,
+  "expected_root_logical_bytes": "58",
+  "expected_entries": [
+    [
+      "alias-alpha.txt",
+      "file",
+      "14",
+      1
+    ],
+    [
+      "alpha.txt",
+      "file",
+      "14",
+      1
+    ],
+    [
+      "dir",
+      "directory",
+      null,
+      1
+    ],
+    [
+      "dir/inner.txt",
+      "file",
+      "14",
+      2
+    ],
+    [
+      "empty",
+      "directory",
+      null,
+      1
+    ],
+    [
+      "junction",
+      "link",
+      null,
+      1
+    ],
+    [
+      "literal-秘密.txt",
+      "file",
+      "16",
+      1
+    ],
+    [
+      "zero.bin",
+      "file",
+      "0",
+      1
+    ]
+  ]
+}
