@@ -1,0 +1,83 @@
+{
+  "batch_version": "water.interactive-batch.v1",
+  "tasks": {
+    "WATER-W1-X": {
+      "tests": [
+        "host_request_boundary",
+        "host_job_state",
+        "host_progress_cancellation",
+        "host_wire_privacy"
+      ],
+      "testFiles": [
+        "packages/scan-host/tests/host_v1.rs"
+      ],
+      "proof_targets": {
+        "nc1": "X_JOB_BINDING",
+        "nc2": "X_CANCEL_TOKEN"
+      },
+      "final_modes": [
+        "check",
+        "test",
+        "native"
+      ],
+      "native_dialog_budget": 6
+    },
+    "WATER-W1-Y": {
+      "tests": [
+        "workspace_protocol_state",
+        "workspace_http_authority",
+        "workspace_lifecycle_and_reports"
+      ],
+      "browser_tests": [
+        "workspace_actions_and_download",
+        "workspace_layout_and_cancel"
+      ],
+      "testFiles": [
+        "prototypes/live-workspace/tests/model.test.mjs",
+        "prototypes/live-workspace/tests/browser.test.mjs"
+      ],
+      "proof_targets": {
+        "nc1": "Y_ACTION_AUTH",
+        "nc2": "Y_STALE_RESULT"
+      },
+      "final_modes": [
+        "check",
+        "test",
+        "browser"
+      ],
+      "native_dialog_budget": 0
+    },
+    "WATER-W1-Z": {
+      "tests": [
+        "marker_consent_and_binding",
+        "marker_native_limits_and_links",
+        "marker_real_u_and_privacy",
+        "marker_public_types"
+      ],
+      "testFiles": [
+        "packages/root-marker/tests/marker_v1.rs"
+      ],
+      "proof_targets": {
+        "nc1": "Z_SCOPE_BINDING",
+        "nc2": "Z_SINGLE_LINK"
+      },
+      "final_modes": [
+        "check",
+        "test"
+      ],
+      "native_dialog_budget": 0
+    }
+  },
+  "per_command_timeout_ms": 180000,
+  "node_major": 24,
+  "rust": "1.95.0",
+  "cargo_jobs": 1,
+  "baseline_native_dialogs": 0,
+  "chrome_max_Y": 1,
+  "negative_modes": [
+    "red-nc1",
+    "red-nc2"
+  ],
+  "negative_test_scope": "One assigned test file, no browser; exception X nc2 runs exactly one real native pre-cancel confirmation to prove the actual V argument. Restore unit tests immediately, final native three cases prove restored wiring.",
+  "unchanged_green_suite_not_repeated": true
+}

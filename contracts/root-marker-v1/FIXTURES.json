@@ -1,0 +1,27 @@
+{
+  "version": "water.root-marker.fixtures.v1",
+  "cap": 262144,
+  "good_raw": "{\"name\":\"FAKE_PRIVATE_MARKER_CANARY\",\"version\":\"1.2.3\",\"private\":true,\"dependencies\":{\"FAKE_DEP\":\"^1\"},\"scripts\":{\"build\":\"FAKE_NEVER_RUN\"}}",
+  "invalid_utf8": [
+    255,
+    254
+  ],
+  "malformed_raw": "{\"scripts\":",
+  "directories": [
+    "good",
+    "missing",
+    "invalid",
+    "malformed",
+    "exact",
+    "oversize",
+    "directory",
+    "hardlink",
+    "link",
+    "other",
+    "trap"
+  ],
+  "junction": "link/package.json -> trap",
+  "hardlink": "hardlink/package.json -> trap/private.json",
+  "payloads_are_synthetic": true,
+  "real_user_data_permission": false
+}
