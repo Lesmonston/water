@@ -1,0 +1,350 @@
+{
+  "task": "WATER-W1-W",
+  "mode": "test",
+  "finalGate": true,
+  "startedAt": "2026-10-19T03:59:38.113Z",
+  "before": {
+    "head": "63db62b020efff4601a03da7dc561549dcb1f762",
+    "status": ""
+  },
+  "node": "v24.16.0",
+  "productTestsRun": true,
+  "frozenFiles": 104,
+  "commands": [
+    {
+      "binary": "git",
+      "argv": [
+        "-c",
+        "core.hooksPath=NUL",
+        "-c",
+        "core.fsmonitor=false",
+        "rev-parse",
+        "--path-format=absolute",
+        "--git-common-dir"
+      ],
+      "exitCode": 0,
+      "error": null
+    },
+    {
+      "binary": "git",
+      "argv": [
+        "-c",
+        "core.hooksPath=NUL",
+        "-c",
+        "core.fsmonitor=false",
+        "branch",
+        "--show-current"
+      ],
+      "exitCode": 0,
+      "error": null
+    },
+    {
+      "binary": "git",
+      "argv": [
+        "-c",
+        "core.hooksPath=NUL",
+        "-c",
+        "core.fsmonitor=false",
+        "merge-base",
+        "--is-ancestor",
+        "30a803537602211ed2a11c106c63fd27cefb260f",
+        "HEAD"
+      ],
+      "exitCode": 0,
+      "error": null
+    },
+    {
+      "binary": "git",
+      "argv": [
+        "-c",
+        "core.hooksPath=NUL",
+        "-c",
+        "core.fsmonitor=false",
+        "diff",
+        "--no-renames",
+        "--name-only",
+        "-z",
+        "30a803537602211ed2a11c106c63fd27cefb260f",
+        "HEAD"
+      ],
+      "exitCode": 0,
+      "error": null
+    },
+    {
+      "binary": "git",
+      "argv": [
+        "-c",
+        "core.hooksPath=NUL",
+        "-c",
+        "core.fsmonitor=false",
+        "diff",
+        "--no-renames",
+        "--name-only",
+        "-z",
+        "HEAD"
+      ],
+      "exitCode": 0,
+      "error": null
+    },
+    {
+      "binary": "git",
+      "argv": [
+        "-c",
+        "core.hooksPath=NUL",
+        "-c",
+        "core.fsmonitor=false",
+        "ls-files",
+        "--others",
+        "--exclude-standard",
+        "-z"
+      ],
+      "exitCode": 0,
+      "error": null
+    },
+    {
+      "binary": "git",
+      "argv": [
+        "-c",
+        "core.hooksPath=NUL",
+        "-c",
+        "core.fsmonitor=false",
+        "rev-parse",
+        "HEAD"
+      ],
+      "exitCode": 0,
+      "error": null
+    },
+    {
+      "binary": "git",
+      "argv": [
+        "-c",
+        "core.hooksPath=NUL",
+        "-c",
+        "core.fsmonitor=false",
+        "status",
+        "--porcelain",
+        "--untracked-files=all"
+      ],
+      "exitCode": 0,
+      "error": null
+    },
+    {
+      "binary": "C:\\Program Files\\nodejs\\node.exe",
+      "argv": [
+        "--test",
+        "--test-concurrency=1",
+        "--test-reporter=tap",
+        "prototypes/native-review/tests/model.test.mjs"
+      ],
+      "exitCode": 0,
+      "error": null,
+      "log": "2026-10-19T03-59-37.426Z-34208-test-1.log"
+    },
+    {
+      "binary": "git",
+      "argv": [
+        "-c",
+        "core.hooksPath=NUL",
+        "-c",
+        "core.fsmonitor=false",
+        "branch",
+        "--show-current"
+      ],
+      "exitCode": 0,
+      "error": null,
+      "log": "2026-10-19T03-59-37.426Z-34208-test-2.log"
+    },
+    {
+      "binary": "git",
+      "argv": [
+        "-c",
+        "core.hooksPath=NUL",
+        "-c",
+        "core.fsmonitor=false",
+        "merge-base",
+        "--is-ancestor",
+        "30a803537602211ed2a11c106c63fd27cefb260f",
+        "HEAD"
+      ],
+      "exitCode": 0,
+      "error": null,
+      "log": "2026-10-19T03-59-37.426Z-34208-test-3.log"
+    },
+    {
+      "binary": "git",
+      "argv": [
+        "-c",
+        "core.hooksPath=NUL",
+        "-c",
+        "core.fsmonitor=false",
+        "diff",
+        "--no-renames",
+        "--name-only",
+        "-z",
+        "30a803537602211ed2a11c106c63fd27cefb260f",
+        "HEAD"
+      ],
+      "exitCode": 0,
+      "error": null,
+      "log": "2026-10-19T03-59-37.426Z-34208-test-4.log"
+    },
+    {
+      "binary": "git",
+      "argv": [
+        "-c",
+        "core.hooksPath=NUL",
+        "-c",
+        "core.fsmonitor=false",
+        "diff",
+        "--no-renames",
+        "--name-only",
+        "-z",
+        "HEAD"
+      ],
+      "exitCode": 0,
+      "error": null,
+      "log": "2026-10-19T03-59-37.426Z-34208-test-5.log"
+    },
+    {
+      "binary": "git",
+      "argv": [
+        "-c",
+        "core.hooksPath=NUL",
+        "-c",
+        "core.fsmonitor=false",
+        "ls-files",
+        "--others",
+        "--exclude-standard",
+        "-z"
+      ],
+      "exitCode": 0,
+      "error": null,
+      "log": "2026-10-19T03-59-37.426Z-34208-test-6.log"
+    },
+    {
+      "binary": "git",
+      "argv": [
+        "-c",
+        "core.hooksPath=NUL",
+        "-c",
+        "core.fsmonitor=false",
+        "rev-parse",
+        "HEAD"
+      ],
+      "exitCode": 0,
+      "error": null,
+      "log": "2026-10-19T03-59-37.426Z-34208-test-7.log"
+    },
+    {
+      "binary": "git",
+      "argv": [
+        "-c",
+        "core.hooksPath=NUL",
+        "-c",
+        "core.fsmonitor=false",
+        "status",
+        "--porcelain",
+        "--untracked-files=all"
+      ],
+      "exitCode": 0,
+      "error": null,
+      "log": "2026-10-19T03-59-37.426Z-34208-test-8.log"
+    }
+  ],
+  "sourceState": {
+    "files": [
+      {
+        "path": "prototypes/native-review/.gitattributes",
+        "sha256": "0f5f59fadbab5da08438dff0d18cc6ea4861367f142c849776b6f982a3e14753",
+        "snapshot": "2026-10-19T03-59-37.426Z-34208-test-source-0.txt",
+        "test": false
+      },
+      {
+        "path": "prototypes/native-review/index.html",
+        "sha256": "95b94290c7c8b001e70b166d6f5bc366b333dd0b27156e6d5051f641f929e4ac",
+        "snapshot": "2026-10-19T03-59-37.426Z-34208-test-source-1.txt",
+        "test": false
+      },
+      {
+        "path": "prototypes/native-review/styles.css",
+        "sha256": "2c3af60b8c788298bdade154f72f1797324690f3a40e2b4e9a1f985cf778f957",
+        "snapshot": "2026-10-19T03-59-37.426Z-34208-test-source-2.txt",
+        "test": false
+      },
+      {
+        "path": "prototypes/native-review/model.mjs",
+        "sha256": "a0948810e2a21286cce29852fdc4da8b812090a89340be3bbea31fd0d2bf78e7",
+        "snapshot": "2026-10-19T03-59-37.426Z-34208-test-source-3.txt",
+        "test": false
+      },
+      {
+        "path": "prototypes/native-review/app.mjs",
+        "sha256": "b9f2058a8d768ba4a8b759117a6d55d32e8fddee1d97fe955e3855564d04c1d4",
+        "snapshot": "2026-10-19T03-59-37.426Z-34208-test-source-4.txt",
+        "test": false
+      },
+      {
+        "path": "prototypes/native-review/server.mjs",
+        "sha256": "d7eb52084eb400d5e7a1473601cb28b9042743da8c678ec0220daaca88cb64d0",
+        "snapshot": "2026-10-19T03-59-37.426Z-34208-test-source-5.txt",
+        "test": false
+      },
+      {
+        "path": "prototypes/native-review/host.mjs",
+        "sha256": "d86f592ace13ceef7dabc46586aeb4c47030c0153f22abdb5c6befd4bb9bd1ee",
+        "snapshot": "2026-10-19T03-59-37.426Z-34208-test-source-6.txt",
+        "test": false
+      },
+      {
+        "path": "prototypes/native-review/launch.mjs",
+        "sha256": "814114f9d36d34c62cd3602fc60a20ffea959af45113c86ee95cbcd2cc3b8161",
+        "snapshot": "2026-10-19T03-59-37.426Z-34208-test-source-7.txt",
+        "test": false
+      },
+      {
+        "path": "prototypes/native-review/tests/model.test.mjs",
+        "sha256": "c63e87dc63e110476af87364e571daa14dc92b0667464a477d86f4e8a415743a",
+        "snapshot": "2026-10-19T03-59-37.426Z-34208-test-source-8.txt",
+        "test": true
+      },
+      {
+        "path": "prototypes/native-review/tests/browser.test.mjs",
+        "sha256": "b3b014a508fbdb8d1fd854c942646cc8c642b63b56a380957335c31aa47a7dec",
+        "snapshot": "2026-10-19T03-59-37.426Z-34208-test-source-9.txt",
+        "test": true
+      }
+    ],
+    "productionHash": "8fd59dd79d4490b9eae0faf61a9a5e1f4667ef7d9e7a26e46a68f4fde6000fd4",
+    "testHash": "c743d21babae78f5ba360f83baaf944ed6c0d95720d7a83f4df596a7cd3067ac"
+  },
+  "proofAudit": [
+    {
+      "label": "behavior",
+      "red": "2026-10-19T03-55-03.365Z-34064-red-behavior-result.json",
+      "restored": "2026-10-19T03-55-41.502Z-19684-suite-result.json"
+    },
+    {
+      "label": "nc1",
+      "red": "2026-10-19T03-56-10.717Z-34864-red-nc1-result.json",
+      "restored": "2026-10-19T03-56-49.522Z-23112-suite-result.json"
+    },
+    {
+      "label": "nc2",
+      "red": "2026-10-19T03-57-18.956Z-25712-red-nc2-result.json",
+      "restored": "2026-10-19T03-57-45.475Z-20124-suite-result.json"
+    },
+    {
+      "label": "nc3",
+      "red": "2026-10-19T03-58-12.468Z-35316-red-nc3-result.json",
+      "restored": "2026-10-19T03-58-39.357Z-29272-suite-result.json"
+    }
+  ],
+  "executedTests": 3,
+  "after": {
+    "head": "63db62b020efff4601a03da7dc561549dcb1f762",
+    "status": ""
+  },
+  "endedAt": "2026-10-19T03:59:42.999Z",
+  "status": "passed",
+  "error": null
+}
