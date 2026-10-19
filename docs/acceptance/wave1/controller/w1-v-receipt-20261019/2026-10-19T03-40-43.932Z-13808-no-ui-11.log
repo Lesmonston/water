@@ -1,0 +1,13 @@
+{"binary":"C:\\Users\\37310\\.rustup\\toolchains\\1.95.0-x86_64-pc-windows-msvc\\bin\\rustc.exe","argv":["--edition=2024","--crate-name","controller_session_proof","--emit=metadata","-L","dependency=F:\\new\\smaltalk\\water\\.worktrees\\review-v-20261019\\.local\\next-target\\debug\\deps","--extern","water_native_session=F:\\new\\smaltalk\\water\\.worktrees\\review-v-20261019\\.local\\next-target\\debug\\libwater_native_session.rlib","--extern","water_contracts=F:\\new\\smaltalk\\water\\.worktrees\\review-v-20261019\\.local\\next-target\\debug\\deps\\libwater_contracts-bb841a24a8c13ca8.rlib","--extern","water_scope_registry=F:\\new\\smaltalk\\water\\.worktrees\\review-v-20261019\\.local\\next-target\\debug\\deps\\libwater_scope_registry-07e1c01da1e4ade8.rlib","--extern","water_native_picker=F:\\new\\smaltalk\\water\\.worktrees\\review-v-20261019\\.local\\next-target\\debug\\deps\\libwater_native_picker-e6e2962035ca2e22.rlib","--extern","water_native_scan=F:\\new\\smaltalk\\water\\.worktrees\\review-v-20261019\\.local\\next-target\\debug\\deps\\libwater_native_scan-1523148605996d4d.rlib","--extern","serde_json=F:\\new\\smaltalk\\water\\.worktrees\\review-v-20261019\\.local\\next-target\\debug\\deps\\libserde_json-c243626af514ec1f.rlib","-o","F:\\new\\smaltalk\\water\\.worktrees\\review-v-20261019\\.local\\next-tmp\\2026-10-19T03-40-43.932Z-13808-1.rmeta","-"],"exitCode":1,"error":null,"log":"2026-10-19T03-40-43.932Z-13808-no-ui-11.log"}
+--- stdout ---
+
+--- stderr ---
+error[E0616]: field `snapshots` of struct `water_native_session::v1::SessionCapture` is private
+ --> <anon>:3:51
+  |
+3 | fn main() { fn f(c: &SessionCapture) { let _ = &c.snapshots; } }
+  |                                                   ^^^^^^^^^ private field
+
+error: aborting due to 1 previous error
+
+For more information about this error, try `rustc --explain E0616`.

@@ -1,6 +1,6 @@
 # Water 项目协作规则
 
-最新状态（2026-10-19）：A–U及六补单保持VERIFIED（Windows受控范围）。V原生会话API/CLI与W原生页面/原字节流/固定启动器已完成协议冻结、独立树和各自实际baseline，现同波READY，等待用户分别转贴到两个新对话；无自动实现者。新V/W产品及各五项测试尚未实现/运行，真实V程序→W固定启动器联合链待交回后验收。真实用户scope、生产竞态、macOS和桌面未验收，M1仍未完成。 R接收a8386d8/受测a7cbe2b，T接收df00405/受测f26f727，U接收545df67/受测39ea9ff，隔离集成ae5d34a。原最终门R5/T3/U5复跑、私有离线复测、9生产负控完整五红/恢复五绿、9独立测试、21编译拒绝/成功对照通过。1487交付路径与291冻结保持；R只读复用原60字面/74逻辑字节夹具，无新物理fixture。T保持retained_j_capture/synthetic_memory；V/W新协议使用native_scope_metadata，不能冒标内存来源。共同基线30a803537602211ed2a11c106c63fd27cefb260f，104新锁条目/13继承锁/336唯一冻结；V仅本树冻结60字面/74逻辑夹具，W无物理fixture权限。正式票/manifest及docs/dispatch/wave1/NATIVE-HOST-READY-REPORT.md优先于以下历史；READY不等于已外贴。
+最新状态（2026-10-19）：A–U及六补单保持VERIFIED（Windows受控范围）。V已收单、单票验收并集成，接收ec1ee25/受测3087564/集成8599dab；本次总控新增原生窗口0，原生行为按精确SHA原始证据审计，另完成独立无窗口复核。W仍在原对话实现/验证，尚未交齐正式提交和报告，不重复派单。V暂为INTEGRATED，真实V→W固定启动器联合验收未完成，不记VERIFIED。真实用户scope、生产竞态、macOS和桌面未验收，M1仍未完成。 R接收a8386d8/受测a7cbe2b，T接收df00405/受测f26f727，U接收545df67/受测39ea9ff，隔离集成ae5d34a。原最终门R5/T3/U5复跑、私有离线复测、9生产负控完整五红/恢复五绿、9独立测试、21编译拒绝/成功对照通过。1487交付路径与291冻结保持；R只读复用原60字面/74逻辑字节夹具，无新物理fixture。T保持retained_j_capture/synthetic_memory；V/W新协议使用native_scope_metadata，不能冒标内存来源。共同基线30a803537602211ed2a11c106c63fd27cefb260f，104新锁条目/13继承锁/336唯一冻结；V仅本树冻结60字面/74逻辑夹具，W无物理fixture权限。正式票/manifest及docs/acceptance/wave1/controller/WATER-W1-V-REVIEW-20261019.md优先于以下派前历史；V已集成，W原对话继续，不重复派单。
 
 - 项目根：`F:/new/smaltalk/water`。用户指定后续开发、研究、文档、脚本与本项目产物全部放在此目录内。
 - Codex 是项目总控，负责范围、任务分派、接口、集成、安全复核和验收。用户保留产品与发布决定权。

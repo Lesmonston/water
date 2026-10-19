@@ -2,7 +2,7 @@
 
 面向 Windows、macOS AI 开发者的本地存储分析与安全清理助手。
 
-**当前阶段：A–U及六补单保持VERIFIED（Windows受控范围）。V原生会话API/CLI与W原生页面/原字节流/固定启动器已完成协议冻结、独立树和各自实际baseline，现同波READY，等待用户分别转贴到两个新对话；无自动实现者。新V/W产品及各五项测试尚未实现/运行，真实V程序→W固定启动器联合链待交回后验收。真实用户scope、生产竞态、macOS和桌面未验收，M1仍未完成。**
+**当前阶段：A–U及六补单保持VERIFIED（Windows受控范围）。V已收单、单票验收并集成，接收ec1ee25/受测3087564/集成8599dab；本次总控新增原生窗口0，原生行为按精确SHA原始证据审计，另完成独立无窗口复核。W仍在原对话实现/验证，尚未交齐正式提交和报告，不重复派单。V暂为INTEGRATED，真实V→W固定启动器联合验收未完成，不记VERIFIED。真实用户scope、生产竞态、macOS和桌面未验收，M1仍未完成。**
 
 用户指定本项目所有后续开发均位于 `smaltalk/water`，由 Codex 担任总控。
 
@@ -35,7 +35,7 @@ Water 的发布许可证、定价与商标名称尚未最终确定；`water` 是
 
 ## 当前验收与下一波
 
-[R补单01/T/U已验收并集成](docs/acceptance/wave1/controller/WATER-W1-RTU-REVIEW-20261019.md)，S也已VERIFIED，本波全部收口，旧票不重贴。V/W现已[同波READY](docs/dispatch/wave1/NATIVE-HOST-READY-REPORT.md)，可分别外贴[V正式票](docs/dispatch/tickets/WATER-W1-V-NATIVE-SESSION-20261019.md)与[W正式票](docs/dispatch/tickets/WATER-W1-W-NATIVE-REVIEW-20261019.md)。共同精确基线30a8035、104锁条目/13继承锁/336唯一冻结，两树实际baseline通过；新产品和联合链仍待实现/验收。下面为历史批次。
+[R补单01/T/U已验收并集成](docs/acceptance/wave1/controller/WATER-W1-RTU-REVIEW-20261019.md)，S也已VERIFIED，本波全部收口，旧票不重贴。V已[单票收单并集成](docs/acceptance/wave1/controller/WATER-W1-V-REVIEW-20261019.md)，W在原对话继续，旧外贴句不重贴。共同精确基线30a8035、104锁条目/13继承锁/336唯一冻结，原两树实际baseline通过；V产品已实现，W及联合链仍待交付/验收。下面为历史批次。
 
 [本次J/K安排](docs/dispatch/wave1/SESSION-BATCH-PLAN-20261018.md)及[实际派前回执](docs/dispatch/wave1/SESSION-BATCH-READY-REPORT.md)：两树独立、同一冻结r1基线；J已通过[独立验收及集成](docs/acceptance/wave1/controller/WATER-W1-J-REVIEW-20261018.md)，K[补充单01已通过独立复验及真实J→K页面集成](docs/acceptance/wave1/controller/WATER-W1-K-ADDENDUM-01-REVIEW-20261018.md)，原失败历史保留。J只组合现有受控链路，K从调用方接内存快照。A–I及四补单无需重贴；W2–W5/真实scope/桌面/macOS属于后续规划，未伪装成待派READY单。
 
@@ -43,4 +43,4 @@ Water 的发布许可证、定价与商标名称尚未最终确定；`water` 是
 
 Codex负责架构、规划、契约、工单和验收；用户把总控准备好的一行指令转贴给执行者；执行者在独立工作树提交代码与回执，总控复核后集成。见 [派单登记](docs/dispatch/registry.json) 与 [本轮计划](docs/dispatch/wave1/PLAN.md)：A–I已验收集成，总控没有自动代替用户启动实现者或修产品代码。
 
-[L/M单票及隔离集成验收](docs/acceptance/wave1/controller/WATER-W1-LM-REVIEW-20261018.md)已完成，原正式票无需重贴。A–U及六补单均已VERIFIED（Windows受控范围），无未结外贴票。V/W为本波新READY票，完整宿主用户闭环仍待实现与联合验收。
+[L/M单票及隔离集成验收](docs/acceptance/wave1/controller/WATER-W1-LM-REVIEW-20261018.md)已完成，原正式票无需重贴。A–U及六补单均已VERIFIED（Windows受控范围）；当前W原票在途。V已集成、W待交回，完整宿主用户闭环仍待联合验收。

@@ -4,7 +4,7 @@
   "mode": "manual-external-paste",
   "controller": "Codex",
   "projectRoot": "F:/new/smaltalk/water",
-  "stage": "wave1-a-u-verified-v-w-ready",
+  "stage": "wave1-v-integrated-w-running",
   "activeWave": "water-wave1",
   "slots": [
     {
@@ -182,7 +182,7 @@
       "branch": "worker/water-w1-v",
       "baseline": "30a803537602211ed2a11c106c63fd27cefb260f",
       "task": "WATER-W1-V",
-      "state": "ready-awaiting-user-paste"
+      "state": "integrated-joint-verification-pending"
     },
     {
       "id": "w",
@@ -190,7 +190,7 @@
       "branch": "worker/water-w1-w",
       "baseline": "30a803537602211ed2a11c106c63fd27cefb260f",
       "task": "WATER-W1-W",
-      "state": "ready-awaiting-user-paste"
+      "state": "running-awaiting-submission"
     }
   ],
   "tasks": [
@@ -2083,7 +2083,7 @@
     {
       "id": "WATER-W1-V",
       "title": "真实原生会话API与单次CLI",
-      "status": "READY",
+      "status": "INTEGRATED",
       "slot": "v",
       "worktree": "F:/new/smaltalk/water/.worktrees/v",
       "branch": "worker/water-w1-v",
@@ -2143,12 +2143,12 @@
         "WATER-W1-H",
         "WATER-W1-Q"
       ],
-      "model": null,
+      "model": "Codex / GPT-6 (worker self-report)",
       "modelAssignment": "user-arranged; worker reports actual engine/model",
       "dispatchedAt": null,
       "startedAt": null,
       "baselineStatus": "PASSED",
-      "newProductTestsRun": false,
+      "newProductTestsRun": true,
       "physicalFixturePermission": true,
       "macOS": "unverified",
       "deferredJointValidation": "Actual V CLI -> W fixed launchNative -> HTTP/Chrome/download after both submissions; capture replay is not V product.",
@@ -2159,12 +2159,23 @@
       "testFile": "packages/native-session/tests/session_v1.rs",
       "readyOn": "2026-10-19",
       "preflightEvidence": "docs/dispatch/wave1/NATIVE-HOST-READY-REPORT.md",
-      "baselineEvidence": "docs/acceptance/wave1/controller/w1-native-host-preflight-20261019/v/2026-10-19T02-18-01.278Z-12416-baseline-result.json"
+      "baselineEvidence": "docs/acceptance/wave1/controller/w1-native-host-preflight-20261019/v/2026-10-19T02-18-01.278Z-12416-baseline-result.json",
+      "submittedCommit": "ec1ee25034185d95279debcd589be49b84458af1",
+      "implementationCommit": "30875645f03ddc01019eb4b3cb00f9ab7d1c068d",
+      "reviewedCommit": "30875645f03ddc01019eb4b3cb00f9ab7d1c068d",
+      "acceptedCommit": "ec1ee25034185d95279debcd589be49b84458af1",
+      "acceptedAt": "2026-10-19T03:44:04.749Z",
+      "controllerReview": "docs/acceptance/wave1/controller/WATER-W1-V-REVIEW-20261019.md",
+      "integrationCommit": "8599dab31526e3970bf9d5e94f5122c7f3abae28",
+      "integrationBranch": "controller/water-w1-v-integration-20261019",
+      "integrationWorktree": "F:/new/smaltalk/water/.worktrees/integration-v-20261019",
+      "integratedAt": "2026-10-19T03:48:46.140Z",
+      "verificationScope": "Windows controlled standalone acceptance; exact-SHA worker native evidence audited plus independent private offline no-UI build/clippy/9 compile proofs/3 CLI errors. No controller native dialog replay. Final actual V->W fixed-launcher chain pending."
     },
     {
       "id": "WATER-W1-W",
       "title": "原生会话页面、原字节流与固定启动器",
-      "status": "READY",
+      "status": "RUNNING",
       "slot": "w",
       "worktree": "F:/new/smaltalk/water/.worktrees/w",
       "branch": "worker/water-w1-w",
@@ -2236,7 +2247,7 @@
       "dispatchedAt": null,
       "startedAt": null,
       "baselineStatus": "PASSED",
-      "newProductTestsRun": false,
+      "newProductTestsRun": true,
       "physicalFixturePermission": false,
       "macOS": "unverified",
       "deferredJointValidation": "Actual V CLI -> W fixed launchNative -> HTTP/Chrome/download after both submissions; capture replay is not V product.",
@@ -2252,9 +2263,11 @@
       ],
       "readyOn": "2026-10-19",
       "preflightEvidence": "docs/dispatch/wave1/NATIVE-HOST-READY-REPORT.md",
-      "baselineEvidence": "docs/acceptance/wave1/controller/w1-native-host-preflight-20261019/w/2026-10-19T02-18-01.280Z-26808-baseline-result.json"
+      "baselineEvidence": "docs/acceptance/wave1/controller/w1-native-host-preflight-20261019/w/2026-10-19T02-18-01.280Z-26808-baseline-result.json",
+      "activityObservedAt": "2026-10-19T03:48:46.140Z",
+      "activityEvidence": "Uncommitted prototypes/native-review files and actual helper suites/negative controls; no implementation/report commit at current receipt audit. User reported complete, actual W submission still incomplete."
     }
   ],
   "testHelper": "per-task helper; A defaults unchanged",
-  "note": "A-U/six addenda remain VERIFIED. V/W independently baselined, READY together awaiting separate user-pasted conversations; no automatic implementer. New products/tests and actual V->W launcher chain remain unimplemented/unverified; M1 incomplete."
+  "note": "V received ec1ee25, tested 3087564, standalone accepted/integrated 8599dab with no new controller native dialogs; not yet VERIFIED. W still implementing/validating and has not submitted report/commit. No duplicate re-dispatch or automatic implementer. M1 incomplete."
 }
