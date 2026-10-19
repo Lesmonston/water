@@ -1,0 +1,20 @@
+{"binary":"C:\\Users\\37310\\.rustup\\toolchains\\1.95.0-x86_64-pc-windows-msvc\\bin\\rustc.exe","argv":["--edition=2024","--crate-name","project_dependency","scripts/acceptance/project-dependency-capture.rs","-L","dependency=F:\\new\\smaltalk\\water\\.local\\next-target\\debug\\deps","--extern","water_native_scan=F:\\new\\smaltalk\\water\\.local\\next-target\\debug\\deps\\libwater_native_scan-b3954693094c9f14.rlib","--extern","water_contracts=F:\\new\\smaltalk\\water\\.local\\next-target\\debug\\deps\\libwater_contracts-03746b148f2454ba.rlib","--extern","water_scope_registry=F:\\new\\smaltalk\\water\\.local\\next-target\\debug\\deps\\libwater_scope_registry-227f9aabcf5994a5.rlib","--extern","water_report_view=F:\\new\\smaltalk\\water\\.local\\next-target\\debug\\deps\\libwater_report_view-f40e34fbc27325ba.rlib","--extern","water_summary_export=F:\\new\\smaltalk\\water\\.local\\next-target\\debug\\deps\\libwater_summary_export-f3fc75de20b64f97.rlib","--extern","water_redacted_report=F:\\new\\smaltalk\\water\\.local\\next-target\\debug\\deps\\libwater_redacted_report-a4d342b44a6a4c42.rlib","--extern","serde_json=F:\\new\\smaltalk\\water\\.local\\next-target\\debug\\deps\\libserde_json-c243626af514ec1f.rlib","--extern","water_root_marker=F:\\new\\smaltalk\\water\\.local\\next-target\\debug\\libwater_root_marker.rlib","--extern","water_scan_host=F:\\new\\smaltalk\\water\\.local\\next-target\\debug\\libwater_scan_host.rlib","-o","F:\\new\\smaltalk\\water\\.local\\next-tmp\\2026-10-19T13-39-28.161Z-34320-project-dependency.exe"],"exitCode":1,"error":null,"log":"2026-10-19T13-39-28.161Z-34320-10.log"}
+--- stdout ---
+
+--- stderr ---
+error: expected one of `.`, `;`, `?`, `else`, or an operator, found `,`
+ --> scripts/acceptance/project-dependency-capture.rs:9:72
+  |
+9 |  let mut reg=Registry::new(2).unwrap();let scope_id=id("project-scope"),job_id=id(job);
+  |                                                                        ^ expected one of `.`, `;`, `?`, `else`, or an operator
+
+warning: unused imports: `CancelToken`, `ScanOptions`, and `scan_registered`
+ --> scripts/acceptance/project-dependency-capture.rs:5:29
+  |
+5 | use water_native_scan::v1::{ScanOptions,CancelToken,scan_registered};
+  |                             ^^^^^^^^^^^ ^^^^^^^^^^^ ^^^^^^^^^^^^^^^
+  |
+  = note: `#[warn(unused_imports)]` (part of `#[warn(unused)]`) on by default
+
+error: aborting due to 1 previous error; 1 warning emitted
+

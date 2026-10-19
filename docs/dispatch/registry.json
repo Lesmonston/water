@@ -4,7 +4,7 @@
   "mode": "manual-external-paste",
   "controller": "Codex",
   "projectRoot": "F:/new/smaltalk/water",
-  "stage": "wave1-a-z-verified-windows-controlled",
+  "stage": "wave1-project-aa-ab-ready",
   "activeWave": "water-wave1",
   "slots": [
     {
@@ -215,6 +215,22 @@
       "baseline": "1c152a1ed317fb51498503de837bb228c50dc663",
       "task": "WATER-W1-Z",
       "state": "verified-preserved"
+    },
+    {
+      "id": "aa",
+      "path": "F:/new/smaltalk/water/.worktrees/aa",
+      "branch": "worker/water-w1-aa",
+      "baseline": "f3b87b7a79ff8fa51882705ecef75f1f02d8af15",
+      "task": "WATER-W1-AA",
+      "state": "ready"
+    },
+    {
+      "id": "ab",
+      "path": "F:/new/smaltalk/water/.worktrees/ab",
+      "branch": "worker/water-w1-ab",
+      "baseline": "f3b87b7a79ff8fa51882705ecef75f1f02d8af15",
+      "task": "WATER-W1-AB",
+      "state": "ready"
     }
   ],
   "tasks": [
@@ -2648,8 +2664,196 @@
       "integratedAt": "2026-10-19T13:23:22.031Z",
       "verificationScope": "Windows controlled synthetic scope only; original archive/finals/production negatives audited, private offline tests and independent boundaries passed. X-Y actual fixed-launcher three-window chain passed; Z consent/read/U public API passed. Real user scope/macOS/desktop/M1 unverified.",
       "deferredJointValidation": "Z -> interactive UI extra consent and new marker sidecar remains future work; existing V/W ordinary_content_read=false protocol unchanged."
+    },
+    {
+      "id": "WATER-W1-AA",
+      "title": "同次原生选择的可选项目清单宿主",
+      "status": "READY",
+      "slot": "aa",
+      "worktree": "F:/new/smaltalk/water/.worktrees/aa",
+      "branch": "worker/water-w1-aa",
+      "baseCommit": "f3b87b7a79ff8fa51882705ecef75f1f02d8af15",
+      "snapshotRef": "refs/tags/water-w1-project-consent-base-20261019",
+      "ticket": "docs/dispatch/tickets/WATER-W1-AA-PROJECT-SESSION-20261019.md",
+      "report": "docs/dispatch/reports/WATER-W1-AA-REPORT.md",
+      "contractLock": "contracts/project-batch-v1/freeze.lock.json",
+      "helper": "scripts/project-wave-check.mjs",
+      "workerRules": "docs/dispatch/W1-PROJECT-WORKER-RULES.md",
+      "outputRoot": "packages/project-session",
+      "spec": "contracts/project-session-v1/SPEC.md",
+      "testFiles": [
+        "packages/project-session/tests/project_v1.rs"
+      ],
+      "expectedTests": [
+        "project_request_boundary",
+        "project_consent_state",
+        "project_capture_and_marker",
+        "project_wire_and_cleanup"
+      ],
+      "expectedBrowserTests": [],
+      "expectedFinalModes": [
+        "check",
+        "test",
+        "native"
+      ],
+      "proofTargets": {
+        "nc1": "AA_NO_CONTENT_CONSENT",
+        "nc2": "AA_CANCEL_NO_READ"
+      },
+      "nativeDialogBudget": 8,
+      "baselineStatus": "PASSED",
+      "newProductTestsRun": false,
+      "model": null,
+      "modelAssignment": "user-arranged; report actual engine/model",
+      "dispatchedAt": null,
+      "startedAt": null,
+      "physicalFixturePermission": true,
+      "ordinaryContentPermission": "Fixed new-tree frozen marker synthetic fixtures only; Z borrow consent per current job explicit choice; no real user data",
+      "cargoCacheSource": "F:/new/smaltalk/water/.worktrees/a/.local/cargo-home/registry",
+      "allowLockfileGeneration": true,
+      "macOS": "unverified",
+      "dependsOn": [
+        "WATER-W1-X",
+        "WATER-W1-S",
+        "WATER-W1-P",
+        "WATER-W1-R",
+        "WATER-W1-E",
+        "WATER-W1-H",
+        "WATER-W1-Q",
+        "WATER-W1-Z"
+      ],
+      "allowedFiles": [
+        "packages/project-session/Cargo.toml",
+        "packages/project-session/Cargo.lock",
+        "packages/project-session/README.md",
+        "packages/project-session/tests/project_v1.rs",
+        "docs/dispatch/reports/WATER-W1-AA-REPORT.md"
+      ],
+      "allowedPrefixes": [
+        "packages/project-session/src/",
+        "docs/acceptance/wave1/aa/"
+      ],
+      "deferredJointValidation": "Real AA fixed executable -> AB checkbox/start/cancel -> same actual native selection -> R/Z -> W/Q and structural evidence attachments after both submissions; replay is not new AA product.",
+      "packageName": "water-project-session",
+      "crateName": "water_project_session",
+      "testTarget": "project_v1",
+      "binaryName": "water-project-session",
+      "directDependencies": [
+        "water-contracts",
+        "water-scope-registry",
+        "water-native-picker",
+        "water-native-scan",
+        "water-report-view",
+        "water-summary-export",
+        "water-redacted-report",
+        "water-root-marker",
+        "water-scan-host",
+        "serde",
+        "serde_json"
+      ],
+      "dependencyPaths": {
+        "water-contracts": "crates/water-contracts",
+        "water-scope-registry": "packages/scope-registry",
+        "water-native-picker": "packages/native-picker",
+        "water-native-scan": "packages/native-scan",
+        "water-report-view": "packages/report-view",
+        "water-summary-export": "packages/summary-export",
+        "water-redacted-report": "packages/redacted-report",
+        "water-root-marker": "packages/root-marker",
+        "water-scan-host": "packages/scan-host"
+      },
+      "baselineEvidence": "docs/acceptance/wave1/controller/w1-project-preflight-20261019/aa/2026-10-19T13-48-05.440Z-9848-baseline-result.json",
+      "preflightEvidence": "docs/dispatch/wave1/PROJECT-CONSENT-READY-REPORT-20261019.md",
+      "readyOn": "2026-10-19"
+    },
+    {
+      "id": "WATER-W1-AB",
+      "title": "显式内容同意与结构证据工作台",
+      "status": "READY",
+      "slot": "ab",
+      "worktree": "F:/new/smaltalk/water/.worktrees/ab",
+      "branch": "worker/water-w1-ab",
+      "baseCommit": "f3b87b7a79ff8fa51882705ecef75f1f02d8af15",
+      "snapshotRef": "refs/tags/water-w1-project-consent-base-20261019",
+      "ticket": "docs/dispatch/tickets/WATER-W1-AB-PROJECT-WORKSPACE-20261019.md",
+      "report": "docs/dispatch/reports/WATER-W1-AB-REPORT.md",
+      "contractLock": "contracts/project-batch-v1/freeze.lock.json",
+      "helper": "scripts/project-wave-check.mjs",
+      "workerRules": "docs/dispatch/W1-PROJECT-WORKER-RULES.md",
+      "outputRoot": "prototypes/project-workspace",
+      "spec": "contracts/project-workspace-v1/SPEC.md",
+      "testFiles": [
+        "prototypes/project-workspace/tests/model.test.mjs",
+        "prototypes/project-workspace/tests/browser.test.mjs"
+      ],
+      "expectedTests": [
+        "project_workspace_protocol",
+        "project_workspace_authority",
+        "project_workspace_consent_and_exports"
+      ],
+      "expectedBrowserTests": [
+        "project_workspace_actions_and_evidence",
+        "project_workspace_layout_and_privacy"
+      ],
+      "expectedFinalModes": [
+        "check",
+        "test",
+        "browser"
+      ],
+      "proofTargets": {
+        "nc1": "AB_ACTION_AUTH",
+        "nc2": "AB_CONSENT_BINDING"
+      },
+      "nativeDialogBudget": 0,
+      "baselineStatus": "PASSED",
+      "newProductTestsRun": false,
+      "model": null,
+      "modelAssignment": "user-arranged; report actual engine/model",
+      "dispatchedAt": null,
+      "startedAt": null,
+      "physicalFixturePermission": false,
+      "ordinaryContentPermission": "No physical fixture access; frozen wire replay only",
+      "cargoCacheSource": "F:/new/smaltalk/water/.worktrees/a/.local/cargo-home/registry",
+      "allowLockfileGeneration": false,
+      "macOS": "unverified",
+      "dependsOn": [
+        "WATER-W1-Y",
+        "WATER-W1-W",
+        "WATER-W1-Z"
+      ],
+      "allowedFiles": [
+        "prototypes/project-workspace/.gitattributes",
+        "prototypes/project-workspace/index.html",
+        "prototypes/project-workspace/styles.css",
+        "prototypes/project-workspace/app.mjs",
+        "prototypes/project-workspace/model.mjs",
+        "prototypes/project-workspace/server.mjs",
+        "prototypes/project-workspace/transport.mjs",
+        "prototypes/project-workspace/launch.mjs",
+        "prototypes/project-workspace/tests/model.test.mjs",
+        "prototypes/project-workspace/tests/browser.test.mjs",
+        "prototypes/project-workspace/README.md",
+        "docs/dispatch/reports/WATER-W1-AB-REPORT.md"
+      ],
+      "allowedPrefixes": [
+        "docs/acceptance/wave1/ab/"
+      ],
+      "deferredJointValidation": "Real AA fixed executable -> AB checkbox/start/cancel -> same actual native selection -> R/Z -> W/Q and structural evidence attachments after both submissions; replay is not new AA product.",
+      "productionFiles": [
+        "prototypes/project-workspace/.gitattributes",
+        "prototypes/project-workspace/index.html",
+        "prototypes/project-workspace/styles.css",
+        "prototypes/project-workspace/app.mjs",
+        "prototypes/project-workspace/model.mjs",
+        "prototypes/project-workspace/server.mjs",
+        "prototypes/project-workspace/transport.mjs",
+        "prototypes/project-workspace/launch.mjs"
+      ],
+      "baselineEvidence": "docs/acceptance/wave1/controller/w1-project-preflight-20261019/ab/2026-10-19T13-48-05.447Z-16800-baseline-result.json",
+      "preflightEvidence": "docs/dispatch/wave1/PROJECT-CONSENT-READY-REPORT-20261019.md",
+      "readyOn": "2026-10-19"
     }
   ],
   "testHelper": "per-task helper; A defaults unchanged",
-  "note": "A–Z及七补单均VERIFIED（Windows受控范围）。X接收c159297/受测abbad6a，Y接收f1c5260/受测657f84d，Z接收6f1f775/受测f853a78，隔离集成a9f6472已快进主线。1553交付路径/1519原归档文件与426冻结保持；8原final和6生产负控链审计、隔离13测试及11独立边界通过。真实同一X→Y固定启动器/选择取消/完整/合作取消/W报告与实际下载通过，总控原生窗口恰3，进程正常结束、端口关闭。仅冻结工厂合成fixture，无真实用户数据/清理。当前无未结外贴票或新READY票；Z额外同意到页面的接线、真实用户scope、生产竞态、macOS、桌面与M1仍未验收。"
+  "note": "A–Z及七补单保持VERIFIED（Windows受控范围）。AA同次选择的可选项目清单宿主、AB显式内容同意与结构证据工作台，已共同冻结、独立建树并各自实际baseline通过，READY待分别外贴，无自动实现者。精确共同基线f3b87b7a79ff8fa51882705ecef75f1f02d8af15；228物理锁条目+5份旧资源Git对象/16继承锁/479唯一约束，旧426保持。派前原生窗口0；AA仅本树冻结marker合成payload524474字节，AB无物理fixture。默认不读，额外读取选择绑定当前任务；原元数据/Q与Z结构证据分开。新AA/AB产品尚未实现或测试；真实用户scope、生产竞态、macOS、桌面与M1未验收。"
 }
