@@ -1,6 +1,6 @@
 # 第一轮：契约底座
 
-**当前（2026-10-19）：A–U及六补单已VERIFIED（Windows受控范围）。本波R补单01、T脱敏预览下载、U内存Node清单已独立验收并集成；旧R受阻现场及所有原树/夹具/冻结保持。当前无未结外贴票或新READY票，无自动实现者。原生宿主到报告页的完整用户闭环尚未实现，真实用户scope、生产竞态、macOS和桌面未验收，M1仍未完成。** 详[RTU验收](../../acceptance/wave1/controller/WATER-W1-RTU-REVIEW-20261019.md)，以下为派前历史。
+**当前（2026-10-19）：A–W及七补单均VERIFIED（Windows受控范围）。W补单接收df9255b/受测020cd89，隔离集成e38b81c已快进主线；预算修复、独立五测/56项入口检查及真实V→W固定启动器/HTTP/Chrome/实际下载通过。本次原生系统窗口恰2（取消/确认各一次），复用原总控60字面/74逻辑字节夹具，无新fixture或普通payload内容读取，进程正常结束、端口关闭。341冻结及全部旧W归档保持。当前无未结外贴票或新READY票；真实用户scope、生产竞态、自然手势鉴真、macOS和桌面未验收，M1仍未完成。** 详[W补单与联合验收](../../acceptance/wave1/controller/WATER-W1-W-ADDENDUM-01-REVIEW-20261019.md)，以下为派前历史。
 
 总控：Codex。A契约底座继续，追加两张独立并行票B/C；实际状态以manifest为准。调度补充见ADR-003，A冻结不改。
 

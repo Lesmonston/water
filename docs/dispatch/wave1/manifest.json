@@ -1,7 +1,7 @@
 {
   "schemaVersion": 1,
   "wave": "water-wave1",
-  "status": "A_U_VERIFIED_V_INTEGRATED_W_CHANGES_REQUESTED",
+  "status": "A_W_VERIFIED_WINDOWS_CONTROLLED",
   "controllerRoot": "F:/new/smaltalk/water",
   "controllerBranch": "main",
   "controller": "Codex",
@@ -2014,7 +2014,7 @@
     {
       "id": "WATER-W1-V",
       "title": "真实原生会话API与单次CLI",
-      "status": "INTEGRATED",
+      "status": "VERIFIED",
       "slot": "v",
       "worktree": "F:/new/smaltalk/water/.worktrees/v",
       "branch": "worker/water-w1-v",
@@ -2082,7 +2082,7 @@
       "newProductTestsRun": true,
       "physicalFixturePermission": true,
       "macOS": "unverified",
-      "deferredJointValidation": "Actual V CLI -> W fixed launchNative -> HTTP/Chrome/download after both submissions; capture replay is not V product.",
+      "deferredJointValidation": "Completed: actual fixed V executable -> W.launchNative -> HTTP/private headless Chrome/actual Q attachment. Two native dialogs (cancel/select), original controller synthetic fixture only.",
       "packageName": "water-native-session",
       "crateName": "water_native_session",
       "binaryName": "water-native-session",
@@ -2101,12 +2101,15 @@
       "integrationBranch": "controller/water-w1-v-integration-20261019",
       "integrationWorktree": "F:/new/smaltalk/water/.worktrees/integration-v-20261019",
       "integratedAt": "2026-10-19T03:48:46.140Z",
-      "verificationScope": "Windows controlled standalone acceptance; exact-SHA worker native evidence audited plus independent private offline no-UI build/clippy/9 compile proofs/3 CLI errors. No controller native dialog replay. Final actual V->W fixed-launcher chain pending."
+      "verificationScope": "Windows controlled acceptance only; actual fixed-launcher joint chain passed. Real user scopes, hostile races, natural gesture authentication, macOS, desktop packaging and M1 remain unverified/incomplete.",
+      "verifiedAt": "2026-10-19T07:28:41.675Z",
+      "jointReview": "docs/acceptance/wave1/controller/WATER-W1-W-ADDENDUM-01-REVIEW-20261019.md",
+      "jointIntegrationCommit": "e38b81cf75d0fb65877bbb7d774e4da7b3a09678"
     },
     {
       "id": "WATER-W1-W",
       "title": "原生会话页面、原字节流与固定启动器",
-      "status": "CHANGES_REQUESTED",
+      "status": "VERIFIED",
       "slot": "w",
       "worktree": "F:/new/smaltalk/water/.worktrees/w",
       "branch": "worker/water-w1-w",
@@ -2182,7 +2185,7 @@
       "newProductTestsRun": true,
       "physicalFixturePermission": false,
       "macOS": "unverified",
-      "deferredJointValidation": "Actual V CLI -> W fixed launchNative -> HTTP/Chrome/download after both submissions; capture replay is not V product.",
+      "deferredJointValidation": "Completed: actual fixed V executable -> W.launchNative -> HTTP/private headless Chrome/actual Q attachment. Two native dialogs (cancel/select), original controller synthetic fixture only.",
       "productionFiles": [
         "prototypes/native-review/.gitattributes",
         "prototypes/native-review/index.html",
@@ -2197,19 +2200,19 @@
       "preflightEvidence": "docs/dispatch/wave1/NATIVE-HOST-READY-REPORT.md",
       "baselineEvidence": "docs/acceptance/wave1/controller/w1-native-host-preflight-20261019/w/2026-10-19T02-18-01.280Z-26808-baseline-result.json",
       "activityObservedAt": "2026-10-19T03:48:46.140Z",
-      "activityEvidence": "Formal submission b65902d/tested 63db62b received. Original evidence and independent five tests pass; W_DIR_BUDGET blocks acceptance. Addendum 01 READY, original W conversation only.",
-      "submittedCommit": "b65902d8f702bf34097adffd7fbaa7daddabe934",
-      "implementationCommit": "63db62b020efff4601a03da7dc561549dcb1f762",
-      "reviewedCommit": "63db62b020efff4601a03da7dc561549dcb1f762",
+      "activityEvidence": "Addendum receipt and original/new archives audited; standalone 5/5, 56 independent checks, integrated 5/5 and actual V-W joint chain passed.",
+      "submittedCommit": "df9255b73e1037eda7599098de900bb4705f5921",
+      "implementationCommit": "020cd89cd592471836cca8fa5d263176348b2165",
+      "reviewedCommit": "020cd89cd592471836cca8fa5d263176348b2165",
       "submissionObservedAt": "2026-10-19T04:22:12.364Z",
-      "controllerReview": "docs/acceptance/wave1/controller/WATER-W1-W-REVIEW-20261019.md",
+      "controllerReview": "docs/acceptance/wave1/controller/WATER-W1-W-ADDENDUM-01-REVIEW-20261019.md",
       "addenda": [
         "docs/dispatch/tickets/WATER-W1-W-ADDENDUM-01-20261019.md"
       ],
       "revisionReport": "docs/dispatch/reports/WATER-W1-W-ADDENDUM-01-REPORT.md",
-      "revisionDispatchStatus": "READY",
+      "revisionDispatchStatus": "VERIFIED",
       "addendum01": {
-        "status": "READY",
+        "status": "VERIFIED",
         "ticket": "docs/dispatch/tickets/WATER-W1-W-ADDENDUM-01-20261019.md",
         "report": "docs/dispatch/reports/WATER-W1-W-ADDENDUM-01-REPORT.md",
         "resumeCommit": "b65902d8f702bf34097adffd7fbaa7daddabe934",
@@ -2227,8 +2230,29 @@
         "preflightEvidence": "docs/dispatch/wave1/W-NATIVE-REVIEW-ADDENDUM-01-READY-REPORT.md",
         "readyOn": "2026-10-19",
         "dispatchedAt": null,
-        "startedAt": null
-      }
+        "startedAt": "2026-10-19T04:32:27.745Z",
+        "submittedCommit": "df9255b73e1037eda7599098de900bb4705f5921",
+        "implementationCommit": "020cd89cd592471836cca8fa5d263176348b2165",
+        "reviewedCommit": "020cd89cd592471836cca8fa5d263176348b2165",
+        "acceptedCommit": "df9255b73e1037eda7599098de900bb4705f5921",
+        "verifiedAt": "2026-10-19T07:28:41.675Z",
+        "controllerReview": "docs/acceptance/wave1/controller/WATER-W1-W-ADDENDUM-01-REVIEW-20261019.md",
+        "integrationCommit": "e38b81cf75d0fb65877bbb7d774e4da7b3a09678",
+        "startEvidence": "docs/acceptance/wave1/w/addendum-01/wrapper/2026-10-19T04-32-27.744Z-30280-resume-result.json"
+      },
+      "verifiedAt": "2026-10-19T07:28:41.675Z",
+      "jointReview": "docs/acceptance/wave1/controller/WATER-W1-W-ADDENDUM-01-REVIEW-20261019.md",
+      "jointIntegrationCommit": "e38b81cf75d0fb65877bbb7d774e4da7b3a09678",
+      "verificationScope": "Windows controlled acceptance only; actual fixed-launcher joint chain passed. Real user scopes, hostile races, natural gesture authentication, macOS, desktop packaging and M1 remain unverified/incomplete.",
+      "originalSubmittedCommit": "b65902d8f702bf34097adffd7fbaa7daddabe934",
+      "originalImplementationCommit": "63db62b020efff4601a03da7dc561549dcb1f762",
+      "originalControllerReview": "docs/acceptance/wave1/controller/WATER-W1-W-REVIEW-20261019.md",
+      "acceptedCommit": "df9255b73e1037eda7599098de900bb4705f5921",
+      "acceptedAt": "2026-10-19T07:28:41.675Z",
+      "integrationCommit": "e38b81cf75d0fb65877bbb7d774e4da7b3a09678",
+      "integrationBranch": "controller/water-w1-vw-integration-20261019",
+      "integrationWorktree": "F:/new/smaltalk/water/.worktrees/integration-vw-20261019",
+      "integratedAt": "2026-10-19T07:28:41.675Z"
     }
   ],
   "preflightStatus": "PASSED",
@@ -2247,6 +2271,23 @@
   "parallelWavePreflightEvidence": "docs/dispatch/wave1/PARALLEL-WAVE-READY-REPORT.md",
   "lastAcceptedBatch": {
     "tasks": [
+      "WATER-W1-V",
+      "WATER-W1-W",
+      "WATER-W1-W-ADDENDUM-01"
+    ],
+    "status": "VERIFIED",
+    "review": "docs/acceptance/wave1/controller/WATER-W1-W-ADDENDUM-01-REVIEW-20261019.md",
+    "integrationCommit": "e38b81cf75d0fb65877bbb7d774e4da7b3a09678",
+    "date": "2026-10-19",
+    "scope": "Windows controlled; M1 remains incomplete"
+  },
+  "nativeHostDecision": "docs/decisions/ADR-014-native-session-and-viewer.md",
+  "nativeHostPreflightStatus": "PASSED",
+  "nativeHostPreflightEvidence": "docs/dispatch/wave1/NATIVE-HOST-READY-REPORT.md",
+  "nativeReviewAddendumPreflightStatus": "PASSED_EXPECTED_REGRESSION",
+  "nativeReviewAddendumPreflightEvidence": "docs/dispatch/wave1/W-NATIVE-REVIEW-ADDENDUM-01-READY-REPORT.md",
+  "previousAcceptedBatch": {
+    "tasks": [
       "WATER-W1-R-ADDENDUM-01",
       "WATER-W1-T",
       "WATER-W1-U"
@@ -2256,9 +2297,6 @@
     "integrationCommit": "ae5d34a9eda43ec8908f8115fe1456b23f2fb90f",
     "date": "2026-10-19"
   },
-  "nativeHostDecision": "docs/decisions/ADR-014-native-session-and-viewer.md",
-  "nativeHostPreflightStatus": "PASSED",
-  "nativeHostPreflightEvidence": "docs/dispatch/wave1/NATIVE-HOST-READY-REPORT.md",
-  "nativeReviewAddendumPreflightStatus": "PASSED_EXPECTED_REGRESSION",
-  "nativeReviewAddendumPreflightEvidence": "docs/dispatch/wave1/W-NATIVE-REVIEW-ADDENDUM-01-READY-REPORT.md"
+  "nativeHostJointStatus": "PASSED",
+  "nativeHostJointReview": "docs/acceptance/wave1/controller/WATER-W1-W-ADDENDUM-01-REVIEW-20261019.md"
 }

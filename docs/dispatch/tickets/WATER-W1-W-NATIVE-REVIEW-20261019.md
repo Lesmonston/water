@@ -1,6 +1,6 @@
 # WATER-W1-W：原生会话页面、原字节流与固定启动器
 
-当前收单状态（2026-10-19）：原提交已接收但W_DIR_BUDGET验收失败，CHANGES_REQUESTED；按[编号补单01](WATER-W1-W-ADDENDUM-01-20261019.md)回原W对话续做，不重贴本原票。原票以下要求保留。
+当前收单状态（2026-10-19）：补单01接收df9255b/受测020cd89，真实V→W联合验收通过，VERIFIED（Windows受控范围），已集成主线e38b81c。详[总控最终验收](../../acceptance/wave1/controller/WATER-W1-W-ADDENDUM-01-REVIEW-20261019.md)。以下为原派前要求，原预算失败保留为历史；不重贴原票。
 
 总控2026-10-19，正式票。只有主manifest本票READY且baselineStatus=PASSED才开工。V/W可同波分别外贴，无自动实现者。
 

@@ -1,6 +1,8 @@
 # WATER-W1-W 补充单01：拒绝目录预算与报告矛盾
 
-2026-10-19。原W票CHANGES_REQUESTED，本补单仅在主manifest.addendum01.status=READY、baselineStatus=PASSED时执行。交给原W对话续做，不新开实现者，不重贴原票。
+当前状态（2026-10-19）：VERIFIED（Windows受控范围），接收df9255b/受测020cd89，集成e38b81c及真实V→W两窗联合验收通过。详[总控验收](../../acceptance/wave1/controller/WATER-W1-W-ADDENDUM-01-REVIEW-20261019.md)。无需重贴或继续实现；以下保留原补单派前要求。
+
+派前历史：2026-10-19。原W票CHANGES_REQUESTED，本补单仅在主manifest.addendum01.status=READY、baselineStatus=PASSED时执行。交给原W对话续做，不新开实现者，不重贴原票。
 
 | 项 | 精确值 |
 |---|---|

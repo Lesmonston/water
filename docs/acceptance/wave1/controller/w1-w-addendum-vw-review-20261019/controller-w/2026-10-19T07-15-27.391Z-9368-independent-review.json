@@ -1,0 +1,223 @@
+{
+  "startedAt": "2026-10-19T07:15:27.393Z",
+  "tree": "F:\\new\\smaltalk\\water\\.worktrees\\review-w-addendum-20261019",
+  "submitted": "df9255b73e1037eda7599098de900bb4705f5921",
+  "systemNativeDialogsLaunched": 0,
+  "physicalFixtureAccess": false,
+  "commands": [
+    {
+      "binary": "git",
+      "argv": [
+        "-c",
+        "core.hooksPath=NUL",
+        "-c",
+        "core.fsmonitor=false",
+        "rev-parse",
+        "HEAD"
+      ],
+      "exitCode": 0,
+      "error": null,
+      "log": "2026-10-19T07-15-27.391Z-9368-1.log"
+    },
+    {
+      "binary": "git",
+      "argv": [
+        "-c",
+        "core.hooksPath=NUL",
+        "-c",
+        "core.fsmonitor=false",
+        "status",
+        "--porcelain",
+        "--untracked-files=all"
+      ],
+      "exitCode": 0,
+      "error": null,
+      "log": "2026-10-19T07-15-27.391Z-9368-2.log"
+    },
+    {
+      "binary": "C:\\Program Files\\nodejs\\node.exe",
+      "argv": [
+        "F:\\new\\smaltalk\\water\\scripts\\acceptance\\native-review-budget-probe.mjs"
+      ],
+      "exitCode": 1,
+      "error": null,
+      "log": "2026-10-19T07-15-27.391Z-9368-3.log"
+    },
+    {
+      "binary": "C:\\Program Files\\nodejs\\node.exe",
+      "argv": [
+        "--check",
+        "prototypes/native-review/model.mjs"
+      ],
+      "exitCode": 0,
+      "error": null,
+      "log": "2026-10-19T07-15-27.391Z-9368-4.log"
+    },
+    {
+      "binary": "C:\\Program Files\\nodejs\\node.exe",
+      "argv": [
+        "--check",
+        "prototypes/native-review/app.mjs"
+      ],
+      "exitCode": 0,
+      "error": null,
+      "log": "2026-10-19T07-15-27.391Z-9368-5.log"
+    },
+    {
+      "binary": "C:\\Program Files\\nodejs\\node.exe",
+      "argv": [
+        "--check",
+        "prototypes/native-review/server.mjs"
+      ],
+      "exitCode": 0,
+      "error": null,
+      "log": "2026-10-19T07-15-27.391Z-9368-6.log"
+    },
+    {
+      "binary": "C:\\Program Files\\nodejs\\node.exe",
+      "argv": [
+        "--check",
+        "prototypes/native-review/host.mjs"
+      ],
+      "exitCode": 0,
+      "error": null,
+      "log": "2026-10-19T07-15-27.391Z-9368-7.log"
+    },
+    {
+      "binary": "C:\\Program Files\\nodejs\\node.exe",
+      "argv": [
+        "--check",
+        "prototypes/native-review/launch.mjs"
+      ],
+      "exitCode": 0,
+      "error": null,
+      "log": "2026-10-19T07-15-27.391Z-9368-8.log"
+    },
+    {
+      "binary": "C:\\Program Files\\nodejs\\node.exe",
+      "argv": [
+        "--check",
+        "prototypes/native-review/tests/model.test.mjs"
+      ],
+      "exitCode": 0,
+      "error": null,
+      "log": "2026-10-19T07-15-27.391Z-9368-9.log"
+    },
+    {
+      "binary": "C:\\Program Files\\nodejs\\node.exe",
+      "argv": [
+        "--check",
+        "prototypes/native-review/tests/browser.test.mjs"
+      ],
+      "exitCode": 0,
+      "error": null,
+      "log": "2026-10-19T07-15-27.391Z-9368-10.log"
+    },
+    {
+      "binary": "C:\\Program Files\\nodejs\\node.exe",
+      "argv": [
+        "--test",
+        "--test-concurrency=1",
+        "--test-reporter=tap",
+        "prototypes/native-review/tests/model.test.mjs",
+        "prototypes/native-review/tests/browser.test.mjs"
+      ],
+      "exitCode": 0,
+      "error": null,
+      "log": "2026-10-19T07-15-27.391Z-9368-11.log"
+    }
+  ],
+  "independentBudgetRed": {
+    "observations": 12,
+    "acceptedContradictions": 12,
+    "badModelSha256": "2e6922e8012aa6807c320c4e7b379cfe292f3dbb2494052d44b4a7e6e76ba49c"
+  },
+  "originalFiveTests": "passed",
+  "budgetProbe": {
+    "target": "W_DIR_BUDGET",
+    "positiveNativeCases": 8,
+    "legacySnapshots": 24,
+    "positiveMutations": 2,
+    "observations": [
+      {
+        "caseIndex": 1,
+        "max_dir_entries": 1,
+        "entry": "model",
+        "accepted": false
+      },
+      {
+        "caseIndex": 1,
+        "max_dir_entries": 1,
+        "entry": "stream",
+        "accepted": false
+      },
+      {
+        "caseIndex": 1,
+        "max_dir_entries": 1,
+        "entry": "server",
+        "accepted": false
+      },
+      {
+        "caseIndex": 1,
+        "max_dir_entries": 1,
+        "entry": "startFromStream",
+        "accepted": false
+      },
+      {
+        "caseIndex": 1,
+        "max_dir_entries": 6,
+        "entry": "model",
+        "accepted": false
+      },
+      {
+        "caseIndex": 1,
+        "max_dir_entries": 6,
+        "entry": "stream",
+        "accepted": false
+      },
+      {
+        "caseIndex": 1,
+        "max_dir_entries": 6,
+        "entry": "server",
+        "accepted": false
+      },
+      {
+        "caseIndex": 1,
+        "max_dir_entries": 6,
+        "entry": "startFromStream",
+        "accepted": false
+      },
+      {
+        "caseIndex": 2,
+        "max_dir_entries": 1,
+        "entry": "model",
+        "accepted": false
+      },
+      {
+        "caseIndex": 2,
+        "max_dir_entries": 1,
+        "entry": "stream",
+        "accepted": false
+      },
+      {
+        "caseIndex": 2,
+        "max_dir_entries": 1,
+        "entry": "server",
+        "accepted": false
+      },
+      {
+        "caseIndex": 2,
+        "max_dir_entries": 1,
+        "entry": "startFromStream",
+        "accepted": false
+      }
+    ],
+    "failures": [],
+    "systemNativeDialogs": 0,
+    "physicalFixtureAccess": false
+  },
+  "independentExamples": [],
+  "status": "failed",
+  "error": "Error: Unsupported native review.\n    at fail (file:///F:/new/smaltalk/water/.worktrees/review-w-addendum-20261019/prototypes/native-review/model.mjs:5:28)\n    at assertReviewInput (file:///F:/new/smaltalk/water/.worktrees/review-w-addendum-20261019/prototypes/native-review/model.mjs:138:13)\n    at action (file:///F:/new/smaltalk/water/scripts/acceptance/review-native-w-addendum.mjs:91:36)\n    at file:///F:/new/smaltalk/water/scripts/acceptance/review-native-w-addendum.mjs:98:31\n    at process.processTicksAndRejections (node:internal/process/task_queues:104:5)",
+  "endedAt": "2026-10-19T07:16:00.507Z"
+}

@@ -21,9 +21,13 @@
 
 ## 下一步
 
-A–U及六补单保持VERIFIED（Windows受控范围）。V接收ec1ee25/受测3087564/集成8599dab，保持INTEGRATED。W已正式收单，接收b65902d/受测63db62b；原证据及总控独立五测通过，但每目录预算与报告矛盾仍被接受，原票CHANGES_REQUESTED。W补充单01已冻结并在原干净提交实际resume通过，READY待原W对话续做，不重贴原票或新开实现者。本轮总控原生系统窗口0、无物理fixture访问。真实V→W联合验收未完成，V/W不记VERIFIED；真实用户scope、生产竞态、macOS和桌面未验收，M1仍未完成。 [V/W正式派前回执](dispatch/wave1/NATIVE-HOST-READY-REPORT.md)。
+A–W及七补单均VERIFIED（Windows受控范围）。W补单接收df9255b/受测020cd89，隔离集成e38b81c已快进主线；预算修复、独立五测/56项入口检查及真实V→W固定启动器/HTTP/Chrome/实际下载通过。本次原生系统窗口恰2（取消/确认各一次），复用原总控60字面/74逻辑字节夹具，无新fixture或普通payload内容读取，进程正常结束、端口关闭。341冻结及全部旧W归档保持。当前无未结外贴票或新READY票；真实用户scope、生产竞态、自然手势鉴真、macOS和桌面未验收，M1仍未完成。 [V/W正式派前回执](dispatch/wave1/NATIVE-HOST-READY-REPORT.md)。
 
-## W正式收单返修，补单01 READY（2026-10-19，最新）
+## W补单01与真实V→W联合验收完成（2026-10-19，最新）
+
+[总控验收](acceptance/wave1/controller/WATER-W1-W-ADDENDUM-01-REVIEW-20261019.md)：接收df9255b/实现020cd89，集成e38b81c已纳主线；旧1642及新1148份worker归档保持，三final/五条稳定负控链审计、独立完整五测与56项公开入口检查通过。集成新私有离线V构建、完整五测及真实V→W两窗/HTTP/浏览器/实际Q下载通过；两原生PID退出、端口关闭，无强制终止。受控Windows验收通过，M1及真实用户scope/macOS/桌面仍未完成，下一波须先明确范围与权限。
+
+## W正式收单返修，补单01 READY（2026-10-19，历史）
 
 [W总控验收](acceptance/wave1/controller/WATER-W1-W-REVIEW-20261019.md)：1656交付路径/1642归档/25872812字节、原三final与四稳定红绿通过；隔离树一次新完整五测5/5和三图通过。但原完整报告根有7直接子项，将每目录上限降到1仍在模型/stream/HTTP接受且completed，独立回归失败，W不集成。
 
