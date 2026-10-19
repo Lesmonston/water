@@ -1,0 +1,7 @@
+import { createWorkspaceServer } from './server.mjs';
+export async function startFromStreams({ input, port = 0 } = {}) {
+  const drain = () => {};
+  input.on('data', drain);
+  const server = await createWorkspaceServer({ port });
+  return { url: server.url, async close() { input.off('data', drain); await server.close(); } };
+}

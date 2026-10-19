@@ -1,0 +1,11 @@
+import { createServer } from 'node:http';
+import { workspaceVersion } from './model.mjs';
+export async function createWorkspaceServer({ port = 0 } = {}) {
+  const server = createServer((req, res) => {
+    res.setHeader('Connection', 'close');
+    res.setHeader('Content-Type', 'application/json');
+    res.end(JSON.stringify({ workspace_version: workspaceVersion, connection: 'ready', active: null, recent: [] }));
+  });
+  await new Promise(ok => server.listen(port, '127.0.0.1', ok));
+  return { url: `http://127.0.0.1:${server.address().port}`, close: () => new Promise(ok => { server.close(ok); server.closeAllConnections(); }) };
+}

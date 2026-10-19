@@ -1,0 +1,17 @@
+{
+  "path": "prototypes/live-workspace/model.mjs",
+  "mutation": "Accept an obsolete terminal on the real receive path and attribute its report to the currently active job; actual W server creation and active completion now use stale bundle data.",
+  "changes": [
+    [
+      "if (!a || !a.accepted || a.settling || event.job_id !== a.job_id) fail();",
+      "if (!a || !a.accepted || a.settling) fail();"
+    ],
+    [
+      "return { job_id: event.job_id, selection: bundle.selection, status, bundle };",
+      "return { job_id: a.job_id, selection: bundle.selection, status, bundle };"
+    ]
+  ],
+  "goodSha256": "9df8e8bc49029203d1ee4d1c3968a76a58656dfc10bf1afc03e511474967e63c",
+  "badSha256": "7c88a8677e25200a9010716bab5081402c51a08302543bb7efc5e19ee056d11b",
+  "changedAt": "2026-10-19T11:36:50.995Z"
+}
