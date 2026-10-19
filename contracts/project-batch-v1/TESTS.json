@@ -1,0 +1,61 @@
+{
+  "batch_version": "water.project-batch.v1",
+  "tasks": {
+    "WATER-W1-AA": {
+      "tests": [
+        "project_request_boundary",
+        "project_consent_state",
+        "project_capture_and_marker",
+        "project_wire_and_cleanup"
+      ],
+      "testFiles": [
+        "packages/project-session/tests/project_v1.rs"
+      ],
+      "proof_targets": {
+        "nc1": "AA_NO_CONTENT_CONSENT",
+        "nc2": "AA_CANCEL_NO_READ"
+      },
+      "final_modes": [
+        "check",
+        "test",
+        "native"
+      ],
+      "native_dialog_budget": 8
+    },
+    "WATER-W1-AB": {
+      "tests": [
+        "project_workspace_protocol",
+        "project_workspace_authority",
+        "project_workspace_consent_and_exports"
+      ],
+      "browser_tests": [
+        "project_workspace_actions_and_evidence",
+        "project_workspace_layout_and_privacy"
+      ],
+      "testFiles": [
+        "prototypes/project-workspace/tests/model.test.mjs",
+        "prototypes/project-workspace/tests/browser.test.mjs"
+      ],
+      "proof_targets": {
+        "nc1": "AB_ACTION_AUTH",
+        "nc2": "AB_CONSENT_BINDING"
+      },
+      "final_modes": [
+        "check",
+        "test",
+        "browser"
+      ],
+      "native_dialog_budget": 0
+    }
+  },
+  "node_major": 24,
+  "rust_version": "1.95.0",
+  "cargo_jobs": 1,
+  "per_command_timeout_ms": 180000,
+  "baseline_native_dialogs": 0,
+  "negative_modes": [
+    "red-nc1",
+    "red-nc2"
+  ],
+  "negative_scope": "Only assigned unit/HTTP test file; zero native/browser windows. Restore exact bytes and affected tests immediately; final full assigned modes once."
+}
