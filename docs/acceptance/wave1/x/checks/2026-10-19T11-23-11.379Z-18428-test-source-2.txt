@@ -1,0 +1,94 @@
+use crate::HostError;
+use serde::Deserialize;
+use std::io::BufRead;
+use water_contracts::v1::OpaqueId;
+
+pub const MAX_REQUEST_BYTES: usize = 4096;
+
+#[derive(Debug, Clone, PartialEq, Eq)]
+pub enum HostRequest {
+    Start { job_id: OpaqueId },
+    Cancel { job_id: OpaqueId },
+    Shutdown,
+}
+
+// A struct variant is necessary here: serde's unit variants can discard fields.
+#[derive(Deserialize)]
+#[serde(tag = "command", deny_unknown_fields)]
+enum RequestPayload {
+    #[serde(rename = "start")]
+    Start { job_id: OpaqueId },
+    #[serde(rename = "cancel")]
+    Cancel { job_id: OpaqueId },
+    #[serde(rename = "shutdown")]
+    Shutdown {},
+}
+
+/// The production decoder also rejects whitespace outside JSON strings.
+pub fn decode_request(raw: &[u8]) -> Result<HostRequest, HostError> {
+    if raw.is_empty()
+        || raw.len() > MAX_REQUEST_BYTES
+        || raw.first() != Some(&b'{')
+        || raw.last() != Some(&b'}')
+    {
+        return Err(HostError::InvalidRequest);
+    }
+    let mut quoted = false;
+    let mut escaped = false;
+    for &byte in raw {
+        if quoted {
+            if escaped {
+                escaped = false;
+            } else if byte == b'\\' {
+                escaped = true;
+            } else if byte == b'"' {
+                quoted = false;
+            }
+        } else if byte == b'"' {
+            quoted = true;
+        } else if byte.is_ascii_whitespace() {
+            return Err(HostError::InvalidRequest);
+        }
+    }
+    let request = serde_json::from_slice(raw).map_err(|_| HostError::InvalidRequest)?;
+    Ok(match request {
+        RequestPayload::Start { job_id } => HostRequest::Start { job_id },
+        RequestPayload::Cancel { job_id } => HostRequest::Cancel { job_id },
+        RequestPayload::Shutdown {} => HostRequest::Shutdown,
+    })
+}
+
+#[derive(Debug, Clone, Copy, PartialEq, Eq)]
+pub enum FrameError {
+    InvalidRequest,
+    Truncated,
+    TooLong,
+    Unavailable,
+}
+
+/// Read at most one bounded body plus LF. Only InvalidRequest is recoverable.
+pub fn read_request<R: BufRead>(reader: &mut R) -> Result<Option<HostRequest>, FrameError> {
+    let mut body = Vec::new();
+    loop {
+        let available = reader.fill_buf().map_err(|_| FrameError::Unavailable)?;
+        if available.is_empty() {
+            return if body.is_empty() {
+                Ok(None)
+            } else {
+                Err(FrameError::Truncated)
+            };
+        }
+        let newline = available.iter().position(|&byte| byte == b'\n');
+        let count = newline.unwrap_or(available.len());
+        if body.len() + count > MAX_REQUEST_BYTES {
+            return Err(FrameError::TooLong);
+        }
+        body.extend_from_slice(&available[..count]);
+        reader.consume(count + usize::from(newline.is_some()));
+        if newline.is_some() {
+            return decode_request(&body)
+                .map(Some)
+                .map_err(|_| FrameError::InvalidRequest);
+        }
+    }
+}

@@ -1,0 +1,455 @@
+use serde_json::{Value, json};
+use std::{
+    io::{BufReader, Cursor, Write},
+    process::{Command, Output, Stdio},
+};
+use water_contracts::v1::OpaqueId;
+use water_native_scan::v1::{CancelToken, ScanOptions, scan_registered};
+use water_scan_host::{
+    FrameError, HostError, HostEvent, HostRequest, HostState, MAX_EVENT_BYTES, MAX_REQUEST_BYTES,
+    decode_request, read_request,
+};
+
+fn id(value: &str) -> OpaqueId {
+    OpaqueId::new(value).unwrap()
+}
+fn wire(event: HostEvent) -> Value {
+    let bytes = event.to_line().unwrap();
+    assert_eq!(bytes.last(), Some(&b'\n'));
+    assert!(!bytes[..bytes.len() - 1].contains(&b'\n'));
+    assert!(bytes.len() <= MAX_EVENT_BYTES);
+    serde_json::from_slice(&bytes).unwrap()
+}
+
+// This invokes the assigned real binary but never sends a start request.
+fn idle_process(arguments: &[&str], input: &[u8]) -> Output {
+    let mut process = Command::new(env!("CARGO_BIN_EXE_water-scan-host"))
+        .args(arguments)
+        .stdin(Stdio::piped())
+        .stdout(Stdio::piped())
+        .stderr(Stdio::piped())
+        .spawn()
+        .unwrap();
+    process.stdin.take().unwrap().write_all(input).unwrap();
+    process.wait_with_output().unwrap()
+}
+
+fn events(output: &Output) -> Vec<Value> {
+    assert_eq!(output.stdout.last(), Some(&b'\n'));
+    let lines = output.stdout.split(|&byte| byte == b'\n');
+    lines
+        .filter(|line| !line.is_empty())
+        .map(|line| {
+            assert!(!line.contains(&b'\r'));
+            let value: Value = serde_json::from_slice(line).unwrap();
+            assert_eq!(value["version"], "water.interactive-host.v1");
+            value
+        })
+        .collect()
+}
+
+#[test]
+fn host_request_boundary() {
+    assert_eq!(
+        decode_request(br#"{"command":"start","job_id":"job-1"}"#),
+        Ok(HostRequest::Start {
+            job_id: id("job-1")
+        })
+    );
+    assert_eq!(
+        decode_request(br#"{"job_id":"job-1","command":"cancel"}"#),
+        Ok(HostRequest::Cancel {
+            job_id: id("job-1")
+        })
+    );
+    assert_eq!(
+        decode_request(br#"{"command":"shutdown"}"#),
+        Ok(HostRequest::Shutdown)
+    );
+    let max_id = "a".repeat(64);
+    let request = format!(r#"{{"command":"start","job_id":"{max_id}"}}"#);
+    assert!(decode_request(request.as_bytes()).is_ok());
+    let invalid: &[&[u8]] = &[
+        b"",
+        b"\n",
+        b"{}",
+        b"[]",
+        b"null",
+        b"\xef\xbb\xbf{\"command\":\"shutdown\"}",
+        br#"{"command":"start","job_id":"a","job_id":"b"}"#,
+        br#"{"command":"start","job_id":"a","job_\u0069d":"b"}"#,
+        br#"{"command":"start","comm\u0061nd":"shutdown","job_id":"a"}"#,
+        br#"{"command":"shutdown","command":"shutdown"}"#,
+        br#"{"command":"start"}"#,
+        br#"{"command":"cancel"}"#,
+        br#"{"command":"start","job_id":null}"#,
+        br#"{"command":"cancel","job_id":1}"#,
+        br#"{"command":"start","job_id":""}"#,
+        br#"{"command":"start","job_id":"a/b"}"#,
+        br#"{"command":"start","job_id":"C:\\secret"}"#,
+        br#"{"command":"start","job_id":"_a"}"#,
+        br#"{"command":"start","job_id":"a\n"}"#,
+        br#"{"command":"start","job_id":"\u79d8"}"#,
+        br#"{"command":"shutdown","job_id":"a"}"#,
+        br#"{"command":"shutdown","extra":1}"#,
+        br#"{"command":"start","job_id":"a","path":"C:/private"}"#,
+        br#"{"command":"start","job_id":"a","shell":"anything"}"#,
+        br#"{"command":"START","job_id":"a"}"#,
+        br#"{"command":"other"}"#,
+        br#" {"command":"shutdown"}"#,
+        br#"{"command": "shutdown"}"#,
+        b"{\"command\":\"shutdown\"}\r",
+        b"{\"command\":\"shutdown\"}\n",
+        br#"{"command":"shutdown"}{"command":"shutdown"}"#,
+        b"{\"command\":\"start\",\"job_id\":\"\xff\"}",
+    ];
+    for bytes in invalid {
+        assert_eq!(
+            decode_request(bytes),
+            Err(HostError::InvalidRequest),
+            "invalid request accepted"
+        );
+    }
+    let long = format!(r#"{{"command":"start","job_id":"{}"}}"#, "a".repeat(65));
+    assert_eq!(
+        decode_request(long.as_bytes()),
+        Err(HostError::InvalidRequest)
+    );
+    assert_eq!(
+        decode_request(&vec![b'a'; MAX_REQUEST_BYTES + 1]),
+        Err(HostError::InvalidRequest)
+    );
+
+    let stream = b"{\"command\":\"start\",\"job_id\":\"a\"}\n\n{\"command\":\"shutdown\"}\r\n{\"command\":\"shutdown\"}\n";
+    let mut reader = BufReader::with_capacity(1, Cursor::new(stream));
+    assert_eq!(
+        read_request(&mut reader),
+        Ok(Some(HostRequest::Start { job_id: id("a") }))
+    );
+    assert_eq!(read_request(&mut reader), Err(FrameError::InvalidRequest));
+    assert_eq!(read_request(&mut reader), Err(FrameError::InvalidRequest));
+    assert_eq!(read_request(&mut reader), Ok(Some(HostRequest::Shutdown)));
+    assert_eq!(read_request(&mut reader), Ok(None));
+    assert_eq!(
+        read_request(&mut Cursor::new(b"{\"command\":\"shutdown\"}")),
+        Err(FrameError::Truncated)
+    );
+    let mut at_limit = vec![b'a'; MAX_REQUEST_BYTES];
+    at_limit.push(b'\n');
+    assert_eq!(
+        read_request(&mut Cursor::new(at_limit)),
+        Err(FrameError::InvalidRequest)
+    );
+    let mut over_limit = vec![b'a'; MAX_REQUEST_BYTES + 1];
+    over_limit.push(b'\n');
+    assert_eq!(
+        read_request(&mut BufReader::with_capacity(13, Cursor::new(over_limit))),
+        Err(FrameError::TooLong)
+    );
+
+    for arguments in [vec![], vec![""], vec!["F:/unused", "extra"]] {
+        let output = idle_process(&arguments, b"");
+        assert_eq!(output.status.code(), Some(64));
+        assert!(output.stdout.is_empty());
+        assert_eq!(output.stderr, b"Invalid host arguments.\n");
+    }
+    for initial in [
+        "relative",
+        "F:/../outside",
+        "F:/directory/",
+        "F:/directory:stream",
+    ] {
+        let output = idle_process(&[initial], b"");
+        assert_eq!(output.status.code(), Some(64));
+        assert!(output.stdout.is_empty());
+        assert_eq!(output.stderr, b"Invalid host arguments.\n");
+    }
+    for invalid in [b"{\"command\":\"shutdown\"}".as_slice(), &[b'a'; 4097]] {
+        let output = idle_process(&["F:/unused"], invalid);
+        assert_eq!(output.status.code(), Some(2));
+        assert_eq!(output.stderr, b"Host unavailable.\n");
+        let events = events(&output);
+        assert_eq!(
+            events
+                .iter()
+                .map(|event| event["kind"].as_str().unwrap())
+                .collect::<Vec<_>>(),
+            ["ready", "failure", "stopped"]
+        );
+        assert_eq!(events[1]["code"], "InvalidRequest");
+        assert_eq!(events[1]["job_id"], Value::Null);
+    }
+}
+
+#[test]
+fn host_job_state() {
+    let mut state = HostState::new();
+    let job = state.start(id("first"));
+    assert!(
+        job.is_ok(),
+        "X_BEHAVIOR: a valid idle start must admit a real native job"
+    );
+    let job = job.unwrap();
+    assert_eq!(job.job_id(), &id("first"));
+    assert_eq!(
+        wire(job.accepted()),
+        json!({"version":"water.interactive-host.v1","kind":"accepted","job_id":"first"})
+    );
+    assert_eq!(state.start(id("second")).unwrap_err(), HostError::Busy);
+    assert_eq!(state.start(id("first")).unwrap_err(), HostError::Busy);
+    assert_eq!(state.finish(&id("second")), Err(HostError::UnknownJob));
+    assert_eq!(state.finish(&id("first")), Ok(()));
+    assert_eq!(state.finish(&id("first")), Err(HostError::UnknownJob));
+    assert_eq!(
+        state.start(id("first")).unwrap_err(),
+        HostError::ReusedJobId
+    );
+    assert_eq!(state.cancel(&id("first")), Err(HostError::UnknownJob));
+    let second = state.start(id("second")).unwrap();
+    assert!(!second.cancel_token().is_cancelled());
+    state.finish(&id("second")).unwrap();
+    for number in 2..32 {
+        let job_id = id(&format!("job-{number}"));
+        let next = state.start(job_id.clone()).unwrap();
+        assert!(!next.cancel_token().is_cancelled());
+        state.finish(&job_id).unwrap();
+    }
+    assert_eq!(
+        state.start(id("thirty-third")).unwrap_err(),
+        HostError::JobLimit
+    );
+    assert_eq!(
+        state.start(id("first")).unwrap_err(),
+        HostError::ReusedJobId
+    );
+    assert!(!state.is_stopped());
+    assert!(state.shutdown());
+    assert!(state.is_stopped());
+    assert_eq!(state.start(id("after-stop")).unwrap_err(), HostError::Busy);
+}
+
+#[test]
+fn host_progress_cancellation() {
+    let mut state = HostState::new();
+    let job = state.start(id("active")).unwrap();
+    let shared = job.cancel_token().clone();
+    assert_eq!(
+        state.cancel(&id("stranger")),
+        Err(HostError::UnknownJob),
+        "X_JOB_BINDING: another job cannot cancel the active token"
+    );
+    assert!(
+        !shared.is_cancelled(),
+        "X_JOB_BINDING: wrong ID must leave the native token unchanged"
+    );
+    assert!(state.progress(&id("stranger"), 1, 1).is_none());
+    assert_eq!(
+        wire(state.progress(&id("active"), 0, 0).unwrap())["visited_entries"],
+        0
+    );
+    assert_eq!(
+        wire(state.progress(&id("active"), 3, 2).unwrap())["recorded_entries"],
+        2
+    );
+    for (visited, recorded) in [(2, 2), (3, 1), (4, 5), (10001, 3), (u32::MAX, 0)] {
+        assert!(state.progress(&id("active"), visited, recorded).is_none());
+    }
+    assert!(state.progress(&id("active"), 10000, 10000).is_some());
+    let ack = wire(state.cancel(&id("active")).unwrap());
+    assert_eq!(
+        ack,
+        json!({"version":"water.interactive-host.v1","kind":"cancel_ack","job_id":"active","applied":true})
+    );
+    assert!(shared.is_cancelled());
+    assert!(job.cancel_token().is_cancelled());
+    // Exercise the same production state token against real R, without S/UI.
+    // Only the authorized metadata index is read; no payload content is opened.
+    let tree = std::path::Path::new(env!("CARGO_MANIFEST_DIR"))
+        .parent()
+        .unwrap()
+        .parent()
+        .unwrap();
+    let expected_index = tree.join(".local/native-walk-fixtures/index.json");
+    assert_eq!(
+        std::path::PathBuf::from(std::env::var_os("WATER_NATIVE_WALK_INDEX").unwrap()),
+        expected_index
+    );
+    let index: Value = serde_json::from_slice(&std::fs::read(&expected_index).unwrap()).unwrap();
+    let root = index["root"].as_str().unwrap();
+    assert_eq!(
+        std::path::Path::new(root),
+        tree.join(".local/native-walk-fixtures/batch-v1/root")
+    );
+    let mut registry = water_scope_registry::v1::Registry::new(1).unwrap();
+    let pending = registry.prepare(&id("interactive-scope"), root).unwrap();
+    let scope = registry.confirm(&pending).unwrap();
+    let scan = scan_registered(
+        &mut registry,
+        &scope,
+        root,
+        job.job_id(),
+        &ScanOptions::new(8, 10000, 256).unwrap(),
+        job.cancel_token(),
+    )
+    .unwrap();
+    water_contracts::v1::validate_report(scan.report()).unwrap();
+    let report = serde_json::to_value(scan.report()).unwrap();
+    assert_eq!(report["status"], "cancelled");
+    assert!(report["findings"].as_array().unwrap().is_empty());
+    registry.revoke(&scope).unwrap();
+    assert!(registry.is_empty());
+    assert!(!state.is_stopped());
+    state.cancel(&id("active")).unwrap();
+    state.finish(&id("active")).unwrap();
+    assert!(state.progress(&id("active"), 10000, 10000).is_none());
+    assert_eq!(state.cancel(&id("active")), Err(HostError::UnknownJob));
+    let next = state.start(id("next")).unwrap();
+    assert!(!next.cancel_token().is_cancelled());
+    assert_eq!(
+        state.cancel(&id("active")),
+        Err(HostError::UnknownJob),
+        "X_JOB_BINDING: a stale job cannot cancel the new job"
+    );
+    assert!(!next.cancel_token().is_cancelled());
+    assert!(state.progress(&id("next"), 1, 1).is_some());
+    assert!(!state.shutdown());
+    assert!(next.cancel_token().is_cancelled());
+    assert!(!state.is_stopped());
+    assert_eq!(state.start(id("queued")).unwrap_err(), HostError::Busy);
+    state.finish(&id("next")).unwrap();
+    assert!(state.is_stopped());
+    let token = CancelToken::new();
+    let cloned = token.clone();
+    token.cancel();
+    assert!(cloned.is_cancelled());
+    let options = ScanOptions::new(8, 10000, 256).unwrap();
+    assert_eq!(
+        (
+            options.max_depth(),
+            options.max_entries(),
+            options.max_dir_entries()
+        ),
+        (8, 10000, 256)
+    );
+}
+
+#[test]
+fn host_wire_privacy() {
+    assert_eq!(
+        wire(HostEvent::ready()),
+        json!({"version":"water.interactive-host.v1","kind":"ready"})
+    );
+    assert_eq!(
+        wire(HostEvent::stopped()),
+        json!({"version":"water.interactive-host.v1","kind":"stopped"})
+    );
+    for error in [
+        HostError::InvalidRequest,
+        HostError::Busy,
+        HostError::ReusedJobId,
+        HostError::UnknownJob,
+        HostError::JobLimit,
+        HostError::NativeFailure,
+    ] {
+        let event = wire(HostEvent::failure(None, error));
+        assert_eq!(event.as_object().unwrap().len(), 4);
+        assert_eq!(event["kind"], "failure");
+        assert_eq!(event["job_id"], Value::Null);
+        assert_eq!(event["code"], format!("{error:?}"));
+        assert_eq!(error.to_string(), "Host unavailable.");
+    }
+    let event = wire(HostEvent::failure(
+        Some(id("opaque")),
+        HostError::UnknownJob,
+    ));
+    assert_eq!(event["job_id"], "opaque");
+    let mut state = HostState::new();
+    state.start(id("opaque")).unwrap();
+    let event = state.progress(&id("opaque"), 7, 6).unwrap();
+    assert_eq!(
+        wire(event.clone()),
+        json!({"version":"water.interactive-host.v1","kind":"progress","job_id":"opaque","visited_entries":7,"recorded_entries":6})
+    );
+    let encoded = String::from_utf8(event.to_line().unwrap()).unwrap();
+    for forbidden in [
+        "relative_path",
+        "root",
+        "native_identity",
+        "file_id",
+        "volume",
+        "shell",
+        "C:",
+        "\\",
+        "message",
+    ] {
+        assert!(!encoded.contains(forbidden));
+    }
+    // Actual retained V captures document the distinction and Q strings; new
+    // captures and their host result events are verified by the real native gate.
+    let cases: Value = serde_json::from_str(include_str!(
+        "../../../contracts/interactive-host-v1/CASES.json"
+    ))
+    .unwrap();
+    let cases = cases["cases"].as_array().unwrap();
+    assert_eq!(cases.len(), 3);
+    assert_eq!(cases[1]["bundle"]["selection"], "cancelled");
+    assert!(
+        cases[1]["bundle"]["snapshots"]
+            .as_array()
+            .unwrap()
+            .is_empty()
+    );
+    assert_eq!(cases[2]["bundle"]["selection"], "confirmed");
+    assert_eq!(
+        cases[2]["bundle"]["snapshots"][0]["view"]["status"],
+        "cancelled"
+    );
+    for case in [0, 2] {
+        let snapshot = &cases[case]["bundle"]["snapshots"][0];
+        let original_q = snapshot["redacted_json"].as_str().unwrap();
+        let round_trip: Value =
+            serde_json::from_slice(&serde_json::to_vec(&cases[case]["bundle"]).unwrap()).unwrap();
+        assert_eq!(
+            round_trip["snapshots"][0]["redacted_json"]
+                .as_str()
+                .unwrap()
+                .as_bytes(),
+            original_q.as_bytes()
+        );
+        assert_eq!(snapshot["source_kind"], "native_scope_metadata");
+        assert_eq!(
+            cases[case]["bundle"]["policy"]["ordinary_content_read"],
+            false
+        );
+    }
+
+    let output = idle_process(&["F:/unused"], b"");
+    assert_eq!(output.status.code(), Some(0));
+    assert!(output.stderr.is_empty());
+    assert_eq!(
+        events(&output),
+        [wire(HostEvent::ready()), wire(HostEvent::stopped())]
+    );
+    let output = idle_process(&["F:/unused"], b"\xef\xbb\xbf{}\n\xff\n{\"command\":\"cancel\",\"job_id\":\"unknown\"}\n{\"command\":\"shutdown\"}\n");
+    assert_eq!(output.status.code(), Some(0));
+    assert!(output.stderr.is_empty());
+    let events = events(&output);
+    assert_eq!(events.len(), 5);
+    assert_eq!(events[0], wire(HostEvent::ready()));
+    assert_eq!(
+        events[1],
+        wire(HostEvent::failure(None, HostError::InvalidRequest))
+    );
+    assert_eq!(
+        events[2],
+        wire(HostEvent::failure(None, HostError::InvalidRequest))
+    );
+    assert_eq!(
+        events[3],
+        wire(HostEvent::failure(
+            Some(id("unknown")),
+            HostError::UnknownJob
+        ))
+    );
+    assert_eq!(events[4], wire(HostEvent::stopped()));
+}

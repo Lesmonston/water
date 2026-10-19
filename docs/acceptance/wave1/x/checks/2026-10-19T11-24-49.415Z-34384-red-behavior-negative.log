@@ -1,0 +1,44 @@
+{"binary":"C:\\Users\\37310\\.rustup\\toolchains\\1.95.0-x86_64-pc-windows-msvc\\bin\\cargo.exe","argv":["test","--offline","--locked","--manifest-path","packages/scan-host/Cargo.toml","--test","host_v1","--","--test-threads=1","--nocapture"],"exitCode":101,"error":null}
+
+running 4 tests
+test host_job_state ... FAILED
+test host_progress_cancellation ... FAILED
+test host_request_boundary ... ok
+test host_wire_privacy ... FAILED
+
+failures:
+
+failures:
+    host_job_state
+    host_progress_cancellation
+    host_wire_privacy
+
+test result: FAILED. 1 passed; 3 failed; 0 ignored; 0 measured; 0 filtered out; finished in 0.23s
+
+
+   Compiling water-scan-host v0.1.0 (F:\new\smaltalk\water\.worktrees\x\packages\scan-host)
+warning: field `used` is never read
+  --> src\state.rs:26:5
+   |
+25 | pub struct HostState {
+   |            --------- field in this struct
+26 |     used: HashSet<OpaqueId>,
+   |     ^^^^
+   |
+   = note: `HostState` has a derived impl for the trait `Debug`, but this is intentionally ignored during dead code analysis
+   = note: `#[warn(dead_code)]` (part of `#[warn(unused)]`) on by default
+
+warning: `water-scan-host` (lib) generated 1 warning
+    Finished `test` profile [unoptimized + debuginfo] target(s) in 2.26s
+     Running tests\host_v1.rs (.local\next-target\debug\deps\host_v1-18c791074042866c.exe)
+
+thread 'host_job_state' (28844) panicked at tests\host_v1.rs:188:5:
+X_BEHAVIOR: a valid idle start must admit a real native job
+note: run with `RUST_BACKTRACE=1` environment variable to display a backtrace
+
+thread 'host_progress_cancellation' (11100) panicked at tests\host_v1.rs:234:41:
+called `Result::unwrap()` on an `Err` value: NativeFailure
+
+thread 'host_wire_privacy' (9840) panicked at tests\host_v1.rs:367:31:
+called `Result::unwrap()` on an `Err` value: NativeFailure
+error: test failed, to rerun pass `--test host_v1`
