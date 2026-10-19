@@ -1,0 +1,12 @@
+error[E0505]: cannot move out of `permit` because it is borrowed
+ --> F:\new\smaltalk\water\.worktrees\z\.local/checks/WATER-W1-Z/type-probes-5884\drop_permit_while_borrowed.txt:2:115
+  |
+2 | ..._, permit| { let consent = approve_package_json(registry, &permit).unwrap(); drop(permit); let _ = read_package_json(&consent, "F:...
+  |       ------                                                 -------                 ^^^^^^                             -------- borrow later used here
+  |       |                                                      |                       |
+  |       |                                                      |                       move out of `permit` occurs here
+  |       binding `permit` declared here                         borrow of `permit` occurs here
+
+error: aborting due to 1 previous error
+
+For more information about this error, try `rustc --explain E0505`.

@@ -1,0 +1,281 @@
+#![forbid(unsafe_code)]
+
+use serde::{Serialize, de::DeserializeOwned};
+use serde_json::{Value, json};
+use std::{
+    collections::BTreeMap,
+    fs,
+    path::{Path, PathBuf},
+    process::Command,
+};
+use water_contracts::v1::OpaqueId;
+use water_native_root::v1 as native;
+use water_node_manifest::v1 as manifest;
+use water_root_marker::v1::{
+    ManifestReadConsent, MarkerObservation, MarkerReadError as E, approve_package_json,
+    read_package_json, to_json,
+};
+use water_scope_registry::v1::{RegisteredScope, Registry, ScanPermit};
+
+const FIXTURES: &str = include_str!("../../../contracts/root-marker-v1/FIXTURES.json");
+
+struct Fixtures {
+    roots: BTreeMap<String, String>,
+    cap: usize,
+    good: String,
+}
+
+impl Fixtures {
+    fn load() -> Self {
+        let tree = Path::new(env!("CARGO_MANIFEST_DIR"))
+            .parent()
+            .unwrap()
+            .parent()
+            .unwrap();
+        let expected = tree.join(".local/root-marker-fixtures/index.json");
+        let supplied = PathBuf::from(std::env::var_os("WATER_MARKER_INDEX").unwrap());
+        assert_eq!(supplied, expected, "Z_BEHAVIOR only this tree's factory index");
+        // The index is metadata, never a manifest payload. All payload IO below
+        // goes through the public consent API, including the rejection cases.
+        let index: Value = serde_json::from_str(&fs::read_to_string(expected).unwrap()).unwrap();
+        let spec: Value = serde_json::from_str(FIXTURES).unwrap();
+        assert_eq!(index["fixture_version"], spec["version"]);
+        assert_eq!(index["literal_payload_bytes"], 524474);
+        let base = tree.join(".local/root-marker-fixtures/batch-v1");
+        let mut roots = BTreeMap::new();
+        for name in spec["directories"].as_array().unwrap() {
+            let name = name.as_str().unwrap();
+            let root = index["roots"][name].as_str().unwrap();
+            assert_eq!(Path::new(root), base.join(name));
+            roots.insert(name.to_owned(), root.to_owned());
+        }
+        Self {
+            roots,
+            cap: spec["cap"].as_u64().unwrap() as usize,
+            good: spec["good_raw"].as_str().unwrap().to_owned(),
+        }
+    }
+
+    fn root(&self, name: &str) -> &str {
+        &self.roots[name]
+    }
+}
+
+fn registered(registry: &mut Registry, path: &str, label: &str) -> RegisteredScope {
+    let id = OpaqueId::new(label).unwrap();
+    let pending = registry.prepare(&id, path).unwrap();
+    registry.confirm(&pending).unwrap()
+}
+
+fn active(path: &str) -> (Registry, RegisteredScope, ScanPermit) {
+    let mut registry = Registry::new(2).unwrap();
+    let scope = registered(&mut registry, path, "marker-test");
+    let permit = registry.begin_scan(&scope).unwrap();
+    (registry, scope, permit)
+}
+
+fn read_fixture(path: &str) -> Result<Option<MarkerObservation>, E> {
+    let (mut registry, scope, permit) = active(path);
+    let result = {
+        let consent = approve_package_json(&registry, &permit).unwrap();
+        read_package_json(&consent, path)
+    };
+    registry.finish(&permit).unwrap();
+    registry.revoke(&scope).unwrap();
+    result
+}
+
+fn keys(value: &Value) -> Vec<&str> {
+    value.as_object().unwrap().keys().map(String::as_str).collect()
+}
+
+#[test]
+fn marker_consent_and_binding() {
+    let f = Fixtures::load();
+    let (mut a, scope, permit) = active(f.root("good"));
+    let b = Registry::new(2).unwrap();
+    assert!(matches!(approve_package_json(&b, &permit), Err(E::Source)));
+    {
+        let consent = approve_package_json(&a, &permit).unwrap();
+        let observation = read_package_json(&consent, f.root("good")).unwrap();
+        assert!(observation.is_some(), "Z_BEHAVIOR real consent must read the good manifest");
+        assert_eq!(
+            read_package_json(&consent, f.root("other")),
+            Err(E::RootMismatch),
+            "Z_SCOPE_BINDING an active permit must refuse the other physical root"
+        );
+        assert_eq!(read_package_json(&consent, "relative"), Err(E::InvalidPath));
+        for invalid in ["F:/", "F:/a/../b", "F:/a/package.json:stream", "\\\\server\\share"] {
+            assert_eq!(read_package_json(&consent, invalid), Err(E::InvalidPath));
+        }
+        // Different spelling of the same root is still bound by native ID.
+        let alternate = f.root("good").replace('\\', "/");
+        assert_eq!(read_package_json(&consent, &alternate).unwrap(), observation);
+        let direct = native::open_directory(permit.scope_id(), f.root("good")).unwrap();
+        assert_eq!(a.check_permit(&permit).unwrap().identity(), direct.observation().identity());
+    }
+    a.finish(&permit).unwrap();
+    assert!(matches!(approve_package_json(&a, &permit), Err(E::Source)));
+    let cancelled = a.begin_scan(&scope).unwrap();
+    a.cancel(&scope).unwrap();
+    assert!(matches!(approve_package_json(&a, &cancelled), Err(E::Source)));
+    let revoked = a.begin_scan(&scope).unwrap();
+    a.revoke(&scope).unwrap();
+    assert!(matches!(approve_package_json(&a, &revoked), Err(E::Source)));
+    let replacement = registered(&mut a, f.root("good"), "marker-test");
+    let current = a.begin_scan(&replacement).unwrap();
+    assert!(matches!(approve_package_json(&a, &permit), Err(E::Source)));
+    assert!(matches!(approve_package_json(&a, &revoked), Err(E::Source)));
+    a.finish(&current).unwrap();
+    a.revoke(&replacement).unwrap();
+}
+
+#[test]
+fn marker_native_limits_and_links() {
+    let f = Fixtures::load();
+    assert_eq!(
+        read_fixture(f.root("hardlink")),
+        Err(E::MultipleLinks),
+        "Z_SINGLE_LINK a fixed two-link package.json must never produce evidence"
+    );
+    assert_eq!(read_fixture(f.root("missing")).unwrap(), None);
+    assert_eq!(read_fixture(f.root("trap")).unwrap(), None, "Z_BEHAVIOR do not read private.json");
+    let exact = read_fixture(f.root("exact")).unwrap().expect("Z_BEHAVIOR exact cap accepted");
+    let exact: Value = serde_json::from_str(&to_json(&exact).unwrap()).unwrap();
+    assert_eq!(exact["bytes_read"], f.cap);
+    assert_eq!(read_fixture(f.root("oversize")), Err(E::InputTooLarge));
+    assert_eq!(read_fixture(f.root("directory")), Err(E::NotRegularFile));
+    assert!(matches!(
+        read_fixture(f.root("link")),
+        Err(E::ReparsePoint | E::NotRegularFile)
+    ), "Z_BEHAVIOR reject the junction without reopening or following it");
+    assert_eq!(read_fixture(f.root("invalid")), Err(E::InvalidUtf8));
+    assert_eq!(read_fixture(f.root("malformed")), Err(E::InvalidManifest));
+}
+
+#[test]
+fn marker_real_u_and_privacy() {
+    let f = Fixtures::load();
+    for (name, raw) in [
+        ("good", f.good.clone()),
+        ("exact", format!("{{}}{}", " ".repeat(f.cap - 2))),
+        ("other", "{}".to_owned()),
+    ] {
+        let observation = read_fixture(f.root(name)).unwrap().expect("Z_BEHAVIOR actual observation");
+        let text = to_json(&observation).unwrap();
+        let wire: Value = serde_json::from_str(&text).unwrap();
+        assert_eq!(keys(&wire), vec![
+            "action", "bytes_read", "evidence", "marker_version",
+            "native_user_gesture_authenticated", "ordinary_content_read",
+            "project_membership_verified", "race_protection_verified", "read_only", "risk",
+            "root_binding_verified", "source_kind",
+        ]);
+        let expected = manifest::analyze_package_json(&raw).unwrap();
+        assert_eq!(wire["evidence"], serde_json::from_str::<Value>(&manifest::to_json(&expected).unwrap()).unwrap(), "Z_BEHAVIOR preserve real U evidence exactly");
+        assert_eq!(wire["bytes_read"], raw.len());
+        for field in ["read_only", "ordinary_content_read", "root_binding_verified"] {
+            assert_eq!(wire[field], true);
+        }
+        for field in ["native_user_gesture_authenticated", "race_protection_verified", "project_membership_verified"] {
+            assert_eq!(wire[field], false);
+        }
+        assert_eq!(wire["marker_version"], "water.root-marker.v1");
+        assert_eq!(wire["source_kind"], "native_root_package_json");
+        assert_eq!(wire["risk"], "protected");
+        assert_eq!(wire["action"], "display_only");
+        assert_eq!(wire["evidence"]["source_kind"], "caller_supplied_text");
+        assert_eq!(wire["evidence"]["risk"], "protected");
+        assert_eq!(wire["evidence"]["project_membership_verified"], false);
+        let debug = format!("{observation:?}");
+        for secret in ["FAKE_PRIVATE_MARKER_CANARY", "FAKE_DEP", "FAKE_NEVER_RUN", "FAKE_OUTSIDE_CANARY", f.root(name)] {
+            assert!(!text.contains(secret));
+            assert!(!debug.contains(secret));
+        }
+        assert_eq!(serde_json::to_value(observation.clone()).unwrap(), wire);
+        assert_eq!(observation.clone(), observation);
+    }
+}
+
+// These probes compile tiny Rust callers against the actual built library. They
+// create no Cargo targets and never run any probe executable or fixture script.
+struct Compiler {
+    deps: PathBuf,
+    output: PathBuf,
+    library: PathBuf,
+    json_library: PathBuf,
+}
+
+impl Compiler {
+    fn new() -> Self {
+        let deps = std::env::current_exe().unwrap().parent().unwrap().to_path_buf();
+        let library = Self::libraries(&deps, "water_root_marker");
+        let json_library = Self::libraries(&deps, "serde_json");
+        assert_eq!(library.len(), 1, "Z_BEHAVIOR exact current root-marker library");
+        assert_eq!(json_library.len(), 1, "Z_BEHAVIOR exact existing serde_json graph");
+        let tree = Path::new(env!("CARGO_MANIFEST_DIR")).parent().unwrap().parent().unwrap();
+        let output = tree.join(format!(".local/checks/WATER-W1-Z/type-probes-{}", std::process::id()));
+        fs::create_dir(&output).unwrap();
+        Self { deps, output, library: library[0].clone(), json_library: json_library[0].clone() }
+    }
+
+    fn libraries(deps: &Path, name: &str) -> Vec<PathBuf> {
+        fs::read_dir(deps).unwrap().map(|entry| entry.unwrap().path()).filter(|path| {
+            path.extension().is_some_and(|ext| ext == "rlib")
+                && path.file_name().unwrap().to_string_lossy().starts_with(&format!("lib{name}-"))
+        }).collect()
+    }
+
+    fn check(&self, label: &str, body: &str, error: Option<&str>) {
+        let source = self.output.join(format!("{label}.txt"));
+        fs::write(&source, format!("use water_root_marker::v1::*;\nfn main() {{ {body} }}\n")).unwrap();
+        let result = Command::new(std::env::var_os("RUSTC").unwrap())
+            .args(["--edition=2024", "--crate-type=lib", "--crate-name", label, "--emit=metadata"])
+            .arg("-L").arg(format!("dependency={}", self.deps.display()))
+            .arg("--extern").arg(format!("water_root_marker={}", self.library.display()))
+            .arg("--extern").arg(format!("serde_json={}", self.json_library.display()))
+            .arg("--out-dir").arg(&self.output).arg(&source).output().unwrap();
+        let stderr = String::from_utf8(result.stderr).unwrap();
+        fs::write(self.output.join(format!("{label}.log")), &stderr).unwrap();
+        if let Some(code) = error {
+            assert!(!result.status.success(), "Z_BEHAVIOR type boundary {label} accepted");
+            assert!(stderr.contains(code), "Z_BEHAVIOR {label} expected {code}: {stderr}");
+            assert!(!stderr.contains("E0460") && !stderr.contains("E0463"), "Z_BEHAVIOR matching library graph");
+        } else {
+            assert!(result.status.success(), "Z_BEHAVIOR positive type control: {stderr}");
+        }
+    }
+}
+
+#[test]
+fn marker_public_types() {
+    fn evidence_traits<T: std::fmt::Debug + Clone + PartialEq + Serialize>() {}
+    fn error_traits<T: std::error::Error + Clone + PartialEq + Eq>() {}
+    fn deserializable<T: DeserializeOwned>() {}
+    evidence_traits::<MarkerObservation>();
+    error_traits::<E>();
+    deserializable::<Value>();
+    let _: for<'a, 'b> fn(&'a ManifestReadConsent<'b>, &str) -> Result<Option<MarkerObservation>, E> = read_package_json;
+    let _: fn(&MarkerObservation) -> Result<String, E> = to_json;
+    for error in [E::Source, E::InvalidPath, E::RootMismatch, E::NotRegularFile, E::ReparsePoint, E::MultipleLinks, E::InputTooLarge, E::Changed, E::InvalidUtf8, E::InvalidManifest, E::NativeIo, E::UnsupportedPlatform, E::SerializationFailed] {
+        assert_eq!(error.to_string(), format!("{error:?} at /root_marker"));
+        assert_eq!(error.clone(), error);
+        assert!(std::error::Error::source(&error).is_none());
+    }
+    let compiler = Compiler::new();
+    compiler.check("positive", "let _ = approve_package_json; let _ = |c: &ManifestReadConsent<'_>| read_package_json(c, \"F:/fixed\"); let _ = |o: &MarkerObservation| serde_json::to_string(o);", None);
+    for (label, body, code) in [
+        ("consent_clone", "fn need<T: Clone>() {} need::<ManifestReadConsent<'static>>();", "E0277"),
+        ("consent_default", "let _ = ManifestReadConsent::default();", "E0599"),
+        ("consent_construct", "let _ = ManifestReadConsent {};", "private fields"),
+        ("consent_serialize", "let _ = |c: &ManifestReadConsent<'_>| serde_json::to_string(c);", "E0277"),
+        ("consent_deserialize", "let _ = serde_json::from_str::<ManifestReadConsent<'static>>(\"{}\");", "E0277"),
+        ("observation_default", "let _ = MarkerObservation::default();", "E0599"),
+        ("observation_construct", "let _ = MarkerObservation {};", "private fields"),
+        ("observation_deserialize", "let _ = serde_json::from_str::<MarkerObservation>(\"{}\");", "E0277"),
+        ("finish_while_borrowed", "let _ = |registry: &mut _, permit: &_| { let consent = approve_package_json(registry, permit).unwrap(); registry.finish(permit).unwrap(); let _ = read_package_json(&consent, \"F:/fixed\"); };", "E0502"),
+        ("revoke_while_borrowed", "let _ = |registry: &mut _, permit: &_, scope: &_| { let consent = approve_package_json(registry, permit).unwrap(); registry.revoke(scope).unwrap(); let _ = read_package_json(&consent, \"F:/fixed\"); };", "E0502"),
+        ("drop_permit_while_borrowed", "let _ = |registry: &_, permit| { let consent = approve_package_json(registry, &permit).unwrap(); drop(permit); let _ = read_package_json(&consent, \"F:/fixed\"); };", "E0505"),
+    ] {
+        compiler.check(label, body, Some(code));
+    }
+}

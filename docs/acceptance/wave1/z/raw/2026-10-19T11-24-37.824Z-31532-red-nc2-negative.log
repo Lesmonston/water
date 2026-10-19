@@ -1,0 +1,26 @@
+{"binary":"C:\\Users\\37310\\.rustup\\toolchains\\1.95.0-x86_64-pc-windows-msvc\\bin\\cargo.exe","argv":["test","--offline","--locked","--manifest-path","packages/root-marker/Cargo.toml","--test","marker_v1","--","--test-threads=1","--nocapture"],"exitCode":101,"error":null}
+
+running 4 tests
+test marker_consent_and_binding ... ok
+test marker_native_limits_and_links ... FAILED
+test marker_public_types ... ok
+test marker_real_u_and_privacy ... ok
+
+failures:
+
+failures:
+    marker_native_limits_and_links
+
+test result: FAILED. 3 passed; 1 failed; 0 ignored; 0 measured; 0 filtered out; finished in 0.80s
+
+
+   Compiling water-root-marker v0.1.0 (F:\new\smaltalk\water\.worktrees\z\packages\root-marker)
+    Finished `test` profile [unoptimized + debuginfo] target(s) in 0.86s
+     Running tests\marker_v1.rs (.local\next-target\debug\deps\marker_v1-6ce9ff0a6202b7f6.exe)
+
+thread 'marker_native_limits_and_links' (32196) panicked at tests\marker_v1.rs:161:5:
+assertion `left == right` failed: Z_SINGLE_LINK a fixed two-link package.json must never produce evidence
+  left: Ok(Some(MarkerObservation { marker_version: "water.root-marker.v1", source_kind: "native_root_package_json", read_only: true, ordinary_content_read: true, root_binding_verified: true, native_user_gesture_authenticated: false, race_protection_verified: false, project_membership_verified: false, risk: "protected", action: "display_only", bytes_read: 30, evidence: ManifestEvidence { manifest_version: "water.node-manifest.v1", source_kind: "caller_supplied_text", read_only: true, format_verified: true, project_membership_verified: false, tool_version_known: false, action: "display_only", risk: "protected", ecosystem: "node", evidence_strength: "parsed_structure", recognized_field_count: 1, has_name: true, has_version: false, declared_private: None, counts: ManifestCounts { scripts: 0, dependencies: 0, dev_dependencies: 0, peer_dependencies: 0, optional_dependencies: 0, workspace_patterns: 0 } } }))
+ right: Err(MultipleLinks)
+note: run with `RUST_BACKTRACE=1` environment variable to display a backtrace
+error: test failed, to rerun pass `--test marker_v1`

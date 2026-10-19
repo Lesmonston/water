@@ -1,0 +1,11 @@
+error[E0502]: cannot borrow `*registry` as mutable because it is also borrowed as immutable
+ --> F:\new\smaltalk\water\.worktrees\z\.local/checks/WATER-W1-Z/type-probes-10936\revoke_while_borrowed.txt:2:128
+  |
+2 | ...package_json(registry, permit).unwrap(); registry.revoke(scope).unwrap(); let _ = read_package_json(&consent, "F:/fixed"); }; }
+  |                 --------                    ^^^^^^^^^^^^^^^^^^^^^^ mutable borrow occurs here          -------- immutable borrow later used here
+  |                 |
+  |                 immutable borrow occurs here
+
+error: aborting due to 1 previous error
+
+For more information about this error, try `rustc --explain E0502`.

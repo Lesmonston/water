@@ -1,0 +1,13 @@
+{
+  "kind": "executor_generated_documentary_failure_audit",
+  "action": "Evidence staging wrapper",
+  "originalExitCode": 1,
+  "gitWhitespaceExitCode": 2,
+  "stageCompletedFiles": 608,
+  "originalTranscript": "AssertionError [ERR_ASSERTION]: Expected values to be strictly equal: 2 !== 0; git wrapper asserted status at eval line 7, caller line 16. Node v24.16.0. Original wrapper only included stderr in assertion; git stdout was not saved.",
+  "reproductionLog": "evidence-whitespace-reproduction.log",
+  "reproductionIsNotOriginalLog": true,
+  "scopedProductAndReportWhitespaceExitCode": 0,
+  "rawEvidenceModified": false,
+  "resolution": "Preserve raw diagnostic/source/log bytes and record their whitespace output. Scope editorial whitespace check to authored product/report; no change to product, tests, frozen helper, or frozen locks."
+}

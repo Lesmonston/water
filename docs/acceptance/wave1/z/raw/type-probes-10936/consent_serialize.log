@@ -1,0 +1,32 @@
+error[E0277]: the trait bound `water_root_marker::v1::ManifestReadConsent<'_>: serde::Serialize` is not satisfied
+    --> F:\new\smaltalk\water\.worktrees\z\.local/checks/WATER-W1-Z/type-probes-10936\consent_serialize.txt:2:73
+     |
+   2 | fn main() { let _ = |c: &ManifestReadConsent<'_>| serde_json::to_string(c); }
+     |                                                   --------------------- ^ the trait `serde_core::ser::Serialize` is not implemented for `water_root_marker::v1::ManifestReadConsent<'_>`
+     |                                                   |
+     |                                                   required by a bound introduced by this call
+     |
+     = note: for local types consider adding `#[derive(serde::Serialize)]` to your `water_root_marker::v1::ManifestReadConsent<'_>` type
+     = note: for types from other crates check whether the crate offers a `serde` feature flag
+     = help: the following other types implement trait `serde_core::ser::Serialize`:
+               &'a T
+               &'a mut T
+               ()
+               (T,)
+               (T0, T1)
+               (T0, T1, T2)
+               (T0, T1, T2, T3)
+               (T0, T1, T2, T3, T4)
+             and 166 others
+note: required by a bound in `serde_json::to_string`
+    --> F:\new\smaltalk\water\.worktrees\z\.local\next-cargo-home\registry\src\index.crates.io-1949cf8c6b5b557f\serde_json-1.0.151\src\ser.rs:2247:17
+     |
+2245 | pub fn to_string<T>(value: &T) -> Result<String>
+     |        --------- required by a bound in this function
+2246 | where
+2247 |     T: ?Sized + Serialize,
+     |                 ^^^^^^^^^ required by this bound in `to_string`
+
+error: aborting due to 1 previous error
+
+For more information about this error, try `rustc --explain E0277`.
