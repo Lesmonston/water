@@ -1,0 +1,331 @@
+import { spawn } from 'node:child_process';
+import { Readable } from 'node:stream';
+import { startFromStream } from '../host.mjs';
+import test from 'node:test';
+import assert from 'node:assert/strict';
+import { request } from 'node:http';
+import { readFileSync, readdirSync, mkdtempSync, lstatSync, realpathSync, writeFileSync } from 'node:fs';
+import { resolve, relative, isAbsolute, join } from 'node:path';
+import { fileURLToPath } from 'node:url';
+import { startServer } from '../server.mjs';
+import { openBrowser as openBrowserProcess } from '../../../scripts/browser-lab.mjs';
+
+const cases = JSON.parse(readFileSync(new URL('../../../contracts/native-session-v1/cases.json', import.meta.url), 'utf8')).cases;
+const source = JSON.parse(readFileSync(new URL('../../../contracts/scan-review-v1/bundle.json', import.meta.url), 'utf8'));
+const root = fileURLToPath(new URL('../../../', import.meta.url));
+const el = id => `document.getElementById(${JSON.stringify(id)})`;
+const delay = ms => new Promise(r => setTimeout(r, ms));
+// Keep the frozen process/profile helper. A separate off-the-record context
+// prevents unrelated default-context downloads from using this page's directory.
+async function openBrowser() {
+  const processBrowser = await openBrowserProcess();
+  const screenshotArchive = mkdtempSync(join(root, '.local/browser-lab/native-review-screenshots-'));
+  let ws, context, counter = 0, session;
+  const pending = new Map(), listeners = new Set();
+  const close = async () => {
+    if (ws?.readyState === WebSocket.OPEN) {
+      try { if (context) await send('Target.disposeBrowserContext', { browserContextId: context }); } catch {}
+      ws.close();
+    }
+    for (const entry of pending.values()) { clearTimeout(entry.timer); entry.reject(new Error('Browser closed')); }
+    pending.clear(); await processBrowser.close();
+  };
+  const send = (method, params = {}, sessionId) => new Promise((ok, bad) => {
+    const id = ++counter, timer = setTimeout(() => { pending.delete(id); bad(new Error('CDP timeout: ' + method)); }, 10000);
+    pending.set(id, { ok, bad, timer }); ws.send(JSON.stringify({ id, method, params, ...(sessionId ? { sessionId } : {}) }));
+  });
+  try {
+    const [port, endpoint] = readFileSync(join(processBrowser.profile, 'DevToolsActivePort'), 'utf8').trim().split(/\r?\n/);
+    assert(/^\d+$/.test(port) && /^\/devtools\/browser\/[a-zA-Z0-9-]+$/.test(endpoint));
+    ws = new WebSocket(`ws://127.0.0.1:${port}${endpoint}`);
+    await new Promise((ok, bad) => { ws.addEventListener('open', ok, { once: true }); ws.addEventListener('error', bad, { once: true }); });
+    ws.addEventListener('message', event => {
+      const message = JSON.parse(event.data);
+      if (pending.has(message.id)) {
+        const entry = pending.get(message.id); pending.delete(message.id); clearTimeout(entry.timer);
+        if (message.error) entry.bad(new Error(message.error.message)); else entry.ok(message.result ?? {});
+      } else if (message.sessionId === session || message.method?.startsWith('Browser.download')) {
+        if (message.method?.startsWith('Browser.download')) console.log(JSON.stringify({ download_event: message.method, ...message.params }));
+        for (const listener of listeners) listener(message);
+      }
+    });
+    context = (await send('Target.createBrowserContext', { disposeOnDetach: true })).browserContextId;
+    const { targetId } = await send('Target.createTarget', { url: 'about:blank', browserContextId: context });
+    session = (await send('Target.attachToTarget', { targetId, flatten: true })).sessionId;
+    const page = (method, params) => send(method, params, session);
+    await page('Runtime.enable'); await page('Page.enable');
+    await page('Emulation.setDeviceMetricsOverride', { width: 1440, height: 1000, deviceScaleFactor: 1, mobile: false });
+    const evaluate = async expression => {
+      const r = await page('Runtime.evaluate', { expression, awaitPromise: true, returnByValue: true });
+      assert(!r.exceptionDetails, 'Browser expression threw'); return r.result.value;
+    };
+    return { close, send: page, evaluate,
+      setDownloadDirectory: dir => send('Browser.setDownloadBehavior', { behavior: 'allow', browserContextId: context, downloadPath: dir, eventsEnabled: true }),
+      onEvent(listener) { listeners.add(listener); return () => listeners.delete(listener); },
+      async goto(url) {
+        assert.equal(new URL(url).hostname, '127.0.0.1');
+        await page('Page.bringToFront');
+        assert(!(await page('Page.navigate', { url })).errorText);
+      },
+      async waitFor(expression) { const until = Date.now() + 10000; while (Date.now() < until) { if (await evaluate(expression)) return; await delay(25); } throw new Error('Browser condition timed out'); },
+      async screenshot(name) {
+        assert(/^\.local\/browser-lab\/native-review-(1440x1000|900x800|cancel)\.png$/.test(name));
+        const r = await page('Page.captureScreenshot', { format: 'png', captureBeyondViewport: false });
+        const bytes = Buffer.from(r.data, 'base64');
+        writeFileSync(resolve(root, name), bytes);
+        writeFileSync(join(screenshotArchive, name.split('/').at(-1)), bytes, { flag: 'wx' });
+      },
+    };
+  } catch (e) { await close(); throw e; }
+}
+function checks() {
+  const failures = [];
+  return { async run(label, fn) { try { await fn(); } catch (e) { failures.push(`${label}: ${e.message}`); } },
+    done() { assert.equal(failures.length, 0, failures.join('\n')); } };
+}
+function caller(second = false) {
+  const b = structuredClone(source);
+  if (second) b.snapshots = [b.snapshots[8], b.snapshots[1], b.snapshots[9], b.snapshots[22]];
+  b.snapshots[0].view.scan_id = second ? 'caller-beta' : 'caller-alpha';
+  const f = b.snapshots[0].view.findings[0];
+  f.title = f.relative_path = 'literal/<img src=x onerror=literal>';
+  f.evidence_items[0].summary = 'EVIDENCE_CANARY_<script>literal</script>';
+  f.evidence = f.evidence_items.map(e => e.summary).join('\n');
+  return b;
+}
+function raw(url, path, {method = 'GET', host} = {}) {
+  const parsed = new URL(url);
+  return new Promise((ok, bad) => {
+    const req = request({hostname:'127.0.0.1',port:parsed.port,path,method,headers:{Host:host ?? parsed.host}}, res => {
+      const chunks = []; res.on('data', b => chunks.push(b));
+      res.on('end', () => ok({status:res.statusCode,headers:res.headers,body:Buffer.concat(chunks)}));
+    }); req.on('error', bad); req.end();
+  });
+}
+async function choose(b, id, value) {
+  await b.evaluate(`(() => {const n=${el(id)};n.value=${JSON.stringify(value)};n.dispatchEvent(new Event('change',{bubbles:true}));})()`);
+}
+async function click(b, selector) {
+  const p = await b.evaluate(`(() => {const n=document.querySelector(${JSON.stringify(selector)});n.scrollIntoView({block:'center'});const r=n.getBoundingClientRect();return {x:r.x+r.width/2,y:r.y+r.height/2};})()`);
+  await b.send('Input.dispatchMouseEvent', {type:'mousePressed',button:'left',clickCount:1,...p});
+  await b.send('Input.dispatchMouseEvent', {type:'mouseReleased',button:'left',clickCount:1,...p});
+}
+async function key(b, key, code, windowsVirtualKeyCode) {
+  await b.send('Input.dispatchKeyEvent', {type:'keyDown',key,code,windowsVirtualKeyCode,
+    ...(key === 'Enter' ? {text:'\r',unmodifiedText:'\r'} : {})});
+  await b.send('Input.dispatchKeyEvent', {type:'keyUp',key,code,windowsVirtualKeyCode});
+}
+async function download(b, ordinal) {
+  const base = resolve(root, '.local/browser-lab');
+  assert(lstatSync(base).isDirectory() && !lstatSync(base).isSymbolicLink());
+  const dir = mkdtempSync(join(base, 'native-review-download-'));
+  const rel = relative(realpathSync(root), realpathSync(dir)); assert(!rel.startsWith('..') && !isAbsolute(rel));
+  await b.setDownloadDirectory(dir);
+  console.log(JSON.stringify({ download_directory: dir, expected_ordinal: ordinal }));
+  // Pace independent user gestures; a tight burst was observed to suppress
+  // every eleventh request before Browser.downloadWillBegin. No retry/timeout
+  // extension: each snapshot still has exactly one click and strict file checks.
+  await delay(250);
+  await click(b, '#download');
+  const until = Date.now() + 8000;
+  let files;
+  while (Date.now() < until) {
+    files = readdirSync(dir);
+    if (files.length && files.every(n => !n.endsWith('.crdownload'))) break;
+    await delay(40);
+  }
+  if (!files?.length || files.some(n => n.endsWith('.crdownload'))) throw new Error('download timed out');
+  // Actual attachment file, not fetch: keep each new private download directory.
+  const data = readFileSync(join(dir, files[0]));
+  console.log(JSON.stringify({actual_click:true,directory:dir,filename:files[0],bytes:data.length,expected_ordinal:ordinal}));
+  return {files,data};
+}
+async function observe(b, url) {
+  const seen = {requests:[],exceptions:[],errors:[]};
+  await b.send('Network.enable'); await b.send('Log.enable');
+  b.onEvent(e => {
+    if (e.method === 'Network.requestWillBeSent') seen.requests.push(e.params.request.url);
+    if (e.method === 'Runtime.exceptionThrown') seen.exceptions.push(e.params.exceptionDetails);
+    if (e.method === 'Log.entryAdded' && e.params.entry.level === 'error') {
+      const n = e.params.entry; if (!(n.url === url + '/favicon.ico' && n.text.includes('404'))) seen.errors.push(n.text);
+    }
+  });
+  await b.goto(url); await b.waitFor('document.body.dataset.ready === "true"'); return seen;
+}
+
+function nativeCaller(which) {
+  const b = structuredClone(cases[1].bundle), v = b.snapshots[0].view;
+  b.session_id = v.scan_id = `caller-${which}`; v.scopes[0].scope_id = `scope-${which}`;
+  for (const f of v.findings) f.scope_id = v.scopes[0].scope_id;
+  for (const i of v.issues) i.scope_id = v.scopes[0].scope_id;
+  return b;
+}
+async function replay(index) {
+  // This frozen producer replays retained S/P/R/E/H/Q bytes, never V.exe.
+  const child = spawn(process.execPath, ['scripts/acceptance/native-session-stream-probe.mjs', String(index)], { cwd: root, shell: false, windowsHide: true, stdio: ['ignore', 'pipe', 'pipe'] });
+  const exit = new Promise((ok, bad) => { child.once('error', bad); child.once('close', code => code === 0 ? ok() : bad(new Error('replay exit'))); });
+  child.stderr.on('data', () => {});
+  let server;
+  try { [server] = await Promise.all([startFromStream({ stream: child.stdout }), exit]); return server; }
+  catch (e) { if (child.exitCode === null) child.kill(); await server?.close(); throw e; }
+}
+async function assertDownload(c, b, server, snapshot, ordinal) {
+  const saved = await download(b, ordinal);
+  await c.run('W_Q_ONLY W_BEHAVIOR actual attachment bytes', () => {
+    assert.deepEqual(saved.files, [`water-report-${ordinal}.json`]);
+    assert.deepEqual(saved.data, Buffer.from(snapshot.redacted_json));
+    assert.equal(JSON.parse(saved.data).export_version, 'water.redacted-report.v1');
+    assert(!saved.data.toString().includes(snapshot.view.scan_id));
+    assert(!saved.data.toString().includes('EVIDENCE_CANARY'));
+  });
+  await c.run('W_Q_ONLY W_BEHAVIOR headers and HEAD', async () => {
+    for (const method of ['GET', 'HEAD']) {
+      const r = await raw(server.url, `/exports/${ordinal}.json`, { method });
+      assert.equal(r.status, 200); assert.equal(r.headers['content-type'], 'application/json;charset=utf-8');
+      assert.equal(r.headers['content-disposition'], `attachment; filename="water-report-${ordinal}.json"`);
+      assert.equal(r.headers['content-length'], String(Buffer.byteLength(snapshot.redacted_json)));
+      assert.deepEqual(r.body, method === 'HEAD' ? Buffer.alloc(0) : Buffer.from(snapshot.redacted_json));
+    }
+  });
+}
+
+test('native_review_live_inputs_and_download', async () => {
+  const c = checks();
+  let b;
+  try {
+    b = await openBrowser();
+    const inputs = [...cases.map((x, i) => ({ input: x.bundle, index: i, label: 'retained native ' + x.id })),
+      ...['alpha', 'beta'].map(which => ({ input: nativeCaller(which), label: 'synthetic rename ' + which })),
+      { input: caller(), label: 'legacy T 24 snapshots with literal HTML' }];
+    for (const { input, index, label } of inputs) {
+      await c.run('W_BEHAVIOR independent caller ' + label, async () => {
+        const expected = structuredClone(input);
+        const server = index === undefined ? input.bundle_version === 'water.native-session-bundle.v1'
+          ? await startFromStream({ stream: Readable.from([Buffer.from(JSON.stringify(input))]) })
+          : await startServer({ bundle: input }) : await replay(index);
+        try {
+          assert.deepEqual(JSON.parse((await raw(server.url, '/session.json')).body), expected);
+          const seen = await observe(b, server.url);
+          await c.run('W_BEHAVIOR all caller snapshots', async () => assert.deepEqual(await b.evaluate(`Array.from(${el('snapshot')}.options,n=>n.value)`), expected.snapshots.map(s => s.view.scan_id)));
+          if (!expected.snapshots.length) {
+            await c.run('W_SELECTION_CANCELLED no report or download', async () => {
+              assert.equal(await b.evaluate(`${el('status-banner')}.textContent`), '目录选择已取消；未开始扫描');
+              assert.equal(await b.evaluate(`${el('report-content')}.hidden`), true);
+              assert.equal(await b.evaluate(`${el('download')}.hasAttribute('href')`), false);
+              assert.equal(await b.evaluate(`${el('export-preview')}.textContent`), '');
+              assert.equal((await raw(server.url, '/exports/1.json')).status, 404);
+            });
+          }
+          for (const [i, s] of expected.snapshots.entries()) {
+            await choose(b, 'snapshot', s.view.scan_id);
+            await c.run('W_BEHAVIOR actual status/coverage/issues/source', async () => {
+              const v = await b.evaluate(`({status:${el('status-banner')}.textContent,scopes:${el('coverage-summary')}.textContent,issues:${el('issues-summary')}.textContent,source:${el('source-kind')}.textContent})`);
+              assert(v.status.includes(s.view.status) && v.status.includes(s.view.scan_id)); assert(v.source.includes(s.source_kind));
+              for (const scope of s.view.scopes) assert(v.scopes.includes(scope.label) && v.scopes.includes(scope.coverage));
+              for (const issue of s.view.issues) { assert(v.issues.includes(issue.code) && v.issues.includes(issue.message)); assert(v.issues.includes(issue.relative_path === '' ? 'scope 根' : issue.relative_path ?? '未指定路径')); }
+            });
+            const total = await b.evaluate(`${el('source-totals')}.textContent`);
+            for (const [id, value] of [['search', 'no-match-literal'], ['risk', 'protected'], ['sort', 'name_asc']]) {
+              await choose(b, id, value);
+              await c.run('W_BEHAVIOR filters preserve entire Q and totals', async () => {
+                assert.equal(await b.evaluate(`${el('source-totals')}.textContent`), total);
+                assert.equal(await b.evaluate(`${el('export-preview')}.textContent`), s.redacted_json);
+              });
+            }
+            // Every source and every old snapshot gets a real mouse-event download.
+            await c.run('W_BEHAVIOR independent attachment ' + (i + 1), () => assertDownload(c, b, server, s, i + 1));
+          }
+          await c.run('W_BEHAVIOR no script errors or external traffic', () => { assert.deepEqual(seen.exceptions, []); assert.deepEqual(seen.errors, []); assert(seen.requests.every(u => u.startsWith(server.url + '/'))); });
+        } finally { await server.close(); }
+      });
+    }
+  } finally { await b?.close(); }
+  c.done();
+});
+
+test('native_review_layout_cancel_and_safety', async () => {
+  const c = checks();
+  let b;
+  try {
+    b = await openBrowser();
+    const native = nativeCaller('layout');
+    const server = await startFromStream({ stream: Readable.from([Buffer.from(JSON.stringify(native))]) });
+    try {
+      await observe(b, server.url);
+      for (const [width, height] of [[1440, 1000], [900, 800]]) {
+        await b.send('Emulation.setDeviceMetricsOverride', { width, height, deviceScaleFactor: 1, mobile: false });
+        await b.evaluate('window.scrollTo(0,0)');
+        await c.run('W_BEHAVIOR native layout policy and controls', async () => {
+          const v = await b.evaluate(`({width:innerWidth,height:innerHeight,overflow:document.documentElement.scrollWidth>document.documentElement.clientWidth,labels:Array.from(document.querySelectorAll('input,select')).every(n=>document.querySelector('label[for="'+n.id+'"]')),files:document.querySelectorAll('input[type=file]').length,buttons:Array.from(document.querySelectorAll('button,a')).map(n=>n.textContent.trim()),text:${el('native-policy')}.textContent})`);
+          assert.equal(v.width, width); assert.equal(v.height, height); assert(!v.overflow); assert(v.labels); assert.equal(v.files, 0);
+          assert(v.buttons.every(t => !/^(删除|清理|迁移|扫描|上传|执行|导入|导出原始|选择目录)/.test(t)));
+          for (const text of ['selection=confirmed', 'native_scope_metadata', 'no-follow', 'max_depth=8', 'max_entries=128', 'max_dir_entries=32', '普通内容未读', '手势及竞态未验证', 'Completed 仅代表该策略内覆盖', '可信宿主声明，页面不认证来源或捕获新鲜度']) assert(v.text.includes(text));
+          assert((await b.evaluate(`${el('source-totals')}.textContent`)).includes('未知'));
+        });
+        await b.screenshot(`.local/browser-lab/native-review-${width}x${height}.png`);
+        await b.evaluate(`document.querySelector('.detail-button').focus()`); await key(b, 'Enter', 'Enter', 13);
+        await c.run('W_BEHAVIOR dialog details keyboard and focus', async () => {
+          assert.equal(await b.evaluate(`${el('detail')}.open`), true);
+          const id = await b.evaluate(`document.querySelector('.detail-button').closest('li').dataset.findingId`);
+          const f = native.snapshots[0].view.findings.find(f => f.id === id);
+          assert.deepEqual(await b.evaluate(`Array.from(${el('detail-fields')}.querySelectorAll('dd'),n=>n.textContent)`), Object.values(f).map(v => typeof v === 'string' ? v : JSON.stringify(v, null, 2)));
+          await key(b, 'Tab', 'Tab', 9); assert.equal(await b.evaluate(`${el('detail')}.contains(document.activeElement)`), true);
+        });
+        await key(b, 'Escape', 'Escape', 27);
+        await c.run('W_BEHAVIOR Escape restores focus', async () => { assert.equal(await b.evaluate(`${el('detail')}.open`), false); assert.equal(await b.evaluate(`document.activeElement.classList.contains('detail-button')`), true); });
+        await b.evaluate('window.scrollTo(0,document.body.scrollHeight)');
+        await c.run('W_BEHAVIOR persistent readonly badge', async () => assert.equal(await b.evaluate(`(() => {const r=${el('readonly-badge')}.getBoundingClientRect();return r.top>=0&&r.bottom<=innerHeight;})()`), true));
+      }
+    } finally { await server.close(); }
+    for (const index of [0, 3]) await c.run('W_BEHAVIOR independent cancellation layout ' + index, async () => {
+      const s = await replay(index);
+      try {
+        await observe(b, s.url);
+        if (index === 0) {
+          await b.send('Emulation.setDeviceMetricsOverride', { width: 1440, height: 1000, deviceScaleFactor: 1, mobile: false });
+          await b.screenshot('.local/browser-lab/native-review-cancel.png');
+          await c.run('W_SELECTION_CANCELLED actual rendered selection cancellation', async () => {
+            assert.equal(await b.evaluate(`${el('status-banner')}.textContent`), '目录选择已取消；未开始扫描');
+            assert.equal(await b.evaluate(`${el('report-content')}.hidden`), true);
+            assert.equal(await b.evaluate(`${el('snapshot')}.disabled`), true);
+            assert.equal(await b.evaluate(`${el('download')}.hasAttribute('href')`), false);
+            assert.equal(await b.evaluate(`${el('export-preview')}.textContent`), '');
+          });
+        } else {
+          assert((await b.evaluate(`${el('status-banner')}.textContent`)).includes('cancelled'));
+          assert.equal(await b.evaluate(`${el('report-content')}.hidden`), false);
+          assert.equal(await b.evaluate(`${el('download')}.hasAttribute('href')`), true);
+          await assertDownload(c, b, s, cases[index].bundle.snapshots[0], 1);
+        }
+      } finally { await s.close(); }
+    });
+    const expected = caller(), old = await startServer({ bundle: expected });
+    try {
+      const seen = await observe(b, old.url);
+      for (const [width, height] of [[1440, 1000], [900, 800]]) {
+        await b.send('Emulation.setDeviceMetricsOverride', { width, height, deviceScaleFactor: 1, mobile: false });
+        await choose(b, 'snapshot', expected.snapshots[0].view.scan_id);
+        await c.run('W_BEHAVIOR legacy literal HTML and no invented policy', async () => {
+          assert.equal(await b.evaluate(`${el('native-policy')}.hidden`), true);
+          assert.equal(await b.evaluate('document.querySelectorAll("img,svg,iframe,object,embed,script:not([src])").length'), 0);
+          assert((await b.evaluate(`${el('finding-list')}.textContent`)).includes('<img src=x onerror=literal>'));
+          assert.equal(await b.evaluate('typeof window.literal'), 'undefined');
+          assert.equal(await b.evaluate('document.documentElement.scrollWidth<=document.documentElement.clientWidth'), true);
+        });
+        await choose(b, 'snapshot', expected.snapshots[8].view.scan_id);
+        await c.run('W_BEHAVIOR full u64', async () => assert((await b.evaluate(`${el('source-totals')}.textContent`)).includes('18446744073709551615')));
+        await choose(b, 'snapshot', expected.snapshots[9].view.scan_id);
+        await c.run('W_BEHAVIOR Unknown preserved', async () => assert((await b.evaluate(`${el('source-totals')}.textContent`)).includes('未知')));
+        await choose(b, 'snapshot', expected.snapshots[1].view.scan_id);
+        for (const id of ['scope', 'tool', 'category', 'risk', 'sort']) {
+          const values = await b.evaluate(`Array.from(${el(id)}.options,n=>n.value)`); await choose(b, id, values.at(-1));
+          await c.run('W_BEHAVIOR every filter keeps complete export', async () => assert.equal(await b.evaluate(`${el('export-preview')}.textContent`), expected.snapshots[1].redacted_json));
+        }
+        await click(b, '#reset-filters');
+        await c.run('W_BEHAVIOR filter reset', async () => assert.equal(await b.evaluate(`${el('visible-count')}.textContent`), '8 / 8'));
+      }
+      await c.run('W_BEHAVIOR legacy errors/network', () => { assert.deepEqual(seen.exceptions, []); assert.deepEqual(seen.errors, []); assert(seen.requests.every(u => u.startsWith(old.url + '/'))); });
+    } finally { await old.close(); }
+  } finally { await b?.close(); }
+  c.done();
+});

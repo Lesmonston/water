@@ -1,0 +1,327 @@
+import test from 'node:test';
+import assert from 'node:assert/strict';
+import { readFileSync } from 'node:fs';
+import { request } from 'node:http';
+import { Readable } from 'node:stream';
+import { spawnSync } from 'node:child_process';
+import { assertReviewInput, selectSnapshot, exportText, selectFindings, formatBytes } from '../model.mjs';
+import * as legacyModel from '../../scan-review/model.mjs';
+import { readSession, startFromStream } from '../host.mjs';
+import { launchNative } from '../launch.mjs';
+import { startServer } from '../server.mjs';
+
+const cases = JSON.parse(readFileSync(new URL('../../../contracts/native-session-v1/cases.json', import.meta.url))).cases;
+const legacy = JSON.parse(readFileSync(new URL('../../../contracts/scan-review-v1/bundle.json', import.meta.url)));
+const error = { name: 'Error', message: 'Unsupported native review.' };
+const clone = value => structuredClone(value);
+function checks() {
+  const errors = [];
+  return { async run(label, fn) { try { await fn(); } catch (e) { errors.push(label + ': ' + e.message); } },
+    done() { assert.equal(errors.length, 0, errors.join('\n')); } };
+}
+function stream(bytes) { return Readable.from([bytes]); }
+function raw(url, path, { method = 'GET', host } = {}) {
+  const u = new URL(url);
+  return new Promise((ok, bad) => {
+    const r = request({ hostname: '127.0.0.1', port: u.port, method, path, headers: { Host: host ?? u.host } }, res => {
+      const chunks = []; res.on('data', b => chunks.push(b));
+      res.on('end', () => ok({ status: res.statusCode, headers: res.headers, body: Buffer.concat(chunks) }));
+    }); r.on('error', bad); r.end();
+  });
+}
+function renamed(which) {
+  const b = clone(cases[1].bundle), v = b.snapshots[0].view;
+  b.session_id = v.scan_id = `caller-${which}`;
+  v.scopes[0].scope_id = `scope-${which}`;
+  for (const f of v.findings) f.scope_id = v.scopes[0].scope_id;
+  for (const i of v.issues) i.scope_id = v.scopes[0].scope_id;
+  return b;
+}
+
+// These budget variants are synthetic memory reports, never new native scans.
+// Reuse the captured directory/file shapes and update their matching H/Q data.
+function groupedBudgetExample(name, entries, limit) {
+  const b = clone(cases[1].bundle), s = b.snapshots[0], v = s.view;
+  const q = JSON.parse(s.redacted_json);
+  const file = clone(v.findings[0]), directory = clone(v.findings[2]);
+  const qFile = clone(q.findings[0]), qDirectory = clone(q.findings[2]);
+  b.session_id = v.scan_id = `budget-${name}`;
+  b.policy.limits.max_dir_entries = limit;
+  v.findings = entries.map(([path, kind], i) => {
+    const f = clone(kind === 'directory' ? directory : file);
+    f.id = `entry-${i + 1}`; f.title = f.relative_path = path;
+    return f;
+  });
+  v.totals.scanned_entries = entries.length;
+  s.summary.counts.findings = entries.length;
+  s.summary.risk_counts.protected = s.summary.category_counts.unknown = entries.length;
+  s.summary.totals = clone(v.totals);
+  q.summary = clone(s.summary);
+  q.findings = entries.map(([, kind], i) => ({
+    ...clone(kind === 'directory' ? qDirectory : qFile), finding_ref: `finding-${i + 1}`,
+  }));
+  s.redacted_json = JSON.stringify(q);
+  return b;
+}
+function budgetExamples() {
+  const captured = (name, index, limit, accepted) => {
+    const bundle = clone(cases[index].bundle); bundle.policy.limits.max_dir_entries = limit;
+    return { name, bundle, accepted };
+  };
+  const pairs = [['a', 'directory'], ['a/x', 'file'], ['a/y', 'file'], ['b', 'directory'], ['b/x', 'file'], ['b/y', 'file']];
+  const nested = [['a', 'directory'], ['a/n', 'directory'], ['a/n/x', 'file'], ['a/n/y', 'file'], ['b', 'directory'], ['b/x', 'file'], ['b/y', 'file']];
+  const overNested = [...nested.slice(0, 4), ['a/n/z', 'file'], ...nested.slice(4)];
+  const overParent = [...pairs.slice(0, 3), ['a/z', 'file'], ...pairs.slice(3)];
+  return [
+    captured('complete-root-over-one', 1, 1, false),
+    captured('complete-root-over-six', 1, 6, false),
+    captured('partial-root-over-one', 2, 1, false),
+    captured('cancelled-root-over-two', 4, 2, false),
+    captured('complete-root-equals-seven-not-eight', 1, 7, true),
+    captured('partial-root-equals-one', 7, 1, true),
+    captured('cancelled-root-equals-three', 4, 3, true),
+    captured('scan-cancelled-empty', 3, 1, true),
+    captured('selection-cancelled-empty', 0, 1, true),
+    captured('selection-cancelled-range-still-checked', 0, 0, false),
+    { name: 'cross-parents-total-six-cap-two', bundle: groupedBudgetExample('cross', pairs, 2), accepted: true },
+    { name: 'nonroot-parent-over-two', bundle: groupedBudgetExample('parent-over', overParent, 2), accepted: false },
+    { name: 'nonroot-parent-equals-three', bundle: groupedBudgetExample('parent-equal', overParent, 3), accepted: true },
+    { name: 'nested-direct-children-not-all-descendants', bundle: groupedBudgetExample('nested', nested, 2), accepted: true },
+    { name: 'nested-parent-over-two', bundle: groupedBudgetExample('nested-over', overNested, 2), accepted: false },
+    { name: 'nested-parent-equals-three', bundle: groupedBudgetExample('nested-equal', overNested, 3), accepted: true },
+  ];
+}
+
+test('native_review_protocol', async () => {
+  const c = checks();
+  for (const { id, bundle } of cases) await c.run('W_BEHAVIOR native ' + id, () => {
+    const before = clone(bundle); assert.equal(assertReviewInput(bundle), bundle); assert.deepEqual(bundle, before);
+    for (const s of bundle.snapshots) {
+      assert.equal(selectSnapshot(bundle, s.view.scan_id), s);
+      assert.equal(exportText(bundle, s.view.scan_id), s.redacted_json);
+    }
+    assert.equal(selectSnapshot(bundle, 'absent'), null);
+    assert.throws(() => exportText(bundle, 'absent'), error);
+  });
+  await c.run('W_BEHAVIOR actual T delegation and all 24 snapshots', () => {
+    assert.equal(legacy.snapshots.length, 24); assert.equal(assertReviewInput(legacy), legacy);
+    assert.equal(selectFindings, legacyModel.selectFindings); assert.equal(formatBytes, legacyModel.formatBytes);
+    for (const s of legacy.snapshots) {
+      assert.equal(exportText(legacy, s.view.scan_id), legacyModel.exportText(legacy, s.view.scan_id));
+      assert.deepEqual(selectFindings(s.view, { sort: 'size_asc' }), legacyModel.selectFindings(s.view, { sort: 'size_asc' }));
+    }
+    assert.equal(formatBytes(null), '未知'); assert.equal(formatBytes('18446744073709551615'), '15.9 EiB');
+  });
+  for (const n of ['alpha', 'beta']) await c.run('W_BEHAVIOR synthetic rename ' + n, () => {
+    const b = renamed(n); assertReviewInput(b); assert.equal(exportText(b, b.session_id), cases[1].bundle.snapshots[0].redacted_json);
+  });
+  await c.run('W_BEHAVIOR an observed ancestor cannot claim file bytes', () => {
+    const b = clone(cases[1].bundle), s = b.snapshots[0];
+    const index = s.view.findings.findIndex(f => f.protection_reasons.includes('protected_descendant'));
+    const f = s.view.findings[index];
+    f.logical_bytes = f.size.logical_bytes = '14'; f.size.method = 'logical_sum'; f.size.confidence = 'measured';
+    const q = JSON.parse(s.redacted_json); q.findings[index].size = clone(f.size); s.redacted_json = JSON.stringify(q);
+    assert.throws(() => assertReviewInput(b), error);
+  });
+  const mutations = [
+    b => { b.extra = true; }, b => { b.read_only = false; }, b => { b.selection = 'cancelled'; },
+    b => { b.session_id = 'bad/path'; }, b => { b.session_id = 'mismatch'; }, b => { b.confirmation_source = 'trusted_in_process_declaration'; },
+    b => { b.policy.platform = 'macos'; }, b => { b.policy.ordinary_content_read = true; }, b => { b.policy.native_user_gesture_authenticated = true; },
+    b => { b.policy.race_protection_verified = true; }, b => { b.policy.coverage_basis = 'full_disk'; }, b => { b.policy.traversal = 'follow'; },
+    b => { b.policy.limits.max_depth = 33; }, b => { b.policy.limits.max_entries = 0; }, b => { b.policy.limits.max_dir_entries = 257; },
+    b => { b.snapshots.push(clone(b.snapshots[0])); }, b => { b.snapshots[0].source_kind = 'synthetic_memory'; },
+    b => { b.snapshots[0].view.scopes[0].label = 'Other'; }, b => { b.snapshots[0].view.findings[0].rule_version = 'other'; },
+    b => { b.snapshots[0].view.findings[0].protection_reasons.push('protected_descendant'); },
+    b => { const f = b.snapshots[0].view.findings.find(f => f.protection_reasons.includes('protected_descendant')); f.protection_reasons.pop(); },
+    b => { b.snapshots[0].view.findings[0].references = { state: 'known', project_ids: [] }; },
+    b => { b.snapshots[0].view.findings[0].evidence_items[0].summary = 'wrong'; },
+    b => { b.snapshots[0].view.totals.scanned_entries++; }, b => { b.snapshots[0].view.totals.logical_bytes = '0'; },
+    b => { b.snapshots[0].summary.counts.findings++; }, b => { b.snapshots[0].summary.risk_counts.protected--; },
+    b => { b.snapshots[0].redacted_json += ' '; },
+    b => { b.snapshots[0].redacted_json = b.snapshots[0].redacted_json.replace('{', '{"read_only":true,'); },
+    b => { const q = JSON.parse(b.snapshots[0].redacted_json); q.findings[0].scope_ref = 'scope-2'; b.snapshots[0].redacted_json = JSON.stringify(q); },
+    b => { const q = JSON.parse(b.snapshots[0].redacted_json); q.findings[0].path = 'secret'; b.snapshots[0].redacted_json = JSON.stringify(q); },
+    b => { const q = JSON.parse(b.snapshots[0].redacted_json); q.findings[0].size.logical_bytes = '999'; b.snapshots[0].redacted_json = JSON.stringify(q); },
+    b => { const q = JSON.parse(b.snapshots[0].redacted_json); q.findings[0].evidence[0].source = 'rule'; b.snapshots[0].redacted_json = JSON.stringify(q); },
+  ];
+  for (const [i, mutate] of mutations.entries()) await c.run('W_BEHAVIOR reject semantic mutation ' + i, () => {
+    const b = clone(cases[1].bundle); mutate(b); assert.throws(() => assertReviewInput(b), error);
+  });
+  for (const path of ['', '.', '..', 'CON', 'con .txt', 'LPT².txt', 'COM1', 'CONIN$', 'x.', 'x ', 'a//b', 'a\\b', 'a:b', '<img>', 'a\u007f', '\ud800', 'x'.repeat(256)]) {
+    await c.run('W_BEHAVIOR Windows name rejection ' + JSON.stringify(path), () => {
+      const b = clone(cases[1].bundle); b.snapshots[0].view.findings[0].title = b.snapshots[0].view.findings[0].relative_path = path;
+      assert.throws(() => assertReviewInput(b), error);
+    });
+  }
+  for (const path of ['cön', 'COM0', 'COM10', 'con\u00a0.txt', '％', '目录😀', 'x'.repeat(255)]) await c.run('W_BEHAVIOR R ASCII-only name semantics', () => {
+    const b = clone(cases[1].bundle); b.snapshots[0].view.findings[0].title = b.snapshots[0].view.findings[0].relative_path = path; assertReviewInput(b);
+  });
+  await c.run('W_BEHAVIOR JSON data rejects accessors without invocation', () => {
+    let called = false;
+    const b = clone(cases[1].bundle); Object.defineProperty(b, 'x', { enumerable: true, get() { called = true; throw new Error('secret'); } });
+    assert.throws(() => assertReviewInput(b), error); assert.equal(called, false);
+  });
+  for (const mutate of [b => { b[Symbol('x')] = 1; }, b => { b.loop = b; }, b => { delete b.snapshots[0]; }, b => { Object.setPrototypeOf(b, { secret: true }); }, b => { Object.defineProperty(b, 'hidden', { value: 1 }); }]) {
+    await c.run('W_BEHAVIOR reject non-JSON', () => { const b = clone(cases[1].bundle); mutate(b); assert.throws(() => assertReviewInput(b), error); });
+  }
+  for (const { name, bundle, accepted } of budgetExamples()) await c.run('W_DIR_BUDGET model ' + name, () => {
+    const before = clone(bundle);
+    if (accepted) {
+      assert.equal(assertReviewInput(bundle), bundle);
+      for (const s of bundle.snapshots) assert.equal(exportText(bundle, s.view.scan_id), s.redacted_json);
+    } else assert.throws(() => assertReviewInput(bundle), error);
+    assert.deepEqual(bundle, before, 'Never repair budgets, trim findings, or rewrite Q');
+  });
+  c.done();
+});
+
+test('native_review_stream_and_launcher', async () => {
+  const c = checks();
+  for (const { bundle, id } of cases) await c.run('W_BEHAVIOR stream ' + id, async () => {
+    const bytes = Buffer.from(JSON.stringify(bundle));
+    assert.deepEqual(await readSession(Readable.from(Array.from(bytes, b => Buffer.from([b])))), bundle);
+    assert.deepEqual(await readSession(stream(Buffer.concat([bytes, Buffer.from('\n')]))), bundle);
+  });
+  const text = JSON.stringify(cases[1].bundle);
+  for (const bad of [Buffer.from('\ufeff' + text), Buffer.from(' ' + text), Buffer.from(text + '\n\n'), Buffer.from(text + '\r\n'), Buffer.from(text + '{}'), Buffer.from(text.slice(0, -1)), Buffer.from(text.replace('{', '{"read_only":true,')), Buffer.from(text.replace('{', '{"read_\\u006fnly":true,')), Buffer.from(text.replace(':', ': ')), Buffer.from(JSON.stringify(legacy)), Buffer.from('[]')]) {
+    await c.run('W_STREAM_BOUNDARY compact/native boundary', () => assert.rejects(readSession(stream(bad)), error));
+  }
+  await c.run('W_STREAM_BOUNDARY decoded strings and nonbytes rejected', async () => {
+    await assert.rejects(readSession(Readable.from([text])), error);
+    await assert.rejects(readSession(Readable.from([123])), error);
+    await assert.rejects(readSession(stream(Buffer.from(text)).setEncoding('utf8')), error);
+    await assert.rejects(readSession({ async *[Symbol.asyncIterator]() { yield Buffer.from(text); } }), error);
+  });
+  await c.run('W_STREAM_BOUNDARY copied chunks', async () => {
+    const b = Buffer.from(JSON.stringify(cases[0].bundle));
+    const s = Readable.from((async function* () { yield b; await new Promise(r => setImmediate(r)); b.fill(120); })());
+    assert.deepEqual(await readSession(s), cases[0].bundle);
+  });
+  await c.run('W_STREAM_BOUNDARY sanitized stream error', async () => {
+    await assert.rejects(readSession(Readable.from((async function* () { throw new Error('F:/private/secret'); })())), error);
+  });
+  await c.run('W_STREAM_BOUNDARY strict UTF8 independent of model rejection', async () => {
+    const b = clone(cases[1].bundle), f = b.snapshots[0].view.findings[0];
+    f.title = f.relative_path = 'free-é-name';
+    const valid = Buffer.from(JSON.stringify(b));
+    const bad = Buffer.from(valid);
+    for (let i = 0; i < bad.length - 1; i++) if (bad[i] === 0xc3 && bad[i + 1] === 0xa9) { bad[i] = 0xff; bad[i + 1] = 0xff; }
+    assertReviewInput(JSON.parse(new TextDecoder().decode(bad)));
+    assert.deepEqual(await readSession(stream(valid)), b);
+    await assert.rejects(readSession(stream(bad)), error, 'W_STREAM_BOUNDARY invalid free path bytes must fail');
+    await assert.rejects(readSession(stream(Buffer.from([0xf0, 0x80, 0x80, 0x80]))), error);
+  });
+  await c.run('W_STREAM_BOUNDARY byte limit with optional LF', async () => {
+    // A large valid synthetic report, then legal JSON escapes to reach the exact
+    // wire boundary without changing any decoded value or Q string.
+    const b = renamed('byte-boundary'), s = b.snapshots[0], template = clone(s.view.findings[0]);
+    b.policy.limits = { max_depth: 32, max_entries: 10000, max_dir_entries: 256 };
+    s.view.findings = Array.from({ length: 2000 }, (_, i) => {
+      const f = clone(template); f.id = `entry-${i + 1}`;
+      f.title = f.relative_path = `f${i}/` + Array(15).fill('x'.repeat(250)).join('/'); return f;
+    });
+    s.view.totals.scanned_entries = 2000;
+    s.summary.counts.findings = s.summary.risk_counts.protected = s.summary.category_counts.unknown = 2000;
+    s.summary.totals = clone(s.view.totals);
+    const q = JSON.parse(s.redacted_json), qt = q.findings[0];
+    q.summary = clone(s.summary);
+    q.findings = s.view.findings.map((_, i) => ({ ...clone(qt), finding_ref: `finding-${i + 1}` }));
+    s.redacted_json = JSON.stringify(q);
+    assertReviewInput(b);
+    let wire = JSON.stringify(b), extra = 67108864 - Buffer.byteLength(wire);
+    let escapes = Math.floor(extra / 5), slashes = extra % 5;
+    wire = wire.replace(/x+/g, run => { const n = Math.min(escapes, run.length); escapes -= n; return '\\u0078'.repeat(n) + run.slice(n); });
+    wire = wire.replace(/\//g, slash => slashes-- > 0 ? '\\/' : slash);
+    assert.equal(escapes, 0); assert.equal(Buffer.byteLength(wire), 67108864);
+    const exact = Buffer.from(wire);
+    assert.deepEqual(await readSession(stream(exact)), b);
+    assert.deepEqual(await readSession(stream(Buffer.concat([exact, Buffer.from('\n')]))), b);
+    // Add one legal escape byte: decoding still gives the same valid report.
+    const over = Buffer.from(wire.replace(/(?<!\\)\//, '\\/'));
+    assert.equal(over.length, 67108865);
+    await assert.rejects(readSession(stream(over)), error);
+    await assert.rejects(readSession(stream(Buffer.concat([over, Buffer.from('\n')]))), error);
+    const part = Buffer.alloc(1024 * 1024, 120);
+    const oversized = Readable.from((async function* () { for (let i = 0; i < 80; i++) yield part; })());
+    await assert.rejects(readSession(oversized), error); assert.equal(oversized.destroyed, true);
+  });
+  for (const options of [{}, { initialDirectory: '' }, { initialDirectory: 'x\0y' }, { initialDirectory: 'x'.repeat(4097) }, { initialDirectory: 1 }, { initialDirectory: 'x', port: -1 }, { initialDirectory: 'x', port: 65536 }, { initialDirectory: 'x', port: 0.5 }, { initialDirectory: 'x', binaryPath: 'cmd.exe' }, { initialDirectory: 'x', env: {} }, { initialDirectory: 'x', args: [] }, null]) {
+    await c.run('W_BEHAVIOR invalid launcher arguments before spawn', () => assert.rejects(launchNative(options), { name: 'Error', message: 'Native session unavailable.' }));
+  }
+  await c.run('W_BEHAVIOR import without server/process side effects and CLI arity', () => {
+    const file = new URL('../launch.mjs', import.meta.url);
+    const imported = spawnSync(process.execPath, ['--input-type=module', '-e', `await import(${JSON.stringify(file.href)})`], { encoding: 'utf8', timeout: 5000, windowsHide: true });
+    assert.equal(imported.status, 0); assert.equal(imported.stdout, ''); assert.equal(imported.stderr, '');
+    for (const args of [[], ['a', 'b']]) {
+      const r = spawnSync(process.execPath, [file.pathname.replace(/^\//, ''), ...args], { encoding: 'utf8', timeout: 5000, windowsHide: true });
+      assert.equal(r.status, 64); assert.equal(r.stdout, ''); assert.equal(r.stderr, 'Invalid native launcher arguments.\n');
+    }
+  });
+  for (const { name, bundle, accepted } of budgetExamples()) await c.run('W_DIR_BUDGET readSession ' + name, async () => {
+    const before = clone(bundle), bytes = Buffer.from(JSON.stringify(bundle));
+    if (accepted) assert.deepEqual(await readSession(stream(bytes)), before);
+    else await assert.rejects(readSession(stream(bytes)), error);
+    assert.deepEqual(bundle, before);
+  });
+  c.done();
+});
+
+test('native_review_http_and_privacy', async () => {
+  const c = checks();
+  for (const input of [renamed('alpha'), renamed('beta'), clone(cases[0].bundle), clone(legacy)]) {
+    const expected = clone(input);
+    const pending = startServer({ bundle: input });
+    input.snapshots.length = 0; input.session_id = 'mutated-after-call';
+    const server = await pending;
+    try {
+      await c.run('W_BEHAVIOR synchronous immutable capture', async () => assert.deepEqual(JSON.parse((await raw(server.url, '/session.json')).body), expected));
+      for (const [i, s] of expected.snapshots.entries()) await c.run('W_Q_ONLY W_BEHAVIOR exact Q route and HEAD', async () => {
+        for (const method of ['GET', 'HEAD']) {
+          const r = await raw(server.url, `/exports/${i + 1}.json`, { method });
+          assert.equal(r.status, 200); assert.equal(r.headers['content-type'], 'application/json;charset=utf-8');
+          assert.equal(r.headers['content-disposition'], `attachment; filename="water-report-${i + 1}.json"`);
+          assert.equal(r.headers['content-length'], String(Buffer.byteLength(s.redacted_json)));
+          assert.deepEqual(r.body, method === 'HEAD' ? Buffer.alloc(0) : Buffer.from(s.redacted_json));
+        }
+      });
+      if (!expected.snapshots.length) await c.run('W_SELECTION_CANCELLED no export', async () => assert.equal((await raw(server.url, '/exports/1.json')).status, 404));
+      for (const path of ['/exports/0.json', '/exports/01.json', '/exports/33.json', '/exports/1.json?x', '/exports/1.json#x', '/exports/%31.json', '/exports//1.json', '//exports/1.json', '/exports/../session.json', '/%2e%2e/README.md', '/exports/1.json/extra', '/exports/1.json;raw', '/exports/1.json%00', '/exports\\1.json', '/session.json?x', '/reports.json', '/README.md', '/../README.md', '/styles.css?x', '/scan', '/path', '/raw', '/upload', '/launch.mjs']) {
+        await c.run('W_BEHAVIOR raw route boundary ' + path, async () => { const r = await raw(server.url, path); assert.equal(r.status, 404); assert.equal(r.body.toString(), 'Native review unavailable.'); });
+      }
+      for (const [options, status] of [[{ method: 'POST' }, 405], [{ host: 'localhost:' + new URL(server.url).port }, 403], [{ host: 'evil.invalid' }, 403]]) await c.run('W_BEHAVIOR methods and Host', async () => assert.equal((await raw(server.url, '/session.json', options)).status, status));
+      for (const path of ['/', '/styles.css', '/app.mjs', '/model.mjs', '/scan-review/model.mjs', '/report-reader/model.mjs', '/session.json']) await c.run('W_BEHAVIOR fixed routes and headers', async () => {
+        const r = await raw(server.url, path), h = await raw(server.url, path, { method: 'HEAD' });
+        assert.equal(r.status, 200); assert.equal(h.status, 200); assert.equal(h.body.length, 0); assert.equal(r.headers['content-length'], h.headers['content-length']);
+        assert.equal(r.headers['cache-control'], 'no-store'); assert.equal(r.headers['x-content-type-options'], 'nosniff'); assert.equal(r.headers['referrer-policy'], 'no-referrer'); assert.equal(r.headers['access-control-allow-origin'], undefined);
+        assert.equal(r.headers['content-security-policy'], "default-src 'none';script-src 'self';style-src 'self';connect-src 'self';form-action 'none';frame-ancestors 'none';base-uri 'none'");
+      });
+    } finally { await server.close(); }
+  }
+  await c.run('W_BEHAVIOR real stream to HTTP public assembly', async () => {
+    const bundle = renamed('stream'), server = await startFromStream({ stream: stream(Buffer.from(JSON.stringify(bundle))) });
+    try { assert.deepEqual(JSON.parse((await raw(server.url, '/session.json')).body), bundle); } finally { await server.close(); }
+  });
+  for (const { name, bundle, accepted } of budgetExamples()) {
+    for (const entry of ['startServer', 'startFromStream']) await c.run('W_DIR_BUDGET ' + entry + ' ' + name, async () => {
+      const before = clone(bundle);
+      const open = () => entry === 'startServer' ? startServer({ bundle })
+        : startFromStream({ stream: stream(Buffer.from(JSON.stringify(bundle))) });
+      if (accepted) {
+        const server = await open();
+        try {
+          assert.deepEqual(JSON.parse((await raw(server.url, '/session.json')).body), before);
+          if (bundle.snapshots.length) assert.deepEqual((await raw(server.url, '/exports/1.json')).body, Buffer.from(bundle.snapshots[0].redacted_json));
+          else assert.equal((await raw(server.url, '/exports/1.json')).status, 404);
+        } finally { await server.close(); }
+      } else {
+        // Close any wrongly accepted server even when the assertion goes red.
+        await assert.rejects(async () => {
+          let server;
+          try { server = await open(); } finally { await server?.close(); }
+        }, error);
+      }
+      assert.deepEqual(bundle, before);
+    });
+  }
+  c.done();
+});
