@@ -2,7 +2,11 @@
 
 2026-10-17。项目：`F:/new/smaltalk/water`。供后续总控接手与Keeper ingest；未写共享Vault或其他项目。
 
-## 当前交接：V已收单集成，W待正式提交（2026-10-19）
+## 当前交接：W正式收单返修，补单01 READY（2026-10-19）
+
+A–U及六补单保持VERIFIED（Windows受控范围）。V接收ec1ee25/受测3087564/集成8599dab，保持INTEGRATED。W已正式收单，接收b65902d/受测63db62b；原证据及总控独立五测通过，但每目录预算与报告矛盾仍被接受，原票CHANGES_REQUESTED。W补充单01已冻结并在原干净提交实际resume通过，READY待原W对话续做，不重贴原票或新开实现者。本轮总控原生系统窗口0、无物理fixture访问。真实V→W联合验收未完成，V/W不记VERIFIED；真实用户scope、生产竞态、macOS和桌面未验收，M1仍未完成。 W交付1656路径/1642原字节文件，三final/四稳定红绿和总控新五测通过；预算一致性在公开入口仍失败。原树首个续做HEAD b65902d8f702bf34097adffd7fbaa7daddabe934干净，原报告/证据保持。新SPEC/CASES/probe/wrapper从主检出读，5锁条目/14继承锁/341唯一主线冻结；实际resume已观察12个预期拒绝却接受、正对照通过。正式[收单报告](acceptance/wave1/controller/WATER-W1-W-REVIEW-20261019.md)和[补单READY/外贴句](dispatch/wave1/W-NATIVE-REVIEW-ADDENDUM-01-READY-REPORT.md)。等待用户转贴原W对话，补单尚无启动证据，不新开实现者。
+
+## 此前交接：V已收单集成，W当时待正式提交（2026-10-19，历史）
 
 V接收ec1ee25034185d95279debcd589be49b84458af1、受测30875645f03ddc01019eb4b3cb00f9ab7d1c068d，单票收单通过、隔离集成8599dab31526e3970bf9d5e94f5122c7f3abae28已快进主线。403交付路径/394原字节归档、五final及四条完整红绿链审计通过；总控新私有树格式/clippy/build、7编译拒绝/2成功对照和3无窗口CLI错误通过。真实原生行为核验原精确SHA日志，没有总控原生重放；V状态INTEGRATED，最终V→W链仍未验收，不记VERIFIED。见[V收单报告和原始证据](acceptance/wave1/controller/WATER-W1-V-REVIEW-20261019.md)。
 

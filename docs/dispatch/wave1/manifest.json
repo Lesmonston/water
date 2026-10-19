@@ -1,7 +1,7 @@
 {
   "schemaVersion": 1,
   "wave": "water-wave1",
-  "status": "A_U_VERIFIED_V_INTEGRATED_W_RUNNING",
+  "status": "A_U_VERIFIED_V_INTEGRATED_W_CHANGES_REQUESTED",
   "controllerRoot": "F:/new/smaltalk/water",
   "controllerBranch": "main",
   "controller": "Codex",
@@ -2106,7 +2106,7 @@
     {
       "id": "WATER-W1-W",
       "title": "原生会话页面、原字节流与固定启动器",
-      "status": "RUNNING",
+      "status": "CHANGES_REQUESTED",
       "slot": "w",
       "worktree": "F:/new/smaltalk/water/.worktrees/w",
       "branch": "worker/water-w1-w",
@@ -2155,7 +2155,8 @@
         "prototypes/native-review/tests/model.test.mjs",
         "prototypes/native-review/tests/browser.test.mjs",
         "prototypes/native-review/README.md",
-        "docs/dispatch/reports/WATER-W1-W-REPORT.md"
+        "docs/dispatch/reports/WATER-W1-W-REPORT.md",
+        "docs/dispatch/reports/WATER-W1-W-ADDENDUM-01-REPORT.md"
       ],
       "allowedPrefixes": [
         "docs/acceptance/wave1/w/"
@@ -2173,7 +2174,7 @@
         "WATER-W1-I",
         "WATER-W1-T"
       ],
-      "model": null,
+      "model": "Codex / GPT-6 (worker self-report)",
       "modelAssignment": "user-arranged; worker reports actual engine/model",
       "dispatchedAt": null,
       "startedAt": null,
@@ -2196,7 +2197,38 @@
       "preflightEvidence": "docs/dispatch/wave1/NATIVE-HOST-READY-REPORT.md",
       "baselineEvidence": "docs/acceptance/wave1/controller/w1-native-host-preflight-20261019/w/2026-10-19T02-18-01.280Z-26808-baseline-result.json",
       "activityObservedAt": "2026-10-19T03:48:46.140Z",
-      "activityEvidence": "Uncommitted prototypes/native-review files and actual helper suites/negative controls; no implementation/report commit at current receipt audit. User reported complete, actual W submission still incomplete."
+      "activityEvidence": "Formal submission b65902d/tested 63db62b received. Original evidence and independent five tests pass; W_DIR_BUDGET blocks acceptance. Addendum 01 READY, original W conversation only.",
+      "submittedCommit": "b65902d8f702bf34097adffd7fbaa7daddabe934",
+      "implementationCommit": "63db62b020efff4601a03da7dc561549dcb1f762",
+      "reviewedCommit": "63db62b020efff4601a03da7dc561549dcb1f762",
+      "submissionObservedAt": "2026-10-19T04:22:12.364Z",
+      "controllerReview": "docs/acceptance/wave1/controller/WATER-W1-W-REVIEW-20261019.md",
+      "addenda": [
+        "docs/dispatch/tickets/WATER-W1-W-ADDENDUM-01-20261019.md"
+      ],
+      "revisionReport": "docs/dispatch/reports/WATER-W1-W-ADDENDUM-01-REPORT.md",
+      "revisionDispatchStatus": "READY",
+      "addendum01": {
+        "status": "READY",
+        "ticket": "docs/dispatch/tickets/WATER-W1-W-ADDENDUM-01-20261019.md",
+        "report": "docs/dispatch/reports/WATER-W1-W-ADDENDUM-01-REPORT.md",
+        "resumeCommit": "b65902d8f702bf34097adffd7fbaa7daddabe934",
+        "contractLock": "contracts/native-review-addendum-v1/freeze.lock.json",
+        "lockSha256": "9bbd0a661705b2dd42fe7fec2824f7c1fd3f17505cb9d15a46f6fd6e7271ec6c",
+        "helper": "scripts/native-review-addendum-check.mjs",
+        "helperAuthority": "controller checkout; invoke absolute path from original W tree",
+        "evidencePrefix": "docs/acceptance/wave1/w/addendum-01/",
+        "baselineStatus": "PASSED",
+        "systemNativeDialogBudget": 0,
+        "physicalFixturePermission": false,
+        "reason": "W_DIR_BUDGET: 7 same-directory findings accepted with declared per-directory cap 1 by model, stream and HTTP; independent original five tests still pass.",
+        "baselineMeaning": "Clean exact original receipt SHA and locked scope; known budget regression observed as expected, not product acceptance.",
+        "baselineEvidence": "docs/acceptance/wave1/controller/w1-w-review-20261019/resume/2026-10-19T04-22-12.748Z-31248-resume-result.json",
+        "preflightEvidence": "docs/dispatch/wave1/W-NATIVE-REVIEW-ADDENDUM-01-READY-REPORT.md",
+        "readyOn": "2026-10-19",
+        "dispatchedAt": null,
+        "startedAt": null
+      }
     }
   ],
   "preflightStatus": "PASSED",
@@ -2226,5 +2258,7 @@
   },
   "nativeHostDecision": "docs/decisions/ADR-014-native-session-and-viewer.md",
   "nativeHostPreflightStatus": "PASSED",
-  "nativeHostPreflightEvidence": "docs/dispatch/wave1/NATIVE-HOST-READY-REPORT.md"
+  "nativeHostPreflightEvidence": "docs/dispatch/wave1/NATIVE-HOST-READY-REPORT.md",
+  "nativeReviewAddendumPreflightStatus": "PASSED_EXPECTED_REGRESSION",
+  "nativeReviewAddendumPreflightEvidence": "docs/dispatch/wave1/W-NATIVE-REVIEW-ADDENDUM-01-READY-REPORT.md"
 }

@@ -1,6 +1,6 @@
 # 本波收口后的下一波前置
 
-当前更新（2026-10-19）：以下候选的冻结、建树和实际baseline已完成，V已[收单集成](../../acceptance/wave1/controller/WATER-W1-V-REVIEW-20261019.md)，W在原对话负控/验证，不重复外贴；[V/W原派前回执](NATIVE-HOST-READY-REPORT.md)保留。真实V→W联合链仍未验收，无自动实现者。下文保留为出票前的历史前置计划，不再用于推断当前票状态。
+当前更新（2026-10-19）：以下候选的冻结、建树和实际baseline已完成，V已[收单集成](../../acceptance/wave1/controller/WATER-W1-V-REVIEW-20261019.md)，W已正式收单但预算回归失败，[补单01 READY](W-NATIVE-REVIEW-ADDENDUM-01-READY-REPORT.md)待原对话续做，不重复外贴原票；[V/W原派前回执](NATIVE-HOST-READY-REPORT.md)保留。真实V→W联合链仍未验收，无自动实现者。下文保留为出票前的历史前置计划，不再用于推断当前票状态。
 
 2026-10-19原收口时：A–U及六补单已VERIFIED（Windows受控范围），当时没有未结外贴票或新READY票。以下为当时的候选安排。
 

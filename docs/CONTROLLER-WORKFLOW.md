@@ -98,7 +98,7 @@ READY只表示总控已准备好，不表示用户已转贴。得到用户已贴
 
 ## 当前落实程度
 
-最新2026-10-19：A–U及六补单保持VERIFIED（Windows受控范围）。V已收单、单票验收并集成，接收ec1ee25/受测3087564/集成8599dab；本次总控新增原生窗口0，原生行为按精确SHA原始证据审计，另完成独立无窗口复核。W仍在原对话实现/验证，尚未交齐正式提交和报告，不重复派单。V暂为INTEGRATED，真实V→W固定启动器联合验收未完成，不记VERIFIED。真实用户scope、生产竞态、macOS和桌面未验收，M1仍未完成。 [V总控收单](acceptance/wave1/controller/WATER-W1-V-REVIEW-20261019.md)和manifest为当前状态，以下为派前/旧收单历史。 [RTU验收](acceptance/wave1/controller/WATER-W1-RTU-REVIEW-20261019.md)优先于以下派前/在途历史。
+最新2026-10-19：A–U及六补单保持VERIFIED（Windows受控范围）。V接收ec1ee25/受测3087564/集成8599dab，保持INTEGRATED。W已正式收单，接收b65902d/受测63db62b；原证据及总控独立五测通过，但每目录预算与报告矛盾仍被接受，原票CHANGES_REQUESTED。W补充单01已冻结并在原干净提交实际resume通过，READY待原W对话续做，不重贴原票或新开实现者。本轮总控原生系统窗口0、无物理fixture访问。真实V→W联合验收未完成，V/W不记VERIFIED；真实用户scope、生产竞态、macOS和桌面未验收，M1仍未完成。 [W正式收单返修](acceptance/wave1/controller/WATER-W1-W-REVIEW-20261019.md)、[补单READY](dispatch/wave1/W-NATIVE-REVIEW-ADDENDUM-01-READY-REPORT.md)和manifest为当前状态，以下为历史。 [RTU验收](acceptance/wave1/controller/WATER-W1-RTU-REVIEW-20261019.md)优先于以下派前/在途历史。
 
 最新2026-10-19：A–Q、S及五补单保持VERIFIED（Windows受控范围）。S原生目录选择已通过独立验收并集成；R补单01、T脱敏下载、U内存清单保持原波次分配，等待各自回执。没有自动实现者；原生宿主到R/报告页的完整用户闭环、真实用户scope、macOS和桌面尚未验收，M1仍未完成。 [S总控验收](acceptance/wave1/controller/WATER-W1-S-REVIEW-20261019.md)记录受测SHA和原始证据；以下派前状态均为历史。
 

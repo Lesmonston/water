@@ -1,0 +1,185 @@
+{
+  "startedAt": "2026-10-19T04:15:36.767Z",
+  "implementation": "63db62b020efff4601a03da7dc561549dcb1f762",
+  "submitted": "b65902d8f702bf34097adffd7fbaa7daddabe934",
+  "tree": "F:\\new\\smaltalk\\water\\.worktrees\\review-w-20261019",
+  "systemNativeDialogsLaunched": 0,
+  "physicalFixtureAccess": false,
+  "commands": [
+    {
+      "binary": "git",
+      "argv": [
+        "-c",
+        "core.hooksPath=NUL",
+        "-c",
+        "core.fsmonitor=false",
+        "rev-parse",
+        "HEAD"
+      ],
+      "exitCode": 0,
+      "error": null,
+      "log": "2026-10-19T04-15-36.765Z-27236-1.log"
+    },
+    {
+      "binary": "git",
+      "argv": [
+        "-c",
+        "core.hooksPath=NUL",
+        "-c",
+        "core.fsmonitor=false",
+        "status",
+        "--porcelain",
+        "--untracked-files=all"
+      ],
+      "exitCode": 0,
+      "error": null,
+      "log": "2026-10-19T04-15-36.765Z-27236-2.log"
+    },
+    {
+      "binary": "C:\\Program Files\\nodejs\\node.exe",
+      "argv": [
+        "--check",
+        "prototypes/native-review/app.mjs"
+      ],
+      "exitCode": 0,
+      "error": null,
+      "log": "2026-10-19T04-15-36.765Z-27236-3.log"
+    },
+    {
+      "binary": "C:\\Program Files\\nodejs\\node.exe",
+      "argv": [
+        "--check",
+        "prototypes/native-review/model.mjs"
+      ],
+      "exitCode": 0,
+      "error": null,
+      "log": "2026-10-19T04-15-36.765Z-27236-4.log"
+    },
+    {
+      "binary": "C:\\Program Files\\nodejs\\node.exe",
+      "argv": [
+        "--check",
+        "prototypes/native-review/server.mjs"
+      ],
+      "exitCode": 0,
+      "error": null,
+      "log": "2026-10-19T04-15-36.765Z-27236-5.log"
+    },
+    {
+      "binary": "C:\\Program Files\\nodejs\\node.exe",
+      "argv": [
+        "--check",
+        "prototypes/native-review/host.mjs"
+      ],
+      "exitCode": 0,
+      "error": null,
+      "log": "2026-10-19T04-15-36.765Z-27236-6.log"
+    },
+    {
+      "binary": "C:\\Program Files\\nodejs\\node.exe",
+      "argv": [
+        "--check",
+        "prototypes/native-review/launch.mjs"
+      ],
+      "exitCode": 0,
+      "error": null,
+      "log": "2026-10-19T04-15-36.765Z-27236-7.log"
+    },
+    {
+      "binary": "C:\\Program Files\\nodejs\\node.exe",
+      "argv": [
+        "--check",
+        "prototypes/native-review/tests/model.test.mjs"
+      ],
+      "exitCode": 0,
+      "error": null,
+      "log": "2026-10-19T04-15-36.765Z-27236-8.log"
+    },
+    {
+      "binary": "C:\\Program Files\\nodejs\\node.exe",
+      "argv": [
+        "--check",
+        "prototypes/native-review/tests/browser.test.mjs"
+      ],
+      "exitCode": 0,
+      "error": null,
+      "log": "2026-10-19T04-15-36.765Z-27236-9.log"
+    },
+    {
+      "binary": "C:\\Program Files\\nodejs\\node.exe",
+      "argv": [
+        "--test",
+        "--test-concurrency=1",
+        "--test-reporter=tap",
+        "prototypes/native-review/tests/model.test.mjs",
+        "prototypes/native-review/tests/browser.test.mjs"
+      ],
+      "exitCode": 0,
+      "error": null,
+      "log": "2026-10-19T04-15-36.765Z-27236-10.log"
+    },
+    {
+      "binary": "git",
+      "argv": [
+        "-c",
+        "core.hooksPath=NUL",
+        "-c",
+        "core.fsmonitor=false",
+        "status",
+        "--porcelain",
+        "--untracked-files=all"
+      ],
+      "exitCode": 0,
+      "error": null,
+      "log": "2026-10-19T04-15-36.765Z-27236-11.log"
+    }
+  ],
+  "originalFiveTests": "passed",
+  "headlessScreenshots": [
+    {
+      "source": "F:\\new\\smaltalk\\water\\.worktrees\\review-w-20261019\\.local\\browser-lab\\native-review-1440x1000.png",
+      "copy": "2026-10-19T04-15-36.765Z-27236-native-review-1440x1000.png",
+      "bytes": 94887,
+      "sha256": "c3888fcfa1589875c7f2a95bd9f67c73b8ed5301c3807d5b158a4e2024d82553"
+    },
+    {
+      "source": "F:\\new\\smaltalk\\water\\.worktrees\\review-w-20261019\\.local\\browser-lab\\native-review-900x800.png",
+      "copy": "2026-10-19T04-15-36.765Z-27236-native-review-900x800.png",
+      "bytes": 67439,
+      "sha256": "2c3b6c9d6e5677efedb5483c925f221f3c7f6afd83ee911cdd72377b2dbafe16"
+    },
+    {
+      "source": "F:\\new\\smaltalk\\water\\.worktrees\\review-w-20261019\\.local\\browser-lab\\native-review-cancel.png",
+      "copy": "2026-10-19T04-15-36.765Z-27236-native-review-cancel.png",
+      "bytes": 43754,
+      "sha256": "b3aa9b27d2d6ccd6bf200c685cbcef2d289a1dea855492940ebe7c40854e0ee9"
+    }
+  ],
+  "positiveNativeCases": 8,
+  "positivePerDirectoryBudget": {
+    "minimumObservedDirectChildren": 7,
+    "sameLimitAccepted": true,
+    "selectionCancelledLimitOneAccepted": true
+  },
+  "directoryBudget": {
+    "inputFile": "2026-10-19T04-15-36.765Z-27236-invalid-directory-budget.json",
+    "inputSha256": "8c236704ac5b3544b05b2e4a1ce4385107f5c32e6f6d8cc82911b2c40934f887",
+    "modelSha256": "a0948810e2a21286cce29852fdc4da8b812090a89340be3bbea31fd0d2bf78e7",
+    "observedDirectChildren": {
+      "": 7,
+      "dir": 1
+    },
+    "declaredLimit": 1,
+    "modelAccepted": true,
+    "streamAccepted": true,
+    "serverAccepted": true,
+    "servedCompleted": true
+  },
+  "failures": [
+    "W_DIR_BUDGET: model accepted more same-directory findings than max_dir_entries",
+    "W_DIR_BUDGET: public native stream accepted the inconsistent policy/report",
+    "W_DIR_BUDGET: HTTP session exposed completed report under contradictory directory limit"
+  ],
+  "status": "failed",
+  "endedAt": "2026-10-19T04:16:04.467Z"
+}

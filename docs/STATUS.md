@@ -21,9 +21,15 @@
 
 ## 下一步
 
-A–U及六补单保持VERIFIED（Windows受控范围）。V已收单、单票验收并集成，接收ec1ee25/受测3087564/集成8599dab；本次总控新增原生窗口0，原生行为按精确SHA原始证据审计，另完成独立无窗口复核。W仍在原对话实现/验证，尚未交齐正式提交和报告，不重复派单。V暂为INTEGRATED，真实V→W固定启动器联合验收未完成，不记VERIFIED。真实用户scope、生产竞态、macOS和桌面未验收，M1仍未完成。 [V/W正式派前回执](dispatch/wave1/NATIVE-HOST-READY-REPORT.md)。
+A–U及六补单保持VERIFIED（Windows受控范围）。V接收ec1ee25/受测3087564/集成8599dab，保持INTEGRATED。W已正式收单，接收b65902d/受测63db62b；原证据及总控独立五测通过，但每目录预算与报告矛盾仍被接受，原票CHANGES_REQUESTED。W补充单01已冻结并在原干净提交实际resume通过，READY待原W对话续做，不重贴原票或新开实现者。本轮总控原生系统窗口0、无物理fixture访问。真实V→W联合验收未完成，V/W不记VERIFIED；真实用户scope、生产竞态、macOS和桌面未验收，M1仍未完成。 [V/W正式派前回执](dispatch/wave1/NATIVE-HOST-READY-REPORT.md)。
 
-## V已收单集成，W继续原对话（2026-10-19，最新）
+## W正式收单返修，补单01 READY（2026-10-19，最新）
+
+[W总控验收](acceptance/wave1/controller/WATER-W1-W-REVIEW-20261019.md)：1656交付路径/1642归档/25872812字节、原三final与四稳定红绿通过；隔离树一次新完整五测5/5和三图通过。但原完整报告根有7直接子项，将每目录上限降到1仍在模型/stream/HTTP接受且completed，独立回归失败，W不集成。
+
+[补充单01](dispatch/tickets/WATER-W1-W-ADDENDUM-01-20261019.md)已冻结并实际resume通过，12次矛盾接受按预期观察，表示派前已知回归复现，不表示产品已修好；[READY回执](dispatch/wave1/W-NATIVE-REVIEW-ADDENDUM-01-READY-REPORT.md)。原树首个续做HEAD b65902d，干净；新控制从主检出绝对路径读，旧报告/证据/原336保持，合计341主线冻结。贴回原W对话，不新开执行者，无系统原生窗口/物理fixture。
+
+## V已收单集成，W当时继续原对话（2026-10-19，历史）
 
 [V总控收单](acceptance/wave1/controller/WATER-W1-V-REVIEW-20261019.md)：403交付路径/394原字节归档、五final及四条完整红绿链审计通过；新私有树格式/clippy/build、9编译证明/3无窗口CLI错误通过。20次进程观察未见残留原生进程，本次总控未启动原生窗口。W此前下载断言失败后恢复完整五绿，仍须完成负控/final/提交与正式报告。两个“完成”通知不替代实际提交，W不重复派出。
 
