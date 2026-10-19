@@ -1,0 +1,63 @@
+--- stdout ---
+
+running 5 tests
+test session_cancellation_and_cleanup ... FAILED
+test session_errors_preserve_registry ... FAILED
+test session_native_capture ... FAILED
+test session_public_wire_and_cli ... FAILED
+test session_selection_cancelled ... ok
+
+failures:
+
+failures:
+    session_cancellation_and_cleanup
+    session_errors_preserve_registry
+    session_native_capture
+    session_public_wire_and_cli
+
+test result: FAILED. 1 passed; 4 failed; 0 ignored; 0 measured; 0 filtered out; finished in 7.96s
+
+
+--- stderr ---
+WATER_PICKER_CASE select
+WATER_UI_WINDOW 12252 #32770 visible=True
+WATER_UI_ACTION 12252 select
+WATER_PICKER_CASE select
+WATER_UI_WINDOW 12252 #32770 visible=True
+WATER_UI_ACTION 12252 select
+
+thread 'session_cancellation_and_cleanup' (30068) panicked at tests\session_v1.rs:356:9:
+assertion `left == right` failed: V_BEHAVIOR real R observer called
+  left: 0
+ right: 1
+note: run with `RUST_BACKTRACE=1` environment variable to display a backtrace
+WATER_PICKER_CASE select
+WATER_UI_WINDOW 12252 #32770 visible=True
+WATER_UI_ACTION 12252 select
+WATER_PICKER_CASE select
+WATER_UI_WINDOW 12252 #32770 visible=True
+WATER_UI_ACTION 12252 select
+WATER_PICKER_CASE select
+WATER_UI_WINDOW 12252 #32770 visible=True
+WATER_UI_ACTION 12252 select
+WATER_PICKER_CASE select
+WATER_UI_WINDOW 12252 #32770 visible=True
+WATER_UI_ACTION 12252 select
+
+thread 'session_errors_preserve_registry' (8824) panicked at tests\session_v1.rs:430:6:
+V_SELECTED_ROOT session after errors: Scan(RootMismatch)
+WATER_PICKER_CASE select
+WATER_UI_WINDOW 12252 #32770 visible=True
+WATER_UI_ACTION 12252 select
+
+thread 'session_native_capture' (31348) panicked at tests\session_v1.rs:223:10:
+V_BEHAVIOR V_SELECTED_ROOT actual selected root must reach R: Scan(RootMismatch)
+WATER_PICKER_CASE select
+WATER_UI_WINDOW 12252 #32770 visible=True
+WATER_UI_ACTION 12252 select
+
+thread 'session_public_wire_and_cli' (31404) panicked at tests\session_v1.rs:549:6:
+V_SELECTED_ROOT public API: Scan(RootMismatch)
+WATER_PICKER_CASE cancel
+WATER_UI_WINDOW 12252 #32770 visible=True
+WATER_UI_ACTION 12252 cancel

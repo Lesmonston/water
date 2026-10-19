@@ -1,0 +1,379 @@
+{
+  "task": "WATER-W1-V",
+  "mode": "red-nc2",
+  "finalGate": false,
+  "startedAt": "2026-10-19T03:31:31.687Z",
+  "before": {
+    "head": "30a803537602211ed2a11c106c63fd27cefb260f",
+    "status": "?? packages/native-session/Cargo.lock\n?? packages/native-session/Cargo.toml\n?? packages/native-session/README.md\n?? packages/native-session/src/lib.rs\n?? packages/native-session/src/main.rs\n?? packages/native-session/src/v1.rs\n?? packages/native-session/tests/session_v1.rs"
+  },
+  "node": "v24.16.0",
+  "productTestsRun": true,
+  "frozenFiles": 104,
+  "commands": [
+    {
+      "binary": "git",
+      "argv": [
+        "-c",
+        "core.hooksPath=NUL",
+        "-c",
+        "core.fsmonitor=false",
+        "rev-parse",
+        "--path-format=absolute",
+        "--git-common-dir"
+      ],
+      "exitCode": 0,
+      "error": null
+    },
+    {
+      "binary": "git",
+      "argv": [
+        "-c",
+        "core.hooksPath=NUL",
+        "-c",
+        "core.fsmonitor=false",
+        "branch",
+        "--show-current"
+      ],
+      "exitCode": 0,
+      "error": null
+    },
+    {
+      "binary": "git",
+      "argv": [
+        "-c",
+        "core.hooksPath=NUL",
+        "-c",
+        "core.fsmonitor=false",
+        "merge-base",
+        "--is-ancestor",
+        "30a803537602211ed2a11c106c63fd27cefb260f",
+        "HEAD"
+      ],
+      "exitCode": 0,
+      "error": null
+    },
+    {
+      "binary": "git",
+      "argv": [
+        "-c",
+        "core.hooksPath=NUL",
+        "-c",
+        "core.fsmonitor=false",
+        "diff",
+        "--no-renames",
+        "--name-only",
+        "-z",
+        "30a803537602211ed2a11c106c63fd27cefb260f",
+        "HEAD"
+      ],
+      "exitCode": 0,
+      "error": null
+    },
+    {
+      "binary": "git",
+      "argv": [
+        "-c",
+        "core.hooksPath=NUL",
+        "-c",
+        "core.fsmonitor=false",
+        "diff",
+        "--no-renames",
+        "--name-only",
+        "-z",
+        "HEAD"
+      ],
+      "exitCode": 0,
+      "error": null
+    },
+    {
+      "binary": "git",
+      "argv": [
+        "-c",
+        "core.hooksPath=NUL",
+        "-c",
+        "core.fsmonitor=false",
+        "ls-files",
+        "--others",
+        "--exclude-standard",
+        "-z"
+      ],
+      "exitCode": 0,
+      "error": null
+    },
+    {
+      "binary": "git",
+      "argv": [
+        "-c",
+        "core.hooksPath=NUL",
+        "-c",
+        "core.fsmonitor=false",
+        "rev-parse",
+        "HEAD"
+      ],
+      "exitCode": 0,
+      "error": null
+    },
+    {
+      "binary": "git",
+      "argv": [
+        "-c",
+        "core.hooksPath=NUL",
+        "-c",
+        "core.fsmonitor=false",
+        "status",
+        "--porcelain",
+        "--untracked-files=all"
+      ],
+      "exitCode": 0,
+      "error": null
+    },
+    {
+      "binary": "C:\\Users\\37310\\.cargo\\bin\\rustup.exe",
+      "argv": [
+        "which",
+        "rustc",
+        "--toolchain",
+        "1.95.0"
+      ],
+      "exitCode": 0,
+      "error": null,
+      "log": "2026-10-19T03-31-29.769Z-25788-red-nc2-1.log"
+    },
+    {
+      "binary": "C:\\Users\\37310\\.cargo\\bin\\rustup.exe",
+      "argv": [
+        "which",
+        "cargo",
+        "--toolchain",
+        "1.95.0"
+      ],
+      "exitCode": 0,
+      "error": null,
+      "log": "2026-10-19T03-31-29.769Z-25788-red-nc2-2.log"
+    },
+    {
+      "binary": "C:\\Users\\37310\\.rustup\\toolchains\\1.95.0-x86_64-pc-windows-msvc\\bin\\rustc.exe",
+      "argv": [
+        "--version"
+      ],
+      "exitCode": 0,
+      "error": null,
+      "log": "2026-10-19T03-31-29.769Z-25788-red-nc2-3.log"
+    },
+    {
+      "binary": "C:\\Users\\37310\\.rustup\\toolchains\\1.95.0-x86_64-pc-windows-msvc\\bin\\cargo.exe",
+      "argv": [
+        "metadata",
+        "--offline",
+        "--locked",
+        "--format-version",
+        "1",
+        "--manifest-path",
+        "packages/native-session/Cargo.toml"
+      ],
+      "exitCode": 0,
+      "error": null,
+      "log": "2026-10-19T03-31-29.769Z-25788-red-nc2-4.log"
+    },
+    {
+      "binary": "C:\\Users\\37310\\.rustup\\toolchains\\1.95.0-x86_64-pc-windows-msvc\\bin\\cargo.exe",
+      "argv": [
+        "test",
+        "--offline",
+        "--locked",
+        "--manifest-path",
+        "packages/native-session/Cargo.toml",
+        "--test",
+        "session_v1",
+        "--no-run",
+        "--message-format=json"
+      ],
+      "exitCode": 0,
+      "error": null,
+      "log": "2026-10-19T03-31-29.769Z-25788-red-nc2-5.log"
+    },
+    {
+      "binary": "C:\\Program Files\\nodejs\\node.exe",
+      "argv": [
+        "scripts/native-session-test-driver.mjs",
+        "tests",
+        "F:\\new\\smaltalk\\water\\.worktrees\\v\\.local\\next-target\\debug\\deps\\session_v1-cdaa865e03c94ac5.exe",
+        "--test-threads=1",
+        "--format",
+        "pretty",
+        "--nocapture"
+      ],
+      "exitCode": 101,
+      "error": null,
+      "log": "2026-10-19T03-31-29.769Z-25788-red-nc2-expected-red.log"
+    },
+    {
+      "binary": "git",
+      "argv": [
+        "-c",
+        "core.hooksPath=NUL",
+        "-c",
+        "core.fsmonitor=false",
+        "branch",
+        "--show-current"
+      ],
+      "exitCode": 0,
+      "error": null,
+      "log": "2026-10-19T03-31-29.769Z-25788-red-nc2-6.log"
+    },
+    {
+      "binary": "git",
+      "argv": [
+        "-c",
+        "core.hooksPath=NUL",
+        "-c",
+        "core.fsmonitor=false",
+        "merge-base",
+        "--is-ancestor",
+        "30a803537602211ed2a11c106c63fd27cefb260f",
+        "HEAD"
+      ],
+      "exitCode": 0,
+      "error": null,
+      "log": "2026-10-19T03-31-29.769Z-25788-red-nc2-7.log"
+    },
+    {
+      "binary": "git",
+      "argv": [
+        "-c",
+        "core.hooksPath=NUL",
+        "-c",
+        "core.fsmonitor=false",
+        "diff",
+        "--no-renames",
+        "--name-only",
+        "-z",
+        "30a803537602211ed2a11c106c63fd27cefb260f",
+        "HEAD"
+      ],
+      "exitCode": 0,
+      "error": null,
+      "log": "2026-10-19T03-31-29.769Z-25788-red-nc2-8.log"
+    },
+    {
+      "binary": "git",
+      "argv": [
+        "-c",
+        "core.hooksPath=NUL",
+        "-c",
+        "core.fsmonitor=false",
+        "diff",
+        "--no-renames",
+        "--name-only",
+        "-z",
+        "HEAD"
+      ],
+      "exitCode": 0,
+      "error": null,
+      "log": "2026-10-19T03-31-29.769Z-25788-red-nc2-9.log"
+    },
+    {
+      "binary": "git",
+      "argv": [
+        "-c",
+        "core.hooksPath=NUL",
+        "-c",
+        "core.fsmonitor=false",
+        "ls-files",
+        "--others",
+        "--exclude-standard",
+        "-z"
+      ],
+      "exitCode": 0,
+      "error": null,
+      "log": "2026-10-19T03-31-29.769Z-25788-red-nc2-10.log"
+    },
+    {
+      "binary": "git",
+      "argv": [
+        "-c",
+        "core.hooksPath=NUL",
+        "-c",
+        "core.fsmonitor=false",
+        "rev-parse",
+        "HEAD"
+      ],
+      "exitCode": 0,
+      "error": null,
+      "log": "2026-10-19T03-31-29.769Z-25788-red-nc2-11.log"
+    },
+    {
+      "binary": "git",
+      "argv": [
+        "-c",
+        "core.hooksPath=NUL",
+        "-c",
+        "core.fsmonitor=false",
+        "status",
+        "--porcelain",
+        "--untracked-files=all"
+      ],
+      "exitCode": 0,
+      "error": null,
+      "log": "2026-10-19T03-31-29.769Z-25788-red-nc2-12.log"
+    }
+  ],
+  "fixtureSha256": "b7a196ccdfa5c761538112d8027df9cccc3b58400f0ce749625053f67ae825f8",
+  "sourceState": {
+    "files": [
+      {
+        "path": "packages/native-session/src/lib.rs",
+        "sha256": "1a84cfc45325e05d86a2d518eb6fa3413509e747274b2785cd462a58740c2399",
+        "snapshot": "2026-10-19T03-31-29.769Z-25788-red-nc2-source-0.txt",
+        "test": false
+      },
+      {
+        "path": "packages/native-session/src/main.rs",
+        "sha256": "59769878f75646048dd04f5e77d4b7aaa3466ae3b82a99395529d1dcac571f7e",
+        "snapshot": "2026-10-19T03-31-29.769Z-25788-red-nc2-source-1.txt",
+        "test": false
+      },
+      {
+        "path": "packages/native-session/src/v1.rs",
+        "sha256": "d626e0a0e6ca38dd793ed70f36f03a6493adb38cb4f679555027b75aad2b5755",
+        "snapshot": "2026-10-19T03-31-29.769Z-25788-red-nc2-source-2.txt",
+        "test": false
+      },
+      {
+        "path": "packages/native-session/Cargo.toml",
+        "sha256": "c5385be473062b505f8ddf482f00932f81dc04eb02eb06632cddb3d63ebe2a4c",
+        "snapshot": "2026-10-19T03-31-29.769Z-25788-red-nc2-source-3.txt",
+        "test": false
+      },
+      {
+        "path": "packages/native-session/Cargo.lock",
+        "sha256": "518346755c7e44a46eca9ab3cf373563563c4d06cc6c52af4053dd68e4f3cd3a",
+        "snapshot": "2026-10-19T03-31-29.769Z-25788-red-nc2-source-4.txt",
+        "test": false
+      },
+      {
+        "path": "packages/native-session/tests/session_v1.rs",
+        "sha256": "fecb2338a8624838de1844e8cbfa7545c7cc4099d80792c7770b50c460b9a9d5",
+        "snapshot": "2026-10-19T03-31-29.769Z-25788-red-nc2-source-5.txt",
+        "test": true
+      }
+    ],
+    "productionHash": "c591011966968c03d20992f4bfdad9d7188243cbb2e19d35c3b27668828634e9",
+    "testHash": "e0242ce82b098ff3209a2b3829357ab944043294fe41da4bea616739c2f9b376"
+  },
+  "observedExpectedFailure": true,
+  "executedTests": 5,
+  "expectation": {
+    "label": "nc2",
+    "target": "V_RELEASED",
+    "testExitCode": 101
+  },
+  "after": {
+    "head": "30a803537602211ed2a11c106c63fd27cefb260f",
+    "status": "?? packages/native-session/Cargo.lock\n?? packages/native-session/Cargo.toml\n?? packages/native-session/README.md\n?? packages/native-session/src/lib.rs\n?? packages/native-session/src/main.rs\n?? packages/native-session/src/v1.rs\n?? packages/native-session/tests/session_v1.rs"
+  },
+  "endedAt": "2026-10-19T03:31:43.393Z",
+  "status": "passed",
+  "error": null
+}

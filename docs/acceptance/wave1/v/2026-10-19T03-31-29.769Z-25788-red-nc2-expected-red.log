@@ -1,0 +1,64 @@
+--- stdout ---
+
+running 5 tests
+test session_cancellation_and_cleanup ... FAILED
+test session_errors_preserve_registry ... FAILED
+test session_native_capture ... FAILED
+test session_public_wire_and_cli ... FAILED
+test session_selection_cancelled ... ok
+
+failures:
+
+failures:
+    session_cancellation_and_cleanup
+    session_errors_preserve_registry
+    session_native_capture
+    session_public_wire_and_cli
+
+test result: FAILED. 1 passed; 4 failed; 0 ignored; 0 measured; 0 filtered out; finished in 5.74s
+
+
+--- stderr ---
+WATER_PICKER_CASE select
+WATER_UI_WINDOW 31128 #32770 visible=True
+WATER_UI_ACTION 31128 select
+
+thread 'session_cancellation_and_cleanup' (26096) panicked at tests\session_v1.rs:135:5:
+assertion `left == right` failed: V_RELEASED every return preserves registration count
+  left: 2
+ right: 1
+note: run with `RUST_BACKTRACE=1` environment variable to display a backtrace
+WATER_PICKER_CASE select
+WATER_UI_WINDOW 31128 #32770 visible=True
+WATER_UI_ACTION 31128 select
+WATER_PICKER_CASE select
+WATER_UI_WINDOW 31128 #32770 visible=True
+WATER_UI_ACTION 31128 select
+WATER_PICKER_CASE select
+WATER_UI_WINDOW 31128 #32770 visible=True
+WATER_UI_ACTION 31128 select
+WATER_PICKER_CASE select
+WATER_UI_WINDOW 31128 #32770 visible=True
+WATER_UI_ACTION 31128 select
+
+thread 'session_errors_preserve_registry' (27928) panicked at tests\session_v1.rs:135:5:
+assertion `left == right` failed: V_RELEASED every return preserves registration count
+  left: 2
+ right: 1
+WATER_PICKER_CASE select
+WATER_UI_WINDOW 31128 #32770 visible=True
+WATER_UI_ACTION 31128 select
+
+thread 'session_native_capture' (22128) panicked at tests\session_v1.rs:135:5:
+assertion `left == right` failed: V_RELEASED every return preserves registration count
+  left: 2
+ right: 1
+WATER_PICKER_CASE select
+WATER_UI_WINDOW 31128 #32770 visible=True
+WATER_UI_ACTION 31128 select
+
+thread 'session_public_wire_and_cli' (28156) panicked at tests\session_v1.rs:550:5:
+V_RELEASED public call revokes own scope
+WATER_PICKER_CASE cancel
+WATER_UI_WINDOW 31128 #32770 visible=True
+WATER_UI_ACTION 31128 cancel
