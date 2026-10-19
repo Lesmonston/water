@@ -1,0 +1,27 @@
+{"binary":"C:\\Users\\37310\\.rustup\\toolchains\\1.95.0-x86_64-pc-windows-msvc\\bin\\cargo.exe","argv":["test","--offline","--locked","--manifest-path","packages/root-marker/Cargo.toml","--test","marker_v1","--","--test-threads=1","--nocapture"],"exitCode":101,"error":null,"log":"2026-10-19T13-12-32.986Z-4372-11.log"}
+--- stdout ---
+
+running 4 tests
+test marker_consent_and_binding ... ok
+test marker_native_limits_and_links ... ok
+test marker_public_types ... FAILED
+test marker_real_u_and_privacy ... ok
+
+failures:
+
+failures:
+    marker_public_types
+
+test result: FAILED. 3 passed; 1 failed; 0 ignored; 0 measured; 0 filtered out; finished in 0.06s
+
+
+--- stderr ---
+   Compiling water-node-manifest v0.1.0 (F:\new\smaltalk\water\.worktrees\integration-xyz-20261019\packages\node-manifest)
+   Compiling water-root-marker v0.1.0 (F:\new\smaltalk\water\.worktrees\integration-xyz-20261019\packages\root-marker)
+    Finished `test` profile [unoptimized + debuginfo] target(s) in 3.21s
+     Running tests\marker_v1.rs (.local\next-target\debug\deps\marker_v1-2e3dc6373ae77679.exe)
+
+thread 'marker_public_types' (9876) panicked at tests\marker_v1.rs:301:33:
+called `Result::unwrap()` on an `Err` value: Os { code: 3, kind: NotFound, message: "The system cannot find the path specified." }
+note: run with `RUST_BACKTRACE=1` environment variable to display a backtrace
+error: test failed, to rerun pass `--test marker_v1`

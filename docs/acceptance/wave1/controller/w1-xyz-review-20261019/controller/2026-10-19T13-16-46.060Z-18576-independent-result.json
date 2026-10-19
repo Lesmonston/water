@@ -1,0 +1,160 @@
+{
+  "startedAt": "2026-10-19T13:16:46.061Z",
+  "systemNativeDialogs": 0,
+  "cases": [
+    {
+      "name": "escaped-duplicate",
+      "exit": 0,
+      "events": [
+        {
+          "version": "water.interactive-host.v1",
+          "kind": "ready"
+        },
+        {
+          "version": "water.interactive-host.v1",
+          "kind": "failure",
+          "job_id": null,
+          "code": "InvalidRequest"
+        },
+        {
+          "version": "water.interactive-host.v1",
+          "kind": "stopped"
+        }
+      ]
+    },
+    {
+      "name": "shutdown-extra",
+      "exit": 0,
+      "events": [
+        {
+          "version": "water.interactive-host.v1",
+          "kind": "ready"
+        },
+        {
+          "version": "water.interactive-host.v1",
+          "kind": "failure",
+          "job_id": null,
+          "code": "InvalidRequest"
+        },
+        {
+          "version": "water.interactive-host.v1",
+          "kind": "stopped"
+        }
+      ]
+    },
+    {
+      "name": "crlf",
+      "exit": 0,
+      "events": [
+        {
+          "version": "water.interactive-host.v1",
+          "kind": "ready"
+        },
+        {
+          "version": "water.interactive-host.v1",
+          "kind": "failure",
+          "job_id": null,
+          "code": "InvalidRequest"
+        },
+        {
+          "version": "water.interactive-host.v1",
+          "kind": "stopped"
+        }
+      ]
+    },
+    {
+      "name": "bom",
+      "exit": 0,
+      "events": [
+        {
+          "version": "water.interactive-host.v1",
+          "kind": "ready"
+        },
+        {
+          "version": "water.interactive-host.v1",
+          "kind": "failure",
+          "job_id": null,
+          "code": "InvalidRequest"
+        },
+        {
+          "version": "water.interactive-host.v1",
+          "kind": "stopped"
+        }
+      ]
+    },
+    {
+      "name": "bound",
+      "exit": 2,
+      "events": [
+        {
+          "version": "water.interactive-host.v1",
+          "kind": "ready"
+        },
+        {
+          "version": "water.interactive-host.v1",
+          "kind": "failure",
+          "job_id": null,
+          "code": "InvalidRequest"
+        },
+        {
+          "version": "water.interactive-host.v1",
+          "kind": "stopped"
+        }
+      ]
+    },
+    {
+      "name": "eof-fragment",
+      "exit": 2,
+      "events": [
+        {
+          "version": "water.interactive-host.v1",
+          "kind": "ready"
+        },
+        {
+          "version": "water.interactive-host.v1",
+          "kind": "failure",
+          "job_id": null,
+          "code": "InvalidRequest"
+        },
+        {
+          "version": "water.interactive-host.v1",
+          "kind": "stopped"
+        }
+      ]
+    },
+    {
+      "name": "idle-end",
+      "exit": 0,
+      "events": [
+        {
+          "version": "water.interactive-host.v1",
+          "kind": "ready"
+        },
+        {
+          "version": "water.interactive-host.v1",
+          "kind": "stopped"
+        }
+      ]
+    },
+    {
+      "name": "cross-instance-token",
+      "rejected": true,
+      "noCommands": true
+    },
+    {
+      "name": "no-path-action",
+      "rejected": true,
+      "noCommands": true
+    },
+    {
+      "name": "regressed-progress-stops-commands",
+      "rejected": true
+    },
+    {
+      "name": "duplicate-ready-fails",
+      "rejected": true
+    }
+  ],
+  "status": "passed",
+  "endedAt": "2026-10-19T13:16:46.339Z"
+}

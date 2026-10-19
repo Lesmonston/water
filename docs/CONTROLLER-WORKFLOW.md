@@ -98,7 +98,7 @@ READY只表示总控已准备好，不表示用户已转贴。得到用户已贴
 
 ## 当前落实程度
 
-最新2026-10-19：A–W及七补单保持VERIFIED（Windows受控范围）。下一波X持续原生宿主、Y可操作扫描工作台、Z另行同意的根package.json读取，三独立树/分支已冻结并实际baseline通过，READY待分别外贴，尚未启动实现者。共同精确基线1c152a1ed317fb51498503de837bb228c50dc663；r2冻结202物理锁条目+4份旧资产Git对象校验/15继承锁/426唯一约束，旧341保持。派前原生系统窗口0；X本树原工厂60字面/74逻辑字节，Z本树新合成payload524474字节，Y无物理fixture。未做新产品测试；真实用户scope、生产竞态、macOS、桌面与M1仍未验收。 [X/Y/Z READY](dispatch/wave1/INTERACTIVE-READY-REPORT-20261019.md)与manifest为当前状态，以下为历史。
+最新2026-10-19：A–Z及七补单均VERIFIED（Windows受控范围）。X接收c159297/受测abbad6a，Y接收f1c5260/受测657f84d，Z接收6f1f775/受测f853a78，隔离集成a9f6472已快进主线。1553交付路径/1519原归档文件与426冻结保持；8原final和6生产负控链审计、隔离13测试及11独立边界通过。真实同一X→Y固定启动器/选择取消/完整/合作取消/W报告与实际下载通过，总控原生窗口恰3，进程正常结束、端口关闭。仅冻结工厂合成fixture，无真实用户数据/清理。当前无未结外贴票或新READY票；Z额外同意到页面的接线、真实用户scope、生产竞态、macOS、桌面与M1仍未验收。 [X/Y/Z验收](acceptance/wave1/controller/WATER-W1-XYZ-REVIEW-20261019.md)与manifest为当前状态，以下为历史。
 
 最新2026-10-19：A–Q、S及五补单保持VERIFIED（Windows受控范围）。S原生目录选择已通过独立验收并集成；R补单01、T脱敏下载、U内存清单保持原波次分配，等待各自回执。没有自动实现者；原生宿主到R/报告页的完整用户闭环、真实用户scope、macOS和桌面尚未验收，M1仍未完成。 [S总控验收](acceptance/wave1/controller/WATER-W1-S-REVIEW-20261019.md)记录受测SHA和原始证据；以下派前状态均为历史。
 

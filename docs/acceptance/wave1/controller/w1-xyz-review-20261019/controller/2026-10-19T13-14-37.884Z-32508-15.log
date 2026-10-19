@@ -1,0 +1,77 @@
+{"binary":"C:\\Program Files\\nodejs\\node.exe","argv":["--test","--test-concurrency=1","--test-reporter=tap","prototypes/live-workspace/tests/model.test.mjs","prototypes/live-workspace/tests/browser.test.mjs"],"exitCode":1,"error":null,"log":"2026-10-19T13-14-37.884Z-32508-15.log"}
+--- stdout ---
+TAP version 13
+# {"chrome_profile":"F:\\\\new\\\\smaltalk\\\\water\\\\.worktrees\\\\integration-xyz-20261019\\\\.local\\\\browser-lab\\\\profile-aVfSgc","maximum_concurrent_chrome":1}
+# Subtest: workspace_actions_and_download
+not ok 1 - workspace_actions_and_download
+  ---
+  duration_ms: 663.8433
+  type: 'test'
+  location: 'F:\\new\\smaltalk\\water\\.worktrees\\integration-xyz-20261019\\prototypes\\live-workspace\\tests\\browser.test.mjs:82:1'
+  failureType: 'testCodeFailure'
+  error: "ENOENT: no such file or directory, mkdtemp 'F:\\new\\smaltalk\\water\\.worktrees\\integration-xyz-20261019\\.local\\checks\\WATER-W1-Y\\browser-replay-XXXXXX'"
+  code: 'ENOENT'
+  stack: |-
+    mkdtempSync (node:fs:3050:18)
+    replay (file:///F:/new/smaltalk/water/.worktrees/integration-xyz-20261019/prototypes/live-workspace/tests/browser.test.mjs:25:20)
+    TestContext.<anonymous> (file:///F:/new/smaltalk/water/.worktrees/integration-xyz-20261019/prototypes/live-workspace/tests/browser.test.mjs:83:37)
+    async Test.run (node:internal/test_runner/test:1313:7)
+    async startSubtestAfterBootstrap (node:internal/test_runner/harness:385:3)
+  ...
+# Subtest: workspace_layout_and_cancel
+not ok 2 - workspace_layout_and_cancel
+  ---
+  duration_ms: 2.7236
+  type: 'test'
+  location: 'F:\\new\\smaltalk\\water\\.worktrees\\integration-xyz-20261019\\prototypes\\live-workspace\\tests\\browser.test.mjs:118:1'
+  failureType: 'testCodeFailure'
+  error: "ENOENT: no such file or directory, mkdtemp 'F:\\new\\smaltalk\\water\\.worktrees\\integration-xyz-20261019\\.local\\checks\\WATER-W1-Y\\browser-replay-XXXXXX'"
+  code: 'ENOENT'
+  stack: |-
+    mkdtempSync (node:fs:3050:18)
+    replay (file:///F:/new/smaltalk/water/.worktrees/integration-xyz-20261019/prototypes/live-workspace/tests/browser.test.mjs:25:20)
+    TestContext.<anonymous> (file:///F:/new/smaltalk/water/.worktrees/integration-xyz-20261019/prototypes/live-workspace/tests/browser.test.mjs:119:37)
+    async Test.run (node:internal/test_runner/test:1313:7)
+    async Test.processPendingSubtests (node:internal/test_runner/test:897:7)
+  ...
+# {"native_dialogs":0,"private_chrome_closed":true}
+# Subtest: workspace_protocol_state
+ok 3 - workspace_protocol_state
+  ---
+  duration_ms: 488.1332
+  type: 'test'
+  ...
+# Subtest: workspace_http_authority
+ok 4 - workspace_http_authority
+  ---
+  duration_ms: 58.7019
+  type: 'test'
+  ...
+# Subtest: workspace_lifecycle_and_reports
+not ok 5 - workspace_lifecycle_and_reports
+  ---
+  duration_ms: 41.0699
+  type: 'test'
+  location: 'F:\\new\\smaltalk\\water\\.worktrees\\integration-xyz-20261019\\prototypes\\live-workspace\\tests\\model.test.mjs:258:1'
+  failureType: 'testCodeFailure'
+  error: "ENOENT: no such file or directory, mkdtemp 'F:\\new\\smaltalk\\water\\.worktrees\\integration-xyz-20261019\\.local\\checks\\WATER-W1-Y\\replay-XXXXXX'"
+  code: 'ENOENT'
+  stack: |-
+    mkdtempSync (node:fs:3050:18)
+    replay (file:///F:/new/smaltalk/water/.worktrees/integration-xyz-20261019/prototypes/live-workspace/tests/model.test.mjs:77:20)
+    TestContext.<anonymous> (file:///F:/new/smaltalk/water/.worktrees/integration-xyz-20261019/prototypes/live-workspace/tests/model.test.mjs:265:19)
+    process.processTicksAndRejections (node:internal/process/task_queues:104:5)
+    async Test.run (node:internal/test_runner/test:1313:7)
+    async Test.processPendingSubtests (node:internal/test_runner/test:897:7)
+  ...
+1..5
+# tests 5
+# suites 0
+# pass 2
+# fail 3
+# cancelled 0
+# skipped 0
+# todo 0
+# duration_ms 1907.3463
+
+--- stderr ---

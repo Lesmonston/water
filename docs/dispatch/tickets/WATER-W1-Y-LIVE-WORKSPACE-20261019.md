@@ -1,5 +1,7 @@
 # WATER-W1-Y：可开始、取消、再扫的交互工作台
 
+当前收单状态（2026-10-19）：VERIFIED（Windows受控范围），接收f1c5260/受测657f84d，隔离集成a9f6472已纳主线。[总控验收](../../acceptance/wave1/controller/WATER-W1-XYZ-REVIEW-20261019.md)。无需重贴；以下保留原派前要求。
+
 2026-10-19，总控正式票。只在主manifest本票READY且baselineStatus=PASSED时开始；READY不代表已外贴。
 
 | 项 | 精确值 |
