@@ -38,6 +38,60 @@ function renamed(which) {
   return b;
 }
 
+// These budget variants are synthetic memory reports, never new native scans.
+// Reuse the captured directory/file shapes and update their matching H/Q data.
+function groupedBudgetExample(name, entries, limit) {
+  const b = clone(cases[1].bundle), s = b.snapshots[0], v = s.view;
+  const q = JSON.parse(s.redacted_json);
+  const file = clone(v.findings[0]), directory = clone(v.findings[2]);
+  const qFile = clone(q.findings[0]), qDirectory = clone(q.findings[2]);
+  b.session_id = v.scan_id = `budget-${name}`;
+  b.policy.limits.max_dir_entries = limit;
+  v.findings = entries.map(([path, kind], i) => {
+    const f = clone(kind === 'directory' ? directory : file);
+    f.id = `entry-${i + 1}`; f.title = f.relative_path = path;
+    return f;
+  });
+  v.totals.scanned_entries = entries.length;
+  s.summary.counts.findings = entries.length;
+  s.summary.risk_counts.protected = s.summary.category_counts.unknown = entries.length;
+  s.summary.totals = clone(v.totals);
+  q.summary = clone(s.summary);
+  q.findings = entries.map(([, kind], i) => ({
+    ...clone(kind === 'directory' ? qDirectory : qFile), finding_ref: `finding-${i + 1}`,
+  }));
+  s.redacted_json = JSON.stringify(q);
+  return b;
+}
+function budgetExamples() {
+  const captured = (name, index, limit, accepted) => {
+    const bundle = clone(cases[index].bundle); bundle.policy.limits.max_dir_entries = limit;
+    return { name, bundle, accepted };
+  };
+  const pairs = [['a', 'directory'], ['a/x', 'file'], ['a/y', 'file'], ['b', 'directory'], ['b/x', 'file'], ['b/y', 'file']];
+  const nested = [['a', 'directory'], ['a/n', 'directory'], ['a/n/x', 'file'], ['a/n/y', 'file'], ['b', 'directory'], ['b/x', 'file'], ['b/y', 'file']];
+  const overNested = [...nested.slice(0, 4), ['a/n/z', 'file'], ...nested.slice(4)];
+  const overParent = [...pairs.slice(0, 3), ['a/z', 'file'], ...pairs.slice(3)];
+  return [
+    captured('complete-root-over-one', 1, 1, false),
+    captured('complete-root-over-six', 1, 6, false),
+    captured('partial-root-over-one', 2, 1, false),
+    captured('cancelled-root-over-two', 4, 2, false),
+    captured('complete-root-equals-seven-not-eight', 1, 7, true),
+    captured('partial-root-equals-one', 7, 1, true),
+    captured('cancelled-root-equals-three', 4, 3, true),
+    captured('scan-cancelled-empty', 3, 1, true),
+    captured('selection-cancelled-empty', 0, 1, true),
+    captured('selection-cancelled-range-still-checked', 0, 0, false),
+    { name: 'cross-parents-total-six-cap-two', bundle: groupedBudgetExample('cross', pairs, 2), accepted: true },
+    { name: 'nonroot-parent-over-two', bundle: groupedBudgetExample('parent-over', overParent, 2), accepted: false },
+    { name: 'nonroot-parent-equals-three', bundle: groupedBudgetExample('parent-equal', overParent, 3), accepted: true },
+    { name: 'nested-direct-children-not-all-descendants', bundle: groupedBudgetExample('nested', nested, 2), accepted: true },
+    { name: 'nested-parent-over-two', bundle: groupedBudgetExample('nested-over', overNested, 2), accepted: false },
+    { name: 'nested-parent-equals-three', bundle: groupedBudgetExample('nested-equal', overNested, 3), accepted: true },
+  ];
+}
+
 test('native_review_protocol', async () => {
   const c = checks();
   for (const { id, bundle } of cases) await c.run('W_BEHAVIOR native ' + id, () => {
@@ -110,6 +164,14 @@ test('native_review_protocol', async () => {
   for (const mutate of [b => { b[Symbol('x')] = 1; }, b => { b.loop = b; }, b => { delete b.snapshots[0]; }, b => { Object.setPrototypeOf(b, { secret: true }); }, b => { Object.defineProperty(b, 'hidden', { value: 1 }); }]) {
     await c.run('W_BEHAVIOR reject non-JSON', () => { const b = clone(cases[1].bundle); mutate(b); assert.throws(() => assertReviewInput(b), error); });
   }
+  for (const { name, bundle, accepted } of budgetExamples()) await c.run('W_DIR_BUDGET model ' + name, () => {
+    const before = clone(bundle);
+    if (accepted) {
+      assert.equal(assertReviewInput(bundle), bundle);
+      for (const s of bundle.snapshots) assert.equal(exportText(bundle, s.view.scan_id), s.redacted_json);
+    } else assert.throws(() => assertReviewInput(bundle), error);
+    assert.deepEqual(bundle, before, 'Never repair budgets, trim findings, or rewrite Q');
+  });
   c.done();
 });
 
@@ -195,6 +257,12 @@ test('native_review_stream_and_launcher', async () => {
       assert.equal(r.status, 64); assert.equal(r.stdout, ''); assert.equal(r.stderr, 'Invalid native launcher arguments.\n');
     }
   });
+  for (const { name, bundle, accepted } of budgetExamples()) await c.run('W_DIR_BUDGET readSession ' + name, async () => {
+    const before = clone(bundle), bytes = Buffer.from(JSON.stringify(bundle));
+    if (accepted) assert.deepEqual(await readSession(stream(bytes)), before);
+    else await assert.rejects(readSession(stream(bytes)), error);
+    assert.deepEqual(bundle, before);
+  });
   c.done();
 });
 
@@ -233,5 +301,27 @@ test('native_review_http_and_privacy', async () => {
     const bundle = renamed('stream'), server = await startFromStream({ stream: stream(Buffer.from(JSON.stringify(bundle))) });
     try { assert.deepEqual(JSON.parse((await raw(server.url, '/session.json')).body), bundle); } finally { await server.close(); }
   });
+  for (const { name, bundle, accepted } of budgetExamples()) {
+    for (const entry of ['startServer', 'startFromStream']) await c.run('W_DIR_BUDGET ' + entry + ' ' + name, async () => {
+      const before = clone(bundle);
+      const open = () => entry === 'startServer' ? startServer({ bundle })
+        : startFromStream({ stream: stream(Buffer.from(JSON.stringify(bundle))) });
+      if (accepted) {
+        const server = await open();
+        try {
+          assert.deepEqual(JSON.parse((await raw(server.url, '/session.json')).body), before);
+          if (bundle.snapshots.length) assert.deepEqual((await raw(server.url, '/exports/1.json')).body, Buffer.from(bundle.snapshots[0].redacted_json));
+          else assert.equal((await raw(server.url, '/exports/1.json')).status, 404);
+        } finally { await server.close(); }
+      } else {
+        // Close any wrongly accepted server even when the assertion goes red.
+        await assert.rejects(async () => {
+          let server;
+          try { server = await open(); } finally { await server?.close(); }
+        }, error);
+      }
+      assert.deepEqual(bundle, before);
+    });
+  }
   c.done();
 });

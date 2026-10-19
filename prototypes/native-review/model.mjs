@@ -66,8 +66,16 @@ function nativeSnapshot(snapshot, sessionId, limits) {
     for (let i = 1; i < parts.length; i++) ancestors.add(parts.slice(0, i).join('/'));
   }
   const evidence = [{ code: 'unknown', source: 'filesystem', summary: 'Native metadata observation only; classification and ownership are unverified.' }];
+  const directChildren = new Map();
   view.findings.forEach((f, i) => {
     nativePath(f.relative_path);
+    // Only recorded immediate children prove this lower bound. Each parent,
+    // including the scope root "", has its own budget in every report status.
+    const slash = f.relative_path.lastIndexOf('/');
+    const parent = slash === -1 ? '' : f.relative_path.slice(0, slash);
+    const count = (directChildren.get(parent) ?? 0) + 1;
+    directChildren.set(parent, count);
+    if (count > limits.max_dir_entries) fail();
     if (f.relative_path.split('/').length > limits.max_depth) fail();
     const logical = f.logical_bytes;
     if (ancestors.has(f.relative_path) && logical !== null) fail();
