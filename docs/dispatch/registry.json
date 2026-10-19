@@ -4,7 +4,7 @@
   "mode": "manual-external-paste",
   "controller": "Codex",
   "projectRoot": "F:/new/smaltalk/water",
-  "stage": "wave1-interactive-xyz-preflight",
+  "stage": "wave1-interactive-xyz-ready",
   "activeWave": "water-wave1",
   "slots": [
     {
@@ -196,25 +196,25 @@
       "id": "x",
       "path": "F:/new/smaltalk/water/.worktrees/x",
       "branch": "worker/water-w1-x",
-      "baseline": "8e73790dc11d01593cbc92772eab429f4b42e468",
+      "baseline": "1c152a1ed317fb51498503de837bb228c50dc663",
       "task": "WATER-W1-X",
-      "state": "draft-preflight"
+      "state": "ready"
     },
     {
       "id": "y",
       "path": "F:/new/smaltalk/water/.worktrees/y",
       "branch": "worker/water-w1-y",
-      "baseline": "8e73790dc11d01593cbc92772eab429f4b42e468",
+      "baseline": "1c152a1ed317fb51498503de837bb228c50dc663",
       "task": "WATER-W1-Y",
-      "state": "draft-preflight"
+      "state": "ready"
     },
     {
       "id": "z",
       "path": "F:/new/smaltalk/water/.worktrees/z",
       "branch": "worker/water-w1-z",
-      "baseline": "8e73790dc11d01593cbc92772eab429f4b42e468",
+      "baseline": "1c152a1ed317fb51498503de837bb228c50dc663",
       "task": "WATER-W1-Z",
-      "state": "draft-preflight"
+      "state": "ready"
     }
   ],
   "tasks": [
@@ -2350,12 +2350,12 @@
     {
       "id": "WATER-W1-X",
       "title": "持续原生扫描宿主与真实合作取消",
-      "status": "DRAFT",
+      "status": "READY",
       "slot": "x",
       "worktree": "F:/new/smaltalk/water/.worktrees/x",
       "branch": "worker/water-w1-x",
-      "baseCommit": "8e73790dc11d01593cbc92772eab429f4b42e468",
-      "snapshotRef": "refs/tags/water-w1-interactive-base-20261019",
+      "baseCommit": "1c152a1ed317fb51498503de837bb228c50dc663",
+      "snapshotRef": "refs/tags/water-w1-interactive-base-r2-20261019",
       "ticket": "docs/dispatch/tickets/WATER-W1-X-SCAN-HOST-20261019.md",
       "report": "docs/dispatch/reports/WATER-W1-X-REPORT.md",
       "contractLock": "contracts/interactive-batch-v1/freeze-r2.lock.json",
@@ -2383,7 +2383,7 @@
         "nc2": "X_CANCEL_TOKEN"
       },
       "nativeDialogBudget": 6,
-      "baselineStatus": "PENDING",
+      "baselineStatus": "PASSED",
       "newProductTestsRun": false,
       "model": null,
       "modelAssignment": "user-arranged; report actual engine/model",
@@ -2432,17 +2432,21 @@
       },
       "binaryName": "water-scan-host",
       "deferredJointValidation": "Actual X fixed executable -> Y bidirectional stdin/stdout -> native selection/progress/cancellation -> W report and actual Q download after both submissions.",
-      "preflightErratum": "docs/dispatch/wave1/INTERACTIVE-PREFLIGHT-ERRATUM-01-20261019.md"
+      "preflightErratum": "docs/dispatch/wave1/INTERACTIVE-PREFLIGHT-ERRATUM-01-20261019.md",
+      "originalPreflightBaseCommit": "8e73790dc11d01593cbc92772eab429f4b42e468",
+      "baselineEvidence": "docs/acceptance/wave1/controller/w1-interactive-preflight-20261019/x/2026-10-19T08-56-16.016Z-23460-baseline-result.json",
+      "preflightEvidence": "docs/dispatch/wave1/INTERACTIVE-READY-REPORT-20261019.md",
+      "readyOn": "2026-10-19"
     },
     {
       "id": "WATER-W1-Y",
       "title": "可开始、取消、再扫的交互工作台",
-      "status": "DRAFT",
+      "status": "READY",
       "slot": "y",
       "worktree": "F:/new/smaltalk/water/.worktrees/y",
       "branch": "worker/water-w1-y",
-      "baseCommit": "8e73790dc11d01593cbc92772eab429f4b42e468",
-      "snapshotRef": "refs/tags/water-w1-interactive-base-20261019",
+      "baseCommit": "1c152a1ed317fb51498503de837bb228c50dc663",
+      "snapshotRef": "refs/tags/water-w1-interactive-base-r2-20261019",
       "ticket": "docs/dispatch/tickets/WATER-W1-Y-LIVE-WORKSPACE-20261019.md",
       "report": "docs/dispatch/reports/WATER-W1-Y-REPORT.md",
       "contractLock": "contracts/interactive-batch-v1/freeze-r2.lock.json",
@@ -2473,7 +2477,7 @@
         "nc2": "Y_STALE_RESULT"
       },
       "nativeDialogBudget": 0,
-      "baselineStatus": "PENDING",
+      "baselineStatus": "PASSED",
       "newProductTestsRun": false,
       "model": null,
       "modelAssignment": "user-arranged; report actual engine/model",
@@ -2515,17 +2519,21 @@
         "prototypes/live-workspace/launch.mjs"
       ],
       "deferredJointValidation": "Actual X fixed executable -> Y bidirectional stdin/stdout -> native selection/progress/cancellation -> W report and actual Q download after both submissions.",
-      "preflightErratum": "docs/dispatch/wave1/INTERACTIVE-PREFLIGHT-ERRATUM-01-20261019.md"
+      "preflightErratum": "docs/dispatch/wave1/INTERACTIVE-PREFLIGHT-ERRATUM-01-20261019.md",
+      "originalPreflightBaseCommit": "8e73790dc11d01593cbc92772eab429f4b42e468",
+      "baselineEvidence": "docs/acceptance/wave1/controller/w1-interactive-preflight-20261019/y/2026-10-19T08-56-16.030Z-14748-baseline-result.json",
+      "preflightEvidence": "docs/dispatch/wave1/INTERACTIVE-READY-REPORT-20261019.md",
+      "readyOn": "2026-10-19"
     },
     {
       "id": "WATER-W1-Z",
       "title": "显式额外同意的根package.json读取",
-      "status": "DRAFT",
+      "status": "READY",
       "slot": "z",
       "worktree": "F:/new/smaltalk/water/.worktrees/z",
       "branch": "worker/water-w1-z",
-      "baseCommit": "8e73790dc11d01593cbc92772eab429f4b42e468",
-      "snapshotRef": "refs/tags/water-w1-interactive-base-20261019",
+      "baseCommit": "1c152a1ed317fb51498503de837bb228c50dc663",
+      "snapshotRef": "refs/tags/water-w1-interactive-base-r2-20261019",
       "ticket": "docs/dispatch/tickets/WATER-W1-Z-ROOT-MARKER-20261019.md",
       "report": "docs/dispatch/reports/WATER-W1-Z-REPORT.md",
       "contractLock": "contracts/interactive-batch-v1/freeze-r2.lock.json",
@@ -2552,7 +2560,7 @@
         "nc2": "Z_SINGLE_LINK"
       },
       "nativeDialogBudget": 0,
-      "baselineStatus": "PENDING",
+      "baselineStatus": "PASSED",
       "newProductTestsRun": false,
       "model": null,
       "modelAssignment": "user-arranged; report actual engine/model",
@@ -2596,9 +2604,13 @@
         "water-scope-registry": "packages/scope-registry",
         "water-node-manifest": "packages/node-manifest"
       },
-      "preflightErratum": "docs/dispatch/wave1/INTERACTIVE-PREFLIGHT-ERRATUM-01-20261019.md"
+      "preflightErratum": "docs/dispatch/wave1/INTERACTIVE-PREFLIGHT-ERRATUM-01-20261019.md",
+      "originalPreflightBaseCommit": "8e73790dc11d01593cbc92772eab429f4b42e468",
+      "baselineEvidence": "docs/acceptance/wave1/controller/w1-interactive-preflight-20261019/z/2026-10-19T08-56-16.042Z-25976-baseline-result.json",
+      "preflightEvidence": "docs/dispatch/wave1/INTERACTIVE-READY-REPORT-20261019.md",
+      "readyOn": "2026-10-19"
     }
   ],
   "testHelper": "per-task helper; A defaults unchanged",
-  "note": "A-W/seven addenda remain VERIFIED. X/Y/Z independent concrete tickets prepared; actual fresh-tree baselines pending; no automatic implementer."
+  "note": "A–W及七补单保持VERIFIED（Windows受控范围）。下一波X持续原生宿主、Y可操作扫描工作台、Z另行同意的根package.json读取，三独立树/分支已冻结并实际baseline通过，READY待分别外贴，尚未启动实现者。共同精确基线1c152a1ed317fb51498503de837bb228c50dc663；r2冻结202物理锁条目+4份旧资产Git对象校验/15继承锁/426唯一约束，旧341保持。派前原生系统窗口0；X本树原工厂60字面/74逻辑字节，Z本树新合成payload524474字节，Y无物理fixture。未做新产品测试；真实用户scope、生产竞态、macOS、桌面与M1仍未验收。"
 }

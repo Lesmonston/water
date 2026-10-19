@@ -1,6 +1,6 @@
 # Water 项目协作规则
 
-最新状态（2026-10-19）：A–W及七补单均VERIFIED（Windows受控范围）。W补单接收df9255b/受测020cd89，隔离集成e38b81c已快进主线；预算修复、独立五测/56项入口检查及真实V→W固定启动器/HTTP/Chrome/实际下载通过。本次原生系统窗口恰2（取消/确认各一次），复用原总控60字面/74逻辑字节夹具，无新fixture或普通payload内容读取，进程正常结束、端口关闭。341冻结及全部旧W归档保持。当前无未结外贴票或新READY票；真实用户scope、生产竞态、自然手势鉴真、macOS和桌面未验收，M1仍未完成。 共同基线30a803537602211ed2a11c106c63fd27cefb260f，旧336与补单5条目/14继承锁合计341冻结保持，原W报告/ARCHIVE/RUN-AUDIT哈希保持。W原执行树仍无物理fixture权限；新wrapper继续从主检出绝对路径读取，不往W树追加控制提交。正式票/manifest及docs/acceptance/wave1/controller/WATER-W1-W-ADDENDUM-01-REVIEW-20261019.md优先于以下历史；旧票与本补单均不重贴。
+最新状态（2026-10-19）：A–W及七补单保持VERIFIED（Windows受控范围）。下一波X持续原生宿主、Y可操作扫描工作台、Z另行同意的根package.json读取，三独立树/分支已冻结并实际baseline通过，READY待分别外贴，尚未启动实现者。共同精确基线1c152a1ed317fb51498503de837bb228c50dc663；r2冻结202物理锁条目+4份旧资产Git对象校验/15继承锁/426唯一约束，旧341保持。派前原生系统窗口0；X本树原工厂60字面/74逻辑字节，Z本树新合成payload524474字节，Y无物理fixture。未做新产品测试；真实用户scope、生产竞态、macOS、桌面与M1仍未验收。 正式票/manifest、docs/dispatch/wave1/INTERACTIVE-READY-REPORT-20261019.md及派前勘误01优先。旧W报告/归档哈希及其执行树无物理fixture权限保持；旧票/补单不重贴，X/Y/Z各交独立执行对话。
 
 - 项目根：`F:/new/smaltalk/water`。用户指定后续开发、研究、文档、脚本与本项目产物全部放在此目录内。
 - Codex 是项目总控，负责范围、任务分派、接口、集成、安全复核和验收。用户保留产品与发布决定权。

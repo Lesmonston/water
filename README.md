@@ -2,7 +2,7 @@
 
 面向 Windows、macOS AI 开发者的本地存储分析与安全清理助手。
 
-**当前阶段：A–W及七补单均VERIFIED（Windows受控范围）。W补单接收df9255b/受测020cd89，隔离集成e38b81c已快进主线；预算修复、独立五测/56项入口检查及真实V→W固定启动器/HTTP/Chrome/实际下载通过。本次原生系统窗口恰2（取消/确认各一次），复用原总控60字面/74逻辑字节夹具，无新fixture或普通payload内容读取，进程正常结束、端口关闭。341冻结及全部旧W归档保持。当前无未结外贴票或新READY票；真实用户scope、生产竞态、自然手势鉴真、macOS和桌面未验收，M1仍未完成。**
+**当前阶段：A–W及七补单保持VERIFIED（Windows受控范围）。下一波X持续原生宿主、Y可操作扫描工作台、Z另行同意的根package.json读取，三独立树/分支已冻结并实际baseline通过，READY待分别外贴，尚未启动实现者。共同精确基线1c152a1ed317fb51498503de837bb228c50dc663；r2冻结202物理锁条目+4份旧资产Git对象校验/15继承锁/426唯一约束，旧341保持。派前原生系统窗口0；X本树原工厂60字面/74逻辑字节，Z本树新合成payload524474字节，Y无物理fixture。未做新产品测试；真实用户scope、生产竞态、macOS、桌面与M1仍未验收。**
 
 用户指定本项目所有后续开发均位于 `smaltalk/water`，由 Codex 担任总控。
 
@@ -34,6 +34,8 @@
 Water 的发布许可证、定价与商标名称尚未最终确定；`water` 是工作代号。没有远程仓库、发布包或上线动作。
 
 ## 当前验收与下一波
+
+[X/Y/Z本波READY与三条外贴指令](docs/dispatch/wave1/INTERACTIVE-READY-REPORT-20261019.md)：分别安排持续扫描宿主、可操作工作台、额外同意的项目清单读取。三票无产品文件争写，已实际基线，不自动启动执行者。
 
 [W补单01与真实V→W联合验收](docs/acceptance/wave1/controller/WATER-W1-W-ADDENDUM-01-REVIEW-20261019.md)已通过并集成，A–W及七补单VERIFIED（Windows受控范围），没有待重贴的旧票。真实用户scope、macOS、桌面与M1仍未完成。下面为历史批次。
 

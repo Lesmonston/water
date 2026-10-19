@@ -15,7 +15,7 @@
 | 工单 | 任务 | 依赖 | 验收归属 |
 |---|---|---|---|
 | W0 | [立项与源码研究](tasks/W0-INIT-AND-RESEARCH.md) | 用户授权 | 总控 |
-| W1 | [只读内核与fixture](tasks/W1-READONLY-CORE.md)，[本波验收](acceptance/wave1/controller/WATER-W1-RTU-REVIEW-20261019.md) | A–U及六补单已验收；下一波先冻结原生宿主/来源协议；真实用户scope/桌面未放行 | 本波收口，后续用户按波次外贴；总控验收/集成 |
+| W1 | [只读内核与fixture](tasks/W1-READONLY-CORE.md)，[X/Y/Z READY](dispatch/wave1/INTERACTIVE-READY-REPORT-20261019.md) | A–W及七补单已验收；X宿主/Y工作台/Z额外同意清单读取已各自实际baseline；真实用户scope/桌面未放行 | 本波三票分别外贴，总控独立收单/联合验收/集成 |
 | W2 | 版本化规则注册表、pip/uv/npm/pnpm只读发现 | W1契约 | 规则与内核分别审阅 |
 | W3 | HF/Ollama/LM Studio只读inventory与共享空间视图 | W1/W2 | 模型资产保护验收 |
 | W4 | 桌面壳与报告界面 | W1稳定契约 | 总控，双平台可用性 |

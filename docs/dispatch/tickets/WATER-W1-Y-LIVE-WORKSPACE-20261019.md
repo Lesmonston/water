@@ -6,8 +6,8 @@
 |---|---|
 | 权威票 | F:/new/smaltalk/water/docs/dispatch/tickets/WATER-W1-Y-LIVE-WORKSPACE-20261019.md |
 | 唯一树 / 分支 | F:/new/smaltalk/water/.worktrees/y / worker/water-w1-y |
-| 精确首次HEAD | 8e73790dc11d01593cbc92772eab429f4b42e468，必须干净，产品目录不存在 |
-| 基线tag | water-w1-interactive-base-20261019 |
+| 精确首次HEAD | 1c152a1ed317fb51498503de837bb228c50dc663，必须干净，产品目录不存在 |
+| 基线tag | water-w1-interactive-base-r2-20261019 |
 | 主manifest | F:/new/smaltalk/water/docs/dispatch/wave1/manifest.json |
 | 冻结 | contracts/interactive-batch-v1/freeze-r2.lock.json；继承旧341，新增数量见lock/READY回执 |
 | 产品范围 | prototypes/live-workspace |
