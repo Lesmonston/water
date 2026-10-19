@@ -1,0 +1,14 @@
+{
+  "task": "WATER-W1-Y",
+  "recordedAt": "2026-10-19T11:46:36.651Z",
+  "stage": "Post-final archive/report integrity audit, before any staging",
+  "observedFailure": "The Windows PowerShell pipeline converted the Node audit script Chinese string literal to question marks. The UTF-8 report actual first line was correct; the incorrectly encoded expected literal caused the assertion to fail.",
+  "observedExitCode": 1,
+  "evidenceSource": "Transcribed receipt of the tool-returned console error, not an original raw stdout/stderr file",
+  "assertionActual": "Correct report first line from UTF-8 file",
+  "assertionExpected": "WATER-W1-Y ??????????? F:/new/smaltalk/water/.worktrees/y/docs/dispatch/reports/WATER-W1-Y-REPORT.md",
+  "productOrTestsChanged": false,
+  "productChecksRerun": false,
+  "filesStagedAtFailure": 0,
+  "remedy": "Use ASCII Unicode escapes in the inline audit script; retain the report original text and all successful final source/test hashes."
+}

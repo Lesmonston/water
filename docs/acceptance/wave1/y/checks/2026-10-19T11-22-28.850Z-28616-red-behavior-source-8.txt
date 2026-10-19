@@ -1,0 +1,315 @@
+import test from 'node:test';
+import assert from 'node:assert/strict';
+import { PassThrough, Readable, Writable } from 'node:stream';
+import { request } from 'node:http';
+import { spawn } from 'node:child_process';
+import { readFileSync } from 'node:fs';
+import { setTimeout as delay } from 'node:timers/promises';
+import { startFromStreams } from '../transport.mjs';
+import { launchWorkspace } from '../launch.mjs';
+import { startServer as startReview } from '../../native-review/server.mjs';
+
+const version = 'water.interactive-host.v1';
+const root = new URL('../../../', import.meta.url);
+const cases = JSON.parse(readFileSync(new URL('../../../contracts/interactive-host-v1/CASES.json', import.meta.url))).cases;
+const frame = event => Buffer.from(JSON.stringify({ version, ...event }) + '\n');
+const bundleFor = (id, index = 0) => {
+  const bundle = structuredClone(cases[index].bundle);
+  bundle.session_id = id;
+  if (bundle.snapshots.length) bundle.snapshots[0].view.scan_id = id;
+  return bundle;
+};
+function raw(url, path, { method = 'GET', headers = {}, body } = {}) {
+  const base = new URL(url);
+  return new Promise((ok, bad) => {
+    const req = request({ hostname: '127.0.0.1', port: base.port, path, method,
+      headers: { Host: base.host, ...headers }, agent: false }, res => {
+      const chunks = [];
+      res.on('data', chunk => chunks.push(Buffer.from(chunk)));
+      res.on('end', () => ok({ status: res.statusCode, headers: res.headers, body: Buffer.concat(chunks) }));
+    });
+    req.on('error', bad); req.end(body);
+  });
+}
+const session = async url => JSON.parse((await raw(url, '/session.json')).body);
+async function waitState(url, predicate, label = 'Y_BEHAVIOR') {
+  const until = Date.now() + 3000;
+  let value;
+  do { value = await session(url); if (predicate(value)) return value; await delay(5); } while (Date.now() < until);
+  assert.fail(`${label}: state did not reach expectation: ${JSON.stringify(value)}`);
+}
+async function bootstrap(url) {
+  const initial = await session(url);
+  assert.equal(initial.workspace_version, 'water.live-workspace.v1', 'Y_BEHAVIOR runnable workspace protocol');
+  const html = (await raw(url, '/')).body.toString();
+  const token = /<meta name="water-action" content="([a-f0-9]{64})">/.exec(html)?.[1];
+  assert(token, 'Y_BEHAVIOR independent bootstrap authority');
+  return token;
+}
+const action = (url, token, route = 'start', body = '{}', headers = {}) => raw(url, '/actions/' + route, {
+  method: 'POST', headers: { Origin: url, 'X-Water-Action': token, 'Content-Type': 'application/json', ...headers }, body,
+});
+async function rig() {
+  const input = new PassThrough(), commands = [], bytes = [];
+  const output = new Writable({ write(chunk, encoding, done) {
+    bytes.push(Buffer.from(chunk)); commands.push(JSON.parse(chunk)); done();
+  } });
+  const pending = startFromStreams({ input, output });
+  const ready = frame({ kind: 'ready' });
+  input.write(ready.subarray(0, 7)); input.write(ready.subarray(7));
+  const workspace = await pending;
+  return { ...workspace, input, output, commands, bytes,
+    emit: event => input.write(frame(event)),
+    async dispose() { await workspace.close(); input.destroy(); output.destroy(); },
+  };
+}
+async function started(r, token) {
+  const response = await action(r.url, token);
+  assert.equal(response.status, 202, 'Y_BEHAVIOR authorized start');
+  const current = await session(r.url), id = current.active?.job_id;
+  assert.match(id ?? '', /^[A-Za-z0-9][A-Za-z0-9_-]{0,63}$/, 'Y_BEHAVIOR backend OpaqueId');
+  assert.deepEqual(r.commands.at(-1), { command: 'start', job_id: id });
+  return id;
+}
+async function replay() {
+  const child = spawn(process.execPath, ['scripts/acceptance/interactive-host-replay.mjs'], {
+    cwd: root, shell: false, windowsHide: true, stdio: ['pipe', 'pipe', 'pipe'],
+  });
+  const events = [], diagnostic = [];
+  child.stdout.on('data', chunk => events.push(Buffer.from(chunk)));
+  child.stderr.on('data', chunk => diagnostic.push(Buffer.from(chunk)));
+  const exited = new Promise((ok, bad) => { child.once('error', bad); child.once('close', (code, signal) => ok({ code, signal })); });
+  let workspace;
+  try {
+    workspace = await startFromStreams({ input: child.stdout, output: child.stdin });
+    return { ...workspace, child, events,
+      async dispose() {
+        if (!child.stdin.destroyed && !child.stdin.writableEnded) child.stdin.write(Buffer.from('{"command":"shutdown"}\n'));
+        await workspace.close(); child.stdout.resume();
+        const end = await exited;
+        assert.deepEqual(end, { code: 0, signal: null }); assert.equal(Buffer.concat(diagnostic).length, 0);
+        console.log(JSON.stringify({ replay: 'retained_actual_native_capture_replay', new_X_product: false,
+          pid: child.pid, exit: end, native_dialogs: 0, captured_bytes: Buffer.concat(events).length }));
+      },
+    };
+  } catch (e) { if (child.exitCode === null) child.kill(); await workspace?.close(); await exited; throw e; }
+}
+
+test('workspace_protocol_state', async () => {
+  const r = await rig();
+  try {
+    const token = await bootstrap(r.url);
+    assert.deepEqual(await session(r.url), { workspace_version: 'water.live-workspace.v1', connection: 'ready', active: null, recent: [] });
+    assert.equal(r.commands.length, 0, 'Y_BEHAVIOR GET is inert');
+    const id = await started(r, token);
+    assert.equal((await session(r.url)).active.phase, 'selecting');
+    r.emit({ kind: 'accepted', job_id: id });
+    const progress = frame({ kind: 'progress', job_id: id, visited_entries: 5, recorded_entries: 3 });
+    r.input.write(progress.subarray(0, 23)); r.input.write(progress.subarray(23));
+    const observed = await waitState(r.url, s => s.active?.visited_entries === 5);
+    assert.deepEqual(observed.active, { job_id: id, phase: 'scanning', visited_entries: 5, recorded_entries: 3 });
+    assert.equal((await action(r.url, token)).status, 409);
+    assert.equal((await action(r.url, token, 'cancel', '{"job_id":"other-job"}')).status, 409);
+    assert.equal(r.commands.length, 1);
+    assert.equal((await action(r.url, token, 'cancel', JSON.stringify({ job_id: id }))).status, 202);
+    r.emit({ kind: 'cancel_ack', job_id: id, applied: true });
+    r.emit({ kind: 'progress', job_id: id, visited_entries: 6, recorded_entries: 3 });
+    assert.equal((await waitState(r.url, s => s.active?.visited_entries === 6)).active.phase, 'cancelling');
+    assert.equal((await action(r.url, token, 'cancel', JSON.stringify({ job_id: id }))).status, 409);
+    r.emit({ kind: 'result', job_id: id, bundle: bundleFor(id, 2) });
+    const finished = await waitState(r.url, s => s.recent.length === 1);
+    assert.equal(finished.active, null); assert.equal(finished.recent[0].status, 'cancelled');
+    assert.equal(finished.recent[0].selection, 'confirmed'); assert(finished.recent[0].report_url);
+    assert.deepEqual(r.bytes.map(b => b.toString()), [JSON.stringify({ command: 'start', job_id: id }) + '\n', JSON.stringify({ command: 'cancel', job_id: id }) + '\n']);
+  } finally { await r.dispose(); }
+
+  const badFrames = [Buffer.from('\n'), frame({ kind: 'ready', extra: false }), Buffer.from('{"version":"' + version + '","kind":"ready","ki\\u006ed":"ready"}\n'),
+    Buffer.from('{"version":"' + version + '","kind":"ready","kind":"ready"}\n'), Buffer.from(' {"version":"' + version + '","kind":"ready"}\n'),
+    Buffer.concat([Buffer.from([0xef, 0xbb, 0xbf]), frame({ kind: 'ready' })]), Buffer.from('{"kind":"\ud800"}\n'),
+    Buffer.from('{"version":"' + version + '","kind":"ready"}\r\n'), Buffer.from([0xc3, 0x28, 10]),
+    Buffer.from('{"version":"' + version + '","kind":"ready"}'), Buffer.alloc(67109889, 0x61)];
+  for (const bytes of badFrames) {
+    const input = new PassThrough(), output = new Writable({ write(c, e, ok) { ok(); } });
+    const pending = startFromStreams({ input, output });
+    input.end(bytes);
+    await assert.rejects(pending, { message: 'Workspace unavailable.' }, 'Y_BEHAVIOR strict framing');
+    assert.equal(input.destroyed, false, 'Y_BEHAVIOR borrowed input remains owned by caller');
+    input.destroy(); output.destroy();
+  }
+  const invalidEvents = [
+    id => ({ kind: 'progress', job_id: 'unknown-job', visited_entries: 1, recorded_entries: 1 }),
+    id => ({ kind: 'progress', job_id: id, visited_entries: 2, recorded_entries: 3 }),
+    id => ({ kind: 'progress', job_id: id, visited_entries: -1, recorded_entries: 0 }),
+    id => ({ kind: 'progress', job_id: id, visited_entries: 10001, recorded_entries: 0 }),
+    id => ({ kind: 'progress', job_id: id, visited_entries: 1.5, recorded_entries: 0 }),
+    id => ({ kind: 'progress', job_id: id, visited_entries: 2, recorded_entries: 0 }),
+    id => ({ kind: 'accepted', job_id: id }), id => ({ kind: 'ready' }),
+    id => ({ kind: 'cancel_ack', job_id: id, applied: true }), id => ({ kind: 'stopped' }),
+    id => ({ kind: 'failure', job_id: id, code: 'private-error-canary' }),
+    id => ({ kind: 'result', job_id: id, bundle: { ...bundleFor(id), session_id: 'other-session' } }),
+    id => { const bundle = bundleFor(id); bundle.policy.limits.max_dir_entries = 1; return { kind: 'result', job_id: id, bundle }; },
+    id => ({ kind: 'result', job_id: id, bundle: { ...bundleFor(id), extra: true } }),
+  ];
+  for (const make of invalidEvents) {
+    const x = await rig();
+    try {
+      const token = await bootstrap(x.url), id = await started(x, token);
+      x.emit({ kind: 'accepted', job_id: id });
+      x.emit({ kind: 'progress', job_id: id, visited_entries: 3, recorded_entries: 1 });
+      x.emit(make(id));
+      const failed = await waitState(x.url, s => s.connection === 'failed');
+      assert.equal(failed.active, null); assert.deepEqual(failed.recent, []);
+      assert.equal((await action(x.url, token)).status, 503);
+      assert.equal(x.commands.length, 1, 'Y_BEHAVIOR failure stops commands');
+    } finally { await x.dispose(); }
+  }
+  // A producer can reuse its chunk immediately; processing owns a byte copy.
+  const copied = await rig();
+  try {
+    const token = await bootstrap(copied.url), id = await started(copied, token);
+    const bytes = frame({ kind: 'accepted', job_id: id }); copied.input.write(bytes); bytes.fill(0x78);
+    copied.emit({ kind: 'progress', job_id: id, visited_entries: 1, recorded_entries: 0 });
+    assert.equal((await waitState(copied.url, s => s.active?.visited_entries === 1)).connection, 'ready');
+  } finally { await copied.dispose(); }
+});
+
+test('workspace_http_authority', async () => {
+  const r = await rig(), second = await rig();
+  try {
+    const token = await bootstrap(r.url), otherToken = await bootstrap(second.url);
+    assert.notEqual(token, otherToken, 'Y_ACTION_AUTH independent instance tokens');
+    const correct = { Origin: r.url, 'X-Water-Action': token, 'Content-Type': 'application/json' };
+    const invalid = [
+      { ...correct, Host: 'localhost:' + new URL(r.url).port },
+      { ...correct, Origin: 'https://untrusted.invalid' },
+      { 'X-Water-Action': token, 'Content-Type': 'application/json' },
+      { Origin: r.url, 'Content-Type': 'application/json' },
+      { ...correct, 'X-Water-Action': '0'.repeat(64) }, { ...correct, 'X-Water-Action': otherToken },
+      { ...correct, Origin: [r.url, r.url] }, { ...correct, 'X-Water-Action': [token, token] },
+    ];
+    for (const headers of invalid) {
+      const before = r.commands.length;
+      const reply = await raw(r.url, '/actions/start', { method: 'POST', headers, body: '{}' });
+      assert.equal(r.commands.length, before, 'Y_ACTION_AUTH unauthorized HTTP must not write the actual pipe');
+      assert.equal(reply.status, 403, 'Y_ACTION_AUTH exact authority');
+      assert.equal(reply.body.toString(), 'Workspace unavailable.'); assert(!reply.body.includes(token));
+    }
+    assert.equal((await raw(r.url, '/', { headers: { Host: 'example.invalid' } })).status, 403);
+    for (const [path, method, expected] of [['/actions/start', 'GET', 405], ['/actions/cancel', 'HEAD', 405], ['/actions/start', 'OPTIONS', 405],
+      ['/session.json', 'POST', 405], ['/', 'PUT', 405], ['/session.json?path=x', 'GET', 404], ['/../model.mjs', 'GET', 404],
+      ['/launch.mjs', 'GET', 404], ['/exports/1.json', 'GET', 404], ['/?x=1', 'GET', 404]]) {
+      const result = await raw(r.url, path, { method }); assert.equal(result.status, expected);
+      assert.equal(result.headers['cache-control'], 'no-store'); assert.equal(result.headers['x-content-type-options'], 'nosniff');
+      assert.equal(result.headers['referrer-policy'], 'no-referrer');
+      assert(result.headers['content-security-policy'].includes("default-src 'none'"));
+      if (method === 'HEAD') assert.equal(result.body.length, 0);
+    }
+    const invalidBodies = ['', 'null', '[]', 'true', '{"job_id":"caller-selected"}', '{"x":1}', '{"x":1,"x":2}',
+      '{"job_id":"a","job_\\u0069d":"b"}', '{}{}', '\ufeff{}', Buffer.from([0xc3, 0x28]), '{"__proto__":{}}'];
+    for (const body of invalidBodies) assert.equal((await action(r.url, token, 'start', body)).status, 400, 'Y_ACTION_AUTH strict action body');
+    for (const body of ['{}', '{"job_id":null}', '{"job_id":4}', '{"job_id":"a/b"}', '{"job_id":"a","extra":false}']) {
+      assert.equal((await action(r.url, token, 'cancel', body)).status, 400);
+    }
+    assert.equal((await action(r.url, token, 'start', '{}', { 'Content-Type': 'text/plain' })).status, 400);
+    assert.equal((await action(r.url, token, 'start', ' '.repeat(1023) + '{}')).status, 413);
+    assert.equal((await action(r.url, token, 'start', '{}', { 'Content-Length': '1025' })).status, 413);
+    assert.equal(r.commands.length, 0, 'Y_ACTION_AUTH invalid bodies never reach pipe');
+    for (const path of ['/session.json', '/app.mjs', '/styles.css']) {
+      const result = await raw(r.url, path); assert.equal(result.status, 200); assert(!result.body.includes(token));
+      const head = await raw(r.url, path, { method: 'HEAD' }); assert.equal(head.body.length, 0); assert.equal(head.headers['content-length'], result.headers['content-length']);
+    }
+    assert.equal((await action(r.url, token, 'start', ' '.repeat(1022) + '{}')).status, 202, 'Y_ACTION_AUTH exact UTF-8 byte limit');
+    const id = (await session(r.url)).active.job_id;
+    r.emit({ kind: 'accepted', job_id: id });
+    assert.equal((await action(r.url, token)).status, 409);
+    assert.equal((await action(r.url, token, 'cancel', '{"job_id":"unknown"}')).status, 409);
+    const before = r.commands.length;
+    assert.equal((await action(r.url, token, 'cancel', JSON.stringify({ job_id: id }), { Origin: 'null' })).status, 403);
+    assert.equal(r.commands.length, before, 'Y_ACTION_AUTH cancel authority applies before pipe');
+    assert(!JSON.stringify(await session(r.url)).includes(token));
+  } finally { await r.dispose(); await second.dispose(); }
+});
+
+test('workspace_lifecycle_and_reports', async () => {
+  const x = await rig();
+  try { await bootstrap(x.url); } finally { await x.dispose(); }
+  for (const options of [undefined, null, {}, { initialDirectory: '.' }, { initialDirectory: '.', binaryPath: 'other.exe' },
+    { initialDirectory: '.', env: {} }, { initialDirectory: '.', port: -1 }, { get initialDirectory() { throw new Error('getter-canary'); } }]) {
+    await assert.rejects(launchWorkspace(options), { message: 'Workspace unavailable.' });
+  }
+  const r = await replay();
+  const urls = [];
+  try {
+    const token = await bootstrap(r.url);
+    for (const ordinal of [0, 1, 2, 3]) {
+      assert.equal((await action(r.url, token)).status, 202);
+      const active = (await session(r.url)).active;
+      assert(active, 'Y_BEHAVIOR real bidirectional start is active');
+      if (ordinal === 2) assert.equal((await action(r.url, token, 'cancel', JSON.stringify({ job_id: active.job_id }))).status, 202);
+      const s = await waitState(r.url, s => s.active === null && s.recent[0]?.job_id === active.job_id);
+      const current = s.recent[0]; assert.equal(s.recent.length, Math.min(ordinal + 1, 2));
+      assert.equal(current.status, ['completed', 'selection_cancelled', 'cancelled', 'completed'][ordinal]);
+      assert.equal(current.selection, ordinal === 1 ? 'cancelled' : 'confirmed');
+      if (ordinal === 1) assert.equal(current.report_url, null);
+      else {
+        const u = new URL(current.report_url); assert.equal(u.hostname, '127.0.0.1'); assert.equal(u.protocol, 'http:');
+        assert.notEqual(u.origin, r.url); urls.push(current.report_url);
+        const actual = JSON.parse((await raw(current.report_url, '/session.json')).body);
+        assert.equal(actual.session_id, active.job_id); assert.equal(actual.snapshots[0].source_kind, 'native_scope_metadata');
+        const q = (await raw(current.report_url, '/exports/1.json')).body;
+        assert.deepEqual(q, Buffer.from(cases[ordinal === 2 ? 2 : 0].bundle.snapshots[0].redacted_json));
+        assert.equal((await raw(current.report_url, '/')).status, 200);
+      }
+      if (ordinal >= 2) await assert.rejects(raw(urls[0], '/session.json'), 'Y_BEHAVIOR evicted report server is closed');
+    }
+  } finally { await r.dispose(); }
+  for (const url of urls) await assert.rejects(raw(url, '/session.json'), 'Y_BEHAVIOR close owns all reports');
+  await assert.rejects(raw(r.url, '/session.json'));
+
+  const stale = await rig();
+  try {
+    const token = await bootstrap(stale.url), first = await started(stale, token);
+    stale.emit({ kind: 'accepted', job_id: first }); stale.emit({ kind: 'result', job_id: first, bundle: bundleFor(first) });
+    const original = (await waitState(stale.url, s => s.recent.length === 1)).recent;
+    const second = await started(stale, token); assert.notEqual(first, second);
+    stale.emit({ kind: 'accepted', job_id: second });
+    stale.emit({ kind: 'result', job_id: first, bundle: bundleFor(first) });
+    await delay(25);
+    const after = await session(stale.url);
+    assert.equal(after.connection, 'failed', 'Y_STALE_RESULT obsolete terminal cannot replace active job');
+    assert.deepEqual(after.recent, original, 'Y_STALE_RESULT stale terminal cannot create or replace reports');
+    assert.equal(after.active, null);
+    assert.equal((await action(stale.url, token)).status, 503);
+  } finally { await stale.dispose(); }
+  for (const how of ['end', 'error', 'output-error', 'duplicate', 'unknown-result', 'early-result']) {
+    const broken = await rig();
+    try {
+      const token = await bootstrap(broken.url), id = await started(broken, token);
+      if (how !== 'early-result') broken.emit({ kind: 'accepted', job_id: id });
+      if (how === 'end') broken.input.end();
+      else if (how === 'error') broken.input.emit('error', new Error('path-canary'));
+      else if (how === 'output-error') broken.output.emit('error', new Error('stderr-canary'));
+      else if (how === 'unknown-result') broken.emit({ kind: 'result', job_id: 'other-job', bundle: bundleFor('other-job') });
+      else {
+        broken.emit({ kind: 'result', job_id: id, bundle: bundleFor(id) });
+        if (how === 'duplicate') { await waitState(broken.url, s => s.recent.length === 1); broken.emit({ kind: 'result', job_id: id, bundle: bundleFor(id) }); }
+      }
+      const s = await waitState(broken.url, s => s.connection === 'failed', 'Y_STALE_RESULT');
+      assert.equal(s.active, null); assert.equal(s.recent.length, how === 'duplicate' ? 1 : 0);
+      const reply = await action(broken.url, token); assert.equal(reply.status, 503); assert.equal(reply.body.toString(), 'Workspace unavailable.');
+    } finally { await broken.dispose(); }
+  }
+  const outside = await startReview({ bundle: bundleFor('outside-owner') }), borrowed = await rig();
+  try {
+    await bootstrap(borrowed.url);
+    await Promise.all([borrowed.close(), borrowed.close()]);
+    assert.equal(borrowed.input.destroyed, false); assert.equal(borrowed.output.destroyed, false);
+    assert.equal((await raw(outside.url, '/session.json')).status, 200, 'Y_BEHAVIOR caller report remains open');
+  } finally { await borrowed.dispose(); await outside.close(); }
+  const idle = await rig();
+  try {
+    const token = await bootstrap(idle.url); idle.emit({ kind: 'stopped' }); idle.input.end();
+    await waitState(idle.url, s => s.connection === 'closed');
+    assert.equal((await action(idle.url, token)).status, 503); assert.equal(idle.commands.length, 0);
+  } finally { await idle.dispose(); }
+});

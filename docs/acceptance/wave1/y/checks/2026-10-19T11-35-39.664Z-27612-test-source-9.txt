@@ -1,0 +1,154 @@
+import test, { after } from 'node:test';
+import assert from 'node:assert/strict';
+import { spawn } from 'node:child_process';
+import { appendFileSync, readFileSync, readdirSync, writeFileSync, mkdtempSync } from 'node:fs';
+import { join } from 'node:path';
+import { fileURLToPath } from 'node:url';
+import { createHash } from 'node:crypto';
+import { setTimeout as delay } from 'node:timers/promises';
+import { startFromStreams } from '../transport.mjs';
+import { openPrivateBrowser } from '../../../scripts/acceptance/native-vw-private-browser.mjs';
+
+const root = fileURLToPath(new URL('../../../', import.meta.url));
+const cases = JSON.parse(readFileSync(new URL('../../../contracts/interactive-host-v1/CASES.json', import.meta.url))).cases;
+let browser, screenshots;
+after(async () => { await browser?.close(); console.log(JSON.stringify({ native_dialogs: 0, private_chrome_closed: true })); });
+async function page() {
+  if (!browser) {
+    browser = await openPrivateBrowser();
+    screenshots = mkdtempSync(join(root, '.local/browser-lab/live-workspace-screenshots-'));
+    console.log(JSON.stringify({ chrome_profile: browser.profile, maximum_concurrent_chrome: 1 }));
+  }
+  return browser;
+}
+async function replay() {
+  const evidence = mkdtempSync(join(root, '.local/checks/WATER-W1-Y/browser-replay-'));
+  const child = spawn(process.execPath, ['scripts/acceptance/interactive-host-replay.mjs'], {
+    cwd: root, shell: false, windowsHide: true, stdio: ['pipe', 'pipe', 'pipe'],
+  });
+  const stderr = [];
+  child.stdout.on('data', chunk => appendFileSync(join(evidence, 'stdout.log'), Buffer.from(chunk)));
+  child.stderr.on('data', b => stderr.push(Buffer.from(b)));
+  const exited = new Promise((ok, bad) => { child.once('error', bad); child.once('close', (code, signal) => ok({ code, signal })); });
+  let workspace;
+  try {
+    workspace = await startFromStreams({ input: child.stdout, output: child.stdin });
+    return { ...workspace, async dispose() {
+      if (!child.stdin.destroyed && !child.stdin.writableEnded) child.stdin.end(Buffer.from('{"command":"shutdown"}\n'));
+      await workspace.close(); child.stdout.resume();
+      const exit = await exited;
+      writeFileSync(join(evidence, 'exit.json'), JSON.stringify({ pid: child.pid, exit, new_X_product: false, native_dialogs: 0 }) + '\n');
+      assert.deepEqual(exit, { code: 0, signal: null }); assert.equal(Buffer.concat(stderr).length, 0);
+      console.log(JSON.stringify({ replay_pid: child.pid, exit, new_X_product: false, native_dialogs: 0, evidence }));
+    } };
+  } catch (e) { if (child.exitCode === null) child.kill(); await workspace?.close(); await exited; throw e; }
+}
+async function navigate(b, url) {
+  await b.goto(url);
+  await b.waitFor('document.body.dataset.ready === "true"');
+}
+async function state(b) { return b.evaluate('fetch("/session.json").then(r=>r.json())'); }
+async function finished(b, count) {
+  await b.waitFor(`document.querySelectorAll('.recent-entry').length === ${Math.min(count, 2)} && !document.getElementById('start').disabled`);
+  return state(b);
+}
+async function screenshot(b, name) {
+  const data = await b.screenshot();
+  writeFileSync(join(root, '.local/browser-lab', name), data);
+  writeFileSync(join(screenshots, name), data, { flag: 'wx' });
+  console.log(JSON.stringify({ screenshot: join(screenshots, name), bytes: data.length }));
+}
+async function key(b, key, code, windowsVirtualKeyCode) {
+  await b.send('Input.dispatchKeyEvent', { type: 'keyDown', key, code, windowsVirtualKeyCode,
+    ...(key === 'Enter' ? { text: '\r', unmodifiedText: '\r' } : {}) });
+  await b.send('Input.dispatchKeyEvent', { type: 'keyUp', key, code, windowsVirtualKeyCode });
+}
+async function actualDownload(b, expected) {
+  const directory = mkdtempSync(join(root, '.local/browser-lab/live-workspace-download-'));
+  await b.downloadDirectory(directory);
+  const currentQ = await b.evaluate('document.getElementById("export-preview").textContent');
+  assert.equal(currentQ, expected, 'Y_BEHAVIOR this W page retains the expected Q original text');
+  await b.click('#download');
+  const until = Date.now() + 8000;
+  let files;
+  do { files = readdirSync(directory); if (files.length && files.every(n => !n.endsWith('.crdownload'))) break; await delay(25); } while (Date.now() < until);
+  assert.deepEqual(files, ['water-report-1.json'], 'Y_BEHAVIOR actual system mouse download attachment');
+  const actual = readFileSync(join(directory, files[0]));
+  assert.deepEqual(actual, Buffer.from(currentQ), 'Y_BEHAVIOR actual W download preserves this Q original bytes');
+  console.log(JSON.stringify({ actual_system_mouse_click: true, directory, filename: files[0], bytes: actual.length,
+    sha256: createHash('sha256').update(actual).digest('hex'), Q_original_equal: true }));
+}
+
+test('workspace_actions_and_download', async () => {
+  const b = await page(), r = await replay();
+  try {
+    await b.size(1440, 1000); await navigate(b, r.url);
+    assert.equal((await state(b)).active, null);
+    assert.equal(await b.evaluate('document.querySelectorAll(".recent-entry").length'), 0);
+    await b.click('#start');
+    assert.equal(await b.evaluate('document.getElementById("start").disabled'), true, 'Y_BEHAVIOR busy state');
+    const complete = (await finished(b, 1)).recent[0]; assert.equal(complete.status, 'completed');
+    const link = await b.evaluate('({href:document.querySelector(".report-link").href,target:document.querySelector(".report-link").target,rel:document.querySelector(".report-link").rel})');
+    assert.equal(link.href, complete.report_url + '/'); assert.equal(link.target, '_blank'); assert(link.rel.includes('noopener'));
+    await navigate(b, complete.report_url);
+    assert.equal(await b.evaluate('document.getElementById("export-preview").textContent'), cases[0].bundle.snapshots[0].redacted_json);
+    assert((await b.evaluate('document.getElementById("source-kind").textContent')).includes('native_scope_metadata'));
+    await actualDownload(b, cases[0].bundle.snapshots[0].redacted_json);
+    await navigate(b, r.url);
+    await b.click('#start');
+    const selectedCancel = (await finished(b, 2)).recent[0];
+    assert.equal(selectedCancel.status, 'selection_cancelled'); assert.equal(selectedCancel.report_url, null);
+    assert.equal(await b.evaluate('document.querySelector(".recent-entry").querySelectorAll("a").length'), 0);
+    assert((await b.evaluate('document.getElementById("status-text").textContent')).includes('目录选择已取消'));
+    await b.click('#start');
+    await b.waitFor('!document.getElementById("cancel").disabled');
+    await b.click('#cancel');
+    const cancelled = (await finished(b, 3)).recent[0];
+    assert.equal(cancelled.selection, 'confirmed'); assert.equal(cancelled.status, 'cancelled'); assert(cancelled.report_url);
+    await navigate(b, cancelled.report_url); await actualDownload(b, cases[2].bundle.snapshots[0].redacted_json);
+    await navigate(b, r.url); await b.click('#start');
+    assert.equal((await finished(b, 4)).recent[0].status, 'completed', 'Y_BEHAVIOR rescan after cancellation');
+    const body = await b.evaluate('document.body.innerText');
+    assert(!/X-Water-Action|Host unavailable|\.exe|[a-f0-9]{64}/.test(body));
+    assert.equal(await b.evaluate('document.querySelectorAll("iframe,input[type=file]").length'), 0);
+    assert.equal((await state(b)).recent.length, 2);
+  } finally { await r.dispose(); }
+});
+
+test('workspace_layout_and_cancel', async () => {
+  const b = await page(), r = await replay();
+  try {
+    await navigate(b, r.url);
+    await b.evaluate('document.getElementById("start").focus()');
+    await key(b, 'Enter', 'Enter', 13);
+    await finished(b, 1);
+    for (const [width, height] of [[1440, 1000], [900, 800]]) {
+      await b.size(width, height); await b.evaluate('window.scrollTo(0,0)');
+      const layout = await b.evaluate(`({width:innerWidth,height:innerHeight,overflow:document.documentElement.scrollWidth>document.documentElement.clientWidth,
+        heading:document.querySelectorAll('h1').length,live:document.querySelector('[role=status]')!==null,
+        start:document.getElementById('start').textContent.trim(),links:Array.from(document.querySelectorAll('.report-link'),n=>n.tabIndex),
+        controls:Array.from(document.querySelectorAll('button'),n=>n.getAttribute('type')),text:document.body.innerText})`);
+      assert.equal(layout.width, width); assert.equal(layout.height, height); assert.equal(layout.overflow, false);
+      assert.equal(layout.heading, 1); assert(layout.live); assert.equal(layout.start, '选择目录并扫描');
+      assert(layout.links.every(n => n >= 0)); assert(layout.controls.every(t => t === 'button'));
+      for (const text of ['只读', '最近两份报告', '未知', '普通文件内容']) assert(layout.text.includes(text));
+      await screenshot(b, `live-workspace-${width}x${height}.png`);
+      await b.evaluate('document.getElementById("start").focus()'); await key(b, 'Tab', 'Tab', 9);
+      assert.equal(await b.evaluate('document.activeElement.classList.contains("report-link")'), true, 'Y_BEHAVIOR keyboard report access');
+      assert.equal(await b.evaluate('getComputedStyle(document.activeElement).outlineStyle !== "none"'), true);
+    }
+    await b.click('#start'); await finished(b, 2);
+    await b.size(900, 800); await b.evaluate('window.scrollTo(0,0)');
+    await screenshot(b, 'live-workspace-cancel.png');
+    assert((await b.evaluate('document.getElementById("status-text").textContent')).includes('目录选择已取消'));
+    await b.click('#start'); await b.waitFor('!document.getElementById("cancel").disabled');
+    await b.evaluate('document.getElementById("cancel").focus()'); await key(b, 'Enter', 'Enter', 13);
+    const end = await finished(b, 3); assert.equal(end.recent[0].status, 'cancelled');
+    const resources = await b.evaluate('performance.getEntriesByType("resource").map(e=>e.name)');
+    assert(resources.every(url => url.startsWith(r.url + '/')), 'Y_BEHAVIOR loopback resources only');
+    await r.close();
+    await b.waitFor('document.body.dataset.connection === "failed"');
+    assert.equal(await b.evaluate('document.getElementById("start").disabled && document.getElementById("cancel").disabled'), true);
+    assert((await b.evaluate('document.getElementById("status-text").textContent')).includes('连接'));
+  } finally { await r.dispose(); }
+});

@@ -1,0 +1,56 @@
+<!doctype html>
+<html lang="zh-CN">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width,initial-scale=1">
+  <meta name="color-scheme" content="light">
+  <meta name="water-action" content="__WATER_ACTION__">
+  <title>Water · 扫描工作台</title>
+  <link rel="stylesheet" href="/styles.css">
+  <script type="module" src="/app.mjs"></script>
+</head>
+<body>
+  <header class="app-header">
+    <div class="brand"><span class="brand-mark" aria-hidden="true">w</span><strong>Water</strong><span class="brand-caption">扫描工作台</span></div>
+    <div class="scope-notice"><span class="readonly-badge">只读观察</span><span>开发预览</span></div>
+  </header>
+  <main>
+    <section class="page-heading" aria-labelledby="page-title">
+      <p class="eyebrow">目录观察 / 扫描工作台</p>
+      <h1 id="page-title">从一个目录开始</h1>
+      <p class="subtitle">选择你希望了解的目录，观察条目与覆盖范围，再打开报告查看详情。</p>
+    </section>
+    <div class="workspace-grid">
+      <section class="scan-panel" aria-labelledby="scan-title">
+        <div class="panel-heading"><h2 id="scan-title">扫描目录</h2><span id="connection-label" class="connection-label">正在连接</span></div>
+        <div class="scan-status" role="status" aria-live="polite" aria-atomic="true">
+          <span class="status-mark" aria-hidden="true"></span>
+          <div><h3 id="status-text">正在连接扫描服务…</h3><p id="status-detail">连接就绪后，即可选择一个目录。</p></div>
+        </div>
+        <dl class="metrics" aria-label="本次扫描进度">
+          <div><dt>已访问条目</dt><dd id="visited">—</dd><p>当前扫描的观察进度</p></div>
+          <div><dt>已记录条目</dt><dd id="recorded">—</dd><p>保留在结果中的条目</p></div>
+        </dl>
+        <div class="actions">
+          <button type="button" id="start" class="primary-button" disabled>选择目录并扫描</button>
+          <button type="button" id="cancel" disabled>取消本次扫描</button>
+        </div>
+        <p class="action-note">每次扫描都需要重新选择并确认目录。</p>
+      </section>
+      <aside class="observation-note" aria-labelledby="note-title">
+        <span class="note-index" aria-hidden="true">01 — 只读</span>
+        <h2 id="note-title">先观察，再判断</h2>
+        <p>普通文件内容不会读取。扫描只观察已确认目录的有界元数据。</p>
+        <ul><li>未知条目保持保护</li><li>逻辑大小不等于可回收空间</li><li>报告默认脱敏，不保证匿名</li></ul>
+        <p class="note-footer">原生手势与生产竞态尚未验证。</p>
+      </aside>
+    </div>
+    <section class="recent-section" aria-labelledby="recent-title">
+      <div class="recent-heading"><div><p class="eyebrow">本次工作台会话</p><h2 id="recent-title">最近两份报告</h2></div><p>再次扫描时，较早的报告会关闭。</p></div>
+      <ol id="recent-list" class="recent-list"></ol>
+      <div id="empty-state" class="empty-state"><strong>还没有扫描记录</strong><p>完成目录选择后，本次结果会出现在这里。取消目录选择不会生成报告。</p></div>
+    </section>
+    <footer class="page-note"><span>Water / 本地目录观察</span><span>报告中的未知与覆盖限制会如实保留。</span></footer>
+  </main>
+</body>
+</html>

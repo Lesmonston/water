@@ -1,0 +1,22 @@
+{
+  "task": "WATER-W1-Y",
+  "recordedAt": "2026-10-19T11:49:02.729Z",
+  "stage": "Post-final manual staging audit",
+  "observedFailure": "The optional broad git diff --cached --check exited 2 on preserved raw Node TAP diagnostic blank spaces and raw PowerShell CRLF records. The wrapper asserted exit 0 and therefore exited 1 after staging the intended files.",
+  "gitExitCode": 2,
+  "wrapperExitCode": 1,
+  "evidenceSource": "Transcribed receipt of the tool-returned console error, not an original raw stdout/stderr file",
+  "affectedExamples": [
+    "red-behavior-negative.log",
+    "first failed model test TAP log",
+    "red-nc1-negative.log",
+    "red-nc2-negative.log",
+    "end-resource-check.json",
+    "first-model-replay-stop.json"
+  ],
+  "rawEvidenceChanged": false,
+  "frozenCheckRunnerChanged": false,
+  "productOrTestsChanged": false,
+  "productChecksRerun": false,
+  "remedy": "Preserve original evidence bytes as required. Verify archive/source hashes and Git blob bytes. Apply whitespace lint only to the authored report; the implementation commit already passed its whitespace check."
+}
