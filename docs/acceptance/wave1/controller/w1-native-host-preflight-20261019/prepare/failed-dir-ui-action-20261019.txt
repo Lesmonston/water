@@ -1,0 +1,41 @@
+param([Parameter(Mandatory=$true)][int]$TestProcessId,[Parameter(Mandatory=$true)][ValidateSet('cancel','select','select-dir')][string]$Action)
+$ErrorActionPreference = 'Stop'
+if ($Action -eq 'select-dir') {
+    Add-Type -Path 'C:/Windows/Microsoft.NET/Framework64/v4.0.30319/WPF/UIAutomationTypes.dll'
+    Add-Type -Path 'C:/Windows/Microsoft.NET/Framework64/v4.0.30319/WPF/UIAutomationClient.dll'
+    $deadline = [DateTime]::UtcNow.AddSeconds(12)
+    $selected = $false
+    $seenDialogs = @{}
+    while ([DateTime]::UtcNow -lt $deadline -and -not $selected) {
+        $windows = [System.Windows.Automation.AutomationElement]::RootElement.FindAll([System.Windows.Automation.TreeScope]::Children,[System.Windows.Automation.Condition]::TrueCondition)
+        foreach ($window in $windows) {
+            if ($window.Current.Name -eq 'Water - Select a read-only directory') {
+                $dialogKey = [string]$window.Current.ProcessId + ':' + [string]$window.Current.IsOffscreen
+                if (-not $seenDialogs.ContainsKey($dialogKey)) { Write-Output ('WATER_SESSION_DIALOG ' + $dialogKey + ' expected=' + $TestProcessId); $seenDialogs[$dialogKey] = $true }
+            }
+            if ($window.Current.ProcessId -ne $TestProcessId -or $window.Current.Name -ne 'Water - Select a read-only directory' -or $window.Current.IsOffscreen) { continue }
+            $condition = [System.Windows.Automation.PropertyCondition]::new([System.Windows.Automation.AutomationElement]::NameProperty,'dir')
+            foreach ($candidate in $window.FindAll([System.Windows.Automation.TreeScope]::Descendants,$condition)) {
+                $pattern = $null
+                if ($candidate.TryGetCurrentPattern([System.Windows.Automation.SelectionItemPattern]::Pattern,[ref]$pattern)) { $pattern.Select(); $selected = $true; break }
+            }
+        }
+        if (-not $selected) { Start-Sleep -Milliseconds 50 }
+    }
+    if (-not $selected) {
+        foreach ($window in $windows) {
+            if ($window.Current.ProcessId -ne $TestProcessId -or $window.Current.Name -ne 'Water - Select a read-only directory' -or $window.Current.IsOffscreen) { continue }
+            foreach ($entry in $window.FindAll([System.Windows.Automation.TreeScope]::Descendants,[System.Windows.Automation.Condition]::TrueCondition)) {
+                $probePattern = $null
+                if ($entry.TryGetCurrentPattern([System.Windows.Automation.SelectionItemPattern]::Pattern,[ref]$probePattern)) {
+                    $label = if (@('dir','empty','junction') -contains $entry.Current.Name) { $entry.Current.Name } else { '[other-name-length=' + $entry.Current.Name.Length + ']' }
+                    Write-Output ('WATER_SESSION_ITEM ' + $entry.Current.ControlType.ProgrammaticName + ' ' + $label)
+                }
+            }
+        }
+        throw 'Controlled dir item unavailable'
+    }
+    Write-Output ('WATER_SESSION_SELECTED_DIR ' + $TestProcessId)
+}
+$buttonAction = if ($Action -eq 'cancel') { 'cancel' } else { 'select' }
+& (Join-Path $PSScriptRoot 'picker-ui-action.ps1') -TestProcessId $TestProcessId -Action $buttonAction

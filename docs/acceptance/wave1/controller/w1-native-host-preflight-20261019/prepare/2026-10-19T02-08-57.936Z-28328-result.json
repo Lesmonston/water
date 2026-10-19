@@ -1,0 +1,108 @@
+{
+  "startedAt": "2026-10-19T02:08:57.938Z",
+  "commands": [
+    {
+      "binary": "C:\\Users\\37310\\.cargo\\bin\\rustup.exe",
+      "argv": [
+        "which",
+        "rustc",
+        "--toolchain",
+        "1.95.0"
+      ],
+      "exitCode": 0,
+      "error": null,
+      "log": "2026-10-19T02-08-57.936Z-28328-0.log"
+    },
+    {
+      "binary": "C:\\Users\\37310\\.cargo\\bin\\rustup.exe",
+      "argv": [
+        "which",
+        "cargo",
+        "--toolchain",
+        "1.95.0"
+      ],
+      "exitCode": 0,
+      "error": null,
+      "log": "2026-10-19T02-08-57.936Z-28328-1.log"
+    },
+    {
+      "binary": "C:\\Users\\37310\\.rustup\\toolchains\\1.95.0-x86_64-pc-windows-msvc\\bin\\rustc.exe",
+      "argv": [
+        "--version"
+      ],
+      "exitCode": 0,
+      "error": null,
+      "log": "2026-10-19T02-08-57.936Z-28328-2.log"
+    },
+    {
+      "binary": "C:\\Users\\37310\\.rustup\\toolchains\\1.95.0-x86_64-pc-windows-msvc\\bin\\cargo.exe",
+      "argv": [
+        "generate-lockfile",
+        "--offline",
+        "--manifest-path",
+        "tools/native-session-probe/Cargo.toml"
+      ],
+      "exitCode": 0,
+      "error": null,
+      "log": "2026-10-19T02-08-57.936Z-28328-3.log"
+    },
+    {
+      "binary": "C:\\Users\\37310\\.rustup\\toolchains\\1.95.0-x86_64-pc-windows-msvc\\bin\\cargo.exe",
+      "argv": [
+        "metadata",
+        "--offline",
+        "--locked",
+        "--format-version",
+        "1",
+        "--manifest-path",
+        "tools/native-session-probe/Cargo.toml"
+      ],
+      "exitCode": 0,
+      "error": null,
+      "log": "2026-10-19T02-08-57.936Z-28328-4.log"
+    },
+    {
+      "binary": "C:\\Users\\37310\\.rustup\\toolchains\\1.95.0-x86_64-pc-windows-msvc\\bin\\cargo.exe",
+      "argv": [
+        "build",
+        "--offline",
+        "--locked",
+        "--message-format=json",
+        "--manifest-path",
+        "tools/native-session-probe/Cargo.toml"
+      ],
+      "exitCode": 0,
+      "error": null,
+      "log": "2026-10-19T02-08-57.936Z-28328-5.log"
+    },
+    {
+      "binary": "C:\\Program Files\\nodejs\\node.exe",
+      "argv": [
+        "scripts/native-session-test-driver.mjs",
+        "tests",
+        "F:\\new\\smaltalk\\water\\.local\\next-target\\debug\\water-native-session-probe.exe"
+      ],
+      "exitCode": 0,
+      "error": null,
+      "log": "2026-10-19T02-08-57.936Z-28328-6.log"
+    }
+  ],
+  "audit": {
+    "actualNativeCaptures": 8,
+    "actualSelectionCancelled": 1,
+    "confirmedWithActualR": 7,
+    "legacyAccepted": 24,
+    "newVProductTested": false,
+    "newWProductTested": false
+  },
+  "fixture": {
+    "index": "F:\\new\\smaltalk\\water\\.local\\native-walk-fixtures\\index.json",
+    "sha256": "cb516913b9b034bc0fb5cbedd44c6445c25057cf5c810335ff319bbc31bcd9ff",
+    "reused": true,
+    "literalPayloadBytes": 60,
+    "logicalFileEntryBytes": 74
+  },
+  "endedAt": "2026-10-19T02:09:06.742Z",
+  "status": "passed",
+  "error": null
+}

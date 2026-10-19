@@ -2,7 +2,7 @@
 
 面向 Windows、macOS AI 开发者的本地存储分析与安全清理助手。
 
-**当前阶段：A–U及六补单已VERIFIED（Windows受控范围）。本波R补单01、T脱敏预览下载、U内存Node清单已独立验收并集成；旧R受阻现场及所有原树/夹具/冻结保持。当前无未结外贴票或新READY票，无自动实现者。原生宿主到报告页的完整用户闭环尚未实现，真实用户scope、生产竞态、macOS和桌面未验收，M1仍未完成。**
+**当前阶段：A–U及六补单保持VERIFIED（Windows受控范围）。V原生会话API/CLI与W原生页面/原字节流/固定启动器已完成协议冻结、独立树和各自实际baseline，现同波READY，等待用户分别转贴到两个新对话；无自动实现者。新V/W产品及各五项测试尚未实现/运行，真实V程序→W固定启动器联合链待交回后验收。真实用户scope、生产竞态、macOS和桌面未验收，M1仍未完成。**
 
 用户指定本项目所有后续开发均位于 `smaltalk/water`，由 Codex 担任总控。
 
@@ -35,7 +35,7 @@ Water 的发布许可证、定价与商标名称尚未最终确定；`water` 是
 
 ## 当前验收与下一波
 
-[R补单01/T/U已验收并集成](docs/acceptance/wave1/controller/WATER-W1-RTU-REVIEW-20261019.md)，S也已VERIFIED，本波全部收口，旧票不重贴。下一波按[依赖计划](docs/dispatch/wave1/AFTER-RTU-NEXT-WAVE-PLAN-20261019.md)准备原生宿主与页面接线；需先冻结真实原生来源协议、独立工单和实际baseline，再一起出齐可并行票。下面为历史批次。
+[R补单01/T/U已验收并集成](docs/acceptance/wave1/controller/WATER-W1-RTU-REVIEW-20261019.md)，S也已VERIFIED，本波全部收口，旧票不重贴。V/W现已[同波READY](docs/dispatch/wave1/NATIVE-HOST-READY-REPORT.md)，可分别外贴[V正式票](docs/dispatch/tickets/WATER-W1-V-NATIVE-SESSION-20261019.md)与[W正式票](docs/dispatch/tickets/WATER-W1-W-NATIVE-REVIEW-20261019.md)。共同精确基线30a8035、104锁条目/13继承锁/336唯一冻结，两树实际baseline通过；新产品和联合链仍待实现/验收。下面为历史批次。
 
 [本次J/K安排](docs/dispatch/wave1/SESSION-BATCH-PLAN-20261018.md)及[实际派前回执](docs/dispatch/wave1/SESSION-BATCH-READY-REPORT.md)：两树独立、同一冻结r1基线；J已通过[独立验收及集成](docs/acceptance/wave1/controller/WATER-W1-J-REVIEW-20261018.md)，K[补充单01已通过独立复验及真实J→K页面集成](docs/acceptance/wave1/controller/WATER-W1-K-ADDENDUM-01-REVIEW-20261018.md)，原失败历史保留。J只组合现有受控链路，K从调用方接内存快照。A–I及四补单无需重贴；W2–W5/真实scope/桌面/macOS属于后续规划，未伪装成待派READY单。
 
@@ -43,4 +43,4 @@ Water 的发布许可证、定价与商标名称尚未最终确定；`water` 是
 
 Codex负责架构、规划、契约、工单和验收；用户把总控准备好的一行指令转贴给执行者；执行者在独立工作树提交代码与回执，总控复核后集成。见 [派单登记](docs/dispatch/registry.json) 与 [本轮计划](docs/dispatch/wave1/PLAN.md)：A–I已验收集成，总控没有自动代替用户启动实现者或修产品代码。
 
-[L/M单票及隔离集成验收](docs/acceptance/wave1/controller/WATER-W1-LM-REVIEW-20261018.md)已完成，原正式票无需重贴。A–U及六补单均已VERIFIED（Windows受控范围），无未结外贴票。完整宿主用户闭环仍待下一波。
+[L/M单票及隔离集成验收](docs/acceptance/wave1/controller/WATER-W1-LM-REVIEW-20261018.md)已完成，原正式票无需重贴。A–U及六补单均已VERIFIED（Windows受控范围），无未结外贴票。V/W为本波新READY票，完整宿主用户闭环仍待实现与联合验收。

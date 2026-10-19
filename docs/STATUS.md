@@ -21,13 +21,19 @@
 
 ## 下一步
 
-A–U及六补单已VERIFIED（Windows受控范围）。本波R补单01、T脱敏预览下载、U内存Node清单已独立验收并集成；旧R受阻现场及所有原树/夹具/冻结保持。当前无未结外贴票或新READY票，无自动实现者。原生宿主到报告页的完整用户闭环尚未实现，真实用户scope、生产竞态、macOS和桌面未验收，M1仍未完成。
+A–U及六补单保持VERIFIED（Windows受控范围）。V原生会话API/CLI与W原生页面/原字节流/固定启动器已完成协议冻结、独立树和各自实际baseline，现同波READY，等待用户分别转贴到两个新对话；无自动实现者。新V/W产品及各五项测试尚未实现/运行，真实V程序→W固定启动器联合链待交回后验收。真实用户scope、生产竞态、macOS和桌面未验收，M1仍未完成。 [V/W正式派前回执](dispatch/wave1/NATIVE-HOST-READY-REPORT.md)。
 
-## R补单01/T/U验收集成通过（2026-10-19，最新）
+## V/W同波READY（2026-10-19，最新）
+
+共同精确基线30a803537602211ed2a11c106c63fd27cefb260f，water-w1-native-host-base-20261019；v/w两独立干净树，104新锁条目/13继承锁/336唯一冻结在三树通过，旧21任务及槽位保持。V实际八次原生依赖捕获/旧T24份通过；W实际原字节流与浏览器点击下载5096字节通过。69份准备和基线原字节证据已归档，含准备失败及旧六case。新产品不存在，不以探针代替实现。
+
+分别外贴[V工单](dispatch/tickets/WATER-W1-V-NATIVE-SESSION-20261019.md)和[W工单](dispatch/tickets/WATER-W1-W-NATIVE-REVIEW-20261019.md)，无需等待另一条实现；真实固定V→W启动器整链等两票收单后总控联合验收。两票dispatchedAt/startedAt仍null，无自动worker。marker内容采集尚未冻结，不额外派未定义权限的读文件任务。
+
+## R补单01/T/U验收集成通过（2026-10-19，历史收口）
 
 R接收a8386d8/受测a7cbe2b，T接收df00405/受测f26f727，U接收545df67/受测39ea9ff；隔离受测ae5d34a已合入主线。原最终门13项复跑；私有离线原五测/真实桥接及T浏览器五测、九生产负控逐次完整五红/恢复五绿、九独立测试、21编译拒绝/成功对照通过。1487交付路径、1403原helper归档、291冻结保持，原R受阻24文件不变。T真实下载与切换/筛选原字节一致，U未获内容采集权限。
 
-当前没有未结外贴票，下一波宿主/原生来源页面两条候选在冻结/实际baseline前只是规划，不能执行。尤其T当前source_kind不含native_scope_metadata，未把新R扫描标成synthetic_memory来冒称纵向用户闭环。[总控验收](acceptance/wave1/controller/WATER-W1-RTU-REVIEW-20261019.md)、[下一波前置](dispatch/wave1/AFTER-RTU-NEXT-WAVE-PLAN-20261019.md)。
+该次收口时没有未结外贴票；宿主/原生来源页面现已完成前置，按上方V/W正式READY单执行。尤其T当前source_kind不含native_scope_metadata，未把新R扫描标成synthetic_memory来冒称纵向用户闭环。[总控验收](acceptance/wave1/controller/WATER-W1-RTU-REVIEW-20261019.md)、[下一波前置](dispatch/wave1/AFTER-RTU-NEXT-WAVE-PLAN-20261019.md)。
 
 ## S独立验收及集成通过（2026-10-19，历史收口）
 

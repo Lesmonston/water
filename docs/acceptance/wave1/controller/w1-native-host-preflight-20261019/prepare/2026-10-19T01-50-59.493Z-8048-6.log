@@ -1,0 +1,43 @@
+{"binary":"C:\\Program Files\\nodejs\\node.exe","argv":["scripts/native-session-test-driver.mjs","tests","F:\\new\\smaltalk\\water\\.local\\next-target\\debug\\water-native-session-probe.exe"],"exitCode":1,"error":null}
+---stdout---
+
+---stderr---
+WATER_PICKER_CASE cancel
+WATER_UI_WINDOW 25024 #32770 visible=True
+WATER_UI_ACTION 25024 cancel
+WATER_PICKER_CASE select
+WATER_UI_WINDOW 25024 #32770 visible=True
+WATER_UI_ACTION 25024 select
+WATER_PICKER_CASE select
+WATER_UI_WINDOW 25024 #32770 visible=True
+WATER_UI_ACTION 25024 select
+WATER_PICKER_CASE select
+WATER_UI_WINDOW 25024 #32770 visible=True
+WATER_UI_ACTION 25024 select
+WATER_PICKER_CASE select
+WATER_UI_WINDOW 25024 #32770 visible=True
+WATER_UI_ACTION 25024 select
+WATER_PICKER_CASE select-dir
+Controlled dir item unavailable
+At F:\new\smaltalk\water\scripts\native-session-ui-action.ps1:31 char:9
++         throw 'Controlled dir item unavailable'
++         ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+    + CategoryInfo          : OperationStopped: (Controlled dir item unavailable:String) [], RuntimeException
+    + FullyQualifiedErrorId : Controlled dir item unavailable
+ 
+node:internal/modules/run_main:107
+    triggerUncaughtException(
+    ^
+
+AssertionError [ERR_ASSERTION]: Native session UI action failed
+    at file:///F:/new/smaltalk/water/scripts/native-session-test-driver.mjs:8:470
+    at process.processTicksAndRejections (node:internal/process/task_queues:104:5) {
+  generatedMessage: false,
+  code: 'ERR_ASSERTION',
+  actual: false,
+  expected: true,
+  operator: '==',
+  diff: 'simple'
+}
+
+Node.js v24.16.0

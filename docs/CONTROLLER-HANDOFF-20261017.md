@@ -2,7 +2,11 @@
 
 2026-10-17。项目：`F:/new/smaltalk/water`。供后续总控接手与Keeper ingest；未写共享Vault或其他项目。
 
-## 当前交接：本波全部VERIFIED，等待新宿主协议（2026-10-19）
+## 当前交接：V/W同波READY待分别外贴（2026-10-19）
+
+A–U及六补单保持VERIFIED（Windows受控范围）。V原生会话API/CLI与W原生页面/原字节流/固定启动器已完成协议冻结、独立树和各自实际baseline，现同波READY，等待用户分别转贴到两个新对话；无自动实现者。新V/W产品及各五项测试尚未实现/运行，真实V程序→W固定启动器联合链待交回后验收。真实用户scope、生产竞态、macOS和桌面未验收，M1仍未完成。 共同基线30a803537602211ed2a11c106c63fd27cefb260f，v/w两树干净，104新锁条目/13继承锁/336唯一冻结，旧21任务/槽位保持；V八实际捕获/旧24份、W实际5096字节下载通过。69份原始证据含准备失败和旧六case均保留。正式票、实际baseline和两个外贴句见[V/W派前回执](dispatch/wave1/NATIVE-HOST-READY-REPORT.md)。无外贴/启动证据，dispatchedAt/startedAt保持null。marker内容采集与macOS/桌面等后续权限和环境尚未冻结，不能先派。
+
+## 此前交接：本波全部VERIFIED，等待新宿主协议（2026-10-19，历史）
 
 A–U及六补单已VERIFIED（Windows受控范围）。本波R补单01、T脱敏预览下载、U内存Node清单已独立验收并集成；旧R受阻现场及所有原树/夹具/冻结保持。当前无未结外贴票或新READY票，无自动实现者。原生宿主到报告页的完整用户闭环尚未实现，真实用户scope、生产竞态、macOS和桌面未验收，M1仍未完成。 R/T/U隔离受测ae5d34a，原13 final/九完整五红恢复/九独立测试/21编译拒绝通过；1487交付路径和291冻结保持。[总控验收](acceptance/wave1/controller/WATER-W1-RTU-REVIEW-20261019.md)。下一波先冻结原生来源协议，再并行宿主/页面，当前无新READY票。
 

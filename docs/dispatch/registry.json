@@ -4,7 +4,7 @@
   "mode": "manual-external-paste",
   "controller": "Codex",
   "projectRoot": "F:/new/smaltalk/water",
-  "stage": "wave1-a-u-six-addenda-verified",
+  "stage": "wave1-a-u-verified-v-w-ready",
   "activeWave": "water-wave1",
   "slots": [
     {
@@ -175,6 +175,22 @@
       "baseline": "3d0faefa97267a6aa57f880a315a2cde7fe06e98",
       "task": "WATER-W1-U",
       "state": "verified-preserved"
+    },
+    {
+      "id": "v",
+      "path": "F:/new/smaltalk/water/.worktrees/v",
+      "branch": "worker/water-w1-v",
+      "baseline": "30a803537602211ed2a11c106c63fd27cefb260f",
+      "task": "WATER-W1-V",
+      "state": "ready-awaiting-user-paste"
+    },
+    {
+      "id": "w",
+      "path": "F:/new/smaltalk/water/.worktrees/w",
+      "branch": "worker/water-w1-w",
+      "baseline": "30a803537602211ed2a11c106c63fd27cefb260f",
+      "task": "WATER-W1-W",
+      "state": "ready-awaiting-user-paste"
     }
   ],
   "tasks": [
@@ -2063,8 +2079,182 @@
       "integrationTestedCommit": "ae5d34a9eda43ec8908f8115fe1456b23f2fb90f",
       "integrationReceipt": "docs/acceptance/wave1/controller/w1-rtu-review-20261019/integration/2026-10-18T16-03-36.856Z-40524-result.json",
       "verificationScope": "Controlled Windows offline memory validation. Five original final modes replayed; private offline five tests/fmt/clippy/metadata/public bridge; three actual-source complete-five red/byte-restore/green controls; three dynamic raw text/privacy/limit tests; eight compile rejections and positive control. No content acquisition or classification promotion."
+    },
+    {
+      "id": "WATER-W1-V",
+      "title": "真实原生会话API与单次CLI",
+      "status": "READY",
+      "slot": "v",
+      "worktree": "F:/new/smaltalk/water/.worktrees/v",
+      "branch": "worker/water-w1-v",
+      "baseCommit": "30a803537602211ed2a11c106c63fd27cefb260f",
+      "snapshotRef": "refs/tags/water-w1-native-host-base-20261019",
+      "ticket": "docs/dispatch/tickets/WATER-W1-V-NATIVE-SESSION-20261019.md",
+      "report": "docs/dispatch/reports/WATER-W1-V-REPORT.md",
+      "contractLock": "contracts/native-host-batch-v1/freeze.lock.json",
+      "helper": "scripts/native-host-check.mjs",
+      "workerRules": "docs/dispatch/W1-NATIVE-HOST-WORKER-RULES.md",
+      "outputRoot": "packages/native-session",
+      "spec": "contracts/native-session-v1/SPEC.md",
+      "testFiles": [
+        "packages/native-session/tests/session_v1.rs"
+      ],
+      "expectedTests": [
+        "session_selection_cancelled",
+        "session_native_capture",
+        "session_cancellation_and_cleanup",
+        "session_errors_preserve_registry",
+        "session_public_wire_and_cli"
+      ],
+      "expectedBrowserTests": [],
+      "expectedFinalModes": [
+        "fmt",
+        "test",
+        "clippy",
+        "metadata",
+        "bridge"
+      ],
+      "proofTargets": {
+        "behavior": "V_BEHAVIOR",
+        "nc1": "V_SELECTED_ROOT",
+        "nc2": "V_RELEASED",
+        "nc3": "V_NATIVE_SOURCE"
+      },
+      "allowedFiles": [
+        "packages/native-session/Cargo.toml",
+        "packages/native-session/Cargo.lock",
+        "packages/native-session/README.md",
+        "packages/native-session/tests/session_v1.rs",
+        "docs/dispatch/reports/WATER-W1-V-REPORT.md"
+      ],
+      "allowedPrefixes": [
+        "packages/native-session/src/",
+        "docs/acceptance/wave1/v/"
+      ],
+      "allowLockfileGeneration": true,
+      "cargoCacheSource": "F:/new/smaltalk/water/.worktrees/a/.local/cargo-home/registry",
+      "dependsOn": [
+        "WATER-W1-A",
+        "WATER-W1-N",
+        "WATER-W1-P",
+        "WATER-W1-S",
+        "WATER-W1-R",
+        "WATER-W1-E",
+        "WATER-W1-H",
+        "WATER-W1-Q"
+      ],
+      "model": null,
+      "modelAssignment": "user-arranged; worker reports actual engine/model",
+      "dispatchedAt": null,
+      "startedAt": null,
+      "baselineStatus": "PASSED",
+      "newProductTestsRun": false,
+      "physicalFixturePermission": true,
+      "macOS": "unverified",
+      "deferredJointValidation": "Actual V CLI -> W fixed launchNative -> HTTP/Chrome/download after both submissions; capture replay is not V product.",
+      "packageName": "water-native-session",
+      "crateName": "water_native_session",
+      "binaryName": "water-native-session",
+      "testTarget": "session_v1",
+      "testFile": "packages/native-session/tests/session_v1.rs",
+      "readyOn": "2026-10-19",
+      "preflightEvidence": "docs/dispatch/wave1/NATIVE-HOST-READY-REPORT.md",
+      "baselineEvidence": "docs/acceptance/wave1/controller/w1-native-host-preflight-20261019/v/2026-10-19T02-18-01.278Z-12416-baseline-result.json"
+    },
+    {
+      "id": "WATER-W1-W",
+      "title": "原生会话页面、原字节流与固定启动器",
+      "status": "READY",
+      "slot": "w",
+      "worktree": "F:/new/smaltalk/water/.worktrees/w",
+      "branch": "worker/water-w1-w",
+      "baseCommit": "30a803537602211ed2a11c106c63fd27cefb260f",
+      "snapshotRef": "refs/tags/water-w1-native-host-base-20261019",
+      "ticket": "docs/dispatch/tickets/WATER-W1-W-NATIVE-REVIEW-20261019.md",
+      "report": "docs/dispatch/reports/WATER-W1-W-REPORT.md",
+      "contractLock": "contracts/native-host-batch-v1/freeze.lock.json",
+      "helper": "scripts/native-host-check.mjs",
+      "workerRules": "docs/dispatch/W1-NATIVE-HOST-WORKER-RULES.md",
+      "outputRoot": "prototypes/native-review",
+      "spec": "contracts/native-review-v1/SPEC.md",
+      "testFiles": [
+        "prototypes/native-review/tests/model.test.mjs",
+        "prototypes/native-review/tests/browser.test.mjs"
+      ],
+      "expectedTests": [
+        "native_review_protocol",
+        "native_review_stream_and_launcher",
+        "native_review_http_and_privacy"
+      ],
+      "expectedBrowserTests": [
+        "native_review_live_inputs_and_download",
+        "native_review_layout_cancel_and_safety"
+      ],
+      "expectedFinalModes": [
+        "check",
+        "test",
+        "browser"
+      ],
+      "proofTargets": {
+        "behavior": "W_BEHAVIOR",
+        "nc1": "W_Q_ONLY",
+        "nc2": "W_SELECTION_CANCELLED",
+        "nc3": "W_STREAM_BOUNDARY"
+      },
+      "allowedFiles": [
+        "prototypes/native-review/.gitattributes",
+        "prototypes/native-review/index.html",
+        "prototypes/native-review/styles.css",
+        "prototypes/native-review/model.mjs",
+        "prototypes/native-review/app.mjs",
+        "prototypes/native-review/server.mjs",
+        "prototypes/native-review/host.mjs",
+        "prototypes/native-review/launch.mjs",
+        "prototypes/native-review/tests/model.test.mjs",
+        "prototypes/native-review/tests/browser.test.mjs",
+        "prototypes/native-review/README.md",
+        "docs/dispatch/reports/WATER-W1-W-REPORT.md"
+      ],
+      "allowedPrefixes": [
+        "docs/acceptance/wave1/w/"
+      ],
+      "allowLockfileGeneration": false,
+      "cargoCacheSource": "F:/new/smaltalk/water/.worktrees/a/.local/cargo-home/registry",
+      "dependsOn": [
+        "WATER-W1-A",
+        "WATER-W1-P",
+        "WATER-W1-S",
+        "WATER-W1-R",
+        "WATER-W1-E",
+        "WATER-W1-H",
+        "WATER-W1-Q",
+        "WATER-W1-I",
+        "WATER-W1-T"
+      ],
+      "model": null,
+      "modelAssignment": "user-arranged; worker reports actual engine/model",
+      "dispatchedAt": null,
+      "startedAt": null,
+      "baselineStatus": "PASSED",
+      "newProductTestsRun": false,
+      "physicalFixturePermission": false,
+      "macOS": "unverified",
+      "deferredJointValidation": "Actual V CLI -> W fixed launchNative -> HTTP/Chrome/download after both submissions; capture replay is not V product.",
+      "productionFiles": [
+        "prototypes/native-review/.gitattributes",
+        "prototypes/native-review/index.html",
+        "prototypes/native-review/styles.css",
+        "prototypes/native-review/model.mjs",
+        "prototypes/native-review/app.mjs",
+        "prototypes/native-review/server.mjs",
+        "prototypes/native-review/host.mjs",
+        "prototypes/native-review/launch.mjs"
+      ],
+      "readyOn": "2026-10-19",
+      "preflightEvidence": "docs/dispatch/wave1/NATIVE-HOST-READY-REPORT.md",
+      "baselineEvidence": "docs/acceptance/wave1/controller/w1-native-host-preflight-20261019/w/2026-10-19T02-18-01.280Z-26808-baseline-result.json"
     }
   ],
   "testHelper": "per-task helper; A defaults unchanged",
-  "note": "A-U and six addenda VERIFIED within controlled Windows scope. R addendum01/T/U independently accepted and jointly integrated; all original worker trees/reports/locks/fixtures retained. No outstanding external implementation tickets or new READY wave. Native host source/provenance protocol and interactive closed loop remain next; M1/macOS/real-user scope/desktop/deletion incomplete."
+  "note": "A-U/six addenda remain VERIFIED. V/W independently baselined, READY together awaiting separate user-pasted conversations; no automatic implementer. New products/tests and actual V->W launcher chain remain unimplemented/unverified; M1 incomplete."
 }
