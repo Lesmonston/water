@@ -1,0 +1,119 @@
+// Evidence-only archival, executed via node --input-type=module on stdin.
+// No scans, windows, payload reads, cleanup, dependency installation or staging.
+import assert from 'node:assert/strict';
+import {createHash} from 'node:crypto';
+import {constants, copyFileSync, existsSync, lstatSync, mkdirSync, readFileSync, readdirSync, statSync, writeFileSync} from 'node:fs';
+import {join, relative, resolve} from 'node:path';
+import {spawnSync} from 'node:child_process';
+const root = resolve('.');
+assert.equal(root.replaceAll('\\','/').toLowerCase(), 'f:/new/smaltalk/water/.worktrees/aa');
+const output = 'docs/acceptance/wave1/aa', start = Date.parse('2026-10-20T08:03:00Z');
+const checks = '.local/checks/WATER-W1-AA';
+const sha = b => createHash('sha256').update(b).digest('hex');
+const json = p => JSON.parse(readFileSync(join(root,p),'utf8').replace(/^\ufeff/,''));
+const entries = [];
+function archive(source, destination) {
+  const from = join(root, source), to = join(root, output, destination);
+  assert(lstatSync(from).isFile() && !lstatSync(from).isSymbolicLink());
+  assert(!relative(root, to).startsWith('..'));
+  const bytes = readFileSync(from);
+  if (from !== to) {
+    mkdirSync(resolve(to,'..'),{recursive:true});
+    copyFileSync(from,to,constants.COPYFILE_EXCL);
+  }
+  assert.equal(sha(readFileSync(to)), sha(bytes));
+  entries.push({source, archive:output+'/'+destination, bytes:bytes.length, sha256:sha(bytes)});
+}
+const receipts = [];
+for (const file of readdirSync(join(root,checks)).sort()) {
+  const path = checks+'/'+file;
+  if (file.startsWith('2026-10-20T') && /\.(json|log|txt)$/.test(file)) {
+    archive(path,'gates/'+file);
+    if (file.endsWith('-result.json')) receipts.push({file,...json(path)});
+  } else if (/^type-probes-\d+$/.test(file) && statSync(join(root,path)).mtimeMs >= start) {
+    assert(lstatSync(join(root,path)).isDirectory() && !lstatSync(join(root,path)).isSymbolicLink());
+    for (const sub of readdirSync(join(root,path)).sort()) {
+      if (/\.(txt|log)$/.test(sub)) archive(path+'/'+sub,'type-probes/'+file+'/'+sub);
+    }
+  }
+}
+const finals = receipts.filter(r=>r.finalGate);
+assert.deepEqual(finals.map(r=>r.mode),['check','test','native']);
+assert(finals.every(r=>r.status==='passed' && r.before.head==='b3a874d0a1628a7bdce6f3414f234b2b45957152' && r.before.status==='' && r.after.status===''));
+assert(finals.every(r=>r.sourceState.productionHash==='1d3703c96b1b528e691139a27fc65f3fe8ba192e34feaa39b66923115e39a2fc'));
+assert(finals.every(r=>r.sourceState.testHash==='10e9b05dfeec451918b1a14c5cfd48b69a331a7594f1b413253995fc3635ccdd'));
+assert.equal(finals[2].nativeDialogs,4);
+const drivers = readdirSync(join(root,'.local/checks/project-driver')).filter(f=>f.startsWith('2026-10-20T') && f.endsWith('-native.json'));
+assert.equal(drivers.length,1);
+const driverPath = '.local/checks/project-driver/'+drivers[0], driver = json(driverPath);
+assert.equal(driver.status,'passed'); assert.equal(driver.exit.code,0); assert.equal(driver.events.length,13);
+archive(driverPath,'native-driver/'+drivers[0]);
+const extract = checks+'/wire-attachments-20261020';
+mkdirSync(join(root,extract));
+const attachments = [];
+for (const [index,event] of driver.events.entries()) {
+  if (event.kind!=='result') continue;
+  const parts = [];
+  for (const [number,snapshot] of event.bundle.snapshots.entries()) {
+    parts.push({name:'metadata-redacted.json',text:snapshot.redacted_json,pointer:'/events/'+index+'/bundle/snapshots/'+number+'/redacted_json'});
+  }
+  if (event.marker.observation_json!==null) parts.push({name:'root-marker-evidence.json',text:event.marker.observation_json,pointer:'/events/'+index+'/marker/observation_json'});
+  for (const part of parts) {
+    const name = event.job_id+'-'+part.name, source = extract+'/'+name;
+    const bytes = Buffer.from(part.text,'utf8');
+    writeFileSync(join(root,source),bytes,{flag:'wx'});
+    archive(source,'wire-attachments/'+name);
+    attachments.push({job_id:event.job_id,sourceReceipt:driverPath,jsonPointer:part.pointer,bytes:bytes.length,sha256:sha(bytes),source,archive:output+'/wire-attachments/'+name,origin:'Exact decoded original UTF-8 wire string; no browser download was performed'});
+  }
+}
+writeFileSync(join(root,extract,'ORIGIN.json'),JSON.stringify(attachments,null,2)+'\n',{flag:'wx'});
+archive(extract+'/ORIGIN.json','wire-attachments/ORIGIN.json');
+archive(checks+'/native-screen-observation.json','observations/native-screen-observation.json');
+archive(checks+'/end-process-observation.json','observations/end-process-observation.json');
+archive('.local/root-marker-fixtures/index.json','fixture/index.json');
+const excludedScreenshots = [];
+for (let n=1;n<=4;n++) {
+  const source=checks+'/native-window-'+String(n).padStart(2,'0')+'.png';
+  assert(existsSync(join(root,source)));
+  const bytes=readFileSync(join(root,source));
+  excludedScreenshots.push({source,bytes:bytes.length,sha256:sha(bytes),reason:'Viewed and rejected: background application pixels, not Water dialog rendering; no pixel copy into Git/evidence archive; original retained in .local'});
+}
+for (const name of ['v1-good.txt','nc1-mutation.json','nc1-restoration.json','nc2-mutation.json','nc2-restoration.json']) {
+  archive(output+'/negative-source/'+name,'negative-source/'+name);
+}
+for (const name of ['native-window-observer.txt','archive-evidence.txt']) archive(output+'/'+name,name);
+const lock=json('contracts/project-batch-v1/freeze.lock.json');
+const constraints=new Set();
+for (const item of [lock,...lock.inheritedLocks.map(json)]) {
+  for (const f of item.files) constraints.add(f.path);
+  for (const f of item.gitObjects??[]) constraints.add(f.path);
+}
+const git = args => {
+  const r=spawnSync('git',['-c','core.hooksPath=NUL','-c','core.fsmonitor=false',...args],{cwd:root,encoding:'utf8',windowsHide:true,shell:false,timeout:30000});
+  assert.equal(r.status,0,r.stderr); return r.stdout.trim();
+};
+const summary={
+  task:'WATER-W1-AA',status:'SUBMITTED',implementationCommit:git(['rev-parse','HEAD']),
+  branch:git(['branch','--show-current']),baseCommit:'f3b87b7a79ff8fa51882705ecef75f1f02d8af15',
+  frozenPhysicalEntries:lock.files.length,inheritedLocks:lock.inheritedLocks.length,uniqueConstraintPaths:constraints.size,
+  gateRuns:receipts.map(r=>({receipt:output+'/gates/'+r.file,mode:r.mode,finalGate:r.finalGate,status:r.status,error:r.error,startedAt:r.startedAt,endedAt:r.endedAt,productTestsRun:r.productTestsRun,commands:r.commands.map(c=>({binary:c.binary,argv:c.argv,exitCode:c.exitCode,error:c.error??null,log:c.log?output+'/gates/'+c.log:null}))})),
+  native:{dialogs:4,additionalWindows:0,driverReceipt:output+'/native-driver/'+drivers[0],resultScenarios:finals[2].native.completed,exit:driver.exit,events:driver.events.length,pid:1860},
+  finalProductionHash:finals[0].sourceState.productionHash,finalTestHash:finals[0].sourceState.testHash,
+  negativeProofAudit:finals[0].proofAudit,
+  typeProbeRuns:readdirSync(join(root,output,'type-probes')).length,
+  originalWireAttachments:attachments,
+  visualEvidence:{status:'invalid',viewedImages:4,validWaterDialogScreenshots:0,excludedScreenshots,statement:'Native protocol/automation passed. These screen crops do not establish Water visual appearance.'},
+  endProcessObservation:json(checks+'/end-process-observation.json'),
+  limitations:['No AA-to-AB joint acceptance','No valid native visual rendering evidence','No real-user directory scanning or production race acceptance','No macOS/desktop/M1 acceptance','Background screenshot acquisition error is disclosed; unrelated pixels remain only in local untracked originals']
+};
+const summarySource=checks+'/submission-summary.json';
+writeFileSync(join(root,summarySource),JSON.stringify(summary,null,2)+'\n',{flag:'wx'});
+archive(summarySource,'submission-summary.json');
+for (const entry of entries) {
+  assert.equal(statSync(join(root,entry.source)).size,entry.bytes);
+  assert.equal(sha(readFileSync(join(root,entry.source))),entry.sha256);
+  assert.equal(sha(readFileSync(join(root,entry.archive))),entry.sha256);
+}
+const manifest={archive_version:'water.worker-evidence-archive.v1',task:'WATER-W1-AA',implementationCommit:summary.implementationCommit,createdAt:new Date().toISOString(),files:entries.sort((a,b)=>a.archive.localeCompare(b.archive)),fileCount:entries.length,totalBytes:entries.reduce((n,e)=>n+e.bytes,0),excludedScreenshots,excludedCategories:['target','cargo cache','executables','rmeta','browser profiles','ordinary manifest payloads','unrelated screenshot pixels']};
+writeFileSync(join(root,output,'ARCHIVE.json'),JSON.stringify(manifest,null,2)+'\n',{flag:'wx'});
+console.log(JSON.stringify({fileCount:manifest.fileCount,totalBytes:manifest.totalBytes,uniqueConstraints:constraints.size,gateRuns:receipts.length,finalModes:finals.map(r=>r.mode),wireAttachments:attachments.map(a=>({job_id:a.job_id,bytes:a.bytes,sha256:a.sha256})),excludedInvalidImages:excludedScreenshots.length,typeProbeRuns:summary.typeProbeRuns},null,2));

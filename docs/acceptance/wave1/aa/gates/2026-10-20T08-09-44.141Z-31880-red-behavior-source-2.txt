@@ -1,0 +1,60 @@
+use crate::v1::{MAX_REQUEST_BYTES, ProjectError};
+use serde::Deserialize;
+use std::io::BufRead;
+use water_contracts::v1::OpaqueId;
+
+#[derive(Debug, Clone, PartialEq, Eq)]
+pub enum ProjectRequest {
+    Start { job_id: OpaqueId, read_manifest: bool },
+    Cancel { job_id: OpaqueId },
+    Shutdown,
+}
+
+#[derive(Deserialize)]
+#[serde(tag = "command", deny_unknown_fields)]
+enum Payload {
+    #[serde(rename = "start")]
+    Start { job_id: OpaqueId, read_manifest: bool },
+    #[serde(rename = "cancel")]
+    Cancel { job_id: OpaqueId },
+    #[serde(rename = "shutdown")]
+    Shutdown {},
+}
+
+/// The same decoder is used by stdin; whitespace inside strings is JSON data.
+pub fn decode_request(raw: &[u8]) -> Result<ProjectRequest, ProjectError> {
+    if raw.is_empty() || raw.len() > MAX_REQUEST_BYTES || raw.first() != Some(&b'{') || raw.last() != Some(&b'}') {
+        return Err(ProjectError::InvalidRequest);
+    }
+    let (mut quoted, mut escaped) = (false, false);
+    for &byte in raw {
+        if quoted {
+            if escaped { escaped = false; }
+            else if byte == b'\\' { escaped = true; }
+            else if byte == b'"' { quoted = false; }
+        } else if byte == b'"' { quoted = true; }
+        else if byte.is_ascii_whitespace() { return Err(ProjectError::InvalidRequest); }
+    }
+    Ok(match serde_json::from_slice(raw).map_err(|_| ProjectError::InvalidRequest)? {
+        Payload::Start { job_id, read_manifest } => ProjectRequest::Start { job_id, read_manifest },
+        Payload::Cancel { job_id } => ProjectRequest::Cancel { job_id },
+        Payload::Shutdown {} => ProjectRequest::Shutdown,
+    })
+}
+
+#[derive(Debug, Clone, Copy, PartialEq, Eq)]
+pub enum FrameError { InvalidRequest, Truncated, TooLong, Unavailable }
+
+pub fn read_request<R: BufRead>(reader: &mut R) -> Result<Option<ProjectRequest>, FrameError> {
+    let mut body = Vec::new();
+    loop {
+        let bytes = reader.fill_buf().map_err(|_| FrameError::Unavailable)?;
+        if bytes.is_empty() { return if body.is_empty() { Ok(None) } else { Err(FrameError::Truncated) }; }
+        let at = bytes.iter().position(|b| *b == b'\n');
+        let count = at.unwrap_or(bytes.len());
+        if body.len() + count > MAX_REQUEST_BYTES { return Err(FrameError::TooLong); }
+        body.extend_from_slice(&bytes[..count]);
+        reader.consume(count + usize::from(at.is_some()));
+        if at.is_some() { return decode_request(&body).map(Some).map_err(|_| FrameError::InvalidRequest); }
+    }
+}

@@ -1,0 +1,640 @@
+{
+  "task": "WATER-W1-AA",
+  "mode": "test",
+  "finalGate": false,
+  "startedAt": "2026-10-20T08:10:53.005Z",
+  "before": {
+    "head": "f3b87b7a79ff8fa51882705ecef75f1f02d8af15",
+    "status": "?? packages/project-session/Cargo.lock\n?? packages/project-session/Cargo.toml\n?? packages/project-session/README.md\n?? packages/project-session/src/lib.rs\n?? packages/project-session/src/main.rs\n?? packages/project-session/src/request.rs\n?? packages/project-session/src/runtime.rs\n?? packages/project-session/src/v1.rs\n?? packages/project-session/tests/project_v1.rs"
+  },
+  "node": "v24.16.0",
+  "productTestsRun": false,
+  "frozenFiles": 228,
+  "commands": [
+    {
+      "binary": "git",
+      "argv": [
+        "-c",
+        "core.hooksPath=NUL",
+        "-c",
+        "core.fsmonitor=false",
+        "rev-parse",
+        "--path-format=absolute",
+        "--git-common-dir"
+      ],
+      "exitCode": 0,
+      "error": null
+    },
+    {
+      "binary": "git",
+      "argv": [
+        "-c",
+        "core.hooksPath=NUL",
+        "-c",
+        "core.fsmonitor=false",
+        "branch",
+        "--show-current"
+      ],
+      "exitCode": 0,
+      "error": null
+    },
+    {
+      "binary": "git",
+      "argv": [
+        "-c",
+        "core.hooksPath=NUL",
+        "-c",
+        "core.fsmonitor=false",
+        "merge-base",
+        "--is-ancestor",
+        "f3b87b7a79ff8fa51882705ecef75f1f02d8af15",
+        "HEAD"
+      ],
+      "exitCode": 0,
+      "error": null
+    },
+    {
+      "binary": "git",
+      "argv": [
+        "-c",
+        "core.hooksPath=NUL",
+        "-c",
+        "core.fsmonitor=false",
+        "diff",
+        "--no-renames",
+        "--name-only",
+        "-z",
+        "f3b87b7a79ff8fa51882705ecef75f1f02d8af15",
+        "HEAD"
+      ],
+      "exitCode": 0,
+      "error": null
+    },
+    {
+      "binary": "git",
+      "argv": [
+        "-c",
+        "core.hooksPath=NUL",
+        "-c",
+        "core.fsmonitor=false",
+        "diff",
+        "--no-renames",
+        "--name-only",
+        "-z",
+        "HEAD"
+      ],
+      "exitCode": 0,
+      "error": null
+    },
+    {
+      "binary": "git",
+      "argv": [
+        "-c",
+        "core.hooksPath=NUL",
+        "-c",
+        "core.fsmonitor=false",
+        "ls-files",
+        "--others",
+        "--exclude-standard",
+        "-z"
+      ],
+      "exitCode": 0,
+      "error": null
+    },
+    {
+      "binary": "git",
+      "argv": [
+        "-c",
+        "core.hooksPath=NUL",
+        "-c",
+        "core.fsmonitor=false",
+        "rev-parse",
+        "HEAD"
+      ],
+      "exitCode": 0,
+      "error": null
+    },
+    {
+      "binary": "git",
+      "argv": [
+        "-c",
+        "core.hooksPath=NUL",
+        "-c",
+        "core.fsmonitor=false",
+        "status",
+        "--porcelain",
+        "--untracked-files=all"
+      ],
+      "exitCode": 0,
+      "error": null
+    },
+    {
+      "binary": "git",
+      "argv": [
+        "-c",
+        "core.hooksPath=NUL",
+        "-c",
+        "core.fsmonitor=false",
+        "hash-object",
+        "--path=prototypes/evidence-reader/index.html",
+        "prototypes/evidence-reader/index.html"
+      ],
+      "exitCode": 0,
+      "error": null,
+      "log": "2026-10-20T08-10-51.763Z-23612-test-1.log"
+    },
+    {
+      "binary": "git",
+      "argv": [
+        "-c",
+        "core.hooksPath=NUL",
+        "-c",
+        "core.fsmonitor=false",
+        "hash-object",
+        "--path=prototypes/evidence-reader/styles.css",
+        "prototypes/evidence-reader/styles.css"
+      ],
+      "exitCode": 0,
+      "error": null,
+      "log": "2026-10-20T08-10-51.763Z-23612-test-2.log"
+    },
+    {
+      "binary": "git",
+      "argv": [
+        "-c",
+        "core.hooksPath=NUL",
+        "-c",
+        "core.fsmonitor=false",
+        "hash-object",
+        "--path=prototypes/scan-review/index.html",
+        "prototypes/scan-review/index.html"
+      ],
+      "exitCode": 0,
+      "error": null,
+      "log": "2026-10-20T08-10-51.763Z-23612-test-3.log"
+    },
+    {
+      "binary": "git",
+      "argv": [
+        "-c",
+        "core.hooksPath=NUL",
+        "-c",
+        "core.fsmonitor=false",
+        "hash-object",
+        "--path=prototypes/scan-review/styles.css",
+        "prototypes/scan-review/styles.css"
+      ],
+      "exitCode": 0,
+      "error": null,
+      "log": "2026-10-20T08-10-51.763Z-23612-test-4.log"
+    },
+    {
+      "binary": "git",
+      "argv": [
+        "-c",
+        "core.hooksPath=NUL",
+        "-c",
+        "core.fsmonitor=false",
+        "hash-object",
+        "--path=prototypes/evidence-reader/index.html",
+        "prototypes/evidence-reader/index.html"
+      ],
+      "exitCode": 0,
+      "error": null,
+      "log": "2026-10-20T08-10-51.763Z-23612-test-5.log"
+    },
+    {
+      "binary": "git",
+      "argv": [
+        "-c",
+        "core.hooksPath=NUL",
+        "-c",
+        "core.fsmonitor=false",
+        "hash-object",
+        "--path=prototypes/evidence-reader/styles.css",
+        "prototypes/evidence-reader/styles.css"
+      ],
+      "exitCode": 0,
+      "error": null,
+      "log": "2026-10-20T08-10-51.763Z-23612-test-6.log"
+    },
+    {
+      "binary": "git",
+      "argv": [
+        "-c",
+        "core.hooksPath=NUL",
+        "-c",
+        "core.fsmonitor=false",
+        "hash-object",
+        "--path=prototypes/live-workspace/.gitattributes",
+        "prototypes/live-workspace/.gitattributes"
+      ],
+      "exitCode": 0,
+      "error": null,
+      "log": "2026-10-20T08-10-51.763Z-23612-test-7.log"
+    },
+    {
+      "binary": "git",
+      "argv": [
+        "-c",
+        "core.hooksPath=NUL",
+        "-c",
+        "core.fsmonitor=false",
+        "hash-object",
+        "--path=prototypes/scan-review/index.html",
+        "prototypes/scan-review/index.html"
+      ],
+      "exitCode": 0,
+      "error": null,
+      "log": "2026-10-20T08-10-51.763Z-23612-test-8.log"
+    },
+    {
+      "binary": "git",
+      "argv": [
+        "-c",
+        "core.hooksPath=NUL",
+        "-c",
+        "core.fsmonitor=false",
+        "hash-object",
+        "--path=prototypes/scan-review/styles.css",
+        "prototypes/scan-review/styles.css"
+      ],
+      "exitCode": 0,
+      "error": null,
+      "log": "2026-10-20T08-10-51.763Z-23612-test-9.log"
+    },
+    {
+      "binary": "C:\\Users\\37310\\.cargo\\bin\\rustup.exe",
+      "argv": [
+        "which",
+        "rustc",
+        "--toolchain",
+        "1.95.0"
+      ],
+      "exitCode": 0,
+      "error": null,
+      "log": "2026-10-20T08-10-51.763Z-23612-test-10.log"
+    },
+    {
+      "binary": "C:\\Users\\37310\\.cargo\\bin\\rustup.exe",
+      "argv": [
+        "which",
+        "cargo",
+        "--toolchain",
+        "1.95.0"
+      ],
+      "exitCode": 0,
+      "error": null,
+      "log": "2026-10-20T08-10-51.763Z-23612-test-11.log"
+    },
+    {
+      "binary": "C:\\Users\\37310\\.rustup\\toolchains\\1.95.0-x86_64-pc-windows-msvc\\bin\\rustc.exe",
+      "argv": [
+        "--version"
+      ],
+      "exitCode": 0,
+      "error": null,
+      "log": "2026-10-20T08-10-51.763Z-23612-test-12.log"
+    },
+    {
+      "binary": "C:\\Users\\37310\\.rustup\\toolchains\\1.95.0-x86_64-pc-windows-msvc\\bin\\cargo.exe",
+      "argv": [
+        "metadata",
+        "--offline",
+        "--locked",
+        "--format-version",
+        "1",
+        "--manifest-path",
+        "packages/project-session/Cargo.toml"
+      ],
+      "exitCode": 0,
+      "error": null,
+      "log": "2026-10-20T08-10-51.763Z-23612-test-13.log"
+    },
+    {
+      "binary": "C:\\Users\\37310\\.rustup\\toolchains\\1.95.0-x86_64-pc-windows-msvc\\bin\\cargo.exe",
+      "argv": [
+        "test",
+        "--offline",
+        "--locked",
+        "--manifest-path",
+        "packages/project-session/Cargo.toml",
+        "--test",
+        "project_v1",
+        "--",
+        "--test-threads=1",
+        "--nocapture"
+      ],
+      "exitCode": 101,
+      "error": null,
+      "log": "2026-10-20T08-10-51.763Z-23612-test-14.log"
+    },
+    {
+      "binary": "git",
+      "argv": [
+        "-c",
+        "core.hooksPath=NUL",
+        "-c",
+        "core.fsmonitor=false",
+        "hash-object",
+        "--path=prototypes/evidence-reader/index.html",
+        "prototypes/evidence-reader/index.html"
+      ],
+      "exitCode": 0,
+      "error": null,
+      "log": "2026-10-20T08-10-51.763Z-23612-test-15.log"
+    },
+    {
+      "binary": "git",
+      "argv": [
+        "-c",
+        "core.hooksPath=NUL",
+        "-c",
+        "core.fsmonitor=false",
+        "hash-object",
+        "--path=prototypes/evidence-reader/styles.css",
+        "prototypes/evidence-reader/styles.css"
+      ],
+      "exitCode": 0,
+      "error": null,
+      "log": "2026-10-20T08-10-51.763Z-23612-test-16.log"
+    },
+    {
+      "binary": "git",
+      "argv": [
+        "-c",
+        "core.hooksPath=NUL",
+        "-c",
+        "core.fsmonitor=false",
+        "hash-object",
+        "--path=prototypes/scan-review/index.html",
+        "prototypes/scan-review/index.html"
+      ],
+      "exitCode": 0,
+      "error": null,
+      "log": "2026-10-20T08-10-51.763Z-23612-test-17.log"
+    },
+    {
+      "binary": "git",
+      "argv": [
+        "-c",
+        "core.hooksPath=NUL",
+        "-c",
+        "core.fsmonitor=false",
+        "hash-object",
+        "--path=prototypes/scan-review/styles.css",
+        "prototypes/scan-review/styles.css"
+      ],
+      "exitCode": 0,
+      "error": null,
+      "log": "2026-10-20T08-10-51.763Z-23612-test-18.log"
+    },
+    {
+      "binary": "git",
+      "argv": [
+        "-c",
+        "core.hooksPath=NUL",
+        "-c",
+        "core.fsmonitor=false",
+        "hash-object",
+        "--path=prototypes/evidence-reader/index.html",
+        "prototypes/evidence-reader/index.html"
+      ],
+      "exitCode": 0,
+      "error": null,
+      "log": "2026-10-20T08-10-51.763Z-23612-test-19.log"
+    },
+    {
+      "binary": "git",
+      "argv": [
+        "-c",
+        "core.hooksPath=NUL",
+        "-c",
+        "core.fsmonitor=false",
+        "hash-object",
+        "--path=prototypes/evidence-reader/styles.css",
+        "prototypes/evidence-reader/styles.css"
+      ],
+      "exitCode": 0,
+      "error": null,
+      "log": "2026-10-20T08-10-51.763Z-23612-test-20.log"
+    },
+    {
+      "binary": "git",
+      "argv": [
+        "-c",
+        "core.hooksPath=NUL",
+        "-c",
+        "core.fsmonitor=false",
+        "hash-object",
+        "--path=prototypes/live-workspace/.gitattributes",
+        "prototypes/live-workspace/.gitattributes"
+      ],
+      "exitCode": 0,
+      "error": null,
+      "log": "2026-10-20T08-10-51.763Z-23612-test-21.log"
+    },
+    {
+      "binary": "git",
+      "argv": [
+        "-c",
+        "core.hooksPath=NUL",
+        "-c",
+        "core.fsmonitor=false",
+        "hash-object",
+        "--path=prototypes/scan-review/index.html",
+        "prototypes/scan-review/index.html"
+      ],
+      "exitCode": 0,
+      "error": null,
+      "log": "2026-10-20T08-10-51.763Z-23612-test-22.log"
+    },
+    {
+      "binary": "git",
+      "argv": [
+        "-c",
+        "core.hooksPath=NUL",
+        "-c",
+        "core.fsmonitor=false",
+        "hash-object",
+        "--path=prototypes/scan-review/styles.css",
+        "prototypes/scan-review/styles.css"
+      ],
+      "exitCode": 0,
+      "error": null,
+      "log": "2026-10-20T08-10-51.763Z-23612-test-23.log"
+    },
+    {
+      "binary": "git",
+      "argv": [
+        "-c",
+        "core.hooksPath=NUL",
+        "-c",
+        "core.fsmonitor=false",
+        "branch",
+        "--show-current"
+      ],
+      "exitCode": 0,
+      "error": null,
+      "log": "2026-10-20T08-10-51.763Z-23612-test-24.log"
+    },
+    {
+      "binary": "git",
+      "argv": [
+        "-c",
+        "core.hooksPath=NUL",
+        "-c",
+        "core.fsmonitor=false",
+        "merge-base",
+        "--is-ancestor",
+        "f3b87b7a79ff8fa51882705ecef75f1f02d8af15",
+        "HEAD"
+      ],
+      "exitCode": 0,
+      "error": null,
+      "log": "2026-10-20T08-10-51.763Z-23612-test-25.log"
+    },
+    {
+      "binary": "git",
+      "argv": [
+        "-c",
+        "core.hooksPath=NUL",
+        "-c",
+        "core.fsmonitor=false",
+        "diff",
+        "--no-renames",
+        "--name-only",
+        "-z",
+        "f3b87b7a79ff8fa51882705ecef75f1f02d8af15",
+        "HEAD"
+      ],
+      "exitCode": 0,
+      "error": null,
+      "log": "2026-10-20T08-10-51.763Z-23612-test-26.log"
+    },
+    {
+      "binary": "git",
+      "argv": [
+        "-c",
+        "core.hooksPath=NUL",
+        "-c",
+        "core.fsmonitor=false",
+        "diff",
+        "--no-renames",
+        "--name-only",
+        "-z",
+        "HEAD"
+      ],
+      "exitCode": 0,
+      "error": null,
+      "log": "2026-10-20T08-10-51.763Z-23612-test-27.log"
+    },
+    {
+      "binary": "git",
+      "argv": [
+        "-c",
+        "core.hooksPath=NUL",
+        "-c",
+        "core.fsmonitor=false",
+        "ls-files",
+        "--others",
+        "--exclude-standard",
+        "-z"
+      ],
+      "exitCode": 0,
+      "error": null,
+      "log": "2026-10-20T08-10-51.763Z-23612-test-28.log"
+    },
+    {
+      "binary": "git",
+      "argv": [
+        "-c",
+        "core.hooksPath=NUL",
+        "-c",
+        "core.fsmonitor=false",
+        "rev-parse",
+        "HEAD"
+      ],
+      "exitCode": 0,
+      "error": null,
+      "log": "2026-10-20T08-10-51.763Z-23612-test-29.log"
+    },
+    {
+      "binary": "git",
+      "argv": [
+        "-c",
+        "core.hooksPath=NUL",
+        "-c",
+        "core.fsmonitor=false",
+        "status",
+        "--porcelain",
+        "--untracked-files=all"
+      ],
+      "exitCode": 0,
+      "error": null,
+      "log": "2026-10-20T08-10-51.763Z-23612-test-30.log"
+    }
+  ],
+  "fixtureSha256": "812c2454b52716e44a26613e84331cee02c38249745238180b8c91998cda7b93",
+  "sourceState": {
+    "files": [
+      {
+        "path": "packages/project-session/src/lib.rs",
+        "sha256": "e645a57538de32610447fcef9f2a158a7b9009360478c9ef7f662d41972fefdd",
+        "snapshot": "2026-10-20T08-10-51.763Z-23612-test-source-0.txt",
+        "test": false
+      },
+      {
+        "path": "packages/project-session/src/main.rs",
+        "sha256": "0ab7c024dc2ba2e619fd72dae63b76be0f3dd994d3ac76e3034d2f09ec770444",
+        "snapshot": "2026-10-20T08-10-51.763Z-23612-test-source-1.txt",
+        "test": false
+      },
+      {
+        "path": "packages/project-session/src/request.rs",
+        "sha256": "07930e83c7d33b19b5beaecde730aea956d428703f66a2a21547a4611be7c93c",
+        "snapshot": "2026-10-20T08-10-51.763Z-23612-test-source-2.txt",
+        "test": false
+      },
+      {
+        "path": "packages/project-session/src/runtime.rs",
+        "sha256": "8bd9083e72a3db45ebaaf46802f260df15dd93a38610d7bb7ac23a7b9079733b",
+        "snapshot": "2026-10-20T08-10-51.763Z-23612-test-source-3.txt",
+        "test": false
+      },
+      {
+        "path": "packages/project-session/src/v1.rs",
+        "sha256": "ae37cc2f7d9359baa28e066221b85c67d13688df6fd71c7d9b0bdb50a75ba2fb",
+        "snapshot": "2026-10-20T08-10-51.763Z-23612-test-source-4.txt",
+        "test": false
+      },
+      {
+        "path": "packages/project-session/Cargo.toml",
+        "sha256": "aec794d6b55bfc46d7372f12f134de0442f08924388192d08068c4055440b976",
+        "snapshot": "2026-10-20T08-10-51.763Z-23612-test-source-5.txt",
+        "test": false
+      },
+      {
+        "path": "packages/project-session/Cargo.lock",
+        "sha256": "8c5cc265f116876ac68cb12f6604a1c1f82e519f144264a99590a50e5c0a1b82",
+        "snapshot": "2026-10-20T08-10-51.763Z-23612-test-source-6.txt",
+        "test": false
+      },
+      {
+        "path": "packages/project-session/tests/project_v1.rs",
+        "sha256": "615bbd3aa82213dc24e216d30da9509292b1836a2bdd6eeb7a57da259635b48d",
+        "snapshot": "2026-10-20T08-10-51.763Z-23612-test-source-7.txt",
+        "test": true
+      }
+    ],
+    "productionHash": "05de0a9f7dd98ec12826163e6e1acd7f001d92fdb0eac745acf4474440494b4e",
+    "testHash": "e632e1f4defd34eb8c3db13128b80cc75a1b1eaeb03ee305a2d59bf9a21e209c"
+  },
+  "after": {
+    "head": "f3b87b7a79ff8fa51882705ecef75f1f02d8af15",
+    "status": "?? packages/project-session/Cargo.lock\n?? packages/project-session/Cargo.toml\n?? packages/project-session/README.md\n?? packages/project-session/src/lib.rs\n?? packages/project-session/src/main.rs\n?? packages/project-session/src/request.rs\n?? packages/project-session/src/runtime.rs\n?? packages/project-session/src/v1.rs\n?? packages/project-session/tests/project_v1.rs"
+  },
+  "endedAt": "2026-10-20T08:10:55.791Z",
+  "status": "failed",
+  "error": "Focused command failed: test --offline --locked --manifest-path packages/project-session/Cargo.toml --test project_v1 -- --test-threads=1 --nocapture"
+}

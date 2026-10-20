@@ -1,0 +1,10 @@
+error: cannot construct `water_project_session::v1::ConfirmedCapture` with struct literal syntax due to private fields
+ --> F:\new\smaltalk\water\.worktrees\aa\.local/checks/WATER-W1-AA/type-probes-7224\capture_construct.txt:2:21
+  |
+2 | fn main() { let _ = ConfirmedCapture {}; }
+  |                     ^^^^^^^^^^^^^^^^
+  |
+  = note: private fields `capture_version`, `read_manifest`, `snapshot` and `marker` that were not provided
+
+error: aborting due to 1 previous error
+

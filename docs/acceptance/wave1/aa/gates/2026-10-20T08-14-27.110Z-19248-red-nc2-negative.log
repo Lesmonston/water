@@ -1,0 +1,50 @@
+{"binary":"C:\\Users\\37310\\.rustup\\toolchains\\1.95.0-x86_64-pc-windows-msvc\\bin\\cargo.exe","argv":["test","--offline","--locked","--manifest-path","packages/project-session/Cargo.toml","--test","project_v1","--","--test-threads=1","--nocapture"],"exitCode":101,"error":null}
+
+running 4 tests
+test project_capture_and_marker ... FAILED
+test project_consent_state ... FAILED
+test project_request_boundary ... ok
+test project_wire_and_cleanup ... FAILED
+
+failures:
+
+failures:
+    project_capture_and_marker
+    project_consent_state
+    project_wire_and_cleanup
+
+test result: FAILED. 1 passed; 3 failed; 0 ignored; 0 measured; 0 filtered out; finished in 0.02s
+
+
+   Compiling water-project-session v0.1.0 (F:\new\smaltalk\water\.worktrees\aa\packages\project-session)
+warning: unused import: `ScanStatus`
+ --> src\v1.rs:4:37
+  |
+4 | use water_contracts::v1::{OpaqueId, ScanStatus};
+  |                                     ^^^^^^^^^^
+  |
+  = note: `#[warn(unused_imports)]` (part of `#[warn(unused)]`) on by default
+
+warning: `water-project-session` (lib) generated 1 warning (run `cargo fix --lib -p water-project-session` to apply 1 suggestion)
+    Finished `test` profile [unoptimized + debuginfo] target(s) in 1.40s
+     Running tests\project_v1.rs (.local\next-target\debug\deps\project_v1-4ed2f1b13bda37b8.exe)
+
+thread 'project_capture_and_marker' (12452) panicked at tests\project_v1.rs:307:9:
+assertion `left == right` failed: AA_BEHAVIOR preserve real Z's JSON string
+  left: Object {"error_code": Null, "observation_json": String("{\"marker_version\":\"water.root-marker.v1\",\"source_kind\":\"native_root_package_json\",\"read_only\":true,\"ordinary_content_read\":true,\"root_binding_verified\":true,\"native_user_gesture_authenticated\":false,\"race_protection_verified\":false,\"project_membership_verified\":false,\"risk\":\"protected\",\"action\":\"display_only\",\"bytes_read\":140,\"evidence\":{\"manifest_version\":\"water.node-manifest.v1\",\"source_kind\":\"caller_supplied_text\",\"read_only\":true,\"format_verified\":true,\"project_membership_verified\":false,\"tool_version_known\":false,\"action\":\"display_only\",\"risk\":\"protected\",\"ecosystem\":\"node\",\"evidence_strength\":\"parsed_structure\",\"recognized_field_count\":5,\"has_name\":true,\"has_version\":true,\"declared_private\":true,\"counts\":{\"scripts\":1,\"dependencies\":1,\"dev_dependencies\":0,\"peer_dependencies\":0,\"optional_dependencies\":0,\"workspace_patterns\":0}}}"), "status": String("observed")}
+ right: Object {"error_code": String("scan_cancelled"), "observation_json": Null, "status": String("skipped")}
+note: run with `RUST_BACKTRACE=1` environment variable to display a backtrace
+
+thread 'project_consent_state' (34408) panicked at tests\project_v1.rs:211:5:
+assertion `left == right` failed: AA_CANCEL_NO_READ a real cancelled R report must never enter Z
+  left: Object {"error_code": Null, "observation_json": String("{\"marker_version\":\"water.root-marker.v1\",\"source_kind\":\"native_root_package_json\",\"read_only\":true,\"ordinary_content_read\":true,\"root_binding_verified\":true,\"native_user_gesture_authenticated\":false,\"race_protection_verified\":false,\"project_membership_verified\":false,\"risk\":\"protected\",\"action\":\"display_only\",\"bytes_read\":140,\"evidence\":{\"manifest_version\":\"water.node-manifest.v1\",\"source_kind\":\"caller_supplied_text\",\"read_only\":true,\"format_verified\":true,\"project_membership_verified\":false,\"tool_version_known\":false,\"action\":\"display_only\",\"risk\":\"protected\",\"ecosystem\":\"node\",\"evidence_strength\":\"parsed_structure\",\"recognized_field_count\":5,\"has_name\":true,\"has_version\":true,\"declared_private\":true,\"counts\":{\"scripts\":1,\"dependencies\":1,\"dev_dependencies\":0,\"peer_dependencies\":0,\"optional_dependencies\":0,\"workspace_patterns\":0}}}"), "status": String("observed")}
+ right: Object {"error_code": String("scan_cancelled"), "observation_json": Null, "status": String("skipped")}
+
+thread 'project_wire_and_cleanup' (27920) panicked at tests\project_v1.rs:375:9:
+intentional observer unwind
+
+thread 'project_wire_and_cleanup' (27920) panicked at tests\project_v1.rs:605:5:
+assertion `left == right` failed: AA_CANCEL_NO_READ observer cancellation
+  left: Null
+ right: "scan_cancelled"
+error: test failed, to rerun pass `--test project_v1`

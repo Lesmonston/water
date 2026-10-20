@@ -1,0 +1,427 @@
+//! One input reader, one stdout writer, and one native capability owner.
+use crate::v1::{self, FrameError, Marker, MarkerChoice, ProjectError, ProjectRequest, Snapshot};
+use serde::Serialize;
+use std::{
+    io::{self, Write},
+    panic::{AssertUnwindSafe, catch_unwind},
+    sync::mpsc::{self, SyncSender},
+    thread::{self, JoinHandle},
+};
+use water_contracts::v1::OpaqueId;
+use water_native_picker::v1::{PickerOptions, SelectedScope, select_scope};
+use water_native_scan::v1::{ScanObserver, ScanProgress};
+use water_scan_host::{HostError, HostState, NativeJob};
+use water_scope_registry::v1::Registry;
+
+#[derive(Serialize)]
+struct Bundle {
+    bundle_version: &'static str,
+    session_id: OpaqueId,
+    read_only: bool,
+    selection: &'static str,
+    confirmation_source: &'static str,
+    policy: Policy,
+    snapshots: Vec<Snapshot>,
+}
+
+#[derive(Serialize)]
+struct Policy {
+    platform: &'static str,
+    traversal: &'static str,
+    ordinary_content_read: bool,
+    native_user_gesture_authenticated: bool,
+    race_protection_verified: bool,
+    coverage_basis: &'static str,
+    limits: Limits,
+}
+#[derive(Serialize)]
+struct Limits {
+    max_depth: u32,
+    max_entries: u32,
+    max_dir_entries: u32,
+}
+
+impl Bundle {
+    // Private: called only after the real S selection has returned.
+    fn from_selection(job_id: &OpaqueId, snapshot: Option<Snapshot>) -> Self {
+        Self {
+            bundle_version: "water.native-session-bundle.v1",
+            session_id: job_id.clone(),
+            read_only: true,
+            selection: if snapshot.is_some() {
+                "confirmed"
+            } else {
+                "cancelled"
+            },
+            confirmation_source: "native_directory_dialog",
+            policy: Policy {
+                platform: "windows",
+                traversal: "handle_relative_no_follow",
+                ordinary_content_read: false,
+                native_user_gesture_authenticated: false,
+                race_protection_verified: false,
+                coverage_basis: "declared_policy",
+                limits: Limits {
+                    max_depth: 8,
+                    max_entries: 10000,
+                    max_dir_entries: 256,
+                },
+            },
+            snapshots: snapshot.into_iter().collect(),
+        }
+    }
+}
+
+#[derive(Serialize)]
+struct Event {
+    version: &'static str,
+    #[serde(flatten)]
+    payload: Payload,
+}
+
+#[derive(Serialize)]
+#[serde(tag = "kind", rename_all = "snake_case")]
+enum Payload {
+    Ready,
+    Accepted {
+        job_id: OpaqueId,
+        read_manifest: bool,
+    },
+    Progress {
+        job_id: OpaqueId,
+        visited_entries: u32,
+        recorded_entries: u32,
+    },
+    CancelAck {
+        job_id: OpaqueId,
+        applied: bool,
+    },
+    Result {
+        job_id: OpaqueId,
+        read_manifest: bool,
+        bundle: Box<Bundle>,
+        marker: Marker,
+    },
+    Failure {
+        job_id: Option<OpaqueId>,
+        code: HostError,
+    },
+    Stopped,
+}
+
+fn emit(output: &mut impl Write, payload: Payload) -> Result<(), ProjectError> {
+    if let Payload::Result { bundle, marker, .. } = &payload {
+        if serde_json::to_vec(bundle)
+            .map_err(|_| ProjectError::SerializationFailed)?
+            .len()
+            > v1::MAX_BUNDLE_BYTES
+        {
+            return Err(ProjectError::OutputTooLarge);
+        }
+        v1::validate_marker(marker)?;
+    }
+    let mut bytes = serde_json::to_vec(&Event {
+        version: "water.project-host.v1",
+        payload,
+    })
+    .map_err(|_| ProjectError::SerializationFailed)?;
+    if bytes.len() + 1 > v1::MAX_EVENT_BYTES {
+        return Err(ProjectError::OutputTooLarge);
+    }
+    bytes.push(b'\n');
+    output
+        .write_all(&bytes)
+        .and_then(|()| output.flush())
+        .map_err(|_| ProjectError::NativeFailure)
+}
+
+enum Message {
+    Request(ProjectRequest),
+    InvalidRequest,
+    End {
+        failed: bool,
+    },
+    Progress {
+        job_id: OpaqueId,
+        visited: u32,
+        recorded: u32,
+    },
+    Finished {
+        job_id: OpaqueId,
+        read_manifest: bool,
+        result: Result<(Box<Bundle>, Marker), ProjectError>,
+    },
+}
+
+struct Observer {
+    job_id: OpaqueId,
+    sender: SyncSender<Message>,
+}
+impl ScanObserver for Observer {
+    fn on_entry(&self, entry: &ScanProgress) {
+        if entry.scan_id == self.job_id && entry.scope_id.as_str() == "project-scope" {
+            let _ = self.sender.send(Message::Progress {
+                job_id: self.job_id.clone(),
+                visited: entry.visited_entries,
+                recorded: entry.recorded_entries,
+            });
+        }
+    }
+}
+
+struct Registration<'a> {
+    registry: &'a mut Registry,
+    selected: SelectedScope,
+    released: bool,
+}
+impl Registration<'_> {
+    fn release(&mut self) -> Result<(), ProjectError> {
+        self.registry
+            .revoke(self.selected.scope())
+            .map_err(|_| ProjectError::NativeFailure)?;
+        self.released = true;
+        Ok(())
+    }
+}
+impl Drop for Registration<'_> {
+    fn drop(&mut self) {
+        if !self.released {
+            let _ = self.registry.revoke(self.selected.scope());
+        }
+    }
+}
+
+fn capture(
+    initial: &str,
+    job: &NativeJob,
+    read_manifest: bool,
+    sender: SyncSender<Message>,
+) -> Result<(Box<Bundle>, Marker), ProjectError> {
+    let mut registry = Registry::new(1).map_err(|_| ProjectError::NativeFailure)?;
+    let picker = PickerOptions::new(initial).map_err(|_| ProjectError::NativeFailure)?;
+    let scope_id = OpaqueId::new("project-scope").map_err(|_| ProjectError::NativeFailure)?;
+    let choice = if read_manifest {
+        MarkerChoice::ReadRootPackageJson
+    } else {
+        MarkerChoice::Skip
+    };
+    // The CLI argument is never used as a scan root. Only S's returned scope is.
+    let selected =
+        select_scope(&mut registry, &scope_id, &picker).map_err(|_| ProjectError::NativeFailure)?;
+    let Some(selected) = selected else {
+        return Ok((
+            Box::new(Bundle::from_selection(job.job_id(), None)),
+            Marker::selection_cancelled(choice),
+        ));
+    };
+    let mut registration = Registration {
+        registry: &mut registry,
+        selected,
+        released: false,
+    };
+    let observer = Observer {
+        job_id: job.job_id().clone(),
+        sender,
+    };
+    let captured = v1::capture_registered(
+        registration.registry,
+        registration.selected.scope(),
+        registration.selected.root_path(),
+        job.job_id(),
+        choice,
+        job.cancel_token(),
+        &observer,
+    )?;
+    v1::to_json(&captured)?;
+    let (snapshot, marker) = captured.into_parts();
+    registration.release()?;
+    Ok((
+        Box::new(Bundle::from_selection(job.job_id(), Some(snapshot))),
+        marker,
+    ))
+}
+
+fn input(sender: SyncSender<Message>) {
+    let stdin = io::stdin();
+    let mut reader = stdin.lock();
+    loop {
+        let message = match v1::read_request(&mut reader) {
+            Ok(Some(request)) => Message::Request(request),
+            Ok(None) => Message::End { failed: false },
+            Err(FrameError::InvalidRequest) => Message::InvalidRequest,
+            Err(_) => Message::End { failed: true },
+        };
+        let end = matches!(
+            message,
+            Message::End { .. } | Message::Request(ProjectRequest::Shutdown)
+        );
+        if sender.send(message).is_err() || end {
+            break;
+        }
+    }
+}
+
+/// Fixed stdio runtime; no arbitrary executable, environment or path requests.
+pub fn run(initial: String) -> Result<(), ProjectError> {
+    let (sender, receiver) = mpsc::sync_channel(64);
+    let mut state = HostState::new();
+    let stdout = io::stdout();
+    let mut output = stdout.lock();
+    emit(&mut output, Payload::Ready)?;
+    let input_sender = sender.clone();
+    let input_thread = thread::Builder::new()
+        .name("project-input".into())
+        .spawn(move || input(input_sender))
+        .map_err(|_| ProjectError::NativeFailure)?;
+    let mut worker: Option<JoinHandle<()>> = None;
+    let mut stream_failed = false;
+    let outcome = (|| {
+        while !state.is_stopped() {
+            match receiver.recv().map_err(|_| ProjectError::NativeFailure)? {
+                Message::Request(ProjectRequest::Start {
+                    job_id,
+                    read_manifest,
+                }) => match state.start(job_id.clone()) {
+                    Err(code) => emit(
+                        &mut output,
+                        Payload::Failure {
+                            job_id: Some(job_id),
+                            code,
+                        },
+                    )?,
+                    Ok(job) => {
+                        emit(
+                            &mut output,
+                            Payload::Accepted {
+                                job_id: job_id.clone(),
+                                read_manifest,
+                            },
+                        )?;
+                        let initial = initial.clone();
+                        let sender = sender.clone();
+                        match thread::Builder::new().name("project-native".into()).spawn(
+                            move || {
+                                let result = catch_unwind(AssertUnwindSafe(|| {
+                                    capture(&initial, &job, read_manifest, sender.clone())
+                                }))
+                                .unwrap_or(Err(ProjectError::NativeFailure));
+                                let _ = sender.send(Message::Finished {
+                                    job_id: job.job_id().clone(),
+                                    read_manifest,
+                                    result,
+                                });
+                            },
+                        ) {
+                            Ok(handle) => worker = Some(handle),
+                            Err(_) => {
+                                state
+                                    .finish(&job_id)
+                                    .map_err(|_| ProjectError::NativeFailure)?;
+                                emit(
+                                    &mut output,
+                                    Payload::Failure {
+                                        job_id: Some(job_id),
+                                        code: HostError::NativeFailure,
+                                    },
+                                )?;
+                            }
+                        }
+                    }
+                },
+                Message::Request(ProjectRequest::Cancel { job_id }) => {
+                    let payload = match state.cancel(&job_id) {
+                        Ok(_) => Payload::CancelAck {
+                            job_id,
+                            applied: true,
+                        },
+                        Err(code) => Payload::Failure {
+                            job_id: Some(job_id),
+                            code,
+                        },
+                    };
+                    emit(&mut output, payload)?;
+                }
+                Message::Request(ProjectRequest::Shutdown) => {
+                    state.shutdown();
+                }
+                Message::InvalidRequest => emit(
+                    &mut output,
+                    Payload::Failure {
+                        job_id: None,
+                        code: HostError::InvalidRequest,
+                    },
+                )?,
+                Message::End { failed } => {
+                    stream_failed = failed;
+                    if failed {
+                        emit(
+                            &mut output,
+                            Payload::Failure {
+                                job_id: None,
+                                code: HostError::InvalidRequest,
+                            },
+                        )?;
+                    }
+                    state.shutdown();
+                }
+                Message::Progress {
+                    job_id,
+                    visited,
+                    recorded,
+                } => {
+                    if state.progress(&job_id, visited, recorded).is_some() {
+                        emit(
+                            &mut output,
+                            Payload::Progress {
+                                job_id,
+                                visited_entries: visited,
+                                recorded_entries: recorded,
+                            },
+                        )?;
+                    }
+                }
+                Message::Finished {
+                    job_id,
+                    read_manifest,
+                    result,
+                } => {
+                    if let Some(handle) = worker.take() {
+                        let _ = handle.join();
+                    }
+                    state
+                        .finish(&job_id)
+                        .map_err(|_| ProjectError::NativeFailure)?;
+                    let payload = match result {
+                        Ok((bundle, marker)) => Payload::Result {
+                            job_id,
+                            read_manifest,
+                            bundle,
+                            marker,
+                        },
+                        Err(_) => Payload::Failure {
+                            job_id: Some(job_id),
+                            code: HostError::NativeFailure,
+                        },
+                    };
+                    emit(&mut output, payload)?;
+                }
+            }
+        }
+        emit(&mut output, Payload::Stopped)?;
+        if stream_failed {
+            Err(ProjectError::NativeFailure)
+        } else {
+            Ok(())
+        }
+    })();
+    // Release blocked senders before joining after an output error.
+    drop(receiver);
+    state.shutdown();
+    if let Some(handle) = worker {
+        let _ = handle.join();
+    }
+    if input_thread.is_finished() {
+        let _ = input_thread.join();
+    }
+    outcome
+}
