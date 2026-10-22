@@ -1,0 +1,38 @@
+{"binary":"C:\\Users\\37310\\.rustup\\toolchains\\1.95.0-x86_64-pc-windows-msvc\\bin\\cargo.exe","argv":["test","--offline","--locked","--manifest-path","packages/project-session/Cargo.toml","--test","project_v1","--","--test-threads=1","--nocapture"],"exitCode":0,"error":null,"log":"2026-10-22T07-38-13.915Z-21312-8.log"}
+--- stdout ---
+
+running 4 tests
+test project_capture_and_marker ... ok
+test project_consent_state ... ok
+test project_request_boundary ... ok
+test project_wire_and_cleanup ... ok
+
+test result: ok. 4 passed; 0 failed; 0 ignored; 0 measured; 0 filtered out; finished in 0.73s
+
+
+--- stderr ---
+   Compiling serde_core v1.0.229
+   Compiling zmij v1.0.23
+   Compiling memchr v2.8.3
+   Compiling itoa v1.0.18
+   Compiling serde_json v1.0.151
+   Compiling serde v1.0.229
+   Compiling water-contracts v0.1.0 (F:\new\smaltalk\water\.worktrees\review-aaab-20261022\crates\water-contracts)
+   Compiling water-native-root v0.1.0 (F:\new\smaltalk\water\.worktrees\review-aaab-20261022\packages\native-root)
+   Compiling water-scope-registry v0.1.0 (F:\new\smaltalk\water\.worktrees\review-aaab-20261022\packages\scope-registry)
+   Compiling water-summary-export v0.1.0 (F:\new\smaltalk\water\.worktrees\review-aaab-20261022\packages\summary-export)
+   Compiling water-redacted-report v0.1.0 (F:\new\smaltalk\water\.worktrees\review-aaab-20261022\packages\redacted-report)
+   Compiling water-native-scan v0.1.0 (F:\new\smaltalk\water\.worktrees\review-aaab-20261022\packages\native-scan)
+   Compiling water-native-picker v0.1.0 (F:\new\smaltalk\water\.worktrees\review-aaab-20261022\packages\native-picker)
+   Compiling water-report-view v0.1.0 (F:\new\smaltalk\water\.worktrees\review-aaab-20261022\packages\report-view)
+   Compiling water-native-session v0.1.0 (F:\new\smaltalk\water\.worktrees\review-aaab-20261022\packages\native-session)
+   Compiling water-node-manifest v0.1.0 (F:\new\smaltalk\water\.worktrees\review-aaab-20261022\packages\node-manifest)
+   Compiling water-root-marker v0.1.0 (F:\new\smaltalk\water\.worktrees\review-aaab-20261022\packages\root-marker)
+   Compiling water-scan-host v0.1.0 (F:\new\smaltalk\water\.worktrees\review-aaab-20261022\packages\scan-host)
+   Compiling water-project-session v0.1.0 (F:\new\smaltalk\water\.worktrees\review-aaab-20261022\packages\project-session)
+    Finished `test` profile [unoptimized + debuginfo] target(s) in 16.65s
+     Running tests\project_v1.rs (.local\next-target\debug\deps\project_v1-1518a82974308e21.exe)
+
+thread 'project_wire_and_cleanup' (6580) panicked at tests\project_v1.rs:375:9:
+intentional observer unwind
+note: run with `RUST_BACKTRACE=1` environment variable to display a backtrace

@@ -1,8 +1,10 @@
 # 外贴派单目录
 
-A–Z及七补单保持VERIFIED（Windows受控范围）。AA同次选择的可选项目清单宿主、AB显式内容同意与结构证据工作台，已共同冻结、独立建树并各自实际baseline通过，READY待分别外贴，无自动实现者。精确共同基线f3b87b7a79ff8fa51882705ecef75f1f02d8af15；228物理锁条目+5份旧资源Git对象/16继承锁/479唯一约束，旧426保持。派前原生窗口0；AA仅本树冻结marker合成payload524474字节，AB无物理fixture。默认不读，额外读取选择绑定当前任务；原元数据/Q与Z结构证据分开。新AA/AB产品尚未实现或测试；真实用户scope、生产竞态、macOS、桌面与M1未验收。
+A–Z及七补单保持VERIFIED（Windows受控范围）。AA接收82e066c/受测b3a874d，单票合格已集成0f1e5d7，保持INTEGRATED；AB接收7b5bdec/受测fa71a82，原6 final/4生产负控链及独立AA四测/AB五测通过，但真实AA“元数据completed、内容skipped/scan_cancelled”被AB模型/状态/HTTP拒绝，原票CHANGES_REQUESTED。AB补充单01已冻结并在原干净提交实际resume通过，READY待原AB对话续做，不重贴原票或新开实现者。485唯一约束（旧479+补单6条目/17继承锁）保持；AA685路径已纳主线，AB未集成，原1085归档文件保持。总控原生窗口0，未读取/归档AA排除的无关截图像素；真实AA→AB联合链、用户scope、生产竞态、macOS、桌面及M1未验收。
 
-- [AA/AB READY与外贴指令](wave1/PROJECT-CONSENT-READY-REPORT-20261019.md)
+- [AA/AB正式收单与AB返修](../acceptance/wave1/controller/WATER-W1-AAAB-REVIEW-20261022.md)
+- [AB补单01 READY与原对话续做句](wave1/AB-PROJECT-WORKSPACE-ADDENDUM-01-READY-REPORT-20261022.md)
+- [AA/AB原派前READY与外贴指令（历史）](wave1/PROJECT-CONSENT-READY-REPORT-20261019.md)
 - [X/Y/Z收单与真实交互验收](../acceptance/wave1/controller/WATER-W1-XYZ-REVIEW-20261019.md)
 - [X/Y/Z原派前READY与外贴指令（历史）](wave1/INTERACTIVE-READY-REPORT-20261019.md)
 - [W补单01与真实V→W联合验收已通过](../acceptance/wave1/controller/WATER-W1-W-ADDENDUM-01-REVIEW-20261019.md)

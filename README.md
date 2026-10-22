@@ -2,7 +2,7 @@
 
 面向 Windows、macOS AI 开发者的本地存储分析与安全清理助手。
 
-**当前阶段：A–Z及七补单保持VERIFIED（Windows受控范围）。AA同次选择的可选项目清单宿主、AB显式内容同意与结构证据工作台，已共同冻结、独立建树并各自实际baseline通过，READY待分别外贴，无自动实现者。精确共同基线f3b87b7a79ff8fa51882705ecef75f1f02d8af15；228物理锁条目+5份旧资源Git对象/16继承锁/479唯一约束，旧426保持。派前原生窗口0；AA仅本树冻结marker合成payload524474字节，AB无物理fixture。默认不读，额外读取选择绑定当前任务；原元数据/Q与Z结构证据分开。新AA/AB产品尚未实现或测试；真实用户scope、生产竞态、macOS、桌面与M1未验收。**
+**当前阶段：A–Z及七补单保持VERIFIED（Windows受控范围）。AA接收82e066c/受测b3a874d，单票合格已集成0f1e5d7，保持INTEGRATED；AB接收7b5bdec/受测fa71a82，原6 final/4生产负控链及独立AA四测/AB五测通过，但真实AA“元数据completed、内容skipped/scan_cancelled”被AB模型/状态/HTTP拒绝，原票CHANGES_REQUESTED。AB补充单01已冻结并在原干净提交实际resume通过，READY待原AB对话续做，不重贴原票或新开实现者。485唯一约束（旧479+补单6条目/17继承锁）保持；AA685路径已纳主线，AB未集成，原1085归档文件保持。总控原生窗口0，未读取/归档AA排除的无关截图像素；真实AA→AB联合链、用户scope、生产竞态、macOS、桌面及M1未验收。**
 
 用户指定本项目所有后续开发均位于 `smaltalk/water`，由 Codex 担任总控。
 
@@ -35,7 +35,7 @@ Water 的发布许可证、定价与商标名称尚未最终确定；`water` 是
 
 ## 当前验收与下一波
 
-[AA/AB READY与两条外贴指令](docs/dispatch/wave1/PROJECT-CONSENT-READY-REPORT-20261019.md)：并行补齐同次选择的额外内容同意、结构证据及独立附件，不改旧元数据协议。
+[AA/AB收单](docs/acceptance/wave1/controller/WATER-W1-AAAB-REVIEW-20261022.md)：AA已单票集成，AB合法取消结果回归返修；[补充单01 READY](docs/dispatch/wave1/AB-PROJECT-WORKSPACE-ADDENDUM-01-READY-REPORT-20261022.md)仅贴回原AB对话。
 
 [X/Y/Z收单及真实交互链验收](docs/acceptance/wave1/controller/WATER-W1-XYZ-REVIEW-20261019.md)已通过并集成，三票无需重贴。持续宿主、工作台与受限清单读取分别可用；Z额外同意尚未接入页面，真实用户scope/桌面/M1仍待后续。
 

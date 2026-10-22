@@ -15,7 +15,7 @@
 | 工单 | 任务 | 依赖 | 验收归属 |
 |---|---|---|---|
 | W0 | [立项与源码研究](tasks/W0-INIT-AND-RESEARCH.md) | 用户授权 | 总控 |
-| W1 | [只读内核与fixture](tasks/W1-READONLY-CORE.md)，[AA/AB READY](dispatch/wave1/PROJECT-CONSENT-READY-REPORT-20261019.md) | A–Z及七补单已VERIFIED；同次选择的额外内容同意/结构证据两票已冻结并实际baseline通过；真实用户scope/桌面未验收 | AA/AB待分别外贴，新产品未实现，M1仍未完成 |
+| W1 | [只读内核与fixture](tasks/W1-READONLY-CORE.md)，[AA/AB收单](acceptance/wave1/controller/WATER-W1-AAAB-REVIEW-20261022.md) | A–Z及七补单已VERIFIED；AA已集成，AB内容前取消回归返修/补单01 READY；真实用户scope/桌面未验收 | 原AB对话续补单，联合链与M1未完成 |
 | W2 | 版本化规则注册表、pip/uv/npm/pnpm只读发现 | W1契约 | 规则与内核分别审阅 |
 | W3 | HF/Ollama/LM Studio只读inventory与共享空间视图 | W1/W2 | 模型资产保护验收 |
 | W4 | 桌面壳与报告界面 | W1稳定契约 | 总控，双平台可用性 |

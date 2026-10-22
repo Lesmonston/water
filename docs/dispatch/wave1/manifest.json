@@ -1,7 +1,7 @@
 {
   "schemaVersion": 1,
   "wave": "water-wave1",
-  "status": "A_Z_VERIFIED_PROJECT_AA_AB_READY",
+  "status": "A_Z_VERIFIED_AA_INTEGRATED_AB_CHANGES_REQUESTED",
   "controllerRoot": "F:/new/smaltalk/water",
   "controllerBranch": "main",
   "controller": "Codex",
@@ -2559,7 +2559,7 @@
     {
       "id": "WATER-W1-AA",
       "title": "同次原生选择的可选项目清单宿主",
-      "status": "READY",
+      "status": "INTEGRATED",
       "slot": "aa",
       "worktree": "F:/new/smaltalk/water/.worktrees/aa",
       "branch": "worker/water-w1-aa",
@@ -2593,8 +2593,8 @@
       },
       "nativeDialogBudget": 8,
       "baselineStatus": "PASSED",
-      "newProductTestsRun": false,
-      "model": null,
+      "newProductTestsRun": true,
+      "model": "Codex / GPT-6 (worker self-report)",
       "modelAssignment": "user-arranged; report actual engine/model",
       "dispatchedAt": null,
       "startedAt": null,
@@ -2655,12 +2655,24 @@
       },
       "baselineEvidence": "docs/acceptance/wave1/controller/w1-project-preflight-20261019/aa/2026-10-19T13-48-05.440Z-9848-baseline-result.json",
       "preflightEvidence": "docs/dispatch/wave1/PROJECT-CONSENT-READY-REPORT-20261019.md",
-      "readyOn": "2026-10-19"
+      "readyOn": "2026-10-19",
+      "submittedCommit": "82e066cf8f475d3e9c1e44e6461327c391fe0f3f",
+      "implementationCommit": "b3a874d0a1628a7bdce6f3414f234b2b45957152",
+      "reviewedCommit": "b3a874d0a1628a7bdce6f3414f234b2b45957152",
+      "acceptedCommit": "82e066cf8f475d3e9c1e44e6461327c391fe0f3f",
+      "acceptedAt": "2026-10-22T07:51:43.764Z",
+      "integratedAt": "2026-10-22T07:51:43.764Z",
+      "controllerReview": "docs/acceptance/wave1/controller/WATER-W1-AAAB-REVIEW-20261022.md",
+      "integrationCommit": "0f1e5d7235f86fac16e05e6106d56085d04876de",
+      "integrationBranch": "controller/water-w1-aa-integration-20261022",
+      "integrationWorktree": "F:/new/smaltalk/water/.worktrees/integration-aa-20261022",
+      "candidateTestedCommit": "81faca62a4ec2068b14107209d3d85e6a7c6aab0",
+      "verificationScope": "Windows controlled standalone acceptance and isolated public API passed. Original native four-window wire evidence audited; native visual screenshots invalid and excluded. Actual AA->AB fixed-program joint validation pending AB addendum; not VERIFIED."
     },
     {
       "id": "WATER-W1-AB",
       "title": "显式内容同意与结构证据工作台",
-      "status": "READY",
+      "status": "CHANGES_REQUESTED",
       "slot": "ab",
       "worktree": "F:/new/smaltalk/water/.worktrees/ab",
       "branch": "worker/water-w1-ab",
@@ -2697,8 +2709,8 @@
       },
       "nativeDialogBudget": 0,
       "baselineStatus": "PASSED",
-      "newProductTestsRun": false,
-      "model": null,
+      "newProductTestsRun": true,
+      "model": "Codex / GPT-6 (worker self-report)",
       "modelAssignment": "user-arranged; report actual engine/model",
       "dispatchedAt": null,
       "startedAt": null,
@@ -2724,7 +2736,8 @@
         "prototypes/project-workspace/tests/model.test.mjs",
         "prototypes/project-workspace/tests/browser.test.mjs",
         "prototypes/project-workspace/README.md",
-        "docs/dispatch/reports/WATER-W1-AB-REPORT.md"
+        "docs/dispatch/reports/WATER-W1-AB-REPORT.md",
+        "docs/dispatch/reports/WATER-W1-AB-ADDENDUM-01-REPORT.md"
       ],
       "allowedPrefixes": [
         "docs/acceptance/wave1/ab/"
@@ -2742,7 +2755,38 @@
       ],
       "baselineEvidence": "docs/acceptance/wave1/controller/w1-project-preflight-20261019/ab/2026-10-19T13-48-05.447Z-16800-baseline-result.json",
       "preflightEvidence": "docs/dispatch/wave1/PROJECT-CONSENT-READY-REPORT-20261019.md",
-      "readyOn": "2026-10-19"
+      "readyOn": "2026-10-19",
+      "submittedCommit": "7b5bdec2fd1af1bf988443d22eb91f504e5bba55",
+      "implementationCommit": "fa71a82696f123fd33c3514d99ef0b5c681c5780",
+      "addenda": [
+        "docs/dispatch/tickets/WATER-W1-AB-ADDENDUM-01-20261022.md"
+      ],
+      "revisionReport": "docs/dispatch/reports/WATER-W1-AB-ADDENDUM-01-REPORT.md",
+      "revisionDispatchStatus": "READY",
+      "addendum01": {
+        "status": "READY",
+        "ticket": "docs/dispatch/tickets/WATER-W1-AB-ADDENDUM-01-20261022.md",
+        "report": "docs/dispatch/reports/WATER-W1-AB-ADDENDUM-01-REPORT.md",
+        "resumeCommit": "7b5bdec2fd1af1bf988443d22eb91f504e5bba55",
+        "contractLock": "contracts/project-workspace-addendum-v1/freeze.lock.json",
+        "lockSha256": "242aecbdef12f5ec32ef197e53aaee9eddb95ec1d35ab90f6be250ec0598e52f",
+        "helper": "scripts/project-workspace-addendum-check.mjs",
+        "helperAuthority": "controller checkout; invoke absolute path from original AB tree",
+        "evidencePrefix": "docs/acceptance/wave1/ab/addendum-01/",
+        "baselineStatus": "PASSED",
+        "systemNativeDialogBudget": 0,
+        "physicalFixturePermission": false,
+        "reason": "AB_LATE_CANCELLED_CONTENT: actual AA completed metadata and skipped/scan_cancelled content rejected by AB model/state/streams HTTP",
+        "dispatchedAt": null,
+        "startedAt": null,
+        "baselineMeaning": "Exact clean original receipt and final new/old locks; known six acceptance regressions reproduced as expected, not product acceptance",
+        "baselineEvidence": "docs/acceptance/wave1/controller/w1-aaab-review-20261022/resume/2026-10-22T07-47-13.226Z-2004-resume-result.json",
+        "preflightEvidence": "docs/dispatch/wave1/AB-PROJECT-WORKSPACE-ADDENDUM-01-READY-REPORT-20261022.md",
+        "readyOn": "2026-10-22"
+      },
+      "reviewedCommit": "fa71a82696f123fd33c3514d99ef0b5c681c5780",
+      "controllerReview": "docs/acceptance/wave1/controller/WATER-W1-AAAB-REVIEW-20261022.md",
+      "activityEvidence": "Original evidence and independent five tests pass; actual AA late-content cancellation rejected by assertMarker/state/streams HTTP. Addendum 01 READY in original clean AB tree; no new implementer."
     }
   ],
   "preflightStatus": "PASSED",
@@ -2798,5 +2842,7 @@
   "interactiveJointReview": "docs/acceptance/wave1/controller/WATER-W1-XYZ-REVIEW-20261019.md",
   "projectDecision": "docs/decisions/ADR-016-consented-project-session.md",
   "projectPreflightStatus": "PASSED",
-  "projectPreflightEvidence": "docs/dispatch/wave1/PROJECT-CONSENT-READY-REPORT-20261019.md"
+  "projectPreflightEvidence": "docs/dispatch/wave1/PROJECT-CONSENT-READY-REPORT-20261019.md",
+  "projectJointStatus": "PENDING_AB_ADDENDUM_01",
+  "projectReview": "docs/acceptance/wave1/controller/WATER-W1-AAAB-REVIEW-20261022.md"
 }

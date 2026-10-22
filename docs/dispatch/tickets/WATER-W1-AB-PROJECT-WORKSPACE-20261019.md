@@ -1,5 +1,7 @@
 # WATER-W1-AB：显式内容同意与结构证据工作台
 
+当前收单状态（2026-10-22）：CHANGES_REQUESTED，按[补充单01](WATER-W1-AB-ADDENDUM-01-20261022.md)贴回原AB对话；不要重贴本原票或新开实现者。 [总控报告](../../acceptance/wave1/controller/WATER-W1-AAAB-REVIEW-20261022.md)。以下保留原派前要求。
+
 2026-10-19，正式票。仅主manifest本票READY且baselineStatus=PASSED时开工；READY不代表已外贴。
 
 | 项 | 精确值 |

@@ -1,6 +1,6 @@
 # Water 项目协作规则
 
-最新状态（2026-10-19）：A–Z及七补单保持VERIFIED（Windows受控范围）。AA同次选择的可选项目清单宿主、AB显式内容同意与结构证据工作台，已共同冻结、独立建树并各自实际baseline通过，READY待分别外贴，无自动实现者。精确共同基线f3b87b7a79ff8fa51882705ecef75f1f02d8af15；228物理锁条目+5份旧资源Git对象/16继承锁/479唯一约束，旧426保持。派前原生窗口0；AA仅本树冻结marker合成payload524474字节，AB无物理fixture。默认不读，额外读取选择绑定当前任务；原元数据/Q与Z结构证据分开。新AA/AB产品尚未实现或测试；真实用户scope、生产竞态、macOS、桌面与M1未验收。 正式票/manifest及docs/dispatch/wave1/PROJECT-CONSENT-READY-REPORT-20261019.md优先；旧A–Z票/补单不重贴，AA/AB各交独立执行对话，所有旧工作树/证据/冻结保持。
+最新状态（2026-10-22）：A–Z及七补单保持VERIFIED（Windows受控范围）。AA接收82e066c/受测b3a874d，单票合格已集成0f1e5d7，保持INTEGRATED；AB接收7b5bdec/受测fa71a82，原6 final/4生产负控链及独立AA四测/AB五测通过，但真实AA“元数据completed、内容skipped/scan_cancelled”被AB模型/状态/HTTP拒绝，原票CHANGES_REQUESTED。AB补充单01已冻结并在原干净提交实际resume通过，READY待原AB对话续做，不重贴原票或新开实现者。485唯一约束（旧479+补单6条目/17继承锁）保持；AA685路径已纳主线，AB未集成，原1085归档文件保持。总控原生窗口0，未读取/归档AA排除的无关截图像素；真实AA→AB联合链、用户scope、生产竞态、macOS、桌面及M1未验收。 正式票/manifest及docs/acceptance/wave1/controller/WATER-W1-AAAB-REVIEW-20261022.md优先；只向原AB对话转贴编号补单，旧票不重贴。主检出新wrapper绝对路径调用，不往AB树追加控制提交。
 
 - 项目根：`F:/new/smaltalk/water`。用户指定后续开发、研究、文档、脚本与本项目产物全部放在此目录内。
 - Codex 是项目总控，负责范围、任务分派、接口、集成、安全复核和验收。用户保留产品与发布决定权。

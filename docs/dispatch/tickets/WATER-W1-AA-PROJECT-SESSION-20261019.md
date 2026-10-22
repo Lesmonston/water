@@ -1,5 +1,7 @@
 # WATER-W1-AA：同次原生选择的可选项目清单宿主
 
+当前收单状态（2026-10-22）：单票合格已集成0f1e5d7，INTEGRATED，真正AA→AB链待AB补单后验收，不重贴本票。 [总控报告](../../acceptance/wave1/controller/WATER-W1-AAAB-REVIEW-20261022.md)。以下保留原派前要求。
+
 2026-10-19，正式票。仅主manifest本票READY且baselineStatus=PASSED时开工；READY不代表已外贴。
 
 | 项 | 精确值 |

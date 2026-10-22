@@ -1,6 +1,6 @@
 # Water 状态与交接
 
-更新时间：2026-10-19（Asia/Tokyo）。
+更新时间：2026-10-22（Asia/Tokyo）。
 
 本次总控接手结果与后续事项见[接手验收摘要](CONTROLLER-HANDOFF-20261017.md)；当前任务状态仍以本页和registry/manifest为准。
 
@@ -21,9 +21,13 @@
 
 ## 下一步
 
-A–Z及七补单保持VERIFIED（Windows受控范围）。AA同次选择的可选项目清单宿主、AB显式内容同意与结构证据工作台，已共同冻结、独立建树并各自实际baseline通过，READY待分别外贴，无自动实现者。精确共同基线f3b87b7a79ff8fa51882705ecef75f1f02d8af15；228物理锁条目+5份旧资源Git对象/16继承锁/479唯一约束，旧426保持。派前原生窗口0；AA仅本树冻结marker合成payload524474字节，AB无物理fixture。默认不读，额外读取选择绑定当前任务；原元数据/Q与Z结构证据分开。新AA/AB产品尚未实现或测试；真实用户scope、生产竞态、macOS、桌面与M1未验收。 [AA/AB READY](dispatch/wave1/PROJECT-CONSENT-READY-REPORT-20261019.md)。
+A–Z及七补单保持VERIFIED（Windows受控范围）。AA接收82e066c/受测b3a874d，单票合格已集成0f1e5d7，保持INTEGRATED；AB接收7b5bdec/受测fa71a82，原6 final/4生产负控链及独立AA四测/AB五测通过，但真实AA“元数据completed、内容skipped/scan_cancelled”被AB模型/状态/HTTP拒绝，原票CHANGES_REQUESTED。AB补充单01已冻结并在原干净提交实际resume通过，READY待原AB对话续做，不重贴原票或新开实现者。485唯一约束（旧479+补单6条目/17继承锁）保持；AA685路径已纳主线，AB未集成，原1085归档文件保持。总控原生窗口0，未读取/归档AA排除的无关截图像素；真实AA→AB联合链、用户scope、生产竞态、macOS、桌面及M1未验收。 [AA/AB收单](acceptance/wave1/controller/WATER-W1-AAAB-REVIEW-20261022.md)。
 
-## AA/AB额外同意接线已派前READY（2026-10-19，最新）
+## AA收单集成、AB回归返修（2026-10-22，最新）
+
+[总控收单](acceptance/wave1/controller/WATER-W1-AAAB-REVIEW-20261022.md)：AA单票合格已集成0f1e5d7，AB原证据/五测通过但拒绝真实AA末条observer取消的合法completed+skipped结果；[补充单01 READY](dispatch/wave1/AB-PROJECT-WORKSPACE-ADDENDUM-01-READY-REPORT-20261022.md)，贴回原AB对话。主检出绝对wrapper/新增6条目保持旧479，实际resume六失败按预期复现，不表示已修复。总控系统窗口0，真实AA→AB整链尚未验收，AA/AB不记VERIFIED。
+
+## AA/AB额外同意接线已派前READY（2026-10-19，历史）
 
 [正式READY回执](dispatch/wave1/PROJECT-CONSENT-READY-REPORT-20261019.md)：同一精确f3b87b7基线、两树干净/新产品目录不存在。AA真实P/R/E/H/Q/Z与X共享token、AB双向回放和真实W/Q及结构证据实际下载通过；479约束/旧426保持，原生窗口0。两票独立可同时外贴；实现后真实AA→AB及同次选择内容同意由总控联合验收。控制输入的dialog envelope明确是合成声明，不能冒称已运行新AA或S。
 
