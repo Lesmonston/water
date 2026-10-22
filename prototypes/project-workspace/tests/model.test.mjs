@@ -16,7 +16,7 @@ const root = fileURLToPath(new URL('../../../', import.meta.url));
 const cases = JSON.parse(readFileSync(new URL('../../../contracts/project-session-v1/CASES.json', import.meta.url))).cases;
 // Controller-owned, frozen actual-AA capture plus an explicit partial memory
 // adapter. Reading these JSON inputs does not run AA, S, or a physical fixture.
-const lateDefinitions = JSON.parse(readFileSync(new URL('../../../../../contracts/project-workspace-addendum-v1/CASES.json', import.meta.url)));
+const lateDefinitions = JSON.parse(readFileSync(new URL('../../../contracts/project-workspace-addendum-v1/CASES.json', import.meta.url)));
 const version = 'water.project-host.v1';
 const errorText = 'Project workspace unavailable.';
 const frame = event => Buffer.from(JSON.stringify({ version, ...event }) + '\n');

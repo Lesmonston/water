@@ -12,7 +12,7 @@ import { openPrivateBrowser } from '../../../scripts/acceptance/native-vw-privat
 
 const root = fileURLToPath(new URL('../../../', import.meta.url));
 const cases = JSON.parse(readFileSync(new URL('../../../contracts/project-session-v1/CASES.json', import.meta.url))).cases;
-const lateDefinitions = JSON.parse(readFileSync(new URL('../../../../../contracts/project-workspace-addendum-v1/CASES.json', import.meta.url)));
+const lateDefinitions = JSON.parse(readFileSync(new URL('../../../contracts/project-workspace-addendum-v1/CASES.json', import.meta.url)));
 let browser, screenshots;
 after(async () => { await browser?.close(); console.log(JSON.stringify({ systemNativeDialogs: 0, privateChromeClosed: true })); });
 async function page() {
