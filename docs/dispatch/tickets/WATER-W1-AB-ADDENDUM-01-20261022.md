@@ -1,5 +1,7 @@
 # WATER-W1-AB 补充单01：保留内容前取消的元数据
 
+当前状态（2026-10-22）：已收口VERIFIED（Windows受控），集成4b4d6a3。无需执行下方历史外贴句。 [总控复验](../../acceptance/wave1/controller/WATER-W1-AB-ADDENDUM-01-REVIEW-20261022.md)。以下为原执行/派前记录。
+
 2026-10-22。原AB提交已收单，AB_LATE_CANCELLED_CONTENT回归失败，原票CHANGES_REQUESTED。本补单仅主manifest.addendum01.status=READY且baselineStatus=PASSED时执行，交回**原AB对话**，不重贴原票、不新开实现者。AA单票合格可先集成，真实AA→AB联合链待本补通过后另验。
 
 | 项 | 精确值 |

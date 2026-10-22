@@ -1,5 +1,7 @@
 # AB补单01 READY：回原AB对话续做
 
+当前状态（2026-10-22）：已收口VERIFIED（Windows受控），集成4b4d6a3。无需执行下方历史外贴句。 [总控复验](../../acceptance/wave1/controller/WATER-W1-AB-ADDENDUM-01-REVIEW-20261022.md)。以下为原执行/派前记录。
+
 2026-10-22。AA单票已集成0f1e5d7，AB原票CHANGES_REQUESTED，补单01已冻结并在原精确干净7b5bdec上实际resume通过；没有启动新实现者。原报告/411归档保持。
 
 仅把下面一句贴回原AB执行对话：

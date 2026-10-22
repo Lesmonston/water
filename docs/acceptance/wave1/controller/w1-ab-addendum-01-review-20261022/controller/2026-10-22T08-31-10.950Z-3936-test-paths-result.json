@@ -1,0 +1,302 @@
+{
+  "startedAt": "2026-10-22T08:31:10.952Z",
+  "systemNativeDialogs": 0,
+  "commands": [
+    {
+      "binary": "git",
+      "argv": [
+        "-c",
+        "core.hooksPath=NUL",
+        "-c",
+        "core.fsmonitor=false",
+        "-c",
+        "maintenance.auto=false",
+        "-c",
+        "gc.auto=0",
+        "rev-parse",
+        "HEAD"
+      ],
+      "exitCode": 0,
+      "log": "2026-10-22T08-31-10.950Z-3936-1-test-paths.log"
+    },
+    {
+      "binary": "git",
+      "argv": [
+        "-c",
+        "core.hooksPath=NUL",
+        "-c",
+        "core.fsmonitor=false",
+        "-c",
+        "maintenance.auto=false",
+        "-c",
+        "gc.auto=0",
+        "status",
+        "--porcelain",
+        "--untracked-files=all"
+      ],
+      "exitCode": 0,
+      "log": "2026-10-22T08-31-10.950Z-3936-2-test-paths.log"
+    },
+    {
+      "binary": "git",
+      "argv": [
+        "-c",
+        "core.hooksPath=NUL",
+        "-c",
+        "core.fsmonitor=false",
+        "-c",
+        "maintenance.auto=false",
+        "-c",
+        "gc.auto=0",
+        "diff",
+        "--check"
+      ],
+      "exitCode": 0,
+      "log": "2026-10-22T08-31-10.950Z-3936-3-test-paths.log"
+    },
+    {
+      "binary": "git",
+      "argv": [
+        "-c",
+        "core.hooksPath=NUL",
+        "-c",
+        "core.fsmonitor=false",
+        "-c",
+        "maintenance.auto=false",
+        "-c",
+        "gc.auto=0",
+        "diff",
+        "--",
+        "prototypes/project-workspace/tests/model.test.mjs",
+        "prototypes/project-workspace/tests/browser.test.mjs"
+      ],
+      "exitCode": 0,
+      "log": "2026-10-22T08-31-10.950Z-3936-4-test-paths.log"
+    },
+    {
+      "binary": "git",
+      "argv": [
+        "-c",
+        "core.hooksPath=NUL",
+        "-c",
+        "core.fsmonitor=false",
+        "-c",
+        "maintenance.auto=false",
+        "-c",
+        "gc.auto=0",
+        "show",
+        "-s",
+        "--format=%cn%n%ce",
+        "d2a06dd"
+      ],
+      "exitCode": 0,
+      "log": "2026-10-22T08-31-10.950Z-3936-5-test-paths.log"
+    },
+    {
+      "binary": "git",
+      "argv": [
+        "-c",
+        "core.hooksPath=NUL",
+        "-c",
+        "core.fsmonitor=false",
+        "-c",
+        "maintenance.auto=false",
+        "-c",
+        "gc.auto=0",
+        "add",
+        "--",
+        "prototypes/project-workspace/tests/model.test.mjs",
+        "prototypes/project-workspace/tests/browser.test.mjs"
+      ],
+      "exitCode": 0,
+      "log": "2026-10-22T08-31-10.950Z-3936-6-test-paths.log"
+    },
+    {
+      "binary": "git",
+      "argv": [
+        "-c",
+        "core.hooksPath=NUL",
+        "-c",
+        "core.fsmonitor=false",
+        "-c",
+        "maintenance.auto=false",
+        "-c",
+        "gc.auto=0",
+        "-c",
+        "user.name=rikut783",
+        "-c",
+        "user.email=rikut783@gmail.com",
+        "commit",
+        "-m",
+        "Resolve frozen addendum inputs inside the integrated repository"
+      ],
+      "exitCode": 0,
+      "log": "2026-10-22T08-31-10.950Z-3936-7-test-paths.log"
+    },
+    {
+      "binary": "git",
+      "argv": [
+        "-c",
+        "core.hooksPath=NUL",
+        "-c",
+        "core.fsmonitor=false",
+        "-c",
+        "maintenance.auto=false",
+        "-c",
+        "gc.auto=0",
+        "rev-parse",
+        "HEAD"
+      ],
+      "exitCode": 0,
+      "log": "2026-10-22T08-31-10.950Z-3936-8-test-paths.log"
+    },
+    {
+      "binary": "C:\\Program Files\\nodejs\\node.exe",
+      "argv": [
+        "--test",
+        "--test-concurrency=1",
+        "--test-reporter=tap",
+        "prototypes/project-workspace/tests/model.test.mjs",
+        "prototypes/project-workspace/tests/browser.test.mjs"
+      ],
+      "exitCode": 0,
+      "log": "2026-10-22T08-31-10.950Z-3936-9-test-paths.log"
+    },
+    {
+      "binary": "git",
+      "argv": [
+        "-c",
+        "core.hooksPath=NUL",
+        "-c",
+        "core.fsmonitor=false",
+        "-c",
+        "maintenance.auto=false",
+        "-c",
+        "gc.auto=0",
+        "diff",
+        "--name-only",
+        "-z",
+        "2b56c9c0b7542d5a3d958266a4d5f90317372810",
+        "HEAD"
+      ],
+      "exitCode": 0,
+      "log": "2026-10-22T08-31-10.950Z-3936-10-test-paths.log"
+    },
+    {
+      "binary": "git",
+      "argv": [
+        "show",
+        "2b56c9c0b7542d5a3d958266a4d5f90317372810:prototypes/project-workspace/.gitattributes"
+      ],
+      "exitCode": 0,
+      "log": "2026-10-22T08-31-10.950Z-3936-11-test-paths.log"
+    },
+    {
+      "binary": "git",
+      "argv": [
+        "show",
+        "2b56c9c0b7542d5a3d958266a4d5f90317372810:prototypes/project-workspace/index.html"
+      ],
+      "exitCode": 0,
+      "log": "2026-10-22T08-31-10.950Z-3936-12-test-paths.log"
+    },
+    {
+      "binary": "git",
+      "argv": [
+        "show",
+        "2b56c9c0b7542d5a3d958266a4d5f90317372810:prototypes/project-workspace/styles.css"
+      ],
+      "exitCode": 0,
+      "log": "2026-10-22T08-31-10.950Z-3936-13-test-paths.log"
+    },
+    {
+      "binary": "git",
+      "argv": [
+        "show",
+        "2b56c9c0b7542d5a3d958266a4d5f90317372810:prototypes/project-workspace/app.mjs"
+      ],
+      "exitCode": 0,
+      "log": "2026-10-22T08-31-10.950Z-3936-14-test-paths.log"
+    },
+    {
+      "binary": "git",
+      "argv": [
+        "show",
+        "2b56c9c0b7542d5a3d958266a4d5f90317372810:prototypes/project-workspace/model.mjs"
+      ],
+      "exitCode": 0,
+      "log": "2026-10-22T08-31-10.950Z-3936-15-test-paths.log"
+    },
+    {
+      "binary": "git",
+      "argv": [
+        "show",
+        "2b56c9c0b7542d5a3d958266a4d5f90317372810:prototypes/project-workspace/server.mjs"
+      ],
+      "exitCode": 0,
+      "log": "2026-10-22T08-31-10.950Z-3936-16-test-paths.log"
+    },
+    {
+      "binary": "git",
+      "argv": [
+        "show",
+        "2b56c9c0b7542d5a3d958266a4d5f90317372810:prototypes/project-workspace/transport.mjs"
+      ],
+      "exitCode": 0,
+      "log": "2026-10-22T08-31-10.950Z-3936-17-test-paths.log"
+    },
+    {
+      "binary": "git",
+      "argv": [
+        "show",
+        "2b56c9c0b7542d5a3d958266a4d5f90317372810:prototypes/project-workspace/launch.mjs"
+      ],
+      "exitCode": 0,
+      "log": "2026-10-22T08-31-10.950Z-3936-18-test-paths.log"
+    },
+    {
+      "binary": "git",
+      "argv": [
+        "-c",
+        "core.hooksPath=NUL",
+        "-c",
+        "core.fsmonitor=false",
+        "-c",
+        "maintenance.auto=false",
+        "-c",
+        "gc.auto=0",
+        "status",
+        "--porcelain",
+        "--untracked-files=all"
+      ],
+      "exitCode": 0,
+      "log": "2026-10-22T08-31-10.950Z-3936-19-test-paths.log"
+    }
+  ],
+  "adaptations": [
+    {
+      "path": "prototypes/project-workspace/tests/model.test.mjs",
+      "beforeSha256": "eb160f6d215f858642814cf8b531f3b1b5f3ebd115016c0cbdfe70c939d71884",
+      "unusableMainInputUrl": "file:///F:/new/contracts/project-workspace-addendum-v1/CASES.json",
+      "afterSha256": "248c050f958cfa0c430c566a70bf5c685e17488327865d0f48fb72ad9859a1ae",
+      "beforeFile": "2026-10-22T08-31-10.950Z-3936-model.test.mjs-before.txt",
+      "afterFile": "2026-10-22T08-31-10.950Z-3936-model.test.mjs-after.txt"
+    },
+    {
+      "path": "prototypes/project-workspace/tests/browser.test.mjs",
+      "beforeSha256": "5dc0f444600d42d943113eb2fae8816aa81837cde618848533a04526d731d119",
+      "unusableMainInputUrl": "file:///F:/new/contracts/project-workspace-addendum-v1/CASES.json",
+      "afterSha256": "5ee56ca541d9744929b3c9352912d30829d40d12738b24490955a3b370624c4f",
+      "beforeFile": "2026-10-22T08-31-10.950Z-3936-browser.test.mjs-before.txt",
+      "afterFile": "2026-10-22T08-31-10.950Z-3936-browser.test.mjs-after.txt"
+    }
+  ],
+  "before": "2b56c9c0b7542d5a3d958266a4d5f90317372810",
+  "sameFrozenInputSha256": "b235a9bda03f609faffbd64c2a703247763b6e2c287bb53351039176727f9311",
+  "diff": "diff --git a/prototypes/project-workspace/tests/browser.test.mjs b/prototypes/project-workspace/tests/browser.test.mjs\nindex 35f9891..34779a0 100644\n--- a/prototypes/project-workspace/tests/browser.test.mjs\n+++ b/prototypes/project-workspace/tests/browser.test.mjs\n@@ -12,7 +12,7 @@ import { openPrivateBrowser } from '../../../scripts/acceptance/native-vw-privat\n \n const root = fileURLToPath(new URL('../../../', import.meta.url));\n const cases = JSON.parse(readFileSync(new URL('../../../contracts/project-session-v1/CASES.json', import.meta.url))).cases;\n-const lateDefinitions = JSON.parse(readFileSync(new URL('../../../../../contracts/project-workspace-addendum-v1/CASES.json', import.meta.url)));\n+const lateDefinitions = JSON.parse(readFileSync(new URL('../../../contracts/project-workspace-addendum-v1/CASES.json', import.meta.url)));\n let browser, screenshots;\n after(async () => { await browser?.close(); console.log(JSON.stringify({ systemNativeDialogs: 0, privateChromeClosed: true })); });\n async function page() {\ndiff --git a/prototypes/project-workspace/tests/model.test.mjs b/prototypes/project-workspace/tests/model.test.mjs\nindex f6499ac..4bd6667 100644\n--- a/prototypes/project-workspace/tests/model.test.mjs\n+++ b/prototypes/project-workspace/tests/model.test.mjs\n@@ -16,7 +16,7 @@ const root = fileURLToPath(new URL('../../../', import.meta.url));\n const cases = JSON.parse(readFileSync(new URL('../../../contracts/project-session-v1/CASES.json', import.meta.url))).cases;\n // Controller-owned, frozen actual-AA capture plus an explicit partial memory\n // adapter. Reading these JSON inputs does not run AA, S, or a physical fixture.\n-const lateDefinitions = JSON.parse(readFileSync(new URL('../../../../../contracts/project-workspace-addendum-v1/CASES.json', import.meta.url)));\n+const lateDefinitions = JSON.parse(readFileSync(new URL('../../../contracts/project-workspace-addendum-v1/CASES.json', import.meta.url)));\n const version = 'water.project-host.v1';\n const errorText = 'Project workspace unavailable.';\n const frame = event => Buffer.from(JSON.stringify({ version, ...event }) + '\\n');",
+  "integrationCommit": "4b4d6a39764d20464697c59c81733ffcca7ed34b",
+  "ABTests": "5/5",
+  "productBytesUnchanged": true,
+  "status": "passed",
+  "endedAt": "2026-10-22T08:31:29.570Z"
+}

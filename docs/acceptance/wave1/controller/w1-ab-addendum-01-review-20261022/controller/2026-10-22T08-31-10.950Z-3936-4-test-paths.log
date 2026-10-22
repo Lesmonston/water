@@ -1,0 +1,30 @@
+{"binary":"git","argv":["-c","core.hooksPath=NUL","-c","core.fsmonitor=false","-c","maintenance.auto=false","-c","gc.auto=0","diff","--","prototypes/project-workspace/tests/model.test.mjs","prototypes/project-workspace/tests/browser.test.mjs"],"exitCode":0}
+--- stdout ---
+diff --git a/prototypes/project-workspace/tests/browser.test.mjs b/prototypes/project-workspace/tests/browser.test.mjs
+index 35f9891..34779a0 100644
+--- a/prototypes/project-workspace/tests/browser.test.mjs
++++ b/prototypes/project-workspace/tests/browser.test.mjs
+@@ -12,7 +12,7 @@ import { openPrivateBrowser } from '../../../scripts/acceptance/native-vw-privat
+ 
+ const root = fileURLToPath(new URL('../../../', import.meta.url));
+ const cases = JSON.parse(readFileSync(new URL('../../../contracts/project-session-v1/CASES.json', import.meta.url))).cases;
+-const lateDefinitions = JSON.parse(readFileSync(new URL('../../../../../contracts/project-workspace-addendum-v1/CASES.json', import.meta.url)));
++const lateDefinitions = JSON.parse(readFileSync(new URL('../../../contracts/project-workspace-addendum-v1/CASES.json', import.meta.url)));
+ let browser, screenshots;
+ after(async () => { await browser?.close(); console.log(JSON.stringify({ systemNativeDialogs: 0, privateChromeClosed: true })); });
+ async function page() {
+diff --git a/prototypes/project-workspace/tests/model.test.mjs b/prototypes/project-workspace/tests/model.test.mjs
+index f6499ac..4bd6667 100644
+--- a/prototypes/project-workspace/tests/model.test.mjs
++++ b/prototypes/project-workspace/tests/model.test.mjs
+@@ -16,7 +16,7 @@ const root = fileURLToPath(new URL('../../../', import.meta.url));
+ const cases = JSON.parse(readFileSync(new URL('../../../contracts/project-session-v1/CASES.json', import.meta.url))).cases;
+ // Controller-owned, frozen actual-AA capture plus an explicit partial memory
+ // adapter. Reading these JSON inputs does not run AA, S, or a physical fixture.
+-const lateDefinitions = JSON.parse(readFileSync(new URL('../../../../../contracts/project-workspace-addendum-v1/CASES.json', import.meta.url)));
++const lateDefinitions = JSON.parse(readFileSync(new URL('../../../contracts/project-workspace-addendum-v1/CASES.json', import.meta.url)));
+ const version = 'water.project-host.v1';
+ const errorText = 'Project workspace unavailable.';
+ const frame = event => Buffer.from(JSON.stringify({ version, ...event }) + '\n');
+
+--- stderr ---
