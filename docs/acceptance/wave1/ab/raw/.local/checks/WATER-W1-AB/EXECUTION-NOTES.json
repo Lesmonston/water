@@ -1,0 +1,59 @@
+{
+  "task": "WATER-W1-AB",
+  "model": {
+    "engine": "Codex",
+    "declaredModel": "GPT-6",
+    "exactRuntimeVariant": "not exposed by this session",
+    "subagents": 0
+  },
+  "implementation": "fa71a82696f123fd33c3514d99ef0b5c681c5780",
+  "inspectionIssues": [
+    {
+      "action": "Initial PowerShell Get-Content without UTF-8 encoding",
+      "outcome": "Mojibake/truncated tool output; re-read with explicit UTF-8. No source mutation."
+    },
+    {
+      "action": "rg of guessed prototypes/interactive-workspace",
+      "outcome": "Nonexistent path; found actual Y prototypes/live-workspace using rg --files. No tests changed."
+    },
+    {
+      "action": "Read-only node -e CASES summary under Windows PowerShell",
+      "exitCode": 1,
+      "outcome": "PowerShell argument quote loss caused SyntaxError; corrected with here-string stdin. Not a product failure or negative proof."
+    },
+    {
+      "action": "Get-Content of guessed browser log suffix",
+      "outcome": "Nonexistent file; corrected using exact log reference in the helper receipt. Not a product check."
+    }
+  ],
+  "behaviorRed": {
+    "initialTestHash": "5a03b0e36dc983be8031d34668d4f1d98a8f95c052a81701589894e42f0682ed",
+    "finalTestHash": "700eba78708a391d28cba40fe88ceaf217ca7c71c98ab616c2b0bcab3658ab06",
+    "note": "Runnable initial three tests failed at AB_BEHAVIOR before implementation. Added field-presence/count/null coverage before the two stable production negatives. No claim initial/final test bytes are identical."
+  },
+  "imageReview": {
+    "tool": "view_image",
+    "files": [
+      "project-workspace-1440x1000.png",
+      "project-workspace-900x800.png",
+      "project-workspace-cancel.png"
+    ],
+    "observations": [
+      "1440x1000: consent label/button/read-only explanation and start of observed evidence are legible; evidence table continues below viewport.",
+      "900x800: consent label wraps, controls remain usable, no horizontal overflow; recent reports continue below viewport.",
+      "900x800 cancellation: selection-cancelled and not-started copy are distinct; no current-result report or evidence."
+    ],
+    "scope": "Viewed actual final screenshots; no product edits after final gates."
+  },
+  "windows": {
+    "systemNativeDialogs": 0,
+    "maxConcurrentPrivateChrome": 1,
+    "baselineAndFinalBrowsers": "sequential private contexts; profiles/downloads retained",
+    "manualTermination": false
+  },
+  "limitations": [
+    "No new AA or S execution by AB",
+    "No physical fixture/content access by AB",
+    "No real user scopes, production race, macOS, desktop or M1 acceptance"
+  ]
+}
