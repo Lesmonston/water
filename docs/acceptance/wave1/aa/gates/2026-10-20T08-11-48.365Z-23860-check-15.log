@@ -1,0 +1,85 @@
+{"binary":"C:\\Users\\37310\\.rustup\\toolchains\\1.95.0-x86_64-pc-windows-msvc\\bin\\cargo.exe","argv":["clippy","--offline","--locked","--manifest-path","packages/project-session/Cargo.toml","--all-targets","--","-D","warnings"],"exitCode":101,"error":null,"log":"2026-10-20T08-11-48.365Z-23860-check-15.log"}
+--- stdout ---
+
+--- stderr ---
+    Checking serde_core v1.0.229
+    Checking zmij v1.0.23
+    Checking memchr v2.8.3
+    Checking itoa v1.0.18
+    Checking serde_json v1.0.151
+    Checking serde v1.0.229
+    Checking water-contracts v0.1.0 (F:\new\smaltalk\water\.worktrees\aa\crates\water-contracts)
+    Checking water-native-root v0.1.0 (F:\new\smaltalk\water\.worktrees\aa\packages\native-root)
+    Checking water-scope-registry v0.1.0 (F:\new\smaltalk\water\.worktrees\aa\packages\scope-registry)
+    Checking water-summary-export v0.1.0 (F:\new\smaltalk\water\.worktrees\aa\packages\summary-export)
+    Checking water-redacted-report v0.1.0 (F:\new\smaltalk\water\.worktrees\aa\packages\redacted-report)
+    Checking water-native-scan v0.1.0 (F:\new\smaltalk\water\.worktrees\aa\packages\native-scan)
+    Checking water-native-picker v0.1.0 (F:\new\smaltalk\water\.worktrees\aa\packages\native-picker)
+    Checking water-report-view v0.1.0 (F:\new\smaltalk\water\.worktrees\aa\packages\report-view)
+    Checking water-native-session v0.1.0 (F:\new\smaltalk\water\.worktrees\aa\packages\native-session)
+    Checking water-node-manifest v0.1.0 (F:\new\smaltalk\water\.worktrees\aa\packages\node-manifest)
+    Checking water-root-marker v0.1.0 (F:\new\smaltalk\water\.worktrees\aa\packages\root-marker)
+    Checking water-scan-host v0.1.0 (F:\new\smaltalk\water\.worktrees\aa\packages\scan-host)
+    Checking water-project-session v0.1.0 (F:\new\smaltalk\water\.worktrees\aa\packages\project-session)
+error: large size difference between variants
+   --> src\runtime.rs:84:1
+    |
+ 84 | /   enum Payload {
+ 85 | |       Ready,
+ 86 | |       Accepted {
+ 87 | |           job_id: OpaqueId,
+...   |
+ 90 | | /     Progress {
+ 91 | | |         job_id: OpaqueId,
+ 92 | | |         visited_entries: u32,
+ 93 | | |         recorded_entries: u32,
+ 94 | | |     },
+    | | |_____- the second-largest variant contains at least 32 bytes
+...   |
+ 99 | | /     Result {
+100 | | |         job_id: OpaqueId,
+101 | | |         read_manifest: bool,
+102 | | |         bundle: Bundle,
+103 | | |         marker: Marker,
+104 | | |     },
+    | | |_____- the largest variant contains at least 249 bytes
+...   |
+109 | |       Stopped,
+110 | |   }
+    | |___^ the entire enum is at least 256 bytes
+    |
+    = help: for further information visit https://rust-lang.github.io/rust-clippy/rust-1.95.0/index.html#large_enum_variant
+    = note: `-D clippy::large-enum-variant` implied by `-D warnings`
+    = help: to override `-D warnings` add `#[allow(clippy::large_enum_variant)]`
+help: consider boxing the large fields or introducing indirection in some other way to reduce the total size of the enum
+    |
+102 -         bundle: Bundle,
+102 +         bundle: Box<Bundle>,
+    |
+
+error: large size difference between variants
+   --> src\runtime.rs:138:1
+    |
+138 | /  enum Message {
+139 | |      Request(ProjectRequest),
+    | |      ----------------------- the second-largest variant contains at least 32 bytes
+140 | |      InvalidRequest,
+141 | |      End {
+...   |
+149 | |/     Finished {
+150 | ||         job_id: OpaqueId,
+151 | ||         read_manifest: bool,
+152 | ||         result: Result<(Bundle, Marker), ProjectError>,
+153 | ||     },
+    | ||_____- the largest variant contains at least 249 bytes
+154 | |  }
+    | |__^ the entire enum is at least 256 bytes
+    |
+    = help: for further information visit https://rust-lang.github.io/rust-clippy/rust-1.95.0/index.html#large_enum_variant
+help: consider boxing the large fields or introducing indirection in some other way to reduce the total size of the enum
+    |
+152 -         result: Result<(Bundle, Marker), ProjectError>,
+152 +         result: Box<Result<(Bundle, Marker), ProjectError>>,
+    |
+
+error: could not compile `water-project-session` (lib) due to 2 previous errors

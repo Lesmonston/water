@@ -1,0 +1,518 @@
+{
+  "startedAt": "2026-10-20T08:17:34.807Z",
+  "mode": "native",
+  "newAAProduct": true,
+  "systemNativeDialogs": 4,
+  "completed": [
+    {
+      "name": "default",
+      "read_manifest": false,
+      "marker": "not_requested",
+      "status": "completed"
+    },
+    {
+      "name": "observed",
+      "read_manifest": true,
+      "marker": "observed",
+      "status": "completed"
+    },
+    {
+      "name": "selection_cancelled",
+      "read_manifest": true,
+      "marker": "skipped",
+      "status": null
+    },
+    {
+      "name": "scan_cancelled",
+      "read_manifest": true,
+      "marker": "skipped",
+      "status": "cancelled"
+    }
+  ],
+  "exit": {
+    "code": 0,
+    "signal": null
+  },
+  "status": "passed",
+  "events": [
+    {
+      "version": "water.project-host.v1",
+      "kind": "ready"
+    },
+    {
+      "version": "water.project-host.v1",
+      "kind": "accepted",
+      "job_id": "project-check-default",
+      "read_manifest": false
+    },
+    {
+      "version": "water.project-host.v1",
+      "kind": "progress",
+      "job_id": "project-check-default",
+      "visited_entries": 1,
+      "recorded_entries": 1
+    },
+    {
+      "version": "water.project-host.v1",
+      "kind": "result",
+      "job_id": "project-check-default",
+      "read_manifest": false,
+      "bundle": {
+        "bundle_version": "water.native-session-bundle.v1",
+        "session_id": "project-check-default",
+        "read_only": true,
+        "selection": "confirmed",
+        "confirmation_source": "native_directory_dialog",
+        "policy": {
+          "platform": "windows",
+          "traversal": "handle_relative_no_follow",
+          "ordinary_content_read": false,
+          "native_user_gesture_authenticated": false,
+          "race_protection_verified": false,
+          "coverage_basis": "declared_policy",
+          "limits": {
+            "max_depth": 8,
+            "max_entries": 10000,
+            "max_dir_entries": 256
+          }
+        },
+        "snapshots": [
+          {
+            "source_kind": "native_scope_metadata",
+            "view": {
+              "view_version": "water.report-view.v1",
+              "read_only": true,
+              "source_schema_version": "water.scan.v1",
+              "scan_id": "project-check-default",
+              "status": "completed",
+              "scopes": [
+                {
+                  "scope_id": "project-scope",
+                  "label": "Selected directory",
+                  "platform": "windows",
+                  "origin": "user_selected",
+                  "coverage": "complete"
+                }
+              ],
+              "findings": [
+                {
+                  "id": "entry-1",
+                  "scope_id": "project-scope",
+                  "title": "package.json",
+                  "relative_path": "package.json",
+                  "tool_id": "no_tool",
+                  "tool_name": "Unknown tool",
+                  "source_tool": null,
+                  "rule_version": "native-scan-v1",
+                  "category": "unknown",
+                  "risk": "protected",
+                  "recoverability": "unknown",
+                  "activity": "unknown",
+                  "confidence": "unknown",
+                  "evidence": "Native metadata observation only; classification and ownership are unverified.",
+                  "evidence_items": [
+                    {
+                      "code": "unknown",
+                      "source": "filesystem",
+                      "summary": "Native metadata observation only; classification and ownership are unverified."
+                    }
+                  ],
+                  "protection_reasons": [
+                    "unknown_ownership",
+                    "incomplete_evidence"
+                  ],
+                  "references": {
+                    "state": "unknown",
+                    "project_ids": []
+                  },
+                  "logical_bytes": "140",
+                  "size": {
+                    "logical_bytes": "140",
+                    "allocated_bytes": null,
+                    "reclaimable_lower_bytes": null,
+                    "reclaimable_upper_bytes": null,
+                    "method": "logical_sum",
+                    "confidence": "measured",
+                    "shared": "unknown"
+                  }
+                }
+              ],
+              "issues": [],
+              "totals": {
+                "logical_bytes": null,
+                "allocated_bytes": null,
+                "method": "unavailable",
+                "coverage_complete": true,
+                "scanned_entries": 1,
+                "skipped_entries": 0
+              }
+            },
+            "summary": {
+              "export_version": "water.summary-export.v1",
+              "source_schema_version": "water.scan.v1",
+              "read_only": true,
+              "status": "completed",
+              "counts": {
+                "scopes": 1,
+                "findings": 1,
+                "issues": 0
+              },
+              "risk_counts": {
+                "low": 0,
+                "review": 0,
+                "high": 0,
+                "protected": 1
+              },
+              "category_counts": {
+                "download_cache": 0,
+                "build_cache": 0,
+                "environment": 0,
+                "model": 0,
+                "experiment": 0,
+                "history": 0,
+                "database": 0,
+                "credential": 0,
+                "source": 0,
+                "temporary": 0,
+                "unknown": 1
+              },
+              "totals": {
+                "logical_bytes": null,
+                "allocated_bytes": null,
+                "method": "unavailable",
+                "coverage_complete": true,
+                "scanned_entries": 1,
+                "skipped_entries": 0
+              }
+            },
+            "redacted_json": "{\"export_version\":\"water.redacted-report.v1\",\"source_schema_version\":\"water.scan.v1\",\"read_only\":true,\"redaction_profile\":\"structural_no_paths_v1\",\"anonymity_guaranteed\":false,\"summary\":{\"export_version\":\"water.summary-export.v1\",\"source_schema_version\":\"water.scan.v1\",\"read_only\":true,\"status\":\"completed\",\"counts\":{\"scopes\":1,\"findings\":1,\"issues\":0},\"risk_counts\":{\"low\":0,\"review\":0,\"high\":0,\"protected\":1},\"category_counts\":{\"download_cache\":0,\"build_cache\":0,\"environment\":0,\"model\":0,\"experiment\":0,\"history\":0,\"database\":0,\"credential\":0,\"source\":0,\"temporary\":0,\"unknown\":1},\"totals\":{\"logical_bytes\":null,\"allocated_bytes\":null,\"method\":\"unavailable\",\"coverage_complete\":true,\"scanned_entries\":1,\"skipped_entries\":0}},\"scopes\":[{\"scope_ref\":\"scope-1\",\"platform\":\"windows\",\"origin\":\"user_selected\",\"coverage\":\"complete\"}],\"findings\":[{\"finding_ref\":\"finding-1\",\"scope_ref\":\"scope-1\",\"has_tool\":false,\"category\":\"unknown\",\"risk\":\"protected\",\"recoverability\":\"unknown\",\"activity\":\"unknown\",\"confidence\":\"unknown\",\"evidence\":[{\"code\":\"unknown\",\"source\":\"filesystem\"}],\"protection_reasons\":[\"unknown_ownership\",\"incomplete_evidence\"],\"references\":{\"state\":\"unknown\",\"project_count\":0},\"size\":{\"logical_bytes\":\"140\",\"allocated_bytes\":null,\"reclaimable_lower_bytes\":null,\"reclaimable_upper_bytes\":null,\"method\":\"logical_sum\",\"confidence\":\"measured\",\"shared\":\"unknown\"}}],\"issues\":[]}"
+          }
+        ]
+      },
+      "marker": {
+        "status": "not_requested",
+        "error_code": null,
+        "observation_json": null
+      }
+    },
+    {
+      "version": "water.project-host.v1",
+      "kind": "accepted",
+      "job_id": "project-check-observed",
+      "read_manifest": true
+    },
+    {
+      "version": "water.project-host.v1",
+      "kind": "progress",
+      "job_id": "project-check-observed",
+      "visited_entries": 1,
+      "recorded_entries": 1
+    },
+    {
+      "version": "water.project-host.v1",
+      "kind": "result",
+      "job_id": "project-check-observed",
+      "read_manifest": true,
+      "bundle": {
+        "bundle_version": "water.native-session-bundle.v1",
+        "session_id": "project-check-observed",
+        "read_only": true,
+        "selection": "confirmed",
+        "confirmation_source": "native_directory_dialog",
+        "policy": {
+          "platform": "windows",
+          "traversal": "handle_relative_no_follow",
+          "ordinary_content_read": false,
+          "native_user_gesture_authenticated": false,
+          "race_protection_verified": false,
+          "coverage_basis": "declared_policy",
+          "limits": {
+            "max_depth": 8,
+            "max_entries": 10000,
+            "max_dir_entries": 256
+          }
+        },
+        "snapshots": [
+          {
+            "source_kind": "native_scope_metadata",
+            "view": {
+              "view_version": "water.report-view.v1",
+              "read_only": true,
+              "source_schema_version": "water.scan.v1",
+              "scan_id": "project-check-observed",
+              "status": "completed",
+              "scopes": [
+                {
+                  "scope_id": "project-scope",
+                  "label": "Selected directory",
+                  "platform": "windows",
+                  "origin": "user_selected",
+                  "coverage": "complete"
+                }
+              ],
+              "findings": [
+                {
+                  "id": "entry-1",
+                  "scope_id": "project-scope",
+                  "title": "package.json",
+                  "relative_path": "package.json",
+                  "tool_id": "no_tool",
+                  "tool_name": "Unknown tool",
+                  "source_tool": null,
+                  "rule_version": "native-scan-v1",
+                  "category": "unknown",
+                  "risk": "protected",
+                  "recoverability": "unknown",
+                  "activity": "unknown",
+                  "confidence": "unknown",
+                  "evidence": "Native metadata observation only; classification and ownership are unverified.",
+                  "evidence_items": [
+                    {
+                      "code": "unknown",
+                      "source": "filesystem",
+                      "summary": "Native metadata observation only; classification and ownership are unverified."
+                    }
+                  ],
+                  "protection_reasons": [
+                    "unknown_ownership",
+                    "incomplete_evidence"
+                  ],
+                  "references": {
+                    "state": "unknown",
+                    "project_ids": []
+                  },
+                  "logical_bytes": "140",
+                  "size": {
+                    "logical_bytes": "140",
+                    "allocated_bytes": null,
+                    "reclaimable_lower_bytes": null,
+                    "reclaimable_upper_bytes": null,
+                    "method": "logical_sum",
+                    "confidence": "measured",
+                    "shared": "unknown"
+                  }
+                }
+              ],
+              "issues": [],
+              "totals": {
+                "logical_bytes": null,
+                "allocated_bytes": null,
+                "method": "unavailable",
+                "coverage_complete": true,
+                "scanned_entries": 1,
+                "skipped_entries": 0
+              }
+            },
+            "summary": {
+              "export_version": "water.summary-export.v1",
+              "source_schema_version": "water.scan.v1",
+              "read_only": true,
+              "status": "completed",
+              "counts": {
+                "scopes": 1,
+                "findings": 1,
+                "issues": 0
+              },
+              "risk_counts": {
+                "low": 0,
+                "review": 0,
+                "high": 0,
+                "protected": 1
+              },
+              "category_counts": {
+                "download_cache": 0,
+                "build_cache": 0,
+                "environment": 0,
+                "model": 0,
+                "experiment": 0,
+                "history": 0,
+                "database": 0,
+                "credential": 0,
+                "source": 0,
+                "temporary": 0,
+                "unknown": 1
+              },
+              "totals": {
+                "logical_bytes": null,
+                "allocated_bytes": null,
+                "method": "unavailable",
+                "coverage_complete": true,
+                "scanned_entries": 1,
+                "skipped_entries": 0
+              }
+            },
+            "redacted_json": "{\"export_version\":\"water.redacted-report.v1\",\"source_schema_version\":\"water.scan.v1\",\"read_only\":true,\"redaction_profile\":\"structural_no_paths_v1\",\"anonymity_guaranteed\":false,\"summary\":{\"export_version\":\"water.summary-export.v1\",\"source_schema_version\":\"water.scan.v1\",\"read_only\":true,\"status\":\"completed\",\"counts\":{\"scopes\":1,\"findings\":1,\"issues\":0},\"risk_counts\":{\"low\":0,\"review\":0,\"high\":0,\"protected\":1},\"category_counts\":{\"download_cache\":0,\"build_cache\":0,\"environment\":0,\"model\":0,\"experiment\":0,\"history\":0,\"database\":0,\"credential\":0,\"source\":0,\"temporary\":0,\"unknown\":1},\"totals\":{\"logical_bytes\":null,\"allocated_bytes\":null,\"method\":\"unavailable\",\"coverage_complete\":true,\"scanned_entries\":1,\"skipped_entries\":0}},\"scopes\":[{\"scope_ref\":\"scope-1\",\"platform\":\"windows\",\"origin\":\"user_selected\",\"coverage\":\"complete\"}],\"findings\":[{\"finding_ref\":\"finding-1\",\"scope_ref\":\"scope-1\",\"has_tool\":false,\"category\":\"unknown\",\"risk\":\"protected\",\"recoverability\":\"unknown\",\"activity\":\"unknown\",\"confidence\":\"unknown\",\"evidence\":[{\"code\":\"unknown\",\"source\":\"filesystem\"}],\"protection_reasons\":[\"unknown_ownership\",\"incomplete_evidence\"],\"references\":{\"state\":\"unknown\",\"project_count\":0},\"size\":{\"logical_bytes\":\"140\",\"allocated_bytes\":null,\"reclaimable_lower_bytes\":null,\"reclaimable_upper_bytes\":null,\"method\":\"logical_sum\",\"confidence\":\"measured\",\"shared\":\"unknown\"}}],\"issues\":[]}"
+          }
+        ]
+      },
+      "marker": {
+        "status": "observed",
+        "error_code": null,
+        "observation_json": "{\"marker_version\":\"water.root-marker.v1\",\"source_kind\":\"native_root_package_json\",\"read_only\":true,\"ordinary_content_read\":true,\"root_binding_verified\":true,\"native_user_gesture_authenticated\":false,\"race_protection_verified\":false,\"project_membership_verified\":false,\"risk\":\"protected\",\"action\":\"display_only\",\"bytes_read\":140,\"evidence\":{\"manifest_version\":\"water.node-manifest.v1\",\"source_kind\":\"caller_supplied_text\",\"read_only\":true,\"format_verified\":true,\"project_membership_verified\":false,\"tool_version_known\":false,\"action\":\"display_only\",\"risk\":\"protected\",\"ecosystem\":\"node\",\"evidence_strength\":\"parsed_structure\",\"recognized_field_count\":5,\"has_name\":true,\"has_version\":true,\"declared_private\":true,\"counts\":{\"scripts\":1,\"dependencies\":1,\"dev_dependencies\":0,\"peer_dependencies\":0,\"optional_dependencies\":0,\"workspace_patterns\":0}}}"
+      }
+    },
+    {
+      "version": "water.project-host.v1",
+      "kind": "accepted",
+      "job_id": "project-check-selection_cancelled",
+      "read_manifest": true
+    },
+    {
+      "version": "water.project-host.v1",
+      "kind": "result",
+      "job_id": "project-check-selection_cancelled",
+      "read_manifest": true,
+      "bundle": {
+        "bundle_version": "water.native-session-bundle.v1",
+        "session_id": "project-check-selection_cancelled",
+        "read_only": true,
+        "selection": "cancelled",
+        "confirmation_source": "native_directory_dialog",
+        "policy": {
+          "platform": "windows",
+          "traversal": "handle_relative_no_follow",
+          "ordinary_content_read": false,
+          "native_user_gesture_authenticated": false,
+          "race_protection_verified": false,
+          "coverage_basis": "declared_policy",
+          "limits": {
+            "max_depth": 8,
+            "max_entries": 10000,
+            "max_dir_entries": 256
+          }
+        },
+        "snapshots": []
+      },
+      "marker": {
+        "status": "skipped",
+        "error_code": "selection_cancelled",
+        "observation_json": null
+      }
+    },
+    {
+      "version": "water.project-host.v1",
+      "kind": "accepted",
+      "job_id": "project-check-scan_cancelled",
+      "read_manifest": true
+    },
+    {
+      "version": "water.project-host.v1",
+      "kind": "cancel_ack",
+      "job_id": "project-check-scan_cancelled",
+      "applied": true
+    },
+    {
+      "version": "water.project-host.v1",
+      "kind": "result",
+      "job_id": "project-check-scan_cancelled",
+      "read_manifest": true,
+      "bundle": {
+        "bundle_version": "water.native-session-bundle.v1",
+        "session_id": "project-check-scan_cancelled",
+        "read_only": true,
+        "selection": "confirmed",
+        "confirmation_source": "native_directory_dialog",
+        "policy": {
+          "platform": "windows",
+          "traversal": "handle_relative_no_follow",
+          "ordinary_content_read": false,
+          "native_user_gesture_authenticated": false,
+          "race_protection_verified": false,
+          "coverage_basis": "declared_policy",
+          "limits": {
+            "max_depth": 8,
+            "max_entries": 10000,
+            "max_dir_entries": 256
+          }
+        },
+        "snapshots": [
+          {
+            "source_kind": "native_scope_metadata",
+            "view": {
+              "view_version": "water.report-view.v1",
+              "read_only": true,
+              "source_schema_version": "water.scan.v1",
+              "scan_id": "project-check-scan_cancelled",
+              "status": "cancelled",
+              "scopes": [
+                {
+                  "scope_id": "project-scope",
+                  "label": "Selected directory",
+                  "platform": "windows",
+                  "origin": "user_selected",
+                  "coverage": "cancelled"
+                }
+              ],
+              "findings": [],
+              "issues": [
+                {
+                  "code": "cancelled",
+                  "scope_id": "project-scope",
+                  "relative_path": null,
+                  "message": "Native metadata issue."
+                }
+              ],
+              "totals": {
+                "logical_bytes": null,
+                "allocated_bytes": null,
+                "method": "unavailable",
+                "coverage_complete": false,
+                "scanned_entries": 0,
+                "skipped_entries": 0
+              }
+            },
+            "summary": {
+              "export_version": "water.summary-export.v1",
+              "source_schema_version": "water.scan.v1",
+              "read_only": true,
+              "status": "cancelled",
+              "counts": {
+                "scopes": 1,
+                "findings": 0,
+                "issues": 1
+              },
+              "risk_counts": {
+                "low": 0,
+                "review": 0,
+                "high": 0,
+                "protected": 0
+              },
+              "category_counts": {
+                "download_cache": 0,
+                "build_cache": 0,
+                "environment": 0,
+                "model": 0,
+                "experiment": 0,
+                "history": 0,
+                "database": 0,
+                "credential": 0,
+                "source": 0,
+                "temporary": 0,
+                "unknown": 0
+              },
+              "totals": {
+                "logical_bytes": null,
+                "allocated_bytes": null,
+                "method": "unavailable",
+                "coverage_complete": false,
+                "scanned_entries": 0,
+                "skipped_entries": 0
+              }
+            },
+            "redacted_json": "{\"export_version\":\"water.redacted-report.v1\",\"source_schema_version\":\"water.scan.v1\",\"read_only\":true,\"redaction_profile\":\"structural_no_paths_v1\",\"anonymity_guaranteed\":false,\"summary\":{\"export_version\":\"water.summary-export.v1\",\"source_schema_version\":\"water.scan.v1\",\"read_only\":true,\"status\":\"cancelled\",\"counts\":{\"scopes\":1,\"findings\":0,\"issues\":1},\"risk_counts\":{\"low\":0,\"review\":0,\"high\":0,\"protected\":0},\"category_counts\":{\"download_cache\":0,\"build_cache\":0,\"environment\":0,\"model\":0,\"experiment\":0,\"history\":0,\"database\":0,\"credential\":0,\"source\":0,\"temporary\":0,\"unknown\":0},\"totals\":{\"logical_bytes\":null,\"allocated_bytes\":null,\"method\":\"unavailable\",\"coverage_complete\":false,\"scanned_entries\":0,\"skipped_entries\":0}},\"scopes\":[{\"scope_ref\":\"scope-1\",\"platform\":\"windows\",\"origin\":\"user_selected\",\"coverage\":\"cancelled\"}],\"findings\":[],\"issues\":[{\"code\":\"cancelled\",\"scope_ref\":\"scope-1\"}]}"
+          }
+        ]
+      },
+      "marker": {
+        "status": "skipped",
+        "error_code": "scan_cancelled",
+        "observation_json": null
+      }
+    },
+    {
+      "version": "water.project-host.v1",
+      "kind": "stopped"
+    }
+  ],
+  "endedAt": "2026-10-20T08:17:37.776Z"
+}

@@ -1,0 +1,9 @@
+error[E0616]: field `read_manifest` of struct `water_project_session::v1::ConfirmedCapture` is private
+ --> F:\new\smaltalk\water\.worktrees\aa\.local/checks/WATER-W1-AA/type-probes-8628\capture_mutate.txt:2:52
+  |
+2 | fn main() { let _ = |c: &mut ConfirmedCapture| { c.read_manifest = true; }; }
+  |                                                    ^^^^^^^^^^^^^ private field
+
+error: aborting due to 1 previous error
+
+For more information about this error, try `rustc --explain E0616`.

@@ -1,0 +1,31 @@
+{"binary":"C:\\Users\\37310\\.rustup\\toolchains\\1.95.0-x86_64-pc-windows-msvc\\bin\\cargo.exe","argv":["test","--offline","--locked","--manifest-path","packages/project-session/Cargo.toml","--test","project_v1","--","--test-threads=1","--nocapture"],"exitCode":101,"error":null,"log":"2026-10-20T08-11-04.416Z-21792-test-14.log"}
+--- stdout ---
+
+running 4 tests
+test project_capture_and_marker ... ok
+test project_consent_state ... ok
+test project_request_boundary ... ok
+test project_wire_and_cleanup ... FAILED
+
+failures:
+
+failures:
+    project_wire_and_cleanup
+
+test result: FAILED. 3 passed; 1 failed; 0 ignored; 0 measured; 0 filtered out; finished in 0.07s
+
+
+--- stderr ---
+   Compiling water-project-session v0.1.0 (F:\new\smaltalk\water\.worktrees\aa\packages\project-session)
+    Finished `test` profile [unoptimized + debuginfo] target(s) in 3.49s
+     Running tests\project_v1.rs (.local\next-target\debug\deps\project_v1-4ed2f1b13bda37b8.exe)
+
+thread 'project_wire_and_cleanup' (4784) panicked at tests\project_v1.rs:375:9:
+intentional observer unwind
+note: run with `RUST_BACKTRACE=1` environment variable to display a backtrace
+
+thread 'project_wire_and_cleanup' (4784) panicked at tests\project_v1.rs:601:5:
+assertion `left == right` failed
+  left: String("completed")
+ right: "cancelled"
+error: test failed, to rerun pass `--test project_v1`

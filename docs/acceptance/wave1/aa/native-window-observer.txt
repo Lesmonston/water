@@ -1,0 +1,56 @@
+# Read-only screenshot observation during the single authorized native final.
+# Opens no window and sends no UI action. Outputs stay under this tree's .local.
+$ErrorActionPreference = 'Stop'
+[Console]::OutputEncoding = [System.Text.UTF8Encoding]::new()
+Add-Type -AssemblyName System.Drawing
+Add-Type -Path 'C:/Windows/Microsoft.NET/Framework64/v4.0.30319/WPF/UIAutomationTypes.dll'
+Add-Type -Path 'C:/Windows/Microsoft.NET/Framework64/v4.0.30319/WPF/UIAutomationClient.dll'
+$aaRoot = (Get-Location).Path
+$aaExecutable = Join-Path $aaRoot '.local/next-target/debug/water-project-session.exe'
+$aaOutput = Join-Path $aaRoot '.local/checks/WATER-W1-AA'
+$aaDeadline = [DateTime]::UtcNow.AddSeconds(45)
+$aaScreens = @()
+$aaLastWindow = ''
+$aaSeenProcess = $false
+$aaExited = $false
+$aaFault = $null
+try {
+    while ([DateTime]::UtcNow -lt $aaDeadline) {
+        $aaProcesses = @(Get-Process -Name 'water-project-session' -ErrorAction SilentlyContinue | Where-Object { $_.Path -eq $aaExecutable })
+        if ($aaProcesses.Count -eq 0) {
+            if ($aaSeenProcess) { $aaExited = $true; break }
+            Start-Sleep -Milliseconds 25
+            continue
+        }
+        if ($aaProcesses.Count -ne 1) { throw 'Expected one owned project process' }
+        $aaSeenProcess = $true
+        $aaProcessId = [int]$aaProcesses[0].Id
+        $aaCondition = [System.Windows.Automation.AndCondition]::new(
+            [System.Windows.Automation.PropertyCondition]::new([System.Windows.Automation.AutomationElement]::ProcessIdProperty, $aaProcessId),
+            [System.Windows.Automation.PropertyCondition]::new([System.Windows.Automation.AutomationElement]::NameProperty, 'Water - Select a read-only directory'))
+        $aaWindow = [System.Windows.Automation.AutomationElement]::RootElement.FindFirst([System.Windows.Automation.TreeScope]::Children, $aaCondition)
+        if ($null -eq $aaWindow) { $aaLastWindow = ''; Start-Sleep -Milliseconds 25; continue }
+        $aaKey = [string]$aaProcessId + ':' + [string]$aaWindow.Current.NativeWindowHandle
+        if ($aaKey -eq $aaLastWindow) { Start-Sleep -Milliseconds 25; continue }
+        $aaBounds = $aaWindow.Current.BoundingRectangle
+        if ($aaWindow.Current.IsOffscreen -or $aaBounds.Width -lt 1 -or $aaBounds.Height -lt 1 -or $aaBounds.Width -gt 4096 -or $aaBounds.Height -gt 2160) { throw 'Unexpected owned window bounds' }
+        if ($aaScreens.Count -ge 4) { throw 'Screenshot observer saw more than four windows' }
+        $aaName = 'native-window-' + ($aaScreens.Count + 1).ToString('00') + '.png'
+        $aaPath = Join-Path $aaOutput $aaName
+        if (Test-Path -LiteralPath $aaPath) { throw 'Screenshot destination already exists' }
+        $aaBitmap = [System.Drawing.Bitmap]::new([int]$aaBounds.Width, [int]$aaBounds.Height)
+        $aaGraphics = [System.Drawing.Graphics]::FromImage($aaBitmap)
+        try {
+            $aaGraphics.CopyFromScreen([int]$aaBounds.X, [int]$aaBounds.Y, 0, 0, $aaBitmap.Size)
+            $aaBitmap.Save($aaPath, [System.Drawing.Imaging.ImageFormat]::Png)
+        } finally { $aaGraphics.Dispose(); $aaBitmap.Dispose() }
+        $aaScreens += [ordered]@{ pid=$aaProcessId; handle=$aaWindow.Current.NativeWindowHandle; title=$aaWindow.Current.Name; x=$aaBounds.X; y=$aaBounds.Y; width=$aaBounds.Width; height=$aaBounds.Height; path=$aaName; at=[DateTime]::UtcNow.ToString('o') }
+        $aaLastWindow = $aaKey
+        Start-Sleep -Milliseconds 25
+    }
+} catch { $aaFault = $_.Exception.Message }
+$aaResult = [ordered]@{ opensWindows=0; sendsActions=0; ownedExecutable=$aaExecutable; processSeen=$aaSeenProcess; processExited=$aaExited; screenshots=$aaScreens; error=$aaFault; endedAt=[DateTime]::UtcNow.ToString('o') }
+$aaJson = $aaResult | ConvertTo-Json -Depth 5
+[System.IO.File]::WriteAllText((Join-Path $aaOutput 'native-screen-observation.json'), $aaJson + "`n", [System.Text.UTF8Encoding]::new($false))
+Write-Output $aaJson
+if ($null -ne $aaFault) { exit 1 }
