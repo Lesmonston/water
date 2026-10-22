@@ -17,9 +17,12 @@ const markerErrors = {
   InvalidManifest: '根清单格式无效', NativeIo: '无法读取根清单', UnsupportedPlatform: '当前平台不支持读取',
   SerializationFailed: '无法生成结构证据',
 };
-function markerLabel(marker) {
+function markerLabel(marker, status) {
   if (marker.status === 'not_requested') return '未请求读取';
-  if (marker.status === 'skipped') return marker.error_code === 'selection_cancelled' ? '选择取消未读' : '扫描取消未读';
+  if (marker.status === 'skipped') {
+    if (marker.error_code === 'selection_cancelled') return '选择取消未读';
+    return status === 'cancelled' ? '扫描取消未读' : '已取消内容读取 · 未读取清单';
+  }
   if (marker.status === 'missing') return '未发现根清单';
   if (marker.status === 'observed') return '结构证据';
   return '读取失败 · ' + markerErrors[marker.error_code];
@@ -111,7 +114,7 @@ function render() {
       heading.append(document.createTextNode(descriptions[row.status][0]));
       const tag = document.createElement('span'); tag.className = 'entry-tag'; tag.textContent = descriptions[row.status][1]; heading.append(tag);
       const description = document.createElement('p'); description.className = 'entry-description'; description.textContent = descriptions[row.status][2];
-      copy.append(heading, description, textNode('p', markerLabel(row.marker), 'marker-status')); li.append(order, copy);
+      copy.append(heading, description, textNode('p', markerLabel(row.marker, row.status), 'marker-status')); li.append(order, copy);
       if (row.report_url) {
         const link = document.createElement('a'); link.className = 'report-link'; link.textContent = '打开报告';
         link.href = row.report_url; link.target = '_blank'; link.rel = 'noopener noreferrer';

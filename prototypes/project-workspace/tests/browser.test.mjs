@@ -12,6 +12,7 @@ import { openPrivateBrowser } from '../../../scripts/acceptance/native-vw-privat
 
 const root = fileURLToPath(new URL('../../../', import.meta.url));
 const cases = JSON.parse(readFileSync(new URL('../../../contracts/project-session-v1/CASES.json', import.meta.url))).cases;
+const lateDefinitions = JSON.parse(readFileSync(new URL('../../../../../contracts/project-workspace-addendum-v1/CASES.json', import.meta.url)));
 let browser, screenshots;
 after(async () => { await browser?.close(); console.log(JSON.stringify({ systemNativeDialogs: 0, privateChromeClosed: true })); });
 async function page() {
@@ -78,6 +79,27 @@ async function key(b, key, code, windowsVirtualKeyCode) {
   await b.send('Input.dispatchKeyEvent', { type: 'keyDown', key, code, windowsVirtualKeyCode,
     ...(key === 'Enter' ? { text: '\r', unmodifiedText: '\r' } : {}) });
   await b.send('Input.dispatchKeyEvent', { type: 'keyUp', key, code, windowsVirtualKeyCode });
+}
+async function memoryReplay() {
+  const directory = join(root, '.local/checks/WATER-W1-AB-ADDENDUM-01'); mkdirSync(directory, { recursive: true });
+  const evidence = mkdtempSync(join(directory, 'browser-memory-'));
+  const input = new PassThrough(), commands = [];
+  const output = new Writable({ write(bytes, encoding, done) {
+    const owned = Buffer.from(bytes); appendFileSync(join(evidence, 'commands.log'), owned);
+    commands.push(JSON.parse(owned)); done();
+  } });
+  const emit = event => {
+    const bytes = Buffer.from(JSON.stringify({ version: 'water.project-host.v1', ...event }) + '\n');
+    appendFileSync(join(evidence, 'events.log'), bytes); input.write(bytes);
+  };
+  const pending = startFromStreams({ input, output }); emit({ kind: 'ready' }); const workspace = await pending;
+  return { ...workspace, commands, emit, async dispose() {
+    await workspace.close(); assert.equal(input.destroyed, false); assert.equal(output.destroyed, false);
+    input.destroy(); output.destroy();
+    writeFileSync(join(evidence, 'close.json'), JSON.stringify({ url: workspace.url, borrowedStreamsPreserved: true,
+      newAAExecuted: false, nativeSelectorExecuted: false, systemNativeDialogs: 0,
+      source: 'Frozen actual AA public capture with synthetic dialog envelope; partial is an explicit synchronized memory variant.' }) + '\n');
+  } };
 }
 
 test('project_workspace_actions_and_evidence', async () => {
@@ -173,4 +195,54 @@ test('project_workspace_layout_and_privacy', async () => {
     await r.close(); await b.waitFor('document.body.dataset.connection === "failed"');
     assert.equal(await b.evaluate('document.getElementById("start").disabled && document.getElementById("cancel").disabled'), true);
   } finally { await r.dispose(); }
+
+  // Extend the same top-level layout test. These are frozen memory inputs,
+  // not a new AA process, selector, or physical fixture scan.
+  for (const example of lateDefinitions.accept) {
+    const memory = await memoryReplay();
+    try {
+      await navigate(b, memory.url); const id = await start(b, true);
+      memory.emit({ kind: 'accepted', job_id: id, read_manifest: true });
+      const event = structuredClone(example.event), status = event.bundle.snapshots[0].view.status;
+      event.job_id = event.bundle.session_id = id; event.bundle.snapshots[0].view.scan_id = id;
+      memory.emit(event); const current = (await finished(b, id)).recent[0];
+      assert.equal((await state(b)).connection, 'ready', 'AB_LATE_CANCELLED_CONTENT browser remains usable');
+      assert.equal(current.status, status); assert.deepEqual(current.marker, example.event.marker);
+      assert(current.report_url); assert.equal(current.evidence_url, null);
+      for (const [width, height] of [[1440, 1000], [900, 800]]) {
+        await b.size(width, height);
+        const copy = await b.evaluate(`({title:document.getElementById('status-text').textContent,
+          marker:document.querySelector('.recent-entry .marker-status').textContent,
+          row:document.querySelector('.recent-entry').textContent,
+          reports:document.querySelectorAll('.recent-entry .report-link').length,
+          evidence:document.querySelectorAll('.evidence-link,.evidence-panel,.evidence-preview').length,
+          overflow:document.documentElement.scrollWidth>document.documentElement.clientWidth,
+          checked:document.getElementById('read-manifest').checked})`);
+        assert.equal(copy.title, status === 'completed' ? '扫描完成' : '保留部分结果');
+        assert(copy.marker.includes('已取消内容读取')); assert(copy.marker.includes('未读取清单'));
+        assert(!copy.row.includes('扫描已取消') && !copy.marker.includes('扫描取消'));
+        assert.equal(copy.reports, 1); assert.equal(copy.evidence, 0); assert.equal(copy.overflow, false); assert.equal(copy.checked, false);
+        const response = await b.evaluate(`fetch('/evidence/${id}.json').then(r=>r.status)`);
+        assert.equal(response, 404, 'AB_LATE_CANCELLED_CONTENT no current or stale evidence attachment');
+        if (status === 'completed' && width === 1440 || status === 'partial' && width === 900) {
+          // Show the metadata outcome and the independent content cancellation
+          // together, without altering the established viewport screenshots.
+          await b.evaluate('document.querySelector(".recent-section").scrollIntoView({block:"end"})');
+          await screenshot(b, `project-workspace-late-${status}-${width}x${height}.png`);
+        }
+      }
+      await navigate(b, current.report_url);
+      assert.equal(await b.evaluate('document.getElementById("export-preview").textContent'), event.bundle.snapshots[0].redacted_json);
+      await actualDownload(b, '#download', 'water-report-1.json', event.bundle.snapshots[0].redacted_json);
+      await navigate(b, memory.url);
+      const nextId = await start(b, false);
+      assert.equal(memory.commands.at(-1).read_manifest, false, 'AB_LATE_CANCELLED_CONTENT next UI job defaults to no content read');
+      memory.emit({ kind: 'accepted', job_id: nextId, read_manifest: false });
+      const next = structuredClone(cases[0]); next.job_id = next.bundle.session_id = nextId;
+      next.bundle.snapshots[0].view.scan_id = nextId; memory.emit(next);
+      assert.equal((await finished(b, nextId)).recent[0].marker.status, 'not_requested');
+      console.log(JSON.stringify({ lateCancelBrowser: example.name, status, source: example.source ?? lateDefinitions.actualCapture.source_kind,
+        envelope: lateDefinitions.envelopeOrigin, newAAExecuted: false, nativeSelectorExecuted: false }));
+    } finally { await memory.dispose(); }
+  }
 });

@@ -147,6 +147,10 @@ export function assertMarker(marker, readManifest, selection, status) {
     if (marker.status !== 'skipped' || marker.error_code !== cancelled || marker.observation_json !== null) fail();
     return;
   }
+  // R can finish metadata before the shared token cancels the content phase.
+  // Keep that completed/partial report without implying any content was read.
+  if (selection === 'confirmed' && ['completed', 'partial'].includes(status) &&
+      marker.status === 'skipped' && marker.error_code === 'scan_cancelled' && marker.observation_json === null) return;
   if (marker.status === 'observed') {
     if (marker.error_code !== null) fail();
     assertObservation(marker.observation_json); return;

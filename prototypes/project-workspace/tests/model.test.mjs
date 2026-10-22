@@ -9,11 +9,14 @@ import { fileURLToPath } from 'node:url';
 import { setTimeout as delay } from 'node:timers/promises';
 import { startFromStreams } from '../transport.mjs';
 import { launchProjectWorkspace } from '../launch.mjs';
-import { EventDecoder } from '../model.mjs';
+import { assertMarker, WorkspaceState, EventDecoder } from '../model.mjs';
 import { startServer as startReview } from '../../native-review/server.mjs';
 
 const root = fileURLToPath(new URL('../../../', import.meta.url));
 const cases = JSON.parse(readFileSync(new URL('../../../contracts/project-session-v1/CASES.json', import.meta.url))).cases;
+// Controller-owned, frozen actual-AA capture plus an explicit partial memory
+// adapter. Reading these JSON inputs does not run AA, S, or a physical fixture.
+const lateDefinitions = JSON.parse(readFileSync(new URL('../../../../../contracts/project-workspace-addendum-v1/CASES.json', import.meta.url)));
 const version = 'water.project-host.v1';
 const errorText = 'Project workspace unavailable.';
 const frame = event => Buffer.from(JSON.stringify({ version, ...event }) + '\n');
@@ -398,4 +401,54 @@ test('project_workspace_consent_and_exports', async () => {
     assert.equal(borrowed.input.destroyed, false); assert.equal(borrowed.output.destroyed, false);
     assert.equal((await raw(outside.url, '/session.json')).status, 200);
   } finally { await borrowed.dispose(); await outside.close(); }
+
+  for (const example of lateDefinitions.accept) {
+    const original = JSON.stringify(example), status = example.event.bundle.snapshots[0].view.status;
+    assertMarker(example.event.marker, true, 'confirmed', status);
+    const model = new WorkspaceState(); model.receive({ version, kind: 'ready' });
+    const command = model.start(true), event = structuredClone(example.event);
+    event.job_id = event.bundle.session_id = command.job_id; event.bundle.snapshots[0].view.scan_id = command.job_id;
+    model.receive({ version, kind: 'accepted', job_id: command.job_id, read_manifest: true });
+    const result = model.receive(event); assert.deepEqual(result.bundle, event.bundle);
+    model.finish(result, 'http://127.0.0.1:1', null);
+    assert.equal(model.view().connection, 'ready'); assert.equal(model.view().active, null);
+    assert.equal(model.view().recent[0].status, status); assert.equal(model.view().recent[0].evidence_url, null);
+    assert.equal(model.start(false).read_manifest, false, 'AB_LATE_CANCELLED_CONTENT next model request has independent choice');
+
+    const late = await rig();
+    try {
+      const token = await bootstrap(late.url), id = await started(late, token, true); accepted(late, id, true);
+      event.job_id = event.bundle.session_id = id; event.bundle.snapshots[0].view.scan_id = id; late.emit(event);
+      const state = await settle(late, id), current = state.recent[0];
+      assert.equal(state.connection, 'ready', 'AB_LATE_CANCELLED_CONTENT metadata survives content cancellation');
+      assert.equal(state.active, null); assert.equal(current.status, status); assert.equal(current.read_manifest, true);
+      assert.deepEqual(current.marker, example.event.marker); assert.equal(current.evidence_url, null); assert(current.report_url);
+      const served = JSON.parse((await raw(current.report_url, '/session.json')).body);
+      assert.deepEqual(served, event.bundle, 'AB_LATE_CANCELLED_CONTENT real W preserves metadata/status/summary/Q');
+      assert.deepEqual((await raw(current.report_url, '/exports/1.json')).body, Buffer.from(example.event.bundle.snapshots[0].redacted_json));
+      for (const method of ['GET', 'HEAD']) assert.equal((await raw(late.url, '/evidence/' + id + '.json', { method })).status, 404);
+      const next = await started(late, token); accepted(late, next); late.emit(resultFor(next)); await settle(late, next);
+      assert.equal(late.commands.at(-1).read_manifest, false);
+      assert.equal((await session(late.url)).recent[0].marker.status, 'not_requested');
+      assert.equal((await raw(late.url, '/evidence/' + next + '.json')).status, 404);
+    } finally { await late.dispose(); }
+    assert.equal(JSON.stringify(example), original, 'AB_LATE_CANCELLED_CONTENT frozen input is unchanged');
+
+    const lateVariant = (e, mutate) => {
+      const variant = structuredClone(example.event);
+      variant.job_id = variant.bundle.session_id = e.job_id; variant.bundle.snapshots[0].view.scan_id = e.job_id;
+      Object.assign(e, variant); mutate(e);
+    };
+    for (const mutate of [
+      e => { e.marker.error_code = 'selection_cancelled'; }, e => { e.marker.error_code = 'InvalidManifest'; },
+      e => { e.marker.error_code = null; }, e => { e.marker.observation_json = cases[1].marker.observation_json; },
+      e => { e.marker.extra = 'raw-content-canary'; }, e => { e.job_id = 'previous-job'; },
+      e => { e.read_manifest = false; },
+    ]) await rejectedResult(e => lateVariant(e, mutate), { label: 'AB_LATE_CANCELLED_CONTENT' });
+    await rejectedResult(e => lateVariant(e, e => { e.read_manifest = false; }), { choice: false, label: 'AB_LATE_CANCELLED_CONTENT' });
+  }
+  await rejectedResult(e => { e.marker = structuredClone(lateDefinitions.accept[0].event.marker); },
+    { index: 6, label: 'AB_LATE_CANCELLED_CONTENT' });
+  console.log(JSON.stringify({ lateCancelSources: lateDefinitions.accept.map(c => ({ name: c.name,
+    source: c.source ?? lateDefinitions.actualCapture.source_kind })), newAAExecuted: false, nativeSelectorExecuted: false }));
 });
