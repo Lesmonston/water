@@ -1,0 +1,266 @@
+import { randomBytes } from 'node:crypto';
+import { assertReviewInput } from '../native-review/model.mjs';
+
+export const workspaceVersion = 'water.project-workspace.v1';
+export const unavailable = 'Project workspace unavailable.';
+export const validId = value => typeof value === 'string' && /^[A-Za-z0-9][A-Za-z0-9_-]{0,63}$/.test(value);
+const fail = () => { throw new Error(unavailable); };
+export class ActionError extends Error {
+  constructor(status) { super(unavailable); this.status = status; }
+}
+export function exactObject(value, keys) {
+  if (!value || typeof value !== 'object' || Array.isArray(value) ||
+      Object.keys(value).length !== keys.length || keys.some(k => !Object.hasOwn(value, k))) fail();
+}
+
+// Scan decoded keys before JSON.parse can erase duplicates, including escaped
+// duplicates at any nesting depth. Wire events additionally forbid whitespace.
+export function parseObject(bytes, compact = false) {
+  const text = new TextDecoder('utf-8', { fatal: true, ignoreBOM: true }).decode(bytes);
+  let at = 0;
+  const space = () => { if (!compact) while (/[ \t\r\n]/.test(text[at] ?? '') && at < text.length) at++; };
+  function string() {
+    const start = at++;
+    while (at < text.length) {
+      const c = text[at++];
+      if (c === '"') {
+        const decoded = JSON.parse(text.slice(start, at));
+        if (!decoded.isWellFormed()) fail();
+        return decoded;
+      }
+      if (c === '\\') at++;
+    }
+    fail();
+  }
+  function value(depth) {
+    if (depth > 128) fail();
+    space();
+    const c = text[at];
+    if (c === '"') { string(); return; }
+    if (c === '{' || c === '[') {
+      const object = c === '{', end = object ? '}' : ']', keys = new Set();
+      at++; space();
+      if (text[at] === end) { at++; return; }
+      while (at < text.length) {
+        space();
+        if (object) {
+          if (text[at] !== '"') fail();
+          const key = string();
+          if (keys.has(key)) fail();
+          keys.add(key); space();
+          if (text[at++] !== ':') fail();
+        }
+        value(depth + 1); space();
+        if (text[at] === end) { at++; return; }
+        if (text[at++] !== ',') fail();
+      }
+      fail();
+    }
+    const token = /^(?:true|false|null|-?(?:0|[1-9][0-9]*)(?:\.[0-9]+)?(?:[eE][+-]?[0-9]+)?)/.exec(text.slice(at));
+    if (!token) fail();
+    at += token[0].length;
+  }
+  space(); if (text[at] !== '{') fail();
+  value(0); space();
+  if (at !== text.length) fail();
+  return JSON.parse(text);
+}
+
+export class EventDecoder {
+  #chunks = [];
+  #length = 0;
+  feed(bytes) {
+    if (!(bytes instanceof Uint8Array)) fail();
+    const events = [];
+    let from = 0;
+    for (let i = 0; i < bytes.length; i++) {
+      if (bytes[i] !== 10) continue;
+      const end = bytes.subarray(from, i);
+      this.#length += end.length;
+      if (!this.#length || this.#length + 1 > 67125248) fail();
+      this.#chunks.push(Buffer.from(end));
+      events.push(parseObject(Buffer.concat(this.#chunks, this.#length), true));
+      this.#chunks = []; this.#length = 0; from = i + 1;
+    }
+    if (from < bytes.length) {
+      const tail = bytes.subarray(from);
+      this.#length += tail.length;
+      if (this.#length + 1 > 67125248) fail();
+      this.#chunks.push(Buffer.from(tail));
+    }
+    return events;
+  }
+  end() { if (this.#length) fail(); }
+}
+
+const eventKeys = {
+  ready: [], accepted: ['job_id', 'read_manifest'], progress: ['job_id', 'visited_entries', 'recorded_entries'],
+  cancel_ack: ['job_id', 'applied'], result: ['job_id', 'read_manifest', 'marker', 'bundle'], failure: ['job_id', 'code'], stopped: [],
+};
+const failures = new Set(['InvalidRequest', 'Busy', 'ReusedJobId', 'UnknownJob', 'JobLimit', 'NativeFailure']);
+const markerErrors = new Set(['Source', 'InvalidPath', 'RootMismatch', 'NotRegularFile', 'ReparsePoint',
+  'MultipleLinks', 'InputTooLarge', 'Changed', 'InvalidUtf8', 'InvalidManifest', 'NativeIo',
+  'UnsupportedPlatform', 'SerializationFailed']);
+const integer = (value, max) => Number.isInteger(value) && value >= 0 && value <= max;
+
+// Only structure is allowed across this boundary. Keep the original Z string
+// for the attachment; parsing here never replaces its bytes or upgrades risk.
+export function assertObservation(text) {
+  if (typeof text !== 'string' || !text.isWellFormed() || Buffer.byteLength(text) > 8192) fail();
+  const o = parseObject(Buffer.from(text), true);
+  exactObject(o, ['marker_version', 'source_kind', 'read_only', 'ordinary_content_read', 'root_binding_verified',
+    'native_user_gesture_authenticated', 'race_protection_verified', 'project_membership_verified', 'risk', 'action', 'bytes_read', 'evidence']);
+  if (o.marker_version !== 'water.root-marker.v1' || o.source_kind !== 'native_root_package_json' ||
+      o.read_only !== true || o.ordinary_content_read !== true || o.root_binding_verified !== true ||
+      o.native_user_gesture_authenticated !== false || o.race_protection_verified !== false ||
+      o.project_membership_verified !== false || o.risk !== 'protected' || o.action !== 'display_only' ||
+      !integer(o.bytes_read, 262144)) fail();
+  const e = o.evidence;
+  exactObject(e, ['manifest_version', 'source_kind', 'read_only', 'format_verified', 'project_membership_verified',
+    'tool_version_known', 'action', 'risk', 'ecosystem', 'evidence_strength', 'recognized_field_count',
+    'has_name', 'has_version', 'declared_private', 'counts']);
+  if (e.manifest_version !== 'water.node-manifest.v1' || e.source_kind !== 'caller_supplied_text' ||
+      e.read_only !== true || e.format_verified !== true || e.project_membership_verified !== false ||
+      e.tool_version_known !== false || e.action !== 'display_only' || e.risk !== 'protected' ||
+      e.ecosystem !== 'node' || e.evidence_strength !== 'parsed_structure' ||
+      !integer(e.recognized_field_count, 9) || typeof e.has_name !== 'boolean' || typeof e.has_version !== 'boolean' ||
+      !(e.declared_private === null || typeof e.declared_private === 'boolean')) fail();
+  const limits = { scripts: 128, dependencies: 4096, dev_dependencies: 4096, peer_dependencies: 4096,
+    optional_dependencies: 4096, workspace_patterns: 128 };
+  exactObject(e.counts, Object.keys(limits));
+  for (const [key, max] of Object.entries(limits)) if (!integer(e.counts[key], max)) fail();
+  const known = Number(e.has_name) + Number(e.has_version) + Number(e.declared_private !== null);
+  const positive = Object.values(e.counts).filter(count => count > 0).length;
+  // An empty scripts/dependencies/workspaces field is still recognized. The
+  // wire has no presence flags for these six fields, so retain the interval.
+  if (e.recognized_field_count < known + positive || e.recognized_field_count > known + 6) fail();
+  return o;
+}
+export function assertMarker(marker, readManifest, selection, status) {
+  exactObject(marker, ['status', 'error_code', 'observation_json']);
+  if (!readManifest) {
+    if (marker.status !== 'not_requested' || marker.error_code !== null || marker.observation_json !== null) fail();
+    return;
+  }
+  const cancelled = selection === 'cancelled' ? 'selection_cancelled' : status === 'cancelled' ? 'scan_cancelled' : null;
+  if (cancelled) {
+    if (marker.status !== 'skipped' || marker.error_code !== cancelled || marker.observation_json !== null) fail();
+    return;
+  }
+  if (marker.status === 'observed') {
+    if (marker.error_code !== null) fail();
+    assertObservation(marker.observation_json); return;
+  }
+  if (marker.observation_json !== null) fail();
+  if (marker.status === 'missing' && marker.error_code === null) return;
+  if (marker.status === 'failed' && markerErrors.has(marker.error_code)) return;
+  fail();
+}
+export class WorkspaceState {
+  #ready = false;
+  #connection = 'closed';
+  #active = null;
+  #recent = [];
+  #used = new Set();
+  #pendingCancel = new Set();
+  available() { return this.#ready && this.#connection === 'ready'; }
+  view() {
+    const a = this.#active;
+    return { workspace_version: workspaceVersion, connection: this.#connection,
+      active: a ? { job_id: a.job_id, read_manifest: a.read_manifest, phase: a.phase, visited_entries: a.visited_entries, recorded_entries: a.recorded_entries } : null,
+      recent: this.#recent.map(r => ({ ...r, marker: { ...r.marker } })) };
+  }
+  fail() { this.#connection = 'failed'; this.#active = null; }
+  end() {
+    if (this.#connection === 'failed') return;
+    if (!this.#ready || this.#active) this.fail();
+    else this.#connection = 'closed';
+  }
+  start(readManifest) {
+    if (typeof readManifest !== 'boolean') throw new ActionError(400);
+    if (!this.available()) throw new ActionError(503);
+    if (this.#active || this.#used.size >= 32) throw new ActionError(409);
+    let id;
+    do { id = 'job-' + randomBytes(16).toString('hex'); } while (this.#used.has(id));
+    this.#used.add(id);
+    this.#active = { job_id: id, phase: 'selecting', visited_entries: 0, recorded_entries: 0,
+      read_manifest: readManifest, accepted: false, cancelling: false, settling: false };
+    return { command: 'start', job_id: id, read_manifest: readManifest };
+  }
+  cancel(id) {
+    if (!this.available()) throw new ActionError(503);
+    const a = this.#active;
+    if (!a || a.job_id !== id || a.cancelling || a.settling) throw new ActionError(409);
+    a.cancelling = true; a.phase = 'cancelling'; this.#pendingCancel.add(id);
+    return { command: 'cancel', job_id: id };
+  }
+  receive(event) {
+    const fields = eventKeys[event.kind];
+    if (!fields || event.version !== 'water.project-host.v1') fail();
+    exactObject(event, ['version', 'kind', ...fields]);
+    if (event.kind === 'ready') {
+      if (this.#ready || this.#connection === 'failed') fail();
+      this.#ready = true; this.#connection = 'ready'; return null;
+    }
+    if (!this.available()) fail();
+    if (event.kind === 'stopped') {
+      if (this.#active) fail();
+      this.#connection = 'closed'; return null;
+    }
+    if (!validId(event.job_id) && !(event.kind === 'failure' && event.job_id === null)) fail();
+    const a = this.#active;
+    if (event.kind === 'failure') {
+      if (!failures.has(event.code)) fail();
+      // A cancel racing a genuine terminal may receive UnknownJob afterwards.
+      // It is a request rejection, and never a second terminal or a new report.
+      if (event.code === 'UnknownJob' && this.#pendingCancel.has(event.job_id) && !a) {
+        this.#pendingCancel.delete(event.job_id); return null;
+      }
+      if (!a || a.job_id !== event.job_id) fail();
+      if (event.code === 'NativeFailure' && !a.accepted) fail();
+      // The declared failure has no validated bundle. Keep existing reports and
+      // disable this connection without inventing a selection or scan result.
+      this.fail(); return null;
+    }
+    if (event.kind === 'result') {
+      if (!a || !a.accepted || a.settling || event.job_id !== a.job_id) fail();
+      const bundle = event.bundle;
+      if (event.read_manifest !== a.read_manifest || Buffer.byteLength(JSON.stringify(bundle)) > 67108864) fail();
+      assertReviewInput(bundle);
+      if (bundle.bundle_version !== 'water.native-session-bundle.v1' || bundle.session_id !== event.job_id) fail();
+      const limits = bundle.policy.limits;
+      if (limits.max_depth !== 8 || limits.max_entries !== 10000 || limits.max_dir_entries !== 256) fail();
+      const status = bundle.selection === 'cancelled' ? 'selection_cancelled' : bundle.snapshots[0].view.status;
+      if (!['selection_cancelled', 'completed', 'partial', 'cancelled'].includes(status)) fail();
+      assertMarker(event.marker, a.read_manifest, bundle.selection, status);
+      a.settling = true;
+      return { job_id: event.job_id, read_manifest: a.read_manifest, marker: event.marker, selection: bundle.selection, status, bundle };
+    }
+    if (!a || a.job_id !== event.job_id || a.settling) fail();
+    if (event.kind === 'accepted') {
+      if (a.accepted || event.read_manifest !== a.read_manifest) fail();
+      a.accepted = true; return null;
+    }
+    if (!a.accepted) fail();
+    if (event.kind === 'progress') {
+      const v = event.visited_entries, r = event.recorded_entries;
+      if (!Number.isInteger(v) || !Number.isInteger(r) || v < 0 || v > 10000 || r < 0 || r > v ||
+          v < a.visited_entries || r < a.recorded_entries) fail();
+      a.visited_entries = v; a.recorded_entries = r;
+      if (!a.cancelling) a.phase = 'scanning';
+      return null;
+    }
+    if (event.kind === 'cancel_ack') {
+      if (typeof event.applied !== 'boolean' || !this.#pendingCancel.delete(event.job_id)) fail();
+      return null;
+    }
+    fail();
+  }
+  finish(result, reportUrl, evidenceUrl) {
+    if (!this.available() || !this.#active?.settling || this.#active.job_id !== result.job_id) fail();
+    this.#recent.unshift({ job_id: result.job_id, read_manifest: result.read_manifest, marker: { ...result.marker },
+      selection: result.selection, status: result.status, report_url: reportUrl, evidence_url: evidenceUrl });
+    this.#active = null;
+    return this.#recent.length > 2 ? this.#recent.pop() : null;
+  }
+}
