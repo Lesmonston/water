@@ -36,3 +36,23 @@ R/Z 来自真实 P 确认后调用；dialog envelope 是合成声明，未运行
 系统窗零次；实际鼠标下载 Q 和结构附件并比对字节，保留截图和进程退出回执。
 真实 AA→AB 链待总控联合验收。结构统计不证明归属、安装、引用或可删，未知
 保持保护。真实用户范围、生产竞态、macOS、桌面及 M1 未验收。
+
+AD 在每个已确认结果下增加同源“查看项目报告”：`/reports/<job_id>/`。
+`captureProjectReport(result)` 在 transport 首个异步等待前同步验证并复制
+本次 session、Q 和可选 Z 字节；新路由只使用每实例独立内存 Map。
+`session.json` 恰含 report_version/job_id/read_manifest/bundle/marker，包含
+相对路径，不属于默认脱敏导出，也不保证匿名。`metadata.json` 单独下载
+原 Q UTF-8 字节，文件名 `water-report-1.json`；结构证据仍走原 evidence
+路由和文件名，仅当次 observed 可用。最近两结果含选择取消，淘汰/close
+同时移除新路由与旧 W/结构附件；旧 workspace API 和 W 链接保持。
+
+报告保留真实元数据来源、覆盖限制、protected 原因、逻辑长度和空间未知，
+结构统计不改变风险与分类。late completed/partial 保留元数据结果并单列
+“已取消内容读取 · 未读取清单”；默认不读取、扫描取消、未发现与失败分别
+表达。新页面只读固定资产和捕获结果，无新扫描/上传/原生权限。
+
+AD 定向门：`node scripts/delivery-wave-check.mjs --task WATER-W1-AD --mode test`
+（旧三项与新增两项），browser 模式为旧两项与新增一项。浏览器通过私有
+headless Chrome 鼠标点击主页面同源报告及 Q/Z 下载，按冻结原字符串比字节。
+仅回放冻结 pipe/内存输入，dialog envelope 为合成声明，未运行新 AA/S，
+未访问物理 fixture；新真实 AA→AD 及桌面接线由总控后续联合验收。

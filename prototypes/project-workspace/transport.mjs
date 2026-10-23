@@ -2,6 +2,7 @@ import { Readable, Writable } from 'node:stream';
 import { startServer as startReviewServer } from '../native-review/server.mjs';
 import { ActionError, EventDecoder, WorkspaceState, unavailable } from './model.mjs';
 import { createWorkspaceServer } from './server.mjs';
+import { captureProjectReport } from './project-report-model.mjs';
 
 export async function startFromStreams(options = {}) {
   let input, output, port;
@@ -15,7 +16,7 @@ export async function startFromStreams(options = {}) {
     if (!(input instanceof Readable) || input.readableEncoding !== null || input.destroyed || input.readableEnded ||
         !(output instanceof Writable) || output.destroyed || output.writableEnded || !Number.isInteger(port) || port < 0 || port > 65535) throw new Error();
   } catch { throw new Error(unavailable); }
-  const state = new WorkspaceState(), decoder = new EventDecoder(), reports = new Map(), evidence = new Map();
+  const state = new WorkspaceState(), decoder = new EventDecoder(), reports = new Map(), evidence = new Map(), projectReports = new Map();
   const originalFlow = input.readableFlowing;
   let server, closing, disposed = false, tail = Promise.resolve(), readyTimer, resolveReady, rejectReady;
   const ready = new Promise((ok, bad) => { resolveReady = ok; rejectReady = bad; });
@@ -34,13 +35,16 @@ export async function startFromStreams(options = {}) {
       const result = state.receive(event);
       if (event.kind === 'ready') resolveReady();
       if (!result) return;
+      // Capture before W creation's first await. All later routes own their bytes.
+      const captured = result.selection === 'confirmed' ? captureProjectReport(result) : null;
       if (result.selection === 'confirmed') report = await startReviewServer({ bundle: result.bundle });
       if (disposed || !state.available()) { await report?.close(); return; }
       const evidenceUrl = result.marker.status === 'observed' ? '/evidence/' + result.job_id + '.json' : null;
       const removed = state.finish(result, report?.url ?? null, evidenceUrl);
-      if (evidenceUrl) evidence.set(result.job_id, Buffer.from(result.marker.observation_json));
+      if (captured) projectReports.set(result.job_id, captured);
+      if (evidenceUrl) evidence.set(result.job_id, Buffer.from(captured.evidence));
       if (report) reports.set(result.job_id, report);
-      if (removed) { evidence.delete(removed.job_id); await reports.get(removed.job_id)?.close(); reports.delete(removed.job_id); }
+      if (removed) { projectReports.delete(removed.job_id); evidence.delete(removed.job_id); await reports.get(removed.job_id)?.close(); reports.delete(removed.job_id); }
     } catch { await report?.close(); failure(); }
   }
   function data(chunk) {
@@ -73,7 +77,7 @@ export async function startFromStreams(options = {}) {
     disposed = true; clearTimeout(readyTimer); detach(); state.end();
     closing = (async () => {
       await server?.close(); await tail;
-      await Promise.all([...reports.values()].map(report => report.close())); reports.clear(); evidence.clear();
+      await Promise.all([...reports.values()].map(report => report.close())); reports.clear(); evidence.clear(); projectReports.clear();
     })();
     return closing;
   };
@@ -91,7 +95,7 @@ export async function startFromStreams(options = {}) {
         await new Promise((ok, bad) => output.write(raw, error => error ? bad(error) : ok()));
       } catch { failure(); throw new ActionError(503); }
     });
-    server = await createWorkspaceServer({ state, act, evidence, port });
+    server = await createWorkspaceServer({ state, act, evidence, projectReports, port });
     return { url: server.url, close };
   } catch { await close(); throw new Error(unavailable); }
 }

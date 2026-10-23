@@ -28,12 +28,14 @@ function readBody(req) {
     req.once('end', () => { if (!settled) { settled = true; ok(Buffer.concat(chunks, size)); } });
   });
 }
-export async function createWorkspaceServer({ state, act, evidence, port }) {
+export async function createWorkspaceServer({ state, act, evidence, projectReports, port }) {
   const token = randomBytes(32).toString('hex'), tokenBytes = Buffer.from(token);
   const assets = new Map();
   try {
     if (await realpath(here) !== here) throw new Error();
-    for (const [path, file, type] of [['/', 'index.html', 'text/html'], ['/styles.css', 'styles.css', 'text/css'], ['/app.mjs', 'app.mjs', 'text/javascript']]) {
+    for (const [path, file, type] of [['/', 'index.html', 'text/html'], ['/styles.css', 'styles.css', 'text/css'], ['/app.mjs', 'app.mjs', 'text/javascript'],
+      ['/project-report.css', 'project-report.css', 'text/css'], ['/project-report.mjs', 'project-report.mjs', 'text/javascript'],
+      ['project-report-page', 'project-report.html', 'text/html']]) {
       const fixed = join(here, file), canonical = await realpath(fixed), rel = relative(here, canonical);
       if (canonical !== fixed || rel.startsWith('..') || isAbsolute(rel) || !(await stat(canonical)).isFile()) throw new Error();
       let body = await readFile(canonical);
@@ -62,10 +64,12 @@ export async function createWorkspaceServer({ state, act, evidence, port }) {
     try {
       if (!singleHeader(req, 'host') || req.headers.host !== expectedHost) return fail(403);
       const action = req.url === '/actions/start' ? 'start' : req.url === '/actions/cancel' ? 'cancel' : null;
-      const asset = assets.get(req.url), isSession = req.url === '/session.json';
+      const asset = req.url.startsWith('/') ? assets.get(req.url) : null, isSession = req.url === '/session.json';
+      const reportRoute = /^\/reports\/([A-Za-z0-9][A-Za-z0-9_-]{0,63})\/(session\.json|metadata\.json)?$/.exec(req.url);
+      const projectReport = reportRoute ? projectReports.get(reportRoute[1]) : null;
       const evidenceId = /^\/evidence\/([A-Za-z0-9][A-Za-z0-9_-]{0,63})\.json$/.exec(req.url)?.[1];
-      const attachment = evidenceId ? evidence.get(evidenceId) : null;
-      if (!action && !asset && !isSession && !attachment) return fail(404);
+      const attachment = evidenceId ? projectReports.get(evidenceId)?.evidence : null;
+      if (!action && !asset && !isSession && !attachment && !projectReport) return fail(404);
       if (action) {
         if (req.method !== 'POST') { res.setHeader('Allow', 'POST'); return fail(405); }
         if (!singleHeader(req, 'origin') || !singleHeader(req, 'x-water-action')) return fail(403);
@@ -83,6 +87,15 @@ export async function createWorkspaceServer({ state, act, evidence, port }) {
         return send(202, Buffer.from(JSON.stringify(state.view())));
       }
       if (req.method !== 'GET' && req.method !== 'HEAD') { res.setHeader('Allow', 'GET, HEAD'); return fail(405); }
+      if (projectReport) {
+        if (reportRoute[2] === 'session.json') return send(200, projectReport.session);
+        if (reportRoute[2] === 'metadata.json') {
+          res.setHeader('Content-Disposition', 'attachment; filename="water-report-1.json"');
+          return send(200, projectReport.metadata);
+        }
+        const page = assets.get('project-report-page');
+        return send(200, page.body, page.type);
+      }
       if (attachment) {
         res.setHeader('Content-Disposition', 'attachment; filename="water-project-evidence.json"');
         return send(200, attachment);
