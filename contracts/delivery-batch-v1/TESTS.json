@@ -1,0 +1,71 @@
+{
+  "version": "water.delivery-batch.v1",
+  "tasks": {
+    "AC": {
+      "unit": [
+        "desktop_config_boundary",
+        "desktop_navigation_boundary",
+        "desktop_embedded_page"
+      ],
+      "browser": [],
+      "final": [
+        "check",
+        "test",
+        "native"
+      ],
+      "negatives": {
+        "nc1": "AC_CAPABILITIES",
+        "nc2": "AC_NAVIGATION"
+      },
+      "systemWindowBudget": 1,
+      "directoryDialogBudget": 0
+    },
+    "AD": {
+      "unit": [
+        "project_workspace_protocol",
+        "project_workspace_authority",
+        "project_workspace_consent_and_exports",
+        "project_report_capture_and_routes",
+        "project_report_privacy_and_eviction"
+      ],
+      "browser": [
+        "project_workspace_actions_and_evidence",
+        "project_workspace_layout_and_privacy",
+        "project_report_layout_and_downloads"
+      ],
+      "final": [
+        "check",
+        "test",
+        "browser"
+      ],
+      "negatives": {
+        "nc1": "AD_REPORT_BINDING",
+        "nc2": "AD_REPORT_CONSENT"
+      },
+      "systemWindowBudget": 0,
+      "directoryDialogBudget": 0
+    },
+    "AE": {
+      "unit": [
+        "macos-source-index",
+        "macos-gap-matrix",
+        "macos-acceptance-plan"
+      ],
+      "browser": [],
+      "final": [
+        "check"
+      ],
+      "negatives": {},
+      "systemWindowBudget": 0,
+      "directoryDialogBudget": 0
+    }
+  },
+  "nodeMajor": 24,
+  "rust": "1.95.0",
+  "jobs": 1,
+  "normalCommandTimeoutMs": 180000,
+  "desktopColdBuildTimeoutMs": 600000,
+  "oneTreeOneGate": true,
+  "maximumConcurrentPrivateChrome": 1,
+  "baselineSystemWindows": 0
+}
