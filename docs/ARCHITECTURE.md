@@ -1,6 +1,6 @@
 # Water 架构基线
 
-状态：生产内核设计基线；A–M已验收集成（Windows受控合成范围）。真实J→K双尺寸13会话页面通过，F仍仅扫描合成元数据，I旧页面仍读冻结合成报告；真实用户scope、分类提升和桌面接线未验收。对应 [ADR-001](decisions/ADR-001-independent-core.md)。
+状态：A–AB及八补单已验收集成（Windows受控范围）；实际AA→AB同次选择/可选结构证据/独立下载已通过。AC桌面基础、AD同源项目报告、AE Mac研究仅READY，未实现/验收；真实用户scope、自然同意鉴真、生产竞态、macOS、正式桌面扫描与M1未放行。
 
 第一轮的具体数据与Rust API见 [scan v1契约](../contracts/v1/README.md)；工程顺序、工具链及限定范围见 [ADR-002](decisions/ADR-002-wave1-contract-bootstrap.md)。契约材料已冻结不代表Rust实现已存在。
 
@@ -85,3 +85,5 @@ M1 不实现 executor；M2 先以少量动作完成完整闭环，再扩规则�
 ## 独立证据与容量侧车批次
 
 [ADR-009](decisions/ADR-009-independent-project-evidence-and-size-ledger.md)冻结L项目文件名标记候选和M容量观察账本，均先调用已验收G严格验证原始facts/context。L保持filename_only/未验证/保护，M区分观察逻辑长度、可信身份分组与未知/冲突，allocated/reclaimable仍未知，不回写旧报告或接K页面。两票已在隔离df17e0a通过独立复验和保留J实际捕获回放并集成，见[L/M验收报告](acceptance/wave1/controller/WATER-W1-LM-REVIEW-20261018.md)。它们尚未接K页面、真实scope或桌面；原派前记录保留。
+
+[ADR-017](decisions/ADR-017-desktop-report-and-macos-readiness.md)冻结三条独立交付线：AC独占Tauri依赖和最小无权限静态壳；AD在现有AB增加同源内存项目报告，Q/Z原字节及原workspace协议保持；AE只做Mac API差异/来源/未来实机计划。三票各自baseline通过只表示具备开工前置，真正桌面扫描整链须下一波强依赖票。

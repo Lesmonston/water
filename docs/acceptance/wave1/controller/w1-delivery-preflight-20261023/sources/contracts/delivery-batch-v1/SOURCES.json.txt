@@ -1,0 +1,95 @@
+{
+  "version": "water.delivery-source-seed.v1",
+  "checked_at": "2026-10-23",
+  "sources": [
+    {
+      "id": "tauri-prerequisites",
+      "url": "https://v2.tauri.app/start/prerequisites/",
+      "checked": "read",
+      "fact": "Windows desktop build requires C++ Build Tools and WebView2; this is a prerequisite claim, not local Tauri build evidence."
+    },
+    {
+      "id": "tauri-capabilities",
+      "url": "https://v2.tauri.app/security/capabilities/",
+      "checked": "read",
+      "fact": "Remote command grants are separate from bundled frontend permissions; capabilities do not validate arbitrary Rust behavior."
+    },
+    {
+      "id": "tauri-config",
+      "url": "https://v2.tauri.app/reference/config/",
+      "checked": "read",
+      "fact": "Configuration references frontendDist, capabilities and WebView settings; chosen AC restrictions are Water policy."
+    },
+    {
+      "id": "tauri-crate",
+      "url": "https://docs.rs/tauri/2.12.5/tauri/",
+      "checked": "read_via_latest_page_version_2.12.5",
+      "fact": "Pinned runtime crate version from the primary crate documentation; registry dependency resolution still belongs to AC."
+    },
+    {
+      "id": "tauri-build-crate",
+      "url": "https://docs.rs/tauri-build/2.7.4/tauri_build/",
+      "checked": "read_via_latest_page_version_2.7.4",
+      "fact": "The application build.rs calls tauri_build::build; AC will resolve exact registry packages."
+    },
+    {
+      "id": "webview-distribution",
+      "url": "https://learn.microsoft.com/en-us/microsoft-edge/webview2/concepts/distribution",
+      "checked": "read",
+      "fact": "Runtime installation must be detected separately; an installed browser is not the runtime test."
+    },
+    {
+      "id": "apple-open-historical",
+      "url": "https://developer.apple.com/library/archive/documentation/System/Conceptual/ManPages_iPhoneOS/man2/open.2.html",
+      "checked": "read_historical_archive",
+      "fact": "Historical Apple manpage describes open flags, including O_NOFOLLOW. It is not evidence of current SDK ABI or race freedom."
+    },
+    {
+      "id": "apple-nsopenpanel",
+      "url": "https://developer.apple.com/documentation/appkit/nsopenpanel",
+      "checked": "unavailable_js_shell",
+      "fact": "Browser extraction returned only a JavaScript shell; API semantics not treated as read. AE must obtain official readable documentation."
+    },
+    {
+      "id": "rust-owned-fd",
+      "url": "https://doc.rust-lang.org/std/os/fd/struct.OwnedFd.html",
+      "checked": "seed_for_AE_not_reviewed",
+      "fact": "Research seed, not a verified conclusion."
+    },
+    {
+      "id": "rust-unix-metadata",
+      "url": "https://doc.rust-lang.org/std/os/unix/fs/trait.MetadataExt.html",
+      "checked": "seed_for_AE_not_reviewed",
+      "fact": "Research seed, not macOS execution evidence."
+    }
+  ],
+  "localObservation": {
+    "node": "24.16.0",
+    "webview2": "155.0.4283.62",
+    "tauriCached": false,
+    "macOSExecuted": false
+  },
+  "licenseNote": "Primary documentation read only, no third-party application source copied; crate dependency/license inventory is an AC deliverable.",
+  "registryChecks": [
+    {
+      "url": "https://crates.io/api/v1/crates/tauri/2.12.5",
+      "checkedAt": "2026-10-23T02:23:50.024Z",
+      "status": 200,
+      "name": "tauri",
+      "version": "2.12.5",
+      "rustVersion": "1.90",
+      "license": "Apache-2.0 OR MIT",
+      "dependenciesInstalled": false
+    },
+    {
+      "url": "https://crates.io/api/v1/crates/tauri-build/2.7.4",
+      "checkedAt": "2026-10-23T02:23:50.855Z",
+      "status": 200,
+      "name": "tauri-build",
+      "version": "2.7.4",
+      "rustVersion": "1.90",
+      "license": "Apache-2.0 OR MIT",
+      "dependenciesInstalled": false
+    }
+  ]
+}

@@ -1,0 +1,15 @@
+$ErrorActionPreference = 'Stop'
+$waterVersions = @()
+foreach ($waterRoot in @('C:\Program Files (x86)\Microsoft\EdgeWebView\Application', 'C:\Program Files\Microsoft\EdgeWebView\Application')) {
+    if (Test-Path -LiteralPath $waterRoot) {
+        foreach ($waterVersion in (Get-ChildItem -LiteralPath $waterRoot -Directory)) {
+            $waterExe = Join-Path $waterVersion.FullName 'msedgewebview2.exe'
+            if (Test-Path -LiteralPath $waterExe) {
+                $waterItem = Get-Item -LiteralPath $waterExe
+                $waterVersions += [ordered]@{ path=$waterItem.FullName; version=$waterItem.VersionInfo.FileVersion }
+            }
+        }
+    }
+}
+if ($waterVersions.Count -eq 0) { throw 'WebView2 runtime not found at the approved machine installation roots' }
+[ordered]@{ platform='windows-x64'; webview2=$waterVersions; nativeWindows=0; registryChanged=$false; installedAnything=$false } | ConvertTo-Json -Depth 5 -Compress

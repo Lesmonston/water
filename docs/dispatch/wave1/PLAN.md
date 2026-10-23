@@ -1,6 +1,6 @@
 # 第一轮：契约底座
 
-**当前（2026-10-22）：A–AB及八补单均VERIFIED（Windows受控范围）。AB补单01接收2fedfeb/受测95fee90，三道final/三条稳定负控恢复及独立五测、六入口late取消回归通过；真实AA固定程序→AB→同次原生选择→R/Z→W/Q及结构附件鼠标下载通过，4次有界窗口，宿主正常退出/端口关闭。集成4b4d6a3已纳主线，总控仅适配两处测试输入URL至仓库内同字节冻结CASES。485唯一约束、旧A–Z任务/槽位、原1085份归档及AB新增1046份证据保持；AA排除截图像素未读取/归档。真实用户scope、自然同意鉴真、生产竞态、macOS、桌面与M1仍未验收，无待重贴旧票。** 详[AA/AB收单](../../acceptance/wave1/controller/WATER-W1-AB-ADDENDUM-01-REVIEW-20261022.md)，以下为派前历史。
+**当前（2026-10-23）：A–AB及八补单保持VERIFIED（Windows受控范围），d2a1365已收口。AC桌面依赖/最小静态壳、AD同源合并项目报告、AE macOS移植研究三独立票已冻结并实际baseline通过，READY待分别外贴，无自动实现者；新产品/研究材料未交付。共同基线4b8a1d、24新冻结/18继承锁共509唯一约束，旧485及28任务/槽位保持。AC是唯一新Tauri依赖初始化者，派前仅MSVC/WebView2检查、未fetch/build Tauri；AD真实既有AB/W/Q/Z与六项late入口通过；AE仅核研究输入，不当Mac验证。派前系统窗口0；AC整票1静态桌面窗/0目录窗，AD单私有Chrome/0原生，AE无UI。真实桌面扫描须AC/AD验收后下一波，用户scope、自然同意鉴真、生产竞态、macOS与M1仍未验收。** 详[AC/AD/AE派前回执](DELIVERY-WAVE-READY-REPORT-20261023.md)，以下为派前历史。
 
 总控：Codex。A契约底座继续，追加两张独立并行票B/C；实际状态以manifest为准。调度补充见ADR-003，A冻结不改。
 

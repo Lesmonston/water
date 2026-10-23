@@ -1,0 +1,105 @@
+exit=2
+docs/acceptance/wave1/controller/w1-delivery-preflight-20261023/ac/2026-10-23T02-36-00.416Z-34364-baseline-6.log:3: trailing whitespace.
++{"platform":"windows-x64","webview2":[{"path":"C:\\Program Files (x86)\\Microsoft\\EdgeWebView\\Application\\155.0.4283.62\\msedgewebview2.exe","version":"155.0.4283.62"}],"nativeWindows":0,"registryChanged":false,"installedAnything":false}
+docs/acceptance/wave1/controller/w1-delivery-preflight-20261023/sources/scripts/acceptance/delivery-desktop-native.ps1.txt:1: trailing whitespace.
++param([Parameter(Mandatory=$true)][int]$TestProcessId)
+docs/acceptance/wave1/controller/w1-delivery-preflight-20261023/sources/scripts/acceptance/delivery-desktop-native.ps1.txt:2: trailing whitespace.
++$ErrorActionPreference = 'Stop'
+docs/acceptance/wave1/controller/w1-delivery-preflight-20261023/sources/scripts/acceptance/delivery-desktop-native.ps1.txt:3: trailing whitespace.
++Add-Type -AssemblyName UIAutomationClient
+docs/acceptance/wave1/controller/w1-delivery-preflight-20261023/sources/scripts/acceptance/delivery-desktop-native.ps1.txt:4: trailing whitespace.
++Add-Type -AssemblyName UIAutomationTypes
+docs/acceptance/wave1/controller/w1-delivery-preflight-20261023/sources/scripts/acceptance/delivery-desktop-native.ps1.txt:5: trailing whitespace.
++$waterProcess = Get-Process -Id $TestProcessId
+docs/acceptance/wave1/controller/w1-delivery-preflight-20261023/sources/scripts/acceptance/delivery-desktop-native.ps1.txt:6: trailing whitespace.
++$waterHandle = $waterProcess.Handle
+docs/acceptance/wave1/controller/w1-delivery-preflight-20261023/sources/scripts/acceptance/delivery-desktop-native.ps1.txt:7: trailing whitespace.
++$waterTree = (Resolve-Path -LiteralPath '.').Path
+docs/acceptance/wave1/controller/w1-delivery-preflight-20261023/sources/scripts/acceptance/delivery-desktop-native.ps1.txt:8: trailing whitespace.
++$waterExpected = Join-Path $waterTree '.local/desktop-target/debug/water-desktop-preview.exe'
+docs/acceptance/wave1/controller/w1-delivery-preflight-20261023/sources/scripts/acceptance/delivery-desktop-native.ps1.txt:9: trailing whitespace.
++if ($waterProcess.Path -ine $waterExpected) { throw 'Unexpected desktop executable' }
+docs/acceptance/wave1/controller/w1-delivery-preflight-20261023/sources/scripts/acceptance/delivery-desktop-native.ps1.txt:10: trailing whitespace.
++$waterEnd = [DateTime]::UtcNow.AddSeconds(15)
+docs/acceptance/wave1/controller/w1-delivery-preflight-20261023/sources/scripts/acceptance/delivery-desktop-native.ps1.txt:11: trailing whitespace.
++$waterWindow = $null
+docs/acceptance/wave1/controller/w1-delivery-preflight-20261023/sources/scripts/acceptance/delivery-desktop-native.ps1.txt:12: trailing whitespace.
++while ([DateTime]::UtcNow -lt $waterEnd) {
+docs/acceptance/wave1/controller/w1-delivery-preflight-20261023/sources/scripts/acceptance/delivery-desktop-native.ps1.txt:13: trailing whitespace.
++    $waterCondition = New-Object System.Windows.Automation.PropertyCondition([System.Windows.Automation.AutomationElement]::ProcessIdProperty, $TestProcessId)
+docs/acceptance/wave1/controller/w1-delivery-preflight-20261023/sources/scripts/acceptance/delivery-desktop-native.ps1.txt:14: trailing whitespace.
++    $waterWindows = [System.Windows.Automation.AutomationElement]::RootElement.FindAll([System.Windows.Automation.TreeScope]::Children, $waterCondition)
+docs/acceptance/wave1/controller/w1-delivery-preflight-20261023/sources/scripts/acceptance/delivery-desktop-native.ps1.txt:15: trailing whitespace.
++    foreach ($waterCandidate in $waterWindows) {
+docs/acceptance/wave1/controller/w1-delivery-preflight-20261023/sources/scripts/acceptance/delivery-desktop-native.ps1.txt:16: trailing whitespace.
++        if ($waterCandidate.Current.Name -eq 'Water Desktop Preview') { $waterWindow = $waterCandidate; break }
+docs/acceptance/wave1/controller/w1-delivery-preflight-20261023/sources/scripts/acceptance/delivery-desktop-native.ps1.txt:17: trailing whitespace.
++    }
+docs/acceptance/wave1/controller/w1-delivery-preflight-20261023/sources/scripts/acceptance/delivery-desktop-native.ps1.txt:18: trailing whitespace.
++    if ($null -ne $waterWindow) { break }
+docs/acceptance/wave1/controller/w1-delivery-preflight-20261023/sources/scripts/acceptance/delivery-desktop-native.ps1.txt:19: trailing whitespace.
++    Start-Sleep -Milliseconds 100
+docs/acceptance/wave1/controller/w1-delivery-preflight-20261023/sources/scripts/acceptance/delivery-desktop-native.ps1.txt:20: trailing whitespace.
++}
+docs/acceptance/wave1/controller/w1-delivery-preflight-20261023/sources/scripts/acceptance/delivery-desktop-native.ps1.txt:21: trailing whitespace.
++if ($null -eq $waterWindow) { throw 'Desktop window title was not observed' }
+docs/acceptance/wave1/controller/w1-delivery-preflight-20261023/sources/scripts/acceptance/delivery-desktop-native.ps1.txt:22: trailing whitespace.
++$waterText = @()
+docs/acceptance/wave1/controller/w1-delivery-preflight-20261023/sources/scripts/acceptance/delivery-desktop-native.ps1.txt:23: trailing whitespace.
++while ([DateTime]::UtcNow -lt $waterEnd) {
+docs/acceptance/wave1/controller/w1-delivery-preflight-20261023/sources/scripts/acceptance/delivery-desktop-native.ps1.txt:24: trailing whitespace.
++    $waterText = @()
+docs/acceptance/wave1/controller/w1-delivery-preflight-20261023/sources/scripts/acceptance/delivery-desktop-native.ps1.txt:25: trailing whitespace.
++    $waterElements = $waterWindow.FindAll([System.Windows.Automation.TreeScope]::Descendants, [System.Windows.Automation.Condition]::TrueCondition)
+docs/acceptance/wave1/controller/w1-delivery-preflight-20261023/sources/scripts/acceptance/delivery-desktop-native.ps1.txt:26: trailing whitespace.
++    if ($waterElements.Count -gt 1500) { throw 'Unexpected desktop automation tree size' }
+docs/acceptance/wave1/controller/w1-delivery-preflight-20261023/sources/scripts/acceptance/delivery-desktop-native.ps1.txt:27: trailing whitespace.
++    foreach ($waterElement in $waterElements) { if ($waterElement.Current.Name) { $waterText += $waterElement.Current.Name } }
+docs/acceptance/wave1/controller/w1-delivery-preflight-20261023/sources/scripts/acceptance/delivery-desktop-native.ps1.txt:28: trailing whitespace.
++    if (($waterText -join "`n") -match '桌面壳已启动' -and ($waterText -join "`n") -match '尚未接入扫描') { break }
+docs/acceptance/wave1/controller/w1-delivery-preflight-20261023/sources/scripts/acceptance/delivery-desktop-native.ps1.txt:29: trailing whitespace.
++    Start-Sleep -Milliseconds 100
+docs/acceptance/wave1/controller/w1-delivery-preflight-20261023/sources/scripts/acceptance/delivery-desktop-native.ps1.txt:30: trailing whitespace.
++}
+docs/acceptance/wave1/controller/w1-delivery-preflight-20261023/sources/scripts/acceptance/delivery-desktop-native.ps1.txt:31: trailing whitespace.
++if (($waterText -join "`n") -notmatch '桌面壳已启动' -or ($waterText -join "`n") -notmatch '尚未接入扫描') { throw 'Required embedded read-only page text not observed' }
+docs/acceptance/wave1/controller/w1-delivery-preflight-20261023/sources/scripts/acceptance/delivery-desktop-native.ps1.txt:32: trailing whitespace.
++[ordered]@{ processId=$TestProcessId; title=$waterWindow.Current.Name; systemWindows=1; directoryDialogs=0; embeddedPageText=$waterText; screenshotsTaken=0 } | ConvertTo-Json -Depth 4 -Compress
+docs/acceptance/wave1/controller/w1-delivery-preflight-20261023/sources/scripts/acceptance/delivery-desktop-native.ps1.txt:33: trailing whitespace.
++$waterPattern = $waterWindow.GetCurrentPattern([System.Windows.Automation.WindowPattern]::Pattern)
+docs/acceptance/wave1/controller/w1-delivery-preflight-20261023/sources/scripts/acceptance/delivery-desktop-native.ps1.txt:34: trailing whitespace.
++$waterPattern.Close()
+docs/acceptance/wave1/controller/w1-delivery-preflight-20261023/sources/scripts/acceptance/delivery-desktop-native.ps1.txt:35: trailing whitespace.
++if (!$waterProcess.WaitForExit(10000)) { throw 'Desktop preview did not exit normally' }
+docs/acceptance/wave1/controller/w1-delivery-preflight-20261023/sources/scripts/acceptance/delivery-desktop-native.ps1.txt:36: trailing whitespace.
++if ($waterProcess.ExitCode -ne 0) { throw 'Desktop preview failed on exit' }
+docs/acceptance/wave1/controller/w1-delivery-preflight-20261023/sources/scripts/acceptance/delivery-environment.ps1.txt:1: trailing whitespace.
++$ErrorActionPreference = 'Stop'
+docs/acceptance/wave1/controller/w1-delivery-preflight-20261023/sources/scripts/acceptance/delivery-environment.ps1.txt:2: trailing whitespace.
++$waterVersions = @()
+docs/acceptance/wave1/controller/w1-delivery-preflight-20261023/sources/scripts/acceptance/delivery-environment.ps1.txt:3: trailing whitespace.
++foreach ($waterRoot in @('C:\Program Files (x86)\Microsoft\EdgeWebView\Application', 'C:\Program Files\Microsoft\EdgeWebView\Application')) {
+docs/acceptance/wave1/controller/w1-delivery-preflight-20261023/sources/scripts/acceptance/delivery-environment.ps1.txt:4: trailing whitespace.
++    if (Test-Path -LiteralPath $waterRoot) {
+docs/acceptance/wave1/controller/w1-delivery-preflight-20261023/sources/scripts/acceptance/delivery-environment.ps1.txt:5: trailing whitespace.
++        foreach ($waterVersion in (Get-ChildItem -LiteralPath $waterRoot -Directory)) {
+docs/acceptance/wave1/controller/w1-delivery-preflight-20261023/sources/scripts/acceptance/delivery-environment.ps1.txt:6: trailing whitespace.
++            $waterExe = Join-Path $waterVersion.FullName 'msedgewebview2.exe'
+docs/acceptance/wave1/controller/w1-delivery-preflight-20261023/sources/scripts/acceptance/delivery-environment.ps1.txt:7: trailing whitespace.
++            if (Test-Path -LiteralPath $waterExe) {
+docs/acceptance/wave1/controller/w1-delivery-preflight-20261023/sources/scripts/acceptance/delivery-environment.ps1.txt:8: trailing whitespace.
++                $waterItem = Get-Item -LiteralPath $waterExe
+docs/acceptance/wave1/controller/w1-delivery-preflight-20261023/sources/scripts/acceptance/delivery-environment.ps1.txt:9: trailing whitespace.
++                $waterVersions += [ordered]@{ path=$waterItem.FullName; version=$waterItem.VersionInfo.FileVersion }
+docs/acceptance/wave1/controller/w1-delivery-preflight-20261023/sources/scripts/acceptance/delivery-environment.ps1.txt:10: trailing whitespace.
++            }
+docs/acceptance/wave1/controller/w1-delivery-preflight-20261023/sources/scripts/acceptance/delivery-environment.ps1.txt:11: trailing whitespace.
++        }
+docs/acceptance/wave1/controller/w1-delivery-preflight-20261023/sources/scripts/acceptance/delivery-environment.ps1.txt:12: trailing whitespace.
++    }
+docs/acceptance/wave1/controller/w1-delivery-preflight-20261023/sources/scripts/acceptance/delivery-environment.ps1.txt:13: trailing whitespace.
++}
+docs/acceptance/wave1/controller/w1-delivery-preflight-20261023/sources/scripts/acceptance/delivery-environment.ps1.txt:14: trailing whitespace.
++if ($waterVersions.Count -eq 0) { throw 'WebView2 runtime not found at the approved machine installation roots' }
+docs/acceptance/wave1/controller/w1-delivery-preflight-20261023/sources/scripts/acceptance/delivery-environment.ps1.txt:15: trailing whitespace.
++[ordered]@{ platform='windows-x64'; webview2=$waterVersions; nativeWindows=0; registryChanged=$false; installedAnything=$false } | ConvertTo-Json -Depth 5 -Compress

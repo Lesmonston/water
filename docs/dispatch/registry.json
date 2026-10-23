@@ -1,10 +1,10 @@
 {
   "schemaVersion": 1,
-  "updatedOn": "2026-10-22",
+  "updatedOn": "2026-10-23",
   "mode": "manual-external-paste",
   "controller": "Codex",
   "projectRoot": "F:/new/smaltalk/water",
-  "stage": "wave1-aaab-addendum-01-verified",
+  "stage": "wave1-delivery-ac-ad-ae-ready",
   "activeWave": "water-wave1",
   "slots": [
     {
@@ -231,6 +231,30 @@
       "baseline": "f3b87b7a79ff8fa51882705ecef75f1f02d8af15",
       "task": "WATER-W1-AB",
       "state": "verified"
+    },
+    {
+      "id": "ac",
+      "path": "F:/new/smaltalk/water/.worktrees/ac",
+      "branch": "worker/water-w1-ac",
+      "baseline": "4b8a1de2ad49664546547256cd3d55def7c31a49",
+      "task": "WATER-W1-AC",
+      "state": "ready"
+    },
+    {
+      "id": "ad",
+      "path": "F:/new/smaltalk/water/.worktrees/ad",
+      "branch": "worker/water-w1-ad",
+      "baseline": "4b8a1de2ad49664546547256cd3d55def7c31a49",
+      "task": "WATER-W1-AD",
+      "state": "ready"
+    },
+    {
+      "id": "ae",
+      "path": "F:/new/smaltalk/water/.worktrees/ae",
+      "branch": "worker/water-w1-ae",
+      "baseline": "4b8a1de2ad49664546547256cd3d55def7c31a49",
+      "task": "WATER-W1-AE",
+      "state": "ready"
     }
   ],
   "tasks": [
@@ -2924,8 +2948,344 @@
       "integrationWorktree": "F:/new/smaltalk/water/.worktrees/integration-aaab-addendum-20261022",
       "candidateTestedCommit": "4b4d6a39764d20464697c59c81733ffcca7ed34b",
       "workerCandidateTestedCommit": "2b56c9c0b7542d5a3d958266a4d5f90317372810"
+    },
+    {
+      "id": "WATER-W1-AC",
+      "title": "Windows桌面依赖与最小只读壳",
+      "status": "READY",
+      "slot": "ac",
+      "worktree": "F:/new/smaltalk/water/.worktrees/ac",
+      "branch": "worker/water-w1-ac",
+      "baseCommit": "4b8a1de2ad49664546547256cd3d55def7c31a49",
+      "snapshotRef": "refs/tags/water-w1-delivery-base-20261023",
+      "ticket": "docs/dispatch/tickets/WATER-W1-AC-DESKTOP-BOOTSTRAP-20261023.md",
+      "report": "docs/dispatch/reports/WATER-W1-AC-REPORT.md",
+      "contractLock": "contracts/delivery-batch-v1/freeze.lock.json",
+      "helper": "scripts/delivery-wave-check.mjs",
+      "workerRules": "docs/dispatch/W1-DELIVERY-WORKER-RULES.md",
+      "suffix": "DESKTOP-BOOTSTRAP",
+      "outputRoot": "apps/desktop-preview",
+      "spec": "contracts/desktop-bootstrap-v1/SPEC.md",
+      "productionFiles": [
+        "apps/desktop-preview/Cargo.toml",
+        "apps/desktop-preview/Cargo.lock",
+        "apps/desktop-preview/.gitattributes",
+        "apps/desktop-preview/.gitignore",
+        "apps/desktop-preview/build.rs",
+        "apps/desktop-preview/tauri.conf.json",
+        "apps/desktop-preview/README.md",
+        "apps/desktop-preview/src/lib.rs",
+        "apps/desktop-preview/src/main.rs",
+        "apps/desktop-preview/src/v1.rs",
+        "apps/desktop-preview/frontend/index.html",
+        "apps/desktop-preview/frontend/styles.css"
+      ],
+      "optionalProductionFiles": [
+        "apps/desktop-preview/icons/icon.ico"
+      ],
+      "testFiles": [
+        "apps/desktop-preview/tests/bootstrap_v1.rs"
+      ],
+      "allowedModes": [
+        "baseline",
+        "dependencies",
+        "check",
+        "test",
+        "native",
+        "red-behavior",
+        "red-nc1",
+        "red-nc2"
+      ],
+      "dependsOn": [],
+      "physicalFixturePermission": false,
+      "registryDependencyPermission": "Only AC dependencies mode: exact pinned Tauri/serde registry graph in private CARGO_HOME; no global/npm/system installation",
+      "newFiles": [
+        "apps/desktop-preview/Cargo.toml",
+        "apps/desktop-preview/Cargo.lock",
+        "apps/desktop-preview/.gitattributes",
+        "apps/desktop-preview/.gitignore",
+        "apps/desktop-preview/build.rs",
+        "apps/desktop-preview/tauri.conf.json",
+        "apps/desktop-preview/README.md",
+        "apps/desktop-preview/src/lib.rs",
+        "apps/desktop-preview/src/main.rs",
+        "apps/desktop-preview/src/v1.rs",
+        "apps/desktop-preview/frontend/index.html",
+        "apps/desktop-preview/frontend/styles.css",
+        "apps/desktop-preview/tests/bootstrap_v1.rs"
+      ],
+      "expectedTests": [
+        "desktop_config_boundary",
+        "desktop_navigation_boundary",
+        "desktop_embedded_page"
+      ],
+      "expectedBrowserTests": [],
+      "expectedFinalModes": [
+        "check",
+        "test",
+        "native"
+      ],
+      "proofTargets": {
+        "nc1": "AC_CAPABILITIES",
+        "nc2": "AC_NAVIGATION"
+      },
+      "nativeWindowBudget": 1,
+      "nativeDirectoryDialogBudget": 0,
+      "baselineStatus": "PASSED",
+      "newProductTestsRun": false,
+      "model": null,
+      "modelAssignment": "user-arranged; report actual engine/model",
+      "dispatchedAt": null,
+      "startedAt": null,
+      "macOS": "unverified",
+      "ordinaryContentPermission": "No real user data or physical fixture access",
+      "allowedFiles": [
+        "apps/desktop-preview/Cargo.toml",
+        "apps/desktop-preview/Cargo.lock",
+        "apps/desktop-preview/.gitattributes",
+        "apps/desktop-preview/.gitignore",
+        "apps/desktop-preview/build.rs",
+        "apps/desktop-preview/tauri.conf.json",
+        "apps/desktop-preview/README.md",
+        "apps/desktop-preview/src/lib.rs",
+        "apps/desktop-preview/src/main.rs",
+        "apps/desktop-preview/src/v1.rs",
+        "apps/desktop-preview/frontend/index.html",
+        "apps/desktop-preview/frontend/styles.css",
+        "apps/desktop-preview/icons/icon.ico",
+        "apps/desktop-preview/tests/bootstrap_v1.rs",
+        "docs/dispatch/reports/WATER-W1-AC-REPORT.md"
+      ],
+      "allowedPrefixes": [
+        "docs/acceptance/wave1/ac/"
+      ],
+      "role": "implementation",
+      "deferredJointValidation": "Static desktop bootstrap only; actual desktop -> AA/AB is a later dependent ticket, not READY.",
+      "baselineEvidence": "docs/acceptance/wave1/controller/w1-delivery-preflight-20261023/ac/2026-10-23T02-36-00.416Z-34364-baseline-result.json",
+      "preflightEvidence": "docs/dispatch/wave1/DELIVERY-WAVE-READY-REPORT-20261023.md",
+      "readyOn": "2026-10-23"
+    },
+    {
+      "id": "WATER-W1-AD",
+      "title": "同源合并项目报告与原字节附件",
+      "status": "READY",
+      "slot": "ad",
+      "worktree": "F:/new/smaltalk/water/.worktrees/ad",
+      "branch": "worker/water-w1-ad",
+      "baseCommit": "4b8a1de2ad49664546547256cd3d55def7c31a49",
+      "snapshotRef": "refs/tags/water-w1-delivery-base-20261023",
+      "ticket": "docs/dispatch/tickets/WATER-W1-AD-PROJECT-REPORT-20261023.md",
+      "report": "docs/dispatch/reports/WATER-W1-AD-REPORT.md",
+      "contractLock": "contracts/delivery-batch-v1/freeze.lock.json",
+      "helper": "scripts/delivery-wave-check.mjs",
+      "workerRules": "docs/dispatch/W1-DELIVERY-WORKER-RULES.md",
+      "suffix": "PROJECT-REPORT",
+      "outputRoot": "prototypes/project-workspace",
+      "spec": "contracts/project-report-v1/SPEC.md",
+      "productionFiles": [
+        "prototypes/project-workspace/app.mjs",
+        "prototypes/project-workspace/styles.css",
+        "prototypes/project-workspace/server.mjs",
+        "prototypes/project-workspace/transport.mjs",
+        "prototypes/project-workspace/README.md",
+        "prototypes/project-workspace/project-report.html",
+        "prototypes/project-workspace/project-report.css",
+        "prototypes/project-workspace/project-report.mjs",
+        "prototypes/project-workspace/project-report-model.mjs"
+      ],
+      "testFiles": [
+        "prototypes/project-workspace/tests/model.test.mjs",
+        "prototypes/project-workspace/tests/project-report.test.mjs",
+        "prototypes/project-workspace/tests/browser.test.mjs",
+        "prototypes/project-workspace/tests/project-report-browser.test.mjs"
+      ],
+      "allowedModes": [
+        "baseline",
+        "check",
+        "test",
+        "browser",
+        "red-behavior",
+        "red-nc1",
+        "red-nc2"
+      ],
+      "dependsOn": [
+        "WATER-W1-AA",
+        "WATER-W1-AB",
+        "WATER-W1-W",
+        "WATER-W1-Q",
+        "WATER-W1-Z"
+      ],
+      "physicalFixturePermission": false,
+      "registryDependencyPermission": false,
+      "newFiles": [
+        "prototypes/project-workspace/project-report.html",
+        "prototypes/project-workspace/project-report.css",
+        "prototypes/project-workspace/project-report.mjs",
+        "prototypes/project-workspace/project-report-model.mjs",
+        "prototypes/project-workspace/tests/project-report.test.mjs",
+        "prototypes/project-workspace/tests/project-report-browser.test.mjs"
+      ],
+      "expectedTests": [
+        "project_workspace_protocol",
+        "project_workspace_authority",
+        "project_workspace_consent_and_exports",
+        "project_report_capture_and_routes",
+        "project_report_privacy_and_eviction"
+      ],
+      "expectedBrowserTests": [
+        "project_workspace_actions_and_evidence",
+        "project_workspace_layout_and_privacy",
+        "project_report_layout_and_downloads"
+      ],
+      "expectedFinalModes": [
+        "check",
+        "test",
+        "browser"
+      ],
+      "proofTargets": {
+        "nc1": "AD_REPORT_BINDING",
+        "nc2": "AD_REPORT_CONSENT"
+      },
+      "nativeWindowBudget": 0,
+      "nativeDirectoryDialogBudget": 0,
+      "baselineStatus": "PASSED",
+      "newProductTestsRun": false,
+      "model": null,
+      "modelAssignment": "user-arranged; report actual engine/model",
+      "dispatchedAt": null,
+      "startedAt": null,
+      "macOS": "unverified",
+      "ordinaryContentPermission": "No real user data or physical fixture access",
+      "allowedFiles": [
+        "prototypes/project-workspace/app.mjs",
+        "prototypes/project-workspace/styles.css",
+        "prototypes/project-workspace/server.mjs",
+        "prototypes/project-workspace/transport.mjs",
+        "prototypes/project-workspace/README.md",
+        "prototypes/project-workspace/project-report.html",
+        "prototypes/project-workspace/project-report.css",
+        "prototypes/project-workspace/project-report.mjs",
+        "prototypes/project-workspace/project-report-model.mjs",
+        "prototypes/project-workspace/tests/project-report.test.mjs",
+        "prototypes/project-workspace/tests/project-report-browser.test.mjs",
+        "docs/dispatch/reports/WATER-W1-AD-REPORT.md"
+      ],
+      "allowedPrefixes": [
+        "docs/acceptance/wave1/ad/"
+      ],
+      "role": "implementation",
+      "deferredJointValidation": "New routes validated by frozen public streams; real AA and future desktop joint chain after submission.",
+      "unitTestFiles": [
+        "prototypes/project-workspace/tests/model.test.mjs",
+        "prototypes/project-workspace/tests/project-report.test.mjs"
+      ],
+      "browserTestFiles": [
+        "prototypes/project-workspace/tests/browser.test.mjs",
+        "prototypes/project-workspace/tests/project-report-browser.test.mjs"
+      ],
+      "baselineEvidence": "docs/acceptance/wave1/controller/w1-delivery-preflight-20261023/ad/2026-10-23T02-36-00.427Z-33712-baseline-result.json",
+      "preflightEvidence": "docs/dispatch/wave1/DELIVERY-WAVE-READY-REPORT-20261023.md",
+      "readyOn": "2026-10-23"
+    },
+    {
+      "id": "WATER-W1-AE",
+      "title": "macOS原生移植差异与实机验收准备",
+      "status": "READY",
+      "slot": "ae",
+      "worktree": "F:/new/smaltalk/water/.worktrees/ae",
+      "branch": "worker/water-w1-ae",
+      "baseCommit": "4b8a1de2ad49664546547256cd3d55def7c31a49",
+      "snapshotRef": "refs/tags/water-w1-delivery-base-20261023",
+      "ticket": "docs/dispatch/tickets/WATER-W1-AE-MACOS-READINESS-20261023.md",
+      "report": "docs/dispatch/reports/WATER-W1-AE-REPORT.md",
+      "contractLock": "contracts/delivery-batch-v1/freeze.lock.json",
+      "helper": "scripts/delivery-wave-check.mjs",
+      "workerRules": "docs/dispatch/W1-DELIVERY-WORKER-RULES.md",
+      "suffix": "MACOS-READINESS",
+      "outputRoot": "docs/research/macos-port-20261023",
+      "spec": "contracts/macos-readiness-v1/SPEC.md",
+      "productionFiles": [
+        "docs/research/macos-port-20261023/SOURCES.json",
+        "docs/research/macos-port-20261023/GAP-MATRIX.json",
+        "docs/research/macos-port-20261023/DESIGN.md",
+        "docs/research/macos-port-20261023/ACCEPTANCE-PLAN.md"
+      ],
+      "testFiles": [],
+      "allowedModes": [
+        "baseline",
+        "check"
+      ],
+      "dependsOn": [
+        "WATER-W1-N",
+        "WATER-W1-P",
+        "WATER-W1-R",
+        "WATER-W1-S",
+        "WATER-W1-Z",
+        "WATER-W1-AA"
+      ],
+      "physicalFixturePermission": false,
+      "registryDependencyPermission": false,
+      "newFiles": [
+        "docs/research/macos-port-20261023/SOURCES.json",
+        "docs/research/macos-port-20261023/GAP-MATRIX.json",
+        "docs/research/macos-port-20261023/DESIGN.md",
+        "docs/research/macos-port-20261023/ACCEPTANCE-PLAN.md"
+      ],
+      "expectedTests": [
+        "macos-source-index",
+        "macos-gap-matrix",
+        "macos-acceptance-plan"
+      ],
+      "expectedBrowserTests": [],
+      "expectedFinalModes": [
+        "check"
+      ],
+      "proofTargets": {},
+      "nativeWindowBudget": 0,
+      "nativeDirectoryDialogBudget": 0,
+      "baselineStatus": "PASSED",
+      "newProductTestsRun": false,
+      "model": null,
+      "modelAssignment": "user-arranged; report actual engine/model",
+      "dispatchedAt": null,
+      "startedAt": null,
+      "macOS": "unverified",
+      "ordinaryContentPermission": "No real user data or physical fixture access",
+      "allowedFiles": [
+        "docs/research/macos-port-20261023/SOURCES.json",
+        "docs/research/macos-port-20261023/GAP-MATRIX.json",
+        "docs/research/macos-port-20261023/DESIGN.md",
+        "docs/research/macos-port-20261023/ACCEPTANCE-PLAN.md",
+        "docs/dispatch/reports/WATER-W1-AE-REPORT.md"
+      ],
+      "allowedPrefixes": [
+        "docs/acceptance/wave1/ae/"
+      ],
+      "role": "research_design",
+      "deferredJointValidation": "No macOS implementation or real machine execution in this task.",
+      "researchSourcePrefixes": [
+        "packages/native-root/",
+        "packages/scope-registry/",
+        "packages/native-scan/",
+        "packages/native-picker/",
+        "packages/root-marker/",
+        "packages/project-session/",
+        "contracts/"
+      ],
+      "researchInputs": [
+        "packages/native-root/src/v1.rs",
+        "packages/scope-registry/src/v1.rs",
+        "packages/native-scan/src/v1.rs",
+        "packages/native-picker/src/v1.rs",
+        "packages/root-marker/src/v1.rs",
+        "packages/project-session/src/v1.rs",
+        "contracts/delivery-batch-v1/SOURCES.json"
+      ],
+      "baselineEvidence": "docs/acceptance/wave1/controller/w1-delivery-preflight-20261023/ae/2026-10-23T02-36-00.442Z-36420-baseline-result.json",
+      "preflightEvidence": "docs/dispatch/wave1/DELIVERY-WAVE-READY-REPORT-20261023.md",
+      "readyOn": "2026-10-23"
     }
   ],
   "testHelper": "per-task helper; A defaults unchanged",
-  "note": "A–AB及八补单均VERIFIED（Windows受控范围）。AB补单01接收2fedfeb/受测95fee90，三道final/三条稳定负控恢复及独立五测、六入口late取消回归通过；真实AA固定程序→AB→同次原生选择→R/Z→W/Q及结构附件鼠标下载通过，4次有界窗口，宿主正常退出/端口关闭。集成4b4d6a3已纳主线，总控仅适配两处测试输入URL至仓库内同字节冻结CASES。485唯一约束、旧A–Z任务/槽位、原1085份归档及AB新增1046份证据保持；AA排除截图像素未读取/归档。真实用户scope、自然同意鉴真、生产竞态、macOS、桌面与M1仍未验收，无待重贴旧票。"
+  "note": "A–AB及八补单保持VERIFIED（Windows受控范围），d2a1365已收口。AC桌面依赖/最小静态壳、AD同源合并项目报告、AE macOS移植研究三独立票已冻结并实际baseline通过，READY待分别外贴，无自动实现者；新产品/研究材料未交付。共同基线4b8a1d、24新冻结/18继承锁共509唯一约束，旧485及28任务/槽位保持。AC是唯一新Tauri依赖初始化者，派前仅MSVC/WebView2检查、未fetch/build Tauri；AD真实既有AB/W/Q/Z与六项late入口通过；AE仅核研究输入，不当Mac验证。派前系统窗口0；AC整票1静态桌面窗/0目录窗，AD单私有Chrome/0原生，AE无UI。真实桌面扫描须AC/AD验收后下一波，用户scope、自然同意鉴真、生产竞态、macOS与M1仍未验收。"
 }
