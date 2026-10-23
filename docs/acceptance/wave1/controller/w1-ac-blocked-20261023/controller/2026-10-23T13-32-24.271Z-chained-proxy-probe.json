@@ -1,0 +1,72 @@
+{
+  "at": "2026-10-23T13:32:24.272Z",
+  "systemWindows": 0,
+  "productTestsRun": false,
+  "requests": [
+    {
+      "url": "https://index.crates.io/config.json",
+      "exit": {
+        "code": 28,
+        "signal": null
+      },
+      "stdout": "000 0 60.012138",
+      "stderr": "curl: (28) Connection timed out after 60011 milliseconds\r\n",
+      "body": null
+    },
+    {
+      "url": "https://index.crates.io/3/w/wry",
+      "exit": {
+        "code": 0,
+        "signal": null
+      },
+      "stdout": "200 0 21.907297",
+      "stderr": "",
+      "body": {
+        "path": "F:\\new\\smaltalk\\water\\.local\\checks\\controller-ac-blocked-20261023\\2026-10-23T13-32-24.271Z-transport-1-index.json",
+        "bytes": 996977,
+        "sha256": "340835a4bc71e1751034675e4b51fb49bf7e6556edc5cd1ba06140a93ece1e68"
+      }
+    }
+  ],
+  "unapprovedHostDenied": true,
+  "status": "network_not_reliable",
+  "transport": {
+    "stats": {
+      "startedAt": "2026-10-23T13:32:24.272Z",
+      "accepted": 2,
+      "denied": 1,
+      "connected": 2,
+      "failed": 0,
+      "maximumActive": 1,
+      "clientBytes": 1120,
+      "serverBytes": 1004183,
+      "TLSIntercepted": false,
+      "TLSVerificationDisabled": false,
+      "registryReplaced": false,
+      "globalSettingsChanged": false,
+      "endedAt": "2026-10-23T13:33:46.311Z",
+      "remainingClients": 0,
+      "remainingUpstreams": 0
+    },
+    "events": [
+      {
+        "host": "index.crates.io",
+        "port": 443,
+        "startedAt": "2026-10-23T13:32:24.330Z",
+        "connectionMode": "existing-local-http-proxy",
+        "existingProxy": "http://127.0.0.1:7897",
+        "connectedAt": "2026-10-23T13:32:24.331Z",
+        "endedAt": "2026-10-23T13:33:24.342Z"
+      },
+      {
+        "host": "index.crates.io",
+        "port": 443,
+        "startedAt": "2026-10-23T13:33:24.382Z",
+        "connectionMode": "existing-local-http-proxy",
+        "existingProxy": "http://127.0.0.1:7897",
+        "connectedAt": "2026-10-23T13:33:24.383Z",
+        "endedAt": "2026-10-23T13:33:46.291Z"
+      }
+    ]
+  }
+}

@@ -1,6 +1,6 @@
 # Water 项目协作规则
 
-最新状态（2026-10-23）：A–AB及八补单保持VERIFIED（Windows受控范围），d2a1365已收口。AC桌面依赖/最小静态壳、AD同源合并项目报告、AE macOS移植研究三独立票已冻结并实际baseline通过，READY待分别外贴，无自动实现者；新产品/研究材料未交付。共同基线4b8a1d、24新冻结/18继承锁共509唯一约束，旧485及28任务/槽位保持。AC是唯一新Tauri依赖初始化者，派前仅MSVC/WebView2检查、未fetch/build Tauri；AD真实既有AB/W/Q/Z与六项late入口通过；AE仅核研究输入，不当Mac验证。派前系统窗口0；AC整票1静态桌面窗/0目录窗，AD单私有Chrome/0原生，AE无UI。真实桌面扫描须AC/AD验收后下一波，用户scope、自然同意鉴真、生产竞态、macOS与M1仍未验收。 正式票/manifest及docs/dispatch/wave1/DELIVERY-WAVE-READY-REPORT-20261023.md优先；READY不等于已外贴。
+最新状态（2026-10-23）：A–AB及八补单保持VERIFIED（Windows受控）。AC接收ef0b7c4/静态骨架b617b90，46归档/77278字节及509冻结核验通过，原registry TLS/超时尚未完成依赖链恢复，保持BLOCKED；未取得产品测试或native窗通过。总控限定官方host透明IPv4连接的实际成功/失败原字节保留，补充单01未伪造READY。其余30任务/槽位（含AD/AE）保持，AD/AE独立推进；产品代码未合主线，桌面整链、用户scope、macOS/M1未验收。 正式票/manifest及docs/acceptance/wave1/controller/WATER-W1-AC-BLOCKED-REVIEW-20261023.md优先；AC补单未获READY，当前不外贴、不启动实现者；等待可靠网络条件。
 
 - 项目根：`F:/new/smaltalk/water`。用户指定后续开发、研究、文档、脚本与本项目产物全部放在此目录内。
 - Codex 是项目总控，负责范围、任务分派、接口、集成、安全复核和验收。用户保留产品与发布决定权。

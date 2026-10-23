@@ -2,7 +2,7 @@
 
 面向 Windows、macOS AI 开发者的本地存储分析与安全清理助手。
 
-**当前阶段：A–AB及八补单保持VERIFIED（Windows受控范围），d2a1365已收口。AC桌面依赖/最小静态壳、AD同源合并项目报告、AE macOS移植研究三独立票已冻结并实际baseline通过，READY待分别外贴，无自动实现者；新产品/研究材料未交付。共同基线4b8a1d、24新冻结/18继承锁共509唯一约束，旧485及28任务/槽位保持。AC是唯一新Tauri依赖初始化者，派前仅MSVC/WebView2检查、未fetch/build Tauri；AD真实既有AB/W/Q/Z与六项late入口通过；AE仅核研究输入，不当Mac验证。派前系统窗口0；AC整票1静态桌面窗/0目录窗，AD单私有Chrome/0原生，AE无UI。真实桌面扫描须AC/AD验收后下一波，用户scope、自然同意鉴真、生产竞态、macOS与M1仍未验收。**
+**当前阶段：A–AB及八补单保持VERIFIED（Windows受控）。AC接收ef0b7c4/静态骨架b617b90，46归档/77278字节及509冻结核验通过，原registry TLS/超时尚未完成依赖链恢复，保持BLOCKED；未取得产品测试或native窗通过。总控限定官方host透明IPv4连接的实际成功/失败原字节保留，补充单01未伪造READY。其余30任务/槽位（含AD/AE）保持，AD/AE独立推进；产品代码未合主线，桌面整链、用户scope、macOS/M1未验收。**
 
 用户指定本项目所有后续开发均位于 `smaltalk/water`，由 Codex 担任总控。
 
@@ -35,7 +35,7 @@ Water 的发布许可证、定价与商标名称尚未最终确定；`water` 是
 
 ## 当前验收与下一波
 
-[AC/AD/AE三线READY与外贴指令](docs/dispatch/wave1/DELIVERY-WAVE-READY-REPORT-20261023.md)：Windows桌面基础、同源项目报告和macOS移植研究可分别开工。
+[AC受阻复核](docs/acceptance/wave1/controller/WATER-W1-AC-BLOCKED-REVIEW-20261023.md)与[补单01环境回执](docs/dispatch/wave1/AC-DESKTOP-ADDENDUM-01-READY-REPORT-20261023.md)：AC补单仍BLOCKED，当前不外贴；AD/AE按原独立票推进。
 
 [AB补单01与真实AA→AB联合验收](docs/acceptance/wave1/controller/WATER-W1-AB-ADDENDUM-01-REVIEW-20261022.md)已通过并集成，无需重贴旧票。
 

@@ -21,9 +21,13 @@
 
 ## 下一步
 
-A–AB及八补单保持VERIFIED（Windows受控范围），d2a1365已收口。AC桌面依赖/最小静态壳、AD同源合并项目报告、AE macOS移植研究三独立票已冻结并实际baseline通过，READY待分别外贴，无自动实现者；新产品/研究材料未交付。共同基线4b8a1d、24新冻结/18继承锁共509唯一约束，旧485及28任务/槽位保持。AC是唯一新Tauri依赖初始化者，派前仅MSVC/WebView2检查、未fetch/build Tauri；AD真实既有AB/W/Q/Z与六项late入口通过；AE仅核研究输入，不当Mac验证。派前系统窗口0；AC整票1静态桌面窗/0目录窗，AD单私有Chrome/0原生，AE无UI。真实桌面扫描须AC/AD验收后下一波，用户scope、自然同意鉴真、生产竞态、macOS与M1仍未验收。 [AC/AD/AE派前回执](dispatch/wave1/DELIVERY-WAVE-READY-REPORT-20261023.md)。
+A–AB及八补单保持VERIFIED（Windows受控）。AC接收ef0b7c4/静态骨架b617b90，46归档/77278字节及509冻结核验通过，原registry TLS/超时尚未完成依赖链恢复，保持BLOCKED；未取得产品测试或native窗通过。总控限定官方host透明IPv4连接的实际成功/失败原字节保留，补充单01未伪造READY。其余30任务/槽位（含AD/AE）保持，AD/AE独立推进；产品代码未合主线，桌面整链、用户scope、macOS/M1未验收。 [AC/AD/AE派前回执](dispatch/wave1/DELIVERY-WAVE-READY-REPORT-20261023.md)。
 
-## AC/AD/AE派前READY（2026-10-23，最新）
+## AC受阻收单与环境续做（2026-10-23，最新）
+
+[总控复核](acceptance/wave1/controller/WATER-W1-AC-BLOCKED-REVIEW-20261023.md)记录原受阻ef0b7c4、静态骨架/失败日志与原字节审计；[补单01回执](dispatch/wave1/AC-DESKTOP-ADDENDUM-01-READY-REPORT-20261023.md)记录实际依赖恢复结果和原树续做方式。AC未集成或产品验收；AD/AE不受AC阻塞。
+
+## AC/AD/AE派前READY（2026-10-23，历史）
 
 [派前回执与三条指令](dispatch/wave1/DELIVERY-WAVE-READY-REPORT-20261023.md)记录同基线/各自干净树/509冻结/真实baseline。AC环境与最小壳、AD实际AB同源合并报告、AE研究设计互无依赖和文件争写；没有启动实现者，新产品和Mac实机未测试。桌面真正接AA/AB要等必要前置验收后下一波；当前无需重贴旧A–AB。
 

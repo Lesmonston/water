@@ -1,0 +1,37 @@
+{
+  "at": "2026-10-23T13:51:43.611Z",
+  "version": "r3",
+  "reason": "The original HTTP/2 gate received data over the existing proxy but hit the 600-second command cap without completing wry. R4 combines the already-probed local proxy and 180-second request wait with HTTP/1.1 Cargo initialization, then still requires the original verifier.",
+  "files": [
+    {
+      "path": "contracts/delivery-batch-v1/freeze.lock.json",
+      "snapshot": ".local\\checks\\controller-ac-blocked-20261023\\control-r3\\0-freeze.lock.json.txt",
+      "sha256": "57bdb33552fa333c00d9ccb0524ac9a2c275ac9ba8483afa4c6482ed500a1f4c"
+    },
+    {
+      "path": "contracts/desktop-bootstrap-addendum-v1/SPEC.md",
+      "snapshot": ".local\\checks\\controller-ac-blocked-20261023\\control-r3\\1-SPEC.md.txt",
+      "sha256": "fb213182c047be371428440e4e84653fe7fbf3f1e87f253f3bb47f93e56a6aed"
+    },
+    {
+      "path": "scripts/ac-registry-transport.mjs",
+      "snapshot": ".local\\checks\\controller-ac-blocked-20261023\\control-r3\\2-ac-registry-transport.mjs.txt",
+      "sha256": "658e83927188837851219d9c6629b0c624de8d4ed5ccbe3def776fe52b8731ff"
+    },
+    {
+      "path": "scripts/ac-resume-check.mjs",
+      "snapshot": ".local\\checks\\controller-ac-blocked-20261023\\control-r3\\3-ac-resume-check.mjs.txt",
+      "sha256": "86cccdb96b2214f73ad6f14705f9bba461e8205b46da7bc1627ef06589050351"
+    },
+    {
+      "path": "scripts/acceptance/probe-ac-registry-transport.mjs",
+      "snapshot": ".local\\checks\\controller-ac-blocked-20261023\\control-r3\\4-probe-ac-registry-transport.mjs.txt",
+      "sha256": "bbde82b4e7115b2844ab002b04e9d69f558f7edc937192da4a6040a1ff6c82d2"
+    },
+    {
+      "path": "contracts/desktop-bootstrap-addendum-v1/freeze.lock.json",
+      "snapshot": ".local\\checks\\controller-ac-blocked-20261023\\control-r3\\5-freeze.lock.json.txt",
+      "sha256": "44616a229c26c525646a93e0b11ee0ed532a8696405729918a76102f4ef32176"
+    }
+  ]
+}

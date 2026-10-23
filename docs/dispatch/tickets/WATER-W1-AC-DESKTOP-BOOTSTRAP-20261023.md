@@ -1,5 +1,7 @@
 # WATER-W1-AC：Windows桌面依赖与最小只读壳
 
+当前（2026-10-23）：BLOCKED。[补充单01](WATER-W1-AC-ADDENDUM-01-20261023.md)仍BLOCKED；依赖未恢复，当前不外贴或启动实现者。不要重贴本票或跑原首次baseline。以下保留原要求。
+
 2026-10-23，正式票。只有主manifest本票status=READY且baselineStatus=PASSED才开工，READY不代表已外贴。
 
 | 项 | 精确值 |

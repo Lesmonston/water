@@ -1,0 +1,87 @@
+{
+  "rows": [
+    {
+      "label": "default",
+      "args": [
+        "-q",
+        "--proto",
+        "=https",
+        "--max-time",
+        "15",
+        "--retry",
+        "0",
+        "--silent",
+        "--show-error",
+        "--output",
+        ".local/checks/controller-ac-blocked-20261023/2026-10-23T12-50-29.989Z-default-index.json",
+        "--write-out",
+        "%{http_code} %{ssl_verify_result} %{time_total}",
+        "https://index.crates.io/se/rd/serde_derive"
+      ],
+      "exit": 0,
+      "error": null,
+      "result": "200 0 7.458067",
+      "stderr": "",
+      "body": {
+        "path": ".local/checks/controller-ac-blocked-20261023/2026-10-23T12-50-29.989Z-default-index.json",
+        "bytes": 196559,
+        "sha256": "9e45aa13a3855f66e4aad308ee5035a49e5690054189ce1216964d548f4d53de"
+      }
+    },
+    {
+      "label": "http1",
+      "args": [
+        "-q",
+        "--proto",
+        "=https",
+        "--max-time",
+        "15",
+        "--retry",
+        "0",
+        "--silent",
+        "--show-error",
+        "--http1.1",
+        "--output",
+        ".local/checks/controller-ac-blocked-20261023/2026-10-23T12-50-37.509Z-http1-index.json",
+        "--write-out",
+        "%{http_code} %{ssl_verify_result} %{time_total}",
+        "https://index.crates.io/se/rd/serde_derive"
+      ],
+      "exit": 35,
+      "error": null,
+      "result": "000 0 5.016911",
+      "stderr": "curl: (35) schannel: failed to receive handshake, SSL/TLS connection failed\r\n",
+      "body": null
+    },
+    {
+      "label": "http1-tls12",
+      "args": [
+        "-q",
+        "--proto",
+        "=https",
+        "--max-time",
+        "15",
+        "--retry",
+        "0",
+        "--silent",
+        "--show-error",
+        "--http1.1",
+        "--tlsv1.2",
+        "--tls-max",
+        "1.2",
+        "--output",
+        ".local/checks/controller-ac-blocked-20261023/2026-10-23T12-50-42.561Z-http1-tls12-index.json",
+        "--write-out",
+        "%{http_code} %{ssl_verify_result} %{time_total}",
+        "https://index.crates.io/se/rd/serde_derive"
+      ],
+      "exit": 35,
+      "error": null,
+      "result": "000 0 5.021977",
+      "stderr": "curl: (35) schannel: failed to receive handshake, SSL/TLS connection failed\r\n",
+      "body": null
+    }
+  ],
+  "TLSVerificationDisabled": false,
+  "globalConfigurationChanged": false
+}

@@ -1,0 +1,74 @@
+{
+  "at": "2026-10-23T13:09:54.102Z",
+  "systemWindows": 0,
+  "productTestsRun": false,
+  "requests": [
+    {
+      "url": "https://index.crates.io/config.json",
+      "exit": {
+        "code": 0,
+        "signal": null
+      },
+      "stdout": "200 0 4.200409",
+      "stderr": "",
+      "body": {
+        "path": "F:\\new\\smaltalk\\water\\.local\\checks\\controller-ac-blocked-20261023\\2026-10-23T13-09-54.101Z-transport-0-index.json",
+        "bytes": 76,
+        "sha256": "5b943a2c6f7eb743f7308aba07bdbb47d9ae44aafecd832d7f15df186afbafb3"
+      }
+    },
+    {
+      "url": "https://index.crates.io/cr/os/crossbeam-channel",
+      "exit": {
+        "code": 0,
+        "signal": null
+      },
+      "stdout": "200 0 4.422980",
+      "stderr": "",
+      "body": {
+        "path": "F:\\new\\smaltalk\\water\\.local\\checks\\controller-ac-blocked-20261023\\2026-10-23T13-09-54.101Z-transport-1-index.json",
+        "bytes": 37170,
+        "sha256": "f014603ce10bf266454dff7557583d0f1ea5bb2b31a8e208d8ee6016d1d23be3"
+      }
+    }
+  ],
+  "unapprovedHostDenied": true,
+  "status": "passed",
+  "transport": {
+    "stats": {
+      "startedAt": "2026-10-23T13:09:54.102Z",
+      "accepted": 2,
+      "denied": 1,
+      "connected": 2,
+      "failed": 0,
+      "maximumActive": 1,
+      "clientBytes": 1336,
+      "serverBytes": 49408,
+      "TLSIntercepted": false,
+      "TLSVerificationDisabled": false,
+      "registryReplaced": false,
+      "globalSettingsChanged": false,
+      "endedAt": "2026-10-23T13:10:02.922Z",
+      "remainingClients": 0,
+      "remainingUpstreams": 0
+    },
+    "events": [
+      {
+        "host": "index.crates.io",
+        "port": 443,
+        "startedAt": "2026-10-23T13:09:54.155Z",
+        "ipv4Only": true,
+        "connectedAt": "2026-10-23T13:09:54.160Z",
+        "endedAt": "2026-10-23T13:09:58.356Z"
+      },
+      {
+        "host": "index.crates.io",
+        "port": 443,
+        "startedAt": "2026-10-23T13:09:58.476Z",
+        "ipv4Only": true,
+        "connectedAt": "2026-10-23T13:09:58.478Z",
+        "endedAt": "2026-10-23T13:10:02.901Z"
+      }
+    ]
+  }
+}

@@ -1,0 +1,100 @@
+{
+  "task": "WATER-W1-AC",
+  "addendum": "01",
+  "mode": "environment-http1",
+  "finalGate": false,
+  "startedAt": "2026-10-23T13:13:31.516Z",
+  "systemWindows": 0,
+  "productPassClaimed": false,
+  "originalFrozenUnique": 509,
+  "before": {
+    "head": "ef0b7c4b3a84c434c0cd3b691b79c8a4a37d311c",
+    "status": ""
+  },
+  "sourceBefore": {
+    "apps/desktop-preview/.gitattributes": "985a5d5270405b7bce3a54d9f0491f1bc82cc298081e3882f5a8fece599278c9",
+    "apps/desktop-preview/.gitignore": "c753d6aa4b07fe40fc1eecfa07ce34820532d0e872dc055cb833dac12b0a1872",
+    "apps/desktop-preview/Cargo.toml": "896668534c7aa1bbbb48e962b894f6473c45db5764876494cc25d7faad6d8337",
+    "apps/desktop-preview/README.md": "081b20637711b6d47dfc0befc90e17cac5e5b54476cd1e4eb985dfa544f36f84",
+    "apps/desktop-preview/build.rs": "6aeeab41bc35efde4e3c2b644a6248f7fc06d24ae30b75c0d33491cbb0c1fa31",
+    "apps/desktop-preview/frontend/index.html": "c64208a3fb20a3cc100f6c370262a210c6a1e4a06d1d11b98aeaf98c92ba6a32",
+    "apps/desktop-preview/frontend/styles.css": "4cb3e5550962c67a3529ee18b654abdbd1d5b41946ebfe4cf730537a4559c1fb",
+    "apps/desktop-preview/icons/icon.ico": "e604bf94c751acceee880dee13503fdbc38427fa0666ac3d60b98ccd682b8c2c",
+    "apps/desktop-preview/src/lib.rs": "5b796be694e142245c84474df47b63bdee17cb9713b8f256637dbdebbb6bbc46",
+    "apps/desktop-preview/src/main.rs": "849ce1e03fede0da68d2068893a59e6a40c8d4450e64511ab50763e0a736b577",
+    "apps/desktop-preview/src/v1.rs": "292b24f63ce8236045d551015803af258624ee211cb9f5ddbaf9a497896bbc9f",
+    "apps/desktop-preview/tauri.conf.json": "cc7d9b9b76937c66568d46ff1e69f72c48d3fd0f0bcd48e5952ed85831df52fa",
+    "apps/desktop-preview/tests/bootstrap_v1.rs": "1652494d357502cd8f850eac186e612641fb527c8b03deb79f69218946f72c8a"
+  },
+  "officialRegistryTransport": {
+    "url": "http://127.0.0.1:58484",
+    "ipv4Only": true,
+    "maximumConnections": 3,
+    "TLSIntercepted": false
+  },
+  "http1Priming": [
+    {
+      "binary": "C:\\Users\\37310\\.rustup\\toolchains\\1.95.0-x86_64-pc-windows-msvc\\bin\\cargo.exe",
+      "argv": [
+        "--config",
+        "http.multiplexing=false",
+        "generate-lockfile",
+        "--manifest-path",
+        "apps/desktop-preview/Cargo.toml"
+      ],
+      "pid": 26792,
+      "exit": {
+        "code": 101,
+        "signal": null
+      },
+      "timedOut": false,
+      "stdout": "2026-10-23T13-13-31.514Z-39704-http1-prime-0-stdout.log",
+      "stderr": "2026-10-23T13-13-31.514Z-39704-http1-prime-0-stderr.log"
+    }
+  ],
+  "status": "failed",
+  "error": "AssertionError [ERR_ASSERTION]: Scoped HTTP/1.1 initialization failed: 2026-10-23T13-13-31.514Z-39704-http1-prime-0-stderr.log\n    at primeHttp1 (file:///F:/new/smaltalk/water/scripts/ac-resume-check.mjs:21:962)\n    at process.processTicksAndRejections (node:internal/process/task_queues:104:5)\n    at async file:///F:/new/smaltalk/water/scripts/ac-resume-check.mjs:32:56",
+  "transport": {
+    "stats": {
+      "startedAt": "2026-10-23T13:13:36.711Z",
+      "accepted": 2,
+      "denied": 0,
+      "connected": 2,
+      "failed": 1,
+      "maximumActive": 2,
+      "clientBytes": 26703,
+      "serverBytes": 5154477,
+      "TLSIntercepted": false,
+      "TLSVerificationDisabled": false,
+      "registryReplaced": false,
+      "globalSettingsChanged": false,
+      "endedAt": "2026-10-23T13:20:12.184Z",
+      "remainingClients": 0,
+      "remainingUpstreams": 0
+    },
+    "events": [
+      {
+        "host": "index.crates.io",
+        "port": 443,
+        "startedAt": "2026-10-23T13:13:37.781Z",
+        "ipv4Only": true,
+        "connectedAt": "2026-10-23T13:13:37.810Z",
+        "error": "upstream_idle_timeout",
+        "endedAt": "2026-10-23T13:17:04.997Z"
+      },
+      {
+        "host": "index.crates.io",
+        "port": 443,
+        "startedAt": "2026-10-23T13:13:41.289Z",
+        "ipv4Only": true,
+        "connectedAt": "2026-10-23T13:13:41.292Z",
+        "endedAt": "2026-10-23T13:20:12.027Z"
+      }
+    ]
+  },
+  "after": {
+    "head": "ef0b7c4b3a84c434c0cd3b691b79c8a4a37d311c",
+    "status": ""
+  },
+  "endedAt": "2026-10-23T13:20:14.650Z"
+}

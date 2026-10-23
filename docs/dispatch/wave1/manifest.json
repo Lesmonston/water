@@ -1,7 +1,7 @@
 {
   "schemaVersion": 1,
   "wave": "water-wave1",
-  "status": "A_AB_VERIFIED_AC_AE_READY",
+  "status": "A_AB_VERIFIED_AC_BLOCKED_AD_AE_READY",
   "controllerRoot": "F:/new/smaltalk/water",
   "controllerBranch": "main",
   "controller": "Codex",
@@ -2819,7 +2819,7 @@
     {
       "id": "WATER-W1-AC",
       "title": "Windows桌面依赖与最小只读壳",
-      "status": "READY",
+      "status": "BLOCKED",
       "slot": "ac",
       "worktree": "F:/new/smaltalk/water/.worktrees/ac",
       "branch": "worker/water-w1-ac",
@@ -2900,7 +2900,7 @@
       "nativeDirectoryDialogBudget": 0,
       "baselineStatus": "PASSED",
       "newProductTestsRun": false,
-      "model": null,
+      "model": "Codex / GPT-6 (worker self-report)",
       "modelAssignment": "user-arranged; report actual engine/model",
       "dispatchedAt": null,
       "startedAt": null,
@@ -2921,7 +2921,8 @@
         "apps/desktop-preview/frontend/styles.css",
         "apps/desktop-preview/icons/icon.ico",
         "apps/desktop-preview/tests/bootstrap_v1.rs",
-        "docs/dispatch/reports/WATER-W1-AC-REPORT.md"
+        "docs/dispatch/reports/WATER-W1-AC-REPORT.md",
+        "docs/dispatch/reports/WATER-W1-AC-ADDENDUM-01-REPORT.md"
       ],
       "allowedPrefixes": [
         "docs/acceptance/wave1/ac/"
@@ -2930,7 +2931,45 @@
       "deferredJointValidation": "Static desktop bootstrap only; actual desktop -> AA/AB is a later dependent ticket, not READY.",
       "baselineEvidence": "docs/acceptance/wave1/controller/w1-delivery-preflight-20261023/ac/2026-10-23T02-36-00.416Z-34364-baseline-result.json",
       "preflightEvidence": "docs/dispatch/wave1/DELIVERY-WAVE-READY-REPORT-20261023.md",
-      "readyOn": "2026-10-23"
+      "readyOn": "2026-10-23",
+      "submittedCommit": "ef0b7c4b3a84c434c0cd3b691b79c8a4a37d311c",
+      "partialSourceCommit": "b617b90182d54053091910b8b4e889dd7f614a7d",
+      "productTestedCommit": null,
+      "activityEvidence": "Original clean blocked receipt ef0b7c4, fail-closed skeleton b617b90, baseline passed, two known dependency failures plus two incomplete attempts; no lock/product tests/native window.",
+      "blockedReportSource": "F:/new/smaltalk/water/.worktrees/ac/docs/dispatch/reports/WATER-W1-AC-REPORT.md",
+      "revisionReport": "docs/dispatch/reports/WATER-W1-AC-ADDENDUM-01-REPORT.md",
+      "revisionDispatchStatus": "BLOCKED",
+      "addendum01": {
+        "status": "BLOCKED",
+        "ticket": "docs/dispatch/tickets/WATER-W1-AC-ADDENDUM-01-20261023.md",
+        "report": "docs/dispatch/reports/WATER-W1-AC-ADDENDUM-01-REPORT.md",
+        "resumeCommit": "ef0b7c4b3a84c434c0cd3b691b79c8a4a37d311c",
+        "partialSourceCommit": "b617b90182d54053091910b8b4e889dd7f614a7d",
+        "contractLock": "contracts/desktop-bootstrap-addendum-v1/freeze.lock.json",
+        "lockSha256": "98f31fdd0c6f123d12e2e07a2f351facd1d0fa71eb86b73f87525687683a431b",
+        "helper": "scripts/ac-resume-check.mjs",
+        "helperAuthority": "Controller checkout absolute path; do not copy/merge controls into original AC tree",
+        "evidencePrefix": "docs/acceptance/wave1/ac/addendum-01/",
+        "baselineStatus": "FAILED",
+        "systemWindowBudgetRemaining": 1,
+        "nativeDirectoryDialogs": 0,
+        "reason": "Official Cargo index TLS/receive/low-speed failures before lock generation; no product test or native window",
+        "dispatchedAt": null,
+        "startedAt": null,
+        "transportRevision": "r4-existing-proxy-http1-request-wait",
+        "baselineMeaning": "Original receipt/source/archive/509 invariants preserved; final bounded dependency attempt failed; no product tests",
+        "baselineEvidence": "docs/acceptance/wave1/controller/w1-ac-blocked-20261023/addendum/2026-10-23T13-51-44.337Z-28196-environment-local-http1-result.json",
+        "preflightEvidence": "docs/dispatch/wave1/AC-DESKTOP-ADDENDUM-01-READY-REPORT-20261023.md",
+        "readyOn": null,
+        "systemWindowsUsed": 0
+      },
+      "addenda": [
+        "docs/dispatch/tickets/WATER-W1-AC-ADDENDUM-01-20261023.md"
+      ],
+      "controllerReview": "docs/acceptance/wave1/controller/WATER-W1-AC-BLOCKED-REVIEW-20261023.md",
+      "blockedReviewedAt": "2026-10-23T14:03:32.810Z",
+      "environmentStatus": "BLOCKED",
+      "verificationScope": "Blocked receipt audited; fail-closed skeleton not accepted/integrated. No product tests/native window. AD/AE remain independent."
     },
     {
       "id": "WATER-W1-AD",
