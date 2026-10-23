@@ -1,0 +1,20 @@
+{
+  "url": "https://developer.apple.com/library/archive/documentation/System/Conceptual/ManPages_iPhoneOS/man2/open.2.html",
+  "accessed_at": "2026-10-23T11:35:42.617Z",
+  "status": 200,
+  "body_bytes": 22495,
+  "body_sha256": "c2ec41ee07fc90bcb1deb3ec8a3487629538cf1e12e2b9a9e96daa6fe015e61a",
+  "representation": "bounded text excerpts; HTML tags/scripts/styles removed, whitespace collapsed; not original body bytes",
+  "excerpts": [
+    {
+      "term": "O_NOFOLLOW",
+      "found": true,
+      "text": "lly obtain a shared lock O_EXLOCK atomically obtain an exclusive lock O_NOFOLLOW do not follow symlinks O_SYMLINK allow open of symlinks Opening a file with O_APPEND set causes each write on the file to be appended to the end. If O_TRUNC is specified and the file exists, the file is truncated to zero length. If O_EXCL is set with O_CREAT and the file already exists, open () returns an error. This may be used to imple- ment&nbsp;implement ment a simple exclusive-access locking mechanism. If O_EXCL is set and the last component of the pathname is a symbolic link, open () will fail even if the symbolic link points to a non-existent name. If the O_NONBLOCK flag is specified, do not wait for the device or file to be ready or available. If the open () call would result in the process being blocked for some reason (e.g., waiting for carrier on a dialup line), open () returns immediately. This flag also has the effect of mak- ing&nbsp;making ing all subsequent I/O"
+    },
+    {
+      "term": "OPEN(2)",
+      "found": true,
+      "text": "n about the manual page format, see the manual page for manpages(5) . OPEN(2) BSD System Calls Manual OPEN(2) NAME open -- open or create a file for reading or writing SYNOPSIS #include &lt;fcntl.h&gt; int open ( const char *path , int oflag , ... ); DESCRIPTION The file name specified by path is opened for reading and/or writing, as specified by the argument oflag ; the file descriptor is returned to the calling process. The oflag argument may indicate that the file is to be created if it does not exist (by specifying the O_CREAT flag). In this case, open requires a third argument mode _ t mode ; the file is created with mode mode as described in chmod(2) and modified by the process' umask value (see umask(2) ). The flags specified are formed by or 'ing the following values: O_RDONLY open for reading only O_WRONLY open for writing only O_RDWR open for reading and writing O_NONBLOCK do not block on open or for data to become available O_APPEND append on ea"
+    }
+  ]
+}

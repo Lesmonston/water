@@ -1,0 +1,535 @@
+{
+  "url": "https://developer.apple.com/tutorials/data/documentation/appkit/nsopenpanel.json",
+  "accessed_at": "2026-10-23T11:33:32.046Z",
+  "status": 200,
+  "body_bytes": 40085,
+  "body_sha256": "1f0b6fb21f769e56351b5f09bfc341242f3d5f8beeec99848c6e1b3f84ebf7a0",
+  "document": {
+    "metadata": {
+      "availableLanguages": [
+        "de-DE",
+        "en-US",
+        "es-419",
+        "fr-FR",
+        "it-IT",
+        "ja-JP",
+        "ko-KR",
+        "pt-BR",
+        "zh-CN"
+      ],
+      "externalID": "c:objc(cs)NSOpenPanel",
+      "fragments": [
+        {
+          "kind": "keyword",
+          "text": "class"
+        },
+        {
+          "kind": "text",
+          "text": " "
+        },
+        {
+          "kind": "identifier",
+          "text": "NSOpenPanel"
+        }
+      ],
+      "modules": [
+        {
+          "name": "AppKit"
+        }
+      ],
+      "navigatorTitle": [
+        {
+          "kind": "identifier",
+          "text": "NSOpenPanel"
+        }
+      ],
+      "platforms": [
+        {
+          "name": "macOS"
+        }
+      ],
+      "role": "symbol",
+      "roleHeading": "Class",
+      "symbolKind": "class",
+      "title": "NSOpenPanel"
+    },
+    "abstract": [
+      {
+        "text": "A panel that prompts the user to select a file to open.",
+        "type": "text"
+      }
+    ],
+    "primaryContentSections": [
+      {
+        "declarations": [
+          {
+            "languages": [
+              "swift"
+            ],
+            "platforms": [
+              "macOS"
+            ],
+            "tokens": [
+              {
+                "kind": "keyword",
+                "text": "class"
+              },
+              {
+                "kind": "text",
+                "text": " "
+              },
+              {
+                "kind": "identifier",
+                "text": "NSOpenPanel"
+              }
+            ]
+          }
+        ],
+        "kind": "declarations"
+      },
+      {
+        "content": [
+          {
+            "anchor": "overview",
+            "level": 2,
+            "text": "Overview",
+            "type": "heading"
+          },
+          {
+            "inlineContent": [
+              {
+                "text": "Apps use the Open panel as a convenient way to query the user for the name of a file to open. In macOS 10.15 and later, the system always draws Open panels in a separate process, regardless of whether the app is sandboxed. When the user chooses a file to open, macOS adds that file to the app’s sandbox. Prior to macOS 10.15, the system drew the panels in a separate process only for sandboxed apps.",
+                "type": "text"
+              }
+            ],
+            "type": "paragraph"
+          }
+        ],
+        "kind": "content"
+      }
+    ],
+    "topicSections": [
+      {
+        "anchor": "Configuring-the-Open-Panel",
+        "identifiers": [
+          "doc://com.apple.appkit/documentation/AppKit/NSOpenPanel/canChooseFiles",
+          "doc://com.apple.appkit/documentation/AppKit/NSOpenPanel/canChooseDirectories",
+          "doc://com.apple.appkit/documentation/AppKit/NSOpenPanel/resolvesAliases",
+          "doc://com.apple.appkit/documentation/AppKit/NSOpenPanel/allowsMultipleSelection",
+          "doc://com.apple.appkit/documentation/AppKit/NSOpenPanel/isAccessoryViewDisclosed"
+        ],
+        "title": "Configuring the Open Panel"
+      },
+      {
+        "anchor": "Accessing-User-Selection",
+        "identifiers": [
+          "doc://com.apple.appkit/documentation/AppKit/NSOpenPanel/urls"
+        ],
+        "title": "Accessing User Selection"
+      },
+      {
+        "anchor": "Supporting-iCloud-Documents",
+        "identifiers": [
+          "doc://com.apple.appkit/documentation/AppKit/NSOpenPanel/canDownloadUbiquitousContents",
+          "doc://com.apple.appkit/documentation/AppKit/NSOpenPanel/canResolveUbiquitousConflicts"
+        ],
+        "title": "Supporting iCloud Documents"
+      },
+      {
+        "abstract": [
+          {
+            "text": "Avoid using deprecated classes and protocols in your apps.",
+            "type": "text"
+          }
+        ],
+        "anchor": "Deprecated",
+        "identifiers": [
+          "doc://com.apple.appkit/documentation/AppKit/nsopenpanel-deprecated-symbols"
+        ],
+        "title": "Deprecated"
+      }
+    ],
+    "sections": [],
+    "references": {
+      "doc://com.apple.appkit/documentation/AppKit": {
+        "title": "AppKit",
+        "url": "/documentation/appkit",
+        "abstract": [
+          {
+            "text": "Construct and manage a graphical, event-driven user interface for your macOS app.",
+            "type": "text"
+          }
+        ]
+      },
+      "doc://com.apple.appkit/documentation/AppKit/NSAccessibilityElementProtocol": {
+        "title": "NSAccessibilityElementProtocol",
+        "url": "/documentation/appkit/nsaccessibilityelementprotocol",
+        "abstract": [
+          {
+            "text": "A role-based protocol that declares the minimum interface necessary to interact with an assistive app.",
+            "type": "text"
+          }
+        ]
+      },
+      "doc://com.apple.appkit/documentation/AppKit/NSAccessibilityProtocol": {
+        "title": "NSAccessibilityProtocol",
+        "url": "/documentation/appkit/nsaccessibilityprotocol",
+        "abstract": [
+          {
+            "text": "The complete list of properties and methods for accessible elements.",
+            "type": "text"
+          }
+        ]
+      },
+      "doc://com.apple.appkit/documentation/AppKit/NSAnimatablePropertyContainer": {
+        "title": "NSAnimatablePropertyContainer",
+        "url": "/documentation/appkit/nsanimatablepropertycontainer",
+        "abstract": [
+          {
+            "text": "A set of methods that defines a way to add animation to an existing class with a minimum of API impact.",
+            "type": "text"
+          }
+        ]
+      },
+      "doc://com.apple.appkit/documentation/AppKit/NSAppearanceCustomization": {
+        "title": "NSAppearanceCustomization",
+        "url": "/documentation/appkit/nsappearancecustomization",
+        "abstract": [
+          {
+            "text": "A set of methods for getting and setting the appearance attributes of a view.",
+            "type": "text"
+          }
+        ]
+      },
+      "doc://com.apple.appkit/documentation/AppKit/NSMenuItemValidation": {
+        "title": "NSMenuItemValidation",
+        "url": "/documentation/appkit/nsmenuitemvalidation",
+        "abstract": []
+      },
+      "doc://com.apple.appkit/documentation/AppKit/NSOpenPanel": {
+        "title": "NSOpenPanel",
+        "url": "/documentation/appkit/nsopenpanel",
+        "abstract": [
+          {
+            "text": "A panel that prompts the user to select a file to open.",
+            "type": "text"
+          }
+        ]
+      },
+      "doc://com.apple.appkit/documentation/AppKit/NSOpenPanel/allowsMultipleSelection": {
+        "title": "allowsMultipleSelection",
+        "url": "/documentation/appkit/nsopenpanel/allowsmultipleselection",
+        "abstract": [
+          {
+            "text": "A Boolean that indicates whether the user may select multiple files and directories.",
+            "type": "text"
+          }
+        ]
+      },
+      "doc://com.apple.appkit/documentation/AppKit/NSOpenPanel/canChooseDirectories": {
+        "title": "canChooseDirectories",
+        "url": "/documentation/appkit/nsopenpanel/canchoosedirectories",
+        "abstract": [
+          {
+            "text": "A Boolean that indicates whether the user can choose directories in the panel.",
+            "type": "text"
+          }
+        ]
+      },
+      "doc://com.apple.appkit/documentation/AppKit/NSOpenPanel/canChooseFiles": {
+        "title": "canChooseFiles",
+        "url": "/documentation/appkit/nsopenpanel/canchoosefiles",
+        "abstract": [
+          {
+            "text": "A Boolean that indicates whether the user can choose files in the panel.",
+            "type": "text"
+          }
+        ]
+      },
+      "doc://com.apple.appkit/documentation/AppKit/NSOpenPanel/canDownloadUbiquitousContents": {
+        "title": "canDownloadUbiquitousContents",
+        "url": "/documentation/appkit/nsopenpanel/candownloadubiquitouscontents",
+        "abstract": [
+          {
+            "text": "A Boolean value that indicates how the panel responds to iCloud documents that aren’t fully downloaded locally.",
+            "type": "text"
+          }
+        ]
+      },
+      "doc://com.apple.appkit/documentation/AppKit/NSOpenPanel/canResolveUbiquitousConflicts": {
+        "title": "canResolveUbiquitousConflicts",
+        "url": "/documentation/appkit/nsopenpanel/canresolveubiquitousconflicts",
+        "abstract": [
+          {
+            "text": "A Boolean value that indicates how the panel responds to iCloud documents that have conflicting versions.",
+            "type": "text"
+          }
+        ]
+      },
+      "doc://com.apple.appkit/documentation/AppKit/NSOpenPanel/isAccessoryViewDisclosed": {
+        "title": "isAccessoryViewDisclosed",
+        "url": "/documentation/appkit/nsopenpanel/isaccessoryviewdisclosed",
+        "abstract": [
+          {
+            "text": "A Boolean value that indicates whether the panel’s accessory view is visible.",
+            "type": "text"
+          }
+        ]
+      },
+      "doc://com.apple.appkit/documentation/AppKit/NSOpenPanel/openPanel": {
+        "title": "openPanel",
+        "url": "/documentation/appkit/nsopenpanel/openpanel",
+        "abstract": [
+          {
+            "text": "Creates a new Open panel and initializes it with a default configuration.",
+            "type": "text"
+          }
+        ]
+      },
+      "doc://com.apple.appkit/documentation/AppKit/NSOpenPanel/resolvesAliases": {
+        "title": "resolvesAliases",
+        "url": "/documentation/appkit/nsopenpanel/resolvesaliases",
+        "abstract": [
+          {
+            "text": "A Boolean that indicates whether the panel resolves aliases.",
+            "type": "text"
+          }
+        ]
+      },
+      "doc://com.apple.appkit/documentation/AppKit/NSOpenPanel/urls": {
+        "title": "urls",
+        "url": "/documentation/appkit/nsopenpanel/urls",
+        "abstract": [
+          {
+            "text": "An array of URLs, each of which contains the fully specified location of a selected file or directory.",
+            "type": "text"
+          }
+        ]
+      },
+      "doc://com.apple.appkit/documentation/AppKit/NSOpenSavePanelDelegate": {
+        "title": "NSOpenSavePanelDelegate",
+        "url": "/documentation/appkit/nsopensavepaneldelegate",
+        "abstract": [
+          {
+            "text": "A set of methods for managing interactions with an open or save panel.",
+            "type": "text"
+          }
+        ]
+      },
+      "doc://com.apple.appkit/documentation/AppKit/NSSavePanel": {
+        "title": "NSSavePanel",
+        "url": "/documentation/appkit/nssavepanel",
+        "abstract": [
+          {
+            "text": "A panel that prompts the user for information about where to save a file.",
+            "type": "text"
+          }
+        ]
+      },
+      "doc://com.apple.appkit/documentation/AppKit/NSStandardKeyBindingResponding": {
+        "title": "NSStandardKeyBindingResponding",
+        "url": "/documentation/appkit/nsstandardkeybindingresponding",
+        "abstract": [
+          {
+            "text": "Methods that responder subclasses implement to support key binding commands, such as inserting tabs and newlines, or moving the insertion point.",
+            "type": "text"
+          }
+        ]
+      },
+      "doc://com.apple.appkit/documentation/AppKit/NSTouchBarProvider": {
+        "title": "NSTouchBarProvider",
+        "url": "/documentation/appkit/nstouchbarprovider",
+        "abstract": [
+          {
+            "text": "A protocol that an object adopts to create a bar object in your app.",
+            "type": "text"
+          }
+        ]
+      },
+      "doc://com.apple.appkit/documentation/AppKit/NSUserActivityRestoring": {
+        "title": "NSUserActivityRestoring",
+        "url": "/documentation/appkit/nsuseractivityrestoring",
+        "abstract": [
+          {
+            "text": "A protocol that marks classes to restore the state of your app to continue a user activity.",
+            "type": "text"
+          }
+        ]
+      },
+      "doc://com.apple.appkit/documentation/AppKit/NSUserInterfaceItemIdentification": {
+        "title": "NSUserInterfaceItemIdentification",
+        "url": "/documentation/appkit/nsuserinterfaceitemidentification",
+        "abstract": [
+          {
+            "text": "A set of methods used to associate a unique identifier with objects in your user interface.",
+            "type": "text"
+          }
+        ]
+      },
+      "doc://com.apple.appkit/documentation/AppKit/NSUserInterfaceValidations": {
+        "title": "NSUserInterfaceValidations",
+        "url": "/documentation/appkit/nsuserinterfacevalidations",
+        "abstract": [
+          {
+            "text": "A protocol that a custom class can adopt to manage the enabled state of a UI element.",
+            "type": "text"
+          }
+        ]
+      },
+      "doc://com.apple.appkit/documentation/AppKit/nsopenpanel-deprecated-symbols": {
+        "title": "Deprecated symbols",
+        "url": "/documentation/appkit/nsopenpanel-deprecated-symbols",
+        "abstract": [
+          {
+            "text": "Review symbols that are no longer in active development, and their recommended replacements.",
+            "type": "text"
+          }
+        ]
+      },
+      "doc://com.apple.documentation/documentation/Foundation/NSCoding": {
+        "title": "NSCoding",
+        "url": "/documentation/foundation/nscoding",
+        "abstract": [
+          {
+            "text": "A protocol that enables an object to be encoded and decoded for archiving and distribution.",
+            "type": "text"
+          }
+        ]
+      },
+      "doc://com.apple.documentation/documentation/ObjectiveC/NSObjectProtocol": {
+        "title": "NSObjectProtocol",
+        "url": "/documentation/objectivec/nsobjectprotocol",
+        "abstract": [
+          {
+            "text": "The group of methods that are fundamental to all Objective-C objects.",
+            "type": "text"
+          }
+        ]
+      },
+      "doc://com.apple.documentation/documentation/Swift/CVarArg": {
+        "title": "CVarArg",
+        "url": "/documentation/swift/cvararg",
+        "abstract": [
+          {
+            "text": "A type whose instances can be encoded, and appropriately passed, as",
+            "type": "text"
+          },
+          {
+            "text": " ",
+            "type": "text"
+          },
+          {
+            "text": "elements of a C ",
+            "type": "text"
+          },
+          {
+            "code": "va_list",
+            "type": "codeVoice"
+          },
+          {
+            "text": ".",
+            "type": "text"
+          }
+        ]
+      },
+      "doc://com.apple.documentation/documentation/Swift/CustomDebugStringConvertible": {
+        "title": "CustomDebugStringConvertible",
+        "url": "/documentation/swift/customdebugstringconvertible",
+        "abstract": [
+          {
+            "text": "A type with a customized textual representation suitable for debugging",
+            "type": "text"
+          },
+          {
+            "text": " ",
+            "type": "text"
+          },
+          {
+            "text": "purposes.",
+            "type": "text"
+          }
+        ]
+      },
+      "doc://com.apple.documentation/documentation/Swift/CustomStringConvertible": {
+        "title": "CustomStringConvertible",
+        "url": "/documentation/swift/customstringconvertible",
+        "abstract": [
+          {
+            "text": "A type with a customized textual representation.",
+            "type": "text"
+          }
+        ]
+      },
+      "doc://com.apple.documentation/documentation/Swift/Equatable": {
+        "title": "Equatable",
+        "url": "/documentation/swift/equatable",
+        "abstract": [
+          {
+            "text": "A type that can be compared for value equality.",
+            "type": "text"
+          }
+        ]
+      },
+      "doc://com.apple.documentation/documentation/Swift/Hashable": {
+        "title": "Hashable",
+        "url": "/documentation/swift/hashable",
+        "abstract": [
+          {
+            "text": "A type that can be hashed into a ",
+            "type": "text"
+          },
+          {
+            "code": "Hasher",
+            "type": "codeVoice"
+          },
+          {
+            "text": " to produce an integer hash value.",
+            "type": "text"
+          }
+        ]
+      },
+      "doc://com.apple.documentation/documentation/Swift/Sendable": {
+        "title": "Sendable",
+        "url": "/documentation/swift/sendable",
+        "abstract": [
+          {
+            "text": "A thread-safe type whose values can be shared across arbitrary concurrent",
+            "type": "text"
+          },
+          {
+            "text": " ",
+            "type": "text"
+          },
+          {
+            "text": "contexts without introducing a risk of data races.",
+            "type": "text"
+          }
+        ]
+      },
+      "doc://com.apple.documentation/documentation/Swift/SendableMetatype": {
+        "title": "SendableMetatype",
+        "url": "/documentation/swift/sendablemetatype",
+        "abstract": [
+          {
+            "text": "A type whose metatype can be shared across arbitrary isolation domains",
+            "type": "text"
+          },
+          {
+            "text": " ",
+            "type": "text"
+          },
+          {
+            "text": "without introducing a risk of data races.",
+            "type": "text"
+          }
+        ]
+      },
+      "doc://com.apple.documentation/documentation/technologies": {
+        "title": "Technologies",
+        "url": "/documentation/technologies",
+        "abstract": []
+      }
+    }
+  },
+  "error": null
+}

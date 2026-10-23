@@ -1,0 +1,20 @@
+{
+  "version": "water.ae-submission-preparation.v1",
+  "events": [
+    {
+      "operation": "Initial explicit-path staging wrapper",
+      "exit_code": 1,
+      "diagnostic": "AssertionError [ERR_ASSERTION]: assert(/\\.(json|log|txt|md|png)$/.test(p)); [stdin]:1:343",
+      "cause": "Pre-existing tracked docs/acceptance/wave1/ae/.gitattributes was included by directory listing. The four research files were staged; no evidence files were added before assertion.",
+      "correction": "Read existing file; leave unchanged and exclude from new evidence selection. It freezes raw evidence bytes with -text. Continue each new permitted path separately, never reset the index."
+    },
+    {
+      "operation": "Gate archive attribution review",
+      "cause": "Own .local contains controller 02:36 preflight and this session 11:32 baseline. Initial START-AUDIT chose first baseline by filename.",
+      "correction": "Explicitly bind START-AUDIT to 11:32 worker baseline, label 02:36 file inherited/not executed in this session. Both raw original receipts retained."
+    }
+  ],
+  "raw_capture_note": "These are tool-visible preparation failure summaries, not byte-identical stderr stream captures. Gate receipts and source snapshots are byte-identical indexed evidence.",
+  "product_gate_failures": 0,
+  "behavior_negatives": "not applicable to AE documentation checks"
+}

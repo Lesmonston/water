@@ -1,0 +1,25 @@
+{
+  "url": "https://doc.rust-lang.org/std/os/fd/struct.OwnedFd.html",
+  "accessed_at": "2026-10-23T11:35:45.827Z",
+  "status": 200,
+  "body_bytes": 81791,
+  "body_sha256": "e12c87de8a3e0ca7ba3257a24fd064df9094f2ec93d0a6cfa3d857348359cce0",
+  "representation": "bounded text excerpts; HTML tags/scripts/styles removed, whitespace collapsed; not original body bytes",
+  "excerpts": [
+    {
+      "term": "An owned file descriptor",
+      "found": true,
+      "text": "Hermit or Motor OS or Trusty or Unix or WASI only. Expand description An owned file descriptor. This closes the file descriptor on drop. It is guaranteed that nobody else will close the file descriptor. This uses repr(transparent) and has the representation of a host file descriptor, so it can be used in FFI in places where a file descriptor is passed as a consumed argument or returned as an owned value, and it never has the value -1 . You can use AsFd::as_fd to obtain a BorrowedFd . Implementations § Source § impl OwnedFd 1.63.0 · Source pub fn try_clone (&amp;self) -&gt; Result &lt;Self&gt; Creates a new OwnedFd instance that shares the same underlying file description as the existing OwnedFd instance. Trait Implementations § 1.63.0 · Source § impl AsFd for OwnedFd Source § fn as_fd (&amp;self) -&gt; BorrowedFd &lt;'_&gt; Borrows the file descriptor. Read more 1.63.0 · Source § impl AsRawFd for OwnedFd Source § fn as_raw_fd (&amp;self) -&gt; RawFd Extrac"
+    },
+    {
+      "term": "This closes the file descriptor on drop",
+      "found": true,
+      "text": "ty or Unix or WASI only. Expand description An owned file descriptor. This closes the file descriptor on drop. It is guaranteed that nobody else will close the file descriptor. This uses repr(transparent) and has the representation of a host file descriptor, so it can be used in FFI in places where a file descriptor is passed as a consumed argument or returned as an owned value, and it never has the value -1 . You can use AsFd::as_fd to obtain a BorrowedFd . Implementations § Source § impl OwnedFd 1.63.0 · Source pub fn try_clone (&amp;self) -&gt; Result &lt;Self&gt; Creates a new OwnedFd instance that shares the same underlying file description as the existing OwnedFd instance. Trait Implementations § 1.63.0 · Source § impl AsFd for OwnedFd Source § fn as_fd (&amp;self) -&gt; BorrowedFd &lt;'_&gt; Borrows the file descriptor. Read more 1.63.0 · Source § impl AsRawFd for OwnedFd Source § fn as_raw_fd (&amp;self) -&gt; RawFd Extracts the raw file descriptor"
+    },
+    {
+      "term": "std 1.",
+      "found": true,
+      "text": "ser is unsupported and will most likely display funky things. OwnedFd std 1.99.1 (58cf8f9c3 2026-10-13) OwnedFd Methods try_clone Trait Implementations AsFd AsRawFd Debug Drop From&#60;ChildStderr&#62; From&#60;ChildStdin&#62; From&#60;ChildStdout&#62; From&#60;Dir&#62; From&#60;File&#62; From&#60;OwnedFd&#62; From&#60;OwnedFd&#62; From&#60;OwnedFd&#62; From&#60;OwnedFd&#62; From&#60;OwnedFd&#62; From&#60;OwnedFd&#62; From&#60;OwnedFd&#62; From&#60;OwnedFd&#62; From&#60;OwnedFd&#62; From&#60;OwnedFd&#62; From&#60;OwnedFd&#62; From&#60;OwnedFd&#62; From&#60;OwnedFd&#62; From&#60;OwnedFd&#62; From&#60;OwnedFd&#62; From&#60;PidFd&#62; From&#60;PipeReader&#62; From&#60;PipeWriter&#62; From&#60;TcpListener&#62; From&#60;TcpStream&#62; From&#60;UdpSocket&#62; From&#60;UnixDatagram&#62; From&#60;UnixListener&#62; From&#60;UnixStream&#62; FromRawFd IntoRawFd IsTerminal Auto Trait Implementations Freeze RefUnwindSafe Send Sync Unpin UnsafeUnpin UnwindSafe Blanket I"
+    }
+  ]
+}

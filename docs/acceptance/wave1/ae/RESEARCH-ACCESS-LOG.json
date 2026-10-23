@@ -1,0 +1,24 @@
+{
+  "version": "water.ae-research-access-log.v1",
+  "date": "2026-10-23",
+  "meaning": "Research/preparation observations; none is a product test or behavior negative control. Tool access failures were not saved as raw HTTP bodies. This file is a faithful summary of tool-visible results, not a claim of byte-identical transport capture.",
+  "web_attempts": [
+    {"target": "UsingAnOpenDialog.html and UsingOpenPanel.html in archived AppFileMgmt/Tasks", "result": "web tool Internal Error / URL not accessible; not read"},
+    {"target": "NSOpenPanel and NSURL startAccessingSecurityScopedResource HTML", "result": "JavaScript shell only; linked Markdown also returned Internal Error; separate official DocC JSON retrieved with HTTP 200 and body content inspected"},
+    {"target": "Archived AppSandboxInDepth.html", "result": "redirect to modern sandbox JavaScript shell, Markdown link Internal Error; modern official DocC JSON subsequently read"},
+    {"target": "Archived APFS introduction", "result": "read retired document notice; successor HTML was a JavaScript shell and Markdown Internal Error. Actual conclusions use separately retrieved modern official DocC JSON."},
+    {"target": "Rust 1.95.0 OwnedFd and MetadataExt URLs", "result": "web tool URL not accessible; not read. Online current docs read and explicitly bounded to reported 1.99.1, not project compiler verification."},
+    {"target": "NSOpenPanel official DocC JSON via web tool", "result": "web tool URL not accessible; direct Node HTTPS retrieval succeeded with HTTP 200; body content inspected and projected evidence saved"},
+    {"target": "Apple scope official DocC JSON via web tool", "result": "read; direct HTTPS retrieval also succeeded"},
+    {"target": "Apple XNU main open.2", "result": "discovery read only; facts then pinned to exact f6217f891ac0bb64f3d375211650a4c1ff8ca1ea and raw bytes archived, no upstream scripts run"}
+  ],
+  "local_preparation": [
+    {"operation": "Initial PowerShell Get-Content", "exit_code": 0, "issue": "Default decoding rendered Chinese as mojibake; re-read with -Encoding UTF8 before acting. Large combined outputs were truncated by tool; scoped reads used for required source sections."},
+    {"operation": "Read SPEC files then rg with contracts/project-workspace-addendum-v1/* operand", "exit_code": 1, "diagnostic": "rg: contracts/project-workspace-addendum-v1/*: The filename, directory name, or volume label syntax is incorrect. (os error 123)", "correction": "Use literal directory with --glob filters. Corrected targeted read exited 0; no mutation or product test."},
+    {"operation": "Initial research JSON generation", "exit_code": 1, "diagnostic": "Error: Bad lines contracts/root-marker-v1/SPEC.md at [stdin]:30:338; Node.js v24.16.0", "correction": "Original range [5,27] exceeded 26-line file. Actual source lines re-read, corrected to [5,23]. A proposed project-session SPEC end 49 was also corrected to 45 within its 46 lines before retry. Existing exact source snapshots retained and compared byte-for-byte; corrected matrix generation exited 0. SOURCES.json was already complete and retained. No gate failure and no negative-control claim."},
+    {"operation": "XNU license metadata review", "issue": "Initial descriptive metadata said BSD before inspecting full header; corrected before implementation commit to APSL 2.0 plus University of California BSD terms. Complete raw notice retained. No Water product code copied."}
+  ],
+  "retrieval_evidence": "*-read.json records actual HTTPS status/time, raw body bytes/SHA, and an explicitly projected document or bounded text excerpts. Those projections are not described as raw HTTP bytes. XNU .txt and current-source-*.txt are exact source bytes.",
+  "execution_limits": {"native_windows": 0, "directory_dialogs": 0, "chrome": 0, "remote_macos": 0, "sdk_installations": 0, "physical_fixtures": 0, "ordinary_user_content_reads": 0},
+  "remaining": "macOS SDK ABI, flags and minimum OS, filesystem race handling, actual permissions, AppKit threading and full desktop/real-user integration remain unimplemented and untested."
+}

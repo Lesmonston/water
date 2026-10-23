@@ -1,0 +1,30 @@
+{
+  "url": "https://doc.rust-lang.org/std/os/unix/fs/trait.MetadataExt.html",
+  "accessed_at": "2026-10-23T11:35:46.088Z",
+  "status": 200,
+  "body_bytes": 34760,
+  "body_sha256": "2986015252c7897d982980982f154cb484def4a7eaf24ff64aa0e427f6a678d5",
+  "representation": "bounded text excerpts; HTML tags/scripts/styles removed, whitespace collapsed; not original body bytes",
+  "excerpts": [
+    {
+      "term": "Returns the ID of the device",
+      "found": true,
+      "text": "data . Required Methods § 1.1.0 · Source fn dev (&amp;self) -&gt; u64 Returns the ID of the device containing the file. § Examples use std::io; use std::fs; use std::os::unix::fs::MetadataExt; fn main() -&gt; io::Result&lt;()&gt; { let meta = fs::metadata( \"some_file\" ) ? ; let dev_id = meta.dev(); Ok (()) } 1.1.0 · Source fn ino (&amp;self) -&gt; u64 Returns the inode number. § Examples use std::fs; use std::os::unix::fs::MetadataExt; use std::io; fn main() -&gt; io::Result&lt;()&gt; { let meta = fs::metadata( \"some_file\" ) ? ; let inode = meta.ino(); Ok (()) } 1.1.0 · Source fn mode (&amp;self) -&gt; u32 Returns the rights applied to this file. § Examples use std::fs; use std::os::unix::fs::MetadataExt; use std::io; fn main() -&gt; io::Result&lt;()&gt; { let meta = fs::metadata( \"some_file\" ) ? ; let mode = meta.mode(); let user_has_write_access = mode &amp; 0o200 ; let user_has_read_write_access = mode &amp; 0o600 ; let group_has_read_access = mode &amp"
+    },
+    {
+      "term": "Returns the inode number",
+      "found": true,
+      "text": "d = meta.dev(); Ok (()) } 1.1.0 · Source fn ino (&amp;self) -&gt; u64 Returns the inode number. § Examples use std::fs; use std::os::unix::fs::MetadataExt; use std::io; fn main() -&gt; io::Result&lt;()&gt; { let meta = fs::metadata( \"some_file\" ) ? ; let inode = meta.ino(); Ok (()) } 1.1.0 · Source fn mode (&amp;self) -&gt; u32 Returns the rights applied to this file. § Examples use std::fs; use std::os::unix::fs::MetadataExt; use std::io; fn main() -&gt; io::Result&lt;()&gt; { let meta = fs::metadata( \"some_file\" ) ? ; let mode = meta.mode(); let user_has_write_access = mode &amp; 0o200 ; let user_has_read_write_access = mode &amp; 0o600 ; let group_has_read_access = mode &amp; 0o040 ; let others_have_exec_access = mode &amp; 0o001 ; Ok (()) } 1.1.0 · Source fn nlink (&amp;self) -&gt; u64 Returns the number of hard links pointing to this file. § Examples use std::fs; use std::os::unix::fs::MetadataExt; use std::io; fn main() -&gt; io::Result&lt;()&gt; { l"
+    },
+    {
+      "term": "Returns the number of hard links",
+      "found": true,
+      "text": "&amp; 0o001 ; Ok (()) } 1.1.0 · Source fn nlink (&amp;self) -&gt; u64 Returns the number of hard links pointing to this file. § Examples use std::fs; use std::os::unix::fs::MetadataExt; use std::io; fn main() -&gt; io::Result&lt;()&gt; { let meta = fs::metadata( \"some_file\" ) ? ; let nb_hard_links = meta.nlink(); Ok (()) } 1.1.0 · Source fn uid (&amp;self) -&gt; u32 Returns the user ID of the owner of this file. § Examples use std::fs; use std::os::unix::fs::MetadataExt; use std::io; fn main() -&gt; io::Result&lt;()&gt; { let meta = fs::metadata( \"some_file\" ) ? ; let user_id = meta.uid(); Ok (()) } 1.1.0 · Source fn gid (&amp;self) -&gt; u32 Returns the group ID of the owner of this file. § Examples use std::fs; use std::os::unix::fs::MetadataExt; use std::io; fn main() -&gt; io::Result&lt;()&gt; { let meta = fs::metadata( \"some_file\" ) ? ; let group_id = meta.gid(); Ok (()) } 1.1.0 · Source fn rdev (&amp;self) -&gt; u64 Returns the device ID of this file"
+    },
+    {
+      "term": "Returns the number of blocks",
+      "found": true,
+      "text": "a.blksize(); Ok (()) } 1.1.0 · Source fn blocks (&amp;self) -&gt; u64 Returns the number of blocks allocated to the file, in 512-byte units. Please note that this may be smaller than st_size / 512 when the file has holes. § Examples use std::fs; use std::os::unix::fs::MetadataExt; use std::io; fn main() -&gt; io::Result&lt;()&gt; { let meta = fs::metadata( \"some_file\" ) ? ; let blocks = meta.blocks(); Ok (()) } Dyn Compatibility § This trait is dyn compatible . In older versions of Rust, dyn compatibility was called \"object safety\". Implementors § 1.1.0 · Source § impl MetadataExt for Metadata "
+    }
+  ]
+}

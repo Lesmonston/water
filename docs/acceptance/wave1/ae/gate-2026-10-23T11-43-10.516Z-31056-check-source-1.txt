@@ -1,0 +1,504 @@
+{
+  "version": "water.macos-gap-matrix.v1",
+  "implemented": false,
+  "real_macos_executed": false,
+  "project_commit": "4b8a1de2ad49664546547256cd3d55def7c31a49",
+  "entries": [
+    {
+      "component": "N",
+      "current_state": "Windows path validation and identity construction block Mac root leases; POSIX input may fail before platform dispatch.",
+      "current_sources": [
+        {
+          "path": "packages/native-root/src/v1.rs",
+          "commit": "4b8a1de2ad49664546547256cd3d55def7c31a49",
+          "sha256": "7e6aeebb32f77a7534ea4c98da4f3a84f178b6fbca287c74846fe446d6aac3fc",
+          "bytes": 4448,
+          "line_ranges": [
+            [
+              29,
+              44
+            ],
+            [
+              129,
+              166
+            ]
+          ],
+          "archive": "docs/acceptance/wave1/ae/current-source-00.txt"
+        },
+        {
+          "path": "packages/native-root/src/path.rs",
+          "commit": "4b8a1de2ad49664546547256cd3d55def7c31a49",
+          "sha256": "74ff284b8566fbe803d262c7b2ce1e9fadb21f43a18737416519f84d8aed469a",
+          "bytes": 1525,
+          "line_ranges": [
+            [
+              6,
+              28
+            ]
+          ],
+          "archive": "docs/acceptance/wave1/ae/current-source-01.txt"
+        }
+      ],
+      "macos_status": "not_implemented_not_tested",
+      "proposed_api": "Versioned platform identity plus owned-fd root lease and scope guard; per-ancestor restricted acquisition and fstat; observation grants no authority.",
+      "unresolved_questions": [
+        "Freeze identity tag/encoding without relabeling Windows fields.",
+        "Resolve root acquisition when sandbox blocks ancestor traversal; define filesystem/mount support."
+      ],
+      "source_ids": [
+        "rust-owned-fd",
+        "rust-unix-metadata",
+        "apple-xnu-open"
+      ],
+      "acceptance_cases": [
+        {
+          "name": "N-identity",
+          "expected": "Live object identity stable; distinct roots and stale capabilities remain separate.",
+          "execution": "planned_not_executed",
+          "plan": "ACCEPTANCE-PLAN.md"
+        },
+        {
+          "name": "N-ancestor",
+          "expected": "Root or ancestor symlink/replacement refuses access and never reads trap.",
+          "execution": "planned_not_executed",
+          "plan": "ACCEPTANCE-PLAN.md"
+        },
+        {
+          "name": "N-volume",
+          "expected": "Unknown or cross-device volume is rejected; no physical-space claim.",
+          "execution": "planned_not_executed",
+          "plan": "ACCEPTANCE-PLAN.md"
+        }
+      ]
+    },
+    {
+      "component": "P",
+      "current_state": "Owner/registration/attempt state machine is reusable logic; prepare calls N, so no Mac populated registry exists. confirm is host declaration.",
+      "current_sources": [
+        {
+          "path": "packages/scope-registry/src/v1.rs",
+          "commit": "4b8a1de2ad49664546547256cd3d55def7c31a49",
+          "sha256": "67de5f02e256bd0bc85518cd5004e1bed58719f31a100583aaee55f76e7bf73b",
+          "bytes": 7369,
+          "line_ranges": [
+            [
+              30,
+              83
+            ],
+            [
+              124,
+              179
+            ],
+            [
+              191,
+              249
+            ]
+          ],
+          "archive": "docs/acceptance/wave1/ae/current-source-02.txt"
+        }
+      ],
+      "macos_status": "not_implemented_not_tested",
+      "proposed_api": "After N acceptance, bind scoped lease ownership to private registry and attempts; reject stale, wrong-registry and revoked capabilities.",
+      "unresolved_questions": [
+        "Freeze security-scope lifetime versus registration/attempt borrowing.",
+        "Persistence, renewal and revocation do not follow from confirm; no natural gesture authentication."
+      ],
+      "source_ids": [
+        "rust-owned-fd",
+        "apple-scope",
+        "apple-sandbox-files"
+      ],
+      "acceptance_cases": [
+        {
+          "name": "P-capabilities",
+          "expected": "Wrong/stale/overlapping capability rejects without cancelling caller attempt.",
+          "execution": "planned_not_executed",
+          "plan": "ACCEPTANCE-PLAN.md"
+        },
+        {
+          "name": "AA-release",
+          "expected": "Release only resources acquired by this operation on error/unwind.",
+          "execution": "planned_not_executed",
+          "plan": "ACCEPTANCE-PLAN.md"
+        }
+      ]
+    },
+    {
+      "component": "R",
+      "current_state": "Options/token/observer/projection are reusable inputs; native walk and UTF-16 directory decoder are Windows-bound.",
+      "current_sources": [
+        {
+          "path": "packages/native-scan/src/v1.rs",
+          "commit": "4b8a1de2ad49664546547256cd3d55def7c31a49",
+          "sha256": "d4adae555d6e080266a9bc3aff75d9f557ebf37c4e4084cd8949476f96d410e0",
+          "bytes": 7143,
+          "line_ranges": [
+            [
+              46,
+              98
+            ],
+            [
+              194,
+              247
+            ]
+          ],
+          "archive": "docs/acceptance/wave1/ae/current-source-03.txt"
+        },
+        {
+          "path": "packages/native-scan/src/walk.rs",
+          "commit": "4b8a1de2ad49664546547256cd3d55def7c31a49",
+          "sha256": "52b0f077cbf57913c151ef0652b75b8894c91293a757b44efd0bf150a6a46255",
+          "bytes": 10619,
+          "line_ranges": [
+            [
+              9,
+              105
+            ],
+            [
+              193,
+              301
+            ]
+          ],
+          "archive": "docs/acceptance/wave1/ae/current-source-04.txt"
+        }
+      ],
+      "macos_status": "not_implemented_not_tested",
+      "proposed_api": "Bounded parent-fd enumeration; single-name openat no-follow and fstat on returned fd; zero ordinary body reads, preserved partial/issues/cancellation and unknown space.",
+      "unresolved_questions": [
+        "Verify SDK constants and directory representation; no guessed stat/dirent ABI.",
+        "Define retained-object authority versus current named ancestry after directory movement.",
+        "No-follow does not prove snapshot, same-device mount safety or bounded blocking IO."
+      ],
+      "source_ids": [
+        "apple-xnu-open",
+        "rust-owned-fd",
+        "rust-unix-metadata",
+        "apple-apfs"
+      ],
+      "acceptance_cases": [
+        {
+          "name": "R-metadata",
+          "expected": "No ordinary file content; protect and never follow links.",
+          "execution": "planned_not_executed",
+          "plan": "ACCEPTANCE-PLAN.md"
+        },
+        {
+          "name": "R-limits",
+          "expected": "8/10000/256 budgets preserve partial observations and bounded buffers.",
+          "execution": "planned_not_executed",
+          "plan": "ACCEPTANCE-PLAN.md"
+        },
+        {
+          "name": "R-mutation",
+          "expected": "Disappearance/replacement/enumeration churn is skipped or incomplete, never snapshot success.",
+          "execution": "planned_not_executed",
+          "plan": "ACCEPTANCE-PLAN.md"
+        }
+      ]
+    },
+    {
+      "component": "S",
+      "current_state": "Options require Windows spelling and native select dispatches only Windows x64; initial location is not selected scope.",
+      "current_sources": [
+        {
+          "path": "packages/native-picker/src/v1.rs",
+          "commit": "4b8a1de2ad49664546547256cd3d55def7c31a49",
+          "sha256": "6f78599cf76fcded311a1054da92f13120091e2f1dcd26cdd96947584b1902b2",
+          "bytes": 2668,
+          "line_ranges": [
+            [
+              13,
+              18
+            ],
+            [
+              59,
+              89
+            ]
+          ],
+          "archive": "docs/acceptance/wave1/ae/current-source-05.txt"
+        }
+      ],
+      "macos_status": "not_implemented_not_tested",
+      "proposed_api": "NSOpenPanel main-thread one-directory bridge with one-shot cancel/completion and explicit URL scope ownership; register actual selection only.",
+      "unresolved_questions": [
+        "Verify target response constants, ownership/thread annotations and Tauri dispatch in SDK/bindings.",
+        "Bound aliases/iCloud and implicit versus explicit scope; do not audit system navigation by assumption."
+      ],
+      "source_ids": [
+        "apple-panel",
+        "apple-sheet",
+        "apple-thread",
+        "apple-scope",
+        "apple-sandbox-files"
+      ],
+      "acceptance_cases": [
+        {
+          "name": "S-cancel",
+          "expected": "Cancel/close issues no capability and reuses no prior URL.",
+          "execution": "planned_not_executed",
+          "plan": "ACCEPTANCE-PLAN.md"
+        },
+        {
+          "name": "S-selection",
+          "expected": "Choose controlled nested directory different from initial; bind actual URL identity.",
+          "execution": "planned_not_executed",
+          "plan": "ACCEPTANCE-PLAN.md"
+        },
+        {
+          "name": "S-registry",
+          "expected": "Full/duplicate/confirm failure releases new pending lease only.",
+          "execution": "planned_not_executed",
+          "plan": "ACCEPTANCE-PLAN.md"
+        }
+      ]
+    },
+    {
+      "component": "Z",
+      "current_state": "Additional consent borrows live P authority but approve/read IO is Windows x64; only structural evidence leaves reader.",
+      "current_sources": [
+        {
+          "path": "packages/root-marker/src/v1.rs",
+          "commit": "4b8a1de2ad49664546547256cd3d55def7c31a49",
+          "sha256": "1391e8046a5f470e1d3278970dc63902b36eec8f1d2417b80fee6d48fa3fe6d2",
+          "bytes": 5107,
+          "line_ranges": [
+            [
+              6,
+              26
+            ],
+            [
+              53,
+              78
+            ],
+            [
+              103,
+              150
+            ]
+          ],
+          "archive": "docs/acceptance/wave1/ae/current-source-06.txt"
+        },
+        {
+          "path": "packages/root-marker/src/native_windows.rs",
+          "commit": "4b8a1de2ad49664546547256cd3d55def7c31a49",
+          "sha256": "126330970fa0617d373e05e21527a82692c57a503d8ec9f7b5b6dbf55c64f810",
+          "bytes": 9661,
+          "line_ranges": [
+            [
+              18,
+              18
+            ],
+            [
+              206,
+              224
+            ],
+            [
+              284,
+              319
+            ]
+          ],
+          "archive": "docs/acceptance/wave1/ae/current-source-07.txt"
+        },
+        {
+          "path": "contracts/root-marker-v1/SPEC.md",
+          "commit": "4b8a1de2ad49664546547256cd3d55def7c31a49",
+          "sha256": "c7a52cd731792fdf07d1d5408c36f08f7accba1447c0ef9fcdfb0cc86eec3a5f",
+          "bytes": 4845,
+          "line_ranges": [
+            [
+              5,
+              23
+            ]
+          ],
+          "archive": "docs/acceptance/wave1/ae/current-source-08.txt"
+        }
+      ],
+      "macos_status": "not_implemented_not_tested",
+      "proposed_api": "Open literal package.json relative to root fd, reject symlink/non-regular/multi-link, same-fd pre/post checks and hard 262144 policy/262145 probe cap; original UTF-8 to U.",
+      "unresolved_questions": [
+        "Unix lacks Windows share READ exclusion; same-inode same-length in-place writes remain unresolved.",
+        "Current Z has no cancellation token; freeze new API before promising chunk interruption."
+      ],
+      "source_ids": [
+        "apple-xnu-open",
+        "rust-unix-metadata",
+        "rust-owned-fd"
+      ],
+      "acceptance_cases": [
+        {
+          "name": "Z-consent",
+          "expected": "No separate live consent means no content IO; JSON cannot forge it.",
+          "execution": "planned_not_executed",
+          "plan": "ACCEPTANCE-PLAN.md"
+        },
+        {
+          "name": "Z-content",
+          "expected": "Exact/over cap and missing/invalid/link cases stay distinct; no fallback file.",
+          "execution": "planned_not_executed",
+          "plan": "ACCEPTANCE-PLAN.md"
+        },
+        {
+          "name": "Z-change",
+          "expected": "Detected mutation rejects evidence; undetectable concurrent writes stay documented as risk.",
+          "execution": "planned_not_executed",
+          "plan": "ACCEPTANCE-PLAN.md"
+        }
+      ]
+    },
+    {
+      "component": "AA",
+      "current_state": "Real P/R/Z composition and attempt guards exist; current worker performs selection and runtime emits Windows platform fields.",
+      "current_sources": [
+        {
+          "path": "packages/project-session/src/v1.rs",
+          "commit": "4b8a1de2ad49664546547256cd3d55def7c31a49",
+          "sha256": "ccfc7f76820ae96f355884cdf2993f72ff4ac9dbe3814e69737d863e1a5ec5fb",
+          "bytes": 7608,
+          "line_ranges": [
+            [
+              87,
+              158
+            ],
+            [
+              178,
+              202
+            ]
+          ],
+          "archive": "docs/acceptance/wave1/ae/current-source-09.txt"
+        },
+        {
+          "path": "packages/project-session/src/runtime.rs",
+          "commit": "4b8a1de2ad49664546547256cd3d55def7c31a49",
+          "sha256": "1e11077004a8d522a78db836ab304b957c6bf0f4c63cfd891c8d5d6c40a7be90",
+          "bytes": 14040,
+          "line_ranges": [
+            [
+              172,
+              241
+            ],
+            [
+              302,
+              327
+            ]
+          ],
+          "archive": "docs/acceptance/wave1/ae/current-source-10.txt"
+        },
+        {
+          "path": "contracts/project-session-v1/SPEC.md",
+          "commit": "4b8a1de2ad49664546547256cd3d55def7c31a49",
+          "sha256": "3afa2fc5b17bae5e136cd934c6561c9540fed97c8e56e2b0e0c862aff7b51ea3",
+          "bytes": 7046,
+          "line_ranges": [
+            [
+              16,
+              45
+            ]
+          ],
+          "archive": "docs/acceptance/wave1/ae/current-source-11.txt"
+        },
+        {
+          "path": "contracts/project-workspace-addendum-v1/SPEC.md",
+          "commit": "4b8a1de2ad49664546547256cd3d55def7c31a49",
+          "sha256": "df137c8f813ea4054020abf97480bf9c030c136f389e3bbb57110dda69057732",
+          "bytes": 3326,
+          "line_ranges": [
+            [
+              3,
+              15
+            ]
+          ],
+          "archive": "docs/acceptance/wave1/ae/current-source-12.txt"
+        }
+      ],
+      "macos_status": "not_implemented_not_tested",
+      "proposed_api": "Split main-thread selection from IO worker with same job/token/choice; preserve completed/partial metadata plus skipped content and own-resource cleanup.",
+      "unresolved_questions": [
+        "Freeze safe URL/lease transfer without sending AppKit objects, plus callback/shutdown/panic ownership.",
+        "Controller must define platform labels and thread/protocol changes without silently modifying old wire."
+      ],
+      "source_ids": [
+        "apple-thread",
+        "apple-sheet",
+        "apple-scope",
+        "rust-owned-fd"
+      ],
+      "acceptance_cases": [
+        {
+          "name": "AA-choice",
+          "expected": "Per-job explicit choice never carries over; default false calls no Z.",
+          "execution": "planned_not_executed",
+          "plan": "ACCEPTANCE-PLAN.md"
+        },
+        {
+          "name": "AA-late",
+          "expected": "Final observer token may leave completed while content skipped; partial also retained.",
+          "execution": "planned_not_executed",
+          "plan": "ACCEPTANCE-PLAN.md"
+        },
+        {
+          "name": "AA-release",
+          "expected": "Begin failure preserves caller permit; only owned registration/attempt is released.",
+          "execution": "planned_not_executed",
+          "plan": "ACCEPTANCE-PLAN.md"
+        }
+      ]
+    },
+    {
+      "component": "desktop",
+      "current_state": "Reviewed frozen Windows static-shell contract only; no AC in-flight artifact or Mac implementation inspected.",
+      "current_sources": [
+        {
+          "path": "contracts/desktop-bootstrap-v1/SPEC.md",
+          "commit": "4b8a1de2ad49664546547256cd3d55def7c31a49",
+          "sha256": "da50ac0e70c3b8657f28df02b865dd58a7131b5460092075b89250cb4817ac13",
+          "bytes": 4864,
+          "line_ranges": [
+            [
+              3,
+              19
+            ]
+          ],
+          "archive": "docs/acceptance/wave1/ae/current-source-13.txt"
+        },
+        {
+          "path": "contracts/macos-readiness-v1/SPEC.md",
+          "commit": "4b8a1de2ad49664546547256cd3d55def7c31a49",
+          "sha256": "170f51e5d792b47abe8875626e85ad8b9c0319433af495d2b763403a91a1fc51",
+          "bytes": 3504,
+          "line_ranges": [
+            [
+              1,
+              17
+            ]
+          ],
+          "archive": "docs/acceptance/wave1/ae/current-source-14.txt"
+        }
+      ],
+      "macos_status": "not_implemented_not_tested",
+      "proposed_api": "After accepted AC/AD and Mac AA, freeze Mac embedded-WebView/main-thread bridge with restricted navigation/CSP/IPC, private data store and exit lifecycle.",
+      "unresolved_questions": [
+        "Verify actual Mac origins, WebView data path and lifecycle against exact dependencies.",
+        "OS/architectures, sandbox distribution, signing/notarization and procurement are separate decisions."
+      ],
+      "source_ids": [
+        "tauri-prerequisites",
+        "tauri-capabilities",
+        "apple-thread",
+        "apple-sandbox"
+      ],
+      "acceptance_cases": [
+        {
+          "name": "Desktop-boundary",
+          "expected": "Real Mac page loads and production navigation rejects external/file/lookalike and arbitrary-path/shell input.",
+          "execution": "planned_not_executed",
+          "plan": "ACCEPTANCE-PLAN.md"
+        },
+        {
+          "name": "Export-boundary",
+          "expected": "Same-job Q/Z downloads equal original bytes; cancelled content has no structure attachment.",
+          "execution": "planned_not_executed",
+          "plan": "ACCEPTANCE-PLAN.md"
+        }
+      ]
+    }
+  ]
+}

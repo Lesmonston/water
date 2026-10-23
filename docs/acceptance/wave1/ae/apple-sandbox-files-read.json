@@ -1,0 +1,1624 @@
+{
+  "url": "https://developer.apple.com/tutorials/data/documentation/security/accessing-files-from-the-macos-app-sandbox.json",
+  "accessed_at": "2026-10-23T11:34:45.566Z",
+  "status": 200,
+  "body_bytes": 62101,
+  "body_sha256": "71c367c3ebfd2ee4040d42c18db6cdd9feee34b07788f0140317fa70a11b3055",
+  "document": {
+    "metadata": {
+      "availableLanguages": [
+        "de-DE",
+        "en-US",
+        "es-419",
+        "fr-FR",
+        "it-IT",
+        "ja-JP",
+        "ko-KR",
+        "pt-BR",
+        "zh-CN"
+      ],
+      "modules": [
+        {
+          "name": "Security"
+        }
+      ],
+      "role": "article",
+      "roleHeading": "Article",
+      "title": "Accessing files from the macOS App Sandbox"
+    },
+    "abstract": [
+      {
+        "text": "Read and write documents and supporting files while maintaining security protection.",
+        "type": "text"
+      }
+    ],
+    "primaryContentSections": [
+      {
+        "content": [
+          {
+            "anchor": "overview",
+            "level": 2,
+            "text": "Overview",
+            "type": "heading"
+          },
+          {
+            "inlineContent": [
+              {
+                "text": "App Sandbox improves the overall security of a Mac by restricting your app’s access to protected resources. macOS gives your app unrestricted access to limited parts of the Mac’s file system, but you can extend that access to:",
+                "type": "text"
+              }
+            ],
+            "type": "paragraph"
+          },
+          {
+            "items": [
+              {
+                "content": [
+                  {
+                    "inlineContent": [
+                      {
+                        "text": "Read and write user-selected documents.",
+                        "type": "text"
+                      }
+                    ],
+                    "type": "paragraph"
+                  }
+                ]
+              },
+              {
+                "content": [
+                  {
+                    "inlineContent": [
+                      {
+                        "text": "Share files between running processes.",
+                        "type": "text"
+                      }
+                    ],
+                    "type": "paragraph"
+                  }
+                ]
+              },
+              {
+                "content": [
+                  {
+                    "inlineContent": [
+                      {
+                        "text": "Maintain access to files when your app next runs.",
+                        "type": "text"
+                      }
+                    ],
+                    "type": "paragraph"
+                  }
+                ]
+              },
+              {
+                "content": [
+                  {
+                    "inlineContent": [
+                      {
+                        "text": "Work with supporting files related to other documents.",
+                        "type": "text"
+                      }
+                    ],
+                    "type": "paragraph"
+                  }
+                ]
+              },
+              {
+                "content": [
+                  {
+                    "inlineContent": [
+                      {
+                        "text": "Share files between apps in an App Group.",
+                        "type": "text"
+                      }
+                    ],
+                    "type": "paragraph"
+                  }
+                ]
+              },
+              {
+                "content": [
+                  {
+                    "inlineContent": [
+                      {
+                        "text": "Use common file categories stored in standard locations.",
+                        "type": "text"
+                      }
+                    ],
+                    "type": "paragraph"
+                  }
+                ]
+              }
+            ],
+            "type": "unorderedList"
+          },
+          {
+            "inlineContent": [
+              {
+                "text": "Even in situations where App Sandbox permits your app to work with a file, discretionary access controls such as POSIX permissions or access control lists, or mandatory access controls built into macOS, may cause errors when your app attempts to use a file.",
+                "type": "text"
+              }
+            ],
+            "type": "paragraph"
+          },
+          {
+            "anchor": "Use-files-in-your-apps-container",
+            "level": 3,
+            "text": "Use files in your app’s container",
+            "type": "heading"
+          },
+          {
+            "inlineContent": [
+              {
+                "text": "When your sandboxed app launches for the first time, macOS creates a sandbox container on the file system (in ",
+                "type": "text"
+              },
+              {
+                "code": "~/Library/Containers",
+                "type": "codeVoice"
+              },
+              {
+                "text": ") and associates it with your app. Your app has full read and write access to its sandbox container, and can run programs located there as well.",
+                "type": "text"
+              }
+            ],
+            "type": "paragraph"
+          },
+          {
+            "inlineContent": [
+              {
+                "text": "In macOS 14 and later, the operating system uses your app’s code signature to associate it with its sandbox container. If your app tries to access the sandbox container owned by another app, the system asks the person using your app whether to grant access. If the person denies access and your app is already running, then it can’t read or write the files in the other app’s sandbox container. If the person denies access while your app is launching and trying to enter the other app’s sandbox container, your app fails to launch. The system also requests permission for an app to access files in another app’s container if the app that’s attempting to access the files doesn’t have the app sandbox entitlement in its code signature. If the person grants permission, then the app can access files in any app sandbox container until it exits.",
+                "type": "text"
+              }
+            ],
+            "type": "paragraph"
+          },
+          {
+            "inlineContent": [
+              {
+                "text": "The operating system also tracks the association between an app’s code signing identity and its sandbox container for helper tools, including launch agents. If a person denies permission for a launch agent to enter its sandbox container and the app fails to start, ",
+                "type": "text"
+              },
+              {
+                "code": "launchd",
+                "type": "codeVoice"
+              },
+              {
+                "text": " starts the launch agent again and the operating system re-requests access.",
+                "type": "text"
+              }
+            ],
+            "type": "paragraph"
+          },
+          {
+            "content": [
+              {
+                "inlineContent": [
+                  {
+                    "text": "",
+                    "type": "text"
+                  },
+                  {
+                    "text": " ",
+                    "type": "text"
+                  },
+                  {
+                    "text": "In certain situations, two different versions of your app can have different designated requirements, leading the operating system to request permission when the second version tries to access the sandbox container. One case is using both the version of your app from the Mac App Store and a local build created in Xcode on the same computer. Another is if you transfer an app to another App Store team and the code signing identity used to sign the app changes between released versions.",
+                    "type": "text"
+                  }
+                ],
+                "type": "paragraph"
+              }
+            ],
+            "name": "Note",
+            "style": "note",
+            "type": "aside"
+          },
+          {
+            "anchor": "Access-files-with-standard-user-interactions",
+            "level": 3,
+            "text": "Access files with standard user interactions",
+            "type": "heading"
+          },
+          {
+            "inlineContent": [
+              {
+                "text": "Give your app access to files that a person chooses in open and save panels, or by following these steps:",
+                "type": "text"
+              }
+            ],
+            "type": "paragraph"
+          },
+          {
+            "items": [
+              {
+                "content": [
+                  {
+                    "inlineContent": [
+                      {
+                        "text": "Open your Xcode project.",
+                        "type": "text"
+                      }
+                    ],
+                    "type": "paragraph"
+                  }
+                ]
+              },
+              {
+                "content": [
+                  {
+                    "inlineContent": [
+                      {
+                        "text": "Select your project in the file navigator.",
+                        "type": "text"
+                      }
+                    ],
+                    "type": "paragraph"
+                  }
+                ]
+              },
+              {
+                "content": [
+                  {
+                    "inlineContent": [
+                      {
+                        "text": "Select your app’s target.",
+                        "type": "text"
+                      }
+                    ],
+                    "type": "paragraph"
+                  }
+                ]
+              },
+              {
+                "content": [
+                  {
+                    "inlineContent": [
+                      {
+                        "text": "Open the Signing & Capabilities tab.",
+                        "type": "text"
+                      }
+                    ],
+                    "type": "paragraph"
+                  }
+                ]
+              },
+              {
+                "content": [
+                  {
+                    "inlineContent": [
+                      {
+                        "text": "In the App Sandbox group, choose Read Only or Read/Write from the User Selected File menu.",
+                        "type": "text"
+                      }
+                    ],
+                    "type": "paragraph"
+                  }
+                ]
+              }
+            ],
+            "type": "orderedList"
+          },
+          {
+            "inlineContent": [
+              {
+                "identifier": "media-4208568",
+                "type": "image"
+              }
+            ],
+            "type": "paragraph"
+          },
+          {
+            "inlineContent": [
+              {
+                "text": "Present a standard open or save panel so that a person can choose a document that’s outside your app’s sandbox:",
+                "type": "text"
+              }
+            ],
+            "type": "paragraph"
+          },
+          {
+            "items": [
+              {
+                "content": [
+                  {
+                    "inlineContent": [
+                      {
+                        "text": "From SwiftUI, use file import modifiers like ",
+                        "type": "text"
+                      },
+                      {
+                        "identifier": "doc://com.apple.documentation/documentation/SwiftUI/View/fileImporter(isPresented:allowedContentTypes:onCompletion:)",
+                        "isActive": true,
+                        "type": "reference"
+                      },
+                      {
+                        "text": ", and file exporter modifiers like ",
+                        "type": "text"
+                      },
+                      {
+                        "identifier": "doc://com.apple.documentation/documentation/SwiftUI/View/fileExporter(isPresented:document:contentType:defaultFilename:onCompletion:)-32vwk",
+                        "isActive": true,
+                        "type": "reference"
+                      },
+                      {
+                        "text": ".",
+                        "type": "text"
+                      }
+                    ],
+                    "type": "paragraph"
+                  }
+                ]
+              },
+              {
+                "content": [
+                  {
+                    "inlineContent": [
+                      {
+                        "text": "From AppKit, use ",
+                        "type": "text"
+                      },
+                      {
+                        "identifier": "doc://com.apple.documentation/documentation/AppKit/NSOpenPanel",
+                        "isActive": true,
+                        "type": "reference"
+                      },
+                      {
+                        "text": " and ",
+                        "type": "text"
+                      },
+                      {
+                        "identifier": "doc://com.apple.documentation/documentation/AppKit/NSSavePanel",
+                        "isActive": true,
+                        "type": "reference"
+                      },
+                      {
+                        "text": ".",
+                        "type": "text"
+                      }
+                    ],
+                    "type": "paragraph"
+                  }
+                ]
+              },
+              {
+                "content": [
+                  {
+                    "inlineContent": [
+                      {
+                        "text": "From Mac Catalyst, use ",
+                        "type": "text"
+                      },
+                      {
+                        "identifier": "doc://com.apple.documentation/documentation/UIKit/UIDocumentPickerViewController",
+                        "isActive": true,
+                        "type": "reference"
+                      },
+                      {
+                        "text": ".",
+                        "type": "text"
+                      }
+                    ],
+                    "type": "paragraph"
+                  }
+                ]
+              }
+            ],
+            "type": "unorderedList"
+          },
+          {
+            "inlineContent": [
+              {
+                "text": "The operating system displays open and save panels in a separate process, and extends your app’s sandbox to include the selected URLs.",
+                "type": "text"
+              }
+            ],
+            "type": "paragraph"
+          },
+          {
+            "inlineContent": [
+              {
+                "text": "The operating system starts security-scoped access on URLs passed from open panels, save panels, or items dragged to your app’s icon in the Dock, as if you called ",
+                "type": "text"
+              },
+              {
+                "identifier": "doc://com.apple.documentation/documentation/Foundation/NSURL/startAccessingSecurityScopedResource()",
+                "isActive": true,
+                "type": "reference"
+              },
+              {
+                "text": ". When you’ve finished with the resources, call ",
+                "type": "text"
+              },
+              {
+                "identifier": "doc://com.apple.documentation/documentation/Foundation/NSURL/stopAccessingSecurityScopedResource()",
+                "isActive": true,
+                "type": "reference"
+              },
+              {
+                "text": " to revoke your app’s access.",
+                "type": "text"
+              }
+            ],
+            "type": "paragraph"
+          },
+          {
+            "inlineContent": [
+              {
+                "text": "When the URL your app receives from a standard user interface interaction represents a folder, the operating system extends your app’s sandbox to items within that folder, and recursively in nested folders. Some items within the folder could still be inaccessible for other reasons, discussed in “Diagnose other reasons your app can’t access a file,” below.",
+                "type": "text"
+              }
+            ],
+            "type": "paragraph"
+          },
+          {
+            "inlineContent": [
+              {
+                "text": "Your app can’t run programs in locations outside its app bundle, sandbox container, or app group containers using the entitlements to access user-selected files. To write programs in user-selected locations, add the ",
+                "type": "text"
+              },
+              {
+                "code": "com.apple.security.files.user-selected.executable",
+                "type": "codeVoice"
+              },
+              {
+                "text": " entitlement with the Boolean value ",
+                "type": "text"
+              },
+              {
+                "code": "YES",
+                "type": "codeVoice"
+              },
+              {
+                "text": ".",
+                "type": "text"
+              }
+            ],
+            "type": "paragraph"
+          },
+          {
+            "anchor": "Persist-file-access-with-security-scoped-URL-bookmarks",
+            "level": 3,
+            "text": "Persist file access with security-scoped URL bookmarks",
+            "type": "heading"
+          },
+          {
+            "inlineContent": [
+              {
+                "text": "Create bookmark data from a URL using ",
+                "type": "text"
+              },
+              {
+                "identifier": "doc://com.apple.documentation/documentation/Foundation/NSURL/bookmarkData(options:includingResourceValuesForKeys:relativeTo:)",
+                "isActive": true,
+                "type": "reference"
+              },
+              {
+                "text": ", including the ",
+                "type": "text"
+              },
+              {
+                "identifier": "doc://com.apple.documentation/documentation/Foundation/NSURL/BookmarkCreationOptions/withSecurityScope",
+                "isActive": true,
+                "type": "reference"
+              },
+              {
+                "text": " option. Foundation creates a URL bookmark with an explicit security scope that your app can store and retrieve to subsequently access the resource at the URL, regardless of whether your app exits between accesses. If your app doesn’t need to write to the file on subsequent access, include the ",
+                "type": "text"
+              },
+              {
+                "identifier": "doc://com.apple.documentation/documentation/Foundation/NSURL/BookmarkCreationOptions/securityScopeAllowOnlyReadAccess",
+                "isActive": true,
+                "type": "reference"
+              },
+              {
+                "text": " option.",
+                "type": "text"
+              }
+            ],
+            "type": "paragraph"
+          },
+          {
+            "inlineContent": [
+              {
+                "text": "Unlike the bookmarks with implicit security scope that your app receives from standard system interactions or from communication with other processes, when you resolve a security-scoped bookmark that you retrieve from a stored representation, the system doesn’t automatically extend your app’s sandbox to include the bookmarked file. Call ",
+                "type": "text"
+              },
+              {
+                "identifier": "doc://com.apple.documentation/documentation/Foundation/NSURL/startAccessingSecurityScopedResource()",
+                "isActive": true,
+                "type": "reference"
+              },
+              {
+                "text": " before you use the file at the resolved URL, and ",
+                "type": "text"
+              },
+              {
+                "identifier": "doc://com.apple.documentation/documentation/Foundation/NSURL/stopAccessingSecurityScopedResource()",
+                "isActive": true,
+                "type": "reference"
+              },
+              {
+                "text": " when you’re done with the file.",
+                "type": "text"
+              }
+            ],
+            "type": "paragraph"
+          },
+          {
+            "inlineContent": [
+              {
+                "text": "To access the file:",
+                "type": "text"
+              }
+            ],
+            "type": "paragraph"
+          },
+          {
+            "items": [
+              {
+                "content": [
+                  {
+                    "inlineContent": [
+                      {
+                        "text": "Resolve the URL using ",
+                        "type": "text"
+                      },
+                      {
+                        "identifier": "doc://com.apple.documentation/documentation/Foundation/NSURL/init(resolvingBookmarkData:options:relativeTo:bookmarkDataIsStale:)",
+                        "isActive": true,
+                        "type": "reference"
+                      },
+                      {
+                        "text": ", including ",
+                        "type": "text"
+                      },
+                      {
+                        "identifier": "doc://com.apple.documentation/documentation/Foundation/NSURL/BookmarkCreationOptions/withSecurityScope",
+                        "isActive": true,
+                        "type": "reference"
+                      },
+                      {
+                        "text": " in the options.",
+                        "type": "text"
+                      }
+                    ],
+                    "type": "paragraph"
+                  }
+                ]
+              },
+              {
+                "content": [
+                  {
+                    "inlineContent": [
+                      {
+                        "text": "If the Boolean value returned in ",
+                        "type": "text"
+                      },
+                      {
+                        "code": "bookmarkDataIsStale",
+                        "type": "codeVoice"
+                      },
+                      {
+                        "text": " is true, then recreate the bookmark using ",
+                        "type": "text"
+                      },
+                      {
+                        "identifier": "doc://com.apple.documentation/documentation/Foundation/NSURL/bookmarkData(options:includingResourceValuesForKeys:relativeTo:)",
+                        "isActive": true,
+                        "type": "reference"
+                      },
+                      {
+                        "text": " and update your app’s stored version of the bookmark.",
+                        "type": "text"
+                      }
+                    ],
+                    "type": "paragraph"
+                  }
+                ]
+              },
+              {
+                "content": [
+                  {
+                    "inlineContent": [
+                      {
+                        "text": "Call ",
+                        "type": "text"
+                      },
+                      {
+                        "identifier": "doc://com.apple.documentation/documentation/Foundation/NSURL/startAccessingSecurityScopedResource()",
+                        "isActive": true,
+                        "type": "reference"
+                      },
+                      {
+                        "text": " on the resolved URL.",
+                        "type": "text"
+                      }
+                    ],
+                    "type": "paragraph"
+                  }
+                ]
+              },
+              {
+                "content": [
+                  {
+                    "inlineContent": [
+                      {
+                        "text": "Use the file at the resolved URL.",
+                        "type": "text"
+                      }
+                    ],
+                    "type": "paragraph"
+                  }
+                ]
+              },
+              {
+                "content": [
+                  {
+                    "inlineContent": [
+                      {
+                        "text": "Call ",
+                        "type": "text"
+                      },
+                      {
+                        "identifier": "doc://com.apple.documentation/documentation/Foundation/NSURL/stopAccessingSecurityScopedResource()",
+                        "isActive": true,
+                        "type": "reference"
+                      },
+                      {
+                        "text": " on the resolved URL.",
+                        "type": "text"
+                      }
+                    ],
+                    "type": "paragraph"
+                  }
+                ]
+              }
+            ],
+            "type": "orderedList"
+          },
+          {
+            "inlineContent": [
+              {
+                "text": "You only need to create security-scoped bookmarks when your app might try to access the bookmarked resource after it exits and re-launches. In other situations, for example, passing a URL bookmark between processes, you can create and use a bookmark without security scope.",
+                "type": "text"
+              }
+            ],
+            "type": "paragraph"
+          },
+          {
+            "anchor": "Share-file-access-between-processes-with-URL-bookmarks",
+            "level": 3,
+            "text": "Share file access between processes with URL bookmarks",
+            "type": "heading"
+          },
+          {
+            "inlineContent": [
+              {
+                "text": "Create bookmark data from a URL using ",
+                "type": "text"
+              },
+              {
+                "identifier": "doc://com.apple.documentation/documentation/Foundation/NSURL/bookmarkData(options:includingResourceValuesForKeys:relativeTo:)",
+                "isActive": true,
+                "type": "reference"
+              },
+              {
+                "text": ", passing ",
+                "type": "text"
+              },
+              {
+                "code": "[]",
+                "type": "codeVoice"
+              },
+              {
+                "text": " (Swift) or ",
+                "type": "text"
+              },
+              {
+                "code": "0",
+                "type": "codeVoice"
+              },
+              {
+                "text": " (Objective-C) as the value for the options parameter. The bookmark Foundation creates refers to a security-scoped URL that grants access to the resource to a process that resolves the bookmark. Your app can pass that bookmark to another process, like a launch agent or an XPC service. Use the following example to access the resource in the receiving process:",
+                "type": "text"
+              }
+            ],
+            "type": "paragraph"
+          },
+          {
+            "tabs": [
+              {
+                "content": [
+                  {
+                    "code": [
+                      "do {",
+                      "  let location = try URL(resolvingBookmarkData: bookmark)",
+                      "  defer {",
+                      "    location.stopAccessingSecurityScopedResource()",
+                      "  }",
+                      "  // Use the resource at the location URL.",
+                      "}",
+                      "catch let error {",
+                      "  // Handle any errors.",
+                      "} "
+                    ],
+                    "copyToClipboard": true,
+                    "lineAnnotations": [],
+                    "showLineNumbers": false,
+                    "syntax": "swift",
+                    "type": "codeListing",
+                    "wrap": 0
+                  }
+                ],
+                "title": "Swift"
+              },
+              {
+                "content": [
+                  {
+                    "code": [
+                      "BOOL isStale = NO;",
+                      "NSError *error = nil;",
+                      "NSURL *location = [NSURL URLByResolvingBookmarkData:bookmark",
+                      "                                            options:0",
+                      "                                      relativeToURL:0",
+                      "                                bookmarkDataIsStale:&isStale",
+                      "                                              error:&error];",
+                      "if (location == nil) {",
+                      "  // Handle any errors.",
+                      "} else {",
+                      "  // Use the resource at the location URL.",
+                      "  [location stopAccessingSecurityScopedResource];",
+                      "}"
+                    ],
+                    "copyToClipboard": true,
+                    "lineAnnotations": [],
+                    "showLineNumbers": false,
+                    "syntax": "objc",
+                    "type": "codeListing",
+                    "wrap": 0
+                  }
+                ],
+                "title": "Objective-C"
+              }
+            ],
+            "type": "tabNavigator"
+          },
+          {
+            "inlineContent": [
+              {
+                "text": "The receiving process automatically attempts to extend its sandbox to include the bookmarked resource when it uses the security-scoped URL, as if it called ",
+                "type": "text"
+              },
+              {
+                "identifier": "doc://com.apple.documentation/documentation/Foundation/NSURL/startAccessingSecurityScopedResource()",
+                "isActive": true,
+                "type": "reference"
+              },
+              {
+                "text": " after resolving the bookmark. To defer extending the process’s sandbox until you explicitly call ",
+                "type": "text"
+              },
+              {
+                "identifier": "doc://com.apple.documentation/documentation/Foundation/NSURL/startAccessingSecurityScopedResource()",
+                "isActive": true,
+                "type": "reference"
+              },
+              {
+                "text": ", pass the option ",
+                "type": "text"
+              },
+              {
+                "identifier": "doc://com.apple.documentation/documentation/Foundation/NSURL/BookmarkResolutionOptions/withoutImplicitStartAccessing",
+                "isActive": true,
+                "type": "reference"
+              },
+              {
+                "text": ".",
+                "type": "text"
+              }
+            ],
+            "type": "paragraph"
+          },
+          {
+            "anchor": "Access-files-related-to-documents-with-document-relative-bookmarks",
+            "level": 3,
+            "text": "Access files related to documents with document-relative bookmarks",
+            "type": "heading"
+          },
+          {
+            "inlineContent": [
+              {
+                "text": "Document-relative bookmarks extend access to project files to cover the supporting files those projects reference. Consider the example of an integrated development environment (IDE) app. An IDE project file could contain references to source code files, images, and other assets. Store document-relative bookmarks in the project document, so that when the sandboxed app opens the project document, it can resolve the bookmarks to access the other files.",
+                "type": "text"
+              }
+            ],
+            "type": "paragraph"
+          },
+          {
+            "inlineContent": [
+              {
+                "text": "Create bookmark data from a URL using ",
+                "type": "text"
+              },
+              {
+                "identifier": "doc://com.apple.documentation/documentation/Foundation/NSURL/bookmarkData(options:includingResourceValuesForKeys:relativeTo:)",
+                "isActive": true,
+                "type": "reference"
+              },
+              {
+                "text": ", using the document’s URL as the ",
+                "type": "text"
+              },
+              {
+                "code": "url",
+                "type": "codeVoice"
+              },
+              {
+                "text": " parameter. Foundation creates a bookmark that any process with access to the resource at the ",
+                "type": "text"
+              },
+              {
+                "code": "relativeTo",
+                "type": "codeVoice"
+              },
+              {
+                "text": " URL can resolve.",
+                "type": "text"
+              }
+            ],
+            "type": "paragraph"
+          },
+          {
+            "anchor": "Share-files-between-related-apps-with-app-group-containers",
+            "level": 3,
+            "text": "Share files between related apps with app group containers",
+            "type": "heading"
+          },
+          {
+            "inlineContent": [
+              {
+                "text": "Apps that are members of the same app group can create any number of shared containers that they use to exchange files. Your app can access files and folders in an app group container if it meets the following conditions:",
+                "type": "text"
+              }
+            ],
+            "type": "paragraph"
+          },
+          {
+            "items": [
+              {
+                "content": [
+                  {
+                    "inlineContent": [
+                      {
+                        "text": "You get the location of the app group container by calling the ",
+                        "type": "text"
+                      },
+                      {
+                        "identifier": "doc://com.apple.documentation/documentation/Foundation/FileManager",
+                        "isActive": true,
+                        "type": "reference"
+                      },
+                      {
+                        "text": " method ",
+                        "type": "text"
+                      },
+                      {
+                        "identifier": "doc://com.apple.documentation/documentation/Foundation/FileManager/containerURL(forSecurityApplicationGroupIdentifier:)",
+                        "isActive": true,
+                        "type": "reference"
+                      },
+                      {
+                        "text": ".",
+                        "type": "text"
+                      }
+                    ],
+                    "type": "paragraph"
+                  }
+                ]
+              },
+              {
+                "content": [
+                  {
+                    "inlineContent": [
+                      {
+                        "text": "Your app claims the ",
+                        "type": "text"
+                      },
+                      {
+                        "identifier": "doc://com.apple.documentation/documentation/BundleResources/Entitlements/com.apple.security.application-groups",
+                        "isActive": true,
+                        "type": "reference"
+                      },
+                      {
+                        "text": " with a value that contains the app group’s identifier.",
+                        "type": "text"
+                      }
+                    ],
+                    "type": "paragraph"
+                  }
+                ]
+              },
+              {
+                "content": [
+                  {
+                    "inlineContent": [
+                      {
+                        "text": "Your app is distributed through the Mac App Store, or notarized.",
+                        "type": "text"
+                      }
+                    ],
+                    "type": "paragraph"
+                  }
+                ]
+              },
+              {
+                "content": [
+                  {
+                    "inlineContent": [
+                      {
+                        "text": "If your app is notarized, the app group’s identifier is contained in your app’s provisioning profile or prefixed with your Apple Developer team identifier.",
+                        "type": "text"
+                      }
+                    ],
+                    "type": "paragraph"
+                  }
+                ]
+              }
+            ],
+            "type": "unorderedList"
+          },
+          {
+            "inlineContent": [
+              {
+                "text": "In other situations, the system displays a request for someone to authorize your app’s access to the app group container.",
+                "type": "text"
+              }
+            ],
+            "type": "paragraph"
+          },
+          {
+            "anchor": "Use-related-file-access-to-work-with-groups-of-files",
+            "level": 3,
+            "text": "Use related file access to work with groups of files",
+            "type": "heading"
+          },
+          {
+            "inlineContent": [
+              {
+                "text": "To work with files that are related to a document chosen by the person using your app, like ancillary files or versions in different formats, identify your apps’ related file types with these steps:",
+                "type": "text"
+              }
+            ],
+            "type": "paragraph"
+          },
+          {
+            "items": [
+              {
+                "content": [
+                  {
+                    "inlineContent": [
+                      {
+                        "text": "Open your Xcode project.",
+                        "type": "text"
+                      }
+                    ],
+                    "type": "paragraph"
+                  }
+                ]
+              },
+              {
+                "content": [
+                  {
+                    "inlineContent": [
+                      {
+                        "text": "Select your app’s ",
+                        "type": "text"
+                      },
+                      {
+                        "code": "Info.plist",
+                        "type": "codeVoice"
+                      },
+                      {
+                        "text": " file in the file navigator.",
+                        "type": "text"
+                      }
+                    ],
+                    "type": "paragraph"
+                  }
+                ]
+              },
+              {
+                "content": [
+                  {
+                    "inlineContent": [
+                      {
+                        "text": "Open the disclosure triangle next to Document types.",
+                        "type": "text"
+                      }
+                    ],
+                    "type": "paragraph"
+                  }
+                ]
+              },
+              {
+                "content": [
+                  {
+                    "inlineContent": [
+                      {
+                        "text": "Add the ",
+                        "type": "text"
+                      },
+                      {
+                        "code": "NSIsRelatedItemType",
+                        "type": "codeVoice"
+                      },
+                      {
+                        "text": " key to the dictionaries representing your app’s related file types, with the Boolean value ",
+                        "type": "text"
+                      },
+                      {
+                        "code": "YES",
+                        "type": "codeVoice"
+                      },
+                      {
+                        "text": ".",
+                        "type": "text"
+                      }
+                    ],
+                    "type": "paragraph"
+                  }
+                ]
+              }
+            ],
+            "type": "orderedList"
+          },
+          {
+            "inlineContent": [
+              {
+                "identifier": "media-4208569",
+                "type": "image"
+              }
+            ],
+            "type": "paragraph"
+          },
+          {
+            "inlineContent": [
+              {
+                "text": "The ",
+                "type": "text"
+              },
+              {
+                "code": "Info.plist",
+                "type": "codeVoice"
+              },
+              {
+                "text": " file entry for the related file type should look like this example.",
+                "type": "text"
+              }
+            ],
+            "type": "paragraph"
+          },
+          {
+            "code": [
+              "<key>CFBundleDocumentTypes</key>",
+              "<array>",
+              "  <dict>",
+              "    <key>NSIsRelatedItemType</key>",
+              "    <true/>",
+              "    <key>CFBundleTypeRole</key>",
+              "    <string>Editor</string>",
+              "    <key>LSHandlerRank</key>",
+              "    <string>Default</string>",
+              "    <key>LSItemContentTypes</key>",
+              "    <array>",
+              "      <string>com.example.supporting-info</string>",
+              "    </array>",
+              "  </dict>",
+              "  <!-- Entries for your app’s main document types and other supporting files. -->",
+              "</array>"
+            ],
+            "copyToClipboard": true,
+            "lineAnnotations": [],
+            "showLineNumbers": false,
+            "syntax": "xml",
+            "type": "codeListing",
+            "wrap": 0
+          },
+          {
+            "inlineContent": [
+              {
+                "text": "In your code, create an object that conforms to ",
+                "type": "text"
+              },
+              {
+                "identifier": "doc://com.apple.documentation/documentation/Foundation/NSFilePresenter",
+                "isActive": true,
+                "type": "reference"
+              },
+              {
+                "text": ". For a given document file, set that object’s ",
+                "type": "text"
+              },
+              {
+                "identifier": "doc://com.apple.documentation/documentation/Foundation/NSFilePresenter/primaryPresentedItemURL",
+                "isActive": true,
+                "type": "reference"
+              },
+              {
+                "text": " to the document’s URL, and the ",
+                "type": "text"
+              },
+              {
+                "identifier": "doc://com.apple.documentation/documentation/Foundation/NSFilePresenter/presentedItemURL",
+                "isActive": true,
+                "type": "reference"
+              },
+              {
+                "text": " to the supporting file’s URL. Pass the created file presenter to an instance of ",
+                "type": "text"
+              },
+              {
+                "identifier": "doc://com.apple.documentation/documentation/Foundation/NSFileCoordinator",
+                "isActive": true,
+                "type": "reference"
+              },
+              {
+                "text": ", and use the file coordinator to access the supporting file. The operating system automatically extends your app’s sandbox to give your app access to the supporting file.",
+                "type": "text"
+              }
+            ],
+            "type": "paragraph"
+          },
+          {
+            "anchor": "Request-capabilities-to-access-standard-folders",
+            "level": 3,
+            "text": "Request capabilities to access standard folders",
+            "type": "heading"
+          },
+          {
+            "inlineContent": [
+              {
+                "text": "Apps that work with common types of file including Music, Movies, or Photos, can request capabilities that grant access to the standard folders where these files are located, avoiding the need to individually request consent to access each file. For example, to access the Music folder:",
+                "type": "text"
+              }
+            ],
+            "type": "paragraph"
+          },
+          {
+            "items": [
+              {
+                "content": [
+                  {
+                    "inlineContent": [
+                      {
+                        "text": "Open your Xcode project.",
+                        "type": "text"
+                      }
+                    ],
+                    "type": "paragraph"
+                  }
+                ]
+              },
+              {
+                "content": [
+                  {
+                    "inlineContent": [
+                      {
+                        "text": "Select your project in the file navigator.",
+                        "type": "text"
+                      }
+                    ],
+                    "type": "paragraph"
+                  }
+                ]
+              },
+              {
+                "content": [
+                  {
+                    "inlineContent": [
+                      {
+                        "text": "Select your app’s target.",
+                        "type": "text"
+                      }
+                    ],
+                    "type": "paragraph"
+                  }
+                ]
+              },
+              {
+                "content": [
+                  {
+                    "inlineContent": [
+                      {
+                        "text": "Open the Signing & Capabilities tab.",
+                        "type": "text"
+                      }
+                    ],
+                    "type": "paragraph"
+                  }
+                ]
+              },
+              {
+                "content": [
+                  {
+                    "inlineContent": [
+                      {
+                        "text": "In the App Sandbox group, choose Read Only or Read/Write from the Music Folder menu.",
+                        "type": "text"
+                      }
+                    ],
+                    "type": "paragraph"
+                  }
+                ]
+              }
+            ],
+            "type": "orderedList"
+          },
+          {
+            "inlineContent": [
+              {
+                "identifier": "media-4208570",
+                "type": "image"
+              }
+            ],
+            "type": "paragraph"
+          },
+          {
+            "anchor": "Request-full-disk-access-to-use-all-files-on-a-Mac",
+            "level": 3,
+            "text": "Request full disk access to use all files on a Mac",
+            "type": "heading"
+          },
+          {
+            "inlineContent": [
+              {
+                "text": "Certain app workflows, like an app for backing up your Mac, require access to files wherever they reside on a file system. Your app can’t automatically gain full disk access through an entitlement or with code: the person using your app must choose to grant access in System Settings > Privacy & Security.",
+                "type": "text"
+              }
+            ],
+            "type": "paragraph"
+          },
+          {
+            "inlineContent": [
+              {
+                "text": "In situations where your app tries to use a file outside of its sandbox, program defensively by handling failure cases, as someone may choose not to grant full disk access to your app.",
+                "type": "text"
+              }
+            ],
+            "type": "paragraph"
+          },
+          {
+            "anchor": "Diagnose-other-reasons-your-app-cant-access-a-file",
+            "level": 3,
+            "text": "Diagnose other reasons your app can’t access a file",
+            "type": "heading"
+          },
+          {
+            "inlineContent": [
+              {
+                "text": "Your app may not have access to a file even if App Sandbox doesn’t block access. Any of the operating system facilities listed below may restrict access to the file.",
+                "type": "text"
+              }
+            ],
+            "type": "paragraph"
+          },
+          {
+            "items": [
+              {
+                "definition": {
+                  "content": [
+                    {
+                      "inlineContent": [
+                        {
+                          "text": "The read, write, or execute permission flags on the file, or a folder in the file’s path, deny access to the user account running your app. The app receives an error with the domain ",
+                          "type": "text"
+                        },
+                        {
+                          "identifier": "doc://com.apple.documentation/documentation/Foundation/NSPOSIXErrorDomain",
+                          "isActive": true,
+                          "type": "reference"
+                        },
+                        {
+                          "text": " and code 13 (",
+                          "type": "text"
+                        },
+                        {
+                          "code": "EACCES",
+                          "type": "codeVoice"
+                        },
+                        {
+                          "text": ").",
+                          "type": "text"
+                        }
+                      ],
+                      "type": "paragraph"
+                    }
+                  ]
+                },
+                "term": {
+                  "inlineContent": [
+                    {
+                      "text": "POSIX permissions",
+                      "type": "text"
+                    }
+                  ]
+                }
+              },
+              {
+                "definition": {
+                  "content": [
+                    {
+                      "inlineContent": [
+                        {
+                          "text": "The access control list on the file, or a folder in the file’s path, deny access to the user account running your app. The app receives an error with the domain ",
+                          "type": "text"
+                        },
+                        {
+                          "identifier": "doc://com.apple.documentation/documentation/Foundation/NSPOSIXErrorDomain",
+                          "isActive": true,
+                          "type": "reference"
+                        },
+                        {
+                          "text": " and code 13 (",
+                          "type": "text"
+                        },
+                        {
+                          "code": "EACCES",
+                          "type": "codeVoice"
+                        },
+                        {
+                          "text": ").",
+                          "type": "text"
+                        }
+                      ],
+                      "type": "paragraph"
+                    }
+                  ]
+                },
+                "term": {
+                  "inlineContent": [
+                    {
+                      "text": "POSIX.1e access control lists",
+                      "type": "text"
+                    }
+                  ]
+                }
+              },
+              {
+                "definition": {
+                  "content": [
+                    {
+                      "inlineContent": [
+                        {
+                          "text": "The operating system prevents software from modifying certain parts of the file system to prevent damage to installed software. The app receives an error with the domain ",
+                          "type": "text"
+                        },
+                        {
+                          "identifier": "doc://com.apple.documentation/documentation/Foundation/NSPOSIXErrorDomain",
+                          "isActive": true,
+                          "type": "reference"
+                        },
+                        {
+                          "text": " and code 1 (",
+                          "type": "text"
+                        },
+                        {
+                          "code": "EPERM",
+                          "type": "codeVoice"
+                        },
+                        {
+                          "text": ").",
+                          "type": "text"
+                        }
+                      ],
+                      "type": "paragraph"
+                    }
+                  ]
+                },
+                "term": {
+                  "inlineContent": [
+                    {
+                      "text": "System Integrity Protection",
+                      "type": "text"
+                    }
+                  ]
+                }
+              },
+              {
+                "definition": {
+                  "content": [
+                    {
+                      "inlineContent": [
+                        {
+                          "text": "The file has a data protection class that prevents the app opening the file, for example, the file’s data protection class is ",
+                          "type": "text"
+                        },
+                        {
+                          "identifier": "doc://com.apple.documentation/documentation/Foundation/FileProtectionType/complete",
+                          "isActive": true,
+                          "type": "reference"
+                        },
+                        {
+                          "text": " and the device is locked. The app receives an error with the domain ",
+                          "type": "text"
+                        },
+                        {
+                          "identifier": "doc://com.apple.documentation/documentation/Foundation/NSPOSIXErrorDomain",
+                          "isActive": true,
+                          "type": "reference"
+                        },
+                        {
+                          "text": " and code 1 (",
+                          "type": "text"
+                        },
+                        {
+                          "code": "EPERM",
+                          "type": "codeVoice"
+                        },
+                        {
+                          "text": ").",
+                          "type": "text"
+                        }
+                      ],
+                      "type": "paragraph"
+                    }
+                  ]
+                },
+                "term": {
+                  "inlineContent": [
+                    {
+                      "text": "Data protection",
+                      "type": "text"
+                    }
+                  ]
+                }
+              }
+            ],
+            "type": "termList"
+          },
+          {
+            "content": [
+              {
+                "inlineContent": [
+                  {
+                    "text": "",
+                    "type": "text"
+                  },
+                  {
+                    "text": " ",
+                    "type": "text"
+                  },
+                  {
+                    "text": "To determine whether the App Sandbox denied your app access to a file, see ",
+                    "type": "text"
+                  },
+                  {
+                    "identifier": "doc://com.apple.security/documentation/Security/discovering-and-diagnosing-app-sandbox-violations",
+                    "isActive": true,
+                    "type": "reference"
+                  },
+                  {
+                    "text": ".",
+                    "type": "text"
+                  }
+                ],
+                "type": "paragraph"
+              }
+            ],
+            "name": "Note",
+            "style": "note",
+            "type": "aside"
+          }
+        ],
+        "kind": "content"
+      }
+    ],
+    "references": {
+      "doc://com.apple.documentation/documentation/AppKit/NSOpenPanel": {
+        "title": "NSOpenPanel",
+        "url": "/documentation/appkit/nsopenpanel"
+      },
+      "doc://com.apple.documentation/documentation/AppKit/NSSavePanel": {
+        "title": "NSSavePanel",
+        "url": "/documentation/appkit/nssavepanel"
+      },
+      "doc://com.apple.documentation/documentation/BundleResources/Entitlements/com.apple.security.application-groups": {
+        "title": "App Groups Entitlement",
+        "url": "/documentation/bundleresources/entitlements/com.apple.security.application-groups"
+      },
+      "doc://com.apple.documentation/documentation/Foundation/FileManager": {
+        "title": "FileManager",
+        "url": "/documentation/foundation/filemanager"
+      },
+      "doc://com.apple.documentation/documentation/Foundation/FileManager/containerURL(forSecurityApplicationGroupIdentifier:)": {
+        "title": "containerURL(forSecurityApplicationGroupIdentifier:)",
+        "url": "/documentation/foundation/filemanager/containerurl(forsecurityapplicationgroupidentifier:)"
+      },
+      "doc://com.apple.documentation/documentation/Foundation/FileProtectionType/complete": {
+        "title": "complete",
+        "url": "/documentation/foundation/fileprotectiontype/complete"
+      },
+      "doc://com.apple.documentation/documentation/Foundation/NSFileCoordinator": {
+        "title": "NSFileCoordinator",
+        "url": "/documentation/foundation/nsfilecoordinator"
+      },
+      "doc://com.apple.documentation/documentation/Foundation/NSFilePresenter": {
+        "title": "NSFilePresenter",
+        "url": "/documentation/foundation/nsfilepresenter"
+      },
+      "doc://com.apple.documentation/documentation/Foundation/NSFilePresenter/presentedItemURL": {
+        "title": "presentedItemURL",
+        "url": "/documentation/foundation/nsfilepresenter/presenteditemurl"
+      },
+      "doc://com.apple.documentation/documentation/Foundation/NSFilePresenter/primaryPresentedItemURL": {
+        "title": "primaryPresentedItemURL",
+        "url": "/documentation/foundation/nsfilepresenter/primarypresenteditemurl"
+      },
+      "doc://com.apple.documentation/documentation/Foundation/NSPOSIXErrorDomain": {
+        "title": "NSPOSIXErrorDomain",
+        "url": "/documentation/foundation/nsposixerrordomain"
+      },
+      "doc://com.apple.documentation/documentation/Foundation/NSURL/BookmarkCreationOptions/securityScopeAllowOnlyReadAccess": {
+        "title": "securityScopeAllowOnlyReadAccess",
+        "url": "/documentation/foundation/nsurl/bookmarkcreationoptions/securityscopeallowonlyreadaccess"
+      },
+      "doc://com.apple.documentation/documentation/Foundation/NSURL/BookmarkCreationOptions/withSecurityScope": {
+        "title": "withSecurityScope",
+        "url": "/documentation/foundation/nsurl/bookmarkcreationoptions/withsecurityscope"
+      },
+      "doc://com.apple.documentation/documentation/Foundation/NSURL/BookmarkResolutionOptions/withoutImplicitStartAccessing": {
+        "title": "withoutImplicitStartAccessing",
+        "url": "/documentation/foundation/nsurl/bookmarkresolutionoptions/withoutimplicitstartaccessing"
+      },
+      "doc://com.apple.documentation/documentation/Foundation/NSURL/bookmarkData(options:includingResourceValuesForKeys:relativeTo:)": {
+        "title": "bookmarkData(options:includingResourceValuesForKeys:relativeTo:)",
+        "url": "/documentation/foundation/nsurl/bookmarkdata(options:includingresourcevaluesforkeys:relativeto:)"
+      },
+      "doc://com.apple.documentation/documentation/Foundation/NSURL/init(resolvingBookmarkData:options:relativeTo:bookmarkDataIsStale:)": {
+        "title": "init(resolvingBookmarkData:options:relativeTo:bookmarkDataIsStale:)",
+        "url": "/documentation/foundation/nsurl/init(resolvingbookmarkdata:options:relativeto:bookmarkdataisstale:)"
+      },
+      "doc://com.apple.documentation/documentation/Foundation/NSURL/startAccessingSecurityScopedResource()": {
+        "title": "startAccessingSecurityScopedResource()",
+        "url": "/documentation/foundation/nsurl/startaccessingsecurityscopedresource()"
+      },
+      "doc://com.apple.documentation/documentation/Foundation/NSURL/stopAccessingSecurityScopedResource()": {
+        "title": "stopAccessingSecurityScopedResource()",
+        "url": "/documentation/foundation/nsurl/stopaccessingsecurityscopedresource()"
+      },
+      "doc://com.apple.documentation/documentation/SwiftUI/View/fileExporter(isPresented:document:contentType:defaultFilename:onCompletion:)-32vwk": {
+        "title": "fileExporter(isPresented:document:contentType:defaultFilename:onCompletion:)",
+        "url": "/documentation/swiftui/view/fileexporter(ispresented:document:contenttype:defaultfilename:oncompletion:)-32vwk"
+      },
+      "doc://com.apple.documentation/documentation/SwiftUI/View/fileImporter(isPresented:allowedContentTypes:onCompletion:)": {
+        "title": "fileImporter(isPresented:allowedContentTypes:onCompletion:)",
+        "url": "/documentation/swiftui/view/fileimporter(ispresented:allowedcontenttypes:oncompletion:)"
+      },
+      "doc://com.apple.documentation/documentation/UIKit/UIDocumentPickerViewController": {
+        "title": "UIDocumentPickerViewController",
+        "url": "/documentation/uikit/uidocumentpickerviewcontroller"
+      },
+      "doc://com.apple.documentation/documentation/technologies": {
+        "title": "Technologies",
+        "url": "/documentation/technologies"
+      },
+      "doc://com.apple.security/documentation/Security": {
+        "title": "Security",
+        "url": "/documentation/security"
+      },
+      "doc://com.apple.security/documentation/Security/app-sandbox": {
+        "title": "App Sandbox",
+        "url": "/documentation/security/app-sandbox"
+      },
+      "doc://com.apple.security/documentation/Security/discovering-and-diagnosing-app-sandbox-violations": {
+        "title": "Discovering and diagnosing App Sandbox violations",
+        "url": "/documentation/security/discovering-and-diagnosing-app-sandbox-violations"
+      },
+      "media-4208568": {},
+      "media-4208569": {},
+      "media-4208570": {}
+    }
+  }
+}
