@@ -1,0 +1,22 @@
+{"binary":"C:\\Users\\37310\\.rustup\\toolchains\\1.95.0-x86_64-pc-windows-msvc\\bin\\cargo.exe","args":["generate-lockfile","--manifest-path","apps/desktop-preview/Cargo.toml"],"exitCode":101,"error":null}
+--- stdout ---
+
+--- stderr ---
+    Updating crates.io index
+warning: spurious network error (3 tries remaining): [28] Timeout was reached (Operation too slow. Less than 10 bytes/sec transferred the last 30 seconds)
+warning: spurious network error (3 tries remaining): [28] Timeout was reached (Operation too slow. Less than 10 bytes/sec transferred the last 30 seconds)
+warning: spurious network error (2 tries remaining): [28] Timeout was reached (Operation too slow. Less than 10 bytes/sec transferred the last 30 seconds)
+warning: spurious network error (2 tries remaining): [28] Timeout was reached (Operation too slow. Less than 10 bytes/sec transferred the last 30 seconds)
+warning: spurious network error (1 try remaining): [28] Timeout was reached (Operation too slow. Less than 10 bytes/sec transferred the last 30 seconds)
+warning: spurious network error (1 try remaining): [28] Timeout was reached (Operation too slow. Less than 10 bytes/sec transferred the last 30 seconds)
+error: failed to get `serde_derive` as a dependency of package `serde v1.0.229`
+    ... which satisfies dependency `serde = "=1.0.229"` of package `water-desktop-preview v0.1.0 (F:\new\smaltalk\water\.worktrees\ac\apps\desktop-preview)`
+
+Caused by:
+  download of se/rd/serde_derive failed
+
+Caused by:
+  failed to download from `https://index.crates.io/se/rd/serde_derive`
+
+Caused by:
+  [28] Timeout was reached (Operation too slow. Less than 10 bytes/sec transferred the last 30 seconds)
