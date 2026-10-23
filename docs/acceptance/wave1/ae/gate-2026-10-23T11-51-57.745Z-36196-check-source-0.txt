@@ -1,0 +1,335 @@
+{
+  "version": "water.macos-sources.v1",
+  "checked_at": "2026-10-23T11:40:47.204Z",
+  "research_only": true,
+  "real_macos_executed": false,
+  "project_commit": "4b8a1de2ad49664546547256cd3d55def7c31a49",
+  "sources": [
+    {
+      "id": "apple-panel",
+      "url": "https://developer.apple.com/tutorials/data/documentation/appkit/nsopenpanel.json",
+      "accessed_at": "2026-10-23T11:33:32.046Z",
+      "access": "read",
+      "title": "NSOpenPanel",
+      "summary": "Panel selection and directory/file/multiple-selection properties; JSON body read, HTML shell is separately unavailable.",
+      "boundary": "DocC JSON, online documentation; no installed SDK or tested minimum macOS inferred.",
+      "evidence": {
+        "path": "docs/acceptance/wave1/ae/apple-panel-read.json",
+        "bytes": 17950,
+        "sha256": "701c539f97f1f2fd48a1cfb8f65a661a138b9dc029baeb81cb44a3c9e4f8facd",
+        "representation": "Projection of actual official DocC response; includes body SHA/bytes, not byte-identical HTTP response"
+      },
+      "supports_only": "Documentation fact; Water design proposals and untested platform behavior are separate."
+    },
+    {
+      "id": "apple-sheet",
+      "url": "https://developer.apple.com/tutorials/data/documentation/appkit/nssavepanel/beginsheetmodal(for:completionhandler:).json",
+      "accessed_at": "2026-10-23T11:34:44.886Z",
+      "access": "read",
+      "title": "beginSheetModal(for:completionHandler:)",
+      "summary": "Completion runs after dismissal while the panel may remain onscreen; candidate integration must order out its own panel.",
+      "boundary": "DocC JSON; exact response constants, actor annotations and bindings remain for selected SDK review.",
+      "evidence": {
+        "path": "docs/acceptance/wave1/ae/apple-sheet-read.json",
+        "bytes": 13648,
+        "sha256": "15c6fb06f63ea26fd58774b150dcf0ad66404e7d4ae9e117f3886e0582cfe9de",
+        "representation": "Projection of actual official DocC response; includes body SHA/bytes, not byte-identical HTTP response"
+      },
+      "supports_only": "Documentation fact; Water design proposals and untested platform behavior are separate."
+    },
+    {
+      "id": "apple-scope",
+      "url": "https://developer.apple.com/tutorials/data/documentation/foundation/nsurl/startaccessingsecurityscopedresource().json",
+      "accessed_at": "2026-10-23T11:33:32.918Z",
+      "access": "read",
+      "title": "startAccessingSecurityScopedResource()",
+      "summary": "Explicit security-scoped access must be balanced on success; leaking access can exhaust kernel resources.",
+      "boundary": "DocC JSON; applies to explicit scope lifecycle, not proof of Water authorization.",
+      "evidence": {
+        "path": "docs/acceptance/wave1/ae/apple-scope-read.json",
+        "bytes": 16831,
+        "sha256": "5eded8e857b76be3c71e23af1c9708a124bc05fe370c1b91daaaf6e3f41c5773",
+        "representation": "Projection of actual official DocC response; includes body SHA/bytes, not byte-identical HTTP response"
+      },
+      "supports_only": "Documentation fact; Water design proposals and untested platform behavior are separate."
+    },
+    {
+      "id": "apple-bookmarks",
+      "url": "https://developer.apple.com/tutorials/data/documentation/foundation/nsurl/bookmarkcreationoptions/withsecurityscope.json",
+      "accessed_at": "2026-10-23T11:33:33.146Z",
+      "access": "read",
+      "title": "NSURL.BookmarkCreationOptions.withSecurityScope",
+      "summary": "Security-scoped bookmark option is for sandboxed applications; incompatible option combinations are documented.",
+      "boundary": "DocC JSON; persistent bookmarks are deferred, no numeric values copied.",
+      "evidence": {
+        "path": "docs/acceptance/wave1/ae/apple-bookmarks-read.json",
+        "bytes": 11184,
+        "sha256": "b4aa33bc96a48e6ac24881b9a1c50245ef392700a7052d22e645207ffd4bfbeb",
+        "representation": "Projection of actual official DocC response; includes body SHA/bytes, not byte-identical HTTP response"
+      },
+      "supports_only": "Documentation fact; Water design proposals and untested platform behavior are separate."
+    },
+    {
+      "id": "apple-sandbox",
+      "url": "https://developer.apple.com/tutorials/data/documentation/security/app-sandbox.json",
+      "accessed_at": "2026-10-23T11:33:33.665Z",
+      "access": "read",
+      "title": "App Sandbox",
+      "summary": "Sandbox limits resource access through entitlements; Mac App Store distribution requires it.",
+      "boundary": "DocC JSON; Water distribution/sandbox policy is not selected here.",
+      "evidence": {
+        "path": "docs/acceptance/wave1/ae/apple-sandbox-read.json",
+        "bytes": 20561,
+        "sha256": "cde000341f3ba117461bd263f6198f4556b498539ede23f6d4a76c26e05514e7",
+        "representation": "Projection of actual official DocC response; includes body SHA/bytes, not byte-identical HTTP response"
+      },
+      "supports_only": "Documentation fact; Water design proposals and untested platform behavior are separate."
+    },
+    {
+      "id": "apple-sandbox-files",
+      "url": "https://developer.apple.com/tutorials/data/documentation/security/accessing-files-from-the-macos-app-sandbox.json",
+      "accessed_at": "2026-10-23T11:34:45.566Z",
+      "access": "read",
+      "title": "Accessing files from the macOS App Sandbox",
+      "summary": "Panel URLs have implicit scope; persisted explicit bookmarks require start/stop; other access controls can still deny access.",
+      "boundary": "DocC JSON; proposal must distinguish implicit acquisition from explicit start, not double-acquire by habit.",
+      "evidence": {
+        "path": "docs/acceptance/wave1/ae/apple-sandbox-files-read.json",
+        "bytes": 61955,
+        "sha256": "c1a5a5d49650004e9579c449006460fd450a5f2003454fece5c65aae2e9cc8fe",
+        "representation": "Projection of actual official DocC response; includes body SHA/bytes, not byte-identical HTTP response"
+      },
+      "supports_only": "Documentation fact; Water design proposals and untested platform behavior are separate."
+    },
+    {
+      "id": "apple-apfs",
+      "url": "https://developer.apple.com/tutorials/data/documentation/foundation/about-apple-file-system.json",
+      "accessed_at": "2026-10-23T11:33:33.885Z",
+      "access": "read",
+      "title": "About Apple File System",
+      "summary": "Clones share blocks, sparse files allocate written regions, and volumes can share free space.",
+      "boundary": "DocC JSON; no inference of reclaimable bytes, snapshot retention or clone identity from inode.",
+      "evidence": {
+        "path": "docs/acceptance/wave1/ae/apple-apfs-read.json",
+        "bytes": 18788,
+        "sha256": "393e256e9edf9f44124a36d0fa1c578df9b2fc7b08c7154f363de75cb4bbd539",
+        "representation": "Projection of actual official DocC response; includes body SHA/bytes, not byte-identical HTTP response"
+      },
+      "supports_only": "Documentation fact; Water design proposals and untested platform behavior are separate."
+    },
+    {
+      "id": "apple-thread",
+      "url": "https://developer.apple.com/library/archive/documentation/Cocoa/Conceptual/Multithreading/ThreadSafetySummary/ThreadSafetySummary.html",
+      "accessed_at": "2026-10-23T11:35:42.178Z",
+      "access": "read",
+      "title": "Thread Safety Summary",
+      "summary": "AppKit event handling belongs to the main thread; archived guide distinguishes thread-unsafe views and permitted secondary-thread windows.",
+      "boundary": "Historical archived guide, subject to change; main-thread-only Water panel policy is a proposal, not an absolute rule inferred from this archive.",
+      "evidence": {
+        "path": "docs/acceptance/wave1/ae/apple-thread-read.json",
+        "bytes": 3672,
+        "sha256": "040512a8c1fa42238141b3e78426475acbbc5c4c6105dbaa8da9bd49467576a2",
+        "representation": "bounded text excerpts; HTML tags/scripts/styles removed, whitespace collapsed; not original body bytes"
+      },
+      "supports_only": "Documentation fact; Water design proposals and untested platform behavior are separate."
+    },
+    {
+      "id": "apple-open-historical",
+      "url": "https://developer.apple.com/library/archive/documentation/System/Conceptual/ManPages_iPhoneOS/man2/open.2.html",
+      "accessed_at": "2026-10-23T11:35:42.617Z",
+      "access": "read",
+      "title": "Mac OS X open(2) archived manual",
+      "summary": "Historical manual describes read-only and no-follow flags.",
+      "boundary": "Historical archive under ManPages_iPhoneOS, not evidence of current SDK constants, ABI or full race protection.",
+      "evidence": {
+        "path": "docs/acceptance/wave1/ae/apple-open-historical-read.json",
+        "bytes": 2537,
+        "sha256": "eab1ad1a2df87ff018e9b4aa879bb7f3d371fa6c7ea9bef9fed634c6a286768b",
+        "representation": "bounded text excerpts; HTML tags/scripts/styles removed, whitespace collapsed; not original body bytes"
+      },
+      "supports_only": "Documentation fact; Water design proposals and untested platform behavior are separate."
+    },
+    {
+      "id": "rust-owned-fd",
+      "url": "https://doc.rust-lang.org/std/os/fd/struct.OwnedFd.html",
+      "accessed_at": "2026-10-23T11:35:45.827Z",
+      "access": "read",
+      "title": "Rust std::os::fd::OwnedFd",
+      "summary": "OwnedFd owns descriptor closure on drop and supports borrowed descriptors.",
+      "boundary": "Online docs identify std 1.99.1; project uses 1.95. No Mac compilation or unstable APIs claimed.",
+      "evidence": {
+        "path": "docs/acceptance/wave1/ae/rust-owned-fd-read.json",
+        "bytes": 3593,
+        "sha256": "00eec970a22cc698d44ec743b8e6a63d41bdf93ccb6df8c65f4419057d75a72c",
+        "representation": "bounded text excerpts; HTML tags/scripts/styles removed, whitespace collapsed; not original body bytes"
+      },
+      "supports_only": "Documentation fact; Water design proposals and untested platform behavior are separate."
+    },
+    {
+      "id": "rust-unix-metadata",
+      "url": "https://doc.rust-lang.org/std/os/unix/fs/trait.MetadataExt.html",
+      "accessed_at": "2026-10-23T11:35:46.088Z",
+      "access": "read",
+      "title": "Rust std::os::unix::fs::MetadataExt",
+      "summary": "dev, ino, nlink, logical size and block allocation are separate observations.",
+      "boundary": "Online docs identify std 1.99.1; no global uniqueness, race-freedom or reclaimability guarantee.",
+      "evidence": {
+        "path": "docs/acceptance/wave1/ae/rust-unix-metadata-read.json",
+        "bytes": 4340,
+        "sha256": "02f902ad9c5538d72678d57462b3239281c33f3d917f5c16d1602f5a79b970c6",
+        "representation": "bounded text excerpts; HTML tags/scripts/styles removed, whitespace collapsed; not original body bytes"
+      },
+      "supports_only": "Documentation fact; Water design proposals and untested platform behavior are separate."
+    },
+    {
+      "id": "tauri-prerequisites",
+      "url": "https://v2.tauri.app/start/prerequisites/",
+      "accessed_at": "2026-10-23T11:35:52.533Z",
+      "access": "read",
+      "title": "Tauri 2 prerequisites, macOS section",
+      "summary": "Mac development uses Xcode; desktop-only development may use Command Line Tools.",
+      "boundary": "Online docs read on checked_at; no installation, dependency fetch or AC artifact inspection.",
+      "evidence": {
+        "path": "docs/acceptance/wave1/ae/tauri-prerequisites-read.json",
+        "bytes": 3556,
+        "sha256": "a9e1100b8fc34420edd68cd7bf5d555dbfb8830128140e0046a684532fba9e23",
+        "representation": "bounded text excerpts; HTML tags/scripts/styles removed, whitespace collapsed; not original body bytes"
+      },
+      "supports_only": "Documentation fact; Water design proposals and untested platform behavior are separate."
+    },
+    {
+      "id": "tauri-capabilities",
+      "url": "https://v2.tauri.app/security/capabilities/",
+      "accessed_at": "2026-10-23T11:35:53.626Z",
+      "access": "read",
+      "title": "Tauri 2 capabilities",
+      "summary": "Window/WebView permissions can combine; capability discovery and explicit remote grants require review.",
+      "boundary": "Framework permission documentation does not validate arbitrary Rust IO or Water IPC.",
+      "evidence": {
+        "path": "docs/acceptance/wave1/ae/tauri-capabilities-read.json",
+        "bytes": 3606,
+        "sha256": "dac39b964fb9c00096d30ee027f716a2c581a1048fe3d1d13fad078cc8002087",
+        "representation": "bounded text excerpts; HTML tags/scripts/styles removed, whitespace collapsed; not original body bytes"
+      },
+      "supports_only": "Documentation fact; Water design proposals and untested platform behavior are separate."
+    },
+    {
+      "id": "apple-xnu-open",
+      "url": "https://github.com/apple-oss-distributions/xnu/blob/f6217f891ac0bb64f3d375211650a4c1ff8ca1ea/bsd/man/man2/open.2",
+      "accessed_at": "2026-10-23T11:34:10.000Z",
+      "access": "read",
+      "title": "XNU open/openat manual source at fixed commit",
+      "summary": "Relative openat uses a directory descriptor; O_NOFOLLOW checks target links, while stronger flags have distinct semantics.",
+      "boundary": "Published source snapshot only, not target SDK or OS availability; no constants/struct layout or race-freedom inferred.",
+      "commit": "f6217f891ac0bb64f3d375211650a4c1ff8ca1ea",
+      "path": "bsd/man/man2/open.2",
+      "sha256": "42211a5d4312c4db41854b8e07cfe0e7bba3309331dae8d65e793b063f2c48ee",
+      "line_ranges": [
+        [
+          103,
+          125
+        ],
+        [
+          220,
+          234
+        ],
+        [
+          242,
+          270
+        ]
+      ],
+      "license": "File header contains APSL 2.0 and University of California BSD terms; complete original notice retained in apple-xnu-open-read.txt; static manual research only, no product code reuse",
+      "evidence": {
+        "path": "docs/acceptance/wave1/ae/apple-xnu-open-read.txt",
+        "bytes": 14799,
+        "sha256": "42211a5d4312c4db41854b8e07cfe0e7bba3309331dae8d65e793b063f2c48ee",
+        "representation": "Exact raw upstream manual bytes, complete original notice retained"
+      },
+      "metadata_evidence": "docs/acceptance/wave1/ae/apple-xnu-open-meta.json"
+    },
+    {
+      "id": "apple-panel-html",
+      "url": "https://developer.apple.com/documentation/appkit/nsopenpanel",
+      "accessed_at": "2026-10-23",
+      "access": "unavailable",
+      "title": "NSOpenPanel HTML shell",
+      "summary": "Only JavaScript requirement and Markdown link were extracted. API semantics read via separate official JSON source apple-panel.",
+      "boundary": "No factual claims supported by this access attempt.",
+      "evidence": {
+        "path": "docs/acceptance/wave1/ae/RESEARCH-ACCESS-LOG.json"
+      }
+    },
+    {
+      "id": "apple-scope-html",
+      "url": "https://developer.apple.com/documentation/foundation/nsurl/startaccessingsecurityscopedresource()",
+      "accessed_at": "2026-10-23",
+      "access": "unavailable",
+      "title": "Security scope HTML shell",
+      "summary": "Only JavaScript shell; separate DocC JSON apple-scope supports facts.",
+      "boundary": "No factual claims supported by this access attempt.",
+      "evidence": {
+        "path": "docs/acceptance/wave1/ae/RESEARCH-ACCESS-LOG.json"
+      }
+    },
+    {
+      "id": "apple-sandbox-archive",
+      "url": "https://developer.apple.com/library/archive/documentation/Security/Conceptual/AppSandboxDesignGuide/AppSandboxInDepth/AppSandboxInDepth.html",
+      "accessed_at": "2026-10-23",
+      "access": "unavailable",
+      "title": "Retired App Sandbox guide route",
+      "summary": "Redirected to a JavaScript shell; not used as factual support.",
+      "boundary": "No factual claims supported by this access attempt.",
+      "evidence": {
+        "path": "docs/acceptance/wave1/ae/RESEARCH-ACCESS-LOG.json"
+      }
+    },
+    {
+      "id": "apple-open-dialog-archive",
+      "url": "https://developer.apple.com/library/archive/documentation/Cocoa/Conceptual/AppFileMgmt/Tasks/UsingAnOpenDialog.html",
+      "accessed_at": "2026-10-23",
+      "access": "unavailable",
+      "title": "Using an Open Dialog archive attempt",
+      "summary": "Web tool reported inaccessible; not treated as read.",
+      "boundary": "No factual claims supported by this access attempt.",
+      "evidence": {
+        "path": "docs/acceptance/wave1/ae/RESEARCH-ACCESS-LOG.json"
+      }
+    },
+    {
+      "id": "apple-open-panel-archive",
+      "url": "https://developer.apple.com/library/archive/documentation/Cocoa/Conceptual/AppFileMgmt/Tasks/UsingOpenPanel.html",
+      "accessed_at": "2026-10-23",
+      "access": "unavailable",
+      "title": "Using Open Panel archive attempt",
+      "summary": "Web tool reported inaccessible; not used.",
+      "boundary": "No factual claims supported by this access attempt.",
+      "evidence": {
+        "path": "docs/acceptance/wave1/ae/RESEARCH-ACCESS-LOG.json"
+      }
+    },
+    {
+      "id": "rust-owned-fd-195",
+      "url": "https://doc.rust-lang.org/1.95.0/std/os/fd/struct.OwnedFd.html",
+      "accessed_at": "2026-10-23",
+      "access": "unavailable",
+      "title": "Rust 1.95 OwnedFd archive attempt",
+      "summary": "Web tool reported inaccessible; current online documentation is separately version-bounded.",
+      "boundary": "No factual claims supported by this access attempt.",
+      "evidence": {
+        "path": "docs/acceptance/wave1/ae/RESEARCH-ACCESS-LOG.json"
+      }
+    },
+    {
+      "id": "rust-metadata-195",
+      "url": "https://doc.rust-lang.org/1.95.0/std/os/unix/fs/trait.MetadataExt.html",
+      "accessed_at": "2026-10-23",
+      "access": "unavailable",
+      "title": "Rust 1.95 MetadataExt archive attempt",
+      "summary": "Web tool reported inaccessible; not used for facts.",
+      "boundary": "No factual claims supported by this access attempt.",
+      "evidence": {
+        "path": "docs/acceptance/wave1/ae/RESEARCH-ACCESS-LOG.json"
+      }
+    }
+  ]
+}
