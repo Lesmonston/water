@@ -1,0 +1,53 @@
+{
+  "version": "water.ae-final-staging.v1",
+  "at": "2026-10-23T11:55:04.822Z",
+  "commands": [
+    {
+      "label": "report-revised",
+      "argv": [
+        "git",
+        "diff",
+        "--check",
+        "4b8a1de2ad49664546547256cd3d55def7c31a49",
+        "--",
+        "docs/dispatch/reports/WATER-W1-AE-REPORT.md"
+      ],
+      "exitCode": 0,
+      "stdout": "docs/acceptance/wave1/ae/final-report-revised-whitespace.log",
+      "stderr": "docs/acceptance/wave1/ae/final-report-revised-whitespace-stderr.log"
+    },
+    {
+      "label": "gate-streams",
+      "argv": [
+        "git",
+        "diff",
+        "--check",
+        "4b8a1de2ad49664546547256cd3d55def7c31a49",
+        "--",
+        "docs/acceptance/wave1/ae/check-stdout.log",
+        "docs/acceptance/wave1/ae/check-stderr.log",
+        "docs/acceptance/wave1/ae/final-check-stdout.log",
+        "docs/acceptance/wave1/ae/final-check-stderr.log"
+      ],
+      "exitCode": 0,
+      "stdout": "docs/acceptance/wave1/ae/final-gate-streams-whitespace.log",
+      "stderr": "docs/acceptance/wave1/ae/final-gate-streams-whitespace-stderr.log"
+    }
+  ],
+  "initial_report_check_exit": 0,
+  "mixed_raw_and_diagnostic_log_check": {
+    "exitCode": 2,
+    "stdout": "docs/acceptance/wave1/ae/final-rawlogs-whitespace.log",
+    "stderr": "docs/acceptance/wave1/ae/final-rawlogs-whitespace-stderr.log",
+    "reason": "Whitespace diagnostics faithfully contain original source trailing spaces; raw gate streams are checked separately."
+  },
+  "initial_packaging_wrapper": {
+    "exitCode": 1,
+    "diagnostic": "AssertionError [ERR_ASSERTION]: rawlogs; 2 !== 0 at [stdin]:1:1357",
+    "note": "Packaging assertion corrected to preserve and record diagnostics, not a gate/test failure. This text summarizes tool-visible stderr; no original stderr buffer was saved."
+  },
+  "source_whitespace_exit": 2,
+  "final_gate_runs": 1,
+  "research_files_changed_after_test": false,
+  "stage_method": "One explicit pathname per git add; -f for .log only; no reset or clean"
+}

@@ -12,6 +12,11 @@
       "operation": "Gate archive attribution review",
       "cause": "Own .local contains controller 02:36 preflight and this session 11:32 baseline. Initial START-AUDIT chose first baseline by filename.",
       "correction": "Explicitly bind START-AUDIT to 11:32 worker baseline, label 02:36 file inherited/not executed in this session. Both raw original receipts retained."
+    },
+    {
+      "operation": "Interrupted archive/staging tool call",
+      "result": "tool returned aborted after ARCHIVE.json existed; subsequent git HEAD remained baseline and some evidence was not staged",
+      "correction": "Read HEAD/status first, finish explicit missing paths, verify index bytes, commit once. Final check executed once afterward."
     }
   ],
   "raw_capture_note": "These are tool-visible preparation failure summaries, not byte-identical stderr stream captures. Gate receipts and source snapshots are byte-identical indexed evidence.",
