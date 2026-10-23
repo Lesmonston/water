@@ -1,0 +1,25 @@
+{
+  "url": "https://v2.tauri.app/security/capabilities/",
+  "accessed_at": "2026-10-23T11:35:53.626Z",
+  "status": 200,
+  "body_bytes": 119879,
+  "body_sha256": "9c852a6cef9305865b0e9796bd1a95932e522bbb818de91cf0055356ec31914e",
+  "representation": "bounded text excerpts; HTML tags/scripts/styles removed, whitespace collapsed; not original body bytes",
+  "excerpts": [
+    {
+      "term": "All capabilities inside",
+      "found": true,
+      "text": "t is also possible to define them directly in the capabilities field. All capabilities inside the capabilities directory are automatically enabled by default. Once capabilities are explicitly enabled in the tauri.conf.json , only these are used in the application build. For a full reference of the configuration scheme please see the references section. The following example JSON defines a capability that allows the main window use the default functionality of core plugins and the window.setTitle API. src-tauri/capabilities/default.json { \"$schema\" : \" ../gen/schemas/desktop-schema.json \" , \"identifier\" : \" main-capability \" , \"description\" : \" Capability for the main window \" , \"windows\" : [ \" main \" ], \"permissions\" : [ \" core:path:default \" , \" core:event:default \" , \" core:window:default \" , \" core:app:default \" , \" core:resources:default \" , \" core:menu:default \" , \" core:tray:default \" , \" core:window:allow-set-title \" ] } These snippets are part of t"
+    },
+    {
+      "term": "Windows and WebViews",
+      "found": true,
+      "text": "ws and these can be referenced in multiple capabilities. Security Tip Windows and WebViews which are part of more than one capability effectively merge the security boundaries and permissions of all involved capabilities. Capability files are either defined as a JSON or a TOML file inside the src-tauri/capabilities directory. It is good practice to use individual files and only reference them by identifier in the tauri.conf.json but it is also possible to define them directly in the capabilities field. All capabilities inside the capabilities directory are automatically enabled by default. Once capabilities are explicitly enabled in the tauri.conf.json , only these are used in the application build. For a full reference of the configuration scheme please see the references section. The following example JSON defines a capability that allows the main window use the default functionality of core plugins and the window.setTitle API. src-tauri/capabilities/def"
+    },
+    {
+      "term": "remote",
+      "found": true,
+      "text": " only accessible to bundled code shipped with the Tauri App. To allow remote sources access to certain Tauri Commands it is possible to define this in the capability configuration file. This example would allow to scan for NFC tags and to use the barcode scanner from all subdomains of tauri.app . src-tauri/capabilities/remote-tags.json { \"$schema\" : \" ../gen/schemas/remote-schema.json \" , \"identifier\" : \" remote-tag-capability \" , \"windows\" : [ \" main \" ], \"remote\" : { \"urls\" : [ \" https://*.tauri.app \" ] }, \"platforms\" : [ \" iOS \" , \" android \" ], \"permissions\" : [ \" nfc:allow-scan \" , \" barcode-scanner:allow-scan \" ] } Caution On Linux and Android, Tauri is unable to distinguish between requests from an embedded &lt;iframe&gt; and the window itself. Please consider usage of this feature very carefully and read more into the specific security implications for your targeted operating system in the reference section of this feature. Security Boundaries Sect"
+    }
+  ]
+}

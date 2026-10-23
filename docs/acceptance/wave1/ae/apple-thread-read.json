@@ -1,0 +1,25 @@
+{
+  "url": "https://developer.apple.com/library/archive/documentation/Cocoa/Conceptual/Multithreading/ThreadSafetySummary/ThreadSafetySummary.html",
+  "accessed_at": "2026-10-23T11:35:42.178Z",
+  "status": 200,
+  "body_bytes": 56112,
+  "body_sha256": "3912f521c0af479cc477feb9d36f643501320f514573b6475cc62416a656d413",
+  "representation": "bounded text excerpts; HTML tags/scripts/styles removed, whitespace collapsed; not original body bytes",
+  "excerpts": [
+    {
+      "term": "The main thread of the application is responsible",
+      "found": true,
+      "text": "stricted to the main thread of an application are called out as such. The main thread of the application is responsible for handling events. Although the Application Kit continues to work if other threads are involved in the event path, operations can occur out of sequence. If you want to use a thread to draw to a view, bracket all drawing code between the lockFocusIfCanDraw and unlockFocus methods of NSView . To use POSIX threads with Cocoa, you must first put Cocoa into multithreaded mode. For more information, see Using POSIX Threads in a Cocoa Application . Foundation Framework Thread Safety There is a misconception that the Foundation framework is thread-safe and the Application Kit framework is not. Unfortunately, this is a gross generalization and somewhat misleading. Each framework has areas that are thread-safe and areas that are not thread-safe. The following sections describe the general thread safety of the Foundation framework. Thread-Safe Cla"
+    },
+    {
+      "term": "Main Thread Only Classes",
+      "found": true,
+      "text": " , it is not safe for any thread to change the enumerated collection. Main Thread Only Classes The following class must be used only from the main thread of an application. NSAppleScript Mutable Versus Immutable Immutable objects are generally thread-safe; once you create them, you can safely pass these objects to and from threads. Of course, when using immutable objects, you still need to remember to use reference counts correctly. If you inappropriately release an object you did not retain, you could cause an exception later. Mutable objects are generally not thread-safe. To use mutable objects in a threaded application, the application must synchronize access to them using locks. (For more information, see Atomic Operations ). In general, the collection classes (for example, NSMutableArray , NSMutableDictionary ) are not thread-safe when mutations are concerned. That is, if one or more threads are changing the same array, problems can occur. You must lo"
+    },
+    {
+      "term": "secondary thread",
+      "found": true,
+      "text": " in the main thread of applications based on the Application Kit, but secondary threads (and Foundation-only applications) must create their own before using Cocoa. If your thread is long-lived and potentially generates a lot of autoreleased objects , you should periodically destroy and create autorelease pools (like the Application Kit does on the main thread); otherwise, autoreleased objects accumulate and your memory footprint grows. If your detached thread does not use Cocoa, you do not need to create an autorelease pool. Run Loops Every thread has one and only one run loop. Each run loop, and hence each thread, however, has its own set of input modes that determine which input sources are listened to when the run loop is run. The input modes defined in one run loop do not affect the input modes defined in another run loop, even though they may have the same name. The run loop for the main thread is automatically run if your application is based on the"
+    }
+  ]
+}

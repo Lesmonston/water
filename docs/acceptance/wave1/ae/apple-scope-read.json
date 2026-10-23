@@ -1,0 +1,511 @@
+{
+  "url": "https://developer.apple.com/tutorials/data/documentation/foundation/nsurl/startaccessingsecurityscopedresource().json",
+  "accessed_at": "2026-10-23T11:33:32.918Z",
+  "status": 200,
+  "body_bytes": 30655,
+  "body_sha256": "f6a6949a4d726bde19ced6351d8c7d49e8fa46a194e9a58d4e2982d72ef6c00f",
+  "document": {
+    "metadata": {
+      "availableLanguages": [
+        "de-DE",
+        "en-US",
+        "es-419",
+        "fr-FR",
+        "it-IT",
+        "ja-JP",
+        "ko-KR",
+        "pt-BR",
+        "zh-CN"
+      ],
+      "externalID": "c:objc(cs)NSURL(im)startAccessingSecurityScopedResource",
+      "fragments": [
+        {
+          "kind": "keyword",
+          "text": "func"
+        },
+        {
+          "kind": "text",
+          "text": " "
+        },
+        {
+          "kind": "identifier",
+          "text": "startAccessingSecurityScopedResource"
+        },
+        {
+          "kind": "text",
+          "text": "() -> "
+        },
+        {
+          "kind": "typeIdentifier",
+          "preciseIdentifier": "s:Sb",
+          "text": "Bool"
+        }
+      ],
+      "modules": [
+        {
+          "name": "Foundation"
+        }
+      ],
+      "navigatorTitle": [
+        {
+          "kind": "text",
+          "text": "- "
+        },
+        {
+          "kind": "identifier",
+          "text": "startAccessingSecurityScopedResource"
+        }
+      ],
+      "platforms": [
+        {
+          "introducedAt": "8.0",
+          "name": "iOS"
+        },
+        {
+          "introducedAt": "8.0",
+          "name": "iPadOS"
+        },
+        {
+          "introducedAt": "13.1",
+          "name": "Mac Catalyst"
+        },
+        {
+          "introducedAt": "10.7",
+          "name": "macOS"
+        },
+        {
+          "introducedAt": "9.0",
+          "name": "tvOS"
+        },
+        {
+          "introducedAt": "1.0",
+          "name": "visionOS"
+        },
+        {
+          "introducedAt": "2.0",
+          "name": "watchOS"
+        }
+      ],
+      "role": "symbol",
+      "roleHeading": "Instance Method",
+      "symbolKind": "method",
+      "title": "startAccessingSecurityScopedResource()"
+    },
+    "abstract": [
+      {
+        "text": "In an app that has adopted App Sandbox, makes the resource pointed to by a security-scoped URL available to the app.",
+        "type": "text"
+      }
+    ],
+    "primaryContentSections": [
+      {
+        "declarations": [
+          {
+            "languages": [
+              "swift"
+            ],
+            "platforms": [
+              "iOS",
+              "iPadOS",
+              "Mac Catalyst",
+              "macOS",
+              "tvOS",
+              "visionOS",
+              "watchOS"
+            ],
+            "tokens": [
+              {
+                "kind": "keyword",
+                "text": "func"
+              },
+              {
+                "kind": "text",
+                "text": " "
+              },
+              {
+                "kind": "identifier",
+                "text": "startAccessingSecurityScopedResource"
+              },
+              {
+                "kind": "text",
+                "text": "() -> "
+              },
+              {
+                "identifier": "doc://com.apple.documentation/documentation/Swift/Bool",
+                "kind": "typeIdentifier",
+                "preciseIdentifier": "s:Sb",
+                "text": "Bool"
+              }
+            ]
+          }
+        ],
+        "kind": "declarations"
+      },
+      {
+        "content": [
+          {
+            "anchor": "return-value",
+            "level": 2,
+            "text": "Return Value",
+            "type": "heading"
+          },
+          {
+            "inlineContent": [
+              {
+                "text": "",
+                "type": "text"
+              },
+              {
+                "identifier": "doc://com.apple.documentation/documentation/Swift/true",
+                "isActive": true,
+                "type": "reference"
+              },
+              {
+                "text": " if the request to access the resource succeeded; otherwise, ",
+                "type": "text"
+              },
+              {
+                "identifier": "doc://com.apple.documentation/documentation/Swift/false",
+                "isActive": true,
+                "type": "reference"
+              },
+              {
+                "text": ".",
+                "type": "text"
+              }
+            ],
+            "type": "paragraph"
+          }
+        ],
+        "kind": "content"
+      },
+      {
+        "content": [
+          {
+            "anchor": "Discussion",
+            "level": 2,
+            "text": "Discussion",
+            "type": "heading"
+          },
+          {
+            "inlineContent": [
+              {
+                "text": "When you obtain a security-scoped URL, such as by resolving a security-scoped bookmark, you can’t immediately use the resource it points to. To make the resource available to your app, by way of adding its location to your app’s sandbox, call this method on the security-scoped URL. You can also use Core Foundation equivalent, the ",
+                "type": "text"
+              },
+              {
+                "identifier": "doc://com.apple.documentation/documentation/CoreFoundation/CFURLStartAccessingSecurityScopedResource(_:)",
+                "isActive": true,
+                "type": "reference"
+              },
+              {
+                "text": " function.",
+                "type": "text"
+              }
+            ],
+            "type": "paragraph"
+          },
+          {
+            "inlineContent": [
+              {
+                "text": "If this method returns ",
+                "type": "text"
+              },
+              {
+                "identifier": "doc://com.apple.documentation/documentation/Swift/true",
+                "isActive": true,
+                "type": "reference"
+              },
+              {
+                "text": ", then you must relinquish access as soon as you finish using the resource. Call the ",
+                "type": "text"
+              },
+              {
+                "identifier": "doc://com.apple.foundation/documentation/Foundation/NSURL/stopAccessingSecurityScopedResource()",
+                "isActive": true,
+                "type": "reference"
+              },
+              {
+                "text": " method to relinquish access. You must balance each call to ",
+                "type": "text"
+              },
+              {
+                "identifier": "doc://com.apple.foundation/documentation/Foundation/NSURL/startAccessingSecurityScopedResource()",
+                "isActive": true,
+                "type": "reference"
+              },
+              {
+                "text": " for a given security-scoped URL with a call to ",
+                "type": "text"
+              },
+              {
+                "identifier": "doc://com.apple.foundation/documentation/Foundation/NSURL/stopAccessingSecurityScopedResource()",
+                "isActive": true,
+                "type": "reference"
+              },
+              {
+                "text": ". When you make the last balanced call to ",
+                "type": "text"
+              },
+              {
+                "identifier": "doc://com.apple.foundation/documentation/Foundation/NSURL/stopAccessingSecurityScopedResource()",
+                "isActive": true,
+                "type": "reference"
+              },
+              {
+                "text": ", you immediately lose access to the resource in question.",
+                "type": "text"
+              }
+            ],
+            "type": "paragraph"
+          },
+          {
+            "content": [
+              {
+                "inlineContent": [
+                  {
+                    "text": "",
+                    "type": "text"
+                  },
+                  {
+                    "text": " ",
+                    "type": "text"
+                  },
+                  {
+                    "text": "If you fail to relinquish your access to file-system resources when you no longer need them, your app leaks kernel resources. If sufficient kernel resources leak, your app loses its ability to add file-system locations to its sandbox, such as with Powerbox or security-scoped bookmarks, until relaunched.",
+                    "type": "text"
+                  }
+                ],
+                "type": "paragraph"
+              }
+            ],
+            "name": "Warning",
+            "style": "warning",
+            "type": "aside"
+          },
+          {
+            "content": [
+              {
+                "inlineContent": [
+                  {
+                    "text": "",
+                    "type": "text"
+                  },
+                  {
+                    "text": " ",
+                    "type": "text"
+                  },
+                  {
+                    "text": "Security-scoped bookmarks aren’t available in versions of macOS prior to OS X 10.7.3.",
+                    "type": "text"
+                  }
+                ],
+                "type": "paragraph"
+              }
+            ],
+            "name": "Version note",
+            "style": "note",
+            "type": "aside"
+          }
+        ],
+        "kind": "content"
+      }
+    ],
+    "sections": [],
+    "references": {
+      "doc://com.apple.documentation/documentation/CoreFoundation/CFURLStartAccessingSecurityScopedResource(_:)": {
+        "title": "CFURLStartAccessingSecurityScopedResource(_:)",
+        "url": "/documentation/corefoundation/cfurlstartaccessingsecurityscopedresource(_:)",
+        "abstract": [
+          {
+            "text": "In an app that has adopted App Sandbox, makes the resource pointed to by a security-scoped URL available to the app.",
+            "type": "text"
+          }
+        ]
+      },
+      "doc://com.apple.documentation/documentation/ObjectiveC/BOOL": {
+        "title": "BOOL",
+        "url": "/documentation/objectivec/bool",
+        "abstract": [
+          {
+            "text": "Type to represent a Boolean value.",
+            "type": "text"
+          }
+        ]
+      },
+      "doc://com.apple.documentation/documentation/Swift/Bool": {
+        "title": "Bool",
+        "url": "/documentation/swift/bool",
+        "abstract": [
+          {
+            "text": "A value type whose instances are either ",
+            "type": "text"
+          },
+          {
+            "code": "true",
+            "type": "codeVoice"
+          },
+          {
+            "text": " or ",
+            "type": "text"
+          },
+          {
+            "code": "false",
+            "type": "codeVoice"
+          },
+          {
+            "text": ".",
+            "type": "text"
+          }
+        ]
+      },
+      "doc://com.apple.documentation/documentation/Swift/false": {
+        "title": "false",
+        "url": "/documentation/swift/false",
+        "abstract": [
+          {
+            "text": "A false value.",
+            "type": "text"
+          }
+        ]
+      },
+      "doc://com.apple.documentation/documentation/Swift/true": {
+        "title": "true",
+        "url": "/documentation/swift/true",
+        "abstract": [
+          {
+            "text": "A true value.",
+            "type": "text"
+          }
+        ]
+      },
+      "doc://com.apple.documentation/documentation/technologies": {
+        "title": "Technologies",
+        "url": "/documentation/technologies",
+        "abstract": []
+      },
+      "doc://com.apple.foundation/documentation/Foundation": {
+        "title": "Foundation",
+        "url": "/documentation/foundation",
+        "abstract": [
+          {
+            "text": "Access essential data types, collections, and operating-system services to define the base layer of functionality for your app.",
+            "type": "text"
+          }
+        ]
+      },
+      "doc://com.apple.foundation/documentation/Foundation/NSURL": {
+        "title": "NSURL",
+        "url": "/documentation/foundation/nsurl",
+        "abstract": [
+          {
+            "text": "An object that represents the location of a resource, such as an item on a remote server or the path to a local file.",
+            "type": "text"
+          }
+        ]
+      },
+      "doc://com.apple.foundation/documentation/Foundation/NSURL/BookmarkCreationOptions": {
+        "title": "NSURL.BookmarkCreationOptions",
+        "url": "/documentation/foundation/nsurl/bookmarkcreationoptions",
+        "abstract": [
+          {
+            "text": "Options used when creating bookmark data.",
+            "type": "text"
+          }
+        ]
+      },
+      "doc://com.apple.foundation/documentation/Foundation/NSURL/BookmarkFileCreationOptions": {
+        "title": "NSURL.BookmarkFileCreationOptions",
+        "url": "/documentation/foundation/nsurl/bookmarkfilecreationoptions",
+        "abstract": [
+          {
+            "text": "Options used when creating file bookmark data",
+            "type": "text"
+          }
+        ]
+      },
+      "doc://com.apple.foundation/documentation/Foundation/NSURL/BookmarkResolutionOptions": {
+        "title": "NSURL.BookmarkResolutionOptions",
+        "url": "/documentation/foundation/nsurl/bookmarkresolutionoptions",
+        "abstract": [
+          {
+            "text": "Options used when resolving bookmark data.",
+            "type": "text"
+          }
+        ]
+      },
+      "doc://com.apple.foundation/documentation/Foundation/NSURL/URLByResolvingBookmarkData:options:relativeToURL:bookmarkDataIsStale:error:": {
+        "title": "URLByResolvingBookmarkData:options:relativeToURL:bookmarkDataIsStale:error:",
+        "url": "/documentation/foundation/nsurl/urlbyresolvingbookmarkdata:options:relativetourl:bookmarkdataisstale:error:",
+        "abstract": [
+          {
+            "text": "Returns a new URL made by resolving bookmark data.",
+            "type": "text"
+          }
+        ]
+      },
+      "doc://com.apple.foundation/documentation/Foundation/NSURL/bookmarkData(options:includingResourceValuesForKeys:relativeTo:)": {
+        "title": "bookmarkData(options:includingResourceValuesForKeys:relativeTo:)",
+        "url": "/documentation/foundation/nsurl/bookmarkdata(options:includingresourcevaluesforkeys:relativeto:)",
+        "abstract": [
+          {
+            "text": "Returns a bookmark for the URL, created with specified options and resource values.",
+            "type": "text"
+          }
+        ]
+      },
+      "doc://com.apple.foundation/documentation/Foundation/NSURL/bookmarkData(withContentsOf:)": {
+        "title": "bookmarkData(withContentsOf:)",
+        "url": "/documentation/foundation/nsurl/bookmarkdata(withcontentsof:)",
+        "abstract": [
+          {
+            "text": "Initializes and returns bookmark data derived from an alias file pointed to by a specified URL.",
+            "type": "text"
+          }
+        ]
+      },
+      "doc://com.apple.foundation/documentation/Foundation/NSURL/resourceValues(forKeys:fromBookmarkData:)": {
+        "title": "resourceValues(forKeys:fromBookmarkData:)",
+        "url": "/documentation/foundation/nsurl/resourcevalues(forkeys:frombookmarkdata:)",
+        "abstract": [
+          {
+            "text": "Returns the resource values for properties identified by a specified array of keys contained in specified bookmark data.",
+            "type": "text"
+          }
+        ]
+      },
+      "doc://com.apple.foundation/documentation/Foundation/NSURL/startAccessingSecurityScopedResource()": {
+        "title": "startAccessingSecurityScopedResource()",
+        "url": "/documentation/foundation/nsurl/startaccessingsecurityscopedresource()",
+        "abstract": [
+          {
+            "text": "In an app that has adopted App Sandbox, makes the resource pointed to by a security-scoped URL available to the app.",
+            "type": "text"
+          }
+        ]
+      },
+      "doc://com.apple.foundation/documentation/Foundation/NSURL/stopAccessingSecurityScopedResource()": {
+        "title": "stopAccessingSecurityScopedResource()",
+        "url": "/documentation/foundation/nsurl/stopaccessingsecurityscopedresource()",
+        "abstract": [
+          {
+            "text": "In an app that adopts App Sandbox, revokes access to the resource pointed to by a security-scoped URL.",
+            "type": "text"
+          }
+        ]
+      },
+      "doc://com.apple.foundation/documentation/Foundation/NSURL/writeBookmarkData(_:to:options:)": {
+        "title": "writeBookmarkData(_:to:options:)",
+        "url": "/documentation/foundation/nsurl/writebookmarkdata(_:to:options:)",
+        "abstract": [
+          {
+            "text": "Creates an alias file on disk at a specified location with specified bookmark data.",
+            "type": "text"
+          }
+        ]
+      },
+      "keyword-icon.svg": {}
+    }
+  },
+  "error": null
+}
