@@ -1,0 +1,52 @@
+{
+  "task": "WATER-W1-AD",
+  "validInitialBehaviorRed": "2026-10-23T11-40-08.474Z-8620-red-behavior-result.json",
+  "supersededBehaviorRed": "2026-10-23T11-37-05.795Z-4312-red-behavior-result.json",
+  "supersededReason": "The original mutation test changed a paused input chunk before the data event. Although the helper accepted its AD_BEHAVIOR assertion, that wait failure is not used as behavioral proof. The corrected runnable red fails with HTTP 404 versus 200.",
+  "proof": [
+    {
+      "label": "nc1",
+      "target": "AD_REPORT_BINDING",
+      "badReceipt": "2026-10-23T11-43-58.207Z-22916-red-nc1-result.json",
+      "restoredReceipt": "2026-10-23T11-46-26.774Z-5524-test-result.json",
+      "badSource": {
+        "path": "prototypes/project-workspace/transport.mjs",
+        "snapshot": "2026-10-23T11-43-58.207Z-22916-red-nc1-source-3.txt",
+        "sha256": "829f15df2ac72d46b1bf581991695f970531816e4c4b7d2dfe0d973013a926d2",
+        "test": false
+      },
+      "restoredSource": {
+        "path": "prototypes/project-workspace/transport.mjs",
+        "snapshot": "2026-10-23T11-46-26.774Z-5524-test-source-3.txt",
+        "sha256": "3bfb43c43155cd1246b7e2c6954cebf9584e2de9d3574fa851896d25babd1c16",
+        "test": false
+      },
+      "originalBytesRestored": true,
+      "allFiveTestsPass": true,
+      "stableTestHash": "e4047a0568f421d8835897477f423b689d5482bce65f1587131fb27e116f67ad",
+      "restoredProductionHash": "1f539078157c538c3ed3109f6d3a32fd0c2ccfb7cf1223ca299c82d6a7645cef"
+    },
+    {
+      "label": "nc2",
+      "target": "AD_REPORT_CONSENT",
+      "badReceipt": "2026-10-23T11-47-04.437Z-11824-red-nc2-result.json",
+      "restoredReceipt": "2026-10-23T11-47-55.223Z-5428-test-result.json",
+      "badSource": {
+        "path": "prototypes/project-workspace/server.mjs",
+        "snapshot": "2026-10-23T11-47-04.437Z-11824-red-nc2-source-2.txt",
+        "sha256": "166219913f3e6d4aac349b59bee28ee6eeb3b730a2541473cc81b8584d9e3d48",
+        "test": false
+      },
+      "restoredSource": {
+        "path": "prototypes/project-workspace/server.mjs",
+        "snapshot": "2026-10-23T11-47-55.223Z-5428-test-source-2.txt",
+        "sha256": "8c7637a81a680434ae6cbed788089fa2664a8d64f4f0ba4c5dc9fd73da3f8d9b",
+        "test": false
+      },
+      "originalBytesRestored": true,
+      "allFiveTestsPass": true,
+      "stableTestHash": "e4047a0568f421d8835897477f423b689d5482bce65f1587131fb27e116f67ad",
+      "restoredProductionHash": "1f539078157c538c3ed3109f6d3a32fd0c2ccfb7cf1223ca299c82d6a7645cef"
+    }
+  ]
+}
