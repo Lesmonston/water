@@ -1,0 +1,70 @@
+// Run from the assigned AC root using Node 24. Handoff audit/archive only, no product execution.
+const assert = require('node:assert/strict');
+const fs = require('node:fs');
+const path = require('node:path');
+const cp = require('node:child_process');
+const crypto = require('node:crypto');
+const root = process.cwd();
+const controller = 'F:/new/smaltalk/water';
+const base = 'docs/acceptance/wave1/ac';
+const sha = bytes => crypto.createHash('sha256').update(bytes).digest('hex');
+const readJson = p => JSON.parse(fs.readFileSync(p, 'utf8').replace(/^\uFEFF/, ''));
+function git(args) {
+  const r = cp.spawnSync('git', ['-c', 'core.hooksPath=NUL', '-c', 'core.fsmonitor=false', ...args], {encoding:'utf8', windowsHide:true, timeout:30000});
+  assert.equal(r.status, 0, r.stderr); return r.stdout.trim();
+}
+assert.equal(root.replaceAll('\\','/').toLowerCase(), (controller+'/.worktrees/ac').toLowerCase());
+const task = readJson(controller+'/docs/dispatch/wave1/manifest.json').tasks.find(t=>t.id==='WATER-W1-AC');
+assert.equal(git(['branch','--show-current']), task.branch);
+const lock = readJson(controller+'/'+task.contractLock), physical = new Map(), objects = new Map();
+for (const name of lock.inheritedLocks) {
+  const inherited = readJson(controller+'/'+name);
+  for (const f of inherited.files) physical.set(f.path, f.sha256);
+  for (const f of inherited.gitObjects??[]) objects.set(f.path, f.objectId);
+}
+for (const f of lock.files) physical.set(f.path, f.sha256);
+for (const [p,h] of physical) for (const tree of [root,controller]) assert.equal(sha(fs.readFileSync(path.join(tree,p))),h,p);
+for (const [p,h] of objects) assert.equal(git(['hash-object','--path='+p,p]),h,p);
+const frozenUniqueFiles = new Set([...physical.keys(),...objects.keys()]).size;
+assert.equal(frozenUniqueFiles,509);
+const changed = git(['diff','--name-only','-z',task.baseCommit,'HEAD']).split('\0').filter(Boolean);
+const unstaged = git(['diff','--name-only','-z','HEAD']).split('\0').filter(Boolean);
+const untracked = git(['ls-files','--others','--exclude-standard','-z']).split('\0').filter(Boolean);
+for (const p of [...changed,...unstaged,...untracked]) assert(task.allowedFiles.includes(p)||task.allowedPrefixes.some(prefix=>p.startsWith(prefix)),p);
+assert(!fs.existsSync('apps/desktop-preview/Cargo.lock'));
+const auditPath = base+'/HANDOFF-AUDIT.json';
+fs.writeFileSync(auditPath, JSON.stringify({
+  inspectedAt:new Date().toISOString(),task:task.id,branch:task.branch,baseCommit:task.baseCommit,
+  partialSourceCommit:git(['rev-parse','HEAD']),frozenUniqueFiles,scopePassed:true,changed,
+  cargoLockPresent:false,dependencyInventoryAvailable:false,productTestsRun:false,
+  behaviorRedRun:false,negativeControlsRun:false,finalGatesRun:false,status:'BLOCKED',
+  note:'Read-only scope/freeze/archive verification, never a product check/test/native gate.'
+},null,2)+'\n',{flag:'wx'});
+const entries=[];
+function add(source, archive, copy) {
+  const raw=fs.readFileSync(source);
+  if(copy){fs.mkdirSync(path.dirname(archive),{recursive:true});fs.copyFileSync(source,archive,fs.constants.COPYFILE_EXCL);}
+  assert.deepEqual(fs.readFileSync(archive),raw);
+  entries.push({source,archive,bytes:raw.length,sha256:sha(raw)});
+}
+const logs='.local/checks/WATER-W1-AC';
+for (const name of fs.readdirSync(logs).sort()) {
+  if (!name.startsWith('2026-10-23T11-') && !name.startsWith('20261023T115128281Z-') && !['process-end-raw.txt','partial-source-stage.json'].includes(name)) continue;
+  // The raw PowerShell launch JSON keeps its original BOM/CRLF under .txt, not a text=lf JSON attribute.
+  const archiveName=name.endsWith('-resume-launch.json')?name+'.txt':name;
+  add(logs+'/'+name,base+'/raw/'+archiveName,true);
+}
+for (const source of [...task.productionFiles,...task.optionalProductionFiles,...task.testFiles]) {
+  if(!fs.existsSync(source)) {assert.equal(source,'apps/desktop-preview/Cargo.lock');continue;}
+  add(source,base+'/sources/'+source+'.txt',true);
+}
+for (const source of [base+'/SESSION-NOTES.md',base+'/archive-evidence.txt',auditPath]) add(source,source,false);
+const archive={
+  version:'water.ac.blocked-archive.v1',task:'WATER-W1-AC',status:'BLOCKED',
+  createdAt:new Date().toISOString(),sourceCommit:git(['rev-parse','HEAD']),
+  count:entries.length,totalBytes:entries.reduce((sum,e)=>sum+e.bytes,0),entries,
+  exclusions:['pre-dispatch 02:36 baseline copies','registry/cache/target/tmp/binaries','WebView profiles','physical fixtures and user data','ARCHIVE.json itself and report (no self-referential hashes)'],
+  unavailable:['Cargo.lock and dependency/license inventory','Cargo stderr/result for two incomplete attempts (not reconstructed)','behavior-red/negative/restore/final product results (not executed)']
+};
+fs.writeFileSync(base+'/ARCHIVE.json',JSON.stringify(archive,null,2)+'\n',{flag:'wx'});
+console.log(JSON.stringify({status:archive.status,frozenUniqueFiles,count:archive.count,totalBytes:archive.totalBytes,sourceCommit:archive.sourceCommit}));
