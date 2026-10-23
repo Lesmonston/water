@@ -1,0 +1,90 @@
+{
+  "task": "WATER-W1-AD",
+  "gateFailures": [
+    {
+      "receipt": "2026-10-23T11-39-04.055Z-27420-test-result.json",
+      "mode": "test",
+      "outerGateExit": 1,
+      "childExit": [
+        1
+      ]
+    },
+    {
+      "receipt": "2026-10-23T11-41-47.197Z-4192-browser-result.json",
+      "mode": "browser",
+      "outerGateExit": 1,
+      "childExit": [
+        1
+      ]
+    }
+  ],
+  "expectedReds": [
+    {
+      "receipt": "2026-10-23T11-37-05.795Z-4312-red-behavior-result.json",
+      "outerGateExit": 0,
+      "childExit": 1,
+      "target": "AD_BEHAVIOR",
+      "validProof": false
+    },
+    {
+      "receipt": "2026-10-23T11-40-08.474Z-8620-red-behavior-result.json",
+      "outerGateExit": 0,
+      "childExit": 1,
+      "target": "AD_BEHAVIOR",
+      "validProof": true
+    },
+    {
+      "receipt": "2026-10-23T11-43-58.207Z-22916-red-nc1-result.json",
+      "outerGateExit": 0,
+      "childExit": 1,
+      "target": "AD_REPORT_BINDING",
+      "validProof": true
+    },
+    {
+      "receipt": "2026-10-23T11-47-04.437Z-11824-red-nc2-result.json",
+      "outerGateExit": 0,
+      "childExit": 1,
+      "target": "AD_REPORT_CONSENT",
+      "validProof": true
+    }
+  ],
+  "diagnosticOnly": [
+    {
+      "step": "Initial combined document reads",
+      "issue": "PowerShell default decoding produced mojibake and the output was truncated; reread required files with UTF-8."
+    },
+    {
+      "step": "SOURCES.md lookup",
+      "issue": "Nonexistent extension; freeze.lock named SOURCES.json, which was then read. PowerShell emitted a nonterminating read error; outer command exit was 0."
+    },
+    {
+      "step": "One-line node case inspection",
+      "issue": "PowerShell argument quoting removed double quotes and Node exited 1 with SyntaxError. Replaced by PowerShell JSON inspection; no test proof uses this command."
+    },
+    {
+      "step": "Combined apply_patch",
+      "issue": "README context omitted the leading characters; patch verification failed atomically. Corrected context and reapplied; no partial product edit occurred."
+    },
+    {
+      "step": "Two exploratory log reads",
+      "issue": "A guessed minute wildcard yielded no log (PowerShell Encoding dynamic parameter error); a guessed PID produced a missing-file error. Both were nonterminating read errors; exact filenames were subsequently obtained from directory records."
+    },
+    {
+      "step": "Visual-review record generation",
+      "issue": "An in-memory functions store key was unavailable after a user continuation; TypeError occurred before any write. Reconstructed the 28 already viewed file paths from the deterministic names, without rerunning the browser."
+    },
+    {
+      "step": "Whitespace evidence collection",
+      "issue": "The first collector wrongly expected no-index git diff --check to return 0 for a new file. It returned 1 with empty stdout/stderr because the file differs from NUL; assertion stopped before writing any check record. Corrected collector preserves actual exits and independently records whether whitespace diagnostics were emitted."
+    },
+    {
+      "step": "Submission report first-line comparator",
+      "issue": "A CJK literal piped from PowerShell to Node was replaced by question marks by the shell output encoding, so an assertion failed before any submission/index write. Replaced the literal with the exact line read from the authoritative UTF-8 ticket; report bytes were already correct."
+    },
+    {
+      "step": "Staged object count audit",
+      "issue": "The collector listed an unmodified pre-existing docs/acceptance/wave1/ad/.gitattributes along with the 420 explicitly staged files, yielding 421 versus 420. It stopped before writing STAGING.json. Corrected audit filters to the explicit submitted set and confirms that pre-existing file has no staged change."
+    }
+  ],
+  "note": "Diagnostic entries are a session account, not reconstructed original stdout. All gate logs and source snapshots are archived byte-for-byte."
+}

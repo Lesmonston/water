@@ -1,0 +1,38 @@
+<!doctype html>
+<html lang="zh-CN">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width,initial-scale=1">
+  <title>项目报告 · Water</title>
+  <link rel="stylesheet" href="/styles.css">
+  <link rel="stylesheet" href="/project-report.css">
+  <script type="module" src="/project-report.mjs"></script>
+</head>
+<body>
+  <header class="app-header"><div class="brand"><span class="brand-mark">w</span><strong>Water</strong><span class="brand-caption">项目报告</span></div><span class="readonly-badge">只读观察</span></header>
+  <main>
+    <a class="back-link" href="/">← 回到工作台</a>
+    <div class="page-heading"><p class="eyebrow">PROJECT REPORT</p><h1 id="report-title">正在载入报告</h1><p id="report-description" class="subtitle" role="status">等待本次内存快照。</p></div>
+    <div id="report-content" hidden>
+      <p class="report-privacy">此页面含相对路径，session JSON 不是默认脱敏导出。下载采用结构脱敏，仍不保证匿名。</p>
+      <section class="report-section" aria-labelledby="metadata-heading">
+        <div class="report-heading"><div><p class="eyebrow">01 / METADATA</p><h2 id="metadata-heading">元数据观察</h2></div><a id="download-metadata">下载脱敏元数据 JSON</a></div>
+        <p id="source-kind" class="source-line"></p>
+        <dl id="report-metrics" class="report-metrics"></dl>
+        <h3>覆盖边界</h3><p id="coverage" class="report-copy"></p><ul id="issues" class="report-copy"></ul>
+        <h3>受保护条目</h3><p class="report-copy">分类和归属未知，保留原始保护原因。逻辑长度是观察值；分配空间与可回收空间未知。</p>
+        <div id="findings" class="report-findings"></div>
+        <details class="json-preview"><summary>预览脱敏元数据 JSON</summary><pre id="metadata-preview" class="evidence-preview"></pre></details>
+      </section>
+      <section class="content-status report-section" aria-labelledby="content-heading"><p class="eyebrow">02 / OPTIONAL CONTENT</p><h2 id="content-heading">根清单读取</h2><p id="marker-status" class="report-copy"></p></section>
+      <section id="structure-panel" class="report-section" aria-labelledby="structure-heading" hidden>
+        <div class="report-heading"><h2 id="structure-heading">结构证据</h2><a id="download-evidence">下载结构证据 JSON</a></div>
+        <p class="evidence-caution">仅结构统计；归属和版本未知，不证明可删。格式通过不代表依赖已安装。</p>
+        <dl id="structure-counts" class="structure-counts"></dl>
+        <details class="json-preview"><summary>预览结构证据 JSON</summary><pre id="evidence-preview" class="evidence-preview"></pre></details>
+      </section>
+      <footer class="page-note"><p>只读 · 未知对象保持保护 · 无清理操作</p><p>仅保留最近两次结果；淘汰后链接失效。</p></footer>
+    </div>
+  </main>
+</body>
+</html>

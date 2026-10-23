@@ -1,0 +1,3645 @@
+{
+  "task": "WATER-W1-AD",
+  "base": "4b8a1de2ad49664546547256cd3d55def7c31a49",
+  "implementationAndFinalTestedCommit": "3ad5e7003d9e9720e85113a47d558738bf06231d",
+  "records": [
+    {
+      "receipt": "2026-10-23T11-32-07.196Z-39336-baseline-result.json",
+      "mode": "baseline",
+      "finalGate": false,
+      "status": "passed",
+      "head": "4b8a1de2ad49664546547256cd3d55def7c31a49",
+      "productTestsRun": false,
+      "expectation": null,
+      "productionHash": null,
+      "testHash": null,
+      "startedAt": "2026-10-23T11:32:07.197Z",
+      "endedAt": "2026-10-23T11:32:14.700Z",
+      "commands": [
+        {
+          "binary": "git",
+          "argv": [
+            "branch",
+            "--show-current"
+          ],
+          "exitCode": 0
+        },
+        {
+          "binary": "git",
+          "argv": [
+            "merge-base",
+            "--is-ancestor",
+            "4b8a1de2ad49664546547256cd3d55def7c31a49",
+            "HEAD"
+          ],
+          "exitCode": 0
+        },
+        {
+          "binary": "git",
+          "argv": [
+            "hash-object",
+            "--path=prototypes/evidence-reader/index.html",
+            "prototypes/evidence-reader/index.html"
+          ],
+          "exitCode": 0
+        },
+        {
+          "binary": "git",
+          "argv": [
+            "hash-object",
+            "--path=prototypes/evidence-reader/styles.css",
+            "prototypes/evidence-reader/styles.css"
+          ],
+          "exitCode": 0
+        },
+        {
+          "binary": "git",
+          "argv": [
+            "hash-object",
+            "--path=prototypes/scan-review/index.html",
+            "prototypes/scan-review/index.html"
+          ],
+          "exitCode": 0
+        },
+        {
+          "binary": "git",
+          "argv": [
+            "hash-object",
+            "--path=prototypes/scan-review/styles.css",
+            "prototypes/scan-review/styles.css"
+          ],
+          "exitCode": 0
+        },
+        {
+          "binary": "git",
+          "argv": [
+            "hash-object",
+            "--path=prototypes/live-workspace/.gitattributes",
+            "prototypes/live-workspace/.gitattributes"
+          ],
+          "exitCode": 0
+        },
+        {
+          "binary": "git",
+          "argv": [
+            "diff",
+            "--no-renames",
+            "--name-only",
+            "-z",
+            "4b8a1de2ad49664546547256cd3d55def7c31a49",
+            "HEAD"
+          ],
+          "exitCode": 0
+        },
+        {
+          "binary": "git",
+          "argv": [
+            "diff",
+            "--no-renames",
+            "--name-only",
+            "-z",
+            "HEAD"
+          ],
+          "exitCode": 0
+        },
+        {
+          "binary": "git",
+          "argv": [
+            "ls-files",
+            "--others",
+            "--exclude-standard",
+            "-z"
+          ],
+          "exitCode": 0
+        },
+        {
+          "binary": "git",
+          "argv": [
+            "rev-parse",
+            "HEAD"
+          ],
+          "exitCode": 0
+        },
+        {
+          "binary": "git",
+          "argv": [
+            "status",
+            "--porcelain",
+            "--untracked-files=all"
+          ],
+          "exitCode": 0
+        },
+        {
+          "binary": "C:\\Program Files\\nodejs\\node.exe",
+          "argv": [
+            "scripts/acceptance/delivery-base-probe.mjs"
+          ],
+          "exitCode": 0,
+          "error": null,
+          "log": "2026-10-23T11-32-07.196Z-39336-baseline-1.log"
+        },
+        {
+          "binary": "C:\\Program Files\\nodejs\\node.exe",
+          "argv": [
+            "scripts/acceptance/project-late-cancel-probe.mjs"
+          ],
+          "exitCode": 0,
+          "error": null,
+          "log": "2026-10-23T11-32-07.196Z-39336-baseline-2.log"
+        },
+        {
+          "binary": "git",
+          "argv": [
+            "branch",
+            "--show-current"
+          ],
+          "exitCode": 0
+        },
+        {
+          "binary": "git",
+          "argv": [
+            "merge-base",
+            "--is-ancestor",
+            "4b8a1de2ad49664546547256cd3d55def7c31a49",
+            "HEAD"
+          ],
+          "exitCode": 0
+        },
+        {
+          "binary": "git",
+          "argv": [
+            "hash-object",
+            "--path=prototypes/evidence-reader/index.html",
+            "prototypes/evidence-reader/index.html"
+          ],
+          "exitCode": 0
+        },
+        {
+          "binary": "git",
+          "argv": [
+            "hash-object",
+            "--path=prototypes/evidence-reader/styles.css",
+            "prototypes/evidence-reader/styles.css"
+          ],
+          "exitCode": 0
+        },
+        {
+          "binary": "git",
+          "argv": [
+            "hash-object",
+            "--path=prototypes/scan-review/index.html",
+            "prototypes/scan-review/index.html"
+          ],
+          "exitCode": 0
+        },
+        {
+          "binary": "git",
+          "argv": [
+            "hash-object",
+            "--path=prototypes/scan-review/styles.css",
+            "prototypes/scan-review/styles.css"
+          ],
+          "exitCode": 0
+        },
+        {
+          "binary": "git",
+          "argv": [
+            "hash-object",
+            "--path=prototypes/live-workspace/.gitattributes",
+            "prototypes/live-workspace/.gitattributes"
+          ],
+          "exitCode": 0
+        },
+        {
+          "binary": "git",
+          "argv": [
+            "diff",
+            "--no-renames",
+            "--name-only",
+            "-z",
+            "4b8a1de2ad49664546547256cd3d55def7c31a49",
+            "HEAD"
+          ],
+          "exitCode": 0
+        },
+        {
+          "binary": "git",
+          "argv": [
+            "diff",
+            "--no-renames",
+            "--name-only",
+            "-z",
+            "HEAD"
+          ],
+          "exitCode": 0
+        },
+        {
+          "binary": "git",
+          "argv": [
+            "ls-files",
+            "--others",
+            "--exclude-standard",
+            "-z"
+          ],
+          "exitCode": 0
+        },
+        {
+          "binary": "git",
+          "argv": [
+            "rev-parse",
+            "HEAD"
+          ],
+          "exitCode": 0
+        },
+        {
+          "binary": "git",
+          "argv": [
+            "status",
+            "--porcelain",
+            "--untracked-files=all"
+          ],
+          "exitCode": 0
+        }
+      ]
+    },
+    {
+      "receipt": "2026-10-23T11-37-05.795Z-4312-red-behavior-result.json",
+      "mode": "red-behavior",
+      "finalGate": false,
+      "status": "passed",
+      "head": "4b8a1de2ad49664546547256cd3d55def7c31a49",
+      "productTestsRun": true,
+      "expectation": "AD_BEHAVIOR",
+      "productionHash": "7164ded53cca83fee4323e67a9d7ba002e133ee042e753dbf89304d2e8acfe39",
+      "testHash": "e77bfd56c683db66573c929e6252fc626dce185a4b0f9f2cc37853d4835b88a8",
+      "startedAt": "2026-10-23T11:37:05.798Z",
+      "endedAt": "2026-10-23T11:37:26.243Z",
+      "commands": [
+        {
+          "binary": "git",
+          "argv": [
+            "branch",
+            "--show-current"
+          ],
+          "exitCode": 0
+        },
+        {
+          "binary": "git",
+          "argv": [
+            "merge-base",
+            "--is-ancestor",
+            "4b8a1de2ad49664546547256cd3d55def7c31a49",
+            "HEAD"
+          ],
+          "exitCode": 0
+        },
+        {
+          "binary": "git",
+          "argv": [
+            "hash-object",
+            "--path=prototypes/evidence-reader/index.html",
+            "prototypes/evidence-reader/index.html"
+          ],
+          "exitCode": 0
+        },
+        {
+          "binary": "git",
+          "argv": [
+            "hash-object",
+            "--path=prototypes/evidence-reader/styles.css",
+            "prototypes/evidence-reader/styles.css"
+          ],
+          "exitCode": 0
+        },
+        {
+          "binary": "git",
+          "argv": [
+            "hash-object",
+            "--path=prototypes/scan-review/index.html",
+            "prototypes/scan-review/index.html"
+          ],
+          "exitCode": 0
+        },
+        {
+          "binary": "git",
+          "argv": [
+            "hash-object",
+            "--path=prototypes/scan-review/styles.css",
+            "prototypes/scan-review/styles.css"
+          ],
+          "exitCode": 0
+        },
+        {
+          "binary": "git",
+          "argv": [
+            "hash-object",
+            "--path=prototypes/live-workspace/.gitattributes",
+            "prototypes/live-workspace/.gitattributes"
+          ],
+          "exitCode": 0
+        },
+        {
+          "binary": "git",
+          "argv": [
+            "diff",
+            "--no-renames",
+            "--name-only",
+            "-z",
+            "4b8a1de2ad49664546547256cd3d55def7c31a49",
+            "HEAD"
+          ],
+          "exitCode": 0
+        },
+        {
+          "binary": "git",
+          "argv": [
+            "diff",
+            "--no-renames",
+            "--name-only",
+            "-z",
+            "HEAD"
+          ],
+          "exitCode": 0
+        },
+        {
+          "binary": "git",
+          "argv": [
+            "ls-files",
+            "--others",
+            "--exclude-standard",
+            "-z"
+          ],
+          "exitCode": 0
+        },
+        {
+          "binary": "git",
+          "argv": [
+            "rev-parse",
+            "HEAD"
+          ],
+          "exitCode": 0
+        },
+        {
+          "binary": "git",
+          "argv": [
+            "status",
+            "--porcelain",
+            "--untracked-files=all"
+          ],
+          "exitCode": 0
+        },
+        {
+          "binary": "C:\\Program Files\\nodejs\\node.exe",
+          "argv": [
+            "--test",
+            "--test-concurrency=1",
+            "--test-reporter=tap",
+            "prototypes/project-workspace/tests/model.test.mjs",
+            "prototypes/project-workspace/tests/project-report.test.mjs"
+          ],
+          "exitCode": 1,
+          "error": null,
+          "log": "2026-10-23T11-37-05.795Z-4312-red-behavior-1.log"
+        },
+        {
+          "binary": "git",
+          "argv": [
+            "branch",
+            "--show-current"
+          ],
+          "exitCode": 0
+        },
+        {
+          "binary": "git",
+          "argv": [
+            "merge-base",
+            "--is-ancestor",
+            "4b8a1de2ad49664546547256cd3d55def7c31a49",
+            "HEAD"
+          ],
+          "exitCode": 0
+        },
+        {
+          "binary": "git",
+          "argv": [
+            "hash-object",
+            "--path=prototypes/evidence-reader/index.html",
+            "prototypes/evidence-reader/index.html"
+          ],
+          "exitCode": 0
+        },
+        {
+          "binary": "git",
+          "argv": [
+            "hash-object",
+            "--path=prototypes/evidence-reader/styles.css",
+            "prototypes/evidence-reader/styles.css"
+          ],
+          "exitCode": 0
+        },
+        {
+          "binary": "git",
+          "argv": [
+            "hash-object",
+            "--path=prototypes/scan-review/index.html",
+            "prototypes/scan-review/index.html"
+          ],
+          "exitCode": 0
+        },
+        {
+          "binary": "git",
+          "argv": [
+            "hash-object",
+            "--path=prototypes/scan-review/styles.css",
+            "prototypes/scan-review/styles.css"
+          ],
+          "exitCode": 0
+        },
+        {
+          "binary": "git",
+          "argv": [
+            "hash-object",
+            "--path=prototypes/live-workspace/.gitattributes",
+            "prototypes/live-workspace/.gitattributes"
+          ],
+          "exitCode": 0
+        },
+        {
+          "binary": "git",
+          "argv": [
+            "diff",
+            "--no-renames",
+            "--name-only",
+            "-z",
+            "4b8a1de2ad49664546547256cd3d55def7c31a49",
+            "HEAD"
+          ],
+          "exitCode": 0
+        },
+        {
+          "binary": "git",
+          "argv": [
+            "diff",
+            "--no-renames",
+            "--name-only",
+            "-z",
+            "HEAD"
+          ],
+          "exitCode": 0
+        },
+        {
+          "binary": "git",
+          "argv": [
+            "ls-files",
+            "--others",
+            "--exclude-standard",
+            "-z"
+          ],
+          "exitCode": 0
+        },
+        {
+          "binary": "git",
+          "argv": [
+            "rev-parse",
+            "HEAD"
+          ],
+          "exitCode": 0
+        },
+        {
+          "binary": "git",
+          "argv": [
+            "status",
+            "--porcelain",
+            "--untracked-files=all"
+          ],
+          "exitCode": 0
+        }
+      ]
+    },
+    {
+      "receipt": "2026-10-23T11-39-04.055Z-27420-test-result.json",
+      "mode": "test",
+      "finalGate": false,
+      "status": "failed",
+      "head": "4b8a1de2ad49664546547256cd3d55def7c31a49",
+      "productTestsRun": false,
+      "expectation": null,
+      "productionHash": "1f539078157c538c3ed3109f6d3a32fd0c2ccfb7cf1223ca299c82d6a7645cef",
+      "testHash": "e77bfd56c683db66573c929e6252fc626dce185a4b0f9f2cc37853d4835b88a8",
+      "startedAt": "2026-10-23T11:39:04.057Z",
+      "endedAt": "2026-10-23T11:39:20.207Z",
+      "commands": [
+        {
+          "binary": "git",
+          "argv": [
+            "branch",
+            "--show-current"
+          ],
+          "exitCode": 0
+        },
+        {
+          "binary": "git",
+          "argv": [
+            "merge-base",
+            "--is-ancestor",
+            "4b8a1de2ad49664546547256cd3d55def7c31a49",
+            "HEAD"
+          ],
+          "exitCode": 0
+        },
+        {
+          "binary": "git",
+          "argv": [
+            "hash-object",
+            "--path=prototypes/evidence-reader/index.html",
+            "prototypes/evidence-reader/index.html"
+          ],
+          "exitCode": 0
+        },
+        {
+          "binary": "git",
+          "argv": [
+            "hash-object",
+            "--path=prototypes/evidence-reader/styles.css",
+            "prototypes/evidence-reader/styles.css"
+          ],
+          "exitCode": 0
+        },
+        {
+          "binary": "git",
+          "argv": [
+            "hash-object",
+            "--path=prototypes/scan-review/index.html",
+            "prototypes/scan-review/index.html"
+          ],
+          "exitCode": 0
+        },
+        {
+          "binary": "git",
+          "argv": [
+            "hash-object",
+            "--path=prototypes/scan-review/styles.css",
+            "prototypes/scan-review/styles.css"
+          ],
+          "exitCode": 0
+        },
+        {
+          "binary": "git",
+          "argv": [
+            "hash-object",
+            "--path=prototypes/live-workspace/.gitattributes",
+            "prototypes/live-workspace/.gitattributes"
+          ],
+          "exitCode": 0
+        },
+        {
+          "binary": "git",
+          "argv": [
+            "diff",
+            "--no-renames",
+            "--name-only",
+            "-z",
+            "4b8a1de2ad49664546547256cd3d55def7c31a49",
+            "HEAD"
+          ],
+          "exitCode": 0
+        },
+        {
+          "binary": "git",
+          "argv": [
+            "diff",
+            "--no-renames",
+            "--name-only",
+            "-z",
+            "HEAD"
+          ],
+          "exitCode": 0
+        },
+        {
+          "binary": "git",
+          "argv": [
+            "ls-files",
+            "--others",
+            "--exclude-standard",
+            "-z"
+          ],
+          "exitCode": 0
+        },
+        {
+          "binary": "git",
+          "argv": [
+            "rev-parse",
+            "HEAD"
+          ],
+          "exitCode": 0
+        },
+        {
+          "binary": "git",
+          "argv": [
+            "status",
+            "--porcelain",
+            "--untracked-files=all"
+          ],
+          "exitCode": 0
+        },
+        {
+          "binary": "C:\\Program Files\\nodejs\\node.exe",
+          "argv": [
+            "--test",
+            "--test-concurrency=1",
+            "--test-reporter=tap",
+            "prototypes/project-workspace/tests/model.test.mjs",
+            "prototypes/project-workspace/tests/project-report.test.mjs"
+          ],
+          "exitCode": 1,
+          "error": null,
+          "log": "2026-10-23T11-39-04.055Z-27420-test-1.log"
+        },
+        {
+          "binary": "git",
+          "argv": [
+            "branch",
+            "--show-current"
+          ],
+          "exitCode": 0
+        },
+        {
+          "binary": "git",
+          "argv": [
+            "merge-base",
+            "--is-ancestor",
+            "4b8a1de2ad49664546547256cd3d55def7c31a49",
+            "HEAD"
+          ],
+          "exitCode": 0
+        },
+        {
+          "binary": "git",
+          "argv": [
+            "hash-object",
+            "--path=prototypes/evidence-reader/index.html",
+            "prototypes/evidence-reader/index.html"
+          ],
+          "exitCode": 0
+        },
+        {
+          "binary": "git",
+          "argv": [
+            "hash-object",
+            "--path=prototypes/evidence-reader/styles.css",
+            "prototypes/evidence-reader/styles.css"
+          ],
+          "exitCode": 0
+        },
+        {
+          "binary": "git",
+          "argv": [
+            "hash-object",
+            "--path=prototypes/scan-review/index.html",
+            "prototypes/scan-review/index.html"
+          ],
+          "exitCode": 0
+        },
+        {
+          "binary": "git",
+          "argv": [
+            "hash-object",
+            "--path=prototypes/scan-review/styles.css",
+            "prototypes/scan-review/styles.css"
+          ],
+          "exitCode": 0
+        },
+        {
+          "binary": "git",
+          "argv": [
+            "hash-object",
+            "--path=prototypes/live-workspace/.gitattributes",
+            "prototypes/live-workspace/.gitattributes"
+          ],
+          "exitCode": 0
+        },
+        {
+          "binary": "git",
+          "argv": [
+            "diff",
+            "--no-renames",
+            "--name-only",
+            "-z",
+            "4b8a1de2ad49664546547256cd3d55def7c31a49",
+            "HEAD"
+          ],
+          "exitCode": 0
+        },
+        {
+          "binary": "git",
+          "argv": [
+            "diff",
+            "--no-renames",
+            "--name-only",
+            "-z",
+            "HEAD"
+          ],
+          "exitCode": 0
+        },
+        {
+          "binary": "git",
+          "argv": [
+            "ls-files",
+            "--others",
+            "--exclude-standard",
+            "-z"
+          ],
+          "exitCode": 0
+        },
+        {
+          "binary": "git",
+          "argv": [
+            "rev-parse",
+            "HEAD"
+          ],
+          "exitCode": 0
+        },
+        {
+          "binary": "git",
+          "argv": [
+            "status",
+            "--porcelain",
+            "--untracked-files=all"
+          ],
+          "exitCode": 0
+        }
+      ]
+    },
+    {
+      "receipt": "2026-10-23T11-40-08.474Z-8620-red-behavior-result.json",
+      "mode": "red-behavior",
+      "finalGate": false,
+      "status": "passed",
+      "head": "4b8a1de2ad49664546547256cd3d55def7c31a49",
+      "productTestsRun": true,
+      "expectation": "AD_BEHAVIOR",
+      "productionHash": "59f5d17599b254a9aded3f3d8905b2db72d94fc6b635e6c1d1d133fbe7d699eb",
+      "testHash": "f54da1cc5ce5384412dfd26f18dba0231d5db7809930cac4b20888c7fd3f41b0",
+      "startedAt": "2026-10-23T11:40:08.476Z",
+      "endedAt": "2026-10-23T11:40:21.639Z",
+      "commands": [
+        {
+          "binary": "git",
+          "argv": [
+            "branch",
+            "--show-current"
+          ],
+          "exitCode": 0
+        },
+        {
+          "binary": "git",
+          "argv": [
+            "merge-base",
+            "--is-ancestor",
+            "4b8a1de2ad49664546547256cd3d55def7c31a49",
+            "HEAD"
+          ],
+          "exitCode": 0
+        },
+        {
+          "binary": "git",
+          "argv": [
+            "hash-object",
+            "--path=prototypes/evidence-reader/index.html",
+            "prototypes/evidence-reader/index.html"
+          ],
+          "exitCode": 0
+        },
+        {
+          "binary": "git",
+          "argv": [
+            "hash-object",
+            "--path=prototypes/evidence-reader/styles.css",
+            "prototypes/evidence-reader/styles.css"
+          ],
+          "exitCode": 0
+        },
+        {
+          "binary": "git",
+          "argv": [
+            "hash-object",
+            "--path=prototypes/scan-review/index.html",
+            "prototypes/scan-review/index.html"
+          ],
+          "exitCode": 0
+        },
+        {
+          "binary": "git",
+          "argv": [
+            "hash-object",
+            "--path=prototypes/scan-review/styles.css",
+            "prototypes/scan-review/styles.css"
+          ],
+          "exitCode": 0
+        },
+        {
+          "binary": "git",
+          "argv": [
+            "hash-object",
+            "--path=prototypes/live-workspace/.gitattributes",
+            "prototypes/live-workspace/.gitattributes"
+          ],
+          "exitCode": 0
+        },
+        {
+          "binary": "git",
+          "argv": [
+            "diff",
+            "--no-renames",
+            "--name-only",
+            "-z",
+            "4b8a1de2ad49664546547256cd3d55def7c31a49",
+            "HEAD"
+          ],
+          "exitCode": 0
+        },
+        {
+          "binary": "git",
+          "argv": [
+            "diff",
+            "--no-renames",
+            "--name-only",
+            "-z",
+            "HEAD"
+          ],
+          "exitCode": 0
+        },
+        {
+          "binary": "git",
+          "argv": [
+            "ls-files",
+            "--others",
+            "--exclude-standard",
+            "-z"
+          ],
+          "exitCode": 0
+        },
+        {
+          "binary": "git",
+          "argv": [
+            "rev-parse",
+            "HEAD"
+          ],
+          "exitCode": 0
+        },
+        {
+          "binary": "git",
+          "argv": [
+            "status",
+            "--porcelain",
+            "--untracked-files=all"
+          ],
+          "exitCode": 0
+        },
+        {
+          "binary": "C:\\Program Files\\nodejs\\node.exe",
+          "argv": [
+            "--test",
+            "--test-concurrency=1",
+            "--test-reporter=tap",
+            "prototypes/project-workspace/tests/model.test.mjs",
+            "prototypes/project-workspace/tests/project-report.test.mjs"
+          ],
+          "exitCode": 1,
+          "error": null,
+          "log": "2026-10-23T11-40-08.474Z-8620-red-behavior-1.log"
+        },
+        {
+          "binary": "git",
+          "argv": [
+            "branch",
+            "--show-current"
+          ],
+          "exitCode": 0
+        },
+        {
+          "binary": "git",
+          "argv": [
+            "merge-base",
+            "--is-ancestor",
+            "4b8a1de2ad49664546547256cd3d55def7c31a49",
+            "HEAD"
+          ],
+          "exitCode": 0
+        },
+        {
+          "binary": "git",
+          "argv": [
+            "hash-object",
+            "--path=prototypes/evidence-reader/index.html",
+            "prototypes/evidence-reader/index.html"
+          ],
+          "exitCode": 0
+        },
+        {
+          "binary": "git",
+          "argv": [
+            "hash-object",
+            "--path=prototypes/evidence-reader/styles.css",
+            "prototypes/evidence-reader/styles.css"
+          ],
+          "exitCode": 0
+        },
+        {
+          "binary": "git",
+          "argv": [
+            "hash-object",
+            "--path=prototypes/scan-review/index.html",
+            "prototypes/scan-review/index.html"
+          ],
+          "exitCode": 0
+        },
+        {
+          "binary": "git",
+          "argv": [
+            "hash-object",
+            "--path=prototypes/scan-review/styles.css",
+            "prototypes/scan-review/styles.css"
+          ],
+          "exitCode": 0
+        },
+        {
+          "binary": "git",
+          "argv": [
+            "hash-object",
+            "--path=prototypes/live-workspace/.gitattributes",
+            "prototypes/live-workspace/.gitattributes"
+          ],
+          "exitCode": 0
+        },
+        {
+          "binary": "git",
+          "argv": [
+            "diff",
+            "--no-renames",
+            "--name-only",
+            "-z",
+            "4b8a1de2ad49664546547256cd3d55def7c31a49",
+            "HEAD"
+          ],
+          "exitCode": 0
+        },
+        {
+          "binary": "git",
+          "argv": [
+            "diff",
+            "--no-renames",
+            "--name-only",
+            "-z",
+            "HEAD"
+          ],
+          "exitCode": 0
+        },
+        {
+          "binary": "git",
+          "argv": [
+            "ls-files",
+            "--others",
+            "--exclude-standard",
+            "-z"
+          ],
+          "exitCode": 0
+        },
+        {
+          "binary": "git",
+          "argv": [
+            "rev-parse",
+            "HEAD"
+          ],
+          "exitCode": 0
+        },
+        {
+          "binary": "git",
+          "argv": [
+            "status",
+            "--porcelain",
+            "--untracked-files=all"
+          ],
+          "exitCode": 0
+        }
+      ]
+    },
+    {
+      "receipt": "2026-10-23T11-40-38.426Z-43520-test-result.json",
+      "mode": "test",
+      "finalGate": false,
+      "status": "passed",
+      "head": "4b8a1de2ad49664546547256cd3d55def7c31a49",
+      "productTestsRun": true,
+      "expectation": null,
+      "productionHash": "1f539078157c538c3ed3109f6d3a32fd0c2ccfb7cf1223ca299c82d6a7645cef",
+      "testHash": "f54da1cc5ce5384412dfd26f18dba0231d5db7809930cac4b20888c7fd3f41b0",
+      "startedAt": "2026-10-23T11:40:38.428Z",
+      "endedAt": "2026-10-23T11:40:51.580Z",
+      "commands": [
+        {
+          "binary": "git",
+          "argv": [
+            "branch",
+            "--show-current"
+          ],
+          "exitCode": 0
+        },
+        {
+          "binary": "git",
+          "argv": [
+            "merge-base",
+            "--is-ancestor",
+            "4b8a1de2ad49664546547256cd3d55def7c31a49",
+            "HEAD"
+          ],
+          "exitCode": 0
+        },
+        {
+          "binary": "git",
+          "argv": [
+            "hash-object",
+            "--path=prototypes/evidence-reader/index.html",
+            "prototypes/evidence-reader/index.html"
+          ],
+          "exitCode": 0
+        },
+        {
+          "binary": "git",
+          "argv": [
+            "hash-object",
+            "--path=prototypes/evidence-reader/styles.css",
+            "prototypes/evidence-reader/styles.css"
+          ],
+          "exitCode": 0
+        },
+        {
+          "binary": "git",
+          "argv": [
+            "hash-object",
+            "--path=prototypes/scan-review/index.html",
+            "prototypes/scan-review/index.html"
+          ],
+          "exitCode": 0
+        },
+        {
+          "binary": "git",
+          "argv": [
+            "hash-object",
+            "--path=prototypes/scan-review/styles.css",
+            "prototypes/scan-review/styles.css"
+          ],
+          "exitCode": 0
+        },
+        {
+          "binary": "git",
+          "argv": [
+            "hash-object",
+            "--path=prototypes/live-workspace/.gitattributes",
+            "prototypes/live-workspace/.gitattributes"
+          ],
+          "exitCode": 0
+        },
+        {
+          "binary": "git",
+          "argv": [
+            "diff",
+            "--no-renames",
+            "--name-only",
+            "-z",
+            "4b8a1de2ad49664546547256cd3d55def7c31a49",
+            "HEAD"
+          ],
+          "exitCode": 0
+        },
+        {
+          "binary": "git",
+          "argv": [
+            "diff",
+            "--no-renames",
+            "--name-only",
+            "-z",
+            "HEAD"
+          ],
+          "exitCode": 0
+        },
+        {
+          "binary": "git",
+          "argv": [
+            "ls-files",
+            "--others",
+            "--exclude-standard",
+            "-z"
+          ],
+          "exitCode": 0
+        },
+        {
+          "binary": "git",
+          "argv": [
+            "rev-parse",
+            "HEAD"
+          ],
+          "exitCode": 0
+        },
+        {
+          "binary": "git",
+          "argv": [
+            "status",
+            "--porcelain",
+            "--untracked-files=all"
+          ],
+          "exitCode": 0
+        },
+        {
+          "binary": "C:\\Program Files\\nodejs\\node.exe",
+          "argv": [
+            "--test",
+            "--test-concurrency=1",
+            "--test-reporter=tap",
+            "prototypes/project-workspace/tests/model.test.mjs",
+            "prototypes/project-workspace/tests/project-report.test.mjs"
+          ],
+          "exitCode": 0,
+          "error": null,
+          "log": "2026-10-23T11-40-38.426Z-43520-test-1.log"
+        },
+        {
+          "binary": "git",
+          "argv": [
+            "branch",
+            "--show-current"
+          ],
+          "exitCode": 0
+        },
+        {
+          "binary": "git",
+          "argv": [
+            "merge-base",
+            "--is-ancestor",
+            "4b8a1de2ad49664546547256cd3d55def7c31a49",
+            "HEAD"
+          ],
+          "exitCode": 0
+        },
+        {
+          "binary": "git",
+          "argv": [
+            "hash-object",
+            "--path=prototypes/evidence-reader/index.html",
+            "prototypes/evidence-reader/index.html"
+          ],
+          "exitCode": 0
+        },
+        {
+          "binary": "git",
+          "argv": [
+            "hash-object",
+            "--path=prototypes/evidence-reader/styles.css",
+            "prototypes/evidence-reader/styles.css"
+          ],
+          "exitCode": 0
+        },
+        {
+          "binary": "git",
+          "argv": [
+            "hash-object",
+            "--path=prototypes/scan-review/index.html",
+            "prototypes/scan-review/index.html"
+          ],
+          "exitCode": 0
+        },
+        {
+          "binary": "git",
+          "argv": [
+            "hash-object",
+            "--path=prototypes/scan-review/styles.css",
+            "prototypes/scan-review/styles.css"
+          ],
+          "exitCode": 0
+        },
+        {
+          "binary": "git",
+          "argv": [
+            "hash-object",
+            "--path=prototypes/live-workspace/.gitattributes",
+            "prototypes/live-workspace/.gitattributes"
+          ],
+          "exitCode": 0
+        },
+        {
+          "binary": "git",
+          "argv": [
+            "diff",
+            "--no-renames",
+            "--name-only",
+            "-z",
+            "4b8a1de2ad49664546547256cd3d55def7c31a49",
+            "HEAD"
+          ],
+          "exitCode": 0
+        },
+        {
+          "binary": "git",
+          "argv": [
+            "diff",
+            "--no-renames",
+            "--name-only",
+            "-z",
+            "HEAD"
+          ],
+          "exitCode": 0
+        },
+        {
+          "binary": "git",
+          "argv": [
+            "ls-files",
+            "--others",
+            "--exclude-standard",
+            "-z"
+          ],
+          "exitCode": 0
+        },
+        {
+          "binary": "git",
+          "argv": [
+            "rev-parse",
+            "HEAD"
+          ],
+          "exitCode": 0
+        },
+        {
+          "binary": "git",
+          "argv": [
+            "status",
+            "--porcelain",
+            "--untracked-files=all"
+          ],
+          "exitCode": 0
+        }
+      ]
+    },
+    {
+      "receipt": "2026-10-23T11-41-47.197Z-4192-browser-result.json",
+      "mode": "browser",
+      "finalGate": false,
+      "status": "failed",
+      "head": "4b8a1de2ad49664546547256cd3d55def7c31a49",
+      "productTestsRun": false,
+      "expectation": null,
+      "productionHash": "1f539078157c538c3ed3109f6d3a32fd0c2ccfb7cf1223ca299c82d6a7645cef",
+      "testHash": "f54da1cc5ce5384412dfd26f18dba0231d5db7809930cac4b20888c7fd3f41b0",
+      "startedAt": "2026-10-23T11:41:47.200Z",
+      "endedAt": "2026-10-23T11:42:12.862Z",
+      "commands": [
+        {
+          "binary": "git",
+          "argv": [
+            "branch",
+            "--show-current"
+          ],
+          "exitCode": 0
+        },
+        {
+          "binary": "git",
+          "argv": [
+            "merge-base",
+            "--is-ancestor",
+            "4b8a1de2ad49664546547256cd3d55def7c31a49",
+            "HEAD"
+          ],
+          "exitCode": 0
+        },
+        {
+          "binary": "git",
+          "argv": [
+            "hash-object",
+            "--path=prototypes/evidence-reader/index.html",
+            "prototypes/evidence-reader/index.html"
+          ],
+          "exitCode": 0
+        },
+        {
+          "binary": "git",
+          "argv": [
+            "hash-object",
+            "--path=prototypes/evidence-reader/styles.css",
+            "prototypes/evidence-reader/styles.css"
+          ],
+          "exitCode": 0
+        },
+        {
+          "binary": "git",
+          "argv": [
+            "hash-object",
+            "--path=prototypes/scan-review/index.html",
+            "prototypes/scan-review/index.html"
+          ],
+          "exitCode": 0
+        },
+        {
+          "binary": "git",
+          "argv": [
+            "hash-object",
+            "--path=prototypes/scan-review/styles.css",
+            "prototypes/scan-review/styles.css"
+          ],
+          "exitCode": 0
+        },
+        {
+          "binary": "git",
+          "argv": [
+            "hash-object",
+            "--path=prototypes/live-workspace/.gitattributes",
+            "prototypes/live-workspace/.gitattributes"
+          ],
+          "exitCode": 0
+        },
+        {
+          "binary": "git",
+          "argv": [
+            "diff",
+            "--no-renames",
+            "--name-only",
+            "-z",
+            "4b8a1de2ad49664546547256cd3d55def7c31a49",
+            "HEAD"
+          ],
+          "exitCode": 0
+        },
+        {
+          "binary": "git",
+          "argv": [
+            "diff",
+            "--no-renames",
+            "--name-only",
+            "-z",
+            "HEAD"
+          ],
+          "exitCode": 0
+        },
+        {
+          "binary": "git",
+          "argv": [
+            "ls-files",
+            "--others",
+            "--exclude-standard",
+            "-z"
+          ],
+          "exitCode": 0
+        },
+        {
+          "binary": "git",
+          "argv": [
+            "rev-parse",
+            "HEAD"
+          ],
+          "exitCode": 0
+        },
+        {
+          "binary": "git",
+          "argv": [
+            "status",
+            "--porcelain",
+            "--untracked-files=all"
+          ],
+          "exitCode": 0
+        },
+        {
+          "binary": "C:\\Program Files\\nodejs\\node.exe",
+          "argv": [
+            "--test",
+            "--test-concurrency=1",
+            "--test-reporter=tap",
+            "prototypes/project-workspace/tests/browser.test.mjs",
+            "prototypes/project-workspace/tests/project-report-browser.test.mjs"
+          ],
+          "exitCode": 1,
+          "error": null,
+          "log": "2026-10-23T11-41-47.197Z-4192-browser-1.log"
+        },
+        {
+          "binary": "git",
+          "argv": [
+            "branch",
+            "--show-current"
+          ],
+          "exitCode": 0
+        },
+        {
+          "binary": "git",
+          "argv": [
+            "merge-base",
+            "--is-ancestor",
+            "4b8a1de2ad49664546547256cd3d55def7c31a49",
+            "HEAD"
+          ],
+          "exitCode": 0
+        },
+        {
+          "binary": "git",
+          "argv": [
+            "hash-object",
+            "--path=prototypes/evidence-reader/index.html",
+            "prototypes/evidence-reader/index.html"
+          ],
+          "exitCode": 0
+        },
+        {
+          "binary": "git",
+          "argv": [
+            "hash-object",
+            "--path=prototypes/evidence-reader/styles.css",
+            "prototypes/evidence-reader/styles.css"
+          ],
+          "exitCode": 0
+        },
+        {
+          "binary": "git",
+          "argv": [
+            "hash-object",
+            "--path=prototypes/scan-review/index.html",
+            "prototypes/scan-review/index.html"
+          ],
+          "exitCode": 0
+        },
+        {
+          "binary": "git",
+          "argv": [
+            "hash-object",
+            "--path=prototypes/scan-review/styles.css",
+            "prototypes/scan-review/styles.css"
+          ],
+          "exitCode": 0
+        },
+        {
+          "binary": "git",
+          "argv": [
+            "hash-object",
+            "--path=prototypes/live-workspace/.gitattributes",
+            "prototypes/live-workspace/.gitattributes"
+          ],
+          "exitCode": 0
+        },
+        {
+          "binary": "git",
+          "argv": [
+            "diff",
+            "--no-renames",
+            "--name-only",
+            "-z",
+            "4b8a1de2ad49664546547256cd3d55def7c31a49",
+            "HEAD"
+          ],
+          "exitCode": 0
+        },
+        {
+          "binary": "git",
+          "argv": [
+            "diff",
+            "--no-renames",
+            "--name-only",
+            "-z",
+            "HEAD"
+          ],
+          "exitCode": 0
+        },
+        {
+          "binary": "git",
+          "argv": [
+            "ls-files",
+            "--others",
+            "--exclude-standard",
+            "-z"
+          ],
+          "exitCode": 0
+        },
+        {
+          "binary": "git",
+          "argv": [
+            "rev-parse",
+            "HEAD"
+          ],
+          "exitCode": 0
+        },
+        {
+          "binary": "git",
+          "argv": [
+            "status",
+            "--porcelain",
+            "--untracked-files=all"
+          ],
+          "exitCode": 0
+        }
+      ]
+    },
+    {
+      "receipt": "2026-10-23T11-42-53.664Z-43040-browser-result.json",
+      "mode": "browser",
+      "finalGate": false,
+      "status": "passed",
+      "head": "4b8a1de2ad49664546547256cd3d55def7c31a49",
+      "productTestsRun": true,
+      "expectation": null,
+      "productionHash": "1f539078157c538c3ed3109f6d3a32fd0c2ccfb7cf1223ca299c82d6a7645cef",
+      "testHash": "e4047a0568f421d8835897477f423b689d5482bce65f1587131fb27e116f67ad",
+      "startedAt": "2026-10-23T11:42:53.666Z",
+      "endedAt": "2026-10-23T11:43:27.379Z",
+      "commands": [
+        {
+          "binary": "git",
+          "argv": [
+            "branch",
+            "--show-current"
+          ],
+          "exitCode": 0
+        },
+        {
+          "binary": "git",
+          "argv": [
+            "merge-base",
+            "--is-ancestor",
+            "4b8a1de2ad49664546547256cd3d55def7c31a49",
+            "HEAD"
+          ],
+          "exitCode": 0
+        },
+        {
+          "binary": "git",
+          "argv": [
+            "hash-object",
+            "--path=prototypes/evidence-reader/index.html",
+            "prototypes/evidence-reader/index.html"
+          ],
+          "exitCode": 0
+        },
+        {
+          "binary": "git",
+          "argv": [
+            "hash-object",
+            "--path=prototypes/evidence-reader/styles.css",
+            "prototypes/evidence-reader/styles.css"
+          ],
+          "exitCode": 0
+        },
+        {
+          "binary": "git",
+          "argv": [
+            "hash-object",
+            "--path=prototypes/scan-review/index.html",
+            "prototypes/scan-review/index.html"
+          ],
+          "exitCode": 0
+        },
+        {
+          "binary": "git",
+          "argv": [
+            "hash-object",
+            "--path=prototypes/scan-review/styles.css",
+            "prototypes/scan-review/styles.css"
+          ],
+          "exitCode": 0
+        },
+        {
+          "binary": "git",
+          "argv": [
+            "hash-object",
+            "--path=prototypes/live-workspace/.gitattributes",
+            "prototypes/live-workspace/.gitattributes"
+          ],
+          "exitCode": 0
+        },
+        {
+          "binary": "git",
+          "argv": [
+            "diff",
+            "--no-renames",
+            "--name-only",
+            "-z",
+            "4b8a1de2ad49664546547256cd3d55def7c31a49",
+            "HEAD"
+          ],
+          "exitCode": 0
+        },
+        {
+          "binary": "git",
+          "argv": [
+            "diff",
+            "--no-renames",
+            "--name-only",
+            "-z",
+            "HEAD"
+          ],
+          "exitCode": 0
+        },
+        {
+          "binary": "git",
+          "argv": [
+            "ls-files",
+            "--others",
+            "--exclude-standard",
+            "-z"
+          ],
+          "exitCode": 0
+        },
+        {
+          "binary": "git",
+          "argv": [
+            "rev-parse",
+            "HEAD"
+          ],
+          "exitCode": 0
+        },
+        {
+          "binary": "git",
+          "argv": [
+            "status",
+            "--porcelain",
+            "--untracked-files=all"
+          ],
+          "exitCode": 0
+        },
+        {
+          "binary": "C:\\Program Files\\nodejs\\node.exe",
+          "argv": [
+            "--test",
+            "--test-concurrency=1",
+            "--test-reporter=tap",
+            "prototypes/project-workspace/tests/browser.test.mjs",
+            "prototypes/project-workspace/tests/project-report-browser.test.mjs"
+          ],
+          "exitCode": 0,
+          "error": null,
+          "log": "2026-10-23T11-42-53.664Z-43040-browser-1.log"
+        },
+        {
+          "binary": "git",
+          "argv": [
+            "branch",
+            "--show-current"
+          ],
+          "exitCode": 0
+        },
+        {
+          "binary": "git",
+          "argv": [
+            "merge-base",
+            "--is-ancestor",
+            "4b8a1de2ad49664546547256cd3d55def7c31a49",
+            "HEAD"
+          ],
+          "exitCode": 0
+        },
+        {
+          "binary": "git",
+          "argv": [
+            "hash-object",
+            "--path=prototypes/evidence-reader/index.html",
+            "prototypes/evidence-reader/index.html"
+          ],
+          "exitCode": 0
+        },
+        {
+          "binary": "git",
+          "argv": [
+            "hash-object",
+            "--path=prototypes/evidence-reader/styles.css",
+            "prototypes/evidence-reader/styles.css"
+          ],
+          "exitCode": 0
+        },
+        {
+          "binary": "git",
+          "argv": [
+            "hash-object",
+            "--path=prototypes/scan-review/index.html",
+            "prototypes/scan-review/index.html"
+          ],
+          "exitCode": 0
+        },
+        {
+          "binary": "git",
+          "argv": [
+            "hash-object",
+            "--path=prototypes/scan-review/styles.css",
+            "prototypes/scan-review/styles.css"
+          ],
+          "exitCode": 0
+        },
+        {
+          "binary": "git",
+          "argv": [
+            "hash-object",
+            "--path=prototypes/live-workspace/.gitattributes",
+            "prototypes/live-workspace/.gitattributes"
+          ],
+          "exitCode": 0
+        },
+        {
+          "binary": "git",
+          "argv": [
+            "diff",
+            "--no-renames",
+            "--name-only",
+            "-z",
+            "4b8a1de2ad49664546547256cd3d55def7c31a49",
+            "HEAD"
+          ],
+          "exitCode": 0
+        },
+        {
+          "binary": "git",
+          "argv": [
+            "diff",
+            "--no-renames",
+            "--name-only",
+            "-z",
+            "HEAD"
+          ],
+          "exitCode": 0
+        },
+        {
+          "binary": "git",
+          "argv": [
+            "ls-files",
+            "--others",
+            "--exclude-standard",
+            "-z"
+          ],
+          "exitCode": 0
+        },
+        {
+          "binary": "git",
+          "argv": [
+            "rev-parse",
+            "HEAD"
+          ],
+          "exitCode": 0
+        },
+        {
+          "binary": "git",
+          "argv": [
+            "status",
+            "--porcelain",
+            "--untracked-files=all"
+          ],
+          "exitCode": 0
+        }
+      ]
+    },
+    {
+      "receipt": "2026-10-23T11-43-58.207Z-22916-red-nc1-result.json",
+      "mode": "red-nc1",
+      "finalGate": false,
+      "status": "passed",
+      "head": "4b8a1de2ad49664546547256cd3d55def7c31a49",
+      "productTestsRun": true,
+      "expectation": "AD_REPORT_BINDING",
+      "productionHash": "0076b70676dfe9fb76cf63741e92a50c05be95352f42ae0ae74d384fdcb244f7",
+      "testHash": "e4047a0568f421d8835897477f423b689d5482bce65f1587131fb27e116f67ad",
+      "startedAt": "2026-10-23T11:43:58.208Z",
+      "endedAt": "2026-10-23T11:44:09.534Z",
+      "commands": [
+        {
+          "binary": "git",
+          "argv": [
+            "branch",
+            "--show-current"
+          ],
+          "exitCode": 0
+        },
+        {
+          "binary": "git",
+          "argv": [
+            "merge-base",
+            "--is-ancestor",
+            "4b8a1de2ad49664546547256cd3d55def7c31a49",
+            "HEAD"
+          ],
+          "exitCode": 0
+        },
+        {
+          "binary": "git",
+          "argv": [
+            "hash-object",
+            "--path=prototypes/evidence-reader/index.html",
+            "prototypes/evidence-reader/index.html"
+          ],
+          "exitCode": 0
+        },
+        {
+          "binary": "git",
+          "argv": [
+            "hash-object",
+            "--path=prototypes/evidence-reader/styles.css",
+            "prototypes/evidence-reader/styles.css"
+          ],
+          "exitCode": 0
+        },
+        {
+          "binary": "git",
+          "argv": [
+            "hash-object",
+            "--path=prototypes/scan-review/index.html",
+            "prototypes/scan-review/index.html"
+          ],
+          "exitCode": 0
+        },
+        {
+          "binary": "git",
+          "argv": [
+            "hash-object",
+            "--path=prototypes/scan-review/styles.css",
+            "prototypes/scan-review/styles.css"
+          ],
+          "exitCode": 0
+        },
+        {
+          "binary": "git",
+          "argv": [
+            "hash-object",
+            "--path=prototypes/live-workspace/.gitattributes",
+            "prototypes/live-workspace/.gitattributes"
+          ],
+          "exitCode": 0
+        },
+        {
+          "binary": "git",
+          "argv": [
+            "diff",
+            "--no-renames",
+            "--name-only",
+            "-z",
+            "4b8a1de2ad49664546547256cd3d55def7c31a49",
+            "HEAD"
+          ],
+          "exitCode": 0
+        },
+        {
+          "binary": "git",
+          "argv": [
+            "diff",
+            "--no-renames",
+            "--name-only",
+            "-z",
+            "HEAD"
+          ],
+          "exitCode": 0
+        },
+        {
+          "binary": "git",
+          "argv": [
+            "ls-files",
+            "--others",
+            "--exclude-standard",
+            "-z"
+          ],
+          "exitCode": 0
+        },
+        {
+          "binary": "git",
+          "argv": [
+            "rev-parse",
+            "HEAD"
+          ],
+          "exitCode": 0
+        },
+        {
+          "binary": "git",
+          "argv": [
+            "status",
+            "--porcelain",
+            "--untracked-files=all"
+          ],
+          "exitCode": 0
+        },
+        {
+          "binary": "C:\\Program Files\\nodejs\\node.exe",
+          "argv": [
+            "--test",
+            "--test-concurrency=1",
+            "--test-reporter=tap",
+            "prototypes/project-workspace/tests/model.test.mjs",
+            "prototypes/project-workspace/tests/project-report.test.mjs"
+          ],
+          "exitCode": 1,
+          "error": null,
+          "log": "2026-10-23T11-43-58.207Z-22916-red-nc1-1.log"
+        },
+        {
+          "binary": "git",
+          "argv": [
+            "branch",
+            "--show-current"
+          ],
+          "exitCode": 0
+        },
+        {
+          "binary": "git",
+          "argv": [
+            "merge-base",
+            "--is-ancestor",
+            "4b8a1de2ad49664546547256cd3d55def7c31a49",
+            "HEAD"
+          ],
+          "exitCode": 0
+        },
+        {
+          "binary": "git",
+          "argv": [
+            "hash-object",
+            "--path=prototypes/evidence-reader/index.html",
+            "prototypes/evidence-reader/index.html"
+          ],
+          "exitCode": 0
+        },
+        {
+          "binary": "git",
+          "argv": [
+            "hash-object",
+            "--path=prototypes/evidence-reader/styles.css",
+            "prototypes/evidence-reader/styles.css"
+          ],
+          "exitCode": 0
+        },
+        {
+          "binary": "git",
+          "argv": [
+            "hash-object",
+            "--path=prototypes/scan-review/index.html",
+            "prototypes/scan-review/index.html"
+          ],
+          "exitCode": 0
+        },
+        {
+          "binary": "git",
+          "argv": [
+            "hash-object",
+            "--path=prototypes/scan-review/styles.css",
+            "prototypes/scan-review/styles.css"
+          ],
+          "exitCode": 0
+        },
+        {
+          "binary": "git",
+          "argv": [
+            "hash-object",
+            "--path=prototypes/live-workspace/.gitattributes",
+            "prototypes/live-workspace/.gitattributes"
+          ],
+          "exitCode": 0
+        },
+        {
+          "binary": "git",
+          "argv": [
+            "diff",
+            "--no-renames",
+            "--name-only",
+            "-z",
+            "4b8a1de2ad49664546547256cd3d55def7c31a49",
+            "HEAD"
+          ],
+          "exitCode": 0
+        },
+        {
+          "binary": "git",
+          "argv": [
+            "diff",
+            "--no-renames",
+            "--name-only",
+            "-z",
+            "HEAD"
+          ],
+          "exitCode": 0
+        },
+        {
+          "binary": "git",
+          "argv": [
+            "ls-files",
+            "--others",
+            "--exclude-standard",
+            "-z"
+          ],
+          "exitCode": 0
+        },
+        {
+          "binary": "git",
+          "argv": [
+            "rev-parse",
+            "HEAD"
+          ],
+          "exitCode": 0
+        },
+        {
+          "binary": "git",
+          "argv": [
+            "status",
+            "--porcelain",
+            "--untracked-files=all"
+          ],
+          "exitCode": 0
+        }
+      ]
+    },
+    {
+      "receipt": "2026-10-23T11-46-26.774Z-5524-test-result.json",
+      "mode": "test",
+      "finalGate": false,
+      "status": "passed",
+      "head": "4b8a1de2ad49664546547256cd3d55def7c31a49",
+      "productTestsRun": true,
+      "expectation": null,
+      "productionHash": "1f539078157c538c3ed3109f6d3a32fd0c2ccfb7cf1223ca299c82d6a7645cef",
+      "testHash": "e4047a0568f421d8835897477f423b689d5482bce65f1587131fb27e116f67ad",
+      "startedAt": "2026-10-23T11:46:26.776Z",
+      "endedAt": "2026-10-23T11:46:39.510Z",
+      "commands": [
+        {
+          "binary": "git",
+          "argv": [
+            "branch",
+            "--show-current"
+          ],
+          "exitCode": 0
+        },
+        {
+          "binary": "git",
+          "argv": [
+            "merge-base",
+            "--is-ancestor",
+            "4b8a1de2ad49664546547256cd3d55def7c31a49",
+            "HEAD"
+          ],
+          "exitCode": 0
+        },
+        {
+          "binary": "git",
+          "argv": [
+            "hash-object",
+            "--path=prototypes/evidence-reader/index.html",
+            "prototypes/evidence-reader/index.html"
+          ],
+          "exitCode": 0
+        },
+        {
+          "binary": "git",
+          "argv": [
+            "hash-object",
+            "--path=prototypes/evidence-reader/styles.css",
+            "prototypes/evidence-reader/styles.css"
+          ],
+          "exitCode": 0
+        },
+        {
+          "binary": "git",
+          "argv": [
+            "hash-object",
+            "--path=prototypes/scan-review/index.html",
+            "prototypes/scan-review/index.html"
+          ],
+          "exitCode": 0
+        },
+        {
+          "binary": "git",
+          "argv": [
+            "hash-object",
+            "--path=prototypes/scan-review/styles.css",
+            "prototypes/scan-review/styles.css"
+          ],
+          "exitCode": 0
+        },
+        {
+          "binary": "git",
+          "argv": [
+            "hash-object",
+            "--path=prototypes/live-workspace/.gitattributes",
+            "prototypes/live-workspace/.gitattributes"
+          ],
+          "exitCode": 0
+        },
+        {
+          "binary": "git",
+          "argv": [
+            "diff",
+            "--no-renames",
+            "--name-only",
+            "-z",
+            "4b8a1de2ad49664546547256cd3d55def7c31a49",
+            "HEAD"
+          ],
+          "exitCode": 0
+        },
+        {
+          "binary": "git",
+          "argv": [
+            "diff",
+            "--no-renames",
+            "--name-only",
+            "-z",
+            "HEAD"
+          ],
+          "exitCode": 0
+        },
+        {
+          "binary": "git",
+          "argv": [
+            "ls-files",
+            "--others",
+            "--exclude-standard",
+            "-z"
+          ],
+          "exitCode": 0
+        },
+        {
+          "binary": "git",
+          "argv": [
+            "rev-parse",
+            "HEAD"
+          ],
+          "exitCode": 0
+        },
+        {
+          "binary": "git",
+          "argv": [
+            "status",
+            "--porcelain",
+            "--untracked-files=all"
+          ],
+          "exitCode": 0
+        },
+        {
+          "binary": "C:\\Program Files\\nodejs\\node.exe",
+          "argv": [
+            "--test",
+            "--test-concurrency=1",
+            "--test-reporter=tap",
+            "prototypes/project-workspace/tests/model.test.mjs",
+            "prototypes/project-workspace/tests/project-report.test.mjs"
+          ],
+          "exitCode": 0,
+          "error": null,
+          "log": "2026-10-23T11-46-26.774Z-5524-test-1.log"
+        },
+        {
+          "binary": "git",
+          "argv": [
+            "branch",
+            "--show-current"
+          ],
+          "exitCode": 0
+        },
+        {
+          "binary": "git",
+          "argv": [
+            "merge-base",
+            "--is-ancestor",
+            "4b8a1de2ad49664546547256cd3d55def7c31a49",
+            "HEAD"
+          ],
+          "exitCode": 0
+        },
+        {
+          "binary": "git",
+          "argv": [
+            "hash-object",
+            "--path=prototypes/evidence-reader/index.html",
+            "prototypes/evidence-reader/index.html"
+          ],
+          "exitCode": 0
+        },
+        {
+          "binary": "git",
+          "argv": [
+            "hash-object",
+            "--path=prototypes/evidence-reader/styles.css",
+            "prototypes/evidence-reader/styles.css"
+          ],
+          "exitCode": 0
+        },
+        {
+          "binary": "git",
+          "argv": [
+            "hash-object",
+            "--path=prototypes/scan-review/index.html",
+            "prototypes/scan-review/index.html"
+          ],
+          "exitCode": 0
+        },
+        {
+          "binary": "git",
+          "argv": [
+            "hash-object",
+            "--path=prototypes/scan-review/styles.css",
+            "prototypes/scan-review/styles.css"
+          ],
+          "exitCode": 0
+        },
+        {
+          "binary": "git",
+          "argv": [
+            "hash-object",
+            "--path=prototypes/live-workspace/.gitattributes",
+            "prototypes/live-workspace/.gitattributes"
+          ],
+          "exitCode": 0
+        },
+        {
+          "binary": "git",
+          "argv": [
+            "diff",
+            "--no-renames",
+            "--name-only",
+            "-z",
+            "4b8a1de2ad49664546547256cd3d55def7c31a49",
+            "HEAD"
+          ],
+          "exitCode": 0
+        },
+        {
+          "binary": "git",
+          "argv": [
+            "diff",
+            "--no-renames",
+            "--name-only",
+            "-z",
+            "HEAD"
+          ],
+          "exitCode": 0
+        },
+        {
+          "binary": "git",
+          "argv": [
+            "ls-files",
+            "--others",
+            "--exclude-standard",
+            "-z"
+          ],
+          "exitCode": 0
+        },
+        {
+          "binary": "git",
+          "argv": [
+            "rev-parse",
+            "HEAD"
+          ],
+          "exitCode": 0
+        },
+        {
+          "binary": "git",
+          "argv": [
+            "status",
+            "--porcelain",
+            "--untracked-files=all"
+          ],
+          "exitCode": 0
+        }
+      ]
+    },
+    {
+      "receipt": "2026-10-23T11-47-04.437Z-11824-red-nc2-result.json",
+      "mode": "red-nc2",
+      "finalGate": false,
+      "status": "passed",
+      "head": "4b8a1de2ad49664546547256cd3d55def7c31a49",
+      "productTestsRun": true,
+      "expectation": "AD_REPORT_CONSENT",
+      "productionHash": "1ffd65472254b5e4b61d0cdf07244520a54e2d0474009be0f1b9a7bdd0f3d3a7",
+      "testHash": "e4047a0568f421d8835897477f423b689d5482bce65f1587131fb27e116f67ad",
+      "startedAt": "2026-10-23T11:47:04.439Z",
+      "endedAt": "2026-10-23T11:47:15.058Z",
+      "commands": [
+        {
+          "binary": "git",
+          "argv": [
+            "branch",
+            "--show-current"
+          ],
+          "exitCode": 0
+        },
+        {
+          "binary": "git",
+          "argv": [
+            "merge-base",
+            "--is-ancestor",
+            "4b8a1de2ad49664546547256cd3d55def7c31a49",
+            "HEAD"
+          ],
+          "exitCode": 0
+        },
+        {
+          "binary": "git",
+          "argv": [
+            "hash-object",
+            "--path=prototypes/evidence-reader/index.html",
+            "prototypes/evidence-reader/index.html"
+          ],
+          "exitCode": 0
+        },
+        {
+          "binary": "git",
+          "argv": [
+            "hash-object",
+            "--path=prototypes/evidence-reader/styles.css",
+            "prototypes/evidence-reader/styles.css"
+          ],
+          "exitCode": 0
+        },
+        {
+          "binary": "git",
+          "argv": [
+            "hash-object",
+            "--path=prototypes/scan-review/index.html",
+            "prototypes/scan-review/index.html"
+          ],
+          "exitCode": 0
+        },
+        {
+          "binary": "git",
+          "argv": [
+            "hash-object",
+            "--path=prototypes/scan-review/styles.css",
+            "prototypes/scan-review/styles.css"
+          ],
+          "exitCode": 0
+        },
+        {
+          "binary": "git",
+          "argv": [
+            "hash-object",
+            "--path=prototypes/live-workspace/.gitattributes",
+            "prototypes/live-workspace/.gitattributes"
+          ],
+          "exitCode": 0
+        },
+        {
+          "binary": "git",
+          "argv": [
+            "diff",
+            "--no-renames",
+            "--name-only",
+            "-z",
+            "4b8a1de2ad49664546547256cd3d55def7c31a49",
+            "HEAD"
+          ],
+          "exitCode": 0
+        },
+        {
+          "binary": "git",
+          "argv": [
+            "diff",
+            "--no-renames",
+            "--name-only",
+            "-z",
+            "HEAD"
+          ],
+          "exitCode": 0
+        },
+        {
+          "binary": "git",
+          "argv": [
+            "ls-files",
+            "--others",
+            "--exclude-standard",
+            "-z"
+          ],
+          "exitCode": 0
+        },
+        {
+          "binary": "git",
+          "argv": [
+            "rev-parse",
+            "HEAD"
+          ],
+          "exitCode": 0
+        },
+        {
+          "binary": "git",
+          "argv": [
+            "status",
+            "--porcelain",
+            "--untracked-files=all"
+          ],
+          "exitCode": 0
+        },
+        {
+          "binary": "C:\\Program Files\\nodejs\\node.exe",
+          "argv": [
+            "--test",
+            "--test-concurrency=1",
+            "--test-reporter=tap",
+            "prototypes/project-workspace/tests/model.test.mjs",
+            "prototypes/project-workspace/tests/project-report.test.mjs"
+          ],
+          "exitCode": 1,
+          "error": null,
+          "log": "2026-10-23T11-47-04.437Z-11824-red-nc2-1.log"
+        },
+        {
+          "binary": "git",
+          "argv": [
+            "branch",
+            "--show-current"
+          ],
+          "exitCode": 0
+        },
+        {
+          "binary": "git",
+          "argv": [
+            "merge-base",
+            "--is-ancestor",
+            "4b8a1de2ad49664546547256cd3d55def7c31a49",
+            "HEAD"
+          ],
+          "exitCode": 0
+        },
+        {
+          "binary": "git",
+          "argv": [
+            "hash-object",
+            "--path=prototypes/evidence-reader/index.html",
+            "prototypes/evidence-reader/index.html"
+          ],
+          "exitCode": 0
+        },
+        {
+          "binary": "git",
+          "argv": [
+            "hash-object",
+            "--path=prototypes/evidence-reader/styles.css",
+            "prototypes/evidence-reader/styles.css"
+          ],
+          "exitCode": 0
+        },
+        {
+          "binary": "git",
+          "argv": [
+            "hash-object",
+            "--path=prototypes/scan-review/index.html",
+            "prototypes/scan-review/index.html"
+          ],
+          "exitCode": 0
+        },
+        {
+          "binary": "git",
+          "argv": [
+            "hash-object",
+            "--path=prototypes/scan-review/styles.css",
+            "prototypes/scan-review/styles.css"
+          ],
+          "exitCode": 0
+        },
+        {
+          "binary": "git",
+          "argv": [
+            "hash-object",
+            "--path=prototypes/live-workspace/.gitattributes",
+            "prototypes/live-workspace/.gitattributes"
+          ],
+          "exitCode": 0
+        },
+        {
+          "binary": "git",
+          "argv": [
+            "diff",
+            "--no-renames",
+            "--name-only",
+            "-z",
+            "4b8a1de2ad49664546547256cd3d55def7c31a49",
+            "HEAD"
+          ],
+          "exitCode": 0
+        },
+        {
+          "binary": "git",
+          "argv": [
+            "diff",
+            "--no-renames",
+            "--name-only",
+            "-z",
+            "HEAD"
+          ],
+          "exitCode": 0
+        },
+        {
+          "binary": "git",
+          "argv": [
+            "ls-files",
+            "--others",
+            "--exclude-standard",
+            "-z"
+          ],
+          "exitCode": 0
+        },
+        {
+          "binary": "git",
+          "argv": [
+            "rev-parse",
+            "HEAD"
+          ],
+          "exitCode": 0
+        },
+        {
+          "binary": "git",
+          "argv": [
+            "status",
+            "--porcelain",
+            "--untracked-files=all"
+          ],
+          "exitCode": 0
+        }
+      ]
+    },
+    {
+      "receipt": "2026-10-23T11-47-55.223Z-5428-test-result.json",
+      "mode": "test",
+      "finalGate": false,
+      "status": "passed",
+      "head": "4b8a1de2ad49664546547256cd3d55def7c31a49",
+      "productTestsRun": true,
+      "expectation": null,
+      "productionHash": "1f539078157c538c3ed3109f6d3a32fd0c2ccfb7cf1223ca299c82d6a7645cef",
+      "testHash": "e4047a0568f421d8835897477f423b689d5482bce65f1587131fb27e116f67ad",
+      "startedAt": "2026-10-23T11:47:55.224Z",
+      "endedAt": "2026-10-23T11:48:09.124Z",
+      "commands": [
+        {
+          "binary": "git",
+          "argv": [
+            "branch",
+            "--show-current"
+          ],
+          "exitCode": 0
+        },
+        {
+          "binary": "git",
+          "argv": [
+            "merge-base",
+            "--is-ancestor",
+            "4b8a1de2ad49664546547256cd3d55def7c31a49",
+            "HEAD"
+          ],
+          "exitCode": 0
+        },
+        {
+          "binary": "git",
+          "argv": [
+            "hash-object",
+            "--path=prototypes/evidence-reader/index.html",
+            "prototypes/evidence-reader/index.html"
+          ],
+          "exitCode": 0
+        },
+        {
+          "binary": "git",
+          "argv": [
+            "hash-object",
+            "--path=prototypes/evidence-reader/styles.css",
+            "prototypes/evidence-reader/styles.css"
+          ],
+          "exitCode": 0
+        },
+        {
+          "binary": "git",
+          "argv": [
+            "hash-object",
+            "--path=prototypes/scan-review/index.html",
+            "prototypes/scan-review/index.html"
+          ],
+          "exitCode": 0
+        },
+        {
+          "binary": "git",
+          "argv": [
+            "hash-object",
+            "--path=prototypes/scan-review/styles.css",
+            "prototypes/scan-review/styles.css"
+          ],
+          "exitCode": 0
+        },
+        {
+          "binary": "git",
+          "argv": [
+            "hash-object",
+            "--path=prototypes/live-workspace/.gitattributes",
+            "prototypes/live-workspace/.gitattributes"
+          ],
+          "exitCode": 0
+        },
+        {
+          "binary": "git",
+          "argv": [
+            "diff",
+            "--no-renames",
+            "--name-only",
+            "-z",
+            "4b8a1de2ad49664546547256cd3d55def7c31a49",
+            "HEAD"
+          ],
+          "exitCode": 0
+        },
+        {
+          "binary": "git",
+          "argv": [
+            "diff",
+            "--no-renames",
+            "--name-only",
+            "-z",
+            "HEAD"
+          ],
+          "exitCode": 0
+        },
+        {
+          "binary": "git",
+          "argv": [
+            "ls-files",
+            "--others",
+            "--exclude-standard",
+            "-z"
+          ],
+          "exitCode": 0
+        },
+        {
+          "binary": "git",
+          "argv": [
+            "rev-parse",
+            "HEAD"
+          ],
+          "exitCode": 0
+        },
+        {
+          "binary": "git",
+          "argv": [
+            "status",
+            "--porcelain",
+            "--untracked-files=all"
+          ],
+          "exitCode": 0
+        },
+        {
+          "binary": "C:\\Program Files\\nodejs\\node.exe",
+          "argv": [
+            "--test",
+            "--test-concurrency=1",
+            "--test-reporter=tap",
+            "prototypes/project-workspace/tests/model.test.mjs",
+            "prototypes/project-workspace/tests/project-report.test.mjs"
+          ],
+          "exitCode": 0,
+          "error": null,
+          "log": "2026-10-23T11-47-55.223Z-5428-test-1.log"
+        },
+        {
+          "binary": "git",
+          "argv": [
+            "branch",
+            "--show-current"
+          ],
+          "exitCode": 0
+        },
+        {
+          "binary": "git",
+          "argv": [
+            "merge-base",
+            "--is-ancestor",
+            "4b8a1de2ad49664546547256cd3d55def7c31a49",
+            "HEAD"
+          ],
+          "exitCode": 0
+        },
+        {
+          "binary": "git",
+          "argv": [
+            "hash-object",
+            "--path=prototypes/evidence-reader/index.html",
+            "prototypes/evidence-reader/index.html"
+          ],
+          "exitCode": 0
+        },
+        {
+          "binary": "git",
+          "argv": [
+            "hash-object",
+            "--path=prototypes/evidence-reader/styles.css",
+            "prototypes/evidence-reader/styles.css"
+          ],
+          "exitCode": 0
+        },
+        {
+          "binary": "git",
+          "argv": [
+            "hash-object",
+            "--path=prototypes/scan-review/index.html",
+            "prototypes/scan-review/index.html"
+          ],
+          "exitCode": 0
+        },
+        {
+          "binary": "git",
+          "argv": [
+            "hash-object",
+            "--path=prototypes/scan-review/styles.css",
+            "prototypes/scan-review/styles.css"
+          ],
+          "exitCode": 0
+        },
+        {
+          "binary": "git",
+          "argv": [
+            "hash-object",
+            "--path=prototypes/live-workspace/.gitattributes",
+            "prototypes/live-workspace/.gitattributes"
+          ],
+          "exitCode": 0
+        },
+        {
+          "binary": "git",
+          "argv": [
+            "diff",
+            "--no-renames",
+            "--name-only",
+            "-z",
+            "4b8a1de2ad49664546547256cd3d55def7c31a49",
+            "HEAD"
+          ],
+          "exitCode": 0
+        },
+        {
+          "binary": "git",
+          "argv": [
+            "diff",
+            "--no-renames",
+            "--name-only",
+            "-z",
+            "HEAD"
+          ],
+          "exitCode": 0
+        },
+        {
+          "binary": "git",
+          "argv": [
+            "ls-files",
+            "--others",
+            "--exclude-standard",
+            "-z"
+          ],
+          "exitCode": 0
+        },
+        {
+          "binary": "git",
+          "argv": [
+            "rev-parse",
+            "HEAD"
+          ],
+          "exitCode": 0
+        },
+        {
+          "binary": "git",
+          "argv": [
+            "status",
+            "--porcelain",
+            "--untracked-files=all"
+          ],
+          "exitCode": 0
+        }
+      ]
+    },
+    {
+      "receipt": "2026-10-23T11-51-01.766Z-27468-check-result.json",
+      "mode": "check",
+      "finalGate": true,
+      "status": "passed",
+      "head": "3ad5e7003d9e9720e85113a47d558738bf06231d",
+      "productTestsRun": false,
+      "expectation": null,
+      "productionHash": "1f539078157c538c3ed3109f6d3a32fd0c2ccfb7cf1223ca299c82d6a7645cef",
+      "testHash": "e4047a0568f421d8835897477f423b689d5482bce65f1587131fb27e116f67ad",
+      "startedAt": "2026-10-23T11:51:01.769Z",
+      "endedAt": "2026-10-23T11:51:16.651Z",
+      "commands": [
+        {
+          "binary": "git",
+          "argv": [
+            "branch",
+            "--show-current"
+          ],
+          "exitCode": 0
+        },
+        {
+          "binary": "git",
+          "argv": [
+            "merge-base",
+            "--is-ancestor",
+            "4b8a1de2ad49664546547256cd3d55def7c31a49",
+            "HEAD"
+          ],
+          "exitCode": 0
+        },
+        {
+          "binary": "git",
+          "argv": [
+            "hash-object",
+            "--path=prototypes/evidence-reader/index.html",
+            "prototypes/evidence-reader/index.html"
+          ],
+          "exitCode": 0
+        },
+        {
+          "binary": "git",
+          "argv": [
+            "hash-object",
+            "--path=prototypes/evidence-reader/styles.css",
+            "prototypes/evidence-reader/styles.css"
+          ],
+          "exitCode": 0
+        },
+        {
+          "binary": "git",
+          "argv": [
+            "hash-object",
+            "--path=prototypes/scan-review/index.html",
+            "prototypes/scan-review/index.html"
+          ],
+          "exitCode": 0
+        },
+        {
+          "binary": "git",
+          "argv": [
+            "hash-object",
+            "--path=prototypes/scan-review/styles.css",
+            "prototypes/scan-review/styles.css"
+          ],
+          "exitCode": 0
+        },
+        {
+          "binary": "git",
+          "argv": [
+            "hash-object",
+            "--path=prototypes/live-workspace/.gitattributes",
+            "prototypes/live-workspace/.gitattributes"
+          ],
+          "exitCode": 0
+        },
+        {
+          "binary": "git",
+          "argv": [
+            "diff",
+            "--no-renames",
+            "--name-only",
+            "-z",
+            "4b8a1de2ad49664546547256cd3d55def7c31a49",
+            "HEAD"
+          ],
+          "exitCode": 0
+        },
+        {
+          "binary": "git",
+          "argv": [
+            "diff",
+            "--no-renames",
+            "--name-only",
+            "-z",
+            "HEAD"
+          ],
+          "exitCode": 0
+        },
+        {
+          "binary": "git",
+          "argv": [
+            "ls-files",
+            "--others",
+            "--exclude-standard",
+            "-z"
+          ],
+          "exitCode": 0
+        },
+        {
+          "binary": "git",
+          "argv": [
+            "rev-parse",
+            "HEAD"
+          ],
+          "exitCode": 0
+        },
+        {
+          "binary": "git",
+          "argv": [
+            "status",
+            "--porcelain",
+            "--untracked-files=all"
+          ],
+          "exitCode": 0
+        },
+        {
+          "binary": "C:\\Program Files\\nodejs\\node.exe",
+          "argv": [
+            "--check",
+            "prototypes/project-workspace/app.mjs"
+          ],
+          "exitCode": 0,
+          "error": null,
+          "log": "2026-10-23T11-51-01.766Z-27468-check-1.log"
+        },
+        {
+          "binary": "C:\\Program Files\\nodejs\\node.exe",
+          "argv": [
+            "--check",
+            "prototypes/project-workspace/server.mjs"
+          ],
+          "exitCode": 0,
+          "error": null,
+          "log": "2026-10-23T11-51-01.766Z-27468-check-2.log"
+        },
+        {
+          "binary": "C:\\Program Files\\nodejs\\node.exe",
+          "argv": [
+            "--check",
+            "prototypes/project-workspace/transport.mjs"
+          ],
+          "exitCode": 0,
+          "error": null,
+          "log": "2026-10-23T11-51-01.766Z-27468-check-3.log"
+        },
+        {
+          "binary": "C:\\Program Files\\nodejs\\node.exe",
+          "argv": [
+            "--check",
+            "prototypes/project-workspace/project-report.mjs"
+          ],
+          "exitCode": 0,
+          "error": null,
+          "log": "2026-10-23T11-51-01.766Z-27468-check-4.log"
+        },
+        {
+          "binary": "C:\\Program Files\\nodejs\\node.exe",
+          "argv": [
+            "--check",
+            "prototypes/project-workspace/project-report-model.mjs"
+          ],
+          "exitCode": 0,
+          "error": null,
+          "log": "2026-10-23T11-51-01.766Z-27468-check-5.log"
+        },
+        {
+          "binary": "C:\\Program Files\\nodejs\\node.exe",
+          "argv": [
+            "--check",
+            "prototypes/project-workspace/tests/model.test.mjs"
+          ],
+          "exitCode": 0,
+          "error": null,
+          "log": "2026-10-23T11-51-01.766Z-27468-check-6.log"
+        },
+        {
+          "binary": "C:\\Program Files\\nodejs\\node.exe",
+          "argv": [
+            "--check",
+            "prototypes/project-workspace/tests/project-report.test.mjs"
+          ],
+          "exitCode": 0,
+          "error": null,
+          "log": "2026-10-23T11-51-01.766Z-27468-check-7.log"
+        },
+        {
+          "binary": "C:\\Program Files\\nodejs\\node.exe",
+          "argv": [
+            "--check",
+            "prototypes/project-workspace/tests/browser.test.mjs"
+          ],
+          "exitCode": 0,
+          "error": null,
+          "log": "2026-10-23T11-51-01.766Z-27468-check-8.log"
+        },
+        {
+          "binary": "C:\\Program Files\\nodejs\\node.exe",
+          "argv": [
+            "--check",
+            "prototypes/project-workspace/tests/project-report-browser.test.mjs"
+          ],
+          "exitCode": 0,
+          "error": null,
+          "log": "2026-10-23T11-51-01.766Z-27468-check-9.log"
+        },
+        {
+          "binary": "git",
+          "argv": [
+            "branch",
+            "--show-current"
+          ],
+          "exitCode": 0
+        },
+        {
+          "binary": "git",
+          "argv": [
+            "merge-base",
+            "--is-ancestor",
+            "4b8a1de2ad49664546547256cd3d55def7c31a49",
+            "HEAD"
+          ],
+          "exitCode": 0
+        },
+        {
+          "binary": "git",
+          "argv": [
+            "hash-object",
+            "--path=prototypes/evidence-reader/index.html",
+            "prototypes/evidence-reader/index.html"
+          ],
+          "exitCode": 0
+        },
+        {
+          "binary": "git",
+          "argv": [
+            "hash-object",
+            "--path=prototypes/evidence-reader/styles.css",
+            "prototypes/evidence-reader/styles.css"
+          ],
+          "exitCode": 0
+        },
+        {
+          "binary": "git",
+          "argv": [
+            "hash-object",
+            "--path=prototypes/scan-review/index.html",
+            "prototypes/scan-review/index.html"
+          ],
+          "exitCode": 0
+        },
+        {
+          "binary": "git",
+          "argv": [
+            "hash-object",
+            "--path=prototypes/scan-review/styles.css",
+            "prototypes/scan-review/styles.css"
+          ],
+          "exitCode": 0
+        },
+        {
+          "binary": "git",
+          "argv": [
+            "hash-object",
+            "--path=prototypes/live-workspace/.gitattributes",
+            "prototypes/live-workspace/.gitattributes"
+          ],
+          "exitCode": 0
+        },
+        {
+          "binary": "git",
+          "argv": [
+            "diff",
+            "--no-renames",
+            "--name-only",
+            "-z",
+            "4b8a1de2ad49664546547256cd3d55def7c31a49",
+            "HEAD"
+          ],
+          "exitCode": 0
+        },
+        {
+          "binary": "git",
+          "argv": [
+            "diff",
+            "--no-renames",
+            "--name-only",
+            "-z",
+            "HEAD"
+          ],
+          "exitCode": 0
+        },
+        {
+          "binary": "git",
+          "argv": [
+            "ls-files",
+            "--others",
+            "--exclude-standard",
+            "-z"
+          ],
+          "exitCode": 0
+        },
+        {
+          "binary": "git",
+          "argv": [
+            "rev-parse",
+            "HEAD"
+          ],
+          "exitCode": 0
+        },
+        {
+          "binary": "git",
+          "argv": [
+            "status",
+            "--porcelain",
+            "--untracked-files=all"
+          ],
+          "exitCode": 0
+        }
+      ]
+    },
+    {
+      "receipt": "2026-10-23T11-51-44.250Z-4500-test-result.json",
+      "mode": "test",
+      "finalGate": true,
+      "status": "passed",
+      "head": "3ad5e7003d9e9720e85113a47d558738bf06231d",
+      "productTestsRun": true,
+      "expectation": null,
+      "productionHash": "1f539078157c538c3ed3109f6d3a32fd0c2ccfb7cf1223ca299c82d6a7645cef",
+      "testHash": "e4047a0568f421d8835897477f423b689d5482bce65f1587131fb27e116f67ad",
+      "startedAt": "2026-10-23T11:51:44.252Z",
+      "endedAt": "2026-10-23T11:51:57.674Z",
+      "commands": [
+        {
+          "binary": "git",
+          "argv": [
+            "branch",
+            "--show-current"
+          ],
+          "exitCode": 0
+        },
+        {
+          "binary": "git",
+          "argv": [
+            "merge-base",
+            "--is-ancestor",
+            "4b8a1de2ad49664546547256cd3d55def7c31a49",
+            "HEAD"
+          ],
+          "exitCode": 0
+        },
+        {
+          "binary": "git",
+          "argv": [
+            "hash-object",
+            "--path=prototypes/evidence-reader/index.html",
+            "prototypes/evidence-reader/index.html"
+          ],
+          "exitCode": 0
+        },
+        {
+          "binary": "git",
+          "argv": [
+            "hash-object",
+            "--path=prototypes/evidence-reader/styles.css",
+            "prototypes/evidence-reader/styles.css"
+          ],
+          "exitCode": 0
+        },
+        {
+          "binary": "git",
+          "argv": [
+            "hash-object",
+            "--path=prototypes/scan-review/index.html",
+            "prototypes/scan-review/index.html"
+          ],
+          "exitCode": 0
+        },
+        {
+          "binary": "git",
+          "argv": [
+            "hash-object",
+            "--path=prototypes/scan-review/styles.css",
+            "prototypes/scan-review/styles.css"
+          ],
+          "exitCode": 0
+        },
+        {
+          "binary": "git",
+          "argv": [
+            "hash-object",
+            "--path=prototypes/live-workspace/.gitattributes",
+            "prototypes/live-workspace/.gitattributes"
+          ],
+          "exitCode": 0
+        },
+        {
+          "binary": "git",
+          "argv": [
+            "diff",
+            "--no-renames",
+            "--name-only",
+            "-z",
+            "4b8a1de2ad49664546547256cd3d55def7c31a49",
+            "HEAD"
+          ],
+          "exitCode": 0
+        },
+        {
+          "binary": "git",
+          "argv": [
+            "diff",
+            "--no-renames",
+            "--name-only",
+            "-z",
+            "HEAD"
+          ],
+          "exitCode": 0
+        },
+        {
+          "binary": "git",
+          "argv": [
+            "ls-files",
+            "--others",
+            "--exclude-standard",
+            "-z"
+          ],
+          "exitCode": 0
+        },
+        {
+          "binary": "git",
+          "argv": [
+            "rev-parse",
+            "HEAD"
+          ],
+          "exitCode": 0
+        },
+        {
+          "binary": "git",
+          "argv": [
+            "status",
+            "--porcelain",
+            "--untracked-files=all"
+          ],
+          "exitCode": 0
+        },
+        {
+          "binary": "C:\\Program Files\\nodejs\\node.exe",
+          "argv": [
+            "--test",
+            "--test-concurrency=1",
+            "--test-reporter=tap",
+            "prototypes/project-workspace/tests/model.test.mjs",
+            "prototypes/project-workspace/tests/project-report.test.mjs"
+          ],
+          "exitCode": 0,
+          "error": null,
+          "log": "2026-10-23T11-51-44.250Z-4500-test-1.log"
+        },
+        {
+          "binary": "git",
+          "argv": [
+            "branch",
+            "--show-current"
+          ],
+          "exitCode": 0
+        },
+        {
+          "binary": "git",
+          "argv": [
+            "merge-base",
+            "--is-ancestor",
+            "4b8a1de2ad49664546547256cd3d55def7c31a49",
+            "HEAD"
+          ],
+          "exitCode": 0
+        },
+        {
+          "binary": "git",
+          "argv": [
+            "hash-object",
+            "--path=prototypes/evidence-reader/index.html",
+            "prototypes/evidence-reader/index.html"
+          ],
+          "exitCode": 0
+        },
+        {
+          "binary": "git",
+          "argv": [
+            "hash-object",
+            "--path=prototypes/evidence-reader/styles.css",
+            "prototypes/evidence-reader/styles.css"
+          ],
+          "exitCode": 0
+        },
+        {
+          "binary": "git",
+          "argv": [
+            "hash-object",
+            "--path=prototypes/scan-review/index.html",
+            "prototypes/scan-review/index.html"
+          ],
+          "exitCode": 0
+        },
+        {
+          "binary": "git",
+          "argv": [
+            "hash-object",
+            "--path=prototypes/scan-review/styles.css",
+            "prototypes/scan-review/styles.css"
+          ],
+          "exitCode": 0
+        },
+        {
+          "binary": "git",
+          "argv": [
+            "hash-object",
+            "--path=prototypes/live-workspace/.gitattributes",
+            "prototypes/live-workspace/.gitattributes"
+          ],
+          "exitCode": 0
+        },
+        {
+          "binary": "git",
+          "argv": [
+            "diff",
+            "--no-renames",
+            "--name-only",
+            "-z",
+            "4b8a1de2ad49664546547256cd3d55def7c31a49",
+            "HEAD"
+          ],
+          "exitCode": 0
+        },
+        {
+          "binary": "git",
+          "argv": [
+            "diff",
+            "--no-renames",
+            "--name-only",
+            "-z",
+            "HEAD"
+          ],
+          "exitCode": 0
+        },
+        {
+          "binary": "git",
+          "argv": [
+            "ls-files",
+            "--others",
+            "--exclude-standard",
+            "-z"
+          ],
+          "exitCode": 0
+        },
+        {
+          "binary": "git",
+          "argv": [
+            "rev-parse",
+            "HEAD"
+          ],
+          "exitCode": 0
+        },
+        {
+          "binary": "git",
+          "argv": [
+            "status",
+            "--porcelain",
+            "--untracked-files=all"
+          ],
+          "exitCode": 0
+        }
+      ]
+    },
+    {
+      "receipt": "2026-10-23T11-52-22.422Z-2532-browser-result.json",
+      "mode": "browser",
+      "finalGate": true,
+      "status": "passed",
+      "head": "3ad5e7003d9e9720e85113a47d558738bf06231d",
+      "productTestsRun": true,
+      "expectation": null,
+      "productionHash": "1f539078157c538c3ed3109f6d3a32fd0c2ccfb7cf1223ca299c82d6a7645cef",
+      "testHash": "e4047a0568f421d8835897477f423b689d5482bce65f1587131fb27e116f67ad",
+      "startedAt": "2026-10-23T11:52:22.424Z",
+      "endedAt": "2026-10-23T11:52:50.433Z",
+      "commands": [
+        {
+          "binary": "git",
+          "argv": [
+            "branch",
+            "--show-current"
+          ],
+          "exitCode": 0
+        },
+        {
+          "binary": "git",
+          "argv": [
+            "merge-base",
+            "--is-ancestor",
+            "4b8a1de2ad49664546547256cd3d55def7c31a49",
+            "HEAD"
+          ],
+          "exitCode": 0
+        },
+        {
+          "binary": "git",
+          "argv": [
+            "hash-object",
+            "--path=prototypes/evidence-reader/index.html",
+            "prototypes/evidence-reader/index.html"
+          ],
+          "exitCode": 0
+        },
+        {
+          "binary": "git",
+          "argv": [
+            "hash-object",
+            "--path=prototypes/evidence-reader/styles.css",
+            "prototypes/evidence-reader/styles.css"
+          ],
+          "exitCode": 0
+        },
+        {
+          "binary": "git",
+          "argv": [
+            "hash-object",
+            "--path=prototypes/scan-review/index.html",
+            "prototypes/scan-review/index.html"
+          ],
+          "exitCode": 0
+        },
+        {
+          "binary": "git",
+          "argv": [
+            "hash-object",
+            "--path=prototypes/scan-review/styles.css",
+            "prototypes/scan-review/styles.css"
+          ],
+          "exitCode": 0
+        },
+        {
+          "binary": "git",
+          "argv": [
+            "hash-object",
+            "--path=prototypes/live-workspace/.gitattributes",
+            "prototypes/live-workspace/.gitattributes"
+          ],
+          "exitCode": 0
+        },
+        {
+          "binary": "git",
+          "argv": [
+            "diff",
+            "--no-renames",
+            "--name-only",
+            "-z",
+            "4b8a1de2ad49664546547256cd3d55def7c31a49",
+            "HEAD"
+          ],
+          "exitCode": 0
+        },
+        {
+          "binary": "git",
+          "argv": [
+            "diff",
+            "--no-renames",
+            "--name-only",
+            "-z",
+            "HEAD"
+          ],
+          "exitCode": 0
+        },
+        {
+          "binary": "git",
+          "argv": [
+            "ls-files",
+            "--others",
+            "--exclude-standard",
+            "-z"
+          ],
+          "exitCode": 0
+        },
+        {
+          "binary": "git",
+          "argv": [
+            "rev-parse",
+            "HEAD"
+          ],
+          "exitCode": 0
+        },
+        {
+          "binary": "git",
+          "argv": [
+            "status",
+            "--porcelain",
+            "--untracked-files=all"
+          ],
+          "exitCode": 0
+        },
+        {
+          "binary": "C:\\Program Files\\nodejs\\node.exe",
+          "argv": [
+            "--test",
+            "--test-concurrency=1",
+            "--test-reporter=tap",
+            "prototypes/project-workspace/tests/browser.test.mjs",
+            "prototypes/project-workspace/tests/project-report-browser.test.mjs"
+          ],
+          "exitCode": 0,
+          "error": null,
+          "log": "2026-10-23T11-52-22.422Z-2532-browser-1.log"
+        },
+        {
+          "binary": "git",
+          "argv": [
+            "branch",
+            "--show-current"
+          ],
+          "exitCode": 0
+        },
+        {
+          "binary": "git",
+          "argv": [
+            "merge-base",
+            "--is-ancestor",
+            "4b8a1de2ad49664546547256cd3d55def7c31a49",
+            "HEAD"
+          ],
+          "exitCode": 0
+        },
+        {
+          "binary": "git",
+          "argv": [
+            "hash-object",
+            "--path=prototypes/evidence-reader/index.html",
+            "prototypes/evidence-reader/index.html"
+          ],
+          "exitCode": 0
+        },
+        {
+          "binary": "git",
+          "argv": [
+            "hash-object",
+            "--path=prototypes/evidence-reader/styles.css",
+            "prototypes/evidence-reader/styles.css"
+          ],
+          "exitCode": 0
+        },
+        {
+          "binary": "git",
+          "argv": [
+            "hash-object",
+            "--path=prototypes/scan-review/index.html",
+            "prototypes/scan-review/index.html"
+          ],
+          "exitCode": 0
+        },
+        {
+          "binary": "git",
+          "argv": [
+            "hash-object",
+            "--path=prototypes/scan-review/styles.css",
+            "prototypes/scan-review/styles.css"
+          ],
+          "exitCode": 0
+        },
+        {
+          "binary": "git",
+          "argv": [
+            "hash-object",
+            "--path=prototypes/live-workspace/.gitattributes",
+            "prototypes/live-workspace/.gitattributes"
+          ],
+          "exitCode": 0
+        },
+        {
+          "binary": "git",
+          "argv": [
+            "diff",
+            "--no-renames",
+            "--name-only",
+            "-z",
+            "4b8a1de2ad49664546547256cd3d55def7c31a49",
+            "HEAD"
+          ],
+          "exitCode": 0
+        },
+        {
+          "binary": "git",
+          "argv": [
+            "diff",
+            "--no-renames",
+            "--name-only",
+            "-z",
+            "HEAD"
+          ],
+          "exitCode": 0
+        },
+        {
+          "binary": "git",
+          "argv": [
+            "ls-files",
+            "--others",
+            "--exclude-standard",
+            "-z"
+          ],
+          "exitCode": 0
+        },
+        {
+          "binary": "git",
+          "argv": [
+            "rev-parse",
+            "HEAD"
+          ],
+          "exitCode": 0
+        },
+        {
+          "binary": "git",
+          "argv": [
+            "status",
+            "--porcelain",
+            "--untracked-files=all"
+          ],
+          "exitCode": 0
+        }
+      ]
+    }
+  ]
+}
