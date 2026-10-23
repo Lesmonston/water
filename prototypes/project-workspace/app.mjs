@@ -120,6 +120,10 @@ function render() {
         link.href = row.report_url; link.target = '_blank'; link.rel = 'noopener noreferrer';
         link.setAttribute('aria-label', (i === 0 ? '最近一次' : '上一次') + descriptions[row.status][0] + '，打开报告'); li.append(link);
       }
+      if (row.selection === 'confirmed' && row.report_url) {
+        const link = textNode('a', '查看项目报告', 'project-report-link');
+        link.href = '/reports/' + row.job_id + '/'; copy.append(link);
+      }
       if (row.marker.status === 'observed') li.append(evidencePanel(row, i === 0));
       return li;
     });
