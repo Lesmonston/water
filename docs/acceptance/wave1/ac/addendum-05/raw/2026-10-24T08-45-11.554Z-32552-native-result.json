@@ -1,0 +1,389 @@
+{
+  "task": "WATER-W1-AC",
+  "supplement": 5,
+  "mode": "native",
+  "final": true,
+  "startedAt": "2026-10-24T08:45:11.554Z",
+  "controllerSystemWindows": 0,
+  "windowAttempts": 1,
+  "directoryDialogs": 0,
+  "screenshots": 0,
+  "productTestsRun": false,
+  "commands": [
+    {
+      "binary": "C:\\Users\\37310\\.cargo\\bin\\rustup.exe",
+      "argv": [
+        "which",
+        "cargo",
+        "--toolchain",
+        "1.95.0"
+      ],
+      "exitCode": 0,
+      "error": null,
+      "log": "2026-10-24T08-45-11.554Z-32552-native-1.log"
+    },
+    {
+      "binary": "C:\\Users\\37310\\.cargo\\bin\\rustup.exe",
+      "argv": [
+        "which",
+        "rustc",
+        "--toolchain",
+        "1.95.0"
+      ],
+      "exitCode": 0,
+      "error": null,
+      "log": "2026-10-24T08-45-11.554Z-32552-native-2.log"
+    },
+    {
+      "binary": "C:\\Users\\37310\\.rustup\\toolchains\\1.95.0-x86_64-pc-windows-msvc\\bin\\rustc.exe",
+      "argv": [
+        "--version"
+      ],
+      "exitCode": 0,
+      "error": null,
+      "log": "2026-10-24T08-45-11.554Z-32552-native-3.log"
+    },
+    {
+      "binary": "C:\\Users\\37310\\.rustup\\toolchains\\1.95.0-x86_64-pc-windows-msvc\\bin\\cargo.exe",
+      "argv": [
+        "--config",
+        "source.crates-io.replace-with=\"water-cn\"",
+        "--config",
+        "source.water-cn.registry=\"sparse+https://mirrors.ustc.edu.cn/crates.io-index/\"",
+        "--config",
+        "http.multiplexing=false",
+        "--config",
+        "http.proxy=\"\"",
+        "build",
+        "--offline",
+        "--locked",
+        "--manifest-path",
+        "apps/desktop-preview/Cargo.toml",
+        "--bin",
+        "water-desktop-preview"
+      ],
+      "exitCode": 0,
+      "error": null,
+      "log": "2026-10-24T08-45-11.554Z-32552-native-4.log"
+    },
+    {
+      "binary": "powershell.exe",
+      "argv": [
+        "-NoProfile",
+        "-NonInteractive",
+        "-ExecutionPolicy",
+        "Bypass",
+        "-File",
+        "F:\\new\\smaltalk\\water\\scripts\\acceptance\\desktop-native-root-observe.ps1",
+        "-TestProcessId",
+        "43004",
+        "-EvidencePath",
+        "F:\\new\\smaltalk\\water\\.worktrees\\ac\\.local\\checks\\WATER-W1-AC-ADDENDUM-05\\2026-10-24T08-45-11.554Z-32552-uia.txt"
+      ],
+      "exitCode": 1,
+      "error": null,
+      "log": "2026-10-24T08-45-11.554Z-32552-native-5.log"
+    }
+  ],
+  "allFrozenUniqueFiles": 535,
+  "before": {
+    "head": "a3334875139a3d6b03e1e71aecb6baad7c1c6711",
+    "status": ""
+  },
+  "sourceState": {
+    "files": [
+      {
+        "path": "apps/desktop-preview/Cargo.toml",
+        "snapshot": "2026-10-24T08-45-11.554Z-32552-native-source-0.txt",
+        "sha256": "896668534c7aa1bbbb48e962b894f6473c45db5764876494cc25d7faad6d8337",
+        "test": false
+      },
+      {
+        "path": "apps/desktop-preview/Cargo.lock",
+        "snapshot": "2026-10-24T08-45-11.554Z-32552-native-source-1.txt",
+        "sha256": "c56b58aa141a85617a59db4de679ff73d69827aee81bda958b1fdee0c9bbbfe8",
+        "test": false
+      },
+      {
+        "path": "apps/desktop-preview/.gitattributes",
+        "snapshot": "2026-10-24T08-45-11.554Z-32552-native-source-2.txt",
+        "sha256": "985a5d5270405b7bce3a54d9f0491f1bc82cc298081e3882f5a8fece599278c9",
+        "test": false
+      },
+      {
+        "path": "apps/desktop-preview/.gitignore",
+        "snapshot": "2026-10-24T08-45-11.554Z-32552-native-source-3.txt",
+        "sha256": "c753d6aa4b07fe40fc1eecfa07ce34820532d0e872dc055cb833dac12b0a1872",
+        "test": false
+      },
+      {
+        "path": "apps/desktop-preview/build.rs",
+        "snapshot": "2026-10-24T08-45-11.554Z-32552-native-source-4.txt",
+        "sha256": "6aeeab41bc35efde4e3c2b644a6248f7fc06d24ae30b75c0d33491cbb0c1fa31",
+        "test": false
+      },
+      {
+        "path": "apps/desktop-preview/tauri.conf.json",
+        "snapshot": "2026-10-24T08-45-11.554Z-32552-native-source-5.txt",
+        "sha256": "cc7d9b9b76937c66568d46ff1e69f72c48d3fd0f0bcd48e5952ed85831df52fa",
+        "test": false
+      },
+      {
+        "path": "apps/desktop-preview/README.md",
+        "snapshot": "2026-10-24T08-45-11.554Z-32552-native-source-6.txt",
+        "sha256": "31e70b4d906e321c8d04ad56a4eaed18a4d7050695a07b37af9a6c89f7616ff9",
+        "test": false
+      },
+      {
+        "path": "apps/desktop-preview/src/lib.rs",
+        "snapshot": "2026-10-24T08-45-11.554Z-32552-native-source-7.txt",
+        "sha256": "5b796be694e142245c84474df47b63bdee17cb9713b8f256637dbdebbb6bbc46",
+        "test": false
+      },
+      {
+        "path": "apps/desktop-preview/src/main.rs",
+        "snapshot": "2026-10-24T08-45-11.554Z-32552-native-source-8.txt",
+        "sha256": "3e0d97e1eeadd898ef9a48c2ed920a69a704c7418a66db156c3a2f1d149a491c",
+        "test": false
+      },
+      {
+        "path": "apps/desktop-preview/src/v1.rs",
+        "snapshot": "2026-10-24T08-45-11.554Z-32552-native-source-9.txt",
+        "sha256": "754588f2df428ed38fbaf3aca99a7a54f725a030dc0a623d65ebbbf83f206ce1",
+        "test": false
+      },
+      {
+        "path": "apps/desktop-preview/frontend/index.html",
+        "snapshot": "2026-10-24T08-45-11.554Z-32552-native-source-10.txt",
+        "sha256": "c64208a3fb20a3cc100f6c370262a210c6a1e4a06d1d11b98aeaf98c92ba6a32",
+        "test": false
+      },
+      {
+        "path": "apps/desktop-preview/frontend/styles.css",
+        "snapshot": "2026-10-24T08-45-11.554Z-32552-native-source-11.txt",
+        "sha256": "4cb3e5550962c67a3529ee18b654abdbd1d5b41946ebfe4cf730537a4559c1fb",
+        "test": false
+      },
+      {
+        "path": "apps/desktop-preview/icons/icon.ico",
+        "snapshot": "2026-10-24T08-45-11.554Z-32552-native-source-12.txt",
+        "sha256": "e604bf94c751acceee880dee13503fdbc38427fa0666ac3d60b98ccd682b8c2c",
+        "test": false
+      },
+      {
+        "path": "apps/desktop-preview/tests/bootstrap_v1.rs",
+        "snapshot": "2026-10-24T08-45-11.554Z-32552-native-source-13.txt",
+        "sha256": "7b33f47cc7dad3220f102c897018d99214a8250d03157dcb950d146b35d35082",
+        "test": true
+      }
+    ],
+    "productionHash": "38c7a927cb30fd79f91e5e52e875a81dcb1585b359390dca50af5b24a2d2139d",
+    "testHash": "211ba3014991309b2bda94cd422f4496c2ac552fa57507c3bb35283ae2acefe7"
+  },
+  "reusedFinals": [
+    {
+      "mode": "check",
+      "path": "docs/acceptance/wave1/ac/addendum-03/raw/2026-10-24T04-33-56.602Z-43316-check-result.json",
+      "sha256": "a0f7551f9002e2b8c2ff5c1f9bc1ec174bb600797a31554e28500fc856136569",
+      "testedCommit": "82d04aaeef73030f65bc0a070b99a5517fd5d6a3",
+      "proof": [
+        {
+          "label": "nc1",
+          "red": "2026-10-24T03-43-19.453Z-42740-red-nc1-result.json",
+          "restored": "2026-10-24T03-43-57.782Z-37176-test-result.json",
+          "redDirectory": "F:\\new\\smaltalk\\water\\.worktrees\\ac\\docs\\acceptance\\wave1\\ac\\addendum-02\\raw",
+          "restoredDirectory": "F:\\new\\smaltalk\\water\\.worktrees\\ac\\docs\\acceptance\\wave1\\ac\\addendum-02\\raw"
+        },
+        {
+          "label": "nc2",
+          "red": "2026-10-24T03-44-35.454Z-31596-red-nc2-result.json",
+          "restored": "2026-10-24T03-45-13.429Z-32560-test-result.json",
+          "redDirectory": "F:\\new\\smaltalk\\water\\.worktrees\\ac\\docs\\acceptance\\wave1\\ac\\addendum-02\\raw",
+          "restoredDirectory": "F:\\new\\smaltalk\\water\\.worktrees\\ac\\docs\\acceptance\\wave1\\ac\\addendum-02\\raw"
+        }
+      ]
+    },
+    {
+      "mode": "test",
+      "path": "docs/acceptance/wave1/ac/addendum-03/raw/2026-10-24T04-35-09.874Z-24884-test-result.json",
+      "sha256": "35f636870b42d1e59bf2b7b87e96bdf77025beb5c2ac3cff2e33c3e972805b2a",
+      "testedCommit": "82d04aaeef73030f65bc0a070b99a5517fd5d6a3",
+      "proof": [
+        {
+          "label": "nc1",
+          "red": "2026-10-24T03-43-19.453Z-42740-red-nc1-result.json",
+          "restored": "2026-10-24T03-43-57.782Z-37176-test-result.json",
+          "redDirectory": "F:\\new\\smaltalk\\water\\.worktrees\\ac\\docs\\acceptance\\wave1\\ac\\addendum-02\\raw",
+          "restoredDirectory": "F:\\new\\smaltalk\\water\\.worktrees\\ac\\docs\\acceptance\\wave1\\ac\\addendum-02\\raw"
+        },
+        {
+          "label": "nc2",
+          "red": "2026-10-24T03-44-35.454Z-31596-red-nc2-result.json",
+          "restored": "2026-10-24T03-45-13.429Z-32560-test-result.json",
+          "redDirectory": "F:\\new\\smaltalk\\water\\.worktrees\\ac\\docs\\acceptance\\wave1\\ac\\addendum-02\\raw",
+          "restoredDirectory": "F:\\new\\smaltalk\\water\\.worktrees\\ac\\docs\\acceptance\\wave1\\ac\\addendum-02\\raw"
+        }
+      ]
+    }
+  ],
+  "nativePid": 43004,
+  "observerExitCode": 1,
+  "observerError": null,
+  "native": {
+    "startedAt": "2026-10-24T08:45:37.4022260Z",
+    "processId": 43004,
+    "processCreated": "2026-10-24T08:45:36.8973830Z",
+    "title": "Water Desktop Preview",
+    "rootCount": 2,
+    "roots": [
+      {
+        "index": 0,
+        "processId": 43004,
+        "name": "Water Desktop Preview",
+        "className": "Tauri Window",
+        "controlType": "ControlType.Window",
+        "nativeHandle": 27788410,
+        "isOffscreen": false,
+        "isControlElement": true,
+        "isContentElement": true,
+        "windowPatternAvailable": true,
+        "rectangle": [
+          224,
+          83,
+          1268,
+          997
+        ],
+        "runtimeId": [
+          42,
+          27788410
+        ],
+        "readError": null
+      },
+      {
+        "index": 1,
+        "processId": 43004,
+        "name": "",
+        "className": "Tao Thread Event Target",
+        "controlType": "ControlType.Pane",
+        "nativeHandle": 38930730,
+        "isOffscreen": false,
+        "isControlElement": true,
+        "isContentElement": true,
+        "windowPatternAvailable": false,
+        "rectangle": [
+          0,
+          0,
+          18,
+          18
+        ],
+        "runtimeId": [
+          42,
+          38930730
+        ],
+        "readError": null
+      }
+    ],
+    "rootDecision": {
+      "reportedCount": 2,
+      "capturedCount": 2,
+      "mainCount": 1,
+      "mainIndex": 0,
+      "accepted": false,
+      "error": "Unexpected own top-level window count"
+    },
+    "rootSnapshots": 1,
+    "rootMetadataTruncated": false,
+    "names": [],
+    "required": [
+      "Water",
+      "桌面壳已启动",
+      "尚未接入扫描",
+      "只读开发预览"
+    ],
+    "pageAccepted": false,
+    "systemWindows": 2,
+    "directoryDialogs": 0,
+    "screenshotsTaken": 0,
+    "children": [
+      {
+        "processId": 25316,
+        "parentProcessId": 43004,
+        "name": "conhost.exe",
+        "path": "C:\\Windows\\system32\\conhost.exe",
+        "commandLine": "\\??\\C:\\Windows\\system32\\conhost.exe 0x4",
+        "created": "2026-10-24T08:45:36.9121540Z"
+      },
+      {
+        "processId": 31276,
+        "parentProcessId": 43004,
+        "name": "msedgewebview2.exe",
+        "path": "C:\\Program Files (x86)\\Microsoft\\EdgeWebView\\Application\\155.0.4283.62\\msedgewebview2.exe",
+        "commandLine": "\"C:\\Program Files (x86)\\Microsoft\\EdgeWebView\\Application\\155.0.4283.62\\msedgewebview2.exe\" --embedded-browser-webview=1 --webview-exe-name=water-desktop-preview.exe --webview-exe-version=0.1.0 --user-data-dir=\"F:\\new\\smaltalk\\water\\.worktrees\\ac\\.local\\desktop-webview\\preview-43004-1792831536931784100\\EBWebView\" --noerrdialogs --embedded-browser-webview-dpi-awareness=2 --autoplay-policy=no-user-gesture-required --disable-features=msWebOOUI,msPdfOOUI,msSmartScreenProtection --lang=en-US --mojo-named-platform-channel-pipe=43004.15880.4798464812425141499 /pfhostedapp:ca045c12ffeb6bebaedd595b23f9699f7549750a",
+        "created": "2026-10-24T08:45:37.0171450Z"
+      },
+      {
+        "processId": 33004,
+        "parentProcessId": 31276,
+        "name": "msedgewebview2.exe",
+        "path": "C:\\Program Files (x86)\\Microsoft\\EdgeWebView\\Application\\155.0.4283.62\\msedgewebview2.exe",
+        "commandLine": "\"C:\\Program Files (x86)\\Microsoft\\EdgeWebView\\Application\\155.0.4283.62\\msedgewebview2.exe\" --type=crashpad-handler --user-data-dir=F:\\new\\smaltalk\\water\\.worktrees\\ac\\.local\\desktop-webview\\preview-43004-1792831536931784100\\EBWebView /prefetch:4 /pfhostedapp:ca045c12ffeb6bebaedd595b23f9699f7549750a --monitor-self-annotation=ptype=crashpad-handler --database=F:\\new\\smaltalk\\water\\.worktrees\\ac\\.local\\desktop-webview\\preview-43004-1792831536931784100\\EBWebView\\Crashpad --metrics-dir=F:\\new\\smaltalk\\water\\.worktrees\\ac\\.local\\desktop-webview\\preview-43004-1792831536931784100\\EBWebView --annotation=IsOfficialBuild=1 --annotation=channel= --annotation=chromium-version=155.0.8059.85 \"--annotation=exe=C:\\Program Files (x86)\\Microsoft\\EdgeWebView\\Application\\155.0.4283.62\\msedgewebview2.exe\" --annotation=plat=Win64 \"--annotation=prod=Edge WebView2\" --annotation=ver=155.0.4283.62 --initial-client-data=0x178,0x17c,0x180,0x154,0x188,0x7ff91caa83e0,0x7ff91caa83f0,0x7ff91caa8400",
+        "created": "2026-10-24T08:45:37.0504130Z"
+      },
+      {
+        "processId": 13708,
+        "parentProcessId": 31276,
+        "name": "msedgewebview2.exe",
+        "path": "C:\\Program Files (x86)\\Microsoft\\EdgeWebView\\Application\\155.0.4283.62\\msedgewebview2.exe",
+        "commandLine": "\"C:\\Program Files (x86)\\Microsoft\\EdgeWebView\\Application\\155.0.4283.62\\msedgewebview2.exe\" --type=gpu-process --gpu-recent-crash-count=0 --noerrdialogs --user-data-dir=\"F:\\new\\smaltalk\\water\\.worktrees\\ac\\.local\\desktop-webview\\preview-43004-1792831536931784100\\EBWebView\" --webview-exe-name=water-desktop-preview.exe --webview-exe-version=0.1.0 --embedded-browser-webview=1 --embedded-browser-webview-dpi-awareness=2 --gpu-preferences=WAAAAAAAAADgAAAEAAAAAAAAAAAAAGAAQAAAAAAAAAADAAAAAAAAADgAAAAAAAAAAAAAAAAAAAACAAAAAAAAAAAAAAAAAAAAKAAAAAAAAAAoAAAAAAAAAAgAAAAAAAAAEAAAAAIAAAABAAAAAAAAAAgAAAAAAAAACAAAAAAAAAA= --startup-read-main-dll --metrics-shmem-handle=1796,i,11374626159349305985,16282620636309270031,262144 --field-trial-handle=1916,i,1554205029663800251,14581736509151847933,262144 --disable-features=msPdfOOUI,msSmartScreenProtection,msWebOOUI --variations-seed-version --pseudonymization-salt-handle=1920,i,36565296145968551,8570524789829373270,4 --trace-process-track-uuid=3190708988185955192 --mojo-platform-channel-handle=1908 /prefetch:2 /pfhostedapp:ca045c12ffeb6bebaedd595b23f9699f7549750a",
+        "created": "2026-10-24T08:45:37.1574750Z"
+      },
+      {
+        "processId": 43584,
+        "parentProcessId": 31276,
+        "name": "msedgewebview2.exe",
+        "path": "C:\\Program Files (x86)\\Microsoft\\EdgeWebView\\Application\\155.0.4283.62\\msedgewebview2.exe",
+        "commandLine": "\"C:\\Program Files (x86)\\Microsoft\\EdgeWebView\\Application\\155.0.4283.62\\msedgewebview2.exe\" --type=utility --utility-sub-type=network.mojom.NetworkService --lang=en-US --service-sandbox-type=none --noerrdialogs --user-data-dir=\"F:\\new\\smaltalk\\water\\.worktrees\\ac\\.local\\desktop-webview\\preview-43004-1792831536931784100\\EBWebView\" --webview-exe-name=water-desktop-preview.exe --webview-exe-version=0.1.0 --embedded-browser-webview=1 --embedded-browser-webview-dpi-awareness=2 --startup-read-main-dll --metrics-shmem-handle=2080,i,9505801680113437107,7409299942096298325,524288 --field-trial-handle=1916,i,1554205029663800251,14581736509151847933,262144 --disable-features=msPdfOOUI,msSmartScreenProtection,msWebOOUI --variations-seed-version --pseudonymization-salt-handle=1920,i,36565296145968551,8570524789829373270,4 --trace-process-track-uuid=3190708989122997041 --mojo-platform-channel-handle=2084 /prefetch:11 /pfhostedapp:ca045c12ffeb6bebaedd595b23f9699f7549750a",
+        "created": "2026-10-24T08:45:37.1603050Z"
+      },
+      {
+        "processId": 24036,
+        "parentProcessId": 31276,
+        "name": "msedgewebview2.exe",
+        "path": "C:\\Program Files (x86)\\Microsoft\\EdgeWebView\\Application\\155.0.4283.62\\msedgewebview2.exe",
+        "commandLine": "\"C:\\Program Files (x86)\\Microsoft\\EdgeWebView\\Application\\155.0.4283.62\\msedgewebview2.exe\" --type=utility --utility-sub-type=storage.mojom.StorageService --lang=en-US --service-sandbox-type=service --noerrdialogs --user-data-dir=\"F:\\new\\smaltalk\\water\\.worktrees\\ac\\.local\\desktop-webview\\preview-43004-1792831536931784100\\EBWebView\" --webview-exe-name=water-desktop-preview.exe --webview-exe-version=0.1.0 --embedded-browser-webview=1 --embedded-browser-webview-dpi-awareness=2 --startup-read-main-dll --metrics-shmem-handle=2472,i,4220130336219014591,10372387962091669385,524288 --field-trial-handle=1916,i,1554205029663800251,14581736509151847933,262144 --disable-features=msPdfOOUI,msSmartScreenProtection,msWebOOUI --variations-seed-version --pseudonymization-salt-handle=1920,i,36565296145968551,8570524789829373270,4 --trace-process-track-uuid=3190708990060038890 --mojo-platform-channel-handle=2340 /prefetch:13 /pfhostedapp:ca045c12ffeb6bebaedd595b23f9699f7549750a",
+        "created": "2026-10-24T08:45:37.1898870Z"
+      },
+      {
+        "processId": 32712,
+        "parentProcessId": 31276,
+        "name": "msedgewebview2.exe",
+        "path": "C:\\Program Files (x86)\\Microsoft\\EdgeWebView\\Application\\155.0.4283.62\\msedgewebview2.exe",
+        "commandLine": "\"C:\\Program Files (x86)\\Microsoft\\EdgeWebView\\Application\\155.0.4283.62\\msedgewebview2.exe\" --type=renderer --noerrdialogs --user-data-dir=\"F:\\new\\smaltalk\\water\\.worktrees\\ac\\.local\\desktop-webview\\preview-43004-1792831536931784100\\EBWebView\" --webview-exe-name=water-desktop-preview.exe --webview-exe-version=0.1.0 --embedded-browser-webview=1 --embedded-browser-webview-dpi-awareness=2 --autoplay-policy=no-user-gesture-required --video-capture-use-gpu-memory-buffer --lang=en-US --js-flags --device-scale-factor=1.25 --num-raster-threads=4 --enable-main-frame-before-activation --renderer-client-id=5 --ssd-no-pressure-read-main-dll --launch-time-ticks=250567500955 --metrics-shmem-handle=3704,i,7473666676268309643,11266992923353249611,1048576 --field-trial-handle=1916,i,1554205029663800251,14581736509151847933,262144 --disable-features=msPdfOOUI,msSmartScreenProtection,msWebOOUI --variations-seed-version --pseudonymization-salt-handle=1920,i,36565296145968551,8570524789829373270,4 --trace-process-track-uuid=3190708990997080739 --mojo-platform-channel-handle=3732 /pfhostedapp:ca045c12ffeb6bebaedd595b23f9699f7549750a /prefetch:1",
+        "created": "2026-10-24T08:45:37.2932330Z"
+      }
+    ],
+    "childSnapshotError": null,
+    "mainSelectedForCleanup": true,
+    "closeRequested": true,
+    "closeReason": "Known main cleanup after diagnostic failure",
+    "cleanupError": null,
+    "exitCode": 0,
+    "error": "Unexpected own top-level window count",
+    "updatedAt": "2026-10-24T08:45:38.9808741Z",
+    "endedAt": "2026-10-24T08:45:38.9803326Z"
+  },
+  "nativeExit": {
+    "code": 0,
+    "signal": null
+  },
+  "nativeWallMs": 2176,
+  "observerPrimaryError": "Unexpected own top-level window count",
+  "after": {
+    "head": "a3334875139a3d6b03e1e71aecb6baad7c1c6711",
+    "status": ""
+  },
+  "status": "failed",
+  "error": "AssertionError [ERR_ASSERTION]: Native observer failed: Unexpected own top-level window count\n    at file:///F:/new/smaltalk/water/scripts/ac-native-diagnostic-check.mjs:32:98",
+  "endedAt": "2026-10-24T08:45:41.699Z",
+  "receipt": "F:\\new\\smaltalk\\water\\.worktrees\\ac\\.local\\checks\\WATER-W1-AC-ADDENDUM-05\\2026-10-24T08-45-11.554Z-32552-native-result.json"
+}
