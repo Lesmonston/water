@@ -1,0 +1,47 @@
+{
+  "recordedAt": "2026-10-24T08:49:33.399Z",
+  "analysisBoundary": "Read-only existing locked crate/package source and actual own UIA metadata; no upstream code execution, extraction to disk, downloads, or product changes.",
+  "repository": "https://github.com/tauri-apps/tao",
+  "crate": "tao",
+  "version": "0.37.2",
+  "license": "Apache-2.0",
+  "canonicalSource": "registry+https://github.com/rust-lang/crates.io-index",
+  "archiveSha256": "d5777b06fe6435126ae8d816eba269e050e1e10d302cf5461e9c49eccabc3548",
+  "localArchiveMatchesLock": true,
+  "declaredVcs": {
+    "git": {
+      "sha1": "2d9b2ba15247879787878ae565e350bcc1b9f622",
+      "dirty": true
+    },
+    "path_in_vcs": ""
+  },
+  "declaredGitCommitIsNotAssertedAsExactPublishedTree": true,
+  "sourcePath": ".local/desktop-cargo-home/registry/src/mirrors.ustc.edu.cn-38d0e5eb5da2abae/tao-0.37.2/src/platform_impl/windows/event_loop.rs",
+  "sourceSha256": "bfe777ba15f00b9ca2a1fdd5093b2b02102dbafb5d23eca9f002d1f0c40eaf8a",
+  "sourceBytesMatchChecksumVerifiedArchiveMember": true,
+  "archiveMember": "tao-0.37.2/src/platform_impl/windows/event_loop.rs",
+  "lines": {
+    "eventLoopCall": 188,
+    "functionStart": 628,
+    "classLiteral": 629,
+    "createWindowEx": [
+      650,
+      672
+    ],
+    "styleUpdate": [
+      680,
+      687
+    ]
+  },
+  "finding": "The observed extra root class matches the class used by the fixed package create_event_target_window function. Source sets layered/tool/noactivate/transparent styles and then visible/popup event delivery style. Source comments describe intended non-display to users; this is implementation intent, not a new live pixel result.",
+  "limitations": "Observed isOffscreen=false and two strict roots remain unchanged. No class/visibility exemption applied. Native page/strict acceptance remains failed. VCS metadata dirty=true; no independent remote commit comparison.",
+  "inspectionFailures": [
+    {
+      "operation": "Initial optional per-file .cargo-checksum.json lookup",
+      "exitCode": 1,
+      "error": "ENOENT",
+      "path": ".local/desktop-cargo-home/registry/src/mirrors.ustc.edu.cn-38d0e5eb5da2abae/tao-0.37.2/.cargo-checksum.json",
+      "resolution": "No cache modifications. Compared source bytes directly with bounded in-memory tar member from existing archive whose SHA matches Cargo.lock."
+    }
+  ]
+}
