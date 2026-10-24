@@ -1,5 +1,7 @@
 # WATER-W1-AC 补充单02：国内镜像依赖与原树续做
 
+最新（2026-10-24）：补单02受阻已审计，总控控制入口已修订并实际离线通过。只按[补单03](WATER-W1-AC-ADDENDUM-03-20261024.md)回原AC对话，旧入口/旧外贴句为历史；不重复下载。
+
 当前：READY / baselineStatus=PASSED。总控已下载238个Windows依赖包、验证锁与离线完整性，原树唯一差异Cargo.lock SHA `c56b58aa141a85617a59db4de679ff73d69827aee81bda958b1fdee0c9bbbfe8`；不再重复下载。详见[总控回执](../wave1/AC-DESKTOP-ADDENDUM-02-READY-REPORT-20261024.md)。
 
 2026-10-24。用户已授权总控直接使用国内镜像下载，并要求不得修改其网络配置。总控先准备依赖，本补仅在主manifest.addendum02.status=READY且baselineStatus=PASSED后可外贴给原AC执行对话；DRAFT不授权开工。补单01受阻历史保留，本补替代其传输和续做控制入口。

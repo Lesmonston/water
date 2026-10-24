@@ -1,7 +1,7 @@
 {
   "schemaVersion": 1,
   "wave": "water-wave1",
-  "status": "A_AB_AD_VERIFIED_AE_RESEARCH_VERIFIED_AC_ADDENDUM02_READY",
+  "status": "A_AB_AD_VERIFIED_AE_RESEARCH_VERIFIED_AC_ADDENDUM03_READY",
   "controllerRoot": "F:/new/smaltalk/water",
   "controllerBranch": "main",
   "controller": "Codex",
@@ -2899,7 +2899,7 @@
       "nativeWindowBudget": 1,
       "nativeDirectoryDialogBudget": 0,
       "baselineStatus": "PASSED",
-      "newProductTestsRun": false,
+      "newProductTestsRun": true,
       "model": "Codex / GPT-6 (worker self-report)",
       "modelAssignment": "user-arranged; report actual engine/model",
       "dispatchedAt": null,
@@ -2923,7 +2923,8 @@
         "apps/desktop-preview/tests/bootstrap_v1.rs",
         "docs/dispatch/reports/WATER-W1-AC-REPORT.md",
         "docs/dispatch/reports/WATER-W1-AC-ADDENDUM-01-REPORT.md",
-        "docs/dispatch/reports/WATER-W1-AC-ADDENDUM-02-REPORT.md"
+        "docs/dispatch/reports/WATER-W1-AC-ADDENDUM-02-REPORT.md",
+        "docs/dispatch/reports/WATER-W1-AC-ADDENDUM-03-REPORT.md"
       ],
       "allowedPrefixes": [
         "docs/acceptance/wave1/ac/"
@@ -2933,12 +2934,12 @@
       "baselineEvidence": "docs/acceptance/wave1/controller/w1-delivery-preflight-20261023/ac/2026-10-23T02-36-00.416Z-34364-baseline-result.json",
       "preflightEvidence": "docs/dispatch/wave1/DELIVERY-WAVE-READY-REPORT-20261023.md",
       "readyOn": "2026-10-23",
-      "submittedCommit": "ef0b7c4b3a84c434c0cd3b691b79c8a4a37d311c",
+      "submittedCommit": "82d04aaeef73030f65bc0a070b99a5517fd5d6a3",
       "partialSourceCommit": "b617b90182d54053091910b8b4e889dd7f614a7d",
       "productTestedCommit": null,
       "activityEvidence": "Original clean blocked receipt ef0b7c4, fail-closed skeleton b617b90, baseline passed, two known dependency failures plus two incomplete attempts; no lock/product tests/native window.",
       "blockedReportSource": "F:/new/smaltalk/water/.worktrees/ac/docs/dispatch/reports/WATER-W1-AC-REPORT.md",
-      "revisionReport": "docs/dispatch/reports/WATER-W1-AC-ADDENDUM-02-REPORT.md",
+      "revisionReport": "docs/dispatch/reports/WATER-W1-AC-ADDENDUM-03-REPORT.md",
       "revisionDispatchStatus": "READY",
       "addendum01": {
         "status": "BLOCKED",
@@ -2967,14 +2968,15 @@
       },
       "addenda": [
         "docs/dispatch/tickets/WATER-W1-AC-ADDENDUM-01-20261023.md",
-        "docs/dispatch/tickets/WATER-W1-AC-ADDENDUM-02-20261024.md"
+        "docs/dispatch/tickets/WATER-W1-AC-ADDENDUM-02-20261024.md",
+        "docs/dispatch/tickets/WATER-W1-AC-ADDENDUM-03-20261024.md"
       ],
-      "controllerReview": "docs/acceptance/wave1/controller/WATER-W1-AC-MIRROR-PREPARATION-20261024.md",
-      "blockedReviewedAt": "2026-10-23T14:03:32.810Z",
-      "environmentStatus": "RECOVERED_MIRROR_DEPENDENCIES_ONLY",
-      "verificationScope": "238 Windows dependency packages downloaded via user-authorized process-only USTC source replacement; offline fetch/metadata and receipt resume passed. Product remains unimplemented/untested.",
+      "controllerReview": "docs/acceptance/wave1/controller/WATER-W1-AC-ADDENDUM-02-REVIEW-20261024.md",
+      "blockedReviewedAt": "2026-10-24T04:25:13.714Z",
+      "environmentStatus": "DEPENDENCIES_READY_CLIPPY_ROUTING_FIXED",
+      "verificationScope": "Worker unit red/two stable negatives/restored three-test greens audited at exact bytes; original final check blocked in controller Clippy forwarding. Corrected offline preflight fmt/clippy passed. Final test/native not run; no product acceptance.",
       "addendum02": {
-        "status": "READY",
+        "status": "BLOCKED",
         "ticket": "docs/dispatch/tickets/WATER-W1-AC-ADDENDUM-02-20261024.md",
         "report": "docs/dispatch/reports/WATER-W1-AC-ADDENDUM-02-REPORT.md",
         "evidencePrefix": "docs/acceptance/wave1/ac/addendum-02/",
@@ -2999,6 +3001,33 @@
         "baselineEvidence": "docs/acceptance/wave1/controller/w1-ac-mirror-20261024/environment/2026-10-24T03-11-17.382Z-32972-environment-result.json",
         "offlineEvidence": "docs/acceptance/wave1/controller/w1-ac-mirror-20261024/controller/2026-10-24T03-13-43.578Z-40636-offline-audit.json",
         "preflightEvidence": "docs/dispatch/wave1/AC-DESKTOP-ADDENDUM-02-READY-REPORT-20261024.md",
+        "systemWindowsUsed": 0,
+        "submittedCommit": "82d04aaeef73030f65bc0a070b99a5517fd5d6a3",
+        "supersededBy": "docs/dispatch/tickets/WATER-W1-AC-ADDENDUM-03-20261024.md"
+      },
+      "implementationCommit": "eb7f80178191e233068015bbc26dc9798ac8cb22",
+      "addendum03": {
+        "status": "READY",
+        "ticket": "docs/dispatch/tickets/WATER-W1-AC-ADDENDUM-03-20261024.md",
+        "report": "docs/dispatch/reports/WATER-W1-AC-ADDENDUM-03-REPORT.md",
+        "evidencePrefix": "docs/acceptance/wave1/ac/addendum-03/",
+        "resumeCommit": "82d04aaeef73030f65bc0a070b99a5517fd5d6a3",
+        "implementationCommit": "eb7f80178191e233068015bbc26dc9798ac8cb22",
+        "contractLock": "contracts/desktop-bootstrap-clippy-v1/freeze.lock.json",
+        "lockSha256": "8a11eac93ec6c626c8cae3566488d7ebf504b013509d899fe3c496d3f4535064",
+        "helper": "scripts/ac-final-check.mjs",
+        "baselineStatus": "PASSED",
+        "systemWindowBudgetRemaining": 1,
+        "nativeDirectoryDialogs": 0,
+        "dispatchedAt": null,
+        "startedAt": null,
+        "preservedProductionHash": "38c7a927cb30fd79f91e5e52e875a81dcb1585b359390dca50af5b24a2d2139d",
+        "preservedTestHash": "211ba3014991309b2bda94cd422f4496c2ac552fa57507c3bb35283ae2acefe7",
+        "proofHistory": "docs/acceptance/wave1/ac/addendum-02/raw",
+        "readyOn": "2026-10-24",
+        "baselineEvidence": "docs/acceptance/wave1/controller/w1-ac-clippy-20261024/preflight/2026-10-24T04-16-42.948Z-15136-preflight-result.json",
+        "preflightEvidence": "docs/dispatch/wave1/AC-DESKTOP-ADDENDUM-03-READY-REPORT-20261024.md",
+        "preflightMeaning": "Corrected original check policy/fmt/clippy at exact submitted bytes; not product final test/native",
         "systemWindowsUsed": 0
       }
     },

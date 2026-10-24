@@ -1,5 +1,7 @@
 # 外贴派单目录
 
+- [AC补单02受阻复核及补单03续做](wave1/AC-DESKTOP-ADDENDUM-03-READY-REPORT-20261024.md)
+
 - [AC镜像下载完成与补单02续做指令](wave1/AC-DESKTOP-ADDENDUM-02-READY-REPORT-20261024.md)
 
 - [AD/AE收单、独立验收与集成](../acceptance/wave1/controller/WATER-W1-ADAE-REVIEW-20261024.md)
@@ -8,7 +10,7 @@
 
 - [AC/AD/AE三线READY及外贴指令](wave1/DELIVERY-WAVE-READY-REPORT-20261023.md)
 
-A–AB及八补单、AD保持VERIFIED（Windows受控），AE研究文档VERIFIED。用户授权国内镜像后，总控已通过中科大镜像下载AC的238个Windows依赖包（35514705字节），锁生成/来源许可证及离线fetch/metadata/resume通过；系统代理、网络和全局Cargo配置未改。AC原ef0b7c4/13源码未改，锁留原树；原票仍BLOCKED未产品受测，补单02 READY待回原AC对话，补单01失败保留。不再重贴原票/补单01，不自动启动实现者。旧514保持，新增5条目/20继承锁共519约束，其余30任务/槽位保持；本次0系统窗。真实AA→AD、桌面扫描、用户scope、自然同意鉴真、生产竞态、macOS/M1未验收。
+A–AB及八补单、AD保持VERIFIED（Windows受控），AE研究文档VERIFIED。AC补单02接收82d04aa/实现eb7f801，189归档及三测试先红/两条稳定负控/即时恢复绿已审计；原final check受总控Clippy镜像参数转发错误阻塞，final test/native未运行。总控新增入口仅纠正参数位置，实际offline metadata/策略/fmt/clippy及干净resume通过，产品源码未改、未下载、未改网络。补单03 READY待原AC对话完成剩余final，原票仍BLOCKED未验收；仅1静态窗/0目录窗预算保持。旧519不变，新增4条目/21继承锁共523约束，其余30任务/槽位保持，无自动实现者。真实AA→AD、桌面扫描、用户scope、自然同意鉴真、生产竞态、macOS/M1未验收。
 
 - [AB补单01与真实AA→AB验收已通过](../acceptance/wave1/controller/WATER-W1-AB-ADDENDUM-01-REVIEW-20261022.md)
 - [AA/AB原收单与返修（历史）](../acceptance/wave1/controller/WATER-W1-AAAB-REVIEW-20261022.md)

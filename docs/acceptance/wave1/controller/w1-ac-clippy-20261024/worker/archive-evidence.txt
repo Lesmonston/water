@@ -1,0 +1,53 @@
+// Run only from the AC worktree. Read-only scope/freeze checks and raw evidence copies.
+// Does not execute product tests, dependency commands, native windows or proposed fixes.
+const assert=require('node:assert/strict');
+const fs=require('node:fs');
+const path=require('node:path');
+const cp=require('node:child_process');
+const crypto=require('node:crypto');
+const root=process.cwd(),controller='F:/new/smaltalk/water';
+const out='docs/acceptance/wave1/ac/addendum-02';
+const local='.local/checks/WATER-W1-AC-ADDENDUM-02';
+const implementation='eb7f80178191e233068015bbc26dc9798ac8cb22';
+const sha=b=>crypto.createHash('sha256').update(b).digest('hex');
+const json=p=>JSON.parse(fs.readFileSync(p,'utf8').replace(/^\uFEFF/,''));
+function git(args){const r=cp.spawnSync('git',['-c','core.hooksPath=NUL','-c','core.fsmonitor=false',...args],{encoding:'utf8',windowsHide:true,timeout:30000,maxBuffer:32*1024*1024});assert.equal(r.status,0,r.stderr);return r.stdout.trim();}
+assert.equal(root.replaceAll('\\','/').toLowerCase(),(controller+'/.worktrees/ac').toLowerCase());
+const task=json(controller+'/docs/dispatch/wave1/manifest.json').tasks.find(t=>t.id==='WATER-W1-AC'),add=task.addendum02;
+assert.equal(git(['branch','--show-current']),task.branch);
+assert.equal(git(['rev-parse','HEAD']),implementation);
+assert.equal(git(['diff','--name-only',implementation,'--','apps/desktop-preview']),'');
+const lock=json(controller+'/'+add.contractLock),physical=new Map(),objects=new Map();
+assert.equal(sha(fs.readFileSync(controller+'/'+add.contractLock)),add.lockSha256);
+for(const p of lock.inheritedLocks){const l=json(controller+'/'+p);for(const f of l.files)physical.set(f.path,f.sha256);for(const f of l.gitObjects??[])objects.set(f.path,f.objectId);}
+for(const f of lock.files)physical.set(f.path,f.sha256);
+for(const[p,h]of physical)assert.equal(sha(fs.readFileSync(controller+'/'+p)),h,p);
+for(const[p,h]of objects)assert.equal(git(['hash-object','--path='+p,p]),h,p);
+const frozenUniqueFiles=new Set([...physical.keys(),...objects.keys()]).size;assert.equal(frozenUniqueFiles,519);
+const baseLock=json(controller+'/'+task.contractLock),workerPhysical=new Map();for(const p of baseLock.inheritedLocks)for(const f of json(controller+'/'+p).files)workerPhysical.set(f.path,f.sha256);for(const f of baseLock.files)workerPhysical.set(f.path,f.sha256);for(const[p,h]of workerPhysical)assert.equal(sha(fs.readFileSync(p)),h,p);
+for(const f of lock.preservedSubmissionFiles)assert.equal(sha(fs.readFileSync(f.path)),f.sha256,f.path);
+const old=json('docs/acceptance/wave1/ac/ARCHIVE.json');assert.equal(old.count,46);for(const f of old.entries)assert.equal(sha(fs.readFileSync(f.archive)),f.sha256,f.archive);
+const changes=[git(['diff','--name-only','-z',add.resumeCommit,'HEAD']),git(['diff','--name-only','-z','HEAD']),git(['ls-files','--others','--exclude-standard','-z'])].flatMap(s=>s.split('\0').filter(Boolean));
+for(const p of changes)assert((p.startsWith('apps/desktop-preview/')&&task.allowedFiles.includes(p))||p===add.report||p.startsWith(add.evidencePrefix),p);
+assert.equal(sha(fs.readFileSync('apps/desktop-preview/Cargo.lock')),add.environmentLockSha256);
+const gates=fs.readdirSync(local).filter(n=>n.endsWith('-result.json')&&n>='2026-10-24T03-34-27').sort().map(n=>({file:n,data:json(local+'/'+n)}));
+assert.equal(gates.length,8);
+const check=gates.find(g=>g.data.finalGate);assert(check);assert.equal(check.data.mode,'check');assert.equal(check.data.status,'failed');assert.equal(check.data.before.head,implementation);assert.equal(check.data.before.status,'');assert.equal(check.data.after.status,'');assert.equal(check.data.proofAudit.length,2);
+const processEnd=json(local+'/PROCESS-END.txt');assert.equal(processEnd.ownedProcessCount,0);assert.equal(processEnd.nativeReservationPresent,false);
+const audit=out+'/HANDOFF-AUDIT.json';
+fs.writeFileSync(audit,JSON.stringify({checkedAt:new Date().toISOString(),task:'WATER-W1-AC-ADDENDUM-02',status:'BLOCKED',implementationCommit:implementation,frozenUniqueFiles,originalArchiveFilesPreserved:46,productionUnchangedSinceImplementation:true,lockSha256:add.environmentLockSha256,gates:gates.map(g=>({file:g.file,mode:g.data.mode,final:g.data.finalGate,status:g.data.status,expectation:g.data.expectation??null})),staticWindowsStarted:0,finalTestRun:false,nativeRun:false,controlFixApplied:false},null,2)+'\n',{flag:'wx'});
+const entries=[];
+function addFile(source,archive,copy){const b=fs.readFileSync(source);if(copy){fs.mkdirSync(path.dirname(archive),{recursive:true});fs.copyFileSync(source,archive,fs.constants.COPYFILE_EXCL);}assert.deepEqual(fs.readFileSync(archive),b);entries.push({source,archive,bytes:b.length,sha256:sha(b)});}
+for(const name of fs.readdirSync(local).sort()){
+ const selected=(name.startsWith('2026-10-24T')&&name>='2026-10-24T03-34-27')||['stable-v1.rs.txt','nc1-mutation.json','nc1-restored.json','nc2-mutation.json','nc2-restored.json','implementation-stage.json','BLOCKER-INSPECTION.json','PROCESS-END.txt'].includes(name);
+ if(selected)addFile(local+'/'+name,out+'/raw/'+name,true);
+}
+// Primary controller preparation evidence, never cache or downloaded crate/source bodies.
+for(const suffix of ['DEPENDENCY-INVENTORY.json','controller/2026-10-24T03-13-43.578Z-40636-offline-audit.json','FINAL-AUDIT.json']){
+ const source=controller+'/docs/acceptance/wave1/controller/w1-ac-mirror-20261024/'+suffix;
+ addFile(source,out+'/controller-preparation/'+suffix,true);
+}
+for(const name of ['EXECUTION-NOTES.md','gate-runner.txt','CONTROL-BLOCKER.md','CONTROL-FIX-PROPOSAL.txt','archive-evidence.txt','HANDOFF-AUDIT.json'])addFile(out+'/'+name,out+'/'+name,false);
+const index={version:'water.ac.addendum02.archive.v1',status:'BLOCKED',createdAt:new Date().toISOString(),implementationCommit:implementation,count:entries.length,totalBytes:entries.reduce((n,e)=>n+e.bytes,0),entries,exclusions:['cache/index/crate packages/extracted dependencies','target/tmp/binaries/WebView profiles','original ac/ARCHIVE and 46 old bytes are verified, not duplicated','AA excluded screenshots, all user/physical fixture data','ARCHIVE.json and report have no self-referential hash'],unexecuted:['corrected controller proposal','final test','native']};
+fs.writeFileSync(out+'/ARCHIVE.json',JSON.stringify(index,null,2)+'\n',{flag:'wx'});
+console.log(JSON.stringify({frozenUniqueFiles,count:index.count,totalBytes:index.totalBytes,status:index.status,implementationCommit:implementation}));

@@ -21,9 +21,13 @@
 
 ## 下一步
 
-A–AB及八补单、AD保持VERIFIED（Windows受控），AE研究文档VERIFIED。用户授权国内镜像后，总控已通过中科大镜像下载AC的238个Windows依赖包（35514705字节），锁生成/来源许可证及离线fetch/metadata/resume通过；系统代理、网络和全局Cargo配置未改。AC原ef0b7c4/13源码未改，锁留原树；原票仍BLOCKED未产品受测，补单02 READY待回原AC对话，补单01失败保留。不再重贴原票/补单01，不自动启动实现者。旧514保持，新增5条目/20继承锁共519约束，其余30任务/槽位保持；本次0系统窗。真实AA→AD、桌面扫描、用户scope、自然同意鉴真、生产竞态、macOS/M1未验收。 [AC/AD/AE派前回执](dispatch/wave1/DELIVERY-WAVE-READY-REPORT-20261023.md)。
+A–AB及八补单、AD保持VERIFIED（Windows受控），AE研究文档VERIFIED。AC补单02接收82d04aa/实现eb7f801，189归档及三测试先红/两条稳定负控/即时恢复绿已审计；原final check受总控Clippy镜像参数转发错误阻塞，final test/native未运行。总控新增入口仅纠正参数位置，实际offline metadata/策略/fmt/clippy及干净resume通过，产品源码未改、未下载、未改网络。补单03 READY待原AC对话完成剩余final，原票仍BLOCKED未验收；仅1静态窗/0目录窗预算保持。旧519不变，新增4条目/21继承锁共523约束，其余30任务/槽位保持，无自动实现者。真实AA→AD、桌面扫描、用户scope、自然同意鉴真、生产竞态、macOS/M1未验收。 [AC/AD/AE派前回执](dispatch/wave1/DELIVERY-WAVE-READY-REPORT-20261023.md)。
 
-## AC国内镜像依赖准备完成（2026-10-24，最新）
+## AC补单02受阻复核与控制入口修订（2026-10-24，最新）
+
+[总控复核](acceptance/wave1/controller/WATER-W1-AC-ADDENDUM-02-REVIEW-20261024.md)：依赖完整，阻塞来自总控Clippy参数转发；修订后原策略/fmt/clippy离线通过，未改产品代码。[补单03 READY](dispatch/wave1/AC-DESKTOP-ADDENDUM-03-READY-REPORT-20261024.md)仅回原AC对话，不重跑先红/负控/下载；当前源码不变时复用旧证明，再同干净SHA完成check/test/native。总控本轮系统窗0。
+
+## AC国内镜像依赖准备完成（2026-10-24，历史）
 
 [总控准备复核](acceptance/wave1/controller/WATER-W1-AC-MIRROR-PREPARATION-20261024.md)与[补单02 READY](dispatch/wave1/AC-DESKTOP-ADDENDUM-02-READY-REPORT-20261024.md)：238包及锁/许可证/离线完整性已通过，网络设置未改。仅回原AC对话继续真正实现及产品门，未启动实现者。
 

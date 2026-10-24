@@ -1,0 +1,22 @@
+Controller review proposal only — NOT APPLIED / NOT EXECUTED.
+Target: controller-owned scripts/ac-mirror-check.mjs function command().
+Existing frozen SHA: 4cd3ef5ba31de4347789221c0e20bf871f6b2d97cfe3c7d381763088a02eed21.
+Requires numbered supplement and updated freezes, outside this worker's mutation scope.
+
+Current argument preparation:
+  if (/[\\/]cargo(?:\.exe)?$/i.test(binary)) args = [...mirror.cargoArguments, ...args];
+
+Candidate argument preparation:
+  if (/[\\/]cargo(?:\.exe)?$/i.test(binary)) {
+    args = args[0] === 'clippy'
+      ? [args[0], ...mirror.cargoArguments, ...args.slice(1)]
+      : [...mirror.cargoArguments, ...args];
+  }
+
+Intended command shape (same data/config arguments, no policy relaxation):
+  cargo clippy --config source.crates-io.replace-with="water-cn" --config source.water-cn.registry="sparse+https://mirrors.ustc.edu.cn/crates.io-index/" --config http.multiplexing=false --config http.proxy="" --offline --locked --manifest-path apps/desktop-preview/Cargo.toml --all-targets -- -D warnings
+
+This proposal has no claim of a successful lint/build. Controller must review Cargo 1.95
+external-subcommand forwarding, preserve the command's actual structured argument strings,
+and verify offline cache selection through the corrected frozen gate. No shell copy/paste
+or execution is authorized by this evidence file itself.
