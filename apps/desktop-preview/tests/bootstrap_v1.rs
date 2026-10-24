@@ -43,12 +43,70 @@ fn desktop_config_boundary() {
     let mut extra = base.clone();
     extra["build"]["devUrl"] = json!("http://localhost:3000");
     assert!(validate_preview_config(&extra.to_string()).is_err());
+    for pointer in [
+        "",
+        "/build",
+        "/app",
+        "/app/security",
+        "/app/security/assetProtocol",
+        "/bundle",
+    ] {
+        let mut extra = base.clone();
+        extra.pointer_mut(pointer).unwrap()["unexpected"] = json!(true);
+        assert!(
+            validate_preview_config(&extra.to_string()).is_err(),
+            "unknown {pointer}"
+        );
+        let keys: Vec<_> = base
+            .pointer(pointer)
+            .unwrap()
+            .as_object()
+            .unwrap()
+            .keys()
+            .cloned()
+            .collect();
+        for key in keys {
+            let mut missing = base.clone();
+            missing
+                .pointer_mut(pointer)
+                .unwrap()
+                .as_object_mut()
+                .unwrap()
+                .remove(&key);
+            assert!(
+                validate_preview_config(&missing.to_string()).is_err(),
+                "missing {pointer}/{key}"
+            );
+        }
+    }
+    for (pointer, value) in [
+        ("/app/security/capabilities", json!(null)),
+        ("/app/windows", json!({})),
+        ("/plugins", json!([])),
+        ("/app/withGlobalTauri", json!("false")),
+        ("/app/security/assetProtocol/enable", json!(0)),
+        ("/bundle/active", json!(null)),
+    ] {
+        let mut changed = base.clone();
+        *changed.pointer_mut(pointer).unwrap() = value;
+        assert!(
+            validate_preview_config(&changed.to_string()).is_err(),
+            "type {pointer}"
+        );
+    }
     let duplicate = PREVIEW_CONFIG.replacen(
         "\"productName\":",
         "\"productName\":\"Other\",\"productName\":",
         1,
     );
     assert!(validate_preview_config(&duplicate).is_err());
+    let duplicate_permission = PREVIEW_CONFIG.replace(
+        "\"capabilities\": []",
+        "\"capabilities\": [], \"capabilities\": []",
+    );
+    assert!(validate_preview_config(&duplicate_permission).is_err());
+    assert!(validate_preview_config(&format!("{PREVIEW_CONFIG} null")).is_err());
+    assert!(validate_preview_config(&" ".repeat(16_385)).is_err());
     for directive in [
         "default-src 'self'",
         "script-src 'none'",
@@ -62,6 +120,24 @@ fn desktop_config_boundary() {
         let changed = PREVIEW_CONFIG.replace(directive, "");
         assert!(validate_preview_config(&changed).is_err(), "{directive}");
     }
+    for suffix in [";script-src *", ";object-src *", ";connect-src 'none'"] {
+        let mut changed = base.clone();
+        changed["app"]["security"]["csp"] = json!(format!(
+            "{}{suffix}",
+            base["app"]["security"]["csp"].as_str().unwrap()
+        ));
+        assert!(
+            validate_preview_config(&changed.to_string()).is_err(),
+            "CSP {suffix}"
+        );
+    }
+    let mut reordered = base.clone();
+    let csp = base["app"]["security"]["csp"].as_str().unwrap();
+    reordered["app"]["security"]["csp"] = json!(format!(
+        " {} ;",
+        csp.split(';').rev().collect::<Vec<_>>().join(" ; ")
+    ));
+    assert!(validate_preview_config(&reordered.to_string()).is_ok());
     assert_eq!(PreviewError.to_string(), "Desktop preview unavailable.");
 }
 
@@ -75,6 +151,9 @@ fn desktop_navigation_boundary() {
         "http://tauri.localhost/",
         "http://tauri.localhost/index.html",
         "http://tauri.localhost/#status",
+        "tauri://localhost#status",
+        "http://tauri.localhost/index.html#只读",
+        "tauri://localhost/index.html#https://example.com?fragment-only",
     ] {
         assert!(is_bundled_navigation(allowed), "AC_BEHAVIOR: {allowed}");
     }
@@ -103,10 +182,27 @@ fn desktop_navigation_boundary() {
         "TAURI://LOCALHOST/index.html",
         " tauri://localhost/",
         "tauri://localhost/\n",
+        "tauri://localhost./index.html",
+        "tauri://@localhost/index.html",
+        "tauri://localhost:0/",
+        "http://tauri.localhost:443/index.html",
+        "http://tauri.localhost/index.html?",
+        "tauri://localhost/index.html?#fragment",
+        "tauri://localhost/INDEX.HTML",
+        "tauri://localhost/index.html/",
+        "tauri://localhost/%2e%2e/index.html",
+        "tauri://%6cocalhost/index.html",
+        "tauri://localhost/index.html\0",
+        "tauri://localhost/#white space",
+        "tauri://localhost/#\u{2003}",
         "",
     ] {
         assert!(!is_bundled_navigation(denied), "AC_NAVIGATION: {denied}");
     }
+    assert!(!is_bundled_navigation(&format!(
+        "tauri://localhost/#{}",
+        "x".repeat(8_192)
+    )));
 }
 
 #[test]
