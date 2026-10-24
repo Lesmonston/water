@@ -26,6 +26,14 @@ fn private_webview_directory() -> Result<PathBuf, PreviewError> {
         if !meta.is_dir() || meta.file_type().is_symlink() {
             return Err(PreviewError);
         }
+        #[cfg(windows)]
+        {
+            use std::os::windows::fs::MetadataExt;
+            // Refuse junctions and every other reparse point in our profile parents.
+            if meta.file_attributes() & 0x400 != 0 {
+                return Err(PreviewError);
+            }
+        }
     }
     let nonce = SystemTime::now()
         .duration_since(SystemTime::UNIX_EPOCH)

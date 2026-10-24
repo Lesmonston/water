@@ -1,7 +1,8 @@
-//! Initial fail-closed skeleton shared by the executable and boundary tests.
-//! Dependency initialization is blocked; policy behavior is not implemented or verified.
+//! Fixed preview policy shared by the executable and its public boundary tests.
 
-use std::fmt;
+use serde::Deserialize;
+use serde_json::Value;
+use std::{collections::BTreeMap, fmt};
 
 pub const PREVIEW_CONFIG: &str = include_str!("../tauri.conf.json");
 pub const PREVIEW_HTML: &str = include_str!("../frontend/index.html");
@@ -18,10 +19,111 @@ impl fmt::Display for PreviewError {
 
 impl std::error::Error for PreviewError {}
 
-pub fn validate_preview_config(_raw: &str) -> Result<(), PreviewError> {
-    Err(PreviewError)
+#[derive(Deserialize)]
+#[serde(rename_all = "camelCase", deny_unknown_fields)]
+struct Config {
+    product_name: String,
+    version: String,
+    identifier: String,
+    build: Build,
+    app: App,
+    bundle: Bundle,
+    plugins: BTreeMap<String, Value>,
 }
 
-pub fn is_bundled_navigation(_url: &str) -> bool {
-    false
+#[derive(Deserialize)]
+#[serde(rename_all = "camelCase", deny_unknown_fields)]
+struct Build {
+    frontend_dist: String,
+}
+
+#[derive(Deserialize)]
+#[serde(rename_all = "camelCase", deny_unknown_fields)]
+struct App {
+    windows: Vec<Value>,
+    with_global_tauri: bool,
+    security: Security,
+}
+
+#[derive(Deserialize)]
+#[serde(rename_all = "camelCase", deny_unknown_fields)]
+struct Security {
+    capabilities: Vec<Value>,
+    asset_protocol: AssetProtocol,
+    csp: String,
+}
+
+#[derive(Deserialize)]
+#[serde(deny_unknown_fields)]
+struct AssetProtocol {
+    enable: bool,
+}
+
+#[derive(Deserialize)]
+#[serde(deny_unknown_fields)]
+struct Bundle {
+    active: bool,
+}
+
+const CSP_DIRECTIVES: [&str; 8] = [
+    "default-src 'self'",
+    "script-src 'none'",
+    "style-src 'self'",
+    "img-src 'self'",
+    "connect-src 'none'",
+    "form-action 'none'",
+    "frame-ancestors 'none'",
+    "base-uri 'none'",
+];
+
+/// Accept only the fixed, permission-free bundled preview configuration.
+/// Required typed fields reject duplicates, missing fields, aliases and unknown options.
+pub fn validate_preview_config(raw: &str) -> Result<(), PreviewError> {
+    if raw.len() > 16_384 {
+        return Err(PreviewError);
+    }
+    let config: Config = serde_json::from_str(raw).map_err(|_| PreviewError)?;
+    if config.product_name != "Water Desktop Preview"
+        || config.identifier != "dev.water.desktop.preview"
+        || config.version != "0.1.0"
+        || config.build.frontend_dist != "frontend"
+        || config.bundle.active
+        || !config.app.windows.is_empty()
+        || config.app.with_global_tauri
+        || config.app.security.asset_protocol.enable
+        || !config.plugins.is_empty()
+    {
+        return Err(PreviewError);
+    }
+    if !config.app.security.capabilities.is_empty() {
+        return Err(PreviewError);
+    }
+    let mut directives: Vec<_> = config
+        .app
+        .security
+        .csp
+        .split(';')
+        .map(str::trim)
+        .filter(|directive| !directive.is_empty())
+        .collect();
+    directives.sort_unstable();
+    let mut required = CSP_DIRECTIVES;
+    required.sort_unstable();
+    if directives != required {
+        return Err(PreviewError);
+    }
+    Ok(())
+}
+
+/// Deliberately match canonical bundled URLs before any URL parser normalization.
+/// Reject credentials, ports, lookalikes, encoded paths and traversal aliases.
+pub fn is_bundled_navigation(url: &str) -> bool {
+    if url.len() > 8_192 || url.chars().any(|c| c.is_control() || c.is_whitespace()) {
+        return false;
+    }
+    let base = url.split_once('#').map_or(url, |(base, _fragment)| base);
+    let path = base
+        .strip_prefix("tauri://localhost")
+        .or_else(|| base.strip_prefix("http://tauri.localhost"));
+    matches!(path, Some("" | "/" | "/index.html"))
 }
