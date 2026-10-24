@@ -1,5 +1,7 @@
 # AC补充单03 READY：控制入口修订完成
 
+最新：03已受阻交回，原1次静态窗已用；[补单04 READY](AC-DESKTOP-ADDENDUM-04-READY-REPORT-20261024.md)新增明确有界验收分配。下列03外贴句为历史。
+
 2026-10-24。补单02原受阻交回 `82d04aaeef73030f65bc0a070b99a5517fd5d6a3`，实现 `eb7f80178191e233068015bbc26dc9798ac8cb22`，未产品验收。**补单03 READY**；原树干净、剩余1静态窗/0目录窗预算未消耗。
 
 阻塞来自总控ac-mirror-check把镜像参数放在Clippy之前，external分派没有把它们送入内部Cargo。新ac-final-check只调整Clippy参数位置；在同一产品/测试字节上实际offline metadata/配置策略/fmt/clippy均通过，resume通过。原source/test证明原字节保持，可复用，不重复下载或重跑原先红/负控。无网络配置或产品源码变更。

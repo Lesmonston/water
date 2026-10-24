@@ -1,0 +1,10 @@
+// Evidence-only launch adapter; no checker/environment/assertion changes.
+const fs=require('node:fs'),cp=require('node:child_process'),assert=require('node:assert/strict');
+assert.equal(process.cwd().replaceAll('\\','/').toLowerCase(),'f:/new/smaltalk/water/.worktrees/ac');
+const mode=process.argv[2];assert(['check','test','native'].includes(mode));assert.equal(process.argv.length,3);
+const d='.local/checks/WATER-W1-AC-ADDENDUM-03',stamp=new Date().toISOString().replaceAll(':','-')+'-launch-'+process.pid;
+const args=['F:/new/smaltalk/water/scripts/ac-final-check.mjs','--task','WATER-W1-AC','--mode',mode,'--final'];
+const startedAt=new Date().toISOString();fs.writeFileSync(d+'/'+stamp+'.json',JSON.stringify({startedAt,pid:process.pid,binary:process.execPath,args},null,2)+'\n',{flag:'wx'});
+const r=cp.spawnSync(process.execPath,args,{cwd:process.cwd(),encoding:'utf8',windowsHide:true,maxBuffer:64*1024*1024});
+fs.writeFileSync(d+'/'+stamp+'-stdout.log',r.stdout??'',{flag:'wx'});fs.writeFileSync(d+'/'+stamp+'-stderr.log',r.stderr??'',{flag:'wx'});
+fs.writeFileSync(d+'/'+stamp+'-exit.json',JSON.stringify({startedAt,endedAt:new Date().toISOString(),mode,args,exitCode:r.status,signal:r.signal,error:r.error?.message??null},null,2)+'\n',{flag:'wx'});process.exitCode=r.status??1;

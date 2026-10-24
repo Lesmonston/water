@@ -1,5 +1,7 @@
 # AC/AD/AE三独立任务READY
 
+???AC03??????check/test???????????[??04 READY](AC-DESKTOP-ADDENDUM-04-READY-REPORT-20261024.md)??AC?????????????AD/AE????
+
 最新：AC补单02受阻已修订控制入口，按[补单03 READY](AC-DESKTOP-ADDENDUM-03-READY-REPORT-20261024.md)回原对话；AD/AE已收口，不重贴。
 
 最新（2026-10-24）：[AC镜像依赖已准备、补单02 READY](AC-DESKTOP-ADDENDUM-02-READY-REPORT-20261024.md)，只回原AC对话继续产品实现，不重复下载或重贴原票/补单01。[AD/AE已验收集成](../../acceptance/wave1/controller/WATER-W1-ADAE-REVIEW-20261024.md)，无需重贴。下列三票原外贴句均为历史。

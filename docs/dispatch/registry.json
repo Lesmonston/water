@@ -4,7 +4,7 @@
   "mode": "manual-external-paste",
   "controller": "Codex",
   "projectRoot": "F:/new/smaltalk/water",
-  "stage": "wave1-ac-clippy-fixed-addendum03-ready",
+  "stage": "wave1-ac-native-helper-fixed-addendum04-ready",
   "activeWave": "water-wave1",
   "slots": [
     {
@@ -3057,7 +3057,8 @@
         "docs/dispatch/reports/WATER-W1-AC-REPORT.md",
         "docs/dispatch/reports/WATER-W1-AC-ADDENDUM-01-REPORT.md",
         "docs/dispatch/reports/WATER-W1-AC-ADDENDUM-02-REPORT.md",
-        "docs/dispatch/reports/WATER-W1-AC-ADDENDUM-03-REPORT.md"
+        "docs/dispatch/reports/WATER-W1-AC-ADDENDUM-03-REPORT.md",
+        "docs/dispatch/reports/WATER-W1-AC-ADDENDUM-04-REPORT.md"
       ],
       "allowedPrefixes": [
         "docs/acceptance/wave1/ac/"
@@ -3067,12 +3068,12 @@
       "baselineEvidence": "docs/acceptance/wave1/controller/w1-delivery-preflight-20261023/ac/2026-10-23T02-36-00.416Z-34364-baseline-result.json",
       "preflightEvidence": "docs/dispatch/wave1/DELIVERY-WAVE-READY-REPORT-20261023.md",
       "readyOn": "2026-10-23",
-      "submittedCommit": "82d04aaeef73030f65bc0a070b99a5517fd5d6a3",
+      "submittedCommit": "b7dc83085a5edd9f38c12e70a53658ba6ae9cfa2",
       "partialSourceCommit": "b617b90182d54053091910b8b4e889dd7f614a7d",
       "productTestedCommit": null,
       "activityEvidence": "Original clean blocked receipt ef0b7c4, fail-closed skeleton b617b90, baseline passed, two known dependency failures plus two incomplete attempts; no lock/product tests/native window.",
       "blockedReportSource": "F:/new/smaltalk/water/.worktrees/ac/docs/dispatch/reports/WATER-W1-AC-REPORT.md",
-      "revisionReport": "docs/dispatch/reports/WATER-W1-AC-ADDENDUM-03-REPORT.md",
+      "revisionReport": "docs/dispatch/reports/WATER-W1-AC-ADDENDUM-04-REPORT.md",
       "revisionDispatchStatus": "READY",
       "addendum01": {
         "status": "BLOCKED",
@@ -3102,12 +3103,13 @@
       "addenda": [
         "docs/dispatch/tickets/WATER-W1-AC-ADDENDUM-01-20261023.md",
         "docs/dispatch/tickets/WATER-W1-AC-ADDENDUM-02-20261024.md",
-        "docs/dispatch/tickets/WATER-W1-AC-ADDENDUM-03-20261024.md"
+        "docs/dispatch/tickets/WATER-W1-AC-ADDENDUM-03-20261024.md",
+        "docs/dispatch/tickets/WATER-W1-AC-ADDENDUM-04-20261024.md"
       ],
-      "controllerReview": "docs/acceptance/wave1/controller/WATER-W1-AC-ADDENDUM-02-REVIEW-20261024.md",
-      "blockedReviewedAt": "2026-10-24T04:25:13.714Z",
-      "environmentStatus": "DEPENDENCIES_READY_CLIPPY_ROUTING_FIXED",
-      "verificationScope": "Worker unit red/two stable negatives/restored three-test greens audited at exact bytes; original final check blocked in controller Clippy forwarding. Corrected offline preflight fmt/clippy passed. Final test/native not run; no product acceptance.",
+      "controllerReview": "docs/acceptance/wave1/controller/WATER-W1-AC-ADDENDUM-03-REVIEW-20261024.md",
+      "blockedReviewedAt": "2026-10-24T05:54:11.404Z",
+      "environmentStatus": "CHECK_TEST_PASSED_NATIVE_HELPER_FIXED_NO_UI",
+      "verificationScope": "Original check/test final passed at82d04aa, native failed and one window consumed. New ASCII shared policy/parser/positive/four missing-text negatives and clean resume passed without UI; product not accepted.",
       "addendum02": {
         "status": "BLOCKED",
         "ticket": "docs/dispatch/tickets/WATER-W1-AC-ADDENDUM-02-20261024.md",
@@ -3140,7 +3142,7 @@
       },
       "implementationCommit": "eb7f80178191e233068015bbc26dc9798ac8cb22",
       "addendum03": {
-        "status": "READY",
+        "status": "BLOCKED",
         "ticket": "docs/dispatch/tickets/WATER-W1-AC-ADDENDUM-03-20261024.md",
         "report": "docs/dispatch/reports/WATER-W1-AC-ADDENDUM-03-REPORT.md",
         "evidencePrefix": "docs/acceptance/wave1/ac/addendum-03/",
@@ -3150,7 +3152,7 @@
         "lockSha256": "8a11eac93ec6c626c8cae3566488d7ebf504b013509d899fe3c496d3f4535064",
         "helper": "scripts/ac-final-check.mjs",
         "baselineStatus": "PASSED",
-        "systemWindowBudgetRemaining": 1,
+        "systemWindowBudgetRemaining": 0,
         "nativeDirectoryDialogs": 0,
         "dispatchedAt": null,
         "startedAt": null,
@@ -3161,6 +3163,44 @@
         "baselineEvidence": "docs/acceptance/wave1/controller/w1-ac-clippy-20261024/preflight/2026-10-24T04-16-42.948Z-15136-preflight-result.json",
         "preflightEvidence": "docs/dispatch/wave1/AC-DESKTOP-ADDENDUM-03-READY-REPORT-20261024.md",
         "preflightMeaning": "Corrected original check policy/fmt/clippy at exact submitted bytes; not product final test/native",
+        "systemWindowsUsed": 1,
+        "submittedCommit": "b7dc83085a5edd9f38c12e70a53658ba6ae9cfa2",
+        "finalCheck": "PASSED",
+        "finalTest": "PASSED",
+        "native": "FAILED",
+        "supersededBy": "docs/dispatch/tickets/WATER-W1-AC-ADDENDUM-04-20261024.md"
+      },
+      "productUnitTestedCommit": "82d04aaeef73030f65bc0a070b99a5517fd5d6a3",
+      "addendum04": {
+        "status": "READY",
+        "ticket": "docs/dispatch/tickets/WATER-W1-AC-ADDENDUM-04-20261024.md",
+        "report": "docs/dispatch/reports/WATER-W1-AC-ADDENDUM-04-REPORT.md",
+        "evidencePrefix": "docs/acceptance/wave1/ac/addendum-04/",
+        "resumeCommit": "b7dc83085a5edd9f38c12e70a53658ba6ae9cfa2",
+        "implementationCommit": "eb7f80178191e233068015bbc26dc9798ac8cb22",
+        "contractLock": "contracts/desktop-bootstrap-native-v1/freeze.lock.json",
+        "lockSha256": "c30269163010f1d6ef10164dc5b4ee4840fb90d6c7f9f969126f803256c8443c",
+        "helper": "scripts/ac-native-check.mjs",
+        "baselineStatus": "PASSED",
+        "additionalStaticWindowBudget": 1,
+        "previousStaticWindowsUsed": 1,
+        "totalStaticWindowAllocations": 2,
+        "nativeDirectoryDialogs": 0,
+        "nativeMaximumSeconds": 30,
+        "dispatchedAt": null,
+        "startedAt": null,
+        "preservedProductionHash": "38c7a927cb30fd79f91e5e52e875a81dcb1585b359390dca50af5b24a2d2139d",
+        "preservedTestHash": "211ba3014991309b2bda94cd422f4496c2ac552fa57507c3bb35283ae2acefe7",
+        "reusedFinalCheckAndTestCommit": "82d04aaeef73030f65bc0a070b99a5517fd5d6a3",
+        "expectedFinalModes": [
+          "native"
+        ],
+        "productFilesReadOnly": true,
+        "readyOn": "2026-10-24",
+        "baselineEvidence": "docs/acceptance/wave1/controller/w1-ac-native-20261024/preflight/2026-10-24T05-50-02.628Z-27916-preflight-result.json",
+        "resumeEvidence": "docs/acceptance/wave1/controller/w1-ac-native-20261024/preflight/2026-10-24T05-52-16.278Z-38460-resume-result.json",
+        "preflightEvidence": "docs/dispatch/wave1/AC-DESKTOP-ADDENDUM-04-READY-REPORT-20261024.md",
+        "baselineMeaning": "No-UI parser/shared policy/full text and four missing-text negative checks, original frozen/source evidence and clean resume; no product/native execution",
         "systemWindowsUsed": 0
       }
     },
@@ -3422,5 +3462,5 @@
     }
   ],
   "testHelper": "per-task helper; A defaults unchanged",
-  "note": "A–AB及八补单、AD保持VERIFIED（Windows受控），AE研究文档VERIFIED。AC补单02接收82d04aa/实现eb7f801，189归档及三测试先红/两条稳定负控/即时恢复绿已审计；原final check受总控Clippy镜像参数转发错误阻塞，final test/native未运行。总控新增入口仅纠正参数位置，实际offline metadata/策略/fmt/clippy及干净resume通过，产品源码未改、未下载、未改网络。补单03 READY待原AC对话完成剩余final，原票仍BLOCKED未验收；仅1静态窗/0目录窗预算保持。旧519不变，新增4条目/21继承锁共523约束，其余30任务/槽位保持，无自动实现者。真实AA→AD、桌面扫描、用户scope、自然同意鉴真、生产竞态、macOS/M1未验收。"
+  "note": "A–AB及八补单、AD保持VERIFIED（Windows受控），AE研究文档VERIFIED。AC补单03接收b7dc830/实现eb7f801，原88/189/46证据及相同产品字节已审计；同干净82d04aa的final check/test通过，native因总控PS1中文误解码失败并用掉1次静态窗，实际页面文本/正常退出未验收。总控新增ASCII共享policy/observer，四文案及逐项缺失拒绝、Parser与干净resume实际通过，本轮0窗口/0下载/产品未改。补单04 READY待原AC对话，仅另增1次有界静态窗/0目录窗，不重复check/test；AC仍BLOCKED未验收。旧523保持，新增6条目/22继承锁共529约束，其余30任务/槽位保持，无自动实现者。真实AA→AD、桌面扫描、用户scope、自然同意鉴真、生产竞态、macOS/M1未验收。"
 }

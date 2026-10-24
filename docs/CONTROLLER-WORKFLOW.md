@@ -98,7 +98,7 @@ READY只表示总控已准备好，不表示用户已转贴。得到用户已贴
 
 ## 当前落实程度
 
-最新2026-10-24：A–AB及八补单、AD保持VERIFIED（Windows受控），AE研究文档VERIFIED。AC补单02接收82d04aa/实现eb7f801，189归档及三测试先红/两条稳定负控/即时恢复绿已审计；原final check受总控Clippy镜像参数转发错误阻塞，final test/native未运行。总控新增入口仅纠正参数位置，实际offline metadata/策略/fmt/clippy及干净resume通过，产品源码未改、未下载、未改网络。补单03 READY待原AC对话完成剩余final，原票仍BLOCKED未验收；仅1静态窗/0目录窗预算保持。旧519不变，新增4条目/21继承锁共523约束，其余30任务/槽位保持，无自动实现者。真实AA→AD、桌面扫描、用户scope、自然同意鉴真、生产竞态、macOS/M1未验收。 [AC/AD/AE派前回执](dispatch/wave1/DELIVERY-WAVE-READY-REPORT-20261023.md)与manifest为当前状态，以下为历史。
+最新2026-10-24：A–AB及八补单、AD保持VERIFIED（Windows受控），AE研究文档VERIFIED。AC补单03接收b7dc830/实现eb7f801，原88/189/46证据及相同产品字节已审计；同干净82d04aa的final check/test通过，native因总控PS1中文误解码失败并用掉1次静态窗，实际页面文本/正常退出未验收。总控新增ASCII共享policy/observer，四文案及逐项缺失拒绝、Parser与干净resume实际通过，本轮0窗口/0下载/产品未改。补单04 READY待原AC对话，仅另增1次有界静态窗/0目录窗，不重复check/test；AC仍BLOCKED未验收。旧523保持，新增6条目/22继承锁共529约束，其余30任务/槽位保持，无自动实现者。真实AA→AD、桌面扫描、用户scope、自然同意鉴真、生产竞态、macOS/M1未验收。 [AC/AD/AE派前回执](dispatch/wave1/DELIVERY-WAVE-READY-REPORT-20261023.md)与manifest为当前状态，以下为历史。
 
 最新2026-10-19：A–Q、S及五补单保持VERIFIED（Windows受控范围）。S原生目录选择已通过独立验收并集成；R补单01、T脱敏下载、U内存清单保持原波次分配，等待各自回执。没有自动实现者；原生宿主到R/报告页的完整用户闭环、真实用户scope、macOS和桌面尚未验收，M1仍未完成。 [S总控验收](acceptance/wave1/controller/WATER-W1-S-REVIEW-20261019.md)记录受测SHA和原始证据；以下派前状态均为历史。
 

@@ -2,7 +2,7 @@
 
 面向 Windows、macOS AI 开发者的本地存储分析与安全清理助手。
 
-**当前阶段：A–AB及八补单、AD保持VERIFIED（Windows受控），AE研究文档VERIFIED。AC补单02接收82d04aa/实现eb7f801，189归档及三测试先红/两条稳定负控/即时恢复绿已审计；原final check受总控Clippy镜像参数转发错误阻塞，final test/native未运行。总控新增入口仅纠正参数位置，实际offline metadata/策略/fmt/clippy及干净resume通过，产品源码未改、未下载、未改网络。补单03 READY待原AC对话完成剩余final，原票仍BLOCKED未验收；仅1静态窗/0目录窗预算保持。旧519不变，新增4条目/21继承锁共523约束，其余30任务/槽位保持，无自动实现者。真实AA→AD、桌面扫描、用户scope、自然同意鉴真、生产竞态、macOS/M1未验收。**
+**当前阶段：A–AB及八补单、AD保持VERIFIED（Windows受控），AE研究文档VERIFIED。AC补单03接收b7dc830/实现eb7f801，原88/189/46证据及相同产品字节已审计；同干净82d04aa的final check/test通过，native因总控PS1中文误解码失败并用掉1次静态窗，实际页面文本/正常退出未验收。总控新增ASCII共享policy/observer，四文案及逐项缺失拒绝、Parser与干净resume实际通过，本轮0窗口/0下载/产品未改。补单04 READY待原AC对话，仅另增1次有界静态窗/0目录窗，不重复check/test；AC仍BLOCKED未验收。旧523保持，新增6条目/22继承锁共529约束，其余30任务/槽位保持，无自动实现者。真实AA→AD、桌面扫描、用户scope、自然同意鉴真、生产竞态、macOS/M1未验收。**
 
 用户指定本项目所有后续开发均位于 `smaltalk/water`，由 Codex 担任总控。
 
@@ -35,7 +35,7 @@ Water 的发布许可证、定价与商标名称尚未最终确定；`water` 是
 
 ## 当前验收与下一波
 
-[AC控制入口已修订/补单03 READY](docs/dispatch/wave1/AC-DESKTOP-ADDENDUM-03-READY-REPORT-20261024.md)：不再下载，原AC对话完成剩余final；[AD/AE已验收](docs/acceptance/wave1/controller/WATER-W1-ADAE-REVIEW-20261024.md)，不重贴。
+[AC编码修订/补单04 READY](docs/dispatch/wave1/AC-DESKTOP-ADDENDUM-04-READY-REPORT-20261024.md)：复用check/test，原对话完成新的单窗验收；[AD/AE已验收](docs/acceptance/wave1/controller/WATER-W1-ADAE-REVIEW-20261024.md)，不重贴。
 
 [AB补单01与真实AA→AB联合验收](docs/acceptance/wave1/controller/WATER-W1-AB-ADDENDUM-01-REVIEW-20261022.md)已通过并集成，无需重贴旧票。
 

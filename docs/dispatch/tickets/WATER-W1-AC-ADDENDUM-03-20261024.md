@@ -1,5 +1,7 @@
 # WATER-W1-AC 补充单03：Clippy转发与最终验证
 
+最新（2026-10-24）：03已受阻交回，原窗口预算已用；仅按[补单04](WATER-W1-AC-ADDENDUM-04-20261024.md)回原对话。旧入口/外贴句为历史，不重复check/test或旧native。
+
 当前：READY / baselineStatus=PASSED。总控已在干净82d04aa对相同产品/测试字节运行修订后metadata/策略/fmt/clippy，实际全通过，resume通过；产品未验收。[正式回执](../wave1/AC-DESKTOP-ADDENDUM-03-READY-REPORT-20261024.md)。
 
 2026-10-24。本补修订总控控制入口，补单02失败及全部189原件保留。只有主manifest.addendum03.status=READY且baselineStatus=PASSED时，用户才可贴回原AC对话；不新开实现者。

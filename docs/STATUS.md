@@ -21,9 +21,13 @@
 
 ## 下一步
 
-A–AB及八补单、AD保持VERIFIED（Windows受控），AE研究文档VERIFIED。AC补单02接收82d04aa/实现eb7f801，189归档及三测试先红/两条稳定负控/即时恢复绿已审计；原final check受总控Clippy镜像参数转发错误阻塞，final test/native未运行。总控新增入口仅纠正参数位置，实际offline metadata/策略/fmt/clippy及干净resume通过，产品源码未改、未下载、未改网络。补单03 READY待原AC对话完成剩余final，原票仍BLOCKED未验收；仅1静态窗/0目录窗预算保持。旧519不变，新增4条目/21继承锁共523约束，其余30任务/槽位保持，无自动实现者。真实AA→AD、桌面扫描、用户scope、自然同意鉴真、生产竞态、macOS/M1未验收。 [AC/AD/AE派前回执](dispatch/wave1/DELIVERY-WAVE-READY-REPORT-20261023.md)。
+A–AB及八补单、AD保持VERIFIED（Windows受控），AE研究文档VERIFIED。AC补单03接收b7dc830/实现eb7f801，原88/189/46证据及相同产品字节已审计；同干净82d04aa的final check/test通过，native因总控PS1中文误解码失败并用掉1次静态窗，实际页面文本/正常退出未验收。总控新增ASCII共享policy/observer，四文案及逐项缺失拒绝、Parser与干净resume实际通过，本轮0窗口/0下载/产品未改。补单04 READY待原AC对话，仅另增1次有界静态窗/0目录窗，不重复check/test；AC仍BLOCKED未验收。旧523保持，新增6条目/22继承锁共529约束，其余30任务/槽位保持，无自动实现者。真实AA→AD、桌面扫描、用户scope、自然同意鉴真、生产竞态、macOS/M1未验收。 [AC/AD/AE派前回执](dispatch/wave1/DELIVERY-WAVE-READY-REPORT-20261023.md)。
 
-## AC补单02受阻复核与控制入口修订（2026-10-24，最新）
+## AC补单03收单与无UI编码修订（2026-10-24，最新）
+
+[总控复核](acceptance/wave1/controller/WATER-W1-AC-ADDENDUM-03-REVIEW-20261024.md)：原check/test有效通过，native错误与强制终止保留；新共享文案policy/Parser无UI预检和原树resume通过。[补单04 READY](dispatch/wave1/AC-DESKTOP-ADDENDUM-04-READY-REPORT-20261024.md)只回原AC对话，额外1次静态窗预算独立记录，非旧预算重置。[下一步依赖安排](dispatch/wave1/AFTER-AC-NATIVE-PLAN-20261024.md)。本轮0窗口。
+
+## AC补单02受阻复核与控制入口修订（2026-10-24，历史）
 
 [总控复核](acceptance/wave1/controller/WATER-W1-AC-ADDENDUM-02-REVIEW-20261024.md)：依赖完整，阻塞来自总控Clippy参数转发；修订后原策略/fmt/clippy离线通过，未改产品代码。[补单03 READY](dispatch/wave1/AC-DESKTOP-ADDENDUM-03-READY-REPORT-20261024.md)仅回原AC对话，不重跑先红/负控/下载；当前源码不变时复用旧证明，再同干净SHA完成check/test/native。总控本轮系统窗0。
 
