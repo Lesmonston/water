@@ -1,0 +1,19 @@
+{
+  "date": "2026-10-24",
+  "kind": "Controller read-only primary-source spot check through web tool",
+  "originalWorkerSources": {"read": 14, "unavailable": 7},
+  "reopened": [
+    {"url": "https://developer.apple.com/tutorials/data/documentation/appkit/nsopenpanel.json", "result": "tool_unavailable", "meaning": "Original worker projection retained; no claim of fresh controller access to this endpoint."},
+    {"url": "https://developer.apple.com/tutorials/data/documentation/security/accessing-files-from-the-macos-app-sandbox.json", "result": "read", "supports": "Sandbox access does not override other access controls; panel and persistent-bookmark scope lifecycles differ."},
+    {"url": "https://developer.apple.com/tutorials/data/documentation/foundation/nsurl/startaccessingsecurityscopedresource().json", "result": "read", "supports": "Successful explicit scope access must be released; unbalanced access leaks resources."},
+    {"url": "https://developer.apple.com/tutorials/data/documentation/foundation/about-apple-file-system.json", "result": "read", "supports": "APFS clones share unchanged blocks; clone, snapshot, sparse-file and shared-space observations do not establish reclaimable bytes."},
+    {"url": "https://raw.githubusercontent.com/apple-oss-distributions/xnu/f6217f891ac0bb64f3d375211650a4c1ff8ca1ea/bsd/man/man2/open.2", "result": "read", "supports": "Fixed manual describes openat relative to a parent descriptor and separate no-follow flags. Complete notice includes APSL 2.0 and UC BSD clauses. This is static documentation, not target SDK validation."},
+    {"url": "https://doc.rust-lang.org/1.95.0/std/os/fd/struct.OwnedFd.html", "result": "tool_unavailable", "meaning": "No Rust 1.95 macOS compile/runtime claim; worker latest-version excerpts remain explicitly version-limited."},
+    {"url": "https://doc.rust-lang.org/1.95.0/std/os/unix/fs/trait.MetadataExt.html", "result": "tool_unavailable", "meaning": "No Rust 1.95 macOS compile/runtime claim; worker latest-version excerpts remain explicitly version-limited."},
+    {"url": "https://v2.tauri.app/security/capabilities/", "result": "read", "supports": "Capabilities constrain frontend exposure and can combine permissions across assigned windows and WebViews; this does not validate arbitrary Rust file operations."}
+  ],
+  "representation": "Controller observations only; not copied HTTP body bytes or an automatic primary-source semantic proof.",
+  "realMacOSExecuted": false,
+  "productImplementationClaimed": false,
+  "researchPublicationLicenseDecision": "unresolved; static evidence only, no upstream code reused"
+}

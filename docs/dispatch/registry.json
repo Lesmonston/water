@@ -4,7 +4,7 @@
   "mode": "manual-external-paste",
   "controller": "Codex",
   "projectRoot": "F:/new/smaltalk/water",
-  "stage": "wave1-ac-registry-blocked-ad-ae-independent",
+  "stage": "wave1-ad-verified-ae-research-verified-ac-blocked",
   "activeWave": "water-wave1",
   "slots": [
     {
@@ -246,7 +246,7 @@
       "branch": "worker/water-w1-ad",
       "baseline": "4b8a1de2ad49664546547256cd3d55def7c31a49",
       "task": "WATER-W1-AD",
-      "state": "ready"
+      "state": "verified"
     },
     {
       "id": "ae",
@@ -254,7 +254,7 @@
       "branch": "worker/water-w1-ae",
       "baseline": "4b8a1de2ad49664546547256cd3d55def7c31a49",
       "task": "WATER-W1-AE",
-      "state": "ready"
+      "state": "verified"
     }
   ],
   "tasks": [
@@ -3107,7 +3107,7 @@
     {
       "id": "WATER-W1-AD",
       "title": "同源合并项目报告与原字节附件",
-      "status": "READY",
+      "status": "VERIFIED",
       "slot": "ad",
       "worktree": "F:/new/smaltalk/water/.worktrees/ad",
       "branch": "worker/water-w1-ad",
@@ -3188,8 +3188,8 @@
       "nativeWindowBudget": 0,
       "nativeDirectoryDialogBudget": 0,
       "baselineStatus": "PASSED",
-      "newProductTestsRun": false,
-      "model": null,
+      "newProductTestsRun": true,
+      "model": "Codex / GPT-6 (worker self-report)",
       "modelAssignment": "user-arranged; report actual engine/model",
       "dispatchedAt": null,
       "startedAt": null,
@@ -3224,12 +3224,30 @@
       ],
       "baselineEvidence": "docs/acceptance/wave1/controller/w1-delivery-preflight-20261023/ad/2026-10-23T02-36-00.427Z-33712-baseline-result.json",
       "preflightEvidence": "docs/dispatch/wave1/DELIVERY-WAVE-READY-REPORT-20261023.md",
-      "readyOn": "2026-10-23"
+      "readyOn": "2026-10-23",
+      "submittedCommit": "753c8018fd7e8effd423db86495079fdc8cd0d08",
+      "implementationCommit": "3ad5e7003d9e9720e85113a47d558738bf06231d",
+      "controllerTestedCommit": "5b4d77c3fff3717ac60277fe67e04444477cea77",
+      "integratedCommit": "5b4d77c3fff3717ac60277fe67e04444477cea77",
+      "controllerReview": "docs/acceptance/wave1/controller/WATER-W1-ADAE-REVIEW-20261024.md",
+      "verifiedAt": "2026-10-24T01:20:01.530Z",
+      "verifiedOn": "2026-10-24",
+      "productTestedCommit": "3ad5e7003d9e9720e85113a47d558738bf06231d",
+      "documentTestedCommit": null,
+      "realMacOSExecuted": false,
+      "systemWindowsUsed": 0,
+      "verificationScope": "Windows controlled replay: strict streams, same-origin project report and original Q/Z downloads; isolated 5 unit + 3 browser tests and two production negative/restored cycles. No fresh AA/native host, desktop or real user scope.",
+      "workerArchive": {
+        "path": "docs/acceptance/wave1/ad/ARCHIVE.json",
+        "files": 420,
+        "bytes": 7031120,
+        "sha256": "487fb93fb591b9d3866aa39365b78df468890845c9ff84937ef0add211c17d5b"
+      }
     },
     {
       "id": "WATER-W1-AE",
       "title": "macOS原生移植差异与实机验收准备",
-      "status": "READY",
+      "status": "VERIFIED",
       "slot": "ae",
       "worktree": "F:/new/smaltalk/water/.worktrees/ae",
       "branch": "worker/water-w1-ae",
@@ -3284,7 +3302,7 @@
       "nativeDirectoryDialogBudget": 0,
       "baselineStatus": "PASSED",
       "newProductTestsRun": false,
-      "model": null,
+      "model": "Codex / GPT-6 (worker self-report)",
       "modelAssignment": "user-arranged; report actual engine/model",
       "dispatchedAt": null,
       "startedAt": null,
@@ -3322,9 +3340,27 @@
       ],
       "baselineEvidence": "docs/acceptance/wave1/controller/w1-delivery-preflight-20261023/ae/2026-10-23T02-36-00.442Z-36420-baseline-result.json",
       "preflightEvidence": "docs/dispatch/wave1/DELIVERY-WAVE-READY-REPORT-20261023.md",
-      "readyOn": "2026-10-23"
+      "readyOn": "2026-10-23",
+      "submittedCommit": "07ae41c18459dd2450622944466c20a80856e456",
+      "implementationCommit": "3182286f8c2df25ed940f8f0dc8a71507bb24a4e",
+      "controllerTestedCommit": "5b4d77c3fff3717ac60277fe67e04444477cea77",
+      "integratedCommit": "5b4d77c3fff3717ac60277fe67e04444477cea77",
+      "controllerReview": "docs/acceptance/wave1/controller/WATER-W1-ADAE-REVIEW-20261024.md",
+      "verifiedAt": "2026-10-24T01:20:01.530Z",
+      "verifiedOn": "2026-10-24",
+      "productTestedCommit": null,
+      "documentTestedCommit": "3182286f8c2df25ed940f8f0dc8a71507bb24a4e",
+      "realMacOSExecuted": false,
+      "systemWindowsUsed": 0,
+      "verificationScope": "Research/document consistency only: four documents, seven components, fourteen archived read sources, seven unavailable, fifteen fixed current-code references; no macOS implementation/runtime/SDK verification.",
+      "workerArchive": {
+        "path": "docs/acceptance/wave1/ae/ARCHIVE.json",
+        "files": 71,
+        "bytes": 561978,
+        "sha256": "8a07c0d73a90753dcb3e641216497dd993e0ca5051c47f170ae2e06cd6a3ee24"
+      }
     }
   ],
   "testHelper": "per-task helper; A defaults unchanged",
-  "note": "A–AB及八补单保持VERIFIED（Windows受控）。AC接收ef0b7c4/静态骨架b617b90，46归档/77278字节及509冻结核验通过，原registry TLS/超时尚未完成依赖链恢复，保持BLOCKED；未取得产品测试或native窗通过。总控限定官方host透明IPv4连接的实际成功/失败原字节保留，补充单01未伪造READY。其余30任务/槽位（含AD/AE）保持，AD/AE独立推进；产品代码未合主线，桌面整链、用户scope、macOS/M1未验收。"
+  "note": "A–AB及八补单保持VERIFIED（Windows受控）。AD同源项目报告已通过独立5测试/3浏览器测试、8次实际Q/Z下载和两条生产负控/原字节恢复，集成5b4d77c；AE四份研究材料及来源/差异矩阵/计划通过文档验收，macOS能力仍未实现/未验证。两票均VERIFIED，无需重贴。AC及补单01保持BLOCKED，原ef0b7c4/无Cargo.lock，不重复下载或外贴。514冻结、原两树/491份归档及其余29任务/槽位保持，无新实现者；本次0系统窗/0目录窗，仅私有Chrome回放。新真实AA→AD、桌面扫描、用户scope、自然同意鉴真、生产竞态、macOS/M1仍未验收。"
 }

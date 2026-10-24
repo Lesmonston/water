@@ -1,6 +1,6 @@
 # Water 项目协作规则
 
-最新状态（2026-10-23）：A–AB及八补单保持VERIFIED（Windows受控）。AC接收ef0b7c4/静态骨架b617b90，46归档/77278字节及509冻结核验通过，原registry TLS/超时尚未完成依赖链恢复，保持BLOCKED；未取得产品测试或native窗通过。总控限定官方host透明IPv4连接的实际成功/失败原字节保留，补充单01未伪造READY。其余30任务/槽位（含AD/AE）保持，AD/AE独立推进；产品代码未合主线，桌面整链、用户scope、macOS/M1未验收。 正式票/manifest及docs/acceptance/wave1/controller/WATER-W1-AC-BLOCKED-REVIEW-20261023.md优先；AC补单未获READY，当前不外贴、不启动实现者；等待可靠网络条件。
+最新状态（2026-10-24）：A–AB及八补单保持VERIFIED（Windows受控）。AD同源项目报告已通过独立5测试/3浏览器测试、8次实际Q/Z下载和两条生产负控/原字节恢复，集成5b4d77c；AE四份研究材料及来源/差异矩阵/计划通过文档验收，macOS能力仍未实现/未验证。两票均VERIFIED，无需重贴。AC及补单01保持BLOCKED，原ef0b7c4/无Cargo.lock，不重复下载或外贴。514冻结、原两树/491份归档及其余29任务/槽位保持，无新实现者；本次0系统窗/0目录窗，仅私有Chrome回放。新真实AA→AD、桌面扫描、用户scope、自然同意鉴真、生产竞态、macOS/M1仍未验收。 正式票/manifest及docs/acceptance/wave1/controller/WATER-W1-ADAE-REVIEW-20261024.md优先；AC缺少可靠网络，补单未READY。
 
 - 项目根：`F:/new/smaltalk/water`。用户指定后续开发、研究、文档、脚本与本项目产物全部放在此目录内。
 - Codex 是项目总控，负责范围、任务分派、接口、集成、安全复核和验收。用户保留产品与发布决定权。

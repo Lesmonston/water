@@ -1,6 +1,6 @@
 # Water 状态与交接
 
-更新时间：2026-10-23（Asia/Tokyo）。
+更新时间：2026-10-24（Asia/Tokyo）。
 
 本次总控接手结果与后续事项见[接手验收摘要](CONTROLLER-HANDOFF-20261017.md)；当前任务状态仍以本页和registry/manifest为准。
 
@@ -21,9 +21,13 @@
 
 ## 下一步
 
-A–AB及八补单保持VERIFIED（Windows受控）。AC接收ef0b7c4/静态骨架b617b90，46归档/77278字节及509冻结核验通过，原registry TLS/超时尚未完成依赖链恢复，保持BLOCKED；未取得产品测试或native窗通过。总控限定官方host透明IPv4连接的实际成功/失败原字节保留，补充单01未伪造READY。其余30任务/槽位（含AD/AE）保持，AD/AE独立推进；产品代码未合主线，桌面整链、用户scope、macOS/M1未验收。 [AC/AD/AE派前回执](dispatch/wave1/DELIVERY-WAVE-READY-REPORT-20261023.md)。
+A–AB及八补单保持VERIFIED（Windows受控）。AD同源项目报告已通过独立5测试/3浏览器测试、8次实际Q/Z下载和两条生产负控/原字节恢复，集成5b4d77c；AE四份研究材料及来源/差异矩阵/计划通过文档验收，macOS能力仍未实现/未验证。两票均VERIFIED，无需重贴。AC及补单01保持BLOCKED，原ef0b7c4/无Cargo.lock，不重复下载或外贴。514冻结、原两树/491份归档及其余29任务/槽位保持，无新实现者；本次0系统窗/0目录窗，仅私有Chrome回放。新真实AA→AD、桌面扫描、用户scope、自然同意鉴真、生产竞态、macOS/M1仍未验收。 [AC/AD/AE派前回执](dispatch/wave1/DELIVERY-WAVE-READY-REPORT-20261023.md)。
 
-## AC受阻收单与环境续做（2026-10-23，最新）
+## AD/AE收单与独立集成完成（2026-10-24，最新）
+
+[总控验收](acceptance/wave1/controller/WATER-W1-ADAE-REVIEW-20261024.md)：AD同源报告的实际页面/原字节附件和两条负控复验通过；AE仅研究文档通过，非Mac实现。隔离受测5b4d77c已快进主线，原两树/491归档/514约束保持，系统窗0。AC不重试网络；强依赖桌面单尚未READY。
+
+## AC受阻收单与环境续做（2026-10-23，AC状态保持）
 
 [总控复核](acceptance/wave1/controller/WATER-W1-AC-BLOCKED-REVIEW-20261023.md)记录原受阻ef0b7c4、静态骨架/失败日志与原字节审计；[补单01回执](dispatch/wave1/AC-DESKTOP-ADDENDUM-01-READY-REPORT-20261023.md)记录实际依赖恢复结果和原树续做方式。AC未集成或产品验收；AD/AE不受AC阻塞。
 

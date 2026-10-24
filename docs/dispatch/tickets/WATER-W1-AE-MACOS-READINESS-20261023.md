@@ -1,5 +1,7 @@
 # WATER-W1-AE：macOS原生移植差异与实机验收准备
 
+当前（2026-10-24）：VERIFIED，仅研究文档验收，不是macOS实现或实机通过。无需重贴；[总控验收](../../acceptance/wave1/controller/WATER-W1-ADAE-REVIEW-20261024.md)记录集成与限制。以下保留原工单。
+
 2026-10-23，正式票。只有主manifest本票status=READY且baselineStatus=PASSED才开工，READY不代表已外贴。
 
 | 项 | 精确值 |

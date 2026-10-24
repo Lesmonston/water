@@ -1,5 +1,7 @@
 # AC/AD/AE三独立任务READY
 
+最新（2026-10-24）：[AD/AE已验收集成](../../acceptance/wave1/controller/WATER-W1-ADAE-REVIEW-20261024.md)，无需重贴。AC及补单01仍BLOCKED，不重试下载。下列三票原外贴句均为历史。
+
 当前更新（2026-10-23）：AC已受阻交回，[补单01回执](AC-DESKTOP-ADDENDUM-01-READY-REPORT-20261023.md)仍BLOCKED，当前不外贴；AD/AE保持原独立分配。下方三票READY与AC首次外贴句为历史，勿重贴原AC票。
 
 2026-10-23。共同精确基线 **`4b8a1de2ad49664546547256cd3d55def7c31a49`**，tag `water-w1-delivery-base-20261023`。三棵独立树/分支干净、本票新产物不存在，真实baseline已通过，三票均 **READY，待用户分别转贴**。没有自动启动外部执行者、内部worker或子代理；AC/AD新产品及AE研究材料尚未交付。原A–AB及八补单继续VERIFIED（Windows受控），旧票无需重贴。
