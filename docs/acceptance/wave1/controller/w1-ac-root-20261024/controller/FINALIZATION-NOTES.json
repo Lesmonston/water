@@ -1,0 +1,9 @@
+{
+  "kind": "Controller finalization bookkeeping correction; summary rather than original stderr",
+  "issue": "Initial finalizer incorrectly hashed trimmed Git-show text against physical CRLF PS1 bytes and failed before writing the review or changing READY state.",
+  "correction": "Compare normalized Git object IDs via hash-object --path and rev-parse, while the unchanged 529 freeze continues checking physical SHA bytes. No file line endings or frozen helpers were changed.",
+  "nativeExecuted": false,
+  "productOrTestModified": false,
+  "noUIProbeRepeated": false,
+  "failureMeaning": "Controller bookkeeping assertion, not product or UI evidence"
+}

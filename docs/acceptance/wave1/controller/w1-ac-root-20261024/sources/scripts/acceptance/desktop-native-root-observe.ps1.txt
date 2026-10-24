@@ -1,0 +1,132 @@
+# ASCII-only observer. Persist owned root evidence before any count assertion.
+param([Parameter(Mandatory=$true)][int]$TestProcessId,[Parameter(Mandatory=$true)][string]$EvidencePath)
+$ErrorActionPreference = 'Stop'
+[Console]::OutputEncoding = New-Object Text.UTF8Encoding($false)
+$controllerRoot = Split-Path (Split-Path $PSScriptRoot -Parent) -Parent
+. (Join-Path $PSScriptRoot 'desktop-native-text-policy.ps1')
+. (Join-Path $PSScriptRoot 'desktop-native-root-policy.ps1')
+$tree = (Resolve-Path -LiteralPath '.').Path
+if ($tree -ine (Join-Path $controllerRoot '.worktrees/ac')) { throw 'Unexpected assigned tree' }
+$evidenceRoot = [IO.Path]::GetFullPath((Join-Path $tree '.local/checks/WATER-W1-AC-ADDENDUM-05/'))
+$fullEvidence = [IO.Path]::GetFullPath($EvidencePath)
+if (!$fullEvidence.StartsWith($evidenceRoot,[StringComparison]::OrdinalIgnoreCase) -or [IO.File]::Exists($fullEvidence)) { throw 'Unexpected evidence output' }
+$ownedProcess = Get-Process -Id $TestProcessId
+$ownedProcessHandle = $ownedProcess.Handle
+if ($ownedProcess.Path -ine (Join-Path $tree '.local/desktop-target/debug/water-desktop-preview.exe')) { throw 'Unexpected desktop executable' }
+Add-Type -AssemblyName UIAutomationClient
+Add-Type -AssemblyName UIAutomationTypes
+$deadline = [DateTime]::UtcNow.AddSeconds(14)
+$mainWindow = $null; $failure = $null; $closed = $false
+$record = [ordered]@{ startedAt=[DateTime]::UtcNow.ToString('o'); processId=$TestProcessId; processCreated=$ownedProcess.StartTime.ToUniversalTime().ToString('o'); title=$null; rootCount=$null; roots=@(); rootDecision=$null; rootSnapshots=0; rootMetadataTruncated=$false; names=@(); required=@(Get-WaterDesktopRequiredText); pageAccepted=$false; systemWindows=$null; directoryDialogs=0; screenshotsTaken=0; children=@(); childSnapshotError=$null; mainSelectedForCleanup=$false; closeRequested=$false; closeReason=$null; cleanupError=$null; exitCode=$null; error=$null }
+function Save-WaterRootRecord {
+    $record['updatedAt'] = [DateTime]::UtcNow.ToString('o')
+    [IO.File]::WriteAllText($fullEvidence,($record | ConvertTo-Json -Depth 10),(New-Object Text.UTF8Encoding($false)))
+}
+function Get-WaterOwnedChildren {
+    $rows = @(); $owners = @($TestProcessId)
+    for ($depth = 0; $depth -lt 6; $depth++) {
+        $next = @()
+        foreach ($owner in $owners) {
+            foreach ($child in @(Get-CimInstance Win32_Process -Filter ('ParentProcessId=' + $owner))) {
+                if ($child.CreationDate.ToUniversalTime() -lt $ownedProcess.StartTime.ToUniversalTime()) { throw 'Child creation predates owned process' }
+                if (@($rows | Where-Object { $_.processId -eq $child.ProcessId }).Count -eq 0) {
+                    $rows += [ordered]@{ processId=$child.ProcessId; parentProcessId=$child.ParentProcessId; name=$child.Name; path=$child.ExecutablePath; commandLine=$child.CommandLine; created=$child.CreationDate.ToUniversalTime().ToString('o') }
+                    $record['children'] = $rows
+                    Save-WaterRootRecord
+                    if ($child.Name -notin @('msedgewebview2.exe','conhost.exe')) { throw 'Unexpected desktop child process' }
+                    $next += $child.ProcessId
+                }
+                if ($rows.Count -gt 32) { throw 'Unexpected desktop child process count' }
+            }
+        }
+        if ($next.Count -eq 0) { break }; $owners = $next
+    }
+    return $rows
+}
+Save-WaterRootRecord
+try {
+    while ([DateTime]::UtcNow -lt $deadline) {
+        $cache = New-Object System.Windows.Automation.CacheRequest
+        $cache.TreeScope = [System.Windows.Automation.TreeScope]::Element
+        foreach ($property in @('Name','ClassName','ControlType','NativeWindowHandle','ProcessId','IsOffscreen','IsControlElement','IsContentElement','BoundingRectangle','IsWindowPatternAvailable')) {
+            $cache.Add([System.Windows.Automation.AutomationElement]::($property + 'Property'))
+        }
+        $activeCache = $cache.Activate()
+        try {
+            $condition = New-Object System.Windows.Automation.PropertyCondition([System.Windows.Automation.AutomationElement]::ProcessIdProperty,$TestProcessId)
+            $rootElements = [System.Windows.Automation.AutomationElement]::RootElement.FindAll([System.Windows.Automation.TreeScope]::Children,$condition)
+        } finally { $activeCache.Dispose() }
+        $record['rootCount'] = $rootElements.Count
+        $record['systemWindows'] = $rootElements.Count
+        $record['rootSnapshots'] = $record['rootSnapshots'] + 1
+        $record['roots'] = @()
+        $record['rootMetadataTruncated'] = $rootElements.Count -gt 32
+        Save-WaterRootRecord
+        $rootRows = @()
+        for ($index = 0; $index -lt [Math]::Min(32,$rootElements.Count); $index++) {
+            $row = [ordered]@{ index=$index; processId=$null; name=$null; className=$null; controlType=$null; nativeHandle=$null; isOffscreen=$null; isControlElement=$null; isContentElement=$null; windowPatternAvailable=$null; rectangle=$null; runtimeId=@(); readError=$null }
+            try {
+                $candidate = $rootElements.Item($index); $info = $candidate.Cached
+                $row['processId'] = $info.ProcessId; $row['name'] = $info.Name; $row['className'] = $info.ClassName
+                $row['controlType'] = $info.ControlType.ProgrammaticName; $row['nativeHandle'] = $info.NativeWindowHandle
+                $row['isOffscreen'] = $info.IsOffscreen; $row['isControlElement'] = $info.IsControlElement; $row['isContentElement'] = $info.IsContentElement
+                $row['windowPatternAvailable'] = $candidate.GetCachedPropertyValue([System.Windows.Automation.AutomationElement]::IsWindowPatternAvailableProperty)
+                if (!$info.BoundingRectangle.IsEmpty) { $row['rectangle'] = @($info.BoundingRectangle.X,$info.BoundingRectangle.Y,$info.BoundingRectangle.Width,$info.BoundingRectangle.Height) }
+                $row['runtimeId'] = @($candidate.GetRuntimeId())
+                if ($row['name'].Length -gt 1024 -or $row['className'].Length -gt 256 -or $row['runtimeId'].Count -gt 32) { throw 'Own root property exceeds bounds' }
+            } catch { $row['readError'] = 'Own root property snapshot unavailable' }
+            $rootRows += $row; $record['roots'] = $rootRows; Save-WaterRootRecord
+        }
+        $decision = Resolve-WaterDesktopRootSnapshot -Roots $rootRows -ReportedCount $rootElements.Count -ExpectedProcessId $TestProcessId
+        $record['rootDecision'] = $decision
+        if ($null -ne $decision.mainIndex) {
+            $mainWindow = $rootElements.Item([int]$decision.mainIndex)
+            $record['mainSelectedForCleanup'] = $true; $record['title'] = $rootRows[$decision.mainIndex].name
+        }
+        Save-WaterRootRecord
+        # Retain every root and any known main before failing the strict guard.
+        if ($rootElements.Count -gt 0) {
+            try { $record['children'] = @(Get-WaterOwnedChildren) } catch { $record['childSnapshotError'] = $_.Exception.Message }
+            Save-WaterRootRecord
+        }
+        if (!$decision.accepted -and $decision.error -ne 'Desktop window title not observed') { throw $decision.error }
+        if ($decision.accepted) { break }; Start-Sleep -Milliseconds 100
+    }
+    if (!$record['rootDecision'].accepted -or $null -eq $mainWindow) { throw 'Desktop window title not observed' }
+    if ($record['childSnapshotError']) { throw 'Owned child snapshot failed' }
+    while ([DateTime]::UtcNow -lt $deadline) {
+        $elements = $mainWindow.FindAll([System.Windows.Automation.TreeScope]::Descendants,[System.Windows.Automation.Condition]::TrueCondition)
+        $record['descendantCount'] = $elements.Count; Save-WaterRootRecord
+        if ($elements.Count -gt 1500) { throw 'Unexpected own automation tree size' }
+        $names = @()
+        foreach ($element in $elements) { if ($element.Current.Name) { $names += $element.Current.Name } }
+        $record['names'] = $names; Save-WaterRootRecord
+        if (($names -join "`n").Length -gt 65536) { throw 'Unexpected own automation text size' }
+        $record['pageAccepted'] = Test-WaterDesktopPageText -Names $names
+        Save-WaterRootRecord
+        if ($record['pageAccepted']) { break }; Start-Sleep -Milliseconds 100
+    }
+    if (!$record['pageAccepted']) { throw 'Required embedded read-only page text not observed' }
+    $record['children'] = @(Get-WaterOwnedChildren); Save-WaterRootRecord
+} catch { $failure = $_.Exception.Message; $record['error'] = $failure }
+finally {
+    Save-WaterRootRecord
+    if ($null -ne $mainWindow) {
+        try {
+            $current = $mainWindow.Current
+            if ($current.ProcessId -ne $TestProcessId -or $current.Name -ne 'Water Desktop Preview' -or $current.NativeWindowHandle -ne $record['roots'][$record['rootDecision'].mainIndex].nativeHandle) { throw 'Main binding changed before cleanup' }
+            $record['closeRequested'] = $true
+            $record['closeReason'] = $(if ($failure) { 'Known main cleanup after diagnostic failure' } else { 'Accepted static preview close' })
+            Save-WaterRootRecord
+            $pattern = $mainWindow.GetCurrentPattern([System.Windows.Automation.WindowPattern]::Pattern)
+            $pattern.Close(); $closed = $true
+        } catch { $record['cleanupError'] = 'Own main close failed' }
+    }
+    if ($closed -and $ownedProcess.WaitForExit(8000)) { $record['exitCode'] = $ownedProcess.ExitCode }
+    else { $record['cleanupError'] = 'Desktop normal exit not observed' }
+    if ($null -ne $record['exitCode'] -and $record['exitCode'] -ne 0) { $record['cleanupError'] = 'Desktop exited unsuccessfully' }
+    if (!$failure -and $record['cleanupError']) { $failure = $record['cleanupError']; $record['error'] = $failure }
+    $record['endedAt'] = [DateTime]::UtcNow.ToString('o'); Save-WaterRootRecord
+}
+$record | ConvertTo-Json -Depth 10 -Compress
+if ($failure) { exit 1 }

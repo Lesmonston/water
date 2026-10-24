@@ -1,0 +1,24 @@
+# Pure policy: no UI, IO, window filtering, or visibility-based exclusions.
+function Resolve-WaterDesktopRootSnapshot {
+    param([object[]]$Roots,[int]$ReportedCount,[int]$ExpectedProcessId)
+    $mainIndexes = @()
+    $readErrors = @($Roots | Where-Object { $_.readError })
+    for ($index = 0; $index -lt $Roots.Count; $index++) {
+        $row = $Roots[$index]
+        if (!$row.readError -and $row.processId -eq $ExpectedProcessId -and
+            $row.name -eq 'Water Desktop Preview' -and $row.nativeHandle -ne 0 -and
+            $row.controlType -eq 'ControlType.Window' -and $row.windowPatternAvailable) {
+            $mainIndexes += $index
+        }
+    }
+    $mainIndex = $null
+    if ($mainIndexes.Count -eq 1 -and $readErrors.Count -eq 0) { $mainIndex = $mainIndexes[0] }
+    $reason = $null
+    if ($ReportedCount -gt 32 -or $Roots.Count -ne $ReportedCount) { $reason = 'Own root snapshot exceeds bounds or is incomplete' }
+    elseif ($readErrors.Count -gt 0) { $reason = 'Own root property snapshot unavailable' }
+    elseif (@($Roots | Where-Object { $_.processId -ne $ExpectedProcessId }).Count -gt 0) { $reason = 'Own root process binding mismatch' }
+    elseif ($ReportedCount -gt 1) { $reason = 'Unexpected own top-level window count' }
+    elseif ($ReportedCount -eq 0 -or $mainIndexes.Count -eq 0) { $reason = 'Desktop window title not observed' }
+    elseif ($mainIndexes.Count -ne 1) { $reason = 'Ambiguous own main window' }
+    [ordered]@{ reportedCount=$ReportedCount; capturedCount=$Roots.Count; mainCount=$mainIndexes.Count; mainIndex=$mainIndex; accepted=($null -eq $reason); error=$reason }
+}

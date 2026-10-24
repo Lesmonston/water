@@ -1,0 +1,12 @@
+{
+  "inspectedAt": "2026-10-24T06:11:25.058Z",
+  "source": ".local/desktop-target/debug/water-desktop-preview.exe",
+  "inspection": "Read only DOS/PE headers of own already-built binary; executable not started",
+  "peOffset": 248,
+  "subsystem": 3,
+  "subsystemMeaning": "Windows CUI",
+  "sourceAnnotation": "main.rs uses windows_subsystem only outside debug_assertions",
+  "diagnosis": "A console subsystem is a possible contributor to additional UIA roots. This does not identify actual roots or prove which windows were visible.",
+  "uiEnumerationRerun": false,
+  "productExecuted": false
+}

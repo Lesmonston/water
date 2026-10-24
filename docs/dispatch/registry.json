@@ -4,7 +4,7 @@
   "mode": "manual-external-paste",
   "controller": "Codex",
   "projectRoot": "F:/new/smaltalk/water",
-  "stage": "wave1-ac-native-helper-fixed-addendum04-ready",
+  "stage": "wave1-ac-root-diagnostic-addendum05-ready",
   "activeWave": "water-wave1",
   "slots": [
     {
@@ -238,7 +238,7 @@
       "branch": "worker/water-w1-ac",
       "baseline": "4b8a1de2ad49664546547256cd3d55def7c31a49",
       "task": "WATER-W1-AC",
-      "state": "blocked-addendum-ready"
+      "state": "blocked-diagnostic-addendum-ready"
     },
     {
       "id": "ad",
@@ -3058,7 +3058,8 @@
         "docs/dispatch/reports/WATER-W1-AC-ADDENDUM-01-REPORT.md",
         "docs/dispatch/reports/WATER-W1-AC-ADDENDUM-02-REPORT.md",
         "docs/dispatch/reports/WATER-W1-AC-ADDENDUM-03-REPORT.md",
-        "docs/dispatch/reports/WATER-W1-AC-ADDENDUM-04-REPORT.md"
+        "docs/dispatch/reports/WATER-W1-AC-ADDENDUM-04-REPORT.md",
+        "docs/dispatch/reports/WATER-W1-AC-ADDENDUM-05-REPORT.md"
       ],
       "allowedPrefixes": [
         "docs/acceptance/wave1/ac/"
@@ -3068,12 +3069,12 @@
       "baselineEvidence": "docs/acceptance/wave1/controller/w1-delivery-preflight-20261023/ac/2026-10-23T02-36-00.416Z-34364-baseline-result.json",
       "preflightEvidence": "docs/dispatch/wave1/DELIVERY-WAVE-READY-REPORT-20261023.md",
       "readyOn": "2026-10-23",
-      "submittedCommit": "b7dc83085a5edd9f38c12e70a53658ba6ae9cfa2",
+      "submittedCommit": "a3334875139a3d6b03e1e71aecb6baad7c1c6711",
       "partialSourceCommit": "b617b90182d54053091910b8b4e889dd7f614a7d",
       "productTestedCommit": null,
       "activityEvidence": "Original clean blocked receipt ef0b7c4, fail-closed skeleton b617b90, baseline passed, two known dependency failures plus two incomplete attempts; no lock/product tests/native window.",
       "blockedReportSource": "F:/new/smaltalk/water/.worktrees/ac/docs/dispatch/reports/WATER-W1-AC-REPORT.md",
-      "revisionReport": "docs/dispatch/reports/WATER-W1-AC-ADDENDUM-04-REPORT.md",
+      "revisionReport": "docs/dispatch/reports/WATER-W1-AC-ADDENDUM-05-REPORT.md",
       "revisionDispatchStatus": "READY",
       "addendum01": {
         "status": "BLOCKED",
@@ -3104,12 +3105,13 @@
         "docs/dispatch/tickets/WATER-W1-AC-ADDENDUM-01-20261023.md",
         "docs/dispatch/tickets/WATER-W1-AC-ADDENDUM-02-20261024.md",
         "docs/dispatch/tickets/WATER-W1-AC-ADDENDUM-03-20261024.md",
-        "docs/dispatch/tickets/WATER-W1-AC-ADDENDUM-04-20261024.md"
+        "docs/dispatch/tickets/WATER-W1-AC-ADDENDUM-04-20261024.md",
+        "docs/dispatch/tickets/WATER-W1-AC-ADDENDUM-05-20261024.md"
       ],
-      "controllerReview": "docs/acceptance/wave1/controller/WATER-W1-AC-ADDENDUM-03-REVIEW-20261024.md",
-      "blockedReviewedAt": "2026-10-24T05:54:11.404Z",
-      "environmentStatus": "CHECK_TEST_PASSED_NATIVE_HELPER_FIXED_NO_UI",
-      "verificationScope": "Original check/test final passed at82d04aa, native failed and one window consumed. New ASCII shared policy/parser/positive/four missing-text negatives and clean resume passed without UI; product not accepted.",
+      "controllerReview": "docs/acceptance/wave1/controller/WATER-W1-AC-ADDENDUM-04-REVIEW-20261024.md",
+      "blockedReviewedAt": "2026-10-24T07:19:19.413Z",
+      "environmentStatus": "NATIVE_ROOT_DIAGNOSTICS_READY_CAUSE_UNKNOWN",
+      "verificationScope": "Check/test reused at identical bytes; supplement04 failed at own-root count guard before details and then exit timeout/termination. New shared strict root policy/parser/13 synthetic cases and clean resume passed without UI. Actual root cause and native acceptance remain unverified.",
       "addendum02": {
         "status": "BLOCKED",
         "ticket": "docs/dispatch/tickets/WATER-W1-AC-ADDENDUM-02-20261024.md",
@@ -3172,7 +3174,7 @@
       },
       "productUnitTestedCommit": "82d04aaeef73030f65bc0a070b99a5517fd5d6a3",
       "addendum04": {
-        "status": "READY",
+        "status": "BLOCKED",
         "ticket": "docs/dispatch/tickets/WATER-W1-AC-ADDENDUM-04-20261024.md",
         "report": "docs/dispatch/reports/WATER-W1-AC-ADDENDUM-04-REPORT.md",
         "evidencePrefix": "docs/acceptance/wave1/ac/addendum-04/",
@@ -3201,7 +3203,48 @@
         "resumeEvidence": "docs/acceptance/wave1/controller/w1-ac-native-20261024/preflight/2026-10-24T05-52-16.278Z-38460-resume-result.json",
         "preflightEvidence": "docs/dispatch/wave1/AC-DESKTOP-ADDENDUM-04-READY-REPORT-20261024.md",
         "baselineMeaning": "No-UI parser/shared policy/full text and four missing-text negative checks, original frozen/source evidence and clean resume; no product/native execution",
-        "systemWindowsUsed": 0
+        "systemWindowsUsed": 1,
+        "submittedCommit": "a3334875139a3d6b03e1e71aecb6baad7c1c6711",
+        "native": "FAILED",
+        "additionalStaticWindowBudgetRemaining": 0,
+        "supersededBy": "docs/dispatch/tickets/WATER-W1-AC-ADDENDUM-05-20261024.md",
+        "windowAttemptsUsed": 1,
+        "rootElementDetailsRecorded": false,
+        "normalExitVerified": false
+      },
+      "addendum05": {
+        "status": "READY",
+        "ticket": "docs/dispatch/tickets/WATER-W1-AC-ADDENDUM-05-20261024.md",
+        "report": "docs/dispatch/reports/WATER-W1-AC-ADDENDUM-05-REPORT.md",
+        "evidencePrefix": "docs/acceptance/wave1/ac/addendum-05/",
+        "resumeCommit": "a3334875139a3d6b03e1e71aecb6baad7c1c6711",
+        "implementationCommit": "eb7f80178191e233068015bbc26dc9798ac8cb22",
+        "contractLock": "contracts/desktop-bootstrap-root-v1/freeze.lock.json",
+        "lockSha256": "571eb883c184199c5166eba1554fe6a43bc607d144d12fc927e1ad347f7c34c4",
+        "helper": "scripts/ac-native-diagnostic-check.mjs",
+        "baselineStatus": "PASSED",
+        "additionalStaticWindowBudget": 1,
+        "previousStaticWindowsUsed": 2,
+        "totalStaticWindowAllocations": 3,
+        "nativeDirectoryDialogs": 0,
+        "nativeMaximumSeconds": 30,
+        "dispatchedAt": null,
+        "startedAt": null,
+        "preservedProductionHash": "38c7a927cb30fd79f91e5e52e875a81dcb1585b359390dca50af5b24a2d2139d",
+        "preservedTestHash": "211ba3014991309b2bda94cd422f4496c2ac552fa57507c3bb35283ae2acefe7",
+        "reusedFinalCheckAndTestCommit": "82d04aaeef73030f65bc0a070b99a5517fd5d6a3",
+        "expectedFinalModes": [
+          "native"
+        ],
+        "productFilesReadOnly": true,
+        "modeMeaning": "Diagnosis first; root Count>1 still fails. Save all bounded owned metadata and safe main cleanup before asserting. No inferred hidden-window exemption.",
+        "readyOn": "2026-10-24",
+        "baselineEvidence": "docs/acceptance/wave1/controller/w1-ac-root-20261024/preflight/2026-10-24T07-14-35.150Z-29728-preflight-result.json",
+        "resumeEvidence": "docs/acceptance/wave1/controller/w1-ac-root-20261024/preflight/2026-10-24T07-19-14.705Z-23176-resume-result.json",
+        "preflightEvidence": "docs/dispatch/wave1/AC-DESKTOP-ADDENDUM-05-READY-REPORT-20261024.md",
+        "baselineMeaning": "No-UI ASCII/Parser, ten static CacheRequest property bindings, 13 synthetic strict-root/cleanup-selection cases, four text omissions, exact unchanged source/proof and clean resume. Not a live UIA/root-cause test.",
+        "systemWindowsUsed": 0,
+        "additionalStaticWindowBudgetRemaining": 1
       }
     },
     {
@@ -3462,5 +3505,5 @@
     }
   ],
   "testHelper": "per-task helper; A defaults unchanged",
-  "note": "A–AB及八补单、AD保持VERIFIED（Windows受控），AE研究文档VERIFIED。AC补单03接收b7dc830/实现eb7f801，原88/189/46证据及相同产品字节已审计；同干净82d04aa的final check/test通过，native因总控PS1中文误解码失败并用掉1次静态窗，实际页面文本/正常退出未验收。总控新增ASCII共享policy/observer，四文案及逐项缺失拒绝、Parser与干净resume实际通过，本轮0窗口/0下载/产品未改。补单04 READY待原AC对话，仅另增1次有界静态窗/0目录窗，不重复check/test；AC仍BLOCKED未验收。旧523保持，新增6条目/22继承锁共529约束，其余30任务/槽位保持，无自动实现者。真实AA→AD、桌面扫描、用户scope、自然同意鉴真、生产竞态、macOS/M1未验收。"
+  "note": "A–AB及八补单、AD保持VERIFIED（Windows受控），AE研究文档VERIFIED。AC补单04接收a333487/实现eb7f801，51及旧46/189/88证据、14相同产品字节已审计；build0，native在自有根UIA Count>1 guard失败，数量/元素未保存，后续退出超时/终止请求，累计两次窗已用，根因仍未知。总控仅补失败前根快照及安全主窗清理，保留Count>1失败、不自动忽略offscreen/handle0；三PS1 Parser、13合成边界/十静态属性绑定/四文案缺失拒绝和干净resume实际通过，本轮0窗口/0下载/产品未改。补单05 READY待原AC对话一次有界取证，仅另增1静态窗/0目录窗，取证不等于通过，不重复check/test。旧529保持，六新条目/23继承锁共535约束，其余30任务/槽位保持，无自动实现者。AC仍BLOCKED，真实AA→AD、桌面扫描、用户scope、自然同意鉴真、生产竞态、macOS/M1未验收。"
 }

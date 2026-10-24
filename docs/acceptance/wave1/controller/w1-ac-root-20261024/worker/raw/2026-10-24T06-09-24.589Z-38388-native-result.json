@@ -1,0 +1,261 @@
+{
+  "task": "WATER-W1-AC",
+  "supplement": 4,
+  "mode": "native",
+  "final": true,
+  "startedAt": "2026-10-24T06:09:24.590Z",
+  "controllerSystemWindows": 0,
+  "windowAttempts": 1,
+  "directoryDialogs": 0,
+  "screenshots": 0,
+  "productTestsRun": false,
+  "commands": [
+    {
+      "binary": "C:\\Users\\37310\\.cargo\\bin\\rustup.exe",
+      "argv": [
+        "which",
+        "cargo",
+        "--toolchain",
+        "1.95.0"
+      ],
+      "exitCode": 0,
+      "error": null,
+      "log": "2026-10-24T06-09-24.589Z-38388-native-1.log"
+    },
+    {
+      "binary": "C:\\Users\\37310\\.cargo\\bin\\rustup.exe",
+      "argv": [
+        "which",
+        "rustc",
+        "--toolchain",
+        "1.95.0"
+      ],
+      "exitCode": 0,
+      "error": null,
+      "log": "2026-10-24T06-09-24.589Z-38388-native-2.log"
+    },
+    {
+      "binary": "C:\\Users\\37310\\.rustup\\toolchains\\1.95.0-x86_64-pc-windows-msvc\\bin\\rustc.exe",
+      "argv": [
+        "--version"
+      ],
+      "exitCode": 0,
+      "error": null,
+      "log": "2026-10-24T06-09-24.589Z-38388-native-3.log"
+    },
+    {
+      "binary": "C:\\Users\\37310\\.rustup\\toolchains\\1.95.0-x86_64-pc-windows-msvc\\bin\\cargo.exe",
+      "argv": [
+        "--config",
+        "source.crates-io.replace-with=\"water-cn\"",
+        "--config",
+        "source.water-cn.registry=\"sparse+https://mirrors.ustc.edu.cn/crates.io-index/\"",
+        "--config",
+        "http.multiplexing=false",
+        "--config",
+        "http.proxy=\"\"",
+        "build",
+        "--offline",
+        "--locked",
+        "--manifest-path",
+        "apps/desktop-preview/Cargo.toml",
+        "--bin",
+        "water-desktop-preview"
+      ],
+      "exitCode": 0,
+      "error": null,
+      "log": "2026-10-24T06-09-24.589Z-38388-native-4.log"
+    },
+    {
+      "binary": "powershell.exe",
+      "argv": [
+        "-NoProfile",
+        "-NonInteractive",
+        "-ExecutionPolicy",
+        "Bypass",
+        "-File",
+        "F:\\new\\smaltalk\\water\\scripts\\acceptance\\desktop-native-observe.ps1",
+        "-TestProcessId",
+        "41736",
+        "-EvidencePath",
+        "F:\\new\\smaltalk\\water\\.worktrees\\ac\\.local\\checks\\WATER-W1-AC-ADDENDUM-04\\2026-10-24T06-09-24.589Z-38388-uia.txt"
+      ],
+      "exitCode": 1,
+      "error": null,
+      "log": "2026-10-24T06-09-24.589Z-38388-native-5.log"
+    }
+  ],
+  "allFrozenUniqueFiles": 529,
+  "before": {
+    "head": "b7dc83085a5edd9f38c12e70a53658ba6ae9cfa2",
+    "status": ""
+  },
+  "sourceState": {
+    "files": [
+      {
+        "path": "apps/desktop-preview/Cargo.toml",
+        "snapshot": "2026-10-24T06-09-24.589Z-38388-native-source-0.txt",
+        "sha256": "896668534c7aa1bbbb48e962b894f6473c45db5764876494cc25d7faad6d8337",
+        "test": false
+      },
+      {
+        "path": "apps/desktop-preview/Cargo.lock",
+        "snapshot": "2026-10-24T06-09-24.589Z-38388-native-source-1.txt",
+        "sha256": "c56b58aa141a85617a59db4de679ff73d69827aee81bda958b1fdee0c9bbbfe8",
+        "test": false
+      },
+      {
+        "path": "apps/desktop-preview/.gitattributes",
+        "snapshot": "2026-10-24T06-09-24.589Z-38388-native-source-2.txt",
+        "sha256": "985a5d5270405b7bce3a54d9f0491f1bc82cc298081e3882f5a8fece599278c9",
+        "test": false
+      },
+      {
+        "path": "apps/desktop-preview/.gitignore",
+        "snapshot": "2026-10-24T06-09-24.589Z-38388-native-source-3.txt",
+        "sha256": "c753d6aa4b07fe40fc1eecfa07ce34820532d0e872dc055cb833dac12b0a1872",
+        "test": false
+      },
+      {
+        "path": "apps/desktop-preview/build.rs",
+        "snapshot": "2026-10-24T06-09-24.589Z-38388-native-source-4.txt",
+        "sha256": "6aeeab41bc35efde4e3c2b644a6248f7fc06d24ae30b75c0d33491cbb0c1fa31",
+        "test": false
+      },
+      {
+        "path": "apps/desktop-preview/tauri.conf.json",
+        "snapshot": "2026-10-24T06-09-24.589Z-38388-native-source-5.txt",
+        "sha256": "cc7d9b9b76937c66568d46ff1e69f72c48d3fd0f0bcd48e5952ed85831df52fa",
+        "test": false
+      },
+      {
+        "path": "apps/desktop-preview/README.md",
+        "snapshot": "2026-10-24T06-09-24.589Z-38388-native-source-6.txt",
+        "sha256": "31e70b4d906e321c8d04ad56a4eaed18a4d7050695a07b37af9a6c89f7616ff9",
+        "test": false
+      },
+      {
+        "path": "apps/desktop-preview/src/lib.rs",
+        "snapshot": "2026-10-24T06-09-24.589Z-38388-native-source-7.txt",
+        "sha256": "5b796be694e142245c84474df47b63bdee17cb9713b8f256637dbdebbb6bbc46",
+        "test": false
+      },
+      {
+        "path": "apps/desktop-preview/src/main.rs",
+        "snapshot": "2026-10-24T06-09-24.589Z-38388-native-source-8.txt",
+        "sha256": "3e0d97e1eeadd898ef9a48c2ed920a69a704c7418a66db156c3a2f1d149a491c",
+        "test": false
+      },
+      {
+        "path": "apps/desktop-preview/src/v1.rs",
+        "snapshot": "2026-10-24T06-09-24.589Z-38388-native-source-9.txt",
+        "sha256": "754588f2df428ed38fbaf3aca99a7a54f725a030dc0a623d65ebbbf83f206ce1",
+        "test": false
+      },
+      {
+        "path": "apps/desktop-preview/frontend/index.html",
+        "snapshot": "2026-10-24T06-09-24.589Z-38388-native-source-10.txt",
+        "sha256": "c64208a3fb20a3cc100f6c370262a210c6a1e4a06d1d11b98aeaf98c92ba6a32",
+        "test": false
+      },
+      {
+        "path": "apps/desktop-preview/frontend/styles.css",
+        "snapshot": "2026-10-24T06-09-24.589Z-38388-native-source-11.txt",
+        "sha256": "4cb3e5550962c67a3529ee18b654abdbd1d5b41946ebfe4cf730537a4559c1fb",
+        "test": false
+      },
+      {
+        "path": "apps/desktop-preview/icons/icon.ico",
+        "snapshot": "2026-10-24T06-09-24.589Z-38388-native-source-12.txt",
+        "sha256": "e604bf94c751acceee880dee13503fdbc38427fa0666ac3d60b98ccd682b8c2c",
+        "test": false
+      },
+      {
+        "path": "apps/desktop-preview/tests/bootstrap_v1.rs",
+        "snapshot": "2026-10-24T06-09-24.589Z-38388-native-source-13.txt",
+        "sha256": "7b33f47cc7dad3220f102c897018d99214a8250d03157dcb950d146b35d35082",
+        "test": true
+      }
+    ],
+    "productionHash": "38c7a927cb30fd79f91e5e52e875a81dcb1585b359390dca50af5b24a2d2139d",
+    "testHash": "211ba3014991309b2bda94cd422f4496c2ac552fa57507c3bb35283ae2acefe7"
+  },
+  "reusedFinals": [
+    {
+      "mode": "check",
+      "path": "docs/acceptance/wave1/ac/addendum-03/raw/2026-10-24T04-33-56.602Z-43316-check-result.json",
+      "sha256": "a0f7551f9002e2b8c2ff5c1f9bc1ec174bb600797a31554e28500fc856136569",
+      "testedCommit": "82d04aaeef73030f65bc0a070b99a5517fd5d6a3",
+      "proof": [
+        {
+          "label": "nc1",
+          "red": "2026-10-24T03-43-19.453Z-42740-red-nc1-result.json",
+          "restored": "2026-10-24T03-43-57.782Z-37176-test-result.json",
+          "redDirectory": "F:\\new\\smaltalk\\water\\.worktrees\\ac\\docs\\acceptance\\wave1\\ac\\addendum-02\\raw",
+          "restoredDirectory": "F:\\new\\smaltalk\\water\\.worktrees\\ac\\docs\\acceptance\\wave1\\ac\\addendum-02\\raw"
+        },
+        {
+          "label": "nc2",
+          "red": "2026-10-24T03-44-35.454Z-31596-red-nc2-result.json",
+          "restored": "2026-10-24T03-45-13.429Z-32560-test-result.json",
+          "redDirectory": "F:\\new\\smaltalk\\water\\.worktrees\\ac\\docs\\acceptance\\wave1\\ac\\addendum-02\\raw",
+          "restoredDirectory": "F:\\new\\smaltalk\\water\\.worktrees\\ac\\docs\\acceptance\\wave1\\ac\\addendum-02\\raw"
+        }
+      ]
+    },
+    {
+      "mode": "test",
+      "path": "docs/acceptance/wave1/ac/addendum-03/raw/2026-10-24T04-35-09.874Z-24884-test-result.json",
+      "sha256": "35f636870b42d1e59bf2b7b87e96bdf77025beb5c2ac3cff2e33c3e972805b2a",
+      "testedCommit": "82d04aaeef73030f65bc0a070b99a5517fd5d6a3",
+      "proof": [
+        {
+          "label": "nc1",
+          "red": "2026-10-24T03-43-19.453Z-42740-red-nc1-result.json",
+          "restored": "2026-10-24T03-43-57.782Z-37176-test-result.json",
+          "redDirectory": "F:\\new\\smaltalk\\water\\.worktrees\\ac\\docs\\acceptance\\wave1\\ac\\addendum-02\\raw",
+          "restoredDirectory": "F:\\new\\smaltalk\\water\\.worktrees\\ac\\docs\\acceptance\\wave1\\ac\\addendum-02\\raw"
+        },
+        {
+          "label": "nc2",
+          "red": "2026-10-24T03-44-35.454Z-31596-red-nc2-result.json",
+          "restored": "2026-10-24T03-45-13.429Z-32560-test-result.json",
+          "redDirectory": "F:\\new\\smaltalk\\water\\.worktrees\\ac\\docs\\acceptance\\wave1\\ac\\addendum-02\\raw",
+          "restoredDirectory": "F:\\new\\smaltalk\\water\\.worktrees\\ac\\docs\\acceptance\\wave1\\ac\\addendum-02\\raw"
+        }
+      ]
+    }
+  ],
+  "nativePid": 41736,
+  "native": {
+    "startedAt": "2026-10-24T06:09:40.9139037Z",
+    "processId": 41736,
+    "title": null,
+    "systemWindows": null,
+    "directoryDialogs": 0,
+    "names": [],
+    "required": [
+      "Water",
+      "桌面壳已启动",
+      "尚未接入扫描",
+      "只读开发预览"
+    ],
+    "pageAccepted": false,
+    "screenshotsTaken": 0,
+    "children": [],
+    "closeRequested": false,
+    "exitCode": null,
+    "error": "Unexpected own top-level window count",
+    "updatedAt": "2026-10-24T06:09:41.0908170Z",
+    "endedAt": "2026-10-24T06:09:41.0902869Z"
+  },
+  "ownedTerminationRequested": true,
+  "after": {
+    "head": "b7dc83085a5edd9f38c12e70a53658ba6ae9cfa2",
+    "status": ""
+  },
+  "status": "failed",
+  "error": "Error: Owned desktop exit timeout\n    at Timeout.<anonymous> (file:///F:/new/smaltalk/water/scripts/ac-native-check.mjs:30:109)\n    at listOnTimeout (node:internal/timers:605:17)\n    at process.processTimers (node:internal/timers:541:7)",
+  "endedAt": "2026-10-24T06:09:47.632Z",
+  "receipt": "F:\\new\\smaltalk\\water\\.worktrees\\ac\\.local\\checks\\WATER-W1-AC-ADDENDUM-04\\2026-10-24T06-09-24.589Z-38388-native-result.json"
+}

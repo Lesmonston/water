@@ -1,0 +1,14 @@
+{
+  "date": "2026-10-24",
+  "purpose": "Primary documentation supporting diagnostic field semantics, not identification of the failed application's actual roots",
+  "sources": [
+    {"url": "https://learn.microsoft.com/en-us/dotnet/framework/ui-automation/ui-automation-tree-overview", "access": "read", "observation": "The desktop is a UIA root; tree structure depends on providers and can change. This does not identify the roots missing from supplement04 evidence."},
+    {"url": "https://learn.microsoft.com/en-us/dotnet/framework/ui-automation/use-caching-in-ui-automation", "access": "read", "observation": "CacheRequest can request properties while obtaining elements. It reduces repeated property calls; it is not an atomic whole-application snapshot."},
+    {"url": "https://learn.microsoft.com/en-us/dotnet/api/system.windows.automation.automationelement.automationelementinformation.nativewindowhandle?view=windowsdesktop-9.0", "access": "read", "observation": "NativeWindowHandle can be zero for an element without a native window. A zero value is recorded and is not an exemption from the existing count guard."},
+    {"url": "https://learn.microsoft.com/en-us/dotnet/api/system.windows.automation.automationelement.automationelementinformation.isoffscreen?view=windowsdesktop-9.0", "access": "read", "observation": "IsOffscreen includes collapsed or minimized states and is not a proof that an extra root is harmless. The new policy records it without filtering the count."}
+  ],
+  "copiedDocumentationBody": false,
+  "failureRootCause": "undetermined",
+  "liveUIAEnumerationPerformed": false,
+  "systemWindowsStarted": 0
+}

@@ -1,5 +1,7 @@
 # AC补单04 READY：编码歧义消除，原对话只补native验收
 
+最新：补单04已受阻，新增[补单05有界取证](AC-DESKTOP-ADDENDUM-05-READY-REPORT-20261024.md)，只回原AC对话，不重贴旧票或重跑04。
+
 2026-10-24。AC03接收b7dc830，产品eb7f801未改；check/test已通过，native失败且原1次静态窗已用。**补单04 READY / baselineStatus=PASSED，尚未外贴，不等于产品验收。**
 
 新ASCII-only文案policy/observer在Windows PowerShell5.1实际无UI预检通过：三脚本Parser0、完整四文案通过、逐项缺失均拒绝，旧模式错码复现；干净原树resume通过，529约束及46/189/88原件保持。总控本轮0窗口/0下载/产品未改/网络未改。

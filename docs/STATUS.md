@@ -21,9 +21,13 @@
 
 ## 下一步
 
-A–AB及八补单、AD保持VERIFIED（Windows受控），AE研究文档VERIFIED。AC补单03接收b7dc830/实现eb7f801，原88/189/46证据及相同产品字节已审计；同干净82d04aa的final check/test通过，native因总控PS1中文误解码失败并用掉1次静态窗，实际页面文本/正常退出未验收。总控新增ASCII共享policy/observer，四文案及逐项缺失拒绝、Parser与干净resume实际通过，本轮0窗口/0下载/产品未改。补单04 READY待原AC对话，仅另增1次有界静态窗/0目录窗，不重复check/test；AC仍BLOCKED未验收。旧523保持，新增6条目/22继承锁共529约束，其余30任务/槽位保持，无自动实现者。真实AA→AD、桌面扫描、用户scope、自然同意鉴真、生产竞态、macOS/M1未验收。 [AC/AD/AE派前回执](dispatch/wave1/DELIVERY-WAVE-READY-REPORT-20261023.md)。
+A–AB及八补单、AD保持VERIFIED（Windows受控），AE研究文档VERIFIED。AC补单04接收a333487/实现eb7f801，51及旧46/189/88证据、14相同产品字节已审计；build0，native在自有根UIA Count>1 guard失败，数量/元素未保存，后续退出超时/终止请求，累计两次窗已用，根因仍未知。总控仅补失败前根快照及安全主窗清理，保留Count>1失败、不自动忽略offscreen/handle0；三PS1 Parser、13合成边界/十静态属性绑定/四文案缺失拒绝和干净resume实际通过，本轮0窗口/0下载/产品未改。补单05 READY待原AC对话一次有界取证，仅另增1静态窗/0目录窗，取证不等于通过，不重复check/test。旧529保持，六新条目/23继承锁共535约束，其余30任务/槽位保持，无自动实现者。AC仍BLOCKED，真实AA→AD、桌面扫描、用户scope、自然同意鉴真、生产竞态、macOS/M1未验收。 [AC/AD/AE派前回执](dispatch/wave1/DELIVERY-WAVE-READY-REPORT-20261023.md)。
 
-## AC补单03收单与无UI编码修订（2026-10-24，最新）
+## AC补单04收单与根元素取证准备（2026-10-24，最新）
+
+[总控复核](acceptance/wave1/controller/WATER-W1-AC-ADDENDUM-04-REVIEW-20261024.md)：实际数量/元素未保存，无法判定产品多窗或隐藏根原因；原14文件/证明保持，两次窗已用。[补单05 READY](dispatch/wave1/AC-DESKTOP-ADDENDUM-05-READY-REPORT-20261024.md)先保存根快照再执行同一Count>1拒绝，并安全清理已核主窗；本轮只测无UI共享策略/Parser，0窗口。仅另增1次取证allocation，不复用旧预算或重跑check/test。
+
+## AC补单03收单与无UI编码修订（2026-10-24，历史）
 
 [总控复核](acceptance/wave1/controller/WATER-W1-AC-ADDENDUM-03-REVIEW-20261024.md)：原check/test有效通过，native错误与强制终止保留；新共享文案policy/Parser无UI预检和原树resume通过。[补单04 READY](dispatch/wave1/AC-DESKTOP-ADDENDUM-04-READY-REPORT-20261024.md)只回原AC对话，额外1次静态窗预算独立记录，非旧预算重置。[下一步依赖安排](dispatch/wave1/AFTER-AC-NATIVE-PLAN-20261024.md)。本轮0窗口。
 

@@ -1,5 +1,7 @@
 # WATER-W1-AC 补充单04：编码修订后的有界桌面验收
 
+最新（2026-10-24）：补单04已受阻/窗口已用；只按[补单05](WATER-W1-AC-ADDENDUM-05-20261024.md)回原对话取证，原根因未知，不重跑04。
+
 当前：READY / baselineStatus=PASSED；无UI预检与干净resume实际通过，0窗口。正式回执见[补单04 READY](../wave1/AC-DESKTOP-ADDENDUM-04-READY-REPORT-20261024.md)。
 
 2026-10-24，总控正式票。只有主manifest.addendum04.status=READY且baselineStatus=PASSED才可由用户贴回原AC对话；不新开实现者。旧03已失败并交回，不能重贴03或删除旧窗口reservation。
