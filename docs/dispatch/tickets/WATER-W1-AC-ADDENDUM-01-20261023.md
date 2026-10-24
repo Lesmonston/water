@@ -1,5 +1,7 @@
 # WATER-W1-AC 补充单01：官方registry连接与原树续做
 
+当前（2026-10-24）：国内镜像依赖已准备，按[补单02](WATER-W1-AC-ADDENDUM-02-20261024.md)回原对话；本票旧入口/外贴句保留为历史，不再使用。未改网络配置。
+
 当前（2026-10-23）：BLOCKED / baselineStatus=FAILED；最终有界依赖验证失败，不授权外贴执行。详见[环境回执](../wave1/AC-DESKTOP-ADDENDUM-01-READY-REPORT-20261023.md)。
 
 2026-10-23。原票BLOCKED，不重贴原票、不新开执行者。本补只在主manifest.addendum01.status=READY且baselineStatus=PASSED时由原AC对话续做。

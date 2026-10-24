@@ -1,0 +1,119 @@
+{
+  "at": "2026-10-24T03:07:15.575Z",
+  "authorization": "User requested domestic mirror downloads on 2026-10-24",
+  "systemWindows": 0,
+  "buildOrProductTestsRun": false,
+  "globalConfigurationChanged": false,
+  "mirrors": [
+    {
+      "id": "rsproxy",
+      "index": "https://rsproxy.cn/index/",
+      "requests": [
+        {
+          "url": "https://rsproxy.cn/index/config.json",
+          "exit": {
+            "code": 0,
+            "signal": null
+          },
+          "stdout": "200 0 1.666182 https://rsproxy.cn/index/config.json",
+          "stderr": "",
+          "body": {
+            "path": "F:\\new\\smaltalk\\water\\.local\\checks\\controller-ac-mirror-20261024\\2026-10-24T03-07-15.573Z-rsproxy-config-body.bin",
+            "bytes": 81,
+            "sha256": "a98b07add77f762db294b99a74c107b9a039c2756b4383bba9b71e3a75097727"
+          }
+        },
+        {
+          "url": "https://rsproxy.cn/index/3/w/wry",
+          "exit": {
+            "code": 0,
+            "signal": null
+          },
+          "stdout": "200 0 0.249431 https://rsproxy.cn/index/3/w/wry",
+          "stderr": "",
+          "body": {
+            "path": "F:\\new\\smaltalk\\water\\.local\\checks\\controller-ac-mirror-20261024\\2026-10-24T03-07-15.573Z-rsproxy-wry-body.bin",
+            "bytes": 996977,
+            "sha256": "340835a4bc71e1751034675e4b51fb49bf7e6556edc5cd1ba06140a93ece1e68"
+          }
+        },
+        {
+          "url": "https://rsproxy.cn/index/ta/ur/tauri",
+          "exit": {
+            "code": 63,
+            "signal": null
+          },
+          "stdout": "200 0 0.113903 https://rsproxy.cn/index/ta/ur/tauri",
+          "stderr": "curl: (63) Maximum file size exceeded\r\n",
+          "body": {
+            "path": "F:\\new\\smaltalk\\water\\.local\\checks\\controller-ac-mirror-20261024\\2026-10-24T03-07-15.573Z-rsproxy-tauri-body.bin",
+            "bytes": 0,
+            "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+          }
+        }
+      ],
+      "config": {
+        "dl": "https://rsproxy.cn/api/v1/crates",
+        "api": "https://rsproxy.cn"
+      },
+      "status": "failed",
+      "error": "AssertionError [ERR_ASSERTION]: Expected values to be strictly equal:\n\n63 !== 0\n\n    at file:///F:/new/smaltalk/water/scripts/acceptance/probe-ac-mirrors.mjs:15:251\n    at process.processTicksAndRejections (node:internal/process/task_queues:104:5)"
+    },
+    {
+      "id": "ustc",
+      "index": "https://mirrors.ustc.edu.cn/crates.io-index/",
+      "requests": [
+        {
+          "url": "https://mirrors.ustc.edu.cn/crates.io-index/config.json",
+          "exit": {
+            "code": 0,
+            "signal": null
+          },
+          "stdout": "200 0 3.333794 https://mirrors.ustc.edu.cn/crates.io-index/config.json",
+          "stderr": "",
+          "body": {
+            "path": "F:\\new\\smaltalk\\water\\.local\\checks\\controller-ac-mirror-20261024\\2026-10-24T03-07-15.573Z-ustc-config-body.bin",
+            "bytes": 101,
+            "sha256": "227f6d6bb01134e0aeae1211770bfa7905251373989c48264f83adf522573101"
+          }
+        },
+        {
+          "url": "https://mirrors.ustc.edu.cn/crates.io-index/3/w/wry",
+          "exit": {
+            "code": 0,
+            "signal": null
+          },
+          "stdout": "200 0 0.367473 https://mirrors.ustc.edu.cn/crates.io-index/3/w/wry",
+          "stderr": "",
+          "body": {
+            "path": "F:\\new\\smaltalk\\water\\.local\\checks\\controller-ac-mirror-20261024\\2026-10-24T03-07-15.573Z-ustc-wry-body.bin",
+            "bytes": 996977,
+            "sha256": "340835a4bc71e1751034675e4b51fb49bf7e6556edc5cd1ba06140a93ece1e68"
+          }
+        },
+        {
+          "url": "https://mirrors.ustc.edu.cn/crates.io-index/ta/ur/tauri",
+          "exit": {
+            "code": 63,
+            "signal": null
+          },
+          "stdout": "200 0 0.188114 https://mirrors.ustc.edu.cn/crates.io-index/ta/ur/tauri",
+          "stderr": "curl: (63) Maximum file size exceeded\r\n",
+          "body": {
+            "path": "F:\\new\\smaltalk\\water\\.local\\checks\\controller-ac-mirror-20261024\\2026-10-24T03-07-15.573Z-ustc-tauri-body.bin",
+            "bytes": 0,
+            "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+          }
+        }
+      ],
+      "config": {
+        "dl": "https://mirrors.ustc.edu.cn/crates.io/api/v1/crates",
+        "api": "https://crates.io/"
+      },
+      "status": "failed",
+      "error": "AssertionError [ERR_ASSERTION]: Expected values to be strictly equal:\n\n63 !== 0\n\n    at file:///F:/new/smaltalk/water/scripts/acceptance/probe-ac-mirrors.mjs:15:251\n    at process.processTicksAndRejections (node:internal/process/task_queues:104:5)"
+    }
+  ],
+  "selected": null,
+  "status": "no_working_mirror"
+}

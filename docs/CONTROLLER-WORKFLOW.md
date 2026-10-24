@@ -98,7 +98,7 @@ READY只表示总控已准备好，不表示用户已转贴。得到用户已贴
 
 ## 当前落实程度
 
-最新2026-10-24：A–AB及八补单保持VERIFIED（Windows受控）。AD同源项目报告已通过独立5测试/3浏览器测试、8次实际Q/Z下载和两条生产负控/原字节恢复，集成5b4d77c；AE四份研究材料及来源/差异矩阵/计划通过文档验收，macOS能力仍未实现/未验证。两票均VERIFIED，无需重贴。AC及补单01保持BLOCKED，原ef0b7c4/无Cargo.lock，不重复下载或外贴。514冻结、原两树/491份归档及其余29任务/槽位保持，无新实现者；本次0系统窗/0目录窗，仅私有Chrome回放。新真实AA→AD、桌面扫描、用户scope、自然同意鉴真、生产竞态、macOS/M1仍未验收。 [AC/AD/AE派前回执](dispatch/wave1/DELIVERY-WAVE-READY-REPORT-20261023.md)与manifest为当前状态，以下为历史。
+最新2026-10-24：A–AB及八补单、AD保持VERIFIED（Windows受控），AE研究文档VERIFIED。用户授权国内镜像后，总控已通过中科大镜像下载AC的238个Windows依赖包（35514705字节），锁生成/来源许可证及离线fetch/metadata/resume通过；系统代理、网络和全局Cargo配置未改。AC原ef0b7c4/13源码未改，锁留原树；原票仍BLOCKED未产品受测，补单02 READY待回原AC对话，补单01失败保留。不再重贴原票/补单01，不自动启动实现者。旧514保持，新增5条目/20继承锁共519约束，其余30任务/槽位保持；本次0系统窗。真实AA→AD、桌面扫描、用户scope、自然同意鉴真、生产竞态、macOS/M1未验收。 [AC/AD/AE派前回执](dispatch/wave1/DELIVERY-WAVE-READY-REPORT-20261023.md)与manifest为当前状态，以下为历史。
 
 最新2026-10-19：A–Q、S及五补单保持VERIFIED（Windows受控范围）。S原生目录选择已通过独立验收并集成；R补单01、T脱敏下载、U内存清单保持原波次分配，等待各自回执。没有自动实现者；原生宿主到R/报告页的完整用户闭环、真实用户scope、macOS和桌面尚未验收，M1仍未完成。 [S总控验收](acceptance/wave1/controller/WATER-W1-S-REVIEW-20261019.md)记录受测SHA和原始证据；以下派前状态均为历史。
 

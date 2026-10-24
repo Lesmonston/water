@@ -1,0 +1,40 @@
+{
+  "version": "water.ac-mirror.v1",
+  "mirrorId": "ustc",
+  "index": "sparse+https://mirrors.ustc.edu.cn/crates.io-index/",
+  "downloadBase": "https://mirrors.ustc.edu.cn/crates.io/api/v1/crates",
+  "docs": "https://mirrors.ustc.edu.cn/help/crates.io-index.html",
+  "authorization": "2026-10-24 user requested domestic mirror downloads and controller preparation without changing user network configuration.",
+  "probe": ".local/checks/controller-ac-mirror-20261024/2026-10-24T03-07-39.772Z-mirror-probe.json",
+  "selection": "Both USTC and RsProxy passed full 996977-byte wry index and identical tauri crate checksum; USTC chosen with direct mirror package URL.",
+  "originalHelper": "scripts/delivery-wave-check.mjs",
+  "originalHelperSha256": "9239735382752cee8ddccd5ab0e2dd3ea03f58ee72f771374dfb2503de9492cd",
+  "cargoArguments": [
+    "--config",
+    "source.crates-io.replace-with=\"water-cn\"",
+    "--config",
+    "source.water-cn.registry=\"sparse+https://mirrors.ustc.edu.cn/crates.io-index/\"",
+    "--config",
+    "http.multiplexing=false",
+    "--config",
+    "http.proxy=\"\""
+  ],
+  "approvedDeltas": [
+    "AC-only task/mode guard, new resume/environment and addendum02 log directory",
+    "Per-command process-only source replacement/HTTP transport; no persisted/global config",
+    "Additive main freeze + original receipt/46 evidence scope audit",
+    "Environment reservation and exact original-source hash checks",
+    "Unchanged original product policy/metadata/tests/proof/final/native assertions"
+  ],
+  "unchanged": {
+    "versions": true,
+    "licenses": true,
+    "canonicalRegistrySource": true,
+    "CargoCommandTimeoutSeconds": 600,
+    "jobs": 1,
+    "nativeWindowBudget": 1,
+    "directoryDialogs": 0,
+    "globalNetworkConfiguration": false,
+    "TLSVerificationDisabled": false
+  }
+}

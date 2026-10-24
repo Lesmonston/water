@@ -2,7 +2,7 @@
 
 面向 Windows、macOS AI 开发者的本地存储分析与安全清理助手。
 
-**当前阶段：A–AB及八补单保持VERIFIED（Windows受控）。AD同源项目报告已通过独立5测试/3浏览器测试、8次实际Q/Z下载和两条生产负控/原字节恢复，集成5b4d77c；AE四份研究材料及来源/差异矩阵/计划通过文档验收，macOS能力仍未实现/未验证。两票均VERIFIED，无需重贴。AC及补单01保持BLOCKED，原ef0b7c4/无Cargo.lock，不重复下载或外贴。514冻结、原两树/491份归档及其余29任务/槽位保持，无新实现者；本次0系统窗/0目录窗，仅私有Chrome回放。新真实AA→AD、桌面扫描、用户scope、自然同意鉴真、生产竞态、macOS/M1仍未验收。**
+**当前阶段：A–AB及八补单、AD保持VERIFIED（Windows受控），AE研究文档VERIFIED。用户授权国内镜像后，总控已通过中科大镜像下载AC的238个Windows依赖包（35514705字节），锁生成/来源许可证及离线fetch/metadata/resume通过；系统代理、网络和全局Cargo配置未改。AC原ef0b7c4/13源码未改，锁留原树；原票仍BLOCKED未产品受测，补单02 READY待回原AC对话，补单01失败保留。不再重贴原票/补单01，不自动启动实现者。旧514保持，新增5条目/20继承锁共519约束，其余30任务/槽位保持；本次0系统窗。真实AA→AD、桌面扫描、用户scope、自然同意鉴真、生产竞态、macOS/M1未验收。**
 
 用户指定本项目所有后续开发均位于 `smaltalk/water`，由 Codex 担任总控。
 
@@ -35,7 +35,7 @@ Water 的发布许可证、定价与商标名称尚未最终确定；`water` 是
 
 ## 当前验收与下一波
 
-[AD/AE验收与集成](docs/acceptance/wave1/controller/WATER-W1-ADAE-REVIEW-20261024.md)：同源报告与macOS研究材料均已收口，无需重贴。AC及补单01继续受阻。
+[AC国内镜像准备完成/补单02 READY](docs/dispatch/wave1/AC-DESKTOP-ADDENDUM-02-READY-REPORT-20261024.md)：依赖已下载，原AC对话可续做；[AD/AE已验收](docs/acceptance/wave1/controller/WATER-W1-ADAE-REVIEW-20261024.md)，不重贴。
 
 [AB补单01与真实AA→AB联合验收](docs/acceptance/wave1/controller/WATER-W1-AB-ADDENDUM-01-REVIEW-20261022.md)已通过并集成，无需重贴旧票。
 
