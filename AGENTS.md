@@ -1,6 +1,6 @@
 # Water 项目协作规则
 
-最新状态（2026-10-24）：A–AB及八补单、AD保持VERIFIED（Windows受控），AE研究文档VERIFIED。AC补单04接收a333487/实现eb7f801，51及旧46/189/88证据、14相同产品字节已审计；build0，native在自有根UIA Count>1 guard失败，数量/元素未保存，后续退出超时/终止请求，累计两次窗已用，根因仍未知。总控仅补失败前根快照及安全主窗清理，保留Count>1失败、不自动忽略offscreen/handle0；三PS1 Parser、13合成边界/十静态属性绑定/四文案缺失拒绝和干净resume实际通过，本轮0窗口/0下载/产品未改。补单05 READY待原AC对话一次有界取证，仅另增1静态窗/0目录窗，取证不等于通过，不重复check/test。旧529保持，六新条目/23继承锁共535约束，其余30任务/槽位保持，无自动实现者。AC仍BLOCKED，真实AA→AD、桌面扫描、用户scope、自然同意鉴真、生产竞态、macOS/M1未验收。 正式票/manifest及docs/acceptance/wave1/controller/WATER-W1-AC-ADDENDUM-04-REVIEW-20261024.md优先；仅补单05回原AC取证，不重跑04。
+最新状态（2026-10-25）：A–AB及八补单、AD保持VERIFIED（Windows受控），AE研究文档VERIFIED。AC补单05接收8a3b475/实现eb7f801，新51及旧374共425归档、535旧约束和14产品字节已审计。真实2根是Tauri主窗及固定tao0.37.2事件目标，旧Count2严格失败保留；主窗正常exit0、无终止，四文案未到达、冻结childClose未跑，累计三次窗口allocation已用。总控明确修订应用窗口计数：1精确主窗、至多1固定来源及完整属性吻合的Tao目标、未知/无效0；raw数量及明细保留，关闭前再核快照/主身份。三PS1 Parser、41合成边界/4主身份/历史回放/十静态绑定/四文案缺失拒绝、框架tar与源码、干净resume实际通过，本轮0窗口/0构建/0依赖下载/产品未改。补单06 READY仅回原AC对话，另增1静态窗≤30秒/0目录窗，旧三次不重置，不重跑check/test。七新条目/24继承锁共542约束，其余30任务/槽位保持，无自动实现者。AC仍BLOCKED，真实native页面/退出整门、AA→AD、桌面扫描、用户scope、自然同意鉴真、生产竞态、macOS/M1未验收。 正式票/manifest及docs/acceptance/wave1/controller/WATER-W1-AC-ADDENDUM-05-REVIEW-20261025.md优先；仅补单06回原AC，不重跑05。
 
 - 项目根：`F:/new/smaltalk/water`。用户指定后续开发、研究、文档、脚本与本项目产物全部放在此目录内。
 - Codex 是项目总控，负责范围、任务分派、接口、集成、安全复核和验收。用户保留产品与发布决定权。

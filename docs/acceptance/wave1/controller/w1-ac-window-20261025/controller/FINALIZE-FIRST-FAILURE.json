@@ -1,0 +1,12 @@
+{
+  "at": "2026-10-25T05:59:29.970Z",
+  "operation": "First finalize-ac-window-review invocation",
+  "exitCode": 1,
+  "error": "AssertionError assert(!existsSync(path)) in archive at finalize-ac-window-review.mjs:30; call line34",
+  "cause": "Supplement05 ARCHIVE already includes handoff audit and validation; extra copy attempted the same destination twice.",
+  "progress": "Frozen preflight and exact clean resume passed before archive-only failure. No product/native/check/test/build/download ran.",
+  "resolution": "Preserve partial archives and successful resume; compare existing bytes and resume only finalization. Copy each archived path once.",
+  "nativeRerun": false,
+  "productChanges": [],
+  "windowsOpened": 0
+}

@@ -1,5 +1,7 @@
 # WATER-W1-AC 补充单05：保留严格判定的单窗取证
 
+最新（2026-10-25）：补单05受阻已交回，旧三次窗口已用；仅按[补单06](WATER-W1-AC-ADDENDUM-06-20261025.md)在原对话续做，不执行旧native或重复check/test。下列旧READY/外贴句为历史。
+
 当前：READY / baselineStatus=PASSED。无UI Parser/共享根策略/13合成边界/文案及精确干净resume通过，0窗口；尚未验证真实UIA/关闭，不宣称已修复native根因。[正式回执](../wave1/AC-DESKTOP-ADDENDUM-05-READY-REPORT-20261024.md)。
 
 2026-10-24。只有主manifest.addendum05.status=READY且baselineStatus=PASSED时才可由用户贴回原AC执行对话；不启动另一实现者。补单04受阻已交回，两次窗口历史和reservation保持，不能重跑04。
