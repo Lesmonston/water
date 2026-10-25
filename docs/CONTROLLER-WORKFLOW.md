@@ -98,7 +98,7 @@ READY只表示总控已准备好，不表示用户已转贴。得到用户已贴
 
 ## 当前落实程度
 
-最新2026-10-25：A–AB及八补单、AD保持VERIFIED（Windows受控），AE研究文档VERIFIED。AC补单05接收8a3b475/实现eb7f801，新51及旧374共425归档、535旧约束和14产品字节已审计。真实2根是Tauri主窗及固定tao0.37.2事件目标，旧Count2严格失败保留；主窗正常exit0、无终止，四文案未到达、冻结childClose未跑，累计三次窗口allocation已用。总控明确修订应用窗口计数：1精确主窗、至多1固定来源及完整属性吻合的Tao目标、未知/无效0；raw数量及明细保留，关闭前再核快照/主身份。三PS1 Parser、41合成边界/4主身份/历史回放/十静态绑定/四文案缺失拒绝、框架tar与源码、干净resume实际通过，本轮0窗口/0构建/0依赖下载/产品未改。补单06 READY仅回原AC对话，另增1静态窗≤30秒/0目录窗，旧三次不重置，不重跑check/test。七新条目/24继承锁共542约束，其余30任务/槽位保持，无自动实现者。AC仍BLOCKED，真实native页面/退出整门、AA→AD、桌面扫描、用户scope、自然同意鉴真、生产竞态、macOS/M1未验收。 [AC/AD/AE派前回执](dispatch/wave1/DELIVERY-WAVE-READY-REPORT-20261023.md)与manifest为当前状态，以下为历史。
+最新2026-10-25：A–AB及八补单、AD保持VERIFIED；AC/补单06新增VERIFIED（Windows静态桌面基础），AE仍仅研究文档VERIFIED。AC接收29a895d/实现eb7f801，原14产品字节及479归档/16,293,091字节已审计，隔离受测b417835已快进主线。06真实native两份raw2/main1/固定Tao1/未知无效0快照、四文案、正常exit0、私有profile及冻结childClose通过，5510ms；旧03–05失败保持，四次worker allocation已用。总控只做无UI独立Rustc库编译、原三测、137配置/73导航拒绝及26正向、实际快照复算和5根变体/四文案缺失拒绝；不额外开窗，不重跑Cargo/Tauri/旧负控或下载，未改产品与网络配置。旧542保持，总控5新条目/25继承锁共547约束；修正工具按执行前源SHA留档，其它30任务/槽位不变，无自动实现者。AC静态前置已解除，下一波仍须冻结接线接口/范围/测试后才READY；真实AA→AD、桌面扫描、用户scope/自然同意鉴真、生产竞态、macOS/M1未验收。 [AC/AD/AE派前回执](dispatch/wave1/DELIVERY-WAVE-READY-REPORT-20261023.md)与manifest为当前状态，以下为历史。
 
 最新2026-10-19：A–Q、S及五补单保持VERIFIED（Windows受控范围）。S原生目录选择已通过独立验收并集成；R补单01、T脱敏下载、U内存清单保持原波次分配，等待各自回执。没有自动实现者；原生宿主到R/报告页的完整用户闭环、真实用户scope、macOS和桌面尚未验收，M1仍未完成。 [S总控验收](acceptance/wave1/controller/WATER-W1-S-REVIEW-20261019.md)记录受测SHA和原始证据；以下派前状态均为历史。
 

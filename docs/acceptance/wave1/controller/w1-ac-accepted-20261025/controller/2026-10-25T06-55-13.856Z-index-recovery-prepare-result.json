@@ -1,0 +1,357 @@
+{
+  "startedAt": "2026-10-25T06:55:13.860Z",
+  "mode": "prepare",
+  "root": "F:\\new\\smaltalk\\water\\.worktrees\\integration-ac-20261025",
+  "before": "69df0d0913259567312a506dbfc50665313364fe",
+  "recovery": "Initialize only new empty sparse index, then finish exact original eight imports",
+  "sourceSha256": "831c235305e9c7be53edae5e7b4e15d32328400c7210a665099b3d1009a0da77",
+  "systemWindows": 0,
+  "newNativeRun": false,
+  "productSourceFixes": [],
+  "dependencyDownloads": 0,
+  "imports": [
+    {
+      "original": "b617b90182d54053091910b8b4e889dd7f614a7d",
+      "integrated": "3c924d82d769b049a6d0a0eaf44013ca735734dd"
+    },
+    {
+      "original": "ef0b7c4b3a84c434c0cd3b691b79c8a4a37d311c",
+      "integrated": "a4ac1fc71ac1c3b260d61b82bacceee325793d15"
+    },
+    {
+      "original": "eb7f80178191e233068015bbc26dc9798ac8cb22",
+      "integrated": "2eeec8019d4f61e2b677470c365916ef9f822210"
+    },
+    {
+      "original": "82d04aaeef73030f65bc0a070b99a5517fd5d6a3",
+      "integrated": "24e885166a4e56c65e55be4979c469589660ad70"
+    },
+    {
+      "original": "b7dc83085a5edd9f38c12e70a53658ba6ae9cfa2",
+      "integrated": "1b3b00fbfa4a11f77e94f9715da4bdb52e71048d"
+    },
+    {
+      "original": "a3334875139a3d6b03e1e71aecb6baad7c1c6711",
+      "integrated": "fe0611c2942ac99b13bf2b4ab39752c18244de3a"
+    },
+    {
+      "original": "8a3b475918684a18be318415a9f7a54470c916b8",
+      "integrated": "2d96eec4603fd728fc8e198f56cde77e7890cf39"
+    },
+    {
+      "original": "29a895d7efa7f4a547d23ff74eb92729740d289d",
+      "integrated": "b4178355bbb135ca689fa3924ea267e313184941"
+    }
+  ],
+  "commands": [
+    {
+      "args": [
+        "rev-parse",
+        "HEAD"
+      ],
+      "cwd": "F:\\new\\smaltalk\\water\\.worktrees\\integration-ac-20261025",
+      "exitCode": 0,
+      "stdout": "2026-10-25T06-55-13.856Z-index-recovery-0-stdout.log",
+      "stderr": "2026-10-25T06-55-13.856Z-index-recovery-0-stderr.log"
+    },
+    {
+      "args": [
+        "branch",
+        "--show-current"
+      ],
+      "cwd": "F:\\new\\smaltalk\\water\\.worktrees\\integration-ac-20261025",
+      "exitCode": 0,
+      "stdout": "2026-10-25T06-55-13.856Z-index-recovery-1-stdout.log",
+      "stderr": "2026-10-25T06-55-13.856Z-index-recovery-1-stderr.log"
+    },
+    {
+      "args": [
+        "ls-files",
+        "-z"
+      ],
+      "cwd": "F:\\new\\smaltalk\\water\\.worktrees\\integration-ac-20261025",
+      "exitCode": 0,
+      "stdout": "2026-10-25T06-55-13.856Z-index-recovery-2-stdout.log",
+      "stderr": "2026-10-25T06-55-13.856Z-index-recovery-2-stderr.log"
+    },
+    {
+      "args": [
+        "diff",
+        "--cached",
+        "--name-only"
+      ],
+      "cwd": "F:\\new\\smaltalk\\water\\.worktrees\\integration-ac-20261025",
+      "exitCode": 0,
+      "stdout": "2026-10-25T06-55-13.856Z-index-recovery-3-stdout.log",
+      "stderr": "2026-10-25T06-55-13.856Z-index-recovery-3-stderr.log"
+    },
+    {
+      "args": [
+        "sparse-checkout",
+        "reapply"
+      ],
+      "cwd": "F:\\new\\smaltalk\\water\\.worktrees\\integration-ac-20261025",
+      "exitCode": 0,
+      "stdout": "2026-10-25T06-55-13.856Z-index-recovery-4-stdout.log",
+      "stderr": "2026-10-25T06-55-13.856Z-index-recovery-4-stderr.log"
+    },
+    {
+      "args": [
+        "ls-files",
+        "-t",
+        "-z"
+      ],
+      "cwd": "F:\\new\\smaltalk\\water\\.worktrees\\integration-ac-20261025",
+      "exitCode": 0,
+      "stdout": "2026-10-25T06-55-13.856Z-index-recovery-5-stdout.log",
+      "stderr": "2026-10-25T06-55-13.856Z-index-recovery-5-stderr.log"
+    },
+    {
+      "args": [
+        "checkout-index",
+        "--",
+        "docs/acceptance/wave1/ac/.gitattributes"
+      ],
+      "cwd": "F:\\new\\smaltalk\\water\\.worktrees\\integration-ac-20261025",
+      "exitCode": 0,
+      "stdout": "2026-10-25T06-55-13.856Z-index-recovery-6-stdout.log",
+      "stderr": "2026-10-25T06-55-13.856Z-index-recovery-6-stderr.log"
+    },
+    {
+      "args": [
+        "status",
+        "--porcelain",
+        "--untracked-files=all"
+      ],
+      "cwd": "F:\\new\\smaltalk\\water\\.worktrees\\integration-ac-20261025",
+      "exitCode": 0,
+      "stdout": "2026-10-25T06-55-13.856Z-index-recovery-7-stdout.log",
+      "stderr": "2026-10-25T06-55-13.856Z-index-recovery-7-stderr.log"
+    },
+    {
+      "args": [
+        "cherry-pick",
+        "b617b90182d54053091910b8b4e889dd7f614a7d"
+      ],
+      "cwd": "F:\\new\\smaltalk\\water\\.worktrees\\integration-ac-20261025",
+      "exitCode": 0,
+      "stdout": "2026-10-25T06-55-13.856Z-index-recovery-8-stdout.log",
+      "stderr": "2026-10-25T06-55-13.856Z-index-recovery-8-stderr.log"
+    },
+    {
+      "args": [
+        "rev-parse",
+        "HEAD"
+      ],
+      "cwd": "F:\\new\\smaltalk\\water\\.worktrees\\integration-ac-20261025",
+      "exitCode": 0,
+      "stdout": "2026-10-25T06-55-13.856Z-index-recovery-9-stdout.log",
+      "stderr": "2026-10-25T06-55-13.856Z-index-recovery-9-stderr.log"
+    },
+    {
+      "args": [
+        "cherry-pick",
+        "ef0b7c4b3a84c434c0cd3b691b79c8a4a37d311c"
+      ],
+      "cwd": "F:\\new\\smaltalk\\water\\.worktrees\\integration-ac-20261025",
+      "exitCode": 0,
+      "stdout": "2026-10-25T06-55-13.856Z-index-recovery-10-stdout.log",
+      "stderr": "2026-10-25T06-55-13.856Z-index-recovery-10-stderr.log"
+    },
+    {
+      "args": [
+        "rev-parse",
+        "HEAD"
+      ],
+      "cwd": "F:\\new\\smaltalk\\water\\.worktrees\\integration-ac-20261025",
+      "exitCode": 0,
+      "stdout": "2026-10-25T06-55-13.856Z-index-recovery-11-stdout.log",
+      "stderr": "2026-10-25T06-55-13.856Z-index-recovery-11-stderr.log"
+    },
+    {
+      "args": [
+        "cherry-pick",
+        "eb7f80178191e233068015bbc26dc9798ac8cb22"
+      ],
+      "cwd": "F:\\new\\smaltalk\\water\\.worktrees\\integration-ac-20261025",
+      "exitCode": 0,
+      "stdout": "2026-10-25T06-55-13.856Z-index-recovery-12-stdout.log",
+      "stderr": "2026-10-25T06-55-13.856Z-index-recovery-12-stderr.log"
+    },
+    {
+      "args": [
+        "rev-parse",
+        "HEAD"
+      ],
+      "cwd": "F:\\new\\smaltalk\\water\\.worktrees\\integration-ac-20261025",
+      "exitCode": 0,
+      "stdout": "2026-10-25T06-55-13.856Z-index-recovery-13-stdout.log",
+      "stderr": "2026-10-25T06-55-13.856Z-index-recovery-13-stderr.log"
+    },
+    {
+      "args": [
+        "cherry-pick",
+        "82d04aaeef73030f65bc0a070b99a5517fd5d6a3"
+      ],
+      "cwd": "F:\\new\\smaltalk\\water\\.worktrees\\integration-ac-20261025",
+      "exitCode": 0,
+      "stdout": "2026-10-25T06-55-13.856Z-index-recovery-14-stdout.log",
+      "stderr": "2026-10-25T06-55-13.856Z-index-recovery-14-stderr.log"
+    },
+    {
+      "args": [
+        "rev-parse",
+        "HEAD"
+      ],
+      "cwd": "F:\\new\\smaltalk\\water\\.worktrees\\integration-ac-20261025",
+      "exitCode": 0,
+      "stdout": "2026-10-25T06-55-13.856Z-index-recovery-15-stdout.log",
+      "stderr": "2026-10-25T06-55-13.856Z-index-recovery-15-stderr.log"
+    },
+    {
+      "args": [
+        "cherry-pick",
+        "b7dc83085a5edd9f38c12e70a53658ba6ae9cfa2"
+      ],
+      "cwd": "F:\\new\\smaltalk\\water\\.worktrees\\integration-ac-20261025",
+      "exitCode": 0,
+      "stdout": "2026-10-25T06-55-13.856Z-index-recovery-16-stdout.log",
+      "stderr": "2026-10-25T06-55-13.856Z-index-recovery-16-stderr.log"
+    },
+    {
+      "args": [
+        "rev-parse",
+        "HEAD"
+      ],
+      "cwd": "F:\\new\\smaltalk\\water\\.worktrees\\integration-ac-20261025",
+      "exitCode": 0,
+      "stdout": "2026-10-25T06-55-13.856Z-index-recovery-17-stdout.log",
+      "stderr": "2026-10-25T06-55-13.856Z-index-recovery-17-stderr.log"
+    },
+    {
+      "args": [
+        "cherry-pick",
+        "a3334875139a3d6b03e1e71aecb6baad7c1c6711"
+      ],
+      "cwd": "F:\\new\\smaltalk\\water\\.worktrees\\integration-ac-20261025",
+      "exitCode": 0,
+      "stdout": "2026-10-25T06-55-13.856Z-index-recovery-18-stdout.log",
+      "stderr": "2026-10-25T06-55-13.856Z-index-recovery-18-stderr.log"
+    },
+    {
+      "args": [
+        "rev-parse",
+        "HEAD"
+      ],
+      "cwd": "F:\\new\\smaltalk\\water\\.worktrees\\integration-ac-20261025",
+      "exitCode": 0,
+      "stdout": "2026-10-25T06-55-13.856Z-index-recovery-19-stdout.log",
+      "stderr": "2026-10-25T06-55-13.856Z-index-recovery-19-stderr.log"
+    },
+    {
+      "args": [
+        "cherry-pick",
+        "8a3b475918684a18be318415a9f7a54470c916b8"
+      ],
+      "cwd": "F:\\new\\smaltalk\\water\\.worktrees\\integration-ac-20261025",
+      "exitCode": 0,
+      "stdout": "2026-10-25T06-55-13.856Z-index-recovery-20-stdout.log",
+      "stderr": "2026-10-25T06-55-13.856Z-index-recovery-20-stderr.log"
+    },
+    {
+      "args": [
+        "rev-parse",
+        "HEAD"
+      ],
+      "cwd": "F:\\new\\smaltalk\\water\\.worktrees\\integration-ac-20261025",
+      "exitCode": 0,
+      "stdout": "2026-10-25T06-55-13.856Z-index-recovery-21-stdout.log",
+      "stderr": "2026-10-25T06-55-13.856Z-index-recovery-21-stderr.log"
+    },
+    {
+      "args": [
+        "cherry-pick",
+        "29a895d7efa7f4a547d23ff74eb92729740d289d"
+      ],
+      "cwd": "F:\\new\\smaltalk\\water\\.worktrees\\integration-ac-20261025",
+      "exitCode": 0,
+      "stdout": "2026-10-25T06-55-13.856Z-index-recovery-22-stdout.log",
+      "stderr": "2026-10-25T06-55-13.856Z-index-recovery-22-stderr.log"
+    },
+    {
+      "args": [
+        "rev-parse",
+        "HEAD"
+      ],
+      "cwd": "F:\\new\\smaltalk\\water\\.worktrees\\integration-ac-20261025",
+      "exitCode": 0,
+      "stdout": "2026-10-25T06-55-13.856Z-index-recovery-23-stdout.log",
+      "stderr": "2026-10-25T06-55-13.856Z-index-recovery-23-stderr.log"
+    },
+    {
+      "args": [
+        "diff",
+        "--name-only",
+        "-z",
+        "69df0d0913259567312a506dbfc50665313364fe",
+        "HEAD"
+      ],
+      "cwd": "F:\\new\\smaltalk\\water\\.worktrees\\integration-ac-20261025",
+      "exitCode": 0,
+      "stdout": "2026-10-25T06-55-13.856Z-index-recovery-24-stdout.log",
+      "stderr": "2026-10-25T06-55-13.856Z-index-recovery-24-stderr.log"
+    },
+    {
+      "args": [
+        "status",
+        "--porcelain",
+        "--untracked-files=all"
+      ],
+      "cwd": "F:\\new\\smaltalk\\water\\.worktrees\\integration-ac-20261025",
+      "exitCode": 0,
+      "stdout": "2026-10-25T06-55-13.856Z-index-recovery-25-stdout.log",
+      "stderr": "2026-10-25T06-55-13.856Z-index-recovery-25-stderr.log"
+    },
+    {
+      "args": [
+        "rev-parse",
+        "HEAD"
+      ],
+      "cwd": "F:\\new\\smaltalk\\water\\.worktrees\\ac",
+      "exitCode": 0,
+      "stdout": "2026-10-25T06-55-13.856Z-index-recovery-26-stdout.log",
+      "stderr": "2026-10-25T06-55-13.856Z-index-recovery-26-stderr.log"
+    },
+    {
+      "args": [
+        "status",
+        "--porcelain",
+        "--untracked-files=all"
+      ],
+      "cwd": "F:\\new\\smaltalk\\water\\.worktrees\\ac",
+      "exitCode": 0,
+      "stdout": "2026-10-25T06-55-13.856Z-index-recovery-27-stdout.log",
+      "stderr": "2026-10-25T06-55-13.856Z-index-recovery-27-stderr.log"
+    },
+    {
+      "args": [
+        "rev-parse",
+        "HEAD"
+      ],
+      "cwd": "F:\\new\\smaltalk\\water\\.worktrees\\integration-ac-20261025",
+      "exitCode": 0,
+      "stdout": "2026-10-25T06-55-13.856Z-index-recovery-28-stdout.log",
+      "stderr": "2026-10-25T06-55-13.856Z-index-recovery-28-stderr.log"
+    }
+  ],
+  "includedBaselineFiles": [
+    ".gitattributes",
+    "docs/acceptance/wave1/ac/.gitattributes"
+  ],
+  "emptyIndexInitializedWithoutAAContent": true,
+  "after": "b4178355bbb135ca689fa3924ea267e313184941",
+  "status": "passed",
+  "workerProductAnd479ArchiveBytesPreserved": true,
+  "frozenUniqueFiles": 547,
+  "endedAt": "2026-10-25T06:55:39.995Z"
+}

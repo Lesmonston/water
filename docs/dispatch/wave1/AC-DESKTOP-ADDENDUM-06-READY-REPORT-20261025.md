@@ -1,5 +1,7 @@
 # AC补充单06派前回执：固定事件根与唯一应用主窗
 
+已收口：06及AC已通过[Windows静态桌面验收并集成](../../acceptance/wave1/controller/WATER-W1-AC-ADDENDUM-06-REVIEW-20261025.md)，无需重贴。下列READY指令及一次窗口预算均为历史，四次worker allocation已用。
+
 2026-10-25，总控。**READY / baselineStatus=PASSED；只贴回原AC对话。** AC05诊断交付已接收，AC仍BLOCKED，native尚未通过。AD/AE和其它30任务/槽位保持，不重贴；没有自动执行者。
 
 05真实2根是Tauri主窗与tao0.37.2框架事件目标，旧Count>1严格失败保留。主窗正常exit0、无强制终止；页面四文案检查未到达，冻结childClose分支未执行。现有压缩包/锁/源码与tar成员已经独立核对，原425项/15,905,754字节证据及14产品文件保持。[05完整复核](../../acceptance/wave1/controller/WATER-W1-AC-ADDENDUM-05-REVIEW-20261025.md)。

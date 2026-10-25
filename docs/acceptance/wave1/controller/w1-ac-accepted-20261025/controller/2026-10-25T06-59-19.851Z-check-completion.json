@@ -1,0 +1,194 @@
+{
+  "startedAt": "2026-10-25T06:59:19.853Z",
+  "status": "passed",
+  "kind": "complete-replay-without-Rust-or-native-rerun",
+  "priorReceipt": "2026-10-25T06-56-24.714Z-31768-check-result.json",
+  "testedCommit": "b4178355bbb135ca689fa3924ea267e313184941",
+  "systemWindows": 0,
+  "newNativeRun": false,
+  "productChanges": [],
+  "originalPublicBoundaryTests": 3,
+  "independent": {
+    "actualEmbeddedAssetsVerified": true,
+    "configAccepted": 2,
+    "configRejected": 137,
+    "navigationAccepted": 24,
+    "navigationRejected": 73,
+    "status": "passed",
+    "systemWindows": 0
+  },
+  "productTestRerun": false,
+  "commands": [
+    {
+      "binary": "git",
+      "args": [
+        "-c",
+        "core.hooksPath=NUL",
+        "-c",
+        "core.fsmonitor=false",
+        "rev-parse",
+        "HEAD"
+      ],
+      "exitCode": 0,
+      "stdout": "2026-10-25T06-59-19.851Z-completion-0-stdout.log",
+      "stderr": "2026-10-25T06-59-19.851Z-completion-0-stderr.log"
+    },
+    {
+      "binary": "git",
+      "args": [
+        "-c",
+        "core.hooksPath=NUL",
+        "-c",
+        "core.fsmonitor=false",
+        "status",
+        "--porcelain",
+        "--untracked-files=all"
+      ],
+      "exitCode": 0,
+      "stdout": "2026-10-25T06-59-19.851Z-completion-1-stdout.log",
+      "stderr": "2026-10-25T06-59-19.851Z-completion-1-stderr.log"
+    },
+    {
+      "binary": "powershell.exe",
+      "args": [
+        "-NoProfile",
+        "-NonInteractive",
+        "-ExecutionPolicy",
+        "Bypass",
+        "-File",
+        "F:\\new\\smaltalk\\water\\scripts\\acceptance\\desktop-preview-receipt-replay-v2.ps1",
+        "-ControllerRoot",
+        "F:\\new\\smaltalk\\water",
+        "-IntegrationRoot",
+        "F:\\new\\smaltalk\\water\\.worktrees\\integration-ac-20261025"
+      ],
+      "exitCode": 0,
+      "stdout": "2026-10-25T06-59-19.851Z-completion-2-stdout.log",
+      "stderr": "2026-10-25T06-59-19.851Z-completion-2-stderr.log"
+    },
+    {
+      "binary": "git",
+      "args": [
+        "-c",
+        "core.hooksPath=NUL",
+        "-c",
+        "core.fsmonitor=false",
+        "status",
+        "--porcelain",
+        "--untracked-files=all"
+      ],
+      "exitCode": 0,
+      "stdout": "2026-10-25T06-59-19.851Z-completion-3-stdout.log",
+      "stderr": "2026-10-25T06-59-19.851Z-completion-3-stderr.log"
+    },
+    {
+      "binary": "git",
+      "args": [
+        "-c",
+        "core.hooksPath=NUL",
+        "-c",
+        "core.fsmonitor=false",
+        "rev-parse",
+        "HEAD"
+      ],
+      "exitCode": 0,
+      "stdout": "2026-10-25T06-59-19.851Z-completion-4-stdout.log",
+      "stderr": "2026-10-25T06-59-19.851Z-completion-4-stderr.log"
+    }
+  ],
+  "sourcePins": [
+    {
+      "path": "scripts/acceptance/desktop-preview-receipt-replay-v2.ps1",
+      "sha256": "70d54f67f70aa3514f0d82b5b964379ddda7e5a5ffec3287ee0b288ef1f5b76b"
+    },
+    {
+      "path": "scripts/acceptance/complete-ac-integration-check.mjs",
+      "sha256": "5b8e74910f0673c9314760066884edf11eb778e81775ac5987b480f74e260494"
+    }
+  ],
+  "nativeReceiptReplay": {
+    "status": "passed",
+    "kind": "recorded-native06-data-replay",
+    "decisions": [
+      {
+        "rawRootCount": 2,
+        "capturedCount": 2,
+        "applicationWindowCount": 1,
+        "frameworkEventTargetCount": 1,
+        "unclassifiedRootCount": 0,
+        "invalidRootCount": 0,
+        "mainIndex": 0,
+        "frameworkVerified": true,
+        "accepted": true,
+        "error": null
+      },
+      {
+        "rawRootCount": 2,
+        "capturedCount": 2,
+        "applicationWindowCount": 1,
+        "frameworkEventTargetCount": 1,
+        "unclassifiedRootCount": 0,
+        "invalidRootCount": 0,
+        "mainIndex": 0,
+        "frameworkVerified": true,
+        "accepted": true,
+        "error": null
+      }
+    ],
+    "sameMainIdentity": true,
+    "recordedFourTextsAccepted": true,
+    "rejectedMutations": [
+      {
+        "name": "unknown-root",
+        "accepted": false,
+        "error": "Unclassified own top-level root"
+      },
+      {
+        "name": "second-main",
+        "accepted": false,
+        "error": "Ambiguous own main window"
+      },
+      {
+        "name": "second-helper",
+        "accepted": false,
+        "error": "Unexpected framework event target count"
+      },
+      {
+        "name": "unreadable-root",
+        "accepted": false,
+        "error": "Own root metadata or process binding unavailable"
+      },
+      {
+        "name": "wrong-process",
+        "accepted": false,
+        "error": "Own root metadata or process binding unavailable"
+      }
+    ],
+    "missingTextNegatives": [
+      {
+        "missing": "Water",
+        "accepted": false
+      },
+      {
+        "missing": "桌面壳已启动",
+        "accepted": false
+      },
+      {
+        "missing": "尚未接入扫描",
+        "accepted": false
+      },
+      {
+        "missing": "只读开发预览",
+        "accepted": false
+      }
+    ],
+    "oldStrictPolicyStillRefuses": true,
+    "systemWindows": 0,
+    "UIAEnumeration": false,
+    "newNativeRun": false,
+    "parserErrors": 0
+  },
+  "actualMainStaticBindingsChecked": true,
+  "allProductBytesUnchanged": true,
+  "endedAt": "2026-10-25T06:59:21.410Z"
+}

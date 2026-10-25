@@ -1,7 +1,7 @@
 {
   "schemaVersion": 1,
   "wave": "water-wave1",
-  "status": "A_AB_AD_VERIFIED_AE_RESEARCH_VERIFIED_AC_ADDENDUM06_READY",
+  "status": "A_AD_WINDOWS_VERIFIED_AE_RESEARCH_VERIFIED",
   "controllerRoot": "F:/new/smaltalk/water",
   "controllerBranch": "main",
   "controller": "Codex",
@@ -2819,7 +2819,7 @@
     {
       "id": "WATER-W1-AC",
       "title": "Windows桌面依赖与最小只读壳",
-      "status": "BLOCKED",
+      "status": "VERIFIED",
       "slot": "ac",
       "worktree": "F:/new/smaltalk/water/.worktrees/ac",
       "branch": "worker/water-w1-ac",
@@ -2937,13 +2937,13 @@
       "baselineEvidence": "docs/acceptance/wave1/controller/w1-delivery-preflight-20261023/ac/2026-10-23T02-36-00.416Z-34364-baseline-result.json",
       "preflightEvidence": "docs/dispatch/wave1/DELIVERY-WAVE-READY-REPORT-20261023.md",
       "readyOn": "2026-10-23",
-      "submittedCommit": "8a3b475918684a18be318415a9f7a54470c916b8",
+      "submittedCommit": "29a895d7efa7f4a547d23ff74eb92729740d289d",
       "partialSourceCommit": "b617b90182d54053091910b8b4e889dd7f614a7d",
-      "productTestedCommit": null,
+      "productTestedCommit": "b4178355bbb135ca689fa3924ea267e313184941",
       "activityEvidence": "Original clean blocked receipt ef0b7c4, fail-closed skeleton b617b90, baseline passed, two known dependency failures plus two incomplete attempts; no lock/product tests/native window.",
       "blockedReportSource": "F:/new/smaltalk/water/.worktrees/ac/docs/dispatch/reports/WATER-W1-AC-REPORT.md",
       "revisionReport": "docs/dispatch/reports/WATER-W1-AC-ADDENDUM-06-REPORT.md",
-      "revisionDispatchStatus": "READY",
+      "revisionDispatchStatus": "VERIFIED",
       "addendum01": {
         "status": "BLOCKED",
         "ticket": "docs/dispatch/tickets/WATER-W1-AC-ADDENDUM-01-20261023.md",
@@ -2977,10 +2977,10 @@
         "docs/dispatch/tickets/WATER-W1-AC-ADDENDUM-05-20261024.md",
         "docs/dispatch/tickets/WATER-W1-AC-ADDENDUM-06-20261025.md"
       ],
-      "controllerReview": "docs/acceptance/wave1/controller/WATER-W1-AC-ADDENDUM-05-REVIEW-20261025.md",
+      "controllerReview": "docs/acceptance/wave1/controller/WATER-W1-AC-ADDENDUM-06-REVIEW-20261025.md",
       "blockedReviewedAt": "2026-10-25T05:59:30.877Z",
-      "environmentStatus": "PINNED_TAO_COUNT_CONTRACT_REVISED_NATIVE_PENDING",
-      "verificationScope": "05 strict raw Count2 failed; complete main plus fixed Tao target identified, main normal exit0, page not reached and frozen child-close not run. New explicit window-count contract, 41 synthetic cases, four main bindings, historical replay, four text omissions, exact framework and clean resume passed without live UIA/product. Native remains pending.",
+      "environmentStatus": "WINDOWS_STATIC_DESKTOP_VERIFIED_OFFLINE",
+      "verificationScope": "Windows static desktop bootstrap only: worker native06 at8a3b475, both raw2/main1/pinnedTao1/unknown0 snapshots, four texts, normal exit0/private profile/frozen child-close, 5510ms; unchanged14 bytes integrated atb417835. Controller independently rebuilt public lib with cached read-only serde deps using Rustc1.95, three original tests, 137 configuration and73 navigation reject cases plus26 positives; actual native data replay only. No new controller native, Cargo/Tauri build, scans, AA/AD integration, real user scope, production races, macOS or M1.",
       "addendum02": {
         "status": "BLOCKED",
         "ticket": "docs/dispatch/tickets/WATER-W1-AC-ADDENDUM-02-20261024.md",
@@ -3126,7 +3126,7 @@
         "supersededBy": "docs/dispatch/tickets/WATER-W1-AC-ADDENDUM-06-20261025.md"
       },
       "addendum06": {
-        "status": "READY",
+        "status": "VERIFIED",
         "ticket": "docs/dispatch/tickets/WATER-W1-AC-ADDENDUM-06-20261025.md",
         "report": "docs/dispatch/reports/WATER-W1-AC-ADDENDUM-06-REPORT.md",
         "evidencePrefix": "docs/acceptance/wave1/ac/addendum-06/",
@@ -3138,7 +3138,7 @@
         "helperAuthority": "Controller absolute path only; no copy or merge into AC",
         "baselineStatus": "PASSED",
         "additionalStaticWindowBudget": 1,
-        "additionalStaticWindowBudgetRemaining": 1,
+        "additionalStaticWindowBudgetRemaining": 0,
         "previousStaticWindowsUsed": 3,
         "totalStaticWindowAllocations": 4,
         "nativeDirectoryDialogs": 0,
@@ -3158,7 +3158,74 @@
         "resumeEvidence": "docs/acceptance/wave1/controller/w1-ac-window-20261025/preflight/2026-10-25T05-57-56.671Z-23648-resume-result.json",
         "preflightEvidence": "docs/dispatch/wave1/AC-DESKTOP-ADDENDUM-06-READY-REPORT-20261025.md",
         "baselineMeaning": "No-UI ASCII/Parser, ten static UIA property bindings, 41 classification boundaries, four main-identity checks, historical05 root replay, four text omissions, pinned tar/member/source check, frozen/source/proof and clean resume. Not a new native/page/exit pass.",
-        "systemWindowsUsed": 0
+        "systemWindowsUsed": 1,
+        "submittedCommit": "29a895d7efa7f4a547d23ff74eb92729740d289d",
+        "native": "PASSED",
+        "nativeTestedCommit": "8a3b475918684a18be318415a9f7a54470c916b8",
+        "windowAttemptsUsed": 1,
+        "bothSnapshotsAccepted": true,
+        "pageVerified": true,
+        "normalMainExitVerified": true,
+        "childCloseGatePassed": true,
+        "controllerReview": "docs/acceptance/wave1/controller/WATER-W1-AC-ADDENDUM-06-REVIEW-20261025.md",
+        "verifiedAt": "2026-10-25T07:05:13.122Z"
+      },
+      "controllerTestedCommit": "b4178355bbb135ca689fa3924ea267e313184941",
+      "integratedCommit": "b4178355bbb135ca689fa3924ea267e313184941",
+      "nativeTestedCommit": "8a3b475918684a18be318415a9f7a54470c916b8",
+      "verifiedAt": "2026-10-25T07:05:13.122Z",
+      "verifiedOn": "2026-10-25",
+      "nativeWindowAllocationsUsed": 4,
+      "nativeWindowBudgetRemaining": 0,
+      "controllerSystemWindowsUsed": 0,
+      "realMacOSExecuted": false,
+      "workerArchives": [
+        {
+          "index": "docs/acceptance/wave1/ac/ARCHIVE.json",
+          "files": 46,
+          "bytes": 77278,
+          "indexSha256": "fe4f7f41b6cac3ec032fcf3fe2ae9565005152322b57847779e90196c06f9619",
+          "sourceArchiveGitEqual": true
+        },
+        {
+          "index": "docs/acceptance/wave1/ac/addendum-02/ARCHIVE.json",
+          "files": 189,
+          "bytes": 10666362,
+          "indexSha256": "2402c0eca152e5c12761324c2812ce98aac0757adfb6cd3d825c2537780a5b9a",
+          "sourceArchiveGitEqual": true
+        },
+        {
+          "index": "docs/acceptance/wave1/ac/addendum-03/ARCHIVE.json",
+          "files": 88,
+          "bytes": 4518684,
+          "indexSha256": "7e3dd1840d321faf8bf0189ce4061642df91a4847700b7e3448733b44fdbf925",
+          "sourceArchiveGitEqual": true
+        },
+        {
+          "index": "docs/acceptance/wave1/ac/addendum-04/ARCHIVE.json",
+          "files": 51,
+          "bytes": 295246,
+          "indexSha256": "a0a6dbae0b32a54b853616c01935c4f6cb9e1b837ebcd307ea5a3bb68352337b",
+          "sourceArchiveGitEqual": true
+        },
+        {
+          "index": "docs/acceptance/wave1/ac/addendum-05/ARCHIVE.json",
+          "files": 51,
+          "bytes": 348184,
+          "indexSha256": "c81343a0666e8b6a0c8bd5e63a52eb5d698c82645270e1ab4044fe40cb632db7",
+          "sourceArchiveGitEqual": true
+        },
+        {
+          "index": "docs/acceptance/wave1/ac/addendum-06/ARCHIVE.json",
+          "files": 54,
+          "bytes": 387337,
+          "indexSha256": "0213a6c3ba8bf676ca76b41283eaba264e3525e772ce5d0ca7b6f68b450f8fe2",
+          "sourceArchiveGitEqual": true
+        }
+      ],
+      "workerArchiveSummary": {
+        "files": 479,
+        "bytes": 16293091
       }
     },
     {

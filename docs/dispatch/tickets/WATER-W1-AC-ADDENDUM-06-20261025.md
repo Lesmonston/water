@@ -1,5 +1,7 @@
 # WATER-W1-AC 补充单06：按精确框架身份完成静态主窗验收
 
+当前（2026-10-25）：VERIFIED（仅Windows静态桌面基础），已隔离验收并集成；无需重贴或运行以下旧入口。[总控验收](../../acceptance/wave1/controller/WATER-W1-AC-ADDENDUM-06-REVIEW-20261025.md)为最新结果，下列READY/命令均为历史。
+
 当前：READY / baselineStatus=PASSED；冻结无UI预检及精确干净resume实际通过，0窗口/0构建/0依赖下载。正式派前回执已保存，可由用户外贴执行。本单只回原AC对话，05已交回且三次窗口allocation已用，不能重跑03/04/05。
 
 2026-10-25，总控。05受阻已审计：两个完整自有根为Tauri主窗和固定Tao事件目标，旧Count2确实失败；主窗正常exit0，页面四文案未观察、冻结childClose分支未跑。[05总控复核](../../acceptance/wave1/controller/WATER-W1-AC-ADDENDUM-05-REVIEW-20261025.md)与[06派前回执](../wave1/AC-DESKTOP-ADDENDUM-06-READY-REPORT-20261025.md)为本单依据。

@@ -1,0 +1,196 @@
+docs/acceptance/wave1/controller/w1-ac-accepted-20261025/controller/2026-10-25T06-56-24.714Z-31768-check-14-stdout.log:8: new blank line at EOF.
+docs/acceptance/wave1/controller/w1-ac-accepted-20261025/controller/2026-10-25T06-56-24.714Z-31768-check-17-stderr.log:1: trailing whitespace.
++F:\new\smaltalk\water\scripts\acceptance\desktop-preview-receipt-replay.ps1 : The property 'className' cannot be found 
+docs/acceptance/wave1/controller/w1-ac-accepted-20261025/controller/2026-10-25T06-56-24.714Z-31768-check-17-stderr.log:2: trailing whitespace.
++on this object. Verify that the property exists and can be set.
+docs/acceptance/wave1/controller/w1-ac-accepted-20261025/controller/2026-10-25T06-56-24.714Z-31768-check-17-stderr.log:3: trailing whitespace.
++    + CategoryInfo          : InvalidOperation: (:) [desktop-preview-receipt-replay.ps1], RuntimeException
+docs/acceptance/wave1/controller/w1-ac-accepted-20261025/controller/2026-10-25T06-56-24.714Z-31768-check-17-stderr.log:4: trailing whitespace.
++    + FullyQualifiedErrorId : PropertyNotFound,desktop-preview-receipt-replay.ps1
+docs/acceptance/wave1/controller/w1-ac-accepted-20261025/controller/2026-10-25T06-56-24.714Z-31768-check-17-stderr.log:5: trailing whitespace.
++ 
+docs/acceptance/wave1/controller/w1-ac-accepted-20261025/controller/2026-10-25T06-56-24.714Z-31768-check-17-stderr.log:5: new blank line at EOF.
+docs/acceptance/wave1/controller/w1-ac-accepted-20261025/controller/2026-10-25T06-59-19.851Z-completion-2-stdout.log:1: trailing whitespace.
++{"status":"passed","kind":"recorded-native06-data-replay","decisions":[{"rawRootCount":2,"capturedCount":2,"applicationWindowCount":1,"frameworkEventTargetCount":1,"unclassifiedRootCount":0,"invalidRootCount":0,"mainIndex":0,"frameworkVerified":true,"accepted":true,"error":null},{"rawRootCount":2,"capturedCount":2,"applicationWindowCount":1,"frameworkEventTargetCount":1,"unclassifiedRootCount":0,"invalidRootCount":0,"mainIndex":0,"frameworkVerified":true,"accepted":true,"error":null}],"sameMainIdentity":true,"recordedFourTextsAccepted":true,"rejectedMutations":[{"name":"unknown-root","accepted":false,"error":"Unclassified own top-level root"},{"name":"second-main","accepted":false,"error":"Ambiguous own main window"},{"name":"second-helper","accepted":false,"error":"Unexpected framework event target count"},{"name":"unreadable-root","accepted":false,"error":"Own root metadata or process binding unavailable"},{"name":"wrong-process","accepted":false,"error":"Own root metadata or process binding unavailable"}],"missingTextNegatives":[{"missing":"Water","accepted":false},{"missing":"桌面壳已启动","accepted":false},{"missing":"尚未接入扫描","accepted":false},{"missing":"只读开发预览","accepted":false}],"oldStrictPolicyStillRefuses":true,"systemWindows":0,"UIAEnumeration":false,"newNativeRun":false,"parserErrors":0}
+docs/acceptance/wave1/controller/w1-ac-accepted-20261025/sources/scripts/acceptance/desktop-preview-receipt-replay-v2.ps1.txt:1: trailing whitespace.
++# Replay saved native06 data through frozen pure policies; never enumerate UIA.
+docs/acceptance/wave1/controller/w1-ac-accepted-20261025/sources/scripts/acceptance/desktop-preview-receipt-replay-v2.ps1.txt:2: trailing whitespace.
++param([Parameter(Mandatory=$true)][string]$ControllerRoot,[Parameter(Mandatory=$true)][string]$IntegrationRoot)
+docs/acceptance/wave1/controller/w1-ac-accepted-20261025/sources/scripts/acceptance/desktop-preview-receipt-replay-v2.ps1.txt:3: trailing whitespace.
++$ErrorActionPreference = 'Stop'
+docs/acceptance/wave1/controller/w1-ac-accepted-20261025/sources/scripts/acceptance/desktop-preview-receipt-replay-v2.ps1.txt:4: trailing whitespace.
++[Console]::OutputEncoding = New-Object Text.UTF8Encoding($false)
+docs/acceptance/wave1/controller/w1-ac-accepted-20261025/sources/scripts/acceptance/desktop-preview-receipt-replay-v2.ps1.txt:5: trailing whitespace.
++. (Join-Path $ControllerRoot 'scripts/acceptance/desktop-native-window-policy.ps1')
+docs/acceptance/wave1/controller/w1-ac-accepted-20261025/sources/scripts/acceptance/desktop-preview-receipt-replay-v2.ps1.txt:6: trailing whitespace.
++. (Join-Path $ControllerRoot 'scripts/acceptance/desktop-native-root-policy.ps1')
+docs/acceptance/wave1/controller/w1-ac-accepted-20261025/sources/scripts/acceptance/desktop-preview-receipt-replay-v2.ps1.txt:7: trailing whitespace.
++. (Join-Path $ControllerRoot 'scripts/acceptance/desktop-native-text-policy.ps1')
+docs/acceptance/wave1/controller/w1-ac-accepted-20261025/sources/scripts/acceptance/desktop-preview-receipt-replay-v2.ps1.txt:8: trailing whitespace.
++$path = Join-Path $IntegrationRoot 'docs/acceptance/wave1/ac/addendum-06/raw/2026-10-25T06-21-48.141Z-42780-uia.txt'
+docs/acceptance/wave1/controller/w1-ac-accepted-20261025/sources/scripts/acceptance/desktop-preview-receipt-replay-v2.ps1.txt:9: trailing whitespace.
++$record = [IO.File]::ReadAllText($path,[Text.Encoding]::UTF8) | ConvertFrom-Json
+docs/acceptance/wave1/controller/w1-ac-accepted-20261025/sources/scripts/acceptance/desktop-preview-receipt-replay-v2.ps1.txt:10: trailing whitespace.
++$decisions = @()
+docs/acceptance/wave1/controller/w1-ac-accepted-20261025/sources/scripts/acceptance/desktop-preview-receipt-replay-v2.ps1.txt:11: trailing whitespace.
++foreach ($snapshot in @($record.initialSnapshot,$record.preCloseSnapshot)) {
+docs/acceptance/wave1/controller/w1-ac-accepted-20261025/sources/scripts/acceptance/desktop-preview-receipt-replay-v2.ps1.txt:12: trailing whitespace.
++    $actual = Resolve-WaterDesktopWindowSnapshot -Roots $snapshot.roots -ReportedCount $snapshot.rawRootCount -ExpectedProcessId $record.processId -FrameworkVerified $true
+docs/acceptance/wave1/controller/w1-ac-accepted-20261025/sources/scripts/acceptance/desktop-preview-receipt-replay-v2.ps1.txt:13: trailing whitespace.
++    $old = Resolve-WaterDesktopRootSnapshot -Roots $snapshot.roots -ReportedCount $snapshot.rawRootCount -ExpectedProcessId $record.processId
+docs/acceptance/wave1/controller/w1-ac-accepted-20261025/sources/scripts/acceptance/desktop-preview-receipt-replay-v2.ps1.txt:14: trailing whitespace.
++    if (!$actual.accepted -or $old.accepted -or $actual.rawRootCount -ne 2 -or $actual.applicationWindowCount -ne 1 -or $actual.frameworkEventTargetCount -ne 1) { throw 'Recorded snapshot replay mismatch' }
+docs/acceptance/wave1/controller/w1-ac-accepted-20261025/sources/scripts/acceptance/desktop-preview-receipt-replay-v2.ps1.txt:15: trailing whitespace.
++    $decisions += $actual
+docs/acceptance/wave1/controller/w1-ac-accepted-20261025/sources/scripts/acceptance/desktop-preview-receipt-replay-v2.ps1.txt:16: trailing whitespace.
++}
+docs/acceptance/wave1/controller/w1-ac-accepted-20261025/sources/scripts/acceptance/desktop-preview-receipt-replay-v2.ps1.txt:17: trailing whitespace.
++$first = $record.initialSnapshot.roots[$decisions[0].mainIndex]
+docs/acceptance/wave1/controller/w1-ac-accepted-20261025/sources/scripts/acceptance/desktop-preview-receipt-replay-v2.ps1.txt:18: trailing whitespace.
++$last = $record.preCloseSnapshot.roots[$decisions[1].mainIndex]
+docs/acceptance/wave1/controller/w1-ac-accepted-20261025/sources/scripts/acceptance/desktop-preview-receipt-replay-v2.ps1.txt:19: trailing whitespace.
++if (!(Test-WaterDesktopMainBinding -Before $first -After $last)) { throw 'Recorded main identity mismatch' }
+docs/acceptance/wave1/controller/w1-ac-accepted-20261025/sources/scripts/acceptance/desktop-preview-receipt-replay-v2.ps1.txt:20: trailing whitespace.
++if (!(Test-WaterDesktopPageText -Names $record.names)) { throw 'Actual recorded text rejected' }
+docs/acceptance/wave1/controller/w1-ac-accepted-20261025/sources/scripts/acceptance/desktop-preview-receipt-replay-v2.ps1.txt:21: trailing whitespace.
++$mutations = @()
+docs/acceptance/wave1/controller/w1-ac-accepted-20261025/sources/scripts/acceptance/desktop-preview-receipt-replay-v2.ps1.txt:22: trailing whitespace.
++foreach ($kind in @('unknown-root','second-main','second-helper','unreadable-root','wrong-process')) {
+docs/acceptance/wave1/controller/w1-ac-accepted-20261025/sources/scripts/acceptance/desktop-preview-receipt-replay-v2.ps1.txt:23: trailing whitespace.
++    $rows = @()
+docs/acceptance/wave1/controller/w1-ac-accepted-20261025/sources/scripts/acceptance/desktop-preview-receipt-replay-v2.ps1.txt:24: trailing whitespace.
++    foreach ($row in $record.initialSnapshot.roots) { $rows += ($row | ConvertTo-Json -Depth 8 | ConvertFrom-Json) }
+docs/acceptance/wave1/controller/w1-ac-accepted-20261025/sources/scripts/acceptance/desktop-preview-receipt-replay-v2.ps1.txt:25: trailing whitespace.
++    if ($kind -eq 'unknown-root') { $rows[1].className = 'Unknown' }
+docs/acceptance/wave1/controller/w1-ac-accepted-20261025/sources/scripts/acceptance/desktop-preview-receipt-replay-v2.ps1.txt:26: trailing whitespace.
++    elseif ($kind -eq 'unreadable-root') { $rows[1].readError = 'unavailable' }
+docs/acceptance/wave1/controller/w1-ac-accepted-20261025/sources/scripts/acceptance/desktop-preview-receipt-replay-v2.ps1.txt:27: trailing whitespace.
++    elseif ($kind -eq 'wrong-process') { $rows[1].processId = 12345 }
+docs/acceptance/wave1/controller/w1-ac-accepted-20261025/sources/scripts/acceptance/desktop-preview-receipt-replay-v2.ps1.txt:28: trailing whitespace.
++    else {
+docs/acceptance/wave1/controller/w1-ac-accepted-20261025/sources/scripts/acceptance/desktop-preview-receipt-replay-v2.ps1.txt:29: trailing whitespace.
++        $index = $(if ($kind -eq 'second-main') { 0 } else { 1 })
+docs/acceptance/wave1/controller/w1-ac-accepted-20261025/sources/scripts/acceptance/desktop-preview-receipt-replay-v2.ps1.txt:30: trailing whitespace.
++        $extra = $record.initialSnapshot.roots[$index] | ConvertTo-Json -Depth 8 | ConvertFrom-Json
+docs/acceptance/wave1/controller/w1-ac-accepted-20261025/sources/scripts/acceptance/desktop-preview-receipt-replay-v2.ps1.txt:31: trailing whitespace.
++        $extra.nativeHandle = 123456; $extra.runtimeId = @(42,123456); $rows += $extra
+docs/acceptance/wave1/controller/w1-ac-accepted-20261025/sources/scripts/acceptance/desktop-preview-receipt-replay-v2.ps1.txt:32: trailing whitespace.
++    }
+docs/acceptance/wave1/controller/w1-ac-accepted-20261025/sources/scripts/acceptance/desktop-preview-receipt-replay-v2.ps1.txt:33: trailing whitespace.
++    $decision = Resolve-WaterDesktopWindowSnapshot -Roots $rows -ReportedCount $rows.Count -ExpectedProcessId $record.processId -FrameworkVerified $true
+docs/acceptance/wave1/controller/w1-ac-accepted-20261025/sources/scripts/acceptance/desktop-preview-receipt-replay-v2.ps1.txt:34: trailing whitespace.
++    if ($decision.accepted) { throw ('Unsafe recorded-data mutation accepted: ' + $kind) }
+docs/acceptance/wave1/controller/w1-ac-accepted-20261025/sources/scripts/acceptance/desktop-preview-receipt-replay-v2.ps1.txt:35: trailing whitespace.
++    $mutations += [ordered]@{ name=$kind; accepted=$decision.accepted; error=$decision.error }
+docs/acceptance/wave1/controller/w1-ac-accepted-20261025/sources/scripts/acceptance/desktop-preview-receipt-replay-v2.ps1.txt:36: trailing whitespace.
++}
+docs/acceptance/wave1/controller/w1-ac-accepted-20261025/sources/scripts/acceptance/desktop-preview-receipt-replay-v2.ps1.txt:37: trailing whitespace.
++$omissions = @()
+docs/acceptance/wave1/controller/w1-ac-accepted-20261025/sources/scripts/acceptance/desktop-preview-receipt-replay-v2.ps1.txt:38: trailing whitespace.
++foreach ($required in @(Get-WaterDesktopRequiredText)) {
+docs/acceptance/wave1/controller/w1-ac-accepted-20261025/sources/scripts/acceptance/desktop-preview-receipt-replay-v2.ps1.txt:39: trailing whitespace.
++    $names = @($record.names | Where-Object { !$_.Contains($required) })
+docs/acceptance/wave1/controller/w1-ac-accepted-20261025/sources/scripts/acceptance/desktop-preview-receipt-replay-v2.ps1.txt:40: trailing whitespace.
++    if (Test-WaterDesktopPageText -Names $names) { throw 'Required text omission accepted' }
+docs/acceptance/wave1/controller/w1-ac-accepted-20261025/sources/scripts/acceptance/desktop-preview-receipt-replay-v2.ps1.txt:41: trailing whitespace.
++    $omissions += [ordered]@{ missing=$required; accepted=$false }
+docs/acceptance/wave1/controller/w1-ac-accepted-20261025/sources/scripts/acceptance/desktop-preview-receipt-replay-v2.ps1.txt:42: trailing whitespace.
++}
+docs/acceptance/wave1/controller/w1-ac-accepted-20261025/sources/scripts/acceptance/desktop-preview-receipt-replay-v2.ps1.txt:43: trailing whitespace.
++$tokens = $null; $errors = $null
+docs/acceptance/wave1/controller/w1-ac-accepted-20261025/sources/scripts/acceptance/desktop-preview-receipt-replay-v2.ps1.txt:44: trailing whitespace.
++$null = [System.Management.Automation.Language.Parser]::ParseFile($PSCommandPath,[ref]$tokens,[ref]$errors)
+docs/acceptance/wave1/controller/w1-ac-accepted-20261025/sources/scripts/acceptance/desktop-preview-receipt-replay-v2.ps1.txt:45: trailing whitespace.
++if (@($errors).Count -gt 0) { throw 'Replay script parse failure' }
+docs/acceptance/wave1/controller/w1-ac-accepted-20261025/sources/scripts/acceptance/desktop-preview-receipt-replay-v2.ps1.txt:46: trailing whitespace.
++[ordered]@{ status='passed'; kind='recorded-native06-data-replay'; decisions=$decisions; sameMainIdentity=$true; recordedFourTextsAccepted=$true; rejectedMutations=$mutations; missingTextNegatives=$omissions; oldStrictPolicyStillRefuses=$true; systemWindows=0; UIAEnumeration=$false; newNativeRun=$false; parserErrors=0 } | ConvertTo-Json -Depth 10 -Compress
+docs/acceptance/wave1/controller/w1-ac-accepted-20261025/sources/scripts/acceptance/desktop-preview-receipt-replay.ps1.txt:1: trailing whitespace.
++# Replay saved native06 data through frozen pure policies; never enumerate UIA.
+docs/acceptance/wave1/controller/w1-ac-accepted-20261025/sources/scripts/acceptance/desktop-preview-receipt-replay.ps1.txt:2: trailing whitespace.
++param([Parameter(Mandatory=$true)][string]$ControllerRoot,[Parameter(Mandatory=$true)][string]$IntegrationRoot)
+docs/acceptance/wave1/controller/w1-ac-accepted-20261025/sources/scripts/acceptance/desktop-preview-receipt-replay.ps1.txt:3: trailing whitespace.
++$ErrorActionPreference = 'Stop'
+docs/acceptance/wave1/controller/w1-ac-accepted-20261025/sources/scripts/acceptance/desktop-preview-receipt-replay.ps1.txt:4: trailing whitespace.
++[Console]::OutputEncoding = New-Object Text.UTF8Encoding($false)
+docs/acceptance/wave1/controller/w1-ac-accepted-20261025/sources/scripts/acceptance/desktop-preview-receipt-replay.ps1.txt:5: trailing whitespace.
++. (Join-Path $ControllerRoot 'scripts/acceptance/desktop-native-window-policy.ps1')
+docs/acceptance/wave1/controller/w1-ac-accepted-20261025/sources/scripts/acceptance/desktop-preview-receipt-replay.ps1.txt:6: trailing whitespace.
++. (Join-Path $ControllerRoot 'scripts/acceptance/desktop-native-root-policy.ps1')
+docs/acceptance/wave1/controller/w1-ac-accepted-20261025/sources/scripts/acceptance/desktop-preview-receipt-replay.ps1.txt:7: trailing whitespace.
++. (Join-Path $ControllerRoot 'scripts/acceptance/desktop-native-text-policy.ps1')
+docs/acceptance/wave1/controller/w1-ac-accepted-20261025/sources/scripts/acceptance/desktop-preview-receipt-replay.ps1.txt:8: trailing whitespace.
++$path = Join-Path $IntegrationRoot 'docs/acceptance/wave1/ac/addendum-06/raw/2026-10-25T06-21-48.141Z-42780-uia.txt'
+docs/acceptance/wave1/controller/w1-ac-accepted-20261025/sources/scripts/acceptance/desktop-preview-receipt-replay.ps1.txt:9: trailing whitespace.
++$record = [IO.File]::ReadAllText($path,[Text.Encoding]::UTF8) | ConvertFrom-Json
+docs/acceptance/wave1/controller/w1-ac-accepted-20261025/sources/scripts/acceptance/desktop-preview-receipt-replay.ps1.txt:10: trailing whitespace.
++$decisions = @()
+docs/acceptance/wave1/controller/w1-ac-accepted-20261025/sources/scripts/acceptance/desktop-preview-receipt-replay.ps1.txt:11: trailing whitespace.
++foreach ($snapshot in @($record.initialSnapshot,$record.preCloseSnapshot)) {
+docs/acceptance/wave1/controller/w1-ac-accepted-20261025/sources/scripts/acceptance/desktop-preview-receipt-replay.ps1.txt:12: trailing whitespace.
++    $actual = Resolve-WaterDesktopWindowSnapshot -Roots $snapshot.roots -ReportedCount $snapshot.rawRootCount -ExpectedProcessId $record.processId -FrameworkVerified $true
+docs/acceptance/wave1/controller/w1-ac-accepted-20261025/sources/scripts/acceptance/desktop-preview-receipt-replay.ps1.txt:13: trailing whitespace.
++    $old = Resolve-WaterDesktopRootSnapshot -Roots $snapshot.roots -ReportedCount $snapshot.rawRootCount -ExpectedProcessId $record.processId
+docs/acceptance/wave1/controller/w1-ac-accepted-20261025/sources/scripts/acceptance/desktop-preview-receipt-replay.ps1.txt:14: trailing whitespace.
++    if (!$actual.accepted -or $old.accepted -or $actual.rawRootCount -ne 2 -or $actual.applicationWindowCount -ne 1 -or $actual.frameworkEventTargetCount -ne 1) { throw 'Recorded snapshot replay mismatch' }
+docs/acceptance/wave1/controller/w1-ac-accepted-20261025/sources/scripts/acceptance/desktop-preview-receipt-replay.ps1.txt:15: trailing whitespace.
++    $decisions += $actual
+docs/acceptance/wave1/controller/w1-ac-accepted-20261025/sources/scripts/acceptance/desktop-preview-receipt-replay.ps1.txt:16: trailing whitespace.
++}
+docs/acceptance/wave1/controller/w1-ac-accepted-20261025/sources/scripts/acceptance/desktop-preview-receipt-replay.ps1.txt:17: trailing whitespace.
++$first = $record.initialSnapshot.roots[$decisions[0].mainIndex]
+docs/acceptance/wave1/controller/w1-ac-accepted-20261025/sources/scripts/acceptance/desktop-preview-receipt-replay.ps1.txt:18: trailing whitespace.
++$last = $record.preCloseSnapshot.roots[$decisions[1].mainIndex]
+docs/acceptance/wave1/controller/w1-ac-accepted-20261025/sources/scripts/acceptance/desktop-preview-receipt-replay.ps1.txt:19: trailing whitespace.
++if (!(Test-WaterDesktopMainBinding -Before $first -After $last)) { throw 'Recorded main identity mismatch' }
+docs/acceptance/wave1/controller/w1-ac-accepted-20261025/sources/scripts/acceptance/desktop-preview-receipt-replay.ps1.txt:20: trailing whitespace.
++if (!(Test-WaterDesktopPageText -Names $record.names)) { throw 'Actual recorded text rejected' }
+docs/acceptance/wave1/controller/w1-ac-accepted-20261025/sources/scripts/acceptance/desktop-preview-receipt-replay.ps1.txt:21: trailing whitespace.
++$mutations = @()
+docs/acceptance/wave1/controller/w1-ac-accepted-20261025/sources/scripts/acceptance/desktop-preview-receipt-replay.ps1.txt:22: trailing whitespace.
++foreach ($kind in @('unknown-root','second-main','second-helper','unreadable-root','wrong-process')) {
+docs/acceptance/wave1/controller/w1-ac-accepted-20261025/sources/scripts/acceptance/desktop-preview-receipt-replay.ps1.txt:23: trailing whitespace.
++    $rows = @($record.initialSnapshot.roots | ConvertTo-Json -Depth 8 | ConvertFrom-Json)
+docs/acceptance/wave1/controller/w1-ac-accepted-20261025/sources/scripts/acceptance/desktop-preview-receipt-replay.ps1.txt:24: trailing whitespace.
++    if ($kind -eq 'unknown-root') { $rows[1].className = 'Unknown' }
+docs/acceptance/wave1/controller/w1-ac-accepted-20261025/sources/scripts/acceptance/desktop-preview-receipt-replay.ps1.txt:25: trailing whitespace.
++    elseif ($kind -eq 'unreadable-root') { $rows[1].readError = 'unavailable' }
+docs/acceptance/wave1/controller/w1-ac-accepted-20261025/sources/scripts/acceptance/desktop-preview-receipt-replay.ps1.txt:26: trailing whitespace.
++    elseif ($kind -eq 'wrong-process') { $rows[1].processId = 12345 }
+docs/acceptance/wave1/controller/w1-ac-accepted-20261025/sources/scripts/acceptance/desktop-preview-receipt-replay.ps1.txt:27: trailing whitespace.
++    else {
+docs/acceptance/wave1/controller/w1-ac-accepted-20261025/sources/scripts/acceptance/desktop-preview-receipt-replay.ps1.txt:28: trailing whitespace.
++        $index = $(if ($kind -eq 'second-main') { 0 } else { 1 })
+docs/acceptance/wave1/controller/w1-ac-accepted-20261025/sources/scripts/acceptance/desktop-preview-receipt-replay.ps1.txt:29: trailing whitespace.
++        $extra = $record.initialSnapshot.roots[$index] | ConvertTo-Json -Depth 8 | ConvertFrom-Json
+docs/acceptance/wave1/controller/w1-ac-accepted-20261025/sources/scripts/acceptance/desktop-preview-receipt-replay.ps1.txt:30: trailing whitespace.
++        $extra.nativeHandle = 123456; $extra.runtimeId = @(42,123456); $rows += $extra
+docs/acceptance/wave1/controller/w1-ac-accepted-20261025/sources/scripts/acceptance/desktop-preview-receipt-replay.ps1.txt:31: trailing whitespace.
++    }
+docs/acceptance/wave1/controller/w1-ac-accepted-20261025/sources/scripts/acceptance/desktop-preview-receipt-replay.ps1.txt:32: trailing whitespace.
++    $decision = Resolve-WaterDesktopWindowSnapshot -Roots $rows -ReportedCount $rows.Count -ExpectedProcessId $record.processId -FrameworkVerified $true
+docs/acceptance/wave1/controller/w1-ac-accepted-20261025/sources/scripts/acceptance/desktop-preview-receipt-replay.ps1.txt:33: trailing whitespace.
++    if ($decision.accepted) { throw ('Unsafe recorded-data mutation accepted: ' + $kind) }
+docs/acceptance/wave1/controller/w1-ac-accepted-20261025/sources/scripts/acceptance/desktop-preview-receipt-replay.ps1.txt:34: trailing whitespace.
++    $mutations += [ordered]@{ name=$kind; accepted=$decision.accepted; error=$decision.error }
+docs/acceptance/wave1/controller/w1-ac-accepted-20261025/sources/scripts/acceptance/desktop-preview-receipt-replay.ps1.txt:35: trailing whitespace.
++}
+docs/acceptance/wave1/controller/w1-ac-accepted-20261025/sources/scripts/acceptance/desktop-preview-receipt-replay.ps1.txt:36: trailing whitespace.
++$omissions = @()
+docs/acceptance/wave1/controller/w1-ac-accepted-20261025/sources/scripts/acceptance/desktop-preview-receipt-replay.ps1.txt:37: trailing whitespace.
++foreach ($required in @(Get-WaterDesktopRequiredText)) {
+docs/acceptance/wave1/controller/w1-ac-accepted-20261025/sources/scripts/acceptance/desktop-preview-receipt-replay.ps1.txt:38: trailing whitespace.
++    $names = @($record.names | Where-Object { !$_.Contains($required) })
+docs/acceptance/wave1/controller/w1-ac-accepted-20261025/sources/scripts/acceptance/desktop-preview-receipt-replay.ps1.txt:39: trailing whitespace.
++    if (Test-WaterDesktopPageText -Names $names) { throw 'Required text omission accepted' }
+docs/acceptance/wave1/controller/w1-ac-accepted-20261025/sources/scripts/acceptance/desktop-preview-receipt-replay.ps1.txt:40: trailing whitespace.
++    $omissions += [ordered]@{ missing=$required; accepted=$false }
+docs/acceptance/wave1/controller/w1-ac-accepted-20261025/sources/scripts/acceptance/desktop-preview-receipt-replay.ps1.txt:41: trailing whitespace.
++}
+docs/acceptance/wave1/controller/w1-ac-accepted-20261025/sources/scripts/acceptance/desktop-preview-receipt-replay.ps1.txt:42: trailing whitespace.
++$tokens = $null; $errors = $null
+docs/acceptance/wave1/controller/w1-ac-accepted-20261025/sources/scripts/acceptance/desktop-preview-receipt-replay.ps1.txt:43: trailing whitespace.
++$null = [System.Management.Automation.Language.Parser]::ParseFile($PSCommandPath,[ref]$tokens,[ref]$errors)
+docs/acceptance/wave1/controller/w1-ac-accepted-20261025/sources/scripts/acceptance/desktop-preview-receipt-replay.ps1.txt:44: trailing whitespace.
++if (@($errors).Count -gt 0) { throw 'Replay script parse failure' }
+docs/acceptance/wave1/controller/w1-ac-accepted-20261025/sources/scripts/acceptance/desktop-preview-receipt-replay.ps1.txt:45: trailing whitespace.
++[ordered]@{ status='passed'; kind='recorded-native06-data-replay'; decisions=$decisions; sameMainIdentity=$true; recordedFourTextsAccepted=$true; rejectedMutations=$mutations; missingTextNegatives=$omissions; oldStrictPolicyStillRefuses=$true; systemWindows=0; UIAEnumeration=$false; newNativeRun=$false; parserErrors=0 } | ConvertTo-Json -Depth 10 -Compress

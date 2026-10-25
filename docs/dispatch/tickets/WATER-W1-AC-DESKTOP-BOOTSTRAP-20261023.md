@@ -1,5 +1,7 @@
 # WATER-W1-AC：Windows桌面依赖与最小只读壳
 
+当前（2026-10-25）：VERIFIED（仅Windows静态桌面基础），已隔离验收并集成；无需重贴或运行以下旧入口。[总控验收](../../acceptance/wave1/controller/WATER-W1-AC-ADDENDUM-06-REVIEW-20261025.md)为最新结果，下列READY/命令均为历史。
+
 最新（2026-10-25）：补单05受阻已交回，旧三次窗口已用；仅按[补单06](WATER-W1-AC-ADDENDUM-06-20261025.md)在原对话续做，不执行旧native或重复check/test。下列旧READY/外贴句为历史。
 
 最新（2026-10-24）：补单04已受阻/窗口已用；只按[补单05](WATER-W1-AC-ADDENDUM-05-20261024.md)回原对话取证，原根因未知，不重跑04。
