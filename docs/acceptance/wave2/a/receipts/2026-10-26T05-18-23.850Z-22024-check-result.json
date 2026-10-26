@@ -1,0 +1,335 @@
+{
+  "task": "WATER-W2-A",
+  "mode": "check",
+  "finalGate": false,
+  "manifest": "docs/dispatch/wave2/manifest.json",
+  "startedAt": "2026-10-26T05:18:23.852Z",
+  "realDataRead": false,
+  "productTestsRun": false,
+  "commands": [
+    {
+      "binary": "git",
+      "argv": [
+        "branch",
+        "--show-current"
+      ],
+      "exitCode": 0
+    },
+    {
+      "binary": "git",
+      "argv": [
+        "merge-base",
+        "--is-ancestor",
+        "7ca15282e477ed4b5120ffe3c1edc3a60b75c144",
+        "HEAD"
+      ],
+      "exitCode": 0
+    },
+    {
+      "binary": "git",
+      "argv": [
+        "diff",
+        "--no-renames",
+        "--name-only",
+        "-z",
+        "7ca15282e477ed4b5120ffe3c1edc3a60b75c144",
+        "HEAD"
+      ],
+      "exitCode": 0
+    },
+    {
+      "binary": "git",
+      "argv": [
+        "diff",
+        "--no-renames",
+        "--name-only",
+        "-z",
+        "HEAD"
+      ],
+      "exitCode": 0
+    },
+    {
+      "binary": "git",
+      "argv": [
+        "ls-files",
+        "--others",
+        "--exclude-standard",
+        "-z"
+      ],
+      "exitCode": 0
+    },
+    {
+      "binary": "git",
+      "argv": [
+        "rev-parse",
+        "HEAD"
+      ],
+      "exitCode": 0
+    },
+    {
+      "binary": "git",
+      "argv": [
+        "status",
+        "--porcelain",
+        "--untracked-files=all"
+      ],
+      "exitCode": 0
+    },
+    {
+      "binary": "C:\\Users\\37310\\.cargo\\bin\\rustup.exe",
+      "argv": [
+        "which",
+        "cargo",
+        "--toolchain",
+        "1.95.0"
+      ],
+      "exitCode": 0,
+      "error": null,
+      "log": "2026-10-26T05-18-23.850Z-22024-check-1.log"
+    },
+    {
+      "binary": "C:\\Users\\37310\\.cargo\\bin\\rustup.exe",
+      "argv": [
+        "which",
+        "rustc",
+        "--toolchain",
+        "1.95.0"
+      ],
+      "exitCode": 0,
+      "error": null,
+      "log": "2026-10-26T05-18-23.850Z-22024-check-2.log"
+    },
+    {
+      "binary": "C:\\Users\\37310\\.rustup\\toolchains\\1.95.0-x86_64-pc-windows-msvc\\bin\\rustc.exe",
+      "argv": [
+        "--version"
+      ],
+      "exitCode": 0,
+      "error": null,
+      "log": "2026-10-26T05-18-23.850Z-22024-check-3.log"
+    },
+    {
+      "binary": "C:\\Users\\37310\\.rustup\\toolchains\\1.95.0-x86_64-pc-windows-msvc\\bin\\cargo.exe",
+      "argv": [
+        "metadata",
+        "--offline",
+        "--locked",
+        "--format-version",
+        "1",
+        "--manifest-path",
+        "packages/junk-rules/Cargo.toml"
+      ],
+      "exitCode": 0,
+      "error": null,
+      "log": "2026-10-26T05-18-23.850Z-22024-check-4.log"
+    },
+    {
+      "binary": "C:\\Users\\37310\\.rustup\\toolchains\\1.95.0-x86_64-pc-windows-msvc\\bin\\cargo.exe",
+      "argv": [
+        "fmt",
+        "--manifest-path",
+        "packages/junk-rules/Cargo.toml",
+        "--",
+        "--check"
+      ],
+      "exitCode": 0,
+      "error": null,
+      "log": "2026-10-26T05-18-23.850Z-22024-check-5.log"
+    },
+    {
+      "binary": "C:\\Users\\37310\\.rustup\\toolchains\\1.95.0-x86_64-pc-windows-msvc\\bin\\cargo.exe",
+      "argv": [
+        "clippy",
+        "--offline",
+        "--locked",
+        "--manifest-path",
+        "packages/junk-rules/Cargo.toml",
+        "--all-targets",
+        "--",
+        "-D",
+        "warnings"
+      ],
+      "exitCode": 0,
+      "error": null,
+      "log": "2026-10-26T05-18-23.850Z-22024-check-6.log"
+    },
+    {
+      "binary": "git",
+      "argv": [
+        "branch",
+        "--show-current"
+      ],
+      "exitCode": 0
+    },
+    {
+      "binary": "git",
+      "argv": [
+        "merge-base",
+        "--is-ancestor",
+        "7ca15282e477ed4b5120ffe3c1edc3a60b75c144",
+        "HEAD"
+      ],
+      "exitCode": 0
+    },
+    {
+      "binary": "git",
+      "argv": [
+        "diff",
+        "--no-renames",
+        "--name-only",
+        "-z",
+        "7ca15282e477ed4b5120ffe3c1edc3a60b75c144",
+        "HEAD"
+      ],
+      "exitCode": 0
+    },
+    {
+      "binary": "git",
+      "argv": [
+        "diff",
+        "--no-renames",
+        "--name-only",
+        "-z",
+        "HEAD"
+      ],
+      "exitCode": 0
+    },
+    {
+      "binary": "git",
+      "argv": [
+        "ls-files",
+        "--others",
+        "--exclude-standard",
+        "-z"
+      ],
+      "exitCode": 0
+    },
+    {
+      "binary": "git",
+      "argv": [
+        "rev-parse",
+        "HEAD"
+      ],
+      "exitCode": 0
+    },
+    {
+      "binary": "git",
+      "argv": [
+        "status",
+        "--porcelain",
+        "--untracked-files=all"
+      ],
+      "exitCode": 0
+    }
+  ],
+  "changedPaths": [
+    "packages/junk-rules/Cargo.lock",
+    "packages/junk-rules/Cargo.toml",
+    "packages/junk-rules/README.md",
+    "packages/junk-rules/examples/real_smoke.rs",
+    "packages/junk-rules/rules/windows.json",
+    "packages/junk-rules/src/error.rs",
+    "packages/junk-rules/src/folders.rs",
+    "packages/junk-rules/src/lib.rs",
+    "packages/junk-rules/src/plan.rs",
+    "packages/junk-rules/src/rules.rs",
+    "packages/junk-rules/src/types.rs",
+    "packages/junk-rules/tests/rules_v1.rs"
+  ],
+  "before": {
+    "head": "7ca15282e477ed4b5120ffe3c1edc3a60b75c144",
+    "status": "?? packages/junk-rules/Cargo.lock\n?? packages/junk-rules/Cargo.toml\n?? packages/junk-rules/README.md\n?? packages/junk-rules/examples/real_smoke.rs\n?? packages/junk-rules/rules/windows.json\n?? packages/junk-rules/src/error.rs\n?? packages/junk-rules/src/folders.rs\n?? packages/junk-rules/src/lib.rs\n?? packages/junk-rules/src/plan.rs\n?? packages/junk-rules/src/rules.rs\n?? packages/junk-rules/src/types.rs\n?? packages/junk-rules/tests/rules_v1.rs"
+  },
+  "sourceState": {
+    "files": [
+      {
+        "path": "packages/junk-rules/Cargo.toml",
+        "snapshot": "2026-10-26T05-18-23.850Z-22024-check-source-0.txt",
+        "sha256": "b208419139ad9e00094796070ed94c874e68051718dbccae9e977ab5b2a2891f",
+        "test": false
+      },
+      {
+        "path": "packages/junk-rules/Cargo.lock",
+        "snapshot": "2026-10-26T05-18-23.850Z-22024-check-source-1.txt",
+        "sha256": "8fa9f0654764a3478f9620856784816467bea29ee9a091a2df50af3707143d0c",
+        "test": false
+      },
+      {
+        "path": "packages/junk-rules/README.md",
+        "snapshot": "2026-10-26T05-18-23.850Z-22024-check-source-2.txt",
+        "sha256": "01d7da724cc6de91a8a52878f71cb504df289d46cec4abd72452b330b968cb98",
+        "test": false
+      },
+      {
+        "path": "packages/junk-rules/rules/windows.json",
+        "snapshot": "2026-10-26T05-18-23.850Z-22024-check-source-3.txt",
+        "sha256": "a5b3f7ed7e5129189139f09e6aa41cad94ec531e48ec57af38b679a6d2bb65c0",
+        "test": false
+      },
+      {
+        "path": "packages/junk-rules/src/error.rs",
+        "snapshot": "2026-10-26T05-18-23.850Z-22024-check-source-4.txt",
+        "sha256": "3b2dda7c38f28398577e76b76b44ea6b0343709f68c5d0fd5134607656655800",
+        "test": false
+      },
+      {
+        "path": "packages/junk-rules/src/folders.rs",
+        "snapshot": "2026-10-26T05-18-23.850Z-22024-check-source-5.txt",
+        "sha256": "e0c470c47a541abeb9c20f45a75da54e54944faf566b9daa461a992e0716c39d",
+        "test": false
+      },
+      {
+        "path": "packages/junk-rules/src/lib.rs",
+        "snapshot": "2026-10-26T05-18-23.850Z-22024-check-source-6.txt",
+        "sha256": "c799dec66f96283f5fc70a33858e0c834ebf5fd18fb1fefb80d0144c4c6b5bf5",
+        "test": false
+      },
+      {
+        "path": "packages/junk-rules/src/plan.rs",
+        "snapshot": "2026-10-26T05-18-23.850Z-22024-check-source-7.txt",
+        "sha256": "0c9837f5caf71f7c3c82201902d278c21e7cddeaba3451c19ac87f82dda9f715",
+        "test": false
+      },
+      {
+        "path": "packages/junk-rules/src/rules.rs",
+        "snapshot": "2026-10-26T05-18-23.850Z-22024-check-source-8.txt",
+        "sha256": "5d25f249b770346141320f4ce00a787f0ddf1711a860d9cdfb7b18d2359b8b80",
+        "test": false
+      },
+      {
+        "path": "packages/junk-rules/src/types.rs",
+        "snapshot": "2026-10-26T05-18-23.850Z-22024-check-source-9.txt",
+        "sha256": "2a0e837b7e46706cc481f06682051c2d0700ce2ed0c911885b1c243b9b0b79f4",
+        "test": false
+      },
+      {
+        "path": "packages/junk-rules/tests/rules_v1.rs",
+        "snapshot": "2026-10-26T05-18-23.850Z-22024-check-source-10.txt",
+        "sha256": "4b42e29ca80ba1561a299afda5a28a2bd51d3445d97de83b35e060a19a3f8938",
+        "test": true
+      }
+    ],
+    "productionHash": "80eb5d2536a68abcdcd40c95cc898d7a7a27fc5c37c72749618b88b1c8bac237",
+    "testHash": "bcf343d0ad7bdb633c4f6379f6cc231a41a730f54ee5fabc15a1873ef8e01b66"
+  },
+  "dependencyInventory": [
+    "itoa@1.0.18",
+    "memchr@2.8.3",
+    "proc-macro2@1.0.107",
+    "quote@1.0.47",
+    "serde@1.0.229",
+    "serde_core@1.0.229",
+    "serde_derive@1.0.229",
+    "serde_json@1.0.151",
+    "syn@3.0.9",
+    "unicode-ident@1.0.27",
+    "zmij@1.0.23"
+  ],
+  "after": {
+    "head": "7ca15282e477ed4b5120ffe3c1edc3a60b75c144",
+    "status": "?? packages/junk-rules/Cargo.lock\n?? packages/junk-rules/Cargo.toml\n?? packages/junk-rules/README.md\n?? packages/junk-rules/examples/real_smoke.rs\n?? packages/junk-rules/rules/windows.json\n?? packages/junk-rules/src/error.rs\n?? packages/junk-rules/src/folders.rs\n?? packages/junk-rules/src/lib.rs\n?? packages/junk-rules/src/plan.rs\n?? packages/junk-rules/src/rules.rs\n?? packages/junk-rules/src/types.rs\n?? packages/junk-rules/tests/rules_v1.rs"
+  },
+  "status": "passed",
+  "error": null,
+  "endedAt": "2026-10-26T05:18:30.437Z"
+}
