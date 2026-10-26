@@ -18,11 +18,13 @@ const MODES = ['baseline', 'lock', 'check', 'test', 'real', 'native', 'red-nc1',
 const gitRaw = (args, cwd = root) => { const r = spawnSync('git', ['-c', 'core.hooksPath=NUL', '-c', 'core.fsmonitor=false', ...args], {cwd, encoding: 'utf8', windowsHide: true, timeout: 60000, maxBuffer: 64 * 1024 * 1024}); assert(!r.error && r.status === 0, String(r.stderr)); return r.stdout.trim(); };
 const controller = dirname(gitRaw(['rev-parse', '--path-format=absolute', '--git-common-dir']));
 const override = process.env.WATER_W3_OVERRIDE_MANIFEST ?? null;
+// Wave 4 G2 (service hardening) reuses this gate; WATER-W4-* task IDs read the wave 4 manifest.
+const wave4 = id.startsWith('WATER-W4-');
 if (override) {
-  assert(id.startsWith('WATER-W3-SELFTEST') || id.startsWith('WATER-W3-ACCEPT-'), 'Override manifest is only for controller self-test or acceptance tasks');
+  assert(['WATER-W3-SELFTEST', 'WATER-W3-ACCEPT-', 'WATER-W4-SELFTEST', 'WATER-W4-ACCEPT-'].some(p => id.startsWith(p)), 'Override manifest is only for controller self-test or acceptance tasks');
   const rel = relative(join(controller, '.local'), resolve(override)); assert(!rel.startsWith('..') && !isAbsolute(rel), 'Override manifest must live under controller .local');
 }
-const manifestPath = override ? resolve(override) : join(controller, 'docs/dispatch/wave3/manifest.json');
+const manifestPath = override ? resolve(override) : join(controller, wave4 ? 'docs/dispatch/wave4/manifest.json' : 'docs/dispatch/wave3/manifest.json');
 const manifest = JSON.parse(readFileSync(manifestPath)), task = manifest.tasks.find(t => t.id === id); assert(task, 'Unknown task');
 assert.equal(realpathSync(task.worktree).toLowerCase(), realpathSync(root).toLowerCase(), 'Run from the task worktree root');
 assert.equal(process.platform, 'win32'); assert.equal(process.arch, 'x64'); assert.equal(Number(process.versions.node.split('.')[0]), 24, 'Node 24 required');

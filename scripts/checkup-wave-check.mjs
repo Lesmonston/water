@@ -1,4 +1,5 @@
-// Controller-owned gate for wave 2 (device junk checkup). Not an OS sandbox.
+// Controller-owned gate for wave 2 (device junk checkup) and the wave 4 hardening tickets G1 (junk-clean)
+// and G3 (UI). Not an OS sandbox. WATER-W4-* task IDs read docs/dispatch/wave4/manifest.json.
 // Usage from the task worktree root:
 //   node F:/new/smaltalk/water/scripts/checkup-wave-check.mjs --task WATER-W2-A --mode <mode> [--final]
 // Modes: baseline | lock | check | test | browser | real | red-nc1 | red-nc2 | red-nc3 | archive
@@ -17,8 +18,9 @@ const MODES=['baseline','lock','check','test','browser','real','red-nc1','red-nc
 const gitRaw=(args,cwd=root)=>{const r=spawnSync('git',['-c','core.hooksPath=NUL','-c','core.fsmonitor=false',...args],{cwd,encoding:'utf8',windowsHide:true,timeout:60000,maxBuffer:64*1024*1024});assert(!r.error&&r.status===0,String(r.stderr));return r.stdout.trim();};
 const controller=dirname(gitRaw(['rev-parse','--path-format=absolute','--git-common-dir']));
 const manifestOverride=process.env.WATER_W2_SELFTEST_MANIFEST??null;
-if(manifestOverride){assert(id.startsWith('WATER-W2-SELFTEST')||id.startsWith('WATER-W2-ACCEPT-'),'Override manifest is only for controller self-test or acceptance tasks');const rel=relative(join(controller,'.local'),resolve(manifestOverride));assert(!rel.startsWith('..')&&!isAbsolute(rel),'Self-test manifest must live under controller .local');}
-const manifestPath=manifestOverride?resolve(manifestOverride):join(controller,'docs/dispatch/wave2/manifest.json');
+const wave4=id.startsWith('WATER-W4-');
+if(manifestOverride){assert(['WATER-W2-SELFTEST','WATER-W2-ACCEPT-','WATER-W4-SELFTEST','WATER-W4-ACCEPT-'].some(p=>id.startsWith(p)),'Override manifest is only for controller self-test or acceptance tasks');const rel=relative(join(controller,'.local'),resolve(manifestOverride));assert(!rel.startsWith('..')&&!isAbsolute(rel),'Self-test manifest must live under controller .local');}
+const manifestPath=manifestOverride?resolve(manifestOverride):join(controller,wave4?'docs/dispatch/wave4/manifest.json':'docs/dispatch/wave2/manifest.json');
 const manifest=JSON.parse(readFileSync(manifestPath)),task=manifest.tasks.find(t=>t.id===id);assert(task,'Unknown task');
 assert.equal(realpathSync(task.worktree).toLowerCase(),realpathSync(root).toLowerCase(),'Run from the task worktree root');
 assert.equal(process.platform,'win32');assert.equal(process.arch,'x64');assert.equal(Number(process.versions.node.split('.')[0]),24,'Node 24 required');
@@ -82,6 +84,12 @@ function unsafePolicy(){
   for(const f of files)assert(!/remove_dir_all/.test(readFileSync(f,'utf8'))||task.allowRemoveDirAll,'remove_dir_all is not allowed: '+relative(root,f));
   for(const f of files)assert(!/std::process::Command|Command::new/.test(readFileSync(f,'utf8')),'Production code must not spawn processes: '+relative(root,f));
   for(const f of files)assert(!/std::net|TcpStream|UdpSocket/.test(readFileSync(f,'utf8')),'No networking: '+relative(root,f));
+  // Wave 4 G1: every file-system access goes through handles in the native module, using listed system functions only.
+  for(const f of files){const code=readFileSync(f,'utf8').replace(/\/\/.*$/gm,'');for(const[source,why]of task.forbidPatterns??[])assert(!new RegExp(source).test(code),why+': '+relative(root,f));}
+  if(native&&task.allowedFfi){
+    const text=readFileSync(native,'utf8').replace(/\/\/.*$/gm,''),blocks=[...text.matchAll(/extern\s+"system"\s*\{([\s\S]*?)\n\s*\}/g)];assert(blocks.length>0,'No extern "system" block in the native module');
+    const names=blocks.flatMap(b=>[...b[1].matchAll(/\bfn\s+([A-Za-z0-9_]+)\s*\(/g)].map(m=>m[1]));for(const n of names)assert(task.allowedFfi.includes(n),'System function not allowed: '+n);record.ffi=[...new Set(names)].sort();
+  }
 }
 function capture(){const uiFiles=task.kind==='ui'?walkFiles(join(root,task.outputRoot)).map(p=>relative(root,p).split(sep).join('/')):[];const files=[...(task.productionFiles??[]).filter(p=>existsSync(join(root,p))),...(task.kind==='ui'?uiFiles:walkFiles(join(root,task.outputRoot,'src')).map(p=>relative(root,p).split(sep).join('/'))),...task.testFiles].filter((v,i,a)=>a.indexOf(v)===i).map((path,i)=>{const b=readFileSync(join(root,path));const snapshot=stamp+'-'+mode+'-source-'+i+'.txt';writeFileSync(join(out,snapshot),b,{flag:'wx'});return{path,snapshot,sha256:hash(b),test:task.testFiles.includes(path)};});const digest=xs=>hash(Buffer.from(JSON.stringify(xs.map(({path,sha256})=>({path,sha256})))));return{files,productionHash:digest(files.filter(f=>!f.test)),testHash:digest(files.filter(f=>f.test))};}
 function walkFiles(d){if(!existsSync(d))return[];const r=[];for(const n of readdirSync(d)){const p=join(d,n),s=lstatSync(p);if(s.isDirectory())r.push(...walkFiles(p));else r.push(p);}return r.sort();}
@@ -146,10 +154,11 @@ function uiGate(){
   const red=mode.startsWith('red-');
   if(red){assert(!finalGate);assert(task.proofTargets?.[mode.slice(4)],'No such negative control');const changed=git(['diff','--name-only','HEAD','--',task.outputRoot]).split('\n').filter(Boolean);assert(changed.length,'A negative control needs an uncommitted production change');assert(!changed.some(p=>p.startsWith(task.outputRoot+'/tests/')),'Negative controls must not edit tests');}
   if(finalGate&&mode==='test')proofAudit(record.sourceState);
-  const browser=mode==='browser',files=browser?task.browserTestFiles:task.unitTestFiles,names=browser?task.expectedBrowserTests:task.expectedTests;
+  // Wave 4 G3: layout negative controls listed in browserProofs are proven by the browser tests.
+  const browser=mode==='browser'||(red&&(task.browserProofs??[]).includes(mode.slice(4))),files=browser?task.browserTestFiles:task.unitTestFiles,names=browser?task.expectedBrowserTests:task.expectedTests;
   const shots=browser?local('.local/checks/'+id+'/'+stamp+SHOTS_SUFFIX):null;
   const r=command(process.execPath,['--test','--test-concurrency=1','--test-reporter=tap',...files],{expected:red?1:0,timeout:browser?900000:300000,extraEnv:shots?{WATER_W2_SHOTS_DIR:shots}:{}});
-  exactNodeTests(r.text,names,!red);record.productTestsRun=true;if(browser){record.browserUsed=true;record.screenshots=screenshotPolicy(shots);}
+  exactNodeTests(r.text,names,!red);record.productTestsRun=true;if(browser){record.browserUsed=true;if(!red)record.screenshots=screenshotPolicy(shots);}
   if(red){assert(!/SyntaxError|ERR_MODULE_NOT_FOUND|CDP timeout|timed out/i.test(r.text),'Syntax, module or timeout failures are not proof');const target=task.proofTargets[mode.slice(4)];assert(r.text.includes(target),'Missing failure token '+target);record.observedExpectedFailure=true;record.expectation={target};}
 }
 
@@ -158,12 +167,13 @@ try{
   audit();record.before=state();if(finalGate)assert.equal(record.before.status,'','Final gates need a clean committed tree');
   if(mode==='baseline'){
     assert.deepEqual(record.before,{head:task.baseCommit,status:''},'Baseline runs on the untouched base commit');
-    assert(!existsSync(join(root,task.outputRoot)),'Output root must not exist yet');
+    if(task.outputRootExists)assert(existsSync(join(root,task.outputRoot,task.kind==='ui'?'index.html':'Cargo.lock')),'Verified output root missing');
+    else assert(!existsSync(join(root,task.outputRoot)),'Output root must not exist yet');
     for(const f of task.mustRead)assert(existsSync(join(root,f)),'Missing required reading '+f);
     if(task.kind==='rust'){const rust=rustEnv();const cache=readdirSync(join(rust.home,'registry','cache')).flatMap(d=>readdirSync(join(rust.home,'registry','cache',d)));for(const[n,v]of Object.entries(ALLOWED_REGISTRY))assert(cache.includes(n+'-'+v+'.crate'),'Offline cache lacks '+n+'-'+v);record.offlineCache='complete';}
     if(task.kind==='ui'){record.browserExecutable=['C:/Program Files/Google/Chrome/Application/chrome.exe','C:/Program Files (x86)/Microsoft/Edge/Application/msedge.exe'].find(p=>existsSync(p))??null;assert(record.browserExecutable,'No trusted local Chrome/Edge');for(const f of[task.browserHelper,task.fixtures,task.tokensSource])assert(existsSync(join(root,f)),'Missing '+f);}
     if(task.realMode){record.realFoldersPresent=Object.fromEntries(Object.entries(realEnvFolders()).map(([k,v])=>[k,existsSync(v)]));}
-    record.meaning='Environment and inputs only; no product exists yet';
+    record.meaning=task.outputRootExists?'Environment and verified inputs only; no change made yet':'Environment and inputs only; no product exists yet';
   }else if(mode==='archive'){archive();}
   else if(task.kind==='ui'){uiGate();}
   else{
