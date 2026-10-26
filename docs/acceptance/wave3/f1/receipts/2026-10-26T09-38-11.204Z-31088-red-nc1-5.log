@@ -1,0 +1,49 @@
+{"binary":"C:\\Users\\37310\\.rustup\\toolchains\\1.95.0-x86_64-pc-windows-msvc\\bin\\cargo.exe","args":["test","--offline","--locked","--manifest-path","packages/water-service/Cargo.toml","--test","service_v1","--","--test-threads=1"],"exitCode":101,"error":null}
+--- stdout ---
+
+running 5 tests
+test service_clean_flow ... FAILED
+test service_ipc_contract ... ok
+test service_scan_views ... ok
+test service_storage_safety ... ok
+test service_trends_locations ... ok
+
+failures:
+
+---- service_clean_flow stdout ----
+
+thread 'service_clean_flow' (33384) panicked at tests\service_v1.rs:659:5:
+SERVICE_TOKEN_ONCE: Ok(Object {"clean_id": String("clean-20270115T080000Z-f893")})
+note: run with `RUST_BACKTRACE=1` environment variable to display a backtrace
+
+
+failures:
+    service_clean_flow
+
+test result: FAILED. 4 passed; 1 failed; 0 ignored; 0 measured; 0 filtered out; finished in 7.20s
+
+
+--- stderr ---
+   Compiling water-service v0.1.0 (F:\new\smaltalk\water\.worktrees\w3-f1\packages\water-service)
+warning: variable does not need to be mutable
+   --> src\clean.rs:103:9
+    |
+103 |     let mut stored = s
+    |         ----^^^^^^
+    |         |
+    |         help: remove this `mut`
+    |
+    = note: `#[warn(unused_mut)]` (part of `#[warn(unused)]`) on by default
+
+warning: function `consume_confirmation` is never used
+   --> src\clean.rs:184:4
+    |
+184 | fn consume_confirmation(stored: &mut Value, state: &mut State, scan_id: &str) {
+    |    ^^^^^^^^^^^^^^^^^^^^
+    |
+    = note: `#[warn(dead_code)]` (part of `#[warn(unused)]`) on by default
+
+warning: `water-service` (lib) generated 2 warnings (run `cargo fix --lib -p water-service` to apply 1 suggestion)
+    Finished `test` profile [unoptimized + debuginfo] target(s) in 1.79s
+     Running tests\service_v1.rs (.local\w3-target\debug\deps\service_v1-01db19431660f9a1.exe)
+error: test failed, to rerun pass `--test service_v1`

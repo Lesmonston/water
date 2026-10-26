@@ -1,0 +1,30 @@
+{"binary":"C:\\Users\\37310\\.rustup\\toolchains\\1.95.0-x86_64-pc-windows-msvc\\bin\\cargo.exe","args":["test","--offline","--locked","--manifest-path","packages/water-service/Cargo.toml","--test","service_v1","--","--test-threads=1"],"exitCode":101,"error":null}
+--- stdout ---
+
+running 5 tests
+test service_clean_flow ... FAILED
+test service_ipc_contract ... ok
+test service_scan_views ... ok
+test service_storage_safety ... ok
+test service_trends_locations ... ok
+
+failures:
+
+---- service_clean_flow stdout ----
+
+thread 'service_clean_flow' (39008) panicked at tests\service_v1.rs:594:9:
+SERVICE_CLEAN_DISABLED: Ok(Object {"by_drive": Array [Object {"bytes": String("300"), "root": String("F:\\")}], "confirm_token": String("762e2b60ad5cf25540c7563971876f00"), "groups": Array [Object {"group_id": String("chrome-cache"), "in_use_note_zh": String("运行中，占用的项会跳过"), "item_count": Number(2), "level": String("recommended"), "title_zh": String("Chrome 网页缓存"), "total_bytes": String("300")}], "irreversible": Bool(true), "item_count": Number(2), "plan_id": String("plan-20270115T080000Z-1338"), "total_bytes": String("300")})
+note: run with `RUST_BACKTRACE=1` environment variable to display a backtrace
+
+
+failures:
+    service_clean_flow
+
+test result: FAILED. 4 passed; 1 failed; 0 ignored; 0 measured; 0 filtered out; finished in 6.54s
+
+
+--- stderr ---
+   Compiling water-service v0.1.0 (F:\new\smaltalk\water\.worktrees\w3-f1\packages\water-service)
+    Finished `test` profile [unoptimized + debuginfo] target(s) in 1.57s
+     Running tests\service_v1.rs (.local\w3-target\debug\deps\service_v1-01db19431660f9a1.exe)
+error: test failed, to rerun pass `--test service_v1`
