@@ -56,10 +56,15 @@ fn wrap(rules: Vec<Value>) -> String {
     .to_string()
 }
 
-fn reject(input: &str) {
+fn reject(input: &str, code: &str) {
     let err = RuleSet::from_json(input).expect_err("schema must reject");
     let shown = err.to_string();
     assert!(!shown.contains(CANARY), "error echoed input: {shown}");
+    assert_eq!(err.code, code, "unexpected error code: {shown}");
+    assert!(
+        shown.contains(code),
+        "error text must carry its code: {shown}"
+    );
 }
 
 fn mutate_rule(mutator: impl FnOnce(&mut Value)) -> String {
@@ -70,174 +75,490 @@ fn mutate_rule(mutator: impl FnOnce(&mut Value)) -> String {
 
 #[test]
 fn rules_schema_strict() {
-    reject(&wrap(vec![sample_rule()]).replace("water.junk-rules.v1", CANARY));
-    reject(&mutate_rule(|rule| {
-        rule["rule_id"] = json!("ab");
-    }));
-    reject(&mutate_rule(|rule| {
-        rule["title_zh"] = json!("一");
-    }));
-    reject(&mutate_rule(|rule| {
-        rule["owner_zh"] = json!("");
-    }));
-    reject(&mutate_rule(|rule| {
-        rule["category"] = json!("unrecognized");
-    }));
-    reject(&mutate_rule(|rule| {
-        rule["level"] = json!(CANARY);
-    }));
-    reject(&mutate_rule(|rule| {
-        rule["item_type"] = json!("folder");
-    }));
-    reject(&mutate_rule(|rule| {
-        rule["min_age_hours"] = json!(8761);
-    }));
-    reject(&mutate_rule(|rule| {
-        rule["keep_newest"] = json!(9);
-    }));
-    reject(&mutate_rule(|rule| {
-        rule["growth"] = json!("fast");
-    }));
-    reject(&mutate_rule(|rule| {
-        rule["what_zh"] = json!("短");
-    }));
-    reject(&mutate_rule(|rule| {
-        rule["why_zh"] = json!(CANARY.to_string().repeat(20));
-    }));
-    reject(&mutate_rule(|rule| {
-        rule["in_use"] = json!({"mode":"none","processes":["chrome.exe"]});
-    }));
-    reject(&mutate_rule(|rule| {
-        rule["in_use"] = json!({"mode":"process_running","processes":[]});
-    }));
-    reject(&mutate_rule(|rule| {
-        rule["in_use"] = json!({"mode":"process_running","processes":["Chrome.exe"]});
-    }));
-    reject(&mutate_rule(|rule| {
-        rule["locate"] = json!([]);
-    }));
-    reject(&mutate_rule(|rule| {
-        rule["locate"] = json!([
-            {"kind":"pattern","base":"local_app_data","segments":["SampleCache"]},
-            {"kind":"pattern","base":"local_app_data","segments":["samplecache"]}
-        ]);
-    }));
-    reject(&mutate_rule(|rule| {
-        rule["sources"] = json!([]);
-    }));
-    reject(&mutate_rule(|rule| {
-        rule["sources"] = json!([{
-            "kind":"official_doc",
-            "ref":"http://example.invalid",
-            "checked_on":"2026-10-26"
-        }]);
-    }));
-    reject(&mutate_rule(|rule| {
-        rule[CANARY] = json!(1);
-    }));
-    reject(&mutate_rule(|rule| {
-        rule["category"] = json!("custom");
-    }));
-    reject(&{
-        let mut first = sample_rule();
-        let second = sample_rule();
-        first["rule_id"] = json!("other-cache");
-        first["title_zh"] = json!("另一示例标题");
-        wrap(vec![first, second, sample_rule()])
-    });
-    reject(&{
-        let raw = json!({
-            "rules_version": "water.junk-rules.v1",
-            "data_version": "2026-10-26",
-            "rules": [sample_rule()]
-        });
-        raw.to_string()
-    });
-    reject(&mutate_rule(|rule| {
-        rule["growth"] = json!("leak_prone");
-        rule["min_age_hours"] = json!(0);
-        rule["fix_hint_zh"] = json!("请告诉生产者及时回收本次新建的临时目录。");
-    }));
-    reject(&mutate_rule(|rule| {
-        rule["growth"] = json!("leak_prone");
-        rule["min_age_hours"] = json!(1);
-        rule["fix_hint_zh"] = Value::Null;
-    }));
-    reject(&mutate_rule(|rule| {
-        rule["locate"] = json!([{"kind":"discovery","base":"system_temp"}]);
-        rule["min_age_hours"] = json!(23);
-        rule["level"] = json!("recommended");
-    }));
-    reject(&mutate_rule(|rule| {
-        rule["locate"] = json!([{"kind":"discovery","base":"system_temp"}]);
-        rule["min_age_hours"] = json!(24);
-        rule["level"] = json!("advisory");
-    }));
+    reject(
+        &wrap(vec![sample_rule()]).replace("water.junk-rules.v1", CANARY),
+        "RULES_INVALID_VERSION",
+    );
+    reject(
+        &mutate_rule(|rule| {
+            rule["rule_id"] = json!("ab");
+        }),
+        "RULES_INVALID_ID",
+    );
+    reject(
+        &mutate_rule(|rule| {
+            rule["title_zh"] = json!("一");
+        }),
+        "RULES_INVALID_TEXT",
+    );
+    reject(
+        &mutate_rule(|rule| {
+            rule["owner_zh"] = json!("");
+        }),
+        "RULES_INVALID_TEXT",
+    );
+    reject(
+        &mutate_rule(|rule| {
+            rule["category"] = json!("unrecognized");
+        }),
+        "RULES_INVALID_CATEGORY",
+    );
+    reject(
+        &mutate_rule(|rule| {
+            rule["level"] = json!(CANARY);
+        }),
+        "RULES_INVALID_LEVEL",
+    );
+    reject(
+        &mutate_rule(|rule| {
+            rule["item_type"] = json!("folder");
+        }),
+        "RULES_INVALID_ITEM_TYPE",
+    );
+    reject(
+        &mutate_rule(|rule| {
+            rule["min_age_hours"] = json!(8761);
+        }),
+        "RULES_INVALID_NUMBER",
+    );
+    reject(
+        &mutate_rule(|rule| {
+            rule["keep_newest"] = json!(9);
+        }),
+        "RULES_INVALID_NUMBER",
+    );
+    reject(
+        &mutate_rule(|rule| {
+            rule["growth"] = json!("fast");
+        }),
+        "RULES_INVALID_GROWTH",
+    );
+    reject(
+        &mutate_rule(|rule| {
+            rule["what_zh"] = json!("短");
+        }),
+        "RULES_INVALID_TEXT",
+    );
+    reject(
+        &mutate_rule(|rule| {
+            rule["why_zh"] = json!(CANARY.to_string().repeat(20));
+        }),
+        "RULES_INVALID_TEXT",
+    );
+    reject(
+        &mutate_rule(|rule| {
+            rule["in_use"] = json!({"mode":"none","processes":["chrome.exe"]});
+        }),
+        "RULES_INVALID_IN_USE",
+    );
+    reject(
+        &mutate_rule(|rule| {
+            rule["in_use"] = json!({"mode":"process_running","processes":[]});
+        }),
+        "RULES_INVALID_IN_USE",
+    );
+    reject(
+        &mutate_rule(|rule| {
+            rule["in_use"] = json!({"mode":"process_running","processes":["Chrome.exe"]});
+        }),
+        "RULES_INVALID_IN_USE",
+    );
+    reject(
+        &mutate_rule(|rule| {
+            rule["locate"] = json!([]);
+        }),
+        "RULES_INVALID_LOCATE",
+    );
+    reject(
+        &mutate_rule(|rule| {
+            rule["locate"] = Value::Array(
+                (0..33)
+                    .map(|index| {
+                        json!({"kind":"pattern","base":"local_app_data","segments":["SampleCache", format!("part-{index}")]})
+                    })
+                    .collect(),
+            );
+        }),
+        "RULES_INVALID_LOCATE",
+    );
+    reject(
+        &mutate_rule(|rule| {
+            rule["locate"] = json!([
+                {"kind":"pattern","base":"local_app_data","segments":["SampleCache"]},
+                {"kind":"pattern","base":"local_app_data","segments":["samplecache"]}
+            ]);
+        }),
+        "RULES_LOCATOR_DUPLICATE",
+    );
+    reject(
+        &mutate_rule(|rule| {
+            rule["sources"] = json!([]);
+        }),
+        "RULES_INVALID_SOURCE",
+    );
+    reject(
+        &mutate_rule(|rule| {
+            rule["sources"] = json!([{
+                "kind":"official_doc",
+                "ref":"http://example.invalid",
+                "checked_on":"2026-10-26"
+            }]);
+        }),
+        "RULES_INVALID_SOURCE",
+    );
+    reject(
+        &mutate_rule(|rule| {
+            rule[CANARY] = json!(1);
+        }),
+        "RULES_UNKNOWN_KEY",
+    );
+    reject(
+        &mutate_rule(|rule| {
+            rule["in_use"][CANARY] = json!(CANARY);
+        }),
+        "RULES_UNKNOWN_KEY",
+    );
+    reject(
+        &mutate_rule(|rule| {
+            rule["sources"][0]["checked_on"] = json!("2026-13-01");
+        }),
+        "RULES_INVALID_SOURCE",
+    );
+    reject(
+        &mutate_rule(|rule| {
+            rule["sources"][0]["checked_on"] = json!("2026-02-29");
+        }),
+        "RULES_INVALID_SOURCE",
+    );
+    reject(
+        &mutate_rule(|rule| {
+            rule["category"] = json!("custom");
+        }),
+        "RULES_CUSTOM_MARKER",
+    );
+    reject(
+        &{
+            let mut first = sample_rule();
+            let second = sample_rule();
+            first["rule_id"] = json!("other-cache");
+            first["title_zh"] = json!("另一示例标题");
+            wrap(vec![first, second, sample_rule()])
+        },
+        "RULES_DUPLICATE_ID",
+    );
+    reject(
+        &{
+            let raw = json!({
+                "rules_version": "water.junk-rules.v1",
+                "data_version": "2026-10-26",
+                "rules": [sample_rule()]
+            });
+            raw.to_string()
+        },
+        "RULES_INVALID_DATA_VERSION",
+    );
+    reject(
+        &wrap(vec![sample_rule()]).replace("2026-10-26.1", "2026-04-31.1"),
+        "RULES_INVALID_DATA_VERSION",
+    );
+    reject(
+        &mutate_rule(|rule| {
+            rule["growth"] = json!("leak_prone");
+            rule["min_age_hours"] = json!(0);
+            rule["fix_hint_zh"] = json!("请告诉生产者及时回收本次新建的临时目录。");
+        }),
+        "RULES_LEAK_AGE",
+    );
+    reject(
+        &mutate_rule(|rule| {
+            rule["growth"] = json!("leak_prone");
+            rule["min_age_hours"] = json!(1);
+            rule["fix_hint_zh"] = Value::Null;
+        }),
+        "RULES_INVALID_FIX_HINT",
+    );
+    reject(
+        &mutate_rule(|rule| {
+            rule["locate"] = json!([{"kind":"discovery","base":"system_temp"}]);
+            rule["min_age_hours"] = json!(23);
+            rule["level"] = json!("recommended");
+        }),
+        "RULES_DISCOVERY",
+    );
+    reject(
+        &mutate_rule(|rule| {
+            rule["locate"] = json!([{"kind":"discovery","base":"system_temp"}]);
+            rule["min_age_hours"] = json!(24);
+            rule["level"] = json!("advisory");
+        }),
+        "RULES_DISCOVERY",
+    );
     let ok = RuleSet::from_json(&wrap(vec![sample_rule()])).expect("valid sample");
     assert_eq!(ok.rules().len(), 1);
+    let leap = mutate_rule(|rule| {
+        rule["sources"][0]["checked_on"] = json!("2028-02-29");
+    });
+    RuleSet::from_json(&leap).expect("leap day is a real date");
+    let wide = mutate_rule(|rule| {
+        rule["locate"] = Value::Array(
+            (0..32)
+                .map(|index| {
+                    json!({"kind":"pattern","base":"local_app_data","segments":["SampleCache", format!("part-{index}")]})
+                })
+                .collect(),
+        );
+    });
+    RuleSet::from_json(&wide).expect("32 locators are allowed");
+}
+
+fn precedence_rule(id: &str, level: &str, base: &str, segments: &[&str]) -> Value {
+    let mut rule = sample_rule();
+    rule["rule_id"] = json!(id);
+    rule["title_zh"] = json!("优先判定样例");
+    rule["category"] = json!("browser");
+    rule["level"] = json!(level);
+    rule["locate"] = json!([{"kind":"pattern","base":base,"segments":segments}]);
+    if level == "protected" {
+        rule["what_zh"] = json!("这是登录相关的网站数据。");
+        rule["why_zh"] = json!("清掉之后需要重新登录许多网站。");
+        rule["after_zh"] = json!("这里只统计占用，不会被清理。");
+    }
+    rule
+}
+
+fn precedence_pair(
+    level: &str,
+    base: &str,
+    cleanable: &[&str],
+    protected_base: &str,
+    protected: &[&str],
+) -> String {
+    wrap(vec![
+        precedence_rule("cleanable-sample", level, base, cleanable),
+        precedence_rule("protected-sample", "protected", protected_base, protected),
+    ])
+}
+
+fn expect_precedence(input: &str, case: &str) {
+    let err = RuleSet::from_json(input).expect_err(case);
+    assert_eq!(err.code, "RULES_PRECEDENCE", "{case}: {err}");
+    assert!(
+        err.to_string().contains("RULES_PRECEDENCE"),
+        "{case}: {err}"
+    );
+}
+
+fn expect_no_precedence(input: &str, case: &str) {
+    if let Err(err) = RuleSet::from_json(input) {
+        panic!("{case} must pass, got {err}");
+    }
 }
 
 #[test]
 fn rules_protection_precedence() {
-    let overlapping = wrap(vec![
-        {
-            let mut rule = sample_rule();
-            rule["rule_id"] = json!("cleanable-ud");
-            rule["title_zh"] = json!("可清理用户数据");
-            rule["category"] = json!("browser");
-            rule["level"] = json!("recommended");
-            rule["locate"] =
-                json!([{"kind":"pattern","base":"local_app_data","segments":["User Data","*"]}]);
-            rule
-        },
-        {
-            let mut rule = sample_rule();
-            rule["rule_id"] = json!("protected-cookies");
-            rule["title_zh"] = json!("受保护的登录数据");
-            rule["category"] = json!("browser");
-            rule["level"] = json!("protected");
-            rule["locate"] = json!([{"kind":"pattern","base":"local_app_data","segments":["User Data","*","Cookies"]}]);
-            rule["what_zh"] = json!("这是登录相关的网站数据。");
-            rule["why_zh"] = json!("清掉之后需要重新登录许多网站。");
-            rule["after_zh"] = json!("这里只统计占用，不会被清理。");
-            rule
-        },
-    ]);
-    let err = RuleSet::from_json(&overlapping).expect_err("RULES_PRECEDENCE");
-    assert!(
-        err.code == "RULES_PRECEDENCE" || err.to_string().contains("RULES_PRECEDENCE"),
-        "RULES_PRECEDENCE"
+    let la = "local_app_data";
+    expect_precedence(
+        &precedence_pair(
+            "recommended",
+            la,
+            &["User Data", "*"],
+            la,
+            &["User Data", "*", "Cookies"],
+        ),
+        "wildcard profile over wildcard cookies",
+    );
+    expect_no_precedence(
+        &precedence_pair("recommended", la, &["*", "Cache"], la, &["*", "Network"]),
+        "sibling cache and network",
+    );
+    let profiles = [
+        ["User Data", "Default", "Cookies"],
+        ["User Data", "Profile *", "Cookies"],
+        ["User Data", "Guest Profile", "Cookies"],
+        ["User Data", "System Profile", "Cookies"],
+    ];
+    expect_precedence(
+        &precedence_pair(
+            "recommended",
+            la,
+            &["User Data", "Default"],
+            la,
+            &profiles[0],
+        ),
+        "literal Default over Default cookies",
+    );
+    expect_precedence(
+        &precedence_pair(
+            "recommended",
+            la,
+            &["User Data", "Default", "Network"],
+            la,
+            &["User Data", "Default", "Network"],
+        ),
+        "literal Default Network equals protected",
+    );
+    expect_precedence(
+        &precedence_pair(
+            "recommended",
+            la,
+            &["User Data", "Profile 3"],
+            la,
+            &profiles[1],
+        ),
+        "literal Profile 3 matched by Profile *",
+    );
+    expect_precedence(
+        &precedence_pair("confirm", la, &["user data", "profile 3"], la, &profiles[1]),
+        "case-insensitive literal against pattern",
+    );
+    expect_no_precedence(
+        &precedence_pair(
+            "recommended",
+            la,
+            &["User Data", "ShaderCache"],
+            la,
+            &profiles[1],
+        ),
+        "root shader cache against Profile *",
+    );
+    expect_no_precedence(
+        &precedence_pair(
+            "recommended",
+            la,
+            &["User Data", "Default"],
+            "user_profile",
+            &profiles[0],
+        ),
+        "different base",
+    );
+    expect_precedence(
+        &precedence_pair(
+            "recommended",
+            "user_profile",
+            &[".codex", "sessions"],
+            "user_profile",
+            &[".codex*", "sessions"],
+        ),
+        "literal .codex sessions matched by .codex*",
+    );
+    expect_precedence(
+        &precedence_pair(
+            "recommended",
+            la,
+            &["User Data", "Profile 12"],
+            la,
+            &["User Data", "Profile #", "Cookies"],
+        ),
+        "hash matches digits",
+    );
+    expect_no_precedence(
+        &precedence_pair(
+            "recommended",
+            la,
+            &["User Data", "Profile x"],
+            la,
+            &["User Data", "Profile #", "Cookies"],
+        ),
+        "hash needs digits",
+    );
+    expect_no_precedence(
+        &precedence_pair(
+            "recommended",
+            la,
+            &["User Data", "Profile "],
+            la,
+            &["User Data", "Profile #", "Cookies"],
+        ),
+        "hash needs at least one digit",
+    );
+    expect_precedence(
+        &precedence_pair(
+            "recommended",
+            la,
+            &["User Data", "Profile 7"],
+            la,
+            &["User Data", "Profile ?", "Cookies"],
+        ),
+        "question mark matches one character",
+    );
+    expect_no_precedence(
+        &precedence_pair(
+            "recommended",
+            la,
+            &["User Data", "Profile 12"],
+            la,
+            &["User Data", "Profile ?", "Cookies"],
+        ),
+        "question mark matches exactly one character",
+    );
+    expect_precedence(
+        &precedence_pair(
+            "recommended",
+            la,
+            &["User Data", "Prof*", "Cookies"],
+            la,
+            &["User Data", "Profile #", "Cookies"],
+        ),
+        "both segments wildcard",
+    );
+    expect_precedence(
+        &precedence_pair(
+            "recommended",
+            la,
+            &["User Data", "Profile 3", "Cook?es"],
+            la,
+            &["User Data", "Profile *", "Cookies"],
+        ),
+        "cleanable wildcard against protected literal",
+    );
+    expect_no_precedence(
+        &precedence_pair(
+            "recommended",
+            la,
+            &["User Data", "Default", "Network", "Cache"],
+            la,
+            &["User Data", "Default", "Network"],
+        ),
+        "deeper cleanable is not checked by this rule",
     );
 
-    let allowed = wrap(vec![
-        {
-            let mut rule = sample_rule();
-            rule["rule_id"] = json!("cleanable-cache");
-            rule["title_zh"] = json!("可清理网页缓存");
-            rule["category"] = json!("browser");
-            rule["locate"] =
-                json!([{"kind":"pattern","base":"local_app_data","segments":["*","Cache"]}]);
-            rule
-        },
-        {
-            let mut rule = sample_rule();
-            rule["rule_id"] = json!("protected-network");
-            rule["title_zh"] = json!("受保护的网络数据");
-            rule["category"] = json!("browser");
-            rule["level"] = json!("protected");
-            rule["locate"] =
-                json!([{"kind":"pattern","base":"local_app_data","segments":["*","Network"]}]);
-            rule["what_zh"] = json!("这是登录相关的网络数据。");
-            rule["why_zh"] = json!("清掉之后需要重新登录许多网站。");
-            rule["after_zh"] = json!("这里只统计占用，不会被清理。");
-            rule
-        },
-    ]);
-    RuleSet::from_json(&allowed).expect("sibling cache and network must pass");
+    let raw: Value =
+        serde_json::from_str(include_str!("../rules/windows.json")).expect("seed json");
+    let subset: Vec<Value> = raw["rules"]
+        .as_array()
+        .expect("rules")
+        .iter()
+        .filter(|rule| {
+            let id = rule["rule_id"].as_str().unwrap_or("");
+            id.ends_with("-code-gpu-cache") || id.ends_with("-login-and-site-data")
+        })
+        .cloned()
+        .collect();
+    assert_eq!(subset.len(), 6);
+    let shader_locators = subset
+        .iter()
+        .flat_map(|rule| rule["locate"].as_array().expect("locate").iter())
+        .filter(|locator| {
+            let segments = locator["segments"].as_array().expect("segments");
+            segments.len() == 4
+                && ["ShaderCache", "GrShaderCache", "GraphiteDawnCache"]
+                    .contains(&segments[3].as_str().unwrap_or(""))
+        })
+        .count();
+    assert_eq!(shader_locators, 9);
+    let subset_set = RuleSet::from_json(
+        &json!({
+            "rules_version": "water.junk-rules.v1",
+            "data_version": "2026-10-26.2",
+            "rules": subset
+        })
+        .to_string(),
+    )
+    .expect("root shader caches must not collide with protected profiles");
+    assert_eq!(subset_set.rules().len(), 6);
     let embedded = RuleSet::embedded();
-    assert!(embedded.rules().len() >= 60, "seed set must load");
+    assert_eq!(embedded.rules().len(), 60, "seed set must load");
 }
-
 #[test]
 fn rules_resolve_plan() {
     let rules = RuleSet::embedded();
@@ -255,8 +576,9 @@ fn rules_resolve_plan() {
     let plan = resolve_plan(&rules, &folders, &custom, CREATED_AT).expect("plan");
     let expected = expected_target_count(&rules, custom.len());
     assert_eq!(plan.targets.len(), expected);
+    assert_eq!(expected, 214);
     assert_eq!(plan.plan_version, "water.scan-plan.v1");
-    assert_eq!(plan.rules_data_version, "2026-10-26.1");
+    assert_eq!(plan.rules_data_version, "2026-10-26.2");
     assert_eq!(plan.created_at, CREATED_AT);
 
     let first = &plan.targets[0];
@@ -290,6 +612,46 @@ fn rules_resolve_plan() {
     assert_eq!(chrome.category, Category::Browser);
     assert_eq!(chrome.in_use.mode, InUseMode::ProcessRunning);
     assert_eq!(chrome.in_use.processes, ["chrome.exe"]);
+
+    for (family, ud) in [
+        ("chrome", ["Google", "Chrome", "User Data"]),
+        ("edge", ["Microsoft", "Edge", "User Data"]),
+        ("brave", ["BraveSoftware", "Brave-Browser", "User Data"]),
+    ] {
+        let rule_id = format!("{family}-login-and-site-data");
+        let positions: Vec<usize> = plan
+            .targets
+            .iter()
+            .enumerate()
+            .filter(|(_, target)| target.rule_id == rule_id)
+            .map(|(index, _)| index)
+            .collect();
+        assert_eq!(positions.len(), 32, "{rule_id}");
+        assert_eq!(positions[31] - positions[0], 31, "{rule_id} contiguous");
+        let mut ordinal = 0;
+        for profile in ["Default", "Profile *", "Guest Profile", "System Profile"] {
+            for name in LOGIN_NAMES {
+                let target = &plan.targets[positions[ordinal]];
+                ordinal += 1;
+                assert_eq!(target.target_id, format!("{rule_id}#{ordinal}"));
+                assert_eq!(target.group_id, rule_id);
+                assert_eq!(target.level, Level::Protected);
+                match &target.match_spec {
+                    MatchSpec::Pattern { base, segments } => {
+                        assert_eq!(base, "C:\\Users\\u\\AppData\\Local");
+                        let expected_segments: Vec<String> = ud
+                            .iter()
+                            .copied()
+                            .chain([profile, name])
+                            .map(str::to_string)
+                            .collect();
+                        assert_eq!(segments, &expected_segments, "{rule_id}#{ordinal}");
+                    }
+                    other => panic!("{rule_id}#{ordinal} {other:?}"),
+                }
+            }
+        }
+    }
 
     let marker_targets: Vec<_> = plan
         .targets
@@ -348,6 +710,7 @@ fn rules_seed_coverage() {
         assert_eq!(rule.min_age_hours, spec.min_age_hours, "{}", spec.id);
         assert_eq!(rule.keep_newest, spec.keep_newest, "{}", spec.id);
         assert_eq!(rule.in_use.mode, spec.in_use, "{}", spec.id);
+        assert_eq!(rule.in_use.processes, spec.processes, "{}", spec.id);
         assert_eq!(rule.growth, spec.growth, "{}", spec.id);
         assert_eq!(locator_summary(rule), spec.locators, "{}", spec.id);
         assert!(!rule.title_zh.is_empty());
@@ -412,8 +775,50 @@ struct SeedSpec {
     min_age_hours: u32,
     keep_newest: u32,
     in_use: InUseMode,
+    processes: Vec<&'static str>,
     growth: Growth,
     locators: Vec<String>,
+}
+
+const LOGIN_NAMES: [&str; 8] = [
+    "Network",
+    "Cookies",
+    "Login Data",
+    "Local Storage",
+    "IndexedDB",
+    "Session Storage",
+    "Sessions",
+    "Web Data",
+];
+
+fn processes_for(id: &str) -> Vec<&'static str> {
+    let family = |prefix: &str| -> Option<&'static str> {
+        match prefix {
+            "chrome" => Some("chrome.exe"),
+            "edge" => Some("msedge.exe"),
+            "brave" => Some("brave.exe"),
+            _ => None,
+        }
+    };
+    match id {
+        "claude-desktop-old-versions" => vec!["claude.exe"],
+        "headless-browser-profiles" => {
+            vec!["chrome.exe", "msedge.exe", "chrome-headless-shell.exe"]
+        }
+        "firefox-cache" => vec!["firefox.exe"],
+        "test-browser-profiles" => vec!["chrome.exe", "msedge.exe"],
+        _ => {
+            let (prefix, rest) = id.split_once('-').unwrap_or((id, ""));
+            match family(prefix) {
+                Some(process)
+                    if ["cache", "code-gpu-cache", "service-worker-cache"].contains(&rest) =>
+                {
+                    vec![process]
+                }
+                _ => Vec::new(),
+            }
+        }
+    }
 }
 
 #[allow(clippy::too_many_arguments)]
@@ -436,6 +841,7 @@ fn seed(
         min_age_hours,
         keep_newest,
         in_use,
+        processes: processes_for(id),
         growth,
         locators,
     }
@@ -1093,16 +1499,14 @@ fn browser_seeds() -> Vec<SeedSpec> {
             0,
             InUseMode::None,
             Growth::Slow,
-            vec![
-                p("local_app_data", &format!("{ud}/*/Network")),
-                p("local_app_data", &format!("{ud}/*/Cookies")),
-                p("local_app_data", &format!("{ud}/*/Login Data")),
-                p("local_app_data", &format!("{ud}/*/Local Storage")),
-                p("local_app_data", &format!("{ud}/*/IndexedDB")),
-                p("local_app_data", &format!("{ud}/*/Session Storage")),
-                p("local_app_data", &format!("{ud}/*/Sessions")),
-                p("local_app_data", &format!("{ud}/*/Web Data")),
-            ],
+            ["Default", "Profile *", "Guest Profile", "System Profile"]
+                .iter()
+                .flat_map(|profile| {
+                    LOGIN_NAMES
+                        .iter()
+                        .map(move |name| p("local_app_data", &format!("{ud}/{profile}/{name}")))
+                })
+                .collect(),
         ));
     }
     rows

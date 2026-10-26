@@ -1,6 +1,6 @@
 {
   "rules_version": "water.junk-rules.v1",
-  "data_version": "2026-10-26.1",
+  "data_version": "2026-10-26.2",
   "rules": [
     {
       "rule_id": "codex-marketplace-staging",
@@ -1348,7 +1348,7 @@
             "Google",
             "Chrome",
             "User Data",
-            "*",
+            "Default",
             "Network"
           ]
         },
@@ -1359,7 +1359,7 @@
             "Google",
             "Chrome",
             "User Data",
-            "*",
+            "Default",
             "Cookies"
           ]
         },
@@ -1370,7 +1370,7 @@
             "Google",
             "Chrome",
             "User Data",
-            "*",
+            "Default",
             "Login Data"
           ]
         },
@@ -1381,7 +1381,7 @@
             "Google",
             "Chrome",
             "User Data",
-            "*",
+            "Default",
             "Local Storage"
           ]
         },
@@ -1392,7 +1392,7 @@
             "Google",
             "Chrome",
             "User Data",
-            "*",
+            "Default",
             "IndexedDB"
           ]
         },
@@ -1403,7 +1403,7 @@
             "Google",
             "Chrome",
             "User Data",
-            "*",
+            "Default",
             "Session Storage"
           ]
         },
@@ -1414,7 +1414,7 @@
             "Google",
             "Chrome",
             "User Data",
-            "*",
+            "Default",
             "Sessions"
           ]
         },
@@ -1425,7 +1425,271 @@
             "Google",
             "Chrome",
             "User Data",
-            "*",
+            "Default",
+            "Web Data"
+          ]
+        },
+        {
+          "kind": "pattern",
+          "base": "local_app_data",
+          "segments": [
+            "Google",
+            "Chrome",
+            "User Data",
+            "Profile *",
+            "Network"
+          ]
+        },
+        {
+          "kind": "pattern",
+          "base": "local_app_data",
+          "segments": [
+            "Google",
+            "Chrome",
+            "User Data",
+            "Profile *",
+            "Cookies"
+          ]
+        },
+        {
+          "kind": "pattern",
+          "base": "local_app_data",
+          "segments": [
+            "Google",
+            "Chrome",
+            "User Data",
+            "Profile *",
+            "Login Data"
+          ]
+        },
+        {
+          "kind": "pattern",
+          "base": "local_app_data",
+          "segments": [
+            "Google",
+            "Chrome",
+            "User Data",
+            "Profile *",
+            "Local Storage"
+          ]
+        },
+        {
+          "kind": "pattern",
+          "base": "local_app_data",
+          "segments": [
+            "Google",
+            "Chrome",
+            "User Data",
+            "Profile *",
+            "IndexedDB"
+          ]
+        },
+        {
+          "kind": "pattern",
+          "base": "local_app_data",
+          "segments": [
+            "Google",
+            "Chrome",
+            "User Data",
+            "Profile *",
+            "Session Storage"
+          ]
+        },
+        {
+          "kind": "pattern",
+          "base": "local_app_data",
+          "segments": [
+            "Google",
+            "Chrome",
+            "User Data",
+            "Profile *",
+            "Sessions"
+          ]
+        },
+        {
+          "kind": "pattern",
+          "base": "local_app_data",
+          "segments": [
+            "Google",
+            "Chrome",
+            "User Data",
+            "Profile *",
+            "Web Data"
+          ]
+        },
+        {
+          "kind": "pattern",
+          "base": "local_app_data",
+          "segments": [
+            "Google",
+            "Chrome",
+            "User Data",
+            "Guest Profile",
+            "Network"
+          ]
+        },
+        {
+          "kind": "pattern",
+          "base": "local_app_data",
+          "segments": [
+            "Google",
+            "Chrome",
+            "User Data",
+            "Guest Profile",
+            "Cookies"
+          ]
+        },
+        {
+          "kind": "pattern",
+          "base": "local_app_data",
+          "segments": [
+            "Google",
+            "Chrome",
+            "User Data",
+            "Guest Profile",
+            "Login Data"
+          ]
+        },
+        {
+          "kind": "pattern",
+          "base": "local_app_data",
+          "segments": [
+            "Google",
+            "Chrome",
+            "User Data",
+            "Guest Profile",
+            "Local Storage"
+          ]
+        },
+        {
+          "kind": "pattern",
+          "base": "local_app_data",
+          "segments": [
+            "Google",
+            "Chrome",
+            "User Data",
+            "Guest Profile",
+            "IndexedDB"
+          ]
+        },
+        {
+          "kind": "pattern",
+          "base": "local_app_data",
+          "segments": [
+            "Google",
+            "Chrome",
+            "User Data",
+            "Guest Profile",
+            "Session Storage"
+          ]
+        },
+        {
+          "kind": "pattern",
+          "base": "local_app_data",
+          "segments": [
+            "Google",
+            "Chrome",
+            "User Data",
+            "Guest Profile",
+            "Sessions"
+          ]
+        },
+        {
+          "kind": "pattern",
+          "base": "local_app_data",
+          "segments": [
+            "Google",
+            "Chrome",
+            "User Data",
+            "Guest Profile",
+            "Web Data"
+          ]
+        },
+        {
+          "kind": "pattern",
+          "base": "local_app_data",
+          "segments": [
+            "Google",
+            "Chrome",
+            "User Data",
+            "System Profile",
+            "Network"
+          ]
+        },
+        {
+          "kind": "pattern",
+          "base": "local_app_data",
+          "segments": [
+            "Google",
+            "Chrome",
+            "User Data",
+            "System Profile",
+            "Cookies"
+          ]
+        },
+        {
+          "kind": "pattern",
+          "base": "local_app_data",
+          "segments": [
+            "Google",
+            "Chrome",
+            "User Data",
+            "System Profile",
+            "Login Data"
+          ]
+        },
+        {
+          "kind": "pattern",
+          "base": "local_app_data",
+          "segments": [
+            "Google",
+            "Chrome",
+            "User Data",
+            "System Profile",
+            "Local Storage"
+          ]
+        },
+        {
+          "kind": "pattern",
+          "base": "local_app_data",
+          "segments": [
+            "Google",
+            "Chrome",
+            "User Data",
+            "System Profile",
+            "IndexedDB"
+          ]
+        },
+        {
+          "kind": "pattern",
+          "base": "local_app_data",
+          "segments": [
+            "Google",
+            "Chrome",
+            "User Data",
+            "System Profile",
+            "Session Storage"
+          ]
+        },
+        {
+          "kind": "pattern",
+          "base": "local_app_data",
+          "segments": [
+            "Google",
+            "Chrome",
+            "User Data",
+            "System Profile",
+            "Sessions"
+          ]
+        },
+        {
+          "kind": "pattern",
+          "base": "local_app_data",
+          "segments": [
+            "Google",
+            "Chrome",
+            "User Data",
+            "System Profile",
             "Web Data"
           ]
         }
@@ -1464,7 +1728,7 @@
             "Microsoft",
             "Edge",
             "User Data",
-            "*",
+            "Default",
             "Network"
           ]
         },
@@ -1475,7 +1739,7 @@
             "Microsoft",
             "Edge",
             "User Data",
-            "*",
+            "Default",
             "Cookies"
           ]
         },
@@ -1486,7 +1750,7 @@
             "Microsoft",
             "Edge",
             "User Data",
-            "*",
+            "Default",
             "Login Data"
           ]
         },
@@ -1497,7 +1761,7 @@
             "Microsoft",
             "Edge",
             "User Data",
-            "*",
+            "Default",
             "Local Storage"
           ]
         },
@@ -1508,7 +1772,7 @@
             "Microsoft",
             "Edge",
             "User Data",
-            "*",
+            "Default",
             "IndexedDB"
           ]
         },
@@ -1519,7 +1783,7 @@
             "Microsoft",
             "Edge",
             "User Data",
-            "*",
+            "Default",
             "Session Storage"
           ]
         },
@@ -1530,7 +1794,7 @@
             "Microsoft",
             "Edge",
             "User Data",
-            "*",
+            "Default",
             "Sessions"
           ]
         },
@@ -1541,7 +1805,271 @@
             "Microsoft",
             "Edge",
             "User Data",
-            "*",
+            "Default",
+            "Web Data"
+          ]
+        },
+        {
+          "kind": "pattern",
+          "base": "local_app_data",
+          "segments": [
+            "Microsoft",
+            "Edge",
+            "User Data",
+            "Profile *",
+            "Network"
+          ]
+        },
+        {
+          "kind": "pattern",
+          "base": "local_app_data",
+          "segments": [
+            "Microsoft",
+            "Edge",
+            "User Data",
+            "Profile *",
+            "Cookies"
+          ]
+        },
+        {
+          "kind": "pattern",
+          "base": "local_app_data",
+          "segments": [
+            "Microsoft",
+            "Edge",
+            "User Data",
+            "Profile *",
+            "Login Data"
+          ]
+        },
+        {
+          "kind": "pattern",
+          "base": "local_app_data",
+          "segments": [
+            "Microsoft",
+            "Edge",
+            "User Data",
+            "Profile *",
+            "Local Storage"
+          ]
+        },
+        {
+          "kind": "pattern",
+          "base": "local_app_data",
+          "segments": [
+            "Microsoft",
+            "Edge",
+            "User Data",
+            "Profile *",
+            "IndexedDB"
+          ]
+        },
+        {
+          "kind": "pattern",
+          "base": "local_app_data",
+          "segments": [
+            "Microsoft",
+            "Edge",
+            "User Data",
+            "Profile *",
+            "Session Storage"
+          ]
+        },
+        {
+          "kind": "pattern",
+          "base": "local_app_data",
+          "segments": [
+            "Microsoft",
+            "Edge",
+            "User Data",
+            "Profile *",
+            "Sessions"
+          ]
+        },
+        {
+          "kind": "pattern",
+          "base": "local_app_data",
+          "segments": [
+            "Microsoft",
+            "Edge",
+            "User Data",
+            "Profile *",
+            "Web Data"
+          ]
+        },
+        {
+          "kind": "pattern",
+          "base": "local_app_data",
+          "segments": [
+            "Microsoft",
+            "Edge",
+            "User Data",
+            "Guest Profile",
+            "Network"
+          ]
+        },
+        {
+          "kind": "pattern",
+          "base": "local_app_data",
+          "segments": [
+            "Microsoft",
+            "Edge",
+            "User Data",
+            "Guest Profile",
+            "Cookies"
+          ]
+        },
+        {
+          "kind": "pattern",
+          "base": "local_app_data",
+          "segments": [
+            "Microsoft",
+            "Edge",
+            "User Data",
+            "Guest Profile",
+            "Login Data"
+          ]
+        },
+        {
+          "kind": "pattern",
+          "base": "local_app_data",
+          "segments": [
+            "Microsoft",
+            "Edge",
+            "User Data",
+            "Guest Profile",
+            "Local Storage"
+          ]
+        },
+        {
+          "kind": "pattern",
+          "base": "local_app_data",
+          "segments": [
+            "Microsoft",
+            "Edge",
+            "User Data",
+            "Guest Profile",
+            "IndexedDB"
+          ]
+        },
+        {
+          "kind": "pattern",
+          "base": "local_app_data",
+          "segments": [
+            "Microsoft",
+            "Edge",
+            "User Data",
+            "Guest Profile",
+            "Session Storage"
+          ]
+        },
+        {
+          "kind": "pattern",
+          "base": "local_app_data",
+          "segments": [
+            "Microsoft",
+            "Edge",
+            "User Data",
+            "Guest Profile",
+            "Sessions"
+          ]
+        },
+        {
+          "kind": "pattern",
+          "base": "local_app_data",
+          "segments": [
+            "Microsoft",
+            "Edge",
+            "User Data",
+            "Guest Profile",
+            "Web Data"
+          ]
+        },
+        {
+          "kind": "pattern",
+          "base": "local_app_data",
+          "segments": [
+            "Microsoft",
+            "Edge",
+            "User Data",
+            "System Profile",
+            "Network"
+          ]
+        },
+        {
+          "kind": "pattern",
+          "base": "local_app_data",
+          "segments": [
+            "Microsoft",
+            "Edge",
+            "User Data",
+            "System Profile",
+            "Cookies"
+          ]
+        },
+        {
+          "kind": "pattern",
+          "base": "local_app_data",
+          "segments": [
+            "Microsoft",
+            "Edge",
+            "User Data",
+            "System Profile",
+            "Login Data"
+          ]
+        },
+        {
+          "kind": "pattern",
+          "base": "local_app_data",
+          "segments": [
+            "Microsoft",
+            "Edge",
+            "User Data",
+            "System Profile",
+            "Local Storage"
+          ]
+        },
+        {
+          "kind": "pattern",
+          "base": "local_app_data",
+          "segments": [
+            "Microsoft",
+            "Edge",
+            "User Data",
+            "System Profile",
+            "IndexedDB"
+          ]
+        },
+        {
+          "kind": "pattern",
+          "base": "local_app_data",
+          "segments": [
+            "Microsoft",
+            "Edge",
+            "User Data",
+            "System Profile",
+            "Session Storage"
+          ]
+        },
+        {
+          "kind": "pattern",
+          "base": "local_app_data",
+          "segments": [
+            "Microsoft",
+            "Edge",
+            "User Data",
+            "System Profile",
+            "Sessions"
+          ]
+        },
+        {
+          "kind": "pattern",
+          "base": "local_app_data",
+          "segments": [
+            "Microsoft",
+            "Edge",
+            "User Data",
+            "System Profile",
             "Web Data"
           ]
         }
@@ -1580,7 +2108,7 @@
             "BraveSoftware",
             "Brave-Browser",
             "User Data",
-            "*",
+            "Default",
             "Network"
           ]
         },
@@ -1591,7 +2119,7 @@
             "BraveSoftware",
             "Brave-Browser",
             "User Data",
-            "*",
+            "Default",
             "Cookies"
           ]
         },
@@ -1602,7 +2130,7 @@
             "BraveSoftware",
             "Brave-Browser",
             "User Data",
-            "*",
+            "Default",
             "Login Data"
           ]
         },
@@ -1613,7 +2141,7 @@
             "BraveSoftware",
             "Brave-Browser",
             "User Data",
-            "*",
+            "Default",
             "Local Storage"
           ]
         },
@@ -1624,7 +2152,7 @@
             "BraveSoftware",
             "Brave-Browser",
             "User Data",
-            "*",
+            "Default",
             "IndexedDB"
           ]
         },
@@ -1635,7 +2163,7 @@
             "BraveSoftware",
             "Brave-Browser",
             "User Data",
-            "*",
+            "Default",
             "Session Storage"
           ]
         },
@@ -1646,7 +2174,7 @@
             "BraveSoftware",
             "Brave-Browser",
             "User Data",
-            "*",
+            "Default",
             "Sessions"
           ]
         },
@@ -1657,7 +2185,271 @@
             "BraveSoftware",
             "Brave-Browser",
             "User Data",
-            "*",
+            "Default",
+            "Web Data"
+          ]
+        },
+        {
+          "kind": "pattern",
+          "base": "local_app_data",
+          "segments": [
+            "BraveSoftware",
+            "Brave-Browser",
+            "User Data",
+            "Profile *",
+            "Network"
+          ]
+        },
+        {
+          "kind": "pattern",
+          "base": "local_app_data",
+          "segments": [
+            "BraveSoftware",
+            "Brave-Browser",
+            "User Data",
+            "Profile *",
+            "Cookies"
+          ]
+        },
+        {
+          "kind": "pattern",
+          "base": "local_app_data",
+          "segments": [
+            "BraveSoftware",
+            "Brave-Browser",
+            "User Data",
+            "Profile *",
+            "Login Data"
+          ]
+        },
+        {
+          "kind": "pattern",
+          "base": "local_app_data",
+          "segments": [
+            "BraveSoftware",
+            "Brave-Browser",
+            "User Data",
+            "Profile *",
+            "Local Storage"
+          ]
+        },
+        {
+          "kind": "pattern",
+          "base": "local_app_data",
+          "segments": [
+            "BraveSoftware",
+            "Brave-Browser",
+            "User Data",
+            "Profile *",
+            "IndexedDB"
+          ]
+        },
+        {
+          "kind": "pattern",
+          "base": "local_app_data",
+          "segments": [
+            "BraveSoftware",
+            "Brave-Browser",
+            "User Data",
+            "Profile *",
+            "Session Storage"
+          ]
+        },
+        {
+          "kind": "pattern",
+          "base": "local_app_data",
+          "segments": [
+            "BraveSoftware",
+            "Brave-Browser",
+            "User Data",
+            "Profile *",
+            "Sessions"
+          ]
+        },
+        {
+          "kind": "pattern",
+          "base": "local_app_data",
+          "segments": [
+            "BraveSoftware",
+            "Brave-Browser",
+            "User Data",
+            "Profile *",
+            "Web Data"
+          ]
+        },
+        {
+          "kind": "pattern",
+          "base": "local_app_data",
+          "segments": [
+            "BraveSoftware",
+            "Brave-Browser",
+            "User Data",
+            "Guest Profile",
+            "Network"
+          ]
+        },
+        {
+          "kind": "pattern",
+          "base": "local_app_data",
+          "segments": [
+            "BraveSoftware",
+            "Brave-Browser",
+            "User Data",
+            "Guest Profile",
+            "Cookies"
+          ]
+        },
+        {
+          "kind": "pattern",
+          "base": "local_app_data",
+          "segments": [
+            "BraveSoftware",
+            "Brave-Browser",
+            "User Data",
+            "Guest Profile",
+            "Login Data"
+          ]
+        },
+        {
+          "kind": "pattern",
+          "base": "local_app_data",
+          "segments": [
+            "BraveSoftware",
+            "Brave-Browser",
+            "User Data",
+            "Guest Profile",
+            "Local Storage"
+          ]
+        },
+        {
+          "kind": "pattern",
+          "base": "local_app_data",
+          "segments": [
+            "BraveSoftware",
+            "Brave-Browser",
+            "User Data",
+            "Guest Profile",
+            "IndexedDB"
+          ]
+        },
+        {
+          "kind": "pattern",
+          "base": "local_app_data",
+          "segments": [
+            "BraveSoftware",
+            "Brave-Browser",
+            "User Data",
+            "Guest Profile",
+            "Session Storage"
+          ]
+        },
+        {
+          "kind": "pattern",
+          "base": "local_app_data",
+          "segments": [
+            "BraveSoftware",
+            "Brave-Browser",
+            "User Data",
+            "Guest Profile",
+            "Sessions"
+          ]
+        },
+        {
+          "kind": "pattern",
+          "base": "local_app_data",
+          "segments": [
+            "BraveSoftware",
+            "Brave-Browser",
+            "User Data",
+            "Guest Profile",
+            "Web Data"
+          ]
+        },
+        {
+          "kind": "pattern",
+          "base": "local_app_data",
+          "segments": [
+            "BraveSoftware",
+            "Brave-Browser",
+            "User Data",
+            "System Profile",
+            "Network"
+          ]
+        },
+        {
+          "kind": "pattern",
+          "base": "local_app_data",
+          "segments": [
+            "BraveSoftware",
+            "Brave-Browser",
+            "User Data",
+            "System Profile",
+            "Cookies"
+          ]
+        },
+        {
+          "kind": "pattern",
+          "base": "local_app_data",
+          "segments": [
+            "BraveSoftware",
+            "Brave-Browser",
+            "User Data",
+            "System Profile",
+            "Login Data"
+          ]
+        },
+        {
+          "kind": "pattern",
+          "base": "local_app_data",
+          "segments": [
+            "BraveSoftware",
+            "Brave-Browser",
+            "User Data",
+            "System Profile",
+            "Local Storage"
+          ]
+        },
+        {
+          "kind": "pattern",
+          "base": "local_app_data",
+          "segments": [
+            "BraveSoftware",
+            "Brave-Browser",
+            "User Data",
+            "System Profile",
+            "IndexedDB"
+          ]
+        },
+        {
+          "kind": "pattern",
+          "base": "local_app_data",
+          "segments": [
+            "BraveSoftware",
+            "Brave-Browser",
+            "User Data",
+            "System Profile",
+            "Session Storage"
+          ]
+        },
+        {
+          "kind": "pattern",
+          "base": "local_app_data",
+          "segments": [
+            "BraveSoftware",
+            "Brave-Browser",
+            "User Data",
+            "System Profile",
+            "Sessions"
+          ]
+        },
+        {
+          "kind": "pattern",
+          "base": "local_app_data",
+          "segments": [
+            "BraveSoftware",
+            "Brave-Browser",
+            "User Data",
+            "System Profile",
             "Web Data"
           ]
         }

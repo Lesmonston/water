@@ -398,12 +398,32 @@ pub(crate) fn valid_process_name(value: &str) -> bool {
 
 pub(crate) fn valid_date(value: &str) -> bool {
     let bytes = value.as_bytes();
-    bytes.len() == 10
+    if !(bytes.len() == 10
         && bytes[4] == b'-'
         && bytes[7] == b'-'
         && bytes[0..4].iter().all(u8::is_ascii_digit)
         && bytes[5..7].iter().all(u8::is_ascii_digit)
-        && bytes[8..10].iter().all(u8::is_ascii_digit)
+        && bytes[8..10].iter().all(u8::is_ascii_digit))
+    {
+        return false;
+    }
+    let number = |range: std::ops::Range<usize>| {
+        bytes[range]
+            .iter()
+            .fold(0u32, |acc, byte| acc * 10 + u32::from(byte - b'0'))
+    };
+    let year = number(0..4);
+    let month = number(5..7);
+    let day = number(8..10);
+    let leap = (year % 4 == 0 && year % 100 != 0) || year % 400 == 0;
+    let days_in_month = match month {
+        1 | 3 | 5 | 7 | 8 | 10 | 12 => 31,
+        4 | 6 | 9 | 11 => 30,
+        2 if leap => 29,
+        2 => 28,
+        _ => return false,
+    };
+    (1..=days_in_month).contains(&day)
 }
 
 pub(crate) fn valid_data_version(value: &str) -> bool {
@@ -508,12 +528,40 @@ fn joined_names(names: &[String]) -> String {
         .join("\u{1f}")
 }
 
+/// Addendum 01 rule: literal vs literal compares ASCII case-insensitively;
+/// exactly one wildcard side is matched as a MODEL segment pattern against
+/// the other side's literal text; two wildcard sides may always overlap.
 pub(crate) fn segments_may_overlap(cleanable: &str, protected: &str) -> bool {
-    if has_wildcard(cleanable) {
-        true
-    } else if has_wildcard(protected) {
-        false
-    } else {
-        cleanable.eq_ignore_ascii_case(protected)
+    match (has_wildcard(cleanable), has_wildcard(protected)) {
+        (false, false) => cleanable.eq_ignore_ascii_case(protected),
+        (true, false) => segment_pattern_matches(cleanable, protected),
+        (false, true) => segment_pattern_matches(protected, cleanable),
+        (true, true) => true,
+    }
+}
+
+/// MODEL segment syntax: `*` zero or more characters, `?` exactly one
+/// character, `#` one or more ASCII digits, other characters literal and
+/// ASCII case-insensitive.
+pub(crate) fn segment_pattern_matches(pattern: &str, text: &str) -> bool {
+    let pattern: Vec<char> = pattern.chars().collect();
+    let text: Vec<char> = text.chars().collect();
+    glob_match(&pattern, &text)
+}
+
+fn glob_match(pattern: &[char], text: &[char]) -> bool {
+    let Some((&head, rest)) = pattern.split_first() else {
+        return text.is_empty();
+    };
+    match head {
+        '*' => (0..=text.len()).any(|skip| glob_match(rest, &text[skip..])),
+        '?' => !text.is_empty() && glob_match(rest, &text[1..]),
+        '#' => {
+            let digits = text.iter().take_while(|ch| ch.is_ascii_digit()).count();
+            (1..=digits).any(|used| glob_match(rest, &text[used..]))
+        }
+        literal => text.split_first().is_some_and(|(first, tail)| {
+            first.eq_ignore_ascii_case(&literal) && glob_match(rest, tail)
+        }),
     }
 }

@@ -69,10 +69,16 @@ impl KnownFolders {
             program_data: read("program_data")?,
             downloads: read("downloads")?,
         };
-        if folders.user_temp != format!("{}\\Temp", folders.local_app_data) {
+        if !folders
+            .user_temp
+            .eq_ignore_ascii_case(&format!("{}\\Temp", folders.local_app_data))
+        {
             return Err(RulesError::new("RULES_INVALID_FOLDERS", "/user_temp"));
         }
-        if folders.system_temp != format!("{}\\Temp", folders.windows) {
+        if !folders
+            .system_temp
+            .eq_ignore_ascii_case(&format!("{}\\Temp", folders.windows))
+        {
             return Err(RulesError::new("RULES_INVALID_FOLDERS", "/system_temp"));
         }
         Ok(folders)

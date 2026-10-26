@@ -9,6 +9,8 @@ use serde_json::{Map, Value};
 use std::collections::HashSet;
 
 const EMBEDDED_WINDOWS: &str = include_str!("../rules/windows.json");
+/// RULES section 2 `locate` limit, raised from 8 to 32 by addendum 01.
+const MAX_LOCATORS: usize = 32;
 
 #[derive(Debug, Clone, PartialEq, Eq)]
 pub struct Source {
@@ -325,7 +327,7 @@ fn parse_locators(
     let items = value
         .as_array()
         .ok_or_else(|| RulesError::new("RULES_INVALID_LOCATE", path))?;
-    if items.is_empty() || items.len() > 8 {
+    if items.is_empty() || items.len() > MAX_LOCATORS {
         return Err(RulesError::new("RULES_INVALID_LOCATE", path));
     }
     let mut locators = Vec::with_capacity(items.len());
