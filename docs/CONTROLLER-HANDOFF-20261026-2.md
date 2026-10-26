@@ -6,6 +6,8 @@
 
 方向已按用户五项决定改为“Windows 设备垃圾体检 + 应用内选择性清理”的一体化桌面应用（[ADR-018](decisions/ADR-018-device-junk-checkup-and-in-app-cleanup.md)）。第二波五张票 **A–E 全部 READY**，baseline 通过，派单句已交给用户。截至交接时还没有执行者开工的证据，新产品代码为 0。下一步是等回执、逐票验收，然后出 F（桌面接线）。
 
+**交接后补记（14:05 JST）**：用户已把五票全部派出。A、B 由 Cursor 执行，C 由 Grok 执行，D、E 由 Astra 执行。当时 B 已提交实现 `35c94d2`，D 已开写，E 已自跑 baseline，A、C 尚无动静。详情见 manifest 的 `model`、`startedAt`、`startEvidence` 字段。
+
 ## 1. 仓库与关键提交
 
 主线 `main`，没有远程仓库（立项书约定只保留本地 Git）。交接时 HEAD 为 `81abd4d5382a2cf74c304757daa505d0e874b1f5`，工作区干净；本报告随后单独提交。
@@ -32,13 +34,13 @@
 
 计划 [PLAN](dispatch/wave2/PLAN.md)，登记 [manifest](dispatch/wave2/manifest.json)，派前回执 [READY-REPORT](dispatch/wave2/READY-REPORT-20261026.md)。契约在 `contracts/checkup-v1/`：MODEL（五票共用 JSON 形状）、RULES、SCAN、PROCESS、CLEAN、IPC、UI、real-plan-template.json、ui-fixtures.json。
 
-| 票 | 交付目录 | 工作树 / 分支 | 门 | 负控标记 | 真实只读 |
-|---|---|---|---|---|---|
-| A 规则登记表 | `packages/junk-rules` | `.worktrees/w2-a` / `worker/water-w2-a` | 轻 | RULES_PRECEDENCE | 规则路径存在性 |
-| B 扫描引擎 | `packages/junk-scan` | `.worktrees/w2-b` | 轻 | SCAN_NO_FOLLOW | 本机组级扫描 |
-| C 进程与在用 | `packages/process-scan` | `.worktrees/w2-c` | 轻 | PROC_PATH_BOUNDARY | 进程计数 |
-| D 清理执行器 | `packages/junk-clean` | `.worktrees/w2-d` | **重** | CLEAN_IDENTITY、CLEAN_NO_FOLLOW、CLEAN_ROOT_BOUND | 无 |
-| E 桌面界面（界面票） | `apps/water/ui` | `.worktrees/w2-e` | 轻 + 看图 | UI_LEVEL_GUARD | 无，1 个私有 Chrome |
+| 票 | 交付目录 | 工作树 / 分支 | 门 | 负控标记 | 真实只读 | 执行者 |
+|---|---|---|---|---|---|---|
+| A 规则登记表 | `packages/junk-rules` | `.worktrees/w2-a` / `worker/water-w2-a` | 轻 | RULES_PRECEDENCE | 规则路径存在性 | Cursor |
+| B 扫描引擎 | `packages/junk-scan` | `.worktrees/w2-b` | 轻 | SCAN_NO_FOLLOW | 本机组级扫描 | Cursor |
+| C 进程与在用 | `packages/process-scan` | `.worktrees/w2-c` | 轻 | PROC_PATH_BOUNDARY | 进程计数 | Grok |
+| D 清理执行器 | `packages/junk-clean` | `.worktrees/w2-d` | **重** | CLEAN_IDENTITY、CLEAN_NO_FOLLOW、CLEAN_ROOT_BOUND | 无 | Astra |
+| E 桌面界面（界面票） | `apps/water/ui` | `.worktrees/w2-e` | 轻 + 看图 | UI_LEVEL_GUARD | 无，1 个私有 Chrome | Astra |
 
 - A–D 基点 `7ca1528`，E 基点 `68cbab9`。交接时五个工作树都停在各自基点、干净，只有 baseline 回执。
 - 五票目录互不相交，只通过 MODEL 的 JSON 交接，可以同时由五个执行者做。用户已拿到派单句；是否已全部转贴未确认。
