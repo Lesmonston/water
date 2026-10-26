@@ -1,0 +1,27 @@
+f3 nc1 mutated apps/water/host/src/service.rs: the service config ignores the constant and turns cleaning on (worker mutated the constant itself) (mutated sha d67ad0ae9e18918d8fd9601c54c727816c445575c26dba1387cd273b1a241e49)
+f3 red-nc1 rc=0 {"task":"WATER-W3-ACCEPT-F3","mode":"red-nc1","finalGate":false,"status":"passed","error":null,"receipt":"F:\\new\\smaltalk\\water\\.worktrees\\accept2-w3-f3\\.local\\checks\\WATER-W3-ACCEPT-F3\\2026-10-26T13-06-26.849Z-35392-red-nc1-result.json"}
+f3 nc1 KILLED (expected HOST_CLEAN_DISABLED)
+f3 nc1 restored exact bytes=true sha 52a5414db6a5857c7b246e050a75c7c5efab87a75b564f61c0830ffb79e694ab
+f3 test rc=0 {"task":"WATER-W3-ACCEPT-F3","mode":"test","finalGate":false,"status":"passed","error":null,"receipt":"F:\\new\\smaltalk\\water\\.worktrees\\accept2-w3-f3\\.local\\checks\\WATER-W3-ACCEPT-F3\\2026-10-26T13-06-47.557Z-35056-test-result.json"}
+f3 nc2 mutated apps/water/host/src/startup.rs: a sharing violation no longer maps to AlreadyRunning (worker relaxed the share mode instead) (mutated sha 4d077435ad506418717e60383da0fbdda230c7dba12c4aa7b6e84288d59aeb61)
+f3 red-nc2 rc=0 {"task":"WATER-W3-ACCEPT-F3","mode":"red-nc2","finalGate":false,"status":"passed","error":null,"receipt":"F:\\new\\smaltalk\\water\\.worktrees\\accept2-w3-f3\\.local\\checks\\WATER-W3-ACCEPT-F3\\2026-10-26T13-06-58.049Z-5832-red-nc2-result.json"}
+f3 nc2 KILLED (expected HOST_SINGLE_INSTANCE)
+f3 nc2 restored exact bytes=true sha 19b6905267c6d7eae2eaf90a8f8c41a43141ea2b15c015dbe7370a51d3fd94fd
+f3 test rc=0 {"task":"WATER-W3-ACCEPT-F3","mode":"test","finalGate":false,"status":"passed","error":null,"receipt":"F:\\new\\smaltalk\\water\\.worktrees\\accept2-w3-f3\\.local\\checks\\WATER-W3-ACCEPT-F3\\2026-10-26T13-07-08.394Z-4112-test-result.json"}
+f3 nc3 mutated apps/water/host/src/lib.rs: scan_cancel is dropped from the handler list (worker dropped custom_root_remove) (mutated sha 484cc19610afbaa9bd1d61295a6bf3bb79e3251e933277b1a7da09c5dc8fac5d)
+f3 red-nc3 rc=0 {"task":"WATER-W3-ACCEPT-F3","mode":"red-nc3","finalGate":false,"status":"passed","error":null,"receipt":"F:\\new\\smaltalk\\water\\.worktrees\\accept2-w3-f3\\.local\\checks\\WATER-W3-ACCEPT-F3\\2026-10-26T13-07-18.351Z-36040-red-nc3-result.json"}
+f3 nc3 KILLED (expected HOST_COMMANDS)
+f3 nc3 restored exact bytes=true sha c7bf4c95feb2c98376b32a0665e594f802665d46ea74d6ff36015478eba21884
+f3 test rc=0 {"task":"WATER-W3-ACCEPT-F3","mode":"test","finalGate":false,"status":"passed","error":null,"receipt":"F:\\new\\smaltalk\\water\\.worktrees\\accept2-w3-f3\\.local\\checks\\WATER-W3-ACCEPT-F3\\2026-10-26T13-07-30.857Z-33956-test-result.json"}
+f3 x1 mutated apps/water/host/src/service.rs: the picker guard is never released, so every later pick answers busy (mutated sha c1589d6fe93d086aaed2b7e6d4d8a75ee87a588fd0e7d54ffcffc32111a9809b)
+f3 test rc=1 {"task":"WATER-W3-ACCEPT-F3","mode":"test","finalGate":false,"status":"failed","error":"AssertionError [ERR_ASSERTION]: Unexpected exit, see 2026-10-26T13-07-42.472Z-42292-test-5.log","receipt":"F:\\new\\smaltalk\\water\\.worktrees\\accept2-w3-f3\\.local\\checks\\WATER-W3-ACCEPT-F3\\2026-10-26T13-07-42.472Z-42292-test-result.json"}
+f3 x1 KILLED (expected HOST_PICKER)
+f3 x1 restored exact bytes=true sha 52a5414db6a5857c7b246e050a75c7c5efab87a75b564f61c0830ffb79e694ab
+f3 test rc=0 {"task":"WATER-W3-ACCEPT-F3","mode":"test","finalGate":false,"status":"passed","error":null,"receipt":"F:\\new\\smaltalk\\water\\.worktrees\\accept2-w3-f3\\.local\\checks\\WATER-W3-ACCEPT-F3\\2026-10-26T13-07-52.126Z-39688-test-result.json"}
+f3 x2 mutated apps/water/host/src/service.rs: ServiceBackend stops passing the arguments through (mutated sha 892a29e6cfd69b98691e387072c25865bd580139c6f9a5b429dc5a86730f583c)
+f3 test rc=1 {"task":"WATER-W3-ACCEPT-F3","mode":"test","finalGate":false,"status":"failed","error":"AssertionError [ERR_ASSERTION]: Unexpected exit, see 2026-10-26T13-08-02.147Z-492-test-5.log","receipt":"F:\\new\\smaltalk\\water\\.worktrees\\accept2-w3-f3\\.local\\checks\\WATER-W3-ACCEPT-F3\\2026-10-26T13-08-02.147Z-492-test-result.json"}
+f3 x2 KILLED (expected HOST_WIRING)
+f3 x2 restored exact bytes=true sha 52a5414db6a5857c7b246e050a75c7c5efab87a75b564f61c0830ffb79e694ab
+f3 test rc=0 {"task":"WATER-W3-ACCEPT-F3","mode":"test","finalGate":false,"status":"passed","error":null,"receipt":"F:\\new\\smaltalk\\water\\.worktrees\\accept2-w3-f3\\.local\\checks\\WATER-W3-ACCEPT-F3\\2026-10-26T13-08-12.127Z-25060-test-result.json"}
+f3 survived: none
+f3 test --final rc=0 {"task":"WATER-W3-ACCEPT-F3","mode":"test","finalGate":true,"status":"passed","error":null,"receipt":"F:\\new\\smaltalk\\water\\.worktrees\\accept2-w3-f3\\.local\\checks\\WATER-W3-ACCEPT-F3\\2026-10-26T13-08-21.533Z-27396-test-result.json"}

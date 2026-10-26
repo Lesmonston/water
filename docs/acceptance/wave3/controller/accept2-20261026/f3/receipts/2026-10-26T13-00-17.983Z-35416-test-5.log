@@ -1,0 +1,180 @@
+{"binary":"C:\\Users\\37310\\.rustup\\toolchains\\1.95.0-x86_64-pc-windows-msvc\\bin\\cargo.exe","args":["--config","source.crates-io.replace-with=\"water-cn\"","--config","source.water-cn.registry=\"sparse+https://mirrors.ustc.edu.cn/crates.io-index/\"","--config","http.multiplexing=false","--config","http.proxy=\"\"","test","--offline","--locked","--manifest-path","apps/water/host/Cargo.toml","--test","host_v1","--","--test-threads=1"],"exitCode":0,"error":null}
+--- stdout ---
+
+running 5 tests
+test host_command_registry ... ok
+test host_config_boundary ... ok
+test host_data_directory ... ok
+test host_navigation_boundary ... ok
+test host_service_wiring ... ok
+
+test result: ok. 5 passed; 0 failed; 0 ignored; 0 measured; 0 filtered out; finished in 0.09s
+
+
+--- stderr ---
+   Compiling windows-link v0.2.1
+   Compiling zerofrom v0.1.8
+   Compiling memchr v2.8.3
+   Compiling serde_core v1.0.229
+   Compiling itoa v1.0.18
+   Compiling smallvec v1.16.4
+   Compiling cfg-if v1.0.5
+   Compiling siphasher v1.0.4
+   Compiling zmij v1.0.23
+   Compiling writeable v0.6.4
+   Compiling litemap v0.8.3
+   Compiling phf_shared v0.13.1
+   Compiling utf8_iter v1.0.4
+   Compiling phf_generator v0.13.1
+   Compiling icu_properties_data v2.4.0
+   Compiling icu_normalizer_data v2.4.0
+   Compiling serde v1.0.229
+   Compiling yoke v0.8.4
+   Compiling thiserror v2.0.21
+   Compiling zerovec v0.11.9
+   Compiling phf_macros v0.13.1
+   Compiling stable_deref_trait v1.2.1
+   Compiling num-conv v0.2.2
+   Compiling time-core v0.1.9
+   Compiling tinystr v0.8.5
+   Compiling phf_codegen v0.13.1
+   Compiling winnow v1.0.4
+   Compiling deranged v0.5.9
+   Compiling scopeguard v1.2.0
+   Compiling powerfmt v0.2.1
+   Compiling lock_api v0.4.14
+   Compiling toml_parser v1.1.5+spec-1.1.0
+   Compiling icu_locale_core v2.4.0
+   Compiling parking_lot_core v0.9.12
+   Compiling potential_utf v0.1.6
+   Compiling zerotrie v0.2.5
+   Compiling windows-sys v0.61.2
+   Compiling log v0.4.34
+   Compiling toml_writer v1.1.3+spec-1.1.0
+   Compiling icu_provider v2.4.0
+   Compiling icu_collections v2.4.0
+   Compiling parking_lot v0.12.5
+   Compiling typeid v1.0.3
+   Compiling serde_json v1.0.151
+   Compiling aho-corasick v1.1.5
+   Compiling web-time v1.1.0
+   Compiling fnv v1.0.7
+   Compiling regex-syntax v0.8.11
+   Compiling regex-automata v0.4.18
+   Compiling phf v0.13.1
+   Compiling string_cache_codegen v0.6.1
+   Compiling hashbrown v0.17.1
+   Compiling equivalent v1.0.3
+   Compiling bytes v1.12.1
+   Compiling indexmap v2.14.2
+   Compiling web_atoms v0.2.6
+   Compiling regex v1.13.1
+   Compiling icu_normalizer v2.4.0
+   Compiling icu_properties v2.4.0
+   Compiling quick-xml v0.42.0
+   Compiling dunce v1.0.5
+   Compiling base64 v0.23.1
+   Compiling idna_adapter v1.2.2
+   Compiling getrandom v0.4.3
+   Compiling http v1.5.0
+   Compiling string_cache v0.9.0
+   Compiling serde_spanned v1.1.2
+   Compiling toml_datetime v1.1.2+spec-1.1.0
+   Compiling form_urlencoded v1.2.2
+   Compiling toml v1.1.8+spec-1.1.0
+   Compiling uuid v1.29.0
+   Compiling idna v1.1.0
+   Compiling anyhow v1.0.104
+   Compiling libc v0.2.191
+   Compiling selectors v0.38.0
+   Compiling windows-strings v0.5.1
+   Compiling windows-result v0.4.1
+   Compiling glob v0.3.4
+   Compiling ctor v1.0.13
+   Compiling cssparser v0.37.0
+   Compiling windows-core v0.62.2
+   Compiling markup5ever v0.39.0
+   Compiling url v2.5.8
+   Compiling winapi-util v0.1.11
+   Compiling same-file v1.0.6
+   Compiling html5ever v0.39.0
+   Compiling cfb v0.14.0
+   Compiling jsonptr v0.7.1
+   Compiling erased-serde v0.4.10
+   Compiling time v0.3.55
+   Compiling option-ext v0.2.0
+   Compiling dom_query v0.28.0
+   Compiling schemars v0.8.22
+   Compiling cargo_metadata v0.19.2
+   Compiling plist v1.10.3
+   Compiling serde-untagged v0.1.9
+   Compiling json-patch v4.2.0
+   Compiling infer v0.22.0
+   Compiling vswhom-sys v0.1.3
+   Compiling walkdir v2.5.0
+   Compiling urlpattern v0.6.0
+   Compiling serde_with v3.24.0
+   Compiling windows-threading v0.2.1
+   Compiling windows-future v0.3.2
+   Compiling tauri-utils v2.10.2
+   Compiling vswhom v0.1.0
+   Compiling windows-collections v0.3.2
+   Compiling windows-numerics v0.3.1
+   Compiling winreg v0.56.0
+   Compiling time-macros v0.2.32
+   Compiling percent-encoding v2.3.2
+   Compiling embed-resource v3.0.12
+   Compiling windows v0.62.2
+   Compiling dirs-sys v0.5.0
+   Compiling webview2-com-sys v0.39.1
+   Compiling heck v0.5.0
+   Compiling raw-window-handle v0.6.2
+   Compiling dirs v7.0.0
+   Compiling tauri-winres v0.3.7
+   Compiling crc32fast v1.5.3
+   Compiling cargo_toml v1.0.1
+   Compiling dpi v0.1.2
+   Compiling tauri-build v2.7.4
+   Compiling flate2 v1.1.10
+   Compiling crossbeam-utils v0.8.23
+   Compiling bitflags v2.13.2
+   Compiling windows-version v0.1.7
+   Compiling pin-project-lite v0.2.17
+   Compiling webview2-com v0.39.1
+   Compiling png v0.18.1
+   Compiling crossbeam-channel v0.5.17
+   Compiling cookie v0.18.2
+   Compiling semver v1.0.28
+   Compiling tracing-core v0.1.36
+   Compiling sha2 v0.10.9
+   Compiling ico v0.6.0
+   Compiling tracing v0.1.44
+   Compiling tauri v2.12.5
+   Compiling water-contracts v0.1.0 (F:\new\smaltalk\water\.worktrees\accept2-w3-f3\crates\water-contracts)
+   Compiling unicode-segmentation v1.13.3
+   Compiling tao v0.37.2
+   Compiling water-native-root v0.1.0 (F:\new\smaltalk\water\.worktrees\accept2-w3-f3\packages\native-root)
+   Compiling tauri-runtime v2.12.2
+   Compiling wry v0.57.1
+   Compiling softbuffer v0.4.8
+   Compiling tauri-codegen v2.7.4
+   Compiling keyboard-types v0.8.3
+   Compiling once_cell v1.21.4
+   Compiling muda v0.20.0
+   Compiling serialize-to-javascript v0.1.2
+   Compiling tauri-macros v2.7.4
+   Compiling tauri-runtime-wry v2.12.3
+   Compiling water-scope-registry v0.1.0 (F:\new\smaltalk\water\.worktrees\accept2-w3-f3\packages\scope-registry)
+   Compiling getrandom v0.3.4
+   Compiling tokio v1.54.1
+   Compiling window-vibrancy v0.8.1
+   Compiling water-desktop v0.1.0 (F:\new\smaltalk\water\.worktrees\accept2-w3-f3\apps\water\host)
+   Compiling water-junk-scan v0.1.0 (F:\new\smaltalk\water\.worktrees\accept2-w3-f3\packages\junk-scan)
+   Compiling water-junk-rules v0.1.0 (F:\new\smaltalk\water\.worktrees\accept2-w3-f3\packages\junk-rules)
+   Compiling water-junk-clean v0.1.0 (F:\new\smaltalk\water\.worktrees\accept2-w3-f3\packages\junk-clean)
+   Compiling water-process-scan v0.1.0 (F:\new\smaltalk\water\.worktrees\accept2-w3-f3\packages\process-scan)
+   Compiling mime v0.3.17
+   Compiling water-service v0.1.0 (F:\new\smaltalk\water\.worktrees\accept2-w3-f3\packages\water-service)
+   Compiling water-native-picker v0.1.0 (F:\new\smaltalk\water\.worktrees\accept2-w3-f3\packages\native-picker)
+    Finished `test` profile [unoptimized + debuginfo] target(s) in 5m 40s
+     Running tests\host_v1.rs (.local\w3-target\debug\deps\host_v1-4d75575cc0484581.exe)
