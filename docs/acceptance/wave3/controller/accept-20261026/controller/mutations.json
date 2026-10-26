@@ -1,0 +1,87 @@
+{
+  "f2": [
+    {
+      "label": "nc1",
+      "mode": "red-nc1",
+      "token": "HOST_CONFIG",
+      "file": "apps/water/host/src/policy.rs",
+      "old": "        || config.app.security.csp != CSP",
+      "new": "        || !config.app.security.csp.starts_with(\"default-src\")",
+      "why": "CSP is compared by prefix only, so a loosened policy such as default-src * passes"
+    },
+    {
+      "label": "nc2",
+      "mode": "red-nc2",
+      "token": "HOST_NAVIGATION",
+      "file": "apps/water/host/src/policy.rs",
+      "old": "    matches!(path, Some(\"\" | \"/\" | \"/index.html\"))",
+      "new": "    path.is_some_and(|p| p.is_empty() || p.starts_with('/'))",
+      "why": "any path on the bundled hosts is allowed (other pages, traversal, double slash)"
+    },
+    {
+      "label": "x1",
+      "mode": "test",
+      "token": "HOST_COMMANDS",
+      "file": "apps/water/host/src/commands.rs",
+      "old": "    backend.call(\"clean_prepare\", json!({\"groupIds\": group_ids}))",
+      "new": "    backend.call(\"clean_prepare\", json!({\"group_ids\": group_ids}))",
+      "why": "clean_prepare forwards a snake_case key instead of the IPC camelCase groupIds"
+    },
+    {
+      "label": "x2",
+      "mode": "test",
+      "token": "HOST_DATA_DIRECTORY",
+      "file": "apps/water/host/src/data.rs",
+      "old": "            Ok(_) => check_directory(directory)?,",
+      "new": "            Ok(_) => {}",
+      "why": "existing path components are no longer checked, so an existing junction as the data directory is accepted"
+    },
+    {
+      "label": "x3",
+      "mode": "test",
+      "token": "HOST_COMMANDS",
+      "file": "apps/water/host/src/picker.rs",
+      "old": "        PickerError::DialogFailed => unavailable(),",
+      "new": "        PickerError::DialogFailed => invalid(),",
+      "why": "a dialog failure is reported as an invalid folder instead of unavailable"
+    }
+  ],
+  "f1": [
+    {
+      "label": "nc1",
+      "mode": "red-nc1",
+      "token": "SERVICE_TOKEN_ONCE",
+      "file": "packages/water-service/src/clean.rs",
+      "old": "    if stored[\"used\"] == true || stored[\"token_digest\"] != util::digest(token) {",
+      "new": "    if stored[\"token_digest\"] != util::digest(token) {",
+      "why": "the used flag is ignored, so a replayed token passes the token check (only the consumed-scan layer remains)"
+    },
+    {
+      "label": "nc2",
+      "mode": "red-nc2",
+      "token": "SERVICE_CLEAN_DISABLED",
+      "file": "packages/water-service/src/service.rs",
+      "old": "        if matches!(command, \"clean_prepare\" | \"clean_start\") && !core.clean_enabled {",
+      "new": "        if matches!(command, \"clean_prepare\") && !core.clean_enabled {",
+      "why": "with clean disabled, clean_start is no longer refused at the entry"
+    },
+    {
+      "label": "nc3",
+      "mode": "red-nc3",
+      "token": "SERVICE_PROTECTED_PLAN",
+      "file": "packages/water-service/src/clean.rs",
+      "old": "g.group_id == i.group_id && g.level == water_junk_scan::Level::Protected",
+      "new": "g.group_id == i.group_id && g.level == water_junk_scan::Level::Advisory",
+      "why": "protected_paths are taken from advisory groups instead of protected groups"
+    },
+    {
+      "label": "x1",
+      "mode": "test",
+      "token": "test result: FAILED",
+      "file": "packages/water-service/src/clean.rs",
+      "old": "            .filter(|i| i.group_id == id && i.eligible && i.identity.is_some())",
+      "new": "            .filter(|i| i.group_id == id && i.identity.is_some())",
+      "why": "ineligible entries (too young, in use) enter the clean plan"
+    }
+  ]
+}

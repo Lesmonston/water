@@ -78,6 +78,11 @@
   - 签名改为 `pick_folder(initial_directory)`，并新增 `picker_failure`。
   - 验收 F2 时以补单为准，manifest 的依赖白名单已同步；F1 不受影响。
   - 18:10 JST 补单交 Astra（新开对话），记录时 F2 树停在 `99766f6`、干净。
+- **19:20 JST 收单验收**（[报告](acceptance/wave3/controller/WATER-W3-F1F2-REVIEW-20261026.md)）：
+  - F2 VERIFIED 并合入主线 `7633c4e`，6 条事项移交 F3（见报告与 manifest 的 `carryOverToF3`）。
+  - F1 发 [补单 01](dispatch/tickets/WATER-W3-F1-ADDENDUM-01-20261026.md)，从 `06182d6` 续做。
+  - 第 5 节说的 W3 收单审计已写成 `scripts/acceptance/w3-receipt-audit.mjs`，验收清单与脚本在 `.local/w3-accept/`（副本在证据目录）。
+  - F1 复验时用同一套：先改 `make-manifest.mjs` 的 F1 HEAD，然后依次跑 `run.sh`、`controls.mjs f1`、`real:final`，再跑总控合成用例 `scripts/acceptance/w3-f1-controller-cases.rs`。合成用例要临时加 `[[test]]`，跑完恢复。
 - 两票基点都是 `197dfda`，只通过 JSON 层对接：`Backend::call(command, args)` 对应 `Service::call(command, args)`。
 - **两个产品取舍**（已写进计划与契约）：
   1. 这一版只做体检，`clean_enabled = false`；

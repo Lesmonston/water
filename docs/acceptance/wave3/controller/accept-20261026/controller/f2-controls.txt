@@ -1,0 +1,23 @@
+f2 nc1 mutated apps/water/host/src/policy.rs: CSP is compared by prefix only, so a loosened policy such as default-src * passes (mutated sha c46a3a8267b9a6cb8bce3be14f2c317aba5c96d9620b0906b0bfe0887af905bd)
+f2 red-nc1 rc=0 {"task":"WATER-W3-ACCEPT-F2","mode":"red-nc1","finalGate":false,"status":"passed","error":null,"receipt":"F:\\new\\smaltalk\\water\\.worktrees\\accept-w3-f2\\.local\\checks\\WATER-W3-ACCEPT-F2\\2026-10-26T10-05-43.078Z-11212-red-nc1-result.json"}
+f2 nc1 restored exact bytes=true sha 86929f2960c7952f0ccfc878e7fce68081611cd137163c88d3ee9801433667a0
+f2 test rc=0 {"task":"WATER-W3-ACCEPT-F2","mode":"test","finalGate":false,"status":"passed","error":null,"receipt":"F:\\new\\smaltalk\\water\\.worktrees\\accept-w3-f2\\.local\\checks\\WATER-W3-ACCEPT-F2\\2026-10-26T10-05-54.231Z-39916-test-result.json"}
+f2 nc2 mutated apps/water/host/src/policy.rs: any path on the bundled hosts is allowed (other pages, traversal, double slash) (mutated sha 2cbc23f31a7c9c418529ed7e0931281a31da8bca82a09d7feed99c7dcfb9b398)
+f2 red-nc2 rc=0 {"task":"WATER-W3-ACCEPT-F2","mode":"red-nc2","finalGate":false,"status":"passed","error":null,"receipt":"F:\\new\\smaltalk\\water\\.worktrees\\accept-w3-f2\\.local\\checks\\WATER-W3-ACCEPT-F2\\2026-10-26T10-06-05.791Z-12920-red-nc2-result.json"}
+f2 nc2 restored exact bytes=true sha 86929f2960c7952f0ccfc878e7fce68081611cd137163c88d3ee9801433667a0
+f2 test rc=0 {"task":"WATER-W3-ACCEPT-F2","mode":"test","finalGate":false,"status":"passed","error":null,"receipt":"F:\\new\\smaltalk\\water\\.worktrees\\accept-w3-f2\\.local\\checks\\WATER-W3-ACCEPT-F2\\2026-10-26T10-06-17.087Z-7216-test-result.json"}
+f2 x1 mutated apps/water/host/src/commands.rs: clean_prepare forwards a snake_case key instead of the IPC camelCase groupIds (mutated sha ee12418cb98aff26745e80a8f72537e3cbf0dca3d0fe221b2bd44590ed5ee768)
+f2 test rc=1 {"task":"WATER-W3-ACCEPT-F2","mode":"test","finalGate":false,"status":"failed","error":"AssertionError [ERR_ASSERTION]: Unexpected exit, see 2026-10-26T10-06-29.923Z-30020-test-5.log","receipt":"F:\\new\\smaltalk\\water\\.worktrees\\accept-w3-f2\\.local\\checks\\WATER-W3-ACCEPT-F2\\2026-10-26T10-06-29.923Z-30020-test-result.json"}
+f2 x1 red with HOST_COMMANDS = true
+f2 x1 restored exact bytes=true sha 7827e9bb396cfe2fd9896aa122d448dc5c442f9e39fddc311463e05078d5dfa1
+f2 test rc=0 {"task":"WATER-W3-ACCEPT-F2","mode":"test","finalGate":false,"status":"passed","error":null,"receipt":"F:\\new\\smaltalk\\water\\.worktrees\\accept-w3-f2\\.local\\checks\\WATER-W3-ACCEPT-F2\\2026-10-26T10-06-41.592Z-30940-test-result.json"}
+f2 x2 mutated apps/water/host/src/data.rs: existing path components are no longer checked, so an existing junction as the data directory is accepted (mutated sha a31cee6c92d211bc450db504c2f2af4bcb5c2c2136dd5cc1dd41576875c374df)
+f2 test rc=0 {"task":"WATER-W3-ACCEPT-F2","mode":"test","finalGate":false,"status":"passed","error":null,"receipt":"F:\\new\\smaltalk\\water\\.worktrees\\accept-w3-f2\\.local\\checks\\WATER-W3-ACCEPT-F2\\2026-10-26T10-06-54.061Z-32076-test-result.json"}
+f2 x2 red with HOST_DATA_DIRECTORY = false
+f2 x3 mutated apps/water/host/src/picker.rs: a dialog failure is reported as an invalid folder instead of unavailable (mutated sha 5e130cff86bc1166f91346814c0d579369426f2b5a4693e08051dfc84ea27633)
+f2 test rc=1 {"task":"WATER-W3-ACCEPT-F2","mode":"test","finalGate":false,"status":"failed","error":"AssertionError [ERR_ASSERTION]: Unexpected exit, see 2026-10-26T10-08-26.251Z-28624-test-5.log","receipt":"F:\\new\\smaltalk\\water\\.worktrees\\accept-w3-f2\\.local\\checks\\WATER-W3-ACCEPT-F2\\2026-10-26T10-08-26.251Z-28624-test-result.json"}
+f2 x3 KILLED (expected HOST_COMMANDS)
+f2 x3 restored exact bytes=true sha 3524895df656ace4b64b5b24df3d0532cd1922d8f211a118dff6bc6ab6566c96
+f2 test rc=0 {"task":"WATER-W3-ACCEPT-F2","mode":"test","finalGate":false,"status":"passed","error":null,"receipt":"F:\\new\\smaltalk\\water\\.worktrees\\accept-w3-f2\\.local\\checks\\WATER-W3-ACCEPT-F2\\2026-10-26T10-08-38.867Z-15204-test-result.json"}
+f2 survived: none
+f2 test --final rc=0 {"task":"WATER-W3-ACCEPT-F2","mode":"test","finalGate":true,"status":"passed","error":null,"receipt":"F:\\new\\smaltalk\\water\\.worktrees\\accept-w3-f2\\.local\\checks\\WATER-W3-ACCEPT-F2\\2026-10-26T10-08-48.755Z-38848-test-result.json"}

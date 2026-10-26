@@ -1,7 +1,7 @@
 {
   "schemaVersion": 1,
   "wave": "water-wave3-desktop",
-  "status": "F1_DISPATCHED_F2_ADDENDUM_DISPATCHED",
+  "status": "F2_VERIFIED_F1_ADDENDUM_READY",
   "controller": "Claude",
   "controllerRoot": "F:/new/smaltalk/water",
   "controllerBranch": "main",
@@ -54,12 +54,12 @@
       "slot": "w3-f1",
       "kind": "service",
       "gate": "heavy",
-      "status": "DISPATCHED",
+      "status": "REVISION_REQUIRED",
       "baseCommit": "197dfdaecc94dc8b84e94aa8d91ee5cb1c0d965e",
       "snapshotRef": "refs/tags/water-w3-desktop-base-20261026",
       "dispatchedAt": null,
       "startedAt": null,
-      "model": "Astra (user-reported executor; exact model unverified until worker report)",
+      "model": "Astra (user-reported); worker self-report: Codex GPT-6",
       "modelAssignment": "user-arranged; report actual engine/model",
       "macOS": "unverified",
       "readyOn": "2026-10-26",
@@ -197,7 +197,35 @@
       "baselineStatus": "PASSED",
       "baselineEvidence": "docs/acceptance/wave3/controller/preflight-20261026/baseline/2026-10-26T08-31-15.269Z-32544-baseline-result.json",
       "dispatchReportedAt": "2026-10-26T08:51:16Z",
-      "dispatchEvidence": "user chat 2026-10-26: both wave 3 tickets pasted to Astra in fresh conversations; worktree clean at base when recorded"
+      "dispatchEvidence": "user chat 2026-10-26: both wave 3 tickets pasted to Astra in fresh conversations; worktree clean at base when recorded",
+      "submittedHead": "06182d6baeb620c5345f6e2eead085ccad0bfe01",
+      "implementationCommit": "cebc11f92e5419eccc3d66d7a63f8b31032b5d08",
+      "controllerReview": {
+        "reviewedAt": "2026-10-26T10:20:00Z",
+        "review": "docs/acceptance/wave3/controller/WATER-W3-F1F2-REVIEW-20261026.md",
+        "evidence": "docs/acceptance/wave3/controller/accept-20261026/f1/",
+        "receiptAudit": "docs/acceptance/wave3/controller/accept-20261026/f1-receipt-audit.json",
+        "mechanicalAudit": "passed",
+        "freshTreeRerun": "passed (check, test, real finals)",
+        "controllerNegativeControls": "nc1, nc2, nc3 killed; x1 (eligible filter) survived the five tests, killed by the controller synthetic case",
+        "controllerSyntheticCase": "scripts/acceptance/w3-f1-controller-cases.rs passed with clean enabled; log docs/acceptance/wave3/controller/accept-20261026/controller/f1-controller-cases.log",
+        "realCrossCheck": "system temp root 5.25 GB both by service groups and by w2-b-crosscheck.ps1",
+        "independentReview": "no high-severity issue; nothing can delete while clean is disabled",
+        "verdict": "revision required: settings tolerance, record retention tolerance, in-use label after restart, disabled check before validation, two test gaps"
+      },
+      "addenda": [
+        {
+          "id": "WATER-W3-F1-ADDENDUM-01",
+          "ticket": "docs/dispatch/tickets/WATER-W3-F1-ADDENDUM-01-20261026.md",
+          "status": "READY",
+          "issuedAt": "2026-10-26T10:20:00Z",
+          "resumeFromCommit": "06182d6baeb620c5345f6e2eead085ccad0bfe01",
+          "change": "drop only invalid custom roots; prune only loaded records beyond 60 and never fail on a delete error; in-use labels fixed at scan time; clean switch before argument validation; plan-items and disabled-start tests",
+          "dispatchedAt": null,
+          "dispatchReportedAt": null,
+          "executor": null
+        }
+      ]
     },
     {
       "id": "WATER-W3-F2",
@@ -205,7 +233,7 @@
       "slot": "w3-f2",
       "kind": "host",
       "gate": "light",
-      "status": "ADDENDUM_DISPATCHED",
+      "status": "VERIFIED",
       "baseCommit": "197dfdaecc94dc8b84e94aa8d91ee5cb1c0d965e",
       "snapshotRef": "refs/tags/water-w3-desktop-base-20261026",
       "dispatchedAt": null,
@@ -408,7 +436,7 @@
         {
           "id": "WATER-W3-F2-ADDENDUM-01",
           "ticket": "docs/dispatch/tickets/WATER-W3-F2-ADDENDUM-01-20261026.md",
-          "status": "DISPATCHED",
+          "status": "COMPLETED",
           "issuedAt": "2026-10-26T09:07:15Z",
           "resumeFromCommit": "99766f6261958009a90c5b4fb7f0fa2db18cec7d",
           "change": "two direct path deps (water-contracts, water-scope-registry) only to build select_scope parameters; pick_folder(initial_directory) with caller-supplied initial directory; exact six-variant picker_failure mapping tested in host_command_registry without opening a dialog",
@@ -416,9 +444,37 @@
           "dispatchedAt": null,
           "dispatchReportedAt": "2026-10-26T09:10:12Z",
           "executor": "Astra (user-reported, fresh conversation; exact model unverified until worker report)",
-          "dispatchEvidence": "user chat 2026-10-26: F2 addendum 01 to Astra in a fresh conversation; worktree clean at resumeFromCommit when recorded"
+          "dispatchEvidence": "user chat 2026-10-26: F2 addendum 01 to Astra in a fresh conversation; worktree clean at resumeFromCommit when recorded",
+          "completedCommit": "056f8895318e7db33467f828bda00446a5002323",
+          "submittedHead": "336c7ebdc885e0957a8b6768872a014a64aedeca",
+          "executorSelfReport": "Codex GPT-6 via Astra"
         }
-      ]
+      ],
+      "submittedHead": "336c7ebdc885e0957a8b6768872a014a64aedeca",
+      "implementationCommit": "056f8895318e7db33467f828bda00446a5002323",
+      "controllerReview": {
+        "reviewedAt": "2026-10-26T10:20:00Z",
+        "review": "docs/acceptance/wave3/controller/WATER-W3-F1F2-REVIEW-20261026.md",
+        "evidence": "docs/acceptance/wave3/controller/accept-20261026/f2/",
+        "receiptAudit": "docs/acceptance/wave3/controller/accept-20261026/f2-receipt-audit.json",
+        "mechanicalAudit": "passed",
+        "freshTreeRerun": "passed (check, test, native finals)",
+        "controllerNegativeControls": "nc1, nc2, x1, x3 killed; x2 survived (test gap, low)",
+        "independentReview": "no high-severity issue",
+        "verdict": "VERIFIED with follow-ups carried to F3"
+      },
+      "carryOverToF3": [
+        "startup errors inside Tauri setup panic instead of printing the fixed line and exiting 1 (HOST section 4): prepare the data directory before the Builder, create the window after Builder::build, test every startup failure",
+        "gate should clear TAURI_* build variables or validate the generated config (TAURI_CONFIG merge)",
+        "decide whether the default data directory may sit behind a junction; otherwise give a readable failure",
+        "exercise all 17 Tauri command wrappers from the real UI in whole-machine acceptance",
+        "single-instance guard: one service per data_dir",
+        "note: WebView2 environment overrides are outside host control"
+      ],
+      "verifiedAt": "2026-10-26T10:20:00Z",
+      "acceptedCommit": "336c7ebdc885e0957a8b6768872a014a64aedeca",
+      "integrationCommit": "7633c4ece5f03e2b75d17af17cfc8f0d5ae226be",
+      "integrationBranch": "main"
     }
   ],
   "gateSelfTest": "docs/acceptance/wave3/controller/preflight-20261026/",

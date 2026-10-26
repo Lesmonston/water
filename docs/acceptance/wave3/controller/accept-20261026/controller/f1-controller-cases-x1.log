@@ -1,0 +1,24 @@
+   Compiling water-service v0.1.0 (F:\new\smaltalk\water\.worktrees\accept-w3-f1\packages\water-service)
+    Finished `test` profile [unoptimized + debuginfo] target(s) in 7.97s
+     Running tests\controller_cases.rs (.local/w3-target\debug\deps\controller_cases-d9d45d3c3de5a8ae.exe)
+
+running 1 test
+test controller_clean_enabled_flow ... FAILED
+
+failures:
+
+---- controller_clean_enabled_flow stdout ----
+
+thread 'controller_clean_enabled_flow' (43096) panicked at tests\controller_cases.rs:256:5:
+assertion `left == right` failed: CONTROLLER plan is exactly the eligible identified entries
+  left: {"F:\\new\\smaltalk\\water\\.worktrees\\accept-w3-f1\\.local\\w3-f1-controller\\case-6de92038f82a8e4b\\lad\\CrashDumps\\a.dmp", "F:\\new\\smaltalk\\water\\.worktrees\\accept-w3-f1\\.local\\w3-f1-controller\\case-6de92038f82a8e4b\\lad\\CrashDumps\\b.dmp", "F:\\new\\smaltalk\\water\\.worktrees\\accept-w3-f1\\.local\\w3-f1-controller\\case-6de92038f82a8e4b\\lad\\Google\\Chrome\\User Data\\Default\\Cache", "F:\\new\\smaltalk\\water\\.worktrees\\accept-w3-f1\\.local\\w3-f1-controller\\case-6de92038f82a8e4b\\lad\\Google\\Chrome\\User Data\\Profile 2\\Media Cache", "F:\\new\\smaltalk\\water\\.worktrees\\accept-w3-f1\\.local\\w3-f1-controller\\case-6de92038f82a8e4b\\lad\\Google\\Chrome\\User Data\\Profile Busy\\Cache", "F:\\new\\smaltalk\\water\\.worktrees\\accept-w3-f1\\.local\\w3-f1-controller\\case-6de92038f82a8e4b\\lad\\Google\\Chrome\\User Data\\Profile J\\Cache"}
+ right: {"F:\\new\\smaltalk\\water\\.worktrees\\accept-w3-f1\\.local\\w3-f1-controller\\case-6de92038f82a8e4b\\lad\\CrashDumps\\a.dmp", "F:\\new\\smaltalk\\water\\.worktrees\\accept-w3-f1\\.local\\w3-f1-controller\\case-6de92038f82a8e4b\\lad\\Google\\Chrome\\User Data\\Default\\Cache", "F:\\new\\smaltalk\\water\\.worktrees\\accept-w3-f1\\.local\\w3-f1-controller\\case-6de92038f82a8e4b\\lad\\Google\\Chrome\\User Data\\Profile 2\\Media Cache", "F:\\new\\smaltalk\\water\\.worktrees\\accept-w3-f1\\.local\\w3-f1-controller\\case-6de92038f82a8e4b\\lad\\Google\\Chrome\\User Data\\Profile Busy\\Cache", "F:\\new\\smaltalk\\water\\.worktrees\\accept-w3-f1\\.local\\w3-f1-controller\\case-6de92038f82a8e4b\\lad\\Google\\Chrome\\User Data\\Profile J\\Cache"}
+note: run with `RUST_BACKTRACE=1` environment variable to display a backtrace
+
+
+failures:
+    controller_clean_enabled_flow
+
+test result: FAILED. 0 passed; 1 failed; 0 ignored; 0 measured; 0 filtered out; finished in 0.53s
+
+error: test failed, to rerun pass `--test controller_cases`
