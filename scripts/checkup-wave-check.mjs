@@ -12,7 +12,7 @@ import {dirname,isAbsolute,join,relative,resolve,sep} from 'node:path';
 const root=resolve('.'),argv=process.argv.slice(2);
 assert.equal(argv[0],'--task','Usage: --task <id> --mode <mode> [--final]');assert.equal(argv[2],'--mode');
 const id=argv[1],mode=argv[3],finalGate=argv[4]==='--final';assert.equal(argv.length,finalGate?5:4,'Unexpected arguments');
-const MODES=['baseline','lock','check','test','real','red-nc1','red-nc2','red-nc3','archive'];assert(MODES.includes(mode),'Unknown mode');
+const MODES=['baseline','lock','check','test','browser','real','red-nc1','red-nc2','red-nc3','archive'];assert(MODES.includes(mode),'Unknown mode');
 const gitRaw=(args,cwd=root)=>{const r=spawnSync('git',['-c','core.hooksPath=NUL','-c','core.fsmonitor=false',...args],{cwd,encoding:'utf8',windowsHide:true,timeout:60000,maxBuffer:64*1024*1024});assert(!r.error&&r.status===0,String(r.stderr));return r.stdout.trim();};
 const controller=dirname(gitRaw(['rev-parse','--path-format=absolute','--git-common-dir']));
 const manifestOverride=process.env.WATER_W2_SELFTEST_MANIFEST??null;
@@ -39,7 +39,7 @@ function audit(){
   git(['merge-base','--is-ancestor',task.baseCommit,'HEAD']);
   const changes=[git(['diff','--no-renames','--name-only','-z',task.baseCommit,'HEAD']),git(['diff','--no-renames','--name-only','-z','HEAD']),git(['ls-files','--others','--exclude-standard','-z'])].flatMap(s=>s.split('\0').filter(Boolean));
   for(const p of new Set(changes))assert(task.allowedFiles.includes(p)||task.allowedPrefixes.some(q=>p.startsWith(q)),'Out of scope: '+p);
-  for(const f of manifest.frozenFiles??[])assert.equal(hash(readFileSync(join(root,f.path))),f.sha256,'Frozen file changed: '+f.path);
+  for(const f of [...(manifest.frozenFiles??[]),...(task.frozenFiles??[])])assert.equal(hash(readFileSync(join(root,f.path))),f.sha256,'Frozen file changed: '+f.path);
   record.changedPaths=[...new Set(changes)].sort();
 }
 function rustEnv(){
@@ -82,7 +82,7 @@ function unsafePolicy(){
   for(const f of files)assert(!/std::process::Command|Command::new/.test(readFileSync(f,'utf8')),'Production code must not spawn processes: '+relative(root,f));
   for(const f of files)assert(!/std::net|TcpStream|UdpSocket/.test(readFileSync(f,'utf8')),'No networking: '+relative(root,f));
 }
-function capture(){const files=[...task.productionFiles.filter(p=>existsSync(join(root,p))),...walkFiles(join(root,task.outputRoot,'src')).map(p=>relative(root,p).split(sep).join('/')),...task.testFiles].filter((v,i,a)=>a.indexOf(v)===i).map((path,i)=>{const b=readFileSync(join(root,path));const snapshot=stamp+'-'+mode+'-source-'+i+'.txt';writeFileSync(join(out,snapshot),b,{flag:'wx'});return{path,snapshot,sha256:hash(b),test:task.testFiles.includes(path)};});const digest=xs=>hash(Buffer.from(JSON.stringify(xs.map(({path,sha256})=>({path,sha256})))));return{files,productionHash:digest(files.filter(f=>!f.test)),testHash:digest(files.filter(f=>f.test))};}
+function capture(){const uiFiles=task.kind==='ui'?walkFiles(join(root,task.outputRoot)).map(p=>relative(root,p).split(sep).join('/')):[];const files=[...(task.productionFiles??[]).filter(p=>existsSync(join(root,p))),...(task.kind==='ui'?uiFiles:walkFiles(join(root,task.outputRoot,'src')).map(p=>relative(root,p).split(sep).join('/'))),...task.testFiles].filter((v,i,a)=>a.indexOf(v)===i).map((path,i)=>{const b=readFileSync(join(root,path));const snapshot=stamp+'-'+mode+'-source-'+i+'.txt';writeFileSync(join(out,snapshot),b,{flag:'wx'});return{path,snapshot,sha256:hash(b),test:task.testFiles.includes(path)};});const digest=xs=>hash(Buffer.from(JSON.stringify(xs.map(({path,sha256})=>({path,sha256})))));return{files,productionHash:digest(files.filter(f=>!f.test)),testHash:digest(files.filter(f=>f.test))};}
 function walkFiles(d){if(!existsSync(d))return[];const r=[];for(const n of readdirSync(d)){const p=join(d,n),s=lstatSync(p);if(s.isDirectory())r.push(...walkFiles(p));else r.push(p);}return r.sort();}
 function exactTests(text,names,passed){const found=[...text.matchAll(/^test ([a-z0-9_]+) \.\.\. (?:ok|FAILED)\r?$/gm)].map(m=>m[1]);assert.deepEqual(found.sort(),[...names].sort(),'Test names must match exactly');assert(text.includes('0 ignored; 0 measured; 0 filtered out'),'No ignored or filtered tests');if(passed)assert(text.includes('test result: ok. '+names.length+' passed; 0 failed;'),'All tests must pass');}
 function proofAudit(current){
@@ -108,6 +108,36 @@ function archive(){
   const ga=join(root,task.evidenceDir,'.gitattributes');if(!existsSync(ga))writeFileSync(ga,'* -text\n.gitattributes text eol=lf\n');record.archived={files:prior.files,bytes:prior.bytes};
 }
 
+function uiPolicy(){
+  const base=join(root,task.outputRoot);assert(existsSync(base),'Output root missing');
+  const all=walkFiles(base).map(p=>relative(root,p).split(sep).join('/'));
+  assert(!all.some(p=>/(^|\/)(package\.json|package-lock\.json|node_modules)(\/|$)/.test(p)),'No npm files');
+  assert.equal(hash(readFileSync(join(base,'styles/tokens.css'))),hash(readFileSync(join(root,task.tokensSource))),'styles/tokens.css must equal the design tokens byte for byte');
+  const html=readFileSync(join(base,'index.html'),'utf8');
+  assert.deepEqual([...html.matchAll(/<script\b[^>]*>/gi)].map(m=>m[0]),['<script type="module" src="app.mjs">'],'index.html must have exactly one module script app.mjs');
+  assert(!/<script\b[^>]*>[^<\s]/i.test(html),'No inline script content');
+  assert(!/\son[a-z]+\s*=/i.test(html),'No inline event handlers');assert(!/\sstyle\s*=/i.test(html),'No style attributes');
+  for(const p of all.filter(p=>!p.startsWith(task.outputRoot+'/tests/'))){
+    const t=readFileSync(join(root,p),'utf8');
+    for(const[re,why]of[[/innerHTML|outerHTML|insertAdjacentHTML|document\.write/,'HTML injection API'],[/\beval\s*\(|new\s+Function\b/,'dynamic code'],[/https?:\/\//,'network URL']])assert(!re.test(t),why+' in '+p);
+    if(!p.endsWith('/ipc.mjs'))assert(!/__TAURI__/.test(t),'__TAURI__ outside ipc.mjs: '+p);
+  }
+  record.uiFiles=all.length;
+}
+function exactNodeTests(text,names,passed){const found=[...text.matchAll(/^# Subtest: (.+?)\r?$/gm)].map(m=>m[1]);assert.deepEqual(found.sort(),[...names].sort(),'Top-level test names must match exactly');for(const k of['skipped','todo','cancelled'])assert(new RegExp('^# '+k+' 0\\r?$','m').test(text),'No '+k+' tests');if(passed){assert(new RegExp('^# pass '+names.length+'\\r?$','m').test(text),'All tests must pass');assert(/^# fail 0\r?$/m.test(text),'No failures');}}
+function uiGate(){
+  record.sourceState=capture();uiPolicy();
+  if(mode==='check'){for(const p of walkFiles(join(root,task.outputRoot)).filter(p=>p.endsWith('.mjs')))command(process.execPath,['--check',relative(root,p)]);return;}
+  assert(mode==='test'||mode==='browser'||mode.startsWith('red-'),'Mode not supported for UI tasks');
+  const red=mode.startsWith('red-');
+  if(red){assert(!finalGate);assert(task.proofTargets?.[mode.slice(4)],'No such negative control');const changed=git(['diff','--name-only','HEAD','--',task.outputRoot]).split('\n').filter(Boolean);assert(changed.length,'A negative control needs an uncommitted production change');assert(!changed.some(p=>p.startsWith(task.outputRoot+'/tests/')),'Negative controls must not edit tests');}
+  if(finalGate&&mode==='test')proofAudit(record.sourceState);
+  const browser=mode==='browser',files=browser?task.browserTestFiles:task.unitTestFiles,names=browser?task.expectedBrowserTests:task.expectedTests;
+  const r=command(process.execPath,['--test','--test-concurrency=1','--test-reporter=tap',...files],{expected:red?1:0,timeout:browser?900000:300000});
+  exactNodeTests(r.text,names,!red);record.productTestsRun=true;if(browser)record.browserUsed=true;
+  if(red){assert(!/SyntaxError|ERR_MODULE_NOT_FOUND|CDP timeout|timed out/i.test(r.text),'Syntax, module or timeout failures are not proof');const target=task.proofTargets[mode.slice(4)];assert(r.text.includes(target),'Missing failure token '+target);record.observedExpectedFailure=true;record.expectation={target};}
+}
+
 let fault;
 try{
   audit();record.before=state();if(finalGate)assert.equal(record.before.status,'','Final gates need a clean committed tree');
@@ -116,9 +146,11 @@ try{
     assert(!existsSync(join(root,task.outputRoot)),'Output root must not exist yet');
     for(const f of task.mustRead)assert(existsSync(join(root,f)),'Missing required reading '+f);
     if(task.kind==='rust'){const rust=rustEnv();const cache=readdirSync(join(rust.home,'registry','cache')).flatMap(d=>readdirSync(join(rust.home,'registry','cache',d)));for(const[n,v]of Object.entries(ALLOWED_REGISTRY))assert(cache.includes(n+'-'+v+'.crate'),'Offline cache lacks '+n+'-'+v);record.offlineCache='complete';}
+    if(task.kind==='ui'){record.browserExecutable=['C:/Program Files/Google/Chrome/Application/chrome.exe','C:/Program Files (x86)/Microsoft/Edge/Application/msedge.exe'].find(p=>existsSync(p))??null;assert(record.browserExecutable,'No trusted local Chrome/Edge');for(const f of[task.browserHelper,task.fixtures,task.tokensSource])assert(existsSync(join(root,f)),'Missing '+f);}
     if(task.realMode){record.realFoldersPresent=Object.fromEntries(Object.entries(realEnvFolders()).map(([k,v])=>[k,existsSync(v)]));}
     record.meaning='Environment and inputs only; no product exists yet';
   }else if(mode==='archive'){archive();}
+  else if(task.kind==='ui'){uiGate();}
   else{
     assert.equal(task.kind,'rust');const rust=rustEnv();
     if(mode==='lock'){assert(!finalGate);assert(existsSync(join(root,task.outputRoot,'Cargo.toml')));if(!existsSync(join(root,task.outputRoot,'Cargo.lock')))command(rust.cargo,['generate-lockfile','--offline',...rust.manifestArgs]);dependencyPolicy(rust);}
