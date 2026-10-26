@@ -1,0 +1,239 @@
+{
+  "task": "WATER-W2-D",
+  "mode": "lock",
+  "finalGate": false,
+  "manifest": "docs/dispatch/wave2/manifest.json",
+  "startedAt": "2026-10-26T05:06:14.695Z",
+  "realDataRead": false,
+  "productTestsRun": false,
+  "commands": [
+    {
+      "binary": "git",
+      "argv": [
+        "branch",
+        "--show-current"
+      ],
+      "exitCode": 0
+    },
+    {
+      "binary": "git",
+      "argv": [
+        "merge-base",
+        "--is-ancestor",
+        "7ca15282e477ed4b5120ffe3c1edc3a60b75c144",
+        "HEAD"
+      ],
+      "exitCode": 0
+    },
+    {
+      "binary": "git",
+      "argv": [
+        "diff",
+        "--no-renames",
+        "--name-only",
+        "-z",
+        "7ca15282e477ed4b5120ffe3c1edc3a60b75c144",
+        "HEAD"
+      ],
+      "exitCode": 0
+    },
+    {
+      "binary": "git",
+      "argv": [
+        "diff",
+        "--no-renames",
+        "--name-only",
+        "-z",
+        "HEAD"
+      ],
+      "exitCode": 0
+    },
+    {
+      "binary": "git",
+      "argv": [
+        "ls-files",
+        "--others",
+        "--exclude-standard",
+        "-z"
+      ],
+      "exitCode": 0
+    },
+    {
+      "binary": "git",
+      "argv": [
+        "rev-parse",
+        "HEAD"
+      ],
+      "exitCode": 0
+    },
+    {
+      "binary": "git",
+      "argv": [
+        "status",
+        "--porcelain",
+        "--untracked-files=all"
+      ],
+      "exitCode": 0
+    },
+    {
+      "binary": "C:\\Users\\37310\\.cargo\\bin\\rustup.exe",
+      "argv": [
+        "which",
+        "cargo",
+        "--toolchain",
+        "1.95.0"
+      ],
+      "exitCode": 0,
+      "error": null,
+      "log": "2026-10-26T05-06-14.694Z-42012-lock-1.log"
+    },
+    {
+      "binary": "C:\\Users\\37310\\.cargo\\bin\\rustup.exe",
+      "argv": [
+        "which",
+        "rustc",
+        "--toolchain",
+        "1.95.0"
+      ],
+      "exitCode": 0,
+      "error": null,
+      "log": "2026-10-26T05-06-14.694Z-42012-lock-2.log"
+    },
+    {
+      "binary": "C:\\Users\\37310\\.rustup\\toolchains\\1.95.0-x86_64-pc-windows-msvc\\bin\\rustc.exe",
+      "argv": [
+        "--version"
+      ],
+      "exitCode": 0,
+      "error": null,
+      "log": "2026-10-26T05-06-14.694Z-42012-lock-3.log"
+    },
+    {
+      "binary": "C:\\Users\\37310\\.rustup\\toolchains\\1.95.0-x86_64-pc-windows-msvc\\bin\\cargo.exe",
+      "argv": [
+        "generate-lockfile",
+        "--offline",
+        "--manifest-path",
+        "packages/junk-clean/Cargo.toml"
+      ],
+      "exitCode": 0,
+      "error": null,
+      "log": "2026-10-26T05-06-14.694Z-42012-lock-4.log"
+    },
+    {
+      "binary": "C:\\Users\\37310\\.rustup\\toolchains\\1.95.0-x86_64-pc-windows-msvc\\bin\\cargo.exe",
+      "argv": [
+        "metadata",
+        "--offline",
+        "--locked",
+        "--format-version",
+        "1",
+        "--manifest-path",
+        "packages/junk-clean/Cargo.toml"
+      ],
+      "exitCode": 0,
+      "error": null,
+      "log": "2026-10-26T05-06-14.694Z-42012-lock-5.log"
+    },
+    {
+      "binary": "git",
+      "argv": [
+        "branch",
+        "--show-current"
+      ],
+      "exitCode": 0
+    },
+    {
+      "binary": "git",
+      "argv": [
+        "merge-base",
+        "--is-ancestor",
+        "7ca15282e477ed4b5120ffe3c1edc3a60b75c144",
+        "HEAD"
+      ],
+      "exitCode": 0
+    },
+    {
+      "binary": "git",
+      "argv": [
+        "diff",
+        "--no-renames",
+        "--name-only",
+        "-z",
+        "7ca15282e477ed4b5120ffe3c1edc3a60b75c144",
+        "HEAD"
+      ],
+      "exitCode": 0
+    },
+    {
+      "binary": "git",
+      "argv": [
+        "diff",
+        "--no-renames",
+        "--name-only",
+        "-z",
+        "HEAD"
+      ],
+      "exitCode": 0
+    },
+    {
+      "binary": "git",
+      "argv": [
+        "ls-files",
+        "--others",
+        "--exclude-standard",
+        "-z"
+      ],
+      "exitCode": 0
+    },
+    {
+      "binary": "git",
+      "argv": [
+        "rev-parse",
+        "HEAD"
+      ],
+      "exitCode": 0
+    },
+    {
+      "binary": "git",
+      "argv": [
+        "status",
+        "--porcelain",
+        "--untracked-files=all"
+      ],
+      "exitCode": 0
+    }
+  ],
+  "changedPaths": [
+    "packages/junk-clean/Cargo.lock",
+    "packages/junk-clean/Cargo.toml",
+    "packages/junk-clean/src/lib.rs",
+    "packages/junk-clean/src/model.rs",
+    "packages/junk-clean/src/path.rs",
+    "packages/junk-clean/src/time.rs"
+  ],
+  "before": {
+    "head": "7ca15282e477ed4b5120ffe3c1edc3a60b75c144",
+    "status": "?? packages/junk-clean/Cargo.toml\n?? packages/junk-clean/src/lib.rs\n?? packages/junk-clean/src/model.rs\n?? packages/junk-clean/src/path.rs\n?? packages/junk-clean/src/time.rs"
+  },
+  "dependencyInventory": [
+    "itoa@1.0.18",
+    "memchr@2.8.3",
+    "proc-macro2@1.0.107",
+    "quote@1.0.47",
+    "serde@1.0.229",
+    "serde_core@1.0.229",
+    "serde_derive@1.0.229",
+    "serde_json@1.0.151",
+    "syn@3.0.9",
+    "unicode-ident@1.0.27",
+    "zmij@1.0.23"
+  ],
+  "after": {
+    "head": "7ca15282e477ed4b5120ffe3c1edc3a60b75c144",
+    "status": "?? packages/junk-clean/Cargo.lock\n?? packages/junk-clean/Cargo.toml\n?? packages/junk-clean/src/lib.rs\n?? packages/junk-clean/src/model.rs\n?? packages/junk-clean/src/path.rs\n?? packages/junk-clean/src/time.rs"
+  },
+  "status": "passed",
+  "error": null,
+  "endedAt": "2026-10-26T05:06:19.767Z"
+}
