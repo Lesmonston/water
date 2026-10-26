@@ -48,6 +48,7 @@ A–AB及八补单、AD保持VERIFIED；AC/补单06新增VERIFIED（Windows静�
   - [补单 01](dispatch/tickets/WATER-W3-F2-ADDENDUM-01-20261026.md)：只加两个路径依赖用来构造参数；`pick_folder` 改为由调用方传初始目录；六种错误逐个映射并测试，测试不弹框。
   - 总控已在自测树走通 lock、check、test，锁没有新增任何包。manifest 里 F2 的依赖白名单已同步。HOST.md 不改。
   - F1 未受影响，仍在进行（已跑 baseline 与 lock）。
+- **F2 补单 01 已派出（18:10 JST）**：交 Astra，新开对话；记录时 F2 树停在续做起点 `99766f6`、干净。
 
 ## 真实AA→AD联合验收通过（2026-10-26）
 

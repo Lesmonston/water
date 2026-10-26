@@ -1,7 +1,7 @@
 {
   "schemaVersion": 1,
   "wave": "water-wave3-desktop",
-  "status": "F1_DISPATCHED_F2_ADDENDUM_READY",
+  "status": "F1_DISPATCHED_F2_ADDENDUM_DISPATCHED",
   "controller": "Claude",
   "controllerRoot": "F:/new/smaltalk/water",
   "controllerBranch": "main",
@@ -205,7 +205,7 @@
       "slot": "w3-f2",
       "kind": "host",
       "gate": "light",
-      "status": "BLOCKED",
+      "status": "ADDENDUM_DISPATCHED",
       "baseCommit": "197dfdaecc94dc8b84e94aa8d91ee5cb1c0d965e",
       "snapshotRef": "refs/tags/water-w3-desktop-base-20261026",
       "dispatchedAt": null,
@@ -408,14 +408,15 @@
         {
           "id": "WATER-W3-F2-ADDENDUM-01",
           "ticket": "docs/dispatch/tickets/WATER-W3-F2-ADDENDUM-01-20261026.md",
-          "status": "READY",
+          "status": "DISPATCHED",
           "issuedAt": "2026-10-26T09:07:15Z",
           "resumeFromCommit": "99766f6261958009a90c5b4fb7f0fa2db18cec7d",
           "change": "two direct path deps (water-contracts, water-scope-registry) only to build select_scope parameters; pick_folder(initial_directory) with caller-supplied initial directory; exact six-variant picker_failure mapping tested in host_command_registry without opening a dialog",
           "controllerPreflight": "docs/acceptance/wave3/controller/preflight-20261026/addendum-f2-01/",
           "dispatchedAt": null,
-          "dispatchReportedAt": null,
-          "executor": null
+          "dispatchReportedAt": "2026-10-26T09:10:12Z",
+          "executor": "Astra (user-reported, fresh conversation; exact model unverified until worker report)",
+          "dispatchEvidence": "user chat 2026-10-26: F2 addendum 01 to Astra in a fresh conversation; worktree clean at resumeFromCommit when recorded"
         }
       ]
     }
