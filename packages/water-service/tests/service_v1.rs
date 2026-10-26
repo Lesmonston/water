@@ -29,12 +29,20 @@ struct Fake {
     batches: Arc<AtomicU64>,
     in_use_calls: Arc<AtomicU64>,
     picks: Arc<Mutex<VecDeque<Option<String>>>>,
+    panic_drives: Arc<AtomicBool>,
+    panic_now: Arc<AtomicBool>,
+    names: Arc<Mutex<Vec<(String, String)>>>,
 }
 impl Platform for Fake {
     fn known_folders(&self) -> Result<KnownFolders, IpcError> {
         Ok(self.folders.clone())
     }
     fn drives(&self) -> Vec<DriveInfo> {
+        if std::thread::current().name() == Some("water-scan")
+            && self.panic_drives.swap(false, Ordering::SeqCst)
+        {
+            panic!("fake platform: drives failed inside the scan task");
+        }
         vec![DriveInfo {
             root: "F:\\".into(),
             is_system: true,
@@ -43,6 +51,9 @@ impl Platform for Fake {
         }]
     }
     fn now(&self) -> SystemTime {
+        if self.panic_now.swap(false, Ordering::SeqCst) {
+            panic!("fake platform: clock failed");
+        }
         UNIX_EPOCH + Duration::from_secs(self.now.load(Ordering::SeqCst))
     }
     fn local_date(&self, at: SystemTime) -> (u32, u32) {
@@ -60,6 +71,16 @@ impl Platform for Fake {
     }
     fn in_use(&self, spec: &InUseSpec, path: &str) -> Option<String> {
         self.in_use_calls.fetch_add(1, Ordering::SeqCst);
+        if spec.mode != water_process_scan::InUseMode::None
+            && let Some((_, name)) = self
+                .names
+                .lock()
+                .unwrap()
+                .iter()
+                .find(|(part, _)| path.contains(part.as_str()))
+        {
+            return Some(name.clone());
+        }
         (spec.mode != water_process_scan::InUseMode::None && path.contains("Profile Busy"))
             .then(|| "chrome.exe".into())
     }
@@ -114,6 +135,9 @@ impl Fixture {
             batches: Arc::new(AtomicU64::new(0)),
             in_use_calls: Arc::new(AtomicU64::new(0)),
             picks: Arc::new(Mutex::new(VecDeque::new())),
+            panic_drives: Arc::new(AtomicBool::new(false)),
+            panic_now: Arc::new(AtomicBool::new(false)),
+            names: Arc::new(Mutex::new(Vec::new())),
         };
         Self {
             root,
@@ -591,7 +615,7 @@ fn service_scan_views() {
     let detail_in_use =
         call(&s, "group_detail", json!({"groupId":"chrome-cache"}))["group"]["in_use"].clone();
     assert_eq!(
-        detail_in_use["process_label_zh"], "chrome 正在运行，将跳过占用的项",
+        detail_in_use["process_label_zh"], "Chrome 正在运行，将跳过占用的项",
         "SERVICE_IN_USE_SAVED: label before restart"
     );
     assert_eq!(labels["chrome-cache"], detail_in_use);
@@ -1278,4 +1302,421 @@ fn service_storage_safety() {
             .is_file(),
         "SERVICE_STORAGE_KEEP: snapshot deleted without its record"
     );
+}
+
+/// Polls until the task leaves `running`; a task that never settles fails with `marker`.
+fn settle(s: &Service, c: &str, marker: &str) -> Value {
+    let start = Instant::now();
+    loop {
+        let p = call(s, c, json!({}));
+        if p["state"] != "running" {
+            return p;
+        }
+        assert!(
+            start.elapsed() < Duration::from_secs(20),
+            "{marker}: {c} is still running and the service stays busy"
+        );
+        std::thread::sleep(Duration::from_millis(2));
+    }
+}
+fn slash(p: &Path) -> String {
+    p.to_str().unwrap().replace('/', "\\")
+}
+const TOO_BROAD: &str = "这个位置太大或包含系统目录，请选择具体的项目文件夹。";
+
+#[test]
+fn service_hardening() {
+    hardening_panic_idle();
+    hardening_trust_boundary();
+    hardening_store_tidy();
+    hardening_canonical_root();
+    hardening_partial_source();
+    hardening_product_name();
+}
+
+fn hardening_panic_idle() {
+    let f = Fixture::new();
+    f.seed();
+    let s = f.service(false);
+    // A panic outside the scanner call itself (drives) on the scan thread.
+    f.fake.panic_drives.store(true, Ordering::SeqCst);
+    let id = call(&s, "scan_start", json!({}));
+    let p = settle(&s, "scan_progress", "SERVICE_PANIC_IDLE");
+    assert!(
+        !f.fake.panic_drives.load(Ordering::SeqCst),
+        "SERVICE_PANIC_IDLE: the injected panic was not reached"
+    );
+    assert_eq!(p["scan_id"], id["scan_id"]);
+    assert_eq!(
+        p["state"], "failed",
+        "SERVICE_PANIC_IDLE: progress after a panic"
+    );
+    let app = call(&s, "app_state", json!({}));
+    assert_eq!(
+        app["busy"], "idle",
+        "SERVICE_PANIC_IDLE: busy after a panic"
+    );
+    assert!(
+        app["last_scan"].is_null(),
+        "SERVICE_PANIC_IDLE: failed scan became last_scan"
+    );
+    // The service keeps working: a new scan completes, then a second panicking scan leaves it.
+    let good = scanned(&s);
+    f.fake.panic_drives.store(true, Ordering::SeqCst);
+    call(&s, "scan_start", json!({}));
+    assert_eq!(
+        settle(&s, "scan_progress", "SERVICE_PANIC_IDLE")["state"],
+        "failed"
+    );
+    let app = call(&s, "app_state", json!({}));
+    assert_eq!(
+        app["busy"], "idle",
+        "SERVICE_PANIC_IDLE: busy after a second panic"
+    );
+    assert_eq!(
+        app["last_scan"]["scan_id"], good["scan_id"],
+        "SERVICE_PANIC_IDLE: last_scan after a failed scan"
+    );
+    // A panic inside a command, while it holds the state lock, is a fixed unavailable error.
+    f.fake.panic_now.store(true, Ordering::SeqCst);
+    let caught =
+        std::panic::catch_unwind(std::panic::AssertUnwindSafe(|| s.call("trends", json!({}))));
+    let error = caught
+        .expect("SERVICE_PANIC_IDLE: call let a panic escape")
+        .expect_err("SERVICE_PANIC_IDLE: the injected panic was not reached");
+    assert_eq!(
+        (error.code.as_str(), error.message_zh.as_str()),
+        ("unavailable", "Water 服务暂时不可用。"),
+        "SERVICE_PANIC_IDLE: error for a panicking command"
+    );
+    // The poisoned lock is recovered and keeps working.
+    assert_eq!(call(&s, "app_state", json!({}))["busy"], "idle");
+    call(&s, "trends", json!({}));
+    let again = scanned(&s);
+    assert_eq!(
+        call(&s, "app_state", json!({}))["last_scan"]["scan_id"],
+        again["scan_id"],
+        "SERVICE_PANIC_IDLE: scan after a poisoned lock"
+    );
+}
+
+fn hardening_trust_boundary() {
+    let f = Fixture::new();
+    f.seed();
+    let s = f.service(true);
+    let result = scanned(&s);
+    let npm = scan_saved(&f, &result)["result"]["items"]
+        .as_array()
+        .unwrap()
+        .iter()
+        .find(|i| i["group_id"] == "npm-cache")
+        .cloned()
+        .expect("npm-cache item");
+    let plan = call(&s, "clean_prepare", json!({"groupIds":["chrome-cache"]}));
+    let plan_id = plan["plan_id"].as_str().unwrap().to_owned();
+    // Tamper with the plan file: only the in-memory plan may be executed.
+    let file = f.data.join("plans").join(format!("{plan_id}.json"));
+    let mut stored: Value = serde_json::from_slice(&fs::read(&file).unwrap()).unwrap();
+    let original: Vec<String> = stored["plan"]["items"]
+        .as_array()
+        .unwrap()
+        .iter()
+        .map(|i| i["path"].as_str().unwrap().to_ascii_lowercase())
+        .collect();
+    assert!(!original.is_empty());
+    let mut extra = stored["plan"]["items"][0].clone();
+    for key in ["item_id", "path", "kind", "identity", "total_bytes"] {
+        extra[key] = npm[key].clone();
+    }
+    extra["root"] = json!(slash(&f.root.join("local_app_data")));
+    stored["plan"]["items"].as_array_mut().unwrap().push(extra);
+    fs::write(&file, serde_json::to_vec(&stored).unwrap()).unwrap();
+    let local = f.root.join("local_app_data");
+    let before = inventory(&local);
+    call(
+        &s,
+        "clean_start",
+        json!({"planId":plan_id,"confirmToken":plan["confirm_token"]}),
+    );
+    assert_eq!(
+        settle(&s, "clean_progress", "SERVICE_TRUST_BOUNDARY")["state"],
+        "completed"
+    );
+    let after = inventory(&local);
+    assert!(
+        Path::new(npm["path"].as_str().unwrap()).exists(),
+        "SERVICE_TRUST_BOUNDARY: an item added to the plan file was cleaned"
+    );
+    let removed: Vec<_> = before.keys().filter(|p| !after.contains_key(*p)).collect();
+    assert!(!removed.is_empty());
+    for p in removed {
+        let p = slash(p).to_ascii_lowercase();
+        assert!(
+            original
+                .iter()
+                .any(|o| p == *o || p.starts_with(&format!("{o}\\"))),
+            "SERVICE_TRUST_BOUNDARY: removed outside the prepared plan: {p}"
+        );
+    }
+    // A fresh, unconsumed scan and plan, then a restart.
+    scanned(&s);
+    let pending = call(&s, "clean_prepare", json!({"groupIds":["chrome-cache"]}));
+    drop(s);
+    let s = f.service(true);
+    let before = inventory(&f.root);
+    let error = s
+        .call("clean_prepare", json!({"groupIds":["chrome-cache"]}))
+        .expect_err("SERVICE_TRUST_BOUNDARY: a scan read from disk became a cleaning source");
+    assert_eq!(
+        (error.code.as_str(), error.message_zh.as_str()),
+        ("stale", "结果已过期，请重新体检后再清理。"),
+        "SERVICE_TRUST_BOUNDARY: prepare on a loaded scan"
+    );
+    let error = s
+        .call(
+            "clean_start",
+            json!({"planId":pending["plan_id"],"confirmToken":pending["confirm_token"]}),
+        )
+        .expect_err("SERVICE_TRUST_BOUNDARY: a plan read from disk was executed");
+    assert_eq!(
+        error.code, "stale",
+        "SERVICE_TRUST_BOUNDARY: start of a loaded plan"
+    );
+    assert_eq!(
+        inventory(&f.root),
+        before,
+        "SERVICE_TRUST_BOUNDARY: files changed after a refused request"
+    );
+    // A scan completed by this process is a source again.
+    scanned(&s);
+    call(&s, "clean_prepare", json!({"groupIds":["chrome-cache"]}));
+}
+
+fn hardening_store_tidy() {
+    let f = Fixture::new();
+    for dir in ["scans", "snapshots", "plans", "cleans", "journal"] {
+        fs::create_dir_all(f.data.join(dir)).unwrap();
+    }
+    let hex = "0123456789abcdef0123456789abcdef";
+    let temps = [
+        f.data.join(format!(".settings.json.{hex}.tmp")),
+        f.data.join("scans").join(format!(".scan-x.json.{hex}.tmp")),
+        f.data
+            .join("plans")
+            .join(format!(".plan-y_1.json.{hex}.tmp")),
+    ];
+    for t in &temps {
+        fs::write(t, b"{}").unwrap();
+    }
+    // Names that do not match the temporary pattern stay.
+    fs::write(f.data.join(".notes.tmp"), b"x").unwrap();
+    fs::write(f.data.join(format!(".bad name.{hex}.tmp")), b"x").unwrap();
+    fs::write(f.data.join("journal").join("keep.txt"), b"x").unwrap();
+    fs::create_dir(f.data.join("plans").join("plan-20260101T000000Z-0000.json")).unwrap();
+    let mut dropped = Vec::new();
+    for i in 0..70u32 {
+        let plan = f
+            .data
+            .join("plans")
+            .join(format!("plan-20270101T000000Z-{i:04x}.json"));
+        let journal = f
+            .data
+            .join("journal")
+            .join(format!("clean-20270101T000000Z-{i:04x}.jsonl"));
+        fs::write(&plan, b"{}").unwrap();
+        fs::write(&journal, b"").unwrap();
+        if i < 10 {
+            dropped.push(plan);
+            dropped.push(journal);
+        }
+    }
+    let before = inventory(&f.data);
+    let s = f.service(false);
+    let after = inventory(&f.data);
+    let mut expected = before.clone();
+    for p in temps.iter().chain(&dropped) {
+        assert!(expected.remove(p).is_some());
+    }
+    assert_eq!(
+        after, expected,
+        "SERVICE_STORE_TIDY: data directory after startup"
+    );
+    let count = |dir: &str, ext: &str| {
+        fs::read_dir(f.data.join(dir))
+            .unwrap()
+            .filter(|e| {
+                let e = e.as_ref().unwrap();
+                e.file_type().unwrap().is_file() && e.file_name().to_str().unwrap().ends_with(ext)
+            })
+            .count()
+    };
+    assert_eq!(
+        count("plans", ".json"),
+        60,
+        "SERVICE_STORE_TIDY: plans kept"
+    );
+    assert_eq!(
+        count("journal", ".jsonl"),
+        60,
+        "SERVICE_STORE_TIDY: journals kept"
+    );
+    assert!(
+        f.data
+            .join("plans")
+            .join("plan-20260101T000000Z-0000.json")
+            .is_dir()
+    );
+    drop(s);
+}
+
+fn hardening_canonical_root() {
+    let f = Fixture::new();
+    fs::create_dir_all(f.root.join("Kf-Ä").join("profile")).unwrap();
+    fs::create_dir_all(f.root.join("project")).unwrap();
+    let mut fake = f.fake.clone();
+    // The known folder is given in another case of a non-ASCII name.
+    fake.folders.user_profile = format!("{}\\kf-ä\\profile", slash(&f.root));
+    let s = Service::new(ServiceConfig {
+        data_dir: f.root.join("data-canonical"),
+        app_version: "0.1.0".into(),
+        clean_enabled: false,
+        platform: Box::new(fake.clone()),
+        picker: Box::new(fake),
+    })
+    .unwrap();
+    for name in ["Kf-Ä", "kf-ä"] {
+        f.pick(Some(&f.root.join(name)));
+        let error = s
+            .call("custom_root_add", json!({}))
+            .expect_err("SERVICE_CANONICAL_ROOT: a folder holding a known folder was added");
+        assert_eq!(
+            error.message_zh, TOO_BROAD,
+            "SERVICE_CANONICAL_ROOT: message for {name}"
+        );
+    }
+    f.pick(Some(&f.root.join("project")));
+    let added = s.call("custom_root_add", json!({}));
+    assert!(
+        added.is_ok(),
+        "SERVICE_CANONICAL_ROOT: plain project {added:?}"
+    );
+    let roots = call(&s, "locations_get", json!({}))["custom_roots"].clone();
+    assert_eq!(
+        roots.as_array().unwrap().len(),
+        1,
+        "SERVICE_CANONICAL_ROOT: roots"
+    );
+}
+
+fn hardening_partial_source() {
+    use std::{ffi::OsString, os::windows::ffi::OsStringExt};
+    let bad = || {
+        let mut wide: Vec<u16> = "bad-".encode_utf16().collect();
+        wide.push(0xD800);
+        wide.extend(".bin".encode_utf16());
+        OsString::from_wide(&wide)
+    };
+    let f = Fixture::new();
+    f.seed();
+    let protected = f.root.join("user_profile/.claude/projects").join(bad());
+    File::create(&protected).unwrap();
+    let s = f.service(true);
+    let id = call(&s, "scan_start", json!({}));
+    assert_eq!(
+        settle(&s, "scan_progress", "SERVICE_PARTIAL_SOURCE")["state"],
+        "partial"
+    );
+    let saved = scan_saved(&f, &id);
+    assert!(
+        saved["result"]["issues"]
+            .as_array()
+            .unwrap()
+            .iter()
+            .any(|i| i["code"] == "unrepresentable_name" && i["group_id"] == "claude-code-sessions"),
+        "SERVICE_PARTIAL_SOURCE: expected an issue on the protected group {}",
+        saved["result"]["issues"]
+    );
+    let before = inventory(&f.root);
+    let error = s
+        .call("clean_prepare", json!({"groupIds":["chrome-cache"]}))
+        .expect_err("SERVICE_PARTIAL_SOURCE: a partial scan with an unclear protected group became a source");
+    assert_eq!(
+        (error.code.as_str(), error.message_zh.as_str()),
+        ("stale", "这次体检没有完整完成，请重新体检后再清理。"),
+        "SERVICE_PARTIAL_SOURCE: prepare on a partial scan"
+    );
+    assert_eq!(
+        inventory(&f.root),
+        before,
+        "SERVICE_PARTIAL_SOURCE: files changed"
+    );
+    // An issue only in a recommended group still allows preparing.
+    fs::remove_file(&protected).unwrap();
+    File::create(
+        f.root
+            .join("local_app_data/Google/Chrome/User Data/Default/Cache")
+            .join(bad()),
+    )
+    .unwrap();
+    let id = call(&s, "scan_start", json!({}));
+    assert_eq!(
+        settle(&s, "scan_progress", "SERVICE_PARTIAL_SOURCE")["state"],
+        "partial"
+    );
+    let saved = scan_saved(&f, &id);
+    assert!(
+        saved["result"]["issues"]
+            .as_array()
+            .unwrap()
+            .iter()
+            .all(|i| i["group_id"] == "chrome-cache" && i["code"] != "budget_exhausted"),
+        "SERVICE_PARTIAL_SOURCE: issues {}",
+        saved["result"]["issues"]
+    );
+    let plan = call(&s, "clean_prepare", json!({"groupIds":["chrome-cache"]}));
+    assert!(
+        plan["item_count"].as_u64().unwrap() > 0,
+        "SERVICE_PARTIAL_SOURCE: plan"
+    );
+}
+
+fn hardening_product_name() {
+    let f = Fixture::new();
+    f.seed();
+    f.file(
+        "local_app_data/Microsoft/Edge/User Data/Default/Cache/cache.bin",
+        10,
+    );
+    f.file(
+        "local_app_data/BraveSoftware/Brave-Browser/User Data/Default/Cache/cache.bin",
+        10,
+    );
+    f.file("windows/Temp/hrender-1/data", 10);
+    f.age_all(NOW - 10 * 86400);
+    *f.fake.names.lock().unwrap() = [
+        ("Microsoft\\Edge", "msedge.exe"),
+        ("Google\\Chrome", "Chrome.exe"),
+        ("hrender-", "CHROME-HEADLESS-SHELL.EXE"),
+        ("BraveSoftware", "other.exe"),
+    ]
+    .iter()
+    .map(|(a, b)| ((*a).to_owned(), (*b).to_owned()))
+    .collect();
+    let s = f.service(false);
+    let result = scanned(&s);
+    for (group, label) in [
+        ("edge-cache", "Edge 正在运行，将跳过占用的项"),
+        ("chrome-cache", "Chrome 正在运行，将跳过占用的项"),
+        (
+            "headless-browser-profiles",
+            "Chrome 无头浏览器 正在运行，将跳过占用的项",
+        ),
+        ("brave-cache", "other 正在运行，将跳过占用的项"),
+    ] {
+        assert_eq!(
+            group_in_use(&result, group)["process_label_zh"],
+            label,
+            "SERVICE_PRODUCT_NAME: {group}"
+        );
+    }
 }

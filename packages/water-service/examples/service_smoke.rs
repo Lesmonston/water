@@ -62,9 +62,17 @@ fn run() -> Result<(), IpcError> {
         .expect_err("clean must be disabled");
     assert_eq!(error.message_zh, "这一版只做体检，清理功能会在下一版开放。");
     let categories:Vec<_>=result["categories"].as_array().expect("categories").iter().map(|c|json!({"category":c["category"],"group_count":c["groups"].as_array().expect("groups").len(),"total_bytes":c["total_bytes"]})).collect();
+    // Distinct in-use notes over all groups, sorted (SERVICE-HARDENING §10).
+    let in_use_labels: std::collections::BTreeSet<_> = result["categories"]
+        .as_array()
+        .expect("categories")
+        .iter()
+        .flat_map(|c| c["groups"].as_array().expect("groups"))
+        .filter_map(|g| g["in_use"]["process_label_zh"].as_str())
+        .collect();
     println!(
         "{}",
-        json!({"status":result["status"],"duration_ms":result["duration_ms"],"totals":result["totals"],"categories":categories,"insights":result["insights"].as_array().expect("insights").len(),"drives":app["drives"].as_array().expect("drives").len(),"clean_prepare_code":error.code})
+        json!({"status":result["status"],"duration_ms":result["duration_ms"],"totals":result["totals"],"categories":categories,"insights":result["insights"].as_array().expect("insights").len(),"drives":app["drives"].as_array().expect("drives").len(),"clean_prepare_code":error.code,"in_use_labels":in_use_labels})
     );
     Ok(())
 }

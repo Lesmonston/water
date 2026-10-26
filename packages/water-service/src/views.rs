@@ -99,6 +99,16 @@ pub(crate) fn in_use_spec(group: &Group) -> water_process_scan::InUseSpec {
     serde_json::from_value(json!(group.in_use)).expect("validated scan in-use specification")
 }
 
+/// Product names shown for well-known processes (SERVICE-HARDENING §7); others drop `.exe`.
+const PRODUCT_NAMES: [(&str, &str); 6] = [
+    ("chrome.exe", "Chrome"),
+    ("msedge.exe", "Edge"),
+    ("brave.exe", "Brave"),
+    ("firefox.exe", "Firefox"),
+    ("claude.exe", "Claude"),
+    ("chrome-headless-shell.exe", "Chrome 无头浏览器"),
+];
+
 /// Decided once per scan, inside that scan's in-use batch, and saved with the record.
 /// Views never ask the platform again; a missing snapshot is kept as "in use, unknown".
 pub(crate) fn scan_in_use(result: &ScanResult, platform: &dyn Platform) -> Value {
@@ -119,14 +129,20 @@ pub(crate) fn scan_in_use(result: &ScanResult, platform: &dyn Platform) -> Value
         let text = if name == IN_USE_UNKNOWN {
             "暂时无法确认是否在运行，清理时会再次检查".to_owned()
         } else {
-            let label = if name
-                .get(name.len().saturating_sub(4)..)
-                .is_some_and(|s| s.eq_ignore_ascii_case(".exe"))
-            {
-                &name[..name.len() - 4]
-            } else {
-                &name
-            };
+            let label = PRODUCT_NAMES
+                .iter()
+                .find(|(process, _)| process.eq_ignore_ascii_case(&name))
+                .map(|(_, product)| *product)
+                .unwrap_or_else(|| {
+                    if name
+                        .get(name.len().saturating_sub(4)..)
+                        .is_some_and(|s| s.eq_ignore_ascii_case(".exe"))
+                    {
+                        &name[..name.len() - 4]
+                    } else {
+                        &name
+                    }
+                });
             format!("{label} 正在运行，将跳过占用的项")
         };
         saved.insert(g.group_id.clone(), json!({"process_label_zh":text}));
