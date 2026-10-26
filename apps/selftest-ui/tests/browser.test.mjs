@@ -12,8 +12,9 @@ const types = { '.html': 'text/html; charset=utf-8', '.mjs': 'text/javascript', 
 test('ui_page', async () => {
   const server = createServer((req, res) => {
     const rel = normalize(decodeURIComponent(new URL(req.url, 'http://x').pathname)).replace(/^[\\/]+/, '') || 'index.html';
-    try { res.writeHead(200, { 'content-type': types[rel.slice(rel.lastIndexOf('.'))] ?? 'application/octet-stream' }).end(readFileSync(join(ui, rel))); }
-    catch { res.writeHead(404).end(); }
+    let body;
+    try { body = readFileSync(join(ui, rel)); } catch { res.writeHead(404).end(); return; }
+    res.writeHead(200, { 'content-type': types[rel.slice(rel.lastIndexOf('.'))] ?? 'application/octet-stream' }).end(body);
   });
   await new Promise(ok => server.listen(0, '127.0.0.1', ok));
   const browser = await openPrivateBrowser();
