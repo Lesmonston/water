@@ -1,0 +1,243 @@
+{
+  "task": "WATER-W2-SELFTEST-UI",
+  "mode": "red-nc1",
+  "finalGate": false,
+  "manifest": ".local/w2-selftest/manifest.json",
+  "startedAt": "2026-10-26T04:45:09.832Z",
+  "realDataRead": false,
+  "productTestsRun": true,
+  "commands": [
+    {
+      "binary": "git",
+      "argv": [
+        "branch",
+        "--show-current"
+      ],
+      "exitCode": 0
+    },
+    {
+      "binary": "git",
+      "argv": [
+        "merge-base",
+        "--is-ancestor",
+        "5de459d007dbf3781d4e6654990615fc975b36da",
+        "HEAD"
+      ],
+      "exitCode": 0
+    },
+    {
+      "binary": "git",
+      "argv": [
+        "diff",
+        "--no-renames",
+        "--name-only",
+        "-z",
+        "5de459d007dbf3781d4e6654990615fc975b36da",
+        "HEAD"
+      ],
+      "exitCode": 0
+    },
+    {
+      "binary": "git",
+      "argv": [
+        "diff",
+        "--no-renames",
+        "--name-only",
+        "-z",
+        "HEAD"
+      ],
+      "exitCode": 0
+    },
+    {
+      "binary": "git",
+      "argv": [
+        "ls-files",
+        "--others",
+        "--exclude-standard",
+        "-z"
+      ],
+      "exitCode": 0
+    },
+    {
+      "binary": "git",
+      "argv": [
+        "rev-parse",
+        "HEAD"
+      ],
+      "exitCode": 0
+    },
+    {
+      "binary": "git",
+      "argv": [
+        "status",
+        "--porcelain",
+        "--untracked-files=all"
+      ],
+      "exitCode": 0
+    },
+    {
+      "binary": "git",
+      "argv": [
+        "diff",
+        "--name-only",
+        "HEAD",
+        "--",
+        "apps/selftest-ui"
+      ],
+      "exitCode": 0
+    },
+    {
+      "binary": "C:\\Program Files\\nodejs\\node.exe",
+      "argv": [
+        "--test",
+        "--test-concurrency=1",
+        "--test-reporter=tap",
+        "apps/selftest-ui/tests/unit.test.mjs"
+      ],
+      "exitCode": 1,
+      "error": null,
+      "log": "2026-10-26T04-45-09.830Z-25996-red-nc1-1.log"
+    },
+    {
+      "binary": "git",
+      "argv": [
+        "branch",
+        "--show-current"
+      ],
+      "exitCode": 0
+    },
+    {
+      "binary": "git",
+      "argv": [
+        "merge-base",
+        "--is-ancestor",
+        "5de459d007dbf3781d4e6654990615fc975b36da",
+        "HEAD"
+      ],
+      "exitCode": 0
+    },
+    {
+      "binary": "git",
+      "argv": [
+        "diff",
+        "--no-renames",
+        "--name-only",
+        "-z",
+        "5de459d007dbf3781d4e6654990615fc975b36da",
+        "HEAD"
+      ],
+      "exitCode": 0
+    },
+    {
+      "binary": "git",
+      "argv": [
+        "diff",
+        "--no-renames",
+        "--name-only",
+        "-z",
+        "HEAD"
+      ],
+      "exitCode": 0
+    },
+    {
+      "binary": "git",
+      "argv": [
+        "ls-files",
+        "--others",
+        "--exclude-standard",
+        "-z"
+      ],
+      "exitCode": 0
+    },
+    {
+      "binary": "git",
+      "argv": [
+        "rev-parse",
+        "HEAD"
+      ],
+      "exitCode": 0
+    },
+    {
+      "binary": "git",
+      "argv": [
+        "status",
+        "--porcelain",
+        "--untracked-files=all"
+      ],
+      "exitCode": 0
+    }
+  ],
+  "changedPaths": [
+    "apps/selftest-ui/app.mjs",
+    "apps/selftest-ui/index.html",
+    "apps/selftest-ui/ipc.mjs",
+    "apps/selftest-ui/model.mjs",
+    "apps/selftest-ui/styles/tokens.css",
+    "apps/selftest-ui/tests/browser.test.mjs",
+    "apps/selftest-ui/tests/unit.test.mjs"
+  ],
+  "before": {
+    "head": "0a507481dc2384d5b8e2f0491faee47a173e4597",
+    "status": "M apps/selftest-ui/model.mjs"
+  },
+  "sourceState": {
+    "files": [
+      {
+        "path": "apps/selftest-ui/app.mjs",
+        "snapshot": "2026-10-26T04-45-09.830Z-25996-red-nc1-source-0.txt",
+        "sha256": "3d5fd2a1e154fd6f4b46faac173aea3d4fbafc0f1f662d6775f715cfa2c6893b",
+        "test": false
+      },
+      {
+        "path": "apps/selftest-ui/index.html",
+        "snapshot": "2026-10-26T04-45-09.830Z-25996-red-nc1-source-1.txt",
+        "sha256": "6780241251b9c68c835fcb6b7cc2a0048d6c6a98eed57c513c07e890437c4727",
+        "test": false
+      },
+      {
+        "path": "apps/selftest-ui/ipc.mjs",
+        "snapshot": "2026-10-26T04-45-09.830Z-25996-red-nc1-source-2.txt",
+        "sha256": "e5b8f38bb44ac2f7d00142ae2f19f2c4a2f214f6c130f555d0eb7e8e89875389",
+        "test": false
+      },
+      {
+        "path": "apps/selftest-ui/model.mjs",
+        "snapshot": "2026-10-26T04-45-09.830Z-25996-red-nc1-source-3.txt",
+        "sha256": "dd9760625bfcb1d29763539ff1bca39bb6c48dfd8e0955197c3d5603b28102e8",
+        "test": false
+      },
+      {
+        "path": "apps/selftest-ui/styles/tokens.css",
+        "snapshot": "2026-10-26T04-45-09.830Z-25996-red-nc1-source-4.txt",
+        "sha256": "fd54186a9523885dcc267ef00e03ee82818a168d47a0dbc8cd0e6d9d34a9e532",
+        "test": false
+      },
+      {
+        "path": "apps/selftest-ui/tests/browser.test.mjs",
+        "snapshot": "2026-10-26T04-45-09.830Z-25996-red-nc1-source-5.txt",
+        "sha256": "af3a4cb85aefa2acfde8d72bfcc1e8a6dd938545e69a377e554b13b627c6317e",
+        "test": true
+      },
+      {
+        "path": "apps/selftest-ui/tests/unit.test.mjs",
+        "snapshot": "2026-10-26T04-45-09.830Z-25996-red-nc1-source-6.txt",
+        "sha256": "fadc00609aea08781b4e6f2bcb45e45b7dd6e809c185802b6e5252f1b8130a54",
+        "test": true
+      }
+    ],
+    "productionHash": "525ee76952ba83b1a605e95a43cf7c198d5f90d41e25acef24dc4223438e5780",
+    "testHash": "44a7c8e93ae1eca863f19da6a7a5add3baf3151d0fcfa954709d41d23833d975"
+  },
+  "uiFiles": 7,
+  "observedExpectedFailure": true,
+  "expectation": {
+    "target": "UI_SELFTEST_GUARD"
+  },
+  "after": {
+    "head": "0a507481dc2384d5b8e2f0491faee47a173e4597",
+    "status": "M apps/selftest-ui/model.mjs"
+  },
+  "status": "passed",
+  "error": null,
+  "endedAt": "2026-10-26T04:45:13.081Z"
+}

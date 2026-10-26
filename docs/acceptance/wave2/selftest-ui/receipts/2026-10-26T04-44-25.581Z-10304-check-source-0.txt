@@ -1,0 +1,4 @@
+// Harness self-test only.
+import { appState } from './ipc.mjs';
+appState().then(s => { document.getElementById('out').textContent = 'version ' + s.app_version; },
+  () => { document.getElementById('out').textContent = 'unavailable'; });

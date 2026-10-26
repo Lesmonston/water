@@ -1,0 +1,217 @@
+{
+  "task": "WATER-W2-SELFTEST-UI",
+  "mode": "test",
+  "finalGate": true,
+  "manifest": ".local/w2-selftest/manifest.json",
+  "startedAt": "2026-10-26T04:45:05.247Z",
+  "realDataRead": false,
+  "productTestsRun": false,
+  "commands": [
+    {
+      "binary": "git",
+      "argv": [
+        "branch",
+        "--show-current"
+      ],
+      "exitCode": 0
+    },
+    {
+      "binary": "git",
+      "argv": [
+        "merge-base",
+        "--is-ancestor",
+        "5de459d007dbf3781d4e6654990615fc975b36da",
+        "HEAD"
+      ],
+      "exitCode": 0
+    },
+    {
+      "binary": "git",
+      "argv": [
+        "diff",
+        "--no-renames",
+        "--name-only",
+        "-z",
+        "5de459d007dbf3781d4e6654990615fc975b36da",
+        "HEAD"
+      ],
+      "exitCode": 0
+    },
+    {
+      "binary": "git",
+      "argv": [
+        "diff",
+        "--no-renames",
+        "--name-only",
+        "-z",
+        "HEAD"
+      ],
+      "exitCode": 0
+    },
+    {
+      "binary": "git",
+      "argv": [
+        "ls-files",
+        "--others",
+        "--exclude-standard",
+        "-z"
+      ],
+      "exitCode": 0
+    },
+    {
+      "binary": "git",
+      "argv": [
+        "rev-parse",
+        "HEAD"
+      ],
+      "exitCode": 0
+    },
+    {
+      "binary": "git",
+      "argv": [
+        "status",
+        "--porcelain",
+        "--untracked-files=all"
+      ],
+      "exitCode": 0
+    },
+    {
+      "binary": "git",
+      "argv": [
+        "branch",
+        "--show-current"
+      ],
+      "exitCode": 0
+    },
+    {
+      "binary": "git",
+      "argv": [
+        "merge-base",
+        "--is-ancestor",
+        "5de459d007dbf3781d4e6654990615fc975b36da",
+        "HEAD"
+      ],
+      "exitCode": 0
+    },
+    {
+      "binary": "git",
+      "argv": [
+        "diff",
+        "--no-renames",
+        "--name-only",
+        "-z",
+        "5de459d007dbf3781d4e6654990615fc975b36da",
+        "HEAD"
+      ],
+      "exitCode": 0
+    },
+    {
+      "binary": "git",
+      "argv": [
+        "diff",
+        "--no-renames",
+        "--name-only",
+        "-z",
+        "HEAD"
+      ],
+      "exitCode": 0
+    },
+    {
+      "binary": "git",
+      "argv": [
+        "ls-files",
+        "--others",
+        "--exclude-standard",
+        "-z"
+      ],
+      "exitCode": 0
+    },
+    {
+      "binary": "git",
+      "argv": [
+        "rev-parse",
+        "HEAD"
+      ],
+      "exitCode": 0
+    },
+    {
+      "binary": "git",
+      "argv": [
+        "status",
+        "--porcelain",
+        "--untracked-files=all"
+      ],
+      "exitCode": 0
+    }
+  ],
+  "changedPaths": [
+    "apps/selftest-ui/app.mjs",
+    "apps/selftest-ui/index.html",
+    "apps/selftest-ui/ipc.mjs",
+    "apps/selftest-ui/model.mjs",
+    "apps/selftest-ui/styles/tokens.css",
+    "apps/selftest-ui/tests/browser.test.mjs",
+    "apps/selftest-ui/tests/unit.test.mjs"
+  ],
+  "before": {
+    "head": "0a507481dc2384d5b8e2f0491faee47a173e4597",
+    "status": ""
+  },
+  "sourceState": {
+    "files": [
+      {
+        "path": "apps/selftest-ui/app.mjs",
+        "snapshot": "2026-10-26T04-45-05.246Z-37652-test-source-0.txt",
+        "sha256": "3d5fd2a1e154fd6f4b46faac173aea3d4fbafc0f1f662d6775f715cfa2c6893b",
+        "test": false
+      },
+      {
+        "path": "apps/selftest-ui/index.html",
+        "snapshot": "2026-10-26T04-45-05.246Z-37652-test-source-1.txt",
+        "sha256": "6780241251b9c68c835fcb6b7cc2a0048d6c6a98eed57c513c07e890437c4727",
+        "test": false
+      },
+      {
+        "path": "apps/selftest-ui/ipc.mjs",
+        "snapshot": "2026-10-26T04-45-05.246Z-37652-test-source-2.txt",
+        "sha256": "e5b8f38bb44ac2f7d00142ae2f19f2c4a2f214f6c130f555d0eb7e8e89875389",
+        "test": false
+      },
+      {
+        "path": "apps/selftest-ui/model.mjs",
+        "snapshot": "2026-10-26T04-45-05.246Z-37652-test-source-3.txt",
+        "sha256": "214d83c4a74d5fb2476e6adeb2391332be15992cbbb77834e2a6d7bc6fce08f7",
+        "test": false
+      },
+      {
+        "path": "apps/selftest-ui/styles/tokens.css",
+        "snapshot": "2026-10-26T04-45-05.246Z-37652-test-source-4.txt",
+        "sha256": "fd54186a9523885dcc267ef00e03ee82818a168d47a0dbc8cd0e6d9d34a9e532",
+        "test": false
+      },
+      {
+        "path": "apps/selftest-ui/tests/browser.test.mjs",
+        "snapshot": "2026-10-26T04-45-05.246Z-37652-test-source-5.txt",
+        "sha256": "af3a4cb85aefa2acfde8d72bfcc1e8a6dd938545e69a377e554b13b627c6317e",
+        "test": true
+      },
+      {
+        "path": "apps/selftest-ui/tests/unit.test.mjs",
+        "snapshot": "2026-10-26T04-45-05.246Z-37652-test-source-6.txt",
+        "sha256": "fadc00609aea08781b4e6f2bcb45e45b7dd6e809c185802b6e5252f1b8130a54",
+        "test": true
+      }
+    ],
+    "productionHash": "2bc5d0bf0994002edd960cee2a1c0a0dc6375786ccd4aa5d60d43fa54473738c",
+    "testHash": "44a7c8e93ae1eca863f19da6a7a5add3baf3151d0fcfa954709d41d23833d975"
+  },
+  "uiFiles": 7,
+  "proofAudit": [],
+  "after": {
+    "head": "0a507481dc2384d5b8e2f0491faee47a173e4597",
+    "status": ""
+  },
+  "status": "failed",
+  "error": "AssertionError [ERR_ASSERTION]: Missing valid negative control nc1\n    at proofAudit (file:///F:/new/smaltalk/water/scripts/checkup-wave-check.mjs:92:27)\n    at uiGate (file:///F:/new/smaltalk/water/scripts/checkup-wave-check.mjs:134:31)\n    at file:///F:/new/smaltalk/water/scripts/checkup-wave-check.mjs:153:29\n    at ModuleJob.run (node:internal/modules/esm/module_job:439:25)\n    at async node:internal/modules/esm/loader:633:26\n    at async asyncRunEntryPointWithESMLoader (node:internal/modules/run_main:101:5)",
+  "endedAt": "2026-10-26T04:45:09.279Z"
+}
