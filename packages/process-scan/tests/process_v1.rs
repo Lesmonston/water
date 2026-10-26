@@ -1,4 +1,4 @@
-use std::collections::BTreeSet;
+use std::collections::{BTreeSet, HashMap};
 use std::os::windows::process::CommandExt;
 use std::path::{Path, PathBuf};
 use std::process::{Child, Command, Stdio};
@@ -7,22 +7,35 @@ use std::time::{Duration, SystemTime, UNIX_EPOCH};
 
 use serde_json::Value;
 use water_process_scan::{
-    DEFAULT_ORPHAN_PATTERNS, InUseMode, InUseSpec, OrphanChain, ProcessSnapshot, in_use, orphans,
-    snapshot, summary_to_json,
+    DEFAULT_ORPHAN_PATTERNS, InUseMode, InUseSpec, OrphanChain, ProcessSnapshot, ProcessSummary,
+    ProcessSummaryEntry, in_use, orphans, snapshot, summary_to_json,
 };
 
 const CREATE_NO_WINDOW: u32 = 0x0800_0000;
+/// Only these image names are ever ended by cleanup, and only when their
+/// command line still carries this session's token.
+const KILL_NAMES: &[&str] = &["cmd.exe", "waitfor.exe"];
+/// Self-limiting wait: even if cleanup were skipped, waiters exit on their own.
+const WAIT_SECS: u32 = 60;
 
+/// One test's processes. Every process it starts carries `token` in its
+/// command line: each `cmd.exe` as a `rem` word, each `waitfor.exe` as its
+/// unique signal name `<token>s<n>`.
 struct Session {
     token: String,
     dir: PathBuf,
+    started_at: String,
     children: Vec<Child>,
+    signals: Vec<String>,
+    expected: usize,
+    recorded: HashMap<u32, Option<String>>,
 }
 
 impl Session {
     fn new() -> Self {
+        // waitfor signal names allow only ASCII letters and digits.
         let token = format!(
-            "w2c-{}-{:x}",
+            "w2c{}t{:x}",
             std::process::id(),
             SystemTime::now()
                 .duration_since(UNIX_EPOCH)
@@ -31,12 +44,17 @@ impl Session {
         );
         let fixtures = worktree_root().join(".local").join("w2-c-fixtures");
         std::fs::create_dir_all(&fixtures).expect("create fixture parent");
-        let dir = fixtures.join(&token);
+        let dir = fixtures.join(format!("w2c-{token}"));
         std::fs::create_dir(&dir).expect("create fixture dir");
+        let started_at = snapshot().expect("snapshot").summary().taken_at;
         Self {
             token,
             dir,
+            started_at,
             children: Vec::new(),
+            signals: Vec::new(),
+            expected: 0,
+            recorded: HashMap::new(),
         }
     }
 
@@ -44,45 +62,75 @@ impl Session {
         self.dir.to_string_lossy().into_owned()
     }
 
+    fn next_signal(&mut self) -> String {
+        let signal = format!("{}s{}", self.token, self.signals.len() + 1);
+        self.signals.push(signal.clone());
+        signal
+    }
+
+    /// `cmd.exe` (token in its command line) waiting on a token-named
+    /// `waitfor.exe`. `extra` ends the command line verbatim.
     fn spawn_ping(&mut self, extra: &str) -> u32 {
+        let signal = self.next_signal();
         let script = format!(
-            "ping -n 30 127.0.0.1 >NUL & rem {} --user-data-dir=\"{}\" {}",
+            "waitfor /t {WAIT_SECS} {signal} >NUL 2>&1 & rem {} --user-data-dir=\"{}\" {extra}",
             self.token,
-            self.path_str(),
-            extra
+            self.path_str()
         );
-        let child = cmd(&["/d", "/c", &script]);
+        self.expected += 2;
+        let child = cmd(&script);
         let pid = child.id();
         self.children.push(child);
         pid
     }
 
-    fn spawn_orphan(&mut self) {
+    /// Outer `cmd.exe` starts an inner `cmd.exe` with `start /b` and exits,
+    /// leaving the inner one (and its token-named `waitfor.exe`) orphaned.
+    /// Returns the waitfor signal name.
+    fn spawn_orphan(&mut self) -> String {
+        let signal = self.next_signal();
         let inner = format!(
-            "ping -n 30 127.0.0.1 >NUL & rem {} jest-worker --user-data-dir=\"{}\"",
+            "waitfor /t {WAIT_SECS} {signal} >NUL 2>&1 & rem {} jest-worker --user-data-dir={}",
             self.token,
             self.path_str()
         );
-        let mut outer = cmd(&["/d", "/c", "start", "", "/b", "cmd", "/d", "/c", &inner]);
+        self.expected += 3;
+        let mut outer = cmd(&format!("start \"\" /b cmd /d /c \"{inner}\""));
         let _ = outer.wait();
+        signal
     }
 
-    fn wait_for_path(&self) -> ProcessSnapshot {
-        let path = self.path_str();
-        for _ in 0..80 {
-            let snap = snapshot().expect("snapshot");
-            if !snap.references_path(&path, &[]).is_empty() {
-                return snap;
+    /// Every pid whose command line carries this session's token (as the
+    /// bare token or as one of its waitfor signal names).
+    fn token_pids(&self, snap: &ProcessSnapshot, names: &[&str]) -> BTreeSet<u32> {
+        std::iter::once(&self.token)
+            .chain(self.signals.iter())
+            .flat_map(|word| snap.references_path(word, names))
+            .collect()
+    }
+
+    /// Remember the creation time of each token process the first time it is
+    /// seen (or again if the pid now belongs to a newer token process).
+    fn observe(&mut self, snap: &ProcessSnapshot) {
+        let created: HashMap<u32, Option<String>> = snap
+            .summary()
+            .processes
+            .into_iter()
+            .map(|p| (p.pid, p.created_at))
+            .collect();
+        for pid in self.token_pids(snap, &[]) {
+            let now = created.get(&pid).cloned().flatten();
+            if self.recorded.get(&pid) != Some(&now) {
+                self.recorded.insert(pid, now);
             }
-            thread::sleep(Duration::from_millis(50));
         }
-        panic!("spawned processes did not appear in the snapshot");
     }
 
-    fn wait_for_pids(&self, pids: &[u32]) -> ProcessSnapshot {
+    fn wait_for_pids(&mut self, pids: &[u32]) -> ProcessSnapshot {
         let path = self.path_str();
-        for _ in 0..80 {
+        for _ in 0..100 {
             let snap = snapshot().expect("snapshot");
+            self.observe(&snap);
             let have: BTreeSet<u32> = snap.references_path(&path, &[]).into_iter().collect();
             if pids.iter().all(|p| have.contains(p)) {
                 return snap;
@@ -92,44 +140,84 @@ impl Session {
         panic!("expected child pids did not appear in the snapshot");
     }
 
-    fn wait_for_orphan(&self) -> ProcessSnapshot {
-        for _ in 0..80 {
+    /// Waits until the homemade orphan, its token-named waitfor child and the
+    /// given direct children are all visible. Returns the waitfor pid.
+    fn wait_for_orphan(&mut self, signal: &str, pids: &[u32]) -> (ProcessSnapshot, u32) {
+        let path = self.path_str();
+        for _ in 0..100 {
             let snap = snapshot().expect("snapshot");
-            if !orphans(&snap, &[self.token.as_str()]).is_empty() {
-                return snap;
+            self.observe(&snap);
+            let chains = orphans(&snap, &[self.token.as_str()]);
+            let waiter = snap.references_path(signal, &["waitfor.exe"]);
+            let have: BTreeSet<u32> = snap.references_path(&path, &[]).into_iter().collect();
+            if !chains.is_empty() && waiter.len() == 1 && pids.iter().all(|p| have.contains(p)) {
+                return (snap, waiter[0]);
             }
             thread::sleep(Duration::from_millis(50));
         }
         panic!("homemade orphan did not appear");
     }
 
-    fn stop(&mut self) {
+    /// Ends `pid` only if a fresh snapshot still shows the same process: same
+    /// creation time as recorded, created after this session began, an
+    /// allowed image name, and a command line that still carries the token.
+    fn kill_verified(&self, pid: u32) {
+        let Ok(fresh) = snapshot() else { return };
+        if !self.token_pids(&fresh, KILL_NAMES).contains(&pid) {
+            return;
+        }
+        let summary = fresh.summary();
+        let Some(entry) = summary.processes.iter().find(|p| p.pid == pid) else {
+            return;
+        };
+        let Some(Some(recorded)) = self.recorded.get(&pid) else {
+            return;
+        };
+        let Some(now) = entry.created_at.as_ref() else {
+            return;
+        };
+        if now != recorded || now.as_str() < self.started_at.as_str() {
+            return;
+        }
+        taskkill(pid);
+    }
+
+    /// Returns true once no process carries the token. Never ends a process
+    /// by descendant list or process tree.
+    fn cleanup(&mut self) -> bool {
         for child in &mut self.children {
             let _ = child.kill();
             let _ = child.wait();
         }
         self.children.clear();
-        for _ in 0..40 {
-            let Ok(snap) = snapshot() else { break };
-            let mut pids = snap.references_path(&self.path_str(), &[]);
-            for chain in orphans(&snap, &[self.token.as_str()]) {
-                pids.push(chain.root_pid);
-                pids.extend(chain.descendant_pids);
+        for _ in 0..60 {
+            let Ok(snap) = snapshot() else {
+                thread::sleep(Duration::from_millis(50));
+                continue;
+            };
+            self.observe(&snap);
+            if self.token_pids(&snap, &[]).is_empty() {
+                return true;
             }
-            pids.sort_unstable();
-            pids.dedup();
-            if pids.is_empty() {
-                return;
+            let candidates = self.token_pids(&snap, KILL_NAMES);
+            if candidates.len() > self.expected {
+                return false;
             }
-            for pid in pids {
-                taskkill(pid);
+            for pid in candidates {
+                self.kill_verified(pid);
             }
             thread::sleep(Duration::from_millis(50));
         }
+        false
+    }
+
+    fn stop(&mut self) {
+        let clean = self.cleanup();
         let snap = snapshot().expect("snapshot after stop");
+        assert!(clean, "cleanup must end every token process it started");
         assert!(
-            snap.references_path(&self.path_str(), &[]).is_empty(),
-            "token processes must be gone"
+            self.token_pids(&snap, &[]).is_empty(),
+            "no process with this session token may remain"
         );
         assert!(
             orphans(&snap, &[self.token.as_str()]).is_empty(),
@@ -140,7 +228,7 @@ impl Session {
 
 impl Drop for Session {
     fn drop(&mut self) {
-        self.stop();
+        let _ = self.cleanup();
         let name_ok = self
             .dir
             .file_name()
@@ -165,9 +253,10 @@ fn worktree_root() -> PathBuf {
         .to_path_buf()
 }
 
-fn cmd(args: &[&str]) -> Child {
+fn cmd(script: &str) -> Child {
     Command::new("cmd.exe")
-        .args(args)
+        .args(["/d", "/c"])
+        .raw_arg(script)
         .creation_flags(CREATE_NO_WINDOW)
         .stdin(Stdio::null())
         .stdout(Stdio::null())
@@ -176,9 +265,10 @@ fn cmd(args: &[&str]) -> Child {
         .expect("spawn cmd")
 }
 
+/// Ends exactly one verified pid; no `/T`.
 fn taskkill(pid: u32) {
     let _ = Command::new("taskkill")
-        .args(["/F", "/T", "/PID", &pid.to_string()])
+        .args(["/F", "/PID", &pid.to_string()])
         .creation_flags(CREATE_NO_WINDOW)
         .stdin(Stdio::null())
         .stdout(Stdio::null())
@@ -195,11 +285,24 @@ fn object_keys(value: &Value) -> BTreeSet<&str> {
         .collect()
 }
 
+fn entry(pid: u32, parent_pid: u32, created_at: Option<&str>) -> ProcessSummaryEntry {
+    ProcessSummaryEntry {
+        pid,
+        parent_pid,
+        name: "cmd.exe".to_string(),
+        created_at: created_at.map(str::to_string),
+    }
+}
+
 #[test]
 fn process_snapshot_contract() {
     let snap = snapshot().expect("snapshot succeeds including system processes");
     let summary = snap.summary();
     let json = summary_to_json(&summary);
+    assert!(
+        !json.contains("1601-01-01"),
+        "unknown creation times must be null, not a placeholder"
+    );
     let parsed: Value = serde_json::from_str(&json).expect("summary json");
     assert_eq!(
         object_keys(&parsed),
@@ -225,11 +328,13 @@ fn process_snapshot_contract() {
     assert_eq!(count, processes.len() as u64);
     assert!(count >= 1, "at least the test process");
     let self_pid = std::process::id();
+    let me = processes
+        .iter()
+        .find(|p| p["pid"].as_u64() == Some(u64::from(self_pid)))
+        .expect("snapshot must include the current process");
     assert!(
-        processes
-            .iter()
-            .any(|p| p["pid"].as_u64() == Some(u64::from(self_pid))),
-        "snapshot must include the current process"
+        me["created_at"].as_str().is_some_and(regex_is_rfc3339),
+        "the current process has a readable creation time"
     );
     for process in processes {
         assert_eq!(
@@ -239,8 +344,11 @@ fn process_snapshot_contract() {
         assert!(process["pid"].is_u64());
         assert!(process["parent_pid"].is_u64());
         assert!(process["name"].is_string());
-        let created = process["created_at"].as_str().expect("created_at");
-        assert!(regex_is_rfc3339(created), "created_at must be RFC 3339");
+        let created = &process["created_at"];
+        assert!(
+            created.is_null() || created.as_str().is_some_and(regex_is_rfc3339),
+            "created_at must be RFC 3339 or null"
+        );
         assert!(
             !process
                 .as_object()
@@ -255,38 +363,132 @@ fn process_snapshot_contract() {
         assert!(code == "access_denied" || code == "exited");
         assert!(issue["count"].as_u64().expect("count") >= 1);
     }
-    let _ = serde_json::from_str::<water_process_scan::ProcessSummary>(&json)
-        .expect("strict ProcessSummary");
+    let _ = serde_json::from_str::<ProcessSummary>(&json).expect("strict ProcessSummary");
 }
 
 #[test]
 fn process_path_reference() {
+    let zh_dir = "C:\\\u{7528}\u{6237}\\\u{6570}\u{636e}";
+    let zh_rel = "\u{6570}\u{636e}\\\u{7f13}\u{5b58}";
     let mut session = Session::new();
-    let exact = session.spawn_ping(r"C:\a\b");
-    let prefix = session.spawn_ping(r"C:\a\bc");
-    let inner = session.spawn_ping(r"C:\a\b\cache");
-    let slash = session.spawn_ping(r"c:/A/B");
-    let quoted = session.spawn_ping(r#""C:\a\b""#);
-    let equals = session.spawn_ping(r"--flag=C:\a\b");
-    let snap = session.wait_for_pids(&[exact, prefix, inner, slash, quoted, equals]);
-    let hits = snap.references_path(r"C:\a\b", &[]);
-    assert!(hits.contains(&exact), "exact path must match");
+    let at_end = session.spawn_ping(r"C:\a\b");
+    let space_after = session.spawn_ping(r"C:\a\b tail");
+    let backslash_after = session.spawn_ping(r"C:\a\b\cache");
+    let slash_case = session.spawn_ping("c:/A/B");
+    let double_quoted = session.spawn_ping(r#""C:\a\b""#);
+    let single_quoted = session.spawn_ping(r"'C:\a\b'");
+    let equals_before = session.spawn_ping(r"--flag=C:\a\b");
+    let equals_after = session.spawn_ping(r"C:\a\b=1");
+    let letter_before = session.spawn_ping(r"xC:\a\b");
+    let digit_before = session.spawn_ping(r"9C:\a\b");
+    let longer_segment = session.spawn_ping(r"C:\a\bc");
+    let zh_inner = session.spawn_ping(&format!("\"{zh_dir}\\\u{7f13}\u{5b58}\""));
+    let zh_longer = session.spawn_ping(&format!("{zh_dir}\u{7532}"));
+    let zh_retry = session.spawn_ping(&format!("x{zh_rel} '{zh_rel}'"));
+    let zh_miss = session.spawn_ping(&format!("x{zh_rel}"));
+    let all = [
+        at_end,
+        space_after,
+        backslash_after,
+        slash_case,
+        double_quoted,
+        single_quoted,
+        equals_before,
+        equals_after,
+        letter_before,
+        digit_before,
+        longer_segment,
+        zh_inner,
+        zh_longer,
+        zh_retry,
+        zh_miss,
+    ];
+    let snap = session.wait_for_pids(&all);
+
+    let hits: BTreeSet<u32> = snap.references_path(r"C:\a\b", &[]).into_iter().collect();
+    for (case, pid, expected) in [
+        (
+            "end of command line after the path must match",
+            at_end,
+            true,
+        ),
+        ("space after the path must match", space_after, true),
+        (
+            "\\ after the path (inner item) must match",
+            backslash_after,
+            true,
+        ),
+        ("slash and case must normalize", slash_case, true),
+        (
+            "double quotes before and after must match",
+            double_quoted,
+            true,
+        ),
+        (
+            "single quotes before and after must match",
+            single_quoted,
+            true,
+        ),
+        ("= before the path must match", equals_before, true),
+        ("= after the path must not match", equals_after, false),
+        (
+            "letter right before the path must not match",
+            letter_before,
+            false,
+        ),
+        (
+            "digit right before the path must not match",
+            digit_before,
+            false,
+        ),
+        ("C:\\a\\bc must not match C:\\a\\b", longer_segment, false),
+    ] {
+        assert_eq!(hits.contains(&pid), expected, "PROC_PATH_BOUNDARY: {case}");
+    }
+    for query in ["c:/A/b/", r"C:\a\b\", "C:/a/b", r"c:\A\B\\"] {
+        let alt: BTreeSet<u32> = snap.references_path(query, &[]).into_iter().collect();
+        assert_eq!(
+            alt, hits,
+            "PROC_PATH_BOUNDARY: query {query:?} must normalize like C:\\a\\b"
+        );
+    }
+
+    let zh_hits: BTreeSet<u32> = snap.references_path(zh_dir, &[]).into_iter().collect();
     assert!(
-        !hits.contains(&prefix),
-        "PROC_PATH_BOUNDARY: C:\\a\\bc must not match C:\\a\\b"
+        zh_hits.contains(&zh_inner),
+        "PROC_PATH_BOUNDARY: chinese path followed by \\ must match"
     );
-    assert!(hits.contains(&inner), "path followed by \\ must match");
-    assert!(hits.contains(&slash), "slash and case must normalize");
-    assert!(hits.contains(&quoted), "quoted path must match");
-    assert!(hits.contains(&equals), "equals-prefixed path must match");
+    assert!(
+        !zh_hits.contains(&zh_longer),
+        "PROC_PATH_BOUNDARY: chinese path followed by another character must not match"
+    );
+    let zh_rel_hits: BTreeSet<u32> = snap.references_path(zh_rel, &[]).into_iter().collect();
+    assert!(
+        zh_rel_hits.contains(&zh_retry),
+        "PROC_PATH_BOUNDARY: a later bounded occurrence after a rejected multibyte match must match"
+    );
+    assert!(
+        !zh_rel_hits.contains(&zh_miss),
+        "PROC_PATH_BOUNDARY: multibyte path after a letter must not match"
+    );
+
     let cmd_hits = snap.references_path(r"C:\a\b", &["cmd.exe"]);
-    assert!(cmd_hits.contains(&exact));
-    assert!(!cmd_hits.contains(&prefix));
-    let none = snap.references_path(r"C:\a\b", &["chrome.exe"]);
-    assert!(none.is_empty(), "name filter must exclude cmd.exe");
+    assert!(
+        cmd_hits.contains(&at_end),
+        "PROC_PATH_BOUNDARY: name filter keeps cmd.exe"
+    );
+    assert!(
+        !cmd_hits.contains(&longer_segment),
+        "PROC_PATH_BOUNDARY: name filter keeps the boundary rule"
+    );
+    let chrome_hits = snap.references_path(r"C:\a\b", &["chrome.exe"]);
+    assert!(
+        all.iter().all(|pid| !chrome_hits.contains(pid)),
+        "name filter must exclude cmd.exe"
+    );
     let fixture_hits = snap.references_path(&session.path_str(), &[]);
-    assert!(fixture_hits.contains(&exact));
-    assert!(fixture_hits.contains(&prefix));
+    assert!(fixture_hits.contains(&at_end));
+    assert!(fixture_hits.contains(&longer_segment));
     session.stop();
 }
 
@@ -311,11 +513,30 @@ fn process_in_use_and_orphans() {
             "missing default pattern {required}"
         );
     }
+
+    // A record whose creation time is earlier than its recorded parent's is a
+    // reused PID and never counts as a descendant; unknown times cannot prove
+    // reuse.
+    let crafted = ProcessSummary {
+        summary_version: "water.process-summary.v1".to_string(),
+        taken_at: "2026-10-26T05:00:00Z".to_string(),
+        process_count: 5,
+        processes: vec![
+            entry(100, 4, Some("2026-10-26T04:00:00Z")),
+            entry(200, 100, Some("2026-10-26T04:00:00Z")),
+            entry(300, 100, Some("2026-10-26T03:59:59Z")),
+            entry(400, 300, Some("2026-10-26T04:10:00Z")),
+            entry(500, 200, None),
+        ],
+        issues: Vec::new(),
+    };
+    assert_eq!(crafted.descendant_pids(100), vec![200, 500]);
+    assert_eq!(crafted.descendant_pids(300), vec![400]);
+
     let mut session = Session::new();
     let alive = session.spawn_ping("alive-parent");
-    session.spawn_orphan();
-    let _ = session.wait_for_orphan();
-    let snap = session.wait_for_pids(&[alive]);
+    let orphan_signal = session.spawn_orphan();
+    let (snap, orphan_waiter) = session.wait_for_orphan(&orphan_signal, &[alive]);
     let none = in_use(
         &snap,
         &InUseSpec {
@@ -363,30 +584,34 @@ fn process_in_use_and_orphans() {
         &session.path_str(),
     );
     assert!(filtered.is_none());
+
     let chains = orphans(&snap, &[session.token.as_str()]);
-    assert!(!chains.is_empty(), "homemade orphan must be listed");
-    assert!(
-        chains.iter().all(|c| c.root_pid != alive),
+    assert_eq!(chains.len(), 1, "exactly the homemade orphan is listed");
+    let orphan = &chains[0];
+    assert_ne!(
+        orphan.root_pid, alive,
         "parent still running is not an orphan"
     );
-    let orphan = chains
-        .iter()
-        .find(|c| c.name.eq_ignore_ascii_case("cmd.exe"))
-        .expect("orphan cmd.exe");
-    let summary = snap.summary();
-    let known: BTreeSet<u32> = summary.processes.iter().map(|p| p.pid).collect();
-    assert!(!orphan.descendant_pids.contains(&orphan.root_pid));
-    assert!(orphan.descendant_pids.iter().all(|p| known.contains(p)));
+    assert!(orphan.name.eq_ignore_ascii_case("cmd.exe"));
     assert_eq!(orphan.matched_pattern, session.token);
+    assert_eq!(
+        orphan.descendant_pids,
+        vec![orphan_waiter],
+        "descendant_pids must be exactly the token-bearing waitfor child"
+    );
+    assert_eq!(
+        snap.summary().descendant_pids(orphan.root_pid),
+        orphan.descendant_pids
+    );
     session.stop();
 }
 
 #[test]
 fn process_privacy() {
     let mut session = Session::new();
-    let _pid = session.spawn_ping("jest-worker");
-    session.spawn_orphan();
-    let snap = session.wait_for_path();
+    let worker = session.spawn_ping("jest-worker");
+    let orphan_signal = session.spawn_orphan();
+    let (snap, _) = session.wait_for_orphan(&orphan_signal, &[worker]);
     let token = session.token.clone();
     let path = session.path_str();
     let summary_json = summary_to_json(&snap.summary());
@@ -402,7 +627,21 @@ fn process_privacy() {
     .expect("in-use hit");
     let hit_json = serde_json::to_string(&hit).expect("InUseHit json");
     let hit_dbg = format!("{hit:?}");
+    let ours = orphans(&snap, &[token.as_str()]);
+    assert_eq!(ours.len(), 1, "the homemade orphan is present");
     let chains: Vec<OrphanChain> = orphans(&snap, &["jest-worker"]);
+    assert!(
+        !chains.is_empty(),
+        "orphan chains must be non-empty before the privacy check"
+    );
+    let mine = chains
+        .iter()
+        .find(|c| c.root_pid == ours[0].root_pid)
+        .expect("the homemade orphan matches jest-worker");
+    assert!(
+        !mine.descendant_pids.is_empty(),
+        "the homemade orphan chain has its child"
+    );
     let orphan_json = serde_json::to_string(&chains).expect("OrphanChain json");
     let orphan_dbg = format!("{chains:?}");
     for (label, text) in [

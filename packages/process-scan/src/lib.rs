@@ -80,7 +80,8 @@ pub struct InUseHit {
 pub struct OrphanChain {
     pub root_pid: u32,
     pub name: String,
-    pub created_at: String,
+    /// `None` (JSON null) when the creation time could not be read.
+    pub created_at: Option<String>,
     pub matched_pattern: String,
     pub descendant_pids: Vec<u32>,
 }
@@ -101,7 +102,9 @@ pub struct ProcessSummaryEntry {
     pub pid: u32,
     pub parent_pid: u32,
     pub name: String,
-    pub created_at: String,
+    /// `None` (JSON null) when the process could not be opened to read its
+    /// creation time. Never a fabricated placeholder.
+    pub created_at: Option<String>,
 }
 
 #[derive(Debug, Clone, PartialEq, Eq, Serialize, Deserialize)]
@@ -111,12 +114,30 @@ pub struct ProcessIssue {
     pub count: u64,
 }
 
+impl ProcessSummary {
+    /// All descendants of `root_pid` in this summary, sorted ascending.
+    ///
+    /// A process counts as a child of the entry named by its `parent_pid`
+    /// only when its creation time is not earlier than that parent's; a
+    /// parent created after the child is a reused PID. Unknown times cannot
+    /// prove reuse. `created_at` values compare as the canonical RFC 3339
+    /// UTC strings defined by the model.
+    pub fn descendant_pids(&self, root_pid: u32) -> Vec<u32> {
+        let nodes: Vec<(u32, u32, Option<&str>)> = self
+            .processes
+            .iter()
+            .map(|p| (p.pid, p.parent_pid, p.created_at.as_deref()))
+            .collect();
+        descendants_in(root_pid, &child_map(&nodes))
+    }
+}
+
 struct ProcessRecord {
     pid: u32,
     parent_pid: u32,
     name: String,
-    created_at: String,
-    created_filetime: u64,
+    created_at: Option<String>,
+    created_filetime: Option<u64>,
     command_line: String,
 }
 
@@ -186,24 +207,24 @@ pub fn orphans(snapshot: &ProcessSnapshot, patterns: &[&str]) -> Vec<OrphanChain
     }
     let by_pid: HashMap<u32, &ProcessRecord> =
         snapshot.processes.iter().map(|p| (p.pid, p)).collect();
-    let mut children: HashMap<u32, Vec<u32>> = HashMap::new();
-    for process in &snapshot.processes {
-        if process.parent_pid != process.pid {
-            children
-                .entry(process.parent_pid)
-                .or_default()
-                .push(process.pid);
-        }
-    }
+    let nodes: Vec<(u32, u32, Option<u64>)> = snapshot
+        .processes
+        .iter()
+        .map(|p| (p.pid, p.parent_pid, p.created_filetime))
+        .collect();
+    let children = child_map(&nodes);
     let mut out = Vec::new();
     for process in &snapshot.processes {
         if !name_in_list(&process.name, ORPHAN_NAMES) {
             continue;
         }
         let parent_gone = !by_pid.contains_key(&process.parent_pid);
-        let parent_reused = by_pid
-            .get(&process.parent_pid)
-            .is_some_and(|parent| parent_created_later(parent, process));
+        let parent_reused = by_pid.get(&process.parent_pid).is_some_and(|parent| {
+            proven_reused(
+                parent.created_filetime.as_ref(),
+                process.created_filetime.as_ref(),
+            )
+        });
         if !parent_gone && !parent_reused {
             continue;
         }
@@ -215,7 +236,7 @@ pub fn orphans(snapshot: &ProcessSnapshot, patterns: &[&str]) -> Vec<OrphanChain
             name: process.name.clone(),
             created_at: process.created_at.clone(),
             matched_pattern: matched_pattern.to_string(),
-            descendant_pids: descendant_pids(process.pid, &children),
+            descendant_pids: descendants_in(process.pid, &children),
         });
     }
     out
@@ -234,12 +255,14 @@ impl ProcessSnapshot {
                     Some(native_windows::CmdIssue::Exited) => exited += 1,
                     None => {}
                 }
+                let created_at = filetime_rfc3339(row.created_filetime);
+                let created_filetime = created_at.as_ref().map(|_| row.created_filetime);
                 ProcessRecord {
                     pid: row.pid,
                     parent_pid: row.parent_pid,
                     name: row.name,
-                    created_at: filetime_rfc3339(row.created_filetime),
-                    created_filetime: row.created_filetime,
+                    created_at,
+                    created_filetime,
                     command_line: row.command_line,
                 }
             })
@@ -321,10 +344,32 @@ fn name_in_list(name: &str, names: &[&str]) -> bool {
     names.iter().any(|wanted| name.eq_ignore_ascii_case(wanted))
 }
 
-fn parent_created_later(parent: &ProcessRecord, child: &ProcessRecord) -> bool {
-    parent.created_filetime > child.created_filetime
-        && parent.created_filetime != 0
-        && child.created_filetime != 0
+/// PID reuse is proven only when both creation times are known and the
+/// recorded parent was created after the child. Shared by orphan roots and
+/// descendant edges.
+fn proven_reused<T: Ord>(parent_created: Option<&T>, child_created: Option<&T>) -> bool {
+    matches!((parent_created, child_created), (Some(parent), Some(child)) if parent > child)
+}
+
+fn child_map<T: Ord>(nodes: &[(u32, u32, Option<T>)]) -> HashMap<u32, Vec<u32>> {
+    let created: HashMap<u32, Option<&T>> = nodes
+        .iter()
+        .map(|(pid, _, created)| (*pid, created.as_ref()))
+        .collect();
+    let mut children: HashMap<u32, Vec<u32>> = HashMap::new();
+    for (pid, parent_pid, child_created) in nodes {
+        if parent_pid == pid {
+            continue;
+        }
+        let Some(parent_created) = created.get(parent_pid) else {
+            continue;
+        };
+        if proven_reused(*parent_created, child_created.as_ref()) {
+            continue;
+        }
+        children.entry(*parent_pid).or_default().push(*pid);
+    }
+    children
 }
 
 fn matched_pattern<'a>(command_line: &str, patterns: &[&'a str]) -> Option<&'a str> {
@@ -335,7 +380,7 @@ fn matched_pattern<'a>(command_line: &str, patterns: &[&'a str]) -> Option<&'a s
         .find(|pattern| haystack.contains(&pattern.to_ascii_lowercase()))
 }
 
-fn descendant_pids(root: u32, children: &HashMap<u32, Vec<u32>>) -> Vec<u32> {
+fn descendants_in(root: u32, children: &HashMap<u32, Vec<u32>>) -> Vec<u32> {
     let mut out = Vec::new();
     let mut seen = HashSet::from([root]);
     let mut stack = children.get(&root).cloned().unwrap_or_default();
@@ -365,16 +410,17 @@ fn command_references_path(command_line: &str, path_norm: &str) -> bool {
     let mut from = 0;
     while let Some(rel) = haystack[from..].find(path_norm) {
         let abs = from + rel;
-        let prev = if abs == 0 {
-            None
-        } else {
-            haystack[..abs].chars().next_back()
-        };
+        let prev = haystack[..abs].chars().next_back();
         let next = haystack[abs + path_norm.len()..].chars().next();
         if prev_boundary_ok(prev) && next_boundary_ok(next) {
             return true;
         }
-        from = abs + 1;
+        // Advance by the full UTF-8 width of the matched first character so the
+        // next slice always starts on a char boundary.
+        let Some(first) = haystack[abs..].chars().next() else {
+            break;
+        };
+        from = abs + first.len_utf8();
         if from >= haystack.len() {
             break;
         }
@@ -397,14 +443,16 @@ fn now_unix_secs() -> u64 {
         .unwrap_or(0)
 }
 
-fn filetime_rfc3339(filetime: u64) -> String {
+/// `None` when the FILETIME is zero (unreadable) or earlier than 1970; no
+/// placeholder time is ever produced.
+fn filetime_rfc3339(filetime: u64) -> Option<String> {
     const TICKS_PER_SEC: u64 = 10_000_000;
     const SECS_1601_TO_1970: u64 = 11_644_473_600;
     let secs = filetime / TICKS_PER_SEC;
-    if secs < SECS_1601_TO_1970 {
-        return "1601-01-01T00:00:00Z".to_string();
+    if filetime == 0 || secs < SECS_1601_TO_1970 {
+        return None;
     }
-    unix_rfc3339(secs - SECS_1601_TO_1970)
+    Some(unix_rfc3339(secs - SECS_1601_TO_1970))
 }
 
 fn unix_rfc3339(unix_secs: u64) -> String {

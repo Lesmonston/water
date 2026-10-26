@@ -12,6 +12,11 @@ Public entry points are `snapshot`, `ProcessSnapshot::{summary, running,
 references_path}`, `summary_to_json`, `in_use`, `orphans`, and
 `DEFAULT_ORPHAN_PATTERNS`. FFI lives only in `src/native_windows.rs`.
 
+An unknown process creation time is `created_at: null` (never 1601). A
+child counts as a descendant only when it was not created before its parent;
+when either time is unknown, PID reuse is treated as not proven. The same rule
+backs `orphans` and `ProcessSummary::descendant_pids`.
+
 Windows x64 only for a live snapshot; other targets return `ProcError::Unsupported`.
 macOS is unverified.
 
