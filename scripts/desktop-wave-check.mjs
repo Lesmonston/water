@@ -33,7 +33,8 @@ if (mode === 'native') assert(finalGate && task.kind === 'host', 'Native runs on
 
 const hash = b => createHash('sha256').update(b).digest('hex'), json = p => JSON.parse(readFileSync(p));
 const env = {...process.env, GIT_OPTIONAL_LOCKS: '0', RUSTUP_AUTO_INSTALL: '0'};
-for (const k of Object.keys(env)) if (/^(?:CARGO_|RUST|NODE_OPTIONS$|NODE_PATH$|WATER_|WEBVIEW2_)/i.test(k) && k !== 'RUSTUP_AUTO_INSTALL') delete env[k];
+// TAURI_* is cleared too: tauri-build merges TAURI_CONFIG into the compiled configuration.
+for (const k of Object.keys(env)) if (/^(?:CARGO_|RUST|NODE_OPTIONS$|NODE_PATH$|WATER_|WEBVIEW2_|TAURI_)/i.test(k) && k !== 'RUSTUP_AUTO_INSTALL') delete env[k];
 function local(p) { const d = join(root, p); const rel = relative(root, d); assert(!rel.startsWith('..') && !isAbsolute(rel)); mkdirSync(d, {recursive: true}); assert(lstatSync(d).isDirectory() && !lstatSync(d).isSymbolicLink()); return d; }
 const stamp = new Date().toISOString().replaceAll(':', '-') + '-' + process.pid, out = local('.local/checks/' + id);
 const record = {task: id, kind: task.kind, mode, finalGate, manifest: relative(controller, manifestPath).split(sep).join('/'), startedAt: new Date().toISOString(), realDataRead: false, productTestsRun: false, nativeWindows: 0, directoryDialogs: 0, commands: []}; let seq = 0;
@@ -116,6 +117,8 @@ function sourcePolicy() {
     const t = readFileSync(f, 'utf8'), code = t.replace(/\/\/.*$/gm, ''), rel = relative(root, f);
     if (!native || resolve(f) !== resolve(native)) { if (f !== join(src, 'lib.rs')) assert(!/\bunsafe\b/.test(code), 'unsafe outside native module: ' + rel); else assert(!/\bunsafe\s*(\{|fn|impl|extern)/.test(code), 'unsafe code in lib.rs'); }
     assert(!/remove_dir_all/.test(t), 'remove_dir_all is not allowed: ' + rel);
+    // Tauri panics on a setup error instead of returning it; wired hosts start up without setup.
+    if (task.forbidSetup) assert(!/\.setup\s*\(/.test(code), 'Tauri setup is not allowed: ' + rel);
     assert(!/std::process::Command|Command::new/.test(t), 'Production code must not spawn processes: ' + rel);
     assert(!/std::net|TcpStream|UdpSocket|reqwest|ureq/.test(t), 'No networking: ' + rel);
     assert(!/\bvars(?:_os)?\s*\(/.test(code), 'Environment enumeration not allowed: ' + rel);
@@ -159,31 +162,49 @@ function archive() {
   prior.updatedAt = new Date().toISOString(); prior.files = prior.entries.length; prior.bytes = prior.entries.reduce((n, e) => n + e.bytes, 0); writeFileSync(index, JSON.stringify(prior, null, 2) + '\n');
   const ga = join(root, task.evidenceDir, '.gitattributes'); if (!existsSync(ga)) writeFileSync(ga, '* -text\n.gitattributes text eol=lf\n'); record.archived = {files: prior.files, bytes: prior.bytes};
 }
+// One owned window per task. Hosts with nativeSteps (wired, F3) are driven through the steps by the
+// wired observer and may read real data through the app; afterwards the service store is checked.
 async function native(rust) {
+  const wired = Array.isArray(task.nativeSteps) && task.nativeSteps.length > 0, maxSeconds = task.nativeMaximumSeconds ?? 60;
   const reservation = join(out, 'native-window-reservation.json'); assert(!existsSync(reservation), 'The one native window for this task is already spent');
-  writeFileSync(reservation, JSON.stringify({stamp, windows: 1, directoryDialogs: 0, maximumSeconds: 60}) + '\n', {flag: 'wx'});
+  writeFileSync(reservation, JSON.stringify({stamp, windows: 1, directoryDialogs: 0, maximumSeconds: maxSeconds}) + '\n', {flag: 'wx'});
   command(rust.cargo, cargoArgs(['build', '--offline', '--locked', ...rust.manifestArgs, '--bin', task.binName]), {timeout: cargoTimeout});
   const exe = join(rust.target, 'debug', task.binName + '.exe'); assert(existsSync(exe), 'Built executable missing');
-  const dataDir = local('.local/w3-f2-native/' + stamp), evidence = join(out, stamp + '-uia.json'), shot = join(out, stamp + '-window.png');
+  const dataDir = local((task.nativeDataPrefix ?? '.local/w3-f2-native/') + stamp), evidence = join(out, stamp + '-uia.json'), shot = join(out, stamp + '-window.png');
+  const steps = join(out, stamp + '-steps.json'); if (wired) writeFileSync(steps, JSON.stringify(task.nativeSteps, null, 2) + '\n', {flag: 'wx'});
   const started = Date.now(), child = spawn(exe, [], {cwd: root, env: {...env, WATER_DATA_DIR: dataDir}, windowsHide: false, stdio: ['ignore', 'pipe', 'pipe']});
-  record.nativeWindows = 1; record.nativePid = child.pid; let stdout = '', stderr = ''; child.stdout.on('data', b => stdout += b); child.stderr.on('data', b => stderr += b);
+  record.nativeWindows = 1; record.nativePid = child.pid; if (task.nativeRealData) record.realDataRead = true;
+  let stdout = '', stderr = ''; child.stdout.on('data', b => stdout += b); child.stderr.on('data', b => stderr += b);
   const ended = new Promise(ok => child.once('close', (code, signal) => ok({code, signal})));
   try {
-    const r = command('powershell.exe', ['-NoProfile', '-NonInteractive', '-File', join(controller, 'scripts/acceptance/w3-host-native-observe.ps1'), '-TestProcessId', String(child.pid), '-EvidencePath', evidence, '-ScreenshotPath', shot, '-ExpectedExe', exe, '-DataDir', dataDir, '-EvidenceRoot', out, '-Title', task.windowTitle], {timeout: 90000, expected: null});
+    const args = wired
+      ? ['-NoProfile', '-NonInteractive', '-File', join(controller, task.nativeObserver), '-TestProcessId', String(child.pid), '-EvidencePath', evidence, '-ShotPrefix', join(out, stamp), '-StepsPath', steps, '-ExpectedExe', exe, '-DataDir', dataDir, '-EvidenceRoot', out, '-Title', task.windowTitle, '-MaximumSeconds', String(maxSeconds)]
+      : ['-NoProfile', '-NonInteractive', '-File', join(controller, 'scripts/acceptance/w3-host-native-observe.ps1'), '-TestProcessId', String(child.pid), '-EvidencePath', evidence, '-ScreenshotPath', shot, '-ExpectedExe', exe, '-DataDir', dataDir, '-EvidenceRoot', out, '-Title', task.windowTitle];
+    const r = command('powershell.exe', args, {timeout: wired ? (maxSeconds + 60) * 1000 : 90000, expected: null});
     if (existsSync(evidence)) record.native = json(evidence);
-    let timer; try { record.nativeExit = await Promise.race([ended, new Promise((_, bad) => { timer = setTimeout(() => bad(Error('Owned desktop exit timeout')), 10000); })]); } finally { clearTimeout(timer); }
+    let timer; try { record.nativeExit = await Promise.race([ended, new Promise((_, bad) => { timer = setTimeout(() => bad(Error('Owned desktop exit timeout')), 20000); })]); } finally { clearTimeout(timer); }
     record.nativeWallMs = Date.now() - started;
     assert.equal(r.status, 0, 'Native observer failed; evidence retained');
-    assert.deepEqual(record.nativeExit, {code: 0, signal: null}); assert(record.nativeWallMs <= 120000);
+    assert.deepEqual(record.nativeExit, {code: 0, signal: null}); assert(record.nativeWallMs <= (wired ? (maxSeconds + 90) * 1000 : 120000));
     assert.equal(record.native.systemWindows, 1); assert.equal(record.native.pageAccepted, true); assert.equal(record.native.exitCode, 0);
     assert.equal(record.native.backdropType, 2, 'Mica system backdrop not observed');
-    assert(record.native.screenshot && existsSync(shot), 'Own window image missing'); record.screenshotSha256 = hash(readFileSync(shot));
+    if (wired) {
+      assert.equal(record.native.steps.length, task.nativeSteps.length, 'Not every native step ran'); assert(record.native.steps.every(s => s.passed), 'A native step failed');
+      assert.deepEqual(record.native.screenshots.map(s => s.name), task.nativeSteps.filter(s => s.shot).map(s => s.shot), 'Native screenshots differ from the steps');
+      record.screenshots = record.native.screenshots.map(s => { assert.equal(s.file, stamp + '-' + s.name + '.png'); const f = join(out, s.file); assert(existsSync(f), 'Screenshot missing ' + s.name); return {name: s.name, file: s.file, sha256: hash(readFileSync(f))}; });
+    } else { assert(record.native.screenshot && existsSync(shot), 'Own window image missing'); record.screenshotSha256 = hash(readFileSync(shot)); }
     assert.equal(record.native.privateWebviewObserved, true, 'Private WebView data directory not observed');
     assert(existsSync(join(dataDir, 'webview')), 'WebView data directory not under WATER_DATA_DIR');
     const ids = record.native.children.map(p => p.processId); assert(ids.length > 0 && ids.every(n => Number.isInteger(n) && n > 0));
     const filter = ids.map(n => 'ProcessId=' + n).join(' OR ');
     const ps = '$ErrorActionPreference="Stop"; $e=[DateTime]::UtcNow.AddSeconds(5); do { $r=@(Get-CimInstance Win32_Process -Filter "' + filter + '"); if($r.Count -eq 0){break}; Start-Sleep -Milliseconds 100 } while([DateTime]::UtcNow -lt $e); [ordered]@{remaining=@($r | Select-Object ProcessId,Name)} | ConvertTo-Json -Depth 4 -Compress';
     record.childClose = JSON.parse(command('powershell.exe', ['-NoProfile', '-NonInteractive', '-Command', ps], {timeout: 20000}).stdout.trim()); assert.equal(record.childClose.remaining.length, 0, 'WebView child processes still running');
+    if (task.nativeStore) {
+      // The read-only checkup leaves exactly its scan record and snapshot: no plan, clean record or journal.
+      const top = readdirSync(dataDir).sort(); for (const n of top) assert(task.nativeStore.allowedTop.includes(n), 'Unexpected entry in the data directory: ' + n);
+      record.nativeStore = {top, counts: {}};
+      for (const [dir, n] of Object.entries(task.nativeStore.counts)) { const d = join(dataDir, dir), count = existsSync(d) ? readdirSync(d).length : 0; record.nativeStore.counts[dir] = count; assert.equal(count, n, 'Service store ' + dir + ' holds ' + count + ' entries, expected ' + n); }
+    }
   } finally {
     if (child.exitCode === null) record.ownedTerminationRequested = child.kill();
     writeFileSync(join(out, stamp + '-native-process.json'), JSON.stringify({pid: child.pid, stdout, stderr, exit: record.nativeExit ?? null, terminationRequested: record.ownedTerminationRequested ?? false}) + '\n', {flag: 'wx'});
@@ -195,7 +216,8 @@ try {
   audit(); record.before = state(); if (finalGate) assert.equal(record.before.status, '', 'Final gates need a clean committed tree');
   if (mode === 'baseline') {
     assert.deepEqual(record.before, {head: task.baseCommit, status: ''}, 'Baseline runs on the untouched base commit');
-    assert(!existsSync(join(root, task.outputRoot)), 'Output root must not exist yet');
+    if (task.outputRootExists) assert(existsSync(join(root, task.outputRoot, 'Cargo.lock')), 'Verified output root missing');
+    else assert(!existsSync(join(root, task.outputRoot)), 'Output root must not exist yet');
     for (const f of task.mustRead) assert(existsSync(join(root, f)), 'Missing required reading ' + f);
     const rust = rustEnv(); const cacheRoot = join(rust.home, 'registry', 'cache'); const cache = new Set(readdirSync(cacheRoot).flatMap(d => readdirSync(join(cacheRoot, d))));
     // The AC lock also lists other-platform crates that a Windows build never fetches; the offline build in lock/check is the full proof.
@@ -203,8 +225,8 @@ try {
     const needed = host ? ['tauri-2.12.5', 'tauri-build-2.7.4', 'tauri-runtime-wry', 'wry', 'webview2-com', 'window-vibrancy-0.8.1', 'serde-1.0.229', 'serde_json-1.0.151'].map(k => reference.find(c => c.startsWith(k + (k.match(/-\d/) ? '' : '-')))) : Object.entries(ALLOWED_REGISTRY).map(([n, v]) => n + '-' + v + '.crate');
     for (const c of needed) assert(c && cache.has(c), 'Offline cache lacks ' + c);
     record.offlineCache = {required: needed.length, referencePresent: reference.filter(c => cache.has(c)).length, referenceTotal: reference.length};
-    if (host) { assert(existsSync(join(root, 'apps/water/ui/index.html')), 'Verified UI missing'); record.nativeHelper = existsSync(join(controller, 'scripts/acceptance/w3-host-native-observe.ps1')); }
-    record.meaning = 'Environment and inputs only; no product exists yet';
+    if (host) { assert(existsSync(join(root, 'apps/water/ui/index.html')), 'Verified UI missing'); record.nativeHelper = existsSync(join(controller, task.nativeObserver ?? "scripts/acceptance/w3-host-native-observe.ps1")); }
+    record.meaning = task.outputRootExists ? 'Environment and verified inputs only; no change made yet' : 'Environment and inputs only; no product exists yet';
   } else if (mode === 'archive') { archive(); }
   else {
     const rust = rustEnv();

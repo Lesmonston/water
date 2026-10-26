@@ -8,10 +8,31 @@
 |---|---|---|---|---|---|---|
 | WATER-W3-F1 服务核心 | 把 A–D 接成 IPC v1 的 17 个命令：扫描、视图、趋势、记录、位置、清理计划与执行、本地存储 | `packages/water-service` | [SERVICE](../../../contracts/desktop-v1/SERVICE.md) | **重，3 条负控**（它驱动删除） | 0 | 只读：经服务完成一次本机整机扫描，清理保持关闭 |
 | WATER-W3-F2 桌面宿主 | Tauri 窗口、Mica、安全边界、17 个命令转发、数据目录、文件夹选择框接线点 | `apps/water/host` | [HOST](../../../contracts/desktop-v1/HOST.md) | 轻，2 条负控 + 1 次原生窗口 | 1 | 无 |
-| WATER-W3-F3 接线与整机验收 | 宿主接上服务核心与选择框；本机整机体检 | `apps/water/host` 的 main 与新测试 | F1、F2 验收后再冻结 | — | — | 只读 |
+| WATER-W3-F3 接线与整机体检 | 宿主接上服务核心与选择框；修掉移交的启动问题；单实例；本机整机体检 | `apps/water/host` | [WIRING](../../../contracts/desktop-v1/WIRING.md) | 轻，3 条负控 + 1 次整机窗口检查 | 1 | 只读：窗口检查里经界面完成一次整机扫描，清理保持关闭 |
 
 - F1 与 F2 **可以同时做**。两者只在 JSON 层对接：宿主的 `Backend::call(command, args)` 与服务的 `Service::call(command, args)` 形状相同。F1 不依赖 Tauri，F2 本票用“服务未接入”占位后端。
 - F3 在 F1、F2 都验收后才出。它只写十几行接线（宿主用服务核心实现 `Backend`，用宿主的选择框实现服务的 `FolderPicker`），然后做整机验收。整机验收的窗口预算到时另定。
+
+## F3：接线与整机体检（2026-10-26 晚，F1、F2 验收后冻结）
+
+- **接线**：宿主用 `ServiceBackend` 包住服务核心作为 `Backend`，用 `HostPicker` 包住 F2 的 `pick_folder` 作为服务的 `FolderPicker`。`CLEAN_ENABLED` 固定为 false。
+- **启动顺序重写**（F2 移交第 1 条）：Tauri 在 `setup` 里出错会 panic，所以不再用 `setup`。新顺序是 Builder 建好之后，依次准备数据目录、单实例锁、构造服务、建窗口，最后 `run`。每一步失败都打印固定中文并以 1 退出。
+- **单实例**（移交第 5 条）：在数据目录独占打开 `water.lock`，用标准库即可，不需要 FFI。
+- **命令外壳**（移交第 4 条）：测试按源码核对 17 个 Tauri 命令的参数名与注册表。整机检查再从真实界面走一遍其中 8 个：
+  - 首页：`app_state`；
+  - 体检：`scan_start`、`scan_progress`、`scan_result`；
+  - 清理所选：`clean_prepare`；
+  - 三个页面：`trends`、`history_list`、`locations_get`。
+- **构建环境**（移交第 2 条）：检查器构建时清掉 `TAURI_*` 变量。
+- **整机窗口检查**：新观察器 `scripts/acceptance/w3-wired-native-observe.ps1` 按 manifest 里的步骤，用 UI 自动化的 Invoke 驱动界面，不合成鼠标或键盘。步骤是：首页、真实整机体检、“清理所选”得到“这一版只做体检…”、增长趋势、清理记录、扫描位置，共 6 张截图。
+  - 关窗后核对数据目录：只有 1 条扫描记录与快照，没有任何计划、清理记录或日志。
+  - 窗口预算：F3 整票 1 次；总控验收树另 1 次。每次都包含一次真实只读扫描。
+- **留到以后**（M1 已知限制，见 WIRING 第 7 节）：
+  - 默认数据目录在联接后面时拒绝启动（移交第 3 条，与服务存储一致）；
+  - 占用提示显示进程名；
+  - release 构建启动失败时用户看不到提示；
+  - WebView2 自身的环境变量覆盖（移交第 6 条）。
+- **M1**：F3 验收（含总控验收树的整机检查）通过后，可以请用户亲手试用，然后宣布 M1 体检 Alpha。
 
 ## 本波的两个产品决定
 

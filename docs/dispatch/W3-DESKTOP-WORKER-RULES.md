@@ -62,3 +62,14 @@ baseline 只证明环境与输入就绪，不代表产品存在。失败就停�
    - 没做或没验证的事。
 
 禁止：push、merge、rebase、`git add -A`、`git clean`、`git reset --hard`、`git stash`、改主线台账、提交别人的文件。交回后停止一切测试与后台进程。
+
+## 6. F3 补充（2026-10-26，WATER-W3-F3 接线与整机体检）
+
+F3 在已验收的宿主 `apps/water/host` 上修改，SPEC 为 `contracts/desktop-v1/WIRING.md`。上面各节对 F2 的规定同样适用于 F3，另有以下几处不同：
+
+- **基线**：`baseline` 要求 `apps/water/host` 已存在，并且停在基点未改。
+- **锁**：改完 `Cargo.toml` 后跑一次 `--mode lock`。锁文件已存在，Cargo 只补上新增的路径包与依赖关系，registry 包仍逐个与 AC 锁核对。
+- **源码**：宿主源码里不得出现 `.setup(`，检查器会拒绝。
+- **真实数据**：F3 唯一的真实读取是 `native --final` 里经 Water 界面完成的那一次整机只读扫描，清理保持关闭。测试本身不读真实位置。
+- **原生窗口**：整票 1 次，只在 `native --final`。它会跑一次真实扫描并依次截 6 张图，可能要几分钟，不要中途打断；失败不重跑，写受阻回执。选择框 0 次。
+- **回执**：写 F3 整机检查的结果，逐张截图写看到了什么。
