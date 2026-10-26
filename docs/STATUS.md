@@ -29,6 +29,8 @@ A–AB及八补单、AD保持VERIFIED；AC/补单06新增VERIFIED（Windows静�
 
 **派出（2026-10-26 14:05 JST 用户告知）**：A、B 交 Cursor，C 交 Grok，D、E 交 Astra（E 为界面票）。当时 B 已提交实现 35c94d2，D 已开始写产品文件，E 已自跑 baseline；A、C 树里尚无动静。具体模型以执行者回执自报为准，记录在 [manifest](dispatch/wave2/manifest.json)。
 
+**E 受阻与补单 01（14:07 JST）**：E 在实现前交回冲突：UI SPEC 要求截图写进 `docs/`，而 final 要求树干净，两者不能同时满足。这是总控设计漏洞，已在自测树复现。检查入口改为截图先写 `.local`，再由 archive 按哈希归档，并规定 12 张必备截图；已自测正反路径。[补单 01](dispatch/tickets/WATER-W2-E-ADDENDUM-01-20261026.md) 让 E 从 `e06d24a` 续做，贴回原 E 对话。E 自报引擎为 Codex GPT-6（通过 Astra）。
+
 ## 真实AA→AD联合验收通过（2026-10-26）
 
 新总控（Claude）接任后按事先冻结的[计划](acceptance/wave1/controller/WATER-W1-AAAD-JOINT-PLAN-20261026.md)执行一次：真实固定AA宿主→原生目录选择→R/Z→AB传输→AD同源报告页，四场景全部通过，4窗/9.993秒/无重试/手动终止0。报告页鼠标下载的Q与Z与当次原字符串逐字节一致，淘汰与正常关闭通过。见[联合验收报告](acceptance/wave1/controller/WATER-W1-AAAD-JOINT-REVIEW-20261026.md)。31任务/槽位不变，没有新READY票；桌面接入扫描、真实用户scope、自然同意鉴真、生产竞态、macOS与M1仍未验收。用户同日要求先暂停安排后续任务，结合本机清理经验重订计划；总控草案见[计划重订（待拍板）](REPLAN-20261026-AGENT-ERA-CHECKUP.md)，拍板前不出新票。

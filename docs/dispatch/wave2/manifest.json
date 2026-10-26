@@ -1,7 +1,7 @@
 {
   "schemaVersion": 1,
   "wave": "water-wave2-checkup",
-  "status": "A_E_DISPATCHED",
+  "status": "A_E_DISPATCHED_E_BLOCKED",
   "controller": "Claude",
   "controllerRoot": "F:/new/smaltalk/water",
   "controllerBranch": "main",
@@ -393,7 +393,7 @@
     {
       "id": "WATER-W2-E",
       "title": "桌面界面（白色磨砂玻璃）",
-      "status": "RUNNING",
+      "status": "BLOCKED",
       "slot": "w2-e",
       "kind": "ui",
       "gate": "light",
@@ -461,6 +461,21 @@
       "tokensSource": "docs/design/water-ui-v1/tokens.css",
       "fixtures": "contracts/checkup-v1/ui-fixtures.json",
       "browserHelper": "scripts/acceptance/native-vw-private-browser.mjs",
+      "screenshotDirEnv": "WATER_W2_SHOTS_DIR",
+      "requiredScreenshots": [
+        "home-1240x820.png",
+        "scan-1240x820.png",
+        "results-1240x820.png",
+        "results-1040x720.png",
+        "detail-1240x820.png",
+        "confirm-1240x820.png",
+        "cleaning-1240x820.png",
+        "done-1240x820.png",
+        "trends-1240x820.png",
+        "history-1240x820.png",
+        "locations-1240x820.png",
+        "about-1240x820.png"
+      ],
       "frozenFiles": [
         {
           "path": "contracts/checkup-v1/UI.md",
@@ -498,12 +513,27 @@
       "dispatchEvidence": "user chat 2026-10-26: all five tickets pasted; exact paste time unknown",
       "startedAt": "2026-10-26T05:03:29Z",
       "startEvidence": "worker baseline receipt 2026-10-26T05-03-29.899Z in docs/acceptance/wave2/e/receipts",
-      "model": "Astra (user-reported executor; exact model unverified until worker report)",
+      "model": "Astra (user-reported executor); worker self-report: Codex GPT-6, exact subversion unverified",
       "modelAssignment": "user-arranged; report actual engine/model",
       "macOS": "unverified",
       "baselineStatus": "PASSED",
       "baselineEvidence": "docs/acceptance/wave2/controller/preflight-20261026/WATER-W2-E-2026-10-26T04-48-29.296Z-17876-baseline-result.json",
-      "readyOn": "2026-10-26"
+      "readyOn": "2026-10-26",
+      "blockedAt": "2026-10-26T05:07:16Z",
+      "blockedCommit": "e06d24a94a4216d6ee53f4cae27cc0d19d9f773b",
+      "blockedReason": "UI.md section 4 wrote screenshots into docs/ while --final requires a clean tree before and after; controller design gap, reproduced in w2-selftest-ui",
+      "addenda": [
+        {
+          "id": "WATER-W2-E-ADDENDUM-01",
+          "ticket": "docs/dispatch/tickets/WATER-W2-E-ADDENDUM-01-20261026.md",
+          "status": "READY",
+          "issuedAt": "2026-10-26T05:27:25Z",
+          "resumeFromCommit": "e06d24a94a4216d6ee53f4cae27cc0d19d9f773b",
+          "change": "screenshots go to WATER_W2_SHOTS_DIR under .local/checks; archive copies passed browser runs into docs/acceptance/wave2/e/screenshots/<stamp>/ with hash check; 12 required names",
+          "gateSha256": "ad0ac67c9ed696715d037408d5b14f7a24bba2039b5fef04fc64a49bfeff2378",
+          "dispatchedAt": null
+        }
+      ]
     }
   ],
   "preflightStatus": "PASSED",

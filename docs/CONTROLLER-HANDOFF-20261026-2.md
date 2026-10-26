@@ -8,6 +8,8 @@
 
 **交接后补记（14:05 JST）**：用户已把五票全部派出。A、B 由 Cursor 执行，C 由 Grok 执行，D、E 由 Astra 执行。当时 B 已提交实现 `35c94d2`，D 已开写，E 已自跑 baseline，A、C 尚无动静。详情见 manifest 的 `model`、`startedAt`、`startEvidence` 字段。
 
+**E 受阻（14:07 JST）**：截图位置与 final 干净要求冲突，属总控设计漏洞。处理办法：检查入口改为截图写 `WATER_W2_SHOTS_DIR`（`.local/checks` 下），archive 按回执哈希复制进证据目录；manifest 给 E 加了 `requiredScreenshots` 共 12 张。已出[补单 01](dispatch/tickets/WATER-W2-E-ADDENDUM-01-20261026.md)，E 从 `e06d24a` 续做。验收 E 时看 `docs/acceptance/wave2/e/screenshots/<stamp>/`。
+
 ## 1. 仓库与关键提交
 
 主线 `main`，没有远程仓库（立项书约定只保留本地 Git）。交接时 HEAD 为 `81abd4d5382a2cf74c304757daa505d0e874b1f5`，工作区干净；本报告随后单独提交。

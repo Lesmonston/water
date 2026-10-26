@@ -1,7 +1,8 @@
 // Controller-owned gate for wave 2 (device junk checkup). Not an OS sandbox.
 // Usage from the task worktree root:
 //   node F:/new/smaltalk/water/scripts/checkup-wave-check.mjs --task WATER-W2-A --mode <mode> [--final]
-// Modes: baseline | lock | check | test | real | red-nc1 | red-nc2 | red-nc3 | archive
+// Modes: baseline | lock | check | test | browser | real | red-nc1 | red-nc2 | red-nc3 | archive
+// UI browser runs write screenshots to WATER_W2_SHOTS_DIR under .local/checks; archive copies them into the evidence dir.
 import assert from 'node:assert/strict';
 import {spawnSync} from 'node:child_process';
 import {createHash} from 'node:crypto';
@@ -104,6 +105,11 @@ function realEnvFolders(){
 function archive(){
   const dest=local(task.evidenceDir+'receipts'),index=join(root,task.evidenceDir,'ARCHIVE.json');const prior=existsSync(index)?json(index):{archive_version:'water.worker-archive.v1',entries:[]};const known=new Set(prior.entries.map(e=>e.archive));
   for(const n of readdirSync(out).sort()){const from=join(out,n),to=join(dest,n),rel=relative(root,to).split(sep).join('/');if(known.has(rel))continue;if(lstatSync(from).isDirectory())continue;copyFileSync(from,to);const b=readFileSync(to);assert.equal(hash(b),hash(readFileSync(from)));prior.entries.push({source:relative(root,from).split(sep).join('/'),archive:rel,bytes:b.length,sha256:hash(b)});}
+  for(const n of readdirSync(out).sort().filter(n=>n.endsWith(SHOTS_SUFFIX))){
+    const s=n.slice(0,-SHOTS_SUFFIX.length),rp=join(out,s+'-browser-result.json');if(!existsSync(rp))continue;const r=json(rp);if(r.status!=='passed'||!r.screenshots)continue;
+    const to=local(task.evidenceDir+'screenshots/'+s);
+    for(const f of r.screenshots.files){const from=join(out,n,f.name),a=join(to,f.name),rel=relative(root,a).split(sep).join('/');if(known.has(rel))continue;const b=readFileSync(from);assert.equal(hash(b),f.sha256,'Screenshot changed after its browser gate: '+n+'/'+f.name);writeFileSync(a,b,{flag:'wx'});prior.entries.push({source:relative(root,from).split(sep).join('/'),archive:rel,bytes:b.length,sha256:f.sha256});}
+  }
   prior.updatedAt=new Date().toISOString();prior.files=prior.entries.length;prior.bytes=prior.entries.reduce((n,e)=>n+e.bytes,0);writeFileSync(index,JSON.stringify(prior,null,2)+'\n');
   const ga=join(root,task.evidenceDir,'.gitattributes');if(!existsSync(ga))writeFileSync(ga,'* -text\n.gitattributes text eol=lf\n');record.archived={files:prior.files,bytes:prior.bytes};
 }
@@ -125,6 +131,14 @@ function uiPolicy(){
   record.uiFiles=all.length;
 }
 function exactNodeTests(text,names,passed){const found=[...text.matchAll(/^# Subtest: (.+?)\r?$/gm)].map(m=>m[1]);assert.deepEqual(found.sort(),[...names].sort(),'Top-level test names must match exactly');for(const k of['skipped','todo','cancelled'])assert(new RegExp('^# '+k+' 0\\r?$','m').test(text),'No '+k+' tests');if(passed){assert(new RegExp('^# pass '+names.length+'\\r?$','m').test(text),'All tests must pass');assert(/^# fail 0\r?$/m.test(text),'No failures');}}
+const SHOTS_SUFFIX='-browser-shots',PNG_MAGIC=Buffer.from([0x89,0x50,0x4e,0x47,0x0d,0x0a,0x1a,0x0a]);
+function screenshotPolicy(d){
+  const files=[];
+  for(const n of readdirSync(d).sort()){const p=join(d,n),s=lstatSync(p);assert(s.isFile()&&!s.isSymbolicLink(),'Screenshots must be plain files: '+n);assert(/^[a-z0-9][a-z0-9_-]*\.png$/.test(n),'Screenshot names are lowercase [a-z0-9_-] .png: '+n);const b=readFileSync(p);assert(b.length>8&&b.subarray(0,8).equals(PNG_MAGIC),'Not a PNG: '+n);files.push({name:n,bytes:b.length,sha256:hash(b)});}
+  for(const n of task.requiredScreenshots??[])assert(files.some(f=>f.name===n),'Missing screenshot '+n);
+  assert(files.length>0,'Browser tests must save screenshots to WATER_W2_SHOTS_DIR');
+  return{dir:relative(root,d).split(sep).join('/'),files};
+}
 function uiGate(){
   record.sourceState=capture();uiPolicy();
   if(mode==='check'){for(const p of walkFiles(join(root,task.outputRoot)).filter(p=>p.endsWith('.mjs')))command(process.execPath,['--check',relative(root,p)]);return;}
@@ -133,8 +147,9 @@ function uiGate(){
   if(red){assert(!finalGate);assert(task.proofTargets?.[mode.slice(4)],'No such negative control');const changed=git(['diff','--name-only','HEAD','--',task.outputRoot]).split('\n').filter(Boolean);assert(changed.length,'A negative control needs an uncommitted production change');assert(!changed.some(p=>p.startsWith(task.outputRoot+'/tests/')),'Negative controls must not edit tests');}
   if(finalGate&&mode==='test')proofAudit(record.sourceState);
   const browser=mode==='browser',files=browser?task.browserTestFiles:task.unitTestFiles,names=browser?task.expectedBrowserTests:task.expectedTests;
-  const r=command(process.execPath,['--test','--test-concurrency=1','--test-reporter=tap',...files],{expected:red?1:0,timeout:browser?900000:300000});
-  exactNodeTests(r.text,names,!red);record.productTestsRun=true;if(browser)record.browserUsed=true;
+  const shots=browser?local('.local/checks/'+id+'/'+stamp+SHOTS_SUFFIX):null;
+  const r=command(process.execPath,['--test','--test-concurrency=1','--test-reporter=tap',...files],{expected:red?1:0,timeout:browser?900000:300000,extraEnv:shots?{WATER_W2_SHOTS_DIR:shots}:{}});
+  exactNodeTests(r.text,names,!red);record.productTestsRun=true;if(browser){record.browserUsed=true;record.screenshots=screenshotPolicy(shots);}
   if(red){assert(!/SyntaxError|ERR_MODULE_NOT_FOUND|CDP timeout|timed out/i.test(r.text),'Syntax, module or timeout failures are not proof');const target=task.proofTargets[mode.slice(4)];assert(r.text.includes(target),'Missing failure token '+target);record.observedExpectedFailure=true;record.expectation={target};}
 }
 
