@@ -1,0 +1,57 @@
+{"binary":"C:\\Program Files\\nodejs\\node.exe","args":["--test","--test-concurrency=1","--test-reporter=tap","apps/water/ui/tests/browser.test.mjs"],"exitCode":1,"error":null}
+--- stdout ---
+TAP version 13
+# Subtest: ui_home_and_scan
+ok 1 - ui_home_and_scan
+  ---
+  duration_ms: 11358.4879
+  type: 'test'
+  ...
+# Subtest: ui_results_detail_confirm
+ok 2 - ui_results_detail_confirm
+  ---
+  duration_ms: 3198.3838
+  type: 'test'
+  ...
+# Subtest: ui_clean_done_and_pages
+ok 3 - ui_clean_done_and_pages
+  ---
+  duration_ms: 13406.6308
+  type: 'test'
+  ...
+# Subtest: ui_layout_states_a11y
+ok 4 - ui_layout_states_a11y
+  ---
+  duration_ms: 14336.2681
+  type: 'test'
+  ...
+# Polish wrap measurements: [{"width":1240,"height":820,"measured":[{"selector":".side-foot p","text":"不读取文件内容，不上传任何数据","lines":[{"top":727,"text":"不读取文件内容，","count":8},{"top":747,"text":"不上传任何数据","count":7}]},{"selector":".drive-main .sub","text":"共 250.1 GB，已用 76%。体检后可查看能够清理的空间。","lines":[{"top":290.421875,"text":"共250.1GB，已用76%。体检后可查看能够清理的","count":26},{"top":312.8125,"text":"空间。","count":3}]}]},{"width":1040,"height":720,"measured":[{"selector":".side-foot p","text":"不读取文件内容，不上传任何数据","lines":[{"top":627,"text":"不读取文件内容，","count":8},{"top":647,"text":"不上传任何数据","count":7}]},{"selector":".drive-main .sub","text":"共 250.1 GB，已用 76%。体检后可查看能够清理的空间。","lines":[{"top":272.46875,"text":"共250.1GB，已用76%。体检后可查看能够清","count":24},{"top":294.859375,"text":"理的空间。","count":5}]}]}]
+# Subtest: ui_m1_polish
+not ok 5 - ui_m1_polish
+  ---
+  duration_ms: 85.5085
+  type: 'test'
+  location: 'F:\\new\\smaltalk\\water\\.worktrees\\accept2-w4-g3\\apps\\water\\ui\\tests\\browser.test.mjs:366:1'
+  failureType: 'testCodeFailure'
+  error: 'UI_FOOTER_WRAP: 1240x820 .drive-main .sub: [{"top":290.421875,"text":"共250.1GB，已用76%。体检后可查看能够清理的","count":26},{"top":312.8125,"text":"空间。","count":3}]'
+  code: 'ERR_ASSERTION'
+  name: 'AssertionError'
+  expected: true
+  actual: false
+  operator: '=='
+  stack: |-
+    TestContext.<anonymous> (file:///F:/new/smaltalk/water/.worktrees/accept2-w4-g3/apps/water/ui/tests/browser.test.mjs:399:47)
+    async Test.run (node:internal/test_runner/test:1313:7)
+    async Test.processPendingSubtests (node:internal/test_runner/test:897:7)
+  ...
+1..5
+# tests 5
+# suites 0
+# pass 4
+# fail 1
+# cancelled 0
+# skipped 0
+# todo 0
+# duration_ms 42931.8647
+
+--- stderr ---

@@ -1,0 +1,13 @@
+{
+ "g3": [
+  {
+   "label": "nc3",
+   "mode": "red-nc3",
+   "token": "UI_NOTICE_SCOPE",
+   "file": "apps/water/ui/app.mjs",
+   "old": "state.reconnecting ? '正在重新连接 Water 服务…' : state.error || '未能读取任务进度，请重新连接。'",
+   "new": "state.reconnecting ? '正在重新连接 Water 服务…' : state.pollPaused ? '未能读取任务进度，请重新连接。' : state.error",
+   "why": "while paused the notice always shows the fallback sentence instead of the host reason (run 1 nc3 and x2 were caught only by a wait timeout at browser.test.mjs:448, which the gate does not accept as proof)"
+  }
+ ]
+}

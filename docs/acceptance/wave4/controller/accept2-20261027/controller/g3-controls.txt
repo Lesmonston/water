@@ -1,0 +1,34 @@
+g3 nc1 mutated apps/water/ui/model.mjs: a forged selection of a nonselectable group counts in the selected totals (worker nc1 removed the guard in setSelected instead) (mutated sha 73236126e0c4bbdb80e398091da4d18f03efc1506bbb52b5b1c495e8e0a30810)
+g3 red-nc1 rc=0 {"task":"WATER-W4-ACCEPT-G3","mode":"red-nc1","finalGate":false,"status":"passed","error":null,"receipt":"F:\\new\\smaltalk\\water\\.worktrees\\accept2-w4-g3\\.local\\checks\\WATER-W4-ACCEPT-G3\\2026-10-26T15-30-25.988Z-15260-red-nc1-result.json"}
+g3 nc1 KILLED (expected UI_LEVEL_GUARD)
+g3 nc1 restored exact bytes=true sha 2fb283b69081ec2d31db4fef2b1fb74c123c03e807761cf666ad0badb88eb278
+g3 test rc=0 {"task":"WATER-W4-ACCEPT-G3","mode":"test","finalGate":false,"status":"passed","error":null,"receipt":"F:\\new\\smaltalk\\water\\.worktrees\\accept2-w4-g3\\.local\\checks\\WATER-W4-ACCEPT-G3\\2026-10-26T15-30-28.437Z-5964-test-result.json"}
+g3 nc2 mutated apps/water/ui/styles/app.css: only the sidebar footer is balanced; the home drive description keeps its short last line (mutated sha 963a20dd80d9950dc9c4610f53043979b8e69b81402bee28a4c3f690fae21793)
+g3 red-nc2 rc=0 {"task":"WATER-W4-ACCEPT-G3","mode":"red-nc2","finalGate":false,"status":"passed","error":null,"receipt":"F:\\new\\smaltalk\\water\\.worktrees\\accept2-w4-g3\\.local\\checks\\WATER-W4-ACCEPT-G3\\2026-10-26T15-30-30.634Z-36628-red-nc2-result.json"}
+g3 nc2 KILLED (expected UI_FOOTER_WRAP)
+g3 nc2 restored exact bytes=true sha cc89e27105273b64e6d15e0deb73cbb6c639cc82ad821742503ed1d07671f55c
+g3 test rc=0 {"task":"WATER-W4-ACCEPT-G3","mode":"test","finalGate":false,"status":"passed","error":null,"receipt":"F:\\new\\smaltalk\\water\\.worktrees\\accept2-w4-g3\\.local\\checks\\WATER-W4-ACCEPT-G3\\2026-10-26T15-31-15.856Z-22424-test-result.json"}
+g3 nc3 mutated apps/water/ui/app.mjs: navigation checks the wrong flag: the paused reason is cleared and an old command error survives reconnecting (worker nc3 removed the condition instead) (mutated sha a678a59a8db2db24cbfb0bb83f316027b54bda7986c5d18671863bce89ce05eb)
+g3 red-nc3 rc=1 {"task":"WATER-W4-ACCEPT-G3","mode":"red-nc3","finalGate":false,"status":"failed","error":"AssertionError [ERR_ASSERTION]: Syntax, module or timeout failures are not proof","receipt":"F:\\new\\smaltalk\\water\\.worktrees\\accept2-w4-g3\\.local\\checks\\WATER-W4-ACCEPT-G3\\2026-10-26T15-31-18.185Z-35312-red-nc3-result.json"}
+g3 nc3 SURVIVED (expected UI_NOTICE_SCOPE)
+g3 nc3 restored exact bytes=true sha 07c2f9b25cdbe6a068d6465253f9bb5e3994cbf0754d5b25cdd76903e29097e1
+g3 test rc=0 {"task":"WATER-W4-ACCEPT-G3","mode":"test","finalGate":false,"status":"passed","error":null,"receipt":"F:\\new\\smaltalk\\water\\.worktrees\\accept2-w4-g3\\.local\\checks\\WATER-W4-ACCEPT-G3\\2026-10-26T15-32-15.615Z-37136-test-result.json"}
+g3 x1 mutated apps/water/ui/styles/app.css: the page bottom padding that keeps the last row clear of the dock is removed (mutated sha 9fe48e359425e14a42bd83ff45527fb455dee63a379d2cc250f00ebaa7c38234)
+g3 browser rc=1 {"task":"WATER-W4-ACCEPT-G3","mode":"browser","finalGate":false,"status":"failed","error":"AssertionError [ERR_ASSERTION]: Unexpected exit, see 2026-10-26T15-32-17.882Z-30932-browser-1.log","receipt":"F:\\new\\smaltalk\\water\\.worktrees\\accept2-w4-g3\\.local\\checks\\WATER-W4-ACCEPT-G3\\2026-10-26T15-32-17.882Z-30932-browser-result.json"}
+g3 x1 KILLED (expected UI_DOCK_CLEARANCE)
+g3 x1 restored exact bytes=true sha cc89e27105273b64e6d15e0deb73cbb6c639cc82ad821742503ed1d07671f55c
+g3 test rc=0 {"task":"WATER-W4-ACCEPT-G3","mode":"test","finalGate":false,"status":"passed","error":null,"receipt":"F:\\new\\smaltalk\\water\\.worktrees\\accept2-w4-g3\\.local\\checks\\WATER-W4-ACCEPT-G3\\2026-10-26T15-33-00.682Z-17288-test-result.json"}
+g3 x2 mutated apps/water/ui/app.mjs: navigation while reconnecting keeps an old command error, which reappears after recovery (addendum requirement 2) (mutated sha 1a994a76b2dbcfdfad11c4483e7777ed93459dde1e9b5c25e54f10c48eaf971e)
+g3 browser rc=1 {"task":"WATER-W4-ACCEPT-G3","mode":"browser","finalGate":false,"status":"failed","error":"AssertionError [ERR_ASSERTION]: Unexpected exit, see 2026-10-26T15-33-02.811Z-43440-browser-1.log","receipt":"F:\\new\\smaltalk\\water\\.worktrees\\accept2-w4-g3\\.local\\checks\\WATER-W4-ACCEPT-G3\\2026-10-26T15-33-02.811Z-43440-browser-result.json"}
+g3 x2 SURVIVED (expected UI_NOTICE_SCOPE)
+g3 x2 restored exact bytes=true sha 07c2f9b25cdbe6a068d6465253f9bb5e3994cbf0754d5b25cdd76903e29097e1
+g3 test rc=0 {"task":"WATER-W4-ACCEPT-G3","mode":"test","finalGate":false,"status":"passed","error":null,"receipt":"F:\\new\\smaltalk\\water\\.worktrees\\accept2-w4-g3\\.local\\checks\\WATER-W4-ACCEPT-G3\\2026-10-26T15-33-58.340Z-39304-test-result.json"}
+g3 survived: nc3,x2
+g3 test --final rc=1 {"task":"WATER-W4-ACCEPT-G3","mode":"test","finalGate":true,"status":"failed","error":"AssertionError [ERR_ASSERTION]: Missing valid negative control nc3","receipt":"F:\\new\\smaltalk\\water\\.worktrees\\accept2-w4-g3\\.local\\checks\\WATER-W4-ACCEPT-G3\\2026-10-26T15-34-00.528Z-7920-test-result.json"}
+g3 nc3 mutated apps/water/ui/app.mjs: while paused the notice always shows the fallback sentence instead of the host reason (run 1 nc3 and x2 were caught only by a wait timeout at browser.test.mjs:448, which the gate does not accept as proof) (mutated sha 89c2b57480f5598f71be746dfc60d7d920b0a305510c019440ffe2efbda69e98)
+g3 red-nc3 rc=0 {"task":"WATER-W4-ACCEPT-G3","mode":"red-nc3","finalGate":false,"status":"passed","error":null,"receipt":"F:\\new\\smaltalk\\water\\.worktrees\\accept2-w4-g3\\.local\\checks\\WATER-W4-ACCEPT-G3\\2026-10-26T15-35-56.181Z-18284-red-nc3-result.json"}
+g3 nc3 KILLED (expected UI_NOTICE_SCOPE)
+g3 nc3 restored exact bytes=true sha 07c2f9b25cdbe6a068d6465253f9bb5e3994cbf0754d5b25cdd76903e29097e1
+g3 test rc=0 {"task":"WATER-W4-ACCEPT-G3","mode":"test","finalGate":false,"status":"passed","error":null,"receipt":"F:\\new\\smaltalk\\water\\.worktrees\\accept2-w4-g3\\.local\\checks\\WATER-W4-ACCEPT-G3\\2026-10-26T15-36-50.486Z-21260-test-result.json"}
+g3 survived: none
+g3 test --final rc=0 {"task":"WATER-W4-ACCEPT-G3","mode":"test","finalGate":true,"status":"passed","error":null,"receipt":"F:\\new\\smaltalk\\water\\.worktrees\\accept2-w4-g3\\.local\\checks\\WATER-W4-ACCEPT-G3\\2026-10-26T15-36-52.799Z-32704-test-result.json"}

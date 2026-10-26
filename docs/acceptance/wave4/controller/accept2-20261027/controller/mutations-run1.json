@@ -1,0 +1,49 @@
+{
+ "g3": [
+  {
+   "label": "nc1",
+   "mode": "red-nc1",
+   "token": "UI_LEVEL_GUARD",
+   "file": "apps/water/ui/model.mjs",
+   "old": "export function selectedGroups(result, selection) { return groups(result).filter(g => canSelect(g) && selection.has(g.group_id)); }",
+   "new": "export function selectedGroups(result, selection) { return groups(result).filter(g => selection.has(g.group_id)); }",
+   "why": "a forged selection of a nonselectable group counts in the selected totals (worker nc1 removed the guard in setSelected instead)"
+  },
+  {
+   "label": "nc2",
+   "mode": "red-nc2",
+   "token": "UI_FOOTER_WRAP",
+   "file": "apps/water/ui/styles/app.css",
+   "old": ".side-foot p, .drive-main .sub { text-wrap: balance; }",
+   "new": ".side-foot p { text-wrap: balance; }",
+   "why": "only the sidebar footer is balanced; the home drive description keeps its short last line"
+  },
+  {
+   "label": "nc3",
+   "mode": "red-nc3",
+   "token": "UI_NOTICE_SCOPE",
+   "file": "apps/water/ui/app.mjs",
+   "old": "  if (!state.pollPaused) state.error = '';",
+   "new": "  if (!state.reconnecting) state.error = '';",
+   "why": "navigation checks the wrong flag: the paused reason is cleared and an old command error survives reconnecting (worker nc3 removed the condition instead)"
+  },
+  {
+   "label": "x1",
+   "mode": "browser",
+   "token": "UI_DOCK_CLEARANCE",
+   "file": "apps/water/ui/styles/app.css",
+   "old": ".page { max-width: var(--w-content-max); margin: 0 auto; padding: 26px 36px 124px; }",
+   "new": ".page { max-width: var(--w-content-max); margin: 0 auto; padding: 26px 36px 26px; }",
+   "why": "the page bottom padding that keeps the last row clear of the dock is removed"
+  },
+  {
+   "label": "x2",
+   "mode": "browser",
+   "token": "UI_NOTICE_SCOPE",
+   "file": "apps/water/ui/app.mjs",
+   "old": "  if (!state.pollPaused) state.error = '';",
+   "new": "  if (!state.pollPaused && !state.reconnecting) state.error = '';",
+   "why": "navigation while reconnecting keeps an old command error, which reappears after recovery (addendum requirement 2)"
+  }
+ ]
+}

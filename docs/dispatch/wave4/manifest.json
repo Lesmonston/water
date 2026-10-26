@@ -1,7 +1,7 @@
 {
   "schemaVersion": 1,
   "wave": "water-wave4-hardening",
-  "status": "G2_VERIFIED_G3_ADDENDUM_G1_IN_PROGRESS",
+  "status": "G2_G3_VERIFIED_G1_IN_PROGRESS",
   "controller": "Claude",
   "controllerRoot": "F:/new/smaltalk/water",
   "controllerBranch": "main",
@@ -375,7 +375,7 @@
       "fixtures": "contracts/checkup-v1/ui-fixtures.json",
       "browserHelper": "scripts/acceptance/native-vw-private-browser.mjs",
       "screenshotDirEnv": "WATER_W2_SHOTS_DIR",
-      "status": "ADDENDUM_DISPATCHED",
+      "status": "VERIFIED",
       "baseCommit": "0ca42f8e8038a5a7816802c5a7f175a966b0625c",
       "snapshotRef": "refs/tags/water-w4-hardening-base-20261026",
       "readyOn": "2026-10-26",
@@ -503,7 +503,7 @@
       "dispatchReportedAt": "2026-10-26T13:25:36Z",
       "dispatchEvidence": "user chat 2026-10-26 22:25 JST: all three wave 4 tickets pasted; G1 and G2 to grokbot, G3 to Astra; worker trees clean at base 0ca42f8 when recorded",
       "startEvidence": "worker baseline receipt 2026-10-26T13-24-34.183Z-33368 (passed) in .worktrees/w4-g3/.local/checks/WATER-W4-G3",
-      "submittedHead": "27f44862664f92f1d6c9de270857ad603b3e1d6b",
+      "submittedHead": "65ed84e2535ed86e7bf17e40eb4a413c742f45eb",
       "implementationCommit": "9d247c0448ff8e28b70620539d6fb71744dfdd73",
       "submittedAs": "COMPLETED",
       "controllerReview": {
@@ -520,20 +520,39 @@
         {
           "id": "WATER-W4-G3-ADDENDUM-01",
           "ticket": "docs/dispatch/tickets/WATER-W4-G3-ADDENDUM-01-20261026.md",
-          "status": "DISPATCHED",
+          "status": "COMPLETED",
           "issuedAt": "2026-10-26T14:50:00Z",
           "resumeFromCommit": "27f44862664f92f1d6c9de270857ad603b3e1d6b",
           "change": "while progress polling is paused, navigation keeps the notice text and reconnect button verbatim; ui_m1_polish uses a host sentence different from the fallback; nc3 becomes clearing on pause; all three negative controls redone",
           "dispatchedAt": null,
           "dispatchReportedAt": "2026-10-26T14:57:27Z",
           "executor": "Astra (user-reported, fresh conversation; exact model unverified until worker report)",
-          "dispatchEvidence": "user chat 2026-10-26 23:57 JST: addendum 01 pasted to Astra in a fresh conversation; worktree clean at resumeFromCommit 27f44862 when recorded"
+          "dispatchEvidence": "user chat 2026-10-26 23:57 JST: addendum 01 pasted to Astra in a fresh conversation; worktree clean at resumeFromCommit 27f44862 when recorded",
+          "completedCommit": "7fbe97210f223ef9f60e79e19c845790e42860ce",
+          "receiptCommit": "65ed84e2535ed86e7bf17e40eb4a413c742f45eb"
         }
       ],
       "carryOverLater": [
         "an error from a command issued on the old page can land on the new page if it fails after navigation (one IPC round trip)",
-        "reconnecting assertion relies on 12 failures not draining within about 3 s"
-      ]
+        "reconnecting assertion relies on 12 failures not draining within about 3 s",
+        "browser.test.mjs:448 waits for the notice to hide after reconnect recovery; a regression there times out instead of failing with UI_NOTICE_SCOPE (assert with a marker instead)",
+        "the screenshot named reconnecting-1240x820 shows the paused notice, not the reconnecting one (wave 2 naming)",
+        "a command error raised while paused replaces the paused reason and then also survives navigation (paused state keeps state.error)"
+      ],
+      "verifiedAt": "2026-10-26T15:45:00Z",
+      "acceptedCommit": "65ed84e2535ed86e7bf17e40eb4a413c742f45eb",
+      "integrationBranch": "main",
+      "mergeCommit": "aeb49ed3",
+      "controllerReview2": {
+        "reviewedAt": "2026-10-26T15:45:00Z",
+        "review": "docs/acceptance/wave4/controller/WATER-W4-G2G3-REVIEW-20261026.md (G3 second round)",
+        "evidence": "docs/acceptance/wave4/controller/accept2-20261027/g3/",
+        "controllerLogs": "docs/acceptance/wave4/controller/accept2-20261027/controller/",
+        "mechanicalAudit": "passed; resume commit 27f44862 is an ancestor",
+        "freshTreeFinals": "check, test, browser passed in .worktrees/accept2-w4-g3",
+        "controllerMutants": "nc1, nc2, x1 killed with markers; first nc3 (wrong flag) and x2 (keep error while reconnecting) made ui_m1_polish fail only by a wait timeout at browser.test.mjs:448, which the gate does not accept as proof; replacement nc3 (paused notice always shows the fallback) killed with UI_NOTICE_SCOPE",
+        "codeReview": "controller: app.mjs one line, if (!state.pollPaused) state.error = ''; test uses 20 real unavailable errors and the clean pause sentence"
+      }
     }
   ],
   "selfTest": {
