@@ -1,8 +1,8 @@
 # Water 状态与交接
 
-更新时间：2026-10-26（Asia/Tokyo；本次仅交接导航，最近产品验收为2026-10-25）。
+更新时间：2026-10-26 23:15 JST（M1 达成，第四波三票已派出）。
 
-更换总控请先读[最新交接报告（2026-10-26 第 4 份）](CONTROLLER-HANDOFF-20261026-4.md)；[第 3 份](CONTROLLER-HANDOFF-20261026-3.md)、[第 2 份](CONTROLLER-HANDOFF-20261026-2.md)、[上午那份](CONTROLLER-HANDOFF-20261026.md)及其只读状态快照仅供追溯。31主任务已VERIFIED，无待收单或新READY票；验收范围及下一波候选见报告。此前[接手验收摘要](CONTROLLER-HANDOFF-20261017.md)仅供历史追溯；当前任务状态以本页、registry/manifest及最新正式验收为准。
+更换总控请先读[最新交接报告（2026-10-26 第 5 份）](CONTROLLER-HANDOFF-20261026-5.md)；[第 4 份](CONTROLLER-HANDOFF-20261026-4.md)、[第 3 份](CONTROLLER-HANDOFF-20261026-3.md)、[第 2 份](CONTROLLER-HANDOFF-20261026-2.md)、[上午那份](CONTROLLER-HANDOFF-20261026.md)及其只读状态快照仅供追溯。M1 已达成；第四波 G1、G2（grokbot）与 G3（Astra）已派出，等回执。此前[接手验收摘要](CONTROLLER-HANDOFF-20261017.md)仅供历史追溯；当前任务状态以本页、registry/manifest及最新正式验收为准。
 
 ## 已确认
 
