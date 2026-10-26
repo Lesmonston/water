@@ -1,0 +1,47 @@
+{"binary":"C:\\Program Files\\nodejs\\node.exe","args":["--test","--test-concurrency=1","--test-reporter=tap","apps/water/ui/tests/browser.test.mjs"],"exitCode":1,"error":null}
+--- stdout ---
+TAP version 13
+# Subtest: ui_home_and_scan
+ok 1 - ui_home_and_scan
+  ---
+  duration_ms: 7377.134
+  type: 'test'
+  ...
+# Subtest: ui_results_detail_confirm
+ok 2 - ui_results_detail_confirm
+  ---
+  duration_ms: 2891.8133
+  type: 'test'
+  ...
+# Subtest: ui_clean_done_and_pages
+ok 3 - ui_clean_done_and_pages
+  ---
+  duration_ms: 4923.4386
+  type: 'test'
+  ...
+# Subtest: ui_layout_states_a11y
+not ok 4 - ui_layout_states_a11y
+  ---
+  duration_ms: 10483.3466
+  type: 'test'
+  location: 'F:\\new\\smaltalk\\water\\.worktrees\\w2-e\\apps\\water\\ui\\tests\\browser.test.mjs:209:1'
+  failureType: 'testCodeFailure'
+  error: 'Browser condition timed out'
+  code: 'ERR_TEST_FAILURE'
+  stack: |-
+    Object.waitFor (file:///F:/new/smaltalk/water/.worktrees/w2-e/scripts/acceptance/native-vw-private-browser.mjs:43:149)
+    async TestContext.<anonymous> (file:///F:/new/smaltalk/water/.worktrees/w2-e/apps/water/ui/tests/browser.test.mjs:226:23)
+    async Test.run (node:internal/test_runner/test:1313:7)
+    async Test.processPendingSubtests (node:internal/test_runner/test:897:7)
+  ...
+1..4
+# tests 4
+# suites 0
+# pass 3
+# fail 1
+# cancelled 0
+# skipped 0
+# todo 0
+# duration_ms 26259.885
+
+--- stderr ---
