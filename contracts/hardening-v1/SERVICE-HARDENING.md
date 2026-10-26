@@ -112,7 +112,9 @@
 
 ## 8. 测试
 
-唯一测试文件仍是 `tests/service_v1.rs`，测试由 5 个变为**精确 6 个**：原有 5 个不改名，新增 `service_hardening`。原有 5 个测试的全部断言继续成立；夹具规则不变（本树 `.local/w3-f1-fixtures/` 下随机目录，测试自己的 Platform，不读真实位置，不启动进程）。
+唯一测试文件仍是 `tests/service_v1.rs`，测试由 5 个变为**精确 6 个**：原有 5 个不改名，新增 `service_hardening`。
+
+原有 5 个测试的断言继续成立，唯一例外是 `service_scan_views` 里那条占用提示：随第 7 节由 “chrome 正在运行，将跳过占用的项” 改为 “Chrome 正在运行，将跳过占用的项”，不得借机改动其它断言。夹具规则不变（本树 `.local/w3-f1-fixtures/` 下随机目录，测试自己的 Platform，不读真实位置，不启动进程）。
 
 `service_hardening` 至少覆盖下面 6 组，失败信息含对应标记：
 

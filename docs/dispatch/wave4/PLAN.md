@@ -25,6 +25,7 @@ M2 打开清理之前，CLEAN 的删除方式要从“按路径”升级为“�
 2. **非链接型重解析点一律不删**：只有联接、符号链接这类名称代理链接只删链接本身。云文件占位符等其它类型，一律原样保留，整项跳过。
 3. **硬守卫与保护路径按身份比对**：用卷号加 FileId 识别守卫目录，8.3 短名与别名写法都绕不过去。
 4. **用户用联接搬过配置目录**：维持“不进入、不清理”，写入契约，作为 M2 已知限制。
+5. **长路径**（总控自测发现）：现有 D 遇到超过 260 个字符的路径整项失败；按句柄后自然解决。
 
 ### G2 服务加固（`contracts/hardening-v1/SERVICE-HARDENING.md`）
 
@@ -38,10 +39,11 @@ F1 审查记下的 M2 前事项，加 F1 移交的占用提示：
 
 ### G3 界面修补（界面票，`contracts/hardening-v1/UI-POLISH.md`）
 
-F3 自测的真实窗口截图里看到三处：
-1. 结果页底部操作坞盖住最后一行；
-2. 错误提示切换页面后仍留着；
-3. 侧栏底部说明折出单字孤行。
+F3 自测的真实窗口截图里看到两处，总控自测确认属实：
+1. 错误提示切换页面后仍留着；
+2. 侧栏底部说明与首页磁盘说明折出短孤行。
+
+原以为“操作坞盖住最后一行”，自测实测：现状滚到底时已留出空隙，截图里是滚动途中的正常遮挡。所以这一条不修，只锁成回归断言。
 
 ## 3. 门与检查
 
@@ -49,7 +51,7 @@ F3 自测的真实窗口截图里看到三处：
 |---|---|---|---|---|
 | G1 | 重门，另加：源码不得出现 `std::fs` 等按路径的文件操作；系统函数逐个核对白名单 | `clean_v1` 精确 6 个（原 5 + `clean_handle_hardening`） | `CLEAN_REPARSE_KIND`、`CLEAN_GUARD_ID`、`CLEAN_NO_FOLLOW` | check、test |
 | G2 | 轻门 | `service_v1` 精确 6 个（原 5 + `service_hardening`） | `SERVICE_PANIC_IDLE`、`SERVICE_TRUST_BOUNDARY`、`SERVICE_PARTIAL_SOURCE` | check、test、real |
-| G3 | 轻门 | 单元 3 个；浏览器精确 5 个（原 4 + `ui_m1_polish`） | `UI_LEVEL_GUARD`、`UI_DOCK_CLEARANCE`、`UI_NOTICE_SCOPE`（后两条跑浏览器测试） | check、test、browser |
+| G3 | 轻门 | 单元 3 个；浏览器精确 5 个（原 4 + `ui_m1_polish`） | `UI_LEVEL_GUARD`、`UI_FOOTER_WRAP`、`UI_NOTICE_SCOPE`（后两条跑浏览器测试） | check、test、browser |
 
 ## 4. 合入顺序与整合检查
 

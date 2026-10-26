@@ -4,7 +4,9 @@
 import {createHash} from 'node:crypto';
 import {existsSync, mkdirSync, readFileSync, writeFileSync} from 'node:fs';
 const base = process.argv[2]; if (!/^[0-9a-f]{40}$/.test(base ?? '')) throw new Error('base commit required');
-const hash = p => createHash('sha256').update(readFileSync(p)).digest('hex');
+// Frozen files are checked inside the worker trees, whose checkouts get CRLF (core.autocrlf), so hash them there.
+const tree = '.worktrees/w4-g1/';
+const hash = p => createHash('sha256').update(readFileSync(tree + p)).digest('hex');
 const frozen = p => ({path: p, sha256: hash(p)});
 const w2 = JSON.parse(readFileSync('docs/dispatch/wave2/manifest.json', 'utf8')), w3 = JSON.parse(readFileSync('docs/dispatch/wave3/manifest.json', 'utf8'));
 const d = w2.tasks.find(t => t.id === 'WATER-W2-D'), e = w2.tasks.find(t => t.id === 'WATER-W2-E'), f1 = w3.tasks.find(t => t.id === 'WATER-W3-F1');
@@ -56,7 +58,7 @@ const g3 = {
   spec: 'contracts/hardening-v1/UI-POLISH.md',
   expectedBrowserTests: [...e.expectedBrowserTests, 'ui_m1_polish'],
   requiredScreenshots: [...e.requiredScreenshots, 'results-bottom-1240x820.png', 'results-bottom-1040x720.png', 'notice-results-1240x820.png', 'notice-trends-1240x820.png'],
-  proofTargets: {nc1: 'UI_LEVEL_GUARD', nc2: 'UI_DOCK_CLEARANCE', nc3: 'UI_NOTICE_SCOPE'}, browserProofs: ['nc2', 'nc3'],
+  proofTargets: {nc1: 'UI_LEVEL_GUARD', nc2: 'UI_FOOTER_WRAP', nc3: 'UI_NOTICE_SCOPE'}, browserProofs: ['nc2', 'nc3'],
   allowedFiles: ['docs/dispatch/reports/WATER-W4-G3-REPORT.md'], allowedPrefixes: ['apps/water/ui/', 'docs/acceptance/wave4/g3/'], evidenceDir: 'docs/acceptance/wave4/g3/',
   allowedModes: ['baseline', 'check', 'test', 'browser', 'red-nc1', 'red-nc2', 'red-nc3', 'archive'], expectedFinalModes: ['check', 'test', 'browser'],
   realMode: null, browserBudget: 1, realDataPermission: 'none; IPC fixtures only',
@@ -78,5 +80,8 @@ writeFileSync('docs/dispatch/wave4/manifest.json', JSON.stringify(manifest, null
 const sp = '.local/w4-selftest/manifest.json'; mkdirSync('.local/w4-selftest', {recursive: true});
 const self = t => ({...t, id: t.id.replace('WATER-W4-', 'WATER-W4-SELFTEST-'), status: 'SELFTEST', worktree: t.worktree.replace('/w4-', '/w4-selftest-'), branch: t.branch.replace('worker/water-', 'selftest/water-'),
   evidenceDir: t.evidenceDir.replace(/(g\d)\/$/, 'selftest-$1/'), allowedPrefixes: [t.allowedPrefixes[0], t.evidenceDir.replace(/(g\d)\/$/, 'selftest-$1/')], allowedFiles: []});
-writeFileSync(sp, JSON.stringify({...manifest, status: 'SELFTEST', tasks: manifest.tasks.map(self)}, null, 2) + '\n');
+// G1B shares the G1 self-test tree: the stub keeps the verified path-based deletion code, so it runs every
+// mode except the "no path-based file access" rule, which G1 itself is expected to fail on that stub.
+const g1b = {...self(g1), id: 'WATER-W4-SELFTEST-G1B', forbidPatterns: [], evidenceDir: 'docs/acceptance/wave4/selftest-g1b/', allowedPrefixes: ['packages/junk-clean/', 'docs/acceptance/wave4/selftest-g1b/']};
+writeFileSync(sp, JSON.stringify({...manifest, status: 'SELFTEST', tasks: [...manifest.tasks.map(self), g1b]}, null, 2) + '\n');
 console.log('wave 4 manifest written;', manifest.tasks.map(t => t.id + ':' + t.expectedTests.length + (t.expectedBrowserTests ? '+' + t.expectedBrowserTests.length : '')).join(' '), existsSync(sp));
