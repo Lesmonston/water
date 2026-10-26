@@ -22,7 +22,7 @@ test('ui_page', async () => {
     await browser.send('Page.addScriptToEvaluateOnNewDocument', { source: 'window.__TAURI__={core:{invoke:async()=>({app_version:"9.9"})}};' });
     await browser.goto('http://127.0.0.1:' + server.address().port + '/index.html');
     await browser.waitFor('document.getElementById("out").textContent === "version 9.9"');
-    const dir = join(ui, '../../docs/acceptance/wave2/selftest-ui/screenshots', new Date().toISOString().replaceAll(':', '-'));
+    const dir = process.env.WATER_W2_SHOTS_DIR ?? join(ui, '../../.local/ui-shots', new Date().toISOString().replaceAll(':', '-'));
     mkdirSync(dir, { recursive: true });
     writeFileSync(join(dir, 'page-1240x820.png'), await browser.screenshot());
   } finally { await browser.close(); server.close(); }
