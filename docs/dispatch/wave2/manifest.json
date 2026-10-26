@@ -1,7 +1,7 @@
 {
   "schemaVersion": 1,
   "wave": "water-wave2-checkup",
-  "status": "A_E_REVISION_REQUIRED",
+  "status": "A_E_REVISION_DISPATCHED",
   "controller": "Claude",
   "controllerRoot": "F:/new/smaltalk/water",
   "controllerBranch": "main",
@@ -64,7 +64,7 @@
     {
       "id": "WATER-W2-A",
       "title": "规则登记表",
-      "status": "REVISION_REQUIRED",
+      "status": "REVISION_DISPATCHED",
       "slot": "w2-a",
       "kind": "rust",
       "worktree": "F:/new/smaltalk/water/.worktrees/w2-a",
@@ -145,7 +145,7 @@
       "submittedHead": "3cc09105741341626234d380958af97b69c055a1",
       "implementationCommit": "cb41b1e2007cbbbc77dd34679875f32206ec2003",
       "controllerReview": {
-        "reviewedAt": "2026-10-26T07:40:00Z",
+        "reviewedAt": "2026-10-26T07:06:09Z",
         "review": "docs/acceptance/wave2/controller/WATER-W2-AE-REVIEW-20261026.md",
         "evidence": "docs/acceptance/wave2/controller/accept-20261026/a/",
         "mechanicalAudit": "passed",
@@ -157,18 +157,21 @@
         {
           "id": "WATER-W2-A-ADDENDUM-01",
           "ticket": "docs/dispatch/tickets/WATER-W2-A-ADDENDUM-01-20261026.md",
-          "status": "READY",
-          "issuedAt": "2026-10-26T07:40:00Z",
+          "status": "DISPATCHED",
+          "issuedAt": "2026-10-26T07:06:09Z",
           "resumeFromCommit": "3cc09105741341626234d380958af97b69c055a1",
           "change": "protection precedence was loosened (root cause: RULES.md section 3 rule rejects its own seed set); new glob rule and explicit browser profile locators",
-          "dispatchedAt": null
+          "dispatchedAt": null,
+          "dispatchReportedAt": "2026-10-26T07:15:41Z",
+          "executor": "grokbot (user-reported, fresh conversation; exact model unverified until worker report)",
+          "dispatchEvidence": "user chat 2026-10-26: backend addenda to grokbot, UI addendum to Astra; worktree clean at resumeFromCommit when recorded"
         }
       ]
     },
     {
       "id": "WATER-W2-B",
       "title": "体检扫描引擎",
-      "status": "REVISION_REQUIRED",
+      "status": "REVISION_DISPATCHED",
       "slot": "w2-b",
       "kind": "rust",
       "worktree": "F:/new/smaltalk/water/.worktrees/w2-b",
@@ -249,7 +252,7 @@
       "submittedHead": "79cd9d38234293ebdb24dd5153f1cc3e8954b10a",
       "implementationCommit": "35c94d2b22c914656470a4b64e5c1e6170dea0dd",
       "controllerReview": {
-        "reviewedAt": "2026-10-26T07:40:00Z",
+        "reviewedAt": "2026-10-26T07:06:09Z",
         "review": "docs/acceptance/wave2/controller/WATER-W2-AE-REVIEW-20261026.md",
         "evidence": "docs/acceptance/wave2/controller/accept-20261026/b/",
         "mechanicalAudit": "passed",
@@ -261,18 +264,21 @@
         {
           "id": "WATER-W2-B-ADDENDUM-01",
           "ticket": "docs/dispatch/tickets/WATER-W2-B-ADDENDUM-01-20261026.md",
-          "status": "READY",
-          "issuedAt": "2026-10-26T07:40:00Z",
+          "status": "DISPATCHED",
+          "issuedAt": "2026-10-26T07:06:09Z",
           "resumeFromCommit": "79cd9d38234293ebdb24dd5153f1cc3e8954b10a",
           "change": "discovery exclusion inverted; non-ASCII path slicing panic; repository guard lost after budget stop; bare GUID; per-day rate",
-          "dispatchedAt": null
+          "dispatchedAt": null,
+          "dispatchReportedAt": "2026-10-26T07:15:41Z",
+          "executor": "grokbot (user-reported, fresh conversation; exact model unverified until worker report)",
+          "dispatchEvidence": "user chat 2026-10-26: backend addenda to grokbot, UI addendum to Astra; worktree clean at resumeFromCommit when recorded"
         }
       ]
     },
     {
       "id": "WATER-W2-C",
       "title": "进程快照与在用判断",
-      "status": "REVISION_REQUIRED",
+      "status": "REVISION_DISPATCHED",
       "slot": "w2-c",
       "kind": "rust",
       "worktree": "F:/new/smaltalk/water/.worktrees/w2-c",
@@ -352,7 +358,7 @@
       "submittedHead": "ed224e39792fe740e517d1caad4f991973c80b73",
       "implementationCommit": "ec0b5f23ced2e538cfb817b7592996cd72b4095d",
       "controllerReview": {
-        "reviewedAt": "2026-10-26T07:40:00Z",
+        "reviewedAt": "2026-10-26T07:06:09Z",
         "review": "docs/acceptance/wave2/controller/WATER-W2-AE-REVIEW-20261026.md",
         "evidence": "docs/acceptance/wave2/controller/accept-20261026/c/",
         "mechanicalAudit": "passed",
@@ -364,18 +370,21 @@
         {
           "id": "WATER-W2-C-ADDENDUM-01",
           "ticket": "docs/dispatch/tickets/WATER-W2-C-ADDENDUM-01-20261026.md",
-          "status": "READY",
-          "issuedAt": "2026-10-26T07:40:00Z",
+          "status": "DISPATCHED",
+          "issuedAt": "2026-10-26T07:06:09Z",
           "resumeFromCommit": "ed224e39792fe740e517d1caad4f991973c80b73",
           "change": "test cleanup can kill unrelated processes (descendants, /T, PID reuse); descendant PID reuse; multibyte slicing",
-          "dispatchedAt": null
+          "dispatchedAt": null,
+          "dispatchReportedAt": "2026-10-26T07:15:41Z",
+          "executor": "grokbot (user-reported, fresh conversation; exact model unverified until worker report)",
+          "dispatchEvidence": "user chat 2026-10-26: backend addenda to grokbot, UI addendum to Astra; worktree clean at resumeFromCommit when recorded"
         }
       ]
     },
     {
       "id": "WATER-W2-D",
       "title": "清理执行器（重门）",
-      "status": "REVISION_REQUIRED",
+      "status": "REVISION_DISPATCHED",
       "slot": "w2-d",
       "kind": "rust",
       "worktree": "F:/new/smaltalk/water/.worktrees/w2-d",
@@ -458,7 +467,7 @@
       "submittedHead": "d5fb19d78f4369b97eecf6a05eafbadd96f4be6e",
       "implementationCommit": "adce53ecc4765d5aef8f7ae4ba120f086ca9c336",
       "controllerReview": {
-        "reviewedAt": "2026-10-26T07:40:00Z",
+        "reviewedAt": "2026-10-26T07:06:09Z",
         "review": "docs/acceptance/wave2/controller/WATER-W2-AE-REVIEW-20261026.md",
         "evidence": "docs/acceptance/wave2/controller/accept-20261026/d/",
         "mechanicalAudit": "passed",
@@ -470,18 +479,21 @@
         {
           "id": "WATER-W2-D-ADDENDUM-01",
           "ticket": "docs/dispatch/tickets/WATER-W2-D-ADDENDUM-01-20261026.md",
-          "status": "READY",
-          "issuedAt": "2026-10-26T07:40:00Z",
+          "status": "DISPATCHED",
+          "issuedAt": "2026-10-26T07:06:09Z",
           "resumeFromCommit": "d5fb19d78f4369b97eecf6a05eafbadd96f4be6e",
           "change": "tests hard-code the .worktrees/w2-d tree name; narrow the in-item swap window by re-checking parent identity",
-          "dispatchedAt": null
+          "dispatchedAt": null,
+          "dispatchReportedAt": "2026-10-26T07:15:41Z",
+          "executor": "grokbot (user-reported, fresh conversation; exact model unverified until worker report)",
+          "dispatchEvidence": "user chat 2026-10-26: backend addenda to grokbot, UI addendum to Astra; worktree clean at resumeFromCommit when recorded"
         }
       ]
     },
     {
       "id": "WATER-W2-E",
       "title": "桌面界面（白色磨砂玻璃）",
-      "status": "REVISION_REQUIRED",
+      "status": "REVISION_DISPATCHED",
       "slot": "w2-e",
       "kind": "ui",
       "gate": "light",
@@ -625,17 +637,21 @@
         {
           "id": "WATER-W2-E-ADDENDUM-02",
           "ticket": "docs/dispatch/tickets/WATER-W2-E-ADDENDUM-02-20261026.md",
-          "status": "READY",
-          "issuedAt": "2026-10-26T07:40:00Z",
+          "status": "DISPATCHED",
+          "issuedAt": "2026-10-26T07:06:09Z",
           "resumeFromCommit": "8dba99fb9253551ef15c1cc6ff8fc8841552d99e",
           "change": "progress-failure handling, number formatting and smaller behavior fixes; trend chart, sort order, dock button and vial visual deviations",
-          "dispatchedAt": null
+          "dispatchedAt": null,
+          "dispatchReportedAt": "2026-10-26T07:15:41Z",
+          "executor": "Astra (user-reported, fresh conversation; exact model unverified until worker report)",
+          "dispatchEvidence": "user chat 2026-10-26: backend addenda to grokbot, UI addendum to Astra; worktree clean at resumeFromCommit when recorded",
+          "decision": "user dispatched E-02 as written: Service Worker CacheStorage stays confirm-level, default unselected"
         }
       ],
       "submittedHead": "8dba99fb9253551ef15c1cc6ff8fc8841552d99e",
       "implementationCommit": "7f81796721526e308b2b3768fd44aab47cd4daba",
       "controllerReview": {
-        "reviewedAt": "2026-10-26T07:40:00Z",
+        "reviewedAt": "2026-10-26T07:06:09Z",
         "review": "docs/acceptance/wave2/controller/WATER-W2-AE-REVIEW-20261026.md",
         "evidence": "docs/acceptance/wave2/controller/accept-20261026/e/",
         "mechanicalAudit": "passed",
