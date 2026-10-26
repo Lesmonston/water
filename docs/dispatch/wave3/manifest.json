@@ -1,7 +1,7 @@
 {
   "schemaVersion": 1,
   "wave": "water-wave3-desktop",
-  "status": "F2_VERIFIED_F1_ADDENDUM_READY",
+  "status": "F2_VERIFIED_F1_ADDENDUM_DISPATCHED",
   "controller": "Claude",
   "controllerRoot": "F:/new/smaltalk/water",
   "controllerBranch": "main",
@@ -54,7 +54,7 @@
       "slot": "w3-f1",
       "kind": "service",
       "gate": "heavy",
-      "status": "REVISION_REQUIRED",
+      "status": "ADDENDUM_DISPATCHED",
       "baseCommit": "197dfdaecc94dc8b84e94aa8d91ee5cb1c0d965e",
       "snapshotRef": "refs/tags/water-w3-desktop-base-20261026",
       "dispatchedAt": null,
@@ -217,13 +217,14 @@
         {
           "id": "WATER-W3-F1-ADDENDUM-01",
           "ticket": "docs/dispatch/tickets/WATER-W3-F1-ADDENDUM-01-20261026.md",
-          "status": "READY",
+          "status": "DISPATCHED",
           "issuedAt": "2026-10-26T10:20:00Z",
           "resumeFromCommit": "06182d6baeb620c5345f6e2eead085ccad0bfe01",
           "change": "drop only invalid custom roots; prune only loaded records beyond 60 and never fail on a delete error; in-use labels fixed at scan time; clean switch before argument validation; plan-items and disabled-start tests",
           "dispatchedAt": null,
-          "dispatchReportedAt": null,
-          "executor": null
+          "dispatchReportedAt": "2026-10-26T10:22:28Z",
+          "executor": "grokbot (user-reported, fresh conversation; exact model unverified until worker report)",
+          "dispatchEvidence": "user chat 2026-10-26: F1 addendum 01 to grokbot in a fresh conversation; worktree clean at resumeFromCommit when recorded"
         }
       ]
     },
