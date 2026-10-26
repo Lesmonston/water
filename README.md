@@ -8,6 +8,7 @@
 
 ## 从这里开始
 
+- [新总控交接报告（2026-10-26）](docs/CONTROLLER-HANDOFF-20261026.md)
 - [当前状态与交接](docs/STATUS.md)
 - [总控与人工外贴工作流](docs/CONTROLLER-WORKFLOW.md)
 - [立项书](docs/PROJECT-CHARTER.md)

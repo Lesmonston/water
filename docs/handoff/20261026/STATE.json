@@ -1,0 +1,1070 @@
+{
+  "version": "water.controller-handoff.v1",
+  "capturedAt": "2026-10-26T03:17:39.124Z",
+  "timezone": "Asia/Tokyo",
+  "projectRoot": "F:/new/smaltalk/water",
+  "sourceHead": "b2e01a68cfd2481520283fb720a2731366798c9e",
+  "sourceBranch": "main",
+  "sourceMainCleanBeforeHandoffDocs": true,
+  "manifestStatus": "A_AD_WINDOWS_VERIFIED_AE_RESEARCH_VERIFIED",
+  "registryStage": "wave1-ac-static-desktop-verified",
+  "scope": "Metadata and frozen hashes only; no new product validation or fixture/image reads",
+  "readOnly": true,
+  "productTestsRun": false,
+  "systemWindowsOpened": 0,
+  "dependencyDownloads": 0,
+  "networkConfigurationChanges": false,
+  "inputs": [
+    {
+      "path": "docs/dispatch/wave1/manifest.json",
+      "sha256AtSourceHead": "48d2fbb155f7dda976cf9fa7cec661c74ec71889a5011360db3cdb62c63cb188"
+    },
+    {
+      "path": "docs/dispatch/registry.json",
+      "sha256AtSourceHead": "11a93224c114f98f803b9a05b38ea7e7b7378f2bb593a86dee3de79919f050e4"
+    },
+    {
+      "path": "AGENTS.md",
+      "sha256AtSourceHead": "f3b2d59b5d197a97e84b6b163ecd7f2ce158bea8810fe12acc66ff2a24d7cb6b"
+    },
+    {
+      "path": "README.md",
+      "sha256AtSourceHead": "b5a040a1907c43ef987f496f4b523eedcaf2918a2adc6c6dac86039f7c352417"
+    },
+    {
+      "path": "docs/STATUS.md",
+      "sha256AtSourceHead": "0854ea5067fed12f038e7c6dc172ea2fe76cdf1a635638928c510508389ee46d"
+    },
+    {
+      "path": "docs/CONTROLLER-WORKFLOW.md",
+      "sha256AtSourceHead": "dff598420c1c86850b68208254a7db7409adbfd6faa97e887173002e5306ef15"
+    }
+  ],
+  "tasks": [
+    {
+      "id": "WATER-W1-A",
+      "title": "Rust工程底座与scan v1契约实现",
+      "status": "VERIFIED",
+      "scope": "formal_report_controls_scope",
+      "outputRoot": "crates/water-contracts",
+      "worktree": "F:/new/smaltalk/water/.worktrees/a",
+      "branch": "worker/water-w1-a",
+      "head": "5e32f51cc2fe5be6c3516a492a7a75f7a63a2015",
+      "expectedSubmittedCommit": "475c4703be3c455089b8080b53e084d4721b10f7",
+      "headMatchesSubmitted": false,
+      "clean": true,
+      "dirtyPaths": [],
+      "slotState": "verified-preserved",
+      "implementationCommit": null,
+      "controllerTestedCommit": null,
+      "integratedCommit": null,
+      "controllerReview": "docs/acceptance/wave1/controller/WATER-W1-AD-REVIEW-20261017.md",
+      "addenda": []
+    },
+    {
+      "id": "WATER-W1-B",
+      "title": "工具发现与保护规则数据包",
+      "status": "VERIFIED",
+      "scope": "formal_report_controls_scope",
+      "outputRoot": "packages/tool-catalog",
+      "worktree": "F:/new/smaltalk/water/.worktrees/b",
+      "branch": "worker/water-w1-b",
+      "head": "5b88fd0c5f306df5586e8c8445d45f39940e8597",
+      "expectedSubmittedCommit": "d05eae7b5a0fe5c952744336a776a8c5ee1b2873",
+      "headMatchesSubmitted": false,
+      "clean": true,
+      "dirtyPaths": [],
+      "slotState": "verified-preserved",
+      "implementationCommit": null,
+      "controllerTestedCommit": null,
+      "integratedCommit": null,
+      "controllerReview": "docs/acceptance/wave1/controller/WATER-W1-BC-ADDENDUM-01-REVIEW-20261017.md",
+      "addenda": []
+    },
+    {
+      "id": "WATER-W1-C",
+      "title": "只读桌面交互原型",
+      "status": "VERIFIED",
+      "scope": "formal_report_controls_scope",
+      "outputRoot": "prototypes/readonly-dashboard",
+      "worktree": "F:/new/smaltalk/water/.worktrees/c",
+      "branch": "worker/water-w1-c",
+      "head": "d8cc6979813ecf2ff03898d40b8ae217b1df29f8",
+      "expectedSubmittedCommit": "93e2509882f3090883c8ccaedf2fb30e83dba49a",
+      "headMatchesSubmitted": false,
+      "clean": true,
+      "dirtyPaths": [],
+      "slotState": "verified-preserved",
+      "implementationCommit": null,
+      "controllerTestedCommit": null,
+      "integratedCommit": null,
+      "controllerReview": "docs/acceptance/wave1/controller/WATER-W1-BC-ADDENDUM-01-REVIEW-20261017.md",
+      "addenda": []
+    },
+    {
+      "id": "WATER-W1-D",
+      "title": "受控文件系统夹具工厂",
+      "status": "VERIFIED",
+      "scope": "formal_report_controls_scope",
+      "outputRoot": "tools/fs-fixture-kit",
+      "worktree": "F:/new/smaltalk/water/.worktrees/d",
+      "branch": "worker/water-w1-d",
+      "head": "711c38c9d626c4ceb624a48173356887c913d9c7",
+      "expectedSubmittedCommit": "b92d5b8dff8802d1e403e59c08eb1cd4fb175f5f",
+      "headMatchesSubmitted": false,
+      "clean": true,
+      "dirtyPaths": [],
+      "slotState": "verified-preserved",
+      "implementationCommit": "58fc5973a1d68555bbd41fdf4c6d2990cbff870d",
+      "controllerTestedCommit": null,
+      "integratedCommit": null,
+      "controllerReview": "docs/acceptance/wave1/controller/WATER-W1-D-ADDENDUM-01-REVIEW-20261017.md",
+      "addenda": []
+    },
+    {
+      "id": "WATER-W1-E",
+      "title": "独立报告展示投影",
+      "status": "VERIFIED",
+      "scope": "formal_report_controls_scope",
+      "outputRoot": "packages/report-view",
+      "worktree": "F:/new/smaltalk/water/.worktrees/e",
+      "branch": "worker/water-w1-e",
+      "head": "b285a0e15f6e514b0e90e793ab83f63f85db05d9",
+      "expectedSubmittedCommit": "b285a0e15f6e514b0e90e793ab83f63f85db05d9",
+      "headMatchesSubmitted": true,
+      "clean": true,
+      "dirtyPaths": [],
+      "slotState": "verified-preserved",
+      "implementationCommit": "5b23f9c1f4e2b96cecb55447fda872919e0f85a0",
+      "controllerTestedCommit": null,
+      "integratedCommit": null,
+      "controllerReview": "docs/acceptance/wave1/controller/WATER-W1-E-REVIEW-20261017.md",
+      "addenda": []
+    },
+    {
+      "id": "WATER-W1-F",
+      "title": "Controlled fixture metadata scanner",
+      "status": "VERIFIED",
+      "scope": "formal_report_controls_scope",
+      "outputRoot": "packages/fixture-scan",
+      "worktree": "F:/new/smaltalk/water/.worktrees/f",
+      "branch": "worker/water-w1-f",
+      "head": "65e928d3c193e58db758eaf8f0022c975c3ca24d",
+      "expectedSubmittedCommit": "65e928d3c193e58db758eaf8f0022c975c3ca24d",
+      "headMatchesSubmitted": true,
+      "clean": true,
+      "dirtyPaths": [],
+      "slotState": "verified-preserved",
+      "implementationCommit": null,
+      "controllerTestedCommit": null,
+      "integratedCommit": null,
+      "controllerReview": "docs/acceptance/wave1/controller/WATER-W1-F-REVIEW-20261017.md",
+      "addenda": []
+    },
+    {
+      "id": "WATER-W1-G",
+      "title": "Conservative scan report assembly",
+      "status": "VERIFIED",
+      "scope": "formal_report_controls_scope",
+      "outputRoot": "packages/scan-report",
+      "worktree": "F:/new/smaltalk/water/.worktrees/g",
+      "branch": "worker/water-w1-g",
+      "head": "85c64d5104960a7c2d0613298361a1bbcaf49fd5",
+      "expectedSubmittedCommit": "85c64d5104960a7c2d0613298361a1bbcaf49fd5",
+      "headMatchesSubmitted": true,
+      "clean": true,
+      "dirtyPaths": [],
+      "slotState": "verified-preserved",
+      "implementationCommit": null,
+      "controllerTestedCommit": null,
+      "integratedCommit": null,
+      "controllerReview": "docs/acceptance/wave1/controller/WATER-W1-GH-REVIEW-20261018.md",
+      "addenda": []
+    },
+    {
+      "id": "WATER-W1-H",
+      "title": "Whitelist summary export",
+      "status": "VERIFIED",
+      "scope": "formal_report_controls_scope",
+      "outputRoot": "packages/summary-export",
+      "worktree": "F:/new/smaltalk/water/.worktrees/h",
+      "branch": "worker/water-w1-h",
+      "head": "cab41d1ab826a39bdd19bac619dfc2975177eb8b",
+      "expectedSubmittedCommit": "cab41d1ab826a39bdd19bac619dfc2975177eb8b",
+      "headMatchesSubmitted": true,
+      "clean": true,
+      "dirtyPaths": [],
+      "slotState": "verified-preserved",
+      "implementationCommit": null,
+      "controllerTestedCommit": null,
+      "integratedCommit": null,
+      "controllerReview": "docs/acceptance/wave1/controller/WATER-W1-GH-REVIEW-20261018.md",
+      "addenda": []
+    },
+    {
+      "id": "WATER-W1-I",
+      "title": "E report view reader",
+      "status": "VERIFIED",
+      "scope": "formal_report_controls_scope",
+      "outputRoot": "prototypes/report-reader",
+      "worktree": "F:/new/smaltalk/water/.worktrees/i",
+      "branch": "worker/water-w1-i",
+      "head": "da0fa3e0006ad4a02432b5b53d4f29c865f32f67",
+      "expectedSubmittedCommit": "da0fa3e0006ad4a02432b5b53d4f29c865f32f67",
+      "headMatchesSubmitted": true,
+      "clean": true,
+      "dirtyPaths": [],
+      "slotState": "verified-preserved",
+      "implementationCommit": null,
+      "controllerTestedCommit": null,
+      "integratedCommit": null,
+      "controllerReview": "docs/acceptance/wave1/controller/WATER-W1-I-REVIEW-20261017.md",
+      "addenda": []
+    },
+    {
+      "id": "WATER-W1-J",
+      "title": "Controlled read-only scan session",
+      "status": "VERIFIED",
+      "scope": "formal_report_controls_scope",
+      "outputRoot": "packages/lab-session",
+      "worktree": "F:/new/smaltalk/water/.worktrees/j",
+      "branch": "worker/water-w1-j",
+      "head": "1dfa82c014cbdb99024b0da48dd4b6bff9f9e3d8",
+      "expectedSubmittedCommit": "1dfa82c014cbdb99024b0da48dd4b6bff9f9e3d8",
+      "headMatchesSubmitted": true,
+      "clean": true,
+      "dirtyPaths": [],
+      "slotState": "verified",
+      "implementationCommit": null,
+      "controllerTestedCommit": null,
+      "integratedCommit": null,
+      "controllerReview": "docs/acceptance/wave1/controller/WATER-W1-J-REVIEW-20261018.md",
+      "addenda": []
+    },
+    {
+      "id": "WATER-W1-K",
+      "title": "Caller-supplied session reader",
+      "status": "VERIFIED",
+      "scope": "formal_report_controls_scope",
+      "outputRoot": "prototypes/lab-reader",
+      "worktree": "F:/new/smaltalk/water/.worktrees/k",
+      "branch": "worker/water-w1-k",
+      "head": "886db33fcca265e0c1a06e1e155264c2d4689bb0",
+      "expectedSubmittedCommit": "886db33fcca265e0c1a06e1e155264c2d4689bb0",
+      "headMatchesSubmitted": true,
+      "clean": true,
+      "dirtyPaths": [],
+      "slotState": "verified-preserved",
+      "implementationCommit": null,
+      "controllerTestedCommit": null,
+      "integratedCommit": null,
+      "controllerReview": "docs/acceptance/wave1/controller/WATER-W1-K-ADDENDUM-01-REVIEW-20261018.md",
+      "addenda": []
+    },
+    {
+      "id": "WATER-W1-L",
+      "title": "Project marker evidence",
+      "status": "VERIFIED",
+      "scope": "formal_report_controls_scope",
+      "outputRoot": "packages/project-evidence",
+      "worktree": "F:/new/smaltalk/water/.worktrees/l",
+      "branch": "worker/water-w1-l",
+      "head": "d821b11017b2362296e7bc9f62d8adee28003ddb",
+      "expectedSubmittedCommit": "d821b11017b2362296e7bc9f62d8adee28003ddb",
+      "headMatchesSubmitted": true,
+      "clean": true,
+      "dirtyPaths": [],
+      "slotState": "verified-preserved",
+      "implementationCommit": null,
+      "controllerTestedCommit": null,
+      "integratedCommit": null,
+      "controllerReview": "docs/acceptance/wave1/controller/WATER-W1-LM-REVIEW-20261018.md",
+      "addenda": []
+    },
+    {
+      "id": "WATER-W1-M",
+      "title": "Observed size ledger",
+      "status": "VERIFIED",
+      "scope": "formal_report_controls_scope",
+      "outputRoot": "packages/size-ledger",
+      "worktree": "F:/new/smaltalk/water/.worktrees/m",
+      "branch": "worker/water-w1-m",
+      "head": "88c7bd3aa8c1edbe3acfef0571bbd9320caacd9a",
+      "expectedSubmittedCommit": "88c7bd3aa8c1edbe3acfef0571bbd9320caacd9a",
+      "headMatchesSubmitted": true,
+      "clean": true,
+      "dirtyPaths": [],
+      "slotState": "verified-preserved",
+      "implementationCommit": null,
+      "controllerTestedCommit": null,
+      "integratedCommit": null,
+      "controllerReview": "docs/acceptance/wave1/controller/WATER-W1-LM-REVIEW-20261018.md",
+      "addenda": []
+    },
+    {
+      "id": "WATER-W1-N",
+      "title": "Windows native directory observation",
+      "status": "VERIFIED",
+      "scope": "formal_report_controls_scope",
+      "outputRoot": "packages/native-root",
+      "worktree": "F:/new/smaltalk/water/.worktrees/n",
+      "branch": "worker/water-w1-n",
+      "head": "d3fd65f67ba6a9f2d60b702d411dcff07687fbb7",
+      "expectedSubmittedCommit": "d3fd65f67ba6a9f2d60b702d411dcff07687fbb7",
+      "headMatchesSubmitted": true,
+      "clean": true,
+      "dirtyPaths": [],
+      "slotState": "verified-preserved",
+      "implementationCommit": null,
+      "controllerTestedCommit": null,
+      "integratedCommit": null,
+      "controllerReview": "docs/acceptance/wave1/controller/WATER-W1-NO-REVIEW-20261018.md",
+      "addenda": []
+    },
+    {
+      "id": "WATER-W1-O",
+      "title": "Evidence and observed-size reader",
+      "status": "VERIFIED",
+      "scope": "formal_report_controls_scope",
+      "outputRoot": "prototypes/evidence-reader",
+      "worktree": "F:/new/smaltalk/water/.worktrees/o",
+      "branch": "worker/water-w1-o",
+      "head": "5a4ad207d988be32bf14f192b1745436b097fefc",
+      "expectedSubmittedCommit": "5a4ad207d988be32bf14f192b1745436b097fefc",
+      "headMatchesSubmitted": true,
+      "clean": true,
+      "dirtyPaths": [],
+      "slotState": "verified-preserved",
+      "implementationCommit": null,
+      "controllerTestedCommit": null,
+      "integratedCommit": null,
+      "controllerReview": "docs/acceptance/wave1/controller/WATER-W1-NO-REVIEW-20261018.md",
+      "addenda": []
+    },
+    {
+      "id": "WATER-W1-P",
+      "title": "Directory scope registry and in-process scan permits",
+      "status": "VERIFIED",
+      "scope": "formal_report_controls_scope",
+      "outputRoot": "packages/scope-registry",
+      "worktree": "F:/new/smaltalk/water/.worktrees/p",
+      "branch": "worker/water-w1-p",
+      "head": "39dfdfd2bdb7f1196cd0f1765b9638c3aa6e7eda",
+      "expectedSubmittedCommit": "39dfdfd2bdb7f1196cd0f1765b9638c3aa6e7eda",
+      "headMatchesSubmitted": true,
+      "clean": true,
+      "dirtyPaths": [],
+      "slotState": "verified-preserved",
+      "implementationCommit": null,
+      "controllerTestedCommit": null,
+      "integratedCommit": null,
+      "controllerReview": "docs/acceptance/wave1/controller/WATER-W1-PQ-REVIEW-20261018.md",
+      "addenda": []
+    },
+    {
+      "id": "WATER-W1-Q",
+      "title": "Default redacted structural report",
+      "status": "VERIFIED",
+      "scope": "formal_report_controls_scope",
+      "outputRoot": "packages/redacted-report",
+      "worktree": "F:/new/smaltalk/water/.worktrees/q",
+      "branch": "worker/water-w1-q",
+      "head": "d6e135d35f9b5dbb2a915c0d21a9e2b01a29c8aa",
+      "expectedSubmittedCommit": "d6e135d35f9b5dbb2a915c0d21a9e2b01a29c8aa",
+      "headMatchesSubmitted": true,
+      "clean": true,
+      "dirtyPaths": [],
+      "slotState": "verified-preserved",
+      "implementationCommit": null,
+      "controllerTestedCommit": null,
+      "integratedCommit": null,
+      "controllerReview": "docs/acceptance/wave1/controller/WATER-W1-PQ-REVIEW-20261018.md",
+      "addenda": []
+    },
+    {
+      "id": "WATER-W1-R",
+      "title": "Permit-bound Windows native metadata scan and redacted report",
+      "status": "VERIFIED",
+      "scope": "formal_report_controls_scope",
+      "outputRoot": "packages/native-scan",
+      "worktree": "F:/new/smaltalk/water/.worktrees/r",
+      "branch": "worker/water-w1-r",
+      "head": "a8386d81302433d95cbd8d6f229383382352d272",
+      "expectedSubmittedCommit": "a8386d81302433d95cbd8d6f229383382352d272",
+      "headMatchesSubmitted": true,
+      "clean": true,
+      "dirtyPaths": [],
+      "slotState": "verified-preserved",
+      "implementationCommit": null,
+      "controllerTestedCommit": null,
+      "integratedCommit": null,
+      "controllerReview": "docs/acceptance/wave1/controller/WATER-W1-R-ADDENDUM-01-REVIEW-20261019.md",
+      "addenda": [
+        {
+          "key": "addendum01",
+          "status": "VERIFIED",
+          "ticket": "docs/dispatch/tickets/WATER-W1-R-ADDENDUM-01-20261018.md",
+          "report": "docs/dispatch/reports/WATER-W1-R-ADDENDUM-01-REPORT.md"
+        }
+      ]
+    },
+    {
+      "id": "WATER-W1-S",
+      "title": "Windows原生单目录选择与真实N/P登记",
+      "status": "VERIFIED",
+      "scope": "formal_report_controls_scope",
+      "outputRoot": "packages/native-picker",
+      "worktree": "F:/new/smaltalk/water/.worktrees/s",
+      "branch": "worker/water-w1-s",
+      "head": "fcf422a669f72ef452f3da66a4cb7ce1298247ea",
+      "expectedSubmittedCommit": "fcf422a669f72ef452f3da66a4cb7ce1298247ea",
+      "headMatchesSubmitted": true,
+      "clean": true,
+      "dirtyPaths": [],
+      "slotState": "verified-preserved",
+      "implementationCommit": null,
+      "controllerTestedCommit": null,
+      "integratedCommit": null,
+      "controllerReview": "docs/acceptance/wave1/controller/WATER-W1-S-REVIEW-20261019.md",
+      "addenda": []
+    },
+    {
+      "id": "WATER-W1-T",
+      "title": "实际报告预览与默认Q脱敏JSON下载",
+      "status": "VERIFIED",
+      "scope": "formal_report_controls_scope",
+      "outputRoot": "prototypes/scan-review",
+      "worktree": "F:/new/smaltalk/water/.worktrees/t",
+      "branch": "worker/water-w1-t",
+      "head": "df00405c029e81d3b7e93b5a6d24e95d185099fd",
+      "expectedSubmittedCommit": "df00405c029e81d3b7e93b5a6d24e95d185099fd",
+      "headMatchesSubmitted": true,
+      "clean": true,
+      "dirtyPaths": [],
+      "slotState": "verified-preserved",
+      "implementationCommit": null,
+      "controllerTestedCommit": null,
+      "integratedCommit": null,
+      "controllerReview": "docs/acceptance/wave1/controller/WATER-W1-T-REVIEW-20261019.md",
+      "addenda": []
+    },
+    {
+      "id": "WATER-W1-U",
+      "title": "package.json纯内存结构证据",
+      "status": "VERIFIED",
+      "scope": "formal_report_controls_scope",
+      "outputRoot": "packages/node-manifest",
+      "worktree": "F:/new/smaltalk/water/.worktrees/u",
+      "branch": "worker/water-w1-u",
+      "head": "545df673885fae0a90922261cbae14f694ebfe62",
+      "expectedSubmittedCommit": "545df673885fae0a90922261cbae14f694ebfe62",
+      "headMatchesSubmitted": true,
+      "clean": true,
+      "dirtyPaths": [],
+      "slotState": "verified-preserved",
+      "implementationCommit": null,
+      "controllerTestedCommit": null,
+      "integratedCommit": null,
+      "controllerReview": "docs/acceptance/wave1/controller/WATER-W1-U-REVIEW-20261019.md",
+      "addenda": []
+    },
+    {
+      "id": "WATER-W1-V",
+      "title": "真实原生会话API与单次CLI",
+      "status": "VERIFIED",
+      "scope": "formal_report_controls_scope",
+      "outputRoot": "packages/native-session",
+      "worktree": "F:/new/smaltalk/water/.worktrees/v",
+      "branch": "worker/water-w1-v",
+      "head": "ec1ee25034185d95279debcd589be49b84458af1",
+      "expectedSubmittedCommit": "ec1ee25034185d95279debcd589be49b84458af1",
+      "headMatchesSubmitted": true,
+      "clean": true,
+      "dirtyPaths": [],
+      "slotState": "verified-preserved",
+      "implementationCommit": "30875645f03ddc01019eb4b3cb00f9ab7d1c068d",
+      "controllerTestedCommit": null,
+      "integratedCommit": null,
+      "controllerReview": "docs/acceptance/wave1/controller/WATER-W1-V-REVIEW-20261019.md",
+      "addenda": []
+    },
+    {
+      "id": "WATER-W1-W",
+      "title": "原生会话页面、原字节流与固定启动器",
+      "status": "VERIFIED",
+      "scope": "formal_report_controls_scope",
+      "outputRoot": "prototypes/native-review",
+      "worktree": "F:/new/smaltalk/water/.worktrees/w",
+      "branch": "worker/water-w1-w",
+      "head": "df9255b73e1037eda7599098de900bb4705f5921",
+      "expectedSubmittedCommit": "df9255b73e1037eda7599098de900bb4705f5921",
+      "headMatchesSubmitted": true,
+      "clean": true,
+      "dirtyPaths": [],
+      "slotState": "verified-preserved",
+      "implementationCommit": "020cd89cd592471836cca8fa5d263176348b2165",
+      "controllerTestedCommit": null,
+      "integratedCommit": null,
+      "controllerReview": "docs/acceptance/wave1/controller/WATER-W1-W-ADDENDUM-01-REVIEW-20261019.md",
+      "addenda": [
+        {
+          "key": "addendum01",
+          "status": "VERIFIED",
+          "ticket": "docs/dispatch/tickets/WATER-W1-W-ADDENDUM-01-20261019.md",
+          "report": "docs/dispatch/reports/WATER-W1-W-ADDENDUM-01-REPORT.md"
+        }
+      ]
+    },
+    {
+      "id": "WATER-W1-X",
+      "title": "持续原生扫描宿主与真实合作取消",
+      "status": "VERIFIED",
+      "scope": "formal_report_controls_scope",
+      "outputRoot": "packages/scan-host",
+      "worktree": "F:/new/smaltalk/water/.worktrees/x",
+      "branch": "worker/water-w1-x",
+      "head": "c159297473a8ade534eaf0add9c1063fc0ec79f6",
+      "expectedSubmittedCommit": "c159297473a8ade534eaf0add9c1063fc0ec79f6",
+      "headMatchesSubmitted": true,
+      "clean": true,
+      "dirtyPaths": [],
+      "slotState": "verified-preserved",
+      "implementationCommit": "abbad6ad60beb56ee69b7d7b3ca711b23cb29859",
+      "controllerTestedCommit": null,
+      "integratedCommit": null,
+      "controllerReview": "docs/acceptance/wave1/controller/WATER-W1-XYZ-REVIEW-20261019.md",
+      "addenda": []
+    },
+    {
+      "id": "WATER-W1-Y",
+      "title": "可开始、取消、再扫的交互工作台",
+      "status": "VERIFIED",
+      "scope": "formal_report_controls_scope",
+      "outputRoot": "prototypes/live-workspace",
+      "worktree": "F:/new/smaltalk/water/.worktrees/y",
+      "branch": "worker/water-w1-y",
+      "head": "f1c5260c40c5fab4d797b145e36d1354e4dc2d85",
+      "expectedSubmittedCommit": "f1c5260c40c5fab4d797b145e36d1354e4dc2d85",
+      "headMatchesSubmitted": true,
+      "clean": true,
+      "dirtyPaths": [],
+      "slotState": "verified-preserved",
+      "implementationCommit": "657f84d52c02857aec0639af82a7dac59373b47e",
+      "controllerTestedCommit": null,
+      "integratedCommit": null,
+      "controllerReview": "docs/acceptance/wave1/controller/WATER-W1-XYZ-REVIEW-20261019.md",
+      "addenda": []
+    },
+    {
+      "id": "WATER-W1-Z",
+      "title": "显式额外同意的根package.json读取",
+      "status": "VERIFIED",
+      "scope": "formal_report_controls_scope",
+      "outputRoot": "packages/root-marker",
+      "worktree": "F:/new/smaltalk/water/.worktrees/z",
+      "branch": "worker/water-w1-z",
+      "head": "6f1f77550262d017de12fbe9b4c201dbd57809c1",
+      "expectedSubmittedCommit": "6f1f77550262d017de12fbe9b4c201dbd57809c1",
+      "headMatchesSubmitted": true,
+      "clean": true,
+      "dirtyPaths": [],
+      "slotState": "verified-preserved",
+      "implementationCommit": "f853a78560c91cbc3241f61ad5526ff096530948",
+      "controllerTestedCommit": null,
+      "integratedCommit": null,
+      "controllerReview": "docs/acceptance/wave1/controller/WATER-W1-XYZ-REVIEW-20261019.md",
+      "addenda": []
+    },
+    {
+      "id": "WATER-W1-AA",
+      "title": "同次原生选择的可选项目清单宿主",
+      "status": "VERIFIED",
+      "scope": "formal_report_controls_scope",
+      "outputRoot": "packages/project-session",
+      "worktree": "F:/new/smaltalk/water/.worktrees/aa",
+      "branch": "worker/water-w1-aa",
+      "head": "82e066cf8f475d3e9c1e44e6461327c391fe0f3f",
+      "expectedSubmittedCommit": "82e066cf8f475d3e9c1e44e6461327c391fe0f3f",
+      "headMatchesSubmitted": true,
+      "clean": true,
+      "dirtyPaths": [],
+      "slotState": "verified",
+      "implementationCommit": "b3a874d0a1628a7bdce6f3414f234b2b45957152",
+      "controllerTestedCommit": null,
+      "integratedCommit": null,
+      "controllerReview": "docs/acceptance/wave1/controller/WATER-W1-AB-ADDENDUM-01-REVIEW-20261022.md",
+      "addenda": []
+    },
+    {
+      "id": "WATER-W1-AB",
+      "title": "显式内容同意与结构证据工作台",
+      "status": "VERIFIED",
+      "scope": "formal_report_controls_scope",
+      "outputRoot": "prototypes/project-workspace",
+      "worktree": "F:/new/smaltalk/water/.worktrees/ab",
+      "branch": "worker/water-w1-ab",
+      "head": "2fedfeb2d6fbaf6064e6483b728b31a4242ba080",
+      "expectedSubmittedCommit": "2fedfeb2d6fbaf6064e6483b728b31a4242ba080",
+      "headMatchesSubmitted": true,
+      "clean": true,
+      "dirtyPaths": [],
+      "slotState": "verified",
+      "implementationCommit": "95fee90ff52b61b2b2891359451d2bc5262b9af3",
+      "controllerTestedCommit": null,
+      "integratedCommit": null,
+      "controllerReview": "docs/acceptance/wave1/controller/WATER-W1-AB-ADDENDUM-01-REVIEW-20261022.md",
+      "addenda": [
+        {
+          "key": "addendum01",
+          "status": "VERIFIED",
+          "ticket": "docs/dispatch/tickets/WATER-W1-AB-ADDENDUM-01-20261022.md",
+          "report": "docs/dispatch/reports/WATER-W1-AB-ADDENDUM-01-REPORT.md"
+        }
+      ]
+    },
+    {
+      "id": "WATER-W1-AC",
+      "title": "Windows桌面依赖与最小只读壳",
+      "status": "VERIFIED",
+      "scope": "windows_static_desktop_only",
+      "outputRoot": "apps/desktop-preview",
+      "worktree": "F:/new/smaltalk/water/.worktrees/ac",
+      "branch": "worker/water-w1-ac",
+      "head": "29a895d7efa7f4a547d23ff74eb92729740d289d",
+      "expectedSubmittedCommit": "29a895d7efa7f4a547d23ff74eb92729740d289d",
+      "headMatchesSubmitted": true,
+      "clean": true,
+      "dirtyPaths": [],
+      "slotState": "verified",
+      "implementationCommit": "eb7f80178191e233068015bbc26dc9798ac8cb22",
+      "controllerTestedCommit": "b4178355bbb135ca689fa3924ea267e313184941",
+      "integratedCommit": "b4178355bbb135ca689fa3924ea267e313184941",
+      "controllerReview": "docs/acceptance/wave1/controller/WATER-W1-AC-ADDENDUM-06-REVIEW-20261025.md",
+      "addenda": [
+        {
+          "key": "addendum01",
+          "status": "BLOCKED",
+          "ticket": "docs/dispatch/tickets/WATER-W1-AC-ADDENDUM-01-20261023.md",
+          "report": "docs/dispatch/reports/WATER-W1-AC-ADDENDUM-01-REPORT.md"
+        },
+        {
+          "key": "addendum02",
+          "status": "BLOCKED",
+          "ticket": "docs/dispatch/tickets/WATER-W1-AC-ADDENDUM-02-20261024.md",
+          "report": "docs/dispatch/reports/WATER-W1-AC-ADDENDUM-02-REPORT.md"
+        },
+        {
+          "key": "addendum03",
+          "status": "BLOCKED",
+          "ticket": "docs/dispatch/tickets/WATER-W1-AC-ADDENDUM-03-20261024.md",
+          "report": "docs/dispatch/reports/WATER-W1-AC-ADDENDUM-03-REPORT.md"
+        },
+        {
+          "key": "addendum04",
+          "status": "BLOCKED",
+          "ticket": "docs/dispatch/tickets/WATER-W1-AC-ADDENDUM-04-20261024.md",
+          "report": "docs/dispatch/reports/WATER-W1-AC-ADDENDUM-04-REPORT.md"
+        },
+        {
+          "key": "addendum05",
+          "status": "BLOCKED",
+          "ticket": "docs/dispatch/tickets/WATER-W1-AC-ADDENDUM-05-20261024.md",
+          "report": "docs/dispatch/reports/WATER-W1-AC-ADDENDUM-05-REPORT.md"
+        },
+        {
+          "key": "addendum06",
+          "status": "VERIFIED",
+          "ticket": "docs/dispatch/tickets/WATER-W1-AC-ADDENDUM-06-20261025.md",
+          "report": "docs/dispatch/reports/WATER-W1-AC-ADDENDUM-06-REPORT.md"
+        }
+      ]
+    },
+    {
+      "id": "WATER-W1-AD",
+      "title": "同源合并项目报告与原字节附件",
+      "status": "VERIFIED",
+      "scope": "formal_report_controls_scope",
+      "outputRoot": "prototypes/project-workspace",
+      "worktree": "F:/new/smaltalk/water/.worktrees/ad",
+      "branch": "worker/water-w1-ad",
+      "head": "753c8018fd7e8effd423db86495079fdc8cd0d08",
+      "expectedSubmittedCommit": "753c8018fd7e8effd423db86495079fdc8cd0d08",
+      "headMatchesSubmitted": true,
+      "clean": true,
+      "dirtyPaths": [],
+      "slotState": "verified",
+      "implementationCommit": "3ad5e7003d9e9720e85113a47d558738bf06231d",
+      "controllerTestedCommit": "5b4d77c3fff3717ac60277fe67e04444477cea77",
+      "integratedCommit": "5b4d77c3fff3717ac60277fe67e04444477cea77",
+      "controllerReview": "docs/acceptance/wave1/controller/WATER-W1-ADAE-REVIEW-20261024.md",
+      "addenda": []
+    },
+    {
+      "id": "WATER-W1-AE",
+      "title": "macOS原生移植差异与实机验收准备",
+      "status": "VERIFIED",
+      "scope": "research_documents_only",
+      "outputRoot": "docs/research/macos-port-20261023",
+      "worktree": "F:/new/smaltalk/water/.worktrees/ae",
+      "branch": "worker/water-w1-ae",
+      "head": "07ae41c18459dd2450622944466c20a80856e456",
+      "expectedSubmittedCommit": "07ae41c18459dd2450622944466c20a80856e456",
+      "headMatchesSubmitted": true,
+      "clean": true,
+      "dirtyPaths": [],
+      "slotState": "verified",
+      "implementationCommit": "3182286f8c2df25ed940f8f0dc8a71507bb24a4e",
+      "controllerTestedCommit": "5b4d77c3fff3717ac60277fe67e04444477cea77",
+      "integratedCommit": "5b4d77c3fff3717ac60277fe67e04444477cea77",
+      "controllerReview": "docs/acceptance/wave1/controller/WATER-W1-ADAE-REVIEW-20261024.md",
+      "addenda": []
+    }
+  ],
+  "criticalIntegrationTrees": [
+    {
+      "path": ".worktrees/integration-ac-20261025",
+      "branch": "controller/water-w1-ac-integration-20261025",
+      "head": "b4178355bbb135ca689fa3924ea267e313184941",
+      "clean": true,
+      "dirtyPaths": []
+    },
+    {
+      "path": ".worktrees/integration-adae-20261024",
+      "branch": "controller/water-w1-adae-integration-20261024",
+      "head": "5b4d77c3fff3717ac60277fe67e04444477cea77",
+      "clean": true,
+      "dirtyPaths": []
+    }
+  ],
+  "notes": [
+    "All task states are scoped by their formal acceptance reports. AE is research/document verification only.",
+    "Historical AC01-05 BLOCKED does not mean an active task. AC and06 are VERIFIED.",
+    "This snapshot precedes the documentation-only handoff commit and does not hash itself."
+  ],
+  "freeze": {
+    "path": "contracts/desktop-bootstrap-acceptance-v1/freeze.lock.json",
+    "sha256": "b1399ef0cc8407bb201dbedc1094e4edf78457f8da643863b0f863e5f695e345",
+    "uniqueFiles": 547,
+    "inheritedLocks": 25,
+    "verifiedNow": true,
+    "AAExcludedPixelsRead": false
+  },
+  "ac": {
+    "submittedCommit": "29a895d7efa7f4a547d23ff74eb92729740d289d",
+    "implementationCommit": "eb7f80178191e233068015bbc26dc9798ac8cb22",
+    "nativeTestedCommit": "8a3b475918684a18be318415a9f7a54470c916b8",
+    "controllerTestedCommit": "b4178355bbb135ca689fa3924ea267e313184941",
+    "integratedCommit": "b4178355bbb135ca689fa3924ea267e313184941",
+    "workerArchives": {
+      "files": 479,
+      "bytes": 16293091
+    },
+    "workerWindowAllocationsUsed": 4,
+    "remainingWindowBudget": 0,
+    "controllerNewWindows": 0,
+    "productHashes": {
+      "production": "38c7a927cb30fd79f91e5e52e875a81dcb1585b359390dca50af5b24a2d2139d",
+      "test": "211ba3014991309b2bda94cd422f4496c2ac552fa57507c3bb35283ae2acefe7",
+      "lock": "c56b58aa141a85617a59db4de679ff73d69827aee81bda958b1fdee0c9bbbfe8"
+    },
+    "nativeResult": "docs/acceptance/wave1/ac/addendum-06/raw/2026-10-25T06-21-48.141Z-42780-native-result.json",
+    "controllerFinal": "docs/acceptance/wave1/controller/w1-ac-accepted-20261025/FINAL-AUDIT.json"
+  },
+  "activeTopLevelTasks": [],
+  "allWorkerTreesClean": true,
+  "allWorkerHeadsMatchReceipt": false,
+  "registeredWorktrees": [
+    {
+      "worktree": "F:/new/smaltalk/water",
+      "HEAD": "b2e01a68cfd2481520283fb720a2731366798c9e",
+      "branch": "refs/heads/main"
+    },
+    {
+      "worktree": "F:/new/smaltalk/water/.worktrees/a",
+      "HEAD": "5e32f51cc2fe5be6c3516a492a7a75f7a63a2015",
+      "branch": "refs/heads/worker/water-w1-a"
+    },
+    {
+      "worktree": "F:/new/smaltalk/water/.worktrees/aa",
+      "HEAD": "82e066cf8f475d3e9c1e44e6461327c391fe0f3f",
+      "branch": "refs/heads/worker/water-w1-aa"
+    },
+    {
+      "worktree": "F:/new/smaltalk/water/.worktrees/ab",
+      "HEAD": "2fedfeb2d6fbaf6064e6483b728b31a4242ba080",
+      "branch": "refs/heads/worker/water-w1-ab"
+    },
+    {
+      "worktree": "F:/new/smaltalk/water/.worktrees/ac",
+      "HEAD": "29a895d7efa7f4a547d23ff74eb92729740d289d",
+      "branch": "refs/heads/worker/water-w1-ac"
+    },
+    {
+      "worktree": "F:/new/smaltalk/water/.worktrees/ad",
+      "HEAD": "753c8018fd7e8effd423db86495079fdc8cd0d08",
+      "branch": "refs/heads/worker/water-w1-ad"
+    },
+    {
+      "worktree": "F:/new/smaltalk/water/.worktrees/ae",
+      "HEAD": "07ae41c18459dd2450622944466c20a80856e456",
+      "branch": "refs/heads/worker/water-w1-ae"
+    },
+    {
+      "worktree": "F:/new/smaltalk/water/.worktrees/b",
+      "HEAD": "5b88fd0c5f306df5586e8c8445d45f39940e8597",
+      "branch": "refs/heads/worker/water-w1-b"
+    },
+    {
+      "worktree": "F:/new/smaltalk/water/.worktrees/c",
+      "HEAD": "d8cc6979813ecf2ff03898d40b8ae217b1df29f8",
+      "branch": "refs/heads/worker/water-w1-c"
+    },
+    {
+      "worktree": "F:/new/smaltalk/water/.worktrees/controller-rtu-accept-20261019",
+      "HEAD": "ae5d34a9eda43ec8908f8115fe1456b23f2fb90f",
+      "branch": "refs/heads/controller/water-w1-rtu-20261019"
+    },
+    {
+      "worktree": "F:/new/smaltalk/water/.worktrees/controller-s-accept-20261019",
+      "HEAD": "9586a75851cc820a49ff25af198b64a90254106b",
+      "branch": "refs/heads/controller/water-w1-s-20261019"
+    },
+    {
+      "worktree": "F:/new/smaltalk/water/.worktrees/d",
+      "HEAD": "711c38c9d626c4ceb624a48173356887c913d9c7",
+      "branch": "refs/heads/worker/water-w1-d"
+    },
+    {
+      "worktree": "F:/new/smaltalk/water/.worktrees/e",
+      "HEAD": "b285a0e15f6e514b0e90e793ab83f63f85db05d9",
+      "branch": "refs/heads/worker/water-w1-e"
+    },
+    {
+      "worktree": "F:/new/smaltalk/water/.worktrees/f",
+      "HEAD": "65e928d3c193e58db758eaf8f0022c975c3ca24d",
+      "branch": "refs/heads/worker/water-w1-f"
+    },
+    {
+      "worktree": "F:/new/smaltalk/water/.worktrees/g",
+      "HEAD": "85c64d5104960a7c2d0613298361a1bbcaf49fd5",
+      "branch": "refs/heads/worker/water-w1-g"
+    },
+    {
+      "worktree": "F:/new/smaltalk/water/.worktrees/h",
+      "HEAD": "cab41d1ab826a39bdd19bac619dfc2975177eb8b",
+      "branch": "refs/heads/worker/water-w1-h"
+    },
+    {
+      "worktree": "F:/new/smaltalk/water/.worktrees/i",
+      "HEAD": "da0fa3e0006ad4a02432b5b53d4f29c865f32f67",
+      "branch": "refs/heads/worker/water-w1-i"
+    },
+    {
+      "worktree": "F:/new/smaltalk/water/.worktrees/integration-a-20261017",
+      "HEAD": "d8b79747ae1d20ebaf7d749643e15470fef92977",
+      "branch": "refs/heads/controller/water-w1-a-20261017"
+    },
+    {
+      "worktree": "F:/new/smaltalk/water/.worktrees/integration-aa-20261022",
+      "HEAD": "0f1e5d7235f86fac16e05e6106d56085d04876de",
+      "branch": "refs/heads/controller/water-w1-aa-integration-20261022"
+    },
+    {
+      "worktree": "F:/new/smaltalk/water/.worktrees/integration-aaab-addendum-20261022",
+      "HEAD": "4b4d6a39764d20464697c59c81733ffcca7ed34b",
+      "branch": "refs/heads/controller/water-w1-aaab-addendum-20261022"
+    },
+    {
+      "worktree": "F:/new/smaltalk/water/.worktrees/integration-ac-20261025",
+      "HEAD": "b4178355bbb135ca689fa3924ea267e313184941",
+      "branch": "refs/heads/controller/water-w1-ac-integration-20261025"
+    },
+    {
+      "worktree": "F:/new/smaltalk/water/.worktrees/integration-adae-20261024",
+      "HEAD": "5b4d77c3fff3717ac60277fe67e04444477cea77",
+      "branch": "refs/heads/controller/water-w1-adae-integration-20261024"
+    },
+    {
+      "worktree": "F:/new/smaltalk/water/.worktrees/integration-bc-20261017",
+      "HEAD": "c98f924f3e27d328636de55fc53426831d21bf46",
+      "branch": "refs/heads/controller/water-w1-bc-20261017"
+    },
+    {
+      "worktree": "F:/new/smaltalk/water/.worktrees/integration-d-20261017",
+      "HEAD": "b6bb63a7b44ac32576bbe7a5425c39d65f70a5c6",
+      "branch": "refs/heads/controller/water-w1-d-20261017"
+    },
+    {
+      "worktree": "F:/new/smaltalk/water/.worktrees/integration-e-20261017",
+      "HEAD": "0f09810eb5e3b437c96c36a0199ed3bc161c2a53",
+      "branch": "refs/heads/controller/water-w1-e-20261017"
+    },
+    {
+      "worktree": "F:/new/smaltalk/water/.worktrees/integration-f-20261017",
+      "HEAD": "5d7bd7d3f99482f26f31482816993ec07dcc5b2b",
+      "branch": "refs/heads/controller/water-w1-f-20261017"
+    },
+    {
+      "worktree": "F:/new/smaltalk/water/.worktrees/integration-gh-20261018",
+      "HEAD": "cdbd9b9a606a8736aef9d7a410015e6f77d3cb21",
+      "branch": "refs/heads/controller/water-w1-gh-20261018"
+    },
+    {
+      "worktree": "F:/new/smaltalk/water/.worktrees/integration-i-20261017",
+      "HEAD": "fb9bf30ad55002482f60707edd6844d6388dc584",
+      "branch": "refs/heads/controller/water-w1-i-20261017"
+    },
+    {
+      "worktree": "F:/new/smaltalk/water/.worktrees/integration-j-20261018",
+      "HEAD": "d14e1f11129919700b6b7d92df187b44b66fae83",
+      "branch": "refs/heads/controller/water-w1-j-20261018"
+    },
+    {
+      "worktree": "F:/new/smaltalk/water/.worktrees/integration-jk-20261018",
+      "HEAD": "95704fee2710d778f0f822303ce4c084a279e940",
+      "branch": "refs/heads/controller/water-w1-jk-20261018"
+    },
+    {
+      "worktree": "F:/new/smaltalk/water/.worktrees/integration-lm-20261018",
+      "HEAD": "df17e0ae9ca54d77e66a0b38e6e98d81bcbfadab",
+      "branch": "refs/heads/controller/water-w1-lm-20261018"
+    },
+    {
+      "worktree": "F:/new/smaltalk/water/.worktrees/integration-no-20261018",
+      "HEAD": "3c604ec5660c2bc8502ad9c1b99ef2f83a524ea5",
+      "branch": "refs/heads/controller/water-w1-no-20261018"
+    },
+    {
+      "worktree": "F:/new/smaltalk/water/.worktrees/integration-pq-20261018",
+      "HEAD": "c88c557625630e079870f2b801e2d2fd50215174",
+      "branch": "refs/heads/controller/water-w1-pq-20261018"
+    },
+    {
+      "worktree": "F:/new/smaltalk/water/.worktrees/integration-v-20261019",
+      "HEAD": "8599dab31526e3970bf9d5e94f5122c7f3abae28",
+      "branch": "refs/heads/controller/water-w1-v-integration-20261019"
+    },
+    {
+      "worktree": "F:/new/smaltalk/water/.worktrees/integration-vw-20261019",
+      "HEAD": "e38b81cf75d0fb65877bbb7d774e4da7b3a09678",
+      "branch": "refs/heads/controller/water-w1-vw-integration-20261019"
+    },
+    {
+      "worktree": "F:/new/smaltalk/water/.worktrees/integration-xyz-20261019",
+      "HEAD": "a9f64727d89013664805a203f13cb609d301cce2",
+      "branch": "refs/heads/controller/water-w1-xyz-20261019"
+    },
+    {
+      "worktree": "F:/new/smaltalk/water/.worktrees/j",
+      "HEAD": "1dfa82c014cbdb99024b0da48dd4b6bff9f9e3d8",
+      "branch": "refs/heads/worker/water-w1-j"
+    },
+    {
+      "worktree": "F:/new/smaltalk/water/.worktrees/k",
+      "HEAD": "886db33fcca265e0c1a06e1e155264c2d4689bb0",
+      "branch": "refs/heads/worker/water-w1-k"
+    },
+    {
+      "worktree": "F:/new/smaltalk/water/.worktrees/l",
+      "HEAD": "d821b11017b2362296e7bc9f62d8adee28003ddb",
+      "branch": "refs/heads/worker/water-w1-l"
+    },
+    {
+      "worktree": "F:/new/smaltalk/water/.worktrees/m",
+      "HEAD": "88c7bd3aa8c1edbe3acfef0571bbd9320caacd9a",
+      "branch": "refs/heads/worker/water-w1-m"
+    },
+    {
+      "worktree": "F:/new/smaltalk/water/.worktrees/n",
+      "HEAD": "d3fd65f67ba6a9f2d60b702d411dcff07687fbb7",
+      "branch": "refs/heads/worker/water-w1-n"
+    },
+    {
+      "worktree": "F:/new/smaltalk/water/.worktrees/o",
+      "HEAD": "5a4ad207d988be32bf14f192b1745436b097fefc",
+      "branch": "refs/heads/worker/water-w1-o"
+    },
+    {
+      "worktree": "F:/new/smaltalk/water/.worktrees/p",
+      "HEAD": "39dfdfd2bdb7f1196cd0f1765b9638c3aa6e7eda",
+      "branch": "refs/heads/worker/water-w1-p"
+    },
+    {
+      "worktree": "F:/new/smaltalk/water/.worktrees/q",
+      "HEAD": "d6e135d35f9b5dbb2a915c0d21a9e2b01a29c8aa",
+      "branch": "refs/heads/worker/water-w1-q"
+    },
+    {
+      "worktree": "F:/new/smaltalk/water/.worktrees/r",
+      "HEAD": "a8386d81302433d95cbd8d6f229383382352d272",
+      "branch": "refs/heads/worker/water-w1-r"
+    },
+    {
+      "worktree": "F:/new/smaltalk/water/.worktrees/review-aaab-20261022",
+      "HEAD": "81faca62a4ec2068b14107209d3d85e6a7c6aab0",
+      "branch": "refs/heads/controller/water-w1-aaab-review-20261022"
+    },
+    {
+      "worktree": "F:/new/smaltalk/water/.worktrees/review-v-20261019",
+      "HEAD": "30875645f03ddc01019eb4b3cb00f9ab7d1c068d",
+      "branch": "refs/heads/controller/water-w1-v-review-20261019"
+    },
+    {
+      "worktree": "F:/new/smaltalk/water/.worktrees/review-w-20261019",
+      "HEAD": "b65902d8f702bf34097adffd7fbaa7daddabe934",
+      "branch": "refs/heads/controller/water-w1-w-review-20261019"
+    },
+    {
+      "worktree": "F:/new/smaltalk/water/.worktrees/review-w-addendum-20261019",
+      "HEAD": "df9255b73e1037eda7599098de900bb4705f5921",
+      "branch": "refs/heads/controller/water-w1-w-addendum-review-20261019"
+    },
+    {
+      "worktree": "F:/new/smaltalk/water/.worktrees/s",
+      "HEAD": "fcf422a669f72ef452f3da66a4cb7ce1298247ea",
+      "branch": "refs/heads/worker/water-w1-s"
+    },
+    {
+      "worktree": "F:/new/smaltalk/water/.worktrees/t",
+      "HEAD": "df00405c029e81d3b7e93b5a6d24e95d185099fd",
+      "branch": "refs/heads/worker/water-w1-t"
+    },
+    {
+      "worktree": "F:/new/smaltalk/water/.worktrees/u",
+      "HEAD": "545df673885fae0a90922261cbae14f694ebfe62",
+      "branch": "refs/heads/worker/water-w1-u"
+    },
+    {
+      "worktree": "F:/new/smaltalk/water/.worktrees/v",
+      "HEAD": "ec1ee25034185d95279debcd589be49b84458af1",
+      "branch": "refs/heads/worker/water-w1-v"
+    },
+    {
+      "worktree": "F:/new/smaltalk/water/.worktrees/w",
+      "HEAD": "df9255b73e1037eda7599098de900bb4705f5921",
+      "branch": "refs/heads/worker/water-w1-w"
+    },
+    {
+      "worktree": "F:/new/smaltalk/water/.worktrees/x",
+      "HEAD": "c159297473a8ade534eaf0add9c1063fc0ec79f6",
+      "branch": "refs/heads/worker/water-w1-x"
+    },
+    {
+      "worktree": "F:/new/smaltalk/water/.worktrees/y",
+      "HEAD": "f1c5260c40c5fab4d797b145e36d1354e4dc2d85",
+      "branch": "refs/heads/worker/water-w1-y"
+    },
+    {
+      "worktree": "F:/new/smaltalk/water/.worktrees/z",
+      "HEAD": "6f1f77550262d017de12fbe9b4c201dbd57809c1",
+      "branch": "refs/heads/worker/water-w1-z"
+    }
+  ],
+  "processObservation": {
+    "inspectedAt": "2026-10-26T03:17:52.4015104Z",
+    "matches": [],
+    "manualTerminations": 0,
+    "scope": "Common task process names with explicit project absolute path only"
+  },
+  "endedAt": "2026-10-26T03:17:52.666Z"
+}

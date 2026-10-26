@@ -1,5 +1,7 @@
 # 总控接手与A/D验收摘要
 
+2026-10-26交接提示：本页为历史记录，当前接任请先读[最新总控交接报告](CONTROLLER-HANDOFF-20261026.md)。AC/补单06、AD已VERIFIED，AE仅研究文档VERIFIED；下方W返修/旧READY不再执行。
+
 2026-10-17。项目：`F:/new/smaltalk/water`。供后续总控接手与Keeper ingest；未写共享Vault或其他项目。
 
 ## 当前交接：W正式收单返修，补单01 READY（2026-10-19）
