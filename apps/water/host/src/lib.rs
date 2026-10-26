@@ -8,8 +8,8 @@ use tauri::{
     window::{Effect, EffectsBuilder},
 };
 
-pub use water_native_picker as picker;
 use water_contracts::v1::OpaqueId;
+pub use water_native_picker as picker;
 use water_native_picker::v1::{PickerError, PickerOptions, select_scope};
 use water_scope_registry::v1::Registry;
 
