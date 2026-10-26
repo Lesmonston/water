@@ -1,0 +1,172 @@
+{
+  "task": "WATER-W3-F2",
+  "kind": "host",
+  "mode": "archive",
+  "finalGate": false,
+  "manifest": "docs/dispatch/wave3/manifest.json",
+  "startedAt": "2026-10-26T08:53:12.741Z",
+  "realDataRead": false,
+  "productTestsRun": false,
+  "nativeWindows": 0,
+  "directoryDialogs": 0,
+  "commands": [
+    {
+      "binary": "git",
+      "argv": [
+        "branch",
+        "--show-current"
+      ],
+      "exitCode": 0
+    },
+    {
+      "binary": "git",
+      "argv": [
+        "merge-base",
+        "--is-ancestor",
+        "197dfdaecc94dc8b84e94aa8d91ee5cb1c0d965e",
+        "HEAD"
+      ],
+      "exitCode": 0
+    },
+    {
+      "binary": "git",
+      "argv": [
+        "diff",
+        "--no-renames",
+        "--name-only",
+        "-z",
+        "197dfdaecc94dc8b84e94aa8d91ee5cb1c0d965e",
+        "HEAD"
+      ],
+      "exitCode": 0
+    },
+    {
+      "binary": "git",
+      "argv": [
+        "diff",
+        "--no-renames",
+        "--name-only",
+        "-z",
+        "HEAD"
+      ],
+      "exitCode": 0
+    },
+    {
+      "binary": "git",
+      "argv": [
+        "ls-files",
+        "--others",
+        "--exclude-standard",
+        "-z"
+      ],
+      "exitCode": 0
+    },
+    {
+      "binary": "git",
+      "argv": [
+        "rev-parse",
+        "HEAD"
+      ],
+      "exitCode": 0
+    },
+    {
+      "binary": "git",
+      "argv": [
+        "status",
+        "--porcelain",
+        "--untracked-files=all"
+      ],
+      "exitCode": 0
+    },
+    {
+      "binary": "git",
+      "argv": [
+        "branch",
+        "--show-current"
+      ],
+      "exitCode": 0
+    },
+    {
+      "binary": "git",
+      "argv": [
+        "merge-base",
+        "--is-ancestor",
+        "197dfdaecc94dc8b84e94aa8d91ee5cb1c0d965e",
+        "HEAD"
+      ],
+      "exitCode": 0
+    },
+    {
+      "binary": "git",
+      "argv": [
+        "diff",
+        "--no-renames",
+        "--name-only",
+        "-z",
+        "197dfdaecc94dc8b84e94aa8d91ee5cb1c0d965e",
+        "HEAD"
+      ],
+      "exitCode": 0
+    },
+    {
+      "binary": "git",
+      "argv": [
+        "diff",
+        "--no-renames",
+        "--name-only",
+        "-z",
+        "HEAD"
+      ],
+      "exitCode": 0
+    },
+    {
+      "binary": "git",
+      "argv": [
+        "ls-files",
+        "--others",
+        "--exclude-standard",
+        "-z"
+      ],
+      "exitCode": 0
+    },
+    {
+      "binary": "git",
+      "argv": [
+        "rev-parse",
+        "HEAD"
+      ],
+      "exitCode": 0
+    },
+    {
+      "binary": "git",
+      "argv": [
+        "status",
+        "--porcelain",
+        "--untracked-files=all"
+      ],
+      "exitCode": 0
+    }
+  ],
+  "changedPaths": [
+    "docs/acceptance/wave3/f2/.gitattributes",
+    "docs/acceptance/wave3/f2/ARCHIVE.json",
+    "docs/acceptance/wave3/f2/receipts/2026-10-26T08-31-18.284Z-36524-baseline-result.json",
+    "docs/acceptance/wave3/f2/receipts/2026-10-26T08-31-48.814Z-42024-baseline-result.json",
+    "docs/acceptance/wave3/f2/receipts/2026-10-26T08-51-58.149Z-21944-baseline-result.json"
+  ],
+  "before": {
+    "head": "197dfdaecc94dc8b84e94aa8d91ee5cb1c0d965e",
+    "status": ""
+  },
+  "archived": {
+    "files": 12,
+    "bytes": 14047
+  },
+  "after": {
+    "head": "197dfdaecc94dc8b84e94aa8d91ee5cb1c0d965e",
+    "status": "?? docs/acceptance/wave3/f2/.gitattributes\n?? docs/acceptance/wave3/f2/ARCHIVE.json\n?? docs/acceptance/wave3/f2/receipts/2026-10-26T08-31-18.284Z-36524-baseline-result.json\n?? docs/acceptance/wave3/f2/receipts/2026-10-26T08-31-48.814Z-42024-baseline-result.json\n?? docs/acceptance/wave3/f2/receipts/2026-10-26T08-51-58.149Z-21944-baseline-result.json"
+  },
+  "status": "passed",
+  "error": null,
+  "endedAt": "2026-10-26T08:53:15.364Z"
+}
