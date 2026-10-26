@@ -2,7 +2,7 @@
 
 更新时间：2026-10-26（Asia/Tokyo；本次仅交接导航，最近产品验收为2026-10-25）。
 
-更换总控请先读[最新交接报告（2026-10-26）](CONTROLLER-HANDOFF-20261026.md)及其中的只读状态快照。31主任务已VERIFIED，无待收单或新READY票；验收范围及下一波候选见报告。此前[接手验收摘要](CONTROLLER-HANDOFF-20261017.md)仅供历史追溯；当前任务状态以本页、registry/manifest及最新正式验收为准。
+更换总控请先读[最新交接报告（2026-10-26 第 2 份）](CONTROLLER-HANDOFF-20261026-2.md)；[上午那份](CONTROLLER-HANDOFF-20261026.md)及其只读状态快照仅供追溯。31主任务已VERIFIED，无待收单或新READY票；验收范围及下一波候选见报告。此前[接手验收摘要](CONTROLLER-HANDOFF-20261017.md)仅供历史追溯；当前任务状态以本页、registry/manifest及最新正式验收为准。
 
 ## 已确认
 

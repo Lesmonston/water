@@ -8,12 +8,13 @@
 
 ## 从这里开始
 
+- [总控交接报告（2026-10-26 第 2 份，当前入口）](docs/CONTROLLER-HANDOFF-20261026-2.md)
 - [方向调整决定 ADR-018（2026-10-26）](docs/decisions/ADR-018-device-junk-checkup-and-in-app-cleanup.md)
 - [第二波派前回执：A–E READY](docs/dispatch/wave2/READY-REPORT-20261026.md)
 - [界面设计稿（白色磨砂玻璃）](docs/design/water-ui-v1/mockup.html)
 - [计划重订草案（已由 ADR-018 落定）](docs/REPLAN-20261026-AGENT-ERA-CHECKUP.md)
 - [真实AA→AD联合验收（2026-10-26）](docs/acceptance/wave1/controller/WATER-W1-AAAD-JOINT-REVIEW-20261026.md)
-- [新总控交接报告（2026-10-26）](docs/CONTROLLER-HANDOFF-20261026.md)
+- [上一份交接报告（2026-10-26 上午，历史）](docs/CONTROLLER-HANDOFF-20261026.md)
 - [当前状态与交接](docs/STATUS.md)
 - [总控与人工外贴工作流](docs/CONTROLLER-WORKFLOW.md)
 - [立项书](docs/PROJECT-CHARTER.md)
