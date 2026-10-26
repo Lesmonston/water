@@ -33,3 +33,7 @@
 ## 2026-10-17并行批次更新（当前状态优先）
 
 用户要求一次多安排独立任务。F原票/树/22锁保持，现已收单并通过Windows单票及隔离集成验收，VERIFIED；原夹具和日志保留。新增G/H/I的g/h/i独立树已通过实际baseline，READY待分别外贴；共用36项parallel-next新冻结，并核五旧锁58唯一文件，不改旧产品/helper/分配。G只消费冻结F JSON协议和合成输入，纯内存报告及完整facts sidecar，全未知保护；H仅纯内存固定白名单汇总；I仅真实E投影的冻结合成数据、loopback服务及独立Chrome，不获F物理fixture或真实用户目录权限。G/H自有workspace/Cargo home/target/锁，I零npm依赖。每线一个检查，F/G/H可各jobs1构建，I最多一个Chrome；总控没有自动启动实现者。正式票及ADR-007/manifest优先于上面历史READY叙述，收单后独立验收再统一集成。
+
+## Git 远端（2026-10-26）
+
+Water 的 `central` 远端是本机中央裸仓库 `F:/git-central/water.git`，异盘镜像 `E:/git-central-mirror/water.git`，没有网络远端。只有总控推送：验收合入或台账提交后 `git push central --all` 与 `git push central --tags`，再 `git -C E:/git-central-mirror/water.git remote update --prune`。执行者不 push。`F:/git-central` 下其它项目的仓库、README 与共享镜像脚本不归 Water 管，不要改动或运行。

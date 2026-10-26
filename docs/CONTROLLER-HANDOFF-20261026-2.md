@@ -19,7 +19,7 @@
 
 ## 1. 仓库与关键提交
 
-主线 `main`，没有远程仓库（立项书约定只保留本地 Git）。交接时 HEAD 为 `81abd4d5382a2cf74c304757daa505d0e874b1f5`，工作区干净；本报告随后单独提交。
+主线 `main`。交接时还没有远程仓库；当天稍后按用户要求接入本机中央仓库 `F:/git-central/water.git`（远端 `central`），见第 6 节 Git 一条。交接时 HEAD 为 `81abd4d5382a2cf74c304757daa505d0e874b1f5`，工作区干净；本报告随后单独提交。
 
 | 提交 | 内容 |
 |---|---|
@@ -89,7 +89,7 @@
 - 派单句**每张票单独一个代码块**，界面票单独列出并提示用户选视觉能力强的模型。
 - 实现由用户外贴给执行者；总控不写产品代码，不自动启动实现者。
 - Water 的 AGENTS.md 规定不自动修改共享 Vault；总结留在项目里，由 Keeper 摄入。
-- Git：仓库没配提交身份，沿用上一个提交的作者（`-c user.name/-c user.email`）；只按显式路径暂存，提交前看 `git diff --cached --name-status`；不用 `git add -A`、裸 `git stash`、clean、reset --hard；提交信息写文件再 `-F`。
+- Git：仓库没配提交身份，沿用上一个提交的作者（`-c user.name/-c user.email`）；只按显式路径暂存，提交前看 `git diff --cached --name-status`；不用 `git add -A`、裸 `git stash`、clean、reset --hard；提交信息写文件再 `-F`。每次验收合入或台账提交后执行 `git push central --all` 与 `git push central --tags`，再用 `git -C E:/git-central-mirror/water.git remote update --prune` 更新 Water 的异盘镜像。不要运行 `F:/git-central/mirror-to-e.ps1`：它会顺带把 car-op 推到异地服务器，那是别的项目的事。`F:/git-central` 里只新建过 `water.git`，其它仓库和 README 不动。
 
 ## 7. 今天踩到的坑
 
