@@ -2,15 +2,15 @@
 
 面向 Windows、macOS AI 开发者的本地存储分析与安全清理助手。
 
-**当前阶段（2026-10-26）：方向调整为 Windows 设备垃圾体检与应用内选择性清理的一体化桌面应用（ADR-018）。第二波 A 规则、B 扫描、C 进程、D 清理执行器 READY；E 界面待设计确认。第一波 31 票保持 VERIFIED，真实 AA→AD 联合验收已通过。**
+**当前阶段（2026-10-26）：方向调整为 Windows 设备垃圾体检与应用内选择性清理的一体化桌面应用（ADR-018）。第二波 A 规则、B 扫描、C 进程、D 清理执行器、E 桌面界面五票 READY。第一波 31 票保持 VERIFIED，真实 AA→AD 联合验收已通过。**
 
 用户指定本项目所有后续开发均位于 `smaltalk/water`，由 Codex 担任总控。
 
 ## 从这里开始
 
 - [方向调整决定 ADR-018（2026-10-26）](docs/decisions/ADR-018-device-junk-checkup-and-in-app-cleanup.md)
-- [第二波派前回执：A–D READY](docs/dispatch/wave2/READY-REPORT-20261026.md)
-- [界面设计稿（磨砂玻璃）](docs/design/water-ui-v1/mockup.html)
+- [第二波派前回执：A–E READY](docs/dispatch/wave2/READY-REPORT-20261026.md)
+- [界面设计稿（白色磨砂玻璃）](docs/design/water-ui-v1/mockup.html)
 - [计划重订草案（已由 ADR-018 落定）](docs/REPLAN-20261026-AGENT-ERA-CHECKUP.md)
 - [真实AA→AD联合验收（2026-10-26）](docs/acceptance/wave1/controller/WATER-W1-AAAD-JOINT-REVIEW-20261026.md)
 - [新总控交接报告（2026-10-26）](docs/CONTROLLER-HANDOFF-20261026.md)

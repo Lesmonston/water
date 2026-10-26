@@ -25,7 +25,7 @@ A–AB及八补单、AD保持VERIFIED；AC/补单06新增VERIFIED（Windows静�
 
 ## 方向调整与第二波派前（2026-10-26，最新）
 
-用户同日五项决定：改方向；开发期用本机真实垃圾做只读测试；应用内一体化清理，界面由总控设计（淡蓝、磨砂玻璃）；扫描范围扩到全设备垃圾并分级；用 Water 清掉 Water 自身开发垃圾作为里程碑。记录见[ADR-018](decisions/ADR-018-device-junk-checkup-and-in-app-cleanup.md)，路线图已重写。第二波 A 规则、B 扫描、C 进程、D 清理执行器四票 READY，见[派前回执](dispatch/wave2/READY-REPORT-20261026.md)；E 界面等用户确认[磨砂玻璃设计稿](design/water-ui-v1/mockup.html)。新产品代码尚未开始。
+用户同日五项决定：改方向；开发期用本机真实垃圾做只读测试；应用内一体化清理，界面由总控设计（淡蓝、磨砂玻璃）；扫描范围扩到全设备垃圾并分级；用 Water 清掉 Water 自身开发垃圾作为里程碑。记录见[ADR-018](decisions/ADR-018-device-junk-checkup-and-in-app-cleanup.md)，路线图已重写。第二波 A 规则、B 扫描、C 进程、D 清理执行器与 E 桌面界面五票 READY，见[派前回执](dispatch/wave2/READY-REPORT-20261026.md)；界面按用户第二次审稿定为[白色磨砂设计稿](design/water-ui-v1/mockup.html)。新产品代码尚未开始。
 
 ## 真实AA→AD联合验收通过（2026-10-26）
 
