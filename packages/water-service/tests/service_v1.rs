@@ -584,6 +584,7 @@ fn service_clean_flow() {
     let f = Fixture::new();
     f.seed();
     let disabled = f.service(false);
+    scanned(&disabled);
     let before = inventory(&f.root);
     for (c, a) in [
         ("clean_prepare", json!({"groupIds":["chrome-cache"]})),
