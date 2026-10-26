@@ -1,0 +1,336 @@
+{
+  "task": "WATER-W2-B",
+  "mode": "test",
+  "finalGate": false,
+  "manifest": "docs/dispatch/wave2/manifest.json",
+  "startedAt": "2026-10-26T05:05:09.854Z",
+  "realDataRead": false,
+  "productTestsRun": true,
+  "commands": [
+    {
+      "binary": "git",
+      "argv": [
+        "branch",
+        "--show-current"
+      ],
+      "exitCode": 0
+    },
+    {
+      "binary": "git",
+      "argv": [
+        "merge-base",
+        "--is-ancestor",
+        "7ca15282e477ed4b5120ffe3c1edc3a60b75c144",
+        "HEAD"
+      ],
+      "exitCode": 0
+    },
+    {
+      "binary": "git",
+      "argv": [
+        "diff",
+        "--no-renames",
+        "--name-only",
+        "-z",
+        "7ca15282e477ed4b5120ffe3c1edc3a60b75c144",
+        "HEAD"
+      ],
+      "exitCode": 0
+    },
+    {
+      "binary": "git",
+      "argv": [
+        "diff",
+        "--no-renames",
+        "--name-only",
+        "-z",
+        "HEAD"
+      ],
+      "exitCode": 0
+    },
+    {
+      "binary": "git",
+      "argv": [
+        "ls-files",
+        "--others",
+        "--exclude-standard",
+        "-z"
+      ],
+      "exitCode": 0
+    },
+    {
+      "binary": "git",
+      "argv": [
+        "rev-parse",
+        "HEAD"
+      ],
+      "exitCode": 0
+    },
+    {
+      "binary": "git",
+      "argv": [
+        "status",
+        "--porcelain",
+        "--untracked-files=all"
+      ],
+      "exitCode": 0
+    },
+    {
+      "binary": "C:\\Users\\37310\\.cargo\\bin\\rustup.exe",
+      "argv": [
+        "which",
+        "cargo",
+        "--toolchain",
+        "1.95.0"
+      ],
+      "exitCode": 0,
+      "error": null,
+      "log": "2026-10-26T05-05-09.853Z-24020-test-1.log"
+    },
+    {
+      "binary": "C:\\Users\\37310\\.cargo\\bin\\rustup.exe",
+      "argv": [
+        "which",
+        "rustc",
+        "--toolchain",
+        "1.95.0"
+      ],
+      "exitCode": 0,
+      "error": null,
+      "log": "2026-10-26T05-05-09.853Z-24020-test-2.log"
+    },
+    {
+      "binary": "C:\\Users\\37310\\.rustup\\toolchains\\1.95.0-x86_64-pc-windows-msvc\\bin\\rustc.exe",
+      "argv": [
+        "--version"
+      ],
+      "exitCode": 0,
+      "error": null,
+      "log": "2026-10-26T05-05-09.853Z-24020-test-3.log"
+    },
+    {
+      "binary": "C:\\Users\\37310\\.rustup\\toolchains\\1.95.0-x86_64-pc-windows-msvc\\bin\\cargo.exe",
+      "argv": [
+        "metadata",
+        "--offline",
+        "--locked",
+        "--format-version",
+        "1",
+        "--manifest-path",
+        "packages/junk-scan/Cargo.toml"
+      ],
+      "exitCode": 0,
+      "error": null,
+      "log": "2026-10-26T05-05-09.853Z-24020-test-4.log"
+    },
+    {
+      "binary": "C:\\Users\\37310\\.rustup\\toolchains\\1.95.0-x86_64-pc-windows-msvc\\bin\\cargo.exe",
+      "argv": [
+        "test",
+        "--offline",
+        "--locked",
+        "--manifest-path",
+        "packages/junk-scan/Cargo.toml",
+        "--test",
+        "scan_v1",
+        "--",
+        "--test-threads=1"
+      ],
+      "exitCode": 0,
+      "error": null,
+      "log": "2026-10-26T05-05-09.853Z-24020-test-5.log"
+    },
+    {
+      "binary": "git",
+      "argv": [
+        "branch",
+        "--show-current"
+      ],
+      "exitCode": 0
+    },
+    {
+      "binary": "git",
+      "argv": [
+        "merge-base",
+        "--is-ancestor",
+        "7ca15282e477ed4b5120ffe3c1edc3a60b75c144",
+        "HEAD"
+      ],
+      "exitCode": 0
+    },
+    {
+      "binary": "git",
+      "argv": [
+        "diff",
+        "--no-renames",
+        "--name-only",
+        "-z",
+        "7ca15282e477ed4b5120ffe3c1edc3a60b75c144",
+        "HEAD"
+      ],
+      "exitCode": 0
+    },
+    {
+      "binary": "git",
+      "argv": [
+        "diff",
+        "--no-renames",
+        "--name-only",
+        "-z",
+        "HEAD"
+      ],
+      "exitCode": 0
+    },
+    {
+      "binary": "git",
+      "argv": [
+        "ls-files",
+        "--others",
+        "--exclude-standard",
+        "-z"
+      ],
+      "exitCode": 0
+    },
+    {
+      "binary": "git",
+      "argv": [
+        "rev-parse",
+        "HEAD"
+      ],
+      "exitCode": 0
+    },
+    {
+      "binary": "git",
+      "argv": [
+        "status",
+        "--porcelain",
+        "--untracked-files=all"
+      ],
+      "exitCode": 0
+    }
+  ],
+  "changedPaths": [
+    "packages/junk-scan/Cargo.lock",
+    "packages/junk-scan/Cargo.toml",
+    "packages/junk-scan/README.md",
+    "packages/junk-scan/examples/real_smoke.rs",
+    "packages/junk-scan/src/error.rs",
+    "packages/junk-scan/src/keys.rs",
+    "packages/junk-scan/src/lib.rs",
+    "packages/junk-scan/src/model.rs",
+    "packages/junk-scan/src/native_windows.rs",
+    "packages/junk-scan/src/plan.rs",
+    "packages/junk-scan/src/scan.rs",
+    "packages/junk-scan/src/snapshot.rs",
+    "packages/junk-scan/src/util.rs",
+    "packages/junk-scan/tests/scan_v1.rs"
+  ],
+  "before": {
+    "head": "35c94d2b22c914656470a4b64e5c1e6170dea0dd",
+    "status": ""
+  },
+  "sourceState": {
+    "files": [
+      {
+        "path": "packages/junk-scan/Cargo.toml",
+        "snapshot": "2026-10-26T05-05-09.853Z-24020-test-source-0.txt",
+        "sha256": "29ec38aeb1817ed42ba82bee27c00a5a1332a7b06c0d55647ce36da2a6c5688f",
+        "test": false
+      },
+      {
+        "path": "packages/junk-scan/Cargo.lock",
+        "snapshot": "2026-10-26T05-05-09.853Z-24020-test-source-1.txt",
+        "sha256": "fbbf0b92aae939de63099e7c4bcf96c5450b9a07f593aeae09fa5def8f08d800",
+        "test": false
+      },
+      {
+        "path": "packages/junk-scan/README.md",
+        "snapshot": "2026-10-26T05-05-09.853Z-24020-test-source-2.txt",
+        "sha256": "6bd7c6c0af9fe7e56541ce7365e648d8139cff0ce263e7a65f143516e7a924c3",
+        "test": false
+      },
+      {
+        "path": "packages/junk-scan/src/error.rs",
+        "snapshot": "2026-10-26T05-05-09.853Z-24020-test-source-3.txt",
+        "sha256": "9227d808dae216938f800c2a6d440d773621d4d9cde504cfbc250c068d7f7ef0",
+        "test": false
+      },
+      {
+        "path": "packages/junk-scan/src/keys.rs",
+        "snapshot": "2026-10-26T05-05-09.853Z-24020-test-source-4.txt",
+        "sha256": "260096771fb57790a363ef119f368673ea9c91f94dbc0076317997794f8adddc",
+        "test": false
+      },
+      {
+        "path": "packages/junk-scan/src/lib.rs",
+        "snapshot": "2026-10-26T05-05-09.853Z-24020-test-source-5.txt",
+        "sha256": "43848c4cd2d1753cdb9a4229699ececdc638fbf56671259919e27e2ce319ee35",
+        "test": false
+      },
+      {
+        "path": "packages/junk-scan/src/model.rs",
+        "snapshot": "2026-10-26T05-05-09.853Z-24020-test-source-6.txt",
+        "sha256": "b58ba1e31d9915c660d131e656b9e3f469d6adfe632ffe8b8297cfb56485abde",
+        "test": false
+      },
+      {
+        "path": "packages/junk-scan/src/native_windows.rs",
+        "snapshot": "2026-10-26T05-05-09.853Z-24020-test-source-7.txt",
+        "sha256": "46b74c9e0c94678a7971231e2bc5d98f6ea37a04eb7775d086b5b9144268c746",
+        "test": false
+      },
+      {
+        "path": "packages/junk-scan/src/plan.rs",
+        "snapshot": "2026-10-26T05-05-09.853Z-24020-test-source-8.txt",
+        "sha256": "42c0928eeefba484e647f21d47f67808e03166e588abc730b7d497717ce5e4be",
+        "test": false
+      },
+      {
+        "path": "packages/junk-scan/src/scan.rs",
+        "snapshot": "2026-10-26T05-05-09.853Z-24020-test-source-9.txt",
+        "sha256": "ba8d06c8e021435f5e93ff4b25cb32f9557f1511132126aee01ec9e0b4dde14c",
+        "test": false
+      },
+      {
+        "path": "packages/junk-scan/src/snapshot.rs",
+        "snapshot": "2026-10-26T05-05-09.853Z-24020-test-source-10.txt",
+        "sha256": "2787004c65878c36d450ff6c3720c1b3873d696bc59ae5e1127b040fdb6bae27",
+        "test": false
+      },
+      {
+        "path": "packages/junk-scan/src/util.rs",
+        "snapshot": "2026-10-26T05-05-09.853Z-24020-test-source-11.txt",
+        "sha256": "22a0c6259e8bd8c58a280e4786ccadc855ec8e191ab4e84b29582977afc58f9d",
+        "test": false
+      },
+      {
+        "path": "packages/junk-scan/tests/scan_v1.rs",
+        "snapshot": "2026-10-26T05-05-09.853Z-24020-test-source-12.txt",
+        "sha256": "95b22026a4a075668bd719acfd9b10afa1ceef39945c0486a107ca004ffb1410",
+        "test": true
+      }
+    ],
+    "productionHash": "7069e3f0642d9acdee59770daea1dc66a3ab8aa4db51d622181fd4cecb62ae5d",
+    "testHash": "82404ab5acdd84a43f3ae3a12505627c166f72a6c95a5d4347f3910c993f79c1"
+  },
+  "dependencyInventory": [
+    "itoa@1.0.18",
+    "memchr@2.8.3",
+    "proc-macro2@1.0.107",
+    "quote@1.0.47",
+    "serde@1.0.229",
+    "serde_core@1.0.229",
+    "serde_derive@1.0.229",
+    "serde_json@1.0.151",
+    "syn@3.0.9",
+    "unicode-ident@1.0.27",
+    "zmij@1.0.23"
+  ],
+  "after": {
+    "head": "35c94d2b22c914656470a4b64e5c1e6170dea0dd",
+    "status": ""
+  },
+  "status": "passed",
+  "error": null,
+  "endedAt": "2026-10-26T05:05:16.545Z"
+}
