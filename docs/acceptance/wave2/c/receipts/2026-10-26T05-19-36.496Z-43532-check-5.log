@@ -1,0 +1,128 @@
+{"binary":"C:\\Users\\37310\\.rustup\\toolchains\\1.95.0-x86_64-pc-windows-msvc\\bin\\cargo.exe","args":["fmt","--manifest-path","packages/process-scan/Cargo.toml","--","--check"],"exitCode":1,"error":null}
+--- stdout ---
+Diff in \\?\F:\new\smaltalk\water\.worktrees\w2-c\packages\process-scan\examples\real_smoke.rs:1:
+ use serde::Serialize;
+-use water_process_scan::{orphans, snapshot, DEFAULT_ORPHAN_PATTERNS};
++use water_process_scan::{DEFAULT_ORPHAN_PATTERNS, orphans, snapshot};
+ 
+ #[derive(Serialize)]
+ struct RealSmoke {
+Diff in \\?\F:\new\smaltalk\water\.worktrees\w2-c\packages\process-scan\src\lib.rs:189:
+     let mut children: HashMap<u32, Vec<u32>> = HashMap::new();
+     for process in &snapshot.processes {
+         if process.parent_pid != process.pid {
+-            children.entry(process.parent_pid).or_default().push(process.pid);
++            children
++                .entry(process.parent_pid)
++                .or_default()
++                .push(process.pid);
+         }
+     }
+     let mut out = Vec::new();
+Diff in \\?\F:\new\smaltalk\water\.worktrees\w2-c\packages\process-scan\src\native_windows.rs:143:
+     }
+ 
+     fn name(&self) -> String {
+-        let len = self.exe.iter().position(|&c| c == 0).unwrap_or(self.exe.len());
++        let len = self
++            .exe
++            .iter()
++            .position(|&c| c == 0)
++            .unwrap_or(self.exe.len());
+         String::from_utf16_lossy(&self.exe[..len]).into_owned()
+     }
+ }
+Diff in \\?\F:\new\smaltalk\water\.worktrees\w2-c\packages\process-scan\src\native_windows.rs:157:
+ pub(crate) fn take_snapshot() -> Result<Vec<NativeProcess>, ProcError> {
+     // SAFETY: flags request a process list; process_id 0 means all processes.
+     // The returned handle is checked and owned before any further use.
+-    let snapshot = OwnedHandle::snapshot(unsafe { CreateToolhelp32Snapshot(TH32CS_SNAPPROCESS, 0) })?;
++    let snapshot =
++        OwnedHandle::snapshot(unsafe { CreateToolhelp32Snapshot(TH32CS_SNAPPROCESS, 0) })?;
+     let mut entry = ProcessEntry::new();
+     // SAFETY: snapshot is a live Toolhelp process snapshot. entry is a PROCESSENTRY32W
+     // with dwSize set to the x64 layout size asserted above. The API only writes
+Diff in \\?\F:\new\smaltalk\water\.worktrees\w2-c\packages\process-scan\src\native_windows.rs:185:
+     let name = entry.name();
+     // SAFETY: PROCESS_QUERY_LIMITED_INFORMATION is the only access requested;
+     // inherit is FALSE. A null or invalid return is treated as a query miss.
+-    let handle = OwnedHandle::process(unsafe {
+-        OpenProcess(PROCESS_QUERY_LIMITED_INFORMATION, 0, pid)
+-    });
++    let handle =
++        OwnedHandle::process(unsafe { OpenProcess(PROCESS_QUERY_LIMITED_INFORMATION, 0, pid) });
+     let Some(handle) = handle else {
+         return NativeProcess {
+             pid,
+Diff in \\?\F:\new\smaltalk\water\.worktrees\w2-c\packages\process-scan\src\native_windows.rs:227:
+     let mut user = FileTime::default();
+     // SAFETY: handle is a live PROCESS_QUERY_LIMITED_INFORMATION process handle.
+     // The four FILETIME pointers each address a local 8-byte integer struct.
+-    let ok = unsafe {
+-        GetProcessTimes(handle, &mut creation, &mut exit, &mut kernel, &mut user)
+-    };
++    let ok = unsafe { GetProcessTimes(handle, &mut creation, &mut exit, &mut kernel, &mut user) };
+     if ok == 0 { 0 } else { creation.as_u64() }
+ }
+ 
+Diff in \\?\F:\new\smaltalk\water\.worktrees\w2-c\packages\process-scan\tests\process_v1.rs:7:
+ 
+ use serde_json::Value;
+ use water_process_scan::{
+-    in_use, orphans, snapshot, summary_to_json, InUseHit, InUseMode, InUseSpec, OrphanChain,
+-    ProcessSnapshot, DEFAULT_ORPHAN_PATTERNS,
++    DEFAULT_ORPHAN_PATTERNS, InUseHit, InUseMode, InUseSpec, OrphanChain, ProcessSnapshot, in_use,
++    orphans, snapshot, summary_to_json,
+ };
+ 
+ const CREATE_NO_WINDOW: u32 = 0x0800_0000;
+Diff in \\?\F:\new\smaltalk\water\.worktrees\w2-c\packages\process-scan\tests\process_v1.rs:213:
+     let parsed: Value = serde_json::from_str(&json).expect("summary json");
+     assert_eq!(
+         object_keys(&parsed),
+-        BTreeSet::from(["summary_version", "taken_at", "process_count", "processes", "issues"])
++        BTreeSet::from([
++            "summary_version",
++            "taken_at",
++            "process_count",
++            "processes",
++            "issues"
++        ])
+     );
+     assert_eq!(
+         parsed["summary_version"].as_str(),
+Diff in \\?\F:\new\smaltalk\water\.worktrees\w2-c\packages\process-scan\tests\process_v1.rs:245:
+         assert!(process["name"].is_string());
+         let created = process["created_at"].as_str().expect("created_at");
+         assert!(regex_is_rfc3339(created), "created_at must be RFC 3339");
+-        assert!(!process.as_object().expect("obj").contains_key("command_line"));
++        assert!(
++            !process
++                .as_object()
++                .expect("obj")
++                .contains_key("command_line")
++        );
+     }
+     let issues = parsed["issues"].as_array().expect("issues");
+     for issue in issues {
+Diff in \\?\F:\new\smaltalk\water\.worktrees\w2-c\packages\process-scan\tests\process_v1.rs:413:
+         ("OrphanChain debug", orphan_dbg.as_str()),
+     ] {
+         assert!(
+-            !text.to_ascii_lowercase().contains(&token.to_ascii_lowercase()),
++            !text
++                .to_ascii_lowercase()
++                .contains(&token.to_ascii_lowercase()),
+             "{label} leaked the test token"
+         );
+         assert!(
+Diff in \\?\F:\new\smaltalk\water\.worktrees\w2-c\packages\process-scan\tests\process_v1.rs:420:
+-            !text.to_ascii_lowercase().contains(&path.to_ascii_lowercase()),
++            !text
++                .to_ascii_lowercase()
++                .contains(&path.to_ascii_lowercase()),
+             "{label} leaked the fixture path"
+         );
+     }
+
+--- stderr ---

@@ -1,0 +1,457 @@
+use std::collections::BTreeSet;
+use std::os::windows::process::CommandExt;
+use std::path::{Path, PathBuf};
+use std::process::{Child, Command, Stdio};
+use std::thread;
+use std::time::{Duration, SystemTime, UNIX_EPOCH};
+
+use serde_json::Value;
+use water_process_scan::{
+    DEFAULT_ORPHAN_PATTERNS, InUseMode, InUseSpec, OrphanChain, ProcessSnapshot, in_use, orphans,
+    snapshot, summary_to_json,
+};
+
+const CREATE_NO_WINDOW: u32 = 0x0800_0000;
+
+struct Session {
+    token: String,
+    dir: PathBuf,
+    children: Vec<Child>,
+}
+
+impl Session {
+    fn new() -> Self {
+        let token = format!(
+            "w2c-{}-{:x}",
+            std::process::id(),
+            SystemTime::now()
+                .duration_since(UNIX_EPOCH)
+                .expect("clock")
+                .as_nanos()
+        );
+        let fixtures = worktree_root().join(".local").join("w2-c-fixtures");
+        std::fs::create_dir_all(&fixtures).expect("create fixture parent");
+        let dir = fixtures.join(&token);
+        std::fs::create_dir(&dir).expect("create fixture dir");
+        Self {
+            token,
+            dir,
+            children: Vec::new(),
+        }
+    }
+
+    fn path_str(&self) -> String {
+        self.dir.to_string_lossy().into_owned()
+    }
+
+    fn spawn_ping(&mut self, extra: &str) -> u32 {
+        let script = format!(
+            "ping -n 30 127.0.0.1 >NUL & rem {} --user-data-dir=\"{}\" {}",
+            self.token,
+            self.path_str(),
+            extra
+        );
+        let child = cmd(&["/d", "/c", &script]);
+        let pid = child.id();
+        self.children.push(child);
+        pid
+    }
+
+    fn spawn_orphan(&mut self) {
+        let inner = format!(
+            "ping -n 30 127.0.0.1 >NUL & rem {} jest-worker --user-data-dir=\"{}\"",
+            self.token,
+            self.path_str()
+        );
+        let mut outer = cmd(&[
+            "/d",
+            "/c",
+            "start",
+            "w2c-orphan",
+            "/b",
+            "cmd",
+            "/d",
+            "/c",
+            &inner,
+        ]);
+        let _ = outer.wait();
+    }
+
+    fn wait_for_path(&self) -> ProcessSnapshot {
+        let path = self.path_str();
+        for _ in 0..80 {
+            let snap = snapshot().expect("snapshot");
+            if !snap.references_path(&path, &[]).is_empty() {
+                return snap;
+            }
+            thread::sleep(Duration::from_millis(50));
+        }
+        panic!("spawned processes did not appear in the snapshot");
+    }
+
+    fn wait_for_pids(&self, pids: &[u32]) -> ProcessSnapshot {
+        let path = self.path_str();
+        for _ in 0..80 {
+            let snap = snapshot().expect("snapshot");
+            let have: BTreeSet<u32> = snap.references_path(&path, &[]).into_iter().collect();
+            if pids.iter().all(|p| have.contains(p)) {
+                return snap;
+            }
+            thread::sleep(Duration::from_millis(50));
+        }
+        panic!("expected child pids did not appear in the snapshot");
+    }
+
+    fn wait_for_orphan(&self) -> ProcessSnapshot {
+        for _ in 0..80 {
+            let snap = snapshot().expect("snapshot");
+            if !orphans(&snap, &[self.token.as_str()]).is_empty() {
+                return snap;
+            }
+            thread::sleep(Duration::from_millis(50));
+        }
+        panic!("homemade orphan did not appear");
+    }
+
+    fn stop(&mut self) {
+        for child in &mut self.children {
+            let _ = child.kill();
+            let _ = child.wait();
+        }
+        self.children.clear();
+        for _ in 0..40 {
+            let Ok(snap) = snapshot() else { break };
+            let mut pids = snap.references_path(&self.path_str(), &[]);
+            for chain in orphans(&snap, &[self.token.as_str()]) {
+                pids.push(chain.root_pid);
+                pids.extend(chain.descendant_pids);
+            }
+            pids.sort_unstable();
+            pids.dedup();
+            if pids.is_empty() {
+                return;
+            }
+            for pid in pids {
+                taskkill(pid);
+            }
+            thread::sleep(Duration::from_millis(50));
+        }
+        let snap = snapshot().expect("snapshot after stop");
+        assert!(
+            snap.references_path(&self.path_str(), &[]).is_empty(),
+            "token processes must be gone"
+        );
+        assert!(
+            orphans(&snap, &[self.token.as_str()]).is_empty(),
+            "token orphans must be gone"
+        );
+    }
+}
+
+impl Drop for Session {
+    fn drop(&mut self) {
+        self.stop();
+        let name_ok = self
+            .dir
+            .file_name()
+            .and_then(|n| n.to_str())
+            .is_some_and(|n| n.starts_with("w2c-"));
+        let parent_ok = self
+            .dir
+            .parent()
+            .and_then(|p| p.file_name())
+            .is_some_and(|n| n == "w2-c-fixtures");
+        if name_ok && parent_ok {
+            let _ = std::fs::remove_dir_all(&self.dir);
+        }
+    }
+}
+
+fn worktree_root() -> PathBuf {
+    PathBuf::from(env!("CARGO_MANIFEST_DIR"))
+        .parent()
+        .and_then(Path::parent)
+        .expect("packages/process-scan")
+        .to_path_buf()
+}
+
+fn cmd(args: &[&str]) -> Child {
+    Command::new("cmd.exe")
+        .args(args)
+        .creation_flags(CREATE_NO_WINDOW)
+        .stdin(Stdio::null())
+        .stdout(Stdio::null())
+        .stderr(Stdio::null())
+        .spawn()
+        .expect("spawn cmd")
+}
+
+fn taskkill(pid: u32) {
+    let _ = Command::new("taskkill")
+        .args(["/F", "/T", "/PID", &pid.to_string()])
+        .creation_flags(CREATE_NO_WINDOW)
+        .stdin(Stdio::null())
+        .stdout(Stdio::null())
+        .stderr(Stdio::null())
+        .output();
+}
+
+fn object_keys(value: &Value) -> BTreeSet<&str> {
+    value
+        .as_object()
+        .expect("object")
+        .keys()
+        .map(String::as_str)
+        .collect()
+}
+
+#[test]
+fn process_snapshot_contract() {
+    let snap = snapshot().expect("snapshot succeeds including system processes");
+    let summary = snap.summary();
+    let json = summary_to_json(&summary);
+    let parsed: Value = serde_json::from_str(&json).expect("summary json");
+    assert_eq!(
+        object_keys(&parsed),
+        BTreeSet::from([
+            "summary_version",
+            "taken_at",
+            "process_count",
+            "processes",
+            "issues"
+        ])
+    );
+    assert_eq!(
+        parsed["summary_version"].as_str(),
+        Some("water.process-summary.v1")
+    );
+    let taken_at = parsed["taken_at"].as_str().expect("taken_at");
+    assert!(
+        regex_is_rfc3339(taken_at),
+        "taken_at must be RFC 3339 UTC seconds"
+    );
+    let count = parsed["process_count"].as_u64().expect("process_count");
+    let processes = parsed["processes"].as_array().expect("processes");
+    assert_eq!(count, processes.len() as u64);
+    assert!(count >= 1, "at least the test process");
+    let self_pid = std::process::id();
+    assert!(
+        processes
+            .iter()
+            .any(|p| p["pid"].as_u64() == Some(u64::from(self_pid))),
+        "snapshot must include the current process"
+    );
+    for process in processes {
+        assert_eq!(
+            object_keys(process),
+            BTreeSet::from(["pid", "parent_pid", "name", "created_at"])
+        );
+        assert!(process["pid"].is_u64());
+        assert!(process["parent_pid"].is_u64());
+        assert!(process["name"].is_string());
+        let created = process["created_at"].as_str().expect("created_at");
+        assert!(regex_is_rfc3339(created), "created_at must be RFC 3339");
+        assert!(
+            !process
+                .as_object()
+                .expect("obj")
+                .contains_key("command_line")
+        );
+    }
+    let issues = parsed["issues"].as_array().expect("issues");
+    for issue in issues {
+        assert_eq!(object_keys(issue), BTreeSet::from(["code", "count"]));
+        let code = issue["code"].as_str().expect("code");
+        assert!(code == "access_denied" || code == "exited");
+        assert!(issue["count"].as_u64().expect("count") >= 1);
+    }
+    let _ = serde_json::from_str::<water_process_scan::ProcessSummary>(&json)
+        .expect("strict ProcessSummary");
+}
+
+#[test]
+fn process_path_reference() {
+    let mut session = Session::new();
+    let exact = session.spawn_ping(r"C:\a\b");
+    let prefix = session.spawn_ping(r"C:\a\bc");
+    let inner = session.spawn_ping(r"C:\a\b\cache");
+    let slash = session.spawn_ping(r"c:/A/B");
+    let quoted = session.spawn_ping(r#""C:\a\b""#);
+    let equals = session.spawn_ping(r"--flag=C:\a\b");
+    let snap = session.wait_for_pids(&[exact, prefix, inner, slash, quoted, equals]);
+    let hits = snap.references_path(r"C:\a\b", &[]);
+    assert!(hits.contains(&exact), "exact path must match");
+    assert!(
+        !hits.contains(&prefix),
+        "PROC_PATH_BOUNDARY: C:\\a\\bc must not match C:\\a\\b"
+    );
+    assert!(hits.contains(&inner), "path followed by \\ must match");
+    assert!(hits.contains(&slash), "slash and case must normalize");
+    assert!(hits.contains(&quoted), "quoted path must match");
+    assert!(hits.contains(&equals), "equals-prefixed path must match");
+    let cmd_hits = snap.references_path(r"C:\a\b", &["cmd.exe"]);
+    assert!(cmd_hits.contains(&exact));
+    assert!(!cmd_hits.contains(&prefix));
+    let none = snap.references_path(r"C:\a\b", &["chrome.exe"]);
+    assert!(none.is_empty(), "name filter must exclude cmd.exe");
+    let fixture_hits = snap.references_path(&session.path_str(), &[]);
+    assert!(fixture_hits.contains(&exact));
+    assert!(fixture_hits.contains(&prefix));
+    session.stop();
+}
+
+#[test]
+fn process_in_use_and_orphans() {
+    for required in [
+        "jest-worker",
+        "vitest",
+        "expo start",
+        "cursor-agent",
+        "codex",
+        "grok",
+        "playwright",
+        "puppeteer",
+        "--headless",
+        "metro",
+    ] {
+        assert!(
+            DEFAULT_ORPHAN_PATTERNS
+                .iter()
+                .any(|p| p.eq_ignore_ascii_case(required)),
+            "missing default pattern {required}"
+        );
+    }
+    let mut session = Session::new();
+    let alive = session.spawn_ping("alive-parent");
+    session.spawn_orphan();
+    let _ = session.wait_for_orphan();
+    let snap = session.wait_for_pids(&[alive]);
+    let none = in_use(
+        &snap,
+        &InUseSpec {
+            mode: InUseMode::None,
+            processes: vec!["cmd.exe".to_string()],
+        },
+        &session.path_str(),
+    );
+    assert!(none.is_none());
+    let running = in_use(
+        &snap,
+        &InUseSpec {
+            mode: InUseMode::ProcessRunning,
+            processes: vec!["cmd.exe".to_string()],
+        },
+        &session.path_str(),
+    )
+    .expect("cmd.exe is running");
+    assert!(running.process_name.eq_ignore_ascii_case("cmd.exe"));
+    let missing = in_use(
+        &snap,
+        &InUseSpec {
+            mode: InUseMode::ProcessRunning,
+            processes: vec!["water-process-scan-missing.exe".to_string()],
+        },
+        &session.path_str(),
+    );
+    assert!(missing.is_none());
+    let referenced = in_use(
+        &snap,
+        &InUseSpec {
+            mode: InUseMode::CmdlineReferencesItem,
+            processes: Vec::new(),
+        },
+        &session.path_str(),
+    )
+    .expect("cmdline references fixture");
+    assert!(referenced.process_name.eq_ignore_ascii_case("cmd.exe"));
+    let filtered = in_use(
+        &snap,
+        &InUseSpec {
+            mode: InUseMode::CmdlineReferencesItem,
+            processes: vec!["chrome.exe".to_string()],
+        },
+        &session.path_str(),
+    );
+    assert!(filtered.is_none());
+    let chains = orphans(&snap, &[session.token.as_str()]);
+    assert!(!chains.is_empty(), "homemade orphan must be listed");
+    assert!(
+        chains.iter().all(|c| c.root_pid != alive),
+        "parent still running is not an orphan"
+    );
+    let orphan = chains
+        .iter()
+        .find(|c| c.name.eq_ignore_ascii_case("cmd.exe"))
+        .expect("orphan cmd.exe");
+    let summary = snap.summary();
+    let known: BTreeSet<u32> = summary.processes.iter().map(|p| p.pid).collect();
+    assert!(!orphan.descendant_pids.contains(&orphan.root_pid));
+    assert!(orphan.descendant_pids.iter().all(|p| known.contains(p)));
+    assert_eq!(orphan.matched_pattern, session.token);
+    session.stop();
+}
+
+#[test]
+fn process_privacy() {
+    let mut session = Session::new();
+    let _pid = session.spawn_ping("jest-worker");
+    session.spawn_orphan();
+    let snap = session.wait_for_path();
+    let token = session.token.clone();
+    let path = session.path_str();
+    let summary_json = summary_to_json(&snap.summary());
+    let snap_dbg = format!("{snap:?}");
+    let hit = in_use(
+        &snap,
+        &InUseSpec {
+            mode: InUseMode::CmdlineReferencesItem,
+            processes: Vec::new(),
+        },
+        &path,
+    )
+    .expect("in-use hit");
+    let hit_json = serde_json::to_string(&hit).expect("InUseHit json");
+    let hit_dbg = format!("{hit:?}");
+    let chains: Vec<OrphanChain> = orphans(&snap, &["jest-worker"]);
+    let orphan_json = serde_json::to_string(&chains).expect("OrphanChain json");
+    let orphan_dbg = format!("{chains:?}");
+    for (label, text) in [
+        ("summary json", summary_json.as_str()),
+        ("snapshot debug", snap_dbg.as_str()),
+        ("InUseHit json", hit_json.as_str()),
+        ("InUseHit debug", hit_dbg.as_str()),
+        ("OrphanChain json", orphan_json.as_str()),
+        ("OrphanChain debug", orphan_dbg.as_str()),
+    ] {
+        assert!(
+            !text
+                .to_ascii_lowercase()
+                .contains(&token.to_ascii_lowercase()),
+            "{label} leaked the test token"
+        );
+        assert!(
+            !text
+                .to_ascii_lowercase()
+                .contains(&path.to_ascii_lowercase()),
+            "{label} leaked the fixture path"
+        );
+    }
+    session.stop();
+}
+
+fn regex_is_rfc3339(value: &str) -> bool {
+    if value.len() != 20 {
+        return false;
+    }
+    let bytes = value.as_bytes();
+    bytes[4] == b'-'
+        && bytes[7] == b'-'
+        && bytes[10] == b'T'
+        && bytes[13] == b':'
+        && bytes[16] == b':'
+        && bytes[19] == b'Z'
+        && bytes.iter().enumerate().all(|(i, c)| match i {
+            4 | 7 | 10 | 13 | 16 | 19 => true,
+            _ => c.is_ascii_digit(),
+        })
+}
