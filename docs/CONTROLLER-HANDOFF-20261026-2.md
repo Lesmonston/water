@@ -16,6 +16,11 @@
 - 补单交回后用同样流程复验：`scripts/acceptance/w2-receipt-audit.mjs`、`.local/w2-accept/run.sh`、`.local/w2-accept/controls.mjs`、`scripts/acceptance/w2-d-controller-cases.rs`。
 - 补单已派出（16:15 JST）：后端四张交 grokbot，界面 E-02 交 Astra，都是新开对话。
 - **17:12 JST 五票全部 VERIFIED 并合入主线**（[第 2 轮验收](acceptance/wave2/controller/WATER-W2-AE-REVIEW-2-20261026.md)）。第 2 轮验收树为 `.worktrees/accept2-w2-*`，清单在 `.local/w2-accept2/`。下一步：设计 F 票（第 5 节）。
+- **第三波已设计并 READY**：见 [PLAN](dispatch/wave3/PLAN.md) 与 [派前回执](dispatch/wave3/READY-REPORT-20261026.md)。
+  - 分工：F1 服务核心、F2 桌面宿主可同时做；F3 接线与整机验收待两票验收后出。
+  - 契约在 `contracts/desktop-v1/`；检查入口为 `scripts/desktop-wave-check.mjs`，原生窗口观察器为 `scripts/acceptance/w3-host-native-observe.ps1`。
+  - 自测清单在 `.local/w3-selftest/manifest.json`（覆盖变量 `WATER_W3_OVERRIDE_MANIFEST`，只限 `WATER-W3-SELFTEST*`、`WATER-W3-ACCEPT-*`）。
+  - 本版清理关闭。
 - 遗留到 M2 接线前：CLEAN 改为按句柄相对删除；云文件占位符一类的重解析点不删；8.3 短名。
 
 ## 1. 仓库与关键提交

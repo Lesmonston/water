@@ -1,0 +1,16 @@
+{"binary":"C:\\Users\\37310\\.rustup\\toolchains\\1.95.0-x86_64-pc-windows-msvc\\bin\\cargo.exe","args":["fmt","--manifest-path","packages/water-service/Cargo.toml","--","--check"],"exitCode":1,"error":null}
+--- stdout ---
+Diff in \\?\F:\new\smaltalk\water\.worktrees\w3-selftest-f1\packages\water-service\tests\service_v1.rs:2:
+ 
+ #[test]
+ fn service_ipc_contract() {
+[31m-    assert!(!token_reusable(true), "SERVICE_TOKEN_ONCE: a used token must not be reusable");
+[0m[32m+    assert!(
+[0m[32m+        !token_reusable(true),
+[0m[32m+        "SERVICE_TOKEN_ONCE: a used token must not be reusable"
+[0m[32m+    );
+[0m }
+ 
+ #[test]
+
+--- stderr ---

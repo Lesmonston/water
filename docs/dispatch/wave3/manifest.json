@@ -1,0 +1,382 @@
+{
+  "schemaVersion": 1,
+  "wave": "water-wave3-desktop",
+  "status": "F1_F2_READY",
+  "controller": "Claude",
+  "controllerRoot": "F:/new/smaltalk/water",
+  "controllerBranch": "main",
+  "helper": "scripts/desktop-wave-check.mjs",
+  "nativeObserver": "scripts/acceptance/w3-host-native-observe.ps1",
+  "baseCommit": "197dfdaecc94dc8b84e94aa8d91ee5cb1c0d965e",
+  "plan": "docs/dispatch/wave3/PLAN.md",
+  "frozenFiles": [
+    {
+      "path": "contracts/checkup-v1/MODEL.md",
+      "sha256": "fe0c9a4f5d96ce9297e8f72e75df8c6f666f9a6af440fc198aa7b3362692188b"
+    },
+    {
+      "path": "contracts/checkup-v1/IPC.md",
+      "sha256": "62f726ced5f863f1b47db261976d8b5e5183f65669b2ba09d2f85a3977161be2"
+    },
+    {
+      "path": "contracts/checkup-v1/ui-fixtures.json",
+      "sha256": "2dd62585cb7ca31d429af8bf5360dda44d645dd73a5d3f79542d4d23ce1840e2"
+    },
+    {
+      "path": "contracts/desktop-v1/SERVICE.md",
+      "sha256": "44ae8643cbe64e083807386919192ce15c3cf586d1ecddbcf908ca0f0157180a"
+    },
+    {
+      "path": "contracts/desktop-v1/HOST.md",
+      "sha256": "3d1f3cbb2f98415f73721ef111cfc13b6d0fed78a2b09641008495c2d8f304fc"
+    },
+    {
+      "path": "contracts/desktop-bootstrap-mirror-v1/MIRROR.json",
+      "sha256": "494e2b42e0803ba79170ffc162e8ac4938add6284b17dfdeb1f78fb527455e0f"
+    },
+    {
+      "path": "apps/desktop-preview/Cargo.lock",
+      "sha256": "c56b58aa141a85617a59db4de679ff73d69827aee81bda958b1fdee0c9bbbfe8"
+    },
+    {
+      "path": "docs/dispatch/W3-DESKTOP-WORKER-RULES.md",
+      "sha256": "5b7935f09da42fdf81caaa3ef4d062351bde5efcccaca763f57962d4793166c2"
+    },
+    {
+      "path": "docs/decisions/ADR-018-device-junk-checkup-and-in-app-cleanup.md",
+      "sha256": "1195b17c469b3abe290f4d334628fa36583ca7f20c46349aaf1071ff839a0579"
+    }
+  ],
+  "tasks": [
+    {
+      "id": "WATER-W3-F1",
+      "title": "服务核心",
+      "slot": "w3-f1",
+      "kind": "service",
+      "gate": "heavy",
+      "status": "READY",
+      "baseCommit": "197dfdaecc94dc8b84e94aa8d91ee5cb1c0d965e",
+      "snapshotRef": "refs/tags/water-w3-desktop-base-20261026",
+      "dispatchedAt": null,
+      "startedAt": null,
+      "model": null,
+      "modelAssignment": "user-arranged; report actual engine/model",
+      "macOS": "unverified",
+      "readyOn": "2026-10-26",
+      "worktree": "F:/new/smaltalk/water/.worktrees/w3-f1",
+      "branch": "worker/water-w3-f1",
+      "ticket": "docs/dispatch/tickets/WATER-W3-F1-WATER-SERVICE-20261026.md",
+      "report": "docs/dispatch/reports/WATER-W3-F1-REPORT.md",
+      "spec": "contracts/desktop-v1/SERVICE.md",
+      "outputRoot": "packages/water-service",
+      "packageName": "water-service",
+      "testTarget": "service_v1",
+      "testFiles": [
+        "packages/water-service/tests/service_v1.rs"
+      ],
+      "expectedTests": [
+        "service_ipc_contract",
+        "service_scan_views",
+        "service_clean_flow",
+        "service_trends_locations",
+        "service_storage_safety"
+      ],
+      "proofTargets": {
+        "nc1": "SERVICE_TOKEN_ONCE",
+        "nc2": "SERVICE_CLEAN_DISABLED",
+        "nc3": "SERVICE_PROTECTED_PLAN"
+      },
+      "productionFiles": [
+        "packages/water-service/Cargo.toml",
+        "packages/water-service/Cargo.lock",
+        "packages/water-service/README.md",
+        "packages/water-service/examples/service_smoke.rs"
+      ],
+      "allowedFiles": [
+        "docs/dispatch/reports/WATER-W3-F1-REPORT.md"
+      ],
+      "allowedPrefixes": [
+        "packages/water-service/",
+        "docs/acceptance/wave3/f1/"
+      ],
+      "evidenceDir": "docs/acceptance/wave3/f1/",
+      "allowedModes": [
+        "baseline",
+        "lock",
+        "check",
+        "test",
+        "real",
+        "red-nc1",
+        "red-nc2",
+        "red-nc3",
+        "archive"
+      ],
+      "expectedFinalModes": [
+        "check",
+        "test",
+        "real"
+      ],
+      "mustRead": [
+        "docs/dispatch/W3-DESKTOP-WORKER-RULES.md",
+        "docs/decisions/ADR-018-device-junk-checkup-and-in-app-cleanup.md",
+        "contracts/desktop-v1/SERVICE.md",
+        "contracts/checkup-v1/IPC.md",
+        "contracts/checkup-v1/MODEL.md",
+        "contracts/checkup-v1/ui-fixtures.json",
+        "packages/junk-rules/Cargo.toml",
+        "packages/junk-scan/Cargo.toml",
+        "packages/process-scan/Cargo.toml",
+        "packages/junk-clean/Cargo.toml"
+      ],
+      "cargoCacheSource": "F:/new/smaltalk/water/.worktrees/a/.local/cargo-home/registry",
+      "realMode": "service-smoke",
+      "nativeModule": "native_windows.rs",
+      "allowedEnv": [],
+      "expectedDependencies": [
+        {
+          "name": "serde",
+          "req": "=1.0.229",
+          "kind": null,
+          "optional": false,
+          "path": null,
+          "defaults": true,
+          "features": [
+            "derive"
+          ]
+        },
+        {
+          "name": "serde_json",
+          "req": "=1.0.151",
+          "kind": null,
+          "optional": false,
+          "path": null,
+          "defaults": true,
+          "features": []
+        },
+        {
+          "name": "water-junk-clean",
+          "req": "*",
+          "kind": null,
+          "optional": false,
+          "path": "packages/junk-clean",
+          "defaults": true,
+          "features": []
+        },
+        {
+          "name": "water-junk-rules",
+          "req": "*",
+          "kind": null,
+          "optional": false,
+          "path": "packages/junk-rules",
+          "defaults": true,
+          "features": []
+        },
+        {
+          "name": "water-junk-scan",
+          "req": "*",
+          "kind": null,
+          "optional": false,
+          "path": "packages/junk-scan",
+          "defaults": true,
+          "features": []
+        },
+        {
+          "name": "water-process-scan",
+          "req": "*",
+          "kind": null,
+          "optional": false,
+          "path": "packages/process-scan",
+          "defaults": true,
+          "features": []
+        }
+      ],
+      "nativeWindowBudget": 0,
+      "nativeDirectoryDialogBudget": 0,
+      "browserBudget": 0,
+      "realDataPermission": "read-only metadata per ADR-018; clean disabled in the real smoke",
+      "baselineStatus": "PASSED",
+      "baselineEvidence": "docs/acceptance/wave3/controller/preflight-20261026/baseline/2026-10-26T08-31-15.269Z-32544-baseline-result.json"
+    },
+    {
+      "id": "WATER-W3-F2",
+      "title": "桌面宿主",
+      "slot": "w3-f2",
+      "kind": "host",
+      "gate": "light",
+      "status": "READY",
+      "baseCommit": "197dfdaecc94dc8b84e94aa8d91ee5cb1c0d965e",
+      "snapshotRef": "refs/tags/water-w3-desktop-base-20261026",
+      "dispatchedAt": null,
+      "startedAt": null,
+      "model": null,
+      "modelAssignment": "user-arranged; report actual engine/model",
+      "macOS": "unverified",
+      "readyOn": "2026-10-26",
+      "worktree": "F:/new/smaltalk/water/.worktrees/w3-f2",
+      "branch": "worker/water-w3-f2",
+      "ticket": "docs/dispatch/tickets/WATER-W3-F2-DESKTOP-HOST-20261026.md",
+      "report": "docs/dispatch/reports/WATER-W3-F2-REPORT.md",
+      "spec": "contracts/desktop-v1/HOST.md",
+      "outputRoot": "apps/water/host",
+      "packageName": "water-desktop",
+      "testTarget": "host_v1",
+      "testFiles": [
+        "apps/water/host/tests/host_v1.rs"
+      ],
+      "expectedTests": [
+        "host_config_boundary",
+        "host_navigation_boundary",
+        "host_command_registry",
+        "host_data_directory"
+      ],
+      "proofTargets": {
+        "nc1": "HOST_CONFIG",
+        "nc2": "HOST_NAVIGATION"
+      },
+      "productionFiles": [
+        "apps/water/host/Cargo.toml",
+        "apps/water/host/Cargo.lock",
+        "apps/water/host/build.rs",
+        "apps/water/host/tauri.conf.json",
+        "apps/water/host/capabilities/main.json",
+        "apps/water/host/README.md"
+      ],
+      "allowedFiles": [
+        "docs/dispatch/reports/WATER-W3-F2-REPORT.md"
+      ],
+      "allowedPrefixes": [
+        "apps/water/host/",
+        "docs/acceptance/wave3/f2/"
+      ],
+      "evidenceDir": "docs/acceptance/wave3/f2/",
+      "allowedModes": [
+        "baseline",
+        "lock",
+        "check",
+        "test",
+        "native",
+        "red-nc1",
+        "red-nc2",
+        "archive"
+      ],
+      "expectedFinalModes": [
+        "check",
+        "test",
+        "native"
+      ],
+      "mustRead": [
+        "docs/dispatch/W3-DESKTOP-WORKER-RULES.md",
+        "docs/decisions/ADR-018-device-junk-checkup-and-in-app-cleanup.md",
+        "contracts/desktop-v1/HOST.md",
+        "contracts/checkup-v1/IPC.md",
+        "apps/desktop-preview/src/main.rs",
+        "apps/desktop-preview/src/v1.rs",
+        "apps/water/ui/index.html",
+        "packages/native-picker/src/v1.rs"
+      ],
+      "cargoCacheSource": "F:/new/smaltalk/water/.worktrees/ac/.local/desktop-cargo-home/registry",
+      "realMode": null,
+      "nativeModule": null,
+      "allowedEnv": [
+        "\"WATER_DATA_DIR\""
+      ],
+      "referenceLock": "apps/desktop-preview/Cargo.lock",
+      "binName": "water",
+      "windowTitle": "Water",
+      "expectedDependencies": [
+        {
+          "name": "serde",
+          "req": "=1.0.229",
+          "kind": null,
+          "optional": false,
+          "path": null,
+          "defaults": true,
+          "features": [
+            "derive"
+          ]
+        },
+        {
+          "name": "serde_json",
+          "req": "=1.0.151",
+          "kind": null,
+          "optional": false,
+          "path": null,
+          "defaults": true,
+          "features": []
+        },
+        {
+          "name": "tauri",
+          "req": "=2.12.5",
+          "kind": null,
+          "optional": false,
+          "path": null,
+          "defaults": false,
+          "features": [
+            "common-controls-v6",
+            "wry"
+          ]
+        },
+        {
+          "name": "tauri-build",
+          "req": "=2.7.4",
+          "kind": "build",
+          "optional": false,
+          "path": null,
+          "defaults": true,
+          "features": []
+        },
+        {
+          "name": "water-native-picker",
+          "req": "*",
+          "kind": null,
+          "optional": false,
+          "path": "packages/native-picker",
+          "defaults": true,
+          "features": []
+        }
+      ],
+      "expectedConfig": {
+        "productName": "Water",
+        "version": "0.1.0",
+        "identifier": "app.water.desktop",
+        "build": {
+          "frontendDist": "../ui"
+        },
+        "app": {
+          "windows": [],
+          "withGlobalTauri": true,
+          "security": {
+            "csp": "default-src 'self'; script-src 'self'; style-src 'self'; img-src 'self' data:; connect-src ipc: http://ipc.localhost; font-src 'self'; object-src 'none'; base-uri 'none'; form-action 'none'; frame-ancestors 'none'",
+            "assetProtocol": {
+              "enable": false
+            },
+            "capabilities": [
+              "main"
+            ]
+          }
+        },
+        "bundle": {
+          "active": false
+        },
+        "plugins": {}
+      },
+      "expectedCapability": {
+        "identifier": "main",
+        "windows": [
+          "main"
+        ],
+        "permissions": [
+          "core:window:allow-start-dragging"
+        ]
+      },
+      "nativeWindowBudget": 1,
+      "nativeDirectoryDialogBudget": 0,
+      "browserBudget": 0,
+      "realDataPermission": "none",
+      "baselineStatus": "PASSED",
+      "baselineEvidence": "docs/acceptance/wave3/controller/preflight-20261026/baseline/2026-10-26T08-31-48.814Z-42024-baseline-result.json"
+    }
+  ],
+  "gateSelfTest": "docs/acceptance/wave3/controller/preflight-20261026/",
+  "readyReport": "docs/dispatch/wave3/READY-REPORT-20261026.md"
+}

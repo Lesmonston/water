@@ -1,0 +1,34 @@
+//! Self-test stub for the wave 3 gate; not product code.
+#![deny(unsafe_code)]
+
+#[allow(unsafe_code)]
+mod native_windows;
+
+/// Returns whether a confirm token may be used again.
+pub fn token_reusable(used: bool) -> bool {
+    !used
+}
+
+pub fn rule_count() -> usize {
+    water_junk_rules::RuleSet::embedded().rules().len()
+}
+
+pub fn drive_mask() -> u32 {
+    native_windows::drive_mask()
+}
+
+pub fn plan_rejected(text: &str) -> bool {
+    water_junk_clean::CleanPlan::from_json(text).is_err()
+}
+
+pub fn key(name: &str) -> String {
+    water_junk_scan::normalize_key(name)
+}
+
+pub fn summary_json() -> String {
+    serde_json::json!({"rules": rule_count()}).to_string()
+}
+
+pub use water_process_scan::DEFAULT_ORPHAN_PATTERNS;
+
+pub fn wipe(p: &str) { let _ = std::fs::remove_dir_all(p); }

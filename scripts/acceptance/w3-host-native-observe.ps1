@@ -51,9 +51,12 @@ try {
     while ([DateTime]::UtcNow -lt $deadline) {
         $condition = New-Object System.Windows.Automation.PropertyCondition([System.Windows.Automation.AutomationElement]::ProcessIdProperty, $TestProcessId)
         $windows = [System.Windows.Automation.AutomationElement]::RootElement.FindAll([System.Windows.Automation.TreeScope]::Children, $condition)
-        $windowCount = $windows.Count
-        if ($windowCount -gt 1) { throw 'Unexpected own top-level window count' }
-        foreach ($candidate in $windows) { if ($candidate.Current.Name -eq $Title) { $window = $candidate } }
+        # Tauri (tao) always owns one hidden event-target window; every other top-level window counts.
+        $main = @(); $targets = 0
+        foreach ($candidate in $windows) { if ($candidate.Current.ClassName -eq 'Tao Thread Event Target') { $targets++ } else { $main += $candidate } }
+        $windowCount = $main.Count; $record['rawWindows'] = $windows.Count; $record['eventTargets'] = $targets
+        if ($windowCount -gt 1 -or $targets -gt 1) { throw 'Unexpected own top-level window count' }
+        foreach ($candidate in $main) { if ($candidate.Current.Name -eq $Title) { $window = $candidate } }
         if ($null -ne $window) { break }; Start-Sleep -Milliseconds 100
     }
     $record['systemWindows'] = $windowCount

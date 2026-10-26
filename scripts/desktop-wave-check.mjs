@@ -61,8 +61,11 @@ function audit() {
 const host = task.kind === 'host';
 const mirror = host ? json(join(controller, 'contracts/desktop-bootstrap-mirror-v1/MIRROR.json')) : null;
 if (host) { const frozen = (manifest.frozenFiles ?? []).find(f => f.path === 'contracts/desktop-bootstrap-mirror-v1/MIRROR.json'); assert(frozen, 'Mirror contract must be frozen'); assert.equal(hash(readFileSync(join(controller, frozen.path))), frozen.sha256, 'Mirror contract changed'); }
-const cargoArgs = args => host ? [...mirror.cargoArguments, ...args] : args;
+// External subcommands (clippy) only receive arguments after their name; same fix as wave 1 scripts/ac-clippy-arguments.mjs.
+const cargoArgs = args => !host ? args : args[0] === 'clippy' ? [args[0], ...mirror.cargoArguments, ...args.slice(1)] : [...mirror.cargoArguments, ...args];
 const cargoTimeout = host ? 1800000 : 600000;
+// cargo metadata would otherwise want every platform's crates; the AC cache holds only what a Windows build fetches.
+const platformFilter = host ? ['--filter-platform', 'x86_64-pc-windows-msvc'] : [];
 function rustEnv() {
   const rustup = join(homedir(), '.cargo/bin/rustup.exe');
   const cargo = command(rustup, ['which', 'cargo', '--toolchain', '1.95.0']).stdout.trim(), rustc = command(rustup, ['which', 'rustc', '--toolchain', '1.95.0']).stdout.trim();
@@ -81,7 +84,7 @@ function lockPackages(path) {
   return text.split('\n[[package]]\n').slice(1).map(block => { const get = k => (block.match(new RegExp('^' + k + ' = "([^"]*)"', 'm')) ?? [])[1] ?? null; return {name: get('name'), version: get('version'), source: get('source'), checksum: get('checksum')}; });
 }
 function dependencyPolicy(rust) {
-  const m = JSON.parse(command(rust.cargo, cargoArgs(['metadata', '--offline', '--locked', '--format-version', '1', ...rust.manifestArgs]), {timeout: cargoTimeout}).stdout);
+  const m = JSON.parse(command(rust.cargo, cargoArgs(['metadata', '--offline', '--locked', '--format-version', '1', ...platformFilter, ...rust.manifestArgs]), {timeout: cargoTimeout}).stdout);
   const p = m.packages.find(p => p.name === task.packageName); assert(p, 'Package name must be ' + task.packageName);
   assert.deepEqual(m.workspace_members, [p.id], 'Workspace must contain only this package');
   assert.equal(p.edition, '2024'); assert(['1.95', '1.95.0'].includes(p.rust_version)); assert.deepEqual(p.publish, []);
@@ -195,14 +198,26 @@ try {
     assert(!existsSync(join(root, task.outputRoot)), 'Output root must not exist yet');
     for (const f of task.mustRead) assert(existsSync(join(root, f)), 'Missing required reading ' + f);
     const rust = rustEnv(); const cacheRoot = join(rust.home, 'registry', 'cache'); const cache = new Set(readdirSync(cacheRoot).flatMap(d => readdirSync(join(cacheRoot, d))));
-    const needed = host ? lockPackages(join(controller, task.referenceLock)).filter(q => q.source).map(q => q.name + '-' + q.version + '.crate') : Object.entries(ALLOWED_REGISTRY).map(([n, v]) => n + '-' + v + '.crate');
-    for (const c of needed) assert(cache.has(c), 'Offline cache lacks ' + c); record.offlineCache = {complete: true, crates: needed.length};
+    // The AC lock also lists other-platform crates that a Windows build never fetches; the offline build in lock/check is the full proof.
+    const reference = host ? lockPackages(join(controller, task.referenceLock)).filter(q => q.source).map(q => q.name + '-' + q.version + '.crate') : [];
+    const needed = host ? ['tauri-2.12.5', 'tauri-build-2.7.4', 'tauri-runtime-wry', 'wry', 'webview2-com', 'window-vibrancy-0.8.1', 'serde-1.0.229', 'serde_json-1.0.151'].map(k => reference.find(c => c.startsWith(k + (k.match(/-\d/) ? '' : '-')))) : Object.entries(ALLOWED_REGISTRY).map(([n, v]) => n + '-' + v + '.crate');
+    for (const c of needed) assert(c && cache.has(c), 'Offline cache lacks ' + c);
+    record.offlineCache = {required: needed.length, referencePresent: reference.filter(c => cache.has(c)).length, referenceTotal: reference.length};
     if (host) { assert(existsSync(join(root, 'apps/water/ui/index.html')), 'Verified UI missing'); record.nativeHelper = existsSync(join(controller, 'scripts/acceptance/w3-host-native-observe.ps1')); }
     record.meaning = 'Environment and inputs only; no product exists yet';
   } else if (mode === 'archive') { archive(); }
   else {
     const rust = rustEnv();
-    if (mode === 'lock') { assert(!finalGate); assert(existsSync(join(root, task.outputRoot, 'Cargo.toml'))); if (!existsSync(join(root, task.outputRoot, 'Cargo.lock'))) command(rust.cargo, cargoArgs(['generate-lockfile', '--offline', ...rust.manifestArgs]), {timeout: cargoTimeout}); dependencyPolicy(rust); }
+    if (mode === 'lock') {
+      assert(!finalGate); assert(existsSync(join(root, task.outputRoot, 'Cargo.toml')));
+      const lock = join(root, task.outputRoot, 'Cargo.lock');
+      if (host) {
+        // Seed from the accepted AC lock so every registry version stays identical; cargo then only adds this package and its path crates.
+        if (!existsSync(lock)) { copyFileSync(join(controller, task.referenceLock), lock); record.lockSeededFrom = task.referenceLock; }
+        command(rust.cargo, cargoArgs(['metadata', '--offline', '--format-version', '1', ...platformFilter, ...rust.manifestArgs]), {timeout: cargoTimeout});
+      } else if (!existsSync(lock)) command(rust.cargo, cargoArgs(['generate-lockfile', '--offline', ...rust.manifestArgs]), {timeout: cargoTimeout});
+      dependencyPolicy(rust);
+    }
     else {
       record.sourceState = capture(); dependencyPolicy(rust); sourcePolicy();
       if (mode === 'check') { command(rust.cargo, ['fmt', ...rust.manifestArgs, '--', '--check']); command(rust.cargo, cargoArgs(['clippy', '--offline', '--locked', ...rust.manifestArgs, '--all-targets', '--', '-D', 'warnings']), {timeout: cargoTimeout}); }
