@@ -1,3 +1,5 @@
+#![forbid(unsafe_code)]
+
 fn is_hex(c: u8) -> bool {
     c.is_ascii_hexdigit()
 }
@@ -71,12 +73,13 @@ pub fn normalize_key(name: &str) -> String {
         .strip_prefix('{')
         .and_then(|s| s.strip_suffix('}'))
         .unwrap_or(name);
-    if is_guid_body(trimmed) && name.starts_with('{') && name.ends_with('}') {
+    // `trimmed` is the body of `{guid}` or the whole name when it carries no braces.
+    if is_guid_body(trimmed) {
         return "{guid}".to_string();
     }
     let mut work = name.to_string();
     if let Some(idx) = last_separator(&work) {
-        let tail = &work[idx + 1..];
+        let tail = work.get(idx + 1..).unwrap_or("");
         if token_qualifies(tail) {
             work.replace_range(idx + 1.., "*");
         }

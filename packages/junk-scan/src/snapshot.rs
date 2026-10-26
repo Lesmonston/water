@@ -1,3 +1,5 @@
+#![forbid(unsafe_code)]
+
 use crate::error::ScanError;
 use crate::model::{Growth, ScanResult, Snapshot, SnapshotGroup, from_json, to_json};
 use crate::util::{format_i128, parse_i128, parse_rfc3339};
@@ -53,6 +55,8 @@ pub fn growth(previous: &Snapshot, current: &Snapshot) -> Vec<Growth> {
     let days_raw = delta.as_secs_f64() / 86_400.0;
     let days = (days_raw * 10.0).round() / 10.0;
     let days = if days == 0.0 { 0.1 } else { days };
+    // Rate uses the exact interval; `days` above is display-only.
+    let interval_nanos = i128::try_from(delta.as_nanos()).unwrap_or(i128::MAX);
     let mut out = Vec::new();
     for (id, cur) in &current.groups {
         let Some(prev) = previous.groups.get(id) else {
@@ -67,7 +71,7 @@ pub fn growth(previous: &Snapshot, current: &Snapshot) -> Vec<Growth> {
         let bytes_delta = cur_bytes - prev_bytes;
         let count_delta = i64::try_from(cur.item_count).unwrap_or(i64::MAX)
             - i64::try_from(prev.item_count).unwrap_or(0);
-        let bytes_per_day = (bytes_delta as f64 / days).round() as i128;
+        let bytes_per_day = per_day(bytes_delta, interval_nanos);
         let recent = cur
             .newest_activity
             .as_deref()
@@ -87,4 +91,27 @@ pub fn growth(previous: &Snapshot, current: &Snapshot) -> Vec<Growth> {
         });
     }
     out
+}
+
+/// `bytes_delta / (interval_seconds / 86400)`, rounded half away from zero.
+fn per_day(bytes_delta: i128, interval_nanos: i128) -> i128 {
+    const DAY_NANOS: i128 = 86_400 * 1_000_000_000;
+    if interval_nanos <= 0 {
+        return 0;
+    }
+    match bytes_delta.checked_mul(DAY_NANOS) {
+        Some(scaled) => {
+            let quotient = scaled / interval_nanos;
+            let remainder = scaled % interval_nanos;
+            if remainder.unsigned_abs() * 2 >= interval_nanos.unsigned_abs() {
+                quotient + scaled.signum()
+            } else {
+                quotient
+            }
+        }
+        None => {
+            let rate = bytes_delta as f64 * (DAY_NANOS as f64 / interval_nanos as f64);
+            rate.round() as i128
+        }
+    }
 }

@@ -1,3 +1,5 @@
+#![forbid(unsafe_code)]
+
 use crate::error::ScanError;
 use crate::model::{Category, InUse, ItemType, Level};
 use crate::util::{parse_rfc3339, validate_abs_path};

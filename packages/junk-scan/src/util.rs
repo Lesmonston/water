@@ -1,3 +1,5 @@
+#![forbid(unsafe_code)]
+
 use crate::error::ScanError;
 use std::time::{Duration, SystemTime, UNIX_EPOCH};
 
@@ -12,8 +14,8 @@ pub fn validate_abs_path(path: &str) -> Result<(), ScanError> {
     if path.ends_with('\\') && path.len() != 3 {
         return Err(ScanError::InvalidPlan);
     }
-    if path.len() > 3 {
-        for segment in path[3..].split('\\') {
+    if let Some(rest) = path.get(3..).filter(|rest| !rest.is_empty()) {
+        for segment in rest.split('\\') {
             if segment.is_empty() || segment == "." || segment == ".." {
                 return Err(ScanError::InvalidPlan);
             }
@@ -26,16 +28,17 @@ pub fn path_eq(left: &str, right: &str) -> bool {
     left.eq_ignore_ascii_case(right)
 }
 
+/// Byte-wise, ASCII case-insensitive; never slices `&str`, so non-ASCII names are safe.
 pub fn is_proper_ancestor(ancestor: &str, descendant: &str) -> bool {
     if path_eq(ancestor, descendant) {
         return false;
     }
-    let prefix = if ancestor.ends_with('\\') {
-        ancestor.to_string()
-    } else {
-        format!("{ancestor}\\")
-    };
-    descendant.len() >= prefix.len() && descendant[..prefix.len()].eq_ignore_ascii_case(&prefix)
+    let mut prefix = ancestor.as_bytes().to_vec();
+    if prefix.last() != Some(&b'\\') {
+        prefix.push(b'\\');
+    }
+    let d = descendant.as_bytes();
+    d.len() >= prefix.len() && d[..prefix.len()].eq_ignore_ascii_case(&prefix)
 }
 
 pub fn child_path(parent: &str, name: &str) -> String {

@@ -1,3 +1,5 @@
+#![forbid(unsafe_code)]
+
 use crate::error::ScanError;
 use serde::{Deserialize, Serialize};
 

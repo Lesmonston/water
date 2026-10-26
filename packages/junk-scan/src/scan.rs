@@ -1,3 +1,5 @@
+#![forbid(unsafe_code)]
+
 use crate::error::ScanError;
 use crate::keys::normalize_key;
 use crate::model::{Category, Group, Identity, Issue, Item, ItemType, Level, ScanResult, TopKey};
@@ -98,6 +100,10 @@ struct Hit {
     file_count: u64,
     newest_activity: SystemTime,
     oldest_activity: SystemTime,
+    /// `.git` check done on the entry's own listing, before any stop.
+    has_git: bool,
+    /// `None` means identity lookup failed (not that it was skipped).
+    identity: Option<Identity>,
 }
 
 struct Engine<'a> {
@@ -122,7 +128,14 @@ impl<'a> Engine<'a> {
         if self.visited > self.options.max_entries
             || self.started.elapsed() > Duration::from_secs(self.options.max_seconds)
         {
-            self.add_issue("budget_exhausted", group_id);
+            // Recorded once per group, not once per call.
+            if !self
+                .issues
+                .iter()
+                .any(|issue| issue.code == "budget_exhausted" && issue.group_id == group_id)
+            {
+                self.add_issue("budget_exhausted", group_id);
+            }
             if self.status != "cancelled" {
                 self.status = "partial";
             }
@@ -263,29 +276,41 @@ fn accept_type(item_type: ItemType, kind: Kind) -> bool {
     }
 }
 
-fn measure(
-    engine: &mut Engine<'_>,
-    path: &str,
-    kind: Kind,
-    group_id: &str,
-) -> (u64, u64, SystemTime, SystemTime) {
+fn measure(engine: &mut Engine<'_>, path: &str, kind: Kind, group_id: &str) -> Measured {
     let Some(self_child) = classify_path(path) else {
         engine.add_issue("access_denied", group_id);
-        return (0, 0, SystemTime::UNIX_EPOCH, SystemTime::UNIX_EPOCH);
+        return Measured {
+            bytes: 0,
+            files: 0,
+            newest: SystemTime::UNIX_EPOCH,
+            oldest: SystemTime::UNIX_EPOCH,
+            has_git: false,
+        };
     };
     let mut newest = self_child.mtime;
     let mut oldest = self_child.mtime;
     let mut bytes = 0u64;
     let mut files = 0u64;
     if kind == Kind::File {
-        return (self_child.len, 1, newest, oldest);
+        return Measured {
+            bytes: self_child.len,
+            files: 1,
+            newest,
+            oldest,
+            has_git: false,
+        };
     }
+    let mut has_git = false;
     let mut stack = vec![path.to_string()];
     while let Some(dir) = stack.pop() {
         if engine.stopped(group_id) {
             break;
         }
+        let top = path_eq(&dir, path);
         for child in engine.list(&dir, group_id) {
+            if top && child.name.eq_ignore_ascii_case(".git") {
+                has_git = true;
+            }
             if child.mtime > newest {
                 newest = child.mtime;
             }
@@ -302,7 +327,21 @@ fn measure(
             }
         }
     }
-    (bytes, files, newest, oldest)
+    Measured {
+        bytes,
+        files,
+        newest,
+        oldest,
+        has_git,
+    }
+}
+
+struct Measured {
+    bytes: u64,
+    files: u64,
+    newest: SystemTime,
+    oldest: SystemTime,
+    has_git: bool,
 }
 
 fn push_hit(
@@ -316,9 +355,17 @@ fn push_hit(
     if engine.stopped(&target.group_id) {
         return;
     }
-    let (total_bytes, file_count, newest_activity, oldest_activity) =
-        measure(engine, path, kind, &target.group_id);
-    engine.found_bytes = engine.found_bytes.saturating_add(total_bytes);
+    let measured = measure(engine, path, kind, &target.group_id);
+    // A stop during the walk leaves size, newest_activity and the .git check
+    // incomplete: the entry is not an obtained result and is not output.
+    if engine.stopped(&target.group_id) {
+        return;
+    }
+    let identity = finish_identity(path).ok();
+    if engine.stopped(&target.group_id) {
+        return;
+    }
+    engine.found_bytes = engine.found_bytes.saturating_add(measured.bytes);
     hits.push(Hit {
         target_index: index,
         group_id: target.group_id.clone(),
@@ -327,10 +374,12 @@ fn push_hit(
         keep_newest: target.keep_newest,
         path: path.to_string(),
         kind,
-        total_bytes,
-        file_count,
-        newest_activity,
-        oldest_activity,
+        total_bytes: measured.bytes,
+        file_count: measured.files,
+        newest_activity: measured.newest,
+        oldest_activity: measured.oldest,
+        has_git: measured.has_git,
+        identity,
     });
 }
 
@@ -362,13 +411,6 @@ fn walk_pattern(
             walk_pattern(engine, hits, target, index, &child.path, &segments[1..]);
         }
     }
-}
-
-fn dir_has_git(engine: &mut Engine<'_>, path: &str, group_id: &str) -> bool {
-    engine
-        .list(path, group_id)
-        .iter()
-        .any(|child| child.name.eq_ignore_ascii_case(".git"))
 }
 
 fn marker_matches(engine: &mut Engine<'_>, dir: &str, marker: &Marker, group_id: &str) -> bool {
@@ -515,12 +557,13 @@ fn run_discovery(
         if !accept_type(target.item_type, child.kind) {
             continue;
         }
+        // SCAN §3: skip a child that equals another entry or is its ancestor.
         let covered = other_paths
             .iter()
-            .any(|path| path_eq(path, &child.path) || is_proper_ancestor(path, &child.path));
+            .any(|path| path_eq(path, &child.path) || is_proper_ancestor(&child.path, path));
         let guarded = protected
             .iter()
-            .any(|path| path_eq(path, &child.path) || is_proper_ancestor(path, &child.path));
+            .any(|path| path_eq(path, &child.path) || is_proper_ancestor(&child.path, path));
         if covered || guarded {
             continue;
         }
@@ -563,7 +606,7 @@ fn too_recent(now: SystemTime, newest: SystemTime, min_age_hours: u64) -> bool {
 
 fn classify_reason(
     hit: &Hit,
-    engine: &mut Engine<'_>,
+    engine: &Engine<'_>,
     all: &[Hit],
     hard_guards: &[String],
 ) -> Option<String> {
@@ -593,7 +636,7 @@ fn classify_reason(
     {
         return Some("inside_protected".to_string());
     }
-    if hit.kind == Kind::Dir && dir_has_git(engine, &hit.path, &hit.group_id) {
+    if hit.kind == Kind::Dir && hit.has_git {
         return Some("repository".to_string());
     }
     if too_recent(engine.now, hit.newest_activity, hit.min_age_hours) {
@@ -717,16 +760,16 @@ pub fn scan(
     let mut rows: Vec<(Hit, Option<String>)> = merged
         .iter()
         .map(|hit| {
-            let reason = classify_reason(hit, &mut engine, &merged, &plan.hard_guards);
+            let reason = classify_reason(hit, &engine, &merged, &plan.hard_guards);
             (hit.clone(), reason)
         })
         .collect();
     apply_keep_newest(&mut rows);
     let mut items = Vec::new();
     for (offset, (hit, mut reason)) in rows.into_iter().enumerate() {
-        let identity = match finish_identity(&hit.path) {
-            Ok(id) => Some(id),
-            Err(_) => {
+        let identity = match hit.identity.clone() {
+            Some(id) => Some(id),
+            None => {
                 engine.add_issue("identity_unavailable", &hit.group_id);
                 if reason.is_none() {
                     reason = Some("identity_unavailable".to_string());

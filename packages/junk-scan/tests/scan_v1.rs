@@ -333,13 +333,18 @@ fn scan_pattern_marker_discovery() {
     write_file(&fx.join("disc/gamma/a.bin"), &[5; 6]);
     write_file(&fx.join("disc/delta/a.bin"), &[6; 7]);
     write_file(&fx.join("disc/epsilon/a.bin"), &[7; 9]);
+    write_file(&fx.join("disc/parent/inner/i.bin"), &[1; 5]);
+    write_file(&fx.join("disc/guardhome/vault/v.bin"), &[2; 3]);
+    write_file(&fx.join("tagdir/inner/CACHEDIR.TAG"), &[b't'; 43]);
+    write_file(&fx.join("nest/node_modules/pkg/node_modules/x.js"), b"x");
     write_file(&fx.join("crash/dump.dmp"), b"dmp1");
     write_file(&fx.join("crash/other.txt"), b"no");
 
     let now = SystemTime::now();
-    let old = now - Duration::from_secs(3 * 86400);
-    let mid = now - Duration::from_secs(2 * 86400);
-    let new = now - Duration::from_secs(86400);
+    let old = UNIX_EPOCH + Duration::from_secs(1_792_458_123);
+    let mid = UNIX_EPOCH + Duration::from_secs(1_792_544_523);
+    let new = UNIX_EPOCH + Duration::from_secs(1_792_638_245);
+    assert!(new < now);
     for (rel, when) in [
         ("keep/old", old),
         ("keep/old/a.txt", old),
@@ -417,10 +422,37 @@ fn scan_pattern_marker_discovery() {
                 0,
             ),
             target(
+                "dir-name-deep",
+                "recommended",
+                "dev_cache",
+                json!({"kind":"marker","root":fx.p("nest"),"marker":{"kind":"dir_name","names":["node_modules"]},"max_depth":8}),
+                "dir",
+                0,
+                0,
+            ),
+            target(
                 "covered",
                 "recommended",
                 "custom",
                 json!({"kind":"pattern","base":fx.path,"segments":["disc","covered"]}),
+                "dir",
+                0,
+                0,
+            ),
+            target(
+                "inner",
+                "recommended",
+                "custom",
+                json!({"kind":"pattern","base":fx.path,"segments":["disc","parent","inner"]}),
+                "dir",
+                0,
+                0,
+            ),
+            target(
+                "vault",
+                "protected",
+                "custom",
+                json!({"kind":"pattern","base":fx.path,"segments":["disc","guardhome","vault"]}),
                 "dir",
                 0,
                 0,
@@ -448,7 +480,7 @@ fn scan_pattern_marker_discovery() {
     );
 
     let result = run_default(&text, now);
-    assert!(result.status == "completed" || result.status == "partial");
+    assert_eq!(result.status, "completed");
     assert_eq!(
         item(&result, &fx.p("Google/Chrome/User Data/Default/Cache")).file_count,
         1
@@ -518,6 +550,25 @@ fn scan_pattern_marker_discovery() {
             .iter()
             .any(|i| i.path.eq_ignore_ascii_case(&fx.p("proj/deep/node_modules")))
     );
+    assert!(
+        !result
+            .items
+            .iter()
+            .any(|i| i.path.eq_ignore_ascii_case(&fx.p("tagdir/inner"))),
+        "marker hit must stop the search inside it"
+    );
+    assert!(
+        result
+            .items
+            .iter()
+            .any(|i| i.path.eq_ignore_ascii_case(&fx.p("nest/node_modules")))
+    );
+    assert!(
+        !result.items.iter().any(|i| i
+            .path
+            .eq_ignore_ascii_case(&fx.p("nest/node_modules/pkg/node_modules"))),
+        "marker hit must stop the search inside it, not max_depth"
+    );
 
     assert!(
         result
@@ -537,6 +588,25 @@ fn scan_pattern_marker_discovery() {
         .items
         .iter()
         .any(|i| i.group_id == "discover" && i.path.eq_ignore_ascii_case(&fx.p("disc/covered"))));
+    assert!(
+        !result
+            .items
+            .iter()
+            .any(|i| i.path.eq_ignore_ascii_case(&fx.p("disc/parent"))),
+        "discovery child that is an ancestor of another target item must be excluded"
+    );
+    assert!(
+        !result
+            .items
+            .iter()
+            .any(|i| i.path.eq_ignore_ascii_case(&fx.p("disc/guardhome"))),
+        "discovery child that is an ancestor of a protected item must be excluded"
+    );
+    assert_eq!(item(&result, &fx.p("disc/parent/inner")).group_id, "inner");
+    assert_eq!(
+        item(&result, &fx.p("disc/guardhome/vault")).group_id,
+        "vault"
+    );
 
     let discover = result
         .groups
@@ -544,8 +614,19 @@ fn scan_pattern_marker_discovery() {
         .find(|g| g.group_id == "discover")
         .unwrap();
     assert!(!discover.top_keys.is_empty());
-    let newest = item(&result, &fx.p("keep/new")).newest_activity.clone();
-    assert!(!newest.is_empty());
+    assert_eq!(discover.item_count, 5);
+    assert_eq!(
+        discover.total_bytes, "44",
+        "discovery bytes must not double count"
+    );
+    assert_eq!(
+        item(&result, &fx.p("keep/new")).newest_activity,
+        "2026-10-22T03:04:05Z"
+    );
+    assert_eq!(
+        item(&result, &fx.p("keep/old")).newest_activity,
+        "2026-10-20T01:02:03Z"
+    );
 }
 
 #[test]
@@ -560,6 +641,12 @@ fn scan_overlap_and_guards() {
     write_file(&fx.join("repo/src.txt"), b"r");
     write_file(&fx.join("recent/now.txt"), b"n");
     write_file(&fx.join("aged/old.txt"), b"o");
+    write_file(&fx.join("临时安装文件/保护/缓存/c.bin"), b"cc");
+    write_file(&fx.join("临时安装文件/setup.bin"), b"zz");
+    write_file(&fx.join("José/keep/k.bin"), b"k");
+    write_file(&fx.join("José/a.bin"), b"a");
+    write_file(&fx.join("same/s.bin"), b"s");
+    write_file(&fx.join("guarded/g.bin"), b"g");
 
     let now = SystemTime::now();
     set_mtime(&fx.join("recent"), now);
@@ -651,8 +738,76 @@ fn scan_overlap_and_guards() {
                 24,
                 0,
             ),
+            target(
+                "zh-root",
+                "recommended",
+                "custom",
+                json!({"kind":"pattern","base":fx.path,"segments":["临时安装文件"]}),
+                "dir",
+                0,
+                0,
+            ),
+            target(
+                "zh-prot",
+                "protected",
+                "custom",
+                json!({"kind":"pattern","base":fx.path,"segments":["临时安装文件","保护"]}),
+                "dir",
+                0,
+                0,
+            ),
+            target(
+                "zh-inner",
+                "recommended",
+                "custom",
+                json!({"kind":"pattern","base":fx.path,"segments":["临时安装文件","保护","缓存"]}),
+                "dir",
+                0,
+                0,
+            ),
+            target(
+                "jose",
+                "recommended",
+                "custom",
+                json!({"kind":"pattern","base":fx.path,"segments":["josé"]}),
+                "dir",
+                0,
+                0,
+            ),
+            target(
+                "same-a",
+                "recommended",
+                "custom",
+                json!({"kind":"pattern","base":fx.path,"segments":["same"]}),
+                "dir",
+                0,
+                0,
+            ),
+            target(
+                "same-b",
+                "recommended",
+                "custom",
+                json!({"kind":"pattern","base":fx.path,"segments":["same"]}),
+                "dir",
+                0,
+                0,
+            ),
+            target(
+                "guarded",
+                "recommended",
+                "custom",
+                json!({"kind":"pattern","base":fx.path,"segments":["guarded"]}),
+                "dir",
+                0,
+                0,
+            ),
         ],
-        vec![r"C:\".to_string(), fx.p("hold/keep")],
+        vec![
+            r"C:\".to_string(),
+            fx.p("hold/keep"),
+            fx.p("JOSé/keep"),
+            fx.p("guarded"),
+        ],
     );
 
     let result = run_default(&text, now);
@@ -693,6 +848,43 @@ fn scan_overlap_and_guards() {
         Some("too_recent")
     );
     assert!(item(&result, &fx.p("aged")).eligible);
+    assert_eq!(result.status, "completed");
+    assert_eq!(
+        item(&result, &fx.p("临时安装文件"))
+            .ineligible_reason
+            .as_deref(),
+        Some("contains_protected")
+    );
+    assert_eq!(
+        item(&result, &fx.p("临时安装文件/保护"))
+            .ineligible_reason
+            .as_deref(),
+        Some("level_not_cleanable")
+    );
+    assert_eq!(
+        item(&result, &fx.p("临时安装文件/保护/缓存"))
+            .ineligible_reason
+            .as_deref(),
+        Some("inside_protected")
+    );
+    assert_eq!(
+        item(&result, &fx.p("José")).ineligible_reason.as_deref(),
+        Some("hard_guard")
+    );
+    assert_eq!(item(&result, &fx.p("José")).file_count, 2);
+    assert_eq!(item(&result, &fx.p("same")).group_id, "same-a");
+    assert_eq!(
+        result
+            .items
+            .iter()
+            .filter(|i| i.path.eq_ignore_ascii_case(&fx.p("same")))
+            .count(),
+        1
+    );
+    assert_eq!(
+        item(&result, &fx.p("guarded")).ineligible_reason.as_deref(),
+        Some("hard_guard")
+    );
 }
 
 #[test]
@@ -707,6 +899,11 @@ fn scan_reparse_budget_cancel() {
         write_file(&fx.join(&format!("budget/f{i}.txt")), b"x");
     }
     fs::create_dir_all(fx.join("ident")).unwrap();
+    fs::create_dir_all(fx.join("bud/gitrepo/.git")).unwrap();
+    write_file(&fx.join("bud/gitrepo/a.txt"), b"g");
+    for i in 0..20 {
+        write_file(&fx.join(&format!("bud/many/f{i}.txt")), b"m");
+    }
 
     let now = SystemTime::now();
     let text = plan(
@@ -743,15 +940,17 @@ fn scan_reparse_budget_cancel() {
     );
 
     let result = run_default(&text, now);
+    assert_eq!(result.status, "completed");
     assert!(
         !result.items.iter().any(|i| i.group_id == "via-link"),
-        "intermediate junction must not produce items"
+        "SCAN_NO_FOLLOW: intermediate junction must not produce items"
     );
     assert!(
         result
             .issues
             .iter()
-            .any(|i| i.code == "reparse_skipped" && i.group_id == "via-link")
+            .any(|i| i.code == "reparse_skipped" && i.group_id == "via-link"),
+        "SCAN_NO_FOLLOW: intermediate junction must be recorded as reparse_skipped"
     );
 
     let measured = item(&result, &fx.p("item"));
@@ -760,7 +959,10 @@ fn scan_reparse_budget_cancel() {
         bytes < 1000,
         "SCAN_NO_FOLLOW: junction target bytes must not be counted, got {bytes}"
     );
-    assert_eq!(measured.file_count, 1);
+    assert_eq!(
+        measured.file_count, 1,
+        "SCAN_NO_FOLLOW: junction target files must not be counted"
+    );
 
     let tight = run(
         &text,
@@ -773,6 +975,77 @@ fn scan_reparse_budget_cancel() {
     );
     assert_eq!(tight.status, "partial");
     assert!(tight.issues.iter().any(|i| i.code == "budget_exhausted"));
+    assert!(
+        tight
+            .issues
+            .iter()
+            .filter(|i| i.code == "budget_exhausted")
+            .all(|i| i.count == 1)
+    );
+
+    let bud = plan(
+        vec![
+            target(
+                "gitrepo",
+                "recommended",
+                "custom",
+                json!({"kind":"pattern","base":fx.p("bud"),"segments":["gitrepo"]}),
+                "dir",
+                0,
+                0,
+            ),
+            target(
+                "many",
+                "recommended",
+                "custom",
+                json!({"kind":"pattern","base":fx.p("bud"),"segments":["many"]}),
+                "dir",
+                0,
+                0,
+            ),
+        ],
+        vec![r"C:\".to_string()],
+    );
+    let full = run_default(&bud, now);
+    assert_eq!(full.status, "completed");
+    assert_eq!(
+        item(&full, &fx.p("bud/gitrepo"))
+            .ineligible_reason
+            .as_deref(),
+        Some("repository")
+    );
+    let cut = run(
+        &bud,
+        now,
+        ScanOptions {
+            max_entries: 8,
+            max_seconds: 900,
+        },
+        &CancelToken::new(),
+    );
+    assert_eq!(cut.status, "partial");
+    assert!(
+        !cut.items
+            .iter()
+            .any(|i| i.eligible && i.path.eq_ignore_ascii_case(&fx.p("bud/gitrepo"))),
+        "directory with .git must not become cleanable after the budget stops"
+    );
+    assert!(
+        !cut.items
+            .iter()
+            .any(|i| i.path.eq_ignore_ascii_case(&fx.p("bud/many"))),
+        "item whose walk was cut by the budget must not be output"
+    );
+    let exhausted: Vec<_> = cut
+        .issues
+        .iter()
+        .filter(|i| i.code == "budget_exhausted")
+        .collect();
+    assert!(!exhausted.is_empty());
+    assert!(
+        exhausted.iter().all(|i| i.count == 1),
+        "budget_exhausted must be counted once per group"
+    );
 
     let cancel = CancelToken::new();
     cancel.cancel();
@@ -811,6 +1084,14 @@ fn scan_snapshot_growth_keys() {
     assert_eq!(
         normalize_key("vscode-stable-system-x64-a1b2c3"),
         "vscode-stable-system-x#-*"
+    );
+    assert_eq!(
+        normalize_key("3F2504E0-4F89-11D3-9A0C-0305E82C3301"),
+        "{guid}"
+    );
+    assert_eq!(
+        normalize_key("3f2504e0-4f89-11d3-9a0c-0305e82c3301"),
+        "{guid}"
     );
     assert_eq!(normalize_key("tmp"), "tmp");
     assert_eq!(normalize_key("7f3a9c2e1b4d"), "*");
@@ -884,4 +1165,17 @@ fn scan_snapshot_growth_keys() {
     .unwrap();
     let gunder = growth(&day_prev, &under);
     assert!(!gunder[0].leak_suspect);
+
+    let one_hour = snapshot_from_json(
+        r#"{"snapshot_version":"water.scan-snapshot.v1","scan_id":"h","taken_at":"2026-10-26T01:00:00Z","groups":{"g":{"total_bytes":"44739343","item_count":1,"newest_activity":"2026-10-20T00:00:00Z","top_keys":[]}}}"#,
+    )
+    .unwrap();
+    let ghour = growth(&prev, &one_hour);
+    assert_eq!(ghour.len(), 1);
+    assert_eq!(ghour[0].bytes_delta, "44739243");
+    assert_eq!(
+        ghour[0].bytes_per_day, "1073741832",
+        "bytes_per_day must divide by the exact interval"
+    );
+    assert!(ghour[0].leak_suspect);
 }
