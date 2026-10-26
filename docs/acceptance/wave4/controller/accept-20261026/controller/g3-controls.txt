@@ -1,0 +1,22 @@
+g3 nc1 mutated apps/water/ui/model.mjs: a forged selection of a nonselectable group counts in the selected totals (worker nc1 removed the guard in setSelected instead) (mutated sha 73236126e0c4bbdb80e398091da4d18f03efc1506bbb52b5b1c495e8e0a30810)
+g3 red-nc1 rc=0 {"task":"WATER-W4-ACCEPT-G3","mode":"red-nc1","finalGate":false,"status":"passed","error":null,"receipt":"F:\\new\\smaltalk\\water\\.worktrees\\accept-w4-g3\\.local\\checks\\WATER-W4-ACCEPT-G3\\2026-10-26T14-32-47.977Z-42172-red-nc1-result.json"}
+g3 nc1 KILLED (expected UI_LEVEL_GUARD)
+g3 nc1 restored exact bytes=true sha 2fb283b69081ec2d31db4fef2b1fb74c123c03e807761cf666ad0badb88eb278
+g3 test rc=0 {"task":"WATER-W4-ACCEPT-G3","mode":"test","finalGate":false,"status":"passed","error":null,"receipt":"F:\\new\\smaltalk\\water\\.worktrees\\accept-w4-g3\\.local\\checks\\WATER-W4-ACCEPT-G3\\2026-10-26T14-32-50.417Z-21644-test-result.json"}
+g3 nc2 mutated apps/water/ui/styles/app.css: only the sidebar footer is balanced; the home drive description keeps its short last line (worker nc2 removed the whole rule instead) (mutated sha 963a20dd80d9950dc9c4610f53043979b8e69b81402bee28a4c3f690fae21793)
+g3 red-nc2 rc=0 {"task":"WATER-W4-ACCEPT-G3","mode":"red-nc2","finalGate":false,"status":"passed","error":null,"receipt":"F:\\new\\smaltalk\\water\\.worktrees\\accept-w4-g3\\.local\\checks\\WATER-W4-ACCEPT-G3\\2026-10-26T14-32-52.497Z-35296-red-nc2-result.json"}
+g3 nc2 KILLED (expected UI_FOOTER_WRAP)
+g3 nc2 restored exact bytes=true sha cc89e27105273b64e6d15e0deb73cbb6c639cc82ad821742503ed1d07671f55c
+g3 test rc=0 {"task":"WATER-W4-ACCEPT-G3","mode":"test","finalGate":false,"status":"passed","error":null,"receipt":"F:\\new\\smaltalk\\water\\.worktrees\\accept-w4-g3\\.local\\checks\\WATER-W4-ACCEPT-G3\\2026-10-26T14-33-35.043Z-18644-test-result.json"}
+g3 nc3 mutated apps/water/ui/app.mjs: connection notices are also cleared on navigation (worker nc3 removed the error clearing instead) (mutated sha 10f61fdcea334100b00b9ecdc9582d57292ddef3d5187f6281986aa4e52342dd)
+g3 red-nc3 rc=0 {"task":"WATER-W4-ACCEPT-G3","mode":"red-nc3","finalGate":false,"status":"passed","error":null,"receipt":"F:\\new\\smaltalk\\water\\.worktrees\\accept-w4-g3\\.local\\checks\\WATER-W4-ACCEPT-G3\\2026-10-26T14-33-38.924Z-36848-red-nc3-result.json"}
+g3 nc3 KILLED (expected UI_NOTICE_SCOPE)
+g3 nc3 restored exact bytes=true sha 3cffec206576c51f9430394b94deeb22d9c1c7f62cc7480cc313470c9480ea61
+g3 test rc=0 {"task":"WATER-W4-ACCEPT-G3","mode":"test","finalGate":false,"status":"passed","error":null,"receipt":"F:\\new\\smaltalk\\water\\.worktrees\\accept-w4-g3\\.local\\checks\\WATER-W4-ACCEPT-G3\\2026-10-26T14-34-25.928Z-7536-test-result.json"}
+g3 x1 mutated apps/water/ui/styles/app.css: the page bottom padding that keeps the last row clear of the dock is removed (mutated sha 9fe48e359425e14a42bd83ff45527fb455dee63a379d2cc250f00ebaa7c38234)
+g3 browser rc=1 {"task":"WATER-W4-ACCEPT-G3","mode":"browser","finalGate":false,"status":"failed","error":"AssertionError [ERR_ASSERTION]: Unexpected exit, see 2026-10-26T14-34-28.063Z-26796-browser-1.log","receipt":"F:\\new\\smaltalk\\water\\.worktrees\\accept-w4-g3\\.local\\checks\\WATER-W4-ACCEPT-G3\\2026-10-26T14-34-28.063Z-26796-browser-result.json"}
+g3 x1 KILLED (expected UI_DOCK_CLEARANCE)
+g3 x1 restored exact bytes=true sha cc89e27105273b64e6d15e0deb73cbb6c639cc82ad821742503ed1d07671f55c
+g3 test rc=0 {"task":"WATER-W4-ACCEPT-G3","mode":"test","finalGate":false,"status":"passed","error":null,"receipt":"F:\\new\\smaltalk\\water\\.worktrees\\accept-w4-g3\\.local\\checks\\WATER-W4-ACCEPT-G3\\2026-10-26T14-35-11.470Z-35892-test-result.json"}
+g3 survived: none
+g3 test --final rc=0 {"task":"WATER-W4-ACCEPT-G3","mode":"test","finalGate":true,"status":"passed","error":null,"receipt":"F:\\new\\smaltalk\\water\\.worktrees\\accept-w4-g3\\.local\\checks\\WATER-W4-ACCEPT-G3\\2026-10-26T14-35-14.820Z-21636-test-result.json"}

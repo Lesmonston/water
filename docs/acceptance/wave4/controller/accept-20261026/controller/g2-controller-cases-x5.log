@@ -1,0 +1,23 @@
+   Compiling water-service v0.1.0 (F:\new\smaltalk\water\.worktrees\accept-w4-g2\packages\water-service)
+    Finished `test` profile [unoptimized + debuginfo] target(s) in 2.04s
+     Running tests\controller_cases.rs (.local/w3-target\debug\deps\controller_cases-3ae2a05eb81acbc9.exe)
+
+running 2 tests
+test controller_canonical_junctions ... CONTROLLER short name available: false
+
+thread 'controller_canonical_junctions' (552) panicked at tests\controller_cases.rs:159:27:
+CONTROLLER_CANONICAL: the real folder that holds the junction-reported user profile (kf) was added: Object {"added": Object {"display_path": String("F:\\new\\smaltalk\\water\\.worktrees\\accept-w4-g2\\.local\\w4-g2-controller\\case-d57ff03177a39086\\kf"), "found_bytes": Null, "last_scanned_at": Null, "root_id": String("kf")}}
+note: run with `RUST_BACKTRACE=1` environment variable to display a backtrace
+FAILED
+test controller_tidy_links ... CONTROLLER plans-junction data dir: service refused
+ok
+
+failures:
+
+failures:
+    controller_canonical_junctions
+
+test result: FAILED. 1 passed; 1 failed; 0 ignored; 0 measured; 0 filtered out; finished in 0.62s
+
+error: test failed, to rerun pass `--test controller_cases`
+rc=101 status after restore: ''

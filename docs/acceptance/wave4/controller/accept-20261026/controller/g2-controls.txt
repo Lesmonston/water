@@ -1,0 +1,54 @@
+g2 nc1 mutated packages/water-service/src/service.rs: call re-raises a panic from a command instead of returning unavailable (worker nc1 removed the scan-thread guard instead) (mutated sha 9129b8d874f78bfdff220ed077ea96620b06d83d1b046726b922ef8dabd7537c)
+g2 red-nc1 rc=0 {"task":"WATER-W4-ACCEPT-G2","mode":"red-nc1","finalGate":false,"status":"passed","error":null,"receipt":"F:\\new\\smaltalk\\water\\.worktrees\\accept-w4-g2\\.local\\checks\\WATER-W4-ACCEPT-G2\\2026-10-26T14-32-48.000Z-43132-red-nc1-result.json"}
+g2 nc1 KILLED (expected SERVICE_PANIC_IDLE)
+g2 nc1 restored exact bytes=true sha 34061a22f0487e33b2c0e3f5e99c14df24aa35ee284dbea09b2821ca81b564db
+g2 test rc=0 {"task":"WATER-W4-ACCEPT-G2","mode":"test","finalGate":false,"status":"passed","error":null,"receipt":"F:\\new\\smaltalk\\water\\.worktrees\\accept-w4-g2\\.local\\checks\\WATER-W4-ACCEPT-G2\\2026-10-26T14-33-27.007Z-42268-test-result.json"}
+g2 nc2 mutated packages/water-service/src/service.rs: plans read back from disk are no longer marked stale, so a pre-restart plan and token could execute (worker nc2 removed the local-scan check in prepare instead) (mutated sha 52df9b672ddaed54400edf37305ae979e6246e2640bb4b72b6d64f9ce1c7090d)
+g2 red-nc2 rc=0 {"task":"WATER-W4-ACCEPT-G2","mode":"red-nc2","finalGate":false,"status":"passed","error":null,"receipt":"F:\\new\\smaltalk\\water\\.worktrees\\accept-w4-g2\\.local\\checks\\WATER-W4-ACCEPT-G2\\2026-10-26T14-33-49.901Z-18892-red-nc2-result.json"}
+g2 nc2 KILLED (expected SERVICE_TRUST_BOUNDARY)
+g2 nc2 restored exact bytes=true sha 34061a22f0487e33b2c0e3f5e99c14df24aa35ee284dbea09b2821ca81b564db
+g2 test rc=0 {"task":"WATER-W4-ACCEPT-G2","mode":"test","finalGate":false,"status":"passed","error":null,"receipt":"F:\\new\\smaltalk\\water\\.worktrees\\accept-w4-g2\\.local\\checks\\WATER-W4-ACCEPT-G2\\2026-10-26T14-34-06.863Z-38420-test-result.json"}
+g2 nc3 mutated packages/water-service/src/clean.rs: an issue on a protected group no longer blocks a partial scan (worker nc3 removed the whole partial check instead) (mutated sha 0dec0dc3c6a565a9ca93b3e92614d1fe2e4e0097343181f577f17ee07b6327fd)
+g2 red-nc3 rc=0 {"task":"WATER-W4-ACCEPT-G2","mode":"red-nc3","finalGate":false,"status":"passed","error":null,"receipt":"F:\\new\\smaltalk\\water\\.worktrees\\accept-w4-g2\\.local\\checks\\WATER-W4-ACCEPT-G2\\2026-10-26T14-34-24.737Z-39900-red-nc3-result.json"}
+g2 nc3 KILLED (expected SERVICE_PARTIAL_SOURCE)
+g2 nc3 restored exact bytes=true sha 672ae34e0d688b12d442a31b5710581e949cf8816f1c9637d60a96e9ea0dff20
+g2 test rc=0 {"task":"WATER-W4-ACCEPT-G2","mode":"test","finalGate":false,"status":"passed","error":null,"receipt":"F:\\new\\smaltalk\\water\\.worktrees\\accept-w4-g2\\.local\\checks\\WATER-W4-ACCEPT-G2\\2026-10-26T14-34-44.737Z-34840-test-result.json"}
+g2 x1 mutated packages/water-service/src/service.rs: a poisoned state lock is no longer recovered (the old behaviour) (mutated sha 7b1ed36c78148c9cdd52ec42652fbca7110cfb1fe1958ba707743f2284cc7b45)
+g2 test rc=1 {"task":"WATER-W4-ACCEPT-G2","mode":"test","finalGate":false,"status":"failed","error":"AssertionError [ERR_ASSERTION]: Unexpected exit, see 2026-10-26T14-35-04.941Z-42692-test-5.log","receipt":"F:\\new\\smaltalk\\water\\.worktrees\\accept-w4-g2\\.local\\checks\\WATER-W4-ACCEPT-G2\\2026-10-26T14-35-04.941Z-42692-test-result.json"}
+g2 x1 SURVIVED (expected SERVICE_PANIC_IDLE)
+g2 x1 restored exact bytes=true sha 34061a22f0487e33b2c0e3f5e99c14df24aa35ee284dbea09b2821ca81b564db
+g2 test rc=0 {"task":"WATER-W4-ACCEPT-G2","mode":"test","finalGate":false,"status":"passed","error":null,"receipt":"F:\\new\\smaltalk\\water\\.worktrees\\accept-w4-g2\\.local\\checks\\WATER-W4-ACCEPT-G2\\2026-10-26T14-35-21.656Z-36492-test-result.json"}
+g2 x2 mutated packages/water-service/src/storage.rs: tidy deletes any .tmp file, not only the atomic-write temporary pattern (mutated sha 92869dc9b0e7f2b7472f691c17f5bdc0aac3ce7a1fe0741e5b836f981ef7525c)
+g2 test rc=1 {"task":"WATER-W4-ACCEPT-G2","mode":"test","finalGate":false,"status":"failed","error":"AssertionError [ERR_ASSERTION]: Unexpected exit, see 2026-10-26T14-35-40.193Z-3268-test-5.log","receipt":"F:\\new\\smaltalk\\water\\.worktrees\\accept-w4-g2\\.local\\checks\\WATER-W4-ACCEPT-G2\\2026-10-26T14-35-40.193Z-3268-test-result.json"}
+g2 x2 KILLED (expected SERVICE_STORE_TIDY)
+g2 x2 restored exact bytes=true sha 113cb02c6744498bd13d93ac6da01097083c8825b46fb0484a5aad6273557c7c
+g2 test rc=0 {"task":"WATER-W4-ACCEPT-G2","mode":"test","finalGate":false,"status":"passed","error":null,"receipt":"F:\\new\\smaltalk\\water\\.worktrees\\accept-w4-g2\\.local\\checks\\WATER-W4-ACCEPT-G2\\2026-10-26T14-35-56.240Z-38524-test-result.json"}
+g2 x3 mutated packages/water-service/src/storage.rs: plans and journals are capped at 50 instead of 60 (mutated sha a523c96438300c34b6d1360e2002abba1c69b2ac9cf6f133b06c52696abced8b)
+g2 test rc=1 {"task":"WATER-W4-ACCEPT-G2","mode":"test","finalGate":false,"status":"failed","error":"AssertionError [ERR_ASSERTION]: Unexpected exit, see 2026-10-26T14-36-16.697Z-12252-test-5.log","receipt":"F:\\new\\smaltalk\\water\\.worktrees\\accept-w4-g2\\.local\\checks\\WATER-W4-ACCEPT-G2\\2026-10-26T14-36-16.697Z-12252-test-result.json"}
+g2 x3 KILLED (expected SERVICE_STORE_TIDY)
+g2 x3 restored exact bytes=true sha 113cb02c6744498bd13d93ac6da01097083c8825b46fb0484a5aad6273557c7c
+g2 test rc=0 {"task":"WATER-W4-ACCEPT-G2","mode":"test","finalGate":false,"status":"passed","error":null,"receipt":"F:\\new\\smaltalk\\water\\.worktrees\\accept-w4-g2\\.local\\checks\\WATER-W4-ACCEPT-G2\\2026-10-26T14-36-32.848Z-35416-test-result.json"}
+g2 x4 mutated packages/water-service/src/service.rs: a folder given in a spelling other than its canonical form is accepted (mutated sha 36fcbbfa04e1c9cd839df238d4832b458f3eb73eb466c179da19f7d243f0d22b)
+g2 test rc=1 {"task":"WATER-W4-ACCEPT-G2","mode":"test","finalGate":false,"status":"failed","error":"AssertionError [ERR_ASSERTION]: Unexpected exit, see 2026-10-26T14-36-50.219Z-29164-test-5.log","receipt":"F:\\new\\smaltalk\\water\\.worktrees\\accept-w4-g2\\.local\\checks\\WATER-W4-ACCEPT-G2\\2026-10-26T14-36-50.219Z-29164-test-result.json"}
+g2 x4 KILLED (expected SERVICE_CANONICAL_ROOT)
+g2 x4 restored exact bytes=true sha 34061a22f0487e33b2c0e3f5e99c14df24aa35ee284dbea09b2821ca81b564db
+g2 test rc=0 {"task":"WATER-W4-ACCEPT-G2","mode":"test","finalGate":false,"status":"passed","error":null,"receipt":"F:\\new\\smaltalk\\water\\.worktrees\\accept-w4-g2\\.local\\checks\\WATER-W4-ACCEPT-G2\\2026-10-26T14-37-07.235Z-5720-test-result.json"}
+g2 x5 mutated packages/water-service/src/service.rs: known folders are compared as text again instead of by canonical path (mutated sha 22e07f4a29d9b953a237e13509b913c3c3247755a05b28ef6326c6fb055d58e0)
+g2 test rc=1 {"task":"WATER-W4-ACCEPT-G2","mode":"test","finalGate":false,"status":"failed","error":"AssertionError [ERR_ASSERTION]: Unexpected exit, see 2026-10-26T14-37-24.980Z-36320-test-5.log","receipt":"F:\\new\\smaltalk\\water\\.worktrees\\accept-w4-g2\\.local\\checks\\WATER-W4-ACCEPT-G2\\2026-10-26T14-37-24.980Z-36320-test-result.json"}
+g2 x5 KILLED (expected SERVICE_CANONICAL_ROOT)
+g2 x5 restored exact bytes=true sha 34061a22f0487e33b2c0e3f5e99c14df24aa35ee284dbea09b2821ca81b564db
+g2 test rc=0 {"task":"WATER-W4-ACCEPT-G2","mode":"test","finalGate":false,"status":"passed","error":null,"receipt":"F:\\new\\smaltalk\\water\\.worktrees\\accept-w4-g2\\.local\\checks\\WATER-W4-ACCEPT-G2\\2026-10-26T14-37-42.643Z-39948-test-result.json"}
+g2 x6 mutated packages/water-service/src/views.rs: the product-name table is never used, so labels fall back to process names (mutated sha c89f1778df964e53f2da0b2cfcca9ea87a9783dc2d8f98a49722391ae10280c8)
+g2 test rc=1 {"task":"WATER-W4-ACCEPT-G2","mode":"test","finalGate":false,"status":"failed","error":"AssertionError [ERR_ASSERTION]: Unexpected exit, see 2026-10-26T14-38-04.160Z-38168-test-5.log","receipt":"F:\\new\\smaltalk\\water\\.worktrees\\accept-w4-g2\\.local\\checks\\WATER-W4-ACCEPT-G2\\2026-10-26T14-38-04.160Z-38168-test-result.json"}
+g2 x6 KILLED (expected SERVICE_PRODUCT_NAME)
+g2 x6 restored exact bytes=true sha 21e2d69a15365c6f9fd989c13f60dd392cc8344a382d28a46ed93a0af41dae76
+g2 test rc=0 {"task":"WATER-W4-ACCEPT-G2","mode":"test","finalGate":false,"status":"passed","error":null,"receipt":"F:\\new\\smaltalk\\water\\.worktrees\\accept-w4-g2\\.local\\checks\\WATER-W4-ACCEPT-G2\\2026-10-26T14-38-30.121Z-3540-test-result.json"}
+g2 x7 mutated packages/water-service/src/clean.rs: a partial scan whose budget ran out is accepted as a source (SPEC section 8 does not require a test for this; a survivor marks a test gap, not a defect) (mutated sha e133d049308dd32299f4bfd50512c0c814e4ceb69fecc17f916fe91ef4c1344e)
+g2 test rc=0 {"task":"WATER-W4-ACCEPT-G2","mode":"test","finalGate":false,"status":"passed","error":null,"receipt":"F:\\new\\smaltalk\\water\\.worktrees\\accept-w4-g2\\.local\\checks\\WATER-W4-ACCEPT-G2\\2026-10-26T14-39-01.203Z-21860-test-result.json"}
+g2 x7 SURVIVED (expected SERVICE_PARTIAL_SOURCE)
+g2 x7 restored exact bytes=true sha 672ae34e0d688b12d442a31b5710581e949cf8816f1c9637d60a96e9ea0dff20
+g2 test rc=0 {"task":"WATER-W4-ACCEPT-G2","mode":"test","finalGate":false,"status":"passed","error":null,"receipt":"F:\\new\\smaltalk\\water\\.worktrees\\accept-w4-g2\\.local\\checks\\WATER-W4-ACCEPT-G2\\2026-10-26T14-39-23.486Z-20812-test-result.json"}
+g2 survived: x1,x7
+g2 test --final rc=0 {"task":"WATER-W4-ACCEPT-G2","mode":"test","finalGate":true,"status":"passed","error":null,"receipt":"F:\\new\\smaltalk\\water\\.worktrees\\accept-w4-g2\\.local\\checks\\WATER-W4-ACCEPT-G2\\2026-10-26T14-39-45.758Z-24748-test-result.json"}
+g2 x1-rerun mutated alone (no concurrent load)
+g2 x1-rerun test rc=1 {"task":"WATER-W4-ACCEPT-G2","mode":"test","finalGate":false,"status":"failed","error":"AssertionError [ERR_ASSERTION]: Unexpected exit, see 2026-10-26T14-40-28.922Z-26708-test-5.log","receipt":"F:\\n

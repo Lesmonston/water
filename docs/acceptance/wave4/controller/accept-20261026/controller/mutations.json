@@ -1,0 +1,132 @@
+{
+ "g2": [
+  {
+   "label": "nc1",
+   "mode": "red-nc1",
+   "token": "SERVICE_PANIC_IDLE",
+   "file": "packages/water-service/src/service.rs",
+   "old": ".unwrap_or_else(|_| Err(IpcError::new(\"unavailable\")))",
+   "new": ".unwrap_or_else(|p| std::panic::resume_unwind(p))",
+   "why": "call re-raises a panic from a command instead of returning unavailable (worker nc1 removed the scan-thread guard instead)"
+  },
+  {
+   "label": "nc2",
+   "mode": "red-nc2",
+   "token": "SERVICE_TRUST_BOUNDARY",
+   "file": "packages/water-service/src/service.rs",
+   "old": "let stale_plans = plans.keys().cloned().collect();",
+   "new": "let stale_plans = BTreeSet::new();",
+   "why": "plans read back from disk are no longer marked stale, so a pre-restart plan and token could execute (worker nc2 removed the local-scan check in prepare instead)"
+  },
+  {
+   "label": "nc3",
+   "mode": "red-nc3",
+   "token": "SERVICE_PARTIAL_SOURCE",
+   "file": "packages/water-service/src/clean.rs",
+   "old": ".is_none_or(|g| g.level == water_junk_scan::Level::Protected)",
+   "new": ".is_some_and(|g| g.level == water_junk_scan::Level::Advisory)",
+   "why": "an issue on a protected group no longer blocks a partial scan (worker nc3 removed the whole partial check instead)"
+  },
+  {
+   "label": "x1",
+   "mode": "test",
+   "token": "SERVICE_PANIC_IDLE",
+   "file": "packages/water-service/src/service.rs",
+   "old": "Ok(core.state.lock().unwrap_or_else(PoisonError::into_inner))",
+   "new": "core.state.lock().map_err(|_| IpcError::new(\"unavailable\"))",
+   "why": "a poisoned state lock is no longer recovered (the old behaviour)"
+  },
+  {
+   "label": "x2",
+   "mode": "test",
+   "token": "SERVICE_STORE_TIDY",
+   "file": "packages/water-service/src/storage.rs",
+   "old": "let Some(rest) = name.strip_prefix('.').and_then(|n| n.strip_suffix(\".tmp\")) else {",
+   "new": "if name.ends_with(\".tmp\") { return true; } let Some(rest) = name.strip_prefix('.').and_then(|n| n.strip_suffix(\".tmp\")) else {",
+   "why": "tidy deletes any .tmp file, not only the atomic-write temporary pattern"
+  },
+  {
+   "label": "x3",
+   "mode": "test",
+   "token": "SERVICE_STORE_TIDY",
+   "file": "packages/water-service/src/storage.rs",
+   "old": "let excess = capped.len().saturating_sub(60);",
+   "new": "let excess = capped.len().saturating_sub(50);",
+   "why": "plans and journals are capped at 50 instead of 60"
+  },
+  {
+   "label": "x4",
+   "mode": "test",
+   "token": "SERVICE_CANONICAL_ROOT",
+   "file": "packages/water-service/src/service.rs",
+   "old": "&& canonical(path).is_some_and(|c| c.eq_ignore_ascii_case(path))",
+   "new": "&& canonical(path).is_some()",
+   "why": "a folder given in a spelling other than its canonical form is accepted"
+  },
+  {
+   "label": "x5",
+   "mode": "test",
+   "token": "SERVICE_CANONICAL_ROOT",
+   "file": "packages/water-service/src/service.rs",
+   "old": ".any(|p| util::contains(path, &canonical(p).unwrap_or_else(|| p.to_owned())))",
+   "new": ".any(|p| util::contains(path, p))",
+   "why": "known folders are compared as text again instead of by canonical path"
+  },
+  {
+   "label": "x6",
+   "mode": "test",
+   "token": "SERVICE_PRODUCT_NAME",
+   "file": "packages/water-service/src/views.rs",
+   "old": ".find(|(process, _)| process.eq_ignore_ascii_case(&name))",
+   "new": ".find(|_| false)",
+   "why": "the product-name table is never used, so labels fall back to process names"
+  },
+  {
+   "label": "x7",
+   "mode": "test",
+   "token": "SERVICE_PARTIAL_SOURCE",
+   "file": "packages/water-service/src/clean.rs",
+   "old": "i.code == \"budget_exhausted\"",
+   "new": "i.code == \"budget_exhausted_never\"",
+   "why": "a partial scan whose budget ran out is accepted as a source (SPEC section 8 does not require a test for this; a survivor marks a test gap, not a defect)"
+  }
+ ],
+ "g3": [
+  {
+   "label": "nc1",
+   "mode": "red-nc1",
+   "token": "UI_LEVEL_GUARD",
+   "file": "apps/water/ui/model.mjs",
+   "old": "export function selectedGroups(result, selection) { return groups(result).filter(g => canSelect(g) && selection.has(g.group_id)); }",
+   "new": "export function selectedGroups(result, selection) { return groups(result).filter(g => selection.has(g.group_id)); }",
+   "why": "a forged selection of a nonselectable group counts in the selected totals (worker nc1 removed the guard in setSelected instead)"
+  },
+  {
+   "label": "nc2",
+   "mode": "red-nc2",
+   "token": "UI_FOOTER_WRAP",
+   "file": "apps/water/ui/styles/app.css",
+   "old": ".side-foot p, .drive-main .sub { text-wrap: balance; }",
+   "new": ".side-foot p { text-wrap: balance; }",
+   "why": "only the sidebar footer is balanced; the home drive description keeps its short last line (worker nc2 removed the whole rule instead)"
+  },
+  {
+   "label": "nc3",
+   "mode": "red-nc3",
+   "token": "UI_NOTICE_SCOPE",
+   "file": "apps/water/ui/app.mjs",
+   "old": "  state.error = '';",
+   "new": "  state.error = ''; state.pollPaused = false; state.reconnecting = false;",
+   "why": "connection notices are also cleared on navigation (worker nc3 removed the error clearing instead)"
+  },
+  {
+   "label": "x1",
+   "mode": "browser",
+   "token": "UI_DOCK_CLEARANCE",
+   "file": "apps/water/ui/styles/app.css",
+   "old": ".page { max-width: var(--w-content-max); margin: 0 auto; padding: 26px 36px 124px; }",
+   "new": ".page { max-width: var(--w-content-max); margin: 0 auto; padding: 26px 36px 26px; }",
+   "why": "the page bottom padding that keeps the last row clear of the dock is removed"
+  }
+ ]
+}

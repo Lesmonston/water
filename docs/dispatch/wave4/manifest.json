@@ -1,7 +1,7 @@
 {
   "schemaVersion": 1,
   "wave": "water-wave4-hardening",
-  "status": "G1_G2_G3_DISPATCHED",
+  "status": "G2_VERIFIED_G3_ADDENDUM_G1_IN_PROGRESS",
   "controller": "Claude",
   "controllerRoot": "F:/new/smaltalk/water",
   "controllerBranch": "main",
@@ -239,13 +239,13 @@
           "features": []
         }
       ],
-      "status": "DISPATCHED",
+      "status": "VERIFIED",
       "baseCommit": "0ca42f8e8038a5a7816802c5a7f175a966b0625c",
       "snapshotRef": "refs/tags/water-w4-hardening-base-20261026",
       "readyOn": "2026-10-26",
       "dispatchedAt": null,
       "startedAt": null,
-      "model": "grokbot (user-reported executor, fresh conversation; exact model unverified until worker report)",
+      "model": "grokbot (user-reported); worker self-report: Grok Bot (kelaimao1)",
       "modelAssignment": "user-arranged; report actual engine/model",
       "macOS": "unverified",
       "outputRootExists": true,
@@ -322,7 +322,36 @@
       "baselineStatus": "PASSED",
       "baselineEvidence": "docs/acceptance/wave4/controller/preflight/WATER-W4-G2-2026-10-26T13-00-14.798Z-24224-baseline-result.json",
       "dispatchReportedAt": "2026-10-26T13:25:36Z",
-      "dispatchEvidence": "user chat 2026-10-26 22:25 JST: all three wave 4 tickets pasted; G1 and G2 to grokbot, G3 to Astra; worker trees clean at base 0ca42f8 when recorded"
+      "dispatchEvidence": "user chat 2026-10-26 22:25 JST: all three wave 4 tickets pasted; G1 and G2 to grokbot, G3 to Astra; worker trees clean at base 0ca42f8 when recorded",
+      "submittedHead": "b6925bee644e2a659fa7b3ef6ec8ca16c6c55225",
+      "implementationCommit": "a13a97f86c2b6902059f09cb6c9e0a0dcf607dfc",
+      "submittedAs": "COMPLETED",
+      "controllerReview": {
+        "reviewedAt": "2026-10-26T14:50:00Z",
+        "review": "docs/acceptance/wave4/controller/WATER-W4-G2G3-REVIEW-20261026.md",
+        "evidence": "docs/acceptance/wave4/controller/accept-20261026/g2/",
+        "controllerLogs": "docs/acceptance/wave4/controller/accept-20261026/controller/",
+        "mechanicalAudit": "passed (w3-receipt-audit with WATER_W3_AUDIT_MANIFEST)",
+        "freshTreeFinals": "check, test, real passed in .worktrees/accept-w4-g2",
+        "controllerMutants": "9 of 10 killed; x7 (budget_exhausted partial source) survives: untested branch, SPEC 8 does not require it",
+        "junctionCases": "scripts/acceptance/w4-g2-controller-cases.rs: 2 passed; fails under mutant x5 as intended; 8.3 short names disabled on this volume",
+        "realSmoke": "61.4 s completed, recognized 46.7 GB, recommended 9.29 GB, in_use_labels Chrome/Edge, clean unavailable",
+        "codeReview": "independent read-only agent: no high or medium findings"
+      },
+      "verifiedAt": "2026-10-26T14:50:00Z",
+      "acceptedCommit": "b6925bee644e2a659fa7b3ef6ec8ca16c6c55225",
+      "integrationBranch": "main",
+      "mergeCommit": "7f01d71f",
+      "carryOverToFinishing": [
+        "scan record is written before the locked state update; a panic inside that block leaves a completed record on disk that becomes last_scan after restart (display only)",
+        "clean::start sets busy=cleaning before indexing details; a panic there would leave busy stuck (unreachable today)",
+        "a reloaded plan that is used or given a wrong token returns invalid rather than stale (never executable)",
+        "canonical comparison replaced the text comparison instead of adding to it: the parent of a known folder that is itself a junction can be added (scanner and cleaner never follow junctions)",
+        "WindowsPlatform process snapshot lock does not recover from poisoning (in-use stays unknown: safe but degraded)",
+        "canonical() leaves UNC after stripping \\?UNC (no effect: custom roots are drive paths)",
+        "test gaps: no panic injected into the clean thread; budget_exhausted partial branch untested; tidy cap IDs share one timestamp; poisoned-lock failure message lacks SERVICE_PANIC_IDLE",
+        "50 ms return-budget assertion flakes under heavy concurrent load (seen with a browser run in parallel)"
+      ]
     },
     {
       "kind": "ui",
@@ -346,13 +375,13 @@
       "fixtures": "contracts/checkup-v1/ui-fixtures.json",
       "browserHelper": "scripts/acceptance/native-vw-private-browser.mjs",
       "screenshotDirEnv": "WATER_W2_SHOTS_DIR",
-      "status": "DISPATCHED",
+      "status": "ADDENDUM_READY",
       "baseCommit": "0ca42f8e8038a5a7816802c5a7f175a966b0625c",
       "snapshotRef": "refs/tags/water-w4-hardening-base-20261026",
       "readyOn": "2026-10-26",
       "dispatchedAt": null,
       "startedAt": "2026-10-26T13:24:34Z",
-      "model": "Astra (user-reported executor, fresh conversation; exact model unverified until worker report)",
+      "model": "Astra (user-reported); worker self-report: Codex, GPT-6",
       "modelAssignment": "user-arranged; report actual engine/model",
       "macOS": "unverified",
       "outputRootExists": true,
@@ -473,7 +502,35 @@
       "baselineEvidence": "docs/acceptance/wave4/controller/preflight/WATER-W4-G3-2026-10-26T13-00-11.132Z-34808-baseline-result.json",
       "dispatchReportedAt": "2026-10-26T13:25:36Z",
       "dispatchEvidence": "user chat 2026-10-26 22:25 JST: all three wave 4 tickets pasted; G1 and G2 to grokbot, G3 to Astra; worker trees clean at base 0ca42f8 when recorded",
-      "startEvidence": "worker baseline receipt 2026-10-26T13-24-34.183Z-33368 (passed) in .worktrees/w4-g3/.local/checks/WATER-W4-G3"
+      "startEvidence": "worker baseline receipt 2026-10-26T13-24-34.183Z-33368 (passed) in .worktrees/w4-g3/.local/checks/WATER-W4-G3",
+      "submittedHead": "27f44862664f92f1d6c9de270857ad603b3e1d6b",
+      "implementationCommit": "9d247c0448ff8e28b70620539d6fb71744dfdd73",
+      "submittedAs": "COMPLETED",
+      "controllerReview": {
+        "reviewedAt": "2026-10-26T14:50:00Z",
+        "review": "docs/acceptance/wave4/controller/WATER-W4-G2G3-REVIEW-20261026.md",
+        "evidence": "docs/acceptance/wave4/controller/accept-20261026/g3/",
+        "controllerLogs": "docs/acceptance/wave4/controller/accept-20261026/controller/",
+        "mechanicalAudit": "passed (w2-receipt-audit with WATER_W2_AUDIT_MANIFEST, line-ending tolerant)",
+        "freshTreeFinals": "check, test, browser passed in .worktrees/accept-w4-g3; 23 screenshots reviewed",
+        "controllerMutants": "4 of 4 killed",
+        "codeReview": "independent read-only agent: one medium (SPEC 3: paused connection notice changes text after navigation; test injects the fallback sentence itself), two low"
+      },
+      "addenda": [
+        {
+          "id": "WATER-W4-G3-ADDENDUM-01",
+          "ticket": "docs/dispatch/tickets/WATER-W4-G3-ADDENDUM-01-20261026.md",
+          "status": "READY",
+          "issuedAt": "2026-10-26T14:50:00Z",
+          "resumeFromCommit": "27f44862664f92f1d6c9de270857ad603b3e1d6b",
+          "change": "while progress polling is paused, navigation keeps the notice text and reconnect button verbatim; ui_m1_polish uses a host sentence different from the fallback; nc3 becomes clearing on pause; all three negative controls redone",
+          "dispatchedAt": null
+        }
+      ],
+      "carryOverLater": [
+        "an error from a command issued on the old page can land on the new page if it fails after navigation (one IPC round trip)",
+        "reconnecting assertion relies on 12 failures not draining within about 3 s"
+      ]
     }
   ],
   "selfTest": {

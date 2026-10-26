@@ -1,0 +1,271 @@
+#![forbid(unsafe_code)]
+
+use crate::{IpcError, util};
+use serde_json::Value;
+use std::{
+    fs::{self, File, OpenOptions},
+    io::{self, Write},
+    os::windows::fs::MetadataExt,
+    path::{Component, Path, PathBuf},
+};
+
+pub(crate) struct Store {
+    pub root: PathBuf,
+}
+
+pub(crate) fn plain_directory(path: &Path) -> bool {
+    if !path.is_absolute() {
+        return false;
+    }
+    let mut current = PathBuf::new();
+    for c in path.components() {
+        if matches!(c, Component::ParentDir | Component::CurDir) {
+            return false;
+        }
+        current.push(c);
+        if current.as_os_str().len() <= 2 {
+            continue;
+        }
+        let Ok(m) = fs::symlink_metadata(&current) else {
+            return false;
+        };
+        if !m.is_dir() || m.file_attributes() & 0x400 != 0 {
+            return false;
+        }
+    }
+    true
+}
+
+fn unavailable<T>(_: T) -> IpcError {
+    IpcError::new("unavailable")
+}
+
+impl Store {
+    pub fn new(root: PathBuf) -> Result<Self, IpcError> {
+        if !root.is_absolute()
+            || root
+                .components()
+                .any(|c| matches!(c, Component::CurDir | Component::ParentDir))
+        {
+            return Err(unavailable(()));
+        }
+        // Check existing ancestors before creating the application's directory.
+        let mut nearest = root.as_path();
+        while !nearest.exists() {
+            nearest = nearest.parent().ok_or_else(|| unavailable(()))?;
+        }
+        if !plain_directory(nearest) {
+            return Err(unavailable(()));
+        }
+        fs::create_dir_all(&root).map_err(unavailable)?;
+        let store = Self { root };
+        for dir in ["scans", "snapshots", "plans", "cleans", "journal"] {
+            let path = store.root.join(dir);
+            if path.exists() && !plain_directory(&path) {
+                return Err(unavailable(()));
+            }
+            fs::create_dir_all(path).map_err(unavailable)?;
+        }
+        Ok(store)
+    }
+
+    fn path(&self, dir: &str, name: &str) -> Result<PathBuf, IpcError> {
+        if !["", "scans", "snapshots", "plans", "cleans", "journal"].contains(&dir)
+            || name.is_empty()
+            || !name
+                .bytes()
+                .all(|b| b.is_ascii_alphanumeric() || b"-_.".contains(&b))
+        {
+            return Err(unavailable(()));
+        }
+        let parent = self.root.join(dir);
+        if !plain_directory(&parent) {
+            return Err(unavailable(()));
+        }
+        let path = parent.join(name);
+        if let Ok(m) = fs::symlink_metadata(&path)
+            && (!m.is_file() || m.file_attributes() & 0x400 != 0)
+        {
+            return Err(unavailable(()));
+        }
+        Ok(path)
+    }
+
+    pub fn read(&self, dir: &str, name: &str) -> Option<Value> {
+        serde_json::from_slice(&fs::read(self.path(dir, name).ok()?).ok()?).ok()
+    }
+
+    pub fn write(&self, dir: &str, name: &str, value: &Value) -> Result<(), IpcError> {
+        let dest = self.path(dir, name)?;
+        let tmp = self.path(dir, &format!(".{name}.{}.tmp", util::random_hex()))?;
+        let mut file = OpenOptions::new()
+            .write(true)
+            .create_new(true)
+            .open(&tmp)
+            .map_err(unavailable)?;
+        serde_json::to_writer(&mut file, value).map_err(unavailable)?;
+        file.write_all(b"\n").map_err(unavailable)?;
+        file.sync_all().map_err(unavailable)?;
+        drop(file);
+        // On Windows rename replaces the destination; there is no remove-then-write gap.
+        self.path(dir, name)?;
+        fs::rename(tmp, dest).map_err(unavailable)
+    }
+
+    pub fn records(&self, dir: &str) -> Vec<(String, Value)> {
+        let Ok(sentinel) = self.path(dir, "list.json") else {
+            return vec![];
+        };
+        let Ok(entries) = fs::read_dir(sentinel.parent().expect("store parent")) else {
+            return vec![];
+        };
+        let mut records: Vec<_> = entries
+            .filter_map(Result::ok)
+            .filter_map(|entry| {
+                let name = entry.file_name().into_string().ok()?;
+                let id = name.strip_suffix(".json")?;
+                let prefix = match dir {
+                    "scans" | "snapshots" => "scan-",
+                    "plans" => "plan-",
+                    "cleans" => "clean-",
+                    _ => return None,
+                };
+                if !util::record_id(id, prefix) {
+                    return None;
+                }
+                Some((
+                    entry.metadata().ok()?.modified().ok()?,
+                    id.to_owned(),
+                    self.read(dir, &name)?,
+                ))
+            })
+            .collect();
+        // RFC3339 records have second precision; file write times resolve ties after restart.
+        records.sort_by(|a, b| a.0.cmp(&b.0).then(a.1.cmp(&b.1)));
+        records
+            .into_iter()
+            .map(|(_, id, value)| (id, value))
+            .collect()
+    }
+
+    /// Deletes `<id>.json` for exactly the given record IDs (records this process read in and
+    /// trimmed). Only flat, plain files are touched; a directory, link or failed deletion is
+    /// skipped. Returns the IDs whose file was actually removed.
+    pub fn remove(&self, dir: &str, ids: &[String]) -> Vec<String> {
+        let prefix = match dir {
+            "scans" | "snapshots" => "scan-",
+            "cleans" => "clean-",
+            _ => return vec![],
+        };
+        ids.iter()
+            .filter(|id| {
+                util::record_id(id, prefix)
+                    && self
+                        .path(dir, &format!("{id}.json"))
+                        .is_ok_and(|p| p.is_file() && fs::remove_file(p).is_ok())
+            })
+            .cloned()
+            .collect()
+    }
+
+    /// Startup tidy (SERVICE-HARDENING §4). Only flat plain files in the data root and the five
+    /// store directories are looked at: leftover atomic-write temporaries are deleted, and plans
+    /// and clean journals keep the newest 60 by record ID. Directories and links are skipped and
+    /// a failed deletion is ignored. Returns the plan IDs whose file was actually removed.
+    pub fn tidy(&self) -> Vec<String> {
+        let mut removed_plans = Vec::new();
+        for dir in ["", "scans", "snapshots", "plans", "cleans", "journal"] {
+            let parent = self.root.join(dir);
+            if !plain_directory(&parent) {
+                continue;
+            }
+            let Ok(entries) = fs::read_dir(&parent) else {
+                continue;
+            };
+            let mut capped = Vec::new();
+            for entry in entries.filter_map(Result::ok) {
+                let Ok(name) = entry.file_name().into_string() else {
+                    continue;
+                };
+                if !self.plain_file(dir, &name) {
+                    continue;
+                }
+                if leftover_temp(&name) {
+                    self.remove_plain(dir, &name);
+                    continue;
+                }
+                let id = match dir {
+                    "plans" => name
+                        .strip_suffix(".json")
+                        .filter(|id| util::record_id(id, "plan-")),
+                    "journal" => name
+                        .strip_suffix(".jsonl")
+                        .filter(|id| util::record_id(id, "clean-")),
+                    _ => None,
+                };
+                if let Some(id) = id {
+                    capped.push((id.to_owned(), name.clone()));
+                }
+            }
+            capped.sort();
+            let excess = capped.len().saturating_sub(50);
+            for (id, name) in capped.into_iter().take(excess) {
+                if self.remove_plain(dir, &name) && dir == "plans" {
+                    removed_plans.push(id);
+                }
+            }
+        }
+        removed_plans
+    }
+
+    fn plain_file(&self, dir: &str, name: &str) -> bool {
+        self.path(dir, name).is_ok_and(|p| {
+            fs::symlink_metadata(p).is_ok_and(|m| m.is_file() && m.file_attributes() & 0x400 == 0)
+        })
+    }
+
+    fn remove_plain(&self, dir: &str, name: &str) -> bool {
+        self.plain_file(dir, name)
+            && self
+                .path(dir, name)
+                .is_ok_and(|p| fs::remove_file(p).is_ok())
+    }
+
+    pub fn journal(&self, id: &str) -> Result<DurableFile, IpcError> {
+        let file = OpenOptions::new()
+            .write(true)
+            .create_new(true)
+            .open(self.path("journal", &format!("{id}.jsonl"))?)
+            .map_err(unavailable)?;
+        Ok(DurableFile(file))
+    }
+}
+
+pub(crate) struct DurableFile(File);
+impl Write for DurableFile {
+    fn write(&mut self, buf: &[u8]) -> io::Result<usize> {
+        self.0.write(buf)
+    }
+    fn flush(&mut self) -> io::Result<()> {
+        self.0.flush()?;
+        self.0.sync_all()
+    }
+}
+
+/// `^\.[A-Za-z0-9._-]+\.[0-9a-f]{32}\.tmp$`: the temporary name `Store::write` uses.
+fn leftover_temp(name: &str) -> bool {
+    let Some(rest) = name.strip_prefix('.').and_then(|n| n.strip_suffix(".tmp")) else {
+        return false;
+    };
+    let Some((stem, hex)) = rest.rsplit_once('.') else {
+        return false;
+    };
+    hex.len() == 32
+        && hex
+            .bytes()
+            .all(|b| b.is_ascii_digit() || (b'a'..=b'f').contains(&b))
+        && !stem.is_empty()
+        && stem
+            .bytes()
+            .all(|b| b.is_ascii_alphanumeric() || b"._-".contains(&b))
+}

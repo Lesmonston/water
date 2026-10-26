@@ -6,9 +6,12 @@ import {createHash} from 'node:crypto';
 import {existsSync,readFileSync,readdirSync,statSync} from 'node:fs';
 import {join,relative,sep} from 'node:path';
 
-const controller=process.cwd(),manifest=JSON.parse(readFileSync(join(controller,'docs/dispatch/wave2/manifest.json'),'utf8'));
+// WATER_W2_AUDIT_MANIFEST points at another manifest that uses the same gate (wave 4 G1/G3, or a controller acceptance manifest).
+const controller=process.cwd(),manifest=JSON.parse(readFileSync(process.env.WATER_W2_AUDIT_MANIFEST??join(controller,'docs/dispatch/wave2/manifest.json'),'utf8'));
 const hash=b=>createHash('sha256').update(b).digest('hex');
 const git=(cwd,args,enc='utf8')=>{const r=spawnSync('git',['-c','core.hooksPath=NUL','-c','core.fsmonitor=false',...args],{cwd,encoding:enc,windowsHide:true,maxBuffer:256*1024*1024});assert.equal(r.status,0,String(r.stderr));return enc?r.stdout.trim():r.stdout;};
+// The gate hashes working-tree bytes; with core.autocrlf a text file may be checked out as CRLF while the commit holds LF, so accept the committed blob or its checkout form.
+const committedBytes=(root,head,path)=>[['show',head+':'+path],['cat-file','--filters',head+':'+path]].map(a=>spawnSync('git',a,{cwd:root,maxBuffer:64*1024*1024})).filter(b=>b.status===0).map(b=>hash(b.stdout));
 const walk=d=>existsSync(d)?readdirSync(d).flatMap(n=>{const p=join(d,n);return statSync(p).isDirectory()?walk(p):[p];}):[];
 
 function audit(id){
@@ -26,7 +29,7 @@ function audit(id){
   out.receiptCount=receipts.length;out.final={};
   for(const mode of t.expectedFinalModes){const f=receipts.filter(x=>x.r.mode===mode&&x.r.finalGate&&x.r.status==='passed').at(-1);if(!f){bad('no passed final '+mode);continue;}
     const r=f.r;out.final[mode]={file:f.file,head:r.before?.head};if(r.before?.head!==r.after?.head||r.before?.status!==''||r.after?.status!=='')bad('final '+mode+' not clean/stable');
-    if(r.sourceState)for(const s of r.sourceState.files){const b=spawnSync('git',['show',r.before.head+':'+s.path],{cwd:root,maxBuffer:64*1024*1024});if(b.status!==0||hash(b.stdout)!==s.sha256)bad('final '+mode+' source differs from commit: '+s.path);}
+    if(r.sourceState)for(const s of r.sourceState.files){if(!committedBytes(root,r.before.head,s.path).includes(s.sha256))bad('final '+mode+' source differs from commit: '+s.path);}
   }
   const heads=[...new Set(Object.values(out.final).map(x=>x.head))];out.implementationCommit=heads.length===1?heads[0]:null;if(heads.length!==1)bad('final heads differ '+heads.join(','));
   if(out.implementationCommit){out.afterImplementation=git(root,['diff','--no-renames','--name-only',out.implementationCommit,'HEAD']).split('\n').filter(Boolean);for(const p of out.afterImplementation)if(!(p===t.report||p.startsWith(t.evidenceDir)))bad('non-evidence change after implementation '+p);}

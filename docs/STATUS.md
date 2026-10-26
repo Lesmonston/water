@@ -1,8 +1,8 @@
 # Water 状态与交接
 
-更新时间：2026-10-26 23:15 JST（M1 达成，第四波三票已派出）。
+更新时间：2026-10-26 23:50 JST（M1 达成；第四波 G2 已验收合入，G3 发补单 01，G1 进行中）。
 
-更换总控请先读[最新交接报告（2026-10-26 第 5 份）](CONTROLLER-HANDOFF-20261026-5.md)；[第 4 份](CONTROLLER-HANDOFF-20261026-4.md)、[第 3 份](CONTROLLER-HANDOFF-20261026-3.md)、[第 2 份](CONTROLLER-HANDOFF-20261026-2.md)、[上午那份](CONTROLLER-HANDOFF-20261026.md)及其只读状态快照仅供追溯。M1 已达成；第四波 G1、G2（grokbot）与 G3（Astra）已派出，等回执。此前[接手验收摘要](CONTROLLER-HANDOFF-20261017.md)仅供历史追溯；当前任务状态以本页、registry/manifest及最新正式验收为准。
+更换总控请先读[最新交接报告（2026-10-26 第 5 份）](CONTROLLER-HANDOFF-20261026-5.md)；[第 4 份](CONTROLLER-HANDOFF-20261026-4.md)、[第 3 份](CONTROLLER-HANDOFF-20261026-3.md)、[第 2 份](CONTROLLER-HANDOFF-20261026-2.md)、[上午那份](CONTROLLER-HANDOFF-20261026.md)及其只读状态快照仅供追溯。M1 已达成；第四波 G2 已验收合入，G3 补单 01 待外贴，G1 进行中（交接报告之后的进展见下文第四波一节）。此前[接手验收摘要](CONTROLLER-HANDOFF-20261017.md)仅供历史追溯；当前任务状态以本页、registry/manifest及最新正式验收为准。
 
 ## 已确认
 
@@ -101,6 +101,19 @@ A–AB及八补单、AD保持VERIFIED；AC/补单06新增VERIFIED（Windows静�
 - 自测中发现并写进契约：现有 D 处理不了超过 260 个字符的路径；“操作坞盖住最后一行”实测不成立，改为回归锁定。
 
 **已派出（22:25 JST 用户告知）**：三张都在新对话里贴出。G1、G2 交 grokbot，G3 交 Astra。记录时三棵树都停在基点 `0ca42f8`、干净；G3 已自跑 baseline 并通过（13:24:34Z）。具体模型以执行者回执自报为准。F3 无需补单，sol 的对话可以归档。
+
+**G2、G3 收单（23:50 JST）**，见[收单验收](acceptance/wave4/controller/WATER-W4-G2G3-REVIEW-20261026.md)：
+- **G2 VERIFIED**，合入 `7f01d71f`：
+  - 新树重跑三个 final 都通过；
+  - 总控 10 条变异抓到 9 条，存活的一条是 SPEC 未要求测的预算用尽分支；
+  - 联接合成用例通过；
+  - 真实冒烟的占用提示显示 Chrome、Edge；
+  - 审查无高、中级问题，7 条低级观察记入清单。
+- **G3 发[补单 01](dispatch/tickets/WATER-W4-G3-ADDENDUM-01-20261026.md)**（界面票，可新开对话）：
+  - 进度查询暂停时，切换页面后提示条的文字从服务原因退回兜底句，与 SPEC 第 3 节“连接类提示不受影响”不符；
+  - 测试注入的正是兜底句，所以没测出来；
+  - 其余（11 处文字、tokens、折行、操作坞、4 条总控负控、23 张截图）都通过。
+- **G1** 仍在进行。
 
 ## 真实AA→AD联合验收通过（2026-10-26）
 
