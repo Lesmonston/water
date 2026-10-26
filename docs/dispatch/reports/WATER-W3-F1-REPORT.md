@@ -133,3 +133,63 @@ node F:/new/smaltalk/water/scripts/desktop-wave-check.mjs --task WATER-W3-F1 --m
 未做/未验证：F2/F3 宿主与实际界面接线、真实文件夹选择、用户本人点击后的真实删除、macOS、并发多宿主共享同一 data_dir、操作系统级崩溃/断电与恶意文件系统竞态。50 ms 返回预算在合成测试成功调用上断言通过，没有声称对任意磁盘延迟作硬实时保证。令牌熵使用允许依赖范围内的标准库 RandomState，摘要实现为 SHA-256；未做独立密码学审计。清理占用状态依赖注入 Platform；Windows 快照不可得时保守视为在用。
 
 交付回执和证据后停止本票所有测试；所有运行过的检查命令已退出，没有本票启动的自有后台子进程待处理。
+
+## 补单 01
+
+依据 `docs/dispatch/tickets/WATER-W3-F1-ADDENDUM-01-20261026.md`，2026-10-26 由 Grok Bot 续做，没有启动子代理。上文各节是原回执，保留不动；凡与本节冲突的，以本节为准。
+
+### 起点与新提交
+
+- 起点 `06182d6b`（原回执提交）。接手时 HEAD 一致，工作区干净。按补单要求没有重跑 baseline。
+- 实现与测试提交 `84b526da2ff7071574506cea3fd29c22e3bbd641`。只改了 `packages/water-service/` 下的 5 个源文件和 `tests/service_v1.rs`，逐个文件 `git add`。三个 final 都在这个干净提交上跑。
+- 本回执与归档证据另起一个提交，只包含这两部分。
+- 没有 push、force、reset、clean、amend、stash、rebase、merge、`add -N`，没有改 git config。作者沿用分支已有身份（`-c user.name/user.email`）。
+
+### 四处修改
+
+1. **占用结果随扫描保存。** 新增 `views::scan_in_use`：扫描 worker 在本次扫描的占用批次内，对每个需要检测占用的组，从可清理项中询问一次 Platform，把结果按组写进扫描记录的新键 `in_use`（`{group_id: {"process_label_zh": …}}`）。`group()` 视图只读这个保存的值，不再调用 `Platform::in_use`，所以重启或重新打开详情不会改变结论。`Record::load` 同时接受原来的 11 个键和"11 个键加 `in_use`"两种格式；`in_use` 必须是对象，键是记录里已有的组，值只有一个字符串字段 `process_label_zh`，否则整条记录按不可读处理。旧记录没有这个键，视图显示 null。Windows 快照取不到时，lib.rs 统一用常量 `IN_USE_UNKNOWN` 返回，保存为"暂时无法确认是否在运行，清理时会再次检查"，即仍按在用处理。
+2. **清理开关先判断。** `Service::call` 先判断 `clean_prepare`/`clean_start` 和开关，开关关闭就直接返回 `unavailable`（DISABLED），之后才做 `validate`。关闭的构建不会检查清理参数，也不会把任何参数错误泄露给调用方。计划项的精确集合由新断言覆盖（见下），计划生成代码没有改动。
+3. **设置分项保留。** 新增 `load_settings`：版本不对、分类不是那 7 个时才整体回到默认；否则保留分类开关，逐个检查自定义根（能解析、id 合法、不重复、`valid_custom` 通过、最多 16 个）。只要丢掉了根，就用原子写回 `settings.json` 一次。写回失败时内存里保留过滤后的副本，不影响启动。
+4. **只删已读入并被裁掉的记录。** `Store::prune` 换成 `Store::remove(dir, ids)`：只删除传入 id 对应的、`path()` 校验通过的普通 `.json` 文件，跳过目录和重解析点，删除失败直接忽略，返回实际删掉的 id。`trim` 不再返回错误：扫描记录只删超出 60 条的那些，快照只跟着已删掉的扫描记录一起删；清理记录只删已读入但不在保留列表里的。无法读入的文件、以记录命名的目录、被占用的文件都原样保留。启动时（`trim(...)?`）、扫描结束和清理结束时都不再因为删除失败而报错或把状态改成 failed。
+
+### 新增断言（全部在 tests/service_v1.rs，测试仍是那 5 个，没有 ignore 或过滤）
+
+- `service_scan_views`：重启前记下各组标签和 chrome-cache 详情的 in_use，并断言"chrome 正在运行，将跳过占用的项"（:595）。重启后 scan_result 与 group_detail 跟记下的一致（:608、:613），Fake 的 `in_use_calls` 计数没有增加（:618）。消息都是 `SERVICE_IN_USE_SAVED`。
+- `service_clean_flow`：开关关闭时，四种非法参数的 prepare/start 都返回 DISABLED，且文件不变（:644、:650）。启用状态预览后，用 `f.service(false)` 拿真实计划与令牌重放 clean_start，返回 DISABLED，库存不变（:682、:688）。消息都是 `SERVICE_CLEAN_DISABLED`。末尾造一个刚修改过、带身份但不可清理的 `marketplace-upgrade-fresh/data`，选两组 prepare，断言计划项恰好等于已保存扫描里所选组中可清理且带身份的项，新项不在计划里（:828、:838、:864、:867、:869），消息是 `SERVICE_PLAN_ITEMS`。
+- `service_storage_safety`：两个自定义根中一个被删掉后重启，dev_cache 和 browser 的关闭状态保留，只剩存活的那个根，盘上的 settings.json 已改写（:1075、:1080、:1090、:1101，`SERVICE_SETTINGS_KEEP`）。去掉 `in_use` 键的旧记录，视图显示 null（:1146，`SERVICE_IN_USE_SAVED`）。损坏的记录、以记录命名的目录、被共享锁占用的记录及其快照都保留，其余扫描、快照、清理记录各保留 60 条（:1258～:1279，`SERVICE_STORAGE_KEEP`）。
+
+### 先红后绿
+
+- 红：改测试、未改源码时跑 [test](../../acceptance/wave3/f1/receipts/2026-10-26T10-30-25.941Z-23932-test-result.json)（19:30 JST），3 个失败：clean_flow 停在 `SERVICE_CLEAN_DISABLED`（实际返回 invalid），scan_views 的 in_use 调用次数 414≠207，storage 停在 `SERVICE_SETTINGS_KEEP: toggle lost`。
+- 绿：实现后 [check](../../acceptance/wave3/f1/receipts/2026-10-26T10-32-40.005Z-20908-check-result.json)（fmt、clippy -D warnings、依赖与 unsafe 策略）和 [test](../../acceptance/wave3/f1/receipts/2026-10-26T10-32-56.204Z-14212-test-result.json) 通过，5 passed。之后才提交，提交期间没有跑任何检查。
+
+### 三条负控（都在 84b526da 上，各改一行，红后 `git checkout -- <文件>` 恢复，再用 hash-object 核对、跑 test 转绿）
+
+| 负控 | 改动 | 红回执与失败点 | 恢复后 hash-object（与 HEAD blob 一致） | 恢复后绿回执 |
+|---|---|---|---|---|
+| nc1 SERVICE_TOKEN_ONCE | clean.rs:130 去掉 `consume_confirmation(...)` | [red-nc1](../../acceptance/wave3/f1/receipts/2026-10-26T10-34-38.827Z-28712-red-nc1-result.json)：令牌重放得到 Ok(clean_id)，4 passed 1 failed | clean.rs `eedad383ba1ecce01f6840a2824d1aa1bc1e9eb9` | [test](../../acceptance/wave3/f1/receipts/2026-10-26T10-35-05.853Z-14180-test-result.json) |
+| nc2 SERVICE_CLEAN_DISABLED | service.rs:305 开关只匹配 `clean_prepare` | [red-nc2](../../acceptance/wave3/f1/receipts/2026-10-26T10-35-42.205Z-28176-red-nc2-result.json)：关闭时 clean_start 返回 not_found 而不是 DISABLED，4 passed 1 failed | service.rs `3e17c23ae28cf51ab52196666f12d0e71f960066` | [test](../../acceptance/wave3/f1/receipts/2026-10-26T10-36-09.368Z-20788-test-result.json) |
+| nc3 SERVICE_PROTECTED_PLAN | clean.rs:89 计划 JSON 的 protected_paths 改成空数组 | [red-nc3](../../acceptance/wave3/f1/receipts/2026-10-26T10-37-06.003Z-13476-red-nc3-result.json)：`missing protected paths`，4 passed 1 failed | clean.rs `eedad383ba1ecce01f6840a2824d1aa1bc1e9eb9` | [test](../../acceptance/wave3/f1/receipts/2026-10-26T10-37-36.242Z-4500-test-result.json) |
+
+nc3 第一次写法把块表达式直接放进 `json!`，编译失败，检查器报 "Test names must match exactly"（[回执](../../acceptance/wave3/f1/receipts/2026-10-26T10-36-43.496Z-20300-red-nc3-result.json)）。这次不算红。改成带括号的写法后在同一行重跑，得到上表的有效红。
+
+### 最终门
+
+- [check --final](../../acceptance/wave3/f1/receipts/2026-10-26T10-38-07.711Z-28612-check-result.json)：通过。
+- test --final 第一次[失败](../../acceptance/wave3/f1/receipts/2026-10-26T10-38-14.995Z-8892-test-result.json)：`service_trends_locations` 的 `SERVICE_RETURN_BUDGET: locations_set_category` 超过 50 ms。这个处理函数本次没有改（只做一次原子写 settings.json）；当时本机有其他项目的大批 jest/vitest 进程占着磁盘，之前 5 次同代码的 test 都通过。没有改代码和预算，原样重跑 [test --final](../../acceptance/wave3/f1/receipts/2026-10-26T10-40-40.139Z-27340-test-result.json) 通过，5 passed。原文中"50 ms 不是硬实时保证"的说法仍然成立，这次失败就是一个实例。
+- [real --final](../../acceptance/wave3/f1/receipts/2026-10-26T10-38-38.258Z-20052-real-result.json)：通过，前后 HEAD 都是 84b526da，状态干净。
+- archive：通过（回执生成在 .local，在复制完成之后）。[ARCHIVE.json](../../acceptance/wave3/f1/ARCHIVE.json) 登记 742 个文件、9,037,153 字节；逐个对照 source 与 archive 的 SHA-256 和长度，742/742 一致。
+
+### 真实冒烟变化
+
+只通过 `--mode real` 跑，清理保持关闭，`clean_prepare_code=unavailable`。没有新增自定义根，没有打开窗口或选择框，`service_smoke` 示例本次没改。结果：completed；duration_ms=86498（原 65721）；drives=4；insights=0。recognized_bytes 45604327937→46009826373，recommended_bytes 9629999126→9559164581，confirm_bytes 8134218960→8154874714，protected_bytes 11803964213→11815853472，advisory_bytes 6413723426→6413772578，unrecognized_bytes 仍为 0。各分类组数不变：agent_tool 12、browser 14、system_temp 2、app_leftover 6、dev_cache 13、crash_log 7、gpu_system 2。字节变化来自两次扫描之间本机实际文件的增减，不是规则变化。新的 `in_use` 会随真实扫描记录保存，但冒烟摘要不输出这个字段，所以本回执没有核对它的真实取值。
+
+### 偏差与未做
+
+- 偏差：没有改 `Platform` trait。"无法确认占用"靠 lib.rs 的常量 `IN_USE_UNKNOWN`（WindowsPlatform 返回的哨兵字符串）识别；如果其他 Platform 实现返回相同文字，也会被当成未知。
+- 偏差：设置过滤后的写回是尽力而为，失败时不报错，下次启动会再次过滤。trim 在删除失败时也不再把扫描或清理状态改成 failed。
+- 额外：storage 测试多了一个"被占用的记录不能删，也不能删掉它的快照"场景。
+- 按补单不在范围、没有做：panic 或 busy 锁问题、plans 的信任边界、consumed 的异步标记、.tmp 残留以及 plans/journal 的上限、只按文本比较路径、拿部分扫描结果当清理来源。
+- 本节同样没有验证：真实删除、宿主与界面接线、macOS、多宿主并发。
+
+本补单所有检查命令都已退出，没有本票启动的后台进程；夹具都在 `.local/w3-f1-fixtures/` 下，测试没有读真实位置，也没有启动进程。
