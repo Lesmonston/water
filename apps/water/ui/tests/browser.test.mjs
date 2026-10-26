@@ -31,6 +31,11 @@ function fakeHost(f, options) {
     Object.assign(f.group_details['codex-marketplace-staging'].group.growth, delta);
     Object.assign(f.trends.growth[0], delta);
   }
+  if (options.longResult) for (const category of f.scan_result.categories) {
+    const extra = [];
+    for (let i = 1; i <= 3; i++) for (const g of category.groups) extra.push({...copy(g), group_id:`${g.group_id}-x${i}`});
+    category.groups.push(...extra);
+  }
   const NativeDate = Date;
   window.Date = class extends NativeDate { constructor(...args) { super(...(args.length ? args : [f.scan_result.finished_at])); } static now() { return NativeDate.parse(f.scan_result.finished_at); } };
   const control = window.__waterTest = {scenario:options.scenario, calls:[], errors:[], scanIndex:0, cleanIndex:0, holdScan:true, holdClean:true, holdApp:!!options.holdApp, scanIdleBefore:0, progressErrors:{scan_progress:[], clean_progress:[]}, nextError:null, scanned:!!options.scanned, busy:options.busy ?? 'idle', locations:copy(f.locations), addCancelled:false, plan:null, planSequence:0, consumed:false, cleanFinished:false};
@@ -352,4 +357,40 @@ test('ui_layout_states_a11y', async () => {
   assert(await browser.evaluate(`document.querySelector(${JSON.stringify(q('add-root'))}).disabled`));
   await reset({unavailable:true}); await waitText('无法连接 Water 服务'); await shot('unavailable-1240x820');
   await noOverflow(); await safeCalls();
+});
+
+test('ui_m1_polish', async () => {
+  const lineLengths = selector => browser.evaluate(`(()=>{const node=document.querySelector(${JSON.stringify(selector)}).firstChild,range=document.createRange(),lines=new Map();for(let i=0;i<node.length;i++){range.setStart(node,i);range.setEnd(node,i+1);const rect=range.getClientRects()[0];if(!rect)continue;const top=Math.round(rect.top);lines.set(top,(lines.get(top)||0)+1);}return [...lines.values()];})()`);
+  const footerLines = () => browser.evaluate(`(()=>{const node=document.querySelector('.side-foot p').firstChild,range=document.createRange(),lines=new Map();for(let i=0;i<node.length;i++){range.setStart(node,i);range.setEnd(node,i+1);const rect=range.getClientRects()[0];if(!rect)continue;const top=Math.round(rect.top);lines.set(top,(lines.get(top)||0)+1);}return [...lines.values()];})()`);
+  await reset({scanned:true, longResult:true}, 'results'); await browser.waitFor('!!document.querySelector(".dock") && document.querySelectorAll(".group-row").length > 60');
+  for (const [w, h] of [[1240, 820], [1040, 720]]) {
+    await browser.size(w, h);
+    await browser.evaluate('document.querySelector("#main").scrollTop = 1e9');
+    await new Promise(ok => setTimeout(ok, 300));
+    const gap = await browser.evaluate('(()=>{const last=[...document.querySelectorAll(".group-row")].at(-1).getBoundingClientRect(),dock=document.querySelector(".dock").getBoundingClientRect();return Math.round(dock.top-last.bottom);})()');
+    assert(gap >= 16, `UI_DOCK_CLEARANCE: at ${w}x${h} the last row ends ${gap}px from the dock`);
+    await shot(`results-bottom-${w}x${h}`);
+    const lines = await footerLines();
+    assert(lines.every(n => n >= 4), `UI_FOOTER_WRAP: at ${w}x${h} footer lines hold ${lines.join(',')} characters`);
+  }
+  await reset({}, 'home'); await waitText('尚未体检');
+  for (const [w, h] of [[1240, 820], [1040, 720]]) { await browser.size(w, h); const lines = await lineLengths('.drive-main p.sub'); assert(lines.every(n => n >= 4), `UI_FOOTER_WRAP: at ${w}x${h} the drive description lines hold ${lines.join(',')} characters`); }
+  await reset({scanned:true}, 'results'); await waitText(selectionText(defaults.length));
+  await browser.size(1240, 820); await browser.evaluate('document.querySelector("#main").scrollTop = 0');
+  const m1 = '这一版只做体检，清理功能会在下一版开放。';
+  await control(`window.__waterTest.nextError={command:'clean_prepare',error:{code:'unavailable',message_zh:${JSON.stringify(m1)}}}`);
+  await click('clean-prepare'); await waitText(m1);
+  assert(!(await browser.evaluate('document.querySelector("#notice").hidden')), 'UI_NOTICE_SCOPE: the M1 notice is not shown');
+  await shot('notice-results-1240x820');
+  await click('nav-trends'); await waitText('比较每次体检，找出一直在变大的东西。');
+  assert(await browser.evaluate('document.querySelector("#notice").hidden') && !(await text()).includes(m1), 'UI_NOTICE_SCOPE: the error notice survived the route change');
+  await shot('notice-trends-1240x820');
+  await browser.evaluate('location.hash = "#/results"'); await pageIs('results');
+  assert(!(await text()).includes(m1), 'UI_NOTICE_SCOPE: the old notice came back on the results page');
+  await reset(); await click('scan-start'); await pageIs('scan');
+  await control(`window.__waterTest.progressErrors.scan_progress=[{code:'not_found',message_zh:'找不到这条记录，请重新体检。'}]`);
+  await browser.waitFor(`!!document.querySelector(${JSON.stringify(q('progress-reconnect'))})`);
+  await click('nav-trends'); await waitText('比较每次体检，找出一直在变大的东西。');
+  assert(await browser.evaluate(`!document.querySelector("#notice").hidden && !!document.querySelector(${JSON.stringify(q('progress-reconnect'))})`), 'UI_NOTICE_SCOPE: the progress notice must stay across pages');
+  await safeCalls();
 });

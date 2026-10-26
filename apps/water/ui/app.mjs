@@ -131,6 +131,7 @@ async function loadRoute() {
 function routeChanged() {
   closeOverlay(true); const value = location.hash.slice(2); route = routes.includes(value) ? value : 'home';
   state.showDone = false;
+  if (!state.pollPaused && !state.reconnecting) state.error = '';
   try { localStorage.setItem('water-last-page', route); } catch {}
   page.classList.remove('enter'); void page.offsetWidth; page.classList.add('enter'); main.scrollTop = 0;
   render(); void loadRoute();
