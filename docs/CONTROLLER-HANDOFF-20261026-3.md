@@ -73,6 +73,10 @@
 | F1 服务核心 | `packages/water-service`：把 A–D 接成 IPC 的 17 个命令；`Platform` 与 `FolderPicker` 注入；存储在 data_dir；清理带开关 | `.worktrees/w3-f1` / `worker/water-w3-f1` | 重：nc1 `SERVICE_TOKEN_ONCE`、nc2 `SERVICE_CLEAN_DISABLED`、nc3 `SERVICE_PROTECTED_PLAN`；real（清理关闭的只读整机扫描） | Astra |
 | F2 桌面宿主 | `apps/water/host`（包 `water-desktop`、程序 `water`）：Tauri 2.12.5、Mica、CSP、导航守卫、17 个命令转发给 `Backend`、`WATER_DATA_DIR`、选择框接线点；本票用 `UnavailableBackend` | `.worktrees/w3-f2` / `worker/water-w3-f2` | 轻：nc1 `HOST_CONFIG`、nc2 `HOST_NAVIGATION`；`native --final` 原生窗口整票 1 次 | Astra |
 
+- **交接后更新（18:07 JST）**：F2 交回受阻（`99766f6`），总控发了 [补单 01](dispatch/tickets/WATER-W3-F2-ADDENDUM-01-20261026.md)：
+  - 宿主多两个路径依赖 `water-contracts`、`water-scope-registry`；
+  - 签名改为 `pick_folder(initial_directory)`，并新增 `picker_failure`。
+  - 验收 F2 时以补单为准，manifest 的依赖白名单已同步；F1 不受影响。
 - 两票基点都是 `197dfda`，只通过 JSON 层对接：`Backend::call(command, args)` 对应 `Service::call(command, args)`。
 - **两个产品取舍**（已写进计划与契约）：
   1. 这一版只做体检，`clean_enabled = false`；

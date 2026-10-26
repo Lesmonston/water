@@ -1,0 +1,123 @@
+diff --git a/apps/water/host/Cargo.toml b/apps/water/host/Cargo.toml
+new file mode 100644
+index 00000000..8b1a33af
+--- /dev/null
++++ b/apps/water/host/Cargo.toml
+@@ -0,0 +1,35 @@
++[package]
++name = "water-desktop"
++version = "0.1.0"
++edition = "2024"
++rust-version = "1.95"
++publish = false
++autobins = false
++autotests = false
++autoexamples = false
++autobenches = false
++
++[workspace]
++
++[lib]
++name = "water_desktop"
++path = "src/lib.rs"
++
++[[bin]]
++name = "water"
++path = "src/main.rs"
++
++[[test]]
++name = "host_v1"
++path = "tests/host_v1.rs"
++
++[dependencies]
++tauri = { version = "=2.12.5", default-features = false, features = ["wry", "common-controls-v6"] }
++serde = { version = "=1.0.229", features = ["derive"] }
++serde_json = "=1.0.151"
++water-native-picker = { path = "../../../packages/native-picker" }
++water-contracts = { path = "../../../crates/water-contracts" }
++water-scope-registry = { path = "../../../packages/scope-registry" }
++
++[build-dependencies]
++tauri-build = "=2.7.4"
+diff --git a/apps/water/host/src/lib.rs b/apps/water/host/src/lib.rs
+new file mode 100644
+index 00000000..a2977b9e
+--- /dev/null
++++ b/apps/water/host/src/lib.rs
+@@ -0,0 +1,76 @@
++//! Self-test stub for the wave 3 gate; not product code.
++#![forbid(unsafe_code)]
++
++use std::path::PathBuf;
++use tauri::{
++    Manager, WebviewUrl, WebviewWindowBuilder,
++    webview::{NewWindowResponse, PermissionResponse},
++    window::{Effect, EffectsBuilder},
++};
++
++use water_contracts::v1::OpaqueId;
++pub use water_native_picker as picker;
++use water_native_picker::v1::{PickerError, PickerOptions, select_scope};
++use water_scope_registry::v1::Registry;
++
++pub fn picker_failure(error: &PickerError) -> &'static str {
++    match error {
++        PickerError::UnsupportedPlatform
++        | PickerError::ApartmentUnavailable
++        | PickerError::DialogFailed => "unavailable",
++        PickerError::Root(_) | PickerError::Source(_) | PickerError::InvalidSelection => "invalid",
++    }
++}
++
++pub fn pick_folder(initial_directory: &str) -> Result<Option<String>, &'static str> {
++    let options = PickerOptions::new(initial_directory).map_err(|e| picker_failure(&e))?;
++    let mut registry = Registry::new(1).map_err(|_| "unavailable")?;
++    let scope = OpaqueId::new("water-pick-folder").map_err(|_| "unavailable")?;
++    match select_scope(&mut registry, &scope, &options) {
++        Ok(None) => Ok(None),
++        Ok(Some(selected)) => Ok(Some(selected.root_path().to_owned())),
++        Err(error) => Err(picker_failure(&error)),
++    }
++}
++
++pub fn config_ok(raw: &str) -> bool {
++    raw.contains("\"withGlobalTauri\": true")
++}
++
++pub fn nav_ok(url: &str) -> bool {
++    matches!(
++        url.strip_prefix("tauri://localhost")
++            .or_else(|| url.strip_prefix("http://tauri.localhost")),
++        Some("" | "/" | "/index.html")
++    )
++}
++
++pub fn run() -> Result<(), String> {
++    tauri::Builder::default()
++        .setup(|app| {
++            let base = match std::env::var("WATER_DATA_DIR") {
++                Ok(dir) => PathBuf::from(dir),
++                Err(_) => app.path().local_data_dir()?.join("Water"),
++            };
++            let webview = base.join("webview");
++            std::fs::create_dir_all(&webview)?;
++            WebviewWindowBuilder::new(app, "main", WebviewUrl::App("index.html".into()))
++                .title("Water")
++                .inner_size(1240.0, 820.0)
++                .min_inner_size(1040.0, 720.0)
++                .center()
++                .transparent(true)
++                .effects(EffectsBuilder::new().effect(Effect::Mica).build())
++                .data_directory(webview)
++                .devtools(false)
++                .disable_drag_drop_handler()
++                .on_navigation(|url| nav_ok(url.as_str()))
++                .on_new_window(|_url, _features| NewWindowResponse::Deny)
++                .on_download(|_webview, _event| false)
++                .on_permission_request(|_webview, _kind| PermissionResponse::Deny)
++                .build()?;
++            Ok(())
++        })
++        .run(tauri::generate_context!())
++        .map_err(|error| error.to_string())
++}

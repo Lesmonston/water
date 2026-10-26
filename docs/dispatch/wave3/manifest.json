@@ -1,7 +1,7 @@
 {
   "schemaVersion": 1,
   "wave": "water-wave3-desktop",
-  "status": "F1_F2_DISPATCHED",
+  "status": "F1_DISPATCHED_F2_ADDENDUM_READY",
   "controller": "Claude",
   "controllerRoot": "F:/new/smaltalk/water",
   "controllerBranch": "main",
@@ -205,12 +205,12 @@
       "slot": "w3-f2",
       "kind": "host",
       "gate": "light",
-      "status": "DISPATCHED",
+      "status": "BLOCKED",
       "baseCommit": "197dfdaecc94dc8b84e94aa8d91ee5cb1c0d965e",
       "snapshotRef": "refs/tags/water-w3-desktop-base-20261026",
       "dispatchedAt": null,
       "startedAt": null,
-      "model": "Astra (user-reported executor; exact model unverified until worker report)",
+      "model": "Astra (user-reported); worker self-report: Codex GPT-6",
       "modelAssignment": "user-arranged; report actual engine/model",
       "macOS": "unverified",
       "readyOn": "2026-10-26",
@@ -335,6 +335,24 @@
           "path": "packages/native-picker",
           "defaults": true,
           "features": []
+        },
+        {
+          "name": "water-contracts",
+          "req": "*",
+          "kind": null,
+          "optional": false,
+          "path": "crates/water-contracts",
+          "defaults": true,
+          "features": []
+        },
+        {
+          "name": "water-scope-registry",
+          "req": "*",
+          "kind": null,
+          "optional": false,
+          "path": "packages/scope-registry",
+          "defaults": true,
+          "features": []
         }
       ],
       "expectedConfig": {
@@ -378,7 +396,28 @@
       "baselineStatus": "PASSED",
       "baselineEvidence": "docs/acceptance/wave3/controller/preflight-20261026/baseline/2026-10-26T08-31-48.814Z-42024-baseline-result.json",
       "dispatchReportedAt": "2026-10-26T08:51:16Z",
-      "dispatchEvidence": "user chat 2026-10-26: both wave 3 tickets pasted to Astra in fresh conversations; worktree clean at base when recorded"
+      "dispatchEvidence": "user chat 2026-10-26: both wave 3 tickets pasted to Astra in fresh conversations; worktree clean at base when recorded",
+      "blocked": {
+        "reportedAt": "2026-10-26T08:55:27Z",
+        "commit": "99766f6261958009a90c5b4fb7f0fa2db18cec7d",
+        "report": "docs/dispatch/reports/WATER-W3-F2-REPORT.md",
+        "cause": "HOST.md section 1 allowed only water-native-picker, but select_scope needs Registry and OpaqueId, which the picker does not re-export; controller self-test stub never called select_scope",
+        "controllerVerdict": "valid blocker; contract gap"
+      },
+      "addenda": [
+        {
+          "id": "WATER-W3-F2-ADDENDUM-01",
+          "ticket": "docs/dispatch/tickets/WATER-W3-F2-ADDENDUM-01-20261026.md",
+          "status": "READY",
+          "issuedAt": "2026-10-26T09:07:15Z",
+          "resumeFromCommit": "99766f6261958009a90c5b4fb7f0fa2db18cec7d",
+          "change": "two direct path deps (water-contracts, water-scope-registry) only to build select_scope parameters; pick_folder(initial_directory) with caller-supplied initial directory; exact six-variant picker_failure mapping tested in host_command_registry without opening a dialog",
+          "controllerPreflight": "docs/acceptance/wave3/controller/preflight-20261026/addendum-f2-01/",
+          "dispatchedAt": null,
+          "dispatchReportedAt": null,
+          "executor": null
+        }
+      ]
     }
   ],
   "gateSelfTest": "docs/acceptance/wave3/controller/preflight-20261026/",

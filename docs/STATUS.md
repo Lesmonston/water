@@ -43,6 +43,11 @@ A–AB及八补单、AD保持VERIFIED；AC/补单06新增VERIFIED（Windows静�
 - 两个产品取舍：这一版只做体检，清理先关闭（D 加固后再开）；窗口保留系统标题栏。
 - 新检查入口 `scripts/desktop-wave-check.mjs` 已在两棵自测树走通，见[派前回执](dispatch/wave3/READY-REPORT-20261026.md)。
 - **已派出（17:51 JST）**：F1、F2 都交 Astra，新开对话；记录时两棵树都停在基点、干净。
+- **F2 受阻与补单 01（18:07 JST）**：
+  - F2 在实现前交回受阻（`99766f6`，自报 Codex GPT-6）：选择框 `select_scope` 要 `Registry` 与 `OpaqueId`，picker 没有转出这两个类型，HOST 又只许依赖 picker。属实，是总控契约漏洞，桩宿主没真正调用它。
+  - [补单 01](dispatch/tickets/WATER-W3-F2-ADDENDUM-01-20261026.md)：只加两个路径依赖用来构造参数；`pick_folder` 改为由调用方传初始目录；六种错误逐个映射并测试，测试不弹框。
+  - 总控已在自测树走通 lock、check、test，锁没有新增任何包。manifest 里 F2 的依赖白名单已同步。HOST.md 不改。
+  - F1 未受影响，仍在进行（已跑 baseline 与 lock）。
 
 ## 真实AA→AD联合验收通过（2026-10-26）
 
