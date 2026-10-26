@@ -3,11 +3,21 @@
 use crate::{CleanError, Identity, ItemReport, ItemStatus, Kind, PlanItem, SkipReason, StopFlag};
 use std::time::SystemTime;
 
+#[derive(Clone, Debug, PartialEq, Eq)]
+struct Entry {
+    rel: String,
+    file_id: [u8; 16],
+    size: u64,
+    mtime: SystemTime,
+    tag: u32,
+    attr: u32,
+}
+
 #[derive(Debug, PartialEq, Eq)]
 pub(crate) struct Snapshot {
     pub bytes: u64,
     pub newest: SystemTime,
-    entries: Vec<(String, u64, SystemTime, u32)>,
+    entries: Vec<Entry>,
 }
 
 #[cfg(windows)]
@@ -16,23 +26,99 @@ mod windows {
     use crate::path;
     use std::{
         ffi::c_void,
-        fs, io,
         mem::{align_of, size_of},
-        os::windows::fs::MetadataExt,
         ptr,
+        time::Duration,
     };
 
     const DIRECTORY: u32 = 0x10;
     const REPARSE: u32 = 0x400;
+    const NAME_SURROGATE: u32 = 0x2000_0000;
 
+    const FILE_LIST_DIRECTORY: u32 = 0x1;
+    const DELETE: u32 = 0x1_0000;
+    const FILE_READ_ATTRIBUTES: u32 = 0x80;
+    const SYNCHRONIZE: u32 = 0x10_0000;
+
+    const SHARE_RW: u32 = 3; // FILE_SHARE_READ | FILE_SHARE_WRITE (no delete share)
+    const SHARE_RWD: u32 = 7; // + FILE_SHARE_DELETE
+
+    const OBJ_CASE_INSENSITIVE: u32 = 0x40;
+    const OPEN_REPARSE_POINT: u32 = 0x0020_0000;
+    const SYNCHRONOUS_IO_NONALERT: u32 = 0x20;
+    const OPEN_FOR_BACKUP_INTENT: u32 = 0x4000;
+    const OPTS: u32 = OPEN_REPARSE_POINT | SYNCHRONOUS_IO_NONALERT | OPEN_FOR_BACKUP_INTENT;
+
+    const FLAG_BACKUP_SEMANTICS: u32 = 0x0200_0000;
+    const FLAG_OPEN_REPARSE_POINT: u32 = 0x0020_0000;
+
+    const ERR_FILE_NOT_FOUND: u32 = 2;
+    const ERR_PATH_NOT_FOUND: u32 = 3;
+
+    // Windows FILETIME ticks (100ns) between 1601-01-01 and 1970-01-01.
+    const FILETIME_UNIX: i64 = 116_444_736_000_000_000;
+
+    #[repr(C)]
+    struct UnicodeString {
+        length: u16,
+        maximum_length: u16,
+        buffer: *mut u16,
+    }
+    #[repr(C)]
+    struct ObjectAttributes {
+        length: u32,
+        root_directory: *mut c_void,
+        object_name: *mut UnicodeString,
+        attributes: u32,
+        security_descriptor: *mut c_void,
+        security_qos: *mut c_void,
+    }
+    #[repr(C)]
+    struct IoStatusBlock {
+        status_or_pointer: usize,
+        information: usize,
+    }
+    #[repr(C)]
+    struct FileAttributeTagInfo {
+        file_attributes: u32,
+        reparse_tag: u32,
+    }
     #[repr(C)]
     struct FileIdInfo {
         volume_serial: u64,
         file_id: [u8; 16],
     }
+    #[repr(C)]
+    struct FileBasicInfo {
+        creation: i64,
+        last_access: i64,
+        last_write: i64,
+        change: i64,
+        attributes: u32,
+    }
+    #[repr(C)]
+    struct FileStandardInfo {
+        allocation: i64,
+        end_of_file: i64,
+        links: u32,
+        delete_pending: u8,
+        directory: u8,
+    }
+    #[repr(C)]
+    struct FileDispositionInfo {
+        delete_file: u8,
+    }
+    #[repr(C)]
+    struct FileDispositionInfoEx {
+        flags: u32,
+    }
+
+    const _: () = assert!(size_of::<ObjectAttributes>() == 48);
+    const _: () = assert!(size_of::<IoStatusBlock>() == 16);
     const _: () = assert!(size_of::<FileIdInfo>() == 24 && align_of::<FileIdInfo>() == 8);
 
-    // SAFETY: these declarations use Win32's system ABI and pointer/DWORD/BOOL widths.
+    // SAFETY: these declarations use Win32/NT system ABI widths; only the eight functions
+    // permitted by the SPEC appear here.
     #[link(name = "kernel32")]
     unsafe extern "system" {
         fn CreateFileW(
@@ -50,6 +136,12 @@ mod windows {
             buffer: *mut c_void,
             size: u32,
         ) -> i32;
+        fn SetFileInformationByHandle(
+            handle: *mut c_void,
+            class: i32,
+            buffer: *const c_void,
+            size: u32,
+        ) -> i32;
         fn GetVolumeInformationByHandleW(
             handle: *mut c_void,
             name: *mut u16,
@@ -61,63 +153,165 @@ mod windows {
             fs_size: u32,
         ) -> i32;
         fn GetDiskFreeSpaceExW(
-            path: *const u16,
+            name: *const u16,
             available: *mut u64,
             total: *mut u64,
             free: *mut u64,
         ) -> i32;
         fn CloseHandle(handle: *mut c_void) -> i32;
     }
+    #[link(name = "ntdll")]
+    unsafe extern "system" {
+        fn NtOpenFile(
+            handle: *mut *mut c_void,
+            access: u32,
+            attributes: *const ObjectAttributes,
+            io: *mut IoStatusBlock,
+            share: u32,
+            options: u32,
+        ) -> i32;
+        fn RtlNtStatusToDosError(status: i32) -> u32;
+    }
 
     struct Handle(*mut c_void);
     impl Drop for Handle {
         fn drop(&mut self) {
-            // SAFETY: this wrapper owns exactly one successful CreateFileW handle.
+            // SAFETY: this wrapper owns exactly one live handle.
             unsafe {
                 CloseHandle(self.0);
             }
         }
     }
 
-    pub(crate) fn identity(path: &str) -> Result<Identity, CleanError> {
-        let name: Vec<u16> = path.encode_utf16().chain(Some(0)).collect();
-        // SAFETY: the NUL-terminated name lives across the call; security/template are null.
-        // Only FILE_READ_ATTRIBUTES, full sharing, OPEN_EXISTING, BACKUP_SEMANTICS and
-        // OPEN_REPARSE_POINT are requested. No file data or write access is acquired.
+    fn wide(s: &str) -> Vec<u16> {
+        s.encode_utf16().chain(Some(0)).collect()
+    }
+
+    // The drive root, identity_of and guard resolution still open by name; long names need
+    // the \\?\ prefix so they are not capped at MAX_PATH.
+    fn prefixed(s: &str) -> Vec<u16> {
+        if s.len() >= 248 && !s.starts_with(r"\\") {
+            wide(&format!(r"\\?\{s}"))
+        } else {
+            wide(s)
+        }
+    }
+
+    fn filetime(ticks: i64) -> SystemTime {
+        let delta = ticks - FILETIME_UNIX;
+        if delta >= 0 {
+            SystemTime::UNIX_EPOCH + Duration::from_nanos(delta as u64 * 100)
+        } else {
+            SystemTime::UNIX_EPOCH - Duration::from_nanos((-delta) as u64 * 100)
+        }
+    }
+
+    fn open_root(drive: &str) -> Option<Handle> {
+        let name = wide(drive);
+        // SAFETY: name is NUL-terminated; only read/list access with backup semantics.
         let raw = unsafe {
             CreateFileW(
                 name.as_ptr(),
-                0x80,
-                7,
+                FILE_LIST_DIRECTORY | FILE_READ_ATTRIBUTES,
+                SHARE_RWD,
                 ptr::null(),
                 3,
-                0x02000000 | 0x00200000,
+                FLAG_BACKUP_SEMANTICS,
                 ptr::null_mut(),
             )
         };
         if raw as isize == -1 || raw.is_null() {
-            return Err(CleanError::Native);
+            None
+        } else {
+            Some(Handle(raw))
         }
-        let handle = Handle(raw);
+    }
+
+    // Open a single-segment child relative to the parent handle. Returns the Win32 error on
+    // failure so callers can tell "missing" from "changed".
+    fn nt_open(parent: &Handle, seg: &str, access: u32, share: u32) -> Result<Handle, u32> {
+        let mut name: Vec<u16> = seg.encode_utf16().collect();
+        let mut us = UnicodeString {
+            length: (name.len() * 2) as u16,
+            maximum_length: (name.len() * 2) as u16,
+            buffer: name.as_mut_ptr(),
+        };
+        let oa = ObjectAttributes {
+            length: size_of::<ObjectAttributes>() as u32,
+            root_directory: parent.0,
+            object_name: &mut us,
+            attributes: OBJ_CASE_INSENSITIVE,
+            security_descriptor: ptr::null_mut(),
+            security_qos: ptr::null_mut(),
+        };
+        let mut io = IoStatusBlock {
+            status_or_pointer: 0,
+            information: 0,
+        };
+        let mut handle: *mut c_void = ptr::null_mut();
+        // SAFETY: oa/io/handle are valid and the single-segment name lives across the call.
+        let status = unsafe { NtOpenFile(&mut handle, access, &oa, &mut io, share, OPTS) };
+        if status == 0 {
+            Ok(Handle(handle))
+        } else {
+            // SAFETY: pure status-to-DOS-error translation, no pointers.
+            Err(unsafe { RtlNtStatusToDosError(status) })
+        }
+    }
+
+    fn info<T>(handle: &Handle, class: i32, value: &mut T) -> bool {
+        // SAFETY: value is an initialized, aligned buffer of exactly size_of::<T>() bytes.
+        0 != unsafe {
+            GetFileInformationByHandleEx(
+                handle.0,
+                class,
+                (value as *mut T).cast(),
+                size_of::<T>() as u32,
+            )
+        }
+    }
+
+    fn attr_tag(handle: &Handle) -> Option<(u32, u32)> {
+        let mut info_buf = FileAttributeTagInfo {
+            file_attributes: 0,
+            reparse_tag: 0,
+        };
+        info(handle, 9, &mut info_buf).then_some((info_buf.file_attributes, info_buf.reparse_tag))
+    }
+
+    fn file_id(handle: &Handle) -> Option<[u8; 16]> {
         let mut id = FileIdInfo {
             volume_serial: 0,
             file_id: [0; 16],
         };
-        // SAFETY: class 18 is FileIdInfo, writing this initialized/aligned 24-byte buffer.
-        let ok = unsafe {
-            GetFileInformationByHandleEx(
-                handle.0,
-                18,
-                (&mut id as *mut FileIdInfo).cast(),
-                size_of::<FileIdInfo>() as u32,
-            )
+        info(handle, 18, &mut id).then_some(id.file_id)
+    }
+
+    fn write_time(handle: &Handle) -> Option<i64> {
+        let mut basic = FileBasicInfo {
+            creation: 0,
+            last_access: 0,
+            last_write: 0,
+            change: 0,
+            attributes: 0,
         };
-        if ok == 0 {
-            return Err(CleanError::Native);
-        }
+        info(handle, 0, &mut basic).then_some(basic.last_write)
+    }
+
+    fn end_of_file(handle: &Handle) -> Option<u64> {
+        let mut std_info = FileStandardInfo {
+            allocation: 0,
+            end_of_file: 0,
+            links: 0,
+            delete_pending: 0,
+            directory: 0,
+        };
+        info(handle, 1, &mut std_info).then_some(std_info.end_of_file.max(0) as u64)
+    }
+
+    fn volume_serial(handle: &Handle) -> Option<u32> {
         let mut serial = 0u32;
-        // SAFETY: handle is live, the DWORD serial output is valid, unused optional outputs
-        // are null and their buffer sizes are zero. This obtains the MODEL's 8-digit serial.
+        // SAFETY: handle is live; optional outputs are null with zero sizes.
         let ok = unsafe {
             GetVolumeInformationByHandleW(
                 handle.0,
@@ -130,23 +324,161 @@ mod windows {
                 0,
             )
         };
-        if ok == 0 {
-            return Err(CleanError::Native);
-        }
-        Ok(Identity {
+        (ok != 0).then_some(serial)
+    }
+
+    fn identity_from(handle: &Handle) -> Option<Identity> {
+        let id = file_id(handle)?;
+        let serial = volume_serial(handle)?;
+        Some(Identity {
             volume_serial: format!("{serial:08X}"),
-            file_id: id.file_id.iter().map(|b| format!("{b:02x}")).collect(),
+            file_id: id.iter().map(|b| format!("{b:02x}")).collect(),
         })
     }
 
-    pub(crate) fn volume_free(path: &str) -> Result<u64, CleanError> {
-        let name: Vec<u16> = path.encode_utf16().chain(Some(0)).collect();
+    struct Raw {
+        name: String,
+        attr: u32,
+        tag: u32,
+        file_id: [u8; 16],
+        size: u64,
+        write: i64,
+    }
+
+    // Enumerate one directory handle. Class 20 restarts, class 19 continues; a zero return
+    // means no more entries (buffer is large enough that every name fits).
+    fn enumerate(handle: &Handle) -> Result<Vec<Raw>, ()> {
+        let mut out = Vec::new();
+        let mut buf = vec![0u64; 4096];
+        let mut class = 20i32;
+        loop {
+            // SAFETY: buf is 8-byte aligned (Vec<u64>) and its byte length is passed.
+            let ok = unsafe {
+                GetFileInformationByHandleEx(
+                    handle.0,
+                    class,
+                    buf.as_mut_ptr().cast(),
+                    (buf.len() * 8) as u32,
+                )
+            };
+            if ok == 0 {
+                return Ok(out);
+            }
+            class = 19;
+            let base = buf.as_ptr() as *const u8;
+            let mut off = 0usize;
+            loop {
+                // SAFETY: entries live within the filled buffer; fields are read unaligned at
+                // the SPEC offsets and the name slice stays inside this entry.
+                let next = unsafe {
+                    let p = base.add(off);
+                    let next = ptr::read_unaligned(p as *const u32) as usize;
+                    let write = ptr::read_unaligned(p.add(24) as *const i64);
+                    let size = ptr::read_unaligned(p.add(40) as *const i64).max(0) as u64;
+                    let attr = ptr::read_unaligned(p.add(56) as *const u32);
+                    let name_len = ptr::read_unaligned(p.add(60) as *const u32) as usize;
+                    let tag = ptr::read_unaligned(p.add(68) as *const u32);
+                    let mut file_id = [0u8; 16];
+                    ptr::copy_nonoverlapping(p.add(72), file_id.as_mut_ptr(), 16);
+                    let units = std::slice::from_raw_parts(p.add(88) as *const u16, name_len / 2);
+                    let name = String::from_utf16_lossy(units);
+                    if name != "." && name != ".." {
+                        out.push(Raw {
+                            name,
+                            attr,
+                            tag,
+                            file_id,
+                            size,
+                            write,
+                        });
+                    }
+                    next
+                };
+                if next == 0 {
+                    break;
+                }
+                off += next;
+            }
+        }
+    }
+
+    fn set_delete(handle: &Handle) -> bool {
+        let ex = FileDispositionInfoEx {
+            flags: 0x1 | 0x2 | 0x10,
+        };
+        // SAFETY: class 21 reads a 4-byte flags field.
+        let ok = unsafe {
+            SetFileInformationByHandle(
+                handle.0,
+                21,
+                (&ex as *const FileDispositionInfoEx).cast(),
+                size_of::<FileDispositionInfoEx>() as u32,
+            )
+        };
+        if ok != 0 {
+            return true;
+        }
+        let plain = FileDispositionInfo { delete_file: 1 };
+        // SAFETY: class 4 reads a 1-byte flag.
+        0 != unsafe {
+            SetFileInformationByHandle(
+                handle.0,
+                4,
+                (&plain as *const FileDispositionInfo).cast(),
+                size_of::<FileDispositionInfo>() as u32,
+            )
+        }
+    }
+
+    pub(crate) fn identity(name: &str) -> Result<Identity, CleanError> {
+        let wide_name = prefixed(name);
+        // SAFETY: NUL-terminated name; attribute-only read of the reparse point itself.
+        let raw = unsafe {
+            CreateFileW(
+                wide_name.as_ptr(),
+                FILE_READ_ATTRIBUTES,
+                SHARE_RWD,
+                ptr::null(),
+                3,
+                FLAG_BACKUP_SEMANTICS | FLAG_OPEN_REPARSE_POINT,
+                ptr::null_mut(),
+            )
+        };
+        if raw as isize == -1 || raw.is_null() {
+            return Err(CleanError::Native);
+        }
+        let handle = Handle(raw);
+        identity_from(&handle).ok_or(CleanError::Native)
+    }
+
+    // Follow links and read attributes only: used to resolve guard and protected identities.
+    pub(crate) fn resolve_follow(name: &str) -> Option<Identity> {
+        let wide_name = prefixed(name);
+        // SAFETY: NUL-terminated name; attribute-only, following any link to its target.
+        let raw = unsafe {
+            CreateFileW(
+                wide_name.as_ptr(),
+                FILE_READ_ATTRIBUTES,
+                SHARE_RWD,
+                ptr::null(),
+                3,
+                FLAG_BACKUP_SEMANTICS,
+                ptr::null_mut(),
+            )
+        };
+        if raw as isize == -1 || raw.is_null() {
+            return None;
+        }
+        identity_from(&Handle(raw))
+    }
+
+    pub(crate) fn volume_free(name: &str) -> Result<u64, CleanError> {
+        let wide_name = wide(name);
         let mut available = 0u64;
-        // SAFETY: name is NUL-terminated and available is a writable ULARGE_INTEGER-sized
-        // output. Other optional outputs are null. This reads current-user available space.
+        // SAFETY: NUL-terminated name; only the available-bytes output is written.
         let ok = unsafe {
             GetDiskFreeSpaceExW(
-                name.as_ptr(),
+                wide_name.as_ptr(),
                 &mut available,
                 ptr::null_mut(),
                 ptr::null_mut(),
@@ -159,252 +491,450 @@ mod windows {
         }
     }
 
-    fn metadata(path: &str) -> Result<fs::Metadata, SkipReason> {
-        fs::symlink_metadata(path).map_err(|e| {
-            if e.kind() == io::ErrorKind::NotFound {
-                SkipReason::Gone
-            } else {
-                SkipReason::Changed
-            }
-        })
+    fn last_segment(name: &str) -> &str {
+        name.rsplit('\\').next().unwrap_or(name)
     }
 
-    pub(crate) fn check_chain(item: &PlanItem) -> Result<(), SkipReason> {
-        check_chain_impl(item) // NC3: all callers use this single containment/reparse gate.
+    struct Walked {
+        handle: Handle,
+        attr: u32,
+        tag: u32,
+        file_id: [u8; 16],
+        serial: u32,
+        write: i64,
+        size: u64,
+        is_dir: bool,
+        ancestors: Vec<Identity>,
     }
 
-    fn check_chain_impl(item: &PlanItem) -> Result<(), SkipReason> {
+    // Walk from the drive root to the item, opening each level relative to the previous one
+    // and never following reparse points.
+    fn walk_item(item: &PlanItem) -> Result<Walked, SkipReason> {
         if !path::strictly_contains(&item.root, &item.path) {
             return Err(SkipReason::OutsideRoot);
         }
-        // Check ancestors of root as well: an otherwise ordinary root can sit behind a junction.
-        let mut current = item.path[..3].to_owned();
-        let mut levels = vec![current.clone()];
-        for segment in item.path[3..].split('\\') {
-            if !current.ends_with('\\') {
-                current.push('\\');
+        let mut parent = open_root(&item.path[..3]).ok_or(SkipReason::Changed)?;
+        let segs: Vec<&str> = item.path[3..].split('\\').collect();
+        let mut ancestors = Vec::new();
+        for seg in &segs[..segs.len() - 1] {
+            let handle = nt_open(
+                &parent,
+                seg,
+                FILE_LIST_DIRECTORY | FILE_READ_ATTRIBUTES | SYNCHRONIZE,
+                SHARE_RWD,
+            )
+            .map_err(gone_or_changed)?;
+            let (attr, _) = attr_tag(&handle).ok_or(SkipReason::Changed)?;
+            if attr & REPARSE != 0 {
+                return Err(SkipReason::OutsideRoot);
             }
-            current.push_str(segment);
-            levels.push(current.clone());
-        }
-        for current in levels {
-            let last = current.eq_ignore_ascii_case(&item.path);
-            let meta = metadata(&current)?;
-            if meta.file_attributes() & REPARSE != 0 {
-                return Err(if last {
-                    SkipReason::Reparse
-                } else {
-                    SkipReason::OutsideRoot
-                });
-            }
-            if if last {
-                match item.kind {
-                    Kind::Dir => !meta.is_dir(),
-                    Kind::File => !meta.is_file(),
-                }
-            } else {
-                !meta.is_dir()
-            } {
+            if attr & DIRECTORY == 0 {
                 return Err(SkipReason::Changed);
+            }
+            if let Some(id) = identity_from(&handle) {
+                ancestors.push(id);
+            }
+            parent = handle;
+        }
+        let name = segs[segs.len() - 1];
+        let probe = nt_open(&parent, name, FILE_READ_ATTRIBUTES | SYNCHRONIZE, SHARE_RWD)
+            .map_err(gone_or_changed)?;
+        let (attr, tag) = attr_tag(&probe).ok_or(SkipReason::Changed)?;
+        if attr & REPARSE != 0 {
+            return Err(SkipReason::Reparse);
+        }
+        let is_dir = attr & DIRECTORY != 0;
+        match item.kind {
+            Kind::Dir if !is_dir => return Err(SkipReason::Changed),
+            Kind::File if is_dir => return Err(SkipReason::Changed),
+            _ => {}
+        }
+        let file_id = file_id(&probe).ok_or(SkipReason::Changed)?;
+        let serial = volume_serial(&probe).ok_or(SkipReason::Changed)?;
+        let write = write_time(&probe).ok_or(SkipReason::Changed)?;
+        let (handle, size) = if is_dir {
+            drop(probe);
+            let listing = nt_open(
+                &parent,
+                name,
+                FILE_LIST_DIRECTORY | FILE_READ_ATTRIBUTES | SYNCHRONIZE,
+                SHARE_RWD,
+            )
+            .map_err(gone_or_changed)?;
+            match attr_tag(&listing) {
+                Some((a, _)) if a & REPARSE == 0 && a & DIRECTORY != 0 => {}
+                _ => return Err(SkipReason::Changed),
+            }
+            (listing, 0)
+        } else {
+            let len = end_of_file(&probe).ok_or(SkipReason::Changed)?;
+            (probe, len)
+        };
+        Ok(Walked {
+            handle,
+            attr,
+            tag,
+            file_id,
+            serial,
+            write,
+            size,
+            is_dir,
+            ancestors,
+        })
+    }
+
+    fn gone_or_changed(werr: u32) -> SkipReason {
+        if werr == ERR_FILE_NOT_FOUND || werr == ERR_PATH_NOT_FOUND {
+            SkipReason::Gone
+        } else {
+            SkipReason::Changed
+        }
+    }
+
+    pub(crate) fn check_chain(item: &PlanItem) -> Result<(), SkipReason> {
+        walk_item(item).map(|_| ())
+    }
+
+    pub(crate) fn snapshot(
+        item: &PlanItem,
+        guard_ids: &[Identity],
+        protected_ids: &[Identity],
+    ) -> Result<Snapshot, SkipReason> {
+        let walked = walk_item(item)?;
+        // An opened ancestor sharing a protected identity means the item sits inside it.
+        for ancestor in &walked.ancestors {
+            if protected_ids.contains(ancestor) {
+                return Err(SkipReason::ProtectedOverlap); // CLEAN_GUARD_ID
+            }
+        }
+        let item_id = Identity {
+            volume_serial: format!("{:08X}", walked.serial),
+            file_id: walked.file_id.iter().map(|b| format!("{b:02x}")).collect(),
+        };
+        if guard_ids.contains(&item_id) {
+            return Err(SkipReason::Guarded); // CLEAN_GUARD_ID
+        }
+        if protected_ids.contains(&item_id) {
+            return Err(SkipReason::ProtectedOverlap); // CLEAN_GUARD_ID
+        }
+        let mut snap = Snapshot {
+            bytes: 0,
+            newest: filetime(walked.write),
+            entries: vec![Entry {
+                rel: String::new(),
+                file_id: walked.file_id,
+                size: walked.size,
+                mtime: filetime(walked.write),
+                tag: walked.tag,
+                attr: walked.attr,
+            }],
+        };
+        if walked.is_dir {
+            walk_subtree(
+                &walked.handle,
+                "",
+                walked.serial,
+                guard_ids,
+                protected_ids,
+                &mut snap,
+            )?;
+        } else {
+            snap.bytes = walked.size;
+        }
+        snap.entries.sort_by(|a, b| a.rel.cmp(&b.rel));
+        Ok(snap)
+    }
+
+    fn walk_subtree(
+        dir: &Handle,
+        base: &str,
+        serial: u32,
+        guard_ids: &[Identity],
+        protected_ids: &[Identity],
+        snap: &mut Snapshot,
+    ) -> Result<(), SkipReason> {
+        for raw in enumerate(dir).map_err(|()| SkipReason::Changed)? {
+            let name = raw.name.as_str();
+            let rel = if base.is_empty() {
+                name.to_owned()
+            } else {
+                format!("{base}\\{name}")
+            };
+            let id = Identity {
+                volume_serial: format!("{serial:08X}"),
+                file_id: raw.file_id.iter().map(|b| format!("{b:02x}")).collect(),
+            };
+            if guard_ids.contains(&id) {
+                return Err(SkipReason::Guarded); // CLEAN_GUARD_ID
+            }
+            if protected_ids.contains(&id) {
+                return Err(SkipReason::ProtectedOverlap); // CLEAN_GUARD_ID
+            }
+            snap.newest = snap.newest.max(filetime(raw.write));
+            let reparse = raw.attr & REPARSE != 0;
+            if reparse {
+                // CLEAN_REPARSE_KIND: only name-surrogate links are treated as links; any
+                // other reparse point in the subtree poisons the whole item.
+                if raw.tag & NAME_SURROGATE == 0 {
+                    return Err(SkipReason::Reparse);
+                }
+                snap.entries.push(Entry {
+                    rel,
+                    file_id: raw.file_id,
+                    size: 0,
+                    mtime: filetime(raw.write),
+                    tag: raw.tag,
+                    attr: raw.attr,
+                });
+            } else if raw.attr & DIRECTORY != 0 {
+                snap.entries.push(Entry {
+                    rel: rel.clone(),
+                    file_id: raw.file_id,
+                    size: 0,
+                    mtime: filetime(raw.write),
+                    tag: raw.tag,
+                    attr: raw.attr,
+                });
+                let child = nt_open(
+                    dir,
+                    name,
+                    FILE_LIST_DIRECTORY | FILE_READ_ATTRIBUTES | SYNCHRONIZE,
+                    SHARE_RWD,
+                )
+                .map_err(|_| SkipReason::Changed)?;
+                walk_subtree(&child, &rel, serial, guard_ids, protected_ids, snap)?;
+            } else {
+                snap.bytes = snap
+                    .bytes
+                    .checked_add(raw.size)
+                    .ok_or(SkipReason::Changed)?;
+                snap.entries.push(Entry {
+                    rel,
+                    file_id: raw.file_id,
+                    size: raw.size,
+                    mtime: filetime(raw.write),
+                    tag: raw.tag,
+                    attr: raw.attr,
+                });
             }
         }
         Ok(())
     }
 
-    fn children(path: &str) -> Result<Vec<String>, SkipReason> {
-        let mut paths = Vec::new();
-        for entry in fs::read_dir(path).map_err(|_| SkipReason::Changed)? {
-            let p = entry.map_err(|_| SkipReason::Changed)?.path();
-            // Unrepresentable names are protected; no lossy spelling ever reaches deletion.
-            let name = p.to_str().ok_or(SkipReason::Changed)?.to_owned();
-            path::validate(&name).map_err(|_| SkipReason::Changed)?;
-            paths.push(name);
+    // Walk only to the item's parent, rejecting any reparse ancestor.
+    fn walk_parent(item: &PlanItem) -> Result<Handle, ()> {
+        let mut parent = open_root(&item.path[..3]).ok_or(())?;
+        let segs: Vec<&str> = item.path[3..].split('\\').collect();
+        for seg in &segs[..segs.len() - 1] {
+            let handle = nt_open(
+                &parent,
+                seg,
+                FILE_LIST_DIRECTORY | FILE_READ_ATTRIBUTES | SYNCHRONIZE,
+                SHARE_RWD,
+            )
+            .map_err(|_| ())?;
+            match attr_tag(&handle) {
+                Some((a, _)) if a & REPARSE == 0 && a & DIRECTORY != 0 => {}
+                _ => return Err(()),
+            }
+            parent = handle;
         }
-        paths.sort();
-        Ok(paths)
+        Ok(parent)
     }
 
-    pub(crate) fn snapshot(path: &str, protected: &[String]) -> Result<Snapshot, SkipReason> {
-        let mut result = Snapshot {
-            bytes: 0,
-            newest: SystemTime::UNIX_EPOCH,
-            entries: Vec::new(),
-        };
-        let mut pending = vec![path.to_owned()];
-        while let Some(current) = pending.pop() {
-            if protected.iter().any(|p| path::overlaps(&current, p)) {
-                return Err(SkipReason::ProtectedOverlap);
-            }
-            let meta = metadata(&current)?;
-            let attributes = meta.file_attributes();
-            let modified = meta.modified().map_err(|_| SkipReason::Changed)?;
-            result.newest = result.newest.max(modified);
-            let bytes = if attributes & REPARSE == 0 && meta.is_file() {
-                meta.len()
-            } else {
-                0
+    struct DelCtx<'a> {
+        before: &'a Snapshot,
+        stop: &'a StopFlag,
+        removed: u64,
+        failed: u64,
+    }
+
+    impl DelCtx<'_> {
+        fn expected(&self, rel: &str) -> Option<&Entry> {
+            self.before.entries.iter().find(|e| e.rel == rel)
+        }
+
+        // Delete one node by handle, relative to its parent. Returns true if a stop cut it short.
+        fn node(&mut self, parent: &Handle, name: &str, rel: &str) -> bool {
+            let Some(exp) = self.expected(rel) else {
+                return false; // appeared after the snapshot: never touched
             };
-            result.bytes = result.bytes.checked_add(bytes).ok_or(SkipReason::Changed)?;
-            result
-                .entries
-                .push((current.clone(), bytes, modified, attributes));
-            if attributes & REPARSE == 0 && meta.is_dir() {
-                pending.extend(children(&current)?);
-            }
-        }
-        result.entries.sort_by(|a, b| a.0.cmp(&b.0));
-        Ok(result)
-    }
-
-    fn unlink(path: &str, meta: &fs::Metadata) -> io::Result<()> {
-        if meta.file_attributes() & DIRECTORY != 0 {
-            return fs::remove_dir(path);
-        }
-        match fs::remove_file(path) {
-            Ok(()) => Ok(()),
-            Err(error)
-                if error.kind() == io::ErrorKind::PermissionDenied
-                    && meta.permissions().readonly()
-                    && meta.file_attributes() & REPARSE == 0 =>
-            {
-                // Re-read immediately before changing attributes; never change a link target.
-                let latest = fs::symlink_metadata(path)?;
-                if latest.file_attributes() & REPARSE != 0 || !latest.is_file() {
-                    return Err(error);
+            let (exp_attr, exp_tag, exp_id) = (exp.attr, exp.tag, exp.file_id);
+            if exp_attr & REPARSE != 0 {
+                if exp_tag & NAME_SURROGATE != 0 {
+                    // CLEAN_NO_FOLLOW: remove the link itself, never enter its target.
+                    match nt_open(
+                        parent,
+                        name,
+                        DELETE | FILE_READ_ATTRIBUTES | SYNCHRONIZE,
+                        SHARE_RWD,
+                    ) {
+                        Ok(handle) => match attr_tag(&handle) {
+                            Some((a, _)) if a & REPARSE != 0 => {
+                                if set_delete(&handle) {
+                                    self.removed += 1;
+                                } else {
+                                    self.failed += 1;
+                                }
+                            }
+                            _ => self.failed += 1,
+                        },
+                        Err(w) if w == ERR_FILE_NOT_FOUND || w == ERR_PATH_NOT_FOUND => {}
+                        Err(_) => self.failed += 1,
+                    }
                 }
-                let mut permissions = latest.permissions();
-                // Windows-only: this clears FILE_ATTRIBUTE_READONLY, never a Unix mode.
-                #[allow(clippy::permissions_set_readonly_false)]
-                permissions.set_readonly(false);
-                fs::set_permissions(path, permissions)?;
-                fs::remove_file(path)
+                return false;
             }
-            Err(error) => Err(error),
-        }
-    }
-
-    fn is_link(meta: &fs::Metadata) -> bool {
-        meta.file_attributes() & REPARSE != 0 // NC2: a link inside the item is never entered.
-    }
-
-    /// Every level from the item down to a listed directory must still be a plain directory,
-    /// and that directory must keep the identity recorded when it was enumerated.
-    fn listed_parent_intact(item: &PlanItem, dir: &str, recorded: &Identity) -> bool {
-        if !path::contains(&item.path, dir) {
-            return false;
-        }
-        let mut level = item.path.clone();
-        let mut levels = vec![level.clone()];
-        for segment in dir[item.path.len()..].split('\\').filter(|s| !s.is_empty()) {
-            level.push('\\');
-            level.push_str(segment);
-            levels.push(level.clone());
-        }
-        for level in &levels {
-            match fs::symlink_metadata(level) {
-                Ok(meta) if !is_link(&meta) && meta.file_attributes() & DIRECTORY != 0 => {}
-                _ => return false,
+            if exp_attr & DIRECTORY != 0 {
+                let handle = match nt_open(
+                    parent,
+                    name,
+                    FILE_LIST_DIRECTORY | DELETE | FILE_READ_ATTRIBUTES | SYNCHRONIZE,
+                    SHARE_RW,
+                ) {
+                    Ok(h) => h,
+                    Err(w) if w == ERR_FILE_NOT_FOUND || w == ERR_PATH_NOT_FOUND => return false,
+                    Err(_) => {
+                        self.failed += 1;
+                        return false;
+                    }
+                };
+                match (attr_tag(&handle), file_id(&handle)) {
+                    (Some((a, _)), Some(id))
+                        if a & REPARSE == 0 && a & DIRECTORY != 0 && id == exp_id => {}
+                    _ => {
+                        self.failed += 1;
+                        return false;
+                    }
+                }
+                let kids = match enumerate(&handle) {
+                    Ok(k) => k,
+                    Err(()) => {
+                        self.failed += 1;
+                        return false;
+                    }
+                };
+                for kid in kids {
+                    if self.stop.is_stopped() {
+                        return true;
+                    }
+                    let child_rel = if rel.is_empty() {
+                        kid.name.clone()
+                    } else {
+                        format!("{rel}\\{}", kid.name)
+                    };
+                    if matches!(self.expected(&child_rel), Some(e) if e.file_id == kid.file_id)
+                        && self.node(&handle, &kid.name, &child_rel)
+                    {
+                        return true;
+                    }
+                    if self.stop.is_stopped() {
+                        return true;
+                    }
+                }
+                if set_delete(&handle) {
+                    self.removed += 1;
+                } else {
+                    self.failed += 1;
+                }
+                false
+            } else {
+                match nt_open(
+                    parent,
+                    name,
+                    DELETE | FILE_READ_ATTRIBUTES | SYNCHRONIZE,
+                    SHARE_RWD,
+                ) {
+                    Ok(handle) => match (attr_tag(&handle), file_id(&handle)) {
+                        (Some((a, _)), Some(id)) if a & REPARSE == 0 && id == exp_id => {
+                            if set_delete(&handle) {
+                                self.removed += 1;
+                            } else {
+                                self.failed += 1;
+                            }
+                        }
+                        (Some((a, _)), _) if a & REPARSE != 0 => self.failed += 1,
+                        _ => {}
+                    },
+                    Err(w) if w == ERR_FILE_NOT_FOUND || w == ERR_PATH_NOT_FOUND => {}
+                    Err(_) => self.failed += 1,
+                }
+                false
             }
         }
-        matches!(crate::identity_of(dir), Ok(actual) if actual == *recorded)
     }
 
-    /// Returns the item report and whether a stop signal cut the removal short.
+    fn measure_tree(dir: &Handle) -> u64 {
+        let mut total = 0u64;
+        if let Ok(kids) = enumerate(dir) {
+            for kid in kids {
+                if kid.attr & REPARSE != 0 {
+                    continue;
+                }
+                if kid.attr & DIRECTORY != 0 {
+                    if let Ok(child) = nt_open(
+                        dir,
+                        &kid.name,
+                        FILE_LIST_DIRECTORY | FILE_READ_ATTRIBUTES | SYNCHRONIZE,
+                        SHARE_RWD,
+                    ) {
+                        total = total.saturating_add(measure_tree(&child));
+                    }
+                } else {
+                    total = total.saturating_add(kid.size);
+                }
+            }
+        }
+        total
+    }
+
+    // Residual bytes still present under the item. None means the item is gone.
+    fn measure_residual(item: &PlanItem, before_bytes: u64) -> (Option<u64>, u64) {
+        let Ok(parent) = walk_parent(item) else {
+            return (Some(before_bytes), 1);
+        };
+        let name = last_segment(&item.path);
+        let kids = match enumerate(&parent) {
+            Ok(k) => k,
+            Err(()) => return (Some(before_bytes), 1),
+        };
+        match kids.iter().find(|k| k.name.eq_ignore_ascii_case(name)) {
+            None => (None, 0),
+            Some(kid) if kid.attr & REPARSE != 0 => (Some(0), 0),
+            Some(kid) if kid.attr & DIRECTORY != 0 => match nt_open(
+                &parent,
+                name,
+                FILE_LIST_DIRECTORY | FILE_READ_ATTRIBUTES | SYNCHRONIZE,
+                SHARE_RWD,
+            ) {
+                Ok(handle) => (Some(measure_tree(&handle)), 0),
+                Err(w) if w == ERR_FILE_NOT_FOUND || w == ERR_PATH_NOT_FOUND => (None, 0),
+                Err(_) => (Some(before_bytes), 1),
+            },
+            Some(kid) => (Some(kid.size), 0),
+        }
+    }
+
     pub(crate) fn delete(
         item: &PlanItem,
         before: &Snapshot,
         stop: &StopFlag,
     ) -> (ItemReport, bool) {
-        // Directories enumerated so far, each with the identity recorded when it was listed.
-        let mut listed: Vec<(String, Identity)> = Vec::new();
-        let mut pending: Vec<(String, bool, Option<usize>)> =
-            vec![(item.path.clone(), false, None)];
-        let mut removed = 0u64;
-        let mut failed = 0u64;
-        let mut interrupted = false;
-        while let Some((current, postorder, parent)) = pending.pop() {
-            if stop.is_stopped() {
-                interrupted = true;
-                break;
-            }
-            // Catch a swapped root or item between individual operations as well.
-            if check_chain(item).is_err() {
-                failed += 1;
-                break;
-            }
-            // A listed directory replaced after enumeration (e.g. by a junction) ends this item:
-            // nothing else inside it is touched.
-            if let Some(index) = parent {
-                let (dir, recorded) = &listed[index];
-                if !listed_parent_intact(item, dir, recorded) {
-                    failed += 1;
-                    break;
-                }
-            }
-            let meta = match metadata(&current) {
-                Ok(m) => m,
-                Err(_) => {
-                    failed += 1;
-                    continue;
-                }
-            };
-            if is_link(&meta) {
-                // Only the link itself is removed; its target is never enumerated.
-                match unlink(&current, &meta) {
-                    Ok(()) => removed += 1,
-                    Err(_) => failed += 1,
-                }
-            } else if meta.file_attributes() & DIRECTORY != 0 && !postorder {
-                let Ok(recorded) = crate::identity_of(&current) else {
-                    failed += 1;
-                    break;
-                };
-                match children(&current) {
-                    Ok(kids) => {
-                        // The listing must belong to the directory whose identity was recorded.
-                        if !matches!(crate::identity_of(&current), Ok(again) if again == recorded) {
-                            failed += 1;
-                            break;
-                        }
-                        listed.push((current.clone(), recorded));
-                        let index = listed.len() - 1;
-                        pending.push((current, true, parent));
-                        pending.extend(kids.into_iter().rev().map(|p| (p, false, Some(index))));
-                        continue;
-                    }
-                    Err(_) => {
-                        failed += 1;
-                        continue;
-                    }
-                }
-            } else {
-                match unlink(&current, &meta) {
-                    Ok(()) => removed += 1,
-                    Err(_) => failed += 1,
-                }
-            }
-            if stop.is_stopped() {
-                interrupted = !pending.is_empty();
-                break;
-            }
-        }
-        let residual = match fs::symlink_metadata(&item.path) {
-            Err(e) if e.kind() == io::ErrorKind::NotFound => None,
-            Ok(m) if m.file_attributes() & REPARSE == 0 => match snapshot(&item.path, &[]) {
-                Ok(s) => Some(s.bytes),
-                Err(_) => {
-                    failed += 1;
-                    Some(before.bytes)
-                }
-            },
-            _ => {
-                failed += 1;
-                Some(before.bytes)
-            }
+        let mut ctx = DelCtx {
+            before,
+            stop,
+            removed: 0,
+            failed: 0,
         };
+        let mut interrupted = false;
+        if let Ok(parent) = walk_parent(item) {
+            interrupted = ctx.node(&parent, last_segment(&item.path), "");
+        }
+        let (residual, extra_failed) = measure_residual(item, before.bytes);
+        ctx.failed += extra_failed;
         let status = if residual.is_none() {
             ItemStatus::Deleted
-        } else if removed > 0 {
+        } else if ctx.removed > 0 {
             ItemStatus::Partial
         } else if interrupted {
             ItemStatus::Skipped
@@ -423,18 +953,22 @@ mod windows {
             skip_reason: cancelled.then_some(SkipReason::Cancelled),
             bytes_before: before.bytes.to_string(),
             bytes_freed: freed.to_string(),
-            failed_entries: failed,
+            failed_entries: ctx.failed,
         };
         (report, interrupted)
     }
 }
 
 #[cfg(windows)]
-pub(crate) use windows::{check_chain, delete, identity, snapshot, volume_free};
+pub(crate) use windows::{check_chain, delete, identity, resolve_follow, snapshot, volume_free};
 
 #[cfg(not(windows))]
 pub(crate) fn identity(_: &str) -> Result<Identity, CleanError> {
     Err(CleanError::Unsupported)
+}
+#[cfg(not(windows))]
+pub(crate) fn resolve_follow(_: &str) -> Option<Identity> {
+    None
 }
 #[cfg(not(windows))]
 pub(crate) fn volume_free(_: &str) -> Result<u64, CleanError> {
@@ -445,7 +979,11 @@ pub(crate) fn check_chain(_: &PlanItem) -> Result<(), SkipReason> {
     Err(SkipReason::Changed)
 }
 #[cfg(not(windows))]
-pub(crate) fn snapshot(_: &str, _: &[String]) -> Result<Snapshot, SkipReason> {
+pub(crate) fn snapshot(
+    _: &PlanItem,
+    _: &[Identity],
+    _: &[Identity],
+) -> Result<Snapshot, SkipReason> {
     Err(SkipReason::Changed)
 }
 #[cfg(not(windows))]
