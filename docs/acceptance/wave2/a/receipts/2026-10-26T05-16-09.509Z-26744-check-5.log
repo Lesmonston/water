@@ -1,0 +1,601 @@
+{"binary":"C:\\Users\\37310\\.rustup\\toolchains\\1.95.0-x86_64-pc-windows-msvc\\bin\\cargo.exe","args":["fmt","--manifest-path","packages/junk-rules/Cargo.toml","--","--check"],"exitCode":1,"error":null}
+--- stdout ---
+Diff in \\?\F:\new\smaltalk\water\.worktrees\w2-a\packages\junk-rules\examples\real_smoke.rs:96:
+ fn literal_prefix(base: &str, segments: &[String]) -> String {
+     let mut path = base.to_string();
+     for segment in segments {
+-        if segment.bytes().any(|byte| matches!(byte, b'*' | b'?' | b'#')) {
++        if segment
++            .bytes()
++            .any(|byte| matches!(byte, b'*' | b'?' | b'#'))
++        {
+             break;
+         }
+         path.push('\\');
+Diff in \\?\F:\new\smaltalk\water\.worktrees\w2-a\packages\junk-rules\src\folders.rs:1:
+ use crate::error::RulesError;
+ use crate::types::{
+-    as_str, drive_root_of, expect_keys, field, is_drive_root, object, valid_abs_path, KnownFolder,
+-    KNOWN_FOLDER_ORDER,
++    KNOWN_FOLDER_ORDER, KnownFolder, as_str, drive_root_of, expect_keys, field, is_drive_root,
++    object, valid_abs_path,
+ };
+ use serde_json::Value;
+ 
+Diff in \\?\F:\new\smaltalk\water\.worktrees\w2-a\packages\junk-rules\src\folders.rs:41:
+             ],
+             "/",
+         )?;
+-        if as_str(field(map, "known_folders_version", "/")?, "/known_folders_version")?
+-            != "water.known-folders.v1"
++        if as_str(
++            field(map, "known_folders_version", "/")?,
++            "/known_folders_version",
++        )? != "water.known-folders.v1"
+         {
+             return Err(RulesError::new(
+                 "RULES_INVALID_VERSION",
+Diff in \\?\F:\new\smaltalk\water\.worktrees\w2-a\packages\junk-rules\src\folders.rs:90:
+     }
+ 
+     pub fn values(&self) -> impl Iterator<Item = &str> {
+-        KNOWN_FOLDER_ORDER.into_iter().map(|folder| self.get(folder))
++        KNOWN_FOLDER_ORDER
++            .into_iter()
++            .map(|folder| self.get(folder))
+     }
+ 
+     pub fn drive_roots(&self) -> Vec<String> {
+Diff in \\?\F:\new\smaltalk\water\.worktrees\w2-a\packages\junk-rules\src\lib.rs:9:
+ 
+ pub use error::RulesError;
+ pub use folders::KnownFolders;
+-pub use plan::{plan_to_json, resolve_plan, CustomRoot, ScanPlan, Target};
++pub use plan::{CustomRoot, ScanPlan, Target, plan_to_json, resolve_plan};
+ pub use rules::{Rule, RuleSet, RuleText, Source};
+ pub use types::{
+     Category, Growth, InUse, InUseMode, ItemType, KnownFolder, Level, Locator, Marker, MatchSpec,
+Diff in \\?\F:\new\smaltalk\water\.worktrees\w2-a\packages\junk-rules\src\plan.rs:1:
+ use crate::error::RulesError;
+-use crate::folders::{validate_guard_path, KnownFolders};
++use crate::folders::{KnownFolders, validate_guard_path};
+ use crate::rules::RuleSet;
+ use crate::types::{
++    Category, InUse, InUseMode, ItemType, KNOWN_FOLDER_ORDER, Level, Locator, Marker, MatchSpec,
+     as_str, as_u64, bounded_u32, expect_keys, field, object, valid_abs_path, valid_created_at,
+     valid_data_version, valid_entry_name, valid_process_name, valid_root_id, valid_segment,
+-    Category, InUse, InUseMode, ItemType, Level, Locator, Marker, MatchSpec, KNOWN_FOLDER_ORDER,
+ };
+ use serde::Serialize;
+ use serde_json::{Map, Value};
+Diff in \\?\F:\new\smaltalk\water\.worktrees\w2-a\packages\junk-rules\src\plan.rs:123:
+     for (index, root) in custom_roots.iter().enumerate() {
+         let path = format!("/custom_roots/{index}");
+         if !valid_root_id(&root.root_id) {
+-            return Err(RulesError::new("RULES_INVALID_ROOT_ID", format!("{path}/root_id")));
++            return Err(RulesError::new(
++                "RULES_INVALID_ROOT_ID",
++                format!("{path}/root_id"),
++            ));
+         }
+         if !valid_abs_path(&root.path, false) {
+-            return Err(RulesError::new("RULES_INVALID_PATH", format!("{path}/path")));
++            return Err(RulesError::new(
++                "RULES_INVALID_PATH",
++                format!("{path}/path"),
++            ));
+         }
+         if !seen_roots.insert(root.root_id.clone()) {
+             return Err(RulesError::new("RULES_DUPLICATE_ID", path));
+Diff in \\?\F:\new\smaltalk\water\.worktrees\w2-a\packages\junk-rules\src\plan.rs:181:
+     })
+ }
+ 
+-fn make_target(rule: &crate::rules::Rule, target_id: String, group_id: String, match_spec: MatchSpec) -> Target {
++fn make_target(
++    rule: &crate::rules::Rule,
++    target_id: String,
++    group_id: String,
++    match_spec: MatchSpec,
++) -> Target {
+     Target {
+         target_id,
+         group_id,
+Diff in \\?\F:\new\smaltalk\water\.worktrees\w2-a\packages\junk-rules\src\plan.rs:295:
+     if as_str(field(map, "plan_version", "/")?, "/plan_version")? != "water.scan-plan.v1" {
+         return Err(RulesError::new("RULES_INVALID_VERSION", "/plan_version"));
+     }
+-    let rules_data_version = as_str(field(map, "rules_data_version", "/")?, "/rules_data_version")?;
++    let rules_data_version = as_str(
++        field(map, "rules_data_version", "/")?,
++        "/rules_data_version",
++    )?;
+     if !valid_data_version(rules_data_version) {
+         return Err(RulesError::new(
+             "RULES_INVALID_DATA_VERSION",
+Diff in \\?\F:\new\smaltalk\water\.worktrees\w2-a\packages\junk-rules\src\plan.rs:352:
+     if target_id.is_empty() || group_id.is_empty() || rule_id.is_empty() {
+         return Err(RulesError::new("RULES_INVALID_ID", path));
+     }
+-    let level = Level::parse(as_str(field(map, "level", path)?, &format!("{path}/level"))?)
+-        .ok_or_else(|| RulesError::new("RULES_INVALID_LEVEL", format!("{path}/level")))?;
++    let level = Level::parse(as_str(
++        field(map, "level", path)?,
++        &format!("{path}/level"),
++    )?)
++    .ok_or_else(|| RulesError::new("RULES_INVALID_LEVEL", format!("{path}/level")))?;
+     let category = Category::parse(as_str(
+         field(map, "category", path)?,
+         &format!("{path}/category"),
+Diff in \\?\F:\new\smaltalk\water\.worktrees\w2-a\packages\junk-rules\src\plan.rs:397:
+         .as_array()
+         .ok_or_else(|| RulesError::new("RULES_INVALID_IN_USE", format!("{path}/processes")))?;
+     if items.len() > 8 {
+-        return Err(RulesError::new("RULES_INVALID_IN_USE", format!("{path}/processes")));
++        return Err(RulesError::new(
++            "RULES_INVALID_IN_USE",
++            format!("{path}/processes"),
++        ));
+     }
+     let mut processes = Vec::with_capacity(items.len());
+     for (index, item) in items.iter().enumerate() {
+Diff in \\?\F:\new\smaltalk\water\.worktrees\w2-a\packages\junk-rules\src\plan.rs:410:
+     }
+     match mode {
+         InUseMode::None if processes.is_empty() => Ok(InUse { mode, processes }),
+-        InUseMode::None => Err(RulesError::new("RULES_INVALID_IN_USE", format!("{path}/processes"))),
+-        _ if processes.is_empty() => {
+-            Err(RulesError::new("RULES_INVALID_IN_USE", format!("{path}/processes")))
+-        }
++        InUseMode::None => Err(RulesError::new(
++            "RULES_INVALID_IN_USE",
++            format!("{path}/processes"),
++        )),
++        _ if processes.is_empty() => Err(RulesError::new(
++            "RULES_INVALID_IN_USE",
++            format!("{path}/processes"),
++        )),
+         _ => Ok(InUse { mode, processes }),
+     }
+ }
+Diff in \\?\F:\new\smaltalk\water\.worktrees\w2-a\packages\junk-rules\src\plan.rs:427:
+             let base = abs_path_field(map, "base", path, false)?;
+             Ok(MatchSpec::Pattern {
+                 base,
+-                segments: parse_plan_segments(field(map, "segments", path)?, &format!("{path}/segments"))?,
++                segments: parse_plan_segments(
++                    field(map, "segments", path)?,
++                    &format!("{path}/segments"),
++                )?,
+             })
+         }
+         "discovery" => {
+Diff in \\?\F:\new\smaltalk\water\.worktrees\w2-a\packages\junk-rules\src\plan.rs:449:
+                 )?,
+             })
+         }
+-        _ => Err(RulesError::new("RULES_INVALID_LOCATE", format!("{path}/kind"))),
++        _ => Err(RulesError::new(
++            "RULES_INVALID_LOCATE",
++            format!("{path}/kind"),
++        )),
+     }
+ }
+ 
+Diff in \\?\F:\new\smaltalk\water\.worktrees\w2-a\packages\junk-rules\src\plan.rs:496:
+             expect_keys(map, &["kind", "name", "min_bytes", "max_bytes"], path)?;
+             let name = as_str(field(map, "name", path)?, &format!("{path}/name"))?;
+             if !valid_entry_name(name) {
+-                return Err(RulesError::new("RULES_INVALID_LOCATE", format!("{path}/name")));
++                return Err(RulesError::new(
++                    "RULES_INVALID_LOCATE",
++                    format!("{path}/name"),
++                ));
+             }
+             let min_bytes = as_u64(field(map, "min_bytes", path)?, &format!("{path}/min_bytes"))?;
+             let max_bytes = as_u64(field(map, "max_bytes", path)?, &format!("{path}/max_bytes"))?;
+Diff in \\?\F:\new\smaltalk\water\.worktrees\w2-a\packages\junk-rules\src\plan.rs:503:
+             if min_bytes > max_bytes {
+-                return Err(RulesError::new("RULES_INVALID_LOCATE", format!("{path}/max_bytes")));
++                return Err(RulesError::new(
++                    "RULES_INVALID_LOCATE",
++                    format!("{path}/max_bytes"),
++                ));
+             }
+             Ok(Marker::File {
+                 name: name.to_string(),
+Diff in \\?\F:\new\smaltalk\water\.worktrees\w2-a\packages\junk-rules\src\plan.rs:521:
+                 names: parse_plan_names(field(map, "names", path)?, &format!("{path}/names"))?,
+             })
+         }
+-        _ => Err(RulesError::new("RULES_INVALID_LOCATE", format!("{path}/kind"))),
++        _ => Err(RulesError::new(
++            "RULES_INVALID_LOCATE",
++            format!("{path}/kind"),
++        )),
+     }
+ }
+ 
+Diff in \\?\F:\new\smaltalk\water\.worktrees\w2-a\packages\junk-rules\src\rules.rs:1:
+ use crate::error::RulesError;
+ use crate::types::{
++    Category, Growth, InUse, InUseMode, ItemType, KnownFolder, Level, Locator, Marker, SourceKind,
+     as_str, as_u64, bounded_u32, char_len, expect_keys, field, locator_key, object, require_chars,
+     segments_may_overlap, valid_data_version, valid_date, valid_entry_name, valid_https_url,
+-    valid_process_name, valid_rule_id, valid_segment, Category, Growth, InUse, InUseMode, ItemType,
+-    KnownFolder, Level, Locator, Marker, SourceKind,
++    valid_process_name, valid_rule_id, valid_segment,
+ };
+ use serde_json::{Map, Value};
+ use std::collections::HashSet;
+Diff in \\?\F:\new\smaltalk\water\.worktrees\w2-a\packages\junk-rules\src\rules.rs:100:
+         }
+         let data_version = as_str(field(map, "data_version", "/")?, "/data_version")?;
+         if !valid_data_version(data_version) {
+-            return Err(RulesError::new("RULES_INVALID_DATA_VERSION", "/data_version"));
++            return Err(RulesError::new(
++                "RULES_INVALID_DATA_VERSION",
++                "/data_version",
++            ));
+         }
+         let rules_value = field(map, "rules", "/")?;
+         let items = rules_value
+Diff in \\?\F:\new\smaltalk\water\.worktrees\w2-a\packages\junk-rules\src\rules.rs:161:
+     )?;
+     let rule_id = as_str(field(map, "rule_id", path)?, &format!("{path}/rule_id"))?;
+     if !valid_rule_id(rule_id) {
+-        return Err(RulesError::new("RULES_INVALID_ID", format!("{path}/rule_id")));
++        return Err(RulesError::new(
++            "RULES_INVALID_ID",
++            format!("{path}/rule_id"),
++        ));
+     }
+     let title_zh = read_text(map, "title_zh", path, 2, 24)?;
+     let owner_zh = read_text(map, "owner_zh", path, 1, 24)?;
+Diff in \\?\F:\new\smaltalk\water\.worktrees\w2-a\packages\junk-rules\src\rules.rs:170:
+         &format!("{path}/category"),
+     )?)
+     .ok_or_else(|| RulesError::new("RULES_INVALID_CATEGORY", format!("{path}/category")))?;
+-    let level = Level::parse(as_str(field(map, "level", path)?, &format!("{path}/level"))?)
+-        .ok_or_else(|| RulesError::new("RULES_INVALID_LEVEL", format!("{path}/level")))?;
++    let level = Level::parse(as_str(
++        field(map, "level", path)?,
++        &format!("{path}/level"),
++    )?)
++    .ok_or_else(|| RulesError::new("RULES_INVALID_LEVEL", format!("{path}/level")))?;
+     let item_type = ItemType::parse(as_str(
+         field(map, "item_type", path)?,
+         &format!("{path}/item_type"),
+Diff in \\?\F:\new\smaltalk\water\.worktrees\w2-a\packages\junk-rules\src\rules.rs:198:
+     let what_zh = read_text(map, "what_zh", path, 4, 160)?;
+     let why_zh = read_text(map, "why_zh", path, 4, 160)?;
+     let after_zh = read_text(map, "after_zh", path, 4, 160)?;
+-    let fix_hint_zh = parse_fix_hint(field(map, "fix_hint_zh", path)?, &format!("{path}/fix_hint_zh"), growth)?;
+-    let locate = parse_locators(field(map, "locate", path)?, &format!("{path}/locate"), category)?;
++    let fix_hint_zh = parse_fix_hint(
++        field(map, "fix_hint_zh", path)?,
++        &format!("{path}/fix_hint_zh"),
++        growth,
++    )?;
++    let locate = parse_locators(
++        field(map, "locate", path)?,
++        &format!("{path}/locate"),
++        category,
++    )?;
+     let sources = parse_sources(field(map, "sources", path)?, &format!("{path}/sources"))?;
+     if growth == Growth::LeakProne && min_age_hours == 0 && level == Level::Recommended {
+-        return Err(RulesError::new("RULES_LEAK_AGE", format!("{path}/min_age_hours")));
++        return Err(RulesError::new(
++            "RULES_LEAK_AGE",
++            format!("{path}/min_age_hours"),
++        ));
+     }
+-    if locate.iter().any(|locator| matches!(locator, Locator::Discovery { .. })) {
++    if locate
++        .iter()
++        .any(|locator| matches!(locator, Locator::Discovery { .. }))
++    {
+         if !level.is_cleanable() || min_age_hours < 24 {
+             return Err(RulesError::new("RULES_DISCOVERY", path));
+         }
+Diff in \\?\F:\new\smaltalk\water\.worktrees\w2-a\packages\junk-rules\src\rules.rs:242:
+     Ok(text.to_string())
+ }
+ 
+-fn parse_fix_hint(
+-    value: &Value,
+-    path: &str,
+-    growth: Growth,
+-) -> Result<Option<String>, RulesError> {
++fn parse_fix_hint(value: &Value, path: &str, growth: Growth) -> Result<Option<String>, RulesError> {
+     if value.is_null() {
+         if growth == Growth::LeakProne {
+             return Err(RulesError::new("RULES_INVALID_FIX_HINT", path));
+Diff in \\?\F:\new\smaltalk\water\.worktrees\w2-a\packages\junk-rules\src\rules.rs:271:
+         .as_array()
+         .ok_or_else(|| RulesError::new("RULES_INVALID_IN_USE", format!("{path}/processes")))?;
+     if items.len() > 8 {
+-        return Err(RulesError::new("RULES_INVALID_IN_USE", format!("{path}/processes")));
++        return Err(RulesError::new(
++            "RULES_INVALID_IN_USE",
++            format!("{path}/processes"),
++        ));
+     }
+     let mut processes = Vec::with_capacity(items.len());
+     for (index, item) in items.iter().enumerate() {
+Diff in \\?\F:\new\smaltalk\water\.worktrees\w2-a\packages\junk-rules\src\rules.rs:283:
+         processes.push(name.to_string());
+     }
+     match mode {
+-        InUseMode::None if !processes.is_empty() => {
+-            Err(RulesError::new("RULES_INVALID_IN_USE", format!("{path}/processes")))
+-        }
++        InUseMode::None if !processes.is_empty() => Err(RulesError::new(
++            "RULES_INVALID_IN_USE",
++            format!("{path}/processes"),
++        )),
+         InUseMode::None => Ok(InUse { mode, processes }),
+-        _ if processes.is_empty() => {
+-            Err(RulesError::new("RULES_INVALID_IN_USE", format!("{path}/processes")))
+-        }
++        _ if processes.is_empty() => Err(RulesError::new(
++            "RULES_INVALID_IN_USE",
++            format!("{path}/processes"),
++        )),
+         _ => Ok(InUse { mode, processes }),
+     }
+ }
+Diff in \\?\F:\new\smaltalk\water\.worktrees\w2-a\packages\junk-rules\src\rules.rs:330:
+             let base = parse_base(map, path)?;
+             Ok(Locator::Pattern {
+                 base,
+-                segments: parse_segments(field(map, "segments", path)?, &format!("{path}/segments"))?,
++                segments: parse_segments(
++                    field(map, "segments", path)?,
++                    &format!("{path}/segments"),
++                )?,
+             })
+         }
+         "discovery" => {
+Diff in \\?\F:\new\smaltalk\water\.worktrees\w2-a\packages\junk-rules\src\rules.rs:352:
+                 max_depth,
+             })
+         }
+-        _ => Err(RulesError::new("RULES_INVALID_LOCATE", format!("{path}/kind"))),
++        _ => Err(RulesError::new(
++            "RULES_INVALID_LOCATE",
++            format!("{path}/kind"),
++        )),
+     }
+ }
+ 
+Diff in \\?\F:\new\smaltalk\water\.worktrees\w2-a\packages\junk-rules\src\rules.rs:388:
+             expect_keys(map, &["kind", "name", "min_bytes", "max_bytes"], path)?;
+             let name = as_str(field(map, "name", path)?, &format!("{path}/name"))?;
+             if !valid_entry_name(name) {
+-                return Err(RulesError::new("RULES_INVALID_LOCATE", format!("{path}/name")));
++                return Err(RulesError::new(
++                    "RULES_INVALID_LOCATE",
++                    format!("{path}/name"),
++                ));
+             }
+             let min_bytes = as_u64(field(map, "min_bytes", path)?, &format!("{path}/min_bytes"))?;
+             let max_bytes = as_u64(field(map, "max_bytes", path)?, &format!("{path}/max_bytes"))?;
+Diff in \\?\F:\new\smaltalk\water\.worktrees\w2-a\packages\junk-rules\src\rules.rs:395:
+             if min_bytes > max_bytes {
+-                return Err(RulesError::new("RULES_INVALID_LOCATE", format!("{path}/max_bytes")));
++                return Err(RulesError::new(
++                    "RULES_INVALID_LOCATE",
++                    format!("{path}/max_bytes"),
++                ));
+             }
+             Ok(Marker::File {
+                 name: name.to_string(),
+Diff in \\?\F:\new\smaltalk\water\.worktrees\w2-a\packages\junk-rules\src\rules.rs:413:
+                 names: parse_names(field(map, "names", path)?, &format!("{path}/names"))?,
+             })
+         }
+-        _ => Err(RulesError::new("RULES_INVALID_LOCATE", format!("{path}/kind"))),
++        _ => Err(RulesError::new(
++            "RULES_INVALID_LOCATE",
++            format!("{path}/kind"),
++        )),
+     }
+ }
+ 
+Diff in \\?\F:\new\smaltalk\water\.worktrees\w2-a\packages\junk-rules\src\rules.rs:458:
+         .ok_or_else(|| RulesError::new("RULES_INVALID_SOURCE", format!("{path}/kind")))?;
+     let ref_text = as_str(field(map, "ref", path)?, &format!("{path}/ref"))?;
+     if ref_text.is_empty() || char_len(ref_text) > 240 {
+-        return Err(RulesError::new("RULES_INVALID_SOURCE", format!("{path}/ref")));
++        return Err(RulesError::new(
++            "RULES_INVALID_SOURCE",
++            format!("{path}/ref"),
++        ));
+     }
+     if kind == SourceKind::OfficialDoc && !valid_https_url(ref_text) {
+-        return Err(RulesError::new("RULES_INVALID_SOURCE", format!("{path}/ref")));
++        return Err(RulesError::new(
++            "RULES_INVALID_SOURCE",
++            format!("{path}/ref"),
++        ));
+     }
+-    let checked_on = as_str(field(map, "checked_on", path)?, &format!("{path}/checked_on"))?;
++    let checked_on = as_str(
++        field(map, "checked_on", path)?,
++        &format!("{path}/checked_on"),
++    )?;
+     if !valid_date(checked_on) {
+-        return Err(RulesError::new("RULES_INVALID_SOURCE", format!("{path}/checked_on")));
++        return Err(RulesError::new(
++            "RULES_INVALID_SOURCE",
++            format!("{path}/checked_on"),
++        ));
+     }
+     Ok(Source {
+         kind,
+Diff in \\?\F:\new\smaltalk\water\.worktrees\w2-a\packages\junk-rules\src\types.rs:284:
+ }
+ 
+ pub(crate) fn has_wildcard(segment: &str) -> bool {
+-    segment.bytes().any(|byte| matches!(byte, b'*' | b'?' | b'#'))
++    segment
++        .bytes()
++        .any(|byte| matches!(byte, b'*' | b'?' | b'#'))
+ }
+ 
+ pub(crate) fn valid_segment(segment: &str) -> bool {
+Diff in \\?\F:\new\smaltalk\water\.worktrees\w2-a\packages\junk-rules\src\types.rs:291:
+-    !segment.is_empty()
+-        && segment != "."
+-        && segment != ".."
+-        && !segment.contains(['\\', '/', ':'])
++    !segment.is_empty() && segment != "." && segment != ".." && !segment.contains(['\\', '/', ':'])
+ }
+ 
+ pub(crate) fn valid_entry_name(name: &str) -> bool {
+Diff in \\?\F:\new\smaltalk\water\.worktrees\w2-a\packages\junk-rules\src\types.rs:433:
+ 
+ pub(crate) fn is_drive_root(path: &str) -> bool {
+     let bytes = path.as_bytes();
+-    bytes.len() == 3
+-        && bytes[0].is_ascii_alphabetic()
+-        && bytes[1] == b':'
+-        && bytes[2] == b'\\'
++    bytes.len() == 3 && bytes[0].is_ascii_alphabetic() && bytes[1] == b':' && bytes[2] == b'\\'
+ }
+ 
+ pub(crate) fn drive_root_of(path: &str) -> Option<String> {
+Diff in \\?\F:\new\smaltalk\water\.worktrees\w2-a\packages\junk-rules\src\types.rs:470:
+ }
+ 
+ pub(crate) fn valid_https_url(value: &str) -> bool {
+-    value.starts_with("https://")
+-        && value.len() >= 12
+-        && !value.contains([' ', '\t', '\r', '\n'])
++    value.starts_with("https://") && value.len() >= 12 && !value.contains([' ', '\t', '\r', '\n'])
+ }
+ 
+ pub(crate) fn locator_key(locator: &Locator) -> String {
+Diff in \\?\F:\new\smaltalk\water\.worktrees\w2-a\packages\junk-rules\src\types.rs:496:
+                 "marker:file:{}:{min_bytes}:{max_bytes}:{max_depth}",
+                 name.to_ascii_lowercase()
+             ),
+-            Marker::ChildrenAll { names } => format!(
+-                "marker:children_all:{}:{max_depth}",
+-                joined_names(names)
+-            ),
++            Marker::ChildrenAll { names } => {
++                format!("marker:children_all:{}:{max_depth}", joined_names(names))
++            }
+             Marker::DirName { names } => {
+                 format!("marker:dir_name:{}:{max_depth}", joined_names(names))
+             }
+Diff in \\?\F:\new\smaltalk\water\.worktrees\w2-a\packages\junk-rules\tests\rules_v1.rs:1:
+-use serde_json::{json, Value};
++use serde_json::{Value, json};
+ use water_junk_rules::{
+-    plan_to_json, resolve_plan, Category, CustomRoot, Growth, InUseMode, ItemType, KnownFolders,
+-    Level, Locator, Marker, MatchSpec, RuleSet, ScanPlan,
++    Category, CustomRoot, Growth, InUseMode, ItemType, KnownFolders, Level, Locator, Marker,
++    MatchSpec, RuleSet, ScanPlan, plan_to_json, resolve_plan,
+ };
+ 
+ const CANARY: &str = "CANARY_ECHO_VALUE_9f3c2a";
+Diff in \\?\F:\new\smaltalk\water\.worktrees\w2-a\packages\junk-rules\tests\rules_v1.rs:59:
+ fn reject(input: &str) {
+     let err = RuleSet::from_json(input).expect_err("schema must reject");
+     let shown = err.to_string();
+-    assert!(
+-        !shown.contains(CANARY),
+-        "error echoed input: {shown}"
+-    );
++    assert!(!shown.contains(CANARY), "error echoed input: {shown}");
+ }
+ 
+ fn mutate_rule(mutator: impl FnOnce(&mut Value)) -> String {
+Diff in \\?\F:\new\smaltalk\water\.worktrees\w2-a\packages\junk-rules\tests\rules_v1.rs:189:
+             rule["title_zh"] = json!("可清理用户数据");
+             rule["category"] = json!("browser");
+             rule["level"] = json!("recommended");
+-            rule["locate"] = json!([{"kind":"pattern","base":"local_app_data","segments":["User Data","*"]}]);
++            rule["locate"] =
++                json!([{"kind":"pattern","base":"local_app_data","segments":["User Data","*"]}]);
+             rule
+         },
+         {
+Diff in \\?\F:\new\smaltalk\water\.worktrees\w2-a\packages\junk-rules\tests\rules_v1.rs:217:
+             rule["rule_id"] = json!("cleanable-cache");
+             rule["title_zh"] = json!("可清理网页缓存");
+             rule["category"] = json!("browser");
+-            rule["locate"] = json!([{"kind":"pattern","base":"local_app_data","segments":["*","Cache"]}]);
++            rule["locate"] =
++                json!([{"kind":"pattern","base":"local_app_data","segments":["*","Cache"]}]);
+             rule
+         },
+         {
+Diff in \\?\F:\new\smaltalk\water\.worktrees\w2-a\packages\junk-rules\tests\rules_v1.rs:226:
+             rule["title_zh"] = json!("受保护的网络数据");
+             rule["category"] = json!("browser");
+             rule["level"] = json!("protected");
+-            rule["locate"] = json!([{"kind":"pattern","base":"local_app_data","segments":["*","Network"]}]);
++            rule["locate"] =
++                json!([{"kind":"pattern","base":"local_app_data","segments":["*","Network"]}]);
+             rule["what_zh"] = json!("这是登录相关的网络数据。");
+             rule["why_zh"] = json!("清掉之后需要重新登录许多网站。");
+             rule["after_zh"] = json!("这里只统计占用，不会被清理。");
+Diff in \\?\F:\new\smaltalk\water\.worktrees\w2-a\packages\junk-rules\tests\rules_v1.rs:235:
+     ]);
+     RuleSet::from_json(&allowed).expect("sibling cache and network must pass");
+     let embedded = RuleSet::embedded();
+-    assert!(
+-        embedded.rules().len() >= 60,
+-        "seed set must load"
+-    );
++    assert!(embedded.rules().len() >= 60, "seed set must load");
+ }
+ 
+ #[test]
+Diff in \\?\F:\new\smaltalk\water\.worktrees\w2-a\packages\junk-rules\tests\rules_v1.rs:301:
+         .collect();
+     assert_eq!(marker_targets.len(), 2);
+     assert_eq!(marker_targets[0].group_id, "custom:alpha:cachedir-tagged");
+-    assert_eq!(marker_targets[0].target_id, "custom:alpha:cachedir-tagged#1");
++    assert_eq!(
++        marker_targets[0].target_id,
++        "custom:alpha:cachedir-tagged#1"
++    );
+     assert_eq!(marker_targets[1].group_id, "custom:beta:cachedir-tagged");
+     let text = rules
+         .text("custom:alpha:cachedir-tagged")
+Diff in \\?\F:\new\smaltalk\water\.worktrees\w2-a\packages\junk-rules\tests\rules_v1.rs:615:
+         0,
+         InUseMode::ProcessRunning,
+         Growth::Slow,
+-        vec![p(
+-            "local_app_data",
+-            "Mozilla/Firefox/Profiles/*/cache2",
+-        )],
++        vec![p("local_app_data", "Mozilla/Firefox/Profiles/*/cache2")],
+     ));
+     rows.push(seed(
+         "electron-app-cache",
+Diff in \\?\F:\new\smaltalk\water\.worktrees\w2-a\packages\junk-rules\tests\rules_v1.rs:1061:
+             InUseMode::ProcessRunning,
+             Growth::Slow,
+             vec![
+-                p("local_app_data", &format!("{ud}/*/Service Worker/CacheStorage")),
+-                p("local_app_data", &format!("{ud}/*/Service Worker/ScriptCache")),
++                p(
++                    "local_app_data",
++                    &format!("{ud}/*/Service Worker/CacheStorage"),
++                ),
++                p(
++                    "local_app_data",
++                    &format!("{ud}/*/Service Worker/ScriptCache"),
++                ),
+             ],
+         ));
+     }
+
+--- stderr ---

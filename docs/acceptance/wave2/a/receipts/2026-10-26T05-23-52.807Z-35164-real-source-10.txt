@@ -1,0 +1,1109 @@
+use serde_json::{Value, json};
+use water_junk_rules::{
+    Category, CustomRoot, Growth, InUseMode, ItemType, KnownFolders, Level, Locator, Marker,
+    MatchSpec, RuleSet, ScanPlan, plan_to_json, resolve_plan,
+};
+
+const CANARY: &str = "CANARY_ECHO_VALUE_9f3c2a";
+const CREATED_AT: &str = "2026-10-26T04:00:00Z";
+
+fn folders_json() -> String {
+    json!({
+        "known_folders_version": "water.known-folders.v1",
+        "user_profile": "C:\\Users\\u",
+        "local_app_data": "C:\\Users\\u\\AppData\\Local",
+        "roaming_app_data": "C:\\Users\\u\\AppData\\Roaming",
+        "user_temp": "C:\\Users\\u\\AppData\\Local\\Temp",
+        "system_temp": "C:\\Windows\\Temp",
+        "windows": "C:\\Windows",
+        "program_data": "C:\\ProgramData",
+        "downloads": "C:\\Users\\u\\Downloads"
+    })
+    .to_string()
+}
+
+fn sample_rule() -> Value {
+    json!({
+        "rule_id": "sample-cache",
+        "title_zh": "示例缓存目录",
+        "owner_zh": "示例",
+        "category": "dev_cache",
+        "level": "recommended",
+        "locate": [{"kind":"pattern","base":"local_app_data","segments":["SampleCache"]}],
+        "item_type": "dir",
+        "min_age_hours": 1,
+        "keep_newest": 0,
+        "in_use": {"mode":"none","processes":[]},
+        "growth": "slow",
+        "what_zh": "这是一段示例说明文字。",
+        "why_zh": "这是可以清理的原因说明。",
+        "after_zh": "清掉之后会重新下载缓存。",
+        "fix_hint_zh": null,
+        "sources": [{
+            "kind":"local_observation",
+            "ref":"2026-10-26 总控本机只读摸底",
+            "checked_on":"2026-10-26"
+        }]
+    })
+}
+
+fn wrap(rules: Vec<Value>) -> String {
+    json!({
+        "rules_version": "water.junk-rules.v1",
+        "data_version": "2026-10-26.1",
+        "rules": rules
+    })
+    .to_string()
+}
+
+fn reject(input: &str) {
+    let err = RuleSet::from_json(input).expect_err("schema must reject");
+    let shown = err.to_string();
+    assert!(!shown.contains(CANARY), "error echoed input: {shown}");
+}
+
+fn mutate_rule(mutator: impl FnOnce(&mut Value)) -> String {
+    let mut rule = sample_rule();
+    mutator(&mut rule);
+    wrap(vec![rule])
+}
+
+#[test]
+fn rules_schema_strict() {
+    reject(&wrap(vec![sample_rule()]).replace("water.junk-rules.v1", CANARY));
+    reject(&mutate_rule(|rule| {
+        rule["rule_id"] = json!("ab");
+    }));
+    reject(&mutate_rule(|rule| {
+        rule["title_zh"] = json!("一");
+    }));
+    reject(&mutate_rule(|rule| {
+        rule["owner_zh"] = json!("");
+    }));
+    reject(&mutate_rule(|rule| {
+        rule["category"] = json!("unrecognized");
+    }));
+    reject(&mutate_rule(|rule| {
+        rule["level"] = json!(CANARY);
+    }));
+    reject(&mutate_rule(|rule| {
+        rule["item_type"] = json!("folder");
+    }));
+    reject(&mutate_rule(|rule| {
+        rule["min_age_hours"] = json!(8761);
+    }));
+    reject(&mutate_rule(|rule| {
+        rule["keep_newest"] = json!(9);
+    }));
+    reject(&mutate_rule(|rule| {
+        rule["growth"] = json!("fast");
+    }));
+    reject(&mutate_rule(|rule| {
+        rule["what_zh"] = json!("短");
+    }));
+    reject(&mutate_rule(|rule| {
+        rule["why_zh"] = json!(CANARY.to_string().repeat(20));
+    }));
+    reject(&mutate_rule(|rule| {
+        rule["in_use"] = json!({"mode":"none","processes":["chrome.exe"]});
+    }));
+    reject(&mutate_rule(|rule| {
+        rule["in_use"] = json!({"mode":"process_running","processes":[]});
+    }));
+    reject(&mutate_rule(|rule| {
+        rule["in_use"] = json!({"mode":"process_running","processes":["Chrome.exe"]});
+    }));
+    reject(&mutate_rule(|rule| {
+        rule["locate"] = json!([]);
+    }));
+    reject(&mutate_rule(|rule| {
+        rule["locate"] = json!([
+            {"kind":"pattern","base":"local_app_data","segments":["SampleCache"]},
+            {"kind":"pattern","base":"local_app_data","segments":["samplecache"]}
+        ]);
+    }));
+    reject(&mutate_rule(|rule| {
+        rule["sources"] = json!([]);
+    }));
+    reject(&mutate_rule(|rule| {
+        rule["sources"] = json!([{
+            "kind":"official_doc",
+            "ref":"http://example.invalid",
+            "checked_on":"2026-10-26"
+        }]);
+    }));
+    reject(&mutate_rule(|rule| {
+        rule[CANARY] = json!(1);
+    }));
+    reject(&mutate_rule(|rule| {
+        rule["category"] = json!("custom");
+    }));
+    reject(&{
+        let mut first = sample_rule();
+        let second = sample_rule();
+        first["rule_id"] = json!("other-cache");
+        first["title_zh"] = json!("另一示例标题");
+        wrap(vec![first, second, sample_rule()])
+    });
+    reject(&{
+        let raw = json!({
+            "rules_version": "water.junk-rules.v1",
+            "data_version": "2026-10-26",
+            "rules": [sample_rule()]
+        });
+        raw.to_string()
+    });
+    reject(&mutate_rule(|rule| {
+        rule["growth"] = json!("leak_prone");
+        rule["min_age_hours"] = json!(0);
+        rule["fix_hint_zh"] = json!("请告诉生产者及时回收本次新建的临时目录。");
+    }));
+    reject(&mutate_rule(|rule| {
+        rule["growth"] = json!("leak_prone");
+        rule["min_age_hours"] = json!(1);
+        rule["fix_hint_zh"] = Value::Null;
+    }));
+    reject(&mutate_rule(|rule| {
+        rule["locate"] = json!([{"kind":"discovery","base":"system_temp"}]);
+        rule["min_age_hours"] = json!(23);
+        rule["level"] = json!("recommended");
+    }));
+    reject(&mutate_rule(|rule| {
+        rule["locate"] = json!([{"kind":"discovery","base":"system_temp"}]);
+        rule["min_age_hours"] = json!(24);
+        rule["level"] = json!("advisory");
+    }));
+    let ok = RuleSet::from_json(&wrap(vec![sample_rule()])).expect("valid sample");
+    assert_eq!(ok.rules().len(), 1);
+}
+
+#[test]
+fn rules_protection_precedence() {
+    let overlapping = wrap(vec![
+        {
+            let mut rule = sample_rule();
+            rule["rule_id"] = json!("cleanable-ud");
+            rule["title_zh"] = json!("可清理用户数据");
+            rule["category"] = json!("browser");
+            rule["level"] = json!("recommended");
+            rule["locate"] =
+                json!([{"kind":"pattern","base":"local_app_data","segments":["User Data","*"]}]);
+            rule
+        },
+        {
+            let mut rule = sample_rule();
+            rule["rule_id"] = json!("protected-cookies");
+            rule["title_zh"] = json!("受保护的登录数据");
+            rule["category"] = json!("browser");
+            rule["level"] = json!("protected");
+            rule["locate"] = json!([{"kind":"pattern","base":"local_app_data","segments":["User Data","*","Cookies"]}]);
+            rule["what_zh"] = json!("这是登录相关的网站数据。");
+            rule["why_zh"] = json!("清掉之后需要重新登录许多网站。");
+            rule["after_zh"] = json!("这里只统计占用，不会被清理。");
+            rule
+        },
+    ]);
+    let err = RuleSet::from_json(&overlapping).expect_err("RULES_PRECEDENCE");
+    assert!(
+        err.code == "RULES_PRECEDENCE" || err.to_string().contains("RULES_PRECEDENCE"),
+        "RULES_PRECEDENCE"
+    );
+
+    let allowed = wrap(vec![
+        {
+            let mut rule = sample_rule();
+            rule["rule_id"] = json!("cleanable-cache");
+            rule["title_zh"] = json!("可清理网页缓存");
+            rule["category"] = json!("browser");
+            rule["locate"] =
+                json!([{"kind":"pattern","base":"local_app_data","segments":["*","Cache"]}]);
+            rule
+        },
+        {
+            let mut rule = sample_rule();
+            rule["rule_id"] = json!("protected-network");
+            rule["title_zh"] = json!("受保护的网络数据");
+            rule["category"] = json!("browser");
+            rule["level"] = json!("protected");
+            rule["locate"] =
+                json!([{"kind":"pattern","base":"local_app_data","segments":["*","Network"]}]);
+            rule["what_zh"] = json!("这是登录相关的网络数据。");
+            rule["why_zh"] = json!("清掉之后需要重新登录许多网站。");
+            rule["after_zh"] = json!("这里只统计占用，不会被清理。");
+            rule
+        },
+    ]);
+    RuleSet::from_json(&allowed).expect("sibling cache and network must pass");
+    let embedded = RuleSet::embedded();
+    assert!(embedded.rules().len() >= 60, "seed set must load");
+}
+
+#[test]
+fn rules_resolve_plan() {
+    let rules = RuleSet::embedded();
+    let folders = KnownFolders::from_json(&folders_json()).expect("folders");
+    let custom = [
+        CustomRoot {
+            root_id: "alpha".to_string(),
+            path: "D:\\work\\alpha".to_string(),
+        },
+        CustomRoot {
+            root_id: "beta".to_string(),
+            path: "E:\\work\\beta".to_string(),
+        },
+    ];
+    let plan = resolve_plan(&rules, &folders, &custom, CREATED_AT).expect("plan");
+    let expected = expected_target_count(&rules, custom.len());
+    assert_eq!(plan.targets.len(), expected);
+    assert_eq!(plan.plan_version, "water.scan-plan.v1");
+    assert_eq!(plan.rules_data_version, "2026-10-26.1");
+    assert_eq!(plan.created_at, CREATED_AT);
+
+    let first = &plan.targets[0];
+    assert_eq!(first.target_id, "codex-marketplace-staging#1");
+    assert_eq!(first.group_id, "codex-marketplace-staging");
+    assert_eq!(first.rule_id, "codex-marketplace-staging");
+    match &first.match_spec {
+        MatchSpec::Pattern { base, segments } => {
+            assert_eq!(base, "C:\\Users\\u");
+            assert_eq!(
+                segments,
+                &[
+                    ".codex*".to_string(),
+                    ".tmp".to_string(),
+                    "marketplaces".to_string(),
+                    ".staging".to_string(),
+                    "marketplace-upgrade-*".to_string()
+                ]
+            );
+        }
+        other => panic!("first target {other:?}"),
+    }
+
+    let chrome = plan
+        .targets
+        .iter()
+        .find(|target| target.target_id == "chrome-cache#1")
+        .expect("chrome-cache");
+    assert_eq!(chrome.group_id, "chrome-cache");
+    assert_eq!(chrome.level, Level::Recommended);
+    assert_eq!(chrome.category, Category::Browser);
+    assert_eq!(chrome.in_use.mode, InUseMode::ProcessRunning);
+    assert_eq!(chrome.in_use.processes, ["chrome.exe"]);
+
+    let marker_targets: Vec<_> = plan
+        .targets
+        .iter()
+        .filter(|target| target.rule_id == "cachedir-tagged")
+        .collect();
+    assert_eq!(marker_targets.len(), 2);
+    assert_eq!(marker_targets[0].group_id, "custom:alpha:cachedir-tagged");
+    assert_eq!(
+        marker_targets[0].target_id,
+        "custom:alpha:cachedir-tagged#1"
+    );
+    assert_eq!(marker_targets[1].group_id, "custom:beta:cachedir-tagged");
+    let text = rules
+        .text("custom:alpha:cachedir-tagged")
+        .expect("custom text");
+    assert_eq!(text.title_zh, "带缓存标记的目录");
+
+    assert_eq!(
+        plan.hard_guards,
+        vec![
+            "C:\\Users\\u".to_string(),
+            "C:\\Users\\u\\AppData\\Local".to_string(),
+            "C:\\Users\\u\\AppData\\Roaming".to_string(),
+            "C:\\Users\\u\\AppData\\Local\\Temp".to_string(),
+            "C:\\Windows\\Temp".to_string(),
+            "C:\\Windows".to_string(),
+            "C:\\ProgramData".to_string(),
+            "C:\\Users\\u\\Downloads".to_string(),
+            "C:\\".to_string(),
+            "D:\\work\\alpha".to_string(),
+            "E:\\work\\beta".to_string(),
+        ]
+    );
+
+    let encoded = plan_to_json(&plan);
+    let parsed = serde_json::from_str::<Value>(&encoded).expect("json");
+    assert_eq!(parsed["plan_version"], "water.scan-plan.v1");
+    assert_eq!(parsed["targets"].as_array().map(Vec::len), Some(expected));
+    assert!(parsed["targets"][0].get("match").is_some());
+    let roundtrip = ScanPlan::from_json(&encoded).expect("strict parse back");
+    assert_eq!(roundtrip, plan);
+}
+
+#[test]
+fn rules_seed_coverage() {
+    let rules = RuleSet::embedded();
+    let expected = seed_table();
+    assert_eq!(rules.rules().len(), expected.len());
+    for (index, spec) in expected.iter().enumerate() {
+        let rule = &rules.rules()[index];
+        assert_eq!(rule.rule_id, spec.id, "order {index}");
+        assert_eq!(rule.category, spec.category, "{}", spec.id);
+        assert_eq!(rule.level, spec.level, "{}", spec.id);
+        assert_eq!(rule.item_type, spec.item_type, "{}", spec.id);
+        assert_eq!(rule.min_age_hours, spec.min_age_hours, "{}", spec.id);
+        assert_eq!(rule.keep_newest, spec.keep_newest, "{}", spec.id);
+        assert_eq!(rule.in_use.mode, spec.in_use, "{}", spec.id);
+        assert_eq!(rule.growth, spec.growth, "{}", spec.id);
+        assert_eq!(locator_summary(rule), spec.locators, "{}", spec.id);
+        assert!(!rule.title_zh.is_empty());
+        assert!(!rule.what_zh.contains("垃圾"));
+        assert!(!rule.why_zh.contains("垃圾"));
+        assert!(!rule.after_zh.contains("垃圾"));
+        assert!(!rule.what_zh.contains(&rule.rule_id));
+        assert!(!rule.why_zh.contains(&rule.rule_id));
+        assert!(!rule.after_zh.contains(&rule.rule_id));
+        assert!(!rule.sources.is_empty());
+        let text = rules.text(&rule.rule_id).expect("text");
+        assert_eq!(text.title_zh, rule.title_zh);
+    }
+}
+
+fn expected_target_count(rules: &RuleSet, custom_roots: usize) -> usize {
+    rules
+        .rules()
+        .iter()
+        .map(|rule| {
+            rule.locate
+                .iter()
+                .map(|locator| match locator {
+                    Locator::Marker { .. } => custom_roots,
+                    _ => 1,
+                })
+                .sum::<usize>()
+        })
+        .sum()
+}
+
+fn locator_summary(rule: &water_junk_rules::Rule) -> Vec<String> {
+    rule.locate
+        .iter()
+        .map(|locator| match locator {
+            Locator::Pattern { base, segments } => {
+                format!("pattern:{}:{}", base.as_str(), segments.join("/"))
+            }
+            Locator::Discovery { base } => format!("discovery:{}", base.as_str()),
+            Locator::Marker { marker, max_depth } => match marker {
+                Marker::File {
+                    name,
+                    min_bytes,
+                    max_bytes,
+                } => format!("marker:file:{name}:{min_bytes}:{max_bytes}:{max_depth}"),
+                Marker::ChildrenAll { names } => {
+                    format!("marker:children_all:{}:{max_depth}", names.join(","))
+                }
+                Marker::DirName { names } => {
+                    format!("marker:dir_name:{}:{max_depth}", names.join(","))
+                }
+            },
+        })
+        .collect()
+}
+
+struct SeedSpec {
+    id: &'static str,
+    category: Category,
+    level: Level,
+    item_type: ItemType,
+    min_age_hours: u32,
+    keep_newest: u32,
+    in_use: InUseMode,
+    growth: Growth,
+    locators: Vec<String>,
+}
+
+#[allow(clippy::too_many_arguments)]
+fn seed(
+    id: &'static str,
+    category: Category,
+    level: Level,
+    item_type: ItemType,
+    min_age_hours: u32,
+    keep_newest: u32,
+    in_use: InUseMode,
+    growth: Growth,
+    locators: Vec<String>,
+) -> SeedSpec {
+    SeedSpec {
+        id,
+        category,
+        level,
+        item_type,
+        min_age_hours,
+        keep_newest,
+        in_use,
+        growth,
+        locators,
+    }
+}
+
+fn p(base: &str, segments: &str) -> String {
+    format!("pattern:{base}:{segments}")
+}
+
+fn seed_table() -> Vec<SeedSpec> {
+    let mut rows = vec![
+        seed(
+            "codex-marketplace-staging",
+            Category::AgentTool,
+            Level::Recommended,
+            ItemType::Dir,
+            1,
+            0,
+            InUseMode::None,
+            Growth::LeakProne,
+            vec![p(
+                "user_profile",
+                ".codex*/.tmp/marketplaces/.staging/marketplace-upgrade-*",
+            )],
+        ),
+        seed(
+            "codex-runtimes",
+            Category::AgentTool,
+            Level::Confirm,
+            ItemType::Dir,
+            24,
+            1,
+            InUseMode::None,
+            Growth::Slow,
+            vec![p("user_profile", ".cache/codex-runtimes/*")],
+        ),
+        seed(
+            "claude-desktop-old-versions",
+            Category::AgentTool,
+            Level::Recommended,
+            ItemType::Dir,
+            24,
+            1,
+            InUseMode::CmdlineReferencesItem,
+            Growth::Slow,
+            vec![p("local_app_data", "AnthropicClaude/app-*")],
+        ),
+        seed(
+            "claude-desktop-packages",
+            Category::AgentTool,
+            Level::Confirm,
+            ItemType::Dir,
+            24,
+            0,
+            InUseMode::None,
+            Growth::Slow,
+            vec![p("local_app_data", "AnthropicClaude/packages")],
+        ),
+        seed(
+            "claude-code-scratchpad",
+            Category::AgentTool,
+            Level::Confirm,
+            ItemType::Dir,
+            72,
+            0,
+            InUseMode::None,
+            Growth::Slow,
+            vec![p("system_temp", "claude/*/*")],
+        ),
+        seed(
+            "grok-downloads",
+            Category::AgentTool,
+            Level::Recommended,
+            ItemType::Any,
+            24,
+            0,
+            InUseMode::None,
+            Growth::OneOff,
+            vec![p("user_profile", ".grok/downloads/*")],
+        ),
+        seed(
+            "headless-browser-profiles",
+            Category::AgentTool,
+            Level::Recommended,
+            ItemType::Dir,
+            1,
+            0,
+            InUseMode::CmdlineReferencesItem,
+            Growth::LeakProne,
+            vec![
+                p("system_temp", "rb#*-chrome-*"),
+                p("system_temp", "hrender-*"),
+                p("system_temp", "playwright_chromiumdev_profile-*"),
+                p("system_temp", "puppeteer_dev_profile-*"),
+                p("user_temp", "rb#*-chrome-*"),
+                p("user_temp", "hrender-*"),
+                p("user_temp", "playwright_chromiumdev_profile-*"),
+                p("user_temp", "puppeteer_dev_profile-*"),
+            ],
+        ),
+        seed(
+            "claude-code-sessions",
+            Category::AgentTool,
+            Level::Protected,
+            ItemType::Dir,
+            0,
+            0,
+            InUseMode::None,
+            Growth::Slow,
+            vec![p("user_profile", ".claude/projects")],
+        ),
+        seed(
+            "claude-code-file-history",
+            Category::AgentTool,
+            Level::Protected,
+            ItemType::Dir,
+            0,
+            0,
+            InUseMode::None,
+            Growth::Slow,
+            vec![p("user_profile", ".claude/file-history")],
+        ),
+        seed(
+            "cursor-chats",
+            Category::AgentTool,
+            Level::Protected,
+            ItemType::Dir,
+            0,
+            0,
+            InUseMode::None,
+            Growth::Slow,
+            vec![p("user_profile", ".cursor/chats")],
+        ),
+        seed(
+            "codex-sessions",
+            Category::AgentTool,
+            Level::Protected,
+            ItemType::Dir,
+            0,
+            0,
+            InUseMode::None,
+            Growth::Slow,
+            vec![p("user_profile", ".codex*/sessions")],
+        ),
+        seed(
+            "grok-sessions",
+            Category::AgentTool,
+            Level::Protected,
+            ItemType::Dir,
+            0,
+            0,
+            InUseMode::None,
+            Growth::Slow,
+            vec![p("user_profile", ".grok/sessions")],
+        ),
+    ];
+    rows.extend(browser_seeds());
+    rows.push(seed(
+        "chrome-on-device-model",
+        Category::Browser,
+        Level::Advisory,
+        ItemType::Dir,
+        0,
+        0,
+        InUseMode::None,
+        Growth::OneOff,
+        vec![p(
+            "local_app_data",
+            "Google/Chrome/User Data/OptGuideOnDeviceModel",
+        )],
+    ));
+    rows.push(seed(
+        "firefox-cache",
+        Category::Browser,
+        Level::Recommended,
+        ItemType::Dir,
+        0,
+        0,
+        InUseMode::ProcessRunning,
+        Growth::Slow,
+        vec![p("local_app_data", "Mozilla/Firefox/Profiles/*/cache2")],
+    ));
+    rows.push(seed(
+        "electron-app-cache",
+        Category::AppLeftover,
+        Level::Recommended,
+        ItemType::Dir,
+        1,
+        0,
+        InUseMode::None,
+        Growth::Slow,
+        vec![
+            p("roaming_app_data", "*/Cache"),
+            p("roaming_app_data", "*/Code Cache"),
+            p("roaming_app_data", "*/GPUCache"),
+            p("roaming_app_data", "*/DawnCache"),
+            p("local_app_data", "*/Cache"),
+            p("local_app_data", "*/GPUCache"),
+        ],
+    ));
+    rows.push(seed(
+        "app-logs",
+        Category::CrashLog,
+        Level::Confirm,
+        ItemType::Dir,
+        168,
+        0,
+        InUseMode::None,
+        Growth::Slow,
+        vec![
+            p("roaming_app_data", "*/logs"),
+            p("local_app_data", "*/logs"),
+        ],
+    ));
+    rows.push(seed(
+        "installer-unpack-temp",
+        Category::AppLeftover,
+        Level::Recommended,
+        ItemType::Dir,
+        24,
+        0,
+        InUseMode::None,
+        Growth::Slow,
+        vec![
+            p("system_temp", "vscode-stable-*"),
+            p("system_temp", "vscode-user-*"),
+            p("system_temp", "sand-update*"),
+            p("system_temp", "workbuddy-update-*"),
+            p("system_temp", "codebuddy-marketplace-install*"),
+        ],
+    ));
+    rows.push(seed(
+        "downloads-installers",
+        Category::AppLeftover,
+        Level::Confirm,
+        ItemType::File,
+        168,
+        0,
+        InUseMode::None,
+        Growth::OneOff,
+        vec![
+            p("downloads", "*.exe"),
+            p("downloads", "*.msi"),
+            p("downloads", "*.msix"),
+            p("downloads", "*.msixbundle"),
+            p("downloads", "*.appx"),
+        ],
+    ));
+    rows.push(seed(
+        "squirrel-packages",
+        Category::AppLeftover,
+        Level::Confirm,
+        ItemType::Dir,
+        24,
+        0,
+        InUseMode::None,
+        Growth::Slow,
+        vec![p("local_app_data", "*/packages")],
+    ));
+    rows.push(seed(
+        "windows-delivery-optimization",
+        Category::AppLeftover,
+        Level::Advisory,
+        ItemType::Dir,
+        0,
+        0,
+        InUseMode::None,
+        Growth::Slow,
+        vec![p(
+            "windows",
+            "ServiceProfiles/NetworkService/AppData/Local/Microsoft/Windows/DeliveryOptimization",
+        )],
+    ));
+    rows.push(seed(
+        "windows-update-download",
+        Category::AppLeftover,
+        Level::Advisory,
+        ItemType::Dir,
+        0,
+        0,
+        InUseMode::None,
+        Growth::Slow,
+        vec![p("windows", "SoftwareDistribution/Download")],
+    ));
+    rows.push(seed(
+        "system-temp-old",
+        Category::SystemTemp,
+        Level::Recommended,
+        ItemType::Any,
+        168,
+        0,
+        InUseMode::None,
+        Growth::Slow,
+        vec!["discovery:system_temp".to_string()],
+    ));
+    rows.push(seed(
+        "user-temp-old",
+        Category::SystemTemp,
+        Level::Recommended,
+        ItemType::Any,
+        168,
+        0,
+        InUseMode::None,
+        Growth::Slow,
+        vec!["discovery:user_temp".to_string()],
+    ));
+    rows.push(seed(
+        "npm-cache",
+        Category::DevCache,
+        Level::Recommended,
+        ItemType::Dir,
+        1,
+        0,
+        InUseMode::None,
+        Growth::Slow,
+        vec![p("local_app_data", "npm-cache")],
+    ));
+    rows.push(seed(
+        "pip-cache",
+        Category::DevCache,
+        Level::Recommended,
+        ItemType::Dir,
+        1,
+        0,
+        InUseMode::None,
+        Growth::Slow,
+        vec![p("local_app_data", "pip/cache")],
+    ));
+    rows.push(seed(
+        "yarn-cache",
+        Category::DevCache,
+        Level::Recommended,
+        ItemType::Dir,
+        1,
+        0,
+        InUseMode::None,
+        Growth::Slow,
+        vec![p("local_app_data", "Yarn/Cache")],
+    ));
+    rows.push(seed(
+        "uv-cache",
+        Category::DevCache,
+        Level::Advisory,
+        ItemType::Dir,
+        0,
+        0,
+        InUseMode::None,
+        Growth::Slow,
+        vec![p("local_app_data", "uv/cache")],
+    ));
+    rows.push(seed(
+        "pnpm-store",
+        Category::DevCache,
+        Level::Advisory,
+        ItemType::Dir,
+        0,
+        0,
+        InUseMode::None,
+        Growth::Slow,
+        vec![p("local_app_data", "pnpm/store")],
+    ));
+    rows.push(seed(
+        "cargo-registry-cache",
+        Category::DevCache,
+        Level::Recommended,
+        ItemType::Dir,
+        1,
+        0,
+        InUseMode::None,
+        Growth::Slow,
+        vec![
+            p("user_profile", ".cargo/registry/cache"),
+            p("user_profile", ".cargo/registry/src"),
+        ],
+    ));
+    rows.push(seed(
+        "gradle-caches",
+        Category::DevCache,
+        Level::Confirm,
+        ItemType::Dir,
+        24,
+        0,
+        InUseMode::None,
+        Growth::Slow,
+        vec![p("user_profile", ".gradle/caches")],
+    ));
+    rows.push(seed(
+        "playwright-browsers",
+        Category::DevCache,
+        Level::Confirm,
+        ItemType::Dir,
+        24,
+        0,
+        InUseMode::None,
+        Growth::OneOff,
+        vec![p("local_app_data", "ms-playwright")],
+    ));
+    rows.push(seed(
+        "node-gyp-cache",
+        Category::DevCache,
+        Level::Recommended,
+        ItemType::Dir,
+        1,
+        0,
+        InUseMode::None,
+        Growth::OneOff,
+        vec![p("local_app_data", "node-gyp/Cache")],
+    ));
+    rows.push(seed(
+        "electron-build-cache",
+        Category::DevCache,
+        Level::Recommended,
+        ItemType::Dir,
+        1,
+        0,
+        InUseMode::None,
+        Growth::OneOff,
+        vec![
+            p("local_app_data", "electron-builder/Cache"),
+            p("local_app_data", "electron/Cache"),
+        ],
+    ));
+    rows.push(seed(
+        "jest-cache",
+        Category::DevCache,
+        Level::Recommended,
+        ItemType::Dir,
+        1,
+        0,
+        InUseMode::None,
+        Growth::Slow,
+        vec![p("system_temp", "jest"), p("user_temp", "jest")],
+    ));
+    rows.push(seed(
+        "huggingface-models",
+        Category::DevCache,
+        Level::Advisory,
+        ItemType::Dir,
+        0,
+        0,
+        InUseMode::None,
+        Growth::OneOff,
+        vec![p("user_profile", ".cache/huggingface")],
+    ));
+    rows.push(seed(
+        "ollama-models",
+        Category::DevCache,
+        Level::Advisory,
+        ItemType::Dir,
+        0,
+        0,
+        InUseMode::None,
+        Growth::OneOff,
+        vec![p("user_profile", ".ollama/models")],
+    ));
+    rows.push(seed(
+        "crash-dumps",
+        Category::CrashLog,
+        Level::Recommended,
+        ItemType::File,
+        24,
+        0,
+        InUseMode::None,
+        Growth::Slow,
+        vec![p("local_app_data", "CrashDumps/*.dmp")],
+    ));
+    rows.push(seed(
+        "wer-user-reports",
+        Category::CrashLog,
+        Level::Recommended,
+        ItemType::Dir,
+        24,
+        0,
+        InUseMode::None,
+        Growth::Slow,
+        vec![
+            p("local_app_data", "Microsoft/Windows/WER/ReportArchive/*"),
+            p("local_app_data", "Microsoft/Windows/WER/ReportQueue/*"),
+        ],
+    ));
+    rows.push(seed(
+        "wer-system-reports",
+        Category::CrashLog,
+        Level::Advisory,
+        ItemType::Dir,
+        0,
+        0,
+        InUseMode::None,
+        Growth::Slow,
+        vec![p("program_data", "Microsoft/Windows/WER")],
+    ));
+    rows.push(seed(
+        "gpu-shader-cache",
+        Category::GpuSystem,
+        Level::Recommended,
+        ItemType::Dir,
+        0,
+        0,
+        InUseMode::None,
+        Growth::Slow,
+        vec![
+            p("local_app_data", "NVIDIA/DXCache"),
+            p("local_app_data", "NVIDIA/GLCache"),
+            p("local_app_data", "D3DSCache"),
+            p("local_app_data", "AMD/DxCache"),
+            p("local_app_data", "AMD/GLCache"),
+            p("local_app_data", "Intel/ShaderCache"),
+        ],
+    ));
+    rows.push(seed(
+        "explorer-thumbnail-cache",
+        Category::GpuSystem,
+        Level::Advisory,
+        ItemType::Dir,
+        0,
+        0,
+        InUseMode::None,
+        Growth::Slow,
+        vec![p("local_app_data", "Microsoft/Windows/Explorer")],
+    ));
+    rows.push(seed(
+        "cachedir-tagged",
+        Category::Custom,
+        Level::Recommended,
+        ItemType::Dir,
+        1,
+        0,
+        InUseMode::None,
+        Growth::Slow,
+        vec!["marker:file:CACHEDIR.TAG:43:1024:12".to_string()],
+    ));
+    rows.push(seed(
+        "python-tool-caches",
+        Category::Custom,
+        Level::Recommended,
+        ItemType::Dir,
+        1,
+        0,
+        InUseMode::None,
+        Growth::Slow,
+        vec!["marker:dir_name:__pycache__,.pytest_cache,.mypy_cache,.ruff_cache:12".to_string()],
+    ));
+    rows.push(seed(
+        "test-browser-profiles",
+        Category::Custom,
+        Level::Confirm,
+        ItemType::Dir,
+        24,
+        0,
+        InUseMode::CmdlineReferencesItem,
+        Growth::Slow,
+        vec!["marker:children_all:Local State,Default:8".to_string()],
+    ));
+    rows.push(seed(
+        "node-modules",
+        Category::Custom,
+        Level::Confirm,
+        ItemType::Dir,
+        168,
+        0,
+        InUseMode::None,
+        Growth::Slow,
+        vec!["marker:dir_name:node_modules:6".to_string()],
+    ));
+    rows
+}
+
+fn browser_seeds() -> Vec<SeedSpec> {
+    let families = [
+        ("chrome", "Google/Chrome/User Data"),
+        ("edge", "Microsoft/Edge/User Data"),
+        ("brave", "BraveSoftware/Brave-Browser/User Data"),
+    ];
+    let mut rows = Vec::new();
+    for (id, ud) in families {
+        rows.push(seed(
+            Box::leak(format!("{id}-cache").into_boxed_str()),
+            Category::Browser,
+            Level::Recommended,
+            ItemType::Dir,
+            0,
+            0,
+            InUseMode::ProcessRunning,
+            Growth::Slow,
+            vec![
+                p("local_app_data", &format!("{ud}/*/Cache")),
+                p("local_app_data", &format!("{ud}/*/Media Cache")),
+            ],
+        ));
+    }
+    for (id, ud) in families {
+        rows.push(seed(
+            Box::leak(format!("{id}-code-gpu-cache").into_boxed_str()),
+            Category::Browser,
+            Level::Recommended,
+            ItemType::Dir,
+            0,
+            0,
+            InUseMode::ProcessRunning,
+            Growth::Slow,
+            vec![
+                p("local_app_data", &format!("{ud}/*/Code Cache")),
+                p("local_app_data", &format!("{ud}/*/GPUCache")),
+                p("local_app_data", &format!("{ud}/*/DawnCache")),
+                p("local_app_data", &format!("{ud}/*/DawnGraphiteCache")),
+                p("local_app_data", &format!("{ud}/*/DawnWebGPUCache")),
+                p("local_app_data", &format!("{ud}/ShaderCache")),
+                p("local_app_data", &format!("{ud}/GrShaderCache")),
+                p("local_app_data", &format!("{ud}/GraphiteDawnCache")),
+            ],
+        ));
+    }
+    for (id, ud) in families {
+        rows.push(seed(
+            Box::leak(format!("{id}-service-worker-cache").into_boxed_str()),
+            Category::Browser,
+            Level::Confirm,
+            ItemType::Dir,
+            0,
+            0,
+            InUseMode::ProcessRunning,
+            Growth::Slow,
+            vec![
+                p(
+                    "local_app_data",
+                    &format!("{ud}/*/Service Worker/CacheStorage"),
+                ),
+                p(
+                    "local_app_data",
+                    &format!("{ud}/*/Service Worker/ScriptCache"),
+                ),
+            ],
+        ));
+    }
+    for (id, ud) in families {
+        rows.push(seed(
+            Box::leak(format!("{id}-crash-reports").into_boxed_str()),
+            Category::CrashLog,
+            Level::Recommended,
+            ItemType::Dir,
+            24,
+            0,
+            InUseMode::None,
+            Growth::Slow,
+            vec![p("local_app_data", &format!("{ud}/Crashpad/reports"))],
+        ));
+    }
+    for (id, ud) in families {
+        rows.push(seed(
+            Box::leak(format!("{id}-login-and-site-data").into_boxed_str()),
+            Category::Browser,
+            Level::Protected,
+            ItemType::Any,
+            0,
+            0,
+            InUseMode::None,
+            Growth::Slow,
+            vec![
+                p("local_app_data", &format!("{ud}/*/Network")),
+                p("local_app_data", &format!("{ud}/*/Cookies")),
+                p("local_app_data", &format!("{ud}/*/Login Data")),
+                p("local_app_data", &format!("{ud}/*/Local Storage")),
+                p("local_app_data", &format!("{ud}/*/IndexedDB")),
+                p("local_app_data", &format!("{ud}/*/Session Storage")),
+                p("local_app_data", &format!("{ud}/*/Sessions")),
+                p("local_app_data", &format!("{ud}/*/Web Data")),
+            ],
+        ));
+    }
+    rows
+}
