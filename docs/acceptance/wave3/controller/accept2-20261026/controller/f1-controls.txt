@@ -1,0 +1,42 @@
+f1 nc1 mutated packages/water-service/src/clean.rs: the used flag is ignored, so a replayed token passes the token check (only the consumed-scan layer remains) (mutated sha 01473186feaa33e30594bcf4baa09aa7b9ea4afc448195746fdd83118c81a0f8)
+f1 red-nc1 rc=0 {"task":"WATER-W3-ACCEPT-F1","mode":"red-nc1","finalGate":false,"status":"passed","error":null,"receipt":"F:\\new\\smaltalk\\water\\.worktrees\\accept2-w3-f1\\.local\\checks\\WATER-W3-ACCEPT-F1\\2026-10-26T10-53-53.514Z-18924-red-nc1-result.json"}
+f1 nc1 KILLED (expected SERVICE_TOKEN_ONCE)
+f1 nc1 restored exact bytes=true sha e2f1697a007486164253926d8956e176b2a2ddafef82d76d8993beca5e45b418
+f1 test rc=0 {"task":"WATER-W3-ACCEPT-F1","mode":"test","finalGate":false,"status":"passed","error":null,"receipt":"F:\\new\\smaltalk\\water\\.worktrees\\accept2-w3-f1\\.local\\checks\\WATER-W3-ACCEPT-F1\\2026-10-26T10-54-15.505Z-35824-test-result.json"}
+f1 nc2 mutated packages/water-service/src/service.rs: with clean disabled, clean_start is no longer refused at the entry (mutated sha 841b53640a281e7e449228ca45b402f20ca0ace546888df781f2a4d9d73a4af6)
+f1 red-nc2 rc=0 {"task":"WATER-W3-ACCEPT-F1","mode":"red-nc2","finalGate":false,"status":"passed","error":null,"receipt":"F:\\new\\smaltalk\\water\\.worktrees\\accept2-w3-f1\\.local\\checks\\WATER-W3-ACCEPT-F1\\2026-10-26T10-54-36.349Z-32060-red-nc2-result.json"}
+f1 nc2 KILLED (expected SERVICE_CLEAN_DISABLED)
+f1 nc2 restored exact bytes=true sha 32f8f08934a88ff666986b72f1eab45e325e305d17c263cf15a482245ea71c57
+f1 test rc=0 {"task":"WATER-W3-ACCEPT-F1","mode":"test","finalGate":false,"status":"passed","error":null,"receipt":"F:\\new\\smaltalk\\water\\.worktrees\\accept2-w3-f1\\.local\\checks\\WATER-W3-ACCEPT-F1\\2026-10-26T10-54-55.807Z-31760-test-result.json"}
+f1 nc3 mutated packages/water-service/src/clean.rs: protected_paths are taken from advisory groups instead of protected groups (mutated sha 1489a8b9a087e9dd263aabc314e743627b5ecd222c7ec4f769b4fe30319e77fc)
+f1 red-nc3 rc=0 {"task":"WATER-W3-ACCEPT-F1","mode":"red-nc3","finalGate":false,"status":"passed","error":null,"receipt":"F:\\new\\smaltalk\\water\\.worktrees\\accept2-w3-f1\\.local\\checks\\WATER-W3-ACCEPT-F1\\2026-10-26T10-55-14.269Z-36052-red-nc3-result.json"}
+f1 nc3 KILLED (expected SERVICE_PROTECTED_PLAN)
+f1 nc3 restored exact bytes=true sha e2f1697a007486164253926d8956e176b2a2ddafef82d76d8993beca5e45b418
+f1 test rc=0 {"task":"WATER-W3-ACCEPT-F1","mode":"test","finalGate":false,"status":"passed","error":null,"receipt":"F:\\new\\smaltalk\\water\\.worktrees\\accept2-w3-f1\\.local\\checks\\WATER-W3-ACCEPT-F1\\2026-10-26T10-55-40.138Z-2408-test-result.json"}
+f1 x1 mutated packages/water-service/src/clean.rs: ineligible entries (too young, in use) enter the clean plan (mutated sha 05249dc5dd4feee11763f4b5cbfe3af67ee7e09df6b93f11e7594268a82442fb)
+f1 test rc=1 {"task":"WATER-W3-ACCEPT-F1","mode":"test","finalGate":false,"status":"failed","error":"AssertionError [ERR_ASSERTION]: Unexpected exit, see 2026-10-26T10-56-05.280Z-39312-test-5.log","receipt":"F:\\new\\smaltalk\\water\\.worktrees\\accept2-w3-f1\\.local\\checks\\WATER-W3-ACCEPT-F1\\2026-10-26T10-56-05.280Z-39312-test-result.json"}
+f1 x1 KILLED (expected SERVICE_PLAN_ITEMS)
+f1 x1 restored exact bytes=true sha e2f1697a007486164253926d8956e176b2a2ddafef82d76d8993beca5e45b418
+f1 test rc=0 {"task":"WATER-W3-ACCEPT-F1","mode":"test","finalGate":false,"status":"passed","error":null,"receipt":"F:\\new\\smaltalk\\water\\.worktrees\\accept2-w3-f1\\.local\\checks\\WATER-W3-ACCEPT-F1\\2026-10-26T10-56-31.265Z-25836-test-result.json"}
+f1 x2 mutated packages/water-service/src/service.rs: a stale custom root is no longer dropped on load (mutated sha 1d4faf565cc4c58c1e5fbccf9b8f53087781aa08e46373cbff00079eeb2a9e5d)
+f1 test rc=1 {"task":"WATER-W3-ACCEPT-F1","mode":"test","finalGate":false,"status":"failed","error":"AssertionError [ERR_ASSERTION]: Unexpected exit, see 2026-10-26T10-56-54.740Z-43260-test-5.log","receipt":"F:\\new\\smaltalk\\water\\.worktrees\\accept2-w3-f1\\.local\\checks\\WATER-W3-ACCEPT-F1\\2026-10-26T10-56-54.740Z-43260-test-result.json"}
+f1 x2 KILLED (expected SERVICE_SETTINGS_KEEP)
+f1 x2 restored exact bytes=true sha 32f8f08934a88ff666986b72f1eab45e325e305d17c263cf15a482245ea71c57
+f1 test rc=0 {"task":"WATER-W3-ACCEPT-F1","mode":"test","finalGate":false,"status":"passed","error":null,"receipt":"F:\\new\\smaltalk\\water\\.worktrees\\accept2-w3-f1\\.local\\checks\\WATER-W3-ACCEPT-F1\\2026-10-26T10-57-13.255Z-38128-test-result.json"}
+f1 x3 mutated packages/water-service/src/service.rs: snapshots are deleted even when their scan record could not be removed (mutated sha 0844737ae3ef98c65471f69b74232f812c35f3dcc5b1841b683aeb76de4f1a77)
+f1 test rc=1 {"task":"WATER-W3-ACCEPT-F1","mode":"test","finalGate":false,"status":"failed","error":"AssertionError [ERR_ASSERTION]: Unexpected exit, see 2026-10-26T10-57-35.443Z-38324-test-5.log","receipt":"F:\\new\\smaltalk\\water\\.worktrees\\accept2-w3-f1\\.local\\checks\\WATER-W3-ACCEPT-F1\\2026-10-26T10-57-35.443Z-38324-test-result.json"}
+f1 x3 KILLED (expected SERVICE_STORAGE_KEEP)
+f1 x3 restored exact bytes=true sha 32f8f08934a88ff666986b72f1eab45e325e305d17c263cf15a482245ea71c57
+f1 test rc=0 {"task":"WATER-W3-ACCEPT-F1","mode":"test","finalGate":false,"status":"passed","error":null,"receipt":"F:\\new\\smaltalk\\water\\.worktrees\\accept2-w3-f1\\.local\\checks\\WATER-W3-ACCEPT-F1\\2026-10-26T10-57-56.969Z-21244-test-result.json"}
+f1 x4 mutated packages/water-service/src/views.rs: an unavailable process snapshot is labelled as a running process again (mutated sha bafcb3cf5acd6b7bc91335f440ac8917333d2e1c6d42bd680930cfe919caf23c)
+f1 test rc=0 {"task":"WATER-W3-ACCEPT-F1","mode":"test","finalGate":false,"status":"passed","error":null,"receipt":"F:\\new\\smaltalk\\water\\.worktrees\\accept2-w3-f1\\.local\\checks\\WATER-W3-ACCEPT-F1\\2026-10-26T10-58-23.574Z-25820-test-result.json"}
+f1 x4 SURVIVED (expected test result: FAILED)
+f1 x4 restored exact bytes=true sha 2738d4b397b9c3a2a4ae34b84be747972734eb4264428c3c787757628bf4c7ec
+f1 test rc=0 {"task":"WATER-W3-ACCEPT-F1","mode":"test","finalGate":false,"status":"passed","error":null,"receipt":"F:\\new\\smaltalk\\water\\.worktrees\\accept2-w3-f1\\.local\\checks\\WATER-W3-ACCEPT-F1\\2026-10-26T10-58-49.459Z-27328-test-result.json"}
+f1 x5 mutated packages/water-service/src/service.rs: arguments are validated before the clean switch again (mutated sha d233e75002b4f80b51918aa9d73e29db16cd500cf476a65da626db587fc372ed)
+f1 test rc=1 {"task":"WATER-W3-ACCEPT-F1","mode":"test","finalGate":false,"status":"failed","error":"AssertionError [ERR_ASSERTION]: Unexpected exit, see 2026-10-26T10-59-13.035Z-30496-test-5.log","receipt":"F:\\new\\smaltalk\\water\\.worktrees\\accept2-w3-f1\\.local\\checks\\WATER-W3-ACCEPT-F1\\2026-10-26T10-59-13.035Z-30496-test-result.json"}
+f1 x5 KILLED (expected SERVICE_CLEAN_DISABLED)
+f1 x5 restored exact bytes=true sha 32f8f08934a88ff666986b72f1eab45e325e305d17c263cf15a482245ea71c57
+f1 test rc=0 {"task":"WATER-W3-ACCEPT-F1","mode":"test","finalGate":false,"status":"passed","error":null,"receipt":"F:\\new\\smaltalk\\water\\.worktrees\\accept2-w3-f1\\.local\\checks\\WATER-W3-ACCEPT-F1\\2026-10-26T10-59-31.126Z-33352-test-result.json"}
+f1 survived: x4
+f1 test --final rc=0 {"task":"WATER-W3-ACCEPT-F1","mode":"test","finalGate":true,"status":"passed","error":null,"receipt":"F:\\new\\smaltalk\\water\\.worktrees\\accept2-w3-f1\\.local\\checks\\WATER-W3-ACCEPT-F1\\2026-10-26T10-59-52.666Z-32084-test-result.json"}

@@ -1,0 +1,76 @@
+{
+  "f1": [
+    {
+      "label": "nc1",
+      "mode": "red-nc1",
+      "token": "SERVICE_TOKEN_ONCE",
+      "file": "packages/water-service/src/clean.rs",
+      "old": "    if stored[\"used\"] == true || stored[\"token_digest\"] != util::digest(token) {",
+      "new": "    if stored[\"token_digest\"] != util::digest(token) {",
+      "why": "the used flag is ignored, so a replayed token passes the token check (only the consumed-scan layer remains)"
+    },
+    {
+      "label": "nc2",
+      "mode": "red-nc2",
+      "token": "SERVICE_CLEAN_DISABLED",
+      "file": "packages/water-service/src/service.rs",
+      "old": "        if matches!(command, \"clean_prepare\" | \"clean_start\") && !core.clean_enabled {",
+      "new": "        if matches!(command, \"clean_prepare\") && !core.clean_enabled {",
+      "why": "with clean disabled, clean_start is no longer refused at the entry"
+    },
+    {
+      "label": "nc3",
+      "mode": "red-nc3",
+      "token": "SERVICE_PROTECTED_PLAN",
+      "file": "packages/water-service/src/clean.rs",
+      "old": "g.group_id == i.group_id && g.level == water_junk_scan::Level::Protected",
+      "new": "g.group_id == i.group_id && g.level == water_junk_scan::Level::Advisory",
+      "why": "protected_paths are taken from advisory groups instead of protected groups"
+    },
+    {
+      "label": "x1",
+      "mode": "test",
+      "token": "SERVICE_PLAN_ITEMS",
+      "file": "packages/water-service/src/clean.rs",
+      "old": "            .filter(|i| i.group_id == id && i.eligible && i.identity.is_some())",
+      "new": "            .filter(|i| i.group_id == id && i.identity.is_some())",
+      "why": "ineligible entries (too young, in use) enter the clean plan"
+    },
+    {
+      "label": "x2",
+      "mode": "test",
+      "token": "SERVICE_SETTINGS_KEEP",
+      "file": "packages/water-service/src/service.rs",
+      "old": "            && valid_custom(&root.path, folders)",
+      "new": "            && !root.path.is_empty()",
+      "why": "a stale custom root is no longer dropped on load"
+    },
+    {
+      "label": "x3",
+      "mode": "test",
+      "token": "SERVICE_STORAGE_KEEP",
+      "file": "packages/water-service/src/service.rs",
+      "old": "    store.remove(\"snapshots\", &removed);",
+      "new": "    store.remove(\"snapshots\", &dropped);",
+      "why": "snapshots are deleted even when their scan record could not be removed"
+    },
+    {
+      "label": "x4",
+      "mode": "test",
+      "token": "test result: FAILED",
+      "file": "packages/water-service/src/views.rs",
+      "old": "        let text = if name == IN_USE_UNKNOWN {",
+      "new": "        let text = if false {",
+      "why": "an unavailable process snapshot is labelled as a running process again"
+    },
+    {
+      "label": "x5",
+      "mode": "test",
+      "token": "SERVICE_CLEAN_DISABLED",
+      "file": "packages/water-service/src/service.rs",
+      "old": "        // The switch answers first: a disabled build never inspects cleaning arguments.",
+      "new": "        validate(command, &args)?;",
+      "why": "arguments are validated before the clean switch again"
+    }
+  ]
+}

@@ -11,6 +11,10 @@ use std::{
     os::windows::{fs::MetadataExt, fs::OpenOptionsExt, process::CommandExt},
     path::{Path, PathBuf},
     process::Command,
+    sync::{
+        Arc, Mutex,
+        atomic::{AtomicUsize, Ordering},
+    },
     thread,
     time::{Duration, Instant, SystemTime},
 };
@@ -18,6 +22,7 @@ use water_service::*;
 
 struct Fake {
     root: PathBuf,
+    calls: Arc<AtomicUsize>,
 }
 
 impl Fake {
@@ -50,14 +55,21 @@ impl Platform for Fake {
         (10, 26)
     }
     fn in_use(&self, _spec: &water_process_scan::InUseSpec, item_path: &str) -> Option<String> {
+        self.calls.fetch_add(1, Ordering::SeqCst);
+        if item_path.contains("\\Edge\\") {
+            // What WindowsPlatform reports when no process snapshot could be taken.
+            return Some("无法确认占用状态".to_owned());
+        }
         item_path.contains("Profile Busy").then(|| "chrome.exe".to_owned())
     }
 }
 
-struct NoPick;
-impl FolderPicker for NoPick {
+/// Hands out the queued folders in order, then reports a cancel.
+struct Picks(Mutex<Vec<String>>);
+impl FolderPicker for Picks {
     fn pick(&self) -> Result<Option<String>, IpcError> {
-        Ok(None)
+        let mut q = self.0.lock().unwrap();
+        Ok((!q.is_empty()).then(|| q.remove(0)))
     }
 }
 
@@ -152,15 +164,92 @@ fn wait(s: &Service, progress: &str) -> Value {
     }
 }
 
-fn service(root: &Path, clean_enabled: bool) -> Service {
+fn service_with(root: &Path, clean_enabled: bool, calls: &Arc<AtomicUsize>, picks: Vec<String>) -> Service {
     Service::new(ServiceConfig {
         data_dir: root.join("data"),
         app_version: "0.1.0".into(),
         clean_enabled,
-        platform: Box::new(Fake { root: root.to_path_buf() }),
-        picker: Box::new(NoPick),
+        platform: Box::new(Fake { root: root.to_path_buf(), calls: calls.clone() }),
+        picker: Box::new(Picks(Mutex::new(picks))),
     })
     .unwrap_or_else(|e| panic!("CONTROLLER new: {} {}", e.code, e.message_zh))
+}
+
+fn service(root: &Path, clean_enabled: bool) -> Service {
+    service_with(root, clean_enabled, &Arc::new(AtomicUsize::new(0)), vec![])
+}
+
+fn group_in_use(view: &Value, group_id: &str) -> Value {
+    fn find(v: &Value, id: &str) -> Option<Value> {
+        match v {
+            Value::Object(m) if m.get("group_id").and_then(Value::as_str) == Some(id) && m.contains_key("in_use") => {
+                Some(m["in_use"].clone())
+            }
+            Value::Object(m) => m.values().find_map(|x| find(x, id)),
+            Value::Array(a) => a.iter().find_map(|x| find(x, id)),
+            _ => None,
+        }
+    }
+    find(view, group_id).unwrap_or_else(|| panic!("CONTROLLER group {group_id} not in view"))
+}
+
+/// Addendum 01: in-use labels saved at scan time, settings kept around a stale custom root,
+/// unreadable records and record-named directories left alone, the switch answering first.
+#[test]
+fn controller_restart_tolerance() {
+    let root = base();
+    for d in ["home", "lad", "rad", "ut", "st", "win", "pd", "dl", "custom-a", "custom-b"] {
+        fs::create_dir_all(root.join(d)).unwrap();
+    }
+    seed(&root, &format!("{UD}\\Profile Busy\\Cache\\busy.bin"), 4000);
+    seed(&root, "lad\\Microsoft\\Edge\\User Data\\Default\\Cache\\e.bin", 2500);
+    seed(&root, "custom-a\\target\\CACHEDIR.TAG", 43);
+    age_tree(&root.join("lad"), 10 * DAY);
+    let calls = Arc::new(AtomicUsize::new(0));
+    let picks = vec![root.join("custom-a").to_str().unwrap().to_owned(), root.join("custom-b").to_str().unwrap().to_owned()];
+    let s = service_with(&root, false, &calls, picks);
+    call(&s, "locations_set_category", json!({"category": "dev_cache", "enabled": false}));
+    for _ in 0..2 {
+        assert!(call(&s, "custom_root_add", json!({}))["added"]["root_id"].is_string(), "CONTROLLER custom root added");
+    }
+    let scan_id = call(&s, "scan_start", json!({}))["scan_id"].clone();
+    assert_eq!(wait(&s, "scan_progress")["state"], "completed", "CONTROLLER scan state");
+    let before = call(&s, "scan_result", json!({"scanId": scan_id}));
+    let chrome = group_in_use(&before, "chrome-cache");
+    let edge = group_in_use(&before, "edge-cache");
+    assert_eq!(chrome, json!({"process_label_zh": "chrome 正在运行，将跳过占用的项"}), "CONTROLLER chrome label");
+    assert_eq!(edge, json!({"process_label_zh": "暂时无法确认是否在运行，清理时会再次检查"}), "CONTROLLER unknown label");
+    drop(s);
+
+    let scans = root.join("data\\scans");
+    fs::write(scans.join("scan-20991231T000000Z-ffff.json"), b"{ not json").unwrap();
+    fs::create_dir(scans.join("scan-20991231T000000Z-fffe.json")).unwrap();
+    fs::remove_dir_all(root.join("custom-b")).unwrap();
+    let counted = calls.load(Ordering::SeqCst);
+
+    let s = service_with(&root, false, &calls, vec![]);
+    let after = call(&s, "scan_result", json!({"scanId": scan_id}));
+    call(&s, "group_detail", json!({"groupId": "chrome-cache"}));
+    assert_eq!(group_in_use(&after, "chrome-cache"), chrome, "CONTROLLER chrome label after restart");
+    assert_eq!(group_in_use(&after, "edge-cache"), edge, "CONTROLLER unknown label after restart");
+    assert_eq!(calls.load(Ordering::SeqCst), counted, "CONTROLLER in_use called while rebuilding views");
+
+    let locations = call(&s, "locations_get", json!({}));
+    let dev = locations["categories"].as_array().unwrap().iter().find(|c| c["category"] == "dev_cache").unwrap();
+    assert_eq!(dev["enabled"], false, "CONTROLLER category toggle kept");
+    assert_eq!(locations["custom_roots"].as_array().unwrap().len(), 1, "CONTROLLER only the stale root dropped");
+    let settings: Value = serde_json::from_str(&fs::read_to_string(root.join("data\\settings.json")).unwrap()).unwrap();
+    assert_eq!(settings["custom_roots"].as_array().unwrap().len(), 1, "CONTROLLER settings rewritten");
+
+    call(&s, "scan_start", json!({}));
+    assert_eq!(wait(&s, "scan_progress")["state"], "completed", "CONTROLLER second scan");
+    assert!(scans.join("scan-20991231T000000Z-ffff.json").is_file(), "CONTROLLER unreadable record kept");
+    assert!(scans.join("scan-20991231T000000Z-fffe.json").is_dir(), "CONTROLLER record-named directory kept");
+    for bad in [json!({}), json!({"groupIds": "x"}), json!({"groupIds": ["chrome-cache"], "extra": 1})] {
+        assert_eq!(code(&s, "clean_prepare", bad), "unavailable", "CONTROLLER disabled prepare answers first");
+    }
+    assert_eq!(code(&s, "clean_start", json!({"planId": 7})), "unavailable", "CONTROLLER disabled start answers first");
+    println!("{}", json!({"restart_case": root.file_name().unwrap().to_str().unwrap(), "in_use_calls_before_restart": counted, "chrome": chrome, "edge": edge}));
 }
 
 #[test]

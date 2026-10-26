@@ -1,0 +1,30 @@
+{"binary":"C:\\Users\\37310\\.rustup\\toolchains\\1.95.0-x86_64-pc-windows-msvc\\bin\\cargo.exe","args":["test","--offline","--locked","--manifest-path","packages/water-service/Cargo.toml","--test","service_v1","--","--test-threads=1"],"exitCode":101,"error":null}
+--- stdout ---
+
+running 5 tests
+test service_clean_flow ... FAILED
+test service_ipc_contract ... ok
+test service_scan_views ... ok
+test service_storage_safety ... ok
+test service_trends_locations ... ok
+
+failures:
+
+---- service_clean_flow stdout ----
+
+thread 'service_clean_flow' (27244) panicked at tests\service_v1.rs:727:5:
+SERVICE_TOKEN_ONCE: Err(IpcError { code: "stale", message_zh: "结果已过期，请重新体检后再清理。" })
+note: run with `RUST_BACKTRACE=1` environment variable to display a backtrace
+
+
+failures:
+    service_clean_flow
+
+test result: FAILED. 4 passed; 1 failed; 0 ignored; 0 measured; 0 filtered out; finished in 13.03s
+
+
+--- stderr ---
+   Compiling water-service v0.1.0 (F:\new\smaltalk\water\.worktrees\accept2-w3-f1\packages\water-service)
+    Finished `test` profile [unoptimized + debuginfo] target(s) in 2.63s
+     Running tests\service_v1.rs (.local\w3-target\debug\deps\service_v1-ab3c73995f71fcaa.exe)
+error: test failed, to rerun pass `--test service_v1`

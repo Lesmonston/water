@@ -1,7 +1,7 @@
 {
   "schemaVersion": 1,
   "wave": "water-wave3-desktop",
-  "status": "F2_VERIFIED_F1_ADDENDUM_DISPATCHED",
+  "status": "F1_F2_VERIFIED_F3_PENDING",
   "controller": "Claude",
   "controllerRoot": "F:/new/smaltalk/water",
   "controllerBranch": "main",
@@ -54,7 +54,7 @@
       "slot": "w3-f1",
       "kind": "service",
       "gate": "heavy",
-      "status": "ADDENDUM_DISPATCHED",
+      "status": "VERIFIED",
       "baseCommit": "197dfdaecc94dc8b84e94aa8d91ee5cb1c0d965e",
       "snapshotRef": "refs/tags/water-w3-desktop-base-20261026",
       "dispatchedAt": null,
@@ -217,15 +217,39 @@
         {
           "id": "WATER-W3-F1-ADDENDUM-01",
           "ticket": "docs/dispatch/tickets/WATER-W3-F1-ADDENDUM-01-20261026.md",
-          "status": "DISPATCHED",
+          "status": "COMPLETED",
           "issuedAt": "2026-10-26T10:20:00Z",
           "resumeFromCommit": "06182d6baeb620c5345f6e2eead085ccad0bfe01",
           "change": "drop only invalid custom roots; prune only loaded records beyond 60 and never fail on a delete error; in-use labels fixed at scan time; clean switch before argument validation; plan-items and disabled-start tests",
           "dispatchedAt": null,
           "dispatchReportedAt": "2026-10-26T10:22:28Z",
           "executor": "grokbot (user-reported, fresh conversation; exact model unverified until worker report)",
-          "dispatchEvidence": "user chat 2026-10-26: F1 addendum 01 to grokbot in a fresh conversation; worktree clean at resumeFromCommit when recorded"
+          "dispatchEvidence": "user chat 2026-10-26: F1 addendum 01 to grokbot in a fresh conversation; worktree clean at resumeFromCommit when recorded",
+          "completedCommit": "84b526da2ff7071574506cea3fd29c22e3bbd641",
+          "submittedHead": "626afaa9869e9b7530ddc7ce6ff077be90d0f493",
+          "executorSelfReport": "Grok Bot"
         }
+      ],
+      "addendumModel": "Grok Bot (worker self-report, addendum 01)",
+      "controllerReview2": {
+        "reviewedAt": "2026-10-26T11:05:00Z",
+        "review": "docs/acceptance/wave3/controller/WATER-W3-F1F2-REVIEW-20261026.md",
+        "evidence": "docs/acceptance/wave3/controller/accept2-20261026/f1/",
+        "receiptAudit": "docs/acceptance/wave3/controller/accept2-20261026/f1-receipt-audit.json",
+        "mechanicalAudit": "passed",
+        "freshTreeRerun": "passed (check, test, real finals)",
+        "controllerNegativeControls": "nc1-nc3, x1, x2, x3, x5 killed; x4 (unknown-snapshot label) survived the five tests, killed by the controller restart case",
+        "controllerSyntheticCase": "scripts/acceptance/w3-f1-controller-cases.rs: clean-enabled flow and restart tolerance both pass; log docs/acceptance/wave3/controller/accept2-20261026/controller/f1-controller-cases.log",
+        "verdict": "VERIFIED"
+      },
+      "verifiedAt": "2026-10-26T11:05:00Z",
+      "acceptedCommit": "626afaa9869e9b7530ddc7ce6ff077be90d0f493",
+      "integrationCommit": "7d8715dbd85cc3686434f9125da2be6b67077369",
+      "integrationBranch": "main",
+      "carryOverToF3": [
+        "in-use labels show raw process names (chrome, msedge) where the UI fixtures say Chrome, Edge; map process names to product names",
+        "single-instance guard: one service per data_dir (also F2 item 5)",
+        "SERVICE_RETURN_BUDGET 50 ms flaked once under heavy disk load in the worker tree; watch it in whole-machine acceptance"
       ]
     },
     {

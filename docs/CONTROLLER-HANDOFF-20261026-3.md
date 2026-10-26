@@ -81,6 +81,9 @@
 - **19:20 JST 收单验收**（[报告](acceptance/wave3/controller/WATER-W3-F1F2-REVIEW-20261026.md)）：
   - F2 VERIFIED 并合入主线 `7633c4e`，6 条事项移交 F3（见报告与 manifest 的 `carryOverToF3`）。
   - F1 发 [补单 01](dispatch/tickets/WATER-W3-F1-ADDENDUM-01-20261026.md)，从 `06182d6` 续做；19:22 JST 交 grokbot（新开对话），记录时树干净。
+  - **20:05 JST F1 复验通过并合入 `7d8715d`**：第三波 F1、F2 都已 VERIFIED。
+    - 第 2 轮验收套件在 `.local/w3-accept2/`，验收树为 `.worktrees/accept2-w3-f1`。
+    - 下一步出 F3，移交事项见 manifest 两票的 `carryOverToF3`。
   - 第 5 节说的 W3 收单审计已写成 `scripts/acceptance/w3-receipt-audit.mjs`，验收清单与脚本在 `.local/w3-accept/`（副本在证据目录）。
   - F1 复验时用同一套：先改 `make-manifest.mjs` 的 F1 HEAD，然后依次跑 `run.sh`、`controls.mjs f1`、`real:final`，再跑总控合成用例 `scripts/acceptance/w3-f1-controller-cases.rs`。合成用例要临时加 `[[test]]`，跑完恢复。
 - 两票基点都是 `197dfda`，只通过 JSON 层对接：`Backend::call(command, args)` 对应 `Service::call(command, args)`。
