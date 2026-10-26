@@ -2,7 +2,7 @@
 
 更新时间：2026-10-26（Asia/Tokyo；本次仅交接导航，最近产品验收为2026-10-25）。
 
-更换总控请先读[最新交接报告（2026-10-26 第 3 份）](CONTROLLER-HANDOFF-20261026-3.md)；[第 2 份](CONTROLLER-HANDOFF-20261026-2.md)、[上午那份](CONTROLLER-HANDOFF-20261026.md)及其只读状态快照仅供追溯。31主任务已VERIFIED，无待收单或新READY票；验收范围及下一波候选见报告。此前[接手验收摘要](CONTROLLER-HANDOFF-20261017.md)仅供历史追溯；当前任务状态以本页、registry/manifest及最新正式验收为准。
+更换总控请先读[最新交接报告（2026-10-26 第 4 份）](CONTROLLER-HANDOFF-20261026-4.md)；[第 3 份](CONTROLLER-HANDOFF-20261026-3.md)、[第 2 份](CONTROLLER-HANDOFF-20261026-2.md)、[上午那份](CONTROLLER-HANDOFF-20261026.md)及其只读状态快照仅供追溯。31主任务已VERIFIED，无待收单或新READY票；验收范围及下一波候选见报告。此前[接手验收摘要](CONTROLLER-HANDOFF-20261017.md)仅供历史追溯；当前任务状态以本页、registry/manifest及最新正式验收为准。
 
 ## 已确认
 
@@ -79,6 +79,7 @@ A–AB及八补单、AD保持VERIFIED；AC/补单06新增VERIFIED（Windows静�
 - 检查入口加了整机观察器：一个窗口里用界面完成一次真实只读体检，点“清理所选”只得到“这一版只做体检…”，再翻三个页面，共 6 张截图。关窗后核对数据目录里没有任何清理计划或记录。
 - 自测树一次走通：真实扫描 69.5 秒，识别 43.0 GB，可放心清理 8.6 GB。
 - M1 已知限制见 WIRING 第 7 节（默认数据目录不能在联接后面、占用提示显示进程名、release 启动失败时用户看不到提示等）。
+- **已派出（20:47 JST 用户告知）**：F3 交 sol 并已贴出；记录时 `.worktrees/w3-f3` 停在基点 `d56ebc6`、干净。交接见[第 4 份交接报告](CONTROLLER-HANDOFF-20261026-4.md)。
 
 ## 真实AA→AD联合验收通过（2026-10-26）
 

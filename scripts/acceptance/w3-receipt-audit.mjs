@@ -6,7 +6,8 @@ import {createHash} from 'node:crypto';
 import {existsSync,readFileSync,readdirSync,statSync} from 'node:fs';
 import {join,relative,sep} from 'node:path';
 
-const controller=process.cwd(),manifest=JSON.parse(readFileSync(join(controller,'docs/dispatch/wave3/manifest.json'),'utf8'));
+// WATER_W3_AUDIT_MANIFEST points at a controller self-test or acceptance manifest instead of the wave 3 manifest.
+const controller=process.cwd(),manifest=JSON.parse(readFileSync(process.env.WATER_W3_AUDIT_MANIFEST??join(controller,'docs/dispatch/wave3/manifest.json'),'utf8'));
 const hash=b=>createHash('sha256').update(b).digest('hex');
 const git=(cwd,args,enc='utf8')=>{const r=spawnSync('git',['-c','core.hooksPath=NUL','-c','core.fsmonitor=false',...args],{cwd,encoding:enc,windowsHide:true,maxBuffer:256*1024*1024});assert.equal(r.status,0,String(r.stderr));return enc?r.stdout.trim():r.stdout;};
 const walk=d=>existsSync(d)?readdirSync(d).flatMap(n=>{const p=join(d,n);return statSync(p).isDirectory()?walk(p):[p];}):[];
@@ -45,11 +46,15 @@ function audit(id){
   out.archive={entries:idx.entries.length,bytes};
   out.unlisted=walk(ev).map(p=>relative(root,p).split(sep).join('/')).filter(p=>!listed.has(p)&&!/\/(ARCHIVE\.json|\.gitattributes)$/.test(p));
   const fn=out.final.native&&receipts.find(x=>x.file===out.final.native.file).r;
-  if(fn){const n=fn.native??{},shot=join(rdir,n.screenshot??'-');
-    out.native={title:n.title,systemWindows:n.systemWindows,rawWindows:n.rawWindows,eventTargets:n.eventTargets,pageAccepted:n.pageAccepted,backdropType:n.backdropType,exitCode:n.exitCode,children:(n.children??[]).length,remaining:fn.childClose?.remaining,privateWebviewObserved:n.privateWebviewObserved,wallMs:fn.nativeWallMs,screenshot:t.evidenceDir+'receipts/'+n.screenshot};
+  if(fn){const n=fn.native??{};
+    // Wired hosts (F3) record several screenshots, their steps and a service-store check.
+    const shots=Array.isArray(fn.screenshots)?fn.screenshots:[{file:n.screenshot??'-',sha256:fn.screenshotSha256}];
+    out.native={title:n.title,systemWindows:n.systemWindows,rawWindows:n.rawWindows,eventTargets:n.eventTargets,pageAccepted:n.pageAccepted,backdropType:n.backdropType,exitCode:n.exitCode,children:(n.children??[]).length,remaining:fn.childClose?.remaining,privateWebviewObserved:n.privateWebviewObserved,wallMs:fn.nativeWallMs,screenshots:shots.map(s=>t.evidenceDir+'receipts/'+s.file),steps:n.steps?.map(s=>[s.index,s.kind,s.passed,s.ms]),store:fn.nativeStore};
     if(n.title!=='Water'||n.systemWindows!==1||!n.pageAccepted||n.backdropType!==2||n.exitCode!==0||n.error!==null||!n.privateWebviewObserved)bad('native observation '+JSON.stringify(out.native));
     if(!Array.isArray(fn.childClose?.remaining)||fn.childClose.remaining.length!==0)bad('webview children not closed');
-    if(!existsSync(shot)||hash(readFileSync(shot))!==fn.screenshotSha256)bad('screenshot not archived');}
+    for(const s of shots){const p=join(rdir,s.file);if(!existsSync(p)||hash(readFileSync(p))!==s.sha256)bad('screenshot not archived '+s.file);}
+    if(t.nativeSteps){if((n.steps??[]).length!==t.nativeSteps.length||!n.steps.every(s=>s.passed))bad('native steps');if(shots.length!==t.nativeSteps.filter(s=>s.shot).length)bad('native screenshot count');if(!fn.realDataRead)bad('wired native must record its real read');}
+    if(t.nativeStore)for(const[d,c]of Object.entries(t.nativeStore.counts))if(fn.nativeStore?.counts?.[d]!==c)bad('native store '+d);}
   const fr=out.final.real&&receipts.find(x=>x.file===out.final.real.file).r;if(fr)out.realSummary=fr.realSummary;
   return out;
 }

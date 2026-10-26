@@ -1,7 +1,7 @@
 {
   "schemaVersion": 1,
   "wave": "water-wave3-desktop",
-  "status": "F1_F2_VERIFIED_F3_READY",
+  "status": "F1_F2_VERIFIED_F3_DISPATCHED",
   "controller": "Claude",
   "controllerRoot": "F:/new/smaltalk/water",
   "controllerBranch": "main",
@@ -563,13 +563,13 @@
       "title": "接线与整机体检",
       "slot": "w3-f3",
       "gate": "light",
-      "status": "READY",
+      "status": "DISPATCHED",
       "baseCommit": "d56ebc66becc02e855ffda0edbf36a2e82470c2d",
       "snapshotRef": "refs/tags/water-w3-f3-base-20261026",
       "readyOn": "2026-10-26",
       "dispatchedAt": null,
       "startedAt": null,
-      "model": null,
+      "model": "sol (user-reported executor; exact model unverified until worker report)",
       "modelAssignment": "user-arranged; report actual engine/model",
       "worktree": "F:/new/smaltalk/water/.worktrees/w3-f3",
       "branch": "worker/water-w3-f3",
@@ -820,7 +820,9 @@
         "evidence": "docs/acceptance/wave3/controller/preflight-20261026/selftest-f3/",
         "result": "baseline, lock, check, test, red-nc1..3, check/test finals and native --final (whole-machine, one window) all passed; .setup( rejected"
       },
-      "readyReport": "docs/dispatch/wave3/READY-REPORT-F3-20261026.md"
+      "readyReport": "docs/dispatch/wave3/READY-REPORT-F3-20261026.md",
+      "dispatchReportedAt": "2026-10-26T11:47:17Z",
+      "dispatchEvidence": "user chat 2026-10-26 ~20:47 JST: F3 given to sol and pasted; worktree clean at base d56ebc6 with only the controller preflight baseline when recorded"
     }
   ],
   "gateSelfTest": "docs/acceptance/wave3/controller/preflight-20261026/",
