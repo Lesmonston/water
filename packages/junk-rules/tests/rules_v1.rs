@@ -340,7 +340,10 @@ fn precedence_pair(
 }
 
 fn expect_precedence(input: &str, case: &str) {
-    let err = RuleSet::from_json(input).expect_err(case);
+    let err = match RuleSet::from_json(input) {
+        Ok(set) => panic!("{case}: expected RULES_PRECEDENCE, got {set:?}"),
+        Err(err) => err,
+    };
     assert_eq!(err.code, "RULES_PRECEDENCE", "{case}: {err}");
     assert!(
         err.to_string().contains("RULES_PRECEDENCE"),
