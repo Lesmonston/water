@@ -30,13 +30,21 @@ zero freed bytes conservatively. Freed bytes are logical file lengths, not uniqu
 allocation or the measured change in disk free space.
 
 The implementation repeats checks after guard callbacks and intent flush, and checks the
-root/item chain between deletions. Path-based standard-library removals do **not** provide an
-atomic guarantee against hostile concurrent ancestor/child replacement. Production races,
+root/item chain between deletions. Each directory's identity (volume serial plus FileId) is
+recorded when it is enumerated; before removing any entry below it, every level from the item
+down to that directory must still be a non-reparse directory and the identity must be
+unchanged. Any mismatch stops the item (failed_entries, then partial or failed) without
+touching anything else inside it. A run is `stopped` only when an item was cancelled or cut
+short; cancelled items report the measured bytes_before and zero freed bytes. Path-based
+standard-library removals still do **not** provide an atomic guarantee against hostile
+concurrent replacement in the window between that check and the removal; handle-relative
+deletion is a later CLEAN upgrade. Production races,
 real user data, UI consent wiring and macOS are not verified by this ticket. Non-Windows
 native APIs return Unsupported; there is no real-data test mode.
 
 The five tests in `tests/clean_v1.rs` exclusively create random `fixture-*` directories under
-this worktree's `.local/w2-d-fixtures/`. Cleanup verifies the exact absolute parent/name and
+this worktree's `.local/w2-d-fixtures/` (the work tree root is two levels above the manifest
+and must contain `.git`; any checkout location works). Cleanup verifies the exact absolute parent/name and
 does not follow links; it removes only that test's newly-created directory. Junction targets,
 locked files, journals and replacements are all synthetic children of that same directory.
 The frozen controller entry point runs offline, jobs=1 and a private Cargo/target/temp setup:

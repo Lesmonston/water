@@ -128,6 +128,13 @@ fn preflight(
     Ok(snapshot)
 }
 
+/// A cancelled item frees nothing but still reports the bytes measured before the stop.
+fn cancelled(item: &PlanItem, before: &native_windows::Snapshot) -> ItemReport {
+    let mut report = ItemReport::skipped(item, SkipReason::Cancelled);
+    report.bytes_before = before.bytes.to_string();
+    report
+}
+
 /// Execute a trusted backend plan. This crate is not a user-consent or IPC boundary.
 /// Journals must implement durable flush if crash durability is required by the host.
 pub fn execute(
@@ -163,6 +170,7 @@ pub fn execute(
         items: Vec::with_capacity(plan.items.len()),
     };
     let mut freed = 0u64;
+    let mut interrupted = false;
     for (index, item) in plan.items.iter().enumerate() {
         let inspected = if stop.is_stopped() {
             Err(SkipReason::Cancelled)
@@ -171,23 +179,25 @@ pub fn execute(
         };
         // Skips also receive an intent/result pair, making every item auditable.
         intent(plan, item, journal)?;
-        let result = match inspected {
-            Err(reason) => ItemReport::skipped(item, reason),
+        let (result, cut_short) = match inspected {
+            Err(reason) => (ItemReport::skipped(item, reason), false),
             Ok(before) => {
                 if stop.is_stopped() {
-                    ItemReport::skipped(item, SkipReason::Cancelled)
+                    (cancelled(item, &before), false)
                 } else {
                     // Revalidate again after the potentially blocking journal flush.
                     match preflight(plan, item, guard, now) {
-                        Err(reason) => ItemReport::skipped(item, reason),
+                        Err(reason) => (ItemReport::skipped(item, reason), false),
                         Ok(fresh) if fresh != before => {
-                            ItemReport::skipped(item, SkipReason::Changed)
+                            (ItemReport::skipped(item, SkipReason::Changed), false)
                         }
                         Ok(_) => native_windows::delete(item, &before, stop),
                     }
                 }
             }
         };
+        // Only a cancelled or stop-interrupted item makes the whole run "stopped".
+        interrupted |= cut_short || result.skip_reason == Some(SkipReason::Cancelled);
         freed = freed
             .checked_add(
                 result
@@ -212,7 +222,7 @@ pub fn execute(
     }
     report.freed_bytes = freed.to_string();
     report.ended_at = time::format(SystemTime::now())?;
-    if stop.is_stopped() {
+    if interrupted {
         report.status = RunStatus::Stopped;
     }
     Ok(report)

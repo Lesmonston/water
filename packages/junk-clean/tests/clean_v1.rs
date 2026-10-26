@@ -28,7 +28,11 @@ impl Fixture {
         // Cargo preserves forward separators from --manifest-path; MODEL/mklink require '\\'.
         let manifest = PathBuf::from(env!("CARGO_MANIFEST_DIR").replace('/', "\\"));
         let tree = manifest.as_path().parent().unwrap().parent().unwrap();
-        assert!(tree.ends_with(Path::new(".worktrees").join("w2-d")));
+        // Any checkout location works, but only from a real git work tree root.
+        assert!(
+            fs::symlink_metadata(tree.join(".git")).is_ok(),
+            "fixture refused: no .git under the work tree root"
+        );
         let parent = tree.join(".local").join("w2-d-fixtures");
         assert_plain_ancestors(parent.parent().unwrap());
         fs::create_dir_all(&parent).unwrap();
@@ -474,6 +478,23 @@ fn clean_no_follow() {
     skipped(&run(&plan), SkipReason::Reparse);
     assert!(fs::symlink_metadata(&bridge).is_ok());
     assert_eq!(fs::read(&external_file).unwrap(), b"boundary-data");
+
+    // An inner directory swapped for a junction after planning: only the link is removed.
+    let swap = fixture.dir("root/swap");
+    fixture.file("root/swap/inner/victim", b"inner");
+    let decoy = fixture.dir("decoy");
+    let decoy_victim = fixture.file("decoy/victim", b"decoy-data");
+    let plan = parse(plan_value(vec![item(&root, &swap, "swapped-inner")]));
+    fs::rename(swap.join("inner"), swap.join("moved")).unwrap();
+    fixture.junction(&swap.join("inner"), &decoy);
+    let report = run(&plan);
+    assert_eq!(
+        fs::read(&decoy_victim).ok().as_deref(),
+        Some(b"decoy-data".as_slice()),
+        "CLEAN_NO_FOLLOW: swapped-in junction target was traversed"
+    );
+    assert!(decoy.is_dir() && fs::symlink_metadata(swap.join("inner")).is_err());
+    assert_eq!(report.items[0].status, ItemStatus::Deleted);
 }
 
 struct DiskJournal {
@@ -650,6 +671,10 @@ fn clean_partial_stop_journal() {
     )
     .unwrap();
     skipped(&report, SkipReason::Cancelled);
+    // Cancelled after measurement: bytes_before is the measured size, nothing is freed.
+    assert_eq!(report.items[0].bytes_before, "9");
+    assert_eq!(report.items[0].bytes_freed, "0");
+    assert_eq!(report.status, RunStatus::Stopped);
     assert!(next.exists());
 
     // A result flush failure aborts the whole run, even though the first deletion occurred.
@@ -733,6 +758,8 @@ fn clean_partial_stop_journal() {
         512 - size(&many)
     );
     assert_eq!(report.items[1].skip_reason, Some(SkipReason::Cancelled));
+    assert_eq!(report.items[1].bytes_freed, "0");
+    assert_eq!(report.status, RunStatus::Stopped);
     assert!(next.exists());
 }
 
@@ -867,6 +894,30 @@ fn clean_report_volume() {
         assert_eq!(pair[1]["event"], "result");
         assert_eq!(pair[0]["item_id"], pair[1]["item_id"]);
     }
+    // A stop signal after every item has been handled still reports a completed run.
+    struct LateStop(StopFlag);
+    impl CleanObserver for LateStop {
+        fn on_item(&self, done: usize, total: usize, _: u64, _: &str) {
+            if done == total {
+                self.0.stop();
+            }
+        }
+    }
+    let late = fixture.file("root/late", b"late");
+    let stop = StopFlag::default();
+    let report = execute(
+        &parse(plan_value(vec![item(&root, &late, "late")])),
+        &NoGuard,
+        &mut Vec::new(),
+        &stop,
+        &LateStop(stop.clone()),
+        SystemTime::now(),
+    )
+    .unwrap();
+    assert!(stop.is_stopped() && !late.exists());
+    assert_eq!(report.status, RunStatus::Completed);
+    assert_eq!(report.items[0].status, ItemStatus::Deleted);
+    assert_eq!(report.freed_bytes, "4");
     let empty = run(&parse(plan_value(vec![])));
     assert_eq!(empty.freed_bytes, "0");
     assert!(empty.volumes.is_empty());

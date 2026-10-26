@@ -283,18 +283,63 @@ mod windows {
         }
     }
 
-    pub(crate) fn delete(item: &PlanItem, before: &Snapshot, stop: &StopFlag) -> ItemReport {
-        let mut pending = vec![(item.path.clone(), false)];
+    fn is_link(meta: &fs::Metadata) -> bool {
+        meta.file_attributes() & REPARSE != 0 // NC2: a link inside the item is never entered.
+    }
+
+    /// Every level from the item down to a listed directory must still be a plain directory,
+    /// and that directory must keep the identity recorded when it was enumerated.
+    fn listed_parent_intact(item: &PlanItem, dir: &str, recorded: &Identity) -> bool {
+        if !path::contains(&item.path, dir) {
+            return false;
+        }
+        let mut level = item.path.clone();
+        let mut levels = vec![level.clone()];
+        for segment in dir[item.path.len()..].split('\\').filter(|s| !s.is_empty()) {
+            level.push('\\');
+            level.push_str(segment);
+            levels.push(level.clone());
+        }
+        for level in &levels {
+            match fs::symlink_metadata(level) {
+                Ok(meta) if !is_link(&meta) && meta.file_attributes() & DIRECTORY != 0 => {}
+                _ => return false,
+            }
+        }
+        matches!(crate::identity_of(dir), Ok(actual) if actual == *recorded)
+    }
+
+    /// Returns the item report and whether a stop signal cut the removal short.
+    pub(crate) fn delete(
+        item: &PlanItem,
+        before: &Snapshot,
+        stop: &StopFlag,
+    ) -> (ItemReport, bool) {
+        // Directories enumerated so far, each with the identity recorded when it was listed.
+        let mut listed: Vec<(String, Identity)> = Vec::new();
+        let mut pending: Vec<(String, bool, Option<usize>)> =
+            vec![(item.path.clone(), false, None)];
         let mut removed = 0u64;
         let mut failed = 0u64;
-        while let Some((current, postorder)) = pending.pop() {
+        let mut interrupted = false;
+        while let Some((current, postorder, parent)) = pending.pop() {
             if stop.is_stopped() {
+                interrupted = true;
                 break;
             }
             // Catch a swapped root or item between individual operations as well.
             if check_chain(item).is_err() {
                 failed += 1;
                 break;
+            }
+            // A listed directory replaced after enumeration (e.g. by a junction) ends this item:
+            // nothing else inside it is touched.
+            if let Some(index) = parent {
+                let (dir, recorded) = &listed[index];
+                if !listed_parent_intact(item, dir, recorded) {
+                    failed += 1;
+                    break;
+                }
             }
             let meta = match metadata(&current) {
                 Ok(m) => m,
@@ -303,17 +348,28 @@ mod windows {
                     continue;
                 }
             };
-            if meta.file_attributes() & REPARSE != 0 {
-                // NC2: never enumerate the link target.
+            if is_link(&meta) {
+                // Only the link itself is removed; its target is never enumerated.
                 match unlink(&current, &meta) {
                     Ok(()) => removed += 1,
                     Err(_) => failed += 1,
                 }
             } else if meta.file_attributes() & DIRECTORY != 0 && !postorder {
+                let Ok(recorded) = crate::identity_of(&current) else {
+                    failed += 1;
+                    break;
+                };
                 match children(&current) {
                     Ok(kids) => {
-                        pending.push((current, true));
-                        pending.extend(kids.into_iter().rev().map(|p| (p, false)));
+                        // The listing must belong to the directory whose identity was recorded.
+                        if !matches!(crate::identity_of(&current), Ok(again) if again == recorded) {
+                            failed += 1;
+                            break;
+                        }
+                        listed.push((current.clone(), recorded));
+                        let index = listed.len() - 1;
+                        pending.push((current, true, parent));
+                        pending.extend(kids.into_iter().rev().map(|p| (p, false, Some(index))));
                         continue;
                     }
                     Err(_) => {
@@ -328,6 +384,7 @@ mod windows {
                 }
             }
             if stop.is_stopped() {
+                interrupted = !pending.is_empty();
                 break;
             }
         }
@@ -349,26 +406,26 @@ mod windows {
             ItemStatus::Deleted
         } else if removed > 0 {
             ItemStatus::Partial
-        } else if stop.is_stopped() {
+        } else if interrupted {
             ItemStatus::Skipped
         } else {
             ItemStatus::Failed
         };
-        ItemReport {
+        let cancelled = status == ItemStatus::Skipped;
+        let freed = if cancelled {
+            0
+        } else {
+            before.bytes.saturating_sub(residual.unwrap_or(0))
+        };
+        let report = ItemReport {
             item_id: item.item_id.clone(),
             status,
-            skip_reason: if status == ItemStatus::Skipped {
-                Some(SkipReason::Cancelled)
-            } else {
-                None
-            },
+            skip_reason: cancelled.then_some(SkipReason::Cancelled),
             bytes_before: before.bytes.to_string(),
-            bytes_freed: before
-                .bytes
-                .saturating_sub(residual.unwrap_or(0))
-                .to_string(),
+            bytes_freed: freed.to_string(),
             failed_entries: failed,
-        }
+        };
+        (report, interrupted)
     }
 }
 
@@ -392,6 +449,6 @@ pub(crate) fn snapshot(_: &str, _: &[String]) -> Result<Snapshot, SkipReason> {
     Err(SkipReason::Changed)
 }
 #[cfg(not(windows))]
-pub(crate) fn delete(item: &PlanItem, _: &Snapshot, _: &StopFlag) -> ItemReport {
-    ItemReport::skipped(item, SkipReason::Changed)
+pub(crate) fn delete(item: &PlanItem, _: &Snapshot, _: &StopFlag) -> (ItemReport, bool) {
+    (ItemReport::skipped(item, SkipReason::Changed), false)
 }
