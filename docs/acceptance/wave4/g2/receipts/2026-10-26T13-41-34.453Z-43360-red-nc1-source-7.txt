@@ -1,0 +1,1101 @@
+#![forbid(unsafe_code)]
+
+use crate::{
+    FolderPicker, IpcError, Platform, ServiceConfig, clean,
+    storage::{Store, plain_directory},
+    util, views,
+};
+use serde::{Deserialize, Serialize};
+use serde_json::{Value, json};
+use std::{
+    collections::{BTreeMap, BTreeSet},
+    path::Path,
+    sync::{Arc, Mutex, PoisonError},
+    time::{Duration, Instant},
+};
+use water_junk_rules::{KnownFolders, RuleSet};
+use water_junk_scan as scan;
+
+#[derive(Clone, Serialize, Deserialize)]
+#[serde(deny_unknown_fields)]
+pub(crate) struct CustomRoot {
+    pub root_id: String,
+    pub path: String,
+    pub added_at: String,
+}
+
+#[derive(Clone, Serialize, Deserialize)]
+#[serde(deny_unknown_fields)]
+pub(crate) struct Settings {
+    pub settings_version: String,
+    pub categories: BTreeMap<String, bool>,
+    pub custom_roots: Vec<CustomRoot>,
+}
+
+impl Default for Settings {
+    fn default() -> Self {
+        Self {
+            settings_version: "water.settings.v1".into(),
+            categories: views::CATEGORIES[..7]
+                .iter()
+                .map(|c| (c.0.into(), true))
+                .collect(),
+            custom_roots: vec![],
+        }
+    }
+}
+
+pub(crate) struct Record {
+    pub saved: Value,
+    pub result: scan::ScanResult,
+    pub plan: water_junk_rules::ScanPlan,
+    pub growth: Vec<scan::Growth>,
+    pub previous_at: Option<String>,
+    pub view: Value,
+    pub details: BTreeMap<String, Value>,
+}
+
+const RECORD_KEYS: [&str; 11] = [
+    "record_version",
+    "scan_id",
+    "started_at",
+    "finished_at",
+    "duration_ms",
+    "drives",
+    "plan",
+    "result",
+    "growth",
+    "previous_scan_id",
+    "consumed",
+];
+
+impl Record {
+    fn load(saved: Value) -> Option<Self> {
+        // `in_use` (saved per-group in-use results) is optional: older records lack it.
+        let mut with_in_use = RECORD_KEYS.to_vec();
+        with_in_use.push("in_use");
+        if saved["record_version"] != "water.scan-record.v1"
+            || !(util::exact_keys(&saved, &RECORD_KEYS) || util::exact_keys(&saved, &with_in_use))
+        {
+            return None;
+        }
+        let result = scan::result_from_json(&saved["result"].to_string()).ok()?;
+        let plan = water_junk_rules::ScanPlan::from_json(&saved["plan"].to_string()).ok()?;
+        if saved["scan_id"] != result.scan_id
+            || util::parse_time(saved["finished_at"].as_str()?).is_none()
+            || !saved["consumed"].is_boolean()
+            || saved["duration_ms"].as_u64().is_none()
+            || !matches!(
+                result.status.as_str(),
+                "completed" | "partial" | "cancelled" | "failed"
+            )
+            || util::parse_time(&result.started_at).is_none()
+            || util::parse_time(&result.ended_at).is_none()
+            || result.groups.iter().any(|g| {
+                g.eligible_count > g.item_count
+                    || g.total_bytes.parse::<u64>().is_err()
+                    || g.eligible_bytes.parse::<u64>().is_err()
+                    || serde_json::from_value::<water_process_scan::InUseSpec>(json!(g.in_use))
+                        .is_err()
+                    || !plan
+                        .targets
+                        .iter()
+                        .any(|t| t.group_id == g.group_id && t.rule_id == g.rule_id)
+            })
+            || result.items.iter().any(|i| {
+                i.total_bytes.parse::<u64>().is_err()
+                    || !result.groups.iter().any(|g| g.group_id == i.group_id)
+                    || (i.eligible && i.identity.is_none())
+            })
+            || saved.get("in_use").is_some_and(|m| {
+                !m.as_object().is_some_and(|m| {
+                    m.iter().all(|(id, v)| {
+                        result.groups.iter().any(|g| &g.group_id == id)
+                            && util::exact_keys(v, &["process_label_zh"])
+                            && v["process_label_zh"].is_string()
+                    })
+                })
+            })
+        {
+            return None;
+        }
+        result
+            .groups
+            .iter()
+            .try_fold(0u64, |sum, g| sum.checked_add(util::number(&g.total_bytes)))?;
+        result
+            .items
+            .iter()
+            .try_fold(0u64, |sum, i| sum.checked_add(util::number(&i.total_bytes)))?;
+        let growth = serde_json::from_value(saved["growth"].clone()).ok()?;
+        Some(Self {
+            saved,
+            result,
+            plan,
+            growth,
+            previous_at: None,
+            view: Value::Null,
+            details: BTreeMap::new(),
+        })
+    }
+    pub fn completed(&self) -> bool {
+        matches!(self.result.status.as_str(), "completed" | "partial")
+    }
+}
+
+pub(crate) struct State {
+    pub settings: Settings,
+    pub records: Vec<Arc<Record>>,
+    pub last: Option<String>,
+    pub consumed: BTreeSet<String>,
+    /// Scans completed by this process. Only these can be a cleaning source; records read
+    /// back from disk are shown but never trusted for `clean_prepare`.
+    pub local_scans: BTreeSet<String>,
+    pub plans: BTreeMap<String, Value>,
+    pub stale_plans: BTreeSet<String>,
+    pub cleans: BTreeMap<String, Value>,
+    pub clean_order: Vec<String>,
+    pub busy: &'static str,
+    pub scan_progress: Value,
+    pub scan_started: Option<Instant>,
+    pub clean_progress: Value,
+    pub cancel: Option<scan::CancelToken>,
+    pub stop: Option<water_junk_clean::StopFlag>,
+}
+
+impl State {
+    pub fn last_record(&self) -> Option<Arc<Record>> {
+        self.records
+            .iter()
+            .find(|r| Some(&r.result.scan_id) == self.last.as_ref())
+            .cloned()
+    }
+}
+
+pub(crate) struct Core {
+    pub config_version: String,
+    pub clean_enabled: bool,
+    pub platform: Box<dyn Platform>,
+    pub picker: Box<dyn FolderPicker>,
+    pub rules: RuleSet,
+    pub folders: KnownFolders,
+    pub store: Store,
+    pub state: Mutex<State>,
+}
+
+pub struct Service {
+    pub(crate) core: Arc<Core>,
+}
+
+/// A poisoned state lock is recovered: the data is used as it is, never left unusable.
+pub(crate) fn lock(core: &Core) -> Result<std::sync::MutexGuard<'_, State>, IpcError> {
+    Ok(core.state.lock().unwrap_or_else(PoisonError::into_inner))
+}
+
+fn idle_scan() -> Value {
+    json!({"scan_id":null,"state":"idle","categories":[],"visited_entries":0,"found_bytes":"0","percent":0,"elapsed_ms":0})
+}
+
+impl Service {
+    pub fn new(config: ServiceConfig) -> Result<Self, IpcError> {
+        let store = Store::new(config.data_dir)?;
+        let folders = config.platform.known_folders()?;
+        let rules = RuleSet::embedded();
+        let settings = load_settings(&store, &folders);
+        let mut records: Vec<_> = store
+            .records("scans")
+            .into_iter()
+            .filter_map(|(id, v)| Record::load(v).filter(|r| r.result.scan_id == id))
+            .collect();
+        records.sort_by(|a, b| a.result.ended_at.cmp(&b.result.ended_at));
+        let timestamps: BTreeMap<_, _> = records
+            .iter()
+            .map(|r| (r.result.scan_id.clone(), r.result.ended_at.clone()))
+            .collect();
+        for r in &mut records {
+            r.previous_at = r.saved["previous_scan_id"]
+                .as_str()
+                .and_then(|id| timestamps.get(id))
+                .cloned();
+            (r.view, r.details) = views::build(r, &rules, config.platform.as_ref(), &settings);
+        }
+        let last = records
+            .iter()
+            .rev()
+            .find(|r| r.completed())
+            .map(|r| r.result.scan_id.clone());
+        let consumed = records
+            .iter()
+            .filter(|r| r.saved["consumed"] == true)
+            .map(|r| r.result.scan_id.clone())
+            .collect();
+        let mut plans: BTreeMap<_, _> = store
+            .records("plans")
+            .into_iter()
+            .filter(|(id, v)| {
+                util::exact_keys(v, &["plan", "scan_id", "token_digest", "used"])
+                    && water_junk_clean::CleanPlan::from_json(&v["plan"].to_string())
+                        .is_ok_and(|p| p.plan_id == *id)
+                    && v["scan_id"].as_str().is_some()
+                    && v["token_digest"]
+                        .as_str()
+                        .is_some_and(|s| s.len() == 64 && s.bytes().all(|b| b.is_ascii_hexdigit()))
+                    && v["used"].is_boolean()
+            })
+            .collect();
+        let clean_records: Vec<_> = store
+            .records("cleans")
+            .into_iter()
+            .filter(|(id, v)| {
+                util::exact_keys(v, &["clean_id", "plan_id", "scan_id", "report", "view"])
+                    && serde_json::from_value::<water_junk_clean::CleanReport>(v["report"].clone())
+                        .is_ok_and(|r| r.report_version == "water.clean-report.v1")
+                    && util::exact_keys(
+                        &v["view"],
+                        &[
+                            "clean_id",
+                            "finished_at",
+                            "estimate_bytes",
+                            "freed_bytes",
+                            "drives",
+                            "groups",
+                            "journal_display_path",
+                        ],
+                    )
+                    && v["clean_id"] == *id
+                    && v["view"]["clean_id"] == *id
+                    && v["view"]["finished_at"]
+                        .as_str()
+                        .and_then(util::parse_time)
+                        .is_some()
+            })
+            .collect();
+        // Storage tidy (SERVICE-HARDENING §4); plans whose file was removed are dropped here too.
+        for id in store.tidy() {
+            plans.remove(&id);
+        }
+        // Plans read back from disk are records only and can never be executed.
+        let stale_plans = plans.keys().cloned().collect();
+        let clean_order = clean_records.iter().map(|(id, _)| id.clone()).collect();
+        let cleans = clean_records.into_iter().collect();
+        let mut state = State {
+            settings,
+            records: records.into_iter().map(Arc::new).collect(),
+            last,
+            consumed,
+            local_scans: BTreeSet::new(),
+            plans,
+            stale_plans,
+            cleans,
+            clean_order,
+            busy: "idle",
+            scan_progress: idle_scan(),
+            scan_started: None,
+            clean_progress: clean::idle(),
+            cancel: None,
+            stop: None,
+        };
+        trim(&store, &mut state);
+        Ok(Self {
+            core: Arc::new(Core {
+                config_version: config.app_version,
+                clean_enabled: config.clean_enabled,
+                platform: config.platform,
+                picker: config.picker,
+                rules,
+                folders,
+                store,
+                state: Mutex::new(state),
+            }),
+        })
+    }
+
+    pub fn call(&self, command: &str, args: Value) -> Result<Value, IpcError> {
+        // A panic anywhere in a command becomes the fixed unavailable error.
+        std::panic::catch_unwind(std::panic::AssertUnwindSafe(|| {
+            self.dispatch(command, args)
+        }))
+        .unwrap_or_else(|_| Err(IpcError::new("unavailable")))
+    }
+
+    fn dispatch(&self, command: &str, args: Value) -> Result<Value, IpcError> {
+        let core = &self.core;
+        // The switch answers first: a disabled build never inspects cleaning arguments.
+        if matches!(command, "clean_prepare" | "clean_start") && !core.clean_enabled {
+            return Err(IpcError::disabled());
+        }
+        validate(command, &args)?;
+        match command {
+            "scan_start" => self.scan_start(),
+            "clean_prepare" => {
+                clean::prepare(core, args["groupIds"].as_array().expect("validated"))
+            }
+            "clean_start" => clean::start(
+                core,
+                args["planId"].as_str().expect("validated"),
+                args["confirmToken"].as_str().expect("validated"),
+            ),
+            "custom_root_add" => self.add_root(),
+            "app_state" => {
+                let drives=core.platform.drives().into_iter().map(|d|json!({"root":d.root,"label_zh":if d.is_system{"系统盘"}else{"本地磁盘"},"is_system":d.is_system,"total_bytes":d.total_bytes.to_string(),"free_bytes":d.free_bytes.to_string()})).collect::<Vec<_>>();
+                let s = lock(core)?;
+                let last = s.last_record();
+                let summary=last.as_ref().map(|r|json!({"scan_id":r.result.scan_id,"finished_at":r.saved["finished_at"],"recommended_bytes":r.view["totals"]["recommended_bytes"],"recommended_by_drive":r.view["recommended_by_drive"],"added_7d_bytes":added_7d(&s,r)}));
+                Ok(
+                    json!({"app_version":core.config_version,"platform":"windows","busy":s.busy,"drives":drives,"last_scan":summary,"insights":last.map(|r|r.view["insights"].clone()).unwrap_or(json!([]))}),
+                )
+            }
+            "scan_progress" => {
+                let s = lock(core)?;
+                let mut progress = s.scan_progress.clone();
+                if s.busy == "scanning"
+                    && let Some(start) = s.scan_started
+                {
+                    progress["elapsed_ms"] = json!(start.elapsed().as_millis() as u64);
+                }
+                Ok(progress)
+            }
+            "clean_progress" => Ok(lock(core)?.clean_progress.clone()),
+            "scan_cancel" => {
+                let s = lock(core)?;
+                if s.busy != "scanning" || s.scan_progress["scan_id"] != args["scanId"] {
+                    return Err(IpcError::new("not_found"));
+                }
+                if let Some(c) = &s.cancel {
+                    c.cancel();
+                }
+                Ok(json!({}))
+            }
+            "clean_stop" => {
+                if let Some(stop) = &lock(core)?.stop {
+                    stop.stop();
+                }
+                Ok(json!({}))
+            }
+            "scan_result" => {
+                let s = lock(core)?;
+                let mut view = s
+                    .records
+                    .iter()
+                    .find(|r| r.result.scan_id == args["scanId"])
+                    .map(|r| r.view.clone())
+                    .ok_or_else(|| IpcError::new("not_found"))?;
+                for category in view["categories"].as_array_mut().expect("view categories") {
+                    for group in category["groups"].as_array_mut().expect("view groups") {
+                        selection(&s.settings, group);
+                    }
+                }
+                Ok(view)
+            }
+            "group_detail" => {
+                let s = lock(core)?;
+                let r = s.last_record().ok_or_else(|| IpcError::new("not_found"))?;
+                let mut v = r
+                    .details
+                    .get(args["groupId"].as_str().expect("validated"))
+                    .cloned()
+                    .ok_or_else(|| IpcError::new("not_found"))?;
+                selection(&s.settings, &mut v["group"]);
+                Ok(v)
+            }
+            "clean_result" => lock(core)?
+                .cleans
+                .get(args["cleanId"].as_str().expect("validated"))
+                .map(|v| v["view"].clone())
+                .ok_or_else(|| IpcError::new("not_found")),
+            "locations_get" => Ok(locations(&*lock(core)?)),
+            "locations_set_category" | "custom_root_remove" => {
+                let mut s = lock(core)?;
+                if s.busy != "idle" {
+                    return Err(IpcError::new("busy"));
+                }
+                let mut settings = s.settings.clone();
+                if command == "locations_set_category" {
+                    settings.categories.insert(
+                        args["category"].as_str().expect("validated").into(),
+                        args["enabled"].as_bool().expect("validated"),
+                    );
+                } else {
+                    let index = settings
+                        .custom_roots
+                        .iter()
+                        .position(|r| r.root_id == args["rootId"])
+                        .ok_or_else(|| IpcError::new("not_found"))?;
+                    settings.custom_roots.remove(index);
+                }
+                core.store.write("", "settings.json", &json!(settings))?;
+                s.settings = settings;
+                Ok(locations(&s))
+            }
+            "trends" => Ok(trends(core, &*lock(core)?)),
+            "history_list" => Ok(history(&*lock(core)?)),
+            _ => Err(IpcError::new("invalid")),
+        }
+    }
+
+    fn scan_start(&self) -> Result<Value, IpcError> {
+        let core = self.core.clone();
+        let mut s = lock(&core)?;
+        if s.busy != "idle" {
+            return Err(IpcError::new("busy"));
+        }
+        let at = core.platform.now();
+        let mut id = util::new_id("scan", at);
+        while s.records.iter().any(|r| r.result.scan_id == id) {
+            id = util::new_id("scan", at);
+        }
+        let settings = s.settings.clone();
+        let roots: Vec<_> = settings
+            .custom_roots
+            .iter()
+            .map(|r| water_junk_rules::CustomRoot {
+                root_id: r.root_id.clone(),
+                path: r.path.clone(),
+            })
+            .collect();
+        let mut plan = water_junk_rules::resolve_plan(
+            &core.rules,
+            &core.folders,
+            &roots,
+            &util::timestamp(at),
+        )
+        .map_err(|_| IpcError::new("unavailable"))?;
+        plan.targets.retain(|t| {
+            t.level == water_junk_rules::Level::Protected
+                || views::enabled(&settings, t.category.as_str())
+        });
+        let plan_json = water_junk_rules::plan_to_json(&plan);
+        let parsed =
+            scan::ScanPlan::from_json(&plan_json).map_err(|_| IpcError::new("unavailable"))?;
+        let progress_categories = progress_categories(&plan);
+        // A new scan consumes the previous scan's authority to prepare/execute plans,
+        // even when the new scan is subsequently cancelled. Persist before scanning.
+        let previous = s.last_record();
+        let s_last = s.last.clone();
+        if let Some(previous) = &previous {
+            s.consumed.insert(previous.result.scan_id.clone());
+        }
+        s.stale_plans = s.plans.keys().cloned().collect();
+        let cancel = scan::CancelToken::new();
+        s.cancel = Some(cancel.clone());
+        s.scan_started = Some(Instant::now());
+        s.busy = "scanning";
+        s.scan_progress = json!({"scan_id":id,"state":"running","categories":progress_categories,"visited_entries":0,"found_bytes":"0","percent":0,"elapsed_ms":0});
+        drop(s);
+        let job = ScanJob {
+            core: core.clone(),
+            id: id.clone(),
+            previous,
+            plan,
+            plan_json,
+            parsed,
+            cancel,
+            settings,
+            at,
+        };
+        let previous_last = s_last;
+        let spawned = std::thread::Builder::new()
+            .name("water-scan".into())
+            .spawn(move || {
+                let worker_core = job.core.clone();
+                let worker_id = job.id.clone();
+                // The whole task is guarded, not only the scanner call.
+                let guarded: std::thread::Result<()> = Ok(job.run());
+                if guarded.is_err() {
+                    let mut s = worker_core
+                        .state
+                        .lock()
+                        .unwrap_or_else(PoisonError::into_inner);
+                    if s.last.as_deref() == Some(worker_id.as_str()) {
+                        s.last = previous_last;
+                    }
+                    s.local_scans.remove(&worker_id);
+                    s.scan_progress["state"] = json!("failed");
+                    s.busy = "idle";
+                    s.cancel = None;
+                }
+            });
+        if spawned.is_err() {
+            let mut s = lock(&core)?;
+            s.busy = "idle";
+            s.cancel = None;
+            s.scan_progress["state"] = json!("failed");
+            return Err(IpcError::new("unavailable"));
+        }
+        Ok(json!({"scan_id":id}))
+    }
+
+    fn add_root(&self) -> Result<Value, IpcError> {
+        if lock(&self.core)?.busy != "idle" {
+            return Err(IpcError::new("busy"));
+        }
+        let picked = self.core.picker.pick()?;
+        let Some(path) = picked else {
+            return Ok(json!({"cancelled":true}));
+        };
+        let mut s = lock(&self.core)?;
+        if s.busy != "idle" {
+            return Err(IpcError::new("busy"));
+        }
+        if let Some(root) = s
+            .settings
+            .custom_roots
+            .iter()
+            .find(|r| r.path.eq_ignore_ascii_case(&path))
+        {
+            return Ok(json!({"added":root_view(&s,root)}));
+        }
+        if s.settings.custom_roots.len() >= 16 || !valid_custom(&path, &self.core.folders) {
+            return Err(IpcError {
+                code: "invalid".into(),
+                message_zh: "这个位置太大或包含系统目录，请选择具体的项目文件夹。".into(),
+            });
+        }
+        let base: String = path
+            .rsplit('\\')
+            .next()
+            .unwrap_or("")
+            .chars()
+            .filter(char::is_ascii_alphanumeric)
+            .take(24)
+            .flat_map(char::to_lowercase)
+            .collect();
+        let base = if base.is_empty() { "root".into() } else { base };
+        let mut id = base.clone();
+        let mut suffix = 2;
+        while s.settings.custom_roots.iter().any(|r| r.root_id == id) {
+            id = format!("{base}-{suffix}");
+            suffix += 1;
+        }
+        let root = CustomRoot {
+            root_id: id,
+            path,
+            added_at: util::timestamp(self.core.platform.now()),
+        };
+        let mut settings = s.settings.clone();
+        settings.custom_roots.push(root.clone());
+        self.core
+            .store
+            .write("", "settings.json", &json!(settings))?;
+        s.settings = settings;
+        Ok(json!({"added":root_view(&s,&root)}))
+    }
+}
+
+struct ScanJob {
+    core: Arc<Core>,
+    id: String,
+    previous: Option<Arc<Record>>,
+    plan: water_junk_rules::ScanPlan,
+    plan_json: String,
+    parsed: scan::ScanPlan,
+    cancel: scan::CancelToken,
+    settings: Settings,
+    at: std::time::SystemTime,
+}
+
+impl ScanJob {
+    fn run(self) {
+        let ScanJob {
+            core: worker_core,
+            id: worker_id,
+            previous,
+            plan,
+            plan_json,
+            parsed,
+            cancel,
+            settings,
+            at,
+        } = self;
+        let started = Instant::now();
+        let observer = Progress {
+            core: worker_core.clone(),
+            plan: plan.clone(),
+            reported: Mutex::new(BTreeMap::new()),
+            last_found: Mutex::new(0),
+            started,
+        };
+        let result = std::panic::catch_unwind(std::panic::AssertUnwindSafe(|| {
+            if let Some(previous) = &previous {
+                let mut invalidated = previous.saved.clone();
+                invalidated["consumed"] = json!(true);
+                if worker_core
+                    .store
+                    .write(
+                        "scans",
+                        &format!("{}.json", previous.result.scan_id),
+                        &invalidated,
+                    )
+                    .is_err()
+                {
+                    return Err(scan::ScanError::Native);
+                }
+            }
+            worker_core.platform.begin_in_use_batch();
+            scan::scan(
+                &parsed,
+                &worker_id,
+                &scan::ScanOptions::default(),
+                &cancel,
+                &observer,
+                at,
+            )
+        }));
+        let result = match result {
+            Ok(Ok(v)) => v,
+            _ => scan::ScanResult {
+                result_version: "water.scan-result.v1".into(),
+                scan_id: worker_id.clone(),
+                started_at: util::timestamp(at),
+                ended_at: util::timestamp(worker_core.platform.now()),
+                status: "failed".into(),
+                visited_entries: 0,
+                groups: vec![],
+                items: vec![],
+                issues: vec![],
+            },
+        };
+        let snapshot = scan::snapshot(&result);
+        let growth = if matches!(result.status.as_str(), "completed" | "partial") {
+            previous
+                .as_ref()
+                .map(|p| scan::growth(&scan::snapshot(&p.result), &snapshot))
+                .unwrap_or_default()
+        } else {
+            vec![]
+        };
+        let drives=worker_core.platform.drives().into_iter().map(|d|json!({"root":d.root,"is_system":d.is_system,"total_bytes":d.total_bytes.to_string(),"free_bytes":d.free_bytes.to_string()})).collect::<Vec<_>>();
+        // Still inside this scan's in-use batch; the result is saved and views reuse it.
+        let in_use = views::scan_in_use(&result, worker_core.platform.as_ref());
+        let saved = json!({"record_version":"water.scan-record.v1","scan_id":worker_id,"started_at":result.started_at,"finished_at":result.ended_at,"duration_ms":started.elapsed().as_millis() as u64,"drives":drives,"plan":serde_json::from_str::<Value>(&plan_json).expect("plan JSON"),"result":result,"growth":growth,"previous_scan_id":previous.as_ref().map(|p|&p.result.scan_id),"consumed":false,"in_use":in_use});
+        let mut record = Record {
+            saved,
+            result,
+            plan,
+            growth,
+            previous_at: previous.as_ref().map(|p| p.result.ended_at.clone()),
+            view: Value::Null,
+            details: BTreeMap::new(),
+        };
+        (record.view, record.details) = views::build(
+            &record,
+            &worker_core.rules,
+            worker_core.platform.as_ref(),
+            &settings,
+        );
+        let stored = worker_core
+            .store
+            .write("snapshots", &format!("{worker_id}.json"), &json!(snapshot))
+            .and_then(|()| {
+                worker_core
+                    .store
+                    .write("scans", &format!("{worker_id}.json"), &record.saved)
+            });
+        if let Ok(mut s) = lock(&worker_core) {
+            s.scan_progress["state"] = json!(if stored.is_ok() {
+                record.result.status.as_str()
+            } else {
+                "failed"
+            });
+            s.scan_progress["percent"] = json!(100);
+            s.scan_progress["elapsed_ms"] = json!(started.elapsed().as_millis() as u64);
+            s.scan_progress["visited_entries"] = json!(record.result.visited_entries);
+            s.scan_progress["found_bytes"] = json!(
+                record
+                    .result
+                    .groups
+                    .iter()
+                    .map(|g| util::number(&g.total_bytes))
+                    .sum::<u64>()
+                    .to_string()
+            );
+            for row in s.scan_progress["categories"]
+                .as_array_mut()
+                .expect("progress categories")
+            {
+                let total = record.view["categories"]
+                    .as_array()
+                    .expect("view categories")
+                    .iter()
+                    .filter(|c| {
+                        c["category"] == row["category"] && c["title_zh"] == row["title_zh"]
+                    })
+                    .map(|c| util::bytes(&c["total_bytes"]))
+                    .sum::<u64>();
+                row["found_bytes"] = json!(total.to_string());
+            }
+            if record.completed() && stored.is_ok() {
+                s.last = Some(worker_id.clone());
+                s.local_scans.insert(worker_id.clone());
+            }
+            s.records.push(Arc::new(record));
+            trim(&worker_core.store, &mut s);
+            s.busy = "idle";
+            s.cancel = None;
+        }
+    }
+}
+
+fn validate(command: &str, args: &Value) -> Result<(), IpcError> {
+    let bad = || IpcError::new("invalid");
+    let keys: &[&str] = match command {
+        "app_state" | "scan_start" | "scan_progress" | "clean_stop" | "clean_progress"
+        | "trends" | "history_list" | "locations_get" | "custom_root_add" => &[],
+        "scan_cancel" | "scan_result" => &["scanId"],
+        "group_detail" => &["groupId"],
+        "clean_prepare" => &["groupIds"],
+        "clean_start" => &["planId", "confirmToken"],
+        "clean_result" => &["cleanId"],
+        "locations_set_category" => &["category", "enabled"],
+        "custom_root_remove" => &["rootId"],
+        _ => return Err(bad()),
+    };
+    let object = args.as_object().ok_or_else(bad)?;
+    if object.len() != keys.len() || !keys.iter().all(|k| object.contains_key(*k)) {
+        return Err(bad());
+    }
+    for key in keys {
+        let valid = match *key {
+            "enabled" => args[key].is_boolean(),
+            "category" => args[key]
+                .as_str()
+                .is_some_and(|s| views::CATEGORIES[..7].iter().any(|c| c.0 == s)),
+            "confirmToken" => args[key]
+                .as_str()
+                .is_some_and(|s| (1..=512).contains(&s.chars().count()) && !s.contains('\\')),
+            "groupIds" => args[key].as_array().is_some_and(|v| {
+                !v.is_empty()
+                    && v.iter().all(|i| i.as_str().is_some_and(util::id_ok))
+                    && v.iter()
+                        .filter_map(Value::as_str)
+                        .collect::<BTreeSet<_>>()
+                        .len()
+                        == v.len()
+            }),
+            _ => args[key].as_str().is_some_and(util::id_ok),
+        };
+        if !valid {
+            return Err(bad());
+        }
+    }
+    Ok(())
+}
+
+fn selection(settings: &Settings, group: &mut Value) {
+    let selectable = matches!(group["level"].as_str(), Some("recommended" | "confirm"))
+        && group["eligible_count"].as_u64().is_some_and(|n| n > 0)
+        && views::enabled(settings, group["category"].as_str().unwrap_or(""));
+    group["selectable"] = json!(selectable);
+    group["default_selected"] = json!(selectable && group["level"] == "recommended");
+}
+
+fn valid_custom(path: &str, folders: &KnownFolders) -> bool {
+    let bytes = path.as_bytes();
+    bytes.len() > 3
+        && bytes[0].is_ascii_alphabetic()
+        && bytes[1..3] == *b":\\"
+        && !path.contains('/')
+        && !path.ends_with('\\')
+        && !path[3..].split('\\').any(|p| {
+            p.is_empty() || p == "." || p == ".." || p.ends_with(['.', ' ']) || p.contains(':')
+        })
+        && plain_directory(Path::new(path))
+        // The canonical form must be the given text itself (ASCII case aside): short names,
+        // aliases and other spellings of a directory are rejected.
+        && canonical(path).is_some_and(|c| c.eq_ignore_ascii_case(path))
+        && !folders
+            .values()
+            .any(|p| util::contains(path, &canonical(p).unwrap_or_else(|| p.to_owned())))
+        && !util::contains(
+            &canonical(&folders.windows).unwrap_or_else(|| folders.windows.clone()),
+            path,
+        )
+}
+
+fn canonical(path: &str) -> Option<String> {
+    let resolved = std::fs::canonicalize(path).ok()?;
+    let text = resolved.to_str()?;
+    Some(text.strip_prefix(r"\\?\").unwrap_or(text).to_owned())
+}
+
+fn progress_categories(plan: &water_junk_rules::ScanPlan) -> Vec<Value> {
+    let mut result = Vec::new();
+    for (cat, title, _, _) in views::CATEGORIES {
+        let targets: Vec<_> = plan
+            .targets
+            .iter()
+            .filter(|t| t.category.as_str() == cat)
+            .collect();
+        if cat == "custom" {
+            let mut seen = BTreeSet::new();
+            for t in targets {
+                if let water_junk_rules::MatchSpec::Marker { root, .. } = &t.match_spec
+                    && seen.insert(root)
+                {
+                    result.push(json!({"category":cat,"title_zh":format!("自定义 · {root}"),"state":"waiting","found_bytes":"0"}));
+                }
+            }
+        } else if !targets.is_empty() {
+            result
+                .push(json!({"category":cat,"title_zh":title,"state":"waiting","found_bytes":"0"}));
+        }
+    }
+    result
+}
+
+struct Progress {
+    core: Arc<Core>,
+    plan: water_junk_rules::ScanPlan,
+    reported: Mutex<BTreeMap<String, usize>>,
+    last_found: Mutex<u64>,
+    started: Instant,
+}
+impl scan::ScanObserver for Progress {
+    fn on_progress(&self, p: &scan::ScanProgress) {
+        // The accepted scanner emits exactly once at each target boundary (pattern/marker, then discovery).
+        let mut reported = self.reported.lock().unwrap_or_else(PoisonError::into_inner);
+        *reported.entry(p.group_id.clone()).or_default() += 1;
+        let mut last_found = self
+            .last_found
+            .lock()
+            .unwrap_or_else(PoisonError::into_inner);
+        let delta = p.found_bytes.saturating_sub(*last_found);
+        *last_found = p.found_bytes;
+        if let Ok(mut s) = lock(&self.core) {
+            let progress = &mut s.scan_progress;
+            progress["visited_entries"] = json!(p.visited_entries);
+            progress["found_bytes"] = json!(p.found_bytes.to_string());
+            progress["elapsed_ms"] = json!(self.started.elapsed().as_millis() as u64);
+            let n: usize = reported.values().sum();
+            progress["percent"] = json!(n * 100 / self.plan.targets.len().max(1));
+            for row in progress["categories"]
+                .as_array_mut()
+                .expect("progress array")
+            {
+                let targets: Vec<_> = self
+                    .plan
+                    .targets
+                    .iter()
+                    .filter(|t| {
+                        t.category.as_str() == row["category"]
+                            && (t.category.as_str() != "custom"
+                                || match &t.match_spec {
+                                    water_junk_rules::MatchSpec::Marker { root, .. } => {
+                                        row["title_zh"] == format!("自定义 · {root}")
+                                    }
+                                    _ => false,
+                                })
+                    })
+                    .collect();
+                let groups: BTreeSet<_> = targets.iter().map(|t| t.group_id.as_str()).collect();
+                let done: usize = groups
+                    .iter()
+                    .map(|id| reported.get(*id).copied().unwrap_or(0))
+                    .sum();
+                row["state"] = json!(if done >= targets.len() {
+                    "done"
+                } else if done > 0 {
+                    "running"
+                } else {
+                    "waiting"
+                });
+                // B reports cumulative bytes; attribute each target's delta to its category.
+                if groups.contains(p.group_id.as_str()) {
+                    let previous = util::bytes(&row["found_bytes"]);
+                    row["found_bytes"] = json!((previous + delta).to_string());
+                }
+            }
+        }
+    }
+}
+
+/// Keeps the newest 60 scans and cleans that were read in successfully. Only those trimmed
+/// records are deleted (unreadable files stay in place); a snapshot goes only together with
+/// its scan record. Deletion is best effort and never changes a status or fails startup.
+pub(crate) fn trim(store: &Store, s: &mut State) {
+    s.records
+        .sort_by(|a, b| a.result.ended_at.cmp(&b.result.ended_at));
+    let dropped = if s.records.len() > 60 {
+        let excess = s.records.len() - 60;
+        s.records
+            .drain(..excess)
+            .map(|r| r.result.scan_id.clone())
+            .collect()
+    } else {
+        vec![]
+    };
+    let removed = store.remove("scans", &dropped);
+    store.remove("snapshots", &removed);
+    let mut cleans: Vec<_> = s
+        .clean_order
+        .iter()
+        .filter_map(|id| {
+            s.cleans.get(id).map(|v| {
+                (
+                    v["view"]["finished_at"].as_str().unwrap_or("").to_owned(),
+                    id.clone(),
+                )
+            })
+        })
+        .collect();
+    cleans.sort_by(|a, b| a.0.cmp(&b.0));
+    let keep = cleans
+        .into_iter()
+        .rev()
+        .take(60)
+        .map(|(_, id)| id)
+        .collect::<Vec<_>>();
+    let dropped = s
+        .cleans
+        .keys()
+        .filter(|id| !keep.contains(id))
+        .cloned()
+        .collect::<Vec<_>>();
+    s.cleans.retain(|id, _| keep.contains(id));
+    s.clean_order.retain(|id| keep.contains(id));
+    store.remove("cleans", &dropped);
+}
+
+/// Unreadable, wrong-version or incomplete-category settings fall back to defaults. Otherwise
+/// the category toggles are kept and each custom root is checked on its own; any dropped root
+/// leads to one atomic rewrite (best effort: a failed write keeps the filtered copy in memory).
+fn load_settings(store: &Store, folders: &KnownFolders) -> Settings {
+    #[derive(Deserialize)]
+    #[serde(deny_unknown_fields)]
+    struct Raw {
+        settings_version: String,
+        categories: BTreeMap<String, bool>,
+        custom_roots: Vec<Value>,
+    }
+    let Some(raw) = store
+        .read("", "settings.json")
+        .and_then(|v| serde_json::from_value::<Raw>(v).ok())
+    else {
+        return Settings::default();
+    };
+    if raw.settings_version != "water.settings.v1"
+        || raw.categories.len() != 7
+        || !views::CATEGORIES[..7]
+            .iter()
+            .all(|c| raw.categories.contains_key(c.0))
+    {
+        return Settings::default();
+    }
+    let listed = raw.custom_roots.len();
+    let mut custom_roots: Vec<CustomRoot> = vec![];
+    for value in raw.custom_roots {
+        let Ok(root) = serde_json::from_value::<CustomRoot>(value) else {
+            continue;
+        };
+        if custom_roots.len() < 16
+            && util::id_ok(&root.root_id)
+            && !custom_roots.iter().any(|r| r.root_id == root.root_id)
+            && valid_custom(&root.path, folders)
+        {
+            custom_roots.push(root);
+        }
+    }
+    let settings = Settings {
+        settings_version: raw.settings_version,
+        categories: raw.categories,
+        custom_roots,
+    };
+    if settings.custom_roots.len() != listed {
+        let _ = store.write("", "settings.json", &json!(settings));
+    }
+    settings
+}
+
+fn root_view(s: &State, root: &CustomRoot) -> Value {
+    let prefix = format!("custom:{}:", root.root_id);
+    let record = s.records.iter().rev().find(|r| {
+        r.completed()
+            && r.plan
+                .targets
+                .iter()
+                .any(|t| t.group_id.starts_with(&prefix) && matches!(&t.match_spec,water_junk_rules::MatchSpec::Marker{root: path,..} if path.eq_ignore_ascii_case(&root.path)))
+    });
+    let total = record.map(|r| {
+        r.result
+            .groups
+            .iter()
+            .filter(|g| g.group_id.starts_with(&prefix))
+            .map(|g| util::number(&g.total_bytes))
+            .sum::<u64>()
+            .to_string()
+    });
+    json!({"root_id":root.root_id,"display_path":root.path,"last_scanned_at":record.map(|r|r.saved["finished_at"].clone()),"found_bytes":total})
+}
+
+fn locations(s: &State) -> Value {
+    json!({"categories":views::CATEGORIES[..7].iter().map(|(c,t,_,d)|json!({"category":c,"title_zh":t,"description_zh":d,"enabled":views::enabled(&s.settings,c),"locked":false})).collect::<Vec<_>>(),"custom_roots":s.settings.custom_roots.iter().map(|r|root_view(s,r)).collect::<Vec<_>>()})
+}
+
+fn added_7d(s: &State, r: &Record) -> Option<String> {
+    let now = util::parse_time(&r.result.ended_at)?;
+    let previous = s.records.iter().filter(|p| p.completed()).find(|p| {
+        util::parse_time(&p.result.ended_at)
+            .and_then(|t| now.duration_since(t).ok())
+            .is_some_and(|d| d >= Duration::from_secs(3600) && d <= Duration::from_secs(7 * 86400))
+    })?;
+    Some(
+        r.result
+            .groups
+            .iter()
+            .map(|g| {
+                let old = previous
+                    .result
+                    .groups
+                    .iter()
+                    .find(|p| p.group_id == g.group_id)
+                    .map(|p| util::number(&p.total_bytes))
+                    .unwrap_or(0);
+                util::number(&g.total_bytes).saturating_sub(old)
+            })
+            .sum::<u64>()
+            .to_string(),
+    )
+}
+
+fn history(s: &State) -> Value {
+    let mut rows:Vec<_>=s.records.iter().map(|r| {
+        let categories:BTreeSet<_>=r.result.groups.iter().filter(|g|g.item_count>0).map(views::category).collect();
+        json!({"kind":"scan","id":r.result.scan_id,"at":r.saved["finished_at"],"summary_zh":format!("识别 {} 类位置",categories.len()),"bytes":r.view["totals"]["recommended_bytes"]})
+    }).collect();
+    rows.extend(s.cleans.iter().map(|(id,v)| {
+        let skipped=v["report"]["items"].as_array().map(|items|items.iter().filter(|i|i["status"]=="skipped").count()).unwrap_or(0);
+        json!({"kind":"clean","id":id,"at":v["view"]["finished_at"],"summary_zh":format!("清理 {} 组，跳过 {} 项",v["view"]["groups"].as_array().map(Vec::len).unwrap_or(0),skipped),"bytes":v["view"]["freed_bytes"]})
+    }));
+    rows.sort_by(|a, b| b["at"].as_str().cmp(&a["at"].as_str()));
+    rows.truncate(100);
+    json!(rows)
+}
+
+fn trends(core: &Core, s: &State) -> Value {
+    let recent: Vec<_> = s
+        .records
+        .iter()
+        .filter(|r| {
+            r.completed()
+                && util::parse_time(&r.result.ended_at)
+                    .and_then(|t| core.platform.now().duration_since(t).ok())
+                    .is_some_and(|d| d <= Duration::from_secs(30 * 86400))
+        })
+        .collect();
+    let points:Vec<_>=recent.iter().flat_map(|r|r.saved["drives"].as_array().into_iter().flatten().map(|d|json!({"at":r.saved["finished_at"],"root":d["root"],"free_bytes":d["free_bytes"]}))).collect();
+    let last = s.last_record();
+    let mut growth = last.as_ref().map(|r| r.growth.clone()).unwrap_or_default();
+    growth.sort_by_key(|g| std::cmp::Reverse(g.bytes_delta.parse::<i128>().unwrap_or(0)));
+    let growth:Vec<_>=growth.iter().take(10).map(|g|json!({"group_id":g.group_id,"title_zh":core.rules.text(&g.group_id).map(|t|t.title_zh).unwrap_or_else(||"未识别".into()),"level":last.as_ref().and_then(|r|r.result.groups.iter().find(|x|x.group_id==g.group_id)).map(|g|g.level),"bytes_delta":g.bytes_delta,"count_delta":g.count_delta,"bytes_per_day":g.bytes_per_day})).collect();
+    let mut seen = BTreeSet::new();
+    let mut leaks = Vec::new();
+    for r in recent.iter().rev() {
+        for g in &r.growth {
+            if g.leak_suspect && seen.insert(&g.group_id) && leaks.len() < 5 {
+                let insight = views::insight(r, g, &core.rules, core.platform.as_ref());
+                leaks.push(json!({"group_id":g.group_id,"title_zh":core.rules.text(&g.group_id).map(|t|t.title_zh).unwrap_or_else(||"未识别".into()),"message_zh":insight["message_zh"],"fix_hint_zh":core.rules.text(&g.group_id).and_then(|t|t.fix_hint_zh).unwrap_or_default(),"active":last.as_ref().is_some_and(|r|r.growth.iter().any(|x|x.group_id==g.group_id && x.leak_suspect))}));
+            }
+        }
+    }
+    json!({"points":points,"growth":growth,"leaks":leaks})
+}

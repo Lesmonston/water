@@ -1,0 +1,40 @@
+{"binary":"C:\\Users\\37310\\.rustup\\toolchains\\1.95.0-x86_64-pc-windows-msvc\\bin\\cargo.exe","args":["test","--offline","--locked","--manifest-path","packages/water-service/Cargo.toml","--test","service_v1","--","--test-threads=1"],"exitCode":101,"error":null}
+--- stdout ---
+
+running 6 tests
+test service_clean_flow ... ok
+test service_hardening ... FAILED
+test service_ipc_contract ... ok
+test service_scan_views ... ok
+test service_storage_safety ... ok
+test service_trends_locations ... ok
+
+failures:
+
+---- service_hardening stdout ----
+
+thread 'water-scan' (43364) panicked at tests\service_v1.rs:44:13:
+fake platform: drives failed inside the scan task
+note: run with `RUST_BACKTRACE=1` environment variable to display a backtrace
+
+thread 'water-scan' (32952) panicked at tests\service_v1.rs:44:13:
+fake platform: drives failed inside the scan task
+
+thread 'service_hardening' (27660) panicked at tests\service_v1.rs:55:13:
+fake platform: clock failed
+
+thread 'service_hardening' (27660) panicked at tests\service_v1.rs:1469:10:
+SERVICE_TRUST_BOUNDARY: a scan read from disk became a cleaning source: Object {"by_drive": Array [Object {"bytes": String("200"), "root": String("F:\\")}], "confirm_token": String("1ca0f70a86a0628fafc6215204e3430e"), "groups": Array [Object {"group_id": String("chrome-cache"), "in_use_note_zh": String("运行中，占用的项会跳过"), "item_count": Number(1), "level": String("recommended"), "title_zh": String("Chrome 网页缓存"), "total_bytes": String("200")}], "irreversible": Bool(true), "item_count": Number(1), "plan_id": String("plan-20270115T080000Z-ebbd"), "total_bytes": String("200")}
+
+
+failures:
+    service_hardening
+
+test result: FAILED. 5 passed; 1 failed; 0 ignored; 0 measured; 0 filtered out; finished in 13.87s
+
+
+--- stderr ---
+   Compiling water-service v0.1.0 (F:\new\smaltalk\water\.worktrees\w4-g2\packages\water-service)
+    Finished `test` profile [unoptimized + debuginfo] target(s) in 1.91s
+     Running tests\service_v1.rs (.local\w3-target\debug\deps\service_v1-4329f681c7af5c48.exe)
+error: test failed, to rerun pass `--test service_v1`
