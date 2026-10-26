@@ -1403,7 +1403,7 @@ fn service_hardening() {
     let s = f.service(true);
     let err = s
         .call("clean_prepare", json!({"groupIds": ids}))
-        .unwrap_err();
+        .expect_err("SERVICE_TRUST_BOUNDARY: prepare after restart must fail");
     assert_eq!(
         (err.code.as_str(), err.message_zh.as_str()),
         ("stale", "结果已过期，请重新体检后再清理。"),
@@ -1414,7 +1414,7 @@ fn service_hardening() {
             "clean_start",
             json!({"planId": old["plan_id"], "confirmToken": old["confirm_token"]}),
         )
-        .unwrap_err();
+        .expect_err("SERVICE_TRUST_BOUNDARY: a plan read back from disk must not start");
     assert_eq!(
         err.code, "stale",
         "SERVICE_TRUST_BOUNDARY: a plan read back from disk ran"
@@ -1522,13 +1522,17 @@ fn service_hardening() {
     })
     .unwrap();
     h.pick(Some(&h.root.join("Kf-Ä")));
-    let err = s.call("custom_root_add", json!({})).unwrap_err();
+    let err = s
+        .call("custom_root_add", json!({}))
+        .expect_err("SERVICE_CANONICAL_ROOT: a folder containing a known folder must be refused");
     assert_eq!(
         err.code, "invalid",
         "SERVICE_CANONICAL_ROOT: a folder containing a known folder was added"
     );
     h.pick(Some(&h.root.join("kf-ä")));
-    let err = s.call("custom_root_add", json!({})).unwrap_err();
+    let err = s
+        .call("custom_root_add", json!({}))
+        .expect_err("SERVICE_CANONICAL_ROOT: a non-canonical spelling must be refused");
     assert_eq!(
         err.code, "invalid",
         "SERVICE_CANONICAL_ROOT: a non-canonical spelling was added"
@@ -1553,7 +1557,9 @@ fn service_hardening() {
     let before = inventory(&k.root.join("local_app_data"));
     let err = s
         .call("clean_prepare", json!({"groupIds": default_ids(&r)}))
-        .unwrap_err();
+        .expect_err(
+            "SERVICE_PARTIAL_SOURCE: a partial scan with protected issues must not prepare",
+        );
     assert_eq!(
         (err.code.as_str(), err.message_zh.as_str()),
         ("stale", "这次体检没有完整完成，请重新体检后再清理。"),
