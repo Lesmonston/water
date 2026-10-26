@@ -8,6 +8,8 @@
 
 ## 从这里开始
 
+- [计划重订草案：Agent 时代开发机磁盘体检（2026-10-26，待用户拍板）](docs/REPLAN-20261026-AGENT-ERA-CHECKUP.md)
+- [真实AA→AD联合验收（2026-10-26）](docs/acceptance/wave1/controller/WATER-W1-AAAD-JOINT-REVIEW-20261026.md)
 - [新总控交接报告（2026-10-26）](docs/CONTROLLER-HANDOFF-20261026.md)
 - [当前状态与交接](docs/STATUS.md)
 - [总控与人工外贴工作流](docs/CONTROLLER-WORKFLOW.md)
