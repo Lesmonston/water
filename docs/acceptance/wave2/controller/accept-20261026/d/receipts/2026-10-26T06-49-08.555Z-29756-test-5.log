@@ -1,0 +1,60 @@
+{"binary":"C:\\Users\\37310\\.rustup\\toolchains\\1.95.0-x86_64-pc-windows-msvc\\bin\\cargo.exe","args":["test","--offline","--locked","--manifest-path","packages/junk-clean/Cargo.toml","--test","clean_v1","--","--test-threads=1"],"exitCode":101,"error":null}
+--- stdout ---
+
+running 5 tests
+test clean_no_follow ... FAILED
+test clean_partial_stop_journal ... FAILED
+test clean_plan_contract ... FAILED
+test clean_report_volume ... FAILED
+test clean_revalidation_skips ... FAILED
+
+failures:
+
+---- clean_no_follow stdout ----
+
+thread 'clean_no_follow' (2988) panicked at tests\clean_v1.rs:31:9:
+assertion failed: tree.ends_with(Path::new(".worktrees").join("w2-d"))
+note: run with `RUST_BACKTRACE=1` environment variable to display a backtrace
+
+---- clean_partial_stop_journal stdout ----
+
+thread 'clean_partial_stop_journal' (32492) panicked at tests\clean_v1.rs:31:9:
+assertion failed: tree.ends_with(Path::new(".worktrees").join("w2-d"))
+
+---- clean_plan_contract stdout ----
+
+thread 'clean_plan_contract' (20512) panicked at tests\clean_v1.rs:31:9:
+assertion failed: tree.ends_with(Path::new(".worktrees").join("w2-d"))
+
+---- clean_report_volume stdout ----
+
+thread 'clean_report_volume' (21520) panicked at tests\clean_v1.rs:31:9:
+assertion failed: tree.ends_with(Path::new(".worktrees").join("w2-d"))
+
+---- clean_revalidation_skips stdout ----
+
+thread 'clean_revalidation_skips' (20108) panicked at tests\clean_v1.rs:31:9:
+assertion failed: tree.ends_with(Path::new(".worktrees").join("w2-d"))
+
+
+failures:
+    clean_no_follow
+    clean_partial_stop_journal
+    clean_plan_contract
+    clean_report_volume
+    clean_revalidation_skips
+
+test result: FAILED. 0 passed; 5 failed; 0 ignored; 0 measured; 0 filtered out; finished in 0.00s
+
+
+--- stderr ---
+   Compiling serde_core v1.0.229
+   Compiling zmij v1.0.23
+   Compiling memchr v2.8.3
+   Compiling itoa v1.0.18
+   Compiling serde_json v1.0.151
+   Compiling serde v1.0.229
+   Compiling water-junk-clean v0.1.0 (F:\new\smaltalk\water\.worktrees\accept-w2-d\packages\junk-clean)
+    Finished `test` profile [unoptimized + debuginfo] target(s) in 18.03s
+     Running tests\clean_v1.rs (.local\w2-target\debug\deps\clean_v1-607b5e28434d5f75.exe)
+error: test failed, to rerun pass `--test clean_v1`

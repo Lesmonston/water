@@ -10,6 +10,12 @@
 
 **E 受阻（14:07 JST）**：截图位置与 final 干净要求冲突，属总控设计漏洞。处理办法：检查入口改为截图写 `WATER_W2_SHOTS_DIR`（`.local/checks` 下），archive 按回执哈希复制进证据目录；manifest 给 E 加了 `requiredScreenshots` 共 12 张。已出[补单 01](dispatch/tickets/WATER-W2-E-ADDENDUM-01-20261026.md)，E 从 `e06d24a` 续做。验收 E 时看 `docs/acceptance/wave2/e/screenshots/<stamp>/`。
 
+**第二波收单（下午）**：结论见[验收报告](acceptance/wave2/controller/WATER-W2-AE-REVIEW-20261026.md)，五票都要补单（A-01、B-01、C-01、D-01、E-02，均在 `docs/dispatch/tickets/`）。
+- 总控验收树：`.worktrees/accept-w2-a..e`，以及 D 专用的 `.local/w2-accept/d-tree/.worktrees/w2-d`（D 的测试要求树路径以 `.worktreesw2-d` 结尾）。
+- 验收清单在 `.local/w2-accept/manifest.json`，任务 ID 为 `WATER-W2-ACCEPT-*`；检查入口已允许这类 ID 使用覆盖清单。
+- 补单交回后用同样流程复验：`scripts/acceptance/w2-receipt-audit.mjs`、`.local/w2-accept/run.sh`、`.local/w2-accept/controls.mjs`、`scripts/acceptance/w2-d-controller-cases.rs`。
+- 遗留到 M2 接线前：CLEAN 改为按句柄相对删除；云文件占位符一类的重解析点不删；8.3 短名。
+
 ## 1. 仓库与关键提交
 
 主线 `main`，没有远程仓库（立项书约定只保留本地 Git）。交接时 HEAD 为 `81abd4d5382a2cf74c304757daa505d0e874b1f5`，工作区干净；本报告随后单独提交。

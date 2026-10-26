@@ -17,7 +17,7 @@ const MODES=['baseline','lock','check','test','browser','real','red-nc1','red-nc
 const gitRaw=(args,cwd=root)=>{const r=spawnSync('git',['-c','core.hooksPath=NUL','-c','core.fsmonitor=false',...args],{cwd,encoding:'utf8',windowsHide:true,timeout:60000,maxBuffer:64*1024*1024});assert(!r.error&&r.status===0,String(r.stderr));return r.stdout.trim();};
 const controller=dirname(gitRaw(['rev-parse','--path-format=absolute','--git-common-dir']));
 const manifestOverride=process.env.WATER_W2_SELFTEST_MANIFEST??null;
-if(manifestOverride){assert(id.startsWith('WATER-W2-SELFTEST'),'Self-test manifest is only for controller self-test tasks');const rel=relative(join(controller,'.local'),resolve(manifestOverride));assert(!rel.startsWith('..')&&!isAbsolute(rel),'Self-test manifest must live under controller .local');}
+if(manifestOverride){assert(id.startsWith('WATER-W2-SELFTEST')||id.startsWith('WATER-W2-ACCEPT-'),'Override manifest is only for controller self-test or acceptance tasks');const rel=relative(join(controller,'.local'),resolve(manifestOverride));assert(!rel.startsWith('..')&&!isAbsolute(rel),'Self-test manifest must live under controller .local');}
 const manifestPath=manifestOverride?resolve(manifestOverride):join(controller,'docs/dispatch/wave2/manifest.json');
 const manifest=JSON.parse(readFileSync(manifestPath)),task=manifest.tasks.find(t=>t.id===id);assert(task,'Unknown task');
 assert.equal(realpathSync(task.worktree).toLowerCase(),realpathSync(root).toLowerCase(),'Run from the task worktree root');
