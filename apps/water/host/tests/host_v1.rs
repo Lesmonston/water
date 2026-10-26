@@ -209,6 +209,17 @@ fn exercise(backend: &dyn Backend) -> Vec<Result<Value, IpcFailure>> {
 
 #[test]
 fn host_command_registry() {
+    let lib = include_str!("../src/lib.rs");
+    let start = lib
+        .find("generate_handler![")
+        .expect("HOST_COMMANDS handler");
+    let end = start + lib[start..].find(']').unwrap();
+    let listed: Vec<&str> = lib[start..end]
+        .lines()
+        .filter_map(|l| l.trim().strip_prefix("commands::"))
+        .map(|l| l.trim_end_matches(','))
+        .collect();
+    assert_eq!(listed, COMMANDS.to_vec(), "HOST_COMMANDS handler list");
     let expected = [
         ("app_state", json!({})),
         ("scan_start", json!({})),
@@ -350,6 +361,18 @@ fn host_data_directory() {
     let canonical_root = fs::canonicalize(&root).unwrap();
     let junction = root.join("junction");
     let outcome = std::panic::catch_unwind(|| {
+        let locks = root.join("locks");
+        fs::create_dir(&locks).unwrap();
+        let first = acquire_instance_lock(&locks).expect("HOST_SINGLE_INSTANCE first");
+        assert!(
+            matches!(
+                acquire_instance_lock(&locks),
+                Err(StartupError::AlreadyRunning)
+            ),
+            "HOST_SINGLE_INSTANCE second"
+        );
+        drop(first);
+        drop(acquire_instance_lock(&locks).expect("HOST_SINGLE_INSTANCE again"));
         let override_path = root.join("覆盖/new/data");
         let fallback = root.join("local-app-data");
         let directories = prepare_data_directories(Some(&override_path), &fallback)
@@ -465,4 +488,108 @@ fn host_data_directory() {
     if let Err(panic) = outcome {
         std::panic::resume_unwind(panic);
     }
+}
+
+struct FakePlatform(PathBuf);
+impl water_service::Platform for FakePlatform {
+    fn known_folders(&self) -> Result<water_junk_rules::KnownFolders, water_service::IpcError> {
+        let d = |n: &str| self.0.join(n).to_str().unwrap().to_owned();
+        Ok(water_junk_rules::KnownFolders {
+            user_profile: d("home"),
+            local_app_data: d("lad"),
+            roaming_app_data: d("rad"),
+            user_temp: d("ut"),
+            system_temp: d("st"),
+            windows: d("win"),
+            program_data: d("pd"),
+            downloads: d("dl"),
+        })
+    }
+    fn drives(&self) -> Vec<water_service::DriveInfo> {
+        vec![water_service::DriveInfo {
+            root: self.0.to_str().unwrap()[..3].to_owned(),
+            is_system: false,
+            total_bytes: 1 << 40,
+            free_bytes: 1 << 39,
+        }]
+    }
+    fn now(&self) -> std::time::SystemTime {
+        std::time::SystemTime::now()
+    }
+    fn local_date(&self, _at: std::time::SystemTime) -> (u32, u32) {
+        (10, 26)
+    }
+    fn in_use(&self, _spec: &water_process_scan::InUseSpec, _item_path: &str) -> Option<String> {
+        None
+    }
+}
+
+struct NoPick;
+impl water_service::FolderPicker for NoPick {
+    fn pick(&self) -> Result<Option<String>, water_service::IpcError> {
+        Ok(None)
+    }
+}
+
+#[test]
+fn host_service_wiring() {
+    let tree = Path::new(env!("CARGO_MANIFEST_DIR"))
+        .ancestors()
+        .nth(3)
+        .unwrap();
+    let parent = tree.join(".local/w3-f3-fixtures");
+    fs::create_dir_all(&parent).unwrap();
+    let nonce = RandomState::new().hash_one(std::time::SystemTime::now());
+    let root = parent.join(format!("wire-{nonce:016x}"));
+    fs::create_dir(&root).unwrap();
+    let data = root.join("data");
+    let service = water_service::Service::new(water_service::ServiceConfig {
+        data_dir: data.clone(),
+        app_version: "0.1.0".into(),
+        clean_enabled: CLEAN_ENABLED,
+        platform: Box::new(FakePlatform(root.clone())),
+        picker: Box::new(NoPick),
+    })
+    .unwrap_or_else(|e| panic!("HOST_WIRING service {}", e.code));
+    let backend = ServiceBackend(service);
+    let state = backend
+        .call("app_state", json!({}))
+        .expect("HOST_WIRING app_state");
+    assert_eq!(state["busy"], "idle", "HOST_WIRING busy");
+    let refused = backend
+        .call("clean_prepare", json!({"groupIds": ["chrome-cache"]}))
+        .unwrap_err();
+    assert_eq!(
+        serde_json::to_value(&refused).unwrap(),
+        json!({"code": "unavailable", "message_zh": "这一版只做体检，清理功能会在下一版开放。"}),
+        "HOST_CLEAN_DISABLED prepare"
+    );
+    assert_eq!(
+        backend.call("no_such_command", json!({})).unwrap_err().code,
+        "invalid",
+        "HOST_WIRING unknown"
+    );
+    let ctx = HostContext {
+        data_dir: data.clone(),
+        home_dir: "relative".into(),
+    };
+    let config = service_config(&ctx);
+    assert!(!config.clean_enabled, "HOST_CLEAN_DISABLED config");
+    assert_eq!(config.data_dir, data, "HOST_WIRING data dir");
+    let picker = HostPicker::new("relative".into());
+    let guard = picker.begin().expect("HOST_PICKER begin");
+    assert_eq!(
+        water_service::FolderPicker::pick(&picker).unwrap_err().code,
+        "busy",
+        "HOST_PICKER busy"
+    );
+    drop(guard);
+    assert_eq!(
+        water_service::FolderPicker::pick(&picker).unwrap_err().code,
+        "invalid",
+        "HOST_PICKER invalid"
+    );
+    drop(config);
+    drop(backend);
+    fs::remove_dir_all(&root).unwrap();
 }
