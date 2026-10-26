@@ -1,0 +1,436 @@
+{
+  "task": "WATER-W2-E",
+  "mode": "browser",
+  "finalGate": false,
+  "manifest": "docs/dispatch/wave2/manifest.json",
+  "startedAt": "2026-10-26T05:51:49.473Z",
+  "realDataRead": false,
+  "productTestsRun": true,
+  "commands": [
+    {
+      "binary": "git",
+      "argv": [
+        "branch",
+        "--show-current"
+      ],
+      "exitCode": 0
+    },
+    {
+      "binary": "git",
+      "argv": [
+        "merge-base",
+        "--is-ancestor",
+        "68cbab9f7c35fa7e5c55e3daab3151ecec5a22c6",
+        "HEAD"
+      ],
+      "exitCode": 0
+    },
+    {
+      "binary": "git",
+      "argv": [
+        "diff",
+        "--no-renames",
+        "--name-only",
+        "-z",
+        "68cbab9f7c35fa7e5c55e3daab3151ecec5a22c6",
+        "HEAD"
+      ],
+      "exitCode": 0
+    },
+    {
+      "binary": "git",
+      "argv": [
+        "diff",
+        "--no-renames",
+        "--name-only",
+        "-z",
+        "HEAD"
+      ],
+      "exitCode": 0
+    },
+    {
+      "binary": "git",
+      "argv": [
+        "ls-files",
+        "--others",
+        "--exclude-standard",
+        "-z"
+      ],
+      "exitCode": 0
+    },
+    {
+      "binary": "git",
+      "argv": [
+        "rev-parse",
+        "HEAD"
+      ],
+      "exitCode": 0
+    },
+    {
+      "binary": "git",
+      "argv": [
+        "status",
+        "--porcelain",
+        "--untracked-files=all"
+      ],
+      "exitCode": 0
+    },
+    {
+      "binary": "C:\\Program Files\\nodejs\\node.exe",
+      "argv": [
+        "--test",
+        "--test-concurrency=1",
+        "--test-reporter=tap",
+        "apps/water/ui/tests/browser.test.mjs"
+      ],
+      "exitCode": 0,
+      "error": null,
+      "log": "2026-10-26T05-51-49.471Z-42688-browser-1.log"
+    },
+    {
+      "binary": "git",
+      "argv": [
+        "branch",
+        "--show-current"
+      ],
+      "exitCode": 0
+    },
+    {
+      "binary": "git",
+      "argv": [
+        "merge-base",
+        "--is-ancestor",
+        "68cbab9f7c35fa7e5c55e3daab3151ecec5a22c6",
+        "HEAD"
+      ],
+      "exitCode": 0
+    },
+    {
+      "binary": "git",
+      "argv": [
+        "diff",
+        "--no-renames",
+        "--name-only",
+        "-z",
+        "68cbab9f7c35fa7e5c55e3daab3151ecec5a22c6",
+        "HEAD"
+      ],
+      "exitCode": 0
+    },
+    {
+      "binary": "git",
+      "argv": [
+        "diff",
+        "--no-renames",
+        "--name-only",
+        "-z",
+        "HEAD"
+      ],
+      "exitCode": 0
+    },
+    {
+      "binary": "git",
+      "argv": [
+        "ls-files",
+        "--others",
+        "--exclude-standard",
+        "-z"
+      ],
+      "exitCode": 0
+    },
+    {
+      "binary": "git",
+      "argv": [
+        "rev-parse",
+        "HEAD"
+      ],
+      "exitCode": 0
+    },
+    {
+      "binary": "git",
+      "argv": [
+        "status",
+        "--porcelain",
+        "--untracked-files=all"
+      ],
+      "exitCode": 0
+    }
+  ],
+  "changedPaths": [
+    "apps/water/ui/.gitattributes",
+    "apps/water/ui/README.md",
+    "apps/water/ui/app.mjs",
+    "apps/water/ui/format.mjs",
+    "apps/water/ui/index.html",
+    "apps/water/ui/ipc.mjs",
+    "apps/water/ui/model.mjs",
+    "apps/water/ui/styles/app.css",
+    "apps/water/ui/styles/tokens.css",
+    "apps/water/ui/tests/browser.test.mjs",
+    "apps/water/ui/tests/unit.test.mjs",
+    "apps/water/ui/views/about.mjs",
+    "apps/water/ui/views/cleaning.mjs",
+    "apps/water/ui/views/common.mjs",
+    "apps/water/ui/views/confirm.mjs",
+    "apps/water/ui/views/detail.mjs",
+    "apps/water/ui/views/done.mjs",
+    "apps/water/ui/views/history.mjs",
+    "apps/water/ui/views/home.mjs",
+    "apps/water/ui/views/locations.mjs",
+    "apps/water/ui/views/results.mjs",
+    "apps/water/ui/views/scan.mjs",
+    "apps/water/ui/views/trends.mjs",
+    "docs/acceptance/wave2/e/.gitattributes",
+    "docs/acceptance/wave2/e/ARCHIVE.json",
+    "docs/acceptance/wave2/e/receipts/2026-10-26T04-48-29.296Z-17876-baseline-result.json",
+    "docs/acceptance/wave2/e/receipts/2026-10-26T05-03-29.899Z-23872-baseline-result.json",
+    "docs/dispatch/reports/WATER-W2-E-REPORT.md"
+  ],
+  "before": {
+    "head": "e06d24a94a4216d6ee53f4cae27cc0d19d9f773b",
+    "status": "?? apps/water/ui/.gitattributes\n?? apps/water/ui/README.md\n?? apps/water/ui/app.mjs\n?? apps/water/ui/format.mjs\n?? apps/water/ui/index.html\n?? apps/water/ui/ipc.mjs\n?? apps/water/ui/model.mjs\n?? apps/water/ui/styles/app.css\n?? apps/water/ui/styles/tokens.css\n?? apps/water/ui/tests/browser.test.mjs\n?? apps/water/ui/tests/unit.test.mjs\n?? apps/water/ui/views/about.mjs\n?? apps/water/ui/views/cleaning.mjs\n?? apps/water/ui/views/common.mjs\n?? apps/water/ui/views/confirm.mjs\n?? apps/water/ui/views/detail.mjs\n?? apps/water/ui/views/done.mjs\n?? apps/water/ui/views/history.mjs\n?? apps/water/ui/views/home.mjs\n?? apps/water/ui/views/locations.mjs\n?? apps/water/ui/views/results.mjs\n?? apps/water/ui/views/scan.mjs\n?? apps/water/ui/views/trends.mjs"
+  },
+  "sourceState": {
+    "files": [
+      {
+        "path": "apps/water/ui/.gitattributes",
+        "snapshot": "2026-10-26T05-51-49.471Z-42688-browser-source-0.txt",
+        "sha256": "34f6099cb18bb768b894dba0b4b82a9436ec3409a5b7d444b78b43a80c7d53a1",
+        "test": false
+      },
+      {
+        "path": "apps/water/ui/README.md",
+        "snapshot": "2026-10-26T05-51-49.471Z-42688-browser-source-1.txt",
+        "sha256": "823ee08eb07a23cb47a61740146a49605dbf9cb53980bbc7d0929c20fd454175",
+        "test": false
+      },
+      {
+        "path": "apps/water/ui/app.mjs",
+        "snapshot": "2026-10-26T05-51-49.471Z-42688-browser-source-2.txt",
+        "sha256": "a26c78ec579215e041f66db8269e992f60ea1755d3315795e0b7671b64c37608",
+        "test": false
+      },
+      {
+        "path": "apps/water/ui/format.mjs",
+        "snapshot": "2026-10-26T05-51-49.471Z-42688-browser-source-3.txt",
+        "sha256": "ea1cc0ca3ae1d4ec1a95486684251b6c7d5a9bfea7bcc6f21ed9c0af946d67af",
+        "test": false
+      },
+      {
+        "path": "apps/water/ui/index.html",
+        "snapshot": "2026-10-26T05-51-49.471Z-42688-browser-source-4.txt",
+        "sha256": "14109d2e7078287d849523b95494bf0a42ff4981bb1f0b3fa8a17bd03fef79af",
+        "test": false
+      },
+      {
+        "path": "apps/water/ui/ipc.mjs",
+        "snapshot": "2026-10-26T05-51-49.471Z-42688-browser-source-5.txt",
+        "sha256": "7f4d09b93f4129b59bd3de128892b5cf790766ed8d83b4ea82c1f819226778de",
+        "test": false
+      },
+      {
+        "path": "apps/water/ui/model.mjs",
+        "snapshot": "2026-10-26T05-51-49.471Z-42688-browser-source-6.txt",
+        "sha256": "ff54d0fdd5bfd6131e7a345d99d757ab6e453bde0933be4a73ba5ec010220765",
+        "test": false
+      },
+      {
+        "path": "apps/water/ui/styles/app.css",
+        "snapshot": "2026-10-26T05-51-49.471Z-42688-browser-source-7.txt",
+        "sha256": "9b6a35c1fcd9a1c694a43c5e7b3b56986577d196235efc71ead5e485c0ca4d0f",
+        "test": false
+      },
+      {
+        "path": "apps/water/ui/styles/tokens.css",
+        "snapshot": "2026-10-26T05-51-49.471Z-42688-browser-source-8.txt",
+        "sha256": "703e7b3c185bd95d79bb580cc1911736962159846832ece5a40ba5df0770cb29",
+        "test": false
+      },
+      {
+        "path": "apps/water/ui/tests/browser.test.mjs",
+        "snapshot": "2026-10-26T05-51-49.471Z-42688-browser-source-9.txt",
+        "sha256": "1bc562cf71a0bca0c2be538adfbabfddd4b21a4237b671ad6c38180c70fc58e0",
+        "test": true
+      },
+      {
+        "path": "apps/water/ui/tests/unit.test.mjs",
+        "snapshot": "2026-10-26T05-51-49.471Z-42688-browser-source-10.txt",
+        "sha256": "244d221cd6bb08aaaa7afec0241f6d314f0d265046390e452da3e52890d462e4",
+        "test": true
+      },
+      {
+        "path": "apps/water/ui/views/about.mjs",
+        "snapshot": "2026-10-26T05-51-49.471Z-42688-browser-source-11.txt",
+        "sha256": "1c8dec4fe3c8a3ebd9056cf88d95583600f7c836096ae926d2cec14429ce1e68",
+        "test": false
+      },
+      {
+        "path": "apps/water/ui/views/cleaning.mjs",
+        "snapshot": "2026-10-26T05-51-49.471Z-42688-browser-source-12.txt",
+        "sha256": "35576866bc2d73109f5e45c7a4248bde720e605564b86d1972036d07f4112b51",
+        "test": false
+      },
+      {
+        "path": "apps/water/ui/views/common.mjs",
+        "snapshot": "2026-10-26T05-51-49.471Z-42688-browser-source-13.txt",
+        "sha256": "d1ed562c980b67c1862085a30959e6b91a16a53f2bd1dc1554387f235ab76b81",
+        "test": false
+      },
+      {
+        "path": "apps/water/ui/views/confirm.mjs",
+        "snapshot": "2026-10-26T05-51-49.471Z-42688-browser-source-14.txt",
+        "sha256": "aa3f05855285291a4b3ecfb10851852df406e6a8d6738946e7b860b528fb1d7b",
+        "test": false
+      },
+      {
+        "path": "apps/water/ui/views/detail.mjs",
+        "snapshot": "2026-10-26T05-51-49.471Z-42688-browser-source-15.txt",
+        "sha256": "94beefb1864ddda898d547d5c43bfa2725a7bad7d0270a7f974a8b91a1112cec",
+        "test": false
+      },
+      {
+        "path": "apps/water/ui/views/done.mjs",
+        "snapshot": "2026-10-26T05-51-49.471Z-42688-browser-source-16.txt",
+        "sha256": "26b901005a60fa7114ddc666ad7a7d42c131ee98347d1e8c6d0e22c99c05f8e1",
+        "test": false
+      },
+      {
+        "path": "apps/water/ui/views/history.mjs",
+        "snapshot": "2026-10-26T05-51-49.471Z-42688-browser-source-17.txt",
+        "sha256": "4fdd9825ee4350f7f8b02006409c198bc338289af53142959934165379757bb6",
+        "test": false
+      },
+      {
+        "path": "apps/water/ui/views/home.mjs",
+        "snapshot": "2026-10-26T05-51-49.471Z-42688-browser-source-18.txt",
+        "sha256": "95f5035843faecc6b729c3b75bfb80a5e1963f96a8ddc93635e06642a5bd314a",
+        "test": false
+      },
+      {
+        "path": "apps/water/ui/views/locations.mjs",
+        "snapshot": "2026-10-26T05-51-49.471Z-42688-browser-source-19.txt",
+        "sha256": "499e6434e370e51ae6c39da49149d448ba37e6cbe1fe66a5f4b97b6e57e13c1d",
+        "test": false
+      },
+      {
+        "path": "apps/water/ui/views/results.mjs",
+        "snapshot": "2026-10-26T05-51-49.471Z-42688-browser-source-20.txt",
+        "sha256": "ea95d122ea252c360cabf6a71bb7b7d4dc00b299a3783c8225921180645dc0bb",
+        "test": false
+      },
+      {
+        "path": "apps/water/ui/views/scan.mjs",
+        "snapshot": "2026-10-26T05-51-49.471Z-42688-browser-source-21.txt",
+        "sha256": "660fe1d4b0f1fdd614243d1c727b2e9a2f50ae1217d762c97b66a8a8d8552311",
+        "test": false
+      },
+      {
+        "path": "apps/water/ui/views/trends.mjs",
+        "snapshot": "2026-10-26T05-51-49.471Z-42688-browser-source-22.txt",
+        "sha256": "c1ade7128dd9b7ccb74bcce023d61abffa5ad11965aa74715665128c2ccebe26",
+        "test": false
+      }
+    ],
+    "productionHash": "c967945ce85a18ee810b0bb5f379044793da575b04c265bbd5115dff4795d73f",
+    "testHash": "f1a53b2f973e6b801f0aacb6221d978a8eb002385ef1eb915da8a70cc4dab122"
+  },
+  "uiFiles": 23,
+  "browserUsed": true,
+  "screenshots": {
+    "dir": ".local/checks/WATER-W2-E/2026-10-26T05-51-49.471Z-42688-browser-shots",
+    "files": [
+      {
+        "name": "about-1240x820.png",
+        "bytes": 576686,
+        "sha256": "e880507e80042dc60e5a7e263bb15054e284687c2cc2d57cad7bedae7d4ceb55"
+      },
+      {
+        "name": "busy-1240x820.png",
+        "bytes": 578418,
+        "sha256": "60ccbc807052bfa070e99ebb923b4eba03e6233312d740657178c3e5dad35941"
+      },
+      {
+        "name": "cleaning-1240x820.png",
+        "bytes": 571781,
+        "sha256": "c8f1fd50604f5437b56c682ec0f5cd814ec58c30f438a8e754235e6d30cb7855"
+      },
+      {
+        "name": "confirm-1240x820.png",
+        "bytes": 213940,
+        "sha256": "06222b12d0b104014580c5c203fc2881104fa26cc4576c97b15866e223213488"
+      },
+      {
+        "name": "detail-1240x820.png",
+        "bytes": 228100,
+        "sha256": "427c881d7e8b769388d8ec0a958d1c1692e852fde7771e2c885e01610182a764"
+      },
+      {
+        "name": "done-1240x820.png",
+        "bytes": 519441,
+        "sha256": "a084dce20bebb3d3e8933941dca9572796e1d21d611ae6885bbe1984ad6a2ecd"
+      },
+      {
+        "name": "history-1240x820.png",
+        "bytes": 569607,
+        "sha256": "b5c8acb5b895c007eb5746e79f3080b17ccb28e84a5a61f87c25230eafa653eb"
+      },
+      {
+        "name": "home-1240x820.png",
+        "bytes": 577489,
+        "sha256": "b24c8e73624fc3c371c41a4c7d303329a09591f669b09854a514584b10a6ae1a"
+      },
+      {
+        "name": "home-last-scan-1240x820.png",
+        "bytes": 579746,
+        "sha256": "8db097806302c6792838be431b8b388b8d6d43ac54d2d3809530064e7cbba8d3"
+      },
+      {
+        "name": "locations-1240x820.png",
+        "bytes": 557156,
+        "sha256": "b07c17f6ac67033e0156f5d494056ab2d27928b46aa1e32faf202f2b2dfd40f0"
+      },
+      {
+        "name": "results-1040x720.png",
+        "bytes": 464129,
+        "sha256": "9a6b5bf4678ac743468b70739bd2f559c6df2b91eb6e5e664be60172b20e4b84"
+      },
+      {
+        "name": "results-1240x820.png",
+        "bytes": 578908,
+        "sha256": "4ae58c9649a73b9b42e05a4a9b897bee2d2b4549e0003f90eded9d46ade1a12a"
+      },
+      {
+        "name": "scan-1240x820.png",
+        "bytes": 564836,
+        "sha256": "5ec1ee4c27108605bf5f5cc03ffb24bfefeca78c3688625aa5a967612f4c08b8"
+      },
+      {
+        "name": "stale-1240x820.png",
+        "bytes": 527494,
+        "sha256": "1d4dbf97215afca1276a969f18a7699e03eac3f5d72de352b848b26b8f2ce1cc"
+      },
+      {
+        "name": "trends-1240x820.png",
+        "bytes": 569905,
+        "sha256": "24a8abe2cab9260d4bc0c6ec428a5358f9bb2add1cf60898e2a1b2f2e639a906"
+      },
+      {
+        "name": "trends-empty-1240x820.png",
+        "bytes": 567351,
+        "sha256": "d528c08d524313db41de12a605c01308e38b25cd13e0f3f409875371c25eccd4"
+      },
+      {
+        "name": "unavailable-1240x820.png",
+        "bytes": 552336,
+        "sha256": "2848d756cfbfecc4307e40cd6388ea65de3b04de1ec5fbd0d0aede9cf32ed93d"
+      }
+    ]
+  },
+  "after": {
+    "head": "e06d24a94a4216d6ee53f4cae27cc0d19d9f773b",
+    "status": "?? apps/water/ui/.gitattributes\n?? apps/water/ui/README.md\n?? apps/water/ui/app.mjs\n?? apps/water/ui/format.mjs\n?? apps/water/ui/index.html\n?? apps/water/ui/ipc.mjs\n?? apps/water/ui/model.mjs\n?? apps/water/ui/styles/app.css\n?? apps/water/ui/styles/tokens.css\n?? apps/water/ui/tests/browser.test.mjs\n?? apps/water/ui/tests/unit.test.mjs\n?? apps/water/ui/views/about.mjs\n?? apps/water/ui/views/cleaning.mjs\n?? apps/water/ui/views/common.mjs\n?? apps/water/ui/views/confirm.mjs\n?? apps/water/ui/views/detail.mjs\n?? apps/water/ui/views/done.mjs\n?? apps/water/ui/views/history.mjs\n?? apps/water/ui/views/home.mjs\n?? apps/water/ui/views/locations.mjs\n?? apps/water/ui/views/results.mjs\n?? apps/water/ui/views/scan.mjs\n?? apps/water/ui/views/trends.mjs"
+  },
+  "status": "passed",
+  "error": null,
+  "endedAt": "2026-10-26T05:52:15.735Z"
+}
