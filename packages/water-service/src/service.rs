@@ -53,6 +53,8 @@ pub(crate) struct Record {
     pub previous_at: Option<String>,
     pub view: Value,
     pub details: BTreeMap<String, Value>,
+    /// SELFTEST STUB: only scans completed by this process may be a clean source.
+    pub fresh: bool,
 }
 
 const RECORD_KEYS: [&str; 11] = [
@@ -136,6 +138,7 @@ impl Record {
             previous_at: None,
             view: Value::Null,
             details: BTreeMap::new(),
+            fresh: false,
         })
     }
     pub fn completed(&self) -> bool {
@@ -185,7 +188,11 @@ pub struct Service {
 }
 
 pub(crate) fn lock(core: &Core) -> Result<std::sync::MutexGuard<'_, State>, IpcError> {
-    core.state.lock().map_err(|_| IpcError::new("unavailable"))
+    // SELFTEST STUB: a poisoned state lock is recovered instead of failing every later command.
+    Ok(core
+        .state
+        .lock()
+        .unwrap_or_else(std::sync::PoisonError::into_inner))
 }
 
 fn idle_scan() -> Value {
@@ -273,8 +280,9 @@ impl Service {
             records: records.into_iter().map(Arc::new).collect(),
             last,
             consumed,
+            // SELFTEST STUB: plans read back from disk can never run.
+            stale_plans: plans.keys().cloned().collect(),
             plans,
-            stale_plans: BTreeSet::new(),
             cleans,
             clean_order,
             busy: "idle",
@@ -285,6 +293,7 @@ impl Service {
             stop: None,
         };
         trim(&store, &mut state);
+        store.tidy();
         Ok(Self {
             core: Arc::new(Core {
                 config_version: config.app_version,
@@ -300,6 +309,14 @@ impl Service {
     }
 
     pub fn call(&self, command: &str, args: Value) -> Result<Value, IpcError> {
+        // SELFTEST STUB: a panic inside any command becomes "unavailable".
+        std::panic::catch_unwind(std::panic::AssertUnwindSafe(|| {
+            self.dispatch(command, args)
+        }))
+        .unwrap_or_else(|_| Err(IpcError::new("unavailable")))
+    }
+
+    fn dispatch(&self, command: &str, args: Value) -> Result<Value, IpcError> {
         let core = &self.core;
         // The switch answers first: a disabled build never inspects cleaning arguments.
         if matches!(command, "clean_prepare" | "clean_start") && !core.clean_enabled {
@@ -464,7 +481,10 @@ impl Service {
         drop(s);
         let worker_core = core.clone();
         let worker_id = id.clone();
+        let guard_core = core.clone();
         let spawned=std::thread::Builder::new().name("water-scan".into()).spawn(move|| {
+          // SELFTEST STUB: the whole task body is protected; any panic returns the service to idle.
+          let task=std::panic::catch_unwind(std::panic::AssertUnwindSafe(||{
             let started=Instant::now();
             let observer=Progress {core:worker_core.clone(),plan:plan.clone(),reported:Mutex::new(BTreeMap::new()),last_found:Mutex::new(0),started};
             let result=std::panic::catch_unwind(std::panic::AssertUnwindSafe(||{
@@ -485,7 +505,7 @@ impl Service {
             // Still inside this scan's in-use batch; the result is saved and views reuse it.
             let in_use=views::scan_in_use(&result,worker_core.platform.as_ref());
             let saved=json!({"record_version":"water.scan-record.v1","scan_id":worker_id,"started_at":result.started_at,"finished_at":result.ended_at,"duration_ms":started.elapsed().as_millis() as u64,"drives":drives,"plan":serde_json::from_str::<Value>(&plan_json).expect("plan JSON"),"result":result,"growth":growth,"previous_scan_id":previous.as_ref().map(|p|&p.result.scan_id),"consumed":false,"in_use":in_use});
-            let mut record=Record {saved,result,plan,growth,previous_at:previous.as_ref().map(|p|p.result.ended_at.clone()),view:Value::Null,details:BTreeMap::new()};
+            let mut record=Record {saved,result,plan,growth,previous_at:previous.as_ref().map(|p|p.result.ended_at.clone()),view:Value::Null,details:BTreeMap::new(),fresh:true};
             (record.view,record.details)=views::build(&record,&worker_core.rules,worker_core.platform.as_ref(),&settings);
             let stored=worker_core.store.write("snapshots",&format!("{worker_id}.json"),&json!(snapshot)).and_then(|()|worker_core.store.write("scans",&format!("{worker_id}.json"),&record.saved));
             if let Ok(mut s)=lock(&worker_core) {
@@ -503,6 +523,10 @@ impl Service {
                 trim(&worker_core.store,&mut s);
                 s.busy="idle";s.cancel=None;
             }
+          }));
+          if task.is_err() && let Ok(mut s)=lock(&guard_core) {
+              s.busy="idle";s.cancel=None;s.scan_progress["state"]=json!("failed");
+          }
         });
         if spawned.is_err() {
             let mut s = lock(&core)?;
@@ -637,6 +661,23 @@ fn valid_custom(path: &str, folders: &KnownFolders) -> bool {
         && !folders.values().any(|p| util::contains(path, p))
         && !util::contains(&folders.windows, path)
         && plain_directory(Path::new(path))
+        && canonical(path).is_some_and(|c| {
+            // SELFTEST STUB: the root must be its own canonical spelling and is compared with canonical folders.
+            c.eq_ignore_ascii_case(path)
+                && !folders
+                    .values()
+                    .any(|p| util::contains(&c, &canonical(p).unwrap_or_else(|| p.to_string())))
+                && !util::contains(
+                    &canonical(&folders.windows).unwrap_or_else(|| folders.windows.clone()),
+                    &c,
+                )
+        })
+}
+
+fn canonical(path: &str) -> Option<String> {
+    let c = std::fs::canonicalize(path).ok()?;
+    let s = c.to_str()?;
+    Some(s.strip_prefix(r"\\?\").unwrap_or(s).to_owned())
 }
 
 fn progress_categories(plan: &water_junk_rules::ScanPlan) -> Vec<Value> {

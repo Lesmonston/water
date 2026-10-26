@@ -22,6 +22,24 @@ pub(crate) fn prepare(core: &Arc<Core>, ids: &[Value]) -> Result<Value, IpcError
     if s.consumed.contains(&r.result.scan_id) {
         return Err(IpcError::new("stale"));
     }
+    // SELFTEST STUB: only a scan completed by this process is a clean source.
+    if !r.fresh {
+        return Err(IpcError::new("stale"));
+    }
+    // SELFTEST STUB: a partial scan is a source only without budget exhaustion or protected issues.
+    if r.result.status == "partial"
+        && r.result.issues.iter().any(|i| {
+            i.code == "budget_exhausted"
+                || r.result.groups.iter().any(|g| {
+                    g.group_id == i.group_id && g.level == water_junk_scan::Level::Protected
+                })
+        })
+    {
+        return Err(IpcError {
+            code: "stale".into(),
+            message_zh: "这次体检没有完整完成，请重新体检后再清理。".into(),
+        });
+    }
     let mut items = Vec::new();
     let mut groups = Vec::new();
     let mut by_drive = BTreeMap::<String, u64>::new();

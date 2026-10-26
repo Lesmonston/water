@@ -176,6 +176,66 @@ impl Store {
             .map_err(unavailable)?;
         Ok(DurableFile(file))
     }
+
+    /// SELFTEST STUB: removes this store's own leftover temp files and keeps the newest 60 plans
+    /// and journals. Flat plain files only; failures are ignored.
+    pub fn tidy(&self) {
+        for dir in ["", "scans", "snapshots", "plans", "cleans", "journal"] {
+            let Ok(entries) = fs::read_dir(self.root.join(dir)) else {
+                continue;
+            };
+            let mut capped = Vec::new();
+            for entry in entries.filter_map(Result::ok) {
+                let Ok(name) = entry.file_name().into_string() else {
+                    continue;
+                };
+                let Ok(meta) = fs::symlink_metadata(entry.path()) else {
+                    continue;
+                };
+                if !meta.is_file() || meta.file_attributes() & 0x400 != 0 {
+                    continue;
+                }
+                if temp_name(&name) {
+                    let _ = fs::remove_file(entry.path());
+                    continue;
+                }
+                let id = match dir {
+                    "plans" => name
+                        .strip_suffix(".json")
+                        .filter(|id| util::record_id(id, "plan-")),
+                    "journal" => name
+                        .strip_suffix(".jsonl")
+                        .filter(|id| util::record_id(id, "clean-")),
+                    _ => None,
+                };
+                if let Some(id) = id {
+                    capped.push((id.to_owned(), entry.path()));
+                }
+            }
+            capped.sort();
+            let excess = capped.len().saturating_sub(60);
+            for (_, path) in capped.into_iter().take(excess) {
+                let _ = fs::remove_file(path);
+            }
+        }
+    }
+}
+
+fn temp_name(name: &str) -> bool {
+    let Some(rest) = name.strip_prefix('.').and_then(|r| r.strip_suffix(".tmp")) else {
+        return false;
+    };
+    let Some((stem, hex)) = rest.rsplit_once('.') else {
+        return false;
+    };
+    !stem.is_empty()
+        && stem
+            .bytes()
+            .all(|b| b.is_ascii_alphanumeric() || b"._-".contains(&b))
+        && hex.len() == 32
+        && hex
+            .bytes()
+            .all(|b| b.is_ascii_digit() || (b'a'..=b'f').contains(&b))
 }
 
 pub(crate) struct DurableFile(File);

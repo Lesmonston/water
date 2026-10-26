@@ -127,6 +127,16 @@ pub(crate) fn scan_in_use(result: &ScanResult, platform: &dyn Platform) -> Value
             } else {
                 &name
             };
+            // SELFTEST STUB: product names for the known browser and tool processes.
+            let label = match label.to_ascii_lowercase().as_str() {
+                "chrome" => "Chrome",
+                "msedge" => "Edge",
+                "brave" => "Brave",
+                "firefox" => "Firefox",
+                "claude" => "Claude",
+                "chrome-headless-shell" => "Chrome 无头浏览器",
+                _ => label,
+            };
             format!("{label} 正在运行，将跳过占用的项")
         };
         saved.insert(g.group_id.clone(), json!({"process_label_zh":text}));
