@@ -1,5 +1,7 @@
 # Water 架构基线
 
+> **2026-10-26 结构调整：** 新主线由四个核心 crate（规则 junk-rules、扫描 junk-scan、进程 process-scan、清理 junk-clean）与 `apps/water` Tauri 宿主组成，界面只传分组 ID 与确认令牌。数据形状见 [checkup-v1 共享模型](../contracts/checkup-v1/MODEL.md)，决定见 [ADR-018](decisions/ADR-018-device-junk-checkup-and-in-app-cleanup.md)。下文第一波结构仍有效，作为复用的安全底座。
+
 状态：A–AB及八补单已验收集成（Windows受控范围）；实际AA→AB同次选择/可选结构证据/独立下载已通过。AC桌面基础、AD同源项目报告、AE Mac研究仅READY，未实现/验收；真实用户scope、自然同意鉴真、生产竞态、macOS、正式桌面扫描与M1未放行。
 
 第一轮的具体数据与Rust API见 [scan v1契约](../contracts/v1/README.md)；工程顺序、工具链及限定范围见 [ADR-002](decisions/ADR-002-wave1-contract-bootstrap.md)。契约材料已冻结不代表Rust实现已存在。

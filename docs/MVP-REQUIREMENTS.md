@@ -1,5 +1,7 @@
 # 首版需求与验收
 
+> **2026-10-26：** 主线需求按 [ADR-018](decisions/ADR-018-device-junk-checkup-and-in-app-cleanup.md) 与 [checkup-v1 契约](../contracts/checkup-v1/MODEL.md) 执行。下表的安全验收矩阵继续有效；“项目目录分析”相关条目降为次要功能，工具覆盖以 [规则登记表 SPEC](../contracts/checkup-v1/RULES.md) 第 5 节为准。
+
 状态：规划基线 v0.1；不代表功能已实现。优先级 P0 为对应里程碑验收门，P1 为门槛满足后追加。
 
 | ID | 优先级/阶段 | 需求 | 可验证结果 |
