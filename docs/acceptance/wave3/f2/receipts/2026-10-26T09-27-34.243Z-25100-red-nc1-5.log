@@ -1,0 +1,29 @@
+{"binary":"C:\\Users\\37310\\.rustup\\toolchains\\1.95.0-x86_64-pc-windows-msvc\\bin\\cargo.exe","args":["--config","source.crates-io.replace-with=\"water-cn\"","--config","source.water-cn.registry=\"sparse+https://mirrors.ustc.edu.cn/crates.io-index/\"","--config","http.multiplexing=false","--config","http.proxy=\"\"","test","--offline","--locked","--manifest-path","apps/water/host/Cargo.toml","--test","host_v1","--","--test-threads=1"],"exitCode":101,"error":null}
+--- stdout ---
+
+running 4 tests
+test host_command_registry ... ok
+test host_config_boundary ... FAILED
+test host_data_directory ... ok
+test host_navigation_boundary ... ok
+
+failures:
+
+---- host_config_boundary stdout ----
+
+thread 'host_config_boundary' (41232) panicked at tests\host_v1.rs:101:9:
+HOST_CONFIG reject capability /permissions
+note: run with `RUST_BACKTRACE=1` environment variable to display a backtrace
+
+
+failures:
+    host_config_boundary
+
+test result: FAILED. 3 passed; 1 failed; 0 ignored; 0 measured; 0 filtered out; finished in 0.06s
+
+
+--- stderr ---
+   Compiling water-desktop v0.1.0 (F:\new\smaltalk\water\.worktrees\w3-f2\apps\water\host)
+    Finished `test` profile [unoptimized + debuginfo] target(s) in 6.63s
+     Running tests\host_v1.rs (.local\w3-target\debug\deps\host_v1-277d54556a0f103e.exe)
+error: test failed, to rerun pass `--test host_v1`
