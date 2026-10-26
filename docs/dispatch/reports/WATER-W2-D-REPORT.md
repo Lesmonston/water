@@ -87,3 +87,83 @@ node F:/new/smaltalk/water/scripts/checkup-wave-check.mjs --task WATER-W2-D
 - 非 Unicode/不合法 Windows 名称导致该项保守跳过，不转成有损路径删除。macOS 未实现和实测；本票仅 Windows 合成范围。没有修改冻结契约，无越界申请。
 
 提交回执后停止本票测试；所有运行命令均已结束，没有本票启动的后台服务或窗口。
+
+## 补单 01
+
+依据 `docs/dispatch/tickets/WATER-W2-D-ADDENDUM-01-20261026.md`。交回状态仍为 SUBMITTED，等待总控复核，没有自行标记 VERIFIED。上文是原执行者的记录，原样保留；本节只记补单内容。
+
+补单执行者：Grok Bot。没有使用子代理或外部实现服务。
+
+- 起点：`d5fb19d78f4369b97eecf6a05eafbadd96f4be6e`（原回执提交），工作树干净，分支 `worker/water-w2-d`。按补单要求没有重跑 baseline，也没有跑 lock；依赖和 Cargo.lock 都没变。
+- 新实现提交：**`a60bd1a0b7625e132caac41da89bdebe292b017d`**（`feat(junk-clean): addendum 01 - ...`）。改了 4 个文件：README.md、src/lib.rs、src/native_windows.rs、tests/clean_v1.rs。check --final 和 test --final 都在这个干净提交上运行（检查器记录 before.head 等于此 SHA，status 为空）。
+- 后续提交只含本回执和检查器归档的证据。
+
+### 两项必须修改
+
+| 补单要求 | 实现 |
+|---|---|
+| 1. 测试不再断言树名 | 删除了 `tests/clean_v1.rs` 中的 `tree.ends_with(".worktrees\\w2-d")`。以下规则保持不变：树根仍为 CARGO_MANIFEST_DIR 上两级，夹具父目录仍为 `.local\w2-d-fixtures`，重解析祖先检查、随机 `fixture-` 名、只回收本次目录也都照旧。新增一条规则：树根下必须存在 `.git`（文件或目录，用 symlink_metadata 判断），否则拒绝运行，提示 `fixture refused: no .git under the work tree root`。这样任意检出位置都能运行。 |
+| 2. 枚举后复核父目录身份 | `native_windows.rs::delete` 枚举目录时，先记录该目录的 `identity_of`（卷序列号加 FileId），枚举完再读一次；两次不一致即中止该项。记录保存在 `listed`。删除每个子项前调用 `listed_parent_intact`，它用 symlink_metadata 逐级检查从条目本身到该父目录的每一级：必须存在、不是重解析点、带 DIRECTORY 属性，并且父目录当前身份等于记录值。任何一条不符就停止该项：failed_entries 加 1，按已删数量报 partial 或 failed，项内其余内容一律不碰。没有新增公开 API，也没有测试开关。 |
+
+### 顺带修正
+
+- 运行状态：只有当某项被 cancelled，或在处理中被停止信号打断时，run 才报 `stopped`。全部项处理完之后才到达的停止信号不再把状态改成 stopped，仍报 `completed`。实现位于 `lib.rs`：`delete` 返回 `(报告, 是否被打断)`，execute 汇总后决定状态。
+- cancelled 项的字节：bytes_freed 为 0，bytes_before 为实际测得值（新增 `cancelled(item, &before)`）。在条目删除前就因停止而中止的项也按这个规则报告。
+- 为了不让父目录复核掩盖 nc2，逐级检查用 DIRECTORY 属性位而不是 `Metadata::is_dir()`（后者对联接返回 false）。链接判断集中在 `is_link`，NC2 标记随之移到 `native_windows.rs:287`。
+
+### 测试（仍为五个测试名，三个负控标记不变）
+
+- `clean_no_follow` 新增一个确定性场景：生成计划后，把条目内的 `inner` 目录改名移走，再在原名处建一个联接，指向另一个合成 decoy 目录。断言如下：decoy/victim 保持原字节（`CLEAN_NO_FOLLOW: swapped-in junction target was traversed`）；decoy 目录仍在；联接本身被删除；该项为 deleted。
+- 以下竞态无法通过公开 API 确定性构造：在某个目录已枚举、但其子项尚未删除的窗口内，把该目录或其中间级换掉。delete 过程中没有回调可插入，补单又禁止测试开关，所以这一分支没有自动测试覆盖，请总控通过代码复核 `native_windows.rs:292` 的 `listed_parent_intact` 及 `delete`（第 313 行起）中的调用点。上面的确定性场景覆盖的是同类替换发生在枚举之前的情形。
+- `clean_partial_stop_journal`：StopWriter 用例断言 cancelled 项 bytes_before 为 `"9"`、bytes_freed 为 `"0"`、run 为 stopped；512 文件用例断言 cancelled 项 bytes_freed 为 `"0"`、run 为 stopped。
+- `clean_report_volume`：新增 LateStop 观察者，在 done==total 时才发停止信号。断言 run 为 completed、该项为 deleted、freed_bytes 为 `"4"`。
+
+### 命令与结果
+
+命令前缀与上文相同，从工作树根运行。时间为 UTC，与证据文件名一致；东京时间（UTC+9）需加 9 小时，例如 07:21:53 UTC 即东京 16:21:53。
+
+| 实际参数 | 时间（UTC）/ 结果 |
+|---|---|
+| `--mode check` | 07:21:53，exit 0；fmt 和 clippy -D warnings 通过。 |
+| `--mode test` | 07:22:10，exit 0，五测全绿（实现尚未提交）。 |
+| `--mode red-nc1` | 07:22:56，检查器 exit 1：`Negative controls must not edit tests`。原因是检查器拿负控与 HEAD 比较，而新测试还没提交。随即 checkout 恢复 lib.rs，先提交实现，再在提交后的字节上重做三条负控。这次失败不计入负控证明，证据原样归档。 |
+| `--mode red-nc1` | 07:23:56，检查器 exit 0；Cargo exit 101，4 过 1 失败，命中 CLEAN_IDENTITY。 |
+| `--mode test` | 07:24:42，checkout 恢复后立即运行，exit 0，五测全绿。 |
+| `--mode red-nc2` | 07:24:57，检查器 exit 0；Cargo exit 101，4 过 1 失败（clean_no_follow），命中 CLEAN_NO_FOLLOW。 |
+| `--mode test` | 07:25:24，checkout 恢复后立即运行，exit 0，五测全绿。 |
+| `--mode red-nc3` | 07:25:41，检查器 exit 0；Cargo exit 101，2 过 3 失败，命中 CLEAN_ROOT_BOUND，各拒绝性断言也同时变红。没有编译错误，也没有超时。 |
+| `--mode test` | 07:26:08，checkout 恢复后立即运行，exit 0，五测全绿。 |
+| `--mode check --final` | 07:26:23，exit 0，在干净提交 a60bd1a0 上运行。 |
+| `--mode test --final` | 07:26:36，exit 0，在干净提交 a60bd1a0 上运行。5 过，0 failed、0 ignored、0 measured、0 filtered，测试用时 0.72 秒；三条 proofAudit（nc1、nc2、nc3 各与其恢复绿配对）通过。 |
+| `--mode archive` | 07:26:47，exit 0；累计归档 410 个文件，共 3,908,106 字节。 |
+
+格式化只用了固定版本 1.95.0 的 rustfmt，并设置 RUSTUP_AUTO_INSTALL=0。没有运行其它测试目标，也没有运行真实模式。
+
+### 三条新负控（新字节、实现提交 a60bd1a0 的行号）
+
+每条负控只改一个实际调用到的生产行，不改测试。跑完 red 后立即用 `git -c core.hooksPath=NUL -c core.fsmonitor=false checkout -- <该文件>` 恢复，再跑一次完整五测。
+
+| 负控 | 坏态修改 | 命中的失败信息 | 恢复证明 |
+|---|---|---|---|
+| nc1 | src/lib.rs:82，`if actual != item.identity` 改为 `if false && actual != item.identity` | `CLEAN_IDENTITY: replacement was accepted` | lib.rs 恢复后 SHA-256 为 `5cf5089bf5c43f6cdb4b6cffb79f0ff6eb3148152e53b4a168eee67b0bebdf37`；07:24:42 五测通过。 |
+| nc2 | src/native_windows.rs:287，`is_link` 中 `meta.file_attributes() & REPARSE != 0` 前加 `false &&`，联接因此被当作目录枚举 | `CLEAN_NO_FOLLOW: junction target was traversed` | native_windows.rs 恢复后 SHA-256 为 `c0b84b3405cee342b3e937d23361e47380a25818702bff0f0b59fd3e82b30e5d`；07:25:24 五测通过。 |
+| nc3 | src/native_windows.rs:173，`check_chain_impl(item)` 改为 `Ok(())` | `CLEAN_ROOT_BOUND: intermediate junction allowed` | native_windows.rs 恢复后的 SHA-256 与上行相同；07:26:08 五测通过。 |
+
+新的最终哈希：
+- 聚合 productionHash：`480bd1b083c6d5f7009df57609a26a91e698a91e0490dfba6d99abdbde805592`
+- 聚合 testHash：`d398e1a80e87f59e3226d3801e0dee973707eb58cdfe65a25890e49795696dc8`
+- 测试文件 SHA-256：`8b6ead516d39097ef007319c60ae5d953a1d7722cfa76ec9ba01cae769c065d6`
+
+关键证据：
+
+- [归档索引](../../acceptance/wave2/d/ARCHIVE.json)
+- [final check](../../acceptance/wave2/d/receipts/2026-10-26T07-26-23.123Z-24272-check-result.json)
+- [final test 与 proofAudit](../../acceptance/wave2/d/receipts/2026-10-26T07-26-36.606Z-44000-test-result.json)
+- [final 五测原始日志](../../acceptance/wave2/d/receipts/2026-10-26T07-26-36.606Z-44000-test-5.log)
+- 负控：[nc1](../../acceptance/wave2/d/receipts/2026-10-26T07-23-56.251Z-37152-red-nc1-result.json)、[nc2](../../acceptance/wave2/d/receipts/2026-10-26T07-24-57.880Z-37848-red-nc2-result.json)、[nc3](../../acceptance/wave2/d/receipts/2026-10-26T07-25-41.679Z-20252-red-nc3-result.json)
+
+### 补单后的边界与未验证项
+
+- 父目录身份复核缩小了竞态窗口，但没有消除。标准库按路径删除时，“检查”与“remove_file/remove_dir”之间仍有窗口，本票不宣称能抵御恶意并发替换；按句柄相对路径删除留待以后的 CLEAN 升级。
+- “枚举后、删子项前被替换”这一分支没有确定性自动测试，原因见上文，需要代码复核。
+- 仍然没有真实模式，没有触碰真实用户文件，也没有 push、merge、rebase 或修改台账。上文原有的其余边界说明继续有效。
