@@ -1,7 +1,7 @@
 {
   "schemaVersion": 1,
   "wave": "water-wave2-checkup",
-  "status": "A_E_REVISION_DISPATCHED",
+  "status": "A_E_VERIFIED_INTEGRATED",
   "controller": "Claude",
   "controllerRoot": "F:/new/smaltalk/water",
   "controllerBranch": "main",
@@ -64,7 +64,7 @@
     {
       "id": "WATER-W2-A",
       "title": "规则登记表",
-      "status": "REVISION_DISPATCHED",
+      "status": "VERIFIED",
       "slot": "w2-a",
       "kind": "rust",
       "worktree": "F:/new/smaltalk/water/.worktrees/w2-a",
@@ -143,7 +143,7 @@
       "baselineEvidence": "docs/acceptance/wave2/controller/preflight-20261026/WATER-W2-A-2026-10-26T04-30-52.332Z-3260-baseline-result.json",
       "readyOn": "2026-10-26",
       "submittedHead": "3cc09105741341626234d380958af97b69c055a1",
-      "implementationCommit": "cb41b1e2007cbbbc77dd34679875f32206ec2003",
+      "implementationCommit": "60eada848b5186acdd18a0af1aa3c10ee6a6bd8c",
       "controllerReview": {
         "reviewedAt": "2026-10-26T07:06:09Z",
         "review": "docs/acceptance/wave2/controller/WATER-W2-AE-REVIEW-20261026.md",
@@ -157,21 +157,38 @@
         {
           "id": "WATER-W2-A-ADDENDUM-01",
           "ticket": "docs/dispatch/tickets/WATER-W2-A-ADDENDUM-01-20261026.md",
-          "status": "DISPATCHED",
+          "status": "COMPLETED",
           "issuedAt": "2026-10-26T07:06:09Z",
           "resumeFromCommit": "3cc09105741341626234d380958af97b69c055a1",
           "change": "protection precedence was loosened (root cause: RULES.md section 3 rule rejects its own seed set); new glob rule and explicit browser profile locators",
           "dispatchedAt": null,
           "dispatchReportedAt": "2026-10-26T07:15:41Z",
           "executor": "grokbot (user-reported, fresh conversation; exact model unverified until worker report)",
-          "dispatchEvidence": "user chat 2026-10-26: backend addenda to grokbot, UI addendum to Astra; worktree clean at resumeFromCommit when recorded"
+          "dispatchEvidence": "user chat 2026-10-26: backend addenda to grokbot, UI addendum to Astra; worktree clean at resumeFromCommit when recorded",
+          "completedCommit": "60eada848b5186acdd18a0af1aa3c10ee6a6bd8c",
+          "submittedHead": "def8db146d2401f38e36e47e7f817e4806004afc"
         }
-      ]
+      ],
+      "verifiedAt": "2026-10-26T08:12:29Z",
+      "acceptedCommit": "def8db146d2401f38e36e47e7f817e4806004afc",
+      "integrationCommit": "f57ab7eddeba554c7739bc77b25dcb5837c08b14",
+      "integrationBranch": "main",
+      "addendumModel": "Grok Bot (worker self-report, addendum 01)",
+      "controllerReview2": {
+        "reviewedAt": "2026-10-26T08:12:29Z",
+        "review": "docs/acceptance/wave2/controller/WATER-W2-AE-REVIEW-2-20261026.md",
+        "evidence": "docs/acceptance/wave2/controller/accept2-20261026/a/",
+        "mechanicalAudit": "passed",
+        "freshTreeRerun": "passed",
+        "controllerNegativeControls": "passed",
+        "verdict": "VERIFIED"
+      },
+      "verificationScope": "Windows x64, offline Rust 1.95 / Node 24 gates in a fresh controller tree; controller negative controls; real path-existence smoke. macOS not verified."
     },
     {
       "id": "WATER-W2-B",
       "title": "体检扫描引擎",
-      "status": "REVISION_DISPATCHED",
+      "status": "VERIFIED",
       "slot": "w2-b",
       "kind": "rust",
       "worktree": "F:/new/smaltalk/water/.worktrees/w2-b",
@@ -250,7 +267,7 @@
       "baselineEvidence": "docs/acceptance/wave2/controller/preflight-20261026/WATER-W2-B-2026-10-26T04-30-56.829Z-35724-baseline-result.json",
       "readyOn": "2026-10-26",
       "submittedHead": "79cd9d38234293ebdb24dd5153f1cc3e8954b10a",
-      "implementationCommit": "35c94d2b22c914656470a4b64e5c1e6170dea0dd",
+      "implementationCommit": "e8be8512dc4fa36b6c4e75a8fa23de3bfd571228",
       "controllerReview": {
         "reviewedAt": "2026-10-26T07:06:09Z",
         "review": "docs/acceptance/wave2/controller/WATER-W2-AE-REVIEW-20261026.md",
@@ -264,21 +281,38 @@
         {
           "id": "WATER-W2-B-ADDENDUM-01",
           "ticket": "docs/dispatch/tickets/WATER-W2-B-ADDENDUM-01-20261026.md",
-          "status": "DISPATCHED",
+          "status": "COMPLETED",
           "issuedAt": "2026-10-26T07:06:09Z",
           "resumeFromCommit": "79cd9d38234293ebdb24dd5153f1cc3e8954b10a",
           "change": "discovery exclusion inverted; non-ASCII path slicing panic; repository guard lost after budget stop; bare GUID; per-day rate",
           "dispatchedAt": null,
           "dispatchReportedAt": "2026-10-26T07:15:41Z",
           "executor": "grokbot (user-reported, fresh conversation; exact model unverified until worker report)",
-          "dispatchEvidence": "user chat 2026-10-26: backend addenda to grokbot, UI addendum to Astra; worktree clean at resumeFromCommit when recorded"
+          "dispatchEvidence": "user chat 2026-10-26: backend addenda to grokbot, UI addendum to Astra; worktree clean at resumeFromCommit when recorded",
+          "completedCommit": "e8be8512dc4fa36b6c4e75a8fa23de3bfd571228",
+          "submittedHead": "8f5913de1391bbf9cdd5099639a02e3c1c262abd"
         }
-      ]
+      ],
+      "verifiedAt": "2026-10-26T08:12:29Z",
+      "acceptedCommit": "8f5913de1391bbf9cdd5099639a02e3c1c262abd",
+      "integrationCommit": "8ac0a2f795ef6a71c5f93b14cb03c60bdead535b",
+      "integrationBranch": "main",
+      "addendumModel": "Grok Bot (worker self-report, addendum 01)",
+      "controllerReview2": {
+        "reviewedAt": "2026-10-26T08:12:29Z",
+        "review": "docs/acceptance/wave2/controller/WATER-W2-AE-REVIEW-2-20261026.md",
+        "evidence": "docs/acceptance/wave2/controller/accept2-20261026/b/",
+        "mechanicalAudit": "passed",
+        "freshTreeRerun": "passed",
+        "controllerNegativeControls": "passed",
+        "verdict": "VERIFIED"
+      },
+      "verificationScope": "Windows x64, offline Rust 1.95 / Node 24 gates in a fresh controller tree; controller negative controls; real group sizes within 0.03% of controller measurement. macOS not verified."
     },
     {
       "id": "WATER-W2-C",
       "title": "进程快照与在用判断",
-      "status": "REVISION_DISPATCHED",
+      "status": "VERIFIED",
       "slot": "w2-c",
       "kind": "rust",
       "worktree": "F:/new/smaltalk/water/.worktrees/w2-c",
@@ -356,7 +390,7 @@
       "baselineEvidence": "docs/acceptance/wave2/controller/preflight-20261026/WATER-W2-C-2026-10-26T04-31-03.579Z-19084-baseline-result.json",
       "readyOn": "2026-10-26",
       "submittedHead": "ed224e39792fe740e517d1caad4f991973c80b73",
-      "implementationCommit": "ec0b5f23ced2e538cfb817b7592996cd72b4095d",
+      "implementationCommit": "39539a1ee9524f06b339fd9c2ecfbbee10ec1880",
       "controllerReview": {
         "reviewedAt": "2026-10-26T07:06:09Z",
         "review": "docs/acceptance/wave2/controller/WATER-W2-AE-REVIEW-20261026.md",
@@ -370,21 +404,38 @@
         {
           "id": "WATER-W2-C-ADDENDUM-01",
           "ticket": "docs/dispatch/tickets/WATER-W2-C-ADDENDUM-01-20261026.md",
-          "status": "DISPATCHED",
+          "status": "COMPLETED",
           "issuedAt": "2026-10-26T07:06:09Z",
           "resumeFromCommit": "ed224e39792fe740e517d1caad4f991973c80b73",
           "change": "test cleanup can kill unrelated processes (descendants, /T, PID reuse); descendant PID reuse; multibyte slicing",
           "dispatchedAt": null,
           "dispatchReportedAt": "2026-10-26T07:15:41Z",
           "executor": "grokbot (user-reported, fresh conversation; exact model unverified until worker report)",
-          "dispatchEvidence": "user chat 2026-10-26: backend addenda to grokbot, UI addendum to Astra; worktree clean at resumeFromCommit when recorded"
+          "dispatchEvidence": "user chat 2026-10-26: backend addenda to grokbot, UI addendum to Astra; worktree clean at resumeFromCommit when recorded",
+          "completedCommit": "39539a1ee9524f06b339fd9c2ecfbbee10ec1880",
+          "submittedHead": "51a2d5da0ca055dc949346c30331da77700aa7f9"
         }
-      ]
+      ],
+      "verifiedAt": "2026-10-26T08:12:29Z",
+      "acceptedCommit": "51a2d5da0ca055dc949346c30331da77700aa7f9",
+      "integrationCommit": "a7e0ea266f61263c1add4e57f20df9d52af9b897",
+      "integrationBranch": "main",
+      "addendumModel": "Grok Bot (worker self-report, addendum 01)",
+      "controllerReview2": {
+        "reviewedAt": "2026-10-26T08:12:29Z",
+        "review": "docs/acceptance/wave2/controller/WATER-W2-AE-REVIEW-2-20261026.md",
+        "evidence": "docs/acceptance/wave2/controller/accept2-20261026/c/",
+        "mechanicalAudit": "passed",
+        "freshTreeRerun": "passed",
+        "controllerNegativeControls": "passed",
+        "verdict": "VERIFIED"
+      },
+      "verificationScope": "Windows x64, offline Rust 1.95 / Node 24 gates in a fresh controller tree; controller negative controls; real process counts consistent with live counts. macOS not verified."
     },
     {
       "id": "WATER-W2-D",
       "title": "清理执行器（重门）",
-      "status": "REVISION_DISPATCHED",
+      "status": "VERIFIED",
       "slot": "w2-d",
       "kind": "rust",
       "worktree": "F:/new/smaltalk/water/.worktrees/w2-d",
@@ -465,7 +516,7 @@
       "baselineEvidence": "docs/acceptance/wave2/controller/preflight-20261026/WATER-W2-D-2026-10-26T04-31-10.642Z-43948-baseline-result.json",
       "readyOn": "2026-10-26",
       "submittedHead": "d5fb19d78f4369b97eecf6a05eafbadd96f4be6e",
-      "implementationCommit": "adce53ecc4765d5aef8f7ae4ba120f086ca9c336",
+      "implementationCommit": "a60bd1a0b7625e132caac41da89bdebe292b017d",
       "controllerReview": {
         "reviewedAt": "2026-10-26T07:06:09Z",
         "review": "docs/acceptance/wave2/controller/WATER-W2-AE-REVIEW-20261026.md",
@@ -479,21 +530,38 @@
         {
           "id": "WATER-W2-D-ADDENDUM-01",
           "ticket": "docs/dispatch/tickets/WATER-W2-D-ADDENDUM-01-20261026.md",
-          "status": "DISPATCHED",
+          "status": "COMPLETED",
           "issuedAt": "2026-10-26T07:06:09Z",
           "resumeFromCommit": "d5fb19d78f4369b97eecf6a05eafbadd96f4be6e",
           "change": "tests hard-code the .worktrees/w2-d tree name; narrow the in-item swap window by re-checking parent identity",
           "dispatchedAt": null,
           "dispatchReportedAt": "2026-10-26T07:15:41Z",
           "executor": "grokbot (user-reported, fresh conversation; exact model unverified until worker report)",
-          "dispatchEvidence": "user chat 2026-10-26: backend addenda to grokbot, UI addendum to Astra; worktree clean at resumeFromCommit when recorded"
+          "dispatchEvidence": "user chat 2026-10-26: backend addenda to grokbot, UI addendum to Astra; worktree clean at resumeFromCommit when recorded",
+          "completedCommit": "a60bd1a0b7625e132caac41da89bdebe292b017d",
+          "submittedHead": "6691d3e5695b2479083f3bf9d529abf7f5cd2baf"
         }
-      ]
+      ],
+      "verifiedAt": "2026-10-26T08:12:29Z",
+      "acceptedCommit": "6691d3e5695b2479083f3bf9d529abf7f5cd2baf",
+      "integrationCommit": "610dc4beda7941899e4629dacf6f857708260708",
+      "integrationBranch": "main",
+      "addendumModel": "Grok Bot (worker self-report, addendum 01)",
+      "controllerReview2": {
+        "reviewedAt": "2026-10-26T08:12:29Z",
+        "review": "docs/acceptance/wave2/controller/WATER-W2-AE-REVIEW-2-20261026.md",
+        "evidence": "docs/acceptance/wave2/controller/accept2-20261026/d/",
+        "mechanicalAudit": "passed",
+        "freshTreeRerun": "passed",
+        "controllerNegativeControls": "passed",
+        "verdict": "VERIFIED"
+      },
+      "verificationScope": "Windows x64, offline Rust 1.95 / Node 24 gates in a fresh controller tree; controller negative controls; controller synthetic junction/identity/lock/plan cases; no real deletion. macOS not verified."
     },
     {
       "id": "WATER-W2-E",
       "title": "桌面界面（白色磨砂玻璃）",
-      "status": "REVISION_DISPATCHED",
+      "status": "VERIFIED",
       "slot": "w2-e",
       "kind": "ui",
       "gate": "light",
@@ -637,7 +705,7 @@
         {
           "id": "WATER-W2-E-ADDENDUM-02",
           "ticket": "docs/dispatch/tickets/WATER-W2-E-ADDENDUM-02-20261026.md",
-          "status": "DISPATCHED",
+          "status": "COMPLETED",
           "issuedAt": "2026-10-26T07:06:09Z",
           "resumeFromCommit": "8dba99fb9253551ef15c1cc6ff8fc8841552d99e",
           "change": "progress-failure handling, number formatting and smaller behavior fixes; trend chart, sort order, dock button and vial visual deviations",
@@ -645,11 +713,13 @@
           "dispatchReportedAt": "2026-10-26T07:15:41Z",
           "executor": "Astra (user-reported, fresh conversation; exact model unverified until worker report)",
           "dispatchEvidence": "user chat 2026-10-26: backend addenda to grokbot, UI addendum to Astra; worktree clean at resumeFromCommit when recorded",
-          "decision": "user dispatched E-02 as written: Service Worker CacheStorage stays confirm-level, default unselected"
+          "decision": "user dispatched E-02 as written: Service Worker CacheStorage stays confirm-level, default unselected",
+          "completedCommit": "f416527ef98524bc1e9ce6ae567fbc0e22c9e0dd",
+          "submittedHead": "f0173888f070edb6c771b29094c214b0e817dbe6"
         }
       ],
       "submittedHead": "8dba99fb9253551ef15c1cc6ff8fc8841552d99e",
-      "implementationCommit": "7f81796721526e308b2b3768fd44aab47cd4daba",
+      "implementationCommit": "f416527ef98524bc1e9ce6ae567fbc0e22c9e0dd",
       "controllerReview": {
         "reviewedAt": "2026-10-26T07:06:09Z",
         "review": "docs/acceptance/wave2/controller/WATER-W2-AE-REVIEW-20261026.md",
@@ -658,7 +728,22 @@
         "freshTreeRerun": "passed",
         "controllerNegativeControls": "passed",
         "verdict": "revision required"
-      }
+      },
+      "verifiedAt": "2026-10-26T08:12:29Z",
+      "acceptedCommit": "f0173888f070edb6c771b29094c214b0e817dbe6",
+      "integrationCommit": "8b33aeced78e10c495f5ab4a17cdee04bdafabdf",
+      "integrationBranch": "main",
+      "addendumModel": "Codex GPT-6 via Astra (worker self-report, addendum 02)",
+      "controllerReview2": {
+        "reviewedAt": "2026-10-26T08:12:29Z",
+        "review": "docs/acceptance/wave2/controller/WATER-W2-AE-REVIEW-2-20261026.md",
+        "evidence": "docs/acceptance/wave2/controller/accept2-20261026/e/",
+        "mechanicalAudit": "passed",
+        "freshTreeRerun": "passed",
+        "controllerNegativeControls": "passed",
+        "verdict": "VERIFIED"
+      },
+      "verificationScope": "Windows x64, offline Rust 1.95 / Node 24 gates in a fresh controller tree; controller negative controls; replay-fixture browser tests and controller screenshot review; no Tauri host. macOS not verified."
     }
   ],
   "preflightStatus": "PASSED",

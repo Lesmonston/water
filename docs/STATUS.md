@@ -35,6 +35,8 @@ A–AB及八补单、AD保持VERIFIED；AC/补单06新增VERIFIED（Windows静�
 
 **补单派出（16:15 JST 用户告知）**：A-01、B-01、C-01、D-01 交 grokbot，E-02 交 Astra，均为新开对话。E-02 按原文派出，即“网站离线数据”保持需要确认、默认不选。派出时五个工作树都停在续做起点、干净。
 
+**第二波 A–E 全部 VERIFIED 并集成（2026-10-26 17:12 JST）**：补单复验通过，见[第 2 轮验收报告](acceptance/wave2/controller/WATER-W2-AE-REVIEW-2-20261026.md)。B 的真实体量与总控独立测量 8 组相差都在 0.03% 以内；D 的测试已不依赖树名，总控合成用例全过；E 的四处视觉偏差已修好。五个执行者分支以 `--no-ff` 合入主线。下一步是设计第三波 F（桌面接线）。
+
 ## 真实AA→AD联合验收通过（2026-10-26）
 
 新总控（Claude）接任后按事先冻结的[计划](acceptance/wave1/controller/WATER-W1-AAAD-JOINT-PLAN-20261026.md)执行一次：真实固定AA宿主→原生目录选择→R/Z→AB传输→AD同源报告页，四场景全部通过，4窗/9.993秒/无重试/手动终止0。报告页鼠标下载的Q与Z与当次原字符串逐字节一致，淘汰与正常关闭通过。见[联合验收报告](acceptance/wave1/controller/WATER-W1-AAAD-JOINT-REVIEW-20261026.md)。31任务/槽位不变，没有新READY票；桌面接入扫描、真实用户scope、自然同意鉴真、生产竞态、macOS与M1仍未验收。用户同日要求先暂停安排后续任务，结合本机清理经验重订计划；总控草案见[计划重订（待拍板）](REPLAN-20261026-AGENT-ERA-CHECKUP.md)，拍板前不出新票。

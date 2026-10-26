@@ -1,0 +1,70 @@
+{
+ "a": [
+  {
+   "label": "nc1",
+   "file": "packages/junk-rules/src/rules.rs",
+   "old": "if left_base != right_base || right_segments.len() < left_segments.len() {",
+   "new": "if left_base != right_base || right_segments.len() != left_segments.len() {",
+   "why": "only same-depth protected locators are compared, so a deeper protected pattern is missed"
+  }
+ ],
+ "b": [
+  {
+   "label": "nc1",
+   "file": "packages/junk-scan/src/scan.rs",
+   "old": "    let kind = if attrs & REPARSE != 0 {",
+   "new": "    let kind = if attrs & REPARSE != 0 && attrs & DIRECTORY == 0 {",
+   "why": "directory junctions are classified as plain directories (round 1 this was caught without the SCAN_NO_FOLLOW token; B-01 required the token on every no-follow assertion)"
+  }
+ ],
+ "c": [
+  {
+   "label": "nc1",
+   "file": "packages/process-scan/src/lib.rs",
+   "old": "matches!(next, None | Some(' '",
+   "new": "matches!(next, None | Some('a'..='z' | ' '",
+   "why": "a following letter is accepted as a path boundary"
+  }
+ ],
+ "d": [
+  {
+   "label": "nc1",
+   "file": "packages/junk-clean/src/lib.rs",
+   "old": "    if actual != item.identity {",
+   "new": "    if actual.volume_serial != item.identity.volume_serial {",
+   "why": "identity compares only the volume serial"
+  },
+  {
+   "label": "nc2",
+   "file": "packages/junk-clean/src/native_windows.rs",
+   "old": "        fs::symlink_metadata(path).map_err(|e| {",
+   "new": "        fs::metadata(path).map_err(|e| {",
+   "why": "metadata helper follows links"
+  },
+  {
+   "label": "nc3",
+   "file": "packages/junk-clean/src/native_windows.rs",
+   "old": "            if meta.file_attributes() & REPARSE != 0 {\n                return Err(if last {",
+   "new": "            if meta.file_attributes() & REPARSE != 0 && last {\n                return Err(if last {",
+   "why": "chain check only rejects a reparse point at the item itself"
+  }
+ ],
+ "e": [
+  {
+   "label": "nc1",
+   "file": "apps/water/ui/model.mjs",
+   "old": "filter(g => canSelect(g) && g.default_selected)",
+   "new": "filter(g => g.default_selected)",
+   "why": "default selection trusts default_selected without the selectable check"
+  }
+ ],
+ "d_nc2b": [
+  {
+   "label": "nc2",
+   "file": "packages/junk-clean/src/native_windows.rs",
+   "old": "meta.file_attributes() & REPARSE != 0 // NC2",
+   "new": "meta.file_attributes() & REPARSE != 0 && meta.is_file() // NC2",
+   "why": "only file symlinks count as links, so directory junctions are entered (defeats both the traversal link check and the listed-parent recheck; the first controller nc2, link-following metadata, was stopped by the new parent recheck before any external file was touched)"
+  }
+ ]
+}
