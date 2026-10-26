@@ -10,7 +10,7 @@ use serde_json::{Value, json};
 use std::{
     collections::{BTreeMap, BTreeSet},
     path::Path,
-    sync::{Arc, Mutex},
+    sync::{Arc, Mutex, PoisonError},
     time::{Duration, Instant},
 };
 use water_junk_rules::{KnownFolders, RuleSet};
@@ -148,6 +148,9 @@ pub(crate) struct State {
     pub records: Vec<Arc<Record>>,
     pub last: Option<String>,
     pub consumed: BTreeSet<String>,
+    /// Scans completed by this process. Only these can be a cleaning source; records read
+    /// back from disk are shown but never trusted for `clean_prepare`.
+    pub local_scans: BTreeSet<String>,
     pub plans: BTreeMap<String, Value>,
     pub stale_plans: BTreeSet<String>,
     pub cleans: BTreeMap<String, Value>,
@@ -184,8 +187,9 @@ pub struct Service {
     pub(crate) core: Arc<Core>,
 }
 
+/// A poisoned state lock is recovered: the data is used as it is, never left unusable.
 pub(crate) fn lock(core: &Core) -> Result<std::sync::MutexGuard<'_, State>, IpcError> {
-    core.state.lock().map_err(|_| IpcError::new("unavailable"))
+    Ok(core.state.lock().unwrap_or_else(PoisonError::into_inner))
 }
 
 fn idle_scan() -> Value {
@@ -225,7 +229,7 @@ impl Service {
             .filter(|r| r.saved["consumed"] == true)
             .map(|r| r.result.scan_id.clone())
             .collect();
-        let plans: BTreeMap<_, _> = store
+        let mut plans: BTreeMap<_, _> = store
             .records("plans")
             .into_iter()
             .filter(|(id, v)| {
@@ -266,6 +270,12 @@ impl Service {
                         .is_some()
             })
             .collect();
+        // Storage tidy (SERVICE-HARDENING §4); plans whose file was removed are dropped here too.
+        for id in store.tidy() {
+            plans.remove(&id);
+        }
+        // Plans read back from disk are records only and can never be executed.
+        let stale_plans = plans.keys().cloned().collect();
         let clean_order = clean_records.iter().map(|(id, _)| id.clone()).collect();
         let cleans = clean_records.into_iter().collect();
         let mut state = State {
@@ -273,8 +283,9 @@ impl Service {
             records: records.into_iter().map(Arc::new).collect(),
             last,
             consumed,
+            local_scans: BTreeSet::new(),
             plans,
-            stale_plans: BTreeSet::new(),
+            stale_plans,
             cleans,
             clean_order,
             busy: "idle",
@@ -300,6 +311,14 @@ impl Service {
     }
 
     pub fn call(&self, command: &str, args: Value) -> Result<Value, IpcError> {
+        // A panic anywhere in a command becomes the fixed unavailable error.
+        std::panic::catch_unwind(std::panic::AssertUnwindSafe(|| {
+            self.dispatch(command, args)
+        }))
+        .unwrap_or_else(|_| Err(IpcError::new("unavailable")))
+    }
+
+    fn dispatch(&self, command: &str, args: Value) -> Result<Value, IpcError> {
         let core = &self.core;
         // The switch answers first: a disabled build never inspects cleaning arguments.
         if matches!(command, "clean_prepare" | "clean_start") && !core.clean_enabled {
@@ -452,6 +471,7 @@ impl Service {
         // A new scan consumes the previous scan's authority to prepare/execute plans,
         // even when the new scan is subsequently cancelled. Persist before scanning.
         let previous = s.last_record();
+        let s_last = s.last.clone();
         if let Some(previous) = &previous {
             s.consumed.insert(previous.result.scan_id.clone());
         }
@@ -462,48 +482,39 @@ impl Service {
         s.busy = "scanning";
         s.scan_progress = json!({"scan_id":id,"state":"running","categories":progress_categories,"visited_entries":0,"found_bytes":"0","percent":0,"elapsed_ms":0});
         drop(s);
-        let worker_core = core.clone();
-        let worker_id = id.clone();
-        let spawned=std::thread::Builder::new().name("water-scan".into()).spawn(move|| {
-            let started=Instant::now();
-            let observer=Progress {core:worker_core.clone(),plan:plan.clone(),reported:Mutex::new(BTreeMap::new()),last_found:Mutex::new(0),started};
-            let result=std::panic::catch_unwind(std::panic::AssertUnwindSafe(||{
-                if let Some(previous)=&previous {
-                    let mut invalidated=previous.saved.clone();invalidated["consumed"]=json!(true);
-                    if worker_core.store.write("scans",&format!("{}.json",previous.result.scan_id),&invalidated).is_err() {return Err(scan::ScanError::Native);}
+        let job = ScanJob {
+            core: core.clone(),
+            id: id.clone(),
+            previous,
+            plan,
+            plan_json,
+            parsed,
+            cancel,
+            settings,
+            at,
+        };
+        let previous_last = s_last;
+        let spawned = std::thread::Builder::new()
+            .name("water-scan".into())
+            .spawn(move || {
+                let worker_core = job.core.clone();
+                let worker_id = job.id.clone();
+                // The whole task is guarded, not only the scanner call.
+                let guarded = std::panic::catch_unwind(std::panic::AssertUnwindSafe(|| job.run()));
+                if guarded.is_err() {
+                    let mut s = worker_core
+                        .state
+                        .lock()
+                        .unwrap_or_else(PoisonError::into_inner);
+                    if s.last.as_deref() == Some(worker_id.as_str()) {
+                        s.last = previous_last;
+                    }
+                    s.local_scans.remove(&worker_id);
+                    s.scan_progress["state"] = json!("failed");
+                    s.busy = "idle";
+                    s.cancel = None;
                 }
-                worker_core.platform.begin_in_use_batch();
-                scan::scan(&parsed,&worker_id,&scan::ScanOptions::default(),&cancel,&observer,at)
-            }));
-            let result=match result {
-                Ok(Ok(v))=>v,
-                _=>scan::ScanResult {result_version:"water.scan-result.v1".into(),scan_id:worker_id.clone(),started_at:util::timestamp(at),ended_at:util::timestamp(worker_core.platform.now()),status:"failed".into(),visited_entries:0,groups:vec![],items:vec![],issues:vec![]},
-            };
-            let snapshot=scan::snapshot(&result);
-            let growth=if matches!(result.status.as_str(),"completed"|"partial") { previous.as_ref().map(|p|scan::growth(&scan::snapshot(&p.result),&snapshot)).unwrap_or_default() } else {vec![]};
-            let drives=worker_core.platform.drives().into_iter().map(|d|json!({"root":d.root,"is_system":d.is_system,"total_bytes":d.total_bytes.to_string(),"free_bytes":d.free_bytes.to_string()})).collect::<Vec<_>>();
-            // Still inside this scan's in-use batch; the result is saved and views reuse it.
-            let in_use=views::scan_in_use(&result,worker_core.platform.as_ref());
-            let saved=json!({"record_version":"water.scan-record.v1","scan_id":worker_id,"started_at":result.started_at,"finished_at":result.ended_at,"duration_ms":started.elapsed().as_millis() as u64,"drives":drives,"plan":serde_json::from_str::<Value>(&plan_json).expect("plan JSON"),"result":result,"growth":growth,"previous_scan_id":previous.as_ref().map(|p|&p.result.scan_id),"consumed":false,"in_use":in_use});
-            let mut record=Record {saved,result,plan,growth,previous_at:previous.as_ref().map(|p|p.result.ended_at.clone()),view:Value::Null,details:BTreeMap::new()};
-            (record.view,record.details)=views::build(&record,&worker_core.rules,worker_core.platform.as_ref(),&settings);
-            let stored=worker_core.store.write("snapshots",&format!("{worker_id}.json"),&json!(snapshot)).and_then(|()|worker_core.store.write("scans",&format!("{worker_id}.json"),&record.saved));
-            if let Ok(mut s)=lock(&worker_core) {
-                s.scan_progress["state"]=json!(if stored.is_ok(){record.result.status.as_str()}else{"failed"});
-                s.scan_progress["percent"]=json!(100);
-                s.scan_progress["elapsed_ms"]=json!(started.elapsed().as_millis() as u64);
-                s.scan_progress["visited_entries"]=json!(record.result.visited_entries);
-                s.scan_progress["found_bytes"]=json!(record.result.groups.iter().map(|g|util::number(&g.total_bytes)).sum::<u64>().to_string());
-                for row in s.scan_progress["categories"].as_array_mut().expect("progress categories") {
-                    let total=record.view["categories"].as_array().expect("view categories").iter().filter(|c|c["category"]==row["category"] && c["title_zh"]==row["title_zh"]).map(|c|util::bytes(&c["total_bytes"])).sum::<u64>();
-                    row["found_bytes"]=json!(total.to_string());
-                }
-                if record.completed() && stored.is_ok() {s.last=Some(worker_id.clone());}
-                s.records.push(Arc::new(record));
-                trim(&worker_core.store,&mut s);
-                s.busy="idle";s.cancel=None;
-            }
-        });
+            });
         if spawned.is_err() {
             let mut s = lock(&core)?;
             s.busy = "idle";
@@ -571,6 +582,160 @@ impl Service {
     }
 }
 
+struct ScanJob {
+    core: Arc<Core>,
+    id: String,
+    previous: Option<Arc<Record>>,
+    plan: water_junk_rules::ScanPlan,
+    plan_json: String,
+    parsed: scan::ScanPlan,
+    cancel: scan::CancelToken,
+    settings: Settings,
+    at: std::time::SystemTime,
+}
+
+impl ScanJob {
+    fn run(self) {
+        let ScanJob {
+            core: worker_core,
+            id: worker_id,
+            previous,
+            plan,
+            plan_json,
+            parsed,
+            cancel,
+            settings,
+            at,
+        } = self;
+        let started = Instant::now();
+        let observer = Progress {
+            core: worker_core.clone(),
+            plan: plan.clone(),
+            reported: Mutex::new(BTreeMap::new()),
+            last_found: Mutex::new(0),
+            started,
+        };
+        let result = std::panic::catch_unwind(std::panic::AssertUnwindSafe(|| {
+            if let Some(previous) = &previous {
+                let mut invalidated = previous.saved.clone();
+                invalidated["consumed"] = json!(true);
+                if worker_core
+                    .store
+                    .write(
+                        "scans",
+                        &format!("{}.json", previous.result.scan_id),
+                        &invalidated,
+                    )
+                    .is_err()
+                {
+                    return Err(scan::ScanError::Native);
+                }
+            }
+            worker_core.platform.begin_in_use_batch();
+            scan::scan(
+                &parsed,
+                &worker_id,
+                &scan::ScanOptions::default(),
+                &cancel,
+                &observer,
+                at,
+            )
+        }));
+        let result = match result {
+            Ok(Ok(v)) => v,
+            _ => scan::ScanResult {
+                result_version: "water.scan-result.v1".into(),
+                scan_id: worker_id.clone(),
+                started_at: util::timestamp(at),
+                ended_at: util::timestamp(worker_core.platform.now()),
+                status: "failed".into(),
+                visited_entries: 0,
+                groups: vec![],
+                items: vec![],
+                issues: vec![],
+            },
+        };
+        let snapshot = scan::snapshot(&result);
+        let growth = if matches!(result.status.as_str(), "completed" | "partial") {
+            previous
+                .as_ref()
+                .map(|p| scan::growth(&scan::snapshot(&p.result), &snapshot))
+                .unwrap_or_default()
+        } else {
+            vec![]
+        };
+        let drives=worker_core.platform.drives().into_iter().map(|d|json!({"root":d.root,"is_system":d.is_system,"total_bytes":d.total_bytes.to_string(),"free_bytes":d.free_bytes.to_string()})).collect::<Vec<_>>();
+        // Still inside this scan's in-use batch; the result is saved and views reuse it.
+        let in_use = views::scan_in_use(&result, worker_core.platform.as_ref());
+        let saved = json!({"record_version":"water.scan-record.v1","scan_id":worker_id,"started_at":result.started_at,"finished_at":result.ended_at,"duration_ms":started.elapsed().as_millis() as u64,"drives":drives,"plan":serde_json::from_str::<Value>(&plan_json).expect("plan JSON"),"result":result,"growth":growth,"previous_scan_id":previous.as_ref().map(|p|&p.result.scan_id),"consumed":false,"in_use":in_use});
+        let mut record = Record {
+            saved,
+            result,
+            plan,
+            growth,
+            previous_at: previous.as_ref().map(|p| p.result.ended_at.clone()),
+            view: Value::Null,
+            details: BTreeMap::new(),
+        };
+        (record.view, record.details) = views::build(
+            &record,
+            &worker_core.rules,
+            worker_core.platform.as_ref(),
+            &settings,
+        );
+        let stored = worker_core
+            .store
+            .write("snapshots", &format!("{worker_id}.json"), &json!(snapshot))
+            .and_then(|()| {
+                worker_core
+                    .store
+                    .write("scans", &format!("{worker_id}.json"), &record.saved)
+            });
+        if let Ok(mut s) = lock(&worker_core) {
+            s.scan_progress["state"] = json!(if stored.is_ok() {
+                record.result.status.as_str()
+            } else {
+                "failed"
+            });
+            s.scan_progress["percent"] = json!(100);
+            s.scan_progress["elapsed_ms"] = json!(started.elapsed().as_millis() as u64);
+            s.scan_progress["visited_entries"] = json!(record.result.visited_entries);
+            s.scan_progress["found_bytes"] = json!(
+                record
+                    .result
+                    .groups
+                    .iter()
+                    .map(|g| util::number(&g.total_bytes))
+                    .sum::<u64>()
+                    .to_string()
+            );
+            for row in s.scan_progress["categories"]
+                .as_array_mut()
+                .expect("progress categories")
+            {
+                let total = record.view["categories"]
+                    .as_array()
+                    .expect("view categories")
+                    .iter()
+                    .filter(|c| {
+                        c["category"] == row["category"] && c["title_zh"] == row["title_zh"]
+                    })
+                    .map(|c| util::bytes(&c["total_bytes"]))
+                    .sum::<u64>();
+                row["found_bytes"] = json!(total.to_string());
+            }
+            if record.completed() && stored.is_ok() {
+                s.last = Some(worker_id.clone());
+                s.local_scans.insert(worker_id.clone());
+            }
+            s.records.push(Arc::new(record));
+            trim(&worker_core.store, &mut s);
+            s.busy = "idle";
+            s.cancel = None;
+        }
+    }
+}
+
 fn validate(command: &str, args: &Value) -> Result<(), IpcError> {
     let bad = || IpcError::new("invalid");
     let keys: &[&str] = match command {
@@ -634,9 +799,23 @@ fn valid_custom(path: &str, folders: &KnownFolders) -> bool {
         && !path[3..].split('\\').any(|p| {
             p.is_empty() || p == "." || p == ".." || p.ends_with(['.', ' ']) || p.contains(':')
         })
-        && !folders.values().any(|p| util::contains(path, p))
-        && !util::contains(&folders.windows, path)
         && plain_directory(Path::new(path))
+        // The canonical form must be the given text itself (ASCII case aside): short names,
+        // aliases and other spellings of a directory are rejected.
+        && canonical(path).is_some_and(|c| c.eq_ignore_ascii_case(path))
+        && !folders
+            .values()
+            .any(|p| util::contains(path, &canonical(p).unwrap_or_else(|| p.to_owned())))
+        && !util::contains(
+            &canonical(&folders.windows).unwrap_or_else(|| folders.windows.clone()),
+            path,
+        )
+}
+
+fn canonical(path: &str) -> Option<String> {
+    let resolved = std::fs::canonicalize(path).ok()?;
+    let text = resolved.to_str()?;
+    Some(text.strip_prefix(r"\\?\").unwrap_or(text).to_owned())
 }
 
 fn progress_categories(plan: &water_junk_rules::ScanPlan) -> Vec<Value> {
@@ -674,13 +853,12 @@ struct Progress {
 impl scan::ScanObserver for Progress {
     fn on_progress(&self, p: &scan::ScanProgress) {
         // The accepted scanner emits exactly once at each target boundary (pattern/marker, then discovery).
-        let Ok(mut reported) = self.reported.lock() else {
-            return;
-        };
+        let mut reported = self.reported.lock().unwrap_or_else(PoisonError::into_inner);
         *reported.entry(p.group_id.clone()).or_default() += 1;
-        let Ok(mut last_found) = self.last_found.lock() else {
-            return;
-        };
+        let mut last_found = self
+            .last_found
+            .lock()
+            .unwrap_or_else(PoisonError::into_inner);
         let delta = p.found_bytes.saturating_sub(*last_found);
         *last_found = p.found_bytes;
         if let Ok(mut s) = lock(&self.core) {

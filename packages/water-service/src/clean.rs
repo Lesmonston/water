@@ -22,6 +22,26 @@ pub(crate) fn prepare(core: &Arc<Core>, ids: &[Value]) -> Result<Value, IpcError
     if s.consumed.contains(&r.result.scan_id) {
         return Err(IpcError::new("stale"));
     }
+    // Trust boundary: only a scan this process completed can be a cleaning source.
+    if !s.local_scans.contains(&r.result.scan_id) {
+        return Err(IpcError::new("stale"));
+    }
+    // A partial scan is a source only when no budget ran out and no protected group is unclear.
+    if r.result.status == "partial"
+        && r.result.issues.iter().any(|i| {
+            i.code == "budget_exhausted"
+                || r.result
+                    .groups
+                    .iter()
+                    .find(|g| g.group_id == i.group_id)
+                    .is_none_or(|g| g.level == water_junk_scan::Level::Protected)
+        })
+    {
+        return Err(IpcError {
+            code: "stale".into(),
+            message_zh: "这次体检没有完整完成，请重新体检后再清理。".into(),
+        });
+    }
     let mut items = Vec::new();
     let mut groups = Vec::new();
     let mut by_drive = BTreeMap::<String, u64>::new();
@@ -141,6 +161,8 @@ pub(crate) fn start(core: &Arc<Core>, id: &str, token: &str) -> Result<Value, Ip
     let worker_core = core.clone();
     let worker_id = clean_id.clone();
     let spawned=std::thread::Builder::new().name("water-clean".into()).spawn(move|| {
+        // The whole task is guarded; a panic leaves the service idle and keeps the journal.
+        let guarded=std::panic::catch_unwind(std::panic::AssertUnwindSafe(|| {
         let run=std::panic::catch_unwind(std::panic::AssertUnwindSafe(||->Result<clean::CleanReport,IpcError>{
             worker_core.store.write("scans",&format!("{}.json",r.result.scan_id),&saved)?;
             worker_core.platform.begin_in_use_batch();
@@ -168,6 +190,12 @@ pub(crate) fn start(core: &Arc<Core>, id: &str, token: &str) -> Result<Value, Ip
                 },
                 Err(_)=>s.clean_progress["state"]=json!("failed"),
             }
+            s.busy="idle";s.stop=None;
+        }
+        }));
+        if guarded.is_err() {
+            let mut s=worker_core.state.lock().unwrap_or_else(std::sync::PoisonError::into_inner);
+            s.clean_progress["state"]=json!("failed");
             s.busy="idle";s.stop=None;
         }
     });

@@ -168,6 +168,69 @@ impl Store {
             .collect()
     }
 
+    /// Startup tidy (SERVICE-HARDENING §4). Only flat plain files in the data root and the five
+    /// store directories are looked at: leftover atomic-write temporaries are deleted, and plans
+    /// and clean journals keep the newest 60 by record ID. Directories and links are skipped and
+    /// a failed deletion is ignored. Returns the plan IDs whose file was actually removed.
+    pub fn tidy(&self) -> Vec<String> {
+        let mut removed_plans = Vec::new();
+        for dir in ["", "scans", "snapshots", "plans", "cleans", "journal"] {
+            let parent = self.root.join(dir);
+            if !plain_directory(&parent) {
+                continue;
+            }
+            let Ok(entries) = fs::read_dir(&parent) else {
+                continue;
+            };
+            let mut capped = Vec::new();
+            for entry in entries.filter_map(Result::ok) {
+                let Ok(name) = entry.file_name().into_string() else {
+                    continue;
+                };
+                if !self.plain_file(dir, &name) {
+                    continue;
+                }
+                if leftover_temp(&name) {
+                    self.remove_plain(dir, &name);
+                    continue;
+                }
+                let id = match dir {
+                    "plans" => name
+                        .strip_suffix(".json")
+                        .filter(|id| util::record_id(id, "plan-")),
+                    "journal" => name
+                        .strip_suffix(".jsonl")
+                        .filter(|id| util::record_id(id, "clean-")),
+                    _ => None,
+                };
+                if let Some(id) = id {
+                    capped.push((id.to_owned(), name.clone()));
+                }
+            }
+            capped.sort();
+            let excess = capped.len().saturating_sub(60);
+            for (id, name) in capped.into_iter().take(excess) {
+                if self.remove_plain(dir, &name) && dir == "plans" {
+                    removed_plans.push(id);
+                }
+            }
+        }
+        removed_plans
+    }
+
+    fn plain_file(&self, dir: &str, name: &str) -> bool {
+        self.path(dir, name).is_ok_and(|p| {
+            fs::symlink_metadata(p).is_ok_and(|m| m.is_file() && m.file_attributes() & 0x400 == 0)
+        })
+    }
+
+    fn remove_plain(&self, dir: &str, name: &str) -> bool {
+        self.plain_file(dir, name)
+            && self
+                .path(dir, name)
+                .is_ok_and(|p| fs::remove_file(p).is_ok())
+    }
+
     pub fn journal(&self, id: &str) -> Result<DurableFile, IpcError> {
         let file = OpenOptions::new()
             .write(true)
@@ -187,4 +250,22 @@ impl Write for DurableFile {
         self.0.flush()?;
         self.0.sync_all()
     }
+}
+
+/// `^\.[A-Za-z0-9._-]+\.[0-9a-f]{32}\.tmp$`: the temporary name `Store::write` uses.
+fn leftover_temp(name: &str) -> bool {
+    let Some(rest) = name.strip_prefix('.').and_then(|n| n.strip_suffix(".tmp")) else {
+        return false;
+    };
+    let Some((stem, hex)) = rest.rsplit_once('.') else {
+        return false;
+    };
+    hex.len() == 32
+        && hex
+            .bytes()
+            .all(|b| b.is_ascii_digit() || (b'a'..=b'f').contains(&b))
+        && !stem.is_empty()
+        && stem
+            .bytes()
+            .all(|b| b.is_ascii_alphanumeric() || b"._-".contains(&b))
 }
