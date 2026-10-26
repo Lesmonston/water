@@ -1,0 +1,35 @@
+{"binary":"C:\\Users\\37310\\.rustup\\toolchains\\1.95.0-x86_64-pc-windows-msvc\\bin\\cargo.exe","args":["test","--offline","--locked","--manifest-path","packages/process-scan/Cargo.toml","--test","process_v1","--","--test-threads=1"],"exitCode":101,"error":null}
+--- stdout ---
+
+running 4 tests
+test process_in_use_and_orphans ... FAILED
+test process_path_reference ... ok
+test process_privacy ... ok
+test process_snapshot_contract ... ok
+
+failures:
+
+---- process_in_use_and_orphans stdout ----
+
+thread 'process_in_use_and_orphans' (21096) panicked at tests\process_v1.rs:113:9:
+homemade orphan did not appear
+note: run with `RUST_BACKTRACE=1` environment variable to display a backtrace
+
+
+failures:
+    process_in_use_and_orphans
+
+test result: FAILED. 3 passed; 1 failed; 0 ignored; 0 measured; 0 filtered out; finished in 26.56s
+
+
+--- stderr ---
+   Compiling serde_core v1.0.229
+   Compiling zmij v1.0.23
+   Compiling itoa v1.0.18
+   Compiling memchr v2.8.3
+   Compiling serde_json v1.0.151
+   Compiling serde v1.0.229
+   Compiling water-process-scan v0.1.0 (F:\new\smaltalk\water\.worktrees\w2-c\packages\process-scan)
+    Finished `test` profile [unoptimized + debuginfo] target(s) in 13.01s
+     Running tests\process_v1.rs (.local\w2-target\debug\deps\process_v1-577a5737d044fa92.exe)
+error: test failed, to rerun pass `--test process_v1`
