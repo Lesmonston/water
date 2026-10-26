@@ -36,4 +36,4 @@
 
 ## Git 远端（2026-10-26）
 
-Water 的 `central` 远端是本机中央裸仓库 `F:/git-central/water.git`，异盘镜像 `E:/git-central-mirror/water.git`，没有网络远端。只有总控推送：验收合入或台账提交后 `git push central --all` 与 `git push central --tags`，再 `git -C E:/git-central-mirror/water.git remote update --prune`。执行者不 push。`F:/git-central` 下其它项目的仓库、README 与共享镜像脚本不归 Water 管，不要改动或运行。
+Water 的 `central` 远端是本机中央裸仓库 `F:/git-central/water.git`，异盘镜像 `E:/git-central-mirror/water.git`；`origin` 是 GitHub 私有仓库 `https://github.com/dfan0519-tech/water`，必须保持私有。只有总控推送：验收合入或台账提交后依次 `git push origin --all`、`git push origin --tags`、`git push central --all`、`git push central --tags`，再 `git -C E:/git-central-mirror/water.git remote update --prune`。执行者不 push。`F:/git-central` 下其它项目的仓库、README 与共享镜像脚本不归 Water 管，不要改动或运行。
