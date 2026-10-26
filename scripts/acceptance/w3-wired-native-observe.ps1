@@ -39,12 +39,14 @@ public static class W3Wired {
     [DllImport("dwmapi.dll")] public static extern int DwmGetWindowAttribute(IntPtr hwnd, int attr, out int value, int size);
     [DllImport("user32.dll")] public static extern bool GetWindowRect(IntPtr hwnd, out RECT rect);
     [DllImport("user32.dll")] public static extern bool PrintWindow(IntPtr hwnd, IntPtr hdc, uint flags);
+    [DllImport("user32.dll")] public static extern bool IsIconic(IntPtr hwnd);
+    [DllImport("user32.dll")] public static extern bool ShowWindow(IntPtr hwnd, int command);
 }
 '@
 $A = [System.Windows.Automation.AutomationElement]
 $deadline = [DateTime]::UtcNow.AddSeconds($MaximumSeconds)
 $window = $null; $children = @(); $failure = $null; $windowCount = 0; $closed = $false; $exitCode = $null
-$record = [ordered]@{ startedAt=[DateTime]::UtcNow.ToString('o'); processId=$TestProcessId; title=$null; systemWindows=$null; directoryDialogs=0; stepCount=$steps.Count; steps=@(); screenshots=@(); pageAccepted=$false; backdropType=$null; children=@(); privateWebviewObserved=$false; closeRequested=$false; exitCode=$null; error=$null }
+$record = [ordered]@{ startedAt=[DateTime]::UtcNow.ToString('o'); processId=$TestProcessId; title=$null; systemWindows=$null; directoryDialogs=0; stepCount=$steps.Count; steps=@(); screenshots=@(); restores=0; pageAccepted=$false; backdropType=$null; children=@(); privateWebviewObserved=$false; closeRequested=$false; exitCode=$null; error=$null }
 function Save-Record {
     $record['children'] = $children; $record['updatedAt'] = [DateTime]::UtcNow.ToString('o')
     [IO.File]::WriteAllText($fullEvidence, ($record | ConvertTo-Json -Depth 8), (New-Object Text.UTF8Encoding($false)))
@@ -60,15 +62,25 @@ function Named([string]$name, [string]$type) {
 function Shot([string]$label) {
     if ($label -notmatch '^[a-z][a-z0-9-]{0,31}$') { throw 'Bad screenshot label' }
     $hwnd = [IntPtr]$window.Current.NativeWindowHandle; $rect = New-Object W3Wired+RECT
+    # A minimized window prints only its caption (seen in the F3 run). Something outside the app (a user,
+    # Win+D) can minimize it during a long scan: restore it without activation and record that it happened.
+    $restored = $false
+    if ([W3Wired]::IsIconic($hwnd)) {
+        [void][W3Wired]::ShowWindow($hwnd, 4); $restored = $true; $record['restores']++
+        $limit = [DateTime]::UtcNow.AddSeconds(5)
+        while ([W3Wired]::IsIconic($hwnd) -and [DateTime]::UtcNow -lt $limit) { Start-Sleep -Milliseconds 100 }
+        if ([W3Wired]::IsIconic($hwnd)) { throw 'Window stays minimized' }
+        Start-Sleep -Milliseconds 900
+    }
     if (![W3Wired]::GetWindowRect($hwnd, [ref]$rect)) { throw 'Window rectangle unavailable' }
     $w = $rect.Right - $rect.Left; $h = $rect.Bottom - $rect.Top
-    if ($w -le 0 -or $h -le 0 -or $w -gt 8000 -or $h -gt 8000) { throw 'Unexpected window size' }
+    if ($w -lt 800 -or $h -lt 600 -or $w -gt 8000 -or $h -gt 8000) { throw 'Window too small for a page screenshot' }
     $file = $fullPrefix + '-' + $label + '.png'; if ([IO.File]::Exists($file)) { throw 'Screenshot exists' }
     $bmp = New-Object System.Drawing.Bitmap($w, $h); $g = [System.Drawing.Graphics]::FromImage($bmp); $hdc = $g.GetHdc()
     $printed = [W3Wired]::PrintWindow($hwnd, $hdc, 2); $g.ReleaseHdc($hdc); $g.Dispose()
     if (!$printed) { $bmp.Dispose(); throw 'PrintWindow failed' }
     $bmp.Save($file, [System.Drawing.Imaging.ImageFormat]::Png); $bmp.Dispose()
-    $record['screenshots'] += [ordered]@{ name=$label; file=[IO.Path]::GetFileName($file) }
+    $record['screenshots'] += [ordered]@{ name=$label; file=[IO.Path]::GetFileName($file); width=$w; height=$h; restored=$restored }
 }
 try {
     while ([DateTime]::UtcNow -lt $deadline) {

@@ -193,7 +193,9 @@ async function native(rust) {
     if (wired) {
       assert.equal(record.native.steps.length, task.nativeSteps.length, 'Not every native step ran'); assert(record.native.steps.every(s => s.passed), 'A native step failed');
       assert.deepEqual(record.native.screenshots.map(s => s.name), task.nativeSteps.filter(s => s.shot).map(s => s.shot), 'Native screenshots differ from the steps');
-      record.screenshots = record.native.screenshots.map(s => { assert.equal(s.file, stamp + '-' + s.name + '.png'); const f = join(out, s.file); assert(existsSync(f), 'Screenshot missing ' + s.name); return {name: s.name, file: s.file, sha256: hash(readFileSync(f))}; });
+      // A minimized window prints only its caption (F3 run: 199x34), so every image must be page-sized.
+      record.screenshots = record.native.screenshots.map(s => { assert.equal(s.file, stamp + '-' + s.name + '.png'); const f = join(out, s.file); assert(existsSync(f), 'Screenshot missing ' + s.name); const b = readFileSync(f), width = b.readUInt32BE(16), height = b.readUInt32BE(20); assert(width >= 800 && height >= 600, 'Screenshot ' + s.name + ' is ' + width + 'x' + height + ', not a page'); return {name: s.name, file: s.file, width, height, restored: s.restored ?? null, sha256: hash(b)}; });
+      record.nativeRestores = record.native.restores ?? 0;
     } else { assert(record.native.screenshot && existsSync(shot), 'Own window image missing'); record.screenshotSha256 = hash(readFileSync(shot)); }
     assert.equal(record.native.privateWebviewObserved, true, 'Private WebView data directory not observed');
     assert(existsSync(join(dataDir, 'webview')), 'WebView data directory not under WATER_DATA_DIR');

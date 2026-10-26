@@ -52,7 +52,9 @@ function audit(id){
     out.native={title:n.title,systemWindows:n.systemWindows,rawWindows:n.rawWindows,eventTargets:n.eventTargets,pageAccepted:n.pageAccepted,backdropType:n.backdropType,exitCode:n.exitCode,children:(n.children??[]).length,remaining:fn.childClose?.remaining,privateWebviewObserved:n.privateWebviewObserved,wallMs:fn.nativeWallMs,screenshots:shots.map(s=>t.evidenceDir+'receipts/'+s.file),steps:n.steps?.map(s=>[s.index,s.kind,s.passed,s.ms]),store:fn.nativeStore};
     if(n.title!=='Water'||n.systemWindows!==1||!n.pageAccepted||n.backdropType!==2||n.exitCode!==0||n.error!==null||!n.privateWebviewObserved)bad('native observation '+JSON.stringify(out.native));
     if(!Array.isArray(fn.childClose?.remaining)||fn.childClose.remaining.length!==0)bad('webview children not closed');
-    for(const s of shots){const p=join(rdir,s.file);if(!existsSync(p)||hash(readFileSync(p))!==s.sha256)bad('screenshot not archived '+s.file);}
+    for(const s of shots){const p=join(rdir,s.file);if(!existsSync(p)||hash(readFileSync(p))!==s.sha256){bad('screenshot not archived '+s.file);continue;}
+      // A minimized window prints only its caption; a page image is at least 800x600.
+      const b=readFileSync(p),w=b.readUInt32BE(16),h=b.readUInt32BE(20);if(w<800||h<600)bad('screenshot '+s.file+' is '+w+'x'+h+', not a page');}
     if(t.nativeSteps){if((n.steps??[]).length!==t.nativeSteps.length||!n.steps.every(s=>s.passed))bad('native steps');if(shots.length!==t.nativeSteps.filter(s=>s.shot).length)bad('native screenshot count');if(!fn.realDataRead)bad('wired native must record its real read');}
     if(t.nativeStore)for(const[d,c]of Object.entries(t.nativeStore.counts))if(fn.nativeStore?.counts?.[d]!==c)bad('native store '+d);}
   const fr=out.final.real&&receipts.find(x=>x.file===out.final.real.file).r;if(fr)out.realSummary=fr.realSummary;
