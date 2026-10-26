@@ -650,6 +650,11 @@ fn service_clean_flow() {
     let p = wait(&s, "clean_progress");
     assert_eq!(p["state"], "completed");
     let reused = s.call("clean_start", args);
+    // A deliberately broken replay gate can start a second fixture-only task. Drain it
+    // before asserting, so a negative control never races fixture teardown.
+    if reused.is_ok() {
+        wait(&s, "clean_progress");
+    }
     assert!(
         matches!(reused,Err(ref e) if e.code=="invalid"),
         "SERVICE_TOKEN_ONCE: {reused:?}"
