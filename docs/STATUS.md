@@ -23,7 +23,11 @@
 
 A–AB及八补单、AD保持VERIFIED；AC/补单06新增VERIFIED（Windows静态桌面基础），AE仍仅研究文档VERIFIED。AC接收29a895d/实现eb7f801，原14产品字节及479归档/16,293,091字节已审计，隔离受测b417835已快进主线。06真实native两份raw2/main1/固定Tao1/未知无效0快照、四文案、正常exit0、私有profile及冻结childClose通过，5510ms；旧03–05失败保持，四次worker allocation已用。总控只做无UI独立Rustc库编译、原三测、137配置/73导航拒绝及26正向、实际快照复算和5根变体/四文案缺失拒绝；不额外开窗，不重跑Cargo/Tauri/旧负控或下载，未改产品与网络配置。旧542保持，总控5新条目/25继承锁共547约束；修正工具按执行前源SHA留档，其它30任务/槽位不变，无自动实现者。AC静态前置已解除，下一波仍须冻结接线接口/范围/测试后才READY；真实AA→AD、桌面扫描、用户scope/自然同意鉴真、生产竞态、macOS/M1未验收。 [AC/AD/AE派前回执](dispatch/wave1/DELIVERY-WAVE-READY-REPORT-20261023.md)。
 
-## AC补单06验收与隔离集成完成（2026-10-25，最新）
+## 真实AA→AD联合验收通过（2026-10-26，最新）
+
+新总控（Claude）接任后按事先冻结的[计划](acceptance/wave1/controller/WATER-W1-AAAD-JOINT-PLAN-20261026.md)执行一次：真实固定AA宿主→原生目录选择→R/Z→AB传输→AD同源报告页，四场景全部通过，4窗/9.993秒/无重试/手动终止0。报告页鼠标下载的Q与Z与当次原字符串逐字节一致，淘汰与正常关闭通过。见[联合验收报告](acceptance/wave1/controller/WATER-W1-AAAD-JOINT-REVIEW-20261026.md)。31任务/槽位不变，没有新READY票；桌面接入扫描、真实用户scope、自然同意鉴真、生产竞态、macOS与M1仍未验收。用户同日要求先暂停安排后续任务，结合本机清理经验重订计划。
+
+## AC补单06验收与隔离集成完成（2026-10-25）
 
 [总控验收](acceptance/wave1/controller/WATER-W1-AC-ADDENDUM-06-REVIEW-20261025.md)：06真实四文案、双快照同主身份、正常退出与冻结子进程收尾通过；隔离无UI原三测及独立输入矩阵通过，b417835已快进主线。AC/06为Windows静态桌面基础VERIFIED，无需重贴；其它30任务/槽位和旧失败保持，总控0新窗口。真实AA→AD/桌面扫描/macOS/M1仍未通过。
 
