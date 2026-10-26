@@ -361,12 +361,21 @@ impl Service {
                 }
                 Ok(json!({}))
             }
-            "scan_result" => lock(core)?
-                .records
-                .iter()
-                .find(|r| r.result.scan_id == args["scanId"])
-                .map(|r| r.view.clone())
-                .ok_or_else(|| IpcError::new("not_found")),
+            "scan_result" => {
+                let s = lock(core)?;
+                let mut view = s
+                    .records
+                    .iter()
+                    .find(|r| r.result.scan_id == args["scanId"])
+                    .map(|r| r.view.clone())
+                    .ok_or_else(|| IpcError::new("not_found"))?;
+                for category in view["categories"].as_array_mut().expect("view categories") {
+                    for group in category["groups"].as_array_mut().expect("view groups") {
+                        selection(&s.settings, group);
+                    }
+                }
+                Ok(view)
+            }
             "group_detail" => {
                 let s = lock(core)?;
                 let r = s.last_record().ok_or_else(|| IpcError::new("not_found"))?;
@@ -375,10 +384,7 @@ impl Service {
                     .get(args["groupId"].as_str().expect("validated"))
                     .cloned()
                     .ok_or_else(|| IpcError::new("not_found"))?;
-                if !views::enabled(&s.settings, v["group"]["category"].as_str().unwrap_or("")) {
-                    v["group"]["selectable"] = json!(false);
-                    v["group"]["default_selected"] = json!(false);
-                }
+                selection(&s.settings, &mut v["group"]);
                 Ok(v)
             }
             "clean_result" => lock(core)?
@@ -614,6 +620,14 @@ fn validate(command: &str, args: &Value) -> Result<(), IpcError> {
         }
     }
     Ok(())
+}
+
+fn selection(settings: &Settings, group: &mut Value) {
+    let selectable = matches!(group["level"].as_str(), Some("recommended" | "confirm"))
+        && group["eligible_count"].as_u64().is_some_and(|n| n > 0)
+        && views::enabled(settings, group["category"].as_str().unwrap_or(""));
+    group["selectable"] = json!(selectable);
+    group["default_selected"] = json!(selectable && group["level"] == "recommended");
 }
 
 fn valid_custom(path: &str, folders: &KnownFolders) -> bool {

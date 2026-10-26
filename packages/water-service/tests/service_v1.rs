@@ -800,6 +800,21 @@ fn service_trends_locations() {
         "locations_set_category",
         json!({"category":"agent_tool","enabled":false}),
     );
+    let cached = call(&s, "scan_result", json!({"scanId":result["scan_id"]}));
+    assert!(
+        groups(&cached)
+            .iter()
+            .filter(|g| g["category"] == "agent_tool")
+            .all(|g| g["selectable"] == false && g["default_selected"] == false)
+    );
+    assert_eq!(
+        call(
+            &s,
+            "group_detail",
+            json!({"groupId":"codex-marketplace-staging"})
+        )["group"]["selectable"],
+        false
+    );
     let off = scanned(&s);
     assert!(
         !groups(&off)
