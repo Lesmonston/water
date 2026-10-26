@@ -97,6 +97,7 @@ function fakeHost(f, options) {
       case 'clean_stop': control.cleanStopped = true; control.holdClean = false; return {};
       case 'clean_progress': {
         const value = copy(f.clean_progress_sequence[control.cleanIndex]);
+        if (control.cleanIdleBefore > 0) { control.cleanIdleBefore--; return {...value, state:'idle'}; }
         if (control.cleanStopped) value.state = 'stopped';
         if (value.state !== 'running') { control.busy = 'idle'; control.cleanFinished = true; }
         if (!control.holdClean) control.cleanIndex = Math.min(control.cleanIndex + 1, f.clean_progress_sequence.length - 1);
@@ -436,20 +437,47 @@ test('ui_m1_polish', async () => {
   assert.equal(await browser.evaluate('window.__waterTest.calls.filter(c=>c.command==="clean_prepare").length'), 2, 'UI_NOTICE_SCOPE: a new click requests a fresh host message');
 
   await reset({scanned:true, busy:'scanning'}); await pageIs('scan');
+  await waitText('停止扫描');
+  await control(`window.__waterTest.nextError={command:'scan_cancel',error:${JSON.stringify(fixture.errors.invalid)}}`);
+  await click('scan-stop'); await waitText(fixture.errors.invalid.message_zh);
   await control(`window.__waterTest.progressErrors.scan_progress=Array.from({length:12},()=>(${JSON.stringify(fixture.errors.unavailable)}))`);
   await waitText('正在重新连接 Water 服务…');
   await click('nav-trends'); await pageIs('trends');
   assert(await browser.evaluate('!document.querySelector("#notice").hidden && document.querySelector("#notice").textContent.includes("正在重新连接 Water 服务…")'), 'UI_NOTICE_SCOPE: reconnecting status survives navigation');
   await control('window.__waterTest.progressErrors.scan_progress=[]');
   await browser.waitFor('document.querySelector("#notice").hidden');
-  const pausedMessage = '未能读取任务进度，请重新连接。';
-  await control(`window.__waterTest.progressErrors.scan_progress=[{code:'invalid',message_zh:${JSON.stringify(pausedMessage)}}]`);
+  assert(!(await text()).includes(fixture.errors.invalid.message_zh), 'UI_NOTICE_SCOPE: navigation while reconnecting clears the old command error after recovery');
+  const pausedMessage = fixture.errors.unavailable.message_zh;
+  assert.notEqual(pausedMessage, '未能读取任务进度，请重新连接。', 'UI_NOTICE_SCOPE: host reason must differ from the fallback');
+  const assertPaused = async (message, stage) => {
+    const notice = await browser.evaluate(`(() => {
+      const notice = document.querySelector('#notice'), button = notice.querySelector('[data-key=progress-reconnect]');
+      return {hidden:notice.hidden, message:notice.querySelector('span')?.textContent, buttonText:button?.textContent, disabled:button?.disabled};
+    })()`);
+    assert.deepEqual(notice, {hidden:false, message, buttonText:'重新连接', disabled:false}, `UI_NOTICE_SCOPE: ${stage}: paused reason and enabled reconnect button stay exact`);
+    console.log('Polish paused notice: ' + JSON.stringify({stage, ...notice}));
+  };
+  await control(`window.__waterTest.progressErrors.scan_progress=Array.from({length:20},()=>(${JSON.stringify(fixture.errors.unavailable)}))`);
   await browser.waitFor('!!document.querySelector("[data-key=progress-reconnect]")');
+  assert.equal(await browser.evaluate('window.__waterTest.progressErrors.scan_progress.length'), 0, 'UI_NOTICE_SCOPE: all 20 unavailable responses are consumed before pausing');
+  await assertPaused(pausedMessage, 'scan before navigation');
   for (const destination of ['history', 'home']) {
     await click(`nav-${destination}`); await pageIs(destination === 'home' ? 'scan' : destination);
-    assert(await browser.evaluate(`!document.querySelector('#notice').hidden && document.querySelector('#notice span').textContent === ${JSON.stringify(pausedMessage)} && !document.querySelector('[data-key=progress-reconnect]').disabled`), 'UI_NOTICE_SCOPE: paused progress and reconnect button survive navigation');
+    await assertPaused(pausedMessage, `scan after ${destination}`);
   }
   await click('progress-reconnect'); await browser.waitFor('document.querySelector("#notice").hidden');
+
+  await reset({scanned:true, busy:'cleaning'}); await pageIs('cleaning');
+  await control('window.__waterTest.cleanIdleBefore=1');
+  await browser.waitFor('!!document.querySelector("[data-key=progress-reconnect]")');
+  const cleanPausedMessage = '未能确认清理状态，请重新连接。';
+  await assertPaused(cleanPausedMessage, 'clean before navigation');
+  for (const destination of ['history', 'home']) {
+    await click(`nav-${destination}`); await pageIs(destination === 'home' ? 'cleaning' : destination);
+    await assertPaused(cleanPausedMessage, `clean after ${destination}`);
+  }
+  await click('progress-reconnect'); await browser.waitFor('document.querySelector("#notice").hidden');
+  await control('window.__waterTest.holdClean=false'); await pageIs('done');
 
   await reset({scanned:true}, 'results'); await waitText(selectionText(defaults.length));
   await control(`window.__waterTest.nextError={command:'clean_prepare',error:${JSON.stringify(fixture.errors.stale)}}`);
