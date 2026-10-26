@@ -1,6 +1,6 @@
 # Water 界面设计 v1
 
-2026-10-26，总控设计；同日按用户两次审稿改为白色磨砂玻璃方向（第 1、2、6 节）。执行者按本文、[tokens.css](tokens.css) 与 [mockup.html](mockup.html) 实现；三者冲突时以本文为准，并交总控订正。数据字段以 [IPC 契约](../../../contracts/checkup-v1/IPC.md) 为准。
+2026-10-26，总控设计；同日按用户两次审稿改为白色磨砂玻璃方向（第 1、2、6 节）。2026-10-27 用户选定冰山标志，取代水滴（第 10 节）。执行者按本文、[tokens.css](tokens.css) 与 [mockup.html](mockup.html) 实现；三者冲突时以本文为准，并交总控订正。数据字段以 [IPC 契约](../../../contracts/checkup-v1/IPC.md) 为准。
 
 ## 1. 设计原则
 
@@ -151,3 +151,47 @@
 ## 9. 与后端的边界
 
 界面只发送分组 ID、计划 ID 和确认令牌，从不发送或拼接路径；“添加文件夹”由后端打开系统选择框。界面显示的路径只用于阅读。所有数据通过 IPC 获取，不读写本地文件，不联网。
+
+## 10. 品牌标志（2026-10-27 用户选定）
+
+**标志是一座冰山**：水面上只露一小块尖，下面是一大块，水下有两道切面。寓意这台电脑的空间大多藏在看不见的地方，Water 帮你看清水面下。
+
+它取代原来的水滴。用户认为水滴像缴费类应用；“水”的概念与方向不变。
+
+**选定过程**：
+- 先看了彩色方案（水波 W、涟漪等），用户不满意，要求试黑白。
+- 用户在黑白方案中选了“冰山”原版，探索板见 [brand/exploration-mono-board.png](brand/exploration-mono-board.png) 第 4 项。
+- 之后总控试过几种改稿（水下改圆润、放进圆框里用深色水与白冰），用户明确不用，**以原版为准**。
+
+**形与色**：
+- 几何以 [brand/water-mark.svg](brand/water-mark.svg) 为准（48 网格），不改形、不加元素。
+- 界面里只用墨色 `--w-ink`（#10263F），与标题同色。不用强调蓝，不加渐变、光晕或描边。蓝色只留给按钮、水位瓶与数据。
+- 两道切面是真正的镂空（SVG mask），透出下面的磨砂底，不是画在上面的白线。
+- 反白用法只有应用图标：墨色圆角方块上的白色标志，见 [brand/water-app-icon.svg](brand/water-app-icon.svg)。
+
+**用在哪里**：
+
+| 位置 | 尺寸 | 颜色 |
+|---|---|---|
+| 侧栏品牌（右侧“Water / 磁盘体检”不变） | 30×30（原水滴为 30×34） | 墨色 |
+| 关于与隐私页的品牌卡 | 42×42 | 墨色 |
+| 空状态图标 | 36×36 | 墨色 |
+| 应用图标（宿主 `icons/icon.ico`） | 由 water-app-icon.svg 导出 16、24、32、48、256 多尺寸 | 墨色底、白色标志 |
+
+**雪碧图写法**：放在 `index.html` 的 sprite 里，用 `icon('berg')` 引用。全局 `.i` 默认是 1.5px 描边、无填充，所以冰山各元素自带 fill 与 stroke 属性。mask 的 id 在文档内唯一。
+
+```html
+<symbol id="i-berg" viewBox="0 0 48 48"><mask id="berg-facets" maskUnits="userSpaceOnUse" x="0" y="0" width="48" height="48"><rect width="48" height="48" fill="#fff"/><path d="M24 23.5 L21.5 39 M24 23.5 L35 31.5" stroke="#000" stroke-width="1.4" fill="none"/></mask><path d="M19.5 17 L24.5 8.5 L27 12 L29.5 17 Z" fill="currentColor" stroke="none"/><path d="M4.5 20 H43.5" fill="none" stroke="currentColor" stroke-width="2.4" stroke-linecap="round"/><path d="M10 23.5 H38 L35 31.5 L28.5 42.5 L21.5 39 L14 32 Z" fill="currentColor" stroke="none" mask="url(#berg-facets)"/></symbol>
+```
+
+**水滴退役**：
+- 侧栏“体检”导航不再用水滴，换成与其它导航同风格的 1.5px 细线图标。具体图形在改动工单里给出，先给用户看截图。
+- 水位瓶、水波进度环、扫描时上涨的水这些“水”的视觉不变（第 1 节第 3 条照旧）。
+
+**预览**：
+- [真实首页](brand/preview-home-1240x820.png)：浏览器测试在临时树里替换后渲染，5 个浏览器测试全部通过，树已恢复；
+- [侧栏与关于页 3 倍放大](brand/preview-sidebar-about-3x.png)。
+
+**实施**：
+- 等 G3 及其补单合入后，另派一张界面小票实施。G3 及其补单**不做**本节。
+- `mockup.html` 与 `previews/` 里仍是水滴；与本节冲突时以本节为准。
