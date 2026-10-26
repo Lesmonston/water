@@ -1,0 +1,354 @@
+{
+  "task": "WATER-W2-SELFTEST-UI",
+  "mode": "browser",
+  "finalGate": true,
+  "manifest": ".local/w2-selftest/manifest.json",
+  "startedAt": "2026-10-26T05:24:26.600Z",
+  "realDataRead": false,
+  "productTestsRun": true,
+  "commands": [
+    {
+      "binary": "git",
+      "argv": [
+        "branch",
+        "--show-current"
+      ],
+      "exitCode": 0
+    },
+    {
+      "binary": "git",
+      "argv": [
+        "merge-base",
+        "--is-ancestor",
+        "5de459d007dbf3781d4e6654990615fc975b36da",
+        "HEAD"
+      ],
+      "exitCode": 0
+    },
+    {
+      "binary": "git",
+      "argv": [
+        "diff",
+        "--no-renames",
+        "--name-only",
+        "-z",
+        "5de459d007dbf3781d4e6654990615fc975b36da",
+        "HEAD"
+      ],
+      "exitCode": 0
+    },
+    {
+      "binary": "git",
+      "argv": [
+        "diff",
+        "--no-renames",
+        "--name-only",
+        "-z",
+        "HEAD"
+      ],
+      "exitCode": 0
+    },
+    {
+      "binary": "git",
+      "argv": [
+        "ls-files",
+        "--others",
+        "--exclude-standard",
+        "-z"
+      ],
+      "exitCode": 0
+    },
+    {
+      "binary": "git",
+      "argv": [
+        "rev-parse",
+        "HEAD"
+      ],
+      "exitCode": 0
+    },
+    {
+      "binary": "git",
+      "argv": [
+        "status",
+        "--porcelain",
+        "--untracked-files=all"
+      ],
+      "exitCode": 0
+    },
+    {
+      "binary": "C:\\Program Files\\nodejs\\node.exe",
+      "argv": [
+        "--test",
+        "--test-concurrency=1",
+        "--test-reporter=tap",
+        "apps/selftest-ui/tests/browser.test.mjs"
+      ],
+      "exitCode": 0,
+      "error": null,
+      "log": "2026-10-26T05-24-26.598Z-35804-browser-1.log"
+    },
+    {
+      "binary": "git",
+      "argv": [
+        "branch",
+        "--show-current"
+      ],
+      "exitCode": 0
+    },
+    {
+      "binary": "git",
+      "argv": [
+        "merge-base",
+        "--is-ancestor",
+        "5de459d007dbf3781d4e6654990615fc975b36da",
+        "HEAD"
+      ],
+      "exitCode": 0
+    },
+    {
+      "binary": "git",
+      "argv": [
+        "diff",
+        "--no-renames",
+        "--name-only",
+        "-z",
+        "5de459d007dbf3781d4e6654990615fc975b36da",
+        "HEAD"
+      ],
+      "exitCode": 0
+    },
+    {
+      "binary": "git",
+      "argv": [
+        "diff",
+        "--no-renames",
+        "--name-only",
+        "-z",
+        "HEAD"
+      ],
+      "exitCode": 0
+    },
+    {
+      "binary": "git",
+      "argv": [
+        "ls-files",
+        "--others",
+        "--exclude-standard",
+        "-z"
+      ],
+      "exitCode": 0
+    },
+    {
+      "binary": "git",
+      "argv": [
+        "rev-parse",
+        "HEAD"
+      ],
+      "exitCode": 0
+    },
+    {
+      "binary": "git",
+      "argv": [
+        "status",
+        "--porcelain",
+        "--untracked-files=all"
+      ],
+      "exitCode": 0
+    }
+  ],
+  "changedPaths": [
+    "apps/selftest-ui/app.mjs",
+    "apps/selftest-ui/index.html",
+    "apps/selftest-ui/ipc.mjs",
+    "apps/selftest-ui/model.mjs",
+    "apps/selftest-ui/styles/tokens.css",
+    "apps/selftest-ui/tests/browser.test.mjs",
+    "apps/selftest-ui/tests/unit.test.mjs",
+    "docs/acceptance/wave2/selftest-ui/.gitattributes",
+    "docs/acceptance/wave2/selftest-ui/ARCHIVE.json",
+    "docs/acceptance/wave2/selftest-ui/receipts/2026-10-26T04-43-25.536Z-41740-baseline-result.json",
+    "docs/acceptance/wave2/selftest-ui/receipts/2026-10-26T04-43-57.982Z-31704-check-result.json",
+    "docs/acceptance/wave2/selftest-ui/receipts/2026-10-26T04-43-57.982Z-31704-check-source-0.txt",
+    "docs/acceptance/wave2/selftest-ui/receipts/2026-10-26T04-43-57.982Z-31704-check-source-1.txt",
+    "docs/acceptance/wave2/selftest-ui/receipts/2026-10-26T04-43-57.982Z-31704-check-source-2.txt",
+    "docs/acceptance/wave2/selftest-ui/receipts/2026-10-26T04-43-57.982Z-31704-check-source-3.txt",
+    "docs/acceptance/wave2/selftest-ui/receipts/2026-10-26T04-43-57.982Z-31704-check-source-4.txt",
+    "docs/acceptance/wave2/selftest-ui/receipts/2026-10-26T04-43-57.982Z-31704-check-source-5.txt",
+    "docs/acceptance/wave2/selftest-ui/receipts/2026-10-26T04-43-57.982Z-31704-check-source-6.txt",
+    "docs/acceptance/wave2/selftest-ui/receipts/2026-10-26T04-44-01.402Z-43472-test-result.json",
+    "docs/acceptance/wave2/selftest-ui/receipts/2026-10-26T04-44-01.402Z-43472-test-source-0.txt",
+    "docs/acceptance/wave2/selftest-ui/receipts/2026-10-26T04-44-01.402Z-43472-test-source-1.txt",
+    "docs/acceptance/wave2/selftest-ui/receipts/2026-10-26T04-44-01.402Z-43472-test-source-2.txt",
+    "docs/acceptance/wave2/selftest-ui/receipts/2026-10-26T04-44-01.402Z-43472-test-source-3.txt",
+    "docs/acceptance/wave2/selftest-ui/receipts/2026-10-26T04-44-01.402Z-43472-test-source-4.txt",
+    "docs/acceptance/wave2/selftest-ui/receipts/2026-10-26T04-44-01.402Z-43472-test-source-5.txt",
+    "docs/acceptance/wave2/selftest-ui/receipts/2026-10-26T04-44-01.402Z-43472-test-source-6.txt",
+    "docs/acceptance/wave2/selftest-ui/receipts/2026-10-26T04-44-06.115Z-35476-browser-result.json",
+    "docs/acceptance/wave2/selftest-ui/receipts/2026-10-26T04-44-06.115Z-35476-browser-source-0.txt",
+    "docs/acceptance/wave2/selftest-ui/receipts/2026-10-26T04-44-06.115Z-35476-browser-source-1.txt",
+    "docs/acceptance/wave2/selftest-ui/receipts/2026-10-26T04-44-06.115Z-35476-browser-source-2.txt",
+    "docs/acceptance/wave2/selftest-ui/receipts/2026-10-26T04-44-06.115Z-35476-browser-source-3.txt",
+    "docs/acceptance/wave2/selftest-ui/receipts/2026-10-26T04-44-06.115Z-35476-browser-source-4.txt",
+    "docs/acceptance/wave2/selftest-ui/receipts/2026-10-26T04-44-06.115Z-35476-browser-source-5.txt",
+    "docs/acceptance/wave2/selftest-ui/receipts/2026-10-26T04-44-06.115Z-35476-browser-source-6.txt",
+    "docs/acceptance/wave2/selftest-ui/receipts/2026-10-26T04-44-14.937Z-18152-red-nc1-result.json",
+    "docs/acceptance/wave2/selftest-ui/receipts/2026-10-26T04-44-14.937Z-18152-red-nc1-source-0.txt",
+    "docs/acceptance/wave2/selftest-ui/receipts/2026-10-26T04-44-14.937Z-18152-red-nc1-source-1.txt",
+    "docs/acceptance/wave2/selftest-ui/receipts/2026-10-26T04-44-14.937Z-18152-red-nc1-source-2.txt",
+    "docs/acceptance/wave2/selftest-ui/receipts/2026-10-26T04-44-14.937Z-18152-red-nc1-source-3.txt",
+    "docs/acceptance/wave2/selftest-ui/receipts/2026-10-26T04-44-14.937Z-18152-red-nc1-source-4.txt",
+    "docs/acceptance/wave2/selftest-ui/receipts/2026-10-26T04-44-14.937Z-18152-red-nc1-source-5.txt",
+    "docs/acceptance/wave2/selftest-ui/receipts/2026-10-26T04-44-14.937Z-18152-red-nc1-source-6.txt",
+    "docs/acceptance/wave2/selftest-ui/receipts/2026-10-26T04-44-21.031Z-31084-test-result.json",
+    "docs/acceptance/wave2/selftest-ui/receipts/2026-10-26T04-44-21.031Z-31084-test-source-0.txt",
+    "docs/acceptance/wave2/selftest-ui/receipts/2026-10-26T04-44-21.031Z-31084-test-source-1.txt",
+    "docs/acceptance/wave2/selftest-ui/receipts/2026-10-26T04-44-21.031Z-31084-test-source-2.txt",
+    "docs/acceptance/wave2/selftest-ui/receipts/2026-10-26T04-44-21.031Z-31084-test-source-3.txt",
+    "docs/acceptance/wave2/selftest-ui/receipts/2026-10-26T04-44-21.031Z-31084-test-source-4.txt",
+    "docs/acceptance/wave2/selftest-ui/receipts/2026-10-26T04-44-21.031Z-31084-test-source-5.txt",
+    "docs/acceptance/wave2/selftest-ui/receipts/2026-10-26T04-44-21.031Z-31084-test-source-6.txt",
+    "docs/acceptance/wave2/selftest-ui/receipts/2026-10-26T04-44-25.581Z-10304-check-result.json",
+    "docs/acceptance/wave2/selftest-ui/receipts/2026-10-26T04-44-25.581Z-10304-check-source-0.txt",
+    "docs/acceptance/wave2/selftest-ui/receipts/2026-10-26T04-44-25.581Z-10304-check-source-1.txt",
+    "docs/acceptance/wave2/selftest-ui/receipts/2026-10-26T04-44-25.581Z-10304-check-source-2.txt",
+    "docs/acceptance/wave2/selftest-ui/receipts/2026-10-26T04-44-25.581Z-10304-check-source-3.txt",
+    "docs/acceptance/wave2/selftest-ui/receipts/2026-10-26T04-44-25.581Z-10304-check-source-4.txt",
+    "docs/acceptance/wave2/selftest-ui/receipts/2026-10-26T04-44-25.581Z-10304-check-source-5.txt",
+    "docs/acceptance/wave2/selftest-ui/receipts/2026-10-26T04-44-25.581Z-10304-check-source-6.txt",
+    "docs/acceptance/wave2/selftest-ui/receipts/2026-10-26T04-44-30.453Z-21180-test-result.json",
+    "docs/acceptance/wave2/selftest-ui/receipts/2026-10-26T04-44-30.453Z-21180-test-source-0.txt",
+    "docs/acceptance/wave2/selftest-ui/receipts/2026-10-26T04-44-30.453Z-21180-test-source-1.txt",
+    "docs/acceptance/wave2/selftest-ui/receipts/2026-10-26T04-44-30.453Z-21180-test-source-2.txt",
+    "docs/acceptance/wave2/selftest-ui/receipts/2026-10-26T04-44-30.453Z-21180-test-source-3.txt",
+    "docs/acceptance/wave2/selftest-ui/receipts/2026-10-26T04-44-30.453Z-21180-test-source-4.txt",
+    "docs/acceptance/wave2/selftest-ui/receipts/2026-10-26T04-44-30.453Z-21180-test-source-5.txt",
+    "docs/acceptance/wave2/selftest-ui/receipts/2026-10-26T04-44-30.453Z-21180-test-source-6.txt",
+    "docs/acceptance/wave2/selftest-ui/receipts/2026-10-26T04-44-36.054Z-20768-browser-result.json",
+    "docs/acceptance/wave2/selftest-ui/receipts/2026-10-26T04-44-36.054Z-20768-browser-source-0.txt",
+    "docs/acceptance/wave2/selftest-ui/receipts/2026-10-26T04-44-36.054Z-20768-browser-source-1.txt",
+    "docs/acceptance/wave2/selftest-ui/receipts/2026-10-26T04-44-36.054Z-20768-browser-source-2.txt",
+    "docs/acceptance/wave2/selftest-ui/receipts/2026-10-26T04-44-36.054Z-20768-browser-source-3.txt",
+    "docs/acceptance/wave2/selftest-ui/receipts/2026-10-26T04-44-36.054Z-20768-browser-source-4.txt",
+    "docs/acceptance/wave2/selftest-ui/receipts/2026-10-26T04-44-36.054Z-20768-browser-source-5.txt",
+    "docs/acceptance/wave2/selftest-ui/receipts/2026-10-26T04-44-36.054Z-20768-browser-source-6.txt",
+    "docs/acceptance/wave2/selftest-ui/receipts/2026-10-26T04-45-05.246Z-37652-test-result.json",
+    "docs/acceptance/wave2/selftest-ui/receipts/2026-10-26T04-45-05.246Z-37652-test-source-0.txt",
+    "docs/acceptance/wave2/selftest-ui/receipts/2026-10-26T04-45-05.246Z-37652-test-source-1.txt",
+    "docs/acceptance/wave2/selftest-ui/receipts/2026-10-26T04-45-05.246Z-37652-test-source-2.txt",
+    "docs/acceptance/wave2/selftest-ui/receipts/2026-10-26T04-45-05.246Z-37652-test-source-3.txt",
+    "docs/acceptance/wave2/selftest-ui/receipts/2026-10-26T04-45-05.246Z-37652-test-source-4.txt",
+    "docs/acceptance/wave2/selftest-ui/receipts/2026-10-26T04-45-05.246Z-37652-test-source-5.txt",
+    "docs/acceptance/wave2/selftest-ui/receipts/2026-10-26T04-45-05.246Z-37652-test-source-6.txt",
+    "docs/acceptance/wave2/selftest-ui/receipts/2026-10-26T04-45-09.830Z-25996-red-nc1-result.json",
+    "docs/acceptance/wave2/selftest-ui/receipts/2026-10-26T04-45-09.830Z-25996-red-nc1-source-0.txt",
+    "docs/acceptance/wave2/selftest-ui/receipts/2026-10-26T04-45-09.830Z-25996-red-nc1-source-1.txt",
+    "docs/acceptance/wave2/selftest-ui/receipts/2026-10-26T04-45-09.830Z-25996-red-nc1-source-2.txt",
+    "docs/acceptance/wave2/selftest-ui/receipts/2026-10-26T04-45-09.830Z-25996-red-nc1-source-3.txt",
+    "docs/acceptance/wave2/selftest-ui/receipts/2026-10-26T04-45-09.830Z-25996-red-nc1-source-4.txt",
+    "docs/acceptance/wave2/selftest-ui/receipts/2026-10-26T04-45-09.830Z-25996-red-nc1-source-5.txt",
+    "docs/acceptance/wave2/selftest-ui/receipts/2026-10-26T04-45-09.830Z-25996-red-nc1-source-6.txt",
+    "docs/acceptance/wave2/selftest-ui/receipts/2026-10-26T04-45-14.154Z-21588-test-result.json",
+    "docs/acceptance/wave2/selftest-ui/receipts/2026-10-26T04-45-14.154Z-21588-test-source-0.txt",
+    "docs/acceptance/wave2/selftest-ui/receipts/2026-10-26T04-45-14.154Z-21588-test-source-1.txt",
+    "docs/acceptance/wave2/selftest-ui/receipts/2026-10-26T04-45-14.154Z-21588-test-source-2.txt",
+    "docs/acceptance/wave2/selftest-ui/receipts/2026-10-26T04-45-14.154Z-21588-test-source-3.txt",
+    "docs/acceptance/wave2/selftest-ui/receipts/2026-10-26T04-45-14.154Z-21588-test-source-4.txt",
+    "docs/acceptance/wave2/selftest-ui/receipts/2026-10-26T04-45-14.154Z-21588-test-source-5.txt",
+    "docs/acceptance/wave2/selftest-ui/receipts/2026-10-26T04-45-14.154Z-21588-test-source-6.txt",
+    "docs/acceptance/wave2/selftest-ui/receipts/2026-10-26T04-45-18.014Z-25728-check-result.json",
+    "docs/acceptance/wave2/selftest-ui/receipts/2026-10-26T04-45-18.014Z-25728-check-source-0.txt",
+    "docs/acceptance/wave2/selftest-ui/receipts/2026-10-26T04-45-18.014Z-25728-check-source-1.txt",
+    "docs/acceptance/wave2/selftest-ui/receipts/2026-10-26T04-45-18.014Z-25728-check-source-2.txt",
+    "docs/acceptance/wave2/selftest-ui/receipts/2026-10-26T04-45-18.014Z-25728-check-source-3.txt",
+    "docs/acceptance/wave2/selftest-ui/receipts/2026-10-26T04-45-18.014Z-25728-check-source-4.txt",
+    "docs/acceptance/wave2/selftest-ui/receipts/2026-10-26T04-45-18.014Z-25728-check-source-5.txt",
+    "docs/acceptance/wave2/selftest-ui/receipts/2026-10-26T04-45-18.014Z-25728-check-source-6.txt",
+    "docs/acceptance/wave2/selftest-ui/receipts/2026-10-26T04-45-23.969Z-20900-test-result.json",
+    "docs/acceptance/wave2/selftest-ui/receipts/2026-10-26T04-45-23.969Z-20900-test-source-0.txt",
+    "docs/acceptance/wave2/selftest-ui/receipts/2026-10-26T04-45-23.969Z-20900-test-source-1.txt",
+    "docs/acceptance/wave2/selftest-ui/receipts/2026-10-26T04-45-23.969Z-20900-test-source-2.txt",
+    "docs/acceptance/wave2/selftest-ui/receipts/2026-10-26T04-45-23.969Z-20900-test-source-3.txt",
+    "docs/acceptance/wave2/selftest-ui/receipts/2026-10-26T04-45-23.969Z-20900-test-source-4.txt",
+    "docs/acceptance/wave2/selftest-ui/receipts/2026-10-26T04-45-23.969Z-20900-test-source-5.txt",
+    "docs/acceptance/wave2/selftest-ui/receipts/2026-10-26T04-45-23.969Z-20900-test-source-6.txt",
+    "docs/acceptance/wave2/selftest-ui/receipts/2026-10-26T04-45-29.431Z-36988-browser-result.json",
+    "docs/acceptance/wave2/selftest-ui/receipts/2026-10-26T04-45-29.431Z-36988-browser-source-0.txt",
+    "docs/acceptance/wave2/selftest-ui/receipts/2026-10-26T04-45-29.431Z-36988-browser-source-1.txt",
+    "docs/acceptance/wave2/selftest-ui/receipts/2026-10-26T04-45-29.431Z-36988-browser-source-2.txt",
+    "docs/acceptance/wave2/selftest-ui/receipts/2026-10-26T04-45-29.431Z-36988-browser-source-3.txt",
+    "docs/acceptance/wave2/selftest-ui/receipts/2026-10-26T04-45-29.431Z-36988-browser-source-4.txt",
+    "docs/acceptance/wave2/selftest-ui/receipts/2026-10-26T04-45-29.431Z-36988-browser-source-5.txt",
+    "docs/acceptance/wave2/selftest-ui/receipts/2026-10-26T04-45-29.431Z-36988-browser-source-6.txt"
+  ],
+  "before": {
+    "head": "919fb0fa15c07889590ff8d40e9d197ce58554c8",
+    "status": ""
+  },
+  "sourceState": {
+    "files": [
+      {
+        "path": "apps/selftest-ui/app.mjs",
+        "snapshot": "2026-10-26T05-24-26.598Z-35804-browser-source-0.txt",
+        "sha256": "3d5fd2a1e154fd6f4b46faac173aea3d4fbafc0f1f662d6775f715cfa2c6893b",
+        "test": false
+      },
+      {
+        "path": "apps/selftest-ui/index.html",
+        "snapshot": "2026-10-26T05-24-26.598Z-35804-browser-source-1.txt",
+        "sha256": "959a8224f4ea55297666dfa5b45e7b67b6e6706b46cdc38026e2808d7c772f59",
+        "test": false
+      },
+      {
+        "path": "apps/selftest-ui/ipc.mjs",
+        "snapshot": "2026-10-26T05-24-26.598Z-35804-browser-source-2.txt",
+        "sha256": "e5b8f38bb44ac2f7d00142ae2f19f2c4a2f214f6c130f555d0eb7e8e89875389",
+        "test": false
+      },
+      {
+        "path": "apps/selftest-ui/model.mjs",
+        "snapshot": "2026-10-26T05-24-26.598Z-35804-browser-source-3.txt",
+        "sha256": "214d83c4a74d5fb2476e6adeb2391332be15992cbbb77834e2a6d7bc6fce08f7",
+        "test": false
+      },
+      {
+        "path": "apps/selftest-ui/styles/tokens.css",
+        "snapshot": "2026-10-26T05-24-26.598Z-35804-browser-source-4.txt",
+        "sha256": "fd54186a9523885dcc267ef00e03ee82818a168d47a0dbc8cd0e6d9d34a9e532",
+        "test": false
+      },
+      {
+        "path": "apps/selftest-ui/tests/browser.test.mjs",
+        "snapshot": "2026-10-26T05-24-26.598Z-35804-browser-source-5.txt",
+        "sha256": "d0d57528804f24341a51aa066ceac61764a4954dd36cd1436f24b1fd5e808462",
+        "test": true
+      },
+      {
+        "path": "apps/selftest-ui/tests/unit.test.mjs",
+        "snapshot": "2026-10-26T05-24-26.598Z-35804-browser-source-6.txt",
+        "sha256": "fadc00609aea08781b4e6f2bcb45e45b7dd6e809c185802b6e5252f1b8130a54",
+        "test": true
+      }
+    ],
+    "productionHash": "b35e5868364733dd6aa366aaabcadecf41ab7b2f2c7272f3ad60f3f018bca709",
+    "testHash": "38dcfb5d7a575800d4fd305ea5417545c54450e730a6852c7c439e15742bc045"
+  },
+  "uiFiles": 7,
+  "browserUsed": true,
+  "screenshots": {
+    "dir": ".local/checks/WATER-W2-SELFTEST-UI/2026-10-26T05-24-26.598Z-35804-browser-shots",
+    "files": [
+      {
+        "name": "page-1240x820.png",
+        "bytes": 7707,
+        "sha256": "0373026c849a2044e082d3b8369ec74473dca58bbac5aba179c389fc667a1c9c"
+      }
+    ]
+  },
+  "after": {
+    "head": "919fb0fa15c07889590ff8d40e9d197ce58554c8",
+    "status": ""
+  },
+  "status": "passed",
+  "error": null,
+  "endedAt": "2026-10-26T05:24:49.104Z"
+}
