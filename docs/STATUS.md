@@ -81,6 +81,25 @@ A–AB及八补单、AD保持VERIFIED；AC/补单06新增VERIFIED（Windows静�
 - M1 已知限制见 WIRING 第 7 节（默认数据目录不能在联接后面、占用提示显示进程名、release 启动失败时用户看不到提示等）。
 - **已派出（20:47 JST 用户告知）**：F3 交 sol 并已贴出；记录时 `.worktrees/w3-f3` 停在基点 `d56ebc6`、干净。交接见[第 4 份交接报告](CONTROLLER-HANDOFF-20261026-4.md)。
 
+**F3 VERIFIED，M1 体检 Alpha 达成（22:25 JST）**：见[F3 验收报告](acceptance/wave3/controller/WATER-W3-F3-REVIEW-20261026.md)，合入 `206a2cf`。
+- **交回情况**：sol 交回时写“受阻”。实现、测试、三条负控、三个 final 都通过，只是整机检查 6 张截图里后 5 张是最小化窗口的标题栏（199×34）。
+- **原因与修复**：这是总控观察器的缺口，已修（`9f9aab05`）：截图前恢复被最小化的窗口，并记录恢复次数；观察器、检查入口、收单审计都核对截图像素尺寸。不发补单。
+- **总控验收**：新验收树重跑全部 final，做了 5 条总控负控，用自己那 1 次窗口补拍了 5 页，截图都是完整页面。
+- **窗口被最小化**：对照实验显示现象是间歇性的，Water 没有任何把窗口最小化的途径。记录在[对照实验](acceptance/wave3/controller/accept2-20261026/controller/f3-window-probes/RESULTS.md)，留待用户试用时观察。
+- **独立审查**：无高、中级问题；4 条低级观察移交宿主收尾票。
+
+## 第四波 M2 前加固 READY（2026-10-26 晚，与 F3 并行设计）
+
+用户要求不要每次只派一单。第四波三张票各改一个目录，可以同时派出：
+- G1 D 加固（按句柄删除，重门，特殊票）；
+- G2 服务加固；
+- G3 界面修补（界面票）。
+
+文档：[计划](dispatch/wave4/PLAN.md)、[派前回执](dispatch/wave4/READY-REPORT-20261026.md)、[第四波规则](dispatch/W4-HARDENING-WORKER-RULES.md)、契约在 `contracts/hardening-v1/`。基点 `0ca42f8`（标签 `water-w4-hardening-base-20261026`）。总控派前做了：
+- 在本机实测了 G1 要用的全部 NT 系统调用；
+- 三张票都用桩走通了全部检查与负控；
+- 自测中发现并写进契约：现有 D 处理不了超过 260 个字符的路径；“操作坞盖住最后一行”实测不成立，改为回归锁定。
+
 ## 真实AA→AD联合验收通过（2026-10-26）
 
 新总控（Claude）接任后按事先冻结的[计划](acceptance/wave1/controller/WATER-W1-AAAD-JOINT-PLAN-20261026.md)执行一次：真实固定AA宿主→原生目录选择→R/Z→AB传输→AD同源报告页，四场景全部通过，4窗/9.993秒/无重试/手动终止0。报告页鼠标下载的Q与Z与当次原字符串逐字节一致，淘汰与正常关闭通过。见[联合验收报告](acceptance/wave1/controller/WATER-W1-AAAD-JOINT-REVIEW-20261026.md)。31任务/槽位不变，没有新READY票；桌面接入扫描、真实用户scope、自然同意鉴真、生产竞态、macOS与M1仍未验收。用户同日要求先暂停安排后续任务，结合本机清理经验重订计划；总控草案见[计划重订（待拍板）](REPLAN-20261026-AGENT-ERA-CHECKUP.md)，拍板前不出新票。

@@ -1,0 +1,488 @@
+{
+  "task": "WATER-W4-SELFTEST-G3",
+  "mode": "check",
+  "finalGate": true,
+  "manifest": ".local/w4-selftest/manifest.json",
+  "startedAt": "2026-10-26T13:05:19.184Z",
+  "realDataRead": false,
+  "productTestsRun": false,
+  "commands": [
+    {
+      "binary": "git",
+      "argv": [
+        "branch",
+        "--show-current"
+      ],
+      "exitCode": 0
+    },
+    {
+      "binary": "git",
+      "argv": [
+        "merge-base",
+        "--is-ancestor",
+        "0ca42f8e8038a5a7816802c5a7f175a966b0625c",
+        "HEAD"
+      ],
+      "exitCode": 0
+    },
+    {
+      "binary": "git",
+      "argv": [
+        "diff",
+        "--no-renames",
+        "--name-only",
+        "-z",
+        "0ca42f8e8038a5a7816802c5a7f175a966b0625c",
+        "HEAD"
+      ],
+      "exitCode": 0
+    },
+    {
+      "binary": "git",
+      "argv": [
+        "diff",
+        "--no-renames",
+        "--name-only",
+        "-z",
+        "HEAD"
+      ],
+      "exitCode": 0
+    },
+    {
+      "binary": "git",
+      "argv": [
+        "ls-files",
+        "--others",
+        "--exclude-standard",
+        "-z"
+      ],
+      "exitCode": 0
+    },
+    {
+      "binary": "git",
+      "argv": [
+        "rev-parse",
+        "HEAD"
+      ],
+      "exitCode": 0
+    },
+    {
+      "binary": "git",
+      "argv": [
+        "status",
+        "--porcelain",
+        "--untracked-files=all"
+      ],
+      "exitCode": 0
+    },
+    {
+      "binary": "C:\\Program Files\\nodejs\\node.exe",
+      "argv": [
+        "--check",
+        "apps\\water\\ui\\app.mjs"
+      ],
+      "exitCode": 0,
+      "error": null,
+      "log": "2026-10-26T13-05-19.183Z-32628-check-1.log"
+    },
+    {
+      "binary": "C:\\Program Files\\nodejs\\node.exe",
+      "argv": [
+        "--check",
+        "apps\\water\\ui\\format.mjs"
+      ],
+      "exitCode": 0,
+      "error": null,
+      "log": "2026-10-26T13-05-19.183Z-32628-check-2.log"
+    },
+    {
+      "binary": "C:\\Program Files\\nodejs\\node.exe",
+      "argv": [
+        "--check",
+        "apps\\water\\ui\\ipc.mjs"
+      ],
+      "exitCode": 0,
+      "error": null,
+      "log": "2026-10-26T13-05-19.183Z-32628-check-3.log"
+    },
+    {
+      "binary": "C:\\Program Files\\nodejs\\node.exe",
+      "argv": [
+        "--check",
+        "apps\\water\\ui\\model.mjs"
+      ],
+      "exitCode": 0,
+      "error": null,
+      "log": "2026-10-26T13-05-19.183Z-32628-check-4.log"
+    },
+    {
+      "binary": "C:\\Program Files\\nodejs\\node.exe",
+      "argv": [
+        "--check",
+        "apps\\water\\ui\\tests\\browser.test.mjs"
+      ],
+      "exitCode": 0,
+      "error": null,
+      "log": "2026-10-26T13-05-19.183Z-32628-check-5.log"
+    },
+    {
+      "binary": "C:\\Program Files\\nodejs\\node.exe",
+      "argv": [
+        "--check",
+        "apps\\water\\ui\\tests\\unit.test.mjs"
+      ],
+      "exitCode": 0,
+      "error": null,
+      "log": "2026-10-26T13-05-19.183Z-32628-check-6.log"
+    },
+    {
+      "binary": "C:\\Program Files\\nodejs\\node.exe",
+      "argv": [
+        "--check",
+        "apps\\water\\ui\\views\\about.mjs"
+      ],
+      "exitCode": 0,
+      "error": null,
+      "log": "2026-10-26T13-05-19.183Z-32628-check-7.log"
+    },
+    {
+      "binary": "C:\\Program Files\\nodejs\\node.exe",
+      "argv": [
+        "--check",
+        "apps\\water\\ui\\views\\cleaning.mjs"
+      ],
+      "exitCode": 0,
+      "error": null,
+      "log": "2026-10-26T13-05-19.183Z-32628-check-8.log"
+    },
+    {
+      "binary": "C:\\Program Files\\nodejs\\node.exe",
+      "argv": [
+        "--check",
+        "apps\\water\\ui\\views\\common.mjs"
+      ],
+      "exitCode": 0,
+      "error": null,
+      "log": "2026-10-26T13-05-19.183Z-32628-check-9.log"
+    },
+    {
+      "binary": "C:\\Program Files\\nodejs\\node.exe",
+      "argv": [
+        "--check",
+        "apps\\water\\ui\\views\\confirm.mjs"
+      ],
+      "exitCode": 0,
+      "error": null,
+      "log": "2026-10-26T13-05-19.183Z-32628-check-10.log"
+    },
+    {
+      "binary": "C:\\Program Files\\nodejs\\node.exe",
+      "argv": [
+        "--check",
+        "apps\\water\\ui\\views\\detail.mjs"
+      ],
+      "exitCode": 0,
+      "error": null,
+      "log": "2026-10-26T13-05-19.183Z-32628-check-11.log"
+    },
+    {
+      "binary": "C:\\Program Files\\nodejs\\node.exe",
+      "argv": [
+        "--check",
+        "apps\\water\\ui\\views\\done.mjs"
+      ],
+      "exitCode": 0,
+      "error": null,
+      "log": "2026-10-26T13-05-19.183Z-32628-check-12.log"
+    },
+    {
+      "binary": "C:\\Program Files\\nodejs\\node.exe",
+      "argv": [
+        "--check",
+        "apps\\water\\ui\\views\\history.mjs"
+      ],
+      "exitCode": 0,
+      "error": null,
+      "log": "2026-10-26T13-05-19.183Z-32628-check-13.log"
+    },
+    {
+      "binary": "C:\\Program Files\\nodejs\\node.exe",
+      "argv": [
+        "--check",
+        "apps\\water\\ui\\views\\home.mjs"
+      ],
+      "exitCode": 0,
+      "error": null,
+      "log": "2026-10-26T13-05-19.183Z-32628-check-14.log"
+    },
+    {
+      "binary": "C:\\Program Files\\nodejs\\node.exe",
+      "argv": [
+        "--check",
+        "apps\\water\\ui\\views\\locations.mjs"
+      ],
+      "exitCode": 0,
+      "error": null,
+      "log": "2026-10-26T13-05-19.183Z-32628-check-15.log"
+    },
+    {
+      "binary": "C:\\Program Files\\nodejs\\node.exe",
+      "argv": [
+        "--check",
+        "apps\\water\\ui\\views\\results.mjs"
+      ],
+      "exitCode": 0,
+      "error": null,
+      "log": "2026-10-26T13-05-19.183Z-32628-check-16.log"
+    },
+    {
+      "binary": "C:\\Program Files\\nodejs\\node.exe",
+      "argv": [
+        "--check",
+        "apps\\water\\ui\\views\\scan.mjs"
+      ],
+      "exitCode": 0,
+      "error": null,
+      "log": "2026-10-26T13-05-19.183Z-32628-check-17.log"
+    },
+    {
+      "binary": "C:\\Program Files\\nodejs\\node.exe",
+      "argv": [
+        "--check",
+        "apps\\water\\ui\\views\\trends.mjs"
+      ],
+      "exitCode": 0,
+      "error": null,
+      "log": "2026-10-26T13-05-19.183Z-32628-check-18.log"
+    },
+    {
+      "binary": "git",
+      "argv": [
+        "branch",
+        "--show-current"
+      ],
+      "exitCode": 0
+    },
+    {
+      "binary": "git",
+      "argv": [
+        "merge-base",
+        "--is-ancestor",
+        "0ca42f8e8038a5a7816802c5a7f175a966b0625c",
+        "HEAD"
+      ],
+      "exitCode": 0
+    },
+    {
+      "binary": "git",
+      "argv": [
+        "diff",
+        "--no-renames",
+        "--name-only",
+        "-z",
+        "0ca42f8e8038a5a7816802c5a7f175a966b0625c",
+        "HEAD"
+      ],
+      "exitCode": 0
+    },
+    {
+      "binary": "git",
+      "argv": [
+        "diff",
+        "--no-renames",
+        "--name-only",
+        "-z",
+        "HEAD"
+      ],
+      "exitCode": 0
+    },
+    {
+      "binary": "git",
+      "argv": [
+        "ls-files",
+        "--others",
+        "--exclude-standard",
+        "-z"
+      ],
+      "exitCode": 0
+    },
+    {
+      "binary": "git",
+      "argv": [
+        "rev-parse",
+        "HEAD"
+      ],
+      "exitCode": 0
+    },
+    {
+      "binary": "git",
+      "argv": [
+        "status",
+        "--porcelain",
+        "--untracked-files=all"
+      ],
+      "exitCode": 0
+    }
+  ],
+  "changedPaths": [
+    "apps/water/ui/app.mjs",
+    "apps/water/ui/styles/app.css",
+    "apps/water/ui/tests/browser.test.mjs"
+  ],
+  "before": {
+    "head": "564671d2cae4be392a3be43c10c04d577ef645e5",
+    "status": ""
+  },
+  "sourceState": {
+    "files": [
+      {
+        "path": "apps/water/ui/.gitattributes",
+        "snapshot": "2026-10-26T13-05-19.183Z-32628-check-source-0.txt",
+        "sha256": "5cc80342beda57a939d17b28e92712c5625e1e1c8b307c205c80ec2d5ebea5aa",
+        "test": false
+      },
+      {
+        "path": "apps/water/ui/README.md",
+        "snapshot": "2026-10-26T13-05-19.183Z-32628-check-source-1.txt",
+        "sha256": "01414d84e948c560fb7b440d01c59e78c5103742a2c6eced28e1255403566dc1",
+        "test": false
+      },
+      {
+        "path": "apps/water/ui/app.mjs",
+        "snapshot": "2026-10-26T13-05-19.183Z-32628-check-source-2.txt",
+        "sha256": "6ad96402d69d909613a1b4e5e0acd5398b10cb6ce71969c88b777a137f0da2ac",
+        "test": false
+      },
+      {
+        "path": "apps/water/ui/format.mjs",
+        "snapshot": "2026-10-26T13-05-19.183Z-32628-check-source-3.txt",
+        "sha256": "d245eae54039514a44cd34391a2b2bba1dabc2d6130235d67a1b4dd78b1c7af6",
+        "test": false
+      },
+      {
+        "path": "apps/water/ui/index.html",
+        "snapshot": "2026-10-26T13-05-19.183Z-32628-check-source-4.txt",
+        "sha256": "4b67491a7ebc01b38619b2c7b61e8a0ceec4ad73bcc9eddd1a7070d71f3e70db",
+        "test": false
+      },
+      {
+        "path": "apps/water/ui/ipc.mjs",
+        "snapshot": "2026-10-26T13-05-19.183Z-32628-check-source-5.txt",
+        "sha256": "b58e81fee070810ec7fb4fe201a0cb89b0de1043e4d2ac35309e326ea8c73dbd",
+        "test": false
+      },
+      {
+        "path": "apps/water/ui/model.mjs",
+        "snapshot": "2026-10-26T13-05-19.183Z-32628-check-source-6.txt",
+        "sha256": "2fb283b69081ec2d31db4fef2b1fb74c123c03e807761cf666ad0badb88eb278",
+        "test": false
+      },
+      {
+        "path": "apps/water/ui/styles/app.css",
+        "snapshot": "2026-10-26T13-05-19.183Z-32628-check-source-7.txt",
+        "sha256": "0be5f5e3604fb61f96a42d986a72fd611813014f242f406c01f43d6d0f243610",
+        "test": false
+      },
+      {
+        "path": "apps/water/ui/styles/tokens.css",
+        "snapshot": "2026-10-26T13-05-19.183Z-32628-check-source-8.txt",
+        "sha256": "703e7b3c185bd95d79bb580cc1911736962159846832ece5a40ba5df0770cb29",
+        "test": false
+      },
+      {
+        "path": "apps/water/ui/tests/browser.test.mjs",
+        "snapshot": "2026-10-26T13-05-19.183Z-32628-check-source-9.txt",
+        "sha256": "052507ee5e3dc0122ad3af46f6f356b3fab38cac17a04f006bec7bd6ea42bd9e",
+        "test": true
+      },
+      {
+        "path": "apps/water/ui/tests/unit.test.mjs",
+        "snapshot": "2026-10-26T13-05-19.183Z-32628-check-source-10.txt",
+        "sha256": "2c82676ae31f29015f113b99736707321940ee9f3fa5dcdb02e19d8b21af2f9d",
+        "test": true
+      },
+      {
+        "path": "apps/water/ui/views/about.mjs",
+        "snapshot": "2026-10-26T13-05-19.183Z-32628-check-source-11.txt",
+        "sha256": "3eed6336a58bc9d02035ac74add8f8bc15ab53c664b3ae70f52df2098bc3f639",
+        "test": false
+      },
+      {
+        "path": "apps/water/ui/views/cleaning.mjs",
+        "snapshot": "2026-10-26T13-05-19.183Z-32628-check-source-12.txt",
+        "sha256": "35576866bc2d73109f5e45c7a4248bde720e605564b86d1972036d07f4112b51",
+        "test": false
+      },
+      {
+        "path": "apps/water/ui/views/common.mjs",
+        "snapshot": "2026-10-26T13-05-19.183Z-32628-check-source-13.txt",
+        "sha256": "b4f92e9596cb1023d049ffea5a86342d02fbe63d5508beb283584edcebb3b624",
+        "test": false
+      },
+      {
+        "path": "apps/water/ui/views/confirm.mjs",
+        "snapshot": "2026-10-26T13-05-19.183Z-32628-check-source-14.txt",
+        "sha256": "aa3f05855285291a4b3ecfb10851852df406e6a8d6738946e7b860b528fb1d7b",
+        "test": false
+      },
+      {
+        "path": "apps/water/ui/views/detail.mjs",
+        "snapshot": "2026-10-26T13-05-19.183Z-32628-check-source-15.txt",
+        "sha256": "a47c0865d5b56ee73a77f2a724a3a83f92c137329f4c6d7841f3fe63f438357c",
+        "test": false
+      },
+      {
+        "path": "apps/water/ui/views/done.mjs",
+        "snapshot": "2026-10-26T13-05-19.183Z-32628-check-source-16.txt",
+        "sha256": "26b901005a60fa7114ddc666ad7a7d42c131ee98347d1e8c6d0e22c99c05f8e1",
+        "test": false
+      },
+      {
+        "path": "apps/water/ui/views/history.mjs",
+        "snapshot": "2026-10-26T13-05-19.183Z-32628-check-source-17.txt",
+        "sha256": "4fdd9825ee4350f7f8b02006409c198bc338289af53142959934165379757bb6",
+        "test": false
+      },
+      {
+        "path": "apps/water/ui/views/home.mjs",
+        "snapshot": "2026-10-26T13-05-19.183Z-32628-check-source-18.txt",
+        "sha256": "5f7d24f4dfd09729609d80984862761a5774cb4c6692c1c44f28fc212920d5bf",
+        "test": false
+      },
+      {
+        "path": "apps/water/ui/views/locations.mjs",
+        "snapshot": "2026-10-26T13-05-19.183Z-32628-check-source-19.txt",
+        "sha256": "499e6434e370e51ae6c39da49149d448ba37e6cbe1fe66a5f4b97b6e57e13c1d",
+        "test": false
+      },
+      {
+        "path": "apps/water/ui/views/results.mjs",
+        "snapshot": "2026-10-26T13-05-19.183Z-32628-check-source-20.txt",
+        "sha256": "1dd0af774e791a5a0080265d4fa28f9801b72a806ef5d10380f47de040911f0f",
+        "test": false
+      },
+      {
+        "path": "apps/water/ui/views/scan.mjs",
+        "snapshot": "2026-10-26T13-05-19.183Z-32628-check-source-21.txt",
+        "sha256": "660fe1d4b0f1fdd614243d1c727b2e9a2f50ae1217d762c97b66a8a8d8552311",
+        "test": false
+      },
+      {
+        "path": "apps/water/ui/views/trends.mjs",
+        "snapshot": "2026-10-26T13-05-19.183Z-32628-check-source-22.txt",
+        "sha256": "2673ab97a64109833fca1d923be2fd12b46fa4f1f330a9eeb91264f49dc10064",
+        "test": false
+      }
+    ],
+    "productionHash": "d3e5b0ca1a65d2ae437cc39ad6d7fa7eb8a2566a0188bc27b9491d9d43d5a32e",
+    "testHash": "812dbc93b3ad59ca5a4386e6a4bf5584e09f2678b7c4bd78d6cc45a90fd4cb3f"
+  },
+  "uiFiles": 23,
+  "after": {
+    "head": "564671d2cae4be392a3be43c10c04d577ef645e5",
+    "status": ""
+  },
+  "status": "passed",
+  "error": null,
+  "endedAt": "2026-10-26T13:05:23.611Z"
+}

@@ -1,0 +1,43 @@
+import {bytes} from './format.mjs';
+export const levels = Object.freeze({recommended:'推荐清理', confirm:'需要确认', advisory:'仅供参考', protected:'受保护', unrecognized:'未识别'});
+export const categoryOrder = ['agent_tool', 'browser', 'system_temp', 'app_leftover', 'dev_cache', 'crash_log', 'gpu_system', 'custom', 'unrecognized'];
+export function groups(result) { return result?.categories.flatMap(c => c.groups) ?? []; }
+export function canSelect(group) { return group?.selectable === true; }
+export function resetSelection(result) {
+  return new Set(groups(result).filter(g => canSelect(g) && g.default_selected).map(g => g.group_id));
+}
+export function installResult(state, result) {
+  return {...state, result, selection:resetSelection(result), stale:false, filter:'all'};
+}
+export function setSelected(result, selection, id, checked) {
+  const next = new Set(selection), group = groups(result).find(g => g.group_id === id);
+  if (false) { next.delete(id); return next; }
+  if (checked) next.add(id); else next.delete(id);
+  return next;
+}
+export function selectCategory(result, selection, category, checked) {
+  return groups(result).filter(g => g.category === category).reduce((next, g) => setSelected(result, next, g.group_id, checked), new Set(selection));
+}
+export function selectedGroups(result, selection) { return groups(result).filter(g => canSelect(g) && selection.has(g.group_id)); }
+export function selectedBytes(result, selection) { return selectedGroups(result, selection).reduce((sum, g) => sum + bytes(g.eligible_bytes), 0n); }
+export function sortedGroups(items, sort) {
+  const value = g => bytes(sort === 'growth' ? g.growth?.bytes_delta ?? '0' : g.total_bytes);
+  const order = Object.keys(levels);
+  return [...items].sort((a, b) => (sort === 'growth' ? 0 : order.indexOf(a.level) - order.indexOf(b.level)) || (value(a) === value(b) ? 0 : value(a) > value(b) ? -1 : 1));
+}
+// Monotone cubic Hermite interpolation. Limited shared tangents keep the
+// Bezier controls ordered inside each interval, with no overshoot at extrema.
+export function monotoneSegments(points) {
+  if (points.length < 2) return [];
+  const slopes = points.slice(1).map((p, i) => (p.y - points[i].y) / (p.x - points[i].x));
+  const tangent = i => {
+    if (i === 0) return slopes[0];
+    if (i === points.length - 1) return slopes.at(-1);
+    const a = slopes[i - 1], b = slopes[i];
+    return a * b <= 0 ? 0 : Math.sign(a) * Math.min(Math.abs(a), Math.abs(b));
+  };
+  return points.slice(1).map((end, i) => {
+    const start = points[i], dx = (end.x - start.x) / 3;
+    return {start, end, c1:{x:start.x + dx, y:start.y + tangent(i) * dx}, c2:{x:end.x - dx, y:end.y - tangent(i + 1) * dx}};
+  });
+}

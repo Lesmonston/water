@@ -1,0 +1,162 @@
+{"binary":"C:\\Users\\37310\\.rustup\\toolchains\\1.95.0-x86_64-pc-windows-msvc\\bin\\cargo.exe","args":["fmt","--manifest-path","packages/water-service/Cargo.toml","--","--check"],"exitCode":1,"error":null}
+--- stdout ---
+Diff in \\?\F:\new\smaltalk\water\.worktrees\w4-selftest-g2\packages\water-service\src\service.rs:310:
+ 
+     pub fn call(&self, command: &str, args: Value) -> Result<Value, IpcError> {
+         // SELFTEST STUB: a panic inside any command becomes "unavailable".
+[31m-        std::panic::catch_unwind(std::panic::AssertUnwindSafe(|| self.dispatch(command, args)))
+[0m[31m-            .unwrap_or_else(|_| Err(IpcError::new("unavailable")))
+[0m[32m+        std::panic::catch_unwind(std::panic::AssertUnwindSafe(|| {
+[0m[32m+            self.dispatch(command, args)
+[0m[32m+        }))
+[0m[32m+        .unwrap_or_else(|_| Err(IpcError::new("unavailable")))
+[0m     }
+ 
+     fn dispatch(&self, command: &str, args: Value) -> Result<Value, IpcError> {
+Diff in \\?\F:\new\smaltalk\water\.worktrees\w4-selftest-g2\packages\water-service\tests\service_v1.rs:1349:
+     );
+     let fresh = scanned(&s);
+     f.fake.panic_now.store(true, Ordering::SeqCst);
+[31m-    let outcome = std::panic::catch_unwind(std::panic::AssertUnwindSafe(|| {
+[0m[31m-        s.call("trends", json!({}))
+[0m[31m-    }));
+[0m[32m+    let outcome =
+[0m[32m+        std::panic::catch_unwind(std::panic::AssertUnwindSafe(|| s.call("trends", json!({}))));
+[0m     assert!(
+         matches!(&outcome, Ok(Err(e)) if e.code == "unavailable"),
+         "SERVICE_PANIC_IDLE: a panicking command must answer unavailable"
+Diff in \\?\F:\new\smaltalk\water\.worktrees\w4-selftest-g2\packages\water-service\tests\service_v1.rs:1371:
+         .join(format!("{}.json", preview["plan_id"].as_str().unwrap()));
+     let mut stored: Value = serde_json::from_slice(&fs::read(&plan_path).unwrap()).unwrap();
+     let first = stored["plan"]["items"][0].clone();
+[31m-    let victim = PathBuf::from(format!("{}\\victim-keep.bin", first["root"].as_str().unwrap()));
+[0m[32m+    let victim = PathBuf::from(format!(
+[0m[32m+        "{}\\victim-keep.bin",
+[0m[32m+        first["root"].as_str().unwrap()
+[0m[32m+    ));
+[0m     File::create(&victim).unwrap().set_len(77).unwrap();
+     age(&victim, NOW - 10 * 86400);
+     let identity = water_junk_clean::identity_of(victim.to_str().unwrap()).unwrap();
+Diff in \\?\F:\new\smaltalk\water\.worktrees\w4-selftest-g2\packages\water-service\tests\service_v1.rs:1413:
+             json!({"planId": old["plan_id"], "confirmToken": old["confirm_token"]}),
+         )
+         .unwrap_err();
+[31m-    assert_eq!(err.code, "stale", "SERVICE_TRUST_BOUNDARY: a plan read back from disk ran");
+[0m[32m+    assert_eq!(
+[0m[32m+        err.code, "stale",
+[0m[32m+        "SERVICE_TRUST_BOUNDARY: a plan read back from disk ran"
+[0m[32m+    );
+[0m     assert_eq!(before, inventory(&f.root.join("local_app_data")));
+     let again = scanned(&s);
+[31m-    call(&s, "clean_prepare", json!({"groupIds": default_ids(&again)}));
+[0m[32m+    call(
+[0m[32m+        &s,
+[0m[32m+        "clean_prepare",
+[0m[32m+        json!({"groupIds": default_ids(&again)}),
+[0m[32m+    );
+[0m 
+     // SERVICE_PRODUCT_NAME
+     for (name, label) in [
+Diff in \\?\F:\new\smaltalk\water\.worktrees\w4-selftest-g2\packages\water-service\tests\service_v1.rs:1445:
+     let hex = "0123456789abcdef0123456789abcdef";
+     let temps = [
+         g.data.join(format!(".settings.json.{hex}.tmp")),
+[31m-        g.data.join("scans").join(format!(".scan-20260101T000000Z-abcd.json.{hex}.tmp")),
+[0m[31m-        g.data.join("plans").join(format!(".plan-20260101T000000Z-abcd.json.{hex}.tmp")),
+[0m[32m+        g.data
+[0m[32m+            .join("scans")
+[0m[32m+            .join(format!(".scan-20260101T000000Z-abcd.json.{hex}.tmp")),
+[0m[32m+        g.data
+[0m[32m+            .join("plans")
+[0m[32m+            .join(format!(".plan-20260101T000000Z-abcd.json.{hex}.tmp")),
+[0m     ];
+     for t in &temps {
+         fs::write(t, b"{}").unwrap();
+Diff in \\?\F:\new\smaltalk\water\.worktrees\w4-selftest-g2\packages\water-service\tests\service_v1.rs:1457:
+     }
+     for i in 0..70u32 {
+         let stamp = format!("20260101T00{:02}{:02}Z-{:04x}", i / 60, i % 60, i);
+[31m-        fs::write(g.data.join("plans").join(format!("plan-{stamp}.json")), b"{}").unwrap();
+[0m[31m-        fs::write(g.data.join("journal").join(format!("clean-{stamp}.jsonl")), b"").unwrap();
+[0m[32m+        fs::write(
+[0m[32m+            g.data.join("plans").join(format!("plan-{stamp}.json")),
+[0m[32m+            b"{}",
+[0m[32m+        )
+[0m[32m+        .unwrap();
+[0m[32m+        fs::write(
+[0m[32m+            g.data.join("journal").join(format!("clean-{stamp}.jsonl")),
+[0m[32m+            b"",
+[0m[32m+        )
+[0m[32m+        .unwrap();
+[0m     }
+     drop(g.service(false));
+     assert!(
+Diff in \\?\F:\new\smaltalk\water\.worktrees\w4-selftest-g2\packages\water-service\tests\service_v1.rs:1465:
+         temps.iter().all(|t| !t.exists()),
+         "SERVICE_STORE_TIDY: leftover temp files remain"
+     );
+[31m-    assert!(keep.iter().all(|k| k.exists()), "SERVICE_STORE_TIDY: other files removed");
+[0m[32m+    assert!(
+[0m[32m+        keep.iter().all(|k| k.exists()),
+[0m[32m+        "SERVICE_STORE_TIDY: other files removed"
+[0m[32m+    );
+[0m     for (dir, prefix) in [("plans", "plan-"), ("journal", "clean-")] {
+         let mut names: Vec<_> = fs::read_dir(g.data.join(dir))
+             .unwrap()
+Diff in \\?\F:\new\smaltalk\water\.worktrees\w4-selftest-g2\packages\water-service\tests\service_v1.rs:1474:
+             .collect();
+         names.sort();
+         assert_eq!(names.len(), 60, "SERVICE_STORE_TIDY: {dir} cap");
+[31m-        assert!(names[0].contains("T000010Z"), "SERVICE_STORE_TIDY: {dir} keeps the newest");
+[0m[32m+        assert!(
+[0m[32m+            names[0].contains("T000010Z"),
+[0m[32m+            "SERVICE_STORE_TIDY: {dir} keeps the newest"
+[0m[32m+        );
+[0m     }
+ 
+     // SERVICE_CANONICAL_ROOT: a non-ASCII case alias of a known folder.
+Diff in \\?\F:\new\smaltalk\water\.worktrees\w4-selftest-g2\packages\water-service\tests\service_v1.rs:1496:
+     .unwrap();
+     h.pick(Some(&h.root.join("Kf-Ä")));
+     let err = s.call("custom_root_add", json!({})).unwrap_err();
+[31m-    assert_eq!(err.code, "invalid", "SERVICE_CANONICAL_ROOT: a folder containing a known folder was added");
+[0m[32m+    assert_eq!(
+[0m[32m+        err.code, "invalid",
+[0m[32m+        "SERVICE_CANONICAL_ROOT: a folder containing a known folder was added"
+[0m[32m+    );
+[0m     h.pick(Some(&h.root.join("kf-ä")));
+     let err = s.call("custom_root_add", json!({})).unwrap_err();
+[31m-    assert_eq!(err.code, "invalid", "SERVICE_CANONICAL_ROOT: a non-canonical spelling was added");
+[0m[32m+    assert_eq!(
+[0m[32m+        err.code, "invalid",
+[0m[32m+        "SERVICE_CANONICAL_ROOT: a non-canonical spelling was added"
+[0m[32m+    );
+[0m     drop(s);
+ 
+     // SERVICE_PARTIAL_SOURCE: an unrepresentable name inside protected data.
+Diff in \\?\F:\new\smaltalk\water\.worktrees\w4-selftest-g2\packages\water-service\tests\service_v1.rs:1512:
+     let s = k.service(true);
+     call(&s, "scan_start", json!({}));
+     let p = settle(&s, "scan_progress", "SERVICE_PARTIAL_SOURCE");
+[31m-    assert_eq!(p["state"], "partial", "SERVICE_PARTIAL_SOURCE: fixture must make a partial scan");
+[0m[32m+    assert_eq!(
+[0m[32m+        p["state"], "partial",
+[0m[32m+        "SERVICE_PARTIAL_SOURCE: fixture must make a partial scan"
+[0m[32m+    );
+[0m     let r = call(&s, "scan_result", json!({"scanId": p["scan_id"]}));
+     let before = inventory(&k.root.join("local_app_data"));
+     let err = s
+Diff in \\?\F:\new\smaltalk\water\.worktrees\w4-selftest-g2\packages\water-service\tests\service_v1.rs:1525:
+     );
+     assert_eq!(before, inventory(&k.root.join("local_app_data")));
+     fs::remove_file(&bad).unwrap();
+[31m-    bad_name(&k.root.join("local_app_data/Google/Chrome/User Data/Default/Cache"));
+[0m[32m+    bad_name(
+[0m[32m+        &k.root
+[0m[32m+            .join("local_app_data/Google/Chrome/User Data/Default/Cache"),
+[0m[32m+    );
+[0m     call(&s, "scan_start", json!({}));
+     let p = settle(&s, "scan_progress", "SERVICE_PARTIAL_SOURCE");
+     assert_eq!(p["state"], "partial");
+
+--- stderr ---
