@@ -9,6 +9,29 @@ use tauri::{
 };
 
 pub use water_native_picker as picker;
+use water_contracts::v1::OpaqueId;
+use water_native_picker::v1::{PickerError, PickerOptions, select_scope};
+use water_scope_registry::v1::Registry;
+
+pub fn picker_failure(error: &PickerError) -> &'static str {
+    match error {
+        PickerError::UnsupportedPlatform
+        | PickerError::ApartmentUnavailable
+        | PickerError::DialogFailed => "unavailable",
+        PickerError::Root(_) | PickerError::Source(_) | PickerError::InvalidSelection => "invalid",
+    }
+}
+
+pub fn pick_folder(initial_directory: &str) -> Result<Option<String>, &'static str> {
+    let options = PickerOptions::new(initial_directory).map_err(|e| picker_failure(&e))?;
+    let mut registry = Registry::new(1).map_err(|_| "unavailable")?;
+    let scope = OpaqueId::new("water-pick-folder").map_err(|_| "unavailable")?;
+    match select_scope(&mut registry, &scope, &options) {
+        Ok(None) => Ok(None),
+        Ok(Some(selected)) => Ok(Some(selected.root_path().to_owned())),
+        Err(error) => Err(picker_failure(&error)),
+    }
+}
 
 pub fn config_ok(raw: &str) -> bool {
     raw.contains("\"withGlobalTauri\": true")
