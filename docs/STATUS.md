@@ -2,7 +2,7 @@
 
 更新时间：2026-10-26（Asia/Tokyo；本次仅交接导航，最近产品验收为2026-10-25）。
 
-更换总控请先读[最新交接报告（2026-10-26 第 2 份）](CONTROLLER-HANDOFF-20261026-2.md)；[上午那份](CONTROLLER-HANDOFF-20261026.md)及其只读状态快照仅供追溯。31主任务已VERIFIED，无待收单或新READY票；验收范围及下一波候选见报告。此前[接手验收摘要](CONTROLLER-HANDOFF-20261017.md)仅供历史追溯；当前任务状态以本页、registry/manifest及最新正式验收为准。
+更换总控请先读[最新交接报告（2026-10-26 第 3 份）](CONTROLLER-HANDOFF-20261026-3.md)；[第 2 份](CONTROLLER-HANDOFF-20261026-2.md)、[上午那份](CONTROLLER-HANDOFF-20261026.md)及其只读状态快照仅供追溯。31主任务已VERIFIED，无待收单或新READY票；验收范围及下一波候选见报告。此前[接手验收摘要](CONTROLLER-HANDOFF-20261017.md)仅供历史追溯；当前任务状态以本页、registry/manifest及最新正式验收为准。
 
 ## 已确认
 
@@ -42,6 +42,7 @@ A–AB及八补单、AD保持VERIFIED；AC/补单06新增VERIFIED（Windows静�
 - F2 桌面宿主 `apps/water/host`：Tauri 窗口加 Mica，命令转发，一次原生窗口检查。
 - 两个产品取舍：这一版只做体检，清理先关闭（D 加固后再开）；窗口保留系统标题栏。
 - 新检查入口 `scripts/desktop-wave-check.mjs` 已在两棵自测树走通，见[派前回执](dispatch/wave3/READY-REPORT-20261026.md)。
+- **已派出（17:51 JST）**：F1、F2 都交 Astra，新开对话；记录时两棵树都停在基点、干净。
 
 ## 真实AA→AD联合验收通过（2026-10-26）
 

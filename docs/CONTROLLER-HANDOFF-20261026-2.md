@@ -1,5 +1,7 @@
 # Water 总控交接报告（2026-10-26 第 2 份）
 
+> 已被[第 3 份](CONTROLLER-HANDOFF-20261026-3.md)取代（当天晚上：第二波验收合入、Git 远端、第三波派出）。本份保留供追溯。
+
 项目根 `F:/new/smaltalk/water`。总控 Claude（当天上午从 Codex 接任，上一份交接见 [CONTROLLER-HANDOFF-20261026](CONTROLLER-HANDOFF-20261026.md)）。因用户要压缩上下文而写；本报告取代上一份作为当前入口。
 
 ## 0. 一句话现状
