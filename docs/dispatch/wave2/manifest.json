@@ -1,0 +1,390 @@
+{
+  "schemaVersion": 1,
+  "wave": "water-wave2-checkup",
+  "status": "A_D_READY_E_DRAFT",
+  "controller": "Claude",
+  "controllerRoot": "F:/new/smaltalk/water",
+  "controllerBranch": "main",
+  "mode": "manual-external-paste",
+  "decision": "docs/decisions/ADR-018-device-junk-checkup-and-in-app-cleanup.md",
+  "plan": "docs/dispatch/wave2/PLAN.md",
+  "baseCommit": "7ca15282e477ed4b5120ffe3c1edc3a60b75c144",
+  "baseTag": "water-w2-checkup-base-20261026",
+  "helper": "scripts/checkup-wave-check.mjs",
+  "workerRules": "docs/dispatch/W2-CHECKUP-WORKER-RULES.md",
+  "helperSelfTest": {
+    "worktree": ".worktrees/w2-selftest",
+    "result": "baseline, lock, check, test, red, final, real and archive passed; seven rejection paths verified",
+    "date": "2026-10-26"
+  },
+  "frozenFiles": [
+    {
+      "path": "contracts/checkup-v1/MODEL.md",
+      "sha256": "fe0c9a4f5d96ce9297e8f72e75df8c6f666f9a6af440fc198aa7b3362692188b"
+    },
+    {
+      "path": "contracts/checkup-v1/RULES.md",
+      "sha256": "11bbc3652d4e722618875e16bdca28676553fade0fb38e754316f053ce925949"
+    },
+    {
+      "path": "contracts/checkup-v1/SCAN.md",
+      "sha256": "c72b72d16635f57827d460e0c12e0044d86677e1a2a93e9f72664625dfa6d5e3"
+    },
+    {
+      "path": "contracts/checkup-v1/PROCESS.md",
+      "sha256": "09312639b801e2bd4ba683e50a4fd3e07b03bbee91e6eba363e4770cf6116e87"
+    },
+    {
+      "path": "contracts/checkup-v1/CLEAN.md",
+      "sha256": "95b5ad120c6d7a04d427318c09df8e58ba77d6f96167cb040bc07a33e5c5a55f"
+    },
+    {
+      "path": "contracts/checkup-v1/IPC.md",
+      "sha256": "62f726ced5f863f1b47db261976d8b5e5183f65669b2ba09d2f85a3977161be2"
+    },
+    {
+      "path": "contracts/checkup-v1/real-plan-template.json",
+      "sha256": "3959478c757fb76e3925d97de00325865a8ef9a3572ef7a19f656e2da583eaad"
+    },
+    {
+      "path": "docs/decisions/ADR-018-device-junk-checkup-and-in-app-cleanup.md",
+      "sha256": "1195b17c469b3abe290f4d334628fa36583ca7f20c46349aaf1071ff839a0579"
+    },
+    {
+      "path": "docs/dispatch/W2-CHECKUP-WORKER-RULES.md",
+      "sha256": "216e1e753e74c30f5f35474d10d9ab707d8bd8686957d75cd9d2bc48048426e3"
+    }
+  ],
+  "tasks": [
+    {
+      "id": "WATER-W2-A",
+      "title": "规则登记表",
+      "status": "READY",
+      "slot": "w2-a",
+      "kind": "rust",
+      "worktree": "F:/new/smaltalk/water/.worktrees/w2-a",
+      "branch": "worker/water-w2-a",
+      "baseCommit": "7ca15282e477ed4b5120ffe3c1edc3a60b75c144",
+      "snapshotRef": "refs/tags/water-w2-checkup-base-20261026",
+      "ticket": "docs/dispatch/tickets/WATER-W2-A-JUNK-RULES-20261026.md",
+      "report": "docs/dispatch/reports/WATER-W2-A-REPORT.md",
+      "spec": "contracts/checkup-v1/RULES.md",
+      "outputRoot": "packages/junk-rules",
+      "packageName": "water-junk-rules",
+      "testTarget": "rules_v1",
+      "expectedTests": [
+        "rules_schema_strict",
+        "rules_protection_precedence",
+        "rules_resolve_plan",
+        "rules_seed_coverage"
+      ],
+      "proofTargets": {
+        "nc1": "RULES_PRECEDENCE"
+      },
+      "productionFiles": [
+        "packages/junk-rules/Cargo.toml",
+        "packages/junk-rules/Cargo.lock",
+        "packages/junk-rules/README.md",
+        "packages/junk-rules/rules/windows.json"
+      ],
+      "testFiles": [
+        "packages/junk-rules/tests/rules_v1.rs"
+      ],
+      "allowedFiles": [
+        "docs/dispatch/reports/WATER-W2-A-REPORT.md"
+      ],
+      "allowedPrefixes": [
+        "packages/junk-rules/",
+        "docs/acceptance/wave2/a/"
+      ],
+      "evidenceDir": "docs/acceptance/wave2/a/",
+      "allowedModes": [
+        "baseline",
+        "lock",
+        "check",
+        "test",
+        "archive",
+        "real",
+        "red-nc1"
+      ],
+      "expectedFinalModes": [
+        "check",
+        "test",
+        "real"
+      ],
+      "mustRead": [
+        "docs/dispatch/W2-CHECKUP-WORKER-RULES.md",
+        "docs/decisions/ADR-018-device-junk-checkup-and-in-app-cleanup.md",
+        "contracts/checkup-v1/MODEL.md",
+        "contracts/checkup-v1/RULES.md"
+      ],
+      "cargoCacheSource": "F:/new/smaltalk/water/.worktrees/a/.local/cargo-home/registry",
+      "realMode": "env-only",
+      "nativeModule": null,
+      "nativeWindowBudget": 0,
+      "nativeDirectoryDialogBudget": 0,
+      "browserBudget": 0,
+      "realDataPermission": "read-only metadata per ADR-018",
+      "dispatchedAt": null,
+      "startedAt": null,
+      "model": null,
+      "modelAssignment": "user-arranged; report actual engine/model",
+      "macOS": "unverified",
+      "gate": "light",
+      "baselineStatus": "PASSED",
+      "baselineEvidence": "docs/acceptance/wave2/controller/preflight-20261026/WATER-W2-A-2026-10-26T04-30-52.332Z-3260-baseline-result.json",
+      "readyOn": "2026-10-26"
+    },
+    {
+      "id": "WATER-W2-B",
+      "title": "体检扫描引擎",
+      "status": "READY",
+      "slot": "w2-b",
+      "kind": "rust",
+      "worktree": "F:/new/smaltalk/water/.worktrees/w2-b",
+      "branch": "worker/water-w2-b",
+      "baseCommit": "7ca15282e477ed4b5120ffe3c1edc3a60b75c144",
+      "snapshotRef": "refs/tags/water-w2-checkup-base-20261026",
+      "ticket": "docs/dispatch/tickets/WATER-W2-B-JUNK-SCAN-20261026.md",
+      "report": "docs/dispatch/reports/WATER-W2-B-REPORT.md",
+      "spec": "contracts/checkup-v1/SCAN.md",
+      "outputRoot": "packages/junk-scan",
+      "packageName": "water-junk-scan",
+      "testTarget": "scan_v1",
+      "expectedTests": [
+        "scan_plan_contract",
+        "scan_pattern_marker_discovery",
+        "scan_overlap_and_guards",
+        "scan_reparse_budget_cancel",
+        "scan_snapshot_growth_keys"
+      ],
+      "proofTargets": {
+        "nc1": "SCAN_NO_FOLLOW"
+      },
+      "productionFiles": [
+        "packages/junk-scan/Cargo.toml",
+        "packages/junk-scan/Cargo.lock",
+        "packages/junk-scan/README.md"
+      ],
+      "testFiles": [
+        "packages/junk-scan/tests/scan_v1.rs"
+      ],
+      "allowedFiles": [
+        "docs/dispatch/reports/WATER-W2-B-REPORT.md"
+      ],
+      "allowedPrefixes": [
+        "packages/junk-scan/",
+        "docs/acceptance/wave2/b/"
+      ],
+      "evidenceDir": "docs/acceptance/wave2/b/",
+      "allowedModes": [
+        "baseline",
+        "lock",
+        "check",
+        "test",
+        "archive",
+        "real",
+        "red-nc1"
+      ],
+      "expectedFinalModes": [
+        "check",
+        "test",
+        "real"
+      ],
+      "mustRead": [
+        "docs/dispatch/W2-CHECKUP-WORKER-RULES.md",
+        "docs/decisions/ADR-018-device-junk-checkup-and-in-app-cleanup.md",
+        "contracts/checkup-v1/MODEL.md",
+        "contracts/checkup-v1/SCAN.md"
+      ],
+      "cargoCacheSource": "F:/new/smaltalk/water/.worktrees/a/.local/cargo-home/registry",
+      "realMode": "scan-plan",
+      "nativeModule": "native_windows.rs",
+      "nativeWindowBudget": 0,
+      "nativeDirectoryDialogBudget": 0,
+      "browserBudget": 0,
+      "realDataPermission": "read-only metadata per ADR-018",
+      "dispatchedAt": null,
+      "startedAt": null,
+      "model": null,
+      "modelAssignment": "user-arranged; report actual engine/model",
+      "macOS": "unverified",
+      "gate": "light",
+      "baselineStatus": "PASSED",
+      "baselineEvidence": "docs/acceptance/wave2/controller/preflight-20261026/WATER-W2-B-2026-10-26T04-30-56.829Z-35724-baseline-result.json",
+      "readyOn": "2026-10-26"
+    },
+    {
+      "id": "WATER-W2-C",
+      "title": "进程快照与在用判断",
+      "status": "READY",
+      "slot": "w2-c",
+      "kind": "rust",
+      "worktree": "F:/new/smaltalk/water/.worktrees/w2-c",
+      "branch": "worker/water-w2-c",
+      "baseCommit": "7ca15282e477ed4b5120ffe3c1edc3a60b75c144",
+      "snapshotRef": "refs/tags/water-w2-checkup-base-20261026",
+      "ticket": "docs/dispatch/tickets/WATER-W2-C-PROCESS-SCAN-20261026.md",
+      "report": "docs/dispatch/reports/WATER-W2-C-REPORT.md",
+      "spec": "contracts/checkup-v1/PROCESS.md",
+      "outputRoot": "packages/process-scan",
+      "packageName": "water-process-scan",
+      "testTarget": "process_v1",
+      "expectedTests": [
+        "process_snapshot_contract",
+        "process_path_reference",
+        "process_in_use_and_orphans",
+        "process_privacy"
+      ],
+      "proofTargets": {
+        "nc1": "PROC_PATH_BOUNDARY"
+      },
+      "productionFiles": [
+        "packages/process-scan/Cargo.toml",
+        "packages/process-scan/Cargo.lock",
+        "packages/process-scan/README.md"
+      ],
+      "testFiles": [
+        "packages/process-scan/tests/process_v1.rs"
+      ],
+      "allowedFiles": [
+        "docs/dispatch/reports/WATER-W2-C-REPORT.md"
+      ],
+      "allowedPrefixes": [
+        "packages/process-scan/",
+        "docs/acceptance/wave2/c/"
+      ],
+      "evidenceDir": "docs/acceptance/wave2/c/",
+      "allowedModes": [
+        "baseline",
+        "lock",
+        "check",
+        "test",
+        "archive",
+        "real",
+        "red-nc1"
+      ],
+      "expectedFinalModes": [
+        "check",
+        "test",
+        "real"
+      ],
+      "mustRead": [
+        "docs/dispatch/W2-CHECKUP-WORKER-RULES.md",
+        "docs/decisions/ADR-018-device-junk-checkup-and-in-app-cleanup.md",
+        "contracts/checkup-v1/MODEL.md",
+        "contracts/checkup-v1/PROCESS.md"
+      ],
+      "cargoCacheSource": "F:/new/smaltalk/water/.worktrees/a/.local/cargo-home/registry",
+      "realMode": "env-only",
+      "nativeModule": "native_windows.rs",
+      "nativeWindowBudget": 0,
+      "nativeDirectoryDialogBudget": 0,
+      "browserBudget": 0,
+      "realDataPermission": "read-only metadata per ADR-018",
+      "dispatchedAt": null,
+      "startedAt": null,
+      "model": null,
+      "modelAssignment": "user-arranged; report actual engine/model",
+      "macOS": "unverified",
+      "gate": "light",
+      "baselineStatus": "PASSED",
+      "baselineEvidence": "docs/acceptance/wave2/controller/preflight-20261026/WATER-W2-C-2026-10-26T04-31-03.579Z-19084-baseline-result.json",
+      "readyOn": "2026-10-26"
+    },
+    {
+      "id": "WATER-W2-D",
+      "title": "清理执行器（重门）",
+      "status": "READY",
+      "slot": "w2-d",
+      "kind": "rust",
+      "worktree": "F:/new/smaltalk/water/.worktrees/w2-d",
+      "branch": "worker/water-w2-d",
+      "baseCommit": "7ca15282e477ed4b5120ffe3c1edc3a60b75c144",
+      "snapshotRef": "refs/tags/water-w2-checkup-base-20261026",
+      "ticket": "docs/dispatch/tickets/WATER-W2-D-JUNK-CLEAN-20261026.md",
+      "report": "docs/dispatch/reports/WATER-W2-D-REPORT.md",
+      "spec": "contracts/checkup-v1/CLEAN.md",
+      "outputRoot": "packages/junk-clean",
+      "packageName": "water-junk-clean",
+      "testTarget": "clean_v1",
+      "expectedTests": [
+        "clean_plan_contract",
+        "clean_revalidation_skips",
+        "clean_no_follow",
+        "clean_partial_stop_journal",
+        "clean_report_volume"
+      ],
+      "proofTargets": {
+        "nc1": "CLEAN_IDENTITY",
+        "nc2": "CLEAN_NO_FOLLOW",
+        "nc3": "CLEAN_ROOT_BOUND"
+      },
+      "productionFiles": [
+        "packages/junk-clean/Cargo.toml",
+        "packages/junk-clean/Cargo.lock",
+        "packages/junk-clean/README.md"
+      ],
+      "testFiles": [
+        "packages/junk-clean/tests/clean_v1.rs"
+      ],
+      "allowedFiles": [
+        "docs/dispatch/reports/WATER-W2-D-REPORT.md"
+      ],
+      "allowedPrefixes": [
+        "packages/junk-clean/",
+        "docs/acceptance/wave2/d/"
+      ],
+      "evidenceDir": "docs/acceptance/wave2/d/",
+      "allowedModes": [
+        "baseline",
+        "lock",
+        "check",
+        "test",
+        "archive",
+        "red-nc1",
+        "red-nc2",
+        "red-nc3"
+      ],
+      "expectedFinalModes": [
+        "check",
+        "test"
+      ],
+      "mustRead": [
+        "docs/dispatch/W2-CHECKUP-WORKER-RULES.md",
+        "docs/decisions/ADR-018-device-junk-checkup-and-in-app-cleanup.md",
+        "contracts/checkup-v1/MODEL.md",
+        "contracts/checkup-v1/CLEAN.md"
+      ],
+      "cargoCacheSource": "F:/new/smaltalk/water/.worktrees/a/.local/cargo-home/registry",
+      "realMode": null,
+      "nativeModule": "native_windows.rs",
+      "nativeWindowBudget": 0,
+      "nativeDirectoryDialogBudget": 0,
+      "browserBudget": 0,
+      "realDataPermission": "none; synthetic fixtures under own .local only",
+      "dispatchedAt": null,
+      "startedAt": null,
+      "model": null,
+      "modelAssignment": "user-arranged; report actual engine/model",
+      "macOS": "unverified",
+      "gate": "heavy",
+      "baselineStatus": "PASSED",
+      "baselineEvidence": "docs/acceptance/wave2/controller/preflight-20261026/WATER-W2-D-2026-10-26T04-31-10.642Z-43948-baseline-result.json",
+      "readyOn": "2026-10-26"
+    },
+    {
+      "id": "WATER-W2-E",
+      "title": "桌面界面（磨砂玻璃）",
+      "status": "DRAFT_PENDING_DESIGN_APPROVAL",
+      "slot": "w2-e",
+      "kind": "ui",
+      "note": "Waits for user approval of docs/design/water-ui-v1 glass mockup; ticket, fixtures and worktree are prepared after approval.",
+      "outputRoot": "apps/water/ui",
+      "spec": "docs/design/water-ui-v1/DESIGN.md",
+      "ipc": "contracts/checkup-v1/IPC.md"
+    }
+  ],
+  "preflightStatus": "PASSED",
+  "preflightEvidence": "docs/acceptance/wave2/controller/preflight-20261026/ARCHIVE.json"
+}

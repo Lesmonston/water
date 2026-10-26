@@ -2,13 +2,16 @@
 
 面向 Windows、macOS AI 开发者的本地存储分析与安全清理助手。
 
-**当前阶段：A–AB及八补单、AD保持VERIFIED；AC/补单06新增VERIFIED（Windows静态桌面基础），AE仍仅研究文档VERIFIED。AC接收29a895d/实现eb7f801，原14产品字节及479归档/16,293,091字节已审计，隔离受测b417835已快进主线。06真实native两份raw2/main1/固定Tao1/未知无效0快照、四文案、正常exit0、私有profile及冻结childClose通过，5510ms；旧03–05失败保持，四次worker allocation已用。总控只做无UI独立Rustc库编译、原三测、137配置/73导航拒绝及26正向、实际快照复算和5根变体/四文案缺失拒绝；不额外开窗，不重跑Cargo/Tauri/旧负控或下载，未改产品与网络配置。旧542保持，总控5新条目/25继承锁共547约束；修正工具按执行前源SHA留档，其它30任务/槽位不变，无自动实现者。AC静态前置已解除，下一波仍须冻结接线接口/范围/测试后才READY；真实AA→AD、桌面扫描、用户scope/自然同意鉴真、生产竞态、macOS/M1未验收。**
+**当前阶段（2026-10-26）：方向调整为 Windows 设备垃圾体检与应用内选择性清理的一体化桌面应用（ADR-018）。第二波 A 规则、B 扫描、C 进程、D 清理执行器 READY；E 界面待设计确认。第一波 31 票保持 VERIFIED，真实 AA→AD 联合验收已通过。**
 
 用户指定本项目所有后续开发均位于 `smaltalk/water`，由 Codex 担任总控。
 
 ## 从这里开始
 
-- [计划重订草案：Agent 时代开发机磁盘体检（2026-10-26，待用户拍板）](docs/REPLAN-20261026-AGENT-ERA-CHECKUP.md)
+- [方向调整决定 ADR-018（2026-10-26）](docs/decisions/ADR-018-device-junk-checkup-and-in-app-cleanup.md)
+- [第二波派前回执：A–D READY](docs/dispatch/wave2/READY-REPORT-20261026.md)
+- [界面设计稿（磨砂玻璃）](docs/design/water-ui-v1/mockup.html)
+- [计划重订草案（已由 ADR-018 落定）](docs/REPLAN-20261026-AGENT-ERA-CHECKUP.md)
 - [真实AA→AD联合验收（2026-10-26）](docs/acceptance/wave1/controller/WATER-W1-AAAD-JOINT-REVIEW-20261026.md)
 - [新总控交接报告（2026-10-26）](docs/CONTROLLER-HANDOFF-20261026.md)
 - [当前状态与交接](docs/STATUS.md)
