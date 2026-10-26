@@ -72,6 +72,14 @@ A–AB及八补单、AD保持VERIFIED；AC/补单06新增VERIFIED（Windows静�
 - 两个总控合成用例都通过：清理打开时的全流程，以及重启后的设置、记录和占用提示。
 - 下一步出 F3（接线与整机体检，完成即 M1）。要带上 F2 的 6 条与 F1 的 3 条移交事项，见 manifest 的 `carryOverToF3`。
 
+**第三波 F3 READY（21:00 JST）**：[契约 WIRING](../contracts/desktop-v1/WIRING.md)、[工单](dispatch/tickets/WATER-W3-F3-WIRING-20261026.md)、[派前回执](dispatch/wave3/READY-REPORT-F3-20261026.md)。基点 `d56ebc6`（标签 `water-w3-f3-base-20261026`）。
+- 宿主接上服务核心与选择框，清理保持关闭。
+- 启动不再用 Tauri 的 `setup`，每种失败都打印固定中文并以 1 退出。
+- 加单实例锁；测试增至 5 个，负控 3 条。
+- 检查入口加了整机观察器：一个窗口里用界面完成一次真实只读体检，点“清理所选”只得到“这一版只做体检…”，再翻三个页面，共 6 张截图。关窗后核对数据目录里没有任何清理计划或记录。
+- 自测树一次走通：真实扫描 69.5 秒，识别 43.0 GB，可放心清理 8.6 GB。
+- M1 已知限制见 WIRING 第 7 节（默认数据目录不能在联接后面、占用提示显示进程名、release 启动失败时用户看不到提示等）。
+
 ## 真实AA→AD联合验收通过（2026-10-26）
 
 新总控（Claude）接任后按事先冻结的[计划](acceptance/wave1/controller/WATER-W1-AAAD-JOINT-PLAN-20261026.md)执行一次：真实固定AA宿主→原生目录选择→R/Z→AB传输→AD同源报告页，四场景全部通过，4窗/9.993秒/无重试/手动终止0。报告页鼠标下载的Q与Z与当次原字符串逐字节一致，淘汰与正常关闭通过。见[联合验收报告](acceptance/wave1/controller/WATER-W1-AAAD-JOINT-REVIEW-20261026.md)。31任务/槽位不变，没有新READY票；桌面接入扫描、真实用户scope、自然同意鉴真、生产竞态、macOS与M1仍未验收。用户同日要求先暂停安排后续任务，结合本机清理经验重订计划；总控草案见[计划重订（待拍板）](REPLAN-20261026-AGENT-ERA-CHECKUP.md)，拍板前不出新票。

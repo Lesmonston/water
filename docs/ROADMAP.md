@@ -16,7 +16,7 @@
 | 波 | 票 | 依赖 | 状态 |
 |---|---|---|---|
 | W2 | A 规则、B 扫描、C 进程、D 清理执行器、E 界面 | 契约 [checkup-v1](../contracts/checkup-v1/MODEL.md) | 已验收并集成，见[第 2 轮验收](acceptance/wave2/controller/WATER-W2-AE-REVIEW-2-20261026.md) |
-| W3 | F 桌面接线（Tauri 宿主 + IPC + Mica + 整机验收） | W2 全部验收（已满足） | F1、F2 已 VERIFIED 并合入（[验收报告](acceptance/wave3/controller/WATER-W3-F1F2-REVIEW-20261026.md)）；F3 待出票，见 [第三波计划](dispatch/wave3/PLAN.md) |
+| W3 | F 桌面接线（Tauri 宿主 + IPC + Mica + 整机验收） | W2 全部验收（已满足） | F1、F2 已 VERIFIED 并合入（[验收报告](acceptance/wave3/controller/WATER-W3-F1F2-REVIEW-20261026.md)）；F3 READY（[派前回执](dispatch/wave3/READY-REPORT-F3-20261026.md)），见 [第三波计划](dispatch/wave3/PLAN.md) |
 | W4 | 清理闭环整机验收与自清理里程碑 | W3 | 未开始 |
 
 第一波的历史任务板见 git 历史与 [第一波计划](dispatch/wave1/PLAN.md)。

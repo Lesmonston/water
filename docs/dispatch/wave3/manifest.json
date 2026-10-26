@@ -1,7 +1,7 @@
 {
   "schemaVersion": 1,
   "wave": "water-wave3-desktop",
-  "status": "F1_F2_VERIFIED_F3_PENDING",
+  "status": "F1_F2_VERIFIED_F3_READY",
   "controller": "Claude",
   "controllerRoot": "F:/new/smaltalk/water",
   "controllerBranch": "main",
@@ -40,7 +40,7 @@
     },
     {
       "path": "docs/dispatch/W3-DESKTOP-WORKER-RULES.md",
-      "sha256": "5b7935f09da42fdf81caaa3ef4d062351bde5efcccaca763f57962d4793166c2"
+      "sha256": "366006b1f98eb3add48a402296c3525ea16cb1b93aa6ca83ff3225b4ac7ed2ff"
     },
     {
       "path": "docs/decisions/ADR-018-device-junk-checkup-and-in-app-cleanup.md",
@@ -500,6 +500,327 @@
       "acceptedCommit": "336c7ebdc885e0957a8b6768872a014a64aedeca",
       "integrationCommit": "7633c4ece5f03e2b75d17af17cfc8f0d5ae226be",
       "integrationBranch": "main"
+    },
+    {
+      "kind": "host",
+      "outputRoot": "apps/water/host",
+      "packageName": "water-desktop",
+      "binName": "water",
+      "windowTitle": "Water",
+      "testTarget": "host_v1",
+      "testFiles": [
+        "apps/water/host/tests/host_v1.rs"
+      ],
+      "productionFiles": [
+        "apps/water/host/Cargo.toml",
+        "apps/water/host/Cargo.lock",
+        "apps/water/host/build.rs",
+        "apps/water/host/tauri.conf.json",
+        "apps/water/host/capabilities/main.json",
+        "apps/water/host/README.md"
+      ],
+      "allowedEnv": [
+        "\"WATER_DATA_DIR\""
+      ],
+      "expectedConfig": {
+        "productName": "Water",
+        "version": "0.1.0",
+        "identifier": "app.water.desktop",
+        "build": {
+          "frontendDist": "../ui"
+        },
+        "app": {
+          "windows": [],
+          "withGlobalTauri": true,
+          "security": {
+            "csp": "default-src 'self'; script-src 'self'; style-src 'self'; img-src 'self' data:; connect-src ipc: http://ipc.localhost; font-src 'self'; object-src 'none'; base-uri 'none'; form-action 'none'; frame-ancestors 'none'",
+            "assetProtocol": {
+              "enable": false
+            },
+            "capabilities": [
+              "main"
+            ]
+          }
+        },
+        "bundle": {
+          "active": false
+        },
+        "plugins": {}
+      },
+      "expectedCapability": {
+        "identifier": "main",
+        "windows": [
+          "main"
+        ],
+        "permissions": [
+          "core:window:allow-start-dragging"
+        ]
+      },
+      "cargoCacheSource": "F:/new/smaltalk/water/.worktrees/ac/.local/desktop-cargo-home/registry",
+      "referenceLock": "apps/desktop-preview/Cargo.lock",
+      "macOS": "unverified",
+      "id": "WATER-W3-F3",
+      "title": "接线与整机体检",
+      "slot": "w3-f3",
+      "gate": "light",
+      "status": "READY",
+      "baseCommit": "d56ebc66becc02e855ffda0edbf36a2e82470c2d",
+      "snapshotRef": "refs/tags/water-w3-f3-base-20261026",
+      "readyOn": "2026-10-26",
+      "dispatchedAt": null,
+      "startedAt": null,
+      "model": null,
+      "modelAssignment": "user-arranged; report actual engine/model",
+      "worktree": "F:/new/smaltalk/water/.worktrees/w3-f3",
+      "branch": "worker/water-w3-f3",
+      "ticket": "docs/dispatch/tickets/WATER-W3-F3-WIRING-20261026.md",
+      "report": "docs/dispatch/reports/WATER-W3-F3-REPORT.md",
+      "spec": "contracts/desktop-v1/WIRING.md",
+      "outputRootExists": true,
+      "forbidSetup": true,
+      "expectedTests": [
+        "host_config_boundary",
+        "host_navigation_boundary",
+        "host_command_registry",
+        "host_data_directory",
+        "host_service_wiring"
+      ],
+      "proofTargets": {
+        "nc1": "HOST_CLEAN_DISABLED",
+        "nc2": "HOST_SINGLE_INSTANCE",
+        "nc3": "HOST_COMMANDS"
+      },
+      "expectedDependencies": [
+        {
+          "name": "serde",
+          "req": "=1.0.229",
+          "kind": null,
+          "optional": false,
+          "path": null,
+          "defaults": true,
+          "features": [
+            "derive"
+          ]
+        },
+        {
+          "name": "serde_json",
+          "req": "=1.0.151",
+          "kind": null,
+          "optional": false,
+          "path": null,
+          "defaults": true,
+          "features": []
+        },
+        {
+          "name": "tauri",
+          "req": "=2.12.5",
+          "kind": null,
+          "optional": false,
+          "path": null,
+          "defaults": false,
+          "features": [
+            "common-controls-v6",
+            "wry"
+          ]
+        },
+        {
+          "name": "tauri-build",
+          "req": "=2.7.4",
+          "kind": "build",
+          "optional": false,
+          "path": null,
+          "defaults": true,
+          "features": []
+        },
+        {
+          "name": "water-native-picker",
+          "req": "*",
+          "kind": null,
+          "optional": false,
+          "path": "packages/native-picker",
+          "defaults": true,
+          "features": []
+        },
+        {
+          "name": "water-contracts",
+          "req": "*",
+          "kind": null,
+          "optional": false,
+          "path": "crates/water-contracts",
+          "defaults": true,
+          "features": []
+        },
+        {
+          "name": "water-scope-registry",
+          "req": "*",
+          "kind": null,
+          "optional": false,
+          "path": "packages/scope-registry",
+          "defaults": true,
+          "features": []
+        },
+        {
+          "name": "water-service",
+          "req": "*",
+          "kind": null,
+          "optional": false,
+          "path": "packages/water-service",
+          "defaults": true,
+          "features": []
+        },
+        {
+          "name": "water-junk-rules",
+          "req": "*",
+          "kind": null,
+          "optional": false,
+          "path": "packages/junk-rules",
+          "defaults": true,
+          "features": []
+        },
+        {
+          "name": "water-process-scan",
+          "req": "*",
+          "kind": null,
+          "optional": false,
+          "path": "packages/process-scan",
+          "defaults": true,
+          "features": []
+        }
+      ],
+      "allowedFiles": [
+        "docs/dispatch/reports/WATER-W3-F3-REPORT.md"
+      ],
+      "allowedPrefixes": [
+        "apps/water/host/",
+        "docs/acceptance/wave3/f3/"
+      ],
+      "evidenceDir": "docs/acceptance/wave3/f3/",
+      "allowedModes": [
+        "baseline",
+        "lock",
+        "check",
+        "test",
+        "native",
+        "red-nc1",
+        "red-nc2",
+        "red-nc3",
+        "archive"
+      ],
+      "expectedFinalModes": [
+        "check",
+        "test",
+        "native"
+      ],
+      "mustRead": [
+        "docs/dispatch/W3-DESKTOP-WORKER-RULES.md",
+        "contracts/desktop-v1/WIRING.md",
+        "contracts/desktop-v1/HOST.md",
+        "docs/dispatch/tickets/WATER-W3-F2-ADDENDUM-01-20261026.md",
+        "contracts/desktop-v1/SERVICE.md",
+        "contracts/checkup-v1/IPC.md",
+        "apps/water/host/src/lib.rs",
+        "apps/water/host/tests/host_v1.rs",
+        "packages/water-service/src/lib.rs",
+        "packages/water-service/tests/service_v1.rs"
+      ],
+      "frozenFiles": [
+        {
+          "path": "contracts/desktop-v1/WIRING.md",
+          "sha256": "71d96a854bd899ec5ad425b85dcd349ab23b3f3304df74708632c4078dbed4c9"
+        }
+      ],
+      "realMode": null,
+      "nativeModule": null,
+      "nativeWindowBudget": 1,
+      "nativeDirectoryDialogBudget": 0,
+      "browserBudget": 0,
+      "realDataPermission": "read-only: one whole-machine scan through the app inside native --final; clean stays disabled",
+      "nativeObserver": "scripts/acceptance/w3-wired-native-observe.ps1",
+      "nativeDataPrefix": ".local/w3-f3-native/",
+      "nativeMaximumSeconds": 480,
+      "nativeRealData": true,
+      "nativeSteps": [
+        {
+          "wait": "开始一次体检",
+          "absent": "无法连接 Water 服务",
+          "seconds": 45,
+          "shot": "home"
+        },
+        {
+          "invoke": "开始体检",
+          "type": "Button"
+        },
+        {
+          "wait": "本次体检共识别",
+          "fail": "体检未能完成，请重新体检。",
+          "seconds": 300,
+          "shot": "results"
+        },
+        {
+          "invoke": "清理所选",
+          "type": "Button"
+        },
+        {
+          "wait": "这一版只做体检，清理功能会在下一版开放。",
+          "seconds": 20,
+          "shot": "clean-disabled"
+        },
+        {
+          "invoke": "增长趋势",
+          "type": "Hyperlink"
+        },
+        {
+          "wait": "比较每次体检，找出一直在变大的东西。",
+          "seconds": 20,
+          "shot": "trends"
+        },
+        {
+          "invoke": "清理记录",
+          "type": "Hyperlink"
+        },
+        {
+          "wait": "每一次体检与清理，都有迹可循。",
+          "seconds": 20,
+          "shot": "history"
+        },
+        {
+          "invoke": "扫描位置",
+          "type": "Hyperlink"
+        },
+        {
+          "wait": "选择体检要看的地方。受保护的数据只统计占用，永远不会被清理。",
+          "seconds": 20,
+          "shot": "locations"
+        }
+      ],
+      "nativeStore": {
+        "allowedTop": [
+          "cleans",
+          "journal",
+          "plans",
+          "scans",
+          "settings.json",
+          "snapshots",
+          "water.lock",
+          "webview"
+        ],
+        "counts": {
+          "scans": 1,
+          "snapshots": 1,
+          "plans": 0,
+          "cleans": 0,
+          "journal": 0
+        }
+      },
+      "baselineStatus": "passed",
+      "baselineEvidence": "docs/acceptance/wave3/controller/preflight-20261026/baseline/2026-10-26T11-25-54.564Z-32832-baseline-result.json",
+      "gateSelfTest": {
+        "tree": ".worktrees/w3-selftest-f3",
+        "task": "WATER-W3-SELFTEST-F3",
+        "evidence": "docs/acceptance/wave3/controller/preflight-20261026/selftest-f3/",
+        "result": "baseline, lock, check, test, red-nc1..3, check/test finals and native --final (whole-machine, one window) all passed; .setup( rejected"
+      },
+      "readyReport": "docs/dispatch/wave3/READY-REPORT-F3-20261026.md"
     }
   ],
   "gateSelfTest": "docs/acceptance/wave3/controller/preflight-20261026/",

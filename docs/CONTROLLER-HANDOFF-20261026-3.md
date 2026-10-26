@@ -84,6 +84,10 @@
   - **20:05 JST F1 复验通过并合入 `7d8715d`**：第三波 F1、F2 都已 VERIFIED。
     - 第 2 轮验收套件在 `.local/w3-accept2/`，验收树为 `.worktrees/accept2-w3-f1`。
     - 下一步出 F3，移交事项见 manifest 两票的 `carryOverToF3`。
+  - **21:00 JST F3 READY**：见 [派前回执](dispatch/wave3/READY-REPORT-F3-20261026.md)。
+    - 基点 `d56ebc6`，执行者树 `.worktrees/w3-f3`，自测树 `.worktrees/w3-selftest-f3`（桩接线，只在自测树）。
+    - 验收 F3 时用 `w3-receipt-audit.mjs`，并照 `.local/w3-accept2/` 再做一套 F3 的 make-manifest、run、controls。验收树的 `native --final` 又是一次真实扫描与一个窗口，开跑前先告诉用户。
+    - F3 之后是 M1：总控验收树整机检查通过后，可请用户亲手试用。
   - 第 5 节说的 W3 收单审计已写成 `scripts/acceptance/w3-receipt-audit.mjs`，验收清单与脚本在 `.local/w3-accept/`（副本在证据目录）。
   - F1 复验时用同一套：先改 `make-manifest.mjs` 的 F1 HEAD，然后依次跑 `run.sh`、`controls.mjs f1`、`real:final`，再跑总控合成用例 `scripts/acceptance/w3-f1-controller-cases.rs`。合成用例要临时加 `[[test]]`，跑完恢复。
 - 两票基点都是 `197dfda`，只通过 JSON 层对接：`Backend::call(command, args)` 对应 `Service::call(command, args)`。

@@ -1,0 +1,126 @@
+//! Self-test stub for the wave 3 F3 gate; not product code.
+use crate::{Backend, IpcFailure, pick_folder};
+use serde_json::Value;
+use std::{
+    fmt,
+    fs::{File, OpenOptions},
+    os::windows::fs::OpenOptionsExt,
+    path::{Path, PathBuf},
+    sync::{
+        Arc,
+        atomic::{AtomicBool, Ordering},
+    },
+};
+use water_service::{FolderPicker, IpcError, Service, ServiceConfig, WindowsPlatform};
+
+pub const CLEAN_ENABLED: bool = false;
+
+pub struct HostContext {
+    pub data_dir: PathBuf,
+    pub home_dir: String,
+}
+
+#[derive(Debug, Clone, Copy, PartialEq, Eq)]
+pub enum StartupError {
+    AlreadyRunning,
+    Failed,
+}
+
+impl fmt::Display for StartupError {
+    fn fmt(&self, f: &mut fmt::Formatter<'_>) -> fmt::Result {
+        f.write_str(match self {
+            Self::AlreadyRunning => "Water 已经在运行。",
+            Self::Failed => "Water 暂时无法启动。",
+        })
+    }
+}
+
+pub struct InstanceLock {
+    _file: File,
+}
+
+pub fn acquire_instance_lock(data_dir: &Path) -> Result<InstanceLock, StartupError> {
+    OpenOptions::new()
+        .read(true)
+        .write(true)
+        .create(true)
+        .truncate(false)
+        .share_mode(3)
+        .open(data_dir.join("water.lock"))
+        .map(|file| InstanceLock { _file: file })
+        .map_err(|e| {
+            if e.raw_os_error() == Some(32) {
+                StartupError::AlreadyRunning
+            } else {
+                StartupError::Failed
+            }
+        })
+}
+
+pub struct ServiceBackend(pub Service);
+
+impl Backend for ServiceBackend {
+    fn call(&self, command: &str, args: Value) -> Result<Value, IpcFailure> {
+        self.0.call(command, args).map_err(|e| IpcFailure {
+            code: e.code,
+            message_zh: e.message_zh,
+        })
+    }
+}
+
+pub struct HostPicker {
+    initial_directory: String,
+    picking: AtomicBool,
+}
+
+pub struct PickGuard<'a>(&'a AtomicBool);
+
+impl Drop for PickGuard<'_> {
+    fn drop(&mut self) {
+        self.0.store(false, Ordering::SeqCst);
+    }
+}
+
+impl HostPicker {
+    pub fn new(initial_directory: String) -> Self {
+        Self {
+            initial_directory,
+            picking: AtomicBool::new(false),
+        }
+    }
+
+    pub fn begin(&self) -> Option<PickGuard<'_>> {
+        (!self.picking.swap(true, Ordering::SeqCst)).then(|| PickGuard(&self.picking))
+    }
+}
+
+impl FolderPicker for HostPicker {
+    fn pick(&self) -> Result<Option<String>, IpcError> {
+        let Some(_guard) = self.begin() else {
+            return Err(IpcError {
+                code: "busy".into(),
+                message_zh: "正在进行另一项任务，请稍候。".into(),
+            });
+        };
+        pick_folder(&self.initial_directory).map_err(|e| IpcError {
+            code: e.code,
+            message_zh: e.message_zh,
+        })
+    }
+}
+
+pub fn service_config(ctx: &HostContext) -> ServiceConfig {
+    ServiceConfig {
+        data_dir: ctx.data_dir.clone(),
+        app_version: env!("CARGO_PKG_VERSION").into(),
+        clean_enabled: CLEAN_ENABLED,
+        platform: Box::new(WindowsPlatform::new()),
+        picker: Box::new(HostPicker::new(ctx.home_dir.clone())),
+    }
+}
+
+pub fn service_backend(ctx: &HostContext) -> Result<Arc<dyn Backend>, StartupError> {
+    Service::new(service_config(ctx))
+        .map(|s| Arc::new(ServiceBackend(s)) as Arc<dyn Backend>)
+        .map_err(|_| StartupError::Failed)
+}
