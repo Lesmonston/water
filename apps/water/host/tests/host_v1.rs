@@ -21,9 +21,19 @@ fn host_command_registry() {
     assert!(!nav_ok("http://tauri.localhost/other.html"));
     use water_native_picker::v1::PickerError;
     use water_scope_registry::v1::RegistryError;
-    assert_eq!(pick_folder("relative"), Err("invalid"), "HOST_COMMANDS: picker path");
-    assert_eq!(picker_failure(&PickerError::Source(RegistryError::RegistryFull)), "invalid");
-    assert_eq!(picker_failure(&PickerError::ApartmentUnavailable), "unavailable");
+    assert_eq!(
+        pick_folder("relative"),
+        Err("invalid"),
+        "HOST_COMMANDS: picker path"
+    );
+    assert_eq!(
+        picker_failure(&PickerError::Source(RegistryError::RegistryFull)),
+        "invalid"
+    );
+    assert_eq!(
+        picker_failure(&PickerError::ApartmentUnavailable),
+        "unavailable"
+    );
 }
 
 #[test]
