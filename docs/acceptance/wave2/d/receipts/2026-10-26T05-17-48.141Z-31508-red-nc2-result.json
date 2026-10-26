@@ -1,0 +1,333 @@
+{
+  "task": "WATER-W2-D",
+  "mode": "red-nc2",
+  "finalGate": false,
+  "manifest": "docs/dispatch/wave2/manifest.json",
+  "startedAt": "2026-10-26T05:17:48.142Z",
+  "realDataRead": false,
+  "productTestsRun": true,
+  "commands": [
+    {
+      "binary": "git",
+      "argv": [
+        "branch",
+        "--show-current"
+      ],
+      "exitCode": 0
+    },
+    {
+      "binary": "git",
+      "argv": [
+        "merge-base",
+        "--is-ancestor",
+        "7ca15282e477ed4b5120ffe3c1edc3a60b75c144",
+        "HEAD"
+      ],
+      "exitCode": 0
+    },
+    {
+      "binary": "git",
+      "argv": [
+        "diff",
+        "--no-renames",
+        "--name-only",
+        "-z",
+        "7ca15282e477ed4b5120ffe3c1edc3a60b75c144",
+        "HEAD"
+      ],
+      "exitCode": 0
+    },
+    {
+      "binary": "git",
+      "argv": [
+        "diff",
+        "--no-renames",
+        "--name-only",
+        "-z",
+        "HEAD"
+      ],
+      "exitCode": 0
+    },
+    {
+      "binary": "git",
+      "argv": [
+        "ls-files",
+        "--others",
+        "--exclude-standard",
+        "-z"
+      ],
+      "exitCode": 0
+    },
+    {
+      "binary": "git",
+      "argv": [
+        "rev-parse",
+        "HEAD"
+      ],
+      "exitCode": 0
+    },
+    {
+      "binary": "git",
+      "argv": [
+        "status",
+        "--porcelain",
+        "--untracked-files=all"
+      ],
+      "exitCode": 0
+    },
+    {
+      "binary": "C:\\Users\\37310\\.cargo\\bin\\rustup.exe",
+      "argv": [
+        "which",
+        "cargo",
+        "--toolchain",
+        "1.95.0"
+      ],
+      "exitCode": 0,
+      "error": null,
+      "log": "2026-10-26T05-17-48.141Z-31508-red-nc2-1.log"
+    },
+    {
+      "binary": "C:\\Users\\37310\\.cargo\\bin\\rustup.exe",
+      "argv": [
+        "which",
+        "rustc",
+        "--toolchain",
+        "1.95.0"
+      ],
+      "exitCode": 0,
+      "error": null,
+      "log": "2026-10-26T05-17-48.141Z-31508-red-nc2-2.log"
+    },
+    {
+      "binary": "C:\\Users\\37310\\.rustup\\toolchains\\1.95.0-x86_64-pc-windows-msvc\\bin\\rustc.exe",
+      "argv": [
+        "--version"
+      ],
+      "exitCode": 0,
+      "error": null,
+      "log": "2026-10-26T05-17-48.141Z-31508-red-nc2-3.log"
+    },
+    {
+      "binary": "C:\\Users\\37310\\.rustup\\toolchains\\1.95.0-x86_64-pc-windows-msvc\\bin\\cargo.exe",
+      "argv": [
+        "metadata",
+        "--offline",
+        "--locked",
+        "--format-version",
+        "1",
+        "--manifest-path",
+        "packages/junk-clean/Cargo.toml"
+      ],
+      "exitCode": 0,
+      "error": null,
+      "log": "2026-10-26T05-17-48.141Z-31508-red-nc2-4.log"
+    },
+    {
+      "binary": "git",
+      "argv": [
+        "diff",
+        "--name-only",
+        "HEAD",
+        "--",
+        "packages/junk-clean/src"
+      ],
+      "exitCode": 0
+    },
+    {
+      "binary": "git",
+      "argv": [
+        "diff",
+        "--name-only",
+        "HEAD",
+        "--",
+        "packages/junk-clean/tests/clean_v1.rs"
+      ],
+      "exitCode": 0
+    },
+    {
+      "binary": "C:\\Users\\37310\\.rustup\\toolchains\\1.95.0-x86_64-pc-windows-msvc\\bin\\cargo.exe",
+      "argv": [
+        "test",
+        "--offline",
+        "--locked",
+        "--manifest-path",
+        "packages/junk-clean/Cargo.toml",
+        "--test",
+        "clean_v1",
+        "--",
+        "--test-threads=1"
+      ],
+      "exitCode": 101,
+      "error": null,
+      "log": "2026-10-26T05-17-48.141Z-31508-red-nc2-5.log"
+    },
+    {
+      "binary": "git",
+      "argv": [
+        "branch",
+        "--show-current"
+      ],
+      "exitCode": 0
+    },
+    {
+      "binary": "git",
+      "argv": [
+        "merge-base",
+        "--is-ancestor",
+        "7ca15282e477ed4b5120ffe3c1edc3a60b75c144",
+        "HEAD"
+      ],
+      "exitCode": 0
+    },
+    {
+      "binary": "git",
+      "argv": [
+        "diff",
+        "--no-renames",
+        "--name-only",
+        "-z",
+        "7ca15282e477ed4b5120ffe3c1edc3a60b75c144",
+        "HEAD"
+      ],
+      "exitCode": 0
+    },
+    {
+      "binary": "git",
+      "argv": [
+        "diff",
+        "--no-renames",
+        "--name-only",
+        "-z",
+        "HEAD"
+      ],
+      "exitCode": 0
+    },
+    {
+      "binary": "git",
+      "argv": [
+        "ls-files",
+        "--others",
+        "--exclude-standard",
+        "-z"
+      ],
+      "exitCode": 0
+    },
+    {
+      "binary": "git",
+      "argv": [
+        "rev-parse",
+        "HEAD"
+      ],
+      "exitCode": 0
+    },
+    {
+      "binary": "git",
+      "argv": [
+        "status",
+        "--porcelain",
+        "--untracked-files=all"
+      ],
+      "exitCode": 0
+    }
+  ],
+  "changedPaths": [
+    "packages/junk-clean/Cargo.lock",
+    "packages/junk-clean/Cargo.toml",
+    "packages/junk-clean/README.md",
+    "packages/junk-clean/src/lib.rs",
+    "packages/junk-clean/src/model.rs",
+    "packages/junk-clean/src/native_windows.rs",
+    "packages/junk-clean/src/path.rs",
+    "packages/junk-clean/src/time.rs",
+    "packages/junk-clean/tests/clean_v1.rs"
+  ],
+  "before": {
+    "head": "adce53ecc4765d5aef8f7ae4ba120f086ca9c336",
+    "status": "M packages/junk-clean/src/native_windows.rs"
+  },
+  "sourceState": {
+    "files": [
+      {
+        "path": "packages/junk-clean/Cargo.toml",
+        "snapshot": "2026-10-26T05-17-48.141Z-31508-red-nc2-source-0.txt",
+        "sha256": "0a356ae5bbbbc1189d3c3682b5b987c1316a62c49778164187f32786faa178a7",
+        "test": false
+      },
+      {
+        "path": "packages/junk-clean/Cargo.lock",
+        "snapshot": "2026-10-26T05-17-48.141Z-31508-red-nc2-source-1.txt",
+        "sha256": "0ae95b4caaada24df0d40653e4dbd8598a926692aa48e882c522ab6f4efb513f",
+        "test": false
+      },
+      {
+        "path": "packages/junk-clean/README.md",
+        "snapshot": "2026-10-26T05-17-48.141Z-31508-red-nc2-source-2.txt",
+        "sha256": "a5bbda5d15bce296d84d3b6acf8022535fa043570c93d1483de70873828a6096",
+        "test": false
+      },
+      {
+        "path": "packages/junk-clean/src/lib.rs",
+        "snapshot": "2026-10-26T05-17-48.141Z-31508-red-nc2-source-3.txt",
+        "sha256": "1bf10a15a26362d6ab1a8449c51a3767ff9e92a72268625377dbe08539e242d7",
+        "test": false
+      },
+      {
+        "path": "packages/junk-clean/src/model.rs",
+        "snapshot": "2026-10-26T05-17-48.141Z-31508-red-nc2-source-4.txt",
+        "sha256": "72a021b6f2221e9bd6b7ab4dc80cf90851ff59984c19f3bb87c328cc1c944e88",
+        "test": false
+      },
+      {
+        "path": "packages/junk-clean/src/native_windows.rs",
+        "snapshot": "2026-10-26T05-17-48.141Z-31508-red-nc2-source-5.txt",
+        "sha256": "91dcd656290070f4f5b35d84cba5fc7c382f485589292c15c389f0021adfea07",
+        "test": false
+      },
+      {
+        "path": "packages/junk-clean/src/path.rs",
+        "snapshot": "2026-10-26T05-17-48.141Z-31508-red-nc2-source-6.txt",
+        "sha256": "d8ae9d9e86c91ccd5f3161099622f079d7d04d98698d31c44ac655db148d5382",
+        "test": false
+      },
+      {
+        "path": "packages/junk-clean/src/time.rs",
+        "snapshot": "2026-10-26T05-17-48.141Z-31508-red-nc2-source-7.txt",
+        "sha256": "8afb72161217016944441db6eef20e8efebf90c193eb47840ebeb879d5966b22",
+        "test": false
+      },
+      {
+        "path": "packages/junk-clean/tests/clean_v1.rs",
+        "snapshot": "2026-10-26T05-17-48.141Z-31508-red-nc2-source-8.txt",
+        "sha256": "706ed9ff495b18e154ea306946cce0ab0bb65d37e1a016f5d0260f7992617420",
+        "test": true
+      }
+    ],
+    "productionHash": "7645975b7b1b8e37d0c1264755507df708b4cd01d94df2ee1740db447dcbf0a5",
+    "testHash": "f7be1a6f409318172894c276aee6af38d7debfb3c2b75a9456422ccab1c61539"
+  },
+  "dependencyInventory": [
+    "itoa@1.0.18",
+    "memchr@2.8.3",
+    "proc-macro2@1.0.107",
+    "quote@1.0.47",
+    "serde@1.0.229",
+    "serde_core@1.0.229",
+    "serde_derive@1.0.229",
+    "serde_json@1.0.151",
+    "syn@3.0.9",
+    "unicode-ident@1.0.27",
+    "zmij@1.0.23"
+  ],
+  "observedExpectedFailure": true,
+  "expectation": {
+    "target": "CLEAN_NO_FOLLOW"
+  },
+  "after": {
+    "head": "adce53ecc4765d5aef8f7ae4ba120f086ca9c336",
+    "status": "M packages/junk-clean/src/native_windows.rs"
+  },
+  "status": "passed",
+  "error": null,
+  "endedAt": "2026-10-26T05:17:58.044Z"
+}

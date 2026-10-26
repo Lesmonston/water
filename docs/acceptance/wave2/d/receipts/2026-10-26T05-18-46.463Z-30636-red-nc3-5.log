@@ -1,0 +1,65 @@
+{"binary":"C:\\Users\\37310\\.rustup\\toolchains\\1.95.0-x86_64-pc-windows-msvc\\bin\\cargo.exe","args":["test","--offline","--locked","--manifest-path","packages/junk-clean/Cargo.toml","--test","clean_v1","--","--test-threads=1"],"exitCode":101,"error":null}
+--- stdout ---
+
+running 5 tests
+test clean_no_follow ... FAILED
+test clean_partial_stop_journal ... ok
+test clean_plan_contract ... FAILED
+test clean_report_volume ... ok
+test clean_revalidation_skips ... FAILED
+
+failures:
+
+---- clean_no_follow stdout ----
+
+thread 'clean_no_follow' (19700) panicked at tests\clean_v1.rs:454:5:
+assertion `left == right` failed: CLEAN_ROOT_BOUND: intermediate junction allowed
+  left: None
+ right: Some(OutsideRoot)
+note: run with `RUST_BACKTRACE=1` environment variable to display a backtrace
+
+---- clean_plan_contract stdout ----
+
+thread 'clean_plan_contract' (17540) panicked at tests\clean_v1.rs:191:5:
+assertion `left == right` failed
+  left: Deleted
+ right: Skipped
+
+---- clean_revalidation_skips stdout ----
+
+thread 'clean_revalidation_skips' (8188) panicked at tests\clean_v1.rs:192:5:
+assertion `left == right` failed
+  left: Some(Changed)
+ right: Some(Gone)
+
+
+failures:
+    clean_no_follow
+    clean_plan_contract
+    clean_revalidation_skips
+
+test result: FAILED. 2 passed; 3 failed; 0 ignored; 0 measured; 0 filtered out; finished in 0.93s
+
+
+--- stderr ---
+   Compiling water-junk-clean v0.1.0 (F:\new\smaltalk\water\.worktrees\w2-d\packages\junk-clean)
+warning: unused variable: `item`
+   --> src\native_windows.rs:172:31
+    |
+172 |     pub(crate) fn check_chain(item: &PlanItem) -> Result<(), SkipReason> {
+    |                               ^^^^ help: if this is intentional, prefix it with an underscore: `_item`
+    |
+    = note: `#[warn(unused_variables)]` (part of `#[warn(unused)]`) on by default
+
+warning: function `check_chain_impl` is never used
+   --> src\native_windows.rs:176:8
+    |
+176 |     fn check_chain_impl(item: &PlanItem) -> Result<(), SkipReason> {
+    |        ^^^^^^^^^^^^^^^^
+    |
+    = note: `#[warn(dead_code)]` (part of `#[warn(unused)]`) on by default
+
+warning: `water-junk-clean` (lib) generated 2 warnings (run `cargo fix --lib -p water-junk-clean` to apply 1 suggestion)
+    Finished `test` profile [unoptimized + debuginfo] target(s) in 3.62s
+     Running tests\clean_v1.rs (.local\w2-target\debug\deps\clean_v1-607b5e28434d5f75.exe)
+error: test failed, to rerun pass `--test clean_v1`

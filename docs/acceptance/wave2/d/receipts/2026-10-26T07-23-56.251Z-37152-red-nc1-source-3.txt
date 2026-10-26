@@ -1,0 +1,229 @@
+#![deny(unsafe_code)]
+
+mod model;
+#[allow(unsafe_code)]
+mod native_windows;
+mod path;
+mod time;
+
+pub use model::*;
+
+use std::io::Write;
+use std::sync::{
+    Arc,
+    atomic::{AtomicBool, Ordering},
+};
+use std::time::SystemTime;
+
+#[derive(Clone, Default)]
+pub struct StopFlag(Arc<AtomicBool>);
+
+impl StopFlag {
+    pub fn stop(&self) {
+        self.0.store(true, Ordering::SeqCst);
+    }
+    pub fn is_stopped(&self) -> bool {
+        self.0.load(Ordering::SeqCst)
+    }
+}
+
+pub trait ItemGuard {
+    fn in_use(&self, item: &PlanItem) -> Option<String>;
+}
+
+pub struct NoGuard;
+impl ItemGuard for NoGuard {
+    fn in_use(&self, _: &PlanItem) -> Option<String> {
+        None
+    }
+}
+
+pub trait CleanObserver: Sync {
+    fn on_item(&self, done: usize, total: usize, freed_bytes: u64, item_id: &str);
+}
+
+pub fn identity_of(path: &str) -> Result<Identity, CleanError> {
+    path::validate(path)?;
+    native_windows::identity(path)
+}
+
+pub fn volume_free_bytes(path: &str) -> Result<u64, CleanError> {
+    path::validate(path)?;
+    native_windows::volume_free(path)
+}
+
+pub fn report_to_json(report: &CleanReport) -> String {
+    // Every report field is a JSON-representable scalar, vector, or struct.
+    serde_json::to_string(report).expect("serializable clean report")
+}
+
+fn journal_line(journal: &mut dyn Write, value: serde_json::Value) -> Result<(), CleanError> {
+    let mut bytes = serde_json::to_vec(&value).map_err(|_| CleanError::Journal)?;
+    bytes.push(b'\n');
+    journal
+        .write_all(&bytes)
+        .and_then(|()| journal.flush())
+        .map_err(|_| CleanError::Journal)
+}
+
+fn intent(plan: &CleanPlan, item: &PlanItem, journal: &mut dyn Write) -> Result<(), CleanError> {
+    journal_line(
+        journal,
+        serde_json::json!({
+            "journal_version": "water.clean-journal.v1", "event": "intent",
+            "plan_id": plan.plan_id, "item_id": item.item_id, "path": item.path,
+            "at": time::format(SystemTime::now())?
+        }),
+    )
+}
+
+fn check_identity(item: &PlanItem) -> Result<(), SkipReason> {
+    let actual = identity_of(&item.path).map_err(|_| SkipReason::Changed)?;
+    if false && actual != item.identity {
+        // NC1: identity comparison must remain in this live path.
+        return Err(SkipReason::Changed);
+    }
+    Ok(())
+}
+
+fn preflight(
+    plan: &CleanPlan,
+    item: &PlanItem,
+    guard: &dyn ItemGuard,
+    now: SystemTime,
+) -> Result<native_windows::Snapshot, SkipReason> {
+    if plan
+        .hard_guards
+        .iter()
+        .any(|p| path::contains(&item.path, p))
+    {
+        return Err(SkipReason::Guarded);
+    }
+    native_windows::check_chain(item)?;
+    check_identity(item)?;
+    if guard.in_use(item).is_some() {
+        return Err(SkipReason::InUse);
+    }
+    if plan
+        .protected_paths
+        .iter()
+        .any(|p| path::overlaps(&item.path, p))
+    {
+        return Err(SkipReason::ProtectedOverlap);
+    }
+    // The guard is external code: recheck the chain and identity after its callback.
+    native_windows::check_chain(item)?;
+    check_identity(item)?;
+    let snapshot = native_windows::snapshot(&item.path, &plan.protected_paths)?;
+    let required = item
+        .min_age_hours
+        .checked_mul(3600)
+        .ok_or(SkipReason::TooRecent)?;
+    if now
+        .duration_since(snapshot.newest)
+        .map_or(true, |age| age.as_secs() < required)
+    {
+        return Err(SkipReason::TooRecent);
+    }
+    Ok(snapshot)
+}
+
+/// A cancelled item frees nothing but still reports the bytes measured before the stop.
+fn cancelled(item: &PlanItem, before: &native_windows::Snapshot) -> ItemReport {
+    let mut report = ItemReport::skipped(item, SkipReason::Cancelled);
+    report.bytes_before = before.bytes.to_string();
+    report
+}
+
+/// Execute a trusted backend plan. This crate is not a user-consent or IPC boundary.
+/// Journals must implement durable flush if crash durability is required by the host.
+pub fn execute(
+    plan: &CleanPlan,
+    guard: &dyn ItemGuard,
+    journal: &mut dyn Write,
+    stop: &StopFlag,
+    observer: &dyn CleanObserver,
+    now: SystemTime,
+) -> Result<CleanReport, CleanError> {
+    // Public Rust fields may be edited after parsing; never trust their syntax here.
+    plan.validate_shape()?;
+    let mut volumes = Vec::new();
+    for item in &plan.items {
+        let root = path::volume(&item.root);
+        if !volumes.iter().any(|v: &VolumeReport| v.root == root) {
+            volumes.push(VolumeReport {
+                free_before: volume_free_bytes(&root)?.to_string(),
+                root,
+                free_after: String::new(),
+            });
+        }
+    }
+    let mut report = CleanReport {
+        report_version: "water.clean-report.v1".into(),
+        plan_id: plan.plan_id.clone(),
+        started_at: time::format(now)?,
+        ended_at: String::new(),
+        status: RunStatus::Completed,
+        freed_bytes: "0".into(),
+        estimate_bytes: plan.estimate()?.to_string(),
+        volumes,
+        items: Vec::with_capacity(plan.items.len()),
+    };
+    let mut freed = 0u64;
+    let mut interrupted = false;
+    for (index, item) in plan.items.iter().enumerate() {
+        let inspected = if stop.is_stopped() {
+            Err(SkipReason::Cancelled)
+        } else {
+            preflight(plan, item, guard, now)
+        };
+        // Skips also receive an intent/result pair, making every item auditable.
+        intent(plan, item, journal)?;
+        let (result, cut_short) = match inspected {
+            Err(reason) => (ItemReport::skipped(item, reason), false),
+            Ok(before) => {
+                if stop.is_stopped() {
+                    (cancelled(item, &before), false)
+                } else {
+                    // Revalidate again after the potentially blocking journal flush.
+                    match preflight(plan, item, guard, now) {
+                        Err(reason) => (ItemReport::skipped(item, reason), false),
+                        Ok(fresh) if fresh != before => {
+                            (ItemReport::skipped(item, SkipReason::Changed), false)
+                        }
+                        Ok(_) => native_windows::delete(item, &before, stop),
+                    }
+                }
+            }
+        };
+        // Only a cancelled or stop-interrupted item makes the whole run "stopped".
+        interrupted |= cut_short || result.skip_reason == Some(SkipReason::Cancelled);
+        freed = freed
+            .checked_add(
+                result
+                    .bytes_freed
+                    .parse::<u64>()
+                    .map_err(|_| CleanError::Native)?,
+            )
+            .ok_or(CleanError::Overflow)?;
+        journal_line(
+            journal,
+            serde_json::json!({
+                "event": "result", "item_id": result.item_id, "status": result.status,
+                "skip_reason": result.skip_reason, "bytes_freed": result.bytes_freed,
+                "at": time::format(SystemTime::now())?
+            }),
+        )?;
+        report.items.push(result);
+        observer.on_item(index + 1, plan.items.len(), freed, &item.item_id);
+    }
+    for volume in &mut report.volumes {
+        volume.free_after = volume_free_bytes(&volume.root)?.to_string();
+    }
+    report.freed_bytes = freed.to_string();
+    report.ended_at = time::format(SystemTime::now())?;
+    if interrupted {
+        report.status = RunStatus::Stopped;
+    }
+    Ok(report)
+}
