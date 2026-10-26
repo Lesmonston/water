@@ -49,7 +49,7 @@ p { margin: 0 0 8px; }
 .btn:active:not(:disabled), .orb-btn:active:not(:disabled) { transform: scale(.98); }
 .btn-primary, .orb-btn { color: var(--w-glass-strong); background: var(--w-accent); box-shadow: var(--w-glass-shadow); }
 .btn-primary:hover:not(:disabled), .orb-btn:hover:not(:disabled) { background: var(--w-accent-hover); }
-.btn-glass { color: var(--w-ink); background: var(--w-glass-strong); box-shadow: var(--w-glass-shadow); }
+.btn-glass { color: var(--w-ink); background: var(--w-glass-strong); border: 1px solid var(--w-hairline); box-shadow: var(--w-glass-shadow); }
 .btn-glass:hover:not(:disabled) { background: var(--w-accent-soft); }
 .btn-danger { color: var(--w-glass-strong); background: var(--w-danger); }
 .btn-danger:hover:not(:disabled) { opacity: .88; }
@@ -84,10 +84,14 @@ p { margin: 0 0 8px; }
 .water-gauge { width: 100%; height: 100%; }
 .vial-glass { fill: var(--w-glass-weak); }
 .vial-outline { fill: none; stroke: var(--w-glass-strong); stroke-width: 1; }
-.vial-highlight { fill: none; stroke: var(--w-glass-weak); stroke-width: 2; opacity: .3; }
+.vial-outline, .vial-edge, .vial-top, .vial-mouth { vector-effect: non-scaling-stroke; }
+.vial-edge { fill: none; stroke: var(--w-hairline); stroke-width: 3; }
+.vial-top { fill: none; stroke: var(--w-glass-strong); stroke-width: 1; }
+.vial-mouth { fill: var(--w-glass-weak); stroke: var(--w-glass-strong); stroke-width: 1; }
+.vial-highlight { fill: none; stroke: var(--w-glass-weak); stroke-width: 5; stroke-linecap: round; opacity: .55; }
 .water-back { fill: var(--w-water); }
 .water-front { fill: var(--w-water-deep); opacity: .6; }
-.water-free { fill: var(--w-water-free); }
+.water-free { fill: var(--w-water-free); opacity: .8; }
 .before-line { stroke: var(--w-ink-3); stroke-dasharray: 3 3; fill: none; }
 .wave { animation: drift 8s linear infinite; animation-delay: var(--wave-delay, 0ms); animation-play-state: var(--motion-state, running); }
 .wave.slow { animation-duration: 13s; }
@@ -210,6 +214,7 @@ code, .path { font-family: var(--w-font-mono); overflow-wrap: anywhere; }
 .chart > svg { width: 100%; display: block; margin-top: 18px; }
 .chart-grid { stroke: var(--w-hairline); }
 .chart-line { fill: none; stroke: var(--w-accent); stroke-width: 3; stroke-linejoin: round; }
+.chart-area { fill: var(--w-accent); opacity: .045; }
 .chart-point { fill: var(--w-glass-strong); stroke: var(--w-accent); stroke-width: 2; }
 .chart-label { fill: var(--w-ink-3); font: var(--w-fs-cap) var(--w-font); }
 .chart-values summary { cursor: pointer; }

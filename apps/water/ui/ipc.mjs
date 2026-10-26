@@ -3,6 +3,10 @@ function id(value) {
   if (typeof value !== 'string' || !/^[A-Za-z0-9][A-Za-z0-9:._-]{0,255}$/.test(value) || /^[A-Za-z]:/.test(value)) throw invalid();
   return value;
 }
+function token(value) {
+  if (typeof value !== 'string' || !value.length || value.length > 512 || value.includes('\\')) throw invalid();
+  return value;
+}
 async function invoke(command, build = () => ({})) {
   const host = (globalThis.window ?? globalThis).__TAURI__;
   if (typeof host?.core?.invoke !== 'function') throw {code:'unavailable'};
@@ -18,7 +22,7 @@ export const clean_prepare = groupIds => invoke('clean_prepare', () => {
   if (!Array.isArray(groupIds) || !groupIds.length) throw invalid();
   return {groupIds:groupIds.map(id)};
 });
-export const clean_start = (planId, confirmToken) => invoke('clean_start', () => ({planId:id(planId), confirmToken:id(confirmToken)}));
+export const clean_start = (planId, confirmToken) => invoke('clean_start', () => ({planId:id(planId), confirmToken:token(confirmToken)}));
 export const clean_stop = () => invoke('clean_stop');
 export const clean_progress = () => invoke('clean_progress');
 export const clean_result = cleanId => invoke('clean_result', () => ({cleanId:id(cleanId)}));

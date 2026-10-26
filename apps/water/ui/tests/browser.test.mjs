@@ -5,7 +5,8 @@ import {readFileSync, writeFileSync, mkdirSync, realpathSync} from 'node:fs';
 import {resolve, dirname, join, relative, isAbsolute, extname} from 'node:path';
 import {fileURLToPath} from 'node:url';
 import {openPrivateBrowser} from '../../../../scripts/acceptance/native-vw-private-browser.mjs';
-import {formatBytes} from '../format.mjs';
+import {formatBytes, count, byteDelta, countDelta, elapsed} from '../format.mjs';
+import {groups, resetSelection, selectedBytes, sortedGroups} from '../model.mjs';
 
 const root = resolve(dirname(fileURLToPath(import.meta.url)), '../../../..');
 const ui = join(root, 'apps/water/ui');
@@ -17,27 +18,48 @@ mkdirSync(shots, {recursive:true});
 assert(!relative(realpathSync(join(root, '.local')), realpathSync(shots)).startsWith('..'));
 let server, browser, base, injection, scenario = 0;
 const errors = [];
+const defaults = groups(fixture.scan_result).filter(g => g.selectable && g.default_selected);
+const selectionText = n => `已选 ${count(n)} 组`;
+const cleanEntry = fixture.history_list.find(e => e.id === fixture.clean_start.clean_id);
 
 // Test-only host. Production modules have no replay branch, fixture import, or test hook.
 function fakeHost(f, options) {
   const copy = value => structuredClone(value);
-  const control = window.__waterTest = {scenario:options.scenario, calls:[], errors:[], scanIndex:0, cleanIndex:0, holdScan:true, holdClean:true, nextError:null, scanned:!!options.scanned, busy:options.busy ?? 'idle', locations:copy(f.locations), addCancelled:false, plan:null, consumed:false, cleanFinished:false};
+  if (options.negativeGrowth) {
+    const delta = {bytes_delta:'-1288490189', count_delta:-5};
+    Object.assign(f.scan_result.categories[0].groups[0].growth, delta);
+    Object.assign(f.group_details['codex-marketplace-staging'].group.growth, delta);
+    Object.assign(f.trends.growth[0], delta);
+  }
+  const NativeDate = Date;
+  window.Date = class extends NativeDate { constructor(...args) { super(...(args.length ? args : [f.scan_result.finished_at])); } static now() { return NativeDate.parse(f.scan_result.finished_at); } };
+  const control = window.__waterTest = {scenario:options.scenario, calls:[], errors:[], scanIndex:0, cleanIndex:0, holdScan:true, holdClean:true, holdApp:!!options.holdApp, scanIdleBefore:0, progressErrors:{scan_progress:[], clean_progress:[]}, nextError:null, scanned:!!options.scanned, busy:options.busy ?? 'idle', locations:copy(f.locations), addCancelled:false, plan:null, planSequence:0, consumed:false, cleanFinished:false};
   addEventListener('error', e => control.errors.push(e.message));
   addEventListener('unhandledrejection', e => control.errors.push(String(e.reason)));
+  const consoleError = console.error.bind(console);
+  console.error = (...args) => { control.errors.push(args.map(String).join(' ')); consoleError(...args); };
   if (options.locked) control.locations.categories[0].locked = true;
   if (options.unavailable) return;
   const fail = key => { throw copy(f.errors[key] ?? {code:'not_found', message_zh:'这份记录暂时无法读取。'}); };
   window.__TAURI__ = {core:{invoke:async (command, args) => {
     control.calls.push({command, args:copy(args), at:performance.now()});
-    if (Object.values(args).flat().some(v => typeof v === 'string' && (/[A-Za-z]:[\\/]|\\/.test(v) || v.startsWith('/')))) throw new Error('PATH_SENT_TO_HOST');
-    if (control.nextError?.command === command) { const error = control.nextError.error; control.nextError = null; throw error; }
+    if (Object.entries(args).some(([key, value]) => [value].flat().some(v => typeof v === 'string' && (key === 'confirmToken' ? /\\/.test(v) : /[A-Za-z]:[\\/]|\\/.test(v) || v.startsWith('/'))))) throw new Error('PATH_SENT_TO_HOST');
+    if (control.progressErrors[command]?.length) throw copy(control.progressErrors[command].shift());
+    if (control.nextError?.command === command) { const error = control.nextError.error; control.nextError = null; if (command === 'clean_start') control.consumed = true; throw error; }
     switch (command) {
-      case 'app_state': return {...copy(control.scanned ? f.app_state_after_scan : f.app_state_fresh), busy:control.busy};
+      case 'app_state': {
+        while (control.holdApp) await new Promise(ok => setTimeout(ok, 20));
+        const value = {...copy(control.scanned ? f.app_state_after_scan : f.app_state_fresh), busy:control.busy};
+        if (control.cleanFinished) for (const drive of value.drives) { const after = f.clean_result.drives.find(d => d.root === drive.root); if (after) drive.free_bytes = after.free_after; }
+        return value;
+      }
       case 'scan_start': if (control.busy !== 'idle') fail('busy'); control.busy = 'scanning'; control.scanIndex = 0; control.consumed = false; return copy(f.scan_start);
       case 'scan_cancel': control.scanStopped = true; control.holdScan = false; return {};
       case 'scan_progress': {
         const value = copy(f.scan_progress_sequence[control.scanIndex]);
+        if (control.scanIdleBefore > 0) { control.scanIdleBefore--; return {...value, scan_id:null, state:'idle'}; }
         if (control.scanStopped) value.state = 'cancelled';
+        if (control.scanTerminalIdle && value.state === 'completed') value.state = 'idle';
         if (value.state !== 'running') { control.busy = 'idle'; control.scanned = true; }
         if (!control.holdScan) control.scanIndex = Math.min(control.scanIndex + 1, f.scan_progress_sequence.length - 1);
         return value;
@@ -51,6 +73,7 @@ function fakeHost(f, options) {
         if (!selected.length || selected.some(g => !g?.selectable)) fail('invalid');
         const defaultIds = f.clean_prepare_default.groups.map(g => g.group_id);
         const value = copy(f.clean_prepare_default);
+        value.confirm_token = '/opaque+token=' + (++control.planSequence);
         if (args.groupIds.length !== defaultIds.length || !defaultIds.every(id => args.groupIds.includes(id))) {
           value.groups = selected.map(g => ({group_id:g.group_id, title_zh:g.title_zh, level:g.level, item_count:g.eligible_count, total_bytes:g.eligible_bytes, in_use_note_zh:g.in_use?.process_label_zh ?? null}));
           value.total_bytes = selected.reduce((s, g) => s + BigInt(g.eligible_bytes), 0n).toString();
@@ -73,7 +96,7 @@ function fakeHost(f, options) {
       }
       case 'clean_result': return copy(f.clean_result);
       case 'trends': return options.emptyTrends ? {points:[], growth:[], leaks:[]} : copy(f.trends);
-      case 'history_list': return options.emptyHistory ? [] : copy(f.history_list);
+      case 'history_list': return options.emptyHistory ? [] : copy(f.history_list.filter(e => control.cleanFinished || e.id !== f.clean_start.clean_id));
       case 'locations_get': return copy(control.locations);
       case 'locations_set_category': {
         const category = control.locations.categories.find(c => c.category === args.category);
@@ -87,12 +110,13 @@ function fakeHost(f, options) {
 }
 
 async function reset(options = {}, route = 'home') {
+  if (scenario) await safeCalls();
   options = {...options, scenario:++scenario};
   if (injection) await browser.send('Page.removeScriptToEvaluateOnNewDocument', {identifier:injection});
   injection = (await browser.send('Page.addScriptToEvaluateOnNewDocument', {source:`(${fakeHost.toString()})(${JSON.stringify(fixture)}, ${JSON.stringify(options)});`})).identifier;
   await browser.goto(`${base}/index.html?scenario=${scenario}#/${route}`);
   await browser.waitFor(`window.__waterTest?.scenario === ${scenario} && document.querySelector("#page").children.length > 0`);
-  await browser.waitFor(options.unavailable ? 'document.body.textContent.includes("无法连接 Water 服务")' : 'document.querySelector(".version")?.textContent.includes("0.1.0")');
+  if (!options.holdApp) await browser.waitFor(options.unavailable ? 'document.body.textContent.includes("无法连接 Water 服务")' : `document.querySelector(".version")?.textContent.includes(${JSON.stringify(fixture.app_state_fresh.app_version)})`);
 }
 const q = key => `[data-key="${key}"]`;
 const click = key => browser.click(q(key));
@@ -115,8 +139,9 @@ async function shot(name) {
 }
 async function safeCalls() {
   const values = await browser.evaluate('window.__waterTest.calls');
-  for (const {args} of values) for (const value of Object.values(args).flat()) if (typeof value === 'string') assert(!/[A-Za-z]:[\\/]|\\/.test(value), 'IPC must contain IDs, never paths');
-  assert.deepEqual(await browser.evaluate('window.__waterTest.errors'), []);
+  for (const {args} of values) for (const [key, entry] of Object.entries(args)) for (const value of [entry].flat()) if (typeof value === 'string') assert(!(key === 'confirmToken' ? /\\/.test(value) : /[A-Za-z]:[\\/]|\\/.test(value)), 'IPC must contain IDs, never paths');
+  errors.push(...await browser.evaluate('window.__waterTest.errors'));
+  assert.deepEqual(errors, [], 'No console errors, runtime errors or unhandled rejections across any scenario');
 }
 async function noOverflow() {
   assert(await browser.evaluate('document.documentElement.scrollWidth <= innerWidth && document.querySelector("#main").scrollWidth <= document.querySelector("#main").clientWidth'), 'No horizontal overflow');
@@ -135,22 +160,32 @@ before(async () => {
   browser = await openPrivateBrowser(); await browser.size(1240, 820);
   await browser.send('Animation.enable');
 });
-after(async () => { if (browser) await browser.close(); if (server) await new Promise(ok => server.close(ok)); assert.deepEqual(errors, []); });
+after(async () => { try { if (browser) await safeCalls(); } finally { if (browser) await browser.close(); if (server) await new Promise(ok => server.close(ok)); } assert.deepEqual(errors, []); });
 
 test('ui_home_and_scan', async () => {
-  await reset(); await waitText('尚未体检');
-  assert((await text()).includes('59.8')); await noOverflow(); await shot('home-1240x820');
+  await reset({holdApp:true}); await waitText('正在读取…');
+  assert(!(await text()).includes('无法连接 Water 服务'), 'Pending startup must be neutral');
+  await shot('loading-1240x820');
+  await control('window.__waterTest.holdApp=false'); await waitText('尚未体检');
+  assert((await text()).includes(formatBytes(fixture.app_state_fresh.drives.find(d => d.is_system).free_bytes).replace(' ', ''))); await noOverflow(); await shot('home-1240x820');
   const before = await browser.evaluate('window.__waterTest.calls.length');
   await new Promise(ok => setTimeout(ok, 550));
   assert.equal(await browser.evaluate('window.__waterTest.calls.length'), before, 'Idle must not poll');
+  await control('window.__waterTest.scanIdleBefore=2');
   await click('scan-start'); await pageIs('scan');
-  await control('window.__waterTest.scanIndex=2'); await waitText('182,280');
+  await browser.waitFor('window.__waterTest.scanIdleBefore===0'); await pageIs('scan');
+  assert.equal(await browser.evaluate('window.__waterTest.calls.filter(c=>c.command==="scan_result").length'), 0, 'Initial idle must not fetch a result');
+  await control(`window.__waterTest.progressErrors.scan_progress=${JSON.stringify([fixture.errors.busy, fixture.errors.busy])}`);
+  await waitText('正在重新连接 Water 服务…'); await pageIs('scan');
+  await browser.waitFor('window.__waterTest.progressErrors.scan_progress.length===0 && !document.body.textContent.includes("正在重新连接 Water 服务…")');
+  await control('window.__waterTest.scanIndex=2'); await waitText(count(fixture.scan_progress_sequence[2].visited_entries));
   assert((await text()).includes(formatBytes(fixture.scan_progress_sequence[2].found_bytes).split(' ')[0]));
+  assert((await text()).includes(elapsed(fixture.scan_progress_sequence[2].elapsed_ms)));
   await shot('scan-1240x820');
   await click('nav-locations'); await waitText('自定义文件夹');
   assert(await browser.evaluate(`document.querySelector(${JSON.stringify(q('add-root'))}).disabled`), 'Cannot start location changes during scan');
   await click('nav-home'); await pageIs('scan');
-  await control('window.__waterTest.holdScan=false'); await pageIs('results'); await waitText('已选 13 组');
+  await control('window.__waterTest.holdScan=false'); await pageIs('results'); await waitText(selectionText(defaults.length));
   const times = await browser.evaluate('window.__waterTest.calls.filter(c=>c.command==="scan_progress").map(c=>c.at)');
   for (let i = 1; i < times.length; i++) assert(times[i] - times[i - 1] >= 230, 'No excessive polling');
   await safeCalls();
@@ -158,24 +193,29 @@ test('ui_home_and_scan', async () => {
 
 test('ui_results_detail_confirm', async () => {
   await pageIs('results');
-  assert((await text()).includes('31.2'), 'Hero must use fixture bytes, not mockup numbers');
+  assert.equal(await browser.evaluate('document.querySelector(".res-hero .kpi").textContent'), formatBytes(fixture.scan_result.totals.recommended_bytes).replace(' ', ''), 'Hero must use fixture bytes, not mockup numbers');
+  assert.equal(await browser.evaluate('document.querySelector(".dock b").textContent'), formatBytes(selectedBytes(fixture.scan_result, resetSelection(fixture.scan_result))));
+  assert.deepEqual(await browser.evaluate('[...document.querySelectorAll(".sheet:first-of-type .group-open")].map(e=>e.dataset.key)'), sortedGroups(fixture.scan_result.categories[0].groups, 'bytes').map(g => `detail-${g.group_id}`));
+  assert(await browser.evaluate('document.querySelector("[data-key=rescan]").classList.contains("btn-glass")'));
   await noOverflow(); await shot('results-1240x820');
   await browser.size(1040, 720); await noOverflow(); await shot('results-1040x720'); await browser.size(1240, 820);
   await click('detail-codex-marketplace-staging'); await waitText('这是什么'); await shot('detail-1240x820');
-  assert((await text()).includes('69,947')); await key('Escape'); await browser.waitFor('!document.querySelector("dialog[open]")');
+  assert((await text()).includes(count(fixture.group_details['codex-marketplace-staging'].group.file_count))); await key('Escape'); await browser.waitFor('!document.querySelector("dialog[open]")');
   assert.equal(await browser.evaluate('document.activeElement.dataset.key'), 'detail-codex-marketplace-staging');
-  await click('select-codex-marketplace-staging'); await waitText('已选 12 组');
-  await click('select-codex-marketplace-staging'); await waitText('已选 13 组');
-  await click('category-agent_tool'); await waitText('已选 14 组');
-  assert.equal(await browser.evaluate('document.querySelectorAll(".group-row input:checked").length'), 14);
+  await click('select-codex-marketplace-staging'); await waitText(selectionText(defaults.length - 1));
+  await click('select-codex-marketplace-staging'); await waitText(selectionText(defaults.length));
+  const extra = groups(fixture.scan_result).filter(g => g.category === 'agent_tool' && g.selectable && !g.default_selected).length;
+  await click('category-agent_tool'); await waitText(selectionText(defaults.length + extra));
+  assert.equal(await browser.evaluate('document.querySelectorAll(".group-row input:checked").length'), defaults.length + extra);
   assert.equal(await browser.evaluate(`document.querySelector(${JSON.stringify(q('select-claude-code-sessions'))})`), null);
-  await click('select-codex-runtimes'); await waitText('已选 13 组');
+  await click('select-codex-runtimes'); await waitText(selectionText(defaults.length));
   await click('filter-protected');
   assert.equal(await browser.evaluate('document.querySelectorAll(".group-row input").length'), 0);
   await click('detail-claude-code-sessions'); await waitText('Water 不会清理此类数据。'); await key('Escape');
   await click('filter-all'); await click('clean-prepare'); await browser.waitFor('!!document.querySelector(".confirm[open]")');
   assert((await text()).includes('不进入回收站，无法恢复'));
-  assert((await text()).includes('2,250'));
+  assert((await text()).includes(count(fixture.clean_prepare_default.item_count)));
+  assert.equal(await browser.evaluate('document.querySelector("[data-key=confirm-start]").textContent'), `永久删除 ${formatBytes(fixture.clean_prepare_default.total_bytes)}`);
   assert.equal(await browser.evaluate('document.activeElement.dataset.key'), 'confirm-cancel');
   await key('Tab'); assert.equal(await browser.evaluate('document.activeElement.dataset.key'), 'confirm-start');
   await key('Tab'); assert(await browser.evaluate('document.activeElement.classList.contains("confirm-list")'));
@@ -190,13 +230,37 @@ test('ui_results_detail_confirm', async () => {
 
 test('ui_clean_done_and_pages', async () => {
   await pageIs('cleaning'); await shot('cleaning-1240x820');
+  await control(`window.__waterTest.progressErrors.clean_progress=${JSON.stringify([fixture.errors.busy, fixture.errors.busy])}`);
+  await waitText('正在重新连接 Water 服务…'); await pageIs('cleaning');
+  assert(await browser.evaluate('(()=>{const e=new Event("beforeunload",{cancelable:true});dispatchEvent(e);return e.defaultPrevented})()'), 'Close protection survives a failed progress query');
+  await browser.waitFor('window.__waterTest.progressErrors.clean_progress.length===0 && !document.body.textContent.includes("正在重新连接 Water 服务…")');
+  await pageIs('cleaning');
+  await control(`window.__waterTest.progressErrors.clean_progress=Array.from({length:20},()=>(${JSON.stringify(fixture.errors.unavailable)}))`);
+  await waitText('重新连接');
+  await browser.waitFor('!!document.querySelector("[data-key=progress-reconnect]")');
+  await pageIs('cleaning'); await shot('reconnecting-1240x820');
+  assert(await browser.evaluate('(()=>{const e=new Event("beforeunload",{cancelable:true});dispatchEvent(e);return e.defaultPrevented})()'), 'Exhausted retries must still protect cleanup');
+  const paused = await browser.evaluate('window.__waterTest.calls.filter(c=>c.command==="clean_progress").length');
+  await new Promise(ok => setTimeout(ok, 550));
+  assert.equal(await browser.evaluate('window.__waterTest.calls.filter(c=>c.command==="clean_progress").length'), paused, 'Retries stop after twenty consecutive failures');
+  await click('progress-reconnect'); await pageIs('cleaning');
+  await browser.waitFor(`window.__waterTest.calls.filter(c=>c.command==='clean_progress').length>${paused}`);
+  assert.equal(await browser.evaluate('window.__waterTest.calls.filter(c=>c.command==="clean_start").length'), 1, 'Reconnect must not restart cleanup');
   await control('window.__waterTest.holdClean=false'); await pageIs('done');
-  assert((await text()).includes('30.7'), 'Actual freed bytes must come from clean_result');
+  assert.equal(await browser.evaluate('document.querySelector(".done-hero .kpi").textContent'), formatBytes(fixture.clean_result.freed_bytes).replace(' ', '') + ' 已释放', 'Actual freed bytes must come from clean_result');
   assert((await text()).includes('6 个配置正在使用，已跳过')); await noOverflow(); await shot('done-1240x820');
   const calls = await browser.evaluate('window.__waterTest.calls.length'); await new Promise(ok => setTimeout(ok, 550));
   assert.equal(await browser.evaluate('window.__waterTest.calls.length'), calls, 'Completed cleanup stops polling');
+  assert(await browser.evaluate('(()=>{const c=window.__waterTest.calls;return c.findLastIndex(x=>x.command==="app_state")>c.findLastIndex(x=>x.command==="clean_result")})()'), 'Refresh app state after cleanup');
+  await click('nav-home'); await pageIs('home'); await waitText('查看结果');
+  assert.equal(await browser.evaluate('document.querySelector("[data-key=scan-start]").disabled'), false, 'Home can start the next checkup');
+  assert((await text()).includes(formatBytes(fixture.clean_result.drives.find(d => d.root === fixture.app_state_fresh.drives.find(d => d.is_system).root).free_after).replace(' ', '')));
   await click('nav-trends'); await waitText('增长最多'); await noOverflow(); await shot('trends-1240x820');
-  await click('nav-history'); await waitText('清理 13 组'); await shot('history-1240x820');
+  const chart = await browser.evaluate('[...document.querySelectorAll(".chart-point")].map(e=>({x:+e.getAttribute("cx"),y:+e.getAttribute("cy")}))');
+  for (let i = 2; i < chart.length; i++) assert(Math.abs((chart[i].x - chart[i - 1].x) - (chart[1].x - chart[0].x)) < .01, 'Checkups use equal horizontal intervals');
+  assert(await browser.evaluate('document.querySelector(".chart-line").getAttribute("d").includes("C")'));
+  assert.equal(await browser.evaluate('document.querySelectorAll(".chart-label").length'), 4);
+  await click('nav-history'); await waitText(cleanEntry.summary_zh); await shot('history-1240x820');
   await click(`history-${fixture.history_list[0].id}`); await waitText('清理日志位置');
   assert((await text()).includes('6 个配置正在使用，已跳过'));
   await click('nav-locations'); await waitText('自定义文件夹'); await shot('locations-1240x820');
@@ -209,7 +273,7 @@ test('ui_clean_done_and_pages', async () => {
 });
 
 test('ui_layout_states_a11y', async () => {
-  await reset({scanned:true}, 'results'); await waitText('已选 13 组');
+  await reset({scanned:true}, 'results'); await waitText(selectionText(defaults.length));
   for (const dimensions of [[1240, 820], [1040, 720]]) { await browser.size(...dimensions); await noOverflow(); }
   await browser.size(1240, 820);
   await browser.send('Emulation.setEmulatedMedia', {features:[{name:'prefers-reduced-motion', value:'reduce'}]});
@@ -223,7 +287,7 @@ test('ui_layout_states_a11y', async () => {
   for (let i = 0; i < expected.length + 8; i++) { await key('Tab'); reached.add(await browser.evaluate('document.activeElement.dataset.key')); }
   assert(expected.every(k => reached.has(k)), 'Tab must reach every visible enabled control');
   await browser.evaluate(`document.querySelector(${JSON.stringify(q('select-codex-marketplace-staging'))}).focus()`);
-  await key(' '); await waitText('已选 12 组'); await key(' '); await waitText('已选 13 组');
+  await key(' '); await waitText(selectionText(defaults.length - 1)); await key(' '); await waitText(selectionText(defaults.length));
   await browser.evaluate(`document.querySelector(${JSON.stringify(q('detail-codex-marketplace-staging'))}).focus()`);
   await key('Enter'); await waitText('这是什么'); await key('Escape');
   await control(`window.__waterTest.nextError={command:'clean_prepare',error:${JSON.stringify(fixture.errors.stale)}}`);
@@ -231,15 +295,56 @@ test('ui_layout_states_a11y', async () => {
   assert(await browser.evaluate('document.querySelector("#notice").getBoundingClientRect().top >= 0 && document.querySelector("#notice").getBoundingClientRect().bottom <= innerHeight'), 'Error remains visible while results are scrolled');
   assert(await browser.evaluate(`document.querySelector(${JSON.stringify(q('clean-prepare'))}).disabled`)); await shot('stale-1240x820');
   await click('rescan'); await pageIs('scan'); await browser.waitFor(`!!document.querySelector(${JSON.stringify(q('scan-stop'))})`); await click('scan-stop');
-  await pageIs('results'); await waitText('部分结果'); await waitText('已选 13 组'); await safeCalls();
+  await pageIs('results'); await waitText('部分结果'); await waitText(selectionText(defaults.length)); await safeCalls();
+  await click('select-codex-marketplace-staging'); await waitText(selectionText(defaults.length - 1));
+  await click('rescan'); await pageIs('scan'); await control('window.__waterTest.holdScan=false');
+  await pageIs('results'); await waitText(selectionText(defaults.length));
+  assert(await browser.evaluate('document.querySelector("[data-key=select-codex-marketplace-staging]").checked'), 'A real new scan resets changed selection');
   await reset({scanned:true}); await shot('home-last-scan-1240x820');
+  assert(await browser.evaluate('!!document.querySelector(".water-free") && !!document.querySelector(".vial-mouth")'));
+  assert(await browser.evaluate('document.getAnimations().every(a=>a.playState!=="running")'), 'Reduced motion disables home waves and orb');
   await control(`window.__waterTest.nextError={command:'scan_start',error:${JSON.stringify(fixture.errors.busy)}}`);
   await click('scan-start'); await waitText(fixture.errors.busy.message_zh); await shot('busy-1240x820');
   assert(await browser.evaluate('document.querySelector("#notice").getBoundingClientRect().top >= 0 && document.querySelector("#notice").getBoundingClientRect().bottom <= innerHeight'));
   await control("window.__waterTest.nextError={command:'scan_start',error:{unexpected:true}}");
   await click('scan-start'); await waitText('Water 服务暂时不可用');
+  await click('scan-start'); await pageIs('scan'); await waitText('停止扫描');
+  assert(await browser.evaluate('!!document.querySelector(".wave") && !!document.querySelector(".spin")'));
+  assert(await browser.evaluate('document.getAnimations().every(a=>a.playState!=="running")'), 'Reduced motion disables scan waves, spinner and entrance');
+  await reset({scanned:true}, 'results'); await waitText(selectionText(defaults.length));
+  await click('clean-prepare'); await browser.waitFor('!!document.querySelector("dialog.confirm[open]")');
+  await control(`window.__waterTest.nextError={command:'clean_start',error:${JSON.stringify(fixture.errors.unavailable)}}`);
+  await click('confirm-start'); await waitText('请重新点击“清理所选”并确认。');
+  assert.equal(await browser.evaluate('document.querySelector("dialog[open]")'), null, 'Failed clean_start closes confirmation');
+  assert.equal(await browser.evaluate('window.__waterTest.calls.filter(c=>c.command==="clean_start").length'), 1);
+  await click('clean-prepare'); await browser.waitFor('!!document.querySelector("dialog.confirm[open]")');
+  assert.equal(await browser.evaluate('window.__waterTest.calls.filter(c=>c.command==="clean_prepare").length'), 2, 'Retry requires a new preview');
+  await click('confirm-start'); await pageIs('cleaning'); await waitText('已释放');
+  assert(await browser.evaluate('(()=>{const starts=window.__waterTest.calls.filter(c=>c.command==="clean_start");return starts[0].args.confirmToken!==starts[1].args.confirmToken})()'), 'The consumed token is not reused');
+  await click('nav-history'); await waitText('清理记录');
+  await browser.waitFor('!!document.querySelector(".history-row")');
+  assert(!(await text()).includes(cleanEntry.summary_zh));
+  const historiesBefore = await browser.evaluate('window.__waterTest.calls.filter(c=>c.command==="history_list").length');
+  await control('window.__waterTest.holdClean=false'); await waitText(cleanEntry.summary_zh);
+  await pageIs('history');
+  assert.equal(await browser.evaluate('window.__waterTest.calls.filter(c=>c.command==="history_list").length'), historiesBefore + 1, 'Visible history reloads as soon as cleaning ends');
+  await click('nav-home'); await pageIs('home'); await waitText('查看结果');
+  assert.equal(await browser.evaluate('document.querySelector("[data-key=scan-start]").disabled'), false);
+  await reset(); await control('window.__waterTest.scanIdleBefore=20'); await click('scan-start');
+  await waitText('体检没有开始，请重试'); await pageIs('home');
+  assert.equal(await browser.evaluate('window.__waterTest.calls.filter(c=>c.command==="scan_progress").length'), 20);
+  assert.equal(await browser.evaluate('window.__waterTest.calls.filter(c=>c.command==="scan_result").length'), 0);
+  await reset(); await click('scan-start'); await waitText('停止扫描');
+  await control('window.__waterTest.scanTerminalIdle=true;window.__waterTest.holdScan=false');
+  await pageIs('results'); await waitText(selectionText(defaults.length));
+  await reset({scanned:true,negativeGrowth:true}, 'results'); await waitText(selectionText(defaults.length));
+  assert(await browser.evaluate('document.querySelector("[data-key=detail-codex-marketplace-staging] .growth use").getAttribute("href")==="#i-down"'));
+  await click('detail-codex-marketplace-staging'); await waitText(`${byteDelta('-1288490189')} · ${countDelta(-5)} 项`); await key('Escape');
+  await click('nav-trends'); await waitText(`${byteDelta('-1288490189')} · ${countDelta(-5)} 项`);
+  assert(!(await text()).includes('+−') && !(await text()).includes('+-'));
   await reset({locked:true}, 'locations'); await waitText('自定义文件夹');
   assert(await browser.evaluate(`document.querySelector(${JSON.stringify(q('location-agent_tool'))}).disabled`));
+  assert(await browser.evaluate('(()=>{const icon=k=>document.querySelector("[data-key=location-"+k+"]").closest(".location-row").querySelector("use").getAttribute("href");return icon("agent_tool")!==icon("gpu_system")})()'));
   await reset({emptyTrends:true}, 'trends'); await waitText('再体检一次就能看到变化'); await shot('trends-empty-1240x820');
   await reset({emptyHistory:true}, 'history'); await waitText('还没有记录');
   await reset({busy:'scanning'}); await pageIs('scan'); await waitText('停止扫描');

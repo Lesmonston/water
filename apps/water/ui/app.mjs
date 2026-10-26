@@ -1,5 +1,5 @@
 import * as ipc from './ipc.mjs';
-import {resetSelection, setSelected, selectCategory, selectedGroups} from './model.mjs';
+import {installResult as nextResult, setSelected, selectCategory, selectedGroups} from './model.mjs';
 import {formatBytes} from './format.mjs';
 import {el, add, icon, button} from './views/common.mjs';
 import {home} from './views/home.mjs';
@@ -15,18 +15,19 @@ import {locations} from './views/locations.mjs';
 import {about} from './views/about.mjs';
 
 const routes = ['home', 'results', 'trends', 'history', 'locations', 'about'];
-const state = {app:null, busy:'idle', pending:false, error:'', result:null, selection:new Set(), filter:'all', sort:'bytes', stale:false, cleaned:null, historyDetails:new Map()};
+const state = {app:null, connecting:true, busy:'idle', pending:false, error:'', result:null, selection:new Set(), filter:'all', sort:'bytes', stale:false, cleaned:null, showDone:false, progressFailures:0, reconnecting:false, pollPaused:false, historyDetails:new Map()};
 let route = 'home', timer, polling = false, overlay, opener, routeVersion = 0;
 const page = document.getElementById('page'), main = document.getElementById('main');
 const motionObserver = new IntersectionObserver(entries => entries.forEach(entry => entry.target.style.setProperty('--motion-state', entry.isIntersecting ? 'running' : 'paused')));
 const actions = {
   busy:() => state.pending || state.busy !== 'idle' || !state.app,
-  navigate, connect,
+  navigate, connect, reconnectProgress:() => { if (!polling) { state.error = ''; beginPolling(); render(); } },
   scan:() => run(async () => {
     if (state.busy !== 'idle') return;
     const value = await ipc.scan_start();
     state.scanId = value.scan_id; state.scanProgress = null; state.busy = 'scanning'; state.cleaned = null; state.stale = true;
-    navigate('home'); startPolling();
+    state.scanRunningSeen = false; state.scanIdleCount = 0;
+    navigate('home'); beginPolling();
   }),
   stopScan:() => run(async () => { await ipc.scan_cancel(state.scanId ?? state.scanProgress?.scan_id); }),
   stopClean:() => run(async () => { await ipc.clean_stop(); }),
@@ -39,11 +40,15 @@ const actions = {
     if (state.busy !== 'idle' || state.stale) return;
     const ids = selectedGroups(state.result, state.selection).map(g => g.group_id);
     if (!ids.length) return;
-    const preview = await ipc.clean_prepare(ids);
+    let preview = await ipc.clean_prepare(ids);
     showOverlay(confirm(preview, closeOverlay, () => run(async () => {
-      const value = await ipc.clean_start(preview.plan_id, preview.confirm_token);
-      closeOverlay(true); state.busy = 'cleaning'; state.cleanId = value.clean_id; state.cleanProgress = null; state.cleaned = null;
-      navigate('home'); startPolling();
+      const {plan_id, confirm_token} = preview; preview = null;
+      closeOverlay(true);
+      let value;
+      try { value = await ipc.clean_start(plan_id, confirm_token); }
+      catch (error) { fault(error); state.error += ' 请重新点击“清理所选”并确认。'; return; }
+      state.busy = 'cleaning'; state.cleanId = value.clean_id; state.cleanProgress = null; state.cleaned = null;
+      navigate('home'); beginPolling();
     })), 'confirm-cancel');
   }),
   toggleCategory:(category, enabled) => run(async () => { if (state.busy === 'idle') state.locations = await ipc.locations_set_category(category, enabled); }),
@@ -66,12 +71,15 @@ async function run(fn) {
   try { await fn(); } catch (error) { fault(error); }
   finally { state.pending = false; overlay?.querySelectorAll('button').forEach(b => { b.disabled = false; }); render(); }
 }
-function installResult(value) { state.result = value; state.selection = resetSelection(value); state.stale = false; state.filter = 'all'; }
+function installResult(value) { Object.assign(state, nextResult(state, value)); }
 async function connect() {
+  state.connecting = true;
   await run(async () => {
-    state.app = await ipc.app_state(); state.busy = state.app.busy;
-    if (state.app.last_scan) installResult(await ipc.scan_result(state.app.last_scan.scan_id));
-    if (state.busy !== 'idle') startPolling();
+    try {
+      state.app = await ipc.app_state(); state.busy = state.app.busy;
+      if (state.busy !== 'idle') { state.scanRunningSeen = false; state.scanIdleCount = 0; beginPolling(); }
+      if (state.app.last_scan) installResult(await ipc.scan_result(state.app.last_scan.scan_id));
+    } finally { state.connecting = false; }
   });
   await loadRoute();
 }
@@ -82,6 +90,7 @@ function sidebar() {
     const nav = el('nav', 'nav', undefined, {'aria-label':'主导航'});
     for (const [key, label, glyph] of [['home', '体检', 'drop'], ['trends', '增长趋势', 'trend'], ['history', '清理记录', 'history'], ['locations', '扫描位置', 'folder'], ['about', '关于与隐私', 'shield']]) {
       const link = el('a', '', undefined, {href:`#/${key}`, 'data-route':key, 'data-key':`nav-${key}`}); add(link, icon(glyph), el('span', '', label)); add(nav, link);
+      link.addEventListener('click', event => { event.preventDefault(); navigate(key); });
     }
     add(side, nav, add(el('footer', 'side-foot'), el('b', '', '本地只读扫描'), el('p', '', '不读取文件内容，不上传任何数据'), el('span', 'version')));
   }
@@ -91,14 +100,14 @@ function sidebar() {
 function render() {
   const activeKey = document.activeElement?.dataset.key, scroll = main.scrollTop;
   sidebar();
-  const notice = document.getElementById('notice'); notice.replaceChildren(); notice.hidden = !state.error;
-  if (state.error) add(notice, el('span', '', state.error), button('关闭提示', () => { state.error = ''; render(); }, 'btn btn-ghost', 'dismiss-error'));
+  const notice = document.getElementById('notice'); notice.replaceChildren(); notice.hidden = !state.error && !state.reconnecting && !state.pollPaused;
+  if (!notice.hidden) add(notice, el('span', '', state.reconnecting ? '正在重新连接 Water 服务…' : state.error || '未能读取任务进度，请重新连接。'), state.pollPaused ? button('重新连接', actions.reconnectProgress, 'btn btn-glass', 'progress-reconnect', state.pending) : state.reconnecting ? null : button('关闭提示', () => { state.error = ''; render(); }, 'btn btn-ghost', 'dismiss-error'));
   let view;
   if (route === 'home' && state.busy === 'scanning') view = scan(state, actions);
   else if (route === 'home' && state.busy === 'cleaning') view = cleaning(state, actions);
-  else if (route === 'home' && state.cleaned) view = done(state, actions);
+  else if (route === 'home' && state.showDone && state.cleaned) view = done(state, actions);
   else view = {home, results, trends, history:historyView, locations, about}[route](state, actions);
-  page.replaceChildren(view); page.dataset.page = route === 'home' ? state.busy === 'scanning' ? 'scan' : state.busy === 'cleaning' ? 'cleaning' : state.cleaned ? 'done' : 'home' : route;
+  page.replaceChildren(view); page.dataset.page = route === 'home' ? state.busy === 'scanning' ? 'scan' : state.busy === 'cleaning' ? 'cleaning' : state.showDone && state.cleaned ? 'done' : 'home' : route;
   motionObserver.disconnect(); page.querySelectorAll('.wave, .orb-btn').forEach(node => motionObserver.observe(node));
   const slot = document.getElementById('dock-slot'); slot.replaceChildren();
   if (route === 'results') { const bar = dock(state, actions); if (bar) slot.append(bar); }
@@ -107,6 +116,7 @@ function render() {
 }
 function navigate(next) {
   if (!routes.includes(next)) next = 'home';
+  state.showDone = false;
   if (location.hash === `#/${next}`) { route = next; render(); return; }
   location.hash = `#/${next}`;
 }
@@ -120,37 +130,63 @@ async function loadRoute() {
 }
 function routeChanged() {
   closeOverlay(true); const value = location.hash.slice(2); route = routes.includes(value) ? value : 'home';
+  state.showDone = false;
   try { localStorage.setItem('water-last-page', route); } catch {}
   page.classList.remove('enter'); void page.offsetWidth; page.classList.add('enter'); main.scrollTop = 0;
   render(); void loadRoute();
 }
 function startPolling() { clearTimeout(timer); timer = setTimeout(poll, 250); }
+function beginPolling() { state.progressFailures = 0; state.reconnecting = false; state.pollPaused = false; startPolling(); }
+function pauseProgress(error) { fault(error); state.reconnecting = false; state.pollPaused = true; }
+async function readProgress() {
+  try {
+    const value = await (state.busy === 'scanning' ? ipc.scan_progress() : ipc.clean_progress());
+    state.progressFailures = 0; state.reconnecting = false;
+    return value;
+  } catch (error) {
+    if (['busy', 'unavailable'].includes(error?.code) && ++state.progressFailures < 20) state.reconnecting = true;
+    else pauseProgress(error);
+    return null;
+  }
+}
 async function poll() {
-  if (polling || state.busy === 'idle') return;
+  if (polling || state.busy === 'idle' || state.pollPaused) return;
   polling = true;
   try {
+    const p = await readProgress();
+    if (!p) return;
     if (state.busy === 'scanning') {
-      const p = await ipc.scan_progress(); state.scanProgress = p; state.scanId = p.scan_id ?? state.scanId;
+      state.scanProgress = p; state.scanId = p.scan_id ?? state.scanId;
       document.getElementById('announcer').textContent = `正在体检，已发现 ${formatBytes(p.found_bytes)}，${p.percent}%`;
+      if (p.state === 'running') { state.scanRunningSeen = true; state.scanIdleCount = 0; }
+      if (p.state === 'idle' && !state.scanRunningSeen) {
+        if (++state.scanIdleCount >= 20) { state.busy = 'idle'; state.error = '体检没有开始，请重试'; }
+        return;
+      }
       if (p.state !== 'running') {
-        state.busy = 'idle';
-        if (['completed', 'partial', 'cancelled'].includes(p.state) && state.scanId) {
+        if (['completed', 'partial', 'cancelled', 'idle'].includes(p.state) && state.scanId) {
           installResult(await ipc.scan_result(state.scanId));
-          if (p.state !== 'completed') state.result = {...state.result, status:'partial'};
-          state.app = await ipc.app_state(); if (route === 'home') navigate('results');
-        } else if (p.state === 'failed') state.error = '体检未能完成，请重新体检。';
+          if (['partial', 'cancelled'].includes(p.state)) state.result = {...state.result, status:'partial'};
+          state.busy = 'idle';
+          if (route === 'home') navigate('results');
+          try { state.app = await ipc.app_state(); } catch (error) { fault(error); }
+        } else { state.busy = 'idle'; state.error = '体检未能完成，请重新体检。'; }
       }
     } else {
-      const p = await ipc.clean_progress(); state.cleanProgress = p; state.cleanId = p.clean_id ?? state.cleanId;
+      state.cleanProgress = p; state.cleanId = p.clean_id ?? state.cleanId;
       document.getElementById('announcer').textContent = `正在清理，已释放 ${formatBytes(p.freed_bytes)}`;
-      if (p.state !== 'running') {
-        state.busy = 'idle'; state.stale = true; state.cleanTerminal = p.state;
-        if (state.cleanId && ['completed', 'stopped', 'failed'].includes(p.state)) state.cleaned = await ipc.clean_result(state.cleanId);
-        state.history = null;
+      if (['completed', 'stopped', 'failed'].includes(p.state) && state.cleanId) {
+        state.cleaned = await ipc.clean_result(state.cleanId);
+        state.busy = 'idle'; state.stale = true; state.cleanTerminal = p.state; state.showDone = route === 'home';
+        state.history = null; state.historyDetails.clear(); state.historyOpen = null;
+        try { state.app = await ipc.app_state(); } catch (error) { fault(error); }
+        if (route === 'history') await loadRoute();
+      } else if (p.state !== 'running') {
+        pauseProgress({message_zh:'未能确认清理状态，请重新连接。'});
       }
     }
-  } catch (error) { fault(error); state.busy = 'idle'; state.stale = true; }
-  finally { polling = false; render(); if (state.busy !== 'idle') startPolling(); }
+  } catch (error) { pauseProgress(error); }
+  finally { polling = false; render(); if (state.busy !== 'idle' && !state.pollPaused) startPolling(); }
 }
 function showOverlay(panel, focusKey) {
   opener = document.activeElement?.dataset.key;

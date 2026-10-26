@@ -8,11 +8,14 @@ export function bytes(value) {
 export function formatBytes(value) {
   const n = bytes(value), abs = n < 0n ? -n : n, sign = n < 0n ? '−' : '';
   if (abs < MB) return `${sign}<1 MB`;
-  if (abs < GB) return `${sign}${(abs + MB / 2n) / MB} MB`;
+  const roundedMB = (abs + MB / 2n) / MB;
+  if (abs < GB && roundedMB < 1024n) return `${sign}${count(roundedMB)} MB`;
   const tenths = (abs * 10n + GB / 2n) / GB;
-  return `${sign}${tenths / 10n}.${tenths % 10n} GB`;
+  return `${sign}${count(tenths / 10n)}.${tenths % 10n} GB`;
 }
 export function count(value) { return BigInt(value).toLocaleString('en-US'); }
+export function byteDelta(value) { return `${bytes(value) > 0n ? '+' : ''}${formatBytes(value)}`; }
+export function countDelta(value) { const n = BigInt(value); return `${n < 0n ? '−' : n > 0n ? '+' : ''}${count(n < 0n ? -n : n)}`; }
 export function relativeTime(value, now = Date.now()) {
   if (!value) return '尚无记录';
   const date = new Date(value), delta = Math.max(0, now - date.getTime());
@@ -20,7 +23,7 @@ export function relativeTime(value, now = Date.now()) {
   if (delta < 60000) return '刚刚';
   if (delta < 3600000) return `${Math.floor(delta / 60000)} 分钟前`;
   if (delta < 86400000) return `${Math.floor(delta / 3600000)} 小时前`;
-  return `${delta >= 365 * 86400000 ? `${date.getFullYear()} 年 ` : ''}${date.getMonth() + 1} 月 ${date.getDate()} 日`;
+  return `${delta >= 365 * 86400000 ? `${date.getUTCFullYear()} 年 ` : ''}${date.getUTCMonth() + 1} 月 ${date.getUTCDate()} 日`;
 }
 export function dateTime(value) {
   const date = new Date(value);

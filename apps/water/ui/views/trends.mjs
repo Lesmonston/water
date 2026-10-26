@@ -1,5 +1,6 @@
 import {add, el, heading, empty, svg, level, copyButton, button} from './common.mjs';
-import {formatBytes, percent, bytes, count, dateTime} from '../format.mjs';
+import {formatBytes, byteDelta, countDelta, percent, bytes, dateTime} from '../format.mjs';
+import {monotoneSegments} from '../model.mjs';
 export function trends(state, actions) {
   const page = add(el('section'), heading('增长趋势', '比较每次体检，找出一直在变大的东西。')), data = state.trends;
   if (!data) return add(page, el('p', 'sub', '正在读取趋势…'));
@@ -11,19 +12,27 @@ export function trends(state, actions) {
   const chart = add(el('section', 'glass chart'), add(el('div', 'split'), el('h2', '', `${root?.slice(0, 2) ?? ''} 盘可用空间 · 最近 30 天`), el('span', 'cap', `${points.length} 次体检`)));
   const drawing = svg('svg', {viewBox:'0 0 880 230', role:'img', 'aria-label':'每次体检时的可用空间折线图；下方提供文字明细'});
   const maximum = points.reduce((m, p) => bytes(p.free_bytes) > m ? bytes(p.free_bytes) : m, 1n);
-  const start = Date.parse(points[0].at), duration = Math.max(1, latest - start);
-  const coords = points.map(p => ({x:20 + (Date.parse(p.at) - start) / duration * 840, y:190 - percent(p.free_bytes, maximum) * 1.5, p}));
+  const coords = points.map((p, i) => ({x:20 + i / (points.length - 1) * 840, y:190 - percent(p.free_bytes, maximum) * 1.5, p}));
   for (const y of [40, 115, 190]) add(drawing, svg('line', {x1:20, x2:860, y1:y, y2:y, class:'chart-grid'}));
-  add(drawing, svg('polyline', {points:coords.map(p => `${p.x},${p.y}`).join(' '), class:'chart-line'}));
+  const path = `M${coords[0].x} ${coords[0].y} ` + monotoneSegments(coords).map(({c1, c2, end}) => `C${c1.x} ${c1.y} ${c2.x} ${c2.y} ${end.x} ${end.y}`).join(' ');
+  add(drawing, svg('path', {d:`${path} L860 190 L20 190Z`, class:'chart-area'}), svg('path', {d:path, class:'chart-line'}));
+  const minimum = points.reduce((m, p, i) => bytes(p.free_bytes) < bytes(points[m].free_bytes) ? i : m, 0);
+  // IPC v1 has no event kind on trend points; the recovery after the low point
+  // is the cleanup annotation requested by the design, not a cleanup receipt.
+  const recovered = points.findIndex((p, i) => i > minimum && bytes(p.free_bytes) > bytes(points[minimum].free_bytes));
+  const today = new Date().toISOString().slice(0, 10);
   for (const [i, point] of coords.entries()) {
     add(drawing, add(svg('circle', {cx:point.x, cy:point.y, r:4, class:'chart-point'}), add(svg('title'), document.createTextNode(`${dateTime(point.p.at)} · ${formatBytes(point.p.free_bytes)}`))));
-    if (i === 0 || i === coords.length - 1) add(drawing, add(svg('text', {x:point.x, y:point.y - 14, 'text-anchor':i ? 'end' : 'start', class:'chart-label'}), document.createTextNode(`${dateTime(point.p.at)} · ${formatBytes(point.p.free_bytes)}`)));
+    if ([0, minimum, recovered, coords.length - 1].includes(i)) {
+      const prefix = i === coords.length - 1 && point.p.at.slice(0, 10) === today ? '今天 ' : i === recovered ? '清理后 ' : `${point.p.at.slice(5, 10)} · `;
+      add(drawing, add(svg('text', {x:point.x, y:point.y + (i === minimum ? 24 : -14), 'text-anchor':i === 0 ? 'start' : i === coords.length - 1 ? 'end' : 'middle', class:'chart-label'}), document.createTextNode(`${prefix}${formatBytes(point.p.free_bytes)}`)));
+    }
   }
   const values = el('details', 'chart-values'); add(values, el('summary', 'cap', '查看每次体检的空间记录'));
   points.forEach(p => add(values, el('p', 'cap', `${dateTime(p.at)} · ${formatBytes(p.free_bytes)}`)));
   add(chart, drawing, values); add(page, chart);
   const growth = add(el('div', 'glass growth-list'), add(el('div', 'growth-row cap'), el('span', '', '增长最多'), el('span', '', '与上次相比'), el('span', '', '日均')));
-  for (const g of data.growth) add(growth, add(el('div', 'growth-row'), add(el('div'), button(g.title_zh, () => actions.detail(g.group_id), 'text-link', `growth-${g.group_id}`), g.level === 'protected' ? level(g.level) : null), el('span', 'growth', `+${formatBytes(g.bytes_delta)}${g.count_delta ? ' · +' + count(g.count_delta) + ' 个' : ''}`), el('span', '', formatBytes(g.bytes_per_day))));
+  for (const g of data.growth) add(growth, add(el('div', 'growth-row'), add(el('div'), button(g.title_zh, () => actions.detail(g.group_id), 'text-link', `growth-${g.group_id}`), g.level === 'protected' ? level(g.level) : null), el('span', 'growth', `${byteDelta(g.bytes_delta)}${g.count_delta ? ' · ' + countDelta(g.count_delta) + ' 项' : ''}`), el('span', '', formatBytes(g.bytes_per_day))));
   const leaks = el('div', 'leaks');
   for (const leak of data.leaks) add(leaks, add(el('section', 'glass leak'), el('p', 'growth', `疑似泄漏 · ${leak.active ? '持续增长' : '已停止'}`), el('h2', '', leak.title_zh), el('p', 'sub', leak.message_zh), el('p', 'fix', leak.fix_hint_zh), copyButton(leak.fix_hint_zh, `copy-${leak.group_id}`), button('查看详情', () => actions.detail(leak.group_id), 'btn btn-ghost', `leak-${leak.group_id}`)));
   add(page, add(el('div', 'two'), growth, leaks)); return page;

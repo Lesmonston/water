@@ -33,7 +33,7 @@ export function check(label, checked, change, key, mixed = false) {
   input.addEventListener('change', () => change(input.checked));
   return input;
 }
-export const catIcon = c => ({agent_tool:'chip', browser:'globe', system_temp:'hourglass', app_leftover:'box', dev_cache:'code', crash_log:'warn', gpu_system:'chip', custom:'folder', unrecognized:'info'}[c] ?? 'folder');
+export const catIcon = c => ({agent_tool:'chip', browser:'globe', system_temp:'hourglass', app_leftover:'box', dev_cache:'code', crash_log:'warn', gpu_system:'gpu', custom:'folder', unrecognized:'info'}[c] ?? 'folder');
 export function empty(title, subtitle) { return add(el('section', 'glass empty'), icon('drop'), el('h2', '', title), el('p', 'sub', subtitle)); }
 export function insight(item, open) {
   return add(el('aside', 'glass insight'), icon('trend', 'growth'), add(el('div', 'grow-fill'), el('strong', '', item.title_zh), el('p', 'sub', item.message_zh)), button('查看修复建议', () => open(item.group_id), 'btn btn-ghost', `insight-${item.group_id}`));
@@ -48,16 +48,23 @@ export function water({used = 0, reclaim = 0, before = null, gauge = false, prog
   add(node, add(svg('defs'), add(svg('clipPath', {id:clip}), shape)));
   const liquid = svg('g', {'clip-path':`url(#${clip})`});
   add(liquid, svg('rect', {width, height, class:'vial-glass'}));
-  if (reclaim > 0) add(liquid, svg('rect', {x:0, y:y - area * reclaim / 100, width, height:area * reclaim / 100 + 5, class:'water-free'}));
   const wave = (offset, cls) => {
     const path = svg('path', {d:`M-120 ${y + offset} q30 -9 60 0 t60 0 t60 0 t60 0 t60 0 t60 0 t60 0 t60 0 t60 0 V${height} H-120Z`, class:cls});
     path.style.setProperty('--wave-delay', `${-(performance.now() % (cls.includes('slow') ? 13000 : 8000))}ms`);
     return path;
   };
+  if (reclaim > 0) add(liquid, wave(-3 - area * Math.min(100, reclaim) / 100, 'water-free wave'));
   add(liquid, wave(-3, 'water-back wave'), wave(3, 'water-front wave slow'));
   if (before !== null) add(liquid, svg('line', {x1:0, x2:width, y1:bottom - area * before / 100, y2:bottom - area * before / 100, class:'before-line'}));
   add(node, liquid);
-  if (!gauge) { const outline = shape.cloneNode(); outline.setAttribute('class', 'vial-outline'); add(node, outline, svg('path', {d:'M12 38V130 M88 38V130', class:'vial-highlight'})); }
+  if (!gauge) {
+    const edge = shape.cloneNode(); edge.setAttribute('class', 'vial-edge');
+    const outline = shape.cloneNode(); outline.setAttribute('class', 'vial-outline');
+    add(node, edge, outline,
+      svg('ellipse', {cx:50, cy:7, rx:18, ry:3, class:'vial-mouth'}),
+      svg('path', {d:'M13 32Q16 10 37 10H63Q84 10 87 32', class:'vial-top'}),
+      svg('path', {d:'M12 40V129 M88 40V129', class:'vial-highlight'}));
+  }
   if (gauge) add(node, svg('circle', {cx:165, cy:165, r:153, class:'gauge-track'}), svg('circle', {cx:165, cy:165, r:153, class:'gauge-progress', pathLength:100, 'stroke-dasharray':`${progress} 100`, transform:'rotate(-90 165 165)'}));
   return node;
 }

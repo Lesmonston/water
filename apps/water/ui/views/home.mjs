@@ -1,7 +1,8 @@
 import {add, el, heading, metric, driveWater, button, insight, empty} from './common.mjs';
-import {formatBytes, percent, relativeTime, dateTime} from '../format.mjs';
+import {formatBytes, byteDelta, percent, relativeTime, dateTime} from '../format.mjs';
 export function home(state, actions) {
   const page = add(el('section'), heading('这台电脑的空间，去了哪里', '只读取文件名、大小与时间，判断哪些是可以放心清掉的缓存和残留。'));
+  if (!state.app && state.connecting) return add(page, empty('正在读取…', '正在读取这台电脑的空间信息。'));
   if (!state.app) return add(page, empty('无法连接 Water 服务', '请确认 Water 服务已启动。'), button('重新连接', actions.connect, 'btn btn-glass', 'reconnect', state.pending));
   const app = state.app, last = app.last_scan;
   app.insights.forEach(i => add(page, insight(i, actions.detail)));
@@ -9,7 +10,7 @@ export function home(state, actions) {
   if (system) {
     const recommendation = last?.recommended_by_drive.find(d => d.root === system.root)?.bytes ?? '0';
     const stats = el('div', 'meta-row');
-    for (const [name, value] of [['可放心清理', last ? formatBytes(recommendation) : '待体检'], ['近 7 天新增', last?.added_7d_bytes != null ? `+${formatBytes(last.added_7d_bytes)}` : '暂无对比'], ['上次体检', last ? relativeTime(last.finished_at) : '尚未体检']]) add(stats, add(el('div'), el('span', 'cap', name), el('b', '', value)));
+    for (const [name, value] of [['可放心清理', last ? formatBytes(recommendation) : '待体检'], ['近 7 天新增', last?.added_7d_bytes != null ? byteDelta(last.added_7d_bytes) : '暂无对比'], ['上次体检', last ? relativeTime(last.finished_at) : '尚未体检']]) add(stats, add(el('div'), el('span', 'cap', name), el('b', '', value)));
     const main = add(el('div', 'glass drive-main'), driveWater(system, recommendation), add(el('div', 'grow-fill'), el('p', 'cap', `${system.label_zh} ${system.root.slice(0, 2)}`), metric(system.free_bytes, '可用', 'drive-number'), el('p', 'sub', `共 ${formatBytes(system.total_bytes)}，已用 ${Math.round(100 - percent(system.free_bytes, system.total_bytes))}%。${last ? '浅绿一层是上次体检找到的可释放空间。' : '体检后可查看能够清理的空间。'}`), stats));
     const others = el('div', 'drives-mini');
     for (const drive of app.drives.filter(d => d !== system)) {

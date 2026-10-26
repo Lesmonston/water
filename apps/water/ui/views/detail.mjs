@@ -1,5 +1,5 @@
 import {add, el, level, button, copyButton} from './common.mjs';
-import {formatBytes, count, relativeTime, middlePath} from '../format.mjs';
+import {formatBytes, byteDelta, countDelta, count, relativeTime, middlePath} from '../format.mjs';
 export function detail(data, close) {
   const g = data.group, panel = el('dialog', 'drawer', undefined, {'aria-labelledby':'detail-title'});
   add(panel, add(el('div', 'split'), level(g.level), button('Esc 关闭', close, 'btn btn-ghost', 'detail-close')), el('h1', '', g.title_zh, {id:'detail-title'}), el('p', 'sub', `${g.owner_zh} · ${count(g.file_count)} 个文件`));
@@ -8,7 +8,7 @@ export function detail(data, close) {
   add(panel, stats);
   for (const [label, text] of [['这是什么', data.what_zh], [g.level === 'protected' ? '为什么受保护' : g.selectable ? '为什么可以清' : '为什么仅供参考', data.why_zh], ['清理后会怎样', data.after_zh]]) add(panel, el('h3', '', label), el('p', '', text));
   add(panel, el('h3', '', '可清理与跳过'), el('p', '', `可清理 ${count(g.eligible_count)} 项 · 跳过 ${count(g.item_count - g.eligible_count)} 项`));
-  if (g.growth) add(panel, el('h3', '', '变化'), el('p', 'growth', `与 ${relativeTime(g.growth.since)} 相比 +${formatBytes(g.growth.bytes_delta)} · +${count(g.growth.count_delta)} 项`));
+  if (g.growth) add(panel, el('h3', '', '变化'), el('p', 'growth', `与 ${relativeTime(g.growth.since)} 相比 ${byteDelta(g.growth.bytes_delta)} · ${countDelta(g.growth.count_delta)} 项`));
   if (data.top_keys.length) {
     add(panel, el('h3', '', '前缀分布'));
     data.top_keys.forEach(k => add(panel, el('p', 'cap', `${k.key} · ${count(k.count)} 个 · ${formatBytes(k.bytes)} · 最近 ${relativeTime(k.newest_activity)}`)));

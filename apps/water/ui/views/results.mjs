@@ -33,7 +33,7 @@ export function results(state, actions) {
       let control;
       if (canSelect(g)) { control = check(`选择${g.title_zh}`, state.selection.has(g.group_id), value => actions.select(g.group_id, value), `select-${g.group_id}`); control.disabled = actions.busy() || state.stale; }
       else control = icon(g.level === 'protected' ? 'lock' : 'info', g.level);
-      const text = add(el('span', 'group-text'), el('strong', '', g.title_zh), add(el('span', 'group-meta'), el('span', '', g.summary_zh), g.growth ? add(el('span', 'growth'), icon('up'), document.createTextNode(formatBytes(g.growth.bytes_delta))) : null), g.in_use ? el('span', 'cap', g.in_use.process_label_zh) : null);
+      const text = add(el('span', 'group-text'), el('strong', '', g.title_zh), add(el('span', 'group-meta'), el('span', '', g.summary_zh), g.growth ? add(el('span', 'growth'), icon(bytes(g.growth.bytes_delta) < 0n ? 'down' : 'up'), document.createTextNode(formatBytes(g.growth.bytes_delta))) : null), g.in_use ? el('span', 'cap', g.in_use.process_label_zh) : null);
       const detail = button('', () => actions.detail(g.group_id), 'group-open', `detail-${g.group_id}`);
       detail.setAttribute('aria-label', `查看${g.title_zh}详情`);
       add(detail, text, level(g.level), el('span', 'group-size', formatBytes(g.total_bytes)), icon('chev', 'chevron'));
