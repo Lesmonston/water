@@ -1,6 +1,6 @@
 # WATER-W2-C 补单 01：测试只结束自己的进程、后代与 PID 复用
 
-2026-10-26，总控（Claude）。依据 [第二波收单验收](../../acceptance/wave2/controller/WATER-W2-AE-REVIEW-20261026.md) C 小节。**贴回原 C 对话续做，不新开执行者。**
+2026-10-26，总控（Claude）。依据 [第二波收单验收](../../acceptance/wave2/controller/WATER-W2-AE-REVIEW-20261026.md) C 小节。**可以新开对话执行（原对话已归档）。** 新执行者开工前依次读：原票 `F:/new/smaltalk/water/docs/dispatch/tickets/WATER-W2-C-PROCESS-SCAN-20261026.md`、执行者规则 `F:/new/smaltalk/water/docs/dispatch/W2-CHECKUP-WORKER-RULES.md`、本票原回执 `F:/new/smaltalk/water/.worktrees/w2-c/docs/dispatch/reports/WATER-W2-C-REPORT.md`，最后读本补单。工作树、分支、检查入口都不变；文中的“你”指本票执行者，包括接手的新对话。
 
 ## 验收结果
 

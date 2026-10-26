@@ -1,6 +1,6 @@
 # WATER-W2-A 补单 01：保护优先判定与浏览器配置目录
 
-2026-10-26，总控（Claude）。依据 [第二波收单验收](../../acceptance/wave2/controller/WATER-W2-AE-REVIEW-20261026.md) A 小节。**贴回原 A 对话续做，不新开执行者。**
+2026-10-26，总控（Claude）。依据 [第二波收单验收](../../acceptance/wave2/controller/WATER-W2-AE-REVIEW-20261026.md) A 小节。**可以新开对话执行（原对话已归档）。** 新执行者开工前依次读：原票 `F:/new/smaltalk/water/docs/dispatch/tickets/WATER-W2-A-JUNK-RULES-20261026.md`、执行者规则 `F:/new/smaltalk/water/docs/dispatch/W2-CHECKUP-WORKER-RULES.md`、本票原回执 `F:/new/smaltalk/water/.worktrees/w2-a/docs/dispatch/reports/WATER-W2-A-REPORT.md`，最后读本补单。工作树、分支、检查入口都不变；文中的“你”指本票执行者，包括接手的新对话。
 
 ## 为什么有这张补单
 

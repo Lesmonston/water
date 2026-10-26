@@ -1,6 +1,6 @@
 # WATER-W2-D 补单 01：测试夹具不绑树名、删除前复核父目录
 
-2026-10-26，总控（Claude）。依据 [第二波收单验收](../../acceptance/wave2/controller/WATER-W2-AE-REVIEW-20261026.md) D 小节。**贴回原 D 对话续做，不新开执行者。**
+2026-10-26，总控（Claude）。依据 [第二波收单验收](../../acceptance/wave2/controller/WATER-W2-AE-REVIEW-20261026.md) D 小节。**可以新开对话执行（原对话已归档）。** 新执行者开工前依次读：原票 `F:/new/smaltalk/water/docs/dispatch/tickets/WATER-W2-D-JUNK-CLEAN-20261026.md`、执行者规则 `F:/new/smaltalk/water/docs/dispatch/W2-CHECKUP-WORKER-RULES.md`、本票原回执 `F:/new/smaltalk/water/.worktrees/w2-d/docs/dispatch/reports/WATER-W2-D-REPORT.md`，最后读本补单。工作树、分支、检查入口都不变；文中的“你”指本票执行者，包括接手的新对话。
 
 ## 验收结果
 

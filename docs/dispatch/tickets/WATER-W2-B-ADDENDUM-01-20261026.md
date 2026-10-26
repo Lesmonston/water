@@ -1,6 +1,6 @@
 # WATER-W2-B 补单 01：discovery 排除、非 ASCII 路径与停止后的守卫
 
-2026-10-26，总控（Claude）。依据 [第二波收单验收](../../acceptance/wave2/controller/WATER-W2-AE-REVIEW-20261026.md) B 小节。**贴回原 B 对话续做，不新开执行者。**
+2026-10-26，总控（Claude）。依据 [第二波收单验收](../../acceptance/wave2/controller/WATER-W2-AE-REVIEW-20261026.md) B 小节。**可以新开对话执行（原对话已归档）。** 新执行者开工前依次读：原票 `F:/new/smaltalk/water/docs/dispatch/tickets/WATER-W2-B-JUNK-SCAN-20261026.md`、执行者规则 `F:/new/smaltalk/water/docs/dispatch/W2-CHECKUP-WORKER-RULES.md`、本票原回执 `F:/new/smaltalk/water/.worktrees/w2-b/docs/dispatch/reports/WATER-W2-B-REPORT.md`，最后读本补单。工作树、分支、检查入口都不变；文中的“你”指本票执行者，包括接手的新对话。
 
 ## 验收结果
 
