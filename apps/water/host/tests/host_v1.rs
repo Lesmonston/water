@@ -9,8 +9,11 @@ use std::{
     sync::Mutex,
 };
 use water_desktop::*;
+use water_junk_rules::KnownFolders;
 use water_native_picker::v1::{PickerError, PickerOptions};
+use water_process_scan::InUseSpec;
 use water_scope_registry::v1::RegistryError;
+use water_service::{DriveInfo, FolderPicker, IpcError, Platform, Service, ServiceConfig};
 
 #[test]
 fn host_config_boundary() {
@@ -244,6 +247,104 @@ fn host_command_registry() {
         })
         .collect();
     assert_eq!(names, contract_names, "HOST_COMMANDS IPC table");
+    // Inspect the actual Tauri wrappers, independently of the cmd_* adapters.
+    let src = Path::new(env!("CARGO_MANIFEST_DIR")).join("src");
+    let mut files: Vec<_> = fs::read_dir(&src)
+        .unwrap()
+        .map(|entry| entry.unwrap().path())
+        .filter(|path| path.extension().is_some_and(|extension| extension == "rs"))
+        .collect();
+    files.sort();
+    let source = files
+        .iter()
+        .map(|path| fs::read_to_string(path).unwrap())
+        .collect::<Vec<_>>()
+        .join("\n");
+    let mut wrappers = std::collections::BTreeMap::new();
+    for wrapper in source.split("#[tauri::command]").skip(1) {
+        let signature = wrapper.split_once("fn ").expect("HOST_COMMANDS function").1;
+        let (name, rest) = signature.split_once('(').expect("HOST_COMMANDS signature");
+        let parameters = rest.split_once(')').expect("HOST_COMMANDS parameters").0;
+        let mut depth = 0;
+        let mut start = 0;
+        let mut keys = Vec::new();
+        for (index, character) in parameters
+            .char_indices()
+            .chain(std::iter::once((parameters.len(), ',')))
+        {
+            match character {
+                '<' => depth += 1,
+                '>' => depth -= 1,
+                ',' if depth == 0 => {
+                    let parameter = parameters[start..index].trim();
+                    start = index + 1;
+                    if parameter.is_empty() {
+                        continue;
+                    }
+                    let key = parameter
+                        .split_once(':')
+                        .expect("HOST_COMMANDS parameter name")
+                        .0
+                        .trim();
+                    if key == "backend" {
+                        continue;
+                    }
+                    let mut parts = key.split('_');
+                    let mut camel = parts.next().unwrap().to_owned();
+                    for part in parts {
+                        let mut chars = part.chars();
+                        if let Some(first) = chars.next() {
+                            camel.extend(first.to_uppercase());
+                        }
+                        camel.extend(chars);
+                    }
+                    keys.push(camel);
+                }
+                _ => {}
+            }
+        }
+        keys.sort();
+        assert!(
+            wrappers.insert(name.trim().to_owned(), keys).is_none(),
+            "HOST_COMMANDS duplicate wrapper"
+        );
+    }
+    let expected_wrappers: std::collections::BTreeMap<_, _> = expected
+        .iter()
+        .map(|(name, args)| {
+            (
+                name.to_string(),
+                args.as_object()
+                    .unwrap()
+                    .keys()
+                    .cloned()
+                    .collect::<Vec<_>>(),
+            )
+        })
+        .collect();
+    assert_eq!(
+        wrappers, expected_wrappers,
+        "HOST_COMMANDS actual Tauri camelCase parameters"
+    );
+    let lib = fs::read_to_string(src.join("lib.rs")).unwrap();
+    let handlers: Vec<_> = lib
+        .split_once("tauri::generate_handler![")
+        .expect("HOST_COMMANDS handler macro")
+        .1
+        .split_once("])")
+        .expect("HOST_COMMANDS handler end")
+        .0
+        .split(',')
+        .map(str::trim)
+        .filter(|entry| !entry.is_empty())
+        .map(|entry| entry.strip_prefix("commands::").unwrap_or(entry))
+        .collect();
+    assert_eq!(handlers, names, "HOST_COMMANDS actual handler registration");
+    assert_eq!(
+        lib.matches("tauri::generate_handler![").count(),
+        1,
+        "HOST_COMMANDS single registry"
+    );
     for reply in [
         Ok(json!({"bytes": "9007199254740993", "unknown": [null, {"中文": true}]})),
         Err(IpcFailure {
@@ -336,7 +437,7 @@ fn host_data_directory() {
         .ancestors()
         .nth(3)
         .unwrap();
-    let parent = tree.join(".local/w3-f2-fixtures");
+    let parent = tree.join(".local/w3-f3-fixtures");
     for ancestor in parent.parent().unwrap().ancestors() {
         plain_directory(ancestor);
     }
@@ -388,6 +489,40 @@ fn host_data_directory() {
             fallback.join("Water/webview"),
             "HOST_DATA_DIRECTORY default webview"
         );
+        let first = acquire_instance_lock(&default.data).expect("HOST_SINGLE_INSTANCE first lock");
+        assert!(
+            matches!(
+                acquire_instance_lock(&default.data),
+                Err(StartupError::AlreadyRunning)
+            ),
+            "HOST_SINGLE_INSTANCE rejects second lock while held"
+        );
+        drop(first);
+        let reacquired = acquire_instance_lock(&default.data)
+            .expect("HOST_SINGLE_INSTANCE reacquire after drop");
+        drop(reacquired);
+        assert_eq!(
+            fs::metadata(default.data.join("water.lock")).unwrap().len(),
+            0,
+            "HOST_SINGLE_INSTANCE lock remains empty"
+        );
+        assert!(
+            matches!(
+                acquire_instance_lock(&root.join("missing")),
+                Err(StartupError::Failed)
+            ),
+            "HOST_SINGLE_INSTANCE other errors fail startup"
+        );
+        assert_eq!(
+            StartupError::AlreadyRunning.to_string(),
+            "Water 已经在运行。",
+            "HOST_SINGLE_INSTANCE message"
+        );
+        assert_eq!(
+            StartupError::Failed.to_string(),
+            "Water 暂时无法启动。",
+            "HOST_SINGLE_INSTANCE failure message"
+        );
         for invalid in [
             PathBuf::from("relative"),
             PathBuf::new(),
@@ -432,6 +567,10 @@ fn host_data_directory() {
                 "HOST_DATA_DIRECTORY reject reparse leaf"
             );
             assert!(
+                prepare_data_directories(None, &junction).is_err(),
+                "HOST_DATA_DIRECTORY reject reparse default ancestor"
+            );
+            assert!(
                 !target.join("nested").exists() && !target.join("webview").exists(),
                 "HOST_DATA_DIRECTORY no writes through junction"
             );
@@ -465,4 +604,185 @@ fn host_data_directory() {
     if let Err(panic) = outcome {
         std::panic::resume_unwind(panic);
     }
+}
+
+struct WiringFixture {
+    root: PathBuf,
+    parent: PathBuf,
+    canonical: PathBuf,
+}
+
+impl WiringFixture {
+    fn new() -> Self {
+        let tree = Path::new(env!("CARGO_MANIFEST_DIR"))
+            .ancestors()
+            .nth(3)
+            .unwrap();
+        let parent = tree.join(".local/w3-f3-fixtures");
+        for ancestor in parent.parent().unwrap().ancestors() {
+            plain_directory(ancestor);
+        }
+        if !parent.exists() {
+            fs::create_dir(&parent).unwrap();
+        }
+        plain_directory(&parent);
+        let nonce = RandomState::new().hash_one(std::time::SystemTime::now());
+        let root = parent.join(format!("wiring-{nonce:016x}"));
+        fs::create_dir(&root).unwrap();
+        let canonical = fs::canonicalize(&root).unwrap();
+        Self {
+            root,
+            parent,
+            canonical,
+        }
+    }
+
+    fn folders(&self) -> KnownFolders {
+        let path = |name: &str| self.root.join(name).to_str().unwrap().replace('/', "\\");
+        let folders = KnownFolders::from_json(&json!({
+            "known_folders_version": "water.known-folders.v1",
+            "user_profile": path("user_profile"), "local_app_data": path("local_app_data"),
+            "roaming_app_data": path("roaming_app_data"), "user_temp": path("local_app_data/Temp"),
+            "system_temp": path("windows/Temp"), "windows": path("windows"),
+            "program_data": path("program_data"), "downloads": path("downloads")
+        }).to_string()).expect("HOST_WIRING synthetic folders");
+        for path in folders.values() {
+            fs::create_dir_all(path).unwrap();
+        }
+        folders
+    }
+}
+
+impl Drop for WiringFixture {
+    fn drop(&mut self) {
+        assert_eq!(
+            self.root.parent(),
+            Some(self.parent.as_path()),
+            "HOST_WIRING cleanup parent"
+        );
+        assert!(
+            self.root
+                .file_name()
+                .unwrap()
+                .to_str()
+                .unwrap()
+                .starts_with("wiring-"),
+            "HOST_WIRING cleanup prefix"
+        );
+        assert_eq!(
+            fs::canonicalize(&self.root).unwrap(),
+            self.canonical,
+            "HOST_WIRING cleanup path"
+        );
+        assert_eq!(
+            fs::canonicalize(self.root.parent().unwrap()).unwrap(),
+            fs::canonicalize(&self.parent).unwrap(),
+            "HOST_WIRING cleanup resolved parent"
+        );
+        for ancestor in self.root.ancestors() {
+            plain_directory(ancestor);
+        }
+        fs::remove_dir_all(&self.root).expect("HOST_WIRING remove only owned synthetic fixture");
+    }
+}
+
+struct SyntheticPlatform(KnownFolders);
+
+impl Platform for SyntheticPlatform {
+    fn known_folders(&self) -> Result<KnownFolders, IpcError> {
+        Ok(self.0.clone())
+    }
+    fn drives(&self) -> Vec<DriveInfo> {
+        vec![DriveInfo {
+            root: "F:\\".into(),
+            is_system: true,
+            total_bytes: 1_000_000,
+            free_bytes: 800_000,
+        }]
+    }
+    fn now(&self) -> std::time::SystemTime {
+        std::time::UNIX_EPOCH + std::time::Duration::from_secs(1_800_000_000)
+    }
+    fn local_date(&self, _at: std::time::SystemTime) -> (u32, u32) {
+        (1, 15)
+    }
+    fn in_use(&self, _spec: &InUseSpec, _item_path: &str) -> Option<String> {
+        None
+    }
+}
+
+#[test]
+fn host_service_wiring() {
+    let fixture = WiringFixture::new();
+    let ctx = HostContext {
+        data_dir: fixture.root.join("data"),
+        home_dir: "relative".into(),
+    };
+    let config = service_config(&ctx);
+    assert!(
+        !config.clean_enabled,
+        "HOST_CLEAN_DISABLED production config"
+    );
+    assert_eq!(
+        config.data_dir, ctx.data_dir,
+        "HOST_WIRING production data directory"
+    );
+    assert_eq!(
+        config.app_version,
+        env!("CARGO_PKG_VERSION"),
+        "HOST_WIRING package version"
+    );
+    let service = Service::new(ServiceConfig {
+        data_dir: ctx.data_dir.clone(),
+        app_version: config.app_version,
+        clean_enabled: CLEAN_ENABLED,
+        platform: Box::new(SyntheticPlatform(fixture.folders())),
+        picker: Box::new(HostPicker::new("relative".into())),
+    })
+    .expect("HOST_WIRING actual service");
+    let raw_state = service
+        .call("app_state", json!({}))
+        .expect("HOST_WIRING direct state");
+    let raw_invalid =
+        serde_json::to_value(service.call("unknown", json!({})).unwrap_err()).unwrap();
+    let backend = ServiceBackend(service);
+    let state = cmd_app_state(&backend).expect("HOST_WIRING app_state");
+    assert_eq!(state["busy"], "idle", "HOST_WIRING idle service");
+    assert_eq!(state, raw_state, "HOST_WIRING success passes through");
+    assert_eq!(
+        serde_json::to_value(cmd_clean_prepare(&backend, vec!["g1".into()]).unwrap_err()).unwrap(),
+        json!({"code": "unavailable", "message_zh": "这一版只做体检，清理功能会在下一版开放。"}),
+        "HOST_CLEAN_DISABLED exact failure"
+    );
+    let invalid = serde_json::to_value(backend.call("unknown", json!({})).unwrap_err()).unwrap();
+    assert_eq!(invalid["code"], "invalid", "HOST_WIRING unknown command");
+    assert_eq!(invalid, raw_invalid, "HOST_WIRING error passes through");
+    for directory in ["plans", "cleans", "journal"] {
+        assert_eq!(
+            fs::read_dir(ctx.data_dir.join(directory)).unwrap().count(),
+            0,
+            "HOST_CLEAN_DISABLED no cleanup artifacts"
+        );
+    }
+    let picker = HostPicker::new("relative".into());
+    let guard = picker.begin().expect("HOST_PICKER first guard");
+    assert!(picker.begin().is_none(), "HOST_PICKER second guard refused");
+    assert_eq!(
+        serde_json::to_value(picker.pick().unwrap_err()).unwrap(),
+        json!({"code": "busy", "message_zh": "正在进行另一项任务，请稍候。"}),
+        "HOST_PICKER busy"
+    );
+    drop(guard);
+    for _ in 0..2 {
+        assert_eq!(
+            serde_json::to_value(picker.pick().unwrap_err()).unwrap(),
+            json!({"code": "invalid", "message_zh": "这个文件夹不能加入体检，请换一个。"}),
+            "HOST_PICKER releases after error without opening a dialog"
+        );
+    }
+    assert_eq!(
+        serde_json::to_value(config.picker.pick().unwrap_err()).unwrap(),
+        json!({"code": "invalid", "message_zh": "这个文件夹不能加入体检，请换一个。"}),
+        "HOST_PICKER config initial directory"
+    );
 }

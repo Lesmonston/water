@@ -3669,8 +3669,35 @@ dependencies = [
  "tauri",
  "tauri-build",
  "water-contracts",
+ "water-junk-rules",
  "water-native-picker",
+ "water-process-scan",
  "water-scope-registry",
+ "water-service",
+]
+
+[[package]]
+name = "water-junk-clean"
+version = "0.1.0"
+dependencies = [
+ "serde",
+ "serde_json",
+]
+
+[[package]]
+name = "water-junk-rules"
+version = "0.1.0"
+dependencies = [
+ "serde",
+ "serde_json",
+]
+
+[[package]]
+name = "water-junk-scan"
+version = "0.1.0"
+dependencies = [
+ "serde",
+ "serde_json",
 ]
 
 [[package]]
@@ -3692,11 +3719,31 @@ dependencies = [
 ]
 
 [[package]]
+name = "water-process-scan"
+version = "0.1.0"
+dependencies = [
+ "serde",
+ "serde_json",
+]
+
+[[package]]
 name = "water-scope-registry"
 version = "0.1.0"
 dependencies = [
  "water-contracts",
  "water-native-root",
+]
+
+[[package]]
+name = "water-service"
+version = "0.1.0"
+dependencies = [
+ "serde",
+ "serde_json",
+ "water-junk-clean",
+ "water-junk-rules",
+ "water-junk-scan",
+ "water-process-scan",
 ]
 
 [[package]]
