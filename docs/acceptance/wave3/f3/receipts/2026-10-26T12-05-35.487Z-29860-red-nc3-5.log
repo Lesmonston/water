@@ -1,0 +1,41 @@
+{"binary":"C:\\Users\\37310\\.rustup\\toolchains\\1.95.0-x86_64-pc-windows-msvc\\bin\\cargo.exe","args":["--config","source.crates-io.replace-with=\"water-cn\"","--config","source.water-cn.registry=\"sparse+https://mirrors.ustc.edu.cn/crates.io-index/\"","--config","http.multiplexing=false","--config","http.proxy=\"\"","test","--offline","--locked","--manifest-path","apps/water/host/Cargo.toml","--test","host_v1","--","--test-threads=1"],"exitCode":101,"error":null}
+--- stdout ---
+
+running 5 tests
+test host_command_registry ... FAILED
+test host_config_boundary ... ok
+test host_data_directory ... ok
+test host_navigation_boundary ... ok
+test host_service_wiring ... ok
+
+failures:
+
+---- host_command_registry stdout ----
+
+thread 'host_command_registry' (30584) panicked at tests\host_v1.rs:342:5:
+assertion `left == right` failed: HOST_COMMANDS actual handler registration
+  left: ["app_state", "scan_start", "scan_cancel", "scan_progress", "scan_result", "group_detail", "clean_prepare", "clean_start", "clean_stop", "clean_progress", "clean_result", "trends", "history_list", "locations_get", "locations_set_category", "custom_root_add"]
+ right: ["app_state", "scan_start", "scan_cancel", "scan_progress", "scan_result", "group_detail", "clean_prepare", "clean_start", "clean_stop", "clean_progress", "clean_result", "trends", "history_list", "locations_get", "locations_set_category", "custom_root_add", "custom_root_remove"]
+note: run with `RUST_BACKTRACE=1` environment variable to display a backtrace
+
+
+failures:
+    host_command_registry
+
+test result: FAILED. 4 passed; 1 failed; 0 ignored; 0 measured; 0 filtered out; finished in 0.12s
+
+
+--- stderr ---
+   Compiling water-desktop v0.1.0 (F:\new\smaltalk\water\.worktrees\w3-f3\apps\water\host)
+warning: function `custom_root_remove` is never used
+   --> src\commands.rs:216:15
+    |
+216 | pub(crate) fn custom_root_remove(
+    |               ^^^^^^^^^^^^^^^^^^
+    |
+    = note: `#[warn(dead_code)]` (part of `#[warn(unused)]`) on by default
+
+warning: `water-desktop` (lib) generated 1 warning
+    Finished `test` profile [unoptimized + debuginfo] target(s) in 11.42s
+     Running tests\host_v1.rs (.local\w3-target\debug\deps\host_v1-3749486dbf731eb0.exe)
+error: test failed, to rerun pass `--test host_v1`

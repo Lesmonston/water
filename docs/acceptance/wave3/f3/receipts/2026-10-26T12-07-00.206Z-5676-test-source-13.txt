@@ -1,0 +1,51 @@
+use std::{
+    fmt,
+    fs::OpenOptions,
+    path::{Path, PathBuf},
+};
+
+pub struct HostContext {
+    pub data_dir: PathBuf,
+    pub home_dir: String,
+}
+
+#[derive(Debug, Clone, Copy, PartialEq, Eq)]
+pub enum StartupError {
+    AlreadyRunning,
+    Failed,
+}
+
+impl fmt::Display for StartupError {
+    fn fmt(&self, f: &mut fmt::Formatter<'_>) -> fmt::Result {
+        f.write_str(match self {
+            Self::AlreadyRunning => "Water 已经在运行。",
+            Self::Failed => "Water 暂时无法启动。",
+        })
+    }
+}
+
+impl std::error::Error for StartupError {}
+
+/// Keeping the file open retains Windows' exclusive sharing reservation.
+pub struct InstanceLock(#[allow(dead_code)] std::fs::File);
+
+pub fn acquire_instance_lock(data_dir: &Path) -> Result<InstanceLock, StartupError> {
+    let mut options = OpenOptions::new();
+    options.read(true).write(true).create(true).truncate(false);
+    #[cfg(windows)]
+    {
+        use std::os::windows::fs::OpenOptionsExt;
+        options.share_mode(0);
+    }
+    #[cfg(not(windows))]
+    return Err(StartupError::Failed);
+
+    #[cfg(windows)]
+    options
+        .open(data_dir.join("water.lock"))
+        .map(InstanceLock)
+        .map_err(|error| match error.raw_os_error() {
+            Some(32) => StartupError::AlreadyRunning,
+            _ => StartupError::Failed,
+        })
+}

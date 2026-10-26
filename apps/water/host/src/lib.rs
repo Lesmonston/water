@@ -1,10 +1,12 @@
-//! Water desktop host. F2 ships with an unavailable backend; F3 provides the service.
+//! Water desktop host wired to the service with cleanup disabled for M1.
 #![forbid(unsafe_code)]
 
 mod commands;
 mod data;
 mod picker;
 mod policy;
+mod service;
+mod startup;
 
 pub use commands::*;
 pub use data::{DataDirectories, DataDirectoryError, prepare_data_directories};
@@ -13,13 +15,14 @@ pub use policy::{
     CAPABILITY, CONFIG, CSP, ConfigError, is_bundled_navigation, validate_capability,
     validate_config,
 };
+pub use service::{
+    CLEAN_ENABLED, HostPicker, PickGuard, ServiceBackend, service_backend, service_config,
+};
+pub use startup::{HostContext, InstanceLock, StartupError, acquire_instance_lock};
 
 use serde::Serialize;
 use serde_json::Value;
-use std::{
-    path::{Path, PathBuf},
-    sync::Arc,
-};
+use std::{path::PathBuf, sync::Arc};
 use tauri::{
     Manager, WebviewUrl, WebviewWindowBuilder,
     webview::{NewWindowResponse, PermissionResponse},
@@ -47,11 +50,13 @@ impl Backend for UnavailableBackend {
     }
 }
 
-/// Create only the main bundled window. Backend construction belongs to the caller.
-pub fn run(backend: Arc<dyn Backend>) -> Result<(), String> {
-    validate_config(CONFIG).map_err(|error| error.to_string())?;
-    tauri::Builder::default()
-        .manage(backend)
+/// Prepare the private service and window before entering the event loop.
+pub fn run<F>(make_backend: F) -> Result<(), StartupError>
+where
+    F: FnOnce(&HostContext) -> Result<Arc<dyn Backend>, StartupError>,
+{
+    validate_config(CONFIG).map_err(|_| StartupError::Failed)?;
+    let app = tauri::Builder::default()
         .invoke_handler(tauri::generate_handler![
             commands::app_state,
             commands::scan_start,
@@ -71,33 +76,51 @@ pub fn run(backend: Arc<dyn Backend>) -> Result<(), String> {
             commands::custom_root_add,
             commands::custom_root_remove,
         ])
-        .setup(|app| {
-            let override_dir = std::env::var_os("WATER_DATA_DIR").map(PathBuf::from);
-            let fallback = if override_dir.is_none() {
-                app.path().local_data_dir()?
-            } else {
-                PathBuf::new()
-            };
-            let directories =
-                prepare_data_directories(override_dir.as_deref(), Path::new(&fallback))?;
-            WebviewWindowBuilder::new(app, "main", WebviewUrl::App("index.html".into()))
-                .title("Water")
-                .inner_size(1240.0, 820.0)
-                .min_inner_size(1040.0, 720.0)
-                .center()
-                .transparent(true)
-                .decorations(true)
-                .effects(EffectsBuilder::new().effect(Effect::Mica).build())
-                .data_directory(directories.webview)
-                .devtools(false)
-                .disable_drag_drop_handler()
-                .on_navigation(|url| is_bundled_navigation(url.as_str()))
-                .on_new_window(|_url, _features| NewWindowResponse::Deny)
-                .on_download(|_webview, _event| false)
-                .on_permission_request(|_webview, _kind| PermissionResponse::Deny)
-                .build()?;
-            Ok(())
-        })
-        .run(tauri::generate_context!())
-        .map_err(|_| "Water 暂时无法启动。".to_owned())
+        .build(tauri::generate_context!())
+        .map_err(|_| StartupError::Failed)?;
+    let override_dir = std::env::var_os("WATER_DATA_DIR").map(PathBuf::from);
+    let fallback = if override_dir.is_none() {
+        app.path()
+            .local_data_dir()
+            .map_err(|_| StartupError::Failed)?
+    } else {
+        PathBuf::new()
+    };
+    let directories = prepare_data_directories(override_dir.as_deref(), &fallback)
+        .map_err(|_| StartupError::Failed)?;
+    let instance_lock = acquire_instance_lock(&directories.data)?;
+    let home_dir = app
+        .path()
+        .home_dir()
+        .map_err(|_| StartupError::Failed)?
+        .into_os_string()
+        .into_string()
+        .map_err(|_| StartupError::Failed)?;
+    let backend = make_backend(&HostContext {
+        data_dir: directories.data,
+        home_dir,
+    })?;
+    if !app.manage(backend) {
+        return Err(StartupError::Failed);
+    }
+    WebviewWindowBuilder::new(&app, "main", WebviewUrl::App("index.html".into()))
+        .title("Water")
+        .inner_size(1240.0, 820.0)
+        .min_inner_size(1040.0, 720.0)
+        .center()
+        .transparent(true)
+        .decorations(true)
+        .effects(EffectsBuilder::new().effect(Effect::Mica).build())
+        .data_directory(directories.webview)
+        .devtools(false)
+        .disable_drag_drop_handler()
+        .on_navigation(|url| is_bundled_navigation(url.as_str()))
+        .on_new_window(|_url, _features| NewWindowResponse::Deny)
+        .on_download(|_webview, _event| false)
+        .on_permission_request(|_webview, _kind| PermissionResponse::Deny)
+        .build()
+        .map_err(|_| StartupError::Failed)?;
+    app.run(|_app, _event| {});
+    drop(instance_lock);
+    Ok(())
 }
