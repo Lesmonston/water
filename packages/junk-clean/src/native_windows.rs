@@ -10,6 +10,13 @@ pub(crate) struct Snapshot {
     entries: Vec<(String, u64, SystemTime, u32)>,
 }
 
+impl Snapshot {
+    /// SELFTEST STUB: every path recorded in the snapshot, the item itself included.
+    pub(crate) fn paths(&self) -> impl Iterator<Item = &str> {
+        self.entries.iter().map(|e| e.0.as_str())
+    }
+}
+
 #[cfg(windows)]
 mod windows {
     use super::*;
@@ -67,6 +74,64 @@ mod windows {
             free: *mut u64,
         ) -> i32;
         fn CloseHandle(handle: *mut c_void) -> i32;
+        fn SetFileInformationByHandle(
+            handle: *mut c_void,
+            class: i32,
+            buffer: *mut c_void,
+            size: u32,
+        ) -> i32;
+    }
+
+    /// SELFTEST STUB: paths past MAX_PATH need the verbatim prefix for CreateFileW.
+    fn wide(path: &str) -> Vec<u16> {
+        let spelled = if path.len() >= 240 {
+            format!(r"\\?\{path}")
+        } else {
+            path.to_owned()
+        };
+        spelled.encode_utf16().chain(Some(0)).collect()
+    }
+
+    fn open(path: &str, access: u32, flags: u32) -> Option<Handle> {
+        let name = wide(path);
+        // SAFETY: NUL-terminated name, null security/template, OPEN_EXISTING only (SELFTEST STUB).
+        let raw = unsafe {
+            CreateFileW(
+                name.as_ptr(),
+                access,
+                7,
+                ptr::null(),
+                3,
+                flags,
+                ptr::null_mut(),
+            )
+        };
+        (raw as isize != -1 && !raw.is_null()).then_some(Handle(raw))
+    }
+
+    /// SELFTEST STUB: the reparse tag of a reparse point, read without following it.
+    pub(crate) fn reparse_tag(path: &str) -> Option<u32> {
+        let handle = open(path, 0x80, 0x02000000 | 0x00200000)?;
+        let mut info = [0u32; 2];
+        // SAFETY: class 9 (FileAttributeTagInfo) writes two DWORDs into this buffer.
+        let ok = unsafe { GetFileInformationByHandleEx(handle.0, 9, info.as_mut_ptr().cast(), 8) };
+        (ok != 0).then_some(info[1])
+    }
+
+    /// SELFTEST STUB: identity of what a guard path really points to (links followed).
+    pub(crate) fn follow_identity(path: &str) -> Option<Identity> {
+        let handle = open(path, 0x80, 0x02000000)?;
+        handle_identity(&handle).ok()
+    }
+
+    /// SELFTEST STUB: POSIX delete that ignores the read-only attribute, by handle.
+    fn delete_by_handle(path: &str) -> bool {
+        let Some(handle) = open(path, 0x10000, 0x02000000 | 0x00200000) else {
+            return false;
+        };
+        let mut flags: u32 = 0x1 | 0x2 | 0x10;
+        // SAFETY: class 21 (FileDispositionInfoEx) reads one DWORD of flags.
+        unsafe { SetFileInformationByHandle(handle.0, 21, (&mut flags as *mut u32).cast(), 4) != 0 }
     }
 
     struct Handle(*mut c_void);
@@ -80,7 +145,7 @@ mod windows {
     }
 
     pub(crate) fn identity(path: &str) -> Result<Identity, CleanError> {
-        let name: Vec<u16> = path.encode_utf16().chain(Some(0)).collect();
+        let name = wide(path);
         // SAFETY: the NUL-terminated name lives across the call; security/template are null.
         // Only FILE_READ_ATTRIBUTES, full sharing, OPEN_EXISTING, BACKUP_SEMANTICS and
         // OPEN_REPARSE_POINT are requested. No file data or write access is acquired.
@@ -98,7 +163,10 @@ mod windows {
         if raw as isize == -1 || raw.is_null() {
             return Err(CleanError::Native);
         }
-        let handle = Handle(raw);
+        handle_identity(&Handle(raw))
+    }
+
+    fn handle_identity(handle: &Handle) -> Result<Identity, CleanError> {
         let mut id = FileIdInfo {
             volume_serial: 0,
             file_id: [0; 16],
@@ -237,6 +305,13 @@ mod windows {
             }
             let meta = metadata(&current)?;
             let attributes = meta.file_attributes();
+            // SELFTEST STUB: only name-surrogate reparse points (links) may be removed; any other
+            // reparse point (cloud placeholder, unknown tag) stops the whole item.
+            if attributes & REPARSE != 0
+                && reparse_tag(&current).is_none_or(|tag| tag & 0x2000_0000 == 0)
+            {
+                return Err(SkipReason::Reparse);
+            }
             let modified = meta.modified().map_err(|_| SkipReason::Changed)?;
             result.newest = result.newest.max(modified);
             let bytes = if attributes & REPARSE == 0 && meta.is_file() {
@@ -259,6 +334,10 @@ mod windows {
     fn unlink(path: &str, meta: &fs::Metadata) -> io::Result<()> {
         if meta.file_attributes() & DIRECTORY != 0 {
             return fs::remove_dir(path);
+        }
+        // SELFTEST STUB: files go through a by-handle POSIX delete that ignores read-only.
+        if delete_by_handle(path) {
+            return Ok(());
         }
         match fs::remove_file(path) {
             Ok(()) => Ok(()),
@@ -430,7 +509,7 @@ mod windows {
 }
 
 #[cfg(windows)]
-pub(crate) use windows::{check_chain, delete, identity, snapshot, volume_free};
+pub(crate) use windows::{check_chain, delete, follow_identity, identity, snapshot, volume_free};
 
 #[cfg(not(windows))]
 pub(crate) fn identity(_: &str) -> Result<Identity, CleanError> {

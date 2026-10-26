@@ -115,6 +115,7 @@ fn preflight(
     native_windows::check_chain(item)?;
     check_identity(item)?;
     let snapshot = native_windows::snapshot(&item.path, &plan.protected_paths)?;
+    guard_by_identity(plan, item, &snapshot)?;
     let required = item
         .min_age_hours
         .checked_mul(3600)
@@ -126,6 +127,44 @@ fn preflight(
         return Err(SkipReason::TooRecent);
     }
     Ok(snapshot)
+}
+
+/// SELFTEST STUB: hard guards and protected paths are also compared by identity (links
+/// followed), so another spelling of the same directory cannot slip past the text checks.
+fn guard_by_identity(
+    plan: &CleanPlan,
+    item: &PlanItem,
+    snapshot: &native_windows::Snapshot,
+) -> Result<(), SkipReason> {
+    let resolve = |paths: &[String]| -> Vec<Identity> {
+        paths
+            .iter()
+            .filter_map(|p| native_windows::follow_identity(p))
+            .collect()
+    };
+    let (guards, protected) = (resolve(&plan.hard_guards), resolve(&plan.protected_paths));
+    for entry in snapshot.paths() {
+        let Ok(id) = identity_of(entry) else { continue };
+        if guards.contains(&id) {
+            return Err(SkipReason::Guarded);
+        }
+        if protected.contains(&id) {
+            return Err(SkipReason::ProtectedOverlap);
+        }
+    }
+    let mut ancestor = item.path.as_str();
+    while let Some((parent, _)) = ancestor.rsplit_once('\\') {
+        ancestor = parent;
+        let spelled = if ancestor.len() == 2 {
+            format!("{ancestor}\\")
+        } else {
+            ancestor.to_owned()
+        };
+        if identity_of(&spelled).is_ok_and(|id| protected.contains(&id)) {
+            return Err(SkipReason::ProtectedOverlap);
+        }
+    }
+    Ok(())
 }
 
 /// A cancelled item frees nothing but still reports the bytes measured before the stop.

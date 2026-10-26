@@ -934,3 +934,158 @@ fn keys(value: &Value, expected: &[&str]) {
     expected.sort();
     assert_eq!(actual, expected);
 }
+
+// ---- SELFTEST STUB: wave 4 G1 hardening -------------------------------------------------------
+fn base64(bytes: &[u8]) -> String {
+    const T: &[u8] = b"ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz0123456789+/";
+    let mut out = String::new();
+    for chunk in bytes.chunks(3) {
+        let n = ((chunk[0] as u32) << 16)
+            | ((*chunk.get(1).unwrap_or(&0) as u32) << 8)
+            | (*chunk.get(2).unwrap_or(&0) as u32);
+        for i in 0..4 {
+            if i <= chunk.len() {
+                out.push(T[((n >> (18 - 6 * i)) & 63) as usize] as char);
+            } else {
+                out.push('=');
+            }
+        }
+    }
+    out
+}
+/// Puts a non-link reparse point (custom tag 0x00007A57) on a fixture file through PowerShell.
+fn tag_custom(fixture: &Fixture, path: &Path) {
+    assert!(path.starts_with(&fixture.base));
+    let script = format!(
+        r#"$ErrorActionPreference='Stop'
+Add-Type -TypeDefinition @'
+using System; using System.Runtime.InteropServices;
+public static class WaterTag {{
+  [DllImport("kernel32.dll", SetLastError = true, CharSet = CharSet.Unicode)]
+  static extern IntPtr CreateFileW(string n, uint a, uint s, IntPtr p, uint d, uint f, IntPtr t);
+  [DllImport("kernel32.dll", SetLastError = true)]
+  static extern bool DeviceIoControl(IntPtr h, uint c, byte[] i, int il, IntPtr o, int ol, out int r, IntPtr v);
+  [DllImport("kernel32.dll")] static extern bool CloseHandle(IntPtr h);
+  public static int Set(string path) {{
+    IntPtr h = CreateFileW(path, 0x40000000 | 0x80 | 0x100, 7, IntPtr.Zero, 3, 0x02000000 | 0x00200000, IntPtr.Zero);
+    if (h == new IntPtr(-1)) return Marshal.GetLastWin32Error();
+    byte[] b = new byte[28];
+    BitConverter.GetBytes((uint)0x00007A57).CopyTo(b, 0);
+    BitConverter.GetBytes((ushort)4).CopyTo(b, 4);
+    new Guid("6f0e7a57-1c2d-4e5f-8a9b-0c1d2e3f4a5b").ToByteArray().CopyTo(b, 8);
+    int r; bool ok = DeviceIoControl(h, 0x000900A4, b, b.Length, IntPtr.Zero, 0, out r, IntPtr.Zero);
+    int e = ok ? 0 : Marshal.GetLastWin32Error(); CloseHandle(h); return e;
+  }}
+}}
+'@
+exit [WaterTag]::Set('{path}')
+"#,
+        path = s(path)
+    );
+    let wide: Vec<u8> = script
+        .encode_utf16()
+        .flat_map(|u| u.to_le_bytes())
+        .collect();
+    let out = Command::new("powershell.exe")
+        .args([
+            "-NoProfile",
+            "-NonInteractive",
+            "-EncodedCommand",
+            &base64(&wide),
+        ])
+        .output()
+        .unwrap();
+    assert!(
+        out.status.success(),
+        "fixture reparse tag failed: {}",
+        String::from_utf8_lossy(&out.stderr)
+    );
+    assert_ne!(
+        fs::symlink_metadata(path).unwrap().file_attributes() & REPARSE,
+        0
+    );
+}
+
+#[test]
+fn clean_handle_hardening() {
+    let fixture = Fixture::new();
+    let root = fixture.dir("root");
+
+    // CLEAN_REPARSE_KIND: a non-link reparse point stops the whole item.
+    let cloud_item = fixture.dir("root/placeholder-cache");
+    let plain = fixture.file("root/placeholder-cache/plain.bin", b"plain");
+    let tagged = fixture.file("root/placeholder-cache/cloud.bin", b"cloud");
+    tag_custom(&fixture, &tagged);
+    let report = run(&parse(plan_value(vec![item(&root, &cloud_item, "cloud")])));
+    assert_eq!(
+        report.items[0].skip_reason,
+        Some(SkipReason::Reparse),
+        "CLEAN_REPARSE_KIND: a non-link reparse point did not stop the item"
+    );
+    assert!(
+        plain.exists() && fs::symlink_metadata(&tagged).is_ok(),
+        "CLEAN_REPARSE_KIND: bytes were deleted"
+    );
+
+    // CLEAN_GUARD_ID: protected path and hard guard written through a junction alias.
+    let aliased = fixture.dir("root/aliased");
+    fixture.file("root/aliased/keep/data", b"protected");
+    let junk = fixture.file("root/aliased/junk", b"junk");
+    let alias = fixture.base.join("alias");
+    fixture.junction(&alias, &aliased);
+    let mut value = plan_value(vec![item(&root, &aliased, "alias-protected")]);
+    value["protected_paths"] = json!([s(&alias.join("keep"))]);
+    let report = run(&parse(value));
+    assert_eq!(
+        report.items[0].skip_reason,
+        Some(SkipReason::ProtectedOverlap),
+        "CLEAN_GUARD_ID: protected path behind an alias was not recognised"
+    );
+    assert!(junk.exists(), "CLEAN_GUARD_ID: bytes were deleted");
+    let mut value = plan_value(vec![item(&root, &aliased, "alias-guard")]);
+    value["hard_guards"] = json!([s(&alias.join("keep"))]);
+    let report = run(&parse(value));
+    assert_eq!(
+        report.items[0].skip_reason,
+        Some(SkipReason::Guarded),
+        "CLEAN_GUARD_ID: hard guard behind an alias was not recognised"
+    );
+    assert!(junk.exists(), "CLEAN_GUARD_ID: bytes were deleted");
+
+    // CLEAN_LONG_PATH
+    let deep = fixture.dir("root/deep");
+    let mut relative = String::from("root/deep");
+    while s(&fixture.base.join(&relative)).len() < 320 {
+        relative.push_str("/segment-with-a-long-name");
+    }
+    fixture.file(&format!("{relative}/leaf.bin"), b"leaf");
+    let report = run(&parse(plan_value(vec![item(&root, &deep, "long")])));
+    assert_eq!(
+        report.items[0].status,
+        ItemStatus::Deleted,
+        "CLEAN_LONG_PATH: long paths were not deleted"
+    );
+    assert!(
+        fs::symlink_metadata(&deep).is_err(),
+        "CLEAN_LONG_PATH: item remains"
+    );
+
+    // CLEAN_READONLY: deleted without changing the attribute (seen through a hard link).
+    let ro_item = fixture.dir("root/readonly");
+    let ro = fixture.file("root/readonly/locked.txt", b"read-only");
+    let mut permissions = fs::metadata(&ro).unwrap().permissions();
+    permissions.set_readonly(true);
+    fs::set_permissions(&ro, permissions).unwrap();
+    let twin = fixture.base.join("twin.txt");
+    fs::hard_link(&ro, &twin).unwrap();
+    let report = run(&parse(plan_value(vec![item(&root, &ro_item, "readonly")])));
+    assert_eq!(
+        report.items[0].status,
+        ItemStatus::Deleted,
+        "CLEAN_READONLY: not deleted"
+    );
+    assert!(
+        fs::metadata(&twin).unwrap().permissions().readonly(),
+        "CLEAN_READONLY: the read-only attribute was changed before deletion"
+    );
+}
