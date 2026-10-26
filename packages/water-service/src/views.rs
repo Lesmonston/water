@@ -1,14 +1,14 @@
 #![forbid(unsafe_code)]
 
 use crate::{
-    Platform,
+    IN_USE_UNKNOWN, Platform,
     service::{Record, Settings},
     util,
 };
 use serde_json::{Value, json};
 use std::collections::BTreeMap;
 use water_junk_rules::RuleSet;
-use water_junk_scan::{Group, Growth, Level};
+use water_junk_scan::{Group, Growth, Level, ScanResult};
 
 pub(crate) const CATEGORIES: [(&str, &str, &str, &str); 9] = [
     (
@@ -99,6 +99,41 @@ pub(crate) fn in_use_spec(group: &Group) -> water_process_scan::InUseSpec {
     serde_json::from_value(json!(group.in_use)).expect("validated scan in-use specification")
 }
 
+/// Decided once per scan, inside that scan's in-use batch, and saved with the record.
+/// Views never ask the platform again; a missing snapshot is kept as "in use, unknown".
+pub(crate) fn scan_in_use(result: &ScanResult, platform: &dyn Platform) -> Value {
+    let mut saved = serde_json::Map::new();
+    for g in &result.groups {
+        let spec = in_use_spec(g);
+        if spec.mode == water_process_scan::InUseMode::None {
+            continue;
+        }
+        let Some(name) = result
+            .items
+            .iter()
+            .filter(|i| i.group_id == g.group_id && i.eligible)
+            .find_map(|i| platform.in_use(&spec, &i.path))
+        else {
+            continue;
+        };
+        let text = if name == IN_USE_UNKNOWN {
+            "暂时无法确认是否在运行，清理时会再次检查".to_owned()
+        } else {
+            let label = if name
+                .get(name.len().saturating_sub(4)..)
+                .is_some_and(|s| s.eq_ignore_ascii_case(".exe"))
+            {
+                &name[..name.len() - 4]
+            } else {
+                &name
+            };
+            format!("{label} 正在运行，将跳过占用的项")
+        };
+        saved.insert(g.group_id.clone(), json!({"process_label_zh":text}));
+    }
+    Value::Object(saved)
+}
+
 pub(crate) fn group(
     record: &Record,
     g: &Group,
@@ -132,28 +167,11 @@ pub(crate) fn group(
         summary += " · 只统计占用";
     }
     let growth = record.growth.iter().find(|v| v.group_id == g.group_id).map(|v| json!({"bytes_delta":v.bytes_delta,"count_delta":v.count_delta,"since":record.previous_at}));
-    let spec = in_use_spec(g);
-    let in_use = if spec.mode == water_process_scan::InUseMode::None {
-        None
-    } else {
-        record
-            .result
-            .items
-            .iter()
-            .filter(|i| i.group_id == g.group_id && i.eligible)
-            .find_map(|i| platform.in_use(&spec, &i.path))
-            .map(|name| {
-                let label = if name
-                    .get(name.len().saturating_sub(4)..)
-                    .is_some_and(|s| s.eq_ignore_ascii_case(".exe"))
-                {
-                    &name[..name.len() - 4]
-                } else {
-                    &name
-                };
-                json!({"process_label_zh":format!("{label} 正在运行，将跳过占用的项")})
-            })
-    };
+    // Records written before in-use results were saved show null.
+    let in_use = record.saved["in_use"]
+        .get(&g.group_id)
+        .cloned()
+        .unwrap_or(Value::Null);
     let root = record
         .result
         .items

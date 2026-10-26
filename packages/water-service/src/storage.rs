@@ -148,30 +148,24 @@ impl Store {
             .collect()
     }
 
-    pub fn prune(&self, dir: &str, keep: &[String]) -> Result<(), IpcError> {
-        // Only our flat JSON record names; neither recursive traversal nor journal deletion.
+    /// Deletes `<id>.json` for exactly the given record IDs (records this process read in and
+    /// trimmed). Only flat, plain files are touched; a directory, link or failed deletion is
+    /// skipped. Returns the IDs whose file was actually removed.
+    pub fn remove(&self, dir: &str, ids: &[String]) -> Vec<String> {
         let prefix = match dir {
             "scans" | "snapshots" => "scan-",
             "cleans" => "clean-",
-            _ => return Err(unavailable(())),
+            _ => return vec![],
         };
-        let sentinel = self.path(dir, "list.json")?;
-        for entry in fs::read_dir(sentinel.parent().expect("store parent")).map_err(unavailable)? {
-            let entry = entry.map_err(unavailable)?;
-            let Some(name) = entry.file_name().to_str().map(str::to_owned) else {
-                continue;
-            };
-            let Some(id) = name.strip_suffix(".json") else {
-                continue;
-            };
-            if !util::record_id(id, prefix) {
-                continue;
-            }
-            if !keep.iter().any(|k| k == id) {
-                fs::remove_file(self.path(dir, &format!("{id}.json"))?).map_err(unavailable)?;
-            }
-        }
-        Ok(())
+        ids.iter()
+            .filter(|id| {
+                util::record_id(id, prefix)
+                    && self
+                        .path(dir, &format!("{id}.json"))
+                        .is_ok_and(|p| p.is_file() && fs::remove_file(p).is_ok())
+            })
+            .cloned()
+            .collect()
     }
 
     pub fn journal(&self, id: &str) -> Result<DurableFile, IpcError> {

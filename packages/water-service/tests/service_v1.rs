@@ -27,6 +27,7 @@ struct Fake {
     hold: Arc<AtomicBool>,
     entered: Arc<AtomicBool>,
     batches: Arc<AtomicU64>,
+    in_use_calls: Arc<AtomicU64>,
     picks: Arc<Mutex<VecDeque<Option<String>>>>,
 }
 impl Platform for Fake {
@@ -58,6 +59,7 @@ impl Platform for Fake {
         )
     }
     fn in_use(&self, spec: &InUseSpec, path: &str) -> Option<String> {
+        self.in_use_calls.fetch_add(1, Ordering::SeqCst);
         (spec.mode != water_process_scan::InUseMode::None && path.contains("Profile Busy"))
             .then(|| "chrome.exe".into())
     }
@@ -110,6 +112,7 @@ impl Fixture {
             hold: Arc::new(AtomicBool::new(false)),
             entered: Arc::new(AtomicBool::new(false)),
             batches: Arc::new(AtomicU64::new(0)),
+            in_use_calls: Arc::new(AtomicU64::new(0)),
             picks: Arc::new(Mutex::new(VecDeque::new())),
         };
         Self {
@@ -306,6 +309,20 @@ fn scan_saved(f: &Fixture, result: &Value) -> Value {
         .unwrap(),
     )
     .unwrap()
+}
+fn in_use_labels(result: &Value) -> BTreeMap<String, Value> {
+    groups(result)
+        .iter()
+        .map(|g| {
+            (
+                g["group_id"].as_str().unwrap().to_owned(),
+                g["in_use"].clone(),
+            )
+        })
+        .collect()
+}
+fn group_in_use(result: &Value, id: &str) -> Value {
+    groups(result).iter().find(|g| g["group_id"] == id).unwrap()["in_use"].clone()
 }
 fn groups(result: &Value) -> Vec<&Value> {
     result["categories"]
@@ -570,11 +587,35 @@ fn service_scan_views() {
     call(&s, "scan_cancel", json!({"scanId":cancel["scan_id"]}));
     f.fake.hold.store(false, Ordering::SeqCst);
     assert_eq!(wait(&s, "scan_progress")["state"], "cancelled");
+    let labels = in_use_labels(&call(&s, "scan_result", json!({"scanId":id["scan_id"]})));
+    let detail_in_use =
+        call(&s, "group_detail", json!({"groupId":"chrome-cache"}))["group"]["in_use"].clone();
+    assert_eq!(
+        detail_in_use["process_label_zh"], "chrome 正在运行，将跳过占用的项",
+        "SERVICE_IN_USE_SAVED: label before restart"
+    );
+    assert_eq!(labels["chrome-cache"], detail_in_use);
     drop(s);
+    let in_use_calls = f.fake.in_use_calls.load(Ordering::SeqCst);
     let s = f.service(false);
     assert_eq!(
         call(&s, "app_state", json!({}))["last_scan"]["scan_id"],
         id["scan_id"]
+    );
+    assert_eq!(
+        in_use_labels(&call(&s, "scan_result", json!({"scanId":id["scan_id"]}))),
+        labels,
+        "SERVICE_IN_USE_SAVED: scan_result after restart"
+    );
+    assert_eq!(
+        call(&s, "group_detail", json!({"groupId":"chrome-cache"}))["group"]["in_use"],
+        detail_in_use,
+        "SERVICE_IN_USE_SAVED: group_detail after restart"
+    );
+    assert_eq!(
+        f.fake.in_use_calls.load(Ordering::SeqCst),
+        in_use_calls,
+        "SERVICE_IN_USE_SAVED: views called Platform::in_use after restart"
     );
     assert_eq!(f.fake.batches.load(Ordering::SeqCst), 2);
 }
@@ -589,6 +630,13 @@ fn service_clean_flow() {
     for (c, a) in [
         ("clean_prepare", json!({"groupIds":["chrome-cache"]})),
         ("clean_start", json!({"planId":"p","confirmToken":"t"})),
+        ("clean_prepare", json!({"groupIds":[]})),
+        ("clean_prepare", json!({"groupIds":["a","a"]})),
+        ("clean_prepare", json!({})),
+        (
+            "clean_start",
+            json!({"planId":"../x","confirmToken":"t","extra":1}),
+        ),
     ] {
         let result = disabled.call(c, a);
         assert!(
@@ -618,6 +666,26 @@ fn service_clean_flow() {
         &s,
         "clean_prepare",
         json!({"groupIds":["chrome-cache","npm-cache"]}),
+    );
+    // A real plan and token from an enabled build must not run once the switch is off.
+    let before_off = inventory(&f.root);
+    let off = f.service(false);
+    let replay = off.call(
+        "clean_start",
+        json!({"planId":preview["plan_id"],"confirmToken":preview["confirm_token"]}),
+    );
+    if replay.is_ok() {
+        wait(&off, "clean_progress");
+    }
+    assert!(
+        matches!(replay,Err(ref e) if e.code=="unavailable" && e.message_zh==DISABLED),
+        "SERVICE_CLEAN_DISABLED: real plan {replay:?}"
+    );
+    drop(off);
+    assert_eq!(
+        before_off,
+        inventory(&f.root),
+        "SERVICE_CLEAN_DISABLED: real plan changed files"
     );
     let plan_path = f
         .data
@@ -747,6 +815,58 @@ fn service_clean_flow() {
     let stopped = call(&s, "clean_result", json!({"cleanId":stopped["clean_id"]}));
     assert_eq!(stopped["freed_bytes"], "0");
     assert_eq!(stopped["groups"][0]["notes_zh"][0], "1 项因停止未处理");
+    // An identity-bearing item that is not eligible (too recent) must stay out of the plan.
+    let fresh = f.file(
+        "user_profile/.codex/.tmp/marketplaces/.staging/marketplace-upgrade-fresh/data",
+        20,
+    );
+    age(fresh.parent().unwrap(), NOW);
+    let latest = scanned(&s);
+    let selected = ["codex-marketplace-staging", "chrome-cache"];
+    let preview = s
+        .call("clean_prepare", json!({"groupIds":selected}))
+        .unwrap_or_else(|e| panic!("SERVICE_PLAN_ITEMS: prepare {e:?}"));
+    let items = scan_saved(&f, &latest)["result"]["items"]
+        .as_array()
+        .unwrap()
+        .clone();
+    let fresh_path = fresh.parent().unwrap().to_str().unwrap().replace('/', "\\");
+    assert!(
+        items.iter().any(|i| i["path"] == fresh_path.as_str()
+            && i["eligible"] == false
+            && !i["identity"].is_null()),
+        "SERVICE_PLAN_ITEMS: fixture lacks an identity-bearing ineligible item"
+    );
+    let expected: BTreeSet<String> = items
+        .iter()
+        .filter(|i| {
+            selected.contains(&i["group_id"].as_str().unwrap())
+                && i["eligible"] == true
+                && !i["identity"].is_null()
+        })
+        .map(|i| i["path"].as_str().unwrap().to_owned())
+        .collect();
+    let plan: Value = serde_json::from_str(
+        &fs::read_to_string(
+            f.data
+                .join("plans")
+                .join(format!("{}.json", preview["plan_id"].as_str().unwrap())),
+        )
+        .unwrap(),
+    )
+    .unwrap();
+    let planned: BTreeSet<String> = plan["plan"]["items"]
+        .as_array()
+        .unwrap()
+        .iter()
+        .map(|i| i["path"].as_str().unwrap().to_owned())
+        .collect();
+    assert!(expected.len() >= 2, "SERVICE_PLAN_ITEMS: {expected:?}");
+    assert!(
+        !planned.contains(&fresh_path),
+        "SERVICE_PLAN_ITEMS: ineligible item planned"
+    );
+    assert_eq!(planned, expected, "SERVICE_PLAN_ITEMS");
 }
 
 #[test]
@@ -920,6 +1040,68 @@ fn service_storage_safety() {
     );
     drop(held);
     drop(s);
+    // Settings: one vanished custom root is dropped alone; toggles and the other root stay.
+    let alpha = f.root.join("alpha root");
+    let beta = f.root.join("beta root");
+    fs::create_dir(&alpha).unwrap();
+    fs::create_dir(&beta).unwrap();
+    let s = f.service(false);
+    let mut root_ids = vec![];
+    for p in [&alpha, &beta] {
+        f.pick(Some(p));
+        root_ids.push(call(&s, "custom_root_add", json!({}))["added"]["root_id"].clone());
+    }
+    call(
+        &s,
+        "locations_set_category",
+        json!({"category":"dev_cache","enabled":false}),
+    );
+    drop(s);
+    fs::remove_dir(&beta).unwrap();
+    let s = f.service(false);
+    let locations = call(&s, "locations_get", json!({}));
+    let enabled = |c: &str| {
+        locations["categories"]
+            .as_array()
+            .unwrap()
+            .iter()
+            .find(|v| v["category"] == c)
+            .unwrap()["enabled"]
+            .clone()
+    };
+    assert_eq!(
+        enabled("dev_cache"),
+        false,
+        "SERVICE_SETTINGS_KEEP: toggle lost"
+    );
+    assert_eq!(
+        enabled("browser"),
+        false,
+        "SERVICE_SETTINGS_KEEP: toggle lost"
+    );
+    assert_eq!(
+        locations["custom_roots"]
+            .as_array()
+            .unwrap()
+            .iter()
+            .map(|r| r["root_id"].clone())
+            .collect::<Vec<_>>(),
+        vec![root_ids[0].clone()],
+        "SERVICE_SETTINGS_KEEP: custom roots"
+    );
+    let disk: Value = serde_json::from_slice(&fs::read(&settings).unwrap()).unwrap();
+    assert_eq!(
+        disk["custom_roots"]
+            .as_array()
+            .unwrap()
+            .iter()
+            .map(|r| r["root_id"].clone())
+            .collect::<Vec<_>>(),
+        vec![root_ids[0].clone()],
+        "SERVICE_SETTINGS_KEEP: settings.json not rewritten"
+    );
+    assert_eq!(disk["categories"]["dev_cache"], false);
+    drop(s);
     let saved = scan_saved(&f, &result);
     // Persist two records with equal second-resolution timestamps, reversed lexical IDs,
     // and controlled filesystem write times. The later write must become last_scan.
@@ -930,6 +1112,10 @@ fn service_storage_safety() {
         let mut record = saved.clone();
         record["scan_id"] = json!(id);
         record["result"]["scan_id"] = json!(id);
+        if id.ends_with("-0000") {
+            // An older record format without saved in-use results.
+            record.as_object_mut().unwrap().remove("in_use");
+        }
         let path = f.data.join("scans").join(format!("{id}.json"));
         fs::write(&path, record.to_string()).unwrap();
         age(&path, seconds);
@@ -949,6 +1135,15 @@ fn service_storage_safety() {
     assert_eq!(
         call(&restored, "app_state", json!({}))["last_scan"]["scan_id"],
         "scan-20270115T080000Z-0000"
+    );
+    let old_format = call(
+        &restored,
+        "scan_result",
+        json!({"scanId":"scan-20270115T080000Z-0000"}),
+    );
+    assert!(
+        group_in_use(&old_format, "chrome-cache").is_null(),
+        "SERVICE_IN_USE_SAVED: old record must have null in_use"
     );
     drop(restored);
     let mut malformed = saved.clone();
@@ -1008,7 +1203,21 @@ fn service_storage_safety() {
         )
         .unwrap();
     }
+    // Unreadable records near the top, a directory named like a record, and a record that
+    // cannot be deleted right now must neither fail startup nor be removed.
+    let corrupt = f.data.join("scans/scan-20270115T090000Z-abcd.json");
+    fs::write(&corrupt, "{\"record_version\":").unwrap();
+    let directory = f.data.join("scans/scan-20270115T100000Z-dddd.json");
+    fs::create_dir(&directory).unwrap();
+    fs::write(directory.join("inner.json"), "keep").unwrap();
+    let locked = f.data.join("scans/scan-20270101T000000Z-0000.json");
+    let lock = OpenOptions::new()
+        .read(true)
+        .share_mode(1 | 2)
+        .open(&locked)
+        .unwrap();
     let s = f.service(false);
+    drop(lock);
     assert!(call(&s, "app_state", json!({}))["last_scan"].is_object());
     assert!(
         call(&s, "locations_get", json!({}))["categories"]
@@ -1017,13 +1226,25 @@ fn service_storage_safety() {
             .iter()
             .all(|c| c["enabled"] == true)
     );
+    let fresh = scanned(&s);
+    assert_eq!(
+        call(&s, "app_state", json!({}))["last_scan"]["scan_id"],
+        fresh["scan_id"]
+    );
+    let kept = [
+        "scan-broken.json",
+        "scan-20270115T080000Z-ffff.json",
+        "scan-20270115T090000Z-abcd.json",
+        "scan-20270115T100000Z-dddd.json",
+        "scan-20270101T000000Z-0000.json",
+    ];
     let count = |dir: &str| {
         fs::read_dir(f.data.join(dir))
             .unwrap()
             .filter_map(Result::ok)
             .filter(|e| {
                 e.path().extension().is_some_and(|x| x == "json")
-                    && e.file_name() != "scan-broken.json"
+                    && !kept.iter().any(|k| e.file_name() == *k)
             })
             .count()
     };
@@ -1031,4 +1252,30 @@ fn service_storage_safety() {
     assert_eq!(count("snapshots"), 60);
     assert_eq!(count("cleans"), 60);
     assert!(f.data.join("scans/do-not-delete.txt").exists());
+    assert_eq!(
+        fs::read(&corrupt).unwrap(),
+        b"{\"record_version\":",
+        "SERVICE_STORAGE_KEEP: unreadable record removed"
+    );
+    assert!(
+        f.data
+            .join("scans/scan-20270115T080000Z-ffff.json")
+            .is_file(),
+        "SERVICE_STORAGE_KEEP: unreadable record removed"
+    );
+    assert_eq!(
+        fs::read(directory.join("inner.json")).unwrap(),
+        b"keep",
+        "SERVICE_STORAGE_KEEP: record-named directory touched"
+    );
+    assert!(
+        locked.is_file(),
+        "SERVICE_STORAGE_KEEP: locked record vanished"
+    );
+    assert!(
+        f.data
+            .join("snapshots/scan-20270101T000000Z-0000.json")
+            .is_file(),
+        "SERVICE_STORAGE_KEEP: snapshot deleted without its record"
+    );
 }

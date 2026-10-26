@@ -55,25 +55,27 @@ pub(crate) struct Record {
     pub details: BTreeMap<String, Value>,
 }
 
+const RECORD_KEYS: [&str; 11] = [
+    "record_version",
+    "scan_id",
+    "started_at",
+    "finished_at",
+    "duration_ms",
+    "drives",
+    "plan",
+    "result",
+    "growth",
+    "previous_scan_id",
+    "consumed",
+];
+
 impl Record {
     fn load(saved: Value) -> Option<Self> {
+        // `in_use` (saved per-group in-use results) is optional: older records lack it.
+        let mut with_in_use = RECORD_KEYS.to_vec();
+        with_in_use.push("in_use");
         if saved["record_version"] != "water.scan-record.v1"
-            || !util::exact_keys(
-                &saved,
-                &[
-                    "record_version",
-                    "scan_id",
-                    "started_at",
-                    "finished_at",
-                    "duration_ms",
-                    "drives",
-                    "plan",
-                    "result",
-                    "growth",
-                    "previous_scan_id",
-                    "consumed",
-                ],
-            )
+            || !(util::exact_keys(&saved, &RECORD_KEYS) || util::exact_keys(&saved, &with_in_use))
         {
             return None;
         }
@@ -104,6 +106,15 @@ impl Record {
                 i.total_bytes.parse::<u64>().is_err()
                     || !result.groups.iter().any(|g| g.group_id == i.group_id)
                     || (i.eligible && i.identity.is_none())
+            })
+            || saved.get("in_use").is_some_and(|m| {
+                !m.as_object().is_some_and(|m| {
+                    m.iter().all(|(id, v)| {
+                        result.groups.iter().any(|g| &g.group_id == id)
+                            && util::exact_keys(v, &["process_label_zh"])
+                            && v["process_label_zh"].is_string()
+                    })
+                })
             })
         {
             return None;
@@ -186,27 +197,7 @@ impl Service {
         let store = Store::new(config.data_dir)?;
         let folders = config.platform.known_folders()?;
         let rules = RuleSet::embedded();
-        let settings = store
-            .read("", "settings.json")
-            .and_then(|v| serde_json::from_value::<Settings>(v).ok())
-            .filter(|s| {
-                s.settings_version == "water.settings.v1"
-                    && s.categories.len() == 7
-                    && views::CATEGORIES[..7]
-                        .iter()
-                        .all(|c| s.categories.contains_key(c.0))
-                    && s.custom_roots.len() <= 16
-                    && s.custom_roots
-                        .iter()
-                        .all(|r| util::id_ok(&r.root_id) && valid_custom(&r.path, &folders))
-                    && s.custom_roots
-                        .iter()
-                        .map(|r| &r.root_id)
-                        .collect::<BTreeSet<_>>()
-                        .len()
-                        == s.custom_roots.len()
-            })
-            .unwrap_or_default();
+        let settings = load_settings(&store, &folders);
         let mut records: Vec<_> = store
             .records("scans")
             .into_iter()
@@ -293,7 +284,7 @@ impl Service {
             cancel: None,
             stop: None,
         };
-        trim(&store, &mut state)?;
+        trim(&store, &mut state);
         Ok(Self {
             core: Arc::new(Core {
                 config_version: config.app_version,
@@ -309,11 +300,12 @@ impl Service {
     }
 
     pub fn call(&self, command: &str, args: Value) -> Result<Value, IpcError> {
-        validate(command, &args)?;
         let core = &self.core;
+        // The switch answers first: a disabled build never inspects cleaning arguments.
         if matches!(command, "clean_prepare" | "clean_start") && !core.clean_enabled {
             return Err(IpcError::disabled());
         }
+        validate(command, &args)?;
         match command {
             "scan_start" => self.scan_start(),
             "clean_prepare" => {
@@ -490,7 +482,9 @@ impl Service {
             let snapshot=scan::snapshot(&result);
             let growth=if matches!(result.status.as_str(),"completed"|"partial") { previous.as_ref().map(|p|scan::growth(&scan::snapshot(&p.result),&snapshot)).unwrap_or_default() } else {vec![]};
             let drives=worker_core.platform.drives().into_iter().map(|d|json!({"root":d.root,"is_system":d.is_system,"total_bytes":d.total_bytes.to_string(),"free_bytes":d.free_bytes.to_string()})).collect::<Vec<_>>();
-            let saved=json!({"record_version":"water.scan-record.v1","scan_id":worker_id,"started_at":result.started_at,"finished_at":result.ended_at,"duration_ms":started.elapsed().as_millis() as u64,"drives":drives,"plan":serde_json::from_str::<Value>(&plan_json).expect("plan JSON"),"result":result,"growth":growth,"previous_scan_id":previous.as_ref().map(|p|&p.result.scan_id),"consumed":false});
+            // Still inside this scan's in-use batch; the result is saved and views reuse it.
+            let in_use=views::scan_in_use(&result,worker_core.platform.as_ref());
+            let saved=json!({"record_version":"water.scan-record.v1","scan_id":worker_id,"started_at":result.started_at,"finished_at":result.ended_at,"duration_ms":started.elapsed().as_millis() as u64,"drives":drives,"plan":serde_json::from_str::<Value>(&plan_json).expect("plan JSON"),"result":result,"growth":growth,"previous_scan_id":previous.as_ref().map(|p|&p.result.scan_id),"consumed":false,"in_use":in_use});
             let mut record=Record {saved,result,plan,growth,previous_at:previous.as_ref().map(|p|p.result.ended_at.clone()),view:Value::Null,details:BTreeMap::new()};
             (record.view,record.details)=views::build(&record,&worker_core.rules,worker_core.platform.as_ref(),&settings);
             let stored=worker_core.store.write("snapshots",&format!("{worker_id}.json"),&json!(snapshot)).and_then(|()|worker_core.store.write("scans",&format!("{worker_id}.json"),&record.saved));
@@ -506,7 +500,7 @@ impl Service {
                 }
                 if record.completed() && stored.is_ok() {s.last=Some(worker_id.clone());}
                 s.records.push(Arc::new(record));
-                if trim(&worker_core.store,&mut s).is_err(){s.scan_progress["state"]=json!("failed");}
+                trim(&worker_core.store,&mut s);
                 s.busy="idle";s.cancel=None;
             }
         });
@@ -737,19 +731,23 @@ impl scan::ScanObserver for Progress {
     }
 }
 
-pub(crate) fn trim(store: &Store, s: &mut State) -> Result<(), IpcError> {
+/// Keeps the newest 60 scans and cleans that were read in successfully. Only those trimmed
+/// records are deleted (unreadable files stay in place); a snapshot goes only together with
+/// its scan record. Deletion is best effort and never changes a status or fails startup.
+pub(crate) fn trim(store: &Store, s: &mut State) {
     s.records
         .sort_by(|a, b| a.result.ended_at.cmp(&b.result.ended_at));
-    if s.records.len() > 60 {
-        s.records.drain(..s.records.len() - 60);
-    }
-    let scans = s
-        .records
-        .iter()
-        .map(|r| r.result.scan_id.clone())
-        .collect::<Vec<_>>();
-    store.prune("scans", &scans)?;
-    store.prune("snapshots", &scans)?;
+    let dropped = if s.records.len() > 60 {
+        let excess = s.records.len() - 60;
+        s.records
+            .drain(..excess)
+            .map(|r| r.result.scan_id.clone())
+            .collect()
+    } else {
+        vec![]
+    };
+    let removed = store.remove("scans", &dropped);
+    store.remove("snapshots", &removed);
     let mut cleans: Vec<_> = s
         .clean_order
         .iter()
@@ -769,10 +767,65 @@ pub(crate) fn trim(store: &Store, s: &mut State) -> Result<(), IpcError> {
         .take(60)
         .map(|(_, id)| id)
         .collect::<Vec<_>>();
+    let dropped = s
+        .cleans
+        .keys()
+        .filter(|id| !keep.contains(id))
+        .cloned()
+        .collect::<Vec<_>>();
     s.cleans.retain(|id, _| keep.contains(id));
     s.clean_order.retain(|id| keep.contains(id));
-    store.prune("cleans", &keep)?;
-    Ok(())
+    store.remove("cleans", &dropped);
+}
+
+/// Unreadable, wrong-version or incomplete-category settings fall back to defaults. Otherwise
+/// the category toggles are kept and each custom root is checked on its own; any dropped root
+/// leads to one atomic rewrite (best effort: a failed write keeps the filtered copy in memory).
+fn load_settings(store: &Store, folders: &KnownFolders) -> Settings {
+    #[derive(Deserialize)]
+    #[serde(deny_unknown_fields)]
+    struct Raw {
+        settings_version: String,
+        categories: BTreeMap<String, bool>,
+        custom_roots: Vec<Value>,
+    }
+    let Some(raw) = store
+        .read("", "settings.json")
+        .and_then(|v| serde_json::from_value::<Raw>(v).ok())
+    else {
+        return Settings::default();
+    };
+    if raw.settings_version != "water.settings.v1"
+        || raw.categories.len() != 7
+        || !views::CATEGORIES[..7]
+            .iter()
+            .all(|c| raw.categories.contains_key(c.0))
+    {
+        return Settings::default();
+    }
+    let listed = raw.custom_roots.len();
+    let mut custom_roots: Vec<CustomRoot> = vec![];
+    for value in raw.custom_roots {
+        let Ok(root) = serde_json::from_value::<CustomRoot>(value) else {
+            continue;
+        };
+        if custom_roots.len() < 16
+            && util::id_ok(&root.root_id)
+            && !custom_roots.iter().any(|r| r.root_id == root.root_id)
+            && valid_custom(&root.path, folders)
+        {
+            custom_roots.push(root);
+        }
+    }
+    let settings = Settings {
+        settings_version: raw.settings_version,
+        categories: raw.categories,
+        custom_roots,
+    };
+    if settings.custom_roots.len() != listed {
+        let _ = store.write("", "settings.json", &json!(settings));
+    }
+    settings
 }
 
 fn root_view(s: &State, root: &CustomRoot) -> Value {

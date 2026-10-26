@@ -164,7 +164,7 @@ pub(crate) fn start(core: &Arc<Core>, id: &str, token: &str) -> Result<Value, Ip
                     s.clean_progress["group_index"]=json!(group_ids.len());s.clean_progress["current_group_title_zh"]=Value::Null;
                     s.clean_order.push(worker_id.clone());
                     s.cleans.insert(worker_id,stored);
-                    if trim(&worker_core.store,&mut s).is_err(){s.clean_progress["state"]=json!("failed");}
+                    trim(&worker_core.store,&mut s);
                 },
                 Err(_)=>s.clean_progress["state"]=json!("failed"),
             }

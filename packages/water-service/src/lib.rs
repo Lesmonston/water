@@ -15,6 +15,9 @@ use std::{path::PathBuf, sync::Mutex, time::SystemTime};
 use water_junk_rules::KnownFolders;
 use water_process_scan::{InUseSpec, ProcessSnapshot};
 
+/// What `WindowsPlatform::in_use` reports when the process snapshot is unavailable.
+pub(crate) const IN_USE_UNKNOWN: &str = "无法确认占用状态";
+
 pub struct ServiceConfig {
     pub data_dir: PathBuf,
     pub app_version: String,
@@ -125,13 +128,13 @@ impl Platform for WindowsPlatform {
         }
         // A missing snapshot cannot establish that an item is unused.
         let Ok(slot) = self.processes.lock() else {
-            return Some("无法确认占用状态".into());
+            return Some(IN_USE_UNKNOWN.into());
         };
         match slot.as_ref() {
             Some(snapshot) => {
                 water_process_scan::in_use(snapshot, spec, item_path).map(|h| h.process_name)
             }
-            None => Some("无法确认占用状态".into()),
+            None => Some(IN_USE_UNKNOWN.into()),
         }
     }
 }
