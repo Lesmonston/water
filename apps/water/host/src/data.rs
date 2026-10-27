@@ -81,11 +81,39 @@ pub fn prepare_data_directories(
     override_dir: Option<&Path>,
     local_data_dir: &Path,
 ) -> Result<DataDirectories, DataDirectoryError> {
-    let data = override_dir
-        .map(Path::to_path_buf)
-        .unwrap_or_else(|| local_data_dir.join("Water"));
+    let data = match override_dir {
+        Some(path) => path.to_path_buf(),
+        None => resolve_default_base(local_data_dir)?.join("Water"),
+    };
     ensure_directory(&data)?;
     let webview = data.join("webview");
     ensure_directory(&webview)?;
     Ok(DataDirectories { data, webview })
+}
+
+fn resolve_default_base(local_data_dir: &Path) -> Result<PathBuf, DataDirectoryError> {
+    validate_path(local_data_dir)?;
+    if !local_data_dir
+        .try_exists()
+        .map_err(|_| DataDirectoryError)?
+    {
+        ensure_directory(local_data_dir)?;
+    }
+    let resolved = fs::canonicalize(local_data_dir).map_err(|_| DataDirectoryError)?;
+    #[cfg(windows)]
+    let resolved = match resolved.components().next() {
+        Some(Component::Prefix(prefix)) => match prefix.kind() {
+            std::path::Prefix::VerbatimDisk(drive) => {
+                let mut local = PathBuf::from(format!("{}:", char::from(drive)));
+                for component in resolved.components().skip(1) {
+                    local.push(component.as_os_str());
+                }
+                local
+            }
+            _ => resolved,
+        },
+        _ => resolved,
+    };
+    validate_path(&resolved)?;
+    Ok(resolved)
 }

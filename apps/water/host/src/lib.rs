@@ -16,13 +16,21 @@ pub use policy::{
     validate_config,
 };
 pub use service::{
-    CLEAN_ENABLED, HostPicker, PickGuard, ServiceBackend, service_backend, service_config,
+    CLEAN_ENABLED, HostPicker, PickGuard, ServiceBackend, backend_or_unavailable, service_backend,
+    service_config,
 };
-pub use startup::{HostContext, InstanceLock, StartupError, acquire_instance_lock};
+pub use startup::{
+    HostContext, InstanceLock, StartupError, acquire_instance_lock, signal_activation,
+    take_activation,
+};
 
 use serde::Serialize;
 use serde_json::Value;
-use std::{path::PathBuf, sync::Arc};
+use std::{
+    path::PathBuf,
+    sync::{Arc, mpsc},
+    time::Duration,
+};
 use tauri::{
     Manager, WebviewUrl, WebviewWindowBuilder,
     webview::{NewWindowResponse, PermissionResponse},
@@ -88,7 +96,14 @@ where
     };
     let directories = prepare_data_directories(override_dir.as_deref(), &fallback)
         .map_err(|_| StartupError::Failed)?;
-    let instance_lock = acquire_instance_lock(&directories.data)?;
+    let instance_lock = match acquire_instance_lock(&directories.data) {
+        Ok(lock) => lock,
+        Err(StartupError::AlreadyRunning) => {
+            signal_activation(&directories.data)?;
+            return Ok(());
+        }
+        Err(error) => return Err(error),
+    };
     let home_dir = app
         .path()
         .home_dir()
@@ -96,14 +111,17 @@ where
         .into_os_string()
         .into_string()
         .map_err(|_| StartupError::Failed)?;
-    let backend = make_backend(&HostContext {
-        data_dir: directories.data,
-        home_dir,
-    })?;
+    let backend = backend_or_unavailable(
+        make_backend,
+        &HostContext {
+            data_dir: directories.data.clone(),
+            home_dir,
+        },
+    );
     if !app.manage(backend) {
         return Err(StartupError::Failed);
     }
-    WebviewWindowBuilder::new(&app, "main", WebviewUrl::App("index.html".into()))
+    let window = WebviewWindowBuilder::new(&app, "main", WebviewUrl::App("index.html".into()))
         .title("Water")
         .inner_size(1240.0, 820.0)
         .min_inner_size(1040.0, 720.0)
@@ -120,7 +138,27 @@ where
         .on_permission_request(|_webview, _kind| PermissionResponse::Deny)
         .build()
         .map_err(|_| StartupError::Failed)?;
-    app.run(|_app, _event| {});
+    let (stop, stopped) = mpsc::channel();
+    let activation = std::thread::Builder::new()
+        .name("water-activation".into())
+        .spawn(move || {
+            while let Err(mpsc::RecvTimeoutError::Timeout) =
+                stopped.recv_timeout(Duration::from_millis(300))
+            {
+                if take_activation(&directories.data) {
+                    let main = window.clone();
+                    let _ = window.run_on_main_thread(move || {
+                        let _ = main.unminimize();
+                        let _ = main.show();
+                        let _ = main.set_focus();
+                    });
+                }
+            }
+        })
+        .map_err(|_| StartupError::Failed)?;
+    app.run_return(|_app, _event| {});
+    let _ = stop.send(());
+    let _ = activation.join();
     drop(instance_lock);
     Ok(())
 }
