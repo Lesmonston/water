@@ -7,6 +7,7 @@ use std::{
     hash::{BuildHasher, Hasher},
     os::windows::fs::OpenOptionsExt,
     path::{Path, PathBuf},
+    process::Command,
     sync::{
         Arc, Mutex,
         atomic::{AtomicBool, AtomicU64, Ordering},
@@ -31,6 +32,7 @@ struct Fake {
     picks: Arc<Mutex<VecDeque<Option<String>>>>,
     panic_drives: Arc<AtomicBool>,
     panic_now: Arc<AtomicBool>,
+    panic_in_use: Arc<AtomicBool>,
     names: Arc<Mutex<Vec<(String, String)>>>,
 }
 impl Platform for Fake {
@@ -70,6 +72,11 @@ impl Platform for Fake {
         )
     }
     fn in_use(&self, spec: &InUseSpec, path: &str) -> Option<String> {
+        if std::thread::current().name() == Some("water-clean")
+            && self.panic_in_use.swap(false, Ordering::SeqCst)
+        {
+            panic!("fake platform: in_use failed inside the clean task");
+        }
         self.in_use_calls.fetch_add(1, Ordering::SeqCst);
         if spec.mode != water_process_scan::InUseMode::None
             && let Some((_, name)) = self
@@ -137,6 +144,7 @@ impl Fixture {
             picks: Arc::new(Mutex::new(VecDeque::new())),
             panic_drives: Arc::new(AtomicBool::new(false)),
             panic_now: Arc::new(AtomicBool::new(false)),
+            panic_in_use: Arc::new(AtomicBool::new(false)),
             names: Arc::new(Mutex::new(Vec::new())),
         };
         Self {
@@ -624,7 +632,8 @@ fn service_scan_views() {
     let s = f.service(false);
     assert_eq!(
         call(&s, "app_state", json!({}))["last_scan"]["scan_id"],
-        id["scan_id"]
+        id["scan_id"],
+        "SERVICE_SCAN_RECORD: last_scan after restart"
     );
     assert_eq!(
         in_use_labels(&call(&s, "scan_result", json!({"scanId":id["scan_id"]}))),
@@ -1332,6 +1341,8 @@ fn service_hardening() {
     hardening_canonical_root();
     hardening_partial_source();
     hardening_product_name();
+    hardening_scan_record();
+    hardening_custom_root_junction();
 }
 
 fn hardening_panic_idle() {
@@ -1397,6 +1408,73 @@ fn hardening_panic_idle() {
         call(&s, "app_state", json!({}))["last_scan"]["scan_id"],
         again["scan_id"],
         "SERVICE_PANIC_IDLE: scan after a poisoned lock"
+    );
+    drop(s);
+    hardening_clean_panic_and_prep();
+}
+
+fn hardening_clean_panic_and_prep() {
+    let f = Fixture::new();
+    f.seed();
+    let s = f.service(true);
+    scanned(&s);
+    let preview = call(&s, "clean_prepare", json!({"groupIds":["chrome-cache"]}));
+    f.fake.panic_in_use.store(true, Ordering::SeqCst);
+    let started = call(
+        &s,
+        "clean_start",
+        json!({"planId":preview["plan_id"],"confirmToken":preview["confirm_token"]}),
+    );
+    let progress = settle(&s, "clean_progress", "SERVICE_PANIC_IDLE");
+    assert!(
+        !f.fake.panic_in_use.load(Ordering::SeqCst),
+        "SERVICE_PANIC_IDLE: the injected clean-thread panic was not reached"
+    );
+    assert_eq!(
+        progress["state"], "idle",
+        "SERVICE_PANIC_IDLE: clean_progress after an in_use panic"
+    );
+    assert_eq!(
+        call(&s, "app_state", json!({}))["busy"],
+        "idle",
+        "SERVICE_PANIC_IDLE: busy after an in_use panic"
+    );
+    let journal = f
+        .data
+        .join("journal")
+        .join(format!("{}.jsonl", started["clean_id"].as_str().unwrap()));
+    assert!(
+        journal.is_file(),
+        "SERVICE_PANIC_IDLE: journal missing after an in_use panic"
+    );
+    let again = scanned(&s);
+    assert_eq!(
+        call(&s, "app_state", json!({}))["last_scan"]["scan_id"],
+        again["scan_id"],
+        "SERVICE_PANIC_IDLE: scan after a clean-thread panic"
+    );
+    let preview = call(&s, "clean_prepare", json!({"groupIds":["chrome-cache"]}));
+    f.fake.panic_now.store(true, Ordering::SeqCst);
+    let error = s
+        .call(
+            "clean_start",
+            json!({"planId":preview["plan_id"],"confirmToken":preview["confirm_token"]}),
+        )
+        .expect_err("SERVICE_PANIC_IDLE: clean start prep panic was not reached");
+    assert_eq!(
+        (error.code.as_str(), error.message_zh.as_str()),
+        ("unavailable", "Water 服务暂时不可用。"),
+        "SERVICE_PANIC_IDLE: error for a panicking clean start"
+    );
+    let app = call(&s, "app_state", json!({}));
+    assert_eq!(
+        app["busy"], "idle",
+        "SERVICE_PANIC_IDLE: busy after a clean start prep failure"
+    );
+    assert_eq!(
+        call(&s, "clean_progress", json!({}))["state"],
+        "idle",
+        "SERVICE_PANIC_IDLE: clean_progress after a clean start prep failure"
     );
 }
 
@@ -1719,4 +1797,97 @@ fn hardening_product_name() {
             "SERVICE_PRODUCT_NAME: {group}"
         );
     }
+}
+
+fn hardening_scan_record() {
+    let f = Fixture::new();
+    f.seed();
+    let s = f.service(false);
+    let first = scanned(&s);
+    drop(s);
+    let s = f.service(false);
+    assert_eq!(
+        call(&s, "app_state", json!({}))["last_scan"]["scan_id"],
+        first["scan_id"],
+        "SERVICE_SCAN_RECORD: last_scan after a successful write"
+    );
+    f.fake.entered.store(false, Ordering::SeqCst);
+    f.fake.hold.store(true, Ordering::SeqCst);
+    let id = call(&s, "scan_start", json!({}));
+    let start = Instant::now();
+    while !f.fake.entered.load(Ordering::SeqCst) {
+        assert!(
+            start.elapsed() < Duration::from_secs(10),
+            "SERVICE_SCAN_RECORD: scan thread never entered the in-use batch"
+        );
+        std::thread::sleep(Duration::from_millis(2));
+    }
+    let blocked = f
+        .data
+        .join("scans")
+        .join(format!("{}.json", id["scan_id"].as_str().unwrap()));
+    fs::create_dir(&blocked).unwrap();
+    f.fake.hold.store(false, Ordering::SeqCst);
+    assert_eq!(
+        settle(&s, "scan_progress", "SERVICE_SCAN_RECORD")["state"],
+        "failed",
+        "SERVICE_SCAN_RECORD: progress after a failed write"
+    );
+    assert_eq!(
+        call(&s, "app_state", json!({}))["last_scan"]["scan_id"],
+        first["scan_id"],
+        "SERVICE_SCAN_RECORD: in-process last_scan after a failed write"
+    );
+    drop(s);
+    let s = f.service(false);
+    assert_eq!(
+        call(&s, "app_state", json!({}))["last_scan"]["scan_id"],
+        first["scan_id"],
+        "SERVICE_SCAN_RECORD: last_scan after a failed write is not the new scan"
+    );
+    drop(s);
+}
+
+fn hardening_custom_root_junction() {
+    let f = Fixture::new();
+    let home = f.root.join("home");
+    let real = f.root.join("appdata-real");
+    fs::create_dir_all(real.join("Local")).unwrap();
+    junction(&home.join("AppData"), &real);
+    let mut fake = f.fake.clone();
+    fake.folders.local_app_data = format!("{}\\AppData\\Local", slash(&home));
+    let s = Service::new(ServiceConfig {
+        data_dir: f.root.join("data-junction"),
+        app_version: "0.1.0".into(),
+        clean_enabled: false,
+        platform: Box::new(fake.clone()),
+        picker: Box::new(fake),
+    })
+    .unwrap();
+    f.pick(Some(&home));
+    let error = s.call("custom_root_add", json!({})).expect_err(
+        "SERVICE_CUSTOM_ROOT: home that contains a known folder via a junction was added",
+    );
+    assert_eq!(error.message_zh, TOO_BROAD, "SERVICE_CUSTOM_ROOT: message");
+}
+
+fn junction(link: &Path, target: &Path) {
+    fs::create_dir_all(target).unwrap();
+    if let Some(parent) = link.parent() {
+        fs::create_dir_all(parent).unwrap();
+    }
+    if std::os::windows::fs::symlink_dir(target, link).is_ok() {
+        return;
+    }
+    let out = Command::new("cmd")
+        .args(["/D", "/C", "mklink", "/J"])
+        .arg(link)
+        .arg(target)
+        .output()
+        .unwrap();
+    assert!(
+        out.status.success(),
+        "SERVICE_CUSTOM_ROOT: {}",
+        String::from_utf8_lossy(&out.stderr)
+    );
 }
