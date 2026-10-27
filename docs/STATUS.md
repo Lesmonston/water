@@ -1,6 +1,6 @@
 # Water 状态与交接
 
-更新时间：2026-10-27 21:05 JST（M1 达成；第四波 G1～G7 全部验收合入；第二次主线整合检查通过；release 版已构建；下一步 M2 计划；入口仍是第 7 份交接）。
+更新时间：2026-10-27 22:15 JST（M1 达成；第四波 G1～G7 全部合入；release 版已构建；M2 计划已拍板，第五波五张票 READY；入口仍是第 7 份交接）。
 
 更换总控请先读[最新交接报告（2026-10-27 第 7 份）](CONTROLLER-HANDOFF-20261027-7.md)；[第 6 份](CONTROLLER-HANDOFF-20261027-6.md)、[第 5 份](CONTROLLER-HANDOFF-20261026-5.md)、[第 4 份](CONTROLLER-HANDOFF-20261026-4.md)、[第 3 份](CONTROLLER-HANDOFF-20261026-3.md)、[第 2 份](CONTROLLER-HANDOFF-20261026-2.md)、[上午那份](CONTROLLER-HANDOFF-20261026.md)及其只读状态快照仅供追溯。M1 已达成；第四波 G1～G7 已全部验收合入（见下文待办）。此前[接手验收摘要](CONTROLLER-HANDOFF-20261017.md)仅供历史追溯；当前任务状态以本页、registry/manifest及最新正式验收为准。
 
@@ -182,7 +182,25 @@ A–AB及八补单、AD保持VERIFIED；AC/补单06新增VERIFIED（Windows静�
    - 图形界面程序（没有控制台窗口），界面已内嵌，需要 WebView2 运行时（Windows 11 自带）；数据目录默认 `%LOCALAPPDATA%\Water`；清理仍关闭。
    - 在夹具数据目录上冒烟：窗口正常；第二个实例 43 毫秒退出，最小化的窗口 122 毫秒内回到前台；关窗退出码 0。
    - 构建脚本与日志在 [integ2 controller](acceptance/wave4/controller/integ2-20261027/controller/)。
-7. **下一步**：出 M2 计划给用户看，`carryOverM2` 在 M2 第一批票里处理。
+7. **M2 计划已拍板**（10-27，四条都按推荐），见 [M2 计划](M2-PLAN-20261027.md)。
+8. **第五波（M2）五张票 READY**，基点 `3f907897`（标签 `water-w5-m2-base-20261027`），见[第五波计划](dispatch/wave5/PLAN.md)与[清单](dispatch/wave5/manifest.json)：
+
+   | 单号 | 改哪里 | 门 |
+   |---|---|---|
+   | [WATER-W5-H1 清理执行器收尾](dispatch/tickets/WATER-W5-H1-CLEAN-M2-20261027.md) | `packages/junk-clean` | 重门 |
+   | [WATER-W5-H2 服务收尾](dispatch/tickets/WATER-W5-H2-SERVICE-M2-20261027.md) | `packages/water-service` | 重门 |
+   | [WATER-W5-H3 宿主打开清理](dispatch/tickets/WATER-W5-H3-HOST-M2-20261027.md) | `apps/water/host` | 重门，夹具清理闭环 1 个窗口 |
+   | [WATER-W5-H4 界面 M2](dispatch/tickets/WATER-W5-H4-UI-M2-20261027.md) | `apps/water/ui` | 轻门，界面票 |
+   | [WATER-W5-H5 Rust 构建目录规则](dispatch/tickets/WATER-W5-H5-RULES-M2-20261027.md) | `packages/junk-rules` | 轻门 |
+
+   派前准备：
+   - 两个检查器认第五波清单；
+   - 离线依赖源复制到 `.offline-cache\`；
+   - 夹具清理闭环自检通过：真窗口里第一次走完应用内清理，只删合成夹具；
+   - 五棵树派前 baseline 都通过。
+
+   READY 不代表已外贴；用户派出后在清单里记执行者。
+9. **下一步**：用户派单 → 逐张验收合入 → 第三次主线整合检查 → 新 release 版 → 自清理（用户按按钮） → M2 达成。
 
 ## 真实AA→AD联合验收通过（2026-10-26）
 
