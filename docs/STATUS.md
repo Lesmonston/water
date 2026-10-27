@@ -1,6 +1,6 @@
 # Water 状态与交接
 
-更新时间：2026-10-27 16:35 JST（M1 达成；第四波 G1～G4 全部验收合入，冰山标志与脉搏线导航已上；第 6 份交接）。
+更新时间：2026-10-27 17:05 JST（M1 达成；第四波 G1～G4 全部验收合入，主线整合检查通过；第 6 份交接）。
 
 更换总控请先读[最新交接报告（2026-10-27 第 6 份）](CONTROLLER-HANDOFF-20261027-6.md)；[第 5 份](CONTROLLER-HANDOFF-20261026-5.md)、[第 4 份](CONTROLLER-HANDOFF-20261026-4.md)、[第 3 份](CONTROLLER-HANDOFF-20261026-3.md)、[第 2 份](CONTROLLER-HANDOFF-20261026-2.md)、[上午那份](CONTROLLER-HANDOFF-20261026.md)及其只读状态快照仅供追溯。M1 已达成；第四波 G2、G3 已验收合入；G1 补单 01 执行者已在树里交回，待用户转告与总控第二轮验收（见第 6 份交接第 4 节）。此前[接手验收摘要](CONTROLLER-HANDOFF-20261017.md)仅供历史追溯；当前任务状态以本页、registry/manifest及最新正式验收为准。
 
@@ -156,7 +156,7 @@ A–AB及八补单、AD保持VERIFIED；AC/补单06新增VERIFIED（Windows静�
    - 应用图标导出件 `brand/water-app-icon.ico` 由总控用 `scripts/design/export-app-icon.cjs` 生成（16～256，重复运行字节相同）；执行者只原样复制到宿主。
    - 票面内容：三处换冰山、导航换脉搏线、删 `i-drop`、复制图标、测试第 448 行改带 `UI_NOTICE_SCOPE` 标记的断言；不 push、不改写提交。
    - 工作树 `.worktrees/w4-g4`，基点 `e5b90db1`，总控 baseline 已通过。验收时总控另编译宿主并核对图标哈希。
-3. G4 合入后做一次主线整合检查（D、服务、宿主、界面全部测试，G2 的清理测试在新 D 上再跑，宿主用新图标编译，整机窗口检查）。会弹窗，先告诉用户。
+3. **主线整合检查：通过**（10-27，主线 `8af6229c`），见[整合报告](acceptance/wave4/controller/WATER-W4-INTEGRATION-20261027.md)。D 6/6、服务 6/6（G2 清理测试在新 D 上通过）、界面 3/3 与 5/5、宿主 5/5；整机窗口只读体检 11 步全过，1 个窗口、101 秒、没有删除任何东西，标题栏已是新图标。
 4. M2 前：处理 G1 的 `carryOverBeforeM2`（结果报告的 5 条）与宿主收尾票。
 
 ## 真实AA→AD联合验收通过（2026-10-26）

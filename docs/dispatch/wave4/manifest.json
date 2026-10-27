@@ -1,7 +1,7 @@
 {
   "schemaVersion": 1,
   "wave": "water-wave4-hardening",
-  "status": "G1_G2_G3_G4_VERIFIED",
+  "status": "G1_G2_G3_G4_VERIFIED_MAIN_INTEGRATED",
   "controller": "Claude",
   "controllerRoot": "F:/new/smaltalk/water",
   "controllerBranch": "main",
@@ -861,5 +861,14 @@
     ],
     "result": "all negative controls red with their tokens and restored green; all finals passed; archives byte-checked",
     "evidence": "docs/acceptance/wave4/controller/selftest/"
+  },
+  "mainIntegration": {
+    "checkedAt": "2026-10-27T08:05:00Z",
+    "commit": "8af6229c10dfd5d27bc31e8eb0dee59676c8583f",
+    "tree": ".worktrees/integ-w4",
+    "report": "docs/acceptance/wave4/controller/WATER-W4-INTEGRATION-20261027.md",
+    "evidence": "docs/acceptance/wave4/controller/integ-20261027/",
+    "result": "passed: D 6/6, service 6/6 (clean flow on the new D), UI unit 3/3 + browser 5/5, host 5/5; native whole-machine read-only check 11/11 steps, 1 window, 101 s, 0 restores, 0 plans/cleans",
+    "note": "service and host share .local/w3-cargo-home in one tree; run the host first or use separate trees"
   }
 }

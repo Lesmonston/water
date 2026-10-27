@@ -1,0 +1,54 @@
+[
+  {
+    "wait": "开始一次体检",
+    "absent": "无法连接 Water 服务",
+    "seconds": 45,
+    "shot": "home"
+  },
+  {
+    "invoke": "开始体检",
+    "type": "Button"
+  },
+  {
+    "wait": "本次体检共识别",
+    "fail": "体检未能完成，请重新体检。",
+    "seconds": 300,
+    "shot": "results"
+  },
+  {
+    "invoke": "清理所选",
+    "type": "Button"
+  },
+  {
+    "wait": "这一版只做体检，清理功能会在下一版开放。",
+    "seconds": 20,
+    "shot": "clean-disabled"
+  },
+  {
+    "invoke": "增长趋势",
+    "type": "Hyperlink"
+  },
+  {
+    "wait": "比较每次体检，找出一直在变大的东西。",
+    "seconds": 20,
+    "shot": "trends"
+  },
+  {
+    "invoke": "清理记录",
+    "type": "Hyperlink"
+  },
+  {
+    "wait": "每一次体检与清理，都有迹可循。",
+    "seconds": 20,
+    "shot": "history"
+  },
+  {
+    "invoke": "扫描位置",
+    "type": "Hyperlink"
+  },
+  {
+    "wait": "选择体检要看的地方。受保护的数据只统计占用，永远不会被清理。",
+    "seconds": 20,
+    "shot": "locations"
+  }
+]

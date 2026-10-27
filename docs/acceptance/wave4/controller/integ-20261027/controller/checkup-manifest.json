@@ -1,0 +1,355 @@
+{
+  "schemaVersion": 1,
+  "wave": "water-wave4-main-integration",
+  "status": "CONTROLLER_INTEGRATION",
+  "controller": "Claude",
+  "controllerRoot": "F:/new/smaltalk/water",
+  "controllerBranch": "main",
+  "helpers": {
+    "G1": "scripts/checkup-wave-check.mjs",
+    "G2": "scripts/desktop-wave-check.mjs",
+    "G3": "scripts/checkup-wave-check.mjs"
+  },
+  "baseCommit": "0ca42f8e8038a5a7816802c5a7f175a966b0625c",
+  "baseTag": "water-w4-hardening-base-20261026",
+  "plan": "docs/dispatch/wave4/PLAN.md",
+  "workerRules": "docs/dispatch/W4-HARDENING-WORKER-RULES.md",
+  "parallelWith": "WATER-W3-F3 (apps/water/host, dispatched to sol); no shared files",
+  "frozenFiles": [
+    {
+      "path": "docs/decisions/ADR-018-device-junk-checkup-and-in-app-cleanup.md",
+      "sha256": "1195b17c469b3abe290f4d334628fa36583ca7f20c46349aaf1071ff839a0579"
+    },
+    {
+      "path": "contracts/checkup-v1/MODEL.md",
+      "sha256": "fe0c9a4f5d96ce9297e8f72e75df8c6f666f9a6af440fc198aa7b3362692188b"
+    },
+    {
+      "path": "contracts/checkup-v1/IPC.md",
+      "sha256": "62f726ced5f863f1b47db261976d8b5e5183f65669b2ba09d2f85a3977161be2"
+    },
+    {
+      "path": "docs/dispatch/W4-HARDENING-WORKER-RULES.md",
+      "sha256": "047bafc549a8c3e79776f7e91f979fcf3de4584303a4d08e225264d0932a8546"
+    }
+  ],
+  "gateSelfTest": "docs/acceptance/wave4/controller/selftest/",
+  "readyReport": "docs/dispatch/wave4/READY-REPORT-20261026.md",
+  "tasks": [
+    {
+      "kind": "rust",
+      "outputRoot": "packages/junk-clean",
+      "packageName": "water-junk-clean",
+      "testTarget": "clean_v1",
+      "testFiles": [
+        "packages/junk-clean/tests/clean_v1.rs"
+      ],
+      "productionFiles": [
+        "packages/junk-clean/Cargo.toml",
+        "packages/junk-clean/Cargo.lock",
+        "packages/junk-clean/README.md"
+      ],
+      "cargoCacheSource": "F:/new/smaltalk/water/.worktrees/a/.local/cargo-home/registry",
+      "nativeModule": "native_windows.rs",
+      "status": "CONTROLLER_INTEGRATION",
+      "baseCommit": "8af6229c10dfd5d27bc31e8eb0dee59676c8583f",
+      "snapshotRef": "refs/tags/water-w4-hardening-base-20261026",
+      "readyOn": "2026-10-26",
+      "dispatchedAt": null,
+      "startedAt": null,
+      "model": "grokbot (user-reported); worker self-report: Grok Bot",
+      "modelAssignment": "user-arranged; report actual engine/model",
+      "macOS": "unverified",
+      "outputRootExists": true,
+      "nativeWindowBudget": 0,
+      "nativeDirectoryDialogBudget": 0,
+      "id": "WATER-W4-ACCEPT-INTEG-D",
+      "title": "清理执行器加固（重门）",
+      "slot": "integ-d",
+      "gate": "heavy",
+      "worktree": "F:/new/smaltalk/water/.worktrees/integ-w4",
+      "branch": "controller/integ-w4",
+      "ticket": "docs/dispatch/tickets/WATER-W4-G1-CLEAN-HARDENING-20261026.md",
+      "report": "docs/dispatch/reports/WATER-W4-G1-REPORT.md",
+      "spec": "contracts/hardening-v1/CLEAN-HARDENING.md",
+      "expectedTests": [
+        "clean_plan_contract",
+        "clean_revalidation_skips",
+        "clean_no_follow",
+        "clean_partial_stop_journal",
+        "clean_report_volume",
+        "clean_handle_hardening"
+      ],
+      "proofTargets": {
+        "nc1": "CLEAN_REPARSE_KIND",
+        "nc2": "CLEAN_GUARD_ID",
+        "nc3": "CLEAN_NO_FOLLOW"
+      },
+      "allowedFiles": [],
+      "allowedPrefixes": [
+        "apps/",
+        "packages/",
+        "docs/"
+      ],
+      "evidenceDir": "docs/acceptance/wave4/controller/integ-20261027/d/",
+      "allowedModes": [
+        "lock",
+        "check",
+        "test"
+      ],
+      "expectedFinalModes": [
+        "check",
+        "test"
+      ],
+      "forbidPatterns": [
+        [
+          "\\bstd::fs\\b",
+          "Path-based file access (std::fs) is not allowed"
+        ],
+        [
+          "\\bfs::",
+          "Path-based file access (fs::) is not allowed"
+        ],
+        [
+          "\\bPath(?:Buf)?\\b",
+          "Path objects are not allowed; file access goes through handles"
+        ],
+        [
+          "\\b(?:remove_file|remove_dir|read_dir|symlink_metadata|set_permissions|OpenOptions)\\b",
+          "Path-based file operation is not allowed"
+        ]
+      ],
+      "allowedFfi": [
+        "CreateFileW",
+        "GetFileInformationByHandleEx",
+        "SetFileInformationByHandle",
+        "GetVolumeInformationByHandleW",
+        "GetDiskFreeSpaceExW",
+        "CloseHandle",
+        "NtOpenFile",
+        "RtlNtStatusToDosError"
+      ],
+      "realMode": null,
+      "browserBudget": 0,
+      "realDataPermission": "none; synthetic fixtures under own .local only",
+      "mustRead": [
+        "docs/dispatch/W4-HARDENING-WORKER-RULES.md",
+        "docs/dispatch/wave4/PLAN.md",
+        "contracts/hardening-v1/CLEAN-HARDENING.md",
+        "contracts/checkup-v1/CLEAN.md",
+        "docs/dispatch/tickets/WATER-W2-D-ADDENDUM-01-20261026.md",
+        "contracts/checkup-v1/MODEL.md",
+        "packages/junk-clean/src/native_windows.rs",
+        "packages/junk-clean/tests/clean_v1.rs"
+      ],
+      "frozenFiles": [
+        {
+          "path": "contracts/hardening-v1/CLEAN-HARDENING.md",
+          "sha256": "b22cfe2458d17303fd5ffde08899ef6df89c4484ba502c0d4af4139c8a18dc85"
+        },
+        {
+          "path": "contracts/checkup-v1/CLEAN.md",
+          "sha256": "95b5ad120c6d7a04d427318c09df8e58ba77d6f96167cb040bc07a33e5c5a55f"
+        }
+      ],
+      "baselineStatus": "PASSED",
+      "baselineEvidence": "docs/acceptance/wave4/controller/preflight/WATER-W4-G1-2026-10-26T13-00-07.314Z-30156-baseline-result.json",
+      "dispatchReportedAt": "2026-10-26T13:25:36Z",
+      "dispatchEvidence": "user chat 2026-10-26 22:25 JST: all three wave 4 tickets pasted; G1 and G2 to grokbot, G3 to Astra; worker trees clean at base 0ca42f8 when recorded",
+      "submittedHead": "eed27526c796c2a64ec372f22a889091c841de38",
+      "implementationCommit": "24e36fb49dcb974238bf03a8cc0ec9fe242c44ad",
+      "submittedAs": "COMPLETED",
+      "verifiedAt": "2026-10-27T06:55:00Z",
+      "acceptedCommit": "eed27526c796c2a64ec372f22a889091c841de38",
+      "integrationBranch": "main",
+      "mergeCommit": "0cd9db7e",
+      "acceptsTask": "WATER-W4-G1",
+      "acceptsHead": "8af6229c10dfd5d27bc31e8eb0dee59676c8583f"
+    },
+    {
+      "kind": "ui",
+      "outputRoot": "apps/water/ui",
+      "testFiles": [
+        "apps/water/ui/tests/unit.test.mjs",
+        "apps/water/ui/tests/browser.test.mjs"
+      ],
+      "unitTestFiles": [
+        "apps/water/ui/tests/unit.test.mjs"
+      ],
+      "browserTestFiles": [
+        "apps/water/ui/tests/browser.test.mjs"
+      ],
+      "expectedTests": [
+        "ui_format_bytes_time",
+        "ui_selection_rules",
+        "ui_ipc_boundary"
+      ],
+      "tokensSource": "docs/design/water-ui-v1/tokens.css",
+      "fixtures": "contracts/checkup-v1/ui-fixtures.json",
+      "browserHelper": "scripts/acceptance/native-vw-private-browser.mjs",
+      "screenshotDirEnv": "WATER_W2_SHOTS_DIR",
+      "status": "CONTROLLER_INTEGRATION",
+      "baseCommit": "8af6229c10dfd5d27bc31e8eb0dee59676c8583f",
+      "snapshotRef": null,
+      "readyOn": "2026-10-27",
+      "dispatchedAt": null,
+      "startedAt": "2026-10-27T06:33:21Z",
+      "model": "Opus 5.5 (user-reported; worker self-report: Claude Opus 5.5, claude-opus-5-5)",
+      "modelAssignment": "user-arranged; report actual engine/model",
+      "macOS": "unverified",
+      "outputRootExists": true,
+      "nativeWindowBudget": 0,
+      "nativeDirectoryDialogBudget": 0,
+      "id": "WATER-W4-ACCEPT-INTEG-UI",
+      "title": "标志与导航图标",
+      "slot": "integ-ui",
+      "gate": "light",
+      "worktree": "F:/new/smaltalk/water/.worktrees/integ-w4",
+      "branch": "controller/integ-w4",
+      "ticket": "docs/dispatch/tickets/WATER-W4-G4-BRAND-20261027.md",
+      "report": "docs/dispatch/reports/WATER-W4-G4-REPORT.md",
+      "spec": "docs/design/water-ui-v1/DESIGN.md (section 10)",
+      "expectedBrowserTests": [
+        "ui_home_and_scan",
+        "ui_results_detail_confirm",
+        "ui_clean_done_and_pages",
+        "ui_layout_states_a11y",
+        "ui_m1_polish"
+      ],
+      "requiredScreenshots": [
+        "home-1240x820.png",
+        "scan-1240x820.png",
+        "results-1240x820.png",
+        "results-1040x720.png",
+        "detail-1240x820.png",
+        "confirm-1240x820.png",
+        "cleaning-1240x820.png",
+        "done-1240x820.png",
+        "trends-1240x820.png",
+        "history-1240x820.png",
+        "locations-1240x820.png",
+        "about-1240x820.png",
+        "results-bottom-1240x820.png",
+        "results-bottom-1040x720.png",
+        "notice-results-1240x820.png",
+        "notice-trends-1240x820.png",
+        "trends-empty-1240x820.png"
+      ],
+      "proofTargets": {
+        "nc1": "UI_BRAND_MARK",
+        "nc2": "UI_NAV_PULSE",
+        "nc3": "UI_NOTICE_SCOPE"
+      },
+      "browserProofs": [
+        "nc1",
+        "nc2",
+        "nc3"
+      ],
+      "allowedFiles": [],
+      "allowedPrefixes": [
+        "apps/",
+        "packages/",
+        "docs/"
+      ],
+      "evidenceDir": "docs/acceptance/wave4/controller/integ-20261027/ui/",
+      "allowedModes": [
+        "check",
+        "test",
+        "browser"
+      ],
+      "expectedFinalModes": [
+        "check",
+        "test",
+        "browser"
+      ],
+      "realMode": null,
+      "browserBudget": 1,
+      "realDataPermission": "none; IPC fixtures only",
+      "modelHint": "UI ticket: pick a model with strong front-end ability; judged against real screenshots.",
+      "mustRead": [
+        "docs/dispatch/W4-HARDENING-WORKER-RULES.md",
+        "docs/design/water-ui-v1/DESIGN.md",
+        "contracts/hardening-v1/UI-POLISH.md",
+        "apps/water/ui/index.html",
+        "apps/water/ui/app.mjs",
+        "apps/water/ui/views/about.mjs",
+        "apps/water/ui/views/common.mjs",
+        "apps/water/ui/styles/app.css",
+        "apps/water/ui/tests/browser.test.mjs",
+        "docs/design/water-ui-v1/brand/water-app-icon.ico",
+        "docs/design/water-ui-v1/brand/preview-home-pulse-1240x820.png"
+      ],
+      "frozenFiles": [
+        {
+          "path": "contracts/checkup-v1/UI.md",
+          "sha256": "dbc92ff9de2f388d94c7210541662e5c0f9052084afdf4b795805768710cb52b"
+        },
+        {
+          "path": "contracts/checkup-v1/IPC.md",
+          "sha256": "62f726ced5f863f1b47db261976d8b5e5183f65669b2ba09d2f85a3977161be2"
+        },
+        {
+          "path": "contracts/checkup-v1/ui-fixtures.json",
+          "sha256": "2dd62585cb7ca31d429af8bf5360dda44d645dd73a5d3f79542d4d23ce1840e2"
+        },
+        {
+          "path": "contracts/hardening-v1/UI-POLISH.md",
+          "sha256": "6f70f7a1f775eccd31a60068288ad78be9b64869ff712809d0992a4a8b3859d6"
+        },
+        {
+          "path": "docs/design/water-ui-v1/DESIGN.md",
+          "sha256": "b83a2bd0815d109495a68e17894be6ba8d77d61129256a1094b9b58beb75e04b"
+        },
+        {
+          "path": "docs/design/water-ui-v1/tokens.css",
+          "sha256": "703e7b3c185bd95d79bb580cc1911736962159846832ece5a40ba5df0770cb29"
+        },
+        {
+          "path": "docs/design/water-ui-v1/mockup.html",
+          "sha256": "f0917b76fd7c31bc85852aa51482895f6dde064768a74dc8d38d28559f63f99b"
+        },
+        {
+          "path": "docs/design/water-ui-v1/brand/water-app-icon.ico",
+          "sha256": "a90894b1f7d7f44fe41e7c65541d650e6e04e4af911e6d37e058506e8ea268e2"
+        },
+        {
+          "path": "docs/design/water-ui-v1/brand/water-app-icon.svg",
+          "sha256": "cb7b7d425a6c51a0abd70609b5d1e58ec6ae4b6f455bbcbec4daf9bfa5218f52"
+        },
+        {
+          "path": "docs/design/water-ui-v1/brand/water-mark.svg",
+          "sha256": "2d90e8f759dd90d9474070cbe6b0a1746942035f7a52bed0a5d89fcd6df2cd70"
+        }
+      ],
+      "baselineStatus": "PASSED",
+      "baselineEvidence": "docs/acceptance/wave4/controller/preflight/WATER-W4-G4-2026-10-27T06-23-49.855Z-36372-baseline-result.json",
+      "dispatchReportedAt": "2026-10-27T06:36:00Z",
+      "dispatchEvidence": "user chat 2026-10-27 ~15:36 JST: G4 dispatched to Opus 5.5",
+      "startEvidence": "worker baseline receipt 2026-10-27T06-33-21.212Z-8100 (in .worktrees/w4-g4/.local/checks/WATER-W4-G4); edits to app.mjs, index.html, app.css observed 06:37Z",
+      "submittedHead": "8bd5e5687e64611c86c0a250e21fa25995dfe1fa",
+      "implementationCommit": "096275c6c0a833bde18c95d0aef8ffdd9870f94e",
+      "submittedAs": "COMPLETED",
+      "verifiedAt": "2026-10-27T07:35:00Z",
+      "acceptedCommit": "8bd5e5687e64611c86c0a250e21fa25995dfe1fa",
+      "integrationBranch": "main",
+      "mergeCommit": "bc93d567",
+      "acceptsTask": "WATER-W4-G4",
+      "acceptsHead": "8af6229c10dfd5d27bc31e8eb0dee59676c8583f"
+    }
+  ],
+  "selfTest": {
+    "trees": [
+      ".worktrees/w4-selftest-g1",
+      ".worktrees/w4-selftest-g2",
+      ".worktrees/w4-selftest-g3"
+    ],
+    "ids": [
+      "WATER-W4-SELFTEST-G1 (path rule, refused the stub as expected)",
+      "WATER-W4-SELFTEST-G1B",
+      "WATER-W4-SELFTEST-G2",
+      "WATER-W4-SELFTEST-G3"
+    ],
+    "result": "all negative controls red with their tokens and restored green; all finals passed; archives byte-checked",
+    "evidence": "docs/acceptance/wave4/controller/selftest/"
+  }
+}
