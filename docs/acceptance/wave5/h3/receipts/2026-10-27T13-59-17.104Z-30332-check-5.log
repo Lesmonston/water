@@ -1,0 +1,28 @@
+{"binary":"C:\\Users\\37310\\.rustup\\toolchains\\1.95.0-x86_64-pc-windows-msvc\\bin\\cargo.exe","args":["fmt","--manifest-path","apps/water/host/Cargo.toml","--","--check"],"exitCode":1,"error":null}
+--- stdout ---
+Diff in \\?\F:\new\smaltalk\water\.worktrees\w5-h3\apps\water\host\tests\host_v1.rs:735:
+                 "HOST_DATA_JUNCTION removes verbatim prefix"
+             );
+             // The fixture root keeps the slash from `.local/w3-f3-fixtures`; `\\?\` rejects it.
+-            let dotted_text = root.join("weird-name.").to_string_lossy().replace('/', "\\");
++            let dotted_text = root
++                .join("weird-name.")
++                .to_string_lossy()
++                .replace('/', "\\");
+             let dotted = PathBuf::from(&dotted_text);
+             let extended = PathBuf::from(format!(r"\\?\{dotted_text}"));
+             fs::create_dir(&extended).expect("HOST_DATA_JUNCTION create dotted base");
+Diff in \\?\F:\new\smaltalk\water\.worktrees\w5-h3\apps\water\host\tests\host_v1.rs:825:
+     }
+     #[cfg(windows)]
+     {
+-        let dotted_text = root.join("weird-name.").to_string_lossy().replace('/', "\\");
++        let dotted_text = root
++            .join("weird-name.")
++            .to_string_lossy()
++            .replace('/', "\\");
+         let _ = fs::remove_dir_all(PathBuf::from(format!(r"\\?\{dotted_text}")));
+     }
+     for link in [&signal, &linked_webview, &linked_water, &junction] {
+
+--- stderr ---
