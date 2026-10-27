@@ -1,7 +1,7 @@
 {
   "schemaVersion": 1,
   "wave": "water-wave4-hardening",
-  "status": "G2_G3_VERIFIED_G1_IN_PROGRESS",
+  "status": "G2_G3_VERIFIED_G1_ADDENDUM",
   "controller": "Claude",
   "controllerRoot": "F:/new/smaltalk/water",
   "controllerBranch": "main",
@@ -51,13 +51,13 @@
       ],
       "cargoCacheSource": "F:/new/smaltalk/water/.worktrees/a/.local/cargo-home/registry",
       "nativeModule": "native_windows.rs",
-      "status": "DISPATCHED",
+      "status": "ADDENDUM_READY",
       "baseCommit": "0ca42f8e8038a5a7816802c5a7f175a966b0625c",
       "snapshotRef": "refs/tags/water-w4-hardening-base-20261026",
       "readyOn": "2026-10-26",
       "dispatchedAt": null,
       "startedAt": null,
-      "model": "grokbot (user-reported executor, fresh conversation; exact model unverified until worker report)",
+      "model": "grokbot (user-reported); worker self-report: Grok Bot",
       "modelAssignment": "user-arranged; report actual engine/model",
       "macOS": "unverified",
       "outputRootExists": true,
@@ -161,7 +161,37 @@
       "baselineStatus": "PASSED",
       "baselineEvidence": "docs/acceptance/wave4/controller/preflight/WATER-W4-G1-2026-10-26T13-00-07.314Z-30156-baseline-result.json",
       "dispatchReportedAt": "2026-10-26T13:25:36Z",
-      "dispatchEvidence": "user chat 2026-10-26 22:25 JST: all three wave 4 tickets pasted; G1 and G2 to grokbot, G3 to Astra; worker trees clean at base 0ca42f8 when recorded"
+      "dispatchEvidence": "user chat 2026-10-26 22:25 JST: all three wave 4 tickets pasted; G1 and G2 to grokbot, G3 to Astra; worker trees clean at base 0ca42f8 when recorded",
+      "submittedHead": "b593f0be97e7338bbe54c85e456ce3a8c4d0c7a0",
+      "implementationCommit": "bdd89bc8167607e08c5c4453b6290bad856ccf9e",
+      "submittedAs": "COMPLETED",
+      "controllerReview": {
+        "reviewedAt": "2026-10-27T04:12:00Z",
+        "review": "docs/acceptance/wave4/controller/WATER-W4-G1-REVIEW-20261027.md",
+        "evidence": "docs/acceptance/wave4/controller/accept-20261026/g1/",
+        "controllerLogs": "docs/acceptance/wave4/controller/accept-20261026/controller/ (g1-*)",
+        "mechanicalAudit": "passed (w2-receipt-audit with WATER_W2_AUDIT_MANIFEST); ffi exactly the 8 allowed",
+        "freshTreeFinals": "check, test passed in .worktrees/accept-w4-g1",
+        "controllerMutants": "nc1-nc3, x4 (read-only flag), x6 (std::fs back, refused by check) killed; x1 (ancestor protected identity) and x5 (\\? prefix) survive the worker tests but are caught by the controller cases; x2 (directory FileId recheck) and x3 (delete-share) survive: only reachable by a concurrent swap during deletion, no hook",
+        "controllerCases": "scripts/acceptance/w4-g1-controller-cases.rs: 6 passed (ancestor alias protected, combination delete, deep custom tag, path through ancestor junction, long item path, directory symlink)",
+        "codeReview": "independent read-only agent, verified by the controller: H1 link deleted without FileId/tag recheck; M1 identity not from the item handle; M2 enumerate treats any error as end (can report deleted while the item remains); M3 residual matched by ASCII name in the parent listing; M4 directory mismatch does not stop the item; several lows"
+      },
+      "addenda": [
+        {
+          "id": "WATER-W4-G1-ADDENDUM-01",
+          "ticket": "docs/dispatch/tickets/WATER-W4-G1-ADDENDUM-01-20261027.md",
+          "status": "READY",
+          "issuedAt": "2026-10-27T04:12:00Z",
+          "resumeFromCommit": "b593f0be97e7338bbe54c85e456ce3a8c4d0c7a0",
+          "change": "link delete rechecks tag and FileId; identity from the item handle (relaxes step 2.5: re-walk allowed with FileId checks); enumerate distinguishes end from error; residual by handle; changed directory stops the item; new entries not counted; non-linear snapshot lookup; 255-unit name cap; checked FILETIME math; unsafe bounds and handle hygiene; unreadable ancestor identity is changed and the drive root joins ancestors; three new assertions; nc1-nc3 redone",
+          "dispatchedAt": null
+        }
+      ],
+      "carryOverLater": [
+        "recursion depth is unbounded in walk_subtree, node and measure_tree (stack overflow on extremely deep trees)",
+        "set_delete falls back to class 4 on any error, not only invalid-parameter or not-supported (no unsafe case found)",
+        "bytes_freed counts a hard-linked file inside the item although its other name keeps the data"
+      ]
     },
     {
       "kind": "service",

@@ -1,0 +1,47 @@
+g1 nc1 mutated packages/junk-clean/src/native_windows.rs: the enumeration decode marks every reparse tag as a name surrogate, so a custom tag is treated as a link (worker nc1 disabled the poison check instead) (mutated sha 645c3eca13e325fc4153ea0cf0e093c1dd96dba66a98dd3dbcf5bf8712c07ec4)
+g1 red-nc1 rc=0 {"task":"WATER-W4-ACCEPT-G1","mode":"red-nc1","finalGate":false,"status":"passed","error":null,"receipt":"F:\\new\\smaltalk\\water\\.worktrees\\accept-w4-g1\\.local\\checks\\WATER-W4-ACCEPT-G1\\2026-10-27T03-56-43.710Z-3868-red-nc1-result.json"}
+g1 nc1 KILLED (expected CLEAN_REPARSE_KIND)
+g1 nc1 restored exact bytes=true sha 1e1364f5c7cf98bfc5a37b183cdbcdd6d822753235571d0fda50a9e600d1667e
+g1 test rc=0 {"task":"WATER-W4-ACCEPT-G1","mode":"test","finalGate":false,"status":"passed","error":null,"receipt":"F:\\new\\smaltalk\\water\\.worktrees\\accept-w4-g1\\.local\\checks\\WATER-W4-ACCEPT-G1\\2026-10-27T03-57-01.034Z-4532-test-result.json"}
+g1 nc2 mutated packages/junk-clean/src/native_windows.rs: a hard guard that resolves to the item itself is not matched by identity (worker nc2 disabled the subtree protected check instead) (mutated sha 5f57a62af6a7f83eb5bb9cc78fca3fb5fb19cce9ee7904baee78cce4c332b2c8)
+g1 red-nc2 rc=0 {"task":"WATER-W4-ACCEPT-G1","mode":"red-nc2","finalGate":false,"status":"passed","error":null,"receipt":"F:\\new\\smaltalk\\water\\.worktrees\\accept-w4-g1\\.local\\checks\\WATER-W4-ACCEPT-G1\\2026-10-27T03-57-08.452Z-2320-red-nc2-result.json"}
+g1 nc2 KILLED (expected CLEAN_GUARD_ID)
+g1 nc2 restored exact bytes=true sha 1e1364f5c7cf98bfc5a37b183cdbcdd6d822753235571d0fda50a9e600d1667e
+g1 test rc=0 {"task":"WATER-W4-ACCEPT-G1","mode":"test","finalGate":false,"status":"passed","error":null,"receipt":"F:\\new\\smaltalk\\water\\.worktrees\\accept-w4-g1\\.local\\checks\\WATER-W4-ACCEPT-G1\\2026-10-27T03-57-17.138Z-30832-test-result.json"}
+g1 nc3 mutated packages/junk-clean/src/native_windows.rs: the delete step treats a link entry as a directory instead of removing the link itself (worker nc3 dropped OPEN_REPARSE_POINT instead) (mutated sha 0e3899d3df43cc33927914cd5b980391745909f49de5735dd0229584bcc3c7cd)
+g1 red-nc3 rc=0 {"task":"WATER-W4-ACCEPT-G1","mode":"red-nc3","finalGate":false,"status":"passed","error":null,"receipt":"F:\\new\\smaltalk\\water\\.worktrees\\accept-w4-g1\\.local\\checks\\WATER-W4-ACCEPT-G1\\2026-10-27T03-57-25.063Z-9628-red-nc3-result.json"}
+g1 nc3 KILLED (expected CLEAN_NO_FOLLOW)
+g1 nc3 restored exact bytes=true sha 1e1364f5c7cf98bfc5a37b183cdbcdd6d822753235571d0fda50a9e600d1667e
+g1 test rc=0 {"task":"WATER-W4-ACCEPT-G1","mode":"test","finalGate":false,"status":"passed","error":null,"receipt":"F:\\new\\smaltalk\\water\\.worktrees\\accept-w4-g1\\.local\\checks\\WATER-W4-ACCEPT-G1\\2026-10-27T03-57-33.373Z-23052-test-result.json"}
+g1 x1 mutated packages/junk-clean/src/native_windows.rs: an item inside a protected directory reached through an alias is not refused (ancestor identity check); expected to survive: no test places a protected path above the item, the controller cases do (mutated sha e5d80e31d8eec0acf8d3cf4fdc788095346470cfeb89cc665ad4e112f11dfe3d)
+g1 test rc=0 {"task":"WATER-W4-ACCEPT-G1","mode":"test","finalGate":false,"status":"passed","error":null,"receipt":"F:\\new\\smaltalk\\water\\.worktrees\\accept-w4-g1\\.local\\checks\\WATER-W4-ACCEPT-G1\\2026-10-27T03-57-42.340Z-26408-test-result.json"}
+g1 x1 SURVIVED (expected CLEAN_GUARD_ID)
+g1 x1 restored exact bytes=true sha 1e1364f5c7cf98bfc5a37b183cdbcdd6d822753235571d0fda50a9e600d1667e
+g1 test rc=0 {"task":"WATER-W4-ACCEPT-G1","mode":"test","finalGate":false,"status":"passed","error":null,"receipt":"F:\\new\\smaltalk\\water\\.worktrees\\accept-w4-g1\\.local\\checks\\WATER-W4-ACCEPT-G1\\2026-10-27T03-57-53.557Z-24808-test-result.json"}
+g1 x2 mutated packages/junk-clean/src/native_windows.rs: the directory FileId recheck at delete time is removed; expected to survive: only a swap during deletion reaches it and tests have no hook there (mutated sha baf635c3ab2ae92892f9cba4a1ec15a85d6c78b969943b550e515eedda480943)
+g1 test rc=0 {"task":"WATER-W4-ACCEPT-G1","mode":"test","finalGate":false,"status":"passed","error":null,"receipt":"F:\\new\\smaltalk\\water\\.worktrees\\accept-w4-g1\\.local\\checks\\WATER-W4-ACCEPT-G1\\2026-10-27T03-58-04.938Z-27396-test-result.json"}
+g1 x2 SURVIVED (expected CLEAN_)
+g1 x2 restored exact bytes=true sha 1e1364f5c7cf98bfc5a37b183cdbcdd6d822753235571d0fda50a9e600d1667e
+g1 test rc=0 {"task":"WATER-W4-ACCEPT-G1","mode":"test","finalGate":false,"status":"passed","error":null,"receipt":"F:\\new\\smaltalk\\water\\.worktrees\\accept-w4-g1\\.local\\checks\\WATER-W4-ACCEPT-G1\\2026-10-27T03-58-12.819Z-24808-test-result.json"}
+g1 x3 mutated packages/junk-clean/src/native_windows.rs: directory handles at delete time allow delete-share (rename) again; expected to survive: no concurrent rename in tests (mutated sha aae516c207340b90b2e273a1d9ab0fe6ad5672a92a593dd9e26c11160991a3a7)
+g1 test rc=0 {"task":"WATER-W4-ACCEPT-G1","mode":"test","finalGate":false,"status":"passed","error":null,"receipt":"F:\\new\\smaltalk\\water\\.worktrees\\accept-w4-g1\\.local\\checks\\WATER-W4-ACCEPT-G1\\2026-10-27T03-58-19.955Z-32332-test-result.json"}
+g1 x3 SURVIVED (expected CLEAN_)
+g1 x3 restored exact bytes=true sha 1e1364f5c7cf98bfc5a37b183cdbcdd6d822753235571d0fda50a9e600d1667e
+g1 test rc=0 {"task":"WATER-W4-ACCEPT-G1","mode":"test","finalGate":false,"status":"passed","error":null,"receipt":"F:\\new\\smaltalk\\water\\.worktrees\\accept-w4-g1\\.local\\checks\\WATER-W4-ACCEPT-G1\\2026-10-27T03-58-25.595Z-1588-test-result.json"}
+g1 x4 mutated packages/junk-clean/src/native_windows.rs: the POSIX disposition no longer ignores the read-only attribute (mutated sha a899ed85c027342e03f7c4117fc8c1afe2ce1b613607cc29bd88aa983e5a22bc)
+g1 test rc=1 {"task":"WATER-W4-ACCEPT-G1","mode":"test","finalGate":false,"status":"failed","error":"AssertionError [ERR_ASSERTION]: Unexpected exit, see 2026-10-27T03-58-31.069Z-17808-test-5.log","receipt":"F:\\new\\smaltalk\\water\\.worktrees\\accept-w4-g1\\.local\\checks\\WATER-W4-ACCEPT-G1\\2026-10-27T03-58-31.069Z-17808-test-result.json"}
+g1 x4 KILLED (expected CLEAN_READONLY)
+g1 x4 restored exact bytes=true sha 1e1364f5c7cf98bfc5a37b183cdbcdd6d822753235571d0fda50a9e600d1667e
+g1 test rc=0 {"task":"WATER-W4-ACCEPT-G1","mode":"test","finalGate":false,"status":"passed","error":null,"receipt":"F:\\new\\smaltalk\\water\\.worktrees\\accept-w4-g1\\.local\\checks\\WATER-W4-ACCEPT-G1\\2026-10-27T03-58-36.427Z-30748-test-result.json"}
+g1 x5 mutated packages/junk-clean/src/native_windows.rs: by-name opens (drive root, identity, guard resolution) lose the \? prefix; may survive if the long-path test only goes deep below a short item path (mutated sha dada5474a8c0b75e9f48560ea01667777cbb5217c307b499b2b29c12458e28b5)
+g1 test rc=0 {"task":"WATER-W4-ACCEPT-G1","mode":"test","finalGate":false,"status":"passed","error":null,"receipt":"F:\\new\\smaltalk\\water\\.worktrees\\accept-w4-g1\\.local\\checks\\WATER-W4-ACCEPT-G1\\2026-10-27T03-58-42.672Z-14188-test-result.json"}
+g1 x5 SURVIVED (expected CLEAN_LONG_PATH)
+g1 x5 restored exact bytes=true sha 1e1364f5c7cf98bfc5a37b183cdbcdd6d822753235571d0fda50a9e600d1667e
+g1 test rc=0 {"task":"WATER-W4-ACCEPT-G1","mode":"test","finalGate":false,"status":"passed","error":null,"receipt":"F:\\new\\smaltalk\\water\\.worktrees\\accept-w4-g1\\.local\\checks\\WATER-W4-ACCEPT-G1\\2026-10-27T03-58-47.931Z-18608-test-result.json"}
+g1 x6 mutated packages/junk-clean/src/lib.rs: path-based std::fs is brought back into src; the check gate must refuse it (mutated sha 0e773ef0288d9a02546a00440e276dc1ce1fdf9c0ecfc6ad6cb32f76a65cc285)
+g1 check rc=1 {"task":"WATER-W4-ACCEPT-G1","mode":"check","finalGate":false,"status":"failed","error":"AssertionError [ERR_ASSERTION]: Path-based file access (std::fs) is not allowed: packages\\junk-clean\\src\\lib.rs","receipt":"F:\\new\\smaltalk\\water\\.worktrees\\accept-w4-g1\\.local\\checks\\WATER-W4-ACCEPT-G1\\2026-10-27T03-58-53.153Z-10368-check-result.json"}
+g1 x6 KILLED (expected is not allowed)
+g1 x6 restored exact bytes=true sha 388a98b3051d99e7486379e0d9556c0df85f4b1adfb7429711dc8dcfa47975f6
+g1 test rc=0 {"task":"WATER-W4-ACCEPT-G1","mode":"test","finalGate":false,"status":"passed","error":null,"receipt":"F:\\new\\smaltalk\\water\\.worktrees\\accept-w4-g1\\.local\\checks\\WATER-W4-ACCEPT-G1\\2026-10-27T03-58-54.884Z-15240-test-result.json"}
+g1 survived: x1,x2,x3,x5
+g1 test --final rc=0 {"task":"WATER-W4-ACCEPT-G1","mode":"test","finalGate":true,"status":"passed","error":null,"receipt":"F:\\new\\smaltalk\\water\\.worktrees\\accept-w4-g1\\.local\\checks\\WATER-W4-ACCEPT-G1\\2026-10-27T03-58-59.658Z-11148-test-result.json"}

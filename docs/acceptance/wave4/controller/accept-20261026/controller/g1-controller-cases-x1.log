@@ -1,0 +1,42 @@
+   Compiling water-junk-clean v0.1.0 (F:\new\smaltalk\water\.worktrees\accept-w4-g1\packages\junk-clean)
+warning: unused variable: `ancestor`
+   --> src\native_windows.rs:605:13
+    |
+605 |         for ancestor in &walked.ancestors {
+    |             ^^^^^^^^ help: if this is intentional, prefix it with an underscore: `_ancestor`
+    |
+    = note: `#[warn(unused_variables)]` (part of `#[warn(unused)]`) on by default
+
+warning: `water-junk-clean` (lib) generated 1 warning (run `cargo fix --lib -p water-junk-clean` to apply 1 suggestion)
+    Finished `test` profile [unoptimized + debuginfo] target(s) in 1.26s
+     Running tests\controller_cases.rs (.local/w2-target\debug\deps\controller_cases-b3263f427e0443c3.exe)
+
+running 6 tests
+test controller_ancestor_alias_protected ... CONTROLLER ancestor alias: status Deleted reason None
+
+thread 'controller_ancestor_alias_protected' (9300) panicked at tests\controller_cases.rs:136:5:
+assertion `left == right` failed: CONTROLLER_ANCESTOR: item inside an aliased protected directory was not refused
+  left: Deleted
+ right: Skipped
+note: run with `RUST_BACKTRACE=1` environment variable to display a backtrace
+FAILED
+test controller_combination_delete ... CONTROLLER combination: status Deleted freed 42
+ok
+test controller_custom_tag_deep ... CONTROLLER custom tag deep: status Skipped reason Some(Reparse)
+ok
+test controller_directory_symlink ... CONTROLLER directory symlink: status Deleted
+ok
+test controller_item_through_alias ... CONTROLLER through alias: status Skipped reason Some(OutsideRoot)
+ok
+test controller_long_item_path ... CONTROLLER long item path: status Deleted reason None
+ok
+
+failures:
+
+failures:
+    controller_ancestor_alias_protected
+
+test result: FAILED. 5 passed; 1 failed; 0 ignored; 0 measured; 0 filtered out; finished in 0.64s
+
+error: test failed, to rerun pass `--test controller_cases`
+rc=101 status after restore: ''

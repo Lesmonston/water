@@ -37,6 +37,136 @@
   "readyReport": "docs/dispatch/wave4/READY-REPORT-20261026.md",
   "tasks": [
     {
+      "kind": "rust",
+      "outputRoot": "packages/junk-clean",
+      "packageName": "water-junk-clean",
+      "testTarget": "clean_v1",
+      "testFiles": [
+        "packages/junk-clean/tests/clean_v1.rs"
+      ],
+      "productionFiles": [
+        "packages/junk-clean/Cargo.toml",
+        "packages/junk-clean/Cargo.lock",
+        "packages/junk-clean/README.md"
+      ],
+      "cargoCacheSource": "F:/new/smaltalk/water/.worktrees/a/.local/cargo-home/registry",
+      "nativeModule": "native_windows.rs",
+      "status": "CONTROLLER_ACCEPTANCE",
+      "baseCommit": "0ca42f8e8038a5a7816802c5a7f175a966b0625c",
+      "snapshotRef": "refs/tags/water-w4-hardening-base-20261026",
+      "readyOn": "2026-10-26",
+      "dispatchedAt": null,
+      "startedAt": null,
+      "model": "grokbot (user-reported executor, fresh conversation; exact model unverified until worker report)",
+      "modelAssignment": "user-arranged; report actual engine/model",
+      "macOS": "unverified",
+      "outputRootExists": true,
+      "nativeWindowBudget": 0,
+      "nativeDirectoryDialogBudget": 0,
+      "id": "WATER-W4-ACCEPT-G1",
+      "title": "清理执行器加固（重门）",
+      "slot": "w4-g1",
+      "gate": "heavy",
+      "worktree": "F:/new/smaltalk/water/.worktrees/accept-w4-g1",
+      "branch": "controller/accept-w4-g1",
+      "ticket": "docs/dispatch/tickets/WATER-W4-G1-CLEAN-HARDENING-20261026.md",
+      "report": "docs/dispatch/reports/WATER-W4-G1-REPORT.md",
+      "spec": "contracts/hardening-v1/CLEAN-HARDENING.md",
+      "expectedTests": [
+        "clean_plan_contract",
+        "clean_revalidation_skips",
+        "clean_no_follow",
+        "clean_partial_stop_journal",
+        "clean_report_volume",
+        "clean_handle_hardening"
+      ],
+      "proofTargets": {
+        "nc1": "CLEAN_REPARSE_KIND",
+        "nc2": "CLEAN_GUARD_ID",
+        "nc3": "CLEAN_NO_FOLLOW"
+      },
+      "allowedFiles": [
+        "docs/dispatch/reports/WATER-W4-G1-REPORT.md"
+      ],
+      "allowedPrefixes": [
+        "packages/junk-clean/",
+        "docs/acceptance/wave4/g1/",
+        "docs/acceptance/wave4/controller/accept-20261026/g1/"
+      ],
+      "evidenceDir": "docs/acceptance/wave4/controller/accept-20261026/g1/",
+      "allowedModes": [
+        "baseline",
+        "lock",
+        "check",
+        "test",
+        "archive",
+        "red-nc1",
+        "red-nc2",
+        "red-nc3"
+      ],
+      "expectedFinalModes": [
+        "check",
+        "test"
+      ],
+      "forbidPatterns": [
+        [
+          "\\bstd::fs\\b",
+          "Path-based file access (std::fs) is not allowed"
+        ],
+        [
+          "\\bfs::",
+          "Path-based file access (fs::) is not allowed"
+        ],
+        [
+          "\\bPath(?:Buf)?\\b",
+          "Path objects are not allowed; file access goes through handles"
+        ],
+        [
+          "\\b(?:remove_file|remove_dir|read_dir|symlink_metadata|set_permissions|OpenOptions)\\b",
+          "Path-based file operation is not allowed"
+        ]
+      ],
+      "allowedFfi": [
+        "CreateFileW",
+        "GetFileInformationByHandleEx",
+        "SetFileInformationByHandle",
+        "GetVolumeInformationByHandleW",
+        "GetDiskFreeSpaceExW",
+        "CloseHandle",
+        "NtOpenFile",
+        "RtlNtStatusToDosError"
+      ],
+      "realMode": null,
+      "browserBudget": 0,
+      "realDataPermission": "none; synthetic fixtures under own .local only",
+      "mustRead": [
+        "docs/dispatch/W4-HARDENING-WORKER-RULES.md",
+        "docs/dispatch/wave4/PLAN.md",
+        "contracts/hardening-v1/CLEAN-HARDENING.md",
+        "contracts/checkup-v1/CLEAN.md",
+        "docs/dispatch/tickets/WATER-W2-D-ADDENDUM-01-20261026.md",
+        "contracts/checkup-v1/MODEL.md",
+        "packages/junk-clean/src/native_windows.rs",
+        "packages/junk-clean/tests/clean_v1.rs"
+      ],
+      "frozenFiles": [
+        {
+          "path": "contracts/hardening-v1/CLEAN-HARDENING.md",
+          "sha256": "b22cfe2458d17303fd5ffde08899ef6df89c4484ba502c0d4af4139c8a18dc85"
+        },
+        {
+          "path": "contracts/checkup-v1/CLEAN.md",
+          "sha256": "95b5ad120c6d7a04d427318c09df8e58ba77d6f96167cb040bc07a33e5c5a55f"
+        }
+      ],
+      "baselineStatus": "PASSED",
+      "baselineEvidence": "docs/acceptance/wave4/controller/preflight/WATER-W4-G1-2026-10-26T13-00-07.314Z-30156-baseline-result.json",
+      "dispatchReportedAt": "2026-10-26T13:25:36Z",
+      "dispatchEvidence": "user chat 2026-10-26 22:25 JST: all three wave 4 tickets pasted; G1 and G2 to grokbot, G3 to Astra; worker trees clean at base 0ca42f8 when recorded",
+      "acceptsTask": "WATER-W4-G1",
+      "acceptsHead": "b593f0be97e7338bbe54c85e456ce3a8c4d0c7a0"
+    },
+    {
       "kind": "service",
       "outputRoot": "packages/water-service",
       "packageName": "water-service",
