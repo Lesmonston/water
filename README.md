@@ -8,7 +8,7 @@
 
 ## 从这里开始
 
-- [总控交接报告（2026-10-27 第 6 份，当前入口）](docs/CONTROLLER-HANDOFF-20261027-6.md)；[第 5 份](docs/CONTROLLER-HANDOFF-20261026-5.md)、[第 4 份](docs/CONTROLLER-HANDOFF-20261026-4.md)、[第 3 份](docs/CONTROLLER-HANDOFF-20261026-3.md)、[第 2 份](docs/CONTROLLER-HANDOFF-20261026-2.md)为历史
+- [总控交接报告（2026-10-27 第 7 份，当前入口）](docs/CONTROLLER-HANDOFF-20261027-7.md)；[第 6 份](docs/CONTROLLER-HANDOFF-20261027-6.md)、[第 5 份](docs/CONTROLLER-HANDOFF-20261026-5.md)、[第 4 份](docs/CONTROLLER-HANDOFF-20261026-4.md)、[第 3 份](docs/CONTROLLER-HANDOFF-20261026-3.md)、[第 2 份](docs/CONTROLLER-HANDOFF-20261026-2.md)为历史
 - [方向调整决定 ADR-018（2026-10-26）](docs/decisions/ADR-018-device-junk-checkup-and-in-app-cleanup.md)
 - [第二波派前回执：A–E READY](docs/dispatch/wave2/READY-REPORT-20261026.md)
 - [界面设计稿（白色磨砂玻璃）](docs/design/water-ui-v1/mockup.html)

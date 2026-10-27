@@ -9,7 +9,7 @@
 
 最新状态（2026-10-25）：A–AB及八补单、AD保持VERIFIED；AC/补单06新增VERIFIED（Windows静态桌面基础），AE仍仅研究文档VERIFIED。AC接收29a895d/实现eb7f801，原14产品字节及479归档/16,293,091字节已审计，隔离受测b417835已快进主线。06真实native两份raw2/main1/固定Tao1/未知无效0快照、四文案、正常exit0、私有profile及冻结childClose通过，5510ms；旧03–05失败保持，四次worker allocation已用。总控只做无UI独立Rustc库编译、原三测、137配置/73导航拒绝及26正向、实际快照复算和5根变体/四文案缺失拒绝；不额外开窗，不重跑Cargo/Tauri/旧负控或下载，未改产品与网络配置。旧542保持，总控5新条目/25继承锁共547约束；修正工具按执行前源SHA留档，其它30任务/槽位不变，无自动实现者。AC静态前置已解除，下一波仍须冻结接线接口/范围/测试后才READY；真实AA→AD、桌面扫描、用户scope/自然同意鉴真、生产竞态、macOS/M1未验收。 正式票/manifest及docs/acceptance/wave1/controller/WATER-W1-AC-ADDENDUM-06-REVIEW-20261025.md优先；AC及06无需重贴，旧native/resume入口不再使用。
 
-交接入口（2026-10-27 第 6 份，当前）：新总控先读[总控交接报告](docs/CONTROLLER-HANDOFF-20261027-6.md)；第 5 份[交接报告](docs/CONTROLLER-HANDOFF-20261026-5.md)、第 4 份[交接报告](docs/CONTROLLER-HANDOFF-20261026-4.md)、第 3 份[交接报告](docs/CONTROLLER-HANDOFF-20261026-3.md)、第 2 份[交接报告](docs/CONTROLLER-HANDOFF-20261026-2.md)、上午的[交接报告](docs/CONTROLLER-HANDOFF-20261026.md)与[只读状态快照](docs/handoff/20261026/STATE.json)仅供追溯。本次仅文档交接，产品与31任务/槽位状态保持；没有新READY票或自动执行者，AC旧native/resume入口不再使用。
+交接入口（2026-10-27 第 7 份，当前）：新总控先读[总控交接报告](docs/CONTROLLER-HANDOFF-20261027-7.md)；第 6 份[交接报告](docs/CONTROLLER-HANDOFF-20261027-6.md)、第 5 份[交接报告](docs/CONTROLLER-HANDOFF-20261026-5.md)、第 4 份[交接报告](docs/CONTROLLER-HANDOFF-20261026-4.md)、第 3 份[交接报告](docs/CONTROLLER-HANDOFF-20261026-3.md)、第 2 份[交接报告](docs/CONTROLLER-HANDOFF-20261026-2.md)、上午的[交接报告](docs/CONTROLLER-HANDOFF-20261026.md)与[只读状态快照](docs/handoff/20261026/STATE.json)仅供追溯。本次仅文档交接，产品与31任务/槽位状态保持；没有新READY票或自动执行者，AC旧native/resume入口不再使用。
 
 - 项目根：`F:/new/smaltalk/water`。用户指定后续开发、研究、文档、脚本与本项目产物全部放在此目录内。
 - 总控自 2026-10-26 由 Claude 接任（此前为 Codex），负责范围、任务分派、接口、集成、安全复核、验收与整体 UI 设计。用户保留产品与发布决定权。

@@ -1,8 +1,8 @@
 # Water 状态与交接
 
-更新时间：2026-10-27 18:50 JST（M1 达成；第四波 G1～G4 合入、主线整合通过；M2 准备三票 G5、G6 交 sol，G7 交 astra；第 6 份交接）。
+更新时间：2026-10-27 18:50 JST（M1 达成；第四波 G1～G4 合入、主线整合通过；M2 准备三票 G5、G6 交 sol，G7 交 astra；第 7 份交接）。
 
-更换总控请先读[最新交接报告（2026-10-27 第 6 份）](CONTROLLER-HANDOFF-20261027-6.md)；[第 5 份](CONTROLLER-HANDOFF-20261026-5.md)、[第 4 份](CONTROLLER-HANDOFF-20261026-4.md)、[第 3 份](CONTROLLER-HANDOFF-20261026-3.md)、[第 2 份](CONTROLLER-HANDOFF-20261026-2.md)、[上午那份](CONTROLLER-HANDOFF-20261026.md)及其只读状态快照仅供追溯。M1 已达成；第四波 G2、G3 已验收合入；G1 补单 01 执行者已在树里交回，待用户转告与总控第二轮验收（见第 6 份交接第 4 节）。此前[接手验收摘要](CONTROLLER-HANDOFF-20261017.md)仅供历史追溯；当前任务状态以本页、registry/manifest及最新正式验收为准。
+更换总控请先读[最新交接报告（2026-10-27 第 7 份）](CONTROLLER-HANDOFF-20261027-7.md)；[第 6 份](CONTROLLER-HANDOFF-20261027-6.md)、[第 5 份](CONTROLLER-HANDOFF-20261026-5.md)、[第 4 份](CONTROLLER-HANDOFF-20261026-4.md)、[第 3 份](CONTROLLER-HANDOFF-20261026-3.md)、[第 2 份](CONTROLLER-HANDOFF-20261026-2.md)、[上午那份](CONTROLLER-HANDOFF-20261026.md)及其只读状态快照仅供追溯。M1 已达成；第四波 G2、G3 已验收合入；G1 补单 01 执行者已在树里交回，待用户转告与总控第二轮验收（见第 6 份交接第 4 节）。此前[接手验收摘要](CONTROLLER-HANDOFF-20261017.md)仅供历史追溯；当前任务状态以本页、registry/manifest及最新正式验收为准。
 
 ## 已确认
 
