@@ -1,7 +1,7 @@
 {
   "schemaVersion": 1,
   "wave": "water-wave4-hardening",
-  "status": "G2_G3_VERIFIED_G1_ADDENDUM_02_READY_G4_READY",
+  "status": "G1_G2_G3_VERIFIED_G4_RUNNING",
   "controller": "Claude",
   "controllerRoot": "F:/new/smaltalk/water",
   "controllerBranch": "main",
@@ -51,7 +51,7 @@
       ],
       "cargoCacheSource": "F:/new/smaltalk/water/.worktrees/a/.local/cargo-home/registry",
       "nativeModule": "native_windows.rs",
-      "status": "CHANGES_REQUESTED",
+      "status": "VERIFIED",
       "baseCommit": "0ca42f8e8038a5a7816802c5a7f175a966b0625c",
       "snapshotRef": "refs/tags/water-w4-hardening-base-20261026",
       "readyOn": "2026-10-26",
@@ -162,8 +162,8 @@
       "baselineEvidence": "docs/acceptance/wave4/controller/preflight/WATER-W4-G1-2026-10-26T13-00-07.314Z-30156-baseline-result.json",
       "dispatchReportedAt": "2026-10-26T13:25:36Z",
       "dispatchEvidence": "user chat 2026-10-26 22:25 JST: all three wave 4 tickets pasted; G1 and G2 to grokbot, G3 to Astra; worker trees clean at base 0ca42f8 when recorded",
-      "submittedHead": "b593f0be97e7338bbe54c85e456ce3a8c4d0c7a0",
-      "implementationCommit": "bdd89bc8167607e08c5c4453b6290bad856ccf9e",
+      "submittedHead": "eed27526c796c2a64ec372f22a889091c841de38",
+      "implementationCommit": "24e36fb49dcb974238bf03a8cc0ec9fe242c44ad",
       "submittedAs": "COMPLETED",
       "controllerReview": {
         "reviewedAt": "2026-10-27T04:12:00Z",
@@ -198,11 +198,15 @@
         {
           "id": "WATER-W4-G1-ADDENDUM-02",
           "ticket": "docs/dispatch/tickets/WATER-W4-G1-ADDENDUM-02-20261027.md",
-          "status": "READY",
+          "status": "VERIFIED",
           "issuedAt": "2026-10-27T06:10:00Z",
           "resumeFromCommit": "23a6434d1e5308b0ff1893114c3c8d3f1d9f42e0",
           "change": "stop the item when a planned (snapshot) directory was replaced by anything; residual directory sum from a FileId-checked handle; an empty re-listing after a failed directory delete counts as a failure; an item replaced before deletion is not reported deleted (corrects addendum 01 item 4); nt_open rejects empty names; SAFETY alignment note; no new assertions; nc1-nc3 redone on the new source; only native_windows.rs",
-          "dispatchedAt": null
+          "dispatchedAt": null,
+          "dispatchEvidence": "worker commit 24e36fb4 at 15:15 JST after the addendum was issued; the user did not report the paste time",
+          "submittedHead": "eed27526c796c2a64ec372f22a889091c841de38",
+          "implementationCommit": "24e36fb49dcb974238bf03a8cc0ec9fe242c44ad",
+          "relayedAt": "2026-10-27T06:36:00Z"
         }
       ],
       "carryOverLater": [
@@ -228,6 +232,31 @@
         "from_utf16_lossy names with unpaired surrogates are silently not counted at delete",
         "links opened with delete-share: retag window between recheck and set_delete is inherent",
         "CLEAN_LONG_PATH regression of the \\?\\ prefix surfaces as an item() unwrap without the marker"
+      ],
+      "verifiedAt": "2026-10-27T06:55:00Z",
+      "acceptedCommit": "eed27526c796c2a64ec372f22a889091c841de38",
+      "integrationBranch": "main",
+      "mergeCommit": "0cd9db7e",
+      "controllerReview3": {
+        "reviewedAt": "2026-10-27T06:55:00Z",
+        "review": "docs/acceptance/wave4/controller/WATER-W4-G1-REVIEW-20261027.md (第三轮)",
+        "acceptedHead": "eed27526c796c2a64ec372f22a889091c841de38",
+        "evidence": "docs/acceptance/wave4/controller/accept3-20261027/g1/ (307 files, byte-identical to the acceptance tree)",
+        "controllerLogs": "docs/acceptance/wave4/controller/accept3-20261027/controller/",
+        "mechanicalAudit": "passed; 23a6434d ancestor; only native_windows.rs changed",
+        "freshTreeFinals": "lock, check --final, test --final passed in .worktrees/accept3-w4-g1",
+        "controllerMutants": "same as round 2: nc1-nc3, x1, x4, x6 killed; x2, x3 survive (race-only, covered by race cases); x5 fails only at the item() unwrap",
+        "controllerCases": "11 passed (100k timing skipped: lookup unchanged, G4 browser tests running on the same machine); directory replaced by a file now passes (stops, sibling kept)",
+        "caseMutants": "m1-m3 killed again; new m4 (stop decided by the live object) breaks the directory-replaced-by-file case",
+        "codeReview": "independent read-only agent: addendum 02 items 1-5 met, no regressions; remaining findings are race-only report accuracy (carryOverBeforeM2)",
+        "decision": "VERIFIED, merged --no-ff"
+      },
+      "carryOverBeforeM2": [
+        "item renamed away between the final snapshot and deletion is reported deleted with all bytes freed (SPEC step 8 gone = 0); decide by whether this run deleted the item itself, after amending step 8",
+        "a post-snapshot file counts one failure per ancestor directory (addendum 01 item 6 literal rule vs SPEC intent)",
+        "snapshot lookup is case-sensitive: a planned directory replaced by a case-only different name is treated as new and does not stop the item (siblings still FileId-checked)",
+        "removed = 0 with a shrinking residual reports failed with bytes_freed > 0",
+        "three comment lines lost a trailing r (othe, rathe) from the worker editing tool"
       ]
     },
     {
@@ -643,13 +672,13 @@
       "fixtures": "contracts/checkup-v1/ui-fixtures.json",
       "browserHelper": "scripts/acceptance/native-vw-private-browser.mjs",
       "screenshotDirEnv": "WATER_W2_SHOTS_DIR",
-      "status": "READY",
+      "status": "RUNNING",
       "baseCommit": "e5b90db1b9a660b97d337c8b2d8b336335f98487",
       "snapshotRef": null,
       "readyOn": "2026-10-27",
       "dispatchedAt": null,
-      "startedAt": null,
-      "model": null,
+      "startedAt": "2026-10-27T06:33:21Z",
+      "model": "Opus 5.5 (user-reported)",
       "modelAssignment": "user-arranged; report actual engine/model",
       "macOS": "unverified",
       "outputRootExists": true,
@@ -786,7 +815,10 @@
       "userDecision": "2026-10-27: iceberg original (DESIGN section 10); nav icon pulse (A of pulse, scan frame, gauge, magnifier)",
       "controllerAcceptanceExtra": "host build with the new icon.ico; icon.ico sha256 equals the brand export",
       "baselineStatus": "PASSED",
-      "baselineEvidence": "docs/acceptance/wave4/controller/preflight/WATER-W4-G4-2026-10-27T06-23-49.855Z-36372-baseline-result.json"
+      "baselineEvidence": "docs/acceptance/wave4/controller/preflight/WATER-W4-G4-2026-10-27T06-23-49.855Z-36372-baseline-result.json",
+      "dispatchReportedAt": "2026-10-27T06:36:00Z",
+      "dispatchEvidence": "user chat 2026-10-27 ~15:36 JST: G4 dispatched to Opus 5.5",
+      "startEvidence": "worker baseline receipt 2026-10-27T06-33-21.212Z-8100 (in .worktrees/w4-g4/.local/checks/WATER-W4-G4); edits to app.mjs, index.html, app.css observed 06:37Z"
     }
   ],
   "selfTest": {

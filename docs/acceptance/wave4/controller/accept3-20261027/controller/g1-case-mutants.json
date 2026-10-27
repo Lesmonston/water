@@ -1,0 +1,34 @@
+[
+ {
+  "label": "m1",
+  "item": 1,
+  "filter": "controller_race_link_retagged",
+  "old": "if a & REPARSE != 0 && t & NAME_SURROGATE != 0 && id == exp_id =>",
+  "new": "if a & REPARSE != 0 =>",
+  "why": "the link branch only checks that the object is still a reparse point (round 1 behaviour)"
+ },
+ {
+  "label": "m2",
+  "item": 5,
+  "filter": "controller_race_directory_replaced",
+  "old": "                        // The directory was replaced under us: stop deleting this item.\n                        self.failed += 1;\n                        self.changed_stop = true;\n",
+  "new": "                        // The directory was replaced under us: stop deleting this item.\n                        self.failed += 1;\n",
+  "why": "a replaced directory is counted but deletion goes on with its siblings"
+ },
+ {
+  "label": "m3",
+  "item": 6,
+  "filter": "controller_race_file_replaced_and_late_arrival",
+  "old": "self.expected(&crel).is_none()",
+  "new": "false",
+  "why": "a directory left non-empty only by post-snapshot files is counted as a failure"
+ },
+ {
+  "label": "m4",
+  "item": "addendum 02 item 1",
+  "filter": "controller_race_directory_replaced_by_file",
+  "old": "if snap_attr & DIRECTORY != 0 && snap_attr & REPARSE == 0 {",
+  "new": "if kid.attr & DIRECTORY != 0 && kid.attr & REPARSE == 0 {",
+  "why": "the stop decision goes back to the live object (round 2 behaviour): a planned directory replaced by a file no longer stops the item"
+ }
+]
