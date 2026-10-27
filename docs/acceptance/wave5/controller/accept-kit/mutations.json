@@ -1,0 +1,129 @@
+{
+ "h1": [
+  {
+   "label": "nc1",
+   "mode": "red-nc1",
+   "token": "CLEAN_FREED_EXACT",
+   "file": "packages/junk-clean/src/native_windows.rs",
+   "old": ".then_some((std_info.end_of_file.max(0) as u64, std_info.links))",
+   "new": ".then_some((std_info.end_of_file.max(0) as u64, 1))",
+   "why": "the link count read from FileStandardInfo is replaced by 1, so a file with another hard link is counted as freed (worker nc1 flipped the links <= 1 comparison instead)"
+  },
+  {
+   "label": "nc2",
+   "mode": "red-nc2",
+   "token": "CLEAN_UNPAIRED_NAME",
+   "file": "packages/junk-clean/src/native_windows.rs",
+   "old": "units.iter().map(|u| format!(\"{u:04x}\")).collect::<String>()",
+   "new": "String::from_utf16_lossy(units)",
+   "why": "the private key for a name that is not valid UTF-16 becomes lossy, so two different unpaired names collide (worker nc2 dropped the failure count instead)"
+  },
+  {
+   "label": "nc3",
+   "mode": "red-nc3",
+   "token": "CLEAN_DEEP_TREE",
+   "file": "packages/junk-clean/src/native_windows.rs",
+   "old": "push_snap_dir(parent, &raw.name, rel, stack)?;",
+   "new": "if stack.len() < 1024 { push_snap_dir(parent, &raw.name, rel, stack)?; }",
+   "why": "the snapshot walk stops descending below 1024 levels, so the deep part of the tree is never planned (worker nc3 capped the delete stack instead)"
+  }
+ ],
+ "h2": [
+  {
+   "label": "nc1",
+   "mode": "red-nc1",
+   "token": "SERVICE_PANIC_IDLE",
+   "file": "packages/water-service/src/clean.rs",
+   "old": "Err(_) if panicked=>s.clean_progress=idle(),",
+   "new": "Err(_) if false=>s.clean_progress=idle(),",
+   "why": "a panic inside the clean thread leaves clean_progress as a failed run instead of the idle object (worker nc1 set busy before the prep guard instead)"
+  },
+  {
+   "label": "nc2",
+   "mode": "red-nc2",
+   "token": "SERVICE_SCAN_RECORD",
+   "file": "packages/water-service/src/service.rs",
+   "old": "            if stored.is_ok() {\n                s.scan_progress[\"state\"] = json!(status);",
+   "new": "            if stored.is_ok() || completed {\n                s.scan_progress[\"state\"] = json!(status);",
+   "why": "a completed scan whose record write failed is still treated as written, so last stays on it (worker nc2 deleted the rollback lines instead)"
+  },
+  {
+   "label": "nc3",
+   "mode": "red-nc3",
+   "token": "SERVICE_CUSTOM_ROOT",
+   "file": "packages/water-service/src/service.rs",
+   "old": "util::contains(path, p) || util::contains(path, &canon)",
+   "new": "util::contains(path, p) && util::contains(path, &canon)",
+   "why": "a known folder must match in both forms, so one reached through a junction slips through (worker nc3 kept only the canonical form instead)"
+  }
+ ],
+ "h3": [
+  {
+   "label": "nc1",
+   "mode": "red-nc1",
+   "token": "HOST_BACKEND_RELEASE",
+   "file": "apps/water/host/src/lib.rs",
+   "old": "        guard.take()\n",
+   "new": "        guard.take().inspect(|b| std::mem::forget(Arc::clone(b)))\n",
+   "why": "take leaks one reference, so the service is never released (worker nc1 left the backend in the slot instead)"
+  },
+  {
+   "label": "nc2",
+   "mode": "red-nc2",
+   "token": "HOST_CLOSE_DURING_CLEAN",
+   "file": "apps/water/host/src/lib.rs",
+   "old": "    while is_cleaning(backend) {",
+   "new": "    if is_cleaning(backend) {",
+   "why": "close waits one poll instead of until the clean has stopped (worker nc2 skipped clean_stop instead)"
+  },
+  {
+   "label": "nc3",
+   "mode": "red-nc3",
+   "token": "HOST_CLEAN_ENABLED",
+   "file": "apps/water/host/src/service.rs",
+   "old": "clean_enabled: CLEAN_ENABLED,",
+   "new": "clean_enabled: !CLEAN_ENABLED,",
+   "why": "the production service config inverts the switch (worker nc3 turned the constant off instead)"
+  }
+ ],
+ "h4": [
+  {
+   "label": "nc1",
+   "mode": "red-nc1",
+   "token": "UI_CLEAN_SCOPE",
+   "file": "apps/water/ui/app.mjs",
+   "old": "const inScope = () => version === routeVersion && origin === location.hash;",
+   "new": "const inScope = () => true;",
+   "why": "every command result counts as in scope, so a late clean_prepare opens the dialog on the new page (worker nc1 removed the prepare check instead)"
+  },
+  {
+   "label": "nc2",
+   "mode": "red-nc2",
+   "token": "UI_NOTICE_SCOPE",
+   "file": "apps/water/ui/app.mjs",
+   "old": "if (read && !(missingOnly && state[current]))",
+   "new": "if (read && !missingOnly)",
+   "why": "the reconnect pass never re-reads the current page (worker nc2 removed the loadRoute call instead)"
+  },
+  {
+   "label": "nc3",
+   "mode": "red-nc3",
+   "token": "UI_STOP_FEEDBACK",
+   "file": "apps/water/ui/app.mjs",
+   "old": "state.error = ''; state.stopFailed = false;",
+   "new": "state.error = '';",
+   "why": "leaving the page keeps the stop-failure line, so it shows again on return (worker nc3 never set the flag instead)"
+  }
+ ],
+ "h5": [
+  {
+   "label": "nc1",
+   "mode": "red-nc1",
+   "token": "RULES_RUST_BUILD",
+   "file": "packages/junk-rules/src/plan.rs",
+   "old": "marker: marker.clone(),\n                                max_depth: *max_depth,",
+   "new": "marker: marker.clone(),\n                                max_depth: (*max_depth).min(8),",
+   "why": "plan resolution caps a marker depth at 8, so the Rust build-directory target loses depth 12 (worker nc1 changed the marker decode in rules.rs instead; the gate refuses a rule-data-only change)"
+  }
+ ]
+}

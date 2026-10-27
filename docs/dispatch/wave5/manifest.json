@@ -1,7 +1,7 @@
 {
   "schemaVersion": 1,
   "wave": "water-wave5-m2",
-  "status": "H1_H2_H3_H4_DISPATCHED_H5_BLOCKED_ADDENDUM_01_READY",
+  "status": "H1_H5_SUBMITTED_ACCEPTANCE_IN_PROGRESS_H1_ADDENDUM_01_PENDING",
   "controller": "Claude",
   "controllerRoot": "F:/new/smaltalk/water",
   "controllerBranch": "main",
@@ -141,7 +141,7 @@
       "branch": "worker/water-w5-h1",
       "baseCommit": "3f9078972d7f958fad6bfd42e68f022dd659539e",
       "snapshotRef": "refs/tags/water-w5-m2-base-20261027",
-      "status": "DISPATCHED",
+      "status": "SUBMITTED",
       "readyOn": "2026-10-27",
       "dispatchedAt": null,
       "startedAt": null,
@@ -196,7 +196,14 @@
       "baselineStatus": "PASSED",
       "baselineEvidence": "docs/acceptance/wave5/controller/preflight-20261027/WATER-W5-H1-2026-10-27T13-11-08.197Z-14464-baseline-result.json",
       "dispatchReportedAt": "2026-10-27T13:36:00Z",
-      "dispatchEvidence": "user chat 2026-10-27 ~22:36 JST: H1, H2, H3 to Cursor; H5 to sol; H4 to opus; worker trees still clean at base 3f907897 with only the controller preflight receipt when recorded"
+      "dispatchEvidence": "user chat 2026-10-27 ~22:36 JST: H1, H2, H3 to Cursor; H5 to sol; H4 to opus; worker trees still clean at base 3f907897 with only the controller preflight receipt when recorded",
+      "workerSelfReport": "Codex GPT-6 (took over the original Cursor conversation)",
+      "submittedHead": "9f49e8b9215f4fab0fb555314d356b40f4676ad1",
+      "implementationCommit": "0dc44d458bffc0b4e8bfbae929d9fe7e8585a276",
+      "relayedAt": "2026-10-27T15:40:00Z",
+      "relayEvidence": "user chat 2026-10-28 ~00:40 JST: all external tasks done",
+      "acceptanceProgress": "audit clean; acceptance tree lock/check/test/check --final passed; controller nc1-nc3 killed; test --final passed; 9 new controller cases pass (8 fail on the pre-M2 source); wave 4 G5 7/7 and G1 12/12 unchanged; 100k in 15.5 s; 4000-deep tree on 256 KiB passes (old source STATUS_STACK_OVERFLOW). Independent review: medium - a directory whose name is not valid UTF-16 is not expanded in the snapshot, so whole-item vetoes cannot see inside it (the base skipped the whole item). Decision: addendum 01 required before merge (not yet written).",
+      "acceptanceNote": "docs/acceptance/wave5/controller/WATER-W5-ACCEPT-PROGRESS-20261028.md"
     },
     {
       "kind": "service",
@@ -311,7 +318,7 @@
       "branch": "worker/water-w5-h2",
       "baseCommit": "3f9078972d7f958fad6bfd42e68f022dd659539e",
       "snapshotRef": "refs/tags/water-w5-m2-base-20261027",
-      "status": "DISPATCHED",
+      "status": "SUBMITTED",
       "readyOn": "2026-10-27",
       "dispatchedAt": null,
       "startedAt": null,
@@ -363,7 +370,14 @@
       "baselineStatus": "PASSED",
       "baselineEvidence": "docs/acceptance/wave5/controller/preflight-20261027/WATER-W5-H2-2026-10-27T13-11-13.459Z-43720-baseline-result.json",
       "dispatchReportedAt": "2026-10-27T13:36:00Z",
-      "dispatchEvidence": "user chat 2026-10-27 ~22:36 JST: H1, H2, H3 to Cursor; H5 to sol; H4 to opus; worker trees still clean at base 3f907897 with only the controller preflight receipt when recorded"
+      "dispatchEvidence": "user chat 2026-10-27 ~22:36 JST: H1, H2, H3 to Cursor; H5 to sol; H4 to opus; worker trees still clean at base 3f907897 with only the controller preflight receipt when recorded",
+      "workerSelfReport": "Cursor Grok 4.6",
+      "submittedHead": "5fcbe2a3fd834646e08fb29a88ee6e8e18c6aef0",
+      "implementationCommit": "17cab09cdd744a893edff2c495a378a81e0a380c",
+      "relayedAt": "2026-10-27T15:40:00Z",
+      "relayEvidence": "user chat 2026-10-28 ~00:40 JST: all external tasks done",
+      "acceptanceProgress": "audit clean; independent review: no blocker (two medium items trace to SERVICE-M2 itself: idle clean_progress after a panic, mklink junction fixture). Acceptance tree gates not yet run.",
+      "acceptanceNote": "docs/acceptance/wave5/controller/WATER-W5-ACCEPT-PROGRESS-20261028.md"
     },
     {
       "kind": "host",
@@ -626,7 +640,7 @@
       "branch": "worker/water-w5-h3",
       "baseCommit": "3f9078972d7f958fad6bfd42e68f022dd659539e",
       "snapshotRef": "refs/tags/water-w5-m2-base-20261027",
-      "status": "DISPATCHED",
+      "status": "SUBMITTED",
       "readyOn": "2026-10-27",
       "dispatchedAt": null,
       "startedAt": null,
@@ -733,7 +747,14 @@
       "baselineStatus": "PASSED",
       "baselineEvidence": "docs/acceptance/wave5/controller/preflight-20261027/WATER-W5-H3-2026-10-27T13-11-17.639Z-1824-baseline-result.json",
       "dispatchReportedAt": "2026-10-27T13:36:00Z",
-      "dispatchEvidence": "user chat 2026-10-27 ~22:36 JST: H1, H2, H3 to Cursor; H5 to sol; H4 to opus; worker trees still clean at base 3f907897 with only the controller preflight receipt when recorded"
+      "dispatchEvidence": "user chat 2026-10-27 ~22:36 JST: H1, H2, H3 to Cursor; H5 to sol; H4 to opus; worker trees still clean at base 3f907897 with only the controller preflight receipt when recorded",
+      "workerSelfReport": "Grok 4.7; commits authored as Riku Toto via process env",
+      "submittedHead": "06662d68c4d9191e4baf52094f10523d5e6caad2",
+      "implementationCommit": "19d32a33bb6d79085230a9e989f211065760c644",
+      "relayedAt": "2026-10-27T15:40:00Z",
+      "relayEvidence": "user chat 2026-10-28 ~00:40 JST: all external tasks done",
+      "acceptanceProgress": "audit clean; independent review: no blocker (medium outside the spec: OS shutdown skips the close guard). Acceptance tree gates and native window not yet run.",
+      "acceptanceNote": "docs/acceptance/wave5/controller/WATER-W5-ACCEPT-PROGRESS-20261028.md"
     },
     {
       "kind": "ui",
@@ -820,7 +841,7 @@
       "branch": "worker/water-w5-h4",
       "baseCommit": "3f9078972d7f958fad6bfd42e68f022dd659539e",
       "snapshotRef": "refs/tags/water-w5-m2-base-20261027",
-      "status": "DISPATCHED",
+      "status": "SUBMITTED",
       "readyOn": "2026-10-27",
       "dispatchedAt": null,
       "startedAt": null,
@@ -898,7 +919,14 @@
       "baselineStatus": "PASSED",
       "baselineEvidence": "docs/acceptance/wave5/controller/preflight-20261027/WATER-W5-H4-2026-10-27T13-11-31.506Z-42284-baseline-result.json",
       "dispatchReportedAt": "2026-10-27T13:36:00Z",
-      "dispatchEvidence": "user chat 2026-10-27 ~22:36 JST: H1, H2, H3 to Cursor; H5 to sol; H4 to opus; worker trees still clean at base 3f907897 with only the controller preflight receipt when recorded"
+      "dispatchEvidence": "user chat 2026-10-27 ~22:36 JST: H1, H2, H3 to Cursor; H5 to sol; H4 to opus; worker trees still clean at base 3f907897 with only the controller preflight receipt when recorded",
+      "workerSelfReport": "Claude Opus 5.5; commits authored as Riku Toto via process env",
+      "submittedHead": "e91a8ddf5ffb20458fb9051566974cf26cf8c3da",
+      "implementationCommit": "8ec13f1e093ed89d5acc42c530a5b9c2eae5a61a",
+      "relayedAt": "2026-10-27T15:40:00Z",
+      "relayEvidence": "user chat 2026-10-28 ~00:40 JST: all external tasks done",
+      "acceptanceProgress": "audit clean; acceptance tree check/test/browser and both finals passed; controller nc1-nc3 killed; test --final passed; independent review: no blocker. Screenshots not yet viewed.",
+      "acceptanceNote": "docs/acceptance/wave5/controller/WATER-W5-ACCEPT-PROGRESS-20261028.md"
     },
     {
       "kind": "rust",
@@ -949,7 +977,7 @@
       "branch": "worker/water-w5-h5",
       "baseCommit": "3f9078972d7f958fad6bfd42e68f022dd659539e",
       "snapshotRef": "refs/tags/water-w5-m2-base-20261027",
-      "status": "BLOCKED",
+      "status": "SUBMITTED",
       "readyOn": "2026-10-27",
       "dispatchedAt": null,
       "startedAt": "2026-10-27T13:34:48Z",
@@ -999,18 +1027,27 @@
       "blockedAt": "2026-10-27T13:42:13Z",
       "blockedCommit": "d6c83ea92996b148a585a3d6719c6a9e8babf25c",
       "blockedReason": "ticket line 45 froze all existing assertions, but a new rule must change two literal counts in rules_v1.rs (60 -> 61 rules, 214 -> 216 plan targets); controller ticket gap, confirmed read-only",
-      "relayedAt": "2026-10-27T13:44:00Z",
+      "relayedAt": "2026-10-27T15:40:00Z",
       "addenda": [
         {
           "id": "WATER-W5-H5-ADDENDUM-01",
           "ticket": "docs/dispatch/tickets/WATER-W5-H5-ADDENDUM-01-20261027.md",
-          "status": "READY",
+          "status": "SUBMITTED",
           "issuedAt": "2026-10-27T13:48:00Z",
           "resumeFromCommit": "d6c83ea92996b148a585a3d6719c6a9e8babf25c",
           "change": "authorize exactly three old literals in rules_v1.rs: embedded rule count 60 -> 61, plan target count 214 -> 216, rules_data_version 2026-10-26.2 -> 2026-10-27.1; windows.json data_version bumped to 2026-10-27.1 (rules_version unchanged); the subset test input keeps 2026-10-26.2; new assertions as SPEC section 3 with RULES_RUST_BUILD; no baseline rerun",
-          "dispatchedAt": null
+          "dispatchedAt": null,
+          "submittedHead": "c8dca495e74461d97c4509476cb017dd8f791e2e",
+          "implementationCommit": "1e3fc3b6b399d503abe0b7478a551fbf0ed011d5",
+          "dispatchEvidence": "worker commits 1e3fc3b6 (23:08 JST) after the addendum was issued; the user did not report the paste time"
         }
-      ]
+      ],
+      "workerSelfReport": "Codex GPT-6",
+      "submittedHead": "c8dca495e74461d97c4509476cb017dd8f791e2e",
+      "implementationCommit": "1e3fc3b6b399d503abe0b7478a551fbf0ed011d5",
+      "relayEvidence": "user chat 2026-10-28 ~00:40 JST: all external tasks done",
+      "acceptanceProgress": "audit clean; acceptance tree lock/check/test, check --final, real --final passed; controller nc1 (plan.rs marker depth capped at 8) killed after a rule-data mutation was refused by the gate; test --final passed; controller read the full diff. Ready to merge.",
+      "acceptanceNote": "docs/acceptance/wave5/controller/WATER-W5-ACCEPT-PROGRESS-20261028.md"
     }
   ],
   "preflight": {
