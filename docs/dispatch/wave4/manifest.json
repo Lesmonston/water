@@ -1,7 +1,7 @@
 {
   "schemaVersion": 1,
   "wave": "water-wave4-hardening",
-  "status": "G2_G3_VERIFIED_G1_ADDENDUM",
+  "status": "G2_G3_VERIFIED_G1_ADDENDUM_SUBMITTED",
   "controller": "Claude",
   "controllerRoot": "F:/new/smaltalk/water",
   "controllerBranch": "main",
@@ -51,7 +51,7 @@
       ],
       "cargoCacheSource": "F:/new/smaltalk/water/.worktrees/a/.local/cargo-home/registry",
       "nativeModule": "native_windows.rs",
-      "status": "ADDENDUM_READY",
+      "status": "ADDENDUM_DISPATCHED",
       "baseCommit": "0ca42f8e8038a5a7816802c5a7f175a966b0625c",
       "snapshotRef": "refs/tags/water-w4-hardening-base-20261026",
       "readyOn": "2026-10-26",
@@ -180,11 +180,16 @@
         {
           "id": "WATER-W4-G1-ADDENDUM-01",
           "ticket": "docs/dispatch/tickets/WATER-W4-G1-ADDENDUM-01-20261027.md",
-          "status": "READY",
+          "status": "SUBMITTED_NOT_RELAYED",
           "issuedAt": "2026-10-27T04:12:00Z",
           "resumeFromCommit": "b593f0be97e7338bbe54c85e456ce3a8c4d0c7a0",
           "change": "link delete rechecks tag and FileId; identity from the item handle (relaxes step 2.5: re-walk allowed with FileId checks); enumerate distinguishes end from error; residual by handle; changed directory stops the item; new entries not counted; non-linear snapshot lookup; 255-unit name cap; checked FILETIME math; unsafe bounds and handle hygiene; unreadable ancestor identity is changed and the drive root joins ancestors; three new assertions; nc1-nc3 redone",
-          "dispatchedAt": null
+          "dispatchedAt": null,
+          "dispatchEvidence": "worker commits in the G1 tree after the addendum was issued; the user did not report the paste time",
+          "observedAt": "2026-10-27T05:28:16Z",
+          "observedHead": "23a6434d",
+          "observedImplementation": "2b6fb535",
+          "observedNote": "receipt first line says completed; b593f0be is an ancestor (no rewrite); not yet relayed or accepted"
         }
       ],
       "carryOverLater": [
