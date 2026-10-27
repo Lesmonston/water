@@ -1,0 +1,57 @@
+{"binary":"C:\\Program Files\\nodejs\\node.exe","args":["--test","--test-concurrency=1","--test-reporter=tap","apps/water/ui/tests/browser.test.mjs"],"exitCode":1,"error":null}
+--- stdout ---
+TAP version 13
+# Subtest: ui_home_and_scan
+ok 1 - ui_home_and_scan
+  ---
+  duration_ms: 7450.4859
+  type: 'test'
+  ...
+# Subtest: ui_results_detail_confirm
+ok 2 - ui_results_detail_confirm
+  ---
+  duration_ms: 3931.1969
+  type: 'test'
+  ...
+# Subtest: ui_clean_done_and_pages
+ok 3 - ui_clean_done_and_pages
+  ---
+  duration_ms: 15449.5607
+  type: 'test'
+  ...
+# Subtest: ui_layout_states_a11y
+ok 4 - ui_layout_states_a11y
+  ---
+  duration_ms: 20041.048
+  type: 'test'
+  ...
+# Subtest: ui_m1_polish
+not ok 5 - ui_m1_polish
+  ---
+  duration_ms: 3569.5062
+  type: 'test'
+  location: 'F:\\new\\smaltalk\\water\\.worktrees\\w4-g7\\apps\\water\\ui\\tests\\browser.test.mjs:384:1'
+  failureType: 'testCodeFailure'
+  error: 'UI_BRAND_MARK: populated history: the retired drop is neither in the sprite nor referenced'
+  code: 'ERR_ASSERTION'
+  name: 'AssertionError'
+  expected: true
+  actual: false
+  operator: '=='
+  stack: |-
+    noDrop (file:///F:/new/smaltalk/water/.worktrees/w4-g7/apps/water/ui/tests/browser.test.mjs:397:33)
+    async TestContext.<anonymous> (file:///F:/new/smaltalk/water/.worktrees/w4-g7/apps/water/ui/tests/browser.test.mjs:424:3)
+    async Test.run (node:internal/test_runner/test:1313:7)
+    async Test.processPendingSubtests (node:internal/test_runner/test:897:7)
+  ...
+1..5
+# tests 5
+# suites 0
+# pass 4
+# fail 1
+# cancelled 0
+# skipped 0
+# todo 0
+# duration_ms 51677.5849
+
+--- stderr ---
