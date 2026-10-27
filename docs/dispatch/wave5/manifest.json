@@ -1,7 +1,7 @@
 {
   "schemaVersion": 1,
   "wave": "water-wave5-m2",
-  "status": "H1_H2_H3_H4_H5_DISPATCHED",
+  "status": "H1_H2_H3_H4_DISPATCHED_H5_BLOCKED_ADDENDUM_01_READY",
   "controller": "Claude",
   "controllerRoot": "F:/new/smaltalk/water",
   "controllerBranch": "main",
@@ -942,9 +942,6 @@
       "browserBudget": 0,
       "realDataPermission": "read-only metadata per ADR-018",
       "macOS": "unverified",
-      "integrationCommit": "f57ab7eddeba554c7739bc77b25dcb5837c08b14",
-      "addendumModel": "Grok Bot (worker self-report, addendum 01)",
-      "verificationScope": "Windows x64, offline Rust 1.95 / Node 24 gates in a fresh controller tree; controller negative controls; real path-existence smoke. macOS not verified.",
       "id": "WATER-W5-H5",
       "title": "Rust 构建目录规则",
       "slot": "w5-h5",
@@ -952,11 +949,11 @@
       "branch": "worker/water-w5-h5",
       "baseCommit": "3f9078972d7f958fad6bfd42e68f022dd659539e",
       "snapshotRef": "refs/tags/water-w5-m2-base-20261027",
-      "status": "DISPATCHED",
+      "status": "BLOCKED",
       "readyOn": "2026-10-27",
       "dispatchedAt": null,
-      "startedAt": null,
-      "model": "sol (user-reported)",
+      "startedAt": "2026-10-27T13:34:48Z",
+      "model": "sol (user-reported); worker self-report: Codex GPT-6",
       "modelAssignment": "user-arranged; report actual engine/model",
       "purpose": "M2",
       "report": "docs/dispatch/reports/WATER-W5-H5-REPORT.md",
@@ -997,7 +994,23 @@
       "baselineStatus": "PASSED",
       "baselineEvidence": "docs/acceptance/wave5/controller/preflight-20261027/WATER-W5-H5-2026-10-27T13-11-34.134Z-40340-baseline-result.json",
       "dispatchReportedAt": "2026-10-27T13:36:00Z",
-      "dispatchEvidence": "user chat 2026-10-27 ~22:36 JST: H1, H2, H3 to Cursor; H5 to sol; H4 to opus; worker trees still clean at base 3f907897 with only the controller preflight receipt when recorded"
+      "dispatchEvidence": "user chat 2026-10-27 ~22:36 JST: H1, H2, H3 to Cursor; H5 to sol; H4 to opus; worker trees still clean at base 3f907897 with only the controller preflight receipt when recorded",
+      "startEvidence": "worker baseline receipt 2026-10-27T13-34-48.928Z in docs/acceptance/wave5/h5/receipts",
+      "blockedAt": "2026-10-27T13:42:13Z",
+      "blockedCommit": "d6c83ea92996b148a585a3d6719c6a9e8babf25c",
+      "blockedReason": "ticket line 45 froze all existing assertions, but a new rule must change two literal counts in rules_v1.rs (60 -> 61 rules, 214 -> 216 plan targets); controller ticket gap, confirmed read-only",
+      "relayedAt": "2026-10-27T13:44:00Z",
+      "addenda": [
+        {
+          "id": "WATER-W5-H5-ADDENDUM-01",
+          "ticket": "docs/dispatch/tickets/WATER-W5-H5-ADDENDUM-01-20261027.md",
+          "status": "READY",
+          "issuedAt": "2026-10-27T13:48:00Z",
+          "resumeFromCommit": "d6c83ea92996b148a585a3d6719c6a9e8babf25c",
+          "change": "authorize exactly three old literals in rules_v1.rs: embedded rule count 60 -> 61, plan target count 214 -> 216, rules_data_version 2026-10-26.2 -> 2026-10-27.1; windows.json data_version bumped to 2026-10-27.1 (rules_version unchanged); the subset test input keeps 2026-10-26.2; new assertions as SPEC section 3 with RULES_RUST_BUILD; no baseline rerun",
+          "dispatchedAt": null
+        }
+      ]
     }
   ],
   "preflight": {

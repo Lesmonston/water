@@ -45,3 +45,8 @@
 
 界面票（交前端强的模型）：
 - WATER-W5-H4：`你接手 Water 项目 WATER-W5-H4（界面 M2，轻门）。先读 F:/new/smaltalk/water/docs/dispatch/tickets/WATER-W5-H4-UI-M2-20261027.md，按其中列出的顺序读规则与契约，在 F:/new/smaltalk/water/.worktrees/w5-h4（分支 worker/water-w5-h4）从 3f907897 开工。`
+
+## 补单
+
+- **WATER-W5-H5 补单 01**（10-27）：执行者受阻，原票“原有断言不变”没考虑新增规则带来的数量变化。补单只授权改三处旧字面值（规则数 60→61、目标数 214→216、数据版本 `2026-10-26.2`→`2026-10-27.1`），并把 `windows.json` 的数据版本加一。从回执提交 `d6c83ea9` 续做，不重跑 baseline。
+  - WATER-W5-H5 补单 01：`你继续 Water 项目 WATER-W5-H5（Rust 构建目录规则，轻门）补单 01。先读 F:/new/smaltalk/water/docs/dispatch/tickets/WATER-W5-H5-ADDENDUM-01-20261027.md，按其中列出的顺序读原票、规则、契约与上一轮回执，在 F:/new/smaltalk/water/.worktrees/w5-h5（分支 worker/water-w5-h5）从 d6c83ea92996b148a585a3d6719c6a9e8babf25c 续做。`
