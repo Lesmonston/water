@@ -1,4 +1,4 @@
-use crate::{Backend, HostContext, IpcFailure, StartupError, pick_folder};
+use crate::{Backend, HostContext, IpcFailure, StartupError, UnavailableBackend, pick_folder};
 use serde_json::Value;
 use std::sync::{
     Arc,
@@ -74,4 +74,12 @@ pub fn service_config(ctx: &HostContext) -> ServiceConfig {
 pub fn service_backend(ctx: &HostContext) -> Result<Arc<dyn Backend>, StartupError> {
     let service = Service::new(service_config(ctx)).map_err(|_| StartupError::Failed)?;
     Ok(Arc::new(ServiceBackend(service)))
+}
+
+/// Keep the window usable when service initialization fails after host setup.
+pub fn backend_or_unavailable<F>(make_backend: F, ctx: &HostContext) -> Arc<dyn Backend>
+where
+    F: FnOnce(&HostContext) -> Result<Arc<dyn Backend>, StartupError>,
+{
+    make_backend(ctx).unwrap_or_else(|_| Arc::new(UnavailableBackend))
 }

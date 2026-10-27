@@ -1,7 +1,8 @@
 use std::{
     fmt,
-    fs::OpenOptions,
+    fs::{self, Metadata, OpenOptions},
     path::{Path, PathBuf},
+    time::SystemTime,
 };
 
 pub struct HostContext {
@@ -48,4 +49,54 @@ pub fn acquire_instance_lock(data_dir: &Path) -> Result<InstanceLock, StartupErr
             Some(32) => StartupError::AlreadyRunning,
             _ => StartupError::Failed,
         })
+}
+
+fn plain_signal(metadata: &Metadata) -> bool {
+    if !metadata.is_file() || metadata.file_type().is_symlink() {
+        return false;
+    }
+    #[cfg(windows)]
+    {
+        use std::os::windows::fs::MetadataExt;
+        if metadata.file_attributes() & 0x400 != 0 {
+            return false;
+        }
+    }
+    true
+}
+
+/// Notify the running instance without reading or following the signal file.
+pub fn signal_activation(data_dir: &Path) -> Result<(), StartupError> {
+    let path = data_dir.join("activate.signal");
+    match fs::symlink_metadata(&path) {
+        Ok(metadata) if !plain_signal(&metadata) => return Err(StartupError::Failed),
+        Err(error) if error.kind() != std::io::ErrorKind::NotFound => {
+            return Err(StartupError::Failed);
+        }
+        _ => {}
+    }
+    let mut options = OpenOptions::new();
+    options.write(true).create(true).truncate(false);
+    #[cfg(windows)]
+    {
+        use std::os::windows::fs::OpenOptionsExt;
+        // FILE_FLAG_OPEN_REPARSE_POINT: check the opened object before changing it.
+        options.custom_flags(0x0020_0000);
+    }
+    let file = options.open(path).map_err(|_| StartupError::Failed)?;
+    if !plain_signal(&file.metadata().map_err(|_| StartupError::Failed)?) {
+        return Err(StartupError::Failed);
+    }
+    file.set_len(0).map_err(|_| StartupError::Failed)?;
+    file.set_modified(SystemTime::now())
+        .map_err(|_| StartupError::Failed)
+}
+
+/// Consume only a plain signal file; failed checks or removal mean no activation.
+pub fn take_activation(data_dir: &Path) -> bool {
+    let path = data_dir.join("activate.signal");
+    match fs::symlink_metadata(&path) {
+        Ok(metadata) if plain_signal(&metadata) => fs::remove_file(path).is_ok(),
+        _ => false,
+    }
 }

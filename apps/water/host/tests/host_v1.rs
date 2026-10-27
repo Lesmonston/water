@@ -6,7 +6,7 @@ use std::{
     fs,
     hash::BuildHasher,
     path::{Path, PathBuf},
-    sync::Mutex,
+    sync::{Arc, Mutex},
 };
 use water_desktop::*;
 use water_junk_rules::KnownFolders;
@@ -415,20 +415,52 @@ fn host_command_registry() {
 }
 
 fn plain_directory(path: &Path) {
-    let metadata = fs::symlink_metadata(path).expect("HOST_DATA_DIRECTORY fixture metadata");
-    assert!(
-        metadata.is_dir() && !metadata.file_type().is_symlink(),
-        "HOST_DATA_DIRECTORY fixture must be a plain directory"
-    );
+    check_plain_directory(path).expect("HOST_DATA_DIRECTORY fixture must be a plain directory");
+}
+
+fn check_plain_directory(path: &Path) -> Result<(), String> {
+    let metadata = fs::symlink_metadata(path).map_err(|error| error.to_string())?;
+    if !metadata.is_dir() || metadata.file_type().is_symlink() {
+        return Err("fixture must be a plain directory".into());
+    }
     #[cfg(windows)]
     {
         use std::os::windows::fs::MetadataExt;
-        assert_eq!(
-            metadata.file_attributes() & 0x400,
-            0,
-            "HOST_DATA_DIRECTORY fixture reparse"
-        );
+        if metadata.file_attributes() & 0x400 != 0 {
+            return Err("fixture reparse point".into());
+        }
     }
+    Ok(())
+}
+
+fn fixture_parent(parent: &Path) {
+    for ancestor in parent.parent().unwrap().ancestors() {
+        plain_directory(ancestor);
+    }
+    match fs::create_dir(parent) {
+        Ok(()) => {}
+        Err(error) if error.kind() == std::io::ErrorKind::AlreadyExists => {}
+        Err(error) => panic!("HOST_DATA_DIRECTORY fixture parent: {error}"),
+    }
+    plain_directory(parent);
+}
+
+#[cfg(windows)]
+fn junction(link: &Path, target: &Path, root: &Path) {
+    use std::os::windows::process::CommandExt;
+
+    assert!(link.starts_with(root) && target.starts_with(root));
+    let output = std::process::Command::new("cmd.exe")
+        .creation_flags(0x0800_0000)
+        .args(["/D", "/C", "mklink", "/J"])
+        .arg(link.to_str().unwrap().replace('/', "\\"))
+        .arg(target.to_str().unwrap().replace('/', "\\"))
+        .output()
+        .expect("HOST_DATA_JUNCTION create fixture junction");
+    assert!(
+        output.status.success(),
+        "HOST_DATA_JUNCTION junction creation"
+    );
 }
 
 #[test]
@@ -438,18 +470,15 @@ fn host_data_directory() {
         .nth(3)
         .unwrap();
     let parent = tree.join(".local/w3-f3-fixtures");
-    for ancestor in parent.parent().unwrap().ancestors() {
-        plain_directory(ancestor);
-    }
-    if !parent.exists() {
-        fs::create_dir(&parent).expect("HOST_DATA_DIRECTORY fixture parent");
-    }
-    plain_directory(&parent);
+    fixture_parent(&parent);
     let nonce = RandomState::new().hash_one(std::time::SystemTime::now());
     let root = parent.join(format!("host-{nonce:016x}"));
     fs::create_dir(&root).expect("HOST_DATA_DIRECTORY unique fixture");
     let canonical_root = fs::canonicalize(&root).unwrap();
     let junction = root.join("junction");
+    let signal = root.join("local-app-data/Water/activate.signal");
+    let linked_water = root.join("linked-water-base/Water");
+    let linked_webview = root.join("linked-webview-base/Water/webview");
     let outcome = std::panic::catch_unwind(|| {
         let override_path = root.join("覆盖/new/data");
         let fallback = root.join("local-app-data");
@@ -507,6 +536,62 @@ fn host_data_directory() {
             "HOST_SINGLE_INSTANCE lock remains empty"
         );
         assert!(
+            !take_activation(&default.data),
+            "HOST_SINGLE_INSTANCE no signal"
+        );
+        signal_activation(&default.data).expect("HOST_SINGLE_INSTANCE write signal");
+        signal_activation(&default.data).expect("HOST_SINGLE_INSTANCE update signal");
+        assert_eq!(
+            fs::metadata(&signal).unwrap().len(),
+            0,
+            "HOST_SINGLE_INSTANCE empty signal"
+        );
+        assert!(
+            take_activation(&default.data),
+            "HOST_SINGLE_INSTANCE consume signal"
+        );
+        assert!(
+            !signal.exists(),
+            "HOST_SINGLE_INSTANCE removes consumed signal"
+        );
+        assert!(
+            !take_activation(&default.data),
+            "HOST_SINGLE_INSTANCE consume once"
+        );
+        fs::write(&signal, b"synthetic stale signal").unwrap();
+        signal_activation(&default.data).expect("HOST_SINGLE_INSTANCE replace with empty signal");
+        assert_eq!(
+            fs::metadata(&signal).unwrap().len(),
+            0,
+            "HOST_SINGLE_INSTANCE resets signal"
+        );
+        assert!(
+            take_activation(&default.data),
+            "HOST_SINGLE_INSTANCE consume updated signal"
+        );
+        fs::create_dir(&signal).unwrap();
+        assert!(
+            !take_activation(&default.data),
+            "HOST_SINGLE_INSTANCE ignore directory signal"
+        );
+        assert!(
+            signal_activation(&default.data).is_err(),
+            "HOST_SINGLE_INSTANCE refuse directory signal"
+        );
+        assert!(
+            signal.is_dir(),
+            "HOST_SINGLE_INSTANCE keeps directory signal"
+        );
+        fs::remove_dir(&signal).unwrap();
+        assert!(
+            signal_activation(&root.join("missing")).is_err(),
+            "HOST_SINGLE_INSTANCE write failure"
+        );
+        assert!(
+            !take_activation(&root.join("missing")),
+            "HOST_SINGLE_INSTANCE lookup failure"
+        );
+        assert!(
             matches!(
                 acquire_instance_lock(&root.join("missing")),
                 Err(StartupError::Failed)
@@ -541,23 +626,31 @@ fn host_data_directory() {
         );
         #[cfg(windows)]
         {
-            use std::os::windows::process::CommandExt;
+            use std::os::windows::fs::OpenOptionsExt;
 
+            signal_activation(&default.data)
+                .expect("HOST_SINGLE_INSTANCE signal before sharing failure");
+            let held = fs::OpenOptions::new()
+                .read(true)
+                .share_mode(0)
+                .open(&signal)
+                .expect("HOST_SINGLE_INSTANCE hold signal exclusively");
+            assert!(
+                !take_activation(&default.data),
+                "HOST_SINGLE_INSTANCE failed removal is no activation"
+            );
+            assert!(
+                signal_activation(&default.data).is_err(),
+                "HOST_SINGLE_INSTANCE failed write reported"
+            );
+            drop(held);
+            assert!(
+                take_activation(&default.data),
+                "HOST_SINGLE_INSTANCE failed removal retains signal"
+            );
             let target = root.join("junction-target");
             fs::create_dir(&target).unwrap();
-            assert!(junction.starts_with(&root) && target.starts_with(&root));
-            // Cargo preserves '/' in CARGO_MANIFEST_DIR; cmd's mklink requires '\\'.
-            let output = std::process::Command::new("cmd.exe")
-                .creation_flags(0x0800_0000)
-                .args(["/D", "/C", "mklink", "/J"])
-                .arg(junction.to_str().unwrap().replace('/', "\\"))
-                .arg(target.to_str().unwrap().replace('/', "\\"))
-                .output()
-                .expect("HOST_DATA_DIRECTORY create fixture junction");
-            assert!(
-                output.status.success(),
-                "HOST_DATA_DIRECTORY junction creation"
-            );
+            self::junction(&junction, &target, &root);
             assert!(
                 prepare_data_directories(Some(&junction.join("nested/data")), &fallback).is_err(),
                 "HOST_DATA_DIRECTORY reject reparse ancestor"
@@ -566,13 +659,69 @@ fn host_data_directory() {
                 prepare_data_directories(Some(&junction), &fallback).is_err(),
                 "HOST_DATA_DIRECTORY reject reparse leaf"
             );
+            let resolved = prepare_data_directories(None, &junction)
+                .expect("HOST_DATA_JUNCTION resolve default base");
+            assert_eq!(
+                resolved.data,
+                target.join("Water"),
+                "HOST_DATA_JUNCTION default data is under real base"
+            );
+            assert_eq!(
+                resolved.webview,
+                target.join("Water/webview"),
+                "HOST_DATA_JUNCTION default webview is under real base"
+            );
             assert!(
-                prepare_data_directories(None, &junction).is_err(),
-                "HOST_DATA_DIRECTORY reject reparse default ancestor"
+                !resolved.data.to_str().unwrap().starts_with(r"\\?\"),
+                "HOST_DATA_JUNCTION removes verbatim prefix"
+            );
+            assert!(
+                prepare_data_directories(Some(&junction.join("Water")), &fallback).is_err(),
+                "HOST_DATA_JUNCTION override through junction remains rejected"
             );
             assert!(
                 !target.join("nested").exists() && !target.join("webview").exists(),
                 "HOST_DATA_DIRECTORY no writes through junction"
+            );
+            let water_base = linked_water.parent().unwrap();
+            let water_target = root.join("water-target");
+            fs::create_dir(water_base).unwrap();
+            fs::create_dir(&water_target).unwrap();
+            self::junction(&linked_water, &water_target, &root);
+            assert!(
+                prepare_data_directories(None, water_base).is_err(),
+                "HOST_DATA_JUNCTION Water itself remains protected"
+            );
+            assert!(
+                fs::read_dir(&water_target).unwrap().next().is_none(),
+                "HOST_DATA_JUNCTION linked Water target untouched"
+            );
+            fs::create_dir_all(linked_webview.parent().unwrap()).unwrap();
+            self::junction(&linked_webview, &water_target, &root);
+            assert!(
+                prepare_data_directories(None, &root.join("linked-webview-base")).is_err(),
+                "HOST_DATA_JUNCTION webview itself remains protected"
+            );
+            assert!(
+                fs::read_dir(&water_target).unwrap().next().is_none(),
+                "HOST_DATA_JUNCTION linked webview target untouched"
+            );
+            self::junction(&signal, &water_target, &root);
+            assert!(
+                !take_activation(&default.data),
+                "HOST_SINGLE_INSTANCE ignore linked signal"
+            );
+            assert!(
+                signal_activation(&default.data).is_err(),
+                "HOST_SINGLE_INSTANCE refuse linked signal"
+            );
+            assert!(
+                fs::symlink_metadata(&signal).is_ok(),
+                "HOST_SINGLE_INSTANCE keeps linked signal"
+            );
+            assert!(
+                fs::read_dir(&water_target).unwrap().next().is_none(),
+                "HOST_SINGLE_INSTANCE linked target untouched"
             );
         }
     });
@@ -597,8 +746,19 @@ fn host_data_directory() {
     for ancestor in root.ancestors() {
         plain_directory(ancestor);
     }
-    if fs::symlink_metadata(&junction).is_ok() {
-        fs::remove_dir(&junction).expect("HOST_DATA_DIRECTORY unlink only owned junction");
+    for link in [&signal, &linked_webview, &linked_water, &junction] {
+        if let Ok(metadata) = fs::symlink_metadata(link) {
+            let is_link = metadata.file_type().is_symlink();
+            #[cfg(windows)]
+            let is_link = {
+                use std::os::windows::fs::MetadataExt;
+                is_link || metadata.file_attributes() & 0x400 != 0
+            };
+            if is_link {
+                fs::remove_dir(link)
+                    .expect("HOST_DATA_DIRECTORY unlink only owned fixture junction");
+            }
+        }
     }
     fs::remove_dir_all(&root).expect("HOST_DATA_DIRECTORY delete only this invocation's fixture");
     if let Err(panic) = outcome {
@@ -610,6 +770,7 @@ struct WiringFixture {
     root: PathBuf,
     parent: PathBuf,
     canonical: PathBuf,
+    cleaned: bool,
 }
 
 impl WiringFixture {
@@ -619,13 +780,7 @@ impl WiringFixture {
             .nth(3)
             .unwrap();
         let parent = tree.join(".local/w3-f3-fixtures");
-        for ancestor in parent.parent().unwrap().ancestors() {
-            plain_directory(ancestor);
-        }
-        if !parent.exists() {
-            fs::create_dir(&parent).unwrap();
-        }
-        plain_directory(&parent);
+        fixture_parent(&parent);
         let nonce = RandomState::new().hash_one(std::time::SystemTime::now());
         let root = parent.join(format!("wiring-{nonce:016x}"));
         fs::create_dir(&root).unwrap();
@@ -634,6 +789,7 @@ impl WiringFixture {
             root,
             parent,
             canonical,
+            cleaned: false,
         }
     }
 
@@ -651,38 +807,45 @@ impl WiringFixture {
         }
         folders
     }
+
+    fn cleanup(&mut self) -> Result<(), String> {
+        if self.cleaned {
+            return Ok(());
+        }
+        if self.root.parent() != Some(self.parent.as_path())
+            || !self
+                .root
+                .file_name()
+                .and_then(|name| name.to_str())
+                .is_some_and(|name| name.starts_with("wiring-"))
+        {
+            return Err("HOST_WIRING cleanup parent or prefix".into());
+        }
+        for ancestor in self.root.ancestors() {
+            check_plain_directory(ancestor)?;
+        }
+        if fs::canonicalize(&self.root).map_err(|error| error.to_string())? != self.canonical
+            || self.canonical.parent()
+                != Some(
+                    fs::canonicalize(&self.parent)
+                        .map_err(|error| error.to_string())?
+                        .as_path(),
+                )
+        {
+            return Err("HOST_WIRING cleanup resolved path or parent".into());
+        }
+        fs::remove_dir_all(&self.root).map_err(|error| error.to_string())?;
+        self.cleaned = true;
+        Ok(())
+    }
 }
 
 impl Drop for WiringFixture {
     fn drop(&mut self) {
-        assert_eq!(
-            self.root.parent(),
-            Some(self.parent.as_path()),
-            "HOST_WIRING cleanup parent"
-        );
-        assert!(
-            self.root
-                .file_name()
-                .unwrap()
-                .to_str()
-                .unwrap()
-                .starts_with("wiring-"),
-            "HOST_WIRING cleanup prefix"
-        );
-        assert_eq!(
-            fs::canonicalize(&self.root).unwrap(),
-            self.canonical,
-            "HOST_WIRING cleanup path"
-        );
-        assert_eq!(
-            fs::canonicalize(self.root.parent().unwrap()).unwrap(),
-            fs::canonicalize(&self.parent).unwrap(),
-            "HOST_WIRING cleanup resolved parent"
-        );
-        for ancestor in self.root.ancestors() {
-            plain_directory(ancestor);
+        if let Err(error) = self.cleanup() {
+            use std::io::Write;
+            let _ = writeln!(std::io::stderr().lock(), "HOST_WIRING cleanup: {error}");
         }
-        fs::remove_dir_all(&self.root).expect("HOST_WIRING remove only owned synthetic fixture");
     }
 }
 
@@ -713,12 +876,65 @@ impl Platform for SyntheticPlatform {
 
 #[test]
 fn host_service_wiring() {
-    let fixture = WiringFixture::new();
+    let mut fixture = WiringFixture::new();
     let ctx = HostContext {
         data_dir: fixture.root.join("data"),
         home_dir: "relative".into(),
     };
     let config = service_config(&ctx);
+    let direct = service_backend(&HostContext {
+        data_dir: fixture.root.join("direct-backend"),
+        home_dir: "relative".into(),
+    })
+    .expect("HOST_BACKEND_DIRECT construct production backend");
+    assert_eq!(
+        cmd_app_state(direct.as_ref()).expect("HOST_BACKEND_DIRECT app_state")["busy"],
+        "idle",
+        "HOST_BACKEND_DIRECT ready"
+    );
+    assert!(
+        !config.clean_enabled,
+        "HOST_BACKEND_DIRECT cleanup remains disabled"
+    );
+    assert_eq!(
+        serde_json::to_value(cmd_clean_prepare(direct.as_ref(), vec!["g1".into()]).unwrap_err())
+            .unwrap(),
+        json!({"code": "unavailable", "message_zh": "这一版只做体检，清理功能会在下一版开放。"}),
+        "HOST_BACKEND_DIRECT production backend keeps cleanup disabled"
+    );
+    let unavailable =
+        std::panic::catch_unwind(|| backend_or_unavailable(|_| Err(StartupError::Failed), &ctx))
+            .expect("HOST_STARTUP_VISIBLE backend failure must not abort startup");
+    for command in COMMANDS.into_iter().chain(["unknown"]) {
+        assert_eq!(
+            serde_json::to_value(unavailable.call(command, json!({})).unwrap_err()).unwrap(),
+            json!({"code": "unavailable", "message_zh": "Water 服务暂时不可用。"}),
+            "HOST_STARTUP_VISIBLE failed service still has unavailable backend"
+        );
+    }
+    let original: Arc<dyn Backend> = Arc::new(Recorder {
+        calls: Mutex::new(vec![]),
+        reply: Ok(json!({"synthetic": true})),
+    });
+    let ready = backend_or_unavailable(
+        |received| {
+            assert_eq!(
+                received.data_dir, ctx.data_dir,
+                "HOST_STARTUP_VISIBLE forwards context"
+            );
+            Ok(Arc::clone(&original))
+        },
+        &ctx,
+    );
+    assert!(
+        Arc::ptr_eq(&ready, &original),
+        "HOST_STARTUP_VISIBLE success preserves original backend"
+    );
+    assert_eq!(
+        cmd_app_state(ready.as_ref()).unwrap(),
+        json!({"synthetic": true}),
+        "HOST_STARTUP_VISIBLE success remains callable"
+    );
     assert!(
         !config.clean_enabled,
         "HOST_CLEAN_DISABLED production config"
@@ -785,4 +1001,10 @@ fn host_service_wiring() {
         json!({"code": "invalid", "message_zh": "这个文件夹不能加入体检，请换一个。"}),
         "HOST_PICKER config initial directory"
     );
+    drop(backend);
+    drop(direct);
+    fixture
+        .cleanup()
+        .expect("HOST_WIRING explicit fixture cleanup");
+    assert!(!fixture.root.exists(), "HOST_WIRING owned fixture removed");
 }
