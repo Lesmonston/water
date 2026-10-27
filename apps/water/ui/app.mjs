@@ -15,7 +15,7 @@ import {locations} from './views/locations.mjs';
 import {about} from './views/about.mjs';
 
 const routes = ['home', 'results', 'trends', 'history', 'locations', 'about'];
-const state = {app:null, connecting:true, busy:'idle', pending:false, error:'', result:null, selection:new Set(), filter:'all', sort:'bytes', stale:false, cleaned:null, showDone:false, progressFailures:0, reconnecting:false, pollPaused:false, historyDetails:new Map()};
+const state = {app:null, connecting:true, busy:'idle', pending:false, error:'', result:null, selection:new Set(), filter:'all', sort:'bytes', stale:false, cleaned:null, showDone:false, progressFailures:0, reconnecting:false, pollPaused:false, pauseReason:'', historyDetails:new Map()};
 let route = 'home', timer, polling = false, overlay, opener, routeVersion = 0;
 const page = document.getElementById('page'), main = document.getElementById('main');
 const motionObserver = new IntersectionObserver(entries => entries.forEach(entry => entry.target.style.setProperty('--motion-state', entry.isIntersecting ? 'running' : 'paused')));
@@ -46,7 +46,7 @@ const actions = {
       closeOverlay(true);
       let value;
       try { value = await ipc.clean_start(plan_id, confirm_token); }
-      catch (error) { fault(error); state.error += ' 请重新点击“清理所选”并确认。'; return; }
+      catch (error) { throw {...error, message_zh:(error?.message_zh || (error?.code === 'unavailable' ? '无法连接 Water 服务' : 'Water 服务暂时不可用')) + ' 请重新点击“清理所选”并确认。'}; }
       state.busy = 'cleaning'; state.cleanId = value.clean_id; state.cleanProgress = null; state.cleaned = null;
       navigate('home'); beginPolling();
     })), 'confirm-cancel');
@@ -66,9 +66,10 @@ function fault(error) {
 }
 async function run(fn) {
   if (state.pending) return;
+  const version = routeVersion, origin = location.hash, paused = state.pollPaused;
   state.pending = true; state.error = ''; render();
   overlay?.querySelectorAll('button').forEach(b => { b.disabled = true; });
-  try { await fn(); } catch (error) { fault(error); }
+  try { await fn(); } catch (error) { if (version === routeVersion && origin === location.hash && !paused && !state.pollPaused) fault(error); }
   finally { state.pending = false; overlay?.querySelectorAll('button').forEach(b => { b.disabled = false; }); render(); }
 }
 function installResult(value) { Object.assign(state, nextResult(state, value)); }
@@ -101,7 +102,7 @@ function render() {
   const activeKey = document.activeElement?.dataset.key, scroll = main.scrollTop;
   sidebar();
   const notice = document.getElementById('notice'); notice.replaceChildren(); notice.hidden = !state.error && !state.reconnecting && !state.pollPaused;
-  if (!notice.hidden) add(notice, el('span', '', state.reconnecting ? '正在重新连接 Water 服务…' : state.error || '未能读取任务进度，请重新连接。'), state.pollPaused ? button('重新连接', actions.reconnectProgress, 'btn btn-glass', 'progress-reconnect', state.pending) : state.reconnecting ? null : button('关闭提示', () => { state.error = ''; render(); }, 'btn btn-ghost', 'dismiss-error'));
+  if (!notice.hidden) add(notice, el('span', '', state.pollPaused ? state.pauseReason : state.reconnecting ? '正在重新连接 Water 服务…' : state.error), state.pollPaused ? button('重新连接', actions.reconnectProgress, 'btn btn-glass', 'progress-reconnect', state.pending) : state.reconnecting ? null : button('关闭提示', () => { state.error = ''; render(); }, 'btn btn-ghost', 'dismiss-error'));
   let view;
   if (route === 'home' && state.busy === 'scanning') view = scan(state, actions);
   else if (route === 'home' && state.busy === 'cleaning') view = cleaning(state, actions);
@@ -121,16 +122,16 @@ function navigate(next) {
   location.hash = `#/${next}`;
 }
 async function loadRoute() {
-  const version = ++routeVersion, current = route;
+  const version = ++routeVersion, current = route, origin = location.hash, paused = state.pollPaused;
   try {
     const read = {trends:ipc.trends, history:ipc.history_list, locations:ipc.locations_get}[current];
     if (read) { const value = await read(); if (version === routeVersion) state[current] = value; }
-  } catch (error) { if (version === routeVersion) fault(error); }
+  } catch (error) { if (version === routeVersion && origin === location.hash && !paused && !state.pollPaused) fault(error); }
   if (version === routeVersion) render();
 }
 function routeChanged() {
   closeOverlay(true); const value = location.hash.slice(2); route = routes.includes(value) ? value : 'home';
-  if (!state.pollPaused) state.error = '';
+  state.error = '';
   state.showDone = false;
   try { localStorage.setItem('water-last-page', route); } catch {}
   page.classList.remove('enter'); void page.offsetWidth; page.classList.add('enter'); main.scrollTop = 0;
@@ -138,7 +139,7 @@ function routeChanged() {
 }
 function startPolling() { clearTimeout(timer); timer = setTimeout(poll, 250); }
 function beginPolling() { state.progressFailures = 0; state.reconnecting = false; state.pollPaused = false; startPolling(); }
-function pauseProgress(error) { fault(error); state.reconnecting = false; state.pollPaused = true; }
+function pauseProgress(error) { fault(error); state.pauseReason = state.error; state.error = ''; state.reconnecting = false; state.pollPaused = true; }
 async function readProgress() {
   try {
     const value = await (state.busy === 'scanning' ? ipc.scan_progress() : ipc.clean_progress());

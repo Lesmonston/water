@@ -41,7 +41,7 @@ function fakeHost(f, options) {
   }
   const NativeDate = Date;
   window.Date = class extends NativeDate { constructor(...args) { super(...(args.length ? args : [f.scan_result.finished_at])); } static now() { return NativeDate.parse(f.scan_result.finished_at); } };
-  const control = window.__waterTest = {scenario:options.scenario, calls:[], errors:[], scanIndex:0, cleanIndex:0, holdScan:true, holdClean:true, holdApp:!!options.holdApp, scanIdleBefore:0, progressErrors:{scan_progress:[], clean_progress:[]}, nextError:null, scanned:!!options.scanned, busy:options.busy ?? 'idle', locations:copy(f.locations), addCancelled:false, plan:null, planSequence:0, consumed:false, cleanFinished:false};
+  const control = window.__waterTest = {scenario:options.scenario, calls:[], errors:[], scanIndex:0, cleanIndex:0, holdScan:true, holdClean:true, holdApp:!!options.holdApp, scanIdleBefore:0, progressErrors:{scan_progress:[], clean_progress:[]}, holdProgress:null, delayedError:null, nextError:null, scanned:!!options.scanned, busy:options.busy ?? 'idle', locations:copy(f.locations), addCancelled:false, plan:null, planSequence:0, consumed:false, cleanFinished:false};
   addEventListener('error', e => control.errors.push(e.message));
   addEventListener('unhandledrejection', e => control.errors.push(String(e.reason)));
   const consoleError = console.error.bind(console);
@@ -52,6 +52,15 @@ function fakeHost(f, options) {
   window.__TAURI__ = {core:{invoke:async (command, args) => {
     control.calls.push({command, args:copy(args), at:performance.now()});
     if (Object.entries(args).some(([key, value]) => [value].flat().some(v => typeof v === 'string' && (key === 'confirmToken' ? /\\/.test(v) : /[A-Za-z]:[\\/]|\\/.test(v) || v.startsWith('/'))))) throw new Error('PATH_SENT_TO_HOST');
+    if (control.holdProgress?.command === command) {
+      if (!control.holdProgress.failed) { control.holdProgress.failed = true; throw copy(f.errors.unavailable); }
+      while (control.holdProgress) await new Promise(ok => setTimeout(ok, 20));
+    }
+    if (control.delayedError?.command === command) {
+      const held = control.delayedError; held.started = true;
+      while (!held.release) await new Promise(ok => setTimeout(ok, 20));
+      held.finished = true; throw copy(held.error);
+    }
     if (control.progressErrors[command]?.length) throw copy(control.progressErrors[command].shift());
     if (control.nextError?.command === command) { const error = control.nextError.error; control.nextError = null; if (command === 'clean_start') control.consumed = true; throw error; }
     switch (command) {
@@ -133,6 +142,15 @@ const text = () => browser.evaluate('document.body.textContent');
 const pageIs = name => browser.waitFor(`document.querySelector('#page').dataset.page === ${JSON.stringify(name)}`);
 const waitText = value => browser.waitFor(`document.body.textContent.includes(${JSON.stringify(value)})`);
 const control = code => browser.evaluate(`(()=>{${code}})()`);
+async function noticeSettled(expression, label) {
+  let settled = false;
+  for (let attempt = 0; attempt < 200; attempt++) {
+    settled = await browser.evaluate(expression);
+    if (settled) break;
+    await new Promise(ok => setTimeout(ok, 25));
+  }
+  assert(settled, `UI_NOTICE_SCOPE: ${label}`);
+}
 async function key(value, shift = false) {
   const code = value === ' ' ? 'Space' : value;
   const vk = {Tab:9, Escape:27, Enter:13, ' ':32}[value];
@@ -186,7 +204,7 @@ test('ui_home_and_scan', async () => {
   assert.equal(await browser.evaluate('window.__waterTest.calls.filter(c=>c.command==="scan_result").length'), 0, 'Initial idle must not fetch a result');
   await control(`window.__waterTest.progressErrors.scan_progress=${JSON.stringify([fixture.errors.busy, fixture.errors.busy])}`);
   await waitText('正在重新连接 Water 服务…'); await pageIs('scan');
-  await browser.waitFor('window.__waterTest.progressErrors.scan_progress.length===0 && !document.body.textContent.includes("正在重新连接 Water 服务…")');
+  await noticeSettled('window.__waterTest.progressErrors.scan_progress.length===0 && !document.body.textContent.includes("正在重新连接 Water 服务…")', 'scan reconnecting notice clears');
   await control('window.__waterTest.scanIndex=2'); await waitText(count(fixture.scan_progress_sequence[2].visited_entries));
   assert((await text()).includes(formatBytes(fixture.scan_progress_sequence[2].found_bytes).split(' ')[0]));
   assert((await text()).includes(elapsed(fixture.scan_progress_sequence[2].elapsed_ms)));
@@ -242,12 +260,12 @@ test('ui_clean_done_and_pages', async () => {
   await control(`window.__waterTest.progressErrors.clean_progress=${JSON.stringify([fixture.errors.busy, fixture.errors.busy])}`);
   await waitText('正在重新连接 Water 服务…'); await pageIs('cleaning');
   assert(await browser.evaluate('(()=>{const e=new Event("beforeunload",{cancelable:true});dispatchEvent(e);return e.defaultPrevented})()'), 'Close protection survives a failed progress query');
-  await browser.waitFor('window.__waterTest.progressErrors.clean_progress.length===0 && !document.body.textContent.includes("正在重新连接 Water 服务…")');
+  await noticeSettled('window.__waterTest.progressErrors.clean_progress.length===0 && !document.body.textContent.includes("正在重新连接 Water 服务…")', 'clean reconnecting notice clears');
   await pageIs('cleaning');
   await control(`window.__waterTest.progressErrors.clean_progress=Array.from({length:20},()=>(${JSON.stringify(fixture.errors.unavailable)}))`);
   await waitText('重新连接');
   await browser.waitFor('!!document.querySelector("[data-key=progress-reconnect]")');
-  await pageIs('cleaning'); await shot('reconnecting-1240x820');
+  await pageIs('cleaning'); await shot('paused-1240x820');
   assert(await browser.evaluate('(()=>{const e=new Event("beforeunload",{cancelable:true});dispatchEvent(e);return e.defaultPrevented})()'), 'Exhausted retries must still protect cleanup');
   const paused = await browser.evaluate('window.__waterTest.calls.filter(c=>c.command==="clean_progress").length');
   await new Promise(ok => setTimeout(ok, 550));
@@ -389,6 +407,7 @@ test('ui_m1_polish', async () => {
     return [link.dataset.key, {href:icon.querySelector('use').getAttribute('href'), width:rect.width, height:rect.height, strokeWidth:style.strokeWidth, fill:style.fill, color:style.color, on:link.classList.contains('on')}];
   }))`);
   await reset(); await waitText('体检后可查看能够清理的空间。');
+  assert(await browser.evaluate('!!document.querySelector("#sprite symbol#i-berg") && !!document.querySelector("#sprite symbol#i-pulse")'), 'UI_BRAND_MARK: both symbols exist inside the rendered sprite');
   await noDrop('home');
   await assertMark('.brand > .i', 30, 'sidebar brand');
   const homeNav = await navIcons(), others = ['nav-trends', 'nav-history', 'nav-locations', 'nav-about'];
@@ -401,6 +420,9 @@ test('ui_m1_polish', async () => {
   const trendsNav = await navIcons();
   assert.equal(homeOn, trendsNav['nav-trends'].color, 'UI_NAV_PULSE: selected pulse colour equals another selected nav icon');
   assert.equal(trendsNav['nav-home'].color, othersOff[0], 'UI_NAV_PULSE: unselected pulse colour equals the other unselected nav icons');
+  await reset({scanned:true}, 'history'); await browser.waitFor('!!document.querySelector(".history-row")');
+  await noDrop('populated history');
+  assert(await browser.evaluate('[...document.querySelectorAll(".history-row")].some(row => row.querySelector("strong")?.textContent === "体检记录" && row.querySelector("use")?.getAttribute("href") === "#i-pulse")'), 'UI_BRAND_MARK: the checkup history row uses the pulse icon');
   await click('nav-about'); await waitText('Water 读取什么');
   await noDrop('about');
   await assertMark('.about-brand > .i', 42, 'about brand card');
@@ -479,15 +501,26 @@ test('ui_m1_polish', async () => {
   await browser.evaluate('location.hash = "#/results"'); await pageIs('results'); await absent();
   assert.equal(await browser.evaluate('window.__waterTest.calls.filter(c=>c.command==="clean_prepare").length'), 2, 'UI_NOTICE_SCOPE: a new click requests a fresh host message');
 
+  await reset({scanned:true}, 'results'); await waitText(selectionText(defaults.length));
+  await control(`window.__waterTest.delayedError={command:'clean_prepare',started:false,release:false,error:${JSON.stringify(fixture.errors.stale)}}`);
+  await click('clean-prepare'); await browser.waitFor('window.__waterTest.delayedError.started');
+  await click('nav-trends'); await pageIs('trends');
+  await control('window.__waterTest.delayedError.release=true');
+  await noticeSettled('window.__waterTest.delayedError.finished === true', 'delayed command settles');
+  assert(await browser.evaluate('document.querySelector("#notice").hidden'), 'UI_COMMAND_SCOPE: delayed old-page failure cannot show on the new page');
+  await browser.evaluate('location.hash = "#/results"'); await pageIs('results');
+  assert(await browser.evaluate('document.querySelector("#notice").hidden && !document.querySelector(".note") && !document.querySelector("[data-key=clean-prepare]").disabled'), 'UI_COMMAND_SCOPE: delayed stale failure cannot change page state');
+
   await reset({scanned:true, busy:'scanning'}); await pageIs('scan');
   await waitText('停止扫描');
   await control(`window.__waterTest.nextError={command:'scan_cancel',error:${JSON.stringify(fixture.errors.invalid)}}`);
   await click('scan-stop'); await waitText(fixture.errors.invalid.message_zh);
-  await control(`window.__waterTest.progressErrors.scan_progress=Array.from({length:12},()=>(${JSON.stringify(fixture.errors.unavailable)}))`);
+  await control("window.__waterTest.holdProgress={command:'scan_progress',failed:false}");
   await waitText('正在重新连接 Water 服务…');
+  await shot('reconnecting-1240x820');
   await click('nav-trends'); await pageIs('trends');
   assert(await browser.evaluate('!document.querySelector("#notice").hidden && document.querySelector("#notice").textContent.includes("正在重新连接 Water 服务…")'), 'UI_NOTICE_SCOPE: reconnecting status survives navigation');
-  await control('window.__waterTest.progressErrors.scan_progress=[]');
+  await control('window.__waterTest.holdProgress=null');
   // Bounded poll that never throws, so a notice stuck after recovery fails on the marked assertion below.
   let recovered;
   for (let attempt = 0; attempt < 200; attempt++) {
@@ -511,11 +544,17 @@ test('ui_m1_polish', async () => {
   await browser.waitFor('!!document.querySelector("[data-key=progress-reconnect]")');
   assert.equal(await browser.evaluate('window.__waterTest.progressErrors.scan_progress.length'), 0, 'UI_NOTICE_SCOPE: all 20 unavailable responses are consumed before pausing');
   await assertPaused(pausedMessage, 'scan before navigation');
+  await click('nav-home'); await pageIs('scan');
+  await control(`window.__waterTest.nextError={command:'scan_cancel',error:${JSON.stringify(fixture.errors.invalid)}}`);
+  await click('scan-stop');
+  await assertPaused(pausedMessage, 'command failure while paused');
+  assert(!(await text()).includes(fixture.errors.invalid.message_zh), 'UI_COMMAND_SCOPE: paused command error cannot replace the pause reason');
   for (const destination of ['history', 'home']) {
     await click(`nav-${destination}`); await pageIs(destination === 'home' ? 'scan' : destination);
     await assertPaused(pausedMessage, `scan after ${destination}`);
   }
-  await click('progress-reconnect'); await browser.waitFor('document.querySelector("#notice").hidden');
+  await click('progress-reconnect'); await noticeSettled('document.querySelector("#notice").hidden', 'paused notice clears after reconnect');
+  assert(!(await text()).includes(fixture.errors.invalid.message_zh), 'UI_COMMAND_SCOPE: paused command error does not reappear after recovery');
 
   await reset({scanned:true, busy:'cleaning'}); await pageIs('cleaning');
   await control('window.__waterTest.cleanIdleBefore=1');
@@ -526,7 +565,7 @@ test('ui_m1_polish', async () => {
     await click(`nav-${destination}`); await pageIs(destination === 'home' ? 'cleaning' : destination);
     await assertPaused(cleanPausedMessage, `clean after ${destination}`);
   }
-  await click('progress-reconnect'); await browser.waitFor('document.querySelector("#notice").hidden');
+  await click('progress-reconnect'); await noticeSettled('document.querySelector("#notice").hidden', 'paused notice clears after reconnect');
   await control('window.__waterTest.holdClean=false'); await pageIs('done');
 
   await reset({scanned:true}, 'results'); await waitText(selectionText(defaults.length));
