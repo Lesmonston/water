@@ -1,8 +1,8 @@
 # Water 状态与交接
 
-更新时间：2026-10-27 22:15 JST（M1 达成；第四波 G1～G7 全部合入；release 版已构建；M2 计划已拍板，第五波五张票 READY；入口仍是第 7 份交接）。
+更新时间：2026-10-27 22:40 JST（M1 达成；第四波 G1～G7 全部合入；release 版已构建；M2 计划已拍板，第五波五张票已派出；第 8 份交接）。
 
-更换总控请先读[最新交接报告（2026-10-27 第 7 份）](CONTROLLER-HANDOFF-20261027-7.md)；[第 6 份](CONTROLLER-HANDOFF-20261027-6.md)、[第 5 份](CONTROLLER-HANDOFF-20261026-5.md)、[第 4 份](CONTROLLER-HANDOFF-20261026-4.md)、[第 3 份](CONTROLLER-HANDOFF-20261026-3.md)、[第 2 份](CONTROLLER-HANDOFF-20261026-2.md)、[上午那份](CONTROLLER-HANDOFF-20261026.md)及其只读状态快照仅供追溯。M1 已达成；第四波 G1～G7 已全部验收合入（见下文待办）。此前[接手验收摘要](CONTROLLER-HANDOFF-20261017.md)仅供历史追溯；当前任务状态以本页、registry/manifest及最新正式验收为准。
+更换总控请先读[最新交接报告（2026-10-27 第 8 份）](CONTROLLER-HANDOFF-20261027-8.md)；[第 7 份](CONTROLLER-HANDOFF-20261027-7.md)、[第 6 份](CONTROLLER-HANDOFF-20261027-6.md)、[第 5 份](CONTROLLER-HANDOFF-20261026-5.md)、[第 4 份](CONTROLLER-HANDOFF-20261026-4.md)、[第 3 份](CONTROLLER-HANDOFF-20261026-3.md)、[第 2 份](CONTROLLER-HANDOFF-20261026-2.md)、[上午那份](CONTROLLER-HANDOFF-20261026.md)及其只读状态快照仅供追溯。M1 已达成；第四波 G1～G7 已全部验收合入（见下文待办）。此前[接手验收摘要](CONTROLLER-HANDOFF-20261017.md)仅供历史追溯；当前任务状态以本页、registry/manifest及最新正式验收为准。
 
 ## 已确认
 
@@ -199,8 +199,8 @@ A–AB及八补单、AD保持VERIFIED；AC/补单06新增VERIFIED（Windows静�
    - 夹具清理闭环自检通过：真窗口里第一次走完应用内清理，只删合成夹具；
    - 五棵树派前 baseline 都通过。
 
-   READY 不代表已外贴；用户派出后在清单里记执行者。
-9. **下一步**：用户派单 → 逐张验收合入 → 第三次主线整合检查 → 新 release 版 → 自清理（用户按按钮） → M2 达成。
+   **已派出**（10-27 约 22:36 用户告知）：H1、H2、H3 交 Cursor，H5 交 sol，H4 交 opus。记录时五棵树都还停在基点、干净。
+9. **下一步**：用户转告回执 → 逐张验收合入 → 第三次主线整合检查 → 新 release 版 → 自清理（用户按按钮，约 58.5 GB） → M2 达成。
 
 ## 真实AA→AD联合验收通过（2026-10-26）
 
