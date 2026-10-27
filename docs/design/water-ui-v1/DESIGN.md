@@ -1,6 +1,6 @@
 # Water 界面设计 v1
 
-2026-10-26，总控设计；同日按用户两次审稿改为白色磨砂玻璃方向（第 1、2、6 节）。2026-10-27 用户选定冰山标志，取代水滴（第 10 节）。执行者按本文、[tokens.css](tokens.css) 与 [mockup.html](mockup.html) 实现；三者冲突时以本文为准，并交总控订正。数据字段以 [IPC 契约](../../../contracts/checkup-v1/IPC.md) 为准。
+2026-10-26，总控设计；同日按用户两次审稿改为白色磨砂玻璃方向（第 1、2、6 节）。2026-10-27 用户选定冰山标志，取代水滴；同日“体检”导航图标选定脉搏线（第 10 节）。执行者按本文、[tokens.css](tokens.css) 与 [mockup.html](mockup.html) 实现；三者冲突时以本文为准，并交总控订正。数据字段以 [IPC 契约](../../../contracts/checkup-v1/IPC.md) 为准。
 
 ## 1. 设计原则
 
@@ -176,7 +176,9 @@
 | 侧栏品牌（右侧“Water / 磁盘体检”不变） | 30×30（原水滴为 30×34） | 墨色 |
 | 关于与隐私页的品牌卡 | 42×42 | 墨色 |
 | 空状态图标 | 36×36 | 墨色 |
-| 应用图标（宿主 `icons/icon.ico`） | 由 water-app-icon.svg 导出 16、24、32、48、256 多尺寸 | 墨色底、白色标志 |
+| 应用图标（宿主 `icons/icon.ico`） | 16、24、32、48、256 多尺寸，见下 | 墨色底、白色标志 |
+
+**应用图标导出件**：[brand/water-app-icon.ico](brand/water-app-icon.ico)，由 `scripts/design/export-app-icon.cjs` 从 water-app-icon.svg 生成（本机 headless Chrome 在透明画布上栅格化，五个尺寸都以 PNG 存入 ICO；重复运行字节相同）。宿主的 `apps/water/host/icons/icon.ico` 与它**逐字节相同**，不要另行导出或修图。各尺寸在浅色、深色底上的样子见 [brand/app-icon-sizes.png](brand/app-icon-sizes.png)：16px 只剩白色标志的轮廓，24px 起能认出冰山。
 
 **雪碧图写法**：放在 `index.html` 的 sprite 里，用 `icon('berg')` 引用。全局 `.i` 默认是 1.5px 描边、无填充，所以冰山各元素自带 fill 与 stroke 属性。mask 的 id 在文档内唯一。
 
@@ -185,13 +187,22 @@
 ```
 
 **水滴退役**：
-- 侧栏“体检”导航不再用水滴，换成与其它导航同风格的 1.5px 细线图标。具体图形在改动工单里给出，先给用户看截图。
+- 侧栏“体检”导航不再用水滴，换成**脉搏线**（用户 10-27 在四个候选里选定 A；另三个是扫描框、仪表、放大镜，见[候选对比](brand/nav-candidates-board.png)）。
+  - 与其它四个导航同风格：24 网格、18×18、1.5px 描边、无填充，沿用全局 `.i`；选中时强调蓝、未选中时 `--w-ink-2`，与其它导航相同。
+  - 用 `icon('pulse')` 引用，symbol 原文：
+
+    ```html
+    <symbol id="i-pulse" viewBox="0 0 24 24"><path d="M3.5 12.5h3.8l2.1-4.8 3.4 9.3 2.3-6 1.3 1.5h4.1"/></symbol>
+    ```
+- 换完后界面里不再有任何地方引用水滴，`i-drop` 从 sprite 里删掉。
 - 水位瓶、水波进度环、扫描时上涨的水这些“水”的视觉不变（第 1 节第 3 条照旧）。
 
 **预览**：
-- [真实首页](brand/preview-home-1240x820.png)：浏览器测试在临时树里替换后渲染，5 个浏览器测试全部通过，树已恢复；
-- [侧栏与关于页 3 倍放大](brand/preview-sidebar-about-3x.png)。
+- [真实首页（脉搏线导航）](brand/preview-home-pulse-1240x820.png)：浏览器测试在临时树里替换后渲染，5 个浏览器测试全部通过，树已恢复；
+- [导航四个候选](brand/nav-candidates-board.png)：用应用自己的样式表按 2 倍像素渲染；
+- [侧栏与关于页 3 倍放大](brand/preview-sidebar-about-3x.png)（当时导航仍是水滴，标志部分有效）；
+- 较早的[真实首页](brand/preview-home-1240x820.png)同上。
 
 **实施**：
-- 等 G3 及其补单合入后，另派一张界面小票实施。G3 及其补单**不做**本节。
+- 由界面小票 WATER-W4-G4 实施（`docs/dispatch/tickets/WATER-W4-G4-BRAND-20261027.md`）。
 - `mockup.html` 与 `previews/` 里仍是水滴；与本节冲突时以本节为准。
