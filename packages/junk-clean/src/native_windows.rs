@@ -371,7 +371,7 @@ mod windows {
     }
 
     // Enumerate one directory handle. Class 20 restarts, class 19 continues; the listing ends
-    // only when GetFileInformationByHandleEx fails with ERROR_NO_MORE_FILES. Every othe
+    // only when GetFileInformationByHandleEx fails with ERROR_NO_MORE_FILES. Every other
     // failure is an error, never a silent "no entries".
     fn enumerate(handle: &Handle) -> Result<Vec<Raw>, ()> {
         let mut out = Vec::new();
@@ -747,7 +747,7 @@ mod windows {
             snap.newest = snap.newest.max(mtime);
             let reparse = raw.attr & REPARSE != 0;
             if reparse {
-                // CLEAN_REPARSE_KIND: only name-surrogate links are treated as links; any othe
+                // CLEAN_REPARSE_KIND: only name-surrogate links are treated as links; any other
                 // reparse point in the subtree poisons the whole item.
                 if raw.tag & NAME_SURROGATE == 0 {
                     return Err(SkipReason::Reparse);
@@ -816,12 +816,36 @@ mod windows {
         Ok(parent)
     }
 
+    // Use one Unicode simple-uppercase character per input character, without full-uppercase
+    // expansions such as sharp-s -> SS. Greek iota-subscript letters have a simple mapping even
+    // though char::to_uppercase expands them (UnicodeData.txt, Unicode 17.0.0).
+    fn uppercase_key(rel: &str) -> String {
+        rel.chars()
+            .map(|c| match c {
+                '\u{1f80}'..='\u{1f87}' | '\u{1f90}'..='\u{1f97}' | '\u{1fa0}'..='\u{1fa7}' => {
+                    char::from_u32(c as u32 + 8).unwrap_or(c)
+                }
+                '\u{1fb3}' => '\u{1fbc}',
+                '\u{1fc3}' => '\u{1fcc}',
+                '\u{1ff3}' => '\u{1ffc}',
+                _ => {
+                    let mut upper = c.to_uppercase();
+                    let first = upper.next().unwrap_or(c);
+                    if upper.next().is_none() { first } else { c }
+                }
+            })
+            .collect()
+    }
+
     struct DelCtx<'a> {
         before: &'a Snapshot,
         stop: &'a StopFlag,
+        folded: Vec<(String, usize)>,
+        accounted: Vec<bool>,
         removed: u64,
         failed: u64,
         changed_stop: bool,
+        initial_skip: Option<SkipReason>,
         // Set once the item itself (rel == "") has had its delete flag set this run. The residual
         // pass needs it: if a different object later bears the item's name, the item may only be
         // reported deleted when this run actually deleted it (addendum 02 change 4).
@@ -829,20 +853,32 @@ mod windows {
     }
 
     impl DelCtx<'_> {
-        // Snapshot entries are kept sorted by rel, so a lookup is a binary search rather than a
-        // linear scan (M2's cache directories hold on the order of 1e5 entries).
-        fn expected(&self, rel: &str) -> Option<&Entry> {
+        // Prefer the exact spelling; only a miss uses the simple-uppercase index. Both searches
+        // are logarithmic (M2's cache directories hold on the order of 1e5 entries).
+        fn expected_index(&self, rel: &str) -> Option<usize> {
             self.before
                 .entries
                 .binary_search_by(|e| e.rel.as_str().cmp(rel))
                 .ok()
-                .map(|i| &self.before.entries[i])
+                .or_else(|| {
+                    let key = uppercase_key(rel);
+                    self.folded
+                        .binary_search_by(|(k, _)| k.cmp(&key))
+                        .ok()
+                        .map(|i| self.folded[i].1)
+                })
         }
 
-        // After a directory's own delete fails, report whether the failure is expected rathe
-        // than counted. It is expected only when at least one entry is still present and every
-        // remaining entry appeared after the snapshot. An empty directory that still cannot be
-        // deleted, or a re-enumeration that fails, is a real failure and must be counted.
+        fn fail(&mut self, index: usize) {
+            if !self.accounted[index] {
+                self.failed += 1;
+                self.accounted[index] = true;
+            }
+        }
+
+        // After a directory's own delete fails, report whether the failure is expected rather
+        // than counted. At least one entry must remain, and each must be new or an already
+        // accounted-for snapshot entry. Empty directories and enumeration errors still count.
         fn only_post_snapshot(&self, handle: &Handle, rel: &str) -> bool {
             match enumerate(handle) {
                 Ok(rest) => {
@@ -853,7 +889,7 @@ mod windows {
                             } else {
                                 format!("{rel}\\{}", k.name)
                             };
-                            self.expected(&crel).is_none()
+                            self.expected_index(&crel).is_none_or(|i| self.accounted[i])
                         })
                 }
                 Err(()) => false,
@@ -865,9 +901,10 @@ mod windows {
             if self.changed_stop {
                 return false;
             }
-            let Some(exp) = self.expected(rel) else {
+            let Some(index) = self.expected_index(rel) else {
                 return false; // appeared after the snapshot: never touched, never counted
             };
+            let exp = &self.before.entries[index];
             let (exp_attr, exp_tag, exp_id) = (exp.attr, exp.tag, exp.file_id);
             if exp_attr & REPARSE != 0 {
                 if exp_tag & NAME_SURROGATE != 0 {
@@ -891,13 +928,13 @@ mod windows {
                                         self.self_deleted = true;
                                     }
                                 } else {
-                                    self.failed += 1;
+                                    self.fail(index);
                                 }
                             }
-                            _ => self.failed += 1,
+                            _ => self.fail(index),
                         },
                         Err(w) if w == ERR_FILE_NOT_FOUND || w == ERR_PATH_NOT_FOUND => {}
-                        Err(_) => self.failed += 1,
+                        Err(_) => self.fail(index),
                     }
                 }
                 return false;
@@ -910,18 +947,28 @@ mod windows {
                     SHARE_RW,
                 ) {
                     Ok(h) => h,
-                    Err(w) if w == ERR_FILE_NOT_FOUND || w == ERR_PATH_NOT_FOUND => return false,
+                    Err(w) if w == ERR_FILE_NOT_FOUND || w == ERR_PATH_NOT_FOUND => {
+                        if rel.is_empty() {
+                            self.initial_skip = Some(SkipReason::Gone);
+                        }
+                        return false;
+                    }
                     Err(_) => {
-                        self.failed += 1;
+                        self.fail(index);
                         return false;
                     }
                 };
-                match (attr_tag(&handle), file_id(&handle)) {
+                let id = file_id(&handle);
+                if rel.is_empty() && id.is_some_and(|id| id != exp_id) {
+                    self.initial_skip = Some(SkipReason::Changed);
+                    return false;
+                }
+                match (attr_tag(&handle), id) {
                     (Some((a, _)), Some(id))
                         if a & REPARSE == 0 && a & DIRECTORY != 0 && id == exp_id => {}
                     _ => {
                         // The directory was replaced under us: stop deleting this item.
-                        self.failed += 1;
+                        self.fail(index);
                         self.changed_stop = true;
                         return false;
                     }
@@ -930,7 +977,7 @@ mod windows {
                     Ok(k) => k,
                     Err(()) => {
                         // Enumeration failed (not "no more files"): stop this item, count one.
-                        self.failed += 1;
+                        self.fail(index);
                         self.changed_stop = true;
                         return false;
                     }
@@ -949,10 +996,13 @@ mod windows {
                     };
                     // Copy the snapshot FileId and kind out before any &mut self call so the
                     // immutable borrow of `before.entries` does not span node().
-                    let expected = self.expected(&child_rel).map(|e| (e.file_id, e.attr));
+                    let expected = self.expected_index(&child_rel).map(|i| {
+                        let e = &self.before.entries[i];
+                        (i, e.file_id, e.attr)
+                    });
                     match expected {
                         None => {} // appeared after the snapshot: ignore, not a failure
-                        Some((fid, _)) if fid == kid.file_id => {
+                        Some((_, fid, _)) if fid == kid.file_id => {
                             if self.node(&handle, &kid.name, &child_rel) {
                                 return true;
                             }
@@ -960,11 +1010,11 @@ mod windows {
                                 return false;
                             }
                         }
-                        Some((_, snap_attr)) => {
+                        Some((i, _, snap_attr)) => {
                             // Name is in the snapshot but the object was replaced (FileId
                             // differs). Decide by the SNAPSHOT entry's kind (SPEC section 4 step
                             // 7), never by the live object that replaced it.
-                            self.failed += 1;
+                            self.fail(i);
                             if snap_attr & DIRECTORY != 0 && snap_attr & REPARSE == 0 {
                                 // The snapshot entry was a non-reparse directory: stop this item
                                 // whatever replaced it (dir, file, link, or other reparse point).
@@ -987,8 +1037,10 @@ mod windows {
                     if rel.is_empty() {
                         self.self_deleted = true;
                     }
-                } else if !self.only_post_snapshot(&handle, rel) {
-                    self.failed += 1;
+                } else if self.only_post_snapshot(&handle, rel) {
+                    self.accounted[index] = true;
+                } else {
+                    self.fail(index);
                 }
                 false
             } else {
@@ -998,22 +1050,33 @@ mod windows {
                     DELETE | FILE_READ_ATTRIBUTES | SYNCHRONIZE,
                     SHARE_RWD,
                 ) {
-                    Ok(handle) => match (attr_tag(&handle), file_id(&handle)) {
-                        (Some((a, _)), Some(id)) if a & REPARSE == 0 && id == exp_id => {
-                            if set_delete(&handle) {
-                                self.removed += 1;
-                                if rel.is_empty() {
-                                    self.self_deleted = true;
-                                }
-                            } else {
-                                self.failed += 1;
-                            }
+                    Ok(handle) => {
+                        let id = file_id(&handle);
+                        if rel.is_empty() && id.is_some_and(|id| id != exp_id) {
+                            self.initial_skip = Some(SkipReason::Changed);
+                            return false;
                         }
-                        // became a link, FileId changed, or attributes unreadable: skip + count
-                        _ => self.failed += 1,
-                    },
-                    Err(w) if w == ERR_FILE_NOT_FOUND || w == ERR_PATH_NOT_FOUND => {}
-                    Err(_) => self.failed += 1,
+                        match (attr_tag(&handle), id) {
+                            (Some((a, _)), Some(id)) if a & REPARSE == 0 && id == exp_id => {
+                                if set_delete(&handle) {
+                                    self.removed += 1;
+                                    if rel.is_empty() {
+                                        self.self_deleted = true;
+                                    }
+                                } else {
+                                    self.fail(index);
+                                }
+                            }
+                            // became a link, FileId changed, or attributes unreadable: skip + count
+                            _ => self.fail(index),
+                        }
+                    }
+                    Err(w) if w == ERR_FILE_NOT_FOUND || w == ERR_PATH_NOT_FOUND => {
+                        if rel.is_empty() {
+                            self.initial_skip = Some(SkipReason::Gone);
+                        }
+                    }
+                    Err(_) => self.fail(index),
                 }
                 false
             }
@@ -1053,11 +1116,10 @@ mod windows {
         self_deleted: bool,
     ) -> (Option<u64>, u64) {
         let before_bytes = before.bytes;
-        // A different object now bears the item's name (its FileId no longer matches the
-        // snapshot). Report the item deleted only when this run actually set the delete flag on
-        // the item itself; otherwise nothing was freed, so keep the full byte count as residual
-        // and never report deleted. No extra failure is counted here (the delete pass already
-        // counted one for the stop). addendum 02 change 4.
+        // The original name may be missing or belong to a different FileId. Only this run's
+        // successful delete flag on the item proves it was deleted; otherwise its residual is
+        // unknown because someone else moved/replaced it. Keep bytes_before without an extra
+        // failure (CLEAN-REPORT section 2, extending addendum 02 change 4).
         let replaced = |sd: bool| -> (Option<u64>, u64) {
             if sd {
                 (None, 0)
@@ -1076,7 +1138,9 @@ mod windows {
         // identify it by FileId, instead of listing the parent and matching names.
         let handle = match nt_open(&parent, name, FILE_READ_ATTRIBUTES | SYNCHRONIZE, SHARE_RWD) {
             Ok(h) => h,
-            Err(w) if w == ERR_FILE_NOT_FOUND || w == ERR_PATH_NOT_FOUND => return (None, 0),
+            Err(w) if w == ERR_FILE_NOT_FOUND || w == ERR_PATH_NOT_FOUND => {
+                return replaced(self_deleted);
+            }
             Err(_) => return (Some(before_bytes), 1),
         };
         let Some((attr, _)) = attr_tag(&handle) else {
@@ -1124,17 +1188,32 @@ mod windows {
         before: &Snapshot,
         stop: &StopFlag,
     ) -> (ItemReport, bool) {
+        let mut folded: Vec<(String, usize)> = before
+            .entries
+            .iter()
+            .enumerate()
+            .map(|(i, e)| (uppercase_key(&e.rel), i))
+            .collect();
+        folded.sort_unstable();
         let mut ctx = DelCtx {
             before,
             stop,
+            folded,
+            accounted: vec![false; before.entries.len()],
             removed: 0,
             failed: 0,
             changed_stop: false,
+            initial_skip: None,
             self_deleted: false,
         };
         let mut interrupted = false;
         if let Ok(parent) = walk_parent(item) {
             interrupted = ctx.node(&parent, last_segment(&item.path), "");
+        }
+        if let Some(reason) = ctx.initial_skip {
+            let mut report = ItemReport::skipped(item, reason);
+            report.bytes_before = before.bytes.to_string();
+            return (report, false);
         }
         let (residual, extra_failed) = measure_residual(item, before, ctx.self_deleted);
         ctx.failed += extra_failed;
@@ -1148,7 +1227,7 @@ mod windows {
             ItemStatus::Failed
         };
         let cancelled = status == ItemStatus::Skipped;
-        let freed = if cancelled {
+        let freed = if ctx.removed == 0 {
             0
         } else {
             before.bytes.saturating_sub(residual.unwrap_or(0))

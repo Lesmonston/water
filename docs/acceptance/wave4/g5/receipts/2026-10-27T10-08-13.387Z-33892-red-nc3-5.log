@@ -1,0 +1,46 @@
+{"binary":"C:\\Users\\37310\\.rustup\\toolchains\\1.95.0-x86_64-pc-windows-msvc\\bin\\cargo.exe","args":["test","--offline","--locked","--manifest-path","packages/junk-clean/Cargo.toml","--test","clean_v1","--","--test-threads=1"],"exitCode":101,"error":null}
+--- stdout ---
+
+running 6 tests
+test clean_handle_hardening ... FAILED
+test clean_no_follow ... FAILED
+test clean_partial_stop_journal ... ok
+test clean_plan_contract ... ok
+test clean_report_volume ... ok
+test clean_revalidation_skips ... ok
+
+failures:
+
+---- clean_handle_hardening stdout ----
+
+thread 'clean_handle_hardening' (39624) panicked at tests\clean_v1.rs:961:5:
+CLEAN_NO_FOLLOW: the junction link was not removed by handle
+note: run with `RUST_BACKTRACE=1` environment variable to display a backtrace
+
+---- clean_no_follow stdout ----
+
+thread 'clean_no_follow' (9236) panicked at tests\clean_v1.rs:447:5:
+assertion failed: fs::symlink_metadata(&link).is_err()
+
+
+failures:
+    clean_handle_hardening
+    clean_no_follow
+
+test result: FAILED. 4 passed; 2 failed; 0 ignored; 0 measured; 0 filtered out; finished in 1.03s
+
+
+--- stderr ---
+   Compiling water-junk-clean v0.1.0 (F:\new\smaltalk\water\.worktrees\w4-g5\packages\junk-clean)
+warning: constant `OPEN_REPARSE_POINT` is never used
+  --> src\native_windows.rs:47:11
+   |
+47 |     const OPEN_REPARSE_POINT: u32 = 0x0020_0000;
+   |           ^^^^^^^^^^^^^^^^^^
+   |
+   = note: `#[warn(dead_code)]` (part of `#[warn(unused)]`) on by default
+
+warning: `water-junk-clean` (lib) generated 1 warning
+    Finished `test` profile [unoptimized + debuginfo] target(s) in 2.89s
+     Running tests\clean_v1.rs (.local\w2-target\debug\deps\clean_v1-607b5e28434d5f75.exe)
+error: test failed, to rerun pass `--test clean_v1`

@@ -1,0 +1,326 @@
+{
+  "task": "WATER-W4-G5",
+  "mode": "test",
+  "finalGate": true,
+  "manifest": "docs/dispatch/wave4/manifest.json",
+  "startedAt": "2026-10-27T10:09:22.665Z",
+  "realDataRead": false,
+  "productTestsRun": true,
+  "commands": [
+    {
+      "binary": "git",
+      "argv": [
+        "branch",
+        "--show-current"
+      ],
+      "exitCode": 0
+    },
+    {
+      "binary": "git",
+      "argv": [
+        "merge-base",
+        "--is-ancestor",
+        "4f35c52f5abb3dee22583cc2c86b05da2fc2be93",
+        "HEAD"
+      ],
+      "exitCode": 0
+    },
+    {
+      "binary": "git",
+      "argv": [
+        "diff",
+        "--no-renames",
+        "--name-only",
+        "-z",
+        "4f35c52f5abb3dee22583cc2c86b05da2fc2be93",
+        "HEAD"
+      ],
+      "exitCode": 0
+    },
+    {
+      "binary": "git",
+      "argv": [
+        "diff",
+        "--no-renames",
+        "--name-only",
+        "-z",
+        "HEAD"
+      ],
+      "exitCode": 0
+    },
+    {
+      "binary": "git",
+      "argv": [
+        "ls-files",
+        "--others",
+        "--exclude-standard",
+        "-z"
+      ],
+      "exitCode": 0
+    },
+    {
+      "binary": "git",
+      "argv": [
+        "rev-parse",
+        "HEAD"
+      ],
+      "exitCode": 0
+    },
+    {
+      "binary": "git",
+      "argv": [
+        "status",
+        "--porcelain",
+        "--untracked-files=all"
+      ],
+      "exitCode": 0
+    },
+    {
+      "binary": "C:\\Users\\37310\\.cargo\\bin\\rustup.exe",
+      "argv": [
+        "which",
+        "cargo",
+        "--toolchain",
+        "1.95.0"
+      ],
+      "exitCode": 0,
+      "error": null,
+      "log": "2026-10-27T10-09-22.664Z-36564-test-1.log"
+    },
+    {
+      "binary": "C:\\Users\\37310\\.cargo\\bin\\rustup.exe",
+      "argv": [
+        "which",
+        "rustc",
+        "--toolchain",
+        "1.95.0"
+      ],
+      "exitCode": 0,
+      "error": null,
+      "log": "2026-10-27T10-09-22.664Z-36564-test-2.log"
+    },
+    {
+      "binary": "C:\\Users\\37310\\.rustup\\toolchains\\1.95.0-x86_64-pc-windows-msvc\\bin\\rustc.exe",
+      "argv": [
+        "--version"
+      ],
+      "exitCode": 0,
+      "error": null,
+      "log": "2026-10-27T10-09-22.664Z-36564-test-3.log"
+    },
+    {
+      "binary": "C:\\Users\\37310\\.rustup\\toolchains\\1.95.0-x86_64-pc-windows-msvc\\bin\\cargo.exe",
+      "argv": [
+        "metadata",
+        "--offline",
+        "--locked",
+        "--format-version",
+        "1",
+        "--manifest-path",
+        "packages/junk-clean/Cargo.toml"
+      ],
+      "exitCode": 0,
+      "error": null,
+      "log": "2026-10-27T10-09-22.664Z-36564-test-4.log"
+    },
+    {
+      "binary": "C:\\Users\\37310\\.rustup\\toolchains\\1.95.0-x86_64-pc-windows-msvc\\bin\\cargo.exe",
+      "argv": [
+        "test",
+        "--offline",
+        "--locked",
+        "--manifest-path",
+        "packages/junk-clean/Cargo.toml",
+        "--test",
+        "clean_v1",
+        "--",
+        "--test-threads=1"
+      ],
+      "exitCode": 0,
+      "error": null,
+      "log": "2026-10-27T10-09-22.664Z-36564-test-5.log"
+    },
+    {
+      "binary": "git",
+      "argv": [
+        "branch",
+        "--show-current"
+      ],
+      "exitCode": 0
+    },
+    {
+      "binary": "git",
+      "argv": [
+        "merge-base",
+        "--is-ancestor",
+        "4f35c52f5abb3dee22583cc2c86b05da2fc2be93",
+        "HEAD"
+      ],
+      "exitCode": 0
+    },
+    {
+      "binary": "git",
+      "argv": [
+        "diff",
+        "--no-renames",
+        "--name-only",
+        "-z",
+        "4f35c52f5abb3dee22583cc2c86b05da2fc2be93",
+        "HEAD"
+      ],
+      "exitCode": 0
+    },
+    {
+      "binary": "git",
+      "argv": [
+        "diff",
+        "--no-renames",
+        "--name-only",
+        "-z",
+        "HEAD"
+      ],
+      "exitCode": 0
+    },
+    {
+      "binary": "git",
+      "argv": [
+        "ls-files",
+        "--others",
+        "--exclude-standard",
+        "-z"
+      ],
+      "exitCode": 0
+    },
+    {
+      "binary": "git",
+      "argv": [
+        "rev-parse",
+        "HEAD"
+      ],
+      "exitCode": 0
+    },
+    {
+      "binary": "git",
+      "argv": [
+        "status",
+        "--porcelain",
+        "--untracked-files=all"
+      ],
+      "exitCode": 0
+    }
+  ],
+  "changedPaths": [
+    "packages/junk-clean/src/native_windows.rs"
+  ],
+  "before": {
+    "head": "700f4e04ff36830fb6a2bde6e859566e48721a54",
+    "status": ""
+  },
+  "sourceState": {
+    "files": [
+      {
+        "path": "packages/junk-clean/Cargo.toml",
+        "snapshot": "2026-10-27T10-09-22.664Z-36564-test-source-0.txt",
+        "sha256": "0a356ae5bbbbc1189d3c3682b5b987c1316a62c49778164187f32786faa178a7",
+        "test": false
+      },
+      {
+        "path": "packages/junk-clean/Cargo.lock",
+        "snapshot": "2026-10-27T10-09-22.664Z-36564-test-source-1.txt",
+        "sha256": "0ae95b4caaada24df0d40653e4dbd8598a926692aa48e882c522ab6f4efb513f",
+        "test": false
+      },
+      {
+        "path": "packages/junk-clean/README.md",
+        "snapshot": "2026-10-27T10-09-22.664Z-36564-test-source-2.txt",
+        "sha256": "770b73a5f64967dd20ecdebba3fea4e6d7f02a521266860683ed992910363916",
+        "test": false
+      },
+      {
+        "path": "packages/junk-clean/src/lib.rs",
+        "snapshot": "2026-10-27T10-09-22.664Z-36564-test-source-3.txt",
+        "sha256": "ad2766cb90e17e2ed6e826894f5621f2de4d22ccfb49c2d092fec47c4d5f7de0",
+        "test": false
+      },
+      {
+        "path": "packages/junk-clean/src/model.rs",
+        "snapshot": "2026-10-27T10-09-22.664Z-36564-test-source-4.txt",
+        "sha256": "72a021b6f2221e9bd6b7ab4dc80cf90851ff59984c19f3bb87c328cc1c944e88",
+        "test": false
+      },
+      {
+        "path": "packages/junk-clean/src/native_windows.rs",
+        "snapshot": "2026-10-27T10-09-22.664Z-36564-test-source-5.txt",
+        "sha256": "988641a07387e6ba55919fafd06904a14bcbc1c7cd955016e4bffd8036fbfe27",
+        "test": false
+      },
+      {
+        "path": "packages/junk-clean/src/path.rs",
+        "snapshot": "2026-10-27T10-09-22.664Z-36564-test-source-6.txt",
+        "sha256": "c730a15e3914f00d950257720ed05e6884c0caa9e3f0257929c10977762c9d4b",
+        "test": false
+      },
+      {
+        "path": "packages/junk-clean/src/time.rs",
+        "snapshot": "2026-10-27T10-09-22.664Z-36564-test-source-7.txt",
+        "sha256": "8afb72161217016944441db6eef20e8efebf90c193eb47840ebeb879d5966b22",
+        "test": false
+      },
+      {
+        "path": "packages/junk-clean/tests/clean_v1.rs",
+        "snapshot": "2026-10-27T10-09-22.664Z-36564-test-source-8.txt",
+        "sha256": "6c0a8e3b7953ecf02bb6fa77c6ad2077ae590c620bb7ebe27d0c7a3d0aaf3cf5",
+        "test": true
+      }
+    ],
+    "productionHash": "a36851e198dd5844baea33b2ff9d61098d79809e28a3dd4087d6a09c13ef8202",
+    "testHash": "22fa84c0e91722cf7850b2cd2077b9efa3f6a2cf3555827bdae77022e49ae80f"
+  },
+  "dependencyInventory": [
+    "itoa@1.0.18",
+    "memchr@2.8.3",
+    "proc-macro2@1.0.107",
+    "quote@1.0.47",
+    "serde@1.0.229",
+    "serde_core@1.0.229",
+    "serde_derive@1.0.229",
+    "serde_json@1.0.151",
+    "syn@3.0.9",
+    "unicode-ident@1.0.27",
+    "zmij@1.0.23"
+  ],
+  "ffi": [
+    "CloseHandle",
+    "CreateFileW",
+    "GetDiskFreeSpaceExW",
+    "GetFileInformationByHandleEx",
+    "GetVolumeInformationByHandleW",
+    "NtOpenFile",
+    "RtlNtStatusToDosError",
+    "SetFileInformationByHandle"
+  ],
+  "proofAudit": [
+    {
+      "label": "nc1",
+      "red": "2026-10-27T10-05-25.292Z-15056-red-nc1-result.json",
+      "restored": "2026-10-27T10-05-57.448Z-17164-test-result.json"
+    },
+    {
+      "label": "nc2",
+      "red": "2026-10-27T10-06-52.046Z-22932-red-nc2-result.json",
+      "restored": "2026-10-27T10-07-41.084Z-12444-test-result.json"
+    },
+    {
+      "label": "nc3",
+      "red": "2026-10-27T10-08-13.387Z-33892-red-nc3-result.json",
+      "restored": "2026-10-27T10-08-37.797Z-37964-test-result.json"
+    }
+  ],
+  "after": {
+    "head": "700f4e04ff36830fb6a2bde6e859566e48721a54",
+    "status": ""
+  },
+  "status": "passed",
+  "error": null,
+  "endedAt": "2026-10-27T10:09:30.486Z"
+}
