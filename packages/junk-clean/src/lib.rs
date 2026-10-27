@@ -77,20 +77,13 @@ fn intent(plan: &CleanPlan, item: &PlanItem, journal: &mut dyn Write) -> Result<
     )
 }
 
-fn check_identity(item: &PlanItem) -> Result<(), SkipReason> {
-    let actual = identity_of(&item.path).map_err(|_| SkipReason::Changed)?;
-    if actual != item.identity {
-        // NC1: identity comparison must remain in this live path.
-        return Err(SkipReason::Changed);
-    }
-    Ok(())
-}
-
 fn preflight(
     plan: &CleanPlan,
     item: &PlanItem,
     guard: &dyn ItemGuard,
     now: SystemTime,
+    guard_ids: &[Identity],
+    protected_ids: &[Identity],
 ) -> Result<native_windows::Snapshot, SkipReason> {
     if plan
         .hard_guards
@@ -100,7 +93,6 @@ fn preflight(
         return Err(SkipReason::Guarded);
     }
     native_windows::check_chain(item)?;
-    check_identity(item)?;
     if guard.in_use(item).is_some() {
         return Err(SkipReason::InUse);
     }
@@ -113,8 +105,7 @@ fn preflight(
     }
     // The guard is external code: recheck the chain and identity after its callback.
     native_windows::check_chain(item)?;
-    check_identity(item)?;
-    let snapshot = native_windows::snapshot(&item.path, &plan.protected_paths)?;
+    let snapshot = native_windows::snapshot(item, guard_ids, protected_ids)?;
     let required = item
         .min_age_hours
         .checked_mul(3600)
@@ -147,6 +138,18 @@ pub fn execute(
 ) -> Result<CleanReport, CleanError> {
     // Public Rust fields may be edited after parsing; never trust their syntax here.
     plan.validate_shape()?;
+    // Resolve guard and protected-path identities once, following links, so that aliases
+    // (junctions/symlinks) to a guarded or protected target are caught by identity.
+    let guard_ids: Vec<Identity> = plan
+        .hard_guards
+        .iter()
+        .filter_map(|p| native_windows::resolve_follow(p))
+        .collect();
+    let protected_ids: Vec<Identity> = plan
+        .protected_paths
+        .iter()
+        .filter_map(|p| native_windows::resolve_follow(p))
+        .collect();
     let mut volumes = Vec::new();
     for item in &plan.items {
         let root = path::volume(&item.root);
@@ -175,7 +178,7 @@ pub fn execute(
         let inspected = if stop.is_stopped() {
             Err(SkipReason::Cancelled)
         } else {
-            preflight(plan, item, guard, now)
+            preflight(plan, item, guard, now, &guard_ids, &protected_ids)
         };
         // Skips also receive an intent/result pair, making every item auditable.
         intent(plan, item, journal)?;
@@ -186,7 +189,7 @@ pub fn execute(
                     (cancelled(item, &before), false)
                 } else {
                     // Revalidate again after the potentially blocking journal flush.
-                    match preflight(plan, item, guard, now) {
+                    match preflight(plan, item, guard, now, &guard_ids, &protected_ids) {
                         Err(reason) => (ItemReport::skipped(item, reason), false),
                         Ok(fresh) if fresh != before => {
                             (ItemReport::skipped(item, SkipReason::Changed), false)

@@ -1,0 +1,306 @@
+{
+  "task": "WATER-W4-G1",
+  "mode": "check",
+  "finalGate": false,
+  "manifest": "docs/dispatch/wave4/manifest.json",
+  "startedAt": "2026-10-26T14:50:05.109Z",
+  "realDataRead": false,
+  "productTestsRun": false,
+  "commands": [
+    {
+      "binary": "git",
+      "argv": [
+        "branch",
+        "--show-current"
+      ],
+      "exitCode": 0
+    },
+    {
+      "binary": "git",
+      "argv": [
+        "merge-base",
+        "--is-ancestor",
+        "0ca42f8e8038a5a7816802c5a7f175a966b0625c",
+        "HEAD"
+      ],
+      "exitCode": 0
+    },
+    {
+      "binary": "git",
+      "argv": [
+        "diff",
+        "--no-renames",
+        "--name-only",
+        "-z",
+        "0ca42f8e8038a5a7816802c5a7f175a966b0625c",
+        "HEAD"
+      ],
+      "exitCode": 0
+    },
+    {
+      "binary": "git",
+      "argv": [
+        "diff",
+        "--no-renames",
+        "--name-only",
+        "-z",
+        "HEAD"
+      ],
+      "exitCode": 0
+    },
+    {
+      "binary": "git",
+      "argv": [
+        "ls-files",
+        "--others",
+        "--exclude-standard",
+        "-z"
+      ],
+      "exitCode": 0
+    },
+    {
+      "binary": "git",
+      "argv": [
+        "rev-parse",
+        "HEAD"
+      ],
+      "exitCode": 0
+    },
+    {
+      "binary": "git",
+      "argv": [
+        "status",
+        "--porcelain",
+        "--untracked-files=all"
+      ],
+      "exitCode": 0
+    },
+    {
+      "binary": "C:\\Users\\37310\\.cargo\\bin\\rustup.exe",
+      "argv": [
+        "which",
+        "cargo",
+        "--toolchain",
+        "1.95.0"
+      ],
+      "exitCode": 0,
+      "error": null,
+      "log": "2026-10-26T14-50-05.108Z-39532-check-1.log"
+    },
+    {
+      "binary": "C:\\Users\\37310\\.cargo\\bin\\rustup.exe",
+      "argv": [
+        "which",
+        "rustc",
+        "--toolchain",
+        "1.95.0"
+      ],
+      "exitCode": 0,
+      "error": null,
+      "log": "2026-10-26T14-50-05.108Z-39532-check-2.log"
+    },
+    {
+      "binary": "C:\\Users\\37310\\.rustup\\toolchains\\1.95.0-x86_64-pc-windows-msvc\\bin\\rustc.exe",
+      "argv": [
+        "--version"
+      ],
+      "exitCode": 0,
+      "error": null,
+      "log": "2026-10-26T14-50-05.108Z-39532-check-3.log"
+    },
+    {
+      "binary": "C:\\Users\\37310\\.rustup\\toolchains\\1.95.0-x86_64-pc-windows-msvc\\bin\\cargo.exe",
+      "argv": [
+        "metadata",
+        "--offline",
+        "--locked",
+        "--format-version",
+        "1",
+        "--manifest-path",
+        "packages/junk-clean/Cargo.toml"
+      ],
+      "exitCode": 0,
+      "error": null,
+      "log": "2026-10-26T14-50-05.108Z-39532-check-4.log"
+    },
+    {
+      "binary": "C:\\Users\\37310\\.rustup\\toolchains\\1.95.0-x86_64-pc-windows-msvc\\bin\\cargo.exe",
+      "argv": [
+        "fmt",
+        "--manifest-path",
+        "packages/junk-clean/Cargo.toml",
+        "--",
+        "--check"
+      ],
+      "exitCode": 1,
+      "error": null,
+      "log": "2026-10-26T14-50-05.108Z-39532-check-5.log"
+    },
+    {
+      "binary": "git",
+      "argv": [
+        "branch",
+        "--show-current"
+      ],
+      "exitCode": 0
+    },
+    {
+      "binary": "git",
+      "argv": [
+        "merge-base",
+        "--is-ancestor",
+        "0ca42f8e8038a5a7816802c5a7f175a966b0625c",
+        "HEAD"
+      ],
+      "exitCode": 0
+    },
+    {
+      "binary": "git",
+      "argv": [
+        "diff",
+        "--no-renames",
+        "--name-only",
+        "-z",
+        "0ca42f8e8038a5a7816802c5a7f175a966b0625c",
+        "HEAD"
+      ],
+      "exitCode": 0
+    },
+    {
+      "binary": "git",
+      "argv": [
+        "diff",
+        "--no-renames",
+        "--name-only",
+        "-z",
+        "HEAD"
+      ],
+      "exitCode": 0
+    },
+    {
+      "binary": "git",
+      "argv": [
+        "ls-files",
+        "--others",
+        "--exclude-standard",
+        "-z"
+      ],
+      "exitCode": 0
+    },
+    {
+      "binary": "git",
+      "argv": [
+        "rev-parse",
+        "HEAD"
+      ],
+      "exitCode": 0
+    },
+    {
+      "binary": "git",
+      "argv": [
+        "status",
+        "--porcelain",
+        "--untracked-files=all"
+      ],
+      "exitCode": 0
+    }
+  ],
+  "changedPaths": [
+    "packages/junk-clean/src/lib.rs",
+    "packages/junk-clean/src/native_windows.rs"
+  ],
+  "before": {
+    "head": "0ca42f8e8038a5a7816802c5a7f175a966b0625c",
+    "status": "M packages/junk-clean/src/lib.rs\n M packages/junk-clean/src/native_windows.rs"
+  },
+  "sourceState": {
+    "files": [
+      {
+        "path": "packages/junk-clean/Cargo.toml",
+        "snapshot": "2026-10-26T14-50-05.108Z-39532-check-source-0.txt",
+        "sha256": "0a356ae5bbbbc1189d3c3682b5b987c1316a62c49778164187f32786faa178a7",
+        "test": false
+      },
+      {
+        "path": "packages/junk-clean/Cargo.lock",
+        "snapshot": "2026-10-26T14-50-05.108Z-39532-check-source-1.txt",
+        "sha256": "0ae95b4caaada24df0d40653e4dbd8598a926692aa48e882c522ab6f4efb513f",
+        "test": false
+      },
+      {
+        "path": "packages/junk-clean/README.md",
+        "snapshot": "2026-10-26T14-50-05.108Z-39532-check-source-2.txt",
+        "sha256": "770b73a5f64967dd20ecdebba3fea4e6d7f02a521266860683ed992910363916",
+        "test": false
+      },
+      {
+        "path": "packages/junk-clean/src/lib.rs",
+        "snapshot": "2026-10-26T14-50-05.108Z-39532-check-source-3.txt",
+        "sha256": "388a98b3051d99e7486379e0d9556c0df85f4b1adfb7429711dc8dcfa47975f6",
+        "test": false
+      },
+      {
+        "path": "packages/junk-clean/src/model.rs",
+        "snapshot": "2026-10-26T14-50-05.108Z-39532-check-source-4.txt",
+        "sha256": "72a021b6f2221e9bd6b7ab4dc80cf90851ff59984c19f3bb87c328cc1c944e88",
+        "test": false
+      },
+      {
+        "path": "packages/junk-clean/src/native_windows.rs",
+        "snapshot": "2026-10-26T14-50-05.108Z-39532-check-source-5.txt",
+        "sha256": "823c71da960757facb53760f6391b295ea372fa94aebef386e02f119170fdda1",
+        "test": false
+      },
+      {
+        "path": "packages/junk-clean/src/path.rs",
+        "snapshot": "2026-10-26T14-50-05.108Z-39532-check-source-6.txt",
+        "sha256": "d8ae9d9e86c91ccd5f3161099622f079d7d04d98698d31c44ac655db148d5382",
+        "test": false
+      },
+      {
+        "path": "packages/junk-clean/src/time.rs",
+        "snapshot": "2026-10-26T14-50-05.108Z-39532-check-source-7.txt",
+        "sha256": "8afb72161217016944441db6eef20e8efebf90c193eb47840ebeb879d5966b22",
+        "test": false
+      },
+      {
+        "path": "packages/junk-clean/tests/clean_v1.rs",
+        "snapshot": "2026-10-26T14-50-05.108Z-39532-check-source-8.txt",
+        "sha256": "8b6ead516d39097ef007319c60ae5d953a1d7722cfa76ec9ba01cae769c065d6",
+        "test": true
+      }
+    ],
+    "productionHash": "705ab7202ed14fb119a4beb7ad3a578cf85cbd11b953c445b6b32f49ec7a83d4",
+    "testHash": "d398e1a80e87f59e3226d3801e0dee973707eb58cdfe65a25890e49795696dc8"
+  },
+  "dependencyInventory": [
+    "itoa@1.0.18",
+    "memchr@2.8.3",
+    "proc-macro2@1.0.107",
+    "quote@1.0.47",
+    "serde@1.0.229",
+    "serde_core@1.0.229",
+    "serde_derive@1.0.229",
+    "serde_json@1.0.151",
+    "syn@3.0.9",
+    "unicode-ident@1.0.27",
+    "zmij@1.0.23"
+  ],
+  "ffi": [
+    "CloseHandle",
+    "CreateFileW",
+    "GetDiskFreeSpaceExW",
+    "GetFileInformationByHandleEx",
+    "GetVolumeInformationByHandleW",
+    "NtOpenFile",
+    "RtlNtStatusToDosError",
+    "SetFileInformationByHandle"
+  ],
+  "after": {
+    "head": "0ca42f8e8038a5a7816802c5a7f175a966b0625c",
+    "status": "M packages/junk-clean/src/lib.rs\n M packages/junk-clean/src/native_windows.rs"
+  },
+  "status": "failed",
+  "error": "AssertionError [ERR_ASSERTION]: Unexpected exit, see 2026-10-26T14-50-05.108Z-39532-check-5.log\n\n1 !== 0\n\n    at command (file:///F:/new/smaltalk/water/.worktrees/w4-g1/scripts/checkup-wave-check.mjs:37:606)\n    at file:///F:/new/smaltalk/water/.worktrees/w4-g1/scripts/checkup-wave-check.mjs:184:26\n    at ModuleJob.run (node:internal/modules/esm/module_job:439:25)\n    at async node:internal/modules/esm/loader:633:26\n    at async asyncRunEntryPointWithESMLoader (node:internal/modules/run_main:101:5)",
+  "endedAt": "2026-10-26T14:50:07.046Z"
+}

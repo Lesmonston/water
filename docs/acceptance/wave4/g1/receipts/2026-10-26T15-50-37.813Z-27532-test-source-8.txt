@@ -1,0 +1,1234 @@
+#![forbid(unsafe_code)]
+
+use serde_json::{Value, json};
+use std::{
+    collections::hash_map::RandomState,
+    fs::{self, File, OpenOptions},
+    hash::BuildHasher,
+    io::{self, Write},
+    os::windows::fs::{MetadataExt, OpenOptionsExt},
+    path::{Path, PathBuf},
+    process::Command,
+    sync::{
+        Mutex,
+        atomic::{AtomicBool, Ordering},
+    },
+    time::{Duration, Instant, SystemTime},
+};
+use water_junk_clean::*;
+
+const REPARSE: u32 = 0x400;
+
+struct Fixture {
+    parent: PathBuf,
+    base: PathBuf,
+}
+impl Fixture {
+    fn new() -> Self {
+        // Cargo preserves forward separators from --manifest-path; MODEL/mklink require '\\'.
+        let manifest = PathBuf::from(env!("CARGO_MANIFEST_DIR").replace('/', "\\"));
+        let tree = manifest.as_path().parent().unwrap().parent().unwrap();
+        // Any checkout location works, but only from a real git work tree root.
+        assert!(
+            fs::symlink_metadata(tree.join(".git")).is_ok(),
+            "fixture refused: no .git under the work tree root"
+        );
+        let parent = tree.join(".local").join("w2-d-fixtures");
+        assert_plain_ancestors(parent.parent().unwrap());
+        fs::create_dir_all(&parent).unwrap();
+        assert_plain_ancestors(&parent);
+        let nonce = RandomState::new().hash_one((SystemTime::now(), std::process::id()));
+        let base = parent.join(format!("fixture-{nonce:016x}"));
+        fs::create_dir(&base).unwrap(); // Never reuse an earlier fixture.
+        Self { parent, base }
+    }
+    fn dir(&self, relative: &str) -> PathBuf {
+        let path = self.base.join(relative.replace('/', "\\"));
+        assert!(path.starts_with(&self.base));
+        assert!(
+            !Path::new(relative)
+                .components()
+                .any(|c| !matches!(c, std::path::Component::Normal(_)))
+        );
+        fs::create_dir_all(&path).unwrap();
+        path
+    }
+    fn file(&self, relative: &str, data: &[u8]) -> PathBuf {
+        let path = self.base.join(relative.replace('/', "\\"));
+        assert!(path.starts_with(&self.base));
+        assert!(
+            !Path::new(relative)
+                .components()
+                .any(|c| !matches!(c, std::path::Component::Normal(_)))
+        );
+        fs::create_dir_all(path.parent().unwrap()).unwrap();
+        let mut file = OpenOptions::new()
+            .write(true)
+            .create_new(true)
+            .open(&path)
+            .unwrap();
+        file.write_all(data).unwrap();
+        path
+    }
+    fn junction(&self, link: &Path, target: &Path) {
+        // Only the explicitly permitted mklink command uses cmd. Deletion never crosses shells.
+        assert!(link.starts_with(&self.base) && target.starts_with(&self.base));
+        assert_plain_ancestors(link.parent().unwrap());
+        assert_plain_ancestors(target);
+        assert!(fs::symlink_metadata(link).is_err());
+        let result = Command::new("cmd")
+            .args(["/D", "/C", "mklink", "/J"])
+            .arg(link)
+            .arg(target)
+            .output()
+            .unwrap();
+        assert!(result.status.success(), "fixture junction creation failed");
+        assert_ne!(
+            fs::symlink_metadata(link).unwrap().file_attributes() & REPARSE,
+            0
+        );
+    }
+}
+fn assert_plain_ancestors(path: &Path) {
+    for ancestor in path.ancestors() {
+        assert_eq!(
+            fs::symlink_metadata(ancestor).unwrap().file_attributes() & REPARSE,
+            0
+        );
+    }
+}
+impl Drop for Fixture {
+    fn drop(&mut self) {
+        // Verify the absolute owner boundary before any recursive cleanup.
+        assert!(self.base.is_absolute());
+        assert_eq!(self.base.parent(), Some(self.parent.as_path()));
+        let name = self.base.file_name().unwrap().to_str().unwrap();
+        assert_eq!(name.len(), "fixture-".len() + 16);
+        assert!(name.starts_with("fixture-") && name[8..].bytes().all(|c| c.is_ascii_hexdigit()));
+        assert_plain_ancestors(&self.parent);
+        assert_eq!(
+            fs::canonicalize(&self.base).unwrap().parent(),
+            Some(fs::canonicalize(&self.parent).unwrap().as_path())
+        );
+        remove_owned(&self.base, &self.base);
+    }
+}
+fn remove_owned(path: &Path, owned: &Path) {
+    assert!(path.starts_with(owned));
+    let meta = fs::symlink_metadata(path).unwrap();
+    if meta.file_attributes() & REPARSE != 0 {
+        if meta.file_attributes() & 0x10 != 0 {
+            fs::remove_dir(path).unwrap();
+        } else {
+            fs::remove_file(path).unwrap();
+        }
+    } else if meta.is_dir() {
+        for entry in fs::read_dir(path).unwrap() {
+            remove_owned(&entry.unwrap().path(), owned);
+        }
+        fs::remove_dir(path).unwrap();
+    } else {
+        if meta.permissions().readonly() {
+            let mut permissions = meta.permissions();
+            // Synthetic Windows fixture only; no Unix permissions exist in this test.
+            #[allow(clippy::permissions_set_readonly_false)]
+            permissions.set_readonly(false);
+            fs::set_permissions(path, permissions).unwrap();
+        }
+        fs::remove_file(path).unwrap();
+    }
+}
+fn s(path: &Path) -> String {
+    path.to_str().unwrap().to_owned()
+}
+fn size(path: &Path) -> u64 {
+    let Ok(m) = fs::symlink_metadata(path) else {
+        return 0;
+    };
+    if m.file_attributes() & REPARSE != 0 {
+        0
+    } else if m.is_dir() {
+        fs::read_dir(path)
+            .unwrap()
+            .map(|e| size(&e.unwrap().path()))
+            .sum()
+    } else {
+        m.len()
+    }
+}
+fn item(root: &Path, path: &Path, id: &str) -> Value {
+    json!({"item_id":id,"group_id":"synthetic","rule_id":"fixture-rule","level":"recommended",
+        "path":s(path),"root":s(root),"kind":if path.is_dir() {"dir"} else {"file"},
+        "identity":identity_of(&s(path)).unwrap(),"total_bytes":size(path).to_string(),"min_age_hours":0})
+}
+fn plan_value(items: Vec<Value>) -> Value {
+    json!({"plan_version":"water.clean-plan.v1","plan_id":"fixture-plan",
+        "created_at":"2026-10-26T04:05:00Z","items":items,"protected_paths":[],"hard_guards":[]})
+}
+fn parse(value: Value) -> CleanPlan {
+    CleanPlan::from_json(&value.to_string()).unwrap()
+}
+struct Observer(Mutex<Vec<(usize, usize, u64, String)>>);
+impl Observer {
+    fn new() -> Self {
+        Self(Mutex::new(Vec::new()))
+    }
+}
+impl CleanObserver for Observer {
+    fn on_item(&self, done: usize, total: usize, bytes: u64, id: &str) {
+        self.0.lock().unwrap().push((done, total, bytes, id.into()));
+    }
+}
+fn run(plan: &CleanPlan) -> CleanReport {
+    execute(
+        plan,
+        &NoGuard,
+        &mut Vec::new(),
+        &StopFlag::default(),
+        &Observer::new(),
+        SystemTime::now(),
+    )
+    .unwrap()
+}
+fn skipped(report: &CleanReport, reason: SkipReason) {
+    assert_eq!(report.items.len(), 1);
+    assert_eq!(report.items[0].status, ItemStatus::Skipped);
+    assert_eq!(report.items[0].skip_reason, Some(reason));
+    assert_eq!(report.freed_bytes, "0");
+}
+fn reject(value: Value) {
+    assert!(
+        CleanPlan::from_json(&value.to_string()).is_err(),
+        "invalid plan accepted"
+    );
+}
+
+#[test]
+fn clean_plan_contract() {
+    let fixture = Fixture::new();
+    let root = fixture.dir("root");
+    let file = fixture.file("root/cache", b"contract-data");
+    let value = plan_value(vec![item(&root, &file, "one")]);
+    let valid = parse(value.clone());
+    assert_eq!(valid.items[0].identity, identity_of(&s(&file)).unwrap());
+    assert_eq!(serde_json::to_value(&valid).unwrap(), value);
+    let mut unknown = value.clone();
+    unknown["unknown"] = json!(1);
+    reject(unknown);
+    let mut unknown = value.clone();
+    unknown["items"][0]["unknown"] = json!(1);
+    reject(unknown);
+    let mut unknown = value.clone();
+    unknown["items"][0]["identity"]["unknown"] = json!(1);
+    reject(unknown);
+    let mut duplicate = value.clone();
+    duplicate["items"]
+        .as_array_mut()
+        .unwrap()
+        .push(value["items"][0].clone());
+    reject(duplicate);
+    for key in ["identity", "root", "path", "total_bytes", "min_age_hours"] {
+        let mut v = value.clone();
+        v["items"][0].as_object_mut().unwrap().remove(key);
+        reject(v);
+    }
+    for (key, invalid) in [
+        ("level", json!("advisory")),
+        ("level", json!("protected")),
+        ("kind", json!("any")),
+        ("kind", json!("link")),
+        ("identity", Value::Null),
+        ("total_bytes", json!(1)),
+        ("total_bytes", json!("-1")),
+        ("total_bytes", json!("1.0")),
+        ("total_bytes", json!("1e3")),
+        ("total_bytes", json!("")),
+        ("total_bytes", json!(" 1")),
+        ("total_bytes", json!("+1")),
+        ("total_bytes", json!("18446744073709551616")),
+        ("min_age_hours", json!(-1)),
+        ("min_age_hours", json!(9007199254740992u64)),
+        ("min_age_hours", json!(1.5)),
+    ] {
+        let mut v = value.clone();
+        v["items"][0][key] = invalid;
+        reject(v);
+    }
+    for invalid in ["", "0000000a", "000000000"] {
+        let mut v = value.clone();
+        v["items"][0]["identity"]["volume_serial"] = json!(invalid);
+        reject(v);
+    }
+    let mut v = value.clone();
+    v["items"][0]["identity"]["file_id"] = json!("A0000000000000000000000000000000");
+    reject(v);
+    for invalid in [
+        "2026-02-29T00:00:00Z",
+        "2026-01-01T24:00:00Z",
+        "2026-01-01T00:00:00+00:00",
+        "...",
+        "2026-01-01T00:00:00.001Z",
+    ] {
+        let mut v = value.clone();
+        v["created_at"] = json!(invalid);
+        reject(v);
+    }
+    let mut v = value.clone();
+    v["plan_version"] = json!("water.clean-plan.v2");
+    reject(v);
+    let raw =
+        value
+            .to_string()
+            .replacen("\"plan_id\":", "\"plan_id\":\"duplicate\",\"plan_id\":", 1);
+    assert!(CleanPlan::from_json(&raw).is_err());
+    let root_s = s(&root);
+    for invalid in [
+        "relative".into(),
+        format!("{}\\", s(&file)),
+        format!("{root_s}\\.\\cache"),
+        format!("{root_s}\\..\\cache"),
+        format!("{root_s}\\\\cache"),
+        s(&file).replace('\\', "/"),
+        format!("\\\\?\\{}", s(&file)),
+        format!("\\\\host\\{}", s(&file)),
+        format!("{root_s}\\cache:stream"),
+        format!("{root_s}\\cache."),
+        format!("{root_s}\\cache "),
+        format!("{root_s}\\NUL.txt"),
+        format!("{root_s}\\COM1"),
+        format!("{root_s}\\bad\0name"),
+        format!("{root_s}\\bad*name"),
+    ] {
+        for key in ["path", "root"] {
+            let mut v = value.clone();
+            v["items"][0][key] = json!(invalid);
+            reject(v);
+        }
+        for key in ["hard_guards", "protected_paths"] {
+            let mut v = value.clone();
+            v[key] = json!([invalid]);
+            reject(v);
+        }
+    }
+    let mut equal = value.clone();
+    equal["items"][0]["path"] = json!(root_s);
+    reject(equal);
+    let mut sibling = value.clone();
+    sibling["items"][0]["path"] = json!(format!("{root_s}-sibling\\cache"));
+    reject(sibling);
+    for guard in [s(&file), format!("{}\\child", s(&file))] {
+        let mut v = value.clone();
+        v["hard_guards"] = json!([guard]);
+        reject(v);
+    }
+    for protected in [s(&file), format!("{}\\child", s(&file)), s(&root)] {
+        let mut v = value.clone();
+        v["protected_paths"] = json!([protected]);
+        reject(v);
+    }
+    let mut legal = value.clone();
+    legal["hard_guards"] = json!([s(&root), &s(&root)[..3]]);
+    legal["protected_paths"] = json!([format!("{}-sibling", s(&file))]);
+    legal["items"][0]["root"] = json!(s(&root).to_ascii_uppercase());
+    legal["items"][0]["level"] = json!("confirm");
+    parse(legal);
+    assert_eq!(fs::read(&file).unwrap(), b"contract-data");
+    // Defence in depth for a trusted Rust caller that edits a parsed plan.
+    let mut bounded = valid.clone();
+    bounded.items[0].root = s(&fixture.dir("different-root"));
+    skipped(&run(&bounded), SkipReason::OutsideRoot);
+    let mut guarded = valid;
+    guarded.hard_guards.push(s(&file));
+    skipped(&run(&guarded), SkipReason::Guarded);
+    assert!(file.exists());
+}
+
+#[test]
+fn clean_revalidation_skips() {
+    let fixture = Fixture::new();
+    let root = fixture.dir("root");
+    let gone = fixture.file("root/gone", b"gone");
+    let plan = parse(plan_value(vec![item(&root, &gone, "gone")]));
+    fs::remove_file(&gone).unwrap();
+    skipped(&run(&plan), SkipReason::Gone);
+
+    let replaced = fixture.file("root/replaced", b"original");
+    let plan = parse(plan_value(vec![item(&root, &replaced, "identity")]));
+    // Hold the deleted object's handle so NTFS cannot recycle its ID for the replacement.
+    let old = OpenOptions::new()
+        .read(true)
+        .share_mode(7)
+        .open(&replaced)
+        .unwrap();
+    fs::remove_file(&replaced).unwrap();
+    let replaced = fixture.file("root/replaced", b"replacement-must-survive");
+    assert_ne!(identity_of(&s(&replaced)).unwrap(), plan.items[0].identity);
+    let report = run(&plan);
+    assert_eq!(
+        report.items[0].skip_reason,
+        Some(SkipReason::Changed),
+        "CLEAN_IDENTITY: replacement was accepted"
+    );
+    assert_eq!(
+        fs::read(&replaced).ok().as_deref(),
+        Some(b"replacement-must-survive".as_slice()),
+        "CLEAN_IDENTITY: replacement bytes lost"
+    );
+    drop(old);
+
+    let kind = fixture.file("root/kind", b"file");
+    let plan = parse(plan_value(vec![item(&root, &kind, "kind")]));
+    fs::remove_file(&kind).unwrap();
+    fixture.dir("root/kind");
+    fixture.file("root/kind/precious", b"type-changed");
+    skipped(&run(&plan), SkipReason::Changed);
+    assert_eq!(size(&kind), 12);
+
+    let recent = fixture.file("root/recent", b"new");
+    let mut value = plan_value(vec![item(&root, &recent, "recent")]);
+    value["items"][0]["min_age_hours"] = json!(1);
+    skipped(&run(&parse(value)), SkipReason::TooRecent);
+    assert_eq!(fs::read(&recent).unwrap(), b"new");
+
+    struct Busy;
+    impl ItemGuard for Busy {
+        fn in_use(&self, _: &PlanItem) -> Option<String> {
+            Some("fixture-process.exe".into())
+        }
+    }
+    let busy = fixture.file("root/busy", b"busy");
+    let plan = parse(plan_value(vec![item(&root, &busy, "busy")]));
+    let mut journal = Vec::new();
+    let report = execute(
+        &plan,
+        &Busy,
+        &mut journal,
+        &StopFlag::default(),
+        &Observer::new(),
+        SystemTime::now(),
+    )
+    .unwrap();
+    skipped(&report, SkipReason::InUse);
+    assert_eq!(fs::read(&busy).unwrap(), b"busy");
+    assert!(
+        !String::from_utf8(journal)
+            .unwrap()
+            .contains("fixture-process")
+    );
+
+    let protected = fixture.dir("root/protected-case");
+    let precious = fixture.file("root/protected-case/precious", b"protected");
+    let mut plan = parse(plan_value(vec![item(&root, &protected, "protected")]));
+    // from_json rejects this overlap. Simulate a backend adding protection after planning:
+    // execute must independently enforce it even for an already-constructed Rust plan.
+    plan.protected_paths.push(s(&precious));
+    skipped(&run(&plan), SkipReason::ProtectedOverlap);
+    assert_eq!(fs::read(&precious).unwrap(), b"protected");
+}
+
+#[test]
+fn clean_no_follow() {
+    let fixture = Fixture::new();
+    let root = fixture.dir("root");
+    let cache = fixture.dir("root/cache");
+    fixture.file("root/cache/local", b"local-cache");
+    let outside = fixture.dir("outside");
+    let survivor = fixture.file("outside/survivor", b"external-data");
+    let link = cache.join("junction");
+    fixture.junction(&link, &outside);
+    let plan = parse(plan_value(vec![item(&root, &cache, "nested-link")]));
+    let report = run(&plan);
+    assert!(outside.is_dir(), "CLEAN_NO_FOLLOW: external directory lost");
+    assert_eq!(
+        fs::read(&survivor).ok().as_deref(),
+        Some(b"external-data".as_slice()),
+        "CLEAN_NO_FOLLOW: junction target was traversed"
+    );
+    assert!(fs::symlink_metadata(&link).is_err());
+    assert_eq!(report.items[0].status, ItemStatus::Deleted);
+    assert_eq!(report.freed_bytes, "11");
+
+    let external_item = fixture.dir("external-parent/item");
+    let external_file = fixture.file("external-parent/item/precious", b"boundary-data");
+    let bridge = root.join("bridge");
+    fixture.junction(&bridge, external_item.parent().unwrap());
+    let aliased = bridge.join("item");
+    let plan = parse(plan_value(vec![item(&root, &aliased, "middle-link")]));
+    let report = run(&plan);
+    assert_eq!(
+        report.items[0].skip_reason,
+        Some(SkipReason::OutsideRoot),
+        "CLEAN_ROOT_BOUND: intermediate junction allowed"
+    );
+    assert_eq!(
+        fs::read(&external_file).ok().as_deref(),
+        Some(b"boundary-data".as_slice()),
+        "CLEAN_ROOT_BOUND: external child lost"
+    );
+
+    let root_link = fixture.base.join("root-link");
+    fixture.junction(&root_link, external_item.parent().unwrap());
+    let plan = parse(plan_value(vec![item(
+        &root_link,
+        &root_link.join("item"),
+        "root-link",
+    )]));
+    skipped(&run(&plan), SkipReason::OutsideRoot);
+    let plan = parse(plan_value(vec![item(&root, &bridge, "item-link")]));
+    skipped(&run(&plan), SkipReason::Reparse);
+    assert!(fs::symlink_metadata(&bridge).is_ok());
+    assert_eq!(fs::read(&external_file).unwrap(), b"boundary-data");
+
+    // An inner directory swapped for a junction after planning: only the link is removed.
+    let swap = fixture.dir("root/swap");
+    fixture.file("root/swap/inner/victim", b"inner");
+    let decoy = fixture.dir("decoy");
+    let decoy_victim = fixture.file("decoy/victim", b"decoy-data");
+    let plan = parse(plan_value(vec![item(&root, &swap, "swapped-inner")]));
+    fs::rename(swap.join("inner"), swap.join("moved")).unwrap();
+    fixture.junction(&swap.join("inner"), &decoy);
+    let report = run(&plan);
+    assert_eq!(
+        fs::read(&decoy_victim).ok().as_deref(),
+        Some(b"decoy-data".as_slice()),
+        "CLEAN_NO_FOLLOW: swapped-in junction target was traversed"
+    );
+    assert!(decoy.is_dir() && fs::symlink_metadata(swap.join("inner")).is_err());
+    assert_eq!(report.items[0].status, ItemStatus::Deleted);
+}
+
+struct DiskJournal {
+    file: File,
+    path: PathBuf,
+    targets: Vec<PathBuf>,
+    intents_checked: usize,
+}
+impl Write for DiskJournal {
+    fn write(&mut self, bytes: &[u8]) -> io::Result<usize> {
+        self.file.write(bytes)
+    }
+    fn flush(&mut self) -> io::Result<()> {
+        self.file.flush()?;
+        self.file.sync_all()?;
+        let lines = journal_values(&self.path);
+        if let Some(last) = lines.last()
+            && last["event"] == "intent"
+        {
+            let target = PathBuf::from(last["path"].as_str().unwrap());
+            assert!(self.targets.contains(&target));
+            assert!(target.exists(), "intent must be flushed before deletion");
+            self.intents_checked += 1;
+        }
+        Ok(())
+    }
+}
+fn journal_values(path: &Path) -> Vec<Value> {
+    fs::read_to_string(path)
+        .unwrap()
+        .lines()
+        .map(|l| serde_json::from_str(l).unwrap())
+        .collect()
+}
+struct DiskObserver {
+    path: PathBuf,
+    stop: StopFlag,
+    callbacks: Mutex<usize>,
+}
+impl CleanObserver for DiskObserver {
+    fn on_item(&self, done: usize, total: usize, _: u64, id: &str) {
+        // Read the actual journal file before completing the observer callback.
+        let lines = journal_values(&self.path);
+        assert_eq!(lines.len(), done * 2);
+        assert_eq!(lines[done * 2 - 2]["event"], "intent");
+        assert_eq!(lines[done * 2 - 1]["event"], "result");
+        assert_eq!(lines[done * 2 - 1]["item_id"], id);
+        assert!(done <= total);
+        *self.callbacks.lock().unwrap() += 1;
+        if done == 1 {
+            self.stop.stop();
+        }
+    }
+}
+
+#[test]
+fn clean_partial_stop_journal() {
+    let fixture = Fixture::new();
+    let root = fixture.dir("root");
+    let cache = fixture.dir("root/cache");
+    let locked = fixture.file("root/cache/locked", b"locked");
+    let ordinary = fixture.file("root/cache/ordinary", b"ordinary");
+    let readonly = fixture.file("root/cache/readonly", b"readonly");
+    let mut permissions = fs::metadata(&readonly).unwrap().permissions();
+    permissions.set_readonly(true);
+    fs::set_permissions(&readonly, permissions).unwrap();
+    let next = fixture.file("root/next", b"next-item");
+    let plan = parse(plan_value(vec![
+        item(&root, &cache, "partial"),
+        item(&root, &next, "next"),
+    ]));
+    let lock = OpenOptions::new()
+        .read(true)
+        .share_mode(0)
+        .open(&locked)
+        .unwrap();
+    let journal_path = fixture.file("journal.jsonl", b"");
+    let mut journal = DiskJournal {
+        file: OpenOptions::new().append(true).open(&journal_path).unwrap(),
+        path: journal_path.clone(),
+        targets: vec![cache.clone(), next.clone()],
+        intents_checked: 0,
+    };
+    let stop = StopFlag::default();
+    let observer = DiskObserver {
+        path: journal_path,
+        stop: stop.clone(),
+        callbacks: Mutex::new(0),
+    };
+    let report = execute(
+        &plan,
+        &NoGuard,
+        &mut journal,
+        &stop,
+        &observer,
+        SystemTime::now(),
+    )
+    .unwrap();
+    assert_eq!(report.items[0].status, ItemStatus::Partial);
+    assert!(report.items[0].failed_entries >= 1);
+    assert!(!ordinary.exists() && !readonly.exists());
+    assert!(locked.exists() && next.exists());
+    assert_eq!(report.items[0].bytes_freed, "16");
+    assert_eq!(report.items[1].skip_reason, Some(SkipReason::Cancelled));
+    assert_eq!(report.status, RunStatus::Stopped);
+    assert_eq!(*observer.callbacks.lock().unwrap(), 2);
+    assert_eq!(journal.intents_checked, 2);
+    drop(lock);
+    drop(journal);
+
+    // No deletions before a complete successful intent write AND flush.
+    struct Failing {
+        flush_fails: bool,
+    }
+    impl Write for Failing {
+        fn write(&mut self, b: &[u8]) -> io::Result<usize> {
+            if self.flush_fails {
+                Ok(b.len())
+            } else {
+                Err(io::Error::other("injected write failure"))
+            }
+        }
+        fn flush(&mut self) -> io::Result<()> {
+            Err(io::Error::other("injected flush failure"))
+        }
+    }
+    let plan = parse(plan_value(vec![item(&root, &next, "journal-failure")]));
+    for flush_fails in [false, true] {
+        let observer = Observer::new();
+        let error = execute(
+            &plan,
+            &NoGuard,
+            &mut Failing { flush_fails },
+            &StopFlag::default(),
+            &observer,
+            SystemTime::now(),
+        )
+        .unwrap_err();
+        assert_eq!(error, CleanError::Journal);
+        assert!(observer.0.lock().unwrap().is_empty());
+        assert_eq!(fs::read(&next).unwrap(), b"next-item");
+    }
+    // An exclusively locked single file reports failed, with zero freed bytes.
+    let lock = OpenOptions::new()
+        .read(true)
+        .share_mode(0)
+        .open(&next)
+        .unwrap();
+    let report = run(&plan);
+    assert_eq!(report.items[0].status, ItemStatus::Failed);
+    assert!(report.items[0].failed_entries >= 1);
+    assert_eq!(report.freed_bytes, "0");
+    drop(lock);
+
+    // Stop during an intent flush: no child is removed.
+    struct StopWriter(StopFlag);
+    impl Write for StopWriter {
+        fn write(&mut self, b: &[u8]) -> io::Result<usize> {
+            Ok(b.len())
+        }
+        fn flush(&mut self) -> io::Result<()> {
+            self.0.stop();
+            Ok(())
+        }
+    }
+    let stop = StopFlag::default();
+    let report = execute(
+        &plan,
+        &NoGuard,
+        &mut StopWriter(stop.clone()),
+        &stop,
+        &Observer::new(),
+        SystemTime::now(),
+    )
+    .unwrap();
+    skipped(&report, SkipReason::Cancelled);
+    // Cancelled after measurement: bytes_before is the measured size, nothing is freed.
+    assert_eq!(report.items[0].bytes_before, "9");
+    assert_eq!(report.items[0].bytes_freed, "0");
+    assert_eq!(report.status, RunStatus::Stopped);
+    assert!(next.exists());
+
+    // A result flush failure aborts the whole run, even though the first deletion occurred.
+    struct ResultFailure {
+        flushes: usize,
+    }
+    impl Write for ResultFailure {
+        fn write(&mut self, bytes: &[u8]) -> io::Result<usize> {
+            Ok(bytes.len())
+        }
+        fn flush(&mut self) -> io::Result<()> {
+            self.flushes += 1;
+            if self.flushes == 2 {
+                Err(io::Error::other("injected result flush failure"))
+            } else {
+                Ok(())
+            }
+        }
+    }
+    let before_result = fixture.file("root/result-failure", b"already-deleted");
+    let result_plan = parse(plan_value(vec![
+        item(&root, &before_result, "result-failure"),
+        item(&root, &next, "unreached"),
+    ]));
+    let observer = Observer::new();
+    let err = execute(
+        &result_plan,
+        &NoGuard,
+        &mut ResultFailure { flushes: 0 },
+        &StopFlag::default(),
+        &observer,
+        SystemTime::now(),
+    )
+    .unwrap_err();
+    assert_eq!(err, CleanError::Journal);
+    assert!(!before_result.exists() && next.exists());
+    assert!(observer.0.lock().unwrap().is_empty());
+
+    // Stop after an actual child deletion, using a separate bounded observer of this fixture.
+    let many = fixture.dir("root/many");
+    for i in 0..512 {
+        fixture.file(&format!("root/many/{i:04}"), b"x");
+    }
+    let first = many.join("0000");
+    let stop = StopFlag::default();
+    let finished = AtomicBool::new(false);
+    let plan = parse(plan_value(vec![
+        item(&root, &many, "mid-item"),
+        item(&root, &next, "remaining"),
+    ]));
+    let report = std::thread::scope(|scope| {
+        let stop_ref = &stop;
+        let finished_ref = &finished;
+        let watcher = scope.spawn(move || {
+            let started = Instant::now();
+            while first.exists()
+                && !finished_ref.load(Ordering::SeqCst)
+                && started.elapsed() < Duration::from_secs(5)
+            {
+                std::thread::yield_now();
+            }
+            stop_ref.stop();
+        });
+        let r = execute(
+            &plan,
+            &NoGuard,
+            &mut Vec::new(),
+            &stop,
+            &Observer::new(),
+            SystemTime::now(),
+        )
+        .unwrap();
+        finished.store(true, Ordering::SeqCst);
+        watcher.join().unwrap();
+        r
+    });
+    assert_eq!(report.items[0].status, ItemStatus::Partial);
+    assert!(size(&many) > 0 && size(&many) < 512);
+    assert_eq!(
+        report.items[0].bytes_freed.parse::<u64>().unwrap(),
+        512 - size(&many)
+    );
+    assert_eq!(report.items[1].skip_reason, Some(SkipReason::Cancelled));
+    assert_eq!(report.items[1].bytes_freed, "0");
+    assert_eq!(report.status, RunStatus::Stopped);
+    assert!(next.exists());
+}
+
+#[test]
+fn clean_report_volume() {
+    let fixture = Fixture::new();
+    let root = fixture.dir("root");
+    let a = fixture.file("root/a", b"1234567");
+    let b = fixture.dir("root/b");
+    fixture.file("root/b/one", b"12345");
+    fixture.file("root/b/two", b"123");
+    let empty = fixture.dir("root/empty");
+    let plan = parse(plan_value(vec![
+        item(&root, &a, "a"),
+        item(&root, &b, "b"),
+        item(&root, &empty, "empty"),
+    ]));
+    let before = size(&root);
+    let observer = Observer::new();
+    let mut journal = Vec::new();
+    let now = SystemTime::now();
+    let report = execute(
+        &plan,
+        &NoGuard,
+        &mut journal,
+        &StopFlag::default(),
+        &observer,
+        now,
+    )
+    .unwrap();
+    let freed: u64 = report
+        .items
+        .iter()
+        .map(|i| i.bytes_freed.parse::<u64>().unwrap())
+        .sum();
+    assert_eq!(freed, before - size(&root));
+    assert_eq!(report.freed_bytes, freed.to_string());
+    assert_eq!(report.estimate_bytes, "15");
+    assert_eq!(freed, 15);
+    assert!(report.items.iter().all(|i| i.status == ItemStatus::Deleted
+        && i.skip_reason.is_none()
+        && i.failed_entries == 0));
+    assert_eq!(report.status, RunStatus::Completed);
+    let disk = s(&root)[..3].to_ascii_uppercase();
+    assert_eq!(report.volumes.len(), 1);
+    assert_eq!(report.volumes[0].root, disk);
+    assert!(report.volumes[0].free_before.parse::<u64>().unwrap() > 0);
+    assert!(report.volumes[0].free_after.parse::<u64>().unwrap() > 0);
+    assert!(volume_free_bytes(&disk).unwrap() > 0);
+    assert_eq!(
+        *observer.0.lock().unwrap(),
+        vec![
+            (1, 3, 7, "a".into()),
+            (2, 3, 15, "b".into()),
+            (3, 3, 15, "empty".into())
+        ]
+    );
+    let value: Value = serde_json::from_str(&report_to_json(&report)).unwrap();
+    keys(
+        &value,
+        &[
+            "report_version",
+            "plan_id",
+            "started_at",
+            "ended_at",
+            "status",
+            "freed_bytes",
+            "estimate_bytes",
+            "volumes",
+            "items",
+        ],
+    );
+    assert_eq!(value["report_version"], "water.clean-report.v1");
+    assert_eq!(value["plan_id"], "fixture-plan");
+    for key in ["started_at", "ended_at"] {
+        let text = value[key].as_str().unwrap();
+        assert_eq!(text.len(), 20);
+        assert!(text.ends_with('Z'));
+        let mut time_plan = plan_value(vec![]);
+        time_plan["created_at"] = json!(text);
+        parse(time_plan);
+    }
+    for item in value["items"].as_array().unwrap() {
+        keys(
+            item,
+            &[
+                "item_id",
+                "status",
+                "skip_reason",
+                "bytes_before",
+                "bytes_freed",
+                "failed_entries",
+            ],
+        );
+        assert!(item["bytes_before"].is_string() && item["bytes_freed"].is_string());
+        assert!(item["failed_entries"].is_u64());
+    }
+    for volume in value["volumes"].as_array().unwrap() {
+        keys(volume, &["root", "free_before", "free_after"]);
+        assert!(volume["free_before"].is_string() && volume["free_after"].is_string());
+    }
+    let lines: Vec<Value> = String::from_utf8(journal)
+        .unwrap()
+        .lines()
+        .map(|l| serde_json::from_str(l).unwrap())
+        .collect();
+    for pair in lines.chunks_exact(2) {
+        keys(
+            &pair[0],
+            &[
+                "journal_version",
+                "event",
+                "plan_id",
+                "item_id",
+                "path",
+                "at",
+            ],
+        );
+        keys(
+            &pair[1],
+            &[
+                "event",
+                "item_id",
+                "status",
+                "skip_reason",
+                "bytes_freed",
+                "at",
+            ],
+        );
+        assert_eq!(pair[0]["journal_version"], "water.clean-journal.v1");
+        assert_eq!(pair[0]["event"], "intent");
+        assert_eq!(pair[1]["event"], "result");
+        assert_eq!(pair[0]["item_id"], pair[1]["item_id"]);
+    }
+    // A stop signal after every item has been handled still reports a completed run.
+    struct LateStop(StopFlag);
+    impl CleanObserver for LateStop {
+        fn on_item(&self, done: usize, total: usize, _: u64, _: &str) {
+            if done == total {
+                self.0.stop();
+            }
+        }
+    }
+    let late = fixture.file("root/late", b"late");
+    let stop = StopFlag::default();
+    let report = execute(
+        &parse(plan_value(vec![item(&root, &late, "late")])),
+        &NoGuard,
+        &mut Vec::new(),
+        &stop,
+        &LateStop(stop.clone()),
+        SystemTime::now(),
+    )
+    .unwrap();
+    assert!(stop.is_stopped() && !late.exists());
+    assert_eq!(report.status, RunStatus::Completed);
+    assert_eq!(report.items[0].status, ItemStatus::Deleted);
+    assert_eq!(report.freed_bytes, "4");
+    let empty = run(&parse(plan_value(vec![])));
+    assert_eq!(empty.freed_bytes, "0");
+    assert!(empty.volumes.is_empty());
+}
+fn keys(value: &Value, expected: &[&str]) {
+    let mut actual: Vec<&str> = value
+        .as_object()
+        .unwrap()
+        .keys()
+        .map(String::as_str)
+        .collect();
+    actual.sort();
+    let mut expected = expected.to_vec();
+    expected.sort();
+    assert_eq!(actual, expected);
+}
+
+#[test]
+fn clean_handle_hardening() {
+    let fixture = Fixture::new();
+
+    // CLEAN_NO_FOLLOW: an item that only holds a junction has its link opened relative to the
+    // parent handle with the "open reparse point" option and deleted by handle, never entering
+    // the target. If the delete step followed the name-surrogate link instead, it would open the
+    // target rather than the link and fail to remove it, so the item would not complete.
+    let nfroot = fixture.dir("nf/root");
+    let nfitem = fixture.dir("nf/root/item");
+    let nfext = fixture.dir("nf/external");
+    let nffile = fixture.file("nf/external/payload", b"do-not-touch");
+    let nflink = nfitem.join("link");
+    fixture.junction(&nflink, &nfext);
+    let report = run(&parse(plan_value(vec![item(
+        &nfroot,
+        &nfitem,
+        "no-follow",
+    )])));
+    assert!(
+        nfext.is_dir() && fs::read(&nffile).ok().as_deref() == Some(b"do-not-touch".as_slice()),
+        "CLEAN_NO_FOLLOW: the junction target was entered during deletion"
+    );
+    assert!(
+        fs::symlink_metadata(&nflink).is_err(),
+        "CLEAN_NO_FOLLOW: the junction link was not removed by handle"
+    );
+    assert_eq!(
+        report.items[0].status,
+        ItemStatus::Deleted,
+        "CLEAN_NO_FOLLOW: following the link instead of deleting it left the item incomplete"
+    );
+
+    // CLEAN_REPARSE_KIND (1): a custom, non-link reparse tag inside the item freezes the whole
+    // item as `reparse`; nothing is deleted and every ordinary file survives intact.
+    let rroot = fixture.dir("rp/root");
+    let ritem = fixture.dir("rp/root/item");
+    let rkeep = fixture.file("rp/root/item/keep", b"keepme");
+    let weird = fixture.file("rp/root/item/weird", b"");
+    set_custom_reparse(&weird);
+    assert_ne!(
+        fs::symlink_metadata(&weird).unwrap().file_attributes() & REPARSE,
+        0,
+        "CLEAN_REPARSE_KIND: fixture failed to stamp a custom reparse tag"
+    );
+    let report = run(&parse(plan_value(vec![item(
+        &rroot,
+        &ritem,
+        "custom-reparse",
+    )])));
+    assert_eq!(
+        report.items[0].status,
+        ItemStatus::Skipped,
+        "CLEAN_REPARSE_KIND: a custom reparse tag was not treated as an unknown reparse point"
+    );
+    assert_eq!(
+        report.items[0].skip_reason,
+        Some(SkipReason::Reparse),
+        "CLEAN_REPARSE_KIND: a custom reparse tag was not reported as reparse"
+    );
+    assert_eq!(
+        report.freed_bytes, "0",
+        "CLEAN_REPARSE_KIND: bytes were freed from an item holding a custom reparse point"
+    );
+    assert_eq!(
+        fs::read(&rkeep).ok().as_deref(),
+        Some(b"keepme".as_slice()),
+        "CLEAN_REPARSE_KIND: a sibling file was lost next to a custom reparse point"
+    );
+    assert_ne!(
+        fs::symlink_metadata(&weird).unwrap().file_attributes() & REPARSE,
+        0,
+        "CLEAN_REPARSE_KIND: the custom reparse point itself was removed"
+    );
+
+    // CLEAN_REPARSE_KIND (2): an item that only contains a junction removes the link alone,
+    // leaves the external target intact, and still reports `deleted`.
+    let jroot = fixture.dir("jonly/root");
+    let jitem = fixture.dir("jonly/root/item");
+    let jext = fixture.dir("jonly/external");
+    let jextfile = fixture.file("jonly/external/data", b"external");
+    let jlink = jitem.join("link");
+    fixture.junction(&jlink, &jext);
+    let report = run(&parse(plan_value(vec![item(
+        &jroot,
+        &jitem,
+        "junction-only",
+    )])));
+    assert_eq!(
+        report.items[0].status,
+        ItemStatus::Deleted,
+        "CLEAN_REPARSE_KIND: a junction-only item did not complete"
+    );
+    assert!(
+        fs::symlink_metadata(&jlink).is_err(),
+        "CLEAN_REPARSE_KIND: the junction link was not removed"
+    );
+    assert!(
+        jext.is_dir() && fs::read(&jextfile).ok().as_deref() == Some(b"external".as_slice()),
+        "CLEAN_REPARSE_KIND: the junction target was traversed or deleted"
+    );
+    assert!(
+        fs::symlink_metadata(&jitem).is_err(),
+        "CLEAN_REPARSE_KIND: the junction-only item directory survived"
+    );
+
+    // CLEAN_GUARD_ID (1): a protected path spelled through a junction alias misses the text
+    // test but matches by identity, freezing the whole item as `protected_overlap`.
+    let groot = fixture.dir("gid/root");
+    let target = fixture.dir("gid/root/target");
+    let keep = fixture.file("gid/root/target/keep", b"protected-keep");
+    let alias = groot.join("alias");
+    fixture.junction(&alias, &target);
+    let mut value = plan_value(vec![item(&groot, &target, "aliased-protected")]);
+    value["protected_paths"] = json!([s(&alias.join("keep"))]);
+    let report = run(&parse(value));
+    assert_eq!(
+        report.items[0].status,
+        ItemStatus::Skipped,
+        "CLEAN_GUARD_ID: an aliased protected path was not enforced"
+    );
+    assert_eq!(
+        report.items[0].skip_reason,
+        Some(SkipReason::ProtectedOverlap),
+        "CLEAN_GUARD_ID: an aliased protected path did not match by identity"
+    );
+    assert_eq!(
+        report.freed_bytes, "0",
+        "CLEAN_GUARD_ID: bytes were freed despite an aliased protected path"
+    );
+    assert_eq!(
+        fs::read(&keep).ok().as_deref(),
+        Some(b"protected-keep".as_slice()),
+        "CLEAN_GUARD_ID: a protected file was removed through an alias"
+    );
+
+    // CLEAN_GUARD_ID (2): a hard guard spelled through the same alias freezes the item as
+    // `guarded`.
+    let mut value = plan_value(vec![item(&groot, &target, "aliased-guarded")]);
+    value["hard_guards"] = json!([s(&alias)]);
+    let report = run(&parse(value));
+    assert_eq!(
+        report.items[0].status,
+        ItemStatus::Skipped,
+        "CLEAN_GUARD_ID: an aliased hard guard was not enforced"
+    );
+    assert_eq!(
+        report.items[0].skip_reason,
+        Some(SkipReason::Guarded),
+        "CLEAN_GUARD_ID: an aliased hard guard did not match by identity"
+    );
+    assert_eq!(
+        fs::read(&keep).ok().as_deref(),
+        Some(b"protected-keep".as_slice()),
+        "CLEAN_GUARD_ID: a guarded item was removed through an alias"
+    );
+
+    // CLEAN_LONG_PATH: files and directories whose full path exceeds 300 characters are
+    // deleted through handle-relative opens; the item completes as `deleted`.
+    let lroot = fixture.dir("lp/root");
+    let litem = fixture.dir("lp/root/item");
+    let seg = "a".repeat(60);
+    let deep = format!("lp/root/item/{seg}/{seg}/{seg}/{seg}");
+    let leaf = fixture.file(&format!("{deep}/leaf"), b"deep-data");
+    assert!(
+        leaf.as_os_str().len() > 300,
+        "CLEAN_LONG_PATH: the fixture path was not long enough"
+    );
+    let report = run(&parse(plan_value(vec![item(&lroot, &litem, "long-path")])));
+    assert_eq!(
+        report.items[0].status,
+        ItemStatus::Deleted,
+        "CLEAN_LONG_PATH: a >300-character subtree was not fully deleted"
+    );
+    assert_eq!(
+        report.items[0].failed_entries, 0,
+        "CLEAN_LONG_PATH: entries failed inside a long path"
+    );
+    assert!(
+        fs::symlink_metadata(&leaf).is_err() && fs::symlink_metadata(&litem).is_err(),
+        "CLEAN_LONG_PATH: a long-path entry survived deletion"
+    );
+
+    // CLEAN_READONLY: a read-only file is deleted without first clearing its attribute. A hard
+    // link outside the item lets us read the surviving file record afterwards.
+    let oroot = fixture.dir("ro/root");
+    let oitem = fixture.dir("ro/root/item");
+    let rofile = fixture.file("ro/root/item/readonly", b"read-only-data");
+    let outside = fixture.base.join("ro\\outside-link");
+    fs::hard_link(&rofile, &outside).unwrap();
+    let mut permissions = fs::metadata(&rofile).unwrap().permissions();
+    permissions.set_readonly(true);
+    fs::set_permissions(&rofile, permissions).unwrap();
+    let report = run(&parse(plan_value(vec![item(&oroot, &oitem, "readonly")])));
+    assert_eq!(
+        report.items[0].status,
+        ItemStatus::Deleted,
+        "CLEAN_READONLY: a read-only file was not deleted"
+    );
+    assert!(
+        fs::symlink_metadata(&rofile).is_err() && fs::symlink_metadata(&oitem).is_err(),
+        "CLEAN_READONLY: the read-only entry survived"
+    );
+    assert!(
+        fs::symlink_metadata(&outside)
+            .unwrap()
+            .permissions()
+            .readonly(),
+        "CLEAN_READONLY: the read-only attribute was cleared before deletion"
+    );
+    assert_eq!(
+        fs::read(&outside).ok().as_deref(),
+        Some(b"read-only-data".as_slice()),
+        "CLEAN_READONLY: the file record was damaged"
+    );
+}
+
+fn set_custom_reparse(path: &Path) {
+    // The only PowerShell the suite spawns: it compiles a tiny C# helper that calls
+    // DeviceIoControl(FSCTL_SET_REPARSE_POINT) to stamp a custom, non-link reparse tag on a
+    // fixture file. DeviceIoControl never appears in the crate source.
+    let script = r#"
+$ErrorActionPreference='Stop'
+$code = @'
+using System;
+using System.Runtime.InteropServices;
+public static class W4 {
+  [DllImport("kernel32", SetLastError=true, CharSet=CharSet.Unicode)]
+  public static extern IntPtr CreateFileW(string p, uint a, uint s, IntPtr sa, uint d, uint f, IntPtr t);
+  [DllImport("kernel32", SetLastError=true)]
+  public static extern bool DeviceIoControl(IntPtr h, uint c, byte[] i, uint isz, IntPtr o, uint osz, out uint r, IntPtr ov);
+  [DllImport("kernel32", SetLastError=true)]
+  public static extern bool CloseHandle(IntPtr h);
+  public static void Set(string p) {
+    IntPtr h = CreateFileW(p, 0x40000000u | 0x80u | 0x100u, 0u, IntPtr.Zero, 3u, 0x02000000u | 0x00200000u, IntPtr.Zero);
+    if (h == new IntPtr(-1)) throw new Exception("open " + Marshal.GetLastWin32Error());
+    try {
+      byte[] b = new byte[28];
+      BitConverter.GetBytes((uint)0x00007A57).CopyTo(b, 0);
+      BitConverter.GetBytes((ushort)4).CopyTo(b, 4);
+      BitConverter.GetBytes((ushort)0).CopyTo(b, 6);
+      (new Guid("6f0e7a57-1c2d-4e5f-8a9b-0c1d2e3f4a5b")).ToByteArray().CopyTo(b, 8);
+      BitConverter.GetBytes((uint)0x5A575A57).CopyTo(b, 24);
+      uint ret;
+      if (!DeviceIoControl(h, 0x000900A4u, b, (uint)b.Length, IntPtr.Zero, 0u, out ret, IntPtr.Zero))
+        throw new Exception("ioctl " + Marshal.GetLastWin32Error());
+    } finally { CloseHandle(h); }
+  }
+}
+'@
+Add-Type -TypeDefinition $code -Language CSharp
+[W4]::Set($env:W4_TARGET)
+"#;
+    let utf16: Vec<u8> = script
+        .encode_utf16()
+        .flat_map(|u| u.to_le_bytes())
+        .collect();
+    let out = Command::new("powershell.exe")
+        .args([
+            "-NoProfile",
+            "-NonInteractive",
+            "-EncodedCommand",
+            &b64(&utf16),
+        ])
+        .env("W4_TARGET", s(path))
+        .output()
+        .unwrap();
+    assert!(
+        out.status.success(),
+        "fixture custom reparse failed: {}",
+        String::from_utf8_lossy(&out.stderr)
+    );
+}
+
+fn b64(bytes: &[u8]) -> String {
+    const T: &[u8; 64] = b"ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz0123456789+/";
+    let mut out = String::new();
+    for chunk in bytes.chunks(3) {
+        let a = chunk[0] as u32;
+        let b = chunk.get(1).copied().unwrap_or(0) as u32;
+        let c = chunk.get(2).copied().unwrap_or(0) as u32;
+        let n = (a << 16) | (b << 8) | c;
+        out.push(T[((n >> 18) & 63) as usize] as char);
+        out.push(T[((n >> 12) & 63) as usize] as char);
+        out.push(if chunk.len() > 1 {
+            T[((n >> 6) & 63) as usize] as char
+        } else {
+            '='
+        });
+        out.push(if chunk.len() > 2 {
+            T[(n & 63) as usize] as char
+        } else {
+            '='
+        });
+    }
+    out
+}

@@ -934,3 +934,418 @@ fn keys(value: &Value, expected: &[&str]) {
     expected.sort();
     assert_eq!(actual, expected);
 }
+
+#[test]
+fn clean_handle_hardening() {
+    let fixture = Fixture::new();
+
+    // CLEAN_NO_FOLLOW: an item that only holds a junction has its link opened relative to the
+    // parent handle with the "open reparse point" option and deleted by handle, never entering
+    // the target. If the delete step followed the name-surrogate link instead, it would open the
+    // target rather than the link and fail to remove it, so the item would not complete.
+    let nfroot = fixture.dir("nf/root");
+    let nfitem = fixture.dir("nf/root/item");
+    let nfext = fixture.dir("nf/external");
+    let nffile = fixture.file("nf/external/payload", b"do-not-touch");
+    let nflink = nfitem.join("link");
+    fixture.junction(&nflink, &nfext);
+    let report = run(&parse(plan_value(vec![item(
+        &nfroot,
+        &nfitem,
+        "no-follow",
+    )])));
+    assert!(
+        nfext.is_dir() && fs::read(&nffile).ok().as_deref() == Some(b"do-not-touch".as_slice()),
+        "CLEAN_NO_FOLLOW: the junction target was entered during deletion"
+    );
+    assert!(
+        fs::symlink_metadata(&nflink).is_err(),
+        "CLEAN_NO_FOLLOW: the junction link was not removed by handle"
+    );
+    assert_eq!(
+        report.items[0].status,
+        ItemStatus::Deleted,
+        "CLEAN_NO_FOLLOW: following the link instead of deleting it left the item incomplete"
+    );
+
+    // CLEAN_REPARSE_KIND (1): a custom, non-link reparse tag inside the item freezes the whole
+    // item as `reparse`; nothing is deleted and every ordinary file survives intact.
+    let rroot = fixture.dir("rp/root");
+    let ritem = fixture.dir("rp/root/item");
+    let rkeep = fixture.file("rp/root/item/keep", b"keepme");
+    let weird = fixture.file("rp/root/item/weird", b"");
+    set_custom_reparse(&weird);
+    assert_ne!(
+        fs::symlink_metadata(&weird).unwrap().file_attributes() & REPARSE,
+        0,
+        "CLEAN_REPARSE_KIND: fixture failed to stamp a custom reparse tag"
+    );
+    let report = run(&parse(plan_value(vec![item(
+        &rroot,
+        &ritem,
+        "custom-reparse",
+    )])));
+    assert_eq!(
+        report.items[0].status,
+        ItemStatus::Skipped,
+        "CLEAN_REPARSE_KIND: a custom reparse tag was not treated as an unknown reparse point"
+    );
+    assert_eq!(
+        report.items[0].skip_reason,
+        Some(SkipReason::Reparse),
+        "CLEAN_REPARSE_KIND: a custom reparse tag was not reported as reparse"
+    );
+    assert_eq!(
+        report.freed_bytes, "0",
+        "CLEAN_REPARSE_KIND: bytes were freed from an item holding a custom reparse point"
+    );
+    assert_eq!(
+        fs::read(&rkeep).ok().as_deref(),
+        Some(b"keepme".as_slice()),
+        "CLEAN_REPARSE_KIND: a sibling file was lost next to a custom reparse point"
+    );
+    assert_ne!(
+        fs::symlink_metadata(&weird).unwrap().file_attributes() & REPARSE,
+        0,
+        "CLEAN_REPARSE_KIND: the custom reparse point itself was removed"
+    );
+
+    // CLEAN_REPARSE_KIND (2): an item that only contains a junction removes the link alone,
+    // leaves the external target intact, and still reports `deleted`.
+    let jroot = fixture.dir("jonly/root");
+    let jitem = fixture.dir("jonly/root/item");
+    let jext = fixture.dir("jonly/external");
+    let jextfile = fixture.file("jonly/external/data", b"external");
+    let jlink = jitem.join("link");
+    fixture.junction(&jlink, &jext);
+    let report = run(&parse(plan_value(vec![item(
+        &jroot,
+        &jitem,
+        "junction-only",
+    )])));
+    assert_eq!(
+        report.items[0].status,
+        ItemStatus::Deleted,
+        "CLEAN_REPARSE_KIND: a junction-only item did not complete"
+    );
+    assert!(
+        fs::symlink_metadata(&jlink).is_err(),
+        "CLEAN_REPARSE_KIND: the junction link was not removed"
+    );
+    assert!(
+        jext.is_dir() && fs::read(&jextfile).ok().as_deref() == Some(b"external".as_slice()),
+        "CLEAN_REPARSE_KIND: the junction target was traversed or deleted"
+    );
+    assert!(
+        fs::symlink_metadata(&jitem).is_err(),
+        "CLEAN_REPARSE_KIND: the junction-only item directory survived"
+    );
+
+    // CLEAN_GUARD_ID (1): a protected path spelled through a junction alias misses the text
+    // test but matches by identity, freezing the whole item as `protected_overlap`.
+    let groot = fixture.dir("gid/root");
+    let target = fixture.dir("gid/root/target");
+    let keep = fixture.file("gid/root/target/keep", b"protected-keep");
+    let alias = groot.join("alias");
+    fixture.junction(&alias, &target);
+    let mut value = plan_value(vec![item(&groot, &target, "aliased-protected")]);
+    value["protected_paths"] = json!([s(&alias.join("keep"))]);
+    let report = run(&parse(value));
+    assert_eq!(
+        report.items[0].status,
+        ItemStatus::Skipped,
+        "CLEAN_GUARD_ID: an aliased protected path was not enforced"
+    );
+    assert_eq!(
+        report.items[0].skip_reason,
+        Some(SkipReason::ProtectedOverlap),
+        "CLEAN_GUARD_ID: an aliased protected path did not match by identity"
+    );
+    assert_eq!(
+        report.freed_bytes, "0",
+        "CLEAN_GUARD_ID: bytes were freed despite an aliased protected path"
+    );
+    assert_eq!(
+        fs::read(&keep).ok().as_deref(),
+        Some(b"protected-keep".as_slice()),
+        "CLEAN_GUARD_ID: a protected file was removed through an alias"
+    );
+
+    // CLEAN_GUARD_ID (2): a hard guard spelled through the same alias freezes the item as
+    // `guarded`.
+    let mut value = plan_value(vec![item(&groot, &target, "aliased-guarded")]);
+    value["hard_guards"] = json!([s(&alias)]);
+    let report = run(&parse(value));
+    assert_eq!(
+        report.items[0].status,
+        ItemStatus::Skipped,
+        "CLEAN_GUARD_ID: an aliased hard guard was not enforced"
+    );
+    assert_eq!(
+        report.items[0].skip_reason,
+        Some(SkipReason::Guarded),
+        "CLEAN_GUARD_ID: an aliased hard guard did not match by identity"
+    );
+    assert_eq!(
+        fs::read(&keep).ok().as_deref(),
+        Some(b"protected-keep".as_slice()),
+        "CLEAN_GUARD_ID: a guarded item was removed through an alias"
+    );
+
+    // CLEAN_LONG_PATH: files and directories whose full path exceeds 300 characters are
+    // deleted through handle-relative opens; the item completes as `deleted`.
+    let lroot = fixture.dir("lp/root");
+    let litem = fixture.dir("lp/root/item");
+    let seg = "a".repeat(60);
+    let deep = format!("lp/root/item/{seg}/{seg}/{seg}/{seg}");
+    let leaf = fixture.file(&format!("{deep}/leaf"), b"deep-data");
+    assert!(
+        leaf.as_os_str().len() > 300,
+        "CLEAN_LONG_PATH: the fixture path was not long enough"
+    );
+    let report = run(&parse(plan_value(vec![item(&lroot, &litem, "long-path")])));
+    assert_eq!(
+        report.items[0].status,
+        ItemStatus::Deleted,
+        "CLEAN_LONG_PATH: a >300-character subtree was not fully deleted"
+    );
+    assert_eq!(
+        report.items[0].failed_entries, 0,
+        "CLEAN_LONG_PATH: entries failed inside a long path"
+    );
+    assert!(
+        fs::symlink_metadata(&leaf).is_err() && fs::symlink_metadata(&litem).is_err(),
+        "CLEAN_LONG_PATH: a long-path entry survived deletion"
+    );
+
+    // CLEAN_READONLY: a read-only file is deleted without first clearing its attribute. A hard
+    // link outside the item lets us read the surviving file record afterwards.
+    let oroot = fixture.dir("ro/root");
+    let oitem = fixture.dir("ro/root/item");
+    let rofile = fixture.file("ro/root/item/readonly", b"read-only-data");
+    let outside = fixture.base.join("ro\\outside-link");
+    fs::hard_link(&rofile, &outside).unwrap();
+    let mut permissions = fs::metadata(&rofile).unwrap().permissions();
+    permissions.set_readonly(true);
+    fs::set_permissions(&rofile, permissions).unwrap();
+    let report = run(&parse(plan_value(vec![item(&oroot, &oitem, "readonly")])));
+    assert_eq!(
+        report.items[0].status,
+        ItemStatus::Deleted,
+        "CLEAN_READONLY: a read-only file was not deleted"
+    );
+    assert!(
+        fs::symlink_metadata(&rofile).is_err() && fs::symlink_metadata(&oitem).is_err(),
+        "CLEAN_READONLY: the read-only entry survived"
+    );
+    assert!(
+        fs::symlink_metadata(&outside)
+            .unwrap()
+            .permissions()
+            .readonly(),
+        "CLEAN_READONLY: the read-only attribute was cleared before deletion"
+    );
+    assert_eq!(
+        fs::read(&outside).ok().as_deref(),
+        Some(b"read-only-data".as_slice()),
+        "CLEAN_READONLY: the file record was damaged"
+    );
+
+    // CLEAN_GUARD_ID (3): a protected path spelled through a junction alias that resolves to an
+    // ANCESTOR of the item (its parent directory). The alias name does not textually overlap the
+    // item path, so from_json accepts it, yet by identity the resolved target is an ancestor of
+    // the item, so the whole item must freeze as `protected_overlap` and nothing may be removed.
+    let aroot = fixture.dir("gidanc/root");
+    let aparent = fixture.dir("gidanc/root/parent");
+    let aitem = fixture.dir("gidanc/root/parent/item");
+    let avictim = fixture.file("gidanc/root/parent/item/keep", b"ancestor-keep");
+    let aalias = aroot.join("alias");
+    fixture.junction(&aalias, &aparent);
+    let mut value = plan_value(vec![item(&aroot, &aitem, "ancestor-aliased-protected")]);
+    value["protected_paths"] = json!([s(&aalias)]);
+    let report = run(&parse(value));
+    assert_eq!(
+        report.items[0].status,
+        ItemStatus::Skipped,
+        "CLEAN_GUARD_ID: an ancestor protected path reached through an alias was not enforced"
+    );
+    assert_eq!(
+        report.items[0].skip_reason,
+        Some(SkipReason::ProtectedOverlap),
+        "CLEAN_GUARD_ID: an ancestor protected alias did not match the item by identity"
+    );
+    assert_eq!(
+        report.freed_bytes, "0",
+        "CLEAN_GUARD_ID: bytes were freed despite an ancestor protected alias"
+    );
+    assert_eq!(
+        fs::read(&avictim).ok().as_deref(),
+        Some(b"ancestor-keep".as_slice()),
+        "CLEAN_GUARD_ID: a file was removed under an ancestor protected alias"
+    );
+    assert!(
+        fs::symlink_metadata(&aitem).is_ok(),
+        "CLEAN_GUARD_ID: the item under an ancestor protected alias was removed"
+    );
+
+    // CLEAN_LONG_PATH (2): the item's OWN directory path exceeds 300 characters (built from
+    // multiple sub-255 segments). It is opened and deleted entirely through handle-relative opens
+    // and reports `deleted`, while a sibling that lives outside the item is left untouched.
+    let lroot2 = fixture.dir("lpown/root");
+    let sibling = fixture.file("lpown/root/sibling", b"sibling-data");
+    let seg2 = "b".repeat(60);
+    let itemrel = format!("lpown/root/{seg2}/{seg2}/{seg2}/{seg2}/item");
+    let litem2 = fixture.dir(&itemrel);
+    let lleaf = fixture.file(&format!("{itemrel}/leaf"), b"own-deep");
+    assert!(
+        litem2.as_os_str().len() > 300,
+        "CLEAN_LONG_PATH: the item's own path was not long enough"
+    );
+    let report = run(&parse(plan_value(vec![item(
+        &lroot2,
+        &litem2,
+        "long-own-path",
+    )])));
+    assert_eq!(
+        report.items[0].status,
+        ItemStatus::Deleted,
+        "CLEAN_LONG_PATH: an item whose own path exceeds 300 characters was not deleted"
+    );
+    assert_eq!(
+        report.items[0].failed_entries, 0,
+        "CLEAN_LONG_PATH: entries failed inside an item with a >300-character own path"
+    );
+    assert!(
+        fs::symlink_metadata(&lleaf).is_err() && fs::symlink_metadata(&litem2).is_err(),
+        "CLEAN_LONG_PATH: a long own-path item survived deletion"
+    );
+    assert_eq!(
+        fs::read(&sibling).ok().as_deref(),
+        Some(b"sibling-data".as_slice()),
+        "CLEAN_LONG_PATH: a sibling outside the long-path item was removed"
+    );
+
+    // CLEAN_REPARSE_KIND (3): a custom, non-link reparse tag on an EMPTY directory nested a second
+    // level below the item (item/sub/leaf) freezes the whole item as `reparse`; nothing under the
+    // item is deleted, including the ordinary sibling file next to the nested reparse directory.
+    let kroot = fixture.dir("rpnest/root");
+    let kitem = fixture.dir("rpnest/root/item");
+    let ksub = fixture.dir("rpnest/root/item/sub");
+    let kkeep = fixture.file("rpnest/root/item/sub/keep", b"nested-keep");
+    let kleaf = fixture.dir("rpnest/root/item/sub/leaf");
+    set_custom_reparse(&kleaf);
+    assert_ne!(
+        fs::symlink_metadata(&kleaf).unwrap().file_attributes() & REPARSE,
+        0,
+        "CLEAN_REPARSE_KIND: fixture failed to stamp a custom reparse tag on a nested directory"
+    );
+    let report = run(&parse(plan_value(vec![item(
+        &kroot,
+        &kitem,
+        "nested-custom-reparse",
+    )])));
+    assert_eq!(
+        report.items[0].status,
+        ItemStatus::Skipped,
+        "CLEAN_REPARSE_KIND: a second-level custom reparse directory was not treated as unknown"
+    );
+    assert_eq!(
+        report.items[0].skip_reason,
+        Some(SkipReason::Reparse),
+        "CLEAN_REPARSE_KIND: a second-level custom reparse directory was not reported as reparse"
+    );
+    assert_eq!(
+        report.freed_bytes, "0",
+        "CLEAN_REPARSE_KIND: bytes were freed from an item holding a nested custom reparse point"
+    );
+    assert_eq!(
+        fs::read(&kkeep).ok().as_deref(),
+        Some(b"nested-keep".as_slice()),
+        "CLEAN_REPARSE_KIND: a file beside a nested custom reparse point was lost"
+    );
+    assert!(
+        fs::symlink_metadata(&kleaf).is_ok() && fs::symlink_metadata(&ksub).is_ok(),
+        "CLEAN_REPARSE_KIND: a nested custom reparse directory or its parent was removed"
+    );
+}
+
+fn set_custom_reparse(path: &Path) {
+    // The only PowerShell the suite spawns: it compiles a tiny C# helper that calls
+    // DeviceIoControl(FSCTL_SET_REPARSE_POINT) to stamp a custom, non-link reparse tag on a
+    // fixture file. DeviceIoControl never appears in the crate source.
+    let script = r#"
+$ErrorActionPreference='Stop'
+$code = @'
+using System;
+using System.Runtime.InteropServices;
+public static class W4 {
+  [DllImport("kernel32", SetLastError=true, CharSet=CharSet.Unicode)]
+  public static extern IntPtr CreateFileW(string p, uint a, uint s, IntPtr sa, uint d, uint f, IntPtr t);
+  [DllImport("kernel32", SetLastError=true)]
+  public static extern bool DeviceIoControl(IntPtr h, uint c, byte[] i, uint isz, IntPtr o, uint osz, out uint r, IntPtr ov);
+  [DllImport("kernel32", SetLastError=true)]
+  public static extern bool CloseHandle(IntPtr h);
+  public static void Set(string p) {
+    IntPtr h = CreateFileW(p, 0x40000000u | 0x80u | 0x100u, 0u, IntPtr.Zero, 3u, 0x02000000u | 0x00200000u, IntPtr.Zero);
+    if (h == new IntPtr(-1)) throw new Exception("open " + Marshal.GetLastWin32Error());
+    try {
+      byte[] b = new byte[28];
+      BitConverter.GetBytes((uint)0x00007A57).CopyTo(b, 0);
+      BitConverter.GetBytes((ushort)4).CopyTo(b, 4);
+      BitConverter.GetBytes((ushort)0).CopyTo(b, 6);
+      (new Guid("6f0e7a57-1c2d-4e5f-8a9b-0c1d2e3f4a5b")).ToByteArray().CopyTo(b, 8);
+      BitConverter.GetBytes((uint)0x5A575A57).CopyTo(b, 24);
+      uint ret;
+      if (!DeviceIoControl(h, 0x000900A4u, b, (uint)b.Length, IntPtr.Zero, 0u, out ret, IntPtr.Zero))
+        throw new Exception("ioctl " + Marshal.GetLastWin32Error());
+    } finally { CloseHandle(h); }
+  }
+}
+'@
+Add-Type -TypeDefinition $code -Language CSharp
+[W4]::Set($env:W4_TARGET)
+"#;
+    let utf16: Vec<u8> = script
+        .encode_utf16()
+        .flat_map(|u| u.to_le_bytes())
+        .collect();
+    let out = Command::new("powershell.exe")
+        .args([
+            "-NoProfile",
+            "-NonInteractive",
+            "-EncodedCommand",
+            &b64(&utf16),
+        ])
+        .env("W4_TARGET", s(path))
+        .output()
+        .unwrap();
+    assert!(
+        out.status.success(),
+        "fixture custom reparse failed: {}",
+        String::from_utf8_lossy(&out.stderr)
+    );
+}
+
+fn b64(bytes: &[u8]) -> String {
+    const T: &[u8; 64] = b"ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz0123456789+/";
+    let mut out = String::new();
+    for chunk in bytes.chunks(3) {
+        let a = chunk[0] as u32;
+        let b = chunk.get(1).copied().unwrap_or(0) as u32;
+        let c = chunk.get(2).copied().unwrap_or(0) as u32;
+        let n = (a << 16) | (b << 8) | c;
+        out.push(T[((n >> 18) & 63) as usize] as char);
+        out.push(T[((n >> 12) & 63) as usize] as char);
+        out.push(if chunk.len() > 1 {
+            T[((n >> 6) & 63) as usize] as char
+        } else {
+            '='
+        });
+        out.push(if chunk.len() > 2 {
+            T[(n & 63) as usize] as char
+        } else {
+            '='
+        });
+    }
+    out
+}
