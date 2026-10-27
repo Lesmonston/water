@@ -1,7 +1,7 @@
 {
   "schemaVersion": 1,
   "wave": "water-wave4-hardening",
-  "status": "G1_G2_G3_G4_VERIFIED_MAIN_INTEGRATED_G5_G6_G7_READY",
+  "status": "G1_G2_G3_G4_VERIFIED_MAIN_INTEGRATED_G5_G6_G7_DISPATCHED",
   "controller": "Claude",
   "controllerRoot": "F:/new/smaltalk/water",
   "controllerBranch": "main",
@@ -865,13 +865,13 @@
       ],
       "cargoCacheSource": "F:/new/smaltalk/water/.worktrees/a/.local/cargo-home/registry",
       "nativeModule": "native_windows.rs",
-      "status": "READY",
+      "status": "DISPATCHED",
       "baseCommit": "4f35c52f5abb3dee22583cc2c86b05da2fc2be93",
       "snapshotRef": null,
       "readyOn": "2026-10-27",
       "dispatchedAt": null,
       "startedAt": null,
-      "model": null,
+      "model": "sol (user-reported)",
       "modelAssignment": "user-arranged; report actual engine/model",
       "macOS": "unverified",
       "outputRootExists": true,
@@ -977,7 +977,9 @@
       "purpose": "M2 prep",
       "modelHint": "Deletion-path ticket: strong Rust and Windows file-system reasoning.",
       "baselineStatus": "PASSED",
-      "baselineEvidence": "docs/acceptance/wave4/controller/preflight/WATER-W4-G5-2026-10-27T08-25-53.402Z-29636-baseline-result.json"
+      "baselineEvidence": "docs/acceptance/wave4/controller/preflight/WATER-W4-G5-2026-10-27T08-25-53.402Z-29636-baseline-result.json",
+      "dispatchReportedAt": "2026-10-27T09:50:00Z",
+      "dispatchEvidence": "user chat 2026-10-27 ~18:50 JST: G5 and G6 to sol, G7 to astra; worker trees still clean at base 4f35c52f with only the controller preflight receipt when recorded"
     },
     {
       "kind": "host",
@@ -1041,13 +1043,13 @@
       "title": "宿主收尾",
       "slot": "w4-g6",
       "gate": "light-native",
-      "status": "READY",
+      "status": "DISPATCHED",
       "baseCommit": "4f35c52f5abb3dee22583cc2c86b05da2fc2be93",
       "snapshotRef": null,
       "readyOn": "2026-10-27",
       "dispatchedAt": null,
       "startedAt": null,
-      "model": null,
+      "model": "sol (user-reported)",
       "modelAssignment": "user-arranged; report actual engine/model",
       "worktree": "F:/new/smaltalk/water/.worktrees/w4-g6",
       "branch": "worker/water-w4-g6",
@@ -1300,7 +1302,9 @@
       "purpose": "M2 prep",
       "modelHint": "Rust/Tauri desktop host; one native window at the final gate.",
       "baselineStatus": "PASSED",
-      "baselineEvidence": "docs/acceptance/wave4/controller/preflight/WATER-W4-G6-2026-10-27T08-26-00.495Z-23464-baseline-result.json"
+      "baselineEvidence": "docs/acceptance/wave4/controller/preflight/WATER-W4-G6-2026-10-27T08-26-00.495Z-23464-baseline-result.json",
+      "dispatchReportedAt": "2026-10-27T09:50:00Z",
+      "dispatchEvidence": "user chat 2026-10-27 ~18:50 JST: G5 and G6 to sol, G7 to astra; worker trees still clean at base 4f35c52f with only the controller preflight receipt when recorded"
     },
     {
       "kind": "ui",
@@ -1324,13 +1328,13 @@
       "fixtures": "contracts/checkup-v1/ui-fixtures.json",
       "browserHelper": "scripts/acceptance/native-vw-private-browser.mjs",
       "screenshotDirEnv": "WATER_W2_SHOTS_DIR",
-      "status": "READY",
+      "status": "DISPATCHED",
       "baseCommit": "4f35c52f5abb3dee22583cc2c86b05da2fc2be93",
       "snapshotRef": null,
       "readyOn": "2026-10-27",
       "dispatchedAt": null,
       "startedAt": null,
-      "model": null,
+      "model": "astra (user-reported)",
       "modelAssignment": "user-arranged; report actual engine/model",
       "macOS": "unverified",
       "outputRootExists": true,
@@ -1462,7 +1466,9 @@
       ],
       "purpose": "M2 prep",
       "baselineStatus": "PASSED",
-      "baselineEvidence": "docs/acceptance/wave4/controller/preflight/WATER-W4-G7-2026-10-27T08-26-27.774Z-25184-baseline-result.json"
+      "baselineEvidence": "docs/acceptance/wave4/controller/preflight/WATER-W4-G7-2026-10-27T08-26-27.774Z-25184-baseline-result.json",
+      "dispatchReportedAt": "2026-10-27T09:50:00Z",
+      "dispatchEvidence": "user chat 2026-10-27 ~18:50 JST: G5 and G6 to sol, G7 to astra; worker trees still clean at base 4f35c52f with only the controller preflight receipt when recorded"
     }
   ],
   "selfTest": {
