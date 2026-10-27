@@ -35,6 +35,7 @@ pub(crate) fn validate(s: &str) -> Result<(), CleanError> {
             || part == ".."
             || part.ends_with(['.', ' '])
             || part.contains([':', '*', '?', '"', '<', '>', '|'])
+            || part.encode_utf16().count() > 255
             || reserved
         {
             return Err(CleanError::InvalidPlan);

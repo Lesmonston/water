@@ -54,6 +54,8 @@ mod windows {
 
     const ERR_FILE_NOT_FOUND: u32 = 2;
     const ERR_PATH_NOT_FOUND: u32 = 3;
+    const ERR_INVALID_NAME: u32 = 123; // ERROR_INVALID_NAME
+    const ERR_NO_MORE_FILES: i32 = 18; // ERROR_NO_MORE_FILES
 
     // Windows FILETIME ticks (100ns) between 1601-01-01 and 1970-01-01.
     const FILETIME_UNIX: i64 = 116_444_736_000_000_000;
@@ -113,9 +115,14 @@ mod windows {
         flags: u32,
     }
 
+    // Layout asserts: the enumeration decoder and the NtOpenFile path both rely on these exact
+    // sizes and offsets being what the system ABI (x64) produces.
     const _: () = assert!(size_of::<ObjectAttributes>() == 48);
     const _: () = assert!(size_of::<IoStatusBlock>() == 16);
     const _: () = assert!(size_of::<FileIdInfo>() == 24 && align_of::<FileIdInfo>() == 8);
+    const _: () = assert!(size_of::<UnicodeString>() == 16);
+    const _: () = assert!(size_of::<FileBasicInfo>() == 40);
+    const _: () = assert!(size_of::<FileStandardInfo>() == 24);
 
     // SAFETY: these declarations use Win32/NT system ABI widths; only the eight functions
     // permitted by the SPEC appear here.
@@ -197,12 +204,16 @@ mod windows {
         }
     }
 
-    fn filetime(ticks: i64) -> SystemTime {
-        let delta = ticks - FILETIME_UNIX;
+    // Convert a FILETIME tick count to SystemTime with checked arithmetic; any overflow yields
+    // None so the caller treats the item as `changed` rather than wrapping to a bogus time.
+    fn filetime(ticks: i64) -> Option<SystemTime> {
+        let delta = ticks.checked_sub(FILETIME_UNIX)?;
+        let nanos = delta.unsigned_abs().checked_mul(100)?;
+        let dur = Duration::from_nanos(nanos);
         if delta >= 0 {
-            SystemTime::UNIX_EPOCH + Duration::from_nanos(delta as u64 * 100)
+            SystemTime::UNIX_EPOCH.checked_add(dur)
         } else {
-            SystemTime::UNIX_EPOCH - Duration::from_nanos((-delta) as u64 * 100)
+            SystemTime::UNIX_EPOCH.checked_sub(dur)
         }
     }
 
@@ -231,9 +242,16 @@ mod windows {
     // failure so callers can tell "missing" from "changed".
     fn nt_open(parent: &Handle, seg: &str, access: u32, share: u32) -> Result<Handle, u32> {
         let mut name: Vec<u16> = seg.encode_utf16().collect();
+        // A real NTFS path component is at most 255 UTF-16 units. Reject anything longer so the
+        // UNICODE_STRING byte length can never overflow u16 and wrap (a length of 0 would open
+        // the parent directory itself instead of the child).
+        let byte_len = match name.len().checked_mul(2) {
+            Some(n) if name.len() <= 255 => n as u16,
+            _ => return Err(ERR_INVALID_NAME),
+        };
         let mut us = UnicodeString {
-            length: (name.len() * 2) as u16,
-            maximum_length: (name.len() * 2) as u16,
+            length: byte_len,
+            maximum_length: byte_len,
             buffer: name.as_mut_ptr(),
         };
         let oa = ObjectAttributes {
@@ -251,12 +269,19 @@ mod windows {
         let mut handle: *mut c_void = ptr::null_mut();
         // SAFETY: oa/io/handle are valid and the single-segment name lives across the call.
         let status = unsafe { NtOpenFile(&mut handle, access, &oa, &mut io, share, OPTS) };
-        if status == 0 {
-            Ok(Handle(handle))
+        // Own any returned handle immediately so RAII closes it even on an unusual non-zero
+        // status; only status 0 is a success.
+        let owned = if handle.is_null() {
+            None
         } else {
-            // SAFETY: pure status-to-DOS-error translation, no pointers.
-            Err(unsafe { RtlNtStatusToDosError(status) })
+            Some(Handle(handle))
+        };
+        if status != 0 {
+            // SAFETY: pure status-to-DOS-error translation, no pointers. `owned` drops here,
+            // closing any handle returned alongside the failure.
+            return Err(unsafe { RtlNtStatusToDosError(status) });
         }
+        owned.ok_or(ERR_INVALID_NAME)
     }
 
     fn info<T>(handle: &Handle, class: i32, value: &mut T) -> bool {
@@ -345,32 +370,44 @@ mod windows {
         write: i64,
     }
 
-    // Enumerate one directory handle. Class 20 restarts, class 19 continues; a zero return
-    // means no more entries (buffer is large enough that every name fits).
+    // Enumerate one directory handle. Class 20 restarts, class 19 continues; the listing ends
+    // only when GetFileInformationByHandleEx fails with ERROR_NO_MORE_FILES. Every other
+    // failure is an error, never a silent "no entries".
     fn enumerate(handle: &Handle) -> Result<Vec<Raw>, ()> {
         let mut out = Vec::new();
         let mut buf = vec![0u64; 4096];
+        let byte_len = buf.len() * 8;
         let mut class = 20i32;
         loop {
-            // SAFETY: buf is 8-byte aligned (Vec<u64>) and its byte length is passed.
+            // SAFETY: buf is 8-byte aligned (Vec<u64>) and its full byte length is passed.
             let ok = unsafe {
                 GetFileInformationByHandleEx(
                     handle.0,
                     class,
                     buf.as_mut_ptr().cast(),
-                    (buf.len() * 8) as u32,
+                    byte_len as u32,
                 )
             };
             if ok == 0 {
-                return Ok(out);
+                // last_os_error reads GetLastError immediately after the failing call.
+                return if std::io::Error::last_os_error().raw_os_error() == Some(ERR_NO_MORE_FILES)
+                {
+                    Ok(out)
+                } else {
+                    Err(())
+                };
             }
             class = 19;
             let base = buf.as_ptr() as *const u8;
             let mut off = 0usize;
             loop {
-                // SAFETY: entries live within the filled buffer; fields are read unaligned at
-                // the SPEC offsets and the name slice stays inside this entry.
-                let next = unsafe {
+                // The fixed 88-byte header must lie fully inside the filled buffer.
+                if off.checked_add(88).is_none_or(|end| end > byte_len) {
+                    return Err(());
+                }
+                // SAFETY: [off, off+88) is in-bounds (checked just above); each fixed field is
+                // read unaligned at its SPEC offset from the 8-byte-aligned buffer.
+                let (next, write, size, attr, name_len, tag, file_id) = unsafe {
                     let p = base.add(off);
                     let next = ptr::read_unaligned(p as *const u32) as usize;
                     let write = ptr::read_unaligned(p.add(24) as *const i64);
@@ -380,24 +417,41 @@ mod windows {
                     let tag = ptr::read_unaligned(p.add(68) as *const u32);
                     let mut file_id = [0u8; 16];
                     ptr::copy_nonoverlapping(p.add(72), file_id.as_mut_ptr(), 16);
-                    let units = std::slice::from_raw_parts(p.add(88) as *const u16, name_len / 2);
-                    let name = String::from_utf16_lossy(units);
-                    if name != "." && name != ".." {
-                        out.push(Raw {
-                            name,
-                            attr,
-                            tag,
-                            file_id,
-                            size,
-                            write,
-                        });
-                    }
-                    next
+                    (next, write, size, attr, name_len, tag, file_id)
                 };
+                // The variable-length name must also lie fully inside the buffer.
+                if off
+                    .checked_add(88)
+                    .and_then(|h| h.checked_add(name_len))
+                    .is_none_or(|end| end > byte_len)
+                {
+                    return Err(());
+                }
+                // SAFETY: [off+88, off+88+name_len) is in-bounds (checked just above); NTFS
+                // names are UTF-16 so name_len bytes decode as name_len/2 u16 units.
+                let name = unsafe {
+                    let units =
+                        std::slice::from_raw_parts(base.add(off + 88) as *const u16, name_len / 2);
+                    String::from_utf16_lossy(units)
+                };
+                if name != "." && name != ".." {
+                    out.push(Raw {
+                        name,
+                        attr,
+                        tag,
+                        file_id,
+                        size,
+                        write,
+                    });
+                }
                 if next == 0 {
                     break;
                 }
-                off += next;
+                // NextEntryOffset must stay 8-byte aligned and strictly advance forward.
+                if next % 8 != 0 {
+                    return Err(());
+                }
+                off = off.checked_add(next).ok_or(())?;
             }
         }
     }
@@ -508,14 +562,18 @@ mod windows {
     }
 
     // Walk from the drive root to the item, opening each level relative to the previous one
-    // and never following reparse points.
+    // and never following reparse points. The item's identity is verified from its own handle.
     fn walk_item(item: &PlanItem) -> Result<Walked, SkipReason> {
         if !path::strictly_contains(&item.root, &item.path) {
             return Err(SkipReason::OutsideRoot);
         }
-        let mut parent = open_root(&item.path[..3]).ok_or(SkipReason::Changed)?;
-        let segs: Vec<&str> = item.path[3..].split('\\').collect();
+        let root = open_root(&item.path[..3]).ok_or(SkipReason::Changed)?;
         let mut ancestors = Vec::new();
+        // The drive root is an ancestor too, so a protected path aliased onto the volume root
+        // is still caught by identity.
+        ancestors.push(identity_from(&root).ok_or(SkipReason::Changed)?);
+        let mut parent = root;
+        let segs: Vec<&str> = item.path[3..].split('\\').collect();
         for seg in &segs[..segs.len() - 1] {
             let handle = nt_open(
                 &parent,
@@ -531,9 +589,9 @@ mod windows {
             if attr & DIRECTORY == 0 {
                 return Err(SkipReason::Changed);
             }
-            if let Some(id) = identity_from(&handle) {
-                ancestors.push(id);
-            }
+            // An ancestor whose identity cannot be read is treated as `changed`, never silently
+            // dropped, so a protected-path alias to it is never missed.
+            ancestors.push(identity_from(&handle).ok_or(SkipReason::Changed)?);
             parent = handle;
         }
         let name = segs[segs.len() - 1];
@@ -549,8 +607,17 @@ mod windows {
             Kind::File if is_dir => return Err(SkipReason::Changed),
             _ => {}
         }
-        let file_id = file_id(&probe).ok_or(SkipReason::Changed)?;
+        let item_fid = file_id(&probe).ok_or(SkipReason::Changed)?;
         let serial = volume_serial(&probe).ok_or(SkipReason::Changed)?;
+        // Step 3: identity is read from this walked handle (not a by-name open) and compared to
+        // the plan; a mismatch means the object was replaced.
+        let actual = Identity {
+            volume_serial: format!("{serial:08X}"),
+            file_id: item_fid.iter().map(|b| format!("{b:02x}")).collect(),
+        };
+        if actual != item.identity {
+            return Err(SkipReason::Changed);
+        }
         let write = write_time(&probe).ok_or(SkipReason::Changed)?;
         let (handle, size) = if is_dir {
             drop(probe);
@@ -561,8 +628,9 @@ mod windows {
                 SHARE_RWD,
             )
             .map_err(gone_or_changed)?;
-            match attr_tag(&listing) {
-                Some((a, _)) if a & REPARSE == 0 && a & DIRECTORY != 0 => {}
+            match (attr_tag(&listing), file_id(&listing)) {
+                (Some((a, _)), Some(id))
+                    if a & REPARSE == 0 && a & DIRECTORY != 0 && id == item_fid => {}
                 _ => return Err(SkipReason::Changed),
             }
             (listing, 0)
@@ -574,7 +642,7 @@ mod windows {
             handle,
             attr,
             tag,
-            file_id,
+            file_id: item_fid,
             serial,
             write,
             size,
@@ -601,7 +669,8 @@ mod windows {
         protected_ids: &[Identity],
     ) -> Result<Snapshot, SkipReason> {
         let walked = walk_item(item)?;
-        // An opened ancestor sharing a protected identity means the item sits inside it.
+        // An opened ancestor (including the drive root) sharing a protected identity means the
+        // item sits inside protected data.
         for ancestor in &walked.ancestors {
             if protected_ids.contains(ancestor) {
                 return Err(SkipReason::ProtectedOverlap); // CLEAN_GUARD_ID
@@ -617,14 +686,15 @@ mod windows {
         if protected_ids.contains(&item_id) {
             return Err(SkipReason::ProtectedOverlap); // CLEAN_GUARD_ID
         }
+        let item_time = filetime(walked.write).ok_or(SkipReason::Changed)?;
         let mut snap = Snapshot {
             bytes: 0,
-            newest: filetime(walked.write),
+            newest: item_time,
             entries: vec![Entry {
                 rel: String::new(),
                 file_id: walked.file_id,
                 size: walked.size,
-                mtime: filetime(walked.write),
+                mtime: item_time,
                 tag: walked.tag,
                 attr: walked.attr,
             }],
@@ -670,11 +740,12 @@ mod windows {
             if protected_ids.contains(&id) {
                 return Err(SkipReason::ProtectedOverlap); // CLEAN_GUARD_ID
             }
-            snap.newest = snap.newest.max(filetime(raw.write));
+            let mtime = filetime(raw.write).ok_or(SkipReason::Changed)?;
+            snap.newest = snap.newest.max(mtime);
             let reparse = raw.attr & REPARSE != 0;
             if reparse {
-                // CLEAN_REPARSE_KIND: only name-surrogate links are treated as links; any
-                // other reparse point in the subtree poisons the whole item.
+                // CLEAN_REPARSE_KIND: only name-surrogate links are treated as links; any other
+                // reparse point in the subtree poisons the whole item.
                 if raw.tag & NAME_SURROGATE == 0 {
                     return Err(SkipReason::Reparse);
                 }
@@ -682,7 +753,7 @@ mod windows {
                     rel,
                     file_id: raw.file_id,
                     size: 0,
-                    mtime: filetime(raw.write),
+                    mtime,
                     tag: raw.tag,
                     attr: raw.attr,
                 });
@@ -691,7 +762,7 @@ mod windows {
                     rel: rel.clone(),
                     file_id: raw.file_id,
                     size: 0,
-                    mtime: filetime(raw.write),
+                    mtime,
                     tag: raw.tag,
                     attr: raw.attr,
                 });
@@ -712,7 +783,7 @@ mod windows {
                     rel,
                     file_id: raw.file_id,
                     size: raw.size,
-                    mtime: filetime(raw.write),
+                    mtime,
                     tag: raw.tag,
                     attr: raw.attr,
                 });
@@ -747,30 +818,61 @@ mod windows {
         stop: &'a StopFlag,
         removed: u64,
         failed: u64,
+        changed_stop: bool,
     }
 
     impl DelCtx<'_> {
+        // Snapshot entries are kept sorted by rel, so a lookup is a binary search rather than a
+        // linear scan (M2's cache directories hold on the order of 1e5 entries).
         fn expected(&self, rel: &str) -> Option<&Entry> {
-            self.before.entries.iter().find(|e| e.rel == rel)
+            self.before
+                .entries
+                .binary_search_by(|e| e.rel.as_str().cmp(rel))
+                .ok()
+                .map(|i| &self.before.entries[i])
+        }
+
+        // After a directory's own delete fails, report whether the only entries still present
+        // are ones that appeared after the snapshot (then the failure is expected, not counted).
+        fn only_post_snapshot(&self, handle: &Handle, rel: &str) -> bool {
+            match enumerate(handle) {
+                Ok(rest) => rest.iter().all(|k| {
+                    let crel = if rel.is_empty() {
+                        k.name.clone()
+                    } else {
+                        format!("{rel}\\{}", k.name)
+                    };
+                    self.expected(&crel).is_none()
+                }),
+                Err(()) => false,
+            }
         }
 
         // Delete one node by handle, relative to its parent. Returns true if a stop cut it short.
         fn node(&mut self, parent: &Handle, name: &str, rel: &str) -> bool {
+            if self.changed_stop {
+                return false;
+            }
             let Some(exp) = self.expected(rel) else {
-                return false; // appeared after the snapshot: never touched
+                return false; // appeared after the snapshot: never touched, never counted
             };
             let (exp_attr, exp_tag, exp_id) = (exp.attr, exp.tag, exp.file_id);
             if exp_attr & REPARSE != 0 {
                 if exp_tag & NAME_SURROGATE != 0 {
-                    // CLEAN_NO_FOLLOW: remove the link itself, never enter its target.
+                    // CLEAN_NO_FOLLOW / H1: re-verify from the link's own handle that it is still
+                    // a name-surrogate reparse point with the snapshot FileId before deleting, so
+                    // a concurrently swapped-in non-link reparse point (e.g. a cloud placeholder)
+                    // is never removed.
                     match nt_open(
                         parent,
                         name,
                         DELETE | FILE_READ_ATTRIBUTES | SYNCHRONIZE,
                         SHARE_RWD,
                     ) {
-                        Ok(handle) => match attr_tag(&handle) {
-                            Some((a, _)) if a & REPARSE != 0 => {
+                        Ok(handle) => match (attr_tag(&handle), file_id(&handle)) {
+                            (Some((a, t)), Some(id))
+                                if a & REPARSE != 0 && t & NAME_SURROGATE != 0 && id == exp_id =>
+                            {
                                 if set_delete(&handle) {
                                     self.removed += 1;
                                 } else {
@@ -803,14 +905,18 @@ mod windows {
                     (Some((a, _)), Some(id))
                         if a & REPARSE == 0 && a & DIRECTORY != 0 && id == exp_id => {}
                     _ => {
+                        // The directory was replaced under us: stop deleting this item.
                         self.failed += 1;
+                        self.changed_stop = true;
                         return false;
                     }
                 }
                 let kids = match enumerate(&handle) {
                     Ok(k) => k,
                     Err(()) => {
+                        // Enumeration failed (not "no more files"): stop this item, count one.
                         self.failed += 1;
+                        self.changed_stop = true;
                         return false;
                     }
                 };
@@ -818,23 +924,47 @@ mod windows {
                     if self.stop.is_stopped() {
                         return true;
                     }
+                    if self.changed_stop {
+                        return false;
+                    }
                     let child_rel = if rel.is_empty() {
                         kid.name.clone()
                     } else {
                         format!("{rel}\\{}", kid.name)
                     };
-                    if matches!(self.expected(&child_rel), Some(e) if e.file_id == kid.file_id)
-                        && self.node(&handle, &kid.name, &child_rel)
-                    {
-                        return true;
+                    // Copy the snapshot FileId out before any &mut self call so the
+                    // immutable borrow of `before.entries` does not span node().
+                    let expected_id = self.expected(&child_rel).map(|e| e.file_id);
+                    match expected_id {
+                        None => {} // appeared after the snapshot: ignore, not a failure
+                        Some(fid) if fid == kid.file_id => {
+                            if self.node(&handle, &kid.name, &child_rel) {
+                                return true;
+                            }
+                            if self.changed_stop {
+                                return false;
+                            }
+                        }
+                        Some(_) => {
+                            // Name is in the snapshot but the object was replaced.
+                            if kid.attr & DIRECTORY != 0 && kid.attr & REPARSE == 0 {
+                                self.failed += 1;
+                                self.changed_stop = true;
+                                return false;
+                            }
+                            self.failed += 1;
+                        }
                     }
                     if self.stop.is_stopped() {
                         return true;
                     }
                 }
+                if self.changed_stop {
+                    return false;
+                }
                 if set_delete(&handle) {
                     self.removed += 1;
-                } else {
+                } else if !self.only_post_snapshot(&handle, rel) {
                     self.failed += 1;
                 }
                 false
@@ -853,8 +983,8 @@ mod windows {
                                 self.failed += 1;
                             }
                         }
-                        (Some((a, _)), _) if a & REPARSE != 0 => self.failed += 1,
-                        _ => {}
+                        // became a link, FileId changed, or attributes unreadable: skip + count
+                        _ => self.failed += 1,
                     },
                     Err(w) if w == ERR_FILE_NOT_FOUND || w == ERR_PATH_NOT_FOUND => {}
                     Err(_) => self.failed += 1,
@@ -864,54 +994,77 @@ mod windows {
         }
     }
 
-    fn measure_tree(dir: &Handle) -> u64 {
+    // Residual bytes still under the item, measured by handle. None means the item is gone; the
+    // second field is 1 when the residual could not be determined (never report deleted then).
+    fn measure_tree(dir: &Handle) -> Option<u64> {
+        let kids = enumerate(dir).ok()?;
         let mut total = 0u64;
-        if let Ok(kids) = enumerate(dir) {
-            for kid in kids {
-                if kid.attr & REPARSE != 0 {
-                    continue;
+        for kid in kids {
+            if kid.attr & REPARSE != 0 {
+                continue;
+            }
+            if kid.attr & DIRECTORY != 0 {
+                match nt_open(
+                    dir,
+                    &kid.name,
+                    FILE_LIST_DIRECTORY | FILE_READ_ATTRIBUTES | SYNCHRONIZE,
+                    SHARE_RWD,
+                ) {
+                    Ok(child) => total = total.saturating_add(measure_tree(&child)?),
+                    Err(w) if w == ERR_FILE_NOT_FOUND || w == ERR_PATH_NOT_FOUND => {}
+                    Err(_) => return None,
                 }
-                if kid.attr & DIRECTORY != 0 {
-                    if let Ok(child) = nt_open(
-                        dir,
-                        &kid.name,
-                        FILE_LIST_DIRECTORY | FILE_READ_ATTRIBUTES | SYNCHRONIZE,
-                        SHARE_RWD,
-                    ) {
-                        total = total.saturating_add(measure_tree(&child));
-                    }
-                } else {
-                    total = total.saturating_add(kid.size);
-                }
+            } else {
+                total = total.saturating_add(kid.size);
             }
         }
-        total
+        Some(total)
     }
 
-    // Residual bytes still present under the item. None means the item is gone.
-    fn measure_residual(item: &PlanItem, before_bytes: u64) -> (Option<u64>, u64) {
+    fn measure_residual(item: &PlanItem, before: &Snapshot) -> (Option<u64>, u64) {
+        let before_bytes = before.bytes;
+        let Some(item_entry) = before.entries.iter().find(|e| e.rel.is_empty()) else {
+            return (Some(before_bytes), 1);
+        };
         let Ok(parent) = walk_parent(item) else {
             return (Some(before_bytes), 1);
         };
         let name = last_segment(&item.path);
-        let kids = match enumerate(&parent) {
-            Ok(k) => k,
-            Err(()) => return (Some(before_bytes), 1),
+        // Open the item itself relative to the parent handle (never following a link) and
+        // identify it by FileId, instead of listing the parent and matching names.
+        let handle = match nt_open(&parent, name, FILE_READ_ATTRIBUTES | SYNCHRONIZE, SHARE_RWD) {
+            Ok(h) => h,
+            Err(w) if w == ERR_FILE_NOT_FOUND || w == ERR_PATH_NOT_FOUND => return (None, 0),
+            Err(_) => return (Some(before_bytes), 1),
         };
-        match kids.iter().find(|k| k.name.eq_ignore_ascii_case(name)) {
-            None => (None, 0),
-            Some(kid) if kid.attr & REPARSE != 0 => (Some(0), 0),
-            Some(kid) if kid.attr & DIRECTORY != 0 => match nt_open(
+        let Some((attr, _)) = attr_tag(&handle) else {
+            return (Some(before_bytes), 1);
+        };
+        let Some(id) = file_id(&handle) else {
+            return (Some(before_bytes), 1);
+        };
+        if id != item_entry.file_id {
+            return (None, 0); // the original item is gone; a different object bears the name
+        }
+        if attr & DIRECTORY != 0 {
+            match nt_open(
                 &parent,
                 name,
                 FILE_LIST_DIRECTORY | FILE_READ_ATTRIBUTES | SYNCHRONIZE,
                 SHARE_RWD,
             ) {
-                Ok(handle) => (Some(measure_tree(&handle)), 0),
+                Ok(dir) => match measure_tree(&dir) {
+                    Some(bytes) => (Some(bytes), 0),
+                    None => (Some(before_bytes), 1),
+                },
                 Err(w) if w == ERR_FILE_NOT_FOUND || w == ERR_PATH_NOT_FOUND => (None, 0),
                 Err(_) => (Some(before_bytes), 1),
-            },
-            Some(kid) => (Some(kid.size), 0),
+            }
+        } else {
+            match end_of_file(&handle) {
+                Some(len) => (Some(len), 0),
+                None => (Some(before_bytes), 1),
+            }
         }
     }
 
@@ -925,12 +1078,13 @@ mod windows {
             stop,
             removed: 0,
             failed: 0,
+            changed_stop: false,
         };
         let mut interrupted = false;
         if let Ok(parent) = walk_parent(item) {
             interrupted = ctx.node(&parent, last_segment(&item.path), "");
         }
-        let (residual, extra_failed) = measure_residual(item, before.bytes);
+        let (residual, extra_failed) = measure_residual(item, before);
         ctx.failed += extra_failed;
         let status = if residual.is_none() {
             ItemStatus::Deleted

@@ -77,15 +77,6 @@ fn intent(plan: &CleanPlan, item: &PlanItem, journal: &mut dyn Write) -> Result<
     )
 }
 
-fn check_identity(item: &PlanItem) -> Result<(), SkipReason> {
-    let actual = identity_of(&item.path).map_err(|_| SkipReason::Changed)?;
-    if actual != item.identity {
-        // NC1: identity comparison must remain in this live path.
-        return Err(SkipReason::Changed);
-    }
-    Ok(())
-}
-
 fn preflight(
     plan: &CleanPlan,
     item: &PlanItem,
@@ -102,7 +93,6 @@ fn preflight(
         return Err(SkipReason::Guarded);
     }
     native_windows::check_chain(item)?;
-    check_identity(item)?;
     if guard.in_use(item).is_some() {
         return Err(SkipReason::InUse);
     }
@@ -115,7 +105,6 @@ fn preflight(
     }
     // The guard is external code: recheck the chain and identity after its callback.
     native_windows::check_chain(item)?;
-    check_identity(item)?;
     let snapshot = native_windows::snapshot(item, guard_ids, protected_ids)?;
     let required = item
         .min_age_hours

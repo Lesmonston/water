@@ -1150,6 +1150,123 @@ fn clean_handle_hardening() {
         Some(b"read-only-data".as_slice()),
         "CLEAN_READONLY: the file record was damaged"
     );
+
+    // CLEAN_GUARD_ID (3): a protected path spelled through a junction alias that resolves to an
+    // ANCESTOR of the item (its parent directory). The alias name does not textually overlap the
+    // item path, so from_json accepts it, yet by identity the resolved target is an ancestor of
+    // the item, so the whole item must freeze as `protected_overlap` and nothing may be removed.
+    let aroot = fixture.dir("gidanc/root");
+    let aparent = fixture.dir("gidanc/root/parent");
+    let aitem = fixture.dir("gidanc/root/parent/item");
+    let avictim = fixture.file("gidanc/root/parent/item/keep", b"ancestor-keep");
+    let aalias = aroot.join("alias");
+    fixture.junction(&aalias, &aparent);
+    let mut value = plan_value(vec![item(&aroot, &aitem, "ancestor-aliased-protected")]);
+    value["protected_paths"] = json!([s(&aalias)]);
+    let report = run(&parse(value));
+    assert_eq!(
+        report.items[0].status,
+        ItemStatus::Skipped,
+        "CLEAN_GUARD_ID: an ancestor protected path reached through an alias was not enforced"
+    );
+    assert_eq!(
+        report.items[0].skip_reason,
+        Some(SkipReason::ProtectedOverlap),
+        "CLEAN_GUARD_ID: an ancestor protected alias did not match the item by identity"
+    );
+    assert_eq!(
+        report.freed_bytes, "0",
+        "CLEAN_GUARD_ID: bytes were freed despite an ancestor protected alias"
+    );
+    assert_eq!(
+        fs::read(&avictim).ok().as_deref(),
+        Some(b"ancestor-keep".as_slice()),
+        "CLEAN_GUARD_ID: a file was removed under an ancestor protected alias"
+    );
+    assert!(
+        fs::symlink_metadata(&aitem).is_ok(),
+        "CLEAN_GUARD_ID: the item under an ancestor protected alias was removed"
+    );
+
+    // CLEAN_LONG_PATH (2): the item's OWN directory path exceeds 300 characters (built from
+    // multiple sub-255 segments). It is opened and deleted entirely through handle-relative opens
+    // and reports `deleted`, while a sibling that lives outside the item is left untouched.
+    let lroot2 = fixture.dir("lpown/root");
+    let sibling = fixture.file("lpown/root/sibling", b"sibling-data");
+    let seg2 = "b".repeat(60);
+    let itemrel = format!("lpown/root/{seg2}/{seg2}/{seg2}/{seg2}/item");
+    let litem2 = fixture.dir(&itemrel);
+    let lleaf = fixture.file(&format!("{itemrel}/leaf"), b"own-deep");
+    assert!(
+        litem2.as_os_str().len() > 300,
+        "CLEAN_LONG_PATH: the item's own path was not long enough"
+    );
+    let report = run(&parse(plan_value(vec![item(
+        &lroot2,
+        &litem2,
+        "long-own-path",
+    )])));
+    assert_eq!(
+        report.items[0].status,
+        ItemStatus::Deleted,
+        "CLEAN_LONG_PATH: an item whose own path exceeds 300 characters was not deleted"
+    );
+    assert_eq!(
+        report.items[0].failed_entries, 0,
+        "CLEAN_LONG_PATH: entries failed inside an item with a >300-character own path"
+    );
+    assert!(
+        fs::symlink_metadata(&lleaf).is_err() && fs::symlink_metadata(&litem2).is_err(),
+        "CLEAN_LONG_PATH: a long own-path item survived deletion"
+    );
+    assert_eq!(
+        fs::read(&sibling).ok().as_deref(),
+        Some(b"sibling-data".as_slice()),
+        "CLEAN_LONG_PATH: a sibling outside the long-path item was removed"
+    );
+
+    // CLEAN_REPARSE_KIND (3): a custom, non-link reparse tag on an EMPTY directory nested a second
+    // level below the item (item/sub/leaf) freezes the whole item as `reparse`; nothing under the
+    // item is deleted, including the ordinary sibling file next to the nested reparse directory.
+    let kroot = fixture.dir("rpnest/root");
+    let kitem = fixture.dir("rpnest/root/item");
+    let ksub = fixture.dir("rpnest/root/item/sub");
+    let kkeep = fixture.file("rpnest/root/item/sub/keep", b"nested-keep");
+    let kleaf = fixture.dir("rpnest/root/item/sub/leaf");
+    set_custom_reparse(&kleaf);
+    assert_ne!(
+        fs::symlink_metadata(&kleaf).unwrap().file_attributes() & REPARSE,
+        0,
+        "CLEAN_REPARSE_KIND: fixture failed to stamp a custom reparse tag on a nested directory"
+    );
+    let report = run(&parse(plan_value(vec![item(
+        &kroot,
+        &kitem,
+        "nested-custom-reparse",
+    )])));
+    assert_eq!(
+        report.items[0].status,
+        ItemStatus::Skipped,
+        "CLEAN_REPARSE_KIND: a second-level custom reparse directory was not treated as unknown"
+    );
+    assert_eq!(
+        report.items[0].skip_reason,
+        Some(SkipReason::Reparse),
+        "CLEAN_REPARSE_KIND: a second-level custom reparse directory was not reported as reparse"
+    );
+    assert_eq!(
+        report.freed_bytes, "0",
+        "CLEAN_REPARSE_KIND: bytes were freed from an item holding a nested custom reparse point"
+    );
+    assert_eq!(
+        fs::read(&kkeep).ok().as_deref(),
+        Some(b"nested-keep".as_slice()),
+        "CLEAN_REPARSE_KIND: a file beside a nested custom reparse point was lost"
+    );
+    assert!(
+        fs::symlink_metadata(&kleaf).is_ok() && fs::symlink_metadata(&ksub).is_ok(),
+        "CLEAN_REPARSE_KIND: a nested custom reparse directory or its parent was removed"
+    );
 }
 
 fn set_custom_reparse(path: &Path) {
