@@ -366,6 +366,49 @@ test('ui_layout_states_a11y', async () => {
 test('ui_m1_polish', async () => {
   const dimensions = [[1240, 820], [1040, 720]], wrapMeasurements = [], dockMeasurements = [];
   await browser.send('Emulation.setEmulatedMedia', {features:[{name:'prefers-reduced-motion', value:'reduce'}]});
+  // The iceberg and pulse symbols must be the DESIGN.md section 10 text itself, not a copy kept in this test.
+  const design = readFileSync(join(root, 'docs/design/water-ui-v1/DESIGN.md'), 'utf8'), indexSource = readFileSync(join(ui, 'index.html'), 'utf8');
+  const designSymbol = (id, token) => {
+    const start = design.indexOf(`<symbol id="${id}"`), end = design.indexOf('</symbol>', start);
+    assert(start >= 0 && end > start, `${token}: DESIGN.md section 10 defines ${id}`);
+    return design.slice(start, end + '</symbol>'.length);
+  };
+  assert(indexSource.includes(designSymbol('i-berg', 'UI_BRAND_MARK')), 'UI_BRAND_MARK: index.html sprite carries i-berg exactly as DESIGN.md section 10');
+  assert(indexSource.includes(designSymbol('i-pulse', 'UI_NAV_PULSE')), 'UI_NAV_PULSE: index.html sprite carries i-pulse exactly as DESIGN.md section 10');
+  const ink = 'rgb(16, 38, 63)';
+  const noDrop = async stage => assert(await browser.evaluate('!document.querySelector("#i-drop") && ![...document.querySelectorAll("use")].some(use => use.getAttribute("href") === "#i-drop")'), `UI_BRAND_MARK: ${stage}: the retired drop is neither in the sprite nor referenced`);
+  const assertMark = async (selector, size, stage) => {
+    const mark = await browser.evaluate(`(() => {
+      const icon = document.querySelector(${JSON.stringify(selector)}), rect = icon?.getBoundingClientRect();
+      return icon ? {href:icon.querySelector('use')?.getAttribute('href'), width:rect.width, height:rect.height, color:getComputedStyle(icon).color} : null;
+    })()`);
+    assert.deepEqual(mark, {href:'#i-berg', width:size, height:size, color:ink}, `UI_BRAND_MARK: ${stage} is the ink iceberg at ${size}x${size}`);
+  };
+  const navIcons = () => browser.evaluate(`Object.fromEntries([...document.querySelectorAll('.nav a')].map(link => {
+    const icon = link.querySelector('.i'), style = getComputedStyle(icon), rect = icon.getBoundingClientRect();
+    return [link.dataset.key, {href:icon.querySelector('use').getAttribute('href'), width:rect.width, height:rect.height, strokeWidth:style.strokeWidth, fill:style.fill, color:style.color, on:link.classList.contains('on')}];
+  }))`);
+  await reset(); await waitText('体检后可查看能够清理的空间。');
+  await noDrop('home');
+  await assertMark('.brand > .i', 30, 'sidebar brand');
+  const homeNav = await navIcons(), others = ['nav-trends', 'nav-history', 'nav-locations', 'nav-about'];
+  const {color:homeOn, on:homeSelected, ...homeIcon} = homeNav['nav-home'];
+  assert.deepEqual({...homeIcon, on:homeSelected}, {href:'#i-pulse', width:18, height:18, strokeWidth:'1.5px', fill:'none', on:true}, 'UI_NAV_PULSE: the checkup nav uses the 18x18 pulse line with a 1.5px stroke and no fill');
+  assert.deepEqual(others.map(key => homeNav[key].href), ['#i-trend', '#i-history', '#i-folder', '#i-shield'], 'UI_NAV_PULSE: the other four nav icons stay trend, history, folder, shield');
+  const othersOff = [...new Set(others.map(key => homeNav[key].color))];
+  assert(othersOff.length === 1 && others.every(key => !homeNav[key].on) && othersOff[0] !== homeOn, `UI_NAV_PULSE: unselected nav icons share one colour distinct from the selected one: ${JSON.stringify(homeNav)}`);
+  await click('nav-trends'); await pageIs('trends');
+  const trendsNav = await navIcons();
+  assert.equal(homeOn, trendsNav['nav-trends'].color, 'UI_NAV_PULSE: selected pulse colour equals another selected nav icon');
+  assert.equal(trendsNav['nav-home'].color, othersOff[0], 'UI_NAV_PULSE: unselected pulse colour equals the other unselected nav icons');
+  await click('nav-about'); await waitText('Water 读取什么');
+  await noDrop('about');
+  await assertMark('.about-brand > .i', 42, 'about brand card');
+  for (const [options, route, title] of [[{emptyTrends:true}, 'trends', '再体检一次就能看到变化'], [{emptyHistory:true}, 'history', '还没有记录']]) {
+    await reset(options, route); await waitText(title);
+    await noDrop(`${route} empty state`);
+    await assertMark('.empty > .i', 36, `${route} empty state`);
+  }
   await reset(); await waitText('体检后可查看能够清理的空间。');
   for (const [width, height] of dimensions) {
     await browser.size(width, height);
@@ -445,7 +488,14 @@ test('ui_m1_polish', async () => {
   await click('nav-trends'); await pageIs('trends');
   assert(await browser.evaluate('!document.querySelector("#notice").hidden && document.querySelector("#notice").textContent.includes("正在重新连接 Water 服务…")'), 'UI_NOTICE_SCOPE: reconnecting status survives navigation');
   await control('window.__waterTest.progressErrors.scan_progress=[]');
-  await browser.waitFor('document.querySelector("#notice").hidden');
+  // Bounded poll that never throws, so a notice stuck after recovery fails on the marked assertion below.
+  let recovered;
+  for (let attempt = 0; attempt < 200; attempt++) {
+    recovered = await browser.evaluate('({hidden:document.querySelector("#notice").hidden, text:document.querySelector("#notice").textContent})');
+    if (recovered.hidden) break;
+    await new Promise(ok => setTimeout(ok, 25));
+  }
+  assert(recovered.hidden, `UI_NOTICE_SCOPE: the notice hides once reconnecting recovers: ${JSON.stringify(recovered)}`);
   assert(!(await text()).includes(fixture.errors.invalid.message_zh), 'UI_NOTICE_SCOPE: navigation while reconnecting clears the old command error after recovery');
   const pausedMessage = fixture.errors.unavailable.message_zh;
   assert.notEqual(pausedMessage, '未能读取任务进度，请重新连接。', 'UI_NOTICE_SCOPE: host reason must differ from the fallback');

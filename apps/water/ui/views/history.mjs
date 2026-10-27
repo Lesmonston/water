@@ -9,7 +9,7 @@ export function history(state, actions) {
   for (const entry of [...state.history].sort((a, b) => Date.parse(b.at) - Date.parse(a.at))) {
     const row = button('', () => actions.historyDetail(entry), 'history-row', `history-${entry.id}`);
     row.setAttribute('aria-expanded', String(state.historyOpen === entry.id));
-    add(row, icon(entry.kind === 'clean' ? 'check' : 'drop'), add(el('span', 'grow-fill'), el('strong', '', entry.kind === 'clean' ? '清理完成' : '体检记录'), el('span', 'cap', `${dateTime(entry.at)} · ${entry.summary_zh}`)), add(el('span', 'history-size'), el('b', '', formatBytes(entry.bytes)), el('span', 'cap', entry.kind === 'clean' ? '已释放' : '可放心清理')), icon('chev'));
+    add(row, icon(entry.kind === 'clean' ? 'check' : 'pulse'), add(el('span', 'grow-fill'), el('strong', '', entry.kind === 'clean' ? '清理完成' : '体检记录'), el('span', 'cap', `${dateTime(entry.at)} · ${entry.summary_zh}`)), add(el('span', 'history-size'), el('b', '', formatBytes(entry.bytes)), el('span', 'cap', entry.kind === 'clean' ? '已释放' : '可放心清理')), icon('chev'));
     const section = add(el('section'), row);
     if (state.historyOpen === entry.id) {
       const data = state.historyDetails.get(entry.id), detail = el('div', 'history-detail');
