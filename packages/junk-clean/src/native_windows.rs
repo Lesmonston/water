@@ -242,11 +242,11 @@ mod windows {
     // failure so callers can tell "missing" from "changed".
     fn nt_open(parent: &Handle, seg: &str, access: u32, share: u32) -> Result<Handle, u32> {
         let mut name: Vec<u16> = seg.encode_utf16().collect();
-        // A real NTFS path component is at most 255 UTF-16 units. Reject anything longer so the
-        // UNICODE_STRING byte length can never overflow u16 and wrap (a length of 0 would open
-        // the parent directory itself instead of the child).
+        // A real NTFS path component is 1..=255 UTF-16 units. Reject an empty name (length 0
+        // would open the parent directory itself instead of a child) and anything longer than 255
+        // (so the UNICODE_STRING byte length can never overflow u16 and wrap).
         let byte_len = match name.len().checked_mul(2) {
-            Some(n) if name.len() <= 255 => n as u16,
+            Some(n) if (1..=255).contains(&name.len()) => n as u16,
             _ => return Err(ERR_INVALID_NAME),
         };
         let mut us = UnicodeString {
@@ -371,7 +371,7 @@ mod windows {
     }
 
     // Enumerate one directory handle. Class 20 restarts, class 19 continues; the listing ends
-    // only when GetFileInformationByHandleEx fails with ERROR_NO_MORE_FILES. Every other
+    // only when GetFileInformationByHandleEx fails with ERROR_NO_MORE_FILES. Every othe
     // failure is an error, never a silent "no entries".
     fn enumerate(handle: &Handle) -> Result<Vec<Raw>, ()> {
         let mut out = Vec::new();
@@ -427,8 +427,11 @@ mod windows {
                 {
                     return Err(());
                 }
-                // SAFETY: [off+88, off+88+name_len) is in-bounds (checked just above); NTFS
-                // names are UTF-16 so name_len bytes decode as name_len/2 u16 units.
+                // SAFETY: [off+88, off+88+name_len) is in-bounds (checked just above); the
+                // pointer is u16-aligned because `off` is always a multiple of 8 (it starts at 0
+                // and every NextEntryOffset advance is checked to be a multiple of 8) and 88 is
+                // even, so base+off+88 is 2-byte aligned; NTFS names are UTF-16 so name_len bytes
+                // decode as name_len/2 u16 units.
                 let name = unsafe {
                     let units =
                         std::slice::from_raw_parts(base.add(off + 88) as *const u16, name_len / 2);
@@ -744,7 +747,7 @@ mod windows {
             snap.newest = snap.newest.max(mtime);
             let reparse = raw.attr & REPARSE != 0;
             if reparse {
-                // CLEAN_REPARSE_KIND: only name-surrogate links are treated as links; any other
+                // CLEAN_REPARSE_KIND: only name-surrogate links are treated as links; any othe
                 // reparse point in the subtree poisons the whole item.
                 if raw.tag & NAME_SURROGATE == 0 {
                     return Err(SkipReason::Reparse);
@@ -819,6 +822,10 @@ mod windows {
         removed: u64,
         failed: u64,
         changed_stop: bool,
+        // Set once the item itself (rel == "") has had its delete flag set this run. The residual
+        // pass needs it: if a different object later bears the item's name, the item may only be
+        // reported deleted when this run actually deleted it (addendum 02 change 4).
+        self_deleted: bool,
     }
 
     impl DelCtx<'_> {
@@ -832,18 +839,23 @@ mod windows {
                 .map(|i| &self.before.entries[i])
         }
 
-        // After a directory's own delete fails, report whether the only entries still present
-        // are ones that appeared after the snapshot (then the failure is expected, not counted).
+        // After a directory's own delete fails, report whether the failure is expected rathe
+        // than counted. It is expected only when at least one entry is still present and every
+        // remaining entry appeared after the snapshot. An empty directory that still cannot be
+        // deleted, or a re-enumeration that fails, is a real failure and must be counted.
         fn only_post_snapshot(&self, handle: &Handle, rel: &str) -> bool {
             match enumerate(handle) {
-                Ok(rest) => rest.iter().all(|k| {
-                    let crel = if rel.is_empty() {
-                        k.name.clone()
-                    } else {
-                        format!("{rel}\\{}", k.name)
-                    };
-                    self.expected(&crel).is_none()
-                }),
+                Ok(rest) => {
+                    !rest.is_empty()
+                        && rest.iter().all(|k| {
+                            let crel = if rel.is_empty() {
+                                k.name.clone()
+                            } else {
+                                format!("{rel}\\{}", k.name)
+                            };
+                            self.expected(&crel).is_none()
+                        })
+                }
                 Err(()) => false,
             }
         }
@@ -875,6 +887,9 @@ mod windows {
                             {
                                 if set_delete(&handle) {
                                     self.removed += 1;
+                                    if rel.is_empty() {
+                                        self.self_deleted = true;
+                                    }
                                 } else {
                                     self.failed += 1;
                                 }
@@ -932,12 +947,12 @@ mod windows {
                     } else {
                         format!("{rel}\\{}", kid.name)
                     };
-                    // Copy the snapshot FileId out before any &mut self call so the
+                    // Copy the snapshot FileId and kind out before any &mut self call so the
                     // immutable borrow of `before.entries` does not span node().
-                    let expected_id = self.expected(&child_rel).map(|e| e.file_id);
-                    match expected_id {
+                    let expected = self.expected(&child_rel).map(|e| (e.file_id, e.attr));
+                    match expected {
                         None => {} // appeared after the snapshot: ignore, not a failure
-                        Some(fid) if fid == kid.file_id => {
+                        Some((fid, _)) if fid == kid.file_id => {
                             if self.node(&handle, &kid.name, &child_rel) {
                                 return true;
                             }
@@ -945,14 +960,19 @@ mod windows {
                                 return false;
                             }
                         }
-                        Some(_) => {
-                            // Name is in the snapshot but the object was replaced.
-                            if kid.attr & DIRECTORY != 0 && kid.attr & REPARSE == 0 {
-                                self.failed += 1;
+                        Some((_, snap_attr)) => {
+                            // Name is in the snapshot but the object was replaced (FileId
+                            // differs). Decide by the SNAPSHOT entry's kind (SPEC section 4 step
+                            // 7), never by the live object that replaced it.
+                            self.failed += 1;
+                            if snap_attr & DIRECTORY != 0 && snap_attr & REPARSE == 0 {
+                                // The snapshot entry was a non-reparse directory: stop this item
+                                // whatever replaced it (dir, file, link, or other reparse point).
                                 self.changed_stop = true;
                                 return false;
                             }
-                            self.failed += 1;
+                            // The snapshot entry was a file or link: do not delete it, count one
+                            // failure, and continue with the next sibling.
                         }
                     }
                     if self.stop.is_stopped() {
@@ -964,6 +984,9 @@ mod windows {
                 }
                 if set_delete(&handle) {
                     self.removed += 1;
+                    if rel.is_empty() {
+                        self.self_deleted = true;
+                    }
                 } else if !self.only_post_snapshot(&handle, rel) {
                     self.failed += 1;
                 }
@@ -979,6 +1002,9 @@ mod windows {
                         (Some((a, _)), Some(id)) if a & REPARSE == 0 && id == exp_id => {
                             if set_delete(&handle) {
                                 self.removed += 1;
+                                if rel.is_empty() {
+                                    self.self_deleted = true;
+                                }
                             } else {
                                 self.failed += 1;
                             }
@@ -1021,8 +1047,24 @@ mod windows {
         Some(total)
     }
 
-    fn measure_residual(item: &PlanItem, before: &Snapshot) -> (Option<u64>, u64) {
+    fn measure_residual(
+        item: &PlanItem,
+        before: &Snapshot,
+        self_deleted: bool,
+    ) -> (Option<u64>, u64) {
         let before_bytes = before.bytes;
+        // A different object now bears the item's name (its FileId no longer matches the
+        // snapshot). Report the item deleted only when this run actually set the delete flag on
+        // the item itself; otherwise nothing was freed, so keep the full byte count as residual
+        // and never report deleted. No extra failure is counted here (the delete pass already
+        // counted one for the stop). addendum 02 change 4.
+        let replaced = |sd: bool| -> (Option<u64>, u64) {
+            if sd {
+                (None, 0)
+            } else {
+                (Some(before_bytes), 0)
+            }
+        };
         let Some(item_entry) = before.entries.iter().find(|e| e.rel.is_empty()) else {
             return (Some(before_bytes), 1);
         };
@@ -1044,7 +1086,7 @@ mod windows {
             return (Some(before_bytes), 1);
         };
         if id != item_entry.file_id {
-            return (None, 0); // the original item is gone; a different object bears the name
+            return replaced(self_deleted);
         }
         if attr & DIRECTORY != 0 {
             match nt_open(
@@ -1053,11 +1095,20 @@ mod windows {
                 FILE_LIST_DIRECTORY | FILE_READ_ATTRIBUTES | SYNCHRONIZE,
                 SHARE_RWD,
             ) {
-                Ok(dir) => match measure_tree(&dir) {
-                    Some(bytes) => (Some(bytes), 0),
+                // addendum 02 change 2: the handle used to sum the residual must itself carry the
+                // snapshot FileId, so a swap between the two opens cannot make a different
+                // object's tree read as the item's residual.
+                Ok(dir) => match file_id(&dir) {
+                    Some(did) if did == item_entry.file_id => match measure_tree(&dir) {
+                        Some(bytes) => (Some(bytes), 0),
+                        None => (Some(before_bytes), 1),
+                    },
+                    Some(_) => replaced(self_deleted),
                     None => (Some(before_bytes), 1),
                 },
-                Err(w) if w == ERR_FILE_NOT_FOUND || w == ERR_PATH_NOT_FOUND => (None, 0),
+                Err(w) if w == ERR_FILE_NOT_FOUND || w == ERR_PATH_NOT_FOUND => {
+                    replaced(self_deleted)
+                }
                 Err(_) => (Some(before_bytes), 1),
             }
         } else {
@@ -1079,12 +1130,13 @@ mod windows {
             removed: 0,
             failed: 0,
             changed_stop: false,
+            self_deleted: false,
         };
         let mut interrupted = false;
         if let Ok(parent) = walk_parent(item) {
             interrupted = ctx.node(&parent, last_segment(&item.path), "");
         }
-        let (residual, extra_failed) = measure_residual(item, before);
+        let (residual, extra_failed) = measure_residual(item, before, ctx.self_deleted);
         ctx.failed += extra_failed;
         let status = if residual.is_none() {
             ItemStatus::Deleted
