@@ -1,0 +1,28 @@
+{"binary":"C:\\Users\\37310\\.rustup\\toolchains\\1.95.0-x86_64-pc-windows-msvc\\bin\\cargo.exe","args":["fmt","--manifest-path","packages/junk-clean/Cargo.toml","--","--check"],"exitCode":1,"error":null}
+--- stdout ---
+Diff in \\?\F:\new\smaltalk\water\.worktrees\w5-h1\packages\junk-clean\src\native_windows.rs:1225:
+         i: usize,
+     }
+ 
+-    fn measure_kid(parent: *mut c_void, kid: &Raw, total: &mut u64, stack: &mut Vec<MeasFrame>) -> Option<()> {
++    fn measure_kid(
++        parent: *mut c_void,
++        kid: &Raw,
++        total: &mut u64,
++        stack: &mut Vec<MeasFrame>,
++    ) -> Option<()> {
+         if kid.attr & REPARSE != 0 {
+             return Some(());
+         }
+Diff in \\?\F:\new\smaltalk\water\.worktrees\w5-h1\packages\junk-clean\tests\clean_v1.rs:988:
+     let outside_bytes = fs::read(&outside).unwrap();
+     let report = run(&parse(plan_value(vec![item(&eroot, &eitem, "exact")])));
+     assert_eq!(
+-        report.items[0].bytes_freed,
+-        "6",
++        report.items[0].bytes_freed, "6",
+         "CLEAN_FREED_EXACT: hard-linked file was counted or other sizes were wrong"
+     );
+     assert_eq!(
+
+--- stderr ---
