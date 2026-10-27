@@ -6,7 +6,7 @@ use std::sync::{
 };
 use water_service::{FolderPicker, IpcError, Service, ServiceConfig, WindowsPlatform};
 
-pub const CLEAN_ENABLED: bool = false;
+pub const CLEAN_ENABLED: bool = true;
 
 pub struct ServiceBackend(pub Service);
 
