@@ -86,9 +86,9 @@ async function connect() {
 function sidebar() {
   const side = document.getElementById('sidebar');
   if (!side.children.length) {
-    add(side, add(el('div', 'brand'), icon('drop'), add(el('div'), el('b', '', 'Water'), el('small', '', '磁盘体检'))));
+    add(side, add(el('div', 'brand'), icon('berg'), add(el('div'), el('b', '', 'Water'), el('small', '', '磁盘体检'))));
     const nav = el('nav', 'nav', undefined, {'aria-label':'主导航'});
-    for (const [key, label, glyph] of [['home', '体检', 'drop'], ['trends', '增长趋势', 'trend'], ['history', '清理记录', 'history'], ['locations', '扫描位置', 'folder'], ['about', '关于与隐私', 'shield']]) {
+    for (const [key, label, glyph] of [['home', '体检', 'pulse'], ['trends', '增长趋势', 'trend'], ['history', '清理记录', 'history'], ['locations', '扫描位置', 'folder'], ['about', '关于与隐私', 'shield']]) {
       const link = el('a', '', undefined, {href:`#/${key}`, 'data-route':key, 'data-key':`nav-${key}`}); add(link, icon(glyph), el('span', '', label)); add(nav, link);
       link.addEventListener('click', event => { event.preventDefault(); navigate(key); });
     }
