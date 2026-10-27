@@ -114,3 +114,84 @@ amend 仅修改**同一条未发布提交**，不涉及任何已发布历史；`
 - check --final: `.local/checks/WATER-W4-G1/2026-10-26T15-52-25.380Z-19720-check-result.json`
 - test --final: `.local/checks/WATER-W4-G1/2026-10-26T15-52-30.733Z-38020-test-result.json`
 - archive: `docs/acceptance/wave4/g1/ARCHIVE.json`（+ `receipts/` 267 份）
+
+---
+
+# 补单 01（Addendum 01）验收补充
+
+- 执行模型（actual model）：**Grok Bot**
+- 续做起点（continuation base）：`b593f0be97e7338bbe54c85e456ce3a8c4d0c7a0`（上一轮 docs 提交，即本报告 §1 的"最终 HEAD"）。本轮**未重跑 baseline**。
+- 新实现提交（补单 01）：`2b6fb5350c19930eaee4227be4c11490459f5b41`，作者/提交者 Riku Toto `usr_40dd3b2f69f149f6afc972157278189d@noreply.mirasim.ai`，提交时间 2026-10-27 14:18:26 JST。父提交即 `b593f0be`。
+- 本轮**只在 `b593f0be` 之后新增提交**：实现提交 `2b6fb535` + 本 docs 提交；全程无 amend/reset/squash/force、无 push/merge/rebase。所有时间均为 Asia/Tokyo（UTC+9）；检查器回执 `...Z` 为 UTC，本节已换算 JST。
+- 冲突时以本补单为准（precedence over 原票）。
+
+## A-1. 本轮冻结文件 hash（committed，working-tree = LF，`.gitattributes` 内 `*.rs text eol=lf`）
+
+- `src/native_windows.rs` sha256 = `eed60fd9dfdbeecbe42cdea199625b276bf57d4a6fca9e6b659ac794d4cf4bd6`
+- `src/lib.rs` sha256 = `ad2766cb90e17e2ed6e826894f5621f2de4d22ccfb49c2d092fec47c4d5f7de0`
+- `src/path.rs` sha256 = `c730a15e3914f00d950257720ed05e6884c0caa9e3f0257929c10977762c9d4b`
+- `tests/clean_v1.rs` sha256 = `6c0a8e3b7953ecf02bb6fa77c6ad2077ae590c620bb7ebe27d0c7a3d0aaf3cf5`
+
+（与 §3 的旧 hash 不同：本轮对 §3 的文件进一步加固，并新增编辑 `src/path.rs`；四个文件逐一 `git add`、`git commit -F` UTF-8 文件，提交信息字节完好，未用 `git add -A`、未用 `git stash`。）
+
+## A-2. 补单 11 条改动（全部在 `packages/junk-clean/src/`）
+
+| # | 级别 | 改动 | 如何满足 / 验证 |
+|---|---|---|---|
+| 1 | 高 | 删除前**从该项自身句柄**复检名称代理链接：仅当 `attr&REPARSE` 且 `tag&NAME_SURROGATE` 且 `file_id==快照 id` 三者同真才删链接，否则 `failed+=1` | TOCTOU 并发替换下才可达，无确定性测试钩子（见 A-5）；经代码评审 |
+| 2 | 中 | 身份取自**已遍历句柄**，删除 `check_identity` 及其两处按名二次取身份的调用（`identity_of` 保留为 pub） | 由既有 `clean_revalidation_skips`(CLEAN_IDENTITY) + 本轮 nc 链共同支撑 |
+| 3 | 中 | 枚举区分**正常结束**（错误码 18 `ERROR_NO_MORE_FILES`，经 `last_os_error`）与真实错误 | 代码评审 + 全测试绿 |
+| 4 | 中 | 剩余项**按句柄**计数 | 代码评审；`clean_partial_stop_journal` 覆盖剩余计数路径 |
+| 5 | 中 | 删除时**对象已变**（object-changed）则停止该项 | TOCTOU 并发下才可达，无测试钩子（见 A-5）；代码评审 |
+| 6 | 低 | **快照后新到达**的条目不计为失败 | TOCTOU 并发下才可达，无测试钩子（见 A-5）；代码评审 |
+| 7 | 低（M2） | 快照查找改**二分搜索** | 代码评审 + 全测试绿（查找结果等价） |
+| 8 | 低 | 拒绝 **>255 UTF-16 单元**的路径段（`from_json` + `nt_open` 两处） | `path.rs::validate` 增 `part.encode_utf16().count() > 255`；`CLEAN_LONG_PATH` 证明合法超长路径（自身 >300 字符、每段 ≤255）仍按句柄删 |
+| 9 | 低 | `FILETIME → Option<SystemTime>` 用 **checked** 转换（`is_none_or` 边界判断） | 代码评审；`clean_report_volume` 覆盖时间/容量字段 |
+| 10 | 低 | unsafe 枚举加**边界/对齐检查** + `nt_open` **RAII** 句柄包装 + size 断言 | 代码评审；clippy `-D warnings` 全过 |
+| 11 | 低 | **祖先身份读取失败 → Changed**，且**驱动器根纳入祖先链** | `CLEAN_GUARD_ID` 祖先别名子用例证明祖先身份比对生效；nc2 反证 |
+
+## A-3. `clean_handle_hardening` 新增的 3 个带标记断言（仍恰好 6 个测试，既有名称/断言逐字节未改）
+
+- **CLEAN_GUARD_ID**：保护路径为 junction 别名，解析到待删项的**父/祖先目录**（名称不重叠，文本比对落空、仅身份命中）→ 待删项 `Skipped`/`ProtectedOverlap`；别名受害目录与另一保留项存活。
+- **CLEAN_LONG_PATH**：待删项**自身路径 >300 字符**（四段各 60 字符）→ 叶子被删、项 `Deleted`、`failed_entries==0`；项外同名 sibling 不受影响。
+- **CLEAN_REPARSE_KIND**：待删项下**第二层空目录**经 `set_custom_reparse`（FSCTL_SET_REPARSE_POINT，自定义非链接 tag `0x00007A57`，backup 语义）打上标 → 整项 `Reparse`/`Skipped`、`freed_bytes==0`；保留项与各层存活。
+
+> items 1/5/6 仅在并发替换下可达，按禁令**不在生产代码加测试开关**，故无对应测试用例，改以代码评审 + A-5 的复检顺序/计数说明交付。
+
+## A-4. 三个负控制（red-nc1 → test → red-nc2 → test → red-nc3 → test；每条仅改 src 中真正被调用的一处）
+
+| 控制 | src 编辑位置 | 编辑 | 失败标记（信息）| 结果 | red 退出 | 还原后 native hash |
+|---|---|---|---|---|---|---|
+| nc1 | `native_windows.rs:749`（walk_subtree：非名称代理重解析点 → 毒化整项） | `if raw.tag & NAME_SURROGATE == 0 {` → `if false {` | `CLEAN_REPARSE_KIND: a custom reparse tag was not treated as an unknown reparse point` | 5 passed, 1 failed | 101（observedExpectedFailure） | `eed60fd9…` ✓ |
+| nc2 | `native_windows.rs:740`（walk_subtree：按身份比对保护路径） | `if protected_ids.contains(&id) {` → `if false {` | `CLEAN_GUARD_ID: an aliased protected path was not enforced` | 5 passed, 1 failed | 101 | `eed60fd9…` ✓ |
+| nc3 | `native_windows.rs:50`（全局 nt_open 选项 OPTS） | 去掉 `OPEN_REPARSE_POINT \| ` | `CLEAN_NO_FOLLOW: the junction link was not removed by handle` | 4 passed, 2 failed | 101 | `eed60fd9…` ✓ |
+
+- 每条 red：检查器确认 `git diff HEAD -- src` 非空且 `git diff HEAD -- tests` 为空、无 `could not compile / error[Exxxx] / panicked / timeout`、输出含对应 proofTarget 标记。
+- 每条 red 后立即 `git checkout -- packages/junk-clean/src/native_windows.rs`，sha256 均还原为 `eed60fd9dfdbeecbe42cdea199625b276bf57d4a6fca9e6b659ac794d4cf4bd6`，`git status --porcelain` 为空，随后 `--mode test` 复绿（6 passed）。
+
+## A-5. items 1/5/6 的复检顺序与计数（无测试钩子的原因）
+
+这三条只在"快照与删除之间被并发替换/改写对象"（TOCTOU）时才触发。实现的删除阶段对**每一待删项**执行固定顺序复检：(a) 用该项**自身**句柄重新打开；(b) 读取其身份与重解析信息；(c) 与快照 `file_id` 及 `NAME_SURROGATE` 标位比对；(d) **三者同真才** `set_delete`。任一不符即**停止该项并 `failed_entries += 1`**（计为失败，而非静默跳过）；快照后新到达的子项在删除时被枚举到会使目录删除判为对象已变（item 5/6），同样停止该项、不把"规划项"误计为清理失败。要在确定性测试里复现，必须在同进程内于快照与删除之间注入并发 rename/replace——这需要在**生产代码**里加测试开关，被禁令明确禁止，故仅以代码评审交付。
+
+## A-6. 门禁结果（本轮，JST）
+
+| mode | finalGate | status | JST |
+|---|---|---|---|
+| `red-nc1` | false | passed | 2026-10-27 14:20:18 |
+| `test`（nc1 后复绿） | false | passed | 2026-10-27 14:20:29 |
+| `red-nc2` | false | passed | 2026-10-27 14:20:58 |
+| `test`（nc2 后复绿） | false | passed | 2026-10-27 14:21:10 |
+| `red-nc3` | false | passed | 2026-10-27 14:21:34 |
+| `test`（nc3 后复绿） | false | passed | 2026-10-27 14:21:45 |
+| `check --final`（fmt+clippy -D warnings+build） | true | **passed** | 2026-10-27 14:22:25 |
+| `test --final`（proofAudit 校验红/绿链顺序） | true | **passed** | 2026-10-27 14:22:33 |
+| `archive` | false | passed | 2026-10-27 14:22:42 |
+
+- `check --final`、`test --final` 均在**干净的已提交树**（HEAD=`2b6fb535`）上运行；`test --final` 的 proofAudit 复核 red-nc1→绿→red-nc2→绿→red-nc3→绿 的链顺序与各快照 sha256，全部通过。
+- `archive` 新增 151 份回执至 `docs/acceptance/wave4/g1/receipts/`（目录现 498 份）并更新 `ARCHIVE.json`。
+
+## A-7. 约束遵守与收尾
+
+- 未 push/merge/rebase；**无 amend/reset/squash/force**（仅在 `b593f0be` 之后 ADD 提交）；未改主线 ledger/契约/检查器/其它包；未下载、未联网、未改全局/网络 git 配置（提交身份经 `git -c user.name/email` 单次注入，未写入任何 config 文件）；cargo 离线 jobs=1 私有 target；原生窗口/对话框/浏览器 0；未触碰真实用户位置；未用 `git stash`；四文件逐一 `git add`、提交信息经 UTF-8 文件 `git commit -F` 并校验字节完好。
+- 负控制均单处 src 编辑、`git checkout` 字节级还原并校验 hash。
+- 收尾：本机所有由本执行方启动的进程均已退出，临时文件已清理，工作区树干净。
