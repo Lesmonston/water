@@ -1,0 +1,23 @@
+   Compiling water-junk-clean v0.1.0 (F:\new\smaltalk\water\.worktrees\accept-w4-g5\packages\junk-clean)
+    Finished `test` profile [unoptimized + debuginfo] target(s) in 5.23s
+     Running unittests src\lib.rs (.local/w2-target\debug\deps\water_junk_clean-4a4c9db044fc301a.exe)
+
+running 7 tests
+test controller_unit::g5_case_only_rename_is_deleted ... CONTROLLER g5: status Deleted reason None failed 0 freed 13 of 13
+ok
+test controller_unit::g5_case_only_replacement_stops ... CONTROLLER g5: status Failed reason None failed 1 freed 0 of 13
+ok
+test controller_unit::g5_item_moved_away_before_delete ... CONTROLLER g5: status Skipped reason Some(Gone) failed 0 freed 0 of 4
+ok
+test controller_unit::g5_item_replaced_before_delete ... CONTROLLER g5: status Skipped reason Some(Changed) failed 0 freed 0 of 4
+ok
+test controller_unit::g5_late_file_counts_nothing_upwards ... CONTROLLER g5: status Partial reason None failed 0 freed 3 of 7
+ok
+test controller_unit::g5_nothing_removed_frees_zero ... CONTROLLER g5: status Failed reason None failed 1 freed 0 of 100
+ok
+test controller_unit::g5_replaced_file_counts_once ... CONTROLLER g5: status Partial reason None failed 1 freed 4 of 15
+ok
+
+test result: ok. 7 passed; 0 failed; 0 ignored; 0 measured; 0 filtered out; finished in 0.05s
+
+rc=0 source=HEAD status after restore: ''

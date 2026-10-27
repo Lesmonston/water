@@ -1,0 +1,24 @@
+import {add, el, heading, empty, button, icon} from './common.mjs';
+import {formatBytes, dateTime, middlePath} from '../format.mjs';
+import {resultList} from './done.mjs';
+export function history(state, actions) {
+  const page = add(el('section'), heading('清理记录', '每一次体检与清理，都有迹可循。'));
+  if (!state.history) return add(page, el('p', 'sub', '正在读取记录…'));
+  if (!state.history.length) return add(page, empty('还没有记录', '完成体检或清理后，可在这里回看结果。'));
+  const list = el('div', 'glass history-list');
+  for (const entry of [...state.history].sort((a, b) => Date.parse(b.at) - Date.parse(a.at))) {
+    const row = button('', () => actions.historyDetail(entry), 'history-row', `history-${entry.id}`);
+    row.setAttribute('aria-expanded', String(state.historyOpen === entry.id));
+    add(row, icon(entry.kind === 'clean' ? 'drop' : 'pulse'), add(el('span', 'grow-fill'), el('strong', '', entry.kind === 'clean' ? '清理完成' : '体检记录'), el('span', 'cap', `${dateTime(entry.at)} · ${entry.summary_zh}`)), add(el('span', 'history-size'), el('b', '', formatBytes(entry.bytes)), el('span', 'cap', entry.kind === 'clean' ? '已释放' : '可放心清理')), icon('chev'));
+    const section = add(el('section'), row);
+    if (state.historyOpen === entry.id) {
+      const data = state.historyDetails.get(entry.id), detail = el('div', 'history-detail');
+      if (!data) add(detail, el('p', 'cap', '正在读取详情…'));
+      else if (entry.kind === 'clean') add(detail, resultList(data), el('p', 'cap', '清理日志位置'), el('code', 'path', middlePath(data.journal_display_path, 90), {title:data.journal_display_path}));
+      else add(detail, el('p', 'sub', `共识别 ${formatBytes(data.totals.recognized_bytes)} · ${data.categories.length} 类位置`));
+      add(section, detail);
+    }
+    add(list, section);
+  }
+  return add(page, list);
+}

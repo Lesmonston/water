@@ -1,0 +1,23 @@
+   Compiling water-junk-clean v0.1.0 (F:\new\smaltalk\water\.worktrees\accept-w4-g5\packages\junk-clean)
+    Finished `test` profile [unoptimized + debuginfo] target(s) in 1.02s
+     Running unittests src\lib.rs (.local/w2-target\debug\deps\water_junk_clean-4a4c9db044fc301a.exe)
+
+running 1 test
+test controller_unit::g5_nothing_removed_frees_zero ... CONTROLLER g5: status Failed reason None failed 1 freed 100 of 100
+
+thread 'controller_unit::g5_nothing_removed_frees_zero' (33092) panicked at src\controller_unit.rs:184:5:
+assertion `left == right` failed: CONTROLLER_G5_ZERO: bytes another program removed were reported as freed
+  left: "100"
+ right: "0"
+note: run with `RUST_BACKTRACE=1` environment variable to display a backtrace
+FAILED
+
+failures:
+
+failures:
+    controller_unit::g5_nothing_removed_frees_zero
+
+test result: FAILED. 0 passed; 1 failed; 0 ignored; 0 measured; 6 filtered out; finished in 0.01s
+
+error: test failed, to rerun pass `--lib`
+rc=101 source=mutated status after restore: ''

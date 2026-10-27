@@ -1,0 +1,36 @@
+   Compiling water-junk-clean v0.1.0 (F:\new\smaltalk\water\.worktrees\accept-w4-g5\packages\junk-clean)
+warning: unused variable: `first`
+   --> src\native_windows.rs:833:25
+    |
+833 |                     let first = upper.next().unwrap_or(c);
+    |                         ^^^^^ help: if this is intentional, prefix it with an underscore: `_first`
+    |
+    = note: `#[warn(unused_variables)]` (part of `#[warn(unused)]`) on by default
+
+warning: `water-junk-clean` (lib test) generated 1 warning (run `cargo fix --lib -p water-junk-clean --tests` to apply 1 suggestion)
+    Finished `test` profile [unoptimized + debuginfo] target(s) in 1.63s
+     Running unittests src\lib.rs (.local/w2-target\debug\deps\water_junk_clean-4a4c9db044fc301a.exe)
+
+running 2 tests
+test controller_unit::g5_case_only_rename_is_deleted ... CONTROLLER g5: status Partial reason None failed 0 freed 5 of 13
+
+thread 'controller_unit::g5_case_only_rename_is_deleted' (14836) panicked at src\controller_unit.rs:165:5:
+CONTROLLER_G5_CASE_SAME: item survived
+note: run with `RUST_BACKTRACE=1` environment variable to display a backtrace
+FAILED
+test controller_unit::g5_case_only_replacement_stops ... CONTROLLER g5: status Partial reason None failed 0 freed 3 of 13
+
+thread 'controller_unit::g5_case_only_replacement_stops' (26664) panicked at src\controller_unit.rs:152:5:
+CONTROLLER_G5_CASE: deletion went on after the replaced directory
+FAILED
+
+failures:
+
+failures:
+    controller_unit::g5_case_only_rename_is_deleted
+    controller_unit::g5_case_only_replacement_stops
+
+test result: FAILED. 0 passed; 2 failed; 0 ignored; 0 measured; 5 filtered out; finished in 0.03s
+
+error: test failed, to rerun pass `--lib`
+rc=101 source=mutated status after restore: ''

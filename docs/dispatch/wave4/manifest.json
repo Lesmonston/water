@@ -1,7 +1,7 @@
 {
   "schemaVersion": 1,
   "wave": "water-wave4-hardening",
-  "status": "G1_G2_G3_G4_VERIFIED_MAIN_INTEGRATED_G5_G6_G7_DISPATCHED",
+  "status": "G1_TO_G7_VERIFIED_M2_PREP_MERGED",
   "controller": "Claude",
   "controllerRoot": "F:/new/smaltalk/water",
   "controllerBranch": "main",
@@ -865,7 +865,7 @@
       ],
       "cargoCacheSource": "F:/new/smaltalk/water/.worktrees/a/.local/cargo-home/registry",
       "nativeModule": "native_windows.rs",
-      "status": "DISPATCHED",
+      "status": "VERIFIED",
       "baseCommit": "4f35c52f5abb3dee22583cc2c86b05da2fc2be93",
       "snapshotRef": null,
       "readyOn": "2026-10-27",
@@ -979,7 +979,35 @@
       "baselineStatus": "PASSED",
       "baselineEvidence": "docs/acceptance/wave4/controller/preflight/WATER-W4-G5-2026-10-27T08-25-53.402Z-29636-baseline-result.json",
       "dispatchReportedAt": "2026-10-27T09:50:00Z",
-      "dispatchEvidence": "user chat 2026-10-27 ~18:50 JST: G5 and G6 to sol, G7 to astra; worker trees still clean at base 4f35c52f with only the controller preflight receipt when recorded"
+      "dispatchEvidence": "user chat 2026-10-27 ~18:50 JST: G5 and G6 to sol, G7 to astra; worker trees still clean at base 4f35c52f with only the controller preflight receipt when recorded",
+      "submittedHead": "14f8ca3f8a8ffaadd7711981a8ffa3227c1324e9",
+      "implementationCommit": "700f4e04ff36830fb6a2bde6e859566e48721a54",
+      "submittedAs": "Codex / GPT-6 (self-reported)",
+      "verifiedAt": "2026-10-27T11:35:00Z",
+      "acceptedCommit": "14f8ca3f8a8ffaadd7711981a8ffa3227c1324e9",
+      "integrationBranch": "main",
+      "mergeCommit": "fc1f0dd588949274c875c3b26913008ea44a2885",
+      "controllerReview": {
+        "reviewedAt": "2026-10-27T11:35:00Z",
+        "review": "docs/acceptance/wave4/controller/WATER-W4-G5G6G7-REVIEW-20261027.md",
+        "evidence": "docs/acceptance/wave4/controller/accept-20261027/g5/",
+        "controllerLogs": "docs/acceptance/wave4/controller/accept-20261027/controller/",
+        "mechanicalAudit": "passed; only native_windows.rs changed; finals on 700f4e04; nc1-nc3 paired",
+        "freshTreeFinals": "check and test finals passed in .worktrees/accept-w4-g5",
+        "controllerMutants": "nc1 (tag decode marks every tag a surrogate), nc2 (guard identity on the item), nc3 (link entry treated as a directory) killed with their markers",
+        "controllerCases": "scripts/acceptance/w4-g5-controller-unit.rs: 7 snapshot-change-delete cases for CLEAN-REPORT §1, §3, §4, §5 pass on G5 and all fail on the old source 4f35c52f; 5 mutants of the new logic (gone, changed, accounted, fold, freed) each caught",
+        "raceCases": "w4-g1-controller-cases.rs counts updated to CLEAN-REPORT §3 (retag 1, file+late 1, non-ASCII residual 1); 12/12 pass; 100k files deleted in 20.4 s (round 3: 23 s)",
+        "codeReview": "independent read-only agent: no high or medium findings; no path deletes outside the snapshot, follows a reparse point or weakens CLEAN-HARDENING",
+        "decision": "VERIFIED, merged --no-ff"
+      },
+      "carryOverM2": [
+        "a renamed or missing ancestor of the item is reported failed/1, not skipped/gone (walk_parent folds every error into one)",
+        "a name recreated by its application right after Water deleted it counts as a failure (exact snapshot name, not accounted); decide before M2 whether only the original objects left behind count",
+        "residual bytes include content that appeared after the snapshot, so bytes_freed is under-reported (conservative)",
+        "a subdirectory that can be neither listed nor deleted counts once in deletion and once more as unknown residual (§3 vs §6)",
+        "the case fold is Unicode simple uppercase, not the volume $UpCase table (supplementary-plane letters fold here only; conservative)",
+        "CLEAN-REPORT §2 second case (name gone at residual time, item itself not deleted by this run) has no deterministic controller case, code review only"
+      ]
     },
     {
       "kind": "host",
@@ -1043,7 +1071,7 @@
       "title": "宿主收尾",
       "slot": "w4-g6",
       "gate": "light-native",
-      "status": "DISPATCHED",
+      "status": "VERIFIED",
       "baseCommit": "4f35c52f5abb3dee22583cc2c86b05da2fc2be93",
       "snapshotRef": null,
       "readyOn": "2026-10-27",
@@ -1304,7 +1332,34 @@
       "baselineStatus": "PASSED",
       "baselineEvidence": "docs/acceptance/wave4/controller/preflight/WATER-W4-G6-2026-10-27T08-26-00.495Z-23464-baseline-result.json",
       "dispatchReportedAt": "2026-10-27T09:50:00Z",
-      "dispatchEvidence": "user chat 2026-10-27 ~18:50 JST: G5 and G6 to sol, G7 to astra; worker trees still clean at base 4f35c52f with only the controller preflight receipt when recorded"
+      "dispatchEvidence": "user chat 2026-10-27 ~18:50 JST: G5 and G6 to sol, G7 to astra; worker trees still clean at base 4f35c52f with only the controller preflight receipt when recorded",
+      "submittedHead": "581d81b21d2db9f1a79387212f138b6e3f2269f1",
+      "implementationCommit": "c114d777a71fe2c5a370192e2c679d54572ce1d2",
+      "submittedAs": "Codex / GPT-6 (self-reported)",
+      "verifiedAt": "2026-10-27T11:35:00Z",
+      "acceptedCommit": "581d81b21d2db9f1a79387212f138b6e3f2269f1",
+      "integrationBranch": "main",
+      "mergeCommit": "c715902988e22c5d5c5c3d54c66985dd0a43f682",
+      "controllerReview": {
+        "reviewedAt": "2026-10-27T11:35:00Z",
+        "review": "docs/acceptance/wave4/controller/WATER-W4-G5G6G7-REVIEW-20261027.md",
+        "evidence": "docs/acceptance/wave4/controller/accept-20261027/g6/",
+        "controllerLogs": "docs/acceptance/wave4/controller/accept-20261027/controller/",
+        "mechanicalAudit": "passed; six host files, no Cargo/config/capability/icon change; check, test and native finals on c114d777; nc1-nc3 paired",
+        "freshTreeFinals": "check, test and native finals passed in .worktrees/accept-w4-g6; native: 1 window, 130 s, exit 0, 0 restores, Mica, store scans 1 / snapshots 1 / plans, cleans, journal 0",
+        "nativeNote": "the results page showed 部分结果: system-temp-old had one access_denied and one identity_unavailable from other programs churning the temp directory; the worker run and the wave 4 integration were complete",
+        "controllerMutants": "nc1 (signal never created), nc2 (working service replaced by UnavailableBackend), nc3b (resolved but the junction path returned), x1 (signal reported consumed but kept) killed; nc3 (prefix kept) failed first on the F3 marker HOST_DATA_DIRECTORY, not accepted by the gate",
+        "secondInstance": "scripts/acceptance/w4-g6-second-instance.ps1 on a fixture data dir: first window minimized; second instance exit 0 in 176 ms; first window restored and foreground within 316 ms; signal consumed; first instance closed normally with exit 0",
+        "codeReview": "independent read-only agent: §2-§5 and §8 met; one medium (backend not released, see carryOverM2)",
+        "decision": "VERIFIED, merged --no-ff; user approved both windows"
+      },
+      "carryOverM2": [
+        "medium: SPEC §1 \"backend released with App\" is not met: Tauri 2.12.5 keeps a reference cycle (PathResolver holds AppHandle), so the managed service outlives run_return and the instance lock is released first; host should own the backend (Mutex<Option<Arc<..>>> forwarder), drop it, then the lock; M2 needs a defined close-during-clean path",
+        "a second launch while the first instance is shutting down leaves the signal and shows no window (consumed at the next start, harmless)",
+        "signal_activation truncates an existing plain file; a planted hard link under an attacker-writable WATER_DATA_DIR would be zeroed; touch the time only",
+        "the wiring inside run (AlreadyRunning -> signal -> Ok, backend_or_unavailable, polling thread) has no test; covered once by the controller real-window check",
+        "stripping \\\\?\\ can change the meaning of names that only work under the verbatim prefix (trailing dot or space, reserved names)"
+      ]
     },
     {
       "kind": "ui",
@@ -1328,7 +1383,7 @@
       "fixtures": "contracts/checkup-v1/ui-fixtures.json",
       "browserHelper": "scripts/acceptance/native-vw-private-browser.mjs",
       "screenshotDirEnv": "WATER_W2_SHOTS_DIR",
-      "status": "DISPATCHED",
+      "status": "VERIFIED",
       "baseCommit": "4f35c52f5abb3dee22583cc2c86b05da2fc2be93",
       "snapshotRef": null,
       "readyOn": "2026-10-27",
@@ -1468,7 +1523,37 @@
       "baselineStatus": "PASSED",
       "baselineEvidence": "docs/acceptance/wave4/controller/preflight/WATER-W4-G7-2026-10-27T08-26-27.774Z-25184-baseline-result.json",
       "dispatchReportedAt": "2026-10-27T09:50:00Z",
-      "dispatchEvidence": "user chat 2026-10-27 ~18:50 JST: G5 and G6 to sol, G7 to astra; worker trees still clean at base 4f35c52f with only the controller preflight receipt when recorded"
+      "dispatchEvidence": "user chat 2026-10-27 ~18:50 JST: G5 and G6 to sol, G7 to astra; worker trees still clean at base 4f35c52f with only the controller preflight receipt when recorded",
+      "submittedHead": "facccf3d341b9280883b9202ebe7b5478f14389b",
+      "implementationCommit": "4e308174b51d6427b68c5b2d6462ef014693a38c",
+      "submittedAs": "Codex GPT-6 (self-reported)",
+      "verifiedAt": "2026-10-27T11:35:00Z",
+      "acceptedCommit": "facccf3d341b9280883b9202ebe7b5478f14389b",
+      "integrationBranch": "main",
+      "mergeCommit": "acee890f606499c29ab56457e83be2d6cfd3761e",
+      "controllerReview": {
+        "reviewedAt": "2026-10-27T11:35:00Z",
+        "review": "docs/acceptance/wave4/controller/WATER-W4-G5G6G7-REVIEW-20261027.md",
+        "evidence": "docs/acceptance/wave4/controller/accept-20261027/g7/",
+        "controllerLogs": "docs/acceptance/wave4/controller/accept-20261027/controller/",
+        "mechanicalAudit": "passed; only app.mjs and browser.test.mjs changed; check, test and browser finals on 4e308174; nc1-nc3 paired; 24 screenshots incl. the 19 required",
+        "freshTreeFinals": "check, test and browser finals passed in .worktrees/accept-w4-g7",
+        "controllerMutants": "nc1 (route captured when the error arrives), nc2c (pause shows the fallback instead of the host reason), nc3 (i-pulse symbol commented out) killed; nc2 and nc2b caught by UI_NOTICE_SCOPE but other tests timed out on unmarked waits; x1 (清理完成 row to drop) and x2 (run() pause guard) survive",
+        "screenshots": "controller reviewed paused, reconnecting, notice-results, notice-trends and history; 16 of 24 byte-identical to the worker final set",
+        "codeReview": "independent read-only agent: items 1-7 met as written; two medium side effects (see carryOverM2)",
+        "decision": "VERIFIED, merged --no-ff"
+      },
+      "carryOverM2": [
+        "medium: while paused, a first visit to trends, history or locations whose read fails stays on 正在读取… and 重新连接 does not reload it (loadRoute drops the error during pause; historyDetail the same); reload the route on resume or when its data is missing",
+        "a stale answer arriving after a page switch is dropped entirely, so the results page looks fresh until the next prepare; UI-POLISH §3 keeps the stale rule; hide the notice but still record stale",
+        "when a clean finishes on 清理记录, the reload drops a failing in-flight historyDetail silently",
+        "the two item 2 UI_COMMAND_SCOPE assertions catch nothing on their own (controller x2 survived)",
+        "the populated history page has no 清理完成 row, so its icon is not checked (controller x1 survived)",
+        "pre-existing: a clean_prepare that succeeds after a page switch still opens the permanent-delete confirm on the new page; fix before M2 enables cleaning",
+        "the fallback sentence 未能读取任务进度，请重新连接。 is gone from app.mjs (not one of the 11 frozen strings; accepted)",
+        "a failed stop during a pause gives no feedback",
+        "tests 1-3 still wait for the reconnecting notice to appear (and tests 2-3 elsewhere) with unmarked waits that time out (controller nc2, nc2b)"
+      ]
     }
   ],
   "selfTest": {

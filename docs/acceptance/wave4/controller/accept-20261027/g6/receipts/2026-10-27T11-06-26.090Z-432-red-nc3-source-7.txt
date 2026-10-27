@@ -1,0 +1,119 @@
+//! Only metadata is inspected while preparing the private data directories.
+use std::{
+    fmt, fs,
+    io::ErrorKind,
+    path::{Component, Path, PathBuf},
+};
+
+#[derive(Debug, Clone, Copy, PartialEq, Eq)]
+pub struct DataDirectoryError;
+
+impl fmt::Display for DataDirectoryError {
+    fn fmt(&self, f: &mut fmt::Formatter<'_>) -> fmt::Result {
+        f.write_str("HOST_DATA_DIRECTORY：无法安全打开 Water 数据目录。")
+    }
+}
+
+impl std::error::Error for DataDirectoryError {}
+
+#[derive(Debug, PartialEq, Eq)]
+pub struct DataDirectories {
+    pub data: PathBuf,
+    pub webview: PathBuf,
+}
+
+fn validate_path(path: &Path) -> Result<(), DataDirectoryError> {
+    if !path.is_absolute() || path.components().any(|c| matches!(c, Component::ParentDir)) {
+        return Err(DataDirectoryError);
+    }
+    #[cfg(windows)]
+    if !matches!(
+        path.components().next(),
+        Some(Component::Prefix(prefix)) if matches!(prefix.kind(), std::path::Prefix::Disk(_))
+    ) {
+        // Keep the host on local disk paths; reject device and network namespaces.
+        return Err(DataDirectoryError);
+    }
+    Ok(())
+}
+
+fn check_directory(path: &Path) -> Result<(), DataDirectoryError> {
+    let meta = fs::symlink_metadata(path).map_err(|_| DataDirectoryError)?;
+    if !meta.is_dir() || meta.file_type().is_symlink() {
+        return Err(DataDirectoryError);
+    }
+    #[cfg(windows)]
+    {
+        use std::os::windows::fs::MetadataExt;
+        if meta.file_attributes() & 0x400 != 0 {
+            return Err(DataDirectoryError);
+        }
+    }
+    Ok(())
+}
+
+fn ensure_directory(path: &Path) -> Result<(), DataDirectoryError> {
+    validate_path(path)?;
+    let ancestors: Vec<_> = path.ancestors().collect();
+    for directory in ancestors.into_iter().rev() {
+        match fs::symlink_metadata(directory) {
+            Ok(_) => check_directory(directory)?,
+            Err(error) if error.kind() == ErrorKind::NotFound => {
+                // Recheck all existing parents before each write, never follow a known link.
+                for parent in directory.ancestors().skip(1) {
+                    check_directory(parent)?;
+                }
+                match fs::create_dir(directory) {
+                    Ok(()) => {}
+                    Err(error) if error.kind() == ErrorKind::AlreadyExists => {}
+                    Err(_) => return Err(DataDirectoryError),
+                }
+                check_directory(directory)?;
+            }
+            Err(_) => return Err(DataDirectoryError),
+        }
+    }
+    Ok(())
+}
+
+/// `local_data_dir` is provided by Tauri; no environment lookup occurs here.
+pub fn prepare_data_directories(
+    override_dir: Option<&Path>,
+    local_data_dir: &Path,
+) -> Result<DataDirectories, DataDirectoryError> {
+    let data = match override_dir {
+        Some(path) => path.to_path_buf(),
+        None => resolve_default_base(local_data_dir)?.join("Water"),
+    };
+    ensure_directory(&data)?;
+    let webview = data.join("webview");
+    ensure_directory(&webview)?;
+    Ok(DataDirectories { data, webview })
+}
+
+fn resolve_default_base(local_data_dir: &Path) -> Result<PathBuf, DataDirectoryError> {
+    validate_path(local_data_dir)?;
+    if !local_data_dir
+        .try_exists()
+        .map_err(|_| DataDirectoryError)?
+    {
+        ensure_directory(local_data_dir)?;
+    }
+    let resolved = fs::canonicalize(local_data_dir).map_err(|_| DataDirectoryError)?;
+    #[cfg(windows)]
+    let resolved = match resolved.components().next() {
+        Some(Component::Prefix(prefix)) => match prefix.kind() {
+            std::path::Prefix::VerbatimDisk(drive) => {
+                let mut local = PathBuf::from(format!("{}:", char::from(drive)));
+                for component in resolved.components().skip(1) {
+                    local.push(component.as_os_str());
+                }
+                local
+            }
+            _ => resolved,
+        },
+        _ => resolved,
+    };
+    validate_path(&resolved)?;
+    Ok(local_data_dir.to_path_buf())
+}

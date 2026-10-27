@@ -1,8 +1,8 @@
 # Water 状态与交接
 
-更新时间：2026-10-27 18:50 JST（M1 达成；第四波 G1～G4 合入、主线整合通过；M2 准备三票 G5、G6 交 sol，G7 交 astra；第 7 份交接）。
+更新时间：2026-10-27 20:40 JST（M1 达成；第四波 G1～G7 全部验收合入：M2 准备三票 G5、G6、G7 VERIFIED；下一步主线整合检查；入口仍是第 7 份交接）。
 
-更换总控请先读[最新交接报告（2026-10-27 第 7 份）](CONTROLLER-HANDOFF-20261027-7.md)；[第 6 份](CONTROLLER-HANDOFF-20261027-6.md)、[第 5 份](CONTROLLER-HANDOFF-20261026-5.md)、[第 4 份](CONTROLLER-HANDOFF-20261026-4.md)、[第 3 份](CONTROLLER-HANDOFF-20261026-3.md)、[第 2 份](CONTROLLER-HANDOFF-20261026-2.md)、[上午那份](CONTROLLER-HANDOFF-20261026.md)及其只读状态快照仅供追溯。M1 已达成；第四波 G2、G3 已验收合入；G1 补单 01 执行者已在树里交回，待用户转告与总控第二轮验收（见第 6 份交接第 4 节）。此前[接手验收摘要](CONTROLLER-HANDOFF-20261017.md)仅供历史追溯；当前任务状态以本页、registry/manifest及最新正式验收为准。
+更换总控请先读[最新交接报告（2026-10-27 第 7 份）](CONTROLLER-HANDOFF-20261027-7.md)；[第 6 份](CONTROLLER-HANDOFF-20261027-6.md)、[第 5 份](CONTROLLER-HANDOFF-20261026-5.md)、[第 4 份](CONTROLLER-HANDOFF-20261026-4.md)、[第 3 份](CONTROLLER-HANDOFF-20261026-3.md)、[第 2 份](CONTROLLER-HANDOFF-20261026-2.md)、[上午那份](CONTROLLER-HANDOFF-20261026.md)及其只读状态快照仅供追溯。M1 已达成；第四波 G1～G7 已全部验收合入（见下文待办）。此前[接手验收摘要](CONTROLLER-HANDOFF-20261017.md)仅供历史追溯；当前任务状态以本页、registry/manifest及最新正式验收为准。
 
 ## 已确认
 
@@ -157,12 +157,25 @@ A–AB及八补单、AD保持VERIFIED；AC/补单06新增VERIFIED（Windows静�
    - 票面内容：三处换冰山、导航换脉搏线、删 `i-drop`、复制图标、测试第 448 行改带 `UI_NOTICE_SCOPE` 标记的断言；不 push、不改写提交。
    - 工作树 `.worktrees/w4-g4`，基点 `e5b90db1`，总控 baseline 已通过。验收时总控另编译宿主并核对图标哈希。
 3. **主线整合检查：通过**（10-27，主线 `8af6229c`），见[整合报告](acceptance/wave4/controller/WATER-W4-INTEGRATION-20261027.md)。D 6/6、服务 6/6（G2 清理测试在新 D 上通过）、界面 3/3 与 5/5、宿主 5/5；整机窗口只读体检 11 步全过，1 个窗口、101 秒、没有删除任何东西，标题栏已是新图标。
-4. **M2 准备三票已派出（10-27 约 18:50 用户告知：G5、G6 交 sol，G7 交 astra；基点 `4f35c52f`）**，三票各改各的目录：
+4. **M2 准备三票：全部 VERIFIED，`--no-ff` 合入**（10-27 晚），见[收单验收](acceptance/wave4/controller/WATER-W4-G5G6G7-REVIEW-20261027.md)：
+   - **G5 `fc1f0dd5`**：
+     - 总控另写 7 个“先快照、再改磁盘、再删除”用例，在 G5 上全过、在旧源码上全败；
+     - 12 项竞态用例按新计数全过；十万文件 20.4 秒。
+   - **G6 `c7159029`**：
+     - 整机窗口只读体检通过，退出码 0；
+     - 真窗口里第二个实例 176 毫秒退出、最小化的第一个窗口 316 毫秒内回到前台。
+   - **G7 `acee890f`**：负控与截图通过。
+   - 审查发现的问题都不影响删除安全，记在清单各票 `carryOverM2`，其中两条中级：宿主后端退出时没真正释放；暂停期间读页面失败会停在“正在读取…”。
+
+   派出时的记录（10-27 约 18:50 用户告知：G5、G6 交 sol，G7 交 astra；基点 `4f35c52f`），三票各改各的目录：
    - [WATER-W4-G5 清理结果报告修正](dispatch/tickets/WATER-W4-G5-CLEAN-REPORT-20261027.md)（删除路径特殊票）：按新契约 [CLEAN-REPORT](../contracts/m2-prep-v1/CLEAN-REPORT.md) 修 G1 剩下的结果报告问题；
    - [WATER-W4-G6 宿主收尾](dispatch/tickets/WATER-W4-G6-HOST-FINISHING-20261027.md)：按 [HOST-FINISHING](../contracts/m2-prep-v1/HOST-FINISHING.md) 做正常退出、第二个实例唤起窗口、服务起不来也有窗口、数据目录在联接后面、三处测试问题；`native --final` 会弹 1 个窗口；
    - [WATER-W4-G7 界面收尾](dispatch/tickets/WATER-W4-G7-UI-FINISHING-20261027.md)（界面票）：旧页面命令错误不落到新页面、暂停原因不被覆盖、G3/G4 留下的测试缺口。
    - G6 合入后由总控做日常使用的 release 构建。
-5. 三票合入后再做一次主线整合检查，然后 M2。
+5. **下一步**：
+   - 在主线新建整合树，再做一次主线整合检查（会开窗口，先告诉用户）；
+   - 然后总控做 release 构建；
+   - 再出 M2 计划给用户看，`carryOverM2` 在 M2 第一批票里处理。
 
 ## 真实AA→AD联合验收通过（2026-10-26）
 

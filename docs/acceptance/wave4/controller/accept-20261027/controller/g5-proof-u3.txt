@@ -1,0 +1,23 @@
+   Compiling water-junk-clean v0.1.0 (F:\new\smaltalk\water\.worktrees\accept-w4-g5\packages\junk-clean)
+    Finished `test` profile [unoptimized + debuginfo] target(s) in 1.13s
+     Running unittests src\lib.rs (.local/w2-target\debug\deps\water_junk_clean-4a4c9db044fc301a.exe)
+
+running 1 test
+test controller_unit::g5_late_file_counts_nothing_upwards ... CONTROLLER g5: status Partial reason None failed 1 freed 3 of 7
+
+thread 'controller_unit::g5_late_file_counts_nothing_upwards' (20260) panicked at src\controller_unit.rs:113:5:
+assertion `left == right` failed: CONTROLLER_G5_ACCOUNTED: the late file's ancestors were counted
+  left: 1
+ right: 0
+note: run with `RUST_BACKTRACE=1` environment variable to display a backtrace
+FAILED
+
+failures:
+
+failures:
+    controller_unit::g5_late_file_counts_nothing_upwards
+
+test result: FAILED. 0 passed; 1 failed; 0 ignored; 0 measured; 6 filtered out; finished in 0.01s
+
+error: test failed, to rerun pass `--lib`
+rc=101 source=mutated status after restore: ''

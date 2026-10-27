@@ -1,0 +1,67 @@
+   Compiling water-junk-clean v0.1.0 (F:\new\smaltalk\water\.worktrees\accept-w4-g5\packages\junk-clean)
+    Finished `test` profile [unoptimized + debuginfo] target(s) in 9.65s
+     Running unittests src\lib.rs (.local/w2-target\debug\deps\water_junk_clean-4a4c9db044fc301a.exe)
+
+running 7 tests
+test controller_unit::g5_case_only_rename_is_deleted ... CONTROLLER g5: status Partial reason None failed 0 freed 5 of 13
+
+thread 'controller_unit::g5_case_only_rename_is_deleted' (39952) panicked at src\controller_unit.rs:165:5:
+CONTROLLER_G5_CASE_SAME: item survived
+note: run with `RUST_BACKTRACE=1` environment variable to display a backtrace
+FAILED
+test controller_unit::g5_case_only_replacement_stops ... CONTROLLER g5: status Partial reason None failed 0 freed 3 of 13
+
+thread 'controller_unit::g5_case_only_replacement_stops' (24376) panicked at src\controller_unit.rs:152:5:
+CONTROLLER_G5_CASE: deletion went on after the replaced directory
+FAILED
+test controller_unit::g5_item_moved_away_before_delete ... CONTROLLER g5: status Deleted reason None failed 0 freed 4 of 4
+
+thread 'controller_unit::g5_item_moved_away_before_delete' (24772) panicked at src\controller_unit.rs:78:5:
+assertion `left == right` failed: CONTROLLER_G5_GONE: status
+  left: Deleted
+ right: Skipped
+FAILED
+test controller_unit::g5_item_replaced_before_delete ... CONTROLLER g5: status Failed reason None failed 1 freed 0 of 4
+
+thread 'controller_unit::g5_item_replaced_before_delete' (38540) panicked at src\controller_unit.rs:97:5:
+assertion `left == right` failed: CONTROLLER_G5_CHANGED: status
+  left: Failed
+ right: Skipped
+FAILED
+test controller_unit::g5_late_file_counts_nothing_upwards ... CONTROLLER g5: status Partial reason None failed 2 freed 3 of 7
+
+thread 'controller_unit::g5_late_file_counts_nothing_upwards' (19068) panicked at src\controller_unit.rs:113:5:
+assertion `left == right` failed: CONTROLLER_G5_ACCOUNTED: the late file's ancestors were counted
+  left: 2
+ right: 0
+FAILED
+test controller_unit::g5_nothing_removed_frees_zero ... CONTROLLER g5: status Failed reason None failed 2 freed 100 of 100
+
+thread 'controller_unit::g5_nothing_removed_frees_zero' (40248) panicked at src\controller_unit.rs:184:5:
+assertion `left == right` failed: CONTROLLER_G5_ZERO: bytes another program removed were reported as freed
+  left: "100"
+ right: "0"
+FAILED
+test controller_unit::g5_replaced_file_counts_once ... CONTROLLER g5: status Partial reason None failed 3 freed 4 of 15
+
+thread 'controller_unit::g5_replaced_file_counts_once' (19880) panicked at src\controller_unit.rs:133:5:
+assertion `left == right` failed: CONTROLLER_G5_ONCE: failed entries
+  left: 3
+ right: 1
+FAILED
+
+failures:
+
+failures:
+    controller_unit::g5_case_only_rename_is_deleted
+    controller_unit::g5_case_only_replacement_stops
+    controller_unit::g5_item_moved_away_before_delete
+    controller_unit::g5_item_replaced_before_delete
+    controller_unit::g5_late_file_counts_nothing_upwards
+    controller_unit::g5_nothing_removed_frees_zero
+    controller_unit::g5_replaced_file_counts_once
+
+test result: FAILED. 0 passed; 7 failed; 0 ignored; 0 measured; 0 filtered out; finished in 0.46s
+
+error: test failed, to rerun pass `--lib`
+rc=101 source=4f35c52f5abb3dee22583cc2c86b05da2fc2be93 status after restore: ''

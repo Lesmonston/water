@@ -1,0 +1,41 @@
+g7 nc1 mutated apps/water/ui/app.mjs: the command's route is captured when its error arrives instead of when it was sent (worker nc1 deleted the check instead); every narrower mutant survives because the version and hash checks back each other up (mutated sha 4a02e74dc3b11aaa872c959f97672dfaf7e26db084673be99ea336df5e66dcaa)
+g7 red-nc1 rc=0 {"task":"WATER-W4-ACCEPT-G7","mode":"red-nc1","finalGate":false,"status":"passed","error":null,"receipt":"F:\\new\\smaltalk\\water\\.worktrees\\accept-w4-g7\\.local\\checks\\WATER-W4-ACCEPT-G7\\2026-10-27T11-12-13.207Z-32676-red-nc1-result.json"}
+g7 nc1 KILLED (expected UI_COMMAND_SCOPE)
+g7 nc1 restored exact bytes=true sha 156eb2f076743bc63452c4c5581dce714d26e3d9075e5ff545ec2bcddb377d56
+g7 test rc=0 {"task":"WATER-W4-ACCEPT-G7","mode":"test","finalGate":false,"status":"passed","error":null,"receipt":"F:\\new\\smaltalk\\water\\.worktrees\\accept-w4-g7\\.local\\checks\\WATER-W4-ACCEPT-G7\\2026-10-27T11-13-04.505Z-26888-test-result.json"}
+g7 nc2 mutated apps/water/ui/app.mjs: the reconnecting notice is never shown (item 6: the held fake host must keep it on screen until released) (mutated sha 5ca2bc2f5b5545513aed0bfca4ba537aecde1202ca9df4b8c326ef5306a5ecf2)
+g7 red-nc2 rc=1 {"task":"WATER-W4-ACCEPT-G7","mode":"red-nc2","finalGate":false,"status":"failed","error":"AssertionError [ERR_ASSERTION]: Syntax, module or timeout failures are not proof","receipt":"F:\\new\\smaltalk\\water\\.worktrees\\accept-w4-g7\\.local\\checks\\WATER-W4-ACCEPT-G7\\2026-10-27T11-13-06.773Z-29876-red-nc2-result.json"}
+g7 nc2 SURVIVED (expected UI_NOTICE_SCOPE)
+g7 nc2 restored exact bytes=true sha 156eb2f076743bc63452c4c5581dce714d26e3d9075e5ff545ec2bcddb377d56
+g7 test rc=0 {"task":"WATER-W4-ACCEPT-G7","mode":"test","finalGate":false,"status":"passed","error":null,"receipt":"F:\\new\\smaltalk\\water\\.worktrees\\accept-w4-g7\\.local\\checks\\WATER-W4-ACCEPT-G7\\2026-10-27T11-14-12.024Z-33488-test-result.json"}
+g7 nc3 mutated apps/water/ui/index.html: item 3: the pulse symbol is commented out, the source text still contains it, the nav icon goes blank (mutated sha d2f8f2876b33994a44fa0e9c6301cea2cbdfd4ed60c6af04fa4f53475615bcdb)
+g7 red-nc3 rc=0 {"task":"WATER-W4-ACCEPT-G7","mode":"red-nc3","finalGate":false,"status":"passed","error":null,"receipt":"F:\\new\\smaltalk\\water\\.worktrees\\accept-w4-g7\\.local\\checks\\WATER-W4-ACCEPT-G7\\2026-10-27T11-14-16.184Z-17076-red-nc3-result.json"}
+g7 nc3 KILLED (expected UI_BRAND_MARK)
+g7 nc3 restored exact bytes=true sha 2e9f7fc7baff621158c20f8daed6c6e211067b3b52f11962659443c6f3b899ee
+g7 test rc=0 {"task":"WATER-W4-ACCEPT-G7","mode":"test","finalGate":false,"status":"passed","error":null,"receipt":"F:\\new\\smaltalk\\water\\.worktrees\\accept-w4-g7\\.local\\checks\\WATER-W4-ACCEPT-G7\\2026-10-27T11-14-59.823Z-33808-test-result.json"}
+g7 x1 mutated apps/water/ui/views/history.mjs: the 清理完成 row points at the retired drop; expected to survive: the populated history in ui_m1_polish has only 体检记录 rows (review finding 5) (mutated sha 2438367b62a3a6e568ea4c8901ddfba5e3045f4cda749c32ef2972c2dce03536)
+g7 browser rc=0 {"task":"WATER-W4-ACCEPT-G7","mode":"browser","finalGate":false,"status":"passed","error":null,"receipt":"F:\\new\\smaltalk\\water\\.worktrees\\accept-w4-g7\\.local\\checks\\WATER-W4-ACCEPT-G7\\2026-10-27T11-15-07.023Z-36704-browser-result.json"}
+g7 x1 SURVIVED (expected UI_BRAND_MARK)
+g7 x1 restored exact bytes=true sha 5a43a1c27decdecc01804d481bbc161a121ec5bff62134a3b938081034b48c76
+g7 test rc=0 {"task":"WATER-W4-ACCEPT-G7","mode":"test","finalGate":false,"status":"passed","error":null,"receipt":"F:\\new\\smaltalk\\water\\.worktrees\\accept-w4-g7\\.local\\checks\\WATER-W4-ACCEPT-G7\\2026-10-27T11-16-06.900Z-6204-test-result.json"}
+g7 x2 mutated apps/water/ui/app.mjs: command errors during a pause are no longer held back in run(); expected to survive: the pause reason has display priority and resume/navigation clear the error (review finding 4) (mutated sha 161cd29a7146f1230280a471c16b4442eef672d407351eed8bd533f2d2b66ee8)
+g7 browser rc=0 {"task":"WATER-W4-ACCEPT-G7","mode":"browser","finalGate":false,"status":"passed","error":null,"receipt":"F:\\new\\smaltalk\\water\\.worktrees\\accept-w4-g7\\.local\\checks\\WATER-W4-ACCEPT-G7\\2026-10-27T11-16-10.659Z-21812-browser-result.json"}
+g7 x2 SURVIVED (expected UI_)
+g7 x2 restored exact bytes=true sha 156eb2f076743bc63452c4c5581dce714d26e3d9075e5ff545ec2bcddb377d56
+g7 test rc=0 {"task":"WATER-W4-ACCEPT-G7","mode":"test","finalGate":false,"status":"passed","error":null,"receipt":"F:\\new\\smaltalk\\water\\.worktrees\\accept-w4-g7\\.local\\checks\\WATER-W4-ACCEPT-G7\\2026-10-27T11-17-03.033Z-32880-test-result.json"}
+g7 survived: nc2,x1,x2
+g7 test --final rc=1 {"task":"WATER-W4-ACCEPT-G7","mode":"test","finalGate":true,"status":"failed","error":"AssertionError [ERR_ASSERTION]: Missing valid negative control nc2","receipt":"F:\\new\\smaltalk\\water\\.worktrees\\accept-w4-g7\\.local\\checks\\WATER-W4-ACCEPT-G7\\2026-10-27T11-17-06.207Z-4216-test-result.json"}
+g7 nc2b mutated apps/water/ui/app.mjs: a successful progress read after failures no longer clears the reconnecting state, so the notice never hides (nc2 was caught by UI_NOTICE_SCOPE in ui_m1_polish but tests 1-3 timed out waiting for the reconnecting notice to appear, which the gate does not accept as proof; worker nc2 left an error after reconnect) (mutated sha f3290c6f9c4558c33ba5298e4e4039275b332e505cd9c499b6e1a8e17854ebda)
+g7 red-nc2 rc=1 {"task":"WATER-W4-ACCEPT-G7","mode":"red-nc2","finalGate":false,"status":"failed","error":"AssertionError [ERR_ASSERTION]: Syntax, module or timeout failures are not proof","receipt":"F:\\new\\smaltalk\\water\\.worktrees\\accept-w4-g7\\.local\\checks\\WATER-W4-ACCEPT-G7\\2026-10-27T11-18-01.226Z-28484-red-nc2-result.json"}
+g7 nc2b SURVIVED (expected UI_NOTICE_SCOPE)
+g7 nc2b restored exact bytes=true sha 156eb2f076743bc63452c4c5581dce714d26e3d9075e5ff545ec2bcddb377d56
+g7 test rc=0 {"task":"WATER-W4-ACCEPT-G7","mode":"test","finalGate":false,"status":"passed","error":null,"receipt":"F:\\new\\smaltalk\\water\\.worktrees\\accept-w4-g7\\.local\\checks\\WATER-W4-ACCEPT-G7\\2026-10-27T11-19-01.733Z-21104-test-result.json"}
+g7 survived: nc2b
+g7 test --final rc=1 {"task":"WATER-W4-ACCEPT-G7","mode":"test","finalGate":true,"status":"failed","error":"AssertionError [ERR_ASSERTION]: Missing valid negative control nc2","receipt":"F:\\new\\smaltalk\\water\\.worktrees\\accept-w4-g7\\.local\\checks\\WATER-W4-ACCEPT-G7\\2026-10-27T11-19-03.882Z-19256-test-result.json"}
+g7 nc2c mutated apps/water/ui/app.mjs: the pause shows the fallback sentence instead of the host reason (nc2 and nc2b were caught by UI_NOTICE_SCOPE but other tests timed out on unbounded waits for the reconnecting notice, which the gate does not accept as proof) (mutated sha 31125aba6b988bc611e67bead8fc4d92a59cf69ae91a5e02bb0d547259149105)
+g7 red-nc2 rc=0 {"task":"WATER-W4-ACCEPT-G7","mode":"red-nc2","finalGate":false,"status":"passed","error":null,"receipt":"F:\\new\\smaltalk\\water\\.worktrees\\accept-w4-g7\\.local\\checks\\WATER-W4-ACCEPT-G7\\2026-10-27T11-19-41.423Z-36388-red-nc2-result.json"}
+g7 nc2c KILLED (expected UI_NOTICE_SCOPE)
+g7 nc2c restored exact bytes=true sha 156eb2f076743bc63452c4c5581dce714d26e3d9075e5ff545ec2bcddb377d56
+g7 test rc=0 {"task":"WATER-W4-ACCEPT-G7","mode":"test","finalGate":false,"status":"passed","error":null,"receipt":"F:\\new\\smaltalk\\water\\.worktrees\\accept-w4-g7\\.local\\checks\\WATER-W4-ACCEPT-G7\\2026-10-27T11-20-31.378Z-34940-test-result.json"}
+g7 survived: none
+g7 test --final rc=0 {"task":"WATER-W4-ACCEPT-G7","mode":"test","finalGate":true,"status":"passed","error":null,"receipt":"F:\\new\\smaltalk\\water\\.worktrees\\accept-w4-g7\\.local\\checks\\WATER-W4-ACCEPT-G7\\2026-10-27T11-20-34.442Z-7592-test-result.json"}

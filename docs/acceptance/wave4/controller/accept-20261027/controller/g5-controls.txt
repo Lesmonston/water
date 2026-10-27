@@ -1,0 +1,17 @@
+g5 nc1 mutated packages/junk-clean/src/native_windows.rs: the enumeration decode marks every reparse tag as a name surrogate, so a custom tag is treated as a link (worker nc1 disabled the poison check instead) (mutated sha a328b4e6f8555309e13fd1aa8d9da437533f0857b3e104a17b2f39754279daf8)
+g5 red-nc1 rc=0 {"task":"WATER-W4-ACCEPT-G5","mode":"red-nc1","finalGate":false,"status":"passed","error":null,"receipt":"F:\\new\\smaltalk\\water\\.worktrees\\accept-w4-g5\\.local\\checks\\WATER-W4-ACCEPT-G5\\2026-10-27T10-54-50.660Z-35860-red-nc1-result.json"}
+g5 nc1 KILLED (expected CLEAN_REPARSE_KIND)
+g5 nc1 restored exact bytes=true sha 988641a07387e6ba55919fafd06904a14bcbc1c7cd955016e4bffd8036fbfe27
+g5 test rc=0 {"task":"WATER-W4-ACCEPT-G5","mode":"test","finalGate":false,"status":"passed","error":null,"receipt":"F:\\new\\smaltalk\\water\\.worktrees\\accept-w4-g5\\.local\\checks\\WATER-W4-ACCEPT-G5\\2026-10-27T10-55-03.770Z-23600-test-result.json"}
+g5 nc2 mutated packages/junk-clean/src/native_windows.rs: a hard guard that resolves to the item itself is not matched by identity (worker nc2 disabled the subtree protected check instead) (mutated sha c8ea14902bbbcb9118a0238b501f33ce92f6ec1200eb6a0e95532bda7970a44a)
+g5 red-nc2 rc=0 {"task":"WATER-W4-ACCEPT-G5","mode":"red-nc2","finalGate":false,"status":"passed","error":null,"receipt":"F:\\new\\smaltalk\\water\\.worktrees\\accept-w4-g5\\.local\\checks\\WATER-W4-ACCEPT-G5\\2026-10-27T10-55-13.578Z-11700-red-nc2-result.json"}
+g5 nc2 KILLED (expected CLEAN_GUARD_ID)
+g5 nc2 restored exact bytes=true sha 988641a07387e6ba55919fafd06904a14bcbc1c7cd955016e4bffd8036fbfe27
+g5 test rc=0 {"task":"WATER-W4-ACCEPT-G5","mode":"test","finalGate":false,"status":"passed","error":null,"receipt":"F:\\new\\smaltalk\\water\\.worktrees\\accept-w4-g5\\.local\\checks\\WATER-W4-ACCEPT-G5\\2026-10-27T10-55-23.648Z-19724-test-result.json"}
+g5 nc3 mutated packages/junk-clean/src/native_windows.rs: the delete step treats a link entry as a directory instead of removing the link itself (worker nc3 dropped OPEN_REPARSE_POINT instead) (mutated sha fec39f35e1ec33f3c5934290c85e573950be5277e9fbc18a945a2fcd85c09274)
+g5 red-nc3 rc=0 {"task":"WATER-W4-ACCEPT-G5","mode":"red-nc3","finalGate":false,"status":"passed","error":null,"receipt":"F:\\new\\smaltalk\\water\\.worktrees\\accept-w4-g5\\.local\\checks\\WATER-W4-ACCEPT-G5\\2026-10-27T10-55-33.233Z-4136-red-nc3-result.json"}
+g5 nc3 KILLED (expected CLEAN_NO_FOLLOW)
+g5 nc3 restored exact bytes=true sha 988641a07387e6ba55919fafd06904a14bcbc1c7cd955016e4bffd8036fbfe27
+g5 test rc=0 {"task":"WATER-W4-ACCEPT-G5","mode":"test","finalGate":false,"status":"passed","error":null,"receipt":"F:\\new\\smaltalk\\water\\.worktrees\\accept-w4-g5\\.local\\checks\\WATER-W4-ACCEPT-G5\\2026-10-27T10-55-41.856Z-26168-test-result.json"}
+g5 survived: none
+g5 test --final rc=0 {"task":"WATER-W4-ACCEPT-G5","mode":"test","finalGate":true,"status":"passed","error":null,"receipt":"F:\\new\\smaltalk\\water\\.worktrees\\accept-w4-g5\\.local\\checks\\WATER-W4-ACCEPT-G5\\2026-10-27T10-55-54.995Z-38204-test-result.json"}

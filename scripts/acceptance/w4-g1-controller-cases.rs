@@ -5,6 +5,7 @@
 // reparse tag the same PowerShell/DeviceIoControl helper as clean_v1.rs. Nothing outside the
 // fixture is read or written; every deletion goes through water_junk_clean::execute.
 // Round 2 (addendum 01) adds races during deletion, the by-handle residual and a 100k timing case.
+// WATER-W4-G5: failure counts follow CLEAN-REPORT §3 (each retained object counted once).
 use serde_json::{Value, json};
 use std::{
     collections::BTreeMap,
@@ -407,7 +408,8 @@ fn controller_race_link_retagged() {
     assert!(m.is_ok(), "CONTROLLER_RACE_RETAG: the retagged (non-link) reparse point was deleted");
     assert_ne!(m.unwrap().file_attributes() & REPARSE, 0, "CONTROLLER_RACE_RETAG: reparse point gone");
     assert_eq!(it.status, ItemStatus::Partial, "CONTROLLER_RACE_RETAG: status");
-    assert!(it.failed_entries >= 1, "CONTROLLER_RACE_RETAG: refusal not counted");
+    // CLEAN-REPORT §3: the refused point is counted once; the item root it keeps alive is not.
+    assert_eq!(it.failed_entries, 1, "CONTROLLER_RACE_RETAG: failed entries");
     assert!(fs::symlink_metadata(item_dir.join("aaa")).is_err(), "CONTROLLER_RACE_RETAG: ordinary content not deleted");
     assert_eq!(fs::read(victim.join("keep.bin")).unwrap(), b"must-survive", "CONTROLLER_RACE_RETAG: link target touched");
 }
@@ -465,8 +467,8 @@ fn controller_race_directory_replaced_by_file() {
 
 /// Addendum items 5 (file) and 6: a planned file is replaced and a new file appears in a planned
 /// directory after deletion started. The replacement is refused and counted, deletion goes on;
-/// the late file stays and its directory's refusal is not counted. The item root still holds a
-/// planned name (the replaced file), so its own refusal counts: exactly 2.
+/// the late file stays and its directory's refusal is not counted. CLEAN-REPORT §3 (G5): the item
+/// root stays only because of the already counted replacement, so it is not counted again: 1.
 #[test]
 fn controller_race_file_replaced_and_late_arrival() {
     let root = base();
@@ -491,7 +493,7 @@ fn controller_race_file_replaced_and_late_arrival() {
     assert!(fs::symlink_metadata(item_dir.join("nnn").join("a.bin")).is_err(), "CONTROLLER_RACE_LATE: planned file kept");
     assert!(fs::symlink_metadata(item_dir.join("zzz")).is_err(), "CONTROLLER_RACE_FILE: deletion stopped after a replaced file");
     assert_eq!(it.status, ItemStatus::Partial, "CONTROLLER_RACE_FILE: status");
-    assert_eq!(it.failed_entries, 2, "CONTROLLER_RACE_LATE: failed entries (replaced file + item root; not the late file's directory)");
+    assert_eq!(it.failed_entries, 1, "CONTROLLER_RACE_LATE: failed entries (the replaced file only)");
 }
 
 /// Addendum item 4: the plan spells the item with a different non-ASCII case than the disk.
@@ -514,6 +516,7 @@ fn controller_residual_nonascii_case() {
     assert_ne!(it.status, ItemStatus::Deleted, "CONTROLLER_RESIDUAL: item reported deleted while a file remains");
     assert_eq!(it.status, ItemStatus::Partial, "CONTROLLER_RESIDUAL: status");
     assert_eq!(it.bytes_freed, "9", "CONTROLLER_RESIDUAL: freed bytes should be the deleted file only");
+    assert_eq!(it.failed_entries, 1, "CONTROLLER_RESIDUAL: failed entries (the held file only, CLEAN-REPORT §3)");
 }
 
 /// Addendum item 7: 100 directories x 1000 files (a Rust target directory in miniature). Prints
