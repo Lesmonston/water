@@ -1,0 +1,28 @@
+{"binary":"C:\\Users\\37310\\.rustup\\toolchains\\1.95.0-x86_64-pc-windows-msvc\\bin\\cargo.exe","args":["test","--offline","--locked","--manifest-path","packages/water-service/Cargo.toml","--test","service_v1","--","--test-threads=1"],"exitCode":0,"error":null}
+--- stdout ---
+
+running 6 tests
+test service_clean_flow ... ok
+test service_hardening ... ok
+test service_ipc_contract ... ok
+test service_scan_views ... ok
+test service_storage_safety ... ok
+test service_trends_locations ... ok
+
+test result: ok. 6 passed; 0 failed; 0 ignored; 0 measured; 0 filtered out; finished in 20.44s
+
+
+--- stderr ---
+   Compiling serde_core v1.0.229
+   Compiling zmij v1.0.23
+   Compiling memchr v2.8.3
+   Compiling itoa v1.0.18
+   Compiling serde_json v1.0.151
+   Compiling serde v1.0.229
+   Compiling water-junk-clean v0.1.0 (F:\new\smaltalk\water\.worktrees\w5-h2\packages\junk-clean)
+   Compiling water-junk-rules v0.1.0 (F:\new\smaltalk\water\.worktrees\w5-h2\packages\junk-rules)
+   Compiling water-junk-scan v0.1.0 (F:\new\smaltalk\water\.worktrees\w5-h2\packages\junk-scan)
+   Compiling water-process-scan v0.1.0 (F:\new\smaltalk\water\.worktrees\w5-h2\packages\process-scan)
+   Compiling water-service v0.1.0 (F:\new\smaltalk\water\.worktrees\w5-h2\packages\water-service)
+    Finished `test` profile [unoptimized + debuginfo] target(s) in 39.62s
+     Running tests\service_v1.rs (.local\w3-target\debug\deps\service_v1-49f68b54b1aba495.exe)

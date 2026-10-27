@@ -1,0 +1,57 @@
+{"binary":"C:\\Users\\37310\\.rustup\\toolchains\\1.95.0-x86_64-pc-windows-msvc\\bin\\cargo.exe","args":["test","--offline","--locked","--manifest-path","packages/water-service/Cargo.toml","--test","service_v1","--","--test-threads=1"],"exitCode":101,"error":null}
+--- stdout ---
+
+running 6 tests
+test service_clean_flow ... ok
+test service_hardening ... FAILED
+test service_ipc_contract ... ok
+test service_scan_views ... ok
+test service_storage_safety ... ok
+test service_trends_locations ... ok
+
+failures:
+
+---- service_hardening stdout ----
+
+thread 'water-scan' (16608) panicked at tests\service_v1.rs:46:13:
+fake platform: drives failed inside the scan task
+note: run with `RUST_BACKTRACE=1` environment variable to display a backtrace
+
+thread 'water-scan' (31752) panicked at tests\service_v1.rs:46:13:
+fake platform: drives failed inside the scan task
+
+thread 'service_hardening' (7340) panicked at tests\service_v1.rs:57:13:
+fake platform: clock failed
+
+thread 'water-clean' (40300) panicked at tests\service_v1.rs:78:13:
+fake platform: in_use failed inside the clean task
+
+thread 'service_hardening' (7340) panicked at tests\service_v1.rs:57:13:
+fake platform: clock failed
+
+thread 'service_hardening' (7340) panicked at tests\service_v1.rs:1836:5:
+assertion `left == right` failed: SERVICE_SCAN_RECORD: in-process last_scan after a failed write
+  left: Null
+ right: String("scan-20270115T080000Z-aa08")
+
+
+failures:
+    service_hardening
+
+test result: FAILED. 5 passed; 1 failed; 0 ignored; 0 measured; 0 filtered out; finished in 19.49s
+
+
+--- stderr ---
+   Compiling water-service v0.1.0 (F:\new\smaltalk\water\.worktrees\w5-h2\packages\water-service)
+warning: unused variable: `previous_last`
+   --> src\service.rs:614:13
+    |
+614 |             previous_last,
+    |             ^^^^^^^^^^^^^ help: try ignoring the field: `previous_last: _`
+    |
+    = note: `#[warn(unused_variables)]` (part of `#[warn(unused)]`) on by default
+
+warning: `water-service` (lib) generated 1 warning (run `cargo fix --lib -p water-service` to apply 1 suggestion)
+    Finished `test` profile [unoptimized + debuginfo] target(s) in 2.67s
+     Running tests\service_v1.rs (.local\w3-target\debug\deps\service_v1-49f68b54b1aba495.exe)
+error: test failed, to rerun pass `--test service_v1`
