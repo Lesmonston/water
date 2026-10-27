@@ -34,3 +34,14 @@
 3. 新的 release 版。
 4. M2 计划第 3 节的自清理：用户本人按清理按钮。
 5. M2 达成报告与交接。
+
+## 派单句（每条单独复制给一个执行者）
+
+后端与规则票：
+- WATER-W5-H1：`你接手 Water 项目 WATER-W5-H1（清理执行器 M2 收尾，重门）。先读 F:/new/smaltalk/water/docs/dispatch/tickets/WATER-W5-H1-CLEAN-M2-20261027.md，按其中列出的顺序读规则与契约，在 F:/new/smaltalk/water/.worktrees/w5-h1（分支 worker/water-w5-h1）从 3f907897 开工。`
+- WATER-W5-H2：`你接手 Water 项目 WATER-W5-H2（服务 M2 收尾，重门）。先读 F:/new/smaltalk/water/docs/dispatch/tickets/WATER-W5-H2-SERVICE-M2-20261027.md，按其中列出的顺序读规则与契约，在 F:/new/smaltalk/water/.worktrees/w5-h2（分支 worker/water-w5-h2）从 3f907897 开工。`
+- WATER-W5-H3：`你接手 Water 项目 WATER-W5-H3（宿主打开清理，重门，final 会开 1 个窗口）。先读 F:/new/smaltalk/water/docs/dispatch/tickets/WATER-W5-H3-HOST-M2-20261027.md，按其中列出的顺序读规则与契约，在 F:/new/smaltalk/water/.worktrees/w5-h3（分支 worker/water-w5-h3）从 3f907897 开工。`
+- WATER-W5-H5：`你接手 Water 项目 WATER-W5-H5（Rust 构建目录规则，轻门）。先读 F:/new/smaltalk/water/docs/dispatch/tickets/WATER-W5-H5-RULES-M2-20261027.md，按其中列出的顺序读规则与契约，在 F:/new/smaltalk/water/.worktrees/w5-h5（分支 worker/water-w5-h5）从 3f907897 开工。`
+
+界面票（交前端强的模型）：
+- WATER-W5-H4：`你接手 Water 项目 WATER-W5-H4（界面 M2，轻门）。先读 F:/new/smaltalk/water/docs/dispatch/tickets/WATER-W5-H4-UI-M2-20261027.md，按其中列出的顺序读规则与契约，在 F:/new/smaltalk/water/.worktrees/w5-h4（分支 worker/water-w5-h4）从 3f907897 开工。`
