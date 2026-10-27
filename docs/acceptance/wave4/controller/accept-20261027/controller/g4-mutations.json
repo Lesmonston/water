@@ -1,0 +1,9 @@
+{
+ "g4": [
+  {"label":"nc1","mode":"red-nc1","token":"UI_BRAND_MARK","file":"apps/water/ui/styles/app.css","old":".about-brand > .i { width: 42px; height: 42px; color: var(--w-ink); }","new":".about-brand > .i { width: 40px; height: 40px; color: var(--w-ink); }","why":"the about card iceberg is 40x40 instead of 42x42 (worker nc1 changed the sidebar colour instead)"},
+  {"label":"nc2","mode":"red-nc2","token":"UI_NAV_PULSE","file":"apps/water/ui/index.html","old":"1.3 1.5h4.1\"/></symbol>","new":"1.3 1.5h4\"/></symbol>","why":"the pulse symbol geometry drifts from DESIGN section 10 (worker nc2 swapped the nav glyph instead)"},
+  {"label":"nc3","mode":"red-nc3","token":"UI_NOTICE_SCOPE","file":"apps/water/ui/app.mjs","old":"if (!state.pollPaused) state.error = '';","new":"if (!state.pollPaused && !state.busy) state.error = '';","why":"navigation during a running task keeps the old command error, so the notice stays after reconnect recovery (worker nc3 keyed on reconnecting instead)"},
+  {"label":"x1","mode":"browser","token":"UI_BRAND_MARK","file":"apps/water/ui/views/common.mjs","old":"icon('berg'), el('h2', '', title)","new":"icon('drop'), el('h2', '', title)","why":"empty states point at the retired drop symbol (blank icon)"},
+  {"label":"x2","mode":"browser","token":"UI_BRAND_MARK","file":"apps/water/ui/views/history.mjs","old":"entry.kind === 'clean' ? 'check' : 'pulse'","new":"entry.kind === 'clean' ? 'check' : 'drop'","why":"the history 体检记录 row points at the retired drop symbol; may survive: the no-drop check covers the empty history page, not the list"}
+ ]
+}

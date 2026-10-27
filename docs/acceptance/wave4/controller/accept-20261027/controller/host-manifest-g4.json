@@ -1,0 +1,251 @@
+{
+  "schemaVersion": 1,
+  "wave": "water-wave4-g4-host-build-acceptance",
+  "status": "CONTROLLER_ACCEPTANCE",
+  "controller": "Claude",
+  "controllerRoot": "F:/new/smaltalk/water",
+  "controllerBranch": "main",
+  "helper": "scripts/desktop-wave-check.mjs",
+  "nativeObserver": "scripts/acceptance/w3-host-native-observe.ps1",
+  "baseCommit": "197dfdaecc94dc8b84e94aa8d91ee5cb1c0d965e",
+  "plan": "docs/dispatch/wave3/PLAN.md",
+  "frozenFiles": [
+    {
+      "path": "contracts/checkup-v1/MODEL.md",
+      "sha256": "fe0c9a4f5d96ce9297e8f72e75df8c6f666f9a6af440fc198aa7b3362692188b"
+    },
+    {
+      "path": "contracts/checkup-v1/IPC.md",
+      "sha256": "62f726ced5f863f1b47db261976d8b5e5183f65669b2ba09d2f85a3977161be2"
+    },
+    {
+      "path": "contracts/checkup-v1/ui-fixtures.json",
+      "sha256": "2dd62585cb7ca31d429af8bf5360dda44d645dd73a5d3f79542d4d23ce1840e2"
+    },
+    {
+      "path": "contracts/desktop-v1/SERVICE.md",
+      "sha256": "44ae8643cbe64e083807386919192ce15c3cf586d1ecddbcf908ca0f0157180a"
+    },
+    {
+      "path": "contracts/desktop-v1/HOST.md",
+      "sha256": "3d1f3cbb2f98415f73721ef111cfc13b6d0fed78a2b09641008495c2d8f304fc"
+    },
+    {
+      "path": "contracts/desktop-bootstrap-mirror-v1/MIRROR.json",
+      "sha256": "494e2b42e0803ba79170ffc162e8ac4938add6284b17dfdeb1f78fb527455e0f"
+    },
+    {
+      "path": "apps/desktop-preview/Cargo.lock",
+      "sha256": "c56b58aa141a85617a59db4de679ff73d69827aee81bda958b1fdee0c9bbbfe8"
+    },
+    {
+      "path": "docs/dispatch/W3-DESKTOP-WORKER-RULES.md",
+      "sha256": "366006b1f98eb3add48a402296c3525ea16cb1b93aa6ca83ff3225b4ac7ed2ff"
+    },
+    {
+      "path": "docs/decisions/ADR-018-device-junk-checkup-and-in-app-cleanup.md",
+      "sha256": "1195b17c469b3abe290f4d334628fa36583ca7f20c46349aaf1071ff839a0579"
+    }
+  ],
+  "tasks": [
+    {
+      "kind": "host",
+      "outputRoot": "apps/water/host",
+      "packageName": "water-desktop",
+      "binName": "water",
+      "windowTitle": "Water",
+      "testTarget": "host_v1",
+      "testFiles": [
+        "apps/water/host/tests/host_v1.rs"
+      ],
+      "productionFiles": [
+        "apps/water/host/Cargo.toml",
+        "apps/water/host/Cargo.lock",
+        "apps/water/host/build.rs",
+        "apps/water/host/tauri.conf.json",
+        "apps/water/host/capabilities/main.json",
+        "apps/water/host/README.md"
+      ],
+      "allowedEnv": [
+        "\"WATER_DATA_DIR\""
+      ],
+      "expectedConfig": {
+        "productName": "Water",
+        "version": "0.1.0",
+        "identifier": "app.water.desktop",
+        "build": {
+          "frontendDist": "../ui"
+        },
+        "app": {
+          "windows": [],
+          "withGlobalTauri": true,
+          "security": {
+            "csp": "default-src 'self'; script-src 'self'; style-src 'self'; img-src 'self' data:; connect-src ipc: http://ipc.localhost; font-src 'self'; object-src 'none'; base-uri 'none'; form-action 'none'; frame-ancestors 'none'",
+            "assetProtocol": {
+              "enable": false
+            },
+            "capabilities": [
+              "main"
+            ]
+          }
+        },
+        "bundle": {
+          "active": false
+        },
+        "plugins": {}
+      },
+      "expectedCapability": {
+        "identifier": "main",
+        "windows": [
+          "main"
+        ],
+        "permissions": [
+          "core:window:allow-start-dragging"
+        ]
+      },
+      "cargoCacheSource": "F:/new/smaltalk/water/.worktrees/ac/.local/desktop-cargo-home/registry",
+      "referenceLock": "apps/desktop-preview/Cargo.lock",
+      "forbidSetup": true,
+      "expectedTests": [
+        "host_config_boundary",
+        "host_navigation_boundary",
+        "host_command_registry",
+        "host_data_directory",
+        "host_service_wiring"
+      ],
+      "proofTargets": {
+        "nc1": "HOST_CLEAN_DISABLED",
+        "nc2": "HOST_SINGLE_INSTANCE",
+        "nc3": "HOST_COMMANDS"
+      },
+      "expectedDependencies": [
+        {
+          "name": "serde",
+          "req": "=1.0.229",
+          "kind": null,
+          "optional": false,
+          "path": null,
+          "defaults": true,
+          "features": [
+            "derive"
+          ]
+        },
+        {
+          "name": "serde_json",
+          "req": "=1.0.151",
+          "kind": null,
+          "optional": false,
+          "path": null,
+          "defaults": true,
+          "features": []
+        },
+        {
+          "name": "tauri",
+          "req": "=2.12.5",
+          "kind": null,
+          "optional": false,
+          "path": null,
+          "defaults": false,
+          "features": [
+            "common-controls-v6",
+            "wry"
+          ]
+        },
+        {
+          "name": "tauri-build",
+          "req": "=2.7.4",
+          "kind": "build",
+          "optional": false,
+          "path": null,
+          "defaults": true,
+          "features": []
+        },
+        {
+          "name": "water-native-picker",
+          "req": "*",
+          "kind": null,
+          "optional": false,
+          "path": "packages/native-picker",
+          "defaults": true,
+          "features": []
+        },
+        {
+          "name": "water-contracts",
+          "req": "*",
+          "kind": null,
+          "optional": false,
+          "path": "crates/water-contracts",
+          "defaults": true,
+          "features": []
+        },
+        {
+          "name": "water-scope-registry",
+          "req": "*",
+          "kind": null,
+          "optional": false,
+          "path": "packages/scope-registry",
+          "defaults": true,
+          "features": []
+        },
+        {
+          "name": "water-service",
+          "req": "*",
+          "kind": null,
+          "optional": false,
+          "path": "packages/water-service",
+          "defaults": true,
+          "features": []
+        },
+        {
+          "name": "water-junk-rules",
+          "req": "*",
+          "kind": null,
+          "optional": false,
+          "path": "packages/junk-rules",
+          "defaults": true,
+          "features": []
+        },
+        {
+          "name": "water-process-scan",
+          "req": "*",
+          "kind": null,
+          "optional": false,
+          "path": "packages/process-scan",
+          "defaults": true,
+          "features": []
+        }
+      ],
+      "nativeModule": null,
+      "outputRootExists": true,
+      "id": "WATER-W4-ACCEPT-G4HOST",
+      "title": "G4 acceptance: host build with the new icon.ico",
+      "slot": "w4-g4host",
+      "gate": "controller",
+      "status": "CONTROLLER_ACCEPTANCE",
+      "baseCommit": "e5b90db1b9a660b97d337c8b2d8b336335f98487",
+      "worktree": "F:/new/smaltalk/water/.worktrees/accept-w4-g4",
+      "branch": "controller/accept-w4-g4",
+      "allowedFiles": [],
+      "allowedPrefixes": [
+        "apps/water/",
+        "docs/"
+      ],
+      "evidenceDir": "docs/acceptance/wave4/controller/accept-20261027/g4host/",
+      "allowedModes": [
+        "lock",
+        "check"
+      ],
+      "expectedFinalModes": [
+        "check"
+      ],
+      "mustRead": [],
+      "frozenFiles": [],
+      "realMode": null,
+      "nativeWindowBudget": 0,
+      "nativeDirectoryDialogBudget": 0,
+      "browserBudget": 0
+    }
+  ],
+  "gateSelfTest": "docs/acceptance/wave3/controller/preflight-20261026/",
+  "readyReport": "docs/dispatch/wave3/READY-REPORT-20261026.md"
+}

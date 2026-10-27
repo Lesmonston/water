@@ -1,0 +1,27 @@
+g4 nc1 mutated apps/water/ui/styles/app.css: the about card iceberg is 40x40 instead of 42x42 (worker nc1 changed the sidebar colour instead) (mutated sha 120c88ba96b7bf8da9e0d2dfbad56efbbabce7e5c09df17af1b35551d98d6c65)
+g4 red-nc1 rc=0 {"task":"WATER-W4-ACCEPT-G4","mode":"red-nc1","finalGate":false,"status":"passed","error":null,"receipt":"F:\\new\\smaltalk\\water\\.worktrees\\accept-w4-g4\\.local\\checks\\WATER-W4-ACCEPT-G4\\2026-10-27T07-10-47.651Z-33668-red-nc1-result.json"}
+g4 nc1 KILLED (expected UI_BRAND_MARK)
+g4 nc1 restored exact bytes=true sha ba80a567193148c2c89e4da3f3a68d57bd4a618d83b0af56505ccdfa8c1c0dcc
+g4 test rc=0 {"task":"WATER-W4-ACCEPT-G4","mode":"test","finalGate":false,"status":"passed","error":null,"receipt":"F:\\new\\smaltalk\\water\\.worktrees\\accept-w4-g4\\.local\\checks\\WATER-W4-ACCEPT-G4\\2026-10-27T07-11-31.120Z-38156-test-result.json"}
+g4 nc2 mutated apps/water/ui/index.html: the pulse symbol geometry drifts from DESIGN section 10 (worker nc2 swapped the nav glyph instead) (mutated sha d7d70b88e663d41577feb1acf662c7e1d88c66cabc1e11e67db6129678c5df42)
+g4 red-nc2 rc=0 {"task":"WATER-W4-ACCEPT-G4","mode":"red-nc2","finalGate":false,"status":"passed","error":null,"receipt":"F:\\new\\smaltalk\\water\\.worktrees\\accept-w4-g4\\.local\\checks\\WATER-W4-ACCEPT-G4\\2026-10-27T07-11-33.653Z-28700-red-nc2-result.json"}
+g4 nc2 KILLED (expected UI_NAV_PULSE)
+g4 nc2 restored exact bytes=true sha 2e9f7fc7baff621158c20f8daed6c6e211067b3b52f11962659443c6f3b899ee
+g4 test rc=0 {"task":"WATER-W4-ACCEPT-G4","mode":"test","finalGate":false,"status":"passed","error":null,"receipt":"F:\\new\\smaltalk\\water\\.worktrees\\accept-w4-g4\\.local\\checks\\WATER-W4-ACCEPT-G4\\2026-10-27T07-12-17.418Z-28072-test-result.json"}
+g4 nc3 mutated apps/water/ui/app.mjs: navigation during a running task keeps the old command error, so the notice stays after reconnect recovery (worker nc3 keyed on reconnecting instead) (mutated sha ea4a9e6957a764ac36e953ddb0288c15fe30a3e01008afe76778feeeab65a1a3)
+g4 red-nc3 rc=0 {"task":"WATER-W4-ACCEPT-G4","mode":"red-nc3","finalGate":false,"status":"passed","error":null,"receipt":"F:\\new\\smaltalk\\water\\.worktrees\\accept-w4-g4\\.local\\checks\\WATER-W4-ACCEPT-G4\\2026-10-27T07-12-20.819Z-35360-red-nc3-result.json"}
+g4 nc3 KILLED (expected UI_NOTICE_SCOPE)
+g4 nc3 restored exact bytes=true sha 275f155c97c318bc43e0532e1f762e806037152a100f796a0e6d48fd3c536ce3
+g4 test rc=0 {"task":"WATER-W4-ACCEPT-G4","mode":"test","finalGate":false,"status":"passed","error":null,"receipt":"F:\\new\\smaltalk\\water\\.worktrees\\accept-w4-g4\\.local\\checks\\WATER-W4-ACCEPT-G4\\2026-10-27T07-13-20.275Z-38928-test-result.json"}
+g4 x1 mutated apps/water/ui/views/common.mjs: empty states point at the retired drop symbol (blank icon) (mutated sha b4f92e9596cb1023d049ffea5a86342d02fbe63d5508beb283584edcebb3b624)
+g4 browser rc=1 {"task":"WATER-W4-ACCEPT-G4","mode":"browser","finalGate":false,"status":"failed","error":"AssertionError [ERR_ASSERTION]: Unexpected exit, see 2026-10-27T07-13-24.671Z-11840-browser-1.log","receipt":"F:\\new\\smaltalk\\water\\.worktrees\\accept-w4-g4\\.local\\checks\\WATER-W4-ACCEPT-G4\\2026-10-27T07-13-24.671Z-11840-browser-result.json"}
+g4 x1 KILLED (expected UI_BRAND_MARK)
+g4 x1 restored exact bytes=true sha ca517f5d1acc5c4aa3c2b56bb5ae87beb151e769a6d13ca39f36fe5627d30044
+g4 test rc=0 {"task":"WATER-W4-ACCEPT-G4","mode":"test","finalGate":false,"status":"passed","error":null,"receipt":"F:\\new\\smaltalk\\water\\.worktrees\\accept-w4-g4\\.local\\checks\\WATER-W4-ACCEPT-G4\\2026-10-27T07-14-08.549Z-38184-test-result.json"}
+g4 x2 mutated apps/water/ui/views/history.mjs: the history 体检记录 row points at the retired drop symbol; may survive: the no-drop check covers the empty history page, not the list (mutated sha 4fdd9825ee4350f7f8b02006409c198bc338289af53142959934165379757bb6)
+g4 browser rc=0 {"task":"WATER-W4-ACCEPT-G4","mode":"browser","finalGate":false,"status":"passed","error":null,"receipt":"F:\\new\\smaltalk\\water\\.worktrees\\accept-w4-g4\\.local\\checks\\WATER-W4-ACCEPT-G4\\2026-10-27T07-14-11.534Z-34740-browser-result.json"}
+g4 x2 SURVIVED (expected UI_BRAND_MARK)
+g4 x2 restored exact bytes=true sha 5a43a1c27decdecc01804d481bbc161a121ec5bff62134a3b938081034b48c76
+g4 test rc=0 {"task":"WATER-W4-ACCEPT-G4","mode":"test","finalGate":false,"status":"passed","error":null,"receipt":"F:\\new\\smaltalk\\water\\.worktrees\\accept-w4-g4\\.local\\checks\\WATER-W4-ACCEPT-G4\\2026-10-27T07-15-04.861Z-38124-test-result.json"}
+g4 survived: x2
+g4 test --final rc=0 {"task":"WATER-W4-ACCEPT-G4","mode":"test","finalGate":true,"status":"passed","error":null,"receipt":"F:\\new\\smaltalk\\water\\.worktrees\\accept-w4-g4\\.local\\checks\\WATER-W4-ACCEPT-G4\\2026-10-27T07-15-07.146Z-40592-test-result.json"}

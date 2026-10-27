@@ -1,7 +1,7 @@
 {
   "schemaVersion": 1,
   "wave": "water-wave4-hardening",
-  "status": "G1_G2_G3_VERIFIED_G4_RUNNING",
+  "status": "G1_G2_G3_G4_VERIFIED",
   "controller": "Claude",
   "controllerRoot": "F:/new/smaltalk/water",
   "controllerBranch": "main",
@@ -672,13 +672,13 @@
       "fixtures": "contracts/checkup-v1/ui-fixtures.json",
       "browserHelper": "scripts/acceptance/native-vw-private-browser.mjs",
       "screenshotDirEnv": "WATER_W2_SHOTS_DIR",
-      "status": "RUNNING",
+      "status": "VERIFIED",
       "baseCommit": "e5b90db1b9a660b97d337c8b2d8b336335f98487",
       "snapshotRef": null,
       "readyOn": "2026-10-27",
       "dispatchedAt": null,
       "startedAt": "2026-10-27T06:33:21Z",
-      "model": "Opus 5.5 (user-reported)",
+      "model": "Opus 5.5 (user-reported; worker self-report: Claude Opus 5.5, claude-opus-5-5)",
       "modelAssignment": "user-arranged; report actual engine/model",
       "macOS": "unverified",
       "outputRootExists": true,
@@ -818,7 +818,33 @@
       "baselineEvidence": "docs/acceptance/wave4/controller/preflight/WATER-W4-G4-2026-10-27T06-23-49.855Z-36372-baseline-result.json",
       "dispatchReportedAt": "2026-10-27T06:36:00Z",
       "dispatchEvidence": "user chat 2026-10-27 ~15:36 JST: G4 dispatched to Opus 5.5",
-      "startEvidence": "worker baseline receipt 2026-10-27T06-33-21.212Z-8100 (in .worktrees/w4-g4/.local/checks/WATER-W4-G4); edits to app.mjs, index.html, app.css observed 06:37Z"
+      "startEvidence": "worker baseline receipt 2026-10-27T06-33-21.212Z-8100 (in .worktrees/w4-g4/.local/checks/WATER-W4-G4); edits to app.mjs, index.html, app.css observed 06:37Z",
+      "submittedHead": "8bd5e5687e64611c86c0a250e21fa25995dfe1fa",
+      "implementationCommit": "096275c6c0a833bde18c95d0aef8ffdd9870f94e",
+      "submittedAs": "COMPLETED",
+      "verifiedAt": "2026-10-27T07:35:00Z",
+      "acceptedCommit": "8bd5e5687e64611c86c0a250e21fa25995dfe1fa",
+      "integrationBranch": "main",
+      "mergeCommit": "bc93d567",
+      "controllerReview": {
+        "reviewedAt": "2026-10-27T07:35:00Z",
+        "review": "docs/acceptance/wave4/controller/WATER-W4-G4-REVIEW-20261027.md",
+        "evidence": "docs/acceptance/wave4/controller/accept-20261027/g4/ (390 files, byte-identical)",
+        "hostBuild": "docs/acceptance/wave4/controller/accept-20261027/g4host/ (desktop gate lock + check --final through an acceptance override manifest; fmt and clippy -D warnings passed with the new icon.ico)",
+        "controllerLogs": "docs/acceptance/wave4/controller/accept-20261027/controller/",
+        "mechanicalAudit": "passed; only the whitelist changed; first browser --final hung (private Chrome stopped responding while G1 compiled), rerun passed, both receipts archived",
+        "freshTreeFinals": "check, browser, test finals passed in .worktrees/accept-w4-g4",
+        "controllerMutants": "nc1 (about mark 40x40), nc2 (pulse geometry), nc3 (busy navigation keeps the old error), x1 (empty state back to drop) killed with their markers; x2 (history row back to drop) survives: the no-drop check skips the populated history list",
+        "icon": "icon.ico sha256 a90894b1... equals brand/water-app-icon.ico (blob, checkout, export)",
+        "codeReview": "independent read-only agent: all 5 items met; 8 small production hunks plus the icon; 11 strings unchanged; worker also switched the history 体检记录 row from drop to pulse (accepted)",
+        "decision": "VERIFIED, merged --no-ff"
+      },
+      "carryOverLater": [
+        "new assertions check that index.html source contains the symbols, not that the rendered sprite has them",
+        "the no-drop check skips the populated history list (controller x2 survived)",
+        "browser.test.mjs lines 189 and 245 still wait for the reconnecting notice to vanish without a marker (same class as the old line 448)",
+        "private Chrome hung once during browser --final while G1 compiled on the same machine"
+      ]
     }
   ],
   "selfTest": {

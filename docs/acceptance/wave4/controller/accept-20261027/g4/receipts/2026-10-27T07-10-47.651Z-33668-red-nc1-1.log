@@ -1,0 +1,77 @@
+{"binary":"C:\\Program Files\\nodejs\\node.exe","args":["--test","--test-concurrency=1","--test-reporter=tap","apps/water/ui/tests/browser.test.mjs"],"exitCode":1,"error":null}
+--- stdout ---
+TAP version 13
+# Subtest: ui_home_and_scan
+ok 1 - ui_home_and_scan
+  ---
+  duration_ms: 7069.0459
+  type: 'test'
+  ...
+# Subtest: ui_results_detail_confirm
+ok 2 - ui_results_detail_confirm
+  ---
+  duration_ms: 3484.2316
+  type: 'test'
+  ...
+# Subtest: ui_clean_done_and_pages
+ok 3 - ui_clean_done_and_pages
+  ---
+  duration_ms: 14466.8706
+  type: 'test'
+  ...
+# Subtest: ui_layout_states_a11y
+ok 4 - ui_layout_states_a11y
+  ---
+  duration_ms: 15576.0621
+  type: 'test'
+  ...
+# Subtest: ui_m1_polish
+not ok 5 - ui_m1_polish
+  ---
+  duration_ms: 172.4769
+  type: 'test'
+  location: 'F:\\new\\smaltalk\\water\\.worktrees\\accept-w4-g4\\apps\\water\\ui\\tests\\browser.test.mjs:366:1'
+  failureType: 'testCodeFailure'
+  error: |-
+    UI_BRAND_MARK: about brand card is the ink iceberg at 42x42
+    + actual - expected
+    
+      {
+        color: 'rgb(16, 38, 63)',
+    +   height: 40,
+    -   height: 42,
+        href: '#i-berg',
+    +   width: 40
+    -   width: 42
+      }
+    
+  code: 'ERR_ASSERTION'
+  name: 'AssertionError'
+  expected:
+    href: '#i-berg'
+    width: 42
+    height: 42
+    color: 'rgb(16, 38, 63)'
+  actual:
+    href: '#i-berg'
+    width: 40
+    height: 40
+    color: 'rgb(16, 38, 63)'
+  operator: 'deepStrictEqual'
+  stack: |-
+    assertMark (file:///F:/new/smaltalk/water/.worktrees/accept-w4-g4/apps/water/ui/tests/browser.test.mjs:385:12)
+    async TestContext.<anonymous> (file:///F:/new/smaltalk/water/.worktrees/accept-w4-g4/apps/water/ui/tests/browser.test.mjs:406:3)
+    async Test.run (node:internal/test_runner/test:1313:7)
+    async Test.processPendingSubtests (node:internal/test_runner/test:897:7)
+  ...
+1..5
+# tests 5
+# suites 0
+# pass 4
+# fail 1
+# cancelled 0
+# skipped 0
+# todo 0
+# duration_ms 41336.2453
+
+--- stderr ---

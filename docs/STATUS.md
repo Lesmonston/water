@@ -1,6 +1,6 @@
 # Water 状态与交接
 
-更新时间：2026-10-27 16:00 JST（M1 达成；第四波 G1、G2、G3 都已验收合入；标志小票 G4 已派 Opus 5.5 在做；第 6 份交接）。
+更新时间：2026-10-27 16:35 JST（M1 达成；第四波 G1～G4 全部验收合入，冰山标志与脉搏线导航已上；第 6 份交接）。
 
 更换总控请先读[最新交接报告（2026-10-27 第 6 份）](CONTROLLER-HANDOFF-20261027-6.md)；[第 5 份](CONTROLLER-HANDOFF-20261026-5.md)、[第 4 份](CONTROLLER-HANDOFF-20261026-4.md)、[第 3 份](CONTROLLER-HANDOFF-20261026-3.md)、[第 2 份](CONTROLLER-HANDOFF-20261026-2.md)、[上午那份](CONTROLLER-HANDOFF-20261026.md)及其只读状态快照仅供追溯。M1 已达成；第四波 G2、G3 已验收合入；G1 补单 01 执行者已在树里交回，待用户转告与总控第二轮验收（见第 6 份交接第 4 节）。此前[接手验收摘要](CONTROLLER-HANDOFF-20261017.md)仅供历史追溯；当前任务状态以本页、registry/manifest及最新正式验收为准。
 
@@ -151,7 +151,7 @@ A–AB及八补单、AD保持VERIFIED；AC/补单06新增VERIFIED（Windows静�
 
 **待办**：
 1. **G1**：已完成。
-2. **标志小票 [WATER-W4-G4](dispatch/tickets/WATER-W4-G4-BRAND-20261027.md)：10-27 15:36 已派 Opus 5.5，执行者 15:33 跑过 baseline、正在改**（界面票），等用户转告回执。
+2. **标志小票 [WATER-W4-G4](dispatch/tickets/WATER-W4-G4-BRAND-20261027.md)：VERIFIED，`--no-ff` 合入 `bc93d567`**，见[收单验收](acceptance/wave4/controller/WATER-W4-G4-REVIEW-20261027.md)。三处冰山、脉搏线导航、新应用图标（与设计导出件逐字节相同，宿主 fmt 与 clippy 通过）都已上；四条测试小缺口记在清单 `carryOverLater`。
    - 用户 10-27 看了四个候选的真实截图，“体检”导航选定 A 脉搏线；已写进[设计说明第 10 节](design/water-ui-v1/DESIGN.md)，候选对比在 `brand/nav-candidates-board.png`。
    - 应用图标导出件 `brand/water-app-icon.ico` 由总控用 `scripts/design/export-app-icon.cjs` 生成（16～256，重复运行字节相同）；执行者只原样复制到宿主。
    - 票面内容：三处换冰山、导航换脉搏线、删 `i-drop`、复制图标、测试第 448 行改带 `UI_NOTICE_SCOPE` 标记的断言；不 push、不改写提交。
