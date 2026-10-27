@@ -7,7 +7,7 @@
 import assert from 'node:assert/strict';
 import {spawn, spawnSync} from 'node:child_process';
 import {createHash} from 'node:crypto';
-import {copyFileSync, cpSync, existsSync, lstatSync, mkdirSync, readFileSync, readdirSync, realpathSync, writeFileSync} from 'node:fs';
+import {copyFileSync, cpSync, existsSync, lstatSync, mkdirSync, readFileSync, readdirSync, realpathSync, utimesSync, writeFileSync} from 'node:fs';
 import {homedir} from 'node:os';
 import {dirname, isAbsolute, join, relative, resolve, sep} from 'node:path';
 
@@ -18,13 +18,13 @@ const MODES = ['baseline', 'lock', 'check', 'test', 'real', 'native', 'red-nc1',
 const gitRaw = (args, cwd = root) => { const r = spawnSync('git', ['-c', 'core.hooksPath=NUL', '-c', 'core.fsmonitor=false', ...args], {cwd, encoding: 'utf8', windowsHide: true, timeout: 60000, maxBuffer: 64 * 1024 * 1024}); assert(!r.error && r.status === 0, String(r.stderr)); return r.stdout.trim(); };
 const controller = dirname(gitRaw(['rev-parse', '--path-format=absolute', '--git-common-dir']));
 const override = process.env.WATER_W3_OVERRIDE_MANIFEST ?? null;
-// Wave 4 G2 (service hardening) reuses this gate; WATER-W4-* task IDs read the wave 4 manifest.
-const wave4 = id.startsWith('WATER-W4-');
+// Waves 4 (G2, G6) and 5 (M2: H2, H3) reuse this gate; WATER-W4-* / WATER-W5-* task IDs read their wave's manifest.
+const wave = id.startsWith('WATER-W5-') ? 'wave5' : id.startsWith('WATER-W4-') ? 'wave4' : 'wave3';
 if (override) {
-  assert(['WATER-W3-SELFTEST', 'WATER-W3-ACCEPT-', 'WATER-W4-SELFTEST', 'WATER-W4-ACCEPT-'].some(p => id.startsWith(p)), 'Override manifest is only for controller self-test or acceptance tasks');
+  assert(['WATER-W3-SELFTEST', 'WATER-W3-ACCEPT-', 'WATER-W4-SELFTEST', 'WATER-W4-ACCEPT-', 'WATER-W5-SELFTEST', 'WATER-W5-ACCEPT-'].some(p => id.startsWith(p)), 'Override manifest is only for controller self-test or acceptance tasks');
   const rel = relative(join(controller, '.local'), resolve(override)); assert(!rel.startsWith('..') && !isAbsolute(rel), 'Override manifest must live under controller .local');
 }
-const manifestPath = override ? resolve(override) : join(controller, wave4 ? 'docs/dispatch/wave4/manifest.json' : 'docs/dispatch/wave3/manifest.json');
+const manifestPath = override ? resolve(override) : join(controller, 'docs/dispatch/' + wave + '/manifest.json');
 const manifest = JSON.parse(readFileSync(manifestPath)), task = manifest.tasks.find(t => t.id === id); assert(task, 'Unknown task');
 assert.equal(realpathSync(task.worktree).toLowerCase(), realpathSync(root).toLowerCase(), 'Run from the task worktree root');
 assert.equal(process.platform, 'win32'); assert.equal(process.arch, 'x64'); assert.equal(Number(process.versions.node.split('.')[0]), 24, 'Node 24 required');
@@ -164,6 +164,37 @@ function archive() {
   prior.updatedAt = new Date().toISOString(); prior.files = prior.entries.length; prior.bytes = prior.entries.reduce((n, e) => n + e.bytes, 0); writeFileSync(index, JSON.stringify(prior, null, 2) + '\n');
   const ga = join(root, task.evidenceDir, '.gitattributes'); if (!existsSync(ga)) writeFileSync(ga, '* -text\n.gitattributes text eol=lf\n'); record.archived = {files: prior.files, bytes: prior.bytes};
 }
+// M2 (wave 5) clean loop on a synthetic fixture: the data directory is seeded with settings that turn
+// every category off and add the fixture folder, so the only selectable groups come from the fixture
+// (protected locations are still measured by the service, never selectable) and the automated clean
+// can only reach the fixture. Files and folders are aged past the rules' minimum age.
+function seedFixture(dataDir) {
+  const f = task.nativeFixture, dir = local((task.nativeDataPrefix ?? '.local/w3-f2-native/') + stamp + '-fixture'), when = new Date(Date.now() - f.ageHours * 3600000);
+  for (const e of f.files) {
+    const p = join(dir, e.path), rel = relative(dir, p); assert(!rel.startsWith('..') && !isAbsolute(rel), 'Fixture path escapes: ' + e.path);
+    mkdirSync(dirname(p), {recursive: true}); writeFileSync(p, e.text !== undefined ? e.text : Buffer.alloc(e.bytes, 0x61), {flag: 'wx'});
+  }
+  // Children before parents, so setting a child's time never refreshes its parent's.
+  const all = [], walk = d => { for (const n of readdirSync(d)) { const p = join(d, n); if (lstatSync(p).isDirectory()) walk(p); all.push(p); } };
+  walk(dir); for (const p of [...all, dir]) utimesSync(p, when, when);
+  const settings = {settings_version: 'water.settings.v1', categories: Object.fromEntries(f.categoriesOff.map(c => [c, false])), custom_roots: [{root_id: 'fixture', path: dir, added_at: new Date().toISOString().replace(/\.\d+Z$/, 'Z')}]};
+  writeFileSync(join(dataDir, 'settings.json'), JSON.stringify(settings, null, 2) + '\n', {flag: 'wx'});
+  record.nativeFixture = {dir: relative(root, dir).split(sep).join('/'), files: f.files.length, agedTo: when.toISOString()};
+  return dir;
+}
+function checkFixture(dataDir, dir) {
+  const f = task.nativeFixture, size = e => e.text !== undefined ? Buffer.byteLength(e.text) : e.bytes;
+  for (const p of f.gone) assert(!existsSync(join(dir, p)), 'Fixture path not deleted: ' + p);
+  for (const p of f.kept) { const e = f.files.find(x => x.path === p), q = join(dir, p); assert(existsSync(q), 'Fixture path lost: ' + p); if (e) assert.equal(readFileSync(q).length, size(e), 'Fixture file changed: ' + p); }
+  const cleans = readdirSync(join(dataDir, 'cleans')); assert.equal(cleans.length, 1, 'Exactly one clean record expected');
+  const rec = json(join(dataDir, 'cleans', cleans[0])).report;
+  record.nativeClean = {status: rec.status, freedBytes: rec.freed_bytes, items: rec.items.map(i => ({status: i.status, bytesBefore: i.bytes_before, bytesFreed: i.bytes_freed, failed: i.failed_entries}))};
+  assert.equal(rec.status, 'completed', 'Clean run did not complete'); assert.equal(rec.freed_bytes, String(f.freedBytes), 'Freed bytes differ from the fixture');
+  assert(rec.items.length > 0 && rec.items.every(i => i.status === 'deleted' && i.failed_entries === 0), 'Every planned fixture item must be deleted without failures');
+  const journals = readdirSync(join(dataDir, 'journal')); assert.equal(journals.length, 1, 'Exactly one journal expected');
+  const events = readFileSync(join(dataDir, 'journal', journals[0]), 'utf8').trim().split(/\r?\n/).map(l => JSON.parse(l).event);
+  record.nativeJournal = events; assert(events.includes('intent') && events.includes('result'), 'Journal lacks intent or result lines');
+}
 // One owned window per task. Hosts with nativeSteps (wired, F3) are driven through the steps by the
 // wired observer and may read real data through the app; afterwards the service store is checked.
 async function native(rust) {
@@ -174,6 +205,7 @@ async function native(rust) {
   const exe = join(rust.target, 'debug', task.binName + '.exe'); assert(existsSync(exe), 'Built executable missing');
   const dataDir = local((task.nativeDataPrefix ?? '.local/w3-f2-native/') + stamp), evidence = join(out, stamp + '-uia.json'), shot = join(out, stamp + '-window.png');
   const steps = join(out, stamp + '-steps.json'); if (wired) writeFileSync(steps, JSON.stringify(task.nativeSteps, null, 2) + '\n', {flag: 'wx'});
+  const fixtureDir = task.nativeFixture ? seedFixture(dataDir) : null;
   const started = Date.now(), child = spawn(exe, [], {cwd: root, env: {...env, WATER_DATA_DIR: dataDir}, windowsHide: false, stdio: ['ignore', 'pipe', 'pipe']});
   record.nativeWindows = 1; record.nativePid = child.pid; if (task.nativeRealData) record.realDataRead = true;
   let stdout = '', stderr = ''; child.stdout.on('data', b => stdout += b); child.stderr.on('data', b => stderr += b);
@@ -205,10 +237,12 @@ async function native(rust) {
     record.childClose = JSON.parse(command('powershell.exe', ['-NoProfile', '-NonInteractive', '-Command', ps], {timeout: 20000}).stdout.trim()); assert.equal(record.childClose.remaining.length, 0, 'WebView child processes still running');
     if (task.nativeStore) {
       // The read-only checkup leaves exactly its scan record and snapshot: no plan, clean record or journal.
+      // The M2 fixture clean loop leaves one of each instead (counts come from the task).
       const top = readdirSync(dataDir).sort(); for (const n of top) assert(task.nativeStore.allowedTop.includes(n), 'Unexpected entry in the data directory: ' + n);
       record.nativeStore = {top, counts: {}};
       for (const [dir, n] of Object.entries(task.nativeStore.counts)) { const d = join(dataDir, dir), count = existsSync(d) ? readdirSync(d).length : 0; record.nativeStore.counts[dir] = count; assert.equal(count, n, 'Service store ' + dir + ' holds ' + count + ' entries, expected ' + n); }
     }
+    if (fixtureDir) checkFixture(dataDir, fixtureDir);
   } finally {
     if (child.exitCode === null) record.ownedTerminationRequested = child.kill();
     writeFileSync(join(out, stamp + '-native-process.json'), JSON.stringify({pid: child.pid, stdout, stderr, exit: record.nativeExit ?? null, terminationRequested: record.ownedTerminationRequested ?? false}) + '\n', {flag: 'wx'});

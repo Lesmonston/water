@@ -1,0 +1,35 @@
+{
+  "nativeDataPrefix": ".local/w5-h3-native/",
+  "nativeRealData": true,
+  "nativeMaximumSeconds": 300,
+  "nativeStore": {
+    "allowedTop": ["cleans", "journal", "plans", "scans", "settings.json", "snapshots", "water.lock", "webview"],
+    "counts": {"scans": 1, "snapshots": 1, "plans": 1, "cleans": 1, "journal": 1}
+  },
+  "nativeFixture": {
+    "ageHours": 72,
+    "categoriesOff": ["agent_tool", "browser", "system_temp", "app_leftover", "dev_cache", "crash_log", "gpu_system"],
+    "files": [
+      {"path": "projA/build-cache/CACHEDIR.TAG", "text": "Signature: 8a477f597d28d172789f06886806bc55\n# Water M2 native fixture: safe to delete.\n"},
+      {"path": "projA/build-cache/blob-1.bin", "bytes": 2097152},
+      {"path": "projA/build-cache/sub/blob-2.bin", "bytes": 1048576},
+      {"path": "projA/src/main.rs", "text": "fn main() {}\n"},
+      {"path": "lab/profile-a/Local State", "text": "{}\n"},
+      {"path": "lab/profile-a/Default/Preferences", "text": "{}\n"}
+    ],
+    "gone": ["projA/build-cache"],
+    "kept": ["projA/src/main.rs", "lab/profile-a/Local State", "lab/profile-a/Default/Preferences"],
+    "freedBytes": 3145815
+  },
+  "nativeSteps": [
+    {"wait": "开始一次体检", "absent": "无法连接 Water 服务", "seconds": 45, "shot": "home"},
+    {"invoke": "开始体检", "type": "Button"},
+    {"wait": "本次体检共识别", "fail": "体检未能完成，请重新体检。", "seconds": 120, "shot": "results"},
+    {"invoke": "清理所选", "type": "Button"},
+    {"wait": "这些文件将被永久删除，不进入回收站，无法恢复。", "seconds": 30, "shot": "confirm"},
+    {"invoke": "永久删除 3 MB", "type": "Button"},
+    {"wait": "清理完成", "seconds": 60, "shot": "done"},
+    {"invoke": "查看清理记录", "type": "Button"},
+    {"wait": "每一次体检与清理，都有迹可循。", "seconds": 20, "shot": "history"}
+  ]
+}
