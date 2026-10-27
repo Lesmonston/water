@@ -1,0 +1,616 @@
+{
+  "schemaVersion": 1,
+  "wave": "water-wave4-main-integration-2",
+  "status": "CONTROLLER_INTEGRATION",
+  "controller": "Claude",
+  "controllerRoot": "F:/new/smaltalk/water",
+  "controllerBranch": "main",
+  "helpers": {
+    "G1": "scripts/checkup-wave-check.mjs",
+    "G2": "scripts/desktop-wave-check.mjs",
+    "G3": "scripts/checkup-wave-check.mjs"
+  },
+  "baseCommit": "0ca42f8e8038a5a7816802c5a7f175a966b0625c",
+  "baseTag": "water-w4-hardening-base-20261026",
+  "plan": "docs/dispatch/wave4/PLAN.md",
+  "workerRules": "docs/dispatch/W4-HARDENING-WORKER-RULES.md",
+  "parallelWith": "WATER-W3-F3 (apps/water/host, dispatched to sol); no shared files",
+  "frozenFiles": [
+    {
+      "path": "docs/decisions/ADR-018-device-junk-checkup-and-in-app-cleanup.md",
+      "sha256": "1195b17c469b3abe290f4d334628fa36583ca7f20c46349aaf1071ff839a0579"
+    },
+    {
+      "path": "contracts/checkup-v1/MODEL.md",
+      "sha256": "fe0c9a4f5d96ce9297e8f72e75df8c6f666f9a6af440fc198aa7b3362692188b"
+    },
+    {
+      "path": "contracts/checkup-v1/IPC.md",
+      "sha256": "62f726ced5f863f1b47db261976d8b5e5183f65669b2ba09d2f85a3977161be2"
+    },
+    {
+      "path": "docs/dispatch/W4-HARDENING-WORKER-RULES.md",
+      "sha256": "047bafc549a8c3e79776f7e91f979fcf3de4584303a4d08e225264d0932a8546"
+    },
+    {
+      "path": "contracts/desktop-bootstrap-mirror-v1/MIRROR.json",
+      "sha256": "494e2b42e0803ba79170ffc162e8ac4938add6284b17dfdeb1f78fb527455e0f"
+    }
+  ],
+  "gateSelfTest": "docs/acceptance/wave4/controller/selftest/",
+  "readyReport": "docs/dispatch/wave4/READY-REPORT-20261026.md",
+  "tasks": [
+    {
+      "kind": "service",
+      "outputRoot": "packages/water-service",
+      "packageName": "water-service",
+      "testTarget": "service_v1",
+      "testFiles": [
+        "packages/water-service/tests/service_v1.rs"
+      ],
+      "productionFiles": [
+        "packages/water-service/Cargo.toml",
+        "packages/water-service/Cargo.lock",
+        "packages/water-service/README.md",
+        "packages/water-service/examples/service_smoke.rs"
+      ],
+      "cargoCacheSource": "F:/new/smaltalk/water/.worktrees/a/.local/cargo-home/registry",
+      "realMode": "service-smoke",
+      "nativeModule": "native_windows.rs",
+      "allowedEnv": [],
+      "expectedDependencies": [
+        {
+          "name": "serde",
+          "req": "=1.0.229",
+          "kind": null,
+          "optional": false,
+          "path": null,
+          "defaults": true,
+          "features": [
+            "derive"
+          ]
+        },
+        {
+          "name": "serde_json",
+          "req": "=1.0.151",
+          "kind": null,
+          "optional": false,
+          "path": null,
+          "defaults": true,
+          "features": []
+        },
+        {
+          "name": "water-junk-clean",
+          "req": "*",
+          "kind": null,
+          "optional": false,
+          "path": "packages/junk-clean",
+          "defaults": true,
+          "features": []
+        },
+        {
+          "name": "water-junk-rules",
+          "req": "*",
+          "kind": null,
+          "optional": false,
+          "path": "packages/junk-rules",
+          "defaults": true,
+          "features": []
+        },
+        {
+          "name": "water-junk-scan",
+          "req": "*",
+          "kind": null,
+          "optional": false,
+          "path": "packages/junk-scan",
+          "defaults": true,
+          "features": []
+        },
+        {
+          "name": "water-process-scan",
+          "req": "*",
+          "kind": null,
+          "optional": false,
+          "path": "packages/process-scan",
+          "defaults": true,
+          "features": []
+        }
+      ],
+      "status": "CONTROLLER_INTEGRATION",
+      "baseCommit": "49d0b4d27e18619807128a71dd445d1069006f86",
+      "snapshotRef": "refs/tags/water-w4-hardening-base-20261026",
+      "readyOn": "2026-10-26",
+      "dispatchedAt": null,
+      "startedAt": null,
+      "model": "grokbot (user-reported); worker self-report: Grok Bot (kelaimao1)",
+      "modelAssignment": "user-arranged; report actual engine/model",
+      "macOS": "unverified",
+      "outputRootExists": true,
+      "nativeWindowBudget": 0,
+      "nativeDirectoryDialogBudget": 0,
+      "id": "WATER-W4-ACCEPT-INTEG2-SVC",
+      "title": "服务加固",
+      "slot": "w4-g2",
+      "gate": "light",
+      "worktree": "F:/new/smaltalk/water/.worktrees/integ-w4b",
+      "branch": "controller/integ-w4b",
+      "ticket": "docs/dispatch/tickets/WATER-W4-G2-SERVICE-HARDENING-20261026.md",
+      "report": "docs/dispatch/reports/WATER-W4-G2-REPORT.md",
+      "spec": "contracts/hardening-v1/SERVICE-HARDENING.md",
+      "expectedTests": [
+        "service_ipc_contract",
+        "service_scan_views",
+        "service_clean_flow",
+        "service_trends_locations",
+        "service_storage_safety",
+        "service_hardening"
+      ],
+      "proofTargets": {
+        "nc1": "SERVICE_PANIC_IDLE",
+        "nc2": "SERVICE_TRUST_BOUNDARY",
+        "nc3": "SERVICE_PARTIAL_SOURCE"
+      },
+      "allowedFiles": [
+        "docs/dispatch/reports/WATER-W4-G2-REPORT.md"
+      ],
+      "allowedPrefixes": [
+        "packages/water-service/",
+        "docs/acceptance/wave4/g2/",
+        "docs/acceptance/wave4/controller/integ2-20261027/svc/"
+      ],
+      "evidenceDir": "docs/acceptance/wave4/controller/integ2-20261027/svc/",
+      "allowedModes": [
+        "baseline",
+        "lock",
+        "check",
+        "test",
+        "real",
+        "red-nc1",
+        "red-nc2",
+        "red-nc3",
+        "archive"
+      ],
+      "expectedFinalModes": [
+        "check",
+        "test",
+        "real"
+      ],
+      "browserBudget": 0,
+      "realDataPermission": "read-only metadata per ADR-018; clean disabled in the real smoke",
+      "mustRead": [
+        "docs/dispatch/W4-HARDENING-WORKER-RULES.md",
+        "docs/dispatch/wave4/PLAN.md",
+        "contracts/hardening-v1/SERVICE-HARDENING.md",
+        "contracts/desktop-v1/SERVICE.md",
+        "docs/dispatch/tickets/WATER-W3-F1-ADDENDUM-01-20261026.md",
+        "contracts/checkup-v1/IPC.md",
+        "packages/water-service/src/service.rs",
+        "packages/water-service/tests/service_v1.rs"
+      ],
+      "frozenFiles": [
+        {
+          "path": "contracts/hardening-v1/SERVICE-HARDENING.md",
+          "sha256": "fbec889779d5d95ef2cc23ad4c6ac489010a064be958881b37988a12add57359"
+        },
+        {
+          "path": "contracts/desktop-v1/SERVICE.md",
+          "sha256": "44ae8643cbe64e083807386919192ce15c3cf586d1ecddbcf908ca0f0157180a"
+        }
+      ],
+      "baselineStatus": "PASSED",
+      "baselineEvidence": "docs/acceptance/wave4/controller/preflight/WATER-W4-G2-2026-10-26T13-00-14.798Z-24224-baseline-result.json",
+      "dispatchReportedAt": "2026-10-26T13:25:36Z",
+      "dispatchEvidence": "user chat 2026-10-26 22:25 JST: all three wave 4 tickets pasted; G1 and G2 to grokbot, G3 to Astra; worker trees clean at base 0ca42f8 when recorded",
+      "submittedHead": "b6925bee644e2a659fa7b3ef6ec8ca16c6c55225",
+      "implementationCommit": "a13a97f86c2b6902059f09cb6c9e0a0dcf607dfc",
+      "submittedAs": "COMPLETED",
+      "controllerReview": {
+        "reviewedAt": "2026-10-26T14:50:00Z",
+        "review": "docs/acceptance/wave4/controller/WATER-W4-G2G3-REVIEW-20261026.md",
+        "evidence": "docs/acceptance/wave4/controller/accept-20261026/g2/",
+        "controllerLogs": "docs/acceptance/wave4/controller/accept-20261026/controller/",
+        "mechanicalAudit": "passed (w3-receipt-audit with WATER_W3_AUDIT_MANIFEST)",
+        "freshTreeFinals": "check, test, real passed in .worktrees/accept-w4-g2",
+        "controllerMutants": "9 of 10 killed; x7 (budget_exhausted partial source) survives: untested branch, SPEC 8 does not require it",
+        "junctionCases": "scripts/acceptance/w4-g2-controller-cases.rs: 2 passed; fails under mutant x5 as intended; 8.3 short names disabled on this volume",
+        "realSmoke": "61.4 s completed, recognized 46.7 GB, recommended 9.29 GB, in_use_labels Chrome/Edge, clean unavailable",
+        "codeReview": "independent read-only agent: no high or medium findings"
+      },
+      "verifiedAt": "2026-10-26T14:50:00Z",
+      "acceptedCommit": "b6925bee644e2a659fa7b3ef6ec8ca16c6c55225",
+      "integrationBranch": "main",
+      "mergeCommit": "7f01d71f",
+      "carryOverToFinishing": [
+        "scan record is written before the locked state update; a panic inside that block leaves a completed record on disk that becomes last_scan after restart (display only)",
+        "clean::start sets busy=cleaning before indexing details; a panic there would leave busy stuck (unreachable today)",
+        "a reloaded plan that is used or given a wrong token returns invalid rather than stale (never executable)",
+        "canonical comparison replaced the text comparison instead of adding to it: the parent of a known folder that is itself a junction can be added (scanner and cleaner never follow junctions)",
+        "WindowsPlatform process snapshot lock does not recover from poisoning (in-use stays unknown: safe but degraded)",
+        "canonical() leaves UNC after stripping \\?UNC (no effect: custom roots are drive paths)",
+        "test gaps: no panic injected into the clean thread; budget_exhausted partial branch untested; tidy cap IDs share one timestamp; poisoned-lock failure message lacks SERVICE_PANIC_IDLE",
+        "50 ms return-budget assertion flakes under heavy concurrent load (seen with a browser run in parallel)"
+      ],
+      "acceptsTask": "WATER-W4-G2",
+      "acceptsHead": "49d0b4d27e18619807128a71dd445d1069006f86"
+    },
+    {
+      "kind": "host",
+      "outputRoot": "apps/water/host",
+      "packageName": "water-desktop",
+      "binName": "water",
+      "windowTitle": "Water",
+      "testTarget": "host_v1",
+      "testFiles": [
+        "apps/water/host/tests/host_v1.rs"
+      ],
+      "productionFiles": [
+        "apps/water/host/Cargo.toml",
+        "apps/water/host/Cargo.lock",
+        "apps/water/host/build.rs",
+        "apps/water/host/tauri.conf.json",
+        "apps/water/host/capabilities/main.json",
+        "apps/water/host/README.md"
+      ],
+      "allowedEnv": [
+        "\"WATER_DATA_DIR\""
+      ],
+      "expectedConfig": {
+        "productName": "Water",
+        "version": "0.1.0",
+        "identifier": "app.water.desktop",
+        "build": {
+          "frontendDist": "../ui"
+        },
+        "app": {
+          "windows": [],
+          "withGlobalTauri": true,
+          "security": {
+            "csp": "default-src 'self'; script-src 'self'; style-src 'self'; img-src 'self' data:; connect-src ipc: http://ipc.localhost; font-src 'self'; object-src 'none'; base-uri 'none'; form-action 'none'; frame-ancestors 'none'",
+            "assetProtocol": {
+              "enable": false
+            },
+            "capabilities": [
+              "main"
+            ]
+          }
+        },
+        "bundle": {
+          "active": false
+        },
+        "plugins": {}
+      },
+      "expectedCapability": {
+        "identifier": "main",
+        "windows": [
+          "main"
+        ],
+        "permissions": [
+          "core:window:allow-start-dragging"
+        ]
+      },
+      "cargoCacheSource": "F:/new/smaltalk/water/.worktrees/ac/.local/desktop-cargo-home/registry",
+      "referenceLock": "apps/desktop-preview/Cargo.lock",
+      "macOS": "unverified",
+      "id": "WATER-W4-ACCEPT-INTEG2-HOST",
+      "title": "宿主收尾",
+      "slot": "w4-g6",
+      "gate": "light-native",
+      "status": "CONTROLLER_INTEGRATION",
+      "baseCommit": "49d0b4d27e18619807128a71dd445d1069006f86",
+      "snapshotRef": null,
+      "readyOn": "2026-10-27",
+      "dispatchedAt": null,
+      "startedAt": null,
+      "model": "sol (user-reported)",
+      "modelAssignment": "user-arranged; report actual engine/model",
+      "worktree": "F:/new/smaltalk/water/.worktrees/integ-w4b",
+      "branch": "controller/integ-w4b",
+      "ticket": "docs/dispatch/tickets/WATER-W4-G6-HOST-FINISHING-20261027.md",
+      "report": "docs/dispatch/reports/WATER-W4-G6-REPORT.md",
+      "spec": "contracts/m2-prep-v1/HOST-FINISHING.md",
+      "outputRootExists": true,
+      "forbidSetup": true,
+      "expectedTests": [
+        "host_config_boundary",
+        "host_navigation_boundary",
+        "host_command_registry",
+        "host_data_directory",
+        "host_service_wiring"
+      ],
+      "proofTargets": {
+        "nc1": "HOST_SINGLE_INSTANCE",
+        "nc2": "HOST_STARTUP_VISIBLE",
+        "nc3": "HOST_DATA_JUNCTION"
+      },
+      "expectedDependencies": [
+        {
+          "name": "serde",
+          "req": "=1.0.229",
+          "kind": null,
+          "optional": false,
+          "path": null,
+          "defaults": true,
+          "features": [
+            "derive"
+          ]
+        },
+        {
+          "name": "serde_json",
+          "req": "=1.0.151",
+          "kind": null,
+          "optional": false,
+          "path": null,
+          "defaults": true,
+          "features": []
+        },
+        {
+          "name": "tauri",
+          "req": "=2.12.5",
+          "kind": null,
+          "optional": false,
+          "path": null,
+          "defaults": false,
+          "features": [
+            "common-controls-v6",
+            "wry"
+          ]
+        },
+        {
+          "name": "tauri-build",
+          "req": "=2.7.4",
+          "kind": "build",
+          "optional": false,
+          "path": null,
+          "defaults": true,
+          "features": []
+        },
+        {
+          "name": "water-native-picker",
+          "req": "*",
+          "kind": null,
+          "optional": false,
+          "path": "packages/native-picker",
+          "defaults": true,
+          "features": []
+        },
+        {
+          "name": "water-contracts",
+          "req": "*",
+          "kind": null,
+          "optional": false,
+          "path": "crates/water-contracts",
+          "defaults": true,
+          "features": []
+        },
+        {
+          "name": "water-scope-registry",
+          "req": "*",
+          "kind": null,
+          "optional": false,
+          "path": "packages/scope-registry",
+          "defaults": true,
+          "features": []
+        },
+        {
+          "name": "water-service",
+          "req": "*",
+          "kind": null,
+          "optional": false,
+          "path": "packages/water-service",
+          "defaults": true,
+          "features": []
+        },
+        {
+          "name": "water-junk-rules",
+          "req": "*",
+          "kind": null,
+          "optional": false,
+          "path": "packages/junk-rules",
+          "defaults": true,
+          "features": []
+        },
+        {
+          "name": "water-process-scan",
+          "req": "*",
+          "kind": null,
+          "optional": false,
+          "path": "packages/process-scan",
+          "defaults": true,
+          "features": []
+        }
+      ],
+      "allowedFiles": [
+        "docs/dispatch/reports/WATER-W4-G6-REPORT.md"
+      ],
+      "allowedPrefixes": [
+        "apps/water/host/",
+        "docs/acceptance/wave4/g6/",
+        "docs/acceptance/wave4/controller/integ2-20261027/host/"
+      ],
+      "evidenceDir": "docs/acceptance/wave4/controller/integ2-20261027/host/",
+      "allowedModes": [
+        "baseline",
+        "lock",
+        "check",
+        "test",
+        "native",
+        "red-nc1",
+        "red-nc2",
+        "red-nc3",
+        "archive"
+      ],
+      "expectedFinalModes": [
+        "check",
+        "test",
+        "native"
+      ],
+      "mustRead": [
+        "docs/dispatch/W4-HARDENING-WORKER-RULES.md",
+        "docs/dispatch/W3-DESKTOP-WORKER-RULES.md",
+        "contracts/m2-prep-v1/HOST-FINISHING.md",
+        "contracts/desktop-v1/WIRING.md",
+        "contracts/desktop-v1/HOST.md",
+        "apps/water/host/src/lib.rs",
+        "apps/water/host/src/data.rs",
+        "apps/water/host/src/startup.rs",
+        "apps/water/host/tests/host_v1.rs"
+      ],
+      "frozenFiles": [
+        {
+          "path": "contracts/m2-prep-v1/HOST-FINISHING.md",
+          "sha256": "98641252e5b9801c949d5c00795120920d756506292ab6300e2494df76cdf91e"
+        },
+        {
+          "path": "contracts/desktop-v1/WIRING.md",
+          "sha256": "71d96a854bd899ec5ad425b85dcd349ab23b3f3304df74708632c4078dbed4c9"
+        },
+        {
+          "path": "contracts/desktop-v1/HOST.md",
+          "sha256": "3d1f3cbb2f98415f73721ef111cfc13b6d0fed78a2b09641008495c2d8f304fc"
+        }
+      ],
+      "realMode": null,
+      "nativeModule": null,
+      "nativeWindowBudget": 1,
+      "nativeDirectoryDialogBudget": 0,
+      "browserBudget": 0,
+      "realDataPermission": "native --final only: one read-only whole-machine checkup in a private data directory; cleaning disabled",
+      "nativeObserver": "scripts/acceptance/w3-wired-native-observe.ps1",
+      "nativeDataPrefix": ".local/w4-g6-native/",
+      "nativeMaximumSeconds": 480,
+      "nativeRealData": true,
+      "nativeSteps": [
+        {
+          "wait": "开始一次体检",
+          "absent": "无法连接 Water 服务",
+          "seconds": 45,
+          "shot": "home"
+        },
+        {
+          "invoke": "开始体检",
+          "type": "Button"
+        },
+        {
+          "wait": "本次体检共识别",
+          "fail": "体检未能完成，请重新体检。",
+          "seconds": 300,
+          "shot": "results"
+        },
+        {
+          "invoke": "清理所选",
+          "type": "Button"
+        },
+        {
+          "wait": "这一版只做体检，清理功能会在下一版开放。",
+          "seconds": 20,
+          "shot": "clean-disabled"
+        },
+        {
+          "invoke": "增长趋势",
+          "type": "Hyperlink"
+        },
+        {
+          "wait": "比较每次体检，找出一直在变大的东西。",
+          "seconds": 20,
+          "shot": "trends"
+        },
+        {
+          "invoke": "清理记录",
+          "type": "Hyperlink"
+        },
+        {
+          "wait": "每一次体检与清理，都有迹可循。",
+          "seconds": 20,
+          "shot": "history"
+        },
+        {
+          "invoke": "扫描位置",
+          "type": "Hyperlink"
+        },
+        {
+          "wait": "选择体检要看的地方。受保护的数据只统计占用，永远不会被清理。",
+          "seconds": 20,
+          "shot": "locations"
+        }
+      ],
+      "nativeStore": {
+        "allowedTop": [
+          "cleans",
+          "journal",
+          "plans",
+          "scans",
+          "settings.json",
+          "snapshots",
+          "water.lock",
+          "webview"
+        ],
+        "counts": {
+          "scans": 1,
+          "snapshots": 1,
+          "plans": 0,
+          "cleans": 0,
+          "journal": 0
+        }
+      },
+      "purpose": "M2 prep",
+      "modelHint": "Rust/Tauri desktop host; one native window at the final gate.",
+      "baselineStatus": "PASSED",
+      "baselineEvidence": "docs/acceptance/wave4/controller/preflight/WATER-W4-G6-2026-10-27T08-26-00.495Z-23464-baseline-result.json",
+      "dispatchReportedAt": "2026-10-27T09:50:00Z",
+      "dispatchEvidence": "user chat 2026-10-27 ~18:50 JST: G5 and G6 to sol, G7 to astra; worker trees still clean at base 4f35c52f with only the controller preflight receipt when recorded",
+      "submittedHead": "581d81b21d2db9f1a79387212f138b6e3f2269f1",
+      "implementationCommit": "c114d777a71fe2c5a370192e2c679d54572ce1d2",
+      "submittedAs": "Codex / GPT-6 (self-reported)",
+      "verifiedAt": "2026-10-27T11:35:00Z",
+      "acceptedCommit": "581d81b21d2db9f1a79387212f138b6e3f2269f1",
+      "integrationBranch": "main",
+      "mergeCommit": "c715902988e22c5d5c5c3d54c66985dd0a43f682",
+      "controllerReview": {
+        "reviewedAt": "2026-10-27T11:35:00Z",
+        "review": "docs/acceptance/wave4/controller/WATER-W4-G5G6G7-REVIEW-20261027.md",
+        "evidence": "docs/acceptance/wave4/controller/accept-20261027/g6/",
+        "controllerLogs": "docs/acceptance/wave4/controller/accept-20261027/controller/",
+        "mechanicalAudit": "passed; six host files, no Cargo/config/capability/icon change; check, test and native finals on c114d777; nc1-nc3 paired",
+        "freshTreeFinals": "check, test and native finals passed in .worktrees/accept-w4-g6; native: 1 window, 130 s, exit 0, 0 restores, Mica, store scans 1 / snapshots 1 / plans, cleans, journal 0",
+        "nativeNote": "the results page showed 部分结果: system-temp-old had one access_denied and one identity_unavailable from other programs churning the temp directory; the worker run and the wave 4 integration were complete",
+        "controllerMutants": "nc1 (signal never created), nc2 (working service replaced by UnavailableBackend), nc3b (resolved but the junction path returned), x1 (signal reported consumed but kept) killed; nc3 (prefix kept) failed first on the F3 marker HOST_DATA_DIRECTORY, not accepted by the gate",
+        "secondInstance": "scripts/acceptance/w4-g6-second-instance.ps1 on a fixture data dir: first window minimized; second instance exit 0 in 176 ms; first window restored and foreground within 316 ms; signal consumed; first instance closed normally with exit 0",
+        "codeReview": "independent read-only agent: §2-§5 and §8 met; one medium (backend not released, see carryOverM2)",
+        "decision": "VERIFIED, merged --no-ff; user approved both windows"
+      },
+      "carryOverM2": [
+        "medium: SPEC §1 \"backend released with App\" is not met: Tauri 2.12.5 keeps a reference cycle (PathResolver holds AppHandle), so the managed service outlives run_return and the instance lock is released first; host should own the backend (Mutex<Option<Arc<..>>> forwarder), drop it, then the lock; M2 needs a defined close-during-clean path",
+        "a second launch while the first instance is shutting down leaves the signal and shows no window (consumed at the next start, harmless)",
+        "signal_activation truncates an existing plain file; a planted hard link under an attacker-writable WATER_DATA_DIR would be zeroed; touch the time only",
+        "the wiring inside run (AlreadyRunning -> signal -> Ok, backend_or_unavailable, polling thread) has no test; covered once by the controller real-window check",
+        "stripping \\\\?\\ can change the meaning of names that only work under the verbatim prefix (trailing dot or space, reserved names)"
+      ],
+      "acceptsTask": "WATER-W4-G6",
+      "acceptsHead": "49d0b4d27e18619807128a71dd445d1069006f86"
+    }
+  ],
+  "selfTest": {
+    "trees": [
+      ".worktrees/w4-selftest-g1",
+      ".worktrees/w4-selftest-g2",
+      ".worktrees/w4-selftest-g3"
+    ],
+    "ids": [
+      "WATER-W4-SELFTEST-G1 (path rule, refused the stub as expected)",
+      "WATER-W4-SELFTEST-G1B",
+      "WATER-W4-SELFTEST-G2",
+      "WATER-W4-SELFTEST-G3"
+    ],
+    "result": "all negative controls red with their tokens and restored green; all finals passed; archives byte-checked",
+    "evidence": "docs/acceptance/wave4/controller/selftest/"
+  },
+  "mainIntegration": {
+    "checkedAt": "2026-10-27T08:05:00Z",
+    "commit": "8af6229c10dfd5d27bc31e8eb0dee59676c8583f",
+    "tree": ".worktrees/integ-w4",
+    "report": "docs/acceptance/wave4/controller/WATER-W4-INTEGRATION-20261027.md",
+    "evidence": "docs/acceptance/wave4/controller/integ-20261027/",
+    "result": "passed: D 6/6, service 6/6 (clean flow on the new D), UI unit 3/3 + browser 5/5, host 5/5; native whole-machine read-only check 11/11 steps, 1 window, 101 s, 0 restores, 0 plans/cleans",
+    "note": "service and host share .local/w3-cargo-home in one tree; run the host first or use separate trees"
+  }
+}

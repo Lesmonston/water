@@ -1,7 +1,7 @@
 {
   "schemaVersion": 1,
   "wave": "water-wave4-hardening",
-  "status": "G1_TO_G7_VERIFIED_M2_PREP_MERGED",
+  "status": "G1_TO_G7_VERIFIED_MAIN_INTEGRATED_2",
   "controller": "Claude",
   "controllerRoot": "F:/new/smaltalk/water",
   "controllerBranch": "main",
@@ -1579,5 +1579,15 @@
     "evidence": "docs/acceptance/wave4/controller/integ-20261027/",
     "result": "passed: D 6/6, service 6/6 (clean flow on the new D), UI unit 3/3 + browser 5/5, host 5/5; native whole-machine read-only check 11/11 steps, 1 window, 101 s, 0 restores, 0 plans/cleans",
     "note": "service and host share .local/w3-cargo-home in one tree; run the host first or use separate trees"
+  },
+  "mainIntegration2": {
+    "checkedAt": "2026-10-27T12:00:00Z",
+    "commit": "49d0b4d27e18619807128a71dd445d1069006f86",
+    "tree": ".worktrees/integ-w4b",
+    "report": "docs/acceptance/wave4/controller/WATER-W4-INTEGRATION2-20261027.md",
+    "evidence": "docs/acceptance/wave4/controller/integ2-20261027/",
+    "taskConfigs": "D from G5, UI from G7, service from G2, host from G6",
+    "result": "passed: D 6/6, service 6/6, UI unit 3/3 + browser 5/5 (24 screenshots), host 5/5; native whole-machine read-only check 11/11 steps, 1 window, 75 s, exit 0, 0 restores, 0 plans/cleans, complete scan",
+    "note": "service and host offline caches are disjoint: neither order works in one tree; use two trees or rename .local/w3-cargo-home between them"
   }
 }

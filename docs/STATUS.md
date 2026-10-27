@@ -1,6 +1,6 @@
 # Water 状态与交接
 
-更新时间：2026-10-27 20:40 JST（M1 达成；第四波 G1～G7 全部验收合入：M2 准备三票 G5、G6、G7 VERIFIED；下一步主线整合检查；入口仍是第 7 份交接）。
+更新时间：2026-10-27 21:05 JST（M1 达成；第四波 G1～G7 全部验收合入；第二次主线整合检查通过；下一步 release 构建与 M2 计划；入口仍是第 7 份交接）。
 
 更换总控请先读[最新交接报告（2026-10-27 第 7 份）](CONTROLLER-HANDOFF-20261027-7.md)；[第 6 份](CONTROLLER-HANDOFF-20261027-6.md)、[第 5 份](CONTROLLER-HANDOFF-20261026-5.md)、[第 4 份](CONTROLLER-HANDOFF-20261026-4.md)、[第 3 份](CONTROLLER-HANDOFF-20261026-3.md)、[第 2 份](CONTROLLER-HANDOFF-20261026-2.md)、[上午那份](CONTROLLER-HANDOFF-20261026.md)及其只读状态快照仅供追溯。M1 已达成；第四波 G1～G7 已全部验收合入（见下文待办）。此前[接手验收摘要](CONTROLLER-HANDOFF-20261017.md)仅供历史追溯；当前任务状态以本页、registry/manifest及最新正式验收为准。
 
@@ -172,9 +172,12 @@ A–AB及八补单、AD保持VERIFIED；AC/补单06新增VERIFIED（Windows静�
    - [WATER-W4-G6 宿主收尾](dispatch/tickets/WATER-W4-G6-HOST-FINISHING-20261027.md)：按 [HOST-FINISHING](../contracts/m2-prep-v1/HOST-FINISHING.md) 做正常退出、第二个实例唤起窗口、服务起不来也有窗口、数据目录在联接后面、三处测试问题；`native --final` 会弹 1 个窗口；
    - [WATER-W4-G7 界面收尾](dispatch/tickets/WATER-W4-G7-UI-FINISHING-20261027.md)（界面票）：旧页面命令错误不落到新页面、暂停原因不被覆盖、G3/G4 留下的测试缺口。
    - G6 合入后由总控做日常使用的 release 构建。
-5. **下一步**：
-   - 在主线新建整合树，再做一次主线整合检查（会开窗口，先告诉用户）；
-   - 然后总控做 release 构建；
+5. **第二次主线整合检查：通过**（10-27 晚，主线 `49d0b4d2`），见[整合报告](acceptance/wave4/controller/WATER-W4-INTEGRATION2-20261027.md)：
+   - 四个包都用最新的票配置（D 取自 G5、界面取自 G7、服务取自 G2、宿主取自 G6），检查与测试全绿：D 6/6、服务 6/6、界面 3/3 与 5/5、宿主 5/5；
+   - 整机窗口只读体检 11 步全过：1 个窗口，75 秒，退出码 0，完整结果，没有删除任何东西；
+   - 服务与宿主的离线缓存互不包含，同一棵树里哪个顺序都不行，要分树或中间换目录（第 7 份交接第 7 节已更正）。
+6. **下一步**：
+   - 总控做 release 构建，把 exe 路径给用户；
    - 再出 M2 计划给用户看，`carryOverM2` 在 M2 第一批票里处理。
 
 ## 真实AA→AD联合验收通过（2026-10-26）
