@@ -195,3 +195,68 @@ amend 仅修改**同一条未发布提交**，不涉及任何已发布历史；`
 - 未 push/merge/rebase；**无 amend/reset/squash/force**（仅在 `b593f0be` 之后 ADD 提交）；未改主线 ledger/契约/检查器/其它包；未下载、未联网、未改全局/网络 git 配置（提交身份经 `git -c user.name/email` 单次注入，未写入任何 config 文件）；cargo 离线 jobs=1 私有 target；原生窗口/对话框/浏览器 0；未触碰真实用户位置；未用 `git stash`；四文件逐一 `git add`、提交信息经 UTF-8 文件 `git commit -F` 并校验字节完好。
 - 负控制均单处 src 编辑、`git checkout` 字节级还原并校验 hash。
 - 收尾：本机所有由本执行方启动的进程均已退出，临时文件已清理，工作区树干净。
+
+---
+
+# 补单 02（Addendum 02）验收补充
+
+- 执行模型（actual model）：**Grok Bot**
+- 续做起点（continuation base）：`23a6434d1e5308b0ff1893114c3c8d3f1d9f42e0`（补单 01 的 docs 提交，即本报告 A-6 后的最终 HEAD）。本轮**未重跑 baseline**。
+- 新实现提交（补单 02）：`24e36fb49dcb974238bf03a8cc0ec9fe242c44ad`，作者/提交者 Riku Toto `usr_40dd3b2f69f149f6afc972157278189d@noreply.mirasim.ai`，提交时间 2026-10-27 15:15:57 JST。父提交即 `23a6434d`。
+- 本轮**只在 `23a6434d` 之后新增提交**：实现提交 `24e36fb4` + 本 docs 提交；全程无 amend/reset/squash/force、无 push/merge/rebase。所有时间均为 Asia/Tokyo（UTC+9）；检查器回执 `...Z` 为 UTC，本节已换算 JST。
+- 冲突时以本补单为准（precedence over 原票、规则、SPEC 与补单 01）。
+- 全部改动仅在 `packages/junk-clean/src/native_windows.rs` 一个文件；测试仍恰好 6 个，名称/断言逐字节未改，**本补单不要求新增断言**。
+
+## B-1. 本轮冻结文件 hash（committed，working-tree = LF）
+
+- `src/native_windows.rs` sha256 = `b980d421cc50ec399d9064d362b4ef3508348d00f7b5c21ef253caa0946f75e3`（1199 行，经 `cargo fmt`）
+- `src/lib.rs`、`src/path.rs`、`tests/clean_v1.rs`、`Cargo.toml`、`Cargo.lock`、`README.md`：本轮**未改动**（与 A-1 一致；检查器 productionHash / testHash 覆盖）。
+- 实现提交统计：`1 file changed, 85 insertions(+), 33 deletions(-)`。提交信息经 UTF-8 文件 `git commit -F`，字节校验完好（msg md5 本机与编写端一致）。
+
+## B-2. 补单 02 的 4 项改动 + 2 处小修（全部在 `src/native_windows.rs`）
+
+| # | 级别 | 改动 | 判定依据 / 计数 / 如何满足 |
+|---|---|---|---|
+| 1 | 中 | 规划目录被替换时，**按快照条目**（而非当前磁盘对象）决定是否停项 | 删除遍历中子项名在快照、但 FileId 与快照不符时，取**该子项的快照条目**判定：快照条目为"非重解析点目录"→ `failed_entries += 1` 并**停止整项**（无论被什么替换）；快照条目为文件或链接 → 不删、`failed_entries += 1`、继续下一项。`node()` 打开句柄后的二次复检（用 `exp_attr`）**保持不变**。|
+| 2 | 低 | 目录剩余（residual）必须来自**经 FileId 校验的句柄**求和 | 用于求和/枚举的句柄其 FileId 必须 == 快照条目；第二把句柄 FileId 不符 → 走第 4 项处置；第二把句柄返回错误码 2/3 → 走第 4 项处置。|
+| 3 | 低 | **无法删除的空目录**必须计为失败 | 仅当"至少还剩一个条目 **且** 全部为快照后新到达"时才免计失败；若剩余为空 **或** 重枚举失败 → `failed_entries += 1`。（实现：`only_post_snapshot` 的 `Ok(rest)` 分支加 `!rest.is_empty() && rest.iter().all(...)`。）|
+| 4 | 低（修正补单 01 第 4 项） | 条目**自身被替换**时**不得报告 deleted** | 在剩余计数处，若 FileId != 快照条目：**若本轮确实成功对该条目自身 set_delete** → residual = 0（判为 deleted）；**否则** → residual = bytes_before、**不报告 deleted、也不额外 `failed_entries`**。用 `DelCtx.self_deleted` 跟踪：链接/目录/文件三条删除分支在 `set_delete` 成功且 `rel.is_empty()`（即条目自身）时置 `self_deleted = true`；`measure_residual(item, before, self_deleted)` 据此决定 `replaced(sd)` 返回 `(None,0)` 还是 `(Some(bytes_before),0)`。第 2 项的"第二把句柄 FileId 不符 / 错误码 2/3"亦经此 `replaced(self_deleted)` 路由。|
+| 5a | 低（小修） | `nt_open` 拒绝**空名**（len 0）并报错，与 >255 单元同等处置 | 条件由 `Some(n) if name.len() <= 255` 改为 `Some(n) if (1..=255).contains(&name.len())`，注释同步更新。|
+| 5b | 低（小修） | 枚举切出 `u16` 名称切片处的 SAFETY 注释补充**对齐论证** | 补充"`off` 恒为 8 的倍数、且 88 为偶数，故 base+off+88 为 2 字节对齐"的说明。|
+
+> 第 1~4 项仅在"快照与删除之间被并发替换/改写"（TOCTOU）时可达，按禁令**不在生产代码加测试开关**，故本补单不新增断言；控制器以其自有竞态用例（本树只读参考、未加入本树 Cargo.toml/测试目录）验证。逐一改动均经代码评审，全测试绿。
+
+## B-3. 三个负控制（red-nc1 → test → red-nc2 → test → red-nc3 → test；按新源重做，标记不变；每条仅改 src 中真正被调用的一处）
+
+| 控制 | src 编辑位置（committed 行号） | 编辑 | 编辑后 src snapshot sha256 | 失败标记（信息）| 结果 | red 退出 | 还原后 native hash |
+|---|---|---|---|---|---|---|---|
+| nc1 | `native_windows.rs:752`（walk_subtree：非名称代理重解析点 → 毒化整项） | `if raw.tag & NAME_SURROGATE == 0 {` → `if false {` | `ab9daf5b505e4e9dbc4a7593472dba3a1d268e394e4dc4c6d5f2f8528d6f2b3f` | `CLEAN_REPARSE_KIND: a custom reparse tag was not treated as an unknown reparse point` | 5 passed, 1 failed | 101（observedExpectedFailure） | `b980d421…` ✓ |
+| nc2 | `native_windows.rs:743`（walk_subtree：按身份比对保护路径） | `if protected_ids.contains(&id) {` → `if false {` | `9ff3bf4b56f4d6292bd877acebe1531d845a3035a93d246ee17616ad3683e55c` | `CLEAN_GUARD_ID: an aliased protected path was not enforced` | 5 passed, 1 failed | 101 | `b980d421…` ✓ |
+| nc3 | `native_windows.rs:50`（全局 nt_open 选项 OPTS） | 去掉 `OPEN_REPARSE_POINT \| ` | `1316bd6696c85102a70e28bcf7b16788f6f929890d35db4f024d5715247c6663` | `CLEAN_NO_FOLLOW: the junction link was not removed by handle` | 4 passed, 2 failed | 101 | `b980d421…` ✓ |
+
+- 每条 red：检查器确认 `git diff HEAD -- src` 非空（恰 1 行 +1/-1）且 `git diff HEAD -- tests` 为空、无 `could not compile / error[Exxxx] / panicked / timeout`、输出含对应 proofTarget 标记，置 observedExpectedFailure，HEAD 全程为 `24e36fb4`（HEAD=加固版，满足 red-ncN 前提）。
+- 每条 red 后立即 `git checkout -- packages/junk-clean/src/native_windows.rs`，sha256 均还原为 `b980d421cc50ec399d9064d362b4ef3508348d00f7b5c21ef253caa0946f75e3`，`git status --porcelain` 为空，随后 `--mode test` 复绿（6 passed）。
+
+## B-4. 门禁结果（本轮，JST）
+
+| mode | finalGate | status | JST |
+|---|---|---|---|
+| `red-nc1` | false | passed | 2026-10-27 15:19:46 |
+| `test`（nc1 后复绿） | false | passed | 2026-10-27 15:20:36 |
+| `red-nc2` | false | passed | 2026-10-27 15:21:07 |
+| `test`（nc2 后复绿） | false | passed | 2026-10-27 15:22:03 |
+| `red-nc3` | false | passed | 2026-10-27 15:22:35 |
+| `test`（nc3 后复绿） | false | passed | 2026-10-27 15:23:04 |
+| `check --final`（fmt + clippy -D warnings + build） | true | **passed** | 2026-10-27 15:23:21 |
+| `test --final`（proofAudit 校验红/绿链顺序） | true | **passed** | 2026-10-27 15:23:35 |
+| `archive` | false | passed | 2026-10-27 15:23:51 |
+
+- `check --final`、`test --final` 均在**干净的已提交树**（HEAD=`24e36fb4`）上运行；`test --final` 的 proofAudit 复核 red-nc1→绿→red-nc2→绿→red-nc3→绿 的链顺序与各快照 sha256，全部通过。
+- `archive` 新增回执至 `docs/acceptance/wave4/g1/receipts/`（目录现 651 份）并更新 `ARCHIVE.json`。
+
+## B-5. 约束遵守与收尾（本轮）
+
+- 未 push/merge/rebase；**无 amend/reset/squash/force**（仅在 `23a6434d` 之后 ADD 提交）；未改主线 ledger/契约/检查器/其它包或其它工作区；未下载、未联网、未改全局/网络 git 配置（提交身份经 `git -c user.name/email` 单次注入，未写入任何 config 文件）；cargo 离线 jobs=1 私有 target；原生窗口/对话框/浏览器 0；未触碰真实用户位置；未用 `git stash`；文件逐一 `git add`、提交信息经 UTF-8 文件 `git commit -F` 并校验字节完好。
+- 负控制均单处 src 编辑、`git checkout` 字节级还原并校验 hash（还原目标 `b980d421…`）。
+- 代码评审交付项（本轮无法在本机运行时验证）：第 1~4 项的并发替换路径按禁令不加测试开关，复检顺序与计数见 B-2；由控制器自有竞态用例验证。
+- 收尾：本机所有由本执行方启动的进程均已退出，临时文件已清理，工作区树干净。
