@@ -309,6 +309,25 @@ fn rules_schema_strict() {
         );
     });
     RuleSet::from_json(&wide).expect("32 locators are allowed");
+
+    let embedded: Value = serde_json::from_str(include_str!("../rules/windows.json"))
+        .expect("RULES_RUST_BUILD: embedded JSON");
+    let mut rust = embedded["rules"]
+        .as_array()
+        .expect("RULES_RUST_BUILD: rule array")
+        .iter()
+        .find(|rule| rule["rule_id"] == "rust-build-dirs")
+        .cloned()
+        .expect("RULES_RUST_BUILD: rule exists");
+    rust["locate"][0]["marker"]["min_bytes"] = json!(65537);
+    let err = RuleSet::from_json(&wrap(vec![rust.clone()]))
+        .expect_err("RULES_RUST_BUILD: reversed marker bounds must be rejected");
+    assert_eq!(err.code, "RULES_INVALID_LOCATE", "RULES_RUST_BUILD: bounds");
+    rust["locate"][0]["marker"]["min_bytes"] = json!(2);
+    rust["locate"][0]["max_depth"] = json!(17);
+    let err = RuleSet::from_json(&wrap(vec![rust]))
+        .expect_err("RULES_RUST_BUILD: excessive depth must be rejected");
+    assert_eq!(err.code, "RULES_INVALID_NUMBER", "RULES_RUST_BUILD: depth");
 }
 
 fn precedence_rule(id: &str, level: &str, base: &str, segments: &[&str]) -> Value {
@@ -560,7 +579,7 @@ fn rules_protection_precedence() {
     .expect("root shader caches must not collide with protected profiles");
     assert_eq!(subset_set.rules().len(), 6);
     let embedded = RuleSet::embedded();
-    assert_eq!(embedded.rules().len(), 60, "seed set must load");
+    assert_eq!(embedded.rules().len(), 61, "seed set must load");
 }
 #[test]
 fn rules_resolve_plan() {
@@ -579,9 +598,9 @@ fn rules_resolve_plan() {
     let plan = resolve_plan(&rules, &folders, &custom, CREATED_AT).expect("plan");
     let expected = expected_target_count(&rules, custom.len());
     assert_eq!(plan.targets.len(), expected);
-    assert_eq!(expected, 214);
+    assert_eq!(expected, 216);
     assert_eq!(plan.plan_version, "water.scan-plan.v1");
-    assert_eq!(plan.rules_data_version, "2026-10-26.2");
+    assert_eq!(plan.rules_data_version, "2026-10-27.1");
     assert_eq!(plan.created_at, CREATED_AT);
 
     let first = &plan.targets[0];
@@ -673,6 +692,59 @@ fn rules_resolve_plan() {
         .expect("custom text");
     assert_eq!(text.title_zh, "带缓存标记的目录");
 
+    let single_root_plan = resolve_plan(&rules, &folders, &custom[..1], CREATED_AT)
+        .expect("RULES_RUST_BUILD: resolve one custom root");
+    let rust_targets: Vec<_> = single_root_plan
+        .targets
+        .iter()
+        .filter(|target| target.rule_id == "rust-build-dirs")
+        .collect();
+    assert_eq!(rust_targets.len(), 1, "RULES_RUST_BUILD: one marker target");
+    let rust = rust_targets[0];
+    assert_eq!(
+        rust.target_id, "custom:alpha:rust-build-dirs#1",
+        "RULES_RUST_BUILD: target ID"
+    );
+    assert_eq!(
+        rust.group_id, "custom:alpha:rust-build-dirs",
+        "RULES_RUST_BUILD: group ID"
+    );
+    assert_eq!(
+        rust.match_spec,
+        MatchSpec::Marker {
+            root: custom[0].path.clone(),
+            marker: Marker::File {
+                name: ".rustc_info.json".to_string(),
+                min_bytes: 2,
+                max_bytes: 65536,
+            },
+            max_depth: 12,
+        },
+        "RULES_RUST_BUILD: marker name, bounds, depth and root"
+    );
+    assert_eq!(
+        rules
+            .text(&rust.group_id)
+            .expect("RULES_RUST_BUILD: custom rule text")
+            .title_zh,
+        "Rust 构建目录",
+        "RULES_RUST_BUILD: custom title"
+    );
+    assert_eq!(
+        plan.targets.last().map(|target| target.target_id.as_str()),
+        Some("custom:beta:rust-build-dirs#1"),
+        "RULES_RUST_BUILD: appended targets follow custom root order"
+    );
+    let no_custom_plan = resolve_plan(&rules, &folders, &[], CREATED_AT)
+        .expect("RULES_RUST_BUILD: resolve without custom roots");
+    assert!(
+        no_custom_plan
+            .targets
+            .iter()
+            .all(|target| target.rule_id != "rust-build-dirs"),
+        "RULES_RUST_BUILD: no implicit custom root"
+    );
+
     assert_eq!(
         plan.hard_guards,
         vec![
@@ -703,6 +775,44 @@ fn rules_resolve_plan() {
 fn rules_seed_coverage() {
     let rules = RuleSet::embedded();
     let expected = seed_table();
+    let rust_spec = expected.last().expect("RULES_RUST_BUILD: seed table row");
+    assert_eq!(rust_spec.id, "rust-build-dirs", "RULES_RUST_BUILD: seed ID");
+    let rust = rules.rules().last().expect("RULES_RUST_BUILD: last rule");
+    assert_eq!(
+        rust.rule_id, rust_spec.id,
+        "RULES_RUST_BUILD: appended rule"
+    );
+    assert_eq!(
+        rust.category, rust_spec.category,
+        "RULES_RUST_BUILD: category"
+    );
+    assert_eq!(rust.level, rust_spec.level, "RULES_RUST_BUILD: level");
+    assert_eq!(
+        rust.item_type, rust_spec.item_type,
+        "RULES_RUST_BUILD: item type"
+    );
+    assert_eq!(
+        rust.min_age_hours, rust_spec.min_age_hours,
+        "RULES_RUST_BUILD: minimum age"
+    );
+    assert_eq!(
+        rust.keep_newest, rust_spec.keep_newest,
+        "RULES_RUST_BUILD: keep newest"
+    );
+    assert_eq!(
+        rust.in_use.mode, rust_spec.in_use,
+        "RULES_RUST_BUILD: in use mode"
+    );
+    assert_eq!(
+        rust.in_use.processes, rust_spec.processes,
+        "RULES_RUST_BUILD: processes"
+    );
+    assert_eq!(rust.growth, rust_spec.growth, "RULES_RUST_BUILD: growth");
+    assert_eq!(
+        locator_summary(rust),
+        rust_spec.locators,
+        "RULES_RUST_BUILD: locator summary"
+    );
     assert_eq!(rules.rules().len(), expected.len());
     for (index, spec) in expected.iter().enumerate() {
         let rule = &rules.rules()[index];
@@ -1408,6 +1518,17 @@ fn seed_table() -> Vec<SeedSpec> {
         InUseMode::None,
         Growth::Slow,
         vec!["marker:dir_name:node_modules:6".to_string()],
+    ));
+    rows.push(seed(
+        "rust-build-dirs",
+        Category::Custom,
+        Level::Recommended,
+        ItemType::Dir,
+        1,
+        0,
+        InUseMode::None,
+        Growth::Slow,
+        vec!["marker:file:.rustc_info.json:2:65536:12".to_string()],
     ));
     rows
 }
