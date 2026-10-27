@@ -31,6 +31,13 @@
 4. `git push central --tags`
 5. `git -C E:/git-central-mirror/water.git remote update --prune`
 
+五步各自执行，不要用 `&&` 串起来，免得一步失败后面都没跑。
+
+**补记（10-27）**：
+- `--all` 会把在途的执行者分支也推上去备份。
+- 若某个执行者改写了已推送的提交，那个分支会被拒（10-27 的 `worker/water-w4-g1` 就是这样）。处理办法：只对那一个分支用 `--force-with-lease=<分支>:<远端旧值>` 更新，其余照常。
+- 自 10-27 起每张票都写明执行者不 push、不改写已有提交（见 CONTROLLER-WORKFLOW 第 5 节）。
+
 其它约定：
 - 不要运行 `F:/git-central/mirror-to-e.ps1`；
 - 提交作者用 `-c user.name="Riku Toto" -c user.email=usr_40dd3b2f69f149f6afc972157278189d@noreply.mirasim.ai`；

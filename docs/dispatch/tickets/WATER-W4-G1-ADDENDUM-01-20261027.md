@@ -139,6 +139,10 @@
   另有 `lock`、`check`、`red-nc1..3`。提交干净实现后依次跑 `check --final`、`test --final`，再 `archive`。
 - 范围、依赖、允许的 8 个系统函数、`forbidPatterns` 都不变。
 - 不 push、不 merge、不 rebase，不改台账、契约、检查器、其它包。
+- **远端与历史**：
+  - 不 push 到任何远端，不添加或修改 git 远端与配置；
+  - 不改写已有提交（不 amend、reset、squash 或任何强制操作），只在 `b593f0be` 之后新增提交。
+  - 上一轮把已推送备份的提交 amend 过，导致总控的备份推送被拒；提交信息写错就在回执里说明。
 - 不碰任何真实用户位置；夹具只在本树 `.local` 下。
 
 ## 交回
