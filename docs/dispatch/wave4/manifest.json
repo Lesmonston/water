@@ -1,7 +1,7 @@
 {
   "schemaVersion": 1,
   "wave": "water-wave4-hardening",
-  "status": "G2_G3_VERIFIED_G1_ADDENDUM_SUBMITTED",
+  "status": "G2_G3_VERIFIED_G1_ADDENDUM_02_READY",
   "controller": "Claude",
   "controllerRoot": "F:/new/smaltalk/water",
   "controllerBranch": "main",
@@ -51,7 +51,7 @@
       ],
       "cargoCacheSource": "F:/new/smaltalk/water/.worktrees/a/.local/cargo-home/registry",
       "nativeModule": "native_windows.rs",
-      "status": "ADDENDUM_DISPATCHED",
+      "status": "CHANGES_REQUESTED",
       "baseCommit": "0ca42f8e8038a5a7816802c5a7f175a966b0625c",
       "snapshotRef": "refs/tags/water-w4-hardening-base-20261026",
       "readyOn": "2026-10-26",
@@ -180,7 +180,7 @@
         {
           "id": "WATER-W4-G1-ADDENDUM-01",
           "ticket": "docs/dispatch/tickets/WATER-W4-G1-ADDENDUM-01-20261027.md",
-          "status": "SUBMITTED_NOT_RELAYED",
+          "status": "SUBMITTED_CHANGES_REQUESTED",
           "issuedAt": "2026-10-27T04:12:00Z",
           "resumeFromCommit": "b593f0be97e7338bbe54c85e456ce3a8c4d0c7a0",
           "change": "link delete rechecks tag and FileId; identity from the item handle (relaxes step 2.5: re-walk allowed with FileId checks); enumerate distinguishes end from error; residual by handle; changed directory stops the item; new entries not counted; non-linear snapshot lookup; 255-unit name cap; checked FILETIME math; unsafe bounds and handle hygiene; unreadable ancestor identity is changed and the drive root joins ancestors; three new assertions; nc1-nc3 redone",
@@ -189,13 +189,45 @@
           "observedAt": "2026-10-27T05:28:16Z",
           "observedHead": "23a6434d",
           "observedImplementation": "2b6fb535",
-          "observedNote": "receipt first line says completed; b593f0be is an ancestor (no rewrite); not yet relayed or accepted"
+          "observedNote": "receipt first line says completed; b593f0be is an ancestor (no rewrite); not yet relayed or accepted",
+          "relayedAt": "2026-10-27T05:30:00Z",
+          "submittedHead": "23a6434d1e5308b0ff1893114c3c8d3f1d9f42e0",
+          "implementationCommit": "2b6fb5350c19930eaee4227be4c11490459f5b41",
+          "acceptedBy": "controllerReview2"
+        },
+        {
+          "id": "WATER-W4-G1-ADDENDUM-02",
+          "ticket": "docs/dispatch/tickets/WATER-W4-G1-ADDENDUM-02-20261027.md",
+          "status": "READY",
+          "issuedAt": "2026-10-27T06:10:00Z",
+          "resumeFromCommit": "23a6434d1e5308b0ff1893114c3c8d3f1d9f42e0",
+          "change": "stop the item when a planned (snapshot) directory was replaced by anything; residual directory sum from a FileId-checked handle; an empty re-listing after a failed directory delete counts as a failure; an item replaced before deletion is not reported deleted (corrects addendum 01 item 4); nt_open rejects empty names; SAFETY alignment note; no new assertions; nc1-nc3 redone on the new source; only native_windows.rs",
+          "dispatchedAt": null
         }
       ],
       "carryOverLater": [
         "recursion depth is unbounded in walk_subtree, node and measure_tree (stack overflow on extremely deep trees)",
         "set_delete falls back to class 4 on any error, not only invalid-parameter or not-supported (no unsafe case found)",
         "bytes_freed counts a hard-linked file inside the item although its other name keeps the data"
+      ],
+      "controllerReview2": {
+        "reviewedAt": "2026-10-27T06:10:00Z",
+        "review": "docs/acceptance/wave4/controller/WATER-W4-G1-REVIEW-20261027.md (第二轮)",
+        "acceptedHead": "23a6434d1e5308b0ff1893114c3c8d3f1d9f42e0",
+        "evidence": "docs/acceptance/wave4/controller/accept2-20261027/g1/ (307 files, byte-identical to the acceptance tree)",
+        "controllerLogs": "docs/acceptance/wave4/controller/accept2-20261027/controller/ (g1-*, audit-g1-r2.json, accept-manifest-g1.json)",
+        "mechanicalAudit": "passed; b593f0be is an ancestor (no rewrite); implementation touches lib.rs, native_windows.rs, path.rs, tests/clean_v1.rs only",
+        "freshTreeFinals": "lock, check --final, test --final passed in .worktrees/accept2-w4-g1",
+        "controllerMutants": "nc1-nc3, x1 (now killed by the new CLEAN_GUARD_ID assertion), x4, x6 killed; x2, x3 survive (swap during deletion only); x5 fails the test only at the item() helper unwrap (clean_v1.rs:162), not at the CLEAN_LONG_PATH assertion",
+        "controllerCases": "12 cases: the 6 round-1 cases pass; new races (link retagged in place, directory replaced by a directory, file replaced plus late arrival), non-ASCII-case residual and 100k timing (23.0 s; round-1 source 155.4 s) pass; directory replaced by a file fails (deletion goes on, SPEC section 4 step 7). Round-1 source fails 4 of the 5 new race/residual cases (retagged reparse point deleted, item reported deleted with a file left); mutants m1-m3 each break their case",
+        "codeReview": "independent read-only agent, verified by the controller: items 1-3 and 7-11 met; item 5 partly (stop decided by the current object, medium); item 4 partly (second by-name handle not FileId-checked); item 6 partly (empty re-listing not counted); item replaced before deletion reported deleted (addendum 01 rule gap); nt_open accepts empty names",
+        "decision": "addendum 02"
+      },
+      "carryOver": [
+        "unbounded recursion depth in walk_subtree/node/measure_tree",
+        "from_utf16_lossy names with unpaired surrogates are silently not counted at delete",
+        "links opened with delete-share: retag window between recheck and set_delete is inherent",
+        "CLEAN_LONG_PATH regression of the \\?\\ prefix surfaces as an item() unwrap without the marker"
       ]
     },
     {

@@ -1,0 +1,96 @@
+{
+ "g3": [
+  {
+   "label": "nc3",
+   "mode": "red-nc3",
+   "token": "UI_NOTICE_SCOPE",
+   "file": "apps/water/ui/app.mjs",
+   "old": "state.reconnecting ? '正在重新连接 Water 服务…' : state.error || '未能读取任务进度，请重新连接。'",
+   "new": "state.reconnecting ? '正在重新连接 Water 服务…' : state.pollPaused ? '未能读取任务进度，请重新连接。' : state.error",
+   "why": "while paused the notice always shows the fallback sentence instead of the host reason (run 1 nc3 and x2 were caught only by a wait timeout at browser.test.mjs:448, which the gate does not accept as proof)"
+  }
+ ],
+ "g1": [
+  {
+   "label": "nc1",
+   "mode": "red-nc1",
+   "token": "CLEAN_REPARSE_KIND",
+   "file": "packages/junk-clean/src/native_windows.rs",
+   "old": "let tag = ptr::read_unaligned(p.add(68) as *const u32);",
+   "new": "let tag = ptr::read_unaligned(p.add(68) as *const u32) | NAME_SURROGATE;",
+   "why": "the enumeration decode marks every reparse tag as a name surrogate, so a custom tag is treated as a link (worker nc1 disabled the poison check instead)"
+  },
+  {
+   "label": "nc2",
+   "mode": "red-nc2",
+   "token": "CLEAN_GUARD_ID",
+   "file": "packages/junk-clean/src/native_windows.rs",
+   "old": "if guard_ids.contains(&item_id) {",
+   "new": "if false {",
+   "why": "a hard guard that resolves to the item itself is not matched by identity (worker nc2 disabled the subtree protected check instead)"
+  },
+  {
+   "label": "nc3",
+   "mode": "red-nc3",
+   "token": "CLEAN_NO_FOLLOW",
+   "file": "packages/junk-clean/src/native_windows.rs",
+   "old": "if exp_attr & REPARSE != 0 {",
+   "new": "if exp_attr & REPARSE != 0 && false {",
+   "why": "the delete step treats a link entry as a directory instead of removing the link itself (worker nc3 dropped OPEN_REPARSE_POINT instead)"
+  },
+  {
+   "label": "x1",
+   "mode": "test",
+   "token": "CLEAN_GUARD_ID",
+   "file": "packages/junk-clean/src/native_windows.rs",
+   "old": "if protected_ids.contains(ancestor) {",
+   "new": "if false {",
+   "why": "an item inside a protected directory reached through an alias is not refused (ancestor identity check); round 1 survived, round 2 expects CLEAN_GUARD_ID (addendum alias-to-ancestor assertion) to kill it"
+  },
+  {
+   "label": "x2",
+   "mode": "test",
+   "token": "CLEAN_",
+   "file": "packages/junk-clean/src/native_windows.rs",
+   "old": "if a & REPARSE == 0 && a & DIRECTORY != 0 && id == exp_id => {}",
+   "new": "if a & REPARSE == 0 && a & DIRECTORY != 0 => {}",
+   "why": "the directory FileId recheck at delete time is removed; expected to survive: only a swap during deletion reaches it and tests have no hook there"
+  },
+  {
+   "label": "x3",
+   "mode": "test",
+   "token": "CLEAN_",
+   "file": "packages/junk-clean/src/native_windows.rs",
+   "old": "SHARE_RW,",
+   "new": "SHARE_RWD,",
+   "why": "directory handles at delete time allow delete-share (rename) again; expected to survive: no concurrent rename in tests"
+  },
+  {
+   "label": "x4",
+   "mode": "test",
+   "token": "CLEAN_READONLY",
+   "file": "packages/junk-clean/src/native_windows.rs",
+   "old": "flags: 0x1 | 0x2 | 0x10,",
+   "new": "flags: 0x1 | 0x2,",
+   "why": "the POSIX disposition no longer ignores the read-only attribute"
+  },
+  {
+   "label": "x5",
+   "mode": "test",
+   "token": "CLEAN_LONG_PATH",
+   "file": "packages/junk-clean/src/native_windows.rs",
+   "old": "if s.len() >= 248 && !s.starts_with(r\"\\\\\") {",
+   "new": "if false {",
+   "why": "by-name opens (planning identity, guard resolution) lose the \\?\\ prefix; round 2 expects CLEAN_LONG_PATH (item path itself >300 chars) to kill it"
+  },
+  {
+   "label": "x6",
+   "mode": "check",
+   "token": "is not allowed",
+   "file": "packages/junk-clean/src/lib.rs",
+   "old": "pub struct NoGuard;",
+   "new": "use std::fs as _;\npub struct NoGuard;",
+   "why": "path-based std::fs is brought back into src; the check gate must refuse it"
+  }
+ ]
+}

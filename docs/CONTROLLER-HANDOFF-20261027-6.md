@@ -2,6 +2,8 @@
 
 项目根 `F:/new/smaltalk/water`。总控 Claude。因用户要压缩上下文而写；本报告取代 [第 5 份](CONTROLLER-HANDOFF-20261026-5.md) 作为当前入口。第 5 份第 5 节的验收步骤、第 7 节硬规矩、第 8 节的坑仍然有效，本份只写变化与补充。
 
+> **10-27 下午更新**：G1 补单 01 已做第二轮复核，结论是发[补单 02](dispatch/tickets/WATER-W4-G1-ADDENDUM-02-20261027.md)，见 [G1 收单验收](acceptance/wave4/controller/WATER-W4-G1-REVIEW-20261027.md)“第二轮”与 [STATUS](STATUS.md)。下面第 0、4、8 节里“G1 待验收”的说法以此为准。补单 02 交回后照第 4 节同一套工具复核，验收树 `.worktrees/accept2-w4-g1` 要先改到新的交回 HEAD（或新建 `accept3-w4-g1`）；总控竞态用例在 `scripts/acceptance/w4-g1-controller-cases.rs`，运行与证明脚本是 `.local/w4-accept2/g1-cases.sh`、`g1-case-proofs.sh`。
+
 ## 0. 一句话现状
 
 - **M1 体检 Alpha 已达成**，见第 5 份。

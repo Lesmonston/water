@@ -1,0 +1,21 @@
+   Compiling water-junk-clean v0.1.0 (F:\new\smaltalk\water\.worktrees\accept2-w4-g1\packages\junk-clean)
+    Finished `test` profile [unoptimized + debuginfo] target(s) in 1.00s
+     Running tests\controller_cases.rs (.local/w2-target\debug\deps\controller_cases-b3263f427e0443c3.exe)
+
+running 1 test
+test controller_race_directory_replaced_by_file ... CONTROLLER race dir->file: status Partial failed 3 freed 5012
+
+thread 'controller_race_directory_replaced_by_file' (3112) panicked at tests\controller_cases.rs:461:63:
+called `Result::unwrap()` on an `Err` value: Os { code: 2, kind: NotFound, message: "The system cannot find the file specified." }
+note: run with `RUST_BACKTRACE=1` environment variable to display a backtrace
+FAILED
+
+failures:
+
+failures:
+    controller_race_directory_replaced_by_file
+
+test result: FAILED. 0 passed; 1 failed; 0 ignored; 0 measured; 11 filtered out; finished in 6.20s
+
+error: test failed, to rerun pass `--test controller_cases`
+rc=101 status after restore: ''

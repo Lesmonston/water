@@ -1,0 +1,31 @@
+   Compiling water-junk-clean v0.1.0 (F:\new\smaltalk\water\.worktrees\accept2-w4-g1\packages\junk-clean)
+    Finished `test` profile [unoptimized + debuginfo] target(s) in 3.54s
+     Running tests\controller_cases.rs (.local/w2-target\debug\deps\controller_cases-b3263f427e0443c3.exe)
+
+running 11 tests
+test controller_100k_timing ... CONTROLLER 100k: created in 43.3s, execute took 23.0s, status Deleted failed 0 freed 100000
+ok
+test controller_ancestor_alias_protected ... CONTROLLER ancestor alias: status Skipped reason Some(ProtectedOverlap)
+ok
+test controller_combination_delete ... CONTROLLER combination: status Deleted freed 42
+ok
+test controller_custom_tag_deep ... CONTROLLER custom tag deep: status Skipped reason Some(Reparse)
+ok
+test controller_directory_symlink ... CONTROLLER directory symlink: status Deleted
+ok
+test controller_item_through_alias ... CONTROLLER through alias: status Skipped reason Some(OutsideRoot)
+ok
+test controller_long_item_path ... CONTROLLER long item path: status Deleted reason None
+ok
+test controller_race_directory_replaced ... CONTROLLER race dir: status Partial failed 1 freed 4997
+ok
+test controller_race_file_replaced_and_late_arrival ... CONTROLLER race file+late: status Partial failed 2 freed 5014
+ok
+test controller_race_link_retagged ... CONTROLLER race retag: status Partial failed 2 freed 5000
+ok
+test controller_residual_nonascii_case ... CONTROLLER residual non-ASCII case: status Partial failed 2 freed 9 of 18
+ok
+
+test result: ok. 11 passed; 0 failed; 0 ignored; 0 measured; 0 filtered out; finished in 82.36s
+
+rc=0 status after restore: ''

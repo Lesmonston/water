@@ -1,0 +1,43 @@
+   Compiling water-junk-clean v0.1.0 (F:\new\smaltalk\water\.worktrees\accept2-w4-g1\packages\junk-clean)
+    Finished `test` profile [unoptimized + debuginfo] target(s) in 4.54s
+     Running tests\controller_cases.rs (.local/w2-target\debug\deps\controller_cases-b3263f427e0443c3.exe)
+
+running 5 tests
+test controller_race_directory_replaced ... CONTROLLER race dir: status Partial failed 2 freed 5011
+
+thread 'controller_race_directory_replaced' (37304) panicked at tests\controller_cases.rs:435:65:
+called `Result::unwrap()` on an `Err` value: Os { code: 3, kind: NotFound, message: "The system cannot find the path specified." }
+note: run with `RUST_BACKTRACE=1` environment variable to display a backtrace
+FAILED
+test controller_race_directory_replaced_by_file ... CONTROLLER race dir->file: status Partial failed 2 freed 5012
+
+thread 'controller_race_directory_replaced_by_file' (33604) panicked at tests\controller_cases.rs:461:63:
+called `Result::unwrap()` on an `Err` value: Os { code: 2, kind: NotFound, message: "The system cannot find the file specified." }
+FAILED
+test controller_race_file_replaced_and_late_arrival ... CONTROLLER race file+late: status Partial failed 2 freed 5014
+ok
+test controller_race_link_retagged ... CONTROLLER race retag: status Deleted failed 0 freed 5000
+
+thread 'controller_race_link_retagged' (36260) panicked at tests\controller_cases.rs:407:5:
+CONTROLLER_RACE_RETAG: the retagged (non-link) reparse point was deleted
+FAILED
+test controller_residual_nonascii_case ... CONTROLLER residual non-ASCII case: status Deleted failed 2 freed 18 of 18
+
+thread 'controller_residual_nonascii_case' (28700) panicked at tests\controller_cases.rs:514:5:
+assertion `left != right` failed: CONTROLLER_RESIDUAL: item reported deleted while a file remains
+  left: Deleted
+ right: Deleted
+FAILED
+
+failures:
+
+failures:
+    controller_race_directory_replaced
+    controller_race_directory_replaced_by_file
+    controller_race_link_retagged
+    controller_residual_nonascii_case
+
+test result: FAILED. 1 passed; 4 failed; 0 ignored; 0 measured; 7 filtered out; finished in 14.26s
+
+error: test failed, to rerun pass `--test controller_cases`
+rc=101 status after restore: ''
