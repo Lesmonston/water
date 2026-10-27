@@ -34,6 +34,8 @@ export function check(label, checked, change, key, mixed = false) {
   return input;
 }
 export const catIcon = c => ({agent_tool:'chip', browser:'globe', system_temp:'hourglass', app_leftover:'box', dev_cache:'code', crash_log:'warn', gpu_system:'gpu', custom:'folder', unrecognized:'info'}[c] ?? 'folder');
+// Shown under a stop button when the stop failed while progress reading is paused; never part of the notice.
+export function stopNote(state) { return state.stopFailed ? el('p', 'cap stop-note', '停止请求没有送达，请先重新连接再试。') : null; }
 export function empty(title, subtitle) { return add(el('section', 'glass empty'), icon('berg'), el('h2', '', title), el('p', 'sub', subtitle)); }
 export function insight(item, open) {
   return add(el('aside', 'glass insight'), icon('trend', 'growth'), add(el('div', 'grow-fill'), el('strong', '', item.title_zh), el('p', 'sub', item.message_zh)), button('查看修复建议', () => open(item.group_id), 'btn btn-ghost', `insight-${item.group_id}`));
