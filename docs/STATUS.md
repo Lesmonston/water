@@ -1,6 +1,6 @@
 # Water 状态与交接
 
-更新时间：2026-10-27 15:15 JST（M1 达成；第四波 G2、G3 已验收合入；G1 补单 01 第二轮复核后发补单 02；标志选定冰山；第 6 份交接）。
+更新时间：2026-10-27 15:15 JST（M1 达成；第四波 G2、G3 已验收合入；G1 补单 01 第二轮复核后发补单 02；标志选定冰山，导航选定脉搏线，标志小票 G4 READY；第 6 份交接）。
 
 更换总控请先读[最新交接报告（2026-10-27 第 6 份）](CONTROLLER-HANDOFF-20261027-6.md)；[第 5 份](CONTROLLER-HANDOFF-20261026-5.md)、[第 4 份](CONTROLLER-HANDOFF-20261026-4.md)、[第 3 份](CONTROLLER-HANDOFF-20261026-3.md)、[第 2 份](CONTROLLER-HANDOFF-20261026-2.md)、[上午那份](CONTROLLER-HANDOFF-20261026.md)及其只读状态快照仅供追溯。M1 已达成；第四波 G2、G3 已验收合入；G1 补单 01 执行者已在树里交回，待用户转告与总控第二轮验收（见第 6 份交接第 4 节）。此前[接手验收摘要](CONTROLLER-HANDOFF-20261017.md)仅供历史追溯；当前任务状态以本页、registry/manifest及最新正式验收为准。
 
@@ -147,9 +147,11 @@ A–AB及八补单、AD保持VERIFIED；AC/补单06新增VERIFIED（Windows静�
 
 **待办**：
 1. **G1 补单 02**：待用户外贴；交回后用 `.local/w4-accept2` 同一套工具复核，“子目录被换成文件”用例应转为通过，然后合入。
-2. **标志小票**：G3 已合入，可以开始。
-   - 先给用户看“体检”导航候选图标的真实截图：脉搏、扫描框、仪表、放大镜四种。预览脚本是 `scripts/design/preview-brand-nav.cjs`，做法同标志预览：在验收树里临时替换、跑浏览器测试、恢复。
-   - 用户选定后写票：三处标志、导航图标、宿主应用图标，外加把测试第 448 行的等待改成带 `UI_NOTICE_SCOPE` 标记的断言。
+2. **标志小票 [WATER-W4-G4](dispatch/tickets/WATER-W4-G4-BRAND-20261027.md)：READY，待用户外贴**（界面票）。
+   - 用户 10-27 看了四个候选的真实截图，“体检”导航选定 A 脉搏线；已写进[设计说明第 10 节](design/water-ui-v1/DESIGN.md)，候选对比在 `brand/nav-candidates-board.png`。
+   - 应用图标导出件 `brand/water-app-icon.ico` 由总控用 `scripts/design/export-app-icon.cjs` 生成（16～256，重复运行字节相同）；执行者只原样复制到宿主。
+   - 票面内容：三处换冰山、导航换脉搏线、删 `i-drop`、复制图标、测试第 448 行改带 `UI_NOTICE_SCOPE` 标记的断言；不 push、不改写提交。
+   - 工作树 `.worktrees/w4-g4`，基点 `e5b90db1`，总控 baseline 已通过。验收时总控另编译宿主并核对图标哈希。
 3. 三张都合入后做主线整合检查。会弹窗，先告诉用户。
 
 ## 真实AA→AD联合验收通过（2026-10-26）
