@@ -1,7 +1,7 @@
 {
   "schemaVersion": 1,
   "wave": "water-wave4-hardening",
-  "status": "G1_TO_G7_VERIFIED_MAIN_INTEGRATED_2",
+  "status": "G1_TO_G7_VERIFIED_MAIN_INTEGRATED_2_RELEASE_BUILT",
   "controller": "Claude",
   "controllerRoot": "F:/new/smaltalk/water",
   "controllerBranch": "main",
@@ -1589,5 +1589,14 @@
     "taskConfigs": "D from G5, UI from G7, service from G2, host from G6",
     "result": "passed: D 6/6, service 6/6, UI unit 3/3 + browser 5/5 (24 screenshots), host 5/5; native whole-machine read-only check 11/11 steps, 1 window, 75 s, exit 0, 0 restores, 0 plans/cleans, complete scan",
     "note": "service and host offline caches are disjoint: neither order works in one tree; use two trees or rename .local/w3-cargo-home between them"
+  },
+  "releaseBuild": {
+    "builtAt": "2026-10-27T12:08:00Z",
+    "source": "main d64aa399 (product identical to 49d0b4d2)",
+    "exe": "F:/new/smaltalk/water/.local/release/water-0.1.0-d64aa399/water.exe",
+    "sha256": "7c6ecada475d63ab15371227dd8a3332657fcd739b87f690a23b620adcce58f1",
+    "how": "cargo 1.95.0 build --release --offline --locked with the MIRROR.json arguments in .worktrees/integ-w4b (4 jobs, 2m49s, no warnings); script and log in docs/acceptance/wave4/controller/integ2-20261027/controller/",
+    "smoke": "fixture data dir: window ok, GUI subsystem, second instance exit 0 in 43 ms, minimized window restored to the foreground in 122 ms, close exit 0",
+    "note": "local build, not committed (the .local tree is git-ignored); default data dir %LOCALAPPDATA%/Water; cleaning off"
   }
 }

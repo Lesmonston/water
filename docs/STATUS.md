@@ -1,6 +1,6 @@
 # Water 状态与交接
 
-更新时间：2026-10-27 21:05 JST（M1 达成；第四波 G1～G7 全部验收合入；第二次主线整合检查通过；下一步 release 构建与 M2 计划；入口仍是第 7 份交接）。
+更新时间：2026-10-27 21:05 JST（M1 达成；第四波 G1～G7 全部验收合入；第二次主线整合检查通过；release 版已构建；下一步 M2 计划；入口仍是第 7 份交接）。
 
 更换总控请先读[最新交接报告（2026-10-27 第 7 份）](CONTROLLER-HANDOFF-20261027-7.md)；[第 6 份](CONTROLLER-HANDOFF-20261027-6.md)、[第 5 份](CONTROLLER-HANDOFF-20261026-5.md)、[第 4 份](CONTROLLER-HANDOFF-20261026-4.md)、[第 3 份](CONTROLLER-HANDOFF-20261026-3.md)、[第 2 份](CONTROLLER-HANDOFF-20261026-2.md)、[上午那份](CONTROLLER-HANDOFF-20261026.md)及其只读状态快照仅供追溯。M1 已达成；第四波 G1～G7 已全部验收合入（见下文待办）。此前[接手验收摘要](CONTROLLER-HANDOFF-20261017.md)仅供历史追溯；当前任务状态以本页、registry/manifest及最新正式验收为准。
 
@@ -176,9 +176,13 @@ A–AB及八补单、AD保持VERIFIED；AC/补单06新增VERIFIED（Windows静�
    - 四个包都用最新的票配置（D 取自 G5、界面取自 G7、服务取自 G2、宿主取自 G6），检查与测试全绿：D 6/6、服务 6/6、界面 3/3 与 5/5、宿主 5/5；
    - 整机窗口只读体检 11 步全过：1 个窗口，75 秒，退出码 0，完整结果，没有删除任何东西；
    - 服务与宿主的离线缓存互不包含，同一棵树里哪个顺序都不行，要分树或中间换目录（第 7 份交接第 7 节已更正）。
-6. **下一步**：
-   - 总控做 release 构建，把 exe 路径给用户；
-   - 再出 M2 计划给用户看，`carryOverM2` 在 M2 第一批票里处理。
+6. **release 构建：已完成**（10-27 21:08）：
+   - exe 在 `F:/new/smaltalk/water/.local/release/water-0.1.0-d64aa399/water.exe`（sha256 `7c6ecada…`，本地构建，`.local` 不进仓库）。
+   - 用主线源码离线编译，带镜像参数，没有警告。
+   - 图形界面程序（没有控制台窗口），界面已内嵌，需要 WebView2 运行时（Windows 11 自带）；数据目录默认 `%LOCALAPPDATA%\Water`；清理仍关闭。
+   - 在夹具数据目录上冒烟：窗口正常；第二个实例 43 毫秒退出，最小化的窗口 122 毫秒内回到前台；关窗退出码 0。
+   - 构建脚本与日志在 [integ2 controller](acceptance/wave4/controller/integ2-20261027/controller/)。
+7. **下一步**：出 M2 计划给用户看，`carryOverM2` 在 M2 第一批票里处理。
 
 ## 真实AA→AD联合验收通过（2026-10-26）
 

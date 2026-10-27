@@ -79,7 +79,12 @@
 
 ## 之后
 
-1. 总控做日常使用的 release 构建，把 exe 路径给用户。
+1. **release 构建已完成**（10-27 21:08，同晚）：
+   - 位置：`F:/new/smaltalk/water/.local/release/water-0.1.0-d64aa399/water.exe`，sha256 `7c6ecada475d63ab15371227dd8a3332657fcd739b87f690a23b620adcce58f1`。
+   - 做法：在本整合树用同一工具链、离线缓存与镜像参数编译 `--release --locked`，4 个并行任务，2 分 49 秒，没有警告。
+   - 程序：图形界面子系统，界面已内嵌。
+   - 冒烟（[记录](integ2-20261027/controller/release-20261027T120901Z-second-instance.json)，夹具数据目录）：窗口正常；第二个实例 43 毫秒退出，最小化的窗口 122 毫秒内回到前台；关窗退出码 0。
+   - 构建脚本与日志：[build-release.sh](integ2-20261027/controller/build-release.sh)、[release-build.txt](integ2-20261027/controller/release-build.txt)。
 2. 出 M2 计划给用户看。第四波清单 G5、G6、G7 的 `carryOverM2` 放进 M2 第一批票，其中两条中级：
    - 宿主后端在退出时没有真正释放；
    - 暂停期间读页面失败会停在“正在读取…”。
