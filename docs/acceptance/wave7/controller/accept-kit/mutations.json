@@ -1,0 +1,219 @@
+{
+  "j1": [
+    {
+      "label": "c1",
+      "mode": "test",
+      "token": "HOST_EXIT_DURING_CLEAN",
+      "file": "apps/water/host/src/lib.rs",
+      "old": "if let tauri::RunEvent::Exit = event {",
+      "new": "if let tauri::RunEvent::ExitRequested { .. } = event {",
+      "why": "wave 6 survivor c4: the stop runs on ExitRequested instead of Exit; the old string match accepted it"
+    },
+    {
+      "label": "c2",
+      "mode": "red-nc3",
+      "token": "HOST_UNKNOWN_RESET",
+      "file": "apps/water/host/src/lib.rs",
+      "old": "let since = unknown_since.get_or_insert_with(Instant::now);",
+      "new": "let since = unknown_since.get_or_insert(started);",
+      "why": "wave 6 survivor c2 in another form: the unknown clock always counts from the stop request, so unknown time is cumulative even after a Cleaning answer resets it (worker nc3 removed the reset itself)"
+    },
+    {
+      "label": "c3",
+      "mode": "test",
+      "token": "HOST_CLOSE_UNKNOWN",
+      "file": "apps/water/host/src/lib.rs",
+      "old": "if clean_state(backend.as_ref()) == CleanState::NotCleaning {",
+      "new": "if clean_state(backend.as_ref()) != CleanState::Cleaning {",
+      "why": "the close guard lets the window close on an unknown state (the contract's example)"
+    },
+    {
+      "label": "c4",
+      "mode": "test",
+      "token": "HOST_EXIT_DURING_CLEAN",
+      "file": "apps/water/host/src/lib.rs",
+      "old": "        if let tauri::RunEvent::Exit = event {\n            let _ = stop_cleaning_within(\n                exit_backend.as_ref(),\n                Duration::from_millis(200),\n                Duration::from_secs(10),\n            );\n        }\n",
+      "new": "        if let tauri::RunEvent::Exit = event {}\n        let _ = stop_cleaning_within(\n            exit_backend.as_ref(),\n            Duration::from_millis(200),\n            Duration::from_secs(10),\n        );\n",
+      "why": "the bounded stop moves outside the Exit branch and runs on every event; the old assertion only looked for the call after the Exit text"
+    },
+    {
+      "label": "c5",
+      "mode": "red-nc1",
+      "token": "HOST_UNSTARTED_SERVICE",
+      "file": "apps/water/host/src/lib.rs",
+      "old": "backend.is_some_and(|backend| backend.available())",
+      "new": "backend.is_none_or(|backend| backend.available())",
+      "why": "an empty (taken) backend slot counts as available, so its state is unknown and the stop waits (worker nc1 made UnavailableBackend available instead)"
+    },
+    {
+      "label": "c6",
+      "mode": "red-nc1",
+      "token": "HOST_UNSTARTED_SERVICE",
+      "file": "apps/water/host/src/lib.rs",
+      "old": "    if !backend.available() {\n        return CleanState::NotCleaning;\n    }\n",
+      "new": "",
+      "why": "clean_state ignores availability and queries app_state anyway"
+    },
+    {
+      "label": "c7",
+      "mode": "red-nc2",
+      "token": "HOST_EXIT_DEADLINE",
+      "file": "apps/water/host/src/lib.rs",
+      "old": "if limit.is_some_and(|limit| started.elapsed() >= limit) {",
+      "new": "if limit.is_some_and(|limit| started.elapsed() >= limit * 4) {",
+      "why": "the deadline check after the first query is too lax, so the loop queries again after the limit has passed (worker nc2 moved the clock start instead)"
+    },
+    {
+      "label": "c8",
+      "mode": "test",
+      "token": "HOST_EXIT_DURING_CLEAN",
+      "file": "apps/water/host/src/lib.rs",
+      "old": "                Duration::from_millis(200),\n                Duration::from_secs(10),\n",
+      "new": "                Duration::from_secs(10),\n                Duration::from_millis(200),\n",
+      "why": "probe for the review gap: poll and limit swapped, so exit waits at most 200 ms (expected to survive: the assertion only checks the tokens are present)"
+    },
+    {
+      "label": "c9",
+      "mode": "test",
+      "token": "HOST_EXIT_DEADLINE",
+      "file": "apps/water/host/src/lib.rs",
+      "old": "        return CleanStop::TimedOut;\n    }\n    loop {",
+      "new": "        return CleanStop::TimedOut;\n    }\n    let started = Instant::now();\n    loop {",
+      "why": "probe for the review gap: the loop clock restarts after the first query, so a first query that uses part of the limit gets a full extra limit (expected to survive: the test only covers a first query longer than the whole limit)"
+    }
+  ],
+  "j3": [
+    {
+      "label": "c1",
+      "mode": "red-nc1",
+      "token": "SERVICE_GROUP_INDEX",
+      "file": "packages/water-service/src/clean.rs",
+      "old": "\"group_index\":usize::from(!group_ids.is_empty()),",
+      "new": "\"group_index\":0,",
+      "why": "the clean starts at group 0 again (worker nc1 removed the +1 per item instead)"
+    },
+    {
+      "label": "c2",
+      "mode": "red-nc1",
+      "token": "SERVICE_GROUP_INDEX",
+      "file": "packages/water-service/src/clean.rs",
+      "old": ".map(|index| index + 1)",
+      "new": ".map(|_| 1)",
+      "why": "every item reports group 1, so later groups never get a larger number"
+    },
+    {
+      "label": "c3",
+      "mode": "test",
+      "token": "SERVICE_GROUP_INDEX",
+      "file": "packages/water-service/src/clean.rs",
+      "old": "s.clean_progress[\"group_index\"]=json!(group_ids.len());",
+      "new": "s.clean_progress[\"group_index\"]=json!(group_ids.len().saturating_sub(1));",
+      "why": "the finished clean reports the last 0-based index instead of the group count"
+    },
+    {
+      "label": "c4",
+      "mode": "red-nc2",
+      "token": "SERVICE_SNAPSHOT_ORPHAN",
+      "file": "packages/water-service/src/service.rs",
+      "old": ".remove(\"snapshots\", std::slice::from_ref(&worker_id));",
+      "new": ".remove(\"snapshots\", &[format!(\"{worker_id}.json\")]);",
+      "why": "the snapshot is removed by file name instead of id, so the store looks for <id>.json.json and the orphan stays (worker nc2 passed an empty list instead)"
+    }
+  ],
+  "j4": [
+    {
+      "label": "c1",
+      "mode": "red-nc1",
+      "token": "RULES_M3_WORDING",
+      "file": "packages/junk-rules/src/rules.rs",
+      "old": "            what_zh: self.what_zh.clone(),",
+      "new": "            what_zh: self.why_zh.clone(),",
+      "why": "the public text gives the reason where the description belongs (worker nc1 did the reverse)"
+    },
+    {
+      "label": "c2",
+      "mode": "red-nc1",
+      "token": "RULES_M3_WORDING",
+      "file": "packages/junk-rules/src/plan.rs",
+      "old": "        rules_data_version: rules.data_version.clone(),",
+      "new": "        rules_data_version: \"2026-10-28.1\".to_string(),",
+      "why": "the plan carries a stale hard-coded data version instead of the loaded one"
+    }
+  ],
+  "j2": [
+    {
+      "label": "c1",
+      "mode": "red-nc1",
+      "token": "UI_RECOVER_ERROR",
+      "file": "apps/water/ui/app.mjs",
+      "old": "if (['unavailable', 'busy'].includes(state.errorCode)) clearError();",
+      "new": "if (['unavailable'].includes(state.errorCode)) clearError();",
+      "why": "recovery clears only unavailable and leaves a busy notice behind (worker nc1 emptied the list)"
+    },
+    {
+      "label": "c2",
+      "mode": "red-nc1",
+      "token": "UI_RECOVER_ERROR",
+      "file": "apps/water/ui/app.mjs",
+      "old": "if (['unavailable', 'busy'].includes(state.errorCode)) clearError();",
+      "new": "if (state.errorCode !== null) clearError();",
+      "why": "recovery clears every error, including not_found and stale that the user still needs to see"
+    },
+    {
+      "label": "c3",
+      "mode": "browser",
+      "token": "UI_RECOVER_NONBLOCK",
+      "file": "apps/water/ui/app.mjs",
+      "old": "void loadRoute(true);",
+      "new": "await loadRoute(true);",
+      "why": "the missing-data read blocks the progress poll again (the wave 6 behaviour)"
+    },
+    {
+      "label": "c4",
+      "mode": "red-nc2",
+      "token": "UI_READ_ORDER",
+      "file": "apps/water/ui/app.mjs",
+      "old": "} catch (error) { if (isLatest()) fault(error, inScope() && !paused && !state.pollPaused); }",
+      "new": "} catch (error) { fault(error, inScope() && !paused && !state.pollPaused); }",
+      "why": "an older read that fails still records its error (stale flag) after a newer read succeeded (worker nc2 made every read latest)"
+    },
+    {
+      "label": "c5",
+      "mode": "red-nc3",
+      "token": "UI_STALE_START",
+      "file": "apps/water/ui/views/results.mjs",
+      "old": "state.errorCode !== 'stale'",
+      "new": "state.error !== '结果已过期，请重新体检后再清理。'",
+      "why": "the body note is keyed on one fixed sentence again, so another stale sentence shows it twice (worker nc3 kept the retry suffix instead)"
+    },
+    {
+      "label": "c6",
+      "mode": "browser",
+      "token": "UI_CLEAN_STOP",
+      "file": "apps/water/ui/app.mjs",
+      "old": "'停止请求没有送达，请先重新连接再试。'; }, 120);",
+      "new": "'停止请求没有送达，请先重新连接再试。'; }, 50);",
+      "why": "the announcer rewrite comes 50 ms after the clear, under the 100 ms the contract asks for",
+      "noTimeout": true
+    },
+    {
+      "label": "c7",
+      "mode": "browser",
+      "token": "UI_NOTICE_TOP",
+      "file": "apps/water/ui/styles/app.css",
+      "old": "background: rgb(from var(--w-window) r g b / 1); }",
+      "new": "background: rgb(from var(--w-window) r g b / .5); }",
+      "why": "the band above a pinned notice is half transparent, so scrolled text shows through",
+      "noTimeout": true
+    },
+    {
+      "label": "c8",
+      "mode": "red-nc2",
+      "token": "UI_READ_ORDER",
+      "file": "apps/water/ui/app.mjs",
+      "old": "const inScope = () => version === routeVersion && origin === location.hash && isLatest();",
+      "new": "const inScope = () => version === routeVersion && origin === location.hash;",
+      "why": "an older successful read of the same page writes its data again; only errors still check the read order (c4, which let superseded errors record the stale flag, survived: page reads never return stale, so nothing visible changes)"
+    }
+  ]
+}

@@ -1,7 +1,7 @@
 {
   "schemaVersion": 1,
   "wave": "water-wave7-m3-fixes",
-  "status": "DISPATCHED",
+  "status": "ALL_VERIFIED_WAVE7_MERGED",
   "controller": "Claude",
   "controllerRoot": "F:/new/smaltalk/water",
   "controllerBranch": "main",
@@ -357,7 +357,7 @@
       "branch": "worker/water-w7-j1",
       "baseCommit": "282876950df40a14b7abeec6ab27677ea0adc897",
       "snapshotRef": "refs/tags/water-w7-m3-fix-base-20261028",
-      "status": "DISPATCHED",
+      "status": "VERIFIED",
       "readyOn": "2026-10-28",
       "dispatchedAt": null,
       "startedAt": null,
@@ -422,7 +422,22 @@
       "baselineStatus": "PASSED",
       "baselineEvidence": "docs/acceptance/wave7/controller/preflight-20261028/j1/2026-10-28T14-17-36.868Z-35084-baseline-result.json",
       "dispatchReportedAt": "2026-10-28T14:30:00Z",
-      "dispatchEvidence": "user chat 2026-10-28 ~23:30 JST: \"前三单是sol，界面单是astra\" (J1, J3, J4 to sol; UI ticket J2 to astra); worker trees still clean at base 28287695 when recorded"
+      "dispatchEvidence": "user chat 2026-10-28 ~23:30 JST: \"前三单是sol，界面单是astra\" (J1, J3, J4 to sol; UI ticket J2 to astra); worker trees still clean at base 28287695 when recorded",
+      "relayedAt": "2026-10-28T15:45:00Z",
+      "relayEvidence": "user chat 2026-10-29 \"收活\" (about 00:45 JST; the controller's first acceptance run started 15:48Z); all four receipts start with the completion line; controller receipt audit (w3-receipt-audit for J1/J3, w2-receipt-audit for J2/J4, wave 7 manifest) found no problems except J2 app.css mixed line endings, identical to the commit after removing CR",
+      "workerSelfReport": "Codex GPT-6",
+      "submittedHead": "3f5550e0c2677fa7d1accda84b47f634c37b8838",
+      "implementationCommit": "eeea16509125ce9023941ee3c1d3f0463c03bf99",
+      "verifiedAt": "2026-10-28T16:24:11Z",
+      "mergeCommit": "1019b4e32790750fc531448f599be1bc120c4931",
+      "controllerReview": "receipt audit clean; fresh-tree lock/check --final/test --final/native --final green (native: 1 window, 0 dialogs, 9 steps, 15.8 s, exit 0, only the 3,145,815-byte fixture deleted, journal intent/result); controller mutations c1 (stop on ExitRequested), c2 (unknown clock counted from the stop request), c3 (close guard lets unknown close), c4 (bounded stop outside the Exit branch), c5 (empty slot available), c6 (clean_state ignores availability), c7 (lax deadline check) all caught with their markers; probes c8 (poll/limit swapped) and c9 (loop clock restarted after the first query) survived as test gaps; combined build (main 34ec997c + J1-J4) closed during a 64,000-file clean: window gone 457 ms after the request and after the clean stopped (17 deleted, 1 partial, 142 skipped), journal 160/160, exit 0; independent review: no high or medium; see docs/acceptance/wave7/controller/WATER-W7-REVIEW-20261029.md",
+      "carryOverLater": [
+        "the Exit wiring source assertion only checks that stop_cleaning_within, from_millis(200) and from_secs(10) appear in the branch: swapped poll/limit (controller probe c8 survived), another backend or a spawned thread still pass",
+        "HOST_EXIT_DEADLINE only covers a first query longer than the whole limit, not one that uses part of it (controller probe c9 survived)",
+        "the test tokenizer does not handle char literals, raw strings or non-ASCII outside strings (fails loudly; current lib.rs has none)",
+        "README: the new paragraph runs into the next one (missing blank line)",
+        "theoretical: available() and call() lock the slot separately; a take between them would cost a 5 s wait (unreachable today)"
+      ]
     },
     {
       "kind": "ui",
@@ -510,7 +525,7 @@
       "branch": "worker/water-w7-j2",
       "baseCommit": "282876950df40a14b7abeec6ab27677ea0adc897",
       "snapshotRef": "refs/tags/water-w7-m3-fix-base-20261028",
-      "status": "DISPATCHED",
+      "status": "VERIFIED",
       "readyOn": "2026-10-28",
       "dispatchedAt": null,
       "startedAt": null,
@@ -595,7 +610,23 @@
       "baselineStatus": "PASSED",
       "baselineEvidence": "docs/acceptance/wave7/controller/preflight-20261028/j2/2026-10-28T14-17-20.307Z-32236-baseline-result.json",
       "dispatchReportedAt": "2026-10-28T14:30:00Z",
-      "dispatchEvidence": "user chat 2026-10-28 ~23:30 JST: \"前三单是sol，界面单是astra\" (J1, J3, J4 to sol; UI ticket J2 to astra); worker trees still clean at base 28287695 when recorded"
+      "dispatchEvidence": "user chat 2026-10-28 ~23:30 JST: \"前三单是sol，界面单是astra\" (J1, J3, J4 to sol; UI ticket J2 to astra); worker trees still clean at base 28287695 when recorded",
+      "relayedAt": "2026-10-28T15:45:00Z",
+      "relayEvidence": "user chat 2026-10-29 \"收活\" (about 00:45 JST; the controller's first acceptance run started 15:48Z); all four receipts start with the completion line; controller receipt audit (w3-receipt-audit for J1/J3, w2-receipt-audit for J2/J4, wave 7 manifest) found no problems except J2 app.css mixed line endings, identical to the commit after removing CR",
+      "workerSelfReport": "Codex GPT-6",
+      "submittedHead": "63557973947161e82acb28bb3d56192a687495e7",
+      "implementationCommit": "ef03770c5f7aeed721671e365709b17e74bae29f",
+      "verifiedAt": "2026-10-28T16:17:46Z",
+      "mergeCommit": "0d4333c223219637548ac0be037a470df65fa48b",
+      "controllerReview": "receipt audit: only the app.css line-ending note (worker tree mixed CRLF/LF, identical to the commit without CR; fresh-tree finals ran on the committed form); fresh-tree check --final/test --final/browser --final green; controller mutations c1 (busy kept), c2 (every error cleared), c3 (re-read awaited), c5 (body note keyed on one sentence), c6 (announcer gap 50 ms), c7 (half-transparent band), c8 (older success skips the order check) caught with 4 of 5 browser tests passing and no timeouts; c4 (superseded error still records stale) survived because page reads never return stale; screenshots stale, cleaning, busy, notice-results checked; independent review: no high or medium; see docs/acceptance/wave7/controller/WATER-W7-REVIEW-20261029.md",
+      "carryOverLater": [
+        "locations actions (addRoot, toggleCategory, removeRoot) re-read or write locations outside the per-page read numbering",
+        "the comment above fault() still says stale is always recorded; superseded reads now drop it",
+        "while a notice shows, the titlebar band is the opaque window colour, not frosted glass",
+        "UI_READ_ORDER covers two full history reads only; UI_NOTICE_TOP treats any rgb( colour as opaque; UI_RECOVER_ERROR uses fixture sentences (clearing by text would pass)",
+        "console errors arriving after afterEach are blamed on the next test",
+        "contract: item 1 also clears an unavailable/busy action error masked by the reconnect text; section 9 says 21 screenshots, the suite makes 26"
+      ]
     },
     {
       "kind": "service",
@@ -709,7 +740,7 @@
       "branch": "worker/water-w7-j3",
       "baseCommit": "282876950df40a14b7abeec6ab27677ea0adc897",
       "snapshotRef": "refs/tags/water-w7-m3-fix-base-20261028",
-      "status": "DISPATCHED",
+      "status": "VERIFIED",
       "readyOn": "2026-10-28",
       "dispatchedAt": null,
       "startedAt": null,
@@ -768,7 +799,19 @@
       "baselineStatus": "PASSED",
       "baselineEvidence": "docs/acceptance/wave7/controller/preflight-20261028/j3/2026-10-28T14-17-51.465Z-23076-baseline-result.json",
       "dispatchReportedAt": "2026-10-28T14:30:00Z",
-      "dispatchEvidence": "user chat 2026-10-28 ~23:30 JST: \"前三单是sol，界面单是astra\" (J1, J3, J4 to sol; UI ticket J2 to astra); worker trees still clean at base 28287695 when recorded"
+      "dispatchEvidence": "user chat 2026-10-28 ~23:30 JST: \"前三单是sol，界面单是astra\" (J1, J3, J4 to sol; UI ticket J2 to astra); worker trees still clean at base 28287695 when recorded",
+      "relayedAt": "2026-10-28T15:45:00Z",
+      "relayEvidence": "user chat 2026-10-29 \"收活\" (about 00:45 JST; the controller's first acceptance run started 15:48Z); all four receipts start with the completion line; controller receipt audit (w3-receipt-audit for J1/J3, w2-receipt-audit for J2/J4, wave 7 manifest) found no problems except J2 app.css mixed line endings, identical to the commit after removing CR",
+      "workerSelfReport": "Codex GPT-6",
+      "submittedHead": "d552b243c44574e9a227ef5bc51dd6c78591763f",
+      "implementationCommit": "0f3ee7261ba0583bbc5dad172627a3e79cb71342",
+      "verifiedAt": "2026-10-28T16:23:30Z",
+      "mergeCommit": "9d0e98331d05c259f30a02e06bf667fd76cdc057",
+      "controllerReview": "receipt audit clean; fresh-tree lock/check --final/test --final/real --final green (real: completed, 81.9 s, 4 drives, same categories and group counts as the worker); controller mutations c1 (start 0), c2 (every item group 1), c3 (finish count - 1), c4 (snapshot removed by file name) caught; no 50 ms budget failure in the controller runs; real window of the combined build showed 第 1 / 1 组 while cleaning; see docs/acceptance/wave7/controller/WATER-W7-REVIEW-20261029.md",
+      "carryOverLater": [
+        "the worker saw two intermittent SERVICE_RETURN_BUDGET (50 ms) failures (custom_root_add; scan_start/scan_progress); none in the controller runs; keep watching",
+        "a failing Store::remove of the orphan snapshot is not injected in tests"
+      ]
     },
     {
       "kind": "rust",
@@ -820,7 +863,7 @@
       "branch": "worker/water-w7-j4",
       "baseCommit": "282876950df40a14b7abeec6ab27677ea0adc897",
       "snapshotRef": "refs/tags/water-w7-m3-fix-base-20261028",
-      "status": "DISPATCHED",
+      "status": "VERIFIED",
       "readyOn": "2026-10-28",
       "dispatchedAt": null,
       "startedAt": null,
@@ -869,7 +912,23 @@
       "baselineStatus": "PASSED",
       "baselineEvidence": "docs/acceptance/wave7/controller/preflight-20261028/j4/2026-10-28T14-17-30.059Z-26708-baseline-result.json",
       "dispatchReportedAt": "2026-10-28T14:30:00Z",
-      "dispatchEvidence": "user chat 2026-10-28 ~23:30 JST: \"前三单是sol，界面单是astra\" (J1, J3, J4 to sol; UI ticket J2 to astra); worker trees still clean at base 28287695 when recorded"
+      "dispatchEvidence": "user chat 2026-10-28 ~23:30 JST: \"前三单是sol，界面单是astra\" (J1, J3, J4 to sol; UI ticket J2 to astra); worker trees still clean at base 28287695 when recorded",
+      "relayedAt": "2026-10-28T15:45:00Z",
+      "relayEvidence": "user chat 2026-10-29 \"收活\" (about 00:45 JST; the controller's first acceptance run started 15:48Z); all four receipts start with the completion line; controller receipt audit (w3-receipt-audit for J1/J3, w2-receipt-audit for J2/J4, wave 7 manifest) found no problems except J2 app.css mixed line endings, identical to the commit after removing CR",
+      "workerSelfReport": "Codex GPT-6",
+      "submittedHead": "df3aef14890cdd98824bd98d71e646d3563dd2fa",
+      "implementationCommit": "8a3cc357a6fd85f2d302a6829dc4701af3055959",
+      "verifiedAt": "2026-10-28T15:50:53Z",
+      "mergeCommit": "b299b87973a7a0990df6d2ca3a91bcc2d1bcc84a",
+      "controllerReview": "receipt audit clean; controller script: exactly 12 scalar changes, all 10 contract table rows verbatim, rule ids and order unchanged; fresh-tree lock/check --final/test --final/real --final green (70 bases, 60 literal prefixes, as the worker reported); controller mutations c1 (public what_zh gives why_zh) and c2 (plan data version hard-coded to 2026-10-28.1) caught by RULES_M3_WORDING; see docs/acceptance/wave7/controller/WATER-W7-REVIEW-20261029.md",
+      "carryOverLater": []
     }
-  ]
+  ],
+  "acceptance": {
+    "date": "2026-10-29",
+    "review": "docs/acceptance/wave7/controller/WATER-W7-REVIEW-20261029.md",
+    "evidence": "docs/acceptance/wave7/controller/accept-20261029/",
+    "kit": "docs/acceptance/wave7/controller/accept-kit/",
+    "combinedTree": "36d768357ad7c1ae3384e085dac0f03a9e04feb7"
+  }
 }

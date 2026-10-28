@@ -1,8 +1,8 @@
 # Water 状态与交接
 
-更新时间：2026-10-27 22:40 JST（M1 达成；第四波 G1～G7 全部合入；release 版已构建；M2 计划已拍板，第五波五张票已派出；第 8 份交接）。
+更新时间：2026-10-29 01:40 JST（第七波 J1～J4 全部验收合入；M3 收尾完成；第 9 份交接之后）。
 
-更换总控请先读[最新交接报告（2026-10-28 第 9 份）](CONTROLLER-HANDOFF-20261028-9.md)；[第 8 份](CONTROLLER-HANDOFF-20261027-8.md)、[第 7 份](CONTROLLER-HANDOFF-20261027-7.md)、[第 6 份](CONTROLLER-HANDOFF-20261027-6.md)、[第 5 份](CONTROLLER-HANDOFF-20261026-5.md)、[第 4 份](CONTROLLER-HANDOFF-20261026-4.md)、[第 3 份](CONTROLLER-HANDOFF-20261026-3.md)、[第 2 份](CONTROLLER-HANDOFF-20261026-2.md)、[上午那份](CONTROLLER-HANDOFF-20261026.md)及其只读状态快照仅供追溯。M1 已达成；第四、五波已全部验收合入，打开清理的 release 版已编好，M2 只差自清理；M3 第六波三张已全部验收合入，第四次整合检查通过，含第六波的 release 版 `water-0.1.0-b62f9c5c` 已编好；第七波（M3 收尾）四张票已派出（见下文）。此前[接手验收摘要](CONTROLLER-HANDOFF-20261017.md)仅供历史追溯；当前任务状态以本页、registry/manifest及最新正式验收为准。
+更换总控请先读[最新交接报告（2026-10-28 第 9 份）](CONTROLLER-HANDOFF-20261028-9.md)；[第 8 份](CONTROLLER-HANDOFF-20261027-8.md)、[第 7 份](CONTROLLER-HANDOFF-20261027-7.md)、[第 6 份](CONTROLLER-HANDOFF-20261027-6.md)、[第 5 份](CONTROLLER-HANDOFF-20261026-5.md)、[第 4 份](CONTROLLER-HANDOFF-20261026-4.md)、[第 3 份](CONTROLLER-HANDOFF-20261026-3.md)、[第 2 份](CONTROLLER-HANDOFF-20261026-2.md)、[上午那份](CONTROLLER-HANDOFF-20261026.md)及其只读状态快照仅供追溯。M1 已达成；第四、五波已全部验收合入，打开清理的 release 版已编好，M2 只差自清理；M3 第六波三张已全部验收合入，第四次整合检查通过，含第六波的 release 版 `water-0.1.0-b62f9c5c` 已编好；第七波（M3 收尾）四张已全部验收合入（见下文）。此前[接手验收摘要](CONTROLLER-HANDOFF-20261017.md)仅供历史追溯；当前任务状态以本页、registry/manifest及最新正式验收为准。
 
 ## 已确认
 
@@ -254,7 +254,12 @@ A–AB及八补单、AD保持VERIFIED；AC/补单06新增VERIFIED（Windows静�
     | [WATER-W7-J4 规则措辞与出处](dispatch/tickets/WATER-W7-J4-RULES-FIX-20261028.md) | `packages/junk-rules` | 轻门 |
 
     契约 `contracts/m3-v1/*-M3-FIX.md`；执行者规则 [W7-M3-FIX-WORKER-RULES](dispatch/W7-M3-FIX-WORKER-RULES.md)。派前：两个检查器认第七波清单，四棵树派前 baseline 都通过。清理执行器的几条低级遗留不在这一波（计划里写了理由）。孤儿进程顺延到第八波。
-17. **下一步**：等第七波回执，按计划里的验收要点收单；自清理（M2 计划第 3.2 节，用 `water-0.1.0-b62f9c5c`）等用户电脑空出来 → M2 达成报告；M3 后续（体检提醒与“几天后满”、第八波孤儿进程）。
+17. **第七波四张全部验收合入**（10-29 凌晨，用户“收活”），见[第七波收单验收](acceptance/wave7/controller/WATER-W7-REVIEW-20261029.md)：J1 `1019b4e3`、J2 `0d4333c2`、J3 `9d0e9833`、J4 `b299b879`；四个合并后主线目录树与验收用的合并版相同。
+    - 四份回执的执行者自报都是 Codex GPT-6；新树重跑全绿，总控变异共 21 条，20 条被抓到（J2 一条选得弱，换一条补上）；J1 另做两条探针，确认审查指出的两处测试缺口。
+    - J1 抓到了第六波漏网的两种（`ExitRequested`、累计计时）；J4 的 12 处改动与契约表逐字相符。
+    - 合并版真窗口“清理进行中关窗”：关窗请求后 457 ms 窗口才消失，清理 `stopped`，日志 160/160，退出码 0；清理页显示“第 1 / 1 组”和新的停止说明。
+    - J1、J2 独立审查都没有高级、中级问题；低级若干记进清单 `carryOverLater`。
+18. **下一步**：自清理（M2 计划第 3.2 节）等用户电脑空出来 → M2 达成报告；自清理前建议先做第五次整合检查并编含第七波的 release 版（现有 `water-0.1.0-b62f9c5c` 不含第七波的修正）；M3 后续（体检提醒与“几天后满”、第八波孤儿进程）。
 
 ## 真实AA→AD联合验收通过（2026-10-26）
 

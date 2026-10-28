@@ -1,0 +1,46 @@
+j2 c1 mutated apps/water/ui/app.mjs: recovery clears only unavailable and leaves a busy notice behind (worker nc1 emptied the list) (mutated sha 52de0b64dba81cd7039babf925c8ed0f6c28f2621d8d13854bec9e56c9b36360)
+j2 red-nc1 rc=0 {"task":"WATER-W7-ACCEPT-J2","mode":"red-nc1","finalGate":false,"status":"passed","error":null,"receipt":"F:\\new\\smaltalk\\water\\.worktrees\\accept-w7-j2\\.local\\checks\\WATER-W7-ACCEPT-J2\\2026-10-28T16-06-01.179Z-9736-red-nc1-result.json"}
+j2 c1 KILLED (expected UI_RECOVER_ERROR)
+j2 c1 restored exact bytes=true sha f2d946f1276453bb1de22d1d501d3c1228f6b6c6e2d58ea05b4a7c4f3649c699
+j2 test rc=0 {"task":"WATER-W7-ACCEPT-J2","mode":"test","finalGate":false,"status":"passed","error":null,"receipt":"F:\\new\\smaltalk\\water\\.worktrees\\accept-w7-j2\\.local\\checks\\WATER-W7-ACCEPT-J2\\2026-10-28T16-07-14.555Z-43444-test-result.json"}
+j2 c2 mutated apps/water/ui/app.mjs: recovery clears every error, including not_found and stale that the user still needs to see (mutated sha 47d28f999fd78d796fd284c6f58da435783357546ac12931a19d6af1234fe987)
+j2 red-nc1 rc=0 {"task":"WATER-W7-ACCEPT-J2","mode":"red-nc1","finalGate":false,"status":"passed","error":null,"receipt":"F:\\new\\smaltalk\\water\\.worktrees\\accept-w7-j2\\.local\\checks\\WATER-W7-ACCEPT-J2\\2026-10-28T16-07-17.371Z-13140-red-nc1-result.json"}
+j2 c2 KILLED (expected UI_RECOVER_ERROR)
+j2 c2 restored exact bytes=true sha f2d946f1276453bb1de22d1d501d3c1228f6b6c6e2d58ea05b4a7c4f3649c699
+j2 test rc=0 {"task":"WATER-W7-ACCEPT-J2","mode":"test","finalGate":false,"status":"passed","error":null,"receipt":"F:\\new\\smaltalk\\water\\.worktrees\\accept-w7-j2\\.local\\checks\\WATER-W7-ACCEPT-J2\\2026-10-28T16-08-31.177Z-36900-test-result.json"}
+j2 c3 mutated apps/water/ui/app.mjs: the missing-data read blocks the progress poll again (the wave 6 behaviour) (mutated sha 74fc0318891335a59180736dc5f21fd04fc5dc7bc3d00b4e383d18146c78e343)
+j2 browser rc=1 {"task":"WATER-W7-ACCEPT-J2","mode":"browser","finalGate":false,"status":"failed","error":"AssertionError [ERR_ASSERTION]: Unexpected exit, see 2026-10-28T16-08-33.791Z-36148-browser-1.log","receipt":"F:\\new\\smaltalk\\water\\.worktrees\\accept-w7-j2\\.local\\checks\\WATER-W7-ACCEPT-J2\\2026-10-28T16-08-33.791Z-36148-browser-result.json"}
+j2 c3 KILLED (expected UI_RECOVER_NONBLOCK)
+j2 c3 restored exact bytes=true sha f2d946f1276453bb1de22d1d501d3c1228f6b6c6e2d58ea05b4a7c4f3649c699
+j2 test rc=0 {"task":"WATER-W7-ACCEPT-J2","mode":"test","finalGate":false,"status":"passed","error":null,"receipt":"F:\\new\\smaltalk\\water\\.worktrees\\accept-w7-j2\\.local\\checks\\WATER-W7-ACCEPT-J2\\2026-10-28T16-09-53.134Z-33276-test-result.json"}
+j2 c4 mutated apps/water/ui/app.mjs: an older read that fails still records its error (stale flag) after a newer read succeeded (worker nc2 made every read latest) (mutated sha 84f1d4905eac5010a695b55a47bd8816154eb8b5d2a5faa3f354da041760e188)
+j2 red-nc2 rc=1 {"task":"WATER-W7-ACCEPT-J2","mode":"red-nc2","finalGate":false,"status":"failed","error":"AssertionError [ERR_ASSERTION]: Unexpected exit, see 2026-10-28T16-09-55.413Z-30004-red-nc2-1.log","receipt":"F:\\new\\smaltalk\\water\\.worktrees\\accept-w7-j2\\.local\\checks\\WATER-W7-ACCEPT-J2\\2026-10-28T16-09-55.413Z-30004-red-nc2-result.json"}
+j2 c4 SURVIVED (expected UI_READ_ORDER)
+j2 c4 restored exact bytes=true sha f2d946f1276453bb1de22d1d501d3c1228f6b6c6e2d58ea05b4a7c4f3649c699
+j2 test rc=0 {"task":"WATER-W7-ACCEPT-J2","mode":"test","finalGate":false,"status":"passed","error":null,"receipt":"F:\\new\\smaltalk\\water\\.worktrees\\accept-w7-j2\\.local\\checks\\WATER-W7-ACCEPT-J2\\2026-10-28T16-11-08.632Z-10592-test-result.json"}
+j2 c5 mutated apps/water/ui/views/results.mjs: the body note is keyed on one fixed sentence again, so another stale sentence shows it twice (worker nc3 kept the retry suffix instead) (mutated sha 5b8c594302b8cb35cb123624ab60cc2239be32433c798d90de22a81781951b24)
+j2 red-nc3 rc=0 {"task":"WATER-W7-ACCEPT-J2","mode":"red-nc3","finalGate":false,"status":"passed","error":null,"receipt":"F:\\new\\smaltalk\\water\\.worktrees\\accept-w7-j2\\.local\\checks\\WATER-W7-ACCEPT-J2\\2026-10-28T16-11-10.671Z-40612-red-nc3-result.json"}
+j2 c5 KILLED (expected UI_STALE_START)
+j2 c5 restored exact bytes=true sha 52aba0ded34e64fd7bed6321755166e666ba054452b70221f52b8e7c36419e42
+j2 test rc=0 {"task":"WATER-W7-ACCEPT-J2","mode":"test","finalGate":false,"status":"passed","error":null,"receipt":"F:\\new\\smaltalk\\water\\.worktrees\\accept-w7-j2\\.local\\checks\\WATER-W7-ACCEPT-J2\\2026-10-28T16-12-23.745Z-24168-test-result.json"}
+j2 c6 mutated apps/water/ui/app.mjs: the announcer rewrite comes 50 ms after the clear, under the 100 ms the contract asks for (mutated sha 8bd7fcc92cb2d573b7d0ae14a5675dd7090ea517c5b20fba138fcbd43726e436)
+j2 browser rc=1 {"task":"WATER-W7-ACCEPT-J2","mode":"browser","finalGate":false,"status":"failed","error":"AssertionError [ERR_ASSERTION]: Unexpected exit, see 2026-10-28T16-12-26.320Z-42352-browser-1.log","receipt":"F:\\new\\smaltalk\\water\\.worktrees\\accept-w7-j2\\.local\\checks\\WATER-W7-ACCEPT-J2\\2026-10-28T16-12-26.320Z-42352-browser-result.json"}
+j2 c6 timeout in logs=false
+j2 c6 KILLED (expected UI_CLEAN_STOP)
+j2 c6 restored exact bytes=true sha f2d946f1276453bb1de22d1d501d3c1228f6b6c6e2d58ea05b4a7c4f3649c699
+j2 test rc=0 {"task":"WATER-W7-ACCEPT-J2","mode":"test","finalGate":false,"status":"passed","error":null,"receipt":"F:\\new\\smaltalk\\water\\.worktrees\\accept-w7-j2\\.local\\checks\\WATER-W7-ACCEPT-J2\\2026-10-28T16-13-38.538Z-26368-test-result.json"}
+j2 c7 mutated apps/water/ui/styles/app.css: the band above a pinned notice is half transparent, so scrolled text shows through (mutated sha 814934c7816fefc83168763ad547acbf647e6f488afc598eae28863b676bec43)
+j2 browser rc=1 {"task":"WATER-W7-ACCEPT-J2","mode":"browser","finalGate":false,"status":"failed","error":"AssertionError [ERR_ASSERTION]: Unexpected exit, see 2026-10-28T16-13-40.729Z-26312-browser-1.log","receipt":"F:\\new\\smaltalk\\water\\.worktrees\\accept-w7-j2\\.local\\checks\\WATER-W7-ACCEPT-J2\\2026-10-28T16-13-40.729Z-26312-browser-result.json"}
+j2 c7 timeout in logs=false
+j2 c7 KILLED (expected UI_NOTICE_TOP)
+j2 c7 restored exact bytes=true sha 9b9269dc0b9bcfed105726d9b235f2e817df6eecb12dd02ed7b44d159c90de82
+j2 test rc=0 {"task":"WATER-W7-ACCEPT-J2","mode":"test","finalGate":false,"status":"passed","error":null,"receipt":"F:\\new\\smaltalk\\water\\.worktrees\\accept-w7-j2\\.local\\checks\\WATER-W7-ACCEPT-J2\\2026-10-28T16-14-38.893Z-31256-test-result.json"}
+j2 survived: c4
+j2 test --final rc=1 {"task":"WATER-W7-ACCEPT-J2","mode":"test","finalGate":true,"status":"failed","error":"AssertionError [ERR_ASSERTION]: Missing valid negative control nc2","receipt":"F:\\new\\smaltalk\\water\\.worktrees\\accept-w7-j2\\.local\\checks\\WATER-W7-ACCEPT-J2\\2026-10-28T16-14-41.042Z-22456-test-result.json"}
+j2 c8 mutated apps/water/ui/app.mjs: an older successful read of the same page writes its data again; only errors still check the read order (c4, which let superseded errors record the stale flag, survived: page reads never return stale, so nothing visible changes) (mutated sha d26d0863bc64e7ddcaf6c12903f106e9920d2c6e2cfca1c3b4fd50547e42c3df)
+j2 red-nc2 rc=0 {"task":"WATER-W7-ACCEPT-J2","mode":"red-nc2","finalGate":false,"status":"passed","error":null,"receipt":"F:\\new\\smaltalk\\water\\.worktrees\\accept-w7-j2\\.local\\checks\\WATER-W7-ACCEPT-J2\\2026-10-28T16-16-33.567Z-43588-red-nc2-result.json"}
+j2 c8 KILLED (expected UI_READ_ORDER)
+j2 c8 restored exact bytes=true sha f2d946f1276453bb1de22d1d501d3c1228f6b6c6e2d58ea05b4a7c4f3649c699
+j2 test rc=0 {"task":"WATER-W7-ACCEPT-J2","mode":"test","finalGate":false,"status":"passed","error":null,"receipt":"F:\\new\\smaltalk\\water\\.worktrees\\accept-w7-j2\\.local\\checks\\WATER-W7-ACCEPT-J2\\2026-10-28T16-17-44.448Z-11468-test-result.json"}
+j2 survived: none
+j2 test --final rc=0 {"task":"WATER-W7-ACCEPT-J2","mode":"test","finalGate":true,"status":"passed","error":null,"receipt":"F:\\new\\smaltalk\\water\\.worktrees\\accept-w7-j2\\.local\\checks\\WATER-W7-ACCEPT-J2\\2026-10-28T16-17-46.506Z-39916-test-result.json"}

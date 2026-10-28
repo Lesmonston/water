@@ -1,0 +1,40 @@
+j1 lock rc=0 {"task":"WATER-W7-ACCEPT-J1","mode":"lock","finalGate":false,"status":"passed","error":null,"receipt":"F:\\new\\smaltalk\\water\\.worktrees\\accept-w7-j1\\.local\\checks\\WATER-W7-ACCEPT-J1\\2026-10-28T15-48-26.039Z-5988-lock-result.json"}
+j1 check:final rc=0 {"task":"WATER-W7-ACCEPT-J1","mode":"check","finalGate":true,"status":"passed","error":null,"receipt":"F:\\new\\smaltalk\\water\\.worktrees\\accept-w7-j1\\.local\\checks\\WATER-W7-ACCEPT-J1\\2026-10-28T15-48-43.562Z-35860-check-result.json"}
+j1 c1 mutated apps/water/host/src/lib.rs: wave 6 survivor c4: the stop runs on ExitRequested instead of Exit; the old string match accepted it (mutated sha 0ac546160822956fcb60336d7ac11520bbe846b8ab3b00230996bc3dbdefecda)
+j1 test rc=1 {"task":"WATER-W7-ACCEPT-J1","mode":"test","finalGate":false,"status":"failed","error":"AssertionError [ERR_ASSERTION]: Unexpected exit, see 2026-10-28T15-54-20.170Z-21124-test-5.log","receipt":"F:\\new\\smaltalk\\water\\.worktrees\\accept-w7-j1\\.local\\checks\\WATER-W7-ACCEPT-J1\\2026-10-28T15-54-20.170Z-21124-test-result.json"}
+j1 c1 KILLED (expected HOST_EXIT_DURING_CLEAN)
+j1 c1 restored exact bytes=true sha d9645e39c07e8720fc98639f44d3cc6d596f4a1514c8a8fe5bba7b0e2076239c
+j1 test rc=0 {"task":"WATER-W7-ACCEPT-J1","mode":"test","finalGate":false,"status":"passed","error":null,"receipt":"F:\\new\\smaltalk\\water\\.worktrees\\accept-w7-j1\\.local\\checks\\WATER-W7-ACCEPT-J1\\2026-10-28T15-58-53.131Z-13100-test-result.json"}
+j1 c2 mutated apps/water/host/src/lib.rs: wave 6 survivor c2 in another form: the unknown clock always counts from the stop request, so unknown time is cumulative even after a Cleaning answer resets it (worker nc3 removed the reset itself) (mutated sha 9e6f2779bb48d720ccea96a963914f76c8e357da4fafe07d423ea9caea81651a)
+j1 red-nc3 rc=0 {"task":"WATER-W7-ACCEPT-J1","mode":"red-nc3","finalGate":false,"status":"passed","error":null,"receipt":"F:\\new\\smaltalk\\water\\.worktrees\\accept-w7-j1\\.local\\checks\\WATER-W7-ACCEPT-J1\\2026-10-28T15-59-17.646Z-8960-red-nc3-result.json"}
+j1 c2 KILLED (expected HOST_UNKNOWN_RESET)
+j1 c2 restored exact bytes=true sha d9645e39c07e8720fc98639f44d3cc6d596f4a1514c8a8fe5bba7b0e2076239c
+j1 test rc=0 {"task":"WATER-W7-ACCEPT-J1","mode":"test","finalGate":false,"status":"passed","error":null,"receipt":"F:\\new\\smaltalk\\water\\.worktrees\\accept-w7-j1\\.local\\checks\\WATER-W7-ACCEPT-J1\\2026-10-28T15-59-33.720Z-32272-test-result.json"}
+j1 c3 mutated apps/water/host/src/lib.rs: the close guard lets the window close on an unknown state (the contract's example) (mutated sha 94a938507660016167f696b2b46dcab34726bea1f0e8c5d9e46bbd00c20f1bfa)
+j1 test rc=1 {"task":"WATER-W7-ACCEPT-J1","mode":"test","finalGate":false,"status":"failed","error":"AssertionError [ERR_ASSERTION]: Unexpected exit, see 2026-10-28T15-59-56.427Z-28160-test-5.log","receipt":"F:\\new\\smaltalk\\water\\.worktrees\\accept-w7-j1\\.local\\checks\\WATER-W7-ACCEPT-J1\\2026-10-28T15-59-56.427Z-28160-test-result.json"}
+j1 c3 KILLED (expected HOST_CLOSE_UNKNOWN)
+j1 c3 restored exact bytes=true sha d9645e39c07e8720fc98639f44d3cc6d596f4a1514c8a8fe5bba7b0e2076239c
+j1 test rc=0 {"task":"WATER-W7-ACCEPT-J1","mode":"test","finalGate":false,"status":"passed","error":null,"receipt":"F:\\new\\smaltalk\\water\\.worktrees\\accept-w7-j1\\.local\\checks\\WATER-W7-ACCEPT-J1\\2026-10-28T16-00-20.611Z-32580-test-result.json"}
+j1 c4 mutated apps/water/host/src/lib.rs: the bounded stop moves outside the Exit branch and runs on every event; the old assertion only looked for the call after the Exit text (mutated sha 2e24a045845eaa169f5feb1eeaca88766de702c311eff123e43ea55c01581b08)
+j1 test rc=1 {"task":"WATER-W7-ACCEPT-J1","mode":"test","finalGate":false,"status":"failed","error":"AssertionError [ERR_ASSERTION]: Unexpected exit, see 2026-10-28T16-00-44.177Z-22808-test-5.log","receipt":"F:\\new\\smaltalk\\water\\.worktrees\\accept-w7-j1\\.local\\checks\\WATER-W7-ACCEPT-J1\\2026-10-28T16-00-44.177Z-22808-test-result.json"}
+j1 c4 KILLED (expected HOST_EXIT_DURING_CLEAN)
+j1 c4 restored exact bytes=true sha d9645e39c07e8720fc98639f44d3cc6d596f4a1514c8a8fe5bba7b0e2076239c
+j1 test rc=0 {"task":"WATER-W7-ACCEPT-J1","mode":"test","finalGate":false,"status":"passed","error":null,"receipt":"F:\\new\\smaltalk\\water\\.worktrees\\accept-w7-j1\\.local\\checks\\WATER-W7-ACCEPT-J1\\2026-10-28T16-01-07.704Z-6104-test-result.json"}
+j1 c5 mutated apps/water/host/src/lib.rs: an empty (taken) backend slot counts as available, so its state is unknown and the stop waits (worker nc1 made UnavailableBackend available instead) (mutated sha 288821a5b29823a6e3151e8abb089b6c8f3c9206cd622076bef2b8f6331db689)
+j1 red-nc1 rc=0 {"task":"WATER-W7-ACCEPT-J1","mode":"red-nc1","finalGate":false,"status":"passed","error":null,"receipt":"F:\\new\\smaltalk\\water\\.worktrees\\accept-w7-j1\\.local\\checks\\WATER-W7-ACCEPT-J1\\2026-10-28T16-01-33.359Z-4080-red-nc1-result.json"}
+j1 c5 KILLED (expected HOST_UNSTARTED_SERVICE)
+j1 c5 restored exact bytes=true sha d9645e39c07e8720fc98639f44d3cc6d596f4a1514c8a8fe5bba7b0e2076239c
+j1 test rc=0 {"task":"WATER-W7-ACCEPT-J1","mode":"test","finalGate":false,"status":"passed","error":null,"receipt":"F:\\new\\smaltalk\\water\\.worktrees\\accept-w7-j1\\.local\\checks\\WATER-W7-ACCEPT-J1\\2026-10-28T16-01-43.432Z-26912-test-result.json"}
+j1 c6 mutated apps/water/host/src/lib.rs: clean_state ignores availability and queries app_state anyway (mutated sha 33798704d4391bde7e6095aa21ee01b9d277bf0f6102b93f408f429de5d599f4)
+j1 red-nc1 rc=0 {"task":"WATER-W7-ACCEPT-J1","mode":"red-nc1","finalGate":false,"status":"passed","error":null,"receipt":"F:\\new\\smaltalk\\water\\.worktrees\\accept-w7-j1\\.local\\checks\\WATER-W7-ACCEPT-J1\\2026-10-28T16-02-09.167Z-11308-red-nc1-result.json"}
+j1 c6 KILLED (expected HOST_UNSTARTED_SERVICE)
+j1 c6 restored exact bytes=true sha d9645e39c07e8720fc98639f44d3cc6d596f4a1514c8a8fe5bba7b0e2076239c
+j1 test rc=0 {"task":"WATER-W7-ACCEPT-J1","mode":"test","finalGate":false,"status":"passed","error":null,"receipt":"F:\\new\\smaltalk\\water\\.worktrees\\accept-w7-j1\\.local\\checks\\WATER-W7-ACCEPT-J1\\2026-10-28T16-02-23.404Z-36148-test-result.json"}
+j1 c7 mutated apps/water/host/src/lib.rs: the deadline check after the first query is too lax, so the loop queries again after the limit has passed (worker nc2 moved the clock start instead) (mutated sha 54c4c8b3396b8296b98496f655376fc5def51e8f47e119417f76df42128eaadb)
+j1 red-nc2 rc=0 {"task":"WATER-W7-ACCEPT-J1","mode":"red-nc2","finalGate":false,"status":"passed","error":null,"receipt":"F:\\new\\smaltalk\\water\\.worktrees\\accept-w7-j1\\.local\\checks\\WATER-W7-ACCEPT-J1\\2026-10-28T16-02-48.634Z-43016-red-nc2-result.json"}
+j1 c7 KILLED (expected HOST_EXIT_DEADLINE)
+j1 c7 restored exact bytes=true sha d9645e39c07e8720fc98639f44d3cc6d596f4a1514c8a8fe5bba7b0e2076239c
+j1 test rc=0 {"task":"WATER-W7-ACCEPT-J1","mode":"test","finalGate":false,"status":"passed","error":null,"receipt":"F:\\new\\smaltalk\\water\\.worktrees\\accept-w7-j1\\.local\\checks\\WATER-W7-ACCEPT-J1\\2026-10-28T16-03-02.793Z-9368-test-result.json"}
+j1 survived: none
+j1 test --final rc=0 {"task":"WATER-W7-ACCEPT-J1","mode":"test","finalGate":true,"status":"passed","error":null,"receipt":"F:\\new\\smaltalk\\water\\.worktrees\\accept-w7-j1\\.local\\checks\\WATER-W7-ACCEPT-J1\\2026-10-28T16-03-27.029Z-23784-test-result.json"}
+j1 chain exit 0

@@ -1,0 +1,26 @@
+j3 lock rc=0 {"task":"WATER-W7-ACCEPT-J3","mode":"lock","finalGate":false,"status":"passed","error":null,"receipt":"F:\\new\\smaltalk\\water\\.worktrees\\accept-w7-j3\\.local\\checks\\WATER-W7-ACCEPT-J3\\2026-10-28T16-18-00.028Z-36496-lock-result.json"}
+j3 check:final rc=0 {"task":"WATER-W7-ACCEPT-J3","mode":"check","finalGate":true,"status":"passed","error":null,"receipt":"F:\\new\\smaltalk\\water\\.worktrees\\accept-w7-j3\\.local\\checks\\WATER-W7-ACCEPT-J3\\2026-10-28T16-18-03.247Z-2476-check-result.json"}
+j3 c1 mutated packages/water-service/src/clean.rs: the clean starts at group 0 again (worker nc1 removed the +1 per item instead) (mutated sha 7b1ace4385c22b7f6d25c1b73a9333263e4e637039ed28daae4288816f9945ca)
+j3 red-nc1 rc=0 {"task":"WATER-W7-ACCEPT-J3","mode":"red-nc1","finalGate":false,"status":"passed","error":null,"receipt":"F:\\new\\smaltalk\\water\\.worktrees\\accept-w7-j3\\.local\\checks\\WATER-W7-ACCEPT-J3\\2026-10-28T16-18-22.079Z-23912-red-nc1-result.json"}
+j3 c1 KILLED (expected SERVICE_GROUP_INDEX)
+j3 c1 restored exact bytes=true sha b144b732de7fe2d2d478e8e515d3b1f48680414fb6622da57aba296703c0c712
+j3 test rc=0 {"task":"WATER-W7-ACCEPT-J3","mode":"test","finalGate":false,"status":"passed","error":null,"receipt":"F:\\new\\smaltalk\\water\\.worktrees\\accept-w7-j3\\.local\\checks\\WATER-W7-ACCEPT-J3\\2026-10-28T16-19-01.497Z-33016-test-result.json"}
+j3 c2 mutated packages/water-service/src/clean.rs: every item reports group 1, so later groups never get a larger number (mutated sha e5e8fa577026a71f7b9bec77ab2a6ed2528474ffba8bcfc9985657622ead41b6)
+j3 red-nc1 rc=0 {"task":"WATER-W7-ACCEPT-J3","mode":"red-nc1","finalGate":false,"status":"passed","error":null,"receipt":"F:\\new\\smaltalk\\water\\.worktrees\\accept-w7-j3\\.local\\checks\\WATER-W7-ACCEPT-J3\\2026-10-28T16-19-22.310Z-8228-red-nc1-result.json"}
+j3 c2 KILLED (expected SERVICE_GROUP_INDEX)
+j3 c2 restored exact bytes=true sha b144b732de7fe2d2d478e8e515d3b1f48680414fb6622da57aba296703c0c712
+j3 test rc=0 {"task":"WATER-W7-ACCEPT-J3","mode":"test","finalGate":false,"status":"passed","error":null,"receipt":"F:\\new\\smaltalk\\water\\.worktrees\\accept-w7-j3\\.local\\checks\\WATER-W7-ACCEPT-J3\\2026-10-28T16-19-44.189Z-28924-test-result.json"}
+j3 c3 mutated packages/water-service/src/clean.rs: the finished clean reports the last 0-based index instead of the group count (mutated sha 43029b6e3d6be6e79006e2db3b5740ee143c2949256978b462490f6432cd5b66)
+j3 test rc=1 {"task":"WATER-W7-ACCEPT-J3","mode":"test","finalGate":false,"status":"failed","error":"AssertionError [ERR_ASSERTION]: Unexpected exit, see 2026-10-28T16-20-03.065Z-8908-test-5.log","receipt":"F:\\new\\smaltalk\\water\\.worktrees\\accept-w7-j3\\.local\\checks\\WATER-W7-ACCEPT-J3\\2026-10-28T16-20-03.065Z-8908-test-result.json"}
+j3 c3 KILLED (expected SERVICE_GROUP_INDEX)
+j3 c3 restored exact bytes=true sha b144b732de7fe2d2d478e8e515d3b1f48680414fb6622da57aba296703c0c712
+j3 test rc=0 {"task":"WATER-W7-ACCEPT-J3","mode":"test","finalGate":false,"status":"passed","error":null,"receipt":"F:\\new\\smaltalk\\water\\.worktrees\\accept-w7-j3\\.local\\checks\\WATER-W7-ACCEPT-J3\\2026-10-28T16-20-21.118Z-40040-test-result.json"}
+j3 c4 mutated packages/water-service/src/service.rs: the snapshot is removed by file name instead of id, so the store looks for <id>.json.json and the orphan stays (worker nc2 passed an empty list instead) (mutated sha 7fa3a7d5f2c53b2db8a1076916d049c45625b98ea66936f52181c7d4254ced3a)
+j3 red-nc2 rc=0 {"task":"WATER-W7-ACCEPT-J3","mode":"red-nc2","finalGate":false,"status":"passed","error":null,"receipt":"F:\\new\\smaltalk\\water\\.worktrees\\accept-w7-j3\\.local\\checks\\WATER-W7-ACCEPT-J3\\2026-10-28T16-20-40.863Z-28224-red-nc2-result.json"}
+j3 c4 KILLED (expected SERVICE_SNAPSHOT_ORPHAN)
+j3 c4 restored exact bytes=true sha 12fa3e664a9cfc7d1d0501a5f927edda2a7b2ec4569649c9a7b5ec6144181b3c
+j3 test rc=0 {"task":"WATER-W7-ACCEPT-J3","mode":"test","finalGate":false,"status":"passed","error":null,"receipt":"F:\\new\\smaltalk\\water\\.worktrees\\accept-w7-j3\\.local\\checks\\WATER-W7-ACCEPT-J3\\2026-10-28T16-21-03.492Z-36948-test-result.json"}
+j3 survived: none
+j3 test --final rc=0 {"task":"WATER-W7-ACCEPT-J3","mode":"test","finalGate":true,"status":"passed","error":null,"receipt":"F:\\new\\smaltalk\\water\\.worktrees\\accept-w7-j3\\.local\\checks\\WATER-W7-ACCEPT-J3\\2026-10-28T16-21-24.206Z-40436-test-result.json"}
+controls exit 0
+j3 real:final rc=0 {"task":"WATER-W7-ACCEPT-J3","mode":"real","finalGate":true,"status":"passed","error":null,"receipt":"F:\\new\\smaltalk\\water\\.worktrees\\accept-w7-j3\\.local\\checks\\WATER-W7-ACCEPT-J3\\2026-10-28T16-21-41.497Z-21464-real-result.json"}
