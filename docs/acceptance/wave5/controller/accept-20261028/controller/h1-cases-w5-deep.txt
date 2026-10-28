@@ -1,0 +1,23 @@
+   Compiling water-junk-clean v0.1.0 (F:\new\smaltalk\water\.worktrees\accept-w5-h1-cases\packages\junk-clean)
+    Finished `test` profile [unoptimized + debuginfo] target(s) in 1.13s
+     Running tests\controller_cases.rs (.local/w2-target\debug\deps\controller_cases-b3263f427e0443c3.exe)
+
+running 1 test
+test h1_deep_tree_residual_small_stack ... CONTROLLER h1 deep residual: status Skipped reason Some(Changed) failed 0 freed 0 of 0
+
+thread 'h1_deep_tree_residual_small_stack' (3500) panicked at tests\controller_cases.rs:138:5:
+assertion `left == right` failed: CONTROLLER_H1_DEEP_RESIDUAL: status
+  left: Skipped
+ right: Partial
+note: run with `RUST_BACKTRACE=1` environment variable to display a backtrace
+FAILED
+
+failures:
+
+failures:
+    h1_deep_tree_residual_small_stack
+
+test result: FAILED. 0 passed; 1 failed; 0 ignored; 0 measured; 2 filtered out; finished in 55.06s
+
+error: test failed, to rerun pass `--test controller_cases`
+rc=101 status after restore: ''

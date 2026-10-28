@@ -1,0 +1,17 @@
+h1 nc1 mutated packages/junk-clean/src/native_windows.rs: the link count read from FileStandardInfo is replaced by 1, so a file with another hard link is counted as freed (worker nc1 flipped the links <= 1 comparison instead) (mutated sha d6d6c2fa0365790f9ded671e05aca4de976eccb1b7ed725f9cc8258c32ac7411)
+h1 red-nc1 rc=0 {"task":"WATER-W5-ACCEPT-H1","mode":"red-nc1","finalGate":false,"status":"passed","error":null,"receipt":"F:\\new\\smaltalk\\water\\.worktrees\\accept-w5-h1\\.local\\checks\\WATER-W5-ACCEPT-H1\\2026-10-27T15-48-40.002Z-31500-red-nc1-result.json"}
+h1 nc1 KILLED (expected CLEAN_FREED_EXACT)
+h1 nc1 restored exact bytes=true sha f949bc4514059eab43f71fcd9174c85a60d05b160dc3756296d3359199f09c60
+h1 test rc=0 {"task":"WATER-W5-ACCEPT-H1","mode":"test","finalGate":false,"status":"passed","error":null,"receipt":"F:\\new\\smaltalk\\water\\.worktrees\\accept-w5-h1\\.local\\checks\\WATER-W5-ACCEPT-H1\\2026-10-27T15-49-15.912Z-42728-test-result.json"}
+h1 nc2 mutated packages/junk-clean/src/native_windows.rs: the private key for a name that is not valid UTF-16 becomes lossy, so two different unpaired names collide (worker nc2 dropped the failure count instead) (mutated sha 518018606c84531fc00f8c6e02c453c52e995b52ffb618d7473d08a4f73b49b7)
+h1 red-nc2 rc=0 {"task":"WATER-W5-ACCEPT-H1","mode":"red-nc2","finalGate":false,"status":"passed","error":null,"receipt":"F:\\new\\smaltalk\\water\\.worktrees\\accept-w5-h1\\.local\\checks\\WATER-W5-ACCEPT-H1\\2026-10-27T15-50-36.451Z-36436-red-nc2-result.json"}
+h1 nc2 KILLED (expected CLEAN_UNPAIRED_NAME)
+h1 nc2 restored exact bytes=true sha f949bc4514059eab43f71fcd9174c85a60d05b160dc3756296d3359199f09c60
+h1 test rc=0 {"task":"WATER-W5-ACCEPT-H1","mode":"test","finalGate":false,"status":"passed","error":null,"receipt":"F:\\new\\smaltalk\\water\\.worktrees\\accept-w5-h1\\.local\\checks\\WATER-W5-ACCEPT-H1\\2026-10-27T15-51-29.762Z-36460-test-result.json"}
+h1 nc3 mutated packages/junk-clean/src/native_windows.rs: the snapshot walk stops descending below 1024 levels, so the deep part of the tree is never planned (worker nc3 capped the delete stack instead) (mutated sha 0c96303020a1d0fd30433c806800563d007f770aa001273a31ad012c04415441)
+h1 red-nc3 rc=0 {"task":"WATER-W5-ACCEPT-H1","mode":"red-nc3","finalGate":false,"status":"passed","error":null,"receipt":"F:\\new\\smaltalk\\water\\.worktrees\\accept-w5-h1\\.local\\checks\\WATER-W5-ACCEPT-H1\\2026-10-27T15-52-17.726Z-18960-red-nc3-result.json"}
+h1 nc3 KILLED (expected CLEAN_DEEP_TREE)
+h1 nc3 restored exact bytes=true sha f949bc4514059eab43f71fcd9174c85a60d05b160dc3756296d3359199f09c60
+h1 test rc=0 {"task":"WATER-W5-ACCEPT-H1","mode":"test","finalGate":false,"status":"passed","error":null,"receipt":"F:\\new\\smaltalk\\water\\.worktrees\\accept-w5-h1\\.local\\checks\\WATER-W5-ACCEPT-H1\\2026-10-27T15-53-29.779Z-31732-test-result.json"}
+h1 survived: none
+h1 test --final rc=0 {"task":"WATER-W5-ACCEPT-H1","mode":"test","finalGate":true,"status":"passed","error":null,"receipt":"F:\\new\\smaltalk\\water\\.worktrees\\accept-w5-h1\\.local\\checks\\WATER-W5-ACCEPT-H1\\2026-10-27T15-54-21.059Z-34628-test-result.json"}

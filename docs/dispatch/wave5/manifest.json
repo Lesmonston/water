@@ -1,7 +1,7 @@
 {
   "schemaVersion": 1,
   "wave": "water-wave5-m2",
-  "status": "H2_H5_SUBMITTED_ACCEPTANCE_IN_PROGRESS_H1_ADDENDUM_01_READY",
+  "status": "H2_H4_H5_VERIFIED_H3_IN_ACCEPTANCE_H1_ADDENDUM_01_READY",
   "controller": "Claude",
   "controllerRoot": "F:/new/smaltalk/water",
   "controllerBranch": "main",
@@ -330,7 +330,7 @@
       "branch": "worker/water-w5-h2",
       "baseCommit": "3f9078972d7f958fad6bfd42e68f022dd659539e",
       "snapshotRef": "refs/tags/water-w5-m2-base-20261027",
-      "status": "SUBMITTED",
+      "status": "VERIFIED",
       "readyOn": "2026-10-27",
       "dispatchedAt": null,
       "startedAt": null,
@@ -389,7 +389,19 @@
       "relayedAt": "2026-10-27T15:40:00Z",
       "relayEvidence": "user chat 2026-10-28 ~00:40 JST: all external tasks done",
       "acceptanceProgress": "audit clean; independent review: no blocker (two medium items trace to SERVICE-M2 itself: idle clean_progress after a panic, mklink junction fixture). Acceptance tree gates not yet run.",
-      "acceptanceNote": "docs/acceptance/wave5/controller/WATER-W5-ACCEPT-PROGRESS-20261028.md"
+      "acceptanceNote": "docs/acceptance/wave5/controller/WATER-W5-ACCEPT-PROGRESS-20261028.md",
+      "verifiedAt": "2026-10-28",
+      "mergeCommit": "f58eeb2c",
+      "controllerReview": {
+        "report": "docs/acceptance/wave5/controller/WATER-W5-REVIEW-20261028.md",
+        "evidence": "docs/acceptance/wave5/controller/accept-20261028/h2/",
+        "summary": "fresh-tree check, test and real finals; controller nc1 (no idle progress after a clean-thread panic), nc2 (completed scan treated as written after a failed write), nc3 (text-form check turned around; the first try was caught first by SERVICE_CANONICAL_ROOT) all killed; independent review: no blocker, the two medium points trace to SERVICE-M2 (idle clean_progress, mklink junction fixture)"
+      },
+      "carryOverLater": [
+        "SERVICE_PANIC_IDLE prep-stage and most SERVICE_SCAN_RECORD assertions also pass on the base code",
+        "snapshot file orphaned when the scan record write fails",
+        "clean_progress idle vs SERVICE-HARDENING 2.3 failed: SERVICE-M2 wins"
+      ]
     },
     {
       "kind": "host",
@@ -853,7 +865,7 @@
       "branch": "worker/water-w5-h4",
       "baseCommit": "3f9078972d7f958fad6bfd42e68f022dd659539e",
       "snapshotRef": "refs/tags/water-w5-m2-base-20261027",
-      "status": "SUBMITTED",
+      "status": "VERIFIED",
       "readyOn": "2026-10-27",
       "dispatchedAt": null,
       "startedAt": null,
@@ -938,7 +950,22 @@
       "relayedAt": "2026-10-27T15:40:00Z",
       "relayEvidence": "user chat 2026-10-28 ~00:40 JST: all external tasks done",
       "acceptanceProgress": "audit clean; acceptance tree check/test/browser and both finals passed; controller nc1-nc3 killed; test --final passed; independent review: no blocker. Screenshots not yet viewed.",
-      "acceptanceNote": "docs/acceptance/wave5/controller/WATER-W5-ACCEPT-PROGRESS-20261028.md"
+      "acceptanceNote": "docs/acceptance/wave5/controller/WATER-W5-ACCEPT-PROGRESS-20261028.md",
+      "verifiedAt": "2026-10-28",
+      "mergeCommit": "de472412",
+      "controllerReview": {
+        "report": "docs/acceptance/wave5/controller/WATER-W5-REVIEW-20261028.md",
+        "evidence": "docs/acceptance/wave5/controller/accept-20261028/h4/",
+        "summary": "fresh-tree check, test, browser finals and test --final; controller nc1 (inScope always true), nc2 (no re-read on reconnect), nc3 (stop line kept after leaving) all killed; screenshots stop-failed, confirm, history, paused, stale, done reviewed; independent review: no blocker"
+      },
+      "carryOverLater": [
+        "tests 2 and 3 still start with unmarked 10 s pageIs waits (cascading timeouts on a test-1 regression)",
+        "reconnect re-reads only the current page and at click time",
+        "loadRoute(true) can drop an in-flight normal read",
+        "going away and back before clean_prepare returns, and the cleaning-page stop, are untested",
+        "after confirming, a page switch during clean_start no longer returns to the checkup page",
+        "stale screenshot: the notice overlaps the body line (same as G7)"
+      ]
     },
     {
       "kind": "rust",
@@ -989,7 +1016,7 @@
       "branch": "worker/water-w5-h5",
       "baseCommit": "3f9078972d7f958fad6bfd42e68f022dd659539e",
       "snapshotRef": "refs/tags/water-w5-m2-base-20261027",
-      "status": "SUBMITTED",
+      "status": "VERIFIED",
       "readyOn": "2026-10-27",
       "dispatchedAt": null,
       "startedAt": "2026-10-27T13:34:48Z",
@@ -1059,7 +1086,17 @@
       "implementationCommit": "1e3fc3b6b399d503abe0b7478a551fbf0ed011d5",
       "relayEvidence": "user chat 2026-10-28 ~00:40 JST: all external tasks done",
       "acceptanceProgress": "audit clean; acceptance tree lock/check/test, check --final, real --final passed; controller nc1 (plan.rs marker depth capped at 8) killed after a rule-data mutation was refused by the gate; test --final passed; controller read the full diff. Ready to merge.",
-      "acceptanceNote": "docs/acceptance/wave5/controller/WATER-W5-ACCEPT-PROGRESS-20261028.md"
+      "acceptanceNote": "docs/acceptance/wave5/controller/WATER-W5-ACCEPT-PROGRESS-20261028.md",
+      "verifiedAt": "2026-10-28",
+      "mergeCommit": "38d240d0",
+      "controllerReview": {
+        "report": "docs/acceptance/wave5/controller/WATER-W5-REVIEW-20261028.md",
+        "evidence": "docs/acceptance/wave5/controller/accept-20261028/h5/",
+        "summary": "fresh-tree check, test, real finals and test --final; controller nc1 in src/plan.rs (marker depth capped at 8) killed after the gate refused a rule-data-only change; full diff read against RULES-M2 and addendum 01"
+      },
+      "carryOverLater": [
+        "ticket wording allowed a rule-data negative control the gate refuses"
+      ]
     }
   ],
   "preflight": {

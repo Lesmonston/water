@@ -1,0 +1,32 @@
+   Compiling water-junk-clean v0.1.0 (F:\new\smaltalk\water\.worktrees\accept-w5-h1-cases\packages\junk-clean)
+warning: unused imports: `ffi::OsStringExt` and `ffi::OsString`
+  --> tests\controller_cases.rs:8:5
+   |
+ 8 |     ffi::OsString,
+   |     ^^^^^^^^^^^^^
+...
+12 |     os::windows::{ffi::OsStringExt, fs::OpenOptionsExt},
+   |                   ^^^^^^^^^^^^^^^^
+   |
+   = note: `#[warn(unused_imports)]` (part of `#[warn(unused)]`) on by default
+
+warning: function `set_old` is never used
+  --> tests\controller_cases.rs:58:4
+   |
+58 | fn set_old(p: &Path) {
+   |    ^^^^^^^
+   |
+   = note: `#[warn(dead_code)]` (part of `#[warn(unused)]`) on by default
+
+warning: `water-junk-clean` (test "controller_cases") generated 2 warnings (run `cargo fix --test "controller_cases" -p water-junk-clean` to apply 1 suggestion)
+    Finished `test` profile [unoptimized + debuginfo] target(s) in 1.10s
+     Running tests\controller_cases.rs (.local/w2-target\debug\deps\controller_cases-b3263f427e0443c3.exe)
+
+running 1 test
+test probe_depth_200_twice ... PROBE round 1: status Skipped reason Some(Changed) failed 0 freed 0 of 0
+PROBE round 2: status Deleted reason None failed 0 freed 7 of 7
+ok
+
+test result: ok. 1 passed; 0 failed; 0 ignored; 0 measured; 0 filtered out; finished in 2.16s
+
+rc=0 status after restore: ''

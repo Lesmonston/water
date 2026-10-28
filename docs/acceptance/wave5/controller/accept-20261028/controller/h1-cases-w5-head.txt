@@ -1,0 +1,31 @@
+   Compiling water-junk-clean v0.1.0 (F:\new\smaltalk\water\.worktrees\accept-w5-h1-cases\packages\junk-clean)
+    Finished `test` profile [unoptimized + debuginfo] target(s) in 4.22s
+     Running tests\controller_cases.rs (.local/w2-target\debug\deps\controller_cases-b3263f427e0443c3.exe)
+
+running 3 tests
+test h1_deep_tree_residual_small_stack ... CONTROLLER h1 deep residual: status Skipped failed 0 freed 0 of 0
+
+thread 'h1_deep_tree_residual_small_stack' (2268) panicked at tests\controller_cases.rs:138:5:
+assertion `left == right` failed: CONTROLLER_H1_DEEP_RESIDUAL: status
+  left: Skipped
+ right: Partial
+note: run with `RUST_BACKTRACE=1` environment variable to display a backtrace
+FAILED
+test h1_recent_content_in_normal_directory_vetoes ... CONTROLLER h1 recent inside: status Skipped reason Some(TooRecent) failed 0 freed 0 of 0
+ok
+test h1_recent_content_in_unpaired_directory_vetoes ... CONTROLLER h1 recent inside: status Partial reason None failed 2 freed 4 of 4
+
+thread 'h1_recent_content_in_unpaired_directory_vetoes' (16596) panicked at tests\controller_cases.rs:103:30:
+called `Result::unwrap()` on an `Err` value: Os { code: 2, kind: NotFound, message: "The system cannot find the file specified." }
+FAILED
+
+failures:
+
+failures:
+    h1_deep_tree_residual_small_stack
+    h1_recent_content_in_unpaired_directory_vetoes
+
+test result: FAILED. 1 passed; 2 failed; 0 ignored; 0 measured; 0 filtered out; finished in 84.55s
+
+error: test failed, to rerun pass `--test controller_cases`
+rc=101 status after restore: ''

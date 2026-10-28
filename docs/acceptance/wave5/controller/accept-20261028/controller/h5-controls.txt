@@ -1,0 +1,14 @@
+h5 nc1 mutated packages/junk-rules/rules/windows.json: the rule data names the wrong marker file (worker nc1 changed the marker decode in code instead) (mutated sha 653b636a9e1c63cf368026057b499fe63933d417e1b6d4a68b451b1f2cc80551)
+h5 red-nc1 rc=1 {"task":"WATER-W5-ACCEPT-H5","mode":"red-nc1","finalGate":false,"status":"failed","error":"AssertionError [ERR_ASSERTION]: A negative control needs an uncommitted change under packages/junk-rules/src","receipt":"F:\\new\\smaltalk\\water\\.worktrees\\accept-w5-h5\\.local\\checks\\WATER-W5-ACCEPT-H5\\2026-10-27T15-47-52.664Z-33820-red-nc1-result.json"}
+h5 nc1 SURVIVED (expected RULES_RUST_BUILD)
+h5 nc1 restored exact bytes=true sha ad0ee57794cab13ddd7b3aabab5dad23025532b3bd0d944d60c6de7933d62e50
+h5 test rc=0 {"task":"WATER-W5-ACCEPT-H5","mode":"test","finalGate":false,"status":"passed","error":null,"receipt":"F:\\new\\smaltalk\\water\\.worktrees\\accept-w5-h5\\.local\\checks\\WATER-W5-ACCEPT-H5\\2026-10-27T15-47-55.231Z-35336-test-result.json"}
+h5 survived: nc1
+h5 test --final rc=1 {"task":"WATER-W5-ACCEPT-H5","mode":"test","finalGate":true,"status":"failed","error":"AssertionError [ERR_ASSERTION]: Missing valid negative control nc1","receipt":"F:\\new\\smaltalk\\water\\.worktrees\\accept-w5-h5\\.local\\checks\\WATER-W5-ACCEPT-H5\\2026-10-27T15-47-59.294Z-12720-test-result.json"}
+h5 nc1 mutated packages/junk-rules/src/plan.rs: plan resolution caps a marker depth at 8, so the Rust build-directory target loses depth 12 (worker nc1 changed the marker decode in rules.rs instead; the gate refuses a rule-data-only change) (mutated sha 53c73430e1e1ebecf9217788db7f094f7a746bfeedac8bbcf7f34fc5d974af0e)
+h5 red-nc1 rc=0 {"task":"WATER-W5-ACCEPT-H5","mode":"red-nc1","finalGate":false,"status":"passed","error":null,"receipt":"F:\\new\\smaltalk\\water\\.worktrees\\accept-w5-h5\\.local\\checks\\WATER-W5-ACCEPT-H5\\2026-10-27T15-54-11.680Z-35536-red-nc1-result.json"}
+h5 nc1 KILLED (expected RULES_RUST_BUILD)
+h5 nc1 restored exact bytes=true sha 0c9837f5caf71f7c3c82201902d278c21e7cddeaba3451c19ac87f82dda9f715
+h5 test rc=0 {"task":"WATER-W5-ACCEPT-H5","mode":"test","finalGate":false,"status":"passed","error":null,"receipt":"F:\\new\\smaltalk\\water\\.worktrees\\accept-w5-h5\\.local\\checks\\WATER-W5-ACCEPT-H5\\2026-10-27T15-54-17.997Z-3916-test-result.json"}
+h5 survived: none
+h5 test --final rc=0 {"task":"WATER-W5-ACCEPT-H5","mode":"test","finalGate":true,"status":"passed","error":null,"receipt":"F:\\new\\smaltalk\\water\\.worktrees\\accept-w5-h5\\.local\\checks\\WATER-W5-ACCEPT-H5\\2026-10-27T15-54-21.887Z-19312-test-result.json"}

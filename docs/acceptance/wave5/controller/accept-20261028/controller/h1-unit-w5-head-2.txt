@@ -1,0 +1,27 @@
+   Compiling water-junk-clean v0.1.0 (F:\new\smaltalk\water\.worktrees\accept-w5-h1-cases\packages\junk-clean)
+    Finished `test` profile [unoptimized + debuginfo] target(s) in 1.23s
+     Running unittests src\lib.rs (.local/w2-target\debug\deps\water_junk_clean-4a4c9db044fc301a.exe)
+
+running 9 tests
+test controller_unit::h1_file_grew_after_snapshot ... CONTROLLER h1: status Deleted reason None failed 0 freed 5000 of 50
+ok
+test controller_unit::h1_file_shrank_after_snapshot ... CONTROLLER h1: status Deleted reason None failed 0 freed 10 of 5000
+ok
+test controller_unit::h1_grandparent_moved_before_delete ... CONTROLLER h1: status Skipped reason Some(Gone) failed 0 freed 0 of 3
+ok
+test controller_unit::h1_hardlink_both_inside_counted_once ... CONTROLLER h1: status Deleted reason None failed 0 freed 300 of 600
+ok
+test controller_unit::h1_hardlink_outside_not_counted ... CONTROLLER h1: status Deleted reason None failed 0 freed 300 of 600
+ok
+test controller_unit::h1_parent_moved_before_delete ... CONTROLLER h1: status Skipped reason Some(Gone) failed 0 freed 0 of 7
+ok
+test controller_unit::h1_parent_replaced_with_same_named_item ... CONTROLLER h1: status Skipped reason Some(Changed) failed 0 freed 0 of 8
+ok
+test controller_unit::h1_recreated_name_not_failed ... CONTROLLER h1: status Partial reason None failed 0 freed 5003 of 5003
+ok
+test controller_unit::h1_unpaired_directory_name ... CONTROLLER h1: status Partial reason None failed 2 freed 4 of 4
+ok
+
+test result: ok. 9 passed; 0 failed; 0 ignored; 0 measured; 0 filtered out; finished in 2.24s
+
+rc=0 unit=w5-h1-controller-unit.rs source=HEAD status after restore: ''

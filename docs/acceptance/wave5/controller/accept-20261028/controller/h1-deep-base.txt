@@ -1,0 +1,12 @@
+   Compiling water-junk-clean v0.1.0 (F:\new\smaltalk\water\.worktrees\accept-w5-h1-cases\packages\junk-clean)
+    Finished `test` profile [unoptimized + debuginfo] target(s) in 1.44s
+     Running unittests src\lib.rs (.local/w2-target\debug\deps\water_junk_clean-4a4c9db044fc301a.exe)
+
+running 1 test
+test controller_unit::h1_deep_tree_small_stack ... 
+thread '<unknown>' (21284) has overflowed its stack
+error: test failed, to rerun pass `--lib`
+
+Caused by:
+  process didn't exit successfully: `F:/new/smaltalk/water/.worktrees/accept-w5-h1-cases/.local/w2-target\debug\deps\water_junk_clean-4a4c9db044fc301a.exe controller_unit --test-threads=1 --nocapture` (exit code: 0xc00000fd, STATUS_STACK_OVERFLOW)
+rc=127 unit=w5-h1-deep-unit.rs source=3f9078972d7f958fad6bfd42e68f022dd659539e status after restore: ''

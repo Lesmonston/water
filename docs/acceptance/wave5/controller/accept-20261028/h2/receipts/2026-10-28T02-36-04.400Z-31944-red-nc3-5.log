@@ -1,0 +1,46 @@
+{"binary":"C:\\Users\\37310\\.rustup\\toolchains\\1.95.0-x86_64-pc-windows-msvc\\bin\\cargo.exe","args":["test","--offline","--locked","--manifest-path","packages/water-service/Cargo.toml","--test","service_v1","--","--test-threads=1"],"exitCode":101,"error":null}
+--- stdout ---
+
+running 6 tests
+test service_clean_flow ... ok
+test service_hardening ... FAILED
+test service_ipc_contract ... ok
+test service_scan_views ... ok
+test service_storage_safety ... ok
+test service_trends_locations ... ok
+
+failures:
+
+---- service_hardening stdout ----
+
+thread 'water-scan' (8252) panicked at tests\service_v1.rs:46:13:
+fake platform: drives failed inside the scan task
+note: run with `RUST_BACKTRACE=1` environment variable to display a backtrace
+
+thread 'water-scan' (42260) panicked at tests\service_v1.rs:46:13:
+fake platform: drives failed inside the scan task
+
+thread 'service_hardening' (4224) panicked at tests\service_v1.rs:57:13:
+fake platform: clock failed
+
+thread 'water-clean' (4264) panicked at tests\service_v1.rs:78:13:
+fake platform: in_use failed inside the clean task
+
+thread 'service_hardening' (4224) panicked at tests\service_v1.rs:57:13:
+fake platform: clock failed
+
+thread 'service_hardening' (4224) panicked at tests\service_v1.rs:1868:54:
+SERVICE_CUSTOM_ROOT: home that contains a known folder via a junction was added: Object {"added": Object {"display_path": String("F:\\new\\smaltalk\\water\\.worktrees\\accept-w5-h2\\.local\\w3-f1-fixtures\\service-6315a2cf78372498\\home"), "found_bytes": Null, "last_scanned_at": Null, "root_id": String("home")}}
+
+
+failures:
+    service_hardening
+
+test result: FAILED. 5 passed; 1 failed; 0 ignored; 0 measured; 0 filtered out; finished in 16.58s
+
+
+--- stderr ---
+   Compiling water-service v0.1.0 (F:\new\smaltalk\water\.worktrees\accept-w5-h2\packages\water-service)
+    Finished `test` profile [unoptimized + debuginfo] target(s) in 3.58s
+     Running tests\service_v1.rs (.local\w3-target\debug\deps\service_v1-412fb4e7f345daf0.exe)
+error: test failed, to rerun pass `--test service_v1`

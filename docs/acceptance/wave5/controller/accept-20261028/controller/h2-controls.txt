@@ -1,0 +1,24 @@
+h2 nc1 mutated packages/water-service/src/clean.rs: a panic inside the clean thread leaves clean_progress as a failed run instead of the idle object (worker nc1 set busy before the prep guard instead) (mutated sha 690c2b0a823d305021a9948339e7d8958e5df028b0653cf179d90e8bd55fe096)
+h2 red-nc1 rc=0 {"task":"WATER-W5-ACCEPT-H2","mode":"red-nc1","finalGate":false,"status":"passed","error":null,"receipt":"F:\\new\\smaltalk\\water\\.worktrees\\accept-w5-h2\\.local\\checks\\WATER-W5-ACCEPT-H2\\2026-10-28T02-30-45.783Z-43572-red-nc1-result.json"}
+h2 nc1 KILLED (expected SERVICE_PANIC_IDLE)
+h2 nc1 restored exact bytes=true sha 4c7329b797ebc0ae21f6bff8e5db6b2cac4fd567bf2e28b5ca83d99827a02f6e
+h2 test rc=0 {"task":"WATER-W5-ACCEPT-H2","mode":"test","finalGate":false,"status":"passed","error":null,"receipt":"F:\\new\\smaltalk\\water\\.worktrees\\accept-w5-h2\\.local\\checks\\WATER-W5-ACCEPT-H2\\2026-10-28T02-31-03.492Z-22680-test-result.json"}
+h2 nc2 mutated packages/water-service/src/service.rs: a completed scan whose record write failed is still treated as written, so last stays on it (worker nc2 deleted the rollback lines instead) (mutated sha ec1f5a1716c5d89ed19239fc1c36b722496aae6e00e63b58d3f65d62b86e118c)
+h2 red-nc2 rc=0 {"task":"WATER-W5-ACCEPT-H2","mode":"red-nc2","finalGate":false,"status":"passed","error":null,"receipt":"F:\\new\\smaltalk\\water\\.worktrees\\accept-w5-h2\\.local\\checks\\WATER-W5-ACCEPT-H2\\2026-10-28T02-31-26.760Z-38660-red-nc2-result.json"}
+h2 nc2 KILLED (expected SERVICE_SCAN_RECORD)
+h2 nc2 restored exact bytes=true sha 9b3c84b43fffb61414002ee7195a3dc1ee23a9dde15de03c8cd5e7144b96fcfa
+h2 test rc=0 {"task":"WATER-W5-ACCEPT-H2","mode":"test","finalGate":false,"status":"passed","error":null,"receipt":"F:\\new\\smaltalk\\water\\.worktrees\\accept-w5-h2\\.local\\checks\\WATER-W5-ACCEPT-H2\\2026-10-28T02-31-48.016Z-33024-test-result.json"}
+h2 nc3 mutated packages/water-service/src/service.rs: a known folder must match in both forms, so one reached through a junction slips through (worker nc3 kept only the canonical form instead) (mutated sha b646abdbd96cd446567d698a04f562ee5a50cfb93835c5b39f1e63b5a8996e83)
+h2 red-nc3 rc=1 {"task":"WATER-W5-ACCEPT-H2","mode":"red-nc3","finalGate":false,"status":"failed","error":"AssertionError [ERR_ASSERTION]: Missing failure token SERVICE_CUSTOM_ROOT","receipt":"F:\\new\\smaltalk\\water\\.worktrees\\accept-w5-h2\\.local\\checks\\WATER-W5-ACCEPT-H2\\2026-10-28T02-32-09.557Z-42848-red-nc3-result.json"}
+h2 nc3 SURVIVED (expected SERVICE_CUSTOM_ROOT)
+h2 nc3 restored exact bytes=true sha 9b3c84b43fffb61414002ee7195a3dc1ee23a9dde15de03c8cd5e7144b96fcfa
+h2 test rc=0 {"task":"WATER-W5-ACCEPT-H2","mode":"test","finalGate":false,"status":"passed","error":null,"receipt":"F:\\new\\smaltalk\\water\\.worktrees\\accept-w5-h2\\.local\\checks\\WATER-W5-ACCEPT-H2\\2026-10-28T02-32-29.527Z-15896-test-result.json"}
+h2 survived: nc3
+h2 test --final rc=1 {"task":"WATER-W5-ACCEPT-H2","mode":"test","finalGate":true,"status":"failed","error":"AssertionError [ERR_ASSERTION]: Missing valid negative control nc3","receipt":"F:\\new\\smaltalk\\water\\.worktrees\\accept-w5-h2\\.local\\checks\\WATER-W5-ACCEPT-H2\\2026-10-28T02-32-50.445Z-29604-test-result.json"}
+h2 nc3 mutated packages/water-service/src/service.rs: the text-form check is turned around (known folder contains the choice), so a known folder under the choice is only found in canonical form and a junction hides it (worker nc3 kept only the canonical form; the first controller try, || to &&, was caught first by the older SERVICE_CANONICAL_ROOT) (mutated sha 32fd0080777c3fd3f29f8f67f88c388dba0eff1c40ae20b863cc566c63ae3c42)
+h2 red-nc3 rc=0 {"task":"WATER-W5-ACCEPT-H2","mode":"red-nc3","finalGate":false,"status":"passed","error":null,"receipt":"F:\\new\\smaltalk\\water\\.worktrees\\accept-w5-h2\\.local\\checks\\WATER-W5-ACCEPT-H2\\2026-10-28T02-36-04.400Z-31944-red-nc3-result.json"}
+h2 nc3 KILLED (expected SERVICE_CUSTOM_ROOT)
+h2 nc3 restored exact bytes=true sha 9b3c84b43fffb61414002ee7195a3dc1ee23a9dde15de03c8cd5e7144b96fcfa
+h2 test rc=0 {"task":"WATER-W5-ACCEPT-H2","mode":"test","finalGate":false,"status":"passed","error":null,"receipt":"F:\\new\\smaltalk\\water\\.worktrees\\accept-w5-h2\\.local\\checks\\WATER-W5-ACCEPT-H2\\2026-10-28T02-36-28.960Z-43828-test-result.json"}
+h2 survived: none
+h2 test --final rc=0 {"task":"WATER-W5-ACCEPT-H2","mode":"test","finalGate":true,"status":"passed","error":null,"receipt":"F:\\new\\smaltalk\\water\\.worktrees\\accept-w5-h2\\.local\\checks\\WATER-W5-ACCEPT-H2\\2026-10-28T02-36-50.479Z-36008-test-result.json"}

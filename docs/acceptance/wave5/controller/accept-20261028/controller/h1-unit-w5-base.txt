@@ -1,0 +1,78 @@
+   Compiling water-junk-clean v0.1.0 (F:\new\smaltalk\water\.worktrees\accept-w5-h1-cases\packages\junk-clean)
+    Finished `test` profile [unoptimized + debuginfo] target(s) in 2.18s
+     Running unittests src\lib.rs (.local/w2-target\debug\deps\water_junk_clean-4a4c9db044fc301a.exe)
+
+running 9 tests
+test controller_unit::h1_file_grew_after_snapshot ... CONTROLLER h1: status Deleted reason None failed 0 freed 50 of 50
+
+thread 'controller_unit::h1_file_grew_after_snapshot' (21204) panicked at src\controller_unit.rs:174:5:
+assertion `left == right` failed: CONTROLLER_H1_GREW: freed is the size at deletion
+  left: ("50", 0)
+ right: ("5000", 0)
+note: run with `RUST_BACKTRACE=1` environment variable to display a backtrace
+FAILED
+test controller_unit::h1_file_shrank_after_snapshot ... CONTROLLER h1: status Deleted reason None failed 0 freed 5000 of 5000
+
+thread 'controller_unit::h1_file_shrank_after_snapshot' (29120) panicked at src\controller_unit.rs:186:5:
+assertion `left == right` failed: CONTROLLER_H1_SHRANK: freed is the size at deletion
+  left: ("5000", 0)
+ right: ("10", 0)
+FAILED
+test controller_unit::h1_grandparent_moved_before_delete ... CONTROLLER h1: status Failed reason None failed 1 freed 0 of 3
+
+thread 'controller_unit::h1_grandparent_moved_before_delete' (43544) panicked at src\controller_unit.rs:105:5:
+assertion `left == right` failed: CONTROLLER_H1_GRANDPARENT_GONE: status
+  left: Failed
+ right: Skipped
+FAILED
+test controller_unit::h1_hardlink_both_inside_counted_once ... CONTROLLER h1: status Deleted reason None failed 0 freed 600 of 600
+
+thread 'controller_unit::h1_hardlink_both_inside_counted_once' (43320) panicked at src\controller_unit.rs:158:5:
+assertion `left == right` failed: CONTROLLER_H1_LINK_INSIDE: the data is freed once
+  left: ("600", 0)
+ right: ("300", 0)
+FAILED
+test controller_unit::h1_hardlink_outside_not_counted ... CONTROLLER h1: status Deleted reason None failed 0 freed 600 of 600
+
+thread 'controller_unit::h1_hardlink_outside_not_counted' (18736) panicked at src\controller_unit.rs:144:5:
+assertion `left == right` failed: CONTROLLER_H1_LINK: freed counts a and b only
+  left: ("600", 0)
+ right: ("300", 0)
+FAILED
+test controller_unit::h1_parent_moved_before_delete ... CONTROLLER h1: status Failed reason None failed 1 freed 0 of 7
+
+thread 'controller_unit::h1_parent_moved_before_delete' (14408) panicked at src\controller_unit.rs:91:5:
+assertion `left == right` failed: CONTROLLER_H1_PARENT_GONE: status
+  left: Failed
+ right: Skipped
+FAILED
+test controller_unit::h1_parent_replaced_with_same_named_item ... CONTROLLER h1: status Skipped reason Some(Changed) failed 0 freed 0 of 8
+ok
+test controller_unit::h1_recreated_name_not_failed ... CONTROLLER h1: status Partial reason None failed 1 freed 4994 of 5003
+
+thread 'controller_unit::h1_recreated_name_not_failed' (36740) panicked at src\controller_unit.rs:224:5:
+assertion `left == right` failed: CONTROLLER_H1_RECREATED: the recreated name was counted as a failure
+  left: 1
+ right: 0
+FAILED
+test controller_unit::h1_unpaired_directory_name ... 
+thread 'controller_unit::h1_unpaired_directory_name' (18400) panicked at src\controller_unit.rs:72:53:
+CONTROLLER snapshot: Changed
+FAILED
+
+failures:
+
+failures:
+    controller_unit::h1_file_grew_after_snapshot
+    controller_unit::h1_file_shrank_after_snapshot
+    controller_unit::h1_grandparent_moved_before_delete
+    controller_unit::h1_hardlink_both_inside_counted_once
+    controller_unit::h1_hardlink_outside_not_counted
+    controller_unit::h1_parent_moved_before_delete
+    controller_unit::h1_recreated_name_not_failed
+    controller_unit::h1_unpaired_directory_name
+
+test result: FAILED. 1 passed; 8 failed; 0 ignored; 0 measured; 0 filtered out; finished in 2.00s
+
+error: test failed, to rerun pass `--lib`
+rc=101 unit=w5-h1-controller-unit.rs source=3f9078972d7f958fad6bfd42e68f022dd659539e status after restore: ''

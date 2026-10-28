@@ -1,0 +1,17 @@
+h4 nc1 mutated apps/water/ui/app.mjs: every command result counts as in scope, so a late clean_prepare opens the dialog on the new page (worker nc1 removed the prepare check instead) (mutated sha 103a760993314aa97593da34e66f2d778654006ed79b7a05e9b224ab561b5883)
+h4 red-nc1 rc=0 {"task":"WATER-W5-ACCEPT-H4","mode":"red-nc1","finalGate":false,"status":"passed","error":null,"receipt":"F:\\new\\smaltalk\\water\\.worktrees\\accept-w5-h4\\.local\\checks\\WATER-W5-ACCEPT-H4\\2026-10-27T15-49-12.893Z-7612-red-nc1-result.json"}
+h4 nc1 KILLED (expected UI_CLEAN_SCOPE)
+h4 nc1 restored exact bytes=true sha c38b2e80bffe96b53dd5dfb15d31e9c774fa59e823e483a6f24dd9c746e38b34
+h4 test rc=0 {"task":"WATER-W5-ACCEPT-H4","mode":"test","finalGate":false,"status":"passed","error":null,"receipt":"F:\\new\\smaltalk\\water\\.worktrees\\accept-w5-h4\\.local\\checks\\WATER-W5-ACCEPT-H4\\2026-10-27T15-50-04.328Z-8436-test-result.json"}
+h4 nc2 mutated apps/water/ui/app.mjs: the reconnect pass never re-reads the current page (worker nc2 removed the loadRoute call instead) (mutated sha de2bb4872526d9849782e84fafe190cf38628e85eb6aa6629e3293d074395525)
+h4 red-nc2 rc=0 {"task":"WATER-W5-ACCEPT-H4","mode":"red-nc2","finalGate":false,"status":"passed","error":null,"receipt":"F:\\new\\smaltalk\\water\\.worktrees\\accept-w5-h4\\.local\\checks\\WATER-W5-ACCEPT-H4\\2026-10-27T15-50-08.579Z-27132-red-nc2-result.json"}
+h4 nc2 KILLED (expected UI_NOTICE_SCOPE)
+h4 nc2 restored exact bytes=true sha c38b2e80bffe96b53dd5dfb15d31e9c774fa59e823e483a6f24dd9c746e38b34
+h4 test rc=0 {"task":"WATER-W5-ACCEPT-H4","mode":"test","finalGate":false,"status":"passed","error":null,"receipt":"F:\\new\\smaltalk\\water\\.worktrees\\accept-w5-h4\\.local\\checks\\WATER-W5-ACCEPT-H4\\2026-10-27T15-51-15.679Z-24588-test-result.json"}
+h4 nc3 mutated apps/water/ui/app.mjs: leaving the page keeps the stop-failure line, so it shows again on return (worker nc3 never set the flag instead) (mutated sha df90fd0dcd6f32739b6d7cc655036b5bd0493355f6e3b07e84f26cbb68e14f60)
+h4 red-nc3 rc=0 {"task":"WATER-W5-ACCEPT-H4","mode":"red-nc3","finalGate":false,"status":"passed","error":null,"receipt":"F:\\new\\smaltalk\\water\\.worktrees\\accept-w5-h4\\.local\\checks\\WATER-W5-ACCEPT-H4\\2026-10-27T15-51-18.301Z-22576-red-nc3-result.json"}
+h4 nc3 KILLED (expected UI_STOP_FEEDBACK)
+h4 nc3 restored exact bytes=true sha c38b2e80bffe96b53dd5dfb15d31e9c774fa59e823e483a6f24dd9c746e38b34
+h4 test rc=0 {"task":"WATER-W5-ACCEPT-H4","mode":"test","finalGate":false,"status":"passed","error":null,"receipt":"F:\\new\\smaltalk\\water\\.worktrees\\accept-w5-h4\\.local\\checks\\WATER-W5-ACCEPT-H4\\2026-10-27T15-52-11.636Z-42484-test-result.json"}
+h4 survived: none
+h4 test --final rc=0 {"task":"WATER-W5-ACCEPT-H4","mode":"test","finalGate":true,"status":"passed","error":null,"receipt":"F:\\new\\smaltalk\\water\\.worktrees\\accept-w5-h4\\.local\\checks\\WATER-W5-ACCEPT-H4\\2026-10-27T15-52-14.644Z-43872-test-result.json"}

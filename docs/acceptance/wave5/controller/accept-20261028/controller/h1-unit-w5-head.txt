@@ -1,0 +1,50 @@
+   Compiling proc-macro2 v1.0.107
+   Compiling quote v1.0.47
+   Compiling unicode-ident v1.0.27
+   Compiling serde_core v1.0.229
+   Compiling zmij v1.0.23
+   Compiling syn v3.0.9
+   Compiling serde v1.0.229
+   Compiling serde_json v1.0.151
+   Compiling serde_derive v1.0.229
+   Compiling itoa v1.0.18
+   Compiling memchr v2.8.3
+   Compiling water-junk-clean v0.1.0 (F:\new\smaltalk\water\.worktrees\accept-w5-h1-cases\packages\junk-clean)
+    Finished `test` profile [unoptimized + debuginfo] target(s) in 19.16s
+     Running unittests src\lib.rs (.local/w2-target\debug\deps\water_junk_clean-4a4c9db044fc301a.exe)
+
+running 9 tests
+test controller_unit::h1_file_grew_after_snapshot ... CONTROLLER h1: status Deleted reason None failed 0 freed 5000 of 50
+ok
+test controller_unit::h1_file_shrank_after_snapshot ... CONTROLLER h1: status Deleted reason None failed 0 freed 10 of 5000
+ok
+test controller_unit::h1_grandparent_moved_before_delete ... CONTROLLER h1: status Skipped reason Some(Gone) failed 0 freed 0 of 3
+ok
+test controller_unit::h1_hardlink_both_inside_counted_once ... CONTROLLER h1: status Deleted reason None failed 0 freed 300 of 600
+ok
+test controller_unit::h1_hardlink_outside_not_counted ... CONTROLLER h1: status Deleted reason None failed 0 freed 300 of 600
+ok
+test controller_unit::h1_parent_moved_before_delete ... CONTROLLER h1: status Skipped reason Some(Gone) failed 0 freed 0 of 7
+ok
+test controller_unit::h1_parent_replaced_with_same_named_item ... CONTROLLER h1: status Skipped reason Some(Changed) failed 0 freed 0 of 8
+ok
+test controller_unit::h1_recreated_name_not_failed ... CONTROLLER h1: status Partial reason None failed 0 freed 5003 of 5003
+ok
+test controller_unit::h1_unpaired_directory_name ... CONTROLLER h1: status Partial reason None failed 2 freed 4 of 4
+
+thread 'controller_unit::h1_unpaired_directory_name' (23984) panicked at src\controller_unit.rs:244:5:
+assertion `left == right` failed: CONTROLLER_H1_UNPAIRED_DIR: failed entries (the odd directory once)
+  left: 2
+ right: 1
+note: run with `RUST_BACKTRACE=1` environment variable to display a backtrace
+FAILED
+
+failures:
+
+failures:
+    controller_unit::h1_unpaired_directory_name
+
+test result: FAILED. 8 passed; 1 failed; 0 ignored; 0 measured; 0 filtered out; finished in 1.90s
+
+error: test failed, to rerun pass `--lib`
+rc=101 unit=w5-h1-controller-unit.rs source=HEAD status after restore: ''

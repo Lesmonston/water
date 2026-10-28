@@ -1,0 +1,22 @@
+   Compiling water-junk-clean v0.1.0 (F:\new\smaltalk\water\.worktrees\accept-w5-h1-cases\packages\junk-clean)
+    Finished `test` profile [unoptimized + debuginfo] target(s) in 4.01s
+     Running tests\clean_v1.rs (.local/w2-target\debug\deps\clean_v1-607b5e28434d5f75.exe)
+
+running 1 test
+test clean_report_volume ... 
+thread 'clean_report_volume' (4456) panicked at tests\clean_v1.rs:990:5:
+assertion `left == right` failed: CLEAN_FREED_EXACT: hard-linked file was counted or other sizes were wrong
+  left: "22"
+ right: "6"
+note: run with `RUST_BACKTRACE=1` environment variable to display a backtrace
+FAILED
+
+failures:
+
+failures:
+    clean_report_volume
+
+test result: FAILED. 0 passed; 1 failed; 0 ignored; 0 measured; 5 filtered out; finished in 0.04s
+
+error: test failed, to rerun pass `--test clean_v1`
+rc=101 source=3f9078972d7f958fad6bfd42e68f022dd659539e status after restore: ''
