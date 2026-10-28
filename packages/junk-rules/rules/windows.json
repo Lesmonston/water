@@ -1,6 +1,6 @@
 {
   "rules_version": "water.junk-rules.v1",
-  "data_version": "2026-10-27.1",
+  "data_version": "2026-10-28.1",
   "rules": [
     {
       "rule_id": "codex-marketplace-staging",
@@ -2610,6 +2610,14 @@
           "base": "local_app_data",
           "segments": [
             "*",
+            "Code Cache"
+          ]
+        },
+        {
+          "kind": "pattern",
+          "base": "local_app_data",
+          "segments": [
+            "*",
             "GPUCache"
           ]
         }
@@ -3965,6 +3973,773 @@
           "kind": "official_doc",
           "ref": "https://doc.rust-lang.org/cargo/reference/build-cache.html",
           "checked_on": "2026-10-27"
+        }
+      ]
+    },
+    {
+      "rule_id": "desktop-updater-residue",
+      "title_zh": "桌面应用更新包残留",
+      "owner_zh": "Electron 应用",
+      "category": "app_leftover",
+      "level": "recommended",
+      "locate": [
+        {
+          "kind": "pattern",
+          "base": "local_app_data",
+          "segments": [
+            "*-updater",
+            "pending"
+          ]
+        },
+        {
+          "kind": "pattern",
+          "base": "local_app_data",
+          "segments": [
+            "*-updater",
+            "installer.exe"
+          ]
+        }
+      ],
+      "item_type": "any",
+      "min_age_hours": 24,
+      "keep_newest": 0,
+      "in_use": {
+        "mode": "none",
+        "processes": []
+      },
+      "growth": "slow",
+      "what_zh": "桌面应用自动更新时下载的安装包，安装完成后常留在原处。",
+      "why_zh": "只清超过一天的更新包残留，正在安装或被占用的文件会跳过。",
+      "after_zh": "应用仍可使用；以后需要这些安装包时，会重新下载。",
+      "fix_hint_zh": null,
+      "sources": [
+        {
+          "kind": "local_observation",
+          "ref": "2026-10-28 总控本机只读核查：Antigravity 更新包 166 MB 与 installer.exe 159 MB，ZCode 163 MB 与 156 MB，WorkBuddy 450 MB，OpenCode 两代 126 MB 与 237 MB，合计约 1.5 GB。",
+          "checked_on": "2026-10-28"
+        },
+        {
+          "kind": "official_doc",
+          "ref": "https://github.com/electron-userland/electron-builder/blob/master/packages/electron-updater/src/DownloadedUpdateHelper.ts",
+          "checked_on": "2026-10-28"
+        },
+        {
+          "kind": "official_doc",
+          "ref": "https://github.com/electron-userland/electron-builder/issues/8730",
+          "checked_on": "2026-10-28"
+        }
+      ]
+    },
+    {
+      "rule_id": "agent-cli-old-binaries",
+      "title_zh": "命令行工具旧版本备份",
+      "owner_zh": "Grok、Kimi Code",
+      "category": "agent_tool",
+      "level": "recommended",
+      "locate": [
+        {
+          "kind": "pattern",
+          "base": "user_profile",
+          "segments": [
+            ".grok",
+            "bin",
+            "*.old"
+          ]
+        },
+        {
+          "kind": "pattern",
+          "base": "user_profile",
+          "segments": [
+            ".kimi-code",
+            "bin",
+            "*.bak"
+          ]
+        }
+      ],
+      "item_type": "file",
+      "min_age_hours": 24,
+      "keep_newest": 0,
+      "in_use": {
+        "mode": "none",
+        "processes": []
+      },
+      "growth": "one_off",
+      "what_zh": "命令行工具自更新后留下的旧程序备份，文件名以 .old 或 .bak 结尾。",
+      "why_zh": "只清超过一天的备份，当前在用的程序不动，被占用的文件会跳过。",
+      "after_zh": "当前程序仍可运行；若要回到旧版本，需要重新安装。",
+      "fix_hint_zh": null,
+      "sources": [
+        {
+          "kind": "local_observation",
+          "ref": "2026-10-28 总控本机只读核查：.grok/bin/grok.exe.old 为 154 MB；.kimi-code/bin/kimi.exe.bak 为 152 MB，当前 kimi.exe 为 147 MB。",
+          "checked_on": "2026-10-28"
+        }
+      ]
+    },
+    {
+      "rule_id": "claude-code-old-versions",
+      "title_zh": "Claude Code 旧版本",
+      "owner_zh": "Claude Code",
+      "category": "agent_tool",
+      "level": "recommended",
+      "locate": [
+        {
+          "kind": "pattern",
+          "base": "user_profile",
+          "segments": [
+            ".local",
+            "share",
+            "claude",
+            "versions",
+            "*"
+          ]
+        }
+      ],
+      "item_type": "any",
+      "min_age_hours": 24,
+      "keep_newest": 1,
+      "in_use": {
+        "mode": "cmdline_references_item",
+        "processes": [
+          "claude.exe"
+        ]
+      },
+      "growth": "slow",
+      "what_zh": "Claude Code 原生安装目录里并排保留的旧版本程序。",
+      "why_zh": "保留最新一个版本，正在运行的版本不动，只清超过一天的旧版本。",
+      "after_zh": "当前版本仍可使用；被清掉的旧版本需要重新安装才能使用。",
+      "fix_hint_zh": null,
+      "sources": [
+        {
+          "kind": "local_observation",
+          "ref": "2026-10-28 总控本机只读核查：.local/share/claude 共 718 MB，versions 下有 2.1.285、2.1.287、2.1.296，各约 245 MB。",
+          "checked_on": "2026-10-28"
+        }
+      ]
+    },
+    {
+      "rule_id": "cursor-compile-cache",
+      "title_zh": "Cursor 编译缓存",
+      "owner_zh": "Cursor",
+      "category": "agent_tool",
+      "level": "recommended",
+      "locate": [
+        {
+          "kind": "pattern",
+          "base": "local_app_data",
+          "segments": [
+            "cursor-compile-cache"
+          ]
+        }
+      ],
+      "item_type": "dir",
+      "min_age_hours": 168,
+      "keep_newest": 0,
+      "in_use": {
+        "mode": "none",
+        "processes": []
+      },
+      "growth": "slow",
+      "what_zh": "Cursor 在运行时生成的编译缓存，帮助后续启动更快。",
+      "why_zh": "只清一周以前的缓存；这些内容可以由程序重新生成。",
+      "after_zh": "下次启动会重新生成缓存，首次启动可能稍慢。",
+      "fix_hint_zh": null,
+      "sources": [
+        {
+          "kind": "local_observation",
+          "ref": "2026-10-28 总控本机只读核查：M3 计划第 1 节的本机只读摸底记录 cursor-compile-cache 约 0.14 GB；VERIFY 未单列此目录。",
+          "checked_on": "2026-10-28"
+        }
+      ]
+    },
+    {
+      "rule_id": "qoder-workspace-temp",
+      "title_zh": "QoderWork 临时文件",
+      "owner_zh": "QoderWork",
+      "category": "agent_tool",
+      "level": "confirm",
+      "locate": [
+        {
+          "kind": "pattern",
+          "base": "user_profile",
+          "segments": [
+            ".qoderworkcn",
+            "tmp",
+            "*"
+          ]
+        },
+        {
+          "kind": "pattern",
+          "base": "user_profile",
+          "segments": [
+            ".qoderwork",
+            "tmp",
+            "*"
+          ]
+        }
+      ],
+      "item_type": "dir",
+      "min_age_hours": 24,
+      "keep_newest": 0,
+      "in_use": {
+        "mode": "none",
+        "processes": []
+      },
+      "growth": "slow",
+      "what_zh": "QoderWork 按工作区留下的临时目录。",
+      "why_zh": "无法确定这些临时文件是否还要使用，需要你确认，只列出超过一天的目录。",
+      "after_zh": "清理后临时文件无法找回；确认工作区已不再需要它们后再清理。",
+      "fix_hint_zh": null,
+      "sources": [
+        {
+          "kind": "local_observation",
+          "ref": "2026-10-28 总控本机只读核查：.qoderworkcn/tmp 下有两个按工作区命名的临时目录，时间为 7 月。",
+          "checked_on": "2026-10-28"
+        }
+      ]
+    },
+    {
+      "rule_id": "agent-tool-logs",
+      "title_zh": "Agent 工具日志",
+      "owner_zh": "多个 Agent 工具",
+      "category": "agent_tool",
+      "level": "recommended",
+      "locate": [
+        {
+          "kind": "pattern",
+          "base": "user_profile",
+          "segments": [
+            ".kimi-code",
+            "logs",
+            "*"
+          ]
+        },
+        {
+          "kind": "pattern",
+          "base": "user_profile",
+          "segments": [
+            ".local",
+            "share",
+            "opencode",
+            "log",
+            "*"
+          ]
+        },
+        {
+          "kind": "pattern",
+          "base": "user_profile",
+          "segments": [
+            ".copilot",
+            "logs",
+            "*"
+          ]
+        },
+        {
+          "kind": "pattern",
+          "base": "user_profile",
+          "segments": [
+            ".workbuddy*",
+            "logs",
+            "*"
+          ]
+        },
+        {
+          "kind": "pattern",
+          "base": "user_profile",
+          "segments": [
+            ".qoderwork*",
+            "logs",
+            "*"
+          ]
+        },
+        {
+          "kind": "pattern",
+          "base": "user_profile",
+          "segments": [
+            ".antigravity_cockpit",
+            "logs",
+            "*"
+          ]
+        },
+        {
+          "kind": "pattern",
+          "base": "user_profile",
+          "segments": [
+            ".codebuddy",
+            "logs",
+            "*"
+          ]
+        }
+      ],
+      "item_type": "any",
+      "min_age_hours": 168,
+      "keep_newest": 0,
+      "in_use": {
+        "mode": "none",
+        "processes": []
+      },
+      "growth": "slow",
+      "what_zh": "各个 Agent 工具自己的运行日志，只列出一周以前的内容。",
+      "why_zh": "旧日志通常可以清理，但排查过去的问题时可能用得上。",
+      "after_zh": "工具会继续写新日志；被清理的旧日志无法找回。",
+      "fix_hint_zh": null,
+      "sources": [
+        {
+          "kind": "local_observation",
+          "ref": "2026-10-28 总控本机只读核查：.workbuddy 与 .workbuddy-ai 的 logs 分别为 12 MB、9 MB；.local/share/opencode/log 为 5 MB。",
+          "checked_on": "2026-10-28"
+        },
+        {
+          "kind": "official_doc",
+          "ref": "https://moonshotai.github.io/kimi-code/en/configuration/data-locations.html",
+          "checked_on": "2026-10-28"
+        },
+        {
+          "kind": "official_doc",
+          "ref": "https://opencode.ai/docs/troubleshooting/",
+          "checked_on": "2026-10-28"
+        },
+        {
+          "kind": "official_doc",
+          "ref": "https://docs.github.com/en/copilot/reference/copilot-cli-reference/cli-config-dir-reference",
+          "checked_on": "2026-10-28"
+        }
+      ]
+    },
+    {
+      "rule_id": "electron-gpu-caches",
+      "title_zh": "应用的显卡着色器缓存",
+      "owner_zh": "Electron 应用",
+      "category": "app_leftover",
+      "level": "recommended",
+      "locate": [
+        {
+          "kind": "pattern",
+          "base": "roaming_app_data",
+          "segments": [
+            "*",
+            "DawnGraphiteCache"
+          ]
+        },
+        {
+          "kind": "pattern",
+          "base": "roaming_app_data",
+          "segments": [
+            "*",
+            "DawnWebGPUCache"
+          ]
+        },
+        {
+          "kind": "pattern",
+          "base": "roaming_app_data",
+          "segments": [
+            "*",
+            "GrShaderCache"
+          ]
+        },
+        {
+          "kind": "pattern",
+          "base": "roaming_app_data",
+          "segments": [
+            "*",
+            "GPUPersistentCache"
+          ]
+        },
+        {
+          "kind": "pattern",
+          "base": "local_app_data",
+          "segments": [
+            "*",
+            "DawnGraphiteCache"
+          ]
+        },
+        {
+          "kind": "pattern",
+          "base": "local_app_data",
+          "segments": [
+            "*",
+            "DawnWebGPUCache"
+          ]
+        },
+        {
+          "kind": "pattern",
+          "base": "local_app_data",
+          "segments": [
+            "*",
+            "GrShaderCache"
+          ]
+        },
+        {
+          "kind": "pattern",
+          "base": "local_app_data",
+          "segments": [
+            "*",
+            "GPUPersistentCache"
+          ]
+        }
+      ],
+      "item_type": "dir",
+      "min_age_hours": 1,
+      "keep_newest": 0,
+      "in_use": {
+        "mode": "none",
+        "processes": []
+      },
+      "growth": "slow",
+      "what_zh": "桌面应用网页引擎生成的显卡着色器缓存，用来加快画面显示。",
+      "why_zh": "这些内容可以自动重建，只清超过一小时的缓存目录。",
+      "after_zh": "应用会重新生成缓存，首次显示部分画面时可能稍慢。",
+      "fix_hint_zh": null,
+      "sources": [
+        {
+          "kind": "local_observation",
+          "ref": "2026-10-28 总控本机只读核查：Claude-3p 有标准 Electron 缓存；ai.opencode.desktop 的 Cache 为 261 MB，现有通用缓存规则已覆盖。",
+          "checked_on": "2026-10-28"
+        }
+      ]
+    },
+    {
+      "rule_id": "grok-other-homes",
+      "title_zh": "Grok 其它账号目录",
+      "owner_zh": "Grok",
+      "category": "agent_tool",
+      "level": "protected",
+      "locate": [
+        {
+          "kind": "pattern",
+          "base": "user_profile",
+          "segments": [
+            ".grok#"
+          ]
+        },
+        {
+          "kind": "pattern",
+          "base": "user_profile",
+          "segments": [
+            ".grokbot"
+          ]
+        }
+      ],
+      "item_type": "dir",
+      "min_age_hours": 0,
+      "keep_newest": 0,
+      "in_use": {
+        "mode": "none",
+        "processes": []
+      },
+      "growth": "slow",
+      "what_zh": "Grok 其它账号的独立目录，可能保存会话、账号配置与登录信息。",
+      "why_zh": "这些内容用于续接对话和登录，停用账号也不代表可以删除。",
+      "after_zh": "只统计占用，不提供清理，原有会话与账号数据会保留。",
+      "fix_hint_zh": null,
+      "sources": [
+        {
+          "kind": "local_observation",
+          "ref": "2026-10-28 总控本机只读核查：.grokbot 中有 .grok、AppData、守护进程状态、346 KB 日志与 attachment-staging，是另一个机器人家目录。",
+          "checked_on": "2026-10-28"
+        }
+      ]
+    },
+    {
+      "rule_id": "antigravity-cockpit-profiles",
+      "title_zh": "Antigravity 独立配置",
+      "owner_zh": "Antigravity Cockpit",
+      "category": "agent_tool",
+      "level": "protected",
+      "locate": [
+        {
+          "kind": "pattern",
+          "base": "user_profile",
+          "segments": [
+            ".antigravity_cockpit",
+            "instances"
+          ]
+        }
+      ],
+      "item_type": "dir",
+      "min_age_hours": 0,
+      "keep_newest": 0,
+      "in_use": {
+        "mode": "none",
+        "processes": []
+      },
+      "growth": "slow",
+      "what_zh": "Antigravity Cockpit 为工具保存的独立配置，包含会话和账号登录信息。",
+      "why_zh": "删除独立配置可能丢失对话或登录状态，需要完整保留。",
+      "after_zh": "只统计占用，不提供清理，独立配置保持原样。",
+      "fix_hint_zh": null,
+      "sources": [
+        {
+          "kind": "local_observation",
+          "ref": "2026-10-28 总控本机只读核查：.antigravity_cockpit/instances 下只有 codex 实例，是独立的 Codex 配置。",
+          "checked_on": "2026-10-28"
+        }
+      ]
+    },
+    {
+      "rule_id": "opencode-sessions",
+      "title_zh": "OpenCode 会话与快照",
+      "owner_zh": "OpenCode",
+      "category": "agent_tool",
+      "level": "protected",
+      "locate": [
+        {
+          "kind": "pattern",
+          "base": "user_profile",
+          "segments": [
+            ".local",
+            "share",
+            "opencode",
+            "opencode.db"
+          ]
+        },
+        {
+          "kind": "pattern",
+          "base": "user_profile",
+          "segments": [
+            ".local",
+            "share",
+            "opencode",
+            "snapshot"
+          ]
+        }
+      ],
+      "item_type": "any",
+      "min_age_hours": 0,
+      "keep_newest": 0,
+      "in_use": {
+        "mode": "none",
+        "processes": []
+      },
+      "growth": "slow",
+      "what_zh": "OpenCode 保存对话的数据库和用于找回改动的快照。",
+      "why_zh": "这些内容用于续接会话与恢复改动，不能当作缓存清理。",
+      "after_zh": "只统计占用，不提供清理，会话数据库和快照都会保留。",
+      "fix_hint_zh": null,
+      "sources": [
+        {
+          "kind": "local_observation",
+          "ref": "2026-10-28 总控本机只读核查：.local/share/opencode 的 opencode.db 为 721 MB，snapshot 为 24 MB，数据库与快照受保护。",
+          "checked_on": "2026-10-28"
+        },
+        {
+          "kind": "official_doc",
+          "ref": "https://opencode.ai/docs/troubleshooting/",
+          "checked_on": "2026-10-28"
+        }
+      ]
+    },
+    {
+      "rule_id": "kimi-code-sessions",
+      "title_zh": "Kimi Code 会话",
+      "owner_zh": "Kimi Code",
+      "category": "agent_tool",
+      "level": "protected",
+      "locate": [
+        {
+          "kind": "pattern",
+          "base": "user_profile",
+          "segments": [
+            ".kimi-code",
+            "sessions"
+          ]
+        },
+        {
+          "kind": "pattern",
+          "base": "user_profile",
+          "segments": [
+            ".kimi-code",
+            "file-history"
+          ]
+        }
+      ],
+      "item_type": "dir",
+      "min_age_hours": 0,
+      "keep_newest": 0,
+      "in_use": {
+        "mode": "none",
+        "processes": []
+      },
+      "growth": "slow",
+      "what_zh": "Kimi Code 的对话记录与编辑文件的历史副本。",
+      "why_zh": "这些记录用于续接对话和找回改动，不能作为运行日志清理。",
+      "after_zh": "只统计占用，不提供清理，会话与文件历史继续保留。",
+      "fix_hint_zh": null,
+      "sources": [
+        {
+          "kind": "local_observation",
+          "ref": "2026-10-28 总控本机只读核查：VERIFY 确认 .kimi-code/bin 中当前程序与旧备份并存；M3 计划记录会话与 file-history 占用 0.36 GB 以上。",
+          "checked_on": "2026-10-28"
+        },
+        {
+          "kind": "official_doc",
+          "ref": "https://moonshotai.github.io/kimi-code/en/configuration/data-locations.html",
+          "checked_on": "2026-10-28"
+        }
+      ]
+    },
+    {
+      "rule_id": "kiro-sessions",
+      "title_zh": "Kiro 会话",
+      "owner_zh": "Kiro",
+      "category": "agent_tool",
+      "level": "protected",
+      "locate": [
+        {
+          "kind": "pattern",
+          "base": "user_profile",
+          "segments": [
+            ".kiro",
+            "sessions"
+          ]
+        }
+      ],
+      "item_type": "dir",
+      "min_age_hours": 0,
+      "keep_newest": 0,
+      "in_use": {
+        "mode": "none",
+        "processes": []
+      },
+      "growth": "slow",
+      "what_zh": "Kiro 保存的对话会话记录。",
+      "why_zh": "续接先前的对话需要这些记录，不能因为时间久就清理。",
+      "after_zh": "只统计占用，不提供清理，已有对话记录会保留。",
+      "fix_hint_zh": null,
+      "sources": [
+        {
+          "kind": "local_observation",
+          "ref": "2026-10-28 总控本机只读核查：M3 计划第 1 节的本机只读摸底记录 .kiro/sessions 约 0.24 GB；VERIFY 未单列此目录。",
+          "checked_on": "2026-10-28"
+        },
+        {
+          "kind": "official_doc",
+          "ref": "https://kiro.dev/docs/cli/chat/session-management/",
+          "checked_on": "2026-10-28"
+        }
+      ]
+    },
+    {
+      "rule_id": "workbuddy-memory-sessions",
+      "title_zh": "WorkBuddy 记忆与会话",
+      "owner_zh": "WorkBuddy、CodeBuddy",
+      "category": "agent_tool",
+      "level": "protected",
+      "locate": [
+        {
+          "kind": "pattern",
+          "base": "user_profile",
+          "segments": [
+            ".workbuddy*",
+            "memory"
+          ]
+        },
+        {
+          "kind": "pattern",
+          "base": "user_profile",
+          "segments": [
+            ".workbuddy*",
+            "sessions"
+          ]
+        },
+        {
+          "kind": "pattern",
+          "base": "user_profile",
+          "segments": [
+            ".codebuddy",
+            "sessions"
+          ]
+        },
+        {
+          "kind": "pattern",
+          "base": "user_profile",
+          "segments": [
+            ".codebuddy",
+            "file-history"
+          ]
+        }
+      ],
+      "item_type": "dir",
+      "min_age_hours": 0,
+      "keep_newest": 0,
+      "in_use": {
+        "mode": "none",
+        "processes": []
+      },
+      "growth": "slow",
+      "what_zh": "WorkBuddy 的长期记忆、对话，以及 CodeBuddy 的会话与文件历史。",
+      "why_zh": "这些内容用于保留工具记忆、续接对话和找回改动，需要保护。",
+      "after_zh": "只统计占用，不提供清理，记忆、会话和文件历史都会保留。",
+      "fix_hint_zh": null,
+      "sources": [
+        {
+          "kind": "local_observation",
+          "ref": "2026-10-28 总控本机只读核查：.workbuddy 与 .workbuddy-ai 内有 memory、sessions、plans、plugins 等目录，日志以外的数据受保护或仅供参考。",
+          "checked_on": "2026-10-28"
+        }
+      ]
+    },
+    {
+      "rule_id": "other-agent-sessions",
+      "title_zh": "其它 Agent 工具会话",
+      "owner_zh": "Gemini、Copilot、dsh",
+      "category": "agent_tool",
+      "level": "protected",
+      "locate": [
+        {
+          "kind": "pattern",
+          "base": "user_profile",
+          "segments": [
+            ".gemini",
+            "tmp",
+            "*",
+            "chats"
+          ]
+        },
+        {
+          "kind": "pattern",
+          "base": "user_profile",
+          "segments": [
+            ".copilot",
+            "session-state"
+          ]
+        },
+        {
+          "kind": "pattern",
+          "base": "user_profile",
+          "segments": [
+            ".dsh",
+            "sessions"
+          ]
+        }
+      ],
+      "item_type": "dir",
+      "min_age_hours": 0,
+      "keep_newest": 0,
+      "in_use": {
+        "mode": "none",
+        "processes": []
+      },
+      "growth": "slow",
+      "what_zh": "Gemini、Copilot 和 DeepSeek Harness 保存的对话会话记录。",
+      "why_zh": "这些记录用于续接对话，临时目录里的会话也不能当作缓存清理。",
+      "after_zh": "只统计占用，不提供清理，已有会话记录会保留。",
+      "fix_hint_zh": null,
+      "sources": [
+        {
+          "kind": "local_observation",
+          "ref": "2026-10-28 总控本机只读核查：.dsh 共约 3 MB，内有 profiles、sessions、storages、.agent-presets 与 settings.yaml，整体受保护。",
+          "checked_on": "2026-10-28"
+        },
+        {
+          "kind": "official_doc",
+          "ref": "https://geminicli.com/docs/cli/session-management/",
+          "checked_on": "2026-10-28"
+        },
+        {
+          "kind": "official_doc",
+          "ref": "https://docs.github.com/en/copilot/reference/copilot-cli-reference/cli-config-dir-reference",
+          "checked_on": "2026-10-28"
         }
       ]
     }
