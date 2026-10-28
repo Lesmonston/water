@@ -1,0 +1,80 @@
+{"binary":"C:\\Program Files\\nodejs\\node.exe","args":["--test","--test-concurrency=1","--test-reporter=tap","apps/water/ui/tests/browser.test.mjs"],"exitCode":1,"error":null}
+--- stdout ---
+TAP version 13
+# Subtest: ui_home_and_scan
+ok 1 - ui_home_and_scan
+  ---
+  duration_ms: 6967.4634
+  type: 'test'
+  ...
+# Subtest: ui_results_detail_confirm
+ok 2 - ui_results_detail_confirm
+  ---
+  duration_ms: 3504.6516
+  type: 'test'
+  ...
+# Subtest: ui_clean_done_and_pages
+not ok 3 - ui_clean_done_and_pages
+  ---
+  duration_ms: 10023.4321
+  type: 'test'
+  location: 'F:\\new\\smaltalk\\water\\.worktrees\\w6-i3\\apps\\water\\ui\\tests\\browser.test.mjs:272:1'
+  failureType: 'testCodeFailure'
+  error: 'CDP timeout: Page.navigate'
+  code: 'ERR_TEST_FAILURE'
+  stack: |-
+    Timeout._onTimeout (file:///F:/new/smaltalk/water/.worktrees/w6-i3/scripts/acceptance/native-vw-private-browser.mjs:19:69)
+    listOnTimeout (node:internal/timers:605:17)
+    process.processTimers (node:internal/timers:541:7)
+  ...
+# Subtest: ui_layout_states_a11y
+not ok 4 - ui_layout_states_a11y
+  ---
+  duration_ms: 10006.9055
+  type: 'test'
+  location: 'F:\\new\\smaltalk\\water\\.worktrees\\w6-i3\\apps\\water\\ui\\tests\\browser.test.mjs:320:1'
+  failureType: 'testCodeFailure'
+  error: 'CDP timeout: Runtime.evaluate'
+  code: 'ERR_TEST_FAILURE'
+  stack: |-
+    Timeout._onTimeout (file:///F:/new/smaltalk/water/.worktrees/w6-i3/scripts/acceptance/native-vw-private-browser.mjs:19:69)
+    listOnTimeout (node:internal/timers:605:17)
+    process.processTimers (node:internal/timers:541:7)
+  ...
+# Subtest: ui_m1_polish
+not ok 5 - ui_m1_polish
+  ---
+  duration_ms: 10006.5319
+  type: 'test'
+  location: 'F:\\new\\smaltalk\\water\\.worktrees\\w6-i3\\apps\\water\\ui\\tests\\browser.test.mjs:402:1'
+  failureType: 'testCodeFailure'
+  error: 'CDP timeout: Emulation.setEmulatedMedia'
+  code: 'ERR_TEST_FAILURE'
+  stack: |-
+    Timeout._onTimeout (file:///F:/new/smaltalk/water/.worktrees/w6-i3/scripts/acceptance/native-vw-private-browser.mjs:19:69)
+    listOnTimeout (node:internal/timers:605:17)
+    process.processTimers (node:internal/timers:541:7)
+  ...
+not ok 6 - F:\\new\\smaltalk\\water\\.worktrees\\w6-i3\\apps\\water\\ui\\tests\\browser.test.mjs
+  ---
+  duration_ms: 10449.2722
+  location: 'F:\\new\\smaltalk\\water\\.worktrees\\w6-i3\\apps\\water\\ui\\tests\\browser.test.mjs:203:1'
+  failureType: 'hookFailed'
+  error: 'CDP timeout: Runtime.evaluate'
+  code: 'ERR_TEST_FAILURE'
+  stack: |-
+    Timeout._onTimeout (file:///F:/new/smaltalk/water/.worktrees/w6-i3/scripts/acceptance/native-vw-private-browser.mjs:19:69)
+    listOnTimeout (node:internal/timers:605:17)
+    process.processTimers (node:internal/timers:541:7)
+  ...
+1..6
+# tests 6
+# suites 0
+# pass 2
+# fail 4
+# cancelled 0
+# skipped 0
+# todo 0
+# duration_ms 51100.3534
+
+--- stderr ---

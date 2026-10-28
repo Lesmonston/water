@@ -15,13 +15,13 @@ import {locations} from './views/locations.mjs';
 import {about} from './views/about.mjs';
 
 const routes = ['home', 'results', 'trends', 'history', 'locations', 'about'];
-const state = {app:null, connecting:true, busy:'idle', pending:false, error:'', result:null, selection:new Set(), filter:'all', sort:'bytes', stale:false, cleaned:null, showDone:false, progressFailures:0, reconnecting:false, pollPaused:false, pauseReason:'', stopFailed:false, historyDetails:new Map()};
+const state = {app:null, connecting:true, busy:'idle', pending:false, error:'', result:null, selection:new Set(), filter:'all', sort:'bytes', stale:false, cleaned:null, showDone:false, progressFailures:0, reconnecting:false, recoveryPending:false, pollPaused:false, pauseReason:'', stopFailed:false, historyDetails:new Map()};
 let route = 'home', timer, polling = false, overlay, opener, routeVersion = 0;
 const page = document.getElementById('page'), main = document.getElementById('main');
 const motionObserver = new IntersectionObserver(entries => entries.forEach(entry => entry.target.style.setProperty('--motion-state', entry.isIntersecting ? 'running' : 'paused')));
 const actions = {
   busy:() => state.pending || state.busy !== 'idle' || !state.app,
-  navigate, connect, reconnectProgress:() => { if (!polling) { state.error = ''; beginPolling(); render(); void loadRoute(true); } },
+  navigate, connect, reconnectProgress:() => { if (!polling) { state.error = ''; beginPolling(); render(); } },
   scan:() => run(async inScope => {
     if (state.busy !== 'idle') return;
     const value = await ipc.scan_start();
@@ -30,8 +30,8 @@ const actions = {
     if (inScope()) navigate('home');
     beginPolling();
   }),
-  stopScan:() => run(inScope => stop(() => ipc.scan_cancel(state.scanId ?? state.scanProgress?.scan_id), inScope)),
-  stopClean:() => run(inScope => stop(() => ipc.clean_stop(), inScope)),
+  stopScan:() => run(inScope => stop(() => ipc.scan_cancel(state.scanId ?? state.scanProgress?.scan_id), inScope), true),
+  stopClean:() => run(inScope => stop(() => ipc.clean_stop(), inScope), true),
   detail:id => run(async inScope => { const value = await ipc.group_detail(id); if (inScope()) showOverlay(detail(value, closeOverlay), 'detail-close'); }),
   select:(id, checked) => { if (actions.busy() || state.stale) return; state.selection = setSelected(state.result, state.selection, id, checked); render(); },
   selectCategory:(category, checked) => { if (actions.busy() || state.stale) return; state.selection = selectCategory(state.result, state.selection, category, checked); render(); },
@@ -69,10 +69,13 @@ async function readHistoryDetail(entry) {
 }
 // A stop that fails while progress is paused cannot use the notice, which keeps the pause reason.
 async function stop(request, inScope) {
-  state.stopFailed = false;
   try { await request(); }
   catch (error) {
-    if (inScope() && state.pollPaused) { state.stopFailed = true; document.getElementById('announcer').textContent = '停止请求没有送达，请先重新连接再试。'; }
+    if (inScope() && state.pollPaused) {
+      state.stopFailed = true;
+      const announcer = document.getElementById('announcer'); announcer.textContent = '';
+      setTimeout(() => { if (state.stopFailed && inScope()) announcer.textContent = '停止请求没有送达，请先重新连接再试。'; }, 0);
+    }
     throw error;
   }
 }
@@ -83,11 +86,11 @@ function fault(error, show = true) {
   state.error = typeof error?.message_zh === 'string' && error.message_zh ? error.message_zh : error?.code === 'unavailable' ? '无法连接 Water 服务' : 'Water 服务暂时不可用';
   if (error?.code === 'stale') closeOverlay(true);
 }
-async function run(fn) {
+async function run(fn, clearStop = false) {
   if (state.pending) return;
   const version = routeVersion, origin = location.hash, paused = state.pollPaused;
   const inScope = () => version === routeVersion && origin === location.hash;
-  state.pending = true; state.error = ''; render();
+  state.pending = true; state.error = ''; if (clearStop) state.stopFailed = false; render();
   overlay?.querySelectorAll('button').forEach(b => { b.disabled = true; });
   try { await fn(inScope); } catch (error) { fault(error, inScope() && !paused && !state.pollPaused); }
   finally { state.pending = false; overlay?.querySelectorAll('button').forEach(b => { b.disabled = false; }); render(); }
@@ -143,16 +146,17 @@ function navigate(next) {
 }
 // missingOnly: after reconnecting, re-read only what a paused read left missing, including an expanded history entry.
 async function loadRoute(missingOnly = false) {
-  const version = ++routeVersion, current = route, origin = location.hash, paused = state.pollPaused;
+  const version = routeVersion, current = route, origin = location.hash, paused = state.pollPaused;
   try {
     const read = {trends:ipc.trends, history:ipc.history_list, locations:ipc.locations_get}[current];
     if (read && !(missingOnly && state[current])) { const value = await read(); if (version === routeVersion) state[current] = value; }
-    const open = missingOnly && current === 'history' && version === routeVersion && state.history?.find(entry => entry.id === state.historyOpen);
+    const open = !state.pollPaused && current === 'history' && version === routeVersion && origin === location.hash && state.history?.find(entry => entry.id === state.historyOpen);
     if (open) await readHistoryDetail(open);
   } catch (error) { fault(error, version === routeVersion && origin === location.hash && !paused && !state.pollPaused); }
   if (version === routeVersion) render();
 }
 function routeChanged() {
+  routeVersion++;
   closeOverlay(true); const value = location.hash.slice(2); route = routes.includes(value) ? value : 'home';
   state.error = ''; state.stopFailed = false;
   state.showDone = false;
@@ -162,13 +166,15 @@ function routeChanged() {
 }
 function startPolling() { clearTimeout(timer); timer = setTimeout(poll, 250); }
 function beginPolling() { state.progressFailures = 0; state.reconnecting = false; state.pollPaused = false; state.stopFailed = false; startPolling(); }
-function pauseProgress(error) { fault(error); state.pauseReason = state.error; state.error = ''; state.reconnecting = false; state.pollPaused = true; }
+function pauseProgress(error) { fault(error); state.pauseReason = state.error; state.error = ''; state.reconnecting = false; state.recoveryPending = true; state.pollPaused = true; }
 async function readProgress() {
   try {
     const value = await (state.busy === 'scanning' ? ipc.scan_progress() : ipc.clean_progress());
     state.progressFailures = 0; state.reconnecting = false;
+    if (state.recoveryPending) { state.recoveryPending = false; await loadRoute(true); }
     return value;
   } catch (error) {
+    state.recoveryPending = true;
     if (['busy', 'unavailable'].includes(error?.code) && ++state.progressFailures < 20) state.reconnecting = true;
     else pauseProgress(error);
     return null;

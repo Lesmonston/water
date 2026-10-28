@@ -13,7 +13,7 @@ export function results(state, actions) {
   add(summary, bar, legend);
   add(page, add(el('div', 'res-hero'), add(el('div'), el('p', 'cap', '可放心清理'), metric(r.totals.recommended_bytes), el('p', 'cap result-meta', `${r.recommended_by_drive.map(d => `${d.root.slice(0, 2)} ${formatBytes(d.bytes)}`).join(' · ')}　扫描于 ${dateTime(r.finished_at)}，用时 ${Math.round(r.duration_ms / 1000)} 秒`), r.status !== 'completed' ? el('p', 'growth', '部分结果') : null), summary));
   r.insights.forEach(i => add(page, insight(i, actions.detail)));
-  if (state.stale) add(page, el('p', 'glass note', '结果已过期，请重新体检后再清理。'));
+  if (state.stale && (state.error !== '结果已过期，请重新体检后再清理。' || state.reconnecting || state.pollPaused)) add(page, el('p', 'glass note', '结果已过期，请重新体检后再清理。'));
   const filters = el('div', 'seg', undefined, {'aria-label':'按级别过滤'});
   for (const [key, label] of [['all', '全部'], ...Object.entries(levels).filter(([key]) => key !== 'unrecognized')]) add(filters, button(label, () => actions.filter(key), `segment ${state.filter === key ? 'on' : ''}`, `filter-${key}`));
   const sort = el('div', 'seg', undefined, {'aria-label':'排序'});

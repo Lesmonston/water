@@ -41,7 +41,9 @@ function fakeHost(f, options) {
   }
   const NativeDate = Date;
   window.Date = class extends NativeDate { constructor(...args) { super(...(args.length ? args : [f.scan_result.finished_at])); } static now() { return NativeDate.parse(f.scan_result.finished_at); } };
-  const control = window.__waterTest = {scenario:options.scenario, calls:[], errors:[], scanIndex:0, cleanIndex:0, holdScan:true, holdClean:true, holdApp:!!options.holdApp, scanIdleBefore:0, progressErrors:{scan_progress:[], clean_progress:[]}, holdProgress:null, delayedError:null, nextError:null, scanned:!!options.scanned, busy:options.busy ?? 'idle', locations:copy(f.locations), addCancelled:false, plan:null, planSequence:0, consumed:false, cleanFinished:!!options.cleanFinished};
+  const control = window.__waterTest = {scenario:options.scenario, calls:[], errors:[], scanIndex:0, cleanIndex:0, holdScan:true, holdClean:true, holdApp:!!options.holdApp, scanIdleBefore:0, offline:false, progressErrors:{scan_progress:[], clean_progress:[]}, holdProgress:null, delayedError:null, nextError:null, scanned:!!options.scanned, busy:options.busy ?? 'idle', locations:copy(f.locations), addCancelled:false, plan:null, planSequence:0, consumed:false, cleanFinished:!!options.cleanFinished};
+  // Only harness resets bypass the close prompt; every scenario still tests the real close guard.
+  addEventListener('beforeunload', event => { if (control.resetting) event.stopImmediatePropagation(); }, {capture:true});
   addEventListener('error', e => control.errors.push(e.message));
   addEventListener('unhandledrejection', e => control.errors.push(String(e.reason)));
   const consoleError = console.error.bind(console);
@@ -52,12 +54,14 @@ function fakeHost(f, options) {
   window.__TAURI__ = {core:{invoke:async (command, args) => {
     control.calls.push({command, args:copy(args), at:performance.now()});
     if (Object.entries(args).some(([key, value]) => [value].flat().some(v => typeof v === 'string' && (key === 'confirmToken' ? /\\/.test(v) : /[A-Za-z]:[\\/]|\\/.test(v) || v.startsWith('/'))))) throw new Error('PATH_SENT_TO_HOST');
+    if (control.offline) throw copy(f.errors.unavailable);
     if (control.holdProgress?.command === command) {
       if (!control.holdProgress.failed) { control.holdProgress.failed = true; throw copy(f.errors.unavailable); }
       while (control.holdProgress) await new Promise(ok => setTimeout(ok, 20));
     }
     if (control.delayedError?.command === command) {
       const held = control.delayedError; held.started = true;
+      held.stopNoteAtStart = document.querySelector('.stop-note')?.textContent ?? null;
       while (!held.release) await new Promise(ok => setTimeout(ok, 20));
       held.finished = true; if (held.error) throw copy(held.error);
     }
@@ -128,20 +132,20 @@ function fakeHost(f, options) {
 }
 
 async function reset(options = {}, route = 'home') {
-  if (scenario) await safeCalls();
+  if (scenario) { await safeCalls(); await control('window.__waterTest.resetting=true'); }
   options = {...options, scenario:++scenario};
   if (injection) await browser.send('Page.removeScriptToEvaluateOnNewDocument', {identifier:injection});
   injection = (await browser.send('Page.addScriptToEvaluateOnNewDocument', {source:`(${fakeHost.toString()})(${JSON.stringify(fixture)}, ${JSON.stringify(options)});`})).identifier;
   await browser.goto(`${base}/index.html?scenario=${scenario}#/${route}`);
-  await browser.waitFor(`window.__waterTest?.scenario === ${scenario} && document.querySelector("#page").children.length > 0`);
+  await waitFor(`window.__waterTest?.scenario === ${scenario} && document.querySelector("#page").children.length > 0`);
   if (options.unavailable) await noticeSettled('document.body.textContent.includes("无法连接 Water 服务")', 'unavailable notice shows');
-  else if (!options.holdApp) await browser.waitFor(`document.querySelector(".version")?.textContent.includes(${JSON.stringify(fixture.app_state_fresh.app_version)})`);
+  else if (!options.holdApp) await waitFor(`document.querySelector(".version")?.textContent.includes(${JSON.stringify(fixture.app_state_fresh.app_version)})`);
 }
 const q = key => `[data-key="${key}"]`;
 const click = key => browser.click(q(key));
 const text = () => browser.evaluate('document.body.textContent');
-const pageIs = name => browser.waitFor(`document.querySelector('#page').dataset.page === ${JSON.stringify(name)}`);
-const waitText = value => browser.waitFor(`document.body.textContent.includes(${JSON.stringify(value)})`);
+const pageIs = name => waitFor(`document.querySelector('#page').dataset.page === ${JSON.stringify(name)}`);
+const waitText = value => waitFor(`document.body.textContent.includes(${JSON.stringify(value)})`);
 const control = code => browser.evaluate(`(()=>{${code}})()`);
 // Bounded polls never throw, so a regression fails on the marked assertion instead of a timeout.
 async function settle(expression, attempts = 200) {
@@ -152,6 +156,9 @@ async function settle(expression, attempts = 200) {
     await new Promise(ok => setTimeout(ok, 25));
   }
   return settled;
+}
+async function waitFor(expression) {
+  assert(await settle(expression, 400), `UI_TEST_BOUNDS: ${expression}`);
 }
 async function noticeSettled(expression, label, attempts) {
   assert(await settle(expression, attempts), `UI_NOTICE_SCOPE: ${label}`);
@@ -208,7 +215,7 @@ test('ui_home_and_scan', async () => {
   assert.equal(await browser.evaluate('window.__waterTest.calls.length'), before, 'Idle must not poll');
   await control('window.__waterTest.scanIdleBefore=2');
   await click('scan-start'); await pageIs('scan');
-  await browser.waitFor('window.__waterTest.scanIdleBefore===0'); await pageIs('scan');
+  await waitFor('window.__waterTest.scanIdleBefore===0'); await pageIs('scan');
   assert.equal(await browser.evaluate('window.__waterTest.calls.filter(c=>c.command==="scan_result").length'), 0, 'Initial idle must not fetch a result');
   await control(`window.__waterTest.progressErrors.scan_progress=${JSON.stringify([fixture.errors.busy, fixture.errors.busy])}`);
   await noticeText('正在重新连接 Water 服务…', 'scan reconnecting notice shows'); await pageIs('scan');
@@ -227,6 +234,7 @@ test('ui_home_and_scan', async () => {
 });
 
 test('ui_results_detail_confirm', async () => {
+  await reset({scanned:true}, 'results');
   await pageIs('results');
   assert.equal(await browser.evaluate('document.querySelector(".res-hero .kpi").textContent'), formatBytes(fixture.scan_result.totals.recommended_bytes).replace(' ', ''), 'Hero must use fixture bytes, not mockup numbers');
   assert.equal(await browser.evaluate('document.querySelector(".dock b").textContent'), formatBytes(selectedBytes(fixture.scan_result, resetSelection(fixture.scan_result))));
@@ -235,7 +243,7 @@ test('ui_results_detail_confirm', async () => {
   await noOverflow(); await shot('results-1240x820');
   await browser.size(1040, 720); await noOverflow(); await shot('results-1040x720'); await browser.size(1240, 820);
   await click('detail-codex-marketplace-staging'); await waitText('这是什么'); await shot('detail-1240x820');
-  assert((await text()).includes(count(fixture.group_details['codex-marketplace-staging'].group.file_count))); await key('Escape'); await browser.waitFor('!document.querySelector("dialog[open]")');
+  assert((await text()).includes(count(fixture.group_details['codex-marketplace-staging'].group.file_count))); await key('Escape'); await waitFor('!document.querySelector("dialog[open]")');
   assert.equal(await browser.evaluate('document.activeElement.dataset.key'), 'detail-codex-marketplace-staging');
   await click('select-codex-marketplace-staging'); await waitText(selectionText(defaults.length - 1));
   await click('select-codex-marketplace-staging'); await waitText(selectionText(defaults.length));
@@ -247,7 +255,7 @@ test('ui_results_detail_confirm', async () => {
   await click('filter-protected');
   assert.equal(await browser.evaluate('document.querySelectorAll(".group-row input").length'), 0);
   await click('detail-claude-code-sessions'); await waitText('Water 不会清理此类数据。'); await key('Escape');
-  await click('filter-all'); await click('clean-prepare'); await browser.waitFor('!!document.querySelector(".confirm[open]")');
+  await click('filter-all'); await click('clean-prepare'); await waitFor('!!document.querySelector(".confirm[open]")');
   assert((await text()).includes('不进入回收站，无法恢复'));
   assert((await text()).includes(count(fixture.clean_prepare_default.item_count)));
   assert.equal(await browser.evaluate('document.querySelector("[data-key=confirm-start]").textContent'), `永久删除 ${formatBytes(fixture.clean_prepare_default.total_bytes)}`);
@@ -255,15 +263,19 @@ test('ui_results_detail_confirm', async () => {
   await key('Tab'); assert.equal(await browser.evaluate('document.activeElement.dataset.key'), 'confirm-start');
   await key('Tab'); assert(await browser.evaluate('document.activeElement.classList.contains("confirm-list")'));
   await key('Tab', true); assert.equal(await browser.evaluate('document.activeElement.dataset.key'), 'confirm-start');
-  await key('Escape'); await browser.waitFor('!document.querySelector("dialog[open]")');
+  await key('Escape'); await waitFor('!document.querySelector("dialog[open]")');
   assert.equal(await browser.evaluate('window.__waterTest.calls.filter(c=>c.command==="clean_start").length'), 0);
-  await click('clean-prepare'); await browser.waitFor('!!document.querySelector(".confirm[open]")'); await shot('confirm-1240x820');
+  await click('clean-prepare'); await waitFor('!!document.querySelector(".confirm[open]")'); await shot('confirm-1240x820');
   await click('confirm-start'); await pageIs('cleaning'); await waitText('已释放');
   assert.equal(await browser.evaluate('window.__waterTest.calls.filter(c=>c.command==="clean_start").length'), 1);
   await safeCalls();
 });
 
 test('ui_clean_done_and_pages', async () => {
+  await reset({scanned:true});
+  await click('view-results'); await pageIs('results'); await waitText(selectionText(defaults.length));
+  await click('clean-prepare'); await waitFor('!!document.querySelector("dialog.confirm[open]")');
+  await click('confirm-start');
   await pageIs('cleaning'); await shot('cleaning-1240x820');
   await control(`window.__waterTest.progressErrors.clean_progress=${JSON.stringify([fixture.errors.busy, fixture.errors.busy])}`);
   await noticeText('正在重新连接 Water 服务…', 'clean reconnecting notice shows'); await pageIs('cleaning');
@@ -279,7 +291,7 @@ test('ui_clean_done_and_pages', async () => {
   await new Promise(ok => setTimeout(ok, 550));
   assert.equal(await browser.evaluate('window.__waterTest.calls.filter(c=>c.command==="clean_progress").length'), paused, 'Retries stop after twenty consecutive failures');
   await click('progress-reconnect'); await pageIs('cleaning');
-  await browser.waitFor(`window.__waterTest.calls.filter(c=>c.command==='clean_progress').length>${paused}`);
+  await waitFor(`window.__waterTest.calls.filter(c=>c.command==='clean_progress').length>${paused}`);
   assert.equal(await browser.evaluate('window.__waterTest.calls.filter(c=>c.command==="clean_start").length'), 1, 'Reconnect must not restart cleanup');
   await control('window.__waterTest.holdClean=false'); await pageIs('done');
   assert.equal(await browser.evaluate('document.querySelector(".done-hero .kpi").textContent'), formatBytes(fixture.clean_result.freed_bytes).replace(' ', '') + ' 已释放', 'Actual freed bytes must come from clean_result');
@@ -299,11 +311,11 @@ test('ui_clean_done_and_pages', async () => {
   await click(`history-${fixture.history_list[0].id}`); await waitText('清理日志位置');
   assert((await text()).includes('6 个配置正在使用，已跳过'));
   await click('nav-locations'); await waitText('自定义文件夹'); await shot('locations-1240x820');
-  await click('location-browser'); await browser.waitFor(`document.querySelector(${JSON.stringify(q('location-browser'))}).getAttribute('aria-checked') === 'false'`);
+  await click('location-browser'); await waitFor(`document.querySelector(${JSON.stringify(q('location-browser'))}).getAttribute('aria-checked') === 'false'`);
   await control('window.__waterTest.addCancelled=true'); await click('add-root');
   assert.equal(await browser.evaluate('window.__waterTest.locations.custom_roots.length'), 1);
   await control('window.__waterTest.addCancelled=false'); await click('add-root'); await waitText('D:\\projects');
-  await click('remove-projects'); await browser.waitFor('window.__waterTest.locations.custom_roots.length === 1');
+  await click('remove-projects'); await waitFor('window.__waterTest.locations.custom_roots.length === 1');
   await click('nav-about'); await waitText('Water 读取什么'); await shot('about-1240x820'); await noOverflow(); await safeCalls();
 });
 
@@ -314,7 +326,7 @@ test('ui_layout_states_a11y', async () => {
   await browser.send('Emulation.setEmulatedMedia', {features:[{name:'prefers-reduced-motion', value:'reduce'}]});
   await click('detail-codex-marketplace-staging'); await waitText('这是什么');
   assert(await browser.evaluate('document.getAnimations().every(a=>a.playState!=="running")'), 'Reduced motion must disable every animation');
-  await key('Escape'); await browser.waitFor('!document.querySelector("dialog[open]")');
+  await key('Escape'); await waitFor('!document.querySelector("dialog[open]")');
   // Walk the real keyboard order and visit every enabled control, including offscreen rows.
   await browser.evaluate('document.activeElement.blur(); document.querySelector("#main").scrollTop=0');
   const expected = await browser.evaluate('[...document.querySelectorAll("a[href], button:not(:disabled), input:not(:disabled), [tabindex]")].filter(e=>e.tabIndex>=0 && e.getClientRects().length).map(e=>e.dataset.key).filter(Boolean)');
@@ -327,9 +339,10 @@ test('ui_layout_states_a11y', async () => {
   await key('Enter'); await waitText('这是什么'); await key('Escape');
   await control(`window.__waterTest.nextError={command:'clean_prepare',error:${JSON.stringify(fixture.errors.stale)}}`);
   await click('clean-prepare'); await noticeText(fixture.errors.stale.message_zh, 'stale notice shows');
+  assert(await browser.evaluate('!document.querySelector(".note")'), 'UI_NOTICE_SCOPE: the visible stale notice replaces the duplicate body line, including when scrolled');
   assert(await browser.evaluate('document.querySelector("#notice").getBoundingClientRect().top >= 0 && document.querySelector("#notice").getBoundingClientRect().bottom <= innerHeight'), 'Error remains visible while results are scrolled');
   assert(await browser.evaluate(`document.querySelector(${JSON.stringify(q('clean-prepare'))}).disabled`)); await shot('stale-1240x820');
-  await click('rescan'); await pageIs('scan'); await browser.waitFor(`!!document.querySelector(${JSON.stringify(q('scan-stop'))})`); await click('scan-stop');
+  await click('rescan'); await pageIs('scan'); await waitFor(`!!document.querySelector(${JSON.stringify(q('scan-stop'))})`); await click('scan-stop');
   await pageIs('results'); await waitText('部分结果'); await waitText(selectionText(defaults.length)); await safeCalls();
   await click('select-codex-marketplace-staging'); await waitText(selectionText(defaults.length - 1));
   await click('rescan'); await pageIs('scan'); await control('window.__waterTest.holdScan=false');
@@ -347,17 +360,17 @@ test('ui_layout_states_a11y', async () => {
   assert(await browser.evaluate('!!document.querySelector(".wave") && !!document.querySelector(".spin")'));
   assert(await browser.evaluate('document.getAnimations().every(a=>a.playState!=="running")'), 'Reduced motion disables scan waves, spinner and entrance');
   await reset({scanned:true}, 'results'); await waitText(selectionText(defaults.length));
-  await click('clean-prepare'); await browser.waitFor('!!document.querySelector("dialog.confirm[open]")');
+  await click('clean-prepare'); await waitFor('!!document.querySelector("dialog.confirm[open]")');
   await control(`window.__waterTest.nextError={command:'clean_start',error:${JSON.stringify(fixture.errors.unavailable)}}`);
   await click('confirm-start'); await noticeText('请重新点击“清理所选”并确认。', 'failed clean_start notice shows');
   assert.equal(await browser.evaluate('document.querySelector("dialog[open]")'), null, 'Failed clean_start closes confirmation');
   assert.equal(await browser.evaluate('window.__waterTest.calls.filter(c=>c.command==="clean_start").length'), 1);
-  await click('clean-prepare'); await browser.waitFor('!!document.querySelector("dialog.confirm[open]")');
+  await click('clean-prepare'); await waitFor('!!document.querySelector("dialog.confirm[open]")');
   assert.equal(await browser.evaluate('window.__waterTest.calls.filter(c=>c.command==="clean_prepare").length'), 2, 'Retry requires a new preview');
   await click('confirm-start'); await pageIs('cleaning'); await waitText('已释放');
   assert(await browser.evaluate('(()=>{const starts=window.__waterTest.calls.filter(c=>c.command==="clean_start");return starts[0].args.confirmToken!==starts[1].args.confirmToken})()'), 'The consumed token is not reused');
   await click('nav-history'); await waitText('清理记录');
-  await browser.waitFor('!!document.querySelector(".history-row")');
+  await waitFor('!!document.querySelector(".history-row")');
   assert(!(await text()).includes(cleanEntry.summary_zh));
   const historiesBefore = await browser.evaluate('window.__waterTest.calls.filter(c=>c.command==="history_list").length');
   await control('window.__waterTest.holdClean=false'); await waitText(cleanEntry.summary_zh);
@@ -476,7 +489,7 @@ test('ui_m1_polish', async () => {
   }
 
   await reset({scanned:true, longResults:true}, 'results');
-  await browser.waitFor('!!document.querySelector(".dock")');
+  await waitFor('!!document.querySelector(".dock")');
   const ids = await browser.evaluate('[...document.querySelectorAll(".group-open")].map(e=>e.dataset.key.slice(7))');
   assert.equal(ids.length, groups(fixture.scan_result).length * 3, 'UI_DOCK_CLEARANCE: use the long host result');
   assert(ids.every(id => /^[A-Za-z0-9][A-Za-z0-9:._-]{0,255}$/.test(id) && !/^[A-Za-z]:/.test(id)) && new Set(ids).size === ids.length, 'UI_DOCK_CLEARANCE: unique path-free group IDs');
@@ -513,9 +526,25 @@ test('ui_m1_polish', async () => {
   assert.equal(await browser.evaluate('window.__waterTest.calls.filter(c=>c.command==="clean_prepare").length'), 2, 'UI_NOTICE_SCOPE: a new click requests a fresh host message');
 
   await reset({scanned:true}, 'results'); await waitText(selectionText(defaults.length));
+  await control("window.__waterTest.delayedError={command:'clean_prepare',started:false,release:false,error:null}");
+  await click('clean-prepare');
+  assert(await settle('window.__waterTest.delayedError.started'), 'UI_RETURN_SCOPE: the preview is held before navigation');
+  await click('nav-trends'); await pageIs('trends');
+  await browser.evaluate('location.hash = "#/results"'); await pageIs('results');
+  assert.equal(await browser.evaluate('window.__waterTest.delayedError.finished === true'), false, 'UI_RETURN_SCOPE: return to results before the preview settles');
+  await control('window.__waterTest.delayedError.release=true');
+  assert(await settle('window.__waterTest.delayedError.finished === true && !document.querySelector("[data-key=clean-prepare]").disabled'), 'UI_RETURN_SCOPE: the old preview finishes on the returned results page');
+  await settle('!!document.querySelector("dialog[open]")', 20);
+  assert(await browser.evaluate('!document.querySelector("dialog[open]") && !document.querySelector("dialog.confirm")'), 'UI_RETURN_SCOPE: a preview from an earlier route version cannot open confirmation after returning to the same address');
+  await click('clean-prepare');
+  assert(await settle('!!document.querySelector("dialog.confirm[open]")'), 'UI_RETURN_SCOPE: a new click opens a fresh confirmation');
+  assert.equal(await browser.evaluate('window.__waterTest.calls.filter(c=>c.command==="clean_prepare").length'), 2, 'UI_RETURN_SCOPE: returning requires a second preview request');
+  await key('Escape'); await waitFor('!document.querySelector("dialog[open]")');
+
+  await reset({scanned:true}, 'results'); await waitText(selectionText(defaults.length));
   const delayedSuccess = async (command, start, label) => {
     await control(`window.__waterTest.delayedError={command:'${command}',started:false,release:false,error:null}`);
-    await click(start); await browser.waitFor('window.__waterTest.delayedError.started');
+    await click(start); await waitFor('window.__waterTest.delayedError.started');
     await click('nav-trends'); await pageIs('trends');
     await control('window.__waterTest.delayedError.release=true');
     assert(await settle('window.__waterTest.delayedError.finished === true'), `${label}: the delayed command settles`);
@@ -527,9 +556,9 @@ test('ui_m1_polish', async () => {
   await click('nav-home'); await pageIs('home'); await click('view-results'); await pageIs('results');
   assert(await settle('!document.querySelector("[data-key=clean-prepare]").disabled'), 'UI_CLEAN_SCOPE: results settle after returning');
   assert(await browser.evaluate('!document.querySelector("dialog[open]") && !document.querySelector("dialog.confirm") && document.querySelector("#notice").hidden'), 'UI_CLEAN_SCOPE: returning to results shows no confirmation from the old preview');
-  await click('clean-prepare'); await browser.waitFor('!!document.querySelector("dialog.confirm[open]")');
+  await click('clean-prepare'); await waitFor('!!document.querySelector("dialog.confirm[open]")');
   assert.equal(await browser.evaluate('window.__waterTest.calls.filter(c=>c.command==="clean_prepare").length'), 2, 'UI_CLEAN_SCOPE: confirming needs a new click on 清理所选');
-  await key('Escape'); await browser.waitFor('!document.querySelector("dialog[open]")');
+  await key('Escape'); await waitFor('!document.querySelector("dialog[open]")');
   await delayedSuccess('group_detail', 'detail-codex-marketplace-staging', 'UI_COMMAND_SCOPE');
   assert(await browser.evaluate('!document.querySelector("dialog[open]")'), 'UI_COMMAND_SCOPE: a group detail that arrives after leaving results opens no drawer on the new page');
   await browser.evaluate('location.hash = "#/results"'); await pageIs('results');
@@ -537,7 +566,7 @@ test('ui_m1_polish', async () => {
 
   await reset({scanned:true}, 'results'); await waitText(selectionText(defaults.length));
   await control(`window.__waterTest.delayedError={command:'clean_prepare',started:false,release:false,error:${JSON.stringify(fixture.errors.stale)}}`);
-  await click('clean-prepare'); await browser.waitFor('window.__waterTest.delayedError.started');
+  await click('clean-prepare'); await waitFor('window.__waterTest.delayedError.started');
   await click('nav-trends'); await pageIs('trends');
   await control('window.__waterTest.delayedError.release=true');
   await noticeSettled('window.__waterTest.delayedError.finished === true', 'delayed command settles');
@@ -607,6 +636,57 @@ test('ui_m1_polish', async () => {
   feedback = await stopFeedback();
   assert.equal(feedback.onPage, false, `UI_STOP_FEEDBACK: the stop line goes away after reconnecting: ${JSON.stringify(feedback)}`);
 
+  // Keep the host unavailable beyond the reconnect click, then restore progress on another page.
+  await reset({scanned:true, busy:'cleaning'}); await pageIs('cleaning'); await waitText('已释放');
+  await click('nav-history'); await pageIs('history'); await waitFor('!!document.querySelector(".history-row")');
+  await control('window.__waterTest.cleanIdleBefore=1'); await pausedNotice('clean pauses before the offline reads');
+  await control('window.__waterTest.offline=true');
+  const pendingScanEntry = fixture.history_list.find(entry => entry.kind === 'scan');
+  const detailReads = await browser.evaluate('window.__waterTest.calls.filter(c=>c.command==="scan_result").length');
+  await click(`history-${pendingScanEntry.id}`);
+  assert(await settle(`window.__waterTest.calls.filter(c=>c.command==='scan_result').length > ${detailReads} && !document.querySelector('[data-key=progress-reconnect]').disabled`), 'UI_RECONNECT_READ: expanding history attempts its detail while the host is offline');
+  assert((await text()).includes('正在读取详情…'), 'UI_RECONNECT_READ: the expanded detail is still missing');
+  const trendsReads = await browser.evaluate('window.__waterTest.calls.filter(c=>c.command==="trends").length');
+  await click('nav-trends'); await pageIs('trends');
+  assert(await settle(`window.__waterTest.calls.filter(c=>c.command==='trends').length > ${trendsReads}`), 'UI_RECONNECT_READ: offline navigation attempts trends');
+  assert((await text()).includes('正在读取趋势…'), 'UI_RECONNECT_READ: the failed trends read leaves missing data');
+  const failedTrendsReads = await browser.evaluate('window.__waterTest.calls.filter(c=>c.command==="trends").length');
+  await click('progress-reconnect');
+  assert.equal(await browser.evaluate('window.__waterTest.calls.filter(c=>c.command==="trends").length'), failedTrendsReads, 'UI_RECONNECT_READ: the reconnect button only resumes progress, without reading trends before recovery');
+  assert(await settle('document.querySelector("#notice span")?.textContent === "正在重新连接 Water 服务…"'), 'UI_RECONNECT_READ: the offline reconnect shows only the reconnect explanation');
+  await pausedNotice('offline reconnect exhausts its progress retries');
+  await assertPaused(pausedMessage, 'offline reconnect pauses again');
+  assert.equal(await browser.evaluate('window.__waterTest.calls.filter(c=>c.command==="trends").length'), failedTrendsReads, 'UI_RECONNECT_READ: no page reads run during failed progress retries');
+  await click('progress-reconnect');
+  assert(await settle('document.querySelector("#notice span")?.textContent === "正在重新连接 Water 服务…"'), 'UI_RECONNECT_READ: a second reconnect still waits for real progress');
+  await control('window.__waterTest.offline=false');
+  assert(await settle('document.querySelector("#notice").hidden && document.body.textContent.includes("增长最多") && !document.body.textContent.includes("正在读取趋势…")'), 'UI_RECONNECT_READ: first successful progress re-reads missing trends and leaves no failed-read error');
+  assert.equal(await browser.evaluate('window.__waterTest.calls.filter(c=>c.command==="trends").length'), failedTrendsReads + 1, 'UI_RECONNECT_READ: missing trends is read once on recovery');
+  await click('nav-history'); await pageIs('history');
+  assert(await settle('!document.body.textContent.includes("正在读取详情…") && !!document.querySelector(".history-detail")?.textContent.includes("共识别")'), 'UI_RECONNECT_READ: returning to history fills the still-expanded missing detail');
+  assert.equal(await browser.evaluate('window.__waterTest.calls.filter(c=>c.command==="scan_result").length'), detailReads + 2, 'UI_RECONNECT_READ: only the failed detail and the returning-page retry read the scan');
+  assert.equal(await browser.evaluate('window.__waterTest.calls.filter(c=>c.command==="clean_start").length'), 0, 'UI_RECONNECT_READ: recovery never restarts cleaning');
+
+  await click('nav-home'); await pageIs('cleaning');
+  await control('window.__waterTest.cleanIdleBefore=1'); await pausedNotice('clean pauses before stop failure');
+  await control(`window.__waterTest.nextError={command:'clean_stop',error:${JSON.stringify(fixture.errors.invalid)}}`);
+  await click('clean-stop');
+  assert(await settle('window.__waterTest.nextError === null && !document.querySelector("[data-key=clean-stop]").disabled'), 'UI_CLEAN_STOP: failed clean_stop finishes');
+  assert.deepEqual(await stopFeedback(), {text:stopNote, below:true, inNotice:false, onPage:true}, 'UI_CLEAN_STOP: clean_stop failure is below the cleaning stop button, outside the notice');
+  assert(await browser.evaluate('!!document.querySelector(".cleaning-status .stop-note")'), 'UI_CLEAN_STOP: feedback belongs to the cleaning card');
+  await shot('clean-stop-failed-1240x820');
+  await control(`window.__waterTest.announcements=[];new MutationObserver(()=>window.__waterTest.announcements.push(document.querySelector('#announcer').textContent)).observe(document.querySelector('#announcer'),{childList:true,subtree:true,characterData:true});window.__waterTest.delayedError={command:'clean_stop',started:false,release:false,error:${JSON.stringify(fixture.errors.invalid)}}`);
+  await click('clean-stop');
+  assert(await settle('window.__waterTest.delayedError.started'), 'UI_CLEAN_STOP: the repeated stop is held');
+  assert.equal(await browser.evaluate('window.__waterTest.delayedError.stopNoteAtStart'), null, 'UI_CLEAN_STOP: clear the old feedback before issuing the repeated stop');
+  assert.equal((await stopFeedback()).onPage, false, 'UI_CLEAN_STOP: feedback stays clear while the repeated stop is pending');
+  await control('window.__waterTest.delayedError.release=true');
+  assert(await settle(`document.querySelector('.stop-note')?.textContent === ${JSON.stringify(stopNote)} && window.__waterTest.announcements.includes(${JSON.stringify(stopNote)})`), 'UI_CLEAN_STOP: the repeated failed stop shows and announces the same message again');
+  const announcements = await browser.evaluate('window.__waterTest.announcements');
+  assert(announcements.indexOf('') >= 0 && announcements.indexOf('') < announcements.indexOf(stopNote), `UI_CLEAN_STOP: clear the live region before repeating the announcement: ${JSON.stringify(announcements)}`);
+  await click('progress-reconnect');
+  assert(await settle('document.querySelector("#notice").hidden && !document.querySelector(".cleaning-status .stop-note")'), 'UI_CLEAN_STOP: reconnecting clears the cleaning stop feedback');
+
   await reset({scanned:true, busy:'cleaning'}); await pageIs('cleaning');
   await control('window.__waterTest.cleanIdleBefore=1');
   await pausedNotice('clean paused notice shows');
@@ -629,7 +709,7 @@ test('ui_m1_polish', async () => {
   await noticeSettled('document.body.textContent.includes("增长最多") && !document.body.textContent.includes("正在读取趋势…")', 'trends is read again after reconnect and shows its data');
   await control('window.__waterTest.cleanIdleBefore=1');
   await pausedNotice('clean pauses again');
-  await click('nav-history'); await pageIs('history'); await browser.waitFor('!!document.querySelector(".history-row")');
+  await click('nav-history'); await pageIs('history'); await waitFor('!!document.querySelector(".history-row")');
   const scanEntry = fixture.history_list.find(entry => entry.kind === 'scan');
   await failedRead('scan_result', () => click(`history-${scanEntry.id}`));
   await assertPaused(cleanPausedMessage, 'history detail read failed while paused');
