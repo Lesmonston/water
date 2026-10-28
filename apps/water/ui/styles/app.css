@@ -33,6 +33,7 @@ button:disabled, input:disabled { cursor: default; color: var(--w-ink-4); }
 .side-foot p, .drive-main .sub { text-wrap: balance; }
 .main { position: relative; flex: 1; min-width: 0; overflow: auto; scrollbar-width: thin; scrollbar-color: var(--w-ink-4) transparent; }
 .titlebar { height: 40px; position: sticky; top: 0; z-index: 3; }
+.main:has(> .notice:not([hidden])) > .titlebar { z-index: 6; background: rgb(from var(--w-window) r g b / 1); }
 .page { max-width: var(--w-content-max); margin: 0 auto; padding: 26px 36px 124px; }
 .page.enter { animation: rise 400ms var(--w-ease); }
 .page-heading { margin-bottom: 22px; }
@@ -58,7 +59,7 @@ p { margin: 0 0 8px; }
 .btn:disabled, .orb-btn:disabled { color: var(--w-ink-4); background: var(--w-surface-sunken); box-shadow: none; }
 .btn-ghost:hover:not(:disabled), .text-link:hover { text-decoration: underline; }
 .text-link { padding: 0; border: 0; background: transparent; text-align: left; color: var(--w-ink); }
-.notice { position: sticky; top: 40px; z-index: 6; margin: 0 36px; padding: 10px 16px; border-radius: var(--w-r); background: var(--w-glass-strong); box-shadow: var(--w-glass-shadow); display: flex; align-items: center; justify-content: space-between; gap: 16px; }
+.notice { position: sticky; top: 40px; z-index: 6; margin: 0 36px; padding: 10px 16px; border-radius: var(--w-r); background: var(--w-glass-strong); backdrop-filter: blur(var(--w-glass-blur-strong)); box-shadow: var(--w-glass-shadow); display: flex; align-items: center; justify-content: space-between; gap: 16px; }
 .empty { padding: 60px 28px; text-align: center; margin: 20px 0; }
 .empty > .i { color: var(--w-ink); width: 36px; height: 36px; margin-bottom: 16px; }
 .empty h2 { margin-bottom: 8px; }
