@@ -1,0 +1,34 @@
+i2 c1 mutated apps/water/host/src/lib.rs: continuous unknown state gives up after 1 s instead of 5 s (worker nc2 mapped Err to NotCleaning instead) (mutated sha 916679bbeaa35d2e7b1e187e7a8a79b3ec8a8aac3f17d88af28d9d60c5cb3781)
+i2 red-nc2 rc=0 {"task":"WATER-W6-ACCEPT-I2","mode":"red-nc2","finalGate":false,"status":"passed","error":null,"receipt":"F:\\new\\smaltalk\\water\\.worktrees\\accept-w6-i2\\.local\\checks\\WATER-W6-ACCEPT-I2\\2026-10-28T11-18-09.084Z-30860-red-nc2-result.json"}
+i2 c1 KILLED (expected HOST_CLOSE_UNKNOWN)
+i2 c1 restored exact bytes=true sha ad89ab11e5af67c87889c78befe58fb63fc47b3457b45780fa57a42e79c0412c
+i2 test rc=0 {"task":"WATER-W6-ACCEPT-I2","mode":"test","finalGate":false,"status":"passed","error":null,"receipt":"F:\\new\\smaltalk\\water\\.worktrees\\accept-w6-i2\\.local\\checks\\WATER-W6-ACCEPT-I2\\2026-10-28T11-18-20.539Z-20548-test-result.json"}
+i2 c2 mutated apps/water/host/src/lib.rs: probe: a Cleaning answer no longer resets the unknown clock, so unknown time is summed instead of counted only while continuous (mutated sha 4579e1d753dacada926c5782fba7eab2985f7ae57804ff0e16514311446012d0)
+i2 test rc=0 {"task":"WATER-W6-ACCEPT-I2","mode":"test","finalGate":false,"status":"passed","error":null,"receipt":"F:\\new\\smaltalk\\water\\.worktrees\\accept-w6-i2\\.local\\checks\\WATER-W6-ACCEPT-I2\\2026-10-28T11-18-35.772Z-27556-test-result.json"}
+i2 c2 SURVIVED (expected HOST_CLOSE_UNKNOWN)
+i2 c2 restored exact bytes=true sha ad89ab11e5af67c87889c78befe58fb63fc47b3457b45780fa57a42e79c0412c
+i2 test rc=0 {"task":"WATER-W6-ACCEPT-I2","mode":"test","finalGate":false,"status":"passed","error":null,"receipt":"F:\\new\\smaltalk\\water\\.worktrees\\accept-w6-i2\\.local\\checks\\WATER-W6-ACCEPT-I2\\2026-10-28T11-18-50.811Z-42616-test-result.json"}
+i2 c3 mutated apps/water/host/src/lib.rs: hitting the exit limit reports Stopped instead of TimedOut (worker nc1 returned Stopped right after sending stop instead) (mutated sha 82f30c7b7952a3b97e410e0d495f57455ed77f9677f8b7e8f5a5483262ec8005)
+i2 red-nc1 rc=0 {"task":"WATER-W6-ACCEPT-I2","mode":"red-nc1","finalGate":false,"status":"passed","error":null,"receipt":"F:\\new\\smaltalk\\water\\.worktrees\\accept-w6-i2\\.local\\checks\\WATER-W6-ACCEPT-I2\\2026-10-28T11-19-05.200Z-7800-red-nc1-result.json"}
+i2 c3 KILLED (expected HOST_EXIT_DURING_CLEAN)
+i2 c3 restored exact bytes=true sha ad89ab11e5af67c87889c78befe58fb63fc47b3457b45780fa57a42e79c0412c
+i2 test rc=0 {"task":"WATER-W6-ACCEPT-I2","mode":"test","finalGate":false,"status":"passed","error":null,"receipt":"F:\\new\\smaltalk\\water\\.worktrees\\accept-w6-i2\\.local\\checks\\WATER-W6-ACCEPT-I2\\2026-10-28T11-19-19.747Z-14832-test-result.json"}
+i2 c4 mutated apps/water/host/src/lib.rs: the stop runs on ExitRequested instead of Exit, which a system shutdown does not always send (mutated sha 583b2823504c3689f9c7a2fd76a8ab1ade89aaba47c686df4312489fc39ebd63)
+i2 red-nc1 rc=1 {"task":"WATER-W6-ACCEPT-I2","mode":"red-nc1","finalGate":false,"status":"failed","error":"AssertionError [ERR_ASSERTION]: Unexpected exit, see 2026-10-28T11-19-36.151Z-32872-red-nc1-5.log","receipt":"F:\\new\\smaltalk\\water\\.worktrees\\accept-w6-i2\\.local\\checks\\WATER-W6-ACCEPT-I2\\2026-10-28T11-19-36.151Z-32872-red-nc1-result.json"}
+i2 c4 SURVIVED (expected HOST_EXIT_DURING_CLEAN)
+i2 c4 restored exact bytes=true sha ad89ab11e5af67c87889c78befe58fb63fc47b3457b45780fa57a42e79c0412c
+i2 test rc=0 {"task":"WATER-W6-ACCEPT-I2","mode":"test","finalGate":false,"status":"passed","error":null,"receipt":"F:\\new\\smaltalk\\water\\.worktrees\\accept-w6-i2\\.local\\checks\\WATER-W6-ACCEPT-I2\\2026-10-28T11-19-52.003Z-32660-test-result.json"}
+i2 c5 mutated apps/water/host/src/lib.rs: the close guard lets the window close when the state is unknown, while clean_state itself stays correct (mutated sha 8e804bd826ed186f52cf9ef0ce35f12fcbe1c64fc213ecbe77171b8de768a219)
+i2 red-nc2 rc=0 {"task":"WATER-W6-ACCEPT-I2","mode":"red-nc2","finalGate":false,"status":"passed","error":null,"receipt":"F:\\new\\smaltalk\\water\\.worktrees\\accept-w6-i2\\.local\\checks\\WATER-W6-ACCEPT-I2\\2026-10-28T11-20-08.028Z-9904-red-nc2-result.json"}
+i2 c5 KILLED (expected HOST_CLOSE_UNKNOWN)
+i2 c5 restored exact bytes=true sha ad89ab11e5af67c87889c78befe58fb63fc47b3457b45780fa57a42e79c0412c
+i2 test rc=0 {"task":"WATER-W6-ACCEPT-I2","mode":"test","finalGate":false,"status":"passed","error":null,"receipt":"F:\\new\\smaltalk\\water\\.worktrees\\accept-w6-i2\\.local\\checks\\WATER-W6-ACCEPT-I2\\2026-10-28T11-20-23.800Z-30472-test-result.json"}
+i2 survived: c2,c4
+i2 test --final rc=1 {"task":"WATER-W6-ACCEPT-I2","mode":"test","finalGate":true,"status":"failed","error":"AssertionError [ERR_ASSERTION]: Missing valid negative control nc3","receipt":"F:\\new\\smaltalk\\water\\.worktrees\\accept-w6-i2\\.local\\checks\\WATER-W6-ACCEPT-I2\\2026-10-28T11-20-39.904Z-27552-test-result.json"}
+i2 c6 mutated apps/water/host/src/lib.rs: the stop goes out under a wrong command name, so the service never receives clean_stop and the wait only ends if the clean finishes by itself (worker nc3 waited for idle before stopping instead) (mutated sha 434dc19a511979c6ba8c5895349663264199eb830dcdd5609d9906cdab1d7632)
+i2 red-nc3 rc=0 {"task":"WATER-W6-ACCEPT-I2","mode":"red-nc3","finalGate":false,"status":"passed","error":null,"receipt":"F:\\new\\smaltalk\\water\\.worktrees\\accept-w6-i2\\.local\\checks\\WATER-W6-ACCEPT-I2\\2026-10-28T11-21-18.032Z-26008-red-nc3-result.json"}
+i2 c6 KILLED (expected HOST_CLOSE_DURING_CLEAN)
+i2 c6 restored exact bytes=true sha ad89ab11e5af67c87889c78befe58fb63fc47b3457b45780fa57a42e79c0412c
+i2 test rc=0 {"task":"WATER-W6-ACCEPT-I2","mode":"test","finalGate":false,"status":"passed","error":null,"receipt":"F:\\new\\smaltalk\\water\\.worktrees\\accept-w6-i2\\.local\\checks\\WATER-W6-ACCEPT-I2\\2026-10-28T11-21-27.319Z-36268-test-result.json"}
+i2 survived: none
+i2 test --final rc=0 {"task":"WATER-W6-ACCEPT-I2","mode":"test","finalGate":true,"status":"passed","error":null,"receipt":"F:\\new\\smaltalk\\water\\.worktrees\\accept-w6-i2\\.local\\checks\\WATER-W6-ACCEPT-I2\\2026-10-28T11-21-41.956Z-21056-test-result.json"}

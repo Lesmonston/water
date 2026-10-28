@@ -1,0 +1,153 @@
+{
+  "i1": [
+    {
+      "label": "nc1b",
+      "mode": "red-nc1",
+      "token": "RULES_AGENT_TOOLS",
+      "file": "packages/junk-rules/src/plan.rs",
+      "old": "base: folders.get(*base).to_string(),",
+      "new": "base: folders.get(if *base == crate::types::KnownFolder::RoamingAppData { crate::types::KnownFolder::LocalAppData } else { *base }).to_string(),",
+      "why": "pattern targets under roaming app data resolve to local app data; old assertions never check a roaming base, so only the new per-target base check can catch it (first two tries were caught by older assertions first and do not count)"
+    },
+    {
+      "label": "nc1",
+      "mode": "red-nc1",
+      "token": "RULES_AGENT_TOOLS",
+      "file": "packages/junk-rules/src/types.rs",
+      "old": "let digits = text.iter().take_while(|ch| ch.is_ascii_digit()).count();",
+      "new": "let digits = text.iter().take_while(|ch| ch.is_ascii_alphanumeric()).count();",
+      "why": "the # segment wildcard accepts letters as well as digits, so the protected .grok# also covers .grokx (worker nc1 dropped keep_newest in make_target instead)"
+    },
+    {
+      "label": "c2",
+      "mode": "red-nc1",
+      "token": "RULES_AGENT_TOOLS",
+      "file": "packages/junk-rules/src/types.rs",
+      "old": "(false, true) => segment_pattern_matches(protected, cleanable),",
+      "new": "(false, true) => false,",
+      "why": "a literal cleanable segment is never compared with a wildcard protected segment, so a cleanable .grok7 is accepted under the protected .grok#"
+    }
+  ],
+  "i2": [
+    {
+      "label": "c1",
+      "mode": "red-nc2",
+      "token": "HOST_CLOSE_UNKNOWN",
+      "file": "apps/water/host/src/lib.rs",
+      "old": "Duration::from_secs(5).saturating_sub(since.elapsed())",
+      "new": "Duration::from_secs(1).saturating_sub(since.elapsed())",
+      "why": "continuous unknown state gives up after 1 s instead of 5 s (worker nc2 mapped Err to NotCleaning instead)"
+    },
+    {
+      "label": "c2",
+      "mode": "test",
+      "token": "HOST_CLOSE_UNKNOWN",
+      "file": "apps/water/host/src/lib.rs",
+      "old": "CleanState::Cleaning => unknown_since = None,",
+      "new": "CleanState::Cleaning => {}",
+      "why": "probe: a Cleaning answer no longer resets the unknown clock, so unknown time is summed instead of counted only while continuous"
+    },
+    {
+      "label": "c3",
+      "mode": "red-nc1",
+      "token": "HOST_EXIT_DURING_CLEAN",
+      "file": "apps/water/host/src/lib.rs",
+      "old": "            let remaining = limit.saturating_sub(started.elapsed());\n            if remaining.is_zero() {\n                return CleanStop::TimedOut;",
+      "new": "            let remaining = limit.saturating_sub(started.elapsed());\n            if remaining.is_zero() {\n                return CleanStop::Stopped;",
+      "why": "hitting the exit limit reports Stopped instead of TimedOut (worker nc1 returned Stopped right after sending stop instead)"
+    },
+    {
+      "label": "c4",
+      "mode": "red-nc1",
+      "token": "HOST_EXIT_DURING_CLEAN",
+      "file": "apps/water/host/src/lib.rs",
+      "old": "if let tauri::RunEvent::Exit = event {",
+      "new": "if let tauri::RunEvent::ExitRequested { .. } = event {",
+      "why": "the stop runs on ExitRequested instead of Exit, which a system shutdown does not always send"
+    },
+    {
+      "label": "c5",
+      "mode": "red-nc2",
+      "token": "HOST_CLOSE_UNKNOWN",
+      "file": "apps/water/host/src/lib.rs",
+      "old": "if clean_state(backend.as_ref()) == CleanState::NotCleaning {",
+      "new": "if clean_state(backend.as_ref()) != CleanState::Cleaning {",
+      "why": "the close guard lets the window close when the state is unknown, while clean_state itself stays correct"
+    },
+    {
+      "label": "c6",
+      "mode": "red-nc3",
+      "token": "HOST_CLOSE_DURING_CLEAN",
+      "file": "apps/water/host/src/lib.rs",
+      "old": "let _ = backend.call(\"clean_stop\", json!({}));",
+      "new": "let _ = backend.call(\"clean_cancel\", json!({}));",
+      "why": "the stop goes out under a wrong command name, so the service never receives clean_stop and the wait only ends if the clean finishes by itself (worker nc3 waited for idle before stopping instead)"
+    }
+  ],
+  "i3": [
+    {
+      "label": "x0",
+      "mode": "browser",
+      "token": "UI_NOTICE_SCOPE",
+      "noTimeout": true,
+      "file": "apps/water/ui/app.mjs",
+      "old": "state.reconnecting ? '正在重新连接 Water 服务…' : state.error",
+      "new": "state.reconnecting ? state.error : state.error",
+      "why": "no-cascade check (wave 4 G7 nc2 style): the reconnecting text never appears; failures must be marked and no test may time out"
+    },
+    {
+      "label": "nc1",
+      "mode": "red-nc1",
+      "token": "UI_RETURN_SCOPE",
+      "file": "apps/water/ui/app.mjs",
+      "old": "  routeVersion++;\n",
+      "new": "",
+      "why": "a route change no longer bumps the route version (worker nc1 compared only the address in inScope instead)"
+    },
+    {
+      "label": "nc2",
+      "mode": "red-nc2",
+      "token": "UI_RECONNECT_READ",
+      "file": "apps/water/ui/app.mjs",
+      "old": "beginPolling(); render(); } },",
+      "new": "beginPolling(); render(); void loadRoute(true); } },",
+      "why": "the reconnect click re-reads the page again, before the service has recovered (worker nc2 dropped the re-read on recovery instead)"
+    },
+    {
+      "label": "c4",
+      "mode": "browser",
+      "token": "UI_RECONNECT_READ",
+      "file": "apps/water/ui/app.mjs",
+      "old": "const open = !state.pollPaused && current === 'history'",
+      "new": "const open = missingOnly && !state.pollPaused && current === 'history'",
+      "why": "returning to the history page no longer re-reads a missing expanded detail"
+    },
+    {
+      "label": "nc3",
+      "mode": "red-nc3",
+      "token": "UI_CLEAN_STOP",
+      "file": "apps/water/ui/app.mjs",
+      "old": "if (clearStop) state.stopFailed = false; ",
+      "new": "",
+      "why": "a second stop click keeps the old failure line until the command returns (worker nc3 removed the line from the cleaning card instead)"
+    },
+    {
+      "label": "c6",
+      "mode": "red-nc3",
+      "token": "UI_CLEAN_STOP",
+      "file": "apps/water/ui/app.mjs",
+      "old": "const announcer = document.getElementById('announcer'); announcer.textContent = '';",
+      "new": "const announcer = document.getElementById('announcer');",
+      "why": "the live region is not emptied before the same sentence is written again"
+    },
+    {
+      "label": "c5",
+      "mode": "browser",
+      "token": "UI_NOTICE_SCOPE",
+      "file": "apps/water/ui/views/results.mjs",
+      "old": "if (state.stale && (state.error !== '结果已过期，请重新体检后再清理。' || state.reconnecting || state.pollPaused)) add(",
+      "new": "if (state.stale) add(",
+      "why": "the stale sentence is shown in the body again while the notice shows it"
+    }
+  ]
+}

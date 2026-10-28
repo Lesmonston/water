@@ -1,0 +1,29 @@
+i1 nc1 mutated packages/junk-rules/src/types.rs: the # segment wildcard accepts letters as well as digits, so the protected .grok# also covers .grokx (worker nc1 dropped keep_newest in make_target instead) (mutated sha a0ecb7e1b6767b54c90150b776b8e2941fafbe0c0912fea6dfafe6ebd3af4d28)
+i1 red-nc1 rc=1 {"task":"WATER-W6-ACCEPT-I1","mode":"red-nc1","finalGate":false,"status":"failed","error":"AssertionError [ERR_ASSERTION]: Missing failure token RULES_AGENT_TOOLS","receipt":"F:\\new\\smaltalk\\water\\.worktrees\\accept-w6-i1\\.local\\checks\\WATER-W6-ACCEPT-I1\\2026-10-28T11-09-04.305Z-31088-red-nc1-result.json"}
+i1 nc1 SURVIVED (expected RULES_AGENT_TOOLS)
+i1 nc1 restored exact bytes=true sha 45d1a0837876b87595a2a5028e522a45e558f5bb01e1db12fff9c7b504a5d8d5
+i1 test rc=0 {"task":"WATER-W6-ACCEPT-I1","mode":"test","finalGate":false,"status":"passed","error":null,"receipt":"F:\\new\\smaltalk\\water\\.worktrees\\accept-w6-i1\\.local\\checks\\WATER-W6-ACCEPT-I1\\2026-10-28T11-09-10.986Z-27688-test-result.json"}
+i1 c2 mutated packages/junk-rules/src/types.rs: a literal cleanable segment is never compared with a wildcard protected segment, so a cleanable .grok7 is accepted under the protected .grok# (mutated sha c923c5f67416c3ece60fe6e1241cc35ac7bc1cb94b89bab28f6cddf67e5ef4ff)
+i1 red-nc1 rc=1 {"task":"WATER-W6-ACCEPT-I1","mode":"red-nc1","finalGate":false,"status":"failed","error":"AssertionError [ERR_ASSERTION]: Missing failure token RULES_AGENT_TOOLS","receipt":"F:\\new\\smaltalk\\water\\.worktrees\\accept-w6-i1\\.local\\checks\\WATER-W6-ACCEPT-I1\\2026-10-28T11-09-15.389Z-42440-red-nc1-result.json"}
+i1 c2 SURVIVED (expected RULES_AGENT_TOOLS)
+i1 c2 restored exact bytes=true sha 45d1a0837876b87595a2a5028e522a45e558f5bb01e1db12fff9c7b504a5d8d5
+i1 test rc=0 {"task":"WATER-W6-ACCEPT-I1","mode":"test","finalGate":false,"status":"passed","error":null,"receipt":"F:\\new\\smaltalk\\water\\.worktrees\\accept-w6-i1\\.local\\checks\\WATER-W6-ACCEPT-I1\\2026-10-28T11-09-19.561Z-16824-test-result.json"}
+i1 survived: nc1,c2
+i1 test --final rc=1 {"task":"WATER-W6-ACCEPT-I1","mode":"test","finalGate":true,"status":"failed","error":"AssertionError [ERR_ASSERTION]: Missing valid negative control nc1","receipt":"F:\\new\\smaltalk\\water\\.worktrees\\accept-w6-i1\\.local\\checks\\WATER-W6-ACCEPT-I1\\2026-10-28T11-09-24.039Z-3880-test-result.json"}
+i1 nc1b mutated packages/junk-rules/src/plan.rs: pattern targets under roaming app data resolve to local app data; old assertions never check a roaming base, so only the new per-target base check can catch it (first two tries were caught by older assertions first and do not count) (mutated sha c694ca2c3877a3ab7f13a11507733cafb80e0d20c6ffbb4bd85fc7b19629a639)
+i1 red-nc1 rc=0 {"task":"WATER-W6-ACCEPT-I1","mode":"red-nc1","finalGate":false,"status":"passed","error":null,"receipt":"F:\\new\\smaltalk\\water\\.worktrees\\accept-w6-i1\\.local\\checks\\WATER-W6-ACCEPT-I1\\2026-10-28T11-10-37.921Z-32852-red-nc1-result.json"}
+i1 nc1b KILLED (expected RULES_AGENT_TOOLS)
+i1 nc1b restored exact bytes=true sha 0c9837f5caf71f7c3c82201902d278c21e7cddeaba3451c19ac87f82dda9f715
+i1 test rc=0 {"task":"WATER-W6-ACCEPT-I1","mode":"test","finalGate":false,"status":"passed","error":null,"receipt":"F:\\new\\smaltalk\\water\\.worktrees\\accept-w6-i1\\.local\\checks\\WATER-W6-ACCEPT-I1\\2026-10-28T11-10-42.901Z-5360-test-result.json"}
+i1 nc1 mutated packages/junk-rules/src/types.rs: the # segment wildcard accepts letters as well as digits, so the protected .grok# also covers .grokx (worker nc1 dropped keep_newest in make_target instead) (mutated sha a0ecb7e1b6767b54c90150b776b8e2941fafbe0c0912fea6dfafe6ebd3af4d28)
+i1 red-nc1 rc=1 {"task":"WATER-W6-ACCEPT-I1","mode":"red-nc1","finalGate":false,"status":"failed","error":"AssertionError [ERR_ASSERTION]: Missing failure token RULES_AGENT_TOOLS","receipt":"F:\\new\\smaltalk\\water\\.worktrees\\accept-w6-i1\\.local\\checks\\WATER-W6-ACCEPT-I1\\2026-10-28T11-10-46.663Z-10416-red-nc1-result.json"}
+i1 nc1 SURVIVED (expected RULES_AGENT_TOOLS)
+i1 nc1 restored exact bytes=true sha 45d1a0837876b87595a2a5028e522a45e558f5bb01e1db12fff9c7b504a5d8d5
+i1 test rc=0 {"task":"WATER-W6-ACCEPT-I1","mode":"test","finalGate":false,"status":"passed","error":null,"receipt":"F:\\new\\smaltalk\\water\\.worktrees\\accept-w6-i1\\.local\\checks\\WATER-W6-ACCEPT-I1\\2026-10-28T11-10-51.712Z-41908-test-result.json"}
+i1 c2 mutated packages/junk-rules/src/types.rs: a literal cleanable segment is never compared with a wildcard protected segment, so a cleanable .grok7 is accepted under the protected .grok# (mutated sha c923c5f67416c3ece60fe6e1241cc35ac7bc1cb94b89bab28f6cddf67e5ef4ff)
+i1 red-nc1 rc=1 {"task":"WATER-W6-ACCEPT-I1","mode":"red-nc1","finalGate":false,"status":"failed","error":"AssertionError [ERR_ASSERTION]: Missing failure token RULES_AGENT_TOOLS","receipt":"F:\\new\\smaltalk\\water\\.worktrees\\accept-w6-i1\\.local\\checks\\WATER-W6-ACCEPT-I1\\2026-10-28T11-10-56.893Z-36784-red-nc1-result.json"}
+i1 c2 SURVIVED (expected RULES_AGENT_TOOLS)
+i1 c2 restored exact bytes=true sha 45d1a0837876b87595a2a5028e522a45e558f5bb01e1db12fff9c7b504a5d8d5
+i1 test rc=0 {"task":"WATER-W6-ACCEPT-I1","mode":"test","finalGate":false,"status":"passed","error":null,"receipt":"F:\\new\\smaltalk\\water\\.worktrees\\accept-w6-i1\\.local\\checks\\WATER-W6-ACCEPT-I1\\2026-10-28T11-11-01.437Z-27340-test-result.json"}
+i1 survived: nc1,c2
+i1 test --final rc=0 {"task":"WATER-W6-ACCEPT-I1","mode":"test","finalGate":true,"status":"passed","error":null,"receipt":"F:\\new\\smaltalk\\water\\.worktrees\\accept-w6-i1\\.local\\checks\\WATER-W6-ACCEPT-I1\\2026-10-28T11-11-06.431Z-28068-test-result.json"}

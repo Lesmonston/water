@@ -1,0 +1,348 @@
+//! Water desktop host. The process owns the service slot and cleanup is enabled.
+#![forbid(unsafe_code)]
+
+mod commands;
+mod data;
+mod picker;
+mod policy;
+mod service;
+mod startup;
+
+pub use commands::*;
+pub use data::{DataDirectories, DataDirectoryError, prepare_data_directories};
+pub use picker::{pick_folder, picker_failure};
+pub use policy::{
+    CAPABILITY, CONFIG, CSP, ConfigError, is_bundled_navigation, validate_capability,
+    validate_config,
+};
+pub use service::{
+    CLEAN_ENABLED, HostPicker, PickGuard, ServiceBackend, backend_or_unavailable, service_backend,
+    service_config,
+};
+pub use startup::{
+    HostContext, InstanceLock, StartupError, acquire_instance_lock, on_lock_result,
+    signal_activation, take_activation,
+};
+
+use serde::Serialize;
+use serde_json::{Value, json};
+use std::{
+    path::PathBuf,
+    sync::{
+        Arc, Mutex,
+        atomic::{AtomicBool, Ordering},
+        mpsc,
+    },
+    thread::JoinHandle,
+    time::{Duration, Instant},
+};
+use tauri::{
+    Manager, WebviewUrl, WebviewWindowBuilder,
+    webview::{NewWindowResponse, PermissionResponse},
+    window::{Effect, EffectsBuilder},
+};
+
+#[derive(Debug, Clone, PartialEq, Eq, Serialize)]
+pub struct IpcFailure {
+    pub code: String,
+    pub message_zh: String,
+}
+
+pub trait Backend: Send + Sync + 'static {
+    fn call(&self, command: &str, args: Value) -> Result<Value, IpcFailure>;
+}
+
+pub struct UnavailableBackend;
+
+impl Backend for UnavailableBackend {
+    fn call(&self, _command: &str, _args: Value) -> Result<Value, IpcFailure> {
+        Err(unavailable_failure())
+    }
+}
+
+fn unavailable_failure() -> IpcFailure {
+    IpcFailure {
+        code: "unavailable".into(),
+        message_zh: "Water 服务暂时不可用。".into(),
+    }
+}
+
+/// Forwards commands while the host, not Tauri's state map, owns the service.
+pub struct BackendSlot {
+    inner: Mutex<Option<Arc<dyn Backend>>>,
+}
+
+impl BackendSlot {
+    pub fn new(backend: Arc<dyn Backend>) -> Self {
+        Self {
+            inner: Mutex::new(Some(backend)),
+        }
+    }
+
+    pub fn take(&self) -> Option<Arc<dyn Backend>> {
+        let mut guard = self
+            .inner
+            .lock()
+            .unwrap_or_else(|poisoned| poisoned.into_inner());
+        guard.take()
+    }
+}
+
+impl Backend for BackendSlot {
+    fn call(&self, command: &str, args: Value) -> Result<Value, IpcFailure> {
+        let backend = {
+            let guard = self
+                .inner
+                .lock()
+                .unwrap_or_else(|poisoned| poisoned.into_inner());
+            guard.as_ref().map(Arc::clone)
+        };
+        match backend {
+            Some(backend) => backend.call(command, args),
+            None => UnavailableBackend.call(command, args),
+        }
+    }
+}
+
+#[derive(Debug, Clone, Copy, PartialEq, Eq)]
+pub enum CleanState {
+    Cleaning,
+    NotCleaning,
+    Unknown,
+}
+
+pub fn clean_state(backend: &dyn Backend) -> CleanState {
+    match backend.call("app_state", json!({})) {
+        Ok(state) if state.get("busy").and_then(Value::as_str) == Some("cleaning") => {
+            CleanState::Cleaning
+        }
+        Ok(_) => CleanState::NotCleaning,
+        Err(_) => CleanState::Unknown,
+    }
+}
+
+#[derive(Debug, Clone, Copy, PartialEq, Eq)]
+pub enum CleanStop {
+    Idle,
+    Stopped,
+    TimedOut,
+}
+
+/// Stop an in-progress clean and wait until the service leaves that state.
+/// Consecutive unknown states end the wait after five seconds.
+pub fn stop_cleaning_and_wait(backend: &dyn Backend, poll: Duration) -> bool {
+    stop_cleaning(backend, poll, None) != CleanStop::Idle
+}
+
+/// Stop synchronously during exit, with an additional total waiting limit.
+pub fn stop_cleaning_within(backend: &dyn Backend, poll: Duration, limit: Duration) -> CleanStop {
+    stop_cleaning(backend, poll, Some(limit))
+}
+
+fn stop_cleaning(backend: &dyn Backend, poll: Duration, limit: Option<Duration>) -> CleanStop {
+    let initial = clean_state(backend);
+    if initial == CleanState::NotCleaning {
+        return CleanStop::Idle;
+    }
+    let started = Instant::now();
+    let mut unknown_since = (initial == CleanState::Unknown).then_some(started);
+    let _ = backend.call("clean_stop", json!({}));
+    loop {
+        let mut wait = poll;
+        match clean_state(backend) {
+            CleanState::NotCleaning => return CleanStop::Stopped,
+            CleanState::Cleaning => unknown_since = None,
+            CleanState::Unknown => {
+                let since = unknown_since.get_or_insert_with(Instant::now);
+                let remaining = Duration::from_secs(5).saturating_sub(since.elapsed());
+                if remaining.is_zero() {
+                    return CleanStop::TimedOut;
+                }
+                wait = wait.min(remaining);
+            }
+        }
+        if let Some(limit) = limit {
+            let remaining = limit.saturating_sub(started.elapsed());
+            if remaining.is_zero() {
+                return CleanStop::TimedOut;
+            }
+            wait = wait.min(remaining);
+        }
+        std::thread::sleep(wait);
+    }
+}
+
+fn guard_main_close(
+    window: &tauri::WebviewWindow,
+    backend: Arc<dyn Backend>,
+    cleaner: &Arc<Mutex<Option<JoinHandle<()>>>>,
+) {
+    let closing = Arc::new(AtomicBool::new(false));
+    let allow_close = Arc::new(AtomicBool::new(false));
+    let main = window.clone();
+    let cleaner = Arc::clone(cleaner);
+    window.on_window_event(move |event| {
+        let tauri::WindowEvent::CloseRequested { api, .. } = event else {
+            return;
+        };
+        if allow_close.load(Ordering::Acquire) {
+            return;
+        }
+        if closing.load(Ordering::Acquire) {
+            api.prevent_close();
+            return;
+        }
+        if clean_state(backend.as_ref()) == CleanState::NotCleaning {
+            return;
+        }
+        api.prevent_close();
+        if closing.swap(true, Ordering::AcqRel) {
+            return;
+        }
+        let backend = Arc::clone(&backend);
+        let allow_close = Arc::clone(&allow_close);
+        let main = main.clone();
+        let cleaner = Arc::clone(&cleaner);
+        let spawned = std::thread::Builder::new()
+            .name("water-clean-stop".into())
+            .spawn(move || {
+                let _ = stop_cleaning_and_wait(backend.as_ref(), Duration::from_millis(200));
+                allow_close.store(true, Ordering::Release);
+                let posted = main.clone();
+                let _ = main.run_on_main_thread(move || {
+                    let _ = posted.close();
+                });
+            });
+        match spawned {
+            Ok(handle) => {
+                if let Ok(mut slot) = cleaner.lock() {
+                    *slot = Some(handle);
+                }
+            }
+            Err(_) => closing.store(false, Ordering::Release),
+        }
+    });
+}
+
+/// Prepare the private service and window before entering the event loop.
+pub fn run<F>(make_backend: F) -> Result<(), StartupError>
+where
+    F: FnOnce(&HostContext) -> Result<Arc<dyn Backend>, StartupError>,
+{
+    validate_config(CONFIG).map_err(|_| StartupError::Failed)?;
+    let app = tauri::Builder::default()
+        .invoke_handler(tauri::generate_handler![
+            commands::app_state,
+            commands::scan_start,
+            commands::scan_cancel,
+            commands::scan_progress,
+            commands::scan_result,
+            commands::group_detail,
+            commands::clean_prepare,
+            commands::clean_start,
+            commands::clean_stop,
+            commands::clean_progress,
+            commands::clean_result,
+            commands::trends,
+            commands::history_list,
+            commands::locations_get,
+            commands::locations_set_category,
+            commands::custom_root_add,
+            commands::custom_root_remove,
+        ])
+        .build(tauri::generate_context!())
+        .map_err(|_| StartupError::Failed)?;
+    let override_dir = std::env::var_os("WATER_DATA_DIR").map(PathBuf::from);
+    let fallback = if override_dir.is_none() {
+        app.path()
+            .local_data_dir()
+            .map_err(|_| StartupError::Failed)?
+    } else {
+        PathBuf::new()
+    };
+    let directories = prepare_data_directories(override_dir.as_deref(), &fallback)
+        .map_err(|_| StartupError::Failed)?;
+    let instance_lock =
+        match on_lock_result(acquire_instance_lock(&directories.data), &directories.data)? {
+            Some(lock) => lock,
+            None => return Ok(()),
+        };
+    let home_dir = app
+        .path()
+        .home_dir()
+        .map_err(|_| StartupError::Failed)?
+        .into_os_string()
+        .into_string()
+        .map_err(|_| StartupError::Failed)?;
+    let backend = backend_or_unavailable(
+        make_backend,
+        &HostContext {
+            data_dir: directories.data.clone(),
+            home_dir,
+        },
+    );
+    let slot = Arc::new(BackendSlot::new(backend));
+    let managed: Arc<dyn Backend> = slot.clone();
+    if !app.manage(Arc::clone(&managed)) {
+        return Err(StartupError::Failed);
+    }
+    let window = WebviewWindowBuilder::new(&app, "main", WebviewUrl::App("index.html".into()))
+        .title("Water")
+        .inner_size(1240.0, 820.0)
+        .min_inner_size(1040.0, 720.0)
+        .center()
+        .transparent(true)
+        .decorations(true)
+        .effects(EffectsBuilder::new().effect(Effect::Mica).build())
+        .data_directory(directories.webview)
+        .devtools(false)
+        .disable_drag_drop_handler()
+        .on_navigation(|url| is_bundled_navigation(url.as_str()))
+        .on_new_window(|_url, _features| NewWindowResponse::Deny)
+        .on_download(|_webview, _event| false)
+        .on_permission_request(|_webview, _kind| PermissionResponse::Deny)
+        .build()
+        .map_err(|_| StartupError::Failed)?;
+    let cleaner = Arc::new(Mutex::new(None));
+    guard_main_close(&window, managed, &cleaner);
+    let (stop, stopped) = mpsc::channel();
+    let activation = std::thread::Builder::new()
+        .name("water-activation".into())
+        .spawn(move || {
+            while let Err(mpsc::RecvTimeoutError::Timeout) =
+                stopped.recv_timeout(Duration::from_millis(300))
+            {
+                if take_activation(&directories.data) {
+                    let main = window.clone();
+                    let _ = window.run_on_main_thread(move || {
+                        let _ = main.unminimize();
+                        let _ = main.show();
+                        let _ = main.set_focus();
+                    });
+                }
+            }
+        })
+        .map_err(|_| StartupError::Failed)?;
+    let exit_backend = Arc::clone(&slot);
+    app.run_return(move |_app, event| {
+        if let tauri::RunEvent::ExitRequested { .. } = event {
+            let _ = stop_cleaning_within(
+                exit_backend.as_ref(),
+                Duration::from_millis(200),
+                Duration::from_secs(10),
+            );
+        }
+    });
+    if let Some(handle) = cleaner
+        .lock()
+        .unwrap_or_else(|poisoned| poisoned.into_inner())
+        .take()
+    {
+        let _ = handle.join();
+    }
+    drop(slot.take());
+    let _ = stop.send(());
+    let _ = activation.join();
+    drop(instance_lock);
+    Ok(())
+}

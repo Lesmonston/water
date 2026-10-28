@@ -1,7 +1,7 @@
 {
   "schemaVersion": 1,
   "wave": "water-wave6-m3",
-  "status": "DISPATCHED",
+  "status": "ALL_VERIFIED_WAVE6_MERGED",
   "controller": "Claude",
   "controllerRoot": "F:/new/smaltalk/water",
   "controllerBranch": "main",
@@ -99,7 +99,7 @@
       "branch": "worker/water-w6-i1",
       "baseCommit": "d79fb096ef0557430b7dd43634b4d60e8f2de958",
       "snapshotRef": "refs/tags/water-w6-m3-base-20261028",
-      "status": "BLOCKED",
+      "status": "VERIFIED",
       "readyOn": "2026-10-28",
       "dispatchedAt": null,
       "startedAt": null,
@@ -157,15 +157,31 @@
         {
           "id": "WATER-W6-I1-ADDENDUM-01",
           "ticket": "docs/dispatch/tickets/WATER-W6-I1-ADDENDUM-01-20261028.md",
-          "status": "READY",
+          "status": "VERIFIED",
           "issuedAt": "2026-10-28T10:20:00Z",
           "resumeFromCommit": "f0f7243a",
           "change": "authorize two old assertion groups: rules_resolve_plan filters rust-build-dirs targets (alpha then beta) instead of plan.targets.last(), plus RULES_AGENT_TOOLS: 38 new targets follow beta in SPEC order and the last target is other-agent-sessions#3; rules_seed_coverage finds rust-build-dirs by id instead of .last(), asserts it is rule 61 and rules 62-75 follow SPEC order; official_doc URLs may use the controller check of 2026-10-28 (docs/acceptance/wave6/controller/source-check-20261028.md) when the worker web tool is unavailable; no baseline rerun",
           "dispatchedAt": null,
-          "submittedHead": null,
-          "implementationCommit": null,
-          "dispatchEvidence": null
+          "submittedHead": "4b49e6018e7b6d1687dfb879e20ce0c0377cd1dd",
+          "implementationCommit": "1ab29a238be26ed405f7b2cc034d39fd64adc857",
+          "dispatchEvidence": "worker commits 1ab29a23 (19:38 JST) and 4b49e601 (19:43 JST) after the addendum was issued; the user did not report the paste time"
         }
+      ],
+      "relayedAt": "2026-10-28T11:03:34Z",
+      "relayEvidence": "user chat 2026-10-28 \"收活\"; all three receipts start with the completion line; controller receipt audit (w2-receipt-audit with the wave 6 manifest) found no problems",
+      "workerSelfReport": "Codex GPT-6",
+      "submittedHead": "4b49e6018e7b6d1687dfb879e20ce0c0377cd1dd",
+      "implementationCommit": "1ab29a238be26ed405f7b2cc034d39fd64adc857",
+      "verifiedAt": "2026-10-28T11:25:54Z",
+      "mergeCommit": "db3a73cdaea8d6adb81249818d1f5bdfd23c33b4",
+      "controllerReview": "receipt audit clean; fresh-tree lock/check/test/check --final/test --final/real --final green; controller nc1b (roaming pattern bases resolved to local app data) caught by RULES_AGENT_TOOLS: resolved base, two earlier tries caught first by older assertions and not counted; read-only service smoke in .worktrees/accept-w6-i1-svc (105 s): agent_tool 12 -> 24 groups, app_leftover 6 -> 8, new group hits match VERIFY.md, protected groups not selectable; independent review: no high or medium; see docs/acceptance/wave6/controller/WATER-W6-REVIEW-20261028.md",
+      "carryOverLater": [
+        "qoder-workspace-temp and agent-tool-logs texts say only older items are listed; recent items are listed but not cleanable: say \"only cleans\"",
+        "desktop-updater-residue and agent-cli-old-binaries texts say locked files are skipped, but in_use is none: a locked file fails and the item is partial (SPEC 2.4 wording)",
+        "claude-code-old-versions: on Windows no claude.exe command line references versions/*, so the in-use check never fires; only keep_newest by modification time protects the version in use (contract level)",
+        "opencode-sessions protects opencode.db but not the -wal/-shm side files (usage undercounted only)",
+        "some local_observation refs claim more protection than the rule gives (.dsh, workbuddy) and electron-gpu-caches names no GPU cache directory",
+        "validator does not reject a cleanable locator deeper inside a protected .grok# home; protection there relies on scan-time inside_protected"
       ]
     },
     {
@@ -476,7 +492,7 @@
       "branch": "worker/water-w6-i2",
       "baseCommit": "d79fb096ef0557430b7dd43634b4d60e8f2de958",
       "snapshotRef": "refs/tags/water-w6-m3-base-20261028",
-      "status": "DISPATCHED",
+      "status": "VERIFIED",
       "readyOn": "2026-10-28",
       "dispatchedAt": null,
       "startedAt": null,
@@ -538,7 +554,23 @@
       "baselineStatus": "PASSED",
       "baselineEvidence": "docs/acceptance/wave6/controller/preflight-20261028/WATER-W6-I2-2026-10-28T09-31-32.132Z-15084-baseline-result.json",
       "dispatchReportedAt": "2026-10-28T10:00:00Z",
-      "dispatchEvidence": "not reported by the user; seen by the controller while handling the I1 block: worker commits cf272e34, 556aec55, 9a912977 (19:00-19:09 JST) on the I2 branch; receipt not yet relayed"
+      "dispatchEvidence": "not reported by the user; seen by the controller while handling the I1 block: worker commits cf272e34, 556aec55, 9a912977 (19:00-19:09 JST) on the I2 branch; receipt not yet relayed",
+      "relayedAt": "2026-10-28T11:03:34Z",
+      "relayEvidence": "user chat 2026-10-28 \"收活\"; all three receipts start with the completion line; controller receipt audit (w2-receipt-audit with the wave 6 manifest) found no problems",
+      "workerSelfReport": "Codex GPT-6",
+      "submittedHead": "9a9129779c4f67ea786fd4e817175e7eccece608",
+      "implementationCommit": "cf272e34e7c38c94f50ca752c8ddaecdfe358fd0",
+      "controllerReview": "receipt audit clean; fresh-tree lock/check/test/check --final/test --final/native --final green (native: 1 window, 9 steps, 13.0 s, exit 0, only the 3,145,815-byte fixture deleted); controller mutations c1 (unknown gives up after 1 s), c3 (exit limit reports Stopped), c5 (close guard lets unknown close), c6 (stop sent under a wrong command name) caught; c2 (unknown clock not reset by Cleaning) and c4 (stop on ExitRequested) survived as test gaps; controller real-window close-during-clean check (scripts/acceptance/w6-i2-close-during-clean.mjs, 64,000-file fixture): close requested at 10/160 items without pressing stop, clean ended stopped (15 deleted, 1 partial, 144 cancelled), journal complete, window gone 451 ms after the request and after the clean ended, exit 0; independent review: no high, one medium (contract gap) carried over; see docs/acceptance/wave6/controller/WATER-W6-REVIEW-20261028.md",
+      "carryOverLater": [
+        "medium (contract gap): with the service unavailable the state is always unknown, so close waits 5 s in the guard and RunEvent::Exit waits another 5 s with no window while the instance lock and activation thread still live; a relaunch in that gap is lost and a shutdown is delayed; skip the Exit wait after the guard already waited, or treat the unavailable backend as not cleaning",
+        "the stop deadline starts after the first app_state call, which is not counted",
+        "the Exit wiring source assertion matches the tauri::RunEvent::Exit prefix, so RunEvent::ExitRequested passes (controller c4 survived); the close guard check matches one exact line",
+        "no test that a Cleaning answer resets the continuous-unknown clock (controller c2 survived)",
+        "found in the close check, not in I2 scope: the cleaning page says the current item is finished after stop, but the cleaner stops in place and marks it partial (CLEAN.md section 4.7)",
+        "found in the close check, not in I2 scope: the service reports a 0-based group_index while cleaning, so the real page shows 第 0 / 1 组 while the UI and fixtures count from 1"
+      ],
+      "verifiedAt": "2026-10-28T11:25:54Z",
+      "mergeCommit": "3fc27f31de692e657272124313a35ca7315a7de5"
     },
     {
       "kind": "ui",
@@ -626,7 +658,7 @@
       "branch": "worker/water-w6-i3",
       "baseCommit": "d79fb096ef0557430b7dd43634b4d60e8f2de958",
       "snapshotRef": "refs/tags/water-w6-m3-base-20261028",
-      "status": "DISPATCHED",
+      "status": "VERIFIED",
       "readyOn": "2026-10-28",
       "dispatchedAt": null,
       "startedAt": null,
@@ -704,7 +736,24 @@
       "baselineStatus": "PASSED",
       "baselineEvidence": "docs/acceptance/wave6/controller/preflight-20261028/WATER-W6-I3-2026-10-28T09-31-29.908Z-7316-baseline-result.json",
       "dispatchReportedAt": "2026-10-28T10:00:00Z",
-      "dispatchEvidence": "not reported by the user; seen by the controller while handling the I1 block: worker commits c8f36790, 6c052fe2 (18:54-19:13 JST) on the I3 branch; receipt not yet relayed"
+      "dispatchEvidence": "not reported by the user; seen by the controller while handling the I1 block: worker commits c8f36790, 6c052fe2 (18:54-19:13 JST) on the I3 branch; receipt not yet relayed",
+      "relayedAt": "2026-10-28T11:03:34Z",
+      "relayEvidence": "user chat 2026-10-28 \"收活\"; all three receipts start with the completion line; controller receipt audit (w2-receipt-audit with the wave 6 manifest) found no problems",
+      "workerSelfReport": "Codex GPT-6",
+      "submittedHead": "6c052fe2b40cc465734e482bf018bdfedeb9715c",
+      "implementationCommit": "c8f367907b8db42ea35ada8969183bbd79e527f8",
+      "verifiedAt": "2026-10-28T11:25:54Z",
+      "mergeCommit": "9841eb5eeab851e9124370da83437dbf6c313d9e",
+      "controllerReview": "receipt audit clean; fresh-tree check/test/browser/check --final/test --final/browser --final green; seven controller mutations all caught (x0 reconnecting text never shown: three tests fail with UI_NOTICE_SCOPE, two pass, no timeout; nc1 route version, nc2 reconnect click re-read, c4 history detail on return, nc3 stale stop line, c6 announcer not emptied, c5 duplicated stale sentence); screenshots reviewed; independent review: no high, two medium carried over; see docs/acceptance/wave6/controller/WATER-W6-REVIEW-20261028.md",
+      "carryOverLater": [
+        "medium: a page read that fails while progress is reconnecting (not paused) leaves its error in the notice after the recovery re-read fills the page",
+        "medium: readProgress awaits loadRoute(true), so a slow page read stalls progress handling; start the re-read without awaiting",
+        "announcer cleared and rewritten in the same frame may not be re-announced; use a short delay or two animation frames",
+        "two reads of the same page version are no longer ordered (narrow window, host answering out of order)",
+        "clean_start stale error appends a second sentence, so the body stale note is shown again and the notice text contradicts the disabled button",
+        "sticky notice still covers the scrolled filter row (global layout)",
+        "a few test failures are unmarked (null dereference inside settle, shared console error list fails later resets); none are timeouts"
+      ]
     }
   ],
   "preflight": {

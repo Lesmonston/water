@@ -1,0 +1,259 @@
+{
+  "schemaVersion": 1,
+  "wave": "water-wave6-i1-service-smoke",
+  "status": "CONTROLLER_ACCEPTANCE",
+  "controller": "Claude",
+  "controllerRoot": "F:/new/smaltalk/water",
+  "controllerBranch": "main",
+  "helpers": {
+    "H1": "scripts/checkup-wave-check.mjs",
+    "H2": "scripts/desktop-wave-check.mjs",
+    "H3": "scripts/desktop-wave-check.mjs",
+    "H4": "scripts/checkup-wave-check.mjs",
+    "H5": "scripts/checkup-wave-check.mjs"
+  },
+  "baseCommit": "3f9078972d7f958fad6bfd42e68f022dd659539e",
+  "baseTag": "water-w5-m2-base-20261027",
+  "plan": "docs/dispatch/wave5/PLAN.md",
+  "m2Plan": "docs/M2-PLAN-20261027.md",
+  "workerRules": "docs/dispatch/W5-M2-WORKER-RULES.md",
+  "userDecision": "2026-10-27: all four M2 decisions approved as recommended (\"Approve all four decisions as recommended and prepare the wave 5 tickets.\")",
+  "offlineCache": {
+    "core": "F:/new/smaltalk/water/.offline-cache/core/registry",
+    "desktop": "F:/new/smaltalk/water/.offline-cache/desktop/registry",
+    "copiedFrom": [
+      "F:/new/smaltalk/water/.worktrees/a/.local/cargo-home/registry",
+      "F:/new/smaltalk/water/.worktrees/ac/.local/desktop-cargo-home/registry"
+    ],
+    "check": "diff -rq byte-identical, 11159 files"
+  },
+  "frozenFiles": [
+    {
+      "path": "docs/decisions/ADR-018-device-junk-checkup-and-in-app-cleanup.md",
+      "sha256": "1195b17c469b3abe290f4d334628fa36583ca7f20c46349aaf1071ff839a0579"
+    },
+    {
+      "path": "contracts/checkup-v1/MODEL.md",
+      "sha256": "fe0c9a4f5d96ce9297e8f72e75df8c6f666f9a6af440fc198aa7b3362692188b"
+    },
+    {
+      "path": "contracts/checkup-v1/IPC.md",
+      "sha256": "62f726ced5f863f1b47db261976d8b5e5183f65669b2ba09d2f85a3977161be2"
+    },
+    {
+      "path": "docs/dispatch/W5-M2-WORKER-RULES.md",
+      "sha256": "6f0e8983a62ad24bd34b9460310c795fb09781939863eb52b4c3db73a2b568ac"
+    },
+    {
+      "path": "contracts/desktop-bootstrap-mirror-v1/MIRROR.json",
+      "sha256": "494e2b42e0803ba79170ffc162e8ac4938add6284b17dfdeb1f78fb527455e0f"
+    }
+  ],
+  "gateSelfTest": "docs/acceptance/wave5/controller/selftest/",
+  "selfTest": {
+    "trees": [
+      ".worktrees/w5-selftest-h3"
+    ],
+    "ids": [
+      "WATER-W5-SELFTEST-H3"
+    ],
+    "result": "fixture clean loop passed at selftest commit d33c7923 (clean switch opened only): 1 window, 17 s, 3,145,815 bytes deleted, kept files intact, journal intent+result, exit 0",
+    "evidence": "docs/acceptance/wave5/controller/selftest/"
+  },
+  "readyReport": null,
+  "tasks": [
+    {
+      "kind": "service",
+      "outputRoot": "packages/water-service",
+      "packageName": "water-service",
+      "testTarget": "service_v1",
+      "testFiles": [
+        "packages/water-service/tests/service_v1.rs"
+      ],
+      "productionFiles": [
+        "packages/water-service/Cargo.toml",
+        "packages/water-service/Cargo.lock",
+        "packages/water-service/README.md",
+        "packages/water-service/examples/service_smoke.rs"
+      ],
+      "cargoCacheSource": "F:/new/smaltalk/water/.offline-cache/core/registry",
+      "realMode": "service-smoke",
+      "nativeModule": "native_windows.rs",
+      "allowedEnv": [],
+      "expectedDependencies": [
+        {
+          "name": "serde",
+          "req": "=1.0.229",
+          "kind": null,
+          "optional": false,
+          "path": null,
+          "defaults": true,
+          "features": [
+            "derive"
+          ]
+        },
+        {
+          "name": "serde_json",
+          "req": "=1.0.151",
+          "kind": null,
+          "optional": false,
+          "path": null,
+          "defaults": true,
+          "features": []
+        },
+        {
+          "name": "water-junk-clean",
+          "req": "*",
+          "kind": null,
+          "optional": false,
+          "path": "packages/junk-clean",
+          "defaults": true,
+          "features": []
+        },
+        {
+          "name": "water-junk-rules",
+          "req": "*",
+          "kind": null,
+          "optional": false,
+          "path": "packages/junk-rules",
+          "defaults": true,
+          "features": []
+        },
+        {
+          "name": "water-junk-scan",
+          "req": "*",
+          "kind": null,
+          "optional": false,
+          "path": "packages/junk-scan",
+          "defaults": true,
+          "features": []
+        },
+        {
+          "name": "water-process-scan",
+          "req": "*",
+          "kind": null,
+          "optional": false,
+          "path": "packages/process-scan",
+          "defaults": true,
+          "features": []
+        }
+      ],
+      "macOS": "unverified",
+      "outputRootExists": true,
+      "nativeWindowBudget": 0,
+      "nativeDirectoryDialogBudget": 0,
+      "expectedTests": [
+        "service_ipc_contract",
+        "service_scan_views",
+        "service_clean_flow",
+        "service_trends_locations",
+        "service_storage_safety",
+        "service_hardening"
+      ],
+      "allowedModes": [
+        "baseline",
+        "lock",
+        "check",
+        "test",
+        "real",
+        "red-nc1",
+        "red-nc2",
+        "red-nc3",
+        "archive"
+      ],
+      "expectedFinalModes": [
+        "check",
+        "test",
+        "real"
+      ],
+      "browserBudget": 0,
+      "realDataPermission": "read-only metadata per ADR-018; clean disabled in the real smoke",
+      "id": "WATER-W6-ACCEPT-I1-SVC",
+      "title": "服务 M2 收尾",
+      "slot": "w5-h2",
+      "worktree": "F:/new/smaltalk/water/.worktrees/accept-w6-i1-svc",
+      "branch": "controller/accept-w6-i1-svc",
+      "baseCommit": "4b49e6018e7b6d1687dfb879e20ce0c0377cd1dd",
+      "snapshotRef": "refs/tags/water-w5-m2-base-20261027",
+      "status": "CONTROLLER_ACCEPTANCE",
+      "readyOn": "2026-10-27",
+      "dispatchedAt": null,
+      "startedAt": null,
+      "model": "Cursor (user-reported)",
+      "modelAssignment": "user-arranged; report actual engine/model",
+      "purpose": "M2",
+      "report": "docs/dispatch/reports/WATER-W5-H2-REPORT.md",
+      "evidenceDir": "docs/acceptance/wave6/controller/accept-20261028/i1-svc/",
+      "allowedFiles": [
+        "docs/dispatch/reports/WATER-W5-H2-REPORT.md"
+      ],
+      "gate": "heavy",
+      "ticket": "docs/dispatch/tickets/WATER-W5-H2-SERVICE-M2-20261027.md",
+      "spec": "contracts/m2-v1/SERVICE-M2.md",
+      "proofTargets": {
+        "nc1": "SERVICE_PANIC_IDLE",
+        "nc2": "SERVICE_SCAN_RECORD",
+        "nc3": "SERVICE_CUSTOM_ROOT"
+      },
+      "modelHint": "Rust service core that orchestrates deletion.",
+      "mustRead": [
+        "docs/dispatch/W5-M2-WORKER-RULES.md",
+        "contracts/m2-v1/SERVICE-M2.md",
+        "contracts/desktop-v1/SERVICE.md",
+        "contracts/hardening-v1/SERVICE-HARDENING.md",
+        "packages/water-service/src/clean.rs",
+        "packages/water-service/src/service.rs",
+        "packages/water-service/src/lib.rs",
+        "packages/water-service/tests/service_v1.rs"
+      ],
+      "frozenFiles": [
+        {
+          "path": "contracts/m2-v1/SERVICE-M2.md",
+          "sha256": "c7ab42a4d6396a2f026824e762c5e4c1589c99ab837673b329ff26315105a0b9"
+        },
+        {
+          "path": "contracts/desktop-v1/SERVICE.md",
+          "sha256": "44ae8643cbe64e083807386919192ce15c3cf586d1ecddbcf908ca0f0157180a"
+        },
+        {
+          "path": "contracts/hardening-v1/SERVICE-HARDENING.md",
+          "sha256": "fbec889779d5d95ef2cc23ad4c6ac489010a064be958881b37988a12add57359"
+        }
+      ],
+      "allowedPrefixes": [
+        "packages/water-service/",
+        "docs/acceptance/wave5/h2/",
+        "docs/acceptance/wave6/controller/accept-20261028/i1-svc/"
+      ],
+      "baselineStatus": "PASSED",
+      "baselineEvidence": "docs/acceptance/wave5/controller/preflight-20261027/WATER-W5-H2-2026-10-27T13-11-13.459Z-43720-baseline-result.json",
+      "dispatchReportedAt": "2026-10-27T13:36:00Z",
+      "dispatchEvidence": "user chat 2026-10-27 ~22:36 JST: H1, H2, H3 to Cursor; H5 to sol; H4 to opus; worker trees still clean at base 3f907897 with only the controller preflight receipt when recorded",
+      "workerSelfReport": "Cursor Grok 4.6",
+      "submittedHead": "5fcbe2a3fd834646e08fb29a88ee6e8e18c6aef0",
+      "implementationCommit": "17cab09cdd744a893edff2c495a378a81e0a380c",
+      "relayedAt": "2026-10-27T15:40:00Z",
+      "relayEvidence": "user chat 2026-10-28 ~00:40 JST: all external tasks done",
+      "acceptanceProgress": "audit clean; independent review: no blocker (two medium items trace to SERVICE-M2 itself: idle clean_progress after a panic, mklink junction fixture). Acceptance tree gates not yet run.",
+      "acceptanceNote": "docs/acceptance/wave5/controller/WATER-W5-ACCEPT-PROGRESS-20261028.md",
+      "verifiedAt": "2026-10-28",
+      "mergeCommit": "f58eeb2c",
+      "controllerReview": {
+        "report": "docs/acceptance/wave5/controller/WATER-W5-REVIEW-20261028.md",
+        "evidence": "docs/acceptance/wave5/controller/accept-20261028/h2/",
+        "summary": "fresh-tree check, test and real finals; controller nc1 (no idle progress after a clean-thread panic), nc2 (completed scan treated as written after a failed write), nc3 (text-form check turned around; the first try was caught first by SERVICE_CANONICAL_ROOT) all killed; independent review: no blocker, the two medium points trace to SERVICE-M2 (idle clean_progress, mklink junction fixture)"
+      },
+      "carryOverLater": [
+        "SERVICE_PANIC_IDLE prep-stage and most SERVICE_SCAN_RECORD assertions also pass on the base code",
+        "snapshot file orphaned when the scan record write fails",
+        "clean_progress idle vs SERVICE-HARDENING 2.3 failed: SERVICE-M2 wins"
+      ],
+      "acceptsTask": "WATER-W6-I1",
+      "acceptsHead": "4b49e6018e7b6d1687dfb879e20ce0c0377cd1dd"
+    }
+  ],
+  "preflight": {
+    "evidence": "docs/acceptance/wave5/controller/preflight-20261027/",
+    "result": "controller baseline passed in all five trees at the base commit"
+  }
+}

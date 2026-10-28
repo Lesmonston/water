@@ -2,7 +2,7 @@
 
 更新时间：2026-10-27 22:40 JST（M1 达成；第四波 G1～G7 全部合入；release 版已构建；M2 计划已拍板，第五波五张票已派出；第 8 份交接）。
 
-更换总控请先读[最新交接报告（2026-10-28 第 9 份）](CONTROLLER-HANDOFF-20261028-9.md)；[第 8 份](CONTROLLER-HANDOFF-20261027-8.md)、[第 7 份](CONTROLLER-HANDOFF-20261027-7.md)、[第 6 份](CONTROLLER-HANDOFF-20261027-6.md)、[第 5 份](CONTROLLER-HANDOFF-20261026-5.md)、[第 4 份](CONTROLLER-HANDOFF-20261026-4.md)、[第 3 份](CONTROLLER-HANDOFF-20261026-3.md)、[第 2 份](CONTROLLER-HANDOFF-20261026-2.md)、[上午那份](CONTROLLER-HANDOFF-20261026.md)及其只读状态快照仅供追溯。M1 已达成；第四、五波已全部验收合入，打开清理的 release 版已编好，M2 只差自清理；M3 第六波三张票 READY（见下文）。此前[接手验收摘要](CONTROLLER-HANDOFF-20261017.md)仅供历史追溯；当前任务状态以本页、registry/manifest及最新正式验收为准。
+更换总控请先读[最新交接报告（2026-10-28 第 9 份）](CONTROLLER-HANDOFF-20261028-9.md)；[第 8 份](CONTROLLER-HANDOFF-20261027-8.md)、[第 7 份](CONTROLLER-HANDOFF-20261027-7.md)、[第 6 份](CONTROLLER-HANDOFF-20261027-6.md)、[第 5 份](CONTROLLER-HANDOFF-20261026-5.md)、[第 4 份](CONTROLLER-HANDOFF-20261026-4.md)、[第 3 份](CONTROLLER-HANDOFF-20261026-3.md)、[第 2 份](CONTROLLER-HANDOFF-20261026-2.md)、[上午那份](CONTROLLER-HANDOFF-20261026.md)及其只读状态快照仅供追溯。M1 已达成；第四、五波已全部验收合入，打开清理的 release 版已编好，M2 只差自清理；M3 第六波三张已全部验收合入（见下文）。此前[接手验收摘要](CONTROLLER-HANDOFF-20261017.md)仅供历史追溯；当前任务状态以本页、registry/manifest及最新正式验收为准。
 
 ## 已确认
 
@@ -234,8 +234,13 @@ A–AB及八补单、AD保持VERIFIED；AC/补单06新增VERIFIED（Windows静�
 
     **10-28 傍晚已派出**（用户没说派给谁，三棵树的提交作者都是 Codex GPT-6）：
     - **I1 受阻**（回执提交 `f0f7243a`）：SPEC 第 4 节漏授权两处“最后一条是 Rust 规则”的旧断言，追加 14 条规则后必然失败；另外执行者的网页工具打不开官方出处。受阻成立，是总控疏漏。已出[补单 01](dispatch/tickets/WATER-W6-I1-ADDENDUM-01-20261028.md)：授权两组断言改为按 ID 查找并加新顺序断言；官方出处由总控先核对（[source-check](acceptance/wave6/controller/source-check-20261028.md)，7 个网址都能打开、标题对得上）。
-    - I2、I3：树里已有实现与回执提交，等用户转交回执。
-13. **下一步**：自清理（M2 计划第 3.2 节：用户用新版添加 `F:\new\smaltalk\water\.worktrees` 并体检 → 总控只读核对、给勾选建议 → 用户按清理 → 总控核对） → M2 达成。
+    - I2、I3：一次交回。
+13. **第六波三张全部验收合入**（10-28 晚，用户“收活”），见[第六波收单验收](acceptance/wave6/controller/WATER-W6-REVIEW-20261028.md)：I1 `db3a73cd`（补单 01 后）、I3 `9841eb5e`、I2 `3fc27f31`。
+    - I1：新树重跑全绿；总控负控被 `RULES_AGENT_TOOLS` 抓到；含 I1 的服务真实只读体检 105 秒，Agent 工具组 12→24、应用残留组 6→8，新组命中与本机摸底一致，受保护组不可勾选。
+    - I3：总控七条变异全被抓到；“正在重新连接”不出现时只有带标记的失败，没有超时，连锁超时消除。
+    - I2：整机夹具闭环通过；总控新写的“清理进行中关窗”真窗口检查通过：在 64,000 个文件的夹具清理到第 10 项时请求关窗，清理被停下（`stopped`），窗口 451 ms 后才消失，退出码 0，日志完整。
+    - 三份独立审查都没有高级问题；中级三条（宿主一条是总控契约缺口、界面两条边角情形）与若干低级问题记进清单 `carryOverLater`，建议整合检查后合成一张“M3 收尾”票。真窗口检查顺带发现清理页显示“第 0 / 1 组”（服务从 0 数）。
+14. **下一步**：第四次主线整合检查 → 新 release 版；自清理（M2 计划第 3.2 节）等用户电脑空出来。
 
 ## 真实AA→AD联合验收通过（2026-10-26）
 
