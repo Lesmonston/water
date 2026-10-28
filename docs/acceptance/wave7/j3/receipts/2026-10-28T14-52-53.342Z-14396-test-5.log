@@ -1,0 +1,45 @@
+{"binary":"C:\\Users\\37310\\.rustup\\toolchains\\1.95.0-x86_64-pc-windows-msvc\\bin\\cargo.exe","args":["test","--offline","--locked","--manifest-path","packages/water-service/Cargo.toml","--test","service_v1","--","--test-threads=1"],"exitCode":101,"error":null}
+--- stdout ---
+
+running 6 tests
+test service_clean_flow ... ok
+test service_hardening ... FAILED
+test service_ipc_contract ... ok
+test service_scan_views ... FAILED
+test service_storage_safety ... ok
+test service_trends_locations ... ok
+
+failures:
+
+---- service_hardening stdout ----
+
+thread 'water-scan' (41004) panicked at tests\service_v1.rs:55:13:
+fake platform: drives failed inside the scan task
+note: run with `RUST_BACKTRACE=1` environment variable to display a backtrace
+
+thread 'water-scan' (21968) panicked at tests\service_v1.rs:55:13:
+fake platform: drives failed inside the scan task
+
+thread 'service_hardening' (37620) panicked at tests\service_v1.rs:66:13:
+fake platform: clock failed
+
+thread 'service_hardening' (37620) panicked at tests\service_v1.rs:280:5:
+SERVICE_RETURN_BUDGET: scan_start
+
+---- service_scan_views stdout ----
+
+thread 'service_scan_views' (36048) panicked at tests\service_v1.rs:280:5:
+SERVICE_RETURN_BUDGET: scan_progress
+
+
+failures:
+    service_hardening
+    service_scan_views
+
+test result: FAILED. 4 passed; 2 failed; 0 ignored; 0 measured; 0 filtered out; finished in 23.94s
+
+
+--- stderr ---
+    Finished `test` profile [unoptimized + debuginfo] target(s) in 0.05s
+     Running tests\service_v1.rs (.local\w3-target\debug\deps\service_v1-f957641ef662c12e.exe)
+error: test failed, to rerun pass `--test service_v1`

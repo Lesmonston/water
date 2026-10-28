@@ -1,0 +1,70 @@
+{"binary":"C:\\Users\\37310\\.rustup\\toolchains\\1.95.0-x86_64-pc-windows-msvc\\bin\\cargo.exe","args":["test","--offline","--locked","--manifest-path","packages/water-service/Cargo.toml","--test","service_v1","--","--test-threads=1"],"exitCode":101,"error":null}
+--- stdout ---
+
+running 6 tests
+test service_clean_flow ... FAILED
+test service_hardening ... FAILED
+test service_ipc_contract ... ok
+test service_scan_views ... ok
+test service_storage_safety ... ok
+test service_trends_locations ... ok
+
+failures:
+
+---- service_clean_flow stdout ----
+
+thread 'water-clean' (2172) panicked at tests\service_v1.rs:95:18:
+SERVICE_GROUP_INDEX: clean item was not resumed: Timeout
+note: run with `RUST_BACKTRACE=1` environment variable to display a backtrace
+
+thread 'service_clean_flow' (33764) panicked at tests\service_v1.rs:976:31:
+called `Result::unwrap()` on an `Err` value: PoisonError { .. }
+
+---- service_hardening stdout ----
+
+thread 'water-scan' (28384) panicked at tests\service_v1.rs:53:13:
+fake platform: drives failed inside the scan task
+
+thread 'water-scan' (29644) panicked at tests\service_v1.rs:53:13:
+fake platform: drives failed inside the scan task
+
+thread 'service_hardening' (33896) panicked at tests\service_v1.rs:64:13:
+fake platform: clock failed
+
+thread 'water-clean' (27216) panicked at tests\service_v1.rs:85:13:
+fake platform: in_use failed inside the clean task
+
+thread 'service_hardening' (33896) panicked at tests\service_v1.rs:64:13:
+fake platform: clock failed
+
+thread 'service_hardening' (33896) panicked at tests\service_v1.rs:1979:5:
+SERVICE_SNAPSHOT_ORPHAN: failed scan left its snapshot
+
+
+failures:
+    service_clean_flow
+    service_hardening
+
+test result: FAILED. 4 passed; 2 failed; 0 ignored; 0 measured; 0 filtered out; finished in 36.12s
+
+
+--- stderr ---
+   Compiling proc-macro2 v1.0.107
+   Compiling quote v1.0.47
+   Compiling unicode-ident v1.0.27
+   Compiling serde_core v1.0.229
+   Compiling zmij v1.0.23
+   Compiling syn v3.0.9
+   Compiling serde v1.0.229
+   Compiling serde_json v1.0.151
+   Compiling serde_derive v1.0.229
+   Compiling memchr v2.8.3
+   Compiling itoa v1.0.18
+   Compiling water-junk-scan v0.1.0 (F:\new\smaltalk\water\.worktrees\w7-j3\packages\junk-scan)
+   Compiling water-junk-rules v0.1.0 (F:\new\smaltalk\water\.worktrees\w7-j3\packages\junk-rules)
+   Compiling water-junk-clean v0.1.0 (F:\new\smaltalk\water\.worktrees\w7-j3\packages\junk-clean)
+   Compiling water-process-scan v0.1.0 (F:\new\smaltalk\water\.worktrees\w7-j3\packages\process-scan)
+   Compiling water-service v0.1.0 (F:\new\smaltalk\water\.worktrees\w7-j3\packages\water-service)
+    Finished `test` profile [unoptimized + debuginfo] target(s) in 45.13s
+     Running tests\service_v1.rs (.local\w3-target\debug\deps\service_v1-f957641ef662c12e.exe)
+error: test failed, to rerun pass `--test service_v1`

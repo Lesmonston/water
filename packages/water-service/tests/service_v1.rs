@@ -11,6 +11,7 @@ use std::{
     sync::{
         Arc, Mutex,
         atomic::{AtomicBool, AtomicU64, Ordering},
+        mpsc,
     },
     time::{Duration, Instant, SystemTime, UNIX_EPOCH},
 };
@@ -20,6 +21,13 @@ use water_service::{DriveInfo, FolderPicker, IpcError, Platform, Service, Servic
 
 const NOW: u64 = 1_800_000_000;
 const DISABLED: &str = "这一版只做体检，清理功能会在下一版开放。";
+
+#[derive(Clone)]
+struct CleanGate {
+    entered: mpsc::Sender<()>,
+    resume: Arc<Mutex<mpsc::Receiver<()>>>,
+    seen: Arc<Mutex<BTreeSet<String>>>,
+}
 
 #[derive(Clone)]
 struct Fake {
@@ -34,6 +42,7 @@ struct Fake {
     panic_now: Arc<AtomicBool>,
     panic_in_use: Arc<AtomicBool>,
     names: Arc<Mutex<Vec<(String, String)>>>,
+    clean_gate: Arc<Mutex<Option<CleanGate>>>,
 }
 impl Platform for Fake {
     fn known_folders(&self) -> Result<KnownFolders, IpcError> {
@@ -76,6 +85,21 @@ impl Platform for Fake {
             && self.panic_in_use.swap(false, Ordering::SeqCst)
         {
             panic!("fake platform: in_use failed inside the clean task");
+        }
+        let gate = if std::thread::current().name() == Some("water-clean") {
+            self.clean_gate.lock().unwrap().clone()
+        } else {
+            None
+        };
+        if let Some(gate) = gate
+            && gate.seen.lock().unwrap().insert(path.to_owned())
+        {
+            gate.entered.send(()).unwrap();
+            gate.resume
+                .lock()
+                .unwrap()
+                .recv_timeout(Duration::from_secs(10))
+                .expect("SERVICE_GROUP_INDEX: clean item was not resumed");
         }
         self.in_use_calls.fetch_add(1, Ordering::SeqCst);
         if spec.mode != water_process_scan::InUseMode::None
@@ -146,6 +170,7 @@ impl Fixture {
             panic_now: Arc::new(AtomicBool::new(false)),
             panic_in_use: Arc::new(AtomicBool::new(false)),
             names: Arc::new(Mutex::new(Vec::new())),
+            clean_gate: Arc::new(Mutex::new(None)),
         };
         Self {
             root,
@@ -845,6 +870,11 @@ fn service_clean_flow() {
     call(&s, "clean_stop", json!({}));
     f.fake.hold.store(false, Ordering::SeqCst);
     assert_eq!(wait(&s, "clean_progress")["state"], "stopped");
+    let progress = call(&s, "clean_progress", json!({}));
+    assert_eq!(
+        progress["group_index"], progress["group_count"],
+        "SERVICE_GROUP_INDEX: stopped progress"
+    );
     let stopped = call(&s, "clean_result", json!({"cleanId":stopped["clean_id"]}));
     assert_eq!(stopped["freed_bytes"], "0");
     assert_eq!(stopped["groups"][0]["notes_zh"][0], "1 项因停止未处理");
@@ -900,6 +930,126 @@ fn service_clean_flow() {
         "SERVICE_PLAN_ITEMS: ineligible item planned"
     );
     assert_eq!(planned, expected, "SERVICE_PLAN_ITEMS");
+    clean_group_progress();
+}
+
+fn clean_group_progress() {
+    let f = Fixture::new();
+    f.seed();
+    // Two items in the last group let the next guard pause after its first callback.
+    f.file(
+        "user_profile/.codex/.tmp/marketplaces/.staging/marketplace-upgrade-second/data",
+        20,
+    );
+    f.age_all(NOW - 10 * 86400);
+    let s = f.service(true);
+    let idle = call(&s, "clean_progress", json!({}));
+    scanned(&s);
+    let groups = ["chrome-cache", "npm-cache", "codex-marketplace-staging"];
+    let preview = call(&s, "clean_prepare", json!({"groupIds":groups}));
+    let plan: Value = serde_json::from_slice(
+        &fs::read(
+            f.data
+                .join("plans")
+                .join(format!("{}.json", preview["plan_id"].as_str().unwrap())),
+        )
+        .unwrap(),
+    )
+    .unwrap();
+    let items = plan["plan"]["items"].as_array().unwrap();
+    let (entered, steps) = mpsc::channel();
+    let (resume, released) = mpsc::channel();
+    *f.fake.clean_gate.lock().unwrap() = Some(CleanGate {
+        entered,
+        resume: Arc::new(Mutex::new(released)),
+        seen: Arc::new(Mutex::new(BTreeSet::new())),
+    });
+    f.fake.hold.store(true, Ordering::SeqCst);
+    call(
+        &s,
+        "clean_start",
+        json!({"planId":preview["plan_id"],"confirmToken":preview["confirm_token"]}),
+    );
+    let initial = call(&s, "clean_progress", json!({}));
+    f.fake.hold.store(false, Ordering::SeqCst);
+    let mut samples = Vec::new();
+    for _ in items {
+        steps
+            .recv_timeout(Duration::from_secs(10))
+            .expect("SERVICE_GROUP_INDEX: clean item did not reach the guard");
+        samples.push(call(&s, "clean_progress", json!({})));
+        resume.send(()).unwrap();
+    }
+    let completed = wait(&s, "clean_progress");
+    *f.fake.clean_gate.lock().unwrap() = None;
+    // Assert after draining the task, including when a negative control changes the progress.
+    assert_eq!(idle["state"], "idle", "SERVICE_GROUP_INDEX: idle state");
+    assert_eq!(idle["group_index"], 0, "SERVICE_GROUP_INDEX: idle index");
+    assert_eq!(idle["group_count"], 0, "SERVICE_GROUP_INDEX: idle count");
+    assert_eq!(
+        initial["state"], "running",
+        "SERVICE_GROUP_INDEX: start state"
+    );
+    assert_eq!(initial["done_items"], 0, "SERVICE_GROUP_INDEX: start items");
+    assert_eq!(
+        initial["group_index"], 1,
+        "SERVICE_GROUP_INDEX: first group"
+    );
+    assert_eq!(
+        initial["group_count"],
+        groups.len(),
+        "SERVICE_GROUP_INDEX: start count"
+    );
+    let mut observed = BTreeSet::new();
+    for (next_item, progress) in samples.iter().enumerate() {
+        let expected = if next_item == 0 {
+            1
+        } else {
+            groups
+                .iter()
+                .position(|g| items[next_item - 1]["group_id"] == *g)
+                .unwrap()
+                + 1
+        };
+        let index = progress["group_index"].as_u64().unwrap();
+        assert_eq!(
+            progress["state"], "running",
+            "SERVICE_GROUP_INDEX: item state"
+        );
+        assert_eq!(
+            progress["done_items"], next_item,
+            "SERVICE_GROUP_INDEX: item callback"
+        );
+        assert_eq!(
+            progress["group_count"],
+            groups.len(),
+            "SERVICE_GROUP_INDEX: item count"
+        );
+        assert!(
+            (1..=groups.len() as u64).contains(&index),
+            "SERVICE_GROUP_INDEX: running index {index}"
+        );
+        assert_eq!(index, expected as u64, "SERVICE_GROUP_INDEX: plan order");
+        observed.insert(index);
+    }
+    assert_eq!(
+        observed,
+        BTreeSet::from([1, 2, 3]),
+        "SERVICE_GROUP_INDEX: later groups were not observed"
+    );
+    assert_eq!(
+        completed["state"], "completed",
+        "SERVICE_GROUP_INDEX: end state"
+    );
+    assert_eq!(
+        completed["group_index"], completed["group_count"],
+        "SERVICE_GROUP_INDEX: completed index"
+    );
+    assert_eq!(
+        completed["group_count"],
+        groups.len(),
+        "SERVICE_GROUP_INDEX: completed count"
+    );
 }
 
 #[test]
@@ -1804,6 +1954,14 @@ fn hardening_scan_record() {
     f.seed();
     let s = f.service(false);
     let first = scanned(&s);
+    let first_snapshot = f
+        .data
+        .join("snapshots")
+        .join(format!("{}.json", first["scan_id"].as_str().unwrap()));
+    assert!(
+        first_snapshot.is_file(),
+        "SERVICE_SNAPSHOT_ORPHAN: successful scan snapshot missing"
+    );
     drop(s);
     let s = f.service(false);
     assert_eq!(
@@ -1837,6 +1995,17 @@ fn hardening_scan_record() {
         call(&s, "app_state", json!({}))["last_scan"]["scan_id"],
         first["scan_id"],
         "SERVICE_SCAN_RECORD: in-process last_scan after a failed write"
+    );
+    assert!(
+        !f.data
+            .join("snapshots")
+            .join(format!("{}.json", id["scan_id"].as_str().unwrap()))
+            .exists(),
+        "SERVICE_SNAPSHOT_ORPHAN: failed scan left its snapshot"
+    );
+    assert!(
+        first_snapshot.is_file(),
+        "SERVICE_SNAPSHOT_ORPHAN: previous snapshot removed"
     );
     drop(s);
     let s = f.service(false);
