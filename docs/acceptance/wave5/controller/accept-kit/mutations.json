@@ -53,8 +53,8 @@
    "token": "SERVICE_CUSTOM_ROOT",
    "file": "packages/water-service/src/service.rs",
    "old": "util::contains(path, p) || util::contains(path, &canon)",
-   "new": "util::contains(path, p) && util::contains(path, &canon)",
-   "why": "a known folder must match in both forms, so one reached through a junction slips through (worker nc3 kept only the canonical form instead)"
+   "new": "util::contains(p, path) || util::contains(path, &canon)",
+   "why": "the text-form check is turned around (known folder contains the choice), so a known folder under the choice is only found in canonical form and a junction hides it (worker nc3 kept only the canonical form; the first controller try, || to &&, was caught first by the older SERVICE_CANONICAL_ROOT)"
   }
  ],
  "h3": [

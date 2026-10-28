@@ -1,7 +1,7 @@
 {
   "schemaVersion": 1,
   "wave": "water-wave5-m2",
-  "status": "H1_H5_SUBMITTED_ACCEPTANCE_IN_PROGRESS_H1_ADDENDUM_01_PENDING",
+  "status": "H2_H5_SUBMITTED_ACCEPTANCE_IN_PROGRESS_H1_ADDENDUM_01_READY",
   "controller": "Claude",
   "controllerRoot": "F:/new/smaltalk/water",
   "controllerBranch": "main",
@@ -141,7 +141,7 @@
       "branch": "worker/water-w5-h1",
       "baseCommit": "3f9078972d7f958fad6bfd42e68f022dd659539e",
       "snapshotRef": "refs/tags/water-w5-m2-base-20261027",
-      "status": "SUBMITTED",
+      "status": "CHANGES_REQUESTED",
       "readyOn": "2026-10-27",
       "dispatchedAt": null,
       "startedAt": null,
@@ -203,7 +203,19 @@
       "relayedAt": "2026-10-27T15:40:00Z",
       "relayEvidence": "user chat 2026-10-28 ~00:40 JST: all external tasks done",
       "acceptanceProgress": "audit clean; acceptance tree lock/check/test/check --final passed; controller nc1-nc3 killed; test --final passed; 9 new controller cases pass (8 fail on the pre-M2 source); wave 4 G5 7/7 and G1 12/12 unchanged; 100k in 15.5 s; 4000-deep tree on 256 KiB passes (old source STATUS_STACK_OVERFLOW). Independent review: medium - a directory whose name is not valid UTF-16 is not expanded in the snapshot, so whole-item vetoes cannot see inside it (the base skipped the whole item). Decision: addendum 01 required before merge (not yet written).",
-      "acceptanceNote": "docs/acceptance/wave5/controller/WATER-W5-ACCEPT-PROGRESS-20261028.md"
+      "acceptanceNote": "docs/acceptance/wave5/controller/WATER-W5-ACCEPT-PROGRESS-20261028.md",
+      "addenda": [
+        {
+          "id": "WATER-W5-H1-ADDENDUM-01",
+          "ticket": "docs/dispatch/tickets/WATER-W5-H1-ADDENDUM-01-20261028.md",
+          "status": "READY",
+          "issuedAt": "2026-10-28T03:00:00Z",
+          "resumeFromCommit": "9f49e8b9215f4fab0fb555314d356b40f4676ad1",
+          "change": "snapshot must not leave a non-reparse directory whose name is not valid UTF-16 unexpanded: option A skips the whole item as changed (pre-M2 result), option B opens and walks it by its raw UTF-16 name; files and links with such names unchanged; new CLEAN_UNPAIRED_NAME assertion for the directory case; nc1-nc3 redone (nc2 on the new logic); no baseline rerun",
+          "evidence": "controller case h1_recent_content_in_unpaired_directory_vetoes (scripts/acceptance/w5-h1-controller-cases.rs): recent content inside such a directory does not veto the item on 0dc44d45 (ok.bin deleted, partial, 2 failures), while the same content in an ordinary directory gives skipped/too_recent",
+          "dispatchedAt": null
+        }
+      ]
     },
     {
       "kind": "service",

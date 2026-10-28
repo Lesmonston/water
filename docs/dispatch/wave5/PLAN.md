@@ -50,3 +50,5 @@
 
 - **WATER-W5-H5 补单 01**（10-27）：执行者受阻，原票“原有断言不变”没考虑新增规则带来的数量变化。补单只授权改三处旧字面值（规则数 60→61、目标数 214→216、数据版本 `2026-10-26.2`→`2026-10-27.1`），并把 `windows.json` 的数据版本加一。从回执提交 `d6c83ea9` 续做，不重跑 baseline。
   - WATER-W5-H5 补单 01：`你继续 Water 项目 WATER-W5-H5（Rust 构建目录规则，轻门）补单 01。先读 F:/new/smaltalk/water/docs/dispatch/tickets/WATER-W5-H5-ADDENDUM-01-20261027.md，按其中列出的顺序读原票、规则、契约与上一轮回执，在 F:/new/smaltalk/water/.worktrees/w5-h5（分支 worker/water-w5-h5）从 d6c83ea92996b148a585a3d6719c6a9e8babf25c 续做。`
+- **WATER-W5-H1 补单 01**（10-28）：收单验收的独立审查发现，名字不是合法 UTF-16 的目录在快照里不展开，整项否决（重解析点、太新、受保护身份）看不到它里面；总控用例已复现。补单要求整项跳过（A，推荐）或按原始名字展开（B），加目录的断言，三条负控重做。从回执提交 `9f49e8b9` 续做，不重跑 baseline。
+  - WATER-W5-H1 补单 01：`你继续 Water 项目 WATER-W5-H1（清理执行器 M2 收尾，重门）补单 01。先读 F:/new/smaltalk/water/docs/dispatch/tickets/WATER-W5-H1-ADDENDUM-01-20261028.md，按其中列出的顺序读原票、规则、契约与上一轮回执，在 F:/new/smaltalk/water/.worktrees/w5-h1（分支 worker/water-w5-h1）从 9f49e8b9215f4fab0fb555314d356b40f4676ad1 续做。`
