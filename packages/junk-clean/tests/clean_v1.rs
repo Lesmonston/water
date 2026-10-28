@@ -3,10 +3,14 @@
 use serde_json::{Value, json};
 use std::{
     collections::hash_map::RandomState,
+    ffi::{OsStr, OsString},
     fs::{self, File, OpenOptions},
     hash::BuildHasher,
     io::{self, Write},
-    os::windows::fs::{MetadataExt, OpenOptionsExt},
+    os::windows::{
+        ffi::{OsStrExt, OsStringExt},
+        fs::{MetadataExt, OpenOptionsExt},
+    },
     path::{Path, PathBuf},
     process::Command,
     sync::{
@@ -113,48 +117,97 @@ impl Drop for Fixture {
         remove_owned(&self.base, &self.base);
     }
 }
-fn remove_owned(path: &Path, owned: &Path) {
-    assert!(path.starts_with(owned));
-    let meta = fs::symlink_metadata(path).unwrap();
-    if meta.file_attributes() & REPARSE != 0 {
-        if meta.file_attributes() & 0x10 != 0 {
-            fs::remove_dir(path).unwrap();
+fn extended(path: &Path) -> PathBuf {
+    if let Some(s) = path.to_str() {
+        if s.starts_with(r"\\?\") {
+            path.to_path_buf()
         } else {
-            fs::remove_file(path).unwrap();
+            PathBuf::from(format!(r"\\?\{s}"))
         }
-    } else if meta.is_dir() {
-        for entry in fs::read_dir(path).unwrap() {
-            remove_owned(&entry.unwrap().path(), owned);
-        }
-        fs::remove_dir(path).unwrap();
     } else {
-        if meta.permissions().readonly() {
-            let mut permissions = meta.permissions();
-            // Synthetic Windows fixture only; no Unix permissions exist in this test.
-            #[allow(clippy::permissions_set_readonly_false)]
-            permissions.set_readonly(false);
-            fs::set_permissions(path, permissions).unwrap();
+        let mut wide: Vec<u16> = OsStr::new(r"\\?\").encode_wide().collect();
+        wide.extend(path.as_os_str().encode_wide());
+        PathBuf::from(OsString::from_wide(&wide))
+    }
+}
+
+fn under_owned(path: &Path, owned: &Path) -> bool {
+    let strip = |p: &Path| -> PathBuf {
+        let prefix: Vec<u16> = OsStr::new(r"\\?\").encode_wide().collect();
+        let wide: Vec<u16> = p.as_os_str().encode_wide().collect();
+        if wide.starts_with(&prefix) {
+            PathBuf::from(OsString::from_wide(&wide[prefix.len()..]))
+        } else {
+            p.to_path_buf()
         }
-        fs::remove_file(path).unwrap();
+    };
+    strip(path).starts_with(strip(owned))
+}
+
+fn remove_owned(path: &Path, owned: &Path) {
+    assert!(under_owned(path, owned));
+    let mut pending = vec![extended(path)];
+    let mut files = Vec::new();
+    let mut dirs = Vec::new();
+    while let Some(p) = pending.pop() {
+        assert!(under_owned(&p, owned));
+        let meta = fs::symlink_metadata(&p).unwrap();
+        let attr = meta.file_attributes();
+        if attr & REPARSE != 0 {
+            files.push((p, attr));
+        } else if meta.is_dir() {
+            dirs.push(p.clone());
+            for entry in fs::read_dir(&p).unwrap() {
+                pending.push(entry.unwrap().path());
+            }
+        } else {
+            files.push((p, attr));
+        }
+    }
+    for (p, attr) in files {
+        if attr & REPARSE != 0 {
+            if attr & 0x10 != 0 {
+                fs::remove_dir(&p).unwrap();
+            } else {
+                fs::remove_file(&p).unwrap();
+            }
+        } else {
+            let meta = fs::symlink_metadata(&p).unwrap();
+            if meta.permissions().readonly() {
+                let mut permissions = meta.permissions();
+                // Synthetic Windows fixture only; no Unix permissions exist in this test.
+                #[allow(clippy::permissions_set_readonly_false)]
+                permissions.set_readonly(false);
+                fs::set_permissions(&p, permissions).unwrap();
+            }
+            fs::remove_file(&p).unwrap();
+        }
+    }
+    for p in dirs.into_iter().rev() {
+        fs::remove_dir(&p).unwrap();
     }
 }
 fn s(path: &Path) -> String {
     path.to_str().unwrap().to_owned()
 }
 fn size(path: &Path) -> u64 {
-    let Ok(m) = fs::symlink_metadata(path) else {
-        return 0;
-    };
-    if m.file_attributes() & REPARSE != 0 {
-        0
-    } else if m.is_dir() {
-        fs::read_dir(path)
-            .unwrap()
-            .map(|e| size(&e.unwrap().path()))
-            .sum()
-    } else {
-        m.len()
+    let mut total = 0u64;
+    let mut stack = vec![extended(path)];
+    while let Some(p) = stack.pop() {
+        let Ok(m) = fs::symlink_metadata(&p) else {
+            continue;
+        };
+        if m.file_attributes() & REPARSE != 0 {
+            continue;
+        } else if m.is_dir() {
+            for entry in fs::read_dir(&p).unwrap() {
+                stack.push(entry.unwrap().path());
+            }
+        } else {
+            total += m.len();
+        }
     }
+    total
 }
 fn item(root: &Path, path: &Path, id: &str) -> Value {
     json!({"item_id":id,"group_id":"synthetic","rule_id":"fixture-rule","level":"recommended",
@@ -921,6 +974,32 @@ fn clean_report_volume() {
     let empty = run(&parse(plan_value(vec![])));
     assert_eq!(empty.freed_bytes, "0");
     assert!(empty.volumes.is_empty());
+
+    // CLEAN_FREED_EXACT: a hard-linked file inside the item is deleted by name but not counted,
+    // because another name in the same fixture still holds the data. Other regular files sum
+    // exactly to bytes_freed.
+    let eroot = fixture.dir("exact/root");
+    let eitem = fixture.dir("exact/root/item");
+    let linked = fixture.file("exact/root/item/linked", b"hardlink-payload");
+    fixture.file("exact/root/item/a", b"aa");
+    fixture.file("exact/root/item/bb", b"bbbb");
+    let outside = fixture.base.join("exact\\outside-hardlink");
+    fs::hard_link(&linked, &outside).unwrap();
+    let outside_bytes = fs::read(&outside).unwrap();
+    let report = run(&parse(plan_value(vec![item(&eroot, &eitem, "exact")])));
+    assert_eq!(
+        report.items[0].bytes_freed, "6",
+        "CLEAN_FREED_EXACT: hard-linked file was counted or other sizes were wrong"
+    );
+    assert_eq!(
+        fs::read(&outside).ok().as_deref(),
+        Some(outside_bytes.as_slice()),
+        "CLEAN_FREED_EXACT: outside hard link was changed"
+    );
+    assert!(
+        fs::symlink_metadata(&outside).is_ok(),
+        "CLEAN_FREED_EXACT: outside hard link was removed"
+    );
 }
 fn keys(value: &Value, expected: &[&str]) {
     let mut actual: Vec<&str> = value
@@ -1267,6 +1346,123 @@ fn clean_handle_hardening() {
         fs::symlink_metadata(&kleaf).is_ok() && fs::symlink_metadata(&ksub).is_ok(),
         "CLEAN_REPARSE_KIND: a nested custom reparse directory or its parent was removed"
     );
+
+    // CLEAN_DEEP_TREE: a 4000-deep directory chain, each level named `d`, with a file at the
+    // bottom, created through the \\?\ prefix. Cleaning on a 256 KiB stack must finish.
+    const DEEP: usize = 4000;
+    let droot = fixture.dir("deep/root");
+    let ditem = fixture.dir("deep/root/item");
+    let mut cur = extended(&ditem);
+    for _ in 0..DEEP {
+        cur.push("d");
+        fs::create_dir(&cur).expect("CLEAN_DEEP_TREE: create directory");
+    }
+    fs::write(cur.join("leaf"), b"deep").expect("CLEAN_DEEP_TREE: create leaf");
+    let plan = parse(plan_value(vec![item(&droot, &ditem, "deep")]));
+    let report = std::thread::Builder::new()
+        .stack_size(256 * 1024)
+        .spawn(move || run(&plan))
+        .expect("CLEAN_DEEP_TREE: spawn")
+        .join()
+        .expect("CLEAN_DEEP_TREE: worker thread panicked");
+    assert_eq!(
+        report.items[0].status,
+        ItemStatus::Deleted,
+        "CLEAN_DEEP_TREE: 4000-deep tree was not deleted"
+    );
+    assert!(
+        fs::symlink_metadata(&ditem).is_err(),
+        "CLEAN_DEEP_TREE: 4000-deep item survived"
+    );
+
+    // CLEAN_UNPAIRED_NAME: files whose names contain an unpaired surrogate must not be
+    // silently skipped. Option A: do not open them, count each as a failure, leave them.
+    // Two names have the same lossy spelling; the valid replacement-character spelling
+    // must remain distinct and be cleaned normally.
+    let uroot = fixture.dir("unpaired/root");
+    let uitem = fixture.dir("unpaired/root/item");
+    fixture.file("unpaired/root/item/ok", b"sibling");
+    let unpaired = unpaired_child(&uitem, &[0xD800, u16::from(b'x')], b"bad-name");
+    let unpaired2 = unpaired_child(&uitem, &[0xD801, u16::from(b'x')], b"also-bad");
+    let valid = fixture.file("unpaired/root/item/\u{fffd}x", b"valid-name");
+    let report = run(&parse(plan_value(vec![item(&uroot, &uitem, "unpaired")])));
+    assert!(
+        fs::symlink_metadata(&unpaired).is_ok() && fs::symlink_metadata(&unpaired2).is_ok(),
+        "CLEAN_UNPAIRED_NAME: unpaired-name file was silently skipped or deleted"
+    );
+    assert!(
+        report.items[0].failed_entries == 2,
+        "CLEAN_UNPAIRED_NAME: unpaired-name file was not counted as a failure"
+    );
+    assert_ne!(
+        report.items[0].status,
+        ItemStatus::Deleted,
+        "CLEAN_UNPAIRED_NAME: item with an unpaired-name file was reported deleted"
+    );
+    assert!(
+        fs::symlink_metadata(&valid).is_err(),
+        "CLEAN_UNPAIRED_NAME: valid name collided with an unpaired-name snapshot key"
+    );
+
+    // An invalid-name non-reparse directory cannot be snapshotted completely without raw
+    // UTF-16 opens. Reject the whole item before deleting any sibling or descendant.
+    let udroot = fixture.dir("unpaired-dir/root");
+    let uditem = fixture.dir("unpaired-dir/root/item");
+    let sibling = fixture.file("unpaired-dir/root/item/ok", b"keep-sibling");
+    let unpaired_dir = extended(&uditem).join(OsString::from_wide(&[0xD800, u16::from(b'd')]));
+    fs::create_dir(&unpaired_dir).expect("CLEAN_UNPAIRED_NAME: create unpaired-name directory");
+    let child = unpaired_dir.join("inside");
+    fs::write(&child, b"keep-child").expect("CLEAN_UNPAIRED_NAME: create directory child");
+    let report = run(&parse(plan_value(vec![item(
+        &udroot,
+        &uditem,
+        "unpaired-dir",
+    )])));
+    assert_eq!(
+        report.items[0].status,
+        ItemStatus::Skipped,
+        "CLEAN_UNPAIRED_NAME: incomplete directory snapshot did not skip the whole item"
+    );
+    assert_eq!(
+        report.items[0].skip_reason,
+        Some(SkipReason::Changed),
+        "CLEAN_UNPAIRED_NAME: incomplete directory snapshot did not report changed"
+    );
+    assert_eq!(
+        report.items[0].bytes_freed, "0",
+        "CLEAN_UNPAIRED_NAME: bytes freed from an item with an incomplete directory snapshot"
+    );
+    assert_eq!(
+        fs::read(&sibling).ok().as_deref(),
+        Some(b"keep-sibling".as_slice()),
+        "CLEAN_UNPAIRED_NAME: sibling of an unpaired-name directory was modified"
+    );
+    assert!(
+        fs::symlink_metadata(&unpaired_dir).is_ok_and(|m| m.is_dir()),
+        "CLEAN_UNPAIRED_NAME: unpaired-name directory was removed"
+    );
+    assert_eq!(
+        fs::read(&child).ok().as_deref(),
+        Some(b"keep-child".as_slice()),
+        "CLEAN_UNPAIRED_NAME: child of an unpaired-name directory was modified"
+    );
+}
+
+fn unpaired_child(dir: &Path, name_units: &[u16], data: &[u8]) -> PathBuf {
+    let mut wide: Vec<u16> = extended(dir).as_os_str().encode_wide().collect();
+    if wide.last() == Some(&0) {
+        wide.pop();
+    }
+    wide.push(u16::from(b'\\'));
+    wide.extend(name_units);
+    let path = PathBuf::from(OsString::from_wide(&wide));
+    let mut file = OpenOptions::new()
+        .write(true)
+        .create_new(true)
+        .open(&path)
+        .expect("CLEAN_UNPAIRED_NAME: create unpaired-name file");
+    file.write_all(data).unwrap();
+    path
 }
 
 fn set_custom_reparse(path: &Path) {

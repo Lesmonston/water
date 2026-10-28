@@ -11,6 +11,7 @@ struct Entry {
     mtime: SystemTime,
     tag: u32,
     attr: u32,
+    name_ok: bool,
 }
 
 #[derive(Debug, PartialEq, Eq)]
@@ -190,6 +191,31 @@ mod windows {
         }
     }
 
+    // A traversal owns parents before children. Even an early return must close the
+    // innermost handle first, just as unwinding the former recursive calls did.
+    struct FrameStack<T>(Vec<T>);
+    impl<T> FrameStack<T> {
+        fn new() -> Self {
+            Self(Vec::new())
+        }
+    }
+    impl<T> std::ops::Deref for FrameStack<T> {
+        type Target = Vec<T>;
+        fn deref(&self) -> &Self::Target {
+            &self.0
+        }
+    }
+    impl<T> std::ops::DerefMut for FrameStack<T> {
+        fn deref_mut(&mut self) -> &mut Self::Target {
+            &mut self.0
+        }
+    }
+    impl<T> Drop for FrameStack<T> {
+        fn drop(&mut self) {
+            while self.0.pop().is_some() {}
+        }
+    }
+
     fn wide(s: &str) -> Vec<u16> {
         s.encode_utf16().chain(Some(0)).collect()
     }
@@ -241,6 +267,10 @@ mod windows {
     // Open a single-segment child relative to the parent handle. Returns the Win32 error on
     // failure so callers can tell "missing" from "changed".
     fn nt_open(parent: &Handle, seg: &str, access: u32, share: u32) -> Result<Handle, u32> {
+        nt_open_at(parent.0, seg, access, share)
+    }
+
+    fn nt_open_at(parent: *mut c_void, seg: &str, access: u32, share: u32) -> Result<Handle, u32> {
         let mut name: Vec<u16> = seg.encode_utf16().collect();
         // A real NTFS path component is 1..=255 UTF-16 units. Reject an empty name (length 0
         // would open the parent directory itself instead of a child) and anything longer than 255
@@ -256,7 +286,7 @@ mod windows {
         };
         let oa = ObjectAttributes {
             length: size_of::<ObjectAttributes>() as u32,
-            root_directory: parent.0,
+            root_directory: parent,
             object_name: &mut us,
             attributes: OBJ_CASE_INSENSITIVE,
             security_descriptor: ptr::null_mut(),
@@ -323,7 +353,7 @@ mod windows {
         info(handle, 0, &mut basic).then_some(basic.last_write)
     }
 
-    fn end_of_file(handle: &Handle) -> Option<u64> {
+    fn standard_info(handle: &Handle) -> Option<(u64, u32)> {
         let mut std_info = FileStandardInfo {
             allocation: 0,
             end_of_file: 0,
@@ -331,7 +361,12 @@ mod windows {
             delete_pending: 0,
             directory: 0,
         };
-        info(handle, 1, &mut std_info).then_some(std_info.end_of_file.max(0) as u64)
+        info(handle, 1, &mut std_info)
+            .then_some((std_info.end_of_file.max(0) as u64, std_info.links))
+    }
+
+    fn end_of_file(handle: &Handle) -> Option<u64> {
+        standard_info(handle).map(|(size, _)| size)
     }
 
     fn volume_serial(handle: &Handle) -> Option<u32> {
@@ -361,8 +396,10 @@ mod windows {
         })
     }
 
+    #[derive(Clone)]
     struct Raw {
         name: String,
+        name_ok: bool,
         attr: u32,
         tag: u32,
         file_id: [u8; 16],
@@ -432,14 +469,27 @@ mod windows {
                 // and every NextEntryOffset advance is checked to be a multiple of 8) and 88 is
                 // even, so base+off+88 is 2-byte aligned; NTFS names are UTF-16 so name_len bytes
                 // decode as name_len/2 u16 units.
-                let name = unsafe {
+                let (name, name_ok) = unsafe {
                     let units =
                         std::slice::from_raw_parts(base.add(off + 88) as *const u16, name_len / 2);
-                    String::from_utf16_lossy(units)
+                    match String::from_utf16(units) {
+                        Ok(s) => (s, true),
+                        // NUL cannot occur in an actual component. This private snapshot
+                        // key is injective even for names with identical lossy spellings,
+                        // and is never passed to an open call (name_ok is false).
+                        Err(_) => (
+                            format!(
+                                "\0{}",
+                                units.iter().map(|u| format!("{u:04x}")).collect::<String>()
+                            ),
+                            false,
+                        ),
+                    }
                 };
                 if name != "." && name != ".." {
                     out.push(Raw {
                         name,
+                        name_ok,
                         attr,
                         tag,
                         file_id,
@@ -700,6 +750,7 @@ mod windows {
                 mtime: item_time,
                 tag: walked.tag,
                 attr: walked.attr,
+                name_ok: true,
             }],
         };
         if walked.is_dir {
@@ -718,6 +769,110 @@ mod windows {
         Ok(snap)
     }
 
+    struct SnapFrame {
+        handle: Handle,
+        base: String,
+        kids: Vec<Raw>,
+        i: usize,
+    }
+
+    // Record one enumerated object on the snapshot. Returns true when the caller should open
+    // that directory and walk its children. Invalid UTF-16 files/links are stored but never
+    // opened; invalid-name non-reparse directories reject the item to avoid an incomplete tree.
+    fn consider_entry(
+        raw: &Raw,
+        rel: String,
+        serial: u32,
+        guard_ids: &[Identity],
+        protected_ids: &[Identity],
+        snap: &mut Snapshot,
+    ) -> Result<bool, SkipReason> {
+        let id = Identity {
+            volume_serial: format!("{serial:08X}"),
+            file_id: raw.file_id.iter().map(|b| format!("{b:02x}")).collect(),
+        };
+        if guard_ids.contains(&id) {
+            return Err(SkipReason::Guarded); // CLEAN_GUARD_ID
+        }
+        if protected_ids.contains(&id) {
+            return Err(SkipReason::ProtectedOverlap); // CLEAN_GUARD_ID
+        }
+        let mtime = filetime(raw.write).ok_or(SkipReason::Changed)?;
+        snap.newest = snap.newest.max(mtime);
+        let reparse = raw.attr & REPARSE != 0;
+        if reparse {
+            // CLEAN_REPARSE_KIND: only name-surrogate links are treated as links; any other
+            // reparse point in the subtree poisons the whole item.
+            if raw.tag & NAME_SURROGATE == 0 {
+                return Err(SkipReason::Reparse);
+            }
+            snap.entries.push(Entry {
+                rel,
+                file_id: raw.file_id,
+                size: 0,
+                mtime,
+                tag: raw.tag,
+                attr: raw.attr,
+                name_ok: raw.name_ok,
+            });
+            Ok(false)
+        } else if raw.attr & DIRECTORY != 0 {
+            if !raw.name_ok {
+                // A hidden subtree could contain a veto (age, reparse kind, guard/protection).
+                // Without raw-name opens, skip the whole item before deleting anything.
+                return Err(SkipReason::Changed);
+            }
+            snap.entries.push(Entry {
+                rel,
+                file_id: raw.file_id,
+                size: 0,
+                mtime,
+                tag: raw.tag,
+                attr: raw.attr,
+                name_ok: raw.name_ok,
+            });
+            Ok(true)
+        } else {
+            snap.bytes = snap
+                .bytes
+                .checked_add(raw.size)
+                .ok_or(SkipReason::Changed)?;
+            snap.entries.push(Entry {
+                rel,
+                file_id: raw.file_id,
+                size: raw.size,
+                mtime,
+                tag: raw.tag,
+                attr: raw.attr,
+                name_ok: raw.name_ok,
+            });
+            Ok(false)
+        }
+    }
+
+    fn push_snap_dir(
+        parent: *mut c_void,
+        name: &str,
+        rel: String,
+        stack: &mut FrameStack<SnapFrame>,
+    ) -> Result<(), SkipReason> {
+        let child = nt_open_at(
+            parent,
+            name,
+            FILE_LIST_DIRECTORY | FILE_READ_ATTRIBUTES | SYNCHRONIZE,
+            SHARE_RWD,
+        )
+        .map_err(|_| SkipReason::Changed)?;
+        let kids = enumerate(&child).map_err(|()| SkipReason::Changed)?;
+        stack.push(SnapFrame {
+            handle: child,
+            base: rel,
+            kids,
+            i: 0,
+        });
+        Ok(())
+    }
+
     fn walk_subtree(
         dir: &Handle,
         base: &str,
@@ -726,90 +881,75 @@ mod windows {
         protected_ids: &[Identity],
         snap: &mut Snapshot,
     ) -> Result<(), SkipReason> {
+        let mut stack = FrameStack::new();
         for raw in enumerate(dir).map_err(|()| SkipReason::Changed)? {
-            let name = raw.name.as_str();
             let rel = if base.is_empty() {
-                name.to_owned()
+                raw.name.clone()
             } else {
-                format!("{base}\\{name}")
+                format!("{base}\\{}", raw.name)
             };
-            let id = Identity {
-                volume_serial: format!("{serial:08X}"),
-                file_id: raw.file_id.iter().map(|b| format!("{b:02x}")).collect(),
-            };
-            if guard_ids.contains(&id) {
-                return Err(SkipReason::Guarded); // CLEAN_GUARD_ID
+            if consider_entry(&raw, rel.clone(), serial, guard_ids, protected_ids, snap)? {
+                push_snap_dir(dir.0, &raw.name, rel, &mut stack)?;
             }
-            if protected_ids.contains(&id) {
-                return Err(SkipReason::ProtectedOverlap); // CLEAN_GUARD_ID
+            drain_snap(&mut stack, serial, guard_ids, protected_ids, snap)?;
+        }
+        Ok(())
+    }
+
+    fn drain_snap(
+        stack: &mut FrameStack<SnapFrame>,
+        serial: u32,
+        guard_ids: &[Identity],
+        protected_ids: &[Identity],
+        snap: &mut Snapshot,
+    ) -> Result<(), SkipReason> {
+        while !stack.is_empty() {
+            let top = stack.len() - 1;
+            if stack[top].i >= stack[top].kids.len() {
+                stack.pop();
+                continue;
             }
-            let mtime = filetime(raw.write).ok_or(SkipReason::Changed)?;
-            snap.newest = snap.newest.max(mtime);
-            let reparse = raw.attr & REPARSE != 0;
-            if reparse {
-                // CLEAN_REPARSE_KIND: only name-surrogate links are treated as links; any other
-                // reparse point in the subtree poisons the whole item.
-                if raw.tag & NAME_SURROGATE == 0 {
-                    return Err(SkipReason::Reparse);
-                }
-                snap.entries.push(Entry {
-                    rel,
-                    file_id: raw.file_id,
-                    size: 0,
-                    mtime,
-                    tag: raw.tag,
-                    attr: raw.attr,
-                });
-            } else if raw.attr & DIRECTORY != 0 {
-                snap.entries.push(Entry {
-                    rel: rel.clone(),
-                    file_id: raw.file_id,
-                    size: 0,
-                    mtime,
-                    tag: raw.tag,
-                    attr: raw.attr,
-                });
-                let child = nt_open(
-                    dir,
-                    name,
-                    FILE_LIST_DIRECTORY | FILE_READ_ATTRIBUTES | SYNCHRONIZE,
-                    SHARE_RWD,
-                )
-                .map_err(|_| SkipReason::Changed)?;
-                walk_subtree(&child, &rel, serial, guard_ids, protected_ids, snap)?;
+            let raw = stack[top].kids[stack[top].i].clone();
+            stack[top].i += 1;
+            let rel = if stack[top].base.is_empty() {
+                raw.name.clone()
             } else {
-                snap.bytes = snap
-                    .bytes
-                    .checked_add(raw.size)
-                    .ok_or(SkipReason::Changed)?;
-                snap.entries.push(Entry {
-                    rel,
-                    file_id: raw.file_id,
-                    size: raw.size,
-                    mtime,
-                    tag: raw.tag,
-                    attr: raw.attr,
-                });
+                format!("{}\\{}", stack[top].base, raw.name)
+            };
+            let parent = stack[top].handle.0;
+            if consider_entry(&raw, rel.clone(), serial, guard_ids, protected_ids, snap)? {
+                push_snap_dir(parent, &raw.name, rel, stack)?;
             }
         }
         Ok(())
     }
 
-    // Walk only to the item's parent, rejecting any reparse ancestor.
-    fn walk_parent(item: &PlanItem) -> Result<Handle, ()> {
-        let mut parent = open_root(&item.path[..3]).ok_or(())?;
+    enum ParentErr {
+        Gone,
+        Other,
+    }
+
+    // Walk only to the item's parent, rejecting any reparse ancestor. Error 2 or 3 at any
+    // level means the item is no longer under that name (CLEAN-M2 section 3).
+    fn walk_parent(item: &PlanItem) -> Result<Handle, ParentErr> {
+        let mut parent = open_root(&item.path[..3]).ok_or(ParentErr::Other)?;
         let segs: Vec<&str> = item.path[3..].split('\\').collect();
         for seg in &segs[..segs.len() - 1] {
-            let handle = nt_open(
+            let handle = match nt_open(
                 &parent,
                 seg,
                 FILE_LIST_DIRECTORY | FILE_READ_ATTRIBUTES | SYNCHRONIZE,
                 SHARE_RWD,
-            )
-            .map_err(|_| ())?;
+            ) {
+                Ok(h) => h,
+                Err(w) if w == ERR_FILE_NOT_FOUND || w == ERR_PATH_NOT_FOUND => {
+                    return Err(ParentErr::Gone);
+                }
+                Err(_) => return Err(ParentErr::Other),
+            };
             match attr_tag(&handle) {
                 Some((a, _)) if a & REPARSE == 0 && a & DIRECTORY != 0 => {}
-                _ => return Err(()),
+                _ => return Err(ParentErr::Other),
             }
             parent = handle;
         }
@@ -837,13 +977,23 @@ mod windows {
             .collect()
     }
 
+    struct DelFrame {
+        handle: Handle,
+        rel: String,
+        index: usize,
+        kids: Vec<Raw>,
+        kid_i: usize,
+    }
+
     struct DelCtx<'a> {
         before: &'a Snapshot,
         stop: &'a StopFlag,
         folded: Vec<(String, usize)>,
         accounted: Vec<bool>,
+        deleted: Vec<bool>,
         removed: u64,
         failed: u64,
+        bytes_freed: u64,
         changed_stop: bool,
         initial_skip: Option<SkipReason>,
         // Set once the item itself (rel == "") has had its delete flag set this run. The residual
@@ -889,22 +1039,46 @@ mod windows {
                             } else {
                                 format!("{rel}\\{}", k.name)
                             };
-                            self.expected_index(&crel).is_none_or(|i| self.accounted[i])
+                            self.expected_index(&crel)
+                                .is_none_or(|i| self.accounted[i] || self.deleted[i])
                         })
                 }
                 Err(()) => false,
             }
         }
 
-        // Delete one node by handle, relative to its parent. Returns true if a stop cut it short.
-        fn node(&mut self, parent: &Handle, name: &str, rel: &str) -> bool {
+        fn note_removed(&mut self, index: usize, rel: &str) {
+            self.removed += 1;
+            self.deleted[index] = true;
+            if rel.is_empty() {
+                self.self_deleted = true;
+            }
+        }
+
+        fn finish_dir(&mut self, handle: &Handle, rel: &str, index: usize) {
+            if set_delete(handle) {
+                self.note_removed(index, rel);
+            } else if self.only_post_snapshot(handle, rel) {
+                self.accounted[index] = true;
+            } else {
+                self.fail(index);
+            }
+        }
+
+        // Open one snapshot node relative to its parent. Directories return a frame so the
+        // caller can walk children on an explicit stack; files and links are finished here.
+        fn enter(&mut self, parent: *mut c_void, name: &str, rel: &str) -> Option<DelFrame> {
             if self.changed_stop {
-                return false;
+                return None;
             }
             let Some(index) = self.expected_index(rel) else {
-                return false; // appeared after the snapshot: never touched, never counted
+                return None; // appeared after the snapshot: never touched, never counted
             };
             let exp = &self.before.entries[index];
+            if !exp.name_ok {
+                self.fail(index);
+                return None;
+            }
             let (exp_attr, exp_tag, exp_id) = (exp.attr, exp.tag, exp.file_id);
             if exp_attr & REPARSE != 0 {
                 if exp_tag & NAME_SURROGATE != 0 {
@@ -912,7 +1086,7 @@ mod windows {
                     // a name-surrogate reparse point with the snapshot FileId before deleting, so
                     // a concurrently swapped-in non-link reparse point (e.g. a cloud placeholder)
                     // is never removed.
-                    match nt_open(
+                    match nt_open_at(
                         parent,
                         name,
                         DELETE | FILE_READ_ATTRIBUTES | SYNCHRONIZE,
@@ -923,10 +1097,7 @@ mod windows {
                                 if a & REPARSE != 0 && t & NAME_SURROGATE != 0 && id == exp_id =>
                             {
                                 if set_delete(&handle) {
-                                    self.removed += 1;
-                                    if rel.is_empty() {
-                                        self.self_deleted = true;
-                                    }
+                                    self.note_removed(index, rel);
                                 } else {
                                     self.fail(index);
                                 }
@@ -937,10 +1108,10 @@ mod windows {
                         Err(_) => self.fail(index),
                     }
                 }
-                return false;
+                return None;
             }
             if exp_attr & DIRECTORY != 0 {
-                let handle = match nt_open(
+                let handle = match nt_open_at(
                     parent,
                     name,
                     FILE_LIST_DIRECTORY | DELETE | FILE_READ_ATTRIBUTES | SYNCHRONIZE,
@@ -951,17 +1122,17 @@ mod windows {
                         if rel.is_empty() {
                             self.initial_skip = Some(SkipReason::Gone);
                         }
-                        return false;
+                        return None;
                     }
                     Err(_) => {
                         self.fail(index);
-                        return false;
+                        return None;
                     }
                 };
                 let id = file_id(&handle);
                 if rel.is_empty() && id.is_some_and(|id| id != exp_id) {
                     self.initial_skip = Some(SkipReason::Changed);
-                    return false;
+                    return None;
                 }
                 match (attr_tag(&handle), id) {
                     (Some((a, _)), Some(id))
@@ -970,7 +1141,7 @@ mod windows {
                         // The directory was replaced under us: stop deleting this item.
                         self.fail(index);
                         self.changed_stop = true;
-                        return false;
+                        return None;
                     }
                 }
                 let kids = match enumerate(&handle) {
@@ -979,23 +1150,83 @@ mod windows {
                         // Enumeration failed (not "no more files"): stop this item, count one.
                         self.fail(index);
                         self.changed_stop = true;
-                        return false;
+                        return None;
                     }
                 };
-                for kid in kids {
+                return Some(DelFrame {
+                    handle,
+                    rel: rel.to_owned(),
+                    index,
+                    kids,
+                    kid_i: 0,
+                });
+            }
+            match nt_open_at(
+                parent,
+                name,
+                DELETE | FILE_READ_ATTRIBUTES | SYNCHRONIZE,
+                SHARE_RWD,
+            ) {
+                Ok(handle) => {
+                    let id = file_id(&handle);
+                    if rel.is_empty() && id.is_some_and(|id| id != exp_id) {
+                        self.initial_skip = Some(SkipReason::Changed);
+                        return None;
+                    }
+                    match (attr_tag(&handle), id) {
+                        (Some((a, _)), Some(id)) if a & REPARSE == 0 && id == exp_id => {
+                            let Some((size, links)) = standard_info(&handle) else {
+                                self.fail(index);
+                                return None;
+                            };
+                            if set_delete(&handle) {
+                                self.note_removed(index, rel);
+                                if links <= 1 {
+                                    self.bytes_freed = self.bytes_freed.saturating_add(size);
+                                }
+                            } else {
+                                self.fail(index);
+                            }
+                        }
+                        // became a link, FileId changed, or attributes unreadable: skip + count
+                        _ => self.fail(index),
+                    }
+                }
+                Err(w) if w == ERR_FILE_NOT_FOUND || w == ERR_PATH_NOT_FOUND => {
+                    if rel.is_empty() {
+                        self.initial_skip = Some(SkipReason::Gone);
+                    }
+                }
+                Err(_) => self.fail(index),
+            }
+            None
+        }
+
+        // Delete one node by handle, relative to its parent. Returns true if a stop cut it short.
+        fn delete_from(&mut self, parent: &Handle, name: &str, rel: &str) -> bool {
+            let mut stack = FrameStack::new();
+            if let Some(frame) = self.enter(parent.0, name, rel) {
+                stack.push(frame);
+            }
+            while !stack.is_empty() {
+                if self.changed_stop {
+                    return false;
+                }
+                let top = stack.len() - 1;
+                if stack[top].kid_i < stack[top].kids.len() {
                     if self.stop.is_stopped() {
                         return true;
                     }
-                    if self.changed_stop {
-                        return false;
-                    }
-                    let child_rel = if rel.is_empty() {
+                    let kid = stack[top].kids[stack[top].kid_i].clone();
+                    stack[top].kid_i += 1;
+                    let child_rel = if stack[top].rel.is_empty() {
                         kid.name.clone()
                     } else {
-                        format!("{rel}\\{}", kid.name)
+                        format!("{}\\{}", stack[top].rel, kid.name)
                     };
+                    let parent_ptr = stack[top].handle.0;
                     // Copy the snapshot FileId and kind out before any &mut self call so the
-                    // immutable borrow of `before.entries` does not span node().
+                    // immutable borrow of `before.entries` does not span enter().
                     let expected = self.expected_index(&child_rel).map(|i| {
                         let e = &self.before.entries[i];
                         (i, e.file_id, e.attr)
@@ -1003,8 +1234,11 @@ mod windows {
                     match expected {
                         None => {} // appeared after the snapshot: ignore, not a failure
                         Some((_, fid, _)) if fid == kid.file_id => {
-                            if self.node(&handle, &kid.name, &child_rel) {
-                                return true;
+                            if let Some(frame) = self.enter(parent_ptr, &kid.name, &child_rel) {
+                                stack.push(frame);
+                                // The recursive call used to finish this subtree before
+                                // the parent's post-child stop checkpoint.
+                                continue;
                             }
                             if self.changed_stop {
                                 return false;
@@ -1028,86 +1262,94 @@ mod windows {
                     if self.stop.is_stopped() {
                         return true;
                     }
-                }
-                if self.changed_stop {
-                    return false;
-                }
-                if set_delete(&handle) {
-                    self.removed += 1;
-                    if rel.is_empty() {
-                        self.self_deleted = true;
-                    }
-                } else if self.only_post_snapshot(&handle, rel) {
-                    self.accounted[index] = true;
                 } else {
-                    self.fail(index);
-                }
-                false
-            } else {
-                match nt_open(
-                    parent,
-                    name,
-                    DELETE | FILE_READ_ATTRIBUTES | SYNCHRONIZE,
-                    SHARE_RWD,
-                ) {
-                    Ok(handle) => {
-                        let id = file_id(&handle);
-                        if rel.is_empty() && id.is_some_and(|id| id != exp_id) {
-                            self.initial_skip = Some(SkipReason::Changed);
-                            return false;
-                        }
-                        match (attr_tag(&handle), id) {
-                            (Some((a, _)), Some(id)) if a & REPARSE == 0 && id == exp_id => {
-                                if set_delete(&handle) {
-                                    self.removed += 1;
-                                    if rel.is_empty() {
-                                        self.self_deleted = true;
-                                    }
-                                } else {
-                                    self.fail(index);
-                                }
-                            }
-                            // became a link, FileId changed, or attributes unreadable: skip + count
-                            _ => self.fail(index),
-                        }
+                    let frame = stack.pop().unwrap();
+                    if self.changed_stop {
+                        return false;
                     }
-                    Err(w) if w == ERR_FILE_NOT_FOUND || w == ERR_PATH_NOT_FOUND => {
-                        if rel.is_empty() {
-                            self.initial_skip = Some(SkipReason::Gone);
-                        }
+                    self.finish_dir(&frame.handle, &frame.rel, frame.index);
+                    drop(frame);
+                    // After a child directory finishes (including its own delete), the parent
+                    // checks the stop flag before the next sibling or its own delete — same
+                    // checkpoints as the previous recursive node().
+                    if !stack.is_empty() && self.stop.is_stopped() {
+                        return true;
                     }
-                    Err(_) => self.fail(index),
                 }
-                false
             }
+            false
+        }
+    }
+
+    struct MeasFrame {
+        handle: Handle,
+        kids: Vec<Raw>,
+        i: usize,
+    }
+
+    fn measure_kid(
+        parent: *mut c_void,
+        kid: &Raw,
+        total: &mut u64,
+        stack: &mut FrameStack<MeasFrame>,
+    ) -> Option<()> {
+        if kid.attr & REPARSE != 0 {
+            return Some(());
+        }
+        if kid.attr & DIRECTORY != 0 {
+            if !kid.name_ok {
+                // Its subtree cannot be measured without opening the raw name.
+                return None;
+            }
+            match nt_open_at(
+                parent,
+                &kid.name,
+                FILE_LIST_DIRECTORY | FILE_READ_ATTRIBUTES | SYNCHRONIZE,
+                SHARE_RWD,
+            ) {
+                Ok(child) => {
+                    let kids = enumerate(&child).ok()?;
+                    stack.push(MeasFrame {
+                        handle: child,
+                        kids,
+                        i: 0,
+                    });
+                    Some(())
+                }
+                Err(w) if w == ERR_FILE_NOT_FOUND || w == ERR_PATH_NOT_FOUND => Some(()),
+                Err(_) => None,
+            }
+        } else {
+            *total = total.saturating_add(kid.size);
+            Some(())
         }
     }
 
     // Residual bytes still under the item, measured by handle. None means the item is gone; the
     // second field is 1 when the residual could not be determined (never report deleted then).
     fn measure_tree(dir: &Handle) -> Option<u64> {
-        let kids = enumerate(dir).ok()?;
         let mut total = 0u64;
-        for kid in kids {
-            if kid.attr & REPARSE != 0 {
-                continue;
-            }
-            if kid.attr & DIRECTORY != 0 {
-                match nt_open(
-                    dir,
-                    &kid.name,
-                    FILE_LIST_DIRECTORY | FILE_READ_ATTRIBUTES | SYNCHRONIZE,
-                    SHARE_RWD,
-                ) {
-                    Ok(child) => total = total.saturating_add(measure_tree(&child)?),
-                    Err(w) if w == ERR_FILE_NOT_FOUND || w == ERR_PATH_NOT_FOUND => {}
-                    Err(_) => return None,
-                }
-            } else {
-                total = total.saturating_add(kid.size);
-            }
+        let mut stack = FrameStack::new();
+        for kid in enumerate(dir).ok()? {
+            measure_kid(dir.0, &kid, &mut total, &mut stack)?;
+            drain_measure(&mut total, &mut stack)?;
         }
         Some(total)
+    }
+
+    fn drain_measure(total: &mut u64, stack: &mut FrameStack<MeasFrame>) -> Option<()> {
+        while !stack.is_empty() {
+            let top = stack.len() - 1;
+            if stack[top].i >= stack[top].kids.len() {
+                stack.pop();
+                continue;
+            }
+            let kid = stack[top].kids[stack[top].i].clone();
+            stack[top].i += 1;
+            let parent = stack[top].handle.0;
+            measure_kid(parent, &kid, total, stack)?;
+        }
+        Some(())
     }
 
     fn measure_residual(
@@ -1130,8 +1372,10 @@ mod windows {
         let Some(item_entry) = before.entries.iter().find(|e| e.rel.is_empty()) else {
             return (Some(before_bytes), 1);
         };
-        let Ok(parent) = walk_parent(item) else {
-            return (Some(before_bytes), 1);
+        let parent = match walk_parent(item) {
+            Ok(p) => p,
+            Err(ParentErr::Gone) => return replaced(self_deleted),
+            Err(ParentErr::Other) => return (Some(before_bytes), 1),
         };
         let name = last_segment(&item.path);
         // Open the item itself relative to the parent handle (never following a link) and
@@ -1200,15 +1444,25 @@ mod windows {
             stop,
             folded,
             accounted: vec![false; before.entries.len()],
+            deleted: vec![false; before.entries.len()],
             removed: 0,
             failed: 0,
+            bytes_freed: 0,
             changed_stop: false,
             initial_skip: None,
             self_deleted: false,
         };
         let mut interrupted = false;
-        if let Ok(parent) = walk_parent(item) {
-            interrupted = ctx.node(&parent, last_segment(&item.path), "");
+        match walk_parent(item) {
+            Ok(parent) => {
+                interrupted = ctx.delete_from(&parent, last_segment(&item.path), "");
+            }
+            Err(ParentErr::Gone) => {
+                let mut report = ItemReport::skipped(item, SkipReason::Gone);
+                report.bytes_before = before.bytes.to_string();
+                return (report, false);
+            }
+            Err(ParentErr::Other) => {}
         }
         if let Some(reason) = ctx.initial_skip {
             let mut report = ItemReport::skipped(item, reason);
@@ -1227,17 +1481,12 @@ mod windows {
             ItemStatus::Failed
         };
         let cancelled = status == ItemStatus::Skipped;
-        let freed = if ctx.removed == 0 {
-            0
-        } else {
-            before.bytes.saturating_sub(residual.unwrap_or(0))
-        };
         let report = ItemReport {
             item_id: item.item_id.clone(),
             status,
             skip_reason: cancelled.then_some(SkipReason::Cancelled),
             bytes_before: before.bytes.to_string(),
-            bytes_freed: freed.to_string(),
+            bytes_freed: ctx.bytes_freed.to_string(),
             failed_entries: ctx.failed,
         };
         (report, interrupted)
