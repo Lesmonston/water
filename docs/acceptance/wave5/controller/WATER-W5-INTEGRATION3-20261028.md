@@ -61,6 +61,14 @@
 - 各部分的检查器回执与日志：[d](integ3-20261028/d/)、[rules](integ3-20261028/rules/)、[svc](integ3-20261028/svc/)、[ui](integ3-20261028/ui/)、[host](integ3-20261028/host/)（宿主目录里有整机检查的截图与步骤记录）。
 - 覆盖清单、运行脚本与一行结果：[controller](integ3-20261028/controller/)。
 
+## release 版
+
+- **位置**：`F:/new/smaltalk/water/.local/release/water-0.1.0-77f33746/water.exe`，sha256 `c5b72e0ea6eee143eef56403fbc398bb3891376ad6fd60fade1f417fba098778`（本地构建，`.local` 不进仓库）。
+- **这一版打开了清理**（`CLEAN_ENABLED = true`）。上一版 `water-0.1.0-d64aa399` 只做体检，留着不动。
+- 做法：在整合树 B 用同一工具链、离线缓存与镜像参数编译 `--release --locked`，4 个并行任务，3 分 3 秒，没有警告，构建前后树都干净；图形界面子系统（没有控制台窗口）。
+- 冒烟（夹具数据目录 `.local/release/smoke-20261028T034627Z`，[记录](integ3-20261028/controller/release-20261028T034627Z-second-instance.json)）：首页正常；第二个实例 48 毫秒退出、退出码 0，最小化的窗口 372 毫秒内回到前台；正常关窗退出码 0。
+- 构建脚本与日志：[build-release.sh](integ3-20261028/controller/build-release.sh)、[release-build.txt](integ3-20261028/controller/release-build.txt)。
+
 ## 下一步
 
-新的 release 版（打开了清理）→ 自清理（M2 计划第 3.2 节：用户添加 `.worktrees`、体检，总控核对后给勾选建议，用户按清理，总控核对）→ M2 达成报告。
+自清理（M2 计划第 3.2 节：用户添加 `.worktrees`、体检，总控核对后给勾选建议，用户按清理，总控核对）→ M2 达成报告。
