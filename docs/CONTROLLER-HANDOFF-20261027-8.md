@@ -1,4 +1,6 @@
-# Water 总控交接报告（2026-10-27 第 8 份）
+# Water 总控交接报告（2026-10-27 第 8 份，已被取代）
+
+> 已被[第 9 份交接报告](CONTROLLER-HANDOFF-20261028-9.md)取代，仅供追溯。
 
 项目根 `F:/new/smaltalk/water`，总控 Claude。因用户要压缩上下文而写；本报告取代[第 7 份](CONTROLLER-HANDOFF-20261027-7.md)作为当前入口。
 
