@@ -1,7 +1,7 @@
 {
   "schemaVersion": 1,
   "wave": "water-wave5-m2",
-  "status": "H2_H3_H4_H5_VERIFIED_H1_ADDENDUM_01_DISPATCHED",
+  "status": "ALL_VERIFIED_WAVE5_MERGED",
   "controller": "Claude",
   "controllerRoot": "F:/new/smaltalk/water",
   "controllerBranch": "main",
@@ -141,7 +141,7 @@
       "branch": "worker/water-w5-h1",
       "baseCommit": "3f9078972d7f958fad6bfd42e68f022dd659539e",
       "snapshotRef": "refs/tags/water-w5-m2-base-20261027",
-      "status": "ADDENDUM_01_DISPATCHED",
+      "status": "VERIFIED",
       "readyOn": "2026-10-27",
       "dispatchedAt": null,
       "startedAt": null,
@@ -198,17 +198,16 @@
       "dispatchReportedAt": "2026-10-27T13:36:00Z",
       "dispatchEvidence": "user chat 2026-10-27 ~22:36 JST: H1, H2, H3 to Cursor; H5 to sol; H4 to opus; worker trees still clean at base 3f907897 with only the controller preflight receipt when recorded",
       "workerSelfReport": "Codex GPT-6 (took over the original Cursor conversation)",
-      "submittedHead": "9f49e8b9215f4fab0fb555314d356b40f4676ad1",
+      "submittedHead": "77fac6c5c71d83b8e423d617bc8a0f51ddac677a",
       "implementationCommit": "0dc44d458bffc0b4e8bfbae929d9fe7e8585a276",
       "relayedAt": "2026-10-27T15:40:00Z",
       "relayEvidence": "user chat 2026-10-28 ~00:40 JST: all external tasks done",
-      "acceptanceProgress": "audit clean; acceptance tree lock/check/test/check --final passed; controller nc1-nc3 killed; test --final passed; 9 new controller cases pass (8 fail on the pre-M2 source); wave 4 G5 7/7 and G1 12/12 unchanged; 100k in 15.5 s; 4000-deep tree on 256 KiB passes (old source STATUS_STACK_OVERFLOW). Independent review: medium - a directory whose name is not valid UTF-16 is not expanded in the snapshot, so whole-item vetoes cannot see inside it (the base skipped the whole item). Decision: addendum 01 required before merge (not yet written).",
       "acceptanceNote": "docs/acceptance/wave5/controller/WATER-W5-ACCEPT-PROGRESS-20261028.md",
       "addenda": [
         {
           "id": "WATER-W5-H1-ADDENDUM-01",
           "ticket": "docs/dispatch/tickets/WATER-W5-H1-ADDENDUM-01-20261028.md",
-          "status": "DISPATCHED",
+          "status": "VERIFIED",
           "issuedAt": "2026-10-28T03:00:00Z",
           "resumeFromCommit": "9f49e8b9215f4fab0fb555314d356b40f4676ad1",
           "change": "snapshot must not leave a non-reparse directory whose name is not valid UTF-16 unexpanded: option A skips the whole item as changed (pre-M2 result), option B opens and walks it by its raw UTF-16 name; files and links with such names unchanged; new CLEAN_UNPAIRED_NAME assertion for the directory case; nc1-nc3 redone (nc2 on the new logic); no baseline rerun",
@@ -216,8 +215,25 @@
           "dispatchedAt": null,
           "model": "sol (user-reported), new conversation",
           "dispatchReportedAt": "2026-10-28T03:02:00Z",
-          "dispatchEvidence": "user chat 2026-10-28: addendum pasted to sol in a new conversation"
+          "dispatchEvidence": "user chat 2026-10-28: addendum pasted to sol in a new conversation",
+          "submittedHead": "77fac6c5c71d83b8e423d617bc8a0f51ddac677a",
+          "implementationCommit": "ed138729d15077248a3f7ce92035202029e4b31c",
+          "workerSelfReport": "Codex GPT-6",
+          "option": "A"
         }
+      ],
+      "verifiedAt": "2026-10-28",
+      "mergeCommit": "b3168cb7",
+      "controllerReview": {
+        "report": "docs/acceptance/wave5/controller/WATER-W5-REVIEW-20261028.md",
+        "evidence": "docs/acceptance/wave5/controller/accept-20261028/h1/",
+        "summary": "round 1 (0dc44d45): gates and controller nc1-nc3 passed, controller cases passed, but review found unpaired-name directories left unexpanded in the snapshot (whole-item vetoes bypassed) -> addendum 01. Round 2 (ed138729, option A): gates and controller nc1-nc3 killed; x1 (new check bypassed) survives because the open under the private key fails and the snapshot still reports changed (second barrier); 11 controller snapshot cases, 3 integration cases incl. the veto demonstration, wave 4 G5 7/7 and G1 12/12 unchanged, 100k 20.5 s, 4000-level tree on 256 KiB; follow-up review: fix complete"
+      },
+      "carryOverLater": [
+        "case-insensitive lookup does not fold hex keys of odd-named files and links (rename-by-case race leaves one uncounted)",
+        "an odd-named directory appearing after the snapshot counts once as residual unknown",
+        "handles passed as raw pointers between frames (correct now; fragile to edits)",
+        "a freshly created deep tree is often skipped as changed on the first execute (pre-existing double preflight)"
       ]
     },
     {

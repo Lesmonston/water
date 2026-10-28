@@ -226,10 +226,10 @@ fn h1_recreated_name_not_failed() {
     assert_eq!(r.bytes_freed, "5003", "CONTROLLER_H1_RECREATED: freed is every planned file");
 }
 
-/// §5: a directory whose name is not valid UTF-16 (an unpaired surrogate) holds a file. It is
-/// neither entered nor silently skipped: at least one failure (CLEAN-M2 §6 asks for at least 1),
-/// and the directory and its file stay. H1 reports 2: the skipped directory once, and once more
-/// because its residual cannot be measured (the residual-unknown rule).
+/// §5 and addendum 01: a directory whose name is not valid UTF-16 (an unpaired surrogate) holds a
+/// file. Its subtree cannot be snapshotted, so (addendum 01 option A) the snapshot refuses the
+/// whole item as changed and nothing is deleted. On 0dc44d45 the directory was left unexpanded,
+/// the sibling was deleted and the item reported partial with 2 failures.
 #[test]
 fn h1_unpaired_directory_name() {
     let root = base();
@@ -238,10 +238,29 @@ fn h1_unpaired_directory_name() {
     let odd = item.join(OsString::from_wide(&[0x0064, 0xD800, 0x0064]));
     fs::create_dir(&odd).unwrap();
     file(&odd.join("inside.bin"), b"inside");
-    let r = snapshot_change_delete(&root, &item, || {});
+    let plan = plan_for(&root, &item);
+    let before = snapshot(&plan.items[0], &[], &[]);
+    eprintln!("CONTROLLER h1 unpaired dir: snapshot {:?}", before.as_ref().err());
+    assert_eq!(before.err(), Some(SkipReason::Changed), "CONTROLLER_H1_UNPAIRED_DIR: snapshot accepted an item it cannot see into");
     assert_eq!(fs::read(odd.join("inside.bin")).unwrap(), b"inside", "CONTROLLER_H1_UNPAIRED_DIR: content of the odd directory touched");
-    assert!(fs::symlink_metadata(item.join("ok.bin")).is_err(), "CONTROLLER_H1_UNPAIRED_DIR: valid sibling kept");
-    assert_ne!(r.status, ItemStatus::Deleted, "CONTROLLER_H1_UNPAIRED_DIR: reported deleted while content remains");
-    assert!(r.failed_entries >= 1, "CONTROLLER_H1_UNPAIRED_DIR: the odd directory was silently skipped");
-    assert_eq!(r.bytes_freed, "4", "CONTROLLER_H1_UNPAIRED_DIR: freed is the valid sibling");
+    assert_eq!(fs::read(item.join("ok.bin")).unwrap(), b"okay", "CONTROLLER_H1_UNPAIRED_DIR: valid sibling touched");
+}
+
+/// Addendum 01, nested: the odd-named directory sits two levels down (item\sub\<odd>\x). The
+/// snapshot must still refuse the whole item; nothing anywhere in the item is deleted.
+#[test]
+fn h1_unpaired_directory_nested() {
+    let root = base();
+    let item = root.join("item");
+    file(&item.join("ok.bin"), b"okay");
+    file(&item.join("sub").join("near.bin"), b"near");
+    let odd = item.join("sub").join(OsString::from_wide(&[0xDC00, 0x0078]));
+    fs::create_dir(&odd).unwrap();
+    file(&odd.join("x"), b"inside");
+    let plan = plan_for(&root, &item);
+    let before = snapshot(&plan.items[0], &[], &[]);
+    eprintln!("CONTROLLER h1 unpaired nested: snapshot {:?}", before.as_ref().err());
+    assert_eq!(before.err(), Some(SkipReason::Changed), "CONTROLLER_H1_UNPAIRED_NESTED: snapshot accepted an item it cannot see into");
+    assert_eq!(fs::read(odd.join("x")).unwrap(), b"inside", "CONTROLLER_H1_UNPAIRED_NESTED: odd directory content touched");
+    assert_eq!(fs::read(item.join("sub").join("near.bin")).unwrap(), b"near", "CONTROLLER_H1_UNPAIRED_NESTED: sibling touched");
 }

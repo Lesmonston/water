@@ -26,6 +26,15 @@
    "old": "push_snap_dir(parent, &raw.name, rel, stack)?;",
    "new": "if stack.len() < 1024 { push_snap_dir(parent, &raw.name, rel, stack)?; }",
    "why": "the snapshot walk stops descending below 1024 levels, so the deep part of the tree is never planned (worker nc3 capped the delete stack instead)"
+  },
+  {
+   "label": "x1",
+   "mode": "test",
+   "token": "CLEAN_UNPAIRED_NAME",
+   "file": "packages/junk-clean/src/native_windows.rs",
+   "old": "            if !raw.name_ok {\n                // A hidden subtree",
+   "new": "            if false {\n                // A hidden subtree",
+   "why": "addendum 01 check bypassed: the odd-named directory is then pushed for walking under its private key; expected to SURVIVE because that open fails and the item is skipped as changed anyway (second barrier)"
   }
  ],
  "h2": [

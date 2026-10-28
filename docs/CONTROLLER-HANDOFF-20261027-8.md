@@ -9,7 +9,7 @@
 
 本份只写变化与补充。
 
-> **10-28 补记**：H2、H3、H4、H5 已验收合入，H1 要求修改、[补单 01](dispatch/tickets/WATER-W5-H1-ADDENDUM-01-20261028.md) 已出。先读[第五波收单验收](acceptance/wave5/controller/WATER-W5-REVIEW-20261028.md)的“下一步”与 STATUS。主线已经打开清理。
+> **10-28 补记**：第五波五张全部验收合入（H1 经补单 01），主线 `b3168cb7` 起已打开清理。先读[第五波收单验收](acceptance/wave5/controller/WATER-W5-REVIEW-20261028.md)的“下一步”与 STATUS：第三次主线整合检查 → 新 release 版 → 自清理。
 
 ## 0. 一句话现状
 

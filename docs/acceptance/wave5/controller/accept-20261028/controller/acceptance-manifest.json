@@ -198,8 +198,30 @@
       "baselineEvidence": "docs/acceptance/wave5/controller/preflight-20261027/WATER-W5-H1-2026-10-27T13-11-08.197Z-14464-baseline-result.json",
       "dispatchReportedAt": "2026-10-27T13:36:00Z",
       "dispatchEvidence": "user chat 2026-10-27 ~22:36 JST: H1, H2, H3 to Cursor; H5 to sol; H4 to opus; worker trees still clean at base 3f907897 with only the controller preflight receipt when recorded",
+      "workerSelfReport": "Codex GPT-6 (took over the original Cursor conversation)",
+      "submittedHead": "9f49e8b9215f4fab0fb555314d356b40f4676ad1",
+      "implementationCommit": "0dc44d458bffc0b4e8bfbae929d9fe7e8585a276",
+      "relayedAt": "2026-10-27T15:40:00Z",
+      "relayEvidence": "user chat 2026-10-28 ~00:40 JST: all external tasks done",
+      "acceptanceProgress": "audit clean; acceptance tree lock/check/test/check --final passed; controller nc1-nc3 killed; test --final passed; 9 new controller cases pass (8 fail on the pre-M2 source); wave 4 G5 7/7 and G1 12/12 unchanged; 100k in 15.5 s; 4000-deep tree on 256 KiB passes (old source STATUS_STACK_OVERFLOW). Independent review: medium - a directory whose name is not valid UTF-16 is not expanded in the snapshot, so whole-item vetoes cannot see inside it (the base skipped the whole item). Decision: addendum 01 required before merge (not yet written).",
+      "acceptanceNote": "docs/acceptance/wave5/controller/WATER-W5-ACCEPT-PROGRESS-20261028.md",
+      "addenda": [
+        {
+          "id": "WATER-W5-H1-ADDENDUM-01",
+          "ticket": "docs/dispatch/tickets/WATER-W5-H1-ADDENDUM-01-20261028.md",
+          "status": "DISPATCHED",
+          "issuedAt": "2026-10-28T03:00:00Z",
+          "resumeFromCommit": "9f49e8b9215f4fab0fb555314d356b40f4676ad1",
+          "change": "snapshot must not leave a non-reparse directory whose name is not valid UTF-16 unexpanded: option A skips the whole item as changed (pre-M2 result), option B opens and walks it by its raw UTF-16 name; files and links with such names unchanged; new CLEAN_UNPAIRED_NAME assertion for the directory case; nc1-nc3 redone (nc2 on the new logic); no baseline rerun",
+          "evidence": "controller case h1_recent_content_in_unpaired_directory_vetoes (scripts/acceptance/w5-h1-controller-cases.rs): recent content inside such a directory does not veto the item on 0dc44d45 (ok.bin deleted, partial, 2 failures), while the same content in an ordinary directory gives skipped/too_recent",
+          "dispatchedAt": null,
+          "model": "sol (user-reported), new conversation",
+          "dispatchReportedAt": "2026-10-28T03:02:00Z",
+          "dispatchEvidence": "user chat 2026-10-28: addendum pasted to sol in a new conversation"
+        }
+      ],
       "acceptsTask": "WATER-W5-H1",
-      "acceptsHead": "9f49e8b9215f4fab0fb555314d356b40f4676ad1"
+      "acceptsHead": "77fac6c5c71d83b8e423d617bc8a0f51ddac677a"
     },
     {
       "kind": "service",
