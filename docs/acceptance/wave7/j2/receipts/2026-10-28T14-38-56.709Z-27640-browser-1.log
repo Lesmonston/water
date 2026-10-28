@@ -1,0 +1,123 @@
+{"binary":"C:\\Program Files\\nodejs\\node.exe","args":["--test","--test-concurrency=1","--test-reporter=tap","apps/water/ui/tests/browser.test.mjs"],"exitCode":1,"error":null}
+--- stdout ---
+TAP version 13
+# Subtest: ui_home_and_scan
+not ok 1 - ui_home_and_scan
+  ---
+  duration_ms: 7691.7836
+  type: 'test'
+  location: 'F:\\new\\smaltalk\\water\\.worktrees\\w7-j2\\apps\\water\\ui\\tests\\browser.test.mjs:217:1'
+  failureType: 'testCodeFailure'
+  error: |-
+    UI_RECOVER_ERROR: recovery clears unavailable: {"hidden":false,"message":"Water 服务暂时不可用。"}
+    
+    false !== true
+    
+  code: 'ERR_ASSERTION'
+  name: 'AssertionError'
+  expected: true
+  actual: false
+  operator: 'strictEqual'
+  stack: |-
+    TestContext.<anonymous> (file:///F:/new/smaltalk/water/.worktrees/w7-j2/apps/water/ui/tests/browser.test.mjs:256:62)
+    async Test.run (node:internal/test_runner/test:1313:7)
+    async startSubtestAfterBootstrap (node:internal/test_runner/harness:385:3)
+  ...
+# Subtest: ui_results_detail_confirm
+not ok 2 - ui_results_detail_confirm
+  ---
+  duration_ms: 10992.6771
+  type: 'test'
+  location: 'F:\\new\\smaltalk\\water\\.worktrees\\w7-j2\\apps\\water\\ui\\tests\\browser.test.mjs:261:1'
+  failureType: 'testCodeFailure'
+  error: 'UI_RECOVER_NONBLOCK: cleaning reaches its result while the page read is still held'
+  code: 'ERR_ASSERTION'
+  name: 'AssertionError'
+  expected: true
+  actual: false
+  operator: '=='
+  stack: |-
+    TestContext.<anonymous> (file:///F:/new/smaltalk/water/.worktrees/w7-j2/apps/water/ui/tests/browser.test.mjs:306:3)
+    async Test.run (node:internal/test_runner/test:1313:7)
+    async Test.processPendingSubtests (node:internal/test_runner/test:897:7)
+  ...
+# Subtest: ui_clean_done_and_pages
+not ok 3 - ui_clean_done_and_pages
+  ---
+  duration_ms: 6884.6716
+  type: 'test'
+  location: 'F:\\new\\smaltalk\\water\\.worktrees\\w7-j2\\apps\\water\\ui\\tests\\browser.test.mjs:312:1'
+  failureType: 'testCodeFailure'
+  error: 'UI_CLEAN_TEXT: cleaning explains that the current item stops partway through'
+  code: 'ERR_ASSERTION'
+  name: 'AssertionError'
+  expected: true
+  actual: false
+  operator: '=='
+  stack: |-
+    TestContext.<anonymous> (file:///F:/new/smaltalk/water/.worktrees/w7-j2/apps/water/ui/tests/browser.test.mjs:318:3)
+    async Test.run (node:internal/test_runner/test:1313:7)
+    async Test.processPendingSubtests (node:internal/test_runner/test:897:7)
+  ...
+# Subtest: ui_layout_states_a11y
+not ok 4 - ui_layout_states_a11y
+  ---
+  duration_ms: 16042.6612
+  type: 'test'
+  location: 'F:\\new\\smaltalk\\water\\.worktrees\\w7-j2\\apps\\water\\ui\\tests\\browser.test.mjs:382:1'
+  failureType: 'testCodeFailure'
+  error: |-
+    UI_STALE_START: show only the host sentence, without the retry suffix
+    + actual - expected
+    
+    + '结果已过期，请重新体检后再清理。 请重新点击“清理所选”并确认。'
+    - '结果已过期，请重新体检后再清理。'
+                       ^
+    
+  code: 'ERR_ASSERTION'
+  name: 'AssertionError'
+  expected: '结果已过期，请重新体检后再清理。'
+  actual: '结果已过期，请重新体检后再清理。 请重新点击“清理所选”并确认。'
+  operator: 'strictEqual'
+  stack: |-
+    TestContext.<anonymous> (file:///F:/new/smaltalk/water/.worktrees/w7-j2/apps/water/ui/tests/browser.test.mjs:482:12)
+    async Test.run (node:internal/test_runner/test:1313:7)
+    async Test.processPendingSubtests (node:internal/test_runner/test:897:7)
+  ...
+# Polish wrap measurements: [{"width":1240,"height":820,"measured":[{"selector":".side-foot p","text":"不读取文件内容，不上传任何数据","lines":[{"top":727,"text":"不读取文件内容，","count":8},{"top":747,"text":"不上传任何数据","count":7}]},{"selector":".drive-main .sub","text":"共 250.1 GB，已用 76%。体检后可查看能够清理的空间。","lines":[{"top":290.421875,"text":"共250.1GB，已用76%。体","count":16},{"top":312.8125,"text":"检后可查看能够清理的空间。","count":13}]}]},{"width":1040,"height":720,"measured":[{"selector":".side-foot p","text":"不读取文件内容，不上传任何数据","lines":[{"top":627,"text":"不读取文件内容，","count":8},{"top":647,"text":"不上传任何数据","count":7}]},{"selector":".drive-main .sub","text":"共 250.1 GB，已用 76%。体检后可查看能够清理的空间。","lines":[{"top":272.46875,"text":"共250.1GB，已用76%。体","count":16},{"top":294.859375,"text":"检后可查看能够清理的空间。","count":13}]}]}]
+# Polish dock measurements: [{"width":1240,"height":820,"scrollTop":6469,"scrollHeight":7289,"clientHeight":820,"rowTop":602.984375,"rowBottom":674.375,"dockTop":740,"dockBottom":798,"gap":65.625},{"width":1040,"height":720,"scrollTop":6566,"scrollHeight":7286,"clientHeight":720,"rowTop":502.609375,"rowBottom":574,"dockTop":640,"dockBottom":698,"gap":66}]
+# Polish paused notice: {"stage":"scan before navigation","hidden":false,"message":"Water 服务暂时不可用。","buttonText":"重新连接","disabled":false}
+# Polish paused notice: {"stage":"command failure while paused","hidden":false,"message":"Water 服务暂时不可用。","buttonText":"重新连接","disabled":false}
+# Polish paused notice: {"stage":"stop feedback keeps the pause reason","hidden":false,"message":"Water 服务暂时不可用。","buttonText":"重新连接","disabled":false}
+# Polish paused notice: {"stage":"scan after history","hidden":false,"message":"Water 服务暂时不可用。","buttonText":"重新连接","disabled":false}
+# Polish paused notice: {"stage":"scan after home","hidden":false,"message":"Water 服务暂时不可用。","buttonText":"重新连接","disabled":false}
+# Polish paused notice: {"stage":"offline reconnect pauses again","hidden":false,"message":"Water 服务暂时不可用。","buttonText":"重新连接","disabled":false}
+# Subtest: ui_m1_polish
+not ok 5 - ui_m1_polish
+  ---
+  duration_ms: 22923.0073
+  type: 'test'
+  location: 'F:\\new\\smaltalk\\water\\.worktrees\\w7-j2\\apps\\water\\ui\\tests\\browser.test.mjs:489:1'
+  failureType: 'testCodeFailure'
+  error: 'UI_CLEAN_STOP: leave at least 100 ms between clearing and repeating: [{"text":"","at":7507.4000000059605},{"text":"停止请求没有送达，请先重新连接再试。","at":7509.29999999702}]'
+  code: 'ERR_ASSERTION'
+  name: 'AssertionError'
+  expected: true
+  actual: false
+  operator: '=='
+  stack: |-
+    TestContext.<anonymous> (file:///F:/new/smaltalk/water/.worktrees/w7-j2/apps/water/ui/tests/browser.test.mjs:773:3)
+    async Test.run (node:internal/test_runner/test:1313:7)
+    async Test.processPendingSubtests (node:internal/test_runner/test:897:7)
+  ...
+1..5
+# tests 5
+# suites 0
+# pass 0
+# fail 5
+# cancelled 0
+# skipped 0
+# todo 0
+# duration_ms 65146.2385
+
+--- stderr ---
