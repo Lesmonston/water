@@ -142,21 +142,38 @@ pub(crate) fn start(core: &Arc<Core>, id: &str, token: &str) -> Result<Value, Ip
     let r = s.last_record().ok_or_else(|| IpcError::new("stale"))?;
     let plan = clean::CleanPlan::from_json(&stored["plan"].to_string())
         .map_err(|_| IpcError::new("invalid"))?;
-    let now = core.platform.now();
-    let mut clean_id = util::new_id("clean", now);
-    while s.cleans.contains_key(&clean_id) {
-        clean_id = util::new_id("clean", now);
-    }
+    // The token is spent as soon as the checks pass. A later failure does not restore it.
     consume_confirmation(&mut stored, &mut s, &r.result.scan_id);
-    core.store.write("plans", &format!("{id}.json"), &stored)?;
-    s.plans.insert(id.into(), stored);
-    let mut saved = r.saved.clone();
-    saved["consumed"] = json!(true);
+    s.plans.insert(id.into(), stored.clone());
+    // Anything that can fail happens before busy=cleaning, so a panic cannot leave the service stuck.
+    let prepared = std::panic::catch_unwind(std::panic::AssertUnwindSafe(|| {
+        let now = core.platform.now();
+        let mut clean_id = util::new_id("clean", now);
+        while s.cleans.contains_key(&clean_id) {
+            clean_id = util::new_id("clean", now);
+        }
+        let group_ids = ordered_groups(&plan);
+        let title = group_ids.first().and_then(|gid| {
+            r.details
+                .get(gid)
+                .and_then(|d| d.get("group"))
+                .and_then(|g| g.get("title_zh"))
+                .cloned()
+        });
+        core.store.write("plans", &format!("{id}.json"), &stored)?;
+        let mut saved = r.saved.clone();
+        saved["consumed"] = json!(true);
+        Ok::<_, IpcError>((clean_id, group_ids, title, saved, now))
+    }));
+    let (clean_id, group_ids, title, saved, now) = match prepared {
+        Ok(Ok(v)) => v,
+        Ok(Err(e)) => return Err(e),
+        Err(_) => return Err(IpcError::new("unavailable")),
+    };
     let stop = clean::StopFlag::default();
     s.stop = Some(stop.clone());
     s.busy = "cleaning";
-    let group_ids = ordered_groups(&plan);
-    s.clean_progress = json!({"clean_id":clean_id,"state":"running","done_items":0,"total_items":plan.items.len(),"freed_bytes":"0","group_index":0,"group_count":group_ids.len(),"current_group_title_zh":group_ids.first().map(|id|r.details[id]["group"]["title_zh"].clone())});
+    s.clean_progress = json!({"clean_id":clean_id,"state":"running","done_items":0,"total_items":plan.items.len(),"freed_bytes":"0","group_index":0,"group_count":group_ids.len(),"current_group_title_zh":title});
     drop(s);
     let worker_core = core.clone();
     let worker_id = clean_id.clone();
@@ -171,6 +188,7 @@ pub(crate) fn start(core: &Arc<Core>, id: &str, token: &str) -> Result<Value, Ip
             let mut journal=worker_core.store.journal(&worker_id)?;
             clean::execute(&plan,&guard,&mut journal,&stop,&observer,now).map_err(|_|IpcError::new("unavailable"))
         }));
+        let panicked=run.is_err();
         let finished=match run {
             Ok(Ok(report))=>{
                 let view=result_view(&worker_core,&r,&plan,&report,&worker_id);
@@ -188,6 +206,7 @@ pub(crate) fn start(core: &Arc<Core>, id: &str, token: &str) -> Result<Value, Ip
                     s.cleans.insert(worker_id,stored);
                     trim(&worker_core.store,&mut s);
                 },
+                Err(_) if panicked=>s.clean_progress=idle(),
                 Err(_)=>s.clean_progress["state"]=json!("failed"),
             }
             s.busy="idle";s.stop=None;
@@ -195,7 +214,7 @@ pub(crate) fn start(core: &Arc<Core>, id: &str, token: &str) -> Result<Value, Ip
         }));
         if guarded.is_err() {
             let mut s=worker_core.state.lock().unwrap_or_else(std::sync::PoisonError::into_inner);
-            s.clean_progress["state"]=json!("failed");
+            s.clean_progress=idle();
             s.busy="idle";s.stop=None;
         }
     });
@@ -203,7 +222,7 @@ pub(crate) fn start(core: &Arc<Core>, id: &str, token: &str) -> Result<Value, Ip
         let mut s = lock(core)?;
         s.busy = "idle";
         s.stop = None;
-        s.clean_progress["state"] = json!("failed");
+        s.clean_progress = idle();
         return Err(IpcError::new("unavailable"));
     }
     Ok(json!({"clean_id":clean_id}))

@@ -1,0 +1,86 @@
+{"binary":"C:\\Users\\37310\\.rustup\\toolchains\\1.95.0-x86_64-pc-windows-msvc\\bin\\cargo.exe","args":["fmt","--manifest-path","packages/water-service/Cargo.toml","--","--check"],"exitCode":1,"error":null}
+--- stdout ---
+Diff in \\?\F:\new\smaltalk\water\.worktrees\w5-h2\packages\water-service\src\lib.rs:122:
+ 
+     fn begin_in_use_batch(&self) {
+         // Same recovery as the service state lock: a poisoned snapshot is reused, not abandoned.
+-        let mut slot = self.processes.lock().unwrap_or_else(PoisonError::into_inner);
++        let mut slot = self
++            .processes
++            .lock()
++            .unwrap_or_else(PoisonError::into_inner);
+         *slot = water_process_scan::snapshot().ok();
+     }
+ 
+Diff in \\?\F:\new\smaltalk\water\.worktrees\w5-h2\packages\water-service\src\lib.rs:131:
+             return None;
+         }
+         // A missing snapshot cannot establish that an item is unused. A poisoned lock is recovered.
+-        let slot = self.processes.lock().unwrap_or_else(PoisonError::into_inner);
++        let slot = self
++            .processes
++            .lock()
++            .unwrap_or_else(PoisonError::into_inner);
+         match slot.as_ref() {
+             Some(snapshot) => {
+                 water_process_scan::in_use(snapshot, spec, item_path).map(|h| h.process_name)
+Diff in \\?\F:\new\smaltalk\water\.worktrees\w5-h2\packages\water-service\tests\service_v1.rs:1418:
+     f.seed();
+     let s = f.service(true);
+     scanned(&s);
+-    let preview = call(
+-        &s,
+-        "clean_prepare",
+-        json!({"groupIds":["chrome-cache"]}),
+-    );
++    let preview = call(&s, "clean_prepare", json!({"groupIds":["chrome-cache"]}));
+     f.fake.panic_in_use.store(true, Ordering::SeqCst);
+     let started = call(
+         &s,
+Diff in \\?\F:\new\smaltalk\water\.worktrees\w5-h2\packages\water-service\tests\service_v1.rs:1443:
+         "idle",
+         "SERVICE_PANIC_IDLE: busy after an in_use panic"
+     );
+-    let journal = f.data.join("journal").join(format!(
+-        "{}.jsonl",
+-        started["clean_id"].as_str().unwrap()
+-    ));
++    let journal = f
++        .data
++        .join("journal")
++        .join(format!("{}.jsonl", started["clean_id"].as_str().unwrap()));
+     assert!(
+         journal.is_file(),
+         "SERVICE_PANIC_IDLE: journal missing after an in_use panic"
+Diff in \\?\F:\new\smaltalk\water\.worktrees\w5-h2\packages\water-service\tests\service_v1.rs:1457:
+         again["scan_id"],
+         "SERVICE_PANIC_IDLE: scan after a clean-thread panic"
+     );
+-    let preview = call(
+-        &s,
+-        "clean_prepare",
+-        json!({"groupIds":["chrome-cache"]}),
+-    );
++    let preview = call(&s, "clean_prepare", json!({"groupIds":["chrome-cache"]}));
+     f.fake.panic_now.store(true, Ordering::SeqCst);
+     let error = s
+         .call(
+Diff in \\?\F:\new\smaltalk\water\.worktrees\w5-h2\packages\water-service\tests\service_v1.rs:1873:
+     })
+     .unwrap();
+     f.pick(Some(&home));
+-    let error = s
+-        .call("custom_root_add", json!({}))
+-        .expect_err("SERVICE_CUSTOM_ROOT: home that contains a known folder via a junction was added");
+-    assert_eq!(
+-        error.message_zh, TOO_BROAD,
+-        "SERVICE_CUSTOM_ROOT: message"
++    let error = s.call("custom_root_add", json!({})).expect_err(
++        "SERVICE_CUSTOM_ROOT: home that contains a known folder via a junction was added",
+     );
++    assert_eq!(error.message_zh, TOO_BROAD, "SERVICE_CUSTOM_ROOT: message");
+ }
+ 
+ fn junction(link: &Path, target: &Path) {
+
+--- stderr ---

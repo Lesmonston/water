@@ -11,7 +11,11 @@ mod views;
 
 use serde::Serialize;
 pub use service::Service;
-use std::{path::PathBuf, sync::Mutex, time::SystemTime};
+use std::{
+    path::PathBuf,
+    sync::{Mutex, PoisonError},
+    time::SystemTime,
+};
 use water_junk_rules::KnownFolders;
 use water_process_scan::{InUseSpec, ProcessSnapshot};
 
@@ -117,19 +121,23 @@ impl Platform for WindowsPlatform {
     }
 
     fn begin_in_use_batch(&self) {
-        if let Ok(mut slot) = self.processes.lock() {
-            *slot = water_process_scan::snapshot().ok();
-        }
+        // Same recovery as the service state lock: a poisoned snapshot is reused, not abandoned.
+        let mut slot = self
+            .processes
+            .lock()
+            .unwrap_or_else(PoisonError::into_inner);
+        *slot = water_process_scan::snapshot().ok();
     }
 
     fn in_use(&self, spec: &InUseSpec, item_path: &str) -> Option<String> {
         if spec.mode == water_process_scan::InUseMode::None {
             return None;
         }
-        // A missing snapshot cannot establish that an item is unused.
-        let Ok(slot) = self.processes.lock() else {
-            return Some(IN_USE_UNKNOWN.into());
-        };
+        // A missing snapshot cannot establish that an item is unused. A poisoned lock is recovered.
+        let slot = self
+            .processes
+            .lock()
+            .unwrap_or_else(PoisonError::into_inner);
         match slot.as_ref() {
             Some(snapshot) => {
                 water_process_scan::in_use(snapshot, spec, item_path).map(|h| h.process_name)
