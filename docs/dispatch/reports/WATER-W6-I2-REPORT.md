@@ -63,7 +63,7 @@ WATER-W6-I2 任务已完成，任务报告在 F:/new/smaltalk/water/.worktrees/w
 | `--mode check --final` | 0，通过，4.739 秒 | `2026-10-28T10-02-59.684Z-26932-check-result.json` |
 | `--mode test --final` | 0，5/5，零忽略/过滤；proofAudit 核对三组红绿记录通过；测试运行 5.37 秒，整门 8.320 秒 | `2026-10-28T10-03-12.106Z-39540-test-result.json` |
 | `--mode native --final` | 0，通过，单次窗口预算已使用 | `2026-10-28T10-03-27.915Z-42876-native-result.json` |
-| `--mode archive` | 0，原字节归档 279 个文件，24,404,499 字节，另有 ARCHIVE 索引 | 本地 `2026-10-28T10-03-57.927Z-31812-archive-result.json`；归档清单见下 |
+| `--mode archive` | 0，原字节归档 279 个文件，24,404,499 字节，另有 ARCHIVE 索引及归档器生成的 `.gitattributes` | 本地 `2026-10-28T10-03-57.927Z-31812-archive-result.json`；归档清单见下 |
 
 检查器复制离线缓存，Cargo 全程 1.95.0、offline、locked、单 job，测试 `--test-threads=1`；没有下载或手工复制依赖。另运行指定工具链的 `rustfmt --edition 2024 apps/water/host/src/lib.rs apps/water/host/tests/host_v1.rs` 格式化，以及 Git diff/范围/状态/哈希只读核对。
 
@@ -118,6 +118,8 @@ WATER-W6-I2 任务已完成，任务报告在 F:/new/smaltalk/water/.worktrees/w
 - [history](../../acceptance/wave6/i2/receipts/2026-10-28T10-03-27.915Z-42876-history.png)：一条清理完成、一条体检记录，释放 3 MB，跳过 0 项。
 
 归档索引：[ARCHIVE.json](../../acceptance/wave6/i2/ARCHIVE.json)。final 证据：[check](../../acceptance/wave6/i2/receipts/2026-10-28T10-02-59.684Z-26932-check-result.json)、[test](../../acceptance/wave6/i2/receipts/2026-10-28T10-03-12.106Z-39540-test-result.json)、[native](../../acceptance/wave6/i2/receipts/2026-10-28T10-03-27.915Z-42876-native-result.json)。归档日志和源码快照按检查器原字节保留，包含最早的预期红记录，没有删除失败历史。
+
+归档与回执先提交为 `556aec55ad829bd319566a1a8786f48b3f84643d`。随后只读状态核对发现归档器另生成的 `.gitattributes` 未入库，故以新增文档提交补上该文件及本说明；没有改写提交、改变产品或测试字节，也没有重跑 final。该属性文件让证据保持原字节，避免换行转换。
 
 ## 未验证与保留边界
 
