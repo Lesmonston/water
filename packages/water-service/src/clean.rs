@@ -173,7 +173,7 @@ pub(crate) fn start(core: &Arc<Core>, id: &str, token: &str) -> Result<Value, Ip
     let stop = clean::StopFlag::default();
     s.stop = Some(stop.clone());
     s.busy = "cleaning";
-    s.clean_progress = json!({"clean_id":clean_id,"state":"running","done_items":0,"total_items":plan.items.len(),"freed_bytes":"0","group_index":0,"group_count":group_ids.len(),"current_group_title_zh":title});
+    s.clean_progress = json!({"clean_id":clean_id,"state":"running","done_items":0,"total_items":plan.items.len(),"freed_bytes":"0","group_index":usize::from(!group_ids.is_empty()),"group_count":group_ids.len(),"current_group_title_zh":title});
     drop(s);
     let worker_core = core.clone();
     let worker_id = clean_id.clone();
@@ -282,6 +282,7 @@ impl clean::CleanObserver for Observer<'_> {
                 .map(|i| &i.group_id);
             let index = group
                 .and_then(|g| self.groups.iter().position(|v| v == g))
+                .map(|index| index + 1)
                 .unwrap_or(0);
             s.clean_progress["done_items"] = json!(done);
             s.clean_progress["total_items"] = json!(total);

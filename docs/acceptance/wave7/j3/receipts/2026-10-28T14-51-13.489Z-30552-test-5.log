@@ -1,0 +1,29 @@
+{"binary":"C:\\Users\\37310\\.rustup\\toolchains\\1.95.0-x86_64-pc-windows-msvc\\bin\\cargo.exe","args":["test","--offline","--locked","--manifest-path","packages/water-service/Cargo.toml","--test","service_v1","--","--test-threads=1"],"exitCode":101,"error":null}
+--- stdout ---
+
+running 6 tests
+test service_clean_flow ... ok
+test service_hardening ... ok
+test service_ipc_contract ... ok
+test service_scan_views ... ok
+test service_storage_safety ... FAILED
+test service_trends_locations ... ok
+
+failures:
+
+---- service_storage_safety stdout ----
+
+thread 'service_storage_safety' (20324) panicked at tests\service_v1.rs:280:5:
+SERVICE_RETURN_BUDGET: custom_root_add
+
+
+failures:
+    service_storage_safety
+
+test result: FAILED. 5 passed; 1 failed; 0 ignored; 0 measured; 0 filtered out; finished in 17.95s
+
+
+--- stderr ---
+    Finished `test` profile [unoptimized + debuginfo] target(s) in 0.06s
+     Running tests\service_v1.rs (.local\w3-target\debug\deps\service_v1-f957641ef662c12e.exe)
+error: test failed, to rerun pass `--test service_v1`

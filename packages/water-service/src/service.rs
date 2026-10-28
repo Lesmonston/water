@@ -753,6 +753,11 @@ impl ScanJob {
                 worker_core
                     .store
                     .write("scans", &format!("{worker_id}.json"), &saved)
+                    .inspect_err(|_| {
+                        worker_core
+                            .store
+                            .remove("snapshots", std::slice::from_ref(&worker_id));
+                    })
             });
         if let Ok(mut s) = lock(&worker_core) {
             if stored.is_ok() {
