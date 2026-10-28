@@ -1,5 +1,5 @@
 // Controller-owned gate for wave 2 (device junk checkup) and the wave 4 hardening tickets G1 (junk-clean)
-// and G3 (UI), and wave 5 (M2). Not an OS sandbox. WATER-W4-* / WATER-W5-* task IDs read docs/dispatch/wave4|wave5/manifest.json.
+// and G3 (UI), wave 5 (M2) and wave 6 (M3). Not an OS sandbox. WATER-W4-* / WATER-W5-* / WATER-W6-* task IDs read docs/dispatch/wave4|wave5|wave6/manifest.json.
 // Usage from the task worktree root:
 //   node F:/new/smaltalk/water/scripts/checkup-wave-check.mjs --task WATER-W2-A --mode <mode> [--final]
 // Modes: baseline | lock | check | test | browser | real | red-nc1 | red-nc2 | red-nc3 | archive
@@ -18,8 +18,8 @@ const MODES=['baseline','lock','check','test','browser','real','red-nc1','red-nc
 const gitRaw=(args,cwd=root)=>{const r=spawnSync('git',['-c','core.hooksPath=NUL','-c','core.fsmonitor=false',...args],{cwd,encoding:'utf8',windowsHide:true,timeout:60000,maxBuffer:64*1024*1024});assert(!r.error&&r.status===0,String(r.stderr));return r.stdout.trim();};
 const controller=dirname(gitRaw(['rev-parse','--path-format=absolute','--git-common-dir']));
 const manifestOverride=process.env.WATER_W2_SELFTEST_MANIFEST??null;
-const wave=id.startsWith('WATER-W5-')?'wave5':id.startsWith('WATER-W4-')?'wave4':'wave2';
-if(manifestOverride){assert(['WATER-W2-SELFTEST','WATER-W2-ACCEPT-','WATER-W4-SELFTEST','WATER-W4-ACCEPT-','WATER-W5-SELFTEST','WATER-W5-ACCEPT-'].some(p=>id.startsWith(p)),'Override manifest is only for controller self-test or acceptance tasks');const rel=relative(join(controller,'.local'),resolve(manifestOverride));assert(!rel.startsWith('..')&&!isAbsolute(rel),'Self-test manifest must live under controller .local');}
+const wave=id.startsWith('WATER-W6-')?'wave6':id.startsWith('WATER-W5-')?'wave5':id.startsWith('WATER-W4-')?'wave4':'wave2';
+if(manifestOverride){assert(['WATER-W2-SELFTEST','WATER-W2-ACCEPT-','WATER-W4-SELFTEST','WATER-W4-ACCEPT-','WATER-W5-SELFTEST','WATER-W5-ACCEPT-','WATER-W6-SELFTEST','WATER-W6-ACCEPT-'].some(p=>id.startsWith(p)),'Override manifest is only for controller self-test or acceptance tasks');const rel=relative(join(controller,'.local'),resolve(manifestOverride));assert(!rel.startsWith('..')&&!isAbsolute(rel),'Self-test manifest must live under controller .local');}
 const manifestPath=manifestOverride?resolve(manifestOverride):join(controller,'docs/dispatch/'+wave+'/manifest.json');
 const manifest=JSON.parse(readFileSync(manifestPath)),task=manifest.tasks.find(t=>t.id===id);assert(task,'Unknown task');
 assert.equal(realpathSync(task.worktree).toLowerCase(),realpathSync(root).toLowerCase(),'Run from the task worktree root');
