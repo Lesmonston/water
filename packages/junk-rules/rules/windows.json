@@ -1,6 +1,6 @@
 {
   "rules_version": "water.junk-rules.v1",
-  "data_version": "2026-10-26.2",
+  "data_version": "2026-10-27.1",
   "rules": [
     {
       "rule_id": "codex-marketplace-staging",
@@ -3922,6 +3922,49 @@
           "kind": "local_observation",
           "ref": "2026-10-26 总控本机只读摸底",
           "checked_on": "2026-10-26"
+        }
+      ]
+    },
+    {
+      "rule_id": "rust-build-dirs",
+      "title_zh": "Rust 构建目录",
+      "owner_zh": "Rust 工具链",
+      "category": "custom",
+      "level": "recommended",
+      "locate": [
+        {
+          "kind": "marker",
+          "marker": {
+            "kind": "file",
+            "name": ".rustc_info.json",
+            "min_bytes": 2,
+            "max_bytes": 65536
+          },
+          "max_depth": 12
+        }
+      ],
+      "item_type": "dir",
+      "min_age_hours": 1,
+      "keep_newest": 0,
+      "in_use": {
+        "mode": "none",
+        "processes": []
+      },
+      "growth": "slow",
+      "what_zh": "你添加的文件夹里，Rust 项目编译时生成的构建目录（根下有 Cargo 写的 .rustc_info.json）。",
+      "why_zh": "只含编译产物，可以完整重建。只在你添加的文件夹里查找。",
+      "after_zh": "项目源码还在。下次编译会重新生成，第一次会慢一些。",
+      "fix_hint_zh": null,
+      "sources": [
+        {
+          "kind": "local_observation",
+          "ref": "2026-10-27 总控本机只读核查：Water 各工作树的 CARGO_TARGET_DIR 构建目录根下都有 .rustc_info.json",
+          "checked_on": "2026-10-27"
+        },
+        {
+          "kind": "official_doc",
+          "ref": "https://doc.rust-lang.org/cargo/reference/build-cache.html",
+          "checked_on": "2026-10-27"
         }
       ]
     }

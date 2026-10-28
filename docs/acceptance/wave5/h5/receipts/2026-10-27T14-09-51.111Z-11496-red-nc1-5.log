@@ -1,0 +1,39 @@
+{"binary":"C:\\Users\\37310\\.rustup\\toolchains\\1.95.0-x86_64-pc-windows-msvc\\bin\\cargo.exe","args":["test","--offline","--locked","--manifest-path","packages/junk-rules/Cargo.toml","--test","rules_v1","--","--test-threads=1"],"exitCode":101,"error":null}
+--- stdout ---
+
+running 4 tests
+test rules_protection_precedence ... ok
+test rules_resolve_plan ... FAILED
+test rules_schema_strict ... ok
+test rules_seed_coverage ... FAILED
+
+failures:
+
+---- rules_resolve_plan stdout ----
+
+thread 'rules_resolve_plan' (37316) panicked at tests\rules_v1.rs:712:5:
+assertion `left == right` failed: RULES_RUST_BUILD: marker name, bounds, depth and root
+  left: Marker { root: "D:\\work\\alpha", marker: File { name: ".rustc_info.json", min_bytes: 2, max_bytes: 2 }, max_depth: 12 }
+ right: Marker { root: "D:\\work\\alpha", marker: File { name: ".rustc_info.json", min_bytes: 2, max_bytes: 65536 }, max_depth: 12 }
+note: run with `RUST_BACKTRACE=1` environment variable to display a backtrace
+
+---- rules_seed_coverage stdout ----
+
+thread 'rules_seed_coverage' (42136) panicked at tests\rules_v1.rs:811:5:
+assertion `left == right` failed: RULES_RUST_BUILD: locator summary
+  left: ["marker:file:.rustc_info.json:2:2:12"]
+ right: ["marker:file:.rustc_info.json:2:65536:12"]
+
+
+failures:
+    rules_resolve_plan
+    rules_seed_coverage
+
+test result: FAILED. 2 passed; 2 failed; 0 ignored; 0 measured; 0 filtered out; finished in 0.06s
+
+
+--- stderr ---
+   Compiling water-junk-rules v0.1.0 (F:\new\smaltalk\water\.worktrees\w5-h5\packages\junk-rules)
+    Finished `test` profile [unoptimized + debuginfo] target(s) in 1.57s
+     Running tests\rules_v1.rs (.local\w2-target\debug\deps\rules_v1-55c9fa24f5632a0e.exe)
+error: test failed, to rerun pass `--test rules_v1`
