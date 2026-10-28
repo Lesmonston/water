@@ -1056,8 +1056,252 @@ impl Backend for UnknownClean {
     }
 }
 
+struct SlowInitialState {
+    queries: AtomicUsize,
+    stops: AtomicUsize,
+    unknown: bool,
+}
+
+impl Backend for SlowInitialState {
+    fn call(&self, command: &str, _args: Value) -> Result<Value, IpcFailure> {
+        if command == "clean_stop" {
+            self.stops.fetch_add(1, Ordering::SeqCst);
+            return Ok(json!({}));
+        }
+        if self.queries.fetch_add(1, Ordering::SeqCst) == 0 {
+            std::thread::sleep(Duration::from_millis(80));
+            if self.unknown {
+                return Err(IpcFailure {
+                    code: "unavailable".into(),
+                    message_zh: "测试状态暂时未知。".into(),
+                });
+            }
+            return Ok(json!({"busy": "cleaning"}));
+        }
+        Ok(json!({"busy": "idle"}))
+    }
+}
+
+struct UnknownResetClean {
+    stopped_at: Mutex<Option<Instant>>,
+    stops: AtomicUsize,
+    cleaning_seen: AtomicBool,
+    idle_seen: AtomicBool,
+}
+
+impl Backend for UnknownResetClean {
+    fn call(&self, command: &str, _args: Value) -> Result<Value, IpcFailure> {
+        let mut stopped_at = self.stopped_at.lock().unwrap();
+        if command == "clean_stop" {
+            self.stops.fetch_add(1, Ordering::SeqCst);
+            *stopped_at = Some(Instant::now());
+            return Ok(json!({}));
+        }
+        let Some(started) = *stopped_at else {
+            return Ok(json!({"busy": "cleaning"}));
+        };
+        let elapsed = started.elapsed();
+        if elapsed >= Duration::from_secs(3) && !self.cleaning_seen.swap(true, Ordering::SeqCst) {
+            return Ok(json!({"busy": "cleaning"}));
+        }
+        if elapsed >= Duration::from_secs(6) {
+            self.idle_seen.store(true, Ordering::SeqCst);
+            return Ok(json!({"busy": "idle"}));
+        }
+        Err(IpcFailure {
+            code: "unavailable".into(),
+            message_zh: "测试状态暂时未知。".into(),
+        })
+    }
+}
+
+fn assert_unstarted(backend: &dyn Backend) {
+    let started = Instant::now();
+    assert_eq!(
+        clean_state(backend),
+        CleanState::NotCleaning,
+        "HOST_UNSTARTED_SERVICE unavailable means no cleaning"
+    );
+    assert_eq!(
+        stop_cleaning_within(backend, Duration::from_millis(10), Duration::from_secs(1)),
+        CleanStop::Idle,
+        "HOST_UNSTARTED_SERVICE bounded stop is idle"
+    );
+    assert!(
+        !stop_cleaning_and_wait(backend, Duration::from_millis(10)),
+        "HOST_UNSTARTED_SERVICE unbounded stop returns false"
+    );
+    assert!(
+        started.elapsed() < Duration::from_millis(500),
+        "HOST_UNSTARTED_SERVICE returns well below one second: {:?}",
+        started.elapsed()
+    );
+}
+
+struct UnstartedProbe;
+
+impl Backend for UnstartedProbe {
+    fn available(&self) -> bool {
+        false
+    }
+
+    fn call(&self, _command: &str, _args: Value) -> Result<Value, IpcFailure> {
+        panic!("HOST_UNSTARTED_SERVICE must not query or stop an unstarted backend")
+    }
+}
+
+// Tokenize the host's wiring, ignoring comments and string contents, so braces
+// delimit real branches and ExitRequested cannot match the Exit identifier.
+fn wiring_tokens(source: &str) -> Vec<&str> {
+    let bytes = source.as_bytes();
+    let mut tokens = Vec::new();
+    let mut index = 0;
+    while index < bytes.len() {
+        let start = index;
+        if bytes[index].is_ascii_whitespace() {
+            index += 1;
+        } else if bytes[index..].starts_with(b"//") {
+            while index < bytes.len() && bytes[index] != b'\n' {
+                index += 1;
+            }
+        } else if bytes[index..].starts_with(b"/*") {
+            index += 2;
+            let mut depth = 1;
+            while index < bytes.len() && depth > 0 {
+                if bytes[index..].starts_with(b"/*") {
+                    depth += 1;
+                    index += 2;
+                } else if bytes[index..].starts_with(b"*/") {
+                    depth -= 1;
+                    index += 2;
+                } else {
+                    index += 1;
+                }
+            }
+        } else if bytes[index] == b'"' {
+            index += 1;
+            while index < bytes.len() {
+                let byte = bytes[index];
+                index += 1;
+                if byte == b'\\' {
+                    index = (index + 1).min(bytes.len());
+                } else if byte == b'"' {
+                    break;
+                }
+            }
+        } else {
+            index += 1;
+            if bytes[start].is_ascii_alphanumeric() || bytes[start] == b'_' {
+                while index < bytes.len()
+                    && (bytes[index].is_ascii_alphanumeric() || bytes[index] == b'_')
+                {
+                    index += 1;
+                }
+            }
+            tokens.push(&source[start..index]);
+        }
+    }
+    tokens
+}
+
+fn wiring_block<'a>(tokens: &'a [&'a str], prefix: &[&str], marker: &str) -> &'a [&'a str] {
+    let start = tokens
+        .windows(prefix.len())
+        .position(|window| window == prefix)
+        .unwrap_or_else(|| panic!("{marker} missing branch/function prefix"))
+        + prefix.len();
+    let body = if prefix.last() == Some(&"{") {
+        start - 1
+    } else {
+        start
+            + tokens[start..]
+                .iter()
+                .position(|token| *token == "{")
+                .unwrap_or_else(|| panic!("{marker} missing opening brace"))
+    };
+    let mut depth = 0;
+    for (index, token) in tokens.iter().enumerate().skip(body) {
+        match *token {
+            "{" => depth += 1,
+            "}" => {
+                depth -= 1;
+                if depth == 0 {
+                    return &tokens[body + 1..index];
+                }
+            }
+            _ => {}
+        }
+    }
+    panic!("{marker} unclosed wiring block")
+}
+
 #[test]
 fn host_service_wiring() {
+    assert_unstarted(&UnavailableBackend);
+    assert_unstarted(&BackendSlot::new(Arc::new(UnavailableBackend)));
+    let empty_slot = BackendSlot::new(Arc::new(UnstartedProbe));
+    drop(empty_slot.take());
+    assert_unstarted(&empty_slot);
+    assert_unstarted(&UnstartedProbe);
+    assert_unstarted(&BackendSlot::new(Arc::new(UnstartedProbe)));
+    let available_errors = UnknownClean {
+        stops: AtomicUsize::new(0),
+    };
+    assert!(
+        available_errors.available(),
+        "HOST_UNSTARTED_SERVICE default backend is available"
+    );
+    assert_eq!(
+        clean_state(&available_errors),
+        CleanState::Unknown,
+        "HOST_UNSTARTED_SERVICE available backend errors remain unknown"
+    );
+    let available_slot = BackendSlot::new(Arc::new(available_errors));
+    assert!(
+        available_slot.available(),
+        "HOST_UNSTARTED_SERVICE forwards available backend"
+    );
+    for unknown in [false, true] {
+        let slow = SlowInitialState {
+            queries: AtomicUsize::new(0),
+            stops: AtomicUsize::new(0),
+            unknown,
+        };
+        assert_eq!(
+            stop_cleaning_within(&slow, Duration::from_millis(1), Duration::from_millis(40)),
+            CleanStop::TimedOut,
+            "HOST_EXIT_DEADLINE initial query consumes the deadline (unknown={unknown})"
+        );
+        assert_eq!(
+            slow.queries.load(Ordering::SeqCst),
+            1,
+            "HOST_EXIT_DEADLINE no query after initial deadline"
+        );
+        assert_eq!(
+            slow.stops.load(Ordering::SeqCst),
+            1,
+            "HOST_EXIT_DEADLINE still sends stop exactly once"
+        );
+    }
+    let reset = UnknownResetClean {
+        stopped_at: Mutex::new(None),
+        stops: AtomicUsize::new(0),
+        cleaning_seen: AtomicBool::new(false),
+        idle_seen: AtomicBool::new(false),
+    };
+    assert!(
+        stop_cleaning_and_wait(&reset, Duration::from_millis(10)),
+        "HOST_UNKNOWN_RESET requests stop and waits"
+    );
+    assert!(
+        reset.cleaning_seen.load(Ordering::SeqCst) && reset.idle_seen.load(Ordering::SeqCst),
+        "HOST_UNKNOWN_RESET must reach idle after unknown 3 s / cleaning / unknown 3 s"
+    );
+    assert_eq!(
+        reset.stops.load(Ordering::SeqCst),
+        1,
+        "HOST_UNKNOWN_RESET requests stop exactly once"
+    );
     let dropped = Arc::new(AtomicBool::new(false));
     let answer = json!({"ready": true});
     let slot = BackendSlot::new(Arc::new(AnswerBackend {
@@ -1231,33 +1475,73 @@ fn host_service_wiring() {
         "HOST_CLOSE_UNKNOWN bounded exit stops exactly once"
     );
     let lib = include_str!("../src/lib.rs");
-    let callback = lib
-        .split_once("app.run_return(")
-        .expect("HOST_EXIT_DURING_CLEAN run_return callback")
-        .1
-        .split_once("});")
-        .expect("HOST_EXIT_DURING_CLEAN callback end")
-        .0;
-    let exit = callback
-        .split_once("tauri::RunEvent::Exit")
-        .expect("HOST_EXIT_DURING_CLEAN handles Exit inside callback")
-        .1;
+    let tokens = wiring_tokens(lib);
+    let callback = wiring_block(
+        &tokens,
+        &["app", ".", "run_return", "("],
+        "HOST_EXIT_DURING_CLEAN",
+    );
+    let exit = wiring_block(
+        callback,
+        &[
+            "if", "let", "tauri", ":", ":", "RunEvent", ":", ":", "Exit", "=", "event", "{",
+        ],
+        "HOST_EXIT_DURING_CLEAN",
+    );
     assert!(
-        exit.contains("stop_cleaning_within(")
-            && exit.contains("Duration::from_millis(200)")
-            && exit.contains("Duration::from_secs(10)"),
+        exit.windows(2).any(|w| w == ["stop_cleaning_within", "("])
+            && exit
+                .windows(6)
+                .any(|w| w == ["Duration", ":", ":", "from_millis", "(", "200"])
+            && exit
+                .windows(6)
+                .any(|w| w == ["Duration", ":", ":", "from_secs", "(", "10"]),
         "HOST_EXIT_DURING_CLEAN Exit calls bounded stop at 200 ms / 10 s"
     );
-    let guard = lib
-        .split_once("fn guard_main_close(")
-        .expect("HOST_CLOSE_UNKNOWN close guard")
-        .1
-        .split_once("pub fn run<")
-        .expect("HOST_CLOSE_UNKNOWN guard end")
-        .0;
+    let guard = wiring_block(
+        &tokens,
+        &["fn", "guard_main_close", "("],
+        "HOST_CLOSE_UNKNOWN",
+    );
+    let confirmed_idle = [
+        "if",
+        "clean_state",
+        "(",
+        "backend",
+        ".",
+        "as_ref",
+        "(",
+        ")",
+        ")",
+        "=",
+        "=",
+        "CleanState",
+        ":",
+        ":",
+        "NotCleaning",
+        "{",
+        "return",
+        ";",
+        "}",
+        "api",
+        ".",
+        "prevent_close",
+        "(",
+        ")",
+        ";",
+    ];
     assert!(
-        guard.contains("if clean_state(backend.as_ref()) == CleanState::NotCleaning")
-            && guard.contains("stop_cleaning_and_wait("),
+        guard
+            .iter()
+            .filter(|token| **token == "clean_state")
+            .count()
+            == 1
+            && guard
+                .windows(confirmed_idle.len())
+                .any(|w| w == confirmed_idle)
+            && guard
+                .windows(2)
+                .any(|w| w == ["stop_cleaning_and_wait", "("]),
         "HOST_CLOSE_UNKNOWN close guard only allows confirmed non-cleaning and uses shared wait"
     );
     let mut fixture = WiringFixture::new();
