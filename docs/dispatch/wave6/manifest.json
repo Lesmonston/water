@@ -1,7 +1,7 @@
 {
   "schemaVersion": 1,
   "wave": "water-wave6-m3",
-  "status": "READY",
+  "status": "DISPATCHED",
   "controller": "Claude",
   "controllerRoot": "F:/new/smaltalk/water",
   "controllerBranch": "main",
@@ -99,11 +99,11 @@
       "branch": "worker/water-w6-i1",
       "baseCommit": "d79fb096ef0557430b7dd43634b4d60e8f2de958",
       "snapshotRef": "refs/tags/water-w6-m3-base-20261028",
-      "status": "READY",
+      "status": "BLOCKED",
       "readyOn": "2026-10-28",
       "dispatchedAt": null,
       "startedAt": null,
-      "model": null,
+      "model": "user did not name the executor; worker self-report: Codex GPT-6",
       "modelAssignment": "user-arranged; report actual engine/model",
       "purpose": "M3",
       "report": "docs/dispatch/reports/WATER-W6-I1-REPORT.md",
@@ -147,7 +147,26 @@
         "docs/acceptance/wave6/i1/"
       ],
       "baselineStatus": "PASSED",
-      "baselineEvidence": "docs/acceptance/wave6/controller/preflight-20261028/WATER-W6-I1-2026-10-28T09-31-26.850Z-26164-baseline-result.json"
+      "baselineEvidence": "docs/acceptance/wave6/controller/preflight-20261028/WATER-W6-I1-2026-10-28T09-31-26.850Z-26164-baseline-result.json",
+      "dispatchReportedAt": "2026-10-28T10:00:00Z",
+      "dispatchEvidence": "user chat 2026-10-28 ~19:00 JST relayed the I1 blocked receipt; the user did not report the paste time or executor; worker commit f0f7243a (18:48 JST, author Codex GPT-6)",
+      "blockedAt": "2026-10-28T09:48:08Z",
+      "blockedCommit": "f0f7243a",
+      "blockedReason": "appending 14 rules at the end breaks two old end-position assertions in rules_v1.rs (rules_resolve_plan plan.targets.last() == custom:beta:rust-build-dirs#1; rules_seed_coverage expected.last()/rules().last() == rust-build-dirs) that SPEC section 4 did not authorize; also the worker web tool returned HTTP 503 for the official sources",
+      "addenda": [
+        {
+          "id": "WATER-W6-I1-ADDENDUM-01",
+          "ticket": "docs/dispatch/tickets/WATER-W6-I1-ADDENDUM-01-20261028.md",
+          "status": "READY",
+          "issuedAt": "2026-10-28T10:20:00Z",
+          "resumeFromCommit": "f0f7243a",
+          "change": "authorize two old assertion groups: rules_resolve_plan filters rust-build-dirs targets (alpha then beta) instead of plan.targets.last(), plus RULES_AGENT_TOOLS: 38 new targets follow beta in SPEC order and the last target is other-agent-sessions#3; rules_seed_coverage finds rust-build-dirs by id instead of .last(), asserts it is rule 61 and rules 62-75 follow SPEC order; official_doc URLs may use the controller check of 2026-10-28 (docs/acceptance/wave6/controller/source-check-20261028.md) when the worker web tool is unavailable; no baseline rerun",
+          "dispatchedAt": null,
+          "submittedHead": null,
+          "implementationCommit": null,
+          "dispatchEvidence": null
+        }
+      ]
     },
     {
       "kind": "host",
@@ -457,11 +476,11 @@
       "branch": "worker/water-w6-i2",
       "baseCommit": "d79fb096ef0557430b7dd43634b4d60e8f2de958",
       "snapshotRef": "refs/tags/water-w6-m3-base-20261028",
-      "status": "READY",
+      "status": "DISPATCHED",
       "readyOn": "2026-10-28",
       "dispatchedAt": null,
       "startedAt": null,
-      "model": null,
+      "model": "user did not name the executor; worker commits authored as Codex GPT-6",
       "modelAssignment": "user-arranged; report actual engine/model",
       "purpose": "M3",
       "report": "docs/dispatch/reports/WATER-W6-I2-REPORT.md",
@@ -517,7 +536,9 @@
         "docs/acceptance/wave6/i2/"
       ],
       "baselineStatus": "PASSED",
-      "baselineEvidence": "docs/acceptance/wave6/controller/preflight-20261028/WATER-W6-I2-2026-10-28T09-31-32.132Z-15084-baseline-result.json"
+      "baselineEvidence": "docs/acceptance/wave6/controller/preflight-20261028/WATER-W6-I2-2026-10-28T09-31-32.132Z-15084-baseline-result.json",
+      "dispatchReportedAt": "2026-10-28T10:00:00Z",
+      "dispatchEvidence": "not reported by the user; seen by the controller while handling the I1 block: worker commits cf272e34, 556aec55, 9a912977 (19:00-19:09 JST) on the I2 branch; receipt not yet relayed"
     },
     {
       "kind": "ui",
@@ -605,11 +626,11 @@
       "branch": "worker/water-w6-i3",
       "baseCommit": "d79fb096ef0557430b7dd43634b4d60e8f2de958",
       "snapshotRef": "refs/tags/water-w6-m3-base-20261028",
-      "status": "READY",
+      "status": "DISPATCHED",
       "readyOn": "2026-10-28",
       "dispatchedAt": null,
       "startedAt": null,
-      "model": null,
+      "model": "user did not name the executor; worker commits authored as Codex GPT-6",
       "modelAssignment": "user-arranged; report actual engine/model",
       "purpose": "M3",
       "report": "docs/dispatch/reports/WATER-W6-I3-REPORT.md",
@@ -681,7 +702,9 @@
         "docs/acceptance/wave6/i3/"
       ],
       "baselineStatus": "PASSED",
-      "baselineEvidence": "docs/acceptance/wave6/controller/preflight-20261028/WATER-W6-I3-2026-10-28T09-31-29.908Z-7316-baseline-result.json"
+      "baselineEvidence": "docs/acceptance/wave6/controller/preflight-20261028/WATER-W6-I3-2026-10-28T09-31-29.908Z-7316-baseline-result.json",
+      "dispatchReportedAt": "2026-10-28T10:00:00Z",
+      "dispatchEvidence": "not reported by the user; seen by the controller while handling the I1 block: worker commits c8f36790, 6c052fe2 (18:54-19:13 JST) on the I3 branch; receipt not yet relayed"
     }
   ],
   "preflight": {

@@ -25,5 +25,8 @@
 - WATER-W6-I1：`你接手 Water 项目 WATER-W6-I1（Agent 工具规则，轻门）。先读 F:/new/smaltalk/water/docs/dispatch/tickets/WATER-W6-I1-RULES-AGENT-20261028.md，按其中列出的顺序读规则与契约，在 F:/new/smaltalk/water/.worktrees/w6-i1（分支 worker/water-w6-i1）从 d79fb096 开工。`
 - WATER-W6-I2：`你接手 Water 项目 WATER-W6-I2（宿主收尾，重门，final 会开 1 个窗口）。先读 F:/new/smaltalk/water/docs/dispatch/tickets/WATER-W6-I2-HOST-M3-20261028.md，按其中列出的顺序读规则与契约，在 F:/new/smaltalk/water/.worktrees/w6-i2（分支 worker/water-w6-i2）从 d79fb096 开工。`
 
+补单（10-28，I1 受阻后）：
+- WATER-W6-I1-ADDENDUM-01：`你接手 Water 项目 WATER-W6-I1 补单 01（Agent 工具规则续做，轻门）。先读 F:/new/smaltalk/water/docs/dispatch/tickets/WATER-W6-I1-ADDENDUM-01-20261028.md，按其中列出的顺序读原票、规则、契约与上一轮回执，在 F:/new/smaltalk/water/.worktrees/w6-i1（分支 worker/water-w6-i1）从 f0f7243a 续做。`
+
 界面票（交前端强的模型）：
 - WATER-W6-I3：`你接手 Water 项目 WATER-W6-I3（界面收尾，轻门）。先读 F:/new/smaltalk/water/docs/dispatch/tickets/WATER-W6-I3-UI-M3-20261028.md，按其中列出的顺序读规则与契约，在 F:/new/smaltalk/water/.worktrees/w6-i3（分支 worker/water-w6-i3）从 d79fb096 开工。`

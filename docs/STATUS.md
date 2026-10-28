@@ -231,6 +231,10 @@ A–AB及八补单、AD保持VERIFIED；AC/补单06新增VERIFIED（Windows静�
     | [WATER-W6-I3 界面收尾](dispatch/tickets/WATER-W6-I3-UI-M3-20261028.md) | `apps/water/ui` | 轻门，界面票 |
 
     派前：两个检查器认第六波清单，三棵树派前 baseline 都通过。本机摸底与 Grok 调研见 [agent-tools-20261028](research/agent-tools-20261028/)。
+
+    **10-28 傍晚已派出**（用户没说派给谁，三棵树的提交作者都是 Codex GPT-6）：
+    - **I1 受阻**（回执提交 `f0f7243a`）：SPEC 第 4 节漏授权两处“最后一条是 Rust 规则”的旧断言，追加 14 条规则后必然失败；另外执行者的网页工具打不开官方出处。受阻成立，是总控疏漏。已出[补单 01](dispatch/tickets/WATER-W6-I1-ADDENDUM-01-20261028.md)：授权两组断言改为按 ID 查找并加新顺序断言；官方出处由总控先核对（[source-check](acceptance/wave6/controller/source-check-20261028.md)，7 个网址都能打开、标题对得上）。
+    - I2、I3：树里已有实现与回执提交，等用户转交回执。
 13. **下一步**：自清理（M2 计划第 3.2 节：用户用新版添加 `F:\new\smaltalk\water\.worktrees` 并体检 → 总控只读核对、给勾选建议 → 用户按清理 → 总控核对） → M2 达成。
 
 ## 真实AA→AD联合验收通过（2026-10-26）
