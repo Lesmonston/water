@@ -15,13 +15,14 @@ import {locations} from './views/locations.mjs';
 import {about} from './views/about.mjs';
 
 const routes = ['home', 'results', 'trends', 'history', 'locations', 'about'];
-const state = {app:null, connecting:true, busy:'idle', pending:false, error:'', result:null, selection:new Set(), filter:'all', sort:'bytes', stale:false, cleaned:null, showDone:false, progressFailures:0, reconnecting:false, recoveryPending:false, pollPaused:false, pauseReason:'', stopFailed:false, historyDetails:new Map()};
-let route = 'home', timer, polling = false, overlay, opener, routeVersion = 0;
+const state = {app:null, connecting:true, busy:'idle', pending:false, error:'', errorCode:null, result:null, selection:new Set(), filter:'all', sort:'bytes', stale:false, cleaned:null, showDone:false, progressFailures:0, reconnecting:false, recoveryPending:false, pollPaused:false, pauseReason:'', stopFailed:false, historyDetails:new Map()};
+let route = 'home', timer, stopAnnouncement, polling = false, overlay, opener, routeVersion = 0;
+const routeReads = new Map();
 const page = document.getElementById('page'), main = document.getElementById('main');
 const motionObserver = new IntersectionObserver(entries => entries.forEach(entry => entry.target.style.setProperty('--motion-state', entry.isIntersecting ? 'running' : 'paused')));
 const actions = {
   busy:() => state.pending || state.busy !== 'idle' || !state.app,
-  navigate, connect, reconnectProgress:() => { if (!polling) { state.error = ''; beginPolling(); render(); } },
+  navigate, connect, reconnectProgress:() => { if (!polling) { clearError(); beginPolling(); render(); } },
   scan:() => run(async inScope => {
     if (state.busy !== 'idle') return;
     const value = await ipc.scan_start();
@@ -49,7 +50,10 @@ const actions = {
       closeOverlay(true);
       let value;
       try { value = await ipc.clean_start(plan_id, confirm_token); }
-      catch (error) { throw {...error, message_zh:(error?.message_zh || (error?.code === 'unavailable' ? '无法连接 Water 服务' : 'Water 服务暂时不可用')) + ' 请重新点击“清理所选”并确认。'}; }
+      catch (error) {
+        if (error?.code === 'stale') throw error;
+        throw {...error, message_zh:(error?.message_zh || (error?.code === 'unavailable' ? '无法连接 Water 服务' : 'Water 服务暂时不可用')) + ' 请重新点击“清理所选”并确认。'};
+      }
       state.busy = 'cleaning'; state.cleanId = value.clean_id; state.cleanProgress = null; state.cleaned = null;
       if (inScope()) navigate('home');
       beginPolling();
@@ -64,8 +68,11 @@ const actions = {
     await readHistoryDetail(entry);
   })
 };
-async function readHistoryDetail(entry) {
-  if (!state.historyDetails.has(entry.id)) state.historyDetails.set(entry.id, await (entry.kind === 'clean' ? ipc.clean_result(entry.id) : ipc.scan_result(entry.id)));
+async function readHistoryDetail(entry, isCurrent = () => true) {
+  if (!state.historyDetails.has(entry.id)) {
+    const value = await (entry.kind === 'clean' ? ipc.clean_result(entry.id) : ipc.scan_result(entry.id));
+    if (isCurrent()) state.historyDetails.set(entry.id, value);
+  }
 }
 // A stop that fails while progress is paused cannot use the notice, which keeps the pause reason.
 async function stop(request, inScope) {
@@ -73,24 +80,27 @@ async function stop(request, inScope) {
   catch (error) {
     if (inScope() && state.pollPaused) {
       state.stopFailed = true;
+      clearTimeout(stopAnnouncement);
       const announcer = document.getElementById('announcer'); announcer.textContent = '';
-      setTimeout(() => { if (state.stopFailed && inScope()) announcer.textContent = '停止请求没有送达，请先重新连接再试。'; }, 0);
+      stopAnnouncement = setTimeout(() => { if (state.stopFailed && inScope()) announcer.textContent = '停止请求没有送达，请先重新连接再试。'; }, 120);
     }
     throw error;
   }
 }
+function clearError() { state.error = ''; state.errorCode = null; }
 // `stale` is always recorded; the notice and overlay only belong to the page that issued the command.
 function fault(error, show = true) {
   if (error?.code === 'stale') state.stale = true;
   if (!show) return;
   state.error = typeof error?.message_zh === 'string' && error.message_zh ? error.message_zh : error?.code === 'unavailable' ? '无法连接 Water 服务' : 'Water 服务暂时不可用';
+  state.errorCode = error?.code ?? null;
   if (error?.code === 'stale') closeOverlay(true);
 }
 async function run(fn, clearStop = false) {
   if (state.pending) return;
   const version = routeVersion, origin = location.hash, paused = state.pollPaused;
   const inScope = () => version === routeVersion && origin === location.hash;
-  state.pending = true; state.error = ''; if (clearStop) state.stopFailed = false; render();
+  state.pending = true; clearError(); if (clearStop) state.stopFailed = false; render();
   overlay?.querySelectorAll('button').forEach(b => { b.disabled = true; });
   try { await fn(inScope); } catch (error) { fault(error, inScope() && !paused && !state.pollPaused); }
   finally { state.pending = false; overlay?.querySelectorAll('button').forEach(b => { b.disabled = false; }); render(); }
@@ -125,7 +135,7 @@ function render() {
   const activeKey = document.activeElement?.dataset.key, scroll = main.scrollTop;
   sidebar();
   const notice = document.getElementById('notice'); notice.replaceChildren(); notice.hidden = !state.error && !state.reconnecting && !state.pollPaused;
-  if (!notice.hidden) add(notice, el('span', '', state.pollPaused ? state.pauseReason : state.reconnecting ? '正在重新连接 Water 服务…' : state.error), state.pollPaused ? button('重新连接', actions.reconnectProgress, 'btn btn-glass', 'progress-reconnect', state.pending) : state.reconnecting ? null : button('关闭提示', () => { state.error = ''; render(); }, 'btn btn-ghost', 'dismiss-error'));
+  if (!notice.hidden) add(notice, el('span', '', state.pollPaused ? state.pauseReason : state.reconnecting ? '正在重新连接 Water 服务…' : state.error), state.pollPaused ? button('重新连接', actions.reconnectProgress, 'btn btn-glass', 'progress-reconnect', state.pending) : state.reconnecting ? null : button('关闭提示', () => { clearError(); render(); }, 'btn btn-ghost', 'dismiss-error'));
   let view;
   if (route === 'home' && state.busy === 'scanning') view = scan(state, actions);
   else if (route === 'home' && state.busy === 'cleaning') view = cleaning(state, actions);
@@ -147,18 +157,23 @@ function navigate(next) {
 // missingOnly: after reconnecting, re-read only what a paused read left missing, including an expanded history entry.
 async function loadRoute(missingOnly = false) {
   const version = routeVersion, current = route, origin = location.hash, paused = state.pollPaused;
+  const read = {trends:ipc.trends, history:ipc.history_list, locations:ipc.locations_get}[current];
+  const shouldRead = read && !(missingOnly && state[current]);
+  const request = (routeReads.get(current) ?? 0) + (shouldRead ? 1 : 0);
+  routeReads.set(current, request);
+  const isLatest = () => request === routeReads.get(current);
+  const inScope = () => version === routeVersion && origin === location.hash && isLatest();
   try {
-    const read = {trends:ipc.trends, history:ipc.history_list, locations:ipc.locations_get}[current];
-    if (read && !(missingOnly && state[current])) { const value = await read(); if (version === routeVersion) state[current] = value; }
-    const open = !state.pollPaused && current === 'history' && version === routeVersion && origin === location.hash && state.history?.find(entry => entry.id === state.historyOpen);
-    if (open) await readHistoryDetail(open);
-  } catch (error) { fault(error, version === routeVersion && origin === location.hash && !paused && !state.pollPaused); }
-  if (version === routeVersion) render();
+    if (shouldRead) { const value = await read(); if (inScope()) state[current] = value; }
+    const open = !state.pollPaused && current === 'history' && inScope() && state.history?.find(entry => entry.id === state.historyOpen);
+    if (open) await readHistoryDetail(open, inScope);
+  } catch (error) { if (isLatest()) fault(error, inScope() && !paused && !state.pollPaused); }
+  if (inScope()) render();
 }
 function routeChanged() {
   routeVersion++;
   closeOverlay(true); const value = location.hash.slice(2); route = routes.includes(value) ? value : 'home';
-  state.error = ''; state.stopFailed = false;
+  clearError(); state.stopFailed = false;
   state.showDone = false;
   try { localStorage.setItem('water-last-page', route); } catch {}
   page.classList.remove('enter'); void page.offsetWidth; page.classList.add('enter'); main.scrollTop = 0;
@@ -166,12 +181,16 @@ function routeChanged() {
 }
 function startPolling() { clearTimeout(timer); timer = setTimeout(poll, 250); }
 function beginPolling() { state.progressFailures = 0; state.reconnecting = false; state.pollPaused = false; state.stopFailed = false; startPolling(); }
-function pauseProgress(error) { fault(error); state.pauseReason = state.error; state.error = ''; state.reconnecting = false; state.recoveryPending = true; state.pollPaused = true; }
+function pauseProgress(error) { fault(error); state.pauseReason = state.error; clearError(); state.reconnecting = false; state.recoveryPending = true; state.pollPaused = true; }
 async function readProgress() {
   try {
     const value = await (state.busy === 'scanning' ? ipc.scan_progress() : ipc.clean_progress());
     state.progressFailures = 0; state.reconnecting = false;
-    if (state.recoveryPending) { state.recoveryPending = false; await loadRoute(true); }
+    if (state.recoveryPending) {
+      state.recoveryPending = false;
+      if (['unavailable', 'busy'].includes(state.errorCode)) clearError();
+      void loadRoute(true);
+    }
     return value;
   } catch (error) {
     state.recoveryPending = true;
@@ -191,7 +210,7 @@ async function poll() {
       document.getElementById('announcer').textContent = `正在体检，已发现 ${formatBytes(p.found_bytes)}，${p.percent}%`;
       if (p.state === 'running') { state.scanRunningSeen = true; state.scanIdleCount = 0; }
       if (p.state === 'idle' && !state.scanRunningSeen) {
-        if (++state.scanIdleCount >= 20) { state.busy = 'idle'; state.error = '体检没有开始，请重试'; }
+        if (++state.scanIdleCount >= 20) { state.busy = 'idle'; fault({message_zh:'体检没有开始，请重试'}); }
         return;
       }
       if (p.state !== 'running') {
@@ -201,7 +220,7 @@ async function poll() {
           state.busy = 'idle';
           if (route === 'home') navigate('results');
           try { state.app = await ipc.app_state(); } catch (error) { fault(error); }
-        } else { state.busy = 'idle'; state.error = '体检未能完成，请重新体检。'; }
+        } else { state.busy = 'idle'; fault({message_zh:'体检未能完成，请重新体检。'}); }
       }
     } else {
       state.cleanProgress = p; state.cleanId = p.clean_id ?? state.cleanId;
@@ -244,7 +263,7 @@ function closeOverlay(immediate = false) {
 document.addEventListener('keydown', () => { document.documentElement.dataset.input = 'keyboard'; });
 document.addEventListener('pointerdown', () => { document.documentElement.dataset.input = 'pointer'; });
 window.addEventListener('hashchange', routeChanged);
-window.addEventListener('pagehide', () => { clearTimeout(timer); motionObserver.disconnect(); });
+window.addEventListener('pagehide', () => { clearTimeout(timer); clearTimeout(stopAnnouncement); motionObserver.disconnect(); });
 window.addEventListener('beforeunload', event => { if (state.busy === 'cleaning') { event.preventDefault(); event.returnValue = ''; } });
 if (!location.hash) { let saved; try { saved = localStorage.getItem('water-last-page'); } catch {} history.replaceState(null, '', `#/${routes.includes(saved) ? saved : 'home'}`); }
 route = routes.includes(location.hash.slice(2)) ? location.hash.slice(2) : 'home';
