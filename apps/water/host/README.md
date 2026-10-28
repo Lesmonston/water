@@ -24,6 +24,11 @@ ordinary signal keeps its content and length and only its modification time chan
 backend from its slot, stop and join the activation thread, then release the
 instance lock, with normal exit status 0.
 
+`Backend::available` defaults to true. `UnavailableBackend` and a taken backend
+slot report false; a populated slot forwards availability without holding its
+mutex while calling the backend. `clean_state` returns non-cleaning immediately
+for an unavailable backend without querying or stopping it. An available backend
+whose state query fails still reports unknown.
 `clean_state` distinguishes cleaning, confirmed non-cleaning and an unknown state.
 The close guard permits immediate closing only for confirmed non-cleaning. For
 cleaning or unknown states it prevents the request and calls
@@ -36,9 +41,12 @@ non-cleaning state produces `CleanStop::Stopped`. The bounded function reports
 when it requested stopping, including an initially unknown state.
 
 Inside the `RunEvent::Exit` callback, `stop_cleaning_within` synchronously polls the
-backend every 200 ms with a ten-second total limit, covering system session exit
+backend every 200 ms with a ten-second total limit starting before the first
+state query, covering system session exit
 as well as normal closing. The callback only calls the backend and does not post
-window operations to the event loop. These limits bound polling waits, not an
+window operations to the event loop. If the first query exhausts the limit while
+cleaning or unknown, it still sends one stop and returns `TimedOut` without
+querying again. These limits bound polling waits, not an
 individual synchronous backend call that itself fails to return.
 
 The single `main` window is 1240×820 (minimum 1040×720), centered, transparent,
@@ -79,8 +87,8 @@ current frontendDist also embeds frontend tests, as acknowledged by HOST section
 Run only the assigned controller gate from the worktree root:
 
 ```powershell
-node F:/new/smaltalk/water/scripts/desktop-wave-check.mjs --task WATER-W6-I2 --mode check
-node F:/new/smaltalk/water/scripts/desktop-wave-check.mjs --task WATER-W6-I2 --mode test
+node F:/new/smaltalk/water/scripts/desktop-wave-check.mjs --task WATER-W7-J1 --mode check
+node F:/new/smaltalk/water/scripts/desktop-wave-check.mjs --task WATER-W7-J1 --mode test
 ```
 
 The unique `host_v1` target has five tests, with synthetic data only under this
@@ -95,14 +103,17 @@ state and enabled cleanup, and verify backend fallback and default-base junction
 The trailing-dot fixture also creates the ordinary spelling so both
 canonicalizations succeed before their results are compared. Scripted cleanup
 only counts down after receiving stop; tests cover bounded exit, unknown-state
-waiting and the event callback's source wiring.
+waiting, unknown intervals interrupted by cleaning, unavailable backends, and a
+slow initial state query. Token-based source checks distinguish `Exit` from
+`ExitRequested`, scope its stop call to the actual branch, and require the close
+guard to let only confirmed non-cleaning pass before preventing the close.
 They never
 open a window or picker and never scan real user locations.
 
 The native final gate has a ticket-wide one-window budget. Its nine steps run a
 checkup, preview, confirmation, cleanup and history through the UI. The seven
 categories are disabled and only a synthetic fixture under this worktree's
-`.local/w6-i2-native/` is selectable; protected locations are measured read-only.
+`.local/w7-j1-native/` is selectable; protected locations are measured read-only.
 It archives five window screenshots and verifies fixture deletion and retained
 guard files, one scan, snapshot, plan, clean and journal, a private WebView profile
 and child process exit. Do not launch the binary or a picker manually. All registry packages
@@ -110,7 +121,7 @@ come from the accepted AC lock and build offline with one job. macOS, release
 packaging and the real picker UI remain unverified. Known M1 limitations are in
 `contracts/desktop-v1/WIRING.md` section 7, as superseded by
 `contracts/m2-prep-v1/HOST-FINISHING.md`, `contracts/m2-v1/HOST-M2.md` and
-`contracts/m3-v1/HOST-M3.md`. Foreground activation and backend-failure
+`contracts/m3-v1/HOST-M3.md` and `contracts/m3-v1/HOST-M3-FIX.md`. Foreground activation and backend-failure
 UI are covered by code and unit tests; the single native gate exercises the
 normal backend. It does not launch a second instance, inject startup failure,
 request a real system shutdown or close the window during active cleanup.
