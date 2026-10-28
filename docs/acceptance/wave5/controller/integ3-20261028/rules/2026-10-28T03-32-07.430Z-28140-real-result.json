@@ -1,0 +1,615 @@
+{
+  "task": "WATER-W5-ACCEPT-INTEG3-RULES",
+  "mode": "real",
+  "finalGate": true,
+  "manifest": ".local/w5-integ3/checkup-manifest.json",
+  "startedAt": "2026-10-28T03:32:07.432Z",
+  "realDataRead": true,
+  "productTestsRun": false,
+  "commands": [
+    {
+      "binary": "git",
+      "argv": [
+        "branch",
+        "--show-current"
+      ],
+      "exitCode": 0
+    },
+    {
+      "binary": "git",
+      "argv": [
+        "merge-base",
+        "--is-ancestor",
+        "77f33746c549a4be547612218eb79d333d9f9e0d",
+        "HEAD"
+      ],
+      "exitCode": 0
+    },
+    {
+      "binary": "git",
+      "argv": [
+        "diff",
+        "--no-renames",
+        "--name-only",
+        "-z",
+        "77f33746c549a4be547612218eb79d333d9f9e0d",
+        "HEAD"
+      ],
+      "exitCode": 0
+    },
+    {
+      "binary": "git",
+      "argv": [
+        "diff",
+        "--no-renames",
+        "--name-only",
+        "-z",
+        "HEAD"
+      ],
+      "exitCode": 0
+    },
+    {
+      "binary": "git",
+      "argv": [
+        "ls-files",
+        "--others",
+        "--exclude-standard",
+        "-z"
+      ],
+      "exitCode": 0
+    },
+    {
+      "binary": "git",
+      "argv": [
+        "rev-parse",
+        "HEAD"
+      ],
+      "exitCode": 0
+    },
+    {
+      "binary": "git",
+      "argv": [
+        "status",
+        "--porcelain",
+        "--untracked-files=all"
+      ],
+      "exitCode": 0
+    },
+    {
+      "binary": "C:\\Users\\37310\\.cargo\\bin\\rustup.exe",
+      "argv": [
+        "which",
+        "cargo",
+        "--toolchain",
+        "1.95.0"
+      ],
+      "exitCode": 0,
+      "error": null,
+      "log": "2026-10-28T03-32-07.430Z-28140-real-1.log"
+    },
+    {
+      "binary": "C:\\Users\\37310\\.cargo\\bin\\rustup.exe",
+      "argv": [
+        "which",
+        "rustc",
+        "--toolchain",
+        "1.95.0"
+      ],
+      "exitCode": 0,
+      "error": null,
+      "log": "2026-10-28T03-32-07.430Z-28140-real-2.log"
+    },
+    {
+      "binary": "C:\\Users\\37310\\.rustup\\toolchains\\1.95.0-x86_64-pc-windows-msvc\\bin\\rustc.exe",
+      "argv": [
+        "--version"
+      ],
+      "exitCode": 0,
+      "error": null,
+      "log": "2026-10-28T03-32-07.430Z-28140-real-3.log"
+    },
+    {
+      "binary": "C:\\Users\\37310\\.rustup\\toolchains\\1.95.0-x86_64-pc-windows-msvc\\bin\\cargo.exe",
+      "argv": [
+        "metadata",
+        "--offline",
+        "--locked",
+        "--format-version",
+        "1",
+        "--manifest-path",
+        "packages/junk-rules/Cargo.toml"
+      ],
+      "exitCode": 0,
+      "error": null,
+      "log": "2026-10-28T03-32-07.430Z-28140-real-4.log"
+    },
+    {
+      "binary": "C:\\Users\\37310\\.rustup\\toolchains\\1.95.0-x86_64-pc-windows-msvc\\bin\\cargo.exe",
+      "argv": [
+        "run",
+        "--offline",
+        "--locked",
+        "--manifest-path",
+        "packages/junk-rules/Cargo.toml",
+        "--example",
+        "real_smoke",
+        "--"
+      ],
+      "exitCode": 0,
+      "error": null,
+      "log": "2026-10-28T03-32-07.430Z-28140-real-5.log"
+    },
+    {
+      "binary": "git",
+      "argv": [
+        "branch",
+        "--show-current"
+      ],
+      "exitCode": 0
+    },
+    {
+      "binary": "git",
+      "argv": [
+        "merge-base",
+        "--is-ancestor",
+        "77f33746c549a4be547612218eb79d333d9f9e0d",
+        "HEAD"
+      ],
+      "exitCode": 0
+    },
+    {
+      "binary": "git",
+      "argv": [
+        "diff",
+        "--no-renames",
+        "--name-only",
+        "-z",
+        "77f33746c549a4be547612218eb79d333d9f9e0d",
+        "HEAD"
+      ],
+      "exitCode": 0
+    },
+    {
+      "binary": "git",
+      "argv": [
+        "diff",
+        "--no-renames",
+        "--name-only",
+        "-z",
+        "HEAD"
+      ],
+      "exitCode": 0
+    },
+    {
+      "binary": "git",
+      "argv": [
+        "ls-files",
+        "--others",
+        "--exclude-standard",
+        "-z"
+      ],
+      "exitCode": 0
+    },
+    {
+      "binary": "git",
+      "argv": [
+        "rev-parse",
+        "HEAD"
+      ],
+      "exitCode": 0
+    },
+    {
+      "binary": "git",
+      "argv": [
+        "status",
+        "--porcelain",
+        "--untracked-files=all"
+      ],
+      "exitCode": 0
+    }
+  ],
+  "changedPaths": [],
+  "before": {
+    "head": "77f33746c549a4be547612218eb79d333d9f9e0d",
+    "status": ""
+  },
+  "sourceState": {
+    "files": [
+      {
+        "path": "packages/junk-rules/Cargo.toml",
+        "snapshot": "2026-10-28T03-32-07.430Z-28140-real-source-0.txt",
+        "sha256": "b208419139ad9e00094796070ed94c874e68051718dbccae9e977ab5b2a2891f",
+        "test": false
+      },
+      {
+        "path": "packages/junk-rules/Cargo.lock",
+        "snapshot": "2026-10-28T03-32-07.430Z-28140-real-source-1.txt",
+        "sha256": "8fa9f0654764a3478f9620856784816467bea29ee9a091a2df50af3707143d0c",
+        "test": false
+      },
+      {
+        "path": "packages/junk-rules/README.md",
+        "snapshot": "2026-10-28T03-32-07.430Z-28140-real-source-2.txt",
+        "sha256": "01d7da724cc6de91a8a52878f71cb504df289d46cec4abd72452b330b968cb98",
+        "test": false
+      },
+      {
+        "path": "packages/junk-rules/rules/windows.json",
+        "snapshot": "2026-10-28T03-32-07.430Z-28140-real-source-3.txt",
+        "sha256": "ad0ee57794cab13ddd7b3aabab5dad23025532b3bd0d944d60c6de7933d62e50",
+        "test": false
+      },
+      {
+        "path": "packages/junk-rules/src/error.rs",
+        "snapshot": "2026-10-28T03-32-07.430Z-28140-real-source-4.txt",
+        "sha256": "3b2dda7c38f28398577e76b76b44ea6b0343709f68c5d0fd5134607656655800",
+        "test": false
+      },
+      {
+        "path": "packages/junk-rules/src/folders.rs",
+        "snapshot": "2026-10-28T03-32-07.430Z-28140-real-source-5.txt",
+        "sha256": "2a4e5c28225fee67f908bfc39b9b17bb16d7f65f6456c2af4f5090453e7a8732",
+        "test": false
+      },
+      {
+        "path": "packages/junk-rules/src/lib.rs",
+        "snapshot": "2026-10-28T03-32-07.430Z-28140-real-source-6.txt",
+        "sha256": "c799dec66f96283f5fc70a33858e0c834ebf5fd18fb1fefb80d0144c4c6b5bf5",
+        "test": false
+      },
+      {
+        "path": "packages/junk-rules/src/plan.rs",
+        "snapshot": "2026-10-28T03-32-07.430Z-28140-real-source-7.txt",
+        "sha256": "0c9837f5caf71f7c3c82201902d278c21e7cddeaba3451c19ac87f82dda9f715",
+        "test": false
+      },
+      {
+        "path": "packages/junk-rules/src/rules.rs",
+        "snapshot": "2026-10-28T03-32-07.430Z-28140-real-source-8.txt",
+        "sha256": "b33066fe9066845257c1519aee657ec6c25da6b0a5bb172b95e2f38910b189aa",
+        "test": false
+      },
+      {
+        "path": "packages/junk-rules/src/types.rs",
+        "snapshot": "2026-10-28T03-32-07.430Z-28140-real-source-9.txt",
+        "sha256": "45d1a0837876b87595a2a5028e522a45e558f5bb01e1db12fff9c7b504a5d8d5",
+        "test": false
+      },
+      {
+        "path": "packages/junk-rules/tests/rules_v1.rs",
+        "snapshot": "2026-10-28T03-32-07.430Z-28140-real-source-10.txt",
+        "sha256": "f0058670c44ffcb09f3f66c70cb0669db39fbd9ae9ff918b36fe8e4a81ea2bb7",
+        "test": true
+      }
+    ],
+    "productionHash": "ee165fbd4b8a778336ad87f913d8487e7f5065f10ee54ec154f21879ccb002bd",
+    "testHash": "c8fb3f6969a921fb2d9870c5a25c72660090f35c6317ebce4a944399ddd55fc9"
+  },
+  "dependencyInventory": [
+    "itoa@1.0.18",
+    "memchr@2.8.3",
+    "proc-macro2@1.0.107",
+    "quote@1.0.47",
+    "serde@1.0.229",
+    "serde_core@1.0.229",
+    "serde_derive@1.0.229",
+    "serde_json@1.0.151",
+    "syn@3.0.9",
+    "unicode-ident@1.0.27",
+    "zmij@1.0.23"
+  ],
+  "realSummary": [
+    {
+      "base_exists": true,
+      "literal_prefix_exists": true,
+      "rule_id": "codex-marketplace-staging"
+    },
+    {
+      "base_exists": true,
+      "literal_prefix_exists": true,
+      "rule_id": "codex-runtimes"
+    },
+    {
+      "base_exists": true,
+      "literal_prefix_exists": true,
+      "rule_id": "claude-desktop-old-versions"
+    },
+    {
+      "base_exists": true,
+      "literal_prefix_exists": true,
+      "rule_id": "claude-desktop-packages"
+    },
+    {
+      "base_exists": true,
+      "literal_prefix_exists": true,
+      "rule_id": "claude-code-scratchpad"
+    },
+    {
+      "base_exists": true,
+      "literal_prefix_exists": true,
+      "rule_id": "grok-downloads"
+    },
+    {
+      "base_exists": true,
+      "literal_prefix_exists": true,
+      "rule_id": "headless-browser-profiles"
+    },
+    {
+      "base_exists": true,
+      "literal_prefix_exists": true,
+      "rule_id": "claude-code-sessions"
+    },
+    {
+      "base_exists": true,
+      "literal_prefix_exists": true,
+      "rule_id": "claude-code-file-history"
+    },
+    {
+      "base_exists": true,
+      "literal_prefix_exists": true,
+      "rule_id": "cursor-chats"
+    },
+    {
+      "base_exists": true,
+      "literal_prefix_exists": true,
+      "rule_id": "codex-sessions"
+    },
+    {
+      "base_exists": true,
+      "literal_prefix_exists": true,
+      "rule_id": "grok-sessions"
+    },
+    {
+      "base_exists": true,
+      "literal_prefix_exists": true,
+      "rule_id": "chrome-cache"
+    },
+    {
+      "base_exists": true,
+      "literal_prefix_exists": true,
+      "rule_id": "edge-cache"
+    },
+    {
+      "base_exists": true,
+      "literal_prefix_exists": false,
+      "rule_id": "brave-cache"
+    },
+    {
+      "base_exists": true,
+      "literal_prefix_exists": true,
+      "rule_id": "chrome-code-gpu-cache"
+    },
+    {
+      "base_exists": true,
+      "literal_prefix_exists": true,
+      "rule_id": "edge-code-gpu-cache"
+    },
+    {
+      "base_exists": true,
+      "literal_prefix_exists": false,
+      "rule_id": "brave-code-gpu-cache"
+    },
+    {
+      "base_exists": true,
+      "literal_prefix_exists": true,
+      "rule_id": "chrome-service-worker-cache"
+    },
+    {
+      "base_exists": true,
+      "literal_prefix_exists": true,
+      "rule_id": "edge-service-worker-cache"
+    },
+    {
+      "base_exists": true,
+      "literal_prefix_exists": false,
+      "rule_id": "brave-service-worker-cache"
+    },
+    {
+      "base_exists": true,
+      "literal_prefix_exists": true,
+      "rule_id": "chrome-crash-reports"
+    },
+    {
+      "base_exists": true,
+      "literal_prefix_exists": true,
+      "rule_id": "edge-crash-reports"
+    },
+    {
+      "base_exists": true,
+      "literal_prefix_exists": false,
+      "rule_id": "brave-crash-reports"
+    },
+    {
+      "base_exists": true,
+      "literal_prefix_exists": true,
+      "rule_id": "chrome-login-and-site-data"
+    },
+    {
+      "base_exists": true,
+      "literal_prefix_exists": true,
+      "rule_id": "edge-login-and-site-data"
+    },
+    {
+      "base_exists": true,
+      "literal_prefix_exists": false,
+      "rule_id": "brave-login-and-site-data"
+    },
+    {
+      "base_exists": true,
+      "literal_prefix_exists": true,
+      "rule_id": "chrome-on-device-model"
+    },
+    {
+      "base_exists": true,
+      "literal_prefix_exists": false,
+      "rule_id": "firefox-cache"
+    },
+    {
+      "base_exists": true,
+      "literal_prefix_exists": true,
+      "rule_id": "electron-app-cache"
+    },
+    {
+      "base_exists": true,
+      "literal_prefix_exists": true,
+      "rule_id": "app-logs"
+    },
+    {
+      "base_exists": true,
+      "literal_prefix_exists": true,
+      "rule_id": "installer-unpack-temp"
+    },
+    {
+      "base_exists": true,
+      "literal_prefix_exists": true,
+      "rule_id": "downloads-installers"
+    },
+    {
+      "base_exists": true,
+      "literal_prefix_exists": true,
+      "rule_id": "squirrel-packages"
+    },
+    {
+      "base_exists": true,
+      "literal_prefix_exists": true,
+      "rule_id": "windows-delivery-optimization"
+    },
+    {
+      "base_exists": true,
+      "literal_prefix_exists": true,
+      "rule_id": "windows-update-download"
+    },
+    {
+      "base_exists": true,
+      "literal_prefix_exists": true,
+      "rule_id": "system-temp-old"
+    },
+    {
+      "base_exists": true,
+      "literal_prefix_exists": true,
+      "rule_id": "user-temp-old"
+    },
+    {
+      "base_exists": true,
+      "literal_prefix_exists": true,
+      "rule_id": "npm-cache"
+    },
+    {
+      "base_exists": true,
+      "literal_prefix_exists": true,
+      "rule_id": "pip-cache"
+    },
+    {
+      "base_exists": true,
+      "literal_prefix_exists": true,
+      "rule_id": "yarn-cache"
+    },
+    {
+      "base_exists": true,
+      "literal_prefix_exists": false,
+      "rule_id": "uv-cache"
+    },
+    {
+      "base_exists": true,
+      "literal_prefix_exists": true,
+      "rule_id": "pnpm-store"
+    },
+    {
+      "base_exists": true,
+      "literal_prefix_exists": true,
+      "rule_id": "cargo-registry-cache"
+    },
+    {
+      "base_exists": true,
+      "literal_prefix_exists": true,
+      "rule_id": "gradle-caches"
+    },
+    {
+      "base_exists": true,
+      "literal_prefix_exists": true,
+      "rule_id": "playwright-browsers"
+    },
+    {
+      "base_exists": true,
+      "literal_prefix_exists": true,
+      "rule_id": "node-gyp-cache"
+    },
+    {
+      "base_exists": true,
+      "literal_prefix_exists": true,
+      "rule_id": "electron-build-cache"
+    },
+    {
+      "base_exists": true,
+      "literal_prefix_exists": true,
+      "rule_id": "jest-cache"
+    },
+    {
+      "base_exists": true,
+      "literal_prefix_exists": false,
+      "rule_id": "huggingface-models"
+    },
+    {
+      "base_exists": true,
+      "literal_prefix_exists": false,
+      "rule_id": "ollama-models"
+    },
+    {
+      "base_exists": true,
+      "literal_prefix_exists": true,
+      "rule_id": "crash-dumps"
+    },
+    {
+      "base_exists": true,
+      "literal_prefix_exists": false,
+      "rule_id": "wer-user-reports"
+    },
+    {
+      "base_exists": true,
+      "literal_prefix_exists": true,
+      "rule_id": "wer-system-reports"
+    },
+    {
+      "base_exists": true,
+      "literal_prefix_exists": true,
+      "rule_id": "gpu-shader-cache"
+    },
+    {
+      "base_exists": true,
+      "literal_prefix_exists": true,
+      "rule_id": "explorer-thumbnail-cache"
+    },
+    {
+      "base_exists": false,
+      "literal_prefix_exists": false,
+      "rule_id": "cachedir-tagged"
+    },
+    {
+      "base_exists": false,
+      "literal_prefix_exists": false,
+      "rule_id": "python-tool-caches"
+    },
+    {
+      "base_exists": false,
+      "literal_prefix_exists": false,
+      "rule_id": "test-browser-profiles"
+    },
+    {
+      "base_exists": false,
+      "literal_prefix_exists": false,
+      "rule_id": "node-modules"
+    },
+    {
+      "base_exists": false,
+      "literal_prefix_exists": false,
+      "rule_id": "rust-build-dirs"
+    }
+  ],
+  "after": {
+    "head": "77f33746c549a4be547612218eb79d333d9f9e0d",
+    "status": ""
+  },
+  "status": "passed",
+  "error": null,
+  "endedAt": "2026-10-28T03:32:10.142Z"
+}

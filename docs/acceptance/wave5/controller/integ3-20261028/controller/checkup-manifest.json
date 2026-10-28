@@ -1,0 +1,571 @@
+{
+  "schemaVersion": 1,
+  "wave": "water-wave5-main-integration-3",
+  "status": "CONTROLLER_INTEGRATION",
+  "controller": "Claude",
+  "controllerRoot": "F:/new/smaltalk/water",
+  "controllerBranch": "main",
+  "helpers": {
+    "H1": "scripts/checkup-wave-check.mjs",
+    "H2": "scripts/desktop-wave-check.mjs",
+    "H3": "scripts/desktop-wave-check.mjs",
+    "H4": "scripts/checkup-wave-check.mjs",
+    "H5": "scripts/checkup-wave-check.mjs"
+  },
+  "baseCommit": "3f9078972d7f958fad6bfd42e68f022dd659539e",
+  "baseTag": "water-w5-m2-base-20261027",
+  "plan": "docs/dispatch/wave5/PLAN.md",
+  "m2Plan": "docs/M2-PLAN-20261027.md",
+  "workerRules": "docs/dispatch/W5-M2-WORKER-RULES.md",
+  "userDecision": "2026-10-27: all four M2 decisions approved as recommended (\"Approve all four decisions as recommended and prepare the wave 5 tickets.\")",
+  "offlineCache": {
+    "core": "F:/new/smaltalk/water/.offline-cache/core/registry",
+    "desktop": "F:/new/smaltalk/water/.offline-cache/desktop/registry",
+    "copiedFrom": [
+      "F:/new/smaltalk/water/.worktrees/a/.local/cargo-home/registry",
+      "F:/new/smaltalk/water/.worktrees/ac/.local/desktop-cargo-home/registry"
+    ],
+    "check": "diff -rq byte-identical, 11159 files"
+  },
+  "frozenFiles": [
+    {
+      "path": "docs/decisions/ADR-018-device-junk-checkup-and-in-app-cleanup.md",
+      "sha256": "1195b17c469b3abe290f4d334628fa36583ca7f20c46349aaf1071ff839a0579"
+    },
+    {
+      "path": "contracts/checkup-v1/MODEL.md",
+      "sha256": "fe0c9a4f5d96ce9297e8f72e75df8c6f666f9a6af440fc198aa7b3362692188b"
+    },
+    {
+      "path": "contracts/checkup-v1/IPC.md",
+      "sha256": "62f726ced5f863f1b47db261976d8b5e5183f65669b2ba09d2f85a3977161be2"
+    },
+    {
+      "path": "docs/dispatch/W5-M2-WORKER-RULES.md",
+      "sha256": "6f0e8983a62ad24bd34b9460310c795fb09781939863eb52b4c3db73a2b568ac"
+    },
+    {
+      "path": "contracts/desktop-bootstrap-mirror-v1/MIRROR.json",
+      "sha256": "494e2b42e0803ba79170ffc162e8ac4938add6284b17dfdeb1f78fb527455e0f"
+    }
+  ],
+  "gateSelfTest": "docs/acceptance/wave5/controller/selftest/",
+  "selfTest": {
+    "trees": [
+      ".worktrees/w5-selftest-h3"
+    ],
+    "ids": [
+      "WATER-W5-SELFTEST-H3"
+    ],
+    "result": "fixture clean loop passed at selftest commit d33c7923 (clean switch opened only): 1 window, 17 s, 3,145,815 bytes deleted, kept files intact, journal intent+result, exit 0",
+    "evidence": "docs/acceptance/wave5/controller/selftest/"
+  },
+  "readyReport": null,
+  "tasks": [
+    {
+      "kind": "rust",
+      "outputRoot": "packages/junk-clean",
+      "packageName": "water-junk-clean",
+      "testTarget": "clean_v1",
+      "testFiles": [
+        "packages/junk-clean/tests/clean_v1.rs"
+      ],
+      "productionFiles": [
+        "packages/junk-clean/Cargo.toml",
+        "packages/junk-clean/Cargo.lock",
+        "packages/junk-clean/README.md"
+      ],
+      "cargoCacheSource": "F:/new/smaltalk/water/.offline-cache/core/registry",
+      "nativeModule": "native_windows.rs",
+      "macOS": "unverified",
+      "outputRootExists": true,
+      "nativeWindowBudget": 0,
+      "nativeDirectoryDialogBudget": 0,
+      "expectedTests": [
+        "clean_plan_contract",
+        "clean_revalidation_skips",
+        "clean_no_follow",
+        "clean_partial_stop_journal",
+        "clean_report_volume",
+        "clean_handle_hardening"
+      ],
+      "allowedModes": [
+        "baseline",
+        "lock",
+        "check",
+        "test",
+        "archive",
+        "red-nc1",
+        "red-nc2",
+        "red-nc3"
+      ],
+      "expectedFinalModes": [
+        "check",
+        "test"
+      ],
+      "forbidPatterns": [
+        [
+          "\\bstd::fs\\b",
+          "Path-based file access (std::fs) is not allowed"
+        ],
+        [
+          "\\bfs::",
+          "Path-based file access (fs::) is not allowed"
+        ],
+        [
+          "\\bPath(?:Buf)?\\b",
+          "Path objects are not allowed; file access goes through handles"
+        ],
+        [
+          "\\b(?:remove_file|remove_dir|read_dir|symlink_metadata|set_permissions|OpenOptions)\\b",
+          "Path-based file operation is not allowed"
+        ]
+      ],
+      "allowedFfi": [
+        "CreateFileW",
+        "GetFileInformationByHandleEx",
+        "SetFileInformationByHandle",
+        "GetVolumeInformationByHandleW",
+        "GetDiskFreeSpaceExW",
+        "CloseHandle",
+        "NtOpenFile",
+        "RtlNtStatusToDosError"
+      ],
+      "realMode": null,
+      "browserBudget": 0,
+      "realDataPermission": "none; synthetic fixtures under own .local only",
+      "id": "WATER-W5-ACCEPT-INTEG3-D",
+      "title": "清理执行器 M2 收尾",
+      "slot": "w5-h1",
+      "worktree": "F:/new/smaltalk/water/.worktrees/integ-w5a",
+      "branch": "controller/integ-w5a",
+      "baseCommit": "77f33746c549a4be547612218eb79d333d9f9e0d",
+      "snapshotRef": "refs/tags/water-w5-m2-base-20261027",
+      "status": "CONTROLLER_INTEGRATION",
+      "readyOn": "2026-10-27",
+      "dispatchedAt": null,
+      "startedAt": null,
+      "model": "Cursor (user-reported)",
+      "modelAssignment": "user-arranged; report actual engine/model",
+      "purpose": "M2",
+      "report": "docs/dispatch/reports/WATER-W5-H1-REPORT.md",
+      "evidenceDir": "docs/acceptance/wave5/controller/integ3-20261028/d/",
+      "allowedFiles": [
+        "docs/dispatch/reports/WATER-W5-H1-REPORT.md"
+      ],
+      "gate": "heavy",
+      "ticket": "docs/dispatch/tickets/WATER-W5-H1-CLEAN-M2-20261027.md",
+      "spec": "contracts/m2-v1/CLEAN-M2.md",
+      "proofTargets": {
+        "nc1": "CLEAN_FREED_EXACT",
+        "nc2": "CLEAN_UNPAIRED_NAME",
+        "nc3": "CLEAN_DEEP_TREE"
+      },
+      "modelHint": "Deletion-path ticket: strong Rust and Windows file-system reasoning.",
+      "mustRead": [
+        "docs/dispatch/W5-M2-WORKER-RULES.md",
+        "contracts/m2-v1/CLEAN-M2.md",
+        "contracts/m2-prep-v1/CLEAN-REPORT.md",
+        "contracts/hardening-v1/CLEAN-HARDENING.md",
+        "contracts/checkup-v1/CLEAN.md",
+        "packages/junk-clean/src/native_windows.rs",
+        "packages/junk-clean/tests/clean_v1.rs"
+      ],
+      "frozenFiles": [
+        {
+          "path": "contracts/m2-v1/CLEAN-M2.md",
+          "sha256": "03b0ce236a65812c0086421bdb1fec24e741e0bc82458ff2be34797e81777774"
+        },
+        {
+          "path": "contracts/m2-prep-v1/CLEAN-REPORT.md",
+          "sha256": "cb306062cd1d3702b5809ad57b37a8c8a77ff3ea18ea7273fc9f83cc8a22b160"
+        },
+        {
+          "path": "contracts/hardening-v1/CLEAN-HARDENING.md",
+          "sha256": "b22cfe2458d17303fd5ffde08899ef6df89c4484ba502c0d4af4139c8a18dc85"
+        },
+        {
+          "path": "contracts/checkup-v1/CLEAN.md",
+          "sha256": "95b5ad120c6d7a04d427318c09df8e58ba77d6f96167cb040bc07a33e5c5a55f"
+        }
+      ],
+      "allowedPrefixes": [
+        "packages/junk-clean/",
+        "docs/acceptance/wave5/h1/",
+        "docs/acceptance/wave5/controller/integ3-20261028/d/"
+      ],
+      "baselineStatus": "PASSED",
+      "baselineEvidence": "docs/acceptance/wave5/controller/preflight-20261027/WATER-W5-H1-2026-10-27T13-11-08.197Z-14464-baseline-result.json",
+      "dispatchReportedAt": "2026-10-27T13:36:00Z",
+      "dispatchEvidence": "user chat 2026-10-27 ~22:36 JST: H1, H2, H3 to Cursor; H5 to sol; H4 to opus; worker trees still clean at base 3f907897 with only the controller preflight receipt when recorded",
+      "workerSelfReport": "Codex GPT-6 (took over the original Cursor conversation)",
+      "submittedHead": "77fac6c5c71d83b8e423d617bc8a0f51ddac677a",
+      "implementationCommit": "0dc44d458bffc0b4e8bfbae929d9fe7e8585a276",
+      "relayedAt": "2026-10-27T15:40:00Z",
+      "relayEvidence": "user chat 2026-10-28 ~00:40 JST: all external tasks done",
+      "acceptanceNote": "docs/acceptance/wave5/controller/WATER-W5-ACCEPT-PROGRESS-20261028.md",
+      "addenda": [
+        {
+          "id": "WATER-W5-H1-ADDENDUM-01",
+          "ticket": "docs/dispatch/tickets/WATER-W5-H1-ADDENDUM-01-20261028.md",
+          "status": "VERIFIED",
+          "issuedAt": "2026-10-28T03:00:00Z",
+          "resumeFromCommit": "9f49e8b9215f4fab0fb555314d356b40f4676ad1",
+          "change": "snapshot must not leave a non-reparse directory whose name is not valid UTF-16 unexpanded: option A skips the whole item as changed (pre-M2 result), option B opens and walks it by its raw UTF-16 name; files and links with such names unchanged; new CLEAN_UNPAIRED_NAME assertion for the directory case; nc1-nc3 redone (nc2 on the new logic); no baseline rerun",
+          "evidence": "controller case h1_recent_content_in_unpaired_directory_vetoes (scripts/acceptance/w5-h1-controller-cases.rs): recent content inside such a directory does not veto the item on 0dc44d45 (ok.bin deleted, partial, 2 failures), while the same content in an ordinary directory gives skipped/too_recent",
+          "dispatchedAt": null,
+          "model": "sol (user-reported), new conversation",
+          "dispatchReportedAt": "2026-10-28T03:02:00Z",
+          "dispatchEvidence": "user chat 2026-10-28: addendum pasted to sol in a new conversation",
+          "submittedHead": "77fac6c5c71d83b8e423d617bc8a0f51ddac677a",
+          "implementationCommit": "ed138729d15077248a3f7ce92035202029e4b31c",
+          "workerSelfReport": "Codex GPT-6",
+          "option": "A"
+        }
+      ],
+      "verifiedAt": "2026-10-28",
+      "mergeCommit": "b3168cb7",
+      "controllerReview": {
+        "report": "docs/acceptance/wave5/controller/WATER-W5-REVIEW-20261028.md",
+        "evidence": "docs/acceptance/wave5/controller/accept-20261028/h1/",
+        "summary": "round 1 (0dc44d45): gates and controller nc1-nc3 passed, controller cases passed, but review found unpaired-name directories left unexpanded in the snapshot (whole-item vetoes bypassed) -> addendum 01. Round 2 (ed138729, option A): gates and controller nc1-nc3 killed; x1 (new check bypassed) survives because the open under the private key fails and the snapshot still reports changed (second barrier); 11 controller snapshot cases, 3 integration cases incl. the veto demonstration, wave 4 G5 7/7 and G1 12/12 unchanged, 100k 20.5 s, 4000-level tree on 256 KiB; follow-up review: fix complete"
+      },
+      "carryOverLater": [
+        "case-insensitive lookup does not fold hex keys of odd-named files and links (rename-by-case race leaves one uncounted)",
+        "an odd-named directory appearing after the snapshot counts once as residual unknown",
+        "handles passed as raw pointers between frames (correct now; fragile to edits)",
+        "a freshly created deep tree is often skipped as changed on the first execute (pre-existing double preflight)"
+      ],
+      "acceptsTask": "WATER-W5-H1",
+      "acceptsHead": "77f33746c549a4be547612218eb79d333d9f9e0d"
+    },
+    {
+      "kind": "ui",
+      "outputRoot": "apps/water/ui",
+      "testFiles": [
+        "apps/water/ui/tests/unit.test.mjs",
+        "apps/water/ui/tests/browser.test.mjs"
+      ],
+      "unitTestFiles": [
+        "apps/water/ui/tests/unit.test.mjs"
+      ],
+      "browserTestFiles": [
+        "apps/water/ui/tests/browser.test.mjs"
+      ],
+      "expectedTests": [
+        "ui_format_bytes_time",
+        "ui_selection_rules",
+        "ui_ipc_boundary"
+      ],
+      "tokensSource": "docs/design/water-ui-v1/tokens.css",
+      "fixtures": "contracts/checkup-v1/ui-fixtures.json",
+      "browserHelper": "scripts/acceptance/native-vw-private-browser.mjs",
+      "screenshotDirEnv": "WATER_W2_SHOTS_DIR",
+      "macOS": "unverified",
+      "outputRootExists": true,
+      "nativeWindowBudget": 0,
+      "nativeDirectoryDialogBudget": 0,
+      "expectedBrowserTests": [
+        "ui_home_and_scan",
+        "ui_results_detail_confirm",
+        "ui_clean_done_and_pages",
+        "ui_layout_states_a11y",
+        "ui_m1_polish"
+      ],
+      "requiredScreenshots": [
+        "home-1240x820.png",
+        "scan-1240x820.png",
+        "results-1240x820.png",
+        "results-1040x720.png",
+        "detail-1240x820.png",
+        "confirm-1240x820.png",
+        "cleaning-1240x820.png",
+        "done-1240x820.png",
+        "trends-1240x820.png",
+        "history-1240x820.png",
+        "locations-1240x820.png",
+        "about-1240x820.png",
+        "results-bottom-1240x820.png",
+        "results-bottom-1040x720.png",
+        "notice-results-1240x820.png",
+        "notice-trends-1240x820.png",
+        "trends-empty-1240x820.png",
+        "paused-1240x820.png",
+        "reconnecting-1240x820.png",
+        "stop-failed-1240x820.png"
+      ],
+      "browserProofs": [
+        "nc1",
+        "nc2",
+        "nc3"
+      ],
+      "allowedModes": [
+        "baseline",
+        "check",
+        "test",
+        "browser",
+        "red-nc1",
+        "red-nc2",
+        "red-nc3",
+        "archive"
+      ],
+      "expectedFinalModes": [
+        "check",
+        "test",
+        "browser"
+      ],
+      "realMode": null,
+      "browserBudget": 1,
+      "realDataPermission": "none; IPC fixtures only",
+      "id": "WATER-W5-ACCEPT-INTEG3-UI",
+      "title": "界面 M2",
+      "slot": "w5-h4",
+      "worktree": "F:/new/smaltalk/water/.worktrees/integ-w5a",
+      "branch": "controller/integ-w5a",
+      "baseCommit": "77f33746c549a4be547612218eb79d333d9f9e0d",
+      "snapshotRef": "refs/tags/water-w5-m2-base-20261027",
+      "status": "CONTROLLER_INTEGRATION",
+      "readyOn": "2026-10-27",
+      "dispatchedAt": null,
+      "startedAt": null,
+      "model": "opus (user-reported)",
+      "modelAssignment": "user-arranged; report actual engine/model",
+      "purpose": "M2",
+      "report": "docs/dispatch/reports/WATER-W5-H4-REPORT.md",
+      "evidenceDir": "docs/acceptance/wave5/controller/integ3-20261028/ui/",
+      "allowedFiles": [
+        "docs/dispatch/reports/WATER-W5-H4-REPORT.md"
+      ],
+      "gate": "light",
+      "ticket": "docs/dispatch/tickets/WATER-W5-H4-UI-M2-20261027.md",
+      "spec": "docs/dispatch/tickets/WATER-W5-H4-UI-M2-20261027.md",
+      "proofTargets": {
+        "nc1": "UI_CLEAN_SCOPE",
+        "nc2": "UI_NOTICE_SCOPE",
+        "nc3": "UI_STOP_FEEDBACK"
+      },
+      "modelHint": "UI ticket: strong front-end ability; judged against real screenshots.",
+      "mustRead": [
+        "docs/dispatch/W5-M2-WORKER-RULES.md",
+        "contracts/hardening-v1/UI-POLISH.md",
+        "contracts/checkup-v1/UI.md",
+        "docs/design/water-ui-v1/DESIGN.md",
+        "apps/water/ui/app.mjs",
+        "apps/water/ui/tests/browser.test.mjs"
+      ],
+      "frozenFiles": [
+        {
+          "path": "contracts/checkup-v1/UI.md",
+          "sha256": "dbc92ff9de2f388d94c7210541662e5c0f9052084afdf4b795805768710cb52b"
+        },
+        {
+          "path": "contracts/checkup-v1/IPC.md",
+          "sha256": "62f726ced5f863f1b47db261976d8b5e5183f65669b2ba09d2f85a3977161be2"
+        },
+        {
+          "path": "contracts/checkup-v1/ui-fixtures.json",
+          "sha256": "2dd62585cb7ca31d429af8bf5360dda44d645dd73a5d3f79542d4d23ce1840e2"
+        },
+        {
+          "path": "contracts/hardening-v1/UI-POLISH.md",
+          "sha256": "6f70f7a1f775eccd31a60068288ad78be9b64869ff712809d0992a4a8b3859d6"
+        },
+        {
+          "path": "docs/design/water-ui-v1/DESIGN.md",
+          "sha256": "b83a2bd0815d109495a68e17894be6ba8d77d61129256a1094b9b58beb75e04b"
+        },
+        {
+          "path": "docs/design/water-ui-v1/tokens.css",
+          "sha256": "703e7b3c185bd95d79bb580cc1911736962159846832ece5a40ba5df0770cb29"
+        },
+        {
+          "path": "docs/design/water-ui-v1/mockup.html",
+          "sha256": "f0917b76fd7c31bc85852aa51482895f6dde064768a74dc8d38d28559f63f99b"
+        },
+        {
+          "path": "docs/design/water-ui-v1/brand/water-app-icon.ico",
+          "sha256": "a90894b1f7d7f44fe41e7c65541d650e6e04e4af911e6d37e058506e8ea268e2"
+        },
+        {
+          "path": "docs/design/water-ui-v1/brand/water-app-icon.svg",
+          "sha256": "cb7b7d425a6c51a0abd70609b5d1e58ec6ae4b6f455bbcbec4daf9bfa5218f52"
+        },
+        {
+          "path": "docs/design/water-ui-v1/brand/water-mark.svg",
+          "sha256": "2d90e8f759dd90d9474070cbe6b0a1746942035f7a52bed0a5d89fcd6df2cd70"
+        }
+      ],
+      "allowedPrefixes": [
+        "apps/water/ui/",
+        "docs/acceptance/wave5/h4/",
+        "docs/acceptance/wave5/controller/integ3-20261028/ui/"
+      ],
+      "baselineStatus": "PASSED",
+      "baselineEvidence": "docs/acceptance/wave5/controller/preflight-20261027/WATER-W5-H4-2026-10-27T13-11-31.506Z-42284-baseline-result.json",
+      "dispatchReportedAt": "2026-10-27T13:36:00Z",
+      "dispatchEvidence": "user chat 2026-10-27 ~22:36 JST: H1, H2, H3 to Cursor; H5 to sol; H4 to opus; worker trees still clean at base 3f907897 with only the controller preflight receipt when recorded",
+      "workerSelfReport": "Claude Opus 5.5; commits authored as Riku Toto via process env",
+      "submittedHead": "e91a8ddf5ffb20458fb9051566974cf26cf8c3da",
+      "implementationCommit": "8ec13f1e093ed89d5acc42c530a5b9c2eae5a61a",
+      "relayedAt": "2026-10-27T15:40:00Z",
+      "relayEvidence": "user chat 2026-10-28 ~00:40 JST: all external tasks done",
+      "acceptanceProgress": "audit clean; acceptance tree check/test/browser and both finals passed; controller nc1-nc3 killed; test --final passed; independent review: no blocker. Screenshots not yet viewed.",
+      "acceptanceNote": "docs/acceptance/wave5/controller/WATER-W5-ACCEPT-PROGRESS-20261028.md",
+      "verifiedAt": "2026-10-28",
+      "mergeCommit": "de472412",
+      "controllerReview": {
+        "report": "docs/acceptance/wave5/controller/WATER-W5-REVIEW-20261028.md",
+        "evidence": "docs/acceptance/wave5/controller/accept-20261028/h4/",
+        "summary": "fresh-tree check, test, browser finals and test --final; controller nc1 (inScope always true), nc2 (no re-read on reconnect), nc3 (stop line kept after leaving) all killed; screenshots stop-failed, confirm, history, paused, stale, done reviewed; independent review: no blocker"
+      },
+      "carryOverLater": [
+        "tests 2 and 3 still start with unmarked 10 s pageIs waits (cascading timeouts on a test-1 regression)",
+        "reconnect re-reads only the current page and at click time",
+        "loadRoute(true) can drop an in-flight normal read",
+        "going away and back before clean_prepare returns, and the cleaning-page stop, are untested",
+        "after confirming, a page switch during clean_start no longer returns to the checkup page",
+        "stale screenshot: the notice overlaps the body line (same as G7)"
+      ],
+      "acceptsTask": "WATER-W5-H4",
+      "acceptsHead": "77f33746c549a4be547612218eb79d333d9f9e0d"
+    },
+    {
+      "kind": "rust",
+      "outputRoot": "packages/junk-rules",
+      "packageName": "water-junk-rules",
+      "testTarget": "rules_v1",
+      "expectedTests": [
+        "rules_schema_strict",
+        "rules_protection_precedence",
+        "rules_resolve_plan",
+        "rules_seed_coverage"
+      ],
+      "productionFiles": [
+        "packages/junk-rules/Cargo.toml",
+        "packages/junk-rules/Cargo.lock",
+        "packages/junk-rules/README.md",
+        "packages/junk-rules/rules/windows.json"
+      ],
+      "testFiles": [
+        "packages/junk-rules/tests/rules_v1.rs"
+      ],
+      "allowedModes": [
+        "baseline",
+        "lock",
+        "check",
+        "test",
+        "archive",
+        "real",
+        "red-nc1"
+      ],
+      "expectedFinalModes": [
+        "check",
+        "test",
+        "real"
+      ],
+      "cargoCacheSource": "F:/new/smaltalk/water/.offline-cache/core/registry",
+      "realMode": "env-only",
+      "nativeModule": null,
+      "nativeWindowBudget": 0,
+      "nativeDirectoryDialogBudget": 0,
+      "browserBudget": 0,
+      "realDataPermission": "read-only metadata per ADR-018",
+      "macOS": "unverified",
+      "id": "WATER-W5-ACCEPT-INTEG3-RULES",
+      "title": "Rust 构建目录规则",
+      "slot": "w5-h5",
+      "worktree": "F:/new/smaltalk/water/.worktrees/integ-w5a",
+      "branch": "controller/integ-w5a",
+      "baseCommit": "77f33746c549a4be547612218eb79d333d9f9e0d",
+      "snapshotRef": "refs/tags/water-w5-m2-base-20261027",
+      "status": "CONTROLLER_INTEGRATION",
+      "readyOn": "2026-10-27",
+      "dispatchedAt": null,
+      "startedAt": "2026-10-27T13:34:48Z",
+      "model": "sol (user-reported); worker self-report: Codex GPT-6",
+      "modelAssignment": "user-arranged; report actual engine/model",
+      "purpose": "M2",
+      "report": "docs/dispatch/reports/WATER-W5-H5-REPORT.md",
+      "evidenceDir": "docs/acceptance/wave5/controller/integ3-20261028/rules/",
+      "allowedFiles": [
+        "docs/dispatch/reports/WATER-W5-H5-REPORT.md"
+      ],
+      "gate": "light",
+      "ticket": "docs/dispatch/tickets/WATER-W5-H5-RULES-M2-20261027.md",
+      "spec": "contracts/m2-v1/RULES-M2.md",
+      "proofTargets": {
+        "nc1": "RULES_RUST_BUILD"
+      },
+      "outputRootExists": true,
+      "modelHint": "Rules data plus validator tests; light gate.",
+      "mustRead": [
+        "docs/dispatch/W5-M2-WORKER-RULES.md",
+        "contracts/m2-v1/RULES-M2.md",
+        "contracts/checkup-v1/RULES.md",
+        "contracts/checkup-v1/MODEL.md",
+        "packages/junk-rules/rules/windows.json",
+        "packages/junk-rules/tests/rules_v1.rs"
+      ],
+      "frozenFiles": [
+        {
+          "path": "contracts/m2-v1/RULES-M2.md",
+          "sha256": "01539ba9fc4224675b465b12ffec16118913fca17d5ad6d6081a5ec26fa10c84"
+        },
+        {
+          "path": "contracts/checkup-v1/RULES.md",
+          "sha256": "11bbc3652d4e722618875e16bdca28676553fade0fb38e754316f053ce925949"
+        }
+      ],
+      "allowedPrefixes": [
+        "packages/junk-rules/",
+        "docs/acceptance/wave5/h5/",
+        "docs/acceptance/wave5/controller/integ3-20261028/rules/"
+      ],
+      "baselineStatus": "PASSED",
+      "baselineEvidence": "docs/acceptance/wave5/controller/preflight-20261027/WATER-W5-H5-2026-10-27T13-11-34.134Z-40340-baseline-result.json",
+      "dispatchReportedAt": "2026-10-27T13:36:00Z",
+      "dispatchEvidence": "user chat 2026-10-27 ~22:36 JST: H1, H2, H3 to Cursor; H5 to sol; H4 to opus; worker trees still clean at base 3f907897 with only the controller preflight receipt when recorded",
+      "startEvidence": "worker baseline receipt 2026-10-27T13-34-48.928Z in docs/acceptance/wave5/h5/receipts",
+      "blockedAt": "2026-10-27T13:42:13Z",
+      "blockedCommit": "d6c83ea92996b148a585a3d6719c6a9e8babf25c",
+      "blockedReason": "ticket line 45 froze all existing assertions, but a new rule must change two literal counts in rules_v1.rs (60 -> 61 rules, 214 -> 216 plan targets); controller ticket gap, confirmed read-only",
+      "relayedAt": "2026-10-27T15:40:00Z",
+      "addenda": [
+        {
+          "id": "WATER-W5-H5-ADDENDUM-01",
+          "ticket": "docs/dispatch/tickets/WATER-W5-H5-ADDENDUM-01-20261027.md",
+          "status": "SUBMITTED",
+          "issuedAt": "2026-10-27T13:48:00Z",
+          "resumeFromCommit": "d6c83ea92996b148a585a3d6719c6a9e8babf25c",
+          "change": "authorize exactly three old literals in rules_v1.rs: embedded rule count 60 -> 61, plan target count 214 -> 216, rules_data_version 2026-10-26.2 -> 2026-10-27.1; windows.json data_version bumped to 2026-10-27.1 (rules_version unchanged); the subset test input keeps 2026-10-26.2; new assertions as SPEC section 3 with RULES_RUST_BUILD; no baseline rerun",
+          "dispatchedAt": null,
+          "submittedHead": "c8dca495e74461d97c4509476cb017dd8f791e2e",
+          "implementationCommit": "1e3fc3b6b399d503abe0b7478a551fbf0ed011d5",
+          "dispatchEvidence": "worker commits 1e3fc3b6 (23:08 JST) after the addendum was issued; the user did not report the paste time"
+        }
+      ],
+      "workerSelfReport": "Codex GPT-6",
+      "submittedHead": "c8dca495e74461d97c4509476cb017dd8f791e2e",
+      "implementationCommit": "1e3fc3b6b399d503abe0b7478a551fbf0ed011d5",
+      "relayEvidence": "user chat 2026-10-28 ~00:40 JST: all external tasks done",
+      "acceptanceProgress": "audit clean; acceptance tree lock/check/test, check --final, real --final passed; controller nc1 (plan.rs marker depth capped at 8) killed after a rule-data mutation was refused by the gate; test --final passed; controller read the full diff. Ready to merge.",
+      "acceptanceNote": "docs/acceptance/wave5/controller/WATER-W5-ACCEPT-PROGRESS-20261028.md",
+      "verifiedAt": "2026-10-28",
+      "mergeCommit": "38d240d0",
+      "controllerReview": {
+        "report": "docs/acceptance/wave5/controller/WATER-W5-REVIEW-20261028.md",
+        "evidence": "docs/acceptance/wave5/controller/accept-20261028/h5/",
+        "summary": "fresh-tree check, test, real finals and test --final; controller nc1 in src/plan.rs (marker depth capped at 8) killed after the gate refused a rule-data-only change; full diff read against RULES-M2 and addendum 01"
+      },
+      "carryOverLater": [
+        "ticket wording allowed a rule-data negative control the gate refuses"
+      ],
+      "acceptsTask": "WATER-W5-H5",
+      "acceptsHead": "77f33746c549a4be547612218eb79d333d9f9e0d"
+    }
+  ],
+  "preflight": {
+    "evidence": "docs/acceptance/wave5/controller/preflight-20261027/",
+    "result": "controller baseline passed in all five trees at the base commit"
+  }
+}
