@@ -640,8 +640,25 @@ fn rules_resolve_plan() {
     assert_eq!(plan.targets.len(), expected);
     assert_eq!(expected, 255);
     assert_eq!(plan.plan_version, "water.scan-plan.v1");
-    assert_eq!(plan.rules_data_version, "2026-10-28.1");
+    assert_eq!(
+        plan.rules_data_version, "2026-10-28.2",
+        "RULES_M3_WORDING: plan data version"
+    );
     assert_eq!(plan.created_at, CREATED_AT);
+
+    let opencode = plan
+        .targets
+        .iter()
+        .find(|target| target.target_id == "opencode-sessions#1")
+        .expect("RULES_M3_WORDING: OpenCode database target");
+    match &opencode.match_spec {
+        MatchSpec::Pattern { segments, .. } => assert_eq!(
+            segments,
+            &[".local", "share", "opencode", "opencode.db*"],
+            "RULES_M3_WORDING: protect OpenCode database sidecars"
+        ),
+        other => panic!("RULES_M3_WORDING: expected OpenCode pattern, got {other:?}"),
+    }
 
     let claude = plan
         .targets
@@ -894,6 +911,117 @@ fn rules_resolve_plan() {
 #[test]
 fn rules_seed_coverage() {
     let rules = RuleSet::embedded();
+    for (id, expected_why) in [
+        (
+            "desktop-updater-residue",
+            "只清超过一天的更新包残留；正在使用的文件删不掉时会原样留下。",
+        ),
+        (
+            "agent-cli-old-binaries",
+            "只清超过一天、以 .old 或 .bak 结尾的备份，当前程序不在清理范围内；正在使用的备份删不掉时会原样留下。",
+        ),
+        (
+            "claude-code-old-versions",
+            "保留最新的一个版本，只清超过一天的旧版本。",
+        ),
+        (
+            "qoder-workspace-temp",
+            "无法确定这些临时文件是否还要使用，需要你确认；只清超过一天的目录。",
+        ),
+        (
+            "agent-tool-logs",
+            "只清一周以前的日志；旧日志通常可以清理，但排查过去的问题时可能用得上。",
+        ),
+    ] {
+        let rule = rules.rule(id).expect("RULES_M3_WORDING: wording rule");
+        let text = rules.text(id).expect("RULES_M3_WORDING: public wording");
+        assert_eq!(
+            rule.why_zh, expected_why,
+            "RULES_M3_WORDING: {id} rule explanation"
+        );
+        assert_eq!(
+            text.why_zh, expected_why,
+            "RULES_M3_WORDING: {id} public explanation"
+        );
+    }
+    let logs = rules
+        .rule("agent-tool-logs")
+        .expect("RULES_M3_WORDING: logs rule");
+    let logs_text = rules
+        .text("agent-tool-logs")
+        .expect("RULES_M3_WORDING: public logs text");
+    assert_eq!(
+        logs.what_zh, "各个 Agent 工具自己的运行日志。",
+        "RULES_M3_WORDING: logs description"
+    );
+    assert_eq!(
+        logs_text.what_zh, "各个 Agent 工具自己的运行日志。",
+        "RULES_M3_WORDING: public logs description"
+    );
+    for rule in rules.rules() {
+        let text = rules
+            .text(&rule.rule_id)
+            .expect("RULES_M3_WORDING: rule text");
+        for (field, value) in [
+            ("what_zh", rule.what_zh.as_str()),
+            ("why_zh", rule.why_zh.as_str()),
+            ("after_zh", rule.after_zh.as_str()),
+            ("public what_zh", text.what_zh.as_str()),
+            ("public why_zh", text.why_zh.as_str()),
+            ("public after_zh", text.after_zh.as_str()),
+        ] {
+            assert!(
+                !value.contains("只列出"),
+                "RULES_M3_WORDING: {} {field} must describe cleaning, not listing",
+                rule.rule_id
+            );
+            if rule.in_use.mode == InUseMode::None {
+                assert!(
+                    !value.contains("被占用的文件会跳过"),
+                    "RULES_M3_WORDING: {} {field} must not promise an in-use skip",
+                    rule.rule_id
+                );
+            }
+        }
+    }
+    for (id, expected_ref) in [
+        (
+            "electron-gpu-caches",
+            "2026-10-28 总控本机只读体检：应用的显卡着色器缓存目录共 41 个，约 45 MB，其中可清的 34 个。",
+        ),
+        (
+            "kimi-code-sessions",
+            "2026-10-28 总控本机只读体检：.kimi-code 的 sessions 与 file-history 共约 351 MB，受保护。",
+        ),
+        (
+            "workbuddy-memory-sessions",
+            "2026-10-28 总控本机只读核查：.workbuddy 与 .workbuddy-ai 内有 memory、sessions、plans、plugins 等目录，其中 memory 与 sessions 受保护。",
+        ),
+        (
+            "other-agent-sessions",
+            "2026-10-28 总控本机只读核查：.dsh 共约 3 MB，内有 profiles、sessions、storages 与 settings.yaml，其中 sessions 受保护。",
+        ),
+    ] {
+        let rule = rules.rule(id).expect("RULES_M3_WORDING: source rule");
+        let observations: Vec<_> = rule
+            .sources
+            .iter()
+            .filter(|source| source.kind == water_junk_rules::SourceKind::LocalObservation)
+            .collect();
+        assert_eq!(
+            observations.len(),
+            1,
+            "RULES_M3_WORDING: {id} local observation count"
+        );
+        assert_eq!(
+            observations[0].ref_text, expected_ref,
+            "RULES_M3_WORDING: {id} local observation"
+        );
+        assert_eq!(
+            observations[0].checked_on, "2026-10-28",
+            "RULES_M3_WORDING: {id} observation date"
+        );
+    }
     let expected = seed_table();
     let rust_spec = expected
         .iter()
@@ -1005,10 +1133,14 @@ fn rules_seed_coverage() {
             spec.id
         );
         assert!(rule.fix_hint_zh.is_none(), "RULES_AGENT_TOOLS: no fix hint");
+        let observation_prefix = match spec.id {
+            "electron-gpu-caches" | "kimi-code-sessions" => "2026-10-28 总控本机只读体检：",
+            _ => "2026-10-28 总控本机只读核查：",
+        };
         assert!(
             rule.sources.iter().any(|source| {
                 source.kind == water_junk_rules::SourceKind::LocalObservation
-                    && source.ref_text.starts_with("2026-10-28 总控本机只读核查：")
+                    && source.ref_text.starts_with(observation_prefix)
                     && source.checked_on == "2026-10-28"
             }),
             "RULES_AGENT_TOOLS: {} local observation",
@@ -1924,7 +2056,7 @@ fn agent_seed_table() -> Vec<SeedSpec> {
             InUseMode::None,
             Growth::Slow,
             vec![
-                p("user_profile", ".local/share/opencode/opencode.db"),
+                p("user_profile", ".local/share/opencode/opencode.db*"),
                 p("user_profile", ".local/share/opencode/snapshot"),
             ],
         ),

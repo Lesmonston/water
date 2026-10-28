@@ -1,6 +1,6 @@
 {
   "rules_version": "water.junk-rules.v1",
-  "data_version": "2026-10-28.1",
+  "data_version": "2026-10-28.2",
   "rules": [
     {
       "rule_id": "codex-marketplace-staging",
@@ -4009,7 +4009,7 @@
       },
       "growth": "slow",
       "what_zh": "桌面应用自动更新时下载的安装包，安装完成后常留在原处。",
-      "why_zh": "只清超过一天的更新包残留，正在安装或被占用的文件会跳过。",
+      "why_zh": "只清超过一天的更新包残留；正在使用的文件删不掉时会原样留下。",
       "after_zh": "应用仍可使用；以后需要这些安装包时，会重新下载。",
       "fix_hint_zh": null,
       "sources": [
@@ -4065,7 +4065,7 @@
       },
       "growth": "one_off",
       "what_zh": "命令行工具自更新后留下的旧程序备份，文件名以 .old 或 .bak 结尾。",
-      "why_zh": "只清超过一天的备份，当前在用的程序不动，被占用的文件会跳过。",
+      "why_zh": "只清超过一天、以 .old 或 .bak 结尾的备份，当前程序不在清理范围内；正在使用的备份删不掉时会原样留下。",
       "after_zh": "当前程序仍可运行；若要回到旧版本，需要重新安装。",
       "fix_hint_zh": null,
       "sources": [
@@ -4106,7 +4106,7 @@
       },
       "growth": "slow",
       "what_zh": "Claude Code 原生安装目录里并排保留的旧版本程序。",
-      "why_zh": "保留最新一个版本，正在运行的版本不动，只清超过一天的旧版本。",
+      "why_zh": "保留最新的一个版本，只清超过一天的旧版本。",
       "after_zh": "当前版本仍可使用；被清掉的旧版本需要重新安装才能使用。",
       "fix_hint_zh": null,
       "sources": [
@@ -4187,7 +4187,7 @@
       },
       "growth": "slow",
       "what_zh": "QoderWork 按工作区留下的临时目录。",
-      "why_zh": "无法确定这些临时文件是否还要使用，需要你确认，只列出超过一天的目录。",
+      "why_zh": "无法确定这些临时文件是否还要使用，需要你确认；只清超过一天的目录。",
       "after_zh": "清理后临时文件无法找回；确认工作区已不再需要它们后再清理。",
       "fix_hint_zh": null,
       "sources": [
@@ -4279,8 +4279,8 @@
         "processes": []
       },
       "growth": "slow",
-      "what_zh": "各个 Agent 工具自己的运行日志，只列出一周以前的内容。",
-      "why_zh": "旧日志通常可以清理，但排查过去的问题时可能用得上。",
+      "what_zh": "各个 Agent 工具自己的运行日志。",
+      "why_zh": "只清一周以前的日志；旧日志通常可以清理，但排查过去的问题时可能用得上。",
       "after_zh": "工具会继续写新日志；被清理的旧日志无法找回。",
       "fix_hint_zh": null,
       "sources": [
@@ -4393,7 +4393,7 @@
       "sources": [
         {
           "kind": "local_observation",
-          "ref": "2026-10-28 总控本机只读核查：Claude-3p 有标准 Electron 缓存；ai.opencode.desktop 的 Cache 为 261 MB，现有通用缓存规则已覆盖。",
+          "ref": "2026-10-28 总控本机只读体检：应用的显卡着色器缓存目录共 41 个，约 45 MB，其中可清的 34 个。",
           "checked_on": "2026-10-28"
         }
       ]
@@ -4490,7 +4490,7 @@
             ".local",
             "share",
             "opencode",
-            "opencode.db"
+            "opencode.db*"
           ]
         },
         {
@@ -4568,7 +4568,7 @@
       "sources": [
         {
           "kind": "local_observation",
-          "ref": "2026-10-28 总控本机只读核查：VERIFY 确认 .kimi-code/bin 中当前程序与旧备份并存；M3 计划记录会话与 file-history 占用 0.36 GB 以上。",
+          "ref": "2026-10-28 总控本机只读体检：.kimi-code 的 sessions 与 file-history 共约 351 MB，受保护。",
           "checked_on": "2026-10-28"
         },
         {
@@ -4674,7 +4674,7 @@
       "sources": [
         {
           "kind": "local_observation",
-          "ref": "2026-10-28 总控本机只读核查：.workbuddy 与 .workbuddy-ai 内有 memory、sessions、plans、plugins 等目录，日志以外的数据受保护或仅供参考。",
+          "ref": "2026-10-28 总控本机只读核查：.workbuddy 与 .workbuddy-ai 内有 memory、sessions、plans、plugins 等目录，其中 memory 与 sessions 受保护。",
           "checked_on": "2026-10-28"
         }
       ]
@@ -4728,7 +4728,7 @@
       "sources": [
         {
           "kind": "local_observation",
-          "ref": "2026-10-28 总控本机只读核查：.dsh 共约 3 MB，内有 profiles、sessions、storages、.agent-presets 与 settings.yaml，整体受保护。",
+          "ref": "2026-10-28 总控本机只读核查：.dsh 共约 3 MB，内有 profiles、sessions、storages 与 settings.yaml，其中 sessions 受保护。",
           "checked_on": "2026-10-28"
         },
         {
