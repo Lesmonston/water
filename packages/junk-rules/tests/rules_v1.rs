@@ -579,7 +579,47 @@ fn rules_protection_precedence() {
     .expect("root shader caches must not collide with protected profiles");
     assert_eq!(subset_set.rules().len(), 6);
     let embedded = RuleSet::embedded();
-    assert_eq!(embedded.rules().len(), 61, "seed set must load");
+    assert_eq!(embedded.rules().len(), 75, "seed set must load");
+
+    let agent_rules: Value = serde_json::from_str(include_str!("../rules/windows.json"))
+        .expect("RULES_AGENT_TOOLS: embedded JSON");
+    let agent_rule = |id: &str| {
+        agent_rules["rules"]
+            .as_array()
+            .expect("RULES_AGENT_TOOLS: rule array")
+            .iter()
+            .find(|rule| rule["rule_id"] == id)
+            .cloned()
+            .expect("RULES_AGENT_TOOLS: rule exists")
+    };
+    let siblings = RuleSet::from_json(&wrap(vec![
+        agent_rule("agent-tool-logs"),
+        agent_rule("kimi-code-sessions"),
+    ]))
+    .expect("RULES_AGENT_TOOLS: Kimi logs and protected sessions are siblings");
+    assert_eq!(
+        siblings.rules()[0].level,
+        Level::Recommended,
+        "RULES_AGENT_TOOLS: logs remain cleanable"
+    );
+    assert_eq!(
+        siblings.rules()[1].level,
+        Level::Protected,
+        "RULES_AGENT_TOOLS: sessions remain protected"
+    );
+    let mut numbered_home = sample_rule();
+    numbered_home["locate"] =
+        json!([{"kind":"pattern","base":"user_profile","segments":[".grok7"]}]);
+    let overlap = wrap(vec![numbered_home.clone(), agent_rule("grok-other-homes")]);
+    let err = RuleSet::from_json(&overlap)
+        .expect_err("RULES_AGENT_TOOLS: .grok7 is covered by protected .grok#");
+    assert_eq!(
+        err.code, "RULES_PRECEDENCE",
+        "RULES_AGENT_TOOLS: reject cleaning a protected numbered home"
+    );
+    numbered_home["locate"][0]["segments"][0] = json!(".grokx");
+    RuleSet::from_json(&wrap(vec![numbered_home, agent_rule("grok-other-homes")]))
+        .expect("RULES_AGENT_TOOLS: # requires digits, not an arbitrary suffix");
 }
 #[test]
 fn rules_resolve_plan() {
@@ -598,10 +638,30 @@ fn rules_resolve_plan() {
     let plan = resolve_plan(&rules, &folders, &custom, CREATED_AT).expect("plan");
     let expected = expected_target_count(&rules, custom.len());
     assert_eq!(plan.targets.len(), expected);
-    assert_eq!(expected, 216);
+    assert_eq!(expected, 255);
     assert_eq!(plan.plan_version, "water.scan-plan.v1");
-    assert_eq!(plan.rules_data_version, "2026-10-27.1");
+    assert_eq!(plan.rules_data_version, "2026-10-28.1");
     assert_eq!(plan.created_at, CREATED_AT);
+
+    let claude = plan
+        .targets
+        .iter()
+        .find(|target| target.rule_id == "claude-code-old-versions")
+        .expect("RULES_AGENT_TOOLS: Claude Code target");
+    assert_eq!(
+        claude.keep_newest, 1,
+        "RULES_AGENT_TOOLS: keep newest version"
+    );
+    assert_eq!(
+        claude.in_use.mode,
+        InUseMode::CmdlineReferencesItem,
+        "RULES_AGENT_TOOLS: skip running version"
+    );
+    assert_eq!(
+        claude.in_use.processes,
+        ["claude.exe"],
+        "RULES_AGENT_TOOLS: only verified Claude process"
+    );
 
     let first = &plan.targets[0];
     assert_eq!(first.target_id, "codex-marketplace-staging#1");
@@ -731,9 +791,69 @@ fn rules_resolve_plan() {
         "RULES_RUST_BUILD: custom title"
     );
     assert_eq!(
-        plan.targets.last().map(|target| target.target_id.as_str()),
-        Some("custom:beta:rust-build-dirs#1"),
+        plan.targets
+            .iter()
+            .filter(|target| target.rule_id == "rust-build-dirs")
+            .map(|target| target.target_id.as_str())
+            .collect::<Vec<_>>(),
+        [
+            "custom:alpha:rust-build-dirs#1",
+            "custom:beta:rust-build-dirs#1"
+        ],
         "RULES_RUST_BUILD: appended targets follow custom root order"
+    );
+    let beta_position = plan
+        .targets
+        .iter()
+        .position(|target| target.target_id == "custom:beta:rust-build-dirs#1")
+        .expect("RULES_AGENT_TOOLS: Rust beta position");
+    let appended = &plan.targets[beta_position + 1..];
+    assert_eq!(
+        appended.len(),
+        38,
+        "RULES_AGENT_TOOLS: appended target count"
+    );
+    let mut ordinal = 0;
+    for spec in agent_seed_table() {
+        for (index, locator) in spec.locators.iter().enumerate() {
+            let target = &appended[ordinal];
+            ordinal += 1;
+            assert_eq!(target.rule_id, spec.id, "RULES_AGENT_TOOLS: rule order");
+            assert_eq!(target.group_id, spec.id, "RULES_AGENT_TOOLS: group ID");
+            assert_eq!(
+                target.target_id,
+                format!("{}#{}", spec.id, index + 1),
+                "RULES_AGENT_TOOLS: locator order"
+            );
+            assert_eq!(target.level, spec.level, "RULES_AGENT_TOOLS: target level");
+            let (base, segments) = match &target.match_spec {
+                MatchSpec::Pattern { base, segments } => (base, segments),
+                other => panic!("RULES_AGENT_TOOLS: expected pattern, got {other:?}"),
+            };
+            let (_, expected) = locator
+                .split_once(':')
+                .expect("RULES_AGENT_TOOLS: pattern seed");
+            let (folder, path) = expected
+                .split_once(':')
+                .expect("RULES_AGENT_TOOLS: base and segments");
+            let expected_base = match folder {
+                "user_profile" => "C:\\Users\\u",
+                "local_app_data" => "C:\\Users\\u\\AppData\\Local",
+                "roaming_app_data" => "C:\\Users\\u\\AppData\\Roaming",
+                other => panic!("RULES_AGENT_TOOLS: unexpected base {other}"),
+            };
+            assert_eq!(base, expected_base, "RULES_AGENT_TOOLS: resolved base");
+            assert_eq!(
+                segments.join("/"),
+                path,
+                "RULES_AGENT_TOOLS: target segments"
+            );
+        }
+    }
+    assert_eq!(
+        plan.targets.last().map(|target| target.target_id.as_str()),
+        Some("other-agent-sessions#3"),
+        "RULES_AGENT_TOOLS: final appended target"
     );
     let no_custom_plan = resolve_plan(&rules, &folders, &[], CREATED_AT)
         .expect("RULES_RUST_BUILD: resolve without custom roots");
@@ -775,9 +895,16 @@ fn rules_resolve_plan() {
 fn rules_seed_coverage() {
     let rules = RuleSet::embedded();
     let expected = seed_table();
-    let rust_spec = expected.last().expect("RULES_RUST_BUILD: seed table row");
+    let rust_spec = expected
+        .iter()
+        .find(|spec| spec.id == "rust-build-dirs")
+        .expect("RULES_RUST_BUILD: seed table row");
     assert_eq!(rust_spec.id, "rust-build-dirs", "RULES_RUST_BUILD: seed ID");
-    let rust = rules.rules().last().expect("RULES_RUST_BUILD: last rule");
+    let rust = rules
+        .rules()
+        .iter()
+        .find(|rule| rule.rule_id == "rust-build-dirs")
+        .expect("RULES_RUST_BUILD: last rule");
     assert_eq!(
         rust.rule_id, rust_spec.id,
         "RULES_RUST_BUILD: appended rule"
@@ -813,6 +940,113 @@ fn rules_seed_coverage() {
         rust_spec.locators,
         "RULES_RUST_BUILD: locator summary"
     );
+    assert_eq!(
+        rules
+            .rules()
+            .iter()
+            .position(|rule| rule.rule_id == "rust-build-dirs"),
+        Some(60),
+        "RULES_RUST_BUILD: original rule remains 61st"
+    );
+    assert_eq!(
+        rules.rules()[61..]
+            .iter()
+            .map(|rule| rule.rule_id.as_str())
+            .collect::<Vec<_>>(),
+        AGENT_RULE_IDS,
+        "RULES_AGENT_TOOLS: appended rule order"
+    );
+    for spec in agent_seed_table() {
+        let rule = rules.rule(spec.id).expect("RULES_AGENT_TOOLS: seed exists");
+        assert_eq!(
+            rule.category, spec.category,
+            "RULES_AGENT_TOOLS: {} category",
+            spec.id
+        );
+        assert_eq!(
+            rule.level, spec.level,
+            "RULES_AGENT_TOOLS: {} level",
+            spec.id
+        );
+        assert_eq!(
+            rule.item_type, spec.item_type,
+            "RULES_AGENT_TOOLS: {} item type",
+            spec.id
+        );
+        assert_eq!(
+            rule.min_age_hours, spec.min_age_hours,
+            "RULES_AGENT_TOOLS: {} age",
+            spec.id
+        );
+        assert_eq!(
+            rule.keep_newest, spec.keep_newest,
+            "RULES_AGENT_TOOLS: {} keep newest",
+            spec.id
+        );
+        assert_eq!(
+            rule.in_use.mode, spec.in_use,
+            "RULES_AGENT_TOOLS: {} in use",
+            spec.id
+        );
+        assert_eq!(
+            rule.in_use.processes, spec.processes,
+            "RULES_AGENT_TOOLS: {} processes",
+            spec.id
+        );
+        assert_eq!(
+            rule.growth, spec.growth,
+            "RULES_AGENT_TOOLS: {} growth",
+            spec.id
+        );
+        assert_eq!(
+            locator_summary(rule),
+            spec.locators,
+            "RULES_AGENT_TOOLS: {} locators",
+            spec.id
+        );
+        assert!(rule.fix_hint_zh.is_none(), "RULES_AGENT_TOOLS: no fix hint");
+        assert!(
+            rule.sources.iter().any(|source| {
+                source.kind == water_junk_rules::SourceKind::LocalObservation
+                    && source.ref_text.starts_with("2026-10-28 总控本机只读核查：")
+                    && source.checked_on == "2026-10-28"
+            }),
+            "RULES_AGENT_TOOLS: {} local observation",
+            spec.id
+        );
+        let required_docs: &[&str] = match spec.id {
+            "desktop-updater-residue" => &[
+                "https://github.com/electron-userland/electron-builder/blob/master/packages/electron-updater/src/DownloadedUpdateHelper.ts",
+                "https://github.com/electron-userland/electron-builder/issues/8730",
+            ],
+            "agent-tool-logs" => &[
+                "https://moonshotai.github.io/kimi-code/en/configuration/data-locations.html",
+                "https://opencode.ai/docs/troubleshooting/",
+                "https://docs.github.com/en/copilot/reference/copilot-cli-reference/cli-config-dir-reference",
+            ],
+            "kimi-code-sessions" => {
+                &["https://moonshotai.github.io/kimi-code/en/configuration/data-locations.html"]
+            }
+            "kiro-sessions" => &["https://kiro.dev/docs/cli/chat/session-management/"],
+            "opencode-sessions" => &["https://opencode.ai/docs/troubleshooting/"],
+            "other-agent-sessions" => &[
+                "https://geminicli.com/docs/cli/session-management/",
+                "https://docs.github.com/en/copilot/reference/copilot-cli-reference/cli-config-dir-reference",
+            ],
+            _ => &[],
+        };
+        for required in required_docs {
+            assert!(
+                rule.sources.iter().any(|source| {
+                    source.kind == water_junk_rules::SourceKind::OfficialDoc
+                        && source.ref_text == *required
+                        && source.checked_on == "2026-10-28"
+                }),
+                "RULES_AGENT_TOOLS: {} official source {required}",
+                spec.id
+            );
+        }
+    }
     assert_eq!(rules.rules().len(), expected.len());
     for (index, spec) in expected.iter().enumerate() {
         let rule = &rules.rules()[index];
@@ -915,6 +1149,7 @@ fn processes_for(id: &str) -> Vec<&'static str> {
     };
     match id {
         "claude-desktop-old-versions" => vec!["claude.exe"],
+        "claude-code-old-versions" => vec!["claude.exe"],
         "headless-browser-profiles" => {
             vec!["chrome.exe", "msedge.exe", "chrome-headless-shell.exe"]
         }
@@ -1152,6 +1387,7 @@ fn seed_table() -> Vec<SeedSpec> {
             p("roaming_app_data", "*/GPUCache"),
             p("roaming_app_data", "*/DawnCache"),
             p("local_app_data", "*/Cache"),
+            p("local_app_data", "*/Code Cache"),
             p("local_app_data", "*/GPUCache"),
         ],
     ));
@@ -1530,7 +1766,225 @@ fn seed_table() -> Vec<SeedSpec> {
         Growth::Slow,
         vec!["marker:file:.rustc_info.json:2:65536:12".to_string()],
     ));
+    rows.extend(agent_seed_table());
     rows
+}
+
+const AGENT_RULE_IDS: [&str; 14] = [
+    "desktop-updater-residue",
+    "agent-cli-old-binaries",
+    "claude-code-old-versions",
+    "cursor-compile-cache",
+    "qoder-workspace-temp",
+    "agent-tool-logs",
+    "electron-gpu-caches",
+    "grok-other-homes",
+    "antigravity-cockpit-profiles",
+    "opencode-sessions",
+    "kimi-code-sessions",
+    "kiro-sessions",
+    "workbuddy-memory-sessions",
+    "other-agent-sessions",
+];
+
+fn agent_seed_table() -> Vec<SeedSpec> {
+    vec![
+        seed(
+            "desktop-updater-residue",
+            Category::AppLeftover,
+            Level::Recommended,
+            ItemType::Any,
+            24,
+            0,
+            InUseMode::None,
+            Growth::Slow,
+            vec![
+                p("local_app_data", "*-updater/pending"),
+                p("local_app_data", "*-updater/installer.exe"),
+            ],
+        ),
+        seed(
+            "agent-cli-old-binaries",
+            Category::AgentTool,
+            Level::Recommended,
+            ItemType::File,
+            24,
+            0,
+            InUseMode::None,
+            Growth::OneOff,
+            vec![
+                p("user_profile", ".grok/bin/*.old"),
+                p("user_profile", ".kimi-code/bin/*.bak"),
+            ],
+        ),
+        seed(
+            "claude-code-old-versions",
+            Category::AgentTool,
+            Level::Recommended,
+            ItemType::Any,
+            24,
+            1,
+            InUseMode::CmdlineReferencesItem,
+            Growth::Slow,
+            vec![p("user_profile", ".local/share/claude/versions/*")],
+        ),
+        seed(
+            "cursor-compile-cache",
+            Category::AgentTool,
+            Level::Recommended,
+            ItemType::Dir,
+            168,
+            0,
+            InUseMode::None,
+            Growth::Slow,
+            vec![p("local_app_data", "cursor-compile-cache")],
+        ),
+        seed(
+            "qoder-workspace-temp",
+            Category::AgentTool,
+            Level::Confirm,
+            ItemType::Dir,
+            24,
+            0,
+            InUseMode::None,
+            Growth::Slow,
+            vec![
+                p("user_profile", ".qoderworkcn/tmp/*"),
+                p("user_profile", ".qoderwork/tmp/*"),
+            ],
+        ),
+        seed(
+            "agent-tool-logs",
+            Category::AgentTool,
+            Level::Recommended,
+            ItemType::Any,
+            168,
+            0,
+            InUseMode::None,
+            Growth::Slow,
+            vec![
+                p("user_profile", ".kimi-code/logs/*"),
+                p("user_profile", ".local/share/opencode/log/*"),
+                p("user_profile", ".copilot/logs/*"),
+                p("user_profile", ".workbuddy*/logs/*"),
+                p("user_profile", ".qoderwork*/logs/*"),
+                p("user_profile", ".antigravity_cockpit/logs/*"),
+                p("user_profile", ".codebuddy/logs/*"),
+            ],
+        ),
+        seed(
+            "electron-gpu-caches",
+            Category::AppLeftover,
+            Level::Recommended,
+            ItemType::Dir,
+            1,
+            0,
+            InUseMode::None,
+            Growth::Slow,
+            vec![
+                p("roaming_app_data", "*/DawnGraphiteCache"),
+                p("roaming_app_data", "*/DawnWebGPUCache"),
+                p("roaming_app_data", "*/GrShaderCache"),
+                p("roaming_app_data", "*/GPUPersistentCache"),
+                p("local_app_data", "*/DawnGraphiteCache"),
+                p("local_app_data", "*/DawnWebGPUCache"),
+                p("local_app_data", "*/GrShaderCache"),
+                p("local_app_data", "*/GPUPersistentCache"),
+            ],
+        ),
+        seed(
+            "grok-other-homes",
+            Category::AgentTool,
+            Level::Protected,
+            ItemType::Dir,
+            0,
+            0,
+            InUseMode::None,
+            Growth::Slow,
+            vec![p("user_profile", ".grok#"), p("user_profile", ".grokbot")],
+        ),
+        seed(
+            "antigravity-cockpit-profiles",
+            Category::AgentTool,
+            Level::Protected,
+            ItemType::Dir,
+            0,
+            0,
+            InUseMode::None,
+            Growth::Slow,
+            vec![p("user_profile", ".antigravity_cockpit/instances")],
+        ),
+        seed(
+            "opencode-sessions",
+            Category::AgentTool,
+            Level::Protected,
+            ItemType::Any,
+            0,
+            0,
+            InUseMode::None,
+            Growth::Slow,
+            vec![
+                p("user_profile", ".local/share/opencode/opencode.db"),
+                p("user_profile", ".local/share/opencode/snapshot"),
+            ],
+        ),
+        seed(
+            "kimi-code-sessions",
+            Category::AgentTool,
+            Level::Protected,
+            ItemType::Dir,
+            0,
+            0,
+            InUseMode::None,
+            Growth::Slow,
+            vec![
+                p("user_profile", ".kimi-code/sessions"),
+                p("user_profile", ".kimi-code/file-history"),
+            ],
+        ),
+        seed(
+            "kiro-sessions",
+            Category::AgentTool,
+            Level::Protected,
+            ItemType::Dir,
+            0,
+            0,
+            InUseMode::None,
+            Growth::Slow,
+            vec![p("user_profile", ".kiro/sessions")],
+        ),
+        seed(
+            "workbuddy-memory-sessions",
+            Category::AgentTool,
+            Level::Protected,
+            ItemType::Dir,
+            0,
+            0,
+            InUseMode::None,
+            Growth::Slow,
+            vec![
+                p("user_profile", ".workbuddy*/memory"),
+                p("user_profile", ".workbuddy*/sessions"),
+                p("user_profile", ".codebuddy/sessions"),
+                p("user_profile", ".codebuddy/file-history"),
+            ],
+        ),
+        seed(
+            "other-agent-sessions",
+            Category::AgentTool,
+            Level::Protected,
+            ItemType::Dir,
+            0,
+            0,
+            InUseMode::None,
+            Growth::Slow,
+            vec![
+                p("user_profile", ".gemini/tmp/*/chats"),
+                p("user_profile", ".copilot/session-state"),
+                p("user_profile", ".dsh/sessions"),
+            ],
+        ),
+    ]
 }
 
 fn browser_seeds() -> Vec<SeedSpec> {
