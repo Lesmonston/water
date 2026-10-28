@@ -10,7 +10,7 @@ use std::{
         Arc, Mutex,
         atomic::{AtomicBool, AtomicUsize, Ordering},
     },
-    time::{Duration, SystemTime},
+    time::{Duration, Instant, SystemTime},
 };
 use water_desktop::*;
 use water_junk_rules::KnownFolders;
@@ -742,6 +742,17 @@ fn host_data_directory() {
             let dotted = PathBuf::from(&dotted_text);
             let extended = PathBuf::from(format!(r"\\?\{dotted_text}"));
             fs::create_dir(&extended).expect("HOST_DATA_JUNCTION create dotted base");
+            let ordinary = root.join("weird-name");
+            fs::create_dir(&ordinary).expect("HOST_DATA_JUNCTION create ordinary base");
+            let first = fs::canonicalize(&extended)
+                .expect("HOST_DATA_JUNCTION first canonicalization succeeds");
+            let stripped = PathBuf::from(first.to_str().unwrap().strip_prefix(r"\\?\").unwrap());
+            let second = fs::canonicalize(&stripped)
+                .expect("HOST_DATA_JUNCTION second canonicalization succeeds");
+            assert_ne!(
+                first, second,
+                "HOST_DATA_JUNCTION fixture reaches comparison with different meanings"
+            );
             let dotted_result = prepare_data_directories(None, &dotted);
             assert!(
                 dotted_result.is_err(),
@@ -752,8 +763,8 @@ fn host_data_directory() {
                 "HOST_DATA_JUNCTION dotted base stays in place"
             );
             assert!(
-                !root.join("weird-name").exists(),
-                "HOST_DATA_JUNCTION does not create the stripped directory"
+                !ordinary.join("Water").exists(),
+                "HOST_DATA_JUNCTION does not create Water in the stripped directory"
             );
             assert!(
                 prepare_data_directories(Some(&junction.join("Water")), &fallback).is_err(),
@@ -984,6 +995,17 @@ impl Backend for AnswerBackend {
 struct ScriptedClean {
     remaining: AtomicUsize,
     stops: AtomicUsize,
+    before_stop: AtomicUsize,
+}
+
+impl ScriptedClean {
+    fn new(remaining: usize) -> Self {
+        Self {
+            remaining: AtomicUsize::new(remaining),
+            stops: AtomicUsize::new(0),
+            before_stop: AtomicUsize::new(0),
+        }
+    }
 }
 
 impl Backend for ScriptedClean {
@@ -993,7 +1015,14 @@ impl Backend for ScriptedClean {
                 let busy = if self.remaining.load(Ordering::SeqCst) == 0 {
                     "idle"
                 } else {
-                    self.remaining.fetch_sub(1, Ordering::SeqCst);
+                    if self.stops.load(Ordering::SeqCst) == 0 {
+                        assert!(
+                            self.before_stop.fetch_add(1, Ordering::SeqCst) < 8,
+                            "HOST_CLOSE_DURING_CLEAN must send stop before waiting for idle"
+                        );
+                    } else {
+                        self.remaining.fetch_sub(1, Ordering::SeqCst);
+                    }
                     "cleaning"
                 };
                 Ok(json!({"busy": busy}))
@@ -1007,6 +1036,23 @@ impl Backend for ScriptedClean {
                 message_zh: "不会走到这里。".into(),
             }),
         }
+    }
+}
+
+struct UnknownClean {
+    stops: AtomicUsize,
+}
+
+impl Backend for UnknownClean {
+    fn call(&self, command: &str, _args: Value) -> Result<Value, IpcFailure> {
+        if command == "clean_stop" {
+            self.stops.fetch_add(1, Ordering::SeqCst);
+            return Ok(json!({}));
+        }
+        Err(IpcFailure {
+            code: "unavailable".into(),
+            message_zh: "测试服务无法回答。".into(),
+        })
     }
 }
 
@@ -1039,10 +1085,19 @@ fn host_service_wiring() {
         dropped.load(Ordering::SeqCst),
         "HOST_BACKEND_RELEASE dropped"
     );
-    let cleaning = ScriptedClean {
-        remaining: AtomicUsize::new(3),
-        stops: AtomicUsize::new(0),
-    };
+    let cleaning = ScriptedClean::new(3);
+    for _ in 0..2 {
+        assert_eq!(
+            cmd_app_state(&cleaning).unwrap()["busy"],
+            "cleaning",
+            "HOST_CLOSE_DURING_CLEAN no countdown before stop"
+        );
+    }
+    assert_eq!(
+        cleaning.remaining.load(Ordering::SeqCst),
+        3,
+        "HOST_CLOSE_DURING_CLEAN polling alone cannot complete cleanup"
+    );
     assert!(
         stop_cleaning_and_wait(&cleaning, Duration::from_millis(1)),
         "HOST_CLOSE_DURING_CLEAN waits out cleaning"
@@ -1057,10 +1112,7 @@ fn host_service_wiring() {
         0,
         "HOST_CLOSE_DURING_CLEAN reached idle"
     );
-    let idle = ScriptedClean {
-        remaining: AtomicUsize::new(0),
-        stops: AtomicUsize::new(0),
-    };
+    let idle = ScriptedClean::new(0);
     assert!(
         !stop_cleaning_and_wait(&idle, Duration::from_millis(1)),
         "HOST_CLOSE_DURING_CLEAN idle returns false"
@@ -1069,6 +1121,144 @@ fn host_service_wiring() {
         idle.stops.load(Ordering::SeqCst),
         0,
         "HOST_CLOSE_DURING_CLEAN idle does not stop"
+    );
+    let unknown = UnknownClean {
+        stops: AtomicUsize::new(0),
+    };
+    let started = Instant::now();
+    assert!(
+        stop_cleaning_and_wait(&unknown, Duration::from_millis(10)),
+        "HOST_CLOSE_UNKNOWN unknown state still requests stop"
+    );
+    assert_eq!(
+        unknown.stops.load(Ordering::SeqCst),
+        1,
+        "HOST_CLOSE_UNKNOWN stop requested exactly once"
+    );
+    assert!(
+        started.elapsed() >= Duration::from_secs(5) && started.elapsed() < Duration::from_secs(10),
+        "HOST_CLOSE_UNKNOWN consecutive errors wait about five seconds: {:?}",
+        started.elapsed()
+    );
+    for (reply, expected) in [
+        (Ok(json!({"busy": "cleaning"})), CleanState::Cleaning),
+        (Ok(json!({"busy": "idle"})), CleanState::NotCleaning),
+        (Ok(json!({"busy": "scanning"})), CleanState::NotCleaning),
+        (
+            UnavailableBackend.call("app_state", json!({})),
+            CleanState::Unknown,
+        ),
+    ] {
+        assert_eq!(
+            clean_state(&Recorder {
+                calls: Mutex::new(vec![]),
+                reply
+            }),
+            expected,
+            "HOST_CLOSE_UNKNOWN three-state query"
+        );
+    }
+    let cleaning = ScriptedClean::new(3);
+    assert_eq!(
+        stop_cleaning_within(&cleaning, Duration::from_millis(1), Duration::from_secs(1)),
+        CleanStop::Stopped,
+        "HOST_EXIT_DURING_CLEAN confirms stop"
+    );
+    assert_eq!(
+        cleaning.remaining.load(Ordering::SeqCst),
+        0,
+        "HOST_EXIT_DURING_CLEAN waits until idle"
+    );
+    assert_eq!(
+        cleaning.stops.load(Ordering::SeqCst),
+        1,
+        "HOST_EXIT_DURING_CLEAN stops exactly once"
+    );
+    let idle = ScriptedClean::new(0);
+    assert_eq!(
+        stop_cleaning_within(&idle, Duration::from_secs(1), Duration::ZERO),
+        CleanStop::Idle,
+        "HOST_EXIT_DURING_CLEAN idle returns immediately even with a zero limit"
+    );
+    assert_eq!(
+        idle.stops.load(Ordering::SeqCst),
+        0,
+        "HOST_EXIT_DURING_CLEAN idle never requests stop"
+    );
+    let stuck = Recorder {
+        calls: Mutex::new(vec![]),
+        reply: Ok(json!({"busy": "cleaning"})),
+    };
+    let limit = Duration::from_millis(40);
+    let started = Instant::now();
+    assert_eq!(
+        stop_cleaning_within(&stuck, Duration::from_millis(2), limit),
+        CleanStop::TimedOut,
+        "HOST_EXIT_DURING_CLEAN persistent cleaning reaches the limit"
+    );
+    assert!(
+        started.elapsed() >= limit && started.elapsed() < Duration::from_secs(1),
+        "HOST_EXIT_DURING_CLEAN enforces total wait limit: {:?}",
+        started.elapsed()
+    );
+    assert_eq!(
+        stuck
+            .calls
+            .lock()
+            .unwrap()
+            .iter()
+            .filter(|(command, _)| command == "clean_stop")
+            .count(),
+        1,
+        "HOST_EXIT_DURING_CLEAN no repeated stop while waiting"
+    );
+    let unknown = UnknownClean {
+        stops: AtomicUsize::new(0),
+    };
+    let started = Instant::now();
+    assert_eq!(
+        stop_cleaning_within(&unknown, Duration::from_secs(1), limit),
+        CleanStop::TimedOut,
+        "HOST_CLOSE_UNKNOWN bounded exit also waits on unknown state"
+    );
+    assert!(
+        started.elapsed() >= limit && started.elapsed() < Duration::from_secs(1),
+        "HOST_CLOSE_UNKNOWN total limit also caps the poll interval"
+    );
+    assert_eq!(
+        unknown.stops.load(Ordering::SeqCst),
+        1,
+        "HOST_CLOSE_UNKNOWN bounded exit stops exactly once"
+    );
+    let lib = include_str!("../src/lib.rs");
+    let callback = lib
+        .split_once("app.run_return(")
+        .expect("HOST_EXIT_DURING_CLEAN run_return callback")
+        .1
+        .split_once("});")
+        .expect("HOST_EXIT_DURING_CLEAN callback end")
+        .0;
+    let exit = callback
+        .split_once("tauri::RunEvent::Exit")
+        .expect("HOST_EXIT_DURING_CLEAN handles Exit inside callback")
+        .1;
+    assert!(
+        exit.contains("stop_cleaning_within(")
+            && exit.contains("Duration::from_millis(200)")
+            && exit.contains("Duration::from_secs(10)"),
+        "HOST_EXIT_DURING_CLEAN Exit calls bounded stop at 200 ms / 10 s"
+    );
+    let guard = lib
+        .split_once("fn guard_main_close(")
+        .expect("HOST_CLOSE_UNKNOWN close guard")
+        .1
+        .split_once("pub fn run<")
+        .expect("HOST_CLOSE_UNKNOWN guard end")
+        .0;
+    assert!(
+        guard.contains("if clean_state(backend.as_ref()) == CleanState::NotCleaning")
+            && guard.contains("stop_cleaning_and_wait("),
+        "HOST_CLOSE_UNKNOWN close guard only allows confirmed non-cleaning and uses shared wait"
     );
     let mut fixture = WiringFixture::new();
     let ctx = HostContext {

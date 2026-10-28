@@ -34,7 +34,7 @@ use std::{
         mpsc,
     },
     thread::JoinHandle,
-    time::Duration,
+    time::{Duration, Instant},
 };
 use tauri::{
     Manager, WebviewUrl, WebviewWindowBuilder,
@@ -104,23 +104,72 @@ impl Backend for BackendSlot {
     }
 }
 
-fn is_cleaning(backend: &dyn Backend) -> bool {
-    matches!(
-        backend.call("app_state", json!({})),
-        Ok(state) if state.get("busy").and_then(Value::as_str) == Some("cleaning")
-    )
+#[derive(Debug, Clone, Copy, PartialEq, Eq)]
+pub enum CleanState {
+    Cleaning,
+    NotCleaning,
+    Unknown,
+}
+
+pub fn clean_state(backend: &dyn Backend) -> CleanState {
+    match backend.call("app_state", json!({})) {
+        Ok(state) if state.get("busy").and_then(Value::as_str) == Some("cleaning") => {
+            CleanState::Cleaning
+        }
+        Ok(_) => CleanState::NotCleaning,
+        Err(_) => CleanState::Unknown,
+    }
+}
+
+#[derive(Debug, Clone, Copy, PartialEq, Eq)]
+pub enum CleanStop {
+    Idle,
+    Stopped,
+    TimedOut,
 }
 
 /// Stop an in-progress clean and wait until the service leaves that state.
+/// Consecutive unknown states end the wait after five seconds.
 pub fn stop_cleaning_and_wait(backend: &dyn Backend, poll: Duration) -> bool {
-    if !is_cleaning(backend) {
-        return false;
+    stop_cleaning(backend, poll, None) != CleanStop::Idle
+}
+
+/// Stop synchronously during exit, with an additional total waiting limit.
+pub fn stop_cleaning_within(backend: &dyn Backend, poll: Duration, limit: Duration) -> CleanStop {
+    stop_cleaning(backend, poll, Some(limit))
+}
+
+fn stop_cleaning(backend: &dyn Backend, poll: Duration, limit: Option<Duration>) -> CleanStop {
+    let initial = clean_state(backend);
+    if initial == CleanState::NotCleaning {
+        return CleanStop::Idle;
     }
+    let started = Instant::now();
+    let mut unknown_since = (initial == CleanState::Unknown).then_some(started);
     let _ = backend.call("clean_stop", json!({}));
-    while is_cleaning(backend) {
-        std::thread::sleep(poll);
+    loop {
+        let mut wait = poll;
+        match clean_state(backend) {
+            CleanState::NotCleaning => return CleanStop::Stopped,
+            CleanState::Cleaning => unknown_since = None,
+            CleanState::Unknown => {
+                let since = unknown_since.get_or_insert_with(Instant::now);
+                let remaining = Duration::from_secs(5).saturating_sub(since.elapsed());
+                if remaining.is_zero() {
+                    return CleanStop::TimedOut;
+                }
+                wait = wait.min(remaining);
+            }
+        }
+        if let Some(limit) = limit {
+            let remaining = limit.saturating_sub(started.elapsed());
+            if remaining.is_zero() {
+                return CleanStop::TimedOut;
+            }
+            wait = wait.min(remaining);
+        }
+        std::thread::sleep(wait);
     }
-    true
 }
 
 fn guard_main_close(
@@ -143,7 +192,7 @@ fn guard_main_close(
             api.prevent_close();
             return;
         }
-        if !is_cleaning(backend.as_ref()) {
+        if clean_state(backend.as_ref()) == CleanState::NotCleaning {
             return;
         }
         api.prevent_close();
@@ -274,7 +323,16 @@ where
             }
         })
         .map_err(|_| StartupError::Failed)?;
-    app.run_return(|_app, _event| {});
+    let exit_backend = Arc::clone(&slot);
+    app.run_return(move |_app, event| {
+        if let tauri::RunEvent::Exit = event {
+            let _ = stop_cleaning_within(
+                exit_backend.as_ref(),
+                Duration::from_millis(200),
+                Duration::from_secs(10),
+            );
+        }
+    });
     if let Some(handle) = cleaner
         .lock()
         .unwrap_or_else(|poisoned| poisoned.into_inner())
