@@ -1,0 +1,31 @@
+{"binary":"C:\\Users\\37310\\.rustup\\toolchains\\1.95.0-x86_64-pc-windows-msvc\\bin\\cargo.exe","args":["test","--offline","--locked","--manifest-path","packages/junk-rules/Cargo.toml","--test","rules_v1","--","--test-threads=1"],"exitCode":101,"error":null}
+--- stdout ---
+
+running 4 tests
+test rules_protection_precedence ... ok
+test rules_resolve_plan ... FAILED
+test rules_schema_strict ... ok
+test rules_seed_coverage ... ok
+
+failures:
+
+---- rules_resolve_plan stdout ----
+
+thread 'rules_resolve_plan' (24500) panicked at tests\rules_v1.rs:651:5:
+assertion `left == right` failed: RULES_AGENT_TOOLS: keep newest version
+  left: 0
+ right: 1
+note: run with `RUST_BACKTRACE=1` environment variable to display a backtrace
+
+
+failures:
+    rules_resolve_plan
+
+test result: FAILED. 3 passed; 1 failed; 0 ignored; 0 measured; 0 filtered out; finished in 0.08s
+
+
+--- stderr ---
+   Compiling water-junk-rules v0.1.0 (F:\new\smaltalk\water\.worktrees\w6-i1\packages\junk-rules)
+    Finished `test` profile [unoptimized + debuginfo] target(s) in 1.76s
+     Running tests\rules_v1.rs (.local\w2-target\debug\deps\rules_v1-55c9fa24f5632a0e.exe)
+error: test failed, to rerun pass `--test rules_v1`
