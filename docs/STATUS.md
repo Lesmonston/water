@@ -2,7 +2,7 @@
 
 更新时间：2026-10-27 22:40 JST（M1 达成；第四波 G1～G7 全部合入；release 版已构建；M2 计划已拍板，第五波五张票已派出；第 8 份交接）。
 
-更换总控请先读[最新交接报告（2026-10-28 第 9 份）](CONTROLLER-HANDOFF-20261028-9.md)；[第 8 份](CONTROLLER-HANDOFF-20261027-8.md)、[第 7 份](CONTROLLER-HANDOFF-20261027-7.md)、[第 6 份](CONTROLLER-HANDOFF-20261027-6.md)、[第 5 份](CONTROLLER-HANDOFF-20261026-5.md)、[第 4 份](CONTROLLER-HANDOFF-20261026-4.md)、[第 3 份](CONTROLLER-HANDOFF-20261026-3.md)、[第 2 份](CONTROLLER-HANDOFF-20261026-2.md)、[上午那份](CONTROLLER-HANDOFF-20261026.md)及其只读状态快照仅供追溯。M1 已达成；第四、五波已全部验收合入，打开清理的 release 版已编好，M2 只差自清理；M3 第六波三张已全部验收合入（见下文）。此前[接手验收摘要](CONTROLLER-HANDOFF-20261017.md)仅供历史追溯；当前任务状态以本页、registry/manifest及最新正式验收为准。
+更换总控请先读[最新交接报告（2026-10-28 第 9 份）](CONTROLLER-HANDOFF-20261028-9.md)；[第 8 份](CONTROLLER-HANDOFF-20261027-8.md)、[第 7 份](CONTROLLER-HANDOFF-20261027-7.md)、[第 6 份](CONTROLLER-HANDOFF-20261027-6.md)、[第 5 份](CONTROLLER-HANDOFF-20261026-5.md)、[第 4 份](CONTROLLER-HANDOFF-20261026-4.md)、[第 3 份](CONTROLLER-HANDOFF-20261026-3.md)、[第 2 份](CONTROLLER-HANDOFF-20261026-2.md)、[上午那份](CONTROLLER-HANDOFF-20261026.md)及其只读状态快照仅供追溯。M1 已达成；第四、五波已全部验收合入，打开清理的 release 版已编好，M2 只差自清理；M3 第六波三张已全部验收合入，第四次整合检查通过，含第六波的 release 版 `water-0.1.0-b62f9c5c` 已编好（见下文）。此前[接手验收摘要](CONTROLLER-HANDOFF-20261017.md)仅供历史追溯；当前任务状态以本页、registry/manifest及最新正式验收为准。
 
 ## 已确认
 
@@ -240,7 +240,11 @@ A–AB及八补单、AD保持VERIFIED；AC/补单06新增VERIFIED（Windows静�
     - I3：总控七条变异全被抓到；“正在重新连接”不出现时只有带标记的失败，没有超时，连锁超时消除。
     - I2：整机夹具闭环通过；总控新写的“清理进行中关窗”真窗口检查通过：在 64,000 个文件的夹具清理到第 10 项时请求关窗，清理被停下（`stopped`），窗口 451 ms 后才消失，退出码 0，日志完整。
     - 三份独立审查都没有高级问题；中级三条（宿主一条是总控契约缺口、界面两条边角情形）与若干低级问题记进清单 `carryOverLater`，建议整合检查后合成一张“M3 收尾”票。真窗口检查顺带发现清理页显示“第 0 / 1 组”（服务从 0 数）。
-14. **下一步**：第四次主线整合检查 → 新 release 版；自清理（M2 计划第 3.2 节）等用户电脑空出来。
+14. **第四次主线整合检查通过**（10-28 晚，主线 `b62f9c5c`，用户“Start integration”），见[整合报告](acceptance/wave6/controller/WATER-W6-INTEGRATION4-20261028.md)：
+    - 五个包全绿：D 6/6、规则 4/4、服务 6/6（真实只读体检 120 秒，识别 61.6 GB）、界面单元 3/3 与浏览器 5/5、宿主 5/5；
+    - 真窗口夹具清理闭环一次通过：1 个窗口、9 步、28.6 秒、只删合成夹具 3,145,815 字节、退出码 0。
+15. **新 release 版**：`F:/new/smaltalk/water/.local/release/water-0.1.0-b62f9c5c/water.exe`（sha256 `3f4a19c4…`，本地构建），含第六波。冒烟通过：第二个实例 39 毫秒退出，最小化的窗口 124 毫秒回到前台，关窗退出码 0。
+16. **下一步**：自清理（M2 计划第 3.2 节，用这一版）等用户电脑空出来 → M2 达成报告；第六波遗留合成“M3 收尾”票；M3 后续（体检提醒、第七波孤儿进程）。
 
 ## 真实AA→AD联合验收通过（2026-10-26）
 
