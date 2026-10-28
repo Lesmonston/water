@@ -49,12 +49,20 @@ pub struct IpcFailure {
 }
 
 pub trait Backend: Send + Sync + 'static {
+    fn available(&self) -> bool {
+        true
+    }
+
     fn call(&self, command: &str, args: Value) -> Result<Value, IpcFailure>;
 }
 
 pub struct UnavailableBackend;
 
 impl Backend for UnavailableBackend {
+    fn available(&self) -> bool {
+        false
+    }
+
     fn call(&self, _command: &str, _args: Value) -> Result<Value, IpcFailure> {
         Err(unavailable_failure())
     }
@@ -89,6 +97,17 @@ impl BackendSlot {
 }
 
 impl Backend for BackendSlot {
+    fn available(&self) -> bool {
+        let backend = {
+            let guard = self
+                .inner
+                .lock()
+                .unwrap_or_else(|poisoned| poisoned.into_inner());
+            guard.as_ref().map(Arc::clone)
+        };
+        backend.is_some_and(|backend| backend.available())
+    }
+
     fn call(&self, command: &str, args: Value) -> Result<Value, IpcFailure> {
         let backend = {
             let guard = self
@@ -112,6 +131,9 @@ pub enum CleanState {
 }
 
 pub fn clean_state(backend: &dyn Backend) -> CleanState {
+    if !backend.available() {
+        return CleanState::NotCleaning;
+    }
     match backend.call("app_state", json!({})) {
         Ok(state) if state.get("busy").and_then(Value::as_str) == Some("cleaning") => {
             CleanState::Cleaning
@@ -140,13 +162,16 @@ pub fn stop_cleaning_within(backend: &dyn Backend, poll: Duration, limit: Durati
 }
 
 fn stop_cleaning(backend: &dyn Backend, poll: Duration, limit: Option<Duration>) -> CleanStop {
+    let started = Instant::now();
     let initial = clean_state(backend);
     if initial == CleanState::NotCleaning {
         return CleanStop::Idle;
     }
-    let started = Instant::now();
-    let mut unknown_since = (initial == CleanState::Unknown).then_some(started);
+    let mut unknown_since = (initial == CleanState::Unknown).then(Instant::now);
     let _ = backend.call("clean_stop", json!({}));
+    if limit.is_some_and(|limit| started.elapsed() >= limit) {
+        return CleanStop::TimedOut;
+    }
     loop {
         let mut wait = poll;
         match clean_state(backend) {

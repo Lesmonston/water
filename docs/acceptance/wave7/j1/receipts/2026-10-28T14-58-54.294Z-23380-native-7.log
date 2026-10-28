@@ -1,0 +1,5 @@
+{"binary":"powershell.exe","args":["-NoProfile","-NonInteractive","-Command","$ErrorActionPreference=\"Stop\"; $e=[DateTime]::UtcNow.AddSeconds(5); do { $r=@(Get-CimInstance Win32_Process -Filter \"ProcessId=19884 OR ProcessId=2380 OR ProcessId=35064 OR ProcessId=40096 OR ProcessId=21952 OR ProcessId=40728\"); if($r.Count -eq 0){break}; Start-Sleep -Milliseconds 100 } while([DateTime]::UtcNow -lt $e); [ordered]@{remaining=@($r | Select-Object ProcessId,Name)} | ConvertTo-Json -Depth 4 -Compress"],"exitCode":0,"error":null}
+--- stdout ---
+{"remaining":[]}
+
+--- stderr ---
