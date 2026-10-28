@@ -2,7 +2,7 @@
 
 更新时间：2026-10-27 22:40 JST（M1 达成；第四波 G1～G7 全部合入；release 版已构建；M2 计划已拍板，第五波五张票已派出；第 8 份交接）。
 
-更换总控请先读[最新交接报告（2026-10-28 第 9 份）](CONTROLLER-HANDOFF-20261028-9.md)；[第 8 份](CONTROLLER-HANDOFF-20261027-8.md)、[第 7 份](CONTROLLER-HANDOFF-20261027-7.md)、[第 6 份](CONTROLLER-HANDOFF-20261027-6.md)、[第 5 份](CONTROLLER-HANDOFF-20261026-5.md)、[第 4 份](CONTROLLER-HANDOFF-20261026-4.md)、[第 3 份](CONTROLLER-HANDOFF-20261026-3.md)、[第 2 份](CONTROLLER-HANDOFF-20261026-2.md)、[上午那份](CONTROLLER-HANDOFF-20261026.md)及其只读状态快照仅供追溯。M1 已达成；第四、五波已全部验收合入，打开清理的 release 版已编好，M2 只差自清理；M3 第六波三张已全部验收合入，第四次整合检查通过，含第六波的 release 版 `water-0.1.0-b62f9c5c` 已编好（见下文）。此前[接手验收摘要](CONTROLLER-HANDOFF-20261017.md)仅供历史追溯；当前任务状态以本页、registry/manifest及最新正式验收为准。
+更换总控请先读[最新交接报告（2026-10-28 第 9 份）](CONTROLLER-HANDOFF-20261028-9.md)；[第 8 份](CONTROLLER-HANDOFF-20261027-8.md)、[第 7 份](CONTROLLER-HANDOFF-20261027-7.md)、[第 6 份](CONTROLLER-HANDOFF-20261027-6.md)、[第 5 份](CONTROLLER-HANDOFF-20261026-5.md)、[第 4 份](CONTROLLER-HANDOFF-20261026-4.md)、[第 3 份](CONTROLLER-HANDOFF-20261026-3.md)、[第 2 份](CONTROLLER-HANDOFF-20261026-2.md)、[上午那份](CONTROLLER-HANDOFF-20261026.md)及其只读状态快照仅供追溯。M1 已达成；第四、五波已全部验收合入，打开清理的 release 版已编好，M2 只差自清理；M3 第六波三张已全部验收合入，第四次整合检查通过，含第六波的 release 版 `water-0.1.0-b62f9c5c` 已编好；第七波（M3 收尾）四张票 READY（见下文）。此前[接手验收摘要](CONTROLLER-HANDOFF-20261017.md)仅供历史追溯；当前任务状态以本页、registry/manifest及最新正式验收为准。
 
 ## 已确认
 
@@ -244,7 +244,17 @@ A–AB及八补单、AD保持VERIFIED；AC/补单06新增VERIFIED（Windows静�
     - 五个包全绿：D 6/6、规则 4/4、服务 6/6（真实只读体检 120 秒，识别 61.6 GB）、界面单元 3/3 与浏览器 5/5、宿主 5/5；
     - 真窗口夹具清理闭环一次通过：1 个窗口、9 步、28.6 秒、只删合成夹具 3,145,815 字节、退出码 0。
 15. **新 release 版**：`F:/new/smaltalk/water/.local/release/water-0.1.0-b62f9c5c/water.exe`（sha256 `3f4a19c4…`，本地构建），含第六波。冒烟通过：第二个实例 39 毫秒退出，最小化的窗口 124 毫秒回到前台，关窗退出码 0。
-16. **下一步**：自清理（M2 计划第 3.2 节，用这一版）等用户电脑空出来 → M2 达成报告；第六波遗留合成“M3 收尾”票；M3 后续（体检提醒、第七波孤儿进程）。
+16. **第七波（M3 收尾）四张票 READY**（10-28 晚，用户“先做M3的收尾吧”），见[第七波计划](dispatch/wave7/PLAN.md)与[清单](dispatch/wave7/manifest.json)。基点 `28287695`（标签 `water-w7-m3-fix-base-20261028`）：
+
+    | 单号 | 改哪里 | 门 |
+    |---|---|---|
+    | [WATER-W7-J1 宿主补遗](dispatch/tickets/WATER-W7-J1-HOST-FIX-20261028.md) | `apps/water/host` | 重门，夹具清理闭环 1 个窗口 |
+    | [WATER-W7-J2 界面补遗](dispatch/tickets/WATER-W7-J2-UI-FIX-20261028.md) | `apps/water/ui` | 轻门，界面票 |
+    | [WATER-W7-J3 服务补遗](dispatch/tickets/WATER-W7-J3-SERVICE-FIX-20261028.md) | `packages/water-service` | 轻门，final 含只读真实体检 |
+    | [WATER-W7-J4 规则措辞与出处](dispatch/tickets/WATER-W7-J4-RULES-FIX-20261028.md) | `packages/junk-rules` | 轻门 |
+
+    契约 `contracts/m3-v1/*-M3-FIX.md`；执行者规则 [W7-M3-FIX-WORKER-RULES](dispatch/W7-M3-FIX-WORKER-RULES.md)。派前：两个检查器认第七波清单，四棵树派前 baseline 都通过。清理执行器的几条低级遗留不在这一波（计划里写了理由）。孤儿进程顺延到第八波。
+17. **下一步**：用户派第七波；自清理（M2 计划第 3.2 节，用 `water-0.1.0-b62f9c5c`）等用户电脑空出来 → M2 达成报告；M3 后续（体检提醒与“几天后满”、第八波孤儿进程）。
 
 ## 真实AA→AD联合验收通过（2026-10-26）
 
