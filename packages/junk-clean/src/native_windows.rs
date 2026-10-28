@@ -777,7 +777,8 @@ mod windows {
     }
 
     // Record one enumerated object on the snapshot. Returns true when the caller should open
-    // that directory and walk its children. Invalid UTF-16 names are stored but never opened.
+    // that directory and walk its children. Invalid UTF-16 files/links are stored but never
+    // opened; invalid-name non-reparse directories reject the item to avoid an incomplete tree.
     fn consider_entry(
         raw: &Raw,
         rel: String,
@@ -816,6 +817,11 @@ mod windows {
             });
             Ok(false)
         } else if raw.attr & DIRECTORY != 0 {
+            if !raw.name_ok {
+                // A hidden subtree could contain a veto (age, reparse kind, guard/protection).
+                // Without raw-name opens, skip the whole item before deleting anything.
+                return Err(SkipReason::Changed);
+            }
             snap.entries.push(Entry {
                 rel,
                 file_id: raw.file_id,
@@ -825,7 +831,7 @@ mod windows {
                 attr: raw.attr,
                 name_ok: raw.name_ok,
             });
-            Ok(raw.name_ok)
+            Ok(true)
         } else {
             snap.bytes = snap
                 .bytes

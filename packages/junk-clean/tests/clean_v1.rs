@@ -1403,6 +1403,49 @@ fn clean_handle_hardening() {
         fs::symlink_metadata(&valid).is_err(),
         "CLEAN_UNPAIRED_NAME: valid name collided with an unpaired-name snapshot key"
     );
+
+    // An invalid-name non-reparse directory cannot be snapshotted completely without raw
+    // UTF-16 opens. Reject the whole item before deleting any sibling or descendant.
+    let udroot = fixture.dir("unpaired-dir/root");
+    let uditem = fixture.dir("unpaired-dir/root/item");
+    let sibling = fixture.file("unpaired-dir/root/item/ok", b"keep-sibling");
+    let unpaired_dir = extended(&uditem).join(OsString::from_wide(&[0xD800, u16::from(b'd')]));
+    fs::create_dir(&unpaired_dir).expect("CLEAN_UNPAIRED_NAME: create unpaired-name directory");
+    let child = unpaired_dir.join("inside");
+    fs::write(&child, b"keep-child").expect("CLEAN_UNPAIRED_NAME: create directory child");
+    let report = run(&parse(plan_value(vec![item(
+        &udroot,
+        &uditem,
+        "unpaired-dir",
+    )])));
+    assert_eq!(
+        report.items[0].status,
+        ItemStatus::Skipped,
+        "CLEAN_UNPAIRED_NAME: incomplete directory snapshot did not skip the whole item"
+    );
+    assert_eq!(
+        report.items[0].skip_reason,
+        Some(SkipReason::Changed),
+        "CLEAN_UNPAIRED_NAME: incomplete directory snapshot did not report changed"
+    );
+    assert_eq!(
+        report.items[0].bytes_freed, "0",
+        "CLEAN_UNPAIRED_NAME: bytes freed from an item with an incomplete directory snapshot"
+    );
+    assert_eq!(
+        fs::read(&sibling).ok().as_deref(),
+        Some(b"keep-sibling".as_slice()),
+        "CLEAN_UNPAIRED_NAME: sibling of an unpaired-name directory was modified"
+    );
+    assert!(
+        fs::symlink_metadata(&unpaired_dir).is_ok_and(|m| m.is_dir()),
+        "CLEAN_UNPAIRED_NAME: unpaired-name directory was removed"
+    );
+    assert_eq!(
+        fs::read(&child).ok().as_deref(),
+        Some(b"keep-child".as_slice()),
+        "CLEAN_UNPAIRED_NAME: child of an unpaired-name directory was modified"
+    );
 }
 
 fn unpaired_child(dir: &Path, name_units: &[u16], data: &[u8]) -> PathBuf {
