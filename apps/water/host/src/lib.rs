@@ -1,4 +1,4 @@
-//! Water desktop host wired to the service with cleanup disabled for M1.
+//! Water desktop host. The process owns the service slot and cleanup is enabled.
 #![forbid(unsafe_code)]
 
 mod commands;
@@ -20,15 +20,20 @@ pub use service::{
     service_config,
 };
 pub use startup::{
-    HostContext, InstanceLock, StartupError, acquire_instance_lock, signal_activation,
-    take_activation,
+    HostContext, InstanceLock, StartupError, acquire_instance_lock, on_lock_result,
+    signal_activation, take_activation,
 };
 
 use serde::Serialize;
-use serde_json::Value;
+use serde_json::{Value, json};
 use std::{
     path::PathBuf,
-    sync::{Arc, mpsc},
+    sync::{
+        Arc, Mutex,
+        atomic::{AtomicBool, Ordering},
+        mpsc,
+    },
+    thread::JoinHandle,
     time::Duration,
 };
 use tauri::{
@@ -51,11 +56,123 @@ pub struct UnavailableBackend;
 
 impl Backend for UnavailableBackend {
     fn call(&self, _command: &str, _args: Value) -> Result<Value, IpcFailure> {
-        Err(IpcFailure {
-            code: "unavailable".into(),
-            message_zh: "Water 服务暂时不可用。".into(),
-        })
+        Err(unavailable_failure())
     }
+}
+
+fn unavailable_failure() -> IpcFailure {
+    IpcFailure {
+        code: "unavailable".into(),
+        message_zh: "Water 服务暂时不可用。".into(),
+    }
+}
+
+/// Forwards commands while the host, not Tauri's state map, owns the service.
+pub struct BackendSlot {
+    inner: Mutex<Option<Arc<dyn Backend>>>,
+}
+
+impl BackendSlot {
+    pub fn new(backend: Arc<dyn Backend>) -> Self {
+        Self {
+            inner: Mutex::new(Some(backend)),
+        }
+    }
+
+    pub fn take(&self) -> Option<Arc<dyn Backend>> {
+        let mut guard = self
+            .inner
+            .lock()
+            .unwrap_or_else(|poisoned| poisoned.into_inner());
+        guard.take()
+    }
+}
+
+impl Backend for BackendSlot {
+    fn call(&self, command: &str, args: Value) -> Result<Value, IpcFailure> {
+        let backend = {
+            let guard = self
+                .inner
+                .lock()
+                .unwrap_or_else(|poisoned| poisoned.into_inner());
+            guard.as_ref().map(Arc::clone)
+        };
+        match backend {
+            Some(backend) => backend.call(command, args),
+            None => UnavailableBackend.call(command, args),
+        }
+    }
+}
+
+fn is_cleaning(backend: &dyn Backend) -> bool {
+    matches!(
+        backend.call("app_state", json!({})),
+        Ok(state) if state.get("busy").and_then(Value::as_str) == Some("cleaning")
+    )
+}
+
+/// Stop an in-progress clean and wait until the service leaves that state.
+pub fn stop_cleaning_and_wait(backend: &dyn Backend, poll: Duration) -> bool {
+    if !is_cleaning(backend) {
+        return false;
+    }
+    let _ = backend.call("clean_stop", json!({}));
+    while is_cleaning(backend) {
+        std::thread::sleep(poll);
+    }
+    true
+}
+
+fn guard_main_close(
+    window: &tauri::WebviewWindow,
+    backend: Arc<dyn Backend>,
+    cleaner: &Arc<Mutex<Option<JoinHandle<()>>>>,
+) {
+    let closing = Arc::new(AtomicBool::new(false));
+    let allow_close = Arc::new(AtomicBool::new(false));
+    let main = window.clone();
+    let cleaner = Arc::clone(cleaner);
+    window.on_window_event(move |event| {
+        let tauri::WindowEvent::CloseRequested { api, .. } = event else {
+            return;
+        };
+        if allow_close.load(Ordering::Acquire) {
+            return;
+        }
+        if closing.load(Ordering::Acquire) {
+            api.prevent_close();
+            return;
+        }
+        if !is_cleaning(backend.as_ref()) {
+            return;
+        }
+        api.prevent_close();
+        if closing.swap(true, Ordering::AcqRel) {
+            return;
+        }
+        let backend = Arc::clone(&backend);
+        let allow_close = Arc::clone(&allow_close);
+        let main = main.clone();
+        let cleaner = Arc::clone(&cleaner);
+        let spawned = std::thread::Builder::new()
+            .name("water-clean-stop".into())
+            .spawn(move || {
+                let _ = stop_cleaning_and_wait(backend.as_ref(), Duration::from_millis(200));
+                allow_close.store(true, Ordering::Release);
+                let posted = main.clone();
+                let _ = main.run_on_main_thread(move || {
+                    let _ = posted.close();
+                });
+            });
+        match spawned {
+            Ok(handle) => {
+                if let Ok(mut slot) = cleaner.lock() {
+                    *slot = Some(handle);
+                }
+            }
+            Err(_) => closing.store(false, Ordering::Release),
+        }
+    });
 }
 
 /// Prepare the private service and window before entering the event loop.
@@ -96,14 +213,11 @@ where
     };
     let directories = prepare_data_directories(override_dir.as_deref(), &fallback)
         .map_err(|_| StartupError::Failed)?;
-    let instance_lock = match acquire_instance_lock(&directories.data) {
-        Ok(lock) => lock,
-        Err(StartupError::AlreadyRunning) => {
-            signal_activation(&directories.data)?;
-            return Ok(());
-        }
-        Err(error) => return Err(error),
-    };
+    let instance_lock =
+        match on_lock_result(acquire_instance_lock(&directories.data), &directories.data)? {
+            Some(lock) => lock,
+            None => return Ok(()),
+        };
     let home_dir = app
         .path()
         .home_dir()
@@ -118,7 +232,9 @@ where
             home_dir,
         },
     );
-    if !app.manage(backend) {
+    let slot = Arc::new(BackendSlot::new(backend));
+    let managed: Arc<dyn Backend> = slot.clone();
+    if !app.manage(Arc::clone(&managed)) {
         return Err(StartupError::Failed);
     }
     let window = WebviewWindowBuilder::new(&app, "main", WebviewUrl::App("index.html".into()))
@@ -138,6 +254,8 @@ where
         .on_permission_request(|_webview, _kind| PermissionResponse::Deny)
         .build()
         .map_err(|_| StartupError::Failed)?;
+    let cleaner = Arc::new(Mutex::new(None));
+    guard_main_close(&window, managed, &cleaner);
     let (stop, stopped) = mpsc::channel();
     let activation = std::thread::Builder::new()
         .name("water-activation".into())
@@ -157,6 +275,14 @@ where
         })
         .map_err(|_| StartupError::Failed)?;
     app.run_return(|_app, _event| {});
+    if let Some(handle) = cleaner
+        .lock()
+        .unwrap_or_else(|poisoned| poisoned.into_inner())
+        .take()
+    {
+        let _ = handle.join();
+    }
+    drop(slot.take());
     let _ = stop.send(());
     let _ = activation.join();
     drop(instance_lock);

@@ -51,6 +51,21 @@ pub fn acquire_instance_lock(data_dir: &Path) -> Result<InstanceLock, StartupErr
         })
 }
 
+/// Turn a lock attempt into either the held lock, a signal to the running instance, or the original error.
+pub fn on_lock_result(
+    result: Result<InstanceLock, StartupError>,
+    data_dir: &Path,
+) -> Result<Option<InstanceLock>, StartupError> {
+    match result {
+        Ok(lock) => Ok(Some(lock)),
+        Err(StartupError::AlreadyRunning) => {
+            signal_activation(data_dir)?;
+            Ok(None)
+        }
+        Err(error) => Err(error),
+    }
+}
+
 fn plain_signal(metadata: &Metadata) -> bool {
     if !metadata.is_file() || metadata.file_type().is_symlink() {
         return false;
@@ -87,7 +102,7 @@ pub fn signal_activation(data_dir: &Path) -> Result<(), StartupError> {
     if !plain_signal(&file.metadata().map_err(|_| StartupError::Failed)?) {
         return Err(StartupError::Failed);
     }
-    file.set_len(0).map_err(|_| StartupError::Failed)?;
+    // Touch the mtime only. Truncating would empty a hard link planted in a writable data directory.
     file.set_modified(SystemTime::now())
         .map_err(|_| StartupError::Failed)
 }

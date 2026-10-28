@@ -6,7 +6,11 @@ use std::{
     fs,
     hash::BuildHasher,
     path::{Path, PathBuf},
-    sync::{Arc, Mutex},
+    sync::{
+        Arc, Mutex,
+        atomic::{AtomicBool, AtomicUsize, Ordering},
+    },
+    time::{Duration, SystemTime},
 };
 use water_desktop::*;
 use water_junk_rules::KnownFolders;
@@ -535,6 +539,44 @@ fn host_data_directory() {
             0,
             "HOST_SINGLE_INSTANCE lock remains empty"
         );
+        let wiring = root.join("run-wiring");
+        fs::create_dir(&wiring).unwrap();
+        let held = on_lock_result(acquire_instance_lock(&wiring), &wiring)
+            .expect("HOST_RUN_WIRING acquired lock");
+        assert!(held.is_some(), "HOST_RUN_WIRING keeps the lock");
+        drop(held);
+        assert!(
+            !wiring.join("activate.signal").exists(),
+            "HOST_RUN_WIRING acquired lock writes no signal"
+        );
+        assert!(
+            matches!(
+                on_lock_result(Err(StartupError::AlreadyRunning), &wiring),
+                Ok(None)
+            ),
+            "HOST_RUN_WIRING already running returns none"
+        );
+        let signaled =
+            fs::read(wiring.join("activate.signal")).expect("HOST_RUN_WIRING signal exists");
+        assert!(signaled.is_empty(), "HOST_RUN_WIRING new signal is empty");
+        assert!(
+            matches!(
+                on_lock_result(Err(StartupError::Failed), &wiring),
+                Err(StartupError::Failed)
+            ),
+            "HOST_RUN_WIRING other error unchanged"
+        );
+        assert_eq!(
+            fs::read(wiring.join("activate.signal")).unwrap(),
+            signaled,
+            "HOST_RUN_WIRING other error leaves signal"
+        );
+        let lib =
+            fs::read_to_string(Path::new(env!("CARGO_MANIFEST_DIR")).join("src/lib.rs")).unwrap();
+        assert!(
+            lib.contains("on_lock_result("),
+            "HOST_RUN_WIRING run uses on_lock_result"
+        );
         assert!(
             !take_activation(&default.data),
             "HOST_SINGLE_INSTANCE no signal"
@@ -559,15 +601,32 @@ fn host_data_directory() {
             "HOST_SINGLE_INSTANCE consume once"
         );
         fs::write(&signal, b"synthetic stale signal").unwrap();
-        signal_activation(&default.data).expect("HOST_SINGLE_INSTANCE replace with empty signal");
+        let stale = fs::read(&signal).unwrap();
+        let past = SystemTime::now() - Duration::from_secs(86_400);
+        fs::OpenOptions::new()
+            .write(true)
+            .open(&signal)
+            .unwrap()
+            .set_modified(past)
+            .unwrap();
+        signal_activation(&default.data).expect("HOST_SINGLE_INSTANCE refresh signal time");
+        assert_eq!(
+            fs::read(&signal).unwrap(),
+            stale,
+            "HOST_SINGLE_INSTANCE signal content unchanged"
+        );
         assert_eq!(
             fs::metadata(&signal).unwrap().len(),
-            0,
-            "HOST_SINGLE_INSTANCE resets signal"
+            stale.len() as u64,
+            "HOST_SINGLE_INSTANCE signal length unchanged"
+        );
+        assert!(
+            fs::metadata(&signal).unwrap().modified().unwrap() > past,
+            "HOST_SINGLE_INSTANCE signal time updated"
         );
         assert!(
             take_activation(&default.data),
-            "HOST_SINGLE_INSTANCE consume updated signal"
+            "HOST_SINGLE_INSTANCE consume preserved signal"
         );
         fs::create_dir(&signal).unwrap();
         assert!(
@@ -675,6 +734,27 @@ fn host_data_directory() {
                 !resolved.data.to_str().unwrap().starts_with(r"\\?\"),
                 "HOST_DATA_JUNCTION removes verbatim prefix"
             );
+            // The fixture root keeps the slash from `.local/w3-f3-fixtures`; `\\?\` rejects it.
+            let dotted_text = root
+                .join("weird-name.")
+                .to_string_lossy()
+                .replace('/', "\\");
+            let dotted = PathBuf::from(&dotted_text);
+            let extended = PathBuf::from(format!(r"\\?\{dotted_text}"));
+            fs::create_dir(&extended).expect("HOST_DATA_JUNCTION create dotted base");
+            let dotted_result = prepare_data_directories(None, &dotted);
+            assert!(
+                dotted_result.is_err(),
+                "HOST_DATA_JUNCTION rejects a base that changes without the verbatim prefix: {dotted_result:?}"
+            );
+            assert!(
+                fs::symlink_metadata(&extended).is_ok(),
+                "HOST_DATA_JUNCTION dotted base stays in place"
+            );
+            assert!(
+                !root.join("weird-name").exists(),
+                "HOST_DATA_JUNCTION does not create the stripped directory"
+            );
             assert!(
                 prepare_data_directories(Some(&junction.join("Water")), &fallback).is_err(),
                 "HOST_DATA_JUNCTION override through junction remains rejected"
@@ -745,6 +825,14 @@ fn host_data_directory() {
     );
     for ancestor in root.ancestors() {
         plain_directory(ancestor);
+    }
+    #[cfg(windows)]
+    {
+        let dotted_text = root
+            .join("weird-name.")
+            .to_string_lossy()
+            .replace('/', "\\");
+        let _ = fs::remove_dir_all(PathBuf::from(format!(r"\\?\{dotted_text}")));
     }
     for link in [&signal, &linked_webview, &linked_water, &junction] {
         if let Ok(metadata) = fs::symlink_metadata(link) {
@@ -874,8 +962,114 @@ impl Platform for SyntheticPlatform {
     }
 }
 
+struct ReleaseMark(Arc<AtomicBool>);
+
+impl Drop for ReleaseMark {
+    fn drop(&mut self) {
+        self.0.store(true, Ordering::SeqCst);
+    }
+}
+
+struct AnswerBackend {
+    _mark: ReleaseMark,
+    answer: Value,
+}
+
+impl Backend for AnswerBackend {
+    fn call(&self, _command: &str, _args: Value) -> Result<Value, IpcFailure> {
+        Ok(self.answer.clone())
+    }
+}
+
+struct ScriptedClean {
+    remaining: AtomicUsize,
+    stops: AtomicUsize,
+}
+
+impl Backend for ScriptedClean {
+    fn call(&self, command: &str, _args: Value) -> Result<Value, IpcFailure> {
+        match command {
+            "app_state" => {
+                let busy = if self.remaining.load(Ordering::SeqCst) == 0 {
+                    "idle"
+                } else {
+                    self.remaining.fetch_sub(1, Ordering::SeqCst);
+                    "cleaning"
+                };
+                Ok(json!({"busy": busy}))
+            }
+            "clean_stop" => {
+                self.stops.fetch_add(1, Ordering::SeqCst);
+                Ok(json!({}))
+            }
+            _ => Err(IpcFailure {
+                code: "invalid".into(),
+                message_zh: "不会走到这里。".into(),
+            }),
+        }
+    }
+}
+
 #[test]
 fn host_service_wiring() {
+    let dropped = Arc::new(AtomicBool::new(false));
+    let answer = json!({"ready": true});
+    let slot = BackendSlot::new(Arc::new(AnswerBackend {
+        _mark: ReleaseMark(Arc::clone(&dropped)),
+        answer: answer.clone(),
+    }));
+    assert_eq!(
+        cmd_app_state(&slot).unwrap(),
+        answer,
+        "HOST_BACKEND_RELEASE forwards"
+    );
+    let taken = slot.take().expect("HOST_BACKEND_RELEASE take");
+    let released = cmd_clean_stop(&slot).expect_err("HOST_BACKEND_RELEASE unavailable after take");
+    assert_eq!(
+        serde_json::to_value(released).unwrap(),
+        json!({"code": "unavailable", "message_zh": "Water 服务暂时不可用。"}),
+        "HOST_BACKEND_RELEASE unavailable value"
+    );
+    assert!(
+        !dropped.load(Ordering::SeqCst),
+        "HOST_BACKEND_RELEASE held until drop"
+    );
+    drop(taken);
+    assert!(
+        dropped.load(Ordering::SeqCst),
+        "HOST_BACKEND_RELEASE dropped"
+    );
+    let cleaning = ScriptedClean {
+        remaining: AtomicUsize::new(3),
+        stops: AtomicUsize::new(0),
+    };
+    assert!(
+        stop_cleaning_and_wait(&cleaning, Duration::from_millis(1)),
+        "HOST_CLOSE_DURING_CLEAN waits out cleaning"
+    );
+    assert_eq!(
+        cleaning.stops.load(Ordering::SeqCst),
+        1,
+        "HOST_CLOSE_DURING_CLEAN stops once"
+    );
+    assert_eq!(
+        cleaning.remaining.load(Ordering::SeqCst),
+        0,
+        "HOST_CLOSE_DURING_CLEAN reached idle"
+    );
+    let idle = ScriptedClean {
+        remaining: AtomicUsize::new(0),
+        stops: AtomicUsize::new(0),
+    };
+    assert!(
+        !stop_cleaning_and_wait(&idle, Duration::from_millis(1)),
+        "HOST_CLOSE_DURING_CLEAN idle returns false"
+    );
+    assert_eq!(
+        idle.stops.load(Ordering::SeqCst),
+        0,
+        "HOST_CLOSE_DURING_CLEAN idle does not stop"
+    );
     let mut fixture = WiringFixture::new();
     let ctx = HostContext {
         data_dir: fixture.root.join("data"),
@@ -892,15 +1086,14 @@ fn host_service_wiring() {
         "idle",
         "HOST_BACKEND_DIRECT ready"
     );
-    assert!(
-        !config.clean_enabled,
-        "HOST_BACKEND_DIRECT cleanup remains disabled"
-    );
-    assert_eq!(
+    assert!(config.clean_enabled, "HOST_CLEAN_ENABLED production config");
+    let cleanup_closed =
+        json!({"code": "unavailable", "message_zh": "这一版只做体检，清理功能会在下一版开放。"});
+    assert_ne!(
         serde_json::to_value(cmd_clean_prepare(direct.as_ref(), vec!["g1".into()]).unwrap_err())
             .unwrap(),
-        json!({"code": "unavailable", "message_zh": "这一版只做体检，清理功能会在下一版开放。"}),
-        "HOST_BACKEND_DIRECT production backend keeps cleanup disabled"
+        cleanup_closed,
+        "HOST_CLEAN_ENABLED production backend opens cleanup"
     );
     let unavailable =
         std::panic::catch_unwind(|| backend_or_unavailable(|_| Err(StartupError::Failed), &ctx))
@@ -935,10 +1128,7 @@ fn host_service_wiring() {
         json!({"synthetic": true}),
         "HOST_STARTUP_VISIBLE success remains callable"
     );
-    assert!(
-        !config.clean_enabled,
-        "HOST_CLEAN_DISABLED production config"
-    );
+    assert!(config.clean_enabled, "HOST_CLEAN_ENABLED production config");
     assert_eq!(
         config.data_dir, ctx.data_dir,
         "HOST_WIRING production data directory"
@@ -965,10 +1155,10 @@ fn host_service_wiring() {
     let state = cmd_app_state(&backend).expect("HOST_WIRING app_state");
     assert_eq!(state["busy"], "idle", "HOST_WIRING idle service");
     assert_eq!(state, raw_state, "HOST_WIRING success passes through");
-    assert_eq!(
+    assert_ne!(
         serde_json::to_value(cmd_clean_prepare(&backend, vec!["g1".into()]).unwrap_err()).unwrap(),
         json!({"code": "unavailable", "message_zh": "这一版只做体检，清理功能会在下一版开放。"}),
-        "HOST_CLEAN_DISABLED exact failure"
+        "HOST_CLEAN_ENABLED exact failure"
     );
     let invalid = serde_json::to_value(backend.call("unknown", json!({})).unwrap_err()).unwrap();
     assert_eq!(invalid["code"], "invalid", "HOST_WIRING unknown command");

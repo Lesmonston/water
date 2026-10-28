@@ -91,29 +91,49 @@ pub fn prepare_data_directories(
     Ok(DataDirectories { data, webview })
 }
 
+fn extended_disk(path: &Path) -> Result<PathBuf, DataDirectoryError> {
+    let text = path.to_str().ok_or(DataDirectoryError)?.replace('/', "\\");
+    if text.starts_with(r"\\") {
+        return Err(DataDirectoryError);
+    }
+    Ok(PathBuf::from(format!(r"\\?\{text}")))
+}
+
+fn strip_verbatim_prefix(path: &Path) -> Result<PathBuf, DataDirectoryError> {
+    let text = path.to_str().ok_or(DataDirectoryError)?;
+    let local = if let Some(stripped) = text.strip_prefix(r"\\?\") {
+        if stripped.starts_with(r"UNC\") || stripped.as_bytes().get(1) != Some(&b':') {
+            return Err(DataDirectoryError);
+        }
+        PathBuf::from(stripped)
+    } else {
+        path.to_path_buf()
+    };
+    validate_path(&local)?;
+    Ok(local)
+}
+
+fn canonicalize_base(path: &Path) -> Result<PathBuf, DataDirectoryError> {
+    // The extended form keeps trailing dots, spaces, and reserved names visible to the check below.
+    if let Ok(extended) = extended_disk(path)
+        && let Ok(canonical) = fs::canonicalize(&extended)
+    {
+        return Ok(canonical);
+    }
+    if !path.try_exists().map_err(|_| DataDirectoryError)? {
+        ensure_directory(path)?;
+    }
+    fs::canonicalize(path).map_err(|_| DataDirectoryError)
+}
+
 fn resolve_default_base(local_data_dir: &Path) -> Result<PathBuf, DataDirectoryError> {
     validate_path(local_data_dir)?;
-    if !local_data_dir
-        .try_exists()
-        .map_err(|_| DataDirectoryError)?
-    {
-        ensure_directory(local_data_dir)?;
+    let resolved = canonicalize_base(local_data_dir)?;
+    let stripped = strip_verbatim_prefix(&resolved)?;
+    let again = fs::canonicalize(&stripped).map_err(|_| DataDirectoryError)?;
+    let stripped_again = strip_verbatim_prefix(&again)?;
+    if stripped != stripped_again {
+        return Err(DataDirectoryError);
     }
-    let resolved = fs::canonicalize(local_data_dir).map_err(|_| DataDirectoryError)?;
-    #[cfg(windows)]
-    let resolved = match resolved.components().next() {
-        Some(Component::Prefix(prefix)) => match prefix.kind() {
-            std::path::Prefix::VerbatimDisk(drive) => {
-                let mut local = PathBuf::from(format!("{}:", char::from(drive)));
-                for component in resolved.components().skip(1) {
-                    local.push(component.as_os_str());
-                }
-                local
-            }
-            _ => resolved,
-        },
-        _ => resolved,
-    };
-    validate_path(&resolved)?;
-    Ok(resolved)
+    Ok(stripped_again)
 }
