@@ -1,7 +1,7 @@
 {
   "schemaVersion": 1,
   "wave": "water-wave5-m2",
-  "status": "H2_H3_H4_H5_VERIFIED_H1_ADDENDUM_01_READY",
+  "status": "H2_H3_H4_H5_VERIFIED_H1_ADDENDUM_01_DISPATCHED",
   "controller": "Claude",
   "controllerRoot": "F:/new/smaltalk/water",
   "controllerBranch": "main",
@@ -141,7 +141,7 @@
       "branch": "worker/water-w5-h1",
       "baseCommit": "3f9078972d7f958fad6bfd42e68f022dd659539e",
       "snapshotRef": "refs/tags/water-w5-m2-base-20261027",
-      "status": "CHANGES_REQUESTED",
+      "status": "ADDENDUM_01_DISPATCHED",
       "readyOn": "2026-10-27",
       "dispatchedAt": null,
       "startedAt": null,
@@ -208,12 +208,15 @@
         {
           "id": "WATER-W5-H1-ADDENDUM-01",
           "ticket": "docs/dispatch/tickets/WATER-W5-H1-ADDENDUM-01-20261028.md",
-          "status": "READY",
+          "status": "DISPATCHED",
           "issuedAt": "2026-10-28T03:00:00Z",
           "resumeFromCommit": "9f49e8b9215f4fab0fb555314d356b40f4676ad1",
           "change": "snapshot must not leave a non-reparse directory whose name is not valid UTF-16 unexpanded: option A skips the whole item as changed (pre-M2 result), option B opens and walks it by its raw UTF-16 name; files and links with such names unchanged; new CLEAN_UNPAIRED_NAME assertion for the directory case; nc1-nc3 redone (nc2 on the new logic); no baseline rerun",
           "evidence": "controller case h1_recent_content_in_unpaired_directory_vetoes (scripts/acceptance/w5-h1-controller-cases.rs): recent content inside such a directory does not veto the item on 0dc44d45 (ok.bin deleted, partial, 2 failures), while the same content in an ordinary directory gives skipped/too_recent",
-          "dispatchedAt": null
+          "dispatchedAt": null,
+          "model": "sol (user-reported), new conversation",
+          "dispatchReportedAt": "2026-10-28T03:02:00Z",
+          "dispatchEvidence": "user chat 2026-10-28: addendum pasted to sol in a new conversation"
         }
       ]
     },
