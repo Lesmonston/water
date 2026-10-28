@@ -1,7 +1,7 @@
 {
   "schemaVersion": 1,
   "wave": "water-wave5-m2",
-  "status": "H2_H4_H5_VERIFIED_H3_IN_ACCEPTANCE_H1_ADDENDUM_01_READY",
+  "status": "H2_H3_H4_H5_VERIFIED_H1_ADDENDUM_01_READY",
   "controller": "Claude",
   "controllerRoot": "F:/new/smaltalk/water",
   "controllerBranch": "main",
@@ -664,7 +664,7 @@
       "branch": "worker/water-w5-h3",
       "baseCommit": "3f9078972d7f958fad6bfd42e68f022dd659539e",
       "snapshotRef": "refs/tags/water-w5-m2-base-20261027",
-      "status": "SUBMITTED",
+      "status": "VERIFIED",
       "readyOn": "2026-10-27",
       "dispatchedAt": null,
       "startedAt": null,
@@ -778,7 +778,22 @@
       "relayedAt": "2026-10-27T15:40:00Z",
       "relayEvidence": "user chat 2026-10-28 ~00:40 JST: all external tasks done",
       "acceptanceProgress": "audit clean; independent review: no blocker (medium outside the spec: OS shutdown skips the close guard). Acceptance tree gates and native window not yet run.",
-      "acceptanceNote": "docs/acceptance/wave5/controller/WATER-W5-ACCEPT-PROGRESS-20261028.md"
+      "acceptanceNote": "docs/acceptance/wave5/controller/WATER-W5-ACCEPT-PROGRESS-20261028.md",
+      "verifiedAt": "2026-10-28",
+      "mergeCommit": "a9f97325",
+      "controllerReview": {
+        "report": "docs/acceptance/wave5/controller/WATER-W5-REVIEW-20261028.md",
+        "evidence": "docs/acceptance/wave5/controller/accept-20261028/h3/",
+        "summary": "fresh-tree check and test finals; controller nc1 (take leaks a reference), nc2 (close waits one poll only), nc3 (production config inverts the switch) all killed; native fixture clean loop in a real window: 1 window, 9 steps, 11.5 s, 3,145,815 fixture bytes deleted, 0 failed, journal intent and result; independent review: no blocker"
+      },
+      "carryOverLater": [
+        "OS shutdown (WM_ENDSESSION) skips the close guard and kills a clean mid-item; call stop_cleaning_and_wait on RunEvent::Exit",
+        "app_state errors count as not cleaning (close allowed)",
+        "HOST_CLOSE_DURING_CLEAN scripted backend counts down without clean_stop",
+        "the new \\? assertion fails before reaching the comparison",
+        "run release order verified by review only",
+        "close during a clean and the default data directory not yet tried in a real window"
+      ]
     },
     {
       "kind": "ui",

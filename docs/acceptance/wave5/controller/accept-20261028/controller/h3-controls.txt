@@ -1,0 +1,17 @@
+h3 nc1 mutated apps/water/host/src/lib.rs: take leaks one reference, so the service is never released (worker nc1 left the backend in the slot instead) (mutated sha 2967be7811aecb4a2b763e587fc43a7ebff0d2f91f9f2dbe14eb8438cb40d59c)
+h3 red-nc1 rc=0 {"task":"WATER-W5-ACCEPT-H3","mode":"red-nc1","finalGate":false,"status":"passed","error":null,"receipt":"F:\\new\\smaltalk\\water\\.worktrees\\accept-w5-h3\\.local\\checks\\WATER-W5-ACCEPT-H3\\2026-10-28T02-48-16.159Z-25784-red-nc1-result.json"}
+h3 nc1 KILLED (expected HOST_BACKEND_RELEASE)
+h3 nc1 restored exact bytes=true sha 68c5d7f89b12d7242eea1bdf359f3b7c4bf3a2b2c3eb11f094bbc5cb6f0e7102
+h3 test rc=0 {"task":"WATER-W5-ACCEPT-H3","mode":"test","finalGate":false,"status":"passed","error":null,"receipt":"F:\\new\\smaltalk\\water\\.worktrees\\accept-w5-h3\\.local\\checks\\WATER-W5-ACCEPT-H3\\2026-10-28T02-48-29.003Z-8452-test-result.json"}
+h3 nc2 mutated apps/water/host/src/lib.rs: close waits one poll instead of until the clean has stopped (worker nc2 skipped clean_stop instead) (mutated sha 71c741b421cb5cf7ecf0b35042dad0bd7888df95a19570411948f20da3551704)
+h3 red-nc2 rc=0 {"task":"WATER-W5-ACCEPT-H3","mode":"red-nc2","finalGate":false,"status":"passed","error":null,"receipt":"F:\\new\\smaltalk\\water\\.worktrees\\accept-w5-h3\\.local\\checks\\WATER-W5-ACCEPT-H3\\2026-10-28T02-48-40.164Z-27936-red-nc2-result.json"}
+h3 nc2 KILLED (expected HOST_CLOSE_DURING_CLEAN)
+h3 nc2 restored exact bytes=true sha 68c5d7f89b12d7242eea1bdf359f3b7c4bf3a2b2c3eb11f094bbc5cb6f0e7102
+h3 test rc=0 {"task":"WATER-W5-ACCEPT-H3","mode":"test","finalGate":false,"status":"passed","error":null,"receipt":"F:\\new\\smaltalk\\water\\.worktrees\\accept-w5-h3\\.local\\checks\\WATER-W5-ACCEPT-H3\\2026-10-28T02-48-49.164Z-29404-test-result.json"}
+h3 nc3 mutated apps/water/host/src/service.rs: the production service config inverts the switch (worker nc3 turned the constant off instead) (mutated sha 0add8aaafff879a20f3e6da955181377841407f85275f333d4ceae31ddd49216)
+h3 red-nc3 rc=0 {"task":"WATER-W5-ACCEPT-H3","mode":"red-nc3","finalGate":false,"status":"passed","error":null,"receipt":"F:\\new\\smaltalk\\water\\.worktrees\\accept-w5-h3\\.local\\checks\\WATER-W5-ACCEPT-H3\\2026-10-28T02-48-57.308Z-31664-red-nc3-result.json"}
+h3 nc3 KILLED (expected HOST_CLEAN_ENABLED)
+h3 nc3 restored exact bytes=true sha b701b9a15a150c91993f375e05a1b4eac3bb78ce087b309bf250885e641b83c5
+h3 test rc=0 {"task":"WATER-W5-ACCEPT-H3","mode":"test","finalGate":false,"status":"passed","error":null,"receipt":"F:\\new\\smaltalk\\water\\.worktrees\\accept-w5-h3\\.local\\checks\\WATER-W5-ACCEPT-H3\\2026-10-28T02-49-06.098Z-38324-test-result.json"}
+h3 survived: none
+h3 test --final rc=0 {"task":"WATER-W5-ACCEPT-H3","mode":"test","finalGate":true,"status":"passed","error":null,"receipt":"F:\\new\\smaltalk\\water\\.worktrees\\accept-w5-h3\\.local\\checks\\WATER-W5-ACCEPT-H3\\2026-10-28T02-49-14.918Z-28052-test-result.json"}
