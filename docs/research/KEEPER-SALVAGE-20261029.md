@@ -128,3 +128,43 @@
    - `%APPDATA%\vault-keeper`；
    - Vault 的 `runtime\` 下 Keeper 用的几个目录。
 8. 仓库本身归档保留。
+
+## 停用执行记录（2026-10-29，用户“全部停用”）
+
+用户批准的范围：停服务，挪走 5 个 Grok 钩子和两个开机快捷方式（先备份），清掉 `F:\new` 共享和各项目说明文件里连 Keeper 的段落，改 Water 的 AGENTS.md；凭据和备份由用户自己处理。
+
+### 动手前核实
+
+- **没有守护进程。** Keeper 的父进程早已退出，停掉后不会被重新拉起。
+- **Pillow 不依赖 Keeper。** 它的源码运行时没有直接调用 Keeper，日志和文档里的提及不算。
+- **Grok 不受影响。**
+  - 钩子脚本只在 Keeper 自己拉起的 Grok 运行里起作用：靠 Keeper 注入的环境变量判断（`hooks/keeper-grok-hook.js:97-99`），其它情况下什么都不做就退出，不会拦工具调用。
+  - 当时在跑的 9 个 Grok 进程，都是用户自己打开的 Grok Bot 桌面程序，没有一个是 Keeper 拉起的。
+- **说明文件盘点。** `F:\new` 下提到 Keeper 端口的说明文件共 165 份：
+  - 其中 99 份是同一个文件：Vault 的 `AGENTS.md` 被硬链接到 99 个位置；
+  - 46 份被别的项目的 git 管着；
+  - 其余是独立文件，包括 `F:\new\AGENTS.md`、`F:\new\CLAUDE.md` 和 denglou 登记已失效的旧工作树。
+
+### 执行结果
+
+- **Keeper 服务已停**，7890 端口已关闭。
+- **已挪进备份目录：** 5 个 Grok 钩子文件，以及“Vault Keeper Service”“Keeper Volcengine Router”两个开机快捷方式。开机启动里现在只剩 Ollama。
+- **已清理的说明文件（23 份）。** 都是原地改写，编码和换行保持不变；删完逐份确认没有残留：
+  - Vault 规则文件：删掉“Agent Bridge Zero-Prompt Startup”一节，216 → 205 行。99 个硬链接都还在，同时生效。
+  - `F:\new\AGENTS.md`：删掉开头的 `VAULT_KEEPER_GATEWAY` 块和同一节启动说明，244 → 205 行。现在与 Vault 规则文件逐字节一致。
+  - `F:\new\CLAUDE.md`：216 → 205 行。
+  - 另外 20 份不在 git 里的项目说明文件：删掉“Keeper Bridge boot”那一行，以及“Vault Keeper Bridge connected”那一块。
+- **Water 的 AGENTS.md：** “供 Keeper ingest”改为“Keeper 已于 2026-10-29 停用，不再有自动摄入”。
+- **没动的：** 46 份被别的项目 git 管着的说明文件：
+  - denglou 16 棵有效工作树，32 份；
+  - car op 主仓库 1 份、工作树 7 份；
+  - zbbody 2 份、podcut 2 份、Pillow 工作树 2 份。
+  
+  改了会在这些项目里留下未提交改动，可能打乱各自总控的检查和提交，所以留给用户决定。影响仅限于在这些目录里干活的 agent 会尝试连 7890，连不上，不会造成破坏。
+- **记录和备份：** 都在本机 `.local/keeper-retire-20261029/`：
+  - `backup/`：每个改动和挪动文件的原样副本，附 sha256 清单 `backup-manifest.csv`；
+  - `moved/`：挪走的钩子和快捷方式；
+  - `steps.csv`、`left-alone-tracked.txt`，以及盘点和执行脚本。
+  
+  要恢复，把对应文件拷回原位即可。
+- **仍由用户处理：** `.keeper\credentials.json` 等凭据文件和 `.keeper\backups\`。次要项（`~\.codex2\config.toml` 的信任条目、`%APPDATA%\vault-keeper`、Vault 的 `runtime\` 下 Keeper 用的目录、空的 `keeper-volc-router` 目录）没有动。
