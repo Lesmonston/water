@@ -1,6 +1,6 @@
 # Water 状态与交接
 
-更新时间：2026-10-31 23:30 JST（第八波“M3 收口”计划已拍板，第一批 K1、K2、K3、K5、K6 已派出，见[第八波计划](dispatch/wave8/PLAN.md)；第 10 份交接）。
+更新时间：2026-11-01 00:20 JST（第八波第一批回执已到：K3、K6 待验收；K1、K2、K5 受阻成立，已出补单 01，见[第八波计划](dispatch/wave8/PLAN.md)；第 10 份交接）。
 
 更换总控请先读[最新交接报告（2026-10-31 第 10 份）](CONTROLLER-HANDOFF-20261031-10.md)；[第 9 份](CONTROLLER-HANDOFF-20261028-9.md)、[第 8 份](CONTROLLER-HANDOFF-20261027-8.md)、[第 7 份](CONTROLLER-HANDOFF-20261027-7.md)、[第 6 份](CONTROLLER-HANDOFF-20261027-6.md)、[第 5 份](CONTROLLER-HANDOFF-20261026-5.md)、[第 4 份](CONTROLLER-HANDOFF-20261026-4.md)、[第 3 份](CONTROLLER-HANDOFF-20261026-3.md)、[第 2 份](CONTROLLER-HANDOFF-20261026-2.md)、[上午那份](CONTROLLER-HANDOFF-20261026.md)及其只读状态快照仅供追溯。M1 已达成；第四、五波已全部验收合入，打开清理的 release 版已编好，M2 只差自清理；M3 第六波三张已全部验收合入，第四次整合检查通过，含第六波的 release 版 `water-0.1.0-b62f9c5c` 已编好；第七波（M3 收尾）四张已全部验收合入（见下文）。此前[接手验收摘要](CONTROLLER-HANDOFF-20261017.md)仅供历史追溯；当前任务状态以本页、registry/manifest及最新正式验收为准。
 
@@ -293,7 +293,10 @@ A–AB及八补单、AD保持VERIFIED；AC/补单06新增VERIFIED（Windows静�
     | [WATER-W8-K3 扫描](dispatch/tickets/WATER-W8-K3-SCAN-20261031.md) | `packages/junk-scan` | 轻门，只读真实扫描 |
     | [WATER-W8-K5 宿主](dispatch/tickets/WATER-W8-K5-HOST-20261031.md) | `apps/water/host` | 重门，1 个真窗口 |
     | [WATER-W8-K6 界面](dispatch/tickets/WATER-W8-K6-UI-20261031.md) | `apps/water/ui` | 轻门，界面单，26 张截图 |
-24. **下一步**：第八波第一批回执回来后收单；K1～K3 合入后派 K4；Mirasim B、D、E 三个槽删不删（等用户；删 B 前要先挪走 A、C 共用的 `ensure-port.vbs`）；清理记录里列出的 Water 五个问题（只认 C 盘、通用规则没有在用检测、体量不去重硬链接、不能组内排除、不认旧工作树）要和用户商量怎么改，再定 M2 达成报告怎么写；M3 后续（体检提醒与“几天后满”、第八波孤儿进程）。
+24. **第一批回执（11-01 凌晨，用户“外派的任务都结束了，你收活”）**：
+    - K3、K6 交回完成回执（K3 实现 `5b4136a3`、回执 `bc740bd9`；K6 实现 `53f1e467`、回执 `208be441`），进入验收；
+    - K1、K2、K5 交回受阻回执（`6273d4d7`、`f67309fa`、`ba3a39b9`），总控只读核对后都成立：SPEC 没授权必然要改的旧断言（K1 issue code 白名单；K2 目标总数、Agent 尾段、“只列出”措辞，另有一处 `rules()[61..]` 执行者没列到；K5 `clean_prepare` 签名键）。已出补单 01 三张，派单句见[第八波计划](dispatch/wave8/PLAN.md)。
+25. **下一步**：K3、K6 验收；三张补单回执回来后收单；K1～K3 合入后派 K4；Mirasim B、D、E 三个槽删不删（等用户；删 B 前要先挪走 A、C 共用的 `ensure-port.vbs`）；清理记录里列出的 Water 五个问题（只认 C 盘、通用规则没有在用检测、体量不去重硬链接、不能组内排除、不认旧工作树）要和用户商量怎么改，再定 M2 达成报告怎么写；M3 后续（体检提醒与“几天后满”、第八波孤儿进程）。
 
 ## 真实AA→AD联合验收通过（2026-10-26）
 

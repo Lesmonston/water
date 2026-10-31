@@ -1,7 +1,7 @@
 {
   "schemaVersion": 1,
   "wave": "water-wave8-m3-close",
-  "status": "DISPATCHED_FIRST_BATCH",
+  "status": "FIRST_BATCH_ADDENDA",
   "controller": "Claude",
   "controllerRoot": "F:/new/smaltalk/water",
   "controllerBranch": "main",
@@ -75,7 +75,7 @@
     {
       "id": "WATER-W8-K1",
       "title": "进程快照补程序路径与内存",
-      "status": "DISPATCHED",
+      "status": "BLOCKED",
       "slot": "w8-k1",
       "kind": "rust",
       "worktree": "F:/new/smaltalk/water/.worktrees/w8-k1",
@@ -182,7 +182,24 @@
         "Process32NextW",
         "QueryFullProcessImageNameW"
       ],
-      "dispatchEvidence": "user chat 2026-10-31 ~23:15 JST: \"除了界面单是astra，都是sol\" (K1, K2, K3, K5 to sol; UI ticket K6 to astra); worker tree head/changed files 912eba10/0 when recorded"
+      "dispatchEvidence": "user chat 2026-10-31 ~23:15 JST: \"除了界面单是astra，都是sol\" (K1, K2, K3, K5 to sol; UI ticket K6 to astra); worker tree head/changed files 912eba10/0 when recorded",
+      "blockedAt": "2026-10-31T14:16:43Z",
+      "blockedCommit": "6273d4d7",
+      "blockedReason": "PROCESS-M3C section 1 adds issue code image_unavailable, but process_snapshot_contract (tests/process_v1.rs line 363) only allows access_denied or exited and SPEC section 4 did not authorize changing it",
+      "addenda": [
+        {
+          "id": "WATER-W8-K1-ADDENDUM-01",
+          "ticket": "docs/dispatch/tickets/WATER-W8-K1-ADDENDUM-01-20261101.md",
+          "status": "READY",
+          "issuedAt": "2026-10-31T15:10:00Z",
+          "resumeFromCommit": "6273d4d76e9b3339d7ef6a14c748e60fb50bb383",
+          "change": "authorize process_snapshot_contract line 363 to also accept image_unavailable; clarify that image_unavailable counts only processes whose handle opened but QueryFullProcessImageNameW failed (no double count with access_denied/exited), summary order access_denied, exited, image_unavailable; no baseline rerun",
+          "dispatchedAt": null,
+          "submittedHead": null,
+          "implementationCommit": null,
+          "dispatchEvidence": null
+        }
+      ]
     },
     {
       "kind": "rust",
@@ -235,7 +252,7 @@
       "branch": "worker/water-w8-k2",
       "baseCommit": "912eba100ba342c3eeb21ba555c6d589b91e6b4f",
       "snapshotRef": "refs/tags/water-w8-m3c-base-20261031",
-      "status": "DISPATCHED",
+      "status": "BLOCKED",
       "readyOn": "2026-10-31",
       "dispatchedAt": null,
       "startedAt": null,
@@ -300,7 +317,24 @@
       ],
       "baselineStatus": "PASSED",
       "baselineEvidence": "docs/acceptance/wave8/controller/preflight-20261031/k2/2026-10-31T14-10-10.643Z-37880-baseline-result.json",
-      "dispatchEvidence": "user chat 2026-10-31 ~23:15 JST: \"除了界面单是astra，都是sol\" (K1, K2, K3, K5 to sol; UI ticket K6 to astra); worker tree head/changed files 912eba10/0 when recorded"
+      "dispatchEvidence": "user chat 2026-10-31 ~23:15 JST: \"除了界面单是astra，都是sol\" (K1, K2, K3, K5 to sol; UI ticket K6 to astra); worker tree head/changed files 912eba10/0 when recorded",
+      "blockedAt": "2026-10-31T14:18:03Z",
+      "blockedCommit": "f67309fa",
+      "blockedReason": "inserting git-worktrees after rust-build-dirs breaks old assertions SPEC section 6 did not authorize: target total 255 (needs 257), the 38-target agent tail after custom:beta:rust-build-dirs#1 (two git targets come first), and the no-\"只列出\" wording loop (SPEC why_zh contains it); the controller also found rules()[61..] == AGENT_RULE_IDS",
+      "addenda": [
+        {
+          "id": "WATER-W8-K2-ADDENDUM-01",
+          "ticket": "docs/dispatch/tickets/WATER-W8-K2-ADDENDUM-01-20261101.md",
+          "status": "READY",
+          "issuedAt": "2026-10-31T15:10:00Z",
+          "resumeFromCommit": "f67309fa7d4d52b39b337fc3bab64b0c76866635",
+          "change": "authorize 255 -> 257; two RULES_M3C_WORKTREE targets custom:alpha/beta:git-worktrees#1 follow the beta Rust target and the RULES_AGENT_TOOLS tail starts after them (still 38, last other-agent-sessions#3); skip only the no-\"只列出\" check for git-worktrees (its why_zh locked verbatim by RULES_M3C_WORKTREE); rule 62 (index 61) is git-worktrees and rules()[62..] == AGENT_RULE_IDS; seed_table gains the git-worktrees row (custom/advisory/dir/0/0/none/slow, marker:file:.git:1:4096:8); no baseline rerun",
+          "dispatchedAt": null,
+          "submittedHead": null,
+          "implementationCommit": null,
+          "dispatchEvidence": null
+        }
+      ]
     },
     {
       "id": "WATER-W8-K3",
@@ -729,7 +763,7 @@
       "branch": "worker/water-w8-k5",
       "baseCommit": "912eba100ba342c3eeb21ba555c6d589b91e6b4f",
       "snapshotRef": "refs/tags/water-w8-m3c-base-20261031",
-      "status": "DISPATCHED",
+      "status": "BLOCKED",
       "readyOn": "2026-10-31",
       "dispatchedAt": null,
       "startedAt": null,
@@ -794,7 +828,24 @@
       ],
       "baselineStatus": "PASSED",
       "baselineEvidence": "docs/acceptance/wave8/controller/preflight-20261031/k5/2026-10-31T14-10-28.120Z-29844-baseline-result.json",
-      "dispatchEvidence": "user chat 2026-10-31 ~23:15 JST: \"除了界面单是astra，都是sol\" (K1, K2, K3, K5 to sol; UI ticket K6 to astra); worker tree head/changed files 912eba10/0 when recorded"
+      "dispatchEvidence": "user chat 2026-10-31 ~23:15 JST: \"除了界面单是astra，都是sol\" (K1, K2, K3, K5 to sol; UI ticket K6 to astra); worker tree head/changed files 912eba10/0 when recorded",
+      "blockedAt": "2026-10-31T14:36:35Z",
+      "blockedCommit": "ba3a39b9",
+      "blockedReason": "host_command_registry derives the Tauri wrapper keys from the same expected list as the forwarded arguments; clean_prepare gains excludeItemIds in its signature while the None call still forwards only groupIds, and SPEC section 4 authorized only 17 -> 19; draft implementation kept at 2d70999e",
+      "addenda": [
+        {
+          "id": "WATER-W8-K5-ADDENDUM-01",
+          "ticket": "docs/dispatch/tickets/WATER-W8-K5-ADDENDUM-01-20261101.md",
+          "status": "READY",
+          "issuedAt": "2026-10-31T15:10:00Z",
+          "resumeFromCommit": "ba3a39b9f43e3dcab6a8e6f68c942d7c008720f6",
+          "change": "authorize expected_wrappers clean_prepare keys [excludeItemIds, groupIds] while the call-sequence expectation stays {groupIds}; HOST_COMMANDS IPC table = checkup-v1 IPC.md 17 names then IPC-M3C skip_add, skip_remove; existing cmd_clean_prepare calls gain None; all checks rerun on post-addendum bytes (draft test results do not count); no baseline rerun",
+          "dispatchedAt": null,
+          "submittedHead": null,
+          "implementationCommit": null,
+          "dispatchEvidence": null
+        }
+      ]
     },
     {
       "kind": "ui",

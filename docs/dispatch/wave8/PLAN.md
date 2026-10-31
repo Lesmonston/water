@@ -83,6 +83,15 @@
 
 K4（服务）等 K1～K3 合入后另给。
 
+### 补单 01（2026-11-01）
+
+K1、K2、K5 交回受阻回执，都成立：SPEC 只授权了一部分旧断言，没考虑到新 issue code、插入规则、新参数会必然碰到的其它旧断言（总控疏漏）。K2 另有一处执行者没列到（`rules()[61..]`），补单一并授权。三张补单都从各自回执提交续做，不重跑 baseline。K3、K6 交回完成回执，进入验收。
+
+后端单补单（各自复制给原执行者或新开对话）：
+- WATER-W8-K1 补单 01：`你接手 Water 项目 WATER-W8-K1 补单 01（放行新的 issue code，轻门）。先读 F:/new/smaltalk/water/docs/dispatch/tickets/WATER-W8-K1-ADDENDUM-01-20261101.md，按其中列出的顺序读原票、规则与契约，在 F:/new/smaltalk/water/.worktrees/w8-k1（分支 worker/water-w8-k1）从 6273d4d7 续做。`
+- WATER-W8-K2 补单 01：`你接手 Water 项目 WATER-W8-K2 补单 01（插入工作树规则后的旧断言，轻门）。先读 F:/new/smaltalk/water/docs/dispatch/tickets/WATER-W8-K2-ADDENDUM-01-20261101.md，按其中列出的顺序读原票、规则与契约，在 F:/new/smaltalk/water/.worktrees/w8-k2（分支 worker/water-w8-k2）从 f67309fa 续做。`
+- WATER-W8-K5 补单 01：`你接手 Water 项目 WATER-W8-K5 补单 01（clean_prepare 新参数的签名断言，重门，含 1 次真窗口）。先读 F:/new/smaltalk/water/docs/dispatch/tickets/WATER-W8-K5-ADDENDUM-01-20261101.md，按其中列出的顺序读原票、规则与契约，在 F:/new/smaltalk/water/.worktrees/w8-k5（分支 worker/water-w8-k5）从 ba3a39b9 续做。`
+
 ## 3. M3 收口的验收（合入后）
 
 1. **第五次整合检查。** 合并树跑全部检查门，然后出新 release 版。
