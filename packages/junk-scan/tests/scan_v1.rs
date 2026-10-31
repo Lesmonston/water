@@ -1,5 +1,7 @@
 use serde_json::{Value, json};
+use std::ffi::OsString;
 use std::fs::{self, OpenOptions};
+use std::os::windows::ffi::OsStringExt;
 use std::os::windows::fs::{MetadataExt, OpenOptionsExt};
 use std::path::{Path, PathBuf};
 use std::process::Command;
@@ -301,12 +303,32 @@ fn scan_plan_contract() {
     );
     let parsed = ScanPlan::from_json(&ok).unwrap();
     drop(parsed);
+    let mut mode_doc: Value = serde_json::from_str(&ok).unwrap();
+    mode_doc["targets"][0]["in_use"] =
+        json!({"mode":"runs_from_or_references_item","processes":[]});
+    let mode_plan =
+        ScanPlan::from_json(&mode_doc.to_string()).expect("SCAN_M3C_MODE: empty names accepted");
+    assert_eq!(
+        mode_plan.targets[0].in_use.mode, "runs_from_or_references_item",
+        "SCAN_M3C_MODE"
+    );
+    assert!(
+        mode_plan.targets[0].in_use.processes.is_empty(),
+        "SCAN_M3C_MODE"
+    );
+    mode_doc["targets"][0]["in_use"]["mode"] = json!("unknown_mode");
+    assert!(
+        ScanPlan::from_json(&mode_doc.to_string()).is_err(),
+        "SCAN_M3C_MODE: unknown rejected"
+    );
+
     let err = ScanPlan::from_json(&dots).unwrap_err();
     assert!(!err.to_string().contains(r"C:\"));
 }
 
 #[test]
 fn scan_pattern_marker_discovery() {
+    check_unique_bytes();
     let fx = Fixture::create();
     write_file(
         &fx.join("Google/Chrome/User Data/Default/Cache/x.bin"),
@@ -631,6 +653,7 @@ fn scan_pattern_marker_discovery() {
 
 #[test]
 fn scan_overlap_and_guards() {
+    check_single_walk();
     let fx = Fixture::create();
     write_file(&fx.join("overlap/cache/a.bin"), b"aa");
     write_file(&fx.join("tree/secret/note.txt"), b"s");
@@ -1118,6 +1141,44 @@ fn scan_snapshot_growth_keys() {
     assert_eq!(round.scan_id, result.scan_id);
     let encoded_result = result_to_json(&result);
     assert!(result_from_json(&encoded_result).is_ok());
+    let round_result = result_from_json(&encoded_result).expect("SCAN_M3C_COMPAT: new result");
+    assert_eq!(round_result, result, "SCAN_M3C_COMPAT: new fields survive");
+    let mut legacy: Value = serde_json::from_str(&encoded_result).unwrap();
+    for row in legacy["items"].as_array_mut().unwrap() {
+        row.as_object_mut().unwrap().remove("unique_bytes");
+    }
+    for row in legacy["groups"].as_array_mut().unwrap() {
+        row.as_object_mut().unwrap().remove("unique_bytes");
+        row.as_object_mut().unwrap().remove("eligible_unique_bytes");
+    }
+    let legacy_result =
+        result_from_json(&legacy.to_string()).expect("SCAN_M3C_COMPAT: absent fields default");
+    for row in &legacy_result.items {
+        assert_eq!(
+            row.unique_bytes, row.total_bytes,
+            "SCAN_M3C_COMPAT: item default"
+        );
+    }
+    for row in &legacy_result.groups {
+        assert_eq!(
+            row.unique_bytes, row.total_bytes,
+            "SCAN_M3C_COMPAT: group default"
+        );
+        assert_eq!(
+            row.eligible_unique_bytes, row.eligible_bytes,
+            "SCAN_M3C_COMPAT: eligible default"
+        );
+    }
+    legacy["items"][0]["unique_bytes"] = Value::Null;
+    assert!(
+        result_from_json(&legacy.to_string()).is_err(),
+        "SCAN_M3C_COMPAT: null is not absent"
+    );
+    legacy["items"][0]["unique_bytes"] = json!(1);
+    assert!(
+        result_from_json(&legacy.to_string()).is_err(),
+        "SCAN_M3C_COMPAT: numeric bytes rejected"
+    );
 
     let prev = snapshot_from_json(
         r#"{"snapshot_version":"water.scan-snapshot.v1","scan_id":"a","taken_at":"2026-10-26T00:00:00Z","groups":{"g":{"total_bytes":"100","item_count":1,"newest_activity":"2026-10-26T00:30:00Z","top_keys":[]}}}"#,
@@ -1178,4 +1239,315 @@ fn scan_snapshot_growth_keys() {
         "bytes_per_day must divide by the exact interval"
     );
     assert!(ghour[0].leak_suspect);
+}
+
+fn hard_link(link: &Path, original: &Path) {
+    fs::create_dir_all(link.parent().unwrap()).unwrap();
+    let output = Command::new("cmd")
+        .args([
+            "/c",
+            "mklink",
+            "/H",
+            link.to_str().unwrap(),
+            original.to_str().unwrap(),
+        ])
+        .output()
+        .unwrap();
+    assert!(
+        output.status.success(),
+        "SCAN_M3C_UNIQUE: create synthetic hard link"
+    );
+}
+
+fn check_unique_bytes() {
+    let fx = Fixture::create();
+    write_file(&fx.join("hard/original.bin"), &vec![1; 1024 * 1024]);
+    hard_link(&fx.join("hard/link1.bin"), &fx.join("hard/original.bin"));
+    hard_link(
+        &fx.join("hard/sub/link2.bin"),
+        &fx.join("hard/original.bin"),
+    );
+    hard_link(
+        &fx.join("hard/sub/link3.bin"),
+        &fx.join("hard/original.bin"),
+    );
+    write_file(&fx.join("plain/a.bin"), b"plain");
+    for n in 0..700 {
+        write_file(&fx.join(&format!("wide/entry-{n:04}.bin")), b"x");
+    }
+    hard_link(&fx.join("separate/link.bin"), &fx.join("hard/original.bin"));
+    let mut t = target(
+        "unique",
+        "recommended",
+        "dev_cache",
+        json!({"kind":"pattern","base":fx.path,"segments":["*"]}),
+        "dir",
+        0,
+        0,
+    );
+    t["in_use"] = json!({"mode":"runs_from_or_references_item","processes":[]});
+    let now = SystemTime::now();
+    let r = run_default(&plan(vec![t], vec![]), now);
+    let hard = item(&r, &fx.p("hard"));
+    assert_eq!(
+        item(&r, &fx.p("wide")).file_count,
+        700,
+        "SCAN_M3C_UNIQUE: all enumeration buffers"
+    );
+    assert_eq!(
+        item(&r, &fx.p("wide")).unique_bytes,
+        "700",
+        "SCAN_M3C_UNIQUE: distinct IDs across buffers"
+    );
+    assert_eq!(
+        hard.total_bytes, "4194304",
+        "SCAN_M3C_UNIQUE: logical bytes"
+    );
+    assert_eq!(
+        hard.unique_bytes, "1048576",
+        "SCAN_M3C_UNIQUE: per-item IDs"
+    );
+    assert_eq!(hard.file_count, 4, "SCAN_M3C_UNIQUE: keep logical count");
+    assert_eq!(
+        item(&r, &fx.p("plain")).unique_bytes,
+        "5",
+        "SCAN_M3C_UNIQUE: plain bytes"
+    );
+    assert_eq!(
+        item(&r, &fx.p("plain")).unique_bytes,
+        item(&r, &fx.p("plain")).total_bytes,
+        "SCAN_M3C_UNIQUE: no links"
+    );
+    assert_eq!(
+        item(&r, &fx.p("separate")).unique_bytes,
+        "1048576",
+        "SCAN_M3C_UNIQUE: no cross-item dedup"
+    );
+    assert_eq!(
+        r.groups[0].in_use.mode, "runs_from_or_references_item",
+        "SCAN_M3C_MODE: forwarded"
+    );
+    for g in &r.groups {
+        let members: Vec<_> = r
+            .items
+            .iter()
+            .filter(|i| i.group_id == g.group_id)
+            .collect();
+        let all: u64 = members
+            .iter()
+            .map(|i| i.unique_bytes.parse::<u64>().unwrap())
+            .sum();
+        let eligible: u64 = members
+            .iter()
+            .filter(|i| i.eligible)
+            .map(|i| i.unique_bytes.parse::<u64>().unwrap())
+            .sum();
+        assert_eq!(
+            g.unique_bytes,
+            all.to_string(),
+            "SCAN_M3C_UNIQUE: group sum"
+        );
+        assert_eq!(
+            g.eligible_unique_bytes,
+            eligible.to_string(),
+            "SCAN_M3C_UNIQUE: eligible sum"
+        );
+    }
+    let marker = target(
+        "marker",
+        "advisory",
+        "dev_cache",
+        json!({"kind":"marker","root":fx.path,"marker":{"kind":"dir_name","names":["hard"]},"max_depth":2}),
+        "dir",
+        0,
+        0,
+    );
+    let marked = run_default(&plan(vec![marker], vec![]), now);
+    assert_eq!(
+        marked.items[0].unique_bytes, "1048576",
+        "SCAN_M3C_UNIQUE: shared marker measurement"
+    );
+    assert_eq!(
+        marked.groups[0].eligible_unique_bytes, "0",
+        "SCAN_M3C_UNIQUE: ineligible group"
+    );
+    let round =
+        result_from_json(&result_to_json(&r)).expect("SCAN_M3C_COMPAT: real dedup roundtrip");
+    assert_eq!(round, r, "SCAN_M3C_COMPAT: differing bytes survive");
+}
+
+fn check_single_walk() {
+    let fx = Fixture::create();
+    write_file(&fx.join("root/tag/CACHEDIR.TAG"), &[1; 43]);
+    write_file(&fx.join("root/tag/inner/CACHEDIR.TAG"), &[1; 43]);
+    write_file(&fx.join("root/tag/node_modules/a.bin"), b"a");
+    write_file(
+        &fx.join("root/tag/node_modules/pkg/node_modules/b.bin"),
+        b"bb",
+    );
+    write_file(&fx.join("root/target/a.bin"), b"build");
+    write_file(&fx.join("root/deeper/target/a.bin"), b"too deep");
+    write_file(&fx.join("root/worktree/.git"), b"gitdir");
+    write_file(&fx.join("root/.git/node_modules/skip.bin"), b"skip");
+    write_file(&fx.join("outside/target/skip.bin"), b"outside");
+    junction(&fx.join("root/link"), &fx.join("outside"));
+    write_file(
+        &fx.join("root").join(OsString::from_wide(&[0xd800])),
+        b"invalid Unicode",
+    );
+    let specs = vec![
+        target(
+            "tag",
+            "recommended",
+            "dev_cache",
+            json!({"kind":"marker","root":fx.p("root"),"marker":{"kind":"file","name":"CACHEDIR.TAG","min_bytes":43,"max_bytes":1024},"max_depth":4}),
+            "dir",
+            0,
+            0,
+        ),
+        target(
+            "children",
+            "confirm",
+            "dev_cache",
+            json!({"kind":"marker","root":fx.p("root"),"marker":{"kind":"children_all","names":["CACHEDIR.TAG","node_modules"]},"max_depth":2}),
+            "dir",
+            0,
+            0,
+        ),
+        target(
+            "modules",
+            "recommended",
+            "dev_cache",
+            json!({"kind":"marker","root":fx.p("root"),"marker":{"kind":"dir_name","names":["node_modules"]},"max_depth":8}),
+            "dir",
+            0,
+            0,
+        ),
+        target(
+            "build",
+            "recommended",
+            "dev_cache",
+            json!({"kind":"marker","root":fx.p("root"),"marker":{"kind":"dir_name","names":["target"]},"max_depth":1}),
+            "dir",
+            0,
+            0,
+        ),
+        target(
+            "worktree",
+            "advisory",
+            "dev_cache",
+            json!({"kind":"marker","root":fx.p("root"),"marker":{"kind":"file","name":".git","min_bytes":0,"max_bytes":4096},"max_depth":4}),
+            "dir",
+            0,
+            0,
+        ),
+    ];
+    let now = SystemTime::now();
+    let combined = run_default(&plan(specs.clone(), vec![]), now);
+    let mut expected_items = Vec::new();
+    let mut expected_issues = Vec::new();
+    let mut expected_groups = Vec::new();
+    for spec in &specs {
+        let single = run_default(&plan(vec![spec.clone()], vec![]), now);
+        // The children target is more conservative at the same path as tag.
+        if spec["target_id"] == "tag" {
+            let mut empty = single.groups[0].clone();
+            empty.item_count = 0;
+            empty.eligible_count = 0;
+            empty.total_bytes = "0".into();
+            empty.eligible_bytes = "0".into();
+            empty.unique_bytes = "0".into();
+            empty.eligible_unique_bytes = "0".into();
+            empty.file_count = 0;
+            empty.oldest_activity = None;
+            empty.newest_activity = None;
+            expected_groups.push(empty);
+        } else {
+            expected_groups.extend(single.groups);
+            expected_items.extend(single.items);
+        }
+        expected_issues.extend(single.issues);
+    }
+    for (n, row) in expected_items.iter_mut().enumerate() {
+        row.item_id = format!("i-{:06}", n + 1);
+    }
+    expected_issues.sort_by(|a, b| a.group_id.cmp(&b.group_id).then(a.code.cmp(&b.code)));
+    assert_eq!(
+        combined.items, expected_items,
+        "SCAN_M3C_SINGLE_WALK: items, order, sizes, guards"
+    );
+    assert_eq!(
+        combined.groups, expected_groups,
+        "SCAN_M3C_SINGLE_WALK: groups and merging"
+    );
+    assert_eq!(
+        combined.issues, expected_issues,
+        "SCAN_M3C_SINGLE_WALK: per-target issues"
+    );
+    assert_eq!(
+        combined.status, "partial",
+        "SCAN_M3C_SINGLE_WALK: invalid Unicode is partial"
+    );
+    for (group, count) in [
+        ("tag", 2),
+        ("children", 2),
+        ("modules", 1),
+        ("build", 1),
+        ("worktree", 2),
+    ] {
+        assert!(
+            combined.issues.iter().any(|issue| issue.group_id == group
+                && issue.code == "unrepresentable_name"
+                && issue.count == count),
+            "SCAN_M3C_SINGLE_WALK: logical listing issues for {group}"
+        );
+    }
+    let facts: Vec<_> = combined
+        .items
+        .iter()
+        .map(|i| (i.group_id.as_str(), i.total_bytes.as_str(), i.file_count))
+        .collect();
+    assert_eq!(
+        facts,
+        vec![
+            ("children", "89", 4),
+            ("modules", "3", 2),
+            ("build", "5", 1),
+            ("worktree", "6", 1)
+        ],
+        "SCAN_M3C_SINGLE_WALK: independent expected facts"
+    );
+    assert_eq!(combined.items.len(), 4, "SCAN_M3C_SINGLE_WALK: exact hits");
+    assert_eq!(
+        item(&combined, &fx.p("root/tag")).group_id,
+        "children",
+        "SCAN_M3C_SINGLE_WALK: conservative overlap"
+    );
+    assert!(
+        combined
+            .items
+            .iter()
+            .all(|i| !i.path.eq_ignore_ascii_case(&fx.p("root/tag/inner"))
+                && !i.path.eq_ignore_ascii_case(&fx.p("root/deeper/target"))
+                && !i.path.eq_ignore_ascii_case(&fx.p("root/.git/node_modules"))),
+        "SCAN_M3C_SINGLE_WALK: independent stopping"
+    );
+    let mut entries = 0;
+    let mut dirs = vec![fx.join("root")];
+    while let Some(dir) = dirs.pop() {
+        for child in fs::read_dir(dir).unwrap() {
+            let child = child.unwrap();
+            entries += 1;
+            let meta = fs::symlink_metadata(child.path()).unwrap();
+            if meta.is_dir() && meta.file_attributes() & 0x400 == 0 {
+                dirs.push(child.path());
+            }
+        }
+    }
+    assert!(
+        combined.visited_entries <= entries + 5,
+        "SCAN_M3C_SINGLE_WALK: {} > {} + 5",
+        combined.visited_entries,
+        entries
+    );
 }

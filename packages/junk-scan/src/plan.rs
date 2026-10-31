@@ -100,7 +100,7 @@ fn validate_target(target: &Target) -> Result<(), ScanError> {
     }
     if !matches!(
         target.in_use.mode.as_str(),
-        "none" | "process_running" | "cmdline_references_item"
+        "none" | "process_running" | "cmdline_references_item" | "runs_from_or_references_item"
     ) {
         return Err(ScanError::InvalidPlan);
     }
