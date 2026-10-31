@@ -339,7 +339,7 @@
     {
       "id": "WATER-W8-K3",
       "title": "去重体量、一次遍历与新在用方式",
-      "status": "DISPATCHED",
+      "status": "VERIFIED",
       "slot": "w8-k3",
       "kind": "rust",
       "worktree": "F:/new/smaltalk/water/.worktrees/w8-k3",
@@ -455,7 +455,26 @@
         "GetVolumeInformationByHandleW",
         "SHGetKnownFolderPath"
       ],
-      "dispatchEvidence": "user chat 2026-10-31 ~23:15 JST: \"除了界面单是astra，都是sol\" (K1, K2, K3, K5 to sol; UI ticket K6 to astra); worker tree head/changed files 912eba10/0 when recorded"
+      "dispatchEvidence": "user chat 2026-10-31 ~23:15 JST: \"除了界面单是astra，都是sol\" (K1, K2, K3, K5 to sol; UI ticket K6 to astra); worker tree head/changed files 912eba10/0 when recorded",
+      "submittedHead": "bc740bd9272a58f35b77c8205004df6bebac3d42",
+      "implementationCommit": "5b4136a3836bec4fd44334bcf6610af258a79ed3",
+      "workerSelfReport": "Codex GPT-6",
+      "mergeCommit": "e8976a52",
+      "controllerReview": {
+        "report": "docs/acceptance/wave8/controller/WATER-W8-REVIEW-20261101.md",
+        "evidence": "docs/acceptance/wave8/controller/accept-20261101/k3/",
+        "summary": "audit 0 problems; fresh tree lock, check/test/real finals passed (real 418,655 entries, scan 28.4 s, not slower than base); controller mutations c1-c11: 9 caught, c6 (eligible_unique default source) and probe c10 (issue replay inside an open measurement) survived as test gaps, c11 replaced c6 as red-nc2; controller hard-link fixture matched by hand (in-item dedupe, no cross-item dedupe, marker dedupe, independent stopping) and one walk equals per-target scans with half the visits; independent review approve, one Medium (sizes and times now from directory entries, which NTFS updates lazily for files open for writing) accepted because junk-clean already re-checks with the same classes 19/20"
+      },
+      "carryOverLater": [
+        "sizes and modified times come from directory entries (lazy for files held open for writing); same basis as the junk-clean pre-delete re-check",
+        "non-NTFS file systems may not support classes 19/20 (every directory becomes access_denied); K4 limits drive roots to NTFS/ReFS fixed volumes",
+        "on a budget stop only the current frame targets record budget_exhausted; the clean gate still rejects any budget_exhausted",
+        "dedupe ID sets grow with the item (~45 MB per 1M files); each directory zeroes a 64 KiB buffer and asks for the volume serial again",
+        "result_from_json goes through serde_json::Value, so duplicate JSON keys are no longer rejected",
+        "the single-walk test compares new code with itself; marker targets have not run on real data yet (fifth integration)",
+        "roots differing only in ASCII case use the first target spelling for hit paths",
+        "test gaps: eligible_unique_bytes default source (c6) and listing-issue replay inside an open measurement (c10)"
+      ]
     },
     {
       "kind": "host",
@@ -1034,7 +1053,12 @@
           "implementationCommit": null,
           "dispatchEvidence": null
         }
-      ]
+      ],
+      "controllerReview": {
+        "report": "docs/acceptance/wave8/controller/WATER-W8-REVIEW-20261101.md",
+        "evidence": "docs/acceptance/wave8/controller/accept-20261101/controller/",
+        "summary": "round 1 (53f1e467): audit flagged app.css line endings only (mixed CRLF/LF in the worker tree; LF-normalised bytes equal the commit); fresh tree check/browser finals passed; controller mutations c1-c14: 12 caught, probe c8 not applicable to the fixtures, c12 caught at the UI_M3C_INUSE_ITEM line but without its marker (expression threw); review High: skip not applied to the current scan under the frozen SERVICE-M3C (contract gap), unselected-group items shown ticked so unticking one selects the rest; Medium: drive-filter select-all acts on hidden groups and the dock shows the drive part while clean acts on all -> addendum 01"
+      }
     }
   ]
 }

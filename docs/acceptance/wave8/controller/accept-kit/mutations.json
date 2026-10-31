@@ -1,0 +1,231 @@
+{
+  "k3": [
+    {
+      "label": "c1",
+      "mode": "test",
+      "token": "SCAN_M3C_UNIQUE",
+      "file": "packages/junk-scan/src/scan.rs",
+      "old": "eligible_unique_bytes: format_bytes(eligible.iter().map(|hit| hit.unique_bytes).sum()),",
+      "new": "eligible_unique_bytes: format_bytes(members.iter().map(|hit| hit.unique_bytes).sum()),",
+      "why": "group eligible_unique_bytes sums every member, not only the eligible ones"
+    },
+    {
+      "label": "c2",
+      "mode": "red-nc1",
+      "token": "SCAN_M3C_UNIQUE",
+      "file": "packages/junk-scan/src/scan.rs",
+      "old": "if child.identity.is_none_or(|id| row.identities.insert(id)) {",
+      "new": "if child.identity.is_none_or(|id| row.identities.insert(id)) || true {",
+      "why": "the shared marker measurement stops deduplicating (pattern measurement still does; worker nc1 removed every identity)"
+    },
+    {
+      "label": "c3",
+      "mode": "test",
+      "token": "SCAN_M3C_SINGLE_WALK",
+      "file": "packages/junk-scan/src/scan.rs",
+      "old": "} else if depth < *max_depth {",
+      "new": "} else if depth < *max_depth && started_here.is_empty() {",
+      "why": "a hit for one marker target also stops later targets from searching below that directory"
+    },
+    {
+      "label": "c4",
+      "mode": "test",
+      "token": "SCAN_M3C_SINGLE_WALK",
+      "file": "packages/junk-scan/src/scan.rs",
+      "old": "let next = if child.name.eq_ignore_ascii_case(\".git\") {",
+      "new": "let next = if child.name.eq_ignore_ascii_case(\".git-never\") {",
+      "why": "the single walk searches inside .git directories"
+    },
+    {
+      "label": "c5",
+      "mode": "test",
+      "token": "SCAN_M3C_SINGLE_WALK",
+      "file": "packages/junk-scan/src/scan.rs",
+      "old": "} else if depth < *max_depth {",
+      "new": "} else if depth <= *max_depth {",
+      "why": "each target searches one level deeper than its max_depth"
+    },
+    {
+      "label": "c6",
+      "mode": "red-nc2",
+      "token": "SCAN_M3C_COMPAT",
+      "file": "packages/junk-scan/src/scan.rs",
+      "old": "(\"eligible_unique_bytes\", \"eligible_bytes\"),",
+      "new": "(\"eligible_unique_bytes\", \"total_bytes\"),",
+      "why": "an old result without the field gets eligible_unique_bytes from total_bytes instead of eligible_bytes"
+    },
+    {
+      "label": "c7",
+      "mode": "test",
+      "token": "SCAN_M3C_MODE",
+      "file": "packages/junk-scan/src/plan.rs",
+      "old": "\"none\" | \"process_running\" | \"cmdline_references_item\" | \"runs_from_or_references_item\"",
+      "new": "\"none\" | \"process_running\" | \"cmdline_references_item\"",
+      "why": "the plan validator rejects the new in-use mode"
+    },
+    {
+      "label": "c8",
+      "mode": "test",
+      "token": "SCAN_M3C_UNIQUE",
+      "file": "packages/junk-scan/src/native_windows.rs",
+      "old": "            class = 19;\n",
+      "new": "            if class == 19 {\n                return Ok(());\n            }\n            class = 19;\n",
+      "why": "directory enumeration stops after the first 64 KiB buffer"
+    },
+    {
+      "label": "c9",
+      "mode": "test",
+      "token": "SCAN_M3C_SINGLE_WALK",
+      "file": "packages/junk-scan/src/scan.rs",
+      "old": "            self.visited = self.visited.saturating_add(1);",
+      "new": "            self.visited = self.visited.saturating_add(2);",
+      "why": "visited_entries counts every listed entry twice"
+    },
+    {
+      "label": "c10",
+      "mode": "test",
+      "token": "SCAN_M3C_SINGLE_WALK",
+      "file": "packages/junk-scan/src/scan.rs",
+      "old": "                    engine.listing_issues(&listing, &plan.targets[row.index].group_id);\n",
+      "new": "                    let _ = (&listing, &row.index);\n",
+      "why": "probe: listing issues inside an open measurement are no longer replayed to the measuring target"
+    },
+    {
+      "label": "c11",
+      "mode": "red-nc2",
+      "token": "SCAN_M3C_COMPAT",
+      "file": "packages/junk-scan/src/scan.rs",
+      "old": "(\"items\", &[(\"unique_bytes\", \"total_bytes\")][..]),",
+      "new": "(\"items\", &[][..]),",
+      "why": "an old result without Item.unique_bytes gets no default (replaces c6 as the acceptance nc2 after c6 survived)"
+    }
+  ],
+  "k6": [
+    {
+      "label": "c1",
+      "mode": "red-nc1",
+      "token": "UI_M3C_EXCLUDE",
+      "file": "apps/water/ui/model.mjs",
+      "old": "return sum + (total > excluded ? total - excluded : 0n);",
+      "new": "return sum + total;",
+      "why": "the selected size ignores excluded items (worker nc1 emptied the clean_prepare exclusion instead)"
+    },
+    {
+      "label": "c2",
+      "mode": "browser",
+      "token": "UI_M3C_EXCLUDE",
+      "file": "apps/water/ui/model.mjs",
+      "old": "excludedItems(g, selection, details).length < g.eligible_count);",
+      "new": "excludedItems(g, selection, details).length <= g.eligible_count);",
+      "why": "probe: a group whose eligible items are all excluded is still sent to clean_prepare"
+    },
+    {
+      "label": "c3",
+      "mode": "browser",
+      "token": "UI_M3C_EXCLUDE",
+      "file": "apps/water/ui/views/confirm.mjs",
+      "old": "if (preview.excluded_count > 0)",
+      "new": "if (preview.excluded_count >= 0)",
+      "why": "probe: the confirm dialog shows \"已排除 0 项\" when nothing is excluded"
+    },
+    {
+      "label": "c4",
+      "mode": "browser",
+      "token": "UI_M3C_SKIP",
+      "file": "apps/water/ui/app.mjs",
+      "old": "const refreshed = await ipc.group_detail(data.group.group_id);",
+      "new": "const refreshed = data;",
+      "why": "after skip_add the drawer keeps the old details instead of reading them again"
+    },
+    {
+      "label": "c5",
+      "mode": "browser",
+      "token": "UI_M3C_SKIP",
+      "file": "apps/water/ui/ipc.mjs",
+      "old": "export const skip_add = itemId => invoke('skip_add', () => ({itemId:id(itemId)}));",
+      "new": "export const skip_add = itemId => invoke('skip_add', () => ({itemId:id(itemId), root:'C:\\Users'}));",
+      "why": "skip_add also sends a path"
+    },
+    {
+      "label": "c6",
+      "mode": "red-nc2",
+      "token": "UI_M3C_DRIVE",
+      "file": "apps/water/ui/views/results.mjs",
+      "old": "if (drives.length > 1) {",
+      "new": "if (drives.length > 0) {",
+      "why": "the drive filter also appears when only one drive is in the result"
+    },
+    {
+      "label": "c7",
+      "mode": "browser",
+      "token": "UI_M3C_DRIVE",
+      "file": "apps/water/ui/app.mjs",
+      "old": "drive:value => { state.drive = value; render(); },",
+      "new": "drive:value => { state.drive = value; state.selection = new Map(); render(); },",
+      "why": "switching the drive filter clears the selection"
+    },
+    {
+      "label": "c8",
+      "mode": "browser",
+      "token": "UI_M3C_FORECAST",
+      "file": "apps/water/ui/views/trends.mjs",
+      "old": "const positive = bytes(drive.bytes_per_day) > 0n && drive.days_to_full !== null;",
+      "new": "const positive = drive.days_to_full !== null;",
+      "why": "probe: the \"full in N days\" line no longer checks that the speed is positive"
+    },
+    {
+      "label": "c9",
+      "mode": "browser",
+      "token": "UI_M3C_ORPHANS",
+      "file": "apps/water/ui/views/trends.mjs",
+      "old": "el('span', 'cap orphan-start', `开始于 ${dateTime(chain.started_at)}`)));",
+      "new": "el('span', 'cap orphan-start', `开始于 ${dateTime(chain.started_at)}`), button('结束', () => {}, 'btn btn-ghost', 'orphan-end')));",
+      "why": "each orphan row gets an end button"
+    },
+    {
+      "label": "c10",
+      "mode": "browser",
+      "token": "UI_M3C_DUE",
+      "file": "apps/water/ui/views/home.mjs",
+      "old": "app.checkup_due.days_since_last === null ?",
+      "new": "app.checkup_due.days_since_last === undefined ?",
+      "why": "never-checked shows \"已经 null 天没有体检\" instead of \"还没有体检过\""
+    },
+    {
+      "label": "c11",
+      "mode": "browser",
+      "token": "UI_READ_ORDER",
+      "file": "apps/water/ui/app.mjs",
+      "old": "const value = await ipc.skip_remove(id); if (isCurrent()) state.locations = value;",
+      "new": "const value = await ipc.skip_remove(id); state.locations = value;",
+      "why": "a superseded skip_remove reply still overwrites the locations"
+    },
+    {
+      "label": "c12",
+      "mode": "browser",
+      "token": "UI_M3C_INUSE_ITEM",
+      "file": "apps/water/ui/views/detail.mjs",
+      "old": "if (item.in_use) add(row, el('span', 'in-use-item cap', item.in_use.process_label_zh));",
+      "new": "void 0;",
+      "why": "detail rows lose the per-item in-use label"
+    },
+    {
+      "label": "c13",
+      "mode": "browser",
+      "token": "UI_NOTICE_TOP",
+      "file": "apps/water/ui/styles/app.css",
+      "old": ".main:has(> .notice:not([hidden])) > .titlebar { z-index: 6; background: var(--w-glass-strong); backdrop-filter: blur(var(--w-glass-blur-strong)); }",
+      "new": ".main:has(> .notice:not([hidden])) > .titlebar { z-index: 6; background: rgb(250, 250, 252); }",
+      "why": "with a notice shown the title bar turns opaque window colour again (wave 7 carry-over)"
+    },
+    {
+      "label": "c14",
+      "mode": "red-nc3",
+      "token": "UI_M3C_FORECAST",
+      "file": "apps/water/ui/views/trends.mjs",
+      "old": "drive.note_zh ?? '可用空间没有减少'",
+      "new": "'可用空间没有减少'",
+      "why": "a drive without days_to_full ignores its note_zh (worker nc3 showed an empty string)"
+    }
+  ]
+}

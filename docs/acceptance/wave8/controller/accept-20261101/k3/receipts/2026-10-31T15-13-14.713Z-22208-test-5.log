@@ -1,0 +1,39 @@
+{"binary":"C:\\Users\\37310\\.rustup\\toolchains\\1.95.0-x86_64-pc-windows-msvc\\bin\\cargo.exe","args":["test","--offline","--locked","--manifest-path","packages/junk-scan/Cargo.toml","--test","scan_v1","--","--test-threads=1"],"exitCode":101,"error":null}
+--- stdout ---
+
+running 5 tests
+test scan_overlap_and_guards ... FAILED
+test scan_pattern_marker_discovery ... FAILED
+test scan_plan_contract ... ok
+test scan_reparse_budget_cancel ... ok
+test scan_snapshot_growth_keys ... ok
+
+failures:
+
+---- scan_overlap_and_guards stdout ----
+
+thread 'scan_overlap_and_guards' (36088) panicked at tests\scan_v1.rs:1475:5:
+assertion `left == right` failed: SCAN_M3C_SINGLE_WALK: items, order, sizes, guards
+  left: [Item { item_id: "i-000001", group_id: "children", path: "F:\\new\\smaltalk\\water\\.worktrees\\accept-w8-k3\\.local\\w2-b-fixtures\\fx-26240-1793459600137384600\\root\\tag", kind: "dir", total_bytes: "89", unique_bytes: "89", file_count: 4, newest_activity: "2026-10-31T15:13:20Z", identity: Some(Identity { volume_serial: "C248BB02", file_id: "d71d2300000013000000000000000000" }), eligible: true, ineligible_reason: None }, Item { item_id: "i-000002", group_id: "modules", path: "F:\\new\\smaltalk\\water\\.worktrees\\accept-w8-k3\\.local\\w2-b-fixtures\\fx-26240-1793459600137384600\\root\\tag\\node_modules", kind: "dir", total_bytes: "3", unique_bytes: "3", file_count: 2, newest_activity: "2026-10-31T15:13:20Z", identity: Some(Identity { volume_serial: "C248BB02", file_id: "dc1d2300000011000000000000000000" }), eligible: true, ineligible_reason: None }, Item { item_id: "i-000003", group_id: "build", path: "F:\\new\\smaltalk\\water\\.worktrees\\accept-w8-k3\\.local\\w2-b-fixtures\\fx-26240-1793459600137384600\\root\\deeper\\target", kind: "dir", total_bytes: "8", unique_bytes: "8", file_count: 1, newest_activity: "2026-10-31T15:13:20Z", identity: Some(Identity { volume_serial: "C248BB02", file_id: "e41d2300000011000000000000000000" }), eligible: true, ineligible_reason: None }, Item { item_id: "i-000004", group_id: "build", path: "F:\\new\\smaltalk\\water\\.worktrees\\accept-w8-k3\\.local\\w2-b-fixtures\\fx-26240-1793459600137384600\\root\\target", kind: "dir", total_bytes: "5", unique_bytes: "5", file_count: 1, newest_activity: "2026-10-31T15:13:20Z", identity: Some(Identity { volume_serial: "C248BB02", file_id: "e11d2300000010000000000000000000" }), eligible: true, ineligible_reason: None }, Item { item_id: "i-000005", group_id: "worktree", path: "F:\\new\\smaltalk\\water\\.worktrees\\accept-w8-k3\\.local\\w2-b-fixtures\\fx-26240-1793459600137384600\\root\\worktree", kind: "dir", total_bytes: "6", unique_bytes: "6", file_count: 1, newest_activity: "2026-10-31T15:13:20Z", identity: Some(Identity { volume_serial: "C248BB02", file_id: "e61d230000000f000000000000000000" }), eligible: false, ineligible_reason: Some("level_not_cleanable") }]
+ right: [Item { item_id: "i-000001", group_id: "children", path: "F:\\new\\smaltalk\\water\\.worktrees\\accept-w8-k3\\.local\\w2-b-fixtures\\fx-26240-1793459600137384600\\root\\tag", kind: "dir", total_bytes: "89", unique_bytes: "89", file_count: 4, newest_activity: "2026-10-31T15:13:20Z", identity: Some(Identity { volume_serial: "C248BB02", file_id: "d71d2300000013000000000000000000" }), eligible: true, ineligible_reason: None }, Item { item_id: "i-000002", group_id: "modules", path: "F:\\new\\smaltalk\\water\\.worktrees\\accept-w8-k3\\.local\\w2-b-fixtures\\fx-26240-1793459600137384600\\root\\tag\\node_modules", kind: "dir", total_bytes: "3", unique_bytes: "3", file_count: 2, newest_activity: "2026-10-31T15:13:20Z", identity: Some(Identity { volume_serial: "C248BB02", file_id: "dc1d2300000011000000000000000000" }), eligible: true, ineligible_reason: None }, Item { item_id: "i-000003", group_id: "build", path: "F:\\new\\smaltalk\\water\\.worktrees\\accept-w8-k3\\.local\\w2-b-fixtures\\fx-26240-1793459600137384600\\root\\target", kind: "dir", total_bytes: "5", unique_bytes: "5", file_count: 1, newest_activity: "2026-10-31T15:13:20Z", identity: Some(Identity { volume_serial: "C248BB02", file_id: "e11d2300000010000000000000000000" }), eligible: true, ineligible_reason: None }, Item { item_id: "i-000004", group_id: "worktree", path: "F:\\new\\smaltalk\\water\\.worktrees\\accept-w8-k3\\.local\\w2-b-fixtures\\fx-26240-1793459600137384600\\root\\worktree", kind: "dir", total_bytes: "6", unique_bytes: "6", file_count: 1, newest_activity: "2026-10-31T15:13:20Z", identity: Some(Identity { volume_serial: "C248BB02", file_id: "e61d230000000f000000000000000000" }), eligible: false, ineligible_reason: Some("level_not_cleanable") }]
+note: run with `RUST_BACKTRACE=1` environment variable to display a backtrace
+
+---- scan_pattern_marker_discovery stdout ----
+
+thread 'scan_pattern_marker_discovery' (17076) panicked at tests\scan_v1.rs:569:5:
+assertion failed: !result.items.iter().any(|i|
+            i.path.eq_ignore_ascii_case(&fx.p("proj/deep/node_modules")))
+
+
+failures:
+    scan_overlap_and_guards
+    scan_pattern_marker_discovery
+
+test result: FAILED. 3 passed; 2 failed; 0 ignored; 0 measured; 0 filtered out; finished in 0.95s
+
+
+--- stderr ---
+   Compiling water-junk-scan v0.1.0 (F:\new\smaltalk\water\.worktrees\accept-w8-k3\packages\junk-scan)
+    Finished `test` profile [unoptimized + debuginfo] target(s) in 2.25s
+     Running tests\scan_v1.rs (.local\w2-target\debug\deps\scan_v1-44131edddc8e8920.exe)
+error: test failed, to rerun pass `--test scan_v1`

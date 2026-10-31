@@ -1,0 +1,1149 @@
+#![forbid(unsafe_code)]
+
+use crate::error::ScanError;
+use crate::keys::normalize_key;
+use crate::model::{Category, Group, Identity, Issue, Item, ItemType, Level, ScanResult, TopKey};
+use crate::native_windows;
+use crate::plan::{Marker, Match, ScanPlan, Target, match_segment};
+use crate::util::{
+    child_path, clamp_time, file_name, format_bytes, format_rfc3339, is_proper_ancestor, path_eq,
+};
+use serde::{Deserialize, Serialize};
+use std::collections::HashSet;
+use std::fs::{self, Metadata};
+#[cfg(windows)]
+use std::os::windows::fs::MetadataExt;
+use std::sync::Arc;
+use std::sync::atomic::{AtomicBool, Ordering};
+use std::time::{Duration, Instant, SystemTime};
+
+const REPARSE: u32 = 0x400;
+const DIRECTORY: u32 = 0x10;
+
+#[derive(Debug, Clone)]
+pub struct ScanOptions {
+    pub max_entries: u64,
+    pub max_seconds: u64,
+}
+
+impl Default for ScanOptions {
+    fn default() -> Self {
+        Self {
+            max_entries: 20_000_000,
+            max_seconds: 900,
+        }
+    }
+}
+
+#[derive(Clone)]
+pub struct CancelToken {
+    flag: Arc<AtomicBool>,
+}
+
+impl CancelToken {
+    pub fn new() -> Self {
+        Self {
+            flag: Arc::new(AtomicBool::new(false)),
+        }
+    }
+
+    pub fn cancel(&self) {
+        self.flag.store(true, Ordering::SeqCst);
+    }
+
+    pub fn is_cancelled(&self) -> bool {
+        self.flag.load(Ordering::SeqCst)
+    }
+}
+
+impl Default for CancelToken {
+    fn default() -> Self {
+        Self::new()
+    }
+}
+
+#[derive(Debug, Clone, Serialize, Deserialize)]
+pub struct ScanProgress {
+    pub group_id: String,
+    pub category: String,
+    pub visited_entries: u64,
+    pub found_bytes: u64,
+}
+
+pub trait ScanObserver: Sync {
+    fn on_progress(&self, progress: &ScanProgress);
+}
+
+#[derive(Clone, Copy, PartialEq, Eq)]
+enum Kind {
+    File,
+    Dir,
+    Reparse,
+}
+
+struct Child {
+    name: String,
+    path: String,
+    kind: Kind,
+    len: u64,
+    mtime: SystemTime,
+    identity: Option<(u32, [u8; 16])>,
+}
+
+struct Listing {
+    children: Vec<Child>,
+    issues: Vec<&'static str>,
+}
+
+#[derive(Clone)]
+struct Hit {
+    target_index: usize,
+    group_id: String,
+    level: Level,
+    min_age_hours: u64,
+    keep_newest: u64,
+    path: String,
+    kind: Kind,
+    total_bytes: u64,
+    unique_bytes: u64,
+    file_count: u64,
+    newest_activity: SystemTime,
+    oldest_activity: SystemTime,
+    /// `.git` check done on the entry's own listing, before any stop.
+    has_git: bool,
+    /// `None` means identity lookup failed (not that it was skipped).
+    identity: Option<Identity>,
+}
+
+struct Engine<'a> {
+    options: &'a ScanOptions,
+    cancel: &'a CancelToken,
+    observer: &'a dyn ScanObserver,
+    now: SystemTime,
+    started: Instant,
+    visited: u64,
+    found_bytes: u64,
+    status: &'static str,
+    issues: Vec<Issue>,
+    last_progress: Instant,
+}
+
+impl<'a> Engine<'a> {
+    fn stopped(&mut self, group_id: &str) -> bool {
+        if self.cancel.is_cancelled() {
+            self.status = "cancelled";
+            return true;
+        }
+        if self.visited > self.options.max_entries
+            || self.started.elapsed() > Duration::from_secs(self.options.max_seconds)
+        {
+            // Recorded once per group, not once per call.
+            if !self
+                .issues
+                .iter()
+                .any(|issue| issue.code == "budget_exhausted" && issue.group_id == group_id)
+            {
+                self.add_issue("budget_exhausted", group_id);
+            }
+            if self.status != "cancelled" {
+                self.status = "partial";
+            }
+            true
+        } else {
+            false
+        }
+    }
+
+    fn add_issue(&mut self, code: &str, group_id: &str) {
+        if let Some(issue) = self
+            .issues
+            .iter_mut()
+            .find(|issue| issue.code == code && issue.group_id == group_id)
+        {
+            issue.count += 1;
+        } else {
+            self.issues.push(Issue {
+                code: code.to_string(),
+                group_id: group_id.to_string(),
+                count: 1,
+            });
+        }
+        if self.status == "completed"
+            && matches!(
+                code,
+                "access_denied" | "unrepresentable_name" | "budget_exhausted"
+            )
+        {
+            self.status = "partial";
+        }
+    }
+
+    fn emit(&mut self, group_id: &str, category: Category, force: bool) {
+        if !force && self.last_progress.elapsed() < Duration::from_millis(50) {
+            return;
+        }
+        self.observer.on_progress(&ScanProgress {
+            group_id: group_id.to_string(),
+            category: category_name(category).to_string(),
+            visited_entries: self.visited,
+            found_bytes: self.found_bytes,
+        });
+        self.last_progress = Instant::now();
+    }
+
+    fn listing(&mut self, dir: &str, group_id: &str) -> Listing {
+        let mut listing = Listing {
+            children: Vec::new(),
+            issues: Vec::new(),
+        };
+        if self.stopped(group_id) {
+            return listing;
+        }
+        let result = native_windows::list_directory(dir, |entry| {
+            self.visited = self.visited.saturating_add(1);
+            if self.stopped(group_id) {
+                return false;
+            }
+            let Some(name) = entry.name else {
+                listing.issues.push("unrepresentable_name");
+                return true;
+            };
+            let path = child_path(dir, &name);
+            listing.children.push(Child {
+                name,
+                path,
+                kind: kind_from_attributes(entry.attributes),
+                len: entry.len,
+                mtime: clamp_time(entry.mtime),
+                identity: entry.identity,
+            });
+            true
+        });
+        if result.is_err() {
+            listing.issues.push("access_denied");
+        }
+        listing
+    }
+
+    fn listing_issues(&mut self, listing: &Listing, group_id: &str) {
+        for code in &listing.issues {
+            self.add_issue(code, group_id);
+        }
+    }
+
+    fn list(&mut self, dir: &str, group_id: &str) -> Vec<Child> {
+        let listing = self.listing(dir, group_id);
+        self.listing_issues(&listing, group_id);
+        listing.children
+    }
+}
+
+fn kind_from_attributes(attrs: u32) -> Kind {
+    if attrs & REPARSE != 0 {
+        Kind::Reparse
+    } else if attrs & DIRECTORY != 0 {
+        Kind::Dir
+    } else {
+        Kind::File
+    }
+}
+
+fn child_from_meta(name: String, path: String, meta: &Metadata) -> Child {
+    #[cfg(windows)]
+    let attrs = meta.file_attributes();
+    #[cfg(not(windows))]
+    let attrs = if meta.is_symlink() {
+        REPARSE
+    } else if meta.is_dir() {
+        DIRECTORY
+    } else {
+        0
+    };
+    Child {
+        name,
+        path,
+        kind: kind_from_attributes(attrs),
+        len: meta.len(),
+        mtime: clamp_time(meta.modified().unwrap_or(SystemTime::UNIX_EPOCH)),
+        identity: None,
+    }
+}
+
+fn classify_path(path: &str) -> Option<Child> {
+    let meta = fs::symlink_metadata(path).ok()?;
+    Some(child_from_meta(
+        file_name(path).to_string(),
+        path.to_string(),
+        &meta,
+    ))
+}
+
+fn category_name(category: Category) -> &'static str {
+    match category {
+        Category::AgentTool => "agent_tool",
+        Category::Browser => "browser",
+        Category::SystemTemp => "system_temp",
+        Category::AppLeftover => "app_leftover",
+        Category::DevCache => "dev_cache",
+        Category::CrashLog => "crash_log",
+        Category::GpuSystem => "gpu_system",
+        Category::Custom => "custom",
+        Category::Unrecognized => "unrecognized",
+    }
+}
+
+fn accept_type(item_type: ItemType, kind: Kind) -> bool {
+    match (item_type, kind) {
+        (_, Kind::Reparse) => false,
+        (ItemType::Any, _) => true,
+        (ItemType::Dir, Kind::Dir) => true,
+        (ItemType::File, Kind::File) => true,
+        _ => false,
+    }
+}
+
+fn measure(engine: &mut Engine<'_>, path: &str, kind: Kind, group_id: &str) -> Measured {
+    let Some(self_child) = classify_path(path) else {
+        engine.add_issue("access_denied", group_id);
+        return Measured {
+            bytes: 0,
+            unique_bytes: 0,
+            files: 0,
+            newest: SystemTime::UNIX_EPOCH,
+            oldest: SystemTime::UNIX_EPOCH,
+            has_git: false,
+        };
+    };
+    let mut newest = self_child.mtime;
+    let mut oldest = self_child.mtime;
+    let mut bytes = 0u64;
+    let mut unique_bytes = 0u64;
+    let mut identities = HashSet::new();
+    let mut files = 0u64;
+    if kind == Kind::File {
+        return Measured {
+            bytes: self_child.len,
+            unique_bytes: self_child.len,
+            files: 1,
+            newest,
+            oldest,
+            has_git: false,
+        };
+    }
+    let mut has_git = false;
+    let mut stack = vec![path.to_string()];
+    while let Some(dir) = stack.pop() {
+        if engine.stopped(group_id) {
+            break;
+        }
+        let top = path_eq(&dir, path);
+        for child in engine.list(&dir, group_id) {
+            if top && child.name.eq_ignore_ascii_case(".git") {
+                has_git = true;
+            }
+            if child.mtime > newest {
+                newest = child.mtime;
+            }
+            if child.mtime < oldest {
+                oldest = child.mtime;
+            }
+            match child.kind {
+                Kind::File => {
+                    bytes = bytes.saturating_add(child.len);
+                    if child.identity.is_none_or(|id| identities.insert(id)) {
+                        unique_bytes = unique_bytes.saturating_add(child.len);
+                    }
+                    files = files.saturating_add(1);
+                }
+                Kind::Dir => stack.push(child.path),
+                Kind::Reparse => {}
+            }
+        }
+    }
+    Measured {
+        bytes,
+        unique_bytes,
+        files,
+        newest,
+        oldest,
+        has_git,
+    }
+}
+
+struct Measured {
+    bytes: u64,
+    unique_bytes: u64,
+    files: u64,
+    newest: SystemTime,
+    oldest: SystemTime,
+    has_git: bool,
+}
+
+fn push_hit(
+    engine: &mut Engine<'_>,
+    hits: &mut Vec<Hit>,
+    target: &Target,
+    index: usize,
+    path: &str,
+    kind: Kind,
+) {
+    if engine.stopped(&target.group_id) {
+        return;
+    }
+    let measured = measure(engine, path, kind, &target.group_id);
+    push_measured_hit(engine, hits, target, index, path, kind, measured);
+}
+
+#[allow(clippy::too_many_arguments)]
+fn push_measured_hit(
+    engine: &mut Engine<'_>,
+    hits: &mut Vec<Hit>,
+    target: &Target,
+    index: usize,
+    path: &str,
+    kind: Kind,
+    measured: Measured,
+) {
+    // A stop during the walk leaves size, newest_activity and the .git check
+    // incomplete: the entry is not an obtained result and is not output.
+    if engine.stopped(&target.group_id) {
+        return;
+    }
+    let identity = finish_identity(path).ok();
+    if engine.stopped(&target.group_id) {
+        return;
+    }
+    engine.found_bytes = engine.found_bytes.saturating_add(measured.bytes);
+    hits.push(Hit {
+        target_index: index,
+        group_id: target.group_id.clone(),
+        level: target.level,
+        min_age_hours: target.min_age_hours,
+        keep_newest: target.keep_newest,
+        path: path.to_string(),
+        kind,
+        total_bytes: measured.bytes,
+        unique_bytes: measured.unique_bytes,
+        file_count: measured.files,
+        newest_activity: measured.newest,
+        oldest_activity: measured.oldest,
+        has_git: measured.has_git,
+        identity,
+    });
+}
+
+fn walk_pattern(
+    engine: &mut Engine<'_>,
+    hits: &mut Vec<Hit>,
+    target: &Target,
+    index: usize,
+    current: &str,
+    segments: &[String],
+) {
+    if engine.stopped(&target.group_id) || segments.is_empty() {
+        return;
+    }
+    let last = segments.len() == 1;
+    for child in engine.list(current, &target.group_id) {
+        if !match_segment(&segments[0], &child.name) {
+            continue;
+        }
+        if child.kind == Kind::Reparse {
+            engine.add_issue("reparse_skipped", &target.group_id);
+            continue;
+        }
+        if last {
+            if accept_type(target.item_type, child.kind) {
+                push_hit(engine, hits, target, index, &child.path, child.kind);
+            }
+        } else if child.kind == Kind::Dir {
+            walk_pattern(engine, hits, target, index, &child.path, &segments[1..]);
+        }
+    }
+}
+
+fn marker_matches(dir: &str, marker: &Marker, children: &[Child]) -> bool {
+    match marker {
+        Marker::DirName { names } => names
+            .iter()
+            .any(|want| file_name(dir).eq_ignore_ascii_case(want)),
+        Marker::File {
+            name,
+            min_bytes,
+            max_bytes,
+        } => children.iter().any(|child| {
+            child.kind == Kind::File
+                && child.name.eq_ignore_ascii_case(name)
+                && child.len >= *min_bytes
+                && child.len <= *max_bytes
+        }),
+        Marker::ChildrenAll { names } => names.iter().all(|want| {
+            children
+                .iter()
+                .any(|child| child.name.eq_ignore_ascii_case(want))
+        }),
+    }
+}
+
+struct Pending {
+    index: usize,
+    path: String,
+    measured: Measured,
+    identities: HashSet<(u32, [u8; 16])>,
+}
+
+enum MarkerFrame {
+    Enter {
+        dir: Child,
+        depth: u32,
+        searching: Vec<usize>,
+        measuring: Vec<usize>,
+    },
+    Exit(Vec<usize>),
+}
+
+/// A single physical DFS serves all marker targets on this root. Each target
+/// stops searching independently; open measurements keep accumulating through
+/// the subtree (including .git), without listing any directory a second time.
+fn walk_markers(
+    engine: &mut Engine<'_>,
+    hits: &mut Vec<Hit>,
+    plan: &ScanPlan,
+    indices: Vec<usize>,
+) {
+    let Match::Marker { root, .. } = &plan.targets[indices[0]].match_spec else {
+        return;
+    };
+    let dir = match classify_path(root) {
+        Some(dir) if dir.kind == Kind::Dir => dir,
+        other => {
+            let code = if other.is_some_and(|dir| dir.kind == Kind::Reparse) {
+                "base_reparse"
+            } else {
+                "base_missing"
+            };
+            for index in indices {
+                engine.add_issue(code, &plan.targets[index].group_id);
+            }
+            return;
+        }
+    };
+    let mut pending: Vec<Option<Pending>> = Vec::new();
+    let mut stack = vec![MarkerFrame::Enter {
+        dir,
+        depth: 0,
+        searching: indices,
+        measuring: Vec::new(),
+    }];
+    while let Some(frame) = stack.pop() {
+        match frame {
+            MarkerFrame::Exit(ids) => {
+                for id in ids {
+                    let row = pending[id].take().expect("active measurement");
+                    let target = &plan.targets[row.index];
+                    push_measured_hit(
+                        engine,
+                        hits,
+                        target,
+                        row.index,
+                        &row.path,
+                        Kind::Dir,
+                        row.measured,
+                    );
+                }
+            }
+            MarkerFrame::Enter {
+                dir,
+                depth,
+                searching,
+                mut measuring,
+            } => {
+                let primary = searching.first().copied().unwrap_or_else(|| {
+                    pending[measuring[0]]
+                        .as_ref()
+                        .expect("active measurement")
+                        .index
+                });
+                if engine.stopped(&plan.targets[primary].group_id) {
+                    break;
+                }
+                let needs_listing = !measuring.is_empty()
+                    || searching.iter().any(|index| {
+                        let Match::Marker {
+                            marker, max_depth, ..
+                        } = &plan.targets[*index].match_spec
+                        else {
+                            return false;
+                        };
+                        !matches!(marker, Marker::DirName { .. })
+                            || depth < *max_depth
+                            || marker_matches(&dir.path, marker, &[])
+                    });
+                let listing = if needs_listing {
+                    engine.listing(&dir.path, &plan.targets[primary].group_id)
+                } else {
+                    Listing {
+                        children: Vec::new(),
+                        issues: Vec::new(),
+                    }
+                };
+                // Replay the old logical listing issues per target, while visited
+                // counts only the one actual enumeration above.
+                for id in &measuring {
+                    let row = pending[*id].as_ref().expect("active measurement");
+                    engine.listing_issues(&listing, &plan.targets[row.index].group_id);
+                }
+                let mut searching_next = Vec::new();
+                let mut started_here = Vec::new();
+                for index in searching {
+                    let target = &plan.targets[index];
+                    let Match::Marker {
+                        marker, max_depth, ..
+                    } = &target.match_spec
+                    else {
+                        continue;
+                    };
+                    if !matches!(marker, Marker::DirName { .. }) {
+                        engine.listing_issues(&listing, &target.group_id);
+                    }
+                    if marker_matches(&dir.path, marker, &listing.children) {
+                        engine.listing_issues(&listing, &target.group_id);
+                        let id = pending.len();
+                        pending.push(Some(Pending {
+                            index,
+                            path: dir.path.clone(),
+                            identities: HashSet::new(),
+                            measured: Measured {
+                                bytes: 0,
+                                unique_bytes: 0,
+                                files: 0,
+                                newest: dir.mtime,
+                                oldest: dir.mtime,
+                                has_git: false,
+                            },
+                        }));
+                        started_here.push(id);
+                        measuring.push(id);
+                    } else if depth < *max_depth {
+                        engine.listing_issues(&listing, &target.group_id);
+                        searching_next.push(index);
+                    }
+                }
+                let mut stopped = false;
+                for index in searching_next.iter().copied().chain(
+                    measuring
+                        .iter()
+                        .map(|id| pending[*id].as_ref().expect("active measurement").index),
+                ) {
+                    stopped |= engine.stopped(&plan.targets[index].group_id);
+                }
+                if stopped {
+                    break;
+                } // Discard every unfinished measurement.
+                stack.push(MarkerFrame::Exit(started_here));
+                for child in listing.children {
+                    for id in &measuring {
+                        let row = pending[*id].as_mut().expect("active measurement");
+                        let m = &mut row.measured;
+                        m.newest = m.newest.max(child.mtime);
+                        m.oldest = m.oldest.min(child.mtime);
+                        if path_eq(&dir.path, &row.path) && child.name.eq_ignore_ascii_case(".git")
+                        {
+                            m.has_git = true;
+                        }
+                        if child.kind == Kind::File {
+                            m.bytes = m.bytes.saturating_add(child.len);
+                            m.files = m.files.saturating_add(1);
+                            if child.identity.is_none_or(|id| row.identities.insert(id)) {
+                                m.unique_bytes = m.unique_bytes.saturating_add(child.len);
+                            }
+                        }
+                    }
+                    if child.kind == Kind::Reparse {
+                        for index in &searching_next {
+                            engine.add_issue("reparse_skipped", &plan.targets[*index].group_id);
+                        }
+                    } else if child.kind == Kind::Dir {
+                        let next = if child.name.eq_ignore_ascii_case(".git") {
+                            Vec::new()
+                        } else {
+                            searching_next.clone()
+                        };
+                        if !next.is_empty() || !measuring.is_empty() {
+                            stack.push(MarkerFrame::Enter {
+                                dir: child,
+                                depth: depth + 1,
+                                searching: next,
+                                measuring: measuring.clone(),
+                            });
+                        }
+                    }
+                }
+            }
+        }
+    }
+}
+
+fn run_target(engine: &mut Engine<'_>, hits: &mut Vec<Hit>, target: &Target, index: usize) {
+    match &target.match_spec {
+        Match::Pattern { base, segments } => match classify_path(base) {
+            None => engine.add_issue("base_missing", &target.group_id),
+            Some(child) if child.kind == Kind::Reparse => {
+                engine.add_issue("base_reparse", &target.group_id);
+            }
+            Some(child) if child.kind != Kind::Dir => {
+                engine.add_issue("base_missing", &target.group_id);
+            }
+            Some(_) => walk_pattern(engine, hits, target, index, base, segments),
+        },
+        Match::Marker { .. } => {}
+        Match::Discovery { .. } => {}
+    }
+}
+
+fn run_discovery(
+    engine: &mut Engine<'_>,
+    hits: &mut Vec<Hit>,
+    target: &Target,
+    index: usize,
+    others: &[Hit],
+) {
+    let Match::Discovery { root } = &target.match_spec else {
+        return;
+    };
+    match classify_path(root) {
+        None => {
+            engine.add_issue("base_missing", &target.group_id);
+            return;
+        }
+        Some(child) if child.kind == Kind::Reparse => {
+            engine.add_issue("base_reparse", &target.group_id);
+            return;
+        }
+        Some(child) if child.kind != Kind::Dir => {
+            engine.add_issue("base_missing", &target.group_id);
+            return;
+        }
+        Some(_) => {}
+    }
+    let protected: Vec<&str> = others
+        .iter()
+        .filter(|hit| hit.level == Level::Protected)
+        .map(|hit| hit.path.as_str())
+        .collect();
+    let other_paths: Vec<&str> = others.iter().map(|hit| hit.path.as_str()).collect();
+    for child in engine.list(root, &target.group_id) {
+        if child.kind == Kind::Reparse {
+            engine.add_issue("reparse_skipped", &target.group_id);
+            continue;
+        }
+        if !accept_type(target.item_type, child.kind) {
+            continue;
+        }
+        // SCAN §3: skip a child that equals another entry or is its ancestor.
+        let covered = other_paths
+            .iter()
+            .any(|path| path_eq(path, &child.path) || is_proper_ancestor(&child.path, path));
+        let guarded = protected
+            .iter()
+            .any(|path| path_eq(path, &child.path) || is_proper_ancestor(&child.path, path));
+        if covered || guarded {
+            continue;
+        }
+        push_hit(engine, hits, target, index, &child.path, child.kind);
+    }
+}
+
+fn merge_hits(mut hits: Vec<Hit>) -> Vec<Hit> {
+    hits.sort_by(|a, b| {
+        a.path
+            .to_ascii_lowercase()
+            .cmp(&b.path.to_ascii_lowercase())
+            .then(a.target_index.cmp(&b.target_index))
+    });
+    let mut out = Vec::new();
+    for hit in hits {
+        if let Some(existing) = out
+            .iter_mut()
+            .find(|item: &&mut Hit| path_eq(&item.path, &hit.path))
+        {
+            let take = hit.level.rank() > existing.level.rank()
+                || (hit.level.rank() == existing.level.rank()
+                    && hit.target_index < existing.target_index);
+            if take {
+                *existing = hit;
+            }
+        } else {
+            out.push(hit);
+        }
+    }
+    out
+}
+
+fn too_recent(now: SystemTime, newest: SystemTime, min_age_hours: u64) -> bool {
+    match now.duration_since(newest) {
+        Ok(age) => age < Duration::from_secs(min_age_hours.saturating_mul(3600)),
+        Err(_) => true,
+    }
+}
+
+fn classify_reason(
+    hit: &Hit,
+    engine: &Engine<'_>,
+    all: &[Hit],
+    hard_guards: &[String],
+) -> Option<String> {
+    if !hit.level.cleanable() {
+        return Some("level_not_cleanable".to_string());
+    }
+    if hard_guards
+        .iter()
+        .any(|guard| path_eq(&hit.path, guard) || is_proper_ancestor(&hit.path, guard))
+    {
+        return Some("hard_guard".to_string());
+    }
+    let protected: Vec<&str> = all
+        .iter()
+        .filter(|item| item.level == Level::Protected)
+        .map(|item| item.path.as_str())
+        .collect();
+    if protected
+        .iter()
+        .any(|path| is_proper_ancestor(&hit.path, path))
+    {
+        return Some("contains_protected".to_string());
+    }
+    if protected
+        .iter()
+        .any(|path| is_proper_ancestor(path, &hit.path))
+    {
+        return Some("inside_protected".to_string());
+    }
+    if hit.kind == Kind::Dir && hit.has_git {
+        return Some("repository".to_string());
+    }
+    if too_recent(engine.now, hit.newest_activity, hit.min_age_hours) {
+        return Some("too_recent".to_string());
+    }
+    None
+}
+
+fn apply_keep_newest(rows: &mut [(Hit, Option<String>)]) {
+    let mut groups: Vec<(usize, u64)> = Vec::new();
+    for (hit, reason) in rows.iter() {
+        if reason.is_none()
+            && hit.keep_newest > 0
+            && !groups.iter().any(|(i, _)| *i == hit.target_index)
+        {
+            groups.push((hit.target_index, hit.keep_newest));
+        }
+    }
+    for (target_index, keep) in groups {
+        let mut idxs: Vec<usize> = rows
+            .iter()
+            .enumerate()
+            .filter(|(_, (hit, reason))| hit.target_index == target_index && reason.is_none())
+            .map(|(i, _)| i)
+            .collect();
+        idxs.sort_by(|a, b| {
+            rows[*b]
+                .0
+                .newest_activity
+                .cmp(&rows[*a].0.newest_activity)
+                .then(
+                    rows[*a]
+                        .0
+                        .path
+                        .to_ascii_lowercase()
+                        .cmp(&rows[*b].0.path.to_ascii_lowercase()),
+                )
+        });
+        for idx in idxs.into_iter().take(keep as usize) {
+            rows[idx].1 = Some("keep_newest".to_string());
+        }
+    }
+}
+
+fn top_keys(items: &[&Hit]) -> Vec<TopKey> {
+    let mut map: Vec<(String, u64, u64, SystemTime)> = Vec::new();
+    for item in items {
+        let key = normalize_key(file_name(&item.path));
+        if let Some(row) = map.iter_mut().find(|(k, _, _, _)| k == &key) {
+            row.1 += 1;
+            row.2 = row.2.saturating_add(item.total_bytes);
+            if item.newest_activity > row.3 {
+                row.3 = item.newest_activity;
+            }
+        } else {
+            map.push((key, 1, item.total_bytes, item.newest_activity));
+        }
+    }
+    map.sort_by(|a, b| b.2.cmp(&a.2).then(a.0.cmp(&b.0)));
+    map.into_iter()
+        .take(10)
+        .map(|(key, count, bytes, newest)| TopKey {
+            key,
+            count,
+            bytes: format_bytes(bytes),
+            newest_activity: format_rfc3339(newest),
+        })
+        .collect()
+}
+
+fn finish_identity(path: &str) -> Result<Identity, ScanError> {
+    native_windows::identity_of(path)
+}
+
+#[allow(clippy::too_many_arguments)]
+pub fn scan(
+    plan: &ScanPlan,
+    scan_id: &str,
+    options: &ScanOptions,
+    cancel: &CancelToken,
+    observer: &dyn ScanObserver,
+    now: SystemTime,
+) -> Result<ScanResult, ScanError> {
+    let mut engine = Engine {
+        options,
+        cancel,
+        observer,
+        now,
+        started: Instant::now(),
+        visited: 0,
+        found_bytes: 0,
+        status: "completed",
+        issues: Vec::new(),
+        last_progress: Instant::now() - Duration::from_millis(50),
+    };
+    let mut hits = Vec::new();
+    let mut marker_roots = HashSet::new();
+    if !engine.stopped("") {
+        for (index, target) in plan.targets.iter().enumerate() {
+            if !matches!(target.match_spec, Match::Discovery { .. }) {
+                if let Match::Marker { root, .. } = &target.match_spec {
+                    if marker_roots.insert(root.to_ascii_lowercase()) {
+                        let indices = plan.targets.iter().enumerate().filter_map(|(i, t)| {
+                            matches!(&t.match_spec, Match::Marker { root: other, .. } if path_eq(root, other)).then_some(i)
+                        }).collect();
+                        walk_markers(&mut engine, &mut hits, plan, indices);
+                    }
+                } else {
+                    run_target(&mut engine, &mut hits, target, index);
+                }
+                engine.emit(&target.group_id, target.category, true);
+            }
+            if engine.status == "cancelled" {
+                break;
+            }
+        }
+    }
+    if engine.status != "cancelled" {
+        for (index, target) in plan.targets.iter().enumerate() {
+            if matches!(target.match_spec, Match::Discovery { .. }) {
+                let others = hits.clone();
+                run_discovery(&mut engine, &mut hits, target, index, &others);
+                engine.emit(&target.group_id, target.category, true);
+            }
+            if engine.status == "cancelled" {
+                break;
+            }
+        }
+    }
+    let merged = merge_hits(hits);
+    let mut rows: Vec<(Hit, Option<String>)> = merged
+        .iter()
+        .map(|hit| {
+            let reason = classify_reason(hit, &engine, &merged, &plan.hard_guards);
+            (hit.clone(), reason)
+        })
+        .collect();
+    apply_keep_newest(&mut rows);
+    let mut items = Vec::new();
+    for (offset, (hit, mut reason)) in rows.into_iter().enumerate() {
+        let identity = match hit.identity.clone() {
+            Some(id) => Some(id),
+            None => {
+                engine.add_issue("identity_unavailable", &hit.group_id);
+                if reason.is_none() {
+                    reason = Some("identity_unavailable".to_string());
+                }
+                None
+            }
+        };
+        if identity.is_none()
+            && reason.as_deref() != Some("identity_unavailable")
+            && reason.is_none()
+        {
+            reason = Some("identity_unavailable".to_string());
+        }
+        items.push((
+            hit,
+            Item {
+                item_id: format!("i-{:06}", offset + 1),
+                group_id: String::new(),
+                path: String::new(),
+                kind: String::new(),
+                total_bytes: String::new(),
+                unique_bytes: String::new(),
+                file_count: 0,
+                newest_activity: String::new(),
+                identity,
+                eligible: reason.is_none(),
+                ineligible_reason: reason,
+            },
+        ));
+    }
+    items.sort_by(|a, b| {
+        let ia = plan
+            .targets
+            .iter()
+            .position(|t| t.group_id == a.0.group_id)
+            .unwrap_or(usize::MAX);
+        let ib = plan
+            .targets
+            .iter()
+            .position(|t| t.group_id == b.0.group_id)
+            .unwrap_or(usize::MAX);
+        ia.cmp(&ib).then(
+            a.0.path
+                .to_ascii_lowercase()
+                .cmp(&b.0.path.to_ascii_lowercase()),
+        )
+    });
+    let mut out_items = Vec::new();
+    for (seq, (hit, mut item)) in items.into_iter().enumerate() {
+        item.item_id = format!("i-{:06}", seq + 1);
+        item.group_id = hit.group_id.clone();
+        item.path = hit.path.clone();
+        item.kind = match hit.kind {
+            Kind::File => "file",
+            _ => "dir",
+        }
+        .to_string();
+        item.total_bytes = format_bytes(hit.total_bytes);
+        item.unique_bytes = format_bytes(hit.unique_bytes);
+        item.file_count = hit.file_count;
+        item.newest_activity = format_rfc3339(hit.newest_activity);
+        out_items.push((hit, item));
+    }
+    let mut groups = Vec::new();
+    let mut seen = Vec::new();
+    for target in &plan.targets {
+        if seen.iter().any(|id: &String| id == &target.group_id) {
+            continue;
+        }
+        seen.push(target.group_id.clone());
+        let members: Vec<&Hit> = out_items
+            .iter()
+            .filter(|(hit, _)| hit.group_id == target.group_id)
+            .map(|(hit, _)| hit)
+            .collect();
+        let eligible: Vec<&Hit> = out_items
+            .iter()
+            .filter(|(hit, item)| hit.group_id == target.group_id && item.eligible)
+            .map(|(hit, _)| hit)
+            .collect();
+        let total_bytes: u64 = members.iter().map(|hit| hit.total_bytes).sum();
+        let eligible_bytes: u64 = eligible.iter().map(|hit| hit.total_bytes).sum();
+        let file_count: u64 = members.iter().map(|hit| hit.file_count).sum();
+        let oldest = members.iter().map(|hit| hit.oldest_activity).min();
+        let newest = members.iter().map(|hit| hit.newest_activity).max();
+        let keys = if target.discovery_group(plan) && members.len() >= 5 {
+            top_keys(&members)
+        } else {
+            Vec::new()
+        };
+        groups.push(Group {
+            group_id: target.group_id.clone(),
+            rule_id: target.rule_id.clone(),
+            level: target.level,
+            category: target.category,
+            item_count: members.len() as u64,
+            eligible_count: eligible.len() as u64,
+            total_bytes: format_bytes(total_bytes),
+            eligible_bytes: format_bytes(eligible_bytes),
+            unique_bytes: format_bytes(members.iter().map(|hit| hit.unique_bytes).sum()),
+            eligible_unique_bytes: format_bytes(eligible.iter().map(|hit| hit.unique_bytes).sum()),
+            file_count,
+            oldest_activity: oldest.map(format_rfc3339),
+            newest_activity: newest.map(format_rfc3339),
+            in_use: target.in_use.clone(),
+            top_keys: keys,
+        });
+    }
+    engine
+        .issues
+        .sort_by(|a, b| a.group_id.cmp(&b.group_id).then(a.code.cmp(&b.code)));
+    Ok(ScanResult {
+        result_version: "water.scan-result.v1".to_string(),
+        scan_id: scan_id.to_string(),
+        started_at: format_rfc3339(now),
+        ended_at: format_rfc3339(now + engine.started.elapsed()),
+        status: engine.status.to_string(),
+        visited_entries: engine.visited,
+        groups,
+        items: out_items.into_iter().map(|(_, item)| item).collect(),
+        issues: engine.issues,
+    })
+}
+
+trait DiscoveryFlag {
+    fn discovery_group(&self, plan: &ScanPlan) -> bool;
+}
+
+impl DiscoveryFlag for Target {
+    fn discovery_group(&self, plan: &ScanPlan) -> bool {
+        plan.targets
+            .iter()
+            .find(|t| t.group_id == self.group_id)
+            .is_some_and(|t| matches!(t.match_spec, Match::Discovery { .. }))
+    }
+}
+
+pub fn result_to_json(result: &ScanResult) -> String {
+    crate::model::to_json(result).unwrap_or_else(|_| "{}".to_string())
+}
+
+pub fn result_from_json(text: &str) -> Result<ScanResult, ScanError> {
+    let mut value: serde_json::Value = crate::model::from_json(text)?;
+    for (array, fields) in [
+        ("items", &[][..]),
+        (
+            "groups",
+            &[
+                ("unique_bytes", "total_bytes"),
+                ("eligible_unique_bytes", "eligible_bytes"),
+            ][..],
+        ),
+    ] {
+        if let Some(rows) = value
+            .get_mut(array)
+            .and_then(serde_json::Value::as_array_mut)
+        {
+            for row in rows {
+                for (field, fallback) in fields {
+                    // Only absent fields receive legacy defaults; explicit null
+                    // or a wrong type still fails the strict typed parser.
+                    if row.get(*field).is_none()
+                        && let Some(old) = row.get(*fallback).cloned()
+                    {
+                        row[*field] = old;
+                    }
+                }
+            }
+        }
+    }
+    let result: ScanResult = serde_json::from_value(value).map_err(|_| ScanError::InvalidResult)?;
+    if result.result_version != "water.scan-result.v1" {
+        return Err(ScanError::InvalidResult);
+    }
+    Ok(result)
+}
+
+pub fn identity_of(path: &str) -> Result<Identity, ScanError> {
+    native_windows::identity_of(path)
+}
+
+pub fn known_folders() -> Result<crate::model::KnownFolders, ScanError> {
+    native_windows::known_folders()
+}

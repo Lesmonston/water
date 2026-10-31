@@ -1,0 +1,375 @@
+{
+  "schemaVersion": 1,
+  "wave": "water-wave8-m3c-controller-acceptance",
+  "status": "CONTROLLER_ACCEPTANCE",
+  "controller": "Claude",
+  "controllerRoot": "F:/new/smaltalk/water",
+  "controllerBranch": "main",
+  "helpers": {
+    "K1": "scripts/checkup-wave-check.mjs",
+    "K2": "scripts/checkup-wave-check.mjs",
+    "K3": "scripts/checkup-wave-check.mjs",
+    "K4": "scripts/desktop-wave-check.mjs",
+    "K5": "scripts/desktop-wave-check.mjs",
+    "K6": "scripts/checkup-wave-check.mjs"
+  },
+  "baseCommit": "912eba100ba342c3eeb21ba555c6d589b91e6b4f",
+  "baseTag": "water-w8-m3c-base-20261031",
+  "plan": "docs/dispatch/wave8/PLAN.md",
+  "m3Plan": "docs/M3-PLAN-20261028.md",
+  "workerRules": "docs/dispatch/W8-M3C-WORKER-RULES.md",
+  "userDecision": "2026-10-31: \"把实战问题融入M3，解决完算M3彻底收口\"; plan section 4 approved as recommended (\"全部按推荐\"). K4 (service) compiles against K1 and K3 and is dispatched after they merge.",
+  "offlineCache": {
+    "core": "F:/new/smaltalk/water/.offline-cache/core/registry",
+    "desktop": "F:/new/smaltalk/water/.offline-cache/desktop/registry",
+    "copiedFrom": [
+      "F:/new/smaltalk/water/.worktrees/a/.local/cargo-home/registry",
+      "F:/new/smaltalk/water/.worktrees/ac/.local/desktop-cargo-home/registry"
+    ],
+    "check": "diff -rq byte-identical, 11159 files"
+  },
+  "frozenFiles": [
+    {
+      "path": "docs/decisions/ADR-018-device-junk-checkup-and-in-app-cleanup.md",
+      "sha256": "1195b17c469b3abe290f4d334628fa36583ca7f20c46349aaf1071ff839a0579"
+    },
+    {
+      "path": "contracts/checkup-v1/MODEL.md",
+      "sha256": "fe0c9a4f5d96ce9297e8f72e75df8c6f666f9a6af440fc198aa7b3362692188b"
+    },
+    {
+      "path": "contracts/checkup-v1/IPC.md",
+      "sha256": "62f726ced5f863f1b47db261976d8b5e5183f65669b2ba09d2f85a3977161be2"
+    },
+    {
+      "path": "docs/dispatch/W8-M3C-WORKER-RULES.md",
+      "sha256": "86e2a3fc9827e432cac2e360a89f47838ffb32602eb79452385ba02085f61cf4"
+    },
+    {
+      "path": "contracts/desktop-bootstrap-mirror-v1/MIRROR.json",
+      "sha256": "494e2b42e0803ba79170ffc162e8ac4938add6284b17dfdeb1f78fb527455e0f"
+    },
+    {
+      "path": "contracts/m3c-v1/IPC-M3C.md",
+      "sha256": "d0b6bb18a5deedc8200569cc9f3c68a544d564c8a07c45d0905e9ab01a07e6a5"
+    }
+  ],
+  "readyReport": "docs/dispatch/wave8/PLAN.md",
+  "plannedTasks": [
+    {
+      "id": "WATER-W8-K4",
+      "title": "服务接上 M3 收口的各项",
+      "spec": "contracts/m3c-v1/SERVICE-M3C.md",
+      "root": "packages/water-service",
+      "gate": "heavy",
+      "status": "PLANNED",
+      "dispatchAfter": [
+        "WATER-W8-K1",
+        "WATER-W8-K2",
+        "WATER-W8-K3"
+      ],
+      "note": "base is main after K1-K3 merge"
+    }
+  ],
+  "tasks": [
+    {
+      "id": "WATER-W8-ACCEPT-K3",
+      "title": "去重体量、一次遍历与新在用方式",
+      "status": "CONTROLLER_ACCEPTANCE",
+      "slot": "w8-k3",
+      "kind": "rust",
+      "worktree": "F:/new/smaltalk/water/.worktrees/accept-w8-k3",
+      "branch": "controller/accept-w8-k3",
+      "baseCommit": "912eba100ba342c3eeb21ba555c6d589b91e6b4f",
+      "snapshotRef": "refs/tags/water-w8-m3c-base-20261031",
+      "ticket": "docs/dispatch/tickets/WATER-W8-K3-SCAN-20261031.md",
+      "report": "docs/dispatch/reports/WATER-W8-K3-REPORT.md",
+      "spec": "contracts/m3c-v1/SCAN-M3C.md",
+      "outputRoot": "packages/junk-scan",
+      "packageName": "water-junk-scan",
+      "testTarget": "scan_v1",
+      "expectedTests": [
+        "scan_plan_contract",
+        "scan_pattern_marker_discovery",
+        "scan_overlap_and_guards",
+        "scan_reparse_budget_cancel",
+        "scan_snapshot_growth_keys"
+      ],
+      "proofTargets": {
+        "nc1": "SCAN_M3C_UNIQUE",
+        "nc2": "SCAN_M3C_COMPAT"
+      },
+      "productionFiles": [
+        "packages/junk-scan/Cargo.toml",
+        "packages/junk-scan/Cargo.lock",
+        "packages/junk-scan/README.md"
+      ],
+      "testFiles": [
+        "packages/junk-scan/tests/scan_v1.rs"
+      ],
+      "allowedFiles": [
+        "docs/dispatch/reports/WATER-W8-K3-REPORT.md"
+      ],
+      "allowedPrefixes": [
+        "packages/junk-scan/",
+        "docs/acceptance/wave8/k3/",
+        "docs/acceptance/wave8/controller/accept-20261101/k3/"
+      ],
+      "evidenceDir": "docs/acceptance/wave8/controller/accept-20261101/k3/",
+      "allowedModes": [
+        "baseline",
+        "lock",
+        "check",
+        "test",
+        "archive",
+        "real",
+        "red-nc1",
+        "red-nc2"
+      ],
+      "expectedFinalModes": [
+        "check",
+        "test",
+        "real"
+      ],
+      "mustRead": [
+        "docs/dispatch/W8-M3C-WORKER-RULES.md",
+        "contracts/m3c-v1/SCAN-M3C.md",
+        "contracts/checkup-v1/SCAN.md",
+        "contracts/checkup-v1/MODEL.md",
+        "contracts/m3c-v1/PROCESS-M3C.md",
+        "packages/junk-scan/src/scan.rs",
+        "packages/junk-scan/src/plan.rs",
+        "packages/junk-scan/src/native_windows.rs",
+        "packages/junk-scan/tests/scan_v1.rs",
+        "packages/junk-clean/src/native_windows.rs"
+      ],
+      "cargoCacheSource": "F:/new/smaltalk/water/.offline-cache/core/registry",
+      "realMode": "scan-plan",
+      "nativeModule": "native_windows.rs",
+      "nativeWindowBudget": 0,
+      "nativeDirectoryDialogBudget": 0,
+      "browserBudget": 0,
+      "realDataPermission": "read-only metadata per ADR-018; group-level output only",
+      "dispatchedAt": null,
+      "startedAt": null,
+      "model": "sol (user-reported)",
+      "modelAssignment": "user-arranged; report actual engine/model",
+      "macOS": "unverified",
+      "gate": "light",
+      "baselineStatus": "PASSED",
+      "baselineEvidence": "docs/acceptance/wave8/controller/preflight-20261031/k3/2026-10-31T14-10-18.972Z-12044-baseline-result.json",
+      "readyOn": "2026-10-31",
+      "purpose": "M3 close",
+      "modelHint": "Rust scan engine + Windows FFI (directory enumeration with file IDs); hard-link fixtures; light gate with a read-only real scan.",
+      "frozenFiles": [
+        {
+          "path": "contracts/m3c-v1/SCAN-M3C.md",
+          "sha256": "9ae9c1eab0f0c81a2943a7bff30163f9504e102c69ba9b9d56d3d8db9d38f2e2"
+        },
+        {
+          "path": "contracts/checkup-v1/SCAN.md",
+          "sha256": "c72b72d16635f57827d460e0c12e0044d86677e1a2a93e9f72664625dfa6d5e3"
+        },
+        {
+          "path": "contracts/checkup-v1/MODEL.md",
+          "sha256": "fe0c9a4f5d96ce9297e8f72e75df8c6f666f9a6af440fc198aa7b3362692188b"
+        },
+        {
+          "path": "contracts/m3c-v1/PROCESS-M3C.md",
+          "sha256": "ce53d144273f8a80e6cc1b8aa26e5e06d7d7c0f91e330dbeef05d3e1860c1f2e"
+        },
+        {
+          "path": "contracts/checkup-v1/real-plan-template.json",
+          "sha256": "3959478c757fb76e3925d97de00325865a8ef9a3572ef7a19f656e2da583eaad"
+        }
+      ],
+      "outputRootExists": true,
+      "allowedFfi": [
+        "CloseHandle",
+        "CoTaskMemFree",
+        "CreateFileW",
+        "GetFileInformationByHandleEx",
+        "GetVolumeInformationByHandleW",
+        "SHGetKnownFolderPath"
+      ],
+      "dispatchEvidence": "user chat 2026-10-31 ~23:15 JST: \"除了界面单是astra，都是sol\" (K1, K2, K3, K5 to sol; UI ticket K6 to astra); worker tree head/changed files 912eba10/0 when recorded",
+      "acceptsTask": "WATER-W8-K3",
+      "acceptsHead": "bc740bd9272a58f35b77c8205004df6bebac3d42"
+    },
+    {
+      "kind": "ui",
+      "outputRoot": "apps/water/ui",
+      "testFiles": [
+        "apps/water/ui/tests/unit.test.mjs",
+        "apps/water/ui/tests/browser.test.mjs"
+      ],
+      "unitTestFiles": [
+        "apps/water/ui/tests/unit.test.mjs"
+      ],
+      "browserTestFiles": [
+        "apps/water/ui/tests/browser.test.mjs"
+      ],
+      "expectedTests": [
+        "ui_format_bytes_time",
+        "ui_selection_rules",
+        "ui_ipc_boundary"
+      ],
+      "tokensSource": "docs/design/water-ui-v1/tokens.css",
+      "fixtures": "contracts/checkup-v1/ui-fixtures.json",
+      "browserHelper": "scripts/acceptance/native-vw-private-browser.mjs",
+      "screenshotDirEnv": "WATER_W2_SHOTS_DIR",
+      "macOS": "unverified",
+      "outputRootExists": true,
+      "nativeWindowBudget": 0,
+      "nativeDirectoryDialogBudget": 0,
+      "expectedBrowserTests": [
+        "ui_home_and_scan",
+        "ui_results_detail_confirm",
+        "ui_clean_done_and_pages",
+        "ui_layout_states_a11y",
+        "ui_m1_polish"
+      ],
+      "requiredScreenshots": [
+        "home-1240x820.png",
+        "scan-1240x820.png",
+        "results-1240x820.png",
+        "results-1040x720.png",
+        "detail-1240x820.png",
+        "confirm-1240x820.png",
+        "cleaning-1240x820.png",
+        "done-1240x820.png",
+        "trends-1240x820.png",
+        "history-1240x820.png",
+        "locations-1240x820.png",
+        "about-1240x820.png",
+        "results-bottom-1240x820.png",
+        "results-bottom-1040x720.png",
+        "notice-results-1240x820.png",
+        "notice-trends-1240x820.png",
+        "trends-empty-1240x820.png",
+        "paused-1240x820.png",
+        "reconnecting-1240x820.png",
+        "stop-failed-1240x820.png",
+        "clean-stop-failed-1240x820.png",
+        "detail-exclude-1240x820.png",
+        "results-drive-1240x820.png",
+        "locations-skipped-1240x820.png",
+        "trends-forecast-1240x820.png",
+        "home-due-1240x820.png"
+      ],
+      "browserProofs": [
+        "nc1",
+        "nc2",
+        "nc3"
+      ],
+      "allowedModes": [
+        "baseline",
+        "check",
+        "test",
+        "browser",
+        "red-nc1",
+        "red-nc2",
+        "red-nc3",
+        "archive"
+      ],
+      "expectedFinalModes": [
+        "check",
+        "test",
+        "browser"
+      ],
+      "realMode": null,
+      "browserBudget": 1,
+      "realDataPermission": "none; IPC fixtures only",
+      "id": "WATER-W8-ACCEPT-K6",
+      "title": "界面接上 M3 收口的各项",
+      "slot": "w8-k6",
+      "worktree": "F:/new/smaltalk/water/.worktrees/accept-w8-k6",
+      "branch": "controller/accept-w8-k6",
+      "baseCommit": "912eba100ba342c3eeb21ba555c6d589b91e6b4f",
+      "snapshotRef": "refs/tags/water-w8-m3c-base-20261031",
+      "status": "CONTROLLER_ACCEPTANCE",
+      "readyOn": "2026-10-31",
+      "dispatchedAt": null,
+      "startedAt": null,
+      "model": "astra (user-reported)",
+      "modelAssignment": "user-arranged; report actual engine/model",
+      "purpose": "M3 close",
+      "report": "docs/dispatch/reports/WATER-W8-K6-REPORT.md",
+      "evidenceDir": "docs/acceptance/wave8/controller/accept-20261101/k6/",
+      "allowedFiles": [
+        "docs/dispatch/reports/WATER-W8-K6-REPORT.md"
+      ],
+      "gate": "light",
+      "ticket": "docs/dispatch/tickets/WATER-W8-K6-UI-20261031.md",
+      "spec": "contracts/m3c-v1/UI-M3C.md",
+      "proofTargets": {
+        "nc1": "UI_M3C_EXCLUDE",
+        "nc2": "UI_M3C_DRIVE",
+        "nc3": "UI_M3C_FORECAST"
+      },
+      "modelHint": "UI ticket (frosted white glass design); browser tests with screenshots; light gate.",
+      "mustRead": [
+        "docs/dispatch/W8-M3C-WORKER-RULES.md",
+        "contracts/m3c-v1/UI-M3C.md",
+        "contracts/m3c-v1/IPC-M3C.md",
+        "contracts/m3c-v1/ui-fixtures-m3c.json",
+        "contracts/m3-v1/UI-M3-FIX.md",
+        "contracts/hardening-v1/UI-POLISH.md",
+        "contracts/checkup-v1/UI.md",
+        "contracts/checkup-v1/IPC.md",
+        "docs/design/water-ui-v1/DESIGN.md",
+        "apps/water/ui/app.mjs",
+        "apps/water/ui/model.mjs",
+        "apps/water/ui/tests/browser.test.mjs"
+      ],
+      "frozenFiles": [
+        {
+          "path": "contracts/m3c-v1/UI-M3C.md",
+          "sha256": "1f8e896cce468cf969504904b870ee24160df47b9a41d39b381f51228071a7e6"
+        },
+        {
+          "path": "contracts/m3c-v1/IPC-M3C.md",
+          "sha256": "d0b6bb18a5deedc8200569cc9f3c68a544d564c8a07c45d0905e9ab01a07e6a5"
+        },
+        {
+          "path": "contracts/m3c-v1/ui-fixtures-m3c.json",
+          "sha256": "c01bc0cb59d3bd0d61a1410446659e032dcfc1bfc8ad3fb3635331924f23a033"
+        },
+        {
+          "path": "contracts/m3-v1/UI-M3-FIX.md",
+          "sha256": "415e445a63a34e79b97cc629ae8454e344fa8e1ec3b02766718fcce59e19cdd8"
+        },
+        {
+          "path": "contracts/hardening-v1/UI-POLISH.md",
+          "sha256": "6f70f7a1f775eccd31a60068288ad78be9b64869ff712809d0992a4a8b3859d6"
+        },
+        {
+          "path": "contracts/checkup-v1/UI.md",
+          "sha256": "dbc92ff9de2f388d94c7210541662e5c0f9052084afdf4b795805768710cb52b"
+        },
+        {
+          "path": "contracts/checkup-v1/IPC.md",
+          "sha256": "62f726ced5f863f1b47db261976d8b5e5183f65669b2ba09d2f85a3977161be2"
+        },
+        {
+          "path": "contracts/checkup-v1/ui-fixtures.json",
+          "sha256": "2dd62585cb7ca31d429af8bf5360dda44d645dd73a5d3f79542d4d23ce1840e2"
+        },
+        {
+          "path": "docs/design/water-ui-v1/DESIGN.md",
+          "sha256": "b83a2bd0815d109495a68e17894be6ba8d77d61129256a1094b9b58beb75e04b"
+        }
+      ],
+      "allowedPrefixes": [
+        "apps/water/ui/",
+        "docs/acceptance/wave8/k6/",
+        "docs/acceptance/wave8/controller/accept-20261101/k6/"
+      ],
+      "baselineStatus": "PASSED",
+      "baselineEvidence": "docs/acceptance/wave8/controller/preflight-20261031/k6/2026-10-31T14-10-24.474Z-27996-baseline-result.json",
+      "dispatchEvidence": "user chat 2026-10-31 ~23:15 JST: \"除了界面单是astra，都是sol\" (K1, K2, K3, K5 to sol; UI ticket K6 to astra); worker tree head/changed files 912eba10/0 when recorded",
+      "acceptsTask": "WATER-W8-K6",
+      "acceptsHead": "208be441adbceb56ec36eeb1debf1cef4e113458"
+    }
+  ]
+}

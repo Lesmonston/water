@@ -1,0 +1,59 @@
+k3 c1 mutated packages/junk-scan/src/scan.rs: group eligible_unique_bytes sums every member, not only the eligible ones (mutated sha fb2ffd020f752ff3dbdd8949ca5b768e9df75e222e958fb55793ae4aecdd0d54)
+k3 test rc=1 {"task":"WATER-W8-ACCEPT-K3","mode":"test","finalGate":false,"status":"failed","error":"AssertionError [ERR_ASSERTION]: Unexpected exit, see 2026-10-31T15-12-11.247Z-33664-test-5.log","receipt":"F:\\new\\smaltalk\\water\\.worktrees\\accept-w8-k3\\.local\\checks\\WATER-W8-ACCEPT-K3\\2026-10-31T15-12-11.247Z-33664-test-result.json"}
+k3 c1 KILLED (expected SCAN_M3C_UNIQUE)
+k3 c1 restored exact bytes=true sha 764711ee298ed1259fc9c7cb90aa60bf5fd55104f5134f8dfaf2512b09db8afc
+k3 test rc=0 {"task":"WATER-W8-ACCEPT-K3","mode":"test","finalGate":false,"status":"passed","error":null,"receipt":"F:\\new\\smaltalk\\water\\.worktrees\\accept-w8-k3\\.local\\checks\\WATER-W8-ACCEPT-K3\\2026-10-31T15-12-17.489Z-26096-test-result.json"}
+k3 c2 mutated packages/junk-scan/src/scan.rs: the shared marker measurement stops deduplicating (pattern measurement still does; worker nc1 removed every identity) (mutated sha 175572e3b764980a89676b31b3233612184579351c7e2214055fdbbd1ceb9676)
+k3 red-nc1 rc=0 {"task":"WATER-W8-ACCEPT-K3","mode":"red-nc1","finalGate":false,"status":"passed","error":null,"receipt":"F:\\new\\smaltalk\\water\\.worktrees\\accept-w8-k3\\.local\\checks\\WATER-W8-ACCEPT-K3\\2026-10-31T15-12-24.284Z-41724-red-nc1-result.json"}
+k3 c2 KILLED (expected SCAN_M3C_UNIQUE)
+k3 c2 restored exact bytes=true sha 764711ee298ed1259fc9c7cb90aa60bf5fd55104f5134f8dfaf2512b09db8afc
+k3 test rc=0 {"task":"WATER-W8-ACCEPT-K3","mode":"test","finalGate":false,"status":"passed","error":null,"receipt":"F:\\new\\smaltalk\\water\\.worktrees\\accept-w8-k3\\.local\\checks\\WATER-W8-ACCEPT-K3\\2026-10-31T15-12-32.554Z-5508-test-result.json"}
+k3 c3 mutated packages/junk-scan/src/scan.rs: a hit for one marker target also stops later targets from searching below that directory (mutated sha 4032d6b39d81f5559510dc1c5a32e33bf8928775801df5fc0d0b428ac2c3dccc)
+k3 test rc=1 {"task":"WATER-W8-ACCEPT-K3","mode":"test","finalGate":false,"status":"failed","error":"AssertionError [ERR_ASSERTION]: Unexpected exit, see 2026-10-31T15-12-40.672Z-22716-test-5.log","receipt":"F:\\new\\smaltalk\\water\\.worktrees\\accept-w8-k3\\.local\\checks\\WATER-W8-ACCEPT-K3\\2026-10-31T15-12-40.672Z-22716-test-result.json"}
+k3 c3 KILLED (expected SCAN_M3C_SINGLE_WALK)
+k3 c3 restored exact bytes=true sha 764711ee298ed1259fc9c7cb90aa60bf5fd55104f5134f8dfaf2512b09db8afc
+k3 test rc=0 {"task":"WATER-W8-ACCEPT-K3","mode":"test","finalGate":false,"status":"passed","error":null,"receipt":"F:\\new\\smaltalk\\water\\.worktrees\\accept-w8-k3\\.local\\checks\\WATER-W8-ACCEPT-K3\\2026-10-31T15-12-50.536Z-40968-test-result.json"}
+k3 c4 mutated packages/junk-scan/src/scan.rs: the single walk searches inside .git directories (mutated sha 924a4a9b02c1923053b9620e5f75fa2079e9db02f800478d993b6119865d8418)
+k3 test rc=1 {"task":"WATER-W8-ACCEPT-K3","mode":"test","finalGate":false,"status":"failed","error":"AssertionError [ERR_ASSERTION]: Unexpected exit, see 2026-10-31T15-12-56.990Z-38424-test-5.log","receipt":"F:\\new\\smaltalk\\water\\.worktrees\\accept-w8-k3\\.local\\checks\\WATER-W8-ACCEPT-K3\\2026-10-31T15-12-56.990Z-38424-test-result.json"}
+k3 c4 KILLED (expected SCAN_M3C_SINGLE_WALK)
+k3 c4 restored exact bytes=true sha 764711ee298ed1259fc9c7cb90aa60bf5fd55104f5134f8dfaf2512b09db8afc
+k3 test rc=0 {"task":"WATER-W8-ACCEPT-K3","mode":"test","finalGate":false,"status":"passed","error":null,"receipt":"F:\\new\\smaltalk\\water\\.worktrees\\accept-w8-k3\\.local\\checks\\WATER-W8-ACCEPT-K3\\2026-10-31T15-13-06.825Z-23572-test-result.json"}
+k3 c5 mutated packages/junk-scan/src/scan.rs: each target searches one level deeper than its max_depth (mutated sha 4b7a25985eb7be9f9e22aa8a8f2f2d67d561684b85ce08a21d94aac34d7ec309)
+k3 test rc=1 {"task":"WATER-W8-ACCEPT-K3","mode":"test","finalGate":false,"status":"failed","error":"AssertionError [ERR_ASSERTION]: Unexpected exit, see 2026-10-31T15-13-14.713Z-22208-test-5.log","receipt":"F:\\new\\smaltalk\\water\\.worktrees\\accept-w8-k3\\.local\\checks\\WATER-W8-ACCEPT-K3\\2026-10-31T15-13-14.713Z-22208-test-result.json"}
+k3 c5 KILLED (expected SCAN_M3C_SINGLE_WALK)
+k3 c5 restored exact bytes=true sha 764711ee298ed1259fc9c7cb90aa60bf5fd55104f5134f8dfaf2512b09db8afc
+k3 test rc=0 {"task":"WATER-W8-ACCEPT-K3","mode":"test","finalGate":false,"status":"passed","error":null,"receipt":"F:\\new\\smaltalk\\water\\.worktrees\\accept-w8-k3\\.local\\checks\\WATER-W8-ACCEPT-K3\\2026-10-31T15-13-23.422Z-23588-test-result.json"}
+k3 c6 mutated packages/junk-scan/src/scan.rs: an old result without the field gets eligible_unique_bytes from total_bytes instead of eligible_bytes (mutated sha b5102bcc6060891d8489c79ffc17e4a02c44f014aa58be43101203335ead1d16)
+k3 red-nc2 rc=1 {"task":"WATER-W8-ACCEPT-K3","mode":"red-nc2","finalGate":false,"status":"failed","error":"AssertionError [ERR_ASSERTION]: Unexpected exit, see 2026-10-31T15-13-31.863Z-32584-red-nc2-5.log","receipt":"F:\\new\\smaltalk\\water\\.worktrees\\accept-w8-k3\\.local\\checks\\WATER-W8-ACCEPT-K3\\2026-10-31T15-13-31.863Z-32584-red-nc2-result.json"}
+k3 c6 SURVIVED (expected SCAN_M3C_COMPAT)
+k3 c6 restored exact bytes=true sha 764711ee298ed1259fc9c7cb90aa60bf5fd55104f5134f8dfaf2512b09db8afc
+k3 test rc=0 {"task":"WATER-W8-ACCEPT-K3","mode":"test","finalGate":false,"status":"passed","error":null,"receipt":"F:\\new\\smaltalk\\water\\.worktrees\\accept-w8-k3\\.local\\checks\\WATER-W8-ACCEPT-K3\\2026-10-31T15-13-39.112Z-3532-test-result.json"}
+k3 c7 mutated packages/junk-scan/src/plan.rs: the plan validator rejects the new in-use mode (mutated sha bdac59a7c3d7cbdf371a818bcbf227dd006fac01b484ffb24a18cfbb3b854832)
+k3 test rc=1 {"task":"WATER-W8-ACCEPT-K3","mode":"test","finalGate":false,"status":"failed","error":"AssertionError [ERR_ASSERTION]: Unexpected exit, see 2026-10-31T15-13-47.277Z-20648-test-5.log","receipt":"F:\\new\\smaltalk\\water\\.worktrees\\accept-w8-k3\\.local\\checks\\WATER-W8-ACCEPT-K3\\2026-10-31T15-13-47.277Z-20648-test-result.json"}
+k3 c7 KILLED (expected SCAN_M3C_MODE)
+k3 c7 restored exact bytes=true sha c1c33f4b0694060e98ebbd7fc0a57c9459cf5646d1f11bf3747d8253be0edaeb
+k3 test rc=0 {"task":"WATER-W8-ACCEPT-K3","mode":"test","finalGate":false,"status":"passed","error":null,"receipt":"F:\\new\\smaltalk\\water\\.worktrees\\accept-w8-k3\\.local\\checks\\WATER-W8-ACCEPT-K3\\2026-10-31T15-13-55.228Z-2880-test-result.json"}
+k3 c8 mutated packages/junk-scan/src/native_windows.rs: directory enumeration stops after the first 64 KiB buffer (mutated sha ebcbebeff2d7dab2b3a431b4e5a73219f5381686ffe5b23fd640d58b49918d85)
+k3 test rc=1 {"task":"WATER-W8-ACCEPT-K3","mode":"test","finalGate":false,"status":"failed","error":"AssertionError [ERR_ASSERTION]: Unexpected exit, see 2026-10-31T15-14-03.648Z-4564-test-5.log","receipt":"F:\\new\\smaltalk\\water\\.worktrees\\accept-w8-k3\\.local\\checks\\WATER-W8-ACCEPT-K3\\2026-10-31T15-14-03.648Z-4564-test-result.json"}
+k3 c8 KILLED (expected SCAN_M3C_UNIQUE)
+k3 c8 restored exact bytes=true sha 29065d1480a233b3c0800e6386e16d5d8d0b6159a8e55e906d2b88f2ddd752bd
+k3 test rc=0 {"task":"WATER-W8-ACCEPT-K3","mode":"test","finalGate":false,"status":"passed","error":null,"receipt":"F:\\new\\smaltalk\\water\\.worktrees\\accept-w8-k3\\.local\\checks\\WATER-W8-ACCEPT-K3\\2026-10-31T15-14-11.631Z-21584-test-result.json"}
+k3 c9 mutated packages/junk-scan/src/scan.rs: visited_entries counts every listed entry twice (mutated sha e29f2ce7d598ef31f580511ea3625c826f1a6eca010d83b6cb4cc267a195172d)
+k3 test rc=1 {"task":"WATER-W8-ACCEPT-K3","mode":"test","finalGate":false,"status":"failed","error":"AssertionError [ERR_ASSERTION]: Unexpected exit, see 2026-10-31T15-14-20.208Z-24256-test-5.log","receipt":"F:\\new\\smaltalk\\water\\.worktrees\\accept-w8-k3\\.local\\checks\\WATER-W8-ACCEPT-K3\\2026-10-31T15-14-20.208Z-24256-test-result.json"}
+k3 c9 KILLED (expected SCAN_M3C_SINGLE_WALK)
+k3 c9 restored exact bytes=true sha 764711ee298ed1259fc9c7cb90aa60bf5fd55104f5134f8dfaf2512b09db8afc
+k3 test rc=0 {"task":"WATER-W8-ACCEPT-K3","mode":"test","finalGate":false,"status":"passed","error":null,"receipt":"F:\\new\\smaltalk\\water\\.worktrees\\accept-w8-k3\\.local\\checks\\WATER-W8-ACCEPT-K3\\2026-10-31T15-14-28.546Z-28304-test-result.json"}
+k3 c10 mutated packages/junk-scan/src/scan.rs: probe: listing issues inside an open measurement are no longer replayed to the measuring target (mutated sha b654bbb3fd9b7b74294cd2ca4ca44874b934991cec4841308570a375d124f42f)
+k3 test rc=0 {"task":"WATER-W8-ACCEPT-K3","mode":"test","finalGate":false,"status":"passed","error":null,"receipt":"F:\\new\\smaltalk\\water\\.worktrees\\accept-w8-k3\\.local\\checks\\WATER-W8-ACCEPT-K3\\2026-10-31T15-14-36.210Z-26888-test-result.json"}
+k3 c10 SURVIVED (expected SCAN_M3C_SINGLE_WALK)
+k3 c10 restored exact bytes=true sha 764711ee298ed1259fc9c7cb90aa60bf5fd55104f5134f8dfaf2512b09db8afc
+k3 test rc=0 {"task":"WATER-W8-ACCEPT-K3","mode":"test","finalGate":false,"status":"passed","error":null,"receipt":"F:\\new\\smaltalk\\water\\.worktrees\\accept-w8-k3\\.local\\checks\\WATER-W8-ACCEPT-K3\\2026-10-31T15-14-44.078Z-34604-test-result.json"}
+k3 survived: c6,c10
+k3 test --final rc=1 {"task":"WATER-W8-ACCEPT-K3","mode":"test","finalGate":true,"status":"failed","error":"AssertionError [ERR_ASSERTION]: Missing valid negative control nc2","receipt":"F:\\new\\smaltalk\\water\\.worktrees\\accept-w8-k3\\.local\\checks\\WATER-W8-ACCEPT-K3\\2026-10-31T15-14-50.593Z-30744-test-result.json"}
+k3 c11 mutated packages/junk-scan/src/scan.rs: an old result without Item.unique_bytes gets no default (replaces c6 as the acceptance nc2 after c6 survived) (mutated sha 2f416bada58fae813890adbc73401b1646c0abc8cae413ba68f150adbadc44ec)
+k3 red-nc2 rc=0 {"task":"WATER-W8-ACCEPT-K3","mode":"red-nc2","finalGate":false,"status":"passed","error":null,"receipt":"F:\\new\\smaltalk\\water\\.worktrees\\accept-w8-k3\\.local\\checks\\WATER-W8-ACCEPT-K3\\2026-10-31T15-35-16.548Z-24996-red-nc2-result.json"}
+k3 c11 KILLED (expected SCAN_M3C_COMPAT)
+k3 c11 restored exact bytes=true sha 764711ee298ed1259fc9c7cb90aa60bf5fd55104f5134f8dfaf2512b09db8afc
+k3 test rc=0 {"task":"WATER-W8-ACCEPT-K3","mode":"test","finalGate":false,"status":"passed","error":null,"receipt":"F:\\new\\smaltalk\\water\\.worktrees\\accept-w8-k3\\.local\\checks\\WATER-W8-ACCEPT-K3\\2026-10-31T15-35-23.648Z-37828-test-result.json"}
+k3 survived: none
+k3 test --final rc=0 {"task":"WATER-W8-ACCEPT-K3","mode":"test","finalGate":true,"status":"passed","error":null,"receipt":"F:\\new\\smaltalk\\water\\.worktrees\\accept-w8-k3\\.local\\checks\\WATER-W8-ACCEPT-K3\\2026-10-31T15-35-29.939Z-36712-test-result.json"}
