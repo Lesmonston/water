@@ -323,3 +323,5 @@ node F:/new/smaltalk/water/scripts/checkup-wave-check.mjs --task WATER-W8-K6
 本轮只有 UI/假宿主回放验证；原生窗口 0、选择框 0，无 Tauri/Cargo/npm、无下载或外网请求、无真实扫描或真实清理。未改台账、冻结契约、检查器、fixture、其它包或其它工作树。浏览器每次一个本树私有 headless Chrome，静态服务仅 loopback，由测试 finally 关闭。
 
 仍未验证真实 K4 服务 / K5 宿主联调、真实 WebView2/Mica、生产竞态、真实整盘扫描/清理、macOS、滚动 60fps。本次对旧/新服务行为的证明来自测试假宿主，不宣称服务端补丁已实现；任务完成只供总控收单，不自行标 VERIFIED 或合入主线。
+
+补充交付核对：回执与证据首次提交为 `59eb157079a95ac8fad652171a7141864cb7a40d`。完整证据的暂存区 `git diff --cached --check` 会对原始日志中的空白行、源快照中保留的 CRLF（含冻结 tokens）报告空白问题；全部位于 `docs/acceptance/wave8/k6/receipts/`，未为消除提示而修改原始证据。产品与报告单独的 `git diff --check 208be441 HEAD -- apps/water/ui docs/dispatch/reports/WATER-W8-K6-REPORT.md` 退出 0。本轮“diff --check 通过”指实现 / 报告及未暂存改动检查，不宣称原始证据全文没有空白告警。
