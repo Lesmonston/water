@@ -128,7 +128,7 @@ pub fn resolve_plan(
                 format!("{path}/root_id"),
             ));
         }
-        if !valid_abs_path(&root.path, false) {
+        if !valid_abs_path(&root.path, true) {
             return Err(RulesError::new(
                 "RULES_INVALID_PATH",
                 format!("{path}/path"),
@@ -434,6 +434,7 @@ fn parse_plan_in_use(value: &Value, path: &str) -> Result<InUse, RulesError> {
             "RULES_INVALID_IN_USE",
             format!("{path}/processes"),
         )),
+        InUseMode::RunsFromOrReferencesItem => Ok(InUse { mode, processes }),
         _ if processes.is_empty() => Err(RulesError::new(
             "RULES_INVALID_IN_USE",
             format!("{path}/processes"),
@@ -466,7 +467,7 @@ fn parse_match(value: &Value, path: &str) -> Result<MatchSpec, RulesError> {
         "marker" => {
             expect_keys(map, &["kind", "root", "marker", "max_depth"], path)?;
             Ok(MatchSpec::Marker {
-                root: abs_path_field(map, "root", path, false)?,
+                root: abs_path_field(map, "root", path, true)?,
                 marker: parse_plan_marker(field(map, "marker", path)?, &format!("{path}/marker"))?,
                 max_depth: bounded_u32(
                     field(map, "max_depth", path)?,
