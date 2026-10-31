@@ -22,7 +22,7 @@
 | W5 | H1～H5 M2 收尾 | W4 | 已验收合入（10-28），M2 功能完成 |
 | W6 | I1 Agent 工具规则、I2 宿主加固、I3 界面加固 | W5 | 已验收合入（10-28），见 [M3 计划](M3-PLAN-20261028.md) |
 | W7 | J1～J4 M3 收尾小修 | W6 | 已验收合入（10-29），见[第七波计划](dispatch/wave7/PLAN.md) |
-| W8 | M3 收口：K1 进程、K2 规则、K3 扫描、K4 服务、K5 宿主、K6 界面 | W7 | [计划](dispatch/wave8/PLAN.md)待用户拍板 |
+| W8 | M3 收口：K1 进程、K2 规则、K3 扫描、K4 服务、K5 宿主、K6 界面 | W7 | [计划](dispatch/wave8/PLAN.md)已拍板；第一批 K1、K2、K3、K5、K6 READY（基线 `912eba10`），K4 等 K1～K3 合入后派 |
 
 第一波的历史任务板见 git 历史与 [第一波计划](dispatch/wave1/PLAN.md)。
 

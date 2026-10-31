@@ -68,6 +68,21 @@
 
 契约冻结在 `contracts/m3c-v1/`：IPC-M3C、PROCESS-M3C、RULES-M3C、SCAN-M3C、SERVICE-M3C、HOST-M3C、UI-M3C、`ui-fixtures-m3c.json`。执行者规则见 [W8-M3C-WORKER-RULES](../W8-M3C-WORKER-RULES.md)。
 
+## 派单句（第一批，每条单独复制给一个执行者）
+
+基线 `912eba10`（标签 `water-w8-m3c-base-20261031`）。五棵树的派前 baseline 都已通过，回执在 `docs/acceptance/wave8/controller/preflight-20261031/`。
+
+后端单：
+- WATER-W8-K1：`你接手 Water 项目 WATER-W8-K1（进程快照补程序路径与内存，轻门）。先读 F:/new/smaltalk/water/docs/dispatch/tickets/WATER-W8-K1-PROCESS-20261031.md，按其中列出的顺序读规则与契约，在 F:/new/smaltalk/water/.worktrees/w8-k1（分支 worker/water-w8-k1）从 912eba10 开工。`
+- WATER-W8-K2：`你接手 Water 项目 WATER-W8-K2（在用方式、工作树规则与整盘位置，轻门）。先读 F:/new/smaltalk/water/docs/dispatch/tickets/WATER-W8-K2-RULES-20261031.md，按其中列出的顺序读规则与契约，在 F:/new/smaltalk/water/.worktrees/w8-k2（分支 worker/water-w8-k2）从 912eba10 开工。`
+- WATER-W8-K3：`你接手 Water 项目 WATER-W8-K3（去重体量、一次遍历与新在用方式，轻门）。先读 F:/new/smaltalk/water/docs/dispatch/tickets/WATER-W8-K3-SCAN-20261031.md，按其中列出的顺序读规则与契约，在 F:/new/smaltalk/water/.worktrees/w8-k3（分支 worker/water-w8-k3）从 912eba10 开工。`
+- WATER-W8-K5：`你接手 Water 项目 WATER-W8-K5（宿主转发排除与以后都跳过，重门，含 1 次真窗口）。先读 F:/new/smaltalk/water/docs/dispatch/tickets/WATER-W8-K5-HOST-20261031.md，按其中列出的顺序读规则与契约，在 F:/new/smaltalk/water/.worktrees/w8-k5（分支 worker/water-w8-k5）从 912eba10 开工。`
+
+界面单：
+- WATER-W8-K6：`你接手 Water 项目 WATER-W8-K6（界面接上 M3 收口的各项，界面单）。先读 F:/new/smaltalk/water/docs/dispatch/tickets/WATER-W8-K6-UI-20261031.md，按其中列出的顺序读规则与契约，在 F:/new/smaltalk/water/.worktrees/w8-k6（分支 worker/water-w8-k6）从 912eba10 开工。`
+
+K4（服务）等 K1～K3 合入后另给。
+
 ## 3. M3 收口的验收（合入后）
 
 1. **第五次整合检查。** 合并树跑全部检查门，然后出新 release 版。
