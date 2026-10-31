@@ -98,6 +98,8 @@ impl BackendSlot {
 
 impl Backend for BackendSlot {
     fn available(&self) -> bool {
+        // A take between this check and call() could add one five-second unknown
+        // wait. Today's callers take only after exit/close waiting has finished.
         let backend = {
             let guard = self
                 .inner
@@ -109,6 +111,8 @@ impl Backend for BackendSlot {
     }
 
     fn call(&self, command: &str, args: Value) -> Result<Value, IpcFailure> {
+        // This lock is separate from available(): a take in between could add
+        // one five-second wait, but today's teardown order cannot reach it.
         let backend = {
             let guard = self
                 .inner
@@ -274,6 +278,8 @@ where
             commands::locations_set_category,
             commands::custom_root_add,
             commands::custom_root_remove,
+            commands::skip_add,
+            commands::skip_remove,
         ])
         .build(tauri::generate_context!())
         .map_err(|_| StartupError::Failed)?;

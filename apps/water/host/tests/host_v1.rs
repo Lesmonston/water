@@ -200,7 +200,7 @@ fn exercise(backend: &dyn Backend) -> Vec<Result<Value, IpcFailure>> {
         cmd_scan_progress(backend),
         cmd_scan_result(backend, "scan-2".into()),
         cmd_group_detail(backend, "group-甲".into()),
-        cmd_clean_prepare(backend, vec!["g1".into(), "g2".into()]),
+        cmd_clean_prepare(backend, vec!["g1".into(), "g2".into()], None),
         cmd_clean_start(backend, "plan-1".into(), "token-1".into()),
         cmd_clean_stop(backend),
         cmd_clean_progress(backend),
@@ -211,11 +211,49 @@ fn exercise(backend: &dyn Backend) -> Vec<Result<Value, IpcFailure>> {
         cmd_locations_set_category(backend, "browser".into(), false),
         cmd_custom_root_add(backend),
         cmd_custom_root_remove(backend, "root-1".into()),
+        cmd_skip_add(backend, "i-甲".into()),
+        cmd_skip_remove(backend, "skip-乙".into()),
     ]
 }
 
 #[test]
 fn host_command_registry() {
+    for source in [
+        "fn f() { let c = '}'; let quote = '\\''; let slash = '\\\\'; }",
+        "fn f() { let c = '字'; let c = '\\u{7b}'; let c = '\\x7d'; }",
+        "fn f() { let s = r#\"brace } and \\\" quote\"#; }",
+        "fn f() { let s = r###\"inner \"## } 字\"###; }",
+        "fn f() { let s = r\"}\"; let s = br#\"}\"#; }",
+        "fn f() { /* 字 { /* nested } */ */ // 字 }\n }",
+    ] {
+        let tokens =
+            try_wiring_tokens(source).expect("HOST_TEST_TOKENIZER accepts literals/comments");
+        assert_eq!(
+            tokens.iter().filter(|token| **token == "{").count(),
+            1,
+            "HOST_TEST_TOKENIZER ignores opening braces in literals"
+        );
+        assert_eq!(
+            tokens.iter().filter(|token| **token == "}").count(),
+            1,
+            "HOST_TEST_TOKENIZER ignores closing braces in literals"
+        );
+    }
+    assert_eq!(
+        wiring_tokens("fn f<'a>(x: &'a str) {}"),
+        [
+            "fn", "f", "<", "'", "a", ">", "(", "x", ":", "&", "'", "a", "str", ")", "{", "}"
+        ],
+        "HOST_TEST_TOKENIZER distinguishes lifetimes from characters"
+    );
+    for source in ["let café = 1;", "fn 字() {}", "let x = 1;\u{00a0}"] {
+        let failure =
+            try_wiring_tokens(source).expect_err("HOST_TEST_TOKENIZER rejects non-ASCII code");
+        assert!(
+            failure.contains("HOST_TEST_TOKENIZER non-ASCII outside literal at byte"),
+            "HOST_TEST_TOKENIZER clear diagnostic: {failure}"
+        );
+    }
     let expected = [
         ("app_state", json!({})),
         ("scan_start", json!({})),
@@ -240,6 +278,8 @@ fn host_command_registry() {
         ),
         ("custom_root_add", json!({})),
         ("custom_root_remove", json!({"rootId": "root-1"})),
+        ("skip_add", json!({"itemId": "i-甲"})),
+        ("skip_remove", json!({"skipId": "skip-乙"})),
     ];
     let names: Vec<_> = expected.iter().map(|(name, _)| *name).collect();
     assert_eq!(COMMANDS.as_slice(), names, "HOST_COMMANDS fixed registry");
@@ -249,6 +289,15 @@ fn host_command_registry() {
             line.strip_prefix("| `")
                 .and_then(|tail| tail.split_once('`').map(|(name, _)| name))
         })
+        .chain(
+            include_str!("../../../../contracts/m3c-v1/IPC-M3C.md")
+                .lines()
+                .filter_map(|line| {
+                    line.strip_prefix("| `")
+                        .and_then(|tail| tail.split_once('`').map(|(name, _)| name))
+                })
+                .filter(|name| matches!(*name, "skip_add" | "skip_remove")),
+        )
         .collect();
     assert_eq!(names, contract_names, "HOST_COMMANDS IPC table");
     // Inspect the actual Tauri wrappers, independently of the cmd_* adapters.
@@ -343,6 +392,46 @@ fn host_command_registry() {
         .filter(|entry| !entry.is_empty())
         .map(|entry| entry.strip_prefix("commands::").unwrap_or(entry))
         .collect();
+    assert_eq!(COMMANDS.len(), 19, "HOST_M3C_SKIP command count");
+    assert_eq!(
+        &COMMANDS[17..],
+        ["skip_add", "skip_remove"],
+        "HOST_M3C_SKIP appended command order"
+    );
+    assert_eq!(
+        handlers, COMMANDS,
+        "HOST_M3C_SKIP handler registration matches all 19 commands"
+    );
+    for reply in [
+        Ok(json!({"skipped": [{"unknown": "原样"}]})),
+        Err(IpcFailure {
+            code: "invalid".into(),
+            message_zh: "原样失败。".into(),
+        }),
+    ] {
+        let backend = Recorder {
+            calls: Mutex::new(vec![]),
+            reply: reply.clone(),
+        };
+        assert_eq!(
+            cmd_skip_add(&backend, "i-甲".into()),
+            reply,
+            "HOST_M3C_SKIP add reply"
+        );
+        assert_eq!(
+            cmd_skip_remove(&backend, "skip-乙".into()),
+            reply,
+            "HOST_M3C_SKIP remove reply"
+        );
+        assert_eq!(
+            *backend.calls.lock().unwrap(),
+            [
+                ("skip_add".into(), json!({"itemId": "i-甲"})),
+                ("skip_remove".into(), json!({"skipId": "skip-乙"}))
+            ],
+            "HOST_M3C_SKIP exact command names, keys and values"
+        );
+    }
     assert_eq!(handlers, names, "HOST_COMMANDS actual handler registration");
     assert_eq!(
         lib.matches("tauri::generate_handler![").count(),
@@ -1082,6 +1171,24 @@ impl Backend for SlowInitialState {
     }
 }
 
+struct PartialInitialState {
+    queries: AtomicUsize,
+    stops: AtomicUsize,
+}
+
+impl Backend for PartialInitialState {
+    fn call(&self, command: &str, _args: Value) -> Result<Value, IpcFailure> {
+        if command == "clean_stop" {
+            self.stops.fetch_add(1, Ordering::SeqCst);
+            return Ok(json!({}));
+        }
+        if self.queries.fetch_add(1, Ordering::SeqCst) == 0 {
+            std::thread::sleep(Duration::from_millis(300));
+        }
+        Ok(json!({"busy": "cleaning"}))
+    }
+}
+
 struct UnknownResetClean {
     stopped_at: Mutex<Option<Instant>>,
     stops: AtomicUsize,
@@ -1153,6 +1260,10 @@ impl Backend for UnstartedProbe {
 // Tokenize the host's wiring, ignoring comments and string contents, so braces
 // delimit real branches and ExitRequested cannot match the Exit identifier.
 fn wiring_tokens(source: &str) -> Vec<&str> {
+    try_wiring_tokens(source).unwrap_or_else(|message| panic!("{message}"))
+}
+
+fn try_wiring_tokens(source: &str) -> Result<Vec<&str>, String> {
     let bytes = source.as_bytes();
     let mut tokens = Vec::new();
     let mut index = 0;
@@ -1178,6 +1289,8 @@ fn wiring_tokens(source: &str) -> Vec<&str> {
                     index += 1;
                 }
             }
+        } else if let Some(end) = raw_string_end(source, index)? {
+            index = end;
         } else if bytes[index] == b'"' {
             index += 1;
             while index < bytes.len() {
@@ -1189,7 +1302,17 @@ fn wiring_tokens(source: &str) -> Vec<&str> {
                     break;
                 }
             }
+        } else if bytes[index] == b'\''
+            && let Some(end) = character_end(source, index)
+        {
+            index = end;
         } else {
+            if !bytes[index].is_ascii() {
+                return Err(format!(
+                    "HOST_TEST_TOKENIZER non-ASCII outside literal at byte {index}: {:?}",
+                    source[index..].chars().next().unwrap()
+                ));
+            }
             index += 1;
             if bytes[start].is_ascii_alphanumeric() || bytes[start] == b'_' {
                 while index < bytes.len()
@@ -1201,7 +1324,61 @@ fn wiring_tokens(source: &str) -> Vec<&str> {
             tokens.push(&source[start..index]);
         }
     }
-    tokens
+    Ok(tokens)
+}
+
+fn raw_string_end(source: &str, start: usize) -> Result<Option<usize>, String> {
+    let bytes = source.as_bytes();
+    let mut quote = if bytes[start..].starts_with(b"br") {
+        start + 2
+    } else if bytes[start] == b'r' {
+        start + 1
+    } else {
+        return Ok(None);
+    };
+    let hashes_start = quote;
+    while bytes.get(quote) == Some(&b'#') {
+        quote += 1;
+    }
+    if bytes.get(quote) != Some(&b'"') {
+        return Ok(None);
+    }
+    let hashes = &bytes[hashes_start..quote];
+    let mut end = quote + 1;
+    while end < bytes.len() {
+        if bytes[end] == b'"' && bytes[end + 1..].starts_with(hashes) {
+            return Ok(Some(end + 1 + hashes.len()));
+        }
+        end += 1;
+    }
+    Err(format!(
+        "HOST_TEST_TOKENIZER unterminated raw string at byte {start}"
+    ))
+}
+
+fn character_end(source: &str, start: usize) -> Option<usize> {
+    let bytes = source.as_bytes();
+    let mut end = start + 1;
+    if bytes.get(end) == Some(&b'\\') {
+        end += 1;
+        match bytes.get(end)? {
+            b'u' if bytes.get(end + 1) == Some(&b'{') => {
+                end += 2;
+                while bytes.get(end).is_some_and(|byte| *byte != b'}') {
+                    end += 1;
+                }
+                if bytes.get(end) != Some(&b'}') {
+                    return None;
+                }
+                end += 1;
+            }
+            b'x' => end += 3,
+            _ => end += 1,
+        }
+    } else {
+        end += source.get(end..)?.chars().next()?.len_utf8();
+    }
+    (bytes.get(end) == Some(&b'\'')).then_some(end + 1)
 }
 
 fn wiring_block<'a>(tokens: &'a [&'a str], prefix: &[&str], marker: &str) -> &'a [&'a str] {
@@ -1237,6 +1414,48 @@ fn wiring_block<'a>(tokens: &'a [&'a str], prefix: &[&str], marker: &str) -> &'a
 
 #[test]
 fn host_service_wiring() {
+    for reply in [
+        Ok(json!({"unknown": ["原样", null]})),
+        Err(IpcFailure {
+            code: "invalid".into(),
+            message_zh: "原样失败。".into(),
+        }),
+    ] {
+        for excluded in [None, Some(vec![]), Some(vec!["i-2", "i-甲", "i-2", ""])] {
+            let backend = Recorder {
+                calls: Mutex::new(vec![]),
+                reply: reply.clone(),
+            };
+            assert_eq!(
+                cmd_clean_prepare(
+                    &backend,
+                    vec!["g1".into(), "g2".into()],
+                    excluded
+                        .clone()
+                        .map(|ids| ids.into_iter().map(String::from).collect()),
+                ),
+                reply,
+                "HOST_M3C_EXCLUDE untouched backend reply"
+            );
+            let expected = match excluded {
+                Some(ids) if !ids.is_empty() => {
+                    json!({"groupIds": ["g1", "g2"], "excludeItemIds": ids})
+                }
+                _ => json!({"groupIds": ["g1", "g2"]}),
+            };
+            let calls = backend.calls.lock().unwrap();
+            assert_eq!(
+                *calls,
+                [("clean_prepare".into(), expected.clone())],
+                "HOST_M3C_EXCLUDE exact payload, preserving list order and values"
+            );
+            assert_eq!(
+                calls[0].1.to_string().as_bytes(),
+                expected.to_string().as_bytes(),
+                "HOST_M3C_EXCLUDE byte-identical serialization including legacy omission"
+            );
+        }
+    }
     assert_unstarted(&UnavailableBackend);
     assert_unstarted(&BackendSlot::new(Arc::new(UnavailableBackend)));
     let empty_slot = BackendSlot::new(Arc::new(UnstartedProbe));
@@ -1283,6 +1502,31 @@ fn host_service_wiring() {
             "HOST_EXIT_DEADLINE still sends stop exactly once"
         );
     }
+    let partial = PartialInitialState {
+        queries: AtomicUsize::new(0),
+        stops: AtomicUsize::new(0),
+    };
+    let limit = Duration::from_millis(700);
+    let started = Instant::now();
+    assert_eq!(
+        stop_cleaning_within(&partial, Duration::from_secs(2), limit),
+        CleanStop::TimedOut,
+        "HOST_EXIT_DEADLINE partial initial query still reaches total limit"
+    );
+    let elapsed = started.elapsed();
+    assert!(
+        elapsed >= limit && elapsed < limit + Duration::from_millis(150),
+        "HOST_EXIT_DEADLINE initial 300 ms leaves only the remainder of 700 ms (150 ms scheduling margin): {elapsed:?}"
+    );
+    assert!(
+        partial.queries.load(Ordering::SeqCst) >= 2,
+        "HOST_EXIT_DEADLINE partial query leaves time for polling"
+    );
+    assert_eq!(
+        partial.stops.load(Ordering::SeqCst),
+        1,
+        "HOST_EXIT_DEADLINE partial query sends stop exactly once"
+    );
     let reset = UnknownResetClean {
         stopped_at: Mutex::new(None),
         stops: AtomicUsize::new(0),
@@ -1488,15 +1732,22 @@ fn host_service_wiring() {
         ],
         "HOST_EXIT_DURING_CLEAN",
     );
+    let exit_call = wiring_tokens(
+        "stop_cleaning_within(exit_backend.as_ref(), Duration::from_millis(200), Duration::from_secs(10),);",
+    );
     assert!(
-        exit.windows(2).any(|w| w == ["stop_cleaning_within", "("])
-            && exit
-                .windows(6)
-                .any(|w| w == ["Duration", ":", ":", "from_millis", "(", "200"])
-            && exit
-                .windows(6)
-                .any(|w| w == ["Duration", ":", ":", "from_secs", "(", "10"]),
-        "HOST_EXIT_DURING_CLEAN Exit calls bounded stop at 200 ms / 10 s"
+        exit.windows(exit_call.len())
+            .any(|window| window == exit_call),
+        "HOST_EXIT_DURING_CLEAN HOST_EXIT_WIRING Exit calls bounded stop at 200 ms / 10 s in parameter order"
+    );
+    let swapped = wiring_tokens(
+        "stop_cleaning_within(exit_backend.as_ref(), Duration::from_secs(10), Duration::from_millis(200),);",
+    );
+    assert!(
+        !swapped
+            .windows(exit_call.len())
+            .any(|window| window == exit_call),
+        "HOST_EXIT_WIRING rejects reversed poll and deadline"
     );
     let guard = wiring_block(
         &tokens,
@@ -1564,8 +1815,10 @@ fn host_service_wiring() {
     let cleanup_closed =
         json!({"code": "unavailable", "message_zh": "这一版只做体检，清理功能会在下一版开放。"});
     assert_ne!(
-        serde_json::to_value(cmd_clean_prepare(direct.as_ref(), vec!["g1".into()]).unwrap_err())
-            .unwrap(),
+        serde_json::to_value(
+            cmd_clean_prepare(direct.as_ref(), vec!["g1".into()], None).unwrap_err()
+        )
+        .unwrap(),
         cleanup_closed,
         "HOST_CLEAN_ENABLED production backend opens cleanup"
     );
@@ -1630,7 +1883,8 @@ fn host_service_wiring() {
     assert_eq!(state["busy"], "idle", "HOST_WIRING idle service");
     assert_eq!(state, raw_state, "HOST_WIRING success passes through");
     assert_ne!(
-        serde_json::to_value(cmd_clean_prepare(&backend, vec!["g1".into()]).unwrap_err()).unwrap(),
+        serde_json::to_value(cmd_clean_prepare(&backend, vec!["g1".into()], None).unwrap_err())
+            .unwrap(),
         json!({"code": "unavailable", "message_zh": "这一版只做体检，清理功能会在下一版开放。"}),
         "HOST_CLEAN_ENABLED exact failure"
     );
