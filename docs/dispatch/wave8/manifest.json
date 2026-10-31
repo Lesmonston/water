@@ -1,7 +1,7 @@
 {
   "schemaVersion": 1,
   "wave": "water-wave8-m3-close",
-  "status": "READY_FIRST_BATCH",
+  "status": "DISPATCHED_FIRST_BATCH",
   "controller": "Claude",
   "controllerRoot": "F:/new/smaltalk/water",
   "controllerBranch": "main",
@@ -75,7 +75,7 @@
     {
       "id": "WATER-W8-K1",
       "title": "进程快照补程序路径与内存",
-      "status": "READY",
+      "status": "DISPATCHED",
       "slot": "w8-k1",
       "kind": "rust",
       "worktree": "F:/new/smaltalk/water/.worktrees/w8-k1",
@@ -148,7 +148,7 @@
       "realDataPermission": "read-only process list per ADR-018; counts only",
       "dispatchedAt": null,
       "startedAt": null,
-      "model": null,
+      "model": "sol (user-reported)",
       "modelAssignment": "user-arranged; report actual engine/model",
       "macOS": "unverified",
       "gate": "light",
@@ -181,7 +181,8 @@
         "Process32FirstW",
         "Process32NextW",
         "QueryFullProcessImageNameW"
-      ]
+      ],
+      "dispatchEvidence": "user chat 2026-10-31 ~23:15 JST: \"除了界面单是astra，都是sol\" (K1, K2, K3, K5 to sol; UI ticket K6 to astra); worker tree head/changed files 912eba10/0 when recorded"
     },
     {
       "kind": "rust",
@@ -234,11 +235,11 @@
       "branch": "worker/water-w8-k2",
       "baseCommit": "912eba100ba342c3eeb21ba555c6d589b91e6b4f",
       "snapshotRef": "refs/tags/water-w8-m3c-base-20261031",
-      "status": "READY",
+      "status": "DISPATCHED",
       "readyOn": "2026-10-31",
       "dispatchedAt": null,
       "startedAt": null,
-      "model": null,
+      "model": "sol (user-reported)",
       "modelAssignment": "user-arranged; report actual engine/model",
       "purpose": "M3 close",
       "report": "docs/dispatch/reports/WATER-W8-K2-REPORT.md",
@@ -298,12 +299,13 @@
         "docs/acceptance/wave8/k2/"
       ],
       "baselineStatus": "PASSED",
-      "baselineEvidence": "docs/acceptance/wave8/controller/preflight-20261031/k2/2026-10-31T14-10-10.643Z-37880-baseline-result.json"
+      "baselineEvidence": "docs/acceptance/wave8/controller/preflight-20261031/k2/2026-10-31T14-10-10.643Z-37880-baseline-result.json",
+      "dispatchEvidence": "user chat 2026-10-31 ~23:15 JST: \"除了界面单是astra，都是sol\" (K1, K2, K3, K5 to sol; UI ticket K6 to astra); worker tree head/changed files 912eba10/0 when recorded"
     },
     {
       "id": "WATER-W8-K3",
       "title": "去重体量、一次遍历与新在用方式",
-      "status": "READY",
+      "status": "DISPATCHED",
       "slot": "w8-k3",
       "kind": "rust",
       "worktree": "F:/new/smaltalk/water/.worktrees/w8-k3",
@@ -379,7 +381,7 @@
       "realDataPermission": "read-only metadata per ADR-018; group-level output only",
       "dispatchedAt": null,
       "startedAt": null,
-      "model": null,
+      "model": "sol (user-reported)",
       "modelAssignment": "user-arranged; report actual engine/model",
       "macOS": "unverified",
       "gate": "light",
@@ -418,7 +420,8 @@
         "GetFileInformationByHandleEx",
         "GetVolumeInformationByHandleW",
         "SHGetKnownFolderPath"
-      ]
+      ],
+      "dispatchEvidence": "user chat 2026-10-31 ~23:15 JST: \"除了界面单是astra，都是sol\" (K1, K2, K3, K5 to sol; UI ticket K6 to astra); worker tree head/changed files 912eba10/0 when recorded"
     },
     {
       "kind": "host",
@@ -726,11 +729,11 @@
       "branch": "worker/water-w8-k5",
       "baseCommit": "912eba100ba342c3eeb21ba555c6d589b91e6b4f",
       "snapshotRef": "refs/tags/water-w8-m3c-base-20261031",
-      "status": "READY",
+      "status": "DISPATCHED",
       "readyOn": "2026-10-31",
       "dispatchedAt": null,
       "startedAt": null,
-      "model": null,
+      "model": "sol (user-reported)",
       "modelAssignment": "user-arranged; report actual engine/model",
       "purpose": "M3 close",
       "report": "docs/dispatch/reports/WATER-W8-K5-REPORT.md",
@@ -790,7 +793,8 @@
         "docs/acceptance/wave8/k5/"
       ],
       "baselineStatus": "PASSED",
-      "baselineEvidence": "docs/acceptance/wave8/controller/preflight-20261031/k5/2026-10-31T14-10-28.120Z-29844-baseline-result.json"
+      "baselineEvidence": "docs/acceptance/wave8/controller/preflight-20261031/k5/2026-10-31T14-10-28.120Z-29844-baseline-result.json",
+      "dispatchEvidence": "user chat 2026-10-31 ~23:15 JST: \"除了界面单是astra，都是sol\" (K1, K2, K3, K5 to sol; UI ticket K6 to astra); worker tree head/changed files 912eba10/0 when recorded"
     },
     {
       "kind": "ui",
@@ -883,11 +887,11 @@
       "branch": "worker/water-w8-k6",
       "baseCommit": "912eba100ba342c3eeb21ba555c6d589b91e6b4f",
       "snapshotRef": "refs/tags/water-w8-m3c-base-20261031",
-      "status": "READY",
+      "status": "DISPATCHED",
       "readyOn": "2026-10-31",
       "dispatchedAt": null,
       "startedAt": null,
-      "model": null,
+      "model": "astra (user-reported)",
       "modelAssignment": "user-arranged; report actual engine/model",
       "purpose": "M3 close",
       "report": "docs/dispatch/reports/WATER-W8-K6-REPORT.md",
@@ -961,7 +965,8 @@
         "docs/acceptance/wave8/k6/"
       ],
       "baselineStatus": "PASSED",
-      "baselineEvidence": "docs/acceptance/wave8/controller/preflight-20261031/k6/2026-10-31T14-10-24.474Z-27996-baseline-result.json"
+      "baselineEvidence": "docs/acceptance/wave8/controller/preflight-20261031/k6/2026-10-31T14-10-24.474Z-27996-baseline-result.json",
+      "dispatchEvidence": "user chat 2026-10-31 ~23:15 JST: \"除了界面单是astra，都是sol\" (K1, K2, K3, K5 to sol; UI ticket K6 to astra); worker tree head/changed files 912eba10/0 when recorded"
     }
   ]
 }
