@@ -6,6 +6,8 @@ struct RealSmoke {
     process_count: u64,
     access_denied: u64,
     exited: u64,
+    image_path_count: u64,
+    image_unavailable: u64,
     #[serde(rename = "chrome.exe")]
     chrome_exe: u64,
     #[serde(rename = "msedge.exe")]
@@ -48,6 +50,8 @@ fn run() -> Result<(), water_process_scan::ProcError> {
         process_count: summary.process_count,
         access_denied: issue("access_denied"),
         exited: issue("exited"),
+        image_path_count: snap.image_path_count(),
+        image_unavailable: issue("image_unavailable"),
         chrome_exe: snap.running(&["chrome.exe"]).len() as u64,
         msedge_exe: snap.running(&["msedge.exe"]).len() as u64,
         node_exe: snap.running(&["node.exe"]).len() as u64,

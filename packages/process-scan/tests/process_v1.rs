@@ -14,7 +14,7 @@ use water_process_scan::{
 const CREATE_NO_WINDOW: u32 = 0x0800_0000;
 /// Only these image names are ever ended by cleanup, and only when their
 /// command line still carries this session's token.
-const KILL_NAMES: &[&str] = &["cmd.exe", "waitfor.exe"];
+const KILL_NAMES: &[&str] = &["cmd.exe", "waitfor.exe", "PING.EXE"];
 /// Self-limiting wait: even if cleanup were skipped, waiters exit on their own.
 const WAIT_SECS: u32 = 60;
 
@@ -42,9 +42,9 @@ impl Session {
                 .expect("clock")
                 .as_nanos()
         );
-        let fixtures = worktree_root().join(".local").join("w2-c-fixtures");
+        let fixtures = worktree_root().join(".local").join("w8-k1-fixtures");
         std::fs::create_dir_all(&fixtures).expect("create fixture parent");
-        let dir = fixtures.join(format!("w2c-{token}"));
+        let dir = fixtures.join(format!("w8k1-{token}"));
         std::fs::create_dir(&dir).expect("create fixture dir");
         let started_at = snapshot().expect("snapshot").summary().taken_at;
         Self {
@@ -98,6 +98,66 @@ impl Session {
         let mut outer = cmd(&format!("start \"\" /b cmd /d /c \"{inner}\""));
         let _ = outer.wait();
         signal
+    }
+
+    /// Launch the copied PING using a relative executable spelling. Its
+    /// command line carries the unique fixture token but no absolute item
+    /// path, so only the new image-path branch can match that absolute item.
+    fn spawn_image(&mut self) {
+        let bin = self.dir.join("bin");
+        std::fs::create_dir(&bin).expect("PROC_M3C_IMAGE: create bin");
+        std::fs::copy(r"C:\Windows\System32\PING.EXE", bin.join("PING.EXE"))
+            .expect("PROC_M3C_IMAGE: copy system PING into fixture");
+        let relative_image = format!("w8k1-{}\\bin\\PING.EXE", self.token);
+        self.signals.push(relative_image.clone());
+        let script = format!(
+            "{relative_image} -n {WAIT_SECS} -w 1000 127.0.0.1 >NUL 2>&1 & rem {}",
+            self.token
+        );
+        self.expected += 2;
+        self.children.push(cmd_in(&script, self.dir.parent()));
+    }
+
+    fn wait_for_image(&mut self) -> (ProcessSnapshot, u32) {
+        for _ in 0..100 {
+            let snap = snapshot().expect("snapshot");
+            self.observe(&snap);
+            let pids = self.token_pids(&snap, &["PING.EXE"]);
+            if pids.len() == 1 {
+                return (snap, *pids.first().expect("one image"));
+            }
+            thread::sleep(Duration::from_millis(50));
+        }
+        panic!("PROC_M3C_IMAGE: copied PING did not appear");
+    }
+
+    /// Independent test-only working-set sample; stdout is a byte count.
+    /// The helper carries our token, runs hidden, exits synchronously, and
+    /// never prints a process path or command line.
+    fn root_working_set(&self, pid: u32) -> u64 {
+        let script = format!(
+            "(Get-Process -Id {pid} -ErrorAction Stop).WorkingSet64 # {}",
+            self.token
+        );
+        let out = Command::new("powershell.exe")
+            .args([
+                "-NoLogo",
+                "-NoProfile",
+                "-NonInteractive",
+                "-Command",
+                &script,
+            ])
+            .creation_flags(CREATE_NO_WINDOW)
+            .stdin(Stdio::null())
+            .stderr(Stdio::null())
+            .output()
+            .expect("PROC_M3C_MEMORY: independent working-set sample");
+        assert!(out.status.success(), "PROC_M3C_MEMORY: sample succeeded");
+        String::from_utf8(out.stdout)
+            .expect("PROC_M3C_MEMORY: numeric sample")
+            .trim()
+            .parse()
+            .expect("PROC_M3C_MEMORY: byte count")
     }
 
     /// Every pid whose command line carries this session's token (as the
@@ -233,12 +293,11 @@ impl Drop for Session {
             .dir
             .file_name()
             .and_then(|n| n.to_str())
-            .is_some_and(|n| n.starts_with("w2c-"));
+            .is_some_and(|n| n == format!("w8k1-{}", self.token));
         let parent_ok = self
             .dir
             .parent()
-            .and_then(|p| p.file_name())
-            .is_some_and(|n| n == "w2-c-fixtures");
+            .is_some_and(|p| p == worktree_root().join(".local").join("w8-k1-fixtures"));
         if name_ok && parent_ok {
             let _ = std::fs::remove_dir_all(&self.dir);
         }
@@ -254,7 +313,15 @@ fn worktree_root() -> PathBuf {
 }
 
 fn cmd(script: &str) -> Child {
-    Command::new("cmd.exe")
+    cmd_in(script, None)
+}
+
+fn cmd_in(script: &str, directory: Option<&Path>) -> Child {
+    let mut command = Command::new("cmd.exe");
+    if let Some(directory) = directory {
+        command.current_dir(directory);
+    }
+    command
         .args(["/d", "/c"])
         .raw_arg(script)
         .creation_flags(CREATE_NO_WINDOW)
@@ -360,10 +427,31 @@ fn process_snapshot_contract() {
     for issue in issues {
         assert_eq!(object_keys(issue), BTreeSet::from(["code", "count"]));
         let code = issue["code"].as_str().expect("code");
-        assert!(code == "access_denied" || code == "exited");
+        assert!(code == "access_denied" || code == "exited" || code == "image_unavailable");
         assert!(issue["count"].as_u64().expect("count") >= 1);
     }
     let _ = serde_json::from_str::<ProcessSummary>(&json).expect("strict ProcessSummary");
+    let order: Vec<&str> = summary
+        .issues
+        .iter()
+        .map(|issue| issue.code.as_str())
+        .collect();
+    let expected: Vec<&str> = ["access_denied", "exited", "image_unavailable"]
+        .into_iter()
+        .filter(|code| order.contains(code))
+        .collect();
+    assert_eq!(
+        order, expected,
+        "PROC_M3C_IMAGE: stable nonzero issue order"
+    );
+    assert!(
+        snap.image_path_count() >= 1,
+        "PROC_M3C_IMAGE: own image readable"
+    );
+    assert!(
+        snap.image_path_count() <= summary.process_count,
+        "PROC_M3C_IMAGE: count bounded"
+    );
 }
 
 #[test]
@@ -489,6 +577,47 @@ fn process_path_reference() {
     let fixture_hits = snap.references_path(&session.path_str(), &[]);
     assert!(fixture_hits.contains(&at_end));
     assert!(fixture_hits.contains(&longer_segment));
+    // The command-line half of the new mode preserves every old boundary.
+    let combined: BTreeSet<u32> = snap
+        .runs_from_or_references(r"C:\a\b", &[])
+        .into_iter()
+        .collect();
+    for pid in all {
+        assert_eq!(
+            combined.contains(&pid),
+            hits.contains(&pid),
+            "PROC_M3C_IMAGE: command boundary unchanged"
+        );
+    }
+    session.spawn_image();
+    let (image_snap, image_pid) = session.wait_for_image();
+    let item = session.path_str();
+    assert!(
+        !image_snap
+            .references_path(&item, &["PING.EXE"])
+            .contains(&image_pid),
+        "PROC_M3C_IMAGE: image-only fixture"
+    );
+    for query in [
+        item.clone(),
+        item.to_uppercase().replace('\\', "/") + "/",
+        format!("{item}\\bin\\PING.EXE"),
+    ] {
+        assert!(
+            image_snap
+                .runs_from_or_references(&query, &["ping.exe"])
+                .contains(&image_pid),
+            "PROC_M3C_IMAGE: item and exact executable match"
+        );
+    }
+    for query in [format!("{item}2"), format!("{item}\\bin2"), String::new()] {
+        assert!(
+            !image_snap
+                .runs_from_or_references(&query, &[])
+                .contains(&image_pid),
+            "PROC_M3C_IMAGE: sibling and empty paths excluded"
+        );
+    }
     session.stop();
 }
 
@@ -603,6 +732,118 @@ fn process_in_use_and_orphans() {
         snap.summary().descendant_pids(orphan.root_pid),
         orphan.descendant_pids
     );
+    // Compare against an independent sample of the quiet waiting cmd root;
+    // the extra waiter must contribute too, so root-only nc2 is rejected.
+    let root_bytes = session.root_working_set(orphan.root_pid);
+    let child_bytes = session.root_working_set(orphan_waiter);
+    let memory_snap = snapshot().expect("PROC_M3C_MEMORY: fresh snapshot");
+    let memory_chains = orphans(&memory_snap, &[session.token.as_str()]);
+    let chain = memory_chains
+        .iter()
+        .find(|c| c.root_pid == orphan.root_pid)
+        .expect("PROC_M3C_MEMORY: orphan remains alive");
+    let bytes = chain
+        .memory_bytes
+        .as_ref()
+        .expect("PROC_M3C_MEMORY: known working set")
+        .parse::<u64>()
+        .expect("PROC_M3C_MEMORY: decimal bytes");
+    assert!(
+        root_bytes > 0 && bytes > root_bytes,
+        "PROC_M3C_MEMORY: root and descendant working sets must be summed"
+    );
+    // Leave room for normal working-set movement between the independent
+    // samples and snapshot, while still rejecting a root-only sum.
+    assert!(
+        child_bytes > 0 && bytes >= root_bytes + child_bytes / 2,
+        "PROC_M3C_MEMORY: descendant contributes its working set"
+    );
+    let serialized = serde_json::to_value(chain).expect("PROC_M3C_MEMORY: chain JSON");
+    assert!(
+        serialized["memory_bytes"].is_string(),
+        "PROC_M3C_MEMORY: bytes serialize as a string"
+    );
+
+    session.spawn_image();
+    let (image_snap, image_pid) = session.wait_for_image();
+    for names in [Vec::new(), vec!["ping.exe".to_string()]] {
+        // Other session cmd processes reference the fixture root. Use the
+        // exact executable item for the empty-list assertion so its first
+        // matching process is unambiguously the copied PING.
+        let item_path = if names.is_empty() {
+            session
+                .dir
+                .join("bin")
+                .join("PING.EXE")
+                .to_string_lossy()
+                .into_owned()
+        } else {
+            session.path_str()
+        };
+        let hit = in_use(
+            &image_snap,
+            &InUseSpec {
+                mode: InUseMode::RunsFromOrReferencesItem,
+                processes: names,
+            },
+            &item_path,
+        )
+        .expect("PROC_M3C_IMAGE: executable in item hits");
+        assert_eq!(
+            hit.pid, image_pid,
+            "PROC_M3C_ANY: empty or matching names allow image"
+        );
+        assert!(
+            hit.process_name.eq_ignore_ascii_case("PING.EXE"),
+            "PROC_M3C_ANY: original hit shape"
+        );
+    }
+    assert!(
+        in_use(
+            &image_snap,
+            &InUseSpec {
+                mode: InUseMode::RunsFromOrReferencesItem,
+                processes: vec!["water-process-scan-missing.exe".to_string()]
+            },
+            &session.path_str()
+        )
+        .is_none(),
+        "PROC_M3C_ANY: name filter excludes image"
+    );
+    for mode in [
+        InUseMode::None,
+        InUseMode::ProcessRunning,
+        InUseMode::CmdlineReferencesItem,
+    ] {
+        assert!(
+            in_use(
+                &image_snap,
+                &InUseSpec {
+                    mode,
+                    processes: vec!["PING.EXE".to_string()]
+                },
+                &session.path_str()
+            )
+            .is_some()
+                == (mode == InUseMode::ProcessRunning),
+            "PROC_M3C_ANY: three original modes unchanged"
+        );
+    }
+    for (mode, spelling) in [
+        (InUseMode::None, "none"),
+        (InUseMode::ProcessRunning, "process_running"),
+        (InUseMode::CmdlineReferencesItem, "cmdline_references_item"),
+        (
+            InUseMode::RunsFromOrReferencesItem,
+            "runs_from_or_references_item",
+        ),
+    ] {
+        assert_eq!(
+            serde_json::to_value(mode).expect("mode JSON"),
+            spelling,
+            "PROC_M3C_ANY: mode spelling"
+        );
+    }
     session.stop();
 }
 
@@ -610,6 +851,8 @@ fn process_in_use_and_orphans() {
 fn process_privacy() {
     let mut session = Session::new();
     let worker = session.spawn_ping("jest-worker");
+    session.spawn_image();
+    let (_, image_pid) = session.wait_for_image();
     let orphan_signal = session.spawn_orphan();
     let (snap, _) = session.wait_for_orphan(&orphan_signal, &[worker]);
     let token = session.token.clone();
@@ -644,6 +887,50 @@ fn process_privacy() {
     );
     let orphan_json = serde_json::to_string(&chains).expect("OrphanChain json");
     let orphan_dbg = format!("{chains:?}");
+    let image_hit = in_use(
+        &snap,
+        &InUseSpec {
+            mode: InUseMode::RunsFromOrReferencesItem,
+            processes: vec!["PING.EXE".to_string()],
+        },
+        &path,
+    )
+    .expect("PROC_M3C_IMAGE: image hit for privacy");
+    assert_eq!(
+        image_hit.pid, image_pid,
+        "PROC_M3C_PRIVACY: copied image present"
+    );
+    let image_hit_json = serde_json::to_string(&image_hit).expect("image hit JSON");
+    let image_hit_debug = format!("{image_hit:?}");
+    let summary_debug = format!("{:?}", snap.summary());
+    let image_path = session
+        .dir
+        .join("bin")
+        .join("PING.EXE")
+        .to_string_lossy()
+        .into_owned();
+    for text in [
+        &summary_json,
+        &summary_debug,
+        &snap_dbg,
+        &hit_json,
+        &hit_dbg,
+        &image_hit_json,
+        &image_hit_debug,
+        &orphan_json,
+        &orphan_dbg,
+    ] {
+        for secret in [&token, &path, &image_path] {
+            let encoded = serde_json::to_string(secret).expect("secret JSON");
+            assert!(
+                !text.to_lowercase().contains(&secret.to_lowercase())
+                    && !text
+                        .to_lowercase()
+                        .contains(&encoded[1..encoded.len() - 1].to_lowercase()),
+                "PROC_M3C_PRIVACY: no token, item or executable path in output"
+            );
+        }
+    }
     for (label, text) in [
         ("summary json", summary_json.as_str()),
         ("snapshot debug", snap_dbg.as_str()),

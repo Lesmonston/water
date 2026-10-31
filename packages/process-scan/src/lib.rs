@@ -59,6 +59,7 @@ pub enum InUseMode {
     None,
     ProcessRunning,
     CmdlineReferencesItem,
+    RunsFromOrReferencesItem,
 }
 
 #[derive(Debug, Clone, PartialEq, Eq, Serialize, Deserialize)]
@@ -84,6 +85,8 @@ pub struct OrphanChain {
     pub created_at: Option<String>,
     pub matched_pattern: String,
     pub descendant_pids: Vec<u32>,
+    /// Sum of known working sets, in decimal bytes; null when all are unknown.
+    pub memory_bytes: Option<String>,
 }
 
 #[derive(Debug, Clone, PartialEq, Eq, Serialize, Deserialize)]
@@ -139,6 +142,8 @@ struct ProcessRecord {
     created_at: Option<String>,
     created_filetime: Option<u64>,
     command_line: String,
+    image_path: String,
+    working_set: Option<u64>,
 }
 
 impl fmt::Debug for ProcessRecord {
@@ -157,6 +162,7 @@ pub struct ProcessSnapshot {
     processes: Vec<ProcessRecord>,
     access_denied: u64,
     exited: u64,
+    image_unavailable: u64,
 }
 
 impl fmt::Debug for ProcessSnapshot {
@@ -167,6 +173,7 @@ impl fmt::Debug for ProcessSnapshot {
             .field("processes", &self.processes)
             .field("access_denied", &self.access_denied)
             .field("exited", &self.exited)
+            .field("image_unavailable", &self.image_unavailable)
             .finish()
     }
 }
@@ -197,6 +204,10 @@ pub fn in_use(snapshot: &ProcessSnapshot, spec: &InUseSpec, item_path: &str) -> 
         InUseMode::CmdlineReferencesItem => {
             let names: Vec<&str> = spec.processes.iter().map(String::as_str).collect();
             snapshot.hit_from_pids(snapshot.references_path(item_path, &names))
+        }
+        InUseMode::RunsFromOrReferencesItem => {
+            let names: Vec<&str> = spec.processes.iter().map(String::as_str).collect();
+            snapshot.hit_from_pids(snapshot.runs_from_or_references(item_path, &names))
         }
     }
 }
@@ -231,12 +242,20 @@ pub fn orphans(snapshot: &ProcessSnapshot, patterns: &[&str]) -> Vec<OrphanChain
         let Some(matched_pattern) = matched_pattern(&process.command_line, patterns) else {
             continue;
         };
+        let descendant_pids = descendants_in(process.pid, &children);
+        let memory_bytes = std::iter::once(process.pid)
+            .chain(descendant_pids.iter().copied())
+            .filter_map(|pid| by_pid.get(&pid).and_then(|p| p.working_set))
+            .map(u128::from)
+            .reduce(|total, bytes| total + bytes)
+            .map(|bytes| bytes.to_string());
         out.push(OrphanChain {
             root_pid: process.pid,
             name: process.name.clone(),
             created_at: process.created_at.clone(),
             matched_pattern: matched_pattern.to_string(),
-            descendant_pids: descendants_in(process.pid, &children),
+            descendant_pids,
+            memory_bytes,
         });
     }
     out
@@ -247,6 +266,7 @@ impl ProcessSnapshot {
     fn from_native(rows: Vec<native_windows::NativeProcess>) -> Self {
         let mut access_denied = 0_u64;
         let mut exited = 0_u64;
+        let mut image_unavailable = 0_u64;
         let processes = rows
             .into_iter()
             .map(|row| {
@@ -256,6 +276,7 @@ impl ProcessSnapshot {
                     None => {}
                 }
                 let created_at = filetime_rfc3339(row.created_filetime);
+                image_unavailable += u64::from(row.image_unavailable);
                 let created_filetime = created_at.as_ref().map(|_| row.created_filetime);
                 ProcessRecord {
                     pid: row.pid,
@@ -264,6 +285,8 @@ impl ProcessSnapshot {
                     created_at,
                     created_filetime,
                     command_line: row.command_line,
+                    image_path: row.image_path,
+                    working_set: row.working_set,
                 }
             })
             .collect();
@@ -272,6 +295,7 @@ impl ProcessSnapshot {
             processes,
             access_denied,
             exited,
+            image_unavailable,
         }
     }
 
@@ -287,6 +311,12 @@ impl ProcessSnapshot {
             issues.push(ProcessIssue {
                 code: "exited".to_string(),
                 count: self.exited,
+            });
+        }
+        if self.image_unavailable > 0 {
+            issues.push(ProcessIssue {
+                code: "image_unavailable".to_string(),
+                count: self.image_unavailable,
             });
         }
         ProcessSummary {
@@ -338,6 +368,40 @@ impl ProcessSnapshot {
             .unwrap_or_default();
         Some(InUseHit { process_name, pid })
     }
+
+    /// Number of readable image paths, for the count-only real smoke output.
+    pub fn image_path_count(&self) -> u64 {
+        self.processes
+            .iter()
+            .filter(|p| !p.image_path.is_empty())
+            .count() as u64
+    }
+
+    /// Match either the executable's location or the existing command-line
+    /// reference rule. Empty names allow every process; empty paths match none.
+    pub fn runs_from_or_references(&self, path: &str, names: &[&str]) -> Vec<u32> {
+        let path_n = normalize_path(path);
+        if path_n.is_empty() {
+            return Vec::new();
+        }
+        self.processes
+            .iter()
+            .filter(|p| names.is_empty() || name_in_list(&p.name, names))
+            .filter(|p| {
+                image_inside_item(&p.image_path, &path_n)
+                    || command_references_path(&p.command_line, &path_n)
+            })
+            .map(|p| p.pid)
+            .collect()
+    }
+}
+
+fn image_inside_item(image_path: &str, item_normalized: &str) -> bool {
+    let image = normalize_path(image_path);
+    image == item_normalized
+        || image
+            .strip_prefix(item_normalized)
+            .is_some_and(|tail| tail.starts_with('\\'))
 }
 
 fn name_in_list(name: &str, names: &[&str]) -> bool {

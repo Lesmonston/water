@@ -10,6 +10,7 @@ use crate::ProcError;
 const TH32CS_SNAPPROCESS: u32 = 0x0000_0002;
 const PROCESS_QUERY_LIMITED_INFORMATION: u32 = 0x1000;
 const PROCESS_COMMAND_LINE_INFORMATION: i32 = 60;
+const PROCESS_VM_COUNTERS: i32 = 3;
 const ERROR_ACCESS_DENIED: i32 = 5;
 const STATUS_INFO_LENGTH_MISMATCH: i32 = 0xC000_0004_u32 as i32;
 const STATUS_ACCESS_DENIED: i32 = 0xC000_0022_u32 as i32;
@@ -39,11 +40,31 @@ struct FileTime {
     high: u32,
 }
 
+/// VM_COUNTERS (not VM_COUNTERS_EX), x64 native layout for information class 3.
+#[repr(C)]
+#[derive(Default)]
+struct VmCounters {
+    peak_virtual_size: usize,
+    virtual_size: usize,
+    page_fault_count: u32,
+    peak_working_set_size: usize,
+    working_set_size: usize,
+    quota_peak_paged_pool_usage: usize,
+    quota_paged_pool_usage: usize,
+    quota_peak_non_paged_pool_usage: usize,
+    quota_non_paged_pool_usage: usize,
+    pagefile_usage: usize,
+    peak_pagefile_usage: usize,
+}
+
 const _: () = {
     assert!(size_of::<usize>() == 8);
     assert!(size_of::<ProcessEntry>() == 568);
     assert!(align_of::<ProcessEntry>() == 8);
     assert!(size_of::<FileTime>() == 8);
+    assert!(size_of::<VmCounters>() == 88);
+    assert!(align_of::<VmCounters>() == 8);
+    assert!(std::mem::offset_of!(VmCounters, working_set_size) == 32);
 };
 
 // SAFETY: signatures match kernel32 Toolhelp/OpenProcess/GetProcessTimes/CloseHandle on x64.
@@ -60,10 +81,16 @@ unsafe extern "system" {
         kernel: *mut FileTime,
         user: *mut FileTime,
     ) -> i32;
+    fn QueryFullProcessImageNameW(
+        process: *mut c_void,
+        flags: u32,
+        image_name: *mut u16,
+        size: *mut u32,
+    ) -> i32;
     fn CloseHandle(handle: *mut c_void) -> i32;
 }
 
-// SAFETY: signature matches ntdll NtQueryInformationProcess; class 60 is ProcessCommandLineInformation.
+// SAFETY: signature matches ntdll NtQueryInformationProcess; only classes 60 and 3 are used.
 #[link(name = "ntdll")]
 unsafe extern "system" {
     fn NtQueryInformationProcess(
@@ -87,6 +114,9 @@ pub(crate) struct NativeProcess {
     pub created_filetime: u64,
     pub command_line: String,
     pub cmdline_issue: Option<CmdIssue>,
+    pub image_path: String,
+    pub image_unavailable: bool,
+    pub working_set: Option<u64>,
 }
 
 struct OwnedHandle(*mut c_void);
@@ -200,9 +230,14 @@ fn enrich(entry: &ProcessEntry) -> NativeProcess {
             created_filetime: 0,
             command_line: String::new(),
             cmdline_issue: Some(open_issue()),
+            image_path: String::new(),
+            image_unavailable: false,
+            working_set: None,
         };
     };
     let created_filetime = process_times(handle.raw());
+    let (image_path, image_unavailable) = image_path_of(handle.raw());
+    let working_set = working_set_of(handle.raw());
     let (command_line, cmdline_issue) = match command_line_of(handle.raw()) {
         Ok(text) => (text, None),
         Err(issue) => (String::new(), Some(issue)),
@@ -214,7 +249,43 @@ fn enrich(entry: &ProcessEntry) -> NativeProcess {
         created_filetime,
         command_line,
         cmdline_issue,
+        image_path,
+        image_unavailable,
+        working_set,
     }
+}
+
+fn image_path_of(handle: *mut c_void) -> (String, bool) {
+    // A full Win32 extended path fits within 32,768 UTF-16 units.
+    let mut buffer = vec![0_u16; 32_768];
+    let mut length = buffer.len() as u32;
+    // SAFETY: handle is the live limited-query handle opened by enrich. Flags
+    // 0 requests Win32 form. buffer holds length writable u16s and length is
+    // a live in/out DWORD; neither pointer escapes the call.
+    let ok = unsafe { QueryFullProcessImageNameW(handle, 0, buffer.as_mut_ptr(), &mut length) };
+    if ok == 0 {
+        return (String::new(), true);
+    }
+    (String::from_utf16_lossy(&buffer[..length as usize]), false)
+}
+
+fn working_set_of(handle: *mut c_void) -> Option<u64> {
+    let mut counters = VmCounters::default();
+    let mut returned = 0_u32;
+    // SAFETY: handle is the same live limited-query handle. Class 3 returns
+    // VM_COUNTERS into a properly aligned, initialized 88-byte local struct,
+    // with x64 size/offsets asserted above. No remote pointers are followed.
+    let status = unsafe {
+        NtQueryInformationProcess(
+            handle,
+            PROCESS_VM_COUNTERS,
+            ptr::from_mut(&mut counters).cast(),
+            size_of::<VmCounters>() as u32,
+            &mut returned,
+        )
+    };
+    (status >= 0 && returned as usize >= size_of::<VmCounters>())
+        .then_some(counters.working_set_size as u64)
 }
 
 fn open_issue() -> CmdIssue {
