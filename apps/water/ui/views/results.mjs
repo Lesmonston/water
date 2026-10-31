@@ -1,9 +1,19 @@
 import {add, el, metric, button, level, check, icon, catIcon, insight, empty} from './common.mjs';
 import {formatBytes, bytes, percent, dateTime, count} from '../format.mjs';
-import {levels, canSelect, selectedGroups, selectedBytes, sortedGroups, categoryOrder} from '../model.mjs';
+import {levels, canSelect, selectedGroups, selectedBytes, selectedCount, sortedGroups, categoryOrder, groups, driveResult} from '../model.mjs';
 export function results(state, actions) {
-  const r = state.result, page = el('section');
+  const r = state.result && driveResult(state.result, state.drive), page = el('section');
   if (!r) return add(page, empty('尚未体检', '完成一次体检后，这里会显示按类别整理的结果。'), button('开始体检', actions.scan, 'btn btn-primary', 'scan-start', actions.busy()));
+  const drives = [...new Set(groups(state.result).flatMap(g => (g.by_drive ?? []).filter(d => d.item_count > 0).map(d => d.root)))].sort();
+  if (drives.length > 1) {
+    const filter = el('div', 'seg drive-filter', undefined, {'aria-label':'按盘筛选'});
+    for (const drive of [null, ...drives]) {
+      const label = drive ? `${drive.slice(0, 2)} ${state.app?.drives.find(d => d.root === drive)?.label_zh ?? ''}`.trim() : '全部盘';
+      const option = button(label, () => actions.drive(drive), `segment ${state.drive === drive ? 'on' : ''}`, drive ? `drive-${drive.slice(0, 1)}` : 'drive-all');
+      option.setAttribute('aria-pressed', String(state.drive === drive)); add(filter, option);
+    }
+    add(page, filter, el('p', 'cap', '筛选只影响显示，清理包含全部已选分组。'));
+  }
   const summary = add(el('div', 'glass spectrum'), add(el('div', 'split'), el('span', 'cap', '本次体检共识别'), el('b', '', formatBytes(r.totals.recognized_bytes))));
   const bar = el('div', 'spec-bar'), legend = el('div', 'legend');
   for (const key of ['recommended', 'confirm', 'advisory', 'protected']) {
@@ -25,13 +35,13 @@ export function results(state, actions) {
     if (!rows.length) continue;
     visible += rows.length;
     const selectable = category.groups.filter(canSelect), selected = selectable.filter(g => state.selection.has(g.group_id));
-    const selectedTotal = selected.reduce((n, g) => n + bytes(g.eligible_bytes), 0n);
+    const selectedTotal = selectedBytes({...state.result, categories:state.result.categories.filter(c => c.category === category.category)}, state.selection, state.details, state.drive);
     const checkbox = check(`全选${category.title_zh}`, !!selectable.length && selected.length === selectable.length, value => actions.selectCategory(category.category, value), `category-${category.category}`, selected.length > 0 && selected.length < selectable.length);
     checkbox.disabled = !selectable.length || actions.busy() || state.stale;
     const sheet = add(el('section', 'glass sheet'), add(el('div', 'sheet-head'), checkbox, add(el('div', 'cat-icon'), icon(catIcon(category.category))), add(el('div', 'grow-fill'), el('h2', '', category.title_zh), el('span', 'cap', category.subtitle_zh)), add(el('div', 'category-total'), el('b', '', formatBytes(category.total_bytes)), el('span', 'cap', `已选 ${formatBytes(selectedTotal)}`))));
     for (const g of rows) {
       let control;
-      if (canSelect(g)) { control = check(`选择${g.title_zh}`, state.selection.has(g.group_id), value => actions.select(g.group_id, value), `select-${g.group_id}`); control.disabled = actions.busy() || state.stale; }
+      if (canSelect(g)) { control = check(`选择${g.title_zh}`, state.selection.has(g.group_id), value => actions.select(g.group_id, value), `select-${g.group_id}`, !!state.selection.get(g.group_id)?.size); control.disabled = actions.busy() || state.stale; }
       else control = icon(g.level === 'protected' ? 'lock' : 'info', g.level);
       const text = add(el('span', 'group-text'), el('strong', '', g.title_zh), add(el('span', 'group-meta'), el('span', '', g.summary_zh), g.growth ? add(el('span', 'growth'), icon(bytes(g.growth.bytes_delta) < 0n ? 'down' : 'up'), document.createTextNode(formatBytes(g.growth.bytes_delta))) : null), g.in_use ? el('span', 'cap', g.in_use.process_label_zh) : null);
       const detail = button('', () => actions.detail(g.group_id), 'group-open', `detail-${g.group_id}`);
@@ -46,6 +56,7 @@ export function results(state, actions) {
 }
 export function dock(state, actions) {
   if (!state.result) return null;
-  const selected = selectedGroups(state.result, state.selection);
-  return add(el('div', 'dock'), el('span', 'cap', `已选 ${count(selected.length)} 组`), el('b', '', formatBytes(selectedBytes(state.result, state.selection))), button('重新扫描', actions.scan, 'btn btn-glass', 'rescan', actions.busy()), button('清理所选', actions.prepare, 'btn btn-primary', 'clean-prepare', actions.busy() || !selected.length || state.stale));
+  const selected = selectedGroups(state.result, state.selection, state.details);
+  const visible = state.drive ? selected.filter(g => g.by_drive?.some(d => d.root === state.drive && d.item_count)) : selected;
+  return add(el('div', 'dock'), add(el('span', 'cap dock-selection'), el('span', '', `已选 ${count(visible.length)} 组`), state.drive ? null : el('span', 'selected-count', `${count(selectedCount(state.result, state.selection, state.details))} 项`)), el('b', '', formatBytes(selectedBytes(state.result, state.selection, state.details, state.drive))), button('重新扫描', actions.scan, 'btn btn-glass', 'rescan', actions.busy()), button('清理所选', actions.prepare, 'btn btn-primary', 'clean-prepare', actions.busy() || !selected.length || state.stale));
 }

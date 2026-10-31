@@ -1,5 +1,5 @@
 import * as ipc from './ipc.mjs';
-import {installResult as nextResult, setSelected, selectCategory, selectedGroups} from './model.mjs';
+import {installResult as nextResult, setSelected, selectCategory, setItemSelected, cleanSelection} from './model.mjs';
 import {formatBytes} from './format.mjs';
 import {el, add, icon, button} from './views/common.mjs';
 import {home} from './views/home.mjs';
@@ -15,7 +15,7 @@ import {locations} from './views/locations.mjs';
 import {about} from './views/about.mjs';
 
 const routes = ['home', 'results', 'trends', 'history', 'locations', 'about'];
-const state = {app:null, connecting:true, busy:'idle', pending:false, error:'', errorCode:null, result:null, selection:new Set(), filter:'all', sort:'bytes', stale:false, cleaned:null, showDone:false, progressFailures:0, reconnecting:false, recoveryPending:false, pollPaused:false, pauseReason:'', stopFailed:false, historyDetails:new Map()};
+const state = {app:null, connecting:true, busy:'idle', pending:false, error:'', errorCode:null, info:'', result:null, selection:new Map(), details:new Map(), drive:null, filter:'all', sort:'bytes', stale:false, cleaned:null, showDone:false, progressFailures:0, reconnecting:false, recoveryPending:false, pollPaused:false, pauseReason:'', stopFailed:false, historyDetails:new Map()};
 let route = 'home', timer, stopAnnouncement, polling = false, overlay, opener, routeVersion = 0;
 const routeReads = new Map();
 const page = document.getElementById('page'), main = document.getElementById('main');
@@ -33,16 +33,30 @@ const actions = {
   }),
   stopScan:() => run(inScope => stop(() => ipc.scan_cancel(state.scanId ?? state.scanProgress?.scan_id), inScope), true),
   stopClean:() => run(inScope => stop(() => ipc.clean_stop(), inScope), true),
-  detail:id => run(async inScope => { const value = await ipc.group_detail(id); if (inScope()) showOverlay(detail(value, closeOverlay), 'detail-close'); }),
+  detail:id => run(async inScope => { const value = await ipc.group_detail(id); if (inScope()) { rememberDetail(value); showOverlay(detail(value, closeOverlay, state, actions), 'detail-close'); } }),
+  selectItem:(data, itemId, checked) => {
+    if (actions.busy() || state.stale) return;
+    state.selection = setItemSelected(state.result, state.selection, data, itemId, checked); render();
+  },
+  skipItem:(data, itemId) => locationOperation(async isCurrent => {
+    if (state.stale) return;
+    const value = await ipc.skip_add(itemId);
+    if (!isCurrent()) return;
+    state.locations = value;
+    state.info = '以后体检会跳过这个文件夹，可以在‘位置’里恢复';
+    const refreshed = await ipc.group_detail(data.group.group_id);
+    if (isCurrent()) { rememberDetail(refreshed); showOverlay(detail(refreshed, closeOverlay, state, actions), 'detail-close'); }
+  }),
   select:(id, checked) => { if (actions.busy() || state.stale) return; state.selection = setSelected(state.result, state.selection, id, checked); render(); },
   selectCategory:(category, checked) => { if (actions.busy() || state.stale) return; state.selection = selectCategory(state.result, state.selection, category, checked); render(); },
   filter:value => { state.filter = value; render(); },
+  drive:value => { state.drive = value; render(); },
   sort:value => { state.sort = value; render(); },
   prepare:() => run(async inScope => {
     if (state.busy !== 'idle' || state.stale) return;
-    const ids = selectedGroups(state.result, state.selection).map(g => g.group_id);
-    if (!ids.length) return;
-    let preview = await ipc.clean_prepare(ids);
+    const {groupIds, excludeItemIds} = cleanSelection(state.result, state.selection, state.details);
+    if (!groupIds.length) return;
+    let preview = await ipc.clean_prepare(groupIds, excludeItemIds);
     // A preview that arrives after the user left the results page is dropped; returning needs a new click.
     if (!inScope()) return;
     showOverlay(confirm(preview, closeOverlay, () => run(async inScope => {
@@ -59,15 +73,39 @@ const actions = {
       beginPolling();
     })), 'confirm-cancel');
   }),
-  toggleCategory:(category, enabled) => run(async () => { if (state.busy === 'idle') state.locations = await ipc.locations_set_category(category, enabled); }),
-  addRoot:() => run(async () => { if (state.busy !== 'idle') return; const value = await ipc.custom_root_add(); if (!value.cancelled) state.locations = await ipc.locations_get(); }),
-  removeRoot:id => run(async () => { if (state.busy === 'idle') state.locations = await ipc.custom_root_remove(id); }),
+  toggleCategory:(category, enabled) => locationOperation(async isCurrent => { const value = await ipc.locations_set_category(category, enabled); if (isCurrent()) state.locations = value; }),
+  addRoot:() => locationOperation(async isCurrent => {
+    const value = await ipc.custom_root_add();
+    if (!value.cancelled && isCurrent()) { const locations = await ipc.locations_get(); if (isCurrent()) state.locations = locations; }
+  }),
+  removeRoot:id => locationOperation(async isCurrent => { const value = await ipc.custom_root_remove(id); if (isCurrent()) state.locations = value; }),
+  restoreSkip:id => locationOperation(async isCurrent => { const value = await ipc.skip_remove(id); if (isCurrent()) state.locations = value; }),
   historyDetail:entry => run(async () => {
     if (state.historyOpen === entry.id) { state.historyOpen = null; return; }
     state.historyOpen = entry.id;
     await readHistoryDetail(entry);
   })
 };
+function rememberDetail(data) {
+  state.details.set(data.group.group_id, data);
+  if (!state.result) return;
+  state.result = {...state.result, categories:state.result.categories.map(c => ({...c, groups:c.groups.map(g => g.group_id === data.group.group_id ? data.group : g)}))};
+  const excluded = state.selection.get(data.group.group_id);
+  if (excluded) state.selection.set(data.group.group_id, new Set([...excluded].filter(id => data.items.some(item => item.item_id === id && item.eligible))));
+}
+function nextRouteRead(key) {
+  const request = (routeReads.get(key) ?? 0) + 1;
+  routeReads.set(key, request);
+  return () => routeReads.get(key) === request;
+}
+function locationOperation(operation) {
+  return run(async inScope => {
+    if (state.busy !== 'idle') return;
+    const isLatest = nextRouteRead('locations'), isCurrent = () => isLatest() && inScope();
+    try { await operation(isCurrent); }
+    catch (error) { if (isCurrent()) throw error; }
+  });
+}
 async function readHistoryDetail(entry, isCurrent = () => true) {
   if (!state.historyDetails.has(entry.id)) {
     const value = await (entry.kind === 'clean' ? ipc.clean_result(entry.id) : ipc.scan_result(entry.id));
@@ -87,8 +125,9 @@ async function stop(request, inScope) {
     throw error;
   }
 }
-function clearError() { state.error = ''; state.errorCode = null; }
-// `stale` is always recorded; the notice and overlay only belong to the page that issued the command.
+function clearError() { state.error = ''; state.errorCode = null; state.info = ''; }
+// Superseded reads are discarded before fault(); other stale commands still invalidate results.
+// The notice and overlay belong only to the page that issued the current command.
 function fault(error, show = true) {
   if (error?.code === 'stale') state.stale = true;
   if (!show) return;
@@ -101,9 +140,10 @@ async function run(fn, clearStop = false) {
   const version = routeVersion, origin = location.hash, paused = state.pollPaused;
   const inScope = () => version === routeVersion && origin === location.hash;
   state.pending = true; clearError(); if (clearStop) state.stopFailed = false; render();
-  overlay?.querySelectorAll('button').forEach(b => { b.disabled = true; });
+  const controls = [...(overlay?.querySelectorAll('button, input') ?? [])].map(node => [node, node.disabled]);
+  controls.forEach(([node]) => { node.disabled = true; });
   try { await fn(inScope); } catch (error) { fault(error, inScope() && !paused && !state.pollPaused); }
-  finally { state.pending = false; overlay?.querySelectorAll('button').forEach(b => { b.disabled = false; }); render(); }
+  finally { state.pending = false; controls.forEach(([node, disabled]) => { node.disabled = disabled; }); render(); }
 }
 function installResult(value) { Object.assign(state, nextResult(state, value)); }
 async function connect() {
@@ -134,8 +174,8 @@ function sidebar() {
 function render() {
   const activeKey = document.activeElement?.dataset.key, scroll = main.scrollTop;
   sidebar();
-  const notice = document.getElementById('notice'); notice.replaceChildren(); notice.hidden = !state.error && !state.reconnecting && !state.pollPaused;
-  if (!notice.hidden) add(notice, el('span', '', state.pollPaused ? state.pauseReason : state.reconnecting ? '正在重新连接 Water 服务…' : state.error), state.pollPaused ? button('重新连接', actions.reconnectProgress, 'btn btn-glass', 'progress-reconnect', state.pending) : state.reconnecting ? null : button('关闭提示', () => { clearError(); render(); }, 'btn btn-ghost', 'dismiss-error'));
+  const notice = document.getElementById('notice'); notice.replaceChildren(); notice.hidden = !state.error && !state.info && !state.reconnecting && !state.pollPaused;
+  if (!notice.hidden) add(notice, el('span', '', state.pollPaused ? state.pauseReason : state.reconnecting ? '正在重新连接 Water 服务…' : state.error || state.info), state.pollPaused ? button('重新连接', actions.reconnectProgress, 'btn btn-glass', 'progress-reconnect', state.pending) : state.reconnecting ? null : button('关闭提示', () => { clearError(); render(); }, 'btn btn-ghost', 'dismiss-error'));
   let view;
   if (route === 'home' && state.busy === 'scanning') view = scan(state, actions);
   else if (route === 'home' && state.busy === 'cleaning') view = cleaning(state, actions);
@@ -245,7 +285,7 @@ function showOverlay(panel, focusKey) {
   panel.addEventListener('cancel', event => { event.preventDefault(); if (!state.pending) closeOverlay(); });
   panel.addEventListener('keydown', event => {
     if (event.key !== 'Tab') return;
-    const nodes = [...panel.querySelectorAll('button:not(:disabled), [tabindex="0"]')];
+    const nodes = [...panel.querySelectorAll('button:not(:disabled), input:not(:disabled), [tabindex="0"]')];
     if (!nodes.length) { event.preventDefault(); return; }
     const first = nodes[0], last = nodes.at(-1);
     if (event.shiftKey && (document.activeElement === first || !panel.contains(document.activeElement))) { event.preventDefault(); last.focus(); }

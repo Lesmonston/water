@@ -8,10 +8,10 @@ WATER-W2-E / 补单 01、02 的原生 ES 模块前端。没有 npm、框架、�
 - `styles/tokens.css`：设计方原文件的逐字节副本；`.gitattributes` 保留字节。
 - `styles/app.css`：白色磨砂组件、键盘焦点、两种窗口尺寸、减少动画模式。
 - `app.mjs`：六个 hash 路由、会话内状态、串行 IPC 操作、250ms 进度轮询、焦点恢复。
-- `ipc.mjs`：唯一宿主调用边界，导出 IPC 契约的 17 个命令函数；参数按命令显式构造，拒绝路径。
+- `ipc.mjs`：唯一宿主调用边界，导出 IPC / IPC-M3C 契约的 19 个命令函数；参数按命令显式构造，拒绝路径。
 - `format.mjs` / `model.mjs`：BigInt 字节格式化、相对时间、选择及合计纯函数。
 - `views/`：首页、扫描、结果、详情、确认、清理、完成、趋势、记录、位置、隐私各自独立模块与共享 DOM 构建函数。
-- `tests/unit.test.mjs` / `tests/browser.test.mjs`：精确三项单测与四项浏览器测试；假宿主与回放数据仅由测试加载。
+- `tests/unit.test.mjs` / `tests/browser.test.mjs`：精确三项单测与五项浏览器测试；假宿主与回放数据仅由测试加载。旧场景保留原 fixture，新场景叠加 `m3c-v1/ui-fixtures-m3c.json`。
 
 ## 运行与验证
 
@@ -20,9 +20,9 @@ WATER-W2-E / 补单 01、02 的原生 ES 模块前端。没有 npm、框架、�
 从本票工作树根目录运行：
 
 ```powershell
-node F:/new/smaltalk/water/scripts/checkup-wave-check.mjs --task WATER-W2-E --mode check
-node F:/new/smaltalk/water/scripts/checkup-wave-check.mjs --task WATER-W2-E --mode test
-node F:/new/smaltalk/water/scripts/checkup-wave-check.mjs --task WATER-W2-E --mode browser
+node F:/new/smaltalk/water/scripts/checkup-wave-check.mjs --task WATER-W8-K6 --mode check
+node F:/new/smaltalk/water/scripts/checkup-wave-check.mjs --task WATER-W8-K6 --mode test
+node F:/new/smaltalk/water/scripts/checkup-wave-check.mjs --task WATER-W8-K6 --mode browser
 ```
 
 浏览器测试只服务本 UI 的静态文件，使用本树冻结 helper 创建一个私有无头 Chrome。测试从 `WATER_W2_SHOTS_DIR` 获取截图目录；缺失时写本树 `.local/ui-shots/<时间戳>/`，不写文档目录。final 与 archive 按票面顺序运行，由检查入口核对并归档截图。
@@ -30,6 +30,10 @@ node F:/new/smaltalk/water/scripts/checkup-wave-check.mjs --task WATER-W2-E --mo
 ## 行为与边界
 
 不可选组在默认选择、直接修改、分类全选与合计四处受保护。合计使用 `eligible_bytes`；行内占用使用 `total_bytes`。新扫描安装结果时重置选择。过滤和排序不丢弃选择；部分扫描明确标注“部分结果”。
+
+W8-K6：选择保存为组 ID 到排除条目 ID 集合的 Map；已读详情提供扣除体量，整组取消会清空排除，整组排空不进入预览。可清理条目默认勾选，修改条目会选择其所属组；仅打开详情不改变分组选择。`clean_prepare` 始终由当前选择生成两份 ID 数组，过滤盘不改变实际选择范围，确认框按宿主预览显示完整清理范围与排除计数。
+
+结果页多盘筛选只展示 `by_drive` 提供的项数和 `eligible_bytes`，不从组总量估算分盘体量；没有单独的分盘总占用字段。详情的“以后都跳过”只传 `itemId`，成功后重读详情；位置页的恢复只传 `skipId`。位置读写共用读取序号，过期回应和错误不回写。首页提醒、趋势预测、残留进程只展示宿主数据；残留进程卡没有结束进程入口。
 
 扫描与清理任务在切换页面后继续轮询，完成即停止。一次只发一个进度请求，相邻请求至少间隔 250ms。进度 busy/unavailable 连续失败最多 20 次，成功即重置计数；失败上限后保留任务状态，按钮只重新连接进度，不重新执行。清理关闭保护直到收到终态并取回结果才解除。扫描开始后的 idle 只有在见过 running 后才结束，否则最多等待 20 次并提示重试。
 

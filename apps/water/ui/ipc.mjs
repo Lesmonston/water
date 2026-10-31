@@ -18,9 +18,11 @@ export const scan_cancel = scanId => invoke('scan_cancel', () => ({scanId:id(sca
 export const scan_progress = () => invoke('scan_progress');
 export const scan_result = scanId => invoke('scan_result', () => ({scanId:id(scanId)}));
 export const group_detail = groupId => invoke('group_detail', () => ({groupId:id(groupId)}));
-export const clean_prepare = groupIds => invoke('clean_prepare', () => {
+export const clean_prepare = (groupIds, excludeItemIds) => invoke('clean_prepare', () => {
   if (!Array.isArray(groupIds) || !groupIds.length) throw invalid();
-  return {groupIds:groupIds.map(id)};
+  if (excludeItemIds === undefined) return {groupIds:groupIds.map(id)};
+  if (!Array.isArray(excludeItemIds) || excludeItemIds.length > 5000 || new Set(excludeItemIds).size !== excludeItemIds.length) throw invalid();
+  return {groupIds:groupIds.map(id), excludeItemIds:excludeItemIds.map(id)};
 });
 export const clean_start = (planId, confirmToken) => invoke('clean_start', () => ({planId:id(planId), confirmToken:token(confirmToken)}));
 export const clean_stop = () => invoke('clean_stop');
@@ -35,3 +37,5 @@ export const locations_set_category = (category, enabled) => invoke('locations_s
 });
 export const custom_root_add = () => invoke('custom_root_add');
 export const custom_root_remove = rootId => invoke('custom_root_remove', () => ({rootId:id(rootId)}));
+export const skip_add = itemId => invoke('skip_add', () => ({itemId:id(itemId)}));
+export const skip_remove = skipId => invoke('skip_remove', () => ({skipId:id(skipId)}));

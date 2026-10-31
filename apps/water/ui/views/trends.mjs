@@ -1,9 +1,26 @@
 import {add, el, heading, empty, svg, level, copyButton, button} from './common.mjs';
-import {formatBytes, byteDelta, countDelta, percent, bytes, dateTime} from '../format.mjs';
+import {formatBytes, byteDelta, countDelta, count, percent, bytes, dateTime} from '../format.mjs';
 import {monotoneSegments} from '../model.mjs';
 export function trends(state, actions) {
   const page = add(el('section'), heading('增长趋势', '比较每次体检，找出一直在变大的东西。')), data = state.trends;
   if (!data) return add(page, el('p', 'sub', '正在读取趋势…'));
+  if (data.forecast?.length || data.orphans) {
+    const overview = el('div', 'trend-overview');
+    if (data.forecast?.length) {
+      const forecast = add(el('section', 'glass forecast'), el('h2', '', '几天后满'));
+      for (const drive of data.forecast) {
+        const positive = bytes(drive.bytes_per_day) > 0n && drive.days_to_full !== null;
+        add(forecast, add(el('div', 'forecast-row', undefined, {'data-drive':drive.root}), el('b', '', drive.root.slice(0, 2)), el('span', positive ? 'forecast-full' : 'cap', positive ? `按最近 ${drive.basis_days} 天的速度，约 ${drive.days_to_full} 天后满` : drive.note_zh ?? '可用空间没有减少')));
+      }
+      add(overview, forecast);
+    }
+    if (data.orphans) {
+      const orphans = add(el('section', 'glass orphans'), el('h2', '', '残留进程'), el('p', 'cap', '这些进程在启动它的程序退出后还留着，Water 只列出、不会结束它们。'));
+      for (const chain of data.orphans.chains) add(orphans, add(el('div', 'orphan-row'), add(el('div'), el('b', '', chain.name), el('span', 'cap orphan-pattern', chain.matched_pattern)), el('span', 'cap', `${count(chain.process_count)} 个进程`), el('span', 'orphan-memory', chain.memory_bytes === null ? '—' : formatBytes(chain.memory_bytes)), el('span', 'cap orphan-start', `开始于 ${dateTime(chain.started_at)}`)));
+      add(overview, orphans);
+    }
+    add(page, overview);
+  }
   const root = state.app?.drives.find(d => d.is_system)?.root ?? data.points[0]?.root;
   const all = data.points.filter(p => p.root === root).sort((a, b) => Date.parse(a.at) - Date.parse(b.at));
   const latest = all.length ? Date.parse(all.at(-1).at) : 0;
