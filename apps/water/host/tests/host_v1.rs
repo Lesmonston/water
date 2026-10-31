@@ -362,7 +362,7 @@ fn host_command_registry() {
             "HOST_COMMANDS duplicate wrapper"
         );
     }
-    let expected_wrappers: std::collections::BTreeMap<_, _> = expected
+    let mut expected_wrappers: std::collections::BTreeMap<_, _> = expected
         .iter()
         .map(|(name, args)| {
             (
@@ -375,6 +375,10 @@ fn host_command_registry() {
             )
         })
         .collect();
+    expected_wrappers.insert(
+        "clean_prepare".to_owned(),
+        vec!["excludeItemIds".to_owned(), "groupIds".to_owned()],
+    );
     assert_eq!(
         wrappers, expected_wrappers,
         "HOST_COMMANDS actual Tauri camelCase parameters"
