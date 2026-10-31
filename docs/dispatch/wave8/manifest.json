@@ -938,7 +938,7 @@
       "branch": "worker/water-w8-k6",
       "baseCommit": "912eba100ba342c3eeb21ba555c6d589b91e6b4f",
       "snapshotRef": "refs/tags/water-w8-m3c-base-20261031",
-      "status": "DISPATCHED",
+      "status": "ADDENDUM",
       "readyOn": "2026-10-31",
       "dispatchedAt": null,
       "startedAt": null,
@@ -1017,7 +1017,24 @@
       ],
       "baselineStatus": "PASSED",
       "baselineEvidence": "docs/acceptance/wave8/controller/preflight-20261031/k6/2026-10-31T14-10-24.474Z-27996-baseline-result.json",
-      "dispatchEvidence": "user chat 2026-10-31 ~23:15 JST: \"除了界面单是astra，都是sol\" (K1, K2, K3, K5 to sol; UI ticket K6 to astra); worker tree head/changed files 912eba10/0 when recorded"
+      "dispatchEvidence": "user chat 2026-10-31 ~23:15 JST: \"除了界面单是astra，都是sol\" (K1, K2, K3, K5 to sol; UI ticket K6 to astra); worker tree head/changed files 912eba10/0 when recorded",
+      "submittedHead": "208be441adbceb56ec36eeb1debf1cef4e113458",
+      "implementationCommit": "53f1e467910bbeb854f0c46ec3d29c4d82c5e513",
+      "workerSelfReport": "Codex GPT-6",
+      "addenda": [
+        {
+          "id": "WATER-W8-K6-ADDENDUM-01",
+          "ticket": "docs/dispatch/tickets/WATER-W8-K6-ADDENDUM-01-20261101.md",
+          "status": "READY",
+          "issuedAt": "2026-10-31T16:20:00Z",
+          "resumeFromCommit": "208be441adbceb56ec36eeb1debf1cef4e113458",
+          "change": "round 1 review: (1) items of an unselected group show unchecked and disabled, an item click never selects the group; (2) under a drive filter the category select-all acts on visible groups only, and the dock always shows the full selection that clean acts on plus a per-drive caption; (3) after a successful skip_add the item joins the group exclusion before the detail reread (the fake host keeps marking it ineligible, which K4 will require), plus a test switch modelling a service that does not; (4) lows: protected/advisory sizes under a filter, stale detail replies dropped by scan_id, focus after skip, fully excluded group row unchecked, drive-root label font, forecast column alignment; app.css line endings normalised to LF first; nc1-nc3 redone; 26 screenshots; no baseline rerun",
+          "dispatchedAt": null,
+          "submittedHead": null,
+          "implementationCommit": null,
+          "dispatchEvidence": null
+        }
+      ]
     }
   ]
 }

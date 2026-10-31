@@ -92,6 +92,11 @@ K1、K2、K5 交回受阻回执，都成立：SPEC 只授权了一部分旧断�
 - WATER-W8-K2 补单 01：`你接手 Water 项目 WATER-W8-K2 补单 01（插入工作树规则后的旧断言，轻门）。先读 F:/new/smaltalk/water/docs/dispatch/tickets/WATER-W8-K2-ADDENDUM-01-20261101.md，按其中列出的顺序读原票、规则与契约，在 F:/new/smaltalk/water/.worktrees/w8-k2（分支 worker/water-w8-k2）从 f67309fa 续做。`
 - WATER-W8-K5 补单 01：`你接手 Water 项目 WATER-W8-K5 补单 01（clean_prepare 新参数的签名断言，重门，含 1 次真窗口）。先读 F:/new/smaltalk/water/docs/dispatch/tickets/WATER-W8-K5-ADDENDUM-01-20261101.md，按其中列出的顺序读原票、规则与契约，在 F:/new/smaltalk/water/.worktrees/w8-k5（分支 worker/water-w8-k5）从 ba3a39b9 续做。`
 
+K6 验收后出补单 01（界面单）：独立审查与总控验收发现，未选分组的条目显示为勾上、取消一项反而把整组其余项选进删除名单；按盘筛选时分类全选作用于看不见的组、操作坞数字与“清理所选”的范围不一致；“以后都跳过”在冻结的服务契约下本次仍会被清理。
+- WATER-W8-K6 补单 01：`你接手 Water 项目 WATER-W8-K6 补单 01（未选分组的条目勾选、筛选下的全选与操作坞、跳过后的本次排除，界面单）。先读 F:/new/smaltalk/water/docs/dispatch/tickets/WATER-W8-K6-ADDENDUM-01-20261101.md，按其中列出的顺序读原票、规则与契约，在 F:/new/smaltalk/water/.worktrees/w8-k6（分支 worker/water-w8-k6）从 208be441 续做。`
+
+**写 K4 时必须补进单子（SERVICE-M3C 第 5 节的疏漏）**：`skip_add` 成功时，服务同时把最新扫描里路径相同（不区分大小写）的可清理项改为不可清理（`user_skipped`，“已设为以后都跳过”），从该组可清理合计中扣除，并更新该组详情与视图；`clean_prepare` 生成计划时再按跳过名单挡一次。K6 的假宿主已按这个行为写。另一条（K3 审查）：扫描与清理执行器都靠信息类 19/20 列目录，非 NTFS 文件系统可能不支持，所以 `custom_root_add` 选到盘根时，只接受 NTFS 或 ReFS 的固定盘，其它返回 `invalid` 并说明原因。
+
 ## 3. M3 收口的验收（合入后）
 
 1. **第五次整合检查。** 合并树跑全部检查门，然后出新 release 版。
