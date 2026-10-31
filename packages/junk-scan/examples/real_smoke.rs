@@ -1,5 +1,5 @@
 use serde::Serialize;
-use std::time::SystemTime;
+use std::time::{Instant, SystemTime};
 use water_junk_scan::{
     CancelToken, ScanObserver, ScanOptions, ScanPlan, ScanProgress, result_from_json,
     result_to_json, scan,
@@ -25,6 +25,8 @@ struct GroupOut {
     eligible_count: u64,
     total_bytes: String,
     eligible_bytes: String,
+    unique_bytes: String,
+    eligible_unique_bytes: String,
     issues: Vec<IssueOut>,
 }
 
@@ -32,6 +34,7 @@ struct GroupOut {
 struct Summary {
     status: String,
     visited_entries: u64,
+    elapsed_ms: u128,
     groups: Vec<GroupOut>,
 }
 
@@ -41,6 +44,7 @@ fn main() {
     let plan = ScanPlan::from_json(&text).expect("plan");
     let options = ScanOptions::default();
     let cancel = CancelToken::new();
+    let started = Instant::now();
     let result = scan(
         &plan,
         "real-smoke",
@@ -54,6 +58,7 @@ fn main() {
     let summary = Summary {
         status: result.status.clone(),
         visited_entries: result.visited_entries,
+        elapsed_ms: started.elapsed().as_millis(),
         groups: result
             .groups
             .iter()
@@ -71,6 +76,8 @@ fn main() {
                     eligible_count: group.eligible_count,
                     total_bytes: group.total_bytes.clone(),
                     eligible_bytes: group.eligible_bytes.clone(),
+                    unique_bytes: group.unique_bytes.clone(),
+                    eligible_unique_bytes: group.eligible_unique_bytes.clone(),
                     issues: result
                         .issues
                         .iter()

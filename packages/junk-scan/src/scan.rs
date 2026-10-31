@@ -9,7 +9,9 @@ use crate::util::{
     child_path, clamp_time, file_name, format_bytes, format_rfc3339, is_proper_ancestor, path_eq,
 };
 use serde::{Deserialize, Serialize};
+use std::collections::HashSet;
 use std::fs::{self, Metadata};
+#[cfg(windows)]
 use std::os::windows::fs::MetadataExt;
 use std::sync::Arc;
 use std::sync::atomic::{AtomicBool, Ordering};
@@ -85,6 +87,12 @@ struct Child {
     kind: Kind,
     len: u64,
     mtime: SystemTime,
+    identity: Option<(u32, [u8; 16])>,
+}
+
+struct Listing {
+    children: Vec<Child>,
+    issues: Vec<&'static str>,
 }
 
 #[derive(Clone)]
@@ -97,6 +105,7 @@ struct Hit {
     path: String,
     kind: Kind,
     total_bytes: u64,
+    unique_bytes: u64,
     file_count: u64,
     newest_activity: SystemTime,
     oldest_activity: SystemTime,
@@ -182,64 +191,81 @@ impl<'a> Engine<'a> {
         self.last_progress = Instant::now();
     }
 
-    fn list(&mut self, dir: &str, group_id: &str) -> Vec<Child> {
-        if self.stopped(group_id) {
-            return Vec::new();
-        }
-        let entries = match fs::read_dir(dir) {
-            Ok(entries) => entries,
-            Err(_) => {
-                self.add_issue("access_denied", group_id);
-                return Vec::new();
-            }
+    fn listing(&mut self, dir: &str, group_id: &str) -> Listing {
+        let mut listing = Listing {
+            children: Vec::new(),
+            issues: Vec::new(),
         };
-        let mut out = Vec::new();
-        for entry in entries {
+        if self.stopped(group_id) {
+            return listing;
+        }
+        let result = native_windows::list_directory(dir, |entry| {
             self.visited = self.visited.saturating_add(1);
             if self.stopped(group_id) {
-                break;
+                return false;
             }
-            let Ok(entry) = entry else {
-                self.add_issue("access_denied", group_id);
-                continue;
+            let Some(name) = entry.name else {
+                listing.issues.push("unrepresentable_name");
+                return true;
             };
-            let os_name = entry.file_name();
-            let Some(name) = os_name.to_str().map(str::to_string) else {
-                self.add_issue("unrepresentable_name", group_id);
-                continue;
-            };
-            if name == "." || name == ".." {
-                continue;
-            }
             let path = child_path(dir, &name);
-            let meta = match fs::symlink_metadata(&path) {
-                Ok(meta) => meta,
-                Err(_) => {
-                    self.add_issue("access_denied", group_id);
-                    continue;
-                }
-            };
-            out.push(child_from_meta(name, path, &meta));
+            listing.children.push(Child {
+                name,
+                path,
+                kind: kind_from_attributes(entry.attributes),
+                len: entry.len,
+                mtime: clamp_time(entry.mtime),
+                identity: entry.identity,
+            });
+            true
+        });
+        if result.is_err() {
+            listing.issues.push("access_denied");
         }
-        out
+        listing
+    }
+
+    fn listing_issues(&mut self, listing: &Listing, group_id: &str) {
+        for code in &listing.issues {
+            self.add_issue(code, group_id);
+        }
+    }
+
+    fn list(&mut self, dir: &str, group_id: &str) -> Vec<Child> {
+        let listing = self.listing(dir, group_id);
+        self.listing_issues(&listing, group_id);
+        listing.children
     }
 }
 
-fn child_from_meta(name: String, path: String, meta: &Metadata) -> Child {
-    let attrs = meta.file_attributes();
-    let kind = if attrs & REPARSE != 0 {
+fn kind_from_attributes(attrs: u32) -> Kind {
+    if attrs & REPARSE != 0 {
         Kind::Reparse
     } else if attrs & DIRECTORY != 0 {
         Kind::Dir
     } else {
         Kind::File
+    }
+}
+
+fn child_from_meta(name: String, path: String, meta: &Metadata) -> Child {
+    #[cfg(windows)]
+    let attrs = meta.file_attributes();
+    #[cfg(not(windows))]
+    let attrs = if meta.is_symlink() {
+        REPARSE
+    } else if meta.is_dir() {
+        DIRECTORY
+    } else {
+        0
     };
     Child {
         name,
         path,
-        kind,
+        kind: kind_from_attributes(attrs),
         len: meta.len(),
         mtime: clamp_time(meta.modified().unwrap_or(SystemTime::UNIX_EPOCH)),
+        identity: None,
     }
 }
 
@@ -281,6 +307,7 @@ fn measure(engine: &mut Engine<'_>, path: &str, kind: Kind, group_id: &str) -> M
         engine.add_issue("access_denied", group_id);
         return Measured {
             bytes: 0,
+            unique_bytes: 0,
             files: 0,
             newest: SystemTime::UNIX_EPOCH,
             oldest: SystemTime::UNIX_EPOCH,
@@ -290,10 +317,13 @@ fn measure(engine: &mut Engine<'_>, path: &str, kind: Kind, group_id: &str) -> M
     let mut newest = self_child.mtime;
     let mut oldest = self_child.mtime;
     let mut bytes = 0u64;
+    let mut unique_bytes = 0u64;
+    let mut identities = HashSet::new();
     let mut files = 0u64;
     if kind == Kind::File {
         return Measured {
             bytes: self_child.len,
+            unique_bytes: self_child.len,
             files: 1,
             newest,
             oldest,
@@ -320,6 +350,9 @@ fn measure(engine: &mut Engine<'_>, path: &str, kind: Kind, group_id: &str) -> M
             match child.kind {
                 Kind::File => {
                     bytes = bytes.saturating_add(child.len);
+                    if child.identity.is_none_or(|id| identities.insert(id)) {
+                        unique_bytes = unique_bytes.saturating_add(child.len);
+                    }
                     files = files.saturating_add(1);
                 }
                 Kind::Dir => stack.push(child.path),
@@ -329,6 +362,7 @@ fn measure(engine: &mut Engine<'_>, path: &str, kind: Kind, group_id: &str) -> M
     }
     Measured {
         bytes,
+        unique_bytes,
         files,
         newest,
         oldest,
@@ -338,6 +372,7 @@ fn measure(engine: &mut Engine<'_>, path: &str, kind: Kind, group_id: &str) -> M
 
 struct Measured {
     bytes: u64,
+    unique_bytes: u64,
     files: u64,
     newest: SystemTime,
     oldest: SystemTime,
@@ -356,6 +391,19 @@ fn push_hit(
         return;
     }
     let measured = measure(engine, path, kind, &target.group_id);
+    push_measured_hit(engine, hits, target, index, path, kind, measured);
+}
+
+#[allow(clippy::too_many_arguments)]
+fn push_measured_hit(
+    engine: &mut Engine<'_>,
+    hits: &mut Vec<Hit>,
+    target: &Target,
+    index: usize,
+    path: &str,
+    kind: Kind,
+    measured: Measured,
+) {
     // A stop during the walk leaves size, newest_activity and the .git check
     // incomplete: the entry is not an obtained result and is not output.
     if engine.stopped(&target.group_id) {
@@ -375,6 +423,7 @@ fn push_hit(
         path: path.to_string(),
         kind,
         total_bytes: measured.bytes,
+        unique_bytes: measured.unique_bytes,
         file_count: measured.files,
         newest_activity: measured.newest,
         oldest_activity: measured.oldest,
@@ -413,78 +462,225 @@ fn walk_pattern(
     }
 }
 
-fn marker_matches(engine: &mut Engine<'_>, dir: &str, marker: &Marker, group_id: &str) -> bool {
+fn marker_matches(dir: &str, marker: &Marker, children: &[Child]) -> bool {
     match marker {
-        Marker::DirName { names } => {
-            let name = file_name(dir);
-            names.iter().any(|want| name.eq_ignore_ascii_case(want))
-        }
+        Marker::DirName { names } => names
+            .iter()
+            .any(|want| file_name(dir).eq_ignore_ascii_case(want)),
         Marker::File {
             name,
             min_bytes,
             max_bytes,
-        } => engine.list(dir, group_id).iter().any(|child| {
+        } => children.iter().any(|child| {
             child.kind == Kind::File
                 && child.name.eq_ignore_ascii_case(name)
                 && child.len >= *min_bytes
                 && child.len <= *max_bytes
         }),
-        Marker::ChildrenAll { names } => {
-            let children = engine.list(dir, group_id);
-            names.iter().all(|want| {
-                children
-                    .iter()
-                    .any(|child| child.name.eq_ignore_ascii_case(want))
-            })
-        }
+        Marker::ChildrenAll { names } => names.iter().all(|want| {
+            children
+                .iter()
+                .any(|child| child.name.eq_ignore_ascii_case(want))
+        }),
     }
 }
 
-#[allow(clippy::too_many_arguments)]
-fn walk_marker(
+struct Pending {
+    index: usize,
+    path: String,
+    measured: Measured,
+    identities: HashSet<(u32, [u8; 16])>,
+}
+
+enum MarkerFrame {
+    Enter {
+        dir: Child,
+        depth: u32,
+        searching: Vec<usize>,
+        measuring: Vec<usize>,
+    },
+    Exit(Vec<usize>),
+}
+
+/// A single physical DFS serves all marker targets on this root. Each target
+/// stops searching independently; open measurements keep accumulating through
+/// the subtree (including .git), without listing any directory a second time.
+fn walk_markers(
     engine: &mut Engine<'_>,
     hits: &mut Vec<Hit>,
-    target: &Target,
-    index: usize,
-    dir: &str,
-    marker: &Marker,
-    depth: u32,
-    max_depth: u32,
+    plan: &ScanPlan,
+    indices: Vec<usize>,
 ) {
-    if engine.stopped(&target.group_id) {
+    let Match::Marker { root, .. } = &plan.targets[indices[0]].match_spec else {
         return;
-    }
-    if marker_matches(engine, dir, marker, &target.group_id) {
-        if let Some(child) = classify_path(dir)
-            && child.kind == Kind::Dir
-        {
-            push_hit(engine, hits, target, index, dir, Kind::Dir);
-        }
-        return;
-    }
-    if depth >= max_depth {
-        return;
-    }
-    for child in engine.list(dir, &target.group_id) {
-        if child.kind != Kind::Dir {
-            if child.kind == Kind::Reparse {
-                engine.add_issue("reparse_skipped", &target.group_id);
+    };
+    let dir = match classify_path(root) {
+        Some(dir) if dir.kind == Kind::Dir => dir,
+        other => {
+            let code = if other.is_some_and(|dir| dir.kind == Kind::Reparse) {
+                "base_reparse"
+            } else {
+                "base_missing"
+            };
+            for index in indices {
+                engine.add_issue(code, &plan.targets[index].group_id);
             }
-            continue;
+            return;
         }
-        if child.name.eq_ignore_ascii_case(".git") {
-            continue;
+    };
+    let mut pending: Vec<Option<Pending>> = Vec::new();
+    let mut stack = vec![MarkerFrame::Enter {
+        dir,
+        depth: 0,
+        searching: indices,
+        measuring: Vec::new(),
+    }];
+    while let Some(frame) = stack.pop() {
+        match frame {
+            MarkerFrame::Exit(ids) => {
+                for id in ids {
+                    let row = pending[id].take().expect("active measurement");
+                    let target = &plan.targets[row.index];
+                    push_measured_hit(
+                        engine,
+                        hits,
+                        target,
+                        row.index,
+                        &row.path,
+                        Kind::Dir,
+                        row.measured,
+                    );
+                }
+            }
+            MarkerFrame::Enter {
+                dir,
+                depth,
+                searching,
+                mut measuring,
+            } => {
+                let primary = searching.first().copied().unwrap_or_else(|| {
+                    pending[measuring[0]]
+                        .as_ref()
+                        .expect("active measurement")
+                        .index
+                });
+                if engine.stopped(&plan.targets[primary].group_id) {
+                    break;
+                }
+                let needs_listing = !measuring.is_empty()
+                    || searching.iter().any(|index| {
+                        let Match::Marker {
+                            marker, max_depth, ..
+                        } = &plan.targets[*index].match_spec
+                        else {
+                            return false;
+                        };
+                        !matches!(marker, Marker::DirName { .. })
+                            || depth < *max_depth
+                            || marker_matches(&dir.path, marker, &[])
+                    });
+                let listing = if needs_listing {
+                    engine.listing(&dir.path, &plan.targets[primary].group_id)
+                } else {
+                    Listing {
+                        children: Vec::new(),
+                        issues: Vec::new(),
+                    }
+                };
+                // Replay the old logical listing issues per target, while visited
+                // counts only the one actual enumeration above.
+                for id in &measuring {
+                    let row = pending[*id].as_ref().expect("active measurement");
+                    engine.listing_issues(&listing, &plan.targets[row.index].group_id);
+                }
+                let mut searching_next = Vec::new();
+                let mut started_here = Vec::new();
+                for index in searching {
+                    let target = &plan.targets[index];
+                    let Match::Marker {
+                        marker, max_depth, ..
+                    } = &target.match_spec
+                    else {
+                        continue;
+                    };
+                    if !matches!(marker, Marker::DirName { .. }) {
+                        engine.listing_issues(&listing, &target.group_id);
+                    }
+                    if marker_matches(&dir.path, marker, &listing.children) {
+                        engine.listing_issues(&listing, &target.group_id);
+                        let id = pending.len();
+                        pending.push(Some(Pending {
+                            index,
+                            path: dir.path.clone(),
+                            identities: HashSet::new(),
+                            measured: Measured {
+                                bytes: 0,
+                                unique_bytes: 0,
+                                files: 0,
+                                newest: dir.mtime,
+                                oldest: dir.mtime,
+                                has_git: false,
+                            },
+                        }));
+                        started_here.push(id);
+                        measuring.push(id);
+                    } else if depth < *max_depth {
+                        engine.listing_issues(&listing, &target.group_id);
+                        searching_next.push(index);
+                    }
+                }
+                let mut stopped = false;
+                for index in searching_next.iter().copied().chain(
+                    measuring
+                        .iter()
+                        .map(|id| pending[*id].as_ref().expect("active measurement").index),
+                ) {
+                    stopped |= engine.stopped(&plan.targets[index].group_id);
+                }
+                if stopped {
+                    break;
+                } // Discard every unfinished measurement.
+                stack.push(MarkerFrame::Exit(started_here));
+                for child in listing.children {
+                    for id in &measuring {
+                        let row = pending[*id].as_mut().expect("active measurement");
+                        let m = &mut row.measured;
+                        m.newest = m.newest.max(child.mtime);
+                        m.oldest = m.oldest.min(child.mtime);
+                        if path_eq(&dir.path, &row.path) && child.name.eq_ignore_ascii_case(".git")
+                        {
+                            m.has_git = true;
+                        }
+                        if child.kind == Kind::File {
+                            m.bytes = m.bytes.saturating_add(child.len);
+                            m.files = m.files.saturating_add(1);
+                            if child.identity.is_none_or(|id| row.identities.insert(id)) {
+                                m.unique_bytes = m.unique_bytes.saturating_add(child.len);
+                            }
+                        }
+                    }
+                    if child.kind == Kind::Reparse {
+                        for index in &searching_next {
+                            engine.add_issue("reparse_skipped", &plan.targets[*index].group_id);
+                        }
+                    } else if child.kind == Kind::Dir {
+                        let next = if child.name.eq_ignore_ascii_case(".git") {
+                            Vec::new()
+                        } else {
+                            searching_next.clone()
+                        };
+                        if !next.is_empty() || !measuring.is_empty() {
+                            stack.push(MarkerFrame::Enter {
+                                dir: child,
+                                depth: depth + 1,
+                                searching: next,
+                                measuring: measuring.clone(),
+                            });
+                        }
+                    }
+                }
+            }
         }
-        walk_marker(
-            engine,
-            hits,
-            target,
-            index,
-            &child.path,
-            marker,
-            depth + 1,
-            max_depth,
-        );
     }
 }
 
@@ -500,20 +696,7 @@ fn run_target(engine: &mut Engine<'_>, hits: &mut Vec<Hit>, target: &Target, ind
             }
             Some(_) => walk_pattern(engine, hits, target, index, base, segments),
         },
-        Match::Marker {
-            root,
-            marker,
-            max_depth,
-        } => match classify_path(root) {
-            None => engine.add_issue("base_missing", &target.group_id),
-            Some(child) if child.kind == Kind::Reparse => {
-                engine.add_issue("base_reparse", &target.group_id);
-            }
-            Some(child) if child.kind != Kind::Dir => {
-                engine.add_issue("base_missing", &target.group_id);
-            }
-            Some(_) => walk_marker(engine, hits, target, index, root, marker, 0, *max_depth),
-        },
+        Match::Marker { .. } => {}
         Match::Discovery { .. } => {}
     }
 }
@@ -733,10 +916,20 @@ pub fn scan(
         last_progress: Instant::now() - Duration::from_millis(50),
     };
     let mut hits = Vec::new();
+    let mut marker_roots = HashSet::new();
     if !engine.stopped("") {
         for (index, target) in plan.targets.iter().enumerate() {
             if !matches!(target.match_spec, Match::Discovery { .. }) {
-                run_target(&mut engine, &mut hits, target, index);
+                if let Match::Marker { root, .. } = &target.match_spec {
+                    if marker_roots.insert(root.to_ascii_lowercase()) {
+                        let indices = plan.targets.iter().enumerate().filter_map(|(i, t)| {
+                            matches!(&t.match_spec, Match::Marker { root: other, .. } if path_eq(root, other)).then_some(i)
+                        }).collect();
+                        walk_markers(&mut engine, &mut hits, plan, indices);
+                    }
+                } else {
+                    run_target(&mut engine, &mut hits, target, index);
+                }
                 engine.emit(&target.group_id, target.category, true);
             }
             if engine.status == "cancelled" {
@@ -791,6 +984,7 @@ pub fn scan(
                 path: String::new(),
                 kind: String::new(),
                 total_bytes: String::new(),
+                unique_bytes: String::new(),
                 file_count: 0,
                 newest_activity: String::new(),
                 identity,
@@ -827,6 +1021,7 @@ pub fn scan(
         }
         .to_string();
         item.total_bytes = format_bytes(hit.total_bytes);
+        item.unique_bytes = format_bytes(hit.unique_bytes);
         item.file_count = hit.file_count;
         item.newest_activity = format_rfc3339(hit.newest_activity);
         out_items.push((hit, item));
@@ -867,6 +1062,8 @@ pub fn scan(
             eligible_count: eligible.len() as u64,
             total_bytes: format_bytes(total_bytes),
             eligible_bytes: format_bytes(eligible_bytes),
+            unique_bytes: format_bytes(members.iter().map(|hit| hit.unique_bytes).sum()),
+            eligible_unique_bytes: format_bytes(eligible.iter().map(|hit| hit.unique_bytes).sum()),
             file_count,
             oldest_activity: oldest.map(format_rfc3339),
             newest_activity: newest.map(format_rfc3339),
@@ -908,7 +1105,35 @@ pub fn result_to_json(result: &ScanResult) -> String {
 }
 
 pub fn result_from_json(text: &str) -> Result<ScanResult, ScanError> {
-    let result: ScanResult = crate::model::from_json(text)?;
+    let mut value: serde_json::Value = crate::model::from_json(text)?;
+    for (array, fields) in [
+        ("items", &[("unique_bytes", "total_bytes")][..]),
+        (
+            "groups",
+            &[
+                ("unique_bytes", "total_bytes"),
+                ("eligible_unique_bytes", "eligible_bytes"),
+            ][..],
+        ),
+    ] {
+        if let Some(rows) = value
+            .get_mut(array)
+            .and_then(serde_json::Value::as_array_mut)
+        {
+            for row in rows {
+                for (field, fallback) in fields {
+                    // Only absent fields receive legacy defaults; explicit null
+                    // or a wrong type still fails the strict typed parser.
+                    if row.get(*field).is_none()
+                        && let Some(old) = row.get(*fallback).cloned()
+                    {
+                        row[*field] = old;
+                    }
+                }
+            }
+        }
+    }
+    let result: ScanResult = serde_json::from_value(value).map_err(|_| ScanError::InvalidResult)?;
     if result.result_version != "water.scan-result.v1" {
         return Err(ScanError::InvalidResult);
     }
