@@ -15,13 +15,15 @@ export function detail(data, close, state, actions) {
     data.top_keys.forEach(k => add(panel, el('p', 'cap', `${k.key} · ${count(k.count)} 个 · ${formatBytes(k.bytes)} · 最近 ${relativeTime(k.newest_activity)}`)));
   }
   add(panel, el('h3', '', `包含的项目 · 前 ${Math.min(200, data.items.length)} / ${count(data.items_total)}`));
+  const groupSelected = state.selection.has(g.group_id);
+  if (g.selectable && !groupSelected) add(panel, el('p', 'cap item-selection-note', '先在结果页勾选这个分组，才能逐项排除。'));
   const items = el('div', 'items');
   for (const item of data.items.slice(0, 200)) {
     const row = el('div', 'item', undefined, {'data-item':item.item_id ?? ''});
     const selectable = g.selectable && item.eligible && item.item_id;
     if (selectable) {
-      const checkbox = check(`选择${item.display_path}`, !state.selection.get(g.group_id)?.has(item.item_id), checked => actions.selectItem(data, item.item_id, checked), `item-${item.item_id}`);
-      checkbox.disabled = state.stale || state.busy !== 'idle';
+      const checkbox = check(`选择${item.display_path}`, groupSelected && !state.selection.get(g.group_id)?.has(item.item_id), checked => actions.selectItem(data, item.item_id, checked), `item-${item.item_id}`);
+      checkbox.disabled = !groupSelected || state.stale || state.busy !== 'idle';
       add(row, checkbox); row.classList.add('item-selectable');
     }
     add(row, el('code', '', middlePath(item.display_path), {title:item.display_path}), el('span', '', formatBytes(item.total_bytes)), el('span', 'cap item-time', relativeTime(item.newest_activity)));

@@ -33,22 +33,30 @@ const actions = {
   }),
   stopScan:() => run(inScope => stop(() => ipc.scan_cancel(state.scanId ?? state.scanProgress?.scan_id), inScope), true),
   stopClean:() => run(inScope => stop(() => ipc.clean_stop(), inScope), true),
-  detail:id => run(async inScope => { const value = await ipc.group_detail(id); if (inScope()) { rememberDetail(value); showOverlay(detail(value, closeOverlay, state, actions), 'detail-close'); } }),
+  detail:id => run(async inScope => {
+    const scanId = state.result?.scan_id;
+    const value = await ipc.group_detail(id);
+    if (inScope() && state.result?.scan_id === scanId && !state.stale) { rememberDetail(value); showOverlay(detail(value, closeOverlay, state, actions), 'detail-close'); }
+  }),
   selectItem:(data, itemId, checked) => {
     if (actions.busy() || state.stale) return;
     state.selection = setItemSelected(state.result, state.selection, data, itemId, checked); render();
   },
   skipItem:(data, itemId) => locationOperation(async isCurrent => {
     if (state.stale) return;
+    const scanId = state.result?.scan_id;
+    const sameScan = () => state.result?.scan_id === scanId && !state.stale;
     const value = await ipc.skip_add(itemId);
     if (!isCurrent()) return;
     state.locations = value;
+    if (!sameScan()) return;
+    state.selection = setItemSelected(state.result, state.selection, data, itemId, false);
     state.info = '以后体检会跳过这个文件夹，可以在‘位置’里恢复';
     const refreshed = await ipc.group_detail(data.group.group_id);
-    if (isCurrent()) { rememberDetail(refreshed); showOverlay(detail(refreshed, closeOverlay, state, actions), 'detail-close'); }
+    if (isCurrent() && sameScan()) { rememberDetail(refreshed); showOverlay(detail(refreshed, closeOverlay, state, actions), 'detail-close', opener); }
   }),
-  select:(id, checked) => { if (actions.busy() || state.stale) return; state.selection = setSelected(state.result, state.selection, id, checked); render(); },
-  selectCategory:(category, checked) => { if (actions.busy() || state.stale) return; state.selection = selectCategory(state.result, state.selection, category, checked); render(); },
+  select:(id, checked) => { if (actions.busy() || state.stale) return; state.selection = setSelected(state.result, state.selection, id, checked, state.details); render(); },
+  selectCategory:(category, checked) => { if (actions.busy() || state.stale) return; state.selection = selectCategory(state.result, state.selection, category, checked, state.drive, state.details); render(); },
   filter:value => { state.filter = value; render(); },
   drive:value => { state.drive = value; render(); },
   sort:value => { state.sort = value; render(); },
@@ -278,9 +286,9 @@ async function poll() {
   } catch (error) { pauseProgress(error); }
   finally { polling = false; render(); if (state.busy !== 'idle' && !state.pollPaused) startPolling(); }
 }
-function showOverlay(panel, focusKey) {
-  opener = document.activeElement?.dataset.key;
+function showOverlay(panel, focusKey, returnKey = document.activeElement?.dataset.key) {
   if (overlay) closeOverlay(true);
+  opener = returnKey;
   overlay = panel; document.getElementById('overlays').append(panel);
   panel.addEventListener('cancel', event => { event.preventDefault(); if (!state.pending) closeOverlay(); });
   panel.addEventListener('keydown', event => {

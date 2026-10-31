@@ -120,6 +120,7 @@ test('ui_selection_rules', () => {
   assert.equal(model.selectedCount(m3c.scan_result, chosen, details), originalCount - 1, 'UI_M3C_EXCLUDE: excluded item leaves count');
   assert.deepEqual(model.cleanSelection(m3c.scan_result, chosen, details).excludeItemIds, [item.item_id], 'UI_M3C_EXCLUDE: exact item exclusion');
   const unselected = model.setSelected(m3c.scan_result, chosen, data.group.group_id, false);
+  for (const checked of [false, true]) assert.deepEqual(model.setItemSelected(m3c.scan_result, unselected, data, item.item_id, checked), unselected, 'UI_M3C_EXCLUDE: item changes never opt an unselected group into cleanup');
   assert.deepEqual(model.cleanSelection(m3c.scan_result, unselected, details).excludeItemIds, [], 'UI_M3C_EXCLUDE: deselecting a group clears exclusions');
   assert.equal(model.setSelected(m3c.scan_result, unselected, data.group.group_id, true).get(data.group.group_id).size, 0, 'UI_M3C_EXCLUDE: reselecting a group starts fresh');
   for (const item of data.items.filter(i => i.eligible)) chosen = model.setItemSelected(m3c.scan_result, chosen, data, item.item_id, false);

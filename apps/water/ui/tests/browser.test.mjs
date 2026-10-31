@@ -96,7 +96,7 @@ function fakeHost(f, options) {
         if (!control.holdScan) control.scanIndex = Math.min(control.scanIndex + 1, f.scan_progress_sequence.length - 1);
         return value;
       }
-      case 'scan_result': return {...copy(f.scan_result), ...(control.scanStopped ? {status:'partial'} : {})};
+      case 'scan_result': return {...copy(control.scanResult ?? f.scan_result), ...(control.scanStopped ? {status:'partial'} : {})};
       case 'group_detail': if (!f.group_details[args.groupId]) fail('not_found'); return copy(f.group_details[args.groupId]);
       case 'clean_prepare': {
         if (control.busy !== 'idle') fail('busy');
@@ -154,8 +154,14 @@ function fakeHost(f, options) {
         const item = data?.items.find(item => item.item_id === args.itemId);
         if (!item || !data.group.selectable) fail('invalid');
         if (!control.locations.skipped.some(s => s.display_path === item.display_path)) control.locations.skipped.push({skip_id:'s-added', display_path:item.display_path, added_at:f.scan_result.finished_at});
-        item.eligible = false; item.reason_zh = '已设为以后都跳过';
-        data.group.eligible_count--; data.group.eligible_bytes = String(BigInt(data.group.eligible_bytes) - BigInt(item.total_bytes));
+        if (!options.skipKeepsCurrentScan && item.eligible) {
+          item.eligible = false; item.reason_zh = '已设为以后都跳过';
+          data.group.eligible_count--; data.group.eligible_bytes = String(BigInt(data.group.eligible_bytes) - BigInt(item.total_bytes));
+          data.group.selectable = data.group.eligible_count > 0;
+          const drive = data.group.by_drive.find(d => d.root === item.display_path.slice(0, 3));
+          if (drive) drive.eligible_bytes = String(BigInt(drive.eligible_bytes) - BigInt(item.total_bytes));
+          for (const category of f.scan_result.categories) category.groups = category.groups.map(g => g.group_id === data.group.group_id ? copy(data.group) : g);
+        }
         return copy(control.locations);
       }
       case 'skip_remove': control.locations.skipped = control.locations.skipped.filter(s => s.skip_id !== args.skipId); return copy(control.locations);
@@ -175,6 +181,12 @@ async function reset(options = {}, route = 'home') {
     const g = data.scan_result.categories[0].groups[0];
     g.by_drive = [{root:'C:\\', item_count:46, eligible_bytes:'2705829396'}, {root:'F:\\', item_count:2, eligible_bytes:'1073741824'}];
     for (const drive of data.scan_result.recommended_by_drive) drive.bytes = String(BigInt(drive.bytes) + (drive.root === 'F:\\' ? 1073741824n : -1073741824n));
+  }
+  if (options.multiDriveProtected) {
+    for (const level of ['advisory', 'protected']) {
+      const g = groups(data.scan_result).find(g => g.level === level && g.item_count > 1);
+      g.by_drive = [{root:'C:\\', item_count:g.item_count - 1, eligible_bytes:'0'}, {root:'F:\\', item_count:1, eligible_bytes:'0'}];
+    }
   }
   injection = (await browser.send('Page.addScriptToEvaluateOnNewDocument', {source:`(${fakeHost.toString()})(${JSON.stringify(data)}, ${JSON.stringify(options)});`})).identifier;
   await browser.goto(`${base}/index.html?scenario=${scenario}#/${route}`);
@@ -353,6 +365,8 @@ test('ui_results_detail_confirm', async () => {
   await key('Escape'); await waitFor('!document.querySelector("dialog[open]")');
   await click(`select-${groupId}`); await click(`detail-${groupId}`);
   for (const id of ['i-000201', 'i-000202', 'i-000203']) await click(`item-${id}`);
+  assert(await browser.evaluate(`(()=>{const box=document.querySelector(${JSON.stringify(q(`select-${groupId}`))});return !box.checked && !box.indeterminate})()`), 'UI_M3C_EXCLUDE: entirely excluded group is unchecked, not mixed');
+  assert(await browser.evaluate('!document.querySelector("[data-key=category-custom]").checked && document.querySelector("[data-key=category-custom]").indeterminate'), 'UI_M3C_EXCLUDE: category treats the emptied group as unselected');
   await key('Escape'); await waitFor('!document.querySelector("dialog[open]")'); await click('clean-prepare');
   assert(await settle('!!document.querySelector(".confirm[open]")'), 'UI_M3C_EXCLUDE: other groups remain preparable');
   assert(!(await browser.evaluate('window.__waterTest.calls.findLast(c=>c.command==="clean_prepare").args.groupIds')).includes(groupId), 'UI_M3C_EXCLUDE: entirely excluded group is omitted');
@@ -362,19 +376,59 @@ test('ui_results_detail_confirm', async () => {
   const selectedBefore = await browser.evaluate('[...document.querySelectorAll(".group-row input:checked")].map(e=>e.dataset.key)');
   await click('drive-F');
   const fGroups = groups(m3c.scan_result).filter(g => g.by_drive.some(d => d.root === 'F:\\'));
-  const expectedTotal = fGroups.reduce((sum, g) => sum + BigInt(g.by_drive.find(d => d.root === 'F:\\').eligible_bytes), 1073741824n);
+  const expectedTotal = fGroups.reduce((sum, g) => sum + BigInt(['advisory', 'protected'].includes(g.level) ? g.total_bytes : g.by_drive.find(d => d.root === 'F:\\').eligible_bytes), 1073741824n);
   assert.equal(await browser.evaluate('document.querySelector(".spectrum > .split b").textContent'), formatBytes(expectedTotal), 'UI_M3C_DRIVE: total uses by_drive quantities');
   assert.equal(await browser.evaluate('document.querySelector("[data-key=detail-codex-marketplace-staging] .group-size").textContent'), '1.0 GB', 'UI_M3C_DRIVE: split group displays only F bytes');
   assert.equal(await browser.evaluate('document.querySelector("[data-key=detail-codex-marketplace-staging] .group-meta > span").textContent'), '2 项 · F:', 'UI_M3C_DRIVE: split group displays only F item count');
   assert.equal(await browser.evaluate('document.querySelector("[data-key=detail-chrome-cache]")'), null, 'UI_M3C_DRIVE: groups without F items are hidden');
   const selectedF = fGroups.filter(g => g.default_selected).reduce((sum, g) => sum + BigInt(g.by_drive.find(d => d.root === 'F:\\').eligible_bytes), 1073741824n);
-  assert.equal(await browser.evaluate('document.querySelector(".dock b").textContent'), formatBytes(selectedF), 'UI_M3C_DRIVE: selected bytes also use F');
+  assert.equal(await browser.evaluate('document.querySelector(".dock b").textContent'), formatBytes(selectedBytes(m3c.scan_result, resetSelection(m3c.scan_result))), 'UI_M3C_DRIVE: dock bytes cover all selected drives');
+  assert.equal(await browser.evaluate('document.querySelector(".dock-drive").textContent'), `其中 F: ${formatBytes(selectedF)}`, 'UI_M3C_DRIVE: filtered drive has its own subtotal');
+  assert.equal(await browser.evaluate('document.querySelector(".dock-selection > span").textContent'), selectionText(groups(m3c.scan_result).filter(g => g.default_selected).length), 'UI_M3C_DRIVE: dock group count covers all selected drives');
+  assert.equal(await browser.evaluate('document.querySelector(".selected-count").textContent'), `${count(groups(m3c.scan_result).filter(g => g.default_selected).reduce((sum, g) => sum + g.eligible_count, 0))} 项`, 'UI_M3C_DRIVE: dock item count covers all selected drives');
   await shot('results-drive-1240x820');
+  assert(await browser.evaluate('document.querySelector("[data-key=category-agent_tool]").checked && !document.querySelector("[data-key=category-agent_tool]").indeterminate'), 'UI_M3C_DRIVE: category state ignores hidden confirm groups');
+  await click('category-agent_tool'); await click('drive-all');
+  assert.deepEqual(await browser.evaluate('[...document.querySelectorAll(".group-row input:checked")].map(e=>e.dataset.key)'), selectedBefore.filter(id => id !== 'select-codex-marketplace-staging'), 'UI_M3C_DRIVE: clearing F category retains selected C-only groups');
+  await click('drive-F'); await click('category-agent_tool');
   await click('drive-all');
   assert.deepEqual(await browser.evaluate('[...document.querySelectorAll(".group-row input:checked")].map(e=>e.dataset.key)'), selectedBefore, 'UI_M3C_DRIVE: filtering preserves selection');
+  assert.equal(await browser.evaluate('document.querySelector("[data-key=select-codex-runtimes]").checked'), false, 'UI_M3C_DRIVE: checking F category never opts in a hidden C confirm group');
+  await click(`select-${groupId}`); await click(`detail-${groupId}`); await waitText('这是什么'); await click('item-i-000202'); await key('Escape'); await waitFor('!document.querySelector("dialog[open]")');
+  await click('drive-F');
+  assert.equal(await browser.evaluate('document.querySelector(".dock-drive").textContent'), `其中 F: ${formatBytes(selectedF + BigInt(data.group.eligible_bytes) - BigInt(item.total_bytes))}`, 'UI_M3C_DRIVE: drive subtotal deducts its excluded item');
+  assert.equal(await browser.evaluate('document.querySelector(".dock b").textContent'), formatBytes(baseBytes - BigInt(item.total_bytes)), 'UI_M3C_DRIVE: global dock also deducts the item');
+  await click('clean-prepare'); assert(await settle('!!document.querySelector(".confirm[open]")'), 'UI_M3C_DRIVE: filtered view prepares all selected groups');
+  assert.deepEqual(await browser.evaluate('window.__waterTest.calls.findLast(c=>c.command==="clean_prepare").args'), {groupIds:[...groups(m3c.scan_result).filter(g => g.default_selected || g.group_id === groupId).map(g => g.group_id)], excludeItemIds:[item.item_id]}, 'UI_M3C_DRIVE: preparation matches the global dock scope');
+
+  await reset({m3c:true, scanned:true, multiDriveProtected:true}, 'results'); await click('drive-F');
+  for (const level of ['advisory', 'protected']) {
+    const group = groups(m3c.scan_result).find(g => g.level === level && g.item_count > 1);
+    assert.equal(await browser.evaluate(`document.querySelector(${JSON.stringify(q(`detail-${group.group_id}`) + ' .group-size')}).textContent`), '—', 'UI_M3C_DRIVE: unknown cross-drive protected/advisory bytes are not zero');
+    const known = fGroups.filter(g => g.level === level && g.group_id !== group.group_id).reduce((sum, g) => sum + BigInt(g.total_bytes), 0n);
+    assert.equal(await browser.evaluate(`document.querySelector('[data-key=legend-${level}] b').textContent`), `至少 ${formatBytes(known)}`, 'UI_M3C_DRIVE: partial level totals are explicitly lower bounds');
+  }
   await reset({m3c:true, scanned:true, singleDrive:true}, 'results');
   assert(await settle('!!document.querySelector(".dock")'), 'UI_M3C_DRIVE: single-drive result loaded');
   assert.equal(await browser.evaluate('document.querySelector(".drive-filter")'), null, 'UI_M3C_DRIVE: no redundant filter for one drive');
+
+  // Progress can finish while a details request is pending on the results page.
+  for (const busy of ['scanning', 'cleaning']) {
+    await reset({m3c:true, scanned:true, busy}, 'results');
+    const staleDetail = structuredClone(m3c.group_details['codex-marketplace-staging']);
+    staleDetail.group.title_zh = 'OLD-SCAN-DETAIL';
+    const newResult = structuredClone(m3c.scan_result); newResult.scan_id = 'scan-new-result';
+    newResult.categories[0].groups[0].title_zh = 'NEW-SCAN-GROUP';
+    await control(`window.__waterTest.heldRead={command:'group_detail',value:${JSON.stringify(staleDetail)}};window.__waterTest.scanResult=${JSON.stringify(newResult)}`);
+    await click('detail-codex-marketplace-staging');
+    assert(await settle('window.__waterTest.heldRead.started === true'), 'UI_READ_ORDER: detail held against the old scan');
+    await control(`window.__waterTest.${busy === 'scanning' ? 'holdScan' : 'holdClean'}=false`);
+    assert(await settle(busy === 'scanning' ? 'document.querySelector("#page").textContent.includes("NEW-SCAN-GROUP")' : 'document.querySelector("#page").textContent.includes("结果已过期")'), 'UI_READ_ORDER: result changes or expires before detail returns');
+    await control('window.__waterTest.heldRead.release=true');
+    assert(await settle('window.__waterTest.heldRead.finished === true && !document.querySelector("[data-key=rescan]").disabled'), 'UI_READ_ORDER: old detail finishes');
+    assert(await browser.evaluate('!document.querySelector("dialog[open]") && !document.body.textContent.includes("OLD-SCAN-DETAIL")'), 'UI_READ_ORDER: old detail cannot open or overwrite the current scan');
+    assert((await text()).includes(busy === 'scanning' ? 'NEW-SCAN-GROUP' : m3c.group_details['codex-marketplace-staging'].group.title_zh), 'UI_READ_ORDER: current group survives discarded details');
+  }
 
   await reset({scanned:true}, 'results');
   await pageIs('results');
@@ -430,19 +484,39 @@ test('ui_clean_done_and_pages', async () => {
   await reset({m3c:true, scanned:true}, 'results');
   await click('detail-custom:drive-f:node-modules');
   assert(await settle('!!document.querySelector("[data-key=skip-i-000202]")'), 'UI_M3C_SKIP: eligible item offers persistent skip');
-  assert(await browser.evaluate('[...document.querySelectorAll(".items input")].every(e=>e.checked)'), 'UI_M3C_EXCLUDE: eligible items start checked, including in an unselected confirm group');
+  assert(await browser.evaluate('[...document.querySelectorAll(".items input")].every(e=>!e.checked && e.disabled)'), 'UI_M3C_EXCLUDE: unselected group items are unchecked and disabled');
+  assert.equal(await browser.evaluate('document.querySelector(".item-selection-note").textContent'), '先在结果页勾选这个分组，才能逐项排除。', 'UI_M3C_EXCLUDE: unselected group explains how to opt in');
+  const beforeItemClick = await browser.evaluate('document.querySelector(".dock").textContent');
+  await click('item-i-000202');
+  assert.equal(await browser.evaluate('document.querySelector(".dock").textContent'), beforeItemClick, 'UI_M3C_EXCLUDE: clicking a disabled item cannot select its siblings');
+  assert.equal(await browser.evaluate('document.querySelector("[data-key=skip-i-000202]").disabled'), false, 'UI_M3C_SKIP: unselected group still permits persistent skip');
   await click('skip-i-000202');
   assert(await settle('!!document.querySelector(".detail-notice")'), 'UI_M3C_SKIP: success has a readable notice');
   assert.equal(await browser.evaluate('document.querySelector(".detail-notice").textContent'), '以后体检会跳过这个文件夹，可以在‘位置’里恢复', 'UI_M3C_SKIP: success copy');
   assert.deepEqual(await browser.evaluate('window.__waterTest.calls.findLast(c=>c.command==="skip_add").args'), {itemId:'i-000202'}, 'UI_M3C_SKIP: only itemId is sent');
   assert(await browser.evaluate('window.__waterTest.calls.filter(c=>c.command==="group_detail").length === 2 && !document.querySelector("[data-key=item-i-000202]")'), 'UI_M3C_SKIP: reread details after successful skip');
-  await key('Escape'); await waitFor('!document.querySelector("dialog[open]")'); await click('nav-locations');
+  await key('Escape'); await waitFor('!document.querySelector("dialog[open]")');
+  assert.equal(await browser.evaluate('document.activeElement.dataset.key'), 'detail-custom:drive-f:node-modules', 'UI_M3C_SKIP: refreshed drawer returns focus to the original group button');
+  assert.equal(await browser.evaluate(`document.querySelector(${JSON.stringify(q('select-custom:drive-f:node-modules'))}).checked`), false, 'UI_M3C_SKIP: skipping in an unselected group leaves it unselected');
+  await click('nav-locations');
   assert(await settle('!!document.querySelector("[data-key=restore-s-added]")'), 'UI_M3C_SKIP: newly skipped folder is listed');
   await click('restore-s-added');
   assert(await settle('!document.querySelector("[data-key=restore-s-added]")'), 'UI_M3C_SKIP: restore removes its row');
   assert.deepEqual(await browser.evaluate('window.__waterTest.calls.findLast(c=>c.command==="skip_remove").args'), {skipId:'s-added'}, 'UI_M3C_SKIP: restore sends only skipId');
   const skipCalls = await browser.evaluate('window.__waterTest.calls.filter(c=>c.command.startsWith("skip_"))');
   for (const {args} of skipCalls) assert(Object.values(args).every(value => typeof value === 'string' && !/[\\/:]/.test(value)), 'UI_IPC_NO_PATH: new commands contain opaque IDs only');
+  for (const skipKeepsCurrentScan of [false, true]) {
+    await reset({m3c:true, scanned:true, skipKeepsCurrentScan}, 'results');
+    await click('select-custom:drive-f:node-modules'); await click('detail-custom:drive-f:node-modules'); await waitText('这是什么');
+    await click('skip-i-000202');
+    assert(await settle('!!document.querySelector(".detail-notice") && !document.querySelector("[data-key=detail-close]").disabled'), 'UI_M3C_SKIP: selected group refresh completes');
+    if (skipKeepsCurrentScan) assert(await browser.evaluate('!document.querySelector("[data-key=item-i-000202]").checked && !document.querySelector("[data-key=item-i-000202]").disabled'), 'UI_M3C_SKIP: legacy service leaves skipped item excluded this time');
+    else assert.equal(await browser.evaluate('document.querySelector("[data-key=item-i-000202]")'), null, 'UI_M3C_SKIP: current service makes skipped item ineligible');
+    await key('Escape'); await waitFor('!document.querySelector("dialog[open]")');
+    assert.equal(await browser.evaluate('document.activeElement.dataset.key'), 'detail-custom:drive-f:node-modules', 'UI_M3C_SKIP: selected group also preserves drawer return focus');
+    await click('clean-prepare'); assert(await settle('!!document.querySelector(".confirm[open]")'), 'UI_M3C_SKIP: skipped selection can still prepare');
+    assert.deepEqual(await browser.evaluate('window.__waterTest.calls.findLast(c=>c.command==="clean_prepare").args.excludeItemIds'), skipKeepsCurrentScan ? ['i-000202'] : [], 'UI_M3C_SKIP: exclude legacy item, prune newly ineligible item');
+  }
   await reset({m3c:true}, 'locations');
   assert(await settle('!!document.querySelector(".skipped-roots")'), 'UI_M3C_SKIP: frozen skipped fixture loaded');
   assert.equal(await browser.evaluate('document.querySelectorAll(".skipped-roots .location-row").length'), 2, 'UI_M3C_SKIP: both fixture entries appear');

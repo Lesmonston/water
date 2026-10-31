@@ -175,6 +175,7 @@ body:has(dialog[open]) .wave { animation-play-state: paused; }
 .dock { pointer-events: auto; align-self: flex-end; display: flex; align-items: center; gap: 20px; padding: 9px 9px 9px 24px; border-radius: var(--w-r-pill); background: var(--w-glass-strong); backdrop-filter: blur(var(--w-glass-blur-strong)); box-shadow: var(--w-glass-shadow-raised); }
 .dock b { font: 500 var(--w-fs-lg) var(--w-font-display); }
 .dock-selection { display: flex; flex-direction: column; white-space: nowrap; }
+.dock-bytes { display: flex; flex-direction: column; white-space: nowrap; }
 dialog { color: var(--w-ink); border: 0; background: var(--w-glass-strong); box-shadow: var(--w-glass-shadow-raised); backdrop-filter: blur(var(--w-glass-blur-strong)); padding: 28px; max-height: calc(100dvh - 64px); scrollbar-width: thin; scrollbar-color: var(--w-ink-4) transparent; opacity: 1; transition: opacity var(--w-dur) var(--w-ease), transform var(--w-dur) var(--w-ease); }
 dialog::backdrop { background: var(--w-sidebar); backdrop-filter: blur(2px); }
 dialog.closing { opacity: 0; }
@@ -227,7 +228,7 @@ code, .path { font-family: var(--w-font-mono); overflow-wrap: anywhere; }
 .chart { padding: 22px 24px 14px; }
 .trend-overview { display: grid; gap: 16px; margin-bottom: 20px; }
 .forecast, .orphans { padding: 20px 24px; }
-.forecast-row { display: flex; gap: 20px; align-items: baseline; padding-top: 10px; }
+.forecast-row { display: grid; grid-template-columns: 2.5em minmax(0, 1fr); gap: 20px; align-items: baseline; padding-top: 10px; }
 .orphans > .cap { margin-top: 6px; }
 .orphan-row { display: grid; grid-template-columns: minmax(0, 1fr) auto auto; gap: 4px 18px; padding: 10px 0; }
 .orphan-row + .orphan-row { border-top: 1px solid var(--w-hairline); }
