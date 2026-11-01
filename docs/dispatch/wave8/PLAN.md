@@ -167,3 +167,10 @@ K4 补单 02 与 K6 补单 03 一起收（第四轮）。K4 补单 02 验收通�
 
 界面单：
 - WATER-W8-K6 补单 04：`你接手 Water 项目 WATER-W8-K6 补单 04（排空的组不因重读而回到清理范围，以及几处低级，界面单）。先读 F:/new/smaltalk/water/docs/dispatch/tickets/WATER-W8-K6-ADDENDUM-04-20261101.md，按其中列出的顺序读原票、补单 01～03、规则与契约，在 F:/new/smaltalk/water/.worktrees/w8-k6（分支 worker/water-w8-k6）从 9722649a 续做。`
+
+### 第五轮：K6 补单 05（2026-11-01）
+
+K6 补单 04 回来后验收（第五轮）：排空的组不再回到清理范围，各项低级也做到；删除安全再次核对无误。审查有一条中级，与补单 04 同一原则，落在单项上：用户手工取消了某一项、再对它点“以后都跳过”、再恢复后，它会回到清理范围。根子是总控补单 02 第 3.3 条没有区分手工排除与跳过保险排除。出补单 05，修这条与几处低级；K6 仍最后合入。
+
+界面单：
+- WATER-W8-K6 补单 05：`你接手 Water 项目 WATER-W8-K6 补单 05（手工排除不因跳过再恢复而丢失，以及几处低级，界面单）。先读 F:/new/smaltalk/water/docs/dispatch/tickets/WATER-W8-K6-ADDENDUM-05-20261101.md，按其中列出的顺序读原票、补单 01～04、规则与契约，在 F:/new/smaltalk/water/.worktrees/w8-k6（分支 worker/water-w8-k6）从 166609e8 续做。`
