@@ -717,7 +717,7 @@ pub(crate) fn build(
     (
         json!({"scan_id":record.result.scan_id,"finished_at":record.saved["finished_at"],"duration_ms":record.saved["duration_ms"],"status":record.result.status,
         "totals":{"recognized_bytes":totals[0].to_string(),"recommended_bytes":totals[1].to_string(),"confirm_bytes":totals[2].to_string(),"advisory_bytes":totals[3].to_string(),"protected_bytes":totals[4].to_string(),"unrecognized_bytes":totals[5].to_string()},
-        "recommended_by_drive":by_drive.into_iter().map(|(root,n)|json!({"root":root,"bytes":n.to_string()})).collect::<Vec<_>>(),"insights":insights,"categories":categories}),
+        "recommended_by_drive":by_drive.into_iter().filter(|(_, n)| *n > 0).map(|(root,n)|json!({"root":root,"bytes":n.to_string()})).collect::<Vec<_>>(),"insights":insights,"categories":categories}),
         details,
     )
 }

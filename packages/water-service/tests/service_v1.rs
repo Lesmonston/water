@@ -17,10 +17,129 @@ use std::{
 };
 use water_junk_rules::KnownFolders;
 use water_process_scan::InUseSpec;
-use water_service::{DriveInfo, FolderPicker, IpcError, Platform, Service, ServiceConfig};
+use water_service::{
+    DriveInfo, FolderPicker, IpcError as PublicIpcError, Platform, Service, ServiceConfig,
+};
 
 const NOW: u64 = 1_800_000_000;
 const DISABLED: &str = "这一版只做体检，清理功能会在下一版开放。";
+
+// Compile the unchanged production service/clean/view/storage sources for two
+// white-box cases. Ordinary contract tests still use water_service::Service.
+// This keeps fixture authorisation and the storage barrier out of the product.
+#[path = "../src/clean.rs"]
+mod clean;
+#[path = "../src/storage.rs"]
+mod disk_storage;
+#[path = "../src/service.rs"]
+mod service;
+#[path = "../src/util.rs"]
+mod util;
+#[path = "../src/views.rs"]
+mod views;
+const IN_USE_UNKNOWN: &str = "无法确认占用状态";
+
+// The sources use their crate-private error constructors. Public platform
+// errors are forwarded into this test crate's equivalent boundary type.
+#[derive(Debug, Clone, serde::Serialize)]
+struct IpcError {
+    code: String,
+    message_zh: String,
+}
+impl IpcError {
+    fn new(code: &str) -> Self {
+        Self {
+            code: code.into(),
+            message_zh: match code {
+                "busy" => "正在进行另一项任务，请稍候。",
+                "stale" => "结果已过期，请重新体检后再清理。",
+                "invalid" => "所选内容无法清理，请重新选择。",
+                "not_found" => "找不到这条记录，请重新体检。",
+                "cancelled" => "已取消。",
+                _ => "Water 服务暂时不可用。",
+            }
+            .into(),
+        }
+    }
+    fn disabled() -> Self {
+        Self {
+            code: "unavailable".into(),
+            message_zh: DISABLED.into(),
+        }
+    }
+}
+impl From<PublicIpcError> for IpcError {
+    fn from(e: PublicIpcError) -> Self {
+        Self {
+            code: e.code,
+            message_zh: e.message_zh,
+        }
+    }
+}
+
+mod storage {
+    use super::*;
+    pub(crate) use disk_storage::plain_directory;
+    type SnapshotBarrier = (mpsc::Sender<()>, mpsc::Receiver<()>);
+    pub(crate) struct Store {
+        inner: disk_storage::Store,
+        pub after_snapshot: Mutex<Option<SnapshotBarrier>>,
+    }
+    impl std::ops::Deref for Store {
+        type Target = disk_storage::Store;
+        fn deref(&self) -> &Self::Target {
+            &self.inner
+        }
+    }
+    impl Store {
+        pub fn new(root: PathBuf) -> Result<Self, IpcError> {
+            Ok(Self {
+                inner: disk_storage::Store::new(root)?,
+                after_snapshot: Mutex::new(None),
+            })
+        }
+        pub fn write(&self, dir: &str, name: &str, value: &Value) -> Result<(), IpcError> {
+            self.inner.write(dir, name, value)?;
+            if dir == "snapshots" {
+                let barrier = self.after_snapshot.lock().unwrap().take();
+                if let Some((written, resume)) = barrier {
+                    written.send(()).unwrap();
+                    resume
+                        .recv_timeout(Duration::from_secs(10))
+                        .expect("SERVICE_SNAPSHOT_REMOVE_FAIL: resume snapshot");
+                }
+            }
+            Ok(())
+        }
+    }
+}
+
+trait TestService {
+    fn call(&self, command: &str, args: Value) -> Result<Value, PublicIpcError>;
+}
+impl TestService for Service {
+    fn call(&self, command: &str, args: Value) -> Result<Value, PublicIpcError> {
+        self.call(command, args)
+    }
+}
+impl TestService for service::Service {
+    fn call(&self, command: &str, args: Value) -> Result<Value, PublicIpcError> {
+        self.call(command, args).map_err(|e| PublicIpcError {
+            code: e.code,
+            message_zh: e.message_zh,
+        })
+    }
+}
+fn source_service(f: &Fixture, enabled: bool) -> service::Service {
+    service::Service::new(ServiceConfig {
+        data_dir: f.data.clone(),
+        app_version: "0.1.0".into(),
+        clean_enabled: enabled,
+        platform: Box::new(f.fake.clone()),
+        picker: Box::new(f.fake.clone()),
+    })
+    .unwrap()
+}
 
 #[derive(Clone)]
 struct CleanGate {
@@ -48,7 +167,7 @@ struct Fake {
     orphans: Arc<Mutex<Vec<water_process_scan::OrphanChain>>>,
 }
 impl Platform for Fake {
-    fn known_folders(&self) -> Result<KnownFolders, IpcError> {
+    fn known_folders(&self) -> Result<KnownFolders, PublicIpcError> {
         Ok(self.folders.clone())
     }
     fn drives(&self) -> Vec<DriveInfo> {
@@ -133,7 +252,7 @@ impl Platform for Fake {
     }
 }
 impl FolderPicker for Fake {
-    fn pick(&self) -> Result<Option<String>, IpcError> {
+    fn pick(&self) -> Result<Option<String>, PublicIpcError> {
         Ok(self.picks.lock().unwrap().pop_front().flatten())
     }
 }
@@ -291,7 +410,7 @@ fn age(path: &Path, seconds: u64) {
     file.set_times(FileTimes::new().set_modified(UNIX_EPOCH + Duration::from_secs(seconds)))
         .unwrap();
 }
-fn call(s: &Service, c: &str, a: Value) -> Value {
+fn call(s: &impl TestService, c: &str, a: Value) -> Value {
     let started = Instant::now();
     let result = s.call(c, a).unwrap_or_else(|e| panic!("{c}: {e:?}"));
     assert!(
@@ -300,7 +419,7 @@ fn call(s: &Service, c: &str, a: Value) -> Value {
     );
     result
 }
-fn wait(s: &Service, c: &str) -> Value {
+fn wait(s: &impl TestService, c: &str) -> Value {
     let start = Instant::now();
     let mut percent = 0;
     loop {
@@ -320,7 +439,7 @@ fn wait(s: &Service, c: &str) -> Value {
         std::thread::sleep(Duration::from_millis(2));
     }
 }
-fn scanned(s: &Service) -> Value {
+fn scanned(s: &impl TestService) -> Value {
     let id = call(s, "scan_start", json!({}));
     let p = wait(s, "scan_progress");
     assert_eq!(p["state"], "completed");
@@ -1522,7 +1641,7 @@ fn service_storage_safety() {
 }
 
 /// Polls until the task leaves `running`; a task that never settles fails with `marker`.
-fn settle(s: &Service, c: &str, marker: &str) -> Value {
+fn settle(s: &impl TestService, c: &str, marker: &str) -> Value {
     let start = Instant::now();
     loop {
         let p = call(s, c, json!({}));
@@ -2283,6 +2402,64 @@ fn m3c_by_drive() {
         detail["group"]["drive_root"], "Y:\\",
         "SERVICE_M3C_BY_DRIVE: largest item"
     );
+    drop(s);
+    let mut zero = saved.clone();
+    for i in zero["result"]["items"].as_array_mut().unwrap() {
+        if i["path"] == "X:\\cache-a" {
+            i["unique_bytes"] = json!("0");
+        }
+    }
+    for g in zero["result"]["groups"].as_array_mut().unwrap() {
+        if g["group_id"] == "chrome-cache" {
+            g["unique_bytes"] = json!("200");
+            g["eligible_unique_bytes"] = json!("200");
+        }
+    }
+    write_scan(&f, &zero);
+    let s = f.service(false);
+    let before = call(&s, "scan_result", json!({"scanId":result["scan_id"]}));
+    assert!(
+        before["recommended_by_drive"]
+            .as_array()
+            .unwrap()
+            .iter()
+            .all(|r| r["root"] != "X:\\"),
+        "SERVICE_M3C_SKIP: build omits zero-byte drive"
+    );
+    let detail = call(&s, "group_detail", json!({"groupId":"chrome-cache"}));
+    let item = detail["items"]
+        .as_array()
+        .unwrap()
+        .iter()
+        .find(|i| i["display_path"] == "Y:\\cache-b")
+        .unwrap();
+    let loc = call(&s, "skip_add", json!({"itemId":item["item_id"]}));
+    let skipped = call(&s, "scan_result", json!({"scanId":result["scan_id"]}));
+    assert!(
+        skipped["recommended_by_drive"]
+            .as_array()
+            .unwrap()
+            .iter()
+            .all(|r| r["root"] != "X:\\" && r["root"] != "Y:\\"),
+        "SERVICE_M3C_SKIP: refresh omits zero-byte drives"
+    );
+    drop(s);
+    let s = f.service(false);
+    assert_eq!(
+        call(&s, "scan_result", json!({"scanId":result["scan_id"]}))["recommended_by_drive"],
+        skipped["recommended_by_drive"],
+        "SERVICE_M3C_SKIP: zero-byte drives consistent after restart"
+    );
+    call(
+        &s,
+        "skip_remove",
+        json!({"skipId":loc["skipped"][0]["skip_id"]}),
+    );
+    assert_eq!(
+        call(&s, "scan_result", json!({"scanId":result["scan_id"]}))["recommended_by_drive"],
+        before["recommended_by_drive"],
+        "SERVICE_M3C_SKIP: restore positive drive only"
+    );
 }
 
 fn m3c_drive_roots() {
@@ -2306,6 +2483,14 @@ fn m3c_drive_roots() {
         ("Y:\\".into(), "rEfS".into()),
         ("Z:\\".into(), "exFAT".into()),
     ]);
+    // F contains the real fixture known folders, but is deliberately non-system
+    // here: rejection must depend on containment, not the system-drive guard.
+    f.fake.drives.lock().unwrap()[0].is_system = false;
+    f.fake
+        .file_systems
+        .lock()
+        .unwrap()
+        .insert("F:\\".into(), "NTFS".into());
     let s = f.service(false);
     for root in ["W:\\", "F:\\", "V:\\"] {
         f.pick(Some(Path::new(root)));
@@ -2417,6 +2602,23 @@ fn m3c_exclude_skip() {
             "SERVICE_M3C_EXCLUDE: invalid exclusion"
         );
     }
+    let recent_before = call(&s, "group_detail", json!({"groupId":too_new["group_id"]}));
+    let recent_skip = call(&s, "skip_add", json!({"itemId":too_new["item_id"]}));
+    assert_eq!(
+        call(&s, "group_detail", json!({"groupId":too_new["group_id"]})),
+        recent_before,
+        "SERVICE_M3C_SKIP: originally ineligible stays unchanged on add"
+    );
+    call(
+        &s,
+        "skip_remove",
+        json!({"skipId":recent_skip["skipped"][0]["skip_id"]}),
+    );
+    assert_eq!(
+        call(&s, "group_detail", json!({"groupId":too_new["group_id"]})),
+        recent_before,
+        "SERVICE_M3C_SKIP: originally ineligible stays unchanged on remove"
+    );
     let p = call(
         &s,
         "clean_prepare",
@@ -2862,13 +3064,18 @@ fn m3c_trends() {
         trends["orphans"]["chains"],
         "SERVICE_M3C_ORPHANS: persisted"
     );
-    f.fake.now.store(NOW + 6 * 86400, Ordering::SeqCst);
+    let ended = util::parse_time(result["finished_at"].as_str().unwrap())
+        .unwrap()
+        .duration_since(UNIX_EPOCH)
+        .unwrap()
+        .as_secs();
+    f.fake.now.store(ended + 6 * 86400, Ordering::SeqCst);
     assert_eq!(
         call(&s, "app_state", json!({}))["checkup_due"],
         Value::Null,
         "SERVICE_M3C_DUE: six days"
     );
-    f.fake.now.store(NOW + 7 * 86400, Ordering::SeqCst);
+    f.fake.now.store(ended + 7 * 86400, Ordering::SeqCst);
     assert_eq!(
         call(&s, "app_state", json!({}))["checkup_due"],
         json!({"days_since_last":7}),
@@ -2876,7 +3083,7 @@ fn m3c_trends() {
     );
     let mut saved = scan_saved(&f, &result);
     drop(s);
-    *f.fake.drives.lock().unwrap() = ["F:\\", "X:\\", "Y:\\", "Z:\\"]
+    *f.fake.drives.lock().unwrap() = ["F:\\", "X:\\", "Y:\\", "Z:\\", "V:\\"]
         .iter()
         .map(|r| DriveInfo {
             root: (*r).into(),
@@ -2907,7 +3114,8 @@ fn m3c_trends() {
         saved["drives"] = json!([
             {"root":"F:\\","free_bytes":free.to_string()},
             {"root":"X:\\","free_bytes":(1000+n*100).to_string()},
-            {"root":"Y:\\","free_bytes":(1_000_000-n*100).to_string()}
+            {"root":"Y:\\","free_bytes":(1_000_000-n*100).to_string()},
+            {"root":"V:\\","free_bytes":if n == 3 {"1001"} else {"1000"}}
         ]);
         if n == 3 {
             saved["drives"]
@@ -2955,6 +3163,16 @@ fn m3c_trends() {
         "SERVICE_M3C_FORECAST: negative rate"
     );
     assert_eq!(
+        drive("V:\\")["bytes_per_day"],
+        "0",
+        "SERVICE_M3C_FORECAST: no negative zero"
+    );
+    assert_eq!(
+        drive("V:\\")["note_zh"],
+        "最近 30 天可用空间没有减少",
+        "SERVICE_M3C_FORECAST: fractional negative rate"
+    );
+    assert_eq!(
         drive("Y:\\")["note_zh"],
         "按现在的速度，十年内不会满",
         "SERVICE_M3C_FORECAST: long horizon"
@@ -2983,8 +3201,11 @@ fn m3c_snapshot_remove_fail() {
         f.file(&format!("windows/Temp/old-{n}.tmp"), 1);
     }
     f.age_all(NOW - 10 * 86400);
-    let s = f.service(false);
+    let s = source_service(&f, false);
     let first = scanned(&s);
+    let (written_tx, written_rx) = mpsc::channel();
+    let (resume_tx, resume_rx) = mpsc::channel();
+    *s.core.store.after_snapshot.lock().unwrap() = Some((written_tx, resume_rx));
     f.fake.entered.store(false, Ordering::SeqCst);
     f.fake.hold.store(true, Ordering::SeqCst);
     let id = call(&s, "scan_start", json!({}));
@@ -3013,22 +3234,19 @@ fn m3c_snapshot_remove_fail() {
         .join("snapshots")
         .join(format!("{}.json", id["scan_id"].as_str().unwrap()));
     f.fake.hold.store(false, Ordering::SeqCst);
-    let begin = Instant::now();
-    let mut held = None;
-    while begin.elapsed() < Duration::from_secs(10) {
-        if let Ok(file) = OpenOptions::new()
+    // The test-side adapter pauses after the real atomic snapshot write returns,
+    // before the real scan write/removal. No production hook or timing race.
+    written_rx
+        .recv_timeout(Duration::from_secs(10))
+        .expect("SERVICE_SNAPSHOT_REMOVE_FAIL: snapshot write");
+    let held = Some(
+        OpenOptions::new()
             .read(true)
             .share_mode(1 | 2)
             .open(&snapshot)
-        {
-            held = Some(file);
-            break;
-        }
-        if s.call("scan_progress", json!({})).unwrap()["state"] != "running" {
-            break;
-        }
-        std::thread::yield_now();
-    }
+            .expect("SERVICE_SNAPSHOT_REMOVE_FAIL: open snapshot"),
+    );
+    resume_tx.send(()).unwrap();
     let progress = settle(&s, "scan_progress", "SERVICE_SNAPSHOT_REMOVE_FAIL");
     assert!(
         held.is_some(),
@@ -3066,6 +3284,7 @@ fn m3c_skip_scale() {
     let result = scanned(&s);
     let mut saved = scan_saved(&f, &result);
     drop(s);
+    let small = saved.clone();
     let prototype = saved["result"]["items"]
         .as_array()
         .unwrap()
@@ -3110,12 +3329,40 @@ fn m3c_skip_scale() {
     saved["in_use"] = json!({});
     saved["item_in_use"] = json!({});
     write_scan(&f, &saved);
+    // Exercise the 60-record cap: two 10,000-item scans share the target path,
+    // the other 58 are small scans, all represented only by record JSON.
+    let mut old_id = String::new();
+    for n in 1..60 {
+        let mut old = if n == 1 { saved.clone() } else { small.clone() };
+        let id = format!("scan-20270114T080000Z-{n:04x}");
+        let at = util::timestamp(UNIX_EPOCH + Duration::from_secs(NOW - n * 3600));
+        old["scan_id"] = json!(id);
+        old["result"]["scan_id"] = json!(id);
+        for key in ["started_at", "finished_at"] {
+            old[key] = json!(at);
+        }
+        for key in ["started_at", "ended_at"] {
+            old["result"][key] = json!(at);
+        }
+        write_scan(&f, &old);
+        if n == 1 {
+            old_id = id;
+        }
+    }
     let scan_path = f
         .data
         .join("scans")
         .join(format!("{}.json", result["scan_id"].as_str().unwrap()));
     let original = fs::read(&scan_path).unwrap();
     let s = f.service(true);
+    assert_eq!(
+        call(&s, "history_list", json!({}))
+            .as_array()
+            .unwrap()
+            .len(),
+        60,
+        "SERVICE_M3C_SKIP: all retained scans loaded"
+    );
     let initial = call(&s, "app_state", json!({}))["last_scan"]["recommended_bytes"]
         .as_str()
         .unwrap()
@@ -3137,6 +3384,7 @@ fn m3c_skip_scale() {
             "SERVICE_M3C_SKIP: scale add {elapsed:?}"
         );
         scale_projection(&s, &item_id, initial - 100, total - 1, false);
+        scale_history(&s, &old_id, initial - 100, total - 1);
         assert_eq!(
             fs::read(&scan_path).unwrap(),
             original,
@@ -3155,6 +3403,7 @@ fn m3c_skip_scale() {
             "SERVICE_M3C_SKIP: scale remove {elapsed:?}"
         );
         scale_projection(&s, &item_id, initial, total, true);
+        scale_history(&s, &old_id, initial, total);
         assert_eq!(
             fs::read(&scan_path).unwrap(),
             original,
@@ -3166,21 +3415,144 @@ fn m3c_skip_scale() {
         json!({"items":total,"add":additions,"remove":removals})
     );
     let loc = call(&s, "skip_add", json!({"itemId":item_id}));
+    let before_restart = scale_history(&s, &old_id, initial - 100, total - 1);
     drop(s);
+    let settings_path = f.data.join("settings.json");
+    let mut settings: Value = serde_json::from_slice(&fs::read(&settings_path).unwrap()).unwrap();
+    settings["skipped"][0]["path"] = json!(
+        settings["skipped"][0]["path"]
+            .as_str()
+            .unwrap()
+            .to_ascii_uppercase()
+    );
+    fs::write(&settings_path, settings.to_string()).unwrap();
     let s = f.service(true);
     scale_projection(&s, &item_id, initial - 100, total - 1, false);
+    assert_eq!(
+        scale_history(&s, &old_id, initial - 100, total - 1),
+        before_restart,
+        "SERVICE_M3C_SKIP: old scan unchanged across restart with different-case skip path"
+    );
     call(
         &s,
         "skip_remove",
         json!({"skipId":loc["skipped"][0]["skip_id"]}),
     );
+    let before_restart = scale_history(&s, &old_id, initial, total);
     drop(s);
     let s = f.service(true);
     scale_projection(&s, &item_id, initial, total, true);
     assert_eq!(
+        scale_history(&s, &old_id, initial, total),
+        before_restart,
+        "SERVICE_M3C_SKIP: old restored scan unchanged across restart"
+    );
+    assert_eq!(
         fs::read(&scan_path).unwrap(),
         original,
         "SERVICE_M3C_SKIP: restart scan bytes unchanged"
+    );
+    drop(s);
+    m3c_exclude_scale(&f, saved);
+}
+
+fn scale_history(s: &Service, id: &str, recommended: u64, count: u64) -> (Value, Value) {
+    let scan = call(s, "scan_result", json!({"scanId":id}));
+    assert_eq!(
+        scan["totals"]["recommended_bytes"],
+        recommended.to_string(),
+        "SERVICE_M3C_SKIP: old scan total"
+    );
+    let group = groups(&scan)
+        .into_iter()
+        .find(|g| g["group_id"] == "chrome-cache")
+        .unwrap();
+    assert_eq!(
+        group["eligible_count"], count,
+        "SERVICE_M3C_SKIP: old scan eligible count"
+    );
+    assert_eq!(
+        group["eligible_bytes"],
+        (count * 100).to_string(),
+        "SERVICE_M3C_SKIP: old scan eligible bytes"
+    );
+    let history = call(s, "history_list", json!({}));
+    let row = history
+        .as_array()
+        .unwrap()
+        .iter()
+        .find(|row| row["id"] == id)
+        .unwrap()
+        .clone();
+    assert_eq!(
+        row["bytes"],
+        recommended.to_string(),
+        "SERVICE_M3C_SKIP: old history bytes"
+    );
+    (scan, row)
+}
+
+fn m3c_exclude_scale(f: &Fixture, mut saved: Value) {
+    for item in saved["result"]["items"].as_array_mut().unwrap() {
+        if item["group_id"] == "chrome-cache" && item["item_id"].as_str().unwrap() < "i-104999" {
+            item["eligible"] = json!(false);
+            item["ineligible_reason"] = json!("too_recent");
+        }
+    }
+    for g in saved["result"]["groups"].as_array_mut().unwrap() {
+        if g["group_id"] == "chrome-cache" {
+            g["eligible_count"] = json!(5001);
+            g["eligible_bytes"] = json!("500100");
+            g["eligible_unique_bytes"] = json!("500100");
+        }
+    }
+    write_scan(f, &saved);
+    let s = source_service(f, true);
+    let args = json!({"groupIds":["chrome-cache"],"excludeItemIds":(105_000..110_000).map(|n|format!("i-{n:06}")).collect::<Vec<_>>()});
+    assert_eq!(
+        s.call("clean_prepare", args.clone()).unwrap_err().code,
+        "stale",
+        "SERVICE_M3C_EXCLUDE: loaded scan remains untrusted"
+    );
+    // Test-only local authorisation; never exposed by the product or followed
+    // by clean_start. All paths remain synthetic and no files are created.
+    s.core
+        .state
+        .lock()
+        .unwrap()
+        .local_scans
+        .insert(saved["scan_id"].as_str().unwrap().into());
+    let started = Instant::now();
+    let preview = s
+        .call("clean_prepare", args)
+        .expect("SERVICE_M3C_EXCLUDE: scale prepare");
+    let elapsed = started.elapsed();
+    assert!(
+        elapsed <= Duration::from_millis(50),
+        "SERVICE_M3C_EXCLUDE: scale prepare {elapsed:?}"
+    );
+    println!(
+        "SERVICE_M3C_EXCLUDE scale_ms {}",
+        elapsed.as_secs_f64() * 1000.0
+    );
+    assert_eq!(
+        (
+            preview["item_count"].clone(),
+            preview["total_bytes"].clone(),
+            preview["excluded_count"].clone()
+        ),
+        (json!(1), json!("100"), json!(5000)),
+        "SERVICE_M3C_EXCLUDE: scale preview"
+    );
+    let plan = read_plan(f, &preview);
+    assert_eq!(
+        plan["plan"]["items"].as_array().unwrap().len(),
+        1,
+        "SERVICE_M3C_EXCLUDE: scale plan count"
+    );
+    assert_eq!(
+        plan["plan"]["items"][0]["item_id"], "i-104999",
+        "SERVICE_M3C_EXCLUDE: scale plan retained item"
     );
 }
 
