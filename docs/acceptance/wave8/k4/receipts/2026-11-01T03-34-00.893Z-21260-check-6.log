@@ -1,0 +1,29 @@
+{"binary":"C:\\Users\\37310\\.rustup\\toolchains\\1.95.0-x86_64-pc-windows-msvc\\bin\\cargo.exe","args":["clippy","--offline","--locked","--manifest-path","packages/water-service/Cargo.toml","--all-targets","--","-D","warnings"],"exitCode":101,"error":null}
+--- stdout ---
+
+--- stderr ---
+    Checking water-service v0.1.0 (F:\new\smaltalk\water\.worktrees\w8-k4\packages\water-service)
+error: this `if` statement can be collapsed
+   --> src\views.rs:326:17
+    |
+326 | /                 if !after
+327 | |                     && !self.view["recommended_by_drive"]
+328 | |                         .as_array()
+329 | |                         .into_iter()
+...   |
+337 | |                 }
+    | |_________________^
+    |
+    = help: for further information visit https://rust-lang.github.io/rust-clippy/rust-1.95.0/index.html#collapsible_if
+    = note: `-D clippy::collapsible-if` implied by `-D warnings`
+    = help: to override `-D warnings` add `#[allow(clippy::collapsible_if)]`
+help: collapse nested if block
+    |
+331 ~                         .any(|r| r["root"] == drive)
+332 ~                     && let Some(rows) = self.view["recommended_by_drive"].as_array_mut() {
+333 |                         rows.push(json!({"root":drive,"bytes":bytes.to_string()}));
+334 |                         rows.sort_by(|a, b| a["root"].as_str().cmp(&b["root"].as_str()));
+335 ~                     }
+    |
+
+error: could not compile `water-service` (lib) due to 1 previous error
