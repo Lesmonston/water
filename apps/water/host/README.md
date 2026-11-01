@@ -1,7 +1,7 @@
 # Water desktop host
 
 Windows desktop host for the verified `../ui` frontend. `run(service_backend)`
-wires the 17 IPC commands to `water_service::Service` through `ServiceBackend`.
+wires the 19 IPC commands to `water_service::Service` through `ServiceBackend`.
 `CLEAN_ENABLED` is true: cleanup uses the service's existing plan and confirmation
 flow.
 
@@ -29,6 +29,7 @@ slot report false; a populated slot forwards availability without holding its
 mutex while calling the backend. `clean_state` returns non-cleaning immediately
 for an unavailable backend without querying or stopping it. An available backend
 whose state query fails still reports unknown.
+
 `clean_state` distinguishes cleaning, confirmed non-cleaning and an unknown state.
 The close guard permits immediate closing only for confirmed non-cleaning. For
 cleaning or unknown states it prevents the request and calls
@@ -51,7 +52,7 @@ individual synchronous backend call that itself fails to return.
 
 The single `main` window is 1240×820 (minimum 1040×720), centered, transparent,
 with Mica and the system title bar. Tauri applies Mica on supported Windows systems
-and leaves unsupported systems without that effect. JavaScript and the 17 IPC v1
+and leaves unsupported systems without that effect. JavaScript and the 19 IPC v1
 commands are enabled. Developer tools, drag-and-drop, external navigation, new
 windows, downloads and permission requests are disabled. Only the bundled root
 and index page can be navigated to. The sole frontend window permission is dragging.
@@ -59,6 +60,10 @@ and index page can be navigated to. The sole frontend window permission is dragg
 `cmd_*` adapters reconstruct camelCase argument objects and pass backend values
 and failures through unchanged. Configuration is embedded and checked before the
 Tauri runtime starts; capability validation rejects extra permissions and fields.
+`clean_prepare` forwards `excludeItemIds` only when the optional list is nonempty;
+omitted and empty lists retain the original `groupIds`-only request bytes.
+`skip_add` and `skip_remove` forward `itemId` and `skipId` respectively. The host
+does not validate IDs or interpret the service's responses.
 
 `WATER_DATA_DIR` overrides the data location. Otherwise Tauri's local-data path is
 resolved to its real local disk path, stripping a verbatim disk prefix and
@@ -87,8 +92,8 @@ current frontendDist also embeds frontend tests, as acknowledged by HOST section
 Run only the assigned controller gate from the worktree root:
 
 ```powershell
-node F:/new/smaltalk/water/scripts/desktop-wave-check.mjs --task WATER-W7-J1 --mode check
-node F:/new/smaltalk/water/scripts/desktop-wave-check.mjs --task WATER-W7-J1 --mode test
+node F:/new/smaltalk/water/scripts/desktop-wave-check.mjs --task WATER-W8-K5 --mode check
+node F:/new/smaltalk/water/scripts/desktop-wave-check.mjs --task WATER-W8-K5 --mode test
 ```
 
 The unique `host_v1` target has five tests, with synthetic data only under this
@@ -105,15 +110,18 @@ canonicalizations succeed before their results are compared. Scripted cleanup
 only counts down after receiving stop; tests cover bounded exit, unknown-state
 waiting, unknown intervals interrupted by cleaning, unavailable backends, and a
 slow initial state query. Token-based source checks distinguish `Exit` from
-`ExitRequested`, scope its stop call to the actual branch, and require the close
+`ExitRequested`, scope its stop call and ordered poll/deadline arguments to the
+actual branch, and require the close
 guard to let only confirmed non-cleaning pass before preventing the close.
+The tokenizer handles character and raw-string literals and reports non-ASCII
+code explicitly. A partial initial query also consumes the bounded wait's limit.
 They never
 open a window or picker and never scan real user locations.
 
 The native final gate has a ticket-wide one-window budget. Its nine steps run a
 checkup, preview, confirmation, cleanup and history through the UI. The seven
 categories are disabled and only a synthetic fixture under this worktree's
-`.local/w7-j1-native/` is selectable; protected locations are measured read-only.
+`.local/w8-k5-native/` is selectable; protected locations are measured read-only.
 It archives five window screenshots and verifies fixture deletion and retained
 guard files, one scan, snapshot, plan, clean and journal, a private WebView profile
 and child process exit. Do not launch the binary or a picker manually. All registry packages
@@ -125,3 +133,5 @@ packaging and the real picker UI remain unverified. Known M1 limitations are in
 UI are covered by code and unit tests; the single native gate exercises the
 normal backend. It does not launch a second instance, inject startup failure,
 request a real system shutdown or close the window during active cleanup.
+The baseline UI and service do not exercise exclusions or persistent skips in
+this native check; those require the later integrated M3C check.

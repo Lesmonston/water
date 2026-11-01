@@ -4,7 +4,7 @@ use serde_json::{Value, json};
 use std::sync::Arc;
 use tauri::State;
 
-pub const COMMANDS: [&str; 17] = [
+pub const COMMANDS: [&str; 19] = [
     "app_state",
     "scan_start",
     "scan_cancel",
@@ -22,6 +22,8 @@ pub const COMMANDS: [&str; 17] = [
     "locations_set_category",
     "custom_root_add",
     "custom_root_remove",
+    "skip_add",
+    "skip_remove",
 ];
 
 pub fn cmd_app_state(backend: &dyn Backend) -> Result<Value, IpcFailure> {
@@ -90,16 +92,22 @@ pub(crate) fn group_detail(
 pub fn cmd_clean_prepare(
     backend: &dyn Backend,
     group_ids: Vec<String>,
+    exclude_item_ids: Option<Vec<String>>,
 ) -> Result<Value, IpcFailure> {
-    backend.call("clean_prepare", json!({"groupIds": group_ids}))
+    let mut args = json!({"groupIds": group_ids});
+    if let Some(ids) = exclude_item_ids.filter(|ids| !ids.is_empty()) {
+        args["excludeItemIds"] = json!(ids);
+    }
+    backend.call("clean_prepare", args)
 }
 
 #[tauri::command]
 pub(crate) fn clean_prepare(
     backend: State<'_, Arc<dyn Backend>>,
     group_ids: Vec<String>,
+    exclude_item_ids: Option<Vec<String>>,
 ) -> Result<Value, IpcFailure> {
-    cmd_clean_prepare(backend.inner().as_ref(), group_ids)
+    cmd_clean_prepare(backend.inner().as_ref(), group_ids, exclude_item_ids)
 }
 
 pub fn cmd_clean_start(
@@ -218,4 +226,28 @@ pub(crate) fn custom_root_remove(
     root_id: String,
 ) -> Result<Value, IpcFailure> {
     cmd_custom_root_remove(backend.inner().as_ref(), root_id)
+}
+
+pub fn cmd_skip_add(backend: &dyn Backend, item_id: String) -> Result<Value, IpcFailure> {
+    backend.call("skip_add", json!({"itemId": item_id}))
+}
+
+#[tauri::command]
+pub(crate) fn skip_add(
+    backend: State<'_, Arc<dyn Backend>>,
+    item_id: String,
+) -> Result<Value, IpcFailure> {
+    cmd_skip_add(backend.inner().as_ref(), item_id)
+}
+
+pub fn cmd_skip_remove(backend: &dyn Backend, skip_id: String) -> Result<Value, IpcFailure> {
+    backend.call("skip_remove", json!({"skipId": skip_id}))
+}
+
+#[tauri::command]
+pub(crate) fn skip_remove(
+    backend: State<'_, Arc<dyn Backend>>,
+    skip_id: String,
+) -> Result<Value, IpcFailure> {
+    cmd_skip_remove(backend.inner().as_ref(), skip_id)
 }
