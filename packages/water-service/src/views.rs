@@ -6,7 +6,7 @@ use crate::{
     util,
 };
 use serde_json::{Value, json};
-use std::collections::BTreeMap;
+use std::collections::{BTreeMap, BTreeSet};
 use water_junk_rules::RuleSet;
 use water_junk_scan::{Group, Growth, Level, ScanResult};
 
@@ -96,7 +96,18 @@ fn custom_path(record: &Record, group_id: &str) -> String {
 }
 
 pub(crate) fn in_use_spec(group: &Group) -> water_process_scan::InUseSpec {
-    serde_json::from_value(json!(group.in_use)).expect("validated scan in-use specification")
+    use water_junk_rules::InUseMode as RuleMode;
+    use water_process_scan::InUseMode;
+    let mode = match RuleMode::parse(&group.in_use.mode).expect("validated scan in-use mode") {
+        RuleMode::None => InUseMode::None,
+        RuleMode::ProcessRunning => InUseMode::ProcessRunning,
+        RuleMode::CmdlineReferencesItem => InUseMode::CmdlineReferencesItem,
+        RuleMode::RunsFromOrReferencesItem => InUseMode::RunsFromOrReferencesItem,
+    };
+    water_process_scan::InUseSpec {
+        mode,
+        processes: group.in_use.processes.clone(),
+    }
 }
 
 /// Product names shown for well-known processes (SERVICE-HARDENING §7); others drop `.exe`.
@@ -111,43 +122,343 @@ const PRODUCT_NAMES: [(&str, &str); 6] = [
 
 /// Decided once per scan, inside that scan's in-use batch, and saved with the record.
 /// Views never ask the platform again; a missing snapshot is kept as "in use, unknown".
-pub(crate) fn scan_in_use(result: &ScanResult, platform: &dyn Platform) -> Value {
+pub(crate) fn scan_in_use(result: &ScanResult, platform: &dyn Platform) -> (Value, Value) {
     let mut saved = serde_json::Map::new();
+    let mut items = serde_json::Map::new();
     for g in &result.groups {
         let spec = in_use_spec(g);
-        if spec.mode == water_process_scan::InUseMode::None {
-            continue;
+        match spec.mode {
+            water_process_scan::InUseMode::None => continue,
+            water_process_scan::InUseMode::ProcessRunning
+            | water_process_scan::InUseMode::CmdlineReferencesItem
+            | water_process_scan::InUseMode::RunsFromOrReferencesItem => {}
         }
-        let Some(name) = result
+        let mut first = None;
+        let mut count = 0;
+        let mut unknown = false;
+        for item in result
             .items
             .iter()
             .filter(|i| i.group_id == g.group_id && i.eligible)
-            .find_map(|i| platform.in_use(&spec, &i.path))
-        else {
-            continue;
-        };
-        let text = if name == IN_USE_UNKNOWN {
-            "暂时无法确认是否在运行，清理时会再次检查".to_owned()
-        } else {
-            let label = PRODUCT_NAMES
-                .iter()
-                .find(|(process, _)| process.eq_ignore_ascii_case(&name))
-                .map(|(_, product)| *product)
-                .unwrap_or_else(|| {
-                    if name
-                        .get(name.len().saturating_sub(4)..)
-                        .is_some_and(|s| s.eq_ignore_ascii_case(".exe"))
-                    {
-                        &name[..name.len() - 4]
-                    } else {
-                        &name
-                    }
-                });
-            format!("{label} 正在运行，将跳过占用的项")
-        };
-        saved.insert(g.group_id.clone(), json!({"process_label_zh":text}));
+        {
+            if let Some(name) = platform.in_use(&spec, &item.path) {
+                count += 1;
+                unknown |= name == IN_USE_UNKNOWN;
+                let label = product_name(&name);
+                items.insert(item.item_id.clone(), json!({"process_label_zh": if name == IN_USE_UNKNOWN { UNKNOWN_TEXT.to_owned() } else { format!("{label} 正在使用") }}));
+                first.get_or_insert(label);
+            }
+        }
+        if let Some(label) = first {
+            saved.insert(g.group_id.clone(), json!({"process_label_zh":if unknown { UNKNOWN_TEXT.to_owned() } else { format!("{label} 正在运行，将跳过 {count} 个占用的项") },"item_count":count}));
+        }
     }
-    Value::Object(saved)
+    (Value::Object(saved), Value::Object(items))
+}
+
+const UNKNOWN_TEXT: &str = "暂时无法确认是否在运行，清理时会再次检查";
+
+pub(crate) fn skipped(item: &water_junk_scan::Item, settings: &Settings) -> bool {
+    item.eligible
+        && settings
+            .skipped
+            .iter()
+            .any(|v| v.path.eq_ignore_ascii_case(&item.path))
+}
+
+fn eligible(item: &water_junk_scan::Item, settings: &Settings) -> bool {
+    item.eligible && !skipped(item, settings)
+}
+
+/// Immutable scan facts stay in Record. These indexes and the bounded detail
+/// projection allow a skip to update only matching items and group summaries.
+#[derive(Default)]
+pub(crate) struct Projection {
+    pub view: Value,
+    pub details: BTreeMap<String, Value>,
+    ids: BTreeMap<String, usize>,
+    paths: BTreeMap<String, Vec<usize>>,
+    positions: BTreeMap<String, (usize, usize)>,
+    group_indices: BTreeMap<String, usize>,
+    detail_positions: BTreeMap<usize, usize>,
+    skipped: BTreeSet<usize>,
+    occupied: BTreeMap<String, BTreeSet<usize>>,
+    unknown: BTreeMap<String, BTreeSet<usize>>,
+}
+
+impl Projection {
+    pub fn new(
+        record: &Record,
+        rules: &RuleSet,
+        platform: &dyn Platform,
+        settings: &Settings,
+    ) -> Self {
+        let (view, details) = build(record, rules, platform, settings);
+        let mut p = Self {
+            view,
+            details,
+            ..Default::default()
+        };
+        for (index, item) in record.result.items.iter().enumerate() {
+            p.ids.insert(item.item_id.clone(), index);
+            p.paths
+                .entry(item.path.to_ascii_lowercase())
+                .or_default()
+                .push(index);
+            if skipped(item, settings) {
+                p.skipped.insert(index);
+            }
+            if eligible(item, settings) && record.saved["item_in_use"].get(&item.item_id).is_some()
+            {
+                p.occupied
+                    .entry(item.group_id.clone())
+                    .or_default()
+                    .insert(index);
+                if record.saved["item_in_use"][&item.item_id]["process_label_zh"] == UNKNOWN_TEXT {
+                    p.unknown
+                        .entry(item.group_id.clone())
+                        .or_default()
+                        .insert(index);
+                }
+            }
+        }
+        for (index, g) in record.result.groups.iter().enumerate() {
+            p.group_indices.insert(g.group_id.clone(), index);
+        }
+        for (ci, c) in p.view["categories"]
+            .as_array()
+            .into_iter()
+            .flatten()
+            .enumerate()
+        {
+            for (gi, g) in c["groups"].as_array().into_iter().flatten().enumerate() {
+                p.positions.insert(
+                    g["group_id"].as_str().unwrap_or_default().to_owned(),
+                    (ci, gi),
+                );
+            }
+        }
+        for detail in p.details.values() {
+            for (position, item) in detail["items"].as_array().into_iter().flatten().enumerate() {
+                if let Some(index) = item["item_id"].as_str().and_then(|id| p.ids.get(id)) {
+                    p.detail_positions.insert(*index, position);
+                }
+            }
+        }
+        for g in &record.result.groups {
+            p.refresh_occupancy(record, &g.group_id);
+        }
+        p
+    }
+
+    pub fn item_index(&self, id: &str) -> Option<usize> {
+        self.ids.get(id).copied()
+    }
+
+    pub fn is_skipped(&self, index: usize) -> bool {
+        self.skipped.contains(&index)
+    }
+
+    pub fn refresh_path(
+        &mut self,
+        record: &Record,
+        path: &str,
+        settings: &Settings,
+        rules: &RuleSet,
+        platform: &dyn Platform,
+    ) {
+        let indices = self
+            .paths
+            .get(&path.to_ascii_lowercase())
+            .cloned()
+            .unwrap_or_default();
+        for index in indices {
+            let item = &record.result.items[index];
+            let after = skipped(item, settings);
+            if after == self.skipped.contains(&index) {
+                continue;
+            }
+            if after {
+                self.skipped.insert(index);
+            } else {
+                self.skipped.remove(&index);
+            }
+            let Some(&(ci, gi)) = self.positions.get(&item.group_id) else {
+                continue;
+            };
+            let group = &record.result.groups[self.group_indices[&item.group_id]];
+            let bytes = util::number(&item.unique_bytes);
+            let drive = util::drive(&item.path);
+            let g = &mut self.view["categories"][ci]["groups"][gi];
+            let count = g["eligible_count"].as_u64().unwrap_or(0);
+            let count = if after {
+                count.saturating_sub(1)
+            } else {
+                count + 1
+            };
+            g["eligible_count"] = json!(count);
+            adjust_bytes(&mut g["eligible_bytes"], bytes, after);
+            for row in g["by_drive"]
+                .as_array_mut()
+                .into_iter()
+                .flatten()
+                .filter(|r| r["root"] == drive)
+            {
+                adjust_bytes(&mut row["eligible_bytes"], bytes, after);
+            }
+            g["summary_zh"] = json!(summary(group, count, rules, platform));
+            let selectable =
+                group.level.cleanable() && count > 0 && enabled(settings, &category(group));
+            g["selectable"] = json!(selectable);
+            g["default_selected"] = json!(selectable && group.level == Level::Recommended);
+            self.details.get_mut(&item.group_id).expect("indexed group")["group"] = g.clone();
+            if group.level == Level::Recommended {
+                adjust_bytes(&mut self.view["totals"]["recommended_bytes"], bytes, after);
+                for row in self.view["recommended_by_drive"]
+                    .as_array_mut()
+                    .into_iter()
+                    .flatten()
+                    .filter(|r| r["root"] == drive)
+                {
+                    adjust_bytes(&mut row["bytes"], bytes, after);
+                }
+                // A scan begun with every item on a drive skipped has no initial row.
+                if !after
+                    && !self.view["recommended_by_drive"]
+                        .as_array()
+                        .into_iter()
+                        .flatten()
+                        .any(|r| r["root"] == drive)
+                    && let Some(rows) = self.view["recommended_by_drive"].as_array_mut()
+                {
+                    rows.push(json!({"root":drive,"bytes":bytes.to_string()}));
+                    rows.sort_by(|a, b| a["root"].as_str().cmp(&b["root"].as_str()));
+                }
+                if let Some(rows) = self.view["recommended_by_drive"].as_array_mut() {
+                    rows.retain(|r| util::bytes(&r["bytes"]) > 0);
+                }
+            }
+            if let Some(&position) = self.detail_positions.get(&index) {
+                let displayed = &mut self.details.get_mut(&item.group_id).expect("indexed group")["items"]
+                    [position];
+                displayed["eligible"] = json!(!after);
+                displayed["reason_zh"] = if after {
+                    json!("已设为以后都跳过")
+                } else {
+                    Value::Null
+                };
+                displayed["in_use"] = if after {
+                    Value::Null
+                } else {
+                    record.saved["item_in_use"]
+                        .get(&item.item_id)
+                        .cloned()
+                        .unwrap_or(Value::Null)
+                };
+            }
+            if record.saved["item_in_use"].get(&item.item_id).is_some() {
+                let occupied = self.occupied.entry(item.group_id.clone()).or_default();
+                if after {
+                    occupied.remove(&index);
+                } else {
+                    occupied.insert(index);
+                }
+                if record.saved["item_in_use"][&item.item_id]["process_label_zh"] == UNKNOWN_TEXT {
+                    let unknown = self.unknown.entry(item.group_id.clone()).or_default();
+                    if after {
+                        unknown.remove(&index);
+                    } else {
+                        unknown.insert(index);
+                    }
+                }
+            }
+            self.refresh_occupancy(record, &item.group_id);
+        }
+    }
+
+    fn refresh_occupancy(&mut self, record: &Record, id: &str) {
+        if record.saved.get("item_in_use").is_none() || record.saved.get("in_use").is_none() {
+            return;
+        }
+        let Some(&(ci, gi)) = self.positions.get(id) else {
+            return;
+        };
+        let occupied = self.occupied.get(id);
+        let value = occupied.and_then(|s|s.first()).map(|first| {
+            let label = record.saved["item_in_use"][&record.result.items[*first].item_id]["process_label_zh"].as_str().unwrap_or(UNKNOWN_TEXT).trim_end_matches(" 正在使用");
+            let count = occupied.map_or(0,BTreeSet::len);
+            let unknown = self.unknown.get(id).is_some_and(|s|!s.is_empty());
+            json!({"process_label_zh":if unknown {UNKNOWN_TEXT.to_owned()} else {format!("{label} 正在运行，将跳过 {count} 个占用的项")},"item_count":count})
+        }).unwrap_or(Value::Null);
+        self.view["categories"][ci]["groups"][gi]["in_use"] = value.clone();
+        self.details.get_mut(id).expect("indexed group")["group"]["in_use"] = value;
+    }
+}
+
+fn adjust_bytes(value: &mut Value, bytes: u64, subtract: bool) {
+    let before = util::bytes(value);
+    *value = json!(
+        if subtract {
+            before.saturating_sub(bytes)
+        } else {
+            before.saturating_add(bytes)
+        }
+        .to_string()
+    );
+}
+
+fn summary(g: &Group, eligible_count: u64, rules: &RuleSet, platform: &dyn Platform) -> String {
+    let mut text = if g.item_count == 0 {
+        "未发现".into()
+    } else {
+        let date = g
+            .newest_activity
+            .as_deref()
+            .and_then(util::parse_time)
+            .map(|t| platform.local_date(t))
+            .unwrap_or((0, 0));
+        format!(
+            "{} 个{} · 最近 {} 月 {} 日",
+            g.item_count,
+            unit(rules, g),
+            date.0,
+            date.1
+        )
+    };
+    if g.item_count > 0 && eligible_count < g.item_count {
+        text += &format!(" · 跳过 {} 个", g.item_count - eligible_count);
+    }
+    if matches!(g.level, Level::Protected | Level::Advisory) {
+        text += " · 只统计占用";
+    }
+    text
+}
+
+fn product_name(name: &str) -> String {
+    PRODUCT_NAMES
+        .iter()
+        .find(|(process, _)| process.eq_ignore_ascii_case(name))
+        .map(|(_, product)| (*product).to_owned())
+        .unwrap_or_else(|| {
+            if name
+                .get(name.len().saturating_sub(4)..)
+                .is_some_and(|s| s.eq_ignore_ascii_case(".exe"))
+            {
+                name[..name.len() - 4].to_owned()
+            } else {
+                name.to_owned()
+            }
+        })
+}
+
+pub(crate) fn display_snapshot(result: &ScanResult) -> water_junk_scan::Snapshot {
+    let mut snapshot = water_junk_scan::snapshot(result);
+    for g in &result.groups {
+        if let Some(row) = snapshot.groups.get_mut(&g.group_id) {
+            row.total_bytes = g.unique_bytes.clone();
+        }
+    }
+    snapshot
 }
 
 pub(crate) fn group(
@@ -158,7 +469,20 @@ pub(crate) fn group(
     settings: &Settings,
 ) -> Value {
     let text = rules.text(&g.group_id);
-    let selectable = g.level.cleanable() && g.eligible_count > 0 && enabled(settings, &category(g));
+    let eligible_count = record
+        .result
+        .items
+        .iter()
+        .filter(|i| i.group_id == g.group_id && eligible(i, settings))
+        .count() as u64;
+    let eligible_bytes: u64 = record
+        .result
+        .items
+        .iter()
+        .filter(|i| i.group_id == g.group_id && eligible(i, settings))
+        .map(|i| util::number(&i.unique_bytes))
+        .sum();
+    let selectable = g.level.cleanable() && eligible_count > 0 && enabled(settings, &category(g));
     let mut summary = if g.item_count == 0 {
         "未发现".into()
     } else {
@@ -176,29 +500,45 @@ pub(crate) fn group(
             date.1
         )
     };
-    if g.item_count > 0 && g.eligible_count < g.item_count {
-        summary += &format!(" · 跳过 {} 个", g.item_count - g.eligible_count);
+    if g.item_count > 0 && eligible_count < g.item_count {
+        summary += &format!(" · 跳过 {} 个", g.item_count - eligible_count);
     }
     if matches!(g.level, Level::Protected | Level::Advisory) {
         summary += " · 只统计占用";
     }
     let growth = record.growth.iter().find(|v| v.group_id == g.group_id).map(|v| json!({"bytes_delta":v.bytes_delta,"count_delta":v.count_delta,"since":record.previous_at}));
     // Records written before in-use results were saved show null.
-    let in_use = record.saved["in_use"]
+    let mut in_use = record.saved["in_use"]
         .get(&g.group_id)
         .cloned()
         .unwrap_or(Value::Null);
+    if in_use.is_object() && in_use.get("item_count").is_none() {
+        in_use["item_count"] = Value::Null;
+    }
+    let mut by_drive = BTreeMap::<String, (u64, u64)>::new();
+    for item in record
+        .result
+        .items
+        .iter()
+        .filter(|i| i.group_id == g.group_id)
+    {
+        let row = by_drive.entry(util::drive(&item.path)).or_default();
+        row.0 += 1;
+        if eligible(item, settings) {
+            row.1 += util::number(&item.unique_bytes);
+        }
+    }
     let root = record
         .result
         .items
         .iter()
         .filter(|i| i.group_id == g.group_id)
-        .max_by_key(|i| util::number(&i.total_bytes))
+        .max_by_key(|i| util::number(&i.unique_bytes))
         .map(|i| util::drive(&i.path))
         .unwrap_or_default();
     json!({"group_id":g.group_id,"title_zh":text.as_ref().map(|t|t.title_zh.as_str()).unwrap_or("未识别"),
         "owner_zh":text.as_ref().map(|t|t.owner_zh.as_str()).unwrap_or("未知"),"level":g.level,"category":g.category,"drive_root":root,
-        "item_count":g.item_count,"eligible_count":g.eligible_count,"file_count":g.file_count,"total_bytes":g.total_bytes,"eligible_bytes":g.eligible_bytes,
+        "item_count":g.item_count,"eligible_count":eligible_count,"file_count":g.file_count,"total_bytes":g.unique_bytes,"eligible_bytes":eligible_bytes.to_string(),"logical_bytes":g.total_bytes,"by_drive":by_drive.into_iter().map(|(root,(item_count,bytes))|json!({"root":root,"item_count":item_count,"eligible_bytes":bytes.to_string()})).collect::<Vec<_>>(),
         "newest_activity":g.newest_activity,"summary_zh":summary,"growth":growth,"in_use":in_use,"selectable":selectable,"default_selected":selectable && g.level==Level::Recommended})
 }
 
@@ -295,24 +635,27 @@ pub(crate) fn build(
             a.level
                 .rank()
                 .cmp(&b.level.rank())
-                .then(util::number(&b.total_bytes).cmp(&util::number(&a.total_bytes)))
+                .then(util::number(&b.unique_bytes).cmp(&util::number(&a.unique_bytes)))
                 .then(a.group_id.cmp(&b.group_id))
         });
         let mut buckets = BTreeMap::<String, Vec<Value>>::new();
         for g in groups {
-            let total = util::number(&g.total_bytes);
+            let total = util::number(&g.unique_bytes);
             if cat == "unrecognized" {
                 totals[5] += total;
             } else {
                 totals[0] += total;
             }
             match g.level {
-                Level::Recommended => totals[1] += util::number(&g.eligible_bytes),
+                Level::Recommended => {}
                 Level::Confirm => totals[2] += total,
                 Level::Advisory => totals[3] += total,
                 Level::Protected => totals[4] += total,
             }
             let view = group(record, g, rules, platform, settings);
+            if g.level == Level::Recommended {
+                totals[1] += util::bytes(&view["eligible_bytes"]);
+            }
             let text = rules.text(&g.group_id);
             let rule = rules.rule(&g.rule_id);
             let mut items: Vec<_> = record
@@ -321,20 +664,20 @@ pub(crate) fn build(
                 .iter()
                 .filter(|i| i.group_id == g.group_id)
                 .collect();
-            items.sort_by_key(|i| std::cmp::Reverse(util::number(&i.total_bytes)));
+            items.sort_by_key(|i| std::cmp::Reverse(util::number(&i.unique_bytes)));
             if g.level == Level::Recommended {
-                for i in items.iter().filter(|i| i.eligible) {
+                for i in items.iter().filter(|i| eligible(i, settings)) {
                     *by_drive.entry(util::drive(&i.path)).or_default() +=
-                        util::number(&i.total_bytes);
+                        util::number(&i.unique_bytes);
                 }
             }
             let item_views: Vec<_> = items.iter().take(200).map(|i| {
-                let reason = i.ineligible_reason.as_deref().map(|r| match r {
+                let reason = if skipped(i, settings) { Some("已设为以后都跳过".into()) } else { i.ineligible_reason.as_deref().map(|r| match r {
                     "level_not_cleanable"=>"这一类只统计占用，不清理".into(),"hard_guard"=>"这是系统或用户的关键目录".into(),
                     "contains_protected"=>"里面有受保护的数据".into(),"inside_protected"=>"位于受保护的数据之内".into(),"repository"=>"这是代码仓库".into(),
                     "too_recent"=>format!("最近 {} 小时内有改动",rule.map(|r|r.min_age_hours).unwrap_or(0)),
-                    "keep_newest"=>format!("按规则保留最新的 {} 个",rule.map(|r|r.keep_newest).unwrap_or(0)),_=>"无法确认这一项的身份".into() });
-                json!({"display_path":i.path,"total_bytes":i.total_bytes,"newest_activity":i.newest_activity,"eligible":i.eligible,"reason_zh":reason})
+                    "user_skipped"=>"已设为以后都跳过".into(),"keep_newest"=>format!("按规则保留最新的 {} 个",rule.map(|r|r.keep_newest).unwrap_or(0)),_=>"无法确认这一项的身份".into() }) };
+                json!({"item_id":i.item_id,"in_use":if eligible(i, settings) { record.saved["item_in_use"].get(&i.item_id).cloned().unwrap_or(Value::Null) } else { Value::Null },"display_path":i.path,"total_bytes":i.unique_bytes,"newest_activity":i.newest_activity,"eligible":eligible(i, settings),"reason_zh":reason})
             }).collect();
             details.insert(g.group_id.clone(),json!({"group":view,"what_zh":text.as_ref().map(|t|t.what_zh.as_str()).unwrap_or("未识别的位置，只统计占用。"),
                 "why_zh":text.as_ref().map(|t|t.why_zh.as_str()).unwrap_or("没有匹配的清理规则。"),"after_zh":text.as_ref().map(|t|t.after_zh.as_str()).unwrap_or("请自行检查。"),

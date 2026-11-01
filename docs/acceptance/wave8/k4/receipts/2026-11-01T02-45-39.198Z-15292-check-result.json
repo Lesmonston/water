@@ -1,0 +1,327 @@
+{
+  "task": "WATER-W8-K4",
+  "kind": "service",
+  "mode": "check",
+  "finalGate": false,
+  "manifest": "docs/dispatch/wave8/manifest.json",
+  "startedAt": "2026-11-01T02:45:39.199Z",
+  "realDataRead": false,
+  "productTestsRun": false,
+  "nativeWindows": 0,
+  "directoryDialogs": 0,
+  "commands": [
+    {
+      "binary": "git",
+      "argv": [
+        "branch",
+        "--show-current"
+      ],
+      "exitCode": 0
+    },
+    {
+      "binary": "git",
+      "argv": [
+        "merge-base",
+        "--is-ancestor",
+        "232bc2982228f5d99f42017de6db3caa5912a8ab",
+        "HEAD"
+      ],
+      "exitCode": 0
+    },
+    {
+      "binary": "git",
+      "argv": [
+        "diff",
+        "--no-renames",
+        "--name-only",
+        "-z",
+        "232bc2982228f5d99f42017de6db3caa5912a8ab",
+        "HEAD"
+      ],
+      "exitCode": 0
+    },
+    {
+      "binary": "git",
+      "argv": [
+        "diff",
+        "--no-renames",
+        "--name-only",
+        "-z",
+        "HEAD"
+      ],
+      "exitCode": 0
+    },
+    {
+      "binary": "git",
+      "argv": [
+        "ls-files",
+        "--others",
+        "--exclude-standard",
+        "-z"
+      ],
+      "exitCode": 0
+    },
+    {
+      "binary": "git",
+      "argv": [
+        "rev-parse",
+        "HEAD"
+      ],
+      "exitCode": 0
+    },
+    {
+      "binary": "git",
+      "argv": [
+        "status",
+        "--porcelain",
+        "--untracked-files=all"
+      ],
+      "exitCode": 0
+    },
+    {
+      "binary": "C:\\Users\\37310\\.cargo\\bin\\rustup.exe",
+      "argv": [
+        "which",
+        "cargo",
+        "--toolchain",
+        "1.95.0"
+      ],
+      "exitCode": 0,
+      "error": null,
+      "log": "2026-11-01T02-45-39.198Z-15292-check-1.log"
+    },
+    {
+      "binary": "C:\\Users\\37310\\.cargo\\bin\\rustup.exe",
+      "argv": [
+        "which",
+        "rustc",
+        "--toolchain",
+        "1.95.0"
+      ],
+      "exitCode": 0,
+      "error": null,
+      "log": "2026-11-01T02-45-39.198Z-15292-check-2.log"
+    },
+    {
+      "binary": "C:\\Users\\37310\\.rustup\\toolchains\\1.95.0-x86_64-pc-windows-msvc\\bin\\rustc.exe",
+      "argv": [
+        "--version"
+      ],
+      "exitCode": 0,
+      "error": null,
+      "log": "2026-11-01T02-45-39.198Z-15292-check-3.log"
+    },
+    {
+      "binary": "C:\\Users\\37310\\.rustup\\toolchains\\1.95.0-x86_64-pc-windows-msvc\\bin\\cargo.exe",
+      "argv": [
+        "metadata",
+        "--offline",
+        "--locked",
+        "--format-version",
+        "1",
+        "--manifest-path",
+        "packages/water-service/Cargo.toml"
+      ],
+      "exitCode": 0,
+      "error": null,
+      "log": "2026-11-01T02-45-39.198Z-15292-check-4.log"
+    },
+    {
+      "binary": "C:\\Users\\37310\\.rustup\\toolchains\\1.95.0-x86_64-pc-windows-msvc\\bin\\cargo.exe",
+      "argv": [
+        "fmt",
+        "--manifest-path",
+        "packages/water-service/Cargo.toml",
+        "--",
+        "--check"
+      ],
+      "exitCode": 0,
+      "error": null,
+      "log": "2026-11-01T02-45-39.198Z-15292-check-5.log"
+    },
+    {
+      "binary": "C:\\Users\\37310\\.rustup\\toolchains\\1.95.0-x86_64-pc-windows-msvc\\bin\\cargo.exe",
+      "argv": [
+        "clippy",
+        "--offline",
+        "--locked",
+        "--manifest-path",
+        "packages/water-service/Cargo.toml",
+        "--all-targets",
+        "--",
+        "-D",
+        "warnings"
+      ],
+      "exitCode": 0,
+      "error": null,
+      "log": "2026-11-01T02-45-39.198Z-15292-check-6.log"
+    },
+    {
+      "binary": "git",
+      "argv": [
+        "branch",
+        "--show-current"
+      ],
+      "exitCode": 0
+    },
+    {
+      "binary": "git",
+      "argv": [
+        "merge-base",
+        "--is-ancestor",
+        "232bc2982228f5d99f42017de6db3caa5912a8ab",
+        "HEAD"
+      ],
+      "exitCode": 0
+    },
+    {
+      "binary": "git",
+      "argv": [
+        "diff",
+        "--no-renames",
+        "--name-only",
+        "-z",
+        "232bc2982228f5d99f42017de6db3caa5912a8ab",
+        "HEAD"
+      ],
+      "exitCode": 0
+    },
+    {
+      "binary": "git",
+      "argv": [
+        "diff",
+        "--no-renames",
+        "--name-only",
+        "-z",
+        "HEAD"
+      ],
+      "exitCode": 0
+    },
+    {
+      "binary": "git",
+      "argv": [
+        "ls-files",
+        "--others",
+        "--exclude-standard",
+        "-z"
+      ],
+      "exitCode": 0
+    },
+    {
+      "binary": "git",
+      "argv": [
+        "rev-parse",
+        "HEAD"
+      ],
+      "exitCode": 0
+    },
+    {
+      "binary": "git",
+      "argv": [
+        "status",
+        "--porcelain",
+        "--untracked-files=all"
+      ],
+      "exitCode": 0
+    }
+  ],
+  "changedPaths": [
+    "packages/water-service/src/clean.rs",
+    "packages/water-service/src/lib.rs",
+    "packages/water-service/src/native_windows.rs",
+    "packages/water-service/src/service.rs",
+    "packages/water-service/src/storage.rs",
+    "packages/water-service/src/views.rs",
+    "packages/water-service/tests/service_v1.rs"
+  ],
+  "before": {
+    "head": "232bc2982228f5d99f42017de6db3caa5912a8ab",
+    "status": "M packages/water-service/src/clean.rs\n M packages/water-service/src/lib.rs\n M packages/water-service/src/native_windows.rs\n M packages/water-service/src/service.rs\n M packages/water-service/src/storage.rs\n M packages/water-service/src/views.rs\n M packages/water-service/tests/service_v1.rs"
+  },
+  "sourceState": {
+    "files": [
+      {
+        "path": "packages/water-service/Cargo.toml",
+        "snapshot": "2026-11-01T02-45-39.198Z-15292-check-source-0.txt",
+        "sha256": "b9ebe677e1afba7942add2bda5410b2ee40297b773d0de34cc1fc197a266e913",
+        "test": false
+      },
+      {
+        "path": "packages/water-service/Cargo.lock",
+        "snapshot": "2026-11-01T02-45-39.198Z-15292-check-source-1.txt",
+        "sha256": "4bf08038142231a0b8a9bc6ce3d1e1d4256a2bb7da800d244a7d15c7df257198",
+        "test": false
+      },
+      {
+        "path": "packages/water-service/README.md",
+        "snapshot": "2026-11-01T02-45-39.198Z-15292-check-source-2.txt",
+        "sha256": "af470bb81a330ce223f19ad00fd295a48bb4fd21fd41a9a6b8906961a93931d6",
+        "test": false
+      },
+      {
+        "path": "packages/water-service/examples/service_smoke.rs",
+        "snapshot": "2026-11-01T02-45-39.198Z-15292-check-source-3.txt",
+        "sha256": "9be9a81592daec830afe78a3b3a86d9ee2c0c01aa91f1b9f32feeffe6ff48069",
+        "test": false
+      },
+      {
+        "path": "packages/water-service/src/clean.rs",
+        "snapshot": "2026-11-01T02-45-39.198Z-15292-check-source-4.txt",
+        "sha256": "ffdf1606d9eaea75b82a5fa14c2754e90221a98d45c4e2d633ca211b2835f305",
+        "test": false
+      },
+      {
+        "path": "packages/water-service/src/lib.rs",
+        "snapshot": "2026-11-01T02-45-39.198Z-15292-check-source-5.txt",
+        "sha256": "d990cdada27ef10f65651bfb597932b6a0fd493404314d109dd0e722f3280c01",
+        "test": false
+      },
+      {
+        "path": "packages/water-service/src/native_windows.rs",
+        "snapshot": "2026-11-01T02-45-39.198Z-15292-check-source-6.txt",
+        "sha256": "96615f3d53b589167ca61ac922a9e23bd4f743f43e5af3354b4e328d684e1cb3",
+        "test": false
+      },
+      {
+        "path": "packages/water-service/src/service.rs",
+        "snapshot": "2026-11-01T02-45-39.198Z-15292-check-source-7.txt",
+        "sha256": "7ad0d8853d68c56dd8715f41d2edc11356ba4090f6ab9377b2862461762b05c9",
+        "test": false
+      },
+      {
+        "path": "packages/water-service/src/storage.rs",
+        "snapshot": "2026-11-01T02-45-39.198Z-15292-check-source-8.txt",
+        "sha256": "77a42ff16d50d3cd77d45e5a504491b81b85b9501f8be70900397a18193ee6ba",
+        "test": false
+      },
+      {
+        "path": "packages/water-service/src/util.rs",
+        "snapshot": "2026-11-01T02-45-39.198Z-15292-check-source-9.txt",
+        "sha256": "96cadb68dd13715d8540d34e29a65bccded42ec1a5da415087e7af8af6b690ac",
+        "test": false
+      },
+      {
+        "path": "packages/water-service/src/views.rs",
+        "snapshot": "2026-11-01T02-45-39.198Z-15292-check-source-10.txt",
+        "sha256": "be0047de46c41042b192290c08c1acd5ba3f355967074a33f31ca4a1f5f36e91",
+        "test": false
+      },
+      {
+        "path": "packages/water-service/tests/service_v1.rs",
+        "snapshot": "2026-11-01T02-45-39.198Z-15292-check-source-11.txt",
+        "sha256": "492e767cea4e9372867b1208782a645a8d4541fdae33d5aca0b64fd528a28f32",
+        "test": true
+      }
+    ],
+    "productionHash": "92647635c6fabdecb4640a4c501a0c6701e69af5033760f4a71143376377be03",
+    "testHash": "3555799a1ebde78cce65646894ef819e746c3ec1c1862bd39a67b18655caab6d"
+  },
+  "registryPackages": 11,
+  "after": {
+    "head": "232bc2982228f5d99f42017de6db3caa5912a8ab",
+    "status": "M packages/water-service/src/clean.rs\n M packages/water-service/src/lib.rs\n M packages/water-service/src/native_windows.rs\n M packages/water-service/src/service.rs\n M packages/water-service/src/storage.rs\n M packages/water-service/src/views.rs\n M packages/water-service/tests/service_v1.rs"
+  },
+  "status": "passed",
+  "error": null,
+  "endedAt": "2026-11-01T02:45:47.826Z"
+}

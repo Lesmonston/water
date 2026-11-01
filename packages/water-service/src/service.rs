@@ -26,21 +26,32 @@ pub(crate) struct CustomRoot {
 
 #[derive(Clone, Serialize, Deserialize)]
 #[serde(deny_unknown_fields)]
+pub(crate) struct Skipped {
+    pub skip_id: String,
+    pub path: String,
+    pub added_at: String,
+}
+
+#[derive(Clone, Serialize, Deserialize)]
+#[serde(deny_unknown_fields)]
 pub(crate) struct Settings {
     pub settings_version: String,
     pub categories: BTreeMap<String, bool>,
     pub custom_roots: Vec<CustomRoot>,
+    #[serde(default)]
+    pub skipped: Vec<Skipped>,
 }
 
 impl Default for Settings {
     fn default() -> Self {
         Self {
-            settings_version: "water.settings.v1".into(),
+            settings_version: "water.settings.v2".into(),
             categories: views::CATEGORIES[..7]
                 .iter()
                 .map(|c| (c.0.into(), true))
                 .collect(),
             custom_roots: vec![],
+            skipped: vec![],
         }
     }
 }
@@ -51,8 +62,7 @@ pub(crate) struct Record {
     pub plan: water_junk_rules::ScanPlan,
     pub growth: Vec<scan::Growth>,
     pub previous_at: Option<String>,
-    pub view: Value,
-    pub details: BTreeMap<String, Value>,
+    pub projection: Mutex<views::Projection>,
 }
 
 const RECORD_KEYS: [&str; 11] = [
@@ -72,11 +82,13 @@ const RECORD_KEYS: [&str; 11] = [
 impl Record {
     fn load(saved: Value) -> Option<Self> {
         // `in_use` (saved per-group in-use results) is optional: older records lack it.
-        let mut with_in_use = RECORD_KEYS.to_vec();
-        with_in_use.push("in_use");
-        if saved["record_version"] != "water.scan-record.v1"
-            || !(util::exact_keys(&saved, &RECORD_KEYS) || util::exact_keys(&saved, &with_in_use))
-        {
+        let optional = ["in_use", "item_in_use", "orphans"];
+        let keys_ok = saved.as_object().is_some_and(|m| {
+            RECORD_KEYS.iter().all(|k| m.contains_key(*k))
+                && m.keys()
+                    .all(|k| RECORD_KEYS.contains(&k.as_str()) || optional.contains(&k.as_str()))
+        });
+        if saved["record_version"] != "water.scan-record.v1" || !keys_ok {
             return None;
         }
         let result = scan::result_from_json(&saved["result"].to_string()).ok()?;
@@ -111,11 +123,33 @@ impl Record {
                 !m.as_object().is_some_and(|m| {
                     m.iter().all(|(id, v)| {
                         result.groups.iter().any(|g| &g.group_id == id)
-                            && util::exact_keys(v, &["process_label_zh"])
+                            && (util::exact_keys(v, &["process_label_zh"])
+                                || (util::exact_keys(v, &["process_label_zh", "item_count"])
+                                    && (v["item_count"].is_null()
+                                        || v["item_count"].as_u64().is_some_and(|n| {
+                                            n <= result
+                                                .groups
+                                                .iter()
+                                                .find(|g| &g.group_id == id)
+                                                .map(|g| g.item_count)
+                                                .unwrap_or(0)
+                                        }))))
                             && v["process_label_zh"].is_string()
                     })
                 })
             })
+        {
+            return None;
+        }
+        if saved.get("item_in_use").is_some_and(|m| {
+            !m.as_object().is_some_and(|m| {
+                m.iter().all(|(id, v)| {
+                    result.items.iter().any(|i| &i.item_id == id)
+                        && util::exact_keys(v, &["process_label_zh"])
+                        && v["process_label_zh"].is_string()
+                })
+            })
+        }) || saved.get("orphans").is_some_and(|v| !valid_orphans(v))
         {
             return None;
         }
@@ -134,12 +168,16 @@ impl Record {
             plan,
             growth,
             previous_at: None,
-            view: Value::Null,
-            details: BTreeMap::new(),
+            projection: Mutex::new(views::Projection::default()),
         })
     }
     pub fn completed(&self) -> bool {
         matches!(self.result.status.as_str(), "completed" | "partial")
+    }
+    pub fn projection(&self) -> std::sync::MutexGuard<'_, views::Projection> {
+        self.projection
+            .lock()
+            .unwrap_or_else(PoisonError::into_inner)
     }
 }
 
@@ -201,7 +239,7 @@ impl Service {
         let store = Store::new(config.data_dir)?;
         let folders = config.platform.known_folders()?;
         let rules = RuleSet::embedded();
-        let settings = load_settings(&store, &folders);
+        let settings = load_settings(&store, &folders, config.platform.as_ref());
         let mut records: Vec<_> = store
             .records("scans")
             .into_iter()
@@ -217,7 +255,8 @@ impl Service {
                 .as_str()
                 .and_then(|id| timestamps.get(id))
                 .cloned();
-            (r.view, r.details) = views::build(r, &rules, config.platform.as_ref(), &settings);
+            *r.projection() =
+                views::Projection::new(r, &rules, config.platform.as_ref(), &settings);
         }
         let last = records
             .iter()
@@ -327,22 +366,29 @@ impl Service {
         validate(command, &args)?;
         match command {
             "scan_start" => self.scan_start(),
-            "clean_prepare" => {
-                clean::prepare(core, args["groupIds"].as_array().expect("validated"))
-            }
+            "clean_prepare" => clean::prepare(
+                core,
+                args["groupIds"].as_array().expect("validated"),
+                args.get("excludeItemIds")
+                    .and_then(Value::as_array)
+                    .map(Vec::as_slice)
+                    .unwrap_or(&[]),
+            ),
             "clean_start" => clean::start(
                 core,
                 args["planId"].as_str().expect("validated"),
                 args["confirmToken"].as_str().expect("validated"),
             ),
             "custom_root_add" => self.add_root(),
+            "skip_add" => self.add_skip(args["itemId"].as_str().expect("validated")),
+            "skip_remove" => self.remove_skip(args["skipId"].as_str().expect("validated")),
             "app_state" => {
                 let drives=core.platform.drives().into_iter().map(|d|json!({"root":d.root,"label_zh":if d.is_system{"系统盘"}else{"本地磁盘"},"is_system":d.is_system,"total_bytes":d.total_bytes.to_string(),"free_bytes":d.free_bytes.to_string()})).collect::<Vec<_>>();
                 let s = lock(core)?;
                 let last = s.last_record();
-                let summary=last.as_ref().map(|r|json!({"scan_id":r.result.scan_id,"finished_at":r.saved["finished_at"],"recommended_bytes":r.view["totals"]["recommended_bytes"],"recommended_by_drive":r.view["recommended_by_drive"],"added_7d_bytes":added_7d(&s,r)}));
+                let summary=last.as_ref().map(|r|{let p=r.projection(); json!({"scan_id":r.result.scan_id,"finished_at":r.saved["finished_at"],"recommended_bytes":p.view["totals"]["recommended_bytes"],"recommended_by_drive":p.view["recommended_by_drive"],"added_7d_bytes":added_7d(&s,r)})});
                 Ok(
-                    json!({"app_version":core.config_version,"platform":"windows","busy":s.busy,"drives":drives,"last_scan":summary,"insights":last.map(|r|r.view["insights"].clone()).unwrap_or(json!([]))}),
+                    json!({"app_version":core.config_version,"platform":"windows","busy":s.busy,"drives":drives,"last_scan":summary,"checkup_due":checkup_due(core, last.as_deref()),"insights":last.map(|r|r.projection().view["insights"].clone()).unwrap_or(json!([]))}),
                 )
             }
             "scan_progress" => {
@@ -378,7 +424,7 @@ impl Service {
                     .records
                     .iter()
                     .find(|r| r.result.scan_id == args["scanId"])
-                    .map(|r| r.view.clone())
+                    .map(|r| r.projection().view.clone())
                     .ok_or_else(|| IpcError::new("not_found"))?;
                 for category in view["categories"].as_array_mut().expect("view categories") {
                     for group in category["groups"].as_array_mut().expect("view groups") {
@@ -391,6 +437,7 @@ impl Service {
                 let s = lock(core)?;
                 let r = s.last_record().ok_or_else(|| IpcError::new("not_found"))?;
                 let mut v = r
+                    .projection()
                     .details
                     .get(args["groupId"].as_str().expect("validated"))
                     .cloned()
@@ -555,12 +602,25 @@ impl Service {
         {
             return Ok(json!({"added":root_view(&s,root)}));
         }
-        if s.settings.custom_roots.len() >= 16 || !valid_custom(&path, &self.core.folders) {
+        if s.settings.custom_roots.len() >= 16
+            || !valid_custom(&path, &self.core.folders, self.core.platform.as_ref())
+        {
             return Err(IpcError {
                 code: "invalid".into(),
                 message_zh: "这个位置太大或包含系统目录，请选择具体的项目文件夹。".into(),
             });
         }
+        if is_drive_root(&path) && !supported_volume(self.core.platform.as_ref(), &path) {
+            return Err(IpcError {
+                code: "invalid".into(),
+                message_zh: "只支持 NTFS 或 ReFS 格式的盘".into(),
+            });
+        }
+        let path = if is_drive_root(&path) {
+            util::drive(&path)
+        } else {
+            path
+        };
         let base: String = path
             .rsplit('\\')
             .next()
@@ -570,7 +630,13 @@ impl Service {
             .take(24)
             .flat_map(char::to_lowercase)
             .collect();
-        let base = if base.is_empty() { "root".into() } else { base };
+        let base = if is_drive_root(&path) {
+            format!("drive-{}", path[..1].to_ascii_lowercase())
+        } else if base.is_empty() {
+            "root".into()
+        } else {
+            base
+        };
         let mut id = base.clone();
         let mut suffix = 2;
         while s.settings.custom_roots.iter().any(|r| r.root_id == id) {
@@ -589,6 +655,98 @@ impl Service {
             .write("", "settings.json", &json!(settings))?;
         s.settings = settings;
         Ok(json!({"added":root_view(&s,&root)}))
+    }
+}
+
+impl Service {
+    fn add_skip(&self, item_id: &str) -> Result<Value, IpcError> {
+        let core = &self.core;
+        let mut s = lock(core)?;
+        if s.busy != "idle" {
+            return Err(IpcError::new("busy"));
+        }
+        let record = s.last_record().ok_or_else(|| IpcError::new("invalid"))?;
+        let index = record
+            .projection()
+            .item_index(item_id)
+            .ok_or_else(|| IpcError::new("invalid"))?;
+        let item = &record.result.items[index];
+        if !record
+            .result
+            .groups
+            .iter()
+            .any(|g| g.group_id == item.group_id && g.level.cleanable())
+        {
+            return Err(IpcError::new("invalid"));
+        }
+        if s.settings
+            .skipped
+            .iter()
+            .any(|v| v.path.eq_ignore_ascii_case(&item.path))
+        {
+            let stale: Vec<_> = s.plans.keys().cloned().collect();
+            s.stale_plans.extend(stale);
+            return Ok(locations(&s));
+        }
+        if s.settings.skipped.len() >= 64 {
+            return Err(IpcError::new("invalid"));
+        }
+        let mut settings = s.settings.clone();
+        let sequence = (1..=999999)
+            .find(|n| {
+                !settings
+                    .skipped
+                    .iter()
+                    .any(|v| v.skip_id == format!("s-{n:06}"))
+            })
+            .ok_or_else(|| IpcError::new("invalid"))?;
+        settings.skipped.push(Skipped {
+            skip_id: format!("s-{sequence:06}"),
+            path: item.path.clone(),
+            added_at: util::timestamp(core.platform.now()),
+        });
+        core.store.write("", "settings.json", &json!(settings))?;
+        s.settings = settings;
+        record.projection().refresh_path(
+            &record,
+            &item.path,
+            &s.settings,
+            &core.rules,
+            core.platform.as_ref(),
+        );
+        let stale: Vec<_> = s.plans.keys().cloned().collect();
+        s.stale_plans.extend(stale);
+        Ok(locations(&s))
+    }
+
+    fn remove_skip(&self, id: &str) -> Result<Value, IpcError> {
+        let mut s = lock(&self.core)?;
+        if s.busy != "idle" {
+            return Err(IpcError::new("busy"));
+        }
+        let mut settings = s.settings.clone();
+        let index = settings
+            .skipped
+            .iter()
+            .position(|v| v.skip_id == id)
+            .ok_or_else(|| IpcError::new("not_found"))?;
+        let removed = settings.skipped.remove(index);
+        self.core
+            .store
+            .write("", "settings.json", &json!(settings))?;
+        s.settings = settings;
+        if let Some(record) = s.last_record() {
+            record.projection().refresh_path(
+                &record,
+                &removed.path,
+                &s.settings,
+                &self.core.rules,
+                self.core.platform.as_ref(),
+            );
+        }
+        let stale: Vec<_> = s.plans.keys().cloned().collect();
+        s.stale_plans.extend(stale);
+        Ok(locations(&s))
     }
 }
 
@@ -667,30 +825,30 @@ impl ScanJob {
                 issues: vec![],
             },
         };
-        let snapshot = scan::snapshot(&result);
+        let snapshot = views::display_snapshot(&result);
         let growth = if matches!(result.status.as_str(), "completed" | "partial") {
             previous
                 .as_ref()
-                .map(|p| scan::growth(&scan::snapshot(&p.result), &snapshot))
+                .map(|p| scan::growth(&views::display_snapshot(&p.result), &snapshot))
                 .unwrap_or_default()
         } else {
             vec![]
         };
         let drives=worker_core.platform.drives().into_iter().map(|d|json!({"root":d.root,"is_system":d.is_system,"total_bytes":d.total_bytes.to_string(),"free_bytes":d.free_bytes.to_string()})).collect::<Vec<_>>();
         // Still inside this scan's in-use batch; the result is saved and views reuse it.
-        let in_use = views::scan_in_use(&result, worker_core.platform.as_ref());
+        let (in_use, item_in_use) = views::scan_in_use(&result, worker_core.platform.as_ref());
+        let orphans = orphan_views(worker_core.platform.as_ref());
         let plan_value = serde_json::from_str::<Value>(&plan_json).unwrap_or(Value::Null);
-        let saved = json!({"record_version":"water.scan-record.v1","scan_id":worker_id,"started_at":result.started_at,"finished_at":result.ended_at,"duration_ms":started.elapsed().as_millis() as u64,"drives":drives,"plan":plan_value,"result":result,"growth":growth,"previous_scan_id":previous.as_ref().map(|p|&p.result.scan_id),"consumed":false,"in_use":in_use});
-        let mut record = Record {
+        let saved = json!({"record_version":"water.scan-record.v1","scan_id":worker_id,"started_at":result.started_at,"finished_at":result.ended_at,"duration_ms":started.elapsed().as_millis() as u64,"drives":drives,"plan":plan_value,"result":result,"growth":growth,"previous_scan_id":previous.as_ref().map(|p|&p.result.scan_id),"consumed":false,"in_use":in_use,"item_in_use":item_in_use,"orphans":orphans});
+        let record = Record {
             saved,
             result,
             plan,
             growth,
             previous_at: previous.as_ref().map(|p| p.result.ended_at.clone()),
-            view: Value::Null,
-            details: BTreeMap::new(),
+            projection: Mutex::new(views::Projection::default()),
         };
-        (record.view, record.details) = views::build(
+        *record.projection() = views::Projection::new(
             &record,
             &worker_core.rules,
             worker_core.platform.as_ref(),
@@ -704,10 +862,10 @@ impl ScanJob {
             .result
             .groups
             .iter()
-            .map(|g| util::number(&g.total_bytes))
+            .map(|g| util::number(&g.unique_bytes))
             .sum::<u64>()
             .to_string();
-        let category_totals: Vec<_> = record.view["categories"]
+        let category_totals: Vec<_> = record.projection().view["categories"]
             .as_array()
             .map(|cats| {
                 cats.iter()
@@ -784,7 +942,10 @@ fn validate(command: &str, args: &Value) -> Result<(), IpcError> {
         | "trends" | "history_list" | "locations_get" | "custom_root_add" => &[],
         "scan_cancel" | "scan_result" => &["scanId"],
         "group_detail" => &["groupId"],
+        "clean_prepare" if args.get("excludeItemIds").is_some() => &["groupIds", "excludeItemIds"],
         "clean_prepare" => &["groupIds"],
+        "skip_add" => &["itemId"],
+        "skip_remove" => &["skipId"],
         "clean_start" => &["planId", "confirmToken"],
         "clean_result" => &["cleanId"],
         "locations_set_category" => &["category", "enabled"],
@@ -804,9 +965,12 @@ fn validate(command: &str, args: &Value) -> Result<(), IpcError> {
             "confirmToken" => args[key]
                 .as_str()
                 .is_some_and(|s| (1..=512).contains(&s.chars().count()) && !s.contains('\\')),
-            "groupIds" => args[key].as_array().is_some_and(|v| {
-                !v.is_empty()
-                    && v.iter().all(|i| i.as_str().is_some_and(util::id_ok))
+            "groupIds" | "excludeItemIds" => args[key].as_array().is_some_and(|v| {
+                (if *key == "groupIds" {
+                    !v.is_empty()
+                } else {
+                    v.len() <= 5000
+                }) && v.iter().all(|i| i.as_str().is_some_and(util::id_ok))
                     && v.iter()
                         .filter_map(Value::as_str)
                         .collect::<BTreeSet<_>>()
@@ -830,7 +994,27 @@ fn selection(settings: &Settings, group: &mut Value) {
     group["default_selected"] = json!(selectable && group["level"] == "recommended");
 }
 
-fn valid_custom(path: &str, folders: &KnownFolders) -> bool {
+fn is_drive_root(path: &str) -> bool {
+    path.len() == 3 && path.as_bytes()[0].is_ascii_alphabetic() && &path.as_bytes()[1..] == b":\\"
+}
+
+fn supported_volume(platform: &dyn Platform, path: &str) -> bool {
+    platform
+        .volume_file_system(path)
+        .is_some_and(|s| s.eq_ignore_ascii_case("NTFS") || s.eq_ignore_ascii_case("ReFS"))
+}
+
+fn valid_custom(path: &str, folders: &KnownFolders, platform: &dyn Platform) -> bool {
+    if is_drive_root(path) {
+        return platform
+            .drives()
+            .iter()
+            .any(|d| d.root.eq_ignore_ascii_case(path) && !d.is_system)
+            && !folders.values().any(|p| {
+                util::contains(path, p)
+                    || util::contains(path, &canonical(p).unwrap_or_else(|| p.to_owned()))
+            });
+    }
     let bytes = path.as_bytes();
     bytes.len() > 3
         && bytes[0].is_ascii_alphabetic()
@@ -1003,13 +1187,15 @@ pub(crate) fn trim(store: &Store, s: &mut State) {
 /// Unreadable, wrong-version or incomplete-category settings fall back to defaults. Otherwise
 /// the category toggles are kept and each custom root is checked on its own; any dropped root
 /// leads to one atomic rewrite (best effort: a failed write keeps the filtered copy in memory).
-fn load_settings(store: &Store, folders: &KnownFolders) -> Settings {
+fn load_settings(store: &Store, folders: &KnownFolders, platform: &dyn Platform) -> Settings {
     #[derive(Deserialize)]
     #[serde(deny_unknown_fields)]
     struct Raw {
         settings_version: String,
         categories: BTreeMap<String, bool>,
         custom_roots: Vec<Value>,
+        #[serde(default)]
+        skipped: Vec<Skipped>,
     }
     let Some(raw) = store
         .read("", "settings.json")
@@ -1017,7 +1203,23 @@ fn load_settings(store: &Store, folders: &KnownFolders) -> Settings {
     else {
         return Settings::default();
     };
-    if raw.settings_version != "water.settings.v1"
+    if !["water.settings.v1", "water.settings.v2"].contains(&raw.settings_version.as_str())
+        || raw.skipped.len() > 64
+        || raw.skipped.iter().any(|v| !valid_skip(v))
+        || raw
+            .skipped
+            .iter()
+            .map(|v| v.skip_id.as_str())
+            .collect::<BTreeSet<_>>()
+            .len()
+            != raw.skipped.len()
+        || raw
+            .skipped
+            .iter()
+            .map(|v| v.path.to_ascii_lowercase())
+            .collect::<BTreeSet<_>>()
+            .len()
+            != raw.skipped.len()
         || raw.categories.len() != 7
         || !views::CATEGORIES[..7]
             .iter()
@@ -1034,15 +1236,17 @@ fn load_settings(store: &Store, folders: &KnownFolders) -> Settings {
         if custom_roots.len() < 16
             && util::id_ok(&root.root_id)
             && !custom_roots.iter().any(|r| r.root_id == root.root_id)
-            && valid_custom(&root.path, folders)
+            && valid_custom(&root.path, folders, platform)
+            && (!is_drive_root(&root.path) || supported_volume(platform, &root.path))
         {
             custom_roots.push(root);
         }
     }
     let settings = Settings {
-        settings_version: raw.settings_version,
+        settings_version: "water.settings.v2".into(),
         categories: raw.categories,
         custom_roots,
+        skipped: raw.skipped,
     };
     if settings.custom_roots.len() != listed {
         let _ = store.write("", "settings.json", &json!(settings));
@@ -1064,15 +1268,17 @@ fn root_view(s: &State, root: &CustomRoot) -> Value {
             .groups
             .iter()
             .filter(|g| g.group_id.starts_with(&prefix))
-            .map(|g| util::number(&g.total_bytes))
+            .map(|g| util::number(&g.unique_bytes))
             .sum::<u64>()
             .to_string()
     });
-    json!({"root_id":root.root_id,"display_path":root.path,"last_scanned_at":record.map(|r|r.saved["finished_at"].clone()),"found_bytes":total})
+    json!({"root_id":root.root_id,"display_path":root.path,"last_scanned_at":record.map(|r|r.saved["finished_at"].clone()),"found_bytes":total,"is_drive_root":is_drive_root(&root.path)})
 }
 
 fn locations(s: &State) -> Value {
-    json!({"categories":views::CATEGORIES[..7].iter().map(|(c,t,_,d)|json!({"category":c,"title_zh":t,"description_zh":d,"enabled":views::enabled(&s.settings,c),"locked":false})).collect::<Vec<_>>(),"custom_roots":s.settings.custom_roots.iter().map(|r|root_view(s,r)).collect::<Vec<_>>()})
+    let mut skipped = s.settings.skipped.clone();
+    skipped.sort_by(|a, b| a.added_at.cmp(&b.added_at).then(a.skip_id.cmp(&b.skip_id)));
+    json!({"categories":views::CATEGORIES[..7].iter().map(|(c,t,_,d)|json!({"category":c,"title_zh":t,"description_zh":d,"enabled":views::enabled(&s.settings,c),"locked":false})).collect::<Vec<_>>(),"custom_roots":s.settings.custom_roots.iter().map(|r|root_view(s,r)).collect::<Vec<_>>(),"skipped":skipped.iter().map(|v|json!({"skip_id":v.skip_id,"display_path":v.path,"added_at":v.added_at})).collect::<Vec<_>>()})
 }
 
 fn added_7d(s: &State, r: &Record) -> Option<String> {
@@ -1092,9 +1298,9 @@ fn added_7d(s: &State, r: &Record) -> Option<String> {
                     .groups
                     .iter()
                     .find(|p| p.group_id == g.group_id)
-                    .map(|p| util::number(&p.total_bytes))
+                    .map(|p| util::number(&p.unique_bytes))
                     .unwrap_or(0);
-                util::number(&g.total_bytes).saturating_sub(old)
+                util::number(&g.unique_bytes).saturating_sub(old)
             })
             .sum::<u64>()
             .to_string(),
@@ -1104,7 +1310,7 @@ fn added_7d(s: &State, r: &Record) -> Option<String> {
 fn history(s: &State) -> Value {
     let mut rows:Vec<_>=s.records.iter().map(|r| {
         let categories:BTreeSet<_>=r.result.groups.iter().filter(|g|g.item_count>0).map(views::category).collect();
-        json!({"kind":"scan","id":r.result.scan_id,"at":r.saved["finished_at"],"summary_zh":format!("识别 {} 类位置",categories.len()),"bytes":r.view["totals"]["recommended_bytes"]})
+        json!({"kind":"scan","id":r.result.scan_id,"at":r.saved["finished_at"],"summary_zh":format!("识别 {} 类位置",categories.len()),"bytes":r.projection().view["totals"]["recommended_bytes"]})
     }).collect();
     rows.extend(s.cleans.iter().map(|(id,v)| {
         let skipped=v["report"]["items"].as_array().map(|items|items.iter().filter(|i|i["status"]=="skipped").count()).unwrap_or(0);
@@ -1141,5 +1347,139 @@ fn trends(core: &Core, s: &State) -> Value {
             }
         }
     }
-    json!({"points":points,"growth":growth,"leaks":leaks})
+    json!({"points":points,"growth":growth,"leaks":leaks,"forecast":forecast(core,s,&points),"orphans":latest_orphans(s)})
+}
+
+fn valid_skip(v: &Skipped) -> bool {
+    v.skip_id.len() == 8
+        && v.skip_id.starts_with("s-")
+        && v.skip_id[2..].bytes().all(|c| c.is_ascii_digit())
+        && !v.path.is_empty()
+        && util::parse_time(&v.added_at).is_some()
+}
+
+fn checkup_due(core: &Core, last: Option<&Record>) -> Value {
+    let Some(last) = last else {
+        return json!({"days_since_last":null});
+    };
+    let days = util::parse_time(&last.result.ended_at)
+        .and_then(|t| core.platform.now().duration_since(t).ok())
+        .map(|d| d.as_secs() / 86400)
+        .unwrap_or(0);
+    if days >= 7 {
+        json!({"days_since_last":days})
+    } else {
+        Value::Null
+    }
+}
+
+fn orphan_views(platform: &dyn Platform) -> Value {
+    let mut chains = platform.orphan_chains();
+    chains.sort_by(|a, b| {
+        b.memory_bytes
+            .as_deref()
+            .map(util::number)
+            .cmp(&a.memory_bytes.as_deref().map(util::number))
+    });
+    json!(chains.into_iter().take(50).map(|c|json!({"name":c.name,"matched_pattern":c.matched_pattern,"process_count":c.descendant_pids.len()+1,"memory_bytes":c.memory_bytes,"started_at":c.created_at})).collect::<Vec<_>>())
+}
+
+fn valid_orphans(v: &Value) -> bool {
+    v.as_array().is_some_and(|rows| {
+        rows.len() <= 50
+            && rows.iter().all(|r| {
+                util::exact_keys(
+                    r,
+                    &[
+                        "name",
+                        "matched_pattern",
+                        "process_count",
+                        "memory_bytes",
+                        "started_at",
+                    ],
+                ) && r["name"].is_string()
+                    && r["matched_pattern"].is_string()
+                    && r["process_count"].as_u64().is_some_and(|n| n > 0)
+                    && (r["memory_bytes"].is_null()
+                        || r["memory_bytes"]
+                            .as_str()
+                            .is_some_and(|s| s.parse::<u64>().is_ok()))
+                    && (r["started_at"].is_null()
+                        || r["started_at"]
+                            .as_str()
+                            .and_then(util::parse_time)
+                            .is_some())
+            })
+    })
+}
+
+fn latest_orphans(s: &State) -> Value {
+    let Some(r) = s
+        .records
+        .iter()
+        .rev()
+        .find(|r| r.completed() && r.saved.get("orphans").is_some())
+    else {
+        return Value::Null;
+    };
+    let chains = &r.saved["orphans"];
+    let memory: Vec<_> = chains
+        .as_array()
+        .into_iter()
+        .flatten()
+        .filter_map(|c| c["memory_bytes"].as_str())
+        .map(util::number)
+        .collect();
+    let total = if memory.is_empty() {
+        None
+    } else {
+        Some(
+            memory
+                .iter()
+                .fold(0u64, |s, n| s.saturating_add(*n))
+                .to_string(),
+        )
+    };
+    json!({"scan_id":r.result.scan_id,"at":r.saved["finished_at"],"total_memory_bytes":total,"chains":chains})
+}
+
+fn forecast(core: &Core, s: &State, points: &[Value]) -> Vec<Value> {
+    let fixed: BTreeSet<_> = core
+        .platform
+        .drives()
+        .into_iter()
+        .map(|d| d.root.to_ascii_uppercase())
+        .collect();
+    let mut by_drive = BTreeMap::<String, Vec<(std::time::SystemTime, u64)>>::new();
+    for p in points {
+        let Some(root) = p["root"]
+            .as_str()
+            .map(str::to_ascii_uppercase)
+            .filter(|r| fixed.contains(r))
+        else {
+            continue;
+        };
+        if let Some(at) = p["at"].as_str().and_then(util::parse_time) {
+            by_drive
+                .entry(root)
+                .or_default()
+                .push((at, util::bytes(&p["free_bytes"])));
+        }
+    }
+    by_drive.into_iter().map(|(root,mut points)| {
+        points.sort_by_key(|p|p.0);
+        let (first,free_first) = points[0];
+        let (last,free_last) = points[points.len()-1];
+        let days = last.duration_since(first).unwrap_or_default().as_secs_f64()/86400.0;
+        let basis = (days*10.0).round()/10.0;
+        if points.len()<3 || days<3.0 { return json!({"root":root,"days_to_full":null,"bytes_per_day":"0","basis_days":basis,"note_zh":"至少需要 3 天内 3 次体检才能估算"}); }
+        let freed: u128 = s.cleans.values().filter(|c|c["view"]["finished_at"].as_str().and_then(util::parse_time).is_some_and(|t|t>first && t<=last))
+            .flat_map(|c|c["view"]["drives"].as_array().into_iter().flatten())
+            .filter(|d|d["root"].as_str().is_some_and(|r|r.eq_ignore_ascii_case(&root)))
+            .map(|d|u128::from(util::bytes(&d["free_after"]).saturating_sub(util::bytes(&d["free_before"])))).sum();
+        let rate = (free_first as f64 - free_last as f64 + freed as f64)/days;
+        let estimate = (free_last as f64/rate).floor();
+        let (days_to_full,note) = if rate<=0.0 {(None,Some("最近 30 天可用空间没有减少"))} else if estimate>3650.0 {(None,Some("按现在的速度，十年内不会满"))} else {(Some(estimate as u64),None)};
+        json!({"root":root,"days_to_full":days_to_full,"bytes_per_day":format!("{:.0}",rate.trunc()),"basis_days":basis,"note_zh":note})
+    }).collect()
 }

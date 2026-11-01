@@ -1,0 +1,72 @@
+{"binary":"C:\\Users\\37310\\.rustup\\toolchains\\1.95.0-x86_64-pc-windows-msvc\\bin\\cargo.exe","args":["test","--offline","--locked","--manifest-path","packages/water-service/Cargo.toml","--test","service_v1","--","--test-threads=1"],"exitCode":101,"error":null}
+--- stdout ---
+
+running 6 tests
+test service_clean_flow ... FAILED
+test service_hardening ... FAILED
+test service_ipc_contract ... ok
+test service_scan_views ... FAILED
+test service_storage_safety ... ok
+test service_trends_locations ... ok
+
+failures:
+
+---- service_clean_flow stdout ----
+
+thread 'service_clean_flow' (23380) panicked at tests\service_v1.rs:297:5:
+SERVICE_RETURN_BUDGET: skip_add
+note: run with `RUST_BACKTRACE=1` environment variable to display a backtrace
+
+---- service_hardening stdout ----
+
+thread 'water-scan' (22852) panicked at tests\service_v1.rs:58:13:
+fake platform: drives failed inside the scan task
+
+thread 'water-scan' (29872) panicked at tests\service_v1.rs:58:13:
+fake platform: drives failed inside the scan task
+
+thread 'service_hardening' (39876) panicked at tests\service_v1.rs:75:13:
+fake platform: clock failed
+
+thread 'water-clean' (28512) panicked at tests\service_v1.rs:96:13:
+fake platform: in_use failed inside the clean task
+
+thread 'service_hardening' (39876) panicked at tests\service_v1.rs:75:13:
+fake platform: clock failed
+
+thread 'service_hardening' (39876) panicked at tests\service_v1.rs:2003:9:
+assertion `left == right` failed: SERVICE_PRODUCT_NAME: edge-cache
+  left: String("Edge ???????? 1 ?????")
+ right: "Edge 正在运行，将跳过占用的项"
+
+---- service_scan_views stdout ----
+
+thread 'service_scan_views' (24716) panicked at tests\service_v1.rs:2160:13:
+assertion `left == right` failed: SERVICE_M3C_INUSE_ITEM: label
+  left: String("Chrome ????")
+ right: "Chrome 正在使用"
+
+
+failures:
+    service_clean_flow
+    service_hardening
+    service_scan_views
+
+test result: FAILED. 3 passed; 3 failed; 0 ignored; 0 measured; 0 filtered out; finished in 16.80s
+
+
+--- stderr ---
+   Compiling serde_core v1.0.229
+   Compiling zmij v1.0.23
+   Compiling memchr v2.8.3
+   Compiling itoa v1.0.18
+   Compiling serde_json v1.0.151
+   Compiling serde v1.0.229
+   Compiling water-junk-clean v0.1.0 (F:\new\smaltalk\water\.worktrees\w8-k4\packages\junk-clean)
+   Compiling water-junk-scan v0.1.0 (F:\new\smaltalk\water\.worktrees\w8-k4\packages\junk-scan)
+   Compiling water-process-scan v0.1.0 (F:\new\smaltalk\water\.worktrees\w8-k4\packages\process-scan)
+   Compiling water-junk-rules v0.1.0 (F:\new\smaltalk\water\.worktrees\w8-k4\packages\junk-rules)
+   Compiling water-service v0.1.0 (F:\new\smaltalk\water\.worktrees\w8-k4\packages\water-service)
+    Finished `test` profile [unoptimized + debuginfo] target(s) in 37.06s
+     Running tests\service_v1.rs (.local\w3-target\debug\deps\service_v1-52d18e951a68a79a.exe)
+error: test failed, to rerun pass `--test service_v1`
