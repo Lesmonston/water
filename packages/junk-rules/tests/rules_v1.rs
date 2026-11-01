@@ -47,6 +47,34 @@ fn sample_rule() -> Value {
     })
 }
 
+fn git_worktree_json() -> Value {
+    json!({
+        "rule_id": "git-worktrees",
+        "title_zh": "Git 工作树或子模块",
+        "owner_zh": "Git",
+        "category": "custom",
+        "level": "advisory",
+        "locate": [{
+            "kind": "marker",
+            "marker": {"kind":"file","name":".git","min_bytes":1,"max_bytes":4096},
+            "max_depth": 8
+        }],
+        "item_type": "dir",
+        "min_age_hours": 0,
+        "keep_newest": 0,
+        "in_use": {"mode":"none","processes":[]},
+        "growth": "slow",
+        "what_zh": "目录里的 .git 是一个小文件而不是文件夹，通常是 git worktree 建出的工作树，也可能是子模块。",
+        "why_zh": "里面可能有还没提交的改动，Water 不读文件内容，无法确认，所以只列出、不提供清理。",
+        "after_zh": "确认不再需要后，在主仓库里用 git worktree remove 删除，主仓库的登记会一并清掉。",
+        "fix_hint_zh": null,
+        "sources": [
+            {"kind":"local_observation","ref":"F 盘清理记录 docs/maintenance/F-CLEANUP-20261029.md：130 棵已合并的旧工作树共 56 GB","checked_on":"2026-10-29"},
+            {"kind":"official_doc","ref":"https://git-scm.com/docs/git-worktree","checked_on":"2026-10-31"}
+        ]
+    })
+}
+
 fn wrap(rules: Vec<Value>) -> String {
     json!({
         "rules_version": "water.junk-rules.v1",
@@ -75,6 +103,85 @@ fn mutate_rule(mutator: impl FnOnce(&mut Value)) -> String {
 
 #[test]
 fn rules_schema_strict() {
+    let folders = KnownFolders::from_json(&folders_json()).expect("RULES_M3C_IN_USE: folders");
+    for count in 0..=8 {
+        let processes: Vec<_> = (0..count)
+            .map(|index| format!("tool-{index}.exe"))
+            .collect();
+        let input = mutate_rule(|rule| {
+            rule["in_use"] = json!({"mode":"runs_from_or_references_item","processes":processes});
+        });
+        let rules = RuleSet::from_json(&input)
+            .expect("RULES_M3C_IN_USE: new mode accepts zero through eight names");
+        assert_eq!(
+            rules.rules()[0].in_use.mode.as_str(),
+            "runs_from_or_references_item",
+            "RULES_M3C_IN_USE: mode wire name"
+        );
+        assert_eq!(
+            rules.rules()[0].in_use.processes,
+            processes,
+            "RULES_M3C_IN_USE: names preserved"
+        );
+        let plan = resolve_plan(&rules, &folders, &[], CREATED_AT)
+            .expect("RULES_M3C_IN_USE: resolve new mode");
+        let encoded = plan_to_json(&plan);
+        let mut wire: Value = serde_json::from_str(&encoded).expect("RULES_M3C_IN_USE: JSON");
+        assert_eq!(
+            wire["targets"][0]["in_use"],
+            json!({"mode":"runs_from_or_references_item","processes":processes}),
+            "RULES_M3C_IN_USE: target preserves mode and names"
+        );
+        assert_eq!(
+            ScanPlan::from_json(&encoded)
+                .expect("RULES_M3C_IN_USE: plan accepts zero through eight names"),
+            plan,
+            "RULES_M3C_IN_USE: strict plan roundtrip"
+        );
+        wire["targets"][0]["in_use"]["processes"] = json!(
+            (0..9)
+                .map(|index| format!("tool-{index}.exe"))
+                .collect::<Vec<_>>()
+        );
+        let err = ScanPlan::from_json(&wire.to_string())
+            .expect_err("RULES_M3C_IN_USE: plan rejects nine names");
+        assert_eq!(
+            err.code, "RULES_INVALID_IN_USE",
+            "RULES_M3C_IN_USE: plan bound"
+        );
+        for mode in ["process_running", "cmdline_references_item"] {
+            wire["targets"][0]["in_use"] = json!({"mode":mode,"processes":[]});
+            let err = ScanPlan::from_json(&wire.to_string())
+                .expect_err("RULES_M3C_IN_USE: old plan modes require names");
+            assert_eq!(
+                err.code, "RULES_INVALID_IN_USE",
+                "RULES_M3C_IN_USE: old plan bound"
+            );
+        }
+    }
+    for (mode, processes) in [
+        (
+            "runs_from_or_references_item",
+            json!(
+                (0..9)
+                    .map(|index| format!("tool-{index}.exe"))
+                    .collect::<Vec<_>>()
+            ),
+        ),
+        ("runs_from_or_references_item", json!(["Tool.exe"])),
+        ("runs_from_or_references_item", json!(["tool"])),
+        ("process_running", json!([])),
+        ("cmdline_references_item", json!([])),
+    ] {
+        let err = RuleSet::from_json(&mutate_rule(|rule| {
+            rule["in_use"] = json!({"mode":mode,"processes":processes});
+        }))
+        .expect_err("RULES_M3C_IN_USE: invalid list rejected");
+        assert_eq!(
+            err.code, "RULES_INVALID_IN_USE",
+            "RULES_M3C_IN_USE: rule bound"
+        );
+    }
     reject(
         &wrap(vec![sample_rule()]).replace("water.junk-rules.v1", CANARY),
         "RULES_INVALID_VERSION",
@@ -579,7 +686,7 @@ fn rules_protection_precedence() {
     .expect("root shader caches must not collide with protected profiles");
     assert_eq!(subset_set.rules().len(), 6);
     let embedded = RuleSet::embedded();
-    assert_eq!(embedded.rules().len(), 75, "seed set must load");
+    assert_eq!(embedded.rules().len(), 76, "seed set must load");
 
     let agent_rules: Value = serde_json::from_str(include_str!("../rules/windows.json"))
         .expect("RULES_AGENT_TOOLS: embedded JSON");
@@ -638,13 +745,42 @@ fn rules_resolve_plan() {
     let plan = resolve_plan(&rules, &folders, &custom, CREATED_AT).expect("plan");
     let expected = expected_target_count(&rules, custom.len());
     assert_eq!(plan.targets.len(), expected);
-    assert_eq!(expected, 255);
+    assert_eq!(expected, 257);
     assert_eq!(plan.plan_version, "water.scan-plan.v1");
     assert_eq!(
-        plan.rules_data_version, "2026-10-28.2",
+        plan.rules_data_version, "2026-10-31.1",
         "RULES_M3_WORDING: plan data version"
     );
+    assert_eq!(
+        plan.rules_data_version, "2026-10-31.1",
+        "RULES_M3C_VERSION: plan data version"
+    );
     assert_eq!(plan.created_at, CREATED_AT);
+
+    for id in [
+        "cachedir-tagged",
+        "python-tool-caches",
+        "node-modules",
+        "rust-build-dirs",
+    ] {
+        let targets: Vec<_> = plan
+            .targets
+            .iter()
+            .filter(|target| target.rule_id == id)
+            .collect();
+        assert_eq!(targets.len(), 2, "RULES_M3C_IN_USE: {id} custom targets");
+        for target in targets {
+            assert_eq!(
+                target.in_use.mode.as_str(),
+                "runs_from_or_references_item",
+                "RULES_M3C_IN_USE: {id} target mode"
+            );
+            assert!(
+                target.in_use.processes.is_empty(),
+                "RULES_M3C_IN_USE: {id} any process"
+            );
+        }
+    }
 
     let opencode = plan
         .targets
@@ -824,7 +960,69 @@ fn rules_resolve_plan() {
         .iter()
         .position(|target| target.target_id == "custom:beta:rust-build-dirs#1")
         .expect("RULES_AGENT_TOOLS: Rust beta position");
-    let appended = &plan.targets[beta_position + 1..];
+    assert!(
+        plan.targets.len() >= beta_position + 3,
+        "RULES_M3C_WORKTREE: two Git targets after Rust"
+    );
+    for (target, root) in plan.targets[beta_position + 1..beta_position + 3]
+        .iter()
+        .zip(&custom)
+    {
+        assert_eq!(
+            target.target_id,
+            format!("custom:{}:git-worktrees#1", root.root_id),
+            "RULES_M3C_WORKTREE: target order"
+        );
+        assert_eq!(
+            target.group_id,
+            format!("custom:{}:git-worktrees", root.root_id),
+            "RULES_M3C_WORKTREE: group ID"
+        );
+        assert_eq!(
+            target.rule_id, "git-worktrees",
+            "RULES_M3C_WORKTREE: rule ID"
+        );
+        assert_eq!(
+            target.level,
+            Level::Advisory,
+            "RULES_M3C_WORKTREE: advisory only"
+        );
+        assert_eq!(
+            target.category,
+            Category::Custom,
+            "RULES_M3C_WORKTREE: category"
+        );
+        assert_eq!(
+            target.item_type,
+            ItemType::Dir,
+            "RULES_M3C_WORKTREE: item type"
+        );
+        assert_eq!(target.min_age_hours, 0, "RULES_M3C_WORKTREE: age");
+        assert_eq!(target.keep_newest, 0, "RULES_M3C_WORKTREE: keep newest");
+        assert_eq!(
+            target.in_use.mode,
+            InUseMode::None,
+            "RULES_M3C_WORKTREE: in-use mode"
+        );
+        assert!(
+            target.in_use.processes.is_empty(),
+            "RULES_M3C_WORKTREE: empty names"
+        );
+        assert_eq!(
+            target.match_spec,
+            MatchSpec::Marker {
+                root: root.path.clone(),
+                marker: Marker::File {
+                    name: ".git".to_string(),
+                    min_bytes: 1,
+                    max_bytes: 4096
+                },
+                max_depth: 8,
+            },
+            "RULES_M3C_WORKTREE: file marker bounds, depth and root"
+        );
+    }
+    let appended = &plan.targets[beta_position + 3..];
     assert_eq!(
         appended.len(),
         38,
@@ -878,6 +1076,13 @@ fn rules_resolve_plan() {
         no_custom_plan
             .targets
             .iter()
+            .all(|target| target.rule_id != "git-worktrees"),
+        "RULES_M3C_WORKTREE: no implicit root"
+    );
+    assert!(
+        no_custom_plan
+            .targets
+            .iter()
             .all(|target| target.rule_id != "rust-build-dirs"),
         "RULES_RUST_BUILD: no implicit custom root"
     );
@@ -904,13 +1109,173 @@ fn rules_resolve_plan() {
     assert_eq!(parsed["plan_version"], "water.scan-plan.v1");
     assert_eq!(parsed["targets"].as_array().map(Vec::len), Some(expected));
     assert!(parsed["targets"][0].get("match").is_some());
+    assert!(
+        ScanPlan::from_json(&encoded).is_ok(),
+        "RULES_M3C_IN_USE: strict plan accepts the new empty process lists"
+    );
     let roundtrip = ScanPlan::from_json(&encoded).expect("strict parse back");
     assert_eq!(roundtrip, plan);
+
+    let drive = [CustomRoot {
+        root_id: "drive-f".to_string(),
+        path: "F:\\".to_string(),
+    }];
+    let drive_plan = resolve_plan(&rules, &folders, &drive, CREATED_AT)
+        .expect("RULES_M3C_DRIVE_ROOT: exact drive root is valid");
+    let markers: Vec<_> = drive_plan
+        .targets
+        .iter()
+        .filter(|target| matches!(target.match_spec, MatchSpec::Marker { .. }))
+        .collect();
+    assert_eq!(
+        markers.len(),
+        6,
+        "RULES_M3C_DRIVE_ROOT: all six marker targets"
+    );
+    assert_eq!(
+        markers
+            .iter()
+            .map(|target| target.target_id.as_str())
+            .collect::<Vec<_>>(),
+        [
+            "custom:drive-f:cachedir-tagged#1",
+            "custom:drive-f:python-tool-caches#1",
+            "custom:drive-f:test-browser-profiles#1",
+            "custom:drive-f:node-modules#1",
+            "custom:drive-f:rust-build-dirs#1",
+            "custom:drive-f:git-worktrees#1",
+        ],
+        "RULES_M3C_DRIVE_ROOT: rule and root ID order"
+    );
+    for target in markers {
+        assert!(
+            matches!(&target.match_spec, MatchSpec::Marker { root, .. } if root == "F:\\"),
+            "RULES_M3C_DRIVE_ROOT: exact marker root"
+        );
+    }
+    assert_eq!(
+        drive_plan
+            .hard_guards
+            .iter()
+            .filter(|path| path.as_str() == "F:\\")
+            .count(),
+        1,
+        "RULES_M3C_DRIVE_ROOT: root guarded exactly once"
+    );
+    assert_eq!(
+        ScanPlan::from_json(&plan_to_json(&drive_plan))
+            .expect("RULES_M3C_DRIVE_ROOT: strict drive-root roundtrip"),
+        drive_plan,
+        "RULES_M3C_DRIVE_ROOT: complete plan roundtrip"
+    );
+    for path in [
+        "F:",
+        "F:\\\\",
+        "F:\\a\\",
+        "F:\\a\\..\\b",
+        "F:\\a\\.\\b",
+        "F:/",
+        "1:\\",
+        "\\\\server\\share",
+    ] {
+        let invalid = [CustomRoot {
+            root_id: "drive-f".to_string(),
+            path: path.to_string(),
+        }];
+        let err = resolve_plan(&rules, &folders, &invalid, CREATED_AT)
+            .expect_err("RULES_M3C_DRIVE_ROOT: malformed path rejected");
+        assert_eq!(
+            err.code, "RULES_INVALID_PATH",
+            "RULES_M3C_DRIVE_ROOT: existing path policy"
+        );
+    }
 }
 
 #[test]
 fn rules_seed_coverage() {
     let rules = RuleSet::embedded();
+    assert_eq!(
+        rules.data_version, "2026-10-31.1",
+        "RULES_M3C_VERSION: embedded version"
+    );
+    assert_eq!(
+        rules
+            .rules()
+            .iter()
+            .filter(|rule| rule.category == Category::Custom)
+            .count(),
+        6,
+        "RULES_M3C_WORKTREE: six custom rules"
+    );
+    for id in [
+        "cachedir-tagged",
+        "python-tool-caches",
+        "node-modules",
+        "rust-build-dirs",
+    ] {
+        let rule = rules.rule(id).expect("RULES_M3C_IN_USE: generic rule");
+        assert_eq!(
+            rule.in_use.mode.as_str(),
+            "runs_from_or_references_item",
+            "RULES_M3C_IN_USE: {id} mode"
+        );
+        assert!(
+            rule.in_use.processes.is_empty(),
+            "RULES_M3C_IN_USE: {id} any process"
+        );
+    }
+    let browser = rules
+        .rule("test-browser-profiles")
+        .expect("RULES_M3C_IN_USE: browser profiles");
+    assert_eq!(
+        browser.in_use.mode,
+        InUseMode::CmdlineReferencesItem,
+        "RULES_M3C_IN_USE: browser mode unchanged"
+    );
+    assert_eq!(
+        browser.in_use.processes,
+        ["chrome.exe", "msedge.exe"],
+        "RULES_M3C_IN_USE: browser names unchanged"
+    );
+    let embedded: Value = serde_json::from_str(include_str!("../rules/windows.json"))
+        .expect("RULES_M3C_WORKTREE: embedded JSON");
+    let git_json = embedded["rules"]
+        .as_array()
+        .expect("RULES_M3C_WORKTREE: rules")
+        .iter()
+        .find(|rule| rule["rule_id"] == "git-worktrees")
+        .expect("RULES_M3C_WORKTREE: Git rule");
+    let expected_git = git_worktree_json();
+    assert_eq!(
+        git_json, &expected_git,
+        "RULES_M3C_WORKTREE: all fields and wording verbatim"
+    );
+    for group in [
+        "git-worktrees",
+        "custom:alpha:git-worktrees",
+        "custom:beta:git-worktrees",
+    ] {
+        let text = rules.text(group).expect("RULES_M3C_WORKTREE: public text");
+        for (field, value) in [
+            ("title_zh", text.title_zh),
+            ("owner_zh", text.owner_zh),
+            ("what_zh", text.what_zh),
+            ("why_zh", text.why_zh),
+            ("after_zh", text.after_zh),
+        ] {
+            assert_eq!(
+                value,
+                expected_git[field]
+                    .as_str()
+                    .expect("RULES_M3C_WORKTREE: expected text"),
+                "RULES_M3C_WORKTREE: {group} public {field} verbatim"
+            );
+        }
+        assert!(
+            text.fix_hint_zh.is_none(),
+            "RULES_M3C_WORKTREE: public fix hint"
+        );
+    }
     for (id, expected_why) in [
         (
             "desktop-updater-residue",
@@ -970,11 +1335,13 @@ fn rules_seed_coverage() {
             ("public why_zh", text.why_zh.as_str()),
             ("public after_zh", text.after_zh.as_str()),
         ] {
-            assert!(
-                !value.contains("只列出"),
-                "RULES_M3_WORDING: {} {field} must describe cleaning, not listing",
-                rule.rule_id
-            );
+            if rule.rule_id != "git-worktrees" {
+                assert!(
+                    !value.contains("只列出"),
+                    "RULES_M3_WORDING: {} {field} must describe cleaning, not listing",
+                    rule.rule_id
+                );
+            }
             if rule.in_use.mode == InUseMode::None {
                 assert!(
                     !value.contains("被占用的文件会跳过"),
@@ -1077,12 +1444,17 @@ fn rules_seed_coverage() {
         "RULES_RUST_BUILD: original rule remains 61st"
     );
     assert_eq!(
-        rules.rules()[61..]
+        rules.rules()[62..]
             .iter()
             .map(|rule| rule.rule_id.as_str())
             .collect::<Vec<_>>(),
         AGENT_RULE_IDS,
         "RULES_AGENT_TOOLS: appended rule order"
+    );
+    assert_eq!(
+        rules.rules()[61].rule_id,
+        "git-worktrees",
+        "RULES_M3C_WORKTREE: Git rule remains 62nd"
     );
     for spec in agent_seed_table() {
         let rule = rules.rule(spec.id).expect("RULES_AGENT_TOOLS: seed exists");
@@ -1850,7 +2222,7 @@ fn seed_table() -> Vec<SeedSpec> {
         ItemType::Dir,
         1,
         0,
-        InUseMode::None,
+        InUseMode::RunsFromOrReferencesItem,
         Growth::Slow,
         vec!["marker:file:CACHEDIR.TAG:43:1024:12".to_string()],
     ));
@@ -1861,7 +2233,7 @@ fn seed_table() -> Vec<SeedSpec> {
         ItemType::Dir,
         1,
         0,
-        InUseMode::None,
+        InUseMode::RunsFromOrReferencesItem,
         Growth::Slow,
         vec!["marker:dir_name:__pycache__,.pytest_cache,.mypy_cache,.ruff_cache:12".to_string()],
     ));
@@ -1883,7 +2255,7 @@ fn seed_table() -> Vec<SeedSpec> {
         ItemType::Dir,
         168,
         0,
-        InUseMode::None,
+        InUseMode::RunsFromOrReferencesItem,
         Growth::Slow,
         vec!["marker:dir_name:node_modules:6".to_string()],
     ));
@@ -1894,9 +2266,20 @@ fn seed_table() -> Vec<SeedSpec> {
         ItemType::Dir,
         1,
         0,
-        InUseMode::None,
+        InUseMode::RunsFromOrReferencesItem,
         Growth::Slow,
         vec!["marker:file:.rustc_info.json:2:65536:12".to_string()],
+    ));
+    rows.push(seed(
+        "git-worktrees",
+        Category::Custom,
+        Level::Advisory,
+        ItemType::Dir,
+        0,
+        0,
+        InUseMode::None,
+        Growth::Slow,
+        vec!["marker:file:.git:1:4096:8".to_string()],
     ));
     rows.extend(agent_seed_table());
     rows

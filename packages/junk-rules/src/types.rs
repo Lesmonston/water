@@ -184,6 +184,7 @@ pub enum InUseMode {
     None,
     ProcessRunning,
     CmdlineReferencesItem,
+    RunsFromOrReferencesItem,
 }
 
 impl InUseMode {
@@ -192,6 +193,7 @@ impl InUseMode {
             Self::None => "none",
             Self::ProcessRunning => "process_running",
             Self::CmdlineReferencesItem => "cmdline_references_item",
+            Self::RunsFromOrReferencesItem => "runs_from_or_references_item",
         }
     }
 
@@ -200,6 +202,7 @@ impl InUseMode {
             "none" => Self::None,
             "process_running" => Self::ProcessRunning,
             "cmdline_references_item" => Self::CmdlineReferencesItem,
+            "runs_from_or_references_item" => Self::RunsFromOrReferencesItem,
             _ => return None,
         })
     }

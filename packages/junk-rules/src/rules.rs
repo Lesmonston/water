@@ -311,6 +311,7 @@ fn parse_in_use(value: &Value, path: &str) -> Result<InUse, RulesError> {
             format!("{path}/processes"),
         )),
         InUseMode::None => Ok(InUse { mode, processes }),
+        InUseMode::RunsFromOrReferencesItem => Ok(InUse { mode, processes }),
         _ if processes.is_empty() => Err(RulesError::new(
             "RULES_INVALID_IN_USE",
             format!("{path}/processes"),

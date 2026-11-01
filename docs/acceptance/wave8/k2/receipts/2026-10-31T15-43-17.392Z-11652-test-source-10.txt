@@ -1,0 +1,2393 @@
+use serde_json::{Value, json};
+use water_junk_rules::{
+    Category, CustomRoot, Growth, InUseMode, ItemType, KnownFolders, Level, Locator, Marker,
+    MatchSpec, RuleSet, ScanPlan, plan_to_json, resolve_plan,
+};
+
+const CANARY: &str = "CANARY_ECHO_VALUE_9f3c2a";
+const CREATED_AT: &str = "2026-10-26T04:00:00Z";
+
+fn folders_json() -> String {
+    json!({
+        "known_folders_version": "water.known-folders.v1",
+        "user_profile": "C:\\Users\\u",
+        "local_app_data": "C:\\Users\\u\\AppData\\Local",
+        "roaming_app_data": "C:\\Users\\u\\AppData\\Roaming",
+        "user_temp": "C:\\Users\\u\\AppData\\Local\\Temp",
+        "system_temp": "C:\\Windows\\Temp",
+        "windows": "C:\\Windows",
+        "program_data": "C:\\ProgramData",
+        "downloads": "C:\\Users\\u\\Downloads"
+    })
+    .to_string()
+}
+
+fn sample_rule() -> Value {
+    json!({
+        "rule_id": "sample-cache",
+        "title_zh": "示例缓存目录",
+        "owner_zh": "示例",
+        "category": "dev_cache",
+        "level": "recommended",
+        "locate": [{"kind":"pattern","base":"local_app_data","segments":["SampleCache"]}],
+        "item_type": "dir",
+        "min_age_hours": 1,
+        "keep_newest": 0,
+        "in_use": {"mode":"none","processes":[]},
+        "growth": "slow",
+        "what_zh": "这是一段示例说明文字。",
+        "why_zh": "这是可以清理的原因说明。",
+        "after_zh": "清掉之后会重新下载缓存。",
+        "fix_hint_zh": null,
+        "sources": [{
+            "kind":"local_observation",
+            "ref":"2026-10-26 总控本机只读摸底",
+            "checked_on":"2026-10-26"
+        }]
+    })
+}
+
+fn git_worktree_json() -> Value {
+    json!({
+        "rule_id": "git-worktrees",
+        "title_zh": "Git 工作树或子模块",
+        "owner_zh": "Git",
+        "category": "custom",
+        "level": "advisory",
+        "locate": [{
+            "kind": "marker",
+            "marker": {"kind":"file","name":".git","min_bytes":1,"max_bytes":4096},
+            "max_depth": 8
+        }],
+        "item_type": "dir",
+        "min_age_hours": 0,
+        "keep_newest": 0,
+        "in_use": {"mode":"none","processes":[]},
+        "growth": "slow",
+        "what_zh": "目录里的 .git 是一个小文件而不是文件夹，通常是 git worktree 建出的工作树，也可能是子模块。",
+        "why_zh": "里面可能有还没提交的改动，Water 不读文件内容，无法确认，所以只列出、不提供清理。",
+        "after_zh": "确认不再需要后，在主仓库里用 git worktree remove 删除，主仓库的登记会一并清掉。",
+        "fix_hint_zh": null,
+        "sources": [
+            {"kind":"local_observation","ref":"F 盘清理记录 docs/maintenance/F-CLEANUP-20261029.md：130 棵已合并的旧工作树共 56 GB","checked_on":"2026-10-29"},
+            {"kind":"official_doc","ref":"https://git-scm.com/docs/git-worktree","checked_on":"2026-10-31"}
+        ]
+    })
+}
+
+fn wrap(rules: Vec<Value>) -> String {
+    json!({
+        "rules_version": "water.junk-rules.v1",
+        "data_version": "2026-10-26.1",
+        "rules": rules
+    })
+    .to_string()
+}
+
+fn reject(input: &str, code: &str) {
+    let err = RuleSet::from_json(input).expect_err("schema must reject");
+    let shown = err.to_string();
+    assert!(!shown.contains(CANARY), "error echoed input: {shown}");
+    assert_eq!(err.code, code, "unexpected error code: {shown}");
+    assert!(
+        shown.contains(code),
+        "error text must carry its code: {shown}"
+    );
+}
+
+fn mutate_rule(mutator: impl FnOnce(&mut Value)) -> String {
+    let mut rule = sample_rule();
+    mutator(&mut rule);
+    wrap(vec![rule])
+}
+
+#[test]
+fn rules_schema_strict() {
+    let folders = KnownFolders::from_json(&folders_json()).expect("RULES_M3C_IN_USE: folders");
+    for count in 0..=8 {
+        let processes: Vec<_> = (0..count).map(|index| format!("tool-{index}.exe")).collect();
+        let input = mutate_rule(|rule| {
+            rule["in_use"] = json!({"mode":"runs_from_or_references_item","processes":processes});
+        });
+        let rules = RuleSet::from_json(&input)
+            .expect("RULES_M3C_IN_USE: new mode accepts zero through eight names");
+        assert_eq!(
+            rules.rules()[0].in_use.mode.as_str(), "runs_from_or_references_item",
+            "RULES_M3C_IN_USE: mode wire name"
+        );
+        assert_eq!(
+            rules.rules()[0].in_use.processes, processes,
+            "RULES_M3C_IN_USE: names preserved"
+        );
+        let plan = resolve_plan(&rules, &folders, &[], CREATED_AT)
+            .expect("RULES_M3C_IN_USE: resolve new mode");
+        let encoded = plan_to_json(&plan);
+        let mut wire: Value = serde_json::from_str(&encoded).expect("RULES_M3C_IN_USE: JSON");
+        assert_eq!(
+            wire["targets"][0]["in_use"],
+            json!({"mode":"runs_from_or_references_item","processes":processes}),
+            "RULES_M3C_IN_USE: target preserves mode and names"
+        );
+        assert_eq!(
+            ScanPlan::from_json(&encoded).expect("RULES_M3C_IN_USE: plan accepts zero through eight names"),
+            plan,
+            "RULES_M3C_IN_USE: strict plan roundtrip"
+        );
+        wire["targets"][0]["in_use"]["processes"] = json!(
+            (0..9).map(|index| format!("tool-{index}.exe")).collect::<Vec<_>>()
+        );
+        let err = ScanPlan::from_json(&wire.to_string())
+            .expect_err("RULES_M3C_IN_USE: plan rejects nine names");
+        assert_eq!(err.code, "RULES_INVALID_IN_USE", "RULES_M3C_IN_USE: plan bound");
+        for mode in ["process_running", "cmdline_references_item"] {
+            wire["targets"][0]["in_use"] = json!({"mode":mode,"processes":[]});
+            let err = ScanPlan::from_json(&wire.to_string())
+                .expect_err("RULES_M3C_IN_USE: old plan modes require names");
+            assert_eq!(err.code, "RULES_INVALID_IN_USE", "RULES_M3C_IN_USE: old plan bound");
+        }
+    }
+    for (mode, processes) in [
+        ("runs_from_or_references_item", json!((0..9).map(|index| format!("tool-{index}.exe")).collect::<Vec<_>>())),
+        ("runs_from_or_references_item", json!(["Tool.exe"])),
+        ("runs_from_or_references_item", json!(["tool"])),
+        ("process_running", json!([])),
+        ("cmdline_references_item", json!([])),
+    ] {
+        let err = RuleSet::from_json(&mutate_rule(|rule| {
+            rule["in_use"] = json!({"mode":mode,"processes":processes});
+        }))
+        .expect_err("RULES_M3C_IN_USE: invalid list rejected");
+        assert_eq!(err.code, "RULES_INVALID_IN_USE", "RULES_M3C_IN_USE: rule bound");
+    }
+    reject(
+        &wrap(vec![sample_rule()]).replace("water.junk-rules.v1", CANARY),
+        "RULES_INVALID_VERSION",
+    );
+    reject(
+        &mutate_rule(|rule| {
+            rule["rule_id"] = json!("ab");
+        }),
+        "RULES_INVALID_ID",
+    );
+    reject(
+        &mutate_rule(|rule| {
+            rule["title_zh"] = json!("一");
+        }),
+        "RULES_INVALID_TEXT",
+    );
+    reject(
+        &mutate_rule(|rule| {
+            rule["owner_zh"] = json!("");
+        }),
+        "RULES_INVALID_TEXT",
+    );
+    reject(
+        &mutate_rule(|rule| {
+            rule["category"] = json!("unrecognized");
+        }),
+        "RULES_INVALID_CATEGORY",
+    );
+    reject(
+        &mutate_rule(|rule| {
+            rule["level"] = json!(CANARY);
+        }),
+        "RULES_INVALID_LEVEL",
+    );
+    reject(
+        &mutate_rule(|rule| {
+            rule["item_type"] = json!("folder");
+        }),
+        "RULES_INVALID_ITEM_TYPE",
+    );
+    reject(
+        &mutate_rule(|rule| {
+            rule["min_age_hours"] = json!(8761);
+        }),
+        "RULES_INVALID_NUMBER",
+    );
+    reject(
+        &mutate_rule(|rule| {
+            rule["keep_newest"] = json!(9);
+        }),
+        "RULES_INVALID_NUMBER",
+    );
+    reject(
+        &mutate_rule(|rule| {
+            rule["growth"] = json!("fast");
+        }),
+        "RULES_INVALID_GROWTH",
+    );
+    reject(
+        &mutate_rule(|rule| {
+            rule["what_zh"] = json!("短");
+        }),
+        "RULES_INVALID_TEXT",
+    );
+    reject(
+        &mutate_rule(|rule| {
+            rule["why_zh"] = json!(CANARY.to_string().repeat(20));
+        }),
+        "RULES_INVALID_TEXT",
+    );
+    reject(
+        &mutate_rule(|rule| {
+            rule["in_use"] = json!({"mode":"none","processes":["chrome.exe"]});
+        }),
+        "RULES_INVALID_IN_USE",
+    );
+    reject(
+        &mutate_rule(|rule| {
+            rule["in_use"] = json!({"mode":"process_running","processes":[]});
+        }),
+        "RULES_INVALID_IN_USE",
+    );
+    reject(
+        &mutate_rule(|rule| {
+            rule["in_use"] = json!({"mode":"process_running","processes":["Chrome.exe"]});
+        }),
+        "RULES_INVALID_IN_USE",
+    );
+    reject(
+        &mutate_rule(|rule| {
+            rule["locate"] = json!([]);
+        }),
+        "RULES_INVALID_LOCATE",
+    );
+    reject(
+        &mutate_rule(|rule| {
+            rule["locate"] = Value::Array(
+                (0..33)
+                    .map(|index| {
+                        json!({"kind":"pattern","base":"local_app_data","segments":["SampleCache", format!("part-{index}")]})
+                    })
+                    .collect(),
+            );
+        }),
+        "RULES_INVALID_LOCATE",
+    );
+    reject(
+        &mutate_rule(|rule| {
+            rule["locate"] = json!([
+                {"kind":"pattern","base":"local_app_data","segments":["SampleCache"]},
+                {"kind":"pattern","base":"local_app_data","segments":["samplecache"]}
+            ]);
+        }),
+        "RULES_LOCATOR_DUPLICATE",
+    );
+    reject(
+        &mutate_rule(|rule| {
+            rule["sources"] = json!([]);
+        }),
+        "RULES_INVALID_SOURCE",
+    );
+    reject(
+        &mutate_rule(|rule| {
+            rule["sources"] = json!([{
+                "kind":"official_doc",
+                "ref":"http://example.invalid",
+                "checked_on":"2026-10-26"
+            }]);
+        }),
+        "RULES_INVALID_SOURCE",
+    );
+    reject(
+        &mutate_rule(|rule| {
+            rule[CANARY] = json!(1);
+        }),
+        "RULES_UNKNOWN_KEY",
+    );
+    reject(
+        &mutate_rule(|rule| {
+            rule["in_use"][CANARY] = json!(CANARY);
+        }),
+        "RULES_UNKNOWN_KEY",
+    );
+    reject(
+        &mutate_rule(|rule| {
+            rule["sources"][0]["checked_on"] = json!("2026-13-01");
+        }),
+        "RULES_INVALID_SOURCE",
+    );
+    reject(
+        &mutate_rule(|rule| {
+            rule["sources"][0]["checked_on"] = json!("2026-02-29");
+        }),
+        "RULES_INVALID_SOURCE",
+    );
+    reject(
+        &mutate_rule(|rule| {
+            rule["category"] = json!("custom");
+        }),
+        "RULES_CUSTOM_MARKER",
+    );
+    reject(
+        &{
+            let mut first = sample_rule();
+            let second = sample_rule();
+            first["rule_id"] = json!("other-cache");
+            first["title_zh"] = json!("另一示例标题");
+            wrap(vec![first, second, sample_rule()])
+        },
+        "RULES_DUPLICATE_ID",
+    );
+    reject(
+        &{
+            let raw = json!({
+                "rules_version": "water.junk-rules.v1",
+                "data_version": "2026-10-26",
+                "rules": [sample_rule()]
+            });
+            raw.to_string()
+        },
+        "RULES_INVALID_DATA_VERSION",
+    );
+    reject(
+        &wrap(vec![sample_rule()]).replace("2026-10-26.1", "2026-04-31.1"),
+        "RULES_INVALID_DATA_VERSION",
+    );
+    reject(
+        &mutate_rule(|rule| {
+            rule["growth"] = json!("leak_prone");
+            rule["min_age_hours"] = json!(0);
+            rule["fix_hint_zh"] = json!("请告诉生产者及时回收本次新建的临时目录。");
+        }),
+        "RULES_LEAK_AGE",
+    );
+    reject(
+        &mutate_rule(|rule| {
+            rule["growth"] = json!("leak_prone");
+            rule["min_age_hours"] = json!(1);
+            rule["fix_hint_zh"] = Value::Null;
+        }),
+        "RULES_INVALID_FIX_HINT",
+    );
+    reject(
+        &mutate_rule(|rule| {
+            rule["locate"] = json!([{"kind":"discovery","base":"system_temp"}]);
+            rule["min_age_hours"] = json!(23);
+            rule["level"] = json!("recommended");
+        }),
+        "RULES_DISCOVERY",
+    );
+    reject(
+        &mutate_rule(|rule| {
+            rule["locate"] = json!([{"kind":"discovery","base":"system_temp"}]);
+            rule["min_age_hours"] = json!(24);
+            rule["level"] = json!("advisory");
+        }),
+        "RULES_DISCOVERY",
+    );
+    let ok = RuleSet::from_json(&wrap(vec![sample_rule()])).expect("valid sample");
+    assert_eq!(ok.rules().len(), 1);
+    let leap = mutate_rule(|rule| {
+        rule["sources"][0]["checked_on"] = json!("2028-02-29");
+    });
+    RuleSet::from_json(&leap).expect("leap day is a real date");
+    let wide = mutate_rule(|rule| {
+        rule["locate"] = Value::Array(
+            (0..32)
+                .map(|index| {
+                    json!({"kind":"pattern","base":"local_app_data","segments":["SampleCache", format!("part-{index}")]})
+                })
+                .collect(),
+        );
+    });
+    RuleSet::from_json(&wide).expect("32 locators are allowed");
+
+    let embedded: Value = serde_json::from_str(include_str!("../rules/windows.json"))
+        .expect("RULES_RUST_BUILD: embedded JSON");
+    let mut rust = embedded["rules"]
+        .as_array()
+        .expect("RULES_RUST_BUILD: rule array")
+        .iter()
+        .find(|rule| rule["rule_id"] == "rust-build-dirs")
+        .cloned()
+        .expect("RULES_RUST_BUILD: rule exists");
+    rust["locate"][0]["marker"]["min_bytes"] = json!(65537);
+    let err = RuleSet::from_json(&wrap(vec![rust.clone()]))
+        .expect_err("RULES_RUST_BUILD: reversed marker bounds must be rejected");
+    assert_eq!(err.code, "RULES_INVALID_LOCATE", "RULES_RUST_BUILD: bounds");
+    rust["locate"][0]["marker"]["min_bytes"] = json!(2);
+    rust["locate"][0]["max_depth"] = json!(17);
+    let err = RuleSet::from_json(&wrap(vec![rust]))
+        .expect_err("RULES_RUST_BUILD: excessive depth must be rejected");
+    assert_eq!(err.code, "RULES_INVALID_NUMBER", "RULES_RUST_BUILD: depth");
+}
+
+fn precedence_rule(id: &str, level: &str, base: &str, segments: &[&str]) -> Value {
+    let mut rule = sample_rule();
+    rule["rule_id"] = json!(id);
+    rule["title_zh"] = json!("优先判定样例");
+    rule["category"] = json!("browser");
+    rule["level"] = json!(level);
+    rule["locate"] = json!([{"kind":"pattern","base":base,"segments":segments}]);
+    if level == "protected" {
+        rule["what_zh"] = json!("这是登录相关的网站数据。");
+        rule["why_zh"] = json!("清掉之后需要重新登录许多网站。");
+        rule["after_zh"] = json!("这里只统计占用，不会被清理。");
+    }
+    rule
+}
+
+fn precedence_pair(
+    level: &str,
+    base: &str,
+    cleanable: &[&str],
+    protected_base: &str,
+    protected: &[&str],
+) -> String {
+    wrap(vec![
+        precedence_rule("cleanable-sample", level, base, cleanable),
+        precedence_rule("protected-sample", "protected", protected_base, protected),
+    ])
+}
+
+fn expect_precedence(input: &str, case: &str) {
+    let err = match RuleSet::from_json(input) {
+        Ok(set) => panic!("{case}: expected RULES_PRECEDENCE, got {set:?}"),
+        Err(err) => err,
+    };
+    assert_eq!(err.code, "RULES_PRECEDENCE", "{case}: {err}");
+    assert!(
+        err.to_string().contains("RULES_PRECEDENCE"),
+        "{case}: {err}"
+    );
+}
+
+fn expect_no_precedence(input: &str, case: &str) {
+    if let Err(err) = RuleSet::from_json(input) {
+        panic!("{case} must pass, got {err}");
+    }
+}
+
+#[test]
+fn rules_protection_precedence() {
+    let la = "local_app_data";
+    expect_precedence(
+        &precedence_pair(
+            "recommended",
+            la,
+            &["User Data", "*"],
+            la,
+            &["User Data", "*", "Cookies"],
+        ),
+        "wildcard profile over wildcard cookies",
+    );
+    expect_no_precedence(
+        &precedence_pair("recommended", la, &["*", "Cache"], la, &["*", "Network"]),
+        "sibling cache and network",
+    );
+    let profiles = [
+        ["User Data", "Default", "Cookies"],
+        ["User Data", "Profile *", "Cookies"],
+        ["User Data", "Guest Profile", "Cookies"],
+        ["User Data", "System Profile", "Cookies"],
+    ];
+    expect_precedence(
+        &precedence_pair(
+            "recommended",
+            la,
+            &["User Data", "Default"],
+            la,
+            &profiles[0],
+        ),
+        "literal Default over Default cookies",
+    );
+    expect_precedence(
+        &precedence_pair(
+            "recommended",
+            la,
+            &["User Data", "Default", "Network"],
+            la,
+            &["User Data", "Default", "Network"],
+        ),
+        "literal Default Network equals protected",
+    );
+    expect_precedence(
+        &precedence_pair(
+            "recommended",
+            la,
+            &["User Data", "Profile 3"],
+            la,
+            &profiles[1],
+        ),
+        "literal Profile 3 matched by Profile *",
+    );
+    expect_precedence(
+        &precedence_pair("confirm", la, &["user data", "profile 3"], la, &profiles[1]),
+        "case-insensitive literal against pattern",
+    );
+    expect_no_precedence(
+        &precedence_pair(
+            "recommended",
+            la,
+            &["User Data", "ShaderCache"],
+            la,
+            &profiles[1],
+        ),
+        "root shader cache against Profile *",
+    );
+    expect_no_precedence(
+        &precedence_pair(
+            "recommended",
+            la,
+            &["User Data", "Default"],
+            "user_profile",
+            &profiles[0],
+        ),
+        "different base",
+    );
+    expect_precedence(
+        &precedence_pair(
+            "recommended",
+            "user_profile",
+            &[".codex", "sessions"],
+            "user_profile",
+            &[".codex*", "sessions"],
+        ),
+        "literal .codex sessions matched by .codex*",
+    );
+    expect_precedence(
+        &precedence_pair(
+            "recommended",
+            la,
+            &["User Data", "Profile 12"],
+            la,
+            &["User Data", "Profile #", "Cookies"],
+        ),
+        "hash matches digits",
+    );
+    expect_no_precedence(
+        &precedence_pair(
+            "recommended",
+            la,
+            &["User Data", "Profile x"],
+            la,
+            &["User Data", "Profile #", "Cookies"],
+        ),
+        "hash needs digits",
+    );
+    expect_no_precedence(
+        &precedence_pair(
+            "recommended",
+            la,
+            &["User Data", "Profile "],
+            la,
+            &["User Data", "Profile #", "Cookies"],
+        ),
+        "hash needs at least one digit",
+    );
+    expect_precedence(
+        &precedence_pair(
+            "recommended",
+            la,
+            &["User Data", "Profile 7"],
+            la,
+            &["User Data", "Profile ?", "Cookies"],
+        ),
+        "question mark matches one character",
+    );
+    expect_no_precedence(
+        &precedence_pair(
+            "recommended",
+            la,
+            &["User Data", "Profile 12"],
+            la,
+            &["User Data", "Profile ?", "Cookies"],
+        ),
+        "question mark matches exactly one character",
+    );
+    expect_precedence(
+        &precedence_pair(
+            "recommended",
+            la,
+            &["User Data", "Prof*", "Cookies"],
+            la,
+            &["User Data", "Profile #", "Cookies"],
+        ),
+        "both segments wildcard",
+    );
+    expect_precedence(
+        &precedence_pair(
+            "recommended",
+            la,
+            &["User Data", "Profile 3", "Cook?es"],
+            la,
+            &["User Data", "Profile *", "Cookies"],
+        ),
+        "cleanable wildcard against protected literal",
+    );
+    expect_no_precedence(
+        &precedence_pair(
+            "recommended",
+            la,
+            &["User Data", "Default", "Network", "Cache"],
+            la,
+            &["User Data", "Default", "Network"],
+        ),
+        "deeper cleanable is not checked by this rule",
+    );
+
+    let raw: Value =
+        serde_json::from_str(include_str!("../rules/windows.json")).expect("seed json");
+    let subset: Vec<Value> = raw["rules"]
+        .as_array()
+        .expect("rules")
+        .iter()
+        .filter(|rule| {
+            let id = rule["rule_id"].as_str().unwrap_or("");
+            id.ends_with("-code-gpu-cache") || id.ends_with("-login-and-site-data")
+        })
+        .cloned()
+        .collect();
+    assert_eq!(subset.len(), 6);
+    let shader_locators = subset
+        .iter()
+        .flat_map(|rule| rule["locate"].as_array().expect("locate").iter())
+        .filter(|locator| {
+            let segments = locator["segments"].as_array().expect("segments");
+            segments.len() == 4
+                && ["ShaderCache", "GrShaderCache", "GraphiteDawnCache"]
+                    .contains(&segments[3].as_str().unwrap_or(""))
+        })
+        .count();
+    assert_eq!(shader_locators, 9);
+    let subset_set = RuleSet::from_json(
+        &json!({
+            "rules_version": "water.junk-rules.v1",
+            "data_version": "2026-10-26.2",
+            "rules": subset
+        })
+        .to_string(),
+    )
+    .expect("root shader caches must not collide with protected profiles");
+    assert_eq!(subset_set.rules().len(), 6);
+    let embedded = RuleSet::embedded();
+    assert_eq!(embedded.rules().len(), 76, "seed set must load");
+
+    let agent_rules: Value = serde_json::from_str(include_str!("../rules/windows.json"))
+        .expect("RULES_AGENT_TOOLS: embedded JSON");
+    let agent_rule = |id: &str| {
+        agent_rules["rules"]
+            .as_array()
+            .expect("RULES_AGENT_TOOLS: rule array")
+            .iter()
+            .find(|rule| rule["rule_id"] == id)
+            .cloned()
+            .expect("RULES_AGENT_TOOLS: rule exists")
+    };
+    let siblings = RuleSet::from_json(&wrap(vec![
+        agent_rule("agent-tool-logs"),
+        agent_rule("kimi-code-sessions"),
+    ]))
+    .expect("RULES_AGENT_TOOLS: Kimi logs and protected sessions are siblings");
+    assert_eq!(
+        siblings.rules()[0].level,
+        Level::Recommended,
+        "RULES_AGENT_TOOLS: logs remain cleanable"
+    );
+    assert_eq!(
+        siblings.rules()[1].level,
+        Level::Protected,
+        "RULES_AGENT_TOOLS: sessions remain protected"
+    );
+    let mut numbered_home = sample_rule();
+    numbered_home["locate"] =
+        json!([{"kind":"pattern","base":"user_profile","segments":[".grok7"]}]);
+    let overlap = wrap(vec![numbered_home.clone(), agent_rule("grok-other-homes")]);
+    let err = RuleSet::from_json(&overlap)
+        .expect_err("RULES_AGENT_TOOLS: .grok7 is covered by protected .grok#");
+    assert_eq!(
+        err.code, "RULES_PRECEDENCE",
+        "RULES_AGENT_TOOLS: reject cleaning a protected numbered home"
+    );
+    numbered_home["locate"][0]["segments"][0] = json!(".grokx");
+    RuleSet::from_json(&wrap(vec![numbered_home, agent_rule("grok-other-homes")]))
+        .expect("RULES_AGENT_TOOLS: # requires digits, not an arbitrary suffix");
+}
+#[test]
+fn rules_resolve_plan() {
+    let rules = RuleSet::embedded();
+    let folders = KnownFolders::from_json(&folders_json()).expect("folders");
+    let custom = [
+        CustomRoot {
+            root_id: "alpha".to_string(),
+            path: "D:\\work\\alpha".to_string(),
+        },
+        CustomRoot {
+            root_id: "beta".to_string(),
+            path: "E:\\work\\beta".to_string(),
+        },
+    ];
+    let plan = resolve_plan(&rules, &folders, &custom, CREATED_AT).expect("plan");
+    let expected = expected_target_count(&rules, custom.len());
+    assert_eq!(plan.targets.len(), expected);
+    assert_eq!(expected, 257);
+    assert_eq!(plan.plan_version, "water.scan-plan.v1");
+    assert_eq!(
+        plan.rules_data_version, "2026-10-31.1",
+        "RULES_M3_WORDING: plan data version"
+    );
+    assert_eq!(plan.rules_data_version, "2026-10-31.1", "RULES_M3C_VERSION: plan data version");
+    assert_eq!(plan.created_at, CREATED_AT);
+
+    for id in ["cachedir-tagged", "python-tool-caches", "node-modules", "rust-build-dirs"] {
+        let targets: Vec<_> = plan.targets.iter().filter(|target| target.rule_id == id).collect();
+        assert_eq!(targets.len(), 2, "RULES_M3C_IN_USE: {id} custom targets");
+        for target in targets {
+            assert_eq!(target.in_use.mode.as_str(), "runs_from_or_references_item", "RULES_M3C_IN_USE: {id} target mode");
+            assert!(target.in_use.processes.is_empty(), "RULES_M3C_IN_USE: {id} any process");
+        }
+    }
+
+    let opencode = plan
+        .targets
+        .iter()
+        .find(|target| target.target_id == "opencode-sessions#1")
+        .expect("RULES_M3_WORDING: OpenCode database target");
+    match &opencode.match_spec {
+        MatchSpec::Pattern { segments, .. } => assert_eq!(
+            segments,
+            &[".local", "share", "opencode", "opencode.db*"],
+            "RULES_M3_WORDING: protect OpenCode database sidecars"
+        ),
+        other => panic!("RULES_M3_WORDING: expected OpenCode pattern, got {other:?}"),
+    }
+
+    let claude = plan
+        .targets
+        .iter()
+        .find(|target| target.rule_id == "claude-code-old-versions")
+        .expect("RULES_AGENT_TOOLS: Claude Code target");
+    assert_eq!(
+        claude.keep_newest, 1,
+        "RULES_AGENT_TOOLS: keep newest version"
+    );
+    assert_eq!(
+        claude.in_use.mode,
+        InUseMode::CmdlineReferencesItem,
+        "RULES_AGENT_TOOLS: skip running version"
+    );
+    assert_eq!(
+        claude.in_use.processes,
+        ["claude.exe"],
+        "RULES_AGENT_TOOLS: only verified Claude process"
+    );
+
+    let first = &plan.targets[0];
+    assert_eq!(first.target_id, "codex-marketplace-staging#1");
+    assert_eq!(first.group_id, "codex-marketplace-staging");
+    assert_eq!(first.rule_id, "codex-marketplace-staging");
+    match &first.match_spec {
+        MatchSpec::Pattern { base, segments } => {
+            assert_eq!(base, "C:\\Users\\u");
+            assert_eq!(
+                segments,
+                &[
+                    ".codex*".to_string(),
+                    ".tmp".to_string(),
+                    "marketplaces".to_string(),
+                    ".staging".to_string(),
+                    "marketplace-upgrade-*".to_string()
+                ]
+            );
+        }
+        other => panic!("first target {other:?}"),
+    }
+
+    let chrome = plan
+        .targets
+        .iter()
+        .find(|target| target.target_id == "chrome-cache#1")
+        .expect("chrome-cache");
+    assert_eq!(chrome.group_id, "chrome-cache");
+    assert_eq!(chrome.level, Level::Recommended);
+    assert_eq!(chrome.category, Category::Browser);
+    assert_eq!(chrome.in_use.mode, InUseMode::ProcessRunning);
+    assert_eq!(chrome.in_use.processes, ["chrome.exe"]);
+
+    for (family, ud) in [
+        ("chrome", ["Google", "Chrome", "User Data"]),
+        ("edge", ["Microsoft", "Edge", "User Data"]),
+        ("brave", ["BraveSoftware", "Brave-Browser", "User Data"]),
+    ] {
+        let rule_id = format!("{family}-login-and-site-data");
+        let positions: Vec<usize> = plan
+            .targets
+            .iter()
+            .enumerate()
+            .filter(|(_, target)| target.rule_id == rule_id)
+            .map(|(index, _)| index)
+            .collect();
+        assert_eq!(positions.len(), 32, "{rule_id}");
+        assert_eq!(positions[31] - positions[0], 31, "{rule_id} contiguous");
+        let mut ordinal = 0;
+        for profile in ["Default", "Profile *", "Guest Profile", "System Profile"] {
+            for name in LOGIN_NAMES {
+                let target = &plan.targets[positions[ordinal]];
+                ordinal += 1;
+                assert_eq!(target.target_id, format!("{rule_id}#{ordinal}"));
+                assert_eq!(target.group_id, rule_id);
+                assert_eq!(target.level, Level::Protected);
+                match &target.match_spec {
+                    MatchSpec::Pattern { base, segments } => {
+                        assert_eq!(base, "C:\\Users\\u\\AppData\\Local");
+                        let expected_segments: Vec<String> = ud
+                            .iter()
+                            .copied()
+                            .chain([profile, name])
+                            .map(str::to_string)
+                            .collect();
+                        assert_eq!(segments, &expected_segments, "{rule_id}#{ordinal}");
+                    }
+                    other => panic!("{rule_id}#{ordinal} {other:?}"),
+                }
+            }
+        }
+    }
+
+    let marker_targets: Vec<_> = plan
+        .targets
+        .iter()
+        .filter(|target| target.rule_id == "cachedir-tagged")
+        .collect();
+    assert_eq!(marker_targets.len(), 2);
+    assert_eq!(marker_targets[0].group_id, "custom:alpha:cachedir-tagged");
+    assert_eq!(
+        marker_targets[0].target_id,
+        "custom:alpha:cachedir-tagged#1"
+    );
+    assert_eq!(marker_targets[1].group_id, "custom:beta:cachedir-tagged");
+    let text = rules
+        .text("custom:alpha:cachedir-tagged")
+        .expect("custom text");
+    assert_eq!(text.title_zh, "带缓存标记的目录");
+
+    let single_root_plan = resolve_plan(&rules, &folders, &custom[..1], CREATED_AT)
+        .expect("RULES_RUST_BUILD: resolve one custom root");
+    let rust_targets: Vec<_> = single_root_plan
+        .targets
+        .iter()
+        .filter(|target| target.rule_id == "rust-build-dirs")
+        .collect();
+    assert_eq!(rust_targets.len(), 1, "RULES_RUST_BUILD: one marker target");
+    let rust = rust_targets[0];
+    assert_eq!(
+        rust.target_id, "custom:alpha:rust-build-dirs#1",
+        "RULES_RUST_BUILD: target ID"
+    );
+    assert_eq!(
+        rust.group_id, "custom:alpha:rust-build-dirs",
+        "RULES_RUST_BUILD: group ID"
+    );
+    assert_eq!(
+        rust.match_spec,
+        MatchSpec::Marker {
+            root: custom[0].path.clone(),
+            marker: Marker::File {
+                name: ".rustc_info.json".to_string(),
+                min_bytes: 2,
+                max_bytes: 65536,
+            },
+            max_depth: 12,
+        },
+        "RULES_RUST_BUILD: marker name, bounds, depth and root"
+    );
+    assert_eq!(
+        rules
+            .text(&rust.group_id)
+            .expect("RULES_RUST_BUILD: custom rule text")
+            .title_zh,
+        "Rust 构建目录",
+        "RULES_RUST_BUILD: custom title"
+    );
+    assert_eq!(
+        plan.targets
+            .iter()
+            .filter(|target| target.rule_id == "rust-build-dirs")
+            .map(|target| target.target_id.as_str())
+            .collect::<Vec<_>>(),
+        [
+            "custom:alpha:rust-build-dirs#1",
+            "custom:beta:rust-build-dirs#1"
+        ],
+        "RULES_RUST_BUILD: appended targets follow custom root order"
+    );
+    let beta_position = plan
+        .targets
+        .iter()
+        .position(|target| target.target_id == "custom:beta:rust-build-dirs#1")
+        .expect("RULES_AGENT_TOOLS: Rust beta position");
+    assert!(plan.targets.len() >= beta_position + 3, "RULES_M3C_WORKTREE: two Git targets after Rust");
+    for (target, root) in plan.targets[beta_position + 1..beta_position + 3].iter().zip(&custom) {
+        assert_eq!(target.target_id, format!("custom:{}:git-worktrees#1", root.root_id), "RULES_M3C_WORKTREE: target order");
+        assert_eq!(target.group_id, format!("custom:{}:git-worktrees", root.root_id), "RULES_M3C_WORKTREE: group ID");
+        assert_eq!(target.rule_id, "git-worktrees", "RULES_M3C_WORKTREE: rule ID");
+        assert_eq!(target.level, Level::Advisory, "RULES_M3C_WORKTREE: advisory only");
+        assert_eq!(target.category, Category::Custom, "RULES_M3C_WORKTREE: category");
+        assert_eq!(target.item_type, ItemType::Dir, "RULES_M3C_WORKTREE: item type");
+        assert_eq!(target.min_age_hours, 0, "RULES_M3C_WORKTREE: age");
+        assert_eq!(target.keep_newest, 0, "RULES_M3C_WORKTREE: keep newest");
+        assert_eq!(target.in_use.mode, InUseMode::None, "RULES_M3C_WORKTREE: in-use mode");
+        assert!(target.in_use.processes.is_empty(), "RULES_M3C_WORKTREE: empty names");
+        assert_eq!(target.match_spec, MatchSpec::Marker {
+            root: root.path.clone(),
+            marker: Marker::File { name: ".git".to_string(), min_bytes: 1, max_bytes: 4096 },
+            max_depth: 8,
+        }, "RULES_M3C_WORKTREE: file marker bounds, depth and root");
+    }
+    let appended = &plan.targets[beta_position + 3..];
+    assert_eq!(
+        appended.len(),
+        38,
+        "RULES_AGENT_TOOLS: appended target count"
+    );
+    let mut ordinal = 0;
+    for spec in agent_seed_table() {
+        for (index, locator) in spec.locators.iter().enumerate() {
+            let target = &appended[ordinal];
+            ordinal += 1;
+            assert_eq!(target.rule_id, spec.id, "RULES_AGENT_TOOLS: rule order");
+            assert_eq!(target.group_id, spec.id, "RULES_AGENT_TOOLS: group ID");
+            assert_eq!(
+                target.target_id,
+                format!("{}#{}", spec.id, index + 1),
+                "RULES_AGENT_TOOLS: locator order"
+            );
+            assert_eq!(target.level, spec.level, "RULES_AGENT_TOOLS: target level");
+            let (base, segments) = match &target.match_spec {
+                MatchSpec::Pattern { base, segments } => (base, segments),
+                other => panic!("RULES_AGENT_TOOLS: expected pattern, got {other:?}"),
+            };
+            let (_, expected) = locator
+                .split_once(':')
+                .expect("RULES_AGENT_TOOLS: pattern seed");
+            let (folder, path) = expected
+                .split_once(':')
+                .expect("RULES_AGENT_TOOLS: base and segments");
+            let expected_base = match folder {
+                "user_profile" => "C:\\Users\\u",
+                "local_app_data" => "C:\\Users\\u\\AppData\\Local",
+                "roaming_app_data" => "C:\\Users\\u\\AppData\\Roaming",
+                other => panic!("RULES_AGENT_TOOLS: unexpected base {other}"),
+            };
+            assert_eq!(base, expected_base, "RULES_AGENT_TOOLS: resolved base");
+            assert_eq!(
+                segments.join("/"),
+                path,
+                "RULES_AGENT_TOOLS: target segments"
+            );
+        }
+    }
+    assert_eq!(
+        plan.targets.last().map(|target| target.target_id.as_str()),
+        Some("other-agent-sessions#3"),
+        "RULES_AGENT_TOOLS: final appended target"
+    );
+    let no_custom_plan = resolve_plan(&rules, &folders, &[], CREATED_AT)
+        .expect("RULES_RUST_BUILD: resolve without custom roots");
+    assert!(no_custom_plan.targets.iter().all(|target| target.rule_id != "git-worktrees"), "RULES_M3C_WORKTREE: no implicit root");
+    assert!(
+        no_custom_plan
+            .targets
+            .iter()
+            .all(|target| target.rule_id != "rust-build-dirs"),
+        "RULES_RUST_BUILD: no implicit custom root"
+    );
+
+    assert_eq!(
+        plan.hard_guards,
+        vec![
+            "C:\\Users\\u".to_string(),
+            "C:\\Users\\u\\AppData\\Local".to_string(),
+            "C:\\Users\\u\\AppData\\Roaming".to_string(),
+            "C:\\Users\\u\\AppData\\Local\\Temp".to_string(),
+            "C:\\Windows\\Temp".to_string(),
+            "C:\\Windows".to_string(),
+            "C:\\ProgramData".to_string(),
+            "C:\\Users\\u\\Downloads".to_string(),
+            "C:\\".to_string(),
+            "D:\\work\\alpha".to_string(),
+            "E:\\work\\beta".to_string(),
+        ]
+    );
+
+    let encoded = plan_to_json(&plan);
+    let parsed = serde_json::from_str::<Value>(&encoded).expect("json");
+    assert_eq!(parsed["plan_version"], "water.scan-plan.v1");
+    assert_eq!(parsed["targets"].as_array().map(Vec::len), Some(expected));
+    assert!(parsed["targets"][0].get("match").is_some());
+    let roundtrip = ScanPlan::from_json(&encoded).expect("strict parse back");
+    assert_eq!(roundtrip, plan);
+
+    let drive = [CustomRoot { root_id: "drive-f".to_string(), path: "F:\\".to_string() }];
+    let drive_plan = resolve_plan(&rules, &folders, &drive, CREATED_AT)
+        .expect("RULES_M3C_DRIVE_ROOT: exact drive root is valid");
+    let markers: Vec<_> = drive_plan.targets.iter().filter(|target| matches!(target.match_spec, MatchSpec::Marker { .. })).collect();
+    assert_eq!(markers.len(), 6, "RULES_M3C_DRIVE_ROOT: all six marker targets");
+    assert_eq!(markers.iter().map(|target| target.target_id.as_str()).collect::<Vec<_>>(), [
+        "custom:drive-f:cachedir-tagged#1", "custom:drive-f:python-tool-caches#1",
+        "custom:drive-f:test-browser-profiles#1", "custom:drive-f:node-modules#1",
+        "custom:drive-f:rust-build-dirs#1", "custom:drive-f:git-worktrees#1",
+    ], "RULES_M3C_DRIVE_ROOT: rule and root ID order");
+    for target in markers {
+        assert!(matches!(&target.match_spec, MatchSpec::Marker { root, .. } if root == "F:\\"), "RULES_M3C_DRIVE_ROOT: exact marker root");
+    }
+    assert_eq!(drive_plan.hard_guards.iter().filter(|path| path.as_str() == "F:\\").count(), 1, "RULES_M3C_DRIVE_ROOT: root guarded exactly once");
+    assert_eq!(ScanPlan::from_json(&plan_to_json(&drive_plan)).expect("RULES_M3C_DRIVE_ROOT: strict drive-root roundtrip"), drive_plan, "RULES_M3C_DRIVE_ROOT: complete plan roundtrip");
+    for path in ["F:", "F:\\\\", "F:\\a\\", "F:\\a\\..\\b", "F:\\a\\.\\b", "F:/", "1:\\", "\\\\server\\share"] {
+        let invalid = [CustomRoot { root_id: "drive-f".to_string(), path: path.to_string() }];
+        let err = resolve_plan(&rules, &folders, &invalid, CREATED_AT)
+            .expect_err("RULES_M3C_DRIVE_ROOT: malformed path rejected");
+        assert_eq!(err.code, "RULES_INVALID_PATH", "RULES_M3C_DRIVE_ROOT: existing path policy");
+    }
+}
+
+#[test]
+fn rules_seed_coverage() {
+    let rules = RuleSet::embedded();
+    assert_eq!(rules.data_version, "2026-10-31.1", "RULES_M3C_VERSION: embedded version");
+    assert_eq!(rules.rules().iter().filter(|rule| rule.category == Category::Custom).count(), 6, "RULES_M3C_WORKTREE: six custom rules");
+    for id in ["cachedir-tagged", "python-tool-caches", "node-modules", "rust-build-dirs"] {
+        let rule = rules.rule(id).expect("RULES_M3C_IN_USE: generic rule");
+        assert_eq!(rule.in_use.mode.as_str(), "runs_from_or_references_item", "RULES_M3C_IN_USE: {id} mode");
+        assert!(rule.in_use.processes.is_empty(), "RULES_M3C_IN_USE: {id} any process");
+    }
+    let browser = rules.rule("test-browser-profiles").expect("RULES_M3C_IN_USE: browser profiles");
+    assert_eq!(browser.in_use.mode, InUseMode::CmdlineReferencesItem, "RULES_M3C_IN_USE: browser mode unchanged");
+    assert_eq!(browser.in_use.processes, ["chrome.exe", "msedge.exe"], "RULES_M3C_IN_USE: browser names unchanged");
+    let embedded: Value = serde_json::from_str(include_str!("../rules/windows.json")).expect("RULES_M3C_WORKTREE: embedded JSON");
+    let git_json = embedded["rules"].as_array().expect("RULES_M3C_WORKTREE: rules").iter().find(|rule| rule["rule_id"] == "git-worktrees").expect("RULES_M3C_WORKTREE: Git rule");
+    let expected_git = git_worktree_json();
+    assert_eq!(git_json, &expected_git, "RULES_M3C_WORKTREE: all fields and wording verbatim");
+    for group in ["git-worktrees", "custom:alpha:git-worktrees", "custom:beta:git-worktrees"] {
+        let text = rules.text(group).expect("RULES_M3C_WORKTREE: public text");
+        for (field, value) in [("title_zh", text.title_zh), ("owner_zh", text.owner_zh), ("what_zh", text.what_zh), ("why_zh", text.why_zh), ("after_zh", text.after_zh)] {
+            assert_eq!(value, expected_git[field].as_str().expect("RULES_M3C_WORKTREE: expected text"), "RULES_M3C_WORKTREE: {group} public {field} verbatim");
+        }
+        assert!(text.fix_hint_zh.is_none(), "RULES_M3C_WORKTREE: public fix hint");
+    }
+    for (id, expected_why) in [
+        (
+            "desktop-updater-residue",
+            "只清超过一天的更新包残留；正在使用的文件删不掉时会原样留下。",
+        ),
+        (
+            "agent-cli-old-binaries",
+            "只清超过一天、以 .old 或 .bak 结尾的备份，当前程序不在清理范围内；正在使用的备份删不掉时会原样留下。",
+        ),
+        (
+            "claude-code-old-versions",
+            "保留最新的一个版本，只清超过一天的旧版本。",
+        ),
+        (
+            "qoder-workspace-temp",
+            "无法确定这些临时文件是否还要使用，需要你确认；只清超过一天的目录。",
+        ),
+        (
+            "agent-tool-logs",
+            "只清一周以前的日志；旧日志通常可以清理，但排查过去的问题时可能用得上。",
+        ),
+    ] {
+        let rule = rules.rule(id).expect("RULES_M3_WORDING: wording rule");
+        let text = rules.text(id).expect("RULES_M3_WORDING: public wording");
+        assert_eq!(
+            rule.why_zh, expected_why,
+            "RULES_M3_WORDING: {id} rule explanation"
+        );
+        assert_eq!(
+            text.why_zh, expected_why,
+            "RULES_M3_WORDING: {id} public explanation"
+        );
+    }
+    let logs = rules
+        .rule("agent-tool-logs")
+        .expect("RULES_M3_WORDING: logs rule");
+    let logs_text = rules
+        .text("agent-tool-logs")
+        .expect("RULES_M3_WORDING: public logs text");
+    assert_eq!(
+        logs.what_zh, "各个 Agent 工具自己的运行日志。",
+        "RULES_M3_WORDING: logs description"
+    );
+    assert_eq!(
+        logs_text.what_zh, "各个 Agent 工具自己的运行日志。",
+        "RULES_M3_WORDING: public logs description"
+    );
+    for rule in rules.rules() {
+        let text = rules
+            .text(&rule.rule_id)
+            .expect("RULES_M3_WORDING: rule text");
+        for (field, value) in [
+            ("what_zh", rule.what_zh.as_str()),
+            ("why_zh", rule.why_zh.as_str()),
+            ("after_zh", rule.after_zh.as_str()),
+            ("public what_zh", text.what_zh.as_str()),
+            ("public why_zh", text.why_zh.as_str()),
+            ("public after_zh", text.after_zh.as_str()),
+        ] {
+            if rule.rule_id != "git-worktrees" {
+                assert!(
+                    !value.contains("只列出"),
+                    "RULES_M3_WORDING: {} {field} must describe cleaning, not listing",
+                    rule.rule_id
+                );
+            }
+            if rule.in_use.mode == InUseMode::None {
+                assert!(
+                    !value.contains("被占用的文件会跳过"),
+                    "RULES_M3_WORDING: {} {field} must not promise an in-use skip",
+                    rule.rule_id
+                );
+            }
+        }
+    }
+    for (id, expected_ref) in [
+        (
+            "electron-gpu-caches",
+            "2026-10-28 总控本机只读体检：应用的显卡着色器缓存目录共 41 个，约 45 MB，其中可清的 34 个。",
+        ),
+        (
+            "kimi-code-sessions",
+            "2026-10-28 总控本机只读体检：.kimi-code 的 sessions 与 file-history 共约 351 MB，受保护。",
+        ),
+        (
+            "workbuddy-memory-sessions",
+            "2026-10-28 总控本机只读核查：.workbuddy 与 .workbuddy-ai 内有 memory、sessions、plans、plugins 等目录，其中 memory 与 sessions 受保护。",
+        ),
+        (
+            "other-agent-sessions",
+            "2026-10-28 总控本机只读核查：.dsh 共约 3 MB，内有 profiles、sessions、storages 与 settings.yaml，其中 sessions 受保护。",
+        ),
+    ] {
+        let rule = rules.rule(id).expect("RULES_M3_WORDING: source rule");
+        let observations: Vec<_> = rule
+            .sources
+            .iter()
+            .filter(|source| source.kind == water_junk_rules::SourceKind::LocalObservation)
+            .collect();
+        assert_eq!(
+            observations.len(),
+            1,
+            "RULES_M3_WORDING: {id} local observation count"
+        );
+        assert_eq!(
+            observations[0].ref_text, expected_ref,
+            "RULES_M3_WORDING: {id} local observation"
+        );
+        assert_eq!(
+            observations[0].checked_on, "2026-10-28",
+            "RULES_M3_WORDING: {id} observation date"
+        );
+    }
+    let expected = seed_table();
+    let rust_spec = expected
+        .iter()
+        .find(|spec| spec.id == "rust-build-dirs")
+        .expect("RULES_RUST_BUILD: seed table row");
+    assert_eq!(rust_spec.id, "rust-build-dirs", "RULES_RUST_BUILD: seed ID");
+    let rust = rules
+        .rules()
+        .iter()
+        .find(|rule| rule.rule_id == "rust-build-dirs")
+        .expect("RULES_RUST_BUILD: last rule");
+    assert_eq!(
+        rust.rule_id, rust_spec.id,
+        "RULES_RUST_BUILD: appended rule"
+    );
+    assert_eq!(
+        rust.category, rust_spec.category,
+        "RULES_RUST_BUILD: category"
+    );
+    assert_eq!(rust.level, rust_spec.level, "RULES_RUST_BUILD: level");
+    assert_eq!(
+        rust.item_type, rust_spec.item_type,
+        "RULES_RUST_BUILD: item type"
+    );
+    assert_eq!(
+        rust.min_age_hours, rust_spec.min_age_hours,
+        "RULES_RUST_BUILD: minimum age"
+    );
+    assert_eq!(
+        rust.keep_newest, rust_spec.keep_newest,
+        "RULES_RUST_BUILD: keep newest"
+    );
+    assert_eq!(
+        rust.in_use.mode, rust_spec.in_use,
+        "RULES_RUST_BUILD: in use mode"
+    );
+    assert_eq!(
+        rust.in_use.processes, rust_spec.processes,
+        "RULES_RUST_BUILD: processes"
+    );
+    assert_eq!(rust.growth, rust_spec.growth, "RULES_RUST_BUILD: growth");
+    assert_eq!(
+        locator_summary(rust),
+        rust_spec.locators,
+        "RULES_RUST_BUILD: locator summary"
+    );
+    assert_eq!(
+        rules
+            .rules()
+            .iter()
+            .position(|rule| rule.rule_id == "rust-build-dirs"),
+        Some(60),
+        "RULES_RUST_BUILD: original rule remains 61st"
+    );
+    assert_eq!(
+        rules.rules()[62..]
+            .iter()
+            .map(|rule| rule.rule_id.as_str())
+            .collect::<Vec<_>>(),
+        AGENT_RULE_IDS,
+        "RULES_AGENT_TOOLS: appended rule order"
+    );
+    assert_eq!(rules.rules()[61].rule_id, "git-worktrees", "RULES_M3C_WORKTREE: Git rule remains 62nd");
+    for spec in agent_seed_table() {
+        let rule = rules.rule(spec.id).expect("RULES_AGENT_TOOLS: seed exists");
+        assert_eq!(
+            rule.category, spec.category,
+            "RULES_AGENT_TOOLS: {} category",
+            spec.id
+        );
+        assert_eq!(
+            rule.level, spec.level,
+            "RULES_AGENT_TOOLS: {} level",
+            spec.id
+        );
+        assert_eq!(
+            rule.item_type, spec.item_type,
+            "RULES_AGENT_TOOLS: {} item type",
+            spec.id
+        );
+        assert_eq!(
+            rule.min_age_hours, spec.min_age_hours,
+            "RULES_AGENT_TOOLS: {} age",
+            spec.id
+        );
+        assert_eq!(
+            rule.keep_newest, spec.keep_newest,
+            "RULES_AGENT_TOOLS: {} keep newest",
+            spec.id
+        );
+        assert_eq!(
+            rule.in_use.mode, spec.in_use,
+            "RULES_AGENT_TOOLS: {} in use",
+            spec.id
+        );
+        assert_eq!(
+            rule.in_use.processes, spec.processes,
+            "RULES_AGENT_TOOLS: {} processes",
+            spec.id
+        );
+        assert_eq!(
+            rule.growth, spec.growth,
+            "RULES_AGENT_TOOLS: {} growth",
+            spec.id
+        );
+        assert_eq!(
+            locator_summary(rule),
+            spec.locators,
+            "RULES_AGENT_TOOLS: {} locators",
+            spec.id
+        );
+        assert!(rule.fix_hint_zh.is_none(), "RULES_AGENT_TOOLS: no fix hint");
+        let observation_prefix = match spec.id {
+            "electron-gpu-caches" | "kimi-code-sessions" => "2026-10-28 总控本机只读体检：",
+            _ => "2026-10-28 总控本机只读核查：",
+        };
+        assert!(
+            rule.sources.iter().any(|source| {
+                source.kind == water_junk_rules::SourceKind::LocalObservation
+                    && source.ref_text.starts_with(observation_prefix)
+                    && source.checked_on == "2026-10-28"
+            }),
+            "RULES_AGENT_TOOLS: {} local observation",
+            spec.id
+        );
+        let required_docs: &[&str] = match spec.id {
+            "desktop-updater-residue" => &[
+                "https://github.com/electron-userland/electron-builder/blob/master/packages/electron-updater/src/DownloadedUpdateHelper.ts",
+                "https://github.com/electron-userland/electron-builder/issues/8730",
+            ],
+            "agent-tool-logs" => &[
+                "https://moonshotai.github.io/kimi-code/en/configuration/data-locations.html",
+                "https://opencode.ai/docs/troubleshooting/",
+                "https://docs.github.com/en/copilot/reference/copilot-cli-reference/cli-config-dir-reference",
+            ],
+            "kimi-code-sessions" => {
+                &["https://moonshotai.github.io/kimi-code/en/configuration/data-locations.html"]
+            }
+            "kiro-sessions" => &["https://kiro.dev/docs/cli/chat/session-management/"],
+            "opencode-sessions" => &["https://opencode.ai/docs/troubleshooting/"],
+            "other-agent-sessions" => &[
+                "https://geminicli.com/docs/cli/session-management/",
+                "https://docs.github.com/en/copilot/reference/copilot-cli-reference/cli-config-dir-reference",
+            ],
+            _ => &[],
+        };
+        for required in required_docs {
+            assert!(
+                rule.sources.iter().any(|source| {
+                    source.kind == water_junk_rules::SourceKind::OfficialDoc
+                        && source.ref_text == *required
+                        && source.checked_on == "2026-10-28"
+                }),
+                "RULES_AGENT_TOOLS: {} official source {required}",
+                spec.id
+            );
+        }
+    }
+    assert_eq!(rules.rules().len(), expected.len());
+    for (index, spec) in expected.iter().enumerate() {
+        let rule = &rules.rules()[index];
+        assert_eq!(rule.rule_id, spec.id, "order {index}");
+        assert_eq!(rule.category, spec.category, "{}", spec.id);
+        assert_eq!(rule.level, spec.level, "{}", spec.id);
+        assert_eq!(rule.item_type, spec.item_type, "{}", spec.id);
+        assert_eq!(rule.min_age_hours, spec.min_age_hours, "{}", spec.id);
+        assert_eq!(rule.keep_newest, spec.keep_newest, "{}", spec.id);
+        assert_eq!(rule.in_use.mode, spec.in_use, "{}", spec.id);
+        assert_eq!(rule.in_use.processes, spec.processes, "{}", spec.id);
+        assert_eq!(rule.growth, spec.growth, "{}", spec.id);
+        assert_eq!(locator_summary(rule), spec.locators, "{}", spec.id);
+        assert!(!rule.title_zh.is_empty());
+        assert!(!rule.what_zh.contains("垃圾"));
+        assert!(!rule.why_zh.contains("垃圾"));
+        assert!(!rule.after_zh.contains("垃圾"));
+        assert!(!rule.what_zh.contains(&rule.rule_id));
+        assert!(!rule.why_zh.contains(&rule.rule_id));
+        assert!(!rule.after_zh.contains(&rule.rule_id));
+        assert!(!rule.sources.is_empty());
+        let text = rules.text(&rule.rule_id).expect("text");
+        assert_eq!(text.title_zh, rule.title_zh);
+    }
+}
+
+fn expected_target_count(rules: &RuleSet, custom_roots: usize) -> usize {
+    rules
+        .rules()
+        .iter()
+        .map(|rule| {
+            rule.locate
+                .iter()
+                .map(|locator| match locator {
+                    Locator::Marker { .. } => custom_roots,
+                    _ => 1,
+                })
+                .sum::<usize>()
+        })
+        .sum()
+}
+
+fn locator_summary(rule: &water_junk_rules::Rule) -> Vec<String> {
+    rule.locate
+        .iter()
+        .map(|locator| match locator {
+            Locator::Pattern { base, segments } => {
+                format!("pattern:{}:{}", base.as_str(), segments.join("/"))
+            }
+            Locator::Discovery { base } => format!("discovery:{}", base.as_str()),
+            Locator::Marker { marker, max_depth } => match marker {
+                Marker::File {
+                    name,
+                    min_bytes,
+                    max_bytes,
+                } => format!("marker:file:{name}:{min_bytes}:{max_bytes}:{max_depth}"),
+                Marker::ChildrenAll { names } => {
+                    format!("marker:children_all:{}:{max_depth}", names.join(","))
+                }
+                Marker::DirName { names } => {
+                    format!("marker:dir_name:{}:{max_depth}", names.join(","))
+                }
+            },
+        })
+        .collect()
+}
+
+struct SeedSpec {
+    id: &'static str,
+    category: Category,
+    level: Level,
+    item_type: ItemType,
+    min_age_hours: u32,
+    keep_newest: u32,
+    in_use: InUseMode,
+    processes: Vec<&'static str>,
+    growth: Growth,
+    locators: Vec<String>,
+}
+
+const LOGIN_NAMES: [&str; 8] = [
+    "Network",
+    "Cookies",
+    "Login Data",
+    "Local Storage",
+    "IndexedDB",
+    "Session Storage",
+    "Sessions",
+    "Web Data",
+];
+
+fn processes_for(id: &str) -> Vec<&'static str> {
+    let family = |prefix: &str| -> Option<&'static str> {
+        match prefix {
+            "chrome" => Some("chrome.exe"),
+            "edge" => Some("msedge.exe"),
+            "brave" => Some("brave.exe"),
+            _ => None,
+        }
+    };
+    match id {
+        "claude-desktop-old-versions" => vec!["claude.exe"],
+        "claude-code-old-versions" => vec!["claude.exe"],
+        "headless-browser-profiles" => {
+            vec!["chrome.exe", "msedge.exe", "chrome-headless-shell.exe"]
+        }
+        "firefox-cache" => vec!["firefox.exe"],
+        "test-browser-profiles" => vec!["chrome.exe", "msedge.exe"],
+        _ => {
+            let (prefix, rest) = id.split_once('-').unwrap_or((id, ""));
+            match family(prefix) {
+                Some(process)
+                    if ["cache", "code-gpu-cache", "service-worker-cache"].contains(&rest) =>
+                {
+                    vec![process]
+                }
+                _ => Vec::new(),
+            }
+        }
+    }
+}
+
+#[allow(clippy::too_many_arguments)]
+fn seed(
+    id: &'static str,
+    category: Category,
+    level: Level,
+    item_type: ItemType,
+    min_age_hours: u32,
+    keep_newest: u32,
+    in_use: InUseMode,
+    growth: Growth,
+    locators: Vec<String>,
+) -> SeedSpec {
+    SeedSpec {
+        id,
+        category,
+        level,
+        item_type,
+        min_age_hours,
+        keep_newest,
+        in_use,
+        processes: processes_for(id),
+        growth,
+        locators,
+    }
+}
+
+fn p(base: &str, segments: &str) -> String {
+    format!("pattern:{base}:{segments}")
+}
+
+fn seed_table() -> Vec<SeedSpec> {
+    let mut rows = vec![
+        seed(
+            "codex-marketplace-staging",
+            Category::AgentTool,
+            Level::Recommended,
+            ItemType::Dir,
+            1,
+            0,
+            InUseMode::None,
+            Growth::LeakProne,
+            vec![p(
+                "user_profile",
+                ".codex*/.tmp/marketplaces/.staging/marketplace-upgrade-*",
+            )],
+        ),
+        seed(
+            "codex-runtimes",
+            Category::AgentTool,
+            Level::Confirm,
+            ItemType::Dir,
+            24,
+            1,
+            InUseMode::None,
+            Growth::Slow,
+            vec![p("user_profile", ".cache/codex-runtimes/*")],
+        ),
+        seed(
+            "claude-desktop-old-versions",
+            Category::AgentTool,
+            Level::Recommended,
+            ItemType::Dir,
+            24,
+            1,
+            InUseMode::CmdlineReferencesItem,
+            Growth::Slow,
+            vec![p("local_app_data", "AnthropicClaude/app-*")],
+        ),
+        seed(
+            "claude-desktop-packages",
+            Category::AgentTool,
+            Level::Confirm,
+            ItemType::Dir,
+            24,
+            0,
+            InUseMode::None,
+            Growth::Slow,
+            vec![p("local_app_data", "AnthropicClaude/packages")],
+        ),
+        seed(
+            "claude-code-scratchpad",
+            Category::AgentTool,
+            Level::Confirm,
+            ItemType::Dir,
+            72,
+            0,
+            InUseMode::None,
+            Growth::Slow,
+            vec![p("system_temp", "claude/*/*")],
+        ),
+        seed(
+            "grok-downloads",
+            Category::AgentTool,
+            Level::Recommended,
+            ItemType::Any,
+            24,
+            0,
+            InUseMode::None,
+            Growth::OneOff,
+            vec![p("user_profile", ".grok/downloads/*")],
+        ),
+        seed(
+            "headless-browser-profiles",
+            Category::AgentTool,
+            Level::Recommended,
+            ItemType::Dir,
+            1,
+            0,
+            InUseMode::CmdlineReferencesItem,
+            Growth::LeakProne,
+            vec![
+                p("system_temp", "rb#*-chrome-*"),
+                p("system_temp", "hrender-*"),
+                p("system_temp", "playwright_chromiumdev_profile-*"),
+                p("system_temp", "puppeteer_dev_profile-*"),
+                p("user_temp", "rb#*-chrome-*"),
+                p("user_temp", "hrender-*"),
+                p("user_temp", "playwright_chromiumdev_profile-*"),
+                p("user_temp", "puppeteer_dev_profile-*"),
+            ],
+        ),
+        seed(
+            "claude-code-sessions",
+            Category::AgentTool,
+            Level::Protected,
+            ItemType::Dir,
+            0,
+            0,
+            InUseMode::None,
+            Growth::Slow,
+            vec![p("user_profile", ".claude/projects")],
+        ),
+        seed(
+            "claude-code-file-history",
+            Category::AgentTool,
+            Level::Protected,
+            ItemType::Dir,
+            0,
+            0,
+            InUseMode::None,
+            Growth::Slow,
+            vec![p("user_profile", ".claude/file-history")],
+        ),
+        seed(
+            "cursor-chats",
+            Category::AgentTool,
+            Level::Protected,
+            ItemType::Dir,
+            0,
+            0,
+            InUseMode::None,
+            Growth::Slow,
+            vec![p("user_profile", ".cursor/chats")],
+        ),
+        seed(
+            "codex-sessions",
+            Category::AgentTool,
+            Level::Protected,
+            ItemType::Dir,
+            0,
+            0,
+            InUseMode::None,
+            Growth::Slow,
+            vec![p("user_profile", ".codex*/sessions")],
+        ),
+        seed(
+            "grok-sessions",
+            Category::AgentTool,
+            Level::Protected,
+            ItemType::Dir,
+            0,
+            0,
+            InUseMode::None,
+            Growth::Slow,
+            vec![p("user_profile", ".grok/sessions")],
+        ),
+    ];
+    rows.extend(browser_seeds());
+    rows.push(seed(
+        "chrome-on-device-model",
+        Category::Browser,
+        Level::Advisory,
+        ItemType::Dir,
+        0,
+        0,
+        InUseMode::None,
+        Growth::OneOff,
+        vec![p(
+            "local_app_data",
+            "Google/Chrome/User Data/OptGuideOnDeviceModel",
+        )],
+    ));
+    rows.push(seed(
+        "firefox-cache",
+        Category::Browser,
+        Level::Recommended,
+        ItemType::Dir,
+        0,
+        0,
+        InUseMode::ProcessRunning,
+        Growth::Slow,
+        vec![p("local_app_data", "Mozilla/Firefox/Profiles/*/cache2")],
+    ));
+    rows.push(seed(
+        "electron-app-cache",
+        Category::AppLeftover,
+        Level::Recommended,
+        ItemType::Dir,
+        1,
+        0,
+        InUseMode::None,
+        Growth::Slow,
+        vec![
+            p("roaming_app_data", "*/Cache"),
+            p("roaming_app_data", "*/Code Cache"),
+            p("roaming_app_data", "*/GPUCache"),
+            p("roaming_app_data", "*/DawnCache"),
+            p("local_app_data", "*/Cache"),
+            p("local_app_data", "*/Code Cache"),
+            p("local_app_data", "*/GPUCache"),
+        ],
+    ));
+    rows.push(seed(
+        "app-logs",
+        Category::CrashLog,
+        Level::Confirm,
+        ItemType::Dir,
+        168,
+        0,
+        InUseMode::None,
+        Growth::Slow,
+        vec![
+            p("roaming_app_data", "*/logs"),
+            p("local_app_data", "*/logs"),
+        ],
+    ));
+    rows.push(seed(
+        "installer-unpack-temp",
+        Category::AppLeftover,
+        Level::Recommended,
+        ItemType::Dir,
+        24,
+        0,
+        InUseMode::None,
+        Growth::Slow,
+        vec![
+            p("system_temp", "vscode-stable-*"),
+            p("system_temp", "vscode-user-*"),
+            p("system_temp", "sand-update*"),
+            p("system_temp", "workbuddy-update-*"),
+            p("system_temp", "codebuddy-marketplace-install*"),
+        ],
+    ));
+    rows.push(seed(
+        "downloads-installers",
+        Category::AppLeftover,
+        Level::Confirm,
+        ItemType::File,
+        168,
+        0,
+        InUseMode::None,
+        Growth::OneOff,
+        vec![
+            p("downloads", "*.exe"),
+            p("downloads", "*.msi"),
+            p("downloads", "*.msix"),
+            p("downloads", "*.msixbundle"),
+            p("downloads", "*.appx"),
+        ],
+    ));
+    rows.push(seed(
+        "squirrel-packages",
+        Category::AppLeftover,
+        Level::Confirm,
+        ItemType::Dir,
+        24,
+        0,
+        InUseMode::None,
+        Growth::Slow,
+        vec![p("local_app_data", "*/packages")],
+    ));
+    rows.push(seed(
+        "windows-delivery-optimization",
+        Category::AppLeftover,
+        Level::Advisory,
+        ItemType::Dir,
+        0,
+        0,
+        InUseMode::None,
+        Growth::Slow,
+        vec![p(
+            "windows",
+            "ServiceProfiles/NetworkService/AppData/Local/Microsoft/Windows/DeliveryOptimization",
+        )],
+    ));
+    rows.push(seed(
+        "windows-update-download",
+        Category::AppLeftover,
+        Level::Advisory,
+        ItemType::Dir,
+        0,
+        0,
+        InUseMode::None,
+        Growth::Slow,
+        vec![p("windows", "SoftwareDistribution/Download")],
+    ));
+    rows.push(seed(
+        "system-temp-old",
+        Category::SystemTemp,
+        Level::Recommended,
+        ItemType::Any,
+        168,
+        0,
+        InUseMode::None,
+        Growth::Slow,
+        vec!["discovery:system_temp".to_string()],
+    ));
+    rows.push(seed(
+        "user-temp-old",
+        Category::SystemTemp,
+        Level::Recommended,
+        ItemType::Any,
+        168,
+        0,
+        InUseMode::None,
+        Growth::Slow,
+        vec!["discovery:user_temp".to_string()],
+    ));
+    rows.push(seed(
+        "npm-cache",
+        Category::DevCache,
+        Level::Recommended,
+        ItemType::Dir,
+        1,
+        0,
+        InUseMode::None,
+        Growth::Slow,
+        vec![p("local_app_data", "npm-cache")],
+    ));
+    rows.push(seed(
+        "pip-cache",
+        Category::DevCache,
+        Level::Recommended,
+        ItemType::Dir,
+        1,
+        0,
+        InUseMode::None,
+        Growth::Slow,
+        vec![p("local_app_data", "pip/cache")],
+    ));
+    rows.push(seed(
+        "yarn-cache",
+        Category::DevCache,
+        Level::Recommended,
+        ItemType::Dir,
+        1,
+        0,
+        InUseMode::None,
+        Growth::Slow,
+        vec![p("local_app_data", "Yarn/Cache")],
+    ));
+    rows.push(seed(
+        "uv-cache",
+        Category::DevCache,
+        Level::Advisory,
+        ItemType::Dir,
+        0,
+        0,
+        InUseMode::None,
+        Growth::Slow,
+        vec![p("local_app_data", "uv/cache")],
+    ));
+    rows.push(seed(
+        "pnpm-store",
+        Category::DevCache,
+        Level::Advisory,
+        ItemType::Dir,
+        0,
+        0,
+        InUseMode::None,
+        Growth::Slow,
+        vec![p("local_app_data", "pnpm/store")],
+    ));
+    rows.push(seed(
+        "cargo-registry-cache",
+        Category::DevCache,
+        Level::Recommended,
+        ItemType::Dir,
+        1,
+        0,
+        InUseMode::None,
+        Growth::Slow,
+        vec![
+            p("user_profile", ".cargo/registry/cache"),
+            p("user_profile", ".cargo/registry/src"),
+        ],
+    ));
+    rows.push(seed(
+        "gradle-caches",
+        Category::DevCache,
+        Level::Confirm,
+        ItemType::Dir,
+        24,
+        0,
+        InUseMode::None,
+        Growth::Slow,
+        vec![p("user_profile", ".gradle/caches")],
+    ));
+    rows.push(seed(
+        "playwright-browsers",
+        Category::DevCache,
+        Level::Confirm,
+        ItemType::Dir,
+        24,
+        0,
+        InUseMode::None,
+        Growth::OneOff,
+        vec![p("local_app_data", "ms-playwright")],
+    ));
+    rows.push(seed(
+        "node-gyp-cache",
+        Category::DevCache,
+        Level::Recommended,
+        ItemType::Dir,
+        1,
+        0,
+        InUseMode::None,
+        Growth::OneOff,
+        vec![p("local_app_data", "node-gyp/Cache")],
+    ));
+    rows.push(seed(
+        "electron-build-cache",
+        Category::DevCache,
+        Level::Recommended,
+        ItemType::Dir,
+        1,
+        0,
+        InUseMode::None,
+        Growth::OneOff,
+        vec![
+            p("local_app_data", "electron-builder/Cache"),
+            p("local_app_data", "electron/Cache"),
+        ],
+    ));
+    rows.push(seed(
+        "jest-cache",
+        Category::DevCache,
+        Level::Recommended,
+        ItemType::Dir,
+        1,
+        0,
+        InUseMode::None,
+        Growth::Slow,
+        vec![p("system_temp", "jest"), p("user_temp", "jest")],
+    ));
+    rows.push(seed(
+        "huggingface-models",
+        Category::DevCache,
+        Level::Advisory,
+        ItemType::Dir,
+        0,
+        0,
+        InUseMode::None,
+        Growth::OneOff,
+        vec![p("user_profile", ".cache/huggingface")],
+    ));
+    rows.push(seed(
+        "ollama-models",
+        Category::DevCache,
+        Level::Advisory,
+        ItemType::Dir,
+        0,
+        0,
+        InUseMode::None,
+        Growth::OneOff,
+        vec![p("user_profile", ".ollama/models")],
+    ));
+    rows.push(seed(
+        "crash-dumps",
+        Category::CrashLog,
+        Level::Recommended,
+        ItemType::File,
+        24,
+        0,
+        InUseMode::None,
+        Growth::Slow,
+        vec![p("local_app_data", "CrashDumps/*.dmp")],
+    ));
+    rows.push(seed(
+        "wer-user-reports",
+        Category::CrashLog,
+        Level::Recommended,
+        ItemType::Dir,
+        24,
+        0,
+        InUseMode::None,
+        Growth::Slow,
+        vec![
+            p("local_app_data", "Microsoft/Windows/WER/ReportArchive/*"),
+            p("local_app_data", "Microsoft/Windows/WER/ReportQueue/*"),
+        ],
+    ));
+    rows.push(seed(
+        "wer-system-reports",
+        Category::CrashLog,
+        Level::Advisory,
+        ItemType::Dir,
+        0,
+        0,
+        InUseMode::None,
+        Growth::Slow,
+        vec![p("program_data", "Microsoft/Windows/WER")],
+    ));
+    rows.push(seed(
+        "gpu-shader-cache",
+        Category::GpuSystem,
+        Level::Recommended,
+        ItemType::Dir,
+        0,
+        0,
+        InUseMode::None,
+        Growth::Slow,
+        vec![
+            p("local_app_data", "NVIDIA/DXCache"),
+            p("local_app_data", "NVIDIA/GLCache"),
+            p("local_app_data", "D3DSCache"),
+            p("local_app_data", "AMD/DxCache"),
+            p("local_app_data", "AMD/GLCache"),
+            p("local_app_data", "Intel/ShaderCache"),
+        ],
+    ));
+    rows.push(seed(
+        "explorer-thumbnail-cache",
+        Category::GpuSystem,
+        Level::Advisory,
+        ItemType::Dir,
+        0,
+        0,
+        InUseMode::None,
+        Growth::Slow,
+        vec![p("local_app_data", "Microsoft/Windows/Explorer")],
+    ));
+    rows.push(seed(
+        "cachedir-tagged",
+        Category::Custom,
+        Level::Recommended,
+        ItemType::Dir,
+        1,
+        0,
+        InUseMode::parse("runs_from_or_references_item").expect("RULES_M3C_IN_USE: seed mode"),
+        Growth::Slow,
+        vec!["marker:file:CACHEDIR.TAG:43:1024:12".to_string()],
+    ));
+    rows.push(seed(
+        "python-tool-caches",
+        Category::Custom,
+        Level::Recommended,
+        ItemType::Dir,
+        1,
+        0,
+        InUseMode::parse("runs_from_or_references_item").expect("RULES_M3C_IN_USE: seed mode"),
+        Growth::Slow,
+        vec!["marker:dir_name:__pycache__,.pytest_cache,.mypy_cache,.ruff_cache:12".to_string()],
+    ));
+    rows.push(seed(
+        "test-browser-profiles",
+        Category::Custom,
+        Level::Confirm,
+        ItemType::Dir,
+        24,
+        0,
+        InUseMode::CmdlineReferencesItem,
+        Growth::Slow,
+        vec!["marker:children_all:Local State,Default:8".to_string()],
+    ));
+    rows.push(seed(
+        "node-modules",
+        Category::Custom,
+        Level::Confirm,
+        ItemType::Dir,
+        168,
+        0,
+        InUseMode::parse("runs_from_or_references_item").expect("RULES_M3C_IN_USE: seed mode"),
+        Growth::Slow,
+        vec!["marker:dir_name:node_modules:6".to_string()],
+    ));
+    rows.push(seed(
+        "rust-build-dirs",
+        Category::Custom,
+        Level::Recommended,
+        ItemType::Dir,
+        1,
+        0,
+        InUseMode::parse("runs_from_or_references_item").expect("RULES_M3C_IN_USE: seed mode"),
+        Growth::Slow,
+        vec!["marker:file:.rustc_info.json:2:65536:12".to_string()],
+    ));
+    rows.push(seed(
+        "git-worktrees",
+        Category::Custom,
+        Level::Advisory,
+        ItemType::Dir,
+        0,
+        0,
+        InUseMode::None,
+        Growth::Slow,
+        vec!["marker:file:.git:1:4096:8".to_string()],
+    ));
+    rows.extend(agent_seed_table());
+    rows
+}
+
+const AGENT_RULE_IDS: [&str; 14] = [
+    "desktop-updater-residue",
+    "agent-cli-old-binaries",
+    "claude-code-old-versions",
+    "cursor-compile-cache",
+    "qoder-workspace-temp",
+    "agent-tool-logs",
+    "electron-gpu-caches",
+    "grok-other-homes",
+    "antigravity-cockpit-profiles",
+    "opencode-sessions",
+    "kimi-code-sessions",
+    "kiro-sessions",
+    "workbuddy-memory-sessions",
+    "other-agent-sessions",
+];
+
+fn agent_seed_table() -> Vec<SeedSpec> {
+    vec![
+        seed(
+            "desktop-updater-residue",
+            Category::AppLeftover,
+            Level::Recommended,
+            ItemType::Any,
+            24,
+            0,
+            InUseMode::None,
+            Growth::Slow,
+            vec![
+                p("local_app_data", "*-updater/pending"),
+                p("local_app_data", "*-updater/installer.exe"),
+            ],
+        ),
+        seed(
+            "agent-cli-old-binaries",
+            Category::AgentTool,
+            Level::Recommended,
+            ItemType::File,
+            24,
+            0,
+            InUseMode::None,
+            Growth::OneOff,
+            vec![
+                p("user_profile", ".grok/bin/*.old"),
+                p("user_profile", ".kimi-code/bin/*.bak"),
+            ],
+        ),
+        seed(
+            "claude-code-old-versions",
+            Category::AgentTool,
+            Level::Recommended,
+            ItemType::Any,
+            24,
+            1,
+            InUseMode::CmdlineReferencesItem,
+            Growth::Slow,
+            vec![p("user_profile", ".local/share/claude/versions/*")],
+        ),
+        seed(
+            "cursor-compile-cache",
+            Category::AgentTool,
+            Level::Recommended,
+            ItemType::Dir,
+            168,
+            0,
+            InUseMode::None,
+            Growth::Slow,
+            vec![p("local_app_data", "cursor-compile-cache")],
+        ),
+        seed(
+            "qoder-workspace-temp",
+            Category::AgentTool,
+            Level::Confirm,
+            ItemType::Dir,
+            24,
+            0,
+            InUseMode::None,
+            Growth::Slow,
+            vec![
+                p("user_profile", ".qoderworkcn/tmp/*"),
+                p("user_profile", ".qoderwork/tmp/*"),
+            ],
+        ),
+        seed(
+            "agent-tool-logs",
+            Category::AgentTool,
+            Level::Recommended,
+            ItemType::Any,
+            168,
+            0,
+            InUseMode::None,
+            Growth::Slow,
+            vec![
+                p("user_profile", ".kimi-code/logs/*"),
+                p("user_profile", ".local/share/opencode/log/*"),
+                p("user_profile", ".copilot/logs/*"),
+                p("user_profile", ".workbuddy*/logs/*"),
+                p("user_profile", ".qoderwork*/logs/*"),
+                p("user_profile", ".antigravity_cockpit/logs/*"),
+                p("user_profile", ".codebuddy/logs/*"),
+            ],
+        ),
+        seed(
+            "electron-gpu-caches",
+            Category::AppLeftover,
+            Level::Recommended,
+            ItemType::Dir,
+            1,
+            0,
+            InUseMode::None,
+            Growth::Slow,
+            vec![
+                p("roaming_app_data", "*/DawnGraphiteCache"),
+                p("roaming_app_data", "*/DawnWebGPUCache"),
+                p("roaming_app_data", "*/GrShaderCache"),
+                p("roaming_app_data", "*/GPUPersistentCache"),
+                p("local_app_data", "*/DawnGraphiteCache"),
+                p("local_app_data", "*/DawnWebGPUCache"),
+                p("local_app_data", "*/GrShaderCache"),
+                p("local_app_data", "*/GPUPersistentCache"),
+            ],
+        ),
+        seed(
+            "grok-other-homes",
+            Category::AgentTool,
+            Level::Protected,
+            ItemType::Dir,
+            0,
+            0,
+            InUseMode::None,
+            Growth::Slow,
+            vec![p("user_profile", ".grok#"), p("user_profile", ".grokbot")],
+        ),
+        seed(
+            "antigravity-cockpit-profiles",
+            Category::AgentTool,
+            Level::Protected,
+            ItemType::Dir,
+            0,
+            0,
+            InUseMode::None,
+            Growth::Slow,
+            vec![p("user_profile", ".antigravity_cockpit/instances")],
+        ),
+        seed(
+            "opencode-sessions",
+            Category::AgentTool,
+            Level::Protected,
+            ItemType::Any,
+            0,
+            0,
+            InUseMode::None,
+            Growth::Slow,
+            vec![
+                p("user_profile", ".local/share/opencode/opencode.db*"),
+                p("user_profile", ".local/share/opencode/snapshot"),
+            ],
+        ),
+        seed(
+            "kimi-code-sessions",
+            Category::AgentTool,
+            Level::Protected,
+            ItemType::Dir,
+            0,
+            0,
+            InUseMode::None,
+            Growth::Slow,
+            vec![
+                p("user_profile", ".kimi-code/sessions"),
+                p("user_profile", ".kimi-code/file-history"),
+            ],
+        ),
+        seed(
+            "kiro-sessions",
+            Category::AgentTool,
+            Level::Protected,
+            ItemType::Dir,
+            0,
+            0,
+            InUseMode::None,
+            Growth::Slow,
+            vec![p("user_profile", ".kiro/sessions")],
+        ),
+        seed(
+            "workbuddy-memory-sessions",
+            Category::AgentTool,
+            Level::Protected,
+            ItemType::Dir,
+            0,
+            0,
+            InUseMode::None,
+            Growth::Slow,
+            vec![
+                p("user_profile", ".workbuddy*/memory"),
+                p("user_profile", ".workbuddy*/sessions"),
+                p("user_profile", ".codebuddy/sessions"),
+                p("user_profile", ".codebuddy/file-history"),
+            ],
+        ),
+        seed(
+            "other-agent-sessions",
+            Category::AgentTool,
+            Level::Protected,
+            ItemType::Dir,
+            0,
+            0,
+            InUseMode::None,
+            Growth::Slow,
+            vec![
+                p("user_profile", ".gemini/tmp/*/chats"),
+                p("user_profile", ".copilot/session-state"),
+                p("user_profile", ".dsh/sessions"),
+            ],
+        ),
+    ]
+}
+
+fn browser_seeds() -> Vec<SeedSpec> {
+    let families = [
+        ("chrome", "Google/Chrome/User Data"),
+        ("edge", "Microsoft/Edge/User Data"),
+        ("brave", "BraveSoftware/Brave-Browser/User Data"),
+    ];
+    let mut rows = Vec::new();
+    for (id, ud) in families {
+        rows.push(seed(
+            Box::leak(format!("{id}-cache").into_boxed_str()),
+            Category::Browser,
+            Level::Recommended,
+            ItemType::Dir,
+            0,
+            0,
+            InUseMode::ProcessRunning,
+            Growth::Slow,
+            vec![
+                p("local_app_data", &format!("{ud}/*/Cache")),
+                p("local_app_data", &format!("{ud}/*/Media Cache")),
+            ],
+        ));
+    }
+    for (id, ud) in families {
+        rows.push(seed(
+            Box::leak(format!("{id}-code-gpu-cache").into_boxed_str()),
+            Category::Browser,
+            Level::Recommended,
+            ItemType::Dir,
+            0,
+            0,
+            InUseMode::ProcessRunning,
+            Growth::Slow,
+            vec![
+                p("local_app_data", &format!("{ud}/*/Code Cache")),
+                p("local_app_data", &format!("{ud}/*/GPUCache")),
+                p("local_app_data", &format!("{ud}/*/DawnCache")),
+                p("local_app_data", &format!("{ud}/*/DawnGraphiteCache")),
+                p("local_app_data", &format!("{ud}/*/DawnWebGPUCache")),
+                p("local_app_data", &format!("{ud}/ShaderCache")),
+                p("local_app_data", &format!("{ud}/GrShaderCache")),
+                p("local_app_data", &format!("{ud}/GraphiteDawnCache")),
+            ],
+        ));
+    }
+    for (id, ud) in families {
+        rows.push(seed(
+            Box::leak(format!("{id}-service-worker-cache").into_boxed_str()),
+            Category::Browser,
+            Level::Confirm,
+            ItemType::Dir,
+            0,
+            0,
+            InUseMode::ProcessRunning,
+            Growth::Slow,
+            vec![
+                p(
+                    "local_app_data",
+                    &format!("{ud}/*/Service Worker/CacheStorage"),
+                ),
+                p(
+                    "local_app_data",
+                    &format!("{ud}/*/Service Worker/ScriptCache"),
+                ),
+            ],
+        ));
+    }
+    for (id, ud) in families {
+        rows.push(seed(
+            Box::leak(format!("{id}-crash-reports").into_boxed_str()),
+            Category::CrashLog,
+            Level::Recommended,
+            ItemType::Dir,
+            24,
+            0,
+            InUseMode::None,
+            Growth::Slow,
+            vec![p("local_app_data", &format!("{ud}/Crashpad/reports"))],
+        ));
+    }
+    for (id, ud) in families {
+        rows.push(seed(
+            Box::leak(format!("{id}-login-and-site-data").into_boxed_str()),
+            Category::Browser,
+            Level::Protected,
+            ItemType::Any,
+            0,
+            0,
+            InUseMode::None,
+            Growth::Slow,
+            ["Default", "Profile *", "Guest Profile", "System Profile"]
+                .iter()
+                .flat_map(|profile| {
+                    LOGIN_NAMES
+                        .iter()
+                        .map(move |name| p("local_app_data", &format!("{ud}/{profile}/{name}")))
+                })
+                .collect(),
+        ));
+    }
+    rows
+}

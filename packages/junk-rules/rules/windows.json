@@ -1,6 +1,6 @@
 {
   "rules_version": "water.junk-rules.v1",
-  "data_version": "2026-10-28.2",
+  "data_version": "2026-10-31.1",
   "rules": [
     {
       "rule_id": "codex-marketplace-staging",
@@ -3786,7 +3786,7 @@
       "min_age_hours": 1,
       "keep_newest": 0,
       "in_use": {
-        "mode": "none",
+        "mode": "runs_from_or_references_item",
         "processes": []
       },
       "growth": "slow",
@@ -3832,7 +3832,7 @@
       "min_age_hours": 1,
       "keep_newest": 0,
       "in_use": {
-        "mode": "none",
+        "mode": "runs_from_or_references_item",
         "processes": []
       },
       "growth": "slow",
@@ -3917,7 +3917,7 @@
       "min_age_hours": 168,
       "keep_newest": 0,
       "in_use": {
-        "mode": "none",
+        "mode": "runs_from_or_references_item",
         "processes": []
       },
       "growth": "slow",
@@ -3955,7 +3955,7 @@
       "min_age_hours": 1,
       "keep_newest": 0,
       "in_use": {
-        "mode": "none",
+        "mode": "runs_from_or_references_item",
         "processes": []
       },
       "growth": "slow",
@@ -3973,6 +3973,49 @@
           "kind": "official_doc",
           "ref": "https://doc.rust-lang.org/cargo/reference/build-cache.html",
           "checked_on": "2026-10-27"
+        }
+      ]
+    },
+    {
+      "rule_id": "git-worktrees",
+      "title_zh": "Git 工作树或子模块",
+      "owner_zh": "Git",
+      "category": "custom",
+      "level": "advisory",
+      "locate": [
+        {
+          "kind": "marker",
+          "marker": {
+            "kind": "file",
+            "name": ".git",
+            "min_bytes": 1,
+            "max_bytes": 4096
+          },
+          "max_depth": 8
+        }
+      ],
+      "item_type": "dir",
+      "min_age_hours": 0,
+      "keep_newest": 0,
+      "in_use": {
+        "mode": "none",
+        "processes": []
+      },
+      "growth": "slow",
+      "what_zh": "目录里的 .git 是一个小文件而不是文件夹，通常是 git worktree 建出的工作树，也可能是子模块。",
+      "why_zh": "里面可能有还没提交的改动，Water 不读文件内容，无法确认，所以只列出、不提供清理。",
+      "after_zh": "确认不再需要后，在主仓库里用 git worktree remove 删除，主仓库的登记会一并清掉。",
+      "fix_hint_zh": null,
+      "sources": [
+        {
+          "kind": "local_observation",
+          "ref": "F 盘清理记录 docs/maintenance/F-CLEANUP-20261029.md：130 棵已合并的旧工作树共 56 GB",
+          "checked_on": "2026-10-29"
+        },
+        {
+          "kind": "official_doc",
+          "ref": "https://git-scm.com/docs/git-worktree",
+          "checked_on": "2026-10-31"
         }
       ]
     },
