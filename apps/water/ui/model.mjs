@@ -7,7 +7,7 @@ export function resetSelection(result) {
   return new Map(groups(result).filter(g => canSelect(g) && g.default_selected).map(g => [g.group_id, new Set()]));
 }
 export function installResult(state, result) {
-  return {...state, result, selection:resetSelection(result), details:new Map(), excludedDetails:new Map(), skipFailure:'', stale:false, filter:'all', drive:null};
+  return {...state, result, selection:resetSelection(result), manualExclusions:new Set(), details:new Map(), excludedDetails:new Map(), skipFailure:'', stale:false, filter:'all', drive:null};
 }
 // Fresh details and the metadata needed to count exclusions have separate lifetimes.
 export function selectionDetails(state) { return new Map([...(state.excludedDetails ?? []), ...state.details]); }

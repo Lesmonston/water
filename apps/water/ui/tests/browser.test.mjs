@@ -45,7 +45,16 @@ function fakeHost(f, options) {
   const now = NativeDate.parse(f.scan_result.finished_at) + (options.due ? 9 * 86400000 : 0);
   window.Date = class extends NativeDate { constructor(...args) { super(...(args.length ? args : [now])); } static now() { return now; } };
   const control = window.__waterTest = {owner:options.owner, scenario:options.scenario, calls:[], errors:[], scanIndex:0, cleanIndex:0, holdScan:true, holdClean:true, holdApp:!!options.holdApp, scanIdleBefore:0, offline:false, progressErrors:{scan_progress:[], clean_progress:[]}, holdProgress:null, delayedError:null, nextError:null, scanned:!!options.scanned, busy:options.busy ?? 'idle', locations:copy(f.locations), addCancelled:false, plan:null, planSequence:0, consumed:false, cleanFinished:!!options.cleanFinished};
-  control.skipSequence = 0; control.categoryOverrides = {};
+  control.categoryOverrides = {};
+  // Capture the ordinary state installation only for testing the independent
+  // notice guards after deliberately resolving an uncertain settings outcome.
+  if (options.observeAppState) {
+    const assign = Object.assign;
+    Object.assign = function(target, ...sources) {
+      if (sources.some(s => s?.selection instanceof Map && s.result)) { control.appState = target; Object.assign = assign; }
+      return assign(target, ...sources);
+    };
+  }
   // Observe the actual detail Map through its ordinary operations, without a product hook.
   if (options.observeDetailCache) {
     const set = Map.prototype.set, iterator = Map.prototype[Symbol.iterator];
@@ -201,7 +210,9 @@ function fakeHost(f, options) {
       case 'locations_set_category': {
         const category = control.locations.categories.find(c => c.category === args.category);
         if (!category || category.locked) fail('invalid'); category.enabled = args.enabled;
-        control.categoryOverrides[args.category] = args.enabled; projectSkips(); return copy(control.locations);
+        control.categoryOverrides[args.category] = args.enabled; projectSkips();
+        if (control.failAfterWrite === command) throw copy(f.errors.unavailable);
+        return copy(control.locations);
       }
       case 'custom_root_add': if (control.addCancelled) return copy(f.custom_root_add_cancelled); control.locations.custom_roots.push(copy(f.custom_root_add_added.added)); return copy(f.custom_root_add_added);
       case 'custom_root_remove': control.locations.custom_roots = control.locations.custom_roots.filter(r => r.root_id !== args.rootId); return copy(control.locations);
@@ -210,8 +221,10 @@ function fakeHost(f, options) {
         const item = data?.items.find(item => item.item_id === args.itemId);
         if (!item || !data.group.selectable) fail('invalid');
         if (!control.locations.skipped.some(s => s.display_path.toLowerCase() === item.display_path.toLowerCase())) {
-          const sequence = ++control.skipSequence;
-          control.locations.skipped.push({skip_id:sequence === 1 ? 's-added' : `s-added-${sequence}`, display_path:item.display_path, added_at:f.scan_result.finished_at});
+          if (control.locations.skipped.length >= 64) fail('invalid');
+          let sequence = 1;
+          while (control.locations.skipped.some(s => s.skip_id === `s-${String(sequence).padStart(6, '0')}`)) sequence++;
+          control.locations.skipped.push({skip_id:`s-${String(sequence).padStart(6, '0')}`, display_path:item.display_path, added_at:f.scan_result.finished_at});
         }
         if (options.liveSkips) projectSkips();
         else if (!options.skipKeepsCurrentScan && item.eligible) {
@@ -222,11 +235,14 @@ function fakeHost(f, options) {
           if (drive) drive.eligible_bytes = String(BigInt(drive.eligible_bytes) - BigInt(item.total_bytes));
           for (const category of f.scan_result.categories) category.groups = category.groups.map(g => g.group_id === data.group.group_id ? copy(data.group) : g);
         }
+        if (control.failAfterWrite === command) throw copy(f.errors.unavailable);
         return copy(control.locations);
       }
       case 'skip_remove':
         if (!control.locations.skipped.some(s => s.skip_id === args.skipId)) fail('not_found');
-        control.locations.skipped = control.locations.skipped.filter(s => s.skip_id !== args.skipId); projectSkips(); return copy(control.locations);
+        control.locations.skipped = control.locations.skipped.filter(s => s.skip_id !== args.skipId); projectSkips();
+        if (control.failAfterWrite === command) throw copy(f.errors.unavailable);
+        return copy(control.locations);
       default: throw new Error('Unexpected command ' + command);
     }
   }}};
@@ -438,6 +454,10 @@ test('ui_results_detail_confirm', async () => {
   for (const id of ['i-000201', 'i-000202', 'i-000203']) await click(`item-${id}`);
   assert(await browser.evaluate('document.querySelectorAll(".items input").length === 3 && [...document.querySelectorAll(".items input")].every(e=>!e.checked && e.disabled) && !!document.querySelector(".item-selection-note")'), 'UI_M3C_EXCLUDE: emptied drawer immediately disables items and explains result-page reselection');
   assert(await browser.evaluate('(()=>{const d=document.querySelector("dialog[open]"),a=document.activeElement,r=a.getBoundingClientRect(),p=d.getBoundingClientRect();return d.contains(a)&&!a.disabled&&r.top>=p.top&&r.bottom<=p.bottom})()'), 'UI_M3C_EXCLUDE: disabling the last item leaves focus on a visible enabled drawer control');
+  assert(await browser.evaluate('document.activeElement.matches(".item-selection-note") && document.activeElement.tabIndex === -1 && document.activeElement.getAttribute("role") === "status"'), 'UI_M3C_EXCLUDE: disabling the last item focuses its non-writing status explanation');
+  const skipsBeforeSpace = await browser.evaluate('window.__waterTest.calls.filter(c=>c.command==="skip_add").length');
+  await key(' ');
+  assert.equal(await browser.evaluate('window.__waterTest.calls.filter(c=>c.command==="skip_add").length'), skipsBeforeSpace, 'UI_M3C_EXCLUDE: another Space on the status cannot write persistent settings');
   await control('const box=document.querySelector("[data-key=item-i-000202]");box.checked=true;box.dispatchEvent(new Event("change",{bubbles:true}))');
   assert(await browser.evaluate('[...document.querySelectorAll(".items input")].every(e=>!e.checked && e.disabled)'), 'UI_M3C_EXCLUDE: forged item change cannot reselect an emptied group');
   assert(await browser.evaluate(`(()=>{const box=document.querySelector(${JSON.stringify(q(`select-${groupId}`))});return !box.checked && !box.indeterminate})()`), 'UI_M3C_EXCLUDE: entirely excluded group is unchecked, not mixed');
@@ -631,10 +651,10 @@ test('ui_clean_done_and_pages', async () => {
   assert.equal(await browser.evaluate('document.activeElement.dataset.key'), 'detail-custom:drive-f:node-modules', 'UI_M3C_SKIP: refreshed drawer returns focus to the original group button');
   assert.equal(await browser.evaluate(`document.querySelector(${JSON.stringify(q('select-custom:drive-f:node-modules'))}).checked`), false, 'UI_M3C_SKIP: skipping in an unselected group leaves it unselected');
   await click('nav-locations');
-  assert(await settle('!!document.querySelector("[data-key=restore-s-added]")'), 'UI_M3C_SKIP: newly skipped folder is listed');
-  await click('restore-s-added');
-  assert(await settle('!document.querySelector("[data-key=restore-s-added]")'), 'UI_M3C_SKIP: restore removes its row');
-  assert.deepEqual(await browser.evaluate('window.__waterTest.calls.findLast(c=>c.command==="skip_remove").args'), {skipId:'s-added'}, 'UI_M3C_SKIP: restore sends only skipId');
+  assert(await settle('!!document.querySelector("[data-key=restore-s-000003]")'), 'UI_M3C_SKIP: newly skipped folder is listed');
+  await click('restore-s-000003');
+  assert(await settle('!document.querySelector("[data-key=restore-s-000003]")'), 'UI_M3C_SKIP: restore removes its row');
+  assert.deepEqual(await browser.evaluate('window.__waterTest.calls.findLast(c=>c.command==="skip_remove").args'), {skipId:'s-000003'}, 'UI_M3C_SKIP: restore sends only skipId');
   const skipCalls = await browser.evaluate('window.__waterTest.calls.filter(c=>c.command.startsWith("skip_"))');
   for (const {args} of skipCalls) assert(Object.values(args).every(value => typeof value === 'string' && !/[\\/:]/.test(value)), 'UI_IPC_NO_PATH: new commands contain opaque IDs only');
   for (const skipKeepsCurrentScan of [false, true]) {
@@ -666,6 +686,69 @@ test('ui_clean_done_and_pages', async () => {
   const recommendedItem = m3c.group_details[recommendedId].items[0];
   const recommendedBytes = BigInt(m3c.scan_result.totals.recommended_bytes);
   const defaultCount = groups(m3c.scan_result).filter(g => g.default_selected).reduce((sum, g) => sum + g.eligible_count, 0);
+  // Manual opt-outs survive both sides of a live settings projection. Insurance
+  // exclusions still disappear when the service confirms an item is skipped.
+  for (const manual of [true, false]) {
+    await reset({m3c:true, scanned:true, liveSkips:true}, 'results');
+    await click(`select-${nodeId}`); await click(`detail-${nodeId}`); await waitText('这是什么');
+    if (manual) await click('item-i-000202');
+    const includedBytes = recommendedBytes + 450635299n;
+    await click('skip-i-000202');
+    assert(await settle('!!document.querySelector(".detail-notice") && !document.querySelector("[data-key=detail-close]")?.disabled'), 'UI_M3C_EXCLUDE: live skip confirms the manually excluded or insurance-only item is ineligible');
+    assert.equal(await browser.evaluate('document.querySelector(".dock b").textContent'), formatBytes(includedBytes), 'UI_M3C_EXCLUDE: a skipped manual exclusion is not deducted twice');
+    assert.equal(await browser.evaluate('document.querySelector(".selected-count").textContent'), `${count(defaultCount + 1)} 项`, 'UI_M3C_EXCLUDE: a skipped manual exclusion is not counted twice');
+    await key('Escape'); await waitFor('!document.querySelector("dialog[open]")'); await click('clean-prepare');
+    assert(await settle('!!document.querySelector(".confirm[open]")'), 'UI_M3C_EXCLUDE: currently skipped manual IDs are accepted by prepare');
+    assert.deepEqual(await browser.evaluate('window.__waterTest.calls.findLast(c=>c.command==="clean_prepare").args.excludeItemIds'), manual ? ['i-000202'] : [], 'UI_M3C_EXCLUDE: only manual exclusions retain currently skipped IDs');
+    assert.equal(await browser.evaluate('window.__waterTest.plan.excluded_count'), 0, 'UI_M3C_EXCLUDE: currently skipped IDs are ignored in excluded_count');
+    assert.equal(await browser.evaluate('window.__waterTest.plan.total_bytes'), includedBytes.toString(), 'UI_M3C_EXCLUDE: skipped manual preview matches the dock');
+    await key('Escape'); await waitFor('!document.querySelector("dialog[open]")'); await click('nav-locations'); await waitText('以后都跳过的文件夹');
+    // Hold the restored exclusion metadata as well as the result itself. Cleanup
+    // must remain blocked until the actual item state has been reconciled.
+    if (manual) await control("window.__waterTest.delayedError={command:'group_detail',error:null}");
+    await click('restore-s-000003');
+    if (manual) {
+      assert(await settle('window.__waterTest.delayedError.started === true'), 'UI_M3C_EXCLUDE: restore rereads the retained ineligible manual metadata');
+      await browser.evaluate('location.hash="#/results"'); await pageIs('results');
+      assert.equal(await browser.evaluate('document.querySelector("[data-key=clean-prepare]")?.disabled'), true, 'UI_M3C_EXCLUDE: restoration blocks cleanup until exclusion metadata arrives');
+      await control('window.__waterTest.delayedError.release=true');
+    } else { await waitFor('!document.querySelector("[data-key=restore-s-000003]") && !document.querySelector("[data-key=add-root]")?.disabled'); await browser.evaluate('location.hash="#/results"'); await pageIs('results'); }
+    assert(await settle('document.querySelector("[data-key=clean-prepare]")?.disabled === false'), 'UI_M3C_EXCLUDE: restored metadata settles before cleanup is enabled');
+    const expectedBytes = includedBytes + (manual ? 0n : 996147200n), expectedCount = defaultCount + (manual ? 1 : 2);
+    assert.equal(await browser.evaluate('document.querySelector(".dock b").textContent'), formatBytes(expectedBytes), 'UI_M3C_EXCLUDE: restoration keeps manual opt-outs and includes insurance-only items');
+    assert.equal(await browser.evaluate('document.querySelector(".selected-count").textContent'), `${count(expectedCount)} 项`, 'UI_M3C_EXCLUDE: restored dock counts respect the source of each exclusion');
+    await click(`detail-${nodeId}`); await waitText('这是什么');
+    assert.equal(await browser.evaluate('document.querySelector("[data-key=item-i-000202]")?.checked'), !manual, 'UI_M3C_EXCLUDE: the restored item remains unchecked only after a manual opt-out');
+    await key('Escape'); await waitFor('!document.querySelector("dialog[open]")'); await click('clean-prepare');
+    assert(await settle('!!document.querySelector(".confirm[open]")'), 'UI_M3C_EXCLUDE: restored manual selection prepares');
+    assert.deepEqual(await browser.evaluate('window.__waterTest.calls.findLast(c=>c.command==="clean_prepare").args.excludeItemIds'), manual ? ['i-000202'] : [], 'UI_M3C_EXCLUDE: restored manual opt-out still reaches clean_prepare');
+    assert.equal(await browser.evaluate('window.__waterTest.plan.total_bytes'), expectedBytes.toString(), 'UI_M3C_EXCLUDE: restored manual plan bytes match the dock');
+    assert.equal(await browser.evaluate('window.__waterTest.plan.item_count'), expectedCount, 'UI_M3C_EXCLUDE: restored manual plan count matches the dock');
+  }
+  for (const outcome of ['missing', 'failure']) {
+    await reset({m3c:true, scanned:true, liveSkips:true}, 'results');
+    await click(`select-${nodeId}`); await click(`detail-${nodeId}`); await waitText('这是什么'); await click('item-i-000202'); await click('skip-i-000202');
+    await waitFor('!!document.querySelector(".detail-notice") && !document.querySelector("[data-key=detail-close]")?.disabled');
+    await key('Escape'); await waitFor('!document.querySelector("dialog[open]")'); await click('nav-locations'); await waitText('以后都跳过的文件夹');
+    await control(outcome === 'missing' ? 'window.__waterTest.omitDetailItem="i-000202"' : `window.__waterTest.nextError={command:'group_detail',error:${JSON.stringify(fixture.errors.unavailable)}}`);
+    await click('restore-s-000003'); await waitFor('!document.querySelector("[data-key=add-root]")?.disabled');
+    await browser.evaluate('location.hash="#/results"'); await pageIs('results');
+    assert.equal(await browser.evaluate('document.querySelector("[data-key=clean-prepare]")?.disabled'), true, `UI_M3C_EXCLUDE: ${outcome} restored exclusion metadata requires a rescan instead of uncertain counts`);
+    assert((await text()).includes('结果已过期，请重新体检后再清理。'), 'UI_M3C_EXCLUDE: unavailable exclusion status has a readable stale explanation');
+  }
+  // The retained exclusion is outside the fresh drawer window. Removing its last
+  // visible sibling must still remove the group, at the real action call site.
+  await reset({m3c:true, scanned:true, liveSkips:true}, 'results');
+  await click(`select-${nodeId}`); await click(`detail-${nodeId}`); await waitText('这是什么'); await click('item-i-000202');
+  await key('Escape'); await waitFor('!document.querySelector("dialog[open]")');
+  await control('window.__waterTest.omitDetailItem="i-000202"'); await click(`detail-${nodeId}`); await waitText('这是什么'); await click('item-i-000201');
+  await key('Escape'); await waitFor('!document.querySelector("dialog[open]")');
+  const truncatedDock = await browser.evaluate('document.querySelector(".dock").textContent');
+  await click('nav-locations'); await waitText('以后都跳过的文件夹'); await click('restore-s-000002');
+  await waitFor('!document.querySelector("[data-key=restore-s-000002]") && !document.querySelector("[data-key=add-root]")?.disabled');
+  await browser.evaluate('location.hash="#/results"'); await pageIs('results');
+  assert.equal(await browser.evaluate('document.querySelector(".dock").textContent'), truncatedDock, 'UI_M3C_EXCLUDE: action passes retained metadata when emptying a truncated drawer');
+  assert(await browser.evaluate(`!document.querySelector(${JSON.stringify(q(`select-${nodeId}`))}).checked`), 'UI_M3C_EXCLUDE: a later restore cannot revive the truncated emptied group');
   for (const mode of ['exclude-all', 'skip-last', 'partial']) {
     await reset({m3c:true, scanned:true, liveSkips:true}, 'results');
     await click(`select-${nodeId}`); await click(`detail-${nodeId}`); await waitText('这是什么');
@@ -680,7 +763,7 @@ test('ui_clean_done_and_pages', async () => {
     if (mode !== 'partial') assert(await browser.evaluate('[...document.querySelectorAll(".items input")].every(e=>!e.checked && e.disabled) && !!document.querySelector(".item-selection-note")'), 'UI_M3C_EXCLUDE: emptied live group requests result-page reselection');
     await key('Escape'); await waitFor('!document.querySelector("dialog[open]")');
     await click('nav-locations'); await waitText('以后都跳过的文件夹');
-    const restoreId = mode === 'skip-last' ? 's-added' : 's-000002';
+    const restoreId = mode === 'skip-last' ? 's-000003' : 's-000002';
     await click(`restore-${restoreId}`);
     assert(await settle(`!document.querySelector('[data-key=restore-${restoreId}]') && !document.querySelector('[data-key=add-root]')?.disabled`), 'UI_M3C_EXCLUDE: restoration of the emptied or partial group finishes');
     await browser.evaluate('location.hash="#/results"'); await pageIs('results');
@@ -711,6 +794,7 @@ test('ui_clean_done_and_pages', async () => {
   // Keep an independent manual exclusion while skipping and restoring a default-selected group.
   await reset({m3c:true, scanned:true, liveSkips:true}, 'results');
   await click(`select-${nodeId}`); await click(`detail-${nodeId}`); await waitText('这是什么'); await click('item-i-000202');
+  assert.equal(await browser.evaluate('document.querySelector("[data-key=item-i-000202]")?.checked'), false, 'UI_M3C_EXCLUDE: independent manual exclusion is established before another group is skipped');
   await key('Escape'); await waitFor('!document.querySelector("dialog[open]")');
   const liveBaseBytes = recommendedBytes + BigInt(m3c.group_details[nodeId].group.eligible_bytes) - 700701149n - 996147200n;
   const liveBaseCount = defaultCount + 1;
@@ -726,8 +810,8 @@ test('ui_clean_done_and_pages', async () => {
   await key('Escape'); await waitFor('!document.querySelector("dialog[open]")');
   await click('nav-home'); await pageIs('home');
   assert.equal(await browser.evaluate('document.querySelector(".last span").textContent'), `可放心清理 ${formatBytes(recommendedBytes - BigInt(recommendedItem.total_bytes))}`, 'UI_M3C_SKIP: home last checkup uses the refreshed total');
-  await click('nav-locations'); await waitText('以后都跳过的文件夹'); await click('restore-s-added');
-  assert(await settle('!document.querySelector("[data-key=restore-s-added]") && !document.querySelector("[data-key=add-root]")?.disabled'), 'UI_M3C_SKIP: live restore finishes its result reread');
+  await click('nav-locations'); await waitText('以后都跳过的文件夹'); await click('restore-s-000003');
+  assert(await settle('!document.querySelector("[data-key=restore-s-000003]") && !document.querySelector("[data-key=add-root]")?.disabled'), 'UI_M3C_SKIP: live restore finishes its result reread');
   assert((await text()).includes('已恢复，这个文件夹以后会照常体检。'), 'UI_M3C_SKIP: restore explains future scans without claiming a current matching item');
   await browser.evaluate('location.hash="#/results"'); await pageIs('results');
   assert.equal(await browser.evaluate('document.querySelector(".dock b").textContent'), formatBytes(liveBaseBytes), 'UI_M3C_SKIP: restore puts the item bytes back in the global dock');
@@ -804,15 +888,46 @@ test('ui_clean_done_and_pages', async () => {
   assert(await settle('document.querySelector("[data-key=item-i-000100]")?.checked === true'), 'UI_M3C_SKIP: failed skip preserves the item selection');
 
   for (const code of ['busy', 'invalid', 'stale']) {
-    await reset({m3c:true, scanned:true, liveSkips:true}, 'results');
+    await reset({m3c:true, scanned:true, liveSkips:true, observeAppState:true}, 'results');
     await click(`detail-${recommendedId}`); await waitText('这是什么');
-    await control(`window.__waterTest.nextError={command:'skip_add',error:${JSON.stringify(fixture.errors.unavailable)}}`); await click('skip-i-000100');
-    assert(await settle('!document.querySelector("[data-key=detail-close]")?.disabled'), 'UI_M3C_SKIP: initial skip failure settles');
-    await key('Escape'); await waitFor('!document.querySelector("dialog[open]")');
-    await control(`window.__waterTest.nextError={command:'clean_prepare',error:${JSON.stringify(fixture.errors[code])}}`); await click('clean-prepare');
+    await control(`window.__waterTest.nextError={command:'skip_add',error:${JSON.stringify(fixture.errors.invalid)}}`); await click('skip-i-000100');
+    assert(await settle('!document.querySelector("[data-key=rescan]")?.disabled && !document.querySelector("dialog[open]")'), 'UI_M3C_SKIP: initial skip failure settles');
+    assert.equal(await browser.evaluate('document.querySelector("#notice span")?.textContent'), '跳过没有成功，这一项保留原来的勾选状态。', 'UI_M3C_SKIP: an immediate skip failure uses skip-specific copy instead of the service cleaning error');
+    assert.equal(await browser.evaluate('document.querySelector("[data-key=clean-prepare]")?.disabled'), true, 'UI_M3C_SKIP: even an invalid settings write expires the current result');
+    // Resolve only the uncertainty in this test-observed state. Real users must
+    // rescan; keeping the old notice here isolates two otherwise shadowed guards.
+    await control(`window.__waterTest.appState.stale=false;window.__waterTest.nextError={command:'group_detail',error:${JSON.stringify(fixture.errors[code])}}`); await click(`detail-${recommendedId}`);
+    assert(await settle(`document.querySelector('#notice span')?.textContent === ${JSON.stringify(fixture.errors[code].message_zh)}`), `UI_M3C_SKIP: later non-clean ${code} error takes priority over skip failure`);
+    assert(await browser.evaluate('window.__waterTest.appState.skipFailure.includes("跳过没有成功")'), 'UI_M3C_SKIP: later non-clean error wins while the old skip failure still exists');
+    await control(`window.__waterTest.appState.stale=false;window.__waterTest.delayedError={command:'clean_prepare',error:${JSON.stringify(fixture.errors[code])}}`); await click('filter-all'); await click('clean-prepare');
+    assert(await settle('window.__waterTest.delayedError.started === true'), 'UI_M3C_SKIP: hold cleanup preparation independently of later error rendering');
+    assert.equal(await browser.evaluate('window.__waterTest.appState.skipFailure'), '', 'UI_M3C_SKIP: starting cleanup clears skip failure before its response arrives');
+    assert(!(await browser.evaluate('document.querySelector("#notice").textContent')).includes('跳过没有成功'), 'UI_M3C_SKIP: a pending cleanup already drops the earlier skip-failure notice');
+    await control('window.__waterTest.delayedError.release=true');
     assert(await settle(`document.querySelector('#notice span')?.textContent === ${JSON.stringify(fixture.errors[code].message_zh)}`), `UI_M3C_SKIP: later ${code} error takes priority over skip failure`);
     assert(!(await browser.evaluate('document.querySelector("#notice").textContent')).includes('跳过没有成功'), 'UI_M3C_SKIP: cleanup never reuses the earlier skip-failure notice');
     if (code === 'stale') assert((await text()).includes('结果已过期，请重新体检后再清理。'), 'UI_M3C_SKIP: stale explanation remains visible after a failed skip');
+  }
+
+  for (const [command, keyName] of [['skip_add', 'skip-i-000100'], ['skip_remove', 'restore-s-000001'], ['locations_set_category', 'location-browser']]) {
+    for (const failure of ['busy', 'stale', 'applied']) {
+      const afterWrite = failure === 'applied';
+      await reset({m3c:true, scanned:true, liveSkips:true}, 'results');
+      if (command === 'skip_add') { await click(`detail-${recommendedId}`); await waitText('这是什么'); }
+      else { await click('nav-locations'); await waitText('以后都跳过的文件夹'); }
+      await control(afterWrite ? `window.__waterTest.failAfterWrite=${JSON.stringify(command)}` : `window.__waterTest.nextError={command:${JSON.stringify(command)},error:${JSON.stringify(fixture.errors[failure])}}`);
+      await click(keyName);
+      assert(await settle('window.__waterTest.nextError === null && !!document.querySelector("#notice span") && !document.querySelector("dialog[open]")'), `UI_M3C_SKIP: ${command} settings failure settles`);
+      if (afterWrite) {
+        const applied = command === 'skip_add' ? 'window.__waterTest.locations.skipped.some(s=>s.skip_id==="s-000003")' : command === 'skip_remove' ? '!window.__waterTest.locations.skipped.some(s=>s.skip_id==="s-000001")' : 'window.__waterTest.locations.categories.find(c=>c.category==="browser").enabled === false';
+        assert(await browser.evaluate(applied), `UI_M3C_SKIP: ${command} can apply before the host reports failure`);
+      }
+      await browser.evaluate('location.hash="#/results"'); await pageIs('results');
+      assert.equal(await browser.evaluate('document.querySelector("[data-key=clean-prepare]")?.disabled'), true, `UI_M3C_SKIP: ${command} failure expires results even after navigation`);
+      assert((await text()).includes('结果已过期，请重新体检后再清理。'), `UI_M3C_SKIP: ${command} uncertain outcome explains the required rescan`);
+      await click('clean-prepare');
+      assert.equal(await browser.evaluate('window.__waterTest.calls.filter(c=>c.command==="clean_prepare").length'), 0, `UI_M3C_SKIP: ${command} uncertain settings cannot produce a cleanup plan`);
+    }
   }
 
   for (const outcome of ['success', 'failure', 'wrong-scan']) {
@@ -850,8 +965,10 @@ test('ui_clean_done_and_pages', async () => {
   }
 
   await reset({m3c:true, scanned:true, liveSkips:true}, 'results');
-  const skipIdentity = await browser.evaluate('(async()=>{const host=window.__TAURI__.core;const a=await host.invoke("skip_add",{itemId:"i-000100"});const first=a.skipped.find(s=>s.skip_id.startsWith("s-added")).skip_id;const duplicate=await host.invoke("skip_add",{itemId:"i-000100"});await host.invoke("skip_remove",{skipId:first});const b=await host.invoke("skip_add",{itemId:"i-000101"});let missing;try{await host.invoke("skip_remove",{skipId:"s-missing"})}catch(e){missing=e.code}return {first,second:b.skipped.find(s=>s.skip_id.startsWith("s-added")).skip_id,duplicate:duplicate.skipped.length===a.skipped.length,missing}})()');
-  assert.notEqual(skipIdentity.first, skipIdentity.second, 'UI_M3C_SKIP: every newly added skip has a distinct opaque ID');
+  const skipIdentity = await browser.evaluate('(async()=>{const host=window.__TAURI__.core;const a=await host.invoke("skip_add",{itemId:"i-000100"});const first=a.skipped.find(s=>s.skip_id==="s-000003").skip_id;const duplicate=await host.invoke("skip_add",{itemId:"i-000100"});await host.invoke("skip_remove",{skipId:first});const b=await host.invoke("skip_add",{itemId:"i-000101"});const c=await host.invoke("skip_add",{itemId:"i-000100"});let missing;try{await host.invoke("skip_remove",{skipId:"s-missing"})}catch(e){missing=e.code}return {first,second:b.skipped.find(s=>s.skip_id==="s-000003").skip_id,ids:c.skipped.map(s=>s.skip_id),duplicate:duplicate.skipped.length===a.skipped.length,missing}})()');
+  assert.equal(new Set(skipIdentity.ids).size, skipIdentity.ids.length, 'UI_M3C_SKIP: IDs are distinct among current skip entries');
+  assert.equal(skipIdentity.first, skipIdentity.second, 'UI_M3C_SKIP: removing a skip frees the smallest numeric ID for reuse');
+  assert.deepEqual(skipIdentity.ids, ['s-000001', 's-000002', 's-000003', 's-000004'], 'UI_M3C_SKIP: additions allocate the smallest available numeric ID');
   assert.equal(skipIdentity.duplicate, true, 'UI_M3C_SKIP: adding the same path keeps its existing skip');
   assert.equal(skipIdentity.missing, 'not_found', 'UI_M3C_SKIP: removing an unknown skip returns not_found');
 

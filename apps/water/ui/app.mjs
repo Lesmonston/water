@@ -41,6 +41,9 @@ const actions = {
   selectItem:(data, itemId, checked) => {
     if (actions.busy() || state.stale) return;
     state.selection = setItemSelected(state.result, state.selection, data, itemId, checked, selectionDetails(state));
+    if (!checked && state.selection.get(data.group.group_id)?.has(itemId)) state.manualExclusions.add(itemId);
+    else state.manualExclusions.delete(itemId);
+    retainManualExclusions();
     if (overlay) updateDetailSelection(overlay, data, state);
     render();
   },
@@ -50,8 +53,11 @@ const actions = {
     state.skipFailure = '';
     const sameScan = () => state.result?.scan_id === scanId;
     let value;
-    try { value = await ipc.skip_add(itemId); }
-    catch (error) { state.skipFailure = '跳过没有成功，这一项保留原来的勾选状态。'; throw error; }
+    try { value = await settingsWrite(() => ipc.skip_add(itemId)); }
+    catch (error) {
+      state.skipFailure = '跳过没有成功，这一项保留原来的勾选状态。';
+      throw {...error, message_zh:state.skipFailure + (error?.code === 'stale' ? '结果已过期，请重新体检后再清理。' : '')};
+    }
     if (sameScan()) state.selection = setItemSelected(state.result, state.selection, data, itemId, false, selectionDetails(state));
     await refreshAfterSettings(scanId);
     if (isCurrent()) state.locations = value;
@@ -65,14 +71,15 @@ const actions = {
       } else fault({code:'stale', message_zh:'结果已过期，请重新体检后再清理。'});
     } catch { fault({code:'stale', message_zh:'结果已过期，请重新体检后再清理。'}); }
   }),
-  select:(id, checked) => { if (actions.busy() || state.stale) return; state.selection = setSelected(state.result, state.selection, id, checked, selectionDetails(state)); render(); },
-  selectCategory:(category, checked) => { if (actions.busy() || state.stale) return; state.selection = selectCategory(state.result, state.selection, category, checked, state.drive, selectionDetails(state), state.filter); render(); },
+  select:(id, checked) => { if (actions.busy() || state.stale) return; state.selection = setSelected(state.result, state.selection, id, checked, selectionDetails(state)); retainManualExclusions(); render(); },
+  selectCategory:(category, checked) => { if (actions.busy() || state.stale) return; state.selection = selectCategory(state.result, state.selection, category, checked, state.drive, selectionDetails(state), state.filter); retainManualExclusions(); render(); },
   filter:value => { state.filter = value; render(); },
   drive:value => { state.drive = value; render(); },
   sort:value => { state.sort = value; render(); },
   prepare:() => run(async inScope => {
     if (state.busy !== 'idle' || state.stale) return;
     state.skipFailure = '';
+    render();
     const {groupIds, excludeItemIds} = cleanSelection(state.result, state.selection, selectionDetails(state));
     if (!groupIds.length) return;
     let preview = await ipc.clean_prepare(groupIds, excludeItemIds);
@@ -94,7 +101,7 @@ const actions = {
   }),
   toggleCategory:(category, enabled) => locationOperation(async isCurrent => {
     const scanId = !state.stale && state.result?.scan_id;
-    const value = await ipc.locations_set_category(category, enabled);
+    const value = await settingsWrite(() => ipc.locations_set_category(category, enabled));
     await refreshAfterSettings(scanId);
     if (isCurrent()) state.locations = value;
   }),
@@ -105,7 +112,7 @@ const actions = {
   removeRoot:id => locationOperation(async isCurrent => { const value = await ipc.custom_root_remove(id); if (isCurrent()) state.locations = value; }),
   restoreSkip:id => locationOperation(async isCurrent => {
     const scanId = !state.stale && state.result?.scan_id;
-    const value = await ipc.skip_remove(id);
+    const value = await settingsWrite(() => ipc.skip_remove(id));
     await refreshAfterSettings(scanId);
     if (isCurrent()) { state.locations = value; if (scanId && !state.stale) state.info = '已恢复，这个文件夹以后会照常体检。'; }
   }),
@@ -115,6 +122,14 @@ const actions = {
     await readHistoryDetail(entry);
   })
 };
+function retainManualExclusions() {
+  const active = new Set([...state.selection.values()].flatMap(ids => [...ids]));
+  state.manualExclusions = new Set([...state.manualExclusions].filter(id => active.has(id)));
+}
+async function settingsWrite(request) {
+  try { return await request(); }
+  catch (error) { if (state.result && !state.stale) { state.stale = true; closeOverlay(true); } throw error; }
+}
 async function refreshAfterSettings(scanId) {
   if (!scanId) return;
   try {
@@ -122,20 +137,31 @@ async function refreshAfterSettings(scanId) {
     const value = await ipc.scan_result(scanId);
     if (state.result?.scan_id !== scanId || state.stale || value.scan_id !== scanId) throw new Error('scan changed');
     Object.assign(state, refreshResult(state, value));
+    // A retained manual exclusion may have become eligible again. Reconcile its
+    // counting metadata before enabling cleanup, without repopulating the drawer cache.
+    for (const [id, data] of state.excludedDetails) {
+      if (!data.items.some(item => !item.eligible && state.manualExclusions.has(item.item_id))) continue;
+      const refreshed = await ipc.group_detail(id);
+      if (state.result?.scan_id !== scanId || state.stale) throw new Error('scan changed');
+      if (data.items.some(item => !item.eligible && state.manualExclusions.has(item.item_id) && !refreshed.items.some(fresh => fresh.item_id === item.item_id))) throw new Error('excluded item state unavailable');
+      rememberDetail(refreshed, false);
+    }
     if (state.app?.last_scan?.scan_id === scanId) state.app = {...state.app, last_scan:{...state.app.last_scan, recommended_bytes:value.totals.recommended_bytes, recommended_by_drive:value.recommended_by_drive}};
   } catch {
     fault({code:'stale', message_zh:'结果已过期，请重新体检后再清理。'});
   }
 }
-function rememberDetail(data) {
+function rememberDetail(data, cache = true) {
   const excluded = state.selection.get(data.group.group_id);
   // Keep known metadata for excluded items outside the refreshed display window.
   // The drawer still renders only the fresh response; counts and plans keep the exclusions.
   const retained = (selectionDetails(state).get(data.group.group_id)?.items ?? []).filter(item => excluded?.has(item.item_id) && !data.items.some(fresh => fresh.item_id === item.item_id));
-  state.details.set(data.group.group_id, {...data, items:[...data.items, ...retained]});
+  const known = {...data, items:[...data.items, ...retained]};
+  if (cache) state.details.set(data.group.group_id, known);
+  else state.excludedDetails.set(data.group.group_id, {...known, items:known.items.filter(item => excluded?.has(item.item_id))});
   if (!state.result) return;
   state.result = {...state.result, categories:state.result.categories.map(c => ({...c, groups:c.groups.map(g => g.group_id === data.group.group_id ? data.group : g)}))};
-  if (excluded) state.selection.set(data.group.group_id, new Set([...excluded].filter(id => !data.items.some(item => item.item_id === id && item.eligible === false))));
+  if (excluded) state.selection.set(data.group.group_id, new Set([...excluded].filter(id => state.manualExclusions.has(id) || !data.items.some(item => item.item_id === id && item.eligible === false))));
 }
 function nextRouteRead(key) {
   const request = (routeReads.get(key) ?? 0) + 1;

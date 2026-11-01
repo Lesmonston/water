@@ -145,6 +145,10 @@ test('ui_selection_rules', () => {
   const reread = model.refreshResult({result:m3c.scan_result, selection:oneExcluded, details, filter:'confirm', drive:'F:\\', stale:false}, structuredClone(m3c.scan_result));
   assert.equal(reread.details.size, 0, 'UI_M3C_SKIP: result reread clears the detail cache');
   assert.equal(reread.selection, oneExcluded, 'UI_M3C_SKIP: result reread preserves the exact selection');
+  const manual = new Set([item.item_id]);
+  const keptManual = model.refreshResult({selection:oneExcluded, details, manualExclusions:manual}, structuredClone(m3c.scan_result));
+  assert.equal(keptManual.manualExclusions, manual, 'UI_M3C_EXCLUDE: same-scan reread preserves manual exclusion provenance');
+  assert.equal(model.installResult({...keptManual, stale:true}, m3c.scan_result).manualExclusions.size, 0, 'UI_M3C_EXCLUDE: a new scan resets manual exclusion provenance');
   assert.equal(reread.filter, 'confirm', 'UI_M3C_SKIP: result reread keeps level filtering');
   assert.equal(reread.drive, 'F:\\', 'UI_M3C_SKIP: result reread keeps drive filtering');
   assert.equal(model.selectedBytes(reread.result, reread.selection, model.selectionDetails(reread)), originalBytes - bytes(item.total_bytes), 'UI_M3C_SKIP: known exclusions still deduct bytes after cache invalidation');

@@ -43,18 +43,20 @@ export function detail(data, close, state, actions) {
 export function updateDetailSelection(panel, data, state) {
   const g = data.group, groupSelected = hasSelectedItems(g, state.selection, selectionDetails(state));
   const active = document.activeElement;
+  const items = panel.querySelector('.items'), itemTop = items.getBoundingClientRect().top;
   const message = state.stale ? '结果已过期，请重新体检后再清理。' : g.selectable && !groupSelected ? '先在结果页勾选这个分组，才能逐项排除。' : '';
   let note = panel.querySelector('.item-selection-note');
   if (message) {
-    if (!note) { note = el('p', 'cap item-selection-note'); panel.querySelector('.items').before(note); }
+    if (!note) { note = el('p', 'cap item-selection-note', undefined, {tabindex:'-1', role:'status'}); items.before(note); }
     note.textContent = message;
   } else note?.remove();
+  panel.scrollTop += items.getBoundingClientRect().top - itemTop;
   for (const checkbox of panel.querySelectorAll('.items input')) {
     checkbox.checked = groupSelected && !state.selection.get(g.group_id)?.has(checkbox.closest('[data-item]').dataset.item);
     checkbox.disabled = !groupSelected || state.stale || state.busy !== 'idle';
   }
   if (panel.contains(active) && active.disabled) {
-    const target = active.closest('.item')?.querySelector('button:not(:disabled)') ?? panel.querySelector('[data-key="detail-close"]');
+    const target = note?.isConnected ? note : panel.querySelector('[data-key="detail-close"]');
     target?.focus({preventScroll:true});
     const bounds = panel.getBoundingClientRect(), rect = target?.getBoundingClientRect();
     if (rect && (rect.top < bounds.top || rect.bottom > bounds.bottom)) target.scrollIntoView({block:'nearest'});
