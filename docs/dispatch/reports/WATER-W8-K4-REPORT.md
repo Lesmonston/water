@@ -1,8 +1,8 @@
-WATER-W8-K4 任务受阻，任务报告在 F:/new/smaltalk/water/.worktrees/w8-k4/docs/dispatch/reports/WATER-W8-K4-REPORT.md
+WATER-W8-K4 任务已完成，任务报告在 F:/new/smaltalk/water/.worktrees/w8-k4/docs/dispatch/reports/WATER-W8-K4-REPORT.md
 
 2026-11-01，执行者 Codex（GPT-6；运行环境没有提供更细的模型快照标识）。
 
-## 状态与续做需要
+## 原单受阻记录（历史，补单 01 结果见后文）
 
 本单未完成，不能标为 SUBMITTED/VERIFIED。首次基线为 `232bc2982228f5d99f42017de6db3caa5912a8ab`，工作树 `F:/new/smaltalk/water/.worktrees/w8-k4`，分支 `worker/water-w8-k4`，首次 HEAD 与分支正确、树干净。
 
@@ -99,3 +99,110 @@ archive同时保留本树原先已有的总控派前02:17 baseline、02:19 lock/
 - 没有改其它包、Cargo.toml/Cargo.lock、工单、契约、检查器或台账；没有merge/rebase/reset/amend/push，没有git配置或远端变更，没有子代理。
 - 尚未验证macOS、宿主/UI接线、真实盘根扫描、生产规模性能与竞态。本实现不能作为M3已收口的证据。
 - 所有本次命令均已结束，没有启动任何长期后台服务；交回后停止测试与产品修改。
+
+## 补单 01（2026-11-01，已完成并交回，待总控验收）
+
+实际模型：Codex GPT-6（运行环境没有提供更细快照标识）。续做起点 `e2fbc784ea18dd2774cb16bf957df731bf942e6f`，树干净、分支 `worker/water-w8-k4` 正确，没有重跑 baseline。补单实现提交为 **`9f7b6efe07392fc36f0820dab431ed327bb61005`**。最终三门绑定这个干净提交；后续提交只含本回执与检查器归档证据。
+
+### 补单 01 第 1～3 条
+
+1. **扫描事实与当前展示分开。** Record 保留扫描时原始 result/saved，不在扫描结束或读入时写入当前跳过状态。新增内存 Projection，由原始扫描事实和当前设置构造。扫描刚完成和服务重启使用同一构造函数。skip_add / skip_remove 只原子写 settings.json，然后按当前名单更新最新记录的 Projection；都将已有计划标为stale（重复skip_add成功也作废已有计划）。移除立即恢复原扫描的可清理状态和占用信息。跳过前后及重启后的扫描记录文件字节完全不变。
+2. **有界更新。** Projection 在加载/扫描完成时建立条目ID→下标、大小写折叠路径→下标、组位置、可见详情位置、占用项集合等索引。跳过路径不扫描整次扫描的条目，不克隆Record，不调用全量build，不写扫描记录；只增减匹配项在该组的可清理计数/字节、该盘可清理量、推荐总量/按盘推荐量，并更新该项可见详情和组占用提示。详情仍至多200项，扫描结果原始项数不受截断影响。保护、不足身份、过新等原始不可清理状态不会被移除跳过操作提升。
+3. **测试。** 原64次skip_add及50ms断言原样保留；新增10,000项合成扫描记录（只写测试JSON，不建立对应真实文件），对同一项连续添加/移除各5次，每次均断言≤50ms，逐次核对详情、组计数/体量、组分盘、首页总量、scan_result总量及按盘推荐量。另验证添加后重启保持、移除后重启恢复，整个过程原扫描文件字节不变；补充清理计划在添加和移除后失效、占用计数随跳过收缩并在移除后恢复的断言。
+
+公开IPC参数与返回形状、Platform/DriveInfo、依赖、锁、系统函数清单均没有相对上轮新增变化。clean_prepare继续检查原始扫描的本地授权、所选组、排除ID归属、可清理性，并按当前Projection跳过项；视图已跳过的项不计excluded_count。磁盘设置独立过滤仍保留作第二道保险，只能缩小范围。
+
+规模用例实际耗时（毫秒；同一个完整六测程序加 `--show-output` 运行，证据 `receipts/addendum01-scale-timings.log`）：
+
+| 次数 | skip_add | skip_remove |
+|---|---:|---:|
+| 1 | 4.9215 | 5.8035 |
+| 2 | 5.8594 | 5.0410 |
+| 3 | 5.5412 | 6.0319 |
+| 4 | 5.6017 | 6.0698 |
+| 5 | 5.7079 | 5.1427 |
+
+该显示输出运行仍为六测全部通过、0忽略/过滤，27.31秒。没有提高返回预算、没有过滤或重复只跑某一个测试。
+
+### 原单其它要求与断言
+
+原单§1去重体量、§2逐项在用、§3整盘/NTFS/ReFS、§4按盘、§6孤儿进程、§7提醒/预测、§8快照删除失败，及补充01§2文件系统与§3排除已跳过项均保留，六测和三项final通过。原单§5与补充01§1仅按本补单改变持久化与移除时机，详见上文。新增系统函数仍只有原轮GetVolumeInformationW，安全说明仍见原轮实现对照，没有增加unsafe或产品进程/网络/环境变量读取。
+
+相对本补单起点，修改了上一轮新增测试里的两条冲突期望（本补单显式授权）：
+
+- 下次扫描保存结果的ineligible_reason：原 `user_skipped` → `null`，因为记录存原始扫描事实；另断言最新详情仍显示“已设为以后都跳过”。
+- 移除后的chrome-cache eligible_bytes：原 `200`（等待下次扫描）→ `300`（立即恢复原扫描状态），标记改为remove restores immediately。
+
+补充01§5授权的旧断言变化仍与原轮逐条清单一致：
+
+| 旧断言/样本 | 原值 | 最终值 |
+|---|---|---|
+| fixtures | 只有checkup-v1样本 | 顶层叠加m3c样本，增加非null形状检查；shape算法不变 |
+| custom_root_add样本 | custom_root_add_added | custom_root_add_drive |
+| SERVICE_IN_USE_SAVED | Chrome 正在运行，将跳过占用的项 | Chrome 正在运行，将跳过 1 个占用的项 |
+| SERVICE_PRODUCT_NAME edge-cache | Edge 正在运行，将跳过占用的项 | Edge 正在运行，将跳过 1 个占用的项 |
+| SERVICE_PRODUCT_NAME chrome-cache | Chrome 正在运行，将跳过占用的项 | Chrome 正在运行，将跳过 2 个占用的项 |
+| SERVICE_PRODUCT_NAME headless-browser-profiles | Chrome 无头浏览器 正在运行，将跳过占用的项 | Chrome 无头浏览器 正在运行，将跳过 1 个占用的项 |
+| SERVICE_PRODUCT_NAME brave-cache | other 正在运行，将跳过占用的项 | other 正在运行，将跳过 1 个占用的项 |
+| 测试盘辅助 | 固定Vec | 可注入，默认仍只有系统盘F、total1000000/free800000 |
+
+N的来源保持原轮说明。没有其它旧断言修改，也没有更改旧字节值期望。
+
+### 本补单检查命令与结果
+
+所有检查从指定工作树根执行，命令前缀仍为 `node F:/new/smaltalk/water/scripts/desktop-wave-check.mjs --task WATER-W8-K4 --mode`。
+
+| UTC回执前缀 | 模式/附加参数 | 结果 |
+|---|---|---|
+| 03-33-27.713Z-1880 | lock | passed/0 |
+| 03-34-00.893Z-21260 | check | failed/1，Clippy collapsible_if一条；修复该结构后再检查 |
+| 03-35-05.040Z-27280 | test | passed/0，6/6 |
+| 03-37-19.619Z-30356 | check | passed/0，fmt/源码政策/Clippy all-targets -D warnings |
+| 03-38-22.914Z-21264 | test | passed/0，6/6 |
+| addendum01-scale-timings.log | 已构建的service_v1程序 `--test-threads=1 --show-output` | passed/0，6/6，实际规模耗时见上表 |
+| 03-40-44.596Z-16828 | red-nc1 | 指定目标唯一失败，检查器passed/0 |
+| 03-41-26.883Z-37504 | test | 原字节恢复passed/0，6/6 |
+| 03-42-35.357Z-20464 | red-nc2 | 指定目标唯一失败，检查器passed/0 |
+| 03-43-30.214Z-32172 | test | 原字节恢复passed/0，6/6 |
+| 03-44-41.533Z-35844 | red-nc3 | 指定目标唯一失败，检查器passed/0 |
+| 03-45-59.550Z-31500 | test | 原字节恢复passed/0，6/6 |
+| 03-47-19.356Z-28720 | check --final | passed/0，干净实现提交 |
+| 03-48-27.730Z-15080 | test --final | passed/0，6/6，三组负控/恢复哈希审核通过 |
+| 03-49-53.501Z-18236 | real --final | passed/0，扫描completed，104833ms |
+| 03-52-27.735Z-25504 | archive | passed/0，累计607份、10741902字节；含原轮363份，不覆盖旧证据 |
+
+编译离线、单jobs、私有target；没有baseline重跑、下载、窗口或选择框。
+
+### 本补单负控
+
+三条全在9f7b6efe产品/测试字节上重新执行，没有复用原轮负控：
+
+- nc1：clean.rs只把排除ID“属于所选组”的判断改为ids.is_empty()。service_clean_flow以 `SERVICE_M3C_EXCLUDE: invalid exclusion accepted` 唯一失败，另外5测通过；原字节checkout恢复后立即6/6。恢复文件SHA256 `76064c909b00a41d62c89c5dc9672a9befff89334e518cb6d3143d6a54eddd2f`。
+- nc2：views.rs的refresh_path只把 `let after = skipped(item, settings)` 改成false。service_clean_flow以 `SERVICE_M3C_SKIP: immediate eligibility`（true而非false）唯一失败，另外5测通过；原字节恢复后立即6/6。恢复SHA256 `4e737f5aa1252a7cf68d87c1c4808a469b9d1c68a7665d94333a74c4b5c34580`。
+- nc3：service.rs只去掉valid_custom的!d.is_system。service_trends_locations以 `SERVICE_M3C_DRIVE_ROOT: system/nonfixed/known W:\` 唯一失败，另外5测通过；原字节恢复后立即6/6。恢复SHA256 `ec051abd91c3b94a69e0ecaef6271c6739467312b58fb0d2f423f59133d2709a`。
+
+最终 productionHash `e6118af4eb7160828f53cdf03826273dfde34e5e6b8df739e8e251e37523cff9`，testHash `b7790b08ee650739e093a8534daf863fd6ce1fbcde8462a132b0a7822bfbbce6`。final test回执proofAudit精确绑定以上三红和各自随后的恢复绿色。没有编译错误或其它测试抢先失败，负控变异未留在树中。
+
+### 真实只读体检分类汇总
+
+状态completed，扫描duration_ms=104833；整个real门含编译约130.3秒。4个固定盘、0条insight，清理关闭返回unavailable。输出不含文件路径、程序路径或命令行。
+
+| 分类 | 组数 | 去重后total_bytes |
+|---|---:|---:|
+| agent_tool | 24 | 34655087979 |
+| browser | 14 | 11369814296 |
+| system_temp | 2 | 803391380 |
+| app_leftover | 8 | 11058222368 |
+| dev_cache | 13 | 8137390815 |
+| crash_log | 7 | 889563824 |
+| gpu_system | 2 | 663008505 |
+
+合计：recognized=67576479167，recommended=13359455892，confirm=9311545603，advisory=6706415695，protected=21043392290，unrecognized=0（字节）。在用提示为Chrome 15/36/7项、Edge 1/2/8项，没有命令行或程序路径。
+
+### 交付边界与未验证
+
+本轮仅改water-service的clean.rs/service.rs/views.rs及唯一测试文件，报告与证据按白名单交付；Cargo.toml/Cargo.lock、其它包、工单、契约、检查器、台账不改。没有merge/rebase/reset/amend/push、远端或git配置变化，没有子代理。
+
+真实数据只按规则登记位置读取名字/属性/大小/时间与进程快照；未读真实普通文件内容、未清理真实数据、未结束/挂起进程。删除测试仍仅限本树.local本次新建合成目录；规模项只存在于合成JSON。没有原生窗口或选择框。
+
+未验证macOS、宿主/UI集成、真实自定义盘根全盘扫描、全部生产规模与竞态，也没有完成总控M3联合验收或真实自清理里程碑。本单完成仅代表执行者已交付并跑过票面检查，不自行标VERIFIED。所有自有命令均已结束，交回后不再运行测试或后台进程。
