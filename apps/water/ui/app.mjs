@@ -34,9 +34,9 @@ const actions = {
   stopScan:() => run(inScope => stop(() => ipc.scan_cancel(state.scanId ?? state.scanProgress?.scan_id), inScope), true),
   stopClean:() => run(inScope => stop(() => ipc.clean_stop(), inScope), true),
   detail:id => run(async inScope => {
-    const scanId = state.result?.scan_id;
+    const scanId = state.result?.scan_id, stale = state.stale;
     const value = await ipc.group_detail(id);
-    if (inScope() && state.result?.scan_id === scanId && !state.stale) { rememberDetail(value); showOverlay(detail(value, closeOverlay, state, actions), 'detail-close'); }
+    if (inScope() && state.result?.scan_id === scanId && state.stale === stale) { rememberDetail(value); showOverlay(detail(value, closeOverlay, state, actions), 'detail-close'); }
   }),
   selectItem:(data, itemId, checked) => {
     if (actions.busy() || state.stale) return;
@@ -45,18 +45,18 @@ const actions = {
   skipItem:(data, itemId) => locationOperation(async isCurrent => {
     if (state.stale) return;
     const scanId = state.result?.scan_id;
-    const sameScan = () => state.result?.scan_id === scanId && !state.stale;
+    const sameScan = () => state.result?.scan_id === scanId;
     const value = await ipc.skip_add(itemId);
+    if (sameScan()) state.selection = setItemSelected(state.result, state.selection, data, itemId, false);
     if (!isCurrent()) return;
     state.locations = value;
-    if (!sameScan()) return;
-    state.selection = setItemSelected(state.result, state.selection, data, itemId, false);
+    if (!sameScan() || state.stale) return;
     state.info = '以后体检会跳过这个文件夹，可以在‘位置’里恢复';
     const refreshed = await ipc.group_detail(data.group.group_id);
-    if (isCurrent() && sameScan()) { rememberDetail(refreshed); showOverlay(detail(refreshed, closeOverlay, state, actions), 'detail-close', opener); }
+    if (isCurrent() && sameScan() && !state.stale) { rememberDetail(refreshed); showOverlay(detail(refreshed, closeOverlay, state, actions), 'detail-close', opener); }
   }),
   select:(id, checked) => { if (actions.busy() || state.stale) return; state.selection = setSelected(state.result, state.selection, id, checked, state.details); render(); },
-  selectCategory:(category, checked) => { if (actions.busy() || state.stale) return; state.selection = selectCategory(state.result, state.selection, category, checked, state.drive, state.details); render(); },
+  selectCategory:(category, checked) => { if (actions.busy() || state.stale) return; state.selection = selectCategory(state.result, state.selection, category, checked, state.drive, state.details, state.filter); render(); },
   filter:value => { state.filter = value; render(); },
   drive:value => { state.drive = value; render(); },
   sort:value => { state.sort = value; render(); },
@@ -95,11 +95,14 @@ const actions = {
   })
 };
 function rememberDetail(data) {
-  state.details.set(data.group.group_id, data);
+  const excluded = state.selection.get(data.group.group_id);
+  // Keep known metadata for excluded items outside the refreshed display window.
+  // The drawer still renders only the fresh response; counts and plans keep the exclusions.
+  const retained = (state.details.get(data.group.group_id)?.items ?? []).filter(item => excluded?.has(item.item_id) && !data.items.some(fresh => fresh.item_id === item.item_id));
+  state.details.set(data.group.group_id, {...data, items:[...data.items, ...retained]});
   if (!state.result) return;
   state.result = {...state.result, categories:state.result.categories.map(c => ({...c, groups:c.groups.map(g => g.group_id === data.group.group_id ? data.group : g)}))};
-  const excluded = state.selection.get(data.group.group_id);
-  if (excluded) state.selection.set(data.group.group_id, new Set([...excluded].filter(id => data.items.some(item => item.item_id === id && item.eligible))));
+  if (excluded) state.selection.set(data.group.group_id, new Set([...excluded].filter(id => !data.items.some(item => item.item_id === id && item.eligible === false))));
 }
 function nextRouteRead(key) {
   const request = (routeReads.get(key) ?? 0) + 1;

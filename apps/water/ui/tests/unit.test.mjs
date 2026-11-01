@@ -127,6 +127,15 @@ test('ui_selection_rules', () => {
   assert(!model.cleanSelection(m3c.scan_result, chosen, details).groupIds.includes(data.group.group_id), 'UI_M3C_EXCLUDE: an emptied group never reaches the plan');
   assert.deepEqual(model.cleanSelection(m3c.scan_result, chosen, details).excludeItemIds, [], 'UI_M3C_EXCLUDE: an emptied group sends no orphan exclusions');
   assert.deepEqual(model.setItemSelected(m3c.scan_result, chosen, data, 'i-000204', true), chosen, 'UI_M3C_EXCLUDE: protected item cannot be opted in');
+  const hidden = 'codex-runtimes';
+  const withConfirm = model.setSelected(m3c.scan_result, model.resetSelection(m3c.scan_result), hidden, true);
+  const visibleCleared = model.selectCategory(m3c.scan_result, withConfirm, 'agent_tool', false, null, new Map(), 'recommended');
+  assert(visibleCleared.has(hidden), 'UI_M3C_DRIVE: clearing recommended groups preserves a hidden selected confirm group');
+  const visibleSelected = model.selectCategory(m3c.scan_result, model.resetSelection(m3c.scan_result), 'agent_tool', true, null, new Map(), 'recommended');
+  assert(!visibleSelected.has(hidden), 'UI_M3C_DRIVE: selecting recommended groups never selects a hidden confirm group');
+  const withoutDrive = structuredClone(m3c.scan_result);
+  for (const group of model.groups(withoutDrive).filter(g => ['advisory', 'protected'].includes(g.level))) delete group.by_drive;
+  assert.doesNotThrow(() => model.driveResult(withoutDrive, 'F:\\'), 'UI_M3C_DRIVE: missing by_drive does not throw during projection');
 });
 
 test('ui_ipc_boundary', async () => {

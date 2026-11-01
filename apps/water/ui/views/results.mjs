@@ -35,7 +35,7 @@ export function results(state, actions) {
     const rows = sortedGroups(category.groups.filter(g => state.filter === 'all' || g.level === state.filter), state.sort);
     if (!rows.length) continue;
     visible += rows.length;
-    const selectable = category.groups.filter(canSelect), selected = selectable.filter(g => hasSelectedItems(g, state.selection, state.details));
+    const selectable = rows.filter(canSelect), selected = selectable.filter(g => hasSelectedItems(g, state.selection, state.details));
     const selectedTotal = selectedBytes({...state.result, categories:state.result.categories.filter(c => c.category === category.category)}, state.selection, state.details, state.drive);
     const checkbox = check(`全选${category.title_zh}`, !!selectable.length && selected.length === selectable.length, value => actions.selectCategory(category.category, value), `category-${category.category}`, selected.length > 0 && selected.length < selectable.length);
     checkbox.disabled = !selectable.length || actions.busy() || state.stale;

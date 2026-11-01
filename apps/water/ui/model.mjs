@@ -16,8 +16,8 @@ export function setSelected(result, selection, id, checked, details = new Map())
   if (checked) { if (!next.has(id) || !hasSelectedItems(group, next, details)) next.set(id, new Set()); } else next.delete(id);
   return next;
 }
-export function selectCategory(result, selection, category, checked, drive = null, details = new Map()) {
-  return groups(result).filter(g => g.category === category && (!drive || g.by_drive?.some(d => d.root === drive && d.item_count > 0))).reduce((next, g) => setSelected(result, next, g.group_id, checked, details), copySelection(selection));
+export function selectCategory(result, selection, category, checked, drive = null, details = new Map(), filter = 'all') {
+  return groups(result).filter(g => g.category === category && (filter === 'all' || g.level === filter) && (!drive || g.by_drive?.some(d => d.root === drive && d.item_count > 0))).reduce((next, g) => setSelected(result, next, g.group_id, checked, details), copySelection(selection));
 }
 export function excludedItems(group, selection, details = new Map(), drive = null) {
   const excluded = selection.get?.(group.group_id);
@@ -57,7 +57,7 @@ export function driveResult(result, drive) {
   const categories = result.categories.map(category => {
     const projected = category.groups.flatMap(group => {
       const part = group.by_drive?.find(d => d.root === drive);
-      const total = ['advisory', 'protected'].includes(group.level) ? (group.by_drive.length === 1 ? group.total_bytes : null) : part?.eligible_bytes;
+      const total = ['advisory', 'protected'].includes(group.level) ? (group.by_drive?.length === 1 ? group.total_bytes : null) : part?.eligible_bytes;
       return part?.item_count ? [{...group, item_count:part.item_count, total_bytes:total,
         summary_zh:`${part.item_count.toLocaleString('en-US')} 项 · ${drive.slice(0, 2)}`} ] : [];
     });

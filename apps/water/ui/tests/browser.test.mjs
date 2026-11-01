@@ -97,7 +97,12 @@ function fakeHost(f, options) {
         return value;
       }
       case 'scan_result': return {...copy(control.scanResult ?? f.scan_result), ...(control.scanStopped ? {status:'partial'} : {})};
-      case 'group_detail': if (!f.group_details[args.groupId]) fail('not_found'); return copy(f.group_details[args.groupId]);
+      case 'group_detail': {
+        if (!f.group_details[args.groupId]) fail('not_found');
+        const value = copy(f.group_details[args.groupId]);
+        value.items = value.items.filter(item => item.item_id !== control.omitDetailItem);
+        return value;
+      }
       case 'clean_prepare': {
         if (control.busy !== 'idle') fail('busy');
         const groups = f.scan_result.categories.flatMap(c => c.groups);
@@ -343,7 +348,7 @@ test('ui_results_detail_confirm', async () => {
   assert((await text()).includes(data.group.in_use.process_label_zh), 'UI_M3C_INUSE_ITEM: group uses the counted in-use sentence');
   await click(`detail-${groupId}`);
   assert(await settle('!!document.querySelector("[data-key=item-i-000202]")'), 'UI_M3C_EXCLUDE: eligible items have checkboxes');
-  assert.equal(await browser.evaluate('document.querySelector(".in-use-item").textContent'), 'Codex 正在使用', 'UI_M3C_INUSE_ITEM: per-item label matches host');
+  assert.equal(await browser.evaluate('document.querySelector(".in-use-item")?.textContent ?? null'), 'Codex 正在使用', 'UI_M3C_INUSE_ITEM: per-item label matches host');
   assert.equal(await browser.evaluate('document.querySelector("[data-key=item-i-000201]").disabled'), false, 'UI_M3C_INUSE_ITEM: occupied items remain selectable');
   assert.equal(await browser.evaluate('document.querySelector("[data-key=item-i-000204]")'), null, 'UI_M3C_EXCLUDE: ineligible items cannot be selected');
   await click('item-i-000202');
@@ -367,9 +372,46 @@ test('ui_results_detail_confirm', async () => {
   for (const id of ['i-000201', 'i-000202', 'i-000203']) await click(`item-${id}`);
   assert(await browser.evaluate(`(()=>{const box=document.querySelector(${JSON.stringify(q(`select-${groupId}`))});return !box.checked && !box.indeterminate})()`), 'UI_M3C_EXCLUDE: entirely excluded group is unchecked, not mixed');
   assert(await browser.evaluate('!document.querySelector("[data-key=category-custom]").checked && document.querySelector("[data-key=category-custom]").indeterminate'), 'UI_M3C_EXCLUDE: category treats the emptied group as unselected');
+  await key('Escape'); await waitFor('!document.querySelector("dialog[open]")'); await click(`detail-${groupId}`);
+  assert(await settle('!!document.querySelector(".item-selection-note")'), 'UI_M3C_EXCLUDE: reopening an emptied group explains how to reselect it');
+  assert(await browser.evaluate('document.querySelectorAll(".items input").length === 3 && [...document.querySelectorAll(".items input")].every(e=>!e.checked && e.disabled)'), 'UI_M3C_EXCLUDE: emptied group items are unchecked and disabled');
   await key('Escape'); await waitFor('!document.querySelector("dialog[open]")'); await click('clean-prepare');
   assert(await settle('!!document.querySelector(".confirm[open]")'), 'UI_M3C_EXCLUDE: other groups remain preparable');
   assert(!(await browser.evaluate('window.__waterTest.calls.findLast(c=>c.command==="clean_prepare").args.groupIds')).includes(groupId), 'UI_M3C_EXCLUDE: entirely excluded group is omitted');
+  await key('Escape'); await waitFor('!document.querySelector("dialog[open]")'); await click(`select-${groupId}`); await click(`detail-${groupId}`);
+  assert(await settle('document.querySelectorAll(".items input").length === 3 && [...document.querySelectorAll(".items input")].every(e=>e.checked && !e.disabled)'), 'UI_M3C_EXCLUDE: result-page reselection restores all eligible items');
+  assert.equal(await browser.evaluate('document.querySelector(".item-selection-note")'), null, 'UI_M3C_EXCLUDE: reselected group no longer needs the opt-in note');
+
+  await reset({m3c:true, scanned:true}, 'results');
+  await click(`select-${groupId}`); await click(`detail-${groupId}`); await waitText('这是什么'); await click('item-i-000202');
+  await key('Escape'); await waitFor('!document.querySelector("dialog[open]")');
+  await control(`window.__waterTest.omitDetailItem=${JSON.stringify(item.item_id)}`);
+  await click(`detail-${groupId}`);
+  assert(await settle('!!document.querySelector(".items") && !document.querySelector("[data-key=item-i-000202]")'), 'UI_M3C_EXCLUDE: refreshed display list omits the excluded item');
+  assert.equal(await browser.evaluate('document.querySelector(".dock b").textContent'), formatBytes(baseBytes - BigInt(item.total_bytes)), 'UI_M3C_EXCLUDE: an omitted exclusion still deducts its known bytes');
+  assert.equal(await browser.evaluate('document.querySelector(".selected-count").textContent'), `${count(groups(m3c.scan_result).filter(g => g.default_selected).reduce((sum, g) => sum + g.eligible_count, 0) + data.group.eligible_count - 1)} 项`, 'UI_M3C_EXCLUDE: an omitted exclusion still deducts its item count');
+  await key('Escape'); await waitFor('!document.querySelector("dialog[open]")'); await click('clean-prepare');
+  assert(await settle('!!document.querySelector(".confirm[open]")'), 'UI_M3C_EXCLUDE: truncated details still permit a preview');
+  assert.deepEqual(await browser.evaluate('window.__waterTest.calls.findLast(c=>c.command==="clean_prepare").args.excludeItemIds'), [item.item_id], 'UI_M3C_EXCLUDE: clean_prepare retains exclusions absent from refreshed details');
+  assert.equal(await browser.evaluate('document.querySelector(".excluded-count")?.textContent'), '已排除 1 项', 'UI_M3C_EXCLUDE: host still receives and counts the omitted exclusion');
+  await key('Escape'); await waitFor('!document.querySelector("dialog[open]")');
+  await control('window.__waterTest.omitDetailItem=null'); await click(`detail-${groupId}`);
+  assert(await settle('document.querySelector("[data-key=item-i-000202]")?.checked === false'), 'UI_M3C_EXCLUDE: the returning item remains excluded');
+
+  for (const drive of [null, 'F']) {
+    await reset({m3c:true, scanned:true, multiDriveGroup:true}, 'results');
+    const before = await browser.evaluate('[...document.querySelectorAll(".group-row input:checked")].map(e=>e.dataset.key)');
+    await click('filter-recommended'); if (drive) await click(`drive-${drive}`);
+    assert(await browser.evaluate('document.querySelector("[data-key=category-agent_tool]").checked && !document.querySelector("[data-key=category-agent_tool]").indeterminate'), 'UI_M3C_DRIVE: category state includes only the visible recommended groups');
+    const visible = await browser.evaluate('[...document.querySelectorAll(".sheet")].find(e=>e.querySelector("[data-key=category-agent_tool]")) ? [...document.querySelector("[data-key=category-agent_tool]").closest(".sheet").querySelectorAll(".group-row input")].map(e=>e.dataset.key) : []');
+    assert.equal(visible.length, drive ? 1 : 3, 'UI_M3C_DRIVE: level and drive filters intersect before category selection');
+    await click('category-agent_tool'); await click('filter-all'); if (drive) await click('drive-all');
+    assert.deepEqual(await browser.evaluate('[...document.querySelectorAll(".group-row input:checked")].map(e=>e.dataset.key)'), before.filter(id => !visible.includes(id)), 'UI_M3C_DRIVE: clearing filtered category preserves hidden selected groups');
+    await click('filter-recommended'); if (drive) await click(`drive-${drive}`); await click('category-agent_tool');
+    await click('filter-all'); if (drive) await click('drive-all');
+    assert.deepEqual(await browser.evaluate('[...document.querySelectorAll(".group-row input:checked")].map(e=>e.dataset.key)'), before, 'UI_M3C_DRIVE: selecting filtered category never includes hidden confirm groups');
+    assert.equal(await browser.evaluate('document.querySelector("[data-key=select-codex-runtimes]").checked'), false, 'UI_M3C_DRIVE: hidden codex-runtimes stays unselected after filtered select-all');
+  }
 
   await reset({m3c:true, scanned:true, multiDriveGroup:true}, 'results');
   assert(await settle('!!document.querySelector("[data-key=drive-F]")'), 'UI_M3C_DRIVE: filter ready');
@@ -428,6 +470,18 @@ test('ui_results_detail_confirm', async () => {
     assert(await settle('window.__waterTest.heldRead.finished === true && !document.querySelector("[data-key=rescan]").disabled'), 'UI_READ_ORDER: old detail finishes');
     assert(await browser.evaluate('!document.querySelector("dialog[open]") && !document.body.textContent.includes("OLD-SCAN-DETAIL")'), 'UI_READ_ORDER: old detail cannot open or overwrite the current scan');
     assert((await text()).includes(busy === 'scanning' ? 'NEW-SCAN-GROUP' : m3c.group_details['codex-marketplace-staging'].group.title_zh), 'UI_READ_ORDER: current group survives discarded details');
+    if (busy === 'cleaning') {
+      await click(`select-${groupId}`);
+      assert.equal(await browser.evaluate(`document.querySelector(${JSON.stringify(q(`select-${groupId}`))}).checked`), false, 'UI_READ_ORDER: stale results cannot opt in a group');
+      await click(`detail-${groupId}`);
+      assert(await settle('!!document.querySelector(".drawer[open]") && !!document.querySelector("[data-key=item-i-000202]")'), 'UI_READ_ORDER: already-stale results still open group details');
+      assert(await browser.evaluate('document.querySelectorAll(".items input").length === 3 && [...document.querySelectorAll(".items input, .item-skip")].every(e=>e.disabled)'), 'UI_READ_ORDER: stale detail keeps item selection and persistent skip disabled');
+      await key('Escape'); await waitFor('!document.querySelector("dialog[open]")');
+      await browser.click('.insight button');
+      assert(await settle('!!document.querySelector(".drawer[open]")'), 'UI_READ_ORDER: stale insight still opens read-only details');
+      assert.equal(await browser.evaluate('document.querySelector("#detail-title").textContent'), m3c.group_details['codex-marketplace-staging'].group.title_zh, 'UI_READ_ORDER: stale insight opens its own group');
+      assert(await browser.evaluate('document.querySelectorAll(".items input").length > 0 && [...document.querySelectorAll(".items input, .item-skip")].every(e=>e.disabled)'), 'UI_READ_ORDER: selected stale group also keeps every item action disabled');
+    }
   }
 
   await reset({scanned:true}, 'results');
@@ -517,6 +571,18 @@ test('ui_clean_done_and_pages', async () => {
     await click('clean-prepare'); assert(await settle('!!document.querySelector(".confirm[open]")'), 'UI_M3C_SKIP: skipped selection can still prepare');
     assert.deepEqual(await browser.evaluate('window.__waterTest.calls.findLast(c=>c.command==="clean_prepare").args.excludeItemIds'), skipKeepsCurrentScan ? ['i-000202'] : [], 'UI_M3C_SKIP: exclude legacy item, prune newly ineligible item');
   }
+  await reset({m3c:true, scanned:true, skipKeepsCurrentScan:true}, 'results');
+  await click('select-custom:drive-f:node-modules'); await click('detail-custom:drive-f:node-modules'); await waitText('这是什么');
+  await control("window.__waterTest.delayedError={command:'skip_add',error:null}"); await click('skip-i-000202');
+  assert(await settle('window.__waterTest.delayedError.started === true'), 'UI_M3C_SKIP: hold legacy skip success before navigation');
+  await browser.evaluate('location.hash="#/about"'); await pageIs('about');
+  await control('window.__waterTest.delayedError.release=true');
+  assert(await settle('window.__waterTest.delayedError.finished === true'), 'UI_M3C_SKIP: skip succeeds after leaving its route');
+  await browser.evaluate('location.hash="#/results"'); await pageIs('results');
+  assert(await settle('document.querySelector("[data-key=rescan]")?.disabled === false'), 'UI_M3C_SKIP: route-changed skip finishes without blocking results');
+  assert(await browser.evaluate('!document.querySelector("dialog[open]") && window.__waterTest.calls.filter(c=>c.command==="group_detail").length === 1'), 'UI_M3C_SKIP: route-changed success neither rereads details nor reopens the drawer');
+  await click('clean-prepare'); assert(await settle('!!document.querySelector(".confirm[open]")'), 'UI_M3C_SKIP: route-changed selection can prepare');
+  assert.deepEqual(await browser.evaluate('window.__waterTest.calls.findLast(c=>c.command==="clean_prepare").args.excludeItemIds'), ['i-000202'], 'UI_M3C_SKIP: success still excludes the legacy item after a route change');
   await reset({m3c:true}, 'locations');
   assert(await settle('!!document.querySelector(".skipped-roots")'), 'UI_M3C_SKIP: frozen skipped fixture loaded');
   assert.equal(await browser.evaluate('document.querySelectorAll(".skipped-roots .location-row").length'), 2, 'UI_M3C_SKIP: both fixture entries appear');
