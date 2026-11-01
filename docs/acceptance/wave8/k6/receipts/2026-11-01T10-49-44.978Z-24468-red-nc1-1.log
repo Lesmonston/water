@@ -1,0 +1,99 @@
+{"binary":"C:\\Program Files\\nodejs\\node.exe","args":["--test","--test-concurrency=1","--test-reporter=tap","apps/water/ui/tests/browser.test.mjs"],"exitCode":1,"error":null}
+--- stdout ---
+TAP version 13
+# Subtest: ui_home_and_scan
+ok 1 - ui_home_and_scan
+  ---
+  duration_ms: 15071.072
+  type: 'test'
+  ...
+# Subtest: ui_results_detail_confirm
+not ok 2 - ui_results_detail_confirm
+  ---
+  duration_ms: 904.1823
+  type: 'test'
+  location: 'F:\\new\\smaltalk\\water\\.worktrees\\w8-k6\\apps\\water\\ui\\tests\\browser.test.mjs:413:1'
+  failureType: 'testCodeFailure'
+  error: |-
+    UI_M3C_EXCLUDE: clean_prepare sends the exact exclusion
+    + actual - expected
+    
+    + []
+    - [
+    -   'i-000202'
+    - ]
+    
+  code: 'ERR_ASSERTION'
+  name: 'AssertionError'
+  expected:
+    0: 'i-000202'
+  actual:
+  operator: 'deepStrictEqual'
+  stack: |-
+    TestContext.<anonymous> (file:///F:/new/smaltalk/water/.worktrees/w8-k6/apps/water/ui/tests/browser.test.mjs:445:10)
+    async Test.run (node:internal/test_runner/test:1313:7)
+    async Test.processPendingSubtests (node:internal/test_runner/test:897:7)
+  ...
+# Subtest: ui_clean_done_and_pages
+not ok 3 - ui_clean_done_and_pages
+  ---
+  duration_ms: 1137.1942
+  type: 'test'
+  location: 'F:\\new\\smaltalk\\water\\.worktrees\\w8-k6\\apps\\water\\ui\\tests\\browser.test.mjs:635:1'
+  failureType: 'testCodeFailure'
+  error: |-
+    UI_M3C_SKIP: exclude legacy item, prune newly ineligible item
+    + actual - expected
+    
+    + []
+    - [
+    -   'i-000202'
+    - ]
+    
+  code: 'ERR_ASSERTION'
+  name: 'AssertionError'
+  expected:
+    0: 'i-000202'
+  actual:
+  operator: 'deepStrictEqual'
+  stack: |-
+    TestContext.<anonymous> (file:///F:/new/smaltalk/water/.worktrees/w8-k6/apps/water/ui/tests/browser.test.mjs:670:12)
+    async Test.run (node:internal/test_runner/test:1313:7)
+    async Test.processPendingSubtests (node:internal/test_runner/test:897:7)
+  ...
+# Subtest: ui_layout_states_a11y
+ok 4 - ui_layout_states_a11y
+  ---
+  duration_ms: 15099.732
+  type: 'test'
+  ...
+# Polish wrap measurements: [{"width":1240,"height":820,"measured":[{"selector":".side-foot p","text":"不读取文件内容，不上传任何数据","lines":[{"top":727,"text":"不读取文件内容，","count":8},{"top":747,"text":"不上传任何数据","count":7}]},{"selector":".drive-main .sub","text":"共 250.1 GB，已用 76%。体检后可查看能够清理的空间。","lines":[{"top":290.421875,"text":"共250.1GB，已用76%。体","count":16},{"top":312.8125,"text":"检后可查看能够清理的空间。","count":13}]}]},{"width":1040,"height":720,"measured":[{"selector":".side-foot p","text":"不读取文件内容，不上传任何数据","lines":[{"top":627,"text":"不读取文件内容，","count":8},{"top":647,"text":"不上传任何数据","count":7}]},{"selector":".drive-main .sub","text":"共 250.1 GB，已用 76%。体检后可查看能够清理的空间。","lines":[{"top":272.46875,"text":"共250.1GB，已用76%。体","count":16},{"top":294.859375,"text":"检后可查看能够清理的空间。","count":13}]}]}]
+# Polish dock measurements: [{"width":1240,"height":820,"scrollTop":6467,"scrollHeight":7287,"clientHeight":820,"rowTop":602.96875,"rowBottom":674.359375,"dockTop":740,"dockBottom":798,"gap":65.640625},{"width":1040,"height":720,"scrollTop":6564,"scrollHeight":7284,"clientHeight":720,"rowTop":502.59375,"rowBottom":573.984375,"dockTop":640,"dockBottom":698,"gap":66.015625}]
+# Polish paused notice: {"stage":"scan before navigation","hidden":false,"message":"Water 服务暂时不可用。","buttonText":"重新连接","disabled":false}
+# Polish paused notice: {"stage":"command failure while paused","hidden":false,"message":"Water 服务暂时不可用。","buttonText":"重新连接","disabled":false}
+# Polish paused notice: {"stage":"stop feedback keeps the pause reason","hidden":false,"message":"Water 服务暂时不可用。","buttonText":"重新连接","disabled":false}
+# Polish paused notice: {"stage":"scan after history","hidden":false,"message":"Water 服务暂时不可用。","buttonText":"重新连接","disabled":false}
+# Polish paused notice: {"stage":"scan after home","hidden":false,"message":"Water 服务暂时不可用。","buttonText":"重新连接","disabled":false}
+# Polish paused notice: {"stage":"offline reconnect pauses again","hidden":false,"message":"Water 服务暂时不可用。","buttonText":"重新连接","disabled":false}
+# Polish paused notice: {"stage":"clean before navigation","hidden":false,"message":"未能确认清理状态，请重新连接。","buttonText":"重新连接","disabled":false}
+# Polish paused notice: {"stage":"clean after history","hidden":false,"message":"未能确认清理状态，请重新连接。","buttonText":"重新连接","disabled":false}
+# Polish paused notice: {"stage":"clean after home","hidden":false,"message":"未能确认清理状态，请重新连接。","buttonText":"重新连接","disabled":false}
+# Polish paused notice: {"stage":"trends read failed while paused","hidden":false,"message":"未能确认清理状态，请重新连接。","buttonText":"重新连接","disabled":false}
+# Polish paused notice: {"stage":"history detail read failed while paused","hidden":false,"message":"未能确认清理状态，请重新连接。","buttonText":"重新连接","disabled":false}
+# Subtest: ui_m1_polish
+ok 5 - ui_m1_polish
+  ---
+  duration_ms: 23721.8109
+  type: 'test'
+  ...
+1..5
+# tests 5
+# suites 0
+# pass 3
+# fail 2
+# cancelled 0
+# skipped 0
+# todo 0
+# duration_ms 56511.0249
+
+--- stderr ---

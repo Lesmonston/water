@@ -21,6 +21,7 @@ export function home(state, actions) {
     add(page, add(el('div', 'home-hero'), main, others));
   }
   add(page, add(el('div', 'glass cta'), button('开始体检', actions.scan, 'orb-btn', 'scan-start', actions.busy()), add(el('div'), el('h2', '', '开始一次体检'), el('p', 'sub', '检查 AI 编程工具、浏览器、系统临时文件、应用更新残留、开发缓存等位置。'))));
+  if (app.checkup_due) add(page.lastElementChild, add(el('div', 'checkup-due'), el('span', 'cap', app.checkup_due.days_since_last === null ? '还没有体检过' : `已经 ${app.checkup_due.days_since_last} 天没有体检`), button('现在体检', actions.scan, 'btn btn-ghost', 'checkup-now', actions.busy())));
   if (last) add(page, add(el('div', 'glass last'), add(el('div'), el('p', 'cap', `上次体检 · ${dateTime(last.finished_at)}`), el('span', '', `可放心清理 ${formatBytes(last.recommended_bytes)}`)), button('查看结果', () => actions.navigate('results'), 'btn btn-glass', 'view-results')));
   else add(page, el('p', 'cap first-scan', '尚未体检。先了解空间占用，再决定是否清理。'));
   return page;

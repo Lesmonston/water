@@ -8,10 +8,10 @@ WATER-W2-E / 补单 01、02 的原生 ES 模块前端。没有 npm、框架、�
 - `styles/tokens.css`：设计方原文件的逐字节副本；`.gitattributes` 保留字节。
 - `styles/app.css`：白色磨砂组件、键盘焦点、两种窗口尺寸、减少动画模式。
 - `app.mjs`：六个 hash 路由、会话内状态、串行 IPC 操作、250ms 进度轮询、焦点恢复。
-- `ipc.mjs`：唯一宿主调用边界，导出 IPC 契约的 17 个命令函数；参数按命令显式构造，拒绝路径。
+- `ipc.mjs`：唯一宿主调用边界，导出 IPC / IPC-M3C 契约的 19 个命令函数；参数按命令显式构造，拒绝路径。
 - `format.mjs` / `model.mjs`：BigInt 字节格式化、相对时间、选择及合计纯函数。
 - `views/`：首页、扫描、结果、详情、确认、清理、完成、趋势、记录、位置、隐私各自独立模块与共享 DOM 构建函数。
-- `tests/unit.test.mjs` / `tests/browser.test.mjs`：精确三项单测与四项浏览器测试；假宿主与回放数据仅由测试加载。
+- `tests/unit.test.mjs` / `tests/browser.test.mjs`：精确三项单测与五项浏览器测试；假宿主与回放数据仅由测试加载。旧场景保留原 fixture，新场景叠加 `m3c-v1/ui-fixtures-m3c.json`。
 
 ## 运行与验证
 
@@ -20,9 +20,9 @@ WATER-W2-E / 补单 01、02 的原生 ES 模块前端。没有 npm、框架、�
 从本票工作树根目录运行：
 
 ```powershell
-node F:/new/smaltalk/water/scripts/checkup-wave-check.mjs --task WATER-W2-E --mode check
-node F:/new/smaltalk/water/scripts/checkup-wave-check.mjs --task WATER-W2-E --mode test
-node F:/new/smaltalk/water/scripts/checkup-wave-check.mjs --task WATER-W2-E --mode browser
+node F:/new/smaltalk/water/scripts/checkup-wave-check.mjs --task WATER-W8-K6 --mode check
+node F:/new/smaltalk/water/scripts/checkup-wave-check.mjs --task WATER-W8-K6 --mode test
+node F:/new/smaltalk/water/scripts/checkup-wave-check.mjs --task WATER-W8-K6 --mode browser
 ```
 
 浏览器测试只服务本 UI 的静态文件，使用本树冻结 helper 创建一个私有无头 Chrome。测试从 `WATER_W2_SHOTS_DIR` 获取截图目录；缺失时写本树 `.local/ui-shots/<时间戳>/`，不写文档目录。final 与 archive 按票面顺序运行，由检查入口核对并归档截图。
@@ -30,6 +30,12 @@ node F:/new/smaltalk/water/scripts/checkup-wave-check.mjs --task WATER-W2-E --mo
 ## 行为与边界
 
 不可选组在默认选择、直接修改、分类全选与合计四处受保护。合计使用 `eligible_bytes`；行内占用使用 `total_bytes`。新扫描安装结果时重置选择。过滤和排序不丢弃选择；部分扫描明确标注“部分结果”。
+
+W8-K6 / 补单 01～05：选择保存为组 ID 到排除条目 ID 集合的 Map，另记手工排除的来源；已读详情提供扣除体量，整组取消会清空排除，全部排空时直接把组移出选择，后续重读或恢复都不会自行选回。条目变化原地更新抽屉，保留对话框、遮罩、控件与滚动；只有已选分组的可清理条目默认勾选，未选或全部排除的分组条目未勾选且禁用，并提示先在结果页选择分组，重新勾选分组会清空其排除。最后一项被取消后，焦点移到可播报的说明行，继续按空格不会写入跳过设置。操作条目永远不会选中其所属组。`clean_prepare` 始终由当前选择生成两份 ID 数组，过滤盘不改变实际选择范围，确认框按宿主预览显示完整清理范围与排除计数。
+
+结果页分类全选只影响同时满足当前级别与盘筛选的可见组，勾选、半选状态与分类已选体量也按这些组计算；无筛选时仍作用于该分类的全部可选组。没有可见已选组时隐藏分类的“已选”行。操作坞始终显示全盘已选组数、项数与体量，另列当前盘扣除排除项后的体量；顶部与分类已选体量仍按该盘计算。可清理体量来自 `by_drive.eligible_bytes`；受保护、仅供参考组只有一个盘时显示整组 `total_bytes`，跨盘时体量显示“—”，相关合计只计入确定部分并标“至少”。
+
+详情的“以后都跳过”在分组选中与未选中时均可用，只传 `itemId`；成功后只要仍是同一扫描，就先在已选组中加入保险排除，即使已经切页。跳过、恢复和切换分类开关成功后，用同一 `scan_id` 重读整份结果；保留选择和排除 ID，清空详情缓存，只单独保留扣除排除项所需的元数据，同时更新首页上次体检数字。重读期间清理禁用；重读失败、扫描不一致，或三种设置写入本身失败、结果不明时，均标为过期，要求重新体检。跳过后的详情也重读以核对排除，只有原路由仍有效才重绘抽屉并保留返回焦点。明确不可清理的项只移除保险排除，手工排除保留；旧服务仍返回可清理，或该项暂时不在刷新后的前 200 条中时，也保持排除及已知元数据。已跳过项不重复扣量，其排除 ID 仍可传服务并被忽略；恢复后重读保留排除项的状态元数据，手工取消的项仍不计入操作坞与计划，纯跳过的项则重新计入其仍选中的组。整组选回或新扫描清空相应手工排除。跳过失败显示专用说明，切页返回仍可见；后来的错误优先，开始清理时清除旧跳过失败提示。详情回应若扫描 ID 或过期状态相对发出时改变则丢弃；已经过期的结果仍可查看详情，提示重新体检，条目勾选与跳过禁用。位置页的恢复只传 `skipId`，成功提示“已恢复，这个文件夹以后会照常体检。”。位置读写共用读取序号，过期回应和错误不回写。首页提醒、趋势预测、残留进程只展示宿主数据；残留进程卡没有结束进程入口。
 
 扫描与清理任务在切换页面后继续轮询，完成即停止。一次只发一个进度请求，相邻请求至少间隔 250ms。进度 busy/unavailable 连续失败最多 20 次，成功即重置计数；失败上限后保留任务状态，按钮只重新连接进度，不重新执行。清理关闭保护直到收到终态并取回结果才解除。扫描开始后的 idle 只有在见过 running 后才结束，否则最多等待 20 次并提示重试。
 
