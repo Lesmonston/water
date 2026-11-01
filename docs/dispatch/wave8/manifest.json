@@ -1050,16 +1050,30 @@
         {
           "id": "WATER-W8-K6-ADDENDUM-01",
           "ticket": "docs/dispatch/tickets/WATER-W8-K6-ADDENDUM-01-20261101.md",
-          "status": "DISPATCHED",
+          "status": "SUBMITTED",
           "issuedAt": "2026-10-31T15:21:54Z",
           "resumeFromCommit": "208be441adbceb56ec36eeb1debf1cef4e113458",
           "change": "round 1 review: (1) items of an unselected group show unchecked and disabled, an item click never selects the group; (2) under a drive filter the category select-all acts on visible groups only, and the dock always shows the full selection that clean acts on plus a per-drive caption; (3) after a successful skip_add the item joins the group exclusion before the detail reread (the fake host keeps marking it ineligible, which K4 will require), plus a test switch modelling a service that does not; (4) lows: protected/advisory sizes under a filter, stale detail replies dropped by scan_id, focus after skip, fully excluded group row unchecked, drive-root label font, forecast column alignment; app.css line endings normalised to LF first; nc1-nc3 redone; 26 screenshots; no baseline rerun",
           "dispatchedAt": null,
-          "submittedHead": null,
-          "implementationCommit": null,
+          "submittedHead": "4746478bdf58cef3122d171eab75032b7af8b70f",
+          "implementationCommit": "43a650464e89a524842894fde24417ea13709709",
           "dispatchEvidence": "user chat 2026-11-01 ~00:40 JST: \"都已派出，界面是astra，其他的都是sol\"; paste time not reported; worker tree head/changed files 208be441/0 when recorded",
           "model": "astra (user-reported)",
-          "dispatchReportedAt": "2026-10-31T15:39:56Z"
+          "dispatchReportedAt": "2026-10-31T15:39:56Z",
+          "workerSelfReport": "Codex (GPT-6 per report)",
+          "review": "round 2: all four round-1 problems fixed (independent review); fresh tree check/browser finals passed; new Medium: stale results no longer open details (regression), level-filter select-all still includes hidden groups (pre-existing) -> addendum 02"
+        },
+        {
+          "id": "WATER-W8-K6-ADDENDUM-02",
+          "ticket": "docs/dispatch/tickets/WATER-W8-K6-ADDENDUM-02-20261101.md",
+          "status": "READY",
+          "issuedAt": "2026-11-01T01:59:28Z",
+          "resumeFromCommit": "4746478bdf58cef3122d171eab75032b7af8b70f",
+          "change": "detail opens on results that were already stale (drop only when scan_id or staleness changed during the request); category select-all state and action cover only groups visible under both level and drive filters; drawer treats a fully excluded group as unselected; after skip_add success exclude whenever the scan is the same, regardless of route; rememberDetail prunes only items listed as ineligible; by_drive optional chaining; UI_M3C_INUSE_ITEM assertion fails with its marker when the label is missing; nc1-nc3 redone; 26 screenshots; no baseline rerun",
+          "dispatchedAt": null,
+          "submittedHead": null,
+          "implementationCommit": null,
+          "dispatchEvidence": null
         }
       ],
       "controllerReview": {
