@@ -388,7 +388,11 @@ test('ui_results_detail_confirm', async () => {
   assert.equal(await browser.evaluate('document.querySelector(".in-use-item")?.textContent ?? null'), 'Codex 正在使用', 'UI_M3C_INUSE_ITEM: per-item label matches host');
   assert.equal(await browser.evaluate('document.querySelector("[data-key=item-i-000201]")?.disabled ?? null'), false, 'UI_M3C_INUSE_ITEM: occupied items remain selectable');
   assert.equal(await browser.evaluate('document.querySelector("[data-key=item-i-000204]")'), null, 'UI_M3C_EXCLUDE: ineligible items cannot be selected');
+  await browser.evaluate('document.querySelector("dialog").scrollTop=document.querySelector(".items").offsetTop-160');
+  const itemScroll = await browser.evaluate('document.querySelector("dialog").scrollTop');
   await click('item-i-000202');
+  assert.equal(await browser.evaluate('document.querySelector("dialog").scrollTop'), itemScroll, 'UI_M3C_EXCLUDE: item redraw preserves the drawer scroll position');
+  assert.equal(await browser.evaluate('document.activeElement.dataset.key'), 'item-i-000202', 'UI_M3C_EXCLUDE: item redraw preserves focus while the item stays enabled');
   assert.equal(await browser.evaluate('document.querySelector(".dock b").textContent'), formatBytes(baseBytes - BigInt(item.total_bytes)), 'UI_M3C_EXCLUDE: item removal reduces selected bytes');
   assert.equal(await browser.evaluate('document.querySelector(".selected-count").textContent'), `${count(groups(m3c.scan_result).filter(g => g.default_selected).reduce((sum, g) => sum + g.eligible_count, 0) + data.group.eligible_count - 1)} 项`, 'UI_M3C_EXCLUDE: selected item count also deducts the excluded item');
   assert.equal(await browser.evaluate('document.querySelector("[data-key=item-i-000202]").checked'), false, 'UI_M3C_EXCLUDE: item stays unchecked');

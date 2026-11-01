@@ -40,8 +40,11 @@ const actions = {
   }),
   selectItem:(data, itemId, checked) => {
     if (actions.busy() || state.stale) return;
+    const activeKey = document.activeElement?.dataset.key, scroll = overlay?.scrollTop ?? 0;
     state.selection = setItemSelected(state.result, state.selection, data, itemId, checked); render();
-    showOverlay(detail(data, closeOverlay, state, actions), 'detail-close', opener);
+    const panel = detail(data, closeOverlay, state, actions);
+    showOverlay(panel, 'detail-close', opener); panel.scrollTop = scroll;
+    [...panel.querySelectorAll('[data-key]')].find(node => node.dataset.key === activeKey && !node.disabled)?.focus({preventScroll:true});
   },
   skipItem:(data, itemId) => locationOperation(async isCurrent => {
     if (state.stale) return;
