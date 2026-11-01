@@ -1,6 +1,6 @@
 # Water 状态与交接
 
-更新时间：2026-11-01 22:15 JST（第八波：六张单全部验收合入，K6 最后合入 `1b79d861`；M3 收口：第五次整合检查通过，release `water-0.1.0-bcc0e984` 编好，下一步复现 10-29 场景与自清理，见[整合报告](acceptance/wave8/controller/WATER-W8-INTEGRATION5-20261101.md)、[第八波计划](dispatch/wave8/PLAN.md)与[收单验收](acceptance/wave8/controller/WATER-W8-REVIEW-20261101.md)；第 12 份交接）。
+更新时间：2026-11-01 22:30 JST（第八波：六张单全部验收合入，K6 最后合入 `1b79d861`；M3 收口：第五次整合检查通过，release `water-0.1.0-bcc0e984` 编好；10-29 场景复现找到两个新问题，M3 暂不能收口，等用户拍板修法，见[整合报告](acceptance/wave8/controller/WATER-W8-INTEGRATION5-20261101.md)、[复现报告](acceptance/wave8/controller/WATER-M3-REPLAY-20261101.md)、[第八波计划](dispatch/wave8/PLAN.md)与[收单验收](acceptance/wave8/controller/WATER-W8-REVIEW-20261101.md)；第 12 份交接）。
 
 更换总控请先读[最新交接报告（2026-11-01 第 12 份）](CONTROLLER-HANDOFF-20261101-12.md)；[第 11 份](CONTROLLER-HANDOFF-20261101-11.md)、[第 10 份](CONTROLLER-HANDOFF-20261031-10.md)、[第 9 份](CONTROLLER-HANDOFF-20261028-9.md)、[第 8 份](CONTROLLER-HANDOFF-20261027-8.md)、[第 7 份](CONTROLLER-HANDOFF-20261027-7.md)、[第 6 份](CONTROLLER-HANDOFF-20261027-6.md)、[第 5 份](CONTROLLER-HANDOFF-20261026-5.md)、[第 4 份](CONTROLLER-HANDOFF-20261026-4.md)、[第 3 份](CONTROLLER-HANDOFF-20261026-3.md)、[第 2 份](CONTROLLER-HANDOFF-20261026-2.md)、[上午那份](CONTROLLER-HANDOFF-20261026.md)及其只读状态快照仅供追溯。M1 已达成；第四、五波已全部验收合入，打开清理的 release 版已编好，M2 只差自清理；M3 第六波三张已全部验收合入，第四次整合检查通过，含第六波的 release 版 `water-0.1.0-b62f9c5c` 已编好；第七波（M3 收尾）四张已全部验收合入（见下文）。此前[接手验收摘要](CONTROLLER-HANDOFF-20261017.md)仅供历史追溯；当前任务状态以本页、registry/manifest及最新正式验收为准。
 
@@ -331,6 +331,7 @@ A–AB及八补单、AD保持VERIFIED；AC/补单06新增VERIFIED（Windows静�
     - 用户没有说补单 05 派给了谁，待确认后补记。
 34. **M3 收口已开始**（用户 21:30 JST “现在开始”）：第五次整合检查在 `.worktrees/integ-w8a`、`integ-w8b` 进行中，工具在 `.local/w8-integ5/`，进度与接下来的步骤见[第 12 份交接](CONTROLLER-HANDOFF-20261101-12.md)第 4 节。之后 release、复现 10-29 场景、用户自清理补 M2、M3 收口报告。Mirasim B、D、E 三个槽、7 棵自检树、“清、压、炼”排期仍等用户决定。
 35. **第五次主线整合检查通过，release 编好**（11-01 约 22:15 JST，主线 `bcc0e984`），见[整合报告](acceptance/wave8/controller/WATER-W8-INTEGRATION5-20261101.md)：七个部分（D、进程、规则、扫描、服务、界面、宿主）检查与测试全绿；真实只读体检识别 68.5 GB、推荐 13.4 GB，与 K4 验收一致；真窗口夹具清理闭环 9/9；release `water-0.1.0-bcc0e984`（sha256 `712b1291…3f3d`）冒烟通过。界面浏览器测试第一次有 1 项因点击时机失败、原样重跑通过，记为遗留。release 冒烟脚本原来按屏幕区域截图，第一次截到了用户正在用的浏览器，总控当场删图，脚本改为 `PrintWindow` 后重跑通过。下一步：复现 10-29 场景（第 12 份交接第 4.3 节）、用户自清理补 M2、M3 收口报告。
+36. **10-29 场景复现：五条修好，两个新问题**（11-01 约 22:30 JST），见[复现报告](acceptance/wave8/controller/WATER-M3-REPLAY-20261101.md)：硬链接去重、组内排除与“以后都跳过”、工作树只列、按项在用检测、整盘扫描都按契约走通；孤儿进程与 PowerShell 手查一致（含一个造的孤儿）；“几天后满”只能核对“不足 3 天 3 次”的说明；中途停止的体检不顶替上一次。**新问题**（整盘放开后才暴露，总控第八波规划的缺口）：F1 “测试用浏览器配置”认错真实应用的浏览器数据（含登录状态）；F2 “node_modules”认错工具安装与程序自带的依赖（10-29 第 1 个问题对没在运行的工具仍会发生）。两条都是“需确认、可勾选”。**M3 暂不能收口**，等用户拍板修法后出单；自清理建议放在修好之后。
 
 ## 真实AA→AD联合验收通过（2026-10-26）
 
