@@ -1,7 +1,7 @@
 {
   "schemaVersion": 1,
   "wave": "water-wave8-m3-close",
-  "status": "THIRD_ROUND_ADDENDA",
+  "status": "THIRD_ROUND_ADDENDA_DISPATCHED",
   "controller": "Claude",
   "controllerRoot": "F:/new/smaltalk/water",
   "controllerBranch": "main",
@@ -725,14 +725,16 @@
         {
           "id": "WATER-W8-K4-ADDENDUM-02",
           "ticket": "docs/dispatch/tickets/WATER-W8-K4-ADDENDUM-02-20261101.md",
-          "status": "READY",
+          "status": "DISPATCHED",
           "issuedAt": "2026-11-01T06:17:19Z",
           "resumeFromCommit": "fc36140dc9abd8329c3c77a1625789b8dfccf68f",
           "change": "follow-up after VERIFIED merge: every loaded record projection follows the current skip list (history bytes and older scan_result consistent before and after restart); clean_prepare exclusion lookup via the item index and a set (5,000 IDs on 10k items within 50 ms); plans marked stale right after the settings write; recommended_by_drive zero-row rule consistent between build and refresh; forecast never prints -0; SERVICE_M3C_DUE and SERVICE_SNAPSHOT_REMOVE_FAIL made load-independent without changing expectations; new tests: known-folder non-system drive root rejected, scan-time-ineligible item stays ineligible after skip/restore, case-different skip path; nc1-nc3 redone; no baseline rerun",
           "dispatchedAt": null,
           "submittedHead": null,
           "implementationCommit": null,
-          "dispatchEvidence": null
+          "dispatchEvidence": "user chat 2026-11-01 ~15:40 JST: \"都已派给 sol\" (K6 addendum 03 and K4 addendum 02 both to sol); paste time not reported; worker tree head/changed files fc36140d/0 when recorded",
+          "model": "sol (user-reported)",
+          "dispatchReportedAt": "2026-11-01T06:40:45Z"
         }
       ],
       "mergeCommit": "0bb1cf80",
@@ -1364,14 +1366,16 @@
         {
           "id": "WATER-W8-K6-ADDENDUM-03",
           "ticket": "docs/dispatch/tickets/WATER-W8-K6-ADDENDUM-03-20261101.md",
-          "status": "READY",
+          "status": "DISPATCHED",
           "issuedAt": "2026-11-01T06:17:19Z",
           "resumeFromCommit": "1c2e91e60262103a24f228389447bf1549065af0",
           "change": "after skip_add or skip_remove success on the same non-stale scan, re-read scan_result with the same scan_id, keep the selection, drop the detail cache, disable clean until the re-read lands, mark the result stale on failure; a restored item counts in its selected group and the dock (controller gap: K4 addendum 01 made skip_remove restore at once without updating the UI ticket); fake host switch modelling the new service, clean_prepare accepts and ignores user_skipped exclusions; lows: failed skip after leaving the page is reported, open drawer re-renders after item toggles, category selected caption follows the visible groups, no selected caption when nothing is selected, stale drawer hint, locations sentence period, marker-safe item-i-000201 assertion; nc1-nc3 redone; 26 screenshots; no baseline rerun",
           "dispatchedAt": null,
           "submittedHead": null,
           "implementationCommit": null,
-          "dispatchEvidence": null
+          "dispatchEvidence": "user chat 2026-11-01 ~15:40 JST: \"都已派给 sol\" (K6 addendum 03 and K4 addendum 02 both to sol); paste time not reported; worker tree head/changed files 1c2e91e6/0 when recorded",
+          "model": "sol (user-reported)",
+          "dispatchReportedAt": "2026-11-01T06:40:45Z"
         }
       ],
       "controllerReview": {
