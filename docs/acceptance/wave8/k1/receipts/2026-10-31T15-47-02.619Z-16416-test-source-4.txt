@@ -1,0 +1,400 @@
+//! The only FFI boundary: Toolhelp snapshot, limited query, times, and close.
+#![deny(unsafe_op_in_unsafe_fn)]
+
+use std::ffi::c_void;
+use std::mem::{align_of, size_of};
+use std::ptr;
+
+use crate::ProcError;
+
+const TH32CS_SNAPPROCESS: u32 = 0x0000_0002;
+const PROCESS_QUERY_LIMITED_INFORMATION: u32 = 0x1000;
+const PROCESS_COMMAND_LINE_INFORMATION: i32 = 60;
+const PROCESS_VM_COUNTERS: i32 = 3;
+const ERROR_ACCESS_DENIED: i32 = 5;
+const STATUS_INFO_LENGTH_MISMATCH: i32 = 0xC000_0004_u32 as i32;
+const STATUS_ACCESS_DENIED: i32 = 0xC000_0022_u32 as i32;
+const STATUS_INVALID_HANDLE: i32 = 0xC000_0008_u32 as i32;
+const STATUS_PROCESS_IS_TERMINATING: i32 = 0xC000_010A_u32 as i32;
+const INVALID_HANDLE_VALUE: *mut c_void = -1_isize as *mut c_void;
+const MAX_PATH: usize = 260;
+
+#[repr(C)]
+struct ProcessEntry {
+    size: u32,
+    usage: u32,
+    pid: u32,
+    default_heap: usize,
+    module_id: u32,
+    threads: u32,
+    parent_pid: u32,
+    pri_class: i32,
+    flags: u32,
+    exe: [u16; MAX_PATH],
+}
+
+#[repr(C)]
+#[derive(Clone, Copy, Default)]
+struct FileTime {
+    low: u32,
+    high: u32,
+}
+
+/// VM_COUNTERS (not VM_COUNTERS_EX), x64 native layout for information class 3.
+#[repr(C)]
+#[derive(Default)]
+struct VmCounters {
+    peak_virtual_size: usize,
+    virtual_size: usize,
+    page_fault_count: u32,
+    peak_working_set_size: usize,
+    working_set_size: usize,
+    quota_peak_paged_pool_usage: usize,
+    quota_paged_pool_usage: usize,
+    quota_peak_non_paged_pool_usage: usize,
+    quota_non_paged_pool_usage: usize,
+    pagefile_usage: usize,
+    peak_pagefile_usage: usize,
+}
+
+const _: () = {
+    assert!(size_of::<usize>() == 8);
+    assert!(size_of::<ProcessEntry>() == 568);
+    assert!(align_of::<ProcessEntry>() == 8);
+    assert!(size_of::<FileTime>() == 8);
+    assert!(size_of::<VmCounters>() == 88);
+    assert!(align_of::<VmCounters>() == 8);
+    assert!(std::mem::offset_of!(VmCounters, working_set_size) == 32);
+};
+
+// SAFETY: signatures match kernel32 Toolhelp/OpenProcess/GetProcessTimes/CloseHandle on x64.
+#[link(name = "kernel32")]
+unsafe extern "system" {
+    fn CreateToolhelp32Snapshot(flags: u32, process_id: u32) -> *mut c_void;
+    fn Process32FirstW(snapshot: *mut c_void, entry: *mut ProcessEntry) -> i32;
+    fn Process32NextW(snapshot: *mut c_void, entry: *mut ProcessEntry) -> i32;
+    fn OpenProcess(access: u32, inherit: i32, process_id: u32) -> *mut c_void;
+    fn GetProcessTimes(
+        process: *mut c_void,
+        creation: *mut FileTime,
+        exit: *mut FileTime,
+        kernel: *mut FileTime,
+        user: *mut FileTime,
+    ) -> i32;
+    fn QueryFullProcessImageNameW(
+        process: *mut c_void,
+        flags: u32,
+        image_name: *mut u16,
+        size: *mut u32,
+    ) -> i32;
+    fn CloseHandle(handle: *mut c_void) -> i32;
+}
+
+// SAFETY: signature matches ntdll NtQueryInformationProcess; only classes 60 and 3 are used.
+#[link(name = "ntdll")]
+unsafe extern "system" {
+    fn NtQueryInformationProcess(
+        process: *mut c_void,
+        class: i32,
+        info: *mut c_void,
+        length: u32,
+        return_length: *mut u32,
+    ) -> i32;
+}
+
+pub(crate) enum CmdIssue {
+    AccessDenied,
+    Exited,
+}
+
+pub(crate) struct NativeProcess {
+    pub pid: u32,
+    pub parent_pid: u32,
+    pub name: String,
+    pub created_filetime: u64,
+    pub command_line: String,
+    pub cmdline_issue: Option<CmdIssue>,
+    pub image_path: String,
+    pub image_unavailable: bool,
+    pub working_set: Option<u64>,
+}
+
+struct OwnedHandle(*mut c_void);
+
+impl OwnedHandle {
+    fn snapshot(raw: *mut c_void) -> Result<Self, ProcError> {
+        if raw.is_null() || raw == INVALID_HANDLE_VALUE {
+            Err(ProcError::SnapshotFailed)
+        } else {
+            Ok(Self(raw))
+        }
+    }
+
+    fn process(raw: *mut c_void) -> Option<Self> {
+        if raw.is_null() || raw == INVALID_HANDLE_VALUE {
+            None
+        } else {
+            Some(Self(raw))
+        }
+    }
+
+    fn raw(&self) -> *mut c_void {
+        self.0
+    }
+}
+
+impl Drop for OwnedHandle {
+    fn drop(&mut self) {
+        if !self.0.is_null() && self.0 != INVALID_HANDLE_VALUE {
+            // SAFETY: this wrapper uniquely owns a kernel handle from a successful
+            // CreateToolhelp32Snapshot or OpenProcess. CloseHandle is called once.
+            unsafe {
+                CloseHandle(self.0);
+            }
+            self.0 = ptr::null_mut();
+        }
+    }
+}
+
+impl ProcessEntry {
+    fn new() -> Self {
+        Self {
+            size: size_of::<Self>() as u32,
+            usage: 0,
+            pid: 0,
+            default_heap: 0,
+            module_id: 0,
+            threads: 0,
+            parent_pid: 0,
+            pri_class: 0,
+            flags: 0,
+            exe: [0; MAX_PATH],
+        }
+    }
+
+    fn name(&self) -> String {
+        let len = self
+            .exe
+            .iter()
+            .position(|&c| c == 0)
+            .unwrap_or(self.exe.len());
+        String::from_utf16_lossy(&self.exe[..len])
+    }
+}
+
+impl FileTime {
+    fn as_u64(self) -> u64 {
+        (u64::from(self.high) << 32) | u64::from(self.low)
+    }
+}
+
+pub(crate) fn take_snapshot() -> Result<Vec<NativeProcess>, ProcError> {
+    // SAFETY: flags request a process list; process_id 0 means all processes.
+    // The returned handle is checked and owned before any further use.
+    let snapshot =
+        OwnedHandle::snapshot(unsafe { CreateToolhelp32Snapshot(TH32CS_SNAPPROCESS, 0) })?;
+    let mut entry = ProcessEntry::new();
+    // SAFETY: snapshot is a live Toolhelp process snapshot. entry is a PROCESSENTRY32W
+    // with dwSize set to the x64 layout size asserted above. The API only writes
+    // that buffer for the duration of the call.
+    let first = unsafe { Process32FirstW(snapshot.raw(), &mut entry) };
+    if first == 0 {
+        return Err(ProcError::SnapshotFailed);
+    }
+    let mut rows = Vec::new();
+    loop {
+        rows.push(enrich(&entry));
+        entry = ProcessEntry::new();
+        // SAFETY: same snapshot and PROCESSENTRY32W contract as Process32FirstW.
+        let next = unsafe { Process32NextW(snapshot.raw(), &mut entry) };
+        if next == 0 {
+            break;
+        }
+    }
+    Ok(rows)
+}
+
+fn enrich(entry: &ProcessEntry) -> NativeProcess {
+    let pid = entry.pid;
+    let parent_pid = entry.parent_pid;
+    let name = entry.name();
+    // SAFETY: PROCESS_QUERY_LIMITED_INFORMATION is the only access requested;
+    // inherit is FALSE. A null or invalid return is treated as a query miss.
+    let handle =
+        OwnedHandle::process(unsafe { OpenProcess(PROCESS_QUERY_LIMITED_INFORMATION, 0, pid) });
+    let Some(handle) = handle else {
+        return NativeProcess {
+            pid,
+            parent_pid,
+            name,
+            created_filetime: 0,
+            command_line: String::new(),
+            cmdline_issue: Some(open_issue()),
+            image_path: String::new(),
+            image_unavailable: false,
+            working_set: None,
+        };
+    };
+    let created_filetime = process_times(handle.raw());
+    let (image_path, image_unavailable) = image_path_of(handle.raw());
+    let working_set = working_set_of(handle.raw());
+    let (command_line, cmdline_issue) = match command_line_of(handle.raw()) {
+        Ok(text) => (text, None),
+        Err(issue) => (String::new(), Some(issue)),
+    };
+    NativeProcess {
+        pid,
+        parent_pid,
+        name,
+        created_filetime,
+        command_line,
+        cmdline_issue,
+        image_path,
+        image_unavailable,
+        working_set,
+    }
+}
+
+fn image_path_of(handle: *mut c_void) -> (String, bool) {
+    // A full Win32 extended path fits within 32,768 UTF-16 units.
+    let mut buffer = vec![0_u16; 32_768];
+    let mut length = buffer.len() as u32;
+    // SAFETY: handle is the live limited-query handle opened by enrich. Flags
+    // 0 requests Win32 form. buffer holds length writable u16s and length is
+    // a live in/out DWORD; neither pointer escapes the call.
+    let ok = unsafe { QueryFullProcessImageNameW(handle, 0, buffer.as_mut_ptr(), &mut length) };
+    if ok == 0 {
+        return (String::new(), true);
+    }
+    (String::from_utf16_lossy(&buffer[..length as usize]), false)
+}
+
+fn working_set_of(handle: *mut c_void) -> Option<u64> {
+    let mut counters = VmCounters::default();
+    let mut returned = 0_u32;
+    // SAFETY: handle is the same live limited-query handle. Class 3 returns
+    // VM_COUNTERS into a properly aligned, initialized 88-byte local struct,
+    // with x64 size/offsets asserted above. No remote pointers are followed.
+    let status = unsafe {
+        NtQueryInformationProcess(
+            handle,
+            PROCESS_VM_COUNTERS,
+            ptr::from_mut(&mut counters).cast(),
+            size_of::<VmCounters>() as u32,
+            &mut returned,
+        )
+    };
+    (status >= 0 && returned as usize >= size_of::<VmCounters>())
+        .then_some(counters.working_set_size as u64)
+}
+
+fn open_issue() -> CmdIssue {
+    match std::io::Error::last_os_error().raw_os_error() {
+        Some(ERROR_ACCESS_DENIED) => CmdIssue::AccessDenied,
+        _ => CmdIssue::Exited,
+    }
+}
+
+fn process_times(handle: *mut c_void) -> u64 {
+    let mut creation = FileTime::default();
+    let mut exit = FileTime::default();
+    let mut kernel = FileTime::default();
+    let mut user = FileTime::default();
+    // SAFETY: handle is a live PROCESS_QUERY_LIMITED_INFORMATION process handle.
+    // The four FILETIME pointers each address a local 8-byte integer struct.
+    let ok = unsafe { GetProcessTimes(handle, &mut creation, &mut exit, &mut kernel, &mut user) };
+    if ok == 0 { 0 } else { creation.as_u64() }
+}
+
+fn command_line_of(handle: *mut c_void) -> Result<String, CmdIssue> {
+    let mut needed = 0_u32;
+    // SAFETY: class 60 is ProcessCommandLineInformation. A null buffer with
+    // length 0 is the documented size probe; needed receives the byte count.
+    let probe = unsafe {
+        NtQueryInformationProcess(
+            handle,
+            PROCESS_COMMAND_LINE_INFORMATION,
+            ptr::null_mut(),
+            0,
+            &mut needed,
+        )
+    };
+    let mut cap = if needed > 16 { needed } else { 4096 };
+    cap = cap.min(1_048_576);
+    if probe != 0 && probe != STATUS_INFO_LENGTH_MISMATCH && needed == 0 {
+        return Err(status_issue(probe));
+    }
+    for _ in 0..4 {
+        let mut buf = vec![0_u8; cap as usize];
+        let mut returned = 0_u32;
+        // SAFETY: handle remains a live limited-query process handle. buf is a
+        // heap vector of cap bytes; the API writes a UNICODE_STRING plus string
+        // data into that allocation only.
+        let status = unsafe {
+            NtQueryInformationProcess(
+                handle,
+                PROCESS_COMMAND_LINE_INFORMATION,
+                buf.as_mut_ptr().cast(),
+                cap,
+                &mut returned,
+            )
+        };
+        if status == STATUS_INFO_LENGTH_MISMATCH {
+            let next = returned.max(cap.saturating_mul(2)).min(1_048_576);
+            if next <= cap {
+                return Err(CmdIssue::AccessDenied);
+            }
+            cap = next;
+            continue;
+        }
+        if status != 0 {
+            return Err(status_issue(status));
+        }
+        return decode_command_line(&buf);
+    }
+    Err(CmdIssue::AccessDenied)
+}
+
+fn status_issue(status: i32) -> CmdIssue {
+    match status {
+        STATUS_ACCESS_DENIED => CmdIssue::AccessDenied,
+        STATUS_INVALID_HANDLE | STATUS_PROCESS_IS_TERMINATING => CmdIssue::Exited,
+        _ => CmdIssue::AccessDenied,
+    }
+}
+
+fn decode_command_line(buf: &[u8]) -> Result<String, CmdIssue> {
+    if buf.len() < 16 {
+        return Err(CmdIssue::AccessDenied);
+    }
+    let length = u16::from_le_bytes([buf[0], buf[1]]);
+    if length == 0 {
+        return Ok(String::new());
+    }
+    if !length.is_multiple_of(2) {
+        return Err(CmdIssue::AccessDenied);
+    }
+    let ptr_bytes = [
+        buf[8], buf[9], buf[10], buf[11], buf[12], buf[13], buf[14], buf[15],
+    ];
+    let buffer_ptr = usize::from_le_bytes(ptr_bytes);
+    let buf_addr = buf.as_ptr().addr();
+    let buf_end = buf_addr + buf.len();
+    let byte_len = length as usize;
+    let offset = if buffer_ptr >= buf_addr && buffer_ptr.saturating_add(byte_len) <= buf_end {
+        buffer_ptr - buf_addr
+    } else if 16 + byte_len <= buf.len() {
+        16
+    } else {
+        return Err(CmdIssue::AccessDenied);
+    };
+    let end = offset + byte_len;
+    if end > buf.len() {
+        return Err(CmdIssue::AccessDenied);
+    }
+    let mut units = Vec::with_capacity(byte_len / 2);
+    for chunk in buf[offset..end].chunks_exact(2) {
+        units.push(u16::from_le_bytes([chunk[0], chunk[1]]));
+    }
+    Ok(String::from_utf16_lossy(&units))
+}
