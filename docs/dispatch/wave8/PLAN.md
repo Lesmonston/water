@@ -145,3 +145,8 @@ K1、K2、K3（以及 K5）验收合入后，冻结 [SERVICE-M3C 补充 01](../.
 
 后端单：
 - WATER-W8-K4：`你接手 Water 项目 WATER-W8-K4（服务接上 M3 收口的各项，重门）。先读 F:/new/smaltalk/water/docs/dispatch/tickets/WATER-W8-K4-SERVICE-20261101.md，按其中列出的顺序读规则与契约，在 F:/new/smaltalk/water/.worktrees/w8-k4（分支 worker/water-w8-k4）从 232bc298 开工。`
+
+### K4 补单 01（2026-11-01）
+
+K4 受阻（回执 `e2fbc784`）：新增的 64 次 `skip_add` 用例连续两次略超 50 ms 返回预算。根子在补充 01 第 1 条要求跳过时重写整份扫描记录（克隆、全量重建视图、刷盘写记录）。补单改为：最新扫描的视图一律按“扫描结果 + 当前跳过名单”算；`skip_add`、`skip_remove` 只写设置、只重算受影响的组；另加万项规模用例。
+- WATER-W8-K4 补单 01：`你接手 Water 项目 WATER-W8-K4 补单 01（跳过只写设置，视图按扫描结果加当前跳过名单算，重门）。先读 F:/new/smaltalk/water/docs/dispatch/tickets/WATER-W8-K4-ADDENDUM-01-20261101.md，按其中列出的顺序读原单、规则与契约，在 F:/new/smaltalk/water/.worktrees/w8-k4（分支 worker/water-w8-k4）从 e2fbc784 续做。`

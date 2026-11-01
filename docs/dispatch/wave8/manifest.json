@@ -1,7 +1,7 @@
 {
   "schemaVersion": 1,
   "wave": "water-wave8-m3-close",
-  "status": "SECOND_BATCH_DISPATCHED",
+  "status": "SECOND_BATCH_ADDENDA",
   "controller": "Claude",
   "controllerRoot": "F:/new/smaltalk/water",
   "controllerBranch": "main",
@@ -605,7 +605,7 @@
       "branch": "worker/water-w8-k4",
       "baseCommit": "232bc2982228f5d99f42017de6db3caa5912a8ab",
       "snapshotRef": "refs/tags/water-w8-k4-base-20261101",
-      "status": "DISPATCHED",
+      "status": "BLOCKED",
       "readyOn": "2026-11-01",
       "dispatchedAt": null,
       "startedAt": null,
@@ -701,7 +701,25 @@
       "baselineEvidence": "docs/acceptance/wave8/controller/preflight-20261101/k4/2026-11-01T02-17-28.063Z-20176-baseline-result.json",
       "preflightEvidence": "controller lock and check (clippy --all-targets) also passed at the base: docs/acceptance/wave8/controller/preflight-20261101/k4/",
       "dispatchReportedAt": "2026-11-01T02:24:11Z",
-      "dispatchEvidence": "user chat 2026-11-01 ~11:24 JST: \"都是sol\" (K4 and the K6 UI addendum 02 both to sol); paste time not reported; worker tree head/changed files 232bc298/0 when recorded"
+      "dispatchEvidence": "user chat 2026-11-01 ~11:24 JST: \"都是sol\" (K4 and the K6 UI addendum 02 both to sol); paste time not reported; worker tree head/changed files 232bc298/0 when recorded",
+      "blockedAt": "2026-11-01T02:59:35Z",
+      "blockedCommit": "e2fbc784",
+      "workerSelfReport": "Codex GPT-6",
+      "blockedReason": "after nc3 restore the full test failed twice in a row on the new 64x skip_add case exceeding the existing 50 ms SERVICE return budget (50.65 ms, 51.31 ms); cause traced by the controller to SERVICE-M3C-ADD-01 section 1 requiring the latest scan record to be rewritten (clone, full view rebuild, fsynced record write) inside skip_add",
+      "addenda": [
+        {
+          "id": "WATER-W8-K4-ADDENDUM-01",
+          "ticket": "docs/dispatch/tickets/WATER-W8-K4-ADDENDUM-01-20261101.md",
+          "status": "READY",
+          "issuedAt": "2026-11-01T03:20:32Z",
+          "resumeFromCommit": "e2fbc784",
+          "change": "latest-scan views are always scan result + current skip list; skip_add and skip_remove write only settings and never rewrite the scan record; skip_remove restores the scan-time state at once; in-memory recompute limited to the affected group, its detail and totals; 64x budget case kept, new 10,000-item synthetic record case (5 add + 5 remove within 50 ms), restart cases, record bytes unchanged; all three negative controls redone; no baseline rerun",
+          "dispatchedAt": null,
+          "submittedHead": null,
+          "implementationCommit": null,
+          "dispatchEvidence": null
+        }
+      ]
     },
     {
       "kind": "host",
