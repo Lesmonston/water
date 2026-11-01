@@ -1,0 +1,11 @@
+use water_w2_selftest::add;
+
+#[test]
+fn selftest_alpha() {
+    assert_eq!(serde_json::to_string(&add(1, 1)).unwrap(), "{\"value\":2}");
+}
+
+#[test]
+fn selftest_beta() {
+    assert_eq!(add(2, 2).value, 4, "SELFTEST_TOKEN");
+}

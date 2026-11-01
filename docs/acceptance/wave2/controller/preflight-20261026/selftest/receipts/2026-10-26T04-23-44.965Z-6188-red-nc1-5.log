@@ -1,0 +1,37 @@
+{"binary":"C:\\Users\\37310\\.rustup\\toolchains\\1.95.0-x86_64-pc-windows-msvc\\bin\\cargo.exe","args":["test","--offline","--locked","--manifest-path","packages/w2-selftest/Cargo.toml","--test","selftest_v1","--","--test-threads=1"],"exitCode":101,"error":null}
+--- stdout ---
+
+running 2 tests
+test selftest_alpha ... FAILED
+test selftest_beta ... FAILED
+
+failures:
+
+---- selftest_alpha stdout ----
+
+thread 'selftest_alpha' (32912) panicked at tests\selftest_v1.rs:5:5:
+assertion `left == right` failed
+  left: "{\"value\":3}"
+ right: "{\"value\":2}"
+note: run with `RUST_BACKTRACE=1` environment variable to display a backtrace
+
+---- selftest_beta stdout ----
+
+thread 'selftest_beta' (27836) panicked at tests\selftest_v1.rs:10:5:
+assertion `left == right` failed: SELFTEST_TOKEN
+  left: 5
+ right: 4
+
+
+failures:
+    selftest_alpha
+    selftest_beta
+
+test result: FAILED. 0 passed; 2 failed; 0 ignored; 0 measured; 0 filtered out; finished in 0.00s
+
+
+--- stderr ---
+   Compiling water-w2-selftest v0.1.0 (F:\new\smaltalk\water\.worktrees\w2-selftest\packages\w2-selftest)
+    Finished `test` profile [unoptimized + debuginfo] target(s) in 1.31s
+     Running tests\selftest_v1.rs (.local\w2-target\debug\deps\selftest_v1-d9c2e9edc668a870.exe)
+error: test failed, to rerun pass `--test selftest_v1`

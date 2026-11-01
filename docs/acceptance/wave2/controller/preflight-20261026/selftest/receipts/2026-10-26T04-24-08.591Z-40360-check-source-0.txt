@@ -1,0 +1,26 @@
+[workspace]
+members = ["."]
+resolver = "3"
+
+[package]
+name = "water-w2-selftest"
+version = "0.1.0"
+edition = "2024"
+rust-version = "1.95"
+publish = false
+autobins = false
+autotests = false
+autoexamples = false
+autobenches = false
+
+[lib]
+name = "water_w2_selftest"
+path = "src/lib.rs"
+
+[[test]]
+name = "selftest_v1"
+path = "tests/selftest_v1.rs"
+
+[dependencies]
+serde = { version = "=1.0.229", features = ["derive"] }
+serde_json = "=1.0.151"

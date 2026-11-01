@@ -1,0 +1,12 @@
+//! Harness self-test crate. Not product code.
+#![forbid(unsafe_code)]
+
+#[derive(serde::Serialize)]
+pub struct Sum {
+    pub value: u32,
+}
+
+pub fn add(a: u32, b: u32) -> Sum {
+    Sum { value: a + b }
+}
+// harmless

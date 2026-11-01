@@ -1,0 +1,272 @@
+{
+  "task": "WATER-W2-SELFTEST",
+  "mode": "test",
+  "finalGate": false,
+  "manifest": ".local/w2-selftest/manifest.json",
+  "startedAt": "2026-10-26T04:23:50.017Z",
+  "realDataRead": false,
+  "productTestsRun": true,
+  "commands": [
+    {
+      "binary": "git",
+      "argv": [
+        "branch",
+        "--show-current"
+      ],
+      "exitCode": 0
+    },
+    {
+      "binary": "git",
+      "argv": [
+        "merge-base",
+        "--is-ancestor",
+        "8d1375aefd6cbff4ca0b7a34e7e469c7fa706bea",
+        "HEAD"
+      ],
+      "exitCode": 0
+    },
+    {
+      "binary": "git",
+      "argv": [
+        "diff",
+        "--no-renames",
+        "--name-only",
+        "-z",
+        "8d1375aefd6cbff4ca0b7a34e7e469c7fa706bea",
+        "HEAD"
+      ],
+      "exitCode": 0
+    },
+    {
+      "binary": "git",
+      "argv": [
+        "diff",
+        "--no-renames",
+        "--name-only",
+        "-z",
+        "HEAD"
+      ],
+      "exitCode": 0
+    },
+    {
+      "binary": "git",
+      "argv": [
+        "ls-files",
+        "--others",
+        "--exclude-standard",
+        "-z"
+      ],
+      "exitCode": 0
+    },
+    {
+      "binary": "git",
+      "argv": [
+        "rev-parse",
+        "HEAD"
+      ],
+      "exitCode": 0
+    },
+    {
+      "binary": "git",
+      "argv": [
+        "status",
+        "--porcelain",
+        "--untracked-files=all"
+      ],
+      "exitCode": 0
+    },
+    {
+      "binary": "C:\\Users\\37310\\.cargo\\bin\\rustup.exe",
+      "argv": [
+        "which",
+        "cargo",
+        "--toolchain",
+        "1.95.0"
+      ],
+      "exitCode": 0,
+      "error": null,
+      "log": "2026-10-26T04-23-50.015Z-19168-test-1.log"
+    },
+    {
+      "binary": "C:\\Users\\37310\\.cargo\\bin\\rustup.exe",
+      "argv": [
+        "which",
+        "rustc",
+        "--toolchain",
+        "1.95.0"
+      ],
+      "exitCode": 0,
+      "error": null,
+      "log": "2026-10-26T04-23-50.015Z-19168-test-2.log"
+    },
+    {
+      "binary": "C:\\Users\\37310\\.rustup\\toolchains\\1.95.0-x86_64-pc-windows-msvc\\bin\\rustc.exe",
+      "argv": [
+        "--version"
+      ],
+      "exitCode": 0,
+      "error": null,
+      "log": "2026-10-26T04-23-50.015Z-19168-test-3.log"
+    },
+    {
+      "binary": "C:\\Users\\37310\\.rustup\\toolchains\\1.95.0-x86_64-pc-windows-msvc\\bin\\cargo.exe",
+      "argv": [
+        "metadata",
+        "--offline",
+        "--locked",
+        "--format-version",
+        "1",
+        "--manifest-path",
+        "packages/w2-selftest/Cargo.toml"
+      ],
+      "exitCode": 0,
+      "error": null,
+      "log": "2026-10-26T04-23-50.015Z-19168-test-4.log"
+    },
+    {
+      "binary": "C:\\Users\\37310\\.rustup\\toolchains\\1.95.0-x86_64-pc-windows-msvc\\bin\\cargo.exe",
+      "argv": [
+        "test",
+        "--offline",
+        "--locked",
+        "--manifest-path",
+        "packages/w2-selftest/Cargo.toml",
+        "--test",
+        "selftest_v1",
+        "--",
+        "--test-threads=1"
+      ],
+      "exitCode": 0,
+      "error": null,
+      "log": "2026-10-26T04-23-50.015Z-19168-test-5.log"
+    },
+    {
+      "binary": "git",
+      "argv": [
+        "branch",
+        "--show-current"
+      ],
+      "exitCode": 0
+    },
+    {
+      "binary": "git",
+      "argv": [
+        "merge-base",
+        "--is-ancestor",
+        "8d1375aefd6cbff4ca0b7a34e7e469c7fa706bea",
+        "HEAD"
+      ],
+      "exitCode": 0
+    },
+    {
+      "binary": "git",
+      "argv": [
+        "diff",
+        "--no-renames",
+        "--name-only",
+        "-z",
+        "8d1375aefd6cbff4ca0b7a34e7e469c7fa706bea",
+        "HEAD"
+      ],
+      "exitCode": 0
+    },
+    {
+      "binary": "git",
+      "argv": [
+        "diff",
+        "--no-renames",
+        "--name-only",
+        "-z",
+        "HEAD"
+      ],
+      "exitCode": 0
+    },
+    {
+      "binary": "git",
+      "argv": [
+        "ls-files",
+        "--others",
+        "--exclude-standard",
+        "-z"
+      ],
+      "exitCode": 0
+    },
+    {
+      "binary": "git",
+      "argv": [
+        "rev-parse",
+        "HEAD"
+      ],
+      "exitCode": 0
+    },
+    {
+      "binary": "git",
+      "argv": [
+        "status",
+        "--porcelain",
+        "--untracked-files=all"
+      ],
+      "exitCode": 0
+    }
+  ],
+  "changedPaths": [
+    "packages/w2-selftest/Cargo.lock",
+    "packages/w2-selftest/Cargo.toml",
+    "packages/w2-selftest/src/lib.rs",
+    "packages/w2-selftest/tests/selftest_v1.rs"
+  ],
+  "before": {
+    "head": "ebb444c16d6c71c40c04a9e3369e5628c96b4816",
+    "status": ""
+  },
+  "sourceState": {
+    "files": [
+      {
+        "path": "packages/w2-selftest/Cargo.toml",
+        "snapshot": "2026-10-26T04-23-50.015Z-19168-test-source-0.txt",
+        "sha256": "2ce86c5d17f97f93c935210754fecccb5a7ed989bc11666ec4e29a3d05ff03d5",
+        "test": false
+      },
+      {
+        "path": "packages/w2-selftest/Cargo.lock",
+        "snapshot": "2026-10-26T04-23-50.015Z-19168-test-source-1.txt",
+        "sha256": "e107804dbc7b72513c738f0439557d4b42f33a54c7d121b461e46cc3aef0f170",
+        "test": false
+      },
+      {
+        "path": "packages/w2-selftest/src/lib.rs",
+        "snapshot": "2026-10-26T04-23-50.015Z-19168-test-source-2.txt",
+        "sha256": "c0e19eebbb91a9cf2c078f5246a98480409d5a54ecc2418a6eef5e8ee007dbf8",
+        "test": false
+      },
+      {
+        "path": "packages/w2-selftest/tests/selftest_v1.rs",
+        "snapshot": "2026-10-26T04-23-50.015Z-19168-test-source-3.txt",
+        "sha256": "ce8dd6034573089bca6fa31e18135f6c19dcec6d39ed16c62a88f07619125e1e",
+        "test": true
+      }
+    ],
+    "productionHash": "a6b33ae4eaac38898cf1a9568839f2717b5b311d64ed7cfe89107da501633977",
+    "testHash": "0793799216d1e112cf92416cb35dd79cdc263b112d22966d79c4040d937fd90c"
+  },
+  "dependencyInventory": [
+    "itoa@1.0.18",
+    "memchr@2.8.3",
+    "proc-macro2@1.0.107",
+    "quote@1.0.47",
+    "serde@1.0.229",
+    "serde_core@1.0.229",
+    "serde_derive@1.0.229",
+    "serde_json@1.0.151",
+    "syn@3.0.9",
+    "unicode-ident@1.0.27",
+    "zmij@1.0.23"
+  ],
+  "after": {
+    "head": "ebb444c16d6c71c40c04a9e3369e5628c96b4816",
+    "status": ""
+  },
+  "status": "passed",
+  "error": null,
+  "endedAt": "2026-10-26T04:23:55.716Z"
+}

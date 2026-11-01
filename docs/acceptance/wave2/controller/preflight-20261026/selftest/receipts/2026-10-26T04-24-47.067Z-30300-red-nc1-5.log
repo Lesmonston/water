@@ -1,0 +1,21 @@
+{"binary":"C:\\Users\\37310\\.rustup\\toolchains\\1.95.0-x86_64-pc-windows-msvc\\bin\\cargo.exe","args":["test","--offline","--locked","--manifest-path","packages/w2-selftest/Cargo.toml","--test","selftest_v1","--","--test-threads=1"],"exitCode":101,"error":null}
+--- stdout ---
+
+--- stderr ---
+   Compiling water-w2-selftest v0.1.0 (F:\new\smaltalk\water\.worktrees\w2-selftest\packages\w2-selftest)
+error: expected expression, found `}`
+  --> src\lib.rs:10:27
+   |
+10 |     Sum { value: a + b +  }
+   |     ---                   ^ expected expression
+   |     |
+   |     while parsing this struct
+
+error[E0063]: missing field `value` in initializer of `Sum`
+  --> src\lib.rs:10:5
+   |
+10 |     Sum { value: a + b +  }
+   |     ^^^ missing `value`
+
+For more information about this error, try `rustc --explain E0063`.
+error: could not compile `water-w2-selftest` (lib) due to 2 previous errors
