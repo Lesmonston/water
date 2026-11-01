@@ -160,3 +160,10 @@ K4 补单 01 与 K6 补单 02 一起收（第三轮）。K4 验收通过并合�
 
 后端单：
 - WATER-W8-K4 补单 02：`你接手 Water 项目 WATER-W8-K4 补单 02（旧体检也按当前跳过名单算、排除检查用索引，以及几处加固，重门）。先读 F:/new/smaltalk/water/docs/dispatch/tickets/WATER-W8-K4-ADDENDUM-02-20261101.md，按其中列出的顺序读原单、补单 01、规则与契约，在 F:/new/smaltalk/water/.worktrees/w8-k4（分支 worker/water-w8-k4）从 fc36140d 续做。`
+
+### 第四轮：K6 补单 04（2026-11-01）
+
+K4 补单 02 与 K6 补单 03 一起收（第四轮）。K4 补单 02 验收通过，再合入一次；独立审查没有高级与中级。K6 补单 03 修好了高级问题（跳过、恢复后操作坞与实际清理一致），但审查有一条中级：用户在抽屉里排空了一个组之后，恢复该组里的一个跳过，这个组会自己回到清理范围，违反补单 02 第 3.1 条。另外补单 03 要求的“分类合计也扣除”与真实服务不符（总控写错）。出补单 04，K6 仍最后合入。
+
+界面单：
+- WATER-W8-K6 补单 04：`你接手 Water 项目 WATER-W8-K6 补单 04（排空的组不因重读而回到清理范围，以及几处低级，界面单）。先读 F:/new/smaltalk/water/docs/dispatch/tickets/WATER-W8-K6-ADDENDUM-04-20261101.md，按其中列出的顺序读原票、补单 01～03、规则与契约，在 F:/new/smaltalk/water/.worktrees/w8-k6（分支 worker/water-w8-k6）从 9722649a 续做。`

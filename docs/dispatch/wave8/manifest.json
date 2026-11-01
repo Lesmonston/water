@@ -1,7 +1,7 @@
 {
   "schemaVersion": 1,
   "wave": "water-wave8-m3-close",
-  "status": "THIRD_ROUND_ADDENDA_DISPATCHED",
+  "status": "FOURTH_ROUND_K6_ADDENDUM",
   "controller": "Claude",
   "controllerRoot": "F:/new/smaltalk/water",
   "controllerBranch": "main",
@@ -725,23 +725,26 @@
         {
           "id": "WATER-W8-K4-ADDENDUM-02",
           "ticket": "docs/dispatch/tickets/WATER-W8-K4-ADDENDUM-02-20261101.md",
-          "status": "DISPATCHED",
+          "status": "VERIFIED",
           "issuedAt": "2026-11-01T06:17:19Z",
           "resumeFromCommit": "fc36140dc9abd8329c3c77a1625789b8dfccf68f",
           "change": "follow-up after VERIFIED merge: every loaded record projection follows the current skip list (history bytes and older scan_result consistent before and after restart); clean_prepare exclusion lookup via the item index and a set (5,000 IDs on 10k items within 50 ms); plans marked stale right after the settings write; recommended_by_drive zero-row rule consistent between build and refresh; forecast never prints -0; SERVICE_M3C_DUE and SERVICE_SNAPSHOT_REMOVE_FAIL made load-independent without changing expectations; new tests: known-folder non-system drive root rejected, scan-time-ineligible item stays ineligible after skip/restore, case-different skip path; nc1-nc3 redone; no baseline rerun",
           "dispatchedAt": null,
-          "submittedHead": null,
-          "implementationCommit": null,
+          "submittedHead": "b9c34dde82a3ad6475544ef4fbac92177ceb82a4",
+          "implementationCommit": "f55d969d0d73fdbffd2377418af2f155cbdd8f0a",
           "dispatchEvidence": "user chat 2026-11-01 ~15:40 JST: \"都已派给 sol\" (K6 addendum 03 and K4 addendum 02 both to sol); paste time not reported; worker tree head/changed files fc36140d/0 when recorded",
           "model": "sol (user-reported)",
-          "dispatchReportedAt": "2026-11-01T06:40:45Z"
+          "dispatchReportedAt": "2026-11-01T06:40:45Z",
+          "workerSelfReport": "Codex GPT-6",
+          "mergeCommit": "2a946b30"
         }
       ],
-      "mergeCommit": "0bb1cf80",
+      "mergeCommit": "2a946b30",
       "controllerReview": {
         "report": "docs/acceptance/wave8/controller/WATER-W8-REVIEW-20261101.md",
         "evidence": "docs/acceptance/wave8/controller/accept-20261101/k4/",
-        "summary": "addendum 01 round: audit 0 problems (38 receipts, three red/green pairs); fresh tree lock, check/real finals passed (real: 4 fixed drives, recognized 67.4 GB, recommended 13.4 GB; J3 10-28 62.1/11.7 GB); FFI only GetVolumeInformationW, DriveInfo unchanged, Platform methods defaulted, ADD-01 section 5 assertions only; controller mutations c1-c13 run alone (a first parallel attempt aborted on timing under load); independent review: no High, no path lets skipped/excluded/protected/non-NTFS-ReFS-root items into a plan; three Medium (older records do not follow skips until restart; known-folder drive root untested; clean_prepare exclusions scale with exclusions x items) -> addendum 02 in parallel with K6 addendum 03"
+        "summary": "addendum 01 round: audit 0 problems (38 receipts, three red/green pairs); fresh tree lock, check/real finals passed (real: 4 fixed drives, recognized 67.4 GB, recommended 13.4 GB; J3 10-28 62.1/11.7 GB); FFI only GetVolumeInformationW, DriveInfo unchanged, Platform methods defaulted, ADD-01 section 5 assertions only; controller mutations c1-c13 run alone (a first parallel attempt aborted on timing under load); independent review: no High, no path lets skipped/excluded/protected/non-NTFS-ReFS-root items into a plan; three Medium (older records do not follow skips until restart; known-folder drive root untested; clean_prepare exclusions scale with exclusions x items) -> addendum 02 in parallel with K6 addendum 03",
+        "round4": "addendum 02 (f55d969d): audit 0 problems; fresh tree lock, check/real finals passed (real: recognized 68.1 GB, recommended 17.0 GB after the controller builds); controller mutations d1-d9 plus round-3 c6/c13: 9 of 11 caught, probes d7 (drive-root text-form known-folder check, canonical form still guards) and d8 (idempotent skip_add stale marking untested) survived; c13 case-insensitive projection now caught; test --final passed; several restored green runs hit the 50 ms budget on settings-writing calls under machine load (one skip_add spike 215 ms), resumed; independent review: no High or Medium"
       },
       "carryOverLater": [
         "a malformed skip entry resets the whole settings file to defaults; the next settings write makes the loss permanent (corrupted or hand-edited file only)",
@@ -749,7 +752,17 @@
         "case-insensitive matching is ASCII-only",
         "an unavailable process snapshot shows as no orphans rather than unknown",
         "clean result estimate_bytes loops plan items x scan items (clean thread, not an IPC call)",
-        "a group whose eligible items are all skipped is dropped silently from clean_prepare instead of invalid (never enters a plan)"
+        "a group whose eligible items are all skipped is dropped silently from clean_prepare instead of invalid (never enters a plan)",
+        "IPC calls that write settings or records with fsync (skip_add, skip_remove, scan_start, custom_root_add, clean_prepare) exceed the 50 ms budget under disk or CPU load on this machine; tests flake, real use may see slow returns",
+        "m3c_drive_roots now assumes the checkout and fixtures are on F: (fake drive hard-coded F:\\)",
+        "two service tests recompile the product sources into the test crate via #[path] (white-box harness with duplicated constants)",
+        "idempotent skip_add of an already skipped path marks plans stale but no test covers it (controller d8 survived)",
+        "clean_prepare second-insurance skip-list check and protected_paths remain linear in items x entries; not exercised at scale",
+        "case difference between an older record path and the latest record path within one session is untested (code handles it)"
+      ],
+      "mergeCommits": [
+        "0bb1cf80",
+        "2a946b30"
       ]
     },
     {
@@ -1366,24 +1379,41 @@
         {
           "id": "WATER-W8-K6-ADDENDUM-03",
           "ticket": "docs/dispatch/tickets/WATER-W8-K6-ADDENDUM-03-20261101.md",
-          "status": "DISPATCHED",
+          "status": "SUBMITTED_CHANGES_REQUESTED",
           "issuedAt": "2026-11-01T06:17:19Z",
           "resumeFromCommit": "1c2e91e60262103a24f228389447bf1549065af0",
           "change": "after skip_add or skip_remove success on the same non-stale scan, re-read scan_result with the same scan_id, keep the selection, drop the detail cache, disable clean until the re-read lands, mark the result stale on failure; a restored item counts in its selected group and the dock (controller gap: K4 addendum 01 made skip_remove restore at once without updating the UI ticket); fake host switch modelling the new service, clean_prepare accepts and ignores user_skipped exclusions; lows: failed skip after leaving the page is reported, open drawer re-renders after item toggles, category selected caption follows the visible groups, no selected caption when nothing is selected, stale drawer hint, locations sentence period, marker-safe item-i-000201 assertion; nc1-nc3 redone; 26 screenshots; no baseline rerun",
           "dispatchedAt": null,
-          "submittedHead": null,
-          "implementationCommit": null,
+          "submittedHead": "9722649a59ce7097f5014ea02bad3d384a7fae65",
+          "implementationCommit": "8a0ed61f783136a959f0495b666c625a925a55ae",
           "dispatchEvidence": "user chat 2026-11-01 ~15:40 JST: \"都已派给 sol\" (K6 addendum 03 and K4 addendum 02 both to sol); paste time not reported; worker tree head/changed files 1c2e91e6/0 when recorded",
           "model": "sol (user-reported)",
-          "dispatchReportedAt": "2026-11-01T06:40:45Z"
+          "dispatchReportedAt": "2026-11-01T06:40:45Z",
+          "workerSelfReport": "Codex GPT-6"
+        },
+        {
+          "id": "WATER-W8-K6-ADDENDUM-04",
+          "ticket": "docs/dispatch/tickets/WATER-W8-K6-ADDENDUM-04-20261101.md",
+          "status": "READY",
+          "issuedAt": "2026-11-01T08:58:45Z",
+          "resumeFromCommit": "9722649a59ce7097f5014ea02bad3d384a7fae65",
+          "change": "a fully excluded group never returns to the clean range through a re-read (drop it from the selection or keep it unselected; re-include only from the results page); later errors win over the skip-failure notice and the stale explanation stays visible; the drawer updates in place on item toggles; neutral restore wording; fake host aligned with the real service (category total_bytes unchanged by skips - the controller addendum 03 wording was wrong; not_found and distinct skip IDs); setItemSelected uses retained exclusion metadata; category switch success re-reads scan_result like skips; stronger scroll and detail-cache assertions; nc1-nc3 redone; 26 screenshots; no baseline rerun",
+          "dispatchedAt": null,
+          "submittedHead": null,
+          "implementationCommit": null,
+          "dispatchEvidence": null
         }
       ],
       "controllerReview": {
         "report": "docs/acceptance/wave8/controller/WATER-W8-REVIEW-20261101.md",
         "evidence": "docs/acceptance/wave8/controller/accept-20261101/controller/",
         "summary": "round 1 (53f1e467): audit flagged app.css line endings only (mixed CRLF/LF in the worker tree; LF-normalised bytes equal the commit); fresh tree check/browser finals passed; controller mutations c1-c14: 12 caught, probe c8 not applicable to the fixtures, c12 caught at the UI_M3C_INUSE_ITEM line but without its marker (expression threw); review High: skip not applied to the current scan under the frozen SERVICE-M3C (contract gap), unselected-group items shown ticked so unticking one selects the rest; Medium: drive-filter select-all acts on hidden groups and the dock shows the drive part while clean acts on all -> addendum 01",
-        "round3": "addendum 02 (182dbf14): audit 0 problems; fresh tree check/browser finals passed; 26 screenshots reviewed (low: all-protected category shows selected <1 MB); controller mutations 21 (round-2 n6/n9 re-anchored, a1-a7 new) all caught, test --final passed; review confirmed every addendum 02 and 01 item; High: skip_remove now restores at once in the service (K4 addendum 01) but the UI does not re-read, so a restored item enters the plan without showing as selected -> addendum 03"
-      }
+        "round3": "addendum 02 (182dbf14): audit 0 problems; fresh tree check/browser finals passed; 26 screenshots reviewed (low: all-protected category shows selected <1 MB); controller mutations 21 (round-2 n6/n9 re-anchored, a1-a7 new) all caught, test --final passed; review confirmed every addendum 02 and 01 item; High: skip_remove now restores at once in the service (K4 addendum 01) but the UI does not re-read, so a restored item enters the plan without showing as selected -> addendum 03",
+        "round4": "addendum 03 (8a0ed61f): audit 0 problems; fresh tree check/browser finals passed; 11 changed screenshots reviewed (no selected <1 MB, locations period); controller mutations 18 (round-3 reds c1/c3/c5 and n1/n4/a2/a5 as regression, e1-e11 for addendum 03) all caught, test --final passed; review: no High, WYSIWYG holds after skip and restore; Medium: a fully excluded group silently returns to the clean range when a restore raises its eligible count (contradicts addendum 02 3.1) -> addendum 04 with lows; controller addendum 03 wrongly asked for category totals to drop on skip"
+      },
+      "carryOverLater": [
+        "a cancelled scan result is loaded without being marked stale while skips, details and clean act on the previous completed scan (clean fails safe because the new scan consumed its authority); check at integration"
+      ]
     }
   ]
 }

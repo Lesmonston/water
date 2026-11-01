@@ -1,107 +1,92 @@
-k6 c1 mutated apps/water/ui/model.mjs: the selected size ignores excluded items (worker nc1 emptied the clean_prepare exclusion instead) (mutated sha 8e1c2c3e2ac89fc4e308167e8d2b39fe1675771fa5b3f5ac8cdc6e8413167641)
-k6 red-nc1 rc=0 {"task":"WATER-W8-ACCEPT-K6","mode":"red-nc1","finalGate":false,"status":"passed","error":null,"receipt":"F:\\new\\smaltalk\\water\\.worktrees\\accept-w8-k6\\.local\\checks\\WATER-W8-ACCEPT-K6\\2026-11-01T05-23-49.259Z-27504-red-nc1-result.json"}
-k6 c1 KILLED (expected UI_M3C_EXCLUDE)
-k6 c1 restored exact bytes=true sha 82f188bbb0001343697cd35ead402e2d50dea7dc5f07e974a56640412c1f340b
-k6 test rc=0 {"task":"WATER-W8-ACCEPT-K6","mode":"test","finalGate":false,"status":"passed","error":null,"receipt":"F:\\new\\smaltalk\\water\\.worktrees\\accept-w8-k6\\.local\\checks\\WATER-W8-ACCEPT-K6\\2026-11-01T05-25-10.673Z-5924-test-result.json"}
-k6 c2 mutated apps/water/ui/ipc.mjs: skip_add also sends a path (mutated sha 888f4566354962b3952ecdef25026282fc2d29332cc2d0d877b267f931e5333c)
-k6 browser rc=1 {"task":"WATER-W8-ACCEPT-K6","mode":"browser","finalGate":false,"status":"failed","error":"AssertionError [ERR_ASSERTION]: Unexpected exit, see 2026-11-01T05-25-15.682Z-14540-browser-1.log","receipt":"F:\\new\\smaltalk\\water\\.worktrees\\accept-w8-k6\\.local\\checks\\WATER-W8-ACCEPT-K6\\2026-11-01T05-25-15.682Z-14540-browser-result.json"}
-k6 c2 KILLED (expected UI_M3C_SKIP)
-k6 c2 restored exact bytes=true sha 60cb21fec4c438c8c84f5f137bebd9f30821d5cbe8e6532e7c58d4e42da0af17
-k6 test rc=0 {"task":"WATER-W8-ACCEPT-K6","mode":"test","finalGate":false,"status":"passed","error":null,"receipt":"F:\\new\\smaltalk\\water\\.worktrees\\accept-w8-k6\\.local\\checks\\WATER-W8-ACCEPT-K6\\2026-11-01T05-26-24.612Z-33316-test-result.json"}
-k6 c3 mutated apps/water/ui/views/results.mjs: the drive filter also appears when only one drive is in the result (mutated sha ed2385cbaf4b6563c637d70abe34a5e42e1992369a44917779bdf6ffb83ee69d)
-k6 red-nc2 rc=0 {"task":"WATER-W8-ACCEPT-K6","mode":"red-nc2","finalGate":false,"status":"passed","error":null,"receipt":"F:\\new\\smaltalk\\water\\.worktrees\\accept-w8-k6\\.local\\checks\\WATER-W8-ACCEPT-K6\\2026-11-01T05-26-29.631Z-30224-red-nc2-result.json"}
-k6 c3 KILLED (expected UI_M3C_DRIVE)
-k6 c3 restored exact bytes=true sha 6f6dcd6329ce15b31e9d8f5ab348ccf948fd2a9c07e16b6eb36e48aee6e16d03
-k6 test rc=0 {"task":"WATER-W8-ACCEPT-K6","mode":"test","finalGate":false,"status":"passed","error":null,"receipt":"F:\\new\\smaltalk\\water\\.worktrees\\accept-w8-k6\\.local\\checks\\WATER-W8-ACCEPT-K6\\2026-11-01T05-27-53.069Z-40120-test-result.json"}
-k6 c4 mutated apps/water/ui/app.mjs: a superseded skip_remove reply still overwrites the locations (mutated sha 43a3f99dd8a2a6666bc5ef5bcab121359ab0429e715c1b90519f35011208d700)
-k6 browser rc=1 {"task":"WATER-W8-ACCEPT-K6","mode":"browser","finalGate":false,"status":"failed","error":"AssertionError [ERR_ASSERTION]: Unexpected exit, see 2026-11-01T05-27-56.238Z-29892-browser-1.log","receipt":"F:\\new\\smaltalk\\water\\.worktrees\\accept-w8-k6\\.local\\checks\\WATER-W8-ACCEPT-K6\\2026-11-01T05-27-56.238Z-29892-browser-result.json"}
-k6 c4 KILLED (expected UI_READ_ORDER)
-k6 c4 restored exact bytes=true sha c0b54279fc5bd3164d28a7f0cb73fca85627da25aa73290c64093ba57bde5056
-k6 test rc=0 {"task":"WATER-W8-ACCEPT-K6","mode":"test","finalGate":false,"status":"passed","error":null,"receipt":"F:\\new\\smaltalk\\water\\.worktrees\\accept-w8-k6\\.local\\checks\\WATER-W8-ACCEPT-K6\\2026-11-01T05-29-09.317Z-16784-test-result.json"}
-k6 c5 mutated apps/water/ui/views/trends.mjs: a drive without days_to_full ignores its note_zh (worker nc3 showed an empty string) (mutated sha 4b3b9c47ba4918dc192e161bb5602772980516e8ce25a6340c178e6a756bbe67)
-k6 red-nc3 rc=0 {"task":"WATER-W8-ACCEPT-K6","mode":"red-nc3","finalGate":false,"status":"passed","error":null,"receipt":"F:\\new\\smaltalk\\water\\.worktrees\\accept-w8-k6\\.local\\checks\\WATER-W8-ACCEPT-K6\\2026-11-01T05-29-15.726Z-31108-red-nc3-result.json"}
-k6 c5 KILLED (expected UI_M3C_FORECAST)
-k6 c5 restored exact bytes=true sha d29241f707df6aa9b923a4eb8528df5c7f07462d5eb6f03d298ab242ce2001a5
-k6 test rc=0 {"task":"WATER-W8-ACCEPT-K6","mode":"test","finalGate":false,"status":"passed","error":null,"receipt":"F:\\new\\smaltalk\\water\\.worktrees\\accept-w8-k6\\.local\\checks\\WATER-W8-ACCEPT-K6\\2026-11-01T05-30-27.505Z-31212-test-result.json"}
-k6 n1 mutated apps/water/ui/views/detail.mjs: items of an unselected group are clickable again (mutated sha a219164723d919a92dfaeccbf4a895677f607e2951c1e0023d1689ad8ae083e7)
-k6 browser rc=1 {"task":"WATER-W8-ACCEPT-K6","mode":"browser","finalGate":false,"status":"failed","error":"AssertionError [ERR_ASSERTION]: Unexpected exit, see 2026-11-01T05-30-30.143Z-34796-browser-1.log","receipt":"F:\\new\\smaltalk\\water\\.worktrees\\accept-w8-k6\\.local\\checks\\WATER-W8-ACCEPT-K6\\2026-11-01T05-30-30.143Z-34796-browser-result.json"}
-k6 n1 KILLED (expected UI_M3C_EXCLUDE)
-k6 n1 restored exact bytes=true sha 909e9f52a3937bd569c0f81bed00b0b608c495886d4c3a53f8c50d9128efba9f
-k6 test rc=0 {"task":"WATER-W8-ACCEPT-K6","mode":"test","finalGate":false,"status":"passed","error":null,"receipt":"F:\\new\\smaltalk\\water\\.worktrees\\accept-w8-k6\\.local\\checks\\WATER-W8-ACCEPT-K6\\2026-11-01T05-31-28.697Z-35276-test-result.json"}
-k6 n2 mutated apps/water/ui/views/detail.mjs: items of an unselected group show as ticked again (round 1 behaviour) (mutated sha 25ddeb1e446a1ba72ef72a2a7422c1c54fbf35400e163f56f10408826f8f40c0)
-k6 browser rc=1 {"task":"WATER-W8-ACCEPT-K6","mode":"browser","finalGate":false,"status":"failed","error":"AssertionError [ERR_ASSERTION]: Unexpected exit, see 2026-11-01T05-31-33.628Z-17768-browser-1.log","receipt":"F:\\new\\smaltalk\\water\\.worktrees\\accept-w8-k6\\.local\\checks\\WATER-W8-ACCEPT-K6\\2026-11-01T05-31-33.628Z-17768-browser-result.json"}
-k6 n2 KILLED (expected UI_M3C_EXCLUDE)
-k6 n2 restored exact bytes=true sha 909e9f52a3937bd569c0f81bed00b0b608c495886d4c3a53f8c50d9128efba9f
-k6 test rc=0 {"task":"WATER-W8-ACCEPT-K6","mode":"test","finalGate":false,"status":"passed","error":null,"receipt":"F:\\new\\smaltalk\\water\\.worktrees\\accept-w8-k6\\.local\\checks\\WATER-W8-ACCEPT-K6\\2026-11-01T05-32-39.763Z-42988-test-result.json"}
-k6 n3 mutated apps/water/ui/model.mjs: under a drive filter the category select-all acts on hidden groups again (mutated sha 81fd1050c2b23d73382efce61b0e8f4f3955d4df2c594c10f4444860e048af47)
-k6 browser rc=1 {"task":"WATER-W8-ACCEPT-K6","mode":"browser","finalGate":false,"status":"failed","error":"AssertionError [ERR_ASSERTION]: Unexpected exit, see 2026-11-01T05-32-44.750Z-22836-browser-1.log","receipt":"F:\\new\\smaltalk\\water\\.worktrees\\accept-w8-k6\\.local\\checks\\WATER-W8-ACCEPT-K6\\2026-11-01T05-32-44.750Z-22836-browser-result.json"}
-k6 n3 KILLED (expected UI_M3C_DRIVE)
-k6 n3 restored exact bytes=true sha 82f188bbb0001343697cd35ead402e2d50dea7dc5f07e974a56640412c1f340b
-k6 test rc=0 {"task":"WATER-W8-ACCEPT-K6","mode":"test","finalGate":false,"status":"passed","error":null,"receipt":"F:\\new\\smaltalk\\water\\.worktrees\\accept-w8-k6\\.local\\checks\\WATER-W8-ACCEPT-K6\\2026-11-01T05-34-16.577Z-36808-test-result.json"}
-k6 n4 mutated apps/water/ui/views/results.mjs: the dock main figure shows only the filtered drive (mutated sha 292d41a385c1fd1d35eb6ff0e463fdaf9b3c4eff10e0763547e146004ad85b6a)
-k6 browser rc=1 {"task":"WATER-W8-ACCEPT-K6","mode":"browser","finalGate":false,"status":"failed","error":"AssertionError [ERR_ASSERTION]: Unexpected exit, see 2026-11-01T05-34-26.951Z-31192-browser-1.log","receipt":"F:\\new\\smaltalk\\water\\.worktrees\\accept-w8-k6\\.local\\checks\\WATER-W8-ACCEPT-K6\\2026-11-01T05-34-26.951Z-31192-browser-result.json"}
-k6 n4 KILLED (expected UI_M3C_DRIVE)
-k6 n4 restored exact bytes=true sha 6f6dcd6329ce15b31e9d8f5ab348ccf948fd2a9c07e16b6eb36e48aee6e16d03
-k6 test rc=0 {"task":"WATER-W8-ACCEPT-K6","mode":"test","finalGate":false,"status":"passed","error":null,"receipt":"F:\\new\\smaltalk\\water\\.worktrees\\accept-w8-k6\\.local\\checks\\WATER-W8-ACCEPT-K6\\2026-11-01T05-35-57.531Z-18300-test-result.json"}
-k6 n5 mutated apps/water/ui/app.mjs: a skipped item is not excluded before the detail re-read (mutated sha 75f7ac2d817a9a556afb8a276d03a1fb113372ce5f172b91d0bdbc011bbdb445)
-k6 browser rc=1 {"task":"WATER-W8-ACCEPT-K6","mode":"browser","finalGate":false,"status":"failed","error":"AssertionError [ERR_ASSERTION]: Unexpected exit, see 2026-11-01T05-36-01.427Z-23032-browser-1.log","receipt":"F:\\new\\smaltalk\\water\\.worktrees\\accept-w8-k6\\.local\\checks\\WATER-W8-ACCEPT-K6\\2026-11-01T05-36-01.427Z-23032-browser-result.json"}
-k6 n5 KILLED (expected UI_M3C_SKIP)
-k6 n5 restored exact bytes=true sha c0b54279fc5bd3164d28a7f0cb73fca85627da25aa73290c64093ba57bde5056
-k6 test rc=0 {"task":"WATER-W8-ACCEPT-K6","mode":"test","finalGate":false,"status":"passed","error":null,"receipt":"F:\\new\\smaltalk\\water\\.worktrees\\accept-w8-k6\\.local\\checks\\WATER-W8-ACCEPT-K6\\2026-11-01T05-37-16.294Z-5624-test-result.json"}
-k6 n6 mutated apps/water/ui/app.mjs: a group_detail reply from an older scan is merged into the new result (mutated sha 46257eaa1f9822121a4c26b1931cebf27d15a750ed7eefd84901858b13a4cb9f)
-k6 browser rc=1 {"task":"WATER-W8-ACCEPT-K6","mode":"browser","finalGate":false,"status":"failed","error":"AssertionError [ERR_ASSERTION]: Unexpected exit, see 2026-11-01T05-37-20.236Z-36624-browser-1.log","receipt":"F:\\new\\smaltalk\\water\\.worktrees\\accept-w8-k6\\.local\\checks\\WATER-W8-ACCEPT-K6\\2026-11-01T05-37-20.236Z-36624-browser-result.json"}
-k6 n6 KILLED (expected UI_READ_ORDER)
-k6 n6 restored exact bytes=true sha c0b54279fc5bd3164d28a7f0cb73fca85627da25aa73290c64093ba57bde5056
-k6 test rc=0 {"task":"WATER-W8-ACCEPT-K6","mode":"test","finalGate":false,"status":"passed","error":null,"receipt":"F:\\new\\smaltalk\\water\\.worktrees\\accept-w8-k6\\.local\\checks\\WATER-W8-ACCEPT-K6\\2026-11-01T05-38-43.401Z-43604-test-result.json"}
-k6 n7 mutated apps/water/ui/app.mjs: after a skip, Esc no longer returns focus to the group row (mutated sha 33f3d95d4d01c2949e742c80d48f31105b6d60d9d68827f7004fdd125b0527f4)
-k6 browser rc=1 {"task":"WATER-W8-ACCEPT-K6","mode":"browser","finalGate":false,"status":"failed","error":"AssertionError [ERR_ASSERTION]: Unexpected exit, see 2026-11-01T05-38-47.401Z-34896-browser-1.log","receipt":"F:\\new\\smaltalk\\water\\.worktrees\\accept-w8-k6\\.local\\checks\\WATER-W8-ACCEPT-K6\\2026-11-01T05-38-47.401Z-34896-browser-result.json"}
-k6 n7 KILLED (expected UI_M3C_SKIP)
-k6 n7 restored exact bytes=true sha c0b54279fc5bd3164d28a7f0cb73fca85627da25aa73290c64093ba57bde5056
-k6 test rc=0 {"task":"WATER-W8-ACCEPT-K6","mode":"test","finalGate":false,"status":"passed","error":null,"receipt":"F:\\new\\smaltalk\\water\\.worktrees\\accept-w8-k6\\.local\\checks\\WATER-W8-ACCEPT-K6\\2026-11-01T05-39-54.104Z-26060-test-result.json"}
-k6 n8 mutated apps/water/ui/views/results.mjs: probe: a fully excluded group row shows as selected again (mutated sha 3251f6a4141c9b0eaff0584d6e3ee4549b10bd8791e41d130524fc11b907b5c2)
-k6 browser rc=1 {"task":"WATER-W8-ACCEPT-K6","mode":"browser","finalGate":false,"status":"failed","error":"AssertionError [ERR_ASSERTION]: Unexpected exit, see 2026-11-01T05-39-58.138Z-20492-browser-1.log","receipt":"F:\\new\\smaltalk\\water\\.worktrees\\accept-w8-k6\\.local\\checks\\WATER-W8-ACCEPT-K6\\2026-11-01T05-39-58.138Z-20492-browser-result.json"}
-k6 n8 KILLED (expected UI_M3C_EXCLUDE)
-k6 n8 restored exact bytes=true sha 6f6dcd6329ce15b31e9d8f5ab348ccf948fd2a9c07e16b6eb36e48aee6e16d03
-k6 test rc=0 {"task":"WATER-W8-ACCEPT-K6","mode":"test","finalGate":false,"status":"passed","error":null,"receipt":"F:\\new\\smaltalk\\water\\.worktrees\\accept-w8-k6\\.local\\checks\\WATER-W8-ACCEPT-K6\\2026-11-01T05-41-18.382Z-38076-test-result.json"}
-k6 n9 mutated apps/water/ui/model.mjs: probe: protected and advisory groups under a filter show their eligible bytes (<1 MB) again (mutated sha a20da957eac40c14d0e4690e198a233a9a64aeba781bda2fee14e0d43d74ba58)
-k6 browser rc=1 {"task":"WATER-W8-ACCEPT-K6","mode":"browser","finalGate":false,"status":"failed","error":"AssertionError [ERR_ASSERTION]: Unexpected exit, see 2026-11-01T05-41-22.295Z-24896-browser-1.log","receipt":"F:\\new\\smaltalk\\water\\.worktrees\\accept-w8-k6\\.local\\checks\\WATER-W8-ACCEPT-K6\\2026-11-01T05-41-22.295Z-24896-browser-result.json"}
-k6 n9 KILLED (expected UI_M3C_DRIVE)
-k6 n9 restored exact bytes=true sha 82f188bbb0001343697cd35ead402e2d50dea7dc5f07e974a56640412c1f340b
-k6 test rc=0 {"task":"WATER-W8-ACCEPT-K6","mode":"test","finalGate":false,"status":"passed","error":null,"receipt":"F:\\new\\smaltalk\\water\\.worktrees\\accept-w8-k6\\.local\\checks\\WATER-W8-ACCEPT-K6\\2026-11-01T05-42-45.184Z-33824-test-result.json"}
-k6 a1 mutated apps/water/ui/app.mjs: details on already-stale results do not open (addendum 02 item 1 reverted) (mutated sha b49efdf0e07a609cafd0a108c264940ca383c043a2c4cab2e8a0beec2230b5d1)
-k6 browser rc=1 {"task":"WATER-W8-ACCEPT-K6","mode":"browser","finalGate":false,"status":"failed","error":"AssertionError [ERR_ASSERTION]: Unexpected exit, see 2026-11-01T05-42-50.072Z-11588-browser-1.log","receipt":"F:\\new\\smaltalk\\water\\.worktrees\\accept-w8-k6\\.local\\checks\\WATER-W8-ACCEPT-K6\\2026-11-01T05-42-50.072Z-11588-browser-result.json"}
-k6 a1 KILLED (expected UI_READ_ORDER)
-k6 a1 restored exact bytes=true sha c0b54279fc5bd3164d28a7f0cb73fca85627da25aa73290c64093ba57bde5056
-k6 test rc=0 {"task":"WATER-W8-ACCEPT-K6","mode":"test","finalGate":false,"status":"passed","error":null,"receipt":"F:\\new\\smaltalk\\water\\.worktrees\\accept-w8-k6\\.local\\checks\\WATER-W8-ACCEPT-K6\\2026-11-01T05-44-21.297Z-22188-test-result.json"}
-k6 a2 mutated apps/water/ui/model.mjs: category select-all under a level filter selects hidden groups (mutated sha ba6acc0b1187f3a4c3db7a5885e242159eb10968218910069c4a7e54f7488a9a)
-k6 browser rc=1 {"task":"WATER-W8-ACCEPT-K6","mode":"browser","finalGate":false,"status":"failed","error":"AssertionError [ERR_ASSERTION]: Unexpected exit, see 2026-11-01T05-44-25.861Z-42184-browser-1.log","receipt":"F:\\new\\smaltalk\\water\\.worktrees\\accept-w8-k6\\.local\\checks\\WATER-W8-ACCEPT-K6\\2026-11-01T05-44-25.861Z-42184-browser-result.json"}
-k6 a2 KILLED (expected UI_M3C_DRIVE)
-k6 a2 restored exact bytes=true sha 82f188bbb0001343697cd35ead402e2d50dea7dc5f07e974a56640412c1f340b
-k6 test rc=0 {"task":"WATER-W8-ACCEPT-K6","mode":"test","finalGate":false,"status":"passed","error":null,"receipt":"F:\\new\\smaltalk\\water\\.worktrees\\accept-w8-k6\\.local\\checks\\WATER-W8-ACCEPT-K6\\2026-11-01T05-45-46.747Z-35776-test-result.json"}
-k6 a3 mutated apps/water/ui/views/detail.mjs: a fully excluded group is shown as selected in the drawer (mutated sha ba8ceb2804e87e3602d6ba6af12ba7b94d56ede8180209100a4646d6803c246c)
-k6 browser rc=1 {"task":"WATER-W8-ACCEPT-K6","mode":"browser","finalGate":false,"status":"failed","error":"AssertionError [ERR_ASSERTION]: Unexpected exit, see 2026-11-01T05-45-51.572Z-32312-browser-1.log","receipt":"F:\\new\\smaltalk\\water\\.worktrees\\accept-w8-k6\\.local\\checks\\WATER-W8-ACCEPT-K6\\2026-11-01T05-45-51.572Z-32312-browser-result.json"}
-k6 a3 KILLED (expected UI_M3C_EXCLUDE)
-k6 a3 restored exact bytes=true sha 909e9f52a3937bd569c0f81bed00b0b608c495886d4c3a53f8c50d9128efba9f
-k6 test rc=0 {"task":"WATER-W8-ACCEPT-K6","mode":"test","finalGate":false,"status":"passed","error":null,"receipt":"F:\\new\\smaltalk\\water\\.worktrees\\accept-w8-k6\\.local\\checks\\WATER-W8-ACCEPT-K6\\2026-11-01T05-47-18.278Z-32532-test-result.json"}
-k6 a4 mutated apps/water/ui/app.mjs: leaving the page before skip_add returns keeps the skipped item selected (mutated sha 48a364193e14d9797436b67d991d776db5a92ae80d79cd1375fd171eac67c5d4)
-k6 browser rc=1 {"task":"WATER-W8-ACCEPT-K6","mode":"browser","finalGate":false,"status":"failed","error":"AssertionError [ERR_ASSERTION]: Unexpected exit, see 2026-11-01T05-47-21.500Z-26136-browser-1.log","receipt":"F:\\new\\smaltalk\\water\\.worktrees\\accept-w8-k6\\.local\\checks\\WATER-W8-ACCEPT-K6\\2026-11-01T05-47-21.500Z-26136-browser-result.json"}
-k6 a4 KILLED (expected UI_M3C_SKIP)
-k6 a4 restored exact bytes=true sha c0b54279fc5bd3164d28a7f0cb73fca85627da25aa73290c64093ba57bde5056
-k6 test rc=0 {"task":"WATER-W8-ACCEPT-K6","mode":"test","finalGate":false,"status":"passed","error":null,"receipt":"F:\\new\\smaltalk\\water\\.worktrees\\accept-w8-k6\\.local\\checks\\WATER-W8-ACCEPT-K6\\2026-11-01T05-48-34.107Z-25616-test-result.json"}
-k6 a5 mutated apps/water/ui/app.mjs: an exclusion is dropped when the refreshed list no longer shows the item (mutated sha 79418d62489046d72116047966389b9b549e5ac7591919f98cfc7ccb06625d4e)
-k6 browser rc=1 {"task":"WATER-W8-ACCEPT-K6","mode":"browser","finalGate":false,"status":"failed","error":"AssertionError [ERR_ASSERTION]: Unexpected exit, see 2026-11-01T05-48-40.513Z-15824-browser-1.log","receipt":"F:\\new\\smaltalk\\water\\.worktrees\\accept-w8-k6\\.local\\checks\\WATER-W8-ACCEPT-K6\\2026-11-01T05-48-40.513Z-15824-browser-result.json"}
-k6 a5 KILLED (expected UI_M3C_EXCLUDE)
-k6 a5 restored exact bytes=true sha c0b54279fc5bd3164d28a7f0cb73fca85627da25aa73290c64093ba57bde5056
-k6 test rc=0 {"task":"WATER-W8-ACCEPT-K6","mode":"test","finalGate":false,"status":"passed","error":null,"receipt":"F:\\new\\smaltalk\\water\\.worktrees\\accept-w8-k6\\.local\\checks\\WATER-W8-ACCEPT-K6\\2026-11-01T05-50-17.352Z-34952-test-result.json"}
-k6 a6 mutated apps/water/ui/app.mjs: an excluded item outside the refreshed list loses its metadata, so counts and bytes stop deducting it (mutated sha f912e55d7f693277ea07ad77085e22362f2509b9013be7078b7d669431a55fea)
-k6 browser rc=1 {"task":"WATER-W8-ACCEPT-K6","mode":"browser","finalGate":false,"status":"failed","error":"AssertionError [ERR_ASSERTION]: Unexpected exit, see 2026-11-01T05-50-23.409Z-41664-browser-1.log","receipt":"F:\\new\\smaltalk\\water\\.worktrees\\accept-w8-k6\\.local\\checks\\WATER-W8-ACCEPT-K6\\2026-11-01T05-50-23.409Z-41664-browser-result.json"}
-k6 a6 KILLED (expected UI_M3C_EXCLUDE)
-k6 a6 restored exact bytes=true sha c0b54279fc5bd3164d28a7f0cb73fca85627da25aa73290c64093ba57bde5056
-k6 test rc=0 {"task":"WATER-W8-ACCEPT-K6","mode":"test","finalGate":false,"status":"passed","error":null,"receipt":"F:\\new\\smaltalk\\water\\.worktrees\\accept-w8-k6\\.local\\checks\\WATER-W8-ACCEPT-K6\\2026-11-01T05-51-54.317Z-22016-test-result.json"}
-k6 a7 mutated apps/water/ui/views/results.mjs: the category checkbox state counts groups hidden by the level filter (mutated sha 512fe036239266c4ab0ed8c93ffdadc5e667fa920ceab172738ec6b447f37b3c)
-k6 browser rc=1 {"task":"WATER-W8-ACCEPT-K6","mode":"browser","finalGate":false,"status":"failed","error":"AssertionError [ERR_ASSERTION]: Unexpected exit, see 2026-11-01T05-52-00.944Z-26076-browser-1.log","receipt":"F:\\new\\smaltalk\\water\\.worktrees\\accept-w8-k6\\.local\\checks\\WATER-W8-ACCEPT-K6\\2026-11-01T05-52-00.944Z-26076-browser-result.json"}
-k6 a7 KILLED (expected UI_M3C_DRIVE)
-k6 a7 restored exact bytes=true sha 6f6dcd6329ce15b31e9d8f5ab348ccf948fd2a9c07e16b6eb36e48aee6e16d03
-k6 test rc=0 {"task":"WATER-W8-ACCEPT-K6","mode":"test","finalGate":false,"status":"passed","error":null,"receipt":"F:\\new\\smaltalk\\water\\.worktrees\\accept-w8-k6\\.local\\checks\\WATER-W8-ACCEPT-K6\\2026-11-01T05-53-41.496Z-39532-test-result.json"}
+k6 r3c1 mutated apps/water/ui/model.mjs: the selected size ignores excluded items (worker nc1 emptied the clean_prepare exclusion instead) (mutated sha 57d5ce609b970d7e00c8dc382d013ae469f5940e46b43a6af74503cec6c91a28)
+k6 red-nc1 rc=0 {"task":"WATER-W8-ACCEPT-K6","mode":"red-nc1","finalGate":false,"status":"passed","error":null,"receipt":"F:\\new\\smaltalk\\water\\.worktrees\\accept-w8-k6\\.local\\checks\\WATER-W8-ACCEPT-K6\\2026-11-01T08-36-51.946Z-31292-red-nc1-result.json"}
+k6 r3c1 KILLED (expected UI_M3C_EXCLUDE)
+k6 r3c1 restored exact bytes=true sha be40c072e2717cb6e494ca9f01ff7a9894b39e8812175d87b14f01884f2de6ba
+k6 test rc=0 {"task":"WATER-W8-ACCEPT-K6","mode":"test","finalGate":false,"status":"passed","error":null,"receipt":"F:\\new\\smaltalk\\water\\.worktrees\\accept-w8-k6\\.local\\checks\\WATER-W8-ACCEPT-K6\\2026-11-01T08-37-48.526Z-21672-test-result.json"}
+k6 r3c3 mutated apps/water/ui/views/results.mjs: the drive filter also appears when only one drive is in the result (mutated sha 238987b56b5df7953bc63c77dcaea5a737e4f2d0e32a1e9d79dd14728fb32fcf)
+k6 red-nc2 rc=0 {"task":"WATER-W8-ACCEPT-K6","mode":"red-nc2","finalGate":false,"status":"passed","error":null,"receipt":"F:\\new\\smaltalk\\water\\.worktrees\\accept-w8-k6\\.local\\checks\\WATER-W8-ACCEPT-K6\\2026-11-01T08-37-53.154Z-36440-red-nc2-result.json"}
+k6 r3c3 KILLED (expected UI_M3C_DRIVE)
+k6 r3c3 restored exact bytes=true sha 373e343297fa3d6739ab19f9541ad292268fcd232b198a2c8be03b0cf6f0af2e
+k6 test rc=0 {"task":"WATER-W8-ACCEPT-K6","mode":"test","finalGate":false,"status":"passed","error":null,"receipt":"F:\\new\\smaltalk\\water\\.worktrees\\accept-w8-k6\\.local\\checks\\WATER-W8-ACCEPT-K6\\2026-11-01T08-39-18.190Z-27120-test-result.json"}
+k6 r3c5 mutated apps/water/ui/views/trends.mjs: a drive without days_to_full ignores its note_zh (worker nc3 showed an empty string) (mutated sha 4b3b9c47ba4918dc192e161bb5602772980516e8ce25a6340c178e6a756bbe67)
+k6 red-nc3 rc=0 {"task":"WATER-W8-ACCEPT-K6","mode":"red-nc3","finalGate":false,"status":"passed","error":null,"receipt":"F:\\new\\smaltalk\\water\\.worktrees\\accept-w8-k6\\.local\\checks\\WATER-W8-ACCEPT-K6\\2026-11-01T08-39-21.681Z-32740-red-nc3-result.json"}
+k6 r3c5 KILLED (expected UI_M3C_FORECAST)
+k6 r3c5 restored exact bytes=true sha d29241f707df6aa9b923a4eb8528df5c7f07462d5eb6f03d298ab242ce2001a5
+k6 test rc=0 {"task":"WATER-W8-ACCEPT-K6","mode":"test","finalGate":false,"status":"passed","error":null,"receipt":"F:\\new\\smaltalk\\water\\.worktrees\\accept-w8-k6\\.local\\checks\\WATER-W8-ACCEPT-K6\\2026-11-01T08-40-30.141Z-10988-test-result.json"}
+k6 e1 mutated apps/water/ui/app.mjs: restore no longer re-reads the result (the addendum 03 High reverted) (mutated sha 0f04a5b9c15c6e4273e6f7c1c15b64ca75560e57836923ff1a7ec7c16b6bbab9)
+k6 browser rc=1 {"task":"WATER-W8-ACCEPT-K6","mode":"browser","finalGate":false,"status":"failed","error":"AssertionError [ERR_ASSERTION]: Unexpected exit, see 2026-11-01T08-40-34.920Z-4220-browser-1.log","receipt":"F:\\new\\smaltalk\\water\\.worktrees\\accept-w8-k6\\.local\\checks\\WATER-W8-ACCEPT-K6\\2026-11-01T08-40-34.920Z-4220-browser-result.json"}
+k6 e1 KILLED (expected UI_M3C_SKIP)
+k6 e1 restored exact bytes=true sha 1a0d772b98428a3f7e723f97f047d826b9994500fea8df3661e96b0a5879e633
+k6 test rc=0 {"task":"WATER-W8-ACCEPT-K6","mode":"test","finalGate":false,"status":"passed","error":null,"receipt":"F:\\new\\smaltalk\\water\\.worktrees\\accept-w8-k6\\.local\\checks\\WATER-W8-ACCEPT-K6\\2026-11-01T08-41-41.940Z-6800-test-result.json"}
+k6 e2 mutated apps/water/ui/app.mjs: skip_add no longer re-reads the result (mutated sha be1ddcdafd033d44b6ee3ba42b68d905d139e80028119191559a0ae86934bf37)
+k6 browser rc=1 {"task":"WATER-W8-ACCEPT-K6","mode":"browser","finalGate":false,"status":"failed","error":"AssertionError [ERR_ASSERTION]: Unexpected exit, see 2026-11-01T08-41-47.329Z-22228-browser-1.log","receipt":"F:\\new\\smaltalk\\water\\.worktrees\\accept-w8-k6\\.local\\checks\\WATER-W8-ACCEPT-K6\\2026-11-01T08-41-47.329Z-22228-browser-result.json"}
+k6 e2 KILLED (expected UI_M3C_SKIP)
+k6 e2 restored exact bytes=true sha 1a0d772b98428a3f7e723f97f047d826b9994500fea8df3661e96b0a5879e633
+k6 test rc=0 {"task":"WATER-W8-ACCEPT-K6","mode":"test","finalGate":false,"status":"passed","error":null,"receipt":"F:\\new\\smaltalk\\water\\.worktrees\\accept-w8-k6\\.local\\checks\\WATER-W8-ACCEPT-K6\\2026-11-01T08-42-53.999Z-9488-test-result.json"}
+k6 e3 mutated apps/water/ui/app.mjs: a failed re-read leaves the old numbers cleanable instead of stale (mutated sha ba120c84c5f426dfa32290f34938174b5fb7c8588f676031584e5cd346e7be7b)
+k6 browser rc=1 {"task":"WATER-W8-ACCEPT-K6","mode":"browser","finalGate":false,"status":"failed","error":"AssertionError [ERR_ASSERTION]: Unexpected exit, see 2026-11-01T08-42-58.116Z-43572-browser-1.log","receipt":"F:\\new\\smaltalk\\water\\.worktrees\\accept-w8-k6\\.local\\checks\\WATER-W8-ACCEPT-K6\\2026-11-01T08-42-58.116Z-43572-browser-result.json"}
+k6 e3 KILLED (expected UI_M3C_SKIP)
+k6 e3 restored exact bytes=true sha 1a0d772b98428a3f7e723f97f047d826b9994500fea8df3661e96b0a5879e633
+k6 test rc=0 {"task":"WATER-W8-ACCEPT-K6","mode":"test","finalGate":false,"status":"passed","error":null,"receipt":"F:\\new\\smaltalk\\water\\.worktrees\\accept-w8-k6\\.local\\checks\\WATER-W8-ACCEPT-K6\\2026-11-01T08-44-05.310Z-18696-test-result.json"}
+k6 e4 mutated apps/water/ui/app.mjs: a re-read reply for another scan is installed (mutated sha dc953cf9d9697d5ae8d7e082b12e7ad2544d433fb4447712c4fe8b9a1277c3f6)
+k6 browser rc=1 {"task":"WATER-W8-ACCEPT-K6","mode":"browser","finalGate":false,"status":"failed","error":"AssertionError [ERR_ASSERTION]: Unexpected exit, see 2026-11-01T08-44-09.965Z-34092-browser-1.log","receipt":"F:\\new\\smaltalk\\water\\.worktrees\\accept-w8-k6\\.local\\checks\\WATER-W8-ACCEPT-K6\\2026-11-01T08-44-09.965Z-34092-browser-result.json"}
+k6 e4 KILLED (expected UI_M3C_SKIP)
+k6 e4 restored exact bytes=true sha 1a0d772b98428a3f7e723f97f047d826b9994500fea8df3661e96b0a5879e633
+k6 test rc=0 {"task":"WATER-W8-ACCEPT-K6","mode":"test","finalGate":false,"status":"passed","error":null,"receipt":"F:\\new\\smaltalk\\water\\.worktrees\\accept-w8-k6\\.local\\checks\\WATER-W8-ACCEPT-K6\\2026-11-01T08-45-16.921Z-38408-test-result.json"}
+k6 e5 mutated apps/water/ui/model.mjs: the re-read resets the selection like a new scan (mutated sha 89f9fb1ed7d8ee9abe6b1a1efe9a6cc0b234f4e051b2dd44d4361089d4e181c1)
+k6 test rc=1 {"task":"WATER-W8-ACCEPT-K6","mode":"test","finalGate":false,"status":"failed","error":"AssertionError [ERR_ASSERTION]: Unexpected exit, see 2026-11-01T08-45-22.286Z-27780-test-1.log","receipt":"F:\\new\\smaltalk\\water\\.worktrees\\accept-w8-k6\\.local\\checks\\WATER-W8-ACCEPT-K6\\2026-11-01T08-45-22.286Z-27780-test-result.json"}
+k6 e5 KILLED (expected UI_M3C_)
+k6 e5 restored exact bytes=true sha be40c072e2717cb6e494ca9f01ff7a9894b39e8812175d87b14f01884f2de6ba
+k6 test rc=0 {"task":"WATER-W8-ACCEPT-K6","mode":"test","finalGate":false,"status":"passed","error":null,"receipt":"F:\\new\\smaltalk\\water\\.worktrees\\accept-w8-k6\\.local\\checks\\WATER-W8-ACCEPT-K6\\2026-11-01T08-45-25.686Z-28736-test-result.json"}
+k6 e6 mutated apps/water/ui/app.mjs: the open drawer is not re-rendered after an item toggle (mutated sha 0c4b4b5b807bca921fadc854e9ccbf0031128baf6d4387765e9bf15f2af3fa27)
+k6 browser rc=1 {"task":"WATER-W8-ACCEPT-K6","mode":"browser","finalGate":false,"status":"failed","error":"AssertionError [ERR_ASSERTION]: Unexpected exit, see 2026-11-01T08-45-30.054Z-13580-browser-1.log","receipt":"F:\\new\\smaltalk\\water\\.worktrees\\accept-w8-k6\\.local\\checks\\WATER-W8-ACCEPT-K6\\2026-11-01T08-45-30.054Z-13580-browser-result.json"}
+k6 e6 KILLED (expected UI_M3C_EXCLUDE)
+k6 e6 restored exact bytes=true sha 1a0d772b98428a3f7e723f97f047d826b9994500fea8df3661e96b0a5879e633
+k6 test rc=0 {"task":"WATER-W8-ACCEPT-K6","mode":"test","finalGate":false,"status":"passed","error":null,"receipt":"F:\\new\\smaltalk\\water\\.worktrees\\accept-w8-k6\\.local\\checks\\WATER-W8-ACCEPT-K6\\2026-11-01T08-46-55.964Z-22176-test-result.json"}
+k6 e7 mutated apps/water/ui/views/results.mjs: categories with nothing selected show 已选 <1 MB again (mutated sha 5bc154ede4ea1110e1c408aedd841bd7c91426059687f1ee24011970010b4c43)
+k6 browser rc=1 {"task":"WATER-W8-ACCEPT-K6","mode":"browser","finalGate":false,"status":"failed","error":"AssertionError [ERR_ASSERTION]: Unexpected exit, see 2026-11-01T08-46-59.652Z-25900-browser-1.log","receipt":"F:\\new\\smaltalk\\water\\.worktrees\\accept-w8-k6\\.local\\checks\\WATER-W8-ACCEPT-K6\\2026-11-01T08-46-59.652Z-25900-browser-result.json"}
+k6 e7 KILLED (expected UI_M3C_DRIVE)
+k6 e7 restored exact bytes=true sha 373e343297fa3d6739ab19f9541ad292268fcd232b198a2c8be03b0cf6f0af2e
+k6 test rc=0 {"task":"WATER-W8-ACCEPT-K6","mode":"test","finalGate":false,"status":"passed","error":null,"receipt":"F:\\new\\smaltalk\\water\\.worktrees\\accept-w8-k6\\.local\\checks\\WATER-W8-ACCEPT-K6\\2026-11-01T08-48-22.292Z-13792-test-result.json"}
+k6 e8 mutated apps/water/ui/app.mjs: a skip that fails after leaving the page is not reported (mutated sha ecde0895fb5008709730f1f5980918eb61c2d1157174bfd1c926ecfa63706087)
+k6 browser rc=1 {"task":"WATER-W8-ACCEPT-K6","mode":"browser","finalGate":false,"status":"failed","error":"AssertionError [ERR_ASSERTION]: Unexpected exit, see 2026-11-01T08-48-27.083Z-27120-browser-1.log","receipt":"F:\\new\\smaltalk\\water\\.worktrees\\accept-w8-k6\\.local\\checks\\WATER-W8-ACCEPT-K6\\2026-11-01T08-48-27.083Z-27120-browser-result.json"}
+k6 e8 KILLED (expected UI_M3C_SKIP)
+k6 e8 restored exact bytes=true sha 1a0d772b98428a3f7e723f97f047d826b9994500fea8df3661e96b0a5879e633
+k6 test rc=0 {"task":"WATER-W8-ACCEPT-K6","mode":"test","finalGate":false,"status":"passed","error":null,"receipt":"F:\\new\\smaltalk\\water\\.worktrees\\accept-w8-k6\\.local\\checks\\WATER-W8-ACCEPT-K6\\2026-11-01T08-49-43.147Z-20428-test-result.json"}
+k6 e9 mutated apps/water/ui/views/detail.mjs: a stale drawer asks for result-page reselection again (mutated sha f326451dfc8350e7ebb28999af6b9980a98f57f9c7a51f8998b0fbd690184ac0)
+k6 browser rc=1 {"task":"WATER-W8-ACCEPT-K6","mode":"browser","finalGate":false,"status":"failed","error":"AssertionError [ERR_ASSERTION]: Unexpected exit, see 2026-11-01T08-49-46.838Z-18052-browser-1.log","receipt":"F:\\new\\smaltalk\\water\\.worktrees\\accept-w8-k6\\.local\\checks\\WATER-W8-ACCEPT-K6\\2026-11-01T08-49-46.838Z-18052-browser-result.json"}
+k6 e9 KILLED (expected UI_M3C_EXCLUDE)
+k6 e9 restored exact bytes=true sha bae848b69aa80fb2e9454553e00b2b32b5752ddec0075c2fcdbe6552d5fedc3f
+k6 test rc=0 {"task":"WATER-W8-ACCEPT-K6","mode":"test","finalGate":false,"status":"passed","error":null,"receipt":"F:\\new\\smaltalk\\water\\.worktrees\\accept-w8-k6\\.local\\checks\\WATER-W8-ACCEPT-K6\\2026-11-01T08-51-14.314Z-19664-test-result.json"}
+k6 e10 mutated apps/water/ui/model.mjs: an item toggle can re-include an emptied group (mutated sha 14ac0d51a1b41a1deef2251c70ac0282e2472e39b0b8d1dbe465cd671178cd66)
+k6 test rc=1 {"task":"WATER-W8-ACCEPT-K6","mode":"test","finalGate":false,"status":"failed","error":"AssertionError [ERR_ASSERTION]: Unexpected exit, see 2026-11-01T08-51-18.385Z-15152-test-1.log","receipt":"F:\\new\\smaltalk\\water\\.worktrees\\accept-w8-k6\\.local\\checks\\WATER-W8-ACCEPT-K6\\2026-11-01T08-51-18.385Z-15152-test-result.json"}
+k6 e10 KILLED (expected UI_M3C_)
+k6 e10 restored exact bytes=true sha be40c072e2717cb6e494ca9f01ff7a9894b39e8812175d87b14f01884f2de6ba
+k6 test rc=0 {"task":"WATER-W8-ACCEPT-K6","mode":"test","finalGate":false,"status":"passed","error":null,"receipt":"F:\\new\\smaltalk\\water\\.worktrees\\accept-w8-k6\\.local\\checks\\WATER-W8-ACCEPT-K6\\2026-11-01T08-51-23.032Z-28788-test-result.json"}
+k6 e11 mutated apps/water/ui/views/results.mjs: the category 已选 caption counts groups hidden by the level filter (mutated sha e6d899e2df2e3125a8dcde41da531c210350de6868dc6eb0812aea38e43d601f)
+k6 browser rc=1 {"task":"WATER-W8-ACCEPT-K6","mode":"browser","finalGate":false,"status":"failed","error":"AssertionError [ERR_ASSERTION]: Unexpected exit, see 2026-11-01T08-51-28.231Z-12076-browser-1.log","receipt":"F:\\new\\smaltalk\\water\\.worktrees\\accept-w8-k6\\.local\\checks\\WATER-W8-ACCEPT-K6\\2026-11-01T08-51-28.231Z-12076-browser-result.json"}
+k6 e11 KILLED (expected UI_M3C_DRIVE)
+k6 e11 restored exact bytes=true sha 373e343297fa3d6739ab19f9541ad292268fcd232b198a2c8be03b0cf6f0af2e
+k6 test rc=0 {"task":"WATER-W8-ACCEPT-K6","mode":"test","finalGate":false,"status":"passed","error":null,"receipt":"F:\\new\\smaltalk\\water\\.worktrees\\accept-w8-k6\\.local\\checks\\WATER-W8-ACCEPT-K6\\2026-11-01T08-52-51.873Z-5688-test-result.json"}
+k6 r3n1 mutated apps/water/ui/views/detail.mjs: items of an unselected group are clickable again (mutated sha af25fb34ae43e7746f0528f454830c677e276fe4cbfa7005b8fcda350859887e)
+k6 browser rc=1 {"task":"WATER-W8-ACCEPT-K6","mode":"browser","finalGate":false,"status":"failed","error":"AssertionError [ERR_ASSERTION]: Unexpected exit, see 2026-11-01T08-52-56.582Z-6648-browser-1.log","receipt":"F:\\new\\smaltalk\\water\\.worktrees\\accept-w8-k6\\.local\\checks\\WATER-W8-ACCEPT-K6\\2026-11-01T08-52-56.582Z-6648-browser-result.json"}
+k6 r3n1 KILLED (expected UI_M3C_EXCLUDE)
+k6 r3n1 restored exact bytes=true sha bae848b69aa80fb2e9454553e00b2b32b5752ddec0075c2fcdbe6552d5fedc3f
+k6 test rc=0 {"task":"WATER-W8-ACCEPT-K6","mode":"test","finalGate":false,"status":"passed","error":null,"receipt":"F:\\new\\smaltalk\\water\\.worktrees\\accept-w8-k6\\.local\\checks\\WATER-W8-ACCEPT-K6\\2026-11-01T08-53-54.802Z-27880-test-result.json"}
+k6 r3n4 mutated apps/water/ui/views/results.mjs: the dock main figure shows only the filtered drive (mutated sha 9507b5693400b9b9eb551e7189d3d962d196f75953119c07aa9c3222f6815c78)
+k6 browser rc=1 {"task":"WATER-W8-ACCEPT-K6","mode":"browser","finalGate":false,"status":"failed","error":"AssertionError [ERR_ASSERTION]: Unexpected exit, see 2026-11-01T08-53-58.174Z-33184-browser-1.log","receipt":"F:\\new\\smaltalk\\water\\.worktrees\\accept-w8-k6\\.local\\checks\\WATER-W8-ACCEPT-K6\\2026-11-01T08-53-58.174Z-33184-browser-result.json"}
+k6 r3n4 KILLED (expected UI_M3C_DRIVE)
+k6 r3n4 restored exact bytes=true sha 373e343297fa3d6739ab19f9541ad292268fcd232b198a2c8be03b0cf6f0af2e
+k6 test rc=0 {"task":"WATER-W8-ACCEPT-K6","mode":"test","finalGate":false,"status":"passed","error":null,"receipt":"F:\\new\\smaltalk\\water\\.worktrees\\accept-w8-k6\\.local\\checks\\WATER-W8-ACCEPT-K6\\2026-11-01T08-55-22.149Z-39172-test-result.json"}
+k6 r3a2 mutated apps/water/ui/model.mjs: category select-all under a level filter selects hidden groups (mutated sha cf9b78600e5f6ce4b778dba3b0e02c3e996fc1a1eb64d70dd6e3c1a75b6a83ca)
+k6 browser rc=1 {"task":"WATER-W8-ACCEPT-K6","mode":"browser","finalGate":false,"status":"failed","error":"AssertionError [ERR_ASSERTION]: Unexpected exit, see 2026-11-01T08-55-26.915Z-32844-browser-1.log","receipt":"F:\\new\\smaltalk\\water\\.worktrees\\accept-w8-k6\\.local\\checks\\WATER-W8-ACCEPT-K6\\2026-11-01T08-55-26.915Z-32844-browser-result.json"}
+k6 r3a2 KILLED (expected UI_M3C_DRIVE)
+k6 r3a2 restored exact bytes=true sha be40c072e2717cb6e494ca9f01ff7a9894b39e8812175d87b14f01884f2de6ba
+k6 test rc=0 {"task":"WATER-W8-ACCEPT-K6","mode":"test","finalGate":false,"status":"passed","error":null,"receipt":"F:\\new\\smaltalk\\water\\.worktrees\\accept-w8-k6\\.local\\checks\\WATER-W8-ACCEPT-K6\\2026-11-01T08-56-52.324Z-39792-test-result.json"}
+k6 r3a5 mutated apps/water/ui/app.mjs: an exclusion is dropped when the refreshed list no longer shows the item (mutated sha c2e02bcb14f815970eb279728bf1faef193149aa1d339b0c2a980a36313b04be)
+k6 browser rc=1 {"task":"WATER-W8-ACCEPT-K6","mode":"browser","finalGate":false,"status":"failed","error":"AssertionError [ERR_ASSERTION]: Unexpected exit, see 2026-11-01T08-56-56.576Z-7652-browser-1.log","receipt":"F:\\new\\smaltalk\\water\\.worktrees\\accept-w8-k6\\.local\\checks\\WATER-W8-ACCEPT-K6\\2026-11-01T08-56-56.576Z-7652-browser-result.json"}
+k6 r3a5 KILLED (expected UI_M3C_EXCLUDE)
+k6 r3a5 restored exact bytes=true sha 1a0d772b98428a3f7e723f97f047d826b9994500fea8df3661e96b0a5879e633
+k6 test rc=0 {"task":"WATER-W8-ACCEPT-K6","mode":"test","finalGate":false,"status":"passed","error":null,"receipt":"F:\\new\\smaltalk\\water\\.worktrees\\accept-w8-k6\\.local\\checks\\WATER-W8-ACCEPT-K6\\2026-11-01T08-58-19.626Z-10016-test-result.json"}
 k6 survived: none
-k6 test --final rc=0 {"task":"WATER-W8-ACCEPT-K6","mode":"test","finalGate":true,"status":"passed","error":null,"receipt":"F:\\new\\smaltalk\\water\\.worktrees\\accept-w8-k6\\.local\\checks\\WATER-W8-ACCEPT-K6\\2026-11-01T05-53-47.041Z-15184-test-result.json"}
+k6 test --final rc=0 {"task":"WATER-W8-ACCEPT-K6","mode":"test","finalGate":true,"status":"passed","error":null,"receipt":"F:\\new\\smaltalk\\water\\.worktrees\\accept-w8-k6\\.local\\checks\\WATER-W8-ACCEPT-K6\\2026-11-01T08-58-23.206Z-13284-test-result.json"}

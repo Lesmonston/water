@@ -1,6 +1,6 @@
 # Water 状态与交接
 
-更新时间：2026-11-01 15:40 JST（第八波：K1～K5 验收合入；K4 补单 02、K6 补单 03 已派出，都给 sol，见[第八波计划](dispatch/wave8/PLAN.md)与[收单验收](acceptance/wave8/controller/WATER-W8-REVIEW-20261101.md)；第 11 份交接）。
+更新时间：2026-11-01 17:50 JST（第八波：K1～K5 验收合入，K4 补单 02 也已合入；K6 出补单 04，见[第八波计划](dispatch/wave8/PLAN.md)与[收单验收](acceptance/wave8/controller/WATER-W8-REVIEW-20261101.md)；第 11 份交接）。
 
 更换总控请先读[最新交接报告（2026-11-01 第 11 份）](CONTROLLER-HANDOFF-20261101-11.md)；[第 10 份](CONTROLLER-HANDOFF-20261031-10.md)、[第 9 份](CONTROLLER-HANDOFF-20261028-9.md)、[第 8 份](CONTROLLER-HANDOFF-20261027-8.md)、[第 7 份](CONTROLLER-HANDOFF-20261027-7.md)、[第 6 份](CONTROLLER-HANDOFF-20261027-6.md)、[第 5 份](CONTROLLER-HANDOFF-20261026-5.md)、[第 4 份](CONTROLLER-HANDOFF-20261026-4.md)、[第 3 份](CONTROLLER-HANDOFF-20261026-3.md)、[第 2 份](CONTROLLER-HANDOFF-20261026-2.md)、[上午那份](CONTROLLER-HANDOFF-20261026.md)及其只读状态快照仅供追溯。M1 已达成；第四、五波已全部验收合入，打开清理的 release 版已编好，M2 只差自清理；M3 第六波三张已全部验收合入，第四次整合检查通过，含第六波的 release 版 `water-0.1.0-b62f9c5c` 已编好；第七波（M3 收尾）四张已全部验收合入（见下文）。此前[接手验收摘要](CONTROLLER-HANDOFF-20261017.md)仅供历史追溯；当前任务状态以本页、registry/manifest及最新正式验收为准。
 
@@ -313,7 +313,14 @@ A–AB及八补单、AD保持VERIFIED；AC/补单06新增VERIFIED（Windows静�
       - 负控复跑时，机器上别的程序占约一半 CPU，几次 50 ms 预算断言偶发超时，基线就有的 `scan_start` 也在内，续跑后全部完成。
     - **K6 第三轮**：补单 02 各条做到，21 条总控变异全部抓到，26 张截图看过。但独立审查发现高级一条：总控在 K4 补单 01 里把 `skip_remove` 改成立即恢复可清理，没有同步界面单，界面“恢复”后不重读结果，被恢复的项会在没显示为已选的情况下进入清理计划（总控疏漏）。已出 [K6 补单 03](dispatch/tickets/WATER-W8-K6-ADDENDUM-03-20261101.md)。
 29. **K6 补单 03 与 K4 补单 02 已派出**（11-01 约 15:40 JST，用户“都已派给 sol”）。登记时两棵执行者树都干净，停在续做起点（K6 `1c2e91e6`、K4 `fc36140d`）。
-30. **下一步**：两张回来后收单，K4 补单 02 再合一次，K6 最后合入；然后 M3 收口（第五次整合检查、新 release、复现 10-29 场景、用户自清理补 M2）。Mirasim B、D、E 三个槽、7 棵自检树、“清、压、炼”排期仍等用户决定。
+30. **第四轮收单（11-01 傍晚，用户“收活”）**，见[收单验收](acceptance/wave8/controller/WATER-W8-REVIEW-20261101.md)第四轮：
+    - **K4 补单 02 验收，再次合入**（`2a946b30`）：
+      - 审计 0 问题；新树 `lock`、`check --final`、`real --final`、`test --final` 通过；
+      - 总控变异 11 条抓到 9 条，漏掉的两条是对冗余保护与未测的正确代码的探针；
+      - 独立审查没有高级与中级；合入后宿主编译检查 0 警告。
+      - 在调用里落盘的命令在本机忙时会偶发超出 50 ms 预算，记为遗留。
+    - **K6 第四轮**：补单 03 的高级问题已修好，跳过、恢复后操作坞与实际清理一致。审查有一条中级：用户排空的组会因恢复跳过而自己回到清理范围，违反补单 02 第 3.1 条。另外总控补单 03 写错一处（分类合计跳过后不变）。已出 [K6 补单 04](dispatch/tickets/WATER-W8-K6-ADDENDUM-04-20261101.md)。
+31. **下一步**：派 K6 补单 04；回来后收单，K6 最后合入；然后 M3 收口（第五次整合检查、新 release、复现 10-29 场景、用户自清理补 M2）。Mirasim B、D、E 三个槽、7 棵自检树、“清、压、炼”排期仍等用户决定。
 
 ## 真实AA→AD联合验收通过（2026-10-26）
 

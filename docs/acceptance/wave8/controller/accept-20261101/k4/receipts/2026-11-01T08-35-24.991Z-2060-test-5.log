@@ -1,0 +1,31 @@
+{"binary":"C:\\Users\\37310\\.rustup\\toolchains\\1.95.0-x86_64-pc-windows-msvc\\bin\\cargo.exe","args":["test","--offline","--locked","--manifest-path","packages/water-service/Cargo.toml","--test","service_v1","--","--test-threads=1"],"exitCode":101,"error":null}
+--- stdout ---
+
+running 6 tests
+test service_clean_flow ... FAILED
+test service_hardening ... ok
+test service_ipc_contract ... ok
+test service_scan_views ... ok
+test service_storage_safety ... ok
+test service_trends_locations ... ok
+
+failures:
+
+---- service_clean_flow stdout ----
+SERVICE_M3C_SKIP scale_ms {"add":[9.7859,5.3548,4.8222,4.6734,4.381399999999999],"items":10000,"remove":[5.3681,4.9191,4.4168,4.6974,4.6096]}
+
+thread 'service_clean_flow' (39136) panicked at tests\service_v1.rs:3530:5:
+SERVICE_M3C_EXCLUDE: scale prepare 91.2957ms
+note: run with `RUST_BACKTRACE=1` environment variable to display a backtrace
+
+
+failures:
+    service_clean_flow
+
+test result: FAILED. 5 passed; 1 failed; 0 ignored; 0 measured; 0 filtered out; finished in 25.52s
+
+
+--- stderr ---
+    Finished `test` profile [unoptimized + debuginfo] target(s) in 0.06s
+     Running tests\service_v1.rs (.local\w3-target\debug\deps\service_v1-6543a9f07c70dc8a.exe)
+error: test failed, to rerun pass `--test service_v1`

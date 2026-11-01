@@ -102,7 +102,7 @@
   ],
   "k6": [
     {
-      "label": "c1",
+      "label": "r3c1",
       "mode": "red-nc1",
       "token": "UI_M3C_EXCLUDE",
       "file": "apps/water/ui/model.mjs",
@@ -111,16 +111,7 @@
       "why": "the selected size ignores excluded items (worker nc1 emptied the clean_prepare exclusion instead)"
     },
     {
-      "label": "c2",
-      "mode": "browser",
-      "token": "UI_M3C_SKIP",
-      "file": "apps/water/ui/ipc.mjs",
-      "old": "export const skip_add = itemId => invoke('skip_add', () => ({itemId:id(itemId)}));",
-      "new": "export const skip_add = itemId => invoke('skip_add', () => ({itemId:id(itemId), root:'C:\\Users'}));",
-      "why": "skip_add also sends a path"
-    },
-    {
-      "label": "c3",
+      "label": "r3c3",
       "mode": "red-nc2",
       "token": "UI_M3C_DRIVE",
       "file": "apps/water/ui/views/results.mjs",
@@ -129,16 +120,7 @@
       "why": "the drive filter also appears when only one drive is in the result"
     },
     {
-      "label": "c4",
-      "mode": "browser",
-      "token": "UI_READ_ORDER",
-      "file": "apps/water/ui/app.mjs",
-      "old": "const value = await ipc.skip_remove(id); if (isCurrent()) state.locations = value;",
-      "new": "const value = await ipc.skip_remove(id); state.locations = value;",
-      "why": "a superseded skip_remove reply still overwrites the locations"
-    },
-    {
-      "label": "c5",
+      "label": "r3c5",
       "mode": "red-nc3",
       "token": "UI_M3C_FORECAST",
       "file": "apps/water/ui/views/trends.mjs",
@@ -147,7 +129,106 @@
       "why": "a drive without days_to_full ignores its note_zh (worker nc3 showed an empty string)"
     },
     {
-      "label": "n1",
+      "label": "e1",
+      "mode": "browser",
+      "token": "UI_M3C_SKIP",
+      "file": "apps/water/ui/app.mjs",
+      "old": "    await refreshAfterSkip(scanId);\n    if (isCurrent()) { state.locations = value; if (scanId && !state.stale)",
+      "new": "    if (isCurrent()) { state.locations = value; if (scanId && !state.stale)",
+      "why": "restore no longer re-reads the result (the addendum 03 High reverted)"
+    },
+    {
+      "label": "e2",
+      "mode": "browser",
+      "token": "UI_M3C_SKIP",
+      "file": "apps/water/ui/app.mjs",
+      "old": "    await refreshAfterSkip(scanId);\n    if (isCurrent()) state.locations = value;",
+      "new": "    if (isCurrent()) state.locations = value;",
+      "why": "skip_add no longer re-reads the result"
+    },
+    {
+      "label": "e3",
+      "mode": "browser",
+      "token": "UI_M3C_SKIP",
+      "file": "apps/water/ui/app.mjs",
+      "old": "  } catch {\n    fault({code:'stale', message_zh:'结果已过期，请重新体检后再清理。'});\n  }\n}\nfunction rememberDetail",
+      "new": "  } catch {\n  }\n}\nfunction rememberDetail",
+      "why": "a failed re-read leaves the old numbers cleanable instead of stale"
+    },
+    {
+      "label": "e4",
+      "mode": "browser",
+      "token": "UI_M3C_SKIP",
+      "file": "apps/water/ui/app.mjs",
+      "old": "|| state.stale || value.scan_id !== scanId) throw new Error('scan changed');",
+      "new": "|| state.stale) throw new Error('scan changed');",
+      "why": "a re-read reply for another scan is installed"
+    },
+    {
+      "label": "e5",
+      "mode": "test",
+      "token": "UI_M3C_",
+      "file": "apps/water/ui/model.mjs",
+      "old": "return {...state, result, details:new Map(), excludedDetails};",
+      "new": "return {...state, result, selection:resetSelection(result), details:new Map(), excludedDetails};",
+      "why": "the re-read resets the selection like a new scan"
+    },
+    {
+      "label": "e6",
+      "mode": "browser",
+      "token": "UI_M3C_EXCLUDE",
+      "file": "apps/water/ui/app.mjs",
+      "old": "    const panel = detail(data, closeOverlay, state, actions);\n    showOverlay(panel, 'detail-close', opener); panel.scrollTop = scroll;",
+      "new": "    const panel = document.createElement('div');",
+      "why": "the open drawer is not re-rendered after an item toggle"
+    },
+    {
+      "label": "e7",
+      "mode": "browser",
+      "token": "UI_M3C_DRIVE",
+      "file": "apps/water/ui/views/results.mjs",
+      "old": "selected.length ? el('span', 'cap', `已选 ${formatBytes(selectedTotal)}`) : null",
+      "new": "el('span', 'cap', `已选 ${formatBytes(selectedTotal)}`)",
+      "why": "categories with nothing selected show 已选 <1 MB again"
+    },
+    {
+      "label": "e8",
+      "mode": "browser",
+      "token": "UI_M3C_SKIP",
+      "file": "apps/water/ui/app.mjs",
+      "old": "catch (error) { state.skipFailure = '跳过没有成功，这一项保留原来的勾选状态。'; throw error; }",
+      "new": "catch (error) { throw error; }",
+      "why": "a skip that fails after leaving the page is not reported"
+    },
+    {
+      "label": "e9",
+      "mode": "browser",
+      "token": "UI_M3C_EXCLUDE",
+      "file": "apps/water/ui/views/detail.mjs",
+      "old": "  if (state.stale) add(panel, el('p', 'cap item-selection-note', '结果已过期，请重新体检后再清理。'));\n  else if",
+      "new": "  if",
+      "why": "a stale drawer asks for result-page reselection again"
+    },
+    {
+      "label": "e10",
+      "mode": "test",
+      "token": "UI_M3C_",
+      "file": "apps/water/ui/model.mjs",
+      "old": "!hasSelectedItems(group, selection, new Map([[group.group_id, data]]))",
+      "new": "!selection.has(group.group_id)",
+      "why": "an item toggle can re-include an emptied group"
+    },
+    {
+      "label": "e11",
+      "mode": "browser",
+      "token": "UI_M3C_DRIVE",
+      "file": "apps/water/ui/views/results.mjs",
+      "old": "categories:[{...category, groups:rows}]",
+      "new": "categories:state.result.categories.filter(c => c.category === category.category)",
+      "why": "the category 已选 caption counts groups hidden by the level filter"
+    },
+    {
+      "label": "r3n1",
       "mode": "browser",
       "token": "UI_M3C_EXCLUDE",
       "file": "apps/water/ui/views/detail.mjs",
@@ -156,25 +237,7 @@
       "why": "items of an unselected group are clickable again"
     },
     {
-      "label": "n2",
-      "mode": "browser",
-      "token": "UI_M3C_EXCLUDE",
-      "file": "apps/water/ui/views/detail.mjs",
-      "old": "groupSelected && !state.selection.get(g.group_id)?.has(item.item_id)",
-      "new": "!state.selection.get(g.group_id)?.has(item.item_id)",
-      "why": "items of an unselected group show as ticked again (round 1 behaviour)"
-    },
-    {
-      "label": "n3",
-      "mode": "browser",
-      "token": "UI_M3C_DRIVE",
-      "file": "apps/water/ui/model.mjs",
-      "old": "(!drive || g.by_drive?.some(d => d.root === drive && d.item_count > 0))",
-      "new": "(!drive || true)",
-      "why": "under a drive filter the category select-all acts on hidden groups again"
-    },
-    {
-      "label": "n4",
+      "label": "r3n4",
       "mode": "browser",
       "token": "UI_M3C_DRIVE",
       "file": "apps/water/ui/views/results.mjs",
@@ -183,61 +246,7 @@
       "why": "the dock main figure shows only the filtered drive"
     },
     {
-      "label": "n5",
-      "mode": "browser",
-      "token": "UI_M3C_SKIP",
-      "file": "apps/water/ui/app.mjs",
-      "old": "state.selection = setItemSelected(state.result, state.selection, data, itemId, false);",
-      "new": "void 0;",
-      "why": "a skipped item is not excluded before the detail re-read"
-    },
-    {
-      "label": "n6",
-      "mode": "browser",
-      "token": "UI_READ_ORDER",
-      "file": "apps/water/ui/app.mjs",
-      "old": "if (inScope() && state.result?.scan_id === scanId && state.stale === stale) { rememberDetail(value);",
-      "new": "if (inScope()) { rememberDetail(value);",
-      "why": "a group_detail reply from an older scan is merged into the new result"
-    },
-    {
-      "label": "n7",
-      "mode": "browser",
-      "token": "UI_M3C_SKIP",
-      "file": "apps/water/ui/app.mjs",
-      "old": "showOverlay(detail(refreshed, closeOverlay, state, actions), 'detail-close', opener);",
-      "new": "showOverlay(detail(refreshed, closeOverlay, state, actions), 'detail-close');",
-      "why": "after a skip, Esc no longer returns focus to the group row"
-    },
-    {
-      "label": "n8",
-      "mode": "browser",
-      "token": "UI_M3C_EXCLUDE",
-      "file": "apps/water/ui/views/results.mjs",
-      "old": "const selected = hasSelectedItems(g, state.selection, state.details); control = check(",
-      "new": "const selected = state.selection.has(g.group_id); control = check(",
-      "why": "probe: a fully excluded group row shows as selected again"
-    },
-    {
-      "label": "n9",
-      "mode": "browser",
-      "token": "UI_M3C_DRIVE",
-      "file": "apps/water/ui/model.mjs",
-      "old": "const total = ['advisory', 'protected'].includes(group.level) ? (group.by_drive?.length === 1 ? group.total_bytes : null) : part?.eligible_bytes;",
-      "new": "const total = part?.eligible_bytes;",
-      "why": "probe: protected and advisory groups under a filter show their eligible bytes (<1 MB) again"
-    },
-    {
-      "label": "a1",
-      "mode": "browser",
-      "token": "UI_READ_ORDER",
-      "file": "apps/water/ui/app.mjs",
-      "old": "state.result?.scan_id === scanId && state.stale === stale) { rememberDetail(value);",
-      "new": "state.result?.scan_id === scanId && !state.stale) { rememberDetail(value);",
-      "why": "details on already-stale results do not open (addendum 02 item 1 reverted)"
-    },
-    {
-      "label": "a2",
+      "label": "r3a2",
       "mode": "browser",
       "token": "UI_M3C_DRIVE",
       "file": "apps/water/ui/model.mjs",
@@ -246,49 +255,13 @@
       "why": "category select-all under a level filter selects hidden groups"
     },
     {
-      "label": "a3",
-      "mode": "browser",
-      "token": "UI_M3C_EXCLUDE",
-      "file": "apps/water/ui/views/detail.mjs",
-      "old": "const groupSelected = hasSelectedItems(g, state.selection, state.details);",
-      "new": "const groupSelected = state.selection.has(g.group_id);",
-      "why": "a fully excluded group is shown as selected in the drawer"
-    },
-    {
-      "label": "a4",
-      "mode": "browser",
-      "token": "UI_M3C_SKIP",
-      "file": "apps/water/ui/app.mjs",
-      "old": "    if (sameScan()) state.selection = setItemSelected(state.result, state.selection, data, itemId, false);\n    if (!isCurrent()) return;",
-      "new": "    if (!isCurrent()) return;\n    if (sameScan()) state.selection = setItemSelected(state.result, state.selection, data, itemId, false);",
-      "why": "leaving the page before skip_add returns keeps the skipped item selected"
-    },
-    {
-      "label": "a5",
+      "label": "r3a5",
       "mode": "browser",
       "token": "UI_M3C_EXCLUDE",
       "file": "apps/water/ui/app.mjs",
       "old": "!data.items.some(item => item.item_id === id && item.eligible === false)",
       "new": "data.items.some(item => item.item_id === id && item.eligible)",
       "why": "an exclusion is dropped when the refreshed list no longer shows the item"
-    },
-    {
-      "label": "a6",
-      "mode": "browser",
-      "token": "UI_M3C_EXCLUDE",
-      "file": "apps/water/ui/app.mjs",
-      "old": "items:[...data.items, ...retained]",
-      "new": "items:[...data.items]",
-      "why": "an excluded item outside the refreshed list loses its metadata, so counts and bytes stop deducting it"
-    },
-    {
-      "label": "a7",
-      "mode": "browser",
-      "token": "UI_M3C_DRIVE",
-      "file": "apps/water/ui/views/results.mjs",
-      "old": "const selectable = rows.filter(canSelect)",
-      "new": "const selectable = category.groups.filter(canSelect)",
-      "why": "the category checkbox state counts groups hidden by the level filter"
     }
   ],
   "k6r1": [
@@ -589,6 +562,107 @@
   ],
   "k4": [
     {
+      "label": "d1",
+      "mode": "red-nc1",
+      "token": "SERVICE_M3C_EXCLUDE",
+      "file": "packages/water-service/src/clean.rs",
+      "old": "            if excluded.contains(item.item_id.as_str())\n                || s.settings",
+      "new": "            if s.settings",
+      "why": "clean_prepare no longer drops excluded items from the plan (set lookup removed)"
+    },
+    {
+      "label": "d2",
+      "mode": "red-nc2",
+      "token": "SERVICE_M3C_SKIP",
+      "file": "packages/water-service/src/service.rs",
+      "old": "        for record in &s.records {\n            record.projection().refresh_path(\n                record,\n                &removed.path,",
+      "new": "        for record in s.records.iter().rev().take(1) {\n            record.projection().refresh_path(\n                record,\n                &removed.path,",
+      "why": "skip_remove refreshes only one record, older records stay skipped"
+    },
+    {
+      "label": "d3",
+      "mode": "red-nc3",
+      "token": "SERVICE_M3C_DRIVE_ROOT",
+      "file": "packages/water-service/src/service.rs",
+      "old": "        .is_some_and(|s| s.eq_ignore_ascii_case(\"NTFS\") || s.eq_ignore_ascii_case(\"ReFS\"))",
+      "new": "        .is_some_and(|s| !s.is_empty())",
+      "why": "exFAT/FAT32 drive roots are accepted as custom roots (round 3 c3 on the new bytes)"
+    },
+    {
+      "label": "d4",
+      "mode": "test",
+      "token": "SERVICE_M3C_SKIP",
+      "file": "packages/water-service/src/views.rs",
+      "old": "by_drive.into_iter().filter(|(_, n)| *n > 0).map(",
+      "new": "by_drive.into_iter().map(",
+      "why": "build keeps zero-byte recommended_by_drive rows again"
+    },
+    {
+      "label": "d5",
+      "mode": "test",
+      "token": "SERVICE_M3C_FORECAST",
+      "file": "packages/water-service/src/service.rs",
+      "old": "if rounded == 0.0 {\"0\".to_owned()} else {format!(\"{rounded:.0}\")}",
+      "new": "format!(\"{rounded:.0}\")",
+      "why": "forecast prints -0 again"
+    },
+    {
+      "label": "d6",
+      "mode": "test",
+      "token": "SERVICE_M3C_EXCLUDE",
+      "file": "packages/water-service/src/clean.rs",
+      "old": "            || (!item.eligible && item.ineligible_reason.as_deref() != Some(\"user_skipped\"))",
+      "new": "            || false",
+      "why": "probe: an exclusion naming a scan-time ineligible item is accepted"
+    },
+    {
+      "label": "d7",
+      "mode": "test",
+      "token": "SERVICE_M3C_DRIVE_ROOT",
+      "file": "packages/water-service/src/service.rs",
+      "old": "                util::contains(path, p)\n                    || util::contains(path, &canonical(p).unwrap_or_else(|| p.to_owned()))\n            });\n    }",
+      "new": "                util::contains(path, &canonical(p).unwrap_or_else(|| p.to_owned()))\n            });\n    }",
+      "why": "probe: the text-form known-folder check for drive roots is dropped (canonical form kept)"
+    },
+    {
+      "label": "d8",
+      "mode": "test",
+      "token": "SERVICE_M3C_SKIP",
+      "file": "packages/water-service/src/service.rs",
+      "old": "            let stale: Vec<_> = s.plans.keys().cloned().collect();\n            s.stale_plans.extend(stale);\n            return Ok(locations(&s));",
+      "new": "            return Ok(locations(&s));",
+      "why": "probe: an idempotent skip_add of an already skipped path leaves old plans valid"
+    },
+    {
+      "label": "d9",
+      "mode": "test",
+      "token": "SERVICE_M3C_SKIP",
+      "file": "packages/water-service/src/service.rs",
+      "old": "        for record in &s.records {\n            record.projection().refresh_path(\n                record,\n                &item.path,",
+      "new": "        for record in s.records.iter().rev().take(1) {\n            record.projection().refresh_path(\n                record,\n                &item.path,",
+      "why": "skip_add refreshes only one record"
+    },
+    {
+      "label": "r3c6",
+      "mode": "test",
+      "token": "SERVICE_M3C_SKIP",
+      "file": "packages/water-service/src/views.rs",
+      "old": "            if skipped(item, settings) {\n                p.skipped.insert(index);\n            }\n",
+      "new": "",
+      "why": "a projection built at load forgets current skips, so skip_remove after a restart cannot restore"
+    },
+    {
+      "label": "r3c13",
+      "mode": "test",
+      "token": "SERVICE_M3C_SKIP",
+      "file": "packages/water-service/src/views.rs",
+      "old": "            .any(|v| v.path.eq_ignore_ascii_case(&item.path))\n}\n\nfn eligible",
+      "new": "            .any(|v| v.path == item.path)\n}\n\nfn eligible",
+      "why": "probe: the skip-list match becomes case-sensitive"
+    }
+  ],
+  "k4r3": [
+    {
       "label": "c1",
       "mode": "red-nc1",
       "token": "SERVICE_M3C_EXCLUDE",
@@ -704,6 +778,197 @@
       "old": "            .any(|v| v.path.eq_ignore_ascii_case(&item.path))\n}\n\nfn eligible",
       "new": "            .any(|v| v.path == item.path)\n}\n\nfn eligible",
       "why": "probe: the skip-list match becomes case-sensitive"
+    }
+  ],
+  "k6r3": [
+    {
+      "label": "c1",
+      "mode": "red-nc1",
+      "token": "UI_M3C_EXCLUDE",
+      "file": "apps/water/ui/model.mjs",
+      "old": "return sum + (total > excluded ? total - excluded : 0n);",
+      "new": "return sum + total;",
+      "why": "the selected size ignores excluded items (worker nc1 emptied the clean_prepare exclusion instead)"
+    },
+    {
+      "label": "c2",
+      "mode": "browser",
+      "token": "UI_M3C_SKIP",
+      "file": "apps/water/ui/ipc.mjs",
+      "old": "export const skip_add = itemId => invoke('skip_add', () => ({itemId:id(itemId)}));",
+      "new": "export const skip_add = itemId => invoke('skip_add', () => ({itemId:id(itemId), root:'C:\\Users'}));",
+      "why": "skip_add also sends a path"
+    },
+    {
+      "label": "c3",
+      "mode": "red-nc2",
+      "token": "UI_M3C_DRIVE",
+      "file": "apps/water/ui/views/results.mjs",
+      "old": "if (drives.length > 1) {",
+      "new": "if (drives.length > 0) {",
+      "why": "the drive filter also appears when only one drive is in the result"
+    },
+    {
+      "label": "c4",
+      "mode": "browser",
+      "token": "UI_READ_ORDER",
+      "file": "apps/water/ui/app.mjs",
+      "old": "const value = await ipc.skip_remove(id); if (isCurrent()) state.locations = value;",
+      "new": "const value = await ipc.skip_remove(id); state.locations = value;",
+      "why": "a superseded skip_remove reply still overwrites the locations"
+    },
+    {
+      "label": "c5",
+      "mode": "red-nc3",
+      "token": "UI_M3C_FORECAST",
+      "file": "apps/water/ui/views/trends.mjs",
+      "old": "drive.note_zh ?? '可用空间没有减少'",
+      "new": "'可用空间没有减少'",
+      "why": "a drive without days_to_full ignores its note_zh (worker nc3 showed an empty string)"
+    },
+    {
+      "label": "n1",
+      "mode": "browser",
+      "token": "UI_M3C_EXCLUDE",
+      "file": "apps/water/ui/views/detail.mjs",
+      "old": "checkbox.disabled = !groupSelected || state.stale || state.busy !== 'idle';",
+      "new": "checkbox.disabled = state.stale || state.busy !== 'idle';",
+      "why": "items of an unselected group are clickable again"
+    },
+    {
+      "label": "n2",
+      "mode": "browser",
+      "token": "UI_M3C_EXCLUDE",
+      "file": "apps/water/ui/views/detail.mjs",
+      "old": "groupSelected && !state.selection.get(g.group_id)?.has(item.item_id)",
+      "new": "!state.selection.get(g.group_id)?.has(item.item_id)",
+      "why": "items of an unselected group show as ticked again (round 1 behaviour)"
+    },
+    {
+      "label": "n3",
+      "mode": "browser",
+      "token": "UI_M3C_DRIVE",
+      "file": "apps/water/ui/model.mjs",
+      "old": "(!drive || g.by_drive?.some(d => d.root === drive && d.item_count > 0))",
+      "new": "(!drive || true)",
+      "why": "under a drive filter the category select-all acts on hidden groups again"
+    },
+    {
+      "label": "n4",
+      "mode": "browser",
+      "token": "UI_M3C_DRIVE",
+      "file": "apps/water/ui/views/results.mjs",
+      "old": "el('b', '', formatBytes(selectedBytes(state.result, state.selection, state.details))), state.drive ?",
+      "new": "el('b', '', formatBytes(selectedBytes(state.result, state.selection, state.details, state.drive))), state.drive ?",
+      "why": "the dock main figure shows only the filtered drive"
+    },
+    {
+      "label": "n5",
+      "mode": "browser",
+      "token": "UI_M3C_SKIP",
+      "file": "apps/water/ui/app.mjs",
+      "old": "state.selection = setItemSelected(state.result, state.selection, data, itemId, false);",
+      "new": "void 0;",
+      "why": "a skipped item is not excluded before the detail re-read"
+    },
+    {
+      "label": "n6",
+      "mode": "browser",
+      "token": "UI_READ_ORDER",
+      "file": "apps/water/ui/app.mjs",
+      "old": "if (inScope() && state.result?.scan_id === scanId && state.stale === stale) { rememberDetail(value);",
+      "new": "if (inScope()) { rememberDetail(value);",
+      "why": "a group_detail reply from an older scan is merged into the new result"
+    },
+    {
+      "label": "n7",
+      "mode": "browser",
+      "token": "UI_M3C_SKIP",
+      "file": "apps/water/ui/app.mjs",
+      "old": "showOverlay(detail(refreshed, closeOverlay, state, actions), 'detail-close', opener);",
+      "new": "showOverlay(detail(refreshed, closeOverlay, state, actions), 'detail-close');",
+      "why": "after a skip, Esc no longer returns focus to the group row"
+    },
+    {
+      "label": "n8",
+      "mode": "browser",
+      "token": "UI_M3C_EXCLUDE",
+      "file": "apps/water/ui/views/results.mjs",
+      "old": "const selected = hasSelectedItems(g, state.selection, state.details); control = check(",
+      "new": "const selected = state.selection.has(g.group_id); control = check(",
+      "why": "probe: a fully excluded group row shows as selected again"
+    },
+    {
+      "label": "n9",
+      "mode": "browser",
+      "token": "UI_M3C_DRIVE",
+      "file": "apps/water/ui/model.mjs",
+      "old": "const total = ['advisory', 'protected'].includes(group.level) ? (group.by_drive?.length === 1 ? group.total_bytes : null) : part?.eligible_bytes;",
+      "new": "const total = part?.eligible_bytes;",
+      "why": "probe: protected and advisory groups under a filter show their eligible bytes (<1 MB) again"
+    },
+    {
+      "label": "a1",
+      "mode": "browser",
+      "token": "UI_READ_ORDER",
+      "file": "apps/water/ui/app.mjs",
+      "old": "state.result?.scan_id === scanId && state.stale === stale) { rememberDetail(value);",
+      "new": "state.result?.scan_id === scanId && !state.stale) { rememberDetail(value);",
+      "why": "details on already-stale results do not open (addendum 02 item 1 reverted)"
+    },
+    {
+      "label": "a2",
+      "mode": "browser",
+      "token": "UI_M3C_DRIVE",
+      "file": "apps/water/ui/model.mjs",
+      "old": "(filter === 'all' || g.level === filter) && ",
+      "new": "",
+      "why": "category select-all under a level filter selects hidden groups"
+    },
+    {
+      "label": "a3",
+      "mode": "browser",
+      "token": "UI_M3C_EXCLUDE",
+      "file": "apps/water/ui/views/detail.mjs",
+      "old": "const groupSelected = hasSelectedItems(g, state.selection, state.details);",
+      "new": "const groupSelected = state.selection.has(g.group_id);",
+      "why": "a fully excluded group is shown as selected in the drawer"
+    },
+    {
+      "label": "a4",
+      "mode": "browser",
+      "token": "UI_M3C_SKIP",
+      "file": "apps/water/ui/app.mjs",
+      "old": "    if (sameScan()) state.selection = setItemSelected(state.result, state.selection, data, itemId, false);\n    if (!isCurrent()) return;",
+      "new": "    if (!isCurrent()) return;\n    if (sameScan()) state.selection = setItemSelected(state.result, state.selection, data, itemId, false);",
+      "why": "leaving the page before skip_add returns keeps the skipped item selected"
+    },
+    {
+      "label": "a5",
+      "mode": "browser",
+      "token": "UI_M3C_EXCLUDE",
+      "file": "apps/water/ui/app.mjs",
+      "old": "!data.items.some(item => item.item_id === id && item.eligible === false)",
+      "new": "data.items.some(item => item.item_id === id && item.eligible)",
+      "why": "an exclusion is dropped when the refreshed list no longer shows the item"
+    },
+    {
+      "label": "a6",
+      "mode": "browser",
+      "token": "UI_M3C_EXCLUDE",
+      "file": "apps/water/ui/app.mjs",
+      "old": "items:[...data.items, ...retained]",
+      "new": "items:[...data.items]",
+      "why": "an excluded item outside the refreshed list loses its metadata, so counts and bytes stop deducting it"
+    },
+    {
+      "label": "a7",
+      "mode": "browser",
+      "token": "UI_M3C_DRIVE",
+      "file": "apps/water/ui/views/results.mjs",
+      "old": "const selectable = rows.filter(canSelect)",
+      "new": "const selectable = category.groups.filter(canSelect)",
+      "why": "the category checkbox state counts groups hidden by the level filter"
     }
   ]
 }
