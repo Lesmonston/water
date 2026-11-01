@@ -2411,7 +2411,7 @@ fn m3c_exclude_skip() {
                 "clean_prepare",
                 json!({"groupIds":groups,"excludeItemIds":excluded})
             )
-            .unwrap_err()
+            .expect_err("SERVICE_M3C_EXCLUDE: invalid exclusion accepted")
             .code,
             "invalid",
             "SERVICE_M3C_EXCLUDE: invalid exclusion"
