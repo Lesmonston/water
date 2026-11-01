@@ -1337,16 +1337,29 @@
         {
           "id": "WATER-W8-K6-ADDENDUM-04",
           "ticket": "docs/dispatch/tickets/WATER-W8-K6-ADDENDUM-04-20261101.md",
-          "status": "DISPATCHED",
+          "status": "SUBMITTED_CHANGES_REQUESTED",
           "issuedAt": "2026-11-01T08:58:45Z",
           "resumeFromCommit": "9722649a59ce7097f5014ea02bad3d384a7fae65",
           "change": "a fully excluded group never returns to the clean range through a re-read (drop it from the selection or keep it unselected; re-include only from the results page); later errors win over the skip-failure notice and the stale explanation stays visible; the drawer updates in place on item toggles; neutral restore wording; fake host aligned with the real service (category total_bytes unchanged by skips - the controller addendum 03 wording was wrong; not_found and distinct skip IDs); setItemSelected uses retained exclusion metadata; category switch success re-reads scan_result like skips; stronger scroll and detail-cache assertions; nc1-nc3 redone; 26 screenshots; no baseline rerun",
           "dispatchedAt": null,
-          "submittedHead": null,
-          "implementationCommit": null,
+          "submittedHead": "166609e8e775800736fb93ef2f4d8ee632f45ad6",
+          "implementationCommit": "e69ff68b056db6e20a39d07b12734ad843e0b982",
           "dispatchEvidence": "user chat 2026-11-01 ~18:00 JST: \"已派给 sol\"; paste time not reported; worker tree head/changed files 9722649a/0 when recorded",
           "model": "sol (user-reported)",
-          "dispatchReportedAt": "2026-11-01T09:00:41Z"
+          "dispatchReportedAt": "2026-11-01T09:00:41Z",
+          "workerSelfReport": "Codex GPT-6"
+        },
+        {
+          "id": "WATER-W8-K6-ADDENDUM-05",
+          "ticket": "docs/dispatch/tickets/WATER-W8-K6-ADDENDUM-05-20261101.md",
+          "status": "READY",
+          "issuedAt": "2026-11-01T10:16:46Z",
+          "resumeFromCommit": "166609e8e775800736fb93ef2f4d8ee632f45ad6",
+          "change": "a manual exclusion survives skip then restore (prune only skip-insurance exclusions of items listed ineligible; controller gap in addendum 02 3.3); in-drawer skip failure shows the skip-specific text; focus after an item is disabled goes to a role=status note or the close button, never to the skip button; a failed skip_add/skip_remove/locations_set_category marks a shown result stale; fake host reuses the lowest free skip ID like the service; README brought up to date; separate assertions for the two addendum 04 2.1 fixes and for passing retained exclusion metadata; nc1-nc3 redone; 26 screenshots; no baseline rerun",
+          "dispatchedAt": null,
+          "submittedHead": null,
+          "implementationCommit": null,
+          "dispatchEvidence": null
         }
       ],
       "controllerReview": {
@@ -1354,13 +1367,14 @@
         "evidence": "docs/acceptance/wave8/controller/accept-20261101/controller/",
         "summary": "round 1 (53f1e467): audit flagged app.css line endings only (mixed CRLF/LF in the worker tree; LF-normalised bytes equal the commit); fresh tree check/browser finals passed; controller mutations c1-c14: 12 caught, probe c8 not applicable to the fixtures, c12 caught at the UI_M3C_INUSE_ITEM line but without its marker (expression threw); review High: skip not applied to the current scan under the frozen SERVICE-M3C (contract gap), unselected-group items shown ticked so unticking one selects the rest; Medium: drive-filter select-all acts on hidden groups and the dock shows the drive part while clean acts on all -> addendum 01",
         "round3": "addendum 02 (182dbf14): audit 0 problems; fresh tree check/browser finals passed; 26 screenshots reviewed (low: all-protected category shows selected <1 MB); controller mutations 21 (round-2 n6/n9 re-anchored, a1-a7 new) all caught, test --final passed; review confirmed every addendum 02 and 01 item; High: skip_remove now restores at once in the service (K4 addendum 01) but the UI does not re-read, so a restored item enters the plan without showing as selected -> addendum 03",
-        "round4": "addendum 03 (8a0ed61f): audit 0 problems; fresh tree check/browser finals passed; 11 changed screenshots reviewed (no selected <1 MB, locations period); controller mutations 18 (round-3 reds c1/c3/c5 and n1/n4/a2/a5 as regression, e1-e11 for addendum 03) all caught, test --final passed; review: no High, WYSIWYG holds after skip and restore; Medium: a fully excluded group silently returns to the clean range when a restore raises its eligible count (contradicts addendum 02 3.1) -> addendum 04 with lows; controller addendum 03 wrongly asked for category totals to drop on skip"
+        "round4": "addendum 03 (8a0ed61f): audit 0 problems; fresh tree check/browser finals passed; 11 changed screenshots reviewed (no selected <1 MB, locations period); controller mutations 18 (round-3 reds c1/c3/c5 and n1/n4/a2/a5 as regression, e1-e11 for addendum 03) all caught, test --final passed; review: no High, WYSIWYG holds after skip and restore; Medium: a fully excluded group silently returns to the clean range when a restore raises its eligible count (contradicts addendum 02 3.1) -> addendum 04 with lows; controller addendum 03 wrongly asked for category totals to drop on skip",
+        "round5": "addendum 04 (e69ff68b): audit 0 problems; fresh tree check/browser finals passed; 8 changed screenshots reviewed (animation frames only); controller mutations 21: 19 caught (e1 caught at UI_M3C_EXCLUDE, token too narrow), f2/f7 survived as a redundant pair; test --final passed; review: no High, emptied groups stay out on every path, WYSIWYG holds against the real service; Medium: a manual exclusion is pruned when the item is skipped and so returns after restore (controller gap in addendum 02 3.3) -> addendum 05 with lows (focus lands on the skip button, in-drawer skip failure text, unknown-outcome settings calls)"
       },
       "carryOverLater": [
         "a cancelled scan result is loaded without being marked stale while skips, details and clean act on the previous completed scan (clean fails safe because the new scan consumed its authority); check at integration"
       ],
       "acceptsTask": "WATER-W8-K6",
-      "acceptsHead": "166609e8e775800736fb93ef2f4d8ee632f45ad6"
+      "acceptsHead": "1da3e3d0beb51ee39bc499db457997035de91fd6"
     }
   ]
 }

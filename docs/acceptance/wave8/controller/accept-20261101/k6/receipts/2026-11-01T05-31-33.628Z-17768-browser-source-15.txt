@@ -1,0 +1,43 @@
+import {add, el, level, button, copyButton, check} from './common.mjs';
+import {formatBytes, byteDelta, countDelta, count, relativeTime, middlePath} from '../format.mjs';
+import {hasSelectedItems} from '../model.mjs';
+export function detail(data, close, state, actions) {
+  const g = data.group, panel = el('dialog', 'drawer', undefined, {'aria-labelledby':'detail-title'});
+  add(panel, add(el('div', 'split'), level(g.level), button('Esc 关闭', close, 'btn btn-ghost', 'detail-close')), el('h1', '', g.title_zh, {id:'detail-title'}), el('p', 'sub', `${g.owner_zh} · ${count(g.file_count)} 个文件`));
+  const stats = el('div', 'stats');
+  for (const [label, value] of [['占用', formatBytes(g.total_bytes)], ['最近活动', relativeTime(g.newest_activity)], ['可清理 / 总数', `${count(g.eligible_count)} / ${count(g.item_count)}`]]) add(stats, add(el('div'), el('span', 'cap', label), el('b', '', value)));
+  add(panel, stats);
+  if (state.info) add(panel, el('p', 'detail-notice cap', state.info, {role:'status'}));
+  for (const [label, text] of [['这是什么', data.what_zh], [g.level === 'protected' ? '为什么受保护' : g.selectable ? '为什么可以清' : '为什么仅供参考', data.why_zh], ['清理后会怎样', data.after_zh]]) add(panel, el('h3', '', label), el('p', '', text));
+  add(panel, el('h3', '', '可清理与跳过'), el('p', '', `可清理 ${count(g.eligible_count)} 项 · 跳过 ${count(g.item_count - g.eligible_count)} 项`));
+  if (g.growth) add(panel, el('h3', '', '变化'), el('p', 'growth', `与 ${relativeTime(g.growth.since)} 相比 ${byteDelta(g.growth.bytes_delta)} · ${countDelta(g.growth.count_delta)} 项`));
+  if (data.top_keys.length) {
+    add(panel, el('h3', '', '前缀分布'));
+    data.top_keys.forEach(k => add(panel, el('p', 'cap', `${k.key} · ${count(k.count)} 个 · ${formatBytes(k.bytes)} · 最近 ${relativeTime(k.newest_activity)}`)));
+  }
+  add(panel, el('h3', '', `包含的项目 · 前 ${Math.min(200, data.items.length)} / ${count(data.items_total)}`));
+  const groupSelected = hasSelectedItems(g, state.selection, state.details);
+  if (g.selectable && !groupSelected) add(panel, el('p', 'cap item-selection-note', '先在结果页勾选这个分组，才能逐项排除。'));
+  const items = el('div', 'items');
+  for (const item of data.items.slice(0, 200)) {
+    const row = el('div', 'item', undefined, {'data-item':item.item_id ?? ''});
+    const selectable = g.selectable && item.eligible && item.item_id;
+    if (selectable) {
+      const checkbox = check(`选择${item.display_path}`, !state.selection.get(g.group_id)?.has(item.item_id), checked => actions.selectItem(data, item.item_id, checked), `item-${item.item_id}`);
+      checkbox.disabled = !groupSelected || state.stale || state.busy !== 'idle';
+      add(row, checkbox); row.classList.add('item-selectable');
+    }
+    add(row, el('code', '', middlePath(item.display_path), {title:item.display_path}), el('span', '', formatBytes(item.total_bytes)), el('span', 'cap item-time', relativeTime(item.newest_activity)));
+    if (item.in_use) add(row, el('span', 'in-use-item cap', item.in_use.process_label_zh));
+    if (item.reason_zh) add(row, el('span', 'item-reason', item.reason_zh));
+    if (selectable) add(row, button('以后都跳过', () => actions.skipItem(data, item.item_id), 'btn btn-ghost item-skip', `skip-${item.item_id}`, state.stale || state.busy !== 'idle'));
+    add(items, row);
+  }
+  add(panel, items);
+  const activity = data.items.slice(0, 200).map(item => item.newest_activity).filter(value => value && Number.isFinite(Date.parse(value))).sort((a, b) => Date.parse(a) - Date.parse(b));
+  if (activity.length) add(panel, el('p', 'cap', `已展示项目活动范围：${relativeTime(activity[0])} 至 ${relativeTime(activity.at(-1))}；完整分组最近活动见上方。`));
+  if (data.items_total > Math.min(200, data.items.length)) add(panel, el('p', 'cap', `另有 ${count(data.items_total - Math.min(200, data.items.length))} 项`));
+  if (data.fix_hint_zh) add(panel, el('h3', '', '修复建议'), el('p', 'fix', data.fix_hint_zh), copyButton(data.fix_hint_zh));
+  if (g.level === 'protected') add(panel, el('p', 'protected-note', 'Water 不会清理此类数据。'));
+  return panel;
+}
