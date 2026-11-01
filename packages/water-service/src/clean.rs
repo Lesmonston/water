@@ -6,7 +6,10 @@ use crate::{
     util, views,
 };
 use serde_json::{Value, json};
-use std::{collections::BTreeMap, sync::Arc};
+use std::{
+    collections::{BTreeMap, BTreeSet},
+    sync::Arc,
+};
 use water_junk_clean as clean;
 
 pub(crate) fn idle() -> Value {
@@ -57,12 +60,11 @@ pub(crate) fn prepare(
         .map(|v| v.skipped)
         .unwrap_or_default();
     let projection = r.projection();
-    for id in excluded {
-        let item = r
-            .result
-            .items
-            .iter()
-            .find(|i| i.item_id == id.as_str().expect("validated item ID"))
+    let excluded: BTreeSet<_> = excluded.iter().filter_map(Value::as_str).collect();
+    for id in &excluded {
+        let item = projection
+            .item_index(id)
+            .map(|index| &r.result.items[index])
             .ok_or_else(|| IpcError::new("invalid"))?;
         if !ids
             .iter()
@@ -99,9 +101,7 @@ pub(crate) fn prepare(
             if projection.is_skipped(index) {
                 continue;
             }
-            if excluded
-                .iter()
-                .any(|id| id.as_str() == Some(item.item_id.as_str()))
+            if excluded.contains(item.item_id.as_str())
                 || s.settings
                     .skipped
                     .iter()

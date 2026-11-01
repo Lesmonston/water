@@ -707,15 +707,17 @@ impl Service {
         });
         core.store.write("", "settings.json", &json!(settings))?;
         s.settings = settings;
-        record.projection().refresh_path(
-            &record,
-            &item.path,
-            &s.settings,
-            &core.rules,
-            core.platform.as_ref(),
-        );
         let stale: Vec<_> = s.plans.keys().cloned().collect();
         s.stale_plans.extend(stale);
+        for record in &s.records {
+            record.projection().refresh_path(
+                record,
+                &item.path,
+                &s.settings,
+                &core.rules,
+                core.platform.as_ref(),
+            );
+        }
         Ok(locations(&s))
     }
 
@@ -735,17 +737,17 @@ impl Service {
             .store
             .write("", "settings.json", &json!(settings))?;
         s.settings = settings;
-        if let Some(record) = s.last_record() {
+        let stale: Vec<_> = s.plans.keys().cloned().collect();
+        s.stale_plans.extend(stale);
+        for record in &s.records {
             record.projection().refresh_path(
-                &record,
+                record,
                 &removed.path,
                 &s.settings,
                 &self.core.rules,
                 self.core.platform.as_ref(),
             );
         }
-        let stale: Vec<_> = s.plans.keys().cloned().collect();
-        s.stale_plans.extend(stale);
         Ok(locations(&s))
     }
 }
@@ -1480,6 +1482,7 @@ fn forecast(core: &Core, s: &State, points: &[Value]) -> Vec<Value> {
         let rate = (free_first as f64 - free_last as f64 + freed as f64)/days;
         let estimate = (free_last as f64/rate).floor();
         let (days_to_full,note) = if rate<=0.0 {(None,Some("最近 30 天可用空间没有减少"))} else if estimate>3650.0 {(None,Some("按现在的速度，十年内不会满"))} else {(Some(estimate as u64),None)};
-        json!({"root":root,"days_to_full":days_to_full,"bytes_per_day":format!("{:.0}",rate.trunc()),"basis_days":basis,"note_zh":note})
+        let rounded = rate.trunc();
+        json!({"root":root,"days_to_full":days_to_full,"bytes_per_day":if rounded == 0.0 {"0".to_owned()} else {format!("{rounded:.0}")},"basis_days":basis,"note_zh":note})
     }).collect()
 }

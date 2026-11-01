@@ -206,3 +206,120 @@ N的来源保持原轮说明。没有其它旧断言修改，也没有更改旧�
 真实数据只按规则登记位置读取名字/属性/大小/时间与进程快照；未读真实普通文件内容、未清理真实数据、未结束/挂起进程。删除测试仍仅限本树.local本次新建合成目录；规模项只存在于合成JSON。没有原生窗口或选择框。
 
 未验证macOS、宿主/UI集成、真实自定义盘根全盘扫描、全部生产规模与竞态，也没有完成总控M3联合验收或真实自清理里程碑。本单完成仅代表执行者已交付并跑过票面检查，不自行标VERIFIED。所有自有命令均已结束，交回后不再运行测试或后台进程。
+
+## 补单 02（2026-11-01，执行者已完成，待总控验收）
+
+实际模型：Codex（GPT-6；运行环境未提供更细的模型快照标识）。指定树 `F:/new/smaltalk/water/.worktrees/w8-k4`、分支 `worker/water-w8-k4`，续做起点为干净的 `fc36140dc9abd8329c3c77a1625789b8dfccf68f`。没有重跑 baseline。补单 01 的 VERIFIED 状态来自补单 02 票面；本节不自行宣告补单 02 VERIFIED。
+
+**本补单实现提交：`f55d969d0d73fdbffd2377418af2f155cbdd8f0a`。** 三个 final 均绑定此干净提交。后续提交仅含本回执和归档器生成的证据。
+
+### 需求逐条对照
+
+1. **所有已载入记录应用当前跳过名单。** `service.rs` 的 `add_skip` / `remove_skip` 写设置成功后，遍历有 60 条上限的 `s.records`，逐条调用现有 `Projection::refresh_path`。每条只查大小写折叠路径索引、修改匹配项及其组/详情/合计/分盘推荐量；未调用全量 `build`、未克隆整份 Record、未写扫描记录。首页仍取最新投影；趋势、预测和位置页上次识别的总量算法未改。
+2. **排除检查使用索引和集合。** `clean.rs::prepare` 用已有 `Projection::item_index` 取得排除 ID 对应条目，以 `BTreeSet<&str>` 保存排除集合并判断计划项是否被排除。所选组归属、原始可清理性、已跳过项的例外、重复/5000 上限、保护与本地扫描授权检查都保留；排除只缩小计划。
+3. **加固。**
+   - 两个跳过操作均在设置落盘、更新内存设置后，先把当前计划加入 `stale_plans`，再刷新任何投影。幂等添加的原有失效处理保留。
+   - `recommended_by_drive` 采用“**不显示零字节行**”的统一规则：`build` 过滤零字节，增量刷新沿用删除零字节行的规则。组自己的 `by_drive` 计数不受此规则影响。
+   - 预测对截断后等于零的 rate 明确输出 `"0"`，避免负小数生成 `"-0"`；其余速度、天数和文案规则不变。
+   - 提醒测试改用真实扫描结果的 `finished_at` 加 6/7 天作为假时钟，从计算中消除扫描实际耗时；期望仍是六天 `null`、七天 `{days_since_last:7}`。
+   - 快照删除失败测试改为确定性同步：测试侧适配器委托真实 `Store::write` 完成快照原子写入后，通过通道暂停；测试持有不带 `FILE_SHARE_DELETE` 的快照句柄，再恢复服务，让真实的扫描记录写入失败和快照删除失败依次发生。原有 failed/idle/回退上次扫描/快照保留/重启回退断言全部保留，10 秒同步上限不放宽。
+
+产品仅修改 `src/service.rs`、`src/clean.rs`、`src/views.rs`。未新增系统函数、unsafe、运行时挂点或公开接口；唯一获准新增的系统函数仍是前轮的 `GetVolumeInformationW`。Platform 默认实现、DriveInfo、IPC、依赖与锁文件均不变。
+
+### 测试写法与新增断言
+
+测试仍只在 `tests/service_v1.rs`，仍精确六个原测试，无 ignore、过滤或拆分。原有 64 次 skip_add 和万项用例的每次 50 ms 预算均保留。
+
+- `SERVICE_M3C_SKIP` 规模用例扩展为 **60 条载入记录，其中最新与一条旧记录各有 10,000 项**，其余 58 条为小记录；只写合成记录 JSON。保留连续添加/移除各 5 次及逐次预算、最新详情/组计数/体量/分盘/首页/扫描合计/原扫描文件字节断言，新增逐次核对旧 `scan_result` 和 `history_list` 的扣减与恢复。添加和移除后分别重启，比较同一个旧体检的完整视图和历史行。
+- 重启前把设置中跳过路径改成大写，断言最新详情及旧记录仍为已跳过；移除该大写路径后两者立即恢复。新增过新项的添加/移除前后详情完全相等断言，防止原始不可清理项被提升。
+- `SERVICE_M3C_SKIP` 零字节用例：X 盘只有零字节推荐项，Y 盘有正字节推荐项；初建省略 X，跳过 Y 后两行都省略，重启结果相同，恢复只重建 Y 的正字节行。
+- `SERVICE_M3C_EXCLUDE` 新规模用例：超过 10,000 项的记录中，chrome-cache 有 10,000 项，其中 4,999 项过新、5,001 项可清理；传尾部 5,000 个合法排除 ID，断言 50 ms 内返回、excluded_count=5000、预览 1 项/100 字节、计划只含 `i-104999`。这同时覆盖大量 ID 索引查找和计划生成时的集合判断。
+- `SERVICE_M3C_DRIVE_ROOT` 显式把含夹具已知文件夹的 F 盘注入为**非系统固定盘、NTFS**，仍断言固定拒绝文案；W 系统盘、V 非固定盘和原文件系统断言保留。默认测试盘列表不变。
+- `SERVICE_M3C_FORECAST` 新增 4 天可用空间增加 1 字节的点，rate=-0.25，期望 bytes_per_day=`"0"`，无减少文案照旧。
+
+两个需要访问私有状态的用例在唯一测试文件中用 `#[path]` 编译现有 service/clean/views/util/storage 源码。普通契约测试仍使用公开库 `water_service::Service`。测试内存中的本地授权仅用于合成 JSON 的 `clean_prepare` 规模测试：先断言加载记录返回 stale，再在测试实例内登记该合成 scan_id，从未调用 clean_start。快照同步适配器位于测试文件，委托真实存储写入、读取、删除和 journal；产品源码无测试开关。测试辅助的 IpcError 边界转接、TestService 泛型只为复用现有预算/轮询函数，断言本身未变。
+
+**改过的测试写法原文：**
+
+- 原 `f.fake.now.store(NOW + 6 * 86400, Ordering::SeqCst);`、`f.fake.now.store(NOW + 7 * 86400, Ordering::SeqCst);`；现先从 `result["finished_at"]` 解析 `ended`，再分别写 `ended + 6 * 86400`、`ended + 7 * 86400`。原六天/七天断言文字和期望不变。
+- 快照原写法：`let s = f.service(false);`，放开扫描后循环尝试打开快照，直到打开成功或扫描结束；现用 `source_service(&f, false)` 编译同一服务源码，通过存储适配器通道在快照写完后暂停，成功持有句柄才恢复。原 `held.is_some()`、快照存在、failed、idle、last_scan 回退及重启断言全部原样保留。
+- `call` / `wait` / `scanned` / `settle` 的参数由 `&Service` 改为 `&impl TestService`；返回预算仍原样 `Duration::from_millis(50)`，轮询超时及期望未改。Fake 的错误类型仅改导入别名 `PublicIpcError`，仍是原公开类型。
+
+没有修改任何旧断言的期望值、文案或预算。补充 01 第 5 节曾获准的旧断言变更与上节清单完全相同，本补单没有再次改变它们。
+
+### 实际规模耗时
+
+下面是同一最终 source/test 哈希下的实际测量，来自 `06-53-07.555Z-11220-test-5.log`。这些规模断言均通过；该轮在后续原有 clean_prepare 调用预算处失败，因此此表只作为规模计时证据，不冒充整轮绿色。最终整轮通过由 `07-13-12.435Z-17980-test-result.json` 证明。
+
+| 次数 | skip_add（ms，60 条载入记录） | skip_remove（ms，60 条载入记录） |
+|---|---:|---:|
+| 1 | 5.1476 | 5.7102 |
+| 2 | 5.6271 | 6.0848 |
+| 3 | 5.8821 | 5.9899 |
+| 4 | 5.5417 | 6.4169 |
+| 5 | 5.6988 | 5.1027 |
+
+同轮 **clean_prepare（5000 个排除 ID）为 29.9134 ms**。另一份 `07-06-00.948Z-37296-test-5.log` 的对应值为 28.9832 ms，skip_add 最大 7.0443 ms、skip_remove 最大 8.0476 ms；该轮也因后续旧调用预算失败，未认作整轮通过。
+
+### 补单 02 检查命令与结果
+
+执行目录始终为指定工作树。统一命令前缀：
+
+`node F:/new/smaltalk/water/scripts/desktop-wave-check.mjs --task WATER-W8-K4 --mode`
+
+| UTC 回执前缀 | 模式与参数 | 结果 |
+|---|---|---|
+| 06-44-13.877Z-32804 | lock | passed/0 |
+| 06-52-33.721Z-39908 | check | passed/0，格式/源码政策/Clippy all-targets -D warnings |
+| 06-53-07.555Z-11220 | test | failed/1，5/6，后续原有 SERVICE_RETURN_BUDGET: clean_prepare；新增规模断言通过 |
+| 06-56-14.172Z-17544 | test | 原样重跑 passed/0，6/6 |
+| 06-58-40.703Z-20752 | red-nc1 | 目标唯一失败，检查器 passed/0 |
+| 06-59-39.569Z-24696 | test | 原字节恢复 passed/0，6/6 |
+| 07-01-50.044Z-15328 | red-nc2 | 检查器 passed/0，但另有后续 SERVICE_RETURN_BUDGET: scan_start；本回执不采用此轮作为正式负控证据 |
+| 07-03-10.720Z-18476 | test | 原字节恢复 passed/0，6/6 |
+| 07-04-42.665Z-43652 | red-nc2 | 重做，目标唯一失败，检查器 passed/0 |
+| 07-06-00.948Z-37296 | test | 原字节恢复 failed/1，5/6，后续原有 SERVICE_RETURN_BUDGET: clean_prepare；新增规模断言通过 |
+| 07-07-47.860Z-25008 | test | 原样重跑 passed/0，6/6，正式 nc2 恢复证据 |
+| 07-09-23.182Z-7912 | red-nc3 | 目标唯一失败，检查器 passed/0 |
+| 07-11-19.567Z-32756 | test | 原字节恢复 passed/0，6/6 |
+| 07-12-56.343Z-35348 | check --final | passed/0，绑定干净 f55d969d |
+| 07-13-12.435Z-17980 | test --final | passed/0，6/6，48.38 秒；proofAudit 绑定三红/恢复 |
+| 07-14-43.910Z-33928 | real --final | passed/0，completed，扫描 73022 ms，门总计 82.129 秒 |
+| 07-16-39.333Z-22260 | archive | passed/0，累计 885 份、16,832,145 字节 |
+
+另执行 `C:/Users/37310/.cargo/bin/rustup.exe run 1.95.0 cargo fmt --manifest-path packages/water-service/Cargo.toml`，退出 0；提交前 `git diff --check` 退出 0。未连续两次失败后继续检查，没有放宽任何断言。两次普通测试预算失败的根因未确定，原样重跑通过不等于证明其不会再发生；这些失败均保留在归档中。
+
+归档 [ARCHIVE.json](../../acceptance/wave8/k4/ARCHIVE.json) 保留既有 607 份证据并增加 278 份（包含前轮归档命令回执），未覆盖既有条目。本轮未直接编辑归档内容。所有编译离线、jobs=1、私有 Cargo home/target；没有下载或 baseline 重跑。
+
+### 本补单负控与恢复哈希
+
+三条均仅改 `src/` 一个逻辑位置，测试文件字节不变；每次红后立即 `git checkout -- <该文件>` 并运行完整 test。
+
+- **nc1**：`clean.rs` 将排除项所选组归属判断改为 `ids.is_empty()`。service_clean_flow 唯一以 `SERVICE_M3C_EXCLUDE: invalid exclusion accepted` 失败，其余 5 测通过。恢复 SHA256 `2d64ddaeaa228fb7b7da4b8c25fe652792aa834a6786f6f22e61ef91aa5172a5`；06:59 恢复完整 6/6。
+- **nc2**：`service.rs` 的 add_skip 刷新循环只保留最新 scan_id，旧记录不刷新。正式 07:04 轮 service_clean_flow 唯一以 `SERVICE_M3C_SKIP: old scan total` 失败：实际 `1000240`，期望 `1000140`；其余 5 测通过。恢复 SHA256 `92f6866cdcfaba2315a2e9516b56b39655570559e941dea3827235009659a557`；07:06 恢复遇到旧预算红，07:07 原样重跑完整 6/6。07:01 的混合失败轮另行保留、不充正式证据。
+- **nc3**：`service.rs::valid_custom` 仅把盘根的已知文件夹包含检查换成恒不命中。service_trends_locations 唯一以 `SERVICE_M3C_DRIVE_ROOT: system/nonfixed/known F:\` 失败，证明非系统固定盘的已知目录保护被独立测试；其余 5 测通过。恢复 SHA256 同 nc2；07:11 恢复完整 6/6。
+
+最终 productionHash **`36e37f3febccbc0742eaf087f78c73a6e9542daca87cff2847023d0c4a9d7ee2`**，testHash **`dd3d4ea11367ec63e2009b20e4c925f922389f8759e57755dab7c8751f674412`**。final test 的 proofAudit 精确选择 06:58→06:59（nc1）、07:04→07:07（nc2）、07:09→07:11（nc3）。变异均已恢复，没有将编译错误或超时代替目标负控。
+
+### 本补单真实只读分类汇总
+
+`completed`；4 个固定盘；0 条 insight；duration_ms=73022。清理关闭，clean_prepare 返回 unavailable。输出无文件路径、程序路径或命令行。
+
+| 分类 | 组数 | 去重后 total_bytes |
+|---|---:|---:|
+| agent_tool | 24 | 34718743844 |
+| browser | 14 | 11166993167 |
+| system_temp | 2 | 1106750354 |
+| app_leftover | 8 | 11016328895 |
+| dev_cache | 13 | 8481937637 |
+| crash_log | 7 | 889599911 |
+| gpu_system | 2 | 664082499 |
+
+合计（字节）：recognized=68044436307，recommended=13809191441，confirm=9302766365，advisory=6667379153，protected=21120342273，unrecognized=0。在用提示：Chrome 15/36/8 项，Edge 1/2/8 项。
+
+### 未做与交付边界
+
+- 未改 Cargo.toml/Cargo.lock、其它包、原生函数、工单、契约、检查器或主线台账；没有 merge/rebase/reset/amend/push、git 配置或远端变更，没有子代理。
+- 原生窗口 0、选择框 0；没有结束/挂起真实进程、读取真实普通文件内容或清理真实数据。实际体检仅按既定规则读取元数据和进程快照；合成夹具仍只由测试在本树 .local 新建，并校验父目录与前缀后删除本次自身目录。规模条目只存在于 JSON 中。
+- 未验证 macOS、UI/宿主集成、真实自选盘根全盘扫描、全部生产负载/竞态或 M3 联合验收、自清理里程碑。票面列为以后处理的六项问题未修改。旧 IPC 调用的偶发 50 ms 预算失败仍需继续观察，本补单没有消除或掩盖此风险。
+- 全部自有测试和真实体检命令已结束；归档与回执提交后停止测试和产品修改。
