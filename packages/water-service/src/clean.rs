@@ -13,7 +13,11 @@ pub(crate) fn idle() -> Value {
     json!({"clean_id":null,"state":"idle","done_items":0,"total_items":0,"freed_bytes":"0","group_index":0,"group_count":0,"current_group_title_zh":null})
 }
 
-pub(crate) fn prepare(core: &Arc<Core>, ids: &[Value]) -> Result<Value, IpcError> {
+pub(crate) fn prepare(
+    core: &Arc<Core>,
+    ids: &[Value],
+    excluded: &[Value],
+) -> Result<Value, IpcError> {
     let mut s = lock(core)?;
     if s.busy != "idle" {
         return Err(IpcError::new("busy"));
@@ -45,6 +49,29 @@ pub(crate) fn prepare(core: &Arc<Core>, ids: &[Value]) -> Result<Value, IpcError
     let mut items = Vec::new();
     let mut groups = Vec::new();
     let mut by_drive = BTreeMap::<String, u64>::new();
+    // Disk settings can only narrow a locally authorised scan, never add paths.
+    let disk_skips = core
+        .store
+        .read("", "settings.json")
+        .and_then(|v| serde_json::from_value::<crate::service::Settings>(v).ok())
+        .map(|v| v.skipped)
+        .unwrap_or_default();
+    for id in excluded {
+        let item = r
+            .result
+            .items
+            .iter()
+            .find(|i| i.item_id == id.as_str().expect("validated item ID"))
+            .ok_or_else(|| IpcError::new("invalid"))?;
+        if !ids
+            .iter()
+            .any(|id| id.as_str() == Some(item.group_id.as_str()))
+            || (!item.eligible && item.ineligible_reason.as_deref() != Some("user_skipped"))
+        {
+            return Err(IpcError::new("invalid"));
+        }
+    }
+    let mut excluded_count = 0;
     for id in ids {
         let id = id.as_str().expect("validated group ID");
         let group = r
@@ -67,6 +94,18 @@ pub(crate) fn prepare(core: &Arc<Core>, ids: &[Value]) -> Result<Value, IpcError
             .iter()
             .filter(|i| i.group_id == id && i.eligible && i.identity.is_some())
         {
+            if excluded
+                .iter()
+                .any(|id| id.as_str() == Some(item.item_id.as_str()))
+                || s.settings
+                    .skipped
+                    .iter()
+                    .chain(&disk_skips)
+                    .any(|v| v.path.eq_ignore_ascii_case(&item.path))
+            {
+                excluded_count += 1;
+                continue;
+            }
             let target = r
                 .plan
                 .targets
@@ -84,11 +123,16 @@ pub(crate) fn prepare(core: &Arc<Core>, ids: &[Value]) -> Result<Value, IpcError
                 .max_by_key(|(root, _)| root.len())
                 .ok_or_else(|| IpcError::new("invalid"))?;
             items.push(json!({"item_id":item.item_id,"group_id":id,"rule_id":group.rule_id,"level":group.level,"path":item.path,"root":target.0,"kind":item.kind,"identity":item.identity,"total_bytes":item.total_bytes,"min_age_hours":target.1.min_age_hours}));
-            let n = util::number(&item.total_bytes);
+            let n = util::number(&item.unique_bytes);
             bytes += n;
             *by_drive.entry(util::drive(&item.path)).or_default() += n;
         }
-        groups.push(json!({"group_id":id,"title_zh":r.details[id]["group"]["title_zh"],"level":group.level,"item_count":items.len()-before,"total_bytes":bytes.to_string(),"in_use_note_zh":if r.details[id]["group"]["in_use"].is_null(){None}else{Some("运行中，占用的项会跳过")}}));
+        if items.len() > before {
+            groups.push(json!({"group_id":id,"title_zh":r.details[id]["group"]["title_zh"],"level":group.level,"item_count":items.len()-before,"total_bytes":bytes.to_string(),"in_use_note_zh":if r.details[id]["group"]["in_use"].is_null(){None}else{Some("运行中，占用的项会跳过")}}));
+        }
+    }
+    if items.is_empty() {
+        return Err(IpcError::new("invalid"));
     }
     let protected_paths: Vec<_> =
         r.result
@@ -114,7 +158,7 @@ pub(crate) fn prepare(core: &Arc<Core>, ids: &[Value]) -> Result<Value, IpcError
     s.plans.insert(id.clone(), stored);
     let total: u64 = by_drive.values().sum();
     Ok(
-        json!({"plan_id":id,"confirm_token":token,"item_count":items.len(),"total_bytes":total.to_string(),"groups":groups,"by_drive":by_drive.into_iter().map(|(root,n)|json!({"root":root,"bytes":n.to_string()})).collect::<Vec<_>>(),"irreversible":true}),
+        json!({"plan_id":id,"confirm_token":token,"item_count":items.len(),"total_bytes":total.to_string(),"groups":groups,"by_drive":by_drive.into_iter().map(|(root,n)|json!({"root":root,"bytes":n.to_string()})).collect::<Vec<_>>(),"irreversible":true,"excluded_count":excluded_count}),
     )
 }
 
@@ -318,5 +362,11 @@ fn result_view(
         let notes:Vec<_>=counts.into_iter().zip(tails).filter(|(n,_)|*n>0).map(|(n,t)|format!("{n}{t}")).collect();
         json!({"group_id":group,"title_zh":r.details[&group]["group"]["title_zh"],"status":status,"freed_bytes":reports.iter().map(|i|util::number(&i.bytes_freed)).sum::<u64>().to_string(),"notes_zh":notes})
     }).collect();
-    json!({"clean_id":id,"finished_at":report.ended_at,"estimate_bytes":report.estimate_bytes,"freed_bytes":report.freed_bytes,"drives":report.volumes,"groups":groups,"journal_display_path":core.store.root.join("journal").join(format!("{id}.jsonl")).to_string_lossy()})
+    let estimate: u64 = plan
+        .items
+        .iter()
+        .filter_map(|p| r.result.items.iter().find(|i| i.item_id == p.item_id))
+        .map(|i| util::number(&i.unique_bytes))
+        .sum();
+    json!({"clean_id":id,"finished_at":report.ended_at,"estimate_bytes":estimate.to_string(),"freed_bytes":report.freed_bytes,"drives":report.volumes,"groups":groups,"journal_display_path":core.store.root.join("journal").join(format!("{id}.jsonl")).to_string_lossy()})
 }

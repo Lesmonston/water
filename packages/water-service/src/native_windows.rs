@@ -18,6 +18,16 @@ struct NativeTime {
 
 #[link(name = "kernel32")]
 unsafe extern "system" {
+    fn GetVolumeInformationW(
+        root: *const u16,
+        volume_name: *mut u16,
+        volume_name_size: u32,
+        serial: *mut u32,
+        max_component: *mut u32,
+        flags: *mut u32,
+        file_system: *mut u16,
+        file_system_size: u32,
+    ) -> i32;
     fn GetLogicalDrives() -> u32;
     fn GetDriveTypeW(root: *const u16) -> u32;
     fn GetDiskFreeSpaceExW(
@@ -31,6 +41,37 @@ unsafe extern "system" {
         utc: *const NativeTime,
         local: *mut NativeTime,
     ) -> i32;
+}
+
+const _: () = assert!(std::mem::size_of::<NativeTime>() == 16);
+
+pub(crate) fn volume_file_system(root: &str) -> Option<String> {
+    if root.len() != 3
+        || !root.as_bytes()[0].is_ascii_alphabetic()
+        || &root.as_bytes()[1..] != b":\\"
+    {
+        return None;
+    }
+    let wide: Vec<u16> = root.encode_utf16().chain([0]).collect();
+    let mut name = [0u16; 64];
+    // SAFETY: root is live NUL-terminated UTF-16; the output buffer has the stated
+    // capacity. All unused optional outputs are null. This only queries volume metadata.
+    let ok = unsafe {
+        GetVolumeInformationW(
+            wide.as_ptr(),
+            std::ptr::null_mut(),
+            0,
+            std::ptr::null_mut(),
+            std::ptr::null_mut(),
+            std::ptr::null_mut(),
+            name.as_mut_ptr(),
+            name.len() as u32,
+        )
+    };
+    if ok == 0 {
+        return None;
+    }
+    String::from_utf16(&name[..name.iter().position(|c| *c == 0)?]).ok()
 }
 
 pub(crate) fn drives(system: Option<&str>) -> Vec<DriveInfo> {

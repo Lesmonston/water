@@ -43,6 +43,9 @@ struct Fake {
     panic_in_use: Arc<AtomicBool>,
     names: Arc<Mutex<Vec<(String, String)>>>,
     clean_gate: Arc<Mutex<Option<CleanGate>>>,
+    drives: Arc<Mutex<Vec<DriveInfo>>>,
+    file_systems: Arc<Mutex<BTreeMap<String, String>>>,
+    orphans: Arc<Mutex<Vec<water_process_scan::OrphanChain>>>,
 }
 impl Platform for Fake {
     fn known_folders(&self) -> Result<KnownFolders, IpcError> {
@@ -54,13 +57,19 @@ impl Platform for Fake {
         {
             panic!("fake platform: drives failed inside the scan task");
         }
-        vec![DriveInfo {
-            root: "F:\\".into(),
-            is_system: true,
-            total_bytes: 1_000_000,
-            free_bytes: 800_000,
-        }]
+        self.drives.lock().unwrap().clone()
     }
+    fn volume_file_system(&self, root: &str) -> Option<String> {
+        self.file_systems
+            .lock()
+            .unwrap()
+            .get(&root.to_ascii_uppercase())
+            .cloned()
+    }
+    fn orphan_chains(&self) -> Vec<water_process_scan::OrphanChain> {
+        self.orphans.lock().unwrap().clone()
+    }
+
     fn now(&self) -> SystemTime {
         if self.panic_now.swap(false, Ordering::SeqCst) {
             panic!("fake platform: clock failed");
@@ -171,6 +180,14 @@ impl Fixture {
             panic_in_use: Arc::new(AtomicBool::new(false)),
             names: Arc::new(Mutex::new(Vec::new())),
             clean_gate: Arc::new(Mutex::new(None)),
+            drives: Arc::new(Mutex::new(vec![DriveInfo {
+                root: "F:\\".into(),
+                is_system: true,
+                total_bytes: 1_000_000,
+                free_bytes: 800_000,
+            }])),
+            file_systems: Arc::new(Mutex::new(BTreeMap::new())),
+            orphans: Arc::new(Mutex::new(Vec::new())),
         };
         Self {
             root,
@@ -311,11 +328,46 @@ fn scanned(s: &Service) -> Value {
     call(s, "scan_result", json!({"scanId":id["scan_id"]}))
 }
 fn fixtures() -> Value {
-    serde_json::from_str(include_str!(
+    let mut base: Value = serde_json::from_str(include_str!(
         "../../../contracts/checkup-v1/ui-fixtures.json"
     ))
-    .unwrap()
+    .unwrap();
+    let increment: Value = serde_json::from_str(include_str!(
+        "../../../contracts/m3c-v1/ui-fixtures-m3c.json"
+    ))
+    .unwrap();
+    for (key, value) in increment.as_object().unwrap() {
+        base[key] = value.clone();
+    }
+    for key in [
+        "app_state_fresh",
+        "app_state_after_scan",
+        "scan_result",
+        "group_details",
+        "locations",
+        "custom_root_add_drive",
+        "custom_root_add_cancelled",
+        "trends",
+        "history_list",
+        "clean_prepare_default",
+        "clean_result",
+        "scan_start",
+        "clean_start",
+        "scan_progress_sequence",
+        "clean_progress_sequence",
+        "errors",
+    ] {
+        assert!(!base[key].is_null(), "SERVICE_M3C_SHAPE: missing {key}");
+    }
+    assert!(
+        base["group_details"]
+            .as_object()
+            .is_some_and(|m| m.values().all(|v| !v.is_null())),
+        "SERVICE_M3C_SHAPE: group details missing"
+    );
+    base
 }
+
 fn shape(actual: &Value, sample: &Value) {
     match (actual, sample) {
         (Value::Object(a), Value::Object(b)) => {
@@ -495,7 +547,7 @@ fn service_ipc_contract() {
     fs::create_dir(&project).unwrap();
     f.pick(Some(&project));
     let added = call(&s, "custom_root_add", json!({}));
-    shape(&added, &samples["custom_root_add_added"]);
+    shape(&added, &samples["custom_root_add_drive"]);
     shape(
         &call(
             &s,
@@ -536,6 +588,8 @@ fn service_ipc_contract() {
 
 #[test]
 fn service_scan_views() {
+    m3c_unique_inuse();
+    m3c_by_drive();
     let f = Fixture::new();
     f.seed();
     for i in 0..205 {
@@ -648,7 +702,7 @@ fn service_scan_views() {
     let detail_in_use =
         call(&s, "group_detail", json!({"groupId":"chrome-cache"}))["group"]["in_use"].clone();
     assert_eq!(
-        detail_in_use["process_label_zh"], "Chrome 正在运行，将跳过占用的项",
+        detail_in_use["process_label_zh"], "Chrome 正在运行，将跳过 1 个占用的项",
         "SERVICE_IN_USE_SAVED: label before restart"
     );
     assert_eq!(labels["chrome-cache"], detail_in_use);
@@ -680,6 +734,7 @@ fn service_scan_views() {
 
 #[test]
 fn service_clean_flow() {
+    m3c_exclude_skip();
     let f = Fixture::new();
     f.seed();
     let disabled = f.service(false);
@@ -1054,6 +1109,8 @@ fn clean_group_progress() {
 
 #[test]
 fn service_trends_locations() {
+    m3c_drive_roots();
+    m3c_trends();
     let f = Fixture::new();
     f.seed();
     let s = f.service(false);
@@ -1179,6 +1236,7 @@ fn service_trends_locations() {
 
 #[test]
 fn service_storage_safety() {
+    m3c_compat();
     let f = Fixture::new();
     f.seed();
     let before = inventory(&f.root);
@@ -1492,6 +1550,7 @@ fn service_hardening() {
     hardening_partial_source();
     hardening_product_name();
     hardening_scan_record();
+    m3c_snapshot_remove_fail();
     hardening_custom_root_junction();
 }
 
@@ -1933,13 +1992,13 @@ fn hardening_product_name() {
     let s = f.service(false);
     let result = scanned(&s);
     for (group, label) in [
-        ("edge-cache", "Edge 正在运行，将跳过占用的项"),
-        ("chrome-cache", "Chrome 正在运行，将跳过占用的项"),
+        ("edge-cache", "Edge 正在运行，将跳过 1 个占用的项"),
+        ("chrome-cache", "Chrome 正在运行，将跳过 2 个占用的项"),
         (
             "headless-browser-profiles",
-            "Chrome 无头浏览器 正在运行，将跳过占用的项",
+            "Chrome 无头浏览器 正在运行，将跳过 1 个占用的项",
         ),
-        ("brave-cache", "other 正在运行，将跳过占用的项"),
+        ("brave-cache", "other 正在运行，将跳过 1 个占用的项"),
     ] {
         assert_eq!(
             group_in_use(&result, group)["process_label_zh"],
@@ -2058,5 +2117,875 @@ fn junction(link: &Path, target: &Path) {
         out.status.success(),
         "SERVICE_CUSTOM_ROOT: {}",
         String::from_utf8_lossy(&out.stderr)
+    );
+}
+
+fn m3c_unique_inuse() {
+    let f = Fixture::new();
+    f.seed();
+    let cache = f
+        .root
+        .join("local_app_data/Google/Chrome/User Data/Default/Cache");
+    for n in 0..3 {
+        fs::hard_link(cache.join("cache.bin"), cache.join(format!("link-{n}"))).unwrap();
+    }
+    f.age_all(NOW - 10 * 86400);
+    let s = f.service(true);
+    let result = scanned(&s);
+    let g = groups(&result)
+        .into_iter()
+        .find(|g| g["group_id"] == "chrome-cache")
+        .unwrap();
+    assert_eq!(g["total_bytes"], "300", "SERVICE_M3C_UNIQUE: group");
+    assert_eq!(g["eligible_bytes"], "300", "SERVICE_M3C_UNIQUE: eligible");
+    assert_eq!(g["logical_bytes"], "600", "SERVICE_M3C_UNIQUE: logical");
+    assert_eq!(
+        g["in_use"]["item_count"], 1,
+        "SERVICE_M3C_INUSE_ITEM: one busy item"
+    );
+    assert_eq!(
+        g["by_drive"],
+        json!([{"root":"F:\\","item_count":2,"eligible_bytes":"300"}]),
+        "SERVICE_M3C_BY_DRIVE: unique"
+    );
+    let detail = call(&s, "group_detail", json!({"groupId":"chrome-cache"}));
+    for i in detail["items"].as_array().unwrap() {
+        let busy = i["display_path"].as_str().unwrap().contains("Profile Busy");
+        assert_eq!(
+            !i["in_use"].is_null(),
+            busy,
+            "SERVICE_M3C_INUSE_ITEM: detail"
+        );
+        if busy {
+            assert_eq!(
+                i["in_use"]["process_label_zh"], "Chrome 正在使用",
+                "SERVICE_M3C_INUSE_ITEM: label"
+            );
+        } else {
+            assert_eq!(i["total_bytes"], "100", "SERVICE_M3C_UNIQUE: item");
+        }
+    }
+    let expected: u64 = groups(&result)
+        .iter()
+        .filter(|g| g["level"] == "recommended")
+        .map(|g| {
+            g["eligible_bytes"]
+                .as_str()
+                .unwrap()
+                .parse::<u64>()
+                .unwrap()
+        })
+        .sum();
+    assert_eq!(
+        result["totals"]["recommended_bytes"],
+        expected.to_string(),
+        "SERVICE_M3C_UNIQUE: total"
+    );
+    assert_eq!(
+        call(&s, "app_state", json!({}))["last_scan"]["recommended_bytes"],
+        expected.to_string(),
+        "SERVICE_M3C_UNIQUE: app"
+    );
+    let preview = call(&s, "clean_prepare", json!({"groupIds":["chrome-cache"]}));
+    assert_eq!(preview["total_bytes"], "300", "SERVICE_M3C_UNIQUE: preview");
+    let plan = read_plan(&f, &preview);
+    assert_eq!(
+        plan["plan"]["items"]
+            .as_array()
+            .unwrap()
+            .iter()
+            .map(|i| i["total_bytes"].as_str().unwrap().parse::<u64>().unwrap())
+            .sum::<u64>(),
+        600,
+        "SERVICE_M3C_UNIQUE: plan remains logical"
+    );
+    drop(s);
+    let s = f.service(false);
+    assert_eq!(
+        call(&s, "group_detail", json!({"groupId":"chrome-cache"}))["items"],
+        detail["items"],
+        "SERVICE_M3C_INUSE_ITEM: persisted"
+    );
+    f.fake
+        .names
+        .lock()
+        .unwrap()
+        .push(("Google\\Chrome".into(), "无法确认占用状态".into()));
+    let result = scanned(&s);
+    let unknown = "暂时无法确认是否在运行，清理时会再次检查";
+    assert_eq!(
+        group_in_use(&result, "chrome-cache"),
+        json!({"process_label_zh":unknown,"item_count":2}),
+        "SERVICE_M3C_INUSE_ITEM: unavailable snapshot"
+    );
+    let detail = call(&s, "group_detail", json!({"groupId":"chrome-cache"}));
+    assert!(
+        detail["items"]
+            .as_array()
+            .unwrap()
+            .iter()
+            .all(|i| i["in_use"]["process_label_zh"] == unknown),
+        "SERVICE_M3C_INUSE_ITEM: unknown details"
+    );
+}
+
+fn read_plan(f: &Fixture, preview: &Value) -> Value {
+    serde_json::from_slice(
+        &fs::read(
+            f.data
+                .join("plans")
+                .join(format!("{}.json", preview["plan_id"].as_str().unwrap())),
+        )
+        .unwrap(),
+    )
+    .unwrap()
+}
+fn write_scan(f: &Fixture, saved: &Value) {
+    fs::write(
+        f.data
+            .join("scans")
+            .join(format!("{}.json", saved["scan_id"].as_str().unwrap())),
+        saved.to_string(),
+    )
+    .unwrap();
+}
+
+fn m3c_by_drive() {
+    let f = Fixture::new();
+    f.seed();
+    let s = f.service(false);
+    let result = scanned(&s);
+    let mut saved = scan_saved(&f, &result);
+    drop(s);
+    for i in saved["result"]["items"]
+        .as_array_mut()
+        .unwrap()
+        .iter_mut()
+        .filter(|i| i["group_id"] == "chrome-cache")
+    {
+        let (path, n) = if i["path"].as_str().unwrap().contains("Profile Busy") {
+            ("Y:\\cache-b", 200)
+        } else {
+            ("X:\\cache-a", 100)
+        };
+        i["path"] = json!(path);
+        i["unique_bytes"] = json!(n.to_string());
+    }
+    write_scan(&f, &saved);
+    let s = f.service(false);
+    let detail = call(&s, "group_detail", json!({"groupId":"chrome-cache"}));
+    assert_eq!(
+        detail["group"]["by_drive"],
+        json!([{"root":"X:\\","item_count":1,"eligible_bytes":"100"},{"root":"Y:\\","item_count":1,"eligible_bytes":"200"}]),
+        "SERVICE_M3C_BY_DRIVE: sorted two drives"
+    );
+    assert_eq!(
+        detail["group"]["drive_root"], "Y:\\",
+        "SERVICE_M3C_BY_DRIVE: largest item"
+    );
+}
+
+fn m3c_drive_roots() {
+    let f = Fixture::new();
+    let d = |root: &str, is_system| DriveInfo {
+        root: root.into(),
+        is_system,
+        total_bytes: 1000,
+        free_bytes: 500,
+    };
+    *f.fake.drives.lock().unwrap() = vec![
+        d("F:\\", true),
+        d("W:\\", true),
+        d("X:\\", false),
+        d("Y:\\", false),
+        d("Z:\\", false),
+    ];
+    *f.fake.file_systems.lock().unwrap() = BTreeMap::from([
+        ("W:\\".into(), "NTFS".into()),
+        ("X:\\".into(), "ntfs".into()),
+        ("Y:\\".into(), "rEfS".into()),
+        ("Z:\\".into(), "exFAT".into()),
+    ]);
+    let s = f.service(false);
+    for root in ["W:\\", "F:\\", "V:\\"] {
+        f.pick(Some(Path::new(root)));
+        assert!(
+            matches!(s.call("custom_root_add",json!({})),Err(e) if e.code=="invalid" && e.message_zh==TOO_BROAD),
+            "SERVICE_M3C_DRIVE_ROOT: system/nonfixed/known {root}"
+        );
+    }
+    for (root, id) in [("x:\\", "drive-x"), ("Y:\\", "drive-y")] {
+        f.pick(Some(Path::new(root)));
+        let added = call(&s, "custom_root_add", json!({}));
+        assert_eq!(added["added"]["root_id"], id, "SERVICE_M3C_DRIVE_ROOT: id");
+        assert_eq!(
+            added["added"]["display_path"],
+            root.to_ascii_uppercase(),
+            "SERVICE_M3C_DRIVE_ROOT: display"
+        );
+        assert_eq!(
+            added["added"]["is_drive_root"], true,
+            "SERVICE_M3C_DRIVE_ROOT: flag"
+        );
+    }
+    for fs_name in [Some("exFAT"), Some("FAT32"), None] {
+        if let Some(name) = fs_name {
+            f.fake
+                .file_systems
+                .lock()
+                .unwrap()
+                .insert("Z:\\".into(), name.into());
+        } else {
+            f.fake.file_systems.lock().unwrap().remove("Z:\\");
+        }
+        f.pick(Some(Path::new("Z:\\")));
+        assert!(
+            matches!(s.call("custom_root_add",json!({})),Err(e) if e.code=="invalid" && e.message_zh=="只支持 NTFS 或 ReFS 格式的盘"),
+            "SERVICE_M3C_DRIVE_ROOT: filesystem"
+        );
+    }
+    drop(s);
+    let s = f.service(false);
+    assert_eq!(
+        call(&s, "locations_get", json!({}))["custom_roots"]
+            .as_array()
+            .unwrap()
+            .len(),
+        2,
+        "SERVICE_M3C_DRIVE_ROOT: load roots"
+    );
+}
+
+fn m3c_exclude_skip() {
+    let f = Fixture::new();
+    f.seed();
+    let recent = f.file("windows/Temp/recent.tmp", 7);
+    age(&recent, NOW);
+    let s = f.service(true);
+    let result = scanned(&s);
+    let detail = call(&s, "group_detail", json!({"groupId":"chrome-cache"}));
+    let items = detail["items"].as_array().unwrap();
+    let default = items
+        .iter()
+        .find(|i| i["display_path"].as_str().unwrap().contains("Default"))
+        .unwrap();
+    let busy = items
+        .iter()
+        .find(|i| i["display_path"].as_str().unwrap().contains("Profile Busy"))
+        .unwrap();
+    let saved = scan_saved(&f, &result);
+    let npm = saved["result"]["items"]
+        .as_array()
+        .unwrap()
+        .iter()
+        .find(|i| i["group_id"] == "npm-cache")
+        .unwrap();
+    let protected = saved["result"]["items"]
+        .as_array()
+        .unwrap()
+        .iter()
+        .find(|i| i["group_id"] == "claude-code-sessions")
+        .unwrap();
+    let too_new = saved["result"]["items"]
+        .as_array()
+        .unwrap()
+        .iter()
+        .find(|i| i["path"].as_str().unwrap().ends_with("recent.tmp"))
+        .unwrap();
+    for (groups, excluded) in [
+        (json!(["chrome-cache"]), json!(["i-missing"])),
+        (json!(["chrome-cache"]), json!([npm["item_id"]])),
+        (
+            json!(["chrome-cache"]),
+            json!([default["item_id"], default["item_id"]]),
+        ),
+        (
+            json!(["chrome-cache", "system-temp-old"]),
+            json!([too_new["item_id"]]),
+        ),
+        (json!(["chrome-cache"]), json!([protected["item_id"]])),
+        (json!(["chrome-cache"]), json!(vec!["i-x"; 5001])),
+    ] {
+        assert_eq!(
+            s.call(
+                "clean_prepare",
+                json!({"groupIds":groups,"excludeItemIds":excluded})
+            )
+            .unwrap_err()
+            .code,
+            "invalid",
+            "SERVICE_M3C_EXCLUDE: invalid exclusion"
+        );
+    }
+    let p = call(
+        &s,
+        "clean_prepare",
+        json!({"groupIds":["chrome-cache"],"excludeItemIds":[default["item_id"]]}),
+    );
+    assert_eq!(
+        (
+            p["item_count"].clone(),
+            p["total_bytes"].clone(),
+            p["excluded_count"].clone()
+        ),
+        (json!(1), json!("200"), json!(1)),
+        "SERVICE_M3C_EXCLUDE: preview"
+    );
+    assert_eq!(
+        read_plan(&f, &p)["plan"]["items"][0]["item_id"],
+        busy["item_id"],
+        "SERVICE_M3C_EXCLUDE: plan"
+    );
+    let p = call(
+        &s,
+        "clean_prepare",
+        json!({"groupIds":["chrome-cache","npm-cache"],"excludeItemIds":[default["item_id"],busy["item_id"]]}),
+    );
+    assert_eq!(
+        p["groups"].as_array().unwrap().len(),
+        1,
+        "SERVICE_M3C_EXCLUDE: empty group removed"
+    );
+    assert_eq!(
+        p["groups"][0]["group_id"], "npm-cache",
+        "SERVICE_M3C_EXCLUDE: retained group"
+    );
+    assert_eq!(s.call("clean_prepare",json!({"groupIds":["chrome-cache"],"excludeItemIds":[default["item_id"],busy["item_id"]]})).unwrap_err().code,"invalid","SERVICE_M3C_EXCLUDE: all empty");
+    assert_eq!(
+        call(&s, "clean_prepare", json!({"groupIds":["chrome-cache"]}))["item_count"],
+        2,
+        "SERVICE_M3C_EXCLUDE: old args"
+    );
+    assert_eq!(
+        call(
+            &s,
+            "clean_prepare",
+            json!({"groupIds":["chrome-cache"],"excludeItemIds":[]})
+        )["item_count"],
+        2,
+        "SERVICE_M3C_EXCLUDE: empty list"
+    );
+    assert_eq!(
+        s.call("skip_add", json!({"itemId":protected["item_id"]}))
+            .unwrap_err()
+            .code,
+        "invalid",
+        "SERVICE_M3C_SKIP: protected"
+    );
+    assert_eq!(
+        s.call("skip_add", json!({"itemId":"i-missing"}))
+            .unwrap_err()
+            .code,
+        "invalid",
+        "SERVICE_M3C_SKIP: unknown"
+    );
+    let before = result["totals"]["recommended_bytes"]
+        .as_str()
+        .unwrap()
+        .parse::<u64>()
+        .unwrap();
+    let loc = call(&s, "skip_add", json!({"itemId":default["item_id"]}));
+    assert_eq!(
+        loc["skipped"][0]["display_path"], default["display_path"],
+        "SERVICE_M3C_SKIP: service path"
+    );
+    assert_eq!(
+        loc["skipped"][0]["skip_id"], "s-000001",
+        "SERVICE_M3C_SKIP: sequence"
+    );
+    assert_eq!(
+        call(&s, "skip_add", json!({"itemId":default["item_id"]})),
+        loc,
+        "SERVICE_M3C_SKIP: idempotent"
+    );
+    let after = call(&s, "group_detail", json!({"groupId":"chrome-cache"}));
+    let skipped = after["items"]
+        .as_array()
+        .unwrap()
+        .iter()
+        .find(|i| i["item_id"] == default["item_id"])
+        .unwrap();
+    assert_eq!(
+        skipped["eligible"], false,
+        "SERVICE_M3C_SKIP: immediate eligibility"
+    );
+    assert_eq!(
+        skipped["reason_zh"], "已设为以后都跳过",
+        "SERVICE_M3C_SKIP: immediate reason"
+    );
+    assert_eq!(
+        after["group"]["eligible_bytes"], "200",
+        "SERVICE_M3C_SKIP: immediate group"
+    );
+    assert_eq!(
+        after["group"]["by_drive"][0]["eligible_bytes"], "200",
+        "SERVICE_M3C_SKIP: immediate by drive"
+    );
+    let after_scan = call(&s, "scan_result", json!({"scanId":result["scan_id"]}));
+    assert_eq!(
+        after_scan["totals"]["recommended_bytes"],
+        (before - 100).to_string(),
+        "SERVICE_M3C_SKIP: immediate total"
+    );
+    assert_eq!(
+        call(&s, "app_state", json!({}))["last_scan"]["recommended_bytes"],
+        (before - 100).to_string(),
+        "SERVICE_M3C_SKIP: app total"
+    );
+    let p = call(
+        &s,
+        "clean_prepare",
+        json!({"groupIds":["chrome-cache"],"excludeItemIds":[default["item_id"]]}),
+    );
+    assert_eq!(
+        p["excluded_count"], 0,
+        "SERVICE_M3C_EXCLUDE: already skipped ignored"
+    );
+    assert_eq!(p["item_count"], 1, "SERVICE_M3C_SKIP: immediate plan");
+    assert_eq!(
+        read_plan(&f, &p)["plan"]["items"][0]["item_id"],
+        busy["item_id"],
+        "SERVICE_M3C_SKIP: omitted"
+    );
+    drop(s);
+    let s = f.service(true);
+    assert_eq!(
+        call(&s, "group_detail", json!({"groupId":"chrome-cache"}))["group"]["eligible_bytes"],
+        "200",
+        "SERVICE_M3C_SKIP: persisted"
+    );
+    let result = scanned(&s);
+    assert_eq!(
+        scan_saved(&f, &result)["result"]["items"]
+            .as_array()
+            .unwrap()
+            .iter()
+            .find(|i| i["path"] == default["display_path"])
+            .unwrap()["ineligible_reason"],
+        "user_skipped",
+        "SERVICE_M3C_SKIP: next scan"
+    );
+    let removed = call(
+        &s,
+        "skip_remove",
+        json!({"skipId":loc["skipped"][0]["skip_id"]}),
+    );
+    assert_eq!(removed["skipped"], json!([]), "SERVICE_M3C_SKIP: remove");
+    assert_eq!(
+        call(&s, "group_detail", json!({"groupId":"chrome-cache"}))["group"]["eligible_bytes"],
+        "200",
+        "SERVICE_M3C_SKIP: remove waits for scan"
+    );
+    let result = scanned(&s);
+    assert_eq!(
+        groups(&result)
+            .into_iter()
+            .find(|g| g["group_id"] == "chrome-cache")
+            .unwrap()["eligible_bytes"],
+        "300",
+        "SERVICE_M3C_SKIP: restored on scan"
+    );
+    drop(s);
+    m3c_skip_prepare_guard();
+    m3c_skip_limit();
+}
+
+fn m3c_skip_prepare_guard() {
+    let f = Fixture::new();
+    f.seed();
+    let s = f.service(true);
+    let result = scanned(&s);
+    let saved = scan_saved(&f, &result);
+    let item = saved["result"]["items"]
+        .as_array()
+        .unwrap()
+        .iter()
+        .find(|i| {
+            i["group_id"] == "chrome-cache" && i["path"].as_str().unwrap().contains("Default")
+        })
+        .unwrap();
+    let settings_path = f.data.join("settings.json");
+    call(
+        &s,
+        "locations_set_category",
+        json!({"category":"crash_log","enabled":true}),
+    );
+    let mut settings: Value = serde_json::from_slice(&fs::read(&settings_path).unwrap()).unwrap();
+    settings["skipped"] = json!([{"skip_id":"s-000001","path":item["path"].as_str().unwrap().to_ascii_uppercase(),"added_at":"2027-01-01T00:00:00Z"}]);
+    fs::write(settings_path, settings.to_string()).unwrap();
+    let p = call(&s, "clean_prepare", json!({"groupIds":["chrome-cache"]}));
+    assert_eq!(
+        p["excluded_count"], 1,
+        "SERVICE_M3C_SKIP: prepare insurance count"
+    );
+    assert_eq!(
+        p["item_count"], 1,
+        "SERVICE_M3C_SKIP: prepare insurance items"
+    );
+    assert!(
+        read_plan(&f, &p)["plan"]["items"]
+            .as_array()
+            .unwrap()
+            .iter()
+            .all(|i| i["item_id"] != item["item_id"]),
+        "SERVICE_M3C_SKIP: prepare insurance plan"
+    );
+}
+
+fn m3c_skip_limit() {
+    let f = Fixture::new();
+    for n in 0..65 {
+        f.file(
+            &format!("local_app_data/Google/Chrome/User Data/Profile {n}/Cache/data"),
+            1,
+        );
+    }
+    f.age_all(NOW - 10 * 86400);
+    let s = f.service(true);
+    scanned(&s);
+    let items = call(&s, "group_detail", json!({"groupId":"chrome-cache"}))["items"]
+        .as_array()
+        .unwrap()
+        .clone();
+    for item in items.iter().take(64) {
+        let started = Instant::now();
+        s.call("skip_add", json!({"itemId":item["item_id"]}))
+            .unwrap();
+        assert!(
+            started.elapsed() <= Duration::from_millis(50),
+            "SERVICE_M3C_SKIP: add {} took {:?}",
+            item["item_id"],
+            started.elapsed()
+        );
+    }
+    assert_eq!(
+        s.call("skip_add", json!({"itemId":items[64]["item_id"]}))
+            .unwrap_err()
+            .code,
+        "invalid",
+        "SERVICE_M3C_SKIP: 65th"
+    );
+    assert_eq!(
+        call(&s, "locations_get", json!({}))["skipped"]
+            .as_array()
+            .unwrap()
+            .len(),
+        64,
+        "SERVICE_M3C_SKIP: limit"
+    );
+}
+
+fn m3c_compat() {
+    let f = Fixture::new();
+    f.seed();
+    let s = f.service(false);
+    let result = scanned(&s);
+    call(
+        &s,
+        "locations_set_category",
+        json!({"category":"dev_cache","enabled":false}),
+    );
+    let mut saved = scan_saved(&f, &result);
+    drop(s);
+    let settings_path = f.data.join("settings.json");
+    let mut settings: Value = serde_json::from_slice(&fs::read(&settings_path).unwrap()).unwrap();
+    settings["settings_version"] = json!("water.settings.v1");
+    settings.as_object_mut().unwrap().remove("skipped");
+    fs::write(&settings_path, settings.to_string()).unwrap();
+    for key in ["in_use", "item_in_use", "orphans"] {
+        let mut copy = saved.clone();
+        copy.as_object_mut().unwrap().remove(key);
+        write_scan(&f, &copy);
+        let s = f.service(false);
+        assert_eq!(
+            call(&s, "app_state", json!({}))["last_scan"]["scan_id"],
+            result["scan_id"],
+            "SERVICE_M3C_INUSE_ITEM: independently optional {key}"
+        );
+        let locations = call(&s, "locations_get", json!({}));
+        assert_eq!(
+            locations["skipped"],
+            json!([]),
+            "SERVICE_M3C_SKIP: old settings"
+        );
+        assert_eq!(
+            locations["categories"][4]["enabled"], false,
+            "SERVICE_M3C_SKIP: old categories retained"
+        );
+    }
+    saved["in_use"] = json!({"chrome-cache":{"process_label_zh":"旧提示"}});
+    for i in saved["result"]["items"].as_array_mut().unwrap() {
+        i.as_object_mut().unwrap().remove("unique_bytes");
+    }
+    for g in saved["result"]["groups"].as_array_mut().unwrap() {
+        g.as_object_mut().unwrap().remove("unique_bytes");
+        g.as_object_mut().unwrap().remove("eligible_unique_bytes");
+    }
+    saved.as_object_mut().unwrap().remove("item_in_use");
+    write_scan(&f, &saved);
+    let s = f.service(false);
+    let detail = call(&s, "group_detail", json!({"groupId":"chrome-cache"}));
+    assert_eq!(
+        detail["group"]["in_use"],
+        json!({"process_label_zh":"旧提示","item_count":null}),
+        "SERVICE_M3C_INUSE_ITEM: old group label"
+    );
+    assert!(
+        detail["items"]
+            .as_array()
+            .unwrap()
+            .iter()
+            .all(|i| i["in_use"].is_null()),
+        "SERVICE_M3C_INUSE_ITEM: old details"
+    );
+    assert_eq!(
+        detail["group"]["total_bytes"], "300",
+        "SERVICE_M3C_UNIQUE: legacy fallback"
+    );
+}
+
+fn m3c_trends() {
+    let f = Fixture::new();
+    f.seed();
+    let s = f.service(false);
+    assert_eq!(
+        call(&s, "app_state", json!({}))["checkup_due"],
+        json!({"days_since_last":null}),
+        "SERVICE_M3C_DUE: never"
+    );
+    assert_eq!(
+        call(&s, "trends", json!({}))["orphans"],
+        Value::Null,
+        "SERVICE_M3C_ORPHANS: no record"
+    );
+    *f.fake.orphans.lock().unwrap() = (0..52)
+        .map(|n| water_process_scan::OrphanChain {
+            root_pid: n + 1,
+            name: format!("node-{n}.exe"),
+            created_at: Some("2027-01-01T00:00:00Z".into()),
+            matched_pattern: "jest-worker".into(),
+            descendant_pids: vec![100 + n],
+            memory_bytes: if n == 0 { None } else { Some(n.to_string()) },
+        })
+        .collect();
+    let result = scanned(&s);
+    let trends = call(&s, "trends", json!({}));
+    assert_eq!(
+        trends["orphans"]["chains"].as_array().unwrap().len(),
+        50,
+        "SERVICE_M3C_ORPHANS: cap"
+    );
+    assert_eq!(
+        trends["orphans"]["chains"][0]["memory_bytes"], "51",
+        "SERVICE_M3C_ORPHANS: descending"
+    );
+    assert_eq!(
+        trends["orphans"]["chains"][0]["process_count"], 2,
+        "SERVICE_M3C_ORPHANS: descendants"
+    );
+    assert_eq!(
+        trends["orphans"]["total_memory_bytes"],
+        (2..=51).sum::<u64>().to_string(),
+        "SERVICE_M3C_ORPHANS: sum"
+    );
+    assert_eq!(
+        scan_saved(&f, &result)["orphans"],
+        trends["orphans"]["chains"],
+        "SERVICE_M3C_ORPHANS: persisted"
+    );
+    f.fake.now.store(NOW + 6 * 86400, Ordering::SeqCst);
+    assert_eq!(
+        call(&s, "app_state", json!({}))["checkup_due"],
+        Value::Null,
+        "SERVICE_M3C_DUE: six days"
+    );
+    f.fake.now.store(NOW + 7 * 86400, Ordering::SeqCst);
+    assert_eq!(
+        call(&s, "app_state", json!({}))["checkup_due"],
+        json!({"days_since_last":7}),
+        "SERVICE_M3C_DUE: seven days"
+    );
+    let mut saved = scan_saved(&f, &result);
+    drop(s);
+    *f.fake.drives.lock().unwrap() = ["F:\\", "X:\\", "Y:\\", "Z:\\"]
+        .iter()
+        .map(|r| DriveInfo {
+            root: (*r).into(),
+            is_system: *r == "F:\\",
+            total_bytes: 1_000_000,
+            free_bytes: 1000,
+        })
+        .collect();
+    for (n, at, free) in [
+        (1, "2027-01-15T08:00:00Z", 1000),
+        (2, "2027-01-17T08:00:00Z", 1000),
+        (3, "2027-01-19T08:00:00Z", 800),
+    ] {
+        let id = format!(
+            "scan-202701{}T080000Z-{n:04x}",
+            if n == 1 {
+                15
+            } else if n == 2 {
+                17
+            } else {
+                19
+            }
+        );
+        saved["scan_id"] = json!(id);
+        saved["result"]["scan_id"] = json!(id);
+        saved["finished_at"] = json!(at);
+        saved["result"]["ended_at"] = json!(at);
+        saved["drives"] = json!([
+            {"root":"F:\\","free_bytes":free.to_string()},
+            {"root":"X:\\","free_bytes":(1000+n*100).to_string()},
+            {"root":"Y:\\","free_bytes":(1_000_000-n*100).to_string()}
+        ]);
+        if n == 3 {
+            saved["drives"]
+                .as_array_mut()
+                .unwrap()
+                .push(json!({"root":"Z:\\","free_bytes":"500"}));
+        }
+        saved["orphans"] = json!([{"name":"node.exe","matched_pattern":"codex","process_count":1,"memory_bytes":null,"started_at":null}]);
+        write_scan(&f, &saved);
+    }
+    let source = f
+        .data
+        .join("scans")
+        .join(format!("{}.json", result["scan_id"].as_str().unwrap()));
+    let mut old: Value = serde_json::from_slice(&fs::read(&source).unwrap()).unwrap();
+    old["drives"] = json!([]);
+    fs::write(source, old.to_string()).unwrap();
+    let mut clean = fixtures()["clean_result"].clone();
+    clean["clean_id"] = json!("clean-20270117T120000Z-0001");
+    clean["finished_at"] = json!("2027-01-17T12:00:00Z");
+    clean["drives"] = json!([{"root":"F:\\","free_before":"700","free_after":"900"}]);
+    let record = json!({"clean_id":clean["clean_id"],"plan_id":"plan-20270117T120000Z-0001","scan_id":result["scan_id"],"view":clean,"report":{"report_version":"water.clean-report.v1","plan_id":"plan-20270117T120000Z-0001","started_at":"2027-01-17T12:00:00Z","ended_at":"2027-01-17T12:00:00Z","status":"completed","freed_bytes":"200","estimate_bytes":"200","volumes":[],"items":[]}});
+    fs::write(
+        f.data.join("cleans/clean-20270117T120000Z-0001.json"),
+        record.to_string(),
+    )
+    .unwrap();
+    let s = f.service(false);
+    let t = call(&s, "trends", json!({}));
+    let fc = t["forecast"].as_array().unwrap();
+    let drive = |root: &str| fc.iter().find(|p| p["root"] == root).unwrap();
+    assert_eq!(
+        drive("F:\\"),
+        &json!({"root":"F:\\","days_to_full":8,"bytes_per_day":"100","basis_days":4.0,"note_zh":null}),
+        "SERVICE_M3C_FORECAST: cleanup jump adjusted"
+    );
+    assert_eq!(
+        drive("X:\\")["note_zh"],
+        "最近 30 天可用空间没有减少",
+        "SERVICE_M3C_FORECAST: no decrease"
+    );
+    assert_eq!(
+        drive("X:\\")["bytes_per_day"],
+        "-50",
+        "SERVICE_M3C_FORECAST: negative rate"
+    );
+    assert_eq!(
+        drive("Y:\\")["note_zh"],
+        "按现在的速度，十年内不会满",
+        "SERVICE_M3C_FORECAST: long horizon"
+    );
+    assert_eq!(
+        drive("Z:\\")["note_zh"],
+        "至少需要 3 天内 3 次体检才能估算",
+        "SERVICE_M3C_FORECAST: insufficient points"
+    );
+    assert_eq!(
+        t["orphans"]["total_memory_bytes"],
+        Value::Null,
+        "SERVICE_M3C_ORPHANS: all unknown"
+    );
+    assert_eq!(
+        t["orphans"]["chains"][0]["started_at"],
+        Value::Null,
+        "SERVICE_M3C_ORPHANS: unknown time"
+    );
+}
+
+fn m3c_snapshot_remove_fail() {
+    let f = Fixture::new();
+    f.seed();
+    for n in 0..1000 {
+        f.file(&format!("windows/Temp/old-{n}.tmp"), 1);
+    }
+    f.age_all(NOW - 10 * 86400);
+    let s = f.service(false);
+    let first = scanned(&s);
+    f.fake.entered.store(false, Ordering::SeqCst);
+    f.fake.hold.store(true, Ordering::SeqCst);
+    let id = call(&s, "scan_start", json!({}));
+    let begin = Instant::now();
+    while !f.fake.entered.load(Ordering::SeqCst) {
+        assert!(
+            begin.elapsed() < Duration::from_secs(10),
+            "SERVICE_SNAPSHOT_REMOVE_FAIL: start"
+        );
+        std::thread::sleep(Duration::from_millis(1));
+    }
+    // The scan destination is a plain file held without delete sharing: serialization
+    // and sync of the large temporary record succeed, but its final rename fails.
+    let blocked = f
+        .data
+        .join("scans")
+        .join(format!("{}.json", id["scan_id"].as_str().unwrap()));
+    fs::write(&blocked, "{}").unwrap();
+    let scan_lock = OpenOptions::new()
+        .read(true)
+        .share_mode(1 | 2)
+        .open(&blocked)
+        .unwrap();
+    let snapshot = f
+        .data
+        .join("snapshots")
+        .join(format!("{}.json", id["scan_id"].as_str().unwrap()));
+    f.fake.hold.store(false, Ordering::SeqCst);
+    let begin = Instant::now();
+    let mut held = None;
+    while begin.elapsed() < Duration::from_secs(10) {
+        if let Ok(file) = OpenOptions::new()
+            .read(true)
+            .share_mode(1 | 2)
+            .open(&snapshot)
+        {
+            held = Some(file);
+            break;
+        }
+        if s.call("scan_progress", json!({})).unwrap()["state"] != "running" {
+            break;
+        }
+        std::thread::yield_now();
+    }
+    let progress = settle(&s, "scan_progress", "SERVICE_SNAPSHOT_REMOVE_FAIL");
+    assert!(
+        held.is_some(),
+        "SERVICE_SNAPSHOT_REMOVE_FAIL: did not hold snapshot before removal"
+    );
+    assert_eq!(
+        progress["state"], "failed",
+        "SERVICE_SNAPSHOT_REMOVE_FAIL: failed write"
+    );
+    assert!(
+        snapshot.is_file(),
+        "SERVICE_SNAPSHOT_REMOVE_FAIL: locked snapshot should remain"
+    );
+    let app = call(&s, "app_state", json!({}));
+    assert_eq!(app["busy"], "idle", "SERVICE_SNAPSHOT_REMOVE_FAIL: idle");
+    assert_eq!(
+        app["last_scan"]["scan_id"], first["scan_id"],
+        "SERVICE_SNAPSHOT_REMOVE_FAIL: rolled back"
+    );
+    drop(held);
+    drop(scan_lock);
+    drop(s);
+    let s = f.service(false);
+    assert_eq!(
+        call(&s, "app_state", json!({}))["last_scan"]["scan_id"],
+        first["scan_id"],
+        "SERVICE_SNAPSHOT_REMOVE_FAIL: restart"
     );
 }

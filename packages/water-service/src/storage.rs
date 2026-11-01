@@ -103,8 +103,11 @@ impl Store {
             .create_new(true)
             .open(&tmp)
             .map_err(unavailable)?;
-        serde_json::to_writer(&mut file, value).map_err(unavailable)?;
-        file.write_all(b"\n").map_err(unavailable)?;
+        // Serialize before touching the file: thousands of tiny JSON token writes
+        // otherwise make an immediate skip update exceed the IPC return budget.
+        let mut bytes = serde_json::to_vec(value).map_err(unavailable)?;
+        bytes.push(b'\n');
+        file.write_all(&bytes).map_err(unavailable)?;
         file.sync_all().map_err(unavailable)?;
         drop(file);
         // On Windows rename replaces the destination; there is no remove-then-write gap.

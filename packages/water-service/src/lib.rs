@@ -67,6 +67,14 @@ pub trait Platform: Send + Sync {
     fn local_date(&self, at: SystemTime) -> (u32, u32);
     fn in_use(&self, spec: &InUseSpec, item_path: &str) -> Option<String>;
     fn begin_in_use_batch(&self) {}
+    /// The fixed drive's file system, or None when it cannot be established.
+    fn volume_file_system(&self, _root: &str) -> Option<String> {
+        None
+    }
+    /// Orphan chains from the same snapshot used by this in-use batch.
+    fn orphan_chains(&self) -> Vec<water_process_scan::OrphanChain> {
+        Vec::new()
+    }
 }
 
 #[derive(Debug, Clone)]
@@ -100,6 +108,22 @@ impl WindowsPlatform {
 }
 
 impl Platform for WindowsPlatform {
+    fn volume_file_system(&self, root: &str) -> Option<String> {
+        native_windows::volume_file_system(root)
+    }
+
+    fn orphan_chains(&self) -> Vec<water_process_scan::OrphanChain> {
+        let slot = self
+            .processes
+            .lock()
+            .unwrap_or_else(PoisonError::into_inner);
+        slot.as_ref()
+            .map(|snapshot| {
+                water_process_scan::orphans(snapshot, water_process_scan::DEFAULT_ORPHAN_PATTERNS)
+            })
+            .unwrap_or_default()
+    }
+
     fn known_folders(&self) -> Result<KnownFolders, IpcError> {
         let folders = water_junk_scan::known_folders().map_err(|_| IpcError::new("unavailable"))?;
         KnownFolders::from_json(

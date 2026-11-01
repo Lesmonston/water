@@ -96,7 +96,18 @@ fn custom_path(record: &Record, group_id: &str) -> String {
 }
 
 pub(crate) fn in_use_spec(group: &Group) -> water_process_scan::InUseSpec {
-    serde_json::from_value(json!(group.in_use)).expect("validated scan in-use specification")
+    use water_junk_rules::InUseMode as RuleMode;
+    use water_process_scan::InUseMode;
+    let mode = match RuleMode::parse(&group.in_use.mode).expect("validated scan in-use mode") {
+        RuleMode::None => InUseMode::None,
+        RuleMode::ProcessRunning => InUseMode::ProcessRunning,
+        RuleMode::CmdlineReferencesItem => InUseMode::CmdlineReferencesItem,
+        RuleMode::RunsFromOrReferencesItem => InUseMode::RunsFromOrReferencesItem,
+    };
+    water_process_scan::InUseSpec {
+        mode,
+        processes: group.in_use.processes.clone(),
+    }
 }
 
 /// Product names shown for well-known processes (SERVICE-HARDENING §7); others drop `.exe`.
@@ -111,43 +122,145 @@ const PRODUCT_NAMES: [(&str, &str); 6] = [
 
 /// Decided once per scan, inside that scan's in-use batch, and saved with the record.
 /// Views never ask the platform again; a missing snapshot is kept as "in use, unknown".
-pub(crate) fn scan_in_use(result: &ScanResult, platform: &dyn Platform) -> Value {
+pub(crate) fn scan_in_use(result: &ScanResult, platform: &dyn Platform) -> (Value, Value) {
     let mut saved = serde_json::Map::new();
+    let mut items = serde_json::Map::new();
     for g in &result.groups {
         let spec = in_use_spec(g);
-        if spec.mode == water_process_scan::InUseMode::None {
-            continue;
+        match spec.mode {
+            water_process_scan::InUseMode::None => continue,
+            water_process_scan::InUseMode::ProcessRunning
+            | water_process_scan::InUseMode::CmdlineReferencesItem
+            | water_process_scan::InUseMode::RunsFromOrReferencesItem => {}
         }
-        let Some(name) = result
+        let mut first = None;
+        let mut count = 0;
+        let mut unknown = false;
+        for item in result
             .items
             .iter()
             .filter(|i| i.group_id == g.group_id && i.eligible)
-            .find_map(|i| platform.in_use(&spec, &i.path))
-        else {
+        {
+            if let Some(name) = platform.in_use(&spec, &item.path) {
+                count += 1;
+                unknown |= name == IN_USE_UNKNOWN;
+                let label = product_name(&name);
+                items.insert(item.item_id.clone(), json!({"process_label_zh": if name == IN_USE_UNKNOWN { UNKNOWN_TEXT.to_owned() } else { format!("{label} 正在使用") }}));
+                first.get_or_insert(label);
+            }
+        }
+        if let Some(label) = first {
+            saved.insert(g.group_id.clone(), json!({"process_label_zh":if unknown { UNKNOWN_TEXT.to_owned() } else { format!("{label} 正在运行，将跳过 {count} 个占用的项") },"item_count":count}));
+        }
+    }
+    (Value::Object(saved), Value::Object(items))
+}
+
+const UNKNOWN_TEXT: &str = "暂时无法确认是否在运行，清理时会再次检查";
+
+fn product_name(name: &str) -> String {
+    PRODUCT_NAMES
+        .iter()
+        .find(|(process, _)| process.eq_ignore_ascii_case(name))
+        .map(|(_, product)| (*product).to_owned())
+        .unwrap_or_else(|| {
+            if name
+                .get(name.len().saturating_sub(4)..)
+                .is_some_and(|s| s.eq_ignore_ascii_case(".exe"))
+            {
+                name[..name.len() - 4].to_owned()
+            } else {
+                name.to_owned()
+            }
+        })
+}
+
+pub(crate) fn apply_skips(result: &mut ScanResult, settings: &Settings) {
+    for item in &mut result.items {
+        if item.eligible
+            && settings
+                .skipped
+                .iter()
+                .any(|s| s.path.eq_ignore_ascii_case(&item.path))
+        {
+            item.eligible = false;
+            item.ineligible_reason = Some("user_skipped".into());
+        }
+    }
+    for group in &mut result.groups {
+        let items: Vec<_> = result
+            .items
+            .iter()
+            .filter(|i| i.group_id == group.group_id && i.eligible)
+            .collect();
+        group.eligible_count = items.len() as u64;
+        group.eligible_bytes = items
+            .iter()
+            .map(|i| util::number(&i.total_bytes))
+            .sum::<u64>()
+            .to_string();
+        group.eligible_unique_bytes = items
+            .iter()
+            .map(|i| util::number(&i.unique_bytes))
+            .sum::<u64>()
+            .to_string();
+    }
+}
+
+/// Keep saved occupancy consistent when a skip narrows eligibility. Reuse the
+/// per-item result from the scan's snapshot; never take a second process snapshot.
+pub(crate) fn narrow_in_use(record: &mut Record) {
+    if record.saved.get("item_in_use").is_none() || record.saved.get("in_use").is_none() {
+        return;
+    }
+    for g in &record.result.groups {
+        let occupied: Vec<_> = record
+            .result
+            .items
+            .iter()
+            .filter(|i| i.group_id == g.group_id && i.eligible)
+            .filter_map(|i| record.saved["item_in_use"].get(&i.item_id))
+            .collect();
+        let Some(first) = occupied.first() else {
+            if let Some(saved) = record.saved["in_use"].as_object_mut() {
+                saved.remove(&g.group_id);
+            }
             continue;
         };
-        let text = if name == IN_USE_UNKNOWN {
-            "暂时无法确认是否在运行，清理时会再次检查".to_owned()
+        let unknown = occupied
+            .iter()
+            .any(|v| v["process_label_zh"] == UNKNOWN_TEXT);
+        let label = first["process_label_zh"]
+            .as_str()
+            .unwrap_or(UNKNOWN_TEXT)
+            .trim_end_matches(" 正在使用");
+        let text = if unknown {
+            UNKNOWN_TEXT.to_owned()
         } else {
-            let label = PRODUCT_NAMES
-                .iter()
-                .find(|(process, _)| process.eq_ignore_ascii_case(&name))
-                .map(|(_, product)| *product)
-                .unwrap_or_else(|| {
-                    if name
-                        .get(name.len().saturating_sub(4)..)
-                        .is_some_and(|s| s.eq_ignore_ascii_case(".exe"))
-                    {
-                        &name[..name.len() - 4]
-                    } else {
-                        &name
-                    }
-                });
-            format!("{label} 正在运行，将跳过占用的项")
+            format!("{label} 正在运行，将跳过 {} 个占用的项", occupied.len())
         };
-        saved.insert(g.group_id.clone(), json!({"process_label_zh":text}));
+        record.saved["in_use"][&g.group_id] =
+            json!({"process_label_zh":text,"item_count":occupied.len()});
     }
-    Value::Object(saved)
+    if let Some(saved) = record.saved["item_in_use"].as_object_mut() {
+        saved.retain(|id, _| {
+            record
+                .result
+                .items
+                .iter()
+                .any(|i| &i.item_id == id && i.eligible)
+        });
+    }
+}
+
+pub(crate) fn display_snapshot(result: &ScanResult) -> water_junk_scan::Snapshot {
+    let mut snapshot = water_junk_scan::snapshot(result);
+    for g in &result.groups {
+        if let Some(row) = snapshot.groups.get_mut(&g.group_id) {
+            row.total_bytes = g.unique_bytes.clone();
+        }
+    }
+    snapshot
 }
 
 pub(crate) fn group(
@@ -184,21 +297,37 @@ pub(crate) fn group(
     }
     let growth = record.growth.iter().find(|v| v.group_id == g.group_id).map(|v| json!({"bytes_delta":v.bytes_delta,"count_delta":v.count_delta,"since":record.previous_at}));
     // Records written before in-use results were saved show null.
-    let in_use = record.saved["in_use"]
+    let mut in_use = record.saved["in_use"]
         .get(&g.group_id)
         .cloned()
         .unwrap_or(Value::Null);
+    if in_use.is_object() && in_use.get("item_count").is_none() {
+        in_use["item_count"] = Value::Null;
+    }
+    let mut by_drive = BTreeMap::<String, (u64, u64)>::new();
+    for item in record
+        .result
+        .items
+        .iter()
+        .filter(|i| i.group_id == g.group_id)
+    {
+        let row = by_drive.entry(util::drive(&item.path)).or_default();
+        row.0 += 1;
+        if item.eligible {
+            row.1 += util::number(&item.unique_bytes);
+        }
+    }
     let root = record
         .result
         .items
         .iter()
         .filter(|i| i.group_id == g.group_id)
-        .max_by_key(|i| util::number(&i.total_bytes))
+        .max_by_key(|i| util::number(&i.unique_bytes))
         .map(|i| util::drive(&i.path))
         .unwrap_or_default();
     json!({"group_id":g.group_id,"title_zh":text.as_ref().map(|t|t.title_zh.as_str()).unwrap_or("未识别"),
         "owner_zh":text.as_ref().map(|t|t.owner_zh.as_str()).unwrap_or("未知"),"level":g.level,"category":g.category,"drive_root":root,
-        "item_count":g.item_count,"eligible_count":g.eligible_count,"file_count":g.file_count,"total_bytes":g.total_bytes,"eligible_bytes":g.eligible_bytes,
+        "item_count":g.item_count,"eligible_count":g.eligible_count,"file_count":g.file_count,"total_bytes":g.unique_bytes,"eligible_bytes":g.eligible_unique_bytes,"logical_bytes":g.total_bytes,"by_drive":by_drive.into_iter().map(|(root,(item_count,bytes))|json!({"root":root,"item_count":item_count,"eligible_bytes":bytes.to_string()})).collect::<Vec<_>>(),
         "newest_activity":g.newest_activity,"summary_zh":summary,"growth":growth,"in_use":in_use,"selectable":selectable,"default_selected":selectable && g.level==Level::Recommended})
 }
 
@@ -295,19 +424,19 @@ pub(crate) fn build(
             a.level
                 .rank()
                 .cmp(&b.level.rank())
-                .then(util::number(&b.total_bytes).cmp(&util::number(&a.total_bytes)))
+                .then(util::number(&b.unique_bytes).cmp(&util::number(&a.unique_bytes)))
                 .then(a.group_id.cmp(&b.group_id))
         });
         let mut buckets = BTreeMap::<String, Vec<Value>>::new();
         for g in groups {
-            let total = util::number(&g.total_bytes);
+            let total = util::number(&g.unique_bytes);
             if cat == "unrecognized" {
                 totals[5] += total;
             } else {
                 totals[0] += total;
             }
             match g.level {
-                Level::Recommended => totals[1] += util::number(&g.eligible_bytes),
+                Level::Recommended => totals[1] += util::number(&g.eligible_unique_bytes),
                 Level::Confirm => totals[2] += total,
                 Level::Advisory => totals[3] += total,
                 Level::Protected => totals[4] += total,
@@ -321,11 +450,11 @@ pub(crate) fn build(
                 .iter()
                 .filter(|i| i.group_id == g.group_id)
                 .collect();
-            items.sort_by_key(|i| std::cmp::Reverse(util::number(&i.total_bytes)));
+            items.sort_by_key(|i| std::cmp::Reverse(util::number(&i.unique_bytes)));
             if g.level == Level::Recommended {
                 for i in items.iter().filter(|i| i.eligible) {
                     *by_drive.entry(util::drive(&i.path)).or_default() +=
-                        util::number(&i.total_bytes);
+                        util::number(&i.unique_bytes);
                 }
             }
             let item_views: Vec<_> = items.iter().take(200).map(|i| {
@@ -333,8 +462,8 @@ pub(crate) fn build(
                     "level_not_cleanable"=>"这一类只统计占用，不清理".into(),"hard_guard"=>"这是系统或用户的关键目录".into(),
                     "contains_protected"=>"里面有受保护的数据".into(),"inside_protected"=>"位于受保护的数据之内".into(),"repository"=>"这是代码仓库".into(),
                     "too_recent"=>format!("最近 {} 小时内有改动",rule.map(|r|r.min_age_hours).unwrap_or(0)),
-                    "keep_newest"=>format!("按规则保留最新的 {} 个",rule.map(|r|r.keep_newest).unwrap_or(0)),_=>"无法确认这一项的身份".into() });
-                json!({"display_path":i.path,"total_bytes":i.total_bytes,"newest_activity":i.newest_activity,"eligible":i.eligible,"reason_zh":reason})
+                    "user_skipped"=>"已设为以后都跳过".into(),"keep_newest"=>format!("按规则保留最新的 {} 个",rule.map(|r|r.keep_newest).unwrap_or(0)),_=>"无法确认这一项的身份".into() });
+                json!({"item_id":i.item_id,"in_use":record.saved["item_in_use"].get(&i.item_id).cloned().unwrap_or(Value::Null),"display_path":i.path,"total_bytes":i.unique_bytes,"newest_activity":i.newest_activity,"eligible":i.eligible,"reason_zh":reason})
             }).collect();
             details.insert(g.group_id.clone(),json!({"group":view,"what_zh":text.as_ref().map(|t|t.what_zh.as_str()).unwrap_or("未识别的位置，只统计占用。"),
                 "why_zh":text.as_ref().map(|t|t.why_zh.as_str()).unwrap_or("没有匹配的清理规则。"),"after_zh":text.as_ref().map(|t|t.after_zh.as_str()).unwrap_or("请自行检查。"),
