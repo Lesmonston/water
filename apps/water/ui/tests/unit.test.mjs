@@ -127,6 +127,16 @@ test('ui_selection_rules', () => {
   assert(!model.cleanSelection(m3c.scan_result, chosen, details).groupIds.includes(data.group.group_id), 'UI_M3C_EXCLUDE: an emptied group never reaches the plan');
   assert.deepEqual(model.cleanSelection(m3c.scan_result, chosen, details).excludeItemIds, [], 'UI_M3C_EXCLUDE: an emptied group sends no orphan exclusions');
   assert.deepEqual(model.setItemSelected(m3c.scan_result, chosen, data, 'i-000204', true), chosen, 'UI_M3C_EXCLUDE: protected item cannot be opted in');
+  assert.deepEqual(model.setItemSelected(m3c.scan_result, chosen, data, item.item_id, true), chosen, 'UI_M3C_EXCLUDE: emptied groups cannot be reselected through item changes');
+  const oneExcluded = model.setItemSelected(m3c.scan_result, previous, data, item.item_id, false);
+  const reread = model.refreshResult({result:m3c.scan_result, selection:oneExcluded, details, filter:'confirm', drive:'F:\\', stale:false}, structuredClone(m3c.scan_result));
+  assert.equal(reread.details.size, 0, 'UI_M3C_SKIP: result reread clears the detail cache');
+  assert.equal(reread.selection, oneExcluded, 'UI_M3C_SKIP: result reread preserves the exact selection');
+  assert.equal(reread.filter, 'confirm', 'UI_M3C_SKIP: result reread keeps level filtering');
+  assert.equal(reread.drive, 'F:\\', 'UI_M3C_SKIP: result reread keeps drive filtering');
+  assert.equal(model.selectedBytes(reread.result, reread.selection, model.selectionDetails(reread)), originalBytes - bytes(item.total_bytes), 'UI_M3C_SKIP: known exclusions still deduct bytes after cache invalidation');
+  assert.equal(model.selectedCount(reread.result, reread.selection, model.selectionDetails(reread)), originalCount - 1, 'UI_M3C_SKIP: known exclusions still deduct counts after cache invalidation');
+  assert.deepEqual(model.cleanSelection(reread.result, reread.selection).excludeItemIds, [item.item_id], 'UI_M3C_SKIP: exclusions reach the service by ID without cached details');
   const hidden = 'codex-runtimes';
   const withConfirm = model.setSelected(m3c.scan_result, model.resetSelection(m3c.scan_result), hidden, true);
   const visibleCleared = model.selectCategory(m3c.scan_result, withConfirm, 'agent_tool', false, null, new Map(), 'recommended');

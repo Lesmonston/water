@@ -1,5 +1,5 @@
 import * as ipc from './ipc.mjs';
-import {installResult as nextResult, setSelected, selectCategory, setItemSelected, cleanSelection} from './model.mjs';
+import {installResult as nextResult, refreshResult, selectionDetails, setSelected, selectCategory, setItemSelected, cleanSelection} from './model.mjs';
 import {formatBytes} from './format.mjs';
 import {el, add, icon, button} from './views/common.mjs';
 import {home} from './views/home.mjs';
@@ -41,28 +41,37 @@ const actions = {
   selectItem:(data, itemId, checked) => {
     if (actions.busy() || state.stale) return;
     state.selection = setItemSelected(state.result, state.selection, data, itemId, checked); render();
+    showOverlay(detail(data, closeOverlay, state, actions), 'detail-close', opener);
   },
   skipItem:(data, itemId) => locationOperation(async isCurrent => {
     if (state.stale) return;
     const scanId = state.result?.scan_id;
+    state.skipFailure = '';
     const sameScan = () => state.result?.scan_id === scanId;
-    const value = await ipc.skip_add(itemId);
+    let value;
+    try { value = await ipc.skip_add(itemId); }
+    catch (error) { state.skipFailure = '跳过没有成功，这一项保留原来的勾选状态。'; throw error; }
     if (sameScan()) state.selection = setItemSelected(state.result, state.selection, data, itemId, false);
-    if (!isCurrent()) return;
-    state.locations = value;
+    await refreshAfterSkip(scanId);
+    if (isCurrent()) state.locations = value;
     if (!sameScan() || state.stale) return;
-    state.info = '以后体检会跳过这个文件夹，可以在‘位置’里恢复';
-    const refreshed = await ipc.group_detail(data.group.group_id);
-    if (isCurrent() && sameScan() && !state.stale) { rememberDetail(refreshed); showOverlay(detail(refreshed, closeOverlay, state, actions), 'detail-close', opener); }
+    // Reconcile the insurance exclusion even after navigation; only the drawer is route-owned.
+    try {
+      const refreshed = await ipc.group_detail(data.group.group_id);
+      if (sameScan() && !state.stale) {
+        rememberDetail(refreshed);
+        if (isCurrent()) { state.info = '以后体检会跳过这个文件夹，可以在‘位置’里恢复'; showOverlay(detail(refreshed, closeOverlay, state, actions), 'detail-close', opener); }
+      } else fault({code:'stale', message_zh:'结果已过期，请重新体检后再清理。'});
+    } catch { fault({code:'stale', message_zh:'结果已过期，请重新体检后再清理。'}); }
   }),
-  select:(id, checked) => { if (actions.busy() || state.stale) return; state.selection = setSelected(state.result, state.selection, id, checked, state.details); render(); },
-  selectCategory:(category, checked) => { if (actions.busy() || state.stale) return; state.selection = selectCategory(state.result, state.selection, category, checked, state.drive, state.details, state.filter); render(); },
+  select:(id, checked) => { if (actions.busy() || state.stale) return; state.selection = setSelected(state.result, state.selection, id, checked, selectionDetails(state)); render(); },
+  selectCategory:(category, checked) => { if (actions.busy() || state.stale) return; state.selection = selectCategory(state.result, state.selection, category, checked, state.drive, selectionDetails(state), state.filter); render(); },
   filter:value => { state.filter = value; render(); },
   drive:value => { state.drive = value; render(); },
   sort:value => { state.sort = value; render(); },
   prepare:() => run(async inScope => {
     if (state.busy !== 'idle' || state.stale) return;
-    const {groupIds, excludeItemIds} = cleanSelection(state.result, state.selection, state.details);
+    const {groupIds, excludeItemIds} = cleanSelection(state.result, state.selection, selectionDetails(state));
     if (!groupIds.length) return;
     let preview = await ipc.clean_prepare(groupIds, excludeItemIds);
     // A preview that arrives after the user left the results page is dropped; returning needs a new click.
@@ -87,18 +96,35 @@ const actions = {
     if (!value.cancelled && isCurrent()) { const locations = await ipc.locations_get(); if (isCurrent()) state.locations = locations; }
   }),
   removeRoot:id => locationOperation(async isCurrent => { const value = await ipc.custom_root_remove(id); if (isCurrent()) state.locations = value; }),
-  restoreSkip:id => locationOperation(async isCurrent => { const value = await ipc.skip_remove(id); if (isCurrent()) state.locations = value; }),
+  restoreSkip:id => locationOperation(async isCurrent => {
+    const scanId = !state.stale && state.result?.scan_id;
+    const value = await ipc.skip_remove(id);
+    await refreshAfterSkip(scanId);
+    if (isCurrent()) { state.locations = value; if (scanId && !state.stale) state.info = '已恢复，这一项重新算进可清理的范围。'; }
+  }),
   historyDetail:entry => run(async () => {
     if (state.historyOpen === entry.id) { state.historyOpen = null; return; }
     state.historyOpen = entry.id;
     await readHistoryDetail(entry);
   })
 };
+async function refreshAfterSkip(scanId) {
+  if (!scanId) return;
+  try {
+    if (state.result?.scan_id !== scanId || state.stale) throw new Error('scan changed');
+    const value = await ipc.scan_result(scanId);
+    if (state.result?.scan_id !== scanId || state.stale || value.scan_id !== scanId) throw new Error('scan changed');
+    Object.assign(state, refreshResult(state, value));
+    if (state.app?.last_scan?.scan_id === scanId) state.app = {...state.app, last_scan:{...state.app.last_scan, recommended_bytes:value.totals.recommended_bytes, recommended_by_drive:value.recommended_by_drive}};
+  } catch {
+    fault({code:'stale', message_zh:'结果已过期，请重新体检后再清理。'});
+  }
+}
 function rememberDetail(data) {
   const excluded = state.selection.get(data.group.group_id);
   // Keep known metadata for excluded items outside the refreshed display window.
   // The drawer still renders only the fresh response; counts and plans keep the exclusions.
-  const retained = (state.details.get(data.group.group_id)?.items ?? []).filter(item => excluded?.has(item.item_id) && !data.items.some(fresh => fresh.item_id === item.item_id));
+  const retained = (selectionDetails(state).get(data.group.group_id)?.items ?? []).filter(item => excluded?.has(item.item_id) && !data.items.some(fresh => fresh.item_id === item.item_id));
   state.details.set(data.group.group_id, {...data, items:[...data.items, ...retained]});
   if (!state.result) return;
   state.result = {...state.result, categories:state.result.categories.map(c => ({...c, groups:c.groups.map(g => g.group_id === data.group.group_id ? data.group : g)}))};
@@ -185,8 +211,9 @@ function sidebar() {
 function render() {
   const activeKey = document.activeElement?.dataset.key, scroll = main.scrollTop;
   sidebar();
-  const notice = document.getElementById('notice'); notice.replaceChildren(); notice.hidden = !state.error && !state.info && !state.reconnecting && !state.pollPaused;
-  if (!notice.hidden) add(notice, el('span', '', state.pollPaused ? state.pauseReason : state.reconnecting ? '正在重新连接 Water 服务…' : state.error || state.info), state.pollPaused ? button('重新连接', actions.reconnectProgress, 'btn btn-glass', 'progress-reconnect', state.pending) : state.reconnecting ? null : button('关闭提示', () => { clearError(); render(); }, 'btn btn-ghost', 'dismiss-error'));
+  const skipFailure = route === 'results' ? state.skipFailure : '';
+  const notice = document.getElementById('notice'); notice.replaceChildren(); notice.hidden = !state.error && !state.info && !skipFailure && !state.reconnecting && !state.pollPaused;
+  if (!notice.hidden) add(notice, el('span', '', state.pollPaused ? state.pauseReason : state.reconnecting ? '正在重新连接 Water 服务…' : skipFailure || state.error || state.info), state.pollPaused ? button('重新连接', actions.reconnectProgress, 'btn btn-glass', 'progress-reconnect', state.pending) : state.reconnecting ? null : button('关闭提示', () => { clearError(); state.skipFailure = ''; render(); }, 'btn btn-ghost', 'dismiss-error'));
   let view;
   if (route === 'home' && state.busy === 'scanning') view = scan(state, actions);
   else if (route === 'home' && state.busy === 'cleaning') view = cleaning(state, actions);

@@ -7,7 +7,13 @@ export function resetSelection(result) {
   return new Map(groups(result).filter(g => canSelect(g) && g.default_selected).map(g => [g.group_id, new Set()]));
 }
 export function installResult(state, result) {
-  return {...state, result, selection:resetSelection(result), details:new Map(), stale:false, filter:'all', drive:null};
+  return {...state, result, selection:resetSelection(result), details:new Map(), excludedDetails:new Map(), skipFailure:'', stale:false, filter:'all', drive:null};
+}
+// Fresh details and the metadata needed to count exclusions have separate lifetimes.
+export function selectionDetails(state) { return new Map([...(state.excludedDetails ?? []), ...state.details]); }
+export function refreshResult(state, result) {
+  const excludedDetails = new Map([...selectionDetails(state)].map(([id, data]) => [id, {...data, items:data.items.filter(item => state.selection.get(id)?.has(item.item_id))}]).filter(([, data]) => data.items.length));
+  return {...state, result, details:new Map(), excludedDetails};
 }
 const copySelection = selection => new Map([...selection.keys()].map(id => [id, new Set(selection.get?.(id) ?? [])]));
 export function setSelected(result, selection, id, checked, details = new Map()) {
@@ -42,14 +48,14 @@ export function selectedCount(result, selection, details = new Map()) {
 }
 export function setItemSelected(result, selection, data, itemId, checked) {
   const item = data.items.find(i => i.item_id === itemId), group = groups(result).find(g => g.group_id === data.group.group_id);
-  if (!canSelect(group) || !selection.has(group.group_id) || !item?.eligible || !item.item_id) return copySelection(selection);
+  if (!canSelect(group) || !hasSelectedItems(group, selection, new Map([[group.group_id, data]])) || !item?.eligible || !item.item_id) return copySelection(selection);
   const next = copySelection(selection), excluded = next.get(group.group_id);
   if (checked) excluded.delete(itemId); else excluded.add(itemId);
   return next;
 }
 export function cleanSelection(result, selection, details = new Map()) {
   const selected = selectedGroups(result, selection, details);
-  return {groupIds:selected.map(g => g.group_id), excludeItemIds:[...new Set(selected.flatMap(g => excludedItems(g, selection, details).map(item => item.item_id)))]};
+  return {groupIds:selected.map(g => g.group_id), excludeItemIds:[...new Set(selected.flatMap(g => [...selection.get(g.group_id)]))]};
 }
 // Filtering projects only the quantities supplied by IPC-M3C. It never edits selection.
 export function driveResult(result, drive) {

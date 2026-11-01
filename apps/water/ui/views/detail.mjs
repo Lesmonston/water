@@ -1,6 +1,6 @@
 import {add, el, level, button, copyButton, check} from './common.mjs';
 import {formatBytes, byteDelta, countDelta, count, relativeTime, middlePath} from '../format.mjs';
-import {hasSelectedItems} from '../model.mjs';
+import {hasSelectedItems, selectionDetails} from '../model.mjs';
 export function detail(data, close, state, actions) {
   const g = data.group, panel = el('dialog', 'drawer', undefined, {'aria-labelledby':'detail-title'});
   add(panel, add(el('div', 'split'), level(g.level), button('Esc 关闭', close, 'btn btn-ghost', 'detail-close')), el('h1', '', g.title_zh, {id:'detail-title'}), el('p', 'sub', `${g.owner_zh} · ${count(g.file_count)} 个文件`));
@@ -16,8 +16,9 @@ export function detail(data, close, state, actions) {
     data.top_keys.forEach(k => add(panel, el('p', 'cap', `${k.key} · ${count(k.count)} 个 · ${formatBytes(k.bytes)} · 最近 ${relativeTime(k.newest_activity)}`)));
   }
   add(panel, el('h3', '', `包含的项目 · 前 ${Math.min(200, data.items.length)} / ${count(data.items_total)}`));
-  const groupSelected = hasSelectedItems(g, state.selection, state.details);
-  if (g.selectable && !groupSelected) add(panel, el('p', 'cap item-selection-note', '先在结果页勾选这个分组，才能逐项排除。'));
+  const groupSelected = hasSelectedItems(g, state.selection, selectionDetails(state));
+  if (state.stale) add(panel, el('p', 'cap item-selection-note', '结果已过期，请重新体检后再清理。'));
+  else if (g.selectable && !groupSelected) add(panel, el('p', 'cap item-selection-note', '先在结果页勾选这个分组，才能逐项排除。'));
   const items = el('div', 'items');
   for (const item of data.items.slice(0, 200)) {
     const row = el('div', 'item', undefined, {'data-item':item.item_id ?? ''});
