@@ -1,6 +1,8 @@
-# denglou 清理执行单（用户已选，交 denglou 总控执行，2026-11-02）
+# denglou 清理执行单与执行结果（2026-11-02）
 
-Water 总控（Claude）。依据 `denglou` 总控的分级回执 `F:\new\denglou\worktrees\ui-v2\docs\ops\DISK-USAGE-TRIAGE-20261102.md`，用户逐项选定。Water 总控只做了只读核对与查重，**没有动 `denglou` 里的任何文件**；实际清理由 `denglou` 总控在自己的仓库里做。
+Water 总控（Claude）。依据 `denglou` 总控的分级回执 `F:\new\denglou\worktrees\ui-v2\docs\ops\DISK-USAGE-TRIAGE-20261102.md`，用户逐项选定。
+
+**执行人改为 Water 总控。** 本单原写“交 `denglou` 总控执行”，用户看过后说：“这是你需要做的事情，你要在这个过程中总结经验，旧压缩包可以不删按照你推荐的来。”执行结果见文末“执行结果”一节；下面“做法”“逐项”两节保留写单时的原文。
 
 ## 用户原话
 
@@ -63,8 +65,39 @@ GB 按 1024 换算。“现状”是 Water 总控 11-02 约 02:30 JST 的只读�
 
 A 约 70、B 约 30、C1/C2 4.7、C4 13.7，合计约 118 GB；C3 压缩后再省一大块（JSON 压缩率通常很高，具体看归档方式）。
 
-## 给 denglou 总控的转贴语
+## 执行结果（Water 总控，11-02 约 02:45～03:00 JST）
+
+**做法**：全部移到 `F:\_water-quarantine-20261102-dl\<编号>\<原路径>`（同盘改名，可原样移回），逐项查在用进程，由用户核对后删除。B2 移完后在 `denglou` 仓库跑 `git worktree prune`；C3 先压缩、核对，再隔离原目录。计划由 [plan-denglou.cjs](../acceptance/wave8/controller/cleanup-20261101/plan-denglou.cjs) 按规则现场生成，生成时逐条重查前提；明细日志在 `.local/cleanup-20261101/quarantine-DL.jsonl`（不进 git）。
+
+**执行时 `denglou` 总控正在另一个会话里做真机测试**：模拟器 `climbmao_a35`、4 个 PostgreSQL（数据目录在 `_ctl\w45_fix`、`_ctl\w45_collect`、`_ctl\w37b_device`）、`_ctl\w39w40_device\server_up.sh`，日志写在 `_ctl\r153_final`。这些目录一律没碰；工作树里的 `.tmp_*` 只动两天以上没改过的。
+
+| # | 结果 | 去重后 GB | 说明 |
+|---|---|---:|---|
+| A1 | 254 个 `verify-*` 移走 | 56.05 | 只挑名字为 `verify-` 加 6 位字母数字的目录。`fix-r9`、`fix-r8` 的 `.tmp_w35b` 里还有执行方的脚本、报告与数据库快照，**原样留着**；`verify-s8-revisions.cjs` 是脚本，不是泄漏，也留着 |
+| A2 | 7 个 `.apk.parts` 移走 | 2.21 | 移前逐个确认旁边有大小一致的完整文件 |
+| A3 | 11 个测试包移走 | 2.80 | 9 个按提交号命名的，加 `apk_F1`、`apk_F2`、`apk_diag`；留 `w45_collect\apk_871cd852.apk` |
+| A4 | `climbmao_up` 的快照移走 | 4.02 | **`climbmao_a35` 的快照没动**：它正在运行（已是 `-no-snapshot` 启动，回执 P4 已做），快照 11-02 01:19 还写过。关掉模拟器后可以再清这 4 GB |
+| B1 | 10 个移走，`grok2` 移回原位 | 9.88 | 见下文“差点弄断的依赖” |
+| B2 | 4 棵移走，`git worktree prune` 注销了正好这 4 个登记 | 6.05 | 分支保留（如 `restore/b58`）。`zhenti-close180` 未提交的 `_work\zhenti\close180\packages\v225`（2.8 MB）在隔离区里，`content` 工作树有同名交付目录 |
+| B3 | 164 个 `.tmp_*` 移走 | 0.49 | 6 个执行方工作区的目录都保留 |
+| B4 | 414 个 `.tmp_*` 移走 | 3.24 | 都是两天以上没改过的 |
+| B5 | 45 项移走 | 11.01 | 演练目录里的测试、诊断、集成 APK，以及 Expo 导出产物（`U*-dist`、`U*-out`、`export*`）。**每个上架版本留一份**：`release_152\climbmao-1.5.2-vc25-store.apk`、`ota_rehearsal_151\app-151-eas-72b8d5b6-vc19.apk`。设备数据库快照与 `release_152\up_151_backup.tgz` 不属于“APK 与安装包”，留着 |
+| C1/C2 | 361 个重复文件移走 | 4.71 | 按上节规则；`F:\new\登楼知识库` 一个没动；压缩包都不删（用户：“旧压缩包可以不删按照你推荐的来”） |
+| C3 | 压缩归档：41 个子目录打成 51 个 zip，52.3 GB 压成 3.7 GB，全部核对通过后原目录移走 | 53.09 | 归档包在 `F:\new\denglou\_review\zhenti-archive-20261102\`，包内路径保持原样，解压到 `_review\zhenti\` 即恢复。原位置留了索引 `_review\zhenti\ARCHIVED-20261102.md`；顶层台账文件没动。脚本 [archive-zhenti.py](../acceptance/wave8/controller/cleanup-20261101/archive-zhenti.py) |
+| C4 | 288 个 `.m4a`、13 个 `.wav` 移走 | 13.97 | 同目录的转写文本、结果 JSON、`.md` 与评测脚本留着 |
+| C5、C6、D | 没动 | — | |
+| **合计** | | **167.52** | F 盘删除前可用 204.86 GB（新增的归档包占 3.7 GB），删除后约 372 GB |
+
+### 差点弄断的依赖（已恢复）
+
+移完后在 `F:\new\denglou` 与 `F:\cdisk-cache` 全盘查“还有没有联接指向被移走的路径”（[links-into-moved.cjs](../acceptance/wave8/controller/cleanup-20261101/links-into-moved.cjs)），查出一条：保留的整合树 `audit-b57a` 的 `server\node_modules` 指向 `grok2\server\node_modules`，而那本身是指向 `ui-v2` 的联接。`grok2` 被当作脱离目录移走后，这条链断了。总控当场把 `grok2` 原样移回，复查为 0 条。**`grok2` 要等 `audit-b57a` 的这个联接直接改指 `ui-v2\server\node_modules` 之后才能删。**
+
+### 隔离区里的联接已拆除
+
+隔离区里原有 26 个联接（B1、B2 的工作树共用 `ui-v2` 的 `node_modules`、`android`，C3 的 `final` 里有一个指向 `content\node_modules`）。`grok2` 移回后剩 23 个，总控逐个确认是重解析点后做不递归的删除，只去掉联接本身。复查隔离区 0 个联接，`ui-v2\node_modules` 完好。这样用户删除隔离区时，不会有命令顺着联接删到在用的依赖。
+
+## 给 denglou 总控的转贴语（知会）
 
 ```text
-读 F:/new/smaltalk/water/docs/maintenance/DENGLOU-CLEANUP-ORDER-20261102.md：这是用户对你的磁盘分级回执的选择（A、B 都清，C1/C2 只删逐字节重复，C3 压缩归档，C4 删除，C5/C6 不动），附 Water 总控的只读核对。请按单执行，先隔离再由用户删除，完成后给用户回执。
+读 F:/new/smaltalk/water/docs/maintenance/DENGLOU-CLEANUP-ORDER-20261102.md 的“执行结果”一节：用户让 Water 总控代为清理了你的分级回执里选中的项（已移到 F:\_water-quarantine-20261102-dl，等用户删除）。请注意：b58、cursor1、zhenti-close180、up140 四棵工作树已移走并 prune；_review\zhenti 已压缩归档到 _review\zhenti-archive-20261102；grok2 因 audit-b57a\server\node_modules 经它联接到 ui-v2 而保留，请把那个联接直接改指 ui-v2\server\node_modules 后再决定 grok2；fix-r8、fix-r9 不含 f4e29ebd，跑全量门还会长 verify-*；climbmao_a35 的快照没动。
 ```

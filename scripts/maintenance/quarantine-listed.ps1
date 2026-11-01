@@ -17,10 +17,13 @@ $procs = @(Get-CimInstance Win32_Process | Select-Object ProcessId, Name, Execut
 
 function Get-Users([string]$path) {
   $pre = $path.TrimEnd('\') + '\'
+  # Command lines from Git Bash and Node write the same path as F:/a/b or /f/a/b (seen 11-02 in denglou's shells).
+  $forms = @($path, $path.Replace('\', '/'), ('/' + $path.Substring(0, 1).ToLower() + $path.Substring(2).Replace('\', '/')))
   @($procs | Where-Object {
+      $cmd = $_.CommandLine
       ($_.ExecutablePath -and ($_.ExecutablePath.Equals($path, [StringComparison]::OrdinalIgnoreCase) -or
         $_.ExecutablePath.StartsWith($pre, [StringComparison]::OrdinalIgnoreCase))) -or
-      ($_.CommandLine -and $_.CommandLine.IndexOf($path, [StringComparison]::OrdinalIgnoreCase) -ge 0)
+      ($cmd -and @($forms | Where-Object { $cmd.IndexOf($_, [StringComparison]::OrdinalIgnoreCase) -ge 0 }).Count -gt 0)
     } | ForEach-Object { '{0}#{1}' -f $_.Name, $_.ProcessId })
 }
 
