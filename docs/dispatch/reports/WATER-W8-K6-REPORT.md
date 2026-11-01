@@ -847,3 +847,226 @@ node F:/new/smaltalk/water/scripts/checkup-wave-check.mjs --task WATER-W8-K6
 未验证真实 K4/K5 联调、WebView2 / Mica、生产并发、真实用户目录 / 整盘扫描与清理、macOS、真实触摸或读屏软件、动画帧率。本轮以 DOM 身份、focusin、几何和控件状态证明抽屉不重开及焦点保持，不声称完成真实读屏验证。补单明确排除的“中途停止扫描仍载入结果”的整合问题未处理。交付供总控独立收单，不自行标记验收或集成完成。
 
 交回暂存区共 474 个文件：472 个新增归档条目、归档索引及本回执，均在白名单。完整证据的 git diff --cached --check 退出 2，共 1,088 个原始证据空白告警条目，全部位于 receipts/，证据外为 0；保留原字节，没有修改证据消除告警。产品和本回执的 git diff --check 9722649a -- apps/water/ui docs/dispatch/reports/WATER-W8-K6-REPORT.md 退出 0。旧回执前 77,797 字节与 9722649a 完全相等。
+
+## 补单 05：手工排除保留、设置失败过期与焦点修正（2026-11-01）
+
+- 实际执行者 / 模型：Codex（本会话公开标识为 GPT-6；不猜测更细的部署名称），未启动子代理。
+- 续做起点：166609e8e775800736fb93ef2f4d8ee632f45ad6；开工时工作树干净，分支 worker/water-w8-k6，路径 F:/new/smaltalk/water/.worktrees/w8-k6。没有重跑 baseline。
+- 实现提交：57fe374d30b96d8534a6bc29f093d479df30a868。三个 final 都在这个干净提交上运行；之后只有本报告与归档证据提交，不再改产品。
+- 开工依票顺序阅读原票、补单 01～04、W8 规则、UI / IPC 契约与补单 05，并只读核对主线 service.rs 的最小空号分配与 clean.rs 对 user_skipped 排除的接受 / 忽略。原回执内容保留，本节以追加方式交付。
+- 代码变更仅在 apps/water/ui/ 的 README.md、app.mjs、model.mjs、views/detail.mjs、tests/unit.test.mjs、tests/browser.test.mjs；IPC 形状、冻结回放、其它包、契约、检查器、台账、tokens 和 app.css 均未改。
+
+### 第 1 条：手工排除跳过、恢复后仍然有效
+
+app.mjs 在用户取消条目时记录 manualExclusions。跳过成功后加入的保险排除不写入这个集合。rememberDetail 对明确不可清理的条目只修剪保险排除，手工排除 ID 继续保留；整组取消 / 重新选择会按实际排除集合清掉相应来源，新扫描在 model.installResult 整体重置。原有“排空即移出 selection”的规则保持，操作条目不会把组重新选回。
+
+计数仍只扣 eligible 条目，已跳过项不会重复扣体量或项数。恢复设置后，若保留的手工排除元数据此前不可清理，就在同一 scan_id 的结果重读之后补读该组详情，只更新保留的计数元数据，保持详情缓存已清空。全部完成前清理按钮禁用；服务读取失败、扫描变化，或新的前 200 条中没有这个状态待核对的 ID 时，结果过期，要求重新体检。ID 本身保留，没有用无法确认的体量继续准备清理。
+
+浏览器 ui_clean_done_and_pages 的 UI_M3C_EXCLUDE 新场景分别验证：
+
+- 手工取消 i-000202 → 跳过同一项 → 恢复后仍未勾；组的另一项保持选中；操作坞与实际预览都不包含被取消项。
+- 跳过期间保留 excludeItemIds:[i-000202]，假宿主接受并忽略，excluded_count 为 0，项数和体量不重复扣。
+- 恢复后 excludeItemIds 仍含该 ID，实际计划 total_bytes / item_count 与操作坞完全一致。
+- 没有手工取消而只跳过 / 恢复，保险排除被修剪，恢复后重新勾选并计入其仍选中的组。
+- 延迟恢复时的 group_detail 元数据读取，清理不能提前开始；读取失败或目标 ID 缺失则显示过期、禁用清理。
+
+单元 ui_selection_rules 新断言验证同一扫描重读保留来源对象，新扫描清空来源。补单 01～04 原有的旧服务保险、窗口外 ID 保留、排空不复活、部分组恢复和实际预览一致性断言继续运行。
+
+### 第 2 条：低级各项
+
+| 票面项 | 实现与满足方式 | 覆盖 |
+|---|---|---|
+| 2.1 当场跳过失败文案 | skipItem 的 catch 换成“跳过没有成功，这一项保留原来的勾选状态。”后再抛出。原错误码为 stale 时另附完整过期说明，避免结果页按错误码去重后没有过期文字。 | UI_M3C_SKIP 即时 invalid 失败核对精确专用文案，通用服务清理错误不会取代它；延迟切页失败提示仍测；stale 失败也要看到重新体检说明。 |
+| 2.2 禁用后的焦点 | views/detail.mjs 的说明行使用 tabindex=-1 与 role=status；末项禁用后焦点到说明行，后备为关闭按钮。对说明插入前后的列表位置作增量 scrollTop 补偿，兼容浏览器已有的滚动锚定；保留抽屉 / 控件 DOM 身份。 | UI_M3C_EXCLUDE 核对可见焦点、说明属性，再按一次真实 Space 后 skip_add 调用数不增加；原有真实滚动值大于 0、滚动保持、DOM 身份与焦点不离抽屉断言通过。 |
+| 2.3 设置失败统一过期 | skip_add、skip_remove、locations_set_category 共用 settingsWrite；一旦失败且当前有未过期结果，就标 stale 并关闭可能已失效的抽屉。即使错误因路由已被取代而不显示，也保留过期状态。 | UI_M3C_SKIP 对三个命令分别覆盖 busy、stale、服务已经应用写入但随后 unavailable；回结果页按钮禁用、有过期说明，点击不会发 clean_prepare。 |
+| 2.4 假宿主 skip ID | 从 1 起查找当前未占用的 s-六位数字，删除后复用；重复路径保持原记录，64 条上限与未知 ID not_found 保持。 | 改成“IDs are distinct among current skip entries”，另测空号复用和 [s-000001,s-000002,s-000003,s-000004]；确切原文见下节。 |
+| 2.5 README | 更新到补单 04 / 05：原地更新、排空移组、分类开关重读、恢复的未来体检措辞、手工排除保留和不明设置过期；说明元数据不能确定时重新体检。 | 文档审阅，行为由对应浏览器断言覆盖。 |
+| 2.6 提示与元数据测试强度 | 非清理 group_detail 错误到来时，即使旧 skipFailure 还存在也要优先显示新错；另把 clean_prepare 延迟，独立核对请求刚发出就清状态并移除可见旧提示。因此补上 prepare 清状态后的即时 render()。另通过真实截断抽屉操作，核对 selectItem 调用处确实传 selectionDetails。 | UI_M3C_SKIP 的“later non-clean ... error takes priority”和“starting cleanup clears skip failure before its response arrives”互不替代；UI_M3C_EXCLUDE 的“action passes retained metadata when emptying a truncated drawer”在排空后恢复另一项，操作坞仍不变、组仍未选。 |
+
+为单独验证 2.6 两个提示保护，测试使用仅在 fakeHost 中的 observeAppState：短暂包装 Object.assign，观察正常 installResult 的目标并立即恢复原函数。设置失败现已必然过期，真实用户须重新体检；测试只在观察到的对象中消除这一个过期条件，刻意保留 skipFailure，再分别触发非清理错误与延迟准备。它没有进入任何产品模块，也没有改 IPC 或引入产品测试开关。其它设置失败测试全部通过真实页面与假宿主的已应用状态验证过期保护。
+
+### 改过的既有断言：改前 / 改后原文
+
+以 166609e8 对比实现，只有下面 6 条前五轮新增断言改变文本；单元旧断言没有改。前四条因真实服务最小空号规则把 s-added 改成当前空号 s-000003；第五条适配设置失败关闭失效抽屉；第六条纠正“每次新增都不重号”的错误假设。静态逐行比较也确认 912eba10 原有 assert 语句文本全部仍在；本轮没有再改命令长度或 UI_NOTICE_TOP。
+
+#### 1. apps/water/ui/tests/browser.test.mjs
+
+改前：
+
+~~~javascript
+assert(await settle('!!document.querySelector("[data-key=restore-s-added]")'), 'UI_M3C_SKIP: newly skipped folder is listed');
+~~~
+
+改后：
+
+~~~javascript
+assert(await settle('!!document.querySelector("[data-key=restore-s-000003]")'), 'UI_M3C_SKIP: newly skipped folder is listed');
+~~~
+
+#### 2. apps/water/ui/tests/browser.test.mjs
+
+改前：
+
+~~~javascript
+assert(await settle('!document.querySelector("[data-key=restore-s-added]")'), 'UI_M3C_SKIP: restore removes its row');
+~~~
+
+改后：
+
+~~~javascript
+assert(await settle('!document.querySelector("[data-key=restore-s-000003]")'), 'UI_M3C_SKIP: restore removes its row');
+~~~
+
+#### 3. apps/water/ui/tests/browser.test.mjs
+
+改前：
+
+~~~javascript
+assert.deepEqual(await browser.evaluate('window.__waterTest.calls.findLast(c=>c.command==="skip_remove").args'), {skipId:'s-added'}, 'UI_M3C_SKIP: restore sends only skipId');
+~~~
+
+改后：
+
+~~~javascript
+assert.deepEqual(await browser.evaluate('window.__waterTest.calls.findLast(c=>c.command==="skip_remove").args'), {skipId:'s-000003'}, 'UI_M3C_SKIP: restore sends only skipId');
+~~~
+
+#### 4. apps/water/ui/tests/browser.test.mjs
+
+改前：
+
+~~~javascript
+assert(await settle('!document.querySelector("[data-key=restore-s-added]") && !document.querySelector("[data-key=add-root]")?.disabled'), 'UI_M3C_SKIP: live restore finishes its result reread');
+~~~
+
+改后：
+
+~~~javascript
+assert(await settle('!document.querySelector("[data-key=restore-s-000003]") && !document.querySelector("[data-key=add-root]")?.disabled'), 'UI_M3C_SKIP: live restore finishes its result reread');
+~~~
+
+#### 5. apps/water/ui/tests/browser.test.mjs
+
+改前：
+
+~~~javascript
+assert(await settle('!document.querySelector("[data-key=detail-close]")?.disabled'), 'UI_M3C_SKIP: initial skip failure settles');
+~~~
+
+改后：
+
+~~~javascript
+assert(await settle('!document.querySelector("[data-key=rescan]")?.disabled && !document.querySelector("dialog[open]")'), 'UI_M3C_SKIP: initial skip failure settles');
+~~~
+
+#### 6. apps/water/ui/tests/browser.test.mjs
+
+改前：
+
+~~~javascript
+assert.notEqual(skipIdentity.first, skipIdentity.second, 'UI_M3C_SKIP: every newly added skip has a distinct opaque ID');
+~~~
+
+改后：
+
+~~~javascript
+assert.equal(new Set(skipIdentity.ids).size, skipIdentity.ids.length, 'UI_M3C_SKIP: IDs are distinct among current skip entries');
+  assert.equal(skipIdentity.first, skipIdentity.second, 'UI_M3C_SKIP: removing a skip frees the smallest numeric ID for reuse');
+  assert.deepEqual(skipIdentity.ids, ['s-000001', 's-000002', 's-000003', 's-000004'], 'UI_M3C_SKIP: additions allocate the smallest available numeric ID');
+~~~
+
+### 每个检查命令与结果
+
+下面每行参数都追加到这个完整前缀，全部从本工作树根执行。时间戳为 UTC；完整结果与日志位于归档 receipts/，未覆盖历史失败。未重跑 baseline、未安装或下载依赖。
+
+~~~powershell
+node F:/new/smaltalk/water/scripts/checkup-wave-check.mjs --task WATER-W8-K6
+~~~
+
+| stamp / 进程 | 参数 | 实际结果 | 秒 |
+|---|---|---|---|
+| 2026-11-01T10-37-56.588Z-34724-check | --mode check | 退出 0，语法与政策通过。 | 11.014 |
+| 2026-11-01T10-38-23.711Z-5788-test | --mode test | 退出 0，3/3。 | 5.779 |
+| 2026-11-01T10-38-34.879Z-36388-browser | --mode browser | 退出 1，3/5；新焦点断言引号导致 Browser expression threw；另报 refreshing keeps an independent excluded item deducted（30.9 / 30.0 GB）。保留失败证据，修正引号、改用增量滚动补偿，并增加排除已建立的独立断言。 | 80.016 |
+| 2026-11-01T10-41-04.102Z-16588-browser | --mode browser | 退出 1，4/5；UI_M3C_SKIP: a pending cleanup already drops the earlier skip-failure notice，证实旧实现只清状态、没有即时重绘；随后补 render()。 | 87.960 |
+| 2026-11-01T10-42-57.351Z-26688-browser | --mode browser | 退出 1，4/5；UI_M3C_SKIP: hold cleanup preparation independently of later error rendering。测试恢复内部 stale 后尚未重绘禁用的 DOM，补点筛选触发重绘；生产清理仍须重新体检。 | 91.933 |
+| 2026-11-01T10-45-25.390Z-19996-browser | --mode browser | 退出 0，5/5，31 张图。 | 112.259 |
+| 2026-11-01T10-48-11.253Z-23960-check | --mode check | 退出 0，提交前最终语法与政策通过。 | 12.188 |
+| 2026-11-01T10-48-54.239Z-27152-test | --mode test | 退出 0，3/3。 | 7.426 |
+| 2026-11-01T10-49-44.978Z-24468-red-nc1 | --mode red-nc1 | 有效红，入口退出 0 / 浏览器退出 1，命中指定标记。 | 60.273 |
+| 2026-11-01T10-51-16.023Z-30496-test | --mode test | 原字节恢复后退出 0，3/3。 | 6.456 |
+| 2026-11-01T10-51-37.324Z-17884-red-nc2 | --mode red-nc2 | 有效红，入口退出 0 / 浏览器退出 1，命中指定标记。 | 91.581 |
+| 2026-11-01T10-53-24.809Z-21180-test | --mode test | 原字节恢复后退出 0，3/3。 | 6.359 |
+| 2026-11-01T10-53-46.866Z-41316-red-nc3 | --mode red-nc3 | 有效红，入口退出 0 / 浏览器退出 1，命中指定标记。 | 78.338 |
+| 2026-11-01T10-55-29.700Z-20444-test | --mode test | 原字节恢复后退出 0，3/3。 | 7.068 |
+| 2026-11-01T10-55-49.256Z-1916-check | --mode check --final | 退出 0，干净实现上的语法与政策检查通过。 | 8.765 |
+| 2026-11-01T10-56-11.186Z-5416-test | --mode test --final | 退出 0，3/3，三组 proofAudit 通过。 | 5.191 |
+| 2026-11-01T10-56-33.091Z-25788-browser | --mode browser --final | 退出 0，5/5，26 张必需图及 5 张继承图齐全。 | 100.457 |
+| 2026-11-01T10-58-59.516Z-15560-archive | --mode archive | 退出 0，归档成功。 | 6.116 |
+
+首轮跨组排除体量不符只在该次记录中出现，没有把它描述成已独立证明的模型根因；后续完整回归、三条负控恢复与最终回归均保留原有跨组断言，新增了动作建立排除的断言。三次浏览器调试失败全部归档，最终通过不覆盖这些记录。
+
+### 三条负控、恢复哈希与 final 配对
+
+每条仅改一处产品文件，不改测试；有效红后的下一条执行命令就是 git checkout -- 对应文件，紧接 --mode test。没有语法错误或超时被用作负控。三个 final 的源码与实现提交字节完全一致。
+
+| 负控 | 临时改坏的一处 | 实际目标失败 | 恢复文件 SHA-256 |
+|---|---|---|---|
+| nc1 | app.mjs 的 ipc.clean_prepare(groupIds, excludeItemIds) 临时传 [] | UI_M3C_EXCLUDE: clean_prepare sends the exact exclusion，实际 []、预期 [i-000202]。 | 34edd64bba2d114f8c5525752a20886d755f46eb1d9fa9dc8359cd245e9318cf |
+| nc2 | model.mjs 的分盘 total_bytes:total 临时改为 group.total_bytes | UI_M3C_DRIVE: total uses by_drive quantities，实际 76.3 GB、预期 73.4 GB。 | 2e354d13293f9b2ed3671adde907ddf2d56b33721b175c8a554846f2365a7e5a |
+| nc3 | views/trends.mjs 无正向预测时的 note_zh / 兜底分支临时改空串 | UI_M3C_FORECAST: D:\ shows its forecast or explanation。 | d29241f707df6aa9b923a4eb8528df5c7f07462d5eb6f03d298ab242ce2001a5 |
+
+test --final 的 proofAudit 精确配对：nc1 10-49-44.978Z-24468 → 10-51-16.023Z-30496；nc2 10-51-37.324Z-17884 → 10-53-24.809Z-21180；nc3 10-53-46.866Z-41316 → 10-55-29.700Z-20444。均为本轮红与随后恢复绿，没有借用历史配对。生产汇总 SHA-256：98c1e98719882a0b52786c6cfb72aad0527e59dac4427ff18f8043504938de87；测试汇总：ed00e042d2e2e28c57ed19d72eaa637a2363f5b99963ff48c3c418e73e901b0f。
+
+### 最终截图逐张复看
+
+逐张打开了本轮 browser --final 的全部 31 张原始归档 PNG；必需 26 张文件名没有变化，另 5 张继承状态图保留。也重新看过设计 previews 的 home / scan / results / detail / confirm / done / trends / locations 八张：白色磨砂、实色强调与层级保持，冰山与脉搏线按 DESIGN 第 10 节；静态稿旧水滴不恢复，容量与项目数继续取冻结回放，未为了静态稿改数字。
+
+目录：[本轮最终截图](../../acceptance/wave8/k6/screenshots/2026-11-01T10-56-33.091Z-25788/)。截图是状态样例；跳过 / 恢复的全部安全路径由上文浏览器断言验证，不用一张静态图代替。
+
+| 必需截图 | 本轮实际看到的内容 |
+|---|---|
+| home-1240x820.png | 59.8 GB 水位瓶、D/E/F 三盘条；待体检 / 暂无对比 / 尚未体检；开始体检按钮完整，侧栏说明没有单字孤行。 |
+| scan-1240x820.png | 已发现 27.5 GB、62%；AI / 浏览器 / 系统临时已完成，应用更新扫描中；182,280 文件、0:29 与停止扫描按钮可见。 |
+| results-1240x820.png | 31.2 GB 推荐、53.5 GB 识别；AI 分类半选与三级推荐行、13 组 / 2,250 项 / 31.2 GB 操作坞完整。 |
+| results-1040x720.png | 小尺寸主数字、图例与过滤齐全；浮动坞显示相同完整范围；滚动途中的 grok 行从坞后经过，无横向溢出。 |
+| detail-1240x820.png | Codex 玻璃抽屉，3.6 GB、69,947 文件、47/48，最近 23 小时；三段说明、增长、前缀分布与前 0/48（原回放没有条目）可见。 |
+| confirm-1240x820.png | 永久删除 31.2 GB、13 组 / 2,250 项；滚动组清单、Chrome 运行提醒、C/F 盘体量及红色不可恢复说明，取消与危险按钮完整。 |
+| cleaning-1240x820.png | 4.2 GB 水环、Claude 桌面版旧版本、第 1/13 组、3/2,250 项；停止后正在删除项会停在中途的完整说明可见。 |
+| done-1240x820.png | 30.7 GB 已释放，预计 31.2 GB；C 59.8→74.7、F 243.1→258.9 GB 水瓶和前水位虚线；Chrome 部分完成、6 配置在用跳过。 |
+| trends-1240x820.png | 五点曲线，10-23 的 8.1 GB 低点、清理后 67.1 与今天 59.8；增长榜保留受保护会话，疑似泄漏标已停止，修复建议可读。 |
+| history-1240x820.png | 30.7 GB 清理记录与 31.2 / 14.2 GB 两次体检；13 组 / 跳过 6 项、日期时间与展开箭头，清理 / 体检图标可区分。 |
+| locations-1240x820.png | 七分类开关齐全，崩溃与日志关闭；浏览器保护说明、自定义文件夹标题和首条路径可见。 |
+| about-1240x820.png | 冰山 Water 0.1.0、读取 / 不读取 / 本机保存 / 用户确认四块；Cookies、登录信息、网站存储保护和不可恢复说明完整。 |
+| results-bottom-1240x820.png | 三个未知受保护行完整；未识别合计 952 MB，没有已选 <1 MB；末行和 39 组 / 6,750 项 / 93.7 GB 坞之间有明显留白。 |
+| results-bottom-1040x720.png | 小尺寸同样三条未知行完整、无虚假的已选数字，底部操作坞前留白保持。 |
+| notice-results-1240x820.png | M1 提示贴顶，玻璃标题区与提示下面 AI 分类 / 组行分开，无半行正文从顶部空隙露出。 |
+| notice-trends-1240x820.png | 切页后 M1 提示消失，趋势标题、曲线、增长榜与已停止泄漏卡正常。 |
+| trends-empty-1240x820.png | 冰山空态“再体检一次就能看到变化”与本机记录说明，没有补入假曲线。 |
+| paused-1240x820.png | 顶部服务暂时不可用 / 重新连接；清理仍保留 4.2 GB、当前组、3/2,250 项与停止说明。 |
+| reconnecting-1240x820.png | 顶部正在重新连接；扫描保留 8%、23,520 文件、0:03；当时发现量为 <1 MB，当前 AI 分类和停止按钮可见。 |
+| stop-failed-1240x820.png | 暂时不可用 / 重连提示保留；停止扫描按钮下有单独红色“停止请求没有送达，请先重新连接再试。”，原扫描进度未丢。 |
+| clean-stop-failed-1240x820.png | 顶部未能确认清理状态；保留 4.2 GB、当前组、3/2,250 项，停止按钮下独立红字失败说明。 |
+| detail-exclude-1240x820.png | Node 清单中 950 MB 第二项未勾，430 MB 第一项及 668 MB 第三项勾选；第一项有 Codex 正在使用；第四项已跳过、没有复选框。 |
+| results-drive-1240x820.png | F: 数据盘选中，15.2 GB 推荐 / 73.4 GB 识别 / 56.0 GB 参考；跨盘 Codex 为 2 项 / 1.0 GB，坞仍显示全盘 13 组 / 2,250 项 / 29.7 GB，附其中 F: 15.2 GB。 |
+| locations-skipped-1240x820.png | 整个 F 盘为正文字体，路径等宽；上次识别 58.0 GB，非系统盘说明末尾句号；两条跳过路径、加入时间、恢复按钮都完整。 |
+| trends-forecast-1240x820.png | C/D/E/F 盘符列对齐，C 最近 30 天 / 约 23 天后满，其余解释齐全；node/chrome/cmd 为 9/6/1 进程、900/380 MB/—，开始时间完整，无结束入口。 |
+| home-due-1240x820.png | 已经 9 天没有体检与现在体检按钮同行；10 月 26 日上次体检、15.4 GB 可放心清理、+4.6 GB 与浅绿可释放层、三盘条可见。 |
+
+| 保留的额外旧图 | 本轮实际看到的内容 |
+|---|---|
+| loading-1240x820.png | 冰山、正在读取及正在读取空间信息说明，没有填充容量。 |
+| home-last-scan-1240x820.png | 59.8 GB 水瓶含薄荷可释放层，15.4 GB / +4.6 GB；上次 31.2 GB 与查看结果完整。 |
+| busy-1240x820.png | 顶部正在进行另一项任务提示，容量、增长洞察、开始按钮与上次结果仍保留。 |
+| stale-1240x820.png | 顶部一份过期提示；选择框 / 清理按钮禁用但选择数字保留，分类标题完整，顶部没有露半行文字。 |
+| unavailable-1240x820.png | 顶部与冰山空态说明无法连接，重新连接按钮可见，无模拟容量。 |
+
+### 归档核验、范围与未验证
+
+[ARCHIVE.json](../../acceptance/wave8/k6/ARCHIVE.json) 当前 3,211 条、279,885,635 字节，含历史；本轮新增 539 条、41,728,781 字节。全部归档条目已复算字节数 / SHA-256 并与 .local 来源逐字节一致，原 2,672 条索引原样保留。三个 final 各 23 份源码快照都等于实现提交与工作区字节。归档器本次 archive 回执照既有机制留在 .local，不手工塞入归档索引。原报告前 97,803 字节与 166609e8 完全相等。
+
+仅 Windows 私有 headless Chrome 回放；原生窗口 0、选择框 0。没有运行 Cargo / Tauri / npm、安装依赖、下载或外网访问，没有真实用户目录 / 整盘扫描、真实删除或结束真实进程。浏览器与 loopback 服务由测试正常关闭；结束后只在内存按本工作树私有 profile 路径过滤进程，Chrome 残留计数 0，命令行没有输出或进入证据。没有改远端 / Git 配置、push、merge、rebase、amend、reset；只新增本分支提交。
+
+未验证真实 K4/K5 联调、WebView2 / Mica、生产并发、真实用户目录与整盘清理、macOS、实际读屏播报、真实触屏或动画帧率。DOM focus / role 与真实 Space 键断言不冒充读屏实测。恢复时无法取到待核对排除项状态会要求重新体检；这是保留 ID 并避免不确定计数的保守处理。中途停止扫描的整合遗留依票不处理。交付供总控独立收单，未自行标 VERIFIED 或合入主线。
+
+最终逐文件暂存 541 个文件：539 个本轮新增归档条目、ARCHIVE.json 与本报告，路径集合已逐项比对白名单，没有产品文件混入证据提交。完整 git diff --cached --check 退出 2，共 1,232 个原始证据空白告警，全部位于 receipts/；证据外为 0，保持原始日志与快照字节，不为消除告警改证据。git diff --check -- apps/water/ui docs/dispatch/reports/WATER-W8-K6-REPORT.md 退出 0。独立归档 / 快照核对脚本与逐文件暂存脚本留在本树 .local/k6-add05-*.mjs，未冒充冻结检查器或加入交付白名单。
