@@ -1,7 +1,7 @@
 {
   "schemaVersion": 1,
   "wave": "water-wave8-m3-close",
-  "status": "SECOND_BATCH_READY",
+  "status": "SECOND_BATCH_DISPATCHED",
   "controller": "Claude",
   "controllerRoot": "F:/new/smaltalk/water",
   "controllerBranch": "main",
@@ -605,11 +605,11 @@
       "branch": "worker/water-w8-k4",
       "baseCommit": "232bc2982228f5d99f42017de6db3caa5912a8ab",
       "snapshotRef": "refs/tags/water-w8-k4-base-20261101",
-      "status": "READY",
+      "status": "DISPATCHED",
       "readyOn": "2026-11-01",
       "dispatchedAt": null,
       "startedAt": null,
-      "model": null,
+      "model": "sol (user-reported)",
       "modelAssignment": "user-arranged; report actual engine/model",
       "purpose": "M3 close",
       "report": "docs/dispatch/reports/WATER-W8-K4-REPORT.md",
@@ -699,7 +699,9 @@
       ],
       "baselineStatus": "PASSED",
       "baselineEvidence": "docs/acceptance/wave8/controller/preflight-20261101/k4/2026-11-01T02-17-28.063Z-20176-baseline-result.json",
-      "preflightEvidence": "controller lock and check (clippy --all-targets) also passed at the base: docs/acceptance/wave8/controller/preflight-20261101/k4/"
+      "preflightEvidence": "controller lock and check (clippy --all-targets) also passed at the base: docs/acceptance/wave8/controller/preflight-20261101/k4/",
+      "dispatchReportedAt": "2026-11-01T02:24:11Z",
+      "dispatchEvidence": "user chat 2026-11-01 ~11:24 JST: \"都是sol\" (K4 and the K6 UI addendum 02 both to sol); paste time not reported; worker tree head/changed files 232bc298/0 when recorded"
     },
     {
       "kind": "host",
@@ -1300,14 +1302,16 @@
         {
           "id": "WATER-W8-K6-ADDENDUM-02",
           "ticket": "docs/dispatch/tickets/WATER-W8-K6-ADDENDUM-02-20261101.md",
-          "status": "READY",
+          "status": "DISPATCHED",
           "issuedAt": "2026-11-01T01:59:28Z",
           "resumeFromCommit": "4746478bdf58cef3122d171eab75032b7af8b70f",
           "change": "detail opens on results that were already stale (drop only when scan_id or staleness changed during the request); category select-all state and action cover only groups visible under both level and drive filters; drawer treats a fully excluded group as unselected; after skip_add success exclude whenever the scan is the same, regardless of route; rememberDetail prunes only items listed as ineligible; by_drive optional chaining; UI_M3C_INUSE_ITEM assertion fails with its marker when the label is missing; nc1-nc3 redone; 26 screenshots; no baseline rerun",
           "dispatchedAt": null,
           "submittedHead": null,
           "implementationCommit": null,
-          "dispatchEvidence": null
+          "dispatchEvidence": "user chat 2026-11-01 ~11:24 JST: \"都是sol\" (K4 and the K6 UI addendum 02 both to sol); paste time not reported; worker tree head/changed files 4746478b/0 when recorded",
+          "model": "sol (user-reported)",
+          "dispatchReportedAt": "2026-11-01T02:24:11Z"
         }
       ],
       "controllerReview": {

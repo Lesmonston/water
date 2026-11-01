@@ -1,6 +1,6 @@
 # Water 状态与交接
 
-更新时间：2026-11-01 11:20 JST（第八波：K1、K2、K3、K5 验收合入；K4 服务单就绪待派；K6 出补单 02，见[第八波计划](dispatch/wave8/PLAN.md)与[收单验收](acceptance/wave8/controller/WATER-W8-REVIEW-20261101.md)；第 10 份交接）。
+更新时间：2026-11-01 11:25 JST（第八波：K1、K2、K3、K5 验收合入；K4 与 K6 补单 02 已派出，都给 sol，见[第八波计划](dispatch/wave8/PLAN.md)与[收单验收](acceptance/wave8/controller/WATER-W8-REVIEW-20261101.md)；第 10 份交接）。
 
 更换总控请先读[最新交接报告（2026-10-31 第 10 份）](CONTROLLER-HANDOFF-20261031-10.md)；[第 9 份](CONTROLLER-HANDOFF-20261028-9.md)、[第 8 份](CONTROLLER-HANDOFF-20261027-8.md)、[第 7 份](CONTROLLER-HANDOFF-20261027-7.md)、[第 6 份](CONTROLLER-HANDOFF-20261027-6.md)、[第 5 份](CONTROLLER-HANDOFF-20261026-5.md)、[第 4 份](CONTROLLER-HANDOFF-20261026-4.md)、[第 3 份](CONTROLLER-HANDOFF-20261026-3.md)、[第 2 份](CONTROLLER-HANDOFF-20261026-2.md)、[上午那份](CONTROLLER-HANDOFF-20261026.md)及其只读状态快照仅供追溯。M1 已达成；第四、五波已全部验收合入，打开清理的 release 版已编好，M2 只差自清理；M3 第六波三张已全部验收合入，第四次整合检查通过，含第六波的 release 版 `water-0.1.0-b62f9c5c` 已编好；第七波（M3 收尾）四张已全部验收合入（见下文）。此前[接手验收摘要](CONTROLLER-HANDOFF-20261017.md)仅供历史追溯；当前任务状态以本页、registry/manifest及最新正式验收为准。
 
@@ -303,7 +303,8 @@ A–AB及八补单、AD保持VERIFIED；AC/补单06新增VERIFIED（Windows静�
     - **K1、K2、K5 验收合入**：K1 `3b79242e`、K2 `2d2f54d7`、K5 `311f3a9b`。三张都是审计 0 问题，新树重跑 final 通过（K5 整机 1 窗、9 步、退出码 0）；总控变异 K1 七条抓到六条（程序路径整段边界是测试缺口，代码正确），K2 六条、K5 五条全部抓到；K1 独立审查可合入。
     - **K6 第二轮**：第一轮四类问题都修好；审查新发现过期结果上点分组没反应（补单 01 引入）、按级别筛选时分类全选仍选进隐藏组（基线就有），已出补单 02（`13297bd8`）。
     - **K4 已就绪**：派单前用只读代理盘点服务测试里必然冲突的旧断言，连同跳过即时生效、盘根只收 NTFS/ReFS、排除里的已跳过项三条新规定，冻结为 [SERVICE-M3C 补充 01](../contracts/m3c-v1/SERVICE-M3C-ADD-01.md)；基线 `232bc298`（标签 `water-w8-k4-base-20261101`），派前 baseline 通过。
-26. **下一步**：派 K4；K4 与 K6 补单 02 回来后收单，K6 最后合入；然后 M3 收口（第五次整合检查、新 release、复现 10-29 场景、用户自清理补 M2）。Mirasim B、D、E 三个槽、7 棵自检树、“清、压、炼”排期仍等用户决定。
+26. **K4 与 K6 补单 02 已派出**（11-01 约 11:24 JST，用户“都是sol”：两张都给 sol，这次界面单也是 sol）。
+27. **下一步**：K4 与 K6 补单 02 回来后收单，K6 最后合入；然后 M3 收口（第五次整合检查、新 release、复现 10-29 场景、用户自清理补 M2）。Mirasim B、D、E 三个槽、7 棵自检树、“清、压、炼”排期仍等用户决定。
 
 ## 真实AA→AD联合验收通过（2026-10-26）
 
