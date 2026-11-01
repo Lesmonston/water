@@ -1,8 +1,8 @@
 # Water 状态与交接
 
-更新时间：2026-11-01 21:25 JST（第八波：六张单全部验收合入，K6 最后合入 `1b79d861`；下一步 M3 收口，见[第八波计划](dispatch/wave8/PLAN.md)与[收单验收](acceptance/wave8/controller/WATER-W8-REVIEW-20261101.md)；第 11 份交接）。
+更新时间：2026-11-01 21:40 JST（第八波：六张单全部验收合入，K6 最后合入 `1b79d861`；M3 收口已开始，第五次整合检查进行中，见[第八波计划](dispatch/wave8/PLAN.md)与[收单验收](acceptance/wave8/controller/WATER-W8-REVIEW-20261101.md)；第 12 份交接）。
 
-更换总控请先读[最新交接报告（2026-11-01 第 11 份）](CONTROLLER-HANDOFF-20261101-11.md)；[第 10 份](CONTROLLER-HANDOFF-20261031-10.md)、[第 9 份](CONTROLLER-HANDOFF-20261028-9.md)、[第 8 份](CONTROLLER-HANDOFF-20261027-8.md)、[第 7 份](CONTROLLER-HANDOFF-20261027-7.md)、[第 6 份](CONTROLLER-HANDOFF-20261027-6.md)、[第 5 份](CONTROLLER-HANDOFF-20261026-5.md)、[第 4 份](CONTROLLER-HANDOFF-20261026-4.md)、[第 3 份](CONTROLLER-HANDOFF-20261026-3.md)、[第 2 份](CONTROLLER-HANDOFF-20261026-2.md)、[上午那份](CONTROLLER-HANDOFF-20261026.md)及其只读状态快照仅供追溯。M1 已达成；第四、五波已全部验收合入，打开清理的 release 版已编好，M2 只差自清理；M3 第六波三张已全部验收合入，第四次整合检查通过，含第六波的 release 版 `water-0.1.0-b62f9c5c` 已编好；第七波（M3 收尾）四张已全部验收合入（见下文）。此前[接手验收摘要](CONTROLLER-HANDOFF-20261017.md)仅供历史追溯；当前任务状态以本页、registry/manifest及最新正式验收为准。
+更换总控请先读[最新交接报告（2026-11-01 第 12 份）](CONTROLLER-HANDOFF-20261101-12.md)；[第 11 份](CONTROLLER-HANDOFF-20261101-11.md)、[第 10 份](CONTROLLER-HANDOFF-20261031-10.md)、[第 9 份](CONTROLLER-HANDOFF-20261028-9.md)、[第 8 份](CONTROLLER-HANDOFF-20261027-8.md)、[第 7 份](CONTROLLER-HANDOFF-20261027-7.md)、[第 6 份](CONTROLLER-HANDOFF-20261027-6.md)、[第 5 份](CONTROLLER-HANDOFF-20261026-5.md)、[第 4 份](CONTROLLER-HANDOFF-20261026-4.md)、[第 3 份](CONTROLLER-HANDOFF-20261026-3.md)、[第 2 份](CONTROLLER-HANDOFF-20261026-2.md)、[上午那份](CONTROLLER-HANDOFF-20261026.md)及其只读状态快照仅供追溯。M1 已达成；第四、五波已全部验收合入，打开清理的 release 版已编好，M2 只差自清理；M3 第六波三张已全部验收合入，第四次整合检查通过，含第六波的 release 版 `water-0.1.0-b62f9c5c` 已编好；第七波（M3 收尾）四张已全部验收合入（见下文）。此前[接手验收摘要](CONTROLLER-HANDOFF-20261017.md)仅供历史追溯；当前任务状态以本页、registry/manifest及最新正式验收为准。
 
 ## 已确认
 
@@ -329,7 +329,7 @@ A–AB及八补单、AD保持VERIFIED；AC/补单06新增VERIFIED（Windows静�
       - 独立审查没有高级与中级；手工排除与跳过保险排除分开记，操作坞与实际清理一致。
     - 第八波六张单全部 VERIFIED：K1 `3b79242e`、K2 `2d2f54d7`、K3 `e8976a52`、K4 `0bb1cf80` 与 `2a946b30`、K5 `311f3a9b`、K6 `1b79d861`。宿主、服务、界面在主线上接通。
     - 用户没有说补单 05 派给了谁，待确认后补记。
-34. **下一步**：M3 收口（第五次整合检查、新 release、复现 10-29 场景、用户自清理补 M2）。Mirasim B、D、E 三个槽、7 棵自检树、“清、压、炼”排期仍等用户决定。
+34. **M3 收口已开始**（用户 21:30 JST “现在开始”）：第五次整合检查在 `.worktrees/integ-w8a`、`integ-w8b` 进行中，工具在 `.local/w8-integ5/`，进度与接下来的步骤见[第 12 份交接](CONTROLLER-HANDOFF-20261101-12.md)第 4 节。之后 release、复现 10-29 场景、用户自清理补 M2、M3 收口报告。Mirasim B、D、E 三个槽、7 棵自检树、“清、压、炼”排期仍等用户决定。
 
 ## 真实AA→AD联合验收通过（2026-10-26）
 
