@@ -46,11 +46,13 @@ export function selectedBytes(result, selection, details = new Map(), drive = nu
 export function selectedCount(result, selection, details = new Map()) {
   return selectedGroups(result, selection, details).reduce((sum, g) => sum + Math.max(0, g.eligible_count - excludedItems(g, selection, details).length), 0);
 }
-export function setItemSelected(result, selection, data, itemId, checked) {
+export function setItemSelected(result, selection, data, itemId, checked, details = new Map([[data.group.group_id, data]])) {
   const item = data.items.find(i => i.item_id === itemId), group = groups(result).find(g => g.group_id === data.group.group_id);
-  if (!canSelect(group) || !hasSelectedItems(group, selection, new Map([[group.group_id, data]])) || !item?.eligible || !item.item_id) return copySelection(selection);
+  if (!canSelect(group) || !hasSelectedItems(group, selection, details) || !item?.eligible || !item.item_id) return copySelection(selection);
   const next = copySelection(selection), excluded = next.get(group.group_id);
   if (checked) excluded.delete(itemId); else excluded.add(itemId);
+  // Emptying a group is an opt-out, even if a later settings refresh restores items.
+  if (!hasSelectedItems(group, next, details)) next.delete(group.group_id);
   return next;
 }
 export function cleanSelection(result, selection, details = new Map()) {

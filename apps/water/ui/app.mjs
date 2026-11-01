@@ -5,7 +5,7 @@ import {el, add, icon, button} from './views/common.mjs';
 import {home} from './views/home.mjs';
 import {scan} from './views/scan.mjs';
 import {results, dock} from './views/results.mjs';
-import {detail} from './views/detail.mjs';
+import {detail, updateDetailSelection} from './views/detail.mjs';
 import {confirm} from './views/confirm.mjs';
 import {cleaning} from './views/cleaning.mjs';
 import {done} from './views/done.mjs';
@@ -40,11 +40,9 @@ const actions = {
   }),
   selectItem:(data, itemId, checked) => {
     if (actions.busy() || state.stale) return;
-    const activeKey = document.activeElement?.dataset.key, scroll = overlay?.scrollTop ?? 0;
-    state.selection = setItemSelected(state.result, state.selection, data, itemId, checked); render();
-    const panel = detail(data, closeOverlay, state, actions);
-    showOverlay(panel, 'detail-close', opener); panel.scrollTop = scroll;
-    [...panel.querySelectorAll('[data-key]')].find(node => node.dataset.key === activeKey && !node.disabled)?.focus({preventScroll:true});
+    state.selection = setItemSelected(state.result, state.selection, data, itemId, checked, selectionDetails(state));
+    if (overlay) updateDetailSelection(overlay, data, state);
+    render();
   },
   skipItem:(data, itemId) => locationOperation(async isCurrent => {
     if (state.stale) return;
@@ -54,8 +52,8 @@ const actions = {
     let value;
     try { value = await ipc.skip_add(itemId); }
     catch (error) { state.skipFailure = '跳过没有成功，这一项保留原来的勾选状态。'; throw error; }
-    if (sameScan()) state.selection = setItemSelected(state.result, state.selection, data, itemId, false);
-    await refreshAfterSkip(scanId);
+    if (sameScan()) state.selection = setItemSelected(state.result, state.selection, data, itemId, false, selectionDetails(state));
+    await refreshAfterSettings(scanId);
     if (isCurrent()) state.locations = value;
     if (!sameScan() || state.stale) return;
     // Reconcile the insurance exclusion even after navigation; only the drawer is route-owned.
@@ -74,6 +72,7 @@ const actions = {
   sort:value => { state.sort = value; render(); },
   prepare:() => run(async inScope => {
     if (state.busy !== 'idle' || state.stale) return;
+    state.skipFailure = '';
     const {groupIds, excludeItemIds} = cleanSelection(state.result, state.selection, selectionDetails(state));
     if (!groupIds.length) return;
     let preview = await ipc.clean_prepare(groupIds, excludeItemIds);
@@ -93,7 +92,12 @@ const actions = {
       beginPolling();
     })), 'confirm-cancel');
   }),
-  toggleCategory:(category, enabled) => locationOperation(async isCurrent => { const value = await ipc.locations_set_category(category, enabled); if (isCurrent()) state.locations = value; }),
+  toggleCategory:(category, enabled) => locationOperation(async isCurrent => {
+    const scanId = !state.stale && state.result?.scan_id;
+    const value = await ipc.locations_set_category(category, enabled);
+    await refreshAfterSettings(scanId);
+    if (isCurrent()) state.locations = value;
+  }),
   addRoot:() => locationOperation(async isCurrent => {
     const value = await ipc.custom_root_add();
     if (!value.cancelled && isCurrent()) { const locations = await ipc.locations_get(); if (isCurrent()) state.locations = locations; }
@@ -102,8 +106,8 @@ const actions = {
   restoreSkip:id => locationOperation(async isCurrent => {
     const scanId = !state.stale && state.result?.scan_id;
     const value = await ipc.skip_remove(id);
-    await refreshAfterSkip(scanId);
-    if (isCurrent()) { state.locations = value; if (scanId && !state.stale) state.info = '已恢复，这一项重新算进可清理的范围。'; }
+    await refreshAfterSettings(scanId);
+    if (isCurrent()) { state.locations = value; if (scanId && !state.stale) state.info = '已恢复，这个文件夹以后会照常体检。'; }
   }),
   historyDetail:entry => run(async () => {
     if (state.historyOpen === entry.id) { state.historyOpen = null; return; }
@@ -111,7 +115,7 @@ const actions = {
     await readHistoryDetail(entry);
   })
 };
-async function refreshAfterSkip(scanId) {
+async function refreshAfterSettings(scanId) {
   if (!scanId) return;
   try {
     if (state.result?.scan_id !== scanId || state.stale) throw new Error('scan changed');
@@ -216,7 +220,7 @@ function render() {
   sidebar();
   const skipFailure = route === 'results' ? state.skipFailure : '';
   const notice = document.getElementById('notice'); notice.replaceChildren(); notice.hidden = !state.error && !state.info && !skipFailure && !state.reconnecting && !state.pollPaused;
-  if (!notice.hidden) add(notice, el('span', '', state.pollPaused ? state.pauseReason : state.reconnecting ? '正在重新连接 Water 服务…' : skipFailure || state.error || state.info), state.pollPaused ? button('重新连接', actions.reconnectProgress, 'btn btn-glass', 'progress-reconnect', state.pending) : state.reconnecting ? null : button('关闭提示', () => { clearError(); state.skipFailure = ''; render(); }, 'btn btn-ghost', 'dismiss-error'));
+  if (!notice.hidden) add(notice, el('span', '', state.pollPaused ? state.pauseReason : state.reconnecting ? '正在重新连接 Water 服务…' : state.error || skipFailure || state.info), state.pollPaused ? button('重新连接', actions.reconnectProgress, 'btn btn-glass', 'progress-reconnect', state.pending) : state.reconnecting ? null : button('关闭提示', () => { clearError(); state.skipFailure = ''; render(); }, 'btn btn-ghost', 'dismiss-error'));
   let view;
   if (route === 'home' && state.busy === 'scanning') view = scan(state, actions);
   else if (route === 'home' && state.busy === 'cleaning') view = cleaning(state, actions);
@@ -308,7 +312,7 @@ async function poll() {
       document.getElementById('announcer').textContent = `正在清理，已释放 ${formatBytes(p.freed_bytes)}`;
       if (['completed', 'stopped', 'failed'].includes(p.state) && state.cleanId) {
         state.cleaned = await ipc.clean_result(state.cleanId);
-        state.busy = 'idle'; state.stale = true; state.cleanTerminal = p.state; state.showDone = route === 'home';
+        state.busy = 'idle'; state.stale = true; state.skipFailure = ''; state.cleanTerminal = p.state; state.showDone = route === 'home';
         state.history = null; state.historyDetails.clear(); state.historyOpen = null;
         try { state.app = await ipc.app_state(); } catch (error) { fault(error); }
         if (route === 'history') await loadRoute();

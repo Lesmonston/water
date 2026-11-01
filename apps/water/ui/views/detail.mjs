@@ -16,16 +16,12 @@ export function detail(data, close, state, actions) {
     data.top_keys.forEach(k => add(panel, el('p', 'cap', `${k.key} · ${count(k.count)} 个 · ${formatBytes(k.bytes)} · 最近 ${relativeTime(k.newest_activity)}`)));
   }
   add(panel, el('h3', '', `包含的项目 · 前 ${Math.min(200, data.items.length)} / ${count(data.items_total)}`));
-  const groupSelected = hasSelectedItems(g, state.selection, selectionDetails(state));
-  if (state.stale) add(panel, el('p', 'cap item-selection-note', '结果已过期，请重新体检后再清理。'));
-  else if (g.selectable && !groupSelected) add(panel, el('p', 'cap item-selection-note', '先在结果页勾选这个分组，才能逐项排除。'));
   const items = el('div', 'items');
   for (const item of data.items.slice(0, 200)) {
     const row = el('div', 'item', undefined, {'data-item':item.item_id ?? ''});
     const selectable = g.selectable && item.eligible && item.item_id;
     if (selectable) {
-      const checkbox = check(`选择${item.display_path}`, groupSelected && !state.selection.get(g.group_id)?.has(item.item_id), checked => actions.selectItem(data, item.item_id, checked), `item-${item.item_id}`);
-      checkbox.disabled = !groupSelected || state.stale || state.busy !== 'idle';
+      const checkbox = check(`选择${item.display_path}`, false, checked => actions.selectItem(data, item.item_id, checked), `item-${item.item_id}`);
       add(row, checkbox); row.classList.add('item-selectable');
     }
     add(row, el('code', '', middlePath(item.display_path), {title:item.display_path}), el('span', '', formatBytes(item.total_bytes)), el('span', 'cap item-time', relativeTime(item.newest_activity)));
@@ -35,10 +31,32 @@ export function detail(data, close, state, actions) {
     add(items, row);
   }
   add(panel, items);
+  updateDetailSelection(panel, data, state);
   const activity = data.items.slice(0, 200).map(item => item.newest_activity).filter(value => value && Number.isFinite(Date.parse(value))).sort((a, b) => Date.parse(a) - Date.parse(b));
   if (activity.length) add(panel, el('p', 'cap', `已展示项目活动范围：${relativeTime(activity[0])} 至 ${relativeTime(activity.at(-1))}；完整分组最近活动见上方。`));
   if (data.items_total > Math.min(200, data.items.length)) add(panel, el('p', 'cap', `另有 ${count(data.items_total - Math.min(200, data.items.length))} 项`));
   if (data.fix_hint_zh) add(panel, el('h3', '', '修复建议'), el('p', 'fix', data.fix_hint_zh), copyButton(data.fix_hint_zh));
   if (g.level === 'protected') add(panel, el('p', 'protected-note', 'Water 不会清理此类数据。'));
   return panel;
+}
+// Selection changes leave the modal, its controls and its accessibility identity mounted.
+export function updateDetailSelection(panel, data, state) {
+  const g = data.group, groupSelected = hasSelectedItems(g, state.selection, selectionDetails(state));
+  const active = document.activeElement;
+  const message = state.stale ? '结果已过期，请重新体检后再清理。' : g.selectable && !groupSelected ? '先在结果页勾选这个分组，才能逐项排除。' : '';
+  let note = panel.querySelector('.item-selection-note');
+  if (message) {
+    if (!note) { note = el('p', 'cap item-selection-note'); panel.querySelector('.items').before(note); }
+    note.textContent = message;
+  } else note?.remove();
+  for (const checkbox of panel.querySelectorAll('.items input')) {
+    checkbox.checked = groupSelected && !state.selection.get(g.group_id)?.has(checkbox.closest('[data-item]').dataset.item);
+    checkbox.disabled = !groupSelected || state.stale || state.busy !== 'idle';
+  }
+  if (panel.contains(active) && active.disabled) {
+    const target = active.closest('.item')?.querySelector('button:not(:disabled)') ?? panel.querySelector('[data-key="detail-close"]');
+    target?.focus({preventScroll:true});
+    const bounds = panel.getBoundingClientRect(), rect = target?.getBoundingClientRect();
+    if (rect && (rect.top < bounds.top || rect.bottom > bounds.bottom)) target.scrollIntoView({block:'nearest'});
+  }
 }

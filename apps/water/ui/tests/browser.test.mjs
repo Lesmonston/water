@@ -45,6 +45,20 @@ function fakeHost(f, options) {
   const now = NativeDate.parse(f.scan_result.finished_at) + (options.due ? 9 * 86400000 : 0);
   window.Date = class extends NativeDate { constructor(...args) { super(...(args.length ? args : [now])); } static now() { return now; } };
   const control = window.__waterTest = {owner:options.owner, scenario:options.scenario, calls:[], errors:[], scanIndex:0, cleanIndex:0, holdScan:true, holdClean:true, holdApp:!!options.holdApp, scanIdleBefore:0, offline:false, progressErrors:{scan_progress:[], clean_progress:[]}, holdProgress:null, delayedError:null, nextError:null, scanned:!!options.scanned, busy:options.busy ?? 'idle', locations:copy(f.locations), addCancelled:false, plan:null, planSequence:0, consumed:false, cleanFinished:!!options.cleanFinished};
+  control.skipSequence = 0; control.categoryOverrides = {};
+  // Observe the actual detail Map through its ordinary operations, without a product hook.
+  if (options.observeDetailCache) {
+    const set = Map.prototype.set, iterator = Map.prototype[Symbol.iterator];
+    control.detailCacheReads = 0;
+    Map.prototype.set = function(id, value) {
+      if (!control.detailCache && value?.group?.group_id === options.observeDetailCache && Array.isArray(value.items)) control.detailCache = this;
+      return set.call(this, id, value);
+    };
+    Map.prototype[Symbol.iterator] = function() {
+      if (this === control.detailCache) control.detailCacheReads++;
+      return iterator.call(this);
+    };
+  }
   // Opt-in current service: immutable scan facts, projected through today's skip list.
   const snapshot = copy(f);
   if (options.liveSkips) {
@@ -58,25 +72,25 @@ function fakeHost(f, options) {
   function projectSkips() {
     if (!options.liveSkips) return;
     f.scan_result = copy(snapshot.scan_result); f.group_details = copy(snapshot.group_details);
-    for (const data of Object.values(f.group_details)) {
-      const group = f.scan_result.categories.flatMap(c => c.groups).find(g => g.group_id === data.group.group_id);
-      const category = f.scan_result.categories.find(c => c.groups.includes(group));
-      for (const item of data.items) if (item.eligible && control.locations.skipped.some(s => s.display_path.toLowerCase() === item.display_path.toLowerCase())) {
+    for (const group of f.scan_result.categories.flatMap(c => c.groups)) {
+      const data = f.group_details[group.group_id];
+      for (const item of data?.items ?? []) if (item.eligible && control.locations.skipped.some(s => s.display_path.toLowerCase() === item.display_path.toLowerCase())) {
         item.eligible = false; item.reason_zh = '已设为以后都跳过'; item.in_use = null;
         group.eligible_count--; group.eligible_bytes = String(BigInt(group.eligible_bytes) - BigInt(item.total_bytes));
         const drive = group.by_drive.find(d => d.root === item.display_path.slice(0, 3));
         if (drive) drive.eligible_bytes = String(BigInt(drive.eligible_bytes) - BigInt(item.total_bytes));
-        category.total_bytes = String(BigInt(category.total_bytes) - BigInt(item.total_bytes));
         if (group.level === 'recommended') {
           f.scan_result.totals.recommended_bytes = String(BigInt(f.scan_result.totals.recommended_bytes) - BigInt(item.total_bytes));
           const row = f.scan_result.recommended_by_drive.find(d => d.root === item.display_path.slice(0, 3));
           if (row) row.bytes = String(BigInt(row.bytes) - BigInt(item.total_bytes));
         }
       }
-      group.selectable = ['recommended', 'confirm'].includes(group.level) && group.eligible_count > 0;
-      group.summary_zh = `${group.eligible_count} 项可清理 · 共 ${group.item_count} 项`;
-      data.group = copy(group);
+      group.selectable = ['recommended', 'confirm'].includes(group.level) && group.eligible_count > 0 && control.categoryOverrides[group.category] !== false;
+      group.default_selected = group.selectable && group.level === 'recommended';
+      if (group.eligible_count < group.item_count) group.summary_zh += ` · 跳过 ${group.item_count - group.eligible_count} 个`;
+      if (data) data.group = copy(group);
     }
+    f.scan_result.recommended_by_drive = f.scan_result.recommended_by_drive.filter(d => BigInt(d.bytes) > 0n);
   }
   projectSkips();
   // Only harness resets bypass the close prompt; every scenario still tests the real close guard.
@@ -186,7 +200,8 @@ function fakeHost(f, options) {
       case 'locations_get': return copy(control.locations);
       case 'locations_set_category': {
         const category = control.locations.categories.find(c => c.category === args.category);
-        if (!category || category.locked) fail('invalid'); category.enabled = args.enabled; return copy(control.locations);
+        if (!category || category.locked) fail('invalid'); category.enabled = args.enabled;
+        control.categoryOverrides[args.category] = args.enabled; projectSkips(); return copy(control.locations);
       }
       case 'custom_root_add': if (control.addCancelled) return copy(f.custom_root_add_cancelled); control.locations.custom_roots.push(copy(f.custom_root_add_added.added)); return copy(f.custom_root_add_added);
       case 'custom_root_remove': control.locations.custom_roots = control.locations.custom_roots.filter(r => r.root_id !== args.rootId); return copy(control.locations);
@@ -194,7 +209,10 @@ function fakeHost(f, options) {
         const data = Object.values(f.group_details).find(d => d.items.some(item => item.item_id === args.itemId));
         const item = data?.items.find(item => item.item_id === args.itemId);
         if (!item || !data.group.selectable) fail('invalid');
-        if (!control.locations.skipped.some(s => s.display_path === item.display_path)) control.locations.skipped.push({skip_id:'s-added', display_path:item.display_path, added_at:f.scan_result.finished_at});
+        if (!control.locations.skipped.some(s => s.display_path.toLowerCase() === item.display_path.toLowerCase())) {
+          const sequence = ++control.skipSequence;
+          control.locations.skipped.push({skip_id:sequence === 1 ? 's-added' : `s-added-${sequence}`, display_path:item.display_path, added_at:f.scan_result.finished_at});
+        }
         if (options.liveSkips) projectSkips();
         else if (!options.skipKeepsCurrentScan && item.eligible) {
           item.eligible = false; item.reason_zh = '已设为以后都跳过';
@@ -206,7 +224,9 @@ function fakeHost(f, options) {
         }
         return copy(control.locations);
       }
-      case 'skip_remove': control.locations.skipped = control.locations.skipped.filter(s => s.skip_id !== args.skipId); projectSkips(); return copy(control.locations);
+      case 'skip_remove':
+        if (!control.locations.skipped.some(s => s.skip_id === args.skipId)) fail('not_found');
+        control.locations.skipped = control.locations.skipped.filter(s => s.skip_id !== args.skipId); projectSkips(); return copy(control.locations);
       default: throw new Error('Unexpected command ' + command);
     }
   }}};
@@ -388,9 +408,14 @@ test('ui_results_detail_confirm', async () => {
   assert.equal(await browser.evaluate('document.querySelector(".in-use-item")?.textContent ?? null'), 'Codex 正在使用', 'UI_M3C_INUSE_ITEM: per-item label matches host');
   assert.equal(await browser.evaluate('document.querySelector("[data-key=item-i-000201]")?.disabled ?? null'), false, 'UI_M3C_INUSE_ITEM: occupied items remain selectable');
   assert.equal(await browser.evaluate('document.querySelector("[data-key=item-i-000204]")'), null, 'UI_M3C_EXCLUDE: ineligible items cannot be selected');
-  await browser.evaluate('document.querySelector("dialog").scrollTop=document.querySelector(".items").offsetTop-160');
+  await browser.evaluate('document.querySelector("dialog").scrollTop=document.querySelector("dialog").scrollHeight');
   const itemScroll = await browser.evaluate('document.querySelector("dialog").scrollTop');
+  assert(itemScroll > 0, 'UI_M3C_EXCLUDE: the drawer actually scrolls before scroll preservation is checked');
+  await control('window.__waterTest.openDrawer=document.querySelector("dialog");window.__waterTest.itemBox=document.querySelector("[data-key=item-i-000202]");window.__waterTest.drawerFocus=[];document.addEventListener("focusin",e=>window.__waterTest.drawerFocus.push(window.__waterTest.openDrawer.contains(e.target)));window.__waterTest.drawerChanges=[];window.__waterTest.drawerObserver=new MutationObserver(records=>window.__waterTest.drawerChanges.push(...records.map(r=>r.type)));window.__waterTest.drawerObserver.observe(document.querySelector("#overlays"),{childList:true});window.__waterTest.drawerObserver.observe(window.__waterTest.openDrawer,{attributes:true,attributeFilter:["open"]})');
   await click('item-i-000202');
+  assert(await browser.evaluate('document.querySelector("dialog[open]") === window.__waterTest.openDrawer && document.querySelector("[data-key=item-i-000202]") === window.__waterTest.itemBox && window.__waterTest.drawerChanges.length === 0'), 'UI_M3C_EXCLUDE: item changes keep the same open drawer, backdrop and checkbox');
+  assert(await browser.evaluate('window.__waterTest.drawerFocus.every(Boolean)'), 'UI_M3C_EXCLUDE: item changes never move focus behind the drawer');
+  await control('window.__waterTest.drawerObserver.disconnect()');
   assert.equal(await browser.evaluate('document.querySelector("dialog").scrollTop'), itemScroll, 'UI_M3C_EXCLUDE: item redraw preserves the drawer scroll position');
   assert.equal(await browser.evaluate('document.activeElement.dataset.key'), 'item-i-000202', 'UI_M3C_EXCLUDE: item redraw preserves focus while the item stays enabled');
   assert.equal(await browser.evaluate('document.querySelector(".dock b").textContent'), formatBytes(baseBytes - BigInt(item.total_bytes)), 'UI_M3C_EXCLUDE: item removal reduces selected bytes');
@@ -412,6 +437,7 @@ test('ui_results_detail_confirm', async () => {
   await click(`select-${groupId}`); await click(`detail-${groupId}`);
   for (const id of ['i-000201', 'i-000202', 'i-000203']) await click(`item-${id}`);
   assert(await browser.evaluate('document.querySelectorAll(".items input").length === 3 && [...document.querySelectorAll(".items input")].every(e=>!e.checked && e.disabled) && !!document.querySelector(".item-selection-note")'), 'UI_M3C_EXCLUDE: emptied drawer immediately disables items and explains result-page reselection');
+  assert(await browser.evaluate('(()=>{const d=document.querySelector("dialog[open]"),a=document.activeElement,r=a.getBoundingClientRect(),p=d.getBoundingClientRect();return d.contains(a)&&!a.disabled&&r.top>=p.top&&r.bottom<=p.bottom})()'), 'UI_M3C_EXCLUDE: disabling the last item leaves focus on a visible enabled drawer control');
   await control('const box=document.querySelector("[data-key=item-i-000202]");box.checked=true;box.dispatchEvent(new Event("change",{bubbles:true}))');
   assert(await browser.evaluate('[...document.querySelectorAll(".items input")].every(e=>!e.checked && e.disabled)'), 'UI_M3C_EXCLUDE: forged item change cannot reselect an emptied group');
   assert(await browser.evaluate(`(()=>{const box=document.querySelector(${JSON.stringify(q(`select-${groupId}`))});return !box.checked && !box.indeterminate})()`), 'UI_M3C_EXCLUDE: entirely excluded group is unchecked, not mixed');
@@ -640,6 +666,48 @@ test('ui_clean_done_and_pages', async () => {
   const recommendedItem = m3c.group_details[recommendedId].items[0];
   const recommendedBytes = BigInt(m3c.scan_result.totals.recommended_bytes);
   const defaultCount = groups(m3c.scan_result).filter(g => g.default_selected).reduce((sum, g) => sum + g.eligible_count, 0);
+  for (const mode of ['exclude-all', 'skip-last', 'partial']) {
+    await reset({m3c:true, scanned:true, liveSkips:true}, 'results');
+    await click(`select-${nodeId}`); await click(`detail-${nodeId}`); await waitText('这是什么');
+    assert.equal(await browser.evaluate('document.querySelectorAll(".items input").length'), 2, 'UI_M3C_EXCLUDE: live node group begins with two eligible and two skipped items');
+    await click('item-i-000202');
+    if (mode === 'exclude-all') await click('item-i-000201');
+    if (mode === 'skip-last') {
+      await click('skip-i-000201');
+      assert(await settle('!!document.querySelector(".detail-notice") && !document.querySelector("[data-key=detail-close]")?.disabled'), 'UI_M3C_EXCLUDE: skipping the last included item completes the refresh');
+    }
+    const beforeRestore = await browser.evaluate('document.querySelector(".dock").textContent');
+    if (mode !== 'partial') assert(await browser.evaluate('[...document.querySelectorAll(".items input")].every(e=>!e.checked && e.disabled) && !!document.querySelector(".item-selection-note")'), 'UI_M3C_EXCLUDE: emptied live group requests result-page reselection');
+    await key('Escape'); await waitFor('!document.querySelector("dialog[open]")');
+    await click('nav-locations'); await waitText('以后都跳过的文件夹');
+    const restoreId = mode === 'skip-last' ? 's-added' : 's-000002';
+    await click(`restore-${restoreId}`);
+    assert(await settle(`!document.querySelector('[data-key=restore-${restoreId}]') && !document.querySelector('[data-key=add-root]')?.disabled`), 'UI_M3C_EXCLUDE: restoration of the emptied or partial group finishes');
+    await browser.evaluate('location.hash="#/results"'); await pageIs('results');
+    if (mode !== 'partial') {
+      assert.equal(await browser.evaluate('document.querySelector(".dock").textContent'), beforeRestore, 'UI_M3C_EXCLUDE: restored items do not change the dock after their group was emptied');
+      assert(await browser.evaluate(`(()=>{const b=document.querySelector(${JSON.stringify(q(`select-${nodeId}`))});return b&&!b.checked&&!b.indeterminate})()`), 'UI_M3C_EXCLUDE: the restored emptied group remains unchecked');
+    }
+    const expectedBytes = mode === 'partial' ? recommendedBytes + 450635299n + 700701149n : recommendedBytes;
+    const expectedCount = mode === 'partial' ? defaultCount + 2 : defaultCount;
+    assert.equal(await browser.evaluate('document.querySelector(".dock b").textContent'), formatBytes(expectedBytes), 'UI_M3C_EXCLUDE: partial restoration adds bytes only while the group remains selected');
+    assert.equal(await browser.evaluate('document.querySelector(".selected-count").textContent'), `${count(expectedCount)} 项`, 'UI_M3C_EXCLUDE: partial restoration adds items only while the group remains selected');
+    await click(`detail-${nodeId}`); await waitText('这是什么');
+    assert.equal(await browser.evaluate('document.querySelector("[data-key=item-i-000201]")?.checked'), mode === 'partial', 'UI_M3C_EXCLUDE: restored drawer follows the explicit group choice');
+    if (mode === 'partial') assert(await browser.evaluate('document.querySelector("[data-key=item-i-000203]")?.checked && !document.querySelector("[data-key=item-i-000202]")?.checked'), 'UI_M3C_EXCLUDE: partial restoration includes the restored item and retains the independent exclusion');
+    else assert(await browser.evaluate('[...document.querySelectorAll(".items input")].every(e=>!e.checked && e.disabled)'), 'UI_M3C_EXCLUDE: restoration cannot enable the emptied drawer');
+    await key('Escape'); await waitFor('!document.querySelector("dialog[open]")'); await click('clean-prepare');
+    assert(await settle('!!document.querySelector(".confirm[open]")'), 'UI_M3C_EXCLUDE: remaining explicit selection prepares after restoration');
+    const prepared = await browser.evaluate('window.__waterTest.calls.findLast(c=>c.command==="clean_prepare").args');
+    assert.equal(prepared.groupIds.includes(nodeId), mode === 'partial', 'UI_M3C_EXCLUDE: clean_prepare omits the restored emptied group');
+    assert.deepEqual(prepared.excludeItemIds, mode === 'partial' ? ['i-000202'] : [], 'UI_M3C_EXCLUDE: clean_prepare matches remaining manual exclusions');
+    assert.equal(await browser.evaluate('window.__waterTest.plan.total_bytes'), expectedBytes.toString(), 'UI_M3C_EXCLUDE: restored preview bytes equal the dock');
+    assert.equal(await browser.evaluate('window.__waterTest.plan.item_count'), expectedCount, 'UI_M3C_EXCLUDE: restored preview count equals the dock');
+    if (mode !== 'partial') {
+      await key('Escape'); await waitFor('!document.querySelector("dialog[open]")'); await click(`select-${nodeId}`); await click(`detail-${nodeId}`); await waitText('这是什么');
+      assert(await browser.evaluate('document.querySelectorAll(".items input").length > 0 && [...document.querySelectorAll(".items input")].every(e=>e.checked && !e.disabled)'), 'UI_M3C_EXCLUDE: only result-page reselection opts the restored group in with fresh exclusions');
+    }
+  }
   // Keep an independent manual exclusion while skipping and restoring a default-selected group.
   await reset({m3c:true, scanned:true, liveSkips:true}, 'results');
   await click(`select-${nodeId}`); await click(`detail-${nodeId}`); await waitText('这是什么'); await click('item-i-000202');
@@ -651,7 +719,7 @@ test('ui_clean_done_and_pages', async () => {
   assert(await settle('!!document.querySelector(".detail-notice") && !document.querySelector("[data-key=detail-close]")?.disabled'), 'UI_M3C_SKIP: live skip completes both result and detail rereads');
   assert.equal(await browser.evaluate('document.querySelector(".res-hero .kpi").textContent'), formatBytes(recommendedBytes - BigInt(recommendedItem.total_bytes)).replace(' ', ''), 'UI_M3C_SKIP: live skip deducts the recommended hero');
   assert.equal(await browser.evaluate('document.querySelector("[data-key=legend-recommended] b").textContent'), formatBytes(recommendedBytes - BigInt(recommendedItem.total_bytes)), 'UI_M3C_SKIP: live skip deducts the legend');
-  assert.equal(await browser.evaluate('document.querySelector("[data-key=category-agent_tool]").closest(".sheet-head").querySelector(".category-total b").textContent'), formatBytes(aiCategoryBytes - BigInt(recommendedItem.total_bytes)), 'UI_M3C_SKIP: live skip replaces category totals');
+  assert.equal(await browser.evaluate('document.querySelector("[data-key=category-agent_tool]").closest(".sheet-head").querySelector(".category-total b").textContent'), formatBytes(aiCategoryBytes), 'UI_M3C_SKIP: live skip preserves category total occupancy');
   assert.equal(await browser.evaluate('document.querySelector(".dock b").textContent'), formatBytes(liveBaseBytes - BigInt(recommendedItem.total_bytes)), 'UI_M3C_SKIP: refreshing keeps an independent excluded item deducted');
   assert.equal(await browser.evaluate('document.querySelector(".selected-count").textContent'), `${count(liveBaseCount - 1)} 项`, 'UI_M3C_SKIP: refreshed counts deduct each skipped or excluded item once');
   assert.equal(await browser.evaluate('document.querySelector("[data-key=item-i-000100]")'), null, 'UI_M3C_SKIP: new service explicitly marks the skipped item ineligible');
@@ -660,11 +728,11 @@ test('ui_clean_done_and_pages', async () => {
   assert.equal(await browser.evaluate('document.querySelector(".last span").textContent'), `可放心清理 ${formatBytes(recommendedBytes - BigInt(recommendedItem.total_bytes))}`, 'UI_M3C_SKIP: home last checkup uses the refreshed total');
   await click('nav-locations'); await waitText('以后都跳过的文件夹'); await click('restore-s-added');
   assert(await settle('!document.querySelector("[data-key=restore-s-added]") && !document.querySelector("[data-key=add-root]")?.disabled'), 'UI_M3C_SKIP: live restore finishes its result reread');
-  assert((await text()).includes('已恢复，这一项重新算进可清理的范围。'), 'UI_M3C_SKIP: restore explains renewed cleanup eligibility');
+  assert((await text()).includes('已恢复，这个文件夹以后会照常体检。'), 'UI_M3C_SKIP: restore explains future scans without claiming a current matching item');
   await browser.evaluate('location.hash="#/results"'); await pageIs('results');
   assert.equal(await browser.evaluate('document.querySelector(".dock b").textContent'), formatBytes(liveBaseBytes), 'UI_M3C_SKIP: restore puts the item bytes back in the global dock');
   assert.equal(await browser.evaluate('document.querySelector(".selected-count").textContent'), `${count(liveBaseCount)} 项`, 'UI_M3C_SKIP: restore puts the item count back in the global dock');
-  assert((await browser.evaluate('document.querySelector("[data-key=detail-codex-marketplace-staging] .group-meta").textContent')).includes('47 项可清理'), 'UI_M3C_SKIP: restored group row uses the current eligible count');
+  assert((await browser.evaluate('document.querySelector("[data-key=detail-codex-marketplace-staging] .group-meta").textContent')).includes('48 个目录 · 最近 10 月 25 日 · 跳过 1 个'), 'UI_M3C_SKIP: restored group row uses the service total and skipped count');
   await click(`detail-${recommendedId}`);
   assert(await settle('document.querySelector("[data-key=item-i-000100]")?.checked && !document.querySelector("[data-key=item-i-000100]")?.disabled'), 'UI_M3C_SKIP: reopened restored item is eligible and selected');
   await key('Escape'); await waitFor('!document.querySelector("dialog[open]")'); await click('clean-prepare');
@@ -674,14 +742,17 @@ test('ui_clean_done_and_pages', async () => {
   assert.equal(await browser.evaluate('window.__waterTest.plan.item_count'), liveBaseCount, 'UI_M3C_SKIP: live restore prepare count equals the dock');
 
   // A folder already skipped before this scan can re-enter a default-selected group.
-  await reset({m3c:true, scanned:true, liveSkips:true, preScanSkip:true}, 'results');
+  await reset({m3c:true, scanned:true, liveSkips:true, preScanSkip:true, observeDetailCache:recommendedId}, 'results');
   assert(await settle('document.querySelector(".res-hero .kpi")?.textContent === ' + JSON.stringify(formatBytes(recommendedBytes - BigInt(recommendedItem.total_bytes)).replace(' ', ''))), 'UI_M3C_SKIP: initial result reflects the pre-scan skip');
   await click(`detail-${recommendedId}`); await waitText('这是什么');
   assert.equal(await browser.evaluate('document.querySelector("[data-key=item-i-000100]")'), null, 'UI_M3C_SKIP: pre-scan skipped item begins ineligible');
+  assert(await browser.evaluate('window.__waterTest.detailCacheReads > 0'), 'UI_M3C_SKIP: cache observer sees the actual populated detail cache');
   await key('Escape'); await waitFor('!document.querySelector("dialog[open]")');
   await click('nav-locations'); await waitText('以后都跳过的文件夹'); await click('restore-s-before-scan');
   assert(await settle('!document.querySelector("[data-key=restore-s-before-scan]") && !document.querySelector("[data-key=add-root]")?.disabled'), 'UI_M3C_SKIP: pre-scan restore reread completes');
   await browser.evaluate('location.hash="#/results"'); await pageIs('results');
+  await control('window.__waterTest.detailCacheReads=0'); await click('filter-recommended');
+  assert.equal(await browser.evaluate('window.__waterTest.detailCacheReads'), 0, 'UI_M3C_SKIP: result refresh discards the old detail cache before any drawer is reopened');
   assert.equal(await browser.evaluate('document.querySelector(".dock b").textContent'), formatBytes(recommendedBytes), 'UI_M3C_SKIP: pre-scan restore enters the default selection bytes');
   assert.equal(await browser.evaluate('document.querySelector(".selected-count").textContent'), `${count(defaultCount)} 项`, 'UI_M3C_SKIP: pre-scan restore enters the default selection count');
   await click(`detail-${recommendedId}`);
@@ -731,6 +802,58 @@ test('ui_clean_done_and_pages', async () => {
   assert.equal(await browser.evaluate('document.querySelector(".dock b").textContent'), formatBytes(recommendedBytes), 'UI_M3C_SKIP: failed skip preserves the original selected bytes');
   await click(`detail-${recommendedId}`);
   assert(await settle('document.querySelector("[data-key=item-i-000100]")?.checked === true'), 'UI_M3C_SKIP: failed skip preserves the item selection');
+
+  for (const code of ['busy', 'invalid', 'stale']) {
+    await reset({m3c:true, scanned:true, liveSkips:true}, 'results');
+    await click(`detail-${recommendedId}`); await waitText('这是什么');
+    await control(`window.__waterTest.nextError={command:'skip_add',error:${JSON.stringify(fixture.errors.unavailable)}}`); await click('skip-i-000100');
+    assert(await settle('!document.querySelector("[data-key=detail-close]")?.disabled'), 'UI_M3C_SKIP: initial skip failure settles');
+    await key('Escape'); await waitFor('!document.querySelector("dialog[open]")');
+    await control(`window.__waterTest.nextError={command:'clean_prepare',error:${JSON.stringify(fixture.errors[code])}}`); await click('clean-prepare');
+    assert(await settle(`document.querySelector('#notice span')?.textContent === ${JSON.stringify(fixture.errors[code].message_zh)}`), `UI_M3C_SKIP: later ${code} error takes priority over skip failure`);
+    assert(!(await browser.evaluate('document.querySelector("#notice").textContent')).includes('跳过没有成功'), 'UI_M3C_SKIP: cleanup never reuses the earlier skip-failure notice');
+    if (code === 'stale') assert((await text()).includes('结果已过期，请重新体检后再清理。'), 'UI_M3C_SKIP: stale explanation remains visible after a failed skip');
+  }
+
+  for (const outcome of ['success', 'failure', 'wrong-scan']) {
+    await reset({m3c:true, scanned:true, liveSkips:true, observeDetailCache:recommendedId}, 'results');
+    await click(`detail-${recommendedId}`); await waitText('这是什么');
+    await key('Escape'); await waitFor('!document.querySelector("dialog[open]")');
+    await click('nav-locations'); await waitText('自定义文件夹');
+    if (outcome === 'wrong-scan') await control(`window.__waterTest.heldRead={command:'scan_result',value:${JSON.stringify({...m3c.scan_result, scan_id:'scan-unrelated'})}}`);
+    else await control(`window.__waterTest.delayedError={command:'scan_result',error:${JSON.stringify(outcome === 'failure' ? fixture.errors.unavailable : null)}}`);
+    await click('location-browser');
+    const held = outcome === 'wrong-scan' ? 'heldRead' : 'delayedError';
+    assert(await settle(`window.__waterTest.${held}.started === true`), 'UI_M3C_DRIVE: category changes reread the current result');
+    await browser.evaluate('location.hash="#/results"'); await pageIs('results');
+    assert.equal(await browser.evaluate('document.querySelector("[data-key=clean-prepare]")?.disabled'), true, 'UI_M3C_DRIVE: category reread blocks cleanup across navigation');
+    await click('clean-prepare');
+    assert.equal(await browser.evaluate('window.__waterTest.calls.filter(c=>c.command==="clean_prepare").length'), 0, 'UI_M3C_DRIVE: category refresh cannot send a premature plan');
+    await control(`window.__waterTest.${held}.release=true`);
+    assert(await settle('document.querySelector("[data-key=rescan]")?.disabled === false'), 'UI_M3C_DRIVE: category reread settles');
+    assert.equal(await browser.evaluate('window.__waterTest.calls.findLast(c=>c.command==="scan_result").args.scanId'), m3c.scan_result.scan_id, 'UI_M3C_DRIVE: category reread uses the same scan ID');
+    if (outcome !== 'success') {
+      assert((await text()).includes('结果已过期，请重新体检后再清理。'), 'UI_M3C_DRIVE: failed or mismatched category reread makes results stale');
+      assert.equal(await browser.evaluate('document.querySelector("[data-key=clean-prepare]")?.disabled'), true, 'UI_M3C_DRIVE: stale category results cannot prepare');
+      continue;
+    }
+    await control('window.__waterTest.detailCacheReads=0'); await click('filter-all');
+    assert.equal(await browser.evaluate('window.__waterTest.detailCacheReads'), 0, 'UI_M3C_DRIVE: category refresh clears cached details without reopening a drawer');
+    const remaining = groups(m3c.scan_result).filter(g => g.default_selected && g.category !== 'browser');
+    const bytes = remaining.reduce((sum, g) => sum + BigInt(g.eligible_bytes), 0n);
+    assert.equal(await browser.evaluate('document.querySelector(".dock b").textContent'), formatBytes(bytes), 'UI_M3C_DRIVE: disabled categories leave the selected byte total');
+    assert.equal(await browser.evaluate('document.querySelector(".selected-count").textContent'), `${count(remaining.reduce((sum, g) => sum + g.eligible_count, 0))} 项`, 'UI_M3C_DRIVE: disabled categories leave the selected item total');
+    assert.equal(await browser.evaluate('document.querySelector("[data-key=select-chrome-cache]")'), null, 'UI_M3C_DRIVE: disabled category groups become nonselectable');
+    await click('clean-prepare'); assert(await settle('!!document.querySelector(".confirm[open]")'), 'UI_M3C_DRIVE: refreshed remaining selection prepares');
+    assert.deepEqual(await browser.evaluate('window.__waterTest.calls.findLast(c=>c.command==="clean_prepare").args.groupIds'), remaining.map(g => g.group_id), 'UI_M3C_DRIVE: category refresh preserves other choices and omits disabled groups');
+    assert.equal(await browser.evaluate('window.__waterTest.plan.total_bytes'), bytes.toString(), 'UI_M3C_DRIVE: category preview bytes equal the dock');
+  }
+
+  await reset({m3c:true, scanned:true, liveSkips:true}, 'results');
+  const skipIdentity = await browser.evaluate('(async()=>{const host=window.__TAURI__.core;const a=await host.invoke("skip_add",{itemId:"i-000100"});const first=a.skipped.find(s=>s.skip_id.startsWith("s-added")).skip_id;const duplicate=await host.invoke("skip_add",{itemId:"i-000100"});await host.invoke("skip_remove",{skipId:first});const b=await host.invoke("skip_add",{itemId:"i-000101"});let missing;try{await host.invoke("skip_remove",{skipId:"s-missing"})}catch(e){missing=e.code}return {first,second:b.skipped.find(s=>s.skip_id.startsWith("s-added")).skip_id,duplicate:duplicate.skipped.length===a.skipped.length,missing}})()');
+  assert.notEqual(skipIdentity.first, skipIdentity.second, 'UI_M3C_SKIP: every newly added skip has a distinct opaque ID');
+  assert.equal(skipIdentity.duplicate, true, 'UI_M3C_SKIP: adding the same path keeps its existing skip');
+  assert.equal(skipIdentity.missing, 'not_found', 'UI_M3C_SKIP: removing an unknown skip returns not_found');
 
   await reset({m3c:true}, 'locations');
   assert(await settle('!!document.querySelector(".skipped-roots")'), 'UI_M3C_SKIP: frozen skipped fixture loaded');
