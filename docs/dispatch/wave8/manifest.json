@@ -1,7 +1,7 @@
 {
   "schemaVersion": 1,
   "wave": "water-wave8-m3-close",
-  "status": "FIRST_BATCH_ADDENDA_DISPATCHED",
+  "status": "SECOND_BATCH_READY",
   "controller": "Claude",
   "controllerRoot": "F:/new/smaltalk/water",
   "controllerBranch": "main",
@@ -55,27 +55,11 @@
     }
   ],
   "readyReport": "docs/dispatch/wave8/PLAN.md",
-  "plannedTasks": [
-    {
-      "id": "WATER-W8-K4",
-      "title": "服务接上 M3 收口的各项",
-      "spec": "contracts/m3c-v1/SERVICE-M3C.md",
-      "root": "packages/water-service",
-      "gate": "heavy",
-      "status": "PLANNED",
-      "dispatchAfter": [
-        "WATER-W8-K1",
-        "WATER-W8-K2",
-        "WATER-W8-K3"
-      ],
-      "note": "base is main after K1-K3 merge"
-    }
-  ],
   "tasks": [
     {
       "id": "WATER-W8-K1",
       "title": "进程快照补程序路径与内存",
-      "status": "BLOCKED",
+      "status": "VERIFIED",
       "slot": "w8-k1",
       "kind": "rust",
       "worktree": "F:/new/smaltalk/water/.worktrees/w8-k1",
@@ -190,17 +174,34 @@
         {
           "id": "WATER-W8-K1-ADDENDUM-01",
           "ticket": "docs/dispatch/tickets/WATER-W8-K1-ADDENDUM-01-20261101.md",
-          "status": "DISPATCHED",
+          "status": "VERIFIED",
           "issuedAt": "2026-10-31T15:03:29Z",
           "resumeFromCommit": "6273d4d76e9b3339d7ef6a14c748e60fb50bb383",
           "change": "authorize process_snapshot_contract line 363 to also accept image_unavailable; clarify that image_unavailable counts only processes whose handle opened but QueryFullProcessImageNameW failed (no double count with access_denied/exited), summary order access_denied, exited, image_unavailable; no baseline rerun",
           "dispatchedAt": null,
-          "submittedHead": null,
-          "implementationCommit": null,
+          "submittedHead": "41f4bdf5650e6d0fe20f61cf8d1d20992e9c7e59",
+          "implementationCommit": "7264e92bca874269f1e792d8b479f403e1db7a99",
           "dispatchEvidence": "user chat 2026-11-01 ~00:40 JST: \"都已派出，界面是astra，其他的都是sol\"; paste time not reported; worker tree head/changed files 6273d4d7/0 when recorded",
           "model": "sol (user-reported)",
-          "dispatchReportedAt": "2026-10-31T15:39:56Z"
+          "dispatchReportedAt": "2026-10-31T15:39:56Z",
+          "workerSelfReport": "Codex GPT-6"
         }
+      ],
+      "submittedHead": "41f4bdf5650e6d0fe20f61cf8d1d20992e9c7e59",
+      "implementationCommit": "7264e92bca874269f1e792d8b479f403e1db7a99",
+      "workerSelfReport": "Codex GPT-6",
+      "mergeCommit": "3b79242e",
+      "controllerReview": {
+        "report": "docs/acceptance/wave8/controller/WATER-W8-REVIEW-20261101.md",
+        "evidence": "docs/acceptance/wave8/controller/accept-20261101/k1/",
+        "summary": "addendum 01 round: audit 0 problems; fresh tree lock, check/test/real finals passed (real: 366 processes, 356 image paths, 7 image_unavailable); controller mutations c1-c7: 6 caught (c2 at PROC_M3C_IMAGE), c1 (whole-segment boundary for image paths) survived as a test gap; independent review approve: VM_COUNTERS layout, handle reuse, issue accounting, privacy all checked"
+      },
+      "carryOverLater": [
+        "image-path whole-segment boundary has no negative test (controller c1 survived; code correct)",
+        "ProcessSnapshot::image_path_count() is public API beyond the SPEC (count only, for the real smoke); ratified",
+        "PROC_M3C_MEMORY compares separately sampled working sets and may flake under memory pressure",
+        "stale FFI comments in native_windows.rs header and the extern SAFETY note",
+        "each process allocates a zeroed 64 KiB image-path buffer"
       ]
     },
     {
@@ -254,7 +255,7 @@
       "branch": "worker/water-w8-k2",
       "baseCommit": "912eba100ba342c3eeb21ba555c6d589b91e6b4f",
       "snapshotRef": "refs/tags/water-w8-m3c-base-20261031",
-      "status": "BLOCKED",
+      "status": "VERIFIED",
       "readyOn": "2026-10-31",
       "dispatchedAt": null,
       "startedAt": null,
@@ -327,18 +328,29 @@
         {
           "id": "WATER-W8-K2-ADDENDUM-01",
           "ticket": "docs/dispatch/tickets/WATER-W8-K2-ADDENDUM-01-20261101.md",
-          "status": "DISPATCHED",
+          "status": "VERIFIED",
           "issuedAt": "2026-10-31T15:03:29Z",
           "resumeFromCommit": "f67309fa7d4d52b39b337fc3bab64b0c76866635",
           "change": "authorize 255 -> 257; two RULES_M3C_WORKTREE targets custom:alpha/beta:git-worktrees#1 follow the beta Rust target and the RULES_AGENT_TOOLS tail starts after them (still 38, last other-agent-sessions#3); skip only the no-\"只列出\" check for git-worktrees (its why_zh locked verbatim by RULES_M3C_WORKTREE); rule 62 (index 61) is git-worktrees and rules()[62..] == AGENT_RULE_IDS; seed_table gains the git-worktrees row (custom/advisory/dir/0/0/none/slow, marker:file:.git:1:4096:8); no baseline rerun",
           "dispatchedAt": null,
-          "submittedHead": null,
-          "implementationCommit": null,
+          "submittedHead": "bc0d94882d8a8e1073731e9da19c5463f8524fbf",
+          "implementationCommit": "a55382c748f3fbdad0ff782415fced49ca4d1808",
           "dispatchEvidence": "user chat 2026-11-01 ~00:40 JST: \"都已派出，界面是astra，其他的都是sol\"; paste time not reported; worker tree head/changed files f67309fa/0 when recorded",
           "model": "sol (user-reported)",
-          "dispatchReportedAt": "2026-10-31T15:39:56Z"
+          "dispatchReportedAt": "2026-10-31T15:39:56Z",
+          "workerSelfReport": "Codex"
         }
-      ]
+      ],
+      "submittedHead": "bc0d94882d8a8e1073731e9da19c5463f8524fbf",
+      "implementationCommit": "a55382c748f3fbdad0ff782415fced49ca4d1808",
+      "workerSelfReport": "Codex",
+      "mergeCommit": "2d2f54d7",
+      "controllerReview": {
+        "report": "docs/acceptance/wave8/controller/WATER-W8-REVIEW-20261101.md",
+        "evidence": "docs/acceptance/wave8/controller/accept-20261101/k2/",
+        "summary": "addendum 01 round: audit 0 problems; fresh tree lock, check/test/real finals passed; controller compared rules JSON with the SPEC table field by field (76 rules, only the four general rules changed in_use, order kept) and every changed old assertion lies within SPEC section 6 plus addendum 01; controller mutations c1-c6 all caught"
+      },
+      "carryOverLater": []
     },
     {
       "id": "WATER-W8-K3",
@@ -479,6 +491,215 @@
         "roots differing only in ASCII case use the first target spelling for hit paths",
         "test gaps: eligible_unique_bytes default source (c6) and listing-issue replay inside an open measurement (c10)"
       ]
+    },
+    {
+      "kind": "service",
+      "outputRoot": "packages/water-service",
+      "packageName": "water-service",
+      "testTarget": "service_v1",
+      "testFiles": [
+        "packages/water-service/tests/service_v1.rs"
+      ],
+      "productionFiles": [
+        "packages/water-service/Cargo.toml",
+        "packages/water-service/Cargo.lock",
+        "packages/water-service/README.md",
+        "packages/water-service/examples/service_smoke.rs"
+      ],
+      "cargoCacheSource": "F:/new/smaltalk/water/.offline-cache/core/registry",
+      "realMode": "service-smoke",
+      "nativeModule": "native_windows.rs",
+      "allowedEnv": [],
+      "expectedDependencies": [
+        {
+          "name": "serde",
+          "req": "=1.0.229",
+          "kind": null,
+          "optional": false,
+          "path": null,
+          "defaults": true,
+          "features": [
+            "derive"
+          ]
+        },
+        {
+          "name": "serde_json",
+          "req": "=1.0.151",
+          "kind": null,
+          "optional": false,
+          "path": null,
+          "defaults": true,
+          "features": []
+        },
+        {
+          "name": "water-junk-clean",
+          "req": "*",
+          "kind": null,
+          "optional": false,
+          "path": "packages/junk-clean",
+          "defaults": true,
+          "features": []
+        },
+        {
+          "name": "water-junk-rules",
+          "req": "*",
+          "kind": null,
+          "optional": false,
+          "path": "packages/junk-rules",
+          "defaults": true,
+          "features": []
+        },
+        {
+          "name": "water-junk-scan",
+          "req": "*",
+          "kind": null,
+          "optional": false,
+          "path": "packages/junk-scan",
+          "defaults": true,
+          "features": []
+        },
+        {
+          "name": "water-process-scan",
+          "req": "*",
+          "kind": null,
+          "optional": false,
+          "path": "packages/process-scan",
+          "defaults": true,
+          "features": []
+        }
+      ],
+      "macOS": "unverified",
+      "outputRootExists": true,
+      "nativeWindowBudget": 0,
+      "nativeDirectoryDialogBudget": 0,
+      "expectedTests": [
+        "service_ipc_contract",
+        "service_scan_views",
+        "service_clean_flow",
+        "service_trends_locations",
+        "service_storage_safety",
+        "service_hardening"
+      ],
+      "allowedModes": [
+        "baseline",
+        "lock",
+        "check",
+        "test",
+        "real",
+        "red-nc1",
+        "red-nc2",
+        "red-nc3",
+        "archive"
+      ],
+      "expectedFinalModes": [
+        "check",
+        "test",
+        "real"
+      ],
+      "browserBudget": 0,
+      "realDataPermission": "read-only metadata per ADR-018; clean disabled in the real smoke",
+      "id": "WATER-W8-K4",
+      "title": "服务接上 M3 收口的各项",
+      "slot": "w8-k4",
+      "worktree": "F:/new/smaltalk/water/.worktrees/w8-k4",
+      "branch": "worker/water-w8-k4",
+      "baseCommit": "232bc2982228f5d99f42017de6db3caa5912a8ab",
+      "snapshotRef": "refs/tags/water-w8-k4-base-20261101",
+      "status": "READY",
+      "readyOn": "2026-11-01",
+      "dispatchedAt": null,
+      "startedAt": null,
+      "model": null,
+      "modelAssignment": "user-arranged; report actual engine/model",
+      "purpose": "M3 close",
+      "report": "docs/dispatch/reports/WATER-W8-K4-REPORT.md",
+      "evidenceDir": "docs/acceptance/wave8/k4/",
+      "allowedFiles": [
+        "docs/dispatch/reports/WATER-W8-K4-REPORT.md"
+      ],
+      "gate": "heavy",
+      "ticket": "docs/dispatch/tickets/WATER-W8-K4-SERVICE-20261101.md",
+      "spec": "contracts/m3c-v1/SERVICE-M3C.md",
+      "proofTargets": {
+        "nc1": "SERVICE_M3C_EXCLUDE",
+        "nc2": "SERVICE_M3C_SKIP",
+        "nc3": "SERVICE_M3C_DRIVE_ROOT"
+      },
+      "modelHint": "Rust service core that orchestrates deletion; heavy gate; final includes a read-only real checkup.",
+      "mustRead": [
+        "docs/dispatch/W8-M3C-WORKER-RULES.md",
+        "contracts/m3c-v1/SERVICE-M3C.md",
+        "contracts/m3c-v1/SERVICE-M3C-ADD-01.md",
+        "contracts/m3c-v1/IPC-M3C.md",
+        "contracts/m3c-v1/ui-fixtures-m3c.json",
+        "contracts/m3c-v1/PROCESS-M3C.md",
+        "contracts/m3c-v1/RULES-M3C.md",
+        "contracts/m3c-v1/SCAN-M3C.md",
+        "docs/dispatch/wave8/PLAN.md",
+        "packages/water-service/src/views.rs",
+        "packages/water-service/src/lib.rs",
+        "packages/water-service/src/service.rs",
+        "packages/water-service/src/clean.rs",
+        "packages/water-service/src/native_windows.rs",
+        "packages/water-service/tests/service_v1.rs"
+      ],
+      "frozenFiles": [
+        {
+          "path": "contracts/m3c-v1/SERVICE-M3C.md",
+          "sha256": "29a337e90705adcd28bf98419139efeaf88bcc709e1fa0fc022f28405fcafc26"
+        },
+        {
+          "path": "contracts/m3c-v1/SERVICE-M3C-ADD-01.md",
+          "sha256": "a001a4fc0771304cd8da6e21222b3c95b6fbd47146d35cc23de9216b9d182830"
+        },
+        {
+          "path": "contracts/m3c-v1/IPC-M3C.md",
+          "sha256": "d0b6bb18a5deedc8200569cc9f3c68a544d564c8a07c45d0905e9ab01a07e6a5"
+        },
+        {
+          "path": "contracts/m3c-v1/ui-fixtures-m3c.json",
+          "sha256": "c01bc0cb59d3bd0d61a1410446659e032dcfc1bfc8ad3fb3635331924f23a033"
+        },
+        {
+          "path": "contracts/checkup-v1/ui-fixtures.json",
+          "sha256": "2dd62585cb7ca31d429af8bf5360dda44d645dd73a5d3f79542d4d23ce1840e2"
+        },
+        {
+          "path": "contracts/m3c-v1/PROCESS-M3C.md",
+          "sha256": "ce53d144273f8a80e6cc1b8aa26e5e06d7d7c0f91e330dbeef05d3e1860c1f2e"
+        },
+        {
+          "path": "contracts/m3c-v1/RULES-M3C.md",
+          "sha256": "2fe859274ca3c8c6a3ca9533d30eb4b16deb2a1801c3c1463f2f976a23e28220"
+        },
+        {
+          "path": "contracts/m3c-v1/SCAN-M3C.md",
+          "sha256": "9ae9c1eab0f0c81a2943a7bff30163f9504e102c69ba9b9d56d3d8db9d38f2e2"
+        },
+        {
+          "path": "contracts/m3-v1/SERVICE-M3-FIX.md",
+          "sha256": "b52db7dd04a1088835d6ef76153606a6804c75aaf81d631c695a2c2dc1354178"
+        },
+        {
+          "path": "contracts/m2-v1/SERVICE-M2.md",
+          "sha256": "c7ab42a4d6396a2f026824e762c5e4c1589c99ab837673b329ff26315105a0b9"
+        },
+        {
+          "path": "contracts/hardening-v1/SERVICE-HARDENING.md",
+          "sha256": "fbec889779d5d95ef2cc23ad4c6ac489010a064be958881b37988a12add57359"
+        },
+        {
+          "path": "contracts/desktop-v1/SERVICE.md",
+          "sha256": "44ae8643cbe64e083807386919192ce15c3cf586d1ecddbcf908ca0f0157180a"
+        }
+      ],
+      "allowedPrefixes": [
+        "packages/water-service/",
+        "docs/acceptance/wave8/k4/"
+      ],
+      "baselineStatus": "PASSED",
+      "baselineEvidence": "docs/acceptance/wave8/controller/preflight-20261101/k4/2026-11-01T02-17-28.063Z-20176-baseline-result.json",
+      "preflightEvidence": "controller lock and check (clippy --all-targets) also passed at the base: docs/acceptance/wave8/controller/preflight-20261101/k4/"
     },
     {
       "kind": "host",
@@ -786,7 +1007,7 @@
       "branch": "worker/water-w8-k5",
       "baseCommit": "912eba100ba342c3eeb21ba555c6d589b91e6b4f",
       "snapshotRef": "refs/tags/water-w8-m3c-base-20261031",
-      "status": "BLOCKED",
+      "status": "VERIFIED",
       "readyOn": "2026-10-31",
       "dispatchedAt": null,
       "startedAt": null,
@@ -859,17 +1080,30 @@
         {
           "id": "WATER-W8-K5-ADDENDUM-01",
           "ticket": "docs/dispatch/tickets/WATER-W8-K5-ADDENDUM-01-20261101.md",
-          "status": "DISPATCHED",
+          "status": "VERIFIED",
           "issuedAt": "2026-10-31T15:03:29Z",
           "resumeFromCommit": "ba3a39b9f43e3dcab6a8e6f68c942d7c008720f6",
           "change": "authorize expected_wrappers clean_prepare keys [excludeItemIds, groupIds] while the call-sequence expectation stays {groupIds}; HOST_COMMANDS IPC table = checkup-v1 IPC.md 17 names then IPC-M3C skip_add, skip_remove; existing cmd_clean_prepare calls gain None; all checks rerun on post-addendum bytes (draft test results do not count); no baseline rerun",
           "dispatchedAt": null,
-          "submittedHead": null,
-          "implementationCommit": null,
+          "submittedHead": "a68822269265ab6562308042fcb37f337ed5f0c3",
+          "implementationCommit": "802ca7eb3cf6a3476d798ff79b732a720892cd4d",
           "dispatchEvidence": "user chat 2026-11-01 ~00:40 JST: \"都已派出，界面是astra，其他的都是sol\"; paste time not reported; worker tree head/changed files ba3a39b9/0 when recorded",
           "model": "sol (user-reported)",
-          "dispatchReportedAt": "2026-10-31T15:39:56Z"
+          "dispatchReportedAt": "2026-10-31T15:39:56Z",
+          "workerSelfReport": "Codex GPT-6"
         }
+      ],
+      "submittedHead": "a68822269265ab6562308042fcb37f337ed5f0c3",
+      "implementationCommit": "802ca7eb3cf6a3476d798ff79b732a720892cd4d",
+      "workerSelfReport": "Codex GPT-6",
+      "mergeCommit": "311f3a9b",
+      "controllerReview": {
+        "report": "docs/acceptance/wave8/controller/WATER-W8-REVIEW-20261101.md",
+        "evidence": "docs/acceptance/wave8/controller/accept-20261101/k5/",
+        "summary": "addendum 01 round: audit 0 problems (w3-receipt-audit); controller read every product and test change (thin forwarding, empty exclusions byte-identical, 19 commands, assertion edits within SPEC section 4 plus addendum 01); fresh tree lock, check/test/native finals passed (native: 1 window, 0 dialogs, 9 steps about 27 s, exit 0, all six WebView children exited); controller mutations c1-c5 all caught"
+      },
+      "carryOverLater": [
+        "the native check runs the baseline UI and service, so exclusion and skip are verified end to end only in the fifth integration"
       ]
     },
     {

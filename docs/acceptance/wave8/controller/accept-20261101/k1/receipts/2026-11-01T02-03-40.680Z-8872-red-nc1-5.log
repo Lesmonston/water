@@ -1,0 +1,41 @@
+{"binary":"C:\\Users\\37310\\.rustup\\toolchains\\1.95.0-x86_64-pc-windows-msvc\\bin\\cargo.exe","args":["test","--offline","--locked","--manifest-path","packages/process-scan/Cargo.toml","--test","process_v1","--","--test-threads=1"],"exitCode":101,"error":null}
+--- stdout ---
+
+running 4 tests
+test process_in_use_and_orphans ... FAILED
+test process_path_reference ... FAILED
+test process_privacy ... FAILED
+test process_snapshot_contract ... ok
+
+failures:
+
+---- process_in_use_and_orphans stdout ----
+
+thread 'process_in_use_and_orphans' (9496) panicked at tests\process_v1.rs:791:10:
+PROC_M3C_IMAGE: executable in item hits
+note: run with `RUST_BACKTRACE=1` environment variable to display a backtrace
+
+---- process_path_reference stdout ----
+
+thread 'process_path_reference' (7388) panicked at tests\process_v1.rs:606:9:
+PROC_M3C_IMAGE: item and exact executable match
+
+---- process_privacy stdout ----
+
+thread 'process_privacy' (21884) panicked at tests\process_v1.rs:898:6:
+PROC_M3C_IMAGE: image hit for privacy
+
+
+failures:
+    process_in_use_and_orphans
+    process_path_reference
+    process_privacy
+
+test result: FAILED. 1 passed; 3 failed; 0 ignored; 0 measured; 0 filtered out; finished in 8.54s
+
+
+--- stderr ---
+   Compiling water-process-scan v0.1.0 (F:\new\smaltalk\water\.worktrees\accept-w8-k1\packages\process-scan)
+    Finished `test` profile [unoptimized + debuginfo] target(s) in 1.51s
+     Running tests\process_v1.rs (.local\w2-target\debug\deps\process_v1-577a5737d044fa92.exe)
+error: test failed, to rerun pass `--test process_v1`

@@ -1,0 +1,43 @@
+{"binary":"C:\\Users\\37310\\.rustup\\toolchains\\1.95.0-x86_64-pc-windows-msvc\\bin\\cargo.exe","args":["--config","source.crates-io.replace-with=\"water-cn\"","--config","source.water-cn.registry=\"sparse+https://mirrors.ustc.edu.cn/crates.io-index/\"","--config","http.multiplexing=false","--config","http.proxy=\"\"","test","--offline","--locked","--manifest-path","apps/water/host/Cargo.toml","--test","host_v1","--","--test-threads=1"],"exitCode":101,"error":null}
+--- stdout ---
+
+running 5 tests
+test host_command_registry ... ok
+test host_config_boundary ... ok
+test host_data_directory ... ok
+test host_navigation_boundary ... ok
+test host_service_wiring ... FAILED
+
+failures:
+
+---- host_service_wiring stdout ----
+
+thread 'host_service_wiring' (29920) panicked at tests\host_v1.rs:1451:13:
+assertion `left == right` failed: HOST_M3C_EXCLUDE exact payload, preserving list order and values
+  left: [("clean_prepare", Object {"groupIds": Array [String("g1"), String("g2")]})]
+ right: [("clean_prepare", Object {"excludeItemIds": Array [String("i-2"), String("i-甲"), String("i-2"), String("")], "groupIds": Array [String("g1"), String("g2")]})]
+note: run with `RUST_BACKTRACE=1` environment variable to display a backtrace
+
+
+failures:
+    host_service_wiring
+
+test result: FAILED. 4 passed; 1 failed; 0 ignored; 0 measured; 0 filtered out; finished in 0.21s
+
+
+--- stderr ---
+   Compiling water-desktop v0.1.0 (F:\new\smaltalk\water\.worktrees\accept-w8-k5\apps\water\host)
+warning: variable does not need to be mutable
+  --> src\commands.rs:97:9
+   |
+97 |     let mut args = json!({"groupIds": group_ids});
+   |         ----^^^^
+   |         |
+   |         help: remove this `mut`
+   |
+   = note: `#[warn(unused_mut)]` (part of `#[warn(unused)]`) on by default
+
+warning: `water-desktop` (lib) generated 1 warning (run `cargo fix --lib -p water-desktop` to apply 1 suggestion)
+    Finished `test` profile [unoptimized + debuginfo] target(s) in 9.67s
+     Running tests\host_v1.rs (.local\w3-target\debug\deps\host_v1-4438fb8492cc6c51.exe)
+error: test failed, to rerun pass `--test host_v1`

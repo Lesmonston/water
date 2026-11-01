@@ -1,0 +1,47 @@
+{"binary":"C:\\Users\\37310\\.rustup\\toolchains\\1.95.0-x86_64-pc-windows-msvc\\bin\\cargo.exe","args":["test","--offline","--locked","--manifest-path","packages/junk-rules/Cargo.toml","--test","rules_v1","--","--test-threads=1"],"exitCode":101,"error":null}
+--- stdout ---
+
+running 4 tests
+test rules_protection_precedence ... FAILED
+test rules_resolve_plan ... FAILED
+test rules_schema_strict ... FAILED
+test rules_seed_coverage ... FAILED
+
+failures:
+
+---- rules_protection_precedence stdout ----
+
+thread 'rules_protection_precedence' (37268) panicked at src\rules.rs:74:43:
+embedded windows rules must be valid: RulesError { code: "RULES_INVALID_IN_USE", path: "/rules/56/in_use/processes" }
+note: run with `RUST_BACKTRACE=1` environment variable to display a backtrace
+
+---- rules_resolve_plan stdout ----
+
+thread 'rules_resolve_plan' (14112) panicked at src\rules.rs:74:43:
+embedded windows rules must be valid: RulesError { code: "RULES_INVALID_IN_USE", path: "/rules/56/in_use/processes" }
+
+---- rules_schema_strict stdout ----
+
+thread 'rules_schema_strict' (23320) panicked at tests\rules_v1.rs:115:14:
+RULES_M3C_IN_USE: new mode accepts zero through eight names: RulesError { code: "RULES_INVALID_IN_USE", path: "/rules/0/in_use/processes" }
+
+---- rules_seed_coverage stdout ----
+
+thread 'rules_seed_coverage' (37900) panicked at src\rules.rs:74:43:
+embedded windows rules must be valid: RulesError { code: "RULES_INVALID_IN_USE", path: "/rules/56/in_use/processes" }
+
+
+failures:
+    rules_protection_precedence
+    rules_resolve_plan
+    rules_schema_strict
+    rules_seed_coverage
+
+test result: FAILED. 0 passed; 4 failed; 0 ignored; 0 measured; 0 filtered out; finished in 0.03s
+
+
+--- stderr ---
+   Compiling water-junk-rules v0.1.0 (F:\new\smaltalk\water\.worktrees\accept-w8-k2\packages\junk-rules)
+    Finished `test` profile [unoptimized + debuginfo] target(s) in 3.31s
+     Running tests\rules_v1.rs (.local\w2-target\debug\deps\rules_v1-55c9fa24f5632a0e.exe)
+error: test failed, to rerun pass `--test rules_v1`

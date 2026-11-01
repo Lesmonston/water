@@ -1,0 +1,32 @@
+k2 c1 mutated packages/junk-rules/src/rules.rs: the rules validator requires a non-empty list for the new mode (mutated sha 881cc4161afbab2ac229a413776fceab0af317064543e199ee114adab07ae445)
+k2 red-nc1 rc=0 {"task":"WATER-W8-ACCEPT-K2","mode":"red-nc1","finalGate":false,"status":"passed","error":null,"receipt":"F:\\new\\smaltalk\\water\\.worktrees\\accept-w8-k2\\.local\\checks\\WATER-W8-ACCEPT-K2\\2026-11-01T02-05-42.352Z-18292-red-nc1-result.json"}
+k2 c1 KILLED (expected RULES_M3C_IN_USE)
+k2 c1 restored exact bytes=true sha 707069dfa4ce0dc0e782cb26e13a8fdf6c8d1d2993fbd26317c0a60d01486c4a
+k2 test rc=0 {"task":"WATER-W8-ACCEPT-K2","mode":"test","finalGate":false,"status":"passed","error":null,"receipt":"F:\\new\\smaltalk\\water\\.worktrees\\accept-w8-k2\\.local\\checks\\WATER-W8-ACCEPT-K2\\2026-11-01T02-05-50.182Z-34920-test-result.json"}
+k2 c2 mutated packages/junk-rules/src/plan.rs: resolve_plan rejects a drive-root custom root (mutated sha 28274a914b868f27b7533e899c9eb32bd7103522384de94a3e43852d6dcae8e8)
+k2 red-nc2 rc=0 {"task":"WATER-W8-ACCEPT-K2","mode":"red-nc2","finalGate":false,"status":"passed","error":null,"receipt":"F:\\new\\smaltalk\\water\\.worktrees\\accept-w8-k2\\.local\\checks\\WATER-W8-ACCEPT-K2\\2026-11-01T02-05-56.889Z-32276-red-nc2-result.json"}
+k2 c2 KILLED (expected RULES_M3C_DRIVE_ROOT)
+k2 c2 restored exact bytes=true sha 2839fa0d3349b85134fdafe74c5df4de2266402bbff8eb54149e4cb2edb0f34a
+k2 test rc=0 {"task":"WATER-W8-ACCEPT-K2","mode":"test","finalGate":false,"status":"passed","error":null,"receipt":"F:\\new\\smaltalk\\water\\.worktrees\\accept-w8-k2\\.local\\checks\\WATER-W8-ACCEPT-K2\\2026-11-01T02-06-02.772Z-688-test-result.json"}
+k2 c3 mutated packages/junk-rules/src/rules.rs: nine process names are accepted (mutated sha 4ec95acad6b9788c55ed3c8a406c97144cd82d1a83cd88661970a8faf38a2b00)
+k2 test rc=1 {"task":"WATER-W8-ACCEPT-K2","mode":"test","finalGate":false,"status":"failed","error":"AssertionError [ERR_ASSERTION]: Unexpected exit, see 2026-11-01T02-06-08.996Z-22084-test-5.log","receipt":"F:\\new\\smaltalk\\water\\.worktrees\\accept-w8-k2\\.local\\checks\\WATER-W8-ACCEPT-K2\\2026-11-01T02-06-08.996Z-22084-test-result.json"}
+k2 c3 KILLED (expected RULES_M3C_IN_USE)
+k2 c3 restored exact bytes=true sha 707069dfa4ce0dc0e782cb26e13a8fdf6c8d1d2993fbd26317c0a60d01486c4a
+k2 test rc=0 {"task":"WATER-W8-ACCEPT-K2","mode":"test","finalGate":false,"status":"passed","error":null,"receipt":"F:\\new\\smaltalk\\water\\.worktrees\\accept-w8-k2\\.local\\checks\\WATER-W8-ACCEPT-K2\\2026-11-01T02-06-16.780Z-43496-test-result.json"}
+k2 c4 mutated packages/junk-rules/src/plan.rs: probe: plan JSON with the new mode and an empty list is rejected on parse (mutated sha e3dc69645b31a042cd45ecfbd2a00efc64dd0ade0d0c56018b0a2c01bbd756ba)
+k2 test rc=1 {"task":"WATER-W8-ACCEPT-K2","mode":"test","finalGate":false,"status":"failed","error":"AssertionError [ERR_ASSERTION]: Unexpected exit, see 2026-11-01T02-06-21.388Z-34836-test-5.log","receipt":"F:\\new\\smaltalk\\water\\.worktrees\\accept-w8-k2\\.local\\checks\\WATER-W8-ACCEPT-K2\\2026-11-01T02-06-21.388Z-34836-test-result.json"}
+k2 c4 KILLED (expected RULES_M3C_)
+k2 c4 restored exact bytes=true sha 2839fa0d3349b85134fdafe74c5df4de2266402bbff8eb54149e4cb2edb0f34a
+k2 test rc=0 {"task":"WATER-W8-ACCEPT-K2","mode":"test","finalGate":false,"status":"passed","error":null,"receipt":"F:\\new\\smaltalk\\water\\.worktrees\\accept-w8-k2\\.local\\checks\\WATER-W8-ACCEPT-K2\\2026-11-01T02-06-28.617Z-22260-test-result.json"}
+k2 c5 mutated packages/junk-rules/src/plan.rs: probe: a plan JSON whose marker root is a drive root is rejected on parse (mutated sha 0851ab4a895538752aa13330856a901fc75c4ed09a131577c254ae020640d7d4)
+k2 test rc=1 {"task":"WATER-W8-ACCEPT-K2","mode":"test","finalGate":false,"status":"failed","error":"AssertionError [ERR_ASSERTION]: Unexpected exit, see 2026-11-01T02-06-35.449Z-27992-test-5.log","receipt":"F:\\new\\smaltalk\\water\\.worktrees\\accept-w8-k2\\.local\\checks\\WATER-W8-ACCEPT-K2\\2026-11-01T02-06-35.449Z-27992-test-result.json"}
+k2 c5 KILLED (expected RULES_M3C_)
+k2 c5 restored exact bytes=true sha 2839fa0d3349b85134fdafe74c5df4de2266402bbff8eb54149e4cb2edb0f34a
+k2 test rc=0 {"task":"WATER-W8-ACCEPT-K2","mode":"test","finalGate":false,"status":"passed","error":null,"receipt":"F:\\new\\smaltalk\\water\\.worktrees\\accept-w8-k2\\.local\\checks\\WATER-W8-ACCEPT-K2\\2026-11-01T02-06-40.965Z-9680-test-result.json"}
+k2 c6 mutated packages/junk-rules/src/types.rs: probe: the new mode serialises under a wrong name (mutated sha b86e1e3e3bd281196cd5d353a0dd455acc370289e4ca433e815ea040ccbaa7ad)
+k2 test rc=1 {"task":"WATER-W8-ACCEPT-K2","mode":"test","finalGate":false,"status":"failed","error":"AssertionError [ERR_ASSERTION]: Unexpected exit, see 2026-11-01T02-06-47.941Z-29564-test-5.log","receipt":"F:\\new\\smaltalk\\water\\.worktrees\\accept-w8-k2\\.local\\checks\\WATER-W8-ACCEPT-K2\\2026-11-01T02-06-47.941Z-29564-test-result.json"}
+k2 c6 KILLED (expected RULES_M3C_)
+k2 c6 restored exact bytes=true sha 3ea4880e7a6c31e33eda88e7d360ddd632e4cec74aa41379994ddd4f9ed2e3f4
+k2 test rc=0 {"task":"WATER-W8-ACCEPT-K2","mode":"test","finalGate":false,"status":"passed","error":null,"receipt":"F:\\new\\smaltalk\\water\\.worktrees\\accept-w8-k2\\.local\\checks\\WATER-W8-ACCEPT-K2\\2026-11-01T02-06-54.620Z-23824-test-result.json"}
+k2 survived: none
+k2 test --final rc=0 {"task":"WATER-W8-ACCEPT-K2","mode":"test","finalGate":true,"status":"passed","error":null,"receipt":"F:\\new\\smaltalk\\water\\.worktrees\\accept-w8-k2\\.local\\checks\\WATER-W8-ACCEPT-K2\\2026-11-01T02-07-01.743Z-31096-test-result.json"}

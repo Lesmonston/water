@@ -1,0 +1,544 @@
+//! Read-only Windows process snapshot, in-use checks, and orphan chains.
+#![deny(unsafe_code)]
+
+use std::collections::{HashMap, HashSet};
+use std::fmt;
+use std::time::{SystemTime, UNIX_EPOCH};
+
+use serde::{Deserialize, Serialize};
+
+#[cfg(all(windows, target_arch = "x86_64"))]
+#[allow(unsafe_code)]
+mod native_windows;
+
+pub const DEFAULT_ORPHAN_PATTERNS: &[&str] = &[
+    "jest-worker",
+    "vitest",
+    "expo start",
+    "cursor-agent",
+    "codex",
+    "grok",
+    "playwright",
+    "puppeteer",
+    "--headless",
+    "metro",
+];
+
+const ORPHAN_NAMES: &[&str] = &[
+    "node.exe",
+    "cmd.exe",
+    "powershell.exe",
+    "pwsh.exe",
+    "bash.exe",
+    "python.exe",
+    "chrome.exe",
+    "msedge.exe",
+];
+
+const SUMMARY_VERSION: &str = "water.process-summary.v1";
+
+#[derive(Debug, Clone, Copy, PartialEq, Eq)]
+pub enum ProcError {
+    SnapshotFailed,
+    #[allow(dead_code)]
+    Unsupported,
+}
+
+impl fmt::Display for ProcError {
+    fn fmt(&self, f: &mut fmt::Formatter<'_>) -> fmt::Result {
+        match self {
+            Self::SnapshotFailed => f.write_str("snapshot_failed"),
+            Self::Unsupported => f.write_str("unsupported"),
+        }
+    }
+}
+
+#[derive(Debug, Clone, Copy, PartialEq, Eq, Serialize, Deserialize)]
+#[serde(rename_all = "snake_case")]
+pub enum InUseMode {
+    None,
+    ProcessRunning,
+    CmdlineReferencesItem,
+    RunsFromOrReferencesItem,
+}
+
+#[derive(Debug, Clone, PartialEq, Eq, Serialize, Deserialize)]
+#[serde(deny_unknown_fields)]
+pub struct InUseSpec {
+    pub mode: InUseMode,
+    pub processes: Vec<String>,
+}
+
+#[derive(Debug, Clone, PartialEq, Eq, Serialize, Deserialize)]
+#[serde(deny_unknown_fields)]
+pub struct InUseHit {
+    pub process_name: String,
+    pub pid: u32,
+}
+
+#[derive(Debug, Clone, PartialEq, Eq, Serialize, Deserialize)]
+#[serde(deny_unknown_fields)]
+pub struct OrphanChain {
+    pub root_pid: u32,
+    pub name: String,
+    /// `None` (JSON null) when the creation time could not be read.
+    pub created_at: Option<String>,
+    pub matched_pattern: String,
+    pub descendant_pids: Vec<u32>,
+    /// Sum of known working sets, in decimal bytes; null when all are unknown.
+    pub memory_bytes: Option<String>,
+}
+
+#[derive(Debug, Clone, PartialEq, Eq, Serialize, Deserialize)]
+#[serde(deny_unknown_fields)]
+pub struct ProcessSummary {
+    pub summary_version: String,
+    pub taken_at: String,
+    pub process_count: u64,
+    pub processes: Vec<ProcessSummaryEntry>,
+    pub issues: Vec<ProcessIssue>,
+}
+
+#[derive(Debug, Clone, PartialEq, Eq, Serialize, Deserialize)]
+#[serde(deny_unknown_fields)]
+pub struct ProcessSummaryEntry {
+    pub pid: u32,
+    pub parent_pid: u32,
+    pub name: String,
+    /// `None` (JSON null) when the process could not be opened to read its
+    /// creation time. Never a fabricated placeholder.
+    pub created_at: Option<String>,
+}
+
+#[derive(Debug, Clone, PartialEq, Eq, Serialize, Deserialize)]
+#[serde(deny_unknown_fields)]
+pub struct ProcessIssue {
+    pub code: String,
+    pub count: u64,
+}
+
+impl ProcessSummary {
+    /// All descendants of `root_pid` in this summary, sorted ascending.
+    ///
+    /// A process counts as a child of the entry named by its `parent_pid`
+    /// only when its creation time is not earlier than that parent's; a
+    /// parent created after the child is a reused PID. Unknown times cannot
+    /// prove reuse. `created_at` values compare as the canonical RFC 3339
+    /// UTC strings defined by the model.
+    pub fn descendant_pids(&self, root_pid: u32) -> Vec<u32> {
+        let nodes: Vec<(u32, u32, Option<&str>)> = self
+            .processes
+            .iter()
+            .map(|p| (p.pid, p.parent_pid, p.created_at.as_deref()))
+            .collect();
+        descendants_in(root_pid, &child_map(&nodes))
+    }
+}
+
+struct ProcessRecord {
+    pid: u32,
+    parent_pid: u32,
+    name: String,
+    created_at: Option<String>,
+    created_filetime: Option<u64>,
+    command_line: String,
+    image_path: String,
+    working_set: Option<u64>,
+}
+
+impl fmt::Debug for ProcessRecord {
+    fn fmt(&self, f: &mut fmt::Formatter<'_>) -> fmt::Result {
+        f.debug_struct("ProcessRecord")
+            .field("pid", &self.pid)
+            .field("parent_pid", &self.parent_pid)
+            .field("name", &self.name)
+            .field("created_at", &self.created_at)
+            .finish()
+    }
+}
+
+pub struct ProcessSnapshot {
+    taken_at: String,
+    processes: Vec<ProcessRecord>,
+    access_denied: u64,
+    exited: u64,
+    image_unavailable: u64,
+}
+
+impl fmt::Debug for ProcessSnapshot {
+    fn fmt(&self, f: &mut fmt::Formatter<'_>) -> fmt::Result {
+        f.debug_struct("ProcessSnapshot")
+            .field("taken_at", &self.taken_at)
+            .field("process_count", &self.processes.len())
+            .field("processes", &self.processes)
+            .field("access_denied", &self.access_denied)
+            .field("exited", &self.exited)
+            .field("image_unavailable", &self.image_unavailable)
+            .finish()
+    }
+}
+
+pub fn snapshot() -> Result<ProcessSnapshot, ProcError> {
+    #[cfg(all(windows, target_arch = "x86_64"))]
+    {
+        let rows = native_windows::take_snapshot()?;
+        Ok(ProcessSnapshot::from_native(rows))
+    }
+    #[cfg(not(all(windows, target_arch = "x86_64")))]
+    {
+        Err(ProcError::Unsupported)
+    }
+}
+
+pub fn summary_to_json(summary: &ProcessSummary) -> String {
+    serde_json::to_string(summary).expect("ProcessSummary is serializable")
+}
+
+pub fn in_use(snapshot: &ProcessSnapshot, spec: &InUseSpec, item_path: &str) -> Option<InUseHit> {
+    match spec.mode {
+        InUseMode::None => None,
+        InUseMode::ProcessRunning => {
+            let names: Vec<&str> = spec.processes.iter().map(String::as_str).collect();
+            snapshot.hit_from_pids(snapshot.running(&names))
+        }
+        InUseMode::CmdlineReferencesItem => {
+            let names: Vec<&str> = spec.processes.iter().map(String::as_str).collect();
+            snapshot.hit_from_pids(snapshot.references_path(item_path, &names))
+        }
+        InUseMode::RunsFromOrReferencesItem => {
+            let names: Vec<&str> = spec.processes.iter().map(String::as_str).collect();
+            snapshot.hit_from_pids(snapshot.references_path(item_path, &names))
+        }
+    }
+}
+
+pub fn orphans(snapshot: &ProcessSnapshot, patterns: &[&str]) -> Vec<OrphanChain> {
+    if patterns.is_empty() {
+        return Vec::new();
+    }
+    let by_pid: HashMap<u32, &ProcessRecord> =
+        snapshot.processes.iter().map(|p| (p.pid, p)).collect();
+    let nodes: Vec<(u32, u32, Option<u64>)> = snapshot
+        .processes
+        .iter()
+        .map(|p| (p.pid, p.parent_pid, p.created_filetime))
+        .collect();
+    let children = child_map(&nodes);
+    let mut out = Vec::new();
+    for process in &snapshot.processes {
+        if !name_in_list(&process.name, ORPHAN_NAMES) {
+            continue;
+        }
+        let parent_gone = !by_pid.contains_key(&process.parent_pid);
+        let parent_reused = by_pid.get(&process.parent_pid).is_some_and(|parent| {
+            proven_reused(
+                parent.created_filetime.as_ref(),
+                process.created_filetime.as_ref(),
+            )
+        });
+        if !parent_gone && !parent_reused {
+            continue;
+        }
+        let Some(matched_pattern) = matched_pattern(&process.command_line, patterns) else {
+            continue;
+        };
+        let descendant_pids = descendants_in(process.pid, &children);
+        let memory_bytes = std::iter::once(process.pid)
+            .chain(descendant_pids.iter().copied())
+            .filter_map(|pid| by_pid.get(&pid).and_then(|p| p.working_set))
+            .map(u128::from)
+            .reduce(|total, bytes| total + bytes)
+            .map(|bytes| bytes.to_string());
+        out.push(OrphanChain {
+            root_pid: process.pid,
+            name: process.name.clone(),
+            created_at: process.created_at.clone(),
+            matched_pattern: matched_pattern.to_string(),
+            descendant_pids,
+            memory_bytes,
+        });
+    }
+    out
+}
+
+impl ProcessSnapshot {
+    #[cfg(all(windows, target_arch = "x86_64"))]
+    fn from_native(rows: Vec<native_windows::NativeProcess>) -> Self {
+        let mut access_denied = 0_u64;
+        let mut exited = 0_u64;
+        let mut image_unavailable = 0_u64;
+        let processes = rows
+            .into_iter()
+            .map(|row| {
+                match row.cmdline_issue {
+                    Some(native_windows::CmdIssue::AccessDenied) => access_denied += 1,
+                    Some(native_windows::CmdIssue::Exited) => exited += 1,
+                    None => {}
+                }
+                let created_at = filetime_rfc3339(row.created_filetime);
+                image_unavailable += u64::from(row.image_unavailable);
+                let created_filetime = created_at.as_ref().map(|_| row.created_filetime);
+                ProcessRecord {
+                    pid: row.pid,
+                    parent_pid: row.parent_pid,
+                    name: row.name,
+                    created_at,
+                    created_filetime,
+                    command_line: row.command_line,
+                    image_path: row.image_path,
+                    working_set: row.working_set,
+                }
+            })
+            .collect();
+        Self {
+            taken_at: unix_rfc3339(now_unix_secs()),
+            processes,
+            access_denied,
+            exited,
+            image_unavailable,
+        }
+    }
+
+    pub fn summary(&self) -> ProcessSummary {
+        let mut issues = Vec::new();
+        if self.access_denied > 0 {
+            issues.push(ProcessIssue {
+                code: "access_denied".to_string(),
+                count: self.access_denied,
+            });
+        }
+        if self.exited > 0 {
+            issues.push(ProcessIssue {
+                code: "exited".to_string(),
+                count: self.exited,
+            });
+        }
+        if self.image_unavailable > 0 {
+            issues.push(ProcessIssue {
+                code: "image_unavailable".to_string(),
+                count: self.image_unavailable,
+            });
+        }
+        ProcessSummary {
+            summary_version: SUMMARY_VERSION.to_string(),
+            taken_at: self.taken_at.clone(),
+            process_count: self.processes.len() as u64,
+            processes: self
+                .processes
+                .iter()
+                .map(|p| ProcessSummaryEntry {
+                    pid: p.pid,
+                    parent_pid: p.parent_pid,
+                    name: p.name.clone(),
+                    created_at: p.created_at.clone(),
+                })
+                .collect(),
+            issues,
+        }
+    }
+
+    pub fn running(&self, names: &[&str]) -> Vec<u32> {
+        self.processes
+            .iter()
+            .filter(|p| name_in_list(&p.name, names))
+            .map(|p| p.pid)
+            .collect()
+    }
+
+    pub fn references_path(&self, path: &str, names: &[&str]) -> Vec<u32> {
+        let path_n = normalize_path(path);
+        if path_n.is_empty() {
+            return Vec::new();
+        }
+        self.processes
+            .iter()
+            .filter(|p| names.is_empty() || name_in_list(&p.name, names))
+            .filter(|p| command_references_path(&p.command_line, &path_n))
+            .map(|p| p.pid)
+            .collect()
+    }
+
+    fn hit_from_pids(&self, pids: Vec<u32>) -> Option<InUseHit> {
+        let pid = *pids.first()?;
+        let process_name = self
+            .processes
+            .iter()
+            .find(|p| p.pid == pid)
+            .map(|p| p.name.clone())
+            .unwrap_or_default();
+        Some(InUseHit { process_name, pid })
+    }
+
+    /// Number of readable image paths, for the count-only real smoke output.
+    pub fn image_path_count(&self) -> u64 {
+        self.processes
+            .iter()
+            .filter(|p| !p.image_path.is_empty())
+            .count() as u64
+    }
+
+    /// Match either the executable's location or the existing command-line
+    /// reference rule. Empty names allow every process; empty paths match none.
+    pub fn runs_from_or_references(&self, path: &str, names: &[&str]) -> Vec<u32> {
+        let path_n = normalize_path(path);
+        if path_n.is_empty() {
+            return Vec::new();
+        }
+        self.processes
+            .iter()
+            .filter(|p| names.is_empty() || name_in_list(&p.name, names))
+            .filter(|p| {
+                image_inside_item(&p.image_path, &path_n)
+                    || command_references_path(&p.command_line, &path_n)
+            })
+            .map(|p| p.pid)
+            .collect()
+    }
+}
+
+fn image_inside_item(image_path: &str, item_normalized: &str) -> bool {
+    let image = normalize_path(image_path);
+    image == item_normalized
+        || image
+            .strip_prefix(item_normalized)
+            .is_some_and(|tail| tail.starts_with('\\'))
+}
+
+fn name_in_list(name: &str, names: &[&str]) -> bool {
+    names.iter().any(|wanted| name.eq_ignore_ascii_case(wanted))
+}
+
+/// PID reuse is proven only when both creation times are known and the
+/// recorded parent was created after the child. Shared by orphan roots and
+/// descendant edges.
+fn proven_reused<T: Ord>(parent_created: Option<&T>, child_created: Option<&T>) -> bool {
+    matches!((parent_created, child_created), (Some(parent), Some(child)) if parent > child)
+}
+
+fn child_map<T: Ord>(nodes: &[(u32, u32, Option<T>)]) -> HashMap<u32, Vec<u32>> {
+    let created: HashMap<u32, Option<&T>> = nodes
+        .iter()
+        .map(|(pid, _, created)| (*pid, created.as_ref()))
+        .collect();
+    let mut children: HashMap<u32, Vec<u32>> = HashMap::new();
+    for (pid, parent_pid, child_created) in nodes {
+        if parent_pid == pid {
+            continue;
+        }
+        let Some(parent_created) = created.get(parent_pid) else {
+            continue;
+        };
+        if proven_reused(*parent_created, child_created.as_ref()) {
+            continue;
+        }
+        children.entry(*parent_pid).or_default().push(*pid);
+    }
+    children
+}
+
+fn matched_pattern<'a>(command_line: &str, patterns: &[&'a str]) -> Option<&'a str> {
+    let haystack = command_line.to_ascii_lowercase();
+    patterns
+        .iter()
+        .copied()
+        .find(|pattern| haystack.contains(&pattern.to_ascii_lowercase()))
+}
+
+fn descendants_in(root: u32, children: &HashMap<u32, Vec<u32>>) -> Vec<u32> {
+    let mut out = Vec::new();
+    let mut seen = HashSet::from([root]);
+    let mut stack = children.get(&root).cloned().unwrap_or_default();
+    while let Some(pid) = stack.pop() {
+        if !seen.insert(pid) {
+            continue;
+        }
+        out.push(pid);
+        if let Some(kids) = children.get(&pid) {
+            stack.extend(kids.iter().copied());
+        }
+    }
+    out.sort_unstable();
+    out
+}
+
+fn normalize_path(path: &str) -> String {
+    let mut normalized = path.replace('/', "\\").to_lowercase();
+    while normalized.ends_with('\\') {
+        normalized.pop();
+    }
+    normalized
+}
+
+fn command_references_path(command_line: &str, path_norm: &str) -> bool {
+    let haystack = command_line.replace('/', "\\").to_lowercase();
+    let mut from = 0;
+    while let Some(rel) = haystack[from..].find(path_norm) {
+        let abs = from + rel;
+        let prev = haystack[..abs].chars().next_back();
+        let next = haystack[abs + path_norm.len()..].chars().next();
+        if prev_boundary_ok(prev) && next_boundary_ok(next) {
+            return true;
+        }
+        // Advance by the full UTF-8 width of the matched first character so the
+        // next slice always starts on a char boundary.
+        let Some(first) = haystack[abs..].chars().next() else {
+            break;
+        };
+        from = abs + first.len_utf8();
+        if from >= haystack.len() {
+            break;
+        }
+    }
+    false
+}
+
+fn prev_boundary_ok(prev: Option<char>) -> bool {
+    matches!(prev, None | Some(' ' | '"' | '\'' | '='))
+}
+
+fn next_boundary_ok(next: Option<char>) -> bool {
+    matches!(next, None | Some(' ' | '"' | '\'' | '\\'))
+}
+
+fn now_unix_secs() -> u64 {
+    SystemTime::now()
+        .duration_since(UNIX_EPOCH)
+        .map(|d| d.as_secs())
+        .unwrap_or(0)
+}
+
+/// `None` when the FILETIME is zero (unreadable) or earlier than 1970; no
+/// placeholder time is ever produced.
+fn filetime_rfc3339(filetime: u64) -> Option<String> {
+    const TICKS_PER_SEC: u64 = 10_000_000;
+    const SECS_1601_TO_1970: u64 = 11_644_473_600;
+    let secs = filetime / TICKS_PER_SEC;
+    if filetime == 0 || secs < SECS_1601_TO_1970 {
+        return None;
+    }
+    Some(unix_rfc3339(secs - SECS_1601_TO_1970))
+}
+
+fn unix_rfc3339(unix_secs: u64) -> String {
+    let days = unix_secs / 86_400;
+    let rem = unix_secs % 86_400;
+    let (year, month, day) = civil_from_unix_days(days);
+    let hour = rem / 3_600;
+    let minute = (rem % 3_600) / 60;
+    let second = rem % 60;
+    format!("{year:04}-{month:02}-{day:02}T{hour:02}:{minute:02}:{second:02}Z")
+}
+
+fn civil_from_unix_days(days: u64) -> (i32, u32, u32) {
+    let z = days as i64 + 719_468;
+    let era = if z >= 0 { z } else { z - 146_096 } / 146_097;
+    let doe = (z - era * 146_097) as u64;
+    let yoe = (doe - doe / 1_460 + doe / 36_524 - doe / 146_096) / 365;
+    let year = yoe as i64 + era * 400;
+    let doy = doe - (365 * yoe + yoe / 4 - yoe / 100);
+    let mp = (5 * doy + 2) / 153;
+    let day = doy - (153 * mp + 2) / 5 + 1;
+    let month = if mp < 10 { mp + 3 } else { mp - 9 };
+    let year = year + i64::from(month <= 2);
+    (year as i32, month as u32, day as u32)
+}

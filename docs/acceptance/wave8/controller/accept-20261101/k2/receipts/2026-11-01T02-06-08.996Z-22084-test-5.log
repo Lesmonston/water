@@ -1,0 +1,29 @@
+{"binary":"C:\\Users\\37310\\.rustup\\toolchains\\1.95.0-x86_64-pc-windows-msvc\\bin\\cargo.exe","args":["test","--offline","--locked","--manifest-path","packages/junk-rules/Cargo.toml","--test","rules_v1","--","--test-threads=1"],"exitCode":101,"error":null}
+--- stdout ---
+
+running 4 tests
+test rules_protection_precedence ... ok
+test rules_resolve_plan ... ok
+test rules_schema_strict ... FAILED
+test rules_seed_coverage ... ok
+
+failures:
+
+---- rules_schema_strict stdout ----
+
+thread 'rules_schema_strict' (33908) panicked at tests\rules_v1.rs:179:10:
+RULES_M3C_IN_USE: invalid list rejected: RuleSet { rules_version: "water.junk-rules.v1", data_version: "2026-10-26.1", rules: [Rule { rule_id: "sample-cache", title_zh: "示例缓存目录", owner_zh: "示例", category: DevCache, level: Recommended, locate: [Pattern { base: LocalAppData, segments: ["SampleCache"] }], item_type: Dir, min_age_hours: 1, keep_newest: 0, in_use: InUse { mode: RunsFromOrReferencesItem, processes: ["tool-0.exe", "tool-1.exe", "tool-2.exe", "tool-3.exe", "tool-4.exe", "tool-5.exe", "tool-6.exe", "tool-7.exe", "tool-8.exe"] }, growth: Slow, what_zh: "这是一段示例说明文字。", why_zh: "这是可以清理的原因说明。", after_zh: "清掉之后会重新下载缓存。", fix_hint_zh: None, sources: [Source { kind: LocalObservation, ref_text: "2026-10-26 总控本机只读摸底", checked_on: "2026-10-26" }] }] }
+note: run with `RUST_BACKTRACE=1` environment variable to display a backtrace
+
+
+failures:
+    rules_schema_strict
+
+test result: FAILED. 3 passed; 1 failed; 0 ignored; 0 measured; 0 filtered out; finished in 0.13s
+
+
+--- stderr ---
+   Compiling water-junk-rules v0.1.0 (F:\new\smaltalk\water\.worktrees\accept-w8-k2\packages\junk-rules)
+    Finished `test` profile [unoptimized + debuginfo] target(s) in 1.59s
+     Running tests\rules_v1.rs (.local\w2-target\debug\deps\rules_v1-55c9fa24f5632a0e.exe)
+error: test failed, to rerun pass `--test rules_v1`

@@ -1,0 +1,27 @@
+k5 c1 mutated apps/water/host/src/commands.rs: an empty exclusion list is still forwarded (old services would reject the extra key) (mutated sha 7a231352494aa8a33f1b0172b95bf244fc1b088bb3c8da11f5db02842be1261d)
+k5 red-nc1 rc=0 {"task":"WATER-W8-ACCEPT-K5","mode":"red-nc1","finalGate":false,"status":"passed","error":null,"receipt":"F:\\new\\smaltalk\\water\\.worktrees\\accept-w8-k5\\.local\\checks\\WATER-W8-ACCEPT-K5\\2026-11-01T02-07-06.352Z-34664-red-nc1-result.json"}
+k5 c1 KILLED (expected HOST_M3C_EXCLUDE)
+k5 c1 restored exact bytes=true sha 80a4c9fddc6b791709fb8e257a0344bfae08e72cce15a47d782705840b380f0a
+k5 test rc=0 {"task":"WATER-W8-ACCEPT-K5","mode":"test","finalGate":false,"status":"passed","error":null,"receipt":"F:\\new\\smaltalk\\water\\.worktrees\\accept-w8-k5\\.local\\checks\\WATER-W8-ACCEPT-K5\\2026-11-01T02-12-21.978Z-27540-test-result.json"}
+k5 c2 mutated apps/water/host/src/commands.rs: skip_remove forwards the wrong key (same as worker nc2, needed as acceptance nc2) (mutated sha d4bf3f0fdde9e1cdb84be80122cf9c515f3821767df4532dc643456d82296b09)
+k5 red-nc2 rc=0 {"task":"WATER-W8-ACCEPT-K5","mode":"red-nc2","finalGate":false,"status":"passed","error":null,"receipt":"F:\\new\\smaltalk\\water\\.worktrees\\accept-w8-k5\\.local\\checks\\WATER-W8-ACCEPT-K5\\2026-11-01T02-12-51.183Z-42444-red-nc2-result.json"}
+k5 c2 KILLED (expected HOST_M3C_SKIP)
+k5 c2 restored exact bytes=true sha 80a4c9fddc6b791709fb8e257a0344bfae08e72cce15a47d782705840b380f0a
+k5 test rc=0 {"task":"WATER-W8-ACCEPT-K5","mode":"test","finalGate":false,"status":"passed","error":null,"receipt":"F:\\new\\smaltalk\\water\\.worktrees\\accept-w8-k5\\.local\\checks\\WATER-W8-ACCEPT-K5\\2026-11-01T02-13-18.672Z-42944-test-result.json"}
+k5 c3 mutated apps/water/host/src/commands.rs: a non-empty exclusion list is silently dropped (mutated sha 8aaf6d295ba5f0a30bcb287e85cd28114aedca09a4da661f3c597a7c2a9c1680)
+k5 test rc=1 {"task":"WATER-W8-ACCEPT-K5","mode":"test","finalGate":false,"status":"failed","error":"AssertionError [ERR_ASSERTION]: Unexpected exit, see 2026-11-01T02-13-43.891Z-4668-test-5.log","receipt":"F:\\new\\smaltalk\\water\\.worktrees\\accept-w8-k5\\.local\\checks\\WATER-W8-ACCEPT-K5\\2026-11-01T02-13-43.891Z-4668-test-result.json"}
+k5 c3 KILLED (expected HOST_M3C_EXCLUDE)
+k5 c3 restored exact bytes=true sha 80a4c9fddc6b791709fb8e257a0344bfae08e72cce15a47d782705840b380f0a
+k5 test rc=0 {"task":"WATER-W8-ACCEPT-K5","mode":"test","finalGate":false,"status":"passed","error":null,"receipt":"F:\\new\\smaltalk\\water\\.worktrees\\accept-w8-k5\\.local\\checks\\WATER-W8-ACCEPT-K5\\2026-11-01T02-13-59.165Z-5416-test-result.json"}
+k5 c4 mutated apps/water/host/src/lib.rs: skip_remove is missing from generate_handler (mutated sha 4c6befea77b1a4d660c3a777ca30463faaf51e8eaf050873311b8df9a7dfa33b)
+k5 test rc=1 {"task":"WATER-W8-ACCEPT-K5","mode":"test","finalGate":false,"status":"failed","error":"AssertionError [ERR_ASSERTION]: Unexpected exit, see 2026-11-01T02-14-24.995Z-30224-test-5.log","receipt":"F:\\new\\smaltalk\\water\\.worktrees\\accept-w8-k5\\.local\\checks\\WATER-W8-ACCEPT-K5\\2026-11-01T02-14-24.995Z-30224-test-result.json"}
+k5 c4 KILLED (expected HOST_)
+k5 c4 restored exact bytes=true sha e2eee193e51258dfb1cb7e09dfd69058f941acab9c7bf86d1f5a0d2b06c737cc
+k5 test rc=0 {"task":"WATER-W8-ACCEPT-K5","mode":"test","finalGate":false,"status":"passed","error":null,"receipt":"F:\\new\\smaltalk\\water\\.worktrees\\accept-w8-k5\\.local\\checks\\WATER-W8-ACCEPT-K5\\2026-11-01T02-15-00.479Z-17424-test-result.json"}
+k5 c5 mutated apps/water/host/src/commands.rs: skip_add forwards a snake_case key (mutated sha d72748ddbc7aa396df01034ee87367b7cb5070f135539c627ffdc60fb37d8b58)
+k5 test rc=1 {"task":"WATER-W8-ACCEPT-K5","mode":"test","finalGate":false,"status":"failed","error":"AssertionError [ERR_ASSERTION]: Unexpected exit, see 2026-11-01T02-15-30.924Z-42060-test-5.log","receipt":"F:\\new\\smaltalk\\water\\.worktrees\\accept-w8-k5\\.local\\checks\\WATER-W8-ACCEPT-K5\\2026-11-01T02-15-30.924Z-42060-test-result.json"}
+k5 c5 KILLED (expected HOST_)
+k5 c5 restored exact bytes=true sha 80a4c9fddc6b791709fb8e257a0344bfae08e72cce15a47d782705840b380f0a
+k5 test rc=0 {"task":"WATER-W8-ACCEPT-K5","mode":"test","finalGate":false,"status":"passed","error":null,"receipt":"F:\\new\\smaltalk\\water\\.worktrees\\accept-w8-k5\\.local\\checks\\WATER-W8-ACCEPT-K5\\2026-11-01T02-15-57.940Z-31588-test-result.json"}
+k5 survived: none
+k5 test --final rc=0 {"task":"WATER-W8-ACCEPT-K5","mode":"test","finalGate":true,"status":"passed","error":null,"receipt":"F:\\new\\smaltalk\\water\\.worktrees\\accept-w8-k5\\.local\\checks\\WATER-W8-ACCEPT-K5\\2026-11-01T02-16-23.742Z-34312-test-result.json"}

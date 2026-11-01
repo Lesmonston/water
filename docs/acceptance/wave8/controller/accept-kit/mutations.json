@@ -113,6 +113,134 @@
     {
       "label": "c2",
       "mode": "browser",
+      "token": "UI_M3C_SKIP",
+      "file": "apps/water/ui/ipc.mjs",
+      "old": "export const skip_add = itemId => invoke('skip_add', () => ({itemId:id(itemId)}));",
+      "new": "export const skip_add = itemId => invoke('skip_add', () => ({itemId:id(itemId), root:'C:\\Users'}));",
+      "why": "skip_add also sends a path"
+    },
+    {
+      "label": "c3",
+      "mode": "red-nc2",
+      "token": "UI_M3C_DRIVE",
+      "file": "apps/water/ui/views/results.mjs",
+      "old": "if (drives.length > 1) {",
+      "new": "if (drives.length > 0) {",
+      "why": "the drive filter also appears when only one drive is in the result"
+    },
+    {
+      "label": "c4",
+      "mode": "browser",
+      "token": "UI_READ_ORDER",
+      "file": "apps/water/ui/app.mjs",
+      "old": "const value = await ipc.skip_remove(id); if (isCurrent()) state.locations = value;",
+      "new": "const value = await ipc.skip_remove(id); state.locations = value;",
+      "why": "a superseded skip_remove reply still overwrites the locations"
+    },
+    {
+      "label": "c5",
+      "mode": "red-nc3",
+      "token": "UI_M3C_FORECAST",
+      "file": "apps/water/ui/views/trends.mjs",
+      "old": "drive.note_zh ?? '可用空间没有减少'",
+      "new": "'可用空间没有减少'",
+      "why": "a drive without days_to_full ignores its note_zh (worker nc3 showed an empty string)"
+    },
+    {
+      "label": "n1",
+      "mode": "browser",
+      "token": "UI_M3C_EXCLUDE",
+      "file": "apps/water/ui/views/detail.mjs",
+      "old": "checkbox.disabled = !groupSelected || state.stale || state.busy !== 'idle';",
+      "new": "checkbox.disabled = state.stale || state.busy !== 'idle';",
+      "why": "items of an unselected group are clickable again"
+    },
+    {
+      "label": "n2",
+      "mode": "browser",
+      "token": "UI_M3C_EXCLUDE",
+      "file": "apps/water/ui/views/detail.mjs",
+      "old": "groupSelected && !state.selection.get(g.group_id)?.has(item.item_id)",
+      "new": "!state.selection.get(g.group_id)?.has(item.item_id)",
+      "why": "items of an unselected group show as ticked again (round 1 behaviour)"
+    },
+    {
+      "label": "n3",
+      "mode": "browser",
+      "token": "UI_M3C_DRIVE",
+      "file": "apps/water/ui/model.mjs",
+      "old": "(!drive || g.by_drive?.some(d => d.root === drive && d.item_count > 0))",
+      "new": "(!drive || true)",
+      "why": "under a drive filter the category select-all acts on hidden groups again"
+    },
+    {
+      "label": "n4",
+      "mode": "browser",
+      "token": "UI_M3C_DRIVE",
+      "file": "apps/water/ui/views/results.mjs",
+      "old": "el('b', '', formatBytes(selectedBytes(state.result, state.selection, state.details))), state.drive ?",
+      "new": "el('b', '', formatBytes(selectedBytes(state.result, state.selection, state.details, state.drive))), state.drive ?",
+      "why": "the dock main figure shows only the filtered drive"
+    },
+    {
+      "label": "n5",
+      "mode": "browser",
+      "token": "UI_M3C_SKIP",
+      "file": "apps/water/ui/app.mjs",
+      "old": "state.selection = setItemSelected(state.result, state.selection, data, itemId, false);",
+      "new": "void 0;",
+      "why": "a skipped item is not excluded before the detail re-read"
+    },
+    {
+      "label": "n6",
+      "mode": "browser",
+      "token": "UI_READ_ORDER",
+      "file": "apps/water/ui/app.mjs",
+      "old": "if (inScope() && state.result?.scan_id === scanId && !state.stale) { rememberDetail(value);",
+      "new": "if (inScope()) { rememberDetail(value);",
+      "why": "a group_detail reply from an older scan is merged into the new result"
+    },
+    {
+      "label": "n7",
+      "mode": "browser",
+      "token": "UI_M3C_SKIP",
+      "file": "apps/water/ui/app.mjs",
+      "old": "showOverlay(detail(refreshed, closeOverlay, state, actions), 'detail-close', opener);",
+      "new": "showOverlay(detail(refreshed, closeOverlay, state, actions), 'detail-close');",
+      "why": "after a skip, Esc no longer returns focus to the group row"
+    },
+    {
+      "label": "n8",
+      "mode": "browser",
+      "token": "UI_M3C_EXCLUDE",
+      "file": "apps/water/ui/views/results.mjs",
+      "old": "const selected = hasSelectedItems(g, state.selection, state.details); control = check(",
+      "new": "const selected = state.selection.has(g.group_id); control = check(",
+      "why": "probe: a fully excluded group row shows as selected again"
+    },
+    {
+      "label": "n9",
+      "mode": "browser",
+      "token": "UI_M3C_DRIVE",
+      "file": "apps/water/ui/model.mjs",
+      "old": "const total = ['advisory', 'protected'].includes(group.level) ? (group.by_drive.length === 1 ? group.total_bytes : null) : part?.eligible_bytes;",
+      "new": "const total = part?.eligible_bytes;",
+      "why": "probe: protected and advisory groups under a filter show their eligible bytes (<1 MB) again"
+    }
+  ],
+  "k6r1": [
+    {
+      "label": "c1",
+      "mode": "red-nc1",
+      "token": "UI_M3C_EXCLUDE",
+      "file": "apps/water/ui/model.mjs",
+      "old": "return sum + (total > excluded ? total - excluded : 0n);",
+      "new": "return sum + total;",
+      "why": "the selected size ignores excluded items (worker nc1 emptied the clean_prepare exclusion instead)"
+    },
+    {
+      "label": "c2",
+      "mode": "browser",
       "token": "UI_M3C_EXCLUDE",
       "file": "apps/water/ui/model.mjs",
       "old": "excludedItems(g, selection, details).length < g.eligible_count);",
@@ -226,6 +354,174 @@
       "old": "drive.note_zh ?? '可用空间没有减少'",
       "new": "'可用空间没有减少'",
       "why": "a drive without days_to_full ignores its note_zh (worker nc3 showed an empty string)"
+    }
+  ],
+  "k1": [
+    {
+      "label": "c1",
+      "mode": "test",
+      "token": "PROC_M3C_IMAGE",
+      "file": "packages/process-scan/src/lib.rs",
+      "old": ".is_some_and(|tail| tail.starts_with('\\\\'))",
+      "new": ".is_some()",
+      "why": "the image-inside check loses the whole-segment boundary (C:\\a\\bc\\x.exe counts as inside C:\\a\\b)"
+    },
+    {
+      "label": "c2",
+      "mode": "test",
+      "token": "PROC_M3C_ANY",
+      "file": "packages/process-scan/src/lib.rs",
+      "old": ".filter(|p| names.is_empty() || name_in_list(&p.name, names))\n            .filter(|p| {\n                image_inside_item",
+      "new": ".filter(|p| !names.is_empty() && name_in_list(&p.name, names))\n            .filter(|p| {\n                image_inside_item",
+      "why": "an empty name list matches no process instead of any process"
+    },
+    {
+      "label": "c3",
+      "mode": "test",
+      "token": "PROC_M3C_ANY",
+      "file": "packages/process-scan/src/lib.rs",
+      "old": ".filter(|p| names.is_empty() || name_in_list(&p.name, names))\n            .filter(|p| {\n                image_inside_item",
+      "new": ".filter(|p| names.is_empty() || !p.name.is_empty())\n            .filter(|p| {\n                image_inside_item",
+      "why": "a non-empty name list no longer filters"
+    },
+    {
+      "label": "c4",
+      "mode": "red-nc1",
+      "token": "PROC_M3C_IMAGE",
+      "file": "packages/process-scan/src/lib.rs",
+      "old": ".is_some_and(|tail| tail.starts_with('\\\\'))",
+      "new": ".is_some_and(|tail| tail.is_empty())",
+      "why": "only an exact image path counts, an executable inside the item does not (worker nc1 removed the whole image branch)"
+    },
+    {
+      "label": "c5",
+      "mode": "red-nc2",
+      "token": "PROC_M3C_MEMORY",
+      "file": "packages/process-scan/src/lib.rs",
+      "old": "let memory_bytes = std::iter::once(process.pid)\n            .chain(descendant_pids.iter().copied())",
+      "new": "let memory_bytes = descendant_pids\n            .iter()\n            .copied()",
+      "why": "orphan memory sums only the descendants, not the root (worker nc2 dropped the descendants)"
+    },
+    {
+      "label": "c6",
+      "mode": "test",
+      "token": "PROC_M3C_PRIVACY",
+      "file": "packages/process-scan/src/lib.rs",
+      "old": "            .field(\"name\", &self.name)\n            .field(\"created_at\", &self.created_at)",
+      "new": "            .field(\"name\", &self.name)\n            .field(\"image_path\", &self.image_path)\n            .field(\"created_at\", &self.created_at)",
+      "why": "Debug of a process record prints the executable path"
+    },
+    {
+      "label": "c7",
+      "mode": "test",
+      "token": "PROC_M3C_",
+      "file": "packages/process-scan/src/lib.rs",
+      "old": "snapshot.hit_from_pids(snapshot.runs_from_or_references(item_path, &names))",
+      "new": "snapshot.hit_from_pids(snapshot.references_path(item_path, &names))",
+      "why": "in_use dispatches the new mode to the command-line-only rule"
+    }
+  ],
+  "k2": [
+    {
+      "label": "c1",
+      "mode": "red-nc1",
+      "token": "RULES_M3C_IN_USE",
+      "file": "packages/junk-rules/src/rules.rs",
+      "old": "        InUseMode::RunsFromOrReferencesItem => Ok(InUse { mode, processes }),",
+      "new": "        InUseMode::RunsFromOrReferencesItem if !processes.is_empty() => Ok(InUse { mode, processes }),",
+      "why": "the rules validator requires a non-empty list for the new mode"
+    },
+    {
+      "label": "c2",
+      "mode": "red-nc2",
+      "token": "RULES_M3C_DRIVE_ROOT",
+      "file": "packages/junk-rules/src/plan.rs",
+      "old": "if !valid_abs_path(&root.path, true) {",
+      "new": "if !valid_abs_path(&root.path, false) {",
+      "why": "resolve_plan rejects a drive-root custom root"
+    },
+    {
+      "label": "c3",
+      "mode": "test",
+      "token": "RULES_M3C_IN_USE",
+      "file": "packages/junk-rules/src/rules.rs",
+      "old": "    if items.len() > 8 {",
+      "new": "    if items.len() > 9 {",
+      "why": "nine process names are accepted"
+    },
+    {
+      "label": "c4",
+      "mode": "test",
+      "token": "RULES_M3C_",
+      "file": "packages/junk-rules/src/plan.rs",
+      "old": "        InUseMode::RunsFromOrReferencesItem => Ok(InUse { mode, processes }),",
+      "new": "        InUseMode::RunsFromOrReferencesItem if !processes.is_empty() => Ok(InUse { mode, processes }),",
+      "why": "probe: plan JSON with the new mode and an empty list is rejected on parse"
+    },
+    {
+      "label": "c5",
+      "mode": "test",
+      "token": "RULES_M3C_",
+      "file": "packages/junk-rules/src/plan.rs",
+      "old": "root: abs_path_field(map, \"root\", path, true)?,",
+      "new": "root: abs_path_field(map, \"root\", path, false)?,",
+      "why": "probe: a plan JSON whose marker root is a drive root is rejected on parse"
+    },
+    {
+      "label": "c6",
+      "mode": "test",
+      "token": "RULES_M3C_",
+      "file": "packages/junk-rules/src/types.rs",
+      "old": "Self::RunsFromOrReferencesItem => \"runs_from_or_references_item\",",
+      "new": "Self::RunsFromOrReferencesItem => \"runs_from_or_references\",",
+      "why": "probe: the new mode serialises under a wrong name"
+    }
+  ],
+  "k5": [
+    {
+      "label": "c1",
+      "mode": "red-nc1",
+      "token": "HOST_M3C_EXCLUDE",
+      "file": "apps/water/host/src/commands.rs",
+      "old": "if let Some(ids) = exclude_item_ids.filter(|ids| !ids.is_empty()) {",
+      "new": "if let Some(ids) = exclude_item_ids {",
+      "why": "an empty exclusion list is still forwarded (old services would reject the extra key)"
+    },
+    {
+      "label": "c2",
+      "mode": "red-nc2",
+      "token": "HOST_M3C_SKIP",
+      "file": "apps/water/host/src/commands.rs",
+      "old": "backend.call(\"skip_remove\", json!({\"skipId\": skip_id}))",
+      "new": "backend.call(\"skip_remove\", json!({\"itemId\": skip_id}))",
+      "why": "skip_remove forwards the wrong key (same as worker nc2, needed as acceptance nc2)"
+    },
+    {
+      "label": "c3",
+      "mode": "test",
+      "token": "HOST_M3C_EXCLUDE",
+      "file": "apps/water/host/src/commands.rs",
+      "old": "        args[\"excludeItemIds\"] = json!(ids);",
+      "new": "        let _ = ids;",
+      "why": "a non-empty exclusion list is silently dropped"
+    },
+    {
+      "label": "c4",
+      "mode": "test",
+      "token": "HOST_",
+      "file": "apps/water/host/src/lib.rs",
+      "old": "            commands::skip_remove,\n",
+      "new": "",
+      "why": "skip_remove is missing from generate_handler"
+    },
+    {
+      "label": "c5",
+      "mode": "test",
+      "token": "HOST_",
+      "file": "apps/water/host/src/commands.rs",
+      "old": "backend.call(\"skip_add\", json!({\"itemId\": item_id}))",
+      "new": "backend.call(\"skip_add\", json!({\"item_id\": item_id}))",
+      "why": "skip_add forwards a snake_case key"
     }
   ]
 }

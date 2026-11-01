@@ -138,3 +138,10 @@ K6 补单 01 回来后验收（第二轮）：第一轮四类问题都修好；�
    - 另一个选择：先派 K1～K4 四张核心单，K5、K6 等契约用过一轮再派。
 
 拍板后，总控按第 2 节做派前准备，再给派单句。
+
+## 派单句（第二批 K4，2026-11-01）
+
+K1、K2、K3（以及 K5）验收合入后，冻结 [SERVICE-M3C 补充 01](../../../contracts/m3c-v1/SERVICE-M3C-ADD-01.md)，基线 `232bc298`（标签 `water-w8-k4-base-20261101`）。派前 baseline 通过，总控另跑 `lock`、`check`（含 `clippy --all-targets`）证明合入后的主线上服务能编译；回执在 `docs/acceptance/wave8/controller/preflight-20261101/k4/`。必然冲突的旧断言已在补充 01 第 5 节预先授权。
+
+后端单：
+- WATER-W8-K4：`你接手 Water 项目 WATER-W8-K4（服务接上 M3 收口的各项，重门）。先读 F:/new/smaltalk/water/docs/dispatch/tickets/WATER-W8-K4-SERVICE-20261101.md，按其中列出的顺序读规则与契约，在 F:/new/smaltalk/water/.worktrees/w8-k4（分支 worker/water-w8-k4）从 232bc298 开工。`

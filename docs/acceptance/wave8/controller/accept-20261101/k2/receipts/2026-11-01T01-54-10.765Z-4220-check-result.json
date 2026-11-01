@@ -1,0 +1,541 @@
+{
+  "task": "WATER-W8-ACCEPT-K2",
+  "mode": "check",
+  "finalGate": true,
+  "manifest": ".local/w8-accept/manifest.json",
+  "startedAt": "2026-11-01T01:54:10.767Z",
+  "realDataRead": false,
+  "productTestsRun": false,
+  "commands": [
+    {
+      "binary": "git",
+      "argv": [
+        "branch",
+        "--show-current"
+      ],
+      "exitCode": 0
+    },
+    {
+      "binary": "git",
+      "argv": [
+        "merge-base",
+        "--is-ancestor",
+        "912eba100ba342c3eeb21ba555c6d589b91e6b4f",
+        "HEAD"
+      ],
+      "exitCode": 0
+    },
+    {
+      "binary": "git",
+      "argv": [
+        "diff",
+        "--no-renames",
+        "--name-only",
+        "-z",
+        "912eba100ba342c3eeb21ba555c6d589b91e6b4f",
+        "HEAD"
+      ],
+      "exitCode": 0
+    },
+    {
+      "binary": "git",
+      "argv": [
+        "diff",
+        "--no-renames",
+        "--name-only",
+        "-z",
+        "HEAD"
+      ],
+      "exitCode": 0
+    },
+    {
+      "binary": "git",
+      "argv": [
+        "ls-files",
+        "--others",
+        "--exclude-standard",
+        "-z"
+      ],
+      "exitCode": 0
+    },
+    {
+      "binary": "git",
+      "argv": [
+        "rev-parse",
+        "HEAD"
+      ],
+      "exitCode": 0
+    },
+    {
+      "binary": "git",
+      "argv": [
+        "status",
+        "--porcelain",
+        "--untracked-files=all"
+      ],
+      "exitCode": 0
+    },
+    {
+      "binary": "C:\\Users\\37310\\.cargo\\bin\\rustup.exe",
+      "argv": [
+        "which",
+        "cargo",
+        "--toolchain",
+        "1.95.0"
+      ],
+      "exitCode": 0,
+      "error": null,
+      "log": "2026-11-01T01-54-10.765Z-4220-check-1.log"
+    },
+    {
+      "binary": "C:\\Users\\37310\\.cargo\\bin\\rustup.exe",
+      "argv": [
+        "which",
+        "rustc",
+        "--toolchain",
+        "1.95.0"
+      ],
+      "exitCode": 0,
+      "error": null,
+      "log": "2026-11-01T01-54-10.765Z-4220-check-2.log"
+    },
+    {
+      "binary": "C:\\Users\\37310\\.rustup\\toolchains\\1.95.0-x86_64-pc-windows-msvc\\bin\\rustc.exe",
+      "argv": [
+        "--version"
+      ],
+      "exitCode": 0,
+      "error": null,
+      "log": "2026-11-01T01-54-10.765Z-4220-check-3.log"
+    },
+    {
+      "binary": "C:\\Users\\37310\\.rustup\\toolchains\\1.95.0-x86_64-pc-windows-msvc\\bin\\cargo.exe",
+      "argv": [
+        "metadata",
+        "--offline",
+        "--locked",
+        "--format-version",
+        "1",
+        "--manifest-path",
+        "packages/junk-rules/Cargo.toml"
+      ],
+      "exitCode": 0,
+      "error": null,
+      "log": "2026-11-01T01-54-10.765Z-4220-check-4.log"
+    },
+    {
+      "binary": "C:\\Users\\37310\\.rustup\\toolchains\\1.95.0-x86_64-pc-windows-msvc\\bin\\cargo.exe",
+      "argv": [
+        "fmt",
+        "--manifest-path",
+        "packages/junk-rules/Cargo.toml",
+        "--",
+        "--check"
+      ],
+      "exitCode": 0,
+      "error": null,
+      "log": "2026-11-01T01-54-10.765Z-4220-check-5.log"
+    },
+    {
+      "binary": "C:\\Users\\37310\\.rustup\\toolchains\\1.95.0-x86_64-pc-windows-msvc\\bin\\cargo.exe",
+      "argv": [
+        "clippy",
+        "--offline",
+        "--locked",
+        "--manifest-path",
+        "packages/junk-rules/Cargo.toml",
+        "--all-targets",
+        "--",
+        "-D",
+        "warnings"
+      ],
+      "exitCode": 0,
+      "error": null,
+      "log": "2026-11-01T01-54-10.765Z-4220-check-6.log"
+    },
+    {
+      "binary": "git",
+      "argv": [
+        "branch",
+        "--show-current"
+      ],
+      "exitCode": 0
+    },
+    {
+      "binary": "git",
+      "argv": [
+        "merge-base",
+        "--is-ancestor",
+        "912eba100ba342c3eeb21ba555c6d589b91e6b4f",
+        "HEAD"
+      ],
+      "exitCode": 0
+    },
+    {
+      "binary": "git",
+      "argv": [
+        "diff",
+        "--no-renames",
+        "--name-only",
+        "-z",
+        "912eba100ba342c3eeb21ba555c6d589b91e6b4f",
+        "HEAD"
+      ],
+      "exitCode": 0
+    },
+    {
+      "binary": "git",
+      "argv": [
+        "diff",
+        "--no-renames",
+        "--name-only",
+        "-z",
+        "HEAD"
+      ],
+      "exitCode": 0
+    },
+    {
+      "binary": "git",
+      "argv": [
+        "ls-files",
+        "--others",
+        "--exclude-standard",
+        "-z"
+      ],
+      "exitCode": 0
+    },
+    {
+      "binary": "git",
+      "argv": [
+        "rev-parse",
+        "HEAD"
+      ],
+      "exitCode": 0
+    },
+    {
+      "binary": "git",
+      "argv": [
+        "status",
+        "--porcelain",
+        "--untracked-files=all"
+      ],
+      "exitCode": 0
+    }
+  ],
+  "changedPaths": [
+    "docs/acceptance/wave8/k2/.gitattributes",
+    "docs/acceptance/wave8/k2/ARCHIVE.json",
+    "docs/acceptance/wave8/k2/receipts/2026-10-31T14-08-44.770Z-14280-baseline-1.log",
+    "docs/acceptance/wave8/k2/receipts/2026-10-31T14-08-44.770Z-14280-baseline-2.log",
+    "docs/acceptance/wave8/k2/receipts/2026-10-31T14-08-44.770Z-14280-baseline-3.log",
+    "docs/acceptance/wave8/k2/receipts/2026-10-31T14-08-44.770Z-14280-baseline-result.json",
+    "docs/acceptance/wave8/k2/receipts/2026-10-31T14-10-10.643Z-37880-baseline-1.log",
+    "docs/acceptance/wave8/k2/receipts/2026-10-31T14-10-10.643Z-37880-baseline-2.log",
+    "docs/acceptance/wave8/k2/receipts/2026-10-31T14-10-10.643Z-37880-baseline-3.log",
+    "docs/acceptance/wave8/k2/receipts/2026-10-31T14-10-10.643Z-37880-baseline-result.json",
+    "docs/acceptance/wave8/k2/receipts/2026-10-31T14-11-08.580Z-21972-baseline-1.log",
+    "docs/acceptance/wave8/k2/receipts/2026-10-31T14-11-08.580Z-21972-baseline-2.log",
+    "docs/acceptance/wave8/k2/receipts/2026-10-31T14-11-08.580Z-21972-baseline-3.log",
+    "docs/acceptance/wave8/k2/receipts/2026-10-31T14-11-08.580Z-21972-baseline-result.json",
+    "docs/acceptance/wave8/k2/receipts/2026-10-31T14-15-46.868Z-43588-baseline-1.log",
+    "docs/acceptance/wave8/k2/receipts/2026-10-31T14-15-46.868Z-43588-baseline-2.log",
+    "docs/acceptance/wave8/k2/receipts/2026-10-31T14-15-46.868Z-43588-baseline-3.log",
+    "docs/acceptance/wave8/k2/receipts/2026-10-31T14-15-46.868Z-43588-baseline-result.json",
+    "docs/acceptance/wave8/k2/receipts/2026-10-31T15-42-05.577Z-15612-lock-1.log",
+    "docs/acceptance/wave8/k2/receipts/2026-10-31T15-42-05.577Z-15612-lock-2.log",
+    "docs/acceptance/wave8/k2/receipts/2026-10-31T15-42-05.577Z-15612-lock-3.log",
+    "docs/acceptance/wave8/k2/receipts/2026-10-31T15-42-05.577Z-15612-lock-4.log",
+    "docs/acceptance/wave8/k2/receipts/2026-10-31T15-42-05.577Z-15612-lock-result.json",
+    "docs/acceptance/wave8/k2/receipts/2026-10-31T15-43-17.392Z-11652-test-1.log",
+    "docs/acceptance/wave8/k2/receipts/2026-10-31T15-43-17.392Z-11652-test-2.log",
+    "docs/acceptance/wave8/k2/receipts/2026-10-31T15-43-17.392Z-11652-test-3.log",
+    "docs/acceptance/wave8/k2/receipts/2026-10-31T15-43-17.392Z-11652-test-4.log",
+    "docs/acceptance/wave8/k2/receipts/2026-10-31T15-43-17.392Z-11652-test-5.log",
+    "docs/acceptance/wave8/k2/receipts/2026-10-31T15-43-17.392Z-11652-test-result.json",
+    "docs/acceptance/wave8/k2/receipts/2026-10-31T15-43-17.392Z-11652-test-source-0.txt",
+    "docs/acceptance/wave8/k2/receipts/2026-10-31T15-43-17.392Z-11652-test-source-1.txt",
+    "docs/acceptance/wave8/k2/receipts/2026-10-31T15-43-17.392Z-11652-test-source-10.txt",
+    "docs/acceptance/wave8/k2/receipts/2026-10-31T15-43-17.392Z-11652-test-source-2.txt",
+    "docs/acceptance/wave8/k2/receipts/2026-10-31T15-43-17.392Z-11652-test-source-3.txt",
+    "docs/acceptance/wave8/k2/receipts/2026-10-31T15-43-17.392Z-11652-test-source-4.txt",
+    "docs/acceptance/wave8/k2/receipts/2026-10-31T15-43-17.392Z-11652-test-source-5.txt",
+    "docs/acceptance/wave8/k2/receipts/2026-10-31T15-43-17.392Z-11652-test-source-6.txt",
+    "docs/acceptance/wave8/k2/receipts/2026-10-31T15-43-17.392Z-11652-test-source-7.txt",
+    "docs/acceptance/wave8/k2/receipts/2026-10-31T15-43-17.392Z-11652-test-source-8.txt",
+    "docs/acceptance/wave8/k2/receipts/2026-10-31T15-43-17.392Z-11652-test-source-9.txt",
+    "docs/acceptance/wave8/k2/receipts/2026-10-31T15-45-01.527Z-21208-test-1.log",
+    "docs/acceptance/wave8/k2/receipts/2026-10-31T15-45-01.527Z-21208-test-2.log",
+    "docs/acceptance/wave8/k2/receipts/2026-10-31T15-45-01.527Z-21208-test-3.log",
+    "docs/acceptance/wave8/k2/receipts/2026-10-31T15-45-01.527Z-21208-test-4.log",
+    "docs/acceptance/wave8/k2/receipts/2026-10-31T15-45-01.527Z-21208-test-5.log",
+    "docs/acceptance/wave8/k2/receipts/2026-10-31T15-45-01.527Z-21208-test-result.json",
+    "docs/acceptance/wave8/k2/receipts/2026-10-31T15-45-01.527Z-21208-test-source-0.txt",
+    "docs/acceptance/wave8/k2/receipts/2026-10-31T15-45-01.527Z-21208-test-source-1.txt",
+    "docs/acceptance/wave8/k2/receipts/2026-10-31T15-45-01.527Z-21208-test-source-10.txt",
+    "docs/acceptance/wave8/k2/receipts/2026-10-31T15-45-01.527Z-21208-test-source-2.txt",
+    "docs/acceptance/wave8/k2/receipts/2026-10-31T15-45-01.527Z-21208-test-source-3.txt",
+    "docs/acceptance/wave8/k2/receipts/2026-10-31T15-45-01.527Z-21208-test-source-4.txt",
+    "docs/acceptance/wave8/k2/receipts/2026-10-31T15-45-01.527Z-21208-test-source-5.txt",
+    "docs/acceptance/wave8/k2/receipts/2026-10-31T15-45-01.527Z-21208-test-source-6.txt",
+    "docs/acceptance/wave8/k2/receipts/2026-10-31T15-45-01.527Z-21208-test-source-7.txt",
+    "docs/acceptance/wave8/k2/receipts/2026-10-31T15-45-01.527Z-21208-test-source-8.txt",
+    "docs/acceptance/wave8/k2/receipts/2026-10-31T15-45-01.527Z-21208-test-source-9.txt",
+    "docs/acceptance/wave8/k2/receipts/2026-10-31T15-45-57.047Z-21508-check-1.log",
+    "docs/acceptance/wave8/k2/receipts/2026-10-31T15-45-57.047Z-21508-check-2.log",
+    "docs/acceptance/wave8/k2/receipts/2026-10-31T15-45-57.047Z-21508-check-3.log",
+    "docs/acceptance/wave8/k2/receipts/2026-10-31T15-45-57.047Z-21508-check-4.log",
+    "docs/acceptance/wave8/k2/receipts/2026-10-31T15-45-57.047Z-21508-check-5.log",
+    "docs/acceptance/wave8/k2/receipts/2026-10-31T15-45-57.047Z-21508-check-6.log",
+    "docs/acceptance/wave8/k2/receipts/2026-10-31T15-45-57.047Z-21508-check-result.json",
+    "docs/acceptance/wave8/k2/receipts/2026-10-31T15-45-57.047Z-21508-check-source-0.txt",
+    "docs/acceptance/wave8/k2/receipts/2026-10-31T15-45-57.047Z-21508-check-source-1.txt",
+    "docs/acceptance/wave8/k2/receipts/2026-10-31T15-45-57.047Z-21508-check-source-10.txt",
+    "docs/acceptance/wave8/k2/receipts/2026-10-31T15-45-57.047Z-21508-check-source-2.txt",
+    "docs/acceptance/wave8/k2/receipts/2026-10-31T15-45-57.047Z-21508-check-source-3.txt",
+    "docs/acceptance/wave8/k2/receipts/2026-10-31T15-45-57.047Z-21508-check-source-4.txt",
+    "docs/acceptance/wave8/k2/receipts/2026-10-31T15-45-57.047Z-21508-check-source-5.txt",
+    "docs/acceptance/wave8/k2/receipts/2026-10-31T15-45-57.047Z-21508-check-source-6.txt",
+    "docs/acceptance/wave8/k2/receipts/2026-10-31T15-45-57.047Z-21508-check-source-7.txt",
+    "docs/acceptance/wave8/k2/receipts/2026-10-31T15-45-57.047Z-21508-check-source-8.txt",
+    "docs/acceptance/wave8/k2/receipts/2026-10-31T15-45-57.047Z-21508-check-source-9.txt",
+    "docs/acceptance/wave8/k2/receipts/2026-10-31T15-46-47.568Z-23344-test-1.log",
+    "docs/acceptance/wave8/k2/receipts/2026-10-31T15-46-47.568Z-23344-test-2.log",
+    "docs/acceptance/wave8/k2/receipts/2026-10-31T15-46-47.568Z-23344-test-3.log",
+    "docs/acceptance/wave8/k2/receipts/2026-10-31T15-46-47.568Z-23344-test-4.log",
+    "docs/acceptance/wave8/k2/receipts/2026-10-31T15-46-47.568Z-23344-test-5.log",
+    "docs/acceptance/wave8/k2/receipts/2026-10-31T15-46-47.568Z-23344-test-result.json",
+    "docs/acceptance/wave8/k2/receipts/2026-10-31T15-46-47.568Z-23344-test-source-0.txt",
+    "docs/acceptance/wave8/k2/receipts/2026-10-31T15-46-47.568Z-23344-test-source-1.txt",
+    "docs/acceptance/wave8/k2/receipts/2026-10-31T15-46-47.568Z-23344-test-source-10.txt",
+    "docs/acceptance/wave8/k2/receipts/2026-10-31T15-46-47.568Z-23344-test-source-2.txt",
+    "docs/acceptance/wave8/k2/receipts/2026-10-31T15-46-47.568Z-23344-test-source-3.txt",
+    "docs/acceptance/wave8/k2/receipts/2026-10-31T15-46-47.568Z-23344-test-source-4.txt",
+    "docs/acceptance/wave8/k2/receipts/2026-10-31T15-46-47.568Z-23344-test-source-5.txt",
+    "docs/acceptance/wave8/k2/receipts/2026-10-31T15-46-47.568Z-23344-test-source-6.txt",
+    "docs/acceptance/wave8/k2/receipts/2026-10-31T15-46-47.568Z-23344-test-source-7.txt",
+    "docs/acceptance/wave8/k2/receipts/2026-10-31T15-46-47.568Z-23344-test-source-8.txt",
+    "docs/acceptance/wave8/k2/receipts/2026-10-31T15-46-47.568Z-23344-test-source-9.txt",
+    "docs/acceptance/wave8/k2/receipts/2026-10-31T15-47-50.606Z-2144-red-nc1-1.log",
+    "docs/acceptance/wave8/k2/receipts/2026-10-31T15-47-50.606Z-2144-red-nc1-2.log",
+    "docs/acceptance/wave8/k2/receipts/2026-10-31T15-47-50.606Z-2144-red-nc1-3.log",
+    "docs/acceptance/wave8/k2/receipts/2026-10-31T15-47-50.606Z-2144-red-nc1-4.log",
+    "docs/acceptance/wave8/k2/receipts/2026-10-31T15-47-50.606Z-2144-red-nc1-5.log",
+    "docs/acceptance/wave8/k2/receipts/2026-10-31T15-47-50.606Z-2144-red-nc1-result.json",
+    "docs/acceptance/wave8/k2/receipts/2026-10-31T15-47-50.606Z-2144-red-nc1-source-0.txt",
+    "docs/acceptance/wave8/k2/receipts/2026-10-31T15-47-50.606Z-2144-red-nc1-source-1.txt",
+    "docs/acceptance/wave8/k2/receipts/2026-10-31T15-47-50.606Z-2144-red-nc1-source-10.txt",
+    "docs/acceptance/wave8/k2/receipts/2026-10-31T15-47-50.606Z-2144-red-nc1-source-2.txt",
+    "docs/acceptance/wave8/k2/receipts/2026-10-31T15-47-50.606Z-2144-red-nc1-source-3.txt",
+    "docs/acceptance/wave8/k2/receipts/2026-10-31T15-47-50.606Z-2144-red-nc1-source-4.txt",
+    "docs/acceptance/wave8/k2/receipts/2026-10-31T15-47-50.606Z-2144-red-nc1-source-5.txt",
+    "docs/acceptance/wave8/k2/receipts/2026-10-31T15-47-50.606Z-2144-red-nc1-source-6.txt",
+    "docs/acceptance/wave8/k2/receipts/2026-10-31T15-47-50.606Z-2144-red-nc1-source-7.txt",
+    "docs/acceptance/wave8/k2/receipts/2026-10-31T15-47-50.606Z-2144-red-nc1-source-8.txt",
+    "docs/acceptance/wave8/k2/receipts/2026-10-31T15-47-50.606Z-2144-red-nc1-source-9.txt",
+    "docs/acceptance/wave8/k2/receipts/2026-10-31T15-48-21.509Z-2792-test-1.log",
+    "docs/acceptance/wave8/k2/receipts/2026-10-31T15-48-21.509Z-2792-test-2.log",
+    "docs/acceptance/wave8/k2/receipts/2026-10-31T15-48-21.509Z-2792-test-3.log",
+    "docs/acceptance/wave8/k2/receipts/2026-10-31T15-48-21.509Z-2792-test-4.log",
+    "docs/acceptance/wave8/k2/receipts/2026-10-31T15-48-21.509Z-2792-test-5.log",
+    "docs/acceptance/wave8/k2/receipts/2026-10-31T15-48-21.509Z-2792-test-result.json",
+    "docs/acceptance/wave8/k2/receipts/2026-10-31T15-48-21.509Z-2792-test-source-0.txt",
+    "docs/acceptance/wave8/k2/receipts/2026-10-31T15-48-21.509Z-2792-test-source-1.txt",
+    "docs/acceptance/wave8/k2/receipts/2026-10-31T15-48-21.509Z-2792-test-source-10.txt",
+    "docs/acceptance/wave8/k2/receipts/2026-10-31T15-48-21.509Z-2792-test-source-2.txt",
+    "docs/acceptance/wave8/k2/receipts/2026-10-31T15-48-21.509Z-2792-test-source-3.txt",
+    "docs/acceptance/wave8/k2/receipts/2026-10-31T15-48-21.509Z-2792-test-source-4.txt",
+    "docs/acceptance/wave8/k2/receipts/2026-10-31T15-48-21.509Z-2792-test-source-5.txt",
+    "docs/acceptance/wave8/k2/receipts/2026-10-31T15-48-21.509Z-2792-test-source-6.txt",
+    "docs/acceptance/wave8/k2/receipts/2026-10-31T15-48-21.509Z-2792-test-source-7.txt",
+    "docs/acceptance/wave8/k2/receipts/2026-10-31T15-48-21.509Z-2792-test-source-8.txt",
+    "docs/acceptance/wave8/k2/receipts/2026-10-31T15-48-21.509Z-2792-test-source-9.txt",
+    "docs/acceptance/wave8/k2/receipts/2026-10-31T15-49-04.062Z-21212-red-nc2-1.log",
+    "docs/acceptance/wave8/k2/receipts/2026-10-31T15-49-04.062Z-21212-red-nc2-2.log",
+    "docs/acceptance/wave8/k2/receipts/2026-10-31T15-49-04.062Z-21212-red-nc2-3.log",
+    "docs/acceptance/wave8/k2/receipts/2026-10-31T15-49-04.062Z-21212-red-nc2-4.log",
+    "docs/acceptance/wave8/k2/receipts/2026-10-31T15-49-04.062Z-21212-red-nc2-5.log",
+    "docs/acceptance/wave8/k2/receipts/2026-10-31T15-49-04.062Z-21212-red-nc2-result.json",
+    "docs/acceptance/wave8/k2/receipts/2026-10-31T15-49-04.062Z-21212-red-nc2-source-0.txt",
+    "docs/acceptance/wave8/k2/receipts/2026-10-31T15-49-04.062Z-21212-red-nc2-source-1.txt",
+    "docs/acceptance/wave8/k2/receipts/2026-10-31T15-49-04.062Z-21212-red-nc2-source-10.txt",
+    "docs/acceptance/wave8/k2/receipts/2026-10-31T15-49-04.062Z-21212-red-nc2-source-2.txt",
+    "docs/acceptance/wave8/k2/receipts/2026-10-31T15-49-04.062Z-21212-red-nc2-source-3.txt",
+    "docs/acceptance/wave8/k2/receipts/2026-10-31T15-49-04.062Z-21212-red-nc2-source-4.txt",
+    "docs/acceptance/wave8/k2/receipts/2026-10-31T15-49-04.062Z-21212-red-nc2-source-5.txt",
+    "docs/acceptance/wave8/k2/receipts/2026-10-31T15-49-04.062Z-21212-red-nc2-source-6.txt",
+    "docs/acceptance/wave8/k2/receipts/2026-10-31T15-49-04.062Z-21212-red-nc2-source-7.txt",
+    "docs/acceptance/wave8/k2/receipts/2026-10-31T15-49-04.062Z-21212-red-nc2-source-8.txt",
+    "docs/acceptance/wave8/k2/receipts/2026-10-31T15-49-04.062Z-21212-red-nc2-source-9.txt",
+    "docs/acceptance/wave8/k2/receipts/2026-10-31T15-49-27.208Z-35724-test-1.log",
+    "docs/acceptance/wave8/k2/receipts/2026-10-31T15-49-27.208Z-35724-test-2.log",
+    "docs/acceptance/wave8/k2/receipts/2026-10-31T15-49-27.208Z-35724-test-3.log",
+    "docs/acceptance/wave8/k2/receipts/2026-10-31T15-49-27.208Z-35724-test-4.log",
+    "docs/acceptance/wave8/k2/receipts/2026-10-31T15-49-27.208Z-35724-test-5.log",
+    "docs/acceptance/wave8/k2/receipts/2026-10-31T15-49-27.208Z-35724-test-result.json",
+    "docs/acceptance/wave8/k2/receipts/2026-10-31T15-49-27.208Z-35724-test-source-0.txt",
+    "docs/acceptance/wave8/k2/receipts/2026-10-31T15-49-27.208Z-35724-test-source-1.txt",
+    "docs/acceptance/wave8/k2/receipts/2026-10-31T15-49-27.208Z-35724-test-source-10.txt",
+    "docs/acceptance/wave8/k2/receipts/2026-10-31T15-49-27.208Z-35724-test-source-2.txt",
+    "docs/acceptance/wave8/k2/receipts/2026-10-31T15-49-27.208Z-35724-test-source-3.txt",
+    "docs/acceptance/wave8/k2/receipts/2026-10-31T15-49-27.208Z-35724-test-source-4.txt",
+    "docs/acceptance/wave8/k2/receipts/2026-10-31T15-49-27.208Z-35724-test-source-5.txt",
+    "docs/acceptance/wave8/k2/receipts/2026-10-31T15-49-27.208Z-35724-test-source-6.txt",
+    "docs/acceptance/wave8/k2/receipts/2026-10-31T15-49-27.208Z-35724-test-source-7.txt",
+    "docs/acceptance/wave8/k2/receipts/2026-10-31T15-49-27.208Z-35724-test-source-8.txt",
+    "docs/acceptance/wave8/k2/receipts/2026-10-31T15-49-27.208Z-35724-test-source-9.txt",
+    "docs/acceptance/wave8/k2/receipts/2026-10-31T15-49-47.999Z-25504-check-1.log",
+    "docs/acceptance/wave8/k2/receipts/2026-10-31T15-49-47.999Z-25504-check-2.log",
+    "docs/acceptance/wave8/k2/receipts/2026-10-31T15-49-47.999Z-25504-check-3.log",
+    "docs/acceptance/wave8/k2/receipts/2026-10-31T15-49-47.999Z-25504-check-4.log",
+    "docs/acceptance/wave8/k2/receipts/2026-10-31T15-49-47.999Z-25504-check-5.log",
+    "docs/acceptance/wave8/k2/receipts/2026-10-31T15-49-47.999Z-25504-check-6.log",
+    "docs/acceptance/wave8/k2/receipts/2026-10-31T15-49-47.999Z-25504-check-result.json",
+    "docs/acceptance/wave8/k2/receipts/2026-10-31T15-49-47.999Z-25504-check-source-0.txt",
+    "docs/acceptance/wave8/k2/receipts/2026-10-31T15-49-47.999Z-25504-check-source-1.txt",
+    "docs/acceptance/wave8/k2/receipts/2026-10-31T15-49-47.999Z-25504-check-source-10.txt",
+    "docs/acceptance/wave8/k2/receipts/2026-10-31T15-49-47.999Z-25504-check-source-2.txt",
+    "docs/acceptance/wave8/k2/receipts/2026-10-31T15-49-47.999Z-25504-check-source-3.txt",
+    "docs/acceptance/wave8/k2/receipts/2026-10-31T15-49-47.999Z-25504-check-source-4.txt",
+    "docs/acceptance/wave8/k2/receipts/2026-10-31T15-49-47.999Z-25504-check-source-5.txt",
+    "docs/acceptance/wave8/k2/receipts/2026-10-31T15-49-47.999Z-25504-check-source-6.txt",
+    "docs/acceptance/wave8/k2/receipts/2026-10-31T15-49-47.999Z-25504-check-source-7.txt",
+    "docs/acceptance/wave8/k2/receipts/2026-10-31T15-49-47.999Z-25504-check-source-8.txt",
+    "docs/acceptance/wave8/k2/receipts/2026-10-31T15-49-47.999Z-25504-check-source-9.txt",
+    "docs/acceptance/wave8/k2/receipts/2026-10-31T15-50-26.627Z-42520-test-1.log",
+    "docs/acceptance/wave8/k2/receipts/2026-10-31T15-50-26.627Z-42520-test-2.log",
+    "docs/acceptance/wave8/k2/receipts/2026-10-31T15-50-26.627Z-42520-test-3.log",
+    "docs/acceptance/wave8/k2/receipts/2026-10-31T15-50-26.627Z-42520-test-4.log",
+    "docs/acceptance/wave8/k2/receipts/2026-10-31T15-50-26.627Z-42520-test-5.log",
+    "docs/acceptance/wave8/k2/receipts/2026-10-31T15-50-26.627Z-42520-test-result.json",
+    "docs/acceptance/wave8/k2/receipts/2026-10-31T15-50-26.627Z-42520-test-source-0.txt",
+    "docs/acceptance/wave8/k2/receipts/2026-10-31T15-50-26.627Z-42520-test-source-1.txt",
+    "docs/acceptance/wave8/k2/receipts/2026-10-31T15-50-26.627Z-42520-test-source-10.txt",
+    "docs/acceptance/wave8/k2/receipts/2026-10-31T15-50-26.627Z-42520-test-source-2.txt",
+    "docs/acceptance/wave8/k2/receipts/2026-10-31T15-50-26.627Z-42520-test-source-3.txt",
+    "docs/acceptance/wave8/k2/receipts/2026-10-31T15-50-26.627Z-42520-test-source-4.txt",
+    "docs/acceptance/wave8/k2/receipts/2026-10-31T15-50-26.627Z-42520-test-source-5.txt",
+    "docs/acceptance/wave8/k2/receipts/2026-10-31T15-50-26.627Z-42520-test-source-6.txt",
+    "docs/acceptance/wave8/k2/receipts/2026-10-31T15-50-26.627Z-42520-test-source-7.txt",
+    "docs/acceptance/wave8/k2/receipts/2026-10-31T15-50-26.627Z-42520-test-source-8.txt",
+    "docs/acceptance/wave8/k2/receipts/2026-10-31T15-50-26.627Z-42520-test-source-9.txt",
+    "docs/acceptance/wave8/k2/receipts/2026-10-31T15-50-43.043Z-18624-real-1.log",
+    "docs/acceptance/wave8/k2/receipts/2026-10-31T15-50-43.043Z-18624-real-2.log",
+    "docs/acceptance/wave8/k2/receipts/2026-10-31T15-50-43.043Z-18624-real-3.log",
+    "docs/acceptance/wave8/k2/receipts/2026-10-31T15-50-43.043Z-18624-real-4.log",
+    "docs/acceptance/wave8/k2/receipts/2026-10-31T15-50-43.043Z-18624-real-5.log",
+    "docs/acceptance/wave8/k2/receipts/2026-10-31T15-50-43.043Z-18624-real-result.json",
+    "docs/acceptance/wave8/k2/receipts/2026-10-31T15-50-43.043Z-18624-real-source-0.txt",
+    "docs/acceptance/wave8/k2/receipts/2026-10-31T15-50-43.043Z-18624-real-source-1.txt",
+    "docs/acceptance/wave8/k2/receipts/2026-10-31T15-50-43.043Z-18624-real-source-10.txt",
+    "docs/acceptance/wave8/k2/receipts/2026-10-31T15-50-43.043Z-18624-real-source-2.txt",
+    "docs/acceptance/wave8/k2/receipts/2026-10-31T15-50-43.043Z-18624-real-source-3.txt",
+    "docs/acceptance/wave8/k2/receipts/2026-10-31T15-50-43.043Z-18624-real-source-4.txt",
+    "docs/acceptance/wave8/k2/receipts/2026-10-31T15-50-43.043Z-18624-real-source-5.txt",
+    "docs/acceptance/wave8/k2/receipts/2026-10-31T15-50-43.043Z-18624-real-source-6.txt",
+    "docs/acceptance/wave8/k2/receipts/2026-10-31T15-50-43.043Z-18624-real-source-7.txt",
+    "docs/acceptance/wave8/k2/receipts/2026-10-31T15-50-43.043Z-18624-real-source-8.txt",
+    "docs/acceptance/wave8/k2/receipts/2026-10-31T15-50-43.043Z-18624-real-source-9.txt",
+    "docs/dispatch/reports/WATER-W8-K2-REPORT.md",
+    "packages/junk-rules/rules/windows.json",
+    "packages/junk-rules/src/plan.rs",
+    "packages/junk-rules/src/rules.rs",
+    "packages/junk-rules/src/types.rs",
+    "packages/junk-rules/tests/rules_v1.rs"
+  ],
+  "before": {
+    "head": "bc0d94882d8a8e1073731e9da19c5463f8524fbf",
+    "status": ""
+  },
+  "sourceState": {
+    "files": [
+      {
+        "path": "packages/junk-rules/Cargo.toml",
+        "snapshot": "2026-11-01T01-54-10.765Z-4220-check-source-0.txt",
+        "sha256": "b208419139ad9e00094796070ed94c874e68051718dbccae9e977ab5b2a2891f",
+        "test": false
+      },
+      {
+        "path": "packages/junk-rules/Cargo.lock",
+        "snapshot": "2026-11-01T01-54-10.765Z-4220-check-source-1.txt",
+        "sha256": "8fa9f0654764a3478f9620856784816467bea29ee9a091a2df50af3707143d0c",
+        "test": false
+      },
+      {
+        "path": "packages/junk-rules/README.md",
+        "snapshot": "2026-11-01T01-54-10.765Z-4220-check-source-2.txt",
+        "sha256": "01d7da724cc6de91a8a52878f71cb504df289d46cec4abd72452b330b968cb98",
+        "test": false
+      },
+      {
+        "path": "packages/junk-rules/rules/windows.json",
+        "snapshot": "2026-11-01T01-54-10.765Z-4220-check-source-3.txt",
+        "sha256": "91bd509aa6a5e96458a30587e734414fc7d726ede7f30d86e50e251a31ff6e8b",
+        "test": false
+      },
+      {
+        "path": "packages/junk-rules/src/error.rs",
+        "snapshot": "2026-11-01T01-54-10.765Z-4220-check-source-4.txt",
+        "sha256": "3b2dda7c38f28398577e76b76b44ea6b0343709f68c5d0fd5134607656655800",
+        "test": false
+      },
+      {
+        "path": "packages/junk-rules/src/folders.rs",
+        "snapshot": "2026-11-01T01-54-10.765Z-4220-check-source-5.txt",
+        "sha256": "2a4e5c28225fee67f908bfc39b9b17bb16d7f65f6456c2af4f5090453e7a8732",
+        "test": false
+      },
+      {
+        "path": "packages/junk-rules/src/lib.rs",
+        "snapshot": "2026-11-01T01-54-10.765Z-4220-check-source-6.txt",
+        "sha256": "c799dec66f96283f5fc70a33858e0c834ebf5fd18fb1fefb80d0144c4c6b5bf5",
+        "test": false
+      },
+      {
+        "path": "packages/junk-rules/src/plan.rs",
+        "snapshot": "2026-11-01T01-54-10.765Z-4220-check-source-7.txt",
+        "sha256": "2839fa0d3349b85134fdafe74c5df4de2266402bbff8eb54149e4cb2edb0f34a",
+        "test": false
+      },
+      {
+        "path": "packages/junk-rules/src/rules.rs",
+        "snapshot": "2026-11-01T01-54-10.765Z-4220-check-source-8.txt",
+        "sha256": "707069dfa4ce0dc0e782cb26e13a8fdf6c8d1d2993fbd26317c0a60d01486c4a",
+        "test": false
+      },
+      {
+        "path": "packages/junk-rules/src/types.rs",
+        "snapshot": "2026-11-01T01-54-10.765Z-4220-check-source-9.txt",
+        "sha256": "3ea4880e7a6c31e33eda88e7d360ddd632e4cec74aa41379994ddd4f9ed2e3f4",
+        "test": false
+      },
+      {
+        "path": "packages/junk-rules/tests/rules_v1.rs",
+        "snapshot": "2026-11-01T01-54-10.765Z-4220-check-source-10.txt",
+        "sha256": "83aa689a2f71d2808e1479092a0d6da592dabb38b14f0bcfbd2171b801692457",
+        "test": true
+      }
+    ],
+    "productionHash": "5469f20b6833a89e4c63adf22c98338db782fd43ec401f1b588394377107a925",
+    "testHash": "d900defca472b60c05b5116f991466344932da2696e68716eb2a976519320b89"
+  },
+  "dependencyInventory": [
+    "itoa@1.0.18",
+    "memchr@2.8.3",
+    "proc-macro2@1.0.107",
+    "quote@1.0.47",
+    "serde@1.0.229",
+    "serde_core@1.0.229",
+    "serde_derive@1.0.229",
+    "serde_json@1.0.151",
+    "syn@3.0.9",
+    "unicode-ident@1.0.27",
+    "zmij@1.0.23"
+  ],
+  "after": {
+    "head": "bc0d94882d8a8e1073731e9da19c5463f8524fbf",
+    "status": ""
+  },
+  "status": "passed",
+  "error": null,
+  "endedAt": "2026-11-01T01:54:33.410Z"
+}

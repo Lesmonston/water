@@ -1,0 +1,39 @@
+{"binary":"C:\\Users\\37310\\.rustup\\toolchains\\1.95.0-x86_64-pc-windows-msvc\\bin\\cargo.exe","args":["test","--offline","--locked","--manifest-path","packages/process-scan/Cargo.toml","--test","process_v1","--","--test-threads=1"],"exitCode":101,"error":null}
+--- stdout ---
+
+running 4 tests
+test process_in_use_and_orphans ... FAILED
+test process_path_reference ... ok
+test process_privacy ... FAILED
+test process_snapshot_contract ... ok
+
+failures:
+
+---- process_in_use_and_orphans stdout ----
+
+thread 'process_in_use_and_orphans' (36428) panicked at tests\process_v1.rs:792:9:
+assertion `left == right` failed: PROC_M3C_ANY: empty or matching names allow image
+  left: 22216
+ right: 25668
+note: run with `RUST_BACKTRACE=1` environment variable to display a backtrace
+
+---- process_privacy stdout ----
+
+thread 'process_privacy' (22688) panicked at tests\process_v1.rs:899:5:
+assertion `left == right` failed: PROC_M3C_PRIVACY: copied image present
+  left: 32784
+ right: 25024
+
+
+failures:
+    process_in_use_and_orphans
+    process_privacy
+
+test result: FAILED. 2 passed; 2 failed; 0 ignored; 0 measured; 0 filtered out; finished in 7.95s
+
+
+--- stderr ---
+   Compiling water-process-scan v0.1.0 (F:\new\smaltalk\water\.worktrees\accept-w8-k1\packages\process-scan)
+    Finished `test` profile [unoptimized + debuginfo] target(s) in 1.75s
+     Running tests\process_v1.rs (.local\w2-target\debug\deps\process_v1-577a5737d044fa92.exe)
+error: test failed, to rerun pass `--test process_v1`

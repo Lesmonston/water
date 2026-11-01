@@ -1,0 +1,37 @@
+k1 c1 mutated packages/process-scan/src/lib.rs: the image-inside check loses the whole-segment boundary (C:\a\bc\x.exe counts as inside C:\a\b) (mutated sha 000703f1b99f8804af7b1c2df04eed36f0a15480315f8ca8d572b1d588db4c2a)
+k1 test rc=0 {"task":"WATER-W8-ACCEPT-K1","mode":"test","finalGate":false,"status":"passed","error":null,"receipt":"F:\\new\\smaltalk\\water\\.worktrees\\accept-w8-k1\\.local\\checks\\WATER-W8-ACCEPT-K1\\2026-11-01T02-02-24.710Z-3432-test-result.json"}
+k1 c1 SURVIVED (expected PROC_M3C_IMAGE)
+k1 c1 restored exact bytes=true sha 1ff2e451e998ba0a7e6a77bd46efd8e5191f27de70eb2682c9753bde1e6f06cc
+k1 test rc=0 {"task":"WATER-W8-ACCEPT-K1","mode":"test","finalGate":false,"status":"passed","error":null,"receipt":"F:\\new\\smaltalk\\water\\.worktrees\\accept-w8-k1\\.local\\checks\\WATER-W8-ACCEPT-K1\\2026-11-01T02-02-36.730Z-22392-test-result.json"}
+k1 c2 mutated packages/process-scan/src/lib.rs: an empty name list matches no process instead of any process (mutated sha 5d9b74f955b4a2a021077159c90c6b8829ed892ecb55ef06a088eedf1e8f729a)
+k1 test rc=1 {"task":"WATER-W8-ACCEPT-K1","mode":"test","finalGate":false,"status":"failed","error":"AssertionError [ERR_ASSERTION]: Unexpected exit, see 2026-11-01T02-02-48.984Z-19944-test-5.log","receipt":"F:\\new\\smaltalk\\water\\.worktrees\\accept-w8-k1\\.local\\checks\\WATER-W8-ACCEPT-K1\\2026-11-01T02-02-48.984Z-19944-test-result.json"}
+k1 c2 SURVIVED (expected PROC_M3C_ANY)
+k1 c2 restored exact bytes=true sha 1ff2e451e998ba0a7e6a77bd46efd8e5191f27de70eb2682c9753bde1e6f06cc
+k1 test rc=0 {"task":"WATER-W8-ACCEPT-K1","mode":"test","finalGate":false,"status":"passed","error":null,"receipt":"F:\\new\\smaltalk\\water\\.worktrees\\accept-w8-k1\\.local\\checks\\WATER-W8-ACCEPT-K1\\2026-11-01T02-03-01.718Z-18768-test-result.json"}
+k1 c3 mutated packages/process-scan/src/lib.rs: a non-empty name list no longer filters (mutated sha 30796872d9abd7db01757d46dfe748c76bfdb20dbeb9dad99496a929dcdbf276)
+k1 test rc=1 {"task":"WATER-W8-ACCEPT-K1","mode":"test","finalGate":false,"status":"failed","error":"AssertionError [ERR_ASSERTION]: Unexpected exit, see 2026-11-01T02-03-14.649Z-18056-test-5.log","receipt":"F:\\new\\smaltalk\\water\\.worktrees\\accept-w8-k1\\.local\\checks\\WATER-W8-ACCEPT-K1\\2026-11-01T02-03-14.649Z-18056-test-result.json"}
+k1 c3 KILLED (expected PROC_M3C_ANY)
+k1 c3 restored exact bytes=true sha 1ff2e451e998ba0a7e6a77bd46efd8e5191f27de70eb2682c9753bde1e6f06cc
+k1 test rc=0 {"task":"WATER-W8-ACCEPT-K1","mode":"test","finalGate":false,"status":"passed","error":null,"receipt":"F:\\new\\smaltalk\\water\\.worktrees\\accept-w8-k1\\.local\\checks\\WATER-W8-ACCEPT-K1\\2026-11-01T02-03-27.205Z-9952-test-result.json"}
+k1 c4 mutated packages/process-scan/src/lib.rs: only an exact image path counts, an executable inside the item does not (worker nc1 removed the whole image branch) (mutated sha 1e4c4f1640a9836c3cb52b13038c7dd1495bc565f8633e87d954a3901fae79b4)
+k1 red-nc1 rc=0 {"task":"WATER-W8-ACCEPT-K1","mode":"red-nc1","finalGate":false,"status":"passed","error":null,"receipt":"F:\\new\\smaltalk\\water\\.worktrees\\accept-w8-k1\\.local\\checks\\WATER-W8-ACCEPT-K1\\2026-11-01T02-03-40.680Z-8872-red-nc1-result.json"}
+k1 c4 KILLED (expected PROC_M3C_IMAGE)
+k1 c4 restored exact bytes=true sha 1ff2e451e998ba0a7e6a77bd46efd8e5191f27de70eb2682c9753bde1e6f06cc
+k1 test rc=0 {"task":"WATER-W8-ACCEPT-K1","mode":"test","finalGate":false,"status":"passed","error":null,"receipt":"F:\\new\\smaltalk\\water\\.worktrees\\accept-w8-k1\\.local\\checks\\WATER-W8-ACCEPT-K1\\2026-11-01T02-03-55.896Z-27396-test-result.json"}
+k1 c5 mutated packages/process-scan/src/lib.rs: orphan memory sums only the descendants, not the root (worker nc2 dropped the descendants) (mutated sha bc0a5c3ba4437acddb043443849a2bc86fa184da6f3152bcad46b17b7eda6721)
+k1 red-nc2 rc=0 {"task":"WATER-W8-ACCEPT-K1","mode":"red-nc2","finalGate":false,"status":"passed","error":null,"receipt":"F:\\new\\smaltalk\\water\\.worktrees\\accept-w8-k1\\.local\\checks\\WATER-W8-ACCEPT-K1\\2026-11-01T02-04-09.107Z-42232-red-nc2-result.json"}
+k1 c5 KILLED (expected PROC_M3C_MEMORY)
+k1 c5 restored exact bytes=true sha 1ff2e451e998ba0a7e6a77bd46efd8e5191f27de70eb2682c9753bde1e6f06cc
+k1 test rc=0 {"task":"WATER-W8-ACCEPT-K1","mode":"test","finalGate":false,"status":"passed","error":null,"receipt":"F:\\new\\smaltalk\\water\\.worktrees\\accept-w8-k1\\.local\\checks\\WATER-W8-ACCEPT-K1\\2026-11-01T02-04-21.373Z-6480-test-result.json"}
+k1 c6 mutated packages/process-scan/src/lib.rs: Debug of a process record prints the executable path (mutated sha 4fb27b57a43d3bb97271ac8bb66a7c46db6ff9afbb14db66f3c622bf4f199a2f)
+k1 test rc=1 {"task":"WATER-W8-ACCEPT-K1","mode":"test","finalGate":false,"status":"failed","error":"AssertionError [ERR_ASSERTION]: Unexpected exit, see 2026-11-01T02-04-34.286Z-24188-test-5.log","receipt":"F:\\new\\smaltalk\\water\\.worktrees\\accept-w8-k1\\.local\\checks\\WATER-W8-ACCEPT-K1\\2026-11-01T02-04-34.286Z-24188-test-result.json"}
+k1 c6 KILLED (expected PROC_M3C_PRIVACY)
+k1 c6 restored exact bytes=true sha 1ff2e451e998ba0a7e6a77bd46efd8e5191f27de70eb2682c9753bde1e6f06cc
+k1 test rc=0 {"task":"WATER-W8-ACCEPT-K1","mode":"test","finalGate":false,"status":"passed","error":null,"receipt":"F:\\new\\smaltalk\\water\\.worktrees\\accept-w8-k1\\.local\\checks\\WATER-W8-ACCEPT-K1\\2026-11-01T02-04-46.621Z-18328-test-result.json"}
+k1 c7 mutated packages/process-scan/src/lib.rs: in_use dispatches the new mode to the command-line-only rule (mutated sha 1363f63b0f26d88058ba34d0e7ada08340f38ca086ebca020773ee436f4a9e58)
+k1 test rc=1 {"task":"WATER-W8-ACCEPT-K1","mode":"test","finalGate":false,"status":"failed","error":"AssertionError [ERR_ASSERTION]: Unexpected exit, see 2026-11-01T02-05-02.687Z-5052-test-5.log","receipt":"F:\\new\\smaltalk\\water\\.worktrees\\accept-w8-k1\\.local\\checks\\WATER-W8-ACCEPT-K1\\2026-11-01T02-05-02.687Z-5052-test-result.json"}
+k1 c7 KILLED (expected PROC_M3C_)
+k1 c7 restored exact bytes=true sha 1ff2e451e998ba0a7e6a77bd46efd8e5191f27de70eb2682c9753bde1e6f06cc
+k1 test rc=0 {"task":"WATER-W8-ACCEPT-K1","mode":"test","finalGate":false,"status":"passed","error":null,"receipt":"F:\\new\\smaltalk\\water\\.worktrees\\accept-w8-k1\\.local\\checks\\WATER-W8-ACCEPT-K1\\2026-11-01T02-05-17.809Z-24404-test-result.json"}
+k1 survived: c1,c2
+k1 test --final rc=0 {"task":"WATER-W8-ACCEPT-K1","mode":"test","finalGate":true,"status":"passed","error":null,"receipt":"F:\\new\\smaltalk\\water\\.worktrees\\accept-w8-k1\\.local\\checks\\WATER-W8-ACCEPT-K1\\2026-11-01T02-05-30.652Z-12160-test-result.json"}

@@ -1,0 +1,253 @@
+//! Thin synchronous adapters: backend replies are returned without interpretation.
+use crate::{Backend, IpcFailure};
+use serde_json::{Value, json};
+use std::sync::Arc;
+use tauri::State;
+
+pub const COMMANDS: [&str; 19] = [
+    "app_state",
+    "scan_start",
+    "scan_cancel",
+    "scan_progress",
+    "scan_result",
+    "group_detail",
+    "clean_prepare",
+    "clean_start",
+    "clean_stop",
+    "clean_progress",
+    "clean_result",
+    "trends",
+    "history_list",
+    "locations_get",
+    "locations_set_category",
+    "custom_root_add",
+    "custom_root_remove",
+    "skip_add",
+    "skip_remove",
+];
+
+pub fn cmd_app_state(backend: &dyn Backend) -> Result<Value, IpcFailure> {
+    backend.call("app_state", json!({}))
+}
+
+#[tauri::command]
+pub(crate) fn app_state(backend: State<'_, Arc<dyn Backend>>) -> Result<Value, IpcFailure> {
+    cmd_app_state(backend.inner().as_ref())
+}
+
+pub fn cmd_scan_start(backend: &dyn Backend) -> Result<Value, IpcFailure> {
+    backend.call("scan_start", json!({}))
+}
+
+#[tauri::command]
+pub(crate) fn scan_start(backend: State<'_, Arc<dyn Backend>>) -> Result<Value, IpcFailure> {
+    cmd_scan_start(backend.inner().as_ref())
+}
+
+pub fn cmd_scan_cancel(backend: &dyn Backend, scan_id: String) -> Result<Value, IpcFailure> {
+    backend.call("scan_cancel", json!({"scanId": scan_id}))
+}
+
+#[tauri::command]
+pub(crate) fn scan_cancel(
+    backend: State<'_, Arc<dyn Backend>>,
+    scan_id: String,
+) -> Result<Value, IpcFailure> {
+    cmd_scan_cancel(backend.inner().as_ref(), scan_id)
+}
+
+pub fn cmd_scan_progress(backend: &dyn Backend) -> Result<Value, IpcFailure> {
+    backend.call("scan_progress", json!({}))
+}
+
+#[tauri::command]
+pub(crate) fn scan_progress(backend: State<'_, Arc<dyn Backend>>) -> Result<Value, IpcFailure> {
+    cmd_scan_progress(backend.inner().as_ref())
+}
+
+pub fn cmd_scan_result(backend: &dyn Backend, scan_id: String) -> Result<Value, IpcFailure> {
+    backend.call("scan_result", json!({"scanId": scan_id}))
+}
+
+#[tauri::command]
+pub(crate) fn scan_result(
+    backend: State<'_, Arc<dyn Backend>>,
+    scan_id: String,
+) -> Result<Value, IpcFailure> {
+    cmd_scan_result(backend.inner().as_ref(), scan_id)
+}
+
+pub fn cmd_group_detail(backend: &dyn Backend, group_id: String) -> Result<Value, IpcFailure> {
+    backend.call("group_detail", json!({"groupId": group_id}))
+}
+
+#[tauri::command]
+pub(crate) fn group_detail(
+    backend: State<'_, Arc<dyn Backend>>,
+    group_id: String,
+) -> Result<Value, IpcFailure> {
+    cmd_group_detail(backend.inner().as_ref(), group_id)
+}
+
+pub fn cmd_clean_prepare(
+    backend: &dyn Backend,
+    group_ids: Vec<String>,
+    exclude_item_ids: Option<Vec<String>>,
+) -> Result<Value, IpcFailure> {
+    let mut args = json!({"groupIds": group_ids});
+    if let Some(ids) = exclude_item_ids.filter(|ids| !ids.is_empty()) {
+        args["excludeItemIds"] = json!(ids);
+    }
+    backend.call("clean_prepare", args)
+}
+
+#[tauri::command]
+pub(crate) fn clean_prepare(
+    backend: State<'_, Arc<dyn Backend>>,
+    group_ids: Vec<String>,
+    exclude_item_ids: Option<Vec<String>>,
+) -> Result<Value, IpcFailure> {
+    cmd_clean_prepare(backend.inner().as_ref(), group_ids, exclude_item_ids)
+}
+
+pub fn cmd_clean_start(
+    backend: &dyn Backend,
+    plan_id: String,
+    confirm_token: String,
+) -> Result<Value, IpcFailure> {
+    backend.call(
+        "clean_start",
+        json!({"planId": plan_id, "confirmToken": confirm_token}),
+    )
+}
+
+#[tauri::command]
+pub(crate) fn clean_start(
+    backend: State<'_, Arc<dyn Backend>>,
+    plan_id: String,
+    confirm_token: String,
+) -> Result<Value, IpcFailure> {
+    cmd_clean_start(backend.inner().as_ref(), plan_id, confirm_token)
+}
+
+pub fn cmd_clean_stop(backend: &dyn Backend) -> Result<Value, IpcFailure> {
+    backend.call("clean_stop", json!({}))
+}
+
+#[tauri::command]
+pub(crate) fn clean_stop(backend: State<'_, Arc<dyn Backend>>) -> Result<Value, IpcFailure> {
+    cmd_clean_stop(backend.inner().as_ref())
+}
+
+pub fn cmd_clean_progress(backend: &dyn Backend) -> Result<Value, IpcFailure> {
+    backend.call("clean_progress", json!({}))
+}
+
+#[tauri::command]
+pub(crate) fn clean_progress(backend: State<'_, Arc<dyn Backend>>) -> Result<Value, IpcFailure> {
+    cmd_clean_progress(backend.inner().as_ref())
+}
+
+pub fn cmd_clean_result(backend: &dyn Backend, clean_id: String) -> Result<Value, IpcFailure> {
+    backend.call("clean_result", json!({"cleanId": clean_id}))
+}
+
+#[tauri::command]
+pub(crate) fn clean_result(
+    backend: State<'_, Arc<dyn Backend>>,
+    clean_id: String,
+) -> Result<Value, IpcFailure> {
+    cmd_clean_result(backend.inner().as_ref(), clean_id)
+}
+
+pub fn cmd_trends(backend: &dyn Backend) -> Result<Value, IpcFailure> {
+    backend.call("trends", json!({}))
+}
+
+#[tauri::command]
+pub(crate) fn trends(backend: State<'_, Arc<dyn Backend>>) -> Result<Value, IpcFailure> {
+    cmd_trends(backend.inner().as_ref())
+}
+
+pub fn cmd_history_list(backend: &dyn Backend) -> Result<Value, IpcFailure> {
+    backend.call("history_list", json!({}))
+}
+
+#[tauri::command]
+pub(crate) fn history_list(backend: State<'_, Arc<dyn Backend>>) -> Result<Value, IpcFailure> {
+    cmd_history_list(backend.inner().as_ref())
+}
+
+pub fn cmd_locations_get(backend: &dyn Backend) -> Result<Value, IpcFailure> {
+    backend.call("locations_get", json!({}))
+}
+
+#[tauri::command]
+pub(crate) fn locations_get(backend: State<'_, Arc<dyn Backend>>) -> Result<Value, IpcFailure> {
+    cmd_locations_get(backend.inner().as_ref())
+}
+
+pub fn cmd_locations_set_category(
+    backend: &dyn Backend,
+    category: String,
+    enabled: bool,
+) -> Result<Value, IpcFailure> {
+    backend.call(
+        "locations_set_category",
+        json!({"category": category, "enabled": enabled}),
+    )
+}
+
+#[tauri::command]
+pub(crate) fn locations_set_category(
+    backend: State<'_, Arc<dyn Backend>>,
+    category: String,
+    enabled: bool,
+) -> Result<Value, IpcFailure> {
+    cmd_locations_set_category(backend.inner().as_ref(), category, enabled)
+}
+
+pub fn cmd_custom_root_add(backend: &dyn Backend) -> Result<Value, IpcFailure> {
+    backend.call("custom_root_add", json!({}))
+}
+
+#[tauri::command]
+pub(crate) fn custom_root_add(backend: State<'_, Arc<dyn Backend>>) -> Result<Value, IpcFailure> {
+    cmd_custom_root_add(backend.inner().as_ref())
+}
+
+pub fn cmd_custom_root_remove(backend: &dyn Backend, root_id: String) -> Result<Value, IpcFailure> {
+    backend.call("custom_root_remove", json!({"rootId": root_id}))
+}
+
+#[tauri::command]
+pub(crate) fn custom_root_remove(
+    backend: State<'_, Arc<dyn Backend>>,
+    root_id: String,
+) -> Result<Value, IpcFailure> {
+    cmd_custom_root_remove(backend.inner().as_ref(), root_id)
+}
+
+pub fn cmd_skip_add(backend: &dyn Backend, item_id: String) -> Result<Value, IpcFailure> {
+    backend.call("skip_add", json!({"item_id": item_id}))
+}
+
+#[tauri::command]
+pub(crate) fn skip_add(
+    backend: State<'_, Arc<dyn Backend>>,
+    item_id: String,
+) -> Result<Value, IpcFailure> {
+    cmd_skip_add(backend.inner().as_ref(), item_id)
+}
+
+pub fn cmd_skip_remove(backend: &dyn Backend, skip_id: String) -> Result<Value, IpcFailure> {
+    backend.call("skip_remove", json!({"skipId": skip_id}))
+}
+
+#[tauri::command]
+pub(crate) fn skip_remove(
+    backend: State<'_, Arc<dyn Backend>>,
+    skip_id: String,
+) -> Result<Value, IpcFailure> {
+    cmd_skip_remove(backend.inner().as_ref(), skip_id)
+}
