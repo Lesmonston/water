@@ -1,0 +1,80 @@
+{"binary":"C:\\Users\\37310\\.rustup\\toolchains\\1.95.0-x86_64-pc-windows-msvc\\bin\\cargo.exe","args":["fmt","--manifest-path","packages/water-service/Cargo.toml","--","--check"],"exitCode":1,"error":null}
+--- stdout ---
+Diff in \\?\F:\new\smaltalk\water\.worktrees\w8-k4\packages\water-service\tests\service_v1.rs:60:
+         self.drives.lock().unwrap().clone()
+     }
+     fn volume_file_system(&self, root: &str) -> Option<String> {
+-        self.file_systems.lock().unwrap().get(&root.to_ascii_uppercase()).cloned()
++        self.file_systems
++            .lock()
++            .unwrap()
++            .get(&root.to_ascii_uppercase())
++            .cloned()
+     }
+     fn orphan_chains(&self) -> Vec<water_process_scan::OrphanChain> {
+         self.orphans.lock().unwrap().clone()
+Diff in \\?\F:\new\smaltalk\water\.worktrees\w8-k4\packages\water-service\tests\service_v1.rs:176:
+             panic_in_use: Arc::new(AtomicBool::new(false)),
+             names: Arc::new(Mutex::new(Vec::new())),
+             clean_gate: Arc::new(Mutex::new(None)),
+-            drives: Arc::new(Mutex::new(vec![DriveInfo {root:"F:\\".into(), is_system:true, total_bytes:1_000_000, free_bytes:800_000}])),
++            drives: Arc::new(Mutex::new(vec![DriveInfo {
++                root: "F:\\".into(),
++                is_system: true,
++                total_bytes: 1_000_000,
++                free_bytes: 800_000,
++            }])),
+             file_systems: Arc::new(Mutex::new(BTreeMap::new())),
+             orphans: Arc::new(Mutex::new(Vec::new())),
+         };
+Diff in \\?\F:\new\smaltalk\water\.worktrees\w8-k4\packages\water-service\tests\service_v1.rs:319:
+     call(s, "scan_result", json!({"scanId":id["scan_id"]}))
+ }
+ fn fixtures() -> Value {
+-    let mut base: Value = serde_json::from_str(include_str!("../../../contracts/checkup-v1/ui-fixtures.json")).unwrap();
+-    let increment: Value = serde_json::from_str(include_str!("../../../contracts/m3c-v1/ui-fixtures-m3c.json")).unwrap();
+-    for (key,value) in increment.as_object().unwrap() { base[key] = value.clone(); }
+-    for key in ["app_state_fresh","app_state_after_scan","scan_result","group_details","locations","custom_root_add_drive","custom_root_add_cancelled","trends","history_list","clean_prepare_default","clean_result","scan_start","clean_start","scan_progress_sequence","clean_progress_sequence","errors"] {
++    let mut base: Value = serde_json::from_str(include_str!(
++        "../../../contracts/checkup-v1/ui-fixtures.json"
++    ))
++    .unwrap();
++    let increment: Value = serde_json::from_str(include_str!(
++        "../../../contracts/m3c-v1/ui-fixtures-m3c.json"
++    ))
++    .unwrap();
++    for (key, value) in increment.as_object().unwrap() {
++        base[key] = value.clone();
++    }
++    for key in [
++        "app_state_fresh",
++        "app_state_after_scan",
++        "scan_result",
++        "group_details",
++        "locations",
++        "custom_root_add_drive",
++        "custom_root_add_cancelled",
++        "trends",
++        "history_list",
++        "clean_prepare_default",
++        "clean_result",
++        "scan_start",
++        "clean_start",
++        "scan_progress_sequence",
++        "clean_progress_sequence",
++        "errors",
++    ] {
+         assert!(!base[key].is_null(), "SERVICE_M3C_SHAPE: missing {key}");
+     }
+-    assert!(base["group_details"].as_object().is_some_and(|m|m.values().all(|v|!v.is_null())), "SERVICE_M3C_SHAPE: group details missing");
++    assert!(
++        base["group_details"]
++            .as_object()
++            .is_some_and(|m| m.values().all(|v| !v.is_null())),
++        "SERVICE_M3C_SHAPE: group details missing"
++    );
+     base
+ }
+ 
+
+--- stderr ---
