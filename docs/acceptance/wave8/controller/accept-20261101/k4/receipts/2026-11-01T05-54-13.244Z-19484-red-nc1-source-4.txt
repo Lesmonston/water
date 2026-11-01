@@ -1,0 +1,375 @@
+#![forbid(unsafe_code)]
+
+use crate::{
+    IpcError,
+    service::{Core, Record, State, lock, trim},
+    util, views,
+};
+use serde_json::{Value, json};
+use std::{collections::BTreeMap, sync::Arc};
+use water_junk_clean as clean;
+
+pub(crate) fn idle() -> Value {
+    json!({"clean_id":null,"state":"idle","done_items":0,"total_items":0,"freed_bytes":"0","group_index":0,"group_count":0,"current_group_title_zh":null})
+}
+
+pub(crate) fn prepare(
+    core: &Arc<Core>,
+    ids: &[Value],
+    excluded: &[Value],
+) -> Result<Value, IpcError> {
+    let mut s = lock(core)?;
+    if s.busy != "idle" {
+        return Err(IpcError::new("busy"));
+    }
+    let r = s.last_record().ok_or_else(|| IpcError::new("stale"))?;
+    if s.consumed.contains(&r.result.scan_id) {
+        return Err(IpcError::new("stale"));
+    }
+    // Trust boundary: only a scan this process completed can be a cleaning source.
+    if !s.local_scans.contains(&r.result.scan_id) {
+        return Err(IpcError::new("stale"));
+    }
+    // A partial scan is a source only when no budget ran out and no protected group is unclear.
+    if r.result.status == "partial"
+        && r.result.issues.iter().any(|i| {
+            i.code == "budget_exhausted"
+                || r.result
+                    .groups
+                    .iter()
+                    .find(|g| g.group_id == i.group_id)
+                    .is_none_or(|g| g.level == water_junk_scan::Level::Protected)
+        })
+    {
+        return Err(IpcError {
+            code: "stale".into(),
+            message_zh: "这次体检没有完整完成，请重新体检后再清理。".into(),
+        });
+    }
+    let mut items = Vec::new();
+    let mut groups = Vec::new();
+    let mut by_drive = BTreeMap::<String, u64>::new();
+    // Disk settings can only narrow a locally authorised scan, never add paths.
+    let disk_skips = core
+        .store
+        .read("", "settings.json")
+        .and_then(|v| serde_json::from_value::<crate::service::Settings>(v).ok())
+        .map(|v| v.skipped)
+        .unwrap_or_default();
+    let projection = r.projection();
+    for id in excluded {
+        let item = r
+            .result
+            .items
+            .iter()
+            .find(|i| i.item_id == id.as_str().expect("validated item ID"))
+            .ok_or_else(|| IpcError::new("invalid"))?;
+        if !ids
+            .iter()
+            .any(|id| id.as_str() == Some(item.group_id.as_str()))
+            || (!item.eligible && item.ineligible_reason.as_deref() != Some("user_skipped"))
+        {
+            return Err(IpcError::new("invalid"));
+        }
+    }
+    let mut excluded_count = 0;
+    for id in ids {
+        let id = id.as_str().expect("validated group ID");
+        let group = r
+            .result
+            .groups
+            .iter()
+            .find(|g| g.group_id == id)
+            .ok_or_else(|| IpcError::new("invalid"))?;
+        if !group.level.cleanable()
+            || group.eligible_count == 0
+            || !views::enabled(&s.settings, &views::category(group))
+        {
+            return Err(IpcError::new("invalid"));
+        }
+        let before = items.len();
+        let mut bytes = 0;
+        for (index, item) in r
+            .result
+            .items
+            .iter()
+            .enumerate()
+            .filter(|(_, i)| i.group_id == id && i.eligible && i.identity.is_some())
+        {
+            if projection.is_skipped(index) {
+                continue;
+            }
+            if s.settings
+                    .skipped
+                    .iter()
+                    .chain(&disk_skips)
+                    .any(|v| v.path.eq_ignore_ascii_case(&item.path))
+            {
+                excluded_count += 1;
+                continue;
+            }
+            let target = r
+                .plan
+                .targets
+                .iter()
+                .filter(|t| t.group_id == id)
+                .filter_map(|t| {
+                    let root = match &t.match_spec {
+                        water_junk_rules::MatchSpec::Pattern { base, .. } => base,
+                        water_junk_rules::MatchSpec::Marker { root, .. }
+                        | water_junk_rules::MatchSpec::Discovery { root } => root,
+                    };
+                    (util::contains(root, &item.path) && !root.eq_ignore_ascii_case(&item.path))
+                        .then_some((root, t))
+                })
+                .max_by_key(|(root, _)| root.len())
+                .ok_or_else(|| IpcError::new("invalid"))?;
+            items.push(json!({"item_id":item.item_id,"group_id":id,"rule_id":group.rule_id,"level":group.level,"path":item.path,"root":target.0,"kind":item.kind,"identity":item.identity,"total_bytes":item.total_bytes,"min_age_hours":target.1.min_age_hours}));
+            let n = util::number(&item.unique_bytes);
+            bytes += n;
+            *by_drive.entry(util::drive(&item.path)).or_default() += n;
+        }
+        if items.len() > before {
+            groups.push(json!({"group_id":id,"title_zh":projection.details[id]["group"]["title_zh"],"level":group.level,"item_count":items.len()-before,"total_bytes":bytes.to_string(),"in_use_note_zh":if projection.details[id]["group"]["in_use"].is_null(){None}else{Some("运行中，占用的项会跳过")}}));
+        }
+    }
+    if items.is_empty() {
+        return Err(IpcError::new("invalid"));
+    }
+    let protected_paths: Vec<_> =
+        r.result
+            .items
+            .iter()
+            .filter(|i| {
+                r.result.groups.iter().any(|g| {
+                    g.group_id == i.group_id && g.level == water_junk_scan::Level::Protected
+                })
+            })
+            .map(|i| i.path.clone())
+            .collect();
+    let now = core.platform.now();
+    let mut id = util::new_id("plan", now);
+    while s.plans.contains_key(&id) {
+        id = util::new_id("plan", now);
+    }
+    let plan = json!({"plan_version":"water.clean-plan.v1","plan_id":id,"created_at":util::timestamp(now),"items":items,"protected_paths":protected_paths,"hard_guards":r.plan.hard_guards});
+    clean::CleanPlan::from_json(&plan.to_string()).map_err(|_| IpcError::new("invalid"))?;
+    let token = util::random_hex();
+    let stored = json!({"plan":plan,"scan_id":r.result.scan_id,"token_digest":util::digest(&token),"used":false});
+    core.store.write("plans", &format!("{id}.json"), &stored)?;
+    s.plans.insert(id.clone(), stored);
+    let total: u64 = by_drive.values().sum();
+    Ok(
+        json!({"plan_id":id,"confirm_token":token,"item_count":items.len(),"total_bytes":total.to_string(),"groups":groups,"by_drive":by_drive.into_iter().map(|(root,n)|json!({"root":root,"bytes":n.to_string()})).collect::<Vec<_>>(),"irreversible":true,"excluded_count":excluded_count}),
+    )
+}
+
+pub(crate) fn start(core: &Arc<Core>, id: &str, token: &str) -> Result<Value, IpcError> {
+    let mut s = lock(core)?;
+    let mut stored = s
+        .plans
+        .get(id)
+        .cloned()
+        .ok_or_else(|| IpcError::new("not_found"))?;
+    if stored["used"] == true || stored["token_digest"] != util::digest(token) {
+        return Err(IpcError::new("invalid"));
+    }
+    if s.stale_plans.contains(id)
+        || s.last.as_deref() != stored["scan_id"].as_str()
+        || stored["scan_id"]
+            .as_str()
+            .is_none_or(|id| s.consumed.contains(id))
+    {
+        return Err(IpcError::new("stale"));
+    }
+    if s.busy != "idle" {
+        return Err(IpcError::new("busy"));
+    }
+    let r = s.last_record().ok_or_else(|| IpcError::new("stale"))?;
+    let plan = clean::CleanPlan::from_json(&stored["plan"].to_string())
+        .map_err(|_| IpcError::new("invalid"))?;
+    // The token is spent as soon as the checks pass. A later failure does not restore it.
+    consume_confirmation(&mut stored, &mut s, &r.result.scan_id);
+    s.plans.insert(id.into(), stored.clone());
+    // Anything that can fail happens before busy=cleaning, so a panic cannot leave the service stuck.
+    let prepared = std::panic::catch_unwind(std::panic::AssertUnwindSafe(|| {
+        let now = core.platform.now();
+        let mut clean_id = util::new_id("clean", now);
+        while s.cleans.contains_key(&clean_id) {
+            clean_id = util::new_id("clean", now);
+        }
+        let group_ids = ordered_groups(&plan);
+        let title = group_ids.first().and_then(|gid| {
+            r.projection()
+                .details
+                .get(gid)
+                .and_then(|d| d.get("group"))
+                .and_then(|g| g.get("title_zh"))
+                .cloned()
+        });
+        core.store.write("plans", &format!("{id}.json"), &stored)?;
+        let mut saved = r.saved.clone();
+        saved["consumed"] = json!(true);
+        Ok::<_, IpcError>((clean_id, group_ids, title, saved, now))
+    }));
+    let (clean_id, group_ids, title, saved, now) = match prepared {
+        Ok(Ok(v)) => v,
+        Ok(Err(e)) => return Err(e),
+        Err(_) => return Err(IpcError::new("unavailable")),
+    };
+    let stop = clean::StopFlag::default();
+    s.stop = Some(stop.clone());
+    s.busy = "cleaning";
+    s.clean_progress = json!({"clean_id":clean_id,"state":"running","done_items":0,"total_items":plan.items.len(),"freed_bytes":"0","group_index":usize::from(!group_ids.is_empty()),"group_count":group_ids.len(),"current_group_title_zh":title});
+    drop(s);
+    let worker_core = core.clone();
+    let worker_id = clean_id.clone();
+    let spawned=std::thread::Builder::new().name("water-clean".into()).spawn(move|| {
+        // The whole task is guarded; a panic leaves the service idle and keeps the journal.
+        let guarded=std::panic::catch_unwind(std::panic::AssertUnwindSafe(|| {
+        let run=std::panic::catch_unwind(std::panic::AssertUnwindSafe(||->Result<clean::CleanReport,IpcError>{
+            worker_core.store.write("scans",&format!("{}.json",r.result.scan_id),&saved)?;
+            worker_core.platform.begin_in_use_batch();
+            let guard=Guard{core:worker_core.clone(),record:r.clone()};
+            let observer=Observer{core:worker_core.clone(),record:r.clone(),plan:&plan,groups:&group_ids};
+            let mut journal=worker_core.store.journal(&worker_id)?;
+            clean::execute(&plan,&guard,&mut journal,&stop,&observer,now).map_err(|_|IpcError::new("unavailable"))
+        }));
+        let panicked=run.is_err();
+        let finished=match run {
+            Ok(Ok(report))=>{
+                let view=result_view(&worker_core,&r,&plan,&report,&worker_id);
+                let stored=json!({"clean_id":worker_id,"plan_id":plan.plan_id,"scan_id":r.result.scan_id,"report":report,"view":view});
+                worker_core.store.write("cleans",&format!("{worker_id}.json"),&stored).map(|()|(stored,report.status))
+            },
+            _=>Err(IpcError::new("unavailable")),
+        };
+        if let Ok(mut s)=lock(&worker_core){
+            match finished {
+                Ok((stored,status))=>{
+                    s.clean_progress["state"]=json!(if status==clean::RunStatus::Stopped{"stopped"}else{"completed"});
+                    s.clean_progress["group_index"]=json!(group_ids.len());s.clean_progress["current_group_title_zh"]=Value::Null;
+                    s.clean_order.push(worker_id.clone());
+                    s.cleans.insert(worker_id,stored);
+                    trim(&worker_core.store,&mut s);
+                },
+                Err(_) if panicked=>s.clean_progress=idle(),
+                Err(_)=>s.clean_progress["state"]=json!("failed"),
+            }
+            s.busy="idle";s.stop=None;
+        }
+        }));
+        if guarded.is_err() {
+            let mut s=worker_core.state.lock().unwrap_or_else(std::sync::PoisonError::into_inner);
+            s.clean_progress=idle();
+            s.busy="idle";s.stop=None;
+        }
+    });
+    if spawned.is_err() {
+        let mut s = lock(core)?;
+        s.busy = "idle";
+        s.stop = None;
+        s.clean_progress = idle();
+        return Err(IpcError::new("unavailable"));
+    }
+    Ok(json!({"clean_id":clean_id}))
+}
+
+fn consume_confirmation(stored: &mut Value, state: &mut State, scan_id: &str) {
+    // Both authorities are consumed under the same task mutex before execution can start.
+    stored["used"] = json!(true);
+    state.consumed.insert(scan_id.into());
+}
+
+fn ordered_groups(plan: &clean::CleanPlan) -> Vec<String> {
+    let mut groups = Vec::new();
+    for item in &plan.items {
+        if !groups.contains(&item.group_id) {
+            groups.push(item.group_id.clone());
+        }
+    }
+    groups
+}
+
+struct Guard {
+    core: Arc<Core>,
+    record: Arc<Record>,
+}
+impl clean::ItemGuard for Guard {
+    fn in_use(&self, item: &clean::PlanItem) -> Option<String> {
+        let Some(g) = self
+            .record
+            .result
+            .groups
+            .iter()
+            .find(|g| g.group_id == item.group_id)
+        else {
+            return Some("无法确认规则".into());
+        };
+        self.core
+            .platform
+            .in_use(&views::in_use_spec(g), &item.path)
+    }
+}
+
+struct Observer<'a> {
+    core: Arc<Core>,
+    record: Arc<Record>,
+    plan: &'a clean::CleanPlan,
+    groups: &'a [String],
+}
+impl clean::CleanObserver for Observer<'_> {
+    fn on_item(&self, done: usize, total: usize, freed_bytes: u64, item_id: &str) {
+        if let Ok(mut s) = lock(&self.core) {
+            let group = self
+                .plan
+                .items
+                .iter()
+                .find(|i| i.item_id == item_id)
+                .map(|i| &i.group_id);
+            let index = group
+                .and_then(|g| self.groups.iter().position(|v| v == g))
+                .map(|index| index + 1)
+                .unwrap_or(0);
+            s.clean_progress["done_items"] = json!(done);
+            s.clean_progress["total_items"] = json!(total);
+            s.clean_progress["freed_bytes"] = json!(freed_bytes.to_string());
+            s.clean_progress["group_index"] = json!(index);
+            s.clean_progress["current_group_title_zh"] = group
+                .map(|g| self.record.projection().details[g]["group"]["title_zh"].clone())
+                .unwrap_or(Value::Null);
+        }
+    }
+}
+
+fn result_view(
+    core: &Core,
+    r: &Record,
+    plan: &clean::CleanPlan,
+    report: &clean::CleanReport,
+    id: &str,
+) -> Value {
+    let groups:Vec<_>=ordered_groups(plan).into_iter().map(|group|{
+        let reports:Vec<_>=report.items.iter().filter(|item|plan.items.iter().any(|p|p.item_id==item.item_id && p.group_id==group)).collect();
+        let deleted=reports.iter().filter(|r|r.status==clean::ItemStatus::Deleted).count();
+        let any_deleted=reports.iter().any(|r|r.status==clean::ItemStatus::Deleted || r.status==clean::ItemStatus::Partial);
+        let failed=reports.iter().any(|r|r.status==clean::ItemStatus::Failed || r.failed_entries>0);
+        let status=if deleted==reports.len(){"done"}else if any_deleted{"partial"}else if failed{"failed"}else{"skipped"};
+        let mut counts=[0u64;6];
+        for item in &reports {
+            use clean::SkipReason::*;
+            match item.skip_reason {Some(InUse)=>counts[0]+=1,Some(Changed|Gone)=>counts[1]+=1,Some(TooRecent)=>counts[2]+=1,Some(Reparse|OutsideRoot|Guarded|ProtectedOverlap)=>counts[3]+=1,Some(Cancelled)=>counts[4]+=1,None=>{}}
+            counts[5]+=item.failed_entries;
+        }
+        let tails=[" 项正在使用，已跳过"," 项已经变化，已跳过"," 项刚有改动，已跳过"," 项未通过安全复核，已跳过"," 项因停止未处理"," 个文件无法删除"];
+        let notes:Vec<_>=counts.into_iter().zip(tails).filter(|(n,_)|*n>0).map(|(n,t)|format!("{n}{t}")).collect();
+        json!({"group_id":group,"title_zh":r.projection().details[&group]["group"]["title_zh"],"status":status,"freed_bytes":reports.iter().map(|i|util::number(&i.bytes_freed)).sum::<u64>().to_string(),"notes_zh":notes})
+    }).collect();
+    let estimate: u64 = plan
+        .items
+        .iter()
+        .filter_map(|p| r.result.items.iter().find(|i| i.item_id == p.item_id))
+        .map(|i| util::number(&i.unique_bytes))
+        .sum();
+    json!({"clean_id":id,"finished_at":report.ended_at,"estimate_bytes":estimate.to_string(),"freed_bytes":report.freed_bytes,"drives":report.volumes,"groups":groups,"journal_display_path":core.store.root.join("journal").join(format!("{id}.jsonl")).to_string_lossy()})
+}

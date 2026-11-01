@@ -150,3 +150,13 @@ K1、K2、K3（以及 K5）验收合入后，冻结 [SERVICE-M3C 补充 01](../.
 
 K4 受阻（回执 `e2fbc784`）：新增的 64 次 `skip_add` 用例连续两次略超 50 ms 返回预算。根子在补充 01 第 1 条要求跳过时重写整份扫描记录（克隆、全量重建视图、刷盘写记录）。补单改为：最新扫描的视图一律按“扫描结果 + 当前跳过名单”算；`skip_add`、`skip_remove` 只写设置、只重算受影响的组；另加万项规模用例。
 - WATER-W8-K4 补单 01：`你接手 Water 项目 WATER-W8-K4 补单 01（跳过只写设置，视图按扫描结果加当前跳过名单算，重门）。先读 F:/new/smaltalk/water/docs/dispatch/tickets/WATER-W8-K4-ADDENDUM-01-20261101.md，按其中列出的顺序读原单、规则与契约，在 F:/new/smaltalk/water/.worktrees/w8-k4（分支 worker/water-w8-k4）从 e2fbc784 续做。`
+
+### 第三轮：K6 补单 03、K4 补单 02（2026-11-01）
+
+K4 补单 01 与 K6 补单 02 一起收（第三轮）。K4 验收通过并合入主线；独立审查有三条中级（旧体检的数字不跟随跳过、排除检查随“排除数 × 条目数”增长、含已知文件夹的非系统盘根没有单独测试）与几处低级，都不影响清理，出补单 02 与 K6 并行修。K6 补单 02 各条做到，但审查发现高级一条：总控在 K4 补单 01 里把 `skip_remove` 改成立即恢复可清理，没有同步界面单；界面“恢复”后不重读结果，被恢复的项会在没显示为已选的情况下进入清理计划。出补单 03（跳过、恢复成功后按同一 `scan_id` 重读结果）。K6 仍最后合入。
+
+界面单：
+- WATER-W8-K6 补单 03：`你接手 Water 项目 WATER-W8-K6 补单 03（跳过与恢复后重读结果，以及几处低级，界面单）。先读 F:/new/smaltalk/water/docs/dispatch/tickets/WATER-W8-K6-ADDENDUM-03-20261101.md，按其中列出的顺序读原票、补单 01、补单 02、规则与契约，在 F:/new/smaltalk/water/.worktrees/w8-k6（分支 worker/water-w8-k6）从 1c2e91e6 续做。`
+
+后端单：
+- WATER-W8-K4 补单 02：`你接手 Water 项目 WATER-W8-K4 补单 02（旧体检也按当前跳过名单算、排除检查用索引，以及几处加固，重门）。先读 F:/new/smaltalk/water/docs/dispatch/tickets/WATER-W8-K4-ADDENDUM-02-20261101.md，按其中列出的顺序读原单、补单 01、规则与契约，在 F:/new/smaltalk/water/.worktrees/w8-k4（分支 worker/water-w8-k4）从 fc36140d 续做。`

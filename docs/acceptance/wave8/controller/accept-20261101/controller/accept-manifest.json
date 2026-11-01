@@ -55,22 +55,6 @@
     }
   ],
   "readyReport": "docs/dispatch/wave8/PLAN.md",
-  "plannedTasks": [
-    {
-      "id": "WATER-W8-K4",
-      "title": "服务接上 M3 收口的各项",
-      "spec": "contracts/m3c-v1/SERVICE-M3C.md",
-      "root": "packages/water-service",
-      "gate": "heavy",
-      "status": "PLANNED",
-      "dispatchAfter": [
-        "WATER-W8-K1",
-        "WATER-W8-K2",
-        "WATER-W8-K3"
-      ],
-      "note": "base is main after K1-K3 merge"
-    }
-  ],
   "tasks": [
     {
       "id": "WATER-W8-ACCEPT-K1",
@@ -469,6 +453,240 @@
       "dispatchEvidence": "user chat 2026-10-31 ~23:15 JST: \"除了界面单是astra，都是sol\" (K1, K2, K3, K5 to sol; UI ticket K6 to astra); worker tree head/changed files 912eba10/0 when recorded",
       "acceptsTask": "WATER-W8-K3",
       "acceptsHead": "bc740bd9272a58f35b77c8205004df6bebac3d42"
+    },
+    {
+      "kind": "service",
+      "outputRoot": "packages/water-service",
+      "packageName": "water-service",
+      "testTarget": "service_v1",
+      "testFiles": [
+        "packages/water-service/tests/service_v1.rs"
+      ],
+      "productionFiles": [
+        "packages/water-service/Cargo.toml",
+        "packages/water-service/Cargo.lock",
+        "packages/water-service/README.md",
+        "packages/water-service/examples/service_smoke.rs"
+      ],
+      "cargoCacheSource": "F:/new/smaltalk/water/.offline-cache/core/registry",
+      "realMode": "service-smoke",
+      "nativeModule": "native_windows.rs",
+      "allowedEnv": [],
+      "expectedDependencies": [
+        {
+          "name": "serde",
+          "req": "=1.0.229",
+          "kind": null,
+          "optional": false,
+          "path": null,
+          "defaults": true,
+          "features": [
+            "derive"
+          ]
+        },
+        {
+          "name": "serde_json",
+          "req": "=1.0.151",
+          "kind": null,
+          "optional": false,
+          "path": null,
+          "defaults": true,
+          "features": []
+        },
+        {
+          "name": "water-junk-clean",
+          "req": "*",
+          "kind": null,
+          "optional": false,
+          "path": "packages/junk-clean",
+          "defaults": true,
+          "features": []
+        },
+        {
+          "name": "water-junk-rules",
+          "req": "*",
+          "kind": null,
+          "optional": false,
+          "path": "packages/junk-rules",
+          "defaults": true,
+          "features": []
+        },
+        {
+          "name": "water-junk-scan",
+          "req": "*",
+          "kind": null,
+          "optional": false,
+          "path": "packages/junk-scan",
+          "defaults": true,
+          "features": []
+        },
+        {
+          "name": "water-process-scan",
+          "req": "*",
+          "kind": null,
+          "optional": false,
+          "path": "packages/process-scan",
+          "defaults": true,
+          "features": []
+        }
+      ],
+      "macOS": "unverified",
+      "outputRootExists": true,
+      "nativeWindowBudget": 0,
+      "nativeDirectoryDialogBudget": 0,
+      "expectedTests": [
+        "service_ipc_contract",
+        "service_scan_views",
+        "service_clean_flow",
+        "service_trends_locations",
+        "service_storage_safety",
+        "service_hardening"
+      ],
+      "allowedModes": [
+        "baseline",
+        "lock",
+        "check",
+        "test",
+        "real",
+        "red-nc1",
+        "red-nc2",
+        "red-nc3",
+        "archive"
+      ],
+      "expectedFinalModes": [
+        "check",
+        "test",
+        "real"
+      ],
+      "browserBudget": 0,
+      "realDataPermission": "read-only metadata per ADR-018; clean disabled in the real smoke",
+      "id": "WATER-W8-ACCEPT-K4",
+      "title": "服务接上 M3 收口的各项",
+      "slot": "w8-k4",
+      "worktree": "F:/new/smaltalk/water/.worktrees/accept-w8-k4",
+      "branch": "controller/accept-w8-k4",
+      "baseCommit": "232bc2982228f5d99f42017de6db3caa5912a8ab",
+      "snapshotRef": "refs/tags/water-w8-k4-base-20261101",
+      "status": "CONTROLLER_ACCEPTANCE",
+      "readyOn": "2026-11-01",
+      "dispatchedAt": null,
+      "startedAt": null,
+      "model": "sol (user-reported)",
+      "modelAssignment": "user-arranged; report actual engine/model",
+      "purpose": "M3 close",
+      "report": "docs/dispatch/reports/WATER-W8-K4-REPORT.md",
+      "evidenceDir": "docs/acceptance/wave8/controller/accept-20261101/k4/",
+      "allowedFiles": [
+        "docs/dispatch/reports/WATER-W8-K4-REPORT.md"
+      ],
+      "gate": "heavy",
+      "ticket": "docs/dispatch/tickets/WATER-W8-K4-SERVICE-20261101.md",
+      "spec": "contracts/m3c-v1/SERVICE-M3C.md",
+      "proofTargets": {
+        "nc1": "SERVICE_M3C_EXCLUDE",
+        "nc2": "SERVICE_M3C_SKIP",
+        "nc3": "SERVICE_M3C_DRIVE_ROOT"
+      },
+      "modelHint": "Rust service core that orchestrates deletion; heavy gate; final includes a read-only real checkup.",
+      "mustRead": [
+        "docs/dispatch/W8-M3C-WORKER-RULES.md",
+        "contracts/m3c-v1/SERVICE-M3C.md",
+        "contracts/m3c-v1/SERVICE-M3C-ADD-01.md",
+        "contracts/m3c-v1/IPC-M3C.md",
+        "contracts/m3c-v1/ui-fixtures-m3c.json",
+        "contracts/m3c-v1/PROCESS-M3C.md",
+        "contracts/m3c-v1/RULES-M3C.md",
+        "contracts/m3c-v1/SCAN-M3C.md",
+        "docs/dispatch/wave8/PLAN.md",
+        "packages/water-service/src/views.rs",
+        "packages/water-service/src/lib.rs",
+        "packages/water-service/src/service.rs",
+        "packages/water-service/src/clean.rs",
+        "packages/water-service/src/native_windows.rs",
+        "packages/water-service/tests/service_v1.rs"
+      ],
+      "frozenFiles": [
+        {
+          "path": "contracts/m3c-v1/SERVICE-M3C.md",
+          "sha256": "29a337e90705adcd28bf98419139efeaf88bcc709e1fa0fc022f28405fcafc26"
+        },
+        {
+          "path": "contracts/m3c-v1/SERVICE-M3C-ADD-01.md",
+          "sha256": "a001a4fc0771304cd8da6e21222b3c95b6fbd47146d35cc23de9216b9d182830"
+        },
+        {
+          "path": "contracts/m3c-v1/IPC-M3C.md",
+          "sha256": "d0b6bb18a5deedc8200569cc9f3c68a544d564c8a07c45d0905e9ab01a07e6a5"
+        },
+        {
+          "path": "contracts/m3c-v1/ui-fixtures-m3c.json",
+          "sha256": "c01bc0cb59d3bd0d61a1410446659e032dcfc1bfc8ad3fb3635331924f23a033"
+        },
+        {
+          "path": "contracts/checkup-v1/ui-fixtures.json",
+          "sha256": "2dd62585cb7ca31d429af8bf5360dda44d645dd73a5d3f79542d4d23ce1840e2"
+        },
+        {
+          "path": "contracts/m3c-v1/PROCESS-M3C.md",
+          "sha256": "ce53d144273f8a80e6cc1b8aa26e5e06d7d7c0f91e330dbeef05d3e1860c1f2e"
+        },
+        {
+          "path": "contracts/m3c-v1/RULES-M3C.md",
+          "sha256": "2fe859274ca3c8c6a3ca9533d30eb4b16deb2a1801c3c1463f2f976a23e28220"
+        },
+        {
+          "path": "contracts/m3c-v1/SCAN-M3C.md",
+          "sha256": "9ae9c1eab0f0c81a2943a7bff30163f9504e102c69ba9b9d56d3d8db9d38f2e2"
+        },
+        {
+          "path": "contracts/m3-v1/SERVICE-M3-FIX.md",
+          "sha256": "b52db7dd04a1088835d6ef76153606a6804c75aaf81d631c695a2c2dc1354178"
+        },
+        {
+          "path": "contracts/m2-v1/SERVICE-M2.md",
+          "sha256": "c7ab42a4d6396a2f026824e762c5e4c1589c99ab837673b329ff26315105a0b9"
+        },
+        {
+          "path": "contracts/hardening-v1/SERVICE-HARDENING.md",
+          "sha256": "fbec889779d5d95ef2cc23ad4c6ac489010a064be958881b37988a12add57359"
+        },
+        {
+          "path": "contracts/desktop-v1/SERVICE.md",
+          "sha256": "44ae8643cbe64e083807386919192ce15c3cf586d1ecddbcf908ca0f0157180a"
+        }
+      ],
+      "allowedPrefixes": [
+        "packages/water-service/",
+        "docs/acceptance/wave8/k4/",
+        "docs/acceptance/wave8/controller/accept-20261101/k4/"
+      ],
+      "baselineStatus": "PASSED",
+      "baselineEvidence": "docs/acceptance/wave8/controller/preflight-20261101/k4/2026-11-01T02-17-28.063Z-20176-baseline-result.json",
+      "preflightEvidence": "controller lock and check (clippy --all-targets) also passed at the base: docs/acceptance/wave8/controller/preflight-20261101/k4/",
+      "dispatchReportedAt": "2026-11-01T02:24:11Z",
+      "dispatchEvidence": "user chat 2026-11-01 ~11:24 JST: \"都是sol\" (K4 and the K6 UI addendum 02 both to sol); paste time not reported; worker tree head/changed files 232bc298/0 when recorded",
+      "blockedAt": "2026-11-01T02:59:35Z",
+      "blockedCommit": "e2fbc784",
+      "workerSelfReport": "Codex GPT-6",
+      "blockedReason": "after nc3 restore the full test failed twice in a row on the new 64x skip_add case exceeding the existing 50 ms SERVICE return budget (50.65 ms, 51.31 ms); cause traced by the controller to SERVICE-M3C-ADD-01 section 1 requiring the latest scan record to be rewritten (clone, full view rebuild, fsynced record write) inside skip_add",
+      "addenda": [
+        {
+          "id": "WATER-W8-K4-ADDENDUM-01",
+          "ticket": "docs/dispatch/tickets/WATER-W8-K4-ADDENDUM-01-20261101.md",
+          "status": "DISPATCHED",
+          "issuedAt": "2026-11-01T03:20:32Z",
+          "resumeFromCommit": "e2fbc784",
+          "change": "latest-scan views are always scan result + current skip list; skip_add and skip_remove write only settings and never rewrite the scan record; skip_remove restores the scan-time state at once; in-memory recompute limited to the affected group, its detail and totals; 64x budget case kept, new 10,000-item synthetic record case (5 add + 5 remove within 50 ms), restart cases, record bytes unchanged; all three negative controls redone; no baseline rerun",
+          "dispatchedAt": null,
+          "submittedHead": null,
+          "implementationCommit": null,
+          "dispatchEvidence": "user chat 2026-11-01 ~12:48 JST: \"sol\" (answer to the controller's question after the handoff-11 takeover); paste time not reported; worker tree head/changed files 9f7b6efe/0 when recorded (implementation commit present, report not yet rewritten)",
+          "model": "sol (user-reported)",
+          "dispatchReportedAt": "2026-11-01T03:48:20Z"
+        }
+      ],
+      "acceptsTask": "WATER-W8-K4",
+      "acceptsHead": "fc36140dc9abd8329c3c77a1625789b8dfccf68f"
     },
     {
       "kind": "host",
@@ -1044,16 +1262,32 @@
         {
           "id": "WATER-W8-K6-ADDENDUM-01",
           "ticket": "docs/dispatch/tickets/WATER-W8-K6-ADDENDUM-01-20261101.md",
-          "status": "DISPATCHED",
+          "status": "SUBMITTED",
           "issuedAt": "2026-10-31T15:21:54Z",
           "resumeFromCommit": "208be441adbceb56ec36eeb1debf1cef4e113458",
           "change": "round 1 review: (1) items of an unselected group show unchecked and disabled, an item click never selects the group; (2) under a drive filter the category select-all acts on visible groups only, and the dock always shows the full selection that clean acts on plus a per-drive caption; (3) after a successful skip_add the item joins the group exclusion before the detail reread (the fake host keeps marking it ineligible, which K4 will require), plus a test switch modelling a service that does not; (4) lows: protected/advisory sizes under a filter, stale detail replies dropped by scan_id, focus after skip, fully excluded group row unchecked, drive-root label font, forecast column alignment; app.css line endings normalised to LF first; nc1-nc3 redone; 26 screenshots; no baseline rerun",
           "dispatchedAt": null,
-          "submittedHead": null,
-          "implementationCommit": null,
+          "submittedHead": "4746478bdf58cef3122d171eab75032b7af8b70f",
+          "implementationCommit": "43a650464e89a524842894fde24417ea13709709",
           "dispatchEvidence": "user chat 2026-11-01 ~00:40 JST: \"都已派出，界面是astra，其他的都是sol\"; paste time not reported; worker tree head/changed files 208be441/0 when recorded",
           "model": "astra (user-reported)",
-          "dispatchReportedAt": "2026-10-31T15:39:56Z"
+          "dispatchReportedAt": "2026-10-31T15:39:56Z",
+          "workerSelfReport": "Codex (GPT-6 per report)",
+          "review": "round 2: all four round-1 problems fixed (independent review); fresh tree check/browser finals passed; new Medium: stale results no longer open details (regression), level-filter select-all still includes hidden groups (pre-existing) -> addendum 02"
+        },
+        {
+          "id": "WATER-W8-K6-ADDENDUM-02",
+          "ticket": "docs/dispatch/tickets/WATER-W8-K6-ADDENDUM-02-20261101.md",
+          "status": "DISPATCHED",
+          "issuedAt": "2026-11-01T01:59:28Z",
+          "resumeFromCommit": "4746478bdf58cef3122d171eab75032b7af8b70f",
+          "change": "detail opens on results that were already stale (drop only when scan_id or staleness changed during the request); category select-all state and action cover only groups visible under both level and drive filters; drawer treats a fully excluded group as unselected; after skip_add success exclude whenever the scan is the same, regardless of route; rememberDetail prunes only items listed as ineligible; by_drive optional chaining; UI_M3C_INUSE_ITEM assertion fails with its marker when the label is missing; nc1-nc3 redone; 26 screenshots; no baseline rerun",
+          "dispatchedAt": null,
+          "submittedHead": null,
+          "implementationCommit": null,
+          "dispatchEvidence": "user chat 2026-11-01 ~11:24 JST: \"都是sol\" (K4 and the K6 UI addendum 02 both to sol); paste time not reported; worker tree head/changed files 4746478b/0 when recorded",
+          "model": "sol (user-reported)",
+          "dispatchReportedAt": "2026-11-01T02:24:11Z"
         }
       ],
       "controllerReview": {
@@ -1062,7 +1296,7 @@
         "summary": "round 1 (53f1e467): audit flagged app.css line endings only (mixed CRLF/LF in the worker tree; LF-normalised bytes equal the commit); fresh tree check/browser finals passed; controller mutations c1-c14: 12 caught, probe c8 not applicable to the fixtures, c12 caught at the UI_M3C_INUSE_ITEM line but without its marker (expression threw); review High: skip not applied to the current scan under the frozen SERVICE-M3C (contract gap), unselected-group items shown ticked so unticking one selects the rest; Medium: drive-filter select-all acts on hidden groups and the dock shows the drive part while clean acts on all -> addendum 01"
       },
       "acceptsTask": "WATER-W8-K6",
-      "acceptsHead": "4746478bdf58cef3122d171eab75032b7af8b70f"
+      "acceptsHead": "1c2e91e60262103a24f228389447bf1549065af0"
     }
   ]
 }
