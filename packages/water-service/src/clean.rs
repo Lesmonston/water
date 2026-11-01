@@ -56,6 +56,7 @@ pub(crate) fn prepare(
         .and_then(|v| serde_json::from_value::<crate::service::Settings>(v).ok())
         .map(|v| v.skipped)
         .unwrap_or_default();
+    let projection = r.projection();
     for id in excluded {
         let item = r
             .result
@@ -88,12 +89,16 @@ pub(crate) fn prepare(
         }
         let before = items.len();
         let mut bytes = 0;
-        for item in r
+        for (index, item) in r
             .result
             .items
             .iter()
-            .filter(|i| i.group_id == id && i.eligible && i.identity.is_some())
+            .enumerate()
+            .filter(|(_, i)| i.group_id == id && i.eligible && i.identity.is_some())
         {
+            if projection.is_skipped(index) {
+                continue;
+            }
             if excluded
                 .iter()
                 .any(|id| id.as_str() == Some(item.item_id.as_str()))
@@ -128,7 +133,7 @@ pub(crate) fn prepare(
             *by_drive.entry(util::drive(&item.path)).or_default() += n;
         }
         if items.len() > before {
-            groups.push(json!({"group_id":id,"title_zh":r.details[id]["group"]["title_zh"],"level":group.level,"item_count":items.len()-before,"total_bytes":bytes.to_string(),"in_use_note_zh":if r.details[id]["group"]["in_use"].is_null(){None}else{Some("运行中，占用的项会跳过")}}));
+            groups.push(json!({"group_id":id,"title_zh":projection.details[id]["group"]["title_zh"],"level":group.level,"item_count":items.len()-before,"total_bytes":bytes.to_string(),"in_use_note_zh":if projection.details[id]["group"]["in_use"].is_null(){None}else{Some("运行中，占用的项会跳过")}}));
         }
     }
     if items.is_empty() {
@@ -198,7 +203,8 @@ pub(crate) fn start(core: &Arc<Core>, id: &str, token: &str) -> Result<Value, Ip
         }
         let group_ids = ordered_groups(&plan);
         let title = group_ids.first().and_then(|gid| {
-            r.details
+            r.projection()
+                .details
                 .get(gid)
                 .and_then(|d| d.get("group"))
                 .and_then(|g| g.get("title_zh"))
@@ -333,7 +339,7 @@ impl clean::CleanObserver for Observer<'_> {
             s.clean_progress["freed_bytes"] = json!(freed_bytes.to_string());
             s.clean_progress["group_index"] = json!(index);
             s.clean_progress["current_group_title_zh"] = group
-                .map(|g| self.record.details[g]["group"]["title_zh"].clone())
+                .map(|g| self.record.projection().details[g]["group"]["title_zh"].clone())
                 .unwrap_or(Value::Null);
         }
     }
@@ -360,7 +366,7 @@ fn result_view(
         }
         let tails=[" 项正在使用，已跳过"," 项已经变化，已跳过"," 项刚有改动，已跳过"," 项未通过安全复核，已跳过"," 项因停止未处理"," 个文件无法删除"];
         let notes:Vec<_>=counts.into_iter().zip(tails).filter(|(n,_)|*n>0).map(|(n,t)|format!("{n}{t}")).collect();
-        json!({"group_id":group,"title_zh":r.details[&group]["group"]["title_zh"],"status":status,"freed_bytes":reports.iter().map(|i|util::number(&i.bytes_freed)).sum::<u64>().to_string(),"notes_zh":notes})
+        json!({"group_id":group,"title_zh":r.projection().details[&group]["group"]["title_zh"],"status":status,"freed_bytes":reports.iter().map(|i|util::number(&i.bytes_freed)).sum::<u64>().to_string(),"notes_zh":notes})
     }).collect();
     let estimate: u64 = plan
         .items

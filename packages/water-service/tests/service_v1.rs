@@ -2486,6 +2486,11 @@ fn m3c_exclude_skip() {
         .unwrap();
     let loc = call(&s, "skip_add", json!({"itemId":default["item_id"]}));
     assert_eq!(
+        scan_saved(&f, &result),
+        saved,
+        "SERVICE_M3C_SKIP: add preserves raw scan"
+    );
+    assert_eq!(
         loc["skipped"][0]["display_path"], default["display_path"],
         "SERVICE_M3C_SKIP: service path"
     );
@@ -2562,9 +2567,22 @@ fn m3c_exclude_skip() {
             .iter()
             .find(|i| i["path"] == default["display_path"])
             .unwrap()["ineligible_reason"],
-        "user_skipped",
-        "SERVICE_M3C_SKIP: next scan"
+        Value::Null,
+        "SERVICE_M3C_SKIP: next scan preserves raw state"
     );
+    let shown = call(&s, "group_detail", json!({"groupId":"chrome-cache"}));
+    assert_eq!(
+        shown["items"]
+            .as_array()
+            .unwrap()
+            .iter()
+            .find(|i| i["display_path"] == default["display_path"])
+            .unwrap()["reason_zh"],
+        "已设为以后都跳过",
+        "SERVICE_M3C_SKIP: next scan projection"
+    );
+    let before_remove = scan_saved(&f, &result);
+    let old_plan = call(&s, "clean_prepare", json!({"groupIds":["chrome-cache"]}));
     let removed = call(
         &s,
         "skip_remove",
@@ -2572,9 +2590,24 @@ fn m3c_exclude_skip() {
     );
     assert_eq!(removed["skipped"], json!([]), "SERVICE_M3C_SKIP: remove");
     assert_eq!(
+        scan_saved(&f, &result),
+        before_remove,
+        "SERVICE_M3C_SKIP: remove preserves raw scan"
+    );
+    assert_eq!(
+        s.call(
+            "clean_start",
+            json!({"planId":old_plan["plan_id"],"confirmToken":old_plan["confirm_token"]})
+        )
+        .expect_err("SERVICE_M3C_SKIP: remove leaves old plan executable")
+        .code,
+        "stale",
+        "SERVICE_M3C_SKIP: remove invalidates plan"
+    );
+    assert_eq!(
         call(&s, "group_detail", json!({"groupId":"chrome-cache"}))["group"]["eligible_bytes"],
-        "200",
-        "SERVICE_M3C_SKIP: remove waits for scan"
+        "300",
+        "SERVICE_M3C_SKIP: remove restores immediately"
     );
     let result = scanned(&s);
     assert_eq!(
@@ -2585,9 +2618,45 @@ fn m3c_exclude_skip() {
         "300",
         "SERVICE_M3C_SKIP: restored on scan"
     );
+    let busy_detail = call(&s, "group_detail", json!({"groupId":"chrome-cache"}));
+    let busy_id = busy_detail["items"]
+        .as_array()
+        .unwrap()
+        .iter()
+        .find(|i| i["display_path"].as_str().unwrap().contains("Profile Busy"))
+        .unwrap()["item_id"]
+        .clone();
+    let old_plan = call(&s, "clean_prepare", json!({"groupIds":["chrome-cache"]}));
+    let loc = call(&s, "skip_add", json!({"itemId":busy_id}));
+    assert_eq!(
+        s.call(
+            "clean_start",
+            json!({"planId":old_plan["plan_id"],"confirmToken":old_plan["confirm_token"]})
+        )
+        .expect_err("SERVICE_M3C_SKIP: add leaves old plan executable")
+        .code,
+        "stale",
+        "SERVICE_M3C_SKIP: add invalidates plan"
+    );
+    assert_eq!(
+        call(&s, "group_detail", json!({"groupId":"chrome-cache"}))["group"]["in_use"],
+        Value::Null,
+        "SERVICE_M3C_SKIP: occupancy narrows"
+    );
+    call(
+        &s,
+        "skip_remove",
+        json!({"skipId":loc["skipped"][0]["skip_id"]}),
+    );
+    assert_eq!(
+        call(&s, "group_detail", json!({"groupId":"chrome-cache"}))["group"]["in_use"]["item_count"],
+        1,
+        "SERVICE_M3C_SKIP: occupancy restores from scan"
+    );
     drop(s);
     m3c_skip_prepare_guard();
     m3c_skip_limit();
+    m3c_skip_scale();
 }
 
 fn m3c_skip_prepare_guard() {
@@ -2987,5 +3056,181 @@ fn m3c_snapshot_remove_fail() {
         call(&s, "app_state", json!({}))["last_scan"]["scan_id"],
         first["scan_id"],
         "SERVICE_SNAPSHOT_REMOVE_FAIL: restart"
+    );
+}
+
+fn m3c_skip_scale() {
+    let f = Fixture::new();
+    f.seed();
+    let s = f.service(true);
+    let result = scanned(&s);
+    let mut saved = scan_saved(&f, &result);
+    drop(s);
+    let prototype = saved["result"]["items"]
+        .as_array()
+        .unwrap()
+        .iter()
+        .find(|i| i["group_id"] == "chrome-cache")
+        .unwrap()
+        .clone();
+    let total = 10_000u64;
+    saved["result"]["items"]
+        .as_array_mut()
+        .unwrap()
+        .retain(|i| i["group_id"] != "chrome-cache");
+    for n in 0..total {
+        let mut item = prototype.clone();
+        item["item_id"] = json!(format!("i-{:06}", 100_000 + n));
+        item["path"] = json!(format!(
+            "{}\\local_app_data\\Google\\Chrome\\User Data\\Scale {n}\\Cache",
+            slash(&f.root)
+        ));
+        item["total_bytes"] = json!("100");
+        item["unique_bytes"] = json!("100");
+        item["eligible"] = json!(true);
+        item["ineligible_reason"] = Value::Null;
+        saved["result"]["items"].as_array_mut().unwrap().push(item);
+    }
+    let g = saved["result"]["groups"]
+        .as_array_mut()
+        .unwrap()
+        .iter_mut()
+        .find(|g| g["group_id"] == "chrome-cache")
+        .unwrap();
+    g["item_count"] = json!(total);
+    g["eligible_count"] = json!(total);
+    for key in [
+        "total_bytes",
+        "eligible_bytes",
+        "unique_bytes",
+        "eligible_unique_bytes",
+    ] {
+        g[key] = json!((total * 100).to_string());
+    }
+    saved["in_use"] = json!({});
+    saved["item_in_use"] = json!({});
+    write_scan(&f, &saved);
+    let scan_path = f
+        .data
+        .join("scans")
+        .join(format!("{}.json", result["scan_id"].as_str().unwrap()));
+    let original = fs::read(&scan_path).unwrap();
+    let s = f.service(true);
+    let initial = call(&s, "app_state", json!({}))["last_scan"]["recommended_bytes"]
+        .as_str()
+        .unwrap()
+        .parse::<u64>()
+        .unwrap();
+    let detail = call(&s, "group_detail", json!({"groupId":"chrome-cache"}));
+    let item_id = detail["items"][0]["item_id"].clone();
+    let mut additions = Vec::new();
+    let mut removals = Vec::new();
+    for _ in 0..5 {
+        let start = Instant::now();
+        let loc = s
+            .call("skip_add", json!({"itemId":item_id}))
+            .expect("SERVICE_M3C_SKIP: scale add");
+        let elapsed = start.elapsed();
+        additions.push(elapsed.as_secs_f64() * 1000.0);
+        assert!(
+            elapsed <= Duration::from_millis(50),
+            "SERVICE_M3C_SKIP: scale add {elapsed:?}"
+        );
+        scale_projection(&s, &item_id, initial - 100, total - 1, false);
+        assert_eq!(
+            fs::read(&scan_path).unwrap(),
+            original,
+            "SERVICE_M3C_SKIP: scale add scan bytes"
+        );
+        let start = Instant::now();
+        s.call(
+            "skip_remove",
+            json!({"skipId":loc["skipped"][0]["skip_id"]}),
+        )
+        .expect("SERVICE_M3C_SKIP: scale remove");
+        let elapsed = start.elapsed();
+        removals.push(elapsed.as_secs_f64() * 1000.0);
+        assert!(
+            elapsed <= Duration::from_millis(50),
+            "SERVICE_M3C_SKIP: scale remove {elapsed:?}"
+        );
+        scale_projection(&s, &item_id, initial, total, true);
+        assert_eq!(
+            fs::read(&scan_path).unwrap(),
+            original,
+            "SERVICE_M3C_SKIP: scale remove scan bytes"
+        );
+    }
+    println!(
+        "SERVICE_M3C_SKIP scale_ms {}",
+        json!({"items":total,"add":additions,"remove":removals})
+    );
+    let loc = call(&s, "skip_add", json!({"itemId":item_id}));
+    drop(s);
+    let s = f.service(true);
+    scale_projection(&s, &item_id, initial - 100, total - 1, false);
+    call(
+        &s,
+        "skip_remove",
+        json!({"skipId":loc["skipped"][0]["skip_id"]}),
+    );
+    drop(s);
+    let s = f.service(true);
+    scale_projection(&s, &item_id, initial, total, true);
+    assert_eq!(
+        fs::read(&scan_path).unwrap(),
+        original,
+        "SERVICE_M3C_SKIP: restart scan bytes unchanged"
+    );
+}
+
+fn scale_projection(s: &Service, item_id: &Value, recommended: u64, count: u64, eligible: bool) {
+    let d = call(s, "group_detail", json!({"groupId":"chrome-cache"}));
+    let item = d["items"]
+        .as_array()
+        .unwrap()
+        .iter()
+        .find(|i| &i["item_id"] == item_id)
+        .unwrap();
+    assert_eq!(item["eligible"], eligible, "SERVICE_M3C_SKIP: scale item");
+    assert_eq!(
+        item["reason_zh"],
+        if eligible {
+            Value::Null
+        } else {
+            json!("已设为以后都跳过")
+        },
+        "SERVICE_M3C_SKIP: scale reason"
+    );
+    assert_eq!(
+        d["group"]["eligible_count"], count,
+        "SERVICE_M3C_SKIP: scale count"
+    );
+    assert_eq!(
+        d["group"]["eligible_bytes"],
+        (count * 100).to_string(),
+        "SERVICE_M3C_SKIP: scale group bytes"
+    );
+    assert_eq!(
+        d["group"]["by_drive"][0]["eligible_bytes"],
+        (count * 100).to_string(),
+        "SERVICE_M3C_SKIP: scale by drive"
+    );
+    assert_eq!(
+        call(s, "app_state", json!({}))["last_scan"]["recommended_bytes"],
+        recommended.to_string(),
+        "SERVICE_M3C_SKIP: scale app total"
+    );
+    let id = call(s, "app_state", json!({}))["last_scan"]["scan_id"].clone();
+    let scan = call(s, "scan_result", json!({"scanId":id}));
+    assert_eq!(
+        scan["totals"]["recommended_bytes"],
+        recommended.to_string(),
+        "SERVICE_M3C_SKIP: scale scan total"
+    );
+    assert_eq!(
+        scan["recommended_by_drive"][0]["bytes"],
+        recommended.to_string(),
+        "SERVICE_M3C_SKIP: scale recommended drive"
     );
 }

@@ -56,15 +56,13 @@ impl Default for Settings {
     }
 }
 
-#[derive(Clone)]
 pub(crate) struct Record {
     pub saved: Value,
     pub result: scan::ScanResult,
     pub plan: water_junk_rules::ScanPlan,
     pub growth: Vec<scan::Growth>,
     pub previous_at: Option<String>,
-    pub view: Value,
-    pub details: BTreeMap<String, Value>,
+    pub projection: Mutex<views::Projection>,
 }
 
 const RECORD_KEYS: [&str; 11] = [
@@ -170,12 +168,16 @@ impl Record {
             plan,
             growth,
             previous_at: None,
-            view: Value::Null,
-            details: BTreeMap::new(),
+            projection: Mutex::new(views::Projection::default()),
         })
     }
     pub fn completed(&self) -> bool {
         matches!(self.result.status.as_str(), "completed" | "partial")
+    }
+    pub fn projection(&self) -> std::sync::MutexGuard<'_, views::Projection> {
+        self.projection
+            .lock()
+            .unwrap_or_else(PoisonError::into_inner)
     }
 }
 
@@ -253,9 +255,8 @@ impl Service {
                 .as_str()
                 .and_then(|id| timestamps.get(id))
                 .cloned();
-            views::apply_skips(&mut r.result, &settings);
-            views::narrow_in_use(r);
-            (r.view, r.details) = views::build(r, &rules, config.platform.as_ref(), &settings);
+            *r.projection() =
+                views::Projection::new(r, &rules, config.platform.as_ref(), &settings);
         }
         let last = records
             .iter()
@@ -385,9 +386,9 @@ impl Service {
                 let drives=core.platform.drives().into_iter().map(|d|json!({"root":d.root,"label_zh":if d.is_system{"系统盘"}else{"本地磁盘"},"is_system":d.is_system,"total_bytes":d.total_bytes.to_string(),"free_bytes":d.free_bytes.to_string()})).collect::<Vec<_>>();
                 let s = lock(core)?;
                 let last = s.last_record();
-                let summary=last.as_ref().map(|r|json!({"scan_id":r.result.scan_id,"finished_at":r.saved["finished_at"],"recommended_bytes":r.view["totals"]["recommended_bytes"],"recommended_by_drive":r.view["recommended_by_drive"],"added_7d_bytes":added_7d(&s,r)}));
+                let summary=last.as_ref().map(|r|{let p=r.projection(); json!({"scan_id":r.result.scan_id,"finished_at":r.saved["finished_at"],"recommended_bytes":p.view["totals"]["recommended_bytes"],"recommended_by_drive":p.view["recommended_by_drive"],"added_7d_bytes":added_7d(&s,r)})});
                 Ok(
-                    json!({"app_version":core.config_version,"platform":"windows","busy":s.busy,"drives":drives,"last_scan":summary,"checkup_due":checkup_due(core, last.as_deref()),"insights":last.map(|r|r.view["insights"].clone()).unwrap_or(json!([]))}),
+                    json!({"app_version":core.config_version,"platform":"windows","busy":s.busy,"drives":drives,"last_scan":summary,"checkup_due":checkup_due(core, last.as_deref()),"insights":last.map(|r|r.projection().view["insights"].clone()).unwrap_or(json!([]))}),
                 )
             }
             "scan_progress" => {
@@ -423,7 +424,7 @@ impl Service {
                     .records
                     .iter()
                     .find(|r| r.result.scan_id == args["scanId"])
-                    .map(|r| r.view.clone())
+                    .map(|r| r.projection().view.clone())
                     .ok_or_else(|| IpcError::new("not_found"))?;
                 for category in view["categories"].as_array_mut().expect("view categories") {
                     for group in category["groups"].as_array_mut().expect("view groups") {
@@ -436,6 +437,7 @@ impl Service {
                 let s = lock(core)?;
                 let r = s.last_record().ok_or_else(|| IpcError::new("not_found"))?;
                 let mut v = r
+                    .projection()
                     .details
                     .get(args["groupId"].as_str().expect("validated"))
                     .cloned()
@@ -664,12 +666,11 @@ impl Service {
             return Err(IpcError::new("busy"));
         }
         let record = s.last_record().ok_or_else(|| IpcError::new("invalid"))?;
-        let item = record
-            .result
-            .items
-            .iter()
-            .find(|i| i.item_id == item_id)
+        let index = record
+            .projection()
+            .item_index(item_id)
             .ok_or_else(|| IpcError::new("invalid"))?;
+        let item = &record.result.items[index];
         if !record
             .result
             .groups
@@ -683,6 +684,8 @@ impl Service {
             .iter()
             .any(|v| v.path.eq_ignore_ascii_case(&item.path))
         {
+            let stale: Vec<_> = s.plans.keys().cloned().collect();
+            s.stale_plans.extend(stale);
             return Ok(locations(&s));
         }
         if s.settings.skipped.len() >= 64 {
@@ -704,25 +707,15 @@ impl Service {
         });
         core.store.write("", "settings.json", &json!(settings))?;
         s.settings = settings;
-        // Settings remain authoritative even if persisting the narrowed record fails.
-        let mut updated = (*record).clone();
-        views::apply_skips(&mut updated.result, &s.settings);
-        views::narrow_in_use(&mut updated);
-        updated.saved["result"] = json!(updated.result);
-        (updated.view, updated.details) =
-            views::build(&updated, &core.rules, core.platform.as_ref(), &s.settings);
-        let saved = updated.saved.clone();
-        if let Some(slot) = s
-            .records
-            .iter_mut()
-            .find(|r| r.result.scan_id == record.result.scan_id)
-        {
-            *slot = Arc::new(updated);
-        }
+        record.projection().refresh_path(
+            &record,
+            &item.path,
+            &s.settings,
+            &core.rules,
+            core.platform.as_ref(),
+        );
         let stale: Vec<_> = s.plans.keys().cloned().collect();
         s.stale_plans.extend(stale);
-        core.store
-            .write("scans", &format!("{}.json", record.result.scan_id), &saved)?;
         Ok(locations(&s))
     }
 
@@ -737,11 +730,22 @@ impl Service {
             .iter()
             .position(|v| v.skip_id == id)
             .ok_or_else(|| IpcError::new("not_found"))?;
-        settings.skipped.remove(index);
+        let removed = settings.skipped.remove(index);
         self.core
             .store
             .write("", "settings.json", &json!(settings))?;
         s.settings = settings;
+        if let Some(record) = s.last_record() {
+            record.projection().refresh_path(
+                &record,
+                &removed.path,
+                &s.settings,
+                &self.core.rules,
+                self.core.platform.as_ref(),
+            );
+        }
+        let stale: Vec<_> = s.plans.keys().cloned().collect();
+        s.stale_plans.extend(stale);
         Ok(locations(&s))
     }
 }
@@ -807,7 +811,7 @@ impl ScanJob {
                 at,
             )
         }));
-        let mut result = match result {
+        let result = match result {
             Ok(Ok(v)) => v,
             _ => scan::ScanResult {
                 result_version: "water.scan-result.v1".into(),
@@ -821,7 +825,6 @@ impl ScanJob {
                 issues: vec![],
             },
         };
-        views::apply_skips(&mut result, &settings);
         let snapshot = views::display_snapshot(&result);
         let growth = if matches!(result.status.as_str(), "completed" | "partial") {
             previous
@@ -837,16 +840,15 @@ impl ScanJob {
         let orphans = orphan_views(worker_core.platform.as_ref());
         let plan_value = serde_json::from_str::<Value>(&plan_json).unwrap_or(Value::Null);
         let saved = json!({"record_version":"water.scan-record.v1","scan_id":worker_id,"started_at":result.started_at,"finished_at":result.ended_at,"duration_ms":started.elapsed().as_millis() as u64,"drives":drives,"plan":plan_value,"result":result,"growth":growth,"previous_scan_id":previous.as_ref().map(|p|&p.result.scan_id),"consumed":false,"in_use":in_use,"item_in_use":item_in_use,"orphans":orphans});
-        let mut record = Record {
+        let record = Record {
             saved,
             result,
             plan,
             growth,
             previous_at: previous.as_ref().map(|p| p.result.ended_at.clone()),
-            view: Value::Null,
-            details: BTreeMap::new(),
+            projection: Mutex::new(views::Projection::default()),
         };
-        (record.view, record.details) = views::build(
+        *record.projection() = views::Projection::new(
             &record,
             &worker_core.rules,
             worker_core.platform.as_ref(),
@@ -863,7 +865,7 @@ impl ScanJob {
             .map(|g| util::number(&g.unique_bytes))
             .sum::<u64>()
             .to_string();
-        let category_totals: Vec<_> = record.view["categories"]
+        let category_totals: Vec<_> = record.projection().view["categories"]
             .as_array()
             .map(|cats| {
                 cats.iter()
@@ -1308,7 +1310,7 @@ fn added_7d(s: &State, r: &Record) -> Option<String> {
 fn history(s: &State) -> Value {
     let mut rows:Vec<_>=s.records.iter().map(|r| {
         let categories:BTreeSet<_>=r.result.groups.iter().filter(|g|g.item_count>0).map(views::category).collect();
-        json!({"kind":"scan","id":r.result.scan_id,"at":r.saved["finished_at"],"summary_zh":format!("识别 {} 类位置",categories.len()),"bytes":r.view["totals"]["recommended_bytes"]})
+        json!({"kind":"scan","id":r.result.scan_id,"at":r.saved["finished_at"],"summary_zh":format!("识别 {} 类位置",categories.len()),"bytes":r.projection().view["totals"]["recommended_bytes"]})
     }).collect();
     rows.extend(s.cleans.iter().map(|(id,v)| {
         let skipped=v["report"]["items"].as_array().map(|items|items.iter().filter(|i|i["status"]=="skipped").count()).unwrap_or(0);
