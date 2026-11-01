@@ -18,15 +18,20 @@ public static class W {
   [DllImport("user32.dll")] public static extern bool IsWindowVisible(IntPtr h);
   [DllImport("user32.dll")] public static extern IntPtr GetForegroundWindow();
   [DllImport("user32.dll")] public static extern bool GetWindowRect(IntPtr h, out RECT r);
+  [DllImport("user32.dll")] public static extern bool PrintWindow(IntPtr h, IntPtr hdc, uint flags);
   [StructLayout(LayoutKind.Sequential)] public struct RECT { public int Left, Top, Right, Bottom; }
 }
 '@
+# PrintWindow renders only Water's own window. Copying the screen rectangle (the earlier version) captured
+# whatever covered the window, once another app's page with personal content (2026-11-01 release smoke).
 function Shot([IntPtr]$h, [string]$name) {
   $r = New-Object W+RECT; [void][W]::GetWindowRect($h, [ref]$r)
   $w = $r.Right - $r.Left; $hh = $r.Bottom - $r.Top
   if ($w -le 0 -or $hh -le 0) { return $null }
   $bmp = New-Object System.Drawing.Bitmap $w, $hh
-  $g = [System.Drawing.Graphics]::FromImage($bmp); $g.CopyFromScreen($r.Left, $r.Top, 0, 0, $bmp.Size); $g.Dispose()
+  $g = [System.Drawing.Graphics]::FromImage($bmp); $hdc = $g.GetHdc()
+  $printed = [W]::PrintWindow($h, $hdc, 2); $g.ReleaseHdc($hdc); $g.Dispose()
+  if (-not $printed) { $bmp.Dispose(); return $null }
   $file = "$EvidencePrefix-$name.png"; $bmp.Save($file, [System.Drawing.Imaging.ImageFormat]::Png); $bmp.Dispose()
   return [ordered]@{ file = (Split-Path $file -Leaf); width = $w; height = $hh }
 }
