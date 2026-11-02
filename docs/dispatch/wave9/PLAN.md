@@ -266,3 +266,17 @@ L1、L2 经冻结的 JSON 计划对接（第八波 K2、K3 也是这样并行的
    - 推荐：按 4.7 用这一轮清理当基准，最后由你本人判断“少看了”才算过。
 
 拍板后：第九波，总控冻结契约、跑派前 baseline、给派单句；第十波，先写 ADR-019 和设计稿给你看。
+
+## 8. 第九波派单（2026-11-02）
+
+- **基线**：`57ecd7ce`（标签 `water-w9-m3d-base-20261102`）。契约在 `contracts/m3d-v1/`，规则见 [W9-M3D-WORKER-RULES](../W9-M3D-WORKER-RULES.md)，清单见 [manifest.json](manifest.json)。
+- **派前 baseline**：四棵树都已通过，回执在 `docs/acceptance/wave9/controller/preflight-20261102/`。
+- **四张都是后端单，没有界面单**，同时派。
+- **合入顺序**：L1、L2 一起合（共用计划 JSON：新规则会让旧扫描拒收计划）；L3、L4 随时。
+- **全部合入后**：按 2.3 做第六次整合检查、出 release、复验 F1/F2、写 M3 收口报告。
+
+派单句（每条单独复制给一个执行者）：
+- WATER-W9-L1：`你接手 Water 项目 WATER-W9-L1（标记的附加条件与兜底规则，轻门）。先读 F:/new/smaltalk/water/docs/dispatch/tickets/WATER-W9-L1-RULES-20261102.md，按其中列出的顺序读规则与契约，在 F:/new/smaltalk/water/.worktrees/w9-l1（分支 worker/water-w9-l1）从 57ecd7ce 开工。`
+- WATER-W9-L2：`你接手 Water 项目 WATER-W9-L2（附加条件、兜底目标与增长提示，轻门）。先读 F:/new/smaltalk/water/docs/dispatch/tickets/WATER-W9-L2-SCAN-20261102.md，按其中列出的顺序读规则与契约，在 F:/new/smaltalk/water/.worktrees/w9-l2（分支 worker/water-w9-l2）从 57ecd7ce 开工。`
+- WATER-W9-L3：`你接手 Water 项目 WATER-W9-L3（增长的对比基准与历史文案，轻门）。先读 F:/new/smaltalk/water/docs/dispatch/tickets/WATER-W9-L3-SERVICE-20261102.md，按其中列出的顺序读规则与契约，在 F:/new/smaltalk/water/.worktrees/w9-l3（分支 worker/water-w9-l3）从 57ecd7ce 开工。`
+- WATER-W9-L4：`你接手 Water 项目 WATER-W9-L4（命令行里的 Git Bash 写法，轻门）。先读 F:/new/smaltalk/water/docs/dispatch/tickets/WATER-W9-L4-PROCESS-20261102.md，按其中列出的顺序读规则与契约，在 F:/new/smaltalk/water/.worktrees/w9-l4（分支 worker/water-w9-l4）从 57ecd7ce 开工。`
