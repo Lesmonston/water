@@ -1,0 +1,31 @@
+{"binary":"C:\\Users\\37310\\.rustup\\toolchains\\1.95.0-x86_64-pc-windows-msvc\\bin\\cargo.exe","args":["test","--offline","--locked","--manifest-path","packages/junk-rules/Cargo.toml","--test","rules_v1","--","--test-threads=1"],"exitCode":101,"error":null}
+--- stdout ---
+
+running 4 tests
+test rules_protection_precedence ... ok
+test rules_resolve_plan ... ok
+test rules_schema_strict ... ok
+test rules_seed_coverage ... FAILED
+
+failures:
+
+---- rules_seed_coverage stdout ----
+
+thread 'rules_seed_coverage' (21232) panicked at tests\rules_v1.rs:1691:9:
+assertion `left == right` failed: RULES_M3D_FALLBACK: all fields wording and position
+  left: Object {"after_zh": String("??????????????????????? npm uninstall -g?"), "category": String("custom"), "fix_hint_zh": Null, "growth": String("slow"), "in_use": Object {"mode": String("none"), "processes": Array []}, "item_type": String("dir"), "keep_newest": Number(0), "level": String("advisory"), "locate": Array [Object {"fallback_for": String("node-modules"), "kind": String("marker"), "marker": Object {"kind": String("dir_name"), "names": Array [String("node_modules")]}, "max_depth": Number(6)}], "min_age_hours": Number(0), "owner_zh": String("Node.js"), "rule_id": String("bundled-node-modules"), "sources": Array [Object {"checked_on": String("2026-11-01"), "kind": String("local_observation"), "ref": String("10-29 ???? docs/acceptance/wave8/controller/WATER-M3-REPLAY-20261101.md?npm ?????Electron ?????Mirasim ???????????")}], "title_zh": String("??????????"), "what_zh": String("??? node_modules?????????????????????????????????????????????????"), "why_zh": String("?????????????????Water ??????????????????????")}
+ right: Object {"after_zh": String("确认是不再用的工具后，用安装它的方式卸载，例如 npm uninstall -g。"), "category": String("custom"), "fix_hint_zh": Null, "growth": String("slow"), "in_use": Object {"mode": String("none"), "processes": Array []}, "item_type": String("dir"), "keep_newest": Number(0), "level": String("advisory"), "locate": Array [Object {"fallback_for": String("node-modules"), "kind": String("marker"), "marker": Object {"kind": String("dir_name"), "names": Array [String("node_modules")]}, "max_depth": Number(6)}], "min_age_hours": Number(0), "owner_zh": String("Node.js"), "rule_id": String("bundled-node-modules"), "sources": Array [Object {"checked_on": String("2026-11-01"), "kind": String("local_observation"), "ref": String("10-29 场景复现 docs/acceptance/wave8/controller/WATER-M3-REPLAY-20261101.md：npm 全局目录、Electron 解包目录、Mirasim 程序目录被认成项目依赖")}], "title_zh": String("程序或工具自带的依赖"), "what_zh": String("名字叫 node_modules，但旁边没有像项目的文件，多半是全局安装的命令行工具、桌面程序解包出的文件，或某个程序自带的依赖。"), "why_zh": String("删掉可能让对应的工具或程序打不开。Water 无法确认它属于谁，所以不提供清理，仅供参考。")}
+note: run with `RUST_BACKTRACE=1` environment variable to display a backtrace
+
+
+failures:
+    rules_seed_coverage
+
+test result: FAILED. 3 passed; 1 failed; 0 ignored; 0 measured; 0 filtered out; finished in 0.49s
+
+
+--- stderr ---
+   Compiling water-junk-rules v0.1.0 (F:\new\smaltalk\water\.worktrees\w9-l1\packages\junk-rules)
+    Finished `test` profile [unoptimized + debuginfo] target(s) in 8.04s
+     Running tests\rules_v1.rs (.local\w2-target\debug\deps\rules_v1-55c9fa24f5632a0e.exe)
+error: test failed, to rerun pass `--test rules_v1`

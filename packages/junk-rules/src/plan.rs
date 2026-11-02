@@ -2,9 +2,10 @@ use crate::error::RulesError;
 use crate::folders::{KnownFolders, validate_guard_path};
 use crate::rules::RuleSet;
 use crate::types::{
-    Category, InUse, InUseMode, ItemType, KNOWN_FOLDER_ORDER, Level, Locator, Marker, MatchSpec,
-    as_str, as_u64, bounded_u32, expect_keys, field, object, valid_abs_path, valid_created_at,
-    valid_data_version, valid_entry_name, valid_process_name, valid_root_id, valid_segment,
+    Category, Condition, InUse, InUseMode, ItemType, KNOWN_FOLDER_ORDER, Level, Locator, Marker,
+    MatchSpec, as_str, as_u64, bounded_u32, expect_keys, field, object, parse_conditions,
+    valid_abs_path, valid_created_at, valid_data_version, valid_entry_name, valid_process_name,
+    valid_root_id, valid_segment,
 };
 use serde::Serialize;
 use serde_json::{Map, Value};
@@ -82,10 +83,23 @@ enum MatchWire<'a> {
         root: &'a str,
         marker: MarkerWire<'a>,
         max_depth: u32,
+        #[serde(skip_serializing_if = "Vec::is_empty")]
+        conditions: Vec<ConditionWire<'a>>,
+        #[serde(skip_serializing_if = "Option::is_none")]
+        fallback_for: Option<&'a str>,
     },
     Discovery {
         root: &'a str,
     },
+}
+
+#[derive(Serialize)]
+#[serde(tag = "kind", rename_all = "snake_case")]
+enum ConditionWire<'a> {
+    ParentHasFile { name: &'a str },
+    ParentHasOtherEntries { except: &'a [String] },
+    NoAncestorSuffix { suffixes: &'a [String] },
+    PathHasAny { names: &'a [String] },
 }
 
 #[derive(Serialize)]
@@ -160,7 +174,12 @@ pub fn resolve_plan(
                         root: folders.get(*base).to_string(),
                     },
                 )),
-                Locator::Marker { marker, max_depth } => {
+                Locator::Marker {
+                    marker,
+                    max_depth,
+                    conditions,
+                    fallback_for,
+                } => {
                     for root in custom_roots {
                         let group_id = format!("custom:{}:{}", root.root_id, rule.rule_id);
                         targets.push(make_target(
@@ -171,6 +190,10 @@ pub fn resolve_plan(
                                 root: root.path.clone(),
                                 marker: marker.clone(),
                                 max_depth: *max_depth,
+                                conditions: conditions.clone(),
+                                fallback_for: fallback_for
+                                    .as_ref()
+                                    .map(|id| format!("custom:{}:{id}#1", root.root_id)),
                             },
                         ));
                     }
@@ -265,12 +288,27 @@ fn match_wire<'a>(spec: &'a MatchSpec) -> MatchWire<'a> {
             root,
             marker,
             max_depth,
+            conditions,
+            fallback_for,
         } => MatchWire::Marker {
             root,
             marker: marker_wire(marker),
             max_depth: *max_depth,
+            conditions: conditions.iter().map(condition_wire).collect(),
+            fallback_for: fallback_for.as_deref(),
         },
         MatchSpec::Discovery { root } => MatchWire::Discovery { root },
+    }
+}
+
+fn condition_wire(condition: &Condition) -> ConditionWire<'_> {
+    match condition {
+        Condition::ParentHasFile { name } => ConditionWire::ParentHasFile { name },
+        Condition::ParentHasOtherEntries { except } => {
+            ConditionWire::ParentHasOtherEntries { except }
+        }
+        Condition::NoAncestorSuffix { suffixes } => ConditionWire::NoAncestorSuffix { suffixes },
+        Condition::PathHasAny { names } => ConditionWire::PathHasAny { names },
     }
 }
 
@@ -339,7 +377,56 @@ fn parse_targets(value: &Value, path: &str) -> Result<Vec<Target>, RulesError> {
     for (index, item) in items.iter().enumerate() {
         targets.push(parse_target(item, &format!("{path}/{index}"))?);
     }
+    check_plan_fallbacks(&targets)?;
     Ok(targets)
+}
+
+fn check_plan_fallbacks(targets: &[Target]) -> Result<(), RulesError> {
+    let mut seen = HashSet::new();
+    for (index, target) in targets.iter().enumerate() {
+        let MatchSpec::Marker {
+            root,
+            marker,
+            max_depth,
+            conditions,
+            fallback_for: Some(id),
+        } = &target.match_spec
+        else {
+            continue;
+        };
+        let invalid = || {
+            RulesError::new(
+                "RULES_INVALID_FALLBACK",
+                format!("/targets/{index}/match/fallback_for"),
+            )
+        };
+        if !conditions.is_empty() || id == &target.target_id || !seen.insert(id) {
+            return Err(invalid());
+        }
+        let main = targets
+            .iter()
+            .find(|candidate| &candidate.target_id == id)
+            .ok_or_else(invalid)?;
+        let MatchSpec::Marker {
+            root: main_root,
+            marker: main_marker,
+            max_depth: main_depth,
+            conditions: main_conditions,
+            fallback_for: main_fallback,
+        } = &main.match_spec
+        else {
+            return Err(invalid());
+        };
+        if main_conditions.is_empty()
+            || main_fallback.is_some()
+            || !root.eq_ignore_ascii_case(main_root)
+            || marker != main_marker
+            || max_depth != main_depth
+        {
+            return Err(invalid());
+        }
+    }
+    Ok(())
 }
 
 fn parse_target(value: &Value, path: &str) -> Result<Target, RulesError> {
@@ -465,7 +552,18 @@ fn parse_match(value: &Value, path: &str) -> Result<MatchSpec, RulesError> {
             })
         }
         "marker" => {
-            expect_keys(map, &["kind", "root", "marker", "max_depth"], path)?;
+            expect_keys(
+                map,
+                &[
+                    "kind",
+                    "root",
+                    "marker",
+                    "max_depth",
+                    "conditions",
+                    "fallback_for",
+                ],
+                path,
+            )?;
             Ok(MatchSpec::Marker {
                 root: abs_path_field(map, "root", path, true)?,
                 marker: parse_plan_marker(field(map, "marker", path)?, &format!("{path}/marker"))?,
@@ -475,6 +573,24 @@ fn parse_match(value: &Value, path: &str) -> Result<MatchSpec, RulesError> {
                     16,
                     &format!("{path}/max_depth"),
                 )?,
+                conditions: map
+                    .get("conditions")
+                    .map(|value| parse_conditions(value, &format!("{path}/conditions")))
+                    .transpose()?
+                    .unwrap_or_default(),
+                fallback_for: map
+                    .get("fallback_for")
+                    .map(|value| {
+                        let id = as_str(value, &format!("{path}/fallback_for"))?;
+                        if id.is_empty() {
+                            return Err(RulesError::new(
+                                "RULES_INVALID_FALLBACK",
+                                format!("{path}/fallback_for"),
+                            ));
+                        }
+                        Ok(id.to_string())
+                    })
+                    .transpose()?,
             })
         }
         _ => Err(RulesError::new(

@@ -1,7 +1,7 @@
 use serde_json::{Value, json};
 use water_junk_rules::{
-    Category, CustomRoot, Growth, InUseMode, ItemType, KnownFolders, Level, Locator, Marker,
-    MatchSpec, RuleSet, ScanPlan, plan_to_json, resolve_plan,
+    Category, Condition, CustomRoot, Growth, InUseMode, ItemType, KnownFolders, Level, Locator,
+    Marker, MatchSpec, RuleSet, ScanPlan, plan_to_json, resolve_plan,
 };
 
 const CANARY: &str = "CANARY_ECHO_VALUE_9f3c2a";
@@ -101,8 +101,352 @@ fn mutate_rule(mutator: impl FnOnce(&mut Value)) -> String {
     wrap(vec![rule])
 }
 
+fn m3d_conditions_json(id: &str) -> Value {
+    match id {
+        "node-modules" => json!([
+            {"kind":"parent_has_file","name":"package.json"},
+            {"kind":"parent_has_other_entries","except":["package.json","package-lock.json","npm-shrinkwrap.json","yarn.lock","pnpm-lock.yaml","bun.lock","bun.lockb","node_modules"]},
+            {"kind":"no_ancestor_suffix","suffixes":[".asar.unpacked"]}
+        ]),
+        "test-browser-profiles" => json!([
+            {"kind":"path_has_any","names":["ms-playwright","playwright","puppeteer","selenium","webdriver","chromedriver","cypress"]}
+        ]),
+        _ => panic!("RULES_M3D_CONDITIONS: unexpected rule"),
+    }
+}
+
+fn m3d_conditions(id: &str) -> Vec<Condition> {
+    match id {
+        "node-modules" => vec![
+            Condition::ParentHasFile {
+                name: "package.json".to_string(),
+            },
+            Condition::ParentHasOtherEntries {
+                except: [
+                    "package.json",
+                    "package-lock.json",
+                    "npm-shrinkwrap.json",
+                    "yarn.lock",
+                    "pnpm-lock.yaml",
+                    "bun.lock",
+                    "bun.lockb",
+                    "node_modules",
+                ]
+                .into_iter()
+                .map(str::to_string)
+                .collect(),
+            },
+            Condition::NoAncestorSuffix {
+                suffixes: vec![".asar.unpacked".to_string()],
+            },
+        ],
+        "test-browser-profiles" => vec![Condition::PathHasAny {
+            names: [
+                "ms-playwright",
+                "playwright",
+                "puppeteer",
+                "selenium",
+                "webdriver",
+                "chromedriver",
+                "cypress",
+            ]
+            .into_iter()
+            .map(str::to_string)
+            .collect(),
+        }],
+        _ => panic!("RULES_M3D_CONDITIONS: unexpected rule"),
+    }
+}
+
+fn m3d_fallback_json(id: &str) -> Value {
+    let (title, owner, main, marker, depth, what, why, after, reference) = match id {
+        "bundled-node-modules" => (
+            "程序或工具自带的依赖",
+            "Node.js",
+            "node-modules",
+            json!({"kind":"dir_name","names":["node_modules"]}),
+            6,
+            "名字叫 node_modules，但旁边没有像项目的文件，多半是全局安装的命令行工具、桌面程序解包出的文件，或某个程序自带的依赖。",
+            "删掉可能让对应的工具或程序打不开。Water 无法确认它属于谁，所以不提供清理，仅供参考。",
+            "确认是不再用的工具后，用安装它的方式卸载，例如 npm uninstall -g。",
+            "10-29 场景复现 docs/acceptance/wave8/controller/WATER-M3-REPLAY-20261101.md：npm 全局目录、Electron 解包目录、Mirasim 程序目录被认成项目依赖",
+        ),
+        "browser-data-dirs" => (
+            "浏览器数据目录",
+            "内嵌浏览器",
+            "test-browser-profiles",
+            json!({"kind":"children_all","names":["Local State","Default"]}),
+            8,
+            "看起来像完整的浏览器配置，但路径里没有自动化测试工具的名字，多半是某个桌面程序内嵌浏览器（Chromium、WebView2、CEF）的数据。",
+            "里面可能有登录状态和程序数据，删掉可能要重新登录或让程序出错，所以不提供清理，仅供参考。",
+            "要清理，请在对应程序里退出登录或卸载程序。",
+            "10-29 场景复现 docs/acceptance/wave8/controller/WATER-M3-REPLAY-20261101.md：内嵌浏览器的数据目录被认成测试用浏览器配置",
+        ),
+        _ => panic!("RULES_M3D_FALLBACK: unexpected rule"),
+    };
+    json!({
+        "rule_id":id,"title_zh":title,"owner_zh":owner,"category":"custom","level":"advisory",
+        "locate":[{"kind":"marker","marker":marker,"max_depth":depth,"fallback_for":main}],
+        "item_type":"dir","min_age_hours":0,"keep_newest":0,"in_use":{"mode":"none","processes":[]},
+        "growth":"slow","what_zh":what,"why_zh":why,"after_zh":after,"fix_hint_zh":null,
+        "sources":[{"kind":"local_observation","ref":reference,"checked_on":"2026-11-01"}]
+    })
+}
+
+fn m3d_pair() -> Vec<Value> {
+    let mut main = sample_rule();
+    main["rule_id"] = json!("node-modules");
+    main["category"] = json!("custom");
+    main["locate"] = json!([{"kind":"marker","marker":{"kind":"dir_name","names":["node_modules"]},"max_depth":6,"conditions":m3d_conditions_json("node-modules")}]);
+    vec![main, m3d_fallback_json("bundled-node-modules")]
+}
+
+fn m3d_reject(rules: Vec<Value>, label: &str, marker: &str) {
+    let err = RuleSet::from_json(&wrap(rules)).expect_err(&format!("{marker}: {label}"));
+    assert!(
+        !err.to_string().contains(CANARY),
+        "{marker}: no input echo for {label}"
+    );
+}
+
+fn m3d_plan_targets(plan: &ScanPlan, roots: &[CustomRoot]) {
+    for root in roots {
+        for (main_id, fallback_id) in [
+            ("node-modules", "bundled-node-modules"),
+            ("test-browser-profiles", "browser-data-dirs"),
+        ] {
+            let main_target = format!("custom:{}:{main_id}#1", root.root_id);
+            let fallback_target = format!("custom:{}:{fallback_id}#1", root.root_id);
+            let main = plan
+                .targets
+                .iter()
+                .find(|t| t.target_id == main_target)
+                .expect("RULES_M3D_CONDITIONS: main target");
+            let fallback = plan
+                .targets
+                .iter()
+                .find(|t| t.target_id == fallback_target)
+                .expect("RULES_M3D_FALLBACK: fallback target");
+            let MatchSpec::Marker {
+                root: main_root,
+                marker,
+                max_depth,
+                conditions,
+                fallback_for,
+            } = &main.match_spec
+            else {
+                panic!("RULES_M3D_CONDITIONS: main is marker");
+            };
+            assert_eq!(main_root, &root.path, "RULES_M3D_CONDITIONS: root");
+            assert_eq!(
+                conditions,
+                &m3d_conditions(main_id),
+                "RULES_M3D_CONDITIONS: target conditions"
+            );
+            assert!(
+                fallback_for.is_none(),
+                "RULES_M3D_FALLBACK: main is not fallback"
+            );
+            assert_eq!(
+                fallback.match_spec,
+                MatchSpec::Marker {
+                    root: root.path.clone(),
+                    marker: marker.clone(),
+                    max_depth: *max_depth,
+                    conditions: vec![],
+                    fallback_for: Some(main_target),
+                },
+                "RULES_M3D_FALLBACK: same root marker depth and main target ID"
+            );
+            assert_eq!(
+                fallback.level,
+                Level::Advisory,
+                "RULES_M3D_FALLBACK: advisory"
+            );
+        }
+    }
+}
+
 #[test]
 fn rules_schema_strict() {
+    // Each rule in RULES-M3D sections 1 and 3 has an isolated rejection case.
+    let pair = m3d_pair();
+    RuleSet::from_json(&wrap(pair.clone())).expect("RULES_M3D_FALLBACK: valid pair");
+    let mut no_conditions = pair.clone();
+    no_conditions[0]["locate"][0]
+        .as_object_mut()
+        .unwrap()
+        .remove("conditions");
+    m3d_reject(
+        no_conditions,
+        "main requires conditions",
+        "RULES_M3D_FALLBACK",
+    );
+    for case in 0..15 {
+        let mut rules = pair.clone();
+        let label = match case {
+            0 => {
+                rules[1]["category"] = json!("dev_cache");
+                "fallback custom only"
+            }
+            1 => {
+                rules[1]["level"] = json!("confirm");
+                "fallback advisory only"
+            }
+            2 => {
+                let mut extra = rules[1]["locate"][0].clone();
+                extra["max_depth"] = json!(7);
+                rules[1]["locate"].as_array_mut().unwrap().push(extra);
+                "fallback single locator"
+            }
+            3 => {
+                rules[1]["locate"][0]["conditions"] = m3d_conditions_json("node-modules");
+                "fallback has no conditions"
+            }
+            4 => {
+                rules[1]["locate"][0]["fallback_for"] = json!("missing-rule");
+                "main exists"
+            }
+            5 => {
+                rules[0]["category"] = json!("dev_cache");
+                "main custom only"
+            }
+            6 => {
+                let mut extra = rules[0]["locate"][0].clone();
+                extra["max_depth"] = json!(7);
+                rules[0]["locate"].as_array_mut().unwrap().push(extra);
+                "main single locator"
+            }
+            7 => {
+                rules[0]["category"] = json!("dev_cache");
+                rules[0]["locate"] = sample_rule()["locate"].clone();
+                "main marker only"
+            }
+            8 => {
+                rules[0]["level"] = json!("advisory");
+                rules[0]["locate"][0]
+                    .as_object_mut()
+                    .unwrap()
+                    .remove("conditions");
+                rules[0]["locate"][0]["fallback_for"] = json!("bundled-node-modules");
+                "main not a fallback"
+            }
+            9 => {
+                rules[1]["locate"][0]["marker"]["names"] = json!(["NODE_MODULES"]);
+                "identical marker"
+            }
+            10 => {
+                rules[1]["locate"][0]["max_depth"] = json!(7);
+                "identical depth"
+            }
+            11 => {
+                let mut other = rules[1].clone();
+                other["rule_id"] = json!("another-fallback");
+                rules.push(other);
+                "one fallback per main"
+            }
+            12 => {
+                rules[1]["locate"][0]["fallback_for"] = json!("bundled-node-modules");
+                "cannot point to self"
+            }
+            13 => {
+                rules[1]["locate"][0]["fallback_for"] = json!(42);
+                "fallback string"
+            }
+            _ => {
+                rules[1]["locate"][0]["fallback_for"] = json!("bad id");
+                "fallback rule ID syntax"
+            }
+        };
+        m3d_reject(rules, label, "RULES_M3D_FALLBACK");
+    }
+    for case in 0..4 {
+        let mut rule = pair[0].clone();
+        match case {
+            0 => rule["category"] = json!("dev_cache"),
+            1 => {
+                rule["category"] = json!("dev_cache");
+                rule["locate"][0] = json!({"kind":"pattern","base":"local_app_data","segments":["SampleCache"],"conditions":m3d_conditions_json("node-modules")});
+            }
+            2 => {
+                rule["category"] = json!("dev_cache");
+                rule["locate"][0] = json!({"kind":"discovery","base":"local_app_data","conditions":m3d_conditions_json("node-modules")});
+                rule["min_age_hours"] = json!(24);
+            }
+            _ => {
+                rule["locate"][0]["marker"]["conditions"] = m3d_conditions_json("node-modules");
+            }
+        }
+        m3d_reject(
+            vec![rule],
+            "conditions custom marker locator only",
+            "RULES_M3D_CONDITIONS",
+        );
+    }
+    let mut invalid_conditions = vec![
+        json!([]),
+        json!(null),
+        json!({}),
+        json!(vec![json!({"kind":"parent_has_file","name":"a"}); 5]),
+        json!([{"kind":"parent_has_file","name":"a"},{"kind":"parent_has_file","name":"b"}]),
+        json!([{"kind":"unknown","name":"a"}]),
+        json!([{"kind":"parent_has_file","name":"a","extra":true}]),
+        json!([{"kind":"parent_has_file"}]),
+        json!([{"kind":"parent_has_file","name":3}]),
+    ];
+    for name in [
+        "", ".", "..", "a b", "a\t", "a\n", "\u{7f}", "é", "\\", "/", ":", "*", "?", "\"", "<",
+        ">", "|",
+    ] {
+        invalid_conditions.push(json!([{"kind":"parent_has_file","name":name}]));
+    }
+    invalid_conditions.push(json!([{"kind":"parent_has_file","name":"a".repeat(65)}]));
+    for (kind, key) in [
+        ("parent_has_other_entries", "except"),
+        ("no_ancestor_suffix", "suffixes"),
+        ("path_has_any", "names"),
+    ] {
+        for values in [
+            json!([]),
+            json!(vec!["a"; 17]),
+            json!(["a", "A"]),
+            json!(["bad name"]),
+            json!(["a".repeat(65)]),
+            json!(["."]),
+            json!([1]),
+            json!("a"),
+        ] {
+            invalid_conditions.push(json!([{"kind":kind,key:values}]));
+        }
+        invalid_conditions.push(json!([{"kind":kind,key:["a"],"extra":true}]));
+        invalid_conditions.push(json!([{"kind":kind}]));
+    }
+    for conditions in invalid_conditions {
+        let mut rule = pair[0].clone();
+        rule["locate"][0]["conditions"] = conditions;
+        m3d_reject(vec![rule], "invalid condition", "RULES_M3D_CONDITIONS");
+    }
+    let mut valid = pair[0].clone();
+    let names: Vec<_> = (0..16).map(|i| format!("name-{i}")).collect();
+    valid["locate"][0]["conditions"] = json!([
+        {"kind":"parent_has_file","name":"A".repeat(64)},
+        {"kind":"parent_has_other_entries","except":names},
+        {"kind":"no_ancestor_suffix","suffixes":["!","~"]},
+        {"kind":"path_has_any","names":["a"]}
+    ]);
+    RuleSet::from_json(&wrap(vec![valid]))
+        .expect("RULES_M3D_CONDITIONS: four kinds, name and array boundaries");
+    let mut old_shape = pair[0].clone();
+    old_shape["locate"][0]
+        .as_object_mut()
+        .unwrap()
+        .remove("conditions");
+    let old_rules = RuleSet::from_json(&wrap(vec![old_shape]))
+        .expect("RULES_M3D_CONDITIONS: omission remains legal");
+    assert!(
+        matches!(&old_rules.rules()[0].locate[0], Locator::Marker { conditions, fallback_for: None, .. } if conditions.is_empty()),
+        "RULES_M3D_CONDITIONS: omitted fields default"
+    );
     let folders = KnownFolders::from_json(&folders_json()).expect("RULES_M3C_IN_USE: folders");
     for count in 0..=8 {
         let processes: Vec<_> = (0..count)
@@ -686,7 +1030,7 @@ fn rules_protection_precedence() {
     .expect("root shader caches must not collide with protected profiles");
     assert_eq!(subset_set.rules().len(), 6);
     let embedded = RuleSet::embedded();
-    assert_eq!(embedded.rules().len(), 76, "seed set must load");
+    assert_eq!(embedded.rules().len(), 78, "seed set must load");
 
     let agent_rules: Value = serde_json::from_str(include_str!("../rules/windows.json"))
         .expect("RULES_AGENT_TOOLS: embedded JSON");
@@ -743,16 +1087,216 @@ fn rules_resolve_plan() {
         },
     ];
     let plan = resolve_plan(&rules, &folders, &custom, CREATED_AT).expect("plan");
+    m3d_plan_targets(&plan, &custom);
+    let encoded = plan_to_json(&plan);
+    let decoded = ScanPlan::from_json(&encoded).expect("RULES_M3D_CONDITIONS: parse new JSON");
+    assert_eq!(
+        decoded, plan,
+        "RULES_M3D_CONDITIONS: complete plan roundtrip"
+    );
+    assert_eq!(
+        plan_to_json(&decoded),
+        encoded,
+        "RULES_M3D_CONDITIONS: byte roundtrip"
+    );
+    let wire: Value = serde_json::from_str(&encoded).expect("RULES_M3D_CONDITIONS: JSON");
+    let main_index = plan
+        .targets
+        .iter()
+        .position(|t| t.target_id == "custom:alpha:node-modules#1")
+        .unwrap();
+    let fallback_index = plan
+        .targets
+        .iter()
+        .position(|t| t.target_id == "custom:alpha:bundled-node-modules#1")
+        .unwrap();
+    for conditions in [
+        json!([]),
+        json!(null),
+        json!([{"kind":"unknown","name":"a"}]),
+        json!([{"kind":"parent_has_file","name":"bad name"}]),
+    ] {
+        let mut invalid = wire.clone();
+        invalid["targets"][main_index]["match"]["conditions"] = conditions;
+        ScanPlan::from_json(&invalid.to_string())
+            .expect_err("RULES_M3D_CONDITIONS: strict plan condition validation");
+    }
+    for case in 0..10 {
+        let mut invalid = wire.clone();
+        let targets = invalid["targets"].as_array_mut().unwrap();
+        match case {
+            0 => targets[fallback_index]["match"]["fallback_for"] = json!("absent"),
+            1 => {
+                targets[fallback_index]["match"]["fallback_for"] =
+                    targets[fallback_index]["target_id"].clone()
+            }
+            2 => {
+                targets[main_index]["match"]
+                    .as_object_mut()
+                    .unwrap()
+                    .remove("conditions");
+            }
+            3 => {
+                targets[fallback_index]["match"]["conditions"] = m3d_conditions_json("node-modules")
+            }
+            4 => {
+                targets[main_index]["match"]["fallback_for"] =
+                    targets[fallback_index]["target_id"].clone()
+            }
+            5 => targets[fallback_index]["match"]["root"] = json!("F:\\other"),
+            6 => targets[fallback_index]["match"]["marker"]["names"] = json!(["other"]),
+            7 => targets[fallback_index]["match"]["max_depth"] = json!(7),
+            8 => {
+                let mut duplicate = targets[fallback_index].clone();
+                duplicate["target_id"] = json!("another-fallback");
+                targets.push(duplicate);
+            }
+            _ => {
+                targets[main_index]["match"] =
+                    json!({"kind":"pattern","base":"F:\\alpha","segments":["node_modules"]})
+            }
+        }
+        ScanPlan::from_json(&invalid.to_string())
+            .expect_err("RULES_M3D_FALLBACK: strict plan fallback validation");
+    }
+    let mut case_insensitive_root = wire.clone();
+    case_insensitive_root["targets"][fallback_index]["match"]["root"] =
+        json!(custom[0].path.to_ascii_lowercase());
+    ScanPlan::from_json(&case_insensitive_root.to_string())
+        .expect("RULES_M3D_FALLBACK: ASCII case insensitive root");
+    for (target, value) in plan.targets.iter().zip(wire["targets"].as_array().unwrap()) {
+        let match_json = &value["match"];
+        match &target.match_spec {
+            MatchSpec::Marker {
+                root,
+                marker,
+                max_depth,
+                conditions,
+                fallback_for,
+            } => {
+                if conditions.is_empty() {
+                    assert!(
+                        match_json.get("conditions").is_none(),
+                        "RULES_M3D_CONDITIONS: empty omitted"
+                    );
+                } else {
+                    assert_eq!(
+                        match_json["conditions"],
+                        m3d_conditions_json(&target.rule_id),
+                        "RULES_M3D_CONDITIONS: wire conditions"
+                    );
+                }
+                if let Some(id) = fallback_for {
+                    assert_eq!(
+                        match_json["fallback_for"], *id,
+                        "RULES_M3D_FALLBACK: wire target ID"
+                    );
+                } else {
+                    assert!(
+                        match_json.get("fallback_for").is_none(),
+                        "RULES_M3D_CONDITIONS: absent fallback omitted"
+                    );
+                }
+                // Reproduce the old serializer's field order explicitly for every unchanged marker.
+                let marker_json = match marker {
+                    Marker::File {
+                        name,
+                        min_bytes,
+                        max_bytes,
+                    } => format!(
+                        "{{\"kind\":\"file\",\"name\":{},\"min_bytes\":{min_bytes},\"max_bytes\":{max_bytes}}}",
+                        json!(name)
+                    ),
+                    Marker::ChildrenAll { names } => {
+                        format!("{{\"kind\":\"children_all\",\"names\":{}}}", json!(names))
+                    }
+                    Marker::DirName { names } => {
+                        format!("{{\"kind\":\"dir_name\",\"names\":{}}}", json!(names))
+                    }
+                };
+                let legacy = format!(
+                    "{{\"kind\":\"marker\",\"root\":{},\"marker\":{marker_json},\"max_depth\":{max_depth}}}",
+                    json!(root)
+                );
+                if conditions.is_empty() && fallback_for.is_none() {
+                    assert!(
+                        encoded.contains(&format!("\"match\":{legacy},\"item_type\"")),
+                        "RULES_M3D_CONDITIONS: unchanged marker bytes"
+                    );
+                } else {
+                    let mut expected = legacy.trim_end_matches('}').to_string();
+                    if !conditions.is_empty() {
+                        // serde_json::Value sorts keys; build condition objects in the frozen wire order.
+                        let condition_json = m3d_conditions_json(&target.rule_id)
+                            .as_array()
+                            .unwrap()
+                            .iter()
+                            .map(|c| {
+                                let kind = c["kind"].as_str().unwrap();
+                                let key = match kind {
+                                    "parent_has_file" => "name",
+                                    "parent_has_other_entries" => "except",
+                                    "no_ancestor_suffix" => "suffixes",
+                                    _ => "names",
+                                };
+                                format!("{{\"kind\":{},\"{key}\":{}}}", json!(kind), c[key])
+                            })
+                            .collect::<Vec<_>>()
+                            .join(",");
+                        expected.push_str(&format!(",\"conditions\":[{condition_json}]"));
+                    }
+                    if let Some(id) = fallback_for {
+                        expected.push_str(&format!(",\"fallback_for\":{}", json!(id)));
+                    }
+                    expected.push('}');
+                    assert!(
+                        encoded.contains(&format!("\"match\":{expected},\"item_type\"")),
+                        "RULES_M3D_CONDITIONS: ordered new keys"
+                    );
+                }
+            }
+            _ => assert!(
+                match_json.get("conditions").is_none() && match_json.get("fallback_for").is_none(),
+                "RULES_M3D_CONDITIONS: unchanged non-marker shape"
+            ),
+        }
+    }
+    let mut legacy_rules_json: Value =
+        serde_json::from_str(include_str!("../rules/windows.json")).unwrap();
+    let old_rules = legacy_rules_json["rules"].as_array_mut().unwrap();
+    old_rules.retain(|r| {
+        !["bundled-node-modules", "browser-data-dirs"].contains(&r["rule_id"].as_str().unwrap())
+    });
+    for rule in old_rules {
+        for locator in rule["locate"].as_array_mut().unwrap() {
+            locator.as_object_mut().unwrap().remove("conditions");
+        }
+    }
+    let legacy_rules = RuleSet::from_json(&legacy_rules_json.to_string())
+        .expect("RULES_M3D_CONDITIONS: old rules accepted");
+    let legacy_plan = resolve_plan(&legacy_rules, &folders, &custom, CREATED_AT)
+        .expect("RULES_M3D_CONDITIONS: old plan");
+    let legacy_wire: Value = serde_json::from_str(&plan_to_json(&legacy_plan)).unwrap();
+    for (target, value) in plan.targets.iter().zip(wire["targets"].as_array().unwrap()).filter(|(t, _)| !matches!(&t.match_spec, MatchSpec::Marker { conditions, fallback_for, .. } if !conditions.is_empty() || fallback_for.is_some())) {
+        let old = legacy_wire["targets"].as_array().unwrap().iter().find(|v| v["target_id"] == target.target_id).expect("RULES_M3D_CONDITIONS: legacy target");
+        assert_eq!(value, old, "RULES_M3D_CONDITIONS: unchanged target fields");
+    }
+    assert_eq!(
+        ScanPlan::from_json(&plan_to_json(&legacy_plan))
+            .expect("RULES_M3D_CONDITIONS: legacy parse"),
+        legacy_plan,
+        "RULES_M3D_CONDITIONS: legacy roundtrip"
+    );
     let expected = expected_target_count(&rules, custom.len());
     assert_eq!(plan.targets.len(), expected);
-    assert_eq!(expected, 257);
+    assert_eq!(expected, 261);
     assert_eq!(plan.plan_version, "water.scan-plan.v1");
     assert_eq!(
-        plan.rules_data_version, "2026-10-31.1",
+        plan.rules_data_version, "2026-11-02.1",
         "RULES_M3_WORDING: plan data version"
     );
     assert_eq!(
-        plan.rules_data_version, "2026-10-31.1",
+        plan.rules_data_version, "2026-11-02.1",
         "RULES_M3C_VERSION: plan data version"
     );
     assert_eq!(plan.created_at, CREATED_AT);
@@ -932,6 +1476,8 @@ fn rules_resolve_plan() {
                 max_bytes: 65536,
             },
             max_depth: 12,
+            conditions: vec![],
+            fallback_for: None,
         },
         "RULES_RUST_BUILD: marker name, bounds, depth and root"
     );
@@ -1018,11 +1564,13 @@ fn rules_resolve_plan() {
                     max_bytes: 4096
                 },
                 max_depth: 8,
+                conditions: vec![],
+                fallback_for: None,
             },
             "RULES_M3C_WORKTREE: file marker bounds, depth and root"
         );
     }
-    let appended = &plan.targets[beta_position + 3..];
+    let appended = &plan.targets[beta_position + 7..];
     assert_eq!(
         appended.len(),
         38,
@@ -1122,6 +1670,7 @@ fn rules_resolve_plan() {
     }];
     let drive_plan = resolve_plan(&rules, &folders, &drive, CREATED_AT)
         .expect("RULES_M3C_DRIVE_ROOT: exact drive root is valid");
+    m3d_plan_targets(&drive_plan, &drive);
     let markers: Vec<_> = drive_plan
         .targets
         .iter()
@@ -1129,8 +1678,8 @@ fn rules_resolve_plan() {
         .collect();
     assert_eq!(
         markers.len(),
-        6,
-        "RULES_M3C_DRIVE_ROOT: all six marker targets"
+        8,
+        "RULES_M3C_DRIVE_ROOT: all eight marker targets"
     );
     assert_eq!(
         markers
@@ -1144,6 +1693,8 @@ fn rules_resolve_plan() {
             "custom:drive-f:node-modules#1",
             "custom:drive-f:rust-build-dirs#1",
             "custom:drive-f:git-worktrees#1",
+            "custom:drive-f:bundled-node-modules#1",
+            "custom:drive-f:browser-data-dirs#1",
         ],
         "RULES_M3C_DRIVE_ROOT: rule and root ID order"
     );
@@ -1195,7 +1746,45 @@ fn rules_resolve_plan() {
 fn rules_seed_coverage() {
     let rules = RuleSet::embedded();
     assert_eq!(
-        rules.data_version, "2026-10-31.1",
+        rules.data_version, "2026-11-02.1",
+        "RULES_M3D_VERSION: embedded version"
+    );
+    let m3d_embedded: Value = serde_json::from_str(include_str!("../rules/windows.json"))
+        .expect("RULES_M3D_FALLBACK: embedded JSON");
+    for (index, id) in [(62, "bundled-node-modules"), (63, "browser-data-dirs")] {
+        assert_eq!(
+            m3d_embedded["rules"][index],
+            m3d_fallback_json(id),
+            "RULES_M3D_FALLBACK: all fields wording and position"
+        );
+        for group in [id.to_string(), format!("custom:alpha:{id}")] {
+            assert_eq!(
+                rules.text(&group),
+                Some(rules.rule(id).expect("RULES_M3D_FALLBACK: rule").text()),
+                "RULES_M3D_FALLBACK: public text"
+            );
+        }
+    }
+    for id in ["node-modules", "test-browser-profiles"] {
+        let rule = rules.rule(id).expect("RULES_M3D_CONDITIONS: rule exists");
+        assert!(
+            matches!(&rule.locate[..], [Locator::Marker { conditions, fallback_for: None, .. }] if conditions == &m3d_conditions(id)),
+            "RULES_M3D_CONDITIONS: exact typed conditions"
+        );
+        let raw = m3d_embedded["rules"]
+            .as_array()
+            .unwrap()
+            .iter()
+            .find(|r| r["rule_id"] == id)
+            .unwrap();
+        assert_eq!(
+            raw["locate"][0]["conditions"],
+            m3d_conditions_json(id),
+            "RULES_M3D_CONDITIONS: exact data conditions"
+        );
+    }
+    assert_eq!(
+        rules.data_version, "2026-11-02.1",
         "RULES_M3C_VERSION: embedded version"
     );
     assert_eq!(
@@ -1204,8 +1793,8 @@ fn rules_seed_coverage() {
             .iter()
             .filter(|rule| rule.category == Category::Custom)
             .count(),
-        6,
-        "RULES_M3C_WORKTREE: six custom rules"
+        8,
+        "RULES_M3C_WORKTREE: eight custom rules"
     );
     for id in [
         "cachedir-tagged",
@@ -1444,7 +2033,7 @@ fn rules_seed_coverage() {
         "RULES_RUST_BUILD: original rule remains 61st"
     );
     assert_eq!(
-        rules.rules()[62..]
+        rules.rules()[64..]
             .iter()
             .map(|rule| rule.rule_id.as_str())
             .collect::<Vec<_>>(),
@@ -1601,7 +2190,9 @@ fn locator_summary(rule: &water_junk_rules::Rule) -> Vec<String> {
                 format!("pattern:{}:{}", base.as_str(), segments.join("/"))
             }
             Locator::Discovery { base } => format!("discovery:{}", base.as_str()),
-            Locator::Marker { marker, max_depth } => match marker {
+            Locator::Marker {
+                marker, max_depth, ..
+            } => match marker {
                 Marker::File {
                     name,
                     min_bytes,
@@ -2280,6 +2871,28 @@ fn seed_table() -> Vec<SeedSpec> {
         InUseMode::None,
         Growth::Slow,
         vec!["marker:file:.git:1:4096:8".to_string()],
+    ));
+    rows.push(seed(
+        "bundled-node-modules",
+        Category::Custom,
+        Level::Advisory,
+        ItemType::Dir,
+        0,
+        0,
+        InUseMode::None,
+        Growth::Slow,
+        vec!["marker:dir_name:node_modules:6".to_string()],
+    ));
+    rows.push(seed(
+        "browser-data-dirs",
+        Category::Custom,
+        Level::Advisory,
+        ItemType::Dir,
+        0,
+        0,
+        InUseMode::None,
+        Growth::Slow,
+        vec!["marker:children_all:Local State,Default:8".to_string()],
     ));
     rows.extend(agent_seed_table());
     rows

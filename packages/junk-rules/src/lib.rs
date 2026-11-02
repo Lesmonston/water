@@ -12,6 +12,6 @@ pub use folders::KnownFolders;
 pub use plan::{CustomRoot, ScanPlan, Target, plan_to_json, resolve_plan};
 pub use rules::{Rule, RuleSet, RuleText, Source};
 pub use types::{
-    Category, Growth, InUse, InUseMode, ItemType, KnownFolder, Level, Locator, Marker, MatchSpec,
-    SourceKind,
+    Category, Condition, Growth, InUse, InUseMode, ItemType, KnownFolder, Level, Locator, Marker,
+    MatchSpec, SourceKind,
 };

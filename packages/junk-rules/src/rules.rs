@@ -1,9 +1,9 @@
 use crate::error::RulesError;
 use crate::types::{
     Category, Growth, InUse, InUseMode, ItemType, KnownFolder, Level, Locator, Marker, SourceKind,
-    as_str, as_u64, bounded_u32, char_len, expect_keys, field, locator_key, object, require_chars,
-    segments_may_overlap, valid_data_version, valid_date, valid_entry_name, valid_https_url,
-    valid_process_name, valid_rule_id, valid_segment,
+    as_str, as_u64, bounded_u32, char_len, expect_keys, field, locator_key, object,
+    parse_conditions, require_chars, segments_may_overlap, valid_data_version, valid_date,
+    valid_entry_name, valid_https_url, valid_process_name, valid_rule_id, valid_segment,
 };
 use serde_json::{Map, Value};
 use std::collections::HashSet;
@@ -121,6 +121,7 @@ impl RuleSet {
             }
             rules.push(rule);
         }
+        check_fallbacks(&rules)?;
         check_protection_precedence(&rules)?;
         Ok(Self {
             rules_version: rules_version.to_string(),
@@ -339,6 +340,16 @@ fn parse_locators(
         if category == Category::Custom && !matches!(locator, Locator::Marker { .. }) {
             return Err(RulesError::new("RULES_CUSTOM_MARKER", item_path));
         }
+        if let Locator::Marker {
+            conditions,
+            fallback_for,
+            ..
+        } = &locator
+            && category != Category::Custom
+            && (!conditions.is_empty() || fallback_for.is_some())
+        {
+            return Err(RulesError::new("RULES_CUSTOM_MARKER", item_path));
+        }
         if !seen.insert(locator_key(&locator)) {
             return Err(RulesError::new("RULES_LOCATOR_DUPLICATE", path));
         }
@@ -369,7 +380,11 @@ fn parse_locator(value: &Value, path: &str) -> Result<Locator, RulesError> {
             })
         }
         "marker" => {
-            expect_keys(map, &["kind", "marker", "max_depth"], path)?;
+            expect_keys(
+                map,
+                &["kind", "marker", "max_depth", "conditions", "fallback_for"],
+                path,
+            )?;
             let max_depth = bounded_u32(
                 field(map, "max_depth", path)?,
                 1,
@@ -379,6 +394,24 @@ fn parse_locator(value: &Value, path: &str) -> Result<Locator, RulesError> {
             Ok(Locator::Marker {
                 marker: parse_marker(field(map, "marker", path)?, &format!("{path}/marker"))?,
                 max_depth,
+                conditions: map
+                    .get("conditions")
+                    .map(|value| parse_conditions(value, &format!("{path}/conditions")))
+                    .transpose()?
+                    .unwrap_or_default(),
+                fallback_for: map
+                    .get("fallback_for")
+                    .map(|value| {
+                        let id = as_str(value, &format!("{path}/fallback_for"))?;
+                        if !valid_rule_id(id) {
+                            return Err(RulesError::new(
+                                "RULES_INVALID_FALLBACK",
+                                format!("{path}/fallback_for"),
+                            ));
+                        }
+                        Ok(id.to_string())
+                    })
+                    .transpose()?,
             })
         }
         _ => Err(RulesError::new(
@@ -525,6 +558,58 @@ fn parse_source(value: &Value, path: &str) -> Result<Source, RulesError> {
         ref_text: ref_text.to_string(),
         checked_on: checked_on.to_string(),
     })
+}
+
+fn check_fallbacks(rules: &[Rule]) -> Result<(), RulesError> {
+    let mut seen = HashSet::new();
+    for (index, rule) in rules.iter().enumerate() {
+        for locator in &rule.locate {
+            let Locator::Marker {
+                marker,
+                max_depth,
+                conditions,
+                fallback_for: Some(id),
+            } = locator
+            else {
+                continue;
+            };
+            let invalid =
+                || RulesError::new("RULES_INVALID_FALLBACK", format!("/rules/{index}/locate"));
+            if rule.category != Category::Custom
+                || rule.level != Level::Advisory
+                || rule.locate.len() != 1
+                || !conditions.is_empty()
+                || id == &rule.rule_id
+                || !seen.insert(id)
+            {
+                return Err(invalid());
+            }
+            let main = rules
+                .iter()
+                .find(|candidate| &candidate.rule_id == id)
+                .ok_or_else(invalid)?;
+            if main.category != Category::Custom || main.locate.len() != 1 {
+                return Err(invalid());
+            }
+            let Locator::Marker {
+                marker: main_marker,
+                max_depth: main_depth,
+                conditions: main_conditions,
+                fallback_for: main_fallback,
+            } = &main.locate[0]
+            else {
+                return Err(invalid());
+            };
+            if main_conditions.is_empty()
+                || main_fallback.is_some()
+                || marker != main_marker
+                || max_depth != main_depth
+            {
+                return Err(invalid());
+            }
+        }
+    }
+    Ok(())
 }
 
 fn check_protection_precedence(rules: &[Rule]) -> Result<(), RulesError> {

@@ -256,6 +256,14 @@ pub enum Marker {
 }
 
 #[derive(Debug, Clone, PartialEq, Eq)]
+pub enum Condition {
+    ParentHasFile { name: String },
+    ParentHasOtherEntries { except: Vec<String> },
+    NoAncestorSuffix { suffixes: Vec<String> },
+    PathHasAny { names: Vec<String> },
+}
+
+#[derive(Debug, Clone, PartialEq, Eq)]
 pub enum Locator {
     Pattern {
         base: KnownFolder,
@@ -264,6 +272,8 @@ pub enum Locator {
     Marker {
         marker: Marker,
         max_depth: u32,
+        conditions: Vec<Condition>,
+        fallback_for: Option<String>,
     },
     Discovery {
         base: KnownFolder,
@@ -280,6 +290,8 @@ pub enum MatchSpec {
         root: String,
         marker: Marker,
         max_depth: u32,
+        conditions: Vec<Condition>,
+        fallback_for: Option<String>,
     },
     Discovery {
         root: String,
@@ -298,6 +310,91 @@ pub(crate) fn valid_segment(segment: &str) -> bool {
 
 pub(crate) fn valid_entry_name(name: &str) -> bool {
     valid_segment(name)
+}
+
+pub(crate) fn parse_conditions(value: &Value, path: &str) -> Result<Vec<Condition>, RulesError> {
+    let invalid = || RulesError::new("RULES_INVALID_CONDITIONS", path);
+    let items = value.as_array().ok_or_else(invalid)?;
+    if !(1..=4).contains(&items.len()) {
+        return Err(invalid());
+    }
+    let mut seen = std::collections::HashSet::new();
+    let mut conditions = Vec::with_capacity(items.len());
+    for (index, item) in items.iter().enumerate() {
+        let item_path = format!("{path}/{index}");
+        let map = object(item, &item_path)?;
+        let kind = as_str(
+            field(map, "kind", &item_path)?,
+            &format!("{item_path}/kind"),
+        )?;
+        if !seen.insert(kind) {
+            return Err(invalid());
+        }
+        let key = match kind {
+            "parent_has_file" => "name",
+            "parent_has_other_entries" => "except",
+            "no_ancestor_suffix" => "suffixes",
+            "path_has_any" => "names",
+            _ => return Err(invalid()),
+        };
+        expect_keys(map, &["kind", key], &item_path)?;
+        let value = field(map, key, &item_path)?;
+        let field_path = format!("{item_path}/{key}");
+        conditions.push(match kind {
+            "parent_has_file" => Condition::ParentHasFile {
+                name: parse_condition_name(value, &field_path)?,
+            },
+            "parent_has_other_entries" => Condition::ParentHasOtherEntries {
+                except: parse_condition_names(value, &field_path)?,
+            },
+            "no_ancestor_suffix" => Condition::NoAncestorSuffix {
+                suffixes: parse_condition_names(value, &field_path)?,
+            },
+            "path_has_any" => Condition::PathHasAny {
+                names: parse_condition_names(value, &field_path)?,
+            },
+            _ => unreachable!(),
+        });
+    }
+    Ok(conditions)
+}
+
+fn parse_condition_name(value: &Value, path: &str) -> Result<String, RulesError> {
+    let name = as_str(value, path)?;
+    if !(1..=64).contains(&name.len())
+        || name == "."
+        || name == ".."
+        || !name.bytes().all(|byte| {
+            (0x21..=0x7e).contains(&byte)
+                && !matches!(
+                    byte,
+                    b'\\' | b'/' | b':' | b'*' | b'?' | b'"' | b'<' | b'>' | b'|'
+                )
+        })
+    {
+        return Err(RulesError::new("RULES_INVALID_CONDITIONS", path));
+    }
+    Ok(name.to_string())
+}
+
+fn parse_condition_names(value: &Value, path: &str) -> Result<Vec<String>, RulesError> {
+    let items = value
+        .as_array()
+        .ok_or_else(|| RulesError::new("RULES_INVALID_CONDITIONS", path))?;
+    if !(1..=16).contains(&items.len()) {
+        return Err(RulesError::new("RULES_INVALID_CONDITIONS", path));
+    }
+    let mut seen = std::collections::HashSet::new();
+    let mut names = Vec::with_capacity(items.len());
+    for (index, item) in items.iter().enumerate() {
+        let item_path = format!("{path}/{index}");
+        let name = parse_condition_name(item, &item_path)?;
+        if !seen.insert(name.to_ascii_lowercase()) {
+            return Err(RulesError::new("RULES_INVALID_CONDITIONS", item_path));
+        }
+        names.push(name);
+    }
+    Ok(names)
 }
 
 pub(crate) fn object<'a>(
@@ -504,7 +601,9 @@ pub(crate) fn locator_key(locator: &Locator) -> String {
                 .join("\u{1f}")
         ),
         Locator::Discovery { base } => format!("discovery:{}", base.as_str()),
-        Locator::Marker { marker, max_depth } => match marker {
+        Locator::Marker {
+            marker, max_depth, ..
+        } => match marker {
             Marker::File {
                 name,
                 min_bytes,
