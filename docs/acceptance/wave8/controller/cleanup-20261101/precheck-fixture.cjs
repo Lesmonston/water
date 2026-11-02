@@ -1,10 +1,6 @@
-// Fixture for precheck-plan.cjs (verified 11-02: IN 1, KEEP 2, NAME 2, LINK 1): A
-m is real; B
-m -> A
-m; C
-m -> B
-m (the grok2
-// named nul, a folder ending in a space, release.jks and .env.local. Plan candidate: B. usage: node make-... <dir>
+// Fixture for precheck-plan.cjs (verified 11-02: IN 1, KEEP 2, NAME 2, LINK 1). A\nm is real; B\nm -> A\nm;
+// C\nm -> B\nm (the grok2 chain). B also holds a file named nul, a folder ending in a space, release.jks and .env.local.
+// Plan candidate: B. usage: node precheck-fixture.cjs <new dir>, then precheck-plan.cjs --plan <dir>\plan.json --roots <dir>
 const fs = require('fs');
 const path = require('path');
 const { execFileSync } = require('child_process');
