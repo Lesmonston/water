@@ -286,6 +286,14 @@ L2 开工检查后交回受阻回执（`5431e812`），成立，是总控写单�
 
 四张都 VERIFIED 并合入：L1 `28736089`、L2 `37fa96f1`、L4 `b39bfcdf`、L3 `bc433e6c`。见[验收报告](../../acceptance/wave9/controller/WATER-W9-REVIEW-20261102.md)。下一步按 2.3 做 M3 收口。
 
+### M3 收口（2026-11-02）
+
+用户：“开始收口”。按 2.3 节三条做完，**M3 达成**：
+- 第六次整合检查在主线 `bb92c87e` 上全部通过，release `water-0.1.0-bb92c87e` 编好并冒烟通过（[整合报告](../../acceptance/wave9/controller/WATER-W9-INTEGRATION6-20261102.md)）；
+- F1、F2 在 D 盘和 `F:\Mirasim-A` 上只读复验，复现报告列的每一处都变成“仅供参考”、不可勾选；合成夹具里的真项目 `node_modules` 和 `ms-playwright`、`puppeteer` 配置仍是“需确认”；另补上“几天后满”在真实多点记录上与手算一致（[收口报告](../../acceptance/wave9/controller/WATER-M3-CLOSE-20261102.md)）。
+
+收口对第十波的影响见收口报告“遗留”里“第十波要定的”三条：兜底组的列目录问题记在哪组、Water 自己的测试浏览器靠 `.water-cleanup.json`、“几天后满”遇到 Water 以外的清理。计划方向不变；按用户 11-02 的说法，现在可以开始第十波的 ADR-019、设计稿、契约与夹具。
+
 - WATER-W9-L2 补单 01：`你接手 Water 项目 WATER-W9-L2 补单 01（既有测试里的联接与硬链接夹具照旧运行，轻门）。先读 F:/new/smaltalk/water/docs/dispatch/tickets/WATER-W9-L2-ADDENDUM-01-20261102.md，按其中列出的顺序读原票、规则与契约，在 F:/new/smaltalk/water/.worktrees/w9-l2（分支 worker/water-w9-l2）从 5431e812 续做。`
 
 派单句（每条单独复制给一个执行者）：

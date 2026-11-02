@@ -1,0 +1,289 @@
+{
+  "task": "WATER-W9-ACCEPT-INTEG6-PROCESS",
+  "mode": "test",
+  "finalGate": false,
+  "manifest": ".local/w9-integ6/checkup-manifest.json",
+  "startedAt": "2026-11-02T07:26:52.684Z",
+  "realDataRead": false,
+  "productTestsRun": true,
+  "commands": [
+    {
+      "binary": "git",
+      "argv": [
+        "branch",
+        "--show-current"
+      ],
+      "exitCode": 0
+    },
+    {
+      "binary": "git",
+      "argv": [
+        "merge-base",
+        "--is-ancestor",
+        "bb92c87eb63370cf54c4c035708140c32c3bf7ef",
+        "HEAD"
+      ],
+      "exitCode": 0
+    },
+    {
+      "binary": "git",
+      "argv": [
+        "diff",
+        "--no-renames",
+        "--name-only",
+        "-z",
+        "bb92c87eb63370cf54c4c035708140c32c3bf7ef",
+        "HEAD"
+      ],
+      "exitCode": 0
+    },
+    {
+      "binary": "git",
+      "argv": [
+        "diff",
+        "--no-renames",
+        "--name-only",
+        "-z",
+        "HEAD"
+      ],
+      "exitCode": 0
+    },
+    {
+      "binary": "git",
+      "argv": [
+        "ls-files",
+        "--others",
+        "--exclude-standard",
+        "-z"
+      ],
+      "exitCode": 0
+    },
+    {
+      "binary": "git",
+      "argv": [
+        "rev-parse",
+        "HEAD"
+      ],
+      "exitCode": 0
+    },
+    {
+      "binary": "git",
+      "argv": [
+        "status",
+        "--porcelain",
+        "--untracked-files=all"
+      ],
+      "exitCode": 0
+    },
+    {
+      "binary": "C:\\Users\\37310\\.cargo\\bin\\rustup.exe",
+      "argv": [
+        "which",
+        "cargo",
+        "--toolchain",
+        "1.95.0"
+      ],
+      "exitCode": 0,
+      "error": null,
+      "log": "2026-11-02T07-26-52.681Z-11184-test-1.log"
+    },
+    {
+      "binary": "C:\\Users\\37310\\.cargo\\bin\\rustup.exe",
+      "argv": [
+        "which",
+        "rustc",
+        "--toolchain",
+        "1.95.0"
+      ],
+      "exitCode": 0,
+      "error": null,
+      "log": "2026-11-02T07-26-52.681Z-11184-test-2.log"
+    },
+    {
+      "binary": "C:\\Users\\37310\\.rustup\\toolchains\\1.95.0-x86_64-pc-windows-msvc\\bin\\rustc.exe",
+      "argv": [
+        "--version"
+      ],
+      "exitCode": 0,
+      "error": null,
+      "log": "2026-11-02T07-26-52.681Z-11184-test-3.log"
+    },
+    {
+      "binary": "C:\\Users\\37310\\.rustup\\toolchains\\1.95.0-x86_64-pc-windows-msvc\\bin\\cargo.exe",
+      "argv": [
+        "metadata",
+        "--offline",
+        "--locked",
+        "--format-version",
+        "1",
+        "--manifest-path",
+        "packages/process-scan/Cargo.toml"
+      ],
+      "exitCode": 0,
+      "error": null,
+      "log": "2026-11-02T07-26-52.681Z-11184-test-4.log"
+    },
+    {
+      "binary": "C:\\Users\\37310\\.rustup\\toolchains\\1.95.0-x86_64-pc-windows-msvc\\bin\\cargo.exe",
+      "argv": [
+        "test",
+        "--offline",
+        "--locked",
+        "--manifest-path",
+        "packages/process-scan/Cargo.toml",
+        "--test",
+        "process_v1",
+        "--",
+        "--test-threads=1"
+      ],
+      "exitCode": 0,
+      "error": null,
+      "log": "2026-11-02T07-26-52.681Z-11184-test-5.log"
+    },
+    {
+      "binary": "git",
+      "argv": [
+        "branch",
+        "--show-current"
+      ],
+      "exitCode": 0
+    },
+    {
+      "binary": "git",
+      "argv": [
+        "merge-base",
+        "--is-ancestor",
+        "bb92c87eb63370cf54c4c035708140c32c3bf7ef",
+        "HEAD"
+      ],
+      "exitCode": 0
+    },
+    {
+      "binary": "git",
+      "argv": [
+        "diff",
+        "--no-renames",
+        "--name-only",
+        "-z",
+        "bb92c87eb63370cf54c4c035708140c32c3bf7ef",
+        "HEAD"
+      ],
+      "exitCode": 0
+    },
+    {
+      "binary": "git",
+      "argv": [
+        "diff",
+        "--no-renames",
+        "--name-only",
+        "-z",
+        "HEAD"
+      ],
+      "exitCode": 0
+    },
+    {
+      "binary": "git",
+      "argv": [
+        "ls-files",
+        "--others",
+        "--exclude-standard",
+        "-z"
+      ],
+      "exitCode": 0
+    },
+    {
+      "binary": "git",
+      "argv": [
+        "rev-parse",
+        "HEAD"
+      ],
+      "exitCode": 0
+    },
+    {
+      "binary": "git",
+      "argv": [
+        "status",
+        "--porcelain",
+        "--untracked-files=all"
+      ],
+      "exitCode": 0
+    }
+  ],
+  "changedPaths": [],
+  "before": {
+    "head": "bb92c87eb63370cf54c4c035708140c32c3bf7ef",
+    "status": ""
+  },
+  "sourceState": {
+    "files": [
+      {
+        "path": "packages/process-scan/Cargo.toml",
+        "snapshot": "2026-11-02T07-26-52.681Z-11184-test-source-0.txt",
+        "sha256": "325f853fd203b2a037ef7e52247a2bcb3913f28f113d19c3806e2aa04df447a9",
+        "test": false
+      },
+      {
+        "path": "packages/process-scan/Cargo.lock",
+        "snapshot": "2026-11-02T07-26-52.681Z-11184-test-source-1.txt",
+        "sha256": "fc0cf1300b604a58e3d4104b29c7b511df028cb603763a78f8500c9118e674ef",
+        "test": false
+      },
+      {
+        "path": "packages/process-scan/README.md",
+        "snapshot": "2026-11-02T07-26-52.681Z-11184-test-source-2.txt",
+        "sha256": "5d4ffbff77d25fa3fba68aaac0a991d0dbbf2b2ca7fc5482044f0ee55a610166",
+        "test": false
+      },
+      {
+        "path": "packages/process-scan/src/lib.rs",
+        "snapshot": "2026-11-02T07-26-52.681Z-11184-test-source-3.txt",
+        "sha256": "e92f0c8204ab1830c065d8170519ba5041b0dd1c3e9d433aef11f63d5b0767a5",
+        "test": false
+      },
+      {
+        "path": "packages/process-scan/src/native_windows.rs",
+        "snapshot": "2026-11-02T07-26-52.681Z-11184-test-source-4.txt",
+        "sha256": "d6ae518ac188e0c54f0853f06f1adf6416e7305bc3a94c7fd4f805946742dda0",
+        "test": false
+      },
+      {
+        "path": "packages/process-scan/tests/process_v1.rs",
+        "snapshot": "2026-11-02T07-26-52.681Z-11184-test-source-5.txt",
+        "sha256": "b890cd59bb80e7421af36661097e57b049e283ea3cc07971cb32c5761f47ef86",
+        "test": true
+      }
+    ],
+    "productionHash": "b7f6b099b98b683512f5d670ed4891688ee26fd968d3dbd688a13317a542e0e0",
+    "testHash": "b91eb8ac0d9aa6465d80cb69dc69b15221757592e18f7960cb89a5d63a194364"
+  },
+  "dependencyInventory": [
+    "itoa@1.0.18",
+    "memchr@2.8.3",
+    "proc-macro2@1.0.107",
+    "quote@1.0.47",
+    "serde@1.0.229",
+    "serde_core@1.0.229",
+    "serde_derive@1.0.229",
+    "serde_json@1.0.151",
+    "syn@3.0.9",
+    "unicode-ident@1.0.27",
+    "zmij@1.0.23"
+  ],
+  "ffi": [
+    "CloseHandle",
+    "CreateToolhelp32Snapshot",
+    "GetProcessTimes",
+    "NtQueryInformationProcess",
+    "OpenProcess",
+    "Process32FirstW",
+    "Process32NextW",
+    "QueryFullProcessImageNameW"
+  ],
+  "after": {
+    "head": "bb92c87eb63370cf54c4c035708140c32c3bf7ef",
+    "status": ""
+  },
+  "status": "passed",
+  "error": null,
+  "endedAt": "2026-11-02T07:27:13.913Z"
+}

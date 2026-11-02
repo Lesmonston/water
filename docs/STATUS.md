@@ -1,6 +1,6 @@
 # Water 状态与交接
 
-更新时间：2026-11-02 15:10 JST（第九波四张单全部验收合入（L1 `28736089`、L2 `37fa96f1`、L4 `b39bfcdf`、L3 `bc433e6c`，[验收报告](acceptance/wave9/controller/WATER-W9-REVIEW-20261102.md)），下一步 M3 收口：第六次整合、出 release、复验 F1/F2；L2 开工检查后受阻（`5431e812`，单子里“夹具只建普通文件与目录”与原有测试的联接、硬链接夹具冲突，总控疏漏），补单 01 已出，待外贴；第九波已拍板“全部按推荐”：契约冻结 `contracts/m3d-v1/`，基线 `57ecd7ce`，L1～L4 四张单 11-02 派出（L1、L2、L4 给 sol，L3 给 grok），见[计划](dispatch/wave9/PLAN.md)第 8 节；第十波等第九波收口后再做；denglou 收尾回执已并入[总控清理的固定做法](maintenance/CLEANUP-METHOD.md)；`yb-release` 里的正式签名本机副本已随隔离区删除，EAS 仍有，要不要再下一份离线备份由用户定；denglou 隔离目录用户 12:00 已删，F 盘可用 372.72 GB，四盘合计 532.5 GB；剩一个 3.3 MB 的 `nul` 文件待用 `\\?\` 命令删，`F:\_denglou-quarantine-20261102`（5.72 GB）可删；下一轮计划草案待拍板：[第九波 M3 收口、第十波 M3.5“结论优先”](dispatch/wave9/PLAN.md)；四个盘清理结束，用户删完隔离目录，四盘可用 205.7 → 368.2 GB；M2 自清理 01:13 达成；见[清理记录](maintenance/CLEANUP-20261101.md)；M3 等用户拍板 F1、F2 修法；第 13 份交接）。
+更新时间：2026-11-02 17:10 JST（**M3 达成**：第六次整合检查通过，release `water-0.1.0-bb92c87e` 编好，F1/F2 在 D 盘与 `F:\Mirasim-A` 只读复验通过，“几天后满”与手算一致，见[收口报告](acceptance/wave9/controller/WATER-M3-CLOSE-20261102.md)；下一步第十波，先按收口结果重看计划第 4、5 节；此前第九波四张单全部验收合入（L1 `28736089`、L2 `37fa96f1`、L4 `b39bfcdf`、L3 `bc433e6c`，[验收报告](acceptance/wave9/controller/WATER-W9-REVIEW-20261102.md)）；L2 开工检查后受阻（`5431e812`，单子里“夹具只建普通文件与目录”与原有测试的联接、硬链接夹具冲突，总控疏漏），补单 01 已出，待外贴；第九波已拍板“全部按推荐”：契约冻结 `contracts/m3d-v1/`，基线 `57ecd7ce`，L1～L4 四张单 11-02 派出（L1、L2、L4 给 sol，L3 给 grok），见[计划](dispatch/wave9/PLAN.md)第 8 节；第十波等第九波收口后再做；denglou 收尾回执已并入[总控清理的固定做法](maintenance/CLEANUP-METHOD.md)；`yb-release` 里的正式签名本机副本已随隔离区删除，EAS 仍有，要不要再下一份离线备份由用户定；denglou 隔离目录用户 12:00 已删，F 盘可用 372.72 GB，四盘合计 532.5 GB；剩一个 3.3 MB 的 `nul` 文件待用 `\\?\` 命令删，`F:\_denglou-quarantine-20261102`（5.72 GB）可删；下一轮计划草案待拍板：[第九波 M3 收口、第十波 M3.5“结论优先”](dispatch/wave9/PLAN.md)；四个盘清理结束，用户删完隔离目录，四盘可用 205.7 → 368.2 GB；M2 自清理 01:13 达成；见[清理记录](maintenance/CLEANUP-20261101.md)；M3 等用户拍板 F1、F2 修法；第 13 份交接）。
 
 更换总控请先读[最新交接报告（2026-11-02 第 13 份）](CONTROLLER-HANDOFF-20261102-13.md)；[第 12 份](CONTROLLER-HANDOFF-20261101-12.md)、[第 11 份](CONTROLLER-HANDOFF-20261101-11.md)、[第 10 份](CONTROLLER-HANDOFF-20261031-10.md)、[第 9 份](CONTROLLER-HANDOFF-20261028-9.md)、[第 8 份](CONTROLLER-HANDOFF-20261027-8.md)、[第 7 份](CONTROLLER-HANDOFF-20261027-7.md)、[第 6 份](CONTROLLER-HANDOFF-20261027-6.md)、[第 5 份](CONTROLLER-HANDOFF-20261026-5.md)、[第 4 份](CONTROLLER-HANDOFF-20261026-4.md)、[第 3 份](CONTROLLER-HANDOFF-20261026-3.md)、[第 2 份](CONTROLLER-HANDOFF-20261026-2.md)、[上午那份](CONTROLLER-HANDOFF-20261026.md)及其只读状态快照仅供追溯。M1 已达成；第四、五波已全部验收合入，打开清理的 release 版已编好，M2 只差自清理；M3 第六波三张已全部验收合入，第四次整合检查通过，含第六波的 release 版 `water-0.1.0-b62f9c5c` 已编好；第七波（M3 收尾）四张已全部验收合入（见下文）。此前[接手验收摘要](CONTROLLER-HANDOFF-20261017.md)仅供历史追溯；当前任务状态以本页、registry/manifest及最新正式验收为准。
 
@@ -358,8 +358,22 @@ A–AB及八补单、AD保持VERIFIED；AC/补单06新增VERIFIED（Windows静�
     - **独立审查**：四张都没有发现缺陷或偏离 SPEC。L2 有两处规格空白（兜底目录里的列目录问题、预算用完记在哪组），放到第十波定。
     - **合入**：L1 `28736089`、L2 `37fa96f1`、L4 `b39bfcdf`、L3 `bc433e6c`。
     - **遗留**：服务测试的耗时上限断言在机器忙时不稳定（四棵树同时跑时出现过进程中止和超时）。
-    - **Mirasim 弹框（清理记录 F16）**：用户启动 Mirasim 时弹出“找不到 `F:Mirasim-Bensure-port.vbs`”，原因是 A、C 的 `start.vbs` 仍调用 10-29 已删的 B 槽脚本，与第九波和 denglou 清理无关。用户：“删掉，留备份”，总控删掉了这一行，备份 `start.vbs.bak-20261102`。
+    - **Mirasim 弹框（清理记录 F16）**：用户启动 Mirasim 时弹出“找不到 `F:\Mirasim-B\ensure-port.vbs`”，原因是 A、C 的 `start.vbs` 仍调用 10-29 已删的 B 槽脚本，与第九波和 denglou 清理无关。用户：“删掉，留备份”，总控删掉了这一行，备份 `start.vbs.bak-20261102`。
     - **下一步**：M3 收口——第六次整合、出 release、在 D 盘与 `F:\Mirasim-A` 只读复验 F1/F2、写收口报告。
+44. **M3 收口**（11-02 约 16:20～17:10 JST）：用户说“开始收口”。**M3 达成**，见[收口报告](acceptance/wave9/controller/WATER-M3-CLOSE-20261102.md)。
+    - **第六次整合**（[整合报告](acceptance/wave9/controller/WATER-W9-INTEGRATION6-20261102.md)）：
+      - 主线 `bb92c87e`，沿用两棵整合树并切到新分支 `controller/integ-w9a`、`controller/integ-w9b`。
+      - 七个部分全绿，一次通过：D 6/6、进程 4/4、规则 4/4、扫描 5/5、服务 6/6、界面 3/3 加浏览器 5/5、宿主 5/5。
+      - 四个真实只读冒烟都过；真窗口夹具清理 9/9 步，只删了合成夹具。
+      - 宿主第一次被检查器拒收：第九波清单没冻结镜像契约，总控在覆盖清单里补上后重跑通过。
+    - **release**：`water-0.1.0-bb92c87e`（`.local/release/`，sha256 `ddc0644c…`），冒烟通过。冒烟脚本截图截不全（没设 DPI 感知），记为遗留。
+    - **F1、F2 复验**（只读，路径脱敏后入库）：
+      - D 盘、`F:\Mirasim-A` 上复现报告列的每一处都变成“仅供参考”、不可勾选；两地“需确认”的这两组都是 0 项。
+      - Mirasim 的 1.47 GB 整体从需确认换到仅供参考，字节数不变。
+      - 合成夹具七处全部符合；服务拒绝为“仅供参考”组生成清理计划。
+    - **“几天后满”**：用默认数据目录的副本（原目录没被打开），服务结果与手算四个盘完全一致。C、F 显示“没有减少”，因为这几天有 Water 以外的清理，按契约是对的，放到第十波考虑。
+    - **遗留**：第十波要定三条（兜底组的列目录问题记在哪组、Water 自己的测试浏览器靠 `.water-cleanup.json`、“几天后满”遇到外部清理）；其余测试缺口见收口报告。
+    - **下一步**：第十波。按用户 11-02 的说法，M3 收口后先按收口结果重看计划第 4、5 节，再出 ADR-019、设计稿、契约与夹具。
 
 ## 真实AA→AD联合验收通过（2026-10-26）
 
