@@ -1,6 +1,6 @@
 # Water 状态与交接
 
-更新时间：2026-11-02 12:50 JST（第九波已拍板“全部按推荐”：契约冻结 `contracts/m3d-v1/`，基线 `57ecd7ce`，L1～L4 四张单派前 baseline 通过、待外贴，派单句在[计划](dispatch/wave9/PLAN.md)第 8 节；第十波先写 ADR-019 与设计稿；denglou 收尾回执已并入[总控清理的固定做法](maintenance/CLEANUP-METHOD.md)；`yb-release` 里的正式签名本机副本已随隔离区删除，EAS 仍有，要不要再下一份离线备份由用户定；denglou 隔离目录用户 12:00 已删，F 盘可用 372.72 GB，四盘合计 532.5 GB；剩一个 3.3 MB 的 `nul` 文件待用 `\\?\` 命令删，`F:\_denglou-quarantine-20261102`（5.72 GB）可删；下一轮计划草案待拍板：[第九波 M3 收口、第十波 M3.5“结论优先”](dispatch/wave9/PLAN.md)；四个盘清理结束，用户删完隔离目录，四盘可用 205.7 → 368.2 GB；M2 自清理 01:13 达成；见[清理记录](maintenance/CLEANUP-20261101.md)；M3 等用户拍板 F1、F2 修法；第 13 份交接）。
+更新时间：2026-11-02 12:55 JST（第九波已拍板“全部按推荐”：契约冻结 `contracts/m3d-v1/`，基线 `57ecd7ce`，L1～L4 四张单 11-02 派出（L1、L2、L4 给 sol，L3 给 grok），见[计划](dispatch/wave9/PLAN.md)第 8 节；第十波等第九波收口后再做；denglou 收尾回执已并入[总控清理的固定做法](maintenance/CLEANUP-METHOD.md)；`yb-release` 里的正式签名本机副本已随隔离区删除，EAS 仍有，要不要再下一份离线备份由用户定；denglou 隔离目录用户 12:00 已删，F 盘可用 372.72 GB，四盘合计 532.5 GB；剩一个 3.3 MB 的 `nul` 文件待用 `\\?\` 命令删，`F:\_denglou-quarantine-20261102`（5.72 GB）可删；下一轮计划草案待拍板：[第九波 M3 收口、第十波 M3.5“结论优先”](dispatch/wave9/PLAN.md)；四个盘清理结束，用户删完隔离目录，四盘可用 205.7 → 368.2 GB；M2 自清理 01:13 达成；见[清理记录](maintenance/CLEANUP-20261101.md)；M3 等用户拍板 F1、F2 修法；第 13 份交接）。
 
 更换总控请先读[最新交接报告（2026-11-02 第 13 份）](CONTROLLER-HANDOFF-20261102-13.md)；[第 12 份](CONTROLLER-HANDOFF-20261101-12.md)、[第 11 份](CONTROLLER-HANDOFF-20261101-11.md)、[第 10 份](CONTROLLER-HANDOFF-20261031-10.md)、[第 9 份](CONTROLLER-HANDOFF-20261028-9.md)、[第 8 份](CONTROLLER-HANDOFF-20261027-8.md)、[第 7 份](CONTROLLER-HANDOFF-20261027-7.md)、[第 6 份](CONTROLLER-HANDOFF-20261027-6.md)、[第 5 份](CONTROLLER-HANDOFF-20261026-5.md)、[第 4 份](CONTROLLER-HANDOFF-20261026-4.md)、[第 3 份](CONTROLLER-HANDOFF-20261026-3.md)、[第 2 份](CONTROLLER-HANDOFF-20261026-2.md)、[上午那份](CONTROLLER-HANDOFF-20261026.md)及其只读状态快照仅供追溯。M1 已达成；第四、五波已全部验收合入，打开清理的 release 版已编好，M2 只差自清理；M3 第六波三张已全部验收合入，第四次整合检查通过，含第六波的 release 版 `water-0.1.0-b62f9c5c` 已编好；第七波（M3 收尾）四张已全部验收合入（见下文）。此前[接手验收摘要](CONTROLLER-HANDOFF-20261017.md)仅供历史追溯；当前任务状态以本页、registry/manifest及最新正式验收为准。
 
@@ -348,7 +348,9 @@ A–AB及八补单、AD保持VERIFIED；AC/补单06新增VERIFIED（Windows静�
       - PROCESS-M3D（L4）：命令行里的 `/f/new/x` 认作 `F:\new\x`。
     - **为什么不新增匹配类型**：服务里对 `MatchSpec` 有穷举匹配，加新类型就得等 L1 合入后再派 L3。
     - **派前准备**：四棵工作树、单子、[清单](dispatch/wave9/manifest.json)已备好，派前 baseline 全部通过（`docs/acceptance/wave9/controller/preflight-20261102/`）。派单句在计划第 8 节，等用户外贴。
-    - **下一步**：第十波先写 ADR-019 与设计稿。
+    - **派出**（约 12:52 JST）：用户：“第三单是grok，其他的都是sol”。总控记录时四棵树都在 `57ecd7ce`，L2 已有 2 处未提交改动。
+    - **第十波延后**：用户：“第10波等第九波收口再做，因为可能会有变化。”ADR-019、设计稿、契约都等 M3 收口后再开始。
+    - **下一步**：等四张单的回执，按单验收；L1、L2 一起合。
 
 ## 真实AA→AD联合验收通过（2026-10-26）
 
