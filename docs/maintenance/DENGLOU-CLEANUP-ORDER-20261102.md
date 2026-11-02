@@ -96,6 +96,12 @@ A 约 70、B 约 30、C1/C2 4.7、C4 13.7，合计约 118 GB；C3 压缩后再�
 
 隔离区里原有 26 个联接（B1、B2 的工作树共用 `ui-v2` 的 `node_modules`、`android`，C3 的 `final` 里有一个指向 `content\node_modules`）。`grok2` 移回后剩 23 个，总控逐个确认是重解析点后做不递归的删除，只去掉联接本身。复查隔离区 0 个联接，`ui-v2\node_modules` 完好。这样用户删除隔离区时，不会有命令顺着联接删到在用的依赖。
 
+### 删除结果（11-02 12:00）
+
+用户 11:58:40～12:00:03 在 PowerShell 里用 `cmd /c rd /s /q` 删除隔离目录。总控核对：F 盘可用 204.86 → **372.72 GB**（+167.86，与隔离量 167.52 GB 相符，差值是期间其他程序的读写）。目录里只剩一个 0 字节的文件 `11\new\denglou\worktrees\ui\nul`：`nul` 是 Windows 的设备保留名，按普通路径删不掉，要用 `\\?\` 前缀再删一次（见[清理记录](CLEANUP-20261101.md)启发第 34 条）。
+
+用户把知会转给 `denglou` 总控后，它在 12:01 前把 `audit-b57a\server\node_modules` 直接改指 `ui-v2\server\node_modules`（总控核对：能解析，242 项）；12:02 起建了自己的隔离目录 `F:\_denglou-quarantine-20261102`，按同样的“编号\原路径”放入 `B1\…\worktrees\grok2`（18,105 个文件、1.69 GB、没有联接）与 `A4\cdisk-cache\android-avd\climbmao_a35.avd\snapshots`（模拟器已关）。总控核对时它还在写入，删不删由用户与 `denglou` 总控定。
+
 ## 给 denglou 总控的转贴语（知会）
 
 ```text
