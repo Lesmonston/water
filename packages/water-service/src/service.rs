@@ -11,7 +11,7 @@ use std::{
     collections::{BTreeMap, BTreeSet},
     path::Path,
     sync::{Arc, Mutex, PoisonError},
-    time::{Duration, Instant},
+    time::{Duration, Instant, SystemTime},
 };
 use water_junk_rules::{KnownFolders, RuleSet};
 use water_junk_scan as scan;
@@ -81,8 +81,8 @@ const RECORD_KEYS: [&str; 11] = [
 
 impl Record {
     fn load(saved: Value) -> Option<Self> {
-        // `in_use` (saved per-group in-use results) is optional: older records lack it.
-        let optional = ["in_use", "item_in_use", "orphans"];
+        // `in_use` / `item_in_use` / `orphans` / `growth_base_scan_id` are independently optional.
+        let optional = ["in_use", "item_in_use", "orphans", "growth_base_scan_id"];
         let keys_ok = saved.as_object().is_some_and(|m| {
             RECORD_KEYS.iter().all(|k| m.contains_key(*k))
                 && m.keys()
@@ -251,10 +251,17 @@ impl Service {
             .map(|r| (r.result.scan_id.clone(), r.result.ended_at.clone()))
             .collect();
         for r in &mut records {
-            r.previous_at = r.saved["previous_scan_id"]
-                .as_str()
-                .and_then(|id| timestamps.get(id))
-                .cloned();
+            r.previous_at = if r.saved.get("growth_base_scan_id").is_some() {
+                r.saved["growth_base_scan_id"]
+                    .as_str()
+                    .and_then(|id| timestamps.get(id))
+                    .cloned()
+            } else {
+                r.saved["previous_scan_id"]
+                    .as_str()
+                    .and_then(|id| timestamps.get(id))
+                    .cloned()
+            };
             *r.projection() =
                 views::Projection::new(r, &rules, config.platform.as_ref(), &settings);
         }
@@ -518,6 +525,7 @@ impl Service {
         // A new scan consumes the previous scan's authority to prepare/execute plans,
         // even when the new scan is subsequently cancelled. Persist before scanning.
         let previous = s.last_record();
+        let growth_base = select_growth_base(&s.records, at);
         let s_last = s.last.clone();
         if let Some(previous) = &previous {
             s.consumed.insert(previous.result.scan_id.clone());
@@ -533,6 +541,7 @@ impl Service {
             core: core.clone(),
             id: id.clone(),
             previous,
+            growth_base,
             previous_last: s_last.clone(),
             plan,
             plan_json,
@@ -756,13 +765,14 @@ struct ScanJob {
     core: Arc<Core>,
     id: String,
     previous: Option<Arc<Record>>,
+    growth_base: Option<Arc<Record>>,
     previous_last: Option<String>,
     plan: water_junk_rules::ScanPlan,
     plan_json: String,
     parsed: scan::ScanPlan,
     cancel: scan::CancelToken,
     settings: Settings,
-    at: std::time::SystemTime,
+    at: SystemTime,
 }
 
 impl ScanJob {
@@ -771,6 +781,7 @@ impl ScanJob {
             core: worker_core,
             id: worker_id,
             previous,
+            growth_base,
             previous_last,
             plan,
             plan_json,
@@ -829,7 +840,7 @@ impl ScanJob {
         };
         let snapshot = views::display_snapshot(&result);
         let growth = if matches!(result.status.as_str(), "completed" | "partial") {
-            previous
+            growth_base
                 .as_ref()
                 .map(|p| scan::growth(&views::display_snapshot(&p.result), &snapshot))
                 .unwrap_or_default()
@@ -841,13 +852,13 @@ impl ScanJob {
         let (in_use, item_in_use) = views::scan_in_use(&result, worker_core.platform.as_ref());
         let orphans = orphan_views(worker_core.platform.as_ref());
         let plan_value = serde_json::from_str::<Value>(&plan_json).unwrap_or(Value::Null);
-        let saved = json!({"record_version":"water.scan-record.v1","scan_id":worker_id,"started_at":result.started_at,"finished_at":result.ended_at,"duration_ms":started.elapsed().as_millis() as u64,"drives":drives,"plan":plan_value,"result":result,"growth":growth,"previous_scan_id":previous.as_ref().map(|p|&p.result.scan_id),"consumed":false,"in_use":in_use,"item_in_use":item_in_use,"orphans":orphans});
+        let saved = json!({"record_version":"water.scan-record.v1","scan_id":worker_id,"started_at":result.started_at,"finished_at":result.ended_at,"duration_ms":started.elapsed().as_millis() as u64,"drives":drives,"plan":plan_value,"result":result,"growth":growth,"previous_scan_id":previous.as_ref().map(|p|&p.result.scan_id),"growth_base_scan_id":growth_base.as_ref().map(|p|&p.result.scan_id),"consumed":false,"in_use":in_use,"item_in_use":item_in_use,"orphans":orphans});
         let record = Record {
             saved,
             result,
             plan,
             growth,
-            previous_at: previous.as_ref().map(|p| p.result.ended_at.clone()),
+            previous_at: growth_base.as_ref().map(|p| p.result.ended_at.clone()),
             projection: Mutex::new(views::Projection::default()),
         };
         *record.projection() = views::Projection::new(
@@ -1309,14 +1320,63 @@ fn added_7d(s: &State, r: &Record) -> Option<String> {
     )
 }
 
+fn select_growth_base(records: &[Arc<Record>], at: SystemTime) -> Option<Arc<Record>> {
+    let cutoff = at.checked_sub(Duration::from_secs(86_400))?;
+    records
+        .iter()
+        .filter(|r| r.completed())
+        .filter_map(|r| {
+            let ended = util::parse_time(&r.result.ended_at)?;
+            (ended <= cutoff).then_some((ended, r.clone()))
+        })
+        .max_by_key(|(ended, _)| *ended)
+        .map(|(_, r)| r)
+}
+
 fn history(s: &State) -> Value {
-    let mut rows:Vec<_>=s.records.iter().map(|r| {
-        let categories:BTreeSet<_>=r.result.groups.iter().filter(|g|g.item_count>0).map(views::category).collect();
-        json!({"kind":"scan","id":r.result.scan_id,"at":r.saved["finished_at"],"summary_zh":format!("识别 {} 类位置",categories.len()),"bytes":r.projection().view["totals"]["recommended_bytes"]})
-    }).collect();
-    rows.extend(s.cleans.iter().map(|(id,v)| {
-        let skipped=v["report"]["items"].as_array().map(|items|items.iter().filter(|i|i["status"]=="skipped").count()).unwrap_or(0);
-        json!({"kind":"clean","id":id,"at":v["view"]["finished_at"],"summary_zh":format!("清理 {} 组，跳过 {} 项",v["view"]["groups"].as_array().map(Vec::len).unwrap_or(0),skipped),"bytes":v["view"]["freed_bytes"]})
+    let mut rows: Vec<_> = s
+        .records
+        .iter()
+        .map(|r| {
+            let categories: BTreeSet<_> = r
+                .result
+                .groups
+                .iter()
+                .filter(|g| g.item_count > 0)
+                .map(views::category)
+                .collect();
+            let n = categories.len();
+            let summary_zh = if r.result.status == "cancelled" {
+                format!("已停止，识别 {n} 类位置")
+            } else {
+                format!("识别 {n} 类位置")
+            };
+            json!({"kind":"scan","id":r.result.scan_id,"at":r.saved["finished_at"],"summary_zh":summary_zh,"bytes":r.projection().view["totals"]["recommended_bytes"]})
+        })
+        .collect();
+    rows.extend(s.cleans.iter().map(|(id, v)| {
+        let groups = v["view"]["groups"].as_array();
+        let n = groups
+            .map(|groups| {
+                groups
+                    .iter()
+                    .filter(|g| g["status"] == "done" || g["status"] == "partial")
+                    .count()
+            })
+            .unwrap_or(0);
+        let items = v["report"]["items"].as_array();
+        let skipped = items
+            .map(|items| items.iter().filter(|i| i["status"] == "skipped").count())
+            .unwrap_or(0);
+        let failed = items
+            .map(|items| items.iter().filter(|i| i["status"] == "failed").count())
+            .unwrap_or(0);
+        let summary_zh = if failed > 0 {
+            format!("清理 {n} 组，跳过 {skipped} 项，失败 {failed} 项")
+        } else {
+            format!("清理 {n} 组，跳过 {skipped} 项")
+        };
+        json!({"kind":"clean","id":id,"at":v["view"]["finished_at"],"summary_zh":summary_zh,"bytes":v["view"]["freed_bytes"]})
     }));
     rows.sort_by(|a, b| b["at"].as_str().cmp(&a["at"].as_str()));
     rows.truncate(100);

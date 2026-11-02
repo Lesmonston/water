@@ -1,0 +1,66 @@
+{"binary":"C:\\Users\\37310\\.rustup\\toolchains\\1.95.0-x86_64-pc-windows-msvc\\bin\\cargo.exe","args":["fmt","--manifest-path","packages/water-service/Cargo.toml","--","--check"],"exitCode":1,"error":null}
+--- stdout ---
+Diff in \\?\F:\new\smaltalk\water\.worktrees\w9-l3\packages\water-service\tests\service_v1.rs:2436:
+         json!([]),
+         "SERVICE_M3D_GROWTH_BASE: B growth"
+     );
+-    add_staging(
+-        &f,
+-        "marketplace-upgrade-c",
+-        25,
+-        30,
+-        NOW + 25 * 3600 - 3600,
+-    );
++    add_staging(&f, "marketplace-upgrade-c", 25, 30, NOW + 25 * 3600 - 3600);
+     f.fake.now.store(NOW + 25 * 3600, Ordering::SeqCst);
+     let c = scanned(&s);
+     let c_saved = scan_saved(&f, &c);
+Diff in \\?\F:\new\smaltalk\water\.worktrees\w9-l3\packages\water-service\tests\service_v1.rs:2466:
+             .as_array()
+             .unwrap()
+             .iter()
+-            .any(|v| v["message_zh"]
+-                .as_str()
+-                .unwrap()
+-                .contains(&compared)),
++            .any(|v| v["message_zh"].as_str().unwrap().contains(&compared)),
+         "SERVICE_M3D_GROWTH_BASE: insight date"
+     );
+     let detail = call(
+Diff in \\?\F:\new\smaltalk\water\.worktrees\w9-l3\packages\water-service\tests\service_v1.rs:2499:
+             .as_array()
+             .unwrap()
+             .iter()
+-            .any(|v| v["message_zh"]
+-                .as_str()
+-                .unwrap()
+-                .contains(&compared)),
++            .any(|v| v["message_zh"].as_str().unwrap().contains(&compared)),
+         "SERVICE_M3D_GROWTH_BASE: reload insight date"
+     );
+     let reloaded_detail = call(
+Diff in \\?\F:\new\smaltalk\water\.worktrees\w9-l3\packages\water-service\tests\service_v1.rs:2585:
+             "items": items
+         }
+     });
+-    fs::write(f.data.join("cleans").join(format!("{id}.json")), record.to_string()).unwrap();
++    fs::write(
++        f.data.join("cleans").join(format!("{id}.json")),
++        record.to_string(),
++    )
++    .unwrap();
+ }
+ 
+ fn clean_item(id: &str, status: &str, skip_reason: Value, failed_entries: u64) -> Value {
+Diff in \\?\F:\new\smaltalk\water\.worktrees\w9-l3\packages\water-service\tests\service_v1.rs:2647:
+     );
+     let ok = history_row(&history, &json!("clean-20270115T090000Z-00bb"));
+     assert_eq!(
+-        ok["summary_zh"],
+-        "清理 1 组，跳过 1 项",
++        ok["summary_zh"], "清理 1 组，跳过 1 项",
+         "SERVICE_M3D_CLEAN_SUMMARY: no failure"
+     );
+     assert!(
+
+--- stderr ---
