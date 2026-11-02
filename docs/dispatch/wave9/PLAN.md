@@ -278,6 +278,12 @@ L1、L2 经冻结的 JSON 计划对接（第八波 K2、K3 也是这样并行的
 - **全部合入后**：按 2.3 做第六次整合检查、出 release、复验 F1/F2、写 M3 收口报告。
 - **派出（11-02 约 12:52 JST）**：用户：“第三单是grok，其他的都是sol”，即 L1、L2、L4 给 sol，L3 给 grok。总控记录时（03:52Z）四棵树都还在 `57ecd7ce`，L2 已有 2 处未提交改动，其余为 0。
 
+### L2 补单 01（2026-11-02）
+
+L2 开工检查后交回受阻回执（`5431e812`），成立，是总控写单时的疏漏：原票与规则第 3 节写了“L2 的夹具只建普通文件与目录”，本意只管新增夹具，但原有测试本来就建一个联接（`mklink /J`）和一个硬链接（`mklink /H`）。补单澄清这句只约束新增夹具，旧夹具原样运行；其余不变，不重跑 baseline。L1、L3、L4 的单子没有这句，不受影响。
+
+- WATER-W9-L2 补单 01：`你接手 Water 项目 WATER-W9-L2 补单 01（既有测试里的联接与硬链接夹具照旧运行，轻门）。先读 F:/new/smaltalk/water/docs/dispatch/tickets/WATER-W9-L2-ADDENDUM-01-20261102.md，按其中列出的顺序读原票、规则与契约，在 F:/new/smaltalk/water/.worktrees/w9-l2（分支 worker/water-w9-l2）从 5431e812 续做。`
+
 派单句（每条单独复制给一个执行者）：
 - WATER-W9-L1：`你接手 Water 项目 WATER-W9-L1（标记的附加条件与兜底规则，轻门）。先读 F:/new/smaltalk/water/docs/dispatch/tickets/WATER-W9-L1-RULES-20261102.md，按其中列出的顺序读规则与契约，在 F:/new/smaltalk/water/.worktrees/w9-l1（分支 worker/water-w9-l1）从 57ecd7ce 开工。`
 - WATER-W9-L2：`你接手 Water 项目 WATER-W9-L2（附加条件、兜底目标与增长提示，轻门）。先读 F:/new/smaltalk/water/docs/dispatch/tickets/WATER-W9-L2-SCAN-20261102.md，按其中列出的顺序读规则与契约，在 F:/new/smaltalk/water/.worktrees/w9-l2（分支 worker/water-w9-l2）从 57ecd7ce 开工。`

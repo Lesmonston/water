@@ -1,7 +1,7 @@
 {
   "schemaVersion": 1,
   "wave": "water-wave9-m3-close-fixes",
-  "status": "DISPATCHED",
+  "status": "DISPATCHED_WITH_ADDENDA",
   "controller": "Claude",
   "controllerRoot": "F:/new/smaltalk/water",
   "controllerBranch": "main",
@@ -163,7 +163,7 @@
     {
       "id": "WATER-W9-L2",
       "title": "附加条件、兜底目标与增长提示",
-      "status": "DISPATCHED",
+      "status": "BLOCKED",
       "slot": "w9-l2",
       "kind": "rust",
       "worktree": "F:/new/smaltalk/water/.worktrees/w9-l2",
@@ -284,7 +284,22 @@
         "GetVolumeInformationByHandleW",
         "SHGetKnownFolderPath"
       ],
-      "dispatchEvidence": "user chat 2026-11-02 ~12:52 JST: \"第三单是grok，其他的都是sol\" (L1, L2, L4 to sol; L3 to grok); worker tree head/changed files 57ecd7ce/2 when recorded at 2026-11-02T03:52:06Z"
+      "dispatchEvidence": "user chat 2026-11-02 ~12:52 JST: \"第三单是grok，其他的都是sol\" (L1, L2, L4 to sol; L3 to grok); worker tree head/changed files 57ecd7ce/2 when recorded at 2026-11-02T03:52:06Z",
+      "blockedAt": "2026-11-02T03:52:43Z",
+      "blockedCommit": "5431e81260ab81c4c1cd2cc75fa6c7860116564d",
+      "blockedReason": "ticket and worker rules section 3 say L2 fixtures are plain files and directories only, but the existing five tests already build a junction (cmd /c mklink /J, helper junction at base line 109, used by scan_reparse_budget_cancel and check_single_walk) and a hard link (cmd /c mklink /H, hard_link at base line 1244, used by check_unique_bytes); the worker stopped before implementing",
+      "workerSelfReport": "Codex (GPT-6)",
+      "addenda": [
+        {
+          "id": "WATER-W9-L2-ADDENDUM-01",
+          "ticket": "docs/dispatch/tickets/WATER-W9-L2-ADDENDUM-01-20261102.md",
+          "status": "READY",
+          "issuedAt": "2026-11-02T03:55:44Z",
+          "resumeFromCommit": "5431e81260ab81c4c1cd2cc75fa6c7860116564d",
+          "change": "the plain-files-only rule binds only the fixtures L2 adds (SCAN_M3D_CONDITIONS); the existing junction and hard-link fixtures run unchanged as in W8-K3; still no symbolic links, fixtures only under .local/; no new authorized assertion changes; no baseline rerun",
+          "dispatchedAt": null
+        }
+      ]
     },
     {
       "kind": "service",
