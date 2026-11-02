@@ -1,0 +1,816 @@
+<!doctype html>
+<html lang="zh-CN">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Water 界面设计稿 v2</title>
+<style>
+/* Design mockup only (wave 10 redesign draft). Material and tokens are v1 (docs/design/water-ui-v1, revision 2);
+   layout, navigation, buttons, menus and interaction follow docs/design/water-ui-v2/DESIGN.md. */
+:root{--w-ink:#10263F;--w-ink-2:rgba(16,38,63,.66);--w-ink-3:rgba(16,38,63,.48);--w-ink-4:rgba(16,38,63,.28);--w-hairline:rgba(16,38,63,.07);
+--w-glass:rgba(255,255,255,.74);--w-glass-strong:rgba(255,255,255,.88);
+--w-glass-shadow:inset 0 1px 0 rgba(255,255,255,.95),0 0 0 1px rgba(255,255,255,.7),0 1px 2px rgba(16,38,63,.04),0 14px 34px -18px rgba(16,38,63,.16);
+--w-glass-shadow-raised:inset 0 1px 0 #fff,0 0 0 1px rgba(255,255,255,.8),0 2px 6px rgba(16,38,63,.05),0 30px 70px -30px rgba(16,38,63,.28);
+--w-accent:#1F6FD1;--w-accent-hover:#1A62BA;--w-accent-soft:#E4EFFB;--w-water:#9CCBF4;--w-water-deep:#6EAEEB;--w-water-back:#D5E8FA;--w-water-free:#CFEDE6;
+--w-level-recommended:#2A9D8F;--w-level-confirm:#D49A3E;--w-level-advisory:#9AA7B6;--w-level-protected:#8E84D8;--w-growth:#B5652A;--w-danger:#C23B45;--w-success:#2A8F6E;
+--w-font:"Segoe UI Variable Text","Segoe UI","Microsoft YaHei UI","PingFang SC",system-ui,sans-serif;--w-font-display:"Segoe UI Variable Display","Segoe UI","Microsoft YaHei UI",system-ui,sans-serif;--w-font-mono:"Cascadia Mono",Consolas,monospace;
+--w-ease:cubic-bezier(.22,.8,.2,1);--grain:url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='180' height='180'%3E%3Cfilter id='n'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='.85' numOctaves='2' stitchTiles='stitch'/%3E%3CfeColorMatrix values='0 0 0 0 0.06 0 0 0 0 0.15 0 0 0 0 0.25 0 0 0 1 0'/%3E%3C/filter%3E%3Crect width='100%25' height='100%25' filter='url(%23n)'/%3E%3C/svg%3E")}
+*{box-sizing:border-box}html,body{margin:0}
+body{min-height:100vh;font:14px/1.6 var(--w-font);color:var(--w-ink);padding:18px 24px 28px;font-feature-settings:"tnum";
+ background:radial-gradient(1100px 680px at 18% 6%,#DCEAF7 0%,transparent 62%),radial-gradient(900px 640px at 88% 92%,#E3EDF6 0%,transparent 60%),#EEF2F7}
+svg.i{width:18px;height:18px;fill:none;stroke:currentColor;stroke-width:1.5;stroke-linecap:round;stroke-linejoin:round;flex:none}
+button{font:inherit;color:inherit}
+code{font-family:var(--w-font-mono);font-size:.92em}
+/* design-only screen switcher */
+.mock-bar{max-width:1240px;margin:0 auto 14px;display:flex;flex-wrap:wrap;gap:2px;align-items:center;padding:5px;border-radius:999px;background:rgba(255,255,255,.7);backdrop-filter:blur(20px);box-shadow:var(--w-glass-shadow);width:max-content}
+.mock-bar strong{font-size:12px;color:var(--w-ink-3);padding:0 10px 0 12px;font-weight:500}
+.mock-bar button{border:0;background:none;border-radius:999px;padding:5px 12px;font-size:12.5px;color:var(--w-ink-2);cursor:pointer}
+.mock-bar button[aria-pressed=true]{background:#fff;color:var(--w-ink);box-shadow:0 1px 3px rgba(16,38,63,.12)}
+/* window */
+.window{max-width:1240px;height:820px;margin:0 auto;border-radius:12px;position:relative;overflow:hidden;display:flex;flex-direction:column;
+ background:rgba(248,250,253,.86);backdrop-filter:blur(60px) saturate(130%);box-shadow:0 0 0 1px rgba(16,38,63,.08),0 40px 90px -30px rgba(16,38,63,.35)}
+.ambient{position:absolute;inset:0;pointer-events:none;overflow:hidden}
+.orb{position:absolute;border-radius:50%;filter:blur(40px)}
+.orb.a{width:760px;height:560px;left:120px;top:-300px;background:radial-gradient(closest-side,rgba(198,224,248,.75),rgba(198,224,248,0))}
+.orb.b{width:640px;height:640px;right:-220px;top:180px;background:radial-gradient(closest-side,rgba(214,230,246,.6),rgba(214,230,246,0))}
+.orb.c{width:680px;height:480px;left:340px;bottom:-320px;background:radial-gradient(closest-side,rgba(222,236,248,.55),rgba(222,236,248,0))}
+.grain{position:absolute;inset:0;background-image:var(--grain);opacity:.05;mix-blend-mode:multiply}
+.titlebar{position:relative;z-index:2;height:40px;display:flex;align-items:center;justify-content:flex-end;flex:none}
+.titlebar span{width:46px;height:40px;display:grid;place-items:center;color:var(--w-ink-2)}.titlebar svg{width:14px;height:14px}
+.app{position:relative;z-index:1;flex:1;display:flex;min-height:0;margin-top:-40px}
+/* sidebar: four items on top, settings at the bottom */
+.sidebar{width:216px;padding:14px 12px 16px;display:flex;flex-direction:column;flex:none;background:rgba(255,255,255,.28);box-shadow:inset -1px 0 0 rgba(16,38,63,.05)}
+.brand{display:flex;align-items:center;gap:11px;padding:4px 10px 26px;color:var(--w-ink)}
+.brand b{font-family:var(--w-font-display);font-weight:600;font-size:19px;letter-spacing:-.01em}
+.brand small{display:block;font-size:11.5px;color:var(--w-ink-3);margin-top:-1px}
+.nav a{display:flex;align-items:center;gap:12px;height:40px;padding:0 14px;border-radius:11px;color:var(--w-ink-2);text-decoration:none;margin-bottom:3px;cursor:pointer}
+.nav a:hover{background:rgba(255,255,255,.55)}
+.nav a.on{color:var(--w-ink);font-weight:600;background:rgba(255,255,255,.9);box-shadow:0 0 0 1px rgba(16,38,63,.05),0 2px 8px -4px rgba(16,38,63,.12)}
+.nav a.on svg{color:var(--w-accent)}
+.nav a .badge{margin-left:auto;font-size:11.5px;color:var(--w-ink-3);font-weight:500}
+.side-bottom{margin-top:auto}
+.side-note{font-size:11.5px;color:var(--w-ink-3);padding:10px 14px 4px;line-height:1.6}
+.dotlive{display:inline-block;width:6px;height:6px;border-radius:50%;background:var(--w-level-recommended);margin-right:6px;vertical-align:1px}
+.main{flex:1;overflow:auto;position:relative;padding-top:40px}
+.page{max-width:1000px;margin:0 auto;padding:20px 36px 60px}
+.screen{display:none}.screen.on{display:block;animation:rise .4s var(--w-ease)}
+@keyframes rise{from{opacity:0;transform:translateY(6px)}to{opacity:1;transform:none}}
+h1{font-family:var(--w-font-display);font-weight:600;font-size:26px;letter-spacing:-.02em;line-height:1.25;margin:0 0 6px}
+h2{font-size:15px;font-weight:600;margin:0}
+.sub{color:var(--w-ink-2);margin:0}.cap{color:var(--w-ink-3);font-size:12.5px}
+.sect{display:flex;align-items:baseline;gap:10px;margin:30px 0 12px}.sect h2{font-size:16px}.sect .cap{font-size:13px}
+.glass{position:relative;background:var(--w-glass);backdrop-filter:blur(36px) saturate(125%);border-radius:20px;box-shadow:var(--w-glass-shadow)}
+.glass::after{content:"";position:absolute;inset:0;border-radius:inherit;pointer-events:none;background-image:var(--grain);opacity:.05}
+.glass>*{position:relative;z-index:1}
+/* buttons (DESIGN v2 §4) */
+.btn{display:inline-flex;align-items:center;justify-content:center;gap:8px;height:40px;padding:0 22px;border-radius:999px;border:0;font-weight:600;cursor:pointer;white-space:nowrap;transition:background .2s,transform .2s var(--w-ease),box-shadow .2s}
+.btn:active{transform:scale(.98)}
+.btn:focus-visible,.chip:focus-visible,.more:focus-visible,.link:focus-visible{outline:none;box-shadow:0 0 0 3px rgba(31,111,209,.28)}
+.btn-primary{color:#fff;background:var(--w-accent);box-shadow:inset 0 1px 0 rgba(255,255,255,.22),0 6px 16px -8px rgba(31,111,209,.55)}
+.btn-primary:hover{background:var(--w-accent-hover)}
+.btn-primary[disabled]{background:rgba(16,38,63,.16);box-shadow:none;cursor:default}
+.btn-glass{color:var(--w-ink);background:rgba(255,255,255,.9);box-shadow:0 0 0 1px rgba(16,38,63,.08),0 1px 2px rgba(16,38,63,.05)}
+.btn-glass:hover{background:#fff}
+.btn-sm{height:32px;padding:0 16px;font-size:13px}
+.btn-outline{color:var(--w-accent);background:rgba(255,255,255,.7);box-shadow:inset 0 0 0 1.2px rgba(31,111,209,.55)}
+.btn-outline:hover{background:var(--w-accent-soft)}
+.btn-danger{color:#fff;background:var(--w-danger);box-shadow:inset 0 1px 0 rgba(255,255,255,.2),0 6px 16px -8px rgba(194,59,69,.55)}
+.link{border:0;background:none;padding:2px 4px;border-radius:6px;color:var(--w-accent);font-weight:600;cursor:pointer;display:inline-flex;align-items:center;gap:4px}
+.link:hover{text-decoration:underline;text-underline-offset:3px}
+.link.danger{color:var(--w-danger)}
+.link svg{width:15px;height:15px}
+/* the "⋯" button and its menu */
+.more{width:28px;height:28px;border-radius:50%;border:0;background:transparent;display:grid;place-items:center;color:var(--w-ink-3);cursor:pointer;flex:none}
+.more:hover,.more[aria-expanded=true]{background:rgba(16,38,63,.06);color:var(--w-ink)}
+.more svg{width:16px;height:16px}
+.menu{position:fixed;z-index:40;min-width:176px;padding:6px;border-radius:14px;background:rgba(255,255,255,.94);backdrop-filter:blur(40px) saturate(130%);box-shadow:var(--w-glass-shadow-raised);display:none}
+.menu.on{display:block;animation:pop .16s var(--w-ease)}
+@keyframes pop{from{opacity:0;transform:translateY(-4px)}to{opacity:1;transform:none}}
+.menu button{display:flex;width:100%;align-items:center;gap:10px;border:0;background:none;padding:8px 12px;border-radius:9px;font-size:13.5px;text-align:left;cursor:pointer;color:var(--w-ink)}
+.menu button:hover{background:var(--w-accent-soft)}
+.menu button svg{width:16px;height:16px;color:var(--w-ink-2)}
+.menu button.danger{color:var(--w-danger)}.menu button.danger svg{color:var(--w-danger)}
+.menu hr{border:0;height:1px;background:var(--w-hairline);margin:4px 6px}
+/* level dot */
+.lv{display:inline-flex;align-items:center;gap:7px;font-size:12.5px;color:var(--w-ink-2);white-space:nowrap}
+.lv i{width:7px;height:7px;border-radius:50%}
+.lv.rec i,.dot.rec{background:var(--w-level-recommended)}.lv.con i,.dot.con{background:var(--w-level-confirm)}.lv.adv i,.dot.adv{background:var(--w-level-advisory)}.lv.pro i,.dot.pro{background:var(--w-level-protected)}
+.dot{display:inline-block;width:7px;height:7px;border-radius:50%;flex:none}
+.ck{width:18px;height:18px;border-radius:6px;flex:none;background:#fff;box-shadow:inset 0 0 0 1.3px rgba(16,38,63,.24);display:grid;place-items:center;cursor:pointer;border:0;padding:0}
+.ck.on{background:var(--w-accent);box-shadow:none}
+.ck.on::after{content:"";width:8px;height:4.5px;border:2px solid #fff;border-top:0;border-right:0;transform:rotate(-45deg) translate(1px,-1px)}
+.sw{width:40px;height:23px;border-radius:999px;flex:none;position:relative;background:var(--w-accent);border:0;cursor:pointer;padding:0;transition:background .2s}
+.sw::after{content:"";position:absolute;top:3px;left:20px;width:17px;height:17px;border-radius:50%;background:#fff;box-shadow:0 1px 3px rgba(0,0,0,.18);transition:left .2s var(--w-ease)}
+.sw.off{background:rgba(16,38,63,.16)}.sw.off::after{left:3px}
+.seg{display:inline-flex;padding:3px;border-radius:999px;background:rgba(16,38,63,.045)}
+.seg button{border:0;background:none;padding:6px 16px;border-radius:999px;font-size:13px;color:var(--w-ink-2);cursor:pointer}
+.seg button.on{background:#fff;color:var(--w-ink);font-weight:600;box-shadow:0 1px 3px rgba(16,38,63,.1)}
+.wave{animation:drift 8s linear infinite}.wave.b{animation-duration:13s}
+@keyframes drift{from{transform:translateX(0)}to{transform:translateX(-120px)}}
+
+/* HOME */
+.drives{display:grid;grid-template-columns:1.35fr 1fr 1fr 1fr;gap:12px;margin-top:20px}
+.drive{padding:16px 18px;display:flex;gap:14px;align-items:center}
+.drive .who{font-size:12.5px;color:var(--w-ink-3)}
+.drive .free{font-family:var(--w-font-display);font-weight:200;font-size:30px;letter-spacing:-.03em;line-height:1.1}
+.drive .free small{font-size:13px;font-weight:400;letter-spacing:0;color:var(--w-ink-2);margin-left:4px}
+.drive .bar{height:4px;border-radius:999px;background:rgba(16,38,63,.07);overflow:hidden;margin-top:8px}.drive .bar i{display:block;height:100%;border-radius:999px;background:var(--w-water-deep)}
+.drive .bar i.warn{background:#D99545}
+.composer{margin-top:16px;padding:28px 30px;display:grid;grid-template-columns:1fr auto;gap:30px;align-items:center}
+.composer h2{font-size:20px;font-family:var(--w-font-display);letter-spacing:-.01em}
+.chips{display:flex;flex-wrap:wrap;gap:10px;margin:16px 0 12px}
+.chip{display:inline-flex;align-items:center;gap:8px;height:38px;padding:0 16px;border-radius:999px;border:0;cursor:pointer;background:rgba(255,255,255,.85);box-shadow:0 0 0 1px rgba(16,38,63,.09);font-size:13.5px;color:var(--w-ink);transition:background .2s,box-shadow .2s}
+.chip:hover{background:#fff}
+.chip .tick{width:16px;height:16px;border-radius:50%;box-shadow:inset 0 0 0 1.3px rgba(16,38,63,.25);display:grid;place-items:center;flex:none}
+.chip.on{background:var(--w-accent-soft);box-shadow:0 0 0 1.2px rgba(31,111,209,.45);color:#164F98;font-weight:600}
+.chip.on .tick{background:var(--w-accent);box-shadow:none}
+.chip.on .tick::after{content:"";width:7px;height:4px;border:1.8px solid #fff;border-top:0;border-right:0;transform:rotate(-45deg) translate(.5px,-.5px)}
+.chip .hint{font-weight:400;color:var(--w-ink-3);font-size:12px}
+.chip.on .hint{color:rgba(22,79,152,.7)}
+.chip.add{background:transparent;box-shadow:inset 0 0 0 1.2px rgba(16,38,63,.18);color:var(--w-ink-2)}
+.chip.add svg{width:15px;height:15px}
+.chip-wrap{display:inline-flex;align-items:center;gap:2px}
+.chip.new{animation:pop .3s var(--w-ease)}
+.newnote{display:none;font-size:12.5px;color:#164F98;background:var(--w-accent-soft);border-radius:10px;padding:7px 12px;margin-bottom:6px;width:max-content}
+.newnote.on{display:block}
+.orb-btn{width:96px;height:96px;border-radius:50%;border:0;cursor:pointer;flex:none;position:relative;color:#fff;font:600 15px var(--w-font);background:var(--w-accent);box-shadow:inset 0 1px 0 rgba(255,255,255,.25),0 12px 26px -12px rgba(31,111,209,.65)}
+.orb-btn:hover{background:var(--w-accent-hover)}
+.orb-btn::before{content:"";position:absolute;inset:-9px;border-radius:50%;border:1px solid rgba(31,111,209,.22);animation:ripple 3.2s var(--w-ease) infinite}
+@keyframes ripple{from{transform:scale(.92);opacity:.9}to{transform:scale(1.35);opacity:0}}
+.reminders{display:grid;gap:10px;margin-top:14px}
+.remind{display:flex;align-items:center;gap:14px;padding:14px 20px}
+.remind .ic{width:32px;height:32px;border-radius:10px;display:grid;place-items:center;background:rgba(16,38,63,.04);color:var(--w-ink-2)}
+.remind .ic.warm{color:var(--w-growth);background:rgba(181,101,42,.08)}
+.remind .tx{flex:1}.remind .tx b{font-weight:600}
+
+/* SCAN */
+.scan-grid{display:grid;grid-template-columns:360px 1fr;gap:30px;margin-top:22px;align-items:center}
+.gauge{position:relative;width:320px;height:320px;margin:0 auto}
+.gauge .center{position:absolute;inset:0;display:flex;flex-direction:column;align-items:center;justify-content:center}
+.gauge .center b{font-family:var(--w-font-display);font-weight:200;font-size:54px;letter-spacing:-.04em;line-height:1}
+.steps{padding:6px}.step{display:grid;grid-template-columns:22px 1fr 140px 84px;gap:14px;align-items:center;padding:14px 18px}
+.step+.step{box-shadow:inset 0 1px 0 var(--w-hairline)}.step .ln{height:3px;border-radius:999px;background:rgba(16,38,63,.06);overflow:hidden}.step .ln i{display:block;height:100%;background:var(--w-accent);border-radius:999px}
+.step .v{text-align:right;color:var(--w-ink-2);font-size:13px}.st-ok{color:var(--w-level-recommended)}
+.spin{width:15px;height:15px;border-radius:50%;border:2px solid rgba(31,111,209,.18);border-top-color:var(--w-accent);animation:spin 1s linear infinite}@keyframes spin{to{transform:rotate(360deg)}}
+
+/* CONCLUSION */
+.scope-line{display:flex;align-items:center;gap:10px;color:var(--w-ink-2);font-size:13px}
+.scope-line b{color:var(--w-ink);font-weight:600}
+.scope-line .link{margin-left:auto}
+.hero{display:grid;grid-template-columns:1fr auto;gap:24px;align-items:end;margin:18px 0 6px}
+.eyebrow{font-size:13.5px;color:var(--w-ink-2);margin:0 0 2px}
+.kpi{font-family:var(--w-font-display);font-weight:200;font-size:88px;letter-spacing:-.05em;line-height:.95;color:var(--w-ink)}
+.kpi small{font-size:24px;font-weight:400;letter-spacing:0;margin-left:8px;color:var(--w-ink-2)}
+.makeup{margin-top:12px;color:var(--w-ink-2);font-size:13.5px;display:flex;gap:6px;flex-wrap:wrap;align-items:center}
+.makeup .sep{color:var(--w-ink-4)}
+.makeup .skip{color:var(--w-ink-3)}
+.hero-act{display:flex;flex-direction:column;align-items:flex-end;gap:10px;padding-bottom:6px}
+.hero-act .btn{height:46px;padding:0 28px;font-size:15px}
+.hero-act .plus{font-size:12.5px;color:var(--w-ink-3);min-height:20px}
+.include{margin-top:16px;padding:6px 0;display:none}
+.include.on{display:block;animation:rise .3s var(--w-ease)}
+.inc-row{display:grid;grid-template-columns:30px 1fr 110px 90px 44px;gap:12px;align-items:center;padding:11px 22px}
+.inc-row+.inc-row{box-shadow:inset 0 1px 0 var(--w-hairline)}
+.inc-row .ci{width:30px;height:30px;border-radius:9px;display:grid;place-items:center;color:var(--w-ink-2);background:#fff;box-shadow:0 0 0 1px rgba(16,38,63,.06)}
+.inc-row .ci svg{width:16px;height:16px}
+.inc-row .sz{text-align:right;font-family:var(--w-font-display);font-size:15px}
+.inc-row.off .nm,.inc-row.off .sz{color:var(--w-ink-4);text-decoration:line-through}
+.inc-row .cnt{font-size:12.5px;color:var(--w-ink-3);text-align:right}
+.cards{display:grid;grid-template-columns:1fr 1fr;gap:14px}
+.card{padding:18px 20px 16px;display:flex;flex-direction:column;gap:10px;min-height:168px;transition:opacity .2s}
+.card .top{display:flex;gap:10px;align-items:flex-start}
+.card .top .dot{margin-top:8px}
+.card .ttl{font-weight:600;font-size:14.5px;line-height:1.45;flex:1}
+.card .sz{font-family:var(--w-font-display);font-size:19px;letter-spacing:-.02em;white-space:nowrap}
+.card .ev{font-size:12.5px;color:var(--w-ink-3);line-height:1.55;padding-left:17px}
+.card .warn{font-size:12.5px;color:var(--w-growth);padding-left:17px;display:flex;gap:6px;align-items:center}
+.card .warn svg{width:14px;height:14px}
+.card .acts{margin-top:auto;display:flex;gap:10px;align-items:center;padding-left:17px}
+.card .acts .btn{min-width:84px}
+.card.done{min-height:0;flex-direction:row;align-items:center;padding:12px 20px;gap:12px;grid-column:1 / -1}
+.card.done .ttl{font-size:13.5px}
+.card.done .state{font-size:13px;color:var(--w-ink-2);white-space:nowrap}
+.card.done .state b{color:var(--w-success);font-weight:600}
+.card.done.kept .state b{color:var(--w-ink-2)}
+.card.done .sz{font-size:15px}
+.more-left{font-size:12.5px;color:var(--w-ink-3);margin-top:10px}
+.clues{padding:6px 0}
+.clue{display:flex;align-items:center;gap:14px;padding:13px 22px}
+.clue+.clue{box-shadow:inset 0 1px 0 var(--w-hairline)}
+.clue .ic{width:30px;height:30px;border-radius:9px;display:grid;place-items:center;color:var(--w-ink-2);background:rgba(16,38,63,.04)}
+.clue .ic svg{width:16px;height:16px}
+.clue .tx{flex:1;font-size:13.5px;line-height:1.55}
+.clue .tx small{display:block;color:var(--w-ink-3);font-size:12.5px}
+.folds{display:grid;gap:10px;margin-top:30px}
+.fold{padding:0}
+.fold-h{display:flex;align-items:center;gap:12px;width:100%;border:0;background:none;padding:15px 22px;cursor:pointer;text-align:left;border-radius:20px}
+.fold-h .tx{flex:1;color:var(--w-ink-2)}.fold-h .tx b{color:var(--w-ink);font-weight:600}
+.fold-h .chev{color:var(--w-ink-4);transition:transform .2s var(--w-ease)}
+.fold.on .fold-h .chev{transform:rotate(90deg)}
+.fold-b{display:none;padding:0 22px 12px}
+.fold.on .fold-b{display:block}
+.mini-row{display:grid;grid-template-columns:1fr 150px 80px 16px;gap:12px;align-items:center;padding:9px 0;font-size:13.5px;cursor:pointer}
+.mini-row+.mini-row{box-shadow:inset 0 1px 0 var(--w-hairline)}
+.mini-row .loc{font-size:12px;color:var(--w-ink-3)}
+.mini-row .sz{text-align:right;font-family:var(--w-font-display)}
+.mini-row .chev{color:var(--w-ink-4)}
+.foot-link{text-align:center;margin-top:22px}
+
+/* DETAILS */
+.toolbar{display:flex;align-items:center;gap:12px;margin:18px 0 14px}
+.search{flex:1;max-width:320px;height:36px;border-radius:999px;display:flex;align-items:center;gap:8px;padding:0 14px;background:rgba(255,255,255,.85);box-shadow:0 0 0 1px rgba(16,38,63,.08);color:var(--w-ink-3);font-size:13px}
+.search svg{width:15px;height:15px}
+.dsect{margin-bottom:14px;padding:6px 0}
+.dsect-h{display:flex;align-items:center;gap:10px;padding:12px 22px 6px;font-size:13px;color:var(--w-ink-2)}
+.dsect-h b{color:var(--w-ink);font-weight:600;font-size:14px}
+.drow{display:grid;grid-template-columns:18px 1fr 132px 98px 80px 16px;gap:14px;align-items:center;padding:11px 22px;margin:0 6px;border-radius:12px;cursor:pointer}
+.drow:hover{background:rgba(255,255,255,.7)}
+.drow+.drow{box-shadow:inset 0 1px 0 var(--w-hairline)}.drow:hover+.drow{box-shadow:none}
+.drow .t{font-weight:600;font-size:13.5px}.drow .m{font-size:12px;color:var(--w-ink-3)}
+.tag{display:inline-block;font-size:11.5px;color:var(--w-ink-2);background:rgba(16,38,63,.05);border-radius:6px;padding:1px 7px;max-width:132px;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
+.drow .sz{text-align:right;font-family:var(--w-font-display);font-size:15px}
+.drow .chev{color:var(--w-ink-4)}
+.drow.muted .t,.drow.muted .sz{color:var(--w-ink-2)}
+.dbar{position:sticky;bottom:18px;margin:16px auto 0;width:max-content;display:flex;align-items:center;gap:18px;padding:8px 8px 8px 22px;border-radius:999px;background:rgba(255,255,255,.9);backdrop-filter:blur(40px) saturate(130%);box-shadow:var(--w-glass-shadow-raised);z-index:5;font-size:13px;color:var(--w-ink-2)}
+.dbar b{font-family:var(--w-font-display);font-weight:500;font-size:17px;color:var(--w-ink)}
+
+/* overlays */
+.scrim{position:absolute;inset:40px 0 0 0;background:rgba(232,238,245,.38);backdrop-filter:blur(2px);z-index:10;display:none}
+.scrim.on{display:block}
+.drawer{position:absolute;top:48px;right:12px;bottom:12px;width:480px;z-index:11;border-radius:22px;padding:24px 26px;overflow:auto;background:var(--w-glass-strong);backdrop-filter:blur(50px) saturate(130%);box-shadow:var(--w-glass-shadow-raised);display:none}
+.drawer.on{display:block;animation:slide .22s var(--w-ease)}
+@keyframes slide{from{opacity:0;transform:translateX(16px)}to{opacity:1;transform:none}}
+.drawer .x{position:absolute;top:16px;right:16px}
+.drawer h3{font-size:19px;margin:6px 0 4px;font-family:var(--w-font-display);font-weight:600;letter-spacing:-.01em}
+.drawer .big{font-family:var(--w-font-display);font-weight:200;font-size:40px;letter-spacing:-.03em;line-height:1.1;margin:10px 0 2px}
+.facts{margin:16px 0;border-radius:14px;background:rgba(16,38,63,.03);padding:4px 0}
+.facts div{display:grid;grid-template-columns:96px 1fr;gap:10px;padding:9px 16px;font-size:13px}
+.facts div+div{box-shadow:inset 0 1px 0 var(--w-hairline)}
+.facts span{color:var(--w-ink-3)}
+.items{border-radius:14px;background:rgba(16,38,63,.025);padding:2px 0}
+.item{display:grid;grid-template-columns:18px 1fr 64px 28px;gap:10px;align-items:center;padding:9px 10px 9px 14px;font-size:12.5px}
+.item+.item{box-shadow:inset 0 1px 0 var(--w-hairline)}
+.item code{font-size:12px;color:var(--w-ink-2);overflow:hidden;text-overflow:ellipsis;white-space:nowrap;display:block}
+.item small{display:block;color:var(--w-ink-3);font-size:11.5px}
+.item .s{text-align:right;color:var(--w-ink)}
+.item.busy code{color:var(--w-ink-4)}
+.item .na{width:18px;height:18px;display:grid;place-items:center;color:var(--w-ink-4)}
+.item .na svg{width:14px;height:14px}
+.drawer-foot{margin-top:14px;font-size:13px;color:var(--w-ink-2)}
+.dialog{position:absolute;left:50%;top:50%;transform:translate(-50%,-50%);width:540px;z-index:11;border-radius:24px;padding:28px 28px 22px;background:var(--w-glass-strong);backdrop-filter:blur(50px) saturate(130%);box-shadow:var(--w-glass-shadow-raised);display:none}
+.dialog.on{display:block;animation:pop .22s var(--w-ease)}
+.dialog h2{font-family:var(--w-font-display);font-size:24px;letter-spacing:-.02em}
+.block{margin-top:16px;border-radius:16px;background:rgba(16,38,63,.03);padding:14px 16px}
+.block .bh{display:flex;align-items:baseline;gap:10px}
+.block .bh b{font-weight:600}
+.block .bh .v{margin-left:auto;font-family:var(--w-font-display);font-size:18px}
+.block .bs{font-size:12.5px;color:var(--w-ink-3);margin:2px 0 8px}
+.block .li{display:flex;justify-content:space-between;font-size:13px;padding:4px 0;color:var(--w-ink-2)}
+.skipline{display:flex;gap:10px;align-items:flex-start;margin-top:14px;font-size:13px;color:var(--w-ink-2)}
+.skipline svg{color:var(--w-level-confirm);margin-top:2px}
+.dlg-acts{display:flex;justify-content:flex-end;gap:10px;margin-top:22px}
+
+/* DONE */
+.done-hero{display:grid;grid-template-columns:1fr auto;gap:30px;align-items:center;padding:30px 34px;margin-top:18px}
+.done-hero .kpi{font-size:76px}
+.vials{display:flex;gap:26px}.vial-cap{text-align:center;font-size:12.5px;color:var(--w-ink-3);margin-top:6px}.vial-cap b{display:block;color:var(--w-ink);font-size:13.5px}
+.reslist{margin-top:14px;padding:6px 0}
+.reslist div{display:grid;grid-template-columns:22px 1fr auto;gap:14px;align-items:center;padding:12px 24px;font-size:13.5px}
+.reslist div+div{box-shadow:inset 0 1px 0 var(--w-hairline)}
+.ok{color:var(--w-success)}.part{color:var(--w-level-confirm)}
+.acts-row{display:flex;gap:12px;align-items:center;margin-top:22px}
+
+/* QUARANTINE */
+.qcard{padding:18px 22px;margin-bottom:12px}
+.qcard .qh{display:flex;align-items:center;gap:14px}
+.qcard .qh .tx{flex:1}.qcard .qh .tx b{font-weight:600}
+.qcard .qh .v{font-family:var(--w-font-display);font-size:22px;font-weight:300;letter-spacing:-.02em}
+.qcard .aged{margin:0 0 10px;font-size:12.5px;color:var(--w-growth);display:flex;gap:6px;align-items:center}
+.qcard .aged svg{width:14px;height:14px}
+.qlist{margin-top:12px;border-radius:12px;background:rgba(16,38,63,.025)}
+.qlist div{display:grid;grid-template-columns:1fr 80px;gap:10px;padding:8px 14px;font-size:12.5px}
+.qlist div+div{box-shadow:inset 0 1px 0 var(--w-hairline)}
+.qlist code{color:var(--w-ink-2);font-size:12px}
+.qlist .s{text-align:right}
+
+/* TRENDS */
+.fc{display:grid;grid-template-columns:repeat(4,1fr);gap:12px;margin-top:18px}
+.fc .glass{padding:16px 18px}
+.fc .d{font-weight:600}
+.fc .n{font-family:var(--w-font-display);font-weight:200;font-size:30px;letter-spacing:-.03em;line-height:1.15;margin-top:4px}
+.fc .n small{font-size:13px;font-weight:400;letter-spacing:0;color:var(--w-ink-2);margin-left:3px}
+.fc .warnc .n{color:var(--w-growth)}
+.fc .note{font-size:12.5px;color:var(--w-ink-3)}
+.fc .muted .n{font-size:16px;font-weight:400;color:var(--w-ink-2);letter-spacing:0;margin-top:10px}
+.grows{padding:6px 0}
+.grow-row{display:grid;grid-template-columns:1fr 120px 92px 28px;gap:14px;align-items:center;padding:13px 22px}
+.grow-row+.grow-row{box-shadow:inset 0 1px 0 var(--w-hairline)}
+.grow-row .t{font-weight:600;font-size:13.5px}.grow-row .m{font-size:12px;color:var(--w-ink-3)}
+.grow-row .rate{text-align:right;font-size:13px;color:var(--w-growth);font-weight:600}
+.grow-row .rate.flat{color:var(--w-ink-3);font-weight:400}
+.st{font-size:12.5px;display:inline-flex;align-items:center;gap:6px;color:var(--w-ink-2)}
+.st i{width:7px;height:7px;border-radius:50%}
+.st.live i{background:var(--w-growth)}.st.fixed i{background:var(--w-success)}.st.maybe i{background:var(--w-level-advisory)}
+
+/* RECORDS */
+.rec{padding:6px 0}
+.rec div{display:grid;grid-template-columns:22px 1fr auto 16px;gap:14px;align-items:center;padding:14px 22px;font-size:13.5px}
+.rec div+div{box-shadow:inset 0 1px 0 var(--w-hairline)}
+.rec small{display:block;color:var(--w-ink-3);font-size:12.5px}
+.rec .v{text-align:right;font-family:var(--w-font-display);font-size:17px}
+.rec .v small{font-family:var(--w-font);text-align:right}
+.rec .chev{color:var(--w-ink-4)}
+
+/* SETTINGS */
+.set{display:grid;grid-template-columns:180px 1fr;gap:20px;margin-top:20px}
+.setnav{display:flex;flex-direction:column;gap:2px}
+.setnav button{border:0;background:none;text-align:left;padding:9px 14px;border-radius:10px;font-size:13.5px;color:var(--w-ink-2);cursor:pointer}
+.setnav button.on{background:rgba(255,255,255,.9);color:var(--w-ink);font-weight:600;box-shadow:0 0 0 1px rgba(16,38,63,.05)}
+.panel{display:none}.panel.on{display:block}
+.srow{display:flex;align-items:center;gap:16px;padding:14px 22px}
+.srow+.srow{box-shadow:inset 0 1px 0 var(--w-hairline)}
+.srow .ci{width:32px;height:32px;border-radius:10px;display:grid;place-items:center;color:var(--w-ink-2);background:#fff;box-shadow:0 0 0 1px rgba(16,38,63,.06)}
+.srow .tx{flex:1}.srow .tx b{font-weight:600;font-size:13.5px}.srow .tx small{display:block;color:var(--w-ink-3);font-size:12.5px}
+.decl{padding:20px 22px}
+.decl .dl{display:grid;grid-template-columns:1fr 1fr;gap:10px;margin:14px 0}
+.decl .dl div{border-radius:12px;background:rgba(16,38,63,.03);padding:10px 14px;font-size:12.5px;color:var(--w-ink-2)}
+.decl .dl b{display:block;color:var(--w-ink);font-size:13px;margin-bottom:2px}
+</style>
+</head>
+<body>
+<svg width="0" height="0" style="position:absolute">
+ <defs>
+  <linearGradient id="g-liquid" x1="0" y1="0" x2="0" y2="1"><stop offset="0" stop-color="#A7D1F6"/><stop offset="1" stop-color="#78B3EB"/></linearGradient>
+  <linearGradient id="g-free" x1="0" y1="0" x2="0" y2="1"><stop offset="0" stop-color="#CFEDE6"/><stop offset="1" stop-color="#B3E2D7"/></linearGradient>
+  <linearGradient id="g-glassv" x1="0" y1="0" x2="1" y2="0"><stop offset="0" stop-color="#fff" stop-opacity=".55"/><stop offset=".16" stop-color="#fff" stop-opacity=".08"/><stop offset=".84" stop-color="#fff" stop-opacity="0"/><stop offset="1" stop-color="#fff" stop-opacity=".3"/></linearGradient>
+  <symbol id="i-berg" viewBox="0 0 48 48"><mask id="berg-facets" maskUnits="userSpaceOnUse" x="0" y="0" width="48" height="48"><rect width="48" height="48" fill="#fff"/><path d="M24 23.5 L21.5 39 M24 23.5 L35 31.5" stroke="#000" stroke-width="1.4" fill="none"/></mask><path d="M19.5 17 L24.5 8.5 L27 12 L29.5 17 Z" fill="currentColor" stroke="none"/><path d="M4.5 20 H43.5" fill="none" stroke="currentColor" stroke-width="2.4" stroke-linecap="round"/><path d="M10 23.5 H38 L35 31.5 L28.5 42.5 L21.5 39 L14 32 Z" fill="currentColor" stroke="none" mask="url(#berg-facets)"/></symbol>
+  <symbol id="i-pulse" viewBox="0 0 24 24"><path d="M3.5 12.5h3.8l2.1-4.8 3.4 9.3 2.3-6 1.3 1.5h4.1"/></symbol>
+  <symbol id="i-trend" viewBox="0 0 24 24"><path d="M3.5 16.5 9 11l3.5 3.5L20.5 6.5"/><path d="M15 6.5h5.5V12"/></symbol>
+  <symbol id="i-history" viewBox="0 0 24 24"><path d="M4 12a8 8 0 1 0 2.4-5.7L4 8.6"/><path d="M4 4v4.6h4.6"/><path d="M12 8v4.2l2.8 1.8"/></symbol>
+  <symbol id="i-vault" viewBox="0 0 24 24"><rect x="3.5" y="6.5" width="17" height="13" rx="2.5"/><path d="M3.5 10.5h17M9.5 14h5"/><path d="M6 6.5 7.5 4h9L18 6.5"/></symbol>
+  <symbol id="i-gear" viewBox="0 0 24 24"><circle cx="12" cy="12" r="3"/><path d="M12 3.5v2.2M12 18.3v2.2M20.5 12h-2.2M5.7 12H3.5M18 6l-1.6 1.6M7.6 16.4 6 18M18 18l-1.6-1.6M7.6 7.6 6 6"/></symbol>
+  <symbol id="i-folder" viewBox="0 0 24 24"><path d="M3.5 7.5a2 2 0 0 1 2-2h3.8l2 2.2h7.2a2 2 0 0 1 2 2V17a2 2 0 0 1-2 2h-13a2 2 0 0 1-2-2Z"/></symbol>
+  <symbol id="i-chip" viewBox="0 0 24 24"><rect x="6.5" y="6.5" width="11" height="11" rx="2.5"/><path d="M10 3.5v3M14 3.5v3M10 17.5v3M14 17.5v3M3.5 10h3M3.5 14h3M17.5 10h3M17.5 14h3"/></symbol>
+  <symbol id="i-globe" viewBox="0 0 24 24"><circle cx="12" cy="12" r="8.5"/><path d="M3.5 12h17M12 3.5c2.4 2.4 3.5 5.2 3.5 8.5s-1.1 6.1-3.5 8.5c-2.4-2.4-3.5-5.2-3.5-8.5S9.6 5.9 12 3.5Z"/></symbol>
+  <symbol id="i-hourglass" viewBox="0 0 24 24"><path d="M7 3.5h10M7 20.5h10M8 3.5c0 4.3 4 5.2 4 8.5s-4 4.2-4 8.5M16 3.5c0 4.3-4 5.2-4 8.5s4 4.2 4 8.5"/></symbol>
+  <symbol id="i-code" viewBox="0 0 24 24"><path d="m8.5 8-4 4 4 4M15.5 8l4 4-4 4M13.3 5.5l-2.6 13"/></symbol>
+  <symbol id="i-box" viewBox="0 0 24 24"><path d="M4 7.5 12 3.5l8 4v9L12 20.5l-8-4Z"/><path d="M4 7.5l8 4 8-4M12 11.5v9"/></symbol>
+  <symbol id="i-warn" viewBox="0 0 24 24"><path d="M12 4 21 19.5H3Z"/><path d="M12 10v4.2M12 17h.01"/></symbol>
+  <symbol id="i-gpu" viewBox="0 0 24 24"><rect x="3.5" y="6.5" width="17" height="11" rx="2"/><circle cx="9" cy="12" r="2.5"/><path d="M14 10h3.5M14 13.5h3.5M6 17.5v2M10 17.5v2"/></symbol>
+  <symbol id="i-chev" viewBox="0 0 24 24"><path d="m9.5 6 6 6-6 6"/></symbol>
+  <symbol id="i-back" viewBox="0 0 24 24"><path d="m14.5 6-6 6 6 6"/></symbol>
+  <symbol id="i-check" viewBox="0 0 24 24"><path d="m5 12.5 4.5 4.5L19 7.5"/></symbol>
+  <symbol id="i-copy" viewBox="0 0 24 24"><rect x="8.5" y="8.5" width="11" height="11" rx="2.5"/><path d="M15.5 8.5V6a2 2 0 0 0-2-2H6a2 2 0 0 0-2 2v7.5a2 2 0 0 0 2 2h2.5"/></symbol>
+  <symbol id="i-plus" viewBox="0 0 24 24"><path d="M12 5v14M5 12h14"/></symbol>
+  <symbol id="i-more" viewBox="0 0 24 24"><circle cx="6" cy="12" r="1.2" fill="currentColor"/><circle cx="12" cy="12" r="1.2" fill="currentColor"/><circle cx="18" cy="12" r="1.2" fill="currentColor"/></symbol>
+  <symbol id="i-x" viewBox="0 0 24 24"><path d="m6.5 6.5 11 11M17.5 6.5l-11 11"/></symbol>
+  <symbol id="i-skip" viewBox="0 0 24 24"><circle cx="12" cy="12" r="8.5"/><path d="m6 6 12 12"/></symbol>
+  <symbol id="i-eye" viewBox="0 0 24 24"><path d="M2.5 12S6 5.5 12 5.5 21.5 12 21.5 12 18 18.5 12 18.5 2.5 12 2.5 12Z"/><circle cx="12" cy="12" r="2.8"/></symbol>
+  <symbol id="i-agent" viewBox="0 0 24 24"><rect x="4.5" y="7.5" width="15" height="11" rx="3"/><path d="M12 4v3.5M9 12.5h.01M15 12.5h.01M9.5 15.5h5"/></symbol>
+  <symbol id="i-branch" viewBox="0 0 24 24"><circle cx="7" cy="6" r="2"/><circle cx="7" cy="18" r="2"/><circle cx="17" cy="9" r="2"/><path d="M7 8v8M17 11c0 3-4 3.5-8.6 5.4"/></symbol>
+  <symbol id="i-restore" viewBox="0 0 24 24"><path d="M4.5 12a7.5 7.5 0 1 0 2.2-5.3L4.5 9"/><path d="M4.5 4.5V9H9"/></symbol>
+  <symbol id="i-search" viewBox="0 0 24 24"><circle cx="11" cy="11" r="6.5"/><path d="m16 16 4 4"/></symbol>
+  <symbol id="i-flag" viewBox="0 0 24 24"><path d="M5.5 20.5v-16M5.5 4.5h11l-2 4 2 4h-11"/></symbol>
+  <symbol id="i-lock" viewBox="0 0 24 24"><rect x="5.5" y="10.5" width="13" height="9.5" rx="2.5"/><path d="M8.5 10.5V8a3.5 3.5 0 0 1 7 0v2.5"/></symbol>
+  <symbol id="i-info" viewBox="0 0 24 24"><circle cx="12" cy="12" r="8.5"/><path d="M12 11v5M12 8h.01"/></symbol>
+ </defs>
+</svg>
+
+<div class="mock-bar" role="toolbar" aria-label="设计稿画面切换（仅设计稿使用）">
+ <strong>设计稿 v2</strong>
+ <button data-go="home">首页</button><button data-go="home-new">加了文件夹</button><button data-go="scan">体检中</button><button data-go="results">结论</button><button data-go="results-open">结论·展开</button><button data-go="results-decided">结论·已决定</button><button data-go="menu">⋯ 菜单</button><button data-go="drawer">分组抽屉</button><button data-go="details">明细</button><button data-go="confirm">确认</button><button data-go="done">完成</button><button data-go="quarantine">隔离区</button><button data-go="trends">趋势</button><button data-go="records">记录</button><button data-go="settings">设置</button><button data-go="settings-decl">项目声明</button>
+</div>
+
+<div class="window">
+ <div class="ambient" aria-hidden="true"><div class="orb a"></div><div class="orb b"></div><div class="orb c"></div><div class="grain"></div></div>
+ <div class="titlebar" aria-hidden="true"><span><svg viewBox="0 0 14 14" stroke="currentColor"><path d="M2 7h10"/></svg></span><span><svg viewBox="0 0 14 14" fill="none" stroke="currentColor"><rect x="2.5" y="2.5" width="9" height="9" rx="1.5"/></svg></span><span><svg viewBox="0 0 14 14" stroke="currentColor"><path d="m3 3 8 8M11 3l-8 8"/></svg></span></div>
+ <div class="app">
+  <nav class="sidebar" aria-label="主导航">
+   <div class="brand"><svg width="30" height="30" viewBox="0 0 48 48"><use href="#i-berg"/></svg><div><b>Water</b><small>磁盘体检</small></div></div>
+   <div class="nav">
+    <a data-nav="check" class="on"><svg class="i"><use href="#i-pulse"/></svg>体检</a>
+    <a data-nav="quarantine"><svg class="i"><use href="#i-vault"/></svg>隔离区<span class="badge">4.8 GB</span></a>
+    <a data-nav="trends"><svg class="i"><use href="#i-trend"/></svg>趋势</a>
+    <a data-nav="records"><svg class="i"><use href="#i-history"/></svg>记录</a>
+   </div>
+   <div class="side-bottom">
+    <div class="nav"><a data-nav="settings"><svg class="i"><use href="#i-gear"/></svg>设置</a></div>
+    <div class="side-note"><span class="dotlive"></span>本地只读扫描 · 不上传数据<br><span style="opacity:.75">Water 0.2 设计稿</span></div>
+   </div>
+  </nav>
+
+  <main class="main" id="main">
+
+   <!-- HOME: choose where, then one button -->
+   <section class="screen" id="s-home"><div class="page">
+    <h1>这台电脑的空间，去了哪里</h1>
+    <p class="sub">只读取文件名、大小与时间，找出可以放心清掉的缓存和残留。</p>
+    <div class="drives">
+     <div class="glass drive">
+      <svg width="40" height="66" viewBox="0 0 40 66" aria-label="C 盘已用 69%"><defs><clipPath id="vc"><rect x="2" y="2" width="36" height="62" rx="14"/></clipPath></defs><rect x="2" y="2" width="36" height="62" rx="14" fill="rgba(255,255,255,.4)"/><g clip-path="url(#vc)"><g class="wave b"><path d="M-10 22 Q0 18 10 22 T30 22 T50 22 T70 22 T90 22 T110 22 T130 22 V80 H-10Z" fill="#D5E8FA"/></g><g class="wave"><path d="M-10 21 Q0 25 10 21 T30 21 T50 21 T70 21 T90 21 T110 21 T130 21 V80 H-10Z" fill="url(#g-liquid)"/></g></g><rect x="2" y="2" width="36" height="62" rx="14" fill="url(#g-glassv)" stroke="rgba(255,255,255,.85)" stroke-width="1.2"/></svg>
+      <div style="flex:1"><div class="who"><b style="color:var(--w-ink)">C</b> 系统盘</div><div class="free">77.0<small>GB 可用</small></div><div class="cap">共 250 GB</div></div>
+     </div>
+     <div class="glass drive"><div style="flex:1"><div class="who"><b style="color:var(--w-ink)">D</b> 本地磁盘</div><div class="free">23.6<small>GB</small></div><div class="bar"><i style="width:69%"></i></div></div></div>
+     <div class="glass drive"><div style="flex:1"><div class="who"><b style="color:var(--w-ink)">E</b> 本地磁盘</div><div class="free">20.3<small>GB</small></div><div class="bar"><i class="warn" style="width:91%"></i></div></div></div>
+     <div class="glass drive"><div style="flex:1"><div class="who"><b style="color:var(--w-ink)">F</b> 本地磁盘</div><div class="free">372.7<small>GB</small></div><div class="bar"><i style="width:61%"></i></div></div></div>
+    </div>
+
+    <div class="glass composer">
+     <div>
+      <h2>这次检查哪里？</h2>
+      <div class="chips" id="chips">
+       <button class="chip on" data-chip="common"><span class="tick"></span>C 盘常用位置<span class="hint">AI 工具、浏览器、临时文件等</span></button>
+       <button class="chip" data-chip="d"><span class="tick"></span>D 盘</button>
+       <button class="chip" data-chip="e"><span class="tick"></span>E 盘</button>
+       <button class="chip on" data-chip="f"><span class="tick"></span>F 盘</button>
+       <span class="chip-wrap"><button class="chip" data-chip="wt" title="F:\new\smaltalk\water\.worktrees"><span class="tick"></span>.worktrees</button><button class="more" data-menu="folder" aria-label="更多"><svg><use href="#i-more"/></svg></button></span>
+       <button class="chip add" id="add-folder"><svg class="i"><use href="#i-plus"/></svg>文件夹</button>
+      </div>
+      <div class="newnote" id="newnote">新加的位置单独体检，结果只看这个文件夹，不和常用位置混在一起。</div>
+      <div class="cap" id="scope-hint">C 盘常用位置会查哪些类别，可以在“设置 · 扫描内容”里改。</div>
+     </div>
+     <button class="orb-btn" id="start">开始体检</button>
+    </div>
+
+    <div class="reminders">
+     <div class="glass remind"><span class="ic"><svg class="i"><use href="#i-pulse"/></svg></span><div class="tx">上次体检 · 10 月 26 日 13:05 · 可放心清理 <b>31.2 GB</b></div><button class="btn btn-glass btn-sm" data-go="results">查看结果</button></div>
+     <div class="glass remind"><span class="ic warm"><svg class="i"><use href="#i-vault"/></svg></span><div class="tx">隔离区里有 <b>1.2 GB</b> 已经放了 7 天，确认没问题可以永久删除</div><button class="btn btn-glass btn-sm" data-go="quarantine">去看看</button></div>
+    </div>
+   </div></section>
+
+   <!-- SCANNING -->
+   <section class="screen" id="s-scan"><div class="page">
+    <h1>正在体检</h1><p class="sub">可以切到别的页面，体检会在后台继续。</p>
+    <div class="scan-grid">
+     <div class="gauge">
+      <svg width="320" height="320" viewBox="0 0 340 340">
+       <defs><clipPath id="gc"><circle cx="170" cy="170" r="132"/></clipPath></defs>
+       <circle cx="170" cy="170" r="152" fill="none" stroke="rgba(11,36,64,.07)" stroke-width="6"/>
+       <circle cx="170" cy="170" r="152" fill="none" stroke="#1F6FD1" stroke-width="6" stroke-linecap="round" stroke-dasharray="955" stroke-dashoffset="363" transform="rotate(-90 170 170)"/>
+       <circle cx="170" cy="170" r="132" fill="rgba(255,255,255,.4)"/>
+       <g clip-path="url(#gc)"><g class="wave b"><path d="M20 200 Q60 186 100 200 T180 200 T260 200 T340 200 T420 200 V360 H20Z" fill="#D5E8FA"/></g><g class="wave"><path d="M20 196 Q60 210 100 196 T180 196 T260 196 T340 196 T420 196 V360 H20Z" fill="url(#g-liquid)"/></g></g>
+       <circle cx="170" cy="170" r="132" fill="url(#g-glassv)" opacity=".7"/>
+      </svg>
+      <div class="center"><span class="cap" style="margin-bottom:8px">已发现</span><b>19.4</b><span class="sub">GB · 62%</span></div>
+     </div>
+     <div>
+      <div class="glass steps" aria-live="polite">
+       <div class="step"><svg class="i st-ok"><use href="#i-check"/></svg><span>C 盘常用位置 <span class="cap">7 类</span></span><span class="ln"><i style="width:100%"></i></span><span class="v">16.2 GB</span></div>
+       <div class="step"><span class="spin"></span><b>F 盘</b><span class="ln"><i style="width:45%"></i></span><span class="v">扫描中</span></div>
+      </div>
+      <div style="margin-top:16px;display:flex;align-items:center;gap:14px"><button class="btn btn-glass">停止</button><span class="cap">已检查 182,340 个文件 · 用时 0:36</span></div>
+     </div>
+    </div>
+   </div></section>
+
+   <!-- CONCLUSION -->
+   <section class="screen" id="s-results"><div class="page">
+    <div class="scope-line">这次看了：<b id="scope-text">C 盘常用位置、F 盘</b><span>· 10 分钟前 · 用时 48 秒</span><button class="link" data-go="home">重新体检</button></div>
+
+    <div class="hero">
+     <div>
+      <p class="eyebrow">可以放心清理</p>
+      <div class="kpi"><span id="kpi">15.4</span><small>GB</small></div>
+      <div class="makeup"><span id="mk-cache">缓存 12.1 GB</span><span class="sep">·</span><span id="mk-old">旧版本 3.3 GB</span><span class="sep">·</span><span class="skip">Chrome 开着，会跳过约 0.4 GB</span><span class="sep" id="off-sep" style="display:none">·</span><span class="skip" id="off-line"></span><button class="link" id="toggle-include">包含什么<svg class="i" id="inc-chev"><use href="#i-chev"/></svg></button></div>
+     </div>
+     <div class="hero-act">
+      <button class="btn btn-primary" id="clean-btn">清理推荐项 15.4 GB</button>
+      <span class="plus" id="plus-line"></span>
+     </div>
+    </div>
+    <div class="glass include" id="include"></div>
+
+    <div class="sect"><h2>需要你看一眼</h2><span class="cap">5 项 · 不选就不清</span></div>
+    <div class="cards" id="cards"></div>
+
+    <div class="sect"><h2>交给 agent</h2><span class="cap">Water 只能看名字和大小，这些要读代码或跑 git 才能定</span></div>
+    <div class="glass clues">
+     <div class="clue"><span class="ic"><svg class="i"><use href="#i-branch"/></svg></span><div class="tx"><code>F:\new\denglou\.worktrees</code> 里 11 棵工作树已脱离 git，约 11 GB<small>删之前要查有没有未提交的改动、分支是否已推到远端</small></div><button class="btn btn-glass btn-sm" data-copy><svg class="i" style="width:15px;height:15px"><use href="#i-copy"/></svg>复制线索</button></div>
+     <div class="clue"><span class="ic"><svg class="i"><use href="#i-agent"/></svg></span><div class="tx"><code>.tmp_w35b\verify-*</code> 的生产者还没修<small>每次验证建一个目录、结束不删；把线索交给 denglou 的 agent 找到并修好</small></div><button class="btn btn-glass btn-sm" data-copy><svg class="i" style="width:15px;height:15px"><use href="#i-copy"/></svg>复制线索</button></div>
+    </div>
+
+    <div class="folds">
+     <div class="glass fold" id="fold-adv">
+      <button class="fold-h" data-fold="fold-adv"><span class="dot adv"></span><span class="tx">还有 <b>6.3 GB</b> 只统计、不清理：Git 工作树、程序自带的依赖、浏览器数据目录</span><svg class="i chev"><use href="#i-chev"/></svg></button>
+      <div class="fold-b">
+       <div class="mini-row" data-drawer><span>Git 工作树或子模块 <span class="loc">· 21 棵</span></span><span class="loc">F:\new\smaltalk\water</span><span class="sz">3.1 GB</span><svg class="i chev"><use href="#i-chev"/></svg></div>
+       <div class="mini-row" data-drawer><span>程序或工具自带的依赖 <span class="loc">· 7 处</span></span><span class="loc">F:\Mirasim-A</span><span class="sz">1.3 GB</span><svg class="i chev"><use href="#i-chev"/></svg></div>
+       <div class="mini-row" data-drawer><span>浏览器数据目录 <span class="loc">· 3 处</span></span><span class="loc">D 盘</span><span class="sz">713 MB</span><svg class="i chev"><use href="#i-chev"/></svg></div>
+       <div class="mini-row" data-drawer><span>其它 4 组</span><span class="loc">C 盘常用位置</span><span class="sz">1.2 GB</span><svg class="i chev"><use href="#i-chev"/></svg></div>
+      </div>
+     </div>
+     <div class="glass fold" id="fold-pro">
+      <button class="fold-h" data-fold="fold-pro"><span class="dot pro"></span><span class="tx"><b>9.7 GB</b> 受保护：会话记录、浏览器登录数据，Water 不会动</span><svg class="i chev"><use href="#i-chev"/></svg></button>
+      <div class="fold-b">
+       <div class="mini-row" data-drawer><span>Claude Code 会话记录</span><span class="loc">C 盘常用位置</span><span class="sz">6.4 GB</span><svg class="i chev"><use href="#i-chev"/></svg></div>
+       <div class="mini-row" data-drawer><span>浏览器登录与网站数据</span><span class="loc">C 盘常用位置</span><span class="sz">2.7 GB</span><svg class="i chev"><use href="#i-chev"/></svg></div>
+       <div class="mini-row" data-drawer><span>其它 3 组</span><span class="loc">C 盘常用位置</span><span class="sz">612 MB</span><svg class="i chev"><use href="#i-chev"/></svg></div>
+      </div>
+     </div>
+    </div>
+    <div class="foot-link"><button class="link" data-go="details">查看全部明细<svg class="i"><use href="#i-chev"/></svg></button></div>
+   </div></section>
+
+   <!-- DETAILS: one set of checkboxes, one segmented control, nothing that only filters the view -->
+   <section class="screen" id="s-details"><div class="page">
+    <button class="link" data-go="results" style="margin-left:-4px"><svg class="i"><use href="#i-back"/></svg>返回结论</button>
+    <h1 style="margin-top:8px">全部明细</h1>
+    <p class="sub">与结论页是同一份清理计划：这里勾的，结论页的数字一起变。</p>
+    <div class="toolbar"><div class="seg"><button class="on">按类别</button><button>按位置</button></div><div class="search"><svg class="i"><use href="#i-search"/></svg>搜索名称或位置</div></div>
+    <div class="glass dsect">
+     <div class="dsect-h"><span class="dot rec"></span><b>推荐清理</b><span>13 组 · 15.4 GB</span></div>
+     <div class="drow" data-drawer><button class="ck on"></button><div><div class="t">Codex 插件市场升级残留</div><div class="m">48 个目录 · 最近 10 月 25 日</div></div><span class="tag">C 盘常用位置</span><span class="lv rec"><i></i>推荐清理</span><span class="sz">3.6 GB</span><svg class="i chev"><use href="#i-chev"/></svg></div>
+     <div class="drow" data-drawer><button class="ck on"></button><div><div class="t">Rust 构建产物</div><div class="m">61 个带缓存标记的 target 目录</div></div><span class="tag">F 盘</span><span class="lv rec"><i></i>推荐清理</span><span class="sz">3.2 GB</span><svg class="i chev"><use href="#i-chev"/></svg></div>
+     <div class="drow" data-drawer><button class="ck on"></button><div><div class="t">Claude 桌面版旧版本</div><div class="m">保留当前版本，清理 3 个旧版本</div></div><span class="tag">C 盘常用位置</span><span class="lv rec"><i></i>推荐清理</span><span class="sz">3.1 GB</span><svg class="i chev"><use href="#i-chev"/></svg></div>
+     <div class="drow" data-drawer><button class="ck on"></button><div><div class="t">Chrome 网页缓存</div><div class="m">Chrome 开着，会跳过 8 项</div></div><span class="tag">C 盘常用位置</span><span class="lv rec"><i></i>推荐清理</span><span class="sz">1.7 GB</span><svg class="i chev"><use href="#i-chev"/></svg></div>
+     <div class="drow" data-drawer><button class="ck"></button><div><div class="t">Jest 转换缓存</div><div class="m">你取消了这一组</div></div><span class="tag">F 盘</span><span class="lv rec"><i></i>推荐清理</span><span class="sz">463 MB</span><svg class="i chev"><use href="#i-chev"/></svg></div>
+     <div class="cap" style="padding:8px 28px 6px">还有 8 组 · 3.4 GB</div>
+    </div>
+    <div class="glass dsect">
+     <div class="dsect-h"><span class="dot con"></span><b>需要确认</b><span>9 组 · 12.2 GB · 默认不清</span></div>
+     <div class="drow" data-drawer><button class="ck"></button><div><div class="t"><code>.tmp_w35b</code> 里的同模板目录</div><div class="m">81 个 · 还在长</div></div><span class="tag">F:\new\denglou</span><span class="lv con"><i></i>需要确认</span><span class="sz">2.1 GB</span><svg class="i chev"><use href="#i-chev"/></svg></div>
+     <div class="drow" data-drawer><button class="ck"></button><div><div class="t">Android 模拟器快照</div><div class="m">Pixel_7_API_34</div></div><span class="tag">C 盘常用位置</span><span class="lv con"><i></i>需要确认</span><span class="sz">4.2 GB</span><svg class="i chev"><use href="#i-chev"/></svg></div>
+     <div class="drow" data-drawer><button class="ck"></button><div><div class="t">项目依赖目录</div><div class="m">3 个，超过一周没改</div></div><span class="tag">F 盘</span><span class="lv con"><i></i>需要确认</span><span class="sz">1.1 GB</span><svg class="i chev"><use href="#i-chev"/></svg></div>
+     <div class="cap" style="padding:8px 28px 6px">还有 6 组 · 4.8 GB</div>
+    </div>
+    <div class="glass dsect">
+     <div class="dsect-h"><span class="dot adv"></span><b>只统计、不清理</b><span>仅供参考 6.3 GB · 受保护 9.7 GB</span></div>
+     <div class="drow muted" data-drawer><span class="ck" style="visibility:hidden"></span><div><div class="t">Git 工作树或子模块</div><div class="m">21 棵</div></div><span class="tag">F:\new\smaltalk\water</span><span class="lv adv"><i></i>仅供参考</span><span class="sz">3.1 GB</span><svg class="i chev"><use href="#i-chev"/></svg></div>
+     <div class="drow muted" data-drawer><span class="ck" style="visibility:hidden"></span><div><div class="t">Claude Code 会话记录</div><div class="m">用于续接对话和找回改动</div></div><span class="tag">C 盘常用位置</span><span class="lv pro"><i></i>受保护</span><span class="sz">6.4 GB</span><svg class="i chev"><use href="#i-chev"/></svg></div>
+    </div>
+    <div class="dbar">已选 12 组 · 2,201 项<b>15.0 GB</b><button class="btn btn-primary" data-go="confirm">清理所选 15.0 GB</button></div>
+   </div></section>
+
+   <!-- DONE -->
+   <section class="screen" id="s-done"><div class="page">
+    <div class="glass done-hero">
+     <div>
+      <p class="eyebrow">清理完成</p>
+      <div class="kpi">15.0<small>GB 已腾出</small></div>
+      <p class="sub" style="margin-top:12px">另有 <b>3.6 GB</b> 在隔离区，确认没问题后再永久删除。<br><span class="cap">预计 15.4 GB，实际 15.0 GB；差额是 Chrome 正在用的 8 项，已跳过。</span></p>
+     </div>
+     <div class="vials">
+      <div><svg width="64" height="104" viewBox="0 0 64 104"><defs><clipPath id="v1"><rect x="2" y="2" width="60" height="100" rx="22"/></clipPath></defs><rect x="2" y="2" width="60" height="100" rx="22" fill="rgba(255,255,255,.4)"/><g clip-path="url(#v1)"><rect x="0" y="34" width="64" height="80" fill="url(#g-liquid)"/></g><line x1="6" y1="28" x2="58" y2="28" stroke="#6EAEEB" stroke-dasharray="3 3"/><rect x="2" y="2" width="60" height="100" rx="22" fill="url(#g-glassv)" stroke="rgba(255,255,255,.85)" stroke-width="1.2"/></svg><div class="vial-cap"><b>C</b>62.0 → 76.6 GB</div></div>
+      <div><svg width="64" height="104" viewBox="0 0 64 104"><defs><clipPath id="v2"><rect x="2" y="2" width="60" height="100" rx="22"/></clipPath></defs><rect x="2" y="2" width="60" height="100" rx="22" fill="rgba(255,255,255,.4)"/><g clip-path="url(#v2)"><rect x="0" y="44" width="64" height="80" fill="url(#g-liquid)"/></g><line x1="6" y1="42" x2="58" y2="42" stroke="#6EAEEB" stroke-dasharray="3 3"/><rect x="2" y="2" width="60" height="100" rx="22" fill="url(#g-glassv)" stroke="rgba(255,255,255,.85)" stroke-width="1.2"/></svg><div class="vial-cap"><b>F</b>372.7 → 373.1 GB</div></div>
+     </div>
+    </div>
+    <div class="glass reslist">
+     <div><svg class="i ok"><use href="#i-check"/></svg><span>12 组已清理</span><span class="cap">14.6 GB</span></div>
+     <div><svg class="i part"><use href="#i-warn"/></svg><span>Chrome 网页缓存：跳过 8 项，Chrome 正在使用 <button class="link">查看</button></span><span class="cap">清了 1.3 GB</span></div>
+     <div><svg class="i" style="color:var(--w-ink-2)"><use href="#i-vault"/></svg><span>2 项移到了隔离区</span><span class="cap">3.6 GB</span></div>
+    </div>
+    <div class="acts-row"><button class="btn btn-primary" data-go="results">完成</button><button class="link" data-go="quarantine">去隔离区</button></div>
+   </div></section>
+
+   <!-- QUARANTINE -->
+   <section class="screen" id="s-quarantine"><div class="page">
+    <h1>隔离区</h1>
+    <p class="sub">需要确认的东西清理时先放在这里，还在原来的盘上，随时可以还原。确认没问题后再永久删除，空间这时才腾出来。</p>
+    <div style="margin-top:20px"></div>
+    <div class="glass qcard">
+     <div class="qh"><span class="dot con"></span><div class="tx"><b>11 月 2 日的清理</b><div class="cap">2 项 · 放了 0 天 · F 盘、C 盘</div></div><span class="v">3.6 GB</span><button class="btn btn-glass btn-sm"><svg class="i" style="width:15px;height:15px"><use href="#i-restore"/></svg>还原</button><button class="more" data-menu="quarantine" aria-label="更多"><svg><use href="#i-more"/></svg></button></div>
+     <div class="qlist"><div><code>F:\new\denglou\…\fix-r9\.tmp_w35b</code><span class="s">2.1 GB</span></div><div><code>C:\…\.codex\runtimes\0.94、0.95、0.97</code><span class="s">1.5 GB</span></div></div>
+    </div>
+    <div class="glass qcard">
+     <p class="aged"><svg class="i"><use href="#i-warn"/></svg>已经放了 7 天。用着没出问题的话，可以永久删除。</p>
+     <div class="qh"><span class="dot con"></span><div class="tx"><b>10 月 26 日的清理</b><div class="cap">1 项 · 放了 7 天 · C 盘</div></div><span class="v">1.2 GB</span><button class="btn btn-glass btn-sm"><svg class="i" style="width:15px;height:15px"><use href="#i-restore"/></svg>还原</button><button class="link danger">永久删除</button></div>
+    </div>
+   </div></section>
+
+   <!-- TRENDS -->
+   <section class="screen" id="s-trends"><div class="page">
+    <h1>趋势</h1><p class="sub">比较每次体检，看空间往哪里去了。</p>
+    <div class="fc">
+     <div class="glass warnc"><div class="d">C</div><div class="n">23<small>天后满</small></div><div class="note">每天少约 3.3 GB</div></div>
+     <div class="glass"><div class="d">D</div><div class="n">3298<small>天</small></div><div class="note">十年内不会满</div></div>
+     <div class="glass"><div class="d">E</div><div class="n">2919<small>天</small></div><div class="note">每天少约 7 MB</div></div>
+     <div class="glass muted"><div class="d">F</div><div class="n">最近没有减少</div><div class="note">期间有一次大扫除</div></div>
+    </div>
+    <div class="sect"><h2>一直在长的</h2><span class="cap">泄漏修好后标记一下，以后只数新长出来的</span></div>
+    <div class="glass grows">
+     <div class="grow-row"><div><div class="t"><code>.tmp_w35b\verify-*</code></div><div class="m">F:\new\denglou · 81 个 · 2.1 GB</div></div><span class="st live"><i></i>仍在长</span><span class="rate">+0.4 GB/天</span><button class="more" data-menu="grow" aria-label="更多"><svg><use href="#i-more"/></svg></button></div>
+     <div class="grow-row"><div><div class="t">Codex 插件市场升级残留</div><div class="m">C 盘常用位置 · 48 个目录 · 3.6 GB</div></div><span class="st live"><i></i>仍在长</span><span class="rate">+0.3 GB/天</span><button class="more" data-menu="grow" aria-label="更多"><svg><use href="#i-more"/></svg></button></div>
+     <div class="grow-row"><div><div class="t"><code>pgtest-*</code></div><div class="m">F 盘 · 10 月 29 日标记为已修 · 之后新长 0 个</div></div><span class="st fixed"><i></i>已止住</span><span class="rate flat">0</span><button class="more" data-menu="grow" aria-label="更多"><svg><use href="#i-more"/></svg></button></div>
+     <div class="grow-row"><div><div class="t">Jest 转换缓存</div><div class="m">F 盘 · 只体检过一次，下次再判断</div></div><span class="st maybe"><i></i>疑似</span><span class="rate flat">—</span><button class="more" data-menu="grow" aria-label="更多"><svg><use href="#i-more"/></svg></button></div>
+    </div>
+    <div class="folds" style="margin-top:14px">
+     <div class="glass fold" id="fold-orph"><button class="fold-h" data-fold="fold-orph"><span class="dot adv"></span><span class="tx"><b>3 个残留进程</b>，占内存 1.3 GB；启动它们的程序已经退出。Water 只列出，不会结束它们</span><svg class="i chev"><use href="#i-chev"/></svg></button>
+      <div class="fold-b"><div class="mini-row" style="cursor:default"><span>node.exe · jest-worker</span><span class="loc">9 个进程 · 10 月 31 日起</span><span class="sz">900 MB</span><span></span></div><div class="mini-row" style="cursor:default"><span>chrome.exe · --headless</span><span class="loc">6 个进程 · 10 月 31 日起</span><span class="sz">380 MB</span><span></span></div></div></div>
+    </div>
+   </div></section>
+
+   <!-- RECORDS -->
+   <section class="screen" id="s-records"><div class="page">
+    <h1>记录</h1><p class="sub">每一次体检与清理。</p>
+    <div class="glass rec" style="margin-top:20px">
+     <div><svg class="i ok"><use href="#i-check"/></svg><span>清理完成<small>11 月 2 日 17:40 · 12 组，跳过 8 项，2 项进隔离区</small></span><span class="v">15.0 GB<small>已腾出</small></span><svg class="i chev"><use href="#i-chev"/></svg></div>
+     <div><svg class="i"><use href="#i-pulse"/></svg><span>体检<small>11 月 2 日 17:31 · C 盘常用位置、F 盘</small></span><span class="v">15.4 GB<small>可放心清理</small></span><svg class="i chev"><use href="#i-chev"/></svg></div>
+     <div><svg class="i" style="color:var(--w-ink-3)"><use href="#i-pulse"/></svg><span>体检 · 已停止<small>11 月 1 日 23:05 · F 盘，扫到一半停下</small></span><span class="v" style="color:var(--w-ink-3)">—</span><svg class="i chev"><use href="#i-chev"/></svg></div>
+    </div>
+   </div></section>
+
+   <!-- SETTINGS -->
+   <section class="screen" id="s-settings"><div class="page">
+    <h1>设置</h1>
+    <div class="set">
+     <div class="setnav" id="setnav"><button class="on" data-panel="p-content">扫描内容</button><button data-panel="p-skip">跳过名单</button><button data-panel="p-decl">项目声明</button><button data-panel="p-about">关于与隐私</button></div>
+     <div>
+      <div class="panel on" id="p-content">
+       <p class="sub" style="margin-bottom:12px">“C 盘常用位置”查哪些类别。受保护的数据只统计占用，永远不会清理。</p>
+       <div class="glass">
+        <div class="srow"><span class="ci"><svg class="i"><use href="#i-chip"/></svg></span><div class="tx"><b>AI 编程工具</b><small>Claude Code、Codex、Cursor、grok 等的临时目录、升级残留与旧版本</small></div><button class="sw"></button></div>
+        <div class="srow"><span class="ci"><svg class="i"><use href="#i-globe"/></svg></span><div class="tx"><b>浏览器缓存</b><small>Chrome、Edge、Brave、Firefox；从不清理登录信息与网站数据</small></div><button class="sw"></button></div>
+        <div class="srow"><span class="ci"><svg class="i"><use href="#i-hourglass"/></svg></span><div class="tx"><b>系统临时文件</b><small>7 天前的临时文件</small></div><button class="sw"></button></div>
+        <div class="srow"><span class="ci"><svg class="i"><use href="#i-box"/></svg></span><div class="tx"><b>应用更新与安装包</b><small>下载文件夹里的安装程序、更新残留</small></div><button class="sw"></button></div>
+        <div class="srow"><span class="ci"><svg class="i"><use href="#i-code"/></svg></span><div class="tx"><b>开发缓存</b><small>npm、pip、Cargo、Gradle、Playwright 等</small></div><button class="sw"></button></div>
+        <div class="srow"><span class="ci"><svg class="i"><use href="#i-warn"/></svg></span><div class="tx"><b>崩溃与日志</b><small>崩溃转储、错误报告、应用日志</small></div><button class="sw off"></button></div>
+        <div class="srow"><span class="ci"><svg class="i"><use href="#i-gpu"/></svg></span><div class="tx"><b>显卡与系统缓存</b><small>着色器缓存与缩略图</small></div><button class="sw"></button></div>
+       </div>
+      </div>
+      <div class="panel" id="p-skip">
+       <p class="sub" style="margin-bottom:12px">选了“以后都跳过”的位置。移除后，下次体检会重新列出。</p>
+       <div class="glass">
+        <div class="srow"><div class="tx"><b><code>F:\new\zbbody\node_modules</code></b><small>项目依赖目录 · 10 月 31 日加入</small></div><button class="btn btn-glass btn-sm">移除</button></div>
+        <div class="srow"><div class="tx"><b><code>F:\new\smaltalk\water\.offline-cache</code></b><small>带缓存标记的目录 · 11 月 1 日加入</small></div><button class="btn btn-glass btn-sm">移除</button></div>
+       </div>
+      </div>
+      <div class="panel" id="p-decl">
+       <p class="sub" style="margin-bottom:12px">项目可以在根目录放一份 <code>.water-cleanup.json</code>，写明哪些能清、哪些不能碰。信任以后才按它的“可清”生效；“不能碰”总是生效。</p>
+       <div class="glass decl">
+        <div style="display:flex;align-items:center;gap:12px"><span class="dot con"></span><div style="flex:1"><b>denglou</b><div class="cap"><code>F:\new\denglou\.water-cleanup.json</code> · 11 月 2 日发现 · 还没决定</div></div></div>
+        <div class="dl"><div><b>声明可清 3 类</b><code>.tmp_w35b/verify-*</code> 超过 1 天<br>构建输出 <code>build-*</code> 留最新 1 个<br>模拟器快照</div><div><b>声明不能碰 2 处</b><code>release/</code>（签名与发布件）<br><code>.env*</code></div></div>
+        <div style="display:flex;gap:10px"><button class="btn btn-primary btn-sm">信任这份声明</button><button class="btn btn-glass btn-sm">不信任</button><span class="cap" style="align-self:center;margin-left:6px">文件一改就要重新确认</span></div>
+       </div>
+      </div>
+      <div class="panel" id="p-about">
+       <div class="glass" style="padding:22px 24px">
+        <div style="display:flex;align-items:center;gap:14px;margin-bottom:12px"><svg width="42" height="42" viewBox="0 0 48 48" style="color:var(--w-ink)"><use href="#i-berg"/></svg><div><b style="font-size:17px">Water</b><div class="cap">版本 0.2 · 磁盘体检</div></div></div>
+        <p class="sub"><b style="color:var(--w-ink)">读取：</b>文件名、大小、时间、属性；正在运行的程序列表（用来判断是否在用）；你信任的项目里的 <code>.water-cleanup.json</code>。</p>
+        <p class="sub" style="margin-top:6px"><b style="color:var(--w-ink)">不读取：</b>其它任何文件内容、浏览器登录信息与网站数据、聊天记录。</p>
+        <p class="sub" style="margin-top:6px"><b style="color:var(--w-ink)">不上传任何数据。</b>缓存直接删除；需要确认的先进隔离区，由你决定何时永久删除。</p>
+       </div>
+      </div>
+     </div>
+    </div>
+   </div></section>
+  </main>
+
+  <div class="scrim" id="scrim"></div>
+
+  <!-- group drawer -->
+  <aside class="drawer" id="drawer" aria-label="分组详情">
+   <button class="more x" data-close aria-label="关闭"><svg><use href="#i-x"/></svg></button>
+   <span class="lv con"><i></i>需要确认</span>
+   <h3>Codex 旧运行时</h3>
+   <p class="sub">Codex 升级后留下的旧版本运行时。</p>
+   <div class="big">1.5 GB</div><div class="cap">3 项 · 最近 10 月 20 日 · C 盘常用位置</div>
+   <div class="facts">
+    <div><span>清了会怎样</span>Codex 照常使用；以后回退到旧版本时要重新下载。</div>
+    <div><span>为什么这样判断</span>正在用的 0.98 会保留；其余三个版本一个多月没被运行。</div>
+   </div>
+   <div class="items">
+    <div class="item"><button class="ck on"></button><div><code>C:\Users\37310\.codex\runtimes\0.94</code><small>9 月 18 日</small></div><span class="s">520 MB</span><button class="more" data-menu="item" aria-label="更多"><svg><use href="#i-more"/></svg></button></div>
+    <div class="item"><button class="ck on"></button><div><code>C:\Users\37310\.codex\runtimes\0.95</code><small>9 月 29 日</small></div><span class="s">505 MB</span><button class="more" data-menu="item" aria-label="更多"><svg><use href="#i-more"/></svg></button></div>
+    <div class="item"><button class="ck"></button><div><code>C:\Users\37310\.codex\runtimes\0.97</code><small>10 月 20 日 · 你取消了这一项</small></div><span class="s">498 MB</span><button class="more" data-menu="item" aria-label="更多"><svg><use href="#i-more"/></svg></button></div>
+    <div class="item busy"><span class="na"><svg class="i"><use href="#i-lock"/></svg></span><div><code>C:\Users\37310\.codex\runtimes\0.98</code><small>Codex 正在使用，保留</small></div><span class="s">512 MB</span><span></span></div>
+   </div>
+   <p class="drawer-foot">这一组这次清 2 项 · 1.0 GB，清理时移到隔离区。</p>
+  </aside>
+
+  <!-- confirm -->
+  <div class="dialog" id="dialog" role="dialog" aria-label="确认清理">
+   <h2 id="dlg-title">清理 15.4 GB？</h2>
+   <div class="block">
+    <div class="bh"><b>直接删除</b><span class="cap">缓存与旧版本，会自动重新生成</span><span class="v" id="dlg-del">15.4 GB</span></div>
+    <div class="li"><span>AI 编程工具</span><span>6.2 GB</span></div><div class="li"><span>开发缓存</span><span>2.4 GB</span></div><div class="li"><span>浏览器缓存</span><span>3.4 GB</span></div><div class="li"><span>其它 3 类</span><span>3.4 GB</span></div>
+   </div>
+   <div class="block" id="dlg-q" style="display:none">
+    <div class="bh"><b>移到隔离区</b><span class="cap">7 天内可在“隔离区”还原</span><span class="v" id="dlg-qv">3.3 GB</span></div>
+    <div id="dlg-qlist"></div>
+   </div>
+   <div class="skipline"><svg class="i"><use href="#i-warn"/></svg><span>Chrome 开着，约 0.4 GB 会跳过。关掉 Chrome 再清，可以多腾出这些。</span></div>
+   <div class="dlg-acts"><button class="btn btn-glass" data-close>取消</button><button class="btn btn-primary" data-go="done">开始清理</button></div>
+  </div>
+
+  <!-- one shared menu, filled per trigger -->
+  <div class="menu" id="menu" role="menu"></div>
+ </div>
+</div>
+
+<script>
+const $=s=>document.querySelector(s),$$=s=>[...document.querySelectorAll(s)];
+const icon=n=>`<svg class="i"><use href="#i-${n}"/></svg>`;
+// sz is the category total in GB; old is the old-version part of it, the rest is cache
+const cats=[{n:'AI 编程工具',ic:'chip',sz:6.2,old:1.2,g:5},{n:'浏览器缓存',ic:'globe',sz:3.4,old:0,g:6},{n:'开发缓存',ic:'code',sz:2.4,old:0,g:4},{n:'应用更新残留',ic:'box',sz:2.1,old:2.1,g:3},{n:'系统临时文件',ic:'hourglass',sz:1.0,old:0,g:2},{n:'崩溃与日志',ic:'warn',sz:0.3,old:0,g:2}];
+const cards=[
+ {id:'k1',lv:'con',t:'<code>fix-r9\\.tmp_w35b</code> 里有 81 个同模板目录，还在长',ev:'<code>verify-******</code> · 最早 10 月 12 日，最新 2 小时前 · F:\\new\\denglou',sz:2.1,leak:true},
+ {id:'k2',lv:'con',t:'Codex 旧运行时：3 个旧版本',ev:'正在用的 0.98 会保留 · 最近一次运行 10 月 20 日 · C 盘常用位置',sz:1.5},
+ {id:'k3',lv:'con',t:'Android 模拟器快照',ev:'Pixel_7_API_34 · 模拟器没在运行 · 清了下次冷启动，约慢 30 秒',sz:4.2},
+ {id:'k4',lv:'con',t:'5 个按提交号命名的安装包，留最新 1 个',ev:'<code>apk_3f9c2e1.apk</code> 等 · F:\\new\\denglou\\release',sz:2.6},
+ {id:'k5',lv:'con',t:'没下载完的 2 个分段文件',ev:'<code>.crdownload</code> · 最近 9 月 30 日 · 旁边没有完整文件',sz:0.9}];
+const st={dec:{},inc:cats.map(()=>true),open:false};
+const fmt=v=>v.toFixed(1);
+function base(){return cats.reduce((a,c,i)=>a+(st.inc[i]?c.sz:0),0)}
+function picked(){return cards.filter(c=>st.dec[c.id]==='clean')}
+function refresh(){
+ const b=base(),p=picked().reduce((a,c)=>a+c.sz,0),tot=b+p;
+ $('#kpi').textContent=fmt(b);
+ $('#clean-btn').textContent=p?`清理 ${fmt(tot)} GB`:`清理推荐项 ${fmt(b)} GB`;
+ $('#plus-line').textContent=p?`推荐项 ${fmt(b)} GB + 你选的 ${fmt(p)} GB（先进隔离区）`:'';
+ $('#dlg-title').textContent=`清理 ${fmt(tot)} GB？`;$('#dlg-del').textContent=fmt(b)+' GB';
+ $('#dlg-q').style.display=p?'block':'none';$('#dlg-qv').textContent=fmt(p)+' GB';
+ $('#dlg-qlist').innerHTML=picked().map(c=>`<div class="li"><span>${c.t.replace(/<[^>]+>/g,'')}</span><span>${fmt(c.sz)} GB</span></div>`).join('');
+ $('#include').innerHTML=cats.map((c,i)=>`<div class="inc-row${st.inc[i]?'':' off'}"><span class="ci">${icon(c.ic)}</span><span class="nm">${c.n}</span><span class="cnt">${c.g} 组</span><span class="sz">${fmt(c.sz)} GB</span><button class="sw${st.inc[i]?'':' off'}" data-inc="${i}" aria-label="${c.n} 这次清不清"></button></div>`).join('');
+ const old=cats.reduce((a,c,i)=>a+(st.inc[i]?c.old:0),0);
+ $('#mk-cache').textContent=`缓存 ${fmt(b-old)} GB`;$('#mk-old').textContent=`旧版本 ${fmt(old)} GB`;
+ const off=cats.filter((c,i)=>!st.inc[i]);
+ $('#off-line').textContent=off.length?`这次不清：${off.map(c=>c.n).join('、')}`:'';
+ $('#off-sep').style.display=off.length?'':'none';
+ // undecided cards first; decided ones collapse to full-width rows after them
+ const order=[...cards.filter(c=>!st.dec[c.id]),...cards.filter(c=>st.dec[c.id])];
+ $('#cards').innerHTML=order.map(c=>{const d=st.dec[c.id];
+  if(d)return `<div class="glass card done${d==='keep'?' kept':''}"><span class="dot ${c.lv}"></span><span class="ttl">${c.t}</span><span class="sz">${fmt(c.sz)} GB</span><span class="state">${d==='clean'?'<b>已加入清理</b>，先进隔离区':'<b>已保留</b>'}</span><button class="link" data-undo="${c.id}">撤销</button></div>`;
+  return `<div class="glass card"><div class="top"><span class="dot ${c.lv}"></span><span class="ttl">${c.t}</span><span class="sz">${fmt(c.sz)} GB</span><button class="more" data-menu="${c.leak?'card-leak':'card'}" aria-label="更多"><svg><use href="#i-more"/></svg></button></div><div class="ev">${c.ev}</div>${c.leak?`<div class="warn">${icon('trend')}清了不修，会再长回来</div>`:''}<div class="acts"><button class="btn btn-glass btn-sm" data-dec="${c.id}:keep">保留</button><button class="btn btn-outline btn-sm" data-dec="${c.id}:clean">清理</button></div></div>`}).join('');
+}
+const menus={
+ card:[['skip','以后都跳过'],['eye','查看明细']],
+ 'card-leak':[['copy','复制线索给 agent'],['skip','以后都跳过'],['eye','查看明细']],
+ item:[['skip','以后都跳过']],
+ folder:[['x','从列表移除']],
+ grow:[['flag','标记为已修'],['copy','复制线索给 agent'],['eye','查看明细']],
+ quarantine:[['eye','查看全部条目'],['-'],['x','永久删除','danger']]};
+function openMenu(btn){
+ const m=$('#menu'),list=menus[btn.dataset.menu]||[];
+ m.innerHTML=list.map(([ic,t,cls])=>ic==='-'?'<hr>':`<button role="menuitem" class="${cls||''}" data-mi="${t}">${icon(ic)}${t}</button>`).join('');
+ const r=btn.getBoundingClientRect();m.classList.add('on');
+ const w=m.offsetWidth;m.style.left=Math.max(8,Math.min(innerWidth-w-8,r.right-w))+'px';m.style.top=(r.bottom+6)+'px';
+ $$('.more[aria-expanded=true]').forEach(b=>b.setAttribute('aria-expanded','false'));btn.setAttribute('aria-expanded','true');
+}
+function closeMenu(){$('#menu').classList.remove('on');$$('.more[aria-expanded=true]').forEach(b=>b.setAttribute('aria-expanded','false'))}
+function overlay(which){
+ $('#scrim').classList.toggle('on',!!which);$('#drawer').classList.toggle('on',which==='drawer');$('#dialog').classList.toggle('on',which==='dialog');
+}
+const navOf={home:'check',scan:'check',results:'check',details:'check',done:'check',quarantine:'quarantine',trends:'trends',records:'records',settings:'settings'};
+function show(id){
+ closeMenu();overlay(null);
+ $$('.screen').forEach(s=>s.classList.toggle('on',s.id==='s-'+id));
+ $$('.nav a').forEach(a=>a.classList.toggle('on',a.dataset.nav===navOf[id]));
+ $('#main').scrollTop=0;
+}
+function setScopeText(){
+ const on=$$('#chips .chip.on').map(c=>c.childNodes[1].textContent.trim());
+ $('#scope-text').textContent=on.join('、')||'（没有选位置）';$('#start').disabled=!on.length;
+}
+function go(v){
+ $$('.mock-bar button').forEach(b=>b.setAttribute('aria-pressed',b.dataset.go===v));
+ st.dec={};st.inc=cats.map(()=>true);refresh();$('#include').classList.remove('on');$$('.fold').forEach(f=>f.classList.remove('on'));
+ if(v==='home-new'){show('home');addFolder();return}
+ if(v==='results-open'){show('results');$('#include').classList.add('on');$('#fold-adv').classList.add('on');return}
+ if(v==='results-decided'){st.dec={k1:'clean',k2:'clean',k3:'keep'};st.inc[3]=false;refresh();show('results');return}
+ if(v==='menu'){show('results');requestAnimationFrame(()=>openMenu($('#cards .more')));return}
+ if(v==='drawer'){show('results');overlay('drawer');return}
+ if(v==='confirm'){st.dec={k1:'clean',k2:'clean'};refresh();show('results');overlay('dialog');return}
+ if(v==='settings-decl'){show('settings');panel('p-decl');return}
+ if(v==='settings'){show('settings');panel('p-content');return}
+ show(v);
+}
+function panel(id){$$('#setnav button').forEach(b=>b.classList.toggle('on',b.dataset.panel===id));$$('.panel').forEach(p=>p.classList.toggle('on',p.id===id))}
+function addFolder(){
+ if($('[data-chip="denglou"]'))return;
+ $$('#chips .chip').forEach(c=>c.classList.remove('on'));
+ const w=document.createElement('span');w.className='chip-wrap';
+ w.innerHTML='<button class="chip on new" data-chip="denglou" title="F:\\new\\denglou"><span class="tick"></span>denglou</button><button class="more" data-menu="folder" aria-label="更多"><svg><use href="#i-more"/></svg></button>';
+ $('#add-folder').before(w);$('#newnote').classList.add('on');setScopeText();
+}
+document.addEventListener('click',e=>{
+ const t=e.target.closest('button,a,[data-drawer],[data-fold]');
+ if(!t){closeMenu();return}
+ if(t.matches('.more[data-menu]')){e.stopPropagation();t.getAttribute('aria-expanded')==='true'?closeMenu():openMenu(t);return}
+ if(t.closest('#menu')){const mi=t.dataset.mi;closeMenu();if(mi==='查看明细')overlay('drawer');return}
+ closeMenu();
+ if(t.dataset.go){go(t.dataset.go);return}
+ if(t.dataset.nav){const n=t.dataset.nav;go(n==='check'?'results':n);return}
+ if(t.dataset.chip){t.classList.toggle('on');t.classList.remove('new');setScopeText();return}
+ if(t.id==='add-folder'){addFolder();return}
+ if(t.id==='start'){show('scan');setTimeout(()=>show('results'),1600);return}
+ if(t.id==='toggle-include'){$('#include').classList.toggle('on');return}
+ if(t.dataset.inc){const i=+t.dataset.inc;st.inc[i]=!st.inc[i];refresh();$('#include').classList.add('on');return}
+ if(t.dataset.dec){const [id,d]=t.dataset.dec.split(':');st.dec[id]=d;refresh();return}
+ if(t.dataset.undo){delete st.dec[t.dataset.undo];refresh();return}
+ if(t.id==='clean-btn'){overlay('dialog');return}
+ if(t.dataset.close!==undefined){overlay(null);return}
+ if(t.dataset.fold){$('#'+t.dataset.fold).classList.toggle('on');return}
+ if(t.dataset.drawer!==undefined){overlay('drawer');return}
+ if(t.dataset.copy!==undefined){const o=t.innerHTML;t.innerHTML=icon('check')+'已复制';setTimeout(()=>t.innerHTML=o,1400);return}
+ if(t.dataset.panel){panel(t.dataset.panel);return}
+ if(t.classList.contains('ck')){t.classList.toggle('on');return}
+ if(t.classList.contains('sw')){t.classList.toggle('off');return}
+ if(t.closest('.seg')){t.parentNode.querySelectorAll('button').forEach(b=>b.classList.toggle('on',b===t));return}
+});
+$('#scrim').addEventListener('click',()=>overlay(null));
+document.addEventListener('keydown',e=>{if(e.key==='Escape'){closeMenu();overlay(null)}});
+refresh();setScopeText();
+go(new URLSearchParams(location.search).get('s')||'home');
+</script>
+</body>
+</html>

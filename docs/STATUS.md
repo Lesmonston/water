@@ -1,6 +1,6 @@
 # Water 状态与交接
 
-更新时间：2026-11-02 17:10 JST（**M3 达成**：第六次整合检查通过，release `water-0.1.0-bb92c87e` 编好，F1/F2 在 D 盘与 `F:\Mirasim-A` 只读复验通过，“几天后满”与手算一致，见[收口报告](acceptance/wave9/controller/WATER-M3-CLOSE-20261102.md)；下一步第十波，先按收口结果重看计划第 4、5 节；此前第九波四张单全部验收合入（L1 `28736089`、L2 `37fa96f1`、L4 `b39bfcdf`、L3 `bc433e6c`，[验收报告](acceptance/wave9/controller/WATER-W9-REVIEW-20261102.md)）；L2 开工检查后受阻（`5431e812`，单子里“夹具只建普通文件与目录”与原有测试的联接、硬链接夹具冲突，总控疏漏），补单 01 已出，待外贴；第九波已拍板“全部按推荐”：契约冻结 `contracts/m3d-v1/`，基线 `57ecd7ce`，L1～L4 四张单 11-02 派出（L1、L2、L4 给 sol，L3 给 grok），见[计划](dispatch/wave9/PLAN.md)第 8 节；第十波等第九波收口后再做；denglou 收尾回执已并入[总控清理的固定做法](maintenance/CLEANUP-METHOD.md)；`yb-release` 里的正式签名本机副本已随隔离区删除，EAS 仍有，要不要再下一份离线备份由用户定；denglou 隔离目录用户 12:00 已删，F 盘可用 372.72 GB，四盘合计 532.5 GB；剩一个 3.3 MB 的 `nul` 文件待用 `\\?\` 命令删，`F:\_denglou-quarantine-20261102`（5.72 GB）可删；下一轮计划草案待拍板：[第九波 M3 收口、第十波 M3.5“结论优先”](dispatch/wave9/PLAN.md)；四个盘清理结束，用户删完隔离目录，四盘可用 205.7 → 368.2 GB；M2 自清理 01:13 达成；见[清理记录](maintenance/CLEANUP-20261101.md)；M3 等用户拍板 F1、F2 修法；第 13 份交接）。
+更新时间：2026-11-02 18:05 JST（第十波界面整体重构的设计稿待用户审：[设计 v2](design/water-ui-v2/DESIGN.md)、[可点的设计稿](design/water-ui-v2/mockup.html)；此前 **M3 达成**：第六次整合检查通过，release `water-0.1.0-bb92c87e` 编好，F1/F2 在 D 盘与 `F:\Mirasim-A` 只读复验通过，“几天后满”与手算一致，见[收口报告](acceptance/wave9/controller/WATER-M3-CLOSE-20261102.md)；下一步第十波，先按收口结果重看计划第 4、5 节；此前第九波四张单全部验收合入（L1 `28736089`、L2 `37fa96f1`、L4 `b39bfcdf`、L3 `bc433e6c`，[验收报告](acceptance/wave9/controller/WATER-W9-REVIEW-20261102.md)）；L2 开工检查后受阻（`5431e812`，单子里“夹具只建普通文件与目录”与原有测试的联接、硬链接夹具冲突，总控疏漏），补单 01 已出，待外贴；第九波已拍板“全部按推荐”：契约冻结 `contracts/m3d-v1/`，基线 `57ecd7ce`，L1～L4 四张单 11-02 派出（L1、L2、L4 给 sol，L3 给 grok），见[计划](dispatch/wave9/PLAN.md)第 8 节；第十波等第九波收口后再做；denglou 收尾回执已并入[总控清理的固定做法](maintenance/CLEANUP-METHOD.md)；`yb-release` 里的正式签名本机副本已随隔离区删除，EAS 仍有，要不要再下一份离线备份由用户定；denglou 隔离目录用户 12:00 已删，F 盘可用 372.72 GB，四盘合计 532.5 GB；剩一个 3.3 MB 的 `nul` 文件待用 `\\?\` 命令删，`F:\_denglou-quarantine-20261102`（5.72 GB）可删；下一轮计划草案待拍板：[第九波 M3 收口、第十波 M3.5“结论优先”](dispatch/wave9/PLAN.md)；四个盘清理结束，用户删完隔离目录，四盘可用 205.7 → 368.2 GB；M2 自清理 01:13 达成；见[清理记录](maintenance/CLEANUP-20261101.md)；M3 等用户拍板 F1、F2 修法；第 13 份交接）。
 
 更换总控请先读[最新交接报告（2026-11-02 第 13 份）](CONTROLLER-HANDOFF-20261102-13.md)；[第 12 份](CONTROLLER-HANDOFF-20261101-12.md)、[第 11 份](CONTROLLER-HANDOFF-20261101-11.md)、[第 10 份](CONTROLLER-HANDOFF-20261031-10.md)、[第 9 份](CONTROLLER-HANDOFF-20261028-9.md)、[第 8 份](CONTROLLER-HANDOFF-20261027-8.md)、[第 7 份](CONTROLLER-HANDOFF-20261027-7.md)、[第 6 份](CONTROLLER-HANDOFF-20261027-6.md)、[第 5 份](CONTROLLER-HANDOFF-20261026-5.md)、[第 4 份](CONTROLLER-HANDOFF-20261026-4.md)、[第 3 份](CONTROLLER-HANDOFF-20261026-3.md)、[第 2 份](CONTROLLER-HANDOFF-20261026-2.md)、[上午那份](CONTROLLER-HANDOFF-20261026.md)及其只读状态快照仅供追溯。M1 已达成；第四、五波已全部验收合入，打开清理的 release 版已编好，M2 只差自清理；M3 第六波三张已全部验收合入，第四次整合检查通过，含第六波的 release 版 `water-0.1.0-b62f9c5c` 已编好；第七波（M3 收尾）四张已全部验收合入（见下文）。此前[接手验收摘要](CONTROLLER-HANDOFF-20261017.md)仅供历史追溯；当前任务状态以本页、registry/manifest及最新正式验收为准。
 
@@ -374,6 +374,11 @@ A–AB及八补单、AD保持VERIFIED；AC/补单06新增VERIFIED（Windows静�
     - **“几天后满”**：用默认数据目录的副本（原目录没被打开），服务结果与手算四个盘完全一致。C、F 显示“没有减少”，因为这几天有 Water 以外的清理，按契约是对的，放到第十波考虑。
     - **遗留**：第十波要定三条（兜底组的列目录问题记在哪组、Water 自己的测试浏览器靠 `.water-cleanup.json`、“几天后满”遇到外部清理）；其余测试缺口见收口报告。
     - **下一步**：第十波。按用户 11-02 的说法，M3 收口后先按收口结果重看计划第 4、5 节，再出 ADR-019、设计稿、契约与夹具。
+45. **第十波：界面整体重构的设计稿**（11-02 约 17:20～18:05 JST）：用户：“第十波要把界面布局，交互，按键设计，菜单设计都要重构，优化一下，目前的简直不知道怎么用，太复杂了，包括我之前提到的交互逻辑等都要进行优化。开始吧。”
+    - 总控按第六次整合的 31 张界面截图逐页列出难用之处（[界面设计 v2](design/water-ui-v2/DESIGN.md)第 0 节），写了 v2 草案并做了可点的[设计稿](design/water-ui-v2/mockup.html)，16 个画面的截图在 `docs/design/water-ui-v2/previews/`。
+    - 要点：导航改为 体检 · 隔离区 · 趋势 · 记录 + 底部设置；首页直接选位置；结论页一个主按钮、最多 5 张判断卡（保留 / 清理）、少用操作收进“⋯”菜单、复选框只在明细与抽屉；确认框分直接删除与移到隔离区。材质、颜色、品牌沿用 v1。
+    - [第十波计划](dispatch/wave9/PLAN.md) 4.6 节与第 5 节的 M5、M6、M7 已按此改写。
+    - **下一步**：用户审设计稿；拍板后写 ADR-019、冻结界面与“结论视图”契约、做基准夹具，再出派单。
 
 ## 真实AA→AD联合验收通过（2026-10-26）
 
