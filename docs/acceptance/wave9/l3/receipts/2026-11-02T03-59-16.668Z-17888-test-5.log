@@ -1,0 +1,43 @@
+{"binary":"C:\\Users\\37310\\.rustup\\toolchains\\1.95.0-x86_64-pc-windows-msvc\\bin\\cargo.exe","args":["test","--offline","--locked","--manifest-path","packages/water-service/Cargo.toml","--test","service_v1","--","--test-threads=1"],"exitCode":101,"error":null}
+--- stdout ---
+
+running 6 tests
+test service_clean_flow ... FAILED
+test service_hardening ... ok
+test service_ipc_contract ... ok
+test service_scan_views ... ok
+test service_storage_safety ... ok
+test service_trends_locations ... ok
+
+failures:
+
+---- service_clean_flow stdout ----
+SERVICE_M3C_SKIP scale_ms {"add":[9.9082,6.0162,5.3463,6.2597,6.085100000000001],"items":10000,"remove":[5.1102,5.7126,5.5617,5.8833,6.591600000000001]}
+SERVICE_M3C_EXCLUDE scale_ms 29.2081
+
+thread 'service_clean_flow' (14460) panicked at tests\service_v1.rs:2580:6:
+called `Result::unwrap()` on an `Err` value: Os { code: 3, kind: NotFound, message: "The system cannot find the path specified." }
+note: run with `RUST_BACKTRACE=1` environment variable to display a backtrace
+
+
+failures:
+    service_clean_flow
+
+test result: FAILED. 5 passed; 1 failed; 0 ignored; 0 measured; 0 filtered out; finished in 39.40s
+
+
+--- stderr ---
+   Compiling serde_core v1.0.229
+   Compiling zmij v1.0.23
+   Compiling memchr v2.8.3
+   Compiling itoa v1.0.18
+   Compiling serde_json v1.0.151
+   Compiling serde v1.0.229
+   Compiling water-junk-clean v0.1.0 (F:\new\smaltalk\water\.worktrees\w9-l3\packages\junk-clean)
+   Compiling water-process-scan v0.1.0 (F:\new\smaltalk\water\.worktrees\w9-l3\packages\process-scan)
+   Compiling water-junk-rules v0.1.0 (F:\new\smaltalk\water\.worktrees\w9-l3\packages\junk-rules)
+   Compiling water-junk-scan v0.1.0 (F:\new\smaltalk\water\.worktrees\w9-l3\packages\junk-scan)
+   Compiling water-service v0.1.0 (F:\new\smaltalk\water\.worktrees\w9-l3\packages\water-service)
+    Finished `test` profile [unoptimized + debuginfo] target(s) in 45.54s
+     Running tests\service_v1.rs (.local\w3-target\debug\deps\service_v1-073158362ae87633.exe)
+error: test failed, to rerun pass `--test service_v1`

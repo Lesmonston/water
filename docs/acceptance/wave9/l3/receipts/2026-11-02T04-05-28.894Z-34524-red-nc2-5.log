@@ -1,0 +1,35 @@
+{"binary":"C:\\Users\\37310\\.rustup\\toolchains\\1.95.0-x86_64-pc-windows-msvc\\bin\\cargo.exe","args":["test","--offline","--locked","--manifest-path","packages/water-service/Cargo.toml","--test","service_v1","--","--test-threads=1"],"exitCode":101,"error":null}
+--- stdout ---
+
+running 6 tests
+test service_clean_flow ... FAILED
+test service_hardening ... ok
+test service_ipc_contract ... ok
+test service_scan_views ... ok
+test service_storage_safety ... ok
+test service_trends_locations ... ok
+
+failures:
+
+---- service_clean_flow stdout ----
+SERVICE_M3C_SKIP scale_ms {"add":[10.1951,5.9473,5.933800000000001,6.5241999999999996,5.107],"items":10000,"remove":[5.8568,5.4073,5.9598,5.2014000000000005,6.0675]}
+SERVICE_M3C_EXCLUDE scale_ms 21.5951
+
+thread 'service_clean_flow' (27464) panicked at tests\service_v1.rs:2633:5:
+assertion `left == right` failed: SERVICE_M3D_CLEAN_SUMMARY: mixed
+  left: String("清理 4 组，跳过 2 项，失败 3 项")
+ right: "清理 2 组，跳过 2 项，失败 3 项"
+note: run with `RUST_BACKTRACE=1` environment variable to display a backtrace
+
+
+failures:
+    service_clean_flow
+
+test result: FAILED. 5 passed; 1 failed; 0 ignored; 0 measured; 0 filtered out; finished in 33.40s
+
+
+--- stderr ---
+   Compiling water-service v0.1.0 (F:\new\smaltalk\water\.worktrees\w9-l3\packages\water-service)
+    Finished `test` profile [unoptimized + debuginfo] target(s) in 7.26s
+     Running tests\service_v1.rs (.local\w3-target\debug\deps\service_v1-073158362ae87633.exe)
+error: test failed, to rerun pass `--test service_v1`
