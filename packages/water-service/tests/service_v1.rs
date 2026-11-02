@@ -854,6 +854,7 @@ fn service_scan_views() {
 #[test]
 fn service_clean_flow() {
     m3c_exclude_skip();
+    m3d_clean_summary();
     let f = Fixture::new();
     f.seed();
     let disabled = f.service(false);
@@ -1230,6 +1231,8 @@ fn clean_group_progress() {
 fn service_trends_locations() {
     m3c_drive_roots();
     m3c_trends();
+    m3d_growth_base();
+    m3d_history();
     let f = Fixture::new();
     f.seed();
     let s = f.service(false);
@@ -2367,6 +2370,280 @@ fn write_scan(f: &Fixture, saved: &Value) {
         saved.to_string(),
     )
     .unwrap();
+}
+
+fn recognized_categories(saved: &Value) -> usize {
+    saved["result"]["groups"]
+        .as_array()
+        .unwrap()
+        .iter()
+        .filter(|g| g["item_count"].as_u64().unwrap_or(0) > 0)
+        .filter_map(|g| g["category"].as_str())
+        .collect::<BTreeSet<_>>()
+        .len()
+}
+
+fn history_row<'a>(history: &'a Value, id: &Value) -> &'a Value {
+    history
+        .as_array()
+        .unwrap()
+        .iter()
+        .find(|row| row["id"] == *id)
+        .unwrap()
+}
+
+fn staging_count_delta(saved: &Value) -> Option<i64> {
+    saved["growth"].as_array().and_then(|rows| {
+        rows.iter()
+            .find(|row| row["group_id"] == "codex-marketplace-staging")
+            .and_then(|row| row["count_delta"].as_i64())
+    })
+}
+
+fn add_staging(f: &Fixture, prefix: &str, n: usize, size: u64, aged: u64) {
+    for i in 0..n {
+        let p = f.file(
+            &format!("user_profile/.codex/.tmp/marketplaces/.staging/{prefix}-{i}/data"),
+            size,
+        );
+        age(p.parent().unwrap(), aged);
+    }
+}
+
+fn m3d_growth_base() {
+    let f = Fixture::new();
+    f.seed();
+    let s = f.service(false);
+    let a = scanned(&s);
+    let a_id = a["scan_id"].clone();
+    let a_saved = scan_saved(&f, &a);
+    add_staging(&f, "marketplace-upgrade-b", 10, 30, NOW - 10 * 86400);
+    f.fake.now.store(NOW + 2 * 3600, Ordering::SeqCst);
+    let b = scanned(&s);
+    let b_id = b["scan_id"].clone();
+    let b_saved = scan_saved(&f, &b);
+    assert_eq!(
+        b_saved["previous_scan_id"], a_id,
+        "SERVICE_M3D_GROWTH_BASE: B previous_scan_id"
+    );
+    assert_eq!(
+        b_saved["growth_base_scan_id"],
+        Value::Null,
+        "SERVICE_M3D_GROWTH_BASE: B growth_base_scan_id"
+    );
+    assert_eq!(
+        b_saved["growth"],
+        json!([]),
+        "SERVICE_M3D_GROWTH_BASE: B growth"
+    );
+    add_staging(&f, "marketplace-upgrade-c", 25, 30, NOW + 25 * 3600 - 3600);
+    f.fake.now.store(NOW + 25 * 3600, Ordering::SeqCst);
+    let c = scanned(&s);
+    let c_saved = scan_saved(&f, &c);
+    assert_eq!(
+        c_saved["previous_scan_id"], b_id,
+        "SERVICE_M3D_GROWTH_BASE: C previous_scan_id"
+    );
+    assert_eq!(
+        c_saved["growth_base_scan_id"], a_id,
+        "SERVICE_M3D_GROWTH_BASE: C growth_base_scan_id"
+    );
+    assert_eq!(
+        staging_count_delta(&c_saved),
+        Some(35),
+        "SERVICE_M3D_GROWTH_BASE: C growth vs A"
+    );
+    let date = f.fake.local_date(UNIX_EPOCH + Duration::from_secs(NOW));
+    let compared = format!("与 {} 月 {} 日相比", date.0, date.1);
+    assert!(
+        c["insights"]
+            .as_array()
+            .unwrap()
+            .iter()
+            .any(|v| v["message_zh"].as_str().unwrap().contains(&compared)),
+        "SERVICE_M3D_GROWTH_BASE: insight date"
+    );
+    let detail = call(
+        &s,
+        "group_detail",
+        json!({"groupId":"codex-marketplace-staging"}),
+    );
+    assert_eq!(
+        detail["group"]["growth"]["since"], a_saved["finished_at"],
+        "SERVICE_M3D_GROWTH_BASE: since"
+    );
+    drop(s);
+    let s = f.service(false);
+    let reloaded = call(&s, "scan_result", json!({"scanId": c["scan_id"]}));
+    let reloaded_saved = scan_saved(&f, &c);
+    assert_eq!(
+        reloaded_saved["growth_base_scan_id"], a_id,
+        "SERVICE_M3D_GROWTH_BASE: reload growth_base_scan_id"
+    );
+    assert_eq!(
+        staging_count_delta(&reloaded_saved),
+        Some(35),
+        "SERVICE_M3D_GROWTH_BASE: reload growth"
+    );
+    assert!(
+        reloaded["insights"]
+            .as_array()
+            .unwrap()
+            .iter()
+            .any(|v| v["message_zh"].as_str().unwrap().contains(&compared)),
+        "SERVICE_M3D_GROWTH_BASE: reload insight date"
+    );
+    let reloaded_detail = call(
+        &s,
+        "group_detail",
+        json!({"groupId":"codex-marketplace-staging"}),
+    );
+    assert_eq!(
+        reloaded_detail["group"]["growth"]["since"], a_saved["finished_at"],
+        "SERVICE_M3D_GROWTH_BASE: reload since"
+    );
+    drop(s);
+    let mut legacy = reloaded_saved;
+    legacy
+        .as_object_mut()
+        .unwrap()
+        .remove("growth_base_scan_id");
+    write_scan(&f, &legacy);
+    let s = f.service(false);
+    let legacy_detail = call(
+        &s,
+        "group_detail",
+        json!({"groupId":"codex-marketplace-staging"}),
+    );
+    assert_eq!(
+        legacy_detail["group"]["growth"]["since"], b_saved["finished_at"],
+        "SERVICE_M3D_GROWTH_BASE: legacy previous_scan_id time"
+    );
+}
+
+fn m3d_history() {
+    let f = Fixture::new();
+    f.seed();
+    let s = f.service(false);
+    let done = scanned(&s);
+    let n_done = recognized_categories(&scan_saved(&f, &done));
+    f.fake.hold.store(true, Ordering::SeqCst);
+    let cancel = call(&s, "scan_start", json!({}));
+    call(&s, "scan_cancel", json!({"scanId": cancel["scan_id"]}));
+    f.fake.hold.store(false, Ordering::SeqCst);
+    assert_eq!(wait(&s, "scan_progress")["state"], "cancelled");
+    let n_cancel = recognized_categories(&scan_saved(&f, &cancel));
+    let history = call(&s, "history_list", json!({}));
+    assert_eq!(
+        history_row(&history, &cancel["scan_id"])["summary_zh"],
+        format!("已停止，识别 {n_cancel} 类位置"),
+        "SERVICE_M3D_HISTORY: cancelled"
+    );
+    assert_eq!(
+        history_row(&history, &done["scan_id"])["summary_zh"],
+        format!("识别 {n_done} 类位置"),
+        "SERVICE_M3D_HISTORY: completed"
+    );
+}
+
+fn write_clean(f: &Fixture, id: &str, at: &str, groups: Value, items: Value) {
+    let view = json!({
+        "clean_id": id,
+        "finished_at": at,
+        "estimate_bytes": "0",
+        "freed_bytes": "0",
+        "drives": [],
+        "groups": groups,
+        "journal_display_path": f.data.join("journal").join(format!("{id}.jsonl")).to_string_lossy()
+    });
+    let record = json!({
+        "clean_id": id,
+        "plan_id": "plan-20270115T080000Z-0001",
+        "scan_id": "scan-20270115T080000Z-0001",
+        "view": view,
+        "report": {
+            "report_version": "water.clean-report.v1",
+            "plan_id": "plan-20270115T080000Z-0001",
+            "started_at": at,
+            "ended_at": at,
+            "status": "completed",
+            "freed_bytes": "0",
+            "estimate_bytes": "0",
+            "volumes": [],
+            "items": items
+        }
+    });
+    let dir = f.data.join("cleans");
+    fs::create_dir_all(&dir).unwrap();
+    fs::write(dir.join(format!("{id}.json")), record.to_string()).unwrap();
+}
+
+fn clean_item(id: &str, status: &str, skip_reason: Value, failed_entries: u64) -> Value {
+    json!({
+        "item_id": id,
+        "status": status,
+        "skip_reason": skip_reason,
+        "bytes_before": "10",
+        "bytes_freed": "0",
+        "failed_entries": failed_entries
+    })
+}
+
+fn clean_group(id: &str, status: &str) -> Value {
+    json!({"group_id": id, "title_zh": id, "status": status, "freed_bytes": "0", "notes_zh": []})
+}
+
+fn m3d_clean_summary() {
+    let f = Fixture::new();
+    write_clean(
+        &f,
+        "clean-20270115T080000Z-00aa",
+        "2027-01-15T08:00:00Z",
+        json!([
+            clean_group("kept-done", "done"),
+            clean_group("kept-partial", "partial"),
+            clean_group("all-skipped", "skipped"),
+            clean_group("all-failed", "failed")
+        ]),
+        json!([
+            clean_item("i-1", "deleted", Value::Null, 0),
+            clean_item("i-2", "partial", Value::Null, 0),
+            clean_item("i-3", "skipped", json!("in_use"), 0),
+            clean_item("i-4", "skipped", json!("too_recent"), 0),
+            clean_item("i-5", "failed", Value::Null, 1),
+            clean_item("i-6", "failed", Value::Null, 2),
+            clean_item("i-7", "failed", Value::Null, 1)
+        ]),
+    );
+    write_clean(
+        &f,
+        "clean-20270115T090000Z-00bb",
+        "2027-01-15T09:00:00Z",
+        json!([
+            clean_group("only-done", "done"),
+            clean_group("only-skipped", "skipped")
+        ]),
+        json!([
+            clean_item("j-1", "deleted", Value::Null, 0),
+            clean_item("j-2", "skipped", json!("in_use"), 0)
+        ]),
+    );
+    let s = f.service(false);
+    let history = call(&s, "history_list", json!({}));
+    assert_eq!(
+        history_row(&history, &json!("clean-20270115T080000Z-00aa"))["summary_zh"],
+        "清理 2 组，跳过 2 项，失败 3 项",
+        "SERVICE_M3D_CLEAN_SUMMARY: mixed"
+    );
+    let ok = history_row(&history, &json!("clean-20270115T090000Z-00bb"));
+    assert_eq!(
+        ok["summary_zh"], "清理 1 组，跳过 1 项",
+        "SERVICE_M3D_CLEAN_SUMMARY: no failure"
+    );
+    assert!(
+        !ok["summary_zh"].as_str().unwrap().contains("失败"),
+        "SERVICE_M3D_CLEAN_SUMMARY: no failure wording"
+    );
 }
 
 fn m3c_by_drive() {
