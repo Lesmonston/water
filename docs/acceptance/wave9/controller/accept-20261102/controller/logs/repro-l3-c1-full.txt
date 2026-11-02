@@ -1,0 +1,48 @@
+   Compiling water-service v0.1.0 (F:\new\smaltalk\water\.worktrees\accept-w9-l3\packages\water-service)
+    Finished `test` profile [unoptimized + debuginfo] target(s) in 2.29s
+     Running tests\service_v1.rs (.local/w3-target\debug\deps\service_v1-fdbf4ccbf5992c54.exe)
+
+running 6 tests
+test service_clean_flow ... ok
+test service_hardening ... ok
+test service_ipc_contract ... ok
+test service_scan_views ... ok
+test service_storage_safety ... ok
+test service_trends_locations ... FAILED
+
+failures:
+
+---- service_trends_locations stdout ----
+
+thread 'service_trends_locations' (30808) panicked at tests\service_v1.rs:2429:5:
+assertion `left == right` failed: SERVICE_M3D_GROWTH_BASE: B growth_base_scan_id
+  left: String("scan-20270115T080000Z-b56b")
+ right: Null
+stack backtrace:
+   0: std::panicking::panic_handler
+             at /rustc/59807616e1fa2540724bfbac14d7976d7e4a3860/library\std\src\panicking.rs:689
+   1: core::panicking::panic_fmt
+             at /rustc/59807616e1fa2540724bfbac14d7976d7e4a3860/library\core\src\panicking.rs:80
+   2: core::panicking::assert_failed_inner
+             at /rustc/59807616e1fa2540724bfbac14d7976d7e4a3860/library\core\src\panicking.rs:434
+   3: core::panicking::assert_failed<enum2$<serde_json::value::Value>,enum2$<serde_json::value::Value> >
+             at /rustc/59807616e1fa2540724bfbac14d7976d7e4a3860/library\core\src\panicking.rs:394
+   4: service_v1::m3d_growth_base
+             at .\tests\service_v1.rs:2429
+   5: service_v1::service_trends_locations
+             at .\tests\service_v1.rs:1234
+   6: service_v1::service_trends_locations::closure$0
+             at .\tests\service_v1.rs:1231
+   7: core::ops::function::FnOnce::call_once<service_v1::service_trends_locations::closure_env$0,tuple$<> >
+             at /rustc/59807616e1fa2540724bfbac14d7976d7e4a3860/library\core\src\ops\function.rs:250
+   8: core::ops::function::FnOnce::call_once
+             at /rustc/59807616e1fa2540724bfbac14d7976d7e4a3860/library\core\src\ops\function.rs:250
+note: Some details are omitted, run with `RUST_BACKTRACE=full` for a verbose backtrace.
+
+
+failures:
+    service_trends_locations
+
+test result: FAILED. 5 passed; 1 failed; 0 ignored; 0 measured; 0 filtered out; finished in 29.73s
+
+error: test failed, to rerun pass `--test service_v1`

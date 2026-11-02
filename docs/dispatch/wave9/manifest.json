@@ -1,7 +1,7 @@
 {
   "schemaVersion": 1,
   "wave": "water-wave9-m3-close-fixes",
-  "status": "DISPATCHED_WITH_ADDENDA",
+  "status": "ALL_VERIFIED_MERGED",
   "controller": "Claude",
   "controllerRoot": "F:/new/smaltalk/water",
   "controllerBranch": "main",
@@ -96,7 +96,7 @@
       "branch": "worker/water-w9-l1",
       "baseCommit": "57ecd7ce42a98f9932faecc69e5d82c648991669",
       "snapshotRef": "refs/tags/water-w9-m3d-base-20261102",
-      "status": "DISPATCHED",
+      "status": "VERIFIED",
       "readyOn": "2026-11-02",
       "dispatchedAt": null,
       "startedAt": null,
@@ -158,12 +158,24 @@
       ],
       "baselineStatus": "PASSED",
       "baselineEvidence": "docs/acceptance/wave9/controller/preflight-20261102/l1/2026-11-02T03-43-59.922Z-28172-baseline-result.json",
-      "dispatchEvidence": "user chat 2026-11-02 ~12:52 JST: \"第三单是grok，其他的都是sol\" (L1, L2, L4 to sol; L3 to grok); worker tree head/changed files 57ecd7ce/0 when recorded at 2026-11-02T03:52:06Z"
+      "dispatchEvidence": "user chat 2026-11-02 ~12:52 JST: \"第三单是grok，其他的都是sol\" (L1, L2, L4 to sol; L3 to grok); worker tree head/changed files 57ecd7ce/0 when recorded at 2026-11-02T03:52:06Z",
+      "submittedHead": "761e42dfe22f00775010dffac71e87dd9326f5f3",
+      "implementationCommit": "c27b88c84fd3a7000580c126148f7740f8f6d927",
+      "workerSelfReport": "Codex (GPT-6)",
+      "mergeCommit": "28736089",
+      "controllerReview": {
+        "report": "docs/acceptance/wave9/controller/WATER-W9-REVIEW-20261102.md",
+        "evidence": "docs/acceptance/wave9/controller/accept-20261102/l1/",
+        "summary": "audit 0 problems; fresh tree lock, check, real and test finals passed; controller mutations c1-c4 all caught (c2 first written without keeping `seen` used and failed to compile, rewritten); independent review found no bug or spec deviation; old assertions changed only within RULES-M3D section 6"
+      },
+      "carryOverLater": [
+        "rejection cases for \"fallback rule must be custom\", \"main must be custom\" and \"main must be a marker\" also break other rules, so deleting those checks fails no test (the checks are redundant with others)"
+      ]
     },
     {
       "id": "WATER-W9-L2",
       "title": "附加条件、兜底目标与增长提示",
-      "status": "BLOCKED",
+      "status": "VERIFIED",
       "slot": "w9-l2",
       "kind": "rust",
       "worktree": "F:/new/smaltalk/water/.worktrees/w9-l2",
@@ -293,12 +305,26 @@
         {
           "id": "WATER-W9-L2-ADDENDUM-01",
           "ticket": "docs/dispatch/tickets/WATER-W9-L2-ADDENDUM-01-20261102.md",
-          "status": "READY",
+          "status": "VERIFIED",
           "issuedAt": "2026-11-02T03:55:44Z",
           "resumeFromCommit": "5431e81260ab81c4c1cd2cc75fa6c7860116564d",
           "change": "the plain-files-only rule binds only the fixtures L2 adds (SCAN_M3D_CONDITIONS); the existing junction and hard-link fixtures run unchanged as in W8-K3; still no symbolic links, fixtures only under .local/; no new authorized assertion changes; no baseline rerun",
-          "dispatchedAt": null
+          "dispatchedAt": null,
+          "submittedHead": "ea1a4adfea567726ab87de30b8965a35873175b2",
+          "implementationCommit": "d9808f18fbfa84714f7a688ad18014f967aea566"
         }
+      ],
+      "submittedHead": "ea1a4adfea567726ab87de30b8965a35873175b2",
+      "implementationCommit": "d9808f18fbfa84714f7a688ad18014f967aea566",
+      "mergeCommit": "37fa96f1",
+      "controllerReview": {
+        "report": "docs/acceptance/wave9/controller/WATER-W9-REVIEW-20261102.md",
+        "evidence": "docs/acceptance/wave9/controller/accept-20261102/l2/",
+        "summary": "audit 0 problems; addendum 01 resolved the fixture-wording block; fresh tree lock, check, real (partial, 185275 entries, 17.8 s) and test finals passed; controller mutations c1-c5 all caught; independent review found no bug or spec deviation; junction and hard-link fixtures untouched"
+      },
+      "carryOverLater": [
+        "listing problems and budget_exhausted inside a folder routed to a fallback are recorded on the primary group only (SCAN-M3D section 3 literal reading); decide in wave 10 whether they belong on the fallback group",
+        "the \"fallback group appears with 0 items\" assertion passes vacuously if the group is missing; the self-pointing and fallback-of-fallback counterexamples also break other rules"
       ]
     },
     {
@@ -413,7 +439,7 @@
       "branch": "worker/water-w9-l3",
       "baseCommit": "57ecd7ce42a98f9932faecc69e5d82c648991669",
       "snapshotRef": "refs/tags/water-w9-m3d-base-20261102",
-      "status": "DISPATCHED",
+      "status": "VERIFIED",
       "readyOn": "2026-11-02",
       "dispatchedAt": null,
       "startedAt": null,
@@ -479,12 +505,26 @@
       ],
       "baselineStatus": "PASSED",
       "baselineEvidence": "docs/acceptance/wave9/controller/preflight-20261102/l3/2026-11-02T03-43-59.982Z-43140-baseline-result.json",
-      "dispatchEvidence": "user chat 2026-11-02 ~12:52 JST: \"第三单是grok，其他的都是sol\" (L1, L2, L4 to sol; L3 to grok); worker tree head/changed files 57ecd7ce/0 when recorded at 2026-11-02T03:52:06Z"
+      "dispatchEvidence": "user chat 2026-11-02 ~12:52 JST: \"第三单是grok，其他的都是sol\" (L1, L2, L4 to sol; L3 to grok); worker tree head/changed files 57ecd7ce/0 when recorded at 2026-11-02T03:52:06Z",
+      "submittedHead": "57d00f7b20e2f2e1ca892af74987519a9fad800e",
+      "implementationCommit": "297a5dbd43f2a948c8342a9465b00e20dd57962f",
+      "workerSelfReport": "Grok 4.6 (xAI)",
+      "mergeCommit": "bc433e6c",
+      "controllerReview": {
+        "report": "docs/acceptance/wave9/controller/WATER-W9-REVIEW-20261102.md",
+        "evidence": "docs/acceptance/wave9/controller/accept-20261102/l3/",
+        "summary": "audit 0 problems; fresh tree lock, check, real and test finals passed; controller mutations: c1, c3, c4, c5 caught, c2 (oldest instead of latest base) survives because no test has two qualifying bases; the first-round c1/c2 runs aborted with 0xC0000409 while four trees built at once and passed on a quiet rerun; independent review found no bug or spec deviation"
+      },
+      "carryOverLater": [
+        "no test has two qualifying growth bases, so \"latest wins\" is unverified (controller mutation c2 survives)",
+        "when the growth base is trimmed from storage, records that used it show since null and \"与 0 月 0 日相比\" after a restart; growth_base_scan_id type is not validated on load",
+        "service tests are timing-sensitive: under load the green run after controller mutation c3 failed SERVICE_RETURN_BUDGET (scan_progress, clean_prepare) on unchanged bytes, and two first-round runs aborted with 0xC0000409 while four trees built at once; watch it in the sixth integration (pre-existing wave 8 budget assertions, not touched by L3)"
+      ]
     },
     {
       "id": "WATER-W9-L4",
       "title": "命令行里的 Git Bash 写法",
-      "status": "DISPATCHED",
+      "status": "VERIFIED",
       "slot": "w9-l4",
       "kind": "rust",
       "worktree": "F:/new/smaltalk/water/.worktrees/w9-l4",
@@ -595,7 +635,20 @@
         "Process32NextW",
         "QueryFullProcessImageNameW"
       ],
-      "dispatchEvidence": "user chat 2026-11-02 ~12:52 JST: \"第三单是grok，其他的都是sol\" (L1, L2, L4 to sol; L3 to grok); worker tree head/changed files 57ecd7ce/0 when recorded at 2026-11-02T03:52:06Z"
+      "dispatchEvidence": "user chat 2026-11-02 ~12:52 JST: \"第三单是grok，其他的都是sol\" (L1, L2, L4 to sol; L3 to grok); worker tree head/changed files 57ecd7ce/0 when recorded at 2026-11-02T03:52:06Z",
+      "submittedHead": "daf43563448c4e74864d8628835a02115e6ddd67",
+      "implementationCommit": "3967b1ebfd3103457245c558d8fab37501796751",
+      "workerSelfReport": "Codex (GPT-6)",
+      "mergeCommit": "b39bfcdf",
+      "controllerReview": {
+        "report": "docs/acceptance/wave9/controller/WATER-W9-REVIEW-20261102.md",
+        "evidence": "docs/acceptance/wave9/controller/accept-20261102/l4/",
+        "summary": "audit 0 problems; fresh tree lock, check, real and test finals passed; controller mutations c1-c3 all caught (c3 added to give the final an nc2 proof); independent review found no bug or spec deviation; real smoke now prints counts only (orphan names removed per the ticket), superseding checkup-v1/PROCESS.md line 49 via PROCESS-M3D section 3"
+      },
+      "carryOverLater": [
+        "no MSYS case with non-ASCII characters; the README does not describe the MSYS rule"
+      ]
     }
-  ]
+  ],
+  "completedAt": "2026-11-02T06:05:10Z"
 }

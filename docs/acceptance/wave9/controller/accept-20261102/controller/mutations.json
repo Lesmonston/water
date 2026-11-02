@@ -1,0 +1,163 @@
+{
+ "l1": [
+  {
+   "label": "c1",
+   "mode": "red-nc1",
+   "token": "RULES_M3D_FALLBACK",
+   "file": "packages/junk-rules/src/rules.rs",
+   "old": "                || max_depth != main_depth",
+   "new": "                || false",
+   "why": "a fallback with a different max_depth is accepted"
+  },
+  {
+   "label": "c2",
+   "mode": "red-nc1",
+   "token": "RULES_M3D_FALLBACK",
+   "file": "packages/junk-rules/src/rules.rs",
+   "old": "                || !seen.insert(id)",
+   "new": "                || (!seen.insert(id) && id.is_empty())",
+   "why": "two fallbacks for one primary are accepted (seen stays used)"
+  },
+  {
+   "label": "c3",
+   "mode": "red-nc2",
+   "token": "RULES_M3D_CONDITIONS",
+   "file": "packages/junk-rules/src/types.rs",
+   "old": "        if !seen.insert(kind) {",
+   "new": "        if false && !seen.insert(kind) {",
+   "why": "a repeated condition kind is accepted"
+  },
+  {
+   "label": "c4",
+   "mode": "red-nc1",
+   "token": "RULES_M3D_FALLBACK",
+   "file": "packages/junk-rules/src/plan.rs",
+   "old": ".map(|id| format!(\"custom:{}:{id}#1\", root.root_id)),",
+   "new": ".map(|id| format!(\"custom:{}:{id}#2\", root.root_id)),",
+   "why": "fallback targets point at a non-existent primary target"
+  }
+ ],
+ "l2": [
+  {
+   "label": "c1",
+   "mode": "red-nc1",
+   "token": "SCAN_M3D_CONDITIONS",
+   "file": "packages/junk-scan/src/scan.rs",
+   "old": "            [..components.len().saturating_sub(1)]",
+   "new": "            [..components.len().saturating_sub(2)]",
+   "why": "no_ancestor_suffix also skips the parent of D"
+  },
+  {
+   "label": "c2",
+   "mode": "red-nc1",
+   "token": "SCAN_M3D_CONDITIONS",
+   "file": "packages/junk-scan/src/scan.rs",
+   "old": "        Condition::PathHasAny { names } => components.iter().any(|part| {",
+   "new": "        Condition::PathHasAny { names } => components[..components.len().saturating_sub(1)].iter().any(|part| {",
+   "why": "path_has_any ignores D itself"
+  },
+  {
+   "label": "c3",
+   "mode": "red-nc2",
+   "token": "SCAN_M3D_GROWTH",
+   "file": "packages/junk-scan/src/snapshot.rs",
+   "old": "bytes_delta > 0 && (",
+   "new": "bytes_delta >= 0 && (",
+   "why": "an unchanged size still counts as a leak"
+  },
+  {
+   "label": "c4",
+   "mode": "red-nc1",
+   "token": "SCAN_M3D_CONDITIONS",
+   "file": "packages/junk-scan/src/scan.rs",
+   "old": "                    let target = &plan.targets[index];\n                    push_measured_hit(",
+   "new": "                    let target = &plan.targets[row.index];\n                    push_measured_hit(",
+   "why": "routed hits take the primary target group, level and age"
+  },
+  {
+   "label": "c5",
+   "mode": "red-nc1",
+   "token": "SCAN_M3D_CONDITIONS",
+   "file": "packages/junk-scan/src/scan.rs",
+   "old": "                                fallbacks[index]\n",
+   "new": "                                fallbacks[index].or(Some(index))\n",
+   "why": "without a fallback, a failed hit still goes to the primary"
+  }
+ ],
+ "l3": [
+  {
+   "label": "c1",
+   "mode": "red-nc1",
+   "token": "SERVICE_M3D_GROWTH_BASE",
+   "file": "packages/water-service/src/service.rs",
+   "old": "at.checked_sub(Duration::from_secs(86_400))?",
+   "new": "at.checked_sub(Duration::from_secs(3_600))?",
+   "why": "the growth base needs only one hour"
+  },
+  {
+   "label": "c2",
+   "mode": "red-nc1",
+   "token": "SERVICE_M3D_GROWTH_BASE",
+   "file": "packages/water-service/src/service.rs",
+   "old": ".max_by_key(|(ended, _)| *ended)",
+   "new": ".min_by_key(|(ended, _)| *ended)",
+   "why": "the oldest qualifying scan becomes the base (probe: latest-wins coverage)"
+  },
+  {
+   "label": "c3",
+   "mode": "red-nc1",
+   "token": "SERVICE_M3D_GROWTH_BASE",
+   "file": "packages/water-service/src/service.rs",
+   "old": "r.previous_at = if r.saved.get(\"growth_base_scan_id\").is_some() {",
+   "new": "r.previous_at = if false {",
+   "why": "reload ignores growth_base_scan_id (probe: reload coverage)"
+  },
+  {
+   "label": "c4",
+   "mode": "test",
+   "token": "SERVICE_M3D_HISTORY",
+   "file": "packages/water-service/src/service.rs",
+   "old": "if r.result.status == \"cancelled\" {",
+   "new": "if r.result.status == \"canceled\" {",
+   "why": "stopped scans lose the 已停止 text"
+  },
+  {
+   "label": "c5",
+   "mode": "red-nc2",
+   "token": "SERVICE_M3D_CLEAN_SUMMARY",
+   "file": "packages/water-service/src/service.rs",
+   "old": ".filter(|g| g[\"status\"] == \"done\" || g[\"status\"] == \"partial\")",
+   "new": ".filter(|g| g[\"status\"] == \"done\")",
+   "why": "partial groups are not counted (probe: partial coverage)"
+  }
+ ],
+ "l4": [
+  {
+   "label": "c1",
+   "mode": "red-nc1",
+   "token": "PROCESS_M3D_MSYS",
+   "file": "packages/process-scan/src/lib.rs",
+   "old": "return contains_bounded_path(&haystack, &msys_path);",
+   "new": "return haystack.contains(&msys_path);",
+   "why": "the MSYS spelling skips both boundary checks"
+  },
+  {
+   "label": "c2",
+   "mode": "red-nc1",
+   "token": "PROCESS_M3D_MSYS",
+   "file": "packages/process-scan/src/lib.rs",
+   "old": "format!(\"\\\\{}{}\", char::from(path[0]), &path_norm[2..])",
+   "new": "format!(\"\\\\{}{}\", char::from(path[0]).to_ascii_uppercase(), &path_norm[2..])",
+   "why": "the MSYS drive letter is upper-cased against a lower-cased command line"
+  },
+  {
+   "label": "c3",
+   "mode": "red-nc2",
+   "token": "PROCESS_M3D_MSYS",
+   "file": "packages/process-scan/src/lib.rs",
+   "old": "if path.len() > 3 && path[0].is_ascii_alphabetic()",
+   "new": "if path.len() > 30 && path[0].is_ascii_alphabetic()",
+   "why": "paths shorter than 30 bytes get no MSYS spelling"
+  }
+ ]
+}

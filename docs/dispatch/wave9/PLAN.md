@@ -282,6 +282,10 @@ L1、L2 经冻结的 JSON 计划对接（第八波 K2、K3 也是这样并行的
 
 L2 开工检查后交回受阻回执（`5431e812`），成立，是总控写单时的疏漏：原票与规则第 3 节写了“L2 的夹具只建普通文件与目录”，本意只管新增夹具，但原有测试本来就建一个联接（`mklink /J`）和一个硬链接（`mklink /H`）。补单澄清这句只约束新增夹具，旧夹具原样运行；其余不变，不重跑 baseline。L1、L3、L4 的单子没有这句，不受影响。
 
+### 验收（2026-11-02）
+
+四张都 VERIFIED 并合入：L1 `28736089`、L2 `37fa96f1`、L4 `b39bfcdf`、L3 `bc433e6c`。见[验收报告](../../acceptance/wave9/controller/WATER-W9-REVIEW-20261102.md)。下一步按 2.3 做 M3 收口。
+
 - WATER-W9-L2 补单 01：`你接手 Water 项目 WATER-W9-L2 补单 01（既有测试里的联接与硬链接夹具照旧运行，轻门）。先读 F:/new/smaltalk/water/docs/dispatch/tickets/WATER-W9-L2-ADDENDUM-01-20261102.md，按其中列出的顺序读原票、规则与契约，在 F:/new/smaltalk/water/.worktrees/w9-l2（分支 worker/water-w9-l2）从 5431e812 续做。`
 
 派单句（每条单独复制给一个执行者）：

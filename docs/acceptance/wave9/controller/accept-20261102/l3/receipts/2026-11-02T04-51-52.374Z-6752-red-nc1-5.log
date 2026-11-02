@@ -1,0 +1,14 @@
+{"binary":"C:\\Users\\37310\\.rustup\\toolchains\\1.95.0-x86_64-pc-windows-msvc\\bin\\cargo.exe","args":["test","--offline","--locked","--manifest-path","packages/water-service/Cargo.toml","--test","service_v1","--","--test-threads=1"],"exitCode":3221226505,"error":null}
+--- stdout ---
+
+running 6 tests
+test service_clean_flow ... 
+--- stderr ---
+   Compiling water-service v0.1.0 (F:\new\smaltalk\water\.worktrees\accept-w9-l3\packages\water-service)
+    Finished `test` profile [unoptimized + debuginfo] target(s) in 20.56s
+     Running tests\service_v1.rs (.local\w3-target\debug\deps\service_v1-fdbf4ccbf5992c54.exe)
+error: test failed, to rerun pass `--test service_v1`
+
+Caused by:
+  process didn't exit successfully: `F:\new\smaltalk\water\.worktrees\accept-w9-l3\.local\w3-target\debug\deps\service_v1-fdbf4ccbf5992c54.exe --test-threads=1` (exit code: 0xc0000409, STATUS_STACK_BUFFER_OVERRUN)
+note: test exited abnormally; to see the full output pass --no-capture to the harness.

@@ -1,0 +1,52 @@
+{"binary":"C:\\Users\\37310\\.rustup\\toolchains\\1.95.0-x86_64-pc-windows-msvc\\bin\\cargo.exe","args":["test","--offline","--locked","--manifest-path","packages/water-service/Cargo.toml","--test","service_v1","--","--test-threads=1"],"exitCode":101,"error":null}
+--- stdout ---
+
+running 6 tests
+test service_clean_flow ... FAILED
+test service_hardening ... FAILED
+test service_ipc_contract ... ok
+test service_scan_views ... ok
+test service_storage_safety ... ok
+test service_trends_locations ... ok
+
+failures:
+
+---- service_clean_flow stdout ----
+
+thread 'service_clean_flow' (35628) panicked at tests\service_v1.rs:416:5:
+SERVICE_RETURN_BUDGET: scan_progress
+note: run with `RUST_BACKTRACE=1` environment variable to display a backtrace
+
+---- service_hardening stdout ----
+
+thread 'water-scan' (16536) panicked at tests\service_v1.rs:177:13:
+fake platform: drives failed inside the scan task
+
+thread 'water-scan' (18268) panicked at tests\service_v1.rs:177:13:
+fake platform: drives failed inside the scan task
+
+thread 'service_hardening' (19772) panicked at tests\service_v1.rs:194:13:
+fake platform: clock failed
+
+thread 'water-clean' (34728) panicked at tests\service_v1.rs:215:13:
+fake platform: in_use failed inside the clean task
+
+thread 'service_hardening' (19772) panicked at tests\service_v1.rs:194:13:
+fake platform: clock failed
+
+thread 'service_hardening' (19772) panicked at tests\service_v1.rs:416:5:
+SERVICE_RETURN_BUDGET: clean_prepare
+
+
+failures:
+    service_clean_flow
+    service_hardening
+
+test result: FAILED. 4 passed; 2 failed; 0 ignored; 0 measured; 0 filtered out; finished in 16.51s
+
+
+--- stderr ---
+   Compiling water-service v0.1.0 (F:\new\smaltalk\water\.worktrees\accept-w9-l3\packages\water-service)
+    Finished `test` profile [unoptimized + debuginfo] target(s) in 3.58s
+     Running tests\service_v1.rs (.local\w3-target\debug\deps\service_v1-fdbf4ccbf5992c54.exe)
+error: test failed, to rerun pass `--test service_v1`

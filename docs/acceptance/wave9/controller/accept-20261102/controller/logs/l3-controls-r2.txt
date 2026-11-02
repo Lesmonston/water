@@ -1,0 +1,15 @@
+l3 c1 mutated packages/water-service/src/service.rs: the growth base needs only one hour (mutated sha fae12a9707dbeebf1454a0b9519ddec9a91a705d339ae782dd4ff4ec8b1f5168)
+l3 red-nc1 rc=0 {"task":"WATER-W9-ACCEPT-L3","mode":"red-nc1","finalGate":false,"status":"passed","error":null,"receipt":"F:\\new\\smaltalk\\water\\.worktrees\\accept-w9-l3\\.local\\checks\\WATER-W9-ACCEPT-L3\\2026-11-02T05-08-41.398Z-3760-red-nc1-result.json"}
+l3 c1 KILLED (expected SERVICE_M3D_GROWTH_BASE)
+l3 c1 restored exact bytes=true sha b1962832810419ce88513598bf1db068e567c81f53c0f7601076130f1da811e4
+l3 test rc=0 {"task":"WATER-W9-ACCEPT-L3","mode":"test","finalGate":false,"status":"passed","error":null,"receipt":"F:\\new\\smaltalk\\water\\.worktrees\\accept-w9-l3\\.local\\checks\\WATER-W9-ACCEPT-L3\\2026-11-02T05-09-46.953Z-35260-test-result.json"}
+l3 c2 mutated packages/water-service/src/service.rs: the oldest qualifying scan becomes the base (probe: latest-wins coverage) (mutated sha 9e06938269f9ebbc4b185751dc21983bddc70508c44d7957480dabc3be8ff19a)
+l3 red-nc1 rc=1 {"task":"WATER-W9-ACCEPT-L3","mode":"red-nc1","finalGate":false,"status":"failed","error":"AssertionError [ERR_ASSERTION]: Missing failure token SERVICE_M3D_GROWTH_BASE","receipt":"F:\\new\\smaltalk\\water\\.worktrees\\accept-w9-l3\\.local\\checks\\WATER-W9-ACCEPT-L3\\2026-11-02T05-11-00.348Z-35200-red-nc1-result.json"}
+l3 c2 SURVIVED (expected SERVICE_M3D_GROWTH_BASE)
+l3 c2 restored exact bytes=true sha b1962832810419ce88513598bf1db068e567c81f53c0f7601076130f1da811e4
+l3 test rc=0 {"task":"WATER-W9-ACCEPT-L3","mode":"test","finalGate":false,"status":"passed","error":null,"receipt":"F:\\new\\smaltalk\\water\\.worktrees\\accept-w9-l3\\.local\\checks\\WATER-W9-ACCEPT-L3\\2026-11-02T05-12-02.452Z-36336-test-result.json"}
+l3 c3 mutated packages/water-service/src/service.rs: reload ignores growth_base_scan_id (probe: reload coverage) (mutated sha 1f54b18179766be2ccbe987ce7fb208d1ef98b9511198fd3a25eb6a2b08d810b)
+l3 red-nc1 rc=0 {"task":"WATER-W9-ACCEPT-L3","mode":"red-nc1","finalGate":false,"status":"passed","error":null,"receipt":"F:\\new\\smaltalk\\water\\.worktrees\\accept-w9-l3\\.local\\checks\\WATER-W9-ACCEPT-L3\\2026-11-02T05-12-47.792Z-29296-red-nc1-result.json"}
+l3 c3 KILLED (expected SERVICE_M3D_GROWTH_BASE)
+l3 c3 restored exact bytes=true sha b1962832810419ce88513598bf1db068e567c81f53c0f7601076130f1da811e4
+l3 test rc=1 {"task":"WATER-W9-ACCEPT-L3","mode":"test","finalGate":false,"status":"failed","error":"AssertionError [ERR_ASSERTION]: Unexpected exit, see 2026-11-02T05-13-28.884Z-35824-test-5.log","receipt":"F:\\new\\smaltalk\\water\\.worktrees\\accept-w9-l3\\.local\\checks\\WATER-W9-ACCEPT-L3\\2026-11-02T05-13-28.884Z-35824-test-result.json"}

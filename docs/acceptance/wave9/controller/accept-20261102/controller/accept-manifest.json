@@ -1,0 +1,613 @@
+{
+  "schemaVersion": 1,
+  "wave": "water-wave9-m3d-controller-acceptance",
+  "status": "CONTROLLER_ACCEPTANCE",
+  "controller": "Claude",
+  "controllerRoot": "F:/new/smaltalk/water",
+  "controllerBranch": "main",
+  "helpers": {
+    "L1": "scripts/checkup-wave-check.mjs",
+    "L2": "scripts/checkup-wave-check.mjs",
+    "L3": "scripts/desktop-wave-check.mjs",
+    "L4": "scripts/checkup-wave-check.mjs"
+  },
+  "baseCommit": "57ecd7ce42a98f9932faecc69e5d82c648991669",
+  "baseTag": "water-w9-m3d-base-20261102",
+  "plan": "docs/dispatch/wave9/PLAN.md",
+  "workerRules": "docs/dispatch/W9-M3D-WORKER-RULES.md",
+  "userDecision": "2026-11-02: plan section 7 approved as recommended (\"全部按推荐\"). L1-L4 are dispatched together; L1 and L2 share the plan JSON and merge together; L3 and L4 merge any time. 2026-11-02: wave 10 waits until wave 9 closes (\"第10波等第九波收口再做，因为可能会有变化\").",
+  "offlineCache": {
+    "core": "F:/new/smaltalk/water/.offline-cache/core/registry",
+    "desktop": "F:/new/smaltalk/water/.offline-cache/desktop/registry",
+    "copiedFrom": [
+      "F:/new/smaltalk/water/.worktrees/a/.local/cargo-home/registry",
+      "F:/new/smaltalk/water/.worktrees/ac/.local/desktop-cargo-home/registry"
+    ],
+    "check": "diff -rq byte-identical, 11159 files"
+  },
+  "frozenFiles": [
+    {
+      "path": "docs/decisions/ADR-018-device-junk-checkup-and-in-app-cleanup.md",
+      "sha256": "1195b17c469b3abe290f4d334628fa36583ca7f20c46349aaf1071ff839a0579"
+    },
+    {
+      "path": "contracts/checkup-v1/MODEL.md",
+      "sha256": "fe0c9a4f5d96ce9297e8f72e75df8c6f666f9a6af440fc198aa7b3362692188b"
+    },
+    {
+      "path": "contracts/checkup-v1/IPC.md",
+      "sha256": "62f726ced5f863f1b47db261976d8b5e5183f65669b2ba09d2f85a3977161be2"
+    },
+    {
+      "path": "docs/dispatch/W9-M3D-WORKER-RULES.md",
+      "sha256": "7c98ea96b3d6af4a1d48a72ad7e6255a43bea84736e95c1488cb6d1994ea067a"
+    }
+  ],
+  "readyReport": "docs/dispatch/wave9/PLAN.md",
+  "tasks": [
+    {
+      "kind": "rust",
+      "outputRoot": "packages/junk-rules",
+      "packageName": "water-junk-rules",
+      "testTarget": "rules_v1",
+      "expectedTests": [
+        "rules_schema_strict",
+        "rules_protection_precedence",
+        "rules_resolve_plan",
+        "rules_seed_coverage"
+      ],
+      "productionFiles": [
+        "packages/junk-rules/Cargo.toml",
+        "packages/junk-rules/Cargo.lock",
+        "packages/junk-rules/README.md",
+        "packages/junk-rules/rules/windows.json"
+      ],
+      "testFiles": [
+        "packages/junk-rules/tests/rules_v1.rs"
+      ],
+      "allowedModes": [
+        "baseline",
+        "lock",
+        "check",
+        "test",
+        "archive",
+        "real",
+        "red-nc1",
+        "red-nc2"
+      ],
+      "expectedFinalModes": [
+        "check",
+        "test",
+        "real"
+      ],
+      "cargoCacheSource": "F:/new/smaltalk/water/.offline-cache/core/registry",
+      "realMode": "env-only",
+      "nativeModule": null,
+      "nativeWindowBudget": 0,
+      "nativeDirectoryDialogBudget": 0,
+      "browserBudget": 0,
+      "realDataPermission": "read-only metadata per ADR-018",
+      "macOS": "unverified",
+      "outputRootExists": true,
+      "id": "WATER-W9-ACCEPT-L1",
+      "title": "标记的附加条件与兜底规则",
+      "slot": "w9-l1",
+      "worktree": "F:/new/smaltalk/water/.worktrees/accept-w9-l1",
+      "branch": "controller/accept-w9-l1",
+      "baseCommit": "57ecd7ce42a98f9932faecc69e5d82c648991669",
+      "snapshotRef": "refs/tags/water-w9-m3d-base-20261102",
+      "status": "CONTROLLER_ACCEPTANCE",
+      "readyOn": "2026-11-02",
+      "dispatchedAt": null,
+      "startedAt": null,
+      "model": "sol (user-reported)",
+      "modelAssignment": "user-arranged; report actual engine/model",
+      "purpose": "M3 close fixes",
+      "report": "docs/dispatch/reports/WATER-W9-L1-REPORT.md",
+      "evidenceDir": "docs/acceptance/wave9/controller/accept-20261102/l1/",
+      "allowedFiles": [
+        "docs/dispatch/reports/WATER-W9-L1-REPORT.md"
+      ],
+      "gate": "light",
+      "ticket": "docs/dispatch/tickets/WATER-W9-L1-RULES-20261102.md",
+      "spec": "contracts/m3d-v1/RULES-M3D.md",
+      "proofTargets": {
+        "nc1": "RULES_M3D_FALLBACK",
+        "nc2": "RULES_M3D_CONDITIONS"
+      },
+      "modelHint": "Rules data, validator and plan JSON; light gate; no web access needed.",
+      "mustRead": [
+        "docs/dispatch/W9-M3D-WORKER-RULES.md",
+        "contracts/m3d-v1/RULES-M3D.md",
+        "contracts/checkup-v1/RULES.md",
+        "contracts/checkup-v1/MODEL.md",
+        "contracts/m3c-v1/RULES-M3C.md",
+        "contracts/m3d-v1/SCAN-M3D.md",
+        "docs/dispatch/wave9/PLAN.md",
+        "docs/acceptance/wave8/controller/WATER-M3-REPLAY-20261101.md",
+        "packages/junk-rules/src/rules.rs",
+        "packages/junk-rules/src/types.rs",
+        "packages/junk-rules/src/plan.rs",
+        "packages/junk-rules/tests/rules_v1.rs"
+      ],
+      "frozenFiles": [
+        {
+          "path": "contracts/m3d-v1/RULES-M3D.md",
+          "sha256": "65b68ff3f3ba1f01d9b85f922c97c8c8b018494385ba38ce584166a0e549e393"
+        },
+        {
+          "path": "contracts/checkup-v1/RULES.md",
+          "sha256": "11bbc3652d4e722618875e16bdca28676553fade0fb38e754316f053ce925949"
+        },
+        {
+          "path": "contracts/checkup-v1/MODEL.md",
+          "sha256": "fe0c9a4f5d96ce9297e8f72e75df8c6f666f9a6af440fc198aa7b3362692188b"
+        },
+        {
+          "path": "contracts/m3c-v1/RULES-M3C.md",
+          "sha256": "2fe859274ca3c8c6a3ca9533d30eb4b16deb2a1801c3c1463f2f976a23e28220"
+        },
+        {
+          "path": "contracts/m3d-v1/SCAN-M3D.md",
+          "sha256": "d79fb5867ec84083d9c4cecebe23dbaf6f1a4cef5d92b9ce6085ad057dbee850"
+        }
+      ],
+      "allowedPrefixes": [
+        "packages/junk-rules/",
+        "docs/acceptance/wave9/l1/",
+        "docs/acceptance/wave9/controller/accept-20261102/l1/"
+      ],
+      "baselineStatus": "PASSED",
+      "baselineEvidence": "docs/acceptance/wave9/controller/preflight-20261102/l1/2026-11-02T03-43-59.922Z-28172-baseline-result.json",
+      "dispatchEvidence": "user chat 2026-11-02 ~12:52 JST: \"第三单是grok，其他的都是sol\" (L1, L2, L4 to sol; L3 to grok); worker tree head/changed files 57ecd7ce/0 when recorded at 2026-11-02T03:52:06Z",
+      "acceptsTask": "WATER-W9-L1",
+      "acceptsHead": "761e42dfe22f00775010dffac71e87dd9326f5f3"
+    },
+    {
+      "id": "WATER-W9-ACCEPT-L2",
+      "title": "附加条件、兜底目标与增长提示",
+      "status": "CONTROLLER_ACCEPTANCE",
+      "slot": "w9-l2",
+      "kind": "rust",
+      "worktree": "F:/new/smaltalk/water/.worktrees/accept-w9-l2",
+      "branch": "controller/accept-w9-l2",
+      "baseCommit": "57ecd7ce42a98f9932faecc69e5d82c648991669",
+      "snapshotRef": "refs/tags/water-w9-m3d-base-20261102",
+      "ticket": "docs/dispatch/tickets/WATER-W9-L2-SCAN-20261102.md",
+      "report": "docs/dispatch/reports/WATER-W9-L2-REPORT.md",
+      "spec": "contracts/m3d-v1/SCAN-M3D.md",
+      "outputRoot": "packages/junk-scan",
+      "packageName": "water-junk-scan",
+      "testTarget": "scan_v1",
+      "expectedTests": [
+        "scan_plan_contract",
+        "scan_pattern_marker_discovery",
+        "scan_overlap_and_guards",
+        "scan_reparse_budget_cancel",
+        "scan_snapshot_growth_keys"
+      ],
+      "proofTargets": {
+        "nc1": "SCAN_M3D_CONDITIONS",
+        "nc2": "SCAN_M3D_GROWTH"
+      },
+      "productionFiles": [
+        "packages/junk-scan/Cargo.toml",
+        "packages/junk-scan/Cargo.lock",
+        "packages/junk-scan/README.md"
+      ],
+      "testFiles": [
+        "packages/junk-scan/tests/scan_v1.rs"
+      ],
+      "allowedFiles": [
+        "docs/dispatch/reports/WATER-W9-L2-REPORT.md"
+      ],
+      "allowedPrefixes": [
+        "packages/junk-scan/",
+        "docs/acceptance/wave9/l2/",
+        "docs/acceptance/wave9/controller/accept-20261102/l2/"
+      ],
+      "evidenceDir": "docs/acceptance/wave9/controller/accept-20261102/l2/",
+      "allowedModes": [
+        "baseline",
+        "lock",
+        "check",
+        "test",
+        "archive",
+        "real",
+        "red-nc1",
+        "red-nc2"
+      ],
+      "expectedFinalModes": [
+        "check",
+        "test",
+        "real"
+      ],
+      "mustRead": [
+        "docs/dispatch/W9-M3D-WORKER-RULES.md",
+        "contracts/m3d-v1/SCAN-M3D.md",
+        "contracts/checkup-v1/SCAN.md",
+        "contracts/checkup-v1/MODEL.md",
+        "contracts/m3c-v1/SCAN-M3C.md",
+        "contracts/m3d-v1/RULES-M3D.md",
+        "docs/dispatch/wave9/PLAN.md",
+        "packages/junk-scan/src/plan.rs",
+        "packages/junk-scan/src/scan.rs",
+        "packages/junk-scan/src/snapshot.rs",
+        "packages/junk-scan/tests/scan_v1.rs"
+      ],
+      "cargoCacheSource": "F:/new/smaltalk/water/.offline-cache/core/registry",
+      "realMode": "scan-plan",
+      "nativeModule": "native_windows.rs",
+      "nativeWindowBudget": 0,
+      "nativeDirectoryDialogBudget": 0,
+      "browserBudget": 0,
+      "realDataPermission": "read-only metadata per ADR-018; group-level output only",
+      "dispatchedAt": null,
+      "startedAt": null,
+      "model": "sol (user-reported)",
+      "modelAssignment": "user-arranged; report actual engine/model",
+      "macOS": "unverified",
+      "gate": "light",
+      "baselineStatus": "PASSED",
+      "baselineEvidence": "docs/acceptance/wave9/controller/preflight-20261102/l2/2026-11-02T03-43-59.952Z-37748-baseline-result.json",
+      "readyOn": "2026-11-02",
+      "purpose": "M3 close fixes",
+      "modelHint": "Rust scan engine: plan JSON, one-walk marker routing, growth; light gate with a read-only real scan.",
+      "frozenFiles": [
+        {
+          "path": "contracts/m3d-v1/SCAN-M3D.md",
+          "sha256": "d79fb5867ec84083d9c4cecebe23dbaf6f1a4cef5d92b9ce6085ad057dbee850"
+        },
+        {
+          "path": "contracts/checkup-v1/SCAN.md",
+          "sha256": "c72b72d16635f57827d460e0c12e0044d86677e1a2a93e9f72664625dfa6d5e3"
+        },
+        {
+          "path": "contracts/checkup-v1/MODEL.md",
+          "sha256": "fe0c9a4f5d96ce9297e8f72e75df8c6f666f9a6af440fc198aa7b3362692188b"
+        },
+        {
+          "path": "contracts/m3c-v1/SCAN-M3C.md",
+          "sha256": "9ae9c1eab0f0c81a2943a7bff30163f9504e102c69ba9b9d56d3d8db9d38f2e2"
+        },
+        {
+          "path": "contracts/m3d-v1/RULES-M3D.md",
+          "sha256": "65b68ff3f3ba1f01d9b85f922c97c8c8b018494385ba38ce584166a0e549e393"
+        },
+        {
+          "path": "contracts/checkup-v1/real-plan-template.json",
+          "sha256": "3959478c757fb76e3925d97de00325865a8ef9a3572ef7a19f656e2da583eaad"
+        }
+      ],
+      "outputRootExists": true,
+      "allowedFfi": [
+        "CloseHandle",
+        "CoTaskMemFree",
+        "CreateFileW",
+        "GetFileInformationByHandleEx",
+        "GetVolumeInformationByHandleW",
+        "SHGetKnownFolderPath"
+      ],
+      "dispatchEvidence": "user chat 2026-11-02 ~12:52 JST: \"第三单是grok，其他的都是sol\" (L1, L2, L4 to sol; L3 to grok); worker tree head/changed files 57ecd7ce/2 when recorded at 2026-11-02T03:52:06Z",
+      "blockedAt": "2026-11-02T03:52:43Z",
+      "blockedCommit": "5431e81260ab81c4c1cd2cc75fa6c7860116564d",
+      "blockedReason": "ticket and worker rules section 3 say L2 fixtures are plain files and directories only, but the existing five tests already build a junction (cmd /c mklink /J, helper junction at base line 109, used by scan_reparse_budget_cancel and check_single_walk) and a hard link (cmd /c mklink /H, hard_link at base line 1244, used by check_unique_bytes); the worker stopped before implementing",
+      "workerSelfReport": "Codex (GPT-6)",
+      "addenda": [
+        {
+          "id": "WATER-W9-L2-ADDENDUM-01",
+          "ticket": "docs/dispatch/tickets/WATER-W9-L2-ADDENDUM-01-20261102.md",
+          "status": "READY",
+          "issuedAt": "2026-11-02T03:55:44Z",
+          "resumeFromCommit": "5431e81260ab81c4c1cd2cc75fa6c7860116564d",
+          "change": "the plain-files-only rule binds only the fixtures L2 adds (SCAN_M3D_CONDITIONS); the existing junction and hard-link fixtures run unchanged as in W8-K3; still no symbolic links, fixtures only under .local/; no new authorized assertion changes; no baseline rerun",
+          "dispatchedAt": null
+        }
+      ],
+      "acceptsTask": "WATER-W9-L2",
+      "acceptsHead": "ea1a4adfea567726ab87de30b8965a35873175b2"
+    },
+    {
+      "kind": "service",
+      "outputRoot": "packages/water-service",
+      "packageName": "water-service",
+      "testTarget": "service_v1",
+      "testFiles": [
+        "packages/water-service/tests/service_v1.rs"
+      ],
+      "productionFiles": [
+        "packages/water-service/Cargo.toml",
+        "packages/water-service/Cargo.lock",
+        "packages/water-service/README.md",
+        "packages/water-service/examples/service_smoke.rs"
+      ],
+      "cargoCacheSource": "F:/new/smaltalk/water/.offline-cache/core/registry",
+      "realMode": "service-smoke",
+      "nativeModule": "native_windows.rs",
+      "allowedEnv": [],
+      "expectedDependencies": [
+        {
+          "name": "serde",
+          "req": "=1.0.229",
+          "kind": null,
+          "optional": false,
+          "path": null,
+          "defaults": true,
+          "features": [
+            "derive"
+          ]
+        },
+        {
+          "name": "serde_json",
+          "req": "=1.0.151",
+          "kind": null,
+          "optional": false,
+          "path": null,
+          "defaults": true,
+          "features": []
+        },
+        {
+          "name": "water-junk-clean",
+          "req": "*",
+          "kind": null,
+          "optional": false,
+          "path": "packages/junk-clean",
+          "defaults": true,
+          "features": []
+        },
+        {
+          "name": "water-junk-rules",
+          "req": "*",
+          "kind": null,
+          "optional": false,
+          "path": "packages/junk-rules",
+          "defaults": true,
+          "features": []
+        },
+        {
+          "name": "water-junk-scan",
+          "req": "*",
+          "kind": null,
+          "optional": false,
+          "path": "packages/junk-scan",
+          "defaults": true,
+          "features": []
+        },
+        {
+          "name": "water-process-scan",
+          "req": "*",
+          "kind": null,
+          "optional": false,
+          "path": "packages/process-scan",
+          "defaults": true,
+          "features": []
+        }
+      ],
+      "macOS": "unverified",
+      "outputRootExists": true,
+      "nativeWindowBudget": 0,
+      "nativeDirectoryDialogBudget": 0,
+      "expectedTests": [
+        "service_ipc_contract",
+        "service_scan_views",
+        "service_clean_flow",
+        "service_trends_locations",
+        "service_storage_safety",
+        "service_hardening"
+      ],
+      "allowedModes": [
+        "baseline",
+        "lock",
+        "check",
+        "test",
+        "real",
+        "red-nc1",
+        "red-nc2",
+        "archive"
+      ],
+      "expectedFinalModes": [
+        "check",
+        "test",
+        "real"
+      ],
+      "browserBudget": 0,
+      "realDataPermission": "read-only metadata per ADR-018; clean disabled in the real smoke",
+      "id": "WATER-W9-ACCEPT-L3",
+      "title": "增长的对比基准与历史文案",
+      "slot": "w9-l3",
+      "worktree": "F:/new/smaltalk/water/.worktrees/accept-w9-l3",
+      "branch": "controller/accept-w9-l3",
+      "baseCommit": "57ecd7ce42a98f9932faecc69e5d82c648991669",
+      "snapshotRef": "refs/tags/water-w9-m3d-base-20261102",
+      "status": "CONTROLLER_ACCEPTANCE",
+      "readyOn": "2026-11-02",
+      "dispatchedAt": null,
+      "startedAt": null,
+      "model": "grok (user-reported)",
+      "modelAssignment": "user-arranged; report actual engine/model",
+      "purpose": "M3 close fixes",
+      "report": "docs/dispatch/reports/WATER-W9-L3-REPORT.md",
+      "evidenceDir": "docs/acceptance/wave9/controller/accept-20261102/l3/",
+      "allowedFiles": [
+        "docs/dispatch/reports/WATER-W9-L3-REPORT.md"
+      ],
+      "gate": "light",
+      "ticket": "docs/dispatch/tickets/WATER-W9-L3-SERVICE-20261102.md",
+      "spec": "contracts/m3d-v1/SERVICE-M3D.md",
+      "proofTargets": {
+        "nc1": "SERVICE_M3D_GROWTH_BASE",
+        "nc2": "SERVICE_M3D_CLEAN_SUMMARY"
+      },
+      "modelHint": "Rust service core; growth baseline and history text only, does not touch the clean plan; light gate with a read-only real checkup.",
+      "mustRead": [
+        "docs/dispatch/W9-M3D-WORKER-RULES.md",
+        "contracts/m3d-v1/SERVICE-M3D.md",
+        "contracts/m3c-v1/SERVICE-M3C.md",
+        "contracts/m3c-v1/SERVICE-M3C-ADD-01.md",
+        "contracts/m3c-v1/IPC-M3C.md",
+        "contracts/checkup-v1/IPC.md",
+        "contracts/m3d-v1/SCAN-M3D.md",
+        "docs/dispatch/wave9/PLAN.md",
+        "packages/water-service/src/service.rs",
+        "packages/water-service/src/views.rs",
+        "packages/water-service/src/clean.rs",
+        "packages/water-service/tests/service_v1.rs"
+      ],
+      "frozenFiles": [
+        {
+          "path": "contracts/m3d-v1/SERVICE-M3D.md",
+          "sha256": "c7abb8e82cc4994f7ebed64dd4e625ce35ef0a4ef4fc33753fce48912cc22d4c"
+        },
+        {
+          "path": "contracts/m3c-v1/SERVICE-M3C.md",
+          "sha256": "29a337e90705adcd28bf98419139efeaf88bcc709e1fa0fc022f28405fcafc26"
+        },
+        {
+          "path": "contracts/m3c-v1/SERVICE-M3C-ADD-01.md",
+          "sha256": "a001a4fc0771304cd8da6e21222b3c95b6fbd47146d35cc23de9216b9d182830"
+        },
+        {
+          "path": "contracts/m3c-v1/IPC-M3C.md",
+          "sha256": "d0b6bb18a5deedc8200569cc9f3c68a544d564c8a07c45d0905e9ab01a07e6a5"
+        },
+        {
+          "path": "contracts/checkup-v1/IPC.md",
+          "sha256": "62f726ced5f863f1b47db261976d8b5e5183f65669b2ba09d2f85a3977161be2"
+        },
+        {
+          "path": "contracts/m3d-v1/SCAN-M3D.md",
+          "sha256": "d79fb5867ec84083d9c4cecebe23dbaf6f1a4cef5d92b9ce6085ad057dbee850"
+        }
+      ],
+      "allowedPrefixes": [
+        "packages/water-service/",
+        "docs/acceptance/wave9/l3/",
+        "docs/acceptance/wave9/controller/accept-20261102/l3/"
+      ],
+      "baselineStatus": "PASSED",
+      "baselineEvidence": "docs/acceptance/wave9/controller/preflight-20261102/l3/2026-11-02T03-43-59.982Z-43140-baseline-result.json",
+      "dispatchEvidence": "user chat 2026-11-02 ~12:52 JST: \"第三单是grok，其他的都是sol\" (L1, L2, L4 to sol; L3 to grok); worker tree head/changed files 57ecd7ce/0 when recorded at 2026-11-02T03:52:06Z",
+      "acceptsTask": "WATER-W9-L3",
+      "acceptsHead": "57d00f7b20e2f2e1ca892af74987519a9fad800e"
+    },
+    {
+      "id": "WATER-W9-ACCEPT-L4",
+      "title": "命令行里的 Git Bash 写法",
+      "status": "CONTROLLER_ACCEPTANCE",
+      "slot": "w9-l4",
+      "kind": "rust",
+      "worktree": "F:/new/smaltalk/water/.worktrees/accept-w9-l4",
+      "branch": "controller/accept-w9-l4",
+      "baseCommit": "57ecd7ce42a98f9932faecc69e5d82c648991669",
+      "snapshotRef": "refs/tags/water-w9-m3d-base-20261102",
+      "ticket": "docs/dispatch/tickets/WATER-W9-L4-PROCESS-20261102.md",
+      "report": "docs/dispatch/reports/WATER-W9-L4-REPORT.md",
+      "spec": "contracts/m3d-v1/PROCESS-M3D.md",
+      "outputRoot": "packages/process-scan",
+      "packageName": "water-process-scan",
+      "testTarget": "process_v1",
+      "expectedTests": [
+        "process_snapshot_contract",
+        "process_path_reference",
+        "process_in_use_and_orphans",
+        "process_privacy"
+      ],
+      "proofTargets": {
+        "nc1": "PROCESS_M3D_MSYS",
+        "nc2": "PROCESS_M3D_MSYS"
+      },
+      "productionFiles": [
+        "packages/process-scan/Cargo.toml",
+        "packages/process-scan/Cargo.lock",
+        "packages/process-scan/README.md"
+      ],
+      "testFiles": [
+        "packages/process-scan/tests/process_v1.rs"
+      ],
+      "allowedFiles": [
+        "docs/dispatch/reports/WATER-W9-L4-REPORT.md"
+      ],
+      "allowedPrefixes": [
+        "packages/process-scan/",
+        "docs/acceptance/wave9/l4/",
+        "docs/acceptance/wave9/controller/accept-20261102/l4/"
+      ],
+      "evidenceDir": "docs/acceptance/wave9/controller/accept-20261102/l4/",
+      "allowedModes": [
+        "baseline",
+        "lock",
+        "check",
+        "test",
+        "archive",
+        "real",
+        "red-nc1",
+        "red-nc2"
+      ],
+      "expectedFinalModes": [
+        "check",
+        "test",
+        "real"
+      ],
+      "mustRead": [
+        "docs/dispatch/W9-M3D-WORKER-RULES.md",
+        "contracts/m3d-v1/PROCESS-M3D.md",
+        "contracts/checkup-v1/PROCESS.md",
+        "contracts/checkup-v1/MODEL.md",
+        "contracts/m3c-v1/PROCESS-M3C.md",
+        "docs/dispatch/wave9/PLAN.md",
+        "packages/process-scan/src/lib.rs",
+        "packages/process-scan/tests/process_v1.rs"
+      ],
+      "cargoCacheSource": "F:/new/smaltalk/water/.offline-cache/core/registry",
+      "realMode": "env-only",
+      "nativeModule": "native_windows.rs",
+      "nativeWindowBudget": 0,
+      "nativeDirectoryDialogBudget": 0,
+      "browserBudget": 0,
+      "realDataPermission": "read-only process list per ADR-018; counts only",
+      "dispatchedAt": null,
+      "startedAt": null,
+      "model": "sol (user-reported)",
+      "modelAssignment": "user-arranged; report actual engine/model",
+      "macOS": "unverified",
+      "gate": "light",
+      "baselineStatus": "PASSED",
+      "baselineEvidence": "docs/acceptance/wave9/controller/preflight-20261102/l4/2026-11-02T03-43-59.961Z-41352-baseline-result.json",
+      "readyOn": "2026-11-02",
+      "purpose": "M3 close fixes",
+      "modelHint": "Rust command-line path matching only; light gate with real process counts.",
+      "frozenFiles": [
+        {
+          "path": "contracts/m3d-v1/PROCESS-M3D.md",
+          "sha256": "b99e7c4c183ddd3a1bf7c6433d684cfd39a0cd50ea7a05ae2655ad380cb66f1d"
+        },
+        {
+          "path": "contracts/checkup-v1/PROCESS.md",
+          "sha256": "09312639b801e2bd4ba683e50a4fd3e07b03bbee91e6eba363e4770cf6116e87"
+        },
+        {
+          "path": "contracts/checkup-v1/MODEL.md",
+          "sha256": "fe0c9a4f5d96ce9297e8f72e75df8c6f666f9a6af440fc198aa7b3362692188b"
+        },
+        {
+          "path": "contracts/m3c-v1/PROCESS-M3C.md",
+          "sha256": "ce53d144273f8a80e6cc1b8aa26e5e06d7d7c0f91e330dbeef05d3e1860c1f2e"
+        }
+      ],
+      "outputRootExists": true,
+      "allowedFfi": [
+        "CloseHandle",
+        "CreateToolhelp32Snapshot",
+        "GetProcessTimes",
+        "NtQueryInformationProcess",
+        "OpenProcess",
+        "Process32FirstW",
+        "Process32NextW",
+        "QueryFullProcessImageNameW"
+      ],
+      "dispatchEvidence": "user chat 2026-11-02 ~12:52 JST: \"第三单是grok，其他的都是sol\" (L1, L2, L4 to sol; L3 to grok); worker tree head/changed files 57ecd7ce/0 when recorded at 2026-11-02T03:52:06Z",
+      "acceptsTask": "WATER-W9-L4",
+      "acceptsHead": "daf43563448c4e74864d8628835a02115e6ddd67"
+    }
+  ]
+}

@@ -1,0 +1,656 @@
+use crate::error::RulesError;
+use crate::types::{
+    Category, Growth, InUse, InUseMode, ItemType, KnownFolder, Level, Locator, Marker, SourceKind,
+    as_str, as_u64, bounded_u32, char_len, expect_keys, field, locator_key, object,
+    parse_conditions, require_chars, segments_may_overlap, valid_data_version, valid_date,
+    valid_entry_name, valid_https_url, valid_process_name, valid_rule_id, valid_segment,
+};
+use serde_json::{Map, Value};
+use std::collections::HashSet;
+
+const EMBEDDED_WINDOWS: &str = include_str!("../rules/windows.json");
+/// RULES section 2 `locate` limit, raised from 8 to 32 by addendum 01.
+const MAX_LOCATORS: usize = 32;
+
+#[derive(Debug, Clone, PartialEq, Eq)]
+pub struct Source {
+    pub kind: SourceKind,
+    pub ref_text: String,
+    pub checked_on: String,
+}
+
+#[derive(Debug, Clone, PartialEq, Eq)]
+pub struct RuleText {
+    pub title_zh: String,
+    pub owner_zh: String,
+    pub what_zh: String,
+    pub why_zh: String,
+    pub after_zh: String,
+    pub fix_hint_zh: Option<String>,
+}
+
+#[derive(Debug, Clone, PartialEq, Eq)]
+pub struct Rule {
+    pub rule_id: String,
+    pub title_zh: String,
+    pub owner_zh: String,
+    pub category: Category,
+    pub level: Level,
+    pub locate: Vec<Locator>,
+    pub item_type: ItemType,
+    pub min_age_hours: u32,
+    pub keep_newest: u32,
+    pub in_use: InUse,
+    pub growth: Growth,
+    pub what_zh: String,
+    pub why_zh: String,
+    pub after_zh: String,
+    pub fix_hint_zh: Option<String>,
+    pub sources: Vec<Source>,
+}
+
+impl Rule {
+    pub fn text(&self) -> RuleText {
+        RuleText {
+            title_zh: self.title_zh.clone(),
+            owner_zh: self.owner_zh.clone(),
+            what_zh: self.what_zh.clone(),
+            why_zh: self.why_zh.clone(),
+            after_zh: self.after_zh.clone(),
+            fix_hint_zh: self.fix_hint_zh.clone(),
+        }
+    }
+}
+
+#[derive(Debug, Clone, PartialEq, Eq)]
+pub struct RuleSet {
+    pub rules_version: String,
+    pub data_version: String,
+    rules: Vec<Rule>,
+}
+
+impl RuleSet {
+    pub fn embedded() -> Self {
+        Self::from_json(EMBEDDED_WINDOWS).expect("embedded windows rules must be valid")
+    }
+
+    pub fn from_json(input: &str) -> Result<Self, RulesError> {
+        let value: Value =
+            serde_json::from_str(input).map_err(|_| RulesError::new("RULES_INVALID_JSON", "/"))?;
+        Self::from_value(&value)
+    }
+
+    pub fn rules(&self) -> &[Rule] {
+        &self.rules
+    }
+
+    pub fn rule(&self, rule_id: &str) -> Option<&Rule> {
+        self.rules.iter().find(|rule| rule.rule_id == rule_id)
+    }
+
+    pub fn text(&self, group_id: &str) -> Option<RuleText> {
+        let rule_id = custom_rule_id(group_id).unwrap_or(group_id);
+        self.rule(rule_id).map(Rule::text)
+    }
+
+    fn from_value(value: &Value) -> Result<Self, RulesError> {
+        let map = object(value, "/")?;
+        expect_keys(map, &["rules_version", "data_version", "rules"], "/")?;
+        let rules_version = as_str(field(map, "rules_version", "/")?, "/rules_version")?;
+        if rules_version != "water.junk-rules.v1" {
+            return Err(RulesError::new("RULES_INVALID_VERSION", "/rules_version"));
+        }
+        let data_version = as_str(field(map, "data_version", "/")?, "/data_version")?;
+        if !valid_data_version(data_version) {
+            return Err(RulesError::new(
+                "RULES_INVALID_DATA_VERSION",
+                "/data_version",
+            ));
+        }
+        let rules_value = field(map, "rules", "/")?;
+        let items = rules_value
+            .as_array()
+            .ok_or_else(|| RulesError::new("RULES_INVALID_SHAPE", "/rules"))?;
+        let mut rules = Vec::with_capacity(items.len());
+        let mut seen = HashSet::new();
+        for (index, item) in items.iter().enumerate() {
+            let path = format!("/rules/{index}");
+            let rule = parse_rule(item, &path)?;
+            if !seen.insert(rule.rule_id.clone()) {
+                return Err(RulesError::new("RULES_DUPLICATE_ID", "/rules"));
+            }
+            rules.push(rule);
+        }
+        check_fallbacks(&rules)?;
+        check_protection_precedence(&rules)?;
+        Ok(Self {
+            rules_version: rules_version.to_string(),
+            data_version: data_version.to_string(),
+            rules,
+        })
+    }
+}
+
+pub(crate) fn custom_rule_id(group_id: &str) -> Option<&str> {
+    let rest = group_id.strip_prefix("custom:")?;
+    let (_root, rule_id) = rest.split_once(':')?;
+    if rule_id.is_empty() {
+        None
+    } else {
+        Some(rule_id)
+    }
+}
+
+fn parse_rule(value: &Value, path: &str) -> Result<Rule, RulesError> {
+    let map = object(value, path)?;
+    expect_keys(
+        map,
+        &[
+            "rule_id",
+            "title_zh",
+            "owner_zh",
+            "category",
+            "level",
+            "locate",
+            "item_type",
+            "min_age_hours",
+            "keep_newest",
+            "in_use",
+            "growth",
+            "what_zh",
+            "why_zh",
+            "after_zh",
+            "fix_hint_zh",
+            "sources",
+        ],
+        path,
+    )?;
+    let rule_id = as_str(field(map, "rule_id", path)?, &format!("{path}/rule_id"))?;
+    if !valid_rule_id(rule_id) {
+        return Err(RulesError::new(
+            "RULES_INVALID_ID",
+            format!("{path}/rule_id"),
+        ));
+    }
+    let title_zh = read_text(map, "title_zh", path, 2, 24)?;
+    let owner_zh = read_text(map, "owner_zh", path, 1, 24)?;
+    let category = Category::parse(as_str(
+        field(map, "category", path)?,
+        &format!("{path}/category"),
+    )?)
+    .ok_or_else(|| RulesError::new("RULES_INVALID_CATEGORY", format!("{path}/category")))?;
+    let level = Level::parse(as_str(
+        field(map, "level", path)?,
+        &format!("{path}/level"),
+    )?)
+    .ok_or_else(|| RulesError::new("RULES_INVALID_LEVEL", format!("{path}/level")))?;
+    let item_type = ItemType::parse(as_str(
+        field(map, "item_type", path)?,
+        &format!("{path}/item_type"),
+    )?)
+    .ok_or_else(|| RulesError::new("RULES_INVALID_ITEM_TYPE", format!("{path}/item_type")))?;
+    let min_age_hours = bounded_u32(
+        field(map, "min_age_hours", path)?,
+        0,
+        8760,
+        &format!("{path}/min_age_hours"),
+    )?;
+    let keep_newest = bounded_u32(
+        field(map, "keep_newest", path)?,
+        0,
+        8,
+        &format!("{path}/keep_newest"),
+    )?;
+    let in_use = parse_in_use(field(map, "in_use", path)?, &format!("{path}/in_use"))?;
+    let growth = Growth::parse(as_str(
+        field(map, "growth", path)?,
+        &format!("{path}/growth"),
+    )?)
+    .ok_or_else(|| RulesError::new("RULES_INVALID_GROWTH", format!("{path}/growth")))?;
+    let what_zh = read_text(map, "what_zh", path, 4, 160)?;
+    let why_zh = read_text(map, "why_zh", path, 4, 160)?;
+    let after_zh = read_text(map, "after_zh", path, 4, 160)?;
+    let fix_hint_zh = parse_fix_hint(
+        field(map, "fix_hint_zh", path)?,
+        &format!("{path}/fix_hint_zh"),
+        growth,
+    )?;
+    let locate = parse_locators(
+        field(map, "locate", path)?,
+        &format!("{path}/locate"),
+        category,
+    )?;
+    let sources = parse_sources(field(map, "sources", path)?, &format!("{path}/sources"))?;
+    if growth == Growth::LeakProne && min_age_hours == 0 && level == Level::Recommended {
+        return Err(RulesError::new(
+            "RULES_LEAK_AGE",
+            format!("{path}/min_age_hours"),
+        ));
+    }
+    if locate
+        .iter()
+        .any(|locator| matches!(locator, Locator::Discovery { .. }))
+        && (!level.is_cleanable() || min_age_hours < 24)
+    {
+        return Err(RulesError::new("RULES_DISCOVERY", path));
+    }
+    Ok(Rule {
+        rule_id: rule_id.to_string(),
+        title_zh,
+        owner_zh,
+        category,
+        level,
+        locate,
+        item_type,
+        min_age_hours,
+        keep_newest,
+        in_use,
+        growth,
+        what_zh,
+        why_zh,
+        after_zh,
+        fix_hint_zh,
+        sources,
+    })
+}
+
+fn read_text(
+    map: &Map<String, Value>,
+    key: &str,
+    parent: &str,
+    min: usize,
+    max: usize,
+) -> Result<String, RulesError> {
+    let path = format!("{parent}/{key}");
+    let text = as_str(field(map, key, parent)?, &path)?;
+    require_chars(text, min, max, &path)?;
+    Ok(text.to_string())
+}
+
+fn parse_fix_hint(value: &Value, path: &str, growth: Growth) -> Result<Option<String>, RulesError> {
+    if value.is_null() {
+        if growth == Growth::LeakProne {
+            return Err(RulesError::new("RULES_INVALID_FIX_HINT", path));
+        }
+        return Ok(None);
+    }
+    if growth != Growth::LeakProne {
+        return Err(RulesError::new("RULES_INVALID_FIX_HINT", path));
+    }
+    let text = as_str(value, path)?;
+    require_chars(text, 8, 240, path)?;
+    Ok(Some(text.to_string()))
+}
+
+fn parse_in_use(value: &Value, path: &str) -> Result<InUse, RulesError> {
+    let map = object(value, path)?;
+    expect_keys(map, &["mode", "processes"], path)?;
+    let mode = InUseMode::parse(as_str(field(map, "mode", path)?, &format!("{path}/mode"))?)
+        .ok_or_else(|| RulesError::new("RULES_INVALID_IN_USE", format!("{path}/mode")))?;
+    let processes_value = field(map, "processes", path)?;
+    let items = processes_value
+        .as_array()
+        .ok_or_else(|| RulesError::new("RULES_INVALID_IN_USE", format!("{path}/processes")))?;
+    if items.len() > 8 {
+        return Err(RulesError::new(
+            "RULES_INVALID_IN_USE",
+            format!("{path}/processes"),
+        ));
+    }
+    let mut processes = Vec::with_capacity(items.len());
+    for (index, item) in items.iter().enumerate() {
+        let item_path = format!("{path}/processes/{index}");
+        let name = as_str(item, &item_path)?;
+        if !valid_process_name(name) {
+            return Err(RulesError::new("RULES_INVALID_IN_USE", item_path));
+        }
+        processes.push(name.to_string());
+    }
+    match mode {
+        InUseMode::None if !processes.is_empty() => Err(RulesError::new(
+            "RULES_INVALID_IN_USE",
+            format!("{path}/processes"),
+        )),
+        InUseMode::None => Ok(InUse { mode, processes }),
+        InUseMode::RunsFromOrReferencesItem => Ok(InUse { mode, processes }),
+        _ if processes.is_empty() => Err(RulesError::new(
+            "RULES_INVALID_IN_USE",
+            format!("{path}/processes"),
+        )),
+        _ => Ok(InUse { mode, processes }),
+    }
+}
+
+fn parse_locators(
+    value: &Value,
+    path: &str,
+    category: Category,
+) -> Result<Vec<Locator>, RulesError> {
+    let items = value
+        .as_array()
+        .ok_or_else(|| RulesError::new("RULES_INVALID_LOCATE", path))?;
+    if items.is_empty() || items.len() > MAX_LOCATORS {
+        return Err(RulesError::new("RULES_INVALID_LOCATE", path));
+    }
+    let mut locators = Vec::with_capacity(items.len());
+    let mut seen = HashSet::new();
+    for (index, item) in items.iter().enumerate() {
+        let item_path = format!("{path}/{index}");
+        let locator = parse_locator(item, &item_path)?;
+        if category == Category::Custom && !matches!(locator, Locator::Marker { .. }) {
+            return Err(RulesError::new("RULES_CUSTOM_MARKER", item_path));
+        }
+        if let Locator::Marker {
+            conditions,
+            fallback_for,
+            ..
+        } = &locator
+            && category != Category::Custom
+            && (!conditions.is_empty() || fallback_for.is_some())
+        {
+            return Err(RulesError::new("RULES_CUSTOM_MARKER", item_path));
+        }
+        if !seen.insert(locator_key(&locator)) {
+            return Err(RulesError::new("RULES_LOCATOR_DUPLICATE", path));
+        }
+        locators.push(locator);
+    }
+    Ok(locators)
+}
+
+fn parse_locator(value: &Value, path: &str) -> Result<Locator, RulesError> {
+    let map = object(value, path)?;
+    let kind = as_str(field(map, "kind", path)?, &format!("{path}/kind"))?;
+    match kind {
+        "pattern" => {
+            expect_keys(map, &["kind", "base", "segments"], path)?;
+            let base = parse_base(map, path)?;
+            Ok(Locator::Pattern {
+                base,
+                segments: parse_segments(
+                    field(map, "segments", path)?,
+                    &format!("{path}/segments"),
+                )?,
+            })
+        }
+        "discovery" => {
+            expect_keys(map, &["kind", "base"], path)?;
+            Ok(Locator::Discovery {
+                base: parse_base(map, path)?,
+            })
+        }
+        "marker" => {
+            expect_keys(
+                map,
+                &["kind", "marker", "max_depth", "conditions", "fallback_for"],
+                path,
+            )?;
+            let max_depth = bounded_u32(
+                field(map, "max_depth", path)?,
+                1,
+                16,
+                &format!("{path}/max_depth"),
+            )?;
+            Ok(Locator::Marker {
+                marker: parse_marker(field(map, "marker", path)?, &format!("{path}/marker"))?,
+                max_depth,
+                conditions: map
+                    .get("conditions")
+                    .map(|value| parse_conditions(value, &format!("{path}/conditions")))
+                    .transpose()?
+                    .unwrap_or_default(),
+                fallback_for: map
+                    .get("fallback_for")
+                    .map(|value| {
+                        let id = as_str(value, &format!("{path}/fallback_for"))?;
+                        if !valid_rule_id(id) {
+                            return Err(RulesError::new(
+                                "RULES_INVALID_FALLBACK",
+                                format!("{path}/fallback_for"),
+                            ));
+                        }
+                        Ok(id.to_string())
+                    })
+                    .transpose()?,
+            })
+        }
+        _ => Err(RulesError::new(
+            "RULES_INVALID_LOCATE",
+            format!("{path}/kind"),
+        )),
+    }
+}
+
+fn parse_base(map: &Map<String, Value>, path: &str) -> Result<KnownFolder, RulesError> {
+    KnownFolder::parse(as_str(field(map, "base", path)?, &format!("{path}/base"))?)
+        .ok_or_else(|| RulesError::new("RULES_INVALID_LOCATE", format!("{path}/base")))
+}
+
+fn parse_segments(value: &Value, path: &str) -> Result<Vec<String>, RulesError> {
+    let items = value
+        .as_array()
+        .ok_or_else(|| RulesError::new("RULES_INVALID_LOCATE", path))?;
+    if items.is_empty() || items.len() > 8 {
+        return Err(RulesError::new("RULES_INVALID_LOCATE", path));
+    }
+    let mut segments = Vec::with_capacity(items.len());
+    for (index, item) in items.iter().enumerate() {
+        let item_path = format!("{path}/{index}");
+        let segment = as_str(item, &item_path)?;
+        if !valid_segment(segment) {
+            return Err(RulesError::new("RULES_INVALID_LOCATE", item_path));
+        }
+        segments.push(segment.to_string());
+    }
+    Ok(segments)
+}
+
+fn parse_marker(value: &Value, path: &str) -> Result<Marker, RulesError> {
+    let map = object(value, path)?;
+    let kind = as_str(field(map, "kind", path)?, &format!("{path}/kind"))?;
+    match kind {
+        "file" => {
+            expect_keys(map, &["kind", "name", "min_bytes", "max_bytes"], path)?;
+            let name = as_str(field(map, "name", path)?, &format!("{path}/name"))?;
+            if !valid_entry_name(name) {
+                return Err(RulesError::new(
+                    "RULES_INVALID_LOCATE",
+                    format!("{path}/name"),
+                ));
+            }
+            let min_bytes = as_u64(field(map, "min_bytes", path)?, &format!("{path}/min_bytes"))?;
+            let max_bytes = as_u64(field(map, "max_bytes", path)?, &format!("{path}/max_bytes"))?;
+            if min_bytes > max_bytes {
+                return Err(RulesError::new(
+                    "RULES_INVALID_LOCATE",
+                    format!("{path}/max_bytes"),
+                ));
+            }
+            Ok(Marker::File {
+                name: name.to_string(),
+                min_bytes,
+                max_bytes,
+            })
+        }
+        "children_all" => {
+            expect_keys(map, &["kind", "names"], path)?;
+            Ok(Marker::ChildrenAll {
+                names: parse_names(field(map, "names", path)?, &format!("{path}/names"))?,
+            })
+        }
+        "dir_name" => {
+            expect_keys(map, &["kind", "names"], path)?;
+            Ok(Marker::DirName {
+                names: parse_names(field(map, "names", path)?, &format!("{path}/names"))?,
+            })
+        }
+        _ => Err(RulesError::new(
+            "RULES_INVALID_LOCATE",
+            format!("{path}/kind"),
+        )),
+    }
+}
+
+fn parse_names(value: &Value, path: &str) -> Result<Vec<String>, RulesError> {
+    let items = value
+        .as_array()
+        .ok_or_else(|| RulesError::new("RULES_INVALID_LOCATE", path))?;
+    if items.is_empty() || items.len() > 8 {
+        return Err(RulesError::new("RULES_INVALID_LOCATE", path));
+    }
+    let mut names = Vec::with_capacity(items.len());
+    let mut seen = HashSet::new();
+    for (index, item) in items.iter().enumerate() {
+        let item_path = format!("{path}/{index}");
+        let name = as_str(item, &item_path)?;
+        if !valid_entry_name(name) || !seen.insert(name.to_ascii_lowercase()) {
+            return Err(RulesError::new("RULES_INVALID_LOCATE", item_path));
+        }
+        names.push(name.to_string());
+    }
+    Ok(names)
+}
+
+fn parse_sources(value: &Value, path: &str) -> Result<Vec<Source>, RulesError> {
+    let items = value
+        .as_array()
+        .ok_or_else(|| RulesError::new("RULES_INVALID_SOURCE", path))?;
+    if items.is_empty() || items.len() > 6 {
+        return Err(RulesError::new("RULES_INVALID_SOURCE", path));
+    }
+    let mut sources = Vec::with_capacity(items.len());
+    for (index, item) in items.iter().enumerate() {
+        sources.push(parse_source(item, &format!("{path}/{index}"))?);
+    }
+    Ok(sources)
+}
+
+fn parse_source(value: &Value, path: &str) -> Result<Source, RulesError> {
+    let map = object(value, path)?;
+    expect_keys(map, &["kind", "ref", "checked_on"], path)?;
+    let kind = SourceKind::parse(as_str(field(map, "kind", path)?, &format!("{path}/kind"))?)
+        .ok_or_else(|| RulesError::new("RULES_INVALID_SOURCE", format!("{path}/kind")))?;
+    let ref_text = as_str(field(map, "ref", path)?, &format!("{path}/ref"))?;
+    if ref_text.is_empty() || char_len(ref_text) > 240 {
+        return Err(RulesError::new(
+            "RULES_INVALID_SOURCE",
+            format!("{path}/ref"),
+        ));
+    }
+    if kind == SourceKind::OfficialDoc && !valid_https_url(ref_text) {
+        return Err(RulesError::new(
+            "RULES_INVALID_SOURCE",
+            format!("{path}/ref"),
+        ));
+    }
+    let checked_on = as_str(
+        field(map, "checked_on", path)?,
+        &format!("{path}/checked_on"),
+    )?;
+    if !valid_date(checked_on) {
+        return Err(RulesError::new(
+            "RULES_INVALID_SOURCE",
+            format!("{path}/checked_on"),
+        ));
+    }
+    Ok(Source {
+        kind,
+        ref_text: ref_text.to_string(),
+        checked_on: checked_on.to_string(),
+    })
+}
+
+fn check_fallbacks(rules: &[Rule]) -> Result<(), RulesError> {
+    let mut seen = HashSet::new();
+    for (index, rule) in rules.iter().enumerate() {
+        for locator in &rule.locate {
+            let Locator::Marker {
+                marker,
+                max_depth,
+                conditions,
+                fallback_for: Some(id),
+            } = locator
+            else {
+                continue;
+            };
+            let invalid =
+                || RulesError::new("RULES_INVALID_FALLBACK", format!("/rules/{index}/locate"));
+            if rule.category != Category::Custom
+                || rule.level != Level::Advisory
+                || rule.locate.len() != 1
+                || !conditions.is_empty()
+                || id == &rule.rule_id
+                || (!seen.insert(id) && id.is_empty())
+            {
+                return Err(invalid());
+            }
+            let main = rules
+                .iter()
+                .find(|candidate| &candidate.rule_id == id)
+                .ok_or_else(invalid)?;
+            if main.category != Category::Custom || main.locate.len() != 1 {
+                return Err(invalid());
+            }
+            let Locator::Marker {
+                marker: main_marker,
+                max_depth: main_depth,
+                conditions: main_conditions,
+                fallback_for: main_fallback,
+            } = &main.locate[0]
+            else {
+                return Err(invalid());
+            };
+            if main_conditions.is_empty()
+                || main_fallback.is_some()
+                || marker != main_marker
+                || max_depth != main_depth
+            {
+                return Err(invalid());
+            }
+        }
+    }
+    Ok(())
+}
+
+fn check_protection_precedence(rules: &[Rule]) -> Result<(), RulesError> {
+    for cleanable in rules.iter().filter(|rule| rule.level.is_cleanable()) {
+        for protected in rules.iter().filter(|rule| rule.level == Level::Protected) {
+            if locators_overlap(&cleanable.locate, &protected.locate) {
+                return Err(RulesError::new("RULES_PRECEDENCE", "/rules"));
+            }
+        }
+    }
+    Ok(())
+}
+
+fn locators_overlap(cleanable: &[Locator], protected: &[Locator]) -> bool {
+    for left in cleanable {
+        let Locator::Pattern {
+            base: left_base,
+            segments: left_segments,
+        } = left
+        else {
+            continue;
+        };
+        for right in protected {
+            let Locator::Pattern {
+                base: right_base,
+                segments: right_segments,
+            } = right
+            else {
+                continue;
+            };
+            if left_base != right_base || right_segments.len() < left_segments.len() {
+                continue;
+            }
+            if left_segments
+                .iter()
+                .zip(right_segments.iter())
+                .all(|(a, b)| segments_may_overlap(a, b))
+            {
+                return true;
+            }
+        }
+    }
+    false
+}

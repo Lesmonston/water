@@ -1,0 +1,118 @@
+#![forbid(unsafe_code)]
+
+use crate::error::ScanError;
+use crate::model::{Growth, ScanResult, Snapshot, SnapshotGroup, from_json, to_json};
+use crate::util::{format_i128, parse_i128, parse_rfc3339};
+use std::time::Duration;
+
+pub fn snapshot(result: &ScanResult) -> Snapshot {
+    let mut groups = std::collections::BTreeMap::new();
+    for group in &result.groups {
+        groups.insert(
+            group.group_id.clone(),
+            SnapshotGroup {
+                total_bytes: group.total_bytes.clone(),
+                item_count: group.item_count,
+                newest_activity: group.newest_activity.clone(),
+                top_keys: group.top_keys.clone(),
+            },
+        );
+    }
+    Snapshot {
+        snapshot_version: "water.scan-snapshot.v1".to_string(),
+        scan_id: result.scan_id.clone(),
+        taken_at: result.ended_at.clone(),
+        groups,
+    }
+}
+
+pub fn snapshot_to_json(value: &Snapshot) -> String {
+    to_json(value).unwrap_or_else(|_| "{}".to_string())
+}
+
+pub fn snapshot_from_json(text: &str) -> Result<Snapshot, ScanError> {
+    let value: Snapshot = from_json(text)?;
+    if value.snapshot_version != "water.scan-snapshot.v1" {
+        return Err(ScanError::InvalidResult);
+    }
+    parse_rfc3339(&value.taken_at)?;
+    Ok(value)
+}
+
+pub fn growth(previous: &Snapshot, current: &Snapshot) -> Vec<Growth> {
+    let Ok(prev_at) = parse_rfc3339(&previous.taken_at) else {
+        return Vec::new();
+    };
+    let Ok(cur_at) = parse_rfc3339(&current.taken_at) else {
+        return Vec::new();
+    };
+    let Ok(delta) = cur_at.duration_since(prev_at) else {
+        return Vec::new();
+    };
+    if delta < Duration::from_secs(86_400) {
+        return Vec::new();
+    }
+    let days_raw = delta.as_secs_f64() / 86_400.0;
+    let days = (days_raw * 10.0).round() / 10.0;
+    let days = if days == 0.0 { 0.1 } else { days };
+    // Rate uses the exact interval; `days` above is display-only.
+    let interval_nanos = i128::try_from(delta.as_nanos()).unwrap_or(i128::MAX);
+    let mut out = Vec::new();
+    for (id, cur) in &current.groups {
+        let Some(prev) = previous.groups.get(id) else {
+            continue;
+        };
+        let Ok(cur_bytes) = parse_i128(&cur.total_bytes) else {
+            continue;
+        };
+        let Ok(prev_bytes) = parse_i128(&prev.total_bytes) else {
+            continue;
+        };
+        let bytes_delta = cur_bytes - prev_bytes;
+        let count_delta = i64::try_from(cur.item_count).unwrap_or(i64::MAX)
+            - i64::try_from(prev.item_count).unwrap_or(0);
+        let bytes_per_day = per_day(bytes_delta, interval_nanos);
+        let recent = cur
+            .newest_activity
+            .as_deref()
+            .and_then(|t| parse_rfc3339(t).ok())
+            .is_some_and(|newest| match cur_at.duration_since(newest) {
+                Ok(age) => age <= Duration::from_secs(86_400),
+                Err(_) => true,
+            });
+        let leak_suspect =
+            bytes_delta >= 0 && ((count_delta >= 20 && recent) || bytes_per_day >= 1_073_741_824);
+        out.push(Growth {
+            group_id: id.clone(),
+            bytes_delta: format_i128(bytes_delta),
+            count_delta,
+            days,
+            bytes_per_day: format_i128(bytes_per_day),
+            leak_suspect,
+        });
+    }
+    out
+}
+
+/// `bytes_delta / (interval_seconds / 86400)`, rounded half away from zero.
+fn per_day(bytes_delta: i128, interval_nanos: i128) -> i128 {
+    const DAY_NANOS: i128 = 86_400 * 1_000_000_000;
+    if interval_nanos <= 0 {
+        return 0;
+    }
+    match bytes_delta.checked_mul(DAY_NANOS) {
+        Some(scaled) => {
+            let quotient = scaled / interval_nanos;
+            let remainder = scaled % interval_nanos;
+            if remainder.unsigned_abs() * 2 >= interval_nanos.unsigned_abs() {
+                quotient + scaled.signum()
+            } else {
+                quotient
+            }
+        }
+        None => {
+            let rate = bytes_delta as f64 * (DAY_NANOS as f64 / interval_nanos as f64);
+            rate.round() as i128
+        }
+    }
+}

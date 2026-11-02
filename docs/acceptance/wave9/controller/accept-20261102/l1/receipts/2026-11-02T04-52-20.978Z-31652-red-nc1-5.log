@@ -1,0 +1,18 @@
+{"binary":"C:\\Users\\37310\\.rustup\\toolchains\\1.95.0-x86_64-pc-windows-msvc\\bin\\cargo.exe","args":["test","--offline","--locked","--manifest-path","packages/junk-rules/Cargo.toml","--test","rules_v1","--","--test-threads=1"],"exitCode":101,"error":null}
+--- stdout ---
+
+--- stderr ---
+   Compiling water-junk-rules v0.1.0 (F:\new\smaltalk\water\.worktrees\accept-w9-l1\packages\junk-rules)
+error[E0282]: type annotations needed for `HashSet<_>`
+   --> src\rules.rs:564:9
+    |
+564 |     let mut seen = HashSet::new();
+    |         ^^^^^^^^   -------------- type must be known at this point
+    |
+help: consider giving `seen` an explicit type, where the type for type parameter `T` is specified
+    |
+564 |     let mut seen: HashSet<T> = HashSet::new();
+    |                 ++++++++++++
+
+For more information about this error, try `rustc --explain E0282`.
+error: could not compile `water-junk-rules` (lib) due to 1 previous error
