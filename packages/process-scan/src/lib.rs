@@ -471,6 +471,20 @@ fn normalize_path(path: &str) -> String {
 
 fn command_references_path(command_line: &str, path_norm: &str) -> bool {
     let haystack = command_line.replace('/', "\\").to_lowercase();
+    if contains_bounded_path(&haystack, path_norm) {
+        return true;
+    }
+    let path = path_norm.as_bytes();
+    // Only drive-absolute items with a nonempty tail have an MSYS spelling.
+    // A drive root must not turn a command switch such as /f into a hit.
+    if path.len() > 3 && path[0].is_ascii_alphabetic() && &path[1..3] == b":\\" {
+        let msys_path = format!("\\{}{}", char::from(path[0]), &path_norm[2..]);
+        return contains_bounded_path(&haystack, &msys_path);
+    }
+    false
+}
+
+fn contains_bounded_path(haystack: &str, path_norm: &str) -> bool {
     let mut from = 0;
     while let Some(rel) = haystack[from..].find(path_norm) {
         let abs = from + rel;

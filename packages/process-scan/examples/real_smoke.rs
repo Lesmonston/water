@@ -15,13 +15,6 @@ struct RealSmoke {
     #[serde(rename = "node.exe")]
     node_exe: u64,
     orphan_count: u64,
-    orphans: Vec<RealOrphan>,
-}
-
-#[derive(Serialize)]
-struct RealOrphan {
-    name: String,
-    matched_pattern: String,
 }
 
 fn main() {
@@ -56,13 +49,6 @@ fn run() -> Result<(), water_process_scan::ProcError> {
         msedge_exe: snap.running(&["msedge.exe"]).len() as u64,
         node_exe: snap.running(&["node.exe"]).len() as u64,
         orphan_count: chains.len() as u64,
-        orphans: chains
-            .into_iter()
-            .map(|c| RealOrphan {
-                name: c.name,
-                matched_pattern: c.matched_pattern,
-            })
-            .collect(),
     };
     println!("{}", serde_json::to_string(&out).expect("real smoke json"));
     Ok(())

@@ -618,6 +618,94 @@ fn process_path_reference() {
             "PROC_M3C_IMAGE: sibling and empty paths excluded"
         );
     }
+
+    let msys_cases = [
+        (r"bash -l /f/new/denglou/_ctl/server_up.sh", true),
+        (r#"node "/f/new/denglou/_ctl/x.js""#, true),
+        (r"tool --dir=/f/new/denglou/_ctl", true),
+        (r"bash /F/New/Denglou/_CTL/a.sh", true),
+        (r"bash /f/new/denglou/_ctlx/a.sh", false),
+        (r"bash c:/f/new/denglou/_ctl/a.sh", false),
+        (r"bash /g/new/denglou/_ctl/a.sh", false),
+        (r"bash F:\new\denglou\_ctl\a.sh", true),
+        (r"bash F:/new/denglou/_ctl/a.sh", true),
+        (r"bash \f\new\denglou\_ctl\a.sh", true),
+        (r"bash '/f/new/denglou/_ctl'", true),
+        (r"bash /f/new/denglou/_ctl tail", true),
+        (r"bash /f/new/denglou/_ctl=1", false),
+        (r"bash x/f/new/denglou/_ctl/a.sh", false),
+        (
+            r"bash c:/f/new/denglou/_ctl/a.sh /f/new/denglou/_ctl/a.sh",
+            true,
+        ),
+    ];
+    let msys_pids: Vec<u32> = msys_cases
+        .iter()
+        .map(|(command, _)| session.spawn_ping(command))
+        .collect();
+    // This probe must not inherit spawn_ping's absolute F: fixture path.
+    let signal = session.next_signal();
+    let root_script = format!(
+        "waitfor /t {WAIT_SECS} {signal} >NUL 2>&1 & rem {} taskkill /f /im node.exe",
+        session.token
+    );
+    let child = cmd(&root_script);
+    let drive_root = child.id();
+    session.children.push(child);
+    session.expected += 2;
+    let snap = session.wait_for_pids(&msys_pids);
+    assert!(
+        snap.references_path(&session.token, &["cmd.exe"])
+            .contains(&drive_root),
+        "PROCESS_M3D_MSYS: drive-root probe is present"
+    );
+    for query in [r"F:\new\denglou\_ctl", "f:/NEW/Denglou/_CTL/"] {
+        for names in [&[][..], &["cmd.exe"][..]] {
+            let references = snap.references_path(query, names);
+            let combined = snap.runs_from_or_references(query, names);
+            for (index, ((_, expected), pid)) in msys_cases.iter().zip(&msys_pids).enumerate() {
+                assert_eq!(
+                    references.contains(pid),
+                    *expected,
+                    "PROCESS_M3D_MSYS: command reference case {index}"
+                );
+                assert_eq!(
+                    combined.contains(pid),
+                    *expected,
+                    "PROCESS_M3D_MSYS: combined mode case {index}"
+                );
+            }
+        }
+        for mode in [
+            InUseMode::CmdlineReferencesItem,
+            InUseMode::RunsFromOrReferencesItem,
+        ] {
+            assert!(
+                in_use(
+                    &snap,
+                    &InUseSpec {
+                        mode,
+                        processes: vec!["cmd.exe".to_string()],
+                    },
+                    query,
+                )
+                .is_some(),
+                "PROCESS_M3D_MSYS: both command-line in-use modes match"
+            );
+        }
+        let excluded = snap.references_path(query, &["PING.EXE"]);
+        assert!(
+            msys_pids.iter().all(|pid| !excluded.contains(pid)),
+            "PROCESS_M3D_MSYS: process name filter preserved"
+        );
+    }
+    assert!(
+        !snap.references_path(r"F:\", &[]).contains(&drive_root)
+            && !snap
+                .runs_from_or_references(r"F:\", &[])
+                .contains(&drive_root),
+        "PROCESS_M3D_MSYS: taskkill switch is not a drive root"
+    );
     session.stop();
 }
 
