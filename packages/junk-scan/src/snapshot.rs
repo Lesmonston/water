@@ -49,7 +49,7 @@ pub fn growth(previous: &Snapshot, current: &Snapshot) -> Vec<Growth> {
     let Ok(delta) = cur_at.duration_since(prev_at) else {
         return Vec::new();
     };
-    if delta < Duration::from_secs(3600) {
+    if delta < Duration::from_secs(86_400) {
         return Vec::new();
     }
     let days_raw = delta.as_secs_f64() / 86_400.0;
@@ -80,7 +80,8 @@ pub fn growth(previous: &Snapshot, current: &Snapshot) -> Vec<Growth> {
                 Ok(age) => age <= Duration::from_secs(86_400),
                 Err(_) => true,
             });
-        let leak_suspect = (count_delta >= 20 && recent) || bytes_per_day >= 1_073_741_824;
+        let leak_suspect =
+            bytes_delta > 0 && ((count_delta >= 20 && recent) || bytes_per_day >= 1_073_741_824);
         out.push(Growth {
             group_id: id.clone(),
             bytes_delta: format_i128(bytes_delta),
