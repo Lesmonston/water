@@ -4,7 +4,7 @@ use crate::error::ScanError;
 use crate::keys::normalize_key;
 use crate::model::{Category, Group, Identity, Issue, Item, ItemType, Level, ScanResult, TopKey};
 use crate::native_windows;
-use crate::plan::{Marker, Match, ScanPlan, Target, match_segment};
+use crate::plan::{Condition, Marker, Match, ScanPlan, Target, match_segment};
 use crate::util::{
     child_path, clamp_time, file_name, format_bytes, format_rfc3339, is_proper_ancestor, path_eq,
 };
@@ -485,8 +485,57 @@ fn marker_matches(dir: &str, marker: &Marker, children: &[Child]) -> bool {
     }
 }
 
+struct ParentEntry {
+    name: String,
+    kind: Kind,
+}
+
+fn conditions_match(dir: &str, conditions: &[Condition], parent: Option<&[ParentEntry]>) -> bool {
+    if conditions.is_empty() {
+        return true;
+    }
+    let components: Vec<_> = dir
+        .split('\\')
+        .skip(1)
+        .filter(|part| !part.is_empty())
+        .collect();
+    conditions.iter().all(|condition| match condition {
+        Condition::ParentHasFile { name } => parent.is_some_and(|entries| {
+            entries
+                .iter()
+                .any(|entry| entry.kind == Kind::File && entry.name.eq_ignore_ascii_case(name))
+        }),
+        Condition::ParentHasOtherEntries { except } => parent.is_some_and(|entries| {
+            entries.iter().any(|entry| {
+                !entry.name.eq_ignore_ascii_case(file_name(dir))
+                    && !except
+                        .iter()
+                        .any(|name| entry.name.eq_ignore_ascii_case(name))
+            })
+        }),
+        Condition::NoAncestorSuffix { suffixes } => components
+            [..components.len().saturating_sub(1)]
+            .iter()
+            .all(|part| {
+                !suffixes.iter().any(|suffix| {
+                    part.to_ascii_lowercase()
+                        .ends_with(&suffix.to_ascii_lowercase())
+                })
+            }),
+        Condition::PathHasAny { names } => components.iter().any(|part| {
+            names.iter().any(|name| {
+                part.to_ascii_lowercase()
+                    .contains(&name.to_ascii_lowercase())
+            })
+        }),
+    })
+}
+
 struct Pending {
+    // The primary owns traversal, listing issues and budget accounting even
+    // when its hit is routed to a fallback (or discarded).
     index: usize,
+    hit_index: Option<usize>,
     path: String,
     measured: Measured,
     identities: HashSet<(u32, [u8; 16])>,
@@ -498,6 +547,7 @@ enum MarkerFrame {
         depth: u32,
         searching: Vec<usize>,
         measuring: Vec<usize>,
+        parent: Option<Arc<Vec<ParentEntry>>>,
     },
     Exit(Vec<usize>),
 }
@@ -510,6 +560,7 @@ fn walk_markers(
     hits: &mut Vec<Hit>,
     plan: &ScanPlan,
     indices: Vec<usize>,
+    fallbacks: &[Option<usize>],
 ) {
     let Match::Marker { root, .. } = &plan.targets[indices[0]].match_spec else {
         return;
@@ -524,6 +575,9 @@ fn walk_markers(
             };
             for index in indices {
                 engine.add_issue(code, &plan.targets[index].group_id);
+                if let Some(fallback) = fallbacks[index] {
+                    engine.add_issue(code, &plan.targets[fallback].group_id);
+                }
             }
             return;
         }
@@ -534,18 +588,22 @@ fn walk_markers(
         depth: 0,
         searching: indices,
         measuring: Vec::new(),
+        parent: None,
     }];
     while let Some(frame) = stack.pop() {
         match frame {
             MarkerFrame::Exit(ids) => {
                 for id in ids {
                     let row = pending[id].take().expect("active measurement");
-                    let target = &plan.targets[row.index];
+                    let Some(index) = row.hit_index else {
+                        continue;
+                    };
+                    let target = &plan.targets[index];
                     push_measured_hit(
                         engine,
                         hits,
                         target,
-                        row.index,
+                        index,
                         &row.path,
                         Kind::Dir,
                         row.measured,
@@ -557,6 +615,7 @@ fn walk_markers(
                 depth,
                 searching,
                 mut measuring,
+                parent,
             } => {
                 let primary = searching.first().copied().unwrap_or_else(|| {
                     pending[measuring[0]]
@@ -598,7 +657,10 @@ fn walk_markers(
                 for index in searching {
                     let target = &plan.targets[index];
                     let Match::Marker {
-                        marker, max_depth, ..
+                        marker,
+                        max_depth,
+                        conditions,
+                        ..
                     } = &target.match_spec
                     else {
                         continue;
@@ -611,6 +673,15 @@ fn walk_markers(
                         let id = pending.len();
                         pending.push(Some(Pending {
                             index,
+                            hit_index: if conditions_match(
+                                &dir.path,
+                                conditions,
+                                parent.as_deref().map(Vec::as_slice),
+                            ) {
+                                Some(index)
+                            } else {
+                                fallbacks[index]
+                            },
                             path: dir.path.clone(),
                             identities: HashSet::new(),
                             measured: Measured {
@@ -641,6 +712,15 @@ fn walk_markers(
                     break;
                 } // Discard every unfinished measurement.
                 stack.push(MarkerFrame::Exit(started_here));
+                // Keep only the parent names/kinds needed by children. This
+                // reuses the listing above; conditions never enumerate again.
+                let parent_entries = searching_next.iter().any(|index| {
+                    matches!(&plan.targets[*index].match_spec, Match::Marker { conditions, .. }
+                        if conditions.iter().any(|condition| matches!(condition,
+                            Condition::ParentHasFile { .. } | Condition::ParentHasOtherEntries { .. })))
+                }).then(|| Arc::new(listing.children.iter().map(|child| ParentEntry {
+                    name: child.name.clone(), kind: child.kind,
+                }).collect::<Vec<_>>()));
                 for child in listing.children {
                     for id in &measuring {
                         let row = pending[*id].as_mut().expect("active measurement");
@@ -675,6 +755,7 @@ fn walk_markers(
                                 depth: depth + 1,
                                 searching: next,
                                 measuring: measuring.clone(),
+                                parent: parent_entries.clone(),
                             });
                         }
                     }
@@ -917,15 +998,35 @@ pub fn scan(
     };
     let mut hits = Vec::new();
     let mut marker_roots = HashSet::new();
+    let mut fallbacks = vec![None; plan.targets.len()];
+    for (index, target) in plan.targets.iter().enumerate() {
+        if let Match::Marker {
+            fallback_for: Some(reference),
+            ..
+        } = &target.match_spec
+            && let Some(main) = plan.targets.iter().position(|t| &t.target_id == reference)
+        {
+            fallbacks[main] = Some(index);
+        }
+    }
     if !engine.stopped("") {
         for (index, target) in plan.targets.iter().enumerate() {
+            if matches!(
+                &target.match_spec,
+                Match::Marker {
+                    fallback_for: Some(_),
+                    ..
+                }
+            ) {
+                continue;
+            }
             if !matches!(target.match_spec, Match::Discovery { .. }) {
                 if let Match::Marker { root, .. } = &target.match_spec {
                     if marker_roots.insert(root.to_ascii_lowercase()) {
                         let indices = plan.targets.iter().enumerate().filter_map(|(i, t)| {
-                            matches!(&t.match_spec, Match::Marker { root: other, .. } if path_eq(root, other)).then_some(i)
+                            matches!(&t.match_spec, Match::Marker { root: other, fallback_for: None, .. } if path_eq(root, other)).then_some(i)
                         }).collect();
-                        walk_markers(&mut engine, &mut hits, plan, indices);
+                        walk_markers(&mut engine, &mut hits, plan, indices, &fallbacks);
                     }
                 } else {
                     run_target(&mut engine, &mut hits, target, index);

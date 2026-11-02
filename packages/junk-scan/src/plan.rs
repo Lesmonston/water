@@ -2,8 +2,36 @@
 
 use crate::error::ScanError;
 use crate::model::{Category, InUse, ItemType, Level};
-use crate::util::{parse_rfc3339, validate_abs_path};
+use crate::util::{parse_rfc3339, path_eq, validate_abs_path};
 use serde::{Deserialize, Serialize};
+use std::collections::HashSet;
+
+#[derive(Debug, Clone, PartialEq, Eq, Serialize, Deserialize)]
+#[serde(tag = "kind", rename_all = "snake_case", deny_unknown_fields)]
+pub enum Condition {
+    ParentHasFile { name: String },
+    ParentHasOtherEntries { except: Vec<String> },
+    NoAncestorSuffix { suffixes: Vec<String> },
+    PathHasAny { names: Vec<String> },
+}
+
+fn deserialize_conditions<'de, D>(deserializer: D) -> Result<Vec<Condition>, D::Error>
+where
+    D: serde::Deserializer<'de>,
+{
+    let conditions = Vec::<Condition>::deserialize(deserializer)?;
+    if conditions.is_empty() {
+        return Err(serde::de::Error::custom("conditions must not be empty"));
+    }
+    Ok(conditions)
+}
+
+fn deserialize_fallback<'de, D>(deserializer: D) -> Result<Option<String>, D::Error>
+where
+    D: serde::Deserializer<'de>,
+{
+    String::deserialize(deserializer).map(Some)
+}
 
 #[derive(Debug, Clone, PartialEq, Eq, Serialize, Deserialize)]
 #[serde(tag = "kind", rename_all = "snake_case", deny_unknown_fields)]
@@ -32,6 +60,18 @@ pub enum Match {
         root: String,
         marker: Marker,
         max_depth: u32,
+        #[serde(
+            default,
+            skip_serializing_if = "Vec::is_empty",
+            deserialize_with = "deserialize_conditions"
+        )]
+        conditions: Vec<Condition>,
+        #[serde(
+            default,
+            skip_serializing_if = "Option::is_none",
+            deserialize_with = "deserialize_fallback"
+        )]
+        fallback_for: Option<String>,
     },
     Discovery {
         root: String,
@@ -85,6 +125,7 @@ impl ScanPlan {
         for target in &doc.targets {
             validate_target(target)?;
         }
+        validate_fallbacks(&doc.targets)?;
         Ok(Self {
             rules_data_version: doc.rules_data_version,
             created_at: doc.created_at,
@@ -118,14 +159,106 @@ fn validate_target(target: &Target) -> Result<(), ScanError> {
             root,
             marker,
             max_depth,
+            conditions,
+            fallback_for,
         } => {
             validate_abs_path(root)?;
             if !(1..=16).contains(max_depth) {
                 return Err(ScanError::InvalidPlan);
             }
             validate_marker(marker)?;
+            if !conditions.is_empty() {
+                if target.category != Category::Custom || fallback_for.is_some() {
+                    return Err(ScanError::InvalidPlan);
+                }
+                validate_conditions(conditions)?;
+            }
         }
         Match::Discovery { root } => validate_abs_path(root)?,
+    }
+    Ok(())
+}
+
+fn validate_conditions(conditions: &[Condition]) -> Result<(), ScanError> {
+    if !(1..=4).contains(&conditions.len()) {
+        return Err(ScanError::InvalidPlan);
+    }
+    let mut kinds = HashSet::new();
+    for condition in conditions {
+        if !kinds.insert(std::mem::discriminant(condition)) {
+            return Err(ScanError::InvalidPlan);
+        }
+        match condition {
+            Condition::ParentHasFile { name } => validate_condition_name(name)?,
+            Condition::ParentHasOtherEntries { except: names }
+            | Condition::NoAncestorSuffix { suffixes: names }
+            | Condition::PathHasAny { names } => {
+                if !(1..=16).contains(&names.len()) {
+                    return Err(ScanError::InvalidPlan);
+                }
+                let mut unique = HashSet::new();
+                for name in names {
+                    validate_condition_name(name)?;
+                    if !unique.insert(name.to_ascii_lowercase()) {
+                        return Err(ScanError::InvalidPlan);
+                    }
+                }
+            }
+        }
+    }
+    Ok(())
+}
+
+fn validate_condition_name(name: &str) -> Result<(), ScanError> {
+    if !(1..=64).contains(&name.len())
+        || name == "."
+        || name == ".."
+        || !name.bytes().all(|byte| (0x21..=0x7e).contains(&byte))
+        || name.contains(['\\', '/', ':', '*', '?', '"', '<', '>', '|'])
+    {
+        return Err(ScanError::InvalidPlan);
+    }
+    Ok(())
+}
+
+fn validate_fallbacks(targets: &[Target]) -> Result<(), ScanError> {
+    let mut backed = HashSet::new();
+    for target in targets {
+        let Match::Marker {
+            root,
+            marker,
+            max_depth,
+            fallback_for: Some(reference),
+            ..
+        } = &target.match_spec
+        else {
+            continue;
+        };
+        if reference == &target.target_id || !backed.insert(reference) {
+            return Err(ScanError::InvalidPlan);
+        }
+        let mut matches = targets.iter().filter(|t| &t.target_id == reference);
+        let main = matches.next().ok_or(ScanError::InvalidPlan)?;
+        if matches.next().is_some() {
+            return Err(ScanError::InvalidPlan);
+        }
+        let Match::Marker {
+            root: main_root,
+            marker: main_marker,
+            max_depth: main_depth,
+            conditions,
+            fallback_for: None,
+        } = &main.match_spec
+        else {
+            return Err(ScanError::InvalidPlan);
+        };
+        if conditions.is_empty()
+            || !path_eq(root, main_root)
+            || marker != main_marker
+            || max_depth != main_depth
+        {
+            return Err(ScanError::InvalidPlan);
+        }
     }
     Ok(())
 }

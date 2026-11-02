@@ -7,7 +7,7 @@ use std::path::{Path, PathBuf};
 use std::process::Command;
 use std::time::{Duration, SystemTime, UNIX_EPOCH};
 use water_junk_scan::{
-    CancelToken, ScanObserver, ScanOptions, ScanPlan, ScanProgress, ScanResult, growth,
+    CancelToken, Condition, ScanObserver, ScanOptions, ScanPlan, ScanProgress, ScanResult, growth,
     identity_of, normalize_key, result_from_json, result_to_json, scan, snapshot,
     snapshot_from_json, snapshot_to_json,
 };
@@ -187,6 +187,7 @@ fn item<'a>(result: &'a ScanResult, suffix: &str) -> &'a water_junk_scan::Item {
 
 #[test]
 fn scan_plan_contract() {
+    check_m3d_plan();
     let unknown = r#"{"plan_version":"water.scan-plan.v1","rules_data_version":"2026-10-26.1","created_at":"2026-10-26T04:00:00Z","targets":[],"hard_guards":[],"extra":true}"#;
     assert!(ScanPlan::from_json(unknown).is_err());
 
@@ -328,6 +329,7 @@ fn scan_plan_contract() {
 
 #[test]
 fn scan_pattern_marker_discovery() {
+    check_m3d_conditions();
     check_unique_bytes();
     let fx = Fixture::create();
     write_file(
@@ -1094,6 +1096,7 @@ fn scan_reparse_budget_cancel() {
 
 #[test]
 fn scan_snapshot_growth_keys() {
+    check_m3d_growth();
     assert_eq!(
         normalize_key("marketplace-upgrade-k2Hq9x"),
         "marketplace-upgrade-*"
@@ -1185,7 +1188,7 @@ fn scan_snapshot_growth_keys() {
     )
     .unwrap();
     let cur19 = snapshot_from_json(
-        r#"{"snapshot_version":"water.scan-snapshot.v1","scan_id":"b","taken_at":"2026-10-26T02:00:00Z","groups":{"g":{"total_bytes":"200","item_count":20,"newest_activity":"2026-10-26T01:30:00Z","top_keys":[]}}}"#,
+        r#"{"snapshot_version":"water.scan-snapshot.v1","scan_id":"b","taken_at":"2026-10-27T00:00:00Z","groups":{"g":{"total_bytes":"200","item_count":20,"newest_activity":"2026-10-26T23:30:00Z","top_keys":[]}}}"#,
     )
     .unwrap();
     let g19 = growth(&prev, &cur19);
@@ -1194,7 +1197,7 @@ fn scan_snapshot_growth_keys() {
     assert!(!g19[0].leak_suspect);
 
     let cur20 = snapshot_from_json(
-        r#"{"snapshot_version":"water.scan-snapshot.v1","scan_id":"c","taken_at":"2026-10-26T02:00:00Z","groups":{"g":{"total_bytes":"200","item_count":21,"newest_activity":"2026-10-26T01:30:00Z","top_keys":[]}}}"#,
+        r#"{"snapshot_version":"water.scan-snapshot.v1","scan_id":"c","taken_at":"2026-10-27T00:00:00Z","groups":{"g":{"total_bytes":"200","item_count":21,"newest_activity":"2026-10-26T23:30:00Z","top_keys":[]}}}"#,
     )
     .unwrap();
     let g20 = growth(&prev, &cur20);
@@ -1231,14 +1234,630 @@ fn scan_snapshot_growth_keys() {
         r#"{"snapshot_version":"water.scan-snapshot.v1","scan_id":"h","taken_at":"2026-10-26T01:00:00Z","groups":{"g":{"total_bytes":"44739343","item_count":1,"newest_activity":"2026-10-20T00:00:00Z","top_keys":[]}}}"#,
     )
     .unwrap();
-    let ghour = growth(&prev, &one_hour);
+    assert!(
+        growth(&prev, &one_hour).is_empty(),
+        "SCAN_M3D_GROWTH: one hour"
+    );
+    let twenty_five_hours = snapshot_from_json(
+        r#"{"snapshot_version":"water.scan-snapshot.v1","scan_id":"h25","taken_at":"2026-10-27T01:00:00Z","groups":{"g":{"total_bytes":"1118481175","item_count":1,"newest_activity":"2026-10-20T00:00:00Z","top_keys":[]}}}"#,
+    )
+    .unwrap();
+    let ghour = growth(&prev, &twenty_five_hours);
     assert_eq!(ghour.len(), 1);
-    assert_eq!(ghour[0].bytes_delta, "44739243");
+    assert_eq!(ghour[0].bytes_delta, "1118481075");
     assert_eq!(
         ghour[0].bytes_per_day, "1073741832",
         "bytes_per_day must divide by the exact interval"
     );
     assert!(ghour[0].leak_suspect);
+}
+
+fn m3d_targets(root: &str) -> Vec<Value> {
+    let node = json!({"kind":"dir_name","names":["node_modules"]});
+    let browser = json!({"kind":"children_all","names":["Local State","Default"]});
+    vec![
+        target(
+            "node-main",
+            "confirm",
+            "custom",
+            json!({
+                "kind":"marker","root":root,"marker":node,"max_depth":6,
+                "conditions":[
+                    {"kind":"parent_has_file","name":"package.json"},
+                    {"kind":"parent_has_other_entries","except":["package.json","package-lock.json","npm-shrinkwrap.json","yarn.lock","pnpm-lock.yaml","bun.lock","bun.lockb","node_modules"]},
+                    {"kind":"no_ancestor_suffix","suffixes":[".asar.unpacked"]}
+                ]
+            }),
+            "dir",
+            0,
+            0,
+        ),
+        target(
+            "node-fallback",
+            "advisory",
+            "custom",
+            json!({
+                "kind":"marker","root":root,"marker":node,"max_depth":6,"fallback_for":"node-main"
+            }),
+            "dir",
+            0,
+            0,
+        ),
+        target(
+            "browser-main",
+            "confirm",
+            "custom",
+            json!({
+                "kind":"marker","root":root,"marker":browser,"max_depth":8,
+                "conditions":[{"kind":"path_has_any","names":["ms-playwright","playwright","puppeteer","selenium","webdriver","chromedriver","cypress"]}]
+            }),
+            "dir",
+            0,
+            0,
+        ),
+        target(
+            "browser-fallback",
+            "advisory",
+            "custom",
+            json!({
+                "kind":"marker","root":root,"marker":browser,"max_depth":8,"fallback_for":"browser-main"
+            }),
+            "dir",
+            0,
+            0,
+        ),
+    ]
+}
+
+fn check_m3d_plan() {
+    assert_eq!(
+        serde_json::from_value::<Condition>(
+            json!({"kind":"parent_has_file","name":"package.json"})
+        )
+        .unwrap(),
+        Condition::ParentHasFile {
+            name: "package.json".to_string()
+        },
+        "SCAN_M3D_PLAN: exported Condition type"
+    );
+    let targets = m3d_targets(r"C:\m3d");
+    let valid = plan(targets.clone(), vec![]);
+    let parsed = ScanPlan::from_json(&valid).expect("SCAN_M3D_PLAN: conditions and fallbacks");
+    assert_eq!(
+        serde_json::to_value(&parsed.targets).unwrap(),
+        json!(targets),
+        "SCAN_M3D_PLAN: roundtrip"
+    );
+    let legacy = target(
+        "legacy",
+        "confirm",
+        "custom",
+        json!({
+            "kind":"marker","root":r"C:\m3d","marker":{"kind":"dir_name","names":["node_modules"]},"max_depth":6
+        }),
+        "dir",
+        0,
+        0,
+    );
+    let old = ScanPlan::from_json(&plan(vec![legacy.clone()], vec![])).unwrap();
+    assert_eq!(
+        serde_json::to_value(&old.targets[0]).unwrap(),
+        legacy,
+        "SCAN_M3D_PLAN: old target unchanged"
+    );
+    assert_eq!(
+        serde_json::to_string(&old.targets[0].match_spec).unwrap(),
+        r#"{"kind":"marker","root":"C:\\m3d","marker":{"kind":"dir_name","names":["node_modules"]},"max_depth":6}"#,
+        "SCAN_M3D_PLAN: old marker bytes unchanged"
+    );
+
+    let reject = |rows: Vec<Value>, reason: &str| {
+        assert!(
+            matches!(
+                ScanPlan::from_json(&plan(rows, vec![])),
+                Err(water_junk_scan::ScanError::InvalidPlan)
+            ),
+            "SCAN_M3D_PLAN: reject {reason}"
+        );
+    };
+    let condition_case = |conditions: Value| {
+        let mut rows = targets.clone();
+        rows[0]["match"]["conditions"] = conditions;
+        rows
+    };
+    for conditions in [
+        json!([]),
+        json!(null),
+        json!({}),
+        json!([{"kind":"unknown","name":"a"}]),
+        json!([{"kind":"parent_has_file","name":"a","extra":true}]),
+        json!([{"kind":"parent_has_file","except":["a"]}]),
+        json!([{"kind":"parent_has_file","name":"a"},{"kind":"parent_has_file","name":"b"}]),
+        json!(vec![json!({"kind":"parent_has_file","name":"a"}); 5]),
+    ] {
+        reject(
+            condition_case(conditions),
+            "condition shape, count or duplicate kind",
+        );
+    }
+    for bad in [
+        "".to_string(),
+        ".".into(),
+        "..".into(),
+        "x".repeat(65),
+        "a b".into(),
+        "a\t".into(),
+        "\u{7f}".into(),
+        "包".into(),
+    ]
+    .into_iter()
+    .chain(['\\', '/', ':', '*', '?', '"', '<', '>', '|'].map(|c| format!("a{c}b")))
+    {
+        reject(
+            condition_case(json!([{"kind":"parent_has_file","name":bad}])),
+            "invalid name",
+        );
+        for (kind, field) in [
+            ("parent_has_other_entries", "except"),
+            ("no_ancestor_suffix", "suffixes"),
+            ("path_has_any", "names"),
+        ] {
+            reject(
+                condition_case(json!([{"kind":kind,field:[bad]}])),
+                "invalid array string",
+            );
+        }
+    }
+    for (kind, field) in [
+        ("parent_has_other_entries", "except"),
+        ("no_ancestor_suffix", "suffixes"),
+        ("path_has_any", "names"),
+    ] {
+        for array in [
+            json!([]),
+            json!(["a", "A"]),
+            json!((0..17).map(|n| format!("n{n}")).collect::<Vec<_>>()),
+        ] {
+            reject(
+                condition_case(json!([{"kind":kind,field:array}])),
+                "array bounds and ASCII duplicates",
+            );
+        }
+        let legal = condition_case(
+            json!([{"kind":kind,field:(0..16).map(|n|format!("n{n}")).collect::<Vec<_>>() }]),
+        );
+        assert!(
+            ScanPlan::from_json(&plan(legal, vec![])).is_ok(),
+            "SCAN_M3D_PLAN: sixteen strings accepted"
+        );
+    }
+    let mut four = targets.clone();
+    four[0]["match"]["conditions"]
+        .as_array_mut()
+        .unwrap()
+        .push(json!({"kind":"path_has_any","names":["x".repeat(64)]}));
+    assert!(
+        ScanPlan::from_json(&plan(four, vec![])).is_ok(),
+        "SCAN_M3D_PLAN: four kinds and 64 ASCII characters"
+    );
+    let mut noncustom = targets.clone();
+    noncustom[0]["category"] = json!("dev_cache");
+    reject(noncustom, "conditions outside custom");
+    for mut wrong in [
+        json!({"kind":"pattern","base":r"C:\m3d","segments":["*"]}),
+        json!({"kind":"discovery","root":r"C:\m3d"}),
+    ] {
+        wrong["conditions"] = targets[0]["match"]["conditions"].clone();
+        let mut rows = targets.clone();
+        rows[0]["match"] = wrong;
+        reject(rows, "conditions outside marker");
+    }
+    for reference in [
+        json!("missing"),
+        json!("node-fallback"),
+        json!("browser-fallback"),
+        json!(""),
+        json!(null),
+        json!(1),
+    ] {
+        let mut rows = targets.clone();
+        rows[1]["match"]["fallback_for"] = reference;
+        reject(rows, "invalid fallback reference");
+    }
+    let mut rows = targets.clone();
+    rows[1]["match"]["conditions"] = json!([{"kind":"parent_has_file","name":"a"}]);
+    reject(rows, "fallback has conditions");
+    let mut rows = targets.clone();
+    rows[0]["match"]
+        .as_object_mut()
+        .unwrap()
+        .remove("conditions");
+    reject(rows, "main has no conditions");
+    for wrong in [
+        json!({"kind":"pattern","base":r"C:\m3d","segments":["*"]}),
+        json!({"kind":"discovery","root":r"C:\m3d"}),
+    ] {
+        let mut rows = targets.clone();
+        rows[0]["match"] = wrong;
+        reject(rows, "main is not marker");
+    }
+    for (field, value) in [
+        ("root", json!(r"C:\other")),
+        ("marker", json!({"kind":"dir_name","names":["other"]})),
+        ("max_depth", json!(5)),
+    ] {
+        let mut rows = targets.clone();
+        rows[1]["match"][field] = value;
+        reject(rows, "fallback mismatch");
+    }
+    let mut rows = targets.clone();
+    let mut duplicate = rows[1].clone();
+    duplicate["target_id"] = json!("another-fallback");
+    rows.push(duplicate);
+    reject(rows, "two fallbacks for one target");
+    let mut rows = targets.clone();
+    rows[1]["match"]["root"] = json!(r"c:\M3D");
+    assert!(
+        ScanPlan::from_json(&plan(rows, vec![])).is_ok(),
+        "SCAN_M3D_PLAN: roots compare ASCII case insensitively"
+    );
+}
+
+fn check_m3d_conditions() {
+    let fx = Fixture::create();
+    for rel in [
+        "root/proj/package.json",
+        "root/proj/src/a.js",
+        "root/proj/node_modules/x/index.js",
+        "root/proj/node_modules/x/node_modules/y/index.js",
+        "root/npmglobal/claude.cmd",
+        "root/npmglobal/node_modules/x/package.json",
+        "root/npmglobal/node_modules/x/src/a.js",
+        "root/npmglobal/node_modules/x/node_modules/y/index.js",
+        "root/pkg/package.json",
+        "root/pkg/package-lock.json",
+        "root/pkg/node_modules/x/index.js",
+        "root/app/resources/app.asar.unpacked/package.json",
+        "root/app/resources/app.asar.unpacked/lib/a.js",
+        "root/app/resources/app.asar.unpacked/node_modules/x/index.js",
+        "root/tests/playwright-profile-1/Local State",
+        "root/tests/playwright-profile-1/Default/cache",
+        "root/app2/EBWebView/Local State",
+        "root/app2/EBWebView/Default/cache",
+        "root/MIXED/PACKAGE.JSON",
+        "root/MIXED/SRC/a.js",
+        "root/MIXED/NODE_MODULES/x/index.js",
+        "root/PACKAGEONLY/PACKAGE.JSON",
+        "root/PACKAGEONLY/PACKAGE-LOCK.JSON",
+        "root/PACKAGEONLY/NODE_MODULES/x/index.js",
+        "root/UPPER.ASAR.UNPACKED/PACKAGE.JSON",
+        "root/UPPER.ASAR.UNPACKED/LIB/a.js",
+        "root/UPPER.ASAR.UNPACKED/NODE_MODULES/x/index.js",
+        "root/PLAYWRIGHT/OtherProfile/Local State",
+        "root/PLAYWRIGHT/OtherProfile/Default/cache",
+        "root/dir-package/package.json/child",
+        "root/dir-package/src/a.js",
+        "root/dir-package/node_modules/x/index.js",
+    ] {
+        write_file(&fx.join(rel), b"x");
+    }
+    let now = SystemTime::now();
+    let targets = m3d_targets(&fx.p("root"));
+    let text = plan(targets.clone(), vec![]);
+    ScanPlan::from_json(&text).expect("SCAN_M3D_CONDITIONS: fixture plan");
+    let result = run_default(&text, now);
+    assert_eq!(
+        result.status, "completed",
+        "SCAN_M3D_CONDITIONS: ordinary fixture"
+    );
+    let expected = [
+        ("proj/node_modules", "node-main"),
+        ("npmglobal/node_modules", "node-fallback"),
+        ("pkg/node_modules", "node-fallback"),
+        (
+            "app/resources/app.asar.unpacked/node_modules",
+            "node-fallback",
+        ),
+        ("tests/playwright-profile-1", "browser-main"),
+        ("app2/EBWebView", "browser-fallback"),
+        ("MIXED/NODE_MODULES", "node-main"),
+        ("PACKAGEONLY/NODE_MODULES", "node-fallback"),
+        ("UPPER.ASAR.UNPACKED/NODE_MODULES", "node-fallback"),
+        ("PLAYWRIGHT/OtherProfile", "browser-main"),
+        ("dir-package/node_modules", "node-fallback"),
+    ];
+    assert_eq!(
+        result.items.len(),
+        expected.len(),
+        "SCAN_M3D_CONDITIONS: no nested hits"
+    );
+    for (rel, owner) in expected {
+        let path = fx.p(&format!("root/{rel}"));
+        let row = result
+            .items
+            .iter()
+            .find(|i| i.path.eq_ignore_ascii_case(&path))
+            .expect("SCAN_M3D_CONDITIONS: expected directory");
+        assert_eq!(row.group_id, owner, "SCAN_M3D_CONDITIONS: owner for {rel}");
+        assert_eq!(
+            row.unique_bytes, row.total_bytes,
+            "SCAN_M3D_CONDITIONS: ordinary files"
+        );
+        assert!(
+            row.identity.is_some(),
+            "SCAN_M3D_CONDITIONS: measured identity"
+        );
+        if owner.ends_with("fallback") {
+            assert!(!row.eligible, "SCAN_M3D_CONDITIONS: fallback advisory");
+            assert_eq!(
+                row.ineligible_reason.as_deref(),
+                Some("level_not_cleanable"),
+                "SCAN_M3D_CONDITIONS: fallback level"
+            );
+        }
+    }
+    let unconditional = targets
+        .iter()
+        .filter(|t| t["match"].get("fallback_for").is_none())
+        .cloned()
+        .map(|mut t| {
+            t["match"].as_object_mut().unwrap().remove("conditions");
+            t
+        })
+        .collect::<Vec<_>>();
+    let reference = run_default(&plan(unconditional.clone(), vec![]), now);
+    assert_eq!(
+        result.visited_entries, reference.visited_entries,
+        "SCAN_M3D_CONDITIONS: one traversal with fallback"
+    );
+    for row in &result.items {
+        let original = reference
+            .items
+            .iter()
+            .find(|i| i.path.eq_ignore_ascii_case(&row.path))
+            .expect("SCAN_M3D_CONDITIONS: reference hit");
+        assert_eq!(
+            (
+                &row.total_bytes,
+                &row.unique_bytes,
+                row.file_count,
+                &row.newest_activity,
+                &row.identity
+            ),
+            (
+                &original.total_bytes,
+                &original.unique_bytes,
+                original.file_count,
+                &original.newest_activity,
+                &original.identity
+            ),
+            "SCAN_M3D_CONDITIONS: unchanged measurement"
+        );
+    }
+    let mut no_self_exception = targets.clone();
+    no_self_exception[0]["match"]["conditions"][1]["except"]
+        .as_array_mut()
+        .unwrap()
+        .pop();
+    let excludes_self = run_default(&plan(no_self_exception, vec![]), now);
+    assert_eq!(
+        excludes_self.items, result.items,
+        "SCAN_M3D_CONDITIONS: candidate itself never counts as another entry"
+    );
+    let no_fallback = targets
+        .iter()
+        .filter(|t| t["match"].get("fallback_for").is_none())
+        .cloned()
+        .collect();
+    let dropped = run_default(&plan(no_fallback, vec![]), now);
+    assert_eq!(
+        dropped.visited_entries, reference.visited_entries,
+        "SCAN_M3D_CONDITIONS: rejected hit still covers subtree once"
+    );
+    assert_eq!(
+        dropped.items.len(),
+        4,
+        "SCAN_M3D_CONDITIONS: rejected nodes and descendants absent"
+    );
+    assert!(
+        dropped
+            .items
+            .iter()
+            .all(|i| !i.path.to_ascii_lowercase().contains("npmglobal")),
+        "SCAN_M3D_CONDITIONS: no fallback means no nested hit"
+    );
+
+    let isolated = m3d_targets(&fx.p("root/npmglobal"));
+    let isolated_rejected = run_default(&plan(vec![isolated[0].clone()], vec![]), now);
+    let mut isolated_plain = isolated[0].clone();
+    isolated_plain["match"]
+        .as_object_mut()
+        .unwrap()
+        .remove("conditions");
+    let isolated_reference = run_default(&plan(vec![isolated_plain], vec![]), now);
+    assert!(
+        isolated_rejected.items.is_empty(),
+        "SCAN_M3D_CONDITIONS: rejected sole target does not search descendants"
+    );
+    assert_eq!(
+        isolated_rejected.visited_entries, isolated_reference.visited_entries,
+        "SCAN_M3D_CONDITIONS: sole target still measures once without fallback"
+    );
+
+    let root_node = fx.p("root/proj/node_modules");
+    let root_targets: Vec<_> = m3d_targets(&root_node).into_iter().take(2).collect();
+    let mut other_at_root = root_targets.clone();
+    other_at_root[0]["match"]["conditions"] =
+        json!([{"kind":"parent_has_other_entries","except":["unrelated"]}]);
+    let other_root_result = run_default(&plan(other_at_root, vec![]), now);
+    assert_eq!(
+        other_root_result.items[0].group_id, "node-fallback",
+        "SCAN_M3D_CONDITIONS: root parent entries unavailable"
+    );
+    let root_result = run_default(&plan(root_targets, vec![]), now);
+    assert_eq!(
+        root_result.items.len(),
+        1,
+        "SCAN_M3D_CONDITIONS: root match stops descendants"
+    );
+    assert_eq!(
+        root_result.items[0].group_id, "node-fallback",
+        "SCAN_M3D_CONDITIONS: root has no traversed parent"
+    );
+
+    let mut aged = targets.clone();
+    aged[0]["level"] = json!("protected");
+    aged[0]["min_age_hours"] = json!(0);
+    aged[1]["level"] = json!("recommended");
+    aged[1]["min_age_hours"] = json!(48);
+    aged[1]["in_use"] = json!({"mode":"runs_from_or_references_item","processes":["tool.exe"]});
+    let aged_result = run_default(&plan(aged.clone(), vec![]), now);
+    for row in aged_result
+        .items
+        .iter()
+        .filter(|i| i.group_id == "node-fallback")
+    {
+        assert_eq!(
+            row.ineligible_reason.as_deref(),
+            Some("too_recent"),
+            "SCAN_M3D_CONDITIONS: fallback own age and level"
+        );
+    }
+    let group = aged_result
+        .groups
+        .iter()
+        .find(|g| g.group_id == "node-fallback")
+        .unwrap();
+    assert_eq!(
+        serde_json::to_value(&group.in_use).unwrap(),
+        aged[1]["in_use"],
+        "SCAN_M3D_CONDITIONS: fallback own in_use"
+    );
+    aged[1]["min_age_hours"] = json!(0);
+    aged[1]["keep_newest"] = json!(1);
+    let kept = run_default(&plan(aged, vec![]), now);
+    let fallback_rows: Vec<_> = kept
+        .items
+        .iter()
+        .filter(|i| i.group_id == "node-fallback")
+        .collect();
+    assert_eq!(
+        fallback_rows
+            .iter()
+            .filter(|i| i.ineligible_reason.as_deref() == Some("keep_newest"))
+            .count(),
+        1,
+        "SCAN_M3D_CONDITIONS: fallback own keep_newest"
+    );
+    assert_eq!(
+        fallback_rows.iter().filter(|i| i.eligible).count(),
+        fallback_rows.len() - 1,
+        "SCAN_M3D_CONDITIONS: remaining fallback items eligible"
+    );
+
+    let only_project = m3d_targets(&fx.p("root/proj"));
+    let empty = run_default(&plan(only_project, vec![]), now);
+    assert!(
+        empty
+            .groups
+            .iter()
+            .filter(|g| g.group_id.ends_with("fallback"))
+            .all(|g| g.item_count == 0 && g.total_bytes == "0"),
+        "SCAN_M3D_CONDITIONS: empty fallback groups retained"
+    );
+    let missing = m3d_targets(&fx.p("missing")).into_iter().take(2).collect();
+    let absent = run_default(&plan(missing, vec![]), now);
+    assert_eq!(
+        absent.visited_entries, 0,
+        "SCAN_M3D_CONDITIONS: no fallback traversal"
+    );
+    for id in ["node-main", "node-fallback"] {
+        assert!(
+            absent
+                .issues
+                .iter()
+                .any(|i| i.group_id == id && i.code == "base_missing" && i.count == 1),
+            "SCAN_M3D_CONDITIONS: fallback inherits missing base"
+        );
+    }
+
+    struct Recorded(std::sync::Mutex<Vec<String>>);
+    impl ScanObserver for Recorded {
+        fn on_progress(&self, p: &ScanProgress) {
+            self.0.lock().unwrap().push(p.group_id.clone());
+        }
+    }
+    let recorded = Recorded(std::sync::Mutex::new(Vec::new()));
+    scan(
+        &ScanPlan::from_json(&text).unwrap(),
+        "m3d-progress",
+        &ScanOptions::default(),
+        &CancelToken::new(),
+        &recorded,
+        now,
+    )
+    .unwrap();
+    assert!(
+        recorded
+            .0
+            .lock()
+            .unwrap()
+            .iter()
+            .all(|id| !id.ends_with("fallback")),
+        "SCAN_M3D_CONDITIONS: no fallback progress"
+    );
+    let mut reordered = targets;
+    reordered.swap(0, 1);
+    let fallback_first = run_default(&plan(reordered, vec![]), now);
+    assert_eq!(
+        fallback_first.visited_entries, result.visited_entries,
+        "SCAN_M3D_CONDITIONS: fallback before primary does not search"
+    );
+    for row in &fallback_first.items {
+        assert_eq!(
+            row.group_id,
+            item(&result, &row.path).group_id,
+            "SCAN_M3D_CONDITIONS: routing independent of fallback order"
+        );
+    }
+}
+
+fn check_m3d_growth() {
+    let make = |at: &str, bytes: &str, count: u64, newest: &str| {
+        snapshot_from_json(&json!({
+        "snapshot_version":"water.scan-snapshot.v1","scan_id":"m3d","taken_at":at,
+        "groups":{"g":{"total_bytes":bytes,"item_count":count,"newest_activity":newest,"top_keys":[]}}
+    }).to_string()).unwrap()
+    };
+    let prev = make("2026-10-26T00:00:00Z", "100", 1, "2026-10-25T00:00:00Z");
+    let short = make("2026-10-26T23:00:00Z", "200", 21, "2026-10-26T22:30:00Z");
+    assert!(
+        growth(&prev, &short).is_empty(),
+        "SCAN_M3D_GROWTH: 23 hours is too short"
+    );
+    for (bytes, count, newest, suspect) in [
+        ("50", 21, "2026-10-26T23:30:00Z", false),
+        ("100", 21, "2026-10-26T23:30:00Z", false),
+        ("200", 21, "2026-10-26T23:30:00Z", true),
+        ("200", 20, "2026-10-26T23:30:00Z", false),
+        ("200", 21, "2026-10-25T23:59:59Z", false),
+        ("200", 21, "2026-10-26T00:00:00Z", true),
+        ("1073741924", 1, "2026-10-20T00:00:00Z", true),
+        ("1073741923", 1, "2026-10-20T00:00:00Z", false),
+    ] {
+        let cur = make("2026-10-27T00:00:00Z", bytes, count, newest);
+        let rows = growth(&prev, &cur);
+        assert_eq!(rows.len(), 1, "SCAN_M3D_GROWTH: exactly 24 hours");
+        assert_eq!(
+            rows[0].leak_suspect, suspect,
+            "SCAN_M3D_GROWTH: bytes={bytes}, count={count}, newest={newest}"
+        );
+        assert_eq!(
+            rows[0].bytes_delta,
+            (bytes.parse::<i128>().unwrap() - 100).to_string(),
+            "SCAN_M3D_GROWTH: signed delta"
+        );
+    }
 }
 
 fn hard_link(link: &Path, original: &Path) {

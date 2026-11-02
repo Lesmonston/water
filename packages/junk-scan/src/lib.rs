@@ -17,7 +17,7 @@ pub use model::{
     Category, Group, Growth, Identity, InUse, Issue, Item, KnownFolders, Level, ScanResult,
     Snapshot, TopKey,
 };
-pub use plan::ScanPlan;
+pub use plan::{Condition, ScanPlan};
 pub use scan::{
     CancelToken, ScanObserver, ScanOptions, ScanProgress, identity_of, known_folders,
     result_from_json, result_to_json, scan,

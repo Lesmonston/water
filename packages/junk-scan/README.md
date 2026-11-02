@@ -19,3 +19,15 @@ depth limits and branch stopping. Measurements reuse that traversal, while
 per-target issues, overlap protection and output ordering retain their meaning.
 The `runs_from_or_references_item` mode (including an empty process list) is
 passed through to the group; this crate does not inspect processes.
+
+Custom marker targets may add `conditions` for parent names and path text.
+Parent conditions reuse the traversal's existing listing; at depth zero the
+parent is unavailable. A target with `fallback_for` receives failed condition
+matches from its primary and never starts its own search or progress. Every
+marker match stops that primary's search inside the matched subtree, including
+rejected matches without a fallback. Traversal and measurement stay the same;
+fallback items use their own target's eligibility settings.
+
+Snapshot growth requires at least 24 hours between observations. A leak hint
+also requires increasing bytes, together with 20 additional recently active
+items or at least 1 GiB per day. Rates still use the exact elapsed interval.
