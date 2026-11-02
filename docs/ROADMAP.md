@@ -24,7 +24,7 @@
 | W7 | J1～J4 M3 收尾小修 | W6 | 已验收合入（10-29），见[第七波计划](dispatch/wave7/PLAN.md) |
 | W8 | M3 收口：K1 进程、K2 规则、K3 扫描、K4 服务、K5 宿主、K6 界面 | W7 | [计划](dispatch/wave8/PLAN.md)已拍板；[收单](acceptance/wave8/controller/WATER-W8-REVIEW-20261101.md)：**六张全部验收合入**（K1、K2、K5 经补单 01；K4 合入 `0bb1cf80`，补单 02 再合入 `2a946b30`；K6 经补单 01～05，最后合入 `1b79d861`） |
 | W9 | M3 收口修复：L1 规则、L2 扫描、L3 服务、L4 进程（F1、F2、增长提示、在用检测缺口） | W8 | 11-02 [计划](dispatch/wave9/PLAN.md)拍板“全部按推荐”；契约冻结在 `contracts/m3d-v1/`，基线 `57ecd7ce`，四张单 11-02 派出（L1、L2、L4 给 sol，L3 给 grok），当天全部验收合入（L2 经补单 01；[验收报告](acceptance/wave9/controller/WATER-W9-REVIEW-20261102.md)）；同日第六次整合通过、M3 收口（[收口报告](acceptance/wave9/controller/WATER-M3-CLOSE-20261102.md)） |
-| W10 | M3.5“结论优先”：泄漏簇、规则补缺、项目声明 `.water-cleanup.json`、可选隔离区、首页与结果页重做 | W9 | 同上计划第 4、5 节，已拍板；用户 11-02：“第10波等第九波收口再做，因为可能会有变化”，ADR-019、设计稿、契约都等 M3 收口后再开始。M3 已于 11-02 收口，先按收口报告重看计划第 4、5 节。用户 11-02 要求界面整体重构（布局、交互、按钮、菜单），[设计 v2 草案与设计稿](design/water-ui-v2/DESIGN.md)待审 |
+| W10 | M3.5“结论优先”：泄漏簇、规则补缺、项目声明 `.water-cleanup.json`、可选隔离区、首页与结果页重做 | W9 | 同上计划第 4、5 节，已拍板；用户 11-02：“第10波等第九波收口再做，因为可能会有变化”，ADR-019、设计稿、契约都等 M3 收口后再开始。M3 已于 11-02 收口，先按收口报告重看计划第 4、5 节。用户 11-02 要求界面整体重构（布局、交互、按钮、菜单），[设计 v2](design/water-ui-v2/DESIGN.md)用户 11-02 认可；同日要求把每一轮清理的经验全部做进 Water，见[第十波计划](dispatch/wave10/PLAN.md)，五件新事项待拍板 |
 
 第一波的历史任务板见 git 历史与 [第一波计划](dispatch/wave1/PLAN.md)。
 
