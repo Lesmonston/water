@@ -392,6 +392,7 @@ A–AB及八补单、AD保持VERIFIED；AC/补单06新增VERIFIED（Windows静�
     - **下一步**：基准表与合成夹具，冻结 `contracts/m35-v1/`，派前 baseline，派单句。
 48. **第 14 份交接**（11-02 19:45 JST）：用户要压缩上下文。[交接报告](CONTROLLER-HANDOFF-20261102-14.md)写清第十波做到哪：[基准表](dispatch/wave10/BENCHMARK.md)已写；契约只起草了 [RULES-M35](../contracts/m35-v1/RULES-M35.md)（草案，未冻结）；写契约时查清的约束（服务对 `MatchSpec`、在用方式、执行器状态做了完整匹配，所以只加 marker 种类与字段、隔离用单独的类型；新包只许 serde 与 serde_json）；下一步从交接第 2.3 节第 1 步继续。
 49. **第十波六份契约草案与第 15 份交接**（11-02 20:45 JST）：`contracts/m35-v1/` 起草了 RULES（已审完）、SCAN、MANIFEST、CLEAN、DUP、APPS 六份，都未冻结（`70980037`）；[基准表](dispatch/wave10/BENCHMARK.md)与[计划](dispatch/wave10/PLAN.md)按审定规则回填。用户要压缩上下文，[第 15 份交接](CONTROLLER-HANDOFF-20261102-15.md)写清与第 14 份计划不同的六处，以及剩下四份契约（IPC、SERVICE、HOST、UI）要接住的事；下一步从交接第 3.1 节继续。
+50. **第十波十份契约全部起草**（11-02 21:00 JST）：压缩取消后接着写完 [IPC-M35](../contracts/m35-v1/IPC-M35.md)（命令 19 → 36）、[SERVICE-M35](../contracts/m35-v1/SERVICE-M35.md)、[HOST-M35](../contracts/m35-v1/HOST-M35.md)、[UI-M35](../contracts/m35-v1/UI-M35.md)；RULES 补卸载残留（`installed_names`，H8），回收站改由服务查，CLEAN、DUP 各补一处。都未冻结。第 15 份交接加第 6 节，下一步：通读、界面样例、冻结、第一批八张。
 
 ## 真实AA→AD联合验收通过（2026-10-26）
 

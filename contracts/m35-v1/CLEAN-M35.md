@@ -144,12 +144,12 @@ pub struct PurgeReport {
 pub struct QuarantineSummary { pub dir: String, pub quarantine_id: String, pub created_at: Option<String> }
 pub struct QuarantineList {
     pub list_version: String,          // "water.quarantine-list.v1"
-    pub volume_root: String, pub root: String,
+    pub root: String,
     pub state: String,                 // "absent"、"present"、"unavailable"（是重解析点、是文件或打不开）
     pub quarantines: Vec<QuarantineSummary>, // 按 quarantine_id 排序
     pub stray_entries: u64,            // 根下不是合法编号目录的东西
 }
-pub fn list_quarantines(volume_root: &str) -> Result<QuarantineList, CleanError>;
+pub fn list_quarantines(root: &str) -> Result<QuarantineList, CleanError>;
 
 pub enum LeftoverHint { OddName, LongPath, ReadOnly, Reparse, AccessDenied }
 pub struct HintEntry { pub rel: String, pub kind: Kind, pub bytes: String, pub hints: Vec<LeftoverHint> }
@@ -163,7 +163,7 @@ pub struct QuarantineInfo {
 pub fn inspect(quarantine_dir: &str, stop: &StopFlag) -> Result<QuarantineInfo, CleanError>;
 ```
 
-- `list_quarantines`：`volume_root` 形如 `F:\`；只列 `.water-quarantine` 的直接子项，不进去；`created_at` 取目录列表里的创建时间。常驻隔离栏（UI-M35）就靠它：有任何编号目录，就显示“打开隔离区”。
+- `list_quarantines`：`root` 是隔离根本身（`F:\.water-quarantine`，或测试用的同名目录），过 `path::validate`、最后一段是 `.water-quarantine`，否则 `InvalidPlan`；从盘根逐段按句柄打开，中间有重解析点时 `state` 为 `unavailable`；只列它的直接子项，不进去；`created_at` 取目录列表里的创建时间。常驻隔离栏（UI-M35）就靠它：有任何编号目录，就显示“打开隔离区”。
 - `inspect`：入口检查同第 4 节，不跟随重解析点地走一遍，只读。`hard_entries` 列出资源管理器通常删不掉的东西：
   - `odd_name`：保留名（含带扩展名的）或结尾是点、空格；
   - `long_path`：完整路径超过 259 个 UTF-16 单元；
@@ -215,4 +215,4 @@ pub fn inspect(quarantine_dir: &str, stop: &StopFlag) -> Result<QuarantineInfo, 
 - **nc3**：去掉上级名必须是 `.water-quarantine` 的检查，测试以 `CLEAN_M35_PURGE` 失败。
 - **nc4**：`from_json` 忽略 `unlocked_paths`，测试以 `CLEAN_M35_UNLOCK` 失败。
 - 负控只认 `src/` 里的改动。
-- **真实冒烟**（只读）：对每个固定盘调用 `list_quarantines`，只输出状态与编号目录个数。**不移入、不复原、不删除任何真实文件。**
+- **真实冒烟**（只读）：对每个固定盘的 `<盘>:\.water-quarantine` 调用 `list_quarantines`，只输出状态与编号目录个数。**不移入、不复原、不删除任何真实文件。**

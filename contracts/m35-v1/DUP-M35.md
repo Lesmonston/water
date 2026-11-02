@@ -78,6 +78,7 @@ pub struct DupResult {
     pub files_listed: u64, pub candidate_files: u64, pub hashed_bytes: String,
     pub groups: Vec<DupGroup>,           // 按 reclaimable_bytes 降序，再按 hash；最多 10,000 组
     pub groups_truncated: bool,
+    pub same_name_different: u64,        // 见下
     pub skipped: Skipped,
     pub issues: Vec<DupIssue>,           // 最多 200 条，按路径排序
 }
@@ -101,6 +102,7 @@ pub struct DupIssue { pub path: String, pub kind: String /* reparse|offline|acce
 
 - 字节数用十进制字符串，时间用 UTC RFC 3339（与扫描相同）。所有类型派生 `Debug, Clone, PartialEq, Eq, Serialize, Deserialize`，结构带 `deny_unknown_fields`。
 - 结果里只有路径、大小、时间、身份与哈希，没有任何文件内容。
+- `same_name_different`：候选里按（大小，文件名不分大小写）分组，有 2 个以上不同身份、但不全在同一个重复组里的，每个这样的组计 1（设计 v2 第 3.13 节第 4 条“另有 3 组同名不同内容”）。开头就不同、没算完整哈希的也算。`dup_contract` 里两例“只差最后一个字节”“只差第一个字节”应各计 1。
 
 ## 6. 测试
 

@@ -21,8 +21,9 @@
 | `retention_zh` | 4～80 字符（缺省不写） | 工具自己的会话保留规则，如“Claude Code 默认删除 30 天前的会话”（行 56） | 只能出现在 `agent_tool` 规则上 |
 | `unlocks` | 另一条规则的 `rule_id`（缺省不写） | 这条规则的条目位于那条受保护规则的条目之内，扫描与执行器对这一对不按“位于受保护的数据之内”拦（行 7、56） | 见第 4 节 |
 | `session_tool` | 工具 ID（缺省不写） | 这条是**会话可选清理**规则，只在用户打开该工具的开关时生成目标（ADR-019 第 5 节，行 56） | 见第 4 节 |
+| `installed_names` | 1～4 个字符串，每个 2～60 字符（缺省不写） | 这条规则的条目是某个程序的数据目录，这些是它在“已安装程序”里的显示名称。服务（SERVICE-M35）用 APPS-M35 的 `find` 查：**查得到**（程序还装着）时整组不可清，原因“<名称> 还装着，这是它的数据”；**查不到**时照规则级别出现，卡片写“<名称> 似乎已卸载，这是它留下的数据”（行 9、H8）。只往不可清的方向改，不升级别 | 只能出现在 `app_leftover` 分类的 `confirm` 规则上；不分大小写不得重复 |
 
-`Rule` 加对应字段：`git_is_copy: bool`、`age_basis: AgeBasis`、`keep_by: KeepBy`、`advice_zh`、`in_use_zh`、`retention_zh`、`unlocks`、`session_tool`（后五个为 `Option<String>`）。`AgeBasis { Modified, LatestCreatedOrModified }`、`KeepBy { Activity, VersionName }` 从 crate 根导出。文案字段不进计划 JSON，服务从 `RuleSet` 取。
+`Rule` 加对应字段：`git_is_copy: bool`、`age_basis: AgeBasis`、`keep_by: KeepBy`、`advice_zh`、`in_use_zh`、`retention_zh`、`unlocks`、`session_tool`（这五个为 `Option<String>`）、`installed_names: Option<Vec<String>>`。`AgeBasis { Modified, LatestCreatedOrModified }`、`KeepBy { Activity, VersionName }` 从 crate 根导出。文案字段不进计划 JSON，服务从 `RuleSet` 取。
 
 ## 2. 在用：看应用的数据根目录（`root_levels`）
 
@@ -172,6 +173,7 @@ R、L、P、U、S 分别指 `roaming_app_data`、`local_app_data`、`program_dat
 | 28 | `cursor-old-chats` | Cursor 旧聊天 | agent_tool / confirm | U：`.cursor chats *`；`session_tool` `cursor`，`unlocks` `cursor-chats` | dir | 720 | 0 | `runs` | H4 |
 | 29 | `grok-old-sessions` | Grok 旧会话 | agent_tool / confirm | U：`.grok sessions * *`；`session_tool` `grok`，`unlocks` `grok-sessions` | dir | 720 | 0 | `runs` | H6 |
 | 30 | `kimi-code-old-sessions` | Kimi Code 旧会话 | agent_tool / confirm | U：`.kimi-code sessions wd_*`；`session_tool` `kimi-code`，`unlocks` `kimi-code-sessions` | dir | 720 | 0 | `runs` | Kimi 试验 |
+| 31 | `minimax-hub-leftover` | 卸载后留下的应用数据 | app_leftover / confirm | R：`@hilo`；`installed_names` `["MiniMax Hub"]` | dir | 720 | 0 | none | H8（`%APPDATA%\@hilo`，内有 `MiniMax Hub Global`，1.21 GB；11-01 注册表里已没有它的安装记录） |
 
 说明：
 - 第 6、2、3、4、5、9、12 行的进程名只有 `steam.exe`、`emulator.exe` 等通用名，本机没有逐个核实；名字不对只会让在用检测不起作用，执行器碰到被占用的文件照旧跳过并报原因。
@@ -208,7 +210,7 @@ R、L、P、U、S 分别指 `roaming_app_data`、`local_app_data`、`program_dat
 | `RULES_M35_VERSION` | `data_version` 为 `2026-11-02.2` |
 
 原有断言中，以下几处与本文必然冲突，**获准修改**，其余不变：
-1. 规则总数 78 → 108；custom 规则个数与 custom 目标总数、custom root 的目标顺序表，只因第 6 节在末尾追加规则而改变的，按新值更新。
+1. 规则总数 78 → 109；custom 规则个数与 custom 目标总数、custom root 的目标顺序表，只因第 6 节在末尾追加规则而改变的，按新值更新。
 2. 所有比对 `data_version` 的断言改为 `2026-11-02.2`。
 3. 第 5 节改动的规则，原来逐字段比对的断言按新值更新（含 `jest-cache` 与 `headless-browser-profiles` 的定位器个数、`test-browser-profiles` 的条件）。
 4. 列出全部字段构造或比对 `Rule`、`Target`、`InUse`、`Locator`、`Marker`、`Condition` 的地方补上新字段的缺省值。
@@ -230,7 +232,7 @@ R、L、P、U、S 分别指 `roaming_app_data`、`local_app_data`、`program_dat
 | `system_drive` 从“`KnownFolders` 加可选键”改为“由 `windows` 推出” | 系统盘根就是 `windows` 所在的盘，不需要新数据；扫描、服务、宿主、检查器都不用跟着改 |
 | 删掉“会话规则与它解锁的规则之间不做重叠检查” | 现有检查只拦“可清理的包住受保护的”，会话规则位于受保护规则之内，本来就不拦；真正要放行的是扫描的 `inside_protected` 与执行器的 `protected_overlap`，改由 `unlocks_target_ids` 带过去 |
 | `unlocks` 不再只给会话规则用 | Grok 账号目录里的 npm 缓存（行 7、H5）同样位于受保护目录之内 |
-| 回收站两条规则删掉，改由宿主用系统接口查回收站大小（IPC/HOST-M35） | 回收站里别的账号的文件夹没有权限，按目录扫描每次都会记“没有权限”、整次体检变成“部分完成” |
+| 回收站两条规则删掉，改由服务用系统接口查回收站大小（SERVICE-M35，见本表末行） | 回收站里别的账号的文件夹没有权限，按目录扫描每次都会记“没有权限”、整次体检变成“部分完成” |
 | 进程名带空格的两处（英雄联盟、Audition）、`cmdline_references_item` 配空名单的几处改写 | 现有校验不允许：进程名只能是小写字母数字与 `-_.`，这种方式名单不能为空 |
 | 会话规则的在用从“命令行提到它”改为 `runs` | 会话工具的命令行不会提到会话文件；“还在写入”由年龄门槛挡住 |
 | 旧备份不留最新（计划行 19） | 见第 6 节说明；基准表 C17 同步改 |
@@ -241,3 +243,5 @@ R、L、P、U、S 分别指 `roaming_app_data`、`local_app_data`、`program_dat
 | `agent-tool-logs`、`jest-cache` 加在用检测，`jest-cache` 类型改为 `any` | 计划行 13、17；`haste-map-*` 是文件 |
 | 新条件 `parent_lacks_file_matching` | 安装包定位要排除程序目录 |
 | 贵重件与保留名的名单放在扫描包里（SCAN-M35），不进规则 | 它们在遍历时逐个文件看名字，与哪条规则无关 |
+| 补字段 `installed_names` 与第 31 条 `minimax-hub-leftover`（写 SERVICE-M35 时补，11-02 晚） | 计划第 9 行与基准表 H8 要认出卸载残留，第一稿漏了；只让“还装着”的变成不可清，不升级别 |
+| 回收站大小由服务经 `Platform` 查（SERVICE-M35），不是宿主 | 宿主只做转发；服务已有 `Platform` 抽象，假平台好测 |

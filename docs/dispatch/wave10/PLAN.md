@@ -173,7 +173,8 @@
 3. **合成夹具**：按记录里的名字、层级、大小分布造结构（不放真实内容），覆盖第 2 节每一行。
 4. **契约**：`contracts/m35-v1/` 规则、扫描、项目声明、执行器、IPC、服务、界面各一份。
    - 11-02 已起草（未冻结）：[RULES-M35](../../../contracts/m35-v1/RULES-M35.md)（M1）、[SCAN-M35](../../../contracts/m35-v1/SCAN-M35.md)（M2）、[MANIFEST-M35](../../../contracts/m35-v1/MANIFEST-M35.md)（M3）、[CLEAN-M35](../../../contracts/m35-v1/CLEAN-M35.md)（M4，第 7 节先按上轮记录写了“删了还剩”的成因表，派单后的复盘照旧做）、[DUP-M35](../../../contracts/m35-v1/DUP-M35.md)（M8）、[APPS-M35](../../../contracts/m35-v1/APPS-M35.md)（M9）。
-   - 还没写：IPC、SERVICE（M7）、HOST（M5）、UI（M6）；回收站大小归 IPC/HOST，会话开关与项目声明的信任记录归 SERVICE。
+   - 11-02 晚续写（未冻结）：[IPC-M35](../../../contracts/m35-v1/IPC-M35.md)（新增 17 个命令，共 36 个）、[SERVICE-M35](../../../contracts/m35-v1/SERVICE-M35.md)（M7）、[HOST-M35](../../../contracts/m35-v1/HOST-M35.md)（M5，唯一新能力是用资源管理器打开隔离区文件夹）、[UI-M35](../../../contracts/m35-v1/UI-M35.md)（M6）。回收站大小改由服务经 `Platform` 查；RULES-M35 补了 `installed_names` 与卸载残留规则（第 9 行、H8）。
+   - 冻结前还要：`ui-fixtures-m35.json`（UI-M35 第 6 节的场景）；第十波清单的 `nativeSteps` 按 UI-M35 第 5 节重写。
 5. Water 自己的 `.water-cleanup.json`（第 60 行）；请 `denglou` 总控按第一版字段写一份。
 6. 每张单派前跑 baseline，给派单句（每张一个代码块，界面单单列）。
 7. **派单后：复盘“删了还剩”**（用户 11-02 要求）。上轮几次删除后留下的东西逐个复现成夹具，看资源管理器、`cmd /c rd /s /q`、PowerShell `Remove-Item` 与 Water 执行器各自的结果，写清每种剩下的原因与 Water 的处理：

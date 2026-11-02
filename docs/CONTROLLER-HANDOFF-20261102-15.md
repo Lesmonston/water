@@ -81,5 +81,22 @@
 ## 5. 接手粘贴语
 
 ```text
-交接里写了（F:/new/smaltalk/water/docs/CONTROLLER-HANDOFF-20261102-15.md）：读交接报告，准备接手 Water 总控，从第 3.1 节继续写第十波剩下的四份契约。
+交接里写了（F:/new/smaltalk/water/docs/CONTROLLER-HANDOFF-20261102-15.md）：读交接报告，准备接手 Water 总控，从第 6 节继续第十波（十份契约已起草，下一步是通读与冻结）。
 ```
+
+## 6. 补记（11-02 21:00，压缩取消后接着写完四份）
+
+- 用户取消了压缩、贴了第 5 节的旧粘贴语，于是在同一个对话里接着写完第 3.1 节：[IPC-M35](../contracts/m35-v1/IPC-M35.md)、[SERVICE-M35](../contracts/m35-v1/SERVICE-M35.md)、[HOST-M35](../contracts/m35-v1/HOST-M35.md)、[UI-M35](../contracts/m35-v1/UI-M35.md)。**十份契约都已起草，都未冻结**。
+- 写这四份时顺带改的：
+  - RULES-M35：补字段 `installed_names` 与第 31 条 `minimax-hub-leftover`（`%APPDATA%\@hilo`，H8）；规则总数 78 → 109；回收站改由服务经 `Platform` 查（基准表 C20、F15 同步）。
+  - CLEAN-M35：`list_quarantines` 改收隔离根路径（测试的隔离根在 `.local/` 下）。
+  - DUP-M35：结果加 `same_name_different`（设计 v2 第 3.13 节第 4 条）。
+- 命令 19 → 36（新增 17 个，IPC-M35 第 1 节）。宿主唯一的新能力是 `quarantine_reveal`：经服务内部命令 `quarantine_locate` 取路径、自己再核、用 `explorer.exe` 打开；界面拿不到路径。退出时 `busy` 为 `purging` 也先停。
+- 现状探查（服务、宿主、界面的代码面）的结论已写进四份契约；界面的硬约束见 UI-M35 第 1 节（没有 npm、测试个数按清单名字精确核对、`tokens.css` 逐字节相同）。
+- **下一步**：
+  1. 十份通读一遍，改掉对不上的地方；
+  2. 写 `contracts/m35-v1/ui-fixtures-m35.json`（UI-M35 第 6 节的场景；能用服务在合成夹具上的输出就用，手写的要逐字段对照 IPC-M35）；
+  3. 冻结（文件头去掉“草案”，记冻结提交与标签）；
+  4. 第一批是 **八张**：M1～M6、M8、M9（M5、M6 按假后端做，第 14 份第 2.1 节表格）；M7 第二批；
+  5. 检查器要加的：`WATER-W10-*` 的识别与 override 前缀；`allowedFfi`：执行器 `NtCreateFile`、扫描 `DeviceIoControl`（只 `FSCTL_GET_REPARSE_POINT`，SCAN-M35 原则）、查重 `GetFileInformationByHandleEx`、已安装程序四个 `Reg*`、服务 `SHQueryRecycleBinW`、宿主 `GetWindowsDirectoryW`；服务的三个新 path 依赖；新包 `cleanup-manifest`、`dup-finder`、`installed-apps` 的登记；UI 的 `tokensSource` 改指 v2；`nativeSteps` 按 UI-M35 第 5 节重写；
+  6. 然后照第 3.2 节第 2、3 条。
