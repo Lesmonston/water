@@ -1,0 +1,398 @@
+{"binary":"C:\\Users\\37310\\.rustup\\toolchains\\1.95.0-x86_64-pc-windows-msvc\\bin\\cargo.exe","args":["fmt","--manifest-path","packages/junk-rules/Cargo.toml","--","--check"],"exitCode":1,"error":null}
+--- stdout ---
+Diff in \\?\F:\new\smaltalk\water\.worktrees\w9-l1\packages\junk-rules\src\lib.rs:12:
+ pub use plan::{CustomRoot, ScanPlan, Target, plan_to_json, resolve_plan};
+ pub use rules::{Rule, RuleSet, RuleText, Source};
+ pub use types::{
+-    Category, Condition, Growth, InUse, InUseMode, ItemType, KnownFolder, Level, Locator, Marker, MatchSpec,
+-    SourceKind,
++    Category, Condition, Growth, InUse, InUseMode, ItemType, KnownFolder, Level, Locator, Marker,
++    MatchSpec, SourceKind,
+ };
+ 
+Diff in \\?\F:\new\smaltalk\water\.worktrees\w9-l1\packages\junk-rules\src\plan.rs:2:
+ use crate::folders::{KnownFolders, validate_guard_path};
+ use crate::rules::RuleSet;
+ use crate::types::{
+-    Category, Condition, InUse, InUseMode, ItemType, KNOWN_FOLDER_ORDER, Level, Locator, Marker, MatchSpec,
+-    as_str, as_u64, bounded_u32, expect_keys, field, object, parse_conditions, valid_abs_path, valid_created_at,
+-    valid_data_version, valid_entry_name, valid_process_name, valid_root_id, valid_segment,
++    Category, Condition, InUse, InUseMode, ItemType, KNOWN_FOLDER_ORDER, Level, Locator, Marker,
++    MatchSpec, as_str, as_u64, bounded_u32, expect_keys, field, object, parse_conditions,
++    valid_abs_path, valid_created_at, valid_data_version, valid_entry_name, valid_process_name,
++    valid_root_id, valid_segment,
+ };
+ use serde::Serialize;
+ use serde_json::{Map, Value};
+Diff in \\?\F:\new\smaltalk\water\.worktrees\w9-l1\packages\junk-rules\src\plan.rs:173:
+                         root: folders.get(*base).to_string(),
+                     },
+                 )),
+-                Locator::Marker { marker, max_depth, conditions, fallback_for } => {
++                Locator::Marker {
++                    marker,
++                    max_depth,
++                    conditions,
++                    fallback_for,
++                } => {
+                     for root in custom_roots {
+                         let group_id = format!("custom:{}:{}", root.root_id, rule.rule_id);
+                         targets.push(make_target(
+Diff in \\?\F:\new\smaltalk\water\.worktrees\w9-l1\packages\junk-rules\src\plan.rs:185:
+                                 marker: marker.clone(),
+                                 max_depth: *max_depth,
+                                 conditions: conditions.clone(),
+-                                fallback_for: fallback_for.as_ref().map(|id| {
+-                                    format!("custom:{}:{id}#1", root.root_id)
+-                                }),
++                                fallback_for: fallback_for
++                                    .as_ref()
++                                    .map(|id| format!("custom:{}:{id}#1", root.root_id)),
+                             },
+                         ));
+                     }
+Diff in \\?\F:\new\smaltalk\water\.worktrees\w9-l1\packages\junk-rules\src\plan.rs:298:
+ fn condition_wire(condition: &Condition) -> ConditionWire<'_> {
+     match condition {
+         Condition::ParentHasFile { name } => ConditionWire::ParentHasFile { name },
+-        Condition::ParentHasOtherEntries { except } => ConditionWire::ParentHasOtherEntries { except },
++        Condition::ParentHasOtherEntries { except } => {
++            ConditionWire::ParentHasOtherEntries { except }
++        }
+         Condition::NoAncestorSuffix { suffixes } => ConditionWire::NoAncestorSuffix { suffixes },
+         Condition::PathHasAny { names } => ConditionWire::PathHasAny { names },
+     }
+Diff in \\?\F:\new\smaltalk\water\.worktrees\w9-l1\packages\junk-rules\src\plan.rs:376:
+ fn check_plan_fallbacks(targets: &[Target]) -> Result<(), RulesError> {
+     let mut seen = HashSet::new();
+     for (index, target) in targets.iter().enumerate() {
+-        let MatchSpec::Marker { root, marker, max_depth, conditions, fallback_for: Some(id) } = &target.match_spec else {
++        let MatchSpec::Marker {
++            root,
++            marker,
++            max_depth,
++            conditions,
++            fallback_for: Some(id),
++        } = &target.match_spec
++        else {
+             continue;
+         };
+-        let invalid = || RulesError::new("RULES_INVALID_FALLBACK", format!("/targets/{index}/match/fallback_for"));
++        let invalid = || {
++            RulesError::new(
++                "RULES_INVALID_FALLBACK",
++                format!("/targets/{index}/match/fallback_for"),
++            )
++        };
+         if !conditions.is_empty() || id == &target.target_id || !seen.insert(id) {
+             return Err(invalid());
+         }
+Diff in \\?\F:\new\smaltalk\water\.worktrees\w9-l1\packages\junk-rules\src\plan.rs:386:
+-        let main = targets.iter().find(|candidate| &candidate.target_id == id).ok_or_else(invalid)?;
+-        let MatchSpec::Marker { root: main_root, marker: main_marker, max_depth: main_depth, conditions: main_conditions, fallback_for: main_fallback } = &main.match_spec else {
++        let main = targets
++            .iter()
++            .find(|candidate| &candidate.target_id == id)
++            .ok_or_else(invalid)?;
++        let MatchSpec::Marker {
++            root: main_root,
++            marker: main_marker,
++            max_depth: main_depth,
++            conditions: main_conditions,
++            fallback_for: main_fallback,
++        } = &main.match_spec
++        else {
+             return Err(invalid());
+         };
+-        if main_conditions.is_empty() || main_fallback.is_some()
+-            || !root.eq_ignore_ascii_case(main_root) || marker != main_marker || max_depth != main_depth
++        if main_conditions.is_empty()
++            || main_fallback.is_some()
++            || !root.eq_ignore_ascii_case(main_root)
++            || marker != main_marker
++            || max_depth != main_depth
+         {
+             return Err(invalid());
+         }
+Diff in \\?\F:\new\smaltalk\water\.worktrees\w9-l1\packages\junk-rules\src\plan.rs:519:
+             })
+         }
+         "marker" => {
+-            expect_keys(map, &["kind", "root", "marker", "max_depth", "conditions", "fallback_for"], path)?;
++            expect_keys(
++                map,
++                &[
++                    "kind",
++                    "root",
++                    "marker",
++                    "max_depth",
++                    "conditions",
++                    "fallback_for",
++                ],
++                path,
++            )?;
+             Ok(MatchSpec::Marker {
+                 root: abs_path_field(map, "root", path, true)?,
+                 marker: parse_plan_marker(field(map, "marker", path)?, &format!("{path}/marker"))?,
+Diff in \\?\F:\new\smaltalk\water\.worktrees\w9-l1\packages\junk-rules\src\plan.rs:529:
+                     16,
+                     &format!("{path}/max_depth"),
+                 )?,
+-                conditions: map.get("conditions")
++                conditions: map
++                    .get("conditions")
+                     .map(|value| parse_conditions(value, &format!("{path}/conditions")))
+-                    .transpose()?.unwrap_or_default(),
+-                fallback_for: map.get("fallback_for")
++                    .transpose()?
++                    .unwrap_or_default(),
++                fallback_for: map
++                    .get("fallback_for")
+                     .map(|value| {
+                         let id = as_str(value, &format!("{path}/fallback_for"))?;
+                         if id.is_empty() {
+Diff in \\?\F:\new\smaltalk\water\.worktrees\w9-l1\packages\junk-rules\src\plan.rs:539:
+-                            return Err(RulesError::new("RULES_INVALID_FALLBACK", format!("{path}/fallback_for")));
++                            return Err(RulesError::new(
++                                "RULES_INVALID_FALLBACK",
++                                format!("{path}/fallback_for"),
++                            ));
+                         }
+                         Ok(id.to_string())
+-                    }).transpose()?,
++                    })
++                    .transpose()?,
+             })
+         }
+         _ => Err(RulesError::new(
+Diff in \\?\F:\new\smaltalk\water\.worktrees\w9-l1\packages\junk-rules\src\rules.rs:1:
+ use crate::error::RulesError;
+ use crate::types::{
+     Category, Growth, InUse, InUseMode, ItemType, KnownFolder, Level, Locator, Marker, SourceKind,
+-    as_str, as_u64, bounded_u32, char_len, expect_keys, field, locator_key, object, parse_conditions, require_chars,
+-    segments_may_overlap, valid_data_version, valid_date, valid_entry_name, valid_https_url,
+-    valid_process_name, valid_rule_id, valid_segment,
++    as_str, as_u64, bounded_u32, char_len, expect_keys, field, locator_key, object,
++    parse_conditions, require_chars, segments_may_overlap, valid_data_version, valid_date,
++    valid_entry_name, valid_https_url, valid_process_name, valid_rule_id, valid_segment,
+ };
+ use serde_json::{Map, Value};
+ use std::collections::HashSet;
+Diff in \\?\F:\new\smaltalk\water\.worktrees\w9-l1\packages\junk-rules\src\rules.rs:340:
+         if category == Category::Custom && !matches!(locator, Locator::Marker { .. }) {
+             return Err(RulesError::new("RULES_CUSTOM_MARKER", item_path));
+         }
+-        if let Locator::Marker { conditions, fallback_for, .. } = &locator
++        if let Locator::Marker {
++            conditions,
++            fallback_for,
++            ..
++        } = &locator
+             && category != Category::Custom
+             && (!conditions.is_empty() || fallback_for.is_some())
+         {
+Diff in \\?\F:\new\smaltalk\water\.worktrees\w9-l1\packages\junk-rules\src\rules.rs:376:
+             })
+         }
+         "marker" => {
+-            expect_keys(map, &["kind", "marker", "max_depth", "conditions", "fallback_for"], path)?;
++            expect_keys(
++                map,
++                &["kind", "marker", "max_depth", "conditions", "fallback_for"],
++                path,
++            )?;
+             let max_depth = bounded_u32(
+                 field(map, "max_depth", path)?,
+                 1,
+Diff in \\?\F:\new\smaltalk\water\.worktrees\w9-l1\packages\junk-rules\src\rules.rs:386:
+             Ok(Locator::Marker {
+                 marker: parse_marker(field(map, "marker", path)?, &format!("{path}/marker"))?,
+                 max_depth,
+-                conditions: map.get("conditions")
++                conditions: map
++                    .get("conditions")
+                     .map(|value| parse_conditions(value, &format!("{path}/conditions")))
+-                    .transpose()?.unwrap_or_default(),
+-                fallback_for: map.get("fallback_for")
++                    .transpose()?
++                    .unwrap_or_default(),
++                fallback_for: map
++                    .get("fallback_for")
+                     .map(|value| {
+                         let id = as_str(value, &format!("{path}/fallback_for"))?;
+                         if !valid_rule_id(id) {
+Diff in \\?\F:\new\smaltalk\water\.worktrees\w9-l1\packages\junk-rules\src\rules.rs:396:
+-                            return Err(RulesError::new("RULES_INVALID_FALLBACK", format!("{path}/fallback_for")));
++                            return Err(RulesError::new(
++                                "RULES_INVALID_FALLBACK",
++                                format!("{path}/fallback_for"),
++                            ));
+                         }
+                         Ok(id.to_string())
+-                    }).transpose()?,
++                    })
++                    .transpose()?,
+             })
+         }
+         _ => Err(RulesError::new(
+Diff in \\?\F:\new\smaltalk\water\.worktrees\w9-l1\packages\junk-rules\src\rules.rs:549:
+     let mut seen = HashSet::new();
+     for (index, rule) in rules.iter().enumerate() {
+         for locator in &rule.locate {
+-            let Locator::Marker { marker, max_depth, conditions, fallback_for: Some(id) } = locator else {
++            let Locator::Marker {
++                marker,
++                max_depth,
++                conditions,
++                fallback_for: Some(id),
++            } = locator
++            else {
+                 continue;
+             };
+-            let invalid = || RulesError::new("RULES_INVALID_FALLBACK", format!("/rules/{index}/locate"));
+-            if rule.category != Category::Custom || rule.level != Level::Advisory
+-                || rule.locate.len() != 1 || !conditions.is_empty()
+-                || id == &rule.rule_id || !seen.insert(id)
++            let invalid =
++                || RulesError::new("RULES_INVALID_FALLBACK", format!("/rules/{index}/locate"));
++            if rule.category != Category::Custom
++                || rule.level != Level::Advisory
++                || rule.locate.len() != 1
++                || !conditions.is_empty()
++                || id == &rule.rule_id
++                || !seen.insert(id)
+             {
+                 return Err(invalid());
+             }
+Diff in \\?\F:\new\smaltalk\water\.worktrees\w9-l1\packages\junk-rules\src\rules.rs:562:
+-            let main = rules.iter().find(|candidate| &candidate.rule_id == id).ok_or_else(invalid)?;
++            let main = rules
++                .iter()
++                .find(|candidate| &candidate.rule_id == id)
++                .ok_or_else(invalid)?;
+             if main.category != Category::Custom || main.locate.len() != 1 {
+                 return Err(invalid());
+             }
+Diff in \\?\F:\new\smaltalk\water\.worktrees\w9-l1\packages\junk-rules\src\rules.rs:566:
+-            let Locator::Marker { marker: main_marker, max_depth: main_depth, conditions: main_conditions, fallback_for: main_fallback } = &main.locate[0] else {
++            let Locator::Marker {
++                marker: main_marker,
++                max_depth: main_depth,
++                conditions: main_conditions,
++                fallback_for: main_fallback,
++            } = &main.locate[0]
++            else {
+                 return Err(invalid());
+             };
+-            if main_conditions.is_empty() || main_fallback.is_some()
+-                || marker != main_marker || max_depth != main_depth
++            if main_conditions.is_empty()
++                || main_fallback.is_some()
++                || marker != main_marker
++                || max_depth != main_depth
+             {
+                 return Err(invalid());
+             }
+Diff in \\?\F:\new\smaltalk\water\.worktrees\w9-l1\packages\junk-rules\src\types.rs:323:
+     for (index, item) in items.iter().enumerate() {
+         let item_path = format!("{path}/{index}");
+         let map = object(item, &item_path)?;
+-        let kind = as_str(field(map, "kind", &item_path)?, &format!("{item_path}/kind"))?;
++        let kind = as_str(
++            field(map, "kind", &item_path)?,
++            &format!("{item_path}/kind"),
++        )?;
+         if !seen.insert(kind) {
+             return Err(invalid());
+         }
+Diff in \\?\F:\new\smaltalk\water\.worktrees\w9-l1\packages\junk-rules\src\types.rs:363:
+         || name == ".."
+         || !name.bytes().all(|byte| {
+             (0x21..=0x7e).contains(&byte)
+-                && !matches!(byte, b'\\' | b'/' | b':' | b'*' | b'?' | b'"' | b'<' | b'>' | b'|')
++                && !matches!(
++                    byte,
++                    b'\\' | b'/' | b':' | b'*' | b'?' | b'"' | b'<' | b'>' | b'|'
++                )
+         })
+     {
+         return Err(RulesError::new("RULES_INVALID_CONDITIONS", path));
+Diff in \\?\F:\new\smaltalk\water\.worktrees\w9-l1\packages\junk-rules\src\types.rs:595:
+                 .join("\u{1f}")
+         ),
+         Locator::Discovery { base } => format!("discovery:{}", base.as_str()),
+-        Locator::Marker { marker, max_depth, .. } => match marker {
++        Locator::Marker {
++            marker, max_depth, ..
++        } => match marker {
+             Marker::File {
+                 name,
+                 min_bytes,
+Diff in \\?\F:\new\smaltalk\water\.worktrees\w9-l1\packages\junk-rules\tests\rules_v1.rs:1:
+ use serde_json::{Value, json};
+ use water_junk_rules::{
+-    Category, Condition, CustomRoot, Growth, InUseMode, ItemType, KnownFolders, Level, Locator, Marker,
+-    MatchSpec, RuleSet, ScanPlan, plan_to_json, resolve_plan,
++    Category, Condition, CustomRoot, Growth, InUseMode, ItemType, KnownFolders, Level, Locator,
++    Marker, MatchSpec, RuleSet, ScanPlan, plan_to_json, resolve_plan,
+ };
+ 
+ const CANARY: &str = "CANARY_ECHO_VALUE_9f3c2a";
+Diff in \\?\F:\new\smaltalk\water\.worktrees\w9-l1\packages\junk-rules\tests\rules_v1.rs:1018:
+                     name: ".git".to_string(),
+                     min_bytes: 1,
+                     max_bytes: 4096
++                },
++                max_depth: 8,
++                conditions: vec![],
++                fallback_for: None,
+             },
+-            max_depth: 8,
+-            conditions: vec![],
+-            fallback_for: None,
+-            },
+             "RULES_M3C_WORKTREE: file marker bounds, depth and root"
+         );
+     }
+Diff in \\?\F:\new\smaltalk\water\.worktrees\w9-l1\packages\junk-rules\tests\rules_v1.rs:1607:
+                 format!("pattern:{}:{}", base.as_str(), segments.join("/"))
+             }
+             Locator::Discovery { base } => format!("discovery:{}", base.as_str()),
+-            Locator::Marker { marker, max_depth, .. } => match marker {
++            Locator::Marker {
++                marker, max_depth, ..
++            } => match marker {
+                 Marker::File {
+                     name,
+                     min_bytes,
+Diff in \\?\F:\new\smaltalk\water\.worktrees\w9-l1\packages\junk-rules\tests\rules_v1.rs:2288:
+         vec!["marker:file:.git:1:4096:8".to_string()],
+     ));
+     rows.push(seed(
+-        "bundled-node-modules", Category::Custom, Level::Advisory, ItemType::Dir, 0, 0, InUseMode::None, Growth::Slow,
++        "bundled-node-modules",
++        Category::Custom,
++        Level::Advisory,
++        ItemType::Dir,
++        0,
++        0,
++        InUseMode::None,
++        Growth::Slow,
+         vec!["marker:dir_name:node_modules:6".to_string()],
+     ));
+     rows.push(seed(
+Diff in \\?\F:\new\smaltalk\water\.worktrees\w9-l1\packages\junk-rules\tests\rules_v1.rs:2295:
+-        "browser-data-dirs", Category::Custom, Level::Advisory, ItemType::Dir, 0, 0, InUseMode::None, Growth::Slow,
++        "browser-data-dirs",
++        Category::Custom,
++        Level::Advisory,
++        ItemType::Dir,
++        0,
++        0,
++        InUseMode::None,
++        Growth::Slow,
+         vec!["marker:children_all:Local State,Default:8".to_string()],
+     ));
+     rows.extend(agent_seed_table());
+
+--- stderr ---
