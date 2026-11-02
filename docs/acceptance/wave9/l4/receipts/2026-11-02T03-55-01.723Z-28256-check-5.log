@@ -1,0 +1,16 @@
+{"binary":"C:\\Users\\37310\\.rustup\\toolchains\\1.95.0-x86_64-pc-windows-msvc\\bin\\cargo.exe","args":["fmt","--manifest-path","packages/process-scan/Cargo.toml","--","--check"],"exitCode":1,"error":null}
+--- stdout ---
+Diff in \\?\F:\new\smaltalk\water\.worktrees\w9-l4\packages\process-scan\tests\process_v1.rs:634:
+         (r"bash /f/new/denglou/_ctl tail", true),
+         (r"bash /f/new/denglou/_ctl=1", false),
+         (r"bash x/f/new/denglou/_ctl/a.sh", false),
+-        (r"bash c:/f/new/denglou/_ctl/a.sh /f/new/denglou/_ctl/a.sh", true),
++        (
++            r"bash c:/f/new/denglou/_ctl/a.sh /f/new/denglou/_ctl/a.sh",
++            true,
++        ),
+     ];
+     let msys_pids: Vec<u32> = msys_cases
+         .iter()
+
+--- stderr ---
