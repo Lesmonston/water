@@ -77,7 +77,7 @@ A 约 70、B 约 30、C1/C2 4.7、C4 13.7，合计约 118 GB；C3 压缩后再�
 | A2 | 7 个 `.apk.parts` 移走 | 2.21 | 移前逐个确认旁边有大小一致的完整文件 |
 | A3 | 11 个测试包移走 | 2.80 | 9 个按提交号命名的，加 `apk_F1`、`apk_F2`、`apk_diag`；留 `w45_collect\apk_871cd852.apk` |
 | A4 | `climbmao_up` 的快照移走 | 4.02 | **`climbmao_a35` 的快照没动**：它正在运行（已是 `-no-snapshot` 启动，回执 P4 已做），快照 11-02 01:19 还写过。关掉模拟器后可以再清这 4 GB |
-| B1 | 10 个移走，`grok2` 移回原位 | 9.88 | 见下文“差点弄断的依赖” |
+| B1 | 10 个移走，`grok2` 移回原位 | 9.88 | 见下文“差点弄断的依赖”。**`yb-release\.tmp_local_build` 里有正式签名的本机副本，移前没查出来，已随隔离区删除**，见下文“收尾回执” |
 | B2 | 4 棵移走，`git worktree prune` 注销了正好这 4 个登记 | 6.05 | 分支保留（如 `restore/b58`）。`zhenti-close180` 未提交的 `_work\zhenti\close180\packages\v225`（2.8 MB）在隔离区里，`content` 工作树有同名交付目录 |
 | B3 | 164 个 `.tmp_*` 移走 | 0.49 | 6 个执行方工作区的目录都保留 |
 | B4 | 414 个 `.tmp_*` 移走 | 3.24 | 都是两天以上没改过的 |
@@ -98,9 +98,21 @@ A 约 70、B 约 30、C1/C2 4.7、C4 13.7，合计约 118 GB；C3 压缩后再�
 
 ### 删除结果（11-02 12:00）
 
-用户 11:58:40～12:00:03 在 PowerShell 里用 `cmd /c rd /s /q` 删除隔离目录。总控核对：F 盘可用 204.86 → **372.72 GB**（+167.86，与隔离量 167.52 GB 相符，差值是期间其他程序的读写）。目录里只剩一个 0 字节的文件 `11\new\denglou\worktrees\ui\nul`：`nul` 是 Windows 的设备保留名，按普通路径删不掉，要用 `\\?\` 前缀再删一次（见[清理记录](CLEANUP-20261101.md)启发第 34 条）。
+用户 11:58:40～12:00:03 在 PowerShell 里用 `cmd /c rd /s /q` 删除隔离目录。总控核对：F 盘可用 204.86 → **372.72 GB**（+167.86，与隔离量 167.52 GB 相符，差值是期间其他程序的读写）。目录里只剩一个文件 `11\new\denglou\worktrees\ui\nul`（3.3 MB，3,431,510 字节，07-13 建；总控起初记成 0 字节，是 PowerShell 读不出它的属性，`denglou` 总控的回执指出后用 node 经 `\\?\` 复核更正）：`nul` 是 Windows 的设备保留名，按普通路径删不掉，要用 `\\?\` 前缀再删一次（见[清理记录](CLEANUP-20261101.md)启发第 34 条）。
 
 用户把知会转给 `denglou` 总控后，它在 12:01 前把 `audit-b57a\server\node_modules` 直接改指 `ui-v2\server\node_modules`（总控核对：能解析，242 项）；12:02 起建了自己的隔离目录 `F:\_denglou-quarantine-20261102`，按同样的“编号\原路径”放入 `B1\…\worktrees\grok2`（18,105 个文件、1.69 GB、没有联接）与 `A4\cdisk-cache\android-avd\climbmao_a35.avd\snapshots`（模拟器已关）。总控核对时它还在写入，删不删由用户与 `denglou` 总控定。
+
+### 收尾回执（11-02，`denglou` 总控）
+
+回执在 `F:\new\denglou\worktrees\ui-v2\docs\ops\WATER-CLEANUP-RECEIPT-20261102.md`，用户转来。总控逐条核对：
+
+- **它的隔离区**：最后是 5.72 GB、18,112 个文件、0 个联接，只有 `grok2`（B1）和 `climbmao_a35` 的快照（A4），都是本单的延后项按条件收尾，不是漏扫。总控用 [precheck-plan.cjs](../acceptance/wave8/controller/cleanup-20261101/precheck-plan.cjs) `--handover` 复查：0 个联接、0 个保留名，可以直接删。
+- **`grok2` 链的来历**：10-03 重建整合树时 `grok2` 还在用，10-04 它退役后那条联接一直没改。`denglou` 总控承认写分级时没查谁指向 `grok2`。
+- **`yb-release` 里的签名副本**（这一单真正的损失）：`denglou` 10-04 的三份交接都写着 `yb-release\.tmp_local_build` 是正式签名的副本，权威在 EAS。总控执行 B1 时采信了分级回执里“成果都已在中央库”的理由。但这个理由只对 git 跟踪的内容成立；这些目录已脱离 git、查不了，总控也没有按文件名扫被 git 忽略的东西。
+  - 普查当时记下它有 22 个文件、0.67 GB，最新修改 09-03，没有记文件名。隔离日志只记到目录一级，删除前里面具体是什么，已无法核实。
+  - 总控按文件名（不打开）查了 `F:\new\denglou` 与 `F:\android-dev`：没有正式签名的 keystore 了，只剩 `climbmao-wechat-test.jks`（测试）、`keystores\climbmao-updates\`（热更新）和各工作树的 `debug.keystore`。
+  - 商店包用 EAS 托管的签名，所以少掉的是一份本机离线备份。要不要从 EAS 再下一份，由用户自己决定、自己操作。
+- **建议并入固定做法**：第 3 节六条都已并入[总控清理的固定做法](CLEANUP-METHOD.md)，挪前的闸和交付前的检查做成了脚本。对 Water 产品有用的部分并入[下一轮计划](../dispatch/wave9/PLAN.md) 4.2；经验见清理记录启发第 34～37 条。
 
 ## 给 denglou 总控的转贴语（知会）
 
