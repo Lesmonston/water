@@ -1,0 +1,186 @@
+{
+  "task": "WATER-W10-M4",
+  "mode": "archive",
+  "finalGate": false,
+  "manifest": "docs/dispatch/wave10/manifest.json",
+  "startedAt": "2026-11-05T08:56:07.162Z",
+  "realDataRead": false,
+  "productTestsRun": false,
+  "commands": [
+    {
+      "binary": "git",
+      "argv": [
+        "branch",
+        "--show-current"
+      ],
+      "exitCode": 0
+    },
+    {
+      "binary": "git",
+      "argv": [
+        "merge-base",
+        "--is-ancestor",
+        "f93afb8e3c5cf4114927fe2ab6c14dbb033c7ffe",
+        "HEAD"
+      ],
+      "exitCode": 0
+    },
+    {
+      "binary": "git",
+      "argv": [
+        "diff",
+        "--no-renames",
+        "--name-only",
+        "-z",
+        "f93afb8e3c5cf4114927fe2ab6c14dbb033c7ffe",
+        "HEAD"
+      ],
+      "exitCode": 0
+    },
+    {
+      "binary": "git",
+      "argv": [
+        "diff",
+        "--no-renames",
+        "--name-only",
+        "-z",
+        "HEAD"
+      ],
+      "exitCode": 0
+    },
+    {
+      "binary": "git",
+      "argv": [
+        "ls-files",
+        "--others",
+        "--exclude-standard",
+        "-z"
+      ],
+      "exitCode": 0
+    },
+    {
+      "binary": "git",
+      "argv": [
+        "rev-parse",
+        "HEAD"
+      ],
+      "exitCode": 0
+    },
+    {
+      "binary": "git",
+      "argv": [
+        "status",
+        "--porcelain",
+        "--untracked-files=all"
+      ],
+      "exitCode": 0
+    },
+    {
+      "binary": "git",
+      "argv": [
+        "branch",
+        "--show-current"
+      ],
+      "exitCode": 0
+    },
+    {
+      "binary": "git",
+      "argv": [
+        "merge-base",
+        "--is-ancestor",
+        "f93afb8e3c5cf4114927fe2ab6c14dbb033c7ffe",
+        "HEAD"
+      ],
+      "exitCode": 0
+    },
+    {
+      "binary": "git",
+      "argv": [
+        "diff",
+        "--no-renames",
+        "--name-only",
+        "-z",
+        "f93afb8e3c5cf4114927fe2ab6c14dbb033c7ffe",
+        "HEAD"
+      ],
+      "exitCode": 0
+    },
+    {
+      "binary": "git",
+      "argv": [
+        "diff",
+        "--no-renames",
+        "--name-only",
+        "-z",
+        "HEAD"
+      ],
+      "exitCode": 0
+    },
+    {
+      "binary": "git",
+      "argv": [
+        "ls-files",
+        "--others",
+        "--exclude-standard",
+        "-z"
+      ],
+      "exitCode": 0
+    },
+    {
+      "binary": "git",
+      "argv": [
+        "rev-parse",
+        "HEAD"
+      ],
+      "exitCode": 0
+    },
+    {
+      "binary": "git",
+      "argv": [
+        "status",
+        "--porcelain",
+        "--untracked-files=all"
+      ],
+      "exitCode": 0
+    }
+  ],
+  "changedPaths": [
+    "docs/acceptance/wave10/m4/.gitattributes",
+    "docs/acceptance/wave10/m4/ARCHIVE.json",
+    "docs/acceptance/wave10/m4/receipts/2026-11-05T08-18-39.542Z-22232-baseline-result.json",
+    "docs/acceptance/wave10/m4/receipts/2026-11-05T08-43-00.940Z-31588-baseline-result.json",
+    "docs/acceptance/wave10/m4/receipts/2026-11-05T08-51-24.388Z-33560-lock-result.json",
+    "docs/acceptance/wave10/m4/receipts/2026-11-05T08-53-44.396Z-28712-check-result.json",
+    "docs/acceptance/wave10/m4/receipts/2026-11-05T08-53-44.396Z-28712-check-source-0.txt",
+    "docs/acceptance/wave10/m4/receipts/2026-11-05T08-53-44.396Z-28712-check-source-1.txt",
+    "docs/acceptance/wave10/m4/receipts/2026-11-05T08-53-44.396Z-28712-check-source-10.txt",
+    "docs/acceptance/wave10/m4/receipts/2026-11-05T08-53-44.396Z-28712-check-source-2.txt",
+    "docs/acceptance/wave10/m4/receipts/2026-11-05T08-53-44.396Z-28712-check-source-3.txt",
+    "docs/acceptance/wave10/m4/receipts/2026-11-05T08-53-44.396Z-28712-check-source-4.txt",
+    "docs/acceptance/wave10/m4/receipts/2026-11-05T08-53-44.396Z-28712-check-source-5.txt",
+    "docs/acceptance/wave10/m4/receipts/2026-11-05T08-53-44.396Z-28712-check-source-6.txt",
+    "docs/acceptance/wave10/m4/receipts/2026-11-05T08-53-44.396Z-28712-check-source-7.txt",
+    "docs/acceptance/wave10/m4/receipts/2026-11-05T08-53-44.396Z-28712-check-source-8.txt",
+    "docs/acceptance/wave10/m4/receipts/2026-11-05T08-53-44.396Z-28712-check-source-9.txt",
+    "packages/junk-clean/src/lib.rs",
+    "packages/junk-clean/src/model.rs",
+    "packages/junk-clean/src/native_windows.rs",
+    "packages/junk-clean/src/quarantine.rs",
+    "packages/junk-clean/src/quarantine_model.rs"
+  ],
+  "before": {
+    "head": "f93afb8e3c5cf4114927fe2ab6c14dbb033c7ffe",
+    "status": "M packages/junk-clean/src/lib.rs\n M packages/junk-clean/src/model.rs\n M packages/junk-clean/src/native_windows.rs\n?? packages/junk-clean/src/quarantine.rs\n?? packages/junk-clean/src/quarantine_model.rs"
+  },
+  "archived": {
+    "files": 31,
+    "bytes": 330662
+  },
+  "after": {
+    "head": "f93afb8e3c5cf4114927fe2ab6c14dbb033c7ffe",
+    "status": "M packages/junk-clean/src/lib.rs\n M packages/junk-clean/src/model.rs\n M packages/junk-clean/src/native_windows.rs\n?? docs/acceptance/wave10/m4/.gitattributes\n?? docs/acceptance/wave10/m4/ARCHIVE.json\n?? docs/acceptance/wave10/m4/receipts/2026-11-05T08-18-39.542Z-22232-baseline-result.json\n?? docs/acceptance/wave10/m4/receipts/2026-11-05T08-43-00.940Z-31588-baseline-result.json\n?? docs/acceptance/wave10/m4/receipts/2026-11-05T08-51-24.388Z-33560-lock-result.json\n?? docs/acceptance/wave10/m4/receipts/2026-11-05T08-53-44.396Z-28712-check-result.json\n?? docs/acceptance/wave10/m4/receipts/2026-11-05T08-53-44.396Z-28712-check-source-0.txt\n?? docs/acceptance/wave10/m4/receipts/2026-11-05T08-53-44.396Z-28712-check-source-1.txt\n?? docs/acceptance/wave10/m4/receipts/2026-11-05T08-53-44.396Z-28712-check-source-10.txt\n?? docs/acceptance/wave10/m4/receipts/2026-11-05T08-53-44.396Z-28712-check-source-2.txt\n?? docs/acceptance/wave10/m4/receipts/2026-11-05T08-53-44.396Z-28712-check-source-3.txt\n?? docs/acceptance/wave10/m4/receipts/2026-11-05T08-53-44.396Z-28712-check-source-4.txt\n?? docs/acceptance/wave10/m4/receipts/2026-11-05T08-53-44.396Z-28712-check-source-5.txt\n?? docs/acceptance/wave10/m4/receipts/2026-11-05T08-53-44.396Z-28712-check-source-6.txt\n?? docs/acceptance/wave10/m4/receipts/2026-11-05T08-53-44.396Z-28712-check-source-7.txt\n?? docs/acceptance/wave10/m4/receipts/2026-11-05T08-53-44.396Z-28712-check-source-8.txt\n?? docs/acceptance/wave10/m4/receipts/2026-11-05T08-53-44.396Z-28712-check-source-9.txt\n?? packages/junk-clean/src/quarantine.rs\n?? packages/junk-clean/src/quarantine_model.rs"
+  },
+  "status": "passed",
+  "error": null,
+  "endedAt": "2026-11-05T08:56:08.921Z"
+}

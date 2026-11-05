@@ -1,0 +1,49 @@
+{"binary":"C:\\Users\\37310\\.rustup\\toolchains\\1.95.0-x86_64-pc-windows-msvc\\bin\\cargo.exe","args":["test","--offline","--locked","--manifest-path","packages/junk-clean/Cargo.toml","--test","clean_v1","--","--test-threads=1"],"exitCode":101,"error":null}
+--- stdout ---
+
+running 11 tests
+test clean_handle_hardening ... ok
+test clean_no_follow ... ok
+test clean_partial_stop_journal ... ok
+test clean_plan_contract ... ok
+test clean_report_volume ... ok
+test clean_revalidation_skips ... ok
+test quarantine_inspect_and_list ... ok
+test quarantine_move_contract ... FAILED
+test quarantine_purge_contract ... ok
+test quarantine_restore_contract ... FAILED
+test quarantine_unlock_pair ... ok
+
+failures:
+
+---- quarantine_move_contract stdout ----
+CLEAN_M35_RENAME_NATIVE error=87 size=34 units=5
+CLEAN_M35_RENAME_NATIVE error=87 size=32 units=4
+
+thread 'quarantine_move_contract' (25940) panicked at tests\clean_v1.rs:1772:5:
+assertion `left == right` failed: CLEAN_M35_MOVE: moved bytes QuarantineReport { report_version: "water.quarantine-report.v1", quarantine_id: "20261105-100000", started_at: "2026-11-05T09:34:35Z", ended_at: "2026-11-05T09:34:33Z", status: Completed, moved_bytes: "0", items: [MoveReport { item_id: "dir", status: Failed, skip_reason: None, move_error: Some(Other), error_code: Some(87), destination: None, identity: None, bytes: "9" }, MoveReport { item_id: "file", status: Failed, skip_reason: None, move_error: Some(Other), error_code: Some(87), destination: None, identity: None, bytes: "4" }] }
+  left: "0"
+ right: "13"
+note: run with `RUST_BACKTRACE=1` environment variable to display a backtrace
+
+---- quarantine_restore_contract stdout ----
+CLEAN_M35_RENAME_NATIVE error=87 size=32 units=4
+
+thread 'quarantine_restore_contract' (12544) panicked at tests\clean_v1.rs:2032:5:
+assertion `left == right` failed: CLEAN_M35_RESTORE: setup QuarantineReport { report_version: "water.quarantine-report.v1", quarantine_id: "restore", started_at: "2026-11-05T09:34:35Z", ended_at: "2026-11-05T09:34:33Z", status: Completed, moved_bytes: "0", items: [MoveReport { item_id: "file", status: Failed, skip_reason: None, move_error: Some(Other), error_code: Some(87), destination: None, identity: None, bytes: "19" }] }
+  left: Failed
+ right: Moved
+
+
+failures:
+    quarantine_move_contract
+    quarantine_restore_contract
+
+test result: FAILED. 9 passed; 2 failed; 0 ignored; 0 measured; 0 filtered out; finished in 47.19s
+
+
+--- stderr ---
+   Compiling water-junk-clean v0.1.0 (F:\new\smaltalk\water\.worktrees\w10-m4\packages\junk-clean)
+    Finished `test` profile [unoptimized + debuginfo] target(s) in 2.50s
+     Running tests\clean_v1.rs (.local\w2-target\debug\deps\clean_v1-607b5e28434d5f75.exe)
+error: test failed, to rerun pass `--test clean_v1`
