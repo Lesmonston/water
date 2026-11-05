@@ -1,0 +1,29 @@
+{"binary":"C:\\Users\\37310\\.rustup\\toolchains\\1.95.0-x86_64-pc-windows-msvc\\bin\\cargo.exe","args":["test","--offline","--locked","--manifest-path","packages/cleanup-manifest/Cargo.toml","--test","manifest_v1","--","--test-threads=1"],"exitCode":101,"error":null}
+--- stdout ---
+
+running 4 tests
+test manifest_git_link ... ok
+test manifest_parse_contract ... ok
+test manifest_read_files ... ok
+test manifest_targets_and_protect ... FAILED
+
+failures:
+
+---- manifest_targets_and_protect stdout ----
+
+thread 'manifest_targets_and_protect' (7892) panicked at tests\manifest_v1.rs:261:5:
+MANIFEST_TARGETS: untrusted
+note: run with `RUST_BACKTRACE=1` environment variable to display a backtrace
+
+
+failures:
+    manifest_targets_and_protect
+
+test result: FAILED. 3 passed; 1 failed; 0 ignored; 0 measured; 0 filtered out; finished in 0.59s
+
+
+--- stderr ---
+   Compiling water-cleanup-manifest v0.1.0 (F:\new\smaltalk\water\.worktrees\w10-m3\packages\cleanup-manifest)
+    Finished `test` profile [unoptimized + debuginfo] target(s) in 1.46s
+     Running tests\manifest_v1.rs (.local\w2-target\debug\deps\manifest_v1-c4bc829e26913465.exe)
+error: test failed, to rerun pass `--test manifest_v1`
