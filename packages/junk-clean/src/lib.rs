@@ -4,9 +4,13 @@ mod model;
 #[allow(unsafe_code)]
 mod native_windows;
 mod path;
+mod quarantine;
+mod quarantine_model;
 mod time;
 
 pub use model::*;
+pub use quarantine::*;
+pub use quarantine_model::*;
 
 use std::io::Write;
 use std::sync::{
@@ -99,13 +103,33 @@ fn preflight(
     if plan
         .protected_paths
         .iter()
-        .any(|p| path::overlaps(&item.path, p))
+        .any(|p| item.protected_overlap(p))
     {
         return Err(SkipReason::ProtectedOverlap);
     }
     // The guard is external code: recheck the chain and identity after its callback.
     native_windows::check_chain(item)?;
-    let snapshot = native_windows::snapshot(item, guard_ids, protected_ids)?;
+    // Keep each un-unlocked protection, including an alias of an unlocked ancestor.
+    // Removing identities globally would accidentally unlock a second protected spelling.
+    let ancestor_ids;
+    let ancestor_protected_ids = if item.unlocked_paths.is_empty() {
+        protected_ids
+    } else {
+        ancestor_ids = plan
+            .protected_paths
+            .iter()
+            .filter(|p| {
+                !item
+                    .unlocked_paths
+                    .iter()
+                    .any(|u| u.eq_ignore_ascii_case(p))
+            })
+            .filter_map(|p| native_windows::resolve_follow(p))
+            .collect::<Vec<_>>();
+        &ancestor_ids
+    };
+    let snapshot =
+        native_windows::snapshot(item, guard_ids, protected_ids, ancestor_protected_ids)?;
     let required = item
         .min_age_hours
         .checked_mul(3600)

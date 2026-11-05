@@ -37,7 +37,7 @@ pub struct Identity {
 }
 
 impl Identity {
-    fn valid(&self) -> bool {
+    pub(crate) fn valid(&self) -> bool {
         self.volume_serial.len() == 8
             && self.file_id.len() == 32
             && self
@@ -78,6 +78,8 @@ pub struct PlanItem {
     pub identity: Identity,
     pub total_bytes: String,
     pub min_age_hours: u64,
+    #[serde(default, skip_serializing_if = "Vec::is_empty")]
+    pub unlocked_paths: Vec<String>,
 }
 
 #[derive(Clone, Debug, Serialize, Deserialize)]
@@ -104,7 +106,7 @@ impl CleanPlan {
                 || plan
                     .protected_paths
                     .iter()
-                    .any(|p| path::overlaps(&item.path, p))
+                    .any(|p| item.protected_overlap(p))
             {
                 return Err(CleanError::InvalidPlan);
             }
@@ -134,6 +136,20 @@ impl CleanPlan {
             path::validate(&item.path)?;
             path::validate(&item.root)?;
             decimal(&item.total_bytes)?;
+            if item.unlocked_paths.len() > 4 {
+                return Err(CleanError::InvalidPlan);
+            }
+            for unlocked in &item.unlocked_paths {
+                path::validate(unlocked)?;
+                if !path::strictly_contains(unlocked, &item.path)
+                    || !self
+                        .protected_paths
+                        .iter()
+                        .any(|p| p.eq_ignore_ascii_case(unlocked))
+                {
+                    return Err(CleanError::InvalidPlan);
+                }
+            }
         }
         for p in self.protected_paths.iter().chain(&self.hard_guards) {
             path::validate(p)?;
@@ -210,12 +226,22 @@ impl ItemReport {
     }
 }
 
-#[derive(Clone, Debug, Serialize, Deserialize)]
+#[derive(Clone, Debug, PartialEq, Eq, Serialize, Deserialize)]
 #[serde(deny_unknown_fields)]
 pub struct VolumeReport {
     pub root: String,
     pub free_before: String,
     pub free_after: String,
+}
+
+impl PlanItem {
+    pub(crate) fn protected_overlap(&self, protected: &str) -> bool {
+        path::overlaps(&self.path, protected)
+            && !self
+                .unlocked_paths
+                .iter()
+                .any(|p| p.eq_ignore_ascii_case(protected))
+    }
 }
 
 #[derive(Clone, Debug, Serialize, Deserialize)]
