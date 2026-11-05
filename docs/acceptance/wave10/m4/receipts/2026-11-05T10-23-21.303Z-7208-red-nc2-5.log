@@ -1,0 +1,36 @@
+{"binary":"C:\\Users\\37310\\.rustup\\toolchains\\1.95.0-x86_64-pc-windows-msvc\\bin\\cargo.exe","args":["test","--offline","--locked","--manifest-path","packages/junk-clean/Cargo.toml","--test","clean_v1","--","--test-threads=1"],"exitCode":101,"error":null}
+--- stdout ---
+
+running 11 tests
+test clean_handle_hardening ... ok
+test clean_no_follow ... ok
+test clean_partial_stop_journal ... ok
+test clean_plan_contract ... ok
+test clean_report_volume ... ok
+test clean_revalidation_skips ... ok
+test quarantine_inspect_and_list ... ok
+test quarantine_move_contract ... ok
+test quarantine_purge_contract ... FAILED
+test quarantine_restore_contract ... ok
+test quarantine_unlock_pair ... ok
+
+failures:
+
+---- quarantine_purge_contract stdout ----
+
+thread 'quarantine_purge_contract' (23328) panicked at tests\clean_v1.rs:2397:5:
+CLEAN_M35_PURGE: odd files not removed PurgeReport { report_version: "water.purge-report.v1", quarantine_dir: "F:\\new\\smaltalk\\water\\.worktrees\\w10-m4\\.local\\w10-m4-purge-12480-09a1f60b4c1b1381\\.water-quarantine\\purge", started_at: "2026-11-05T10:23:50Z", ended_at: "2026-11-05T10:23:50Z", status: Completed, volume: VolumeReport { root: "F:\\", free_before: "326413971456", free_after: "326413971456" }, freed_bytes: "28", removed_entries: 35, remaining_entries: 1, remaining_bytes: "0", leftovers: [Leftover { rel: "link", kind: Dir, bytes: "0", reason: Other, error_code: Some(1) }], leftovers_truncated: false, dir_removed: false, root_removed: false }
+note: run with `RUST_BACKTRACE=1` environment variable to display a backtrace
+
+
+failures:
+    quarantine_purge_contract
+
+test result: FAILED. 10 passed; 1 failed; 0 ignored; 0 measured; 0 filtered out; finished in 26.56s
+
+
+--- stderr ---
+   Compiling water-junk-clean v0.1.0 (F:\new\smaltalk\water\.worktrees\w10-m4\packages\junk-clean)
+    Finished `test` profile [unoptimized + debuginfo] target(s) in 1.84s
+     Running tests\clean_v1.rs (.local\w2-target\debug\deps\clean_v1-607b5e28434d5f75.exe)
+error: test failed, to rerun pass `--test clean_v1`

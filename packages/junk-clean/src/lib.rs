@@ -4,9 +4,13 @@ mod model;
 #[allow(unsafe_code)]
 mod native_windows;
 mod path;
+mod quarantine;
+mod quarantine_model;
 mod time;
 
 pub use model::*;
+pub use quarantine::*;
+pub use quarantine_model::*;
 
 use std::io::Write;
 use std::sync::{
@@ -83,7 +87,7 @@ fn preflight(
     guard: &dyn ItemGuard,
     now: SystemTime,
     guard_ids: &[Identity],
-    protected_ids: &[Identity],
+    protected_ids: &[(String, Identity)],
 ) -> Result<native_windows::Snapshot, SkipReason> {
     if plan
         .hard_guards
@@ -99,13 +103,43 @@ fn preflight(
     if plan
         .protected_paths
         .iter()
-        .any(|p| path::overlaps(&item.path, p))
+        .any(|p| item.protected_overlap(p))
     {
         return Err(SkipReason::ProtectedOverlap);
     }
     // The guard is external code: recheck the chain and identity after its callback.
     native_windows::check_chain(item)?;
-    let snapshot = native_windows::snapshot(item, guard_ids, protected_ids)?;
+    // Keep each un-unlocked protection, including an alias of an unlocked ancestor.
+    // Removing identities globally would accidentally unlock a second protected spelling.
+    let all_ids: Vec<Identity> = protected_ids.iter().map(|(_, id)| id.clone()).collect();
+    let ancestor_ids: Vec<Identity> = protected_ids
+        .iter()
+        .filter(|(p, _)| {
+            !item
+                .unlocked_paths
+                .iter()
+                .any(|u| u.eq_ignore_ascii_case(p))
+        })
+        .map(|(_, id)| id.clone())
+        .collect();
+    let unlocked_guard_ids: Vec<Identity> = protected_ids
+        .iter()
+        .filter(|(p, id)| {
+            guard_ids.contains(id)
+                && item
+                    .unlocked_paths
+                    .iter()
+                    .any(|u| u.eq_ignore_ascii_case(p))
+        })
+        .map(|(_, id)| id.clone())
+        .collect();
+    let snapshot = native_windows::snapshot(
+        item,
+        guard_ids,
+        &all_ids,
+        &ancestor_ids,
+        &unlocked_guard_ids,
+    )?;
     let required = item
         .min_age_hours
         .checked_mul(3600)
@@ -145,11 +179,7 @@ pub fn execute(
         .iter()
         .filter_map(|p| native_windows::resolve_follow(p))
         .collect();
-    let protected_ids: Vec<Identity> = plan
-        .protected_paths
-        .iter()
-        .filter_map(|p| native_windows::resolve_follow(p))
-        .collect();
+    let protected_ids = resolve_protections(plan);
     let mut volumes = Vec::new();
     for item in &plan.items {
         let root = path::volume(&item.root);
@@ -229,4 +259,11 @@ pub fn execute(
         report.status = RunStatus::Stopped;
     }
     Ok(report)
+}
+
+fn resolve_protections(plan: &CleanPlan) -> Vec<(String, Identity)> {
+    plan.protected_paths
+        .iter()
+        .filter_map(|p| native_windows::resolve_follow(p).map(|id| (p.clone(), id)))
+        .collect()
 }

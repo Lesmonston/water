@@ -1522,6 +1522,1348 @@ Add-Type -TypeDefinition $code -Language CSharp
     );
 }
 
+// W10 fixtures have their own randomly-created owner directly under this tree's .local.
+struct QFixture {
+    parent: PathBuf,
+    base: PathBuf,
+}
+impl QFixture {
+    fn new(label: &str) -> Self {
+        let manifest = PathBuf::from(env!("CARGO_MANIFEST_DIR").replace('/', "\\"));
+        let tree = manifest.parent().unwrap().parent().unwrap();
+        assert!(tree.join(".git").exists());
+        let parent = tree.join(".local");
+        assert_plain_ancestors(&parent);
+        let nonce = RandomState::new().hash_one((SystemTime::now(), std::process::id()));
+        let base = parent.join(format!(
+            "w10-m4-{label}-{}-{nonce:016x}",
+            std::process::id()
+        ));
+        fs::create_dir(&base).unwrap();
+        Self { parent, base }
+    }
+    fn dir(&self, rel: &str) -> PathBuf {
+        let path = self.base.join(rel.replace('/', "\\"));
+        assert!(path.starts_with(&self.base));
+        assert!(
+            !Path::new(rel)
+                .components()
+                .any(|p| !matches!(p, std::path::Component::Normal(_)))
+        );
+        fs::create_dir_all(extended(&path)).unwrap();
+        path
+    }
+    fn file(&self, rel: &str, data: &[u8]) -> PathBuf {
+        let path = self.base.join(rel.replace('/', "\\"));
+        assert!(path.starts_with(&self.base));
+        assert!(
+            !Path::new(rel)
+                .components()
+                .any(|p| !matches!(p, std::path::Component::Normal(_)))
+        );
+        fs::create_dir_all(extended(path.parent().unwrap())).unwrap();
+        let mut file = OpenOptions::new()
+            .write(true)
+            .create_new(true)
+            .open(extended(&path))
+            .unwrap();
+        file.write_all(data).unwrap();
+        path
+    }
+    fn junction(&self, link: &Path, target: &Path) {
+        assert!(link.starts_with(&self.base) && target.starts_with(&self.base));
+        assert_plain_ancestors(link.parent().unwrap());
+        assert_plain_ancestors(target);
+        assert!(fs::symlink_metadata(link).is_err());
+        let result = Command::new("cmd")
+            .args(["/D", "/C", "mklink", "/J"])
+            .arg(link)
+            .arg(target)
+            .output()
+            .unwrap();
+        assert!(
+            result.status.success(),
+            "CLEAN_M35_PURGE: fixture junction creation failed"
+        );
+    }
+    fn root(&self) -> String {
+        s(&self.base.join(".water-quarantine"))
+    }
+}
+impl Drop for QFixture {
+    fn drop(&mut self) {
+        assert!(self.base.is_absolute());
+        assert_eq!(self.base.parent(), Some(self.parent.as_path()));
+        let name = self.base.file_name().unwrap().to_str().unwrap();
+        assert!(name.starts_with("w10-m4-") && name.rsplit('-').next().unwrap().len() == 16);
+        assert_plain_ancestors(&self.parent);
+        assert_eq!(
+            fs::canonicalize(&self.base).unwrap().parent(),
+            Some(fs::canonicalize(&self.parent).unwrap().as_path())
+        );
+        remove_owned(&self.base, &self.base);
+    }
+}
+fn qrun(plan: &CleanPlan, root: &str, id: &str) -> QuarantineReport {
+    quarantine(
+        plan,
+        id,
+        &QuarantineTarget {
+            base: Some(root.into()),
+        },
+        &NoGuard,
+        &mut Vec::new(),
+        &StopFlag::default(),
+        &Observer::new(),
+        SystemTime::now() + Duration::from_secs(2),
+    )
+    .unwrap()
+}
+fn qrequest(path: &Path, moved: &MoveReport) -> RestoreRequest {
+    RestoreRequest {
+        rel: s(path)[3..].into(),
+        identity: moved.identity.clone().unwrap(),
+        to: None,
+    }
+}
+#[derive(Default)]
+struct QObserver(Mutex<Vec<(u64, u64)>>);
+impl PurgeObserver for QObserver {
+    fn on_progress(&self, entries: u64, bytes: u64) {
+        self.0.lock().unwrap().push((entries, bytes));
+    }
+}
+fn qpurge(dir: &str) -> PurgeReport {
+    purge(
+        dir,
+        &mut Vec::new(),
+        &StopFlag::default(),
+        &QObserver::default(),
+        SystemTime::now(),
+    )
+    .unwrap()
+}
+
+fn qroundtrip<T>(original: &T, serialized: String, marker: &str)
+where
+    T: serde::de::DeserializeOwned + PartialEq + std::fmt::Debug,
+{
+    let roundtrip: T = serde_json::from_str(&serialized).unwrap();
+    assert_eq!(original, &roundtrip, "{marker}: report roundtrip");
+    let value: Value = serde_json::from_str(&serialized).unwrap();
+    let mut unknown = value.clone();
+    unknown["unexpected"] = json!(true);
+    assert!(
+        serde_json::from_value::<T>(unknown).is_err(),
+        "{marker}: unknown report field"
+    );
+    for key in ["items", "quarantines", "hard_entries"] {
+        if value[key].as_array().is_some_and(|items| !items.is_empty()) {
+            let mut nested = value.clone();
+            nested[key][0]["unexpected"] = json!(true);
+            assert!(
+                serde_json::from_value::<T>(nested).is_err(),
+                "{marker}: unknown nested field"
+            );
+        }
+    }
+}
+
+struct QStopJournal {
+    bytes: Vec<u8>,
+    stop: StopFlag,
+}
+impl Write for QStopJournal {
+    fn write(&mut self, bytes: &[u8]) -> io::Result<usize> {
+        self.bytes.extend_from_slice(bytes);
+        Ok(bytes.len())
+    }
+    fn flush(&mut self) -> io::Result<()> {
+        self.stop.stop();
+        Ok(())
+    }
+}
+struct QRejectJournal;
+impl Write for QRejectJournal {
+    fn write(&mut self, _: &[u8]) -> io::Result<usize> {
+        Err(io::Error::other("synthetic journal failure"))
+    }
+    fn flush(&mut self) -> io::Result<()> {
+        Ok(())
+    }
+}
+
+#[test]
+fn quarantine_unlock_pair() {
+    let f = QFixture::new("unlock");
+    let root = f.dir("root");
+    let protected = f.dir("root/protected");
+    let cache = f.file("root/protected/cache", b"disposable");
+    let sibling = f.file("root/protected/sibling", b"keep-sibling");
+    let mut value = plan_value(vec![item(&root, &cache, "unlocked")]);
+    value["protected_paths"] = json!([s(&protected)]);
+    value["items"][0]["unlocked_paths"] = json!([s(&protected)]);
+    for bad in [
+        vec![s(&root)],
+        vec![s(&cache)],
+        vec![s(&protected); 5],
+        vec!["relative".into()],
+    ] {
+        let mut invalid = value.clone();
+        invalid["items"][0]["unlocked_paths"] = json!(bad);
+        assert!(
+            matches!(
+                CleanPlan::from_json(&invalid.to_string()),
+                Err(CleanError::InvalidPlan)
+            ),
+            "CLEAN_M35_UNLOCK: invalid unlock accepted"
+        );
+    }
+    let mut invalid = value.clone();
+    invalid["protected_paths"] = json!([]);
+    assert!(
+        matches!(
+            CleanPlan::from_json(&invalid.to_string()),
+            Err(CleanError::InvalidPlan)
+        ),
+        "CLEAN_M35_UNLOCK: missing protected path accepted"
+    );
+    let mut brothers = value.clone();
+    brothers["items"]
+        .as_array_mut()
+        .unwrap()
+        .push(item(&root, &sibling, "sibling"));
+    assert!(
+        matches!(
+            CleanPlan::from_json(&brothers.to_string()),
+            Err(CleanError::InvalidPlan)
+        ),
+        "CLEAN_M35_UNLOCK: sibling inherited another item's unlock"
+    );
+    let alias = f.base.join("alias");
+    f.junction(&alias, &protected);
+    let mut aliased = value.clone();
+    aliased["protected_paths"] = json!([s(&protected), s(&alias)]);
+    let plan =
+        CleanPlan::from_json(&aliased.to_string()).expect("CLEAN_M35_UNLOCK: valid alias plan");
+    let report = run(&plan);
+    assert_eq!(
+        report.items[0].skip_reason,
+        Some(SkipReason::ProtectedOverlap),
+        "CLEAN_M35_UNLOCK: another protected alias was unlocked"
+    );
+    let elsewhere = f.dir("elsewhere");
+    struct Retarget<'a> {
+        fixture: &'a QFixture,
+        link: PathBuf,
+        target: PathBuf,
+        done: std::cell::Cell<bool>,
+    }
+    impl ItemGuard for Retarget<'_> {
+        fn in_use(&self, _: &PlanItem) -> Option<String> {
+            if !self.done.replace(true) {
+                fs::remove_dir(&self.link).unwrap();
+                self.fixture.junction(&self.link, &self.target);
+            }
+            None
+        }
+    }
+    let guard = Retarget {
+        fixture: &f,
+        link: alias.clone(),
+        target: elsewhere,
+        done: std::cell::Cell::new(false),
+    };
+    let captured = execute(
+        &plan,
+        &guard,
+        &mut Vec::new(),
+        &StopFlag::default(),
+        &Observer::new(),
+        SystemTime::now() + Duration::from_secs(2),
+    )
+    .unwrap();
+    assert_eq!(
+        captured.items[0].skip_reason,
+        Some(SkipReason::ProtectedOverlap),
+        "CLEAN_M35_UNLOCK: retargeting lost the initial protected identity"
+    );
+    let mut guarded =
+        CleanPlan::from_json(&value.to_string()).expect("CLEAN_M35_UNLOCK: valid unlock rejected");
+    guarded.hard_guards.push(s(&protected));
+    assert_eq!(
+        run(&guarded).items[0].skip_reason,
+        Some(SkipReason::Guarded),
+        "CLEAN_M35_UNLOCK: hard guard was unlocked"
+    );
+    let mut inside = value.clone();
+    inside["protected_paths"]
+        .as_array_mut()
+        .unwrap()
+        .push(json!(s(&cache)));
+    assert!(
+        matches!(
+            CleanPlan::from_json(&inside.to_string()),
+            Err(CleanError::InvalidPlan)
+        ),
+        "CLEAN_M35_UNLOCK: contained protection ignored"
+    );
+    let plan =
+        CleanPlan::from_json(&value.to_string()).expect("CLEAN_M35_UNLOCK: valid unlock rejected");
+    assert_eq!(
+        plan.items[0].unlocked_paths,
+        vec![s(&protected)],
+        "CLEAN_M35_UNLOCK: unlock not deserialized"
+    );
+    let mut ancestor_guard = plan.clone();
+    ancestor_guard.hard_guards.push(s(&root));
+    let report = run(&ancestor_guard);
+    assert_eq!(
+        report.items[0].status,
+        ItemStatus::Deleted,
+        "CLEAN_M35_UNLOCK: explicit unlock did not delete"
+    );
+    assert_eq!(
+        fs::read(&sibling).unwrap(),
+        b"keep-sibling",
+        "CLEAN_M35_UNLOCK: sibling changed"
+    );
+}
+
+#[test]
+fn quarantine_move_contract() {
+    let f = QFixture::new("move");
+    let root = f.dir("root");
+    let directory = f.dir("root/cache");
+    f.file("root/cache/data", b"directory");
+    let file = f.file("root/file", b"file");
+    let plan = parse(plan_value(vec![
+        item(&root, &directory, "dir"),
+        item(&root, &file, "file"),
+    ]));
+    let mut journal = Vec::new();
+    let observer = Observer::new();
+    let report = quarantine(
+        &plan,
+        "20261105-100000",
+        &QuarantineTarget {
+            base: Some(f.root()),
+        },
+        &NoGuard,
+        &mut journal,
+        &StopFlag::default(),
+        &observer,
+        SystemTime::now() + Duration::from_secs(2),
+    )
+    .unwrap();
+    assert_eq!(
+        report.moved_bytes, "13",
+        "CLEAN_M35_MOVE: moved bytes {report:?}"
+    );
+    qroundtrip(
+        &report,
+        quarantine_report_to_json(&report),
+        "CLEAN_M35_MOVE",
+    );
+    assert!(
+        !directory.exists() && !file.exists(),
+        "CLEAN_M35_MOVE: source remains"
+    );
+    for (i, result) in report.items.iter().enumerate() {
+        assert_eq!(
+            result.status,
+            MoveStatus::Moved,
+            "CLEAN_M35_MOVE: item not moved {result:?}"
+        );
+        let destination = format!(
+            "{}\\20261105-100000\\{}",
+            f.root(),
+            &plan.items[i].path[3..]
+        );
+        assert_eq!(
+            result.destination.as_ref(),
+            Some(&destination),
+            "CLEAN_M35_MOVE: layout"
+        );
+        assert_eq!(
+            result.identity,
+            Some(plan.items[i].identity.clone()),
+            "CLEAN_M35_MOVE: identity changed"
+        );
+        assert_eq!(
+            identity_of(&destination).unwrap(),
+            plan.items[i].identity,
+            "CLEAN_M35_MOVE: on-disk identity"
+        );
+    }
+    assert_eq!(
+        observer.0.lock().unwrap().len(),
+        2,
+        "CLEAN_M35_MOVE: callbacks"
+    );
+    let lines: Vec<Value> = String::from_utf8(journal)
+        .unwrap()
+        .lines()
+        .map(|l| serde_json::from_str(l).unwrap())
+        .collect();
+    assert_eq!(
+        lines
+            .iter()
+            .map(|l| l["event"].as_str().unwrap())
+            .collect::<Vec<_>>(),
+        ["intent", "moved", "intent", "moved"],
+        "CLEAN_M35_MOVE: journal order"
+    );
+    let source = f.file("root/collision", b"source");
+    let plan = parse(plan_value(vec![item(&root, &source, "collision")]));
+    let destination = PathBuf::from(format!("{}\\collision\\{}", f.root(), &s(&source)[3..]));
+    fs::create_dir_all(destination.parent().unwrap()).unwrap();
+    fs::write(&destination, b"existing").unwrap();
+    let mut journal = Vec::new();
+    let failed = quarantine(
+        &plan,
+        "collision",
+        &QuarantineTarget {
+            base: Some(f.root()),
+        },
+        &NoGuard,
+        &mut journal,
+        &StopFlag::default(),
+        &Observer::new(),
+        SystemTime::now() + Duration::from_secs(2),
+    )
+    .unwrap();
+    assert_eq!(
+        failed.items[0].status,
+        MoveStatus::Failed,
+        "CLEAN_M35_MOVE: collision result shape"
+    );
+    assert_eq!(
+        failed.items[0].move_error,
+        Some(MoveError::DestinationExists),
+        "CLEAN_M35_MOVE: collision reason"
+    );
+    assert_eq!(
+        fs::read(&source).unwrap(),
+        b"source",
+        "CLEAN_M35_MOVE: source lost"
+    );
+    assert_eq!(
+        fs::read(&destination).unwrap(),
+        b"existing",
+        "CLEAN_M35_MOVE: destination changed"
+    );
+    assert!(
+        String::from_utf8(journal)
+            .unwrap()
+            .contains("\"event\":\"failed\""),
+        "CLEAN_M35_MOVE: missing failed log"
+    );
+    let locked = f.file("root/locked", b"locked");
+    let lock = OpenOptions::new()
+        .read(true)
+        .share_mode(3)
+        .open(&locked)
+        .unwrap();
+    let plan = parse(plan_value(vec![item(&root, &locked, "locked")]));
+    assert_eq!(
+        qrun(&plan, &f.root(), "locked").items[0].move_error,
+        Some(MoveError::Locked),
+        "CLEAN_M35_MOVE: no-delete-share lock"
+    );
+    drop(lock);
+    struct Busy;
+    impl ItemGuard for Busy {
+        fn in_use(&self, _: &PlanItem) -> Option<String> {
+            Some("fixture.exe".into())
+        }
+    }
+    let busy = quarantine(
+        &plan,
+        "busy",
+        &QuarantineTarget {
+            base: Some(f.root()),
+        },
+        &Busy,
+        &mut Vec::new(),
+        &StopFlag::default(),
+        &Observer::new(),
+        SystemTime::now(),
+    )
+    .unwrap();
+    assert_eq!(
+        busy.items[0].skip_reason,
+        Some(SkipReason::InUse),
+        "CLEAN_M35_MOVE: guard"
+    );
+    let mut young = plan.clone();
+    young.items[0].min_age_hours = 1;
+    assert_eq!(
+        qrun(&young, &f.root(), "young").items[0].skip_reason,
+        Some(SkipReason::TooRecent),
+        "CLEAN_M35_MOVE: age"
+    );
+    let mut changed = plan.clone();
+    changed.items[0].identity = identity_of(&s(&root)).unwrap();
+    assert_eq!(
+        qrun(&changed, &f.root(), "changed").items[0].skip_reason,
+        Some(SkipReason::Changed),
+        "CLEAN_M35_MOVE: identity"
+    );
+    let guarded = f.file(".water-quarantine/old/data", b"already-quarantined");
+    let plan = parse(plan_value(vec![item(&f.base, &guarded, "guarded")]));
+    assert_eq!(
+        qrun(&plan, &f.root(), "guarded").items[0].skip_reason,
+        Some(SkipReason::Guarded),
+        "CLEAN_M35_MOVE: recursive quarantine"
+    );
+    let stopped = StopFlag::default();
+    stopped.stop();
+    let report = quarantine(
+        &plan,
+        "stopped",
+        &QuarantineTarget {
+            base: Some(f.root()),
+        },
+        &NoGuard,
+        &mut Vec::new(),
+        &stopped,
+        &Observer::new(),
+        SystemTime::now(),
+    )
+    .unwrap();
+    assert_eq!(
+        report.status,
+        RunStatus::Stopped,
+        "CLEAN_M35_MOVE: stop state"
+    );
+    assert_eq!(
+        report.items[0].skip_reason,
+        Some(SkipReason::Cancelled),
+        "CLEAN_M35_MOVE: stop reason"
+    );
+    for invalid in ["", "-bad", "bad_name", &"a".repeat(49)] {
+        assert!(
+            matches!(
+                quarantine(
+                    &plan,
+                    invalid,
+                    &QuarantineTarget {
+                        base: Some(f.root())
+                    },
+                    &NoGuard,
+                    &mut Vec::new(),
+                    &StopFlag::default(),
+                    &Observer::new(),
+                    SystemTime::now()
+                ),
+                Err(CleanError::InvalidPlan)
+            ),
+            "CLEAN_M35_MOVE: invalid id"
+        );
+    }
+    let other = QFixture::new("move-junction");
+    let source = other.file("root/file", b"keep");
+    let target = other.dir("outside");
+    other.junction(&other.base.join(".water-quarantine"), &target);
+    let plan = parse(plan_value(vec![item(&other.base, &source, "junction")]));
+    assert_eq!(
+        qrun(&plan, &other.root(), "junction").items[0].move_error,
+        Some(MoveError::QuarantineUnavailable),
+        "CLEAN_M35_MOVE: qroot junction"
+    );
+    assert_eq!(
+        fs::read_dir(&target).unwrap().count(),
+        0,
+        "CLEAN_M35_MOVE: followed qroot junction"
+    );
+    let flush_stop = StopFlag::default();
+    let mut stopping_journal = QStopJournal {
+        bytes: Vec::new(),
+        stop: flush_stop.clone(),
+    };
+    let source = f.file("root/flush-stop", b"keep");
+    let stopping_plan = parse(plan_value(vec![item(&root, &source, "flush-stop")]));
+    let report = quarantine(
+        &stopping_plan,
+        "flush-stop",
+        &QuarantineTarget {
+            base: Some(f.root()),
+        },
+        &NoGuard,
+        &mut stopping_journal,
+        &flush_stop,
+        &Observer::new(),
+        SystemTime::now() + Duration::from_secs(2),
+    )
+    .unwrap();
+    assert_eq!(
+        report.items[0].skip_reason,
+        Some(SkipReason::Cancelled),
+        "CLEAN_M35_MOVE: journal-flush cancellation"
+    );
+    let events: Vec<Value> = String::from_utf8(stopping_journal.bytes)
+        .unwrap()
+        .lines()
+        .map(|line| serde_json::from_str(line).unwrap())
+        .collect();
+    assert_eq!(
+        events.len(),
+        2,
+        "CLEAN_M35_MOVE: intent missing terminal event"
+    );
+    assert_eq!(
+        events[1]["event"], "failed",
+        "CLEAN_M35_MOVE: cancellation terminal event"
+    );
+    assert_eq!(
+        fs::read(&source).unwrap(),
+        b"keep",
+        "CLEAN_M35_MOVE: cancellation moved source"
+    );
+    assert!(
+        matches!(
+            quarantine(
+                &stopping_plan,
+                "bad-journal",
+                &QuarantineTarget {
+                    base: Some(f.root())
+                },
+                &NoGuard,
+                &mut QRejectJournal,
+                &StopFlag::default(),
+                &Observer::new(),
+                SystemTime::now() + Duration::from_secs(2)
+            ),
+            Err(CleanError::Journal)
+        ),
+        "CLEAN_M35_MOVE: journal failure ignored"
+    );
+    assert!(source.exists(), "CLEAN_M35_MOVE: moved before intent flush");
+    let temp = std::env::temp_dir();
+    if s(&temp)[..2].eq_ignore_ascii_case(&s(&f.base)[..2]) {
+        eprintln!("CLEAN_M35_CROSS_VOLUME n/a");
+    } else {
+        let base = temp.join(format!("water-w10-q-{}", std::process::id()));
+        assert_plain_ancestors(&temp);
+        assert!(!base.exists());
+        fs::create_dir(&base).unwrap();
+        let cross_root = base.join(".water-quarantine");
+        let source = f.file("root/cross", b"never-copy");
+        let plan = parse(plan_value(vec![item(&root, &source, "cross")]));
+        let cross = qrun(&plan, &s(&cross_root), "cross");
+        assert_eq!(
+            cross.items[0].move_error,
+            Some(MoveError::NotSameVolume),
+            "CLEAN_M35_MOVE: cross-volume"
+        );
+        assert_eq!(
+            fs::read(&source).unwrap(),
+            b"never-copy",
+            "CLEAN_M35_MOVE: cross-volume source"
+        );
+        assert_eq!(size(&base), 0, "CLEAN_M35_MOVE: cross-volume copied data");
+        assert_eq!(base.parent(), Some(temp.as_path()));
+        assert!(
+            base.file_name()
+                .unwrap()
+                .to_str()
+                .unwrap()
+                .starts_with("water-w10-q-")
+        );
+        assert_plain_ancestors(&temp);
+        remove_owned(&base, &base);
+    }
+}
+
+#[test]
+fn quarantine_restore_contract() {
+    let f = QFixture::new("restore");
+    let root = f.dir("root");
+    let source = f.file("root/parent/file", b"restore-exact-bytes");
+    let mtime = fs::metadata(&source).unwrap().modified().unwrap();
+    let plan = parse(plan_value(vec![item(&root, &source, "file")]));
+    let moved = qrun(&plan, &f.root(), "restore");
+    assert_eq!(
+        moved.items[0].status,
+        MoveStatus::Moved,
+        "CLEAN_M35_RESTORE: setup {moved:?}"
+    );
+    let request = qrequest(&source, &moved.items[0]);
+    let dir = format!("{}\\restore", f.root());
+    fs::remove_dir(source.parent().unwrap()).unwrap();
+    let report = restore(
+        &dir,
+        std::slice::from_ref(&request),
+        &StopFlag::default(),
+        SystemTime::now(),
+    )
+    .unwrap();
+    assert_eq!(
+        report.items[0].status,
+        RestoreStatus::Restored,
+        "CLEAN_M35_RESTORE: restore/rebuild parent {report:?}"
+    );
+    qroundtrip(
+        &report,
+        restore_report_to_json(&report),
+        "CLEAN_M35_RESTORE",
+    );
+    assert_eq!(
+        fs::read(&source).unwrap(),
+        b"restore-exact-bytes",
+        "CLEAN_M35_RESTORE: bytes"
+    );
+    assert_eq!(
+        fs::metadata(&source).unwrap().modified().unwrap(),
+        mtime,
+        "CLEAN_M35_RESTORE: mtime"
+    );
+    assert!(
+        report.dir_removed && report.root_removed,
+        "CLEAN_M35_RESTORE: empty skeleton remains"
+    );
+    let moved = qrun(&plan, &f.root(), "collision");
+    let dir = format!("{}\\collision", f.root());
+    let request = qrequest(&source, &moved.items[0]);
+    fs::write(&source, b"new-original").unwrap();
+    let collision = restore(
+        &dir,
+        std::slice::from_ref(&request),
+        &StopFlag::default(),
+        SystemTime::now(),
+    )
+    .unwrap();
+    assert_eq!(
+        collision.items[0].reason,
+        Some(RestoreError::DestinationExists),
+        "CLEAN_M35_RESTORE: overwrite forbidden"
+    );
+    assert_eq!(
+        fs::read(&source).unwrap(),
+        b"new-original",
+        "CLEAN_M35_RESTORE: overwrote new original"
+    );
+    assert_eq!(
+        fs::read(moved.items[0].destination.as_ref().unwrap()).unwrap(),
+        b"restore-exact-bytes",
+        "CLEAN_M35_RESTORE: lost quarantine data"
+    );
+    let mut changed = request.clone();
+    changed.identity = identity_of(&s(&root)).unwrap();
+    assert_eq!(
+        restore(&dir, &[changed], &StopFlag::default(), SystemTime::now())
+            .unwrap()
+            .items[0]
+            .reason,
+        Some(RestoreError::Changed),
+        "CLEAN_M35_RESTORE: identity mismatch"
+    );
+    let beside = source.with_file_name("file（还原 1）");
+    fs::write(&beside, b"beside-existing").unwrap();
+    let mut request = request;
+    request.to = Some(s(&beside));
+    assert_eq!(
+        restore(
+            &dir,
+            std::slice::from_ref(&request),
+            &StopFlag::default(),
+            SystemTime::now()
+        )
+        .unwrap()
+        .items[0]
+            .reason,
+        Some(RestoreError::DestinationExists),
+        "CLEAN_M35_RESTORE: beside overwrite"
+    );
+    fs::remove_file(&beside).unwrap();
+    assert_eq!(
+        restore(&dir, &[request], &StopFlag::default(), SystemTime::now())
+            .unwrap()
+            .items[0]
+            .status,
+        RestoreStatus::Restored,
+        "CLEAN_M35_RESTORE: beside restore"
+    );
+    assert_eq!(
+        fs::read(&beside).unwrap(),
+        b"restore-exact-bytes",
+        "CLEAN_M35_RESTORE: beside bytes"
+    );
+    let source = f.file("root/swapped/file", b"parent-link-safe");
+    let plan = parse(plan_value(vec![item(&root, &source, "link")]));
+    let moved = qrun(&plan, &f.root(), "parent-link");
+    let request = qrequest(&source, &moved.items[0]);
+    fs::remove_dir(source.parent().unwrap()).unwrap();
+    let external = f.dir("outside");
+    f.junction(source.parent().unwrap(), &external);
+    let dir = format!("{}\\parent-link", f.root());
+    assert_eq!(
+        restore(&dir, &[request], &StopFlag::default(), SystemTime::now())
+            .unwrap()
+            .items[0]
+            .reason,
+        Some(RestoreError::ParentReparse),
+        "CLEAN_M35_RESTORE: parent reparse"
+    );
+    assert_eq!(
+        fs::read_dir(&external).unwrap().count(),
+        0,
+        "CLEAN_M35_RESTORE: followed parent"
+    );
+    let tree = f.dir("root/tree");
+    let data = f.file("root/tree/data", b"whole-directory");
+    let plan = parse(plan_value(vec![item(&root, &tree, "tree")]));
+    let moved = qrun(&plan, &f.root(), "tree");
+    let request = qrequest(&tree, &moved.items[0]);
+    let dir = format!("{}\\tree", f.root());
+    let stop = StopFlag::default();
+    stop.stop();
+    assert_eq!(
+        restore(
+            &dir,
+            std::slice::from_ref(&request),
+            &stop,
+            SystemTime::now()
+        )
+        .unwrap()
+        .items[0]
+            .reason,
+        Some(RestoreError::Cancelled),
+        "CLEAN_M35_RESTORE: stop"
+    );
+    assert!(
+        !tree.exists(),
+        "CLEAN_M35_RESTORE: stopped restore moved data"
+    );
+    let restored = restore(
+        &dir,
+        std::slice::from_ref(&request),
+        &StopFlag::default(),
+        SystemTime::now(),
+    )
+    .unwrap();
+    assert_eq!(
+        restored.items[0].status,
+        RestoreStatus::Restored,
+        "CLEAN_M35_RESTORE: directory restore"
+    );
+    assert_eq!(
+        fs::read(&data).unwrap(),
+        b"whole-directory",
+        "CLEAN_M35_RESTORE: directory bytes"
+    );
+    assert_eq!(
+        restore(&dir, &[request], &StopFlag::default(), SystemTime::now())
+            .unwrap()
+            .items[0]
+            .reason,
+        Some(RestoreError::Gone),
+        "CLEAN_M35_RESTORE: gone request"
+    );
+}
+
+fn qodd(f: &QFixture, prefix: &str) -> (PathBuf, u64) {
+    let dir = f.dir(prefix);
+    for name in ["nul", "con.txt", "aux", "a.", "b "] {
+        f.file(&format!("{prefix}/{name}"), b"odd");
+    }
+    let readonly = f.file(&format!("{prefix}/readonly"), b"read-only");
+    let mut permissions = fs::metadata(&readonly).unwrap().permissions();
+    permissions.set_readonly(true);
+    fs::set_permissions(&readonly, permissions).unwrap();
+    let deep = format!("{prefix}/{}data", "longsegment/".repeat(28));
+    f.file(&deep, b"deep");
+    (dir.clone(), size(&dir))
+}
+
+#[test]
+fn quarantine_purge_contract() {
+    let f = QFixture::new("purge");
+    let (dir, bytes) = qodd(&f, ".water-quarantine/purge");
+    let outside = f.dir("outside");
+    let keep = f.file("outside/keep", b"external-bytes");
+    f.junction(&dir.join("link"), &outside);
+    let observer = QObserver::default();
+    let mut journal = Vec::new();
+    let report = purge(
+        &s(&dir),
+        &mut journal,
+        &StopFlag::default(),
+        &observer,
+        SystemTime::now(),
+    )
+    .unwrap();
+    assert!(
+        report.dir_removed && report.root_removed && report.leftovers.is_empty(),
+        "CLEAN_M35_PURGE: odd files not removed {report:?}"
+    );
+    assert_eq!(
+        report.freed_bytes,
+        bytes.to_string(),
+        "CLEAN_M35_PURGE: freed bytes"
+    );
+    assert_eq!(
+        report.remaining_entries, 0,
+        "CLEAN_M35_PURGE: remaining count"
+    );
+    assert_eq!(
+        fs::read(&keep).unwrap(),
+        b"external-bytes",
+        "CLEAN_M35_PURGE: followed junction"
+    );
+    assert_eq!(
+        observer.0.lock().unwrap().last(),
+        Some(&(report.removed_entries, bytes)),
+        "CLEAN_M35_PURGE: final callback"
+    );
+    let lines: Vec<Value> = String::from_utf8(journal)
+        .unwrap()
+        .lines()
+        .map(|l| serde_json::from_str(l).unwrap())
+        .collect();
+    assert_eq!(lines[0]["event"], "intent", "CLEAN_M35_PURGE: intent");
+    assert_eq!(lines[1]["event"], "done", "CLEAN_M35_PURGE: done");
+    let (normal, bytes) = qodd(&f, "root/normal");
+    f.junction(&normal.join("link"), &outside);
+    let plan = parse(plan_value(vec![item(&f.base, &normal, "odd-normal")]));
+    let report = run(&plan);
+    assert_eq!(
+        report.items[0].status,
+        ItemStatus::Deleted,
+        "CLEAN_M35_PURGE: execute odd names"
+    );
+    assert_eq!(
+        report.freed_bytes,
+        bytes.to_string(),
+        "CLEAN_M35_PURGE: execute odd bytes"
+    );
+    assert_eq!(
+        fs::read(&keep).unwrap(),
+        b"external-bytes",
+        "CLEAN_M35_PURGE: execute followed junction"
+    );
+    let dir = f.dir(".water-quarantine/locked");
+    let file = f.file(".water-quarantine/locked/file", b"locked-data");
+    let child = f.dir(".water-quarantine/locked/terminal");
+    let file_lock = OpenOptions::new()
+        .read(true)
+        .share_mode(3)
+        .open(&file)
+        .unwrap();
+    let dir_lock = OpenOptions::new()
+        .read(true)
+        .custom_flags(0x0200_0000)
+        .share_mode(3)
+        .open(&child)
+        .unwrap();
+    let report = qpurge(&s(&dir));
+    assert!(
+        !report.dir_removed && report.remaining_bytes == "11",
+        "CLEAN_M35_PURGE: locked residual"
+    );
+    assert_eq!(
+        report.leftovers.len(),
+        2,
+        "CLEAN_M35_PURGE: root causes only {report:?}"
+    );
+    assert!(
+        report
+            .leftovers
+            .iter()
+            .all(|l| l.reason == LeftoverReason::InUse),
+        "CLEAN_M35_PURGE: in_use reason"
+    );
+    assert!(
+        report
+            .leftovers
+            .iter()
+            .any(|l| l.kind == Kind::Dir && l.rel == "terminal"),
+        "CLEAN_M35_PURGE: terminal dir reason"
+    );
+    drop(file_lock);
+    drop(dir_lock);
+    let report = qpurge(&s(&dir));
+    assert!(
+        report.dir_removed && report.root_removed,
+        "CLEAN_M35_PURGE: retry did not clear"
+    );
+    let wrong = f.dir("not-quarantine/id");
+    assert!(
+        matches!(
+            purge(
+                &s(&wrong),
+                &mut Vec::new(),
+                &StopFlag::default(),
+                &QObserver::default(),
+                SystemTime::now()
+            ),
+            Err(CleanError::InvalidPlan)
+        ),
+        "CLEAN_M35_PURGE: wrong parent accepted"
+    );
+    let qroot = f.dir(".water-quarantine");
+    let link = qroot.join("linked");
+    f.junction(&link, &outside);
+    assert!(
+        matches!(
+            purge(
+                &s(&link),
+                &mut Vec::new(),
+                &StopFlag::default(),
+                &QObserver::default(),
+                SystemTime::now()
+            ),
+            Err(CleanError::InvalidPlan)
+        ),
+        "CLEAN_M35_PURGE: linked qdir accepted"
+    );
+    assert_eq!(
+        fs::read(&keep).unwrap(),
+        b"external-bytes",
+        "CLEAN_M35_PURGE: linked qdir target changed"
+    );
+    let dir = f.dir(".water-quarantine/stopped");
+    f.file(".water-quarantine/stopped/file", b"keep");
+    let stop = StopFlag::default();
+    stop.stop();
+    let report = purge(
+        &s(&dir),
+        &mut Vec::new(),
+        &stop,
+        &QObserver::default(),
+        SystemTime::now(),
+    )
+    .unwrap();
+    assert_eq!(
+        report.status,
+        RunStatus::Stopped,
+        "CLEAN_M35_PURGE: stop state"
+    );
+    assert_eq!(
+        report.remaining_bytes, "4",
+        "CLEAN_M35_PURGE: stop residual"
+    );
+    qroundtrip(&report, purge_report_to_json(&report), "CLEAN_M35_PURGE");
+    let root_locked = f.dir(".water-quarantine/rootlocked");
+    let root_data = f.file(".water-quarantine/rootlocked/file", b"x");
+    let root_lock = OpenOptions::new()
+        .read(true)
+        .custom_flags(0x0200_0000)
+        .share_mode(3)
+        .open(&root_locked)
+        .unwrap();
+    let report = qpurge(&s(&root_locked));
+    assert!(
+        !report.dir_removed && !root_data.exists(),
+        "CLEAN_M35_PURGE: occupied root should retain only the root"
+    );
+    assert_eq!(
+        report.remaining_entries, 1,
+        "CLEAN_M35_PURGE: occupied root residual count"
+    );
+    assert!(
+        report
+            .leftovers
+            .iter()
+            .any(|e| e.rel.is_empty() && e.kind == Kind::Dir && e.reason == LeftoverReason::InUse),
+        "CLEAN_M35_PURGE: occupied root reason {report:?}"
+    );
+    drop(root_lock);
+    assert!(
+        qpurge(&s(&root_locked)).dir_removed,
+        "CLEAN_M35_PURGE: occupied root retry"
+    );
+    let cloud_dir = f.dir(".water-quarantine/reparse");
+    let cloud = f.file(".water-quarantine/reparse/cloud", b"cloud");
+    set_custom_reparse(&cloud);
+    let cloud_id = identity_of(&s(&cloud)).unwrap();
+    let cloud_before = fs::symlink_metadata(&cloud).unwrap();
+    let report = qpurge(&s(&cloud_dir));
+    assert!(
+        report
+            .leftovers
+            .iter()
+            .any(|e| e.rel == "cloud" && e.reason == LeftoverReason::Reparse),
+        "CLEAN_M35_PURGE: non-name reparse not retained"
+    );
+    assert_eq!(
+        identity_of(&s(&cloud)).unwrap(),
+        cloud_id,
+        "CLEAN_M35_PURGE: changed non-name reparse identity"
+    );
+    let cloud_after = fs::symlink_metadata(&cloud).unwrap();
+    assert_eq!(
+        (
+            cloud_after.len(),
+            cloud_after.last_write_time(),
+            cloud_after.file_attributes()
+        ),
+        (
+            cloud_before.len(),
+            cloud_before.last_write_time(),
+            cloud_before.file_attributes()
+        ),
+        "CLEAN_M35_PURGE: changed non-name reparse metadata"
+    );
+    let crowded = f.dir(".water-quarantine/crowded");
+    let mut held = Vec::new();
+    for n in (0..201).rev() {
+        let path = f.file(&format!(".water-quarantine/crowded/f{n:03}"), b"x");
+        held.push(
+            OpenOptions::new()
+                .read(true)
+                .share_mode(3)
+                .open(path)
+                .unwrap(),
+        );
+    }
+    let report = qpurge(&s(&crowded));
+    assert!(
+        report.leftovers_truncated && report.leftovers.len() == 200,
+        "CLEAN_M35_PURGE: leftover cap"
+    );
+    assert_eq!(
+        report.remaining_entries, 201,
+        "CLEAN_M35_PURGE: truncated total count"
+    );
+    assert_eq!(
+        report.remaining_bytes, "201",
+        "CLEAN_M35_PURGE: truncated total bytes"
+    );
+    assert!(
+        report
+            .leftovers
+            .windows(2)
+            .all(|pair| pair[0].rel < pair[1].rel),
+        "CLEAN_M35_PURGE: leftover sort"
+    );
+    drop(held);
+    assert!(
+        qpurge(&s(&crowded)).dir_removed,
+        "CLEAN_M35_PURGE: crowded retry"
+    );
+    let rejected = f.dir(".water-quarantine/bad-journal");
+    let data = f.file(".water-quarantine/bad-journal/data", b"keep");
+    assert!(
+        matches!(
+            purge(
+                &s(&rejected),
+                &mut QRejectJournal,
+                &StopFlag::default(),
+                &QObserver::default(),
+                SystemTime::now()
+            ),
+            Err(CleanError::Journal)
+        ),
+        "CLEAN_M35_PURGE: journal rejection"
+    );
+    assert_eq!(
+        fs::read(data).unwrap(),
+        b"keep",
+        "CLEAN_M35_PURGE: deleted before intent"
+    );
+    let boundary = QFixture::new("purge-stop-boundary");
+    let dir = boundary.dir(".water-quarantine/boundary");
+    for n in 0..255 {
+        boundary.file(&format!(".water-quarantine/boundary/f{n:03}"), b"x");
+    }
+    struct StopAtRoot {
+        stop: StopFlag,
+        dir: PathBuf,
+    }
+    impl PurgeObserver for StopAtRoot {
+        fn on_progress(&self, entries: u64, _: u64) {
+            if entries == 256 {
+                assert!(
+                    fs::symlink_metadata(&self.dir).is_err(),
+                    "CLEAN_M35_PURGE: callback before root handle closed"
+                );
+                self.stop.stop();
+            }
+        }
+    }
+    let stop = StopFlag::default();
+    let observer = StopAtRoot {
+        stop: stop.clone(),
+        dir: dir.clone(),
+    };
+    let report = purge(
+        &s(&dir),
+        &mut Vec::new(),
+        &stop,
+        &observer,
+        SystemTime::now(),
+    )
+    .unwrap();
+    assert!(
+        report.dir_removed && !report.root_removed,
+        "CLEAN_M35_PURGE: ignored stop before empty-root removal"
+    );
+    assert_eq!(
+        report.status,
+        RunStatus::Stopped,
+        "CLEAN_M35_PURGE: boundary stop status"
+    );
+    assert!(
+        Path::new(&boundary.root()).exists(),
+        "CLEAN_M35_PURGE: removed stopped empty root"
+    );
+}
+
+#[test]
+fn quarantine_inspect_and_list() {
+    let f = QFixture::new("inspect");
+    assert_eq!(
+        list_quarantines(&f.root()).unwrap().state,
+        "absent",
+        "CLEAN_M35_INSPECT: absent"
+    );
+    f.file(".water-quarantine", b"file");
+    assert_eq!(
+        list_quarantines(&f.root()).unwrap().state,
+        "unavailable",
+        "CLEAN_M35_INSPECT: file root"
+    );
+    fs::remove_file(f.base.join(".water-quarantine")).unwrap();
+    let (dir, bytes) = qodd(&f, ".water-quarantine/b-id");
+    f.dir(".water-quarantine/a-id");
+    f.file(".water-quarantine/stray", b"stray");
+    f.dir(".water-quarantine/-invalid");
+    let list = list_quarantines(&f.root()).unwrap();
+    assert_eq!(list.state, "present", "CLEAN_M35_INSPECT: present");
+    assert_eq!(
+        list.quarantines
+            .iter()
+            .map(|q| q.quarantine_id.as_str())
+            .collect::<Vec<_>>(),
+        ["a-id", "b-id"],
+        "CLEAN_M35_INSPECT: sorting"
+    );
+    assert_eq!(list.stray_entries, 2, "CLEAN_M35_INSPECT: strays");
+    assert!(
+        list.quarantines
+            .iter()
+            .all(|q| q.created_at.as_ref().is_some_and(|t| t.len() == 20)),
+        "CLEAN_M35_INSPECT: creation time"
+    );
+    let outside = f.dir("outside");
+    f.file("outside/keep", b"external");
+    f.junction(&dir.join("link"), &outside);
+    let info = inspect(&s(&dir), &StopFlag::default()).unwrap();
+    assert_eq!(
+        info.total_bytes,
+        bytes.to_string(),
+        "CLEAN_M35_INSPECT: logical bytes"
+    );
+    assert_eq!(info.file_count, 7, "CLEAN_M35_INSPECT: file count");
+    assert!(info.dir_count >= 29, "CLEAN_M35_INSPECT: dir count");
+    assert!(
+        info.disk_bytes.parse::<u64>().unwrap() > 0,
+        "CLEAN_M35_INSPECT: allocation"
+    );
+    for name in ["nul", "con.txt", "aux", "a.", "b "] {
+        assert!(
+            info.hard_entries
+                .iter()
+                .any(|e| e.rel == name && e.hints.contains(&LeftoverHint::OddName)),
+            "CLEAN_M35_INSPECT: odd name {name}"
+        );
+    }
+    assert!(
+        info.hard_entries
+            .iter()
+            .any(|e| e.hints.contains(&LeftoverHint::LongPath)),
+        "CLEAN_M35_INSPECT: long path"
+    );
+    assert!(
+        info.hard_entries
+            .iter()
+            .any(|e| e.rel == "readonly" && e.hints.contains(&LeftoverHint::ReadOnly)),
+        "CLEAN_M35_INSPECT: read-only"
+    );
+    assert!(
+        !inspect(&format!("{}\\absent", f.root()), &StopFlag::default())
+            .unwrap()
+            .exists,
+        "CLEAN_M35_INSPECT: gone dir"
+    );
+    for serialized in [
+        quarantine_list_to_json(&list),
+        quarantine_info_to_json(&info),
+    ] {
+        let value: Value = serde_json::from_str(&serialized).unwrap();
+        assert!(value.is_object(), "CLEAN_M35_INSPECT: JSON");
+    }
+    let alternate = QFixture::new("inspect-link");
+    let target = alternate.dir("outside");
+    alternate.junction(&alternate.base.join(".water-quarantine"), &target);
+    assert_eq!(
+        list_quarantines(&alternate.root()).unwrap().state,
+        "unavailable",
+        "CLEAN_M35_INSPECT: linked root"
+    );
+    qroundtrip(&list, quarantine_list_to_json(&list), "CLEAN_M35_INSPECT");
+    qroundtrip(&info, quarantine_info_to_json(&info), "CLEAN_M35_INSPECT");
+    let cloud_dir = f.dir(".water-quarantine/cloud");
+    let cloud = f.file(".water-quarantine/cloud/cloud", b"cloud");
+    set_custom_reparse(&cloud);
+    let cloud_info = inspect(&s(&cloud_dir), &StopFlag::default()).unwrap();
+    assert!(
+        cloud_info
+            .hard_entries
+            .iter()
+            .any(|e| e.hints.contains(&LeftoverHint::Reparse)),
+        "CLEAN_M35_INSPECT: non-name reparse hint"
+    );
+    let blocked_dir = f.dir(".water-quarantine/blocked-info/locked");
+    f.file(".water-quarantine/blocked-info/locked/data", b"unlisted");
+    let lock = OpenOptions::new()
+        .read(true)
+        .custom_flags(0x0200_0000)
+        .share_mode(0)
+        .open(&blocked_dir)
+        .unwrap();
+    let info = inspect(
+        &s(&f.base.join(".water-quarantine\\blocked-info")),
+        &StopFlag::default(),
+    )
+    .unwrap();
+    assert!(
+        info.hard_entries
+            .iter()
+            .any(|e| e.rel == "locked" && e.hints.contains(&LeftoverHint::AccessDenied)),
+        "CLEAN_M35_INSPECT: denied enumeration hint"
+    );
+    drop(lock);
+    let truncated = f.dir(".water-quarantine/truncated");
+    for n in (0..201).rev() {
+        let path = f.file(&format!(".water-quarantine/truncated/f{n:03}"), b"x");
+        let mut permissions = fs::metadata(&path).unwrap().permissions();
+        permissions.set_readonly(true);
+        fs::set_permissions(path, permissions).unwrap();
+    }
+    let info = inspect(&s(&truncated), &StopFlag::default()).unwrap();
+    assert!(
+        info.hard_truncated && info.hard_entries.len() == 200,
+        "CLEAN_M35_INSPECT: hint cap"
+    );
+    assert_eq!(
+        info.file_count, 201,
+        "CLEAN_M35_INSPECT: truncated total count"
+    );
+    assert_eq!(
+        info.total_bytes, "201",
+        "CLEAN_M35_INSPECT: truncated total bytes"
+    );
+    assert!(
+        info.hard_entries
+            .windows(2)
+            .all(|pair| pair[0].rel < pair[1].rel),
+        "CLEAN_M35_INSPECT: hint sort"
+    );
+}
+
 fn b64(bytes: &[u8]) -> String {
     const T: &[u8; 64] = b"ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz0123456789+/";
     let mut out = String::new();

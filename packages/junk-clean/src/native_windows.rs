@@ -1,6 +1,7 @@
 #![deny(unsafe_op_in_unsafe_fn)]
 
-use crate::{CleanError, Identity, ItemReport, ItemStatus, Kind, PlanItem, SkipReason, StopFlag};
+#[cfg(not(windows))]
+use crate::{CleanError, Identity, ItemReport, PlanItem, SkipReason, StopFlag};
 use std::time::SystemTime;
 
 #[derive(Clone, Debug, PartialEq, Eq)]
@@ -24,7 +25,7 @@ pub(crate) struct Snapshot {
 #[cfg(windows)]
 mod windows {
     use super::*;
-    use crate::path;
+    use crate::{path, quarantine::valid_id, time, *};
     use std::{
         ffi::c_void,
         mem::{align_of, size_of},
@@ -178,6 +179,26 @@ mod windows {
             share: u32,
             options: u32,
         ) -> i32;
+        fn NtCreateFile(
+            handle: *mut *mut c_void,
+            access: u32,
+            attributes: *const ObjectAttributes,
+            io: *mut IoStatusBlock,
+            allocation: *const i64,
+            file_attributes: u32,
+            share: u32,
+            disposition: u32,
+            options: u32,
+            ea: *const c_void,
+            ea_length: u32,
+        ) -> i32;
+        fn NtSetInformationFile(
+            handle: *mut c_void,
+            io: *mut IoStatusBlock,
+            information: *const c_void,
+            length: u32,
+            class: i32,
+        ) -> i32;
         fn RtlNtStatusToDosError(status: i32) -> u32;
     }
 
@@ -271,6 +292,16 @@ mod windows {
     }
 
     fn nt_open_at(parent: *mut c_void, seg: &str, access: u32, share: u32) -> Result<Handle, u32> {
+        nt_open_options(parent, seg, access, share, OPTS)
+    }
+
+    fn nt_open_options(
+        parent: *mut c_void,
+        seg: &str,
+        access: u32,
+        share: u32,
+        options: u32,
+    ) -> Result<Handle, u32> {
         let mut name: Vec<u16> = seg.encode_utf16().collect();
         // A real NTFS path component is 1..=255 UTF-16 units. Reject an empty name (length 0
         // would open the parent directory itself instead of a child) and anything longer than 255
@@ -298,7 +329,7 @@ mod windows {
         };
         let mut handle: *mut c_void = ptr::null_mut();
         // SAFETY: oa/io/handle are valid and the single-segment name lives across the call.
-        let status = unsafe { NtOpenFile(&mut handle, access, &oa, &mut io, share, OPTS) };
+        let status = unsafe { NtOpenFile(&mut handle, access, &oa, &mut io, share, options) };
         // Own any returned handle immediately so RAII closes it even on an unusual non-zero
         // status; only status 0 is a success.
         let owned = if handle.is_null() {
@@ -405,6 +436,7 @@ mod windows {
         file_id: [u8; 16],
         size: u64,
         write: i64,
+        created: i64,
     }
 
     // Enumerate one directory handle. Class 20 restarts, class 19 continues; the listing ends
@@ -444,7 +476,7 @@ mod windows {
                 }
                 // SAFETY: [off, off+88) is in-bounds (checked just above); each fixed field is
                 // read unaligned at its SPEC offset from the 8-byte-aligned buffer.
-                let (next, write, size, attr, name_len, tag, file_id) = unsafe {
+                let (next, write, size, attr, name_len, tag, file_id, created) = unsafe {
                     let p = base.add(off);
                     let next = ptr::read_unaligned(p as *const u32) as usize;
                     let write = ptr::read_unaligned(p.add(24) as *const i64);
@@ -454,7 +486,8 @@ mod windows {
                     let tag = ptr::read_unaligned(p.add(68) as *const u32);
                     let mut file_id = [0u8; 16];
                     ptr::copy_nonoverlapping(p.add(72), file_id.as_mut_ptr(), 16);
-                    (next, write, size, attr, name_len, tag, file_id)
+                    let created = ptr::read_unaligned(p.add(8) as *const i64);
+                    (next, write, size, attr, name_len, tag, file_id, created)
                 };
                 // The variable-length name must also lie fully inside the buffer.
                 if off
@@ -495,6 +528,7 @@ mod windows {
                         file_id,
                         size,
                         write,
+                        created,
                     });
                 }
                 if next == 0 {
@@ -535,6 +569,1009 @@ mod windows {
                 size_of::<FileDispositionInfo>() as u32,
             )
         }
+    }
+
+    fn single_name(seg: &str) -> Result<Vec<u16>, u32> {
+        let name: Vec<u16> = seg.encode_utf16().collect();
+        if !(1..=255).contains(&name.len())
+            || seg.contains(['\\', '/', ':', '\0'])
+            || matches!(seg, "." | "..")
+        {
+            return Err(ERR_INVALID_NAME);
+        }
+        Ok(name)
+    }
+
+    fn create_dir_at(parent: &Handle, seg: &str) -> Result<Handle, u32> {
+        let mut name = single_name(seg)?;
+        let mut us = UnicodeString {
+            length: (name.len() * 2) as u16,
+            maximum_length: (name.len() * 2) as u16,
+            buffer: name.as_mut_ptr(),
+        };
+        let oa = ObjectAttributes {
+            length: size_of::<ObjectAttributes>() as u32,
+            root_directory: parent.0,
+            object_name: &mut us,
+            attributes: OBJ_CASE_INSENSITIVE,
+            security_descriptor: ptr::null_mut(),
+            security_qos: ptr::null_mut(),
+        };
+        let mut io = IoStatusBlock {
+            status_or_pointer: 0,
+            information: 0,
+        };
+        let mut raw = ptr::null_mut();
+        // SAFETY: initialized ABI structures, live parent and single-segment name. FILE_CREATE
+        // never opens an existing object; only a directory can be created.
+        let status = unsafe {
+            NtCreateFile(
+                &mut raw,
+                FILE_LIST_DIRECTORY | FILE_READ_ATTRIBUTES | SYNCHRONIZE,
+                &oa,
+                &mut io,
+                ptr::null(),
+                DIRECTORY,
+                SHARE_RW,
+                2,
+                OPTS | 1,
+                ptr::null(),
+                0,
+            )
+        };
+        let owned = (!raw.is_null()).then(|| Handle(raw));
+        if status != 0 {
+            return Err(unsafe { RtlNtStatusToDosError(status) });
+        }
+        owned.ok_or(ERR_INVALID_NAME)
+    }
+
+    fn rename_at(handle: &Handle, parent: &Handle, seg: &str) -> Result<(), u32> {
+        let name = single_name(seg)?;
+        // FILE_RENAME_INFO: BOOLEAN at 0, HANDLE at 8, DWORD length at 16, WCHARs at 20.
+        // Include the fixed structure's trailing WCHAR/padding and a NUL terminator.
+        let size = 24 + name.len() * 2;
+        let mut buf = vec![0u64; size.div_ceil(8)];
+        let base = buf.as_mut_ptr().cast::<u8>();
+        // SAFETY: 8-byte aligned initialized buffer, with room for the variable UTF-16 tail.
+        unsafe {
+            ptr::write(base, 0u8); // ReplaceIfExists: never overwrite.
+            ptr::write(base.add(8).cast::<*mut c_void>(), parent.0);
+            ptr::write(base.add(16).cast::<u32>(), (name.len() * 2) as u32);
+            ptr::copy_nonoverlapping(name.as_ptr(), base.add(20).cast::<u16>(), name.len());
+        }
+        let mut io = IoStatusBlock {
+            status_or_pointer: 0,
+            information: 0,
+        };
+        // SAFETY: class 10 reads the aligned FILE_RENAME_INFORMATION buffer above.
+        // Source and target-parent handles are live across this synchronous operation.
+        let status =
+            unsafe { NtSetInformationFile(handle.0, &mut io, base.cast(), size as u32, 10) };
+        if status == 0 {
+            Ok(())
+        } else {
+            // SAFETY: pure translation of the returned NT status.
+            Err(unsafe { RtlNtStatusToDosError(status) })
+        }
+    }
+
+    fn last_error() -> u32 {
+        std::io::Error::last_os_error().raw_os_error().unwrap_or(1) as u32
+    }
+
+    #[derive(Debug)]
+    enum ChainError {
+        Missing,
+        Reparse,
+        Other(u32),
+    }
+    fn chain_error(code: u32) -> ChainError {
+        if matches!(code, 2 | 3) {
+            ChainError::Missing
+        } else {
+            ChainError::Other(code)
+        }
+    }
+    fn plain(handle: &Handle) -> Result<(), ChainError> {
+        let (attr, _) = attr_tag(handle).ok_or(ChainError::Other(last_error()))?;
+        if attr & REPARSE != 0 {
+            Err(ChainError::Reparse)
+        } else if attr & DIRECTORY == 0 {
+            Err(ChainError::Other(267))
+        } else {
+            Ok(())
+        }
+    }
+
+    // Each ancestor remains open without delete sharing until its descendants are closed.
+    fn open_chain(name: &str, delete_last: bool) -> Result<FrameStack<Handle>, ChainError> {
+        directory_chain(name, None, delete_last)
+    }
+    fn directory_chain(
+        name: &str,
+        create_from: Option<usize>,
+        delete_last: bool,
+    ) -> Result<FrameStack<Handle>, ChainError> {
+        let mut handles = FrameStack::new();
+        let root = open_root(&name[..3]).ok_or_else(|| ChainError::Other(last_error()))?;
+        plain(&root)?;
+        handles.push(root);
+        if name.len() == 3 {
+            return Ok(handles);
+        }
+        let parts: Vec<&str> = name[3..].split('\\').collect();
+        for (i, part) in parts.iter().enumerate() {
+            let access = FILE_LIST_DIRECTORY
+                | FILE_READ_ATTRIBUTES
+                | 0x20 // FILE_TRAVERSE: relative rename target directories.
+                | SYNCHRONIZE
+                | if delete_last && i + 1 == parts.len() {
+                    DELETE
+                } else {
+                    0
+                };
+            let parent = handles.last().unwrap();
+            let next = match nt_open(parent, part, access, SHARE_RW) {
+                Ok(h) => h,
+                Err(2 | 3) if create_from.is_some_and(|start| i >= start) => {
+                    match create_dir_at(parent, part) {
+                        Ok(h) => h,
+                        // A concurrent creator is allowed only after a fresh no-follow open.
+                        Err(80 | 183) => {
+                            nt_open(parent, part, access, SHARE_RW).map_err(chain_error)?
+                        }
+                        Err(e) => return Err(chain_error(e)),
+                    }
+                }
+                Err(e) => return Err(chain_error(e)),
+            };
+            plain(&next)?;
+            handles.push(next);
+        }
+        Ok(handles)
+    }
+
+    fn move_error(code: u32) -> MoveError {
+        match code {
+            17 => MoveError::NotSameVolume,
+            80 | 183 => MoveError::DestinationExists,
+            5 | 32 | 33 => MoveError::Locked,
+            _ => MoveError::Other,
+        }
+    }
+
+    #[allow(clippy::too_many_arguments)]
+    pub(crate) fn move_to_quarantine(
+        plan: &CleanPlan,
+        item: &PlanItem,
+        root: &str,
+        id: &str,
+        before: &Snapshot,
+        guard: &dyn ItemGuard,
+        guard_ids: &[Identity],
+        protected_ids: &[(String, Identity)],
+        journal: &mut dyn std::io::Write,
+        stop: &StopFlag,
+        now: SystemTime,
+    ) -> Result<MoveReport, CleanError> {
+        let mut result = MoveReport {
+            item_id: item.item_id.clone(),
+            status: MoveStatus::Failed,
+            skip_reason: None,
+            move_error: None,
+            error_code: None,
+            destination: None,
+            identity: None,
+            bytes: before.bytes.to_string(),
+        };
+        let dest = format!("{root}\\{id}\\{}", &item.path[3..]);
+        let (dest_parent, dest_name) = dest.rsplit_once('\\').ok_or(CleanError::InvalidPlan)?;
+        let start = root[3..].split('\\').count() - 1;
+        let qroot_chain = match directory_chain(root, Some(start), false) {
+            Ok(h) => h,
+            Err(e) => {
+                result.move_error = Some(MoveError::QuarantineUnavailable);
+                result.error_code = match e {
+                    ChainError::Other(c) => Some(c),
+                    _ => None,
+                };
+                return Ok(result);
+            }
+        };
+        match identity_from(qroot_chain.last().unwrap()) {
+            Some(actual) if actual.volume_serial == item.identity.volume_serial => {}
+            Some(_) => {
+                result.move_error = Some(MoveError::NotSameVolume);
+                return Ok(result);
+            }
+            None => {
+                result.move_error = Some(MoveError::QuarantineUnavailable);
+                result.error_code = Some(last_error());
+                return Ok(result);
+            }
+        }
+        let dest_chain = match directory_chain(dest_parent, Some(start), false) {
+            Ok(h) => h,
+            Err(e) => {
+                result.move_error = Some(MoveError::QuarantineUnavailable);
+                result.error_code = match e {
+                    ChainError::Other(c) => Some(c),
+                    _ => None,
+                };
+                return Ok(result);
+            }
+        };
+        let source_parent = item.path.rsplit_once('\\').unwrap().0;
+        let source_chain = match open_chain(
+            if source_parent.len() == 2 {
+                &item.path[..3]
+            } else {
+                source_parent
+            },
+            false,
+        ) {
+            Ok(h) => h,
+            Err(_) => {
+                result.status = MoveStatus::Skipped;
+                result.skip_reason = Some(SkipReason::Changed);
+                return Ok(result);
+            }
+        };
+        crate::journal_line(
+            journal,
+            serde_json::json!({
+                "journal_version":"water.quarantine-journal.v1", "event":"intent", "quarantine_id":id,
+                "item_id":item.item_id, "path":item.path, "destination":dest, "at": time::format(SystemTime::now())?
+            }),
+        )?;
+        // Revalidate the snapshot and all guards after the external journal/guard callbacks.
+        match crate::preflight(plan, item, guard, now, guard_ids, protected_ids) {
+            Ok(fresh) if &fresh == before => {}
+            other => {
+                result.status = MoveStatus::Skipped;
+                result.skip_reason = Some(other.err().unwrap_or(SkipReason::Changed));
+            }
+        }
+        if stop.is_stopped() {
+            result.status = MoveStatus::Skipped;
+            result.skip_reason = Some(SkipReason::Cancelled);
+        }
+        if result.skip_reason.is_none() {
+            let moved = nt_open(
+                source_chain.last().unwrap(),
+                last_segment(&item.path),
+                DELETE | FILE_READ_ATTRIBUTES | SYNCHRONIZE,
+                SHARE_RWD,
+            )
+            .and_then(|handle| {
+                if identity_from(&handle).as_ref() != Some(&item.identity) {
+                    return Ok(None);
+                }
+                if attr_tag(&handle).is_none_or(|(attr, _)| {
+                    attr & REPARSE != 0 || (attr & DIRECTORY != 0) != (item.kind == Kind::Dir)
+                }) {
+                    return Ok(None);
+                }
+                rename_at(&handle, dest_chain.last().unwrap(), dest_name)?;
+                // A rename preserves this live handle's identity. Read it again after the move;
+                // an attribute-query failure must never turn an actual move into a failed move.
+                Ok(Some(
+                    identity_from(&handle).unwrap_or_else(|| item.identity.clone()),
+                ))
+            });
+            match moved {
+                Ok(Some(actual)) => {
+                    result.status = MoveStatus::Moved;
+                    result.identity = Some(actual);
+                    result.destination = Some(dest);
+                }
+                Ok(None) => {
+                    result.status = MoveStatus::Skipped;
+                    result.skip_reason = Some(SkipReason::Changed);
+                }
+                Err(code) => {
+                    result.move_error = Some(move_error(code));
+                    result.error_code = Some(code);
+                }
+            }
+        }
+        crate::journal_line(
+            journal,
+            serde_json::json!({
+                "journal_version":"water.quarantine-journal.v1", "event": if result.status == MoveStatus::Moved { "moved" } else { "failed" },
+                "quarantine_id": id, "item_id":item.item_id, "path":item.path, "move_error":result.move_error,
+                "at":time::format(SystemTime::now())?
+            }),
+        )?;
+        Ok(result)
+    }
+
+    // Only empty skeleton directories are removed, never their contents. Stop at the qroot.
+    fn remove_empty_up(start: &str, dir: &str, root: &str) -> (bool, bool) {
+        let mut next = start.to_owned();
+        let (mut dir_removed, mut root_removed) = (false, false);
+        while path::contains(root, &next) {
+            let chain = match open_chain(&next, true) {
+                Ok(h) => h,
+                Err(_) => break,
+            };
+            let handle = chain.last().unwrap();
+            if !enumerate(handle).is_ok_and(|kids| kids.is_empty()) || !set_delete(handle) {
+                break;
+            }
+            dir_removed |= next.eq_ignore_ascii_case(dir);
+            root_removed |= next.eq_ignore_ascii_case(root);
+            drop(chain);
+            if next.eq_ignore_ascii_case(root) {
+                break;
+            }
+            next = next.rsplit_once('\\').unwrap().0.to_owned();
+        }
+        (dir_removed, root_removed)
+    }
+
+    fn restore_error(code: u32) -> RestoreError {
+        match code {
+            17 => RestoreError::NotSameVolume,
+            80 | 183 => RestoreError::DestinationExists,
+            5 | 32 | 33 => RestoreError::Locked,
+            _ => RestoreError::Other,
+        }
+    }
+    pub(crate) fn restore_quarantine(
+        dir: &str,
+        requests: &[RestoreRequest],
+        stop: &StopFlag,
+        now: SystemTime,
+    ) -> Result<RestoreReport, CleanError> {
+        let root = crate::quarantine::validate_dir(dir)?;
+        let mut report = RestoreReport {
+            report_version: "water.restore-report.v1".into(),
+            quarantine_dir: dir.into(),
+            started_at: time::format(now)?,
+            ended_at: String::new(),
+            status: RunStatus::Completed,
+            items: Vec::new(),
+            dir_removed: false,
+            root_removed: false,
+        };
+        for request in requests {
+            let mut result = RestoreItem {
+                rel: request.rel.clone(),
+                status: RestoreStatus::Failed,
+                reason: None,
+                error_code: None,
+            };
+            if stop.is_stopped() {
+                result.status = RestoreStatus::Skipped;
+                result.reason = Some(RestoreError::Cancelled);
+                report.status = RunStatus::Stopped;
+            } else {
+                let source = format!("{dir}\\{}", request.rel);
+                let source_parent = source.rsplit_once('\\').unwrap().0;
+                let destination = request
+                    .to
+                    .clone()
+                    .unwrap_or_else(|| format!("{}{}", path::volume(dir), request.rel));
+                let parent = destination.rsplit_once('\\').unwrap().0;
+                let operation = (|| -> Result<(), (RestoreError, Option<u32>)> {
+                    let chain = open_chain(source_parent, false).map_err(|e| match e {
+                        ChainError::Missing => (RestoreError::Gone, None),
+                        ChainError::Reparse => (RestoreError::ParentReparse, None),
+                        ChainError::Other(c) => (restore_error(c), Some(c)),
+                    })?;
+                    let source_handle = nt_open(
+                        chain.last().unwrap(),
+                        last_segment(&source),
+                        DELETE | FILE_READ_ATTRIBUTES | SYNCHRONIZE,
+                        SHARE_RWD,
+                    )
+                    .map_err(|c| {
+                        (
+                            if matches!(c, 2 | 3) {
+                                RestoreError::Gone
+                            } else {
+                                restore_error(c)
+                            },
+                            Some(c),
+                        )
+                    })?;
+                    if identity_from(&source_handle).as_ref() != Some(&request.identity) {
+                        return Err((RestoreError::Changed, None));
+                    }
+                    let parents = directory_chain(
+                        if parent.len() == 2 {
+                            &destination[..3]
+                        } else {
+                            parent
+                        },
+                        Some(0),
+                        false,
+                    )
+                    .map_err(|e| match e {
+                        ChainError::Reparse => (RestoreError::ParentReparse, None),
+                        ChainError::Other(c) => (restore_error(c), Some(c)),
+                        ChainError::Missing => (RestoreError::Other, None),
+                    })?;
+                    if stop.is_stopped() {
+                        return Err((RestoreError::Cancelled, None));
+                    }
+                    rename_at(
+                        &source_handle,
+                        parents.last().unwrap(),
+                        last_segment(&destination),
+                    )
+                    .map_err(|c| (restore_error(c), Some(c)))
+                })();
+                match operation {
+                    Ok(()) => {
+                        result.status = RestoreStatus::Restored;
+                        let (d, r) = remove_empty_up(source_parent, dir, root);
+                        report.dir_removed |= d;
+                        report.root_removed |= r;
+                    }
+                    Err((reason, code)) => {
+                        if matches!(
+                            reason,
+                            RestoreError::Gone | RestoreError::Changed | RestoreError::Cancelled
+                        ) {
+                            result.status = RestoreStatus::Skipped;
+                        }
+                        if reason == RestoreError::Cancelled {
+                            report.status = RunStatus::Stopped;
+                        }
+                        result.reason = Some(reason);
+                        result.error_code = code;
+                    }
+                }
+            }
+            report.items.push(result);
+        }
+        report.ended_at = time::format(SystemTime::now())?;
+        Ok(report)
+    }
+
+    pub(crate) fn list_quarantines(root: &str) -> Result<QuarantineList, CleanError> {
+        let mut list = QuarantineList {
+            list_version: "water.quarantine-list.v1".into(),
+            root: root.into(),
+            state: "present".into(),
+            quarantines: Vec::new(),
+            stray_entries: 0,
+        };
+        let chain = match open_chain(root, false) {
+            Ok(h) => h,
+            Err(ChainError::Missing) => {
+                list.state = "absent".into();
+                return Ok(list);
+            }
+            Err(_) => {
+                list.state = "unavailable".into();
+                return Ok(list);
+            }
+        };
+        let kids = match enumerate(chain.last().unwrap()) {
+            Ok(k) => k,
+            Err(_) => {
+                list.state = "unavailable".into();
+                return Ok(list);
+            }
+        };
+        for child in kids {
+            if child.name_ok
+                && valid_id(&child.name)
+                && child.attr & DIRECTORY != 0
+                && child.attr & REPARSE == 0
+            {
+                list.quarantines.push(QuarantineSummary {
+                    dir: format!("{root}\\{}", child.name),
+                    quarantine_id: child.name,
+                    created_at: filetime(child.created).and_then(|t| time::format(t).ok()),
+                });
+            } else {
+                list.stray_entries += 1;
+            }
+        }
+        list.quarantines
+            .sort_by(|a, b| a.quarantine_id.cmp(&b.quarantine_id));
+        Ok(list)
+    }
+
+    fn odd_name(name: &str) -> bool {
+        // path::validate deliberately rejects all DOS device spellings and trailing dot/space.
+        path::validate(&format!("X:\\{name}")).is_err()
+    }
+    struct ReadFrame {
+        handle: Handle,
+        rel: String,
+        kids: Vec<Raw>,
+        index: usize,
+    }
+    fn add_hint(info: &mut QuarantineInfo, entry: HintEntry) {
+        if info.hard_entries.len() < 200 {
+            info.hard_entries.push(entry);
+        } else {
+            info.hard_truncated = true;
+        }
+    }
+    pub(crate) fn inspect_quarantine(
+        dir: &str,
+        stop: &StopFlag,
+    ) -> Result<QuarantineInfo, CleanError> {
+        let mut result = QuarantineInfo {
+            info_version: "water.quarantine-info.v1".into(),
+            dir: dir.into(),
+            quarantine_id: last_segment(dir).into(),
+            exists: true,
+            total_bytes: "0".into(),
+            disk_bytes: "0".into(),
+            file_count: 0,
+            dir_count: 0,
+            hard_entries: Vec::new(),
+            hard_truncated: false,
+        };
+        let mut chain = match open_chain(dir, false) {
+            Ok(h) => h,
+            Err(ChainError::Missing) => {
+                result.exists = false;
+                return Ok(result);
+            }
+            Err(ChainError::Reparse) => return Err(CleanError::InvalidPlan),
+            Err(ChainError::Other(_)) => {
+                add_hint(
+                    &mut result,
+                    HintEntry {
+                        rel: String::new(),
+                        kind: Kind::Dir,
+                        bytes: "0".into(),
+                        hints: vec![LeftoverHint::AccessDenied],
+                    },
+                );
+                return Ok(result);
+            }
+        };
+        let mut stack: FrameStack<ReadFrame> = FrameStack::new();
+        let mut bytes = 0u64;
+        let mut disk = 0u64;
+        let initial = enumerate(chain.last().unwrap());
+        if initial.is_err() {
+            add_hint(
+                &mut result,
+                HintEntry {
+                    rel: String::new(),
+                    kind: Kind::Dir,
+                    bytes: "0".into(),
+                    hints: vec![LeftoverHint::AccessDenied],
+                },
+            );
+        }
+        let mut kids = initial.unwrap_or_default();
+        kids.sort_by(|a, b| a.name.cmp(&b.name));
+        stack.push(ReadFrame {
+            handle: chain.pop().unwrap(),
+            rel: String::new(),
+            kids,
+            index: 0,
+        });
+        while !stop.is_stopped() {
+            let (base, raw, parent) = if let Some(frame) = stack.last_mut() {
+                if frame.index == frame.kids.len() {
+                    stack.pop();
+                    continue;
+                }
+                let raw = frame.kids[frame.index].clone();
+                frame.index += 1;
+                (frame.rel.clone(), raw, &frame.handle)
+            } else {
+                break;
+            };
+            let rel = if base.is_empty() {
+                raw.name.clone()
+            } else {
+                format!("{base}\\{}", raw.name)
+            };
+            let is_dir = raw.attr & DIRECTORY != 0;
+            if is_dir {
+                result.dir_count += 1;
+            } else {
+                result.file_count += 1;
+            }
+            let size = if raw.attr & REPARSE == 0 && !is_dir {
+                raw.size
+            } else {
+                0
+            };
+            bytes = bytes.checked_add(size).ok_or(CleanError::Overflow)?;
+            let mut hints = Vec::new();
+            if !raw.name_ok || odd_name(&raw.name) {
+                hints.push(LeftoverHint::OddName);
+            }
+            if dir.encode_utf16().count() + 1 + rel.encode_utf16().count() > 259 {
+                hints.push(LeftoverHint::LongPath);
+            }
+            if raw.attr & 1 != 0 {
+                hints.push(LeftoverHint::ReadOnly);
+            }
+            if raw.attr & REPARSE != 0 && raw.tag & NAME_SURROGATE == 0 {
+                hints.push(LeftoverHint::Reparse);
+            }
+            let mut descend = None;
+            if raw.name_ok && raw.attr & REPARSE == 0 {
+                let access = FILE_READ_ATTRIBUTES
+                    | SYNCHRONIZE
+                    | if is_dir { FILE_LIST_DIRECTORY } else { 0 };
+                match nt_open(parent, &raw.name, access, SHARE_RWD) {
+                    Ok(handle) => {
+                        if file_id(&handle) != Some(raw.file_id)
+                            || attr_tag(&handle).is_none_or(|(a, _)| a & REPARSE != 0)
+                        {
+                            hints.push(LeftoverHint::AccessDenied);
+                        } else if is_dir {
+                            match enumerate(&handle) {
+                                Ok(mut children) => {
+                                    children.sort_by(|a, b| a.name.cmp(&b.name));
+                                    descend = Some(ReadFrame {
+                                        handle,
+                                        rel: rel.clone(),
+                                        kids: children,
+                                        index: 0,
+                                    });
+                                }
+                                Err(_) => hints.push(LeftoverHint::AccessDenied),
+                            }
+                        } else {
+                            let mut standard = FileStandardInfo {
+                                allocation: 0,
+                                end_of_file: 0,
+                                links: 0,
+                                delete_pending: 0,
+                                directory: 0,
+                            };
+                            if info(&handle, 1, &mut standard) {
+                                disk = disk
+                                    .checked_add(standard.allocation.max(0) as u64)
+                                    .ok_or(CleanError::Overflow)?;
+                            } else {
+                                hints.push(LeftoverHint::AccessDenied);
+                            }
+                        }
+                    }
+                    Err(_) => hints.push(LeftoverHint::AccessDenied),
+                }
+            }
+            if !hints.is_empty() {
+                add_hint(
+                    &mut result,
+                    HintEntry {
+                        rel,
+                        kind: if is_dir { Kind::Dir } else { Kind::File },
+                        bytes: size.to_string(),
+                        hints,
+                    },
+                );
+            }
+            if let Some(frame) = descend {
+                stack.push(frame);
+            }
+        }
+        result.total_bytes = bytes.to_string();
+        result.disk_bytes = disk.to_string();
+        result.hard_entries.sort_by(|a, b| a.rel.cmp(&b.rel));
+        Ok(result)
+    }
+
+    fn purge_open(parent: &Handle, seg: &str, directory: bool) -> Result<Handle, u32> {
+        nt_open_options(
+            parent.0,
+            seg,
+            DELETE
+                | FILE_READ_ATTRIBUTES
+                | SYNCHRONIZE
+                | if directory { FILE_LIST_DIRECTORY } else { 0 },
+            SHARE_RWD,
+            OPTS,
+        )
+    }
+    struct PurgeFrame {
+        handle: Handle,
+        rel: String,
+        kids: Vec<Raw>,
+        index: usize,
+        blocked: bool,
+        delete_error: Option<u32>,
+    }
+    struct Purging<'a> {
+        report: &'a mut PurgeReport,
+        observer: &'a dyn PurgeObserver,
+        freed: u64,
+        leftovers_count: u64,
+    }
+    impl Purging<'_> {
+        fn leftover(
+            &mut self,
+            rel: String,
+            kind: Kind,
+            size: u64,
+            reason: LeftoverReason,
+            code: Option<u32>,
+        ) {
+            self.leftovers_count += 1;
+            let value = Leftover {
+                rel,
+                kind,
+                bytes: size.to_string(),
+                reason,
+                error_code: code,
+            };
+            // Keep the first 200 in lexicographic order even when enumeration isn't sorted.
+            self.report.leftovers.push(value);
+            self.report.leftovers.sort_by(|a, b| a.rel.cmp(&b.rel));
+            if self.report.leftovers.len() > 200 {
+                self.report.leftovers.pop();
+                self.report.leftovers_truncated = true;
+            }
+        }
+        fn error(&mut self, rel: String, kind: Kind, size: u64, code: u32) {
+            let reason = match code {
+                32 | 33 => LeftoverReason::InUse,
+                5 => LeftoverReason::AccessDenied,
+                _ => LeftoverReason::Other,
+            };
+            self.leftover(rel, kind, size, reason, Some(code));
+        }
+        fn removed(&mut self, size: u64) -> Result<(), CleanError> {
+            self.report.removed_entries = self
+                .report
+                .removed_entries
+                .checked_add(1)
+                .ok_or(CleanError::Overflow)?;
+            self.freed = self.freed.checked_add(size).ok_or(CleanError::Overflow)?;
+            if self.report.removed_entries.is_multiple_of(256) {
+                self.observer
+                    .on_progress(self.report.removed_entries, self.freed);
+            }
+            Ok(())
+        }
+    }
+    pub(crate) fn purge_quarantine(
+        dir: &str,
+        journal: &mut dyn std::io::Write,
+        stop: &StopFlag,
+        observer: &dyn PurgeObserver,
+        now: SystemTime,
+    ) -> Result<PurgeReport, CleanError> {
+        let root = crate::quarantine::validate_dir(dir)?;
+        // Reject every reparse ancestor before writing intent or deleting any object.
+        let mut chain = open_chain(dir, false).map_err(|_| CleanError::InvalidPlan)?;
+        let probe = chain.pop().ok_or(CleanError::InvalidPlan)?;
+        let expected = identity_from(&probe).ok_or(CleanError::Native)?;
+        drop(probe);
+        let parent = chain.last().ok_or(CleanError::InvalidPlan)?;
+        let (handle, delete_error) = match purge_open(parent, last_segment(dir), true) {
+            Ok(h) => (h, None),
+            Err(code) => (
+                nt_open(
+                    parent,
+                    last_segment(dir),
+                    FILE_LIST_DIRECTORY | FILE_READ_ATTRIBUTES | SYNCHRONIZE,
+                    SHARE_RW,
+                )
+                .map_err(|_| CleanError::Native)?,
+                Some(code),
+            ),
+        };
+        plain(&handle).map_err(|_| CleanError::InvalidPlan)?;
+        if identity_from(&handle).as_ref() != Some(&expected) {
+            return Err(CleanError::InvalidPlan);
+        }
+        let drive = path::volume(dir);
+        let mut report = PurgeReport {
+            report_version: "water.purge-report.v1".into(),
+            quarantine_dir: dir.into(),
+            started_at: time::format(now)?,
+            ended_at: String::new(),
+            status: RunStatus::Completed,
+            volume: VolumeReport {
+                root: drive.clone(),
+                free_before: volume_free(&drive)?.to_string(),
+                free_after: String::new(),
+            },
+            freed_bytes: "0".into(),
+            removed_entries: 0,
+            remaining_entries: 0,
+            remaining_bytes: "0".into(),
+            leftovers: Vec::new(),
+            leftovers_truncated: false,
+            dir_removed: false,
+            root_removed: false,
+        };
+        crate::journal_line(
+            journal,
+            serde_json::json!({"journal_version":"water.purge-journal.v1", "event":"intent", "quarantine_dir":dir, "at":time::format(now)?}),
+        )?;
+        let mut stack: FrameStack<PurgeFrame> = FrameStack::new();
+        let mut ctx = Purging {
+            report: &mut report,
+            observer,
+            freed: 0,
+            leftovers_count: 0,
+        };
+        let kids = match enumerate(&handle) {
+            Ok(k) => k,
+            Err(_) => {
+                ctx.error(String::new(), Kind::Dir, 0, last_error());
+                Vec::new()
+            }
+        };
+        stack.push(PurgeFrame {
+            handle,
+            rel: String::new(),
+            kids,
+            index: 0,
+            blocked: ctx.leftovers_count != 0,
+            delete_error,
+        });
+        while !stack.is_empty() {
+            if stop.is_stopped() {
+                ctx.report.status = RunStatus::Stopped;
+                break;
+            }
+            let frame = stack.last_mut().unwrap();
+            if frame.index == frame.kids.len() {
+                let frame = stack.pop().unwrap();
+                if !frame.blocked {
+                    if let Some(code) = frame.delete_error {
+                        ctx.error(frame.rel.clone(), Kind::Dir, 0, code);
+                        if let Some(parent) = stack.last_mut() {
+                            parent.blocked = true;
+                        }
+                    } else if set_delete(&frame.handle) {
+                        if frame.rel.is_empty() {
+                            ctx.report.dir_removed = true;
+                        }
+                        drop(frame);
+                        ctx.removed(0)?;
+                    } else {
+                        ctx.error(frame.rel.clone(), Kind::Dir, 0, last_error());
+                        if let Some(parent) = stack.last_mut() {
+                            parent.blocked = true;
+                        }
+                    }
+                } else if let Some(parent) = stack.last_mut() {
+                    parent.blocked = true;
+                }
+                continue;
+            }
+            let raw = frame.kids[frame.index].clone();
+            frame.index += 1;
+            let rel = if frame.rel.is_empty() {
+                raw.name.clone()
+            } else {
+                format!("{}\\{}", frame.rel, raw.name)
+            };
+            let kind = if raw.attr & DIRECTORY != 0 {
+                Kind::Dir
+            } else {
+                Kind::File
+            };
+            let size = if raw.attr & (REPARSE | DIRECTORY) == 0 {
+                raw.size
+            } else {
+                0
+            };
+            if !raw.name_ok {
+                ctx.error(rel, kind, size, ERR_INVALID_NAME);
+                frame.blocked = true;
+                continue;
+            }
+            if raw.attr & REPARSE != 0 && raw.tag & NAME_SURROGATE == 0 {
+                ctx.leftover(rel, kind, size, LeftoverReason::Reparse, None);
+                frame.blocked = true;
+                continue;
+            }
+            let handle = match purge_open(&frame.handle, &raw.name, raw.attr & DIRECTORY != 0) {
+                Ok(h) => h,
+                Err(c) => {
+                    ctx.error(rel, kind, size, c);
+                    frame.blocked = true;
+                    continue;
+                }
+            };
+            let (attr, tag) = match attr_tag(&handle) {
+                Some(a) => a,
+                None => {
+                    ctx.error(rel, kind, size, last_error());
+                    frame.blocked = true;
+                    continue;
+                }
+            };
+            if file_id(&handle) != Some(raw.file_id)
+                || (attr & (DIRECTORY | REPARSE)) != (raw.attr & (DIRECTORY | REPARSE))
+            {
+                ctx.error(rel, kind, size, 1);
+                frame.blocked = true;
+                continue;
+            }
+            if attr & REPARSE != 0 && tag & NAME_SURROGATE == 0 {
+                ctx.leftover(rel, kind, size, LeftoverReason::Reparse, None);
+                frame.blocked = true;
+                continue;
+            }
+            if attr & DIRECTORY != 0 && attr & REPARSE == 0 {
+                match enumerate(&handle) {
+                    Ok(kids) => stack.push(PurgeFrame {
+                        handle,
+                        rel,
+                        kids,
+                        index: 0,
+                        blocked: false,
+                        delete_error: None,
+                    }),
+                    Err(_) => {
+                        ctx.error(rel, kind, size, last_error());
+                        frame.blocked = true;
+                    }
+                }
+            } else {
+                let freed = if attr & REPARSE != 0 {
+                    Some(0)
+                } else {
+                    standard_info(&handle).map(|(n, links)| if links == 1 { n } else { 0 })
+                };
+                match freed {
+                    Some(n) if set_delete(&handle) => {
+                        drop(handle);
+                        ctx.removed(n)?;
+                    }
+                    _ => {
+                        ctx.error(rel, kind, size, last_error());
+                        frame.blocked = true;
+                    }
+                }
+            }
+        }
+        drop(stack);
+        drop(chain);
+        let freed = ctx.freed;
+        ctx.report.freed_bytes = freed.to_string();
+        if stop.is_stopped() {
+            ctx.report.status = RunStatus::Stopped;
+        }
+        if ctx.report.dir_removed && !stop.is_stopped() {
+            let (_, removed) = remove_empty_up(root, dir, root);
+            ctx.report.root_removed = removed;
+        } else if !ctx.report.dir_removed {
+            // Remaining totals are measured without stop filtering; stop only forbids mutation.
+            let remaining = inspect_quarantine(dir, &StopFlag::default())?;
+            ctx.report.remaining_entries = remaining
+                .file_count
+                .checked_add(remaining.dir_count)
+                .ok_or(CleanError::Overflow)?;
+            ctx.report.remaining_bytes = remaining.total_bytes;
+            if ctx
+                .report
+                .leftovers
+                .iter()
+                .any(|entry| entry.rel.is_empty())
+            {
+                ctx.report.remaining_entries = ctx
+                    .report
+                    .remaining_entries
+                    .checked_add(1)
+                    .ok_or(CleanError::Overflow)?;
+            }
+        }
+        ctx.report.volume.free_after = volume_free(&drive)?.to_string();
+        ctx.report.ended_at = time::format(SystemTime::now())?;
+        observer.on_progress(ctx.report.removed_entries, freed);
+        crate::journal_line(
+            journal,
+            serde_json::json!({"journal_version":"water.purge-journal.v1", "event":"done", "quarantine_dir":dir,
+            "removed_entries":ctx.report.removed_entries, "freed_bytes":ctx.report.freed_bytes, "remaining_entries":ctx.report.remaining_entries, "remaining_bytes":ctx.report.remaining_bytes,
+            "at":ctx.report.ended_at}),
+        )?;
+        Ok(report)
     }
 
     pub(crate) fn identity(name: &str) -> Result<Identity, CleanError> {
@@ -720,12 +1757,17 @@ mod windows {
         item: &PlanItem,
         guard_ids: &[Identity],
         protected_ids: &[Identity],
+        ancestor_protected_ids: &[Identity],
+        unlocked_guard_ids: &[Identity],
     ) -> Result<Snapshot, SkipReason> {
         let walked = walk_item(item)?;
         // An opened ancestor (including the drive root) sharing a protected identity means the
         // item sits inside protected data.
         for ancestor in &walked.ancestors {
-            if protected_ids.contains(ancestor) {
+            if unlocked_guard_ids.contains(ancestor) {
+                return Err(SkipReason::Guarded);
+            }
+            if ancestor_protected_ids.contains(ancestor) {
                 return Err(SkipReason::ProtectedOverlap); // CLEAN_GUARD_ID
             }
         }
@@ -1494,7 +2536,10 @@ mod windows {
 }
 
 #[cfg(windows)]
-pub(crate) use windows::{check_chain, delete, identity, resolve_follow, snapshot, volume_free};
+pub(crate) use windows::{
+    check_chain, delete, identity, inspect_quarantine, list_quarantines, move_to_quarantine,
+    purge_quarantine, resolve_follow, restore_quarantine, snapshot, volume_free,
+};
 
 #[cfg(not(windows))]
 pub(crate) fn identity(_: &str) -> Result<Identity, CleanError> {
@@ -1515,6 +2560,8 @@ pub(crate) fn check_chain(_: &PlanItem) -> Result<(), SkipReason> {
 #[cfg(not(windows))]
 pub(crate) fn snapshot(
     _: &PlanItem,
+    _: &[Identity],
+    _: &[Identity],
     _: &[Identity],
     _: &[Identity],
 ) -> Result<Snapshot, SkipReason> {
