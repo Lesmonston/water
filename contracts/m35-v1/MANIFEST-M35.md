@@ -1,6 +1,6 @@
 # MANIFEST-M35：项目清理声明与工作树登记（W10-M3）
 
-**草案，未冻结**（2026-11-02，总控 Claude 起草；与 RULES-M35、SCAN-M35 等一起冻结）。新建 `packages/cleanup-manifest/`，只改这个目录。
+2026-11-05，总控（Claude）冻结（11-02 起草，11-05 按通读结果修订）。新建 `packages/cleanup-manifest/`，只改这个目录。
 
 来由：[ADR-019](../../docs/decisions/ADR-019-project-declarations-and-quarantine.md) 第 1、2 节（用户 11-02 拍板），[第十波计划](../../docs/dispatch/wave10/PLAN.md)第 2 节第 23、57、60 行，[第九波计划](../../docs/dispatch/wave9/PLAN.md) 4.4 节。
 
@@ -52,9 +52,11 @@
 | `id` | 是 | 1～48 个 `[a-z0-9-]`，整份文件内不重复 |
 | `title` | 是 | 1～60 字符 |
 | `paths` | 是 | 1～16 个路径模式 |
-| `when` | 是 | `always`、`older-than-N-days`（N 为 1～3650，不带前导零）、`sibling-complete-file-exists` |
+| `when` | 是 | `always`、`older-than-N-days`（N 为 1～365，不带前导零）、`sibling-complete-file-exists` |
 | `kind` | 否 | `leak`、`cache`、`build`、`download`、`test`、`other`（缺省） |
-| `keepNewest` | 否 | 0～100，缺省 0 |
+| `keepNewest` | 否 | 0～8，缺省 0 |
+
+（N 与 `keepNewest` 的上限照服务的计划类型——规则包的 `ScanPlan` 只接受 `min_age_hours` ≤ 8760、`keep_newest` ≤ 8。）
 | `ask` | 否 | 布尔，缺省 false；true 为“需要确认”，否则为“推荐清理” |
 | `producer` | 否 | 0～200 字符，只显示 |
 | `fixedIn` | 否 | 字符串（0～200 字符）或 `null`，只显示 |
@@ -79,11 +81,11 @@ pub fn to_targets(manifest: &Manifest, dir: &str, trusted: bool) -> Vec<serde_js
 ```
 
 - `trusted` 为 false 时返回空数组（不信任的声明只有 `protected` 生效，见第 5 节）。
-- `dir` 是声明所在目录的绝对路径。`key` = `dir` 的 ASCII 小写。
-- `disposable` 第 i 项的第 j 个模式（j 从 1 起）生成一个目标，键的顺序与值如下，取缺省值的键不省略（这是扫描计划 JSON，SCAN-M35 第 1 节）：
+- `dir` 是声明所在目录的绝对路径。`key` = `dir` 的 ASCII 小写的 UTF-8 字节的 SHA-256 的前 12 位小写十六进制（ID 只能含 `[A-Za-z0-9:._-]`，服务据此校验，也不让路径进界面参数）。
+- `disposable` 第 i 项的第 j 个模式（j 从 1 起）生成一个目标，值如下，取缺省值的键不省略（这是扫描计划 JSON，SCAN-M35 第 1 节）；返回的是 `serde_json::Value`，**不要求键的顺序**（测试按值比较）：
 
 ```json
-{"target_id":"decl:<key>|<id>#<j>","group_id":"decl:<key>|<id>","rule_id":"decl:<id>",
+{"target_id":"decl:<key>:<id>.<j>","group_id":"decl:<key>:<id>","rule_id":"decl:<id>",
  "level":"recommended 或 confirm","category":"custom",
  "match":{"kind":"pattern","base":"<dir>","segments":["<段>",…]},
  "item_type":"any","min_age_hours":<N×24 或 0>,"keep_newest":<keepNewest>,
@@ -156,7 +158,7 @@ pub fn sha256_hex(bytes: &[u8]) -> String;
 | 测试 | 标记 | 内容 |
 |---|---|---|
 | `manifest_parse_contract` | `MANIFEST_FORMAT` | 第 2 节示例能解析；第 2、3 节每条规则各一个被拒的反例，`code` 与 `pointer` 都对；带 BOM 能解析；`$schema` 被接受；嵌套 5 层被拒 |
-| `manifest_targets_and_protect` | `MANIFEST_TARGETS`、`MANIFEST_PROTECT` | 示例的 `to_targets` 与本文写出的 JSON 逐字相同（含 `sibling-complete-file-exists` 的条件、`older-than-N-days` 的小时数）；不信任时为空；`protects` 的位于之内、包住、不相干、`path` 等于 `dir`、不在 `dir` 之内各一例 |
+| `manifest_targets_and_protect` | `MANIFEST_TARGETS`、`MANIFEST_PROTECT` | 示例的 `to_targets` 与本文写出的 JSON 按值相同（含 `sibling-complete-file-exists` 的条件、`older-than-N-days` 的小时数）；不信任时为空；`protects` 的位于之内、包住、不相干、`path` 等于 `dir`、不在 `dir` 之内各一例 |
 | `manifest_read_files` | `MANIFEST_READ` | 在本树 `.local/` 下：65 536 字节可读、65 537 字节 `MANIFEST_TOO_LARGE`；名为 `.water-cleanup.json` 的目录 `MANIFEST_NOT_FILE`；名为它的联接 `MANIFEST_REPARSE`；哈希等于另行算出的值；SHA-256 向量（空串、`abc`、一百万个 `a`） |
 | `manifest_git_link` | `MANIFEST_GITDIR` | 相对、绝对、`/f/…` 三种写法的 `valid`；指向不存在目录的 `detached`；`.git` 是目录、超过 1 KB、没有 `gitdir: `、空路径、`.git` 是联接，都为 `invalid` |
 

@@ -1,6 +1,6 @@
 # SCAN-M35：体量、年龄、泄漏簇、联接与名字检查（W10-M2）
 
-**草案，未冻结**（2026-11-02，总控 Claude 起草；与 RULES-M35 等一起冻结）。补充 [SCAN](../checkup-v1/SCAN.md)、[SCAN-M3C](../m3c-v1/SCAN-M3C.md)、[SCAN-M3D](../m3d-v1/SCAN-M3D.md)，冲突时以本文为准。只改 `packages/junk-scan/`。
+2026-11-05，总控（Claude）冻结（11-02 起草，11-05 按通读结果修订）。补充 [SCAN](../checkup-v1/SCAN.md)、[SCAN-M3C](../m3c-v1/SCAN-M3C.md)、[SCAN-M3D](../m3d-v1/SCAN-M3D.md)，冲突时以本文为准。只改 `packages/junk-scan/`。
 
 来由：[第十波计划](../../docs/dispatch/wave10/PLAN.md)第 2 节（“行 n”指那里的行号）第 1～3、6～8、10～11、25～26、33、37～39、43、46、62、67 行。计划 JSON 的新键由 [RULES-M35](RULES-M35.md) 第 7 节定义，本包按同一份 JSON 解析，两张单合入时一起合。行 23（读 `.git` 小文件的 `gitdir:`）不在本包，见 MANIFEST-M35。
 
@@ -36,7 +36,7 @@
 - `git_is_copy` 只在 `recommended`、`confirm` 目标上。
 - `root_levels` 1～6，只和 `runs_from_or_references_item` 一起。
 - `unlocks_target_ids`：所在目标可清理（`recommended`、`confirm`）；每个 id 在同一份计划里存在、不是自己、指向的目标是 `protected`；不得重复。
-- `pattern` 目标也可以带 `conditions`，但只允许一项 `sibling_without_suffix`，且目标类别为 `custom`。这是给项目声明用的（MANIFEST-M35 第 4 节），规则包不生成这种目标。判断照第 4.3 节，父目录就是列出最后一段的那个目录。
+- `pattern` 目标也可以带 `conditions`（放在 `match` 里、`segments` 之后：`{"kind":"pattern","base":…,"segments":[…],"conditions":[…]}`），但只允许一项 `sibling_without_suffix`，且目标类别为 `custom`。这是给项目声明用的（MANIFEST-M35 第 4 节），规则包不生成这种目标。判断照第 4.3 节，父目录就是列出最后一段的那个目录。
 - 不含任何新键的旧计划，解析结果与原来完全相同。
 
 ## 2. 体量与年龄（行 25、26）
@@ -130,7 +130,7 @@
 | `IMG_20261102_123456.jpg` | 是 | `img_<d>.jpg`（有模板，但不成文件簇，见 5.2） |
 | `verify-s8-revisions.cjs`、`.tmp_w35b`、`apk_backup`、`apk_F1.apk`、`climbmao-1.5.2-vc24-emu.apk.parts`、`verify-abcdef`、`7mzKFP`、`550e8400-e29b-41d4-a716-446655440000`、`Release-2026`、`v1.2.3`、`node_modules` | — | None |
 
-`Item` 加 `template: Option<String>`：**每个**条目（不只是簇成员）都按自己的名字算一次，供服务把同模板的条目合成一行（行 67）、清理前按模板重新核对（行 46）。
+`Item` 加 `template: Option<String>`：**每个**条目（不只是簇成员）都按自己的名字算一次，`scan()` 与 `leak_clusters` 关闭时也照样填，供服务把同模板的条目合成一行（行 67）、清理前按模板重新核对（行 46）。
 
 ### 5.2 在哪里找、谁算成员
 - 只在两处找（用户 11-02 拍板“只在你加的位置与临时目录里找”）：
@@ -141,6 +141,7 @@
 - 同一层里同一（种类，模板）的候选 **≥ 10 个**就成簇（S1），这些候选就是成员。
 - `<h>` 文件簇另外把同一层里**同扩展名、同前缀**（模板记号之前的部分）、自己没有模板或模板不同的普通文件也收为成员（行 11：`apk_F1.apk`、`apk_diag.apk` 一并列出）；它们的 `template` 照 5.1 算，不计入 S1、S2、S4。
 - 目录成员按命中测量；**测量它时任何目标都不再在它里面搜索**，它里面不会再出现别的条目。discovery 处的成员从 discovery 组移到簇组，不重复出现。
+- 同一个父目录既在自选位置的遍历里、又是 discovery root（如名为 `tmp` 的自选位置，RULES-M35 第 3.3 节）时，**只按 discovery 算一次**，不产生重复的 `group_id`。
 
 ### 5.3 信号与级别
 - **S2 大小相近**：成员中至少 80% 的 `disk_bytes` 落在 `[m/4, m×4]`，m 是成员 `disk_bytes` 的中位数（偶数个取较小的那个）；m 为 0 时，`disk_bytes` 为 0 的成员算落在里面。
@@ -148,7 +149,7 @@
 - S1 且（S2 或 S4）：级别 `confirm`；只有 S1：`advisory`（“疑似”）。S3（只增不减）、S5（没人在用）由服务用快照与进程判断，本包不管。
 
 ### 5.4 簇组与成员
-- `group_id`：`leak:` + 父目录路径（ASCII 小写）+ `|` + `dir` 或 `file` + `|` + 模板。同一个目录、同一模板，每次扫描相同（增长按它对比）。
+- `group_id`：`leak:` + 16 位小写十六进制，是字符串“父目录路径（ASCII 小写）+ `\n` + `dir` 或 `file` + `\n` + 模板”的 UTF-8 字节的 **FNV-1a 64 位**哈希（初值 `0xcbf29ce484222325`，乘数 `0x100000001b3`）。只含 `[a-z0-9:]`，能过服务的 ID 校验，也不把路径带进界面参数；同一个目录、同一模板，每次扫描相同（增长按它对比）。真实的父目录在 `ClusterInfo.parent`。
 - `rule_id` 为 `leak-cluster`；`category`：自选位置里为 `custom`，discovery 处为该 discovery 目标的类别；`in_use` 为 `{"mode":"runs_from_or_references_item","processes":[]}`；`top_keys` 照 discovery 组的算法。
 - `Group` 加 `cluster: Option<ClusterInfo>`，只有簇组有：
 

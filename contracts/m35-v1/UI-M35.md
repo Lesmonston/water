@@ -1,6 +1,6 @@
 # UI-M35：界面按设计 v2 重做（W10-M6，界面单）
 
-**草案，未冻结**（2026-11-02，总控 Claude 起草；与 m35-v1 其它契约一起冻结）。取代 [UI-M3C](../m3c-v1/UI-M3C.md) 与 [UI-POLISH](../hardening-v1/UI-POLISH.md) 里关于页面结构、文案与测试的条款；材质、颜色、字体、动效、品牌照旧。只改 `apps/water/ui/`。
+2026-11-05，总控（Claude）冻结（11-02 起草，11-05 按通读结果修订）。取代 [UI-M3C](../m3c-v1/UI-M3C.md) 与 [UI-POLISH](../hardening-v1/UI-POLISH.md) 里关于页面结构、文案与测试的条款；材质、颜色、字体、动效、品牌照旧。只改 `apps/water/ui/`。
 
 依据：[设计 v2](../../docs/design/water-ui-v2/DESIGN.md)（用户 11-02 认可：“可以”）与可点的[设计稿](../../docs/design/water-ui-v2/mockup.html)；形状见 [IPC-M35](IPC-M35.md)。用户对现有界面的原话：“太复杂了”“不知道怎么用”“每次扫描之后列表都太多了，用户逐项要去看几百条”。
 
@@ -35,7 +35,7 @@
 | 3.5 | 分段控件“按类别 / 按位置”与搜索；一节一行、同时只展开一节；合并行写“3 个位置”；“和上次一样的 N 组”折叠；底部“清理所选 X” | `detail_get`、`conclusion_decide {group}` |
 | 3.6 | 浮层“清理 X？”；“直接删除”一块；“你选的”一块与二选一（缺省“先放进隔离区”，选“直接删除”时主按钮变红“删除 X”）；预计跳过一行；“取消”“开始清理” | `clean_prepare`（切换二选一时重新调用）、`clean_start` |
 | 3.7 | 清理中沿用 v1；完成页“已腾出 X”、隔离的一行、每盘一个小水位瓶、部分完成一行、“完成”“去隔离区” | `clean_progress`、`clean_result`（`quarantined`） |
-| 3.8 | 页头与“打开文件夹”；每次一张卡（还原、红字“永久删除”二次确认、“⋯”：`打开文件夹`、`查看全部条目`）；7 天提醒；删了还剩的原因与“再试一次” | `quarantine_list`、`quarantine_restore`（冲突时问“还原到旁边或放弃”，选前者以 `beside: true` 再调）、`quarantine_delete`、`quarantine_progress`、`quarantine_reveal` |
+| 3.8 | 页头与“打开文件夹”；每次一张卡（还原、红字“永久删除”二次确认、“⋯”：`打开文件夹`；设计 v2 里的 `查看全部条目` 本波没有接口，不做）；没有记录的卡（`restorable` 为假）不显示“还原”；7 天提醒；删了还剩的原因与“再试一次” | `quarantine_list`、`quarantine_restore`（冲突时问“还原到旁边或放弃”，选前者以 `beside: true` 再调）、`quarantine_delete`、`quarantine_progress`、`quarantine_reveal` |
 | 3.9 | 几天后满（盘块里点开看曲线）；一直在长的（“⋯”：`标记为已修`、`复制线索给 agent`）；残留进程收成一行 | `trends`（`forecast`、`clusters`、`orphans`）、`cluster_mark_fixed` |
 | 3.10 | 时间倒序一行一句话；点开看详情 | `history_list` |
 | 3.11 | 扫描内容（7 个开关 + 会话记录一节，开关与天数 7 / 30 / 90）；跳过名单；项目声明（信任 / 不信任，显示声明了什么）；关于与隐私 | `locations_get`、`locations_set_category`、`locations_set_session_cleanup`、`skip_remove`、`manifest_trust` |
@@ -70,7 +70,7 @@
 ## 6. 样例
 
 - `contracts/m35-v1/ui-fixtures-m35.json` 冻结时由总控给出；测试照旧按 `{...ui-fixtures, ...m3c, ...m35}` 顶层叠加。
-- 至少含这些场景：首页（有隔离区条 / 没有；新加文件夹）；体检中；结论（典型：5 张卡 + `more_cards` + `kept_before` + 4 条线索 + 4 行收起；空；过期；只看了一个文件夹；决定之后）；明细两种模式；抽屉（8 行以内逐项 / 汇总行 / 合并行 / 搜索）；确认（先隔离 / 直接删除；只有直接删除一块）；完成（含隔离）；隔离区（有、删了还剩、没有记录的、空、还原冲突）；查重（说明、进行中、结果、更多）；趋势（三种状态）；记录；设置四页（会话开关、声明三种状态）。
+- 至少含这些场景：首页（有隔离区条 / 没有；新加文件夹）；体检中；结论（典型：5 张卡 + `more_cards` + `kept_before` + 3 条线索与“还有 N 条” + 4 行收起；空；过期；只看了一个文件夹；决定之后）；明细两种模式；抽屉（8 行以内逐项 / 汇总行 / 合并行 / 搜索）；确认（先隔离 / 直接删除；只有直接删除一块）；完成（含隔离）；隔离区（有、删了还剩、没有记录的、空、还原冲突）；查重（说明、进行中、结果、更多）；趋势（三种状态）；记录；设置四页（会话开关、声明三种状态）。
 
 ## 7. 测试与截图
 
@@ -86,7 +86,7 @@
 | `ui_v2_quarantine_dedupe` | `UI_V2_QUARANTINE`、`UI_V2_DEDUPE` | 隔离区卡片、7 天提醒、永久删除二次确认、删了还剩与再试一次、没有记录的卡没有“还原”、还原冲突的两步；`quarantine_reveal` 只发编号；查重四个阶段与勾选 |
 | `ui_v2_pages_layout_a11y` | `UI_V2_PAGES`、`UI_IPC_NO_PATH` | 趋势、记录、设置四页；旧地址重定向；每屏主按钮不超过一个；1040×720 不横向溢出；键盘与焦点；任何命令参数里都没有路径 |
 
-- 原有的五个浏览器测试与 `ui_selection_rules` **获准删除**（它们测的是被取代的 v1 页面）；`ui_ipc_boundary` 的命令数 19 → 36 获准修改；`ui_m1_polish` 读 `water-ui-v1/DESIGN.md` 的部分随之删除。
+- 原有的五个浏览器测试与 `ui_selection_rules` **获准删除**（它们测的是被取代的 v1 页面）；`ui_ipc_boundary` 的命令数 19 → 36 获准修改（`ui_m1_polish` 整个删除，它读 `water-ui-v1/DESIGN.md` 的部分一并去掉）。
 - **截图**：设计稿的 22 个画面各一张，名字为 `v2-<画面 ID>-1240x820.png`（画面 ID 见设计稿，如 `home`、`results-decided`、`confirm-direct`、`dedupe-result`），另加 `v2-results-stale-1240x820.png`、`v2-results-empty-1240x820.png`、`v2-quarantine-leftover-1240x820.png`、`v2-home-narrow-1040x720.png`。回执里每张与 `docs/design/water-ui-v2/previews/<画面 ID>.png` 并排对照，逐张写差异；总控验收时逐张看。
 
 ## 8. 负控
@@ -94,4 +94,4 @@
 - **nc1**：界面把卡片按体量重新排序，测试以 `UI_V2_CONCLUSION` 失败。
 - **nc2**：二选一缺省为“直接删除”，测试以 `UI_V2_CONFIRM` 失败。
 - **nc3**：抽屉的搜索把 `display_path` 作为参数发出，测试以 `UI_IPC_NO_PATH` 失败。
-- 负控只认生产代码的改动；nc2、nc3 在浏览器里跑。
+- 负控只认生产代码的改动；三条都在浏览器里跑（标记都在浏览器测试里）。

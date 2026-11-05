@@ -1,13 +1,13 @@
 # DUP-M35：用户发起的逐字节查重（W10-M8）
 
-**草案，未冻结**（2026-11-02，总控 Claude 起草；与 m35-v1 其它契约一起冻结）。新建 `packages/dup-finder/`，只改这个目录。
+2026-11-05，总控（Claude）冻结（11-02 起草，11-05 按通读结果修订）。新建 `packages/dup-finder/`，只改这个目录。
 
 来由：[ADR-019](../../docs/decisions/ADR-019-project-declarations-and-quarantine.md) 第 7 节（用户 11-02：“需要做”），[第十波计划](../../docs/dispatch/wave10/PLAN.md)第 2 节第 58、66 行、第 4 节 M8。上一轮查出 6 组、8.98 GB 完全相同的音频，也遇到三份 3.8 GB 的同名同大小文件其实字节不同：名字和大小都不算数，只认完整内容。
 
 ## 1. 包的形状与边界
 
 - crate `water-dup-finder`，lib 名 `water_dup_finder`；独立 workspace，edition 2024，rust-version 1.95，`autotests = false`；依赖只有 `serde = "=1.0.229"`（derive）与 `serde_json = "=1.0.151"`。
-- `#![deny(unsafe_code)]`；只有 `native_windows.rs` 允许 unsafe，FFI 只有 `GetFileInformationByHandleEx`（类 1 FileStandardInfo、类 9 FileAttributeTagInfo、类 18 FileIdInfo），作用在 std 打开的句柄上。
+- `#![deny(unsafe_code)]`；只有 `native_windows.rs` 允许 unsafe，FFI 只有 `GetFileInformationByHandleEx`（类 1 FileStandardInfo、类 9 FileAttributeTagInfo、类 18 FileIdInfo）与 `GetVolumeInformationByHandleW`（只取卷序列号），都作用在 std 打开的句柄上。
 - 文件系统只用：`std::fs::read_dir`、`DirEntry::metadata`/`file_type`、`OpenOptions::new().read(true)`（`share_mode(7)`，`custom_flags(0x0020_0000 | 0x0800_0000)` 即不跟随重解析点、顺序读）与 `Read`。**不写、不建、不删、不改名、不改属性**，不起进程、不联网。检查器按名字拒收 `fs::write`、`File::create`、`.write(true)`、`.append(`、`create_dir`、`remove_`、`rename`、`set_permissions`、`std::process`、`std::net`。
 - 只有用户在界面上点了“查重复文件”并同意后，服务（M7）才调用；体检不调用。内容只用来算哈希：按 1 MiB 的块读，读完即丢，不存、不显示、不上传、不写进任何日志。
 
@@ -21,7 +21,7 @@ pub struct DupOptions {
     pub roots: Vec<String>,        // 1～8 个绝对路径（盘根或文件夹），互不包含
     pub min_bytes: u64,            // 缺省 1 MiB；小于它的不比；0 字节的永远不比
     pub prefer: Vec<String>,       // 用户指定“以这里为准”的文件夹，0～8 个
-    pub protected: Vec<String>,    // 服务给的保护路径（项目声明的 protected 等），0～256 个
+    pub protected: Vec<String>,    // 服务给的保护路径（项目声明的 protected 等），0～1024 个
 }
 pub trait DupObserver: Sync {
     fn on_progress(&self, p: &DupProgress);
@@ -30,6 +30,7 @@ pub struct DupProgress {
     pub phase: String,             // "listing"、"hashing"
     pub files_listed: u64, pub candidate_files: u64,
     pub bytes_to_hash: u64, pub bytes_hashed: u64,
+    pub found_bytes: u64,          // 已确定的重复组的可腾出字节之和（第 5 节 reclaimable_bytes 的累计）
     pub current: Option<String>,   // hashing 阶段正在读的文件
 }
 pub fn find_duplicates(scan_id: &str, options: &DupOptions, cancel: &CancelFlag, observer: &dyn DupObserver, now: SystemTime) -> Result<DupResult, DupError>;
@@ -49,7 +50,7 @@ pub fn sha256_hex(bytes: &[u8]) -> String;   // 本包自己实现
    - 列不出的目录（记 `access_denied`）。
    文件带 `OFFLINE`（0x1000）、`RECALL_ON_OPEN`（0x40000）、`RECALL_ON_DATA_ACCESS`（0x400000）任一属性的不读（读了会触发下载），记 `offline`。最多列 2,000,000 个文件，超过就停在这里，状态 `budget_exhausted`，已列的照常往下比。
 2. **按大小分组**：大小 ≥ `min_bytes` 且同大小的有 2 个以上，才是候选。
-3. **认硬链接**：打开每个候选（第 1 节的方式），读 FileIdInfo 得到身份（卷序列号 + 128 位文件 ID）。同一身份的多个路径是**同一个文件**，只算一份，其余路径记进 `hard_link_paths`；打开后再读 FileAttributeTagInfo，变成重解析点的丢掉（记 `reparse`）。打不开：32、33 记 `locked`，其余记 `access_denied`。
+3. **认硬链接**：打开每个候选（第 1 节的方式），得到身份，**口径与执行器 `water-junk-clean` 的 `Identity` 完全相同**：卷序列号取 `GetVolumeInformationByHandleW` 的 32 位序列号、格式 `{:08X}`；文件 ID 取 FileIdInfo 的 `FileId.Identifier` 16 个字节、按内存顺序每字节 `{:02x}`（不用 FileIdInfo 里 64 位的 `VolumeSerialNumber`）。服务会把它原样放进清理计划，不一致会让每一项都判成“已经变化”。同时读 FileStandardInfo 的 `NumberOfLinks` 记为 `link_count`。同一身份的多个路径是**同一个文件**，只算一份，其余路径记进 `hard_link_paths`；打开后再读 FileAttributeTagInfo，变成重解析点的丢掉（记 `reparse`）。打不开：32、33 记 `locked`，其余记 `access_denied`。
 4. **先比开头**：同大小、不同身份的文件，先算前 64 KiB 的 SHA-256；开头不同的不可能重复，就此分开。
 5. **再算完整哈希**：开头相同的，从头到尾算 SHA-256。**大小相同且完整哈希相同才算重复**；同名同大小但哪怕最后一个字节不同，也不算。
 6. **读完复查**：读之前记下大小与修改时间，读完从同一句柄再读一次（FileStandardInfo 与修改时间），变了就把这个文件从结果里拿掉，记 `changed`。
@@ -93,6 +94,7 @@ pub struct DupCopy {
     pub path: String, pub mtime: String, pub created: String,
     pub identity: String,                // 卷序列号 8 位大写十六进制 + ":" + 文件 ID 32 位小写十六进制
     pub hard_link_paths: Vec<String>,    // 同一文件的其它路径（在根内找到的），最多 8 个
+    pub link_count: u32,                 // FileStandardInfo 的 NumberOfLinks（含根外的链接）
     pub protected: bool, pub preferred: bool, pub export_tail: bool,
     pub removable: bool,                 // 不是第一份、也不在保护里
 }
@@ -110,7 +112,7 @@ pub struct DupIssue { pub path: String, pub kind: String /* reparse|offline|acce
 
 | 测试 | 标记 | 内容 |
 |---|---|---|
-| `dup_contract` | `DUP_GROUPS`、`DUP_KEEP` | 三份同内容不同名 → 一组三份；两份同名同大小（> 64 KiB）只差最后一个字节 → 不成组；两份只差第一个字节 → 不成组；硬链接（`std::fs::hard_link`）两条路径 → 不成组，另有一份同内容的普通副本时成组两份、硬链接的另一条路径在 `hard_link_paths`；只能经联接走到的副本不算；`.git` 里的副本不算；0 字节与小于 `min_bytes` 的计入 `empty`、`small`；第 4 节五条顺序各一例；一组两份都在 `protected` 里时 `reclaimable_bytes` 为 0 |
+| `dup_contract` | `DUP_GROUPS`、`DUP_KEEP` | 三份同内容不同名 → 一组三份；两份同名同大小（> 64 KiB）只差最后一个字节 → 不成组；两份同名同大小只差第一个字节 → 不成组（这两例 `same_name_different` 共计 2）；身份字符串形如 8 位大写十六进制 + `:` + 32 位小写十六进制，卷序列号与 `cmd /c vol <盘符>` 显示的相同（去掉中间的 `-`），同一文件的两条硬链接路径身份相同、不同文件不同（与执行器口径逐字相同由总控在整合时核对）；硬链接（`std::fs::hard_link`）两条路径 → 不成组，另有一份同内容的普通副本时成组两份、硬链接的另一条路径在 `hard_link_paths`；只能经联接走到的副本不算；`.git` 里的副本不算；0 字节与小于 `min_bytes` 的计入 `empty`、`small`；第 4 节五条顺序各一例；一组两份都在 `protected` 里时 `reclaimable_bytes` 为 0 |
 | `dup_skips_and_change` | `DUP_SKIPS` | 用 PowerShell 给一份加 `Offline` 属性 → 不读、计入 `offline`；一份被不带共享读地打开 → `locked`；在观察者回调里改写正在读的文件 → `changed` 且不在任何组里；两份 64 MiB + 1 字节的稀疏文件（`fsutil sparse setflag` 后 `set_len`）只差最后一个字节 → 不成组，`hashed_bytes` 对 |
 | `dup_cancel_and_budget` | `DUP_CANCEL` | 观察者在第一次 hashing 进度时取消 → `cancelled`、`groups` 为空；根互相包含 → `InvalidOptions`；`result_to_json` 与 `result_from_json` 往返相等 |
 | `dup_sha256_vectors` | `DUP_SHA256` | 空串、`abc`、448 位的标准消息、55/56/63/64/65 字节的边界、一百万个 `a` |

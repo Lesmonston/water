@@ -1,6 +1,6 @@
 # RULES-M35：新字段、新定位与按清理经验补的规则（W10-M1）
 
-**草案，未冻结**（2026-11-02，总控 Claude 起草，同日按代码审过一遍，审定的改动见第 11 节；与 SCAN-M35 等一起冻结）。补充 [RULES](../checkup-v1/RULES.md)、[RULES-M3C](../m3c-v1/RULES-M3C.md)、[RULES-M3D](../m3d-v1/RULES-M3D.md)，冲突时以本文为准。只改 `packages/junk-rules/`。
+2026-11-05，总控（Claude）冻结（11-02 起草，11-05 按通读结果修订）。补充 [RULES](../checkup-v1/RULES.md)、[RULES-M3C](../m3c-v1/RULES-M3C.md)、[RULES-M3D](../m3d-v1/RULES-M3D.md)，冲突时以本文为准。只改 `packages/junk-rules/`。
 
 来由：[第十波计划](../../docs/dispatch/wave10/PLAN.md)第 2 节（“行 n”指那里的行号）、[ADR-019](../../docs/decisions/ADR-019-project-declarations-and-quarantine.md)第 5 节。扫描侧按同一份计划 JSON 解析，见 [SCAN-M35](SCAN-M35.md) 第 1 节；两张单经这份 JSON 对接，合入时一起合。
 
@@ -36,7 +36,8 @@
 - 含义：判断在用时，把条目路径换成它往上第 `root_levels` 级的目录（应用的数据根目录或程序目录），再按 PROCESS-M3C 第 2 节判断：有进程从那里面运行，或命令行提到那里面的任何路径，条目就算在用。`processes` 为空表示任何进程。判定由服务做，本包只定义、校验、带进计划。
 - 例：`…\Roaming\QQ\Partitions\qqnt_9210\Cache` 往上第 3 级是 `…\Roaming\QQ`；Electron 程序的子进程命令行里带 `--user-data-dir=…\Roaming\<程序>`，所以 `…\Roaming\<程序>\Cache` 用 1 级。
 - 校验：1～6；别的 `mode` 带它就拒收。
-- `InUse` 加字段 `root_levels: Option<u8>`，为 None 时不序列化。服务还没跟上时只按条目本身判断，不会坏。
+- `InUse` 加字段 `root_levels: Option<u8>`，为 None 时不序列化。
+- **过渡期**（第一批合入后、服务 M7 合入前）：主线的服务读扫描记录时用 `deny_unknown_fields` 的 `InUseSpec`，带 `root_levels` 的组会让整条记录在重启时被丢掉；`grok-home-caches` 的解锁对也要等 M7 才填进清理计划（第 6 节第 25 行）。这段时间主线**不出 release、不做整合检查**，M7 一并修好（SERVICE-M35 第 4.4 节）。
 
 文中“在用 `root N`”即 `{"mode":"runs_from_or_references_item","processes":[],"root_levels":N}`；“在用 `runs`”即同样的写法但不带 `root_levels`。
 
@@ -125,7 +126,7 @@ pub fn resolve_plan_with(rules: &RuleSet, folders: &KnownFolders, custom_roots: 
 | `electron-app-cache`、`electron-gpu-caches` | `in_use` 改为在用 `root 1`；加 `in_use_zh`：`关掉对应的程序后可清` | 15 |
 | `agent-tool-logs` | `in_use` 改为在用 `root 2`；加 `in_use_zh`：`关掉对应的工具后可清` | 17 |
 | `headless-browser-profiles` | system_temp 与 user_temp 各加两个定位器 `scoped_dir*`、`*chrome_profile*`（共 12 个）；加 `in_use_zh`：`测试结束、浏览器关掉后可清` | 14 |
-| `test-browser-profiles` | `path_has_any` 的名单末尾加 `tmp`、`temp`（C 盘 `C:\tmp\chrome_*`）；加 `in_use_zh` 同上 | 14 |
+| `test-browser-profiles` | 只加 `in_use_zh`（“关掉无头浏览器后可清”）。**不改** `path_has_any`：它按子串比较路径的每一段，加 `tmp`、`temp` 会命中 `tempo`、`Templates`，把真实浏览器配置判成可清。`C:\tmp\chrome_*` 改由第 6 节第 32 条精确定位 | 14 |
 | `jest-cache` | 定位器改为 `system_temp`、`user_temp` 各三个：`jest *`、`haste-map-*`、`metro-*`；`item_type` 改为 `any`；`min_age_hours` 168；`in_use` 改为 `cmdline_references_item` `["node.exe"]`；`in_use_zh`：`测试跑完后可清`；`why_zh` 末尾加“缓存有时是源码的唯一副本，一周内用过的不清。” | 13 |
 | `system-temp-old`、`user-temp-old` | 加 `age_basis: "latest_created_or_modified"` | 26 |
 | `chrome-cache`、`chrome-code-gpu-cache`、`chrome-service-worker-cache` | 加 `in_use_zh`：`关掉 Chrome 后可清` | 53 |
@@ -174,6 +175,7 @@ R、L、P、U、S 分别指 `roaming_app_data`、`local_app_data`、`program_dat
 | 29 | `grok-old-sessions` | Grok 旧会话 | agent_tool / confirm | U：`.grok sessions * *`；`session_tool` `grok`，`unlocks` `grok-sessions` | dir | 720 | 0 | `runs` | H6 |
 | 30 | `kimi-code-old-sessions` | Kimi Code 旧会话 | agent_tool / confirm | U：`.kimi-code sessions wd_*`；`session_tool` `kimi-code`，`unlocks` `kimi-code-sessions` | dir | 720 | 0 | `runs` | Kimi 试验 |
 | 31 | `minimax-hub-leftover` | 卸载后留下的应用数据 | app_leftover / confirm | R：`@hilo`；`installed_names` `["MiniMax Hub"]` | dir | 720 | 0 | none | H8（`%APPDATA%\@hilo`，内有 `MiniMax Hub Global`，1.21 GB；11-01 注册表里已没有它的安装记录） |
+| 32 | `system-tmp-chrome-profiles` | 系统盘 tmp 里的无头浏览器配置 | system_temp / confirm | S：`tmp chrome_*` | dir | 24 | 0 | cmdline_references_item `chrome.exe`、`msedge.exe` | C18（`C:\tmp` 里 9 个 `chrome_*`） |
 
 说明：
 - 第 6、2、3、4、5、9、12 行的进程名只有 `steam.exe`、`emulator.exe` 等通用名，本机没有逐个核实；名字不对只会让在用检测不起作用，执行器碰到被占用的文件照旧跳过并报原因。
@@ -194,6 +196,8 @@ R、L、P、U、S 分别指 `roaming_app_data`、`local_app_data`、`program_dat
 
 `match` 里 marker 的两个新种类：`{"kind":"dir_name_pattern","patterns":[…]}`、`{"kind":"file_name","patterns":[…]}`；新条件对象的键依次为 `kind` 再加表里它自己的字段（`parent_has_other_match` 只有 `kind`）。本包的 `ScanPlan::from_json` 读得回全部新键，往返不变。
 
+`ScanPlan::from_json` 另外接受**项目声明转出的目标**（服务把它们追加进计划，MANIFEST-M35 第 4 节、SERVICE-M35 第 4.1 节）：`pattern` 目标在 `match` 里 `segments` 之后带 `conditions`，恰好一项 `sibling_without_suffix`，且类别为 `custom`；别的写法照旧拒收。规则数据里的 `pattern` 定位仍不许带条件。测试归 `RULES_M35_FIELDS`。
+
 ## 8. 数据版本
 
 `data_version` 改为 `2026-11-02.2`。
@@ -210,7 +214,7 @@ R、L、P、U、S 分别指 `roaming_app_data`、`local_app_data`、`program_dat
 | `RULES_M35_VERSION` | `data_version` 为 `2026-11-02.2` |
 
 原有断言中，以下几处与本文必然冲突，**获准修改**，其余不变：
-1. 规则总数 78 → 109；custom 规则个数与 custom 目标总数、custom root 的目标顺序表，只因第 6 节在末尾追加规则而改变的，按新值更新。
+1. 规则总数 78 → 110；custom 规则个数与 custom 目标总数、custom root 的目标顺序表，只因第 6 节在末尾追加规则而改变的，按新值更新。
 2. 所有比对 `data_version` 的断言改为 `2026-11-02.2`。
 3. 第 5 节改动的规则，原来逐字段比对的断言按新值更新（含 `jest-cache` 与 `headless-browser-profiles` 的定位器个数、`test-browser-profiles` 的条件）。
 4. 列出全部字段构造或比对 `Rule`、`Target`、`InUse`、`Locator`、`Marker`、`Condition` 的地方补上新字段的缺省值。
@@ -239,7 +243,8 @@ R、L、P、U、S 分别指 `roaming_app_data`、`local_app_data`、`program_dat
 | 软件旧版本、没装上的更新包只能“需要确认”（基准表 D3、D4 原写“推”） | 见第 6 节说明 |
 | 内嵌浏览器缓存的识别从“含 `index`、`data_0`、`data_1`”改为“名字是 `Cache` 等、旁边有 `Preferences`” | 本机核实过企业微信与 QQ 的目录 |
 | 新加 `custom-app-backups`、`app-update-archives`、`grok-home-caches`，`installer-files` 拆成两个定位器、去掉“所有 `.rar`、`.7z`” | 对照本轮真实路径补漏；所有压缩包都当安装包会把用户自己的压缩包也列进来 |
-| `test-browser-profiles` 的路径名单加 `tmp`、`temp` | C 盘 `C:\tmp\chrome_*`（基准表 C18） |
+| ~~`test-browser-profiles` 的路径名单加 `tmp`、`temp`~~ → 改为第 32 条 `system-tmp-chrome-profiles`（S：`tmp chrome_*`）（11-05 通读时改） | `path_has_any` 是子串比较，会误伤 `Templates` 等目录里的真实浏览器配置；C 盘 `C:\tmp\chrome_*`（基准表 C18） |
+| 计划解析接受项目声明目标的 `conditions`（第 7 节）；过渡期的影响写明（第 2 节）（11-05 通读时改） | 服务的计划类型是本包的 `ScanPlan`，不接受就装不进声明目标；`root_levels` 与解锁对要等 M7 |
 | `agent-tool-logs`、`jest-cache` 加在用检测，`jest-cache` 类型改为 `any` | 计划行 13、17；`haste-map-*` 是文件 |
 | 新条件 `parent_lacks_file_matching` | 安装包定位要排除程序目录 |
 | 贵重件与保留名的名单放在扫描包里（SCAN-M35），不进规则 | 它们在遍历时逐个文件看名字，与哪条规则无关 |

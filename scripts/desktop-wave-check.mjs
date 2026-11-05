@@ -18,10 +18,10 @@ const MODES = ['baseline', 'lock', 'check', 'test', 'real', 'native', 'red-nc1',
 const gitRaw = (args, cwd = root) => { const r = spawnSync('git', ['-c', 'core.hooksPath=NUL', '-c', 'core.fsmonitor=false', ...args], {cwd, encoding: 'utf8', windowsHide: true, timeout: 60000, maxBuffer: 64 * 1024 * 1024}); assert(!r.error && r.status === 0, String(r.stderr)); return r.stdout.trim(); };
 const controller = dirname(gitRaw(['rev-parse', '--path-format=absolute', '--git-common-dir']));
 const override = process.env.WATER_W3_OVERRIDE_MANIFEST ?? null;
-// Waves 4 (G2, G6), 5 (M2: H2, H3), 6 (M3: I2), 7 (M3 fixes: J1, J3), 8 (M3 close: K4, K5) and 9 (M3 close fixes: L3) reuse this gate; WATER-W4-* to WATER-W9-* task IDs read their wave's manifest.
-const wave = id.startsWith('WATER-W9-') ? 'wave9' : id.startsWith('WATER-W8-') ? 'wave8' : id.startsWith('WATER-W7-') ? 'wave7' : id.startsWith('WATER-W6-') ? 'wave6' : id.startsWith('WATER-W5-') ? 'wave5' : id.startsWith('WATER-W4-') ? 'wave4' : 'wave3';
+// Waves 4 (G2, G6), 5 (M2: H2, H3), 6 (M3: I2), 7 (M3 fixes: J1, J3), 8 (M3 close: K4, K5), 9 (M3 close fixes: L3) and 10 (M3.5: M5 host, M7 service) reuse this gate; WATER-W4-* to WATER-W10-* task IDs read their wave's manifest.
+const wave = id.startsWith('WATER-W10-') ? 'wave10' : id.startsWith('WATER-W9-') ? 'wave9' : id.startsWith('WATER-W8-') ? 'wave8' : id.startsWith('WATER-W7-') ? 'wave7' : id.startsWith('WATER-W6-') ? 'wave6' : id.startsWith('WATER-W5-') ? 'wave5' : id.startsWith('WATER-W4-') ? 'wave4' : 'wave3';
 if (override) {
-  assert(['WATER-W3-SELFTEST', 'WATER-W3-ACCEPT-', 'WATER-W4-SELFTEST', 'WATER-W4-ACCEPT-', 'WATER-W5-SELFTEST', 'WATER-W5-ACCEPT-', 'WATER-W6-SELFTEST', 'WATER-W6-ACCEPT-', 'WATER-W7-SELFTEST', 'WATER-W7-ACCEPT-', 'WATER-W8-SELFTEST', 'WATER-W8-ACCEPT-', 'WATER-W9-SELFTEST', 'WATER-W9-ACCEPT-'].some(p => id.startsWith(p)), 'Override manifest is only for controller self-test or acceptance tasks');
+  assert(['WATER-W3-SELFTEST', 'WATER-W3-ACCEPT-', 'WATER-W4-SELFTEST', 'WATER-W4-ACCEPT-', 'WATER-W5-SELFTEST', 'WATER-W5-ACCEPT-', 'WATER-W6-SELFTEST', 'WATER-W6-ACCEPT-', 'WATER-W7-SELFTEST', 'WATER-W7-ACCEPT-', 'WATER-W8-SELFTEST', 'WATER-W8-ACCEPT-', 'WATER-W9-SELFTEST', 'WATER-W9-ACCEPT-', 'WATER-W10-SELFTEST', 'WATER-W10-ACCEPT-'].some(p => id.startsWith(p)), 'Override manifest is only for controller self-test or acceptance tasks');
   const rel = relative(join(controller, '.local'), resolve(override)); assert(!rel.startsWith('..') && !isAbsolute(rel), 'Override manifest must live under controller .local');
 }
 const manifestPath = override ? resolve(override) : join(controller, 'docs/dispatch/' + wave + '/manifest.json');
@@ -121,7 +121,11 @@ function sourcePolicy() {
     assert(!/remove_dir_all/.test(t), 'remove_dir_all is not allowed: ' + rel);
     // Tauri panics on a setup error instead of returning it; wired hosts start up without setup.
     if (task.forbidSetup) assert(!/\.setup\s*\(/.test(code), 'Tauri setup is not allowed: ' + rel);
-    assert(!/std::process::Command|Command::new/.test(t), 'Production code must not spawn processes: ' + rel);
+    // Wave 10 M5 (HOST-M35 section 3): one named file may start Explorer, with exactly one Command::new and nothing else spawned.
+    if (task.spawnFile && rel.split(sep).join('/') === task.outputRoot + '/' + task.spawnFile) {
+      assert.equal((code.match(/Command::new\s*\(/g) ?? []).length, 1, 'The spawn file must contain exactly one Command::new: ' + rel);
+      assert(/explorer\.exe/.test(code) && !/\b(?:cmd|powershell|pwsh)(?:\.exe)?\b/i.test(code), 'The spawn file may only start explorer.exe: ' + rel);
+    } else assert(!/std::process::Command|Command::new/.test(t), 'Production code must not spawn processes: ' + rel);
     assert(!/std::net|TcpStream|UdpSocket|reqwest|ureq/.test(t), 'No networking: ' + rel);
     assert(!/\bvars(?:_os)?\s*\(/.test(code), 'Environment enumeration not allowed: ' + rel);
     for (const m of code.matchAll(/\bvar(?:_os)?\s*\(\s*([^)]*)\)/g)) assert(task.allowedEnv.includes(m[1].trim()), 'Environment read not allowed: ' + m[1].trim() + ' in ' + rel);

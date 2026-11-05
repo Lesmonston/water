@@ -1,6 +1,6 @@
 # CLEAN-M35：解锁对与隔离区（W10-M4）
 
-**草案，未冻结**（2026-11-02，总控 Claude 起草；与 RULES-M35、SCAN-M35、MANIFEST-M35 等一起冻结）。补充 [CLEAN](../v1/)、[CLEAN-HARDENING](../hardening-v1/CLEAN-HARDENING.md) 与第五波 CLEAN-M2 的执行器契约，只改 `packages/junk-clean/`。
+2026-11-05，总控（Claude）冻结（11-02 起草，11-05 按通读结果修订）。补充 [CLEAN](../v1/)、[CLEAN-HARDENING](../hardening-v1/CLEAN-HARDENING.md) 与第五波 CLEAN-M2 的执行器契约，只改 `packages/junk-clean/`。
 
 来由：[ADR-019](../../docs/decisions/ADR-019-project-declarations-and-quarantine.md) 第 3 节（隔离区，用户 11-02 原话：“扫描出来后给用户两个选择，一个是直接清理掉，另外一个是进入隔离区……隔离区如果没有清理的话，要一直保留快捷打开隔离区的路径按钮，用户清理之后/或者手动删除才能消失”），[第十波计划](../../docs/dispatch/wave10/PLAN.md)第 2 节第 39、40、42～45、47、64、65 行，RULES-M35 第 4 节（解锁对）。
 
@@ -9,6 +9,7 @@
 - `execute` 的行为除第 2 节外不变；CLEAN、CLEAN-HARDENING、CLEAN-M2 的全部条款继续有效。
 - **不给已有枚举加成员**：`ItemStatus`、`SkipReason`、`RunStatus`、`CleanError`、`Level`、`Kind` 原样（服务对它们穷举匹配）。隔离区用自己的新类型。
 - 已有结构只加一个字段：`PlanItem.unlocked_paths`（第 2 节）。历史验收脚本 `scripts/acceptance/w2-d-controller-cases.rs` 用结构字面量构造 `PlanItem`，它是第二波的存档证据，不再随新源码编译。
+- 已有的 `VolumeReport` 获准加派生 `PartialEq, Eq`（`PurgeReport` 里用到它）；加派生不改任何行为。
 - 仍然只用句柄操作，`src/` 里没有 `std::fs`。允许的系统调用在现有清单上**只加两处用途**：
   - `SetFileInformationByHandle` 的 `FileRenameInfo`（类 3），只在一个函数 `rename_at` 里，`ReplaceIfExists` 恒为 0；类 21、类 4（删除标志）照旧。不得传别的类。
   - `NtCreateFile`，只在一个函数 `create_dir_at` 里：单段名、相对父句柄、`CreateDisposition` 恒为 `FILE_CREATE`（2）、`CreateOptions` 含 `FILE_DIRECTORY_FILE | FILE_OPEN_REPARSE_POINT | FILE_SYNCHRONOUS_IO_NONALERT | FILE_OPEN_FOR_BACKUP_INTENT`。只建目录，名字已存在时失败，不打开已有的东西。
@@ -44,6 +45,7 @@ pub fn quarantine(
 
 - `quarantine_id`：1～48 个 `[0-9A-Za-z-]`，不以 `-` 开头，否则 `InvalidPlan`。服务用 `YYYYMMDD-HHMMSS`，同一秒再加 `-n`。
 - 隔离根 `qroot`：`base` 为 None 时是条目所在盘的 `<盘>:\.water-quarantine`（按 `path::volume(item.root)`）；为 Some 时必须是绝对路径、过 `path::validate`、最后一段是 `.water-quarantine`（不分大小写），只供测试。
+- 一个 `quarantine_id` 只对应一个隔离根：服务按盘分批调用，每个盘一个编号（SERVICE-M35 第 6.1 节）。同一次调用里条目落在不同隔离根时，第一个隔离根之外的条目一律 `failed`/`not_same_volume`，不移动。
 - 目的地：`<qroot>\<quarantine_id>\<条目路径去掉盘符的部分>`，例如 `F:\new\x\cache` → `F:\.water-quarantine\20261102-153012\new\x\cache`。隔离区里的目录结构就是原路径，用户打开一看就知道是哪里来的。
 - 每一项依次：
   1. 停止标志已置：这一项及后面的都 `skipped`/`cancelled`，总状态 `stopped`。
@@ -195,14 +197,14 @@ pub fn inspect(quarantine_dir: &str, stop: &StopFlag) -> Result<QuarantineInfo, 
 
 ## 8. 测试
 
-现有 `clean_v1` 的六个测试与断言不变。新增测试目标 `quarantine_v1`（`tests/quarantine_v1.rs`，在 `Cargo.toml` 里登记），精确五个测试：
+`tests/clean_v1.rs` 现有的六个测试与断言不变；在同一个文件里**新增**下面五个测试，共精确 11 个（检查器每张单只跑一个测试目标）：
 
 | 测试 | 标记 | 内容 |
 |---|---|---|
 | `quarantine_unlock_pair` | `CLEAN_M35_UNLOCK` | 解锁路径不在 `protected_paths`、不严格包含、超过 4 个都 `InvalidPlan`；解锁对能被 `execute` 删除；同一保护路径下没有解锁的兄弟项仍被拒；另一条保护路径仍生效；硬守卫写进 `unlocked_paths` 无效；通过联接指向解锁路径的别名仍按身份拦下 |
 | `quarantine_move_contract` | `CLEAN_M35_MOVE` | 目录与文件各一项移入，目的地布局与身份不变、字节对；日志三种行；太新、占用（guard）、身份变了各跳过；路径里有 `.water-quarantine` 判 `guarded`；条目被不带共享删除地打开 → `locked`；目的地预先存在 → `destination_exists`；`.water-quarantine` 是联接 → `quarantine_unavailable` 且联接目标里什么都没多；停止 |
-| `quarantine_restore_contract` | `CLEAN_M35_RESTORE` | 移入再复原，逐字节、修改时间都相同；原上级被删后能重建；原位置已有同名 → `destination_exists`，两边都不动；身份不符 → `changed`；原上级换成联接 → `parent_reparse`，联接目标里什么都没多；骨架目录与空的 `.water-quarantine` 被删掉 |
-| `quarantine_purge_contract` | `CLEAN_M35_PURGE` | 隔离目录里放 `nul`、`con.txt`、`aux`、`a.`、`b `（用 `\\?\` 前缀建）、只读文件、深度超过 300 字符的路径、指向外部夹具的联接，全部删净，外部夹具逐字节完好；同样一组怪名放进普通计划项，`execute` 也删净（第 39 行补测试）；一个文件被不带共享删除地打开 → 遗留 `in_use`、目录还在；一个子目录被不带共享删除地打开（模拟终端的当前目录，第 40 行）→ 遗留 `in_use`、`kind` 为 `dir`；都关掉后再 `purge` → 删净、`dir_removed` 与 `root_removed` 为真；还原到 `to` 的一例；上级不叫 `.water-quarantine` → `InvalidPlan`；`<编号>` 本身是联接 → `InvalidPlan` 且目标完好 |
+| `quarantine_restore_contract` | `CLEAN_M35_RESTORE` | 移入再复原，逐字节、修改时间都相同；原上级被删后能重建；原位置已有同名 → `destination_exists`，两边都不动；身份不符 → `changed`；原上级换成联接 → `parent_reparse`，联接目标里什么都没多；骨架目录与空的 `.water-quarantine` 被删掉；`to` 还原到旁边的一例，`to` 已存在时同样 `destination_exists` |
+| `quarantine_purge_contract` | `CLEAN_M35_PURGE` | 隔离目录里放 `nul`、`con.txt`、`aux`、`a.`、`b `（用 `\\?\` 前缀建）、只读文件、深度超过 300 字符的路径、指向外部夹具的联接，全部删净，外部夹具逐字节完好；同样一组怪名放进普通计划项，`execute` 也删净（第 39 行补测试）；一个文件被不带共享删除地打开 → 遗留 `in_use`、目录还在；一个子目录被不带共享删除地打开（模拟终端的当前目录，第 40 行）→ 遗留 `in_use`、`kind` 为 `dir`；都关掉后再 `purge` → 删净、`dir_removed` 与 `root_removed` 为真；上级不叫 `.water-quarantine` → `InvalidPlan`；`<编号>` 本身是联接 → `InvalidPlan` 且目标完好 |
 | `quarantine_inspect_and_list` | `CLEAN_M35_INSPECT` | `list_quarantines` 的三种状态、排序、`stray_entries`、`created_at`；`inspect` 对上一行那几类各标出对应提示，计数与字节对 |
 
 - 所有夹具都在本树 `.local/` 下，测试用的隔离根是 `.local/<测试名>-<进程号>/.water-quarantine`（`base` 为 Some）。
@@ -212,7 +214,7 @@ pub fn inspect(quarantine_dir: &str, stop: &StopFlag) -> Result<QuarantineInfo, 
 
 - **nc1**：`rename_at` 的 `ReplaceIfExists` 改为 1，测试以 `CLEAN_M35_RESTORE` 失败。
 - **nc2**：`purge` 打开子项时去掉不跟随重解析点，测试以 `CLEAN_M35_PURGE` 失败（外部夹具被删）。
-- **nc3**：去掉上级名必须是 `.water-quarantine` 的检查，测试以 `CLEAN_M35_PURGE` 失败。
-- **nc4**：`from_json` 忽略 `unlocked_paths`，测试以 `CLEAN_M35_UNLOCK` 失败。
+- **nc3**：`from_json` 忽略 `unlocked_paths`，测试以 `CLEAN_M35_UNLOCK` 失败。
+- （检查器每单最多三条负控；“上级名必须是 `.water-quarantine`”的检查由 `CLEAN_M35_PURGE` 的反例断言覆盖，不单列负控。）
 - 负控只认 `src/` 里的改动。
 - **真实冒烟**（只读）：对每个固定盘的 `<盘>:\.water-quarantine` 调用 `list_quarantines`，只输出状态与编号目录个数。**不移入、不复原、不删除任何真实文件。**

@@ -80,7 +80,7 @@
 | 15 | Jest 转换缓存 3.57 GB | 见第 1 节 | 13 |
 | 16 | npm `_cacache`（`_npx` 保留） | 推（`npm-cache` 只认 `_cacache`，已有） | — |
 | 17 | Mirasim 10-09 的两份备份 | 判（旧备份；同一系列往往只有一份，不留最新，清理时先进隔离区）。`R` 下的 `@mirasim\desktop.bak-20261009` 由 `app-backups` 认；用户目录第一层的 `.mirasim.bak-20261009` 只在用户把用户目录加为位置时由 `custom-app-backups` 认（RULES-M35 第 6 节说明） | 19 |
-| 18 | `C:\tmp` 里 9 个 `chrome_*` | 判（`test-browser-profiles`，路径名单加了 `tmp`、`temp`）；`C:\tmp` 是用户加的位置时；同名一批另进泄漏簇 | 14 |
+| 18 | `C:\tmp` 里 9 个 `chrome_*` | 判（新规则 `system-tmp-chrome-profiles`，系统盘根 `tmp\chrome_*` 精确定位，常用位置就会查到）；不再改 `test-browser-profiles` 的子串名单（会误伤 `Templates` 下的真实配置） | 14 |
 | 19 | Chrome、Edge 缓存（浏览器开着，全跳） | 推，跳，写“关掉 Chrome 后可清”；确认框预计跳过的量 | 48、53 |
 | 20 | 回收站 1.25 GB | 建（服务经系统接口查回收站大小，不按目录扫，SERVICE-M35；RULES-M35 删掉了两条回收站规则） | 55 |
 | 21 | Ubisoft 补丁暂存 | 推 | 8、20 |

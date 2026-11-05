@@ -1,6 +1,6 @@
 # APPS-M35：读已安装程序列表（W10-M9）
 
-**草案，未冻结**（2026-11-02，总控 Claude 起草；与 m35-v1 其它契约一起冻结）。新建 `packages/installed-apps/`，只改这个目录。
+2026-11-05，总控（Claude）冻结（11-02 起草，11-05 按通读结果修订）。新建 `packages/installed-apps/`，只改这个目录。
 
 来由：[ADR-019](../../docs/decisions/ADR-019-project-declarations-and-quarantine.md) 第 6 节（用户 11-02：“可以”），[第十波计划](../../docs/dispatch/wave10/PLAN.md)第 2 节第 9 行、第 4 节 M9。用途两个：认出“软件已经装好、安装包还在”（如 RX 11、Audition 的安装包），认出卸载后留下的应用数据（如 MiniMax Hub 的 `@hilo`，1.21 GB）。
 
@@ -40,6 +40,7 @@ pub fn read_installed(now: SystemTime) -> Result<AppList, AppsError>;
 pub fn parse_entry(scope: &str, key: &str, values: &[(String, RegValue)]) -> Option<App>;
 pub enum RegValue { Sz(String), ExpandSz(String), Other }
 pub fn installer_tokens(file_name: &str) -> Vec<String>;
+pub fn name_tokens(name: &str) -> Vec<String>;
 pub fn find(list: &AppList, query: &[String]) -> Vec<usize>;
 pub fn list_to_json(list: &AppList) -> String;
 pub fn list_from_json(s: &str) -> Result<AppList, AppsError>;
@@ -68,6 +69,7 @@ installer_tokens("Audition_2024_x64.zip") == ["audition", "2024"]
 - 丢掉这些词：`setup`、`installer`、`install`、`x64`、`x86`、`amd64`、`arm64`、`win`、`win64`、`win32`、`windows`、`full`、`offline`、`online`、`portable`、`release`、`final`、`latest`、`v`，以及只有一个字符的词。
 - 只剩数字时返回空（`setup.exe`、`2024.zip` 认不出是什么，不猜）。
 - `find`：查询的每个词都能在某个程序的名字里找到（名字同样切词、转小写；词与名字里某个词相等即可；查询词至少 3 个字符且不全是数字时，是名字里某个词的前缀也算，如 `photoshop` 不算 `photo` 的匹配、`photo` 算 `photoshop` 的匹配），就算匹配；返回所有匹配的下标，按 `apps` 顺序。查询为空返回空。
+- `name_tokens`：把一个程序名切成查询词，切法与 `installer_tokens` 相同，但不去扩展名、不丢上面那张停用词表，只丢单字符的词（`"MiniMax Hub"` → `["minimax", "hub"]`）。服务查 RULES-M35 的 `installed_names` 时用 `find(list, &name_tokens(名称))`。
 - 服务（M7）用它做两件事：
   - 7 天以上的安装包：`find(installer_tokens(文件名))` 非空，卡片写“对应的软件已经装好：<名字> <版本>”。
   - 规则（M1）给出的“某程序的应用数据目录”：程序名的词在列表里找不到，卡片写“<程序> 似乎已卸载，这是它留下的数据”，仍是需要确认。
@@ -80,7 +82,7 @@ installer_tokens("Audition_2024_x64.zip") == ["audition", "2024"]
 |---|---|---|
 | `apps_read_real` | `APPS_READ` | 读本机注册表（只读）；用 `powershell -NoProfile -Command` 的 `Get-ItemProperty` 分别数三处里有非空 `DisplayName` 的子键，个数与 `(scope, key)` 集合都与本包结果相等；连读两次结果相同；排序对；所有 `install_location` 都形如 `X:\…` |
 | `apps_entry_rules` | `APPS_ENTRY` | 第 3 节每条一例：缺名字、空白名字、`REG_DWORD` 的名字、`REG_EXPAND_SZ` 原样保留、引号与结尾反斜杠、相对路径与带 `%` 的位置当作缺失、超长 |
-| `apps_match` | `APPS_MATCH` | 用合成列表：`Audition_2024_x64.zip` 认出 `Adobe Audition 2024`；`iZotope_RX_11_Audio_Editor_setup.exe` 认出 `iZotope RX 11 Audio Editor`；`RX 10 setup.exe` 认不出 RX 11；`setup.exe`、`2024.zip` 返回空；`MiniMax Hub` 在与不在；大小写；中文名一例；`.crdownload` 后缀一例 |
+| `apps_match` | `APPS_MATCH` | 用合成列表：`Audition_2024_x64.zip` 认出 `Adobe Audition 2024`；`iZotope_RX_11_Audio_Editor_setup.exe` 认出 `iZotope RX 11 Audio Editor`；`RX 10 setup.exe` 认不出 RX 11；`setup.exe`、`2024.zip` 返回空；`find(name_tokens("MiniMax Hub"))` 在与不在；`name_tokens` 不丢 `setup` 这类词；大小写；中文名一例；`.crdownload` 后缀一例 |
 
 ## 6. 负控与真实冒烟
 

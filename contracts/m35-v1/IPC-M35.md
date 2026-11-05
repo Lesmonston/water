@@ -1,6 +1,6 @@
 # IPC-M35：界面接口（第十波，设计 v2）
 
-**草案，未冻结**（2026-11-02，总控 Claude 起草；与 m35-v1 其它契约一起冻结）。补充 [IPC](../checkup-v1/IPC.md)（`water.ipc.v1`）与 [IPC-M3C](../m3c-v1/IPC-M3C.md)，冲突时以本文为准。
+2026-11-05，总控（Claude）冻结（11-02 起草，11-05 按通读结果修订）。补充 [IPC](../checkup-v1/IPC.md)（`water.ipc.v1`）与 [IPC-M3C](../m3c-v1/IPC-M3C.md)，冲突时以本文为准。
 
 - 服务（M7，[SERVICE-M35](SERVICE-M35.md)）产出这些形状，宿主（M5，[HOST-M35](HOST-M35.md)）转发，界面（M6，[UI-M35](UI-M35.md)）消费。
 - 依据：[设计 v2](../../docs/design/water-ui-v2/DESIGN.md) 第 3～6 节，[第十波计划](../../docs/dispatch/wave10/PLAN.md)第 2 节。
@@ -77,7 +77,7 @@ ScanProgress += locations:[{location_id, label_zh, state:"waiting"|"running"|"do
 ```text
 ConclusionView = {
   version, scan_id, status, finished_at, duration_ms,
-  stale: bool, stale_reason_zh|null,          // 有了新体检、清理过、跳过名单或决定被别处改了
+  stale: bool, stale_reason_zh|null,          // 四种来源：有了更新的体检；这次体检已被清理用掉；跳过名单变了；会话开关或项目声明的信任变了
   scope: {labels_zh:[string], only_folder: bool},
   quarantine: null | QuarantineBar,
   plan: Plan,
@@ -133,7 +133,7 @@ GroupDetail += rows:[SummaryRow], rows_note_zh|null     // 不超过 8 行；组
 SummaryRow = {row_id, label_zh, count, bytes, oldest|null, newest|null,
   included:bool, selectable:bool, release_zh|null,      // 在用时写解除条件，如“关掉 Chrome 后可清”
   expandable:bool}
-  // 合并行（m:）的抽屉：一行一个位置
+  // 合并行（m:）的抽屉：一行一个位置，row_id 就是那个位置上的组 ID；对它发 {row, include} 等于对这个组发 {group, choice:"clean"/"keep"}
 
 GroupItems = {items:[GroupItem], items_total}           // 至多 200 项
 GroupItem = {item_id, display_path, total_bytes, newest_activity|null,
@@ -156,7 +156,8 @@ CleanPreview += delete: {bytes, categories:[{title_zh, bytes}]},
                 expected_skip: null | {bytes, notes_zh:[string]}   // clean_prepare 时重取进程快照算
   // irreversible 改为：chosen 为 null 或 mode 为 delete 时 true
 CleanProgress += phase:"delete"|"quarantine", quarantined_bytes
-CleanResultView += quarantined: null | {quarantine_id, bytes, item_count, notes_zh:[string]}
+CleanResultView += quarantined: null | {quarantine_ids:[string], bytes, item_count, notes_zh:[string]}
+  // 每个盘一个编号（SERVICE-M35 第 6.1 节），quarantine_ids 按盘符排序
 CleanResultView.groups[].status 取值 += "quarantined"
 ```
 
@@ -168,6 +169,7 @@ CleanResultView.groups[].status 取值 += "quarantined"
 QuarantineBar = {bytes, oldest_days, leftover_count, leftover_bytes, text_zh}
   // “隔离区还有 4.8 GB · 最早的放了 7 天”；只剩删不掉的时“还剩 3 个文件删不掉”
 QuarantineView = {bytes, roots:[{target_id, display_path, bytes}], cards:[QuarantineCard]}
+  // roots[].target_id 为 qroot-<盘符小写>；quarantine_id 形如 20261105-163012-f，每个盘一个编号、一张卡
 QuarantineCard = {quarantine_id, created_at, days, bytes, item_count,
   state:"present"|"leftover"|"purging",
   restorable:bool,                        // 没有隔离记录的编号目录（别处来的、记录丢了）为 false，只能永久删除或打开文件夹

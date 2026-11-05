@@ -1,6 +1,6 @@
 # HOST-M35：宿主转发第十波命令，并能打开隔离区文件夹（W10-M5）
 
-**草案，未冻结**（2026-11-02，总控 Claude 起草；与 m35-v1 其它契约一起冻结）。补充 [HOST](../desktop-v1/HOST.md)、HOST-M2、[HOST-M3](../m3-v1/HOST-M3.md)、[HOST-M3-FIX](../m3-v1/HOST-M3-FIX.md) 与 [HOST-M3C](../m3c-v1/HOST-M3C.md)，冲突时以本文为准。只改 `apps/water/host/`。
+2026-11-05，总控（Claude）冻结（11-02 起草，11-05 按通读结果修订）。补充 [HOST](../desktop-v1/HOST.md)、HOST-M2、[HOST-M3](../m3-v1/HOST-M3.md)、[HOST-M3-FIX](../m3-v1/HOST-M3-FIX.md) 与 [HOST-M3C](../m3c-v1/HOST-M3C.md)，冲突时以本文为准。只改 `apps/water/host/`。
 
 宿主仍只做薄转发，不解释服务的返回值（`commands.rs` 第 1 行的原则不变）。唯一的新能力是第 3 节：用资源管理器打开隔离区文件夹。命令形状见 [IPC-M35](IPC-M35.md)。
 
@@ -38,7 +38,8 @@ pub fn cmd_quarantine_reveal(backend: &dyn Backend, opener: &dyn Opener, target_
    - 最后一段是 `.water-quarantine`，或倒数第二段是 `.water-quarantine` 且最后一段是 1～48 个 `[0-9A-Za-z-]`（都不分大小写）；
    - `std::fs::symlink_metadata` 是目录，且不带重解析点属性（0x400）。
 3. `opener.open_folder(path)`；失败返回 `unavailable`。成功返回 `{}`。
-- 真实的 `Opener`：`<SystemRoot>\explorer.exe` 加这一个路径参数，`spawn` 后不等待；`SystemRoot` 取 `GetWindowsDirectoryW`（宿主新增的唯一系统函数，检查器的 `allowedFfi` 为宿主加它），取不到就失败。不经 shell，不拼命令行字符串。
+- 真实的 `Opener` 单独放在 `src/opener.rs`：`std::env::var("SystemRoot")`，必须形如 `X:\…` 且其下 `explorer.exe` 是普通文件，否则失败；然后 `Command::new(<SystemRoot>\explorer.exe)` 加这一个路径参数，`spawn` 后不等待。不经 shell，不拼命令行字符串，不加系统函数（宿主仍然 `forbid(unsafe_code)`）。
+- 检查器的约束（第十波起）：宿主里只有 `src/opener.rs` 可以起进程，其中恰好一处 `Command::new`、只启动 `explorer.exe`；环境变量只多读 `SystemRoot`。别的文件起进程照旧判失败。
 - `quarantine_locate` **不**在 `COMMANDS` 里，也没有 `#[tauri::command]` 包装：界面拿不到任何路径。
 
 ## 4. 退出与关闭
