@@ -536,7 +536,8 @@
         "CloseHandle",
         "NtOpenFile",
         "NtCreateFile",
-        "RtlNtStatusToDosError"
+        "RtlNtStatusToDosError",
+        "NtSetInformationFile"
       ],
       "realMode": "env-only",
       "browserBudget": 0,
@@ -616,18 +617,29 @@
       "acceptanceNote": "docs/acceptance/wave5/controller/WATER-W5-ACCEPT-PROGRESS-20261028.md",
       "bundle": "C",
       "dispatchEvidence": "user chat 2026-11-05 ~17:47 JST: \"三个新单是sol\" (bundles A, B, C to sol); worker tree head/changed files f93afb8e/5 when recorded at 2026-11-05T08:47:40Z",
-      "blockedAt": "2026-11-05T09:08:47Z",
-      "blockedCommit": "07dc620950f7e1b399fe4a1e6358d6dfdcbce4a4",
-      "blockedReason": "CLEAN-M35 section 9 asked the real smoke to list every fixed drive, but the executor has no drive-enumeration system function and the env-only real mode passes no drives",
+      "blockedAt": "2026-11-05T09:49:16Z",
+      "blockedCommit": "12c6c5563f8eadcefee9937a446a1ddfb390f4f2",
+      "blockedReason": "SetFileInformationByHandle FileRenameInfo (class 3) with a RootDirectory handle and a single-segment name returns ERROR_INVALID_PARAMETER (87) for files and directories; controller probe confirms Win32 rejects any non-null RootDirectory while NtSetInformationFile class 10 with the same buffer works",
       "workerSelfReport": "Codex (GPT-6)",
       "addenda": [
         {
           "id": "WATER-W10-M4-ADDENDUM-01",
           "ticket": "docs/dispatch/tickets/WATER-W10-M4-ADDENDUM-01-20261105.md",
-          "status": "READY",
+          "status": "BLOCKED",
           "issuedAt": "2026-11-05T09:08:47Z",
           "resumeFromCommit": "07dc620950f7e1b399fe4a1e6358d6dfdcbce4a4",
-          "change": "real smoke checks only the system drive (SystemDrive) and the drive of this repository (CARGO_MANIFEST_DIR); no new system function; output counts only"
+          "change": "real smoke checks only the system drive (SystemDrive) and the drive of this repository (CARGO_MANIFEST_DIR); no new system function; output counts only",
+          "blockedCommit": "12c6c5563f8eadcefee9937a446a1ddfb390f4f2",
+          "blockedReason": "SetFileInformationByHandle FileRenameInfo (class 3) with a RootDirectory handle and a single-segment name returns ERROR_INVALID_PARAMETER (87) for files and directories; controller probe confirms Win32 rejects any non-null RootDirectory while NtSetInformationFile class 10 with the same buffer works"
+        },
+        {
+          "id": "WATER-W10-M4-ADDENDUM-02",
+          "ticket": "docs/dispatch/tickets/WATER-W10-M4-ADDENDUM-02-20261105.md",
+          "status": "READY",
+          "issuedAt": "2026-11-05T09:49:16Z",
+          "resumeFromCommit": "12c6c5563f8eadcefee9937a446a1ddfb390f4f2",
+          "evidence": "docs/acceptance/wave10/controller/m4-rename-probe-20261105/",
+          "change": "rename_at uses NtSetInformationFile class 10 (FileRenameInformation) with the same buffer, ReplaceIfExists 0, RootDirectory = destination parent handle; NTSTATUS mapped by RtlNtStatusToDosError (183 collision, 17 other volume); NtSetInformationFile added to allowedFfi, only in rename_at, only class 10; SetFileInformationByHandle keeps classes 4 and 21 only; stderr diagnostic removed; finish the two purge stop/in-use branches"
         }
       ]
     },

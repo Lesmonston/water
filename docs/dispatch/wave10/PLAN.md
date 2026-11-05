@@ -283,3 +283,13 @@ WATER-W10-M8 补单 01（同一句柄复查修改时间用 FileBasicInfo，中�
 ```text
 WATER-W10-M1 补单 02（计划尾段的两处旧断言与同类通则，轻门）：读 F:/new/smaltalk/water/docs/dispatch/tickets/WATER-W10-M1-ADDENDUM-02-20261105.md，按其中列出的顺序读原票、规则、契约、补单 01 与上一轮回执，在 F:/new/smaltalk/water/.worktrees/w10-m1（分支 worker/water-w10-m1）从 a62e87ce 续做；交回后再做 WATER-W10-M2（扫描，中门）：工单 F:/new/smaltalk/water/docs/dispatch/tickets/WATER-W10-M2-SCAN-20261105.md，工作树 F:/new/smaltalk/water/.worktrees/w10-m2（分支 worker/water-w10-m2），从 f93afb8e 开工。每张单在自己的工作树里做完、提交并交回回执再开始下一张；某一张受阻就停下写受阻回执。
 ```
+
+### M4 补单 02（2026-11-05）
+
+- **M4**（回执 `12c6c556`）补单 01 后再次受阻，成立：`SetFileInformationByHandle` 类 3 带目录句柄的单段名改名在本机对文件、目录一律返回 87。总控用合成文件核对（[脚本与输出](../../acceptance/wave10/controller/m4-rename-probe-20261105/)）：Win32 这一层只要 `RootDirectory` 不为空就拒收（类 22 同样），同一缓冲区交给 `NtSetInformationFile` 类 10 文件、目录都成功，同名得 183、跨盘得 17。[补单 02](../tickets/WATER-W10-M4-ADDENDUM-02-20261105.md) 把 `rename_at` 改为 `NtSetInformationFile` 类 10，`allowedFfi` 加这一个函数（共 10 个），只许在 `rename_at` 里、只传类 10；另要求去掉草稿的标准错误诊断、补完 purge 的两处停止与占用分支。
+
+**WATER-W10-M4 补单 02，然后 WATER-W10-M5**
+
+```text
+WATER-W10-M4 补单 02（句柄相对改名改用 NtSetInformationFile 类 10，重门）：读 F:/new/smaltalk/water/docs/dispatch/tickets/WATER-W10-M4-ADDENDUM-02-20261105.md，按其中列出的顺序读原票、规则、契约、补单 01、上一轮回执与总控核对脚本，在 F:/new/smaltalk/water/.worktrees/w10-m4（分支 worker/water-w10-m4）从 12c6c556 续做；交回后再做 WATER-W10-M5（宿主，重门）：工单 F:/new/smaltalk/water/docs/dispatch/tickets/WATER-W10-M5-HOST-20261105.md，工作树 F:/new/smaltalk/water/.worktrees/w10-m5（分支 worker/water-w10-m5），从 f93afb8e 开工。每张单在自己的工作树里做完、提交并交回回执再开始下一张；某一张受阻就停下写受阻回执。
+```
