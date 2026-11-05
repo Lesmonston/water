@@ -1,4 +1,6 @@
-WATER-W10-M1 任务受阻，任务报告在 F:/new/smaltalk/water/.worktrees/w10-m1/docs/dispatch/reports/WATER-W10-M1-REPORT.md
+WATER-W10-M1 任务已完成，任务报告在 F:/new/smaltalk/water/.worktrees/w10-m1/docs/dispatch/reports/WATER-W10-M1-REPORT.md
+
+当前交回为文末“补单 02”。前两轮受阻记录保留在下，属于历史状态。
 
 ## 身份与交回范围
 
@@ -228,3 +230,359 @@ assert_eq!(
 本轮没有运行 `lock`、`check`、`test`、`real`、nc1/nc2、任何 final 或 `archive`；没有负控失败记录或恢复哈希，没有真实冒烟结果，没有新归档证据。没有创建夹具、删除、启动窗口/选择框/浏览器、下载或扫描真实数据。没有修改依赖、锁、其它包、契约、检查器、台账、Git 配置或远端，没有 push 或改写提交。
 
 Windows 新功能、macOS 和集成均未验证。按用户顺序约束，M1 补单 01 受阻后停止，M2 未开始，未读其工单、未进入其工作树执行命令。本轮只提交该受阻回执，交回后停止工作。
+
+
+## 补单 02（2026-11-05）：实现完成，交回 SUBMITTED
+
+实际模型：GPT-6（Codex；环境未提供更细型号）。工作树 `F:/new/smaltalk/water/.worktrees/w10-m1`，分支 `worker/water-w10-m1`。续做起点 `a62e87ce9a21ba3a7ab2b45b0f9f2d5a785a7a80`，开工干净；原始产品基线仍为 `f93afb8e3c5cf4114927fe2ab6c14dbb033c7ffe`。核心实现 `fe14dfb95380ac62d66b8af27c8d23f528ebf209`，最终实现提交 **`99f5d3aeec17e6833eddc65c25edaf06386bc591`**（后者仅校正五条新增会话规则的说明）。回执/证据另行提交，不夹带产品变更，不自报总控验收通过。
+
+已读材料沿用前两轮读过的全文，核对原票/执行者规则/SPEC/补单 01 的哈希未变，并阅读补单 02 与上一轮回执。baseline 按补单不重跑。
+
+### SPEC 第 1～8 节落实
+
+| 节 | 实现与验证 |
+|---|---|
+| 1 新字段 | Rule 增加全部规定字段，AgeBasis/KeepBy 从 crate 根导出。m35.rs 校验类型、范围、级别、分类与 installed_names 的大小写去重（含 Unicode）；规则显式默认字段也受出现条件限制。文案与安装名称不进计划。 |
+| 2 root_levels | InUse 增加 Option<u8>，只接受 runs_from_or_references_item 的 1～6；规则与计划共用解析器，None 省略。测两端、越界、类型与其它模式拒收。 |
+| 3 定位 | 两种 marker、四种条件及白名单、custom_discovery、SystemDrive 已实现。KNOWN_FOLDER_ORDER、KnownFolders 字段/JSON 不变。tmp、Temp 命中，Templates 不命中；盘根来自 windows，含异盘测试；原 MatchSpec 变体和字段保持。 |
+| 4 解锁/会话 | 严格核对清理级别、同分类受保护规则、全部定位器严格位于其内；计划携带对应全部目标 ID。五种工具默认关，resolve_plan_with 校验工具、重复、1～365 天与固定错误路径；会话目标按规则顺序追加，普通目标逐个不变，天数转小时。 |
+| 5 既有规则 | 只改表内字段。headless 8→12 个定位器；jest 两个 base 各三个模式、any/168h/Node 引用检测及指定说明；浏览器解除条件、建议与保留规则逐字测试。test-browser-profiles 的 path_has_any 未扩展。 |
+| 6 新种子 | 精确追加 32 条，前 78 条顺序保留，合计 110。独立冻结表逐项核对 ID、标题、分类、级别、类型、年龄、保留、在用/根层数、定位及条件；核对文案、来源、会话/解锁对、双定位兜底下标。两个普通 custom root 总目标 323，新增尾段 54 个，末项 system-tmp-chrome-profiles#1。 |
+| 7 JSON | plan_version 不变；新增键按顺序、缺省省略。固定旧 JSON 字符串逐字节比较及全部新字段往返。项目声明 pattern 条件保存在 Target.pattern_conditions，序列化进 match.conditions，仅 custom 的单一 sibling_without_suffix 可读；MatchSpec 不加变体或字段。 |
+| 8 版本 | data_version 为 2026-11-02.2，嵌入规则与计划同步，新 RULES_M35_VERSION 及旧版本断言通过。 |
+
+只读辅助审阅生产代码与种子，未编辑、构建或测试。采纳并复核：规则显式默认字段的出现条件、安装名称 Unicode 大小写去重、会话文案按年龄与路径引用描述实际检测。辅助已结束，无内部实现子代理。
+
+### 旧断言修改清单
+
+位置用原始 `f93afb8e` 的 `tests/rules_v1.rs`。文末附原有部分的完整统一 diff，逐处给出原文/新文，所有旧标记不变。
+
+| 授权/位置 | 原值或原文 | 新值或新文 |
+|---|---|---|
+| SPEC §9，1033 | embedded.rules().len() == 78 | == 110 |
+| SPEC §9，1292 | expected == 261 | == 323；已有定位器增 8、新增默认目标增 54 |
+| SPEC §9，1295、1299、1749、1787 | 2026-11-02.1 | 2026-11-02.2，四处原标记不变 |
+| SPEC §9，1796 | custom 规则数 8 | 23 |
+| SPEC §9，1681、1696 后 | drive marker 数 8、原 8 个顺序 | 数 25，原 8 个之后按新规则顺序追加 17 个；逐个 ID 见 diff |
+| SPEC §5/9，四个 seed 期望 | codex-runtimes/electron-app-cache/agent-tool-logs/electron-gpu-caches 的 InUseMode::None | RunsFromOrReferencesItem；其余旧字段原样 |
+| SPEC §5/9，headless seed 期望 | 原 8 个定位器 | 原 8 个后加 system_temp:scoped_dir*、system_temp:*chrome_profile*、user_temp:scoped_dir*、user_temp:*chrome_profile* |
+| SPEC §5/9，jest seed/进程期望 | Dir、1h、None、空进程、两个 jest 字面定位 | Any、168h、CmdlineReferencesItem、[node.exe]、两个 base 各 jest * / haste-map-* / metro-* |
+| SPEC 新类型相应，计数/摘要/旧 marker 序列化 match | 原枚举分支 | 补新定位/marker 分支；计数排除默认关闭会话，原 alpha/beta 不产生 custom_discovery（名称过滤另有新断言） |
+| 补单 01 §1，2036 | rules.rules()[64..] | rules.rules()[64..78]；14 ID 与顺序不变 |
+| 补单 01 §2，1167 起 | 所有计划目标进入旧条件循环 | 同 zip 后只选 node-modules、test-browser-profiles；旧断言、期望、标记、helper panic 分支原样 |
+| 补单 01 §3，1266、1280 | 全部当前规则去旧兜底/条件；比较未排除新增规则目标 | 先 truncate(78) 再作原变换；只比原 78 条目标，按 target_id 查旧目标，不按相邻位置对齐 |
+| 补单 02 §1，1573 | &plan.targets[beta_position + 7..] | &plan.targets[beta_position + 7..beta_position + 7 + 38]；38 及逐项字段核对原样 |
+| 补单 02 §2，1617 | plan.targets.last() | appended.last()；other-agent-sessions#3 与标记不变 |
+| 补单 02 §3 通则，2143 | rules.rules().len() == expected.len()（旧表 78 条） | rules.rules()[..78].len() == expected.len()；原 78 条逐字段比较保留，新 32 条另核 |
+
+仍为精确四测：rules_schema_strict、rules_protection_precedence、rules_resolve_plan、rules_seed_coverage。新增 m35_schema/m35_resolve/m35_seeds 是四测内的 helper。无 ignore、过滤、删测、改超时或降低旧标记。
+
+### 负控与恢复
+
+两条均只改 `src/plan.rs` 一处，不改测试、不加测试开关；每条后立即 `git checkout -- packages/junk-rules/src/plan.rs`，再跑 `--mode test`。
+
+1. nc1：默认包装调用的 `&PlanOptions::default()` 改为开启 claude-code/30 天的 PlanOptions。日志命中 **RULES_M35_SESSIONS: default off**；Cargo 101，2 通过、2 失败，另一个失败也是新种子计数断言。恢复后 4/4 绿。
+2. nc2：名称判定 `name.eq_ignore_ascii_case(allowed)` 改成 `name.eq_ignore_ascii_case(allowed) || !allowed.is_empty()`，任意自选根均命中。日志命中 **RULES_M35_FIELDS: discovery name filter**，left 3 / right 2；Cargo 101，2 通过、2 失败，另一个失败也是新种子计数断言。恢复后 4/4 绿。
+
+首次负控对应 10:00:57 / 10:01:32 UTC；会话文案校正后在最终实现提交重做，最终采用 **10:09:28.745 / 10:09:56.219 UTC** 的负控及紧随其后的 **10:09:38.479 / 10:10:01.545** 全绿记录。恢复后 plan.rs SHA-256 均为 **46ddd142207a916ae45fadaa1ba5d966f31ee357ba26a8ab76b4405a41d1f4cb**，与注入前相同。final test 已审计两条 observedExpectedFailure=true 与逐次恢复源快照；不是编译失败或超时。
+
+### 真实冒烟、证据与限制
+
+最终 `real --final` 输出只有 `base_present_count:87`、`literal_prefix_present_count:70`、`rule_count:110`、`system_drive_exists:true`。只用五个获准环境变量构造已知位置并检查存在性；没有列目录、读文件内容或输出实际路径/名字。存在性不代表新规则已找到可清理文件。
+
+实现提交 `fe14dfb9` 上第一次三门全过后，校正了五条新增会话说明，新增 `99f5d3ae` 提交；没有改写历史。此前归档暂存于本树 .local，最终三门后恢复并用 archive 追加，保留早期检查历史。最终权威门为 **10:10:13.936 check --final、10:10:17.939 test --final、10:10:21.138 real --final**，均绑定 `99f5d3ae`。
+
+修正回执编码时发现 PowerShell 向 Node 标准输入传中文会损坏字符；未提交损坏报告，改由 UTF-8 文件读写生成本节。一次 Python 辅助命令因本机无 python 而失败、未写文件；改用本树 Node 辅助。一次 rg 通配路径形式在 Windows 失败，改用 -g/--no-ignore 成功。没有改环境或下载依赖。
+
+无物理夹具、删除、窗口、选择框、浏览器、联网下载或新系统函数。MatchSpec/InUseMode 无新增变体，KnownFolders 字段/JSON、Cargo.toml/Cargo.lock 不变。未改其它包、契约、检查器、台账、Git 配置/远端，未 push/merge/rebase/amend/reset。产品与测试仅改 junk-rules。
+
+未验证实际扫描、新规则本机命中/可清理性、服务在用检测/安装应用匹配、真实会话清理、M1→M2→M7 集成、Windows 删除链或 macOS。root_levels/解锁服务接线仍待 M7，不称可发布。原始开发先红未单独留档，承重逻辑由本次生产负控证明。
+
+下表自动列出全部检查记录与精确命令；08:18:39.503 baseline 是接手前预存记录，08:44:01.623 是本执行者上一轮 baseline，补单未重跑。其余为本轮执行。共同前缀为 `node F:/new/smaltalk/water/scripts/checkup-wave-check.mjs --task WATER-W10-M1`，表中列追加参数；检查入口全部退出 0（负控内 Cargo 预期 101）。普通 test 均 4/4，check 均 fmt/clippy 通过。`cargo fmt` 在实现期运行两次；`git diff --check` 与归档逐条大小/哈希也已核对。
+
+M1 报告/证据提交并核对干净后按顺序开始 M2；M1 不再运行测试或后台进程。
+
+
+| Receipt (UTC) | Arguments | Status |
+|---|---|---|
+| 2026-11-05T08-18-39.503Z-26060-baseline-result.json | --mode baseline | passed |
+| 2026-11-05T08-44-01.623Z-18424-baseline-result.json | --mode baseline | passed |
+| 2026-11-05T09-48-54.384Z-20988-lock-result.json | --mode lock | passed |
+| 2026-11-05T09-56-35.507Z-19052-test-result.json | --mode test | passed |
+| 2026-11-05T09-57-33.634Z-30856-check-result.json | --mode check | passed |
+| 2026-11-05T09-59-15.610Z-24712-test-result.json | --mode test | passed |
+| 2026-11-05T09-59-43.598Z-19728-check-result.json | --mode check | passed |
+| 2026-11-05T10-00-57.205Z-31812-red-nc1-result.json | --mode red-nc1 | passed |
+| 2026-11-05T10-01-11.579Z-22728-test-result.json | --mode test | passed |
+| 2026-11-05T10-01-32.814Z-10616-red-nc2-result.json | --mode red-nc2 | passed |
+| 2026-11-05T10-01-45.782Z-12208-test-result.json | --mode test | passed |
+| 2026-11-05T10-02-16.076Z-30412-check-result.json | --mode check --final | passed |
+| 2026-11-05T10-02-27.082Z-21944-test-result.json | --mode test --final | passed |
+| 2026-11-05T10-02-40.203Z-12208-real-result.json | --mode real --final | passed |
+| 2026-11-05T10-02-55.589Z-30200-archive-result.json | --mode archive | passed |
+| 2026-11-05T10-09-28.745Z-9612-red-nc1-result.json | --mode red-nc1 | passed |
+| 2026-11-05T10-09-38.479Z-7160-test-result.json | --mode test | passed |
+| 2026-11-05T10-09-56.219Z-28512-red-nc2-result.json | --mode red-nc2 | passed |
+| 2026-11-05T10-10-01.545Z-29648-test-result.json | --mode test | passed |
+| 2026-11-05T10-10-13.936Z-5664-check-result.json | --mode check --final | passed |
+| 2026-11-05T10-10-17.939Z-32008-test-result.json | --mode test --final | passed |
+| 2026-11-05T10-10-21.138Z-28728-real-result.json | --mode real --final | passed |
+| 2026-11-05T10-10-38.331Z-11872-archive-result.json | --mode archive | passed |
+
+Archive: 342 entries, 9063332 bytes. All sizes/SHA-256 verified.
+
+### Old test diff (blank context lines omitted)
+
+```diff
+@@ -270,4 +1300,5 @@ fn m3d_plan_targets(plan: &ScanPlan, roots: &[CustomRoot]) {
+ #[test]
+ fn rules_schema_strict() {
++    m35_schema();
+     // Each rule in RULES-M3D sections 1 and 3 has an isolated rejection case.
+     let pair = m3d_pair();
+@@ -1031,5 +2062,5 @@ fn rules_protection_precedence() {
+     assert_eq!(subset_set.rules().len(), 6);
+     let embedded = RuleSet::embedded();
+-    assert_eq!(embedded.rules().len(), 78, "seed set must load");
++    assert_eq!(embedded.rules().len(), 110, "seed set must load");
+     let agent_rules: Value = serde_json::from_str(include_str!("../rules/windows.json"))
+@@ -1075,4 +2106,5 @@ fn rules_protection_precedence() {
+ #[test]
+ fn rules_resolve_plan() {
++    m35_resolve();
+     let rules = RuleSet::embedded();
+     let folders = KnownFolders::from_json(&folders_json()).expect("folders");
+@@ -1165,5 +2197,12 @@ fn rules_resolve_plan() {
+     ScanPlan::from_json(&case_insensitive_root.to_string())
+         .expect("RULES_M3D_FALLBACK: ASCII case insensitive root");
+-    for (target, value) in plan.targets.iter().zip(wire["targets"].as_array().unwrap()) {
++    for (target, value) in plan
++        .targets
++        .iter()
++        .zip(wire["targets"].as_array().unwrap())
++        .filter(|(target, _)| {
++            ["node-modules", "test-browser-profiles"].contains(&target.rule_id.as_str())
++        })
++    {
+         let match_json = &value["match"];
+         match &target.match_spec {
+@@ -1214,4 +2253,12 @@ fn rules_resolve_plan() {
+                         format!("{{\"kind\":\"dir_name\",\"names\":{}}}", json!(names))
+                     }
++                    Marker::DirNamePattern { patterns } => format!(
++                        "{{\"kind\":\"dir_name_pattern\",\"patterns\":{}}}",
++                        json!(patterns)
++                    ),
++                    Marker::FileName { patterns } => format!(
++                        "{{\"kind\":\"file_name\",\"patterns\":{}}}",
++                        json!(patterns)
++                    ),
+                 };
+                 let legacy = format!(
+@@ -1265,4 +2312,5 @@ fn rules_resolve_plan() {
+         serde_json::from_str(include_str!("../rules/windows.json")).unwrap();
+     let old_rules = legacy_rules_json["rules"].as_array_mut().unwrap();
++    old_rules.truncate(78);
+     old_rules.retain(|r| {
+         !["bundled-node-modules", "browser-data-dirs"].contains(&r["rule_id"].as_str().unwrap())
+@@ -1278,5 +2326,5 @@ fn rules_resolve_plan() {
+         .expect("RULES_M3D_CONDITIONS: old plan");
+     let legacy_wire: Value = serde_json::from_str(&plan_to_json(&legacy_plan)).unwrap();
+-    for (target, value) in plan.targets.iter().zip(wire["targets"].as_array().unwrap()).filter(|(t, _)| !matches!(&t.match_spec, MatchSpec::Marker { conditions, fallback_for, .. } if !conditions.is_empty() || fallback_for.is_some())) {
++    for (target, value) in plan.targets.iter().zip(wire["targets"].as_array().unwrap()).filter(|(t, _)| rules.rules()[..78].iter().any(|r| r.rule_id == t.rule_id) && !matches!(&t.match_spec, MatchSpec::Marker { conditions, fallback_for, .. } if !conditions.is_empty() || fallback_for.is_some())) {
+         let old = legacy_wire["targets"].as_array().unwrap().iter().find(|v| v["target_id"] == target.target_id).expect("RULES_M3D_CONDITIONS: legacy target");
+         assert_eq!(value, old, "RULES_M3D_CONDITIONS: unchanged target fields");
+@@ -1290,12 +2338,12 @@ fn rules_resolve_plan() {
+     let expected = expected_target_count(&rules, custom.len());
+     assert_eq!(plan.targets.len(), expected);
+-    assert_eq!(expected, 261);
++    assert_eq!(expected, 323);
+     assert_eq!(plan.plan_version, "water.scan-plan.v1");
+     assert_eq!(
+-        plan.rules_data_version, "2026-11-02.1",
++        plan.rules_data_version, "2026-11-02.2",
+         "RULES_M3_WORDING: plan data version"
+     );
+     assert_eq!(
+-        plan.rules_data_version, "2026-11-02.1",
++        plan.rules_data_version, "2026-11-02.2",
+         "RULES_M3C_VERSION: plan data version"
+     );
+@@ -1571,5 +2619,5 @@ fn rules_resolve_plan() {
+         );
+     }
+-    let appended = &plan.targets[beta_position + 7..];
++    let appended = &plan.targets[beta_position + 7..beta_position + 7 + 38];
+     assert_eq!(
+         appended.len(),
+@@ -1615,5 +2663,5 @@ fn rules_resolve_plan() {
+     }
+     assert_eq!(
+-        plan.targets.last().map(|target| target.target_id.as_str()),
++        appended.last().map(|target| target.target_id.as_str()),
+         Some("other-agent-sessions#3"),
+         "RULES_AGENT_TOOLS: final appended target"
+@@ -1679,5 +2727,5 @@ fn rules_resolve_plan() {
+     assert_eq!(
+         markers.len(),
+-        8,
++        25,
+         "RULES_M3C_DRIVE_ROOT: all eight marker targets"
+     );
+@@ -1696,4 +2744,21 @@ fn rules_resolve_plan() {
+             "custom:drive-f:bundled-node-modules#1",
+             "custom:drive-f:browser-data-dirs#1",
++            "custom:drive-f:custom-app-backups#1",
++            "custom:drive-f:custom-avd-snapshots#1",
++            "custom:drive-f:embedded-browser-cache#1",
++            "custom:drive-f:quark-video-cache#1",
++            "custom:drive-f:app-old-versions#1",
++            "custom:drive-f:app-update-archives#1",
++            "custom:drive-f:game-logs#1",
++            "custom:drive-f:steam-logs#1",
++            "custom:drive-f:partial-downloads#1",
++            "custom:drive-f:partial-downloads#2",
++            "custom:drive-f:unfinished-downloads#1",
++            "custom:drive-f:unfinished-downloads#2",
++            "custom:drive-f:installer-files#1",
++            "custom:drive-f:installer-files#2",
++            "custom:drive-f:audition-peak-files#1",
++            "custom:drive-f:audition-conformed#1",
++            "custom:drive-f:media-render-caches#1",
+         ],
+         "RULES_M3C_DRIVE_ROOT: rule and root ID order"
+@@ -1745,7 +2810,8 @@ fn rules_resolve_plan() {
+ #[test]
+ fn rules_seed_coverage() {
++    m35_seeds();
+     let rules = RuleSet::embedded();
+     assert_eq!(
+-        rules.data_version, "2026-11-02.1",
++        rules.data_version, "2026-11-02.2",
+         "RULES_M3D_VERSION: embedded version"
+     );
+@@ -1785,5 +2851,5 @@ fn rules_seed_coverage() {
+     }
+     assert_eq!(
+-        rules.data_version, "2026-11-02.1",
++        rules.data_version, "2026-11-02.2",
+         "RULES_M3C_VERSION: embedded version"
+     );
+@@ -1794,5 +2860,5 @@ fn rules_seed_coverage() {
+             .filter(|rule| rule.category == Category::Custom)
+             .count(),
+-        8,
++        23,
+         "RULES_M3C_WORKTREE: eight custom rules"
+     );
+@@ -2034,5 +3100,5 @@ fn rules_seed_coverage() {
+     );
+     assert_eq!(
+-        rules.rules()[64..]
++        rules.rules()[64..78]
+             .iter()
+             .map(|rule| rule.rule_id.as_str())
+@@ -2141,5 +3207,5 @@ fn rules_seed_coverage() {
+         }
+     }
+-    assert_eq!(rules.rules().len(), expected.len());
++    assert_eq!(rules.rules()[..78].len(), expected.len());
+     for (index, spec) in expected.iter().enumerate() {
+         let rule = &rules.rules()[index];
+@@ -2171,4 +3237,5 @@ fn expected_target_count(rules: &RuleSet, custom_roots: usize) -> usize {
+         .rules()
+         .iter()
++        .filter(|rule| rule.session_tool.is_none())
+         .map(|rule| {
+             rule.locate
+@@ -2176,4 +3243,5 @@ fn expected_target_count(rules: &RuleSet, custom_roots: usize) -> usize {
+                 .map(|locator| match locator {
+                     Locator::Marker { .. } => custom_roots,
++                    Locator::CustomDiscovery { .. } => 0,
+                     _ => 1,
+                 })
+@@ -2191,4 +3259,7 @@ fn locator_summary(rule: &water_junk_rules::Rule) -> Vec<String> {
+             }
+             Locator::Discovery { base } => format!("discovery:{}", base.as_str()),
++            Locator::CustomDiscovery { root_names } => {
++                format!("custom_discovery:{}", root_names.join(","))
++            }
+             Locator::Marker {
+                 marker, max_depth, ..
+@@ -2205,4 +3276,10 @@ fn locator_summary(rule: &water_junk_rules::Rule) -> Vec<String> {
+                     format!("marker:dir_name:{}:{max_depth}", names.join(","))
+                 }
++                Marker::DirNamePattern { patterns } => {
++                    format!("marker:dir_name_pattern:{}:{max_depth}", patterns.join(","))
++                }
++                Marker::FileName { patterns } => {
++                    format!("marker:file_name:{}:{max_depth}", patterns.join(","))
++                }
+             },
+         })
+@@ -2250,4 +3327,5 @@ fn processes_for(id: &str) -> Vec<&'static str> {
+         }
+         "firefox-cache" => vec!["firefox.exe"],
++        "jest-cache" => vec!["node.exe"],
+         "test-browser-profiles" => vec!["chrome.exe", "msedge.exe"],
+         _ => {
+@@ -2318,5 +3396,5 @@ fn seed_table() -> Vec<SeedSpec> {
+             24,
+             1,
+-            InUseMode::None,
++            InUseMode::RunsFromOrReferencesItem,
+             Growth::Slow,
+             vec![p("user_profile", ".cache/codex-runtimes/*")],
+@@ -2384,4 +3462,8 @@ fn seed_table() -> Vec<SeedSpec> {
+                 p("user_temp", "playwright_chromiumdev_profile-*"),
+                 p("user_temp", "puppeteer_dev_profile-*"),
++                p("system_temp", "scoped_dir*"),
++                p("system_temp", "*chrome_profile*"),
++                p("user_temp", "scoped_dir*"),
++                p("user_temp", "*chrome_profile*"),
+             ],
+         ),
+@@ -2475,5 +3557,5 @@ fn seed_table() -> Vec<SeedSpec> {
+         1,
+         0,
+-        InUseMode::None,
++        InUseMode::RunsFromOrReferencesItem,
+         Growth::Slow,
+         vec![
+@@ -2713,10 +3795,17 @@ fn seed_table() -> Vec<SeedSpec> {
+         Category::DevCache,
+         Level::Recommended,
+-        ItemType::Dir,
+-        1,
++        ItemType::Any,
++        168,
+         0,
+-        InUseMode::None,
++        InUseMode::CmdlineReferencesItem,
+         Growth::Slow,
+-        vec![p("system_temp", "jest"), p("user_temp", "jest")],
++        vec![
++            p("system_temp", "jest *"),
++            p("system_temp", "haste-map-*"),
++            p("system_temp", "metro-*"),
++            p("user_temp", "jest *"),
++            p("user_temp", "haste-map-*"),
++            p("user_temp", "metro-*"),
++        ],
+     ));
+     rows.push(seed(
+@@ -2989,5 +4078,5 @@ fn agent_seed_table() -> Vec<SeedSpec> {
+             168,
+             0,
+-            InUseMode::None,
++            InUseMode::RunsFromOrReferencesItem,
+             Growth::Slow,
+             vec![
+@@ -3008,5 +4097,5 @@ fn agent_seed_table() -> Vec<SeedSpec> {
+             1,
+             0,
+-            InUseMode::None,
++            InUseMode::RunsFromOrReferencesItem,
+             Growth::Slow,
+             vec![
+```
