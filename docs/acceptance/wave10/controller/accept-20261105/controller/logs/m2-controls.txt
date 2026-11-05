@@ -1,0 +1,22 @@
+m2 c1 mutated packages/junk-scan/src/scan.rs: a cluster of exactly ten members is not formed (mutated sha 07767cfc572f6fb68a0e1f45d8c7df9d645f30750ddabd2d2ac7e283e02c1942)
+m2 red-nc1 rc=0 {"task":"WATER-W10-ACCEPT-M2","mode":"red-nc1","finalGate":false,"status":"passed","error":null,"receipt":"F:\\new\\smaltalk\\water\\.worktrees\\accept-w10-m2\\.local\\checks\\WATER-W10-ACCEPT-M2\\2026-11-05T11-45-07.294Z-30152-red-nc1-result.json"}
+m2 c1 KILLED (expected SCAN_M35_CLUSTERS)
+m2 c1 restored exact bytes=true sha 6930a0fedf9176ff8fcb2b2d7e4068d6ee5ba173c32c59e1b0349c97319bc6a2
+m2 test rc=0 {"task":"WATER-W10-ACCEPT-M2","mode":"test","finalGate":false,"status":"passed","error":null,"receipt":"F:\\new\\smaltalk\\water\\.worktrees\\accept-w10-m2\\.local\\checks\\WATER-W10-ACCEPT-M2\\2026-11-05T11-45-14.471Z-32916-test-result.json"}
+m2 c2 mutated packages/junk-scan/src/scan.rs: cluster group id is not FNV-1a 64 (mutated sha 072eb3e060447ccee76c684301edc360822d7451509844151389d64993871109)
+m2 red-nc1 rc=1 {"task":"WATER-W10-ACCEPT-M2","mode":"red-nc1","finalGate":false,"status":"failed","error":"AssertionError [ERR_ASSERTION]: Unexpected exit, see 2026-11-05T11-45-20.198Z-5648-red-nc1-5.log","receipt":"F:\\new\\smaltalk\\water\\.worktrees\\accept-w10-m2\\.local\\checks\\WATER-W10-ACCEPT-M2\\2026-11-05T11-45-20.198Z-5648-red-nc1-result.json"}
+m2 c2 SURVIVED (expected SCAN_M35_CLUSTERS)
+m2 c2 restored exact bytes=true sha 6930a0fedf9176ff8fcb2b2d7e4068d6ee5ba173c32c59e1b0349c97319bc6a2
+m2 test rc=0 {"task":"WATER-W10-ACCEPT-M2","mode":"test","finalGate":false,"status":"passed","error":null,"receipt":"F:\\new\\smaltalk\\water\\.worktrees\\accept-w10-m2\\.local\\checks\\WATER-W10-ACCEPT-M2\\2026-11-05T11-45-25.708Z-24312-test-result.json"}
+m2 c3 mutated packages/junk-scan/src/scan.rs: unlock pairs are ignored and the item stays inside_protected (contract nc2) (mutated sha ce4b8ac6d47171fff07b78bcbd5a0df2edd0d4ecb32b2df1b8b0a3d8c17419bc)
+m2 red-nc2 rc=0 {"task":"WATER-W10-ACCEPT-M2","mode":"red-nc2","finalGate":false,"status":"passed","error":null,"receipt":"F:\\new\\smaltalk\\water\\.worktrees\\accept-w10-m2\\.local\\checks\\WATER-W10-ACCEPT-M2\\2026-11-05T11-45-30.833Z-19440-red-nc2-result.json"}
+m2 c3 KILLED (expected SCAN_M35_RULES)
+m2 c3 restored exact bytes=true sha 6930a0fedf9176ff8fcb2b2d7e4068d6ee5ba173c32c59e1b0349c97319bc6a2
+m2 test rc=0 {"task":"WATER-W10-ACCEPT-M2","mode":"test","finalGate":false,"status":"passed","error":null,"receipt":"F:\\new\\smaltalk\\water\\.worktrees\\accept-w10-m2\\.local\\checks\\WATER-W10-ACCEPT-M2\\2026-11-05T11-45-37.584Z-17388-test-result.json"}
+m2 c4 mutated packages/junk-scan/src/scan.rs: item disk_bytes reports the logical size instead of the allocation (mutated sha 812df2f26d8cd8a9d3e7b817d656f2796d6b16254bb4a3a60491aa9dcbc0022a)
+m2 red-nc3 rc=0 {"task":"WATER-W10-ACCEPT-M2","mode":"red-nc3","finalGate":false,"status":"passed","error":null,"receipt":"F:\\new\\smaltalk\\water\\.worktrees\\accept-w10-m2\\.local\\checks\\WATER-W10-ACCEPT-M2\\2026-11-05T11-45-44.141Z-31616-red-nc3-result.json"}
+m2 c4 KILLED (expected SCAN_M35_SIZES)
+m2 c4 restored exact bytes=true sha 6930a0fedf9176ff8fcb2b2d7e4068d6ee5ba173c32c59e1b0349c97319bc6a2
+m2 test rc=0 {"task":"WATER-W10-ACCEPT-M2","mode":"test","finalGate":false,"status":"passed","error":null,"receipt":"F:\\new\\smaltalk\\water\\.worktrees\\accept-w10-m2\\.local\\checks\\WATER-W10-ACCEPT-M2\\2026-11-05T11-45-50.288Z-27096-test-result.json"}
+m2 survived: c2
+m2 test --final rc=0 {"task":"WATER-W10-ACCEPT-M2","mode":"test","finalGate":true,"status":"passed","error":null,"receipt":"F:\\new\\smaltalk\\water\\.worktrees\\accept-w10-m2\\.local\\checks\\WATER-W10-ACCEPT-M2\\2026-11-05T11-45-55.532Z-17628-test-result.json"}

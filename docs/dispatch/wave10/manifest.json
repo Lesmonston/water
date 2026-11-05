@@ -124,7 +124,7 @@
       "branch": "worker/water-w10-m1",
       "baseCommit": "f93afb8e3c5cf4114927fe2ab6c14dbb033c7ffe",
       "snapshotRef": "refs/tags/water-w10-m35-base-20261105",
-      "status": "BLOCKED",
+      "status": "REWORK",
       "readyOn": "2026-11-05",
       "dispatchedAt": "2026-11-05T08:47:40Z",
       "startedAt": null,
@@ -212,17 +212,30 @@
         {
           "id": "WATER-W10-M1-ADDENDUM-02",
           "ticket": "docs/dispatch/tickets/WATER-W10-M1-ADDENDUM-02-20261105.md",
-          "status": "READY",
+          "status": "SUBMITTED",
           "issuedAt": "2026-11-05T09:22:34Z",
           "resumeFromCommit": "a62e87ce9a21ba3a7ab2b45b0f9f2d5a785a7a80",
           "change": "bound the agent target slice to 38 and compare its last item; general rule: any old tail/count/last-item assertion that fails only because rules and targets are appended at the end is cut to the original part, original content unchanged, new part checked by RULES_M35_SEEDS"
+        },
+        {
+          "id": "WATER-W10-M1-ADDENDUM-03",
+          "ticket": "docs/dispatch/tickets/WATER-W10-M1-ADDENDUM-03-20261105.md",
+          "status": "READY",
+          "issuedAt": "2026-11-05T11:57:58Z",
+          "resumeFromCommit": "23cd89da24cd46bea0ec511aebb15039eac6a2c0",
+          "change": "jest-cache locators become segments [\"jest\",\"*\"] in system_temp and user_temp (contract notation: a space separates segments, as in rule 32); discovery locators reject drive-root bases with RULES_INVALID_LOCATE; the old conditions loop covers all targets of the original 78 rules again, conditions comparison still only for node-modules and test-browser-profiles, expected values updated only where SPEC section 5 or the fallback ID format changed"
         }
-      ]
+      ],
+      "submittedHead": "23cd89da24cd46bea0ec511aebb15039eac6a2c0",
+      "controllerReview": {
+        "evidence": "docs/acceptance/wave10/controller/accept-20261105/m1/",
+        "summary": "audit 0 problems; fresh tree lock, check, real and test finals passed; controller mutations c1-c7 all caught; independent review: HIGH jest-cache locator implemented as one segment \"jest *\" (matches nothing, loses %TEMP%\\jest); LOW discovery with base system_drive accepted but its plan is rejected; weak: addendum 01 item 2 narrowed the old loop so 76 old rules lost shape, marker-byte and fallback wire-ID checks"
+      }
     },
     {
       "id": "WATER-W10-M2",
       "title": "扫描：新定位、分配大小、泄漏簇、联接索引与空间分布",
-      "status": "DISPATCHED",
+      "status": "REWORK",
       "slot": "w10-m2",
       "kind": "rust",
       "worktree": "F:/new/smaltalk/water/.worktrees/w10-m2",
@@ -357,7 +370,22 @@
         "SHGetKnownFolderPath"
       ],
       "bundle": "A",
-      "dispatchEvidence": "user chat 2026-11-05 ~17:47 JST: \"三个新单是sol\" (bundles A, B, C to sol); worker tree head/changed files f93afb8e/0 when recorded at 2026-11-05T08:47:40Z"
+      "dispatchEvidence": "user chat 2026-11-05 ~17:47 JST: \"三个新单是sol\" (bundles A, B, C to sol); worker tree head/changed files f93afb8e/0 when recorded at 2026-11-05T08:47:40Z",
+      "submittedHead": "f50da2642dc055d8425b474e30759b6ce22cdc0f",
+      "controllerReview": {
+        "evidence": "docs/acceptance/wave10/controller/accept-20261105/m2/",
+        "summary": "audit 0 problems; fresh tree lock, check, real and test finals passed; controller mutations c1, c3, c4 caught, c2 (FNV prime) survives; independent review: no content read; MEDIUM <h> clusters take other extensions; declarations inside cluster members dropped; name-only marker matches stop searching; listing cache kept for the whole scan with linear child lookup and an unchecked candidate loop"
+      },
+      "addenda": [
+        {
+          "id": "WATER-W10-M2-ADDENDUM-01",
+          "ticket": "docs/dispatch/tickets/WATER-W10-M2-ADDENDUM-01-20261105.md",
+          "status": "READY",
+          "issuedAt": "2026-11-05T11:57:58Z",
+          "resumeFromCommit": "f50da2642dc055d8425b474e30759b6ce22cdc0f",
+          "change": "<h> extra members need the exact extension; a candidate dir holding .water-cleanup.json is not a candidate and declarations inside members are kept; name-only marker matches that fail conditions are searched; indexed child lookup, cancel and budget checks in the cluster loop, listing cache released when no longer needed; budget issue of a dropped cluster goes to the parent group; independent FNV-1a check in tests"
+        }
+      ]
     },
     {
       "id": "WATER-W10-M3",
@@ -567,7 +595,7 @@
       "branch": "worker/water-w10-m4",
       "baseCommit": "f93afb8e3c5cf4114927fe2ab6c14dbb033c7ffe",
       "snapshotRef": "refs/tags/water-w10-m35-base-20261105",
-      "status": "BLOCKED",
+      "status": "VERIFIED",
       "readyOn": "2026-11-05",
       "dispatchedAt": "2026-11-05T08:47:40Z",
       "startedAt": null,
@@ -635,10 +663,7 @@
       "acceptanceNote": "docs/acceptance/wave5/controller/WATER-W5-ACCEPT-PROGRESS-20261028.md",
       "bundle": "C",
       "dispatchEvidence": "user chat 2026-11-05 ~17:47 JST: \"三个新单是sol\" (bundles A, B, C to sol); worker tree head/changed files f93afb8e/5 when recorded at 2026-11-05T08:47:40Z",
-      "blockedAt": "2026-11-05T09:49:16Z",
-      "blockedCommit": "12c6c5563f8eadcefee9937a446a1ddfb390f4f2",
-      "blockedReason": "SetFileInformationByHandle FileRenameInfo (class 3) with a RootDirectory handle and a single-segment name returns ERROR_INVALID_PARAMETER (87) for files and directories; controller probe confirms Win32 rejects any non-null RootDirectory while NtSetInformationFile class 10 with the same buffer works",
-      "workerSelfReport": "Codex (GPT-6)",
+      "workerSelfReport": "Codex GPT-6",
       "addenda": [
         {
           "id": "WATER-W10-M4-ADDENDUM-01",
@@ -653,12 +678,30 @@
         {
           "id": "WATER-W10-M4-ADDENDUM-02",
           "ticket": "docs/dispatch/tickets/WATER-W10-M4-ADDENDUM-02-20261105.md",
-          "status": "READY",
+          "status": "VERIFIED",
           "issuedAt": "2026-11-05T09:49:16Z",
           "resumeFromCommit": "12c6c5563f8eadcefee9937a446a1ddfb390f4f2",
           "evidence": "docs/acceptance/wave10/controller/m4-rename-probe-20261105/",
-          "change": "rename_at uses NtSetInformationFile class 10 (FileRenameInformation) with the same buffer, ReplaceIfExists 0, RootDirectory = destination parent handle; NTSTATUS mapped by RtlNtStatusToDosError (183 collision, 17 other volume); NtSetInformationFile added to allowedFfi, only in rename_at, only class 10; SetFileInformationByHandle keeps classes 4 and 21 only; stderr diagnostic removed; finish the two purge stop/in-use branches"
+          "change": "rename_at uses NtSetInformationFile class 10 (FileRenameInformation) with the same buffer, ReplaceIfExists 0, RootDirectory = destination parent handle; NTSTATUS mapped by RtlNtStatusToDosError (183 collision, 17 other volume); NtSetInformationFile added to allowedFfi, only in rename_at, only class 10; SetFileInformationByHandle keeps classes 4 and 21 only; stderr diagnostic removed; finish the two purge stop/in-use branches",
+          "submittedHead": "6c30062c130e77322e0e99b161108a4499b095c2",
+          "implementationCommit": "b1017bd73cf63183e84cc7f09c368ff1b5ead5b5"
         }
+      ],
+      "submittedHead": "6c30062c130e77322e0e99b161108a4499b095c2",
+      "implementationCommit": "b1017bd73cf63183e84cc7f09c368ff1b5ead5b5",
+      "mergeCommit": "e3c1b1c178163bee65e194d66215be1d5f260f76",
+      "controllerReview": {
+        "report": "docs/acceptance/wave10/controller/WATER-W10-REVIEW-20261105.md",
+        "evidence": "docs/acceptance/wave10/controller/accept-20261105/m4/",
+        "summary": "addendum 01 (real smoke on the system and repo drives) and addendum 02 (rename through NtSetInformationFile class 10, after the controller probe showed SetFileInformationByHandle rejects a RootDirectory with error 87) resolved the blocks; audit 0 problems; fresh tree lock, check, real and test finals passed; controller mutations: c2 (ReplaceIfExists 1), c3 (sharing violation not in_use), c5 (five unlocked paths) caught; c1 (183 reported as other) and c4 (unlocked path need not contain the item) survive because tests never reach the NT collision path or a non-containing unlocked path; independent review found no high-severity issue (no wrong move, delete or overwrite, no link followed out of the quarantine, only allowed functions and classes)"
+      },
+      "carryOverLater": [
+        "MEDIUM: purge keeps a whole subfolder when opening it with DELETE fails with 32 (a terminal cd-ed inside); CLEAN-M35 sections 5 and 7 want children removed and only the last empty folder left; the open-without-DELETE fallback exists only for the root (native_windows.rs 1473-1479 vs 1351-1363); fix before the M3.5 release",
+        "MEDIUM: a quarantine id folder opened by another process with share mode 0 or with DELETE access makes purge return InvalidPlan instead of the root-level in_use leftover addendum 02 asks for (native_windows.rs 1346); only the share-read-write case is tested; fix before the M3.5 release",
+        "MEDIUM (contract gap): valid_id accepts device names (nul, con, com1); a move creates them but restore, purge and inspect reject them through path::validate, stranding data; service timestamp ids cannot hit this; tighten the id rule",
+        "MEDIUM: a journal write failure after a successful rename returns Err(Journal) and drops the whole report, so the service cannot record what was moved (same pattern as execute)",
+        "LOW: a final inspect after purge can turn a partly finished purge into Err with no done journal line; an item vanishing between preflight and open is reported failed/other instead of skipped gone; skipped or failed items leave empty skeleton folders that list as an empty quarantine; nested items are not rejected; stale \"eight functions\" comment and a missing SAFETY comment",
+        "weak tests: the NT collision mapping (183) is never reached because the destination is checked first (controller mutation c1 survives); no non-containing unlocked path case (c4 survives); no separate non-unlocked protected ancestor case; the identity recheck just before the rename is not exercised; no item-contains-qroot, second-root or locked-directory move cases; the in-use purge subfolder is empty; busy root only with share mode 3; hard-link freed_bytes untested; nc2 fails for a different reason than CLEAN-M35 section 9 states"
       ]
     },
     {
@@ -1364,18 +1407,17 @@
       ],
       "bundle": "B",
       "dispatchEvidence": "user chat 2026-11-05 ~17:47 JST: \"三个新单是sol\" (bundles A, B, C to sol); worker tree head/changed files f93afb8e/0 when recorded at 2026-11-05T08:47:40Z",
-      "blockedAt": "2026-11-05T09:16:43Z",
-      "blockedCommit": "67975926157a2385b2b5715c55cd95024b1b7c32",
       "workerSelfReport": "Codex GPT-6",
-      "blockedReason": "DUP-M35 section 3 step 6 re-reads size and modified time from the same handle, but section 1 only allowed information classes 1, 9 and 18 (no timestamps) and no File::metadata",
       "addenda": [
         {
           "id": "WATER-W10-M8-ADDENDUM-01",
           "ticket": "docs/dispatch/tickets/WATER-W10-M8-ADDENDUM-01-20261105.md",
-          "status": "READY",
+          "status": "VERIFIED",
           "issuedAt": "2026-11-05T09:16:43Z",
           "resumeFromCommit": "67975926157a2385b2b5715c55cd95024b1b7c32",
-          "change": "allow GetFileInformationByHandleEx class 0 FileBasicInfo (query only) for the same-handle recheck; no new system function"
+          "change": "allow GetFileInformationByHandleEx class 0 FileBasicInfo (query only) for the same-handle recheck; no new system function",
+          "submittedHead": "b408fcff3550b9589afd30ffb18815c104c7d85b",
+          "implementationCommit": "ef552f5a6ec8753920503143cab439d63c385916"
         }
       ],
       "submittedHead": "b408fcff3550b9589afd30ffb18815c104c7d85b",

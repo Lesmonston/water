@@ -1,0 +1,27 @@
+m4 c1 mutated packages/junk-clean/src/native_windows.rs: an existing name (183 from the NT rename) is reported as other, not destination_exists (mutated sha 9d04b52a77ee8898f7ea079929ffdf166beec8469264572d513a0561400d2f55)
+m4 red-nc1 rc=1 {"task":"WATER-W10-ACCEPT-M4","mode":"red-nc1","finalGate":false,"status":"failed","error":"AssertionError [ERR_ASSERTION]: Missing failure token CLEAN_M35_RESTORE","receipt":"F:\\new\\smaltalk\\water\\.worktrees\\accept-w10-m4\\.local\\checks\\WATER-W10-ACCEPT-M4\\2026-11-05T11-45-59.123Z-13188-red-nc1-result.json"}
+m4 c1 SURVIVED (expected CLEAN_M35_RESTORE)
+m4 c1 restored exact bytes=true sha d83afebb5b9cc3fb6beafa7380b877c466f93337a7633ab8f253adc07f7782bc
+m4 test rc=0 {"task":"WATER-W10-ACCEPT-M4","mode":"test","finalGate":false,"status":"passed","error":null,"receipt":"F:\\new\\smaltalk\\water\\.worktrees\\accept-w10-m4\\.local\\checks\\WATER-W10-ACCEPT-M4\\2026-11-05T11-46-35.023Z-31800-test-result.json"}
+m4 c2 mutated packages/junk-clean/src/native_windows.rs: rename may overwrite (contract nc1) (mutated sha 521e3d89711447aa3abbd50b7b8f69f325376b7164d50a82db9028e65bb37385)
+m4 red-nc1 rc=0 {"task":"WATER-W10-ACCEPT-M4","mode":"red-nc1","finalGate":false,"status":"passed","error":null,"receipt":"F:\\new\\smaltalk\\water\\.worktrees\\accept-w10-m4\\.local\\checks\\WATER-W10-ACCEPT-M4\\2026-11-05T11-47-05.297Z-26376-red-nc1-result.json"}
+m4 c2 KILLED (expected CLEAN_M35_RESTORE)
+m4 c2 restored exact bytes=true sha d83afebb5b9cc3fb6beafa7380b877c466f93337a7633ab8f253adc07f7782bc
+m4 test rc=0 {"task":"WATER-W10-ACCEPT-M4","mode":"test","finalGate":false,"status":"passed","error":null,"receipt":"F:\\new\\smaltalk\\water\\.worktrees\\accept-w10-m4\\.local\\checks\\WATER-W10-ACCEPT-M4\\2026-11-05T11-47-30.656Z-28344-test-result.json"}
+m4 c3 mutated packages/junk-clean/src/native_windows.rs: a sharing violation during purge is not reported as in_use (mutated sha 9bc55b677217565e9f7dd660e87bb50db5db55718eff39a664e74ddbf816525f)
+m4 red-nc2 rc=0 {"task":"WATER-W10-ACCEPT-M4","mode":"red-nc2","finalGate":false,"status":"passed","error":null,"receipt":"F:\\new\\smaltalk\\water\\.worktrees\\accept-w10-m4\\.local\\checks\\WATER-W10-ACCEPT-M4\\2026-11-05T11-48-09.685Z-15352-red-nc2-result.json"}
+m4 c3 KILLED (expected CLEAN_M35_PURGE)
+m4 c3 restored exact bytes=true sha d83afebb5b9cc3fb6beafa7380b877c466f93337a7633ab8f253adc07f7782bc
+m4 test rc=0 {"task":"WATER-W10-ACCEPT-M4","mode":"test","finalGate":false,"status":"passed","error":null,"receipt":"F:\\new\\smaltalk\\water\\.worktrees\\accept-w10-m4\\.local\\checks\\WATER-W10-ACCEPT-M4\\2026-11-05T11-48-38.606Z-24000-test-result.json"}
+m4 c4 mutated packages/junk-clean/src/model.rs: an unlocked path that does not contain the item is accepted (mutated sha ee7b41c19c63880f73ef0a179debbd861dc55ed939ae36d2fae8361df8059b22)
+m4 red-nc3 rc=1 {"task":"WATER-W10-ACCEPT-M4","mode":"red-nc3","finalGate":false,"status":"failed","error":"AssertionError [ERR_ASSERTION]: Unexpected exit, see 2026-11-05T11-49-08.624Z-9572-red-nc3-5.log","receipt":"F:\\new\\smaltalk\\water\\.worktrees\\accept-w10-m4\\.local\\checks\\WATER-W10-ACCEPT-M4\\2026-11-05T11-49-08.624Z-9572-red-nc3-result.json"}
+m4 c4 SURVIVED (expected CLEAN_M35_UNLOCK)
+m4 c4 restored exact bytes=true sha 14ea91416a0a251697da5ed5cb509021fe49402f18473ce2d8226e1c7bb22430
+m4 test rc=0 {"task":"WATER-W10-ACCEPT-M4","mode":"test","finalGate":false,"status":"passed","error":null,"receipt":"F:\\new\\smaltalk\\water\\.worktrees\\accept-w10-m4\\.local\\checks\\WATER-W10-ACCEPT-M4\\2026-11-05T11-49-38.220Z-21196-test-result.json"}
+m4 c5 mutated packages/junk-clean/src/model.rs: five unlocked paths are accepted (mutated sha a480b42c4f68c56980beaa7cc5f51045d21cb26b1e20fc6f59c362509c9f33cb)
+m4 red-nc3 rc=0 {"task":"WATER-W10-ACCEPT-M4","mode":"red-nc3","finalGate":false,"status":"passed","error":null,"receipt":"F:\\new\\smaltalk\\water\\.worktrees\\accept-w10-m4\\.local\\checks\\WATER-W10-ACCEPT-M4\\2026-11-05T11-50-15.642Z-33548-red-nc3-result.json"}
+m4 c5 KILLED (expected CLEAN_M35_UNLOCK)
+m4 c5 restored exact bytes=true sha 14ea91416a0a251697da5ed5cb509021fe49402f18473ce2d8226e1c7bb22430
+m4 test rc=0 {"task":"WATER-W10-ACCEPT-M4","mode":"test","finalGate":false,"status":"passed","error":null,"receipt":"F:\\new\\smaltalk\\water\\.worktrees\\accept-w10-m4\\.local\\checks\\WATER-W10-ACCEPT-M4\\2026-11-05T11-50-58.012Z-32256-test-result.json"}
+m4 survived: c1,c4
+m4 test --final rc=0 {"task":"WATER-W10-ACCEPT-M4","mode":"test","finalGate":true,"status":"passed","error":null,"receipt":"F:\\new\\smaltalk\\water\\.worktrees\\accept-w10-m4\\.local\\checks\\WATER-W10-ACCEPT-M4\\2026-11-05T11-51-41.780Z-16688-test-result.json"}

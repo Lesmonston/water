@@ -166,5 +166,155 @@
    "new": "(copies.iter().filter(|c| c.removable).count() as u128 + 1);",
    "why": "reclaimable bytes count one copy too many"
   }
+ ],
+ "m1": [
+  {
+   "label": "c1",
+   "mode": "red-nc1",
+   "token": "RULES_M35_SESSIONS",
+   "file": "packages/junk-rules/src/plan.rs",
+   "old": "        .filter(|rule| rule.session_tool.is_none());",
+   "new": "        .filter(|_rule| true);",
+   "why": "session rules produce targets even when their switch is off"
+  },
+  {
+   "label": "c2",
+   "mode": "red-nc1",
+   "token": "RULES_M35_SESSIONS",
+   "file": "packages/junk-rules/src/plan.rs",
+   "old": "            || !(1..=365).contains(&switch.min_age_days)",
+   "new": "            || !(1..=366).contains(&switch.min_age_days)",
+   "why": "a session switch of 366 days is accepted"
+  },
+  {
+   "label": "c3",
+   "mode": "red-nc2",
+   "token": "RULES_M35_FIELDS",
+   "file": "packages/junk-rules/src/m35.rs",
+   "old": "            || !(1..=4).contains(&names.len())",
+   "new": "            || !(1..=5).contains(&names.len())",
+   "why": "five installed_names are accepted"
+  },
+  {
+   "label": "c4",
+   "mode": "red-nc2",
+   "token": "RULES_M35_FIELDS",
+   "file": "packages/junk-rules/src/m35.rs",
+   "old": "            if !seen.insert(name.to_lowercase()) {",
+   "new": "            if !seen.insert(name.clone()) {",
+   "why": "installed_names differing only in case are accepted"
+  },
+  {
+   "label": "c5",
+   "mode": "red-nc2",
+   "token": "RULES_M35_FIELDS",
+   "file": "packages/junk-rules/src/m35.rs",
+   "old": "        || (rule.in_use_zh.is_some() && rule.in_use.mode == InUseMode::None)",
+   "new": "        || false",
+   "why": "in_use_zh is accepted on a rule without an in-use check"
+  },
+  {
+   "label": "c6",
+   "mode": "red-nc2",
+   "token": "RULES_M35_FIELDS",
+   "file": "packages/junk-rules/src/plan.rs",
+   "old": "                            .any(|allowed| name.eq_ignore_ascii_case(allowed))",
+   "new": "                            .any(|allowed| name == allowed)",
+   "why": "custom discovery root names compared case-sensitively"
+  },
+  {
+   "label": "c7",
+   "mode": "red-nc2",
+   "token": "RULES_M35_FIELDS",
+   "file": "packages/junk-rules/src/plan.rs",
+   "old": "                        {\n                            continue;\n                        }\n                        let group_id = format!(\"custom:{}:{}\", root.root_id, rule.rule_id);",
+   "new": "                        {\n                        }\n                        let group_id = format!(\"custom:{}:{}\", root.root_id, rule.rule_id);",
+   "why": "custom discovery targets every custom root (contract nc2)"
+  }
+ ],
+ "m2": [
+  {
+   "label": "c1",
+   "mode": "red-nc1",
+   "token": "SCAN_M35_CLUSTERS",
+   "file": "packages/junk-scan/src/scan.rs",
+   "old": "            if members.len() < 10 {",
+   "new": "            if members.len() < 11 {",
+   "why": "a cluster of exactly ten members is not formed"
+  },
+  {
+   "label": "c2",
+   "mode": "red-nc1",
+   "token": "SCAN_M35_CLUSTERS",
+   "file": "packages/junk-scan/src/scan.rs",
+   "old": "        hash = (hash ^ u64::from(byte)).wrapping_mul(0x100000001b3);",
+   "new": "        hash = (hash ^ u64::from(byte)).wrapping_mul(0x100000001b5);",
+   "why": "cluster group id is not FNV-1a 64"
+  },
+  {
+   "label": "c3",
+   "mode": "red-nc2",
+   "token": "SCAN_M35_RULES",
+   "file": "packages/junk-scan/src/scan.rs",
+   "old": "            && !hit.unlocks_target_ids.contains(&item.target_id)",
+   "new": "            && true",
+   "why": "unlock pairs are ignored and the item stays inside_protected (contract nc2)"
+  },
+  {
+   "label": "c4",
+   "mode": "red-nc3",
+   "token": "SCAN_M35_SIZES",
+   "file": "packages/junk-scan/src/scan.rs",
+   "old": "        item.disk_bytes = Some(format_bytes(hit.disk_bytes));",
+   "new": "        item.disk_bytes = Some(format_bytes(hit.total_bytes));",
+   "why": "item disk_bytes reports the logical size instead of the allocation"
+  }
+ ],
+ "m4": [
+  {
+   "label": "c1",
+   "mode": "red-nc1",
+   "token": "CLEAN_M35_RESTORE",
+   "file": "packages/junk-clean/src/native_windows.rs",
+   "old": "            80 | 183 => MoveError::DestinationExists,",
+   "new": "            80 => MoveError::DestinationExists,",
+   "why": "an existing name (183 from the NT rename) is reported as other, not destination_exists"
+  },
+  {
+   "label": "c2",
+   "mode": "red-nc1",
+   "token": "CLEAN_M35_RESTORE",
+   "file": "packages/junk-clean/src/native_windows.rs",
+   "old": "            ptr::write(base, 0u8); // ReplaceIfExists: never overwrite.",
+   "new": "            ptr::write(base, 1u8); // ReplaceIfExists: never overwrite.",
+   "why": "rename may overwrite (contract nc1)"
+  },
+  {
+   "label": "c3",
+   "mode": "red-nc2",
+   "token": "CLEAN_M35_PURGE",
+   "file": "packages/junk-clean/src/native_windows.rs",
+   "old": "                32 | 33 => LeftoverReason::InUse,",
+   "new": "                33 => LeftoverReason::InUse,",
+   "why": "a sharing violation during purge is not reported as in_use"
+  },
+  {
+   "label": "c4",
+   "mode": "red-nc3",
+   "token": "CLEAN_M35_UNLOCK",
+   "file": "packages/junk-clean/src/model.rs",
+   "old": "                if !path::strictly_contains(unlocked, &item.path)",
+   "new": "                if false && !path::strictly_contains(unlocked, &item.path)",
+   "why": "an unlocked path that does not contain the item is accepted"
+  },
+  {
+   "label": "c5",
+   "mode": "red-nc3",
+   "token": "CLEAN_M35_UNLOCK",
+   "file": "packages/junk-clean/src/model.rs",
+   "old": "            if item.unlocked_paths.len() > 4 {",
+   "new": "            if item.unlocked_paths.len() > 5 {",
+   "why": "five unlocked paths are accepted"
+  }
  ]
 }

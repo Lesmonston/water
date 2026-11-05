@@ -1,0 +1,38 @@
+{"binary":"C:\\Users\\37310\\.rustup\\toolchains\\1.95.0-x86_64-pc-windows-msvc\\bin\\cargo.exe","args":["test","--offline","--locked","--manifest-path","packages/junk-clean/Cargo.toml","--test","clean_v1","--","--test-threads=1"],"exitCode":101,"error":null}
+--- stdout ---
+
+running 11 tests
+test clean_handle_hardening ... ok
+test clean_no_follow ... ok
+test clean_partial_stop_journal ... ok
+test clean_plan_contract ... ok
+test clean_report_volume ... ok
+test clean_revalidation_skips ... ok
+test quarantine_inspect_and_list ... ok
+test quarantine_move_contract ... FAILED
+test quarantine_purge_contract ... ok
+test quarantine_restore_contract ... ok
+test quarantine_unlock_pair ... ok
+
+failures:
+
+---- quarantine_move_contract stdout ----
+
+thread 'quarantine_move_contract' (31092) panicked at tests\clean_v1.rs:1941:5:
+assertion `left == right` failed: CLEAN_M35_MOVE: collision reason
+  left: Some(Other)
+ right: Some(DestinationExists)
+note: run with `RUST_BACKTRACE=1` environment variable to display a backtrace
+
+
+failures:
+    quarantine_move_contract
+
+test result: FAILED. 10 passed; 1 failed; 0 ignored; 0 measured; 0 filtered out; finished in 28.92s
+
+
+--- stderr ---
+   Compiling water-junk-clean v0.1.0 (F:\new\smaltalk\water\.worktrees\accept-w10-m4\packages\junk-clean)
+    Finished `test` profile [unoptimized + debuginfo] target(s) in 4.09s
+     Running tests\clean_v1.rs (.local\w2-target\debug\deps\clean_v1-607b5e28434d5f75.exe)
+error: test failed, to rerun pass `--test clean_v1`

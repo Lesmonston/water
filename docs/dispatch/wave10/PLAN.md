@@ -303,3 +303,14 @@ WATER-W10-M4 补单 02（句柄相对改名改用 NtSetInformationFile 类 10，
 ```text
 WATER-W10-M5 补单 01（命令追加与新参数带来的旧断言，重门）：读 F:/new/smaltalk/water/docs/dispatch/tickets/WATER-W10-M5-ADDENDUM-01-20261105.md，按其中列出的顺序读原票、规则、契约与上一轮回执，在 F:/new/smaltalk/water/.worktrees/w10-m5（分支 worker/water-w10-m5）从 2d516c46 续做；做完、提交并交回回执；受阻就停下写受阻回执。
 ```
+
+### M1 补单 03、M2 补单 01（2026-11-05，验收未通过续做）
+
+- **M1**（`23cd89da`）复跑与变异都过，独立审查查出 `jest-cache` 的定位实现成单段 `"jest *"`，一个也匹配不到，原来能找到的 `%TEMP%\jest` 也丢了。契约表格里反引号中的空格分段（第 32 条 `tmp chrome_*` 执行者就是按两段实现的），但第 5 节那一格用顿号列名字、又夹空格，写得含糊。[补单 03](../tickets/WATER-W10-M1-ADDENDUM-03-20261105.md) 改成两段，discovery 不许以盘根为 base，并把补单 01 第 2 条写窄了的旧循环恢复到原有 78 条规则。
+- **M2**（`f50da264`）复跑通过，变异漏一条（簇编号的 FNV 乘数），独立审查查出 `<h>` 簇收了别的扩展名、簇成员里的项目声明被删、只命中名字的目录不再搜索，以及新加的清单缓存在整盘扫描时无界增长。[补单 01](../tickets/WATER-W10-M2-ADDENDUM-01-20261105.md) 逐条要求修正并补测试。
+
+**WATER-W10-M1 补单 03，然后 WATER-W10-M2 补单 01**
+
+```text
+WATER-W10-M1 补单 03（jest 定位、discovery 盘根、旧循环覆盖面，轻门）：读 F:/new/smaltalk/water/docs/dispatch/tickets/WATER-W10-M1-ADDENDUM-03-20261105.md，按其中列出的顺序读原票、规则、契约、前两张补单与你的回执，在 F:/new/smaltalk/water/.worktrees/w10-m1（分支 worker/water-w10-m1）从 23cd89da 续做；交回后再做 WATER-W10-M2 补单 01（簇成员、项目声明、名字命中、扫描开销，中门）：读 F:/new/smaltalk/water/docs/dispatch/tickets/WATER-W10-M2-ADDENDUM-01-20261105.md，在 F:/new/smaltalk/water/.worktrees/w10-m2（分支 worker/water-w10-m2）从 f50da264 续做。每张单在自己的工作树里做完、提交并交回回执再开始下一张；某一张受阻就停下写受阻回执。
+```
