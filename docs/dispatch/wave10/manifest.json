@@ -1213,7 +1213,7 @@
     {
       "id": "WATER-W10-M8",
       "title": "新包：用户发起的逐字节查重",
-      "status": "DISPATCHED",
+      "status": "BLOCKED",
       "slot": "w10-m8",
       "kind": "rust",
       "worktree": "F:/new/smaltalk/water/.worktrees/w10-m8",
@@ -1310,7 +1310,21 @@
         "GetVolumeInformationByHandleW"
       ],
       "bundle": "B",
-      "dispatchEvidence": "user chat 2026-11-05 ~17:47 JST: \"三个新单是sol\" (bundles A, B, C to sol); worker tree head/changed files f93afb8e/0 when recorded at 2026-11-05T08:47:40Z"
+      "dispatchEvidence": "user chat 2026-11-05 ~17:47 JST: \"三个新单是sol\" (bundles A, B, C to sol); worker tree head/changed files f93afb8e/0 when recorded at 2026-11-05T08:47:40Z",
+      "blockedAt": "2026-11-05T09:16:43Z",
+      "blockedCommit": "67975926157a2385b2b5715c55cd95024b1b7c32",
+      "workerSelfReport": "Codex (GPT-6)",
+      "blockedReason": "DUP-M35 section 3 step 6 re-reads size and modified time from the same handle, but section 1 only allowed information classes 1, 9 and 18 (no timestamps) and no File::metadata",
+      "addenda": [
+        {
+          "id": "WATER-W10-M8-ADDENDUM-01",
+          "ticket": "docs/dispatch/tickets/WATER-W10-M8-ADDENDUM-01-20261105.md",
+          "status": "READY",
+          "issuedAt": "2026-11-05T09:16:43Z",
+          "resumeFromCommit": "67975926157a2385b2b5715c55cd95024b1b7c32",
+          "change": "allow GetFileInformationByHandleEx class 0 FileBasicInfo (query only) for the same-handle recheck; no new system function"
+        }
+      ]
     },
     {
       "id": "WATER-W10-M9",

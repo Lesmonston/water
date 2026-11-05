@@ -262,3 +262,14 @@
 ```text
 你接手 Water 项目第十波 C 组，继续按顺序做：先做 WATER-W10-M4 补单 01（真实冒烟改为查系统盘与本仓库所在盘，重门）：读 F:/new/smaltalk/water/docs/dispatch/tickets/WATER-W10-M4-ADDENDUM-01-20261105.md，按其中列出的顺序读原票、规则、契约与上一轮回执，在 F:/new/smaltalk/water/.worktrees/w10-m4（分支 worker/water-w10-m4）从 07dc6209 续做；交回后再做 WATER-W10-M5（宿主：转发第十波命令，打开隔离区文件夹，中门，含整机检查）：工单 F:/new/smaltalk/water/docs/dispatch/tickets/WATER-W10-M5-HOST-20261105.md，工作树 F:/new/smaltalk/water/.worktrees/w10-m5（分支 worker/water-w10-m5），从 f93afb8e 开工。每张单在它自己的工作树里做完、提交并交回回执，再开始下一张；某一张受阻就停下写那张单的受阻回执，不要跳到下一张。
 ```
+
+### M8 补单 01（2026-11-05）
+
+- **M8**（回执 `67975926`）受阻成立：DUP-M35 要求“读完从同一句柄再读一次修改时间”，但只允许了不含时间的信息类，又不许对已打开的文件取 `metadata()`。[补单 01](../tickets/WATER-W10-M8-ADDENDUM-01-20261105.md) 另许 `GetFileInformationByHandleEx` 的类 0 FileBasicInfo（只查询），不加新的系统函数。B 组的 M9、M3 已交回，M8 是最后一张。
+- 用户 11-05：“不用什么你接手之类的前摇语句了。”派单句从这条起直接写单号与要读的东西。
+
+**WATER-W10-M8 补单 01**
+
+```text
+WATER-W10-M8 补单 01（同一句柄复查修改时间用 FileBasicInfo，中门）：读 F:/new/smaltalk/water/docs/dispatch/tickets/WATER-W10-M8-ADDENDUM-01-20261105.md，按其中列出的顺序读原票、规则、契约与上一轮回执，在 F:/new/smaltalk/water/.worktrees/w10-m8（分支 worker/water-w10-m8）从 67975926 续做。
+```
