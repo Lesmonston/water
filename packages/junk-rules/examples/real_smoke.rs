@@ -27,7 +27,7 @@ fn main() {
                         literal_prefix_exists = true;
                     }
                 }
-                Locator::Marker { .. } => {}
+                Locator::Marker { .. } | Locator::CustomDiscovery { .. } => {}
             }
         }
         rows.push(serde_json::json!({
@@ -36,7 +36,15 @@ fn main() {
             "literal_prefix_exists": literal_prefix_exists,
         }));
     }
-    println!("{}", serde_json::to_string(&rows).expect("json"));
+    println!(
+        "{}",
+        serde_json::json!({
+            "rule_count": rows.len(),
+            "base_present_count": rows.iter().filter(|r| r["base_exists"] == true).count(),
+            "literal_prefix_present_count": rows.iter().filter(|r| r["literal_prefix_exists"] == true).count(),
+            "system_drive_exists": path_exists(folder(&folders, KnownFolder::SystemDrive)),
+        })
+    );
 }
 
 struct EnvFolders {
@@ -78,6 +86,7 @@ fn folder(folders: &EnvFolders, known: KnownFolder) -> &str {
         KnownFolder::Windows => &folders.windows,
         KnownFolder::ProgramData => &folders.program_data,
         KnownFolder::Downloads => &folders.downloads,
+        KnownFolder::SystemDrive => &folders.windows[..3],
     }
 }
 
@@ -102,7 +111,9 @@ fn literal_prefix(base: &str, segments: &[String]) -> String {
         {
             break;
         }
-        path.push('\\');
+        if !path.ends_with('\\') {
+            path.push('\\');
+        }
         path.push_str(segment);
     }
     path

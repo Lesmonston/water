@@ -11,6 +11,7 @@ pub enum KnownFolder {
     Windows,
     ProgramData,
     Downloads,
+    SystemDrive,
 }
 
 pub const KNOWN_FOLDER_ORDER: [KnownFolder; 8] = [
@@ -35,6 +36,7 @@ impl KnownFolder {
             Self::Windows => "windows",
             Self::ProgramData => "program_data",
             Self::Downloads => "downloads",
+            Self::SystemDrive => "system_drive",
         }
     }
 
@@ -48,6 +50,7 @@ impl KnownFolder {
             "windows" => Self::Windows,
             "program_data" => Self::ProgramData,
             "downloads" => Self::Downloads,
+            "system_drive" => Self::SystemDrive,
             _ => return None,
         })
     }
@@ -212,6 +215,7 @@ impl InUseMode {
 pub struct InUse {
     pub mode: InUseMode,
     pub processes: Vec<String>,
+    pub root_levels: Option<u8>,
 }
 
 #[derive(Debug, Clone, Copy, PartialEq, Eq)]
@@ -253,6 +257,12 @@ pub enum Marker {
     DirName {
         names: Vec<String>,
     },
+    DirNamePattern {
+        patterns: Vec<String>,
+    },
+    FileName {
+        patterns: Vec<String>,
+    },
 }
 
 #[derive(Debug, Clone, PartialEq, Eq)]
@@ -261,6 +271,10 @@ pub enum Condition {
     ParentHasOtherEntries { except: Vec<String> },
     NoAncestorSuffix { suffixes: Vec<String> },
     PathHasAny { names: Vec<String> },
+    ParentHasOtherMatch,
+    ParentHasFileMatching { pattern: String },
+    ParentLacksFileMatching { pattern: String },
+    SiblingWithoutSuffix { suffixes: Vec<String> },
 }
 
 #[derive(Debug, Clone, PartialEq, Eq)]
@@ -277,6 +291,9 @@ pub enum Locator {
     },
     Discovery {
         base: KnownFolder,
+    },
+    CustomDiscovery {
+        root_names: Vec<String>,
     },
 }
 
@@ -330,11 +347,18 @@ pub(crate) fn parse_conditions(value: &Value, path: &str) -> Result<Vec<Conditio
         if !seen.insert(kind) {
             return Err(invalid());
         }
+        if kind == "parent_has_other_match" {
+            expect_keys(map, &["kind"], &item_path)?;
+            conditions.push(Condition::ParentHasOtherMatch);
+            continue;
+        }
         let key = match kind {
             "parent_has_file" => "name",
             "parent_has_other_entries" => "except",
             "no_ancestor_suffix" => "suffixes",
             "path_has_any" => "names",
+            "parent_has_file_matching" | "parent_lacks_file_matching" => "pattern",
+            "sibling_without_suffix" => "suffixes",
             _ => return Err(invalid()),
         };
         expect_keys(map, &["kind", key], &item_path)?;
@@ -352,6 +376,24 @@ pub(crate) fn parse_conditions(value: &Value, path: &str) -> Result<Vec<Conditio
             },
             "path_has_any" => Condition::PathHasAny {
                 names: parse_condition_names(value, &field_path)?,
+            },
+            "parent_has_file_matching" | "parent_lacks_file_matching" => {
+                let pattern = as_str(value, &field_path)?;
+                if !(1..=64).contains(&pattern.chars().count()) || !valid_segment(pattern) {
+                    return Err(RulesError::new("RULES_INVALID_CONDITIONS", field_path));
+                }
+                if kind == "parent_has_file_matching" {
+                    Condition::ParentHasFileMatching {
+                        pattern: pattern.to_string(),
+                    }
+                } else {
+                    Condition::ParentLacksFileMatching {
+                        pattern: pattern.to_string(),
+                    }
+                }
+            }
+            "sibling_without_suffix" => Condition::SiblingWithoutSuffix {
+                suffixes: parse_condition_names(value, &field_path)?,
             },
             _ => unreachable!(),
         });
@@ -601,6 +643,9 @@ pub(crate) fn locator_key(locator: &Locator) -> String {
                 .join("\u{1f}")
         ),
         Locator::Discovery { base } => format!("discovery:{}", base.as_str()),
+        Locator::CustomDiscovery { root_names } => {
+            format!("custom_discovery:{}", joined_names(root_names))
+        }
         Locator::Marker {
             marker, max_depth, ..
         } => match marker {
@@ -617,6 +662,15 @@ pub(crate) fn locator_key(locator: &Locator) -> String {
             }
             Marker::DirName { names } => {
                 format!("marker:dir_name:{}:{max_depth}", joined_names(names))
+            }
+            Marker::DirNamePattern { patterns } => {
+                format!(
+                    "marker:dir_name_pattern:{}:{max_depth}",
+                    joined_names(patterns)
+                )
+            }
+            Marker::FileName { patterns } => {
+                format!("marker:file_name:{}:{max_depth}", joined_names(patterns))
             }
         },
     }

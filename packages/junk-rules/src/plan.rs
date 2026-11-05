@@ -1,11 +1,11 @@
 use crate::error::RulesError;
 use crate::folders::{KnownFolders, validate_guard_path};
+use crate::m35::{self, AgeBasis, KeepBy, PlanOptions};
 use crate::rules::RuleSet;
 use crate::types::{
-    Category, Condition, InUse, InUseMode, ItemType, KNOWN_FOLDER_ORDER, Level, Locator, Marker,
-    MatchSpec, as_str, as_u64, bounded_u32, expect_keys, field, object, parse_conditions,
-    valid_abs_path, valid_created_at, valid_data_version, valid_entry_name, valid_process_name,
-    valid_root_id, valid_segment,
+    Category, Condition, InUse, ItemType, KNOWN_FOLDER_ORDER, Level, Locator, Marker, MatchSpec,
+    as_str, bounded_u32, expect_keys, field, object, parse_conditions, valid_abs_path,
+    valid_created_at, valid_data_version, valid_root_id, valid_segment,
 };
 use serde::Serialize;
 use serde_json::{Map, Value};
@@ -29,6 +29,13 @@ pub struct Target {
     pub min_age_hours: u32,
     pub keep_newest: u32,
     pub in_use: InUse,
+    pub git_is_copy: bool,
+    pub age_basis: AgeBasis,
+    pub keep_by: KeepBy,
+    pub unlocks_target_ids: Vec<String>,
+    /// Project declaration conditions, serialized inside a pattern match.
+    /// Kept on Target to preserve the existing MatchSpec variants and fields.
+    pub pattern_conditions: Vec<Condition>,
 }
 
 #[derive(Debug, Clone, PartialEq, Eq)]
@@ -70,6 +77,14 @@ struct TargetWire<'a> {
     min_age_hours: u32,
     keep_newest: u32,
     in_use: InUseWire<'a>,
+    #[serde(skip_serializing_if = "std::ops::Not::not")]
+    git_is_copy: bool,
+    #[serde(skip_serializing_if = "Option::is_none")]
+    age_basis: Option<&'a str>,
+    #[serde(skip_serializing_if = "Option::is_none")]
+    keep_by: Option<&'a str>,
+    #[serde(skip_serializing_if = "<[String]>::is_empty")]
+    unlocks_target_ids: &'a [String],
 }
 
 #[derive(Serialize)]
@@ -78,6 +93,8 @@ enum MatchWire<'a> {
     Pattern {
         base: &'a str,
         segments: &'a [String],
+        #[serde(skip_serializing_if = "Vec::is_empty")]
+        conditions: Vec<ConditionWire<'a>>,
     },
     Marker {
         root: &'a str,
@@ -100,6 +117,10 @@ enum ConditionWire<'a> {
     ParentHasOtherEntries { except: &'a [String] },
     NoAncestorSuffix { suffixes: &'a [String] },
     PathHasAny { names: &'a [String] },
+    ParentHasOtherMatch,
+    ParentHasFileMatching { pattern: &'a str },
+    ParentLacksFileMatching { pattern: &'a str },
+    SiblingWithoutSuffix { suffixes: &'a [String] },
 }
 
 #[derive(Serialize)]
@@ -116,12 +137,20 @@ enum MarkerWire<'a> {
     DirName {
         names: &'a [String],
     },
+    DirNamePattern {
+        patterns: &'a [String],
+    },
+    FileName {
+        patterns: &'a [String],
+    },
 }
 
 #[derive(Serialize)]
 struct InUseWire<'a> {
     mode: &'a str,
     processes: &'a [String],
+    #[serde(skip_serializing_if = "Option::is_none")]
+    root_levels: Option<u8>,
 }
 
 pub fn resolve_plan(
@@ -130,6 +159,34 @@ pub fn resolve_plan(
     custom_roots: &[CustomRoot],
     created_at: &str,
 ) -> Result<ScanPlan, RulesError> {
+    resolve_plan_with(
+        rules,
+        folders,
+        custom_roots,
+        created_at,
+        &PlanOptions::default(),
+    )
+}
+
+pub fn resolve_plan_with(
+    rules: &RuleSet,
+    folders: &KnownFolders,
+    custom_roots: &[CustomRoot],
+    created_at: &str,
+    options: &PlanOptions,
+) -> Result<ScanPlan, RulesError> {
+    let mut enabled = HashSet::new();
+    for (index, switch) in options.sessions.iter().enumerate() {
+        if !m35::SESSION_TOOLS.iter().any(|(id, _)| *id == switch.tool)
+            || !(1..=365).contains(&switch.min_age_days)
+            || !enabled.insert(switch.tool.as_str())
+        {
+            return Err(RulesError::new(
+                "RULES_INVALID_SESSIONS",
+                format!("/sessions/{index}"),
+            ));
+        }
+    }
     if !valid_created_at(created_at) {
         return Err(RulesError::new("RULES_INVALID_CREATED_AT", "/created_at"));
     }
@@ -153,7 +210,16 @@ pub fn resolve_plan(
         }
     }
     let mut targets = Vec::new();
-    for rule in rules.rules() {
+    let normal = rules
+        .rules()
+        .iter()
+        .filter(|rule| rule.session_tool.is_none());
+    let sessions = rules.rules().iter().filter(|rule| {
+        rule.session_tool
+            .as_deref()
+            .is_some_and(|tool| enabled.contains(tool))
+    });
+    for rule in normal.chain(sessions) {
         for (offset, locator) in rule.locate.iter().enumerate() {
             let index = offset + 1;
             match locator {
@@ -193,12 +259,61 @@ pub fn resolve_plan(
                                 conditions: conditions.clone(),
                                 fallback_for: fallback_for
                                     .as_ref()
-                                    .map(|id| format!("custom:{}:{id}#1", root.root_id)),
+                                    .map(|id| format!("custom:{}:{id}#{index}", root.root_id)),
+                            },
+                        ));
+                    }
+                }
+                Locator::CustomDiscovery { root_names } => {
+                    for root in custom_roots {
+                        let name = root.path.rsplit('\\').next().unwrap_or("");
+                        if !root_names
+                            .iter()
+                            .any(|allowed| name.eq_ignore_ascii_case(allowed))
+                        {
+                            continue;
+                        }
+                        let group_id = format!("custom:{}:{}", root.root_id, rule.rule_id);
+                        targets.push(make_target(
+                            rule,
+                            format!("{group_id}#{index}"),
+                            group_id,
+                            MatchSpec::Discovery {
+                                root: root.path.clone(),
                             },
                         ));
                     }
                 }
             }
+        }
+    }
+    let unlocks: Vec<Vec<String>> = targets
+        .iter()
+        .map(|target| {
+            rules
+                .rule(&target.rule_id)
+                .and_then(|rule| rule.unlocks.as_ref())
+                .map_or_else(Vec::new, |id| {
+                    targets
+                        .iter()
+                        .filter(|t| &t.rule_id == id)
+                        .map(|t| t.target_id.clone())
+                        .collect()
+                })
+        })
+        .collect();
+    for (target, ids) in targets.iter_mut().zip(unlocks) {
+        target.unlocks_target_ids = ids;
+        if let Some(tool) = rules
+            .rule(&target.rule_id)
+            .and_then(|rule| rule.session_tool.as_deref())
+        {
+            let switch = options
+                .sessions
+                .iter()
+                .find(|s| s.tool == tool)
+                .ok_or_else(|| RulesError::new("RULES_INVALID_SESSIONS", "/sessions"))?;
+            target.min_age_hours = u32::from(switch.min_age_days) * 24;
         }
     }
     Ok(ScanPlan {
@@ -227,6 +342,11 @@ fn make_target(
         min_age_hours: rule.min_age_hours,
         keep_newest: rule.keep_newest,
         in_use: rule.in_use.clone(),
+        git_is_copy: rule.git_is_copy,
+        age_basis: rule.age_basis,
+        keep_by: rule.keep_by,
+        unlocks_target_ids: vec![],
+        pattern_conditions: vec![],
     }
 }
 
@@ -261,14 +381,20 @@ pub fn plan_to_json(plan: &ScanPlan) -> String {
             rule_id: &target.rule_id,
             level: target.level.as_str(),
             category: target.category.as_str(),
-            match_spec: match_wire(&target.match_spec),
+            match_spec: match_wire(&target.match_spec, &target.pattern_conditions),
             item_type: target.item_type.as_str(),
             min_age_hours: target.min_age_hours,
             keep_newest: target.keep_newest,
             in_use: InUseWire {
                 mode: target.in_use.mode.as_str(),
                 processes: &target.in_use.processes,
+                root_levels: target.in_use.root_levels,
             },
+            git_is_copy: target.git_is_copy,
+            age_basis: (target.age_basis != AgeBasis::Modified)
+                .then_some(target.age_basis.as_str()),
+            keep_by: (target.keep_by != KeepBy::Activity).then_some(target.keep_by.as_str()),
+            unlocks_target_ids: &target.unlocks_target_ids,
         })
         .collect();
     let wire = PlanWire {
@@ -281,9 +407,13 @@ pub fn plan_to_json(plan: &ScanPlan) -> String {
     serde_json::to_string(&wire).expect("scan plan serialization")
 }
 
-fn match_wire<'a>(spec: &'a MatchSpec) -> MatchWire<'a> {
+fn match_wire<'a>(spec: &'a MatchSpec, pattern_conditions: &'a [Condition]) -> MatchWire<'a> {
     match spec {
-        MatchSpec::Pattern { base, segments } => MatchWire::Pattern { base, segments },
+        MatchSpec::Pattern { base, segments } => MatchWire::Pattern {
+            base,
+            segments,
+            conditions: pattern_conditions.iter().map(condition_wire).collect(),
+        },
         MatchSpec::Marker {
             root,
             marker,
@@ -309,6 +439,16 @@ fn condition_wire(condition: &Condition) -> ConditionWire<'_> {
         }
         Condition::NoAncestorSuffix { suffixes } => ConditionWire::NoAncestorSuffix { suffixes },
         Condition::PathHasAny { names } => ConditionWire::PathHasAny { names },
+        Condition::ParentHasOtherMatch => ConditionWire::ParentHasOtherMatch,
+        Condition::ParentHasFileMatching { pattern } => {
+            ConditionWire::ParentHasFileMatching { pattern }
+        }
+        Condition::ParentLacksFileMatching { pattern } => {
+            ConditionWire::ParentLacksFileMatching { pattern }
+        }
+        Condition::SiblingWithoutSuffix { suffixes } => {
+            ConditionWire::SiblingWithoutSuffix { suffixes }
+        }
     }
 }
 
@@ -325,6 +465,8 @@ fn marker_wire(marker: &Marker) -> MarkerWire<'_> {
         },
         Marker::ChildrenAll { names } => MarkerWire::ChildrenAll { names },
         Marker::DirName { names } => MarkerWire::DirName { names },
+        Marker::DirNamePattern { patterns } => MarkerWire::DirNamePattern { patterns },
+        Marker::FileName { patterns } => MarkerWire::FileName { patterns },
     }
 }
 
@@ -378,6 +520,23 @@ fn parse_targets(value: &Value, path: &str) -> Result<Vec<Target>, RulesError> {
         targets.push(parse_target(item, &format!("{path}/{index}"))?);
     }
     check_plan_fallbacks(&targets)?;
+    for (index, target) in targets.iter().enumerate() {
+        let mut seen = HashSet::new();
+        for id in &target.unlocks_target_ids {
+            if !target.level.is_cleanable()
+                || id == &target.target_id
+                || !seen.insert(id)
+                || !targets
+                    .iter()
+                    .any(|other| &other.target_id == id && other.level == Level::Protected)
+            {
+                return Err(RulesError::new(
+                    "RULES_INVALID_UNLOCKS",
+                    format!("/targets/{index}/unlocks_target_ids"),
+                ));
+            }
+        }
+    }
     Ok(targets)
 }
 
@@ -444,6 +603,10 @@ fn parse_target(value: &Value, path: &str) -> Result<Target, RulesError> {
             "min_age_hours",
             "keep_newest",
             "in_use",
+            "git_is_copy",
+            "age_basis",
+            "keep_by",
+            "unlocks_target_ids",
         ],
         path,
     )?;
@@ -468,13 +631,35 @@ fn parse_target(value: &Value, path: &str) -> Result<Target, RulesError> {
         &format!("{path}/item_type"),
     )?)
     .ok_or_else(|| RulesError::new("RULES_INVALID_ITEM_TYPE", format!("{path}/item_type")))?;
-    Ok(Target {
+    let match_value = field(map, "match", path)?;
+    let pattern_conditions = if match_value.get("kind").and_then(Value::as_str) == Some("pattern") {
+        match_value
+            .get("conditions")
+            .map(|v| parse_conditions(v, &format!("{path}/match/conditions")))
+            .transpose()?
+            .unwrap_or_default()
+    } else {
+        vec![]
+    };
+    if !pattern_conditions.is_empty()
+        && (category != Category::Custom
+            || !matches!(
+                &pattern_conditions[..],
+                [Condition::SiblingWithoutSuffix { .. }]
+            ))
+    {
+        return Err(RulesError::new(
+            "RULES_INVALID_CONDITIONS",
+            format!("{path}/match/conditions"),
+        ));
+    }
+    let target = Target {
         target_id: target_id.to_string(),
         group_id: group_id.to_string(),
         rule_id: rule_id.to_string(),
         level,
         category,
-        match_spec: parse_match(field(map, "match", path)?, &format!("{path}/match"))?,
+        match_spec: parse_match(match_value, &format!("{path}/match"))?,
         item_type,
         min_age_hours: bounded_u32(
             field(map, "min_age_hours", path)?,
@@ -489,45 +674,51 @@ fn parse_target(value: &Value, path: &str) -> Result<Target, RulesError> {
             &format!("{path}/keep_newest"),
         )?,
         in_use: parse_plan_in_use(field(map, "in_use", path)?, &format!("{path}/in_use"))?,
-    })
+        git_is_copy: m35::git_is_copy(map, path)?,
+        age_basis: m35::age_basis(map, path)?,
+        keep_by: m35::keep_by(map, path)?,
+        unlocks_target_ids: map
+            .get("unlocks_target_ids")
+            .map(|v| {
+                let invalid = || {
+                    RulesError::new(
+                        "RULES_INVALID_UNLOCKS",
+                        format!("{path}/unlocks_target_ids"),
+                    )
+                };
+                let ids = v.as_array().ok_or_else(invalid)?;
+                if ids.is_empty() {
+                    return Err(invalid());
+                }
+                ids.iter()
+                    .map(|v| {
+                        v.as_str()
+                            .filter(|s| !s.is_empty())
+                            .map(str::to_string)
+                            .ok_or_else(invalid)
+                    })
+                    .collect::<Result<Vec<_>, _>>()
+            })
+            .transpose()?
+            .unwrap_or_default(),
+        pattern_conditions,
+    };
+    if (target.git_is_copy && !target.level.is_cleanable())
+        || (target.keep_by == KeepBy::VersionName && target.keep_newest == 0)
+    {
+        return Err(RulesError::new("RULES_INVALID_FIELD", path));
+    }
+    if let MatchSpec::Marker {
+        marker, conditions, ..
+    } = &target.match_spec
+    {
+        m35::validate_marker(marker, conditions, item_type, path)?;
+    }
+    Ok(target)
 }
 
 fn parse_plan_in_use(value: &Value, path: &str) -> Result<InUse, RulesError> {
-    let map = object(value, path)?;
-    expect_keys(map, &["mode", "processes"], path)?;
-    let mode = InUseMode::parse(as_str(field(map, "mode", path)?, &format!("{path}/mode"))?)
-        .ok_or_else(|| RulesError::new("RULES_INVALID_IN_USE", format!("{path}/mode")))?;
-    let items = field(map, "processes", path)?
-        .as_array()
-        .ok_or_else(|| RulesError::new("RULES_INVALID_IN_USE", format!("{path}/processes")))?;
-    if items.len() > 8 {
-        return Err(RulesError::new(
-            "RULES_INVALID_IN_USE",
-            format!("{path}/processes"),
-        ));
-    }
-    let mut processes = Vec::with_capacity(items.len());
-    for (index, item) in items.iter().enumerate() {
-        let item_path = format!("{path}/processes/{index}");
-        let name = as_str(item, &item_path)?;
-        if !valid_process_name(name) {
-            return Err(RulesError::new("RULES_INVALID_IN_USE", item_path));
-        }
-        processes.push(name.to_string());
-    }
-    match mode {
-        InUseMode::None if processes.is_empty() => Ok(InUse { mode, processes }),
-        InUseMode::None => Err(RulesError::new(
-            "RULES_INVALID_IN_USE",
-            format!("{path}/processes"),
-        )),
-        InUseMode::RunsFromOrReferencesItem => Ok(InUse { mode, processes }),
-        _ if processes.is_empty() => Err(RulesError::new(
-            "RULES_INVALID_IN_USE",
-            format!("{path}/processes"),
-        )),
-        _ => Ok(InUse { mode, processes }),
-    }
+    crate::rules::parse_in_use(value, path)
 }
 
 fn parse_match(value: &Value, path: &str) -> Result<MatchSpec, RulesError> {
@@ -535,8 +726,8 @@ fn parse_match(value: &Value, path: &str) -> Result<MatchSpec, RulesError> {
     let kind = as_str(field(map, "kind", path)?, &format!("{path}/kind"))?;
     match kind {
         "pattern" => {
-            expect_keys(map, &["kind", "base", "segments"], path)?;
-            let base = abs_path_field(map, "base", path, false)?;
+            expect_keys(map, &["kind", "base", "segments", "conditions"], path)?;
+            let base = abs_path_field(map, "base", path, true)?;
             Ok(MatchSpec::Pattern {
                 base,
                 segments: parse_plan_segments(
@@ -636,68 +827,7 @@ fn parse_plan_segments(value: &Value, path: &str) -> Result<Vec<String>, RulesEr
 }
 
 fn parse_plan_marker(value: &Value, path: &str) -> Result<Marker, RulesError> {
-    let map = object(value, path)?;
-    let kind = as_str(field(map, "kind", path)?, &format!("{path}/kind"))?;
-    match kind {
-        "file" => {
-            expect_keys(map, &["kind", "name", "min_bytes", "max_bytes"], path)?;
-            let name = as_str(field(map, "name", path)?, &format!("{path}/name"))?;
-            if !valid_entry_name(name) {
-                return Err(RulesError::new(
-                    "RULES_INVALID_LOCATE",
-                    format!("{path}/name"),
-                ));
-            }
-            let min_bytes = as_u64(field(map, "min_bytes", path)?, &format!("{path}/min_bytes"))?;
-            let max_bytes = as_u64(field(map, "max_bytes", path)?, &format!("{path}/max_bytes"))?;
-            if min_bytes > max_bytes {
-                return Err(RulesError::new(
-                    "RULES_INVALID_LOCATE",
-                    format!("{path}/max_bytes"),
-                ));
-            }
-            Ok(Marker::File {
-                name: name.to_string(),
-                min_bytes,
-                max_bytes,
-            })
-        }
-        "children_all" => {
-            expect_keys(map, &["kind", "names"], path)?;
-            Ok(Marker::ChildrenAll {
-                names: parse_plan_names(field(map, "names", path)?, &format!("{path}/names"))?,
-            })
-        }
-        "dir_name" => {
-            expect_keys(map, &["kind", "names"], path)?;
-            Ok(Marker::DirName {
-                names: parse_plan_names(field(map, "names", path)?, &format!("{path}/names"))?,
-            })
-        }
-        _ => Err(RulesError::new(
-            "RULES_INVALID_LOCATE",
-            format!("{path}/kind"),
-        )),
-    }
-}
-
-fn parse_plan_names(value: &Value, path: &str) -> Result<Vec<String>, RulesError> {
-    let items = value
-        .as_array()
-        .ok_or_else(|| RulesError::new("RULES_INVALID_LOCATE", path))?;
-    if items.is_empty() || items.len() > 8 {
-        return Err(RulesError::new("RULES_INVALID_LOCATE", path));
-    }
-    let mut names = Vec::with_capacity(items.len());
-    for (index, item) in items.iter().enumerate() {
-        let item_path = format!("{path}/{index}");
-        let name = as_str(item, &item_path)?;
-        if !valid_entry_name(name) {
-            return Err(RulesError::new("RULES_INVALID_LOCATE", item_path));
-        }
-        names.push(name.to_string());
-    }
-    Ok(names)
+    crate::rules::parse_marker(value, path)
 }
 
 fn parse_hard_guards(value: &Value, path: &str) -> Result<Vec<String>, RulesError> {
