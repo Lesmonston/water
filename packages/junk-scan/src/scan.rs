@@ -23,6 +23,9 @@ use std::time::{Duration, Instant, SystemTime};
 
 const REPARSE: u32 = 0x400;
 const DIRECTORY: u32 = 0x10;
+const CLUSTER_MIN_MEMBERS: usize = 10;
+
+mod streaming;
 
 #[derive(Debug, Clone)]
 pub struct ScanOptions {
@@ -102,6 +105,7 @@ struct Child {
 struct Listing {
     children: Vec<Child>,
     issues: Vec<&'static str>,
+    by_name: HashMap<String, usize>,
 }
 
 #[derive(Clone)]
@@ -148,7 +152,6 @@ struct Engine<'a> {
     extras_options: &'a ExtrasOptions,
     extras: ScanExtras,
     include_quarantine: bool,
-    search_dirs: BTreeMap<String, (String, Category, bool)>,
 }
 
 impl<'a> Engine<'a> {
@@ -205,13 +208,13 @@ impl<'a> Engine<'a> {
         if !force && self.last_progress.elapsed() < Duration::from_millis(50) {
             return;
         }
+        self.last_progress = Instant::now();
         self.observer.on_progress(&ScanProgress {
             group_id: group_id.to_string(),
             category: category_name(category).to_string(),
             visited_entries: self.visited,
             found_bytes: self.found_bytes,
         });
-        self.last_progress = Instant::now();
     }
 
     fn listing(&mut self, dir: &str, group_id: &str) -> Listing {
@@ -222,6 +225,7 @@ impl<'a> Engine<'a> {
         let mut listing = Listing {
             children: Vec::new(),
             issues: Vec::new(),
+            by_name: HashMap::new(),
         };
         if self.stopped(group_id) {
             return listing;
@@ -260,23 +264,26 @@ impl<'a> Engine<'a> {
                 !(c.kind == Kind::Dir && c.name.eq_ignore_ascii_case(".water-quarantine"))
             });
         }
+        listing.by_name = listing
+            .children
+            .iter()
+            .enumerate()
+            .map(|(i, child)| (child.name.to_ascii_lowercase(), i))
+            .collect();
         self.cache.insert(key, Arc::new(listing.clone()));
         listing
     }
 
     fn cached_child(&self, path: &str) -> Option<Child> {
-        let (parent, _) = path.rsplit_once('\\')?;
+        let (parent, name) = path.rsplit_once('\\')?;
         let parent = if parent.len() == 2 {
             format!("{parent}\\")
         } else {
             parent.to_string()
         };
-        self.cache
-            .get(&parent.to_ascii_lowercase())?
-            .children
-            .iter()
-            .find(|c| path_eq(&c.path, path))
-            .cloned()
+        let listing = self.cache.get(&parent.to_ascii_lowercase())?;
+        let index = listing.by_name.get(&name.to_ascii_lowercase())?;
+        listing.children.get(*index).cloned()
     }
 
     fn child(&self, path: &str) -> Option<Child> {
@@ -545,6 +552,7 @@ fn measure(engine: &mut Engine<'_>, path: &str, kind: Kind, group_id: &str) -> M
                 Kind::Reparse => {}
             }
         }
+        engine.cache.remove(&dir.to_ascii_lowercase());
     }
     measured
 }
@@ -584,21 +592,6 @@ impl Measured {
             odd_names: vec![],
         }
     }
-}
-
-fn push_hit(
-    engine: &mut Engine<'_>,
-    hits: &mut Vec<Hit>,
-    target: &Target,
-    index: usize,
-    path: &str,
-    kind: Kind,
-) {
-    if engine.stopped(&target.group_id) {
-        return;
-    }
-    let measured = measure(engine, path, kind, &target.group_id);
-    push_measured_hit(engine, hits, target, index, path, kind, measured);
 }
 
 #[allow(clippy::too_many_arguments)]
@@ -683,69 +676,6 @@ fn push_complete_hit(
         odd_count: measured.odd_count,
         odd_names: measured.odd_names,
     });
-}
-
-fn walk_pattern(
-    engine: &mut Engine<'_>,
-    hits: &mut Vec<Hit>,
-    target: &Target,
-    index: usize,
-    current: &str,
-    segments: &[String],
-) {
-    if engine.stopped(&target.group_id) || segments.is_empty() {
-        return;
-    }
-    let last = segments.len() == 1;
-    let children = engine.list(current, &target.group_id);
-    let parent: Vec<_> = children
-        .iter()
-        .map(|c| ParentEntry {
-            name: c.name.clone(),
-            kind: c.kind,
-            len: c.len,
-        })
-        .collect();
-    for child in children {
-        if child.name.eq_ignore_ascii_case(".git") {
-            continue;
-        }
-        if !match_segment(&segments[0], &child.name) {
-            continue;
-        }
-        if child.kind == Kind::Reparse {
-            engine.add_issue("reparse_skipped", &target.group_id);
-            continue;
-        }
-        if last {
-            if accept_type(target.item_type, child.kind) {
-                let measured = measure(engine, &child.path, child.kind, &target.group_id);
-                let conditions = match &target.match_spec {
-                    Match::Pattern { conditions, .. } => conditions.as_slice(),
-                    _ => &[],
-                };
-                if conditions_match(
-                    &child.path,
-                    conditions,
-                    Some(&parent),
-                    None,
-                    Some(measured.bytes),
-                ) {
-                    push_measured_hit(
-                        engine,
-                        hits,
-                        target,
-                        index,
-                        &child.path,
-                        child.kind,
-                        measured,
-                    );
-                }
-            }
-        } else if child.kind == Kind::Dir {
-            walk_pattern(engine, hits, target, index, &child.path, &segments[1..]);
-        }
-    }
 }
 
 fn marker_matches(dir: &str, marker: &Marker, children: &[Child]) -> bool {
@@ -874,493 +804,6 @@ fn conditions_match(
     })
 }
 
-struct Pending {
-    // The primary owns traversal, listing issues and budget accounting even
-    // when its hit is routed to a fallback (or discarded).
-    index: usize,
-    hit_index: Option<usize>,
-    path: String,
-    measured: Measured,
-    identities: HashSet<(u32, [u8; 16])>,
-    parent: Option<Arc<Vec<ParentEntry>>>,
-    issue_group: String,
-}
-
-enum MarkerFrame {
-    Enter {
-        dir: Child,
-        depth: u32,
-        searching: Vec<usize>,
-        measuring: Vec<usize>,
-        parent: Option<Arc<Vec<ParentEntry>>>,
-    },
-    Exit(Vec<usize>),
-}
-
-/// A single physical DFS serves all marker targets on this root. Each target
-/// stops searching independently; open measurements keep accumulating through
-/// the subtree (including .git), without listing any directory a second time.
-fn walk_markers(
-    engine: &mut Engine<'_>,
-    hits: &mut Vec<Hit>,
-    plan: &ScanPlan,
-    indices: Vec<usize>,
-    fallbacks: &[Option<usize>],
-) {
-    let Match::Marker { root, .. } = &plan.targets[indices[0]].match_spec else {
-        return;
-    };
-    if ignored_root(root) || file_name(root).eq_ignore_ascii_case(".git") {
-        return;
-    }
-    let dir = match engine.child(root) {
-        Some(dir) if dir.kind == Kind::Dir => dir,
-        other => {
-            if let Some(child) = &other {
-                engine.index_junction(child);
-            }
-            let code = if other.is_some_and(|dir| dir.kind == Kind::Reparse) {
-                "base_reparse"
-            } else {
-                "base_missing"
-            };
-            for index in indices {
-                engine.add_issue(code, &plan.targets[index].group_id);
-                if let Some(fallback) = fallbacks[index] {
-                    engine.add_issue(code, &plan.targets[fallback].group_id);
-                }
-            }
-            return;
-        }
-    };
-    let mut pending: Vec<Option<Pending>> = Vec::new();
-    let mut stack = vec![MarkerFrame::Enter {
-        dir,
-        depth: 0,
-        searching: indices,
-        measuring: Vec::new(),
-        parent: None,
-    }];
-    while let Some(frame) = stack.pop() {
-        match frame {
-            MarkerFrame::Exit(ids) => {
-                for id in ids {
-                    let row = pending[id].take().expect("active measurement");
-                    let index = final_marker_owner(&row, plan, fallbacks);
-                    route_issues(
-                        engine,
-                        &row.issue_group,
-                        &plan.targets[index.unwrap_or(row.index)].group_id,
-                    );
-                    let Some(index) = index else {
-                        continue;
-                    };
-                    let target = &plan.targets[index];
-                    push_measured_hit(
-                        engine,
-                        hits,
-                        target,
-                        index,
-                        &row.path,
-                        Kind::Dir,
-                        row.measured,
-                    );
-                }
-            }
-            MarkerFrame::Enter {
-                dir,
-                depth,
-                searching,
-                mut measuring,
-                parent,
-            } => {
-                let primary_group = searching
-                    .first()
-                    .map(|i| plan.targets[*i].group_id.clone())
-                    .unwrap_or_else(|| {
-                        pending[measuring[0]]
-                            .as_ref()
-                            .expect("active measurement")
-                            .issue_group
-                            .clone()
-                    });
-                if engine.stopped(&primary_group) {
-                    break;
-                }
-                let needs_listing = !measuring.is_empty()
-                    || searching.iter().any(|index| {
-                        let Match::Marker {
-                            marker, max_depth, ..
-                        } = &plan.targets[*index].match_spec
-                        else {
-                            return false;
-                        };
-                        if matches!(marker, Marker::FileName { .. }) {
-                            depth < *max_depth
-                        } else {
-                            !matches!(
-                                marker,
-                                Marker::DirName { .. } | Marker::DirNamePattern { .. }
-                            ) || depth < *max_depth
-                                || marker_matches(&dir.path, marker, &[])
-                        }
-                    });
-                let listing_group = format!("@listing:{}", dir.path);
-                let listing = if needs_listing {
-                    engine.listing(&dir.path, &listing_group)
-                } else {
-                    Listing {
-                        children: Vec::new(),
-                        issues: Vec::new(),
-                    }
-                };
-                let listing_budget = engine
-                    .issues
-                    .iter()
-                    .any(|i| i.group_id == listing_group && i.code == "budget_exhausted");
-                engine.issues.retain(|i| i.group_id != listing_group);
-                // Replay the old logical listing issues per target, while visited
-                // counts only the one actual enumeration above.
-                for id in &measuring {
-                    let row = pending[*id].as_ref().expect("active measurement");
-                    engine.listing_issues(&listing, &row.issue_group);
-                }
-                let mut searching_next = Vec::new();
-                let mut started_here = Vec::new();
-                for index in searching {
-                    let target = &plan.targets[index];
-                    let Match::Marker {
-                        marker,
-                        max_depth,
-                        conditions,
-                        ..
-                    } = &target.match_spec
-                    else {
-                        continue;
-                    };
-                    if matches!(marker, Marker::FileName { .. }) {
-                        if depth < *max_depth {
-                            engine.listing_issues(&listing, &target.group_id);
-                            searching_next.push(index);
-                        }
-                        continue;
-                    }
-                    if marker_matches(&dir.path, marker, &listing.children) {
-                        let id = pending.len();
-                        let issue_group = format!("@measure:{id}");
-                        engine.listing_issues(&listing, &issue_group);
-                        if !matches!(
-                            marker,
-                            Marker::DirName { .. } | Marker::DirNamePattern { .. }
-                        ) {
-                            engine.listing_issues(&listing, &issue_group);
-                        }
-                        let mut measured = Measured::empty(dir.mtime, dir.creation);
-                        observe_name(&mut measured, &dir, &dir.path);
-                        pending.push(Some(Pending {
-                            index,
-                            hit_index: if conditions_match(
-                                &dir.path,
-                                conditions,
-                                parent.as_deref().map(Vec::as_slice),
-                                Some(marker),
-                                None,
-                            ) {
-                                Some(index)
-                            } else {
-                                fallbacks[index]
-                            },
-                            path: dir.path.clone(),
-                            identities: HashSet::new(),
-                            measured,
-                            parent: parent.clone(),
-                            issue_group,
-                        }));
-                        started_here.push(id);
-                        measuring.push(id);
-                    } else if depth < *max_depth {
-                        if !matches!(
-                            marker,
-                            Marker::DirName { .. } | Marker::DirNamePattern { .. }
-                        ) {
-                            engine.listing_issues(&listing, &target.group_id);
-                        }
-                        engine.listing_issues(&listing, &target.group_id);
-                        searching_next.push(index);
-                    } else if !matches!(
-                        marker,
-                        Marker::DirName { .. } | Marker::DirNamePattern { .. }
-                    ) {
-                        engine.listing_issues(&listing, &target.group_id);
-                    }
-                }
-                let mut stopped = false;
-                if listing_budget && searching_next.is_empty() && measuring.is_empty() {
-                    engine.add_issue("budget_exhausted", &primary_group);
-                }
-                for index in searching_next.iter().copied().chain(
-                    measuring
-                        .iter()
-                        .map(|id| pending[*id].as_ref().expect("active measurement").index),
-                ) {
-                    let group = measuring
-                        .iter()
-                        .filter_map(|id| pending[*id].as_ref())
-                        .find(|row| row.index == index)
-                        .map_or_else(
-                            || plan.targets[index].group_id.clone(),
-                            |row| row.issue_group.clone(),
-                        );
-                    stopped |= engine.stopped(&group);
-                }
-                if stopped {
-                    break;
-                } // Discard every unfinished measurement.
-                stack.push(MarkerFrame::Exit(started_here));
-                if measuring.is_empty()
-                    && searching_next
-                        .iter()
-                        .any(|i| plan.targets[*i].category == Category::Custom)
-                {
-                    engine
-                        .search_dirs
-                        .entry(dir.path.to_ascii_lowercase())
-                        .or_insert((dir.path.clone(), Category::Custom, false));
-                    if engine.extras_options.declarations && depth <= 4 {
-                        for c in &listing.children {
-                            if c.kind == Kind::File
-                                && c.name.eq_ignore_ascii_case(".water-cleanup.json")
-                            {
-                                engine.extras.declarations.push(c.path.clone());
-                            }
-                        }
-                    }
-                }
-                let file_parent: Vec<_> = listing
-                    .children
-                    .iter()
-                    .map(|c| ParentEntry {
-                        name: c.name.clone(),
-                        kind: c.kind,
-                        len: c.len,
-                    })
-                    .collect();
-                for index in &searching_next {
-                    let target = &plan.targets[*index];
-                    if let Match::Marker {
-                        marker: Marker::FileName { patterns },
-                        conditions,
-                        ..
-                    } = &target.match_spec
-                    {
-                        for c in &listing.children {
-                            if c.kind == Kind::File
-                                && !c.name.eq_ignore_ascii_case(".git")
-                                && patterns.iter().any(|p| match_segment(p, &c.name))
-                                && conditions_match(
-                                    &c.path,
-                                    conditions,
-                                    Some(&file_parent),
-                                    None,
-                                    Some(c.len),
-                                )
-                            {
-                                push_hit(engine, hits, target, *index, &c.path, Kind::File);
-                            } else if c.kind == Kind::File
-                                && !c.name.eq_ignore_ascii_case(".git")
-                                && patterns.iter().any(|p| match_segment(p, &c.name))
-                                && let Some(fallback) = fallbacks[*index]
-                            {
-                                push_hit(
-                                    engine,
-                                    hits,
-                                    &plan.targets[fallback],
-                                    fallback,
-                                    &c.path,
-                                    Kind::File,
-                                );
-                            }
-                        }
-                    }
-                }
-                // Keep only the parent names/kinds needed by children. This
-                // reuses the listing above; conditions never enumerate again.
-                let parent_entries = Some(Arc::new(file_parent));
-                for child in listing.children {
-                    for id in &measuring {
-                        let row = pending[*id].as_mut().expect("active measurement");
-                        accumulate(&mut row.measured, &child, &row.path, &mut row.identities);
-                    }
-                    if child.kind == Kind::Reparse {
-                        for index in &searching_next {
-                            engine.add_issue("reparse_skipped", &plan.targets[*index].group_id);
-                        }
-                    } else if child.kind == Kind::Dir {
-                        let next = if child.name.eq_ignore_ascii_case(".git") {
-                            Vec::new()
-                        } else {
-                            searching_next.clone()
-                        };
-                        if !next.is_empty() || !measuring.is_empty() {
-                            stack.push(MarkerFrame::Enter {
-                                dir: child,
-                                depth: depth + 1,
-                                searching: next,
-                                measuring: measuring.clone(),
-                                parent: parent_entries.clone(),
-                            });
-                        }
-                    }
-                }
-            }
-        }
-    }
-    for row in pending.into_iter().flatten() {
-        let index = final_marker_owner(&row, plan, fallbacks).unwrap_or(row.index);
-        route_issues(engine, &row.issue_group, &plan.targets[index].group_id);
-    }
-}
-
-fn final_marker_owner(
-    row: &Pending,
-    plan: &ScanPlan,
-    fallbacks: &[Option<usize>],
-) -> Option<usize> {
-    let Match::Marker {
-        conditions, marker, ..
-    } = &plan.targets[row.index].match_spec
-    else {
-        return row.hit_index;
-    };
-    if conditions_match(
-        &row.path,
-        conditions,
-        row.parent.as_deref().map(Vec::as_slice),
-        Some(marker),
-        Some(row.measured.bytes),
-    ) {
-        Some(row.index)
-    } else {
-        fallbacks[row.index]
-    }
-}
-
-fn route_issues(engine: &mut Engine<'_>, from: &str, to: &str) {
-    let issues: Vec<_> = engine
-        .issues
-        .iter()
-        .filter(|i| i.group_id == from)
-        .cloned()
-        .collect();
-    engine.issues.retain(|i| i.group_id != from);
-    for issue in issues {
-        if issue.code == "budget_exhausted" {
-            if !engine
-                .issues
-                .iter()
-                .any(|i| i.code == issue.code && i.group_id == to)
-            {
-                engine.add_issue(&issue.code, to);
-            }
-            continue;
-        }
-        for _ in 0..issue.count {
-            engine.add_issue(&issue.code, to);
-        }
-    }
-}
-
-fn run_target(engine: &mut Engine<'_>, hits: &mut Vec<Hit>, target: &Target, index: usize) {
-    if let Match::Pattern { base, .. } = &target.match_spec
-        && (ignored_root(base) || file_name(base).eq_ignore_ascii_case(".git"))
-    {
-        return;
-    }
-    match &target.match_spec {
-        Match::Pattern { base, segments, .. } => match if ignored_root(base) {
-            None
-        } else {
-            engine.child(base)
-        } {
-            None => engine.add_issue("base_missing", &target.group_id),
-            Some(child) if child.kind == Kind::Reparse => {
-                engine.index_junction(&child);
-                engine.add_issue("base_reparse", &target.group_id);
-            }
-            Some(child) if child.kind != Kind::Dir => {
-                engine.add_issue("base_missing", &target.group_id);
-            }
-            Some(_) => walk_pattern(engine, hits, target, index, base, segments),
-        },
-        Match::Marker { .. } => {}
-        Match::Discovery { .. } => {}
-    }
-}
-
-fn run_discovery(
-    engine: &mut Engine<'_>,
-    hits: &mut Vec<Hit>,
-    target: &Target,
-    index: usize,
-    others: &[Hit],
-) {
-    let Match::Discovery { root } = &target.match_spec else {
-        return;
-    };
-    if ignored_root(root) || file_name(root).eq_ignore_ascii_case(".git") {
-        return;
-    }
-    match engine.child(root) {
-        None => {
-            engine.add_issue("base_missing", &target.group_id);
-            return;
-        }
-        Some(child) if child.kind == Kind::Reparse => {
-            engine.index_junction(&child);
-            engine.add_issue("base_reparse", &target.group_id);
-            return;
-        }
-        Some(child) if child.kind != Kind::Dir => {
-            engine.add_issue("base_missing", &target.group_id);
-            return;
-        }
-        Some(_) => {}
-    }
-    let protected: Vec<&str> = others
-        .iter()
-        .filter(|hit| hit.level == Level::Protected)
-        .map(|hit| hit.path.as_str())
-        .collect();
-    let other_paths: Vec<&str> = others.iter().map(|hit| hit.path.as_str()).collect();
-    engine.search_dirs.insert(
-        root.to_ascii_lowercase(),
-        (root.clone(), target.category, true),
-    );
-    for child in engine.list(root, &target.group_id) {
-        if child.name.eq_ignore_ascii_case(".git") {
-            continue;
-        }
-        if child.kind == Kind::Reparse {
-            engine.add_issue("reparse_skipped", &target.group_id);
-            continue;
-        }
-        if !accept_type(target.item_type, child.kind) {
-            continue;
-        }
-        // SCAN §3: skip a child that equals another entry or is its ancestor.
-        let covered = other_paths
-            .iter()
-            .any(|path| path_eq(path, &child.path) || is_proper_ancestor(&child.path, path));
-        let guarded = protected
-            .iter()
-            .any(|path| path_eq(path, &child.path) || is_proper_ancestor(&child.path, path));
-        if covered || guarded {
-            continue;
-        }
-        push_hit(engine, hits, target, index, &child.path, child.kind);
-    }
-}
-
 fn merge_hits(mut hits: Vec<Hit>) -> Vec<Hit> {
     hits.sort_by(|a, b| {
         a.path
@@ -1371,8 +814,8 @@ fn merge_hits(mut hits: Vec<Hit>) -> Vec<Hit> {
     let mut out = Vec::new();
     for hit in hits {
         if let Some(existing) = out
-            .iter_mut()
-            .find(|item: &&mut Hit| path_eq(&item.path, &hit.path))
+            .last_mut()
+            .filter(|item: &&mut Hit| path_eq(&item.path, &hit.path))
         {
             let take = hit.level.rank() > existing.level.rank()
                 || (hit.level.rank() == existing.level.rank()
@@ -1590,10 +1033,7 @@ pub fn scan_full(
             junctions_truncated: false,
             declarations: vec![],
         },
-        search_dirs: BTreeMap::new(),
     };
-    let mut hits = Vec::new();
-    let mut marker_roots = HashSet::new();
     let mut fallbacks = vec![None; plan.targets.len()];
     for (index, target) in plan.targets.iter().enumerate() {
         if let Match::Marker {
@@ -1605,51 +1045,11 @@ pub fn scan_full(
             fallbacks[main] = Some(index);
         }
     }
-    if !engine.stopped("") {
-        for (index, target) in plan.targets.iter().enumerate() {
-            if matches!(
-                &target.match_spec,
-                Match::Marker {
-                    fallback_for: Some(_),
-                    ..
-                }
-            ) {
-                continue;
-            }
-            if !matches!(target.match_spec, Match::Discovery { .. }) {
-                if let Match::Marker { root, .. } = &target.match_spec {
-                    if marker_roots.insert(root.to_ascii_lowercase()) {
-                        let indices = plan.targets.iter().enumerate().filter_map(|(i, t)| {
-                            matches!(&t.match_spec, Match::Marker { root: other, fallback_for: None, .. } if path_eq(root, other)).then_some(i)
-                        }).collect();
-                        walk_markers(&mut engine, &mut hits, plan, indices, &fallbacks);
-                    }
-                } else {
-                    run_target(&mut engine, &mut hits, target, index);
-                }
-                engine.emit(&target.group_id, target.category, true);
-            }
-            if engine.status == "cancelled" {
-                break;
-            }
-        }
-    }
-    if engine.status != "cancelled" {
-        for (index, target) in plan.targets.iter().enumerate() {
-            if matches!(target.match_spec, Match::Discovery { .. }) {
-                let others = hits.clone();
-                run_discovery(&mut engine, &mut hits, target, index, &others);
-                engine.emit(&target.group_id, target.category, true);
-            }
-            if engine.status == "cancelled" {
-                break;
-            }
-        }
-    }
+    let (mut hits, searches) = streaming::walk(&mut engine, plan, &fallbacks);
     let guard_hits = hits.clone();
     let mut expanded = plan.clone();
     let clusters = if extras.leak_clusters {
-        build_clusters(&mut engine, &mut hits, &mut expanded)
+        build_clusters(&mut engine, &mut hits, &mut expanded, searches)
     } else {
         BTreeMap::new()
     };
@@ -1845,112 +1245,164 @@ pub fn scan_full(
     ))
 }
 
+fn file_parts(name: &str) -> (&str, &str) {
+    name.rfind('.')
+        .filter(|i| *i > 0)
+        .and_then(|i| {
+            let tail = &name[i + 1..];
+            ((1..=8).contains(&tail.len()) && tail.bytes().all(|b| b.is_ascii_alphanumeric()))
+                .then_some((&name[..i], &name[i..]))
+        })
+        .unwrap_or((name, ""))
+}
+
+fn hash_extra(template: &str, name: &str) -> bool {
+    let Some((prefix, extension)) = template.split_once("<h>") else {
+        return false;
+    };
+    let (_, actual_extension) = file_parts(name);
+    actual_extension.eq_ignore_ascii_case(extension)
+        && match_segment(&format!("{prefix}*{extension}"), name)
+}
+
+fn claimed(paths: &HashSet<String>, path: &str) -> bool {
+    let mut path = path;
+    loop {
+        if paths.contains(path) {
+            return true;
+        }
+        let Some((parent, _)) = path.rsplit_once('\\') else {
+            return false;
+        };
+        path = parent;
+    }
+}
+
 fn build_clusters(
     engine: &mut Engine<'_>,
     hits: &mut Vec<Hit>,
     plan: &mut ScanPlan,
+    mut searches: Vec<streaming::ClusterSearch>,
 ) -> BTreeMap<String, ClusterInfo> {
-    let mut roots = engine.search_dirs.values().cloned().collect::<Vec<_>>();
-    roots.sort_by(|a, b| {
-        a.0.matches('\\')
-            .count()
-            .cmp(&b.0.matches('\\').count())
-            .then(a.0.to_ascii_lowercase().cmp(&b.0.to_ascii_lowercase()))
+    use std::collections::BTreeSet;
+    let mut exact = HashSet::new();
+    let mut discovery_exact = HashSet::new();
+    let mut non_discovery = BTreeSet::new();
+    for hit in hits.iter() {
+        if engine.stopped(&hit.group_id) {
+            break;
+        }
+        let path = hit.path.to_ascii_lowercase();
+        exact.insert(path.clone());
+        if matches!(
+            plan.targets[hit.target_index].match_spec,
+            Match::Discovery { .. }
+        ) {
+            discovery_exact.insert(path);
+        } else {
+            non_discovery.insert(path);
+        }
+    }
+    searches.sort_by_key(|s| {
+        (
+            s.parent.matches('\\').count(),
+            s.parent.to_ascii_lowercase(),
+        )
     });
     let mut infos = BTreeMap::new();
-    let mut member_paths: Vec<String> = Vec::new();
-    let mut pending_groups = Vec::new();
-    for (parent, category, discovery) in roots {
-        if member_paths
-            .iter()
-            .any(|p| path_eq(p, &parent) || is_proper_ancestor(p, &parent))
-        {
+    let mut member_paths = HashSet::new();
+    let mut pending_groups = vec![];
+    for search in searches {
+        let streaming::ClusterSearch {
+            parent,
+            category,
+            discovery,
+            group,
+            members: candidates,
+        } = search;
+        if engine.stopped(&group) {
+            break;
+        }
+        if claimed(&member_paths, &parent.to_ascii_lowercase()) {
             continue;
         }
-        let Some(list) = engine.cache.get(&parent.to_ascii_lowercase()).cloned() else {
-            continue;
-        };
-        let is_candidate = |c: &Child| {
-            if c.kind == Kind::Reparse || c.name.eq_ignore_ascii_case(".git") {
-                return false;
+        let mut templates: BTreeMap<(String, String), Vec<streaming::ClusterMember>> =
+            BTreeMap::new();
+        let mut available = vec![];
+        for (child, measured, issues) in candidates {
+            engine.emit(&group, category, false);
+            if engine.stopped(&group) {
+                break;
             }
-            if discovery {
-                hits.iter().any(|h| {
-                    path_eq(&h.path, &c.path)
-                        && matches!(
-                            plan.targets[h.target_index].match_spec,
-                            Match::Discovery { .. }
-                        )
-                }) && !hits.iter().any(|h| {
-                    !matches!(
-                        plan.targets[h.target_index].match_spec,
-                        Match::Discovery { .. }
-                    ) && (path_eq(&h.path, &c.path) || is_proper_ancestor(&c.path, &h.path))
-                })
+            let key = child.path.to_ascii_lowercase();
+            let eligible = if discovery {
+                let prefix = format!("{key}\\");
+                discovery_exact.contains(&key)
+                    && !non_discovery.contains(&key)
+                    && !non_discovery
+                        .range(prefix.clone()..)
+                        .next()
+                        .is_some_and(|p| p.starts_with(&prefix))
             } else {
-                !hits.iter().any(|h| path_eq(&h.path, &c.path))
-            }
-        };
-        let mut templates: BTreeMap<(String, String), Vec<Child>> = BTreeMap::new();
-        for child in &list.children {
-            if !is_candidate(child) {
+                !exact.contains(&key)
+            };
+            if !eligible || claimed(&member_paths, &key) {
                 continue;
             }
-            if let Some(template) = name_template(&child.name, child.kind == Kind::File) {
-                if child.kind == Kind::File && template.contains("<d>") {
-                    continue;
-                }
+            if let Some(template) = name_template(&child.name, child.kind == Kind::File)
+                && !(child.kind == Kind::File && template.contains("<d>"))
+            {
                 templates
                     .entry((
-                        if child.kind == Kind::File {
+                        (if child.kind == Kind::File {
                             "file"
                         } else {
                             "dir"
-                        }
+                        })
                         .into(),
                         template,
                     ))
                     .or_default()
-                    .push(child.clone());
+                    .push((child.clone(), measured.clone(), issues.clone()));
             }
+            available.push((child, measured, issues));
+        }
+        if engine.stopped(&group) {
+            break;
         }
         for ((kind, template), mut members) in templates {
-            members.retain(|c| !member_paths.iter().any(|p| path_eq(p, &c.path)));
-            if members.len() < 10 {
+            if engine.stopped(&group) {
+                break;
+            }
+            members.retain(|(c, _, _)| !member_paths.contains(&c.path.to_ascii_lowercase()));
+            if members.len() < CLUSTER_MIN_MEMBERS {
                 continue;
             }
             let mut all_members = members.clone();
+            let own: HashSet<_> = members
+                .iter()
+                .map(|(c, _, _)| c.path.to_ascii_lowercase())
+                .collect();
             if kind == "file" && template.contains("<h>") {
-                let (prefix, extension) = template.split_once("<h>").expect("hash template");
-                for child in &list.children {
+                for (child, measured, issues) in &available {
+                    engine.emit(&group, category, false);
+                    if engine.stopped(&group) {
+                        break;
+                    }
+                    let key = child.path.to_ascii_lowercase();
                     if child.kind == Kind::File
-                        && is_candidate(child)
-                        && !member_paths.iter().any(|p| path_eq(p, &child.path))
-                        && !members.iter().any(|m| path_eq(&m.path, &child.path))
-                        && match_segment(&format!("{prefix}*{extension}"), &child.name)
+                        && !member_paths.contains(&key)
+                        && !own.contains(&key)
+                        && hash_extra(&template, &child.name)
                     {
-                        all_members.push(child.clone());
+                        all_members.push((child.clone(), measured.clone(), issues.clone()));
                     }
                 }
             }
-            let id = cluster_id(&parent, &kind, &template);
-            let mut measurements = Vec::new();
-            for member in &all_members {
-                if engine.stopped(&id) {
-                    break;
-                }
-                measurements.push((
-                    member.clone(),
-                    measure(engine, &member.path, member.kind, &id),
-                ));
+            if engine.stopped(&group) {
+                break;
             }
-            if engine.stopped(&id) || measurements.len() != all_members.len() {
-                continue;
-            }
-            let mut sizes = measurements[..members.len()]
-                .iter()
-                .map(|(_, m)| m.disk_bytes)
-                .collect::<Vec<_>>();
+            let mut sizes: Vec<_> = members.iter().map(|(_, m, _)| m.disk_bytes).collect();
             sizes.sort_unstable();
             let median = sizes[(sizes.len() - 1) / 2] as u128;
             let similar = sizes
@@ -1959,19 +1411,25 @@ fn build_clusters(
                     if median == 0 {
                         **size == 0
                     } else {
-                        (**size as u128) * 4 >= median && (**size as u128) <= median * 4
+                        (**size as u128) * 4 >= median && **size as u128 <= median * 4
                     }
                 })
                 .count()
                 * 5
                 >= members.len() * 4;
             let mut days = BTreeMap::<String, usize>::new();
-            for child in &members {
+            for (child, _, _) in &members {
+                if engine.stopped(&group) {
+                    break;
+                }
                 *days
                     .entry(format_rfc3339(child.creation)[..10].to_string())
                     .or_default() += 1;
             }
-            let burst_day = days.into_iter().find(|(_, n)| *n >= 5).map(|(d, _)| d);
+            if engine.stopped(&group) {
+                break;
+            }
+            let burst_day = days.into_iter().find(|(_, n)| *n >= 5).map(|(day, _)| day);
             let info = ClusterInfo {
                 parent: parent.clone(),
                 kind: kind.clone(),
@@ -1982,6 +1440,7 @@ fn build_clusters(
                 burst_day,
                 keep_newest: if template.contains("<h>") { 1 } else { 0 },
             };
+            let id = cluster_id(&parent, &kind, &template);
             let target = Target {
                 target_id: id.clone(),
                 group_id: id.clone(),
@@ -2008,26 +1467,21 @@ fn build_clusters(
                 keep_by: KeepBy::Activity,
                 unlocks_target_ids: vec![],
             };
-            for child in &all_members {
-                member_paths.push(child.path.clone());
+            for (child, _, _) in &all_members {
+                member_paths.insert(child.path.to_ascii_lowercase());
             }
-            pending_groups.push((id, target, info, measurements));
+            pending_groups.push((id, target, info, all_members));
         }
     }
-    hits.retain(|hit| {
-        !member_paths
-            .iter()
-            .any(|p| path_eq(p, &hit.path) || is_proper_ancestor(p, &hit.path))
-    });
-    engine
-        .extras
-        .declarations
-        .retain(|path| !member_paths.iter().any(|p| is_proper_ancestor(p, path)));
+    hits.retain(|hit| !claimed(&member_paths, &hit.path.to_ascii_lowercase()));
     pending_groups.sort_by(|a, b| a.0.cmp(&b.0));
     for (id, target, info, members) in pending_groups {
         let index = plan.targets.len();
         plan.targets.push(target.clone());
-        for (member, measured) in members {
+        for (member, measured, issues) in members {
+            for code in issues {
+                engine.add_issue(code, &id);
+            }
             let identity = member.identity.map(|(serial, id)| Identity {
                 volume_serial: format!("{serial:08X}"),
                 file_id: id.iter().map(|b| format!("{b:02x}")).collect(),
@@ -2095,7 +1549,6 @@ pub fn space_overview(
             junctions_truncated: false,
             declarations: vec![],
         },
-        search_dirs: BTreeMap::new(),
     };
     let mut entries = Vec::new();
     for child in engine.list(root, "space_overview") {

@@ -333,6 +333,7 @@ fn scan_plan_contract() {
 fn scan_pattern_marker_discovery() {
     m35_markers();
     m35_clusters();
+    m35_clusters_addendum();
     check_m3d_conditions();
     check_unique_bytes();
     let fx = Fixture::create();
@@ -2885,6 +2886,319 @@ fn m35_clusters() {
             "SCAN_M35_CLUSTERS: owned template count"
         );
     }
+}
+
+fn m35_clusters_addendum() {
+    let fx = Fixture::create();
+    let now = SystemTime::now();
+    let old = now - Duration::from_secs(40 * 86400);
+    for i in 0..10 {
+        write_file(&fx.join(&format!("loc/ext/apk_a{i:07x}.apk")), b"apk");
+        write_file(&fx.join(&format!("loc/plain/blob_a{i:07x}")), b"blob");
+        write_file(
+            &fx.join(&format!("loc/projects/proj-A{i:05}/data")),
+            b"data",
+        );
+        write_file(
+            &fx.join(&format!("loc/retained/pack-A{i:05}/data")),
+            b"data",
+        );
+    }
+    write_file(&fx.join("loc/ext/apk_notes.md"), b"notes");
+    write_file(&fx.join("loc/ext/apk_notes.txt.apk"), b"same extension");
+    write_file(&fx.join("loc/plain/blob_notes.md"), b"notes");
+    write_file(&fx.join("loc/plain/blob_notes"), b"same extension");
+    write_file(
+        &fx.join("loc/projects/proj-A00000/.water-cleanup.json"),
+        b"{}",
+    );
+    write_file(
+        &fx.join("loc/retained/pack-A00000/inner/.water-cleanup.json"),
+        b"{}",
+    );
+    for i in 0..12 {
+        write_file(
+            &fx.join(&format!("loc/rejected/verify-A{i:05}/data")),
+            b"data",
+        );
+    }
+    write_file(&fx.join("loc/rejected/.water-cleanup.json"), b"{}");
+    m35_old_tree(&fx.join("loc"), old);
+    let marker = m35_marker_target(
+        "conditional",
+        &fx.p("loc"),
+        json!({"kind":"dir_name","names":["rejected"]}),
+        Some(json!([{"kind":"parent_has_file","name":"missing.json"}])),
+        "dir",
+    );
+    let text = plan(vec![marker], vec![]);
+    let extras = ExtrasOptions {
+        leak_clusters: true,
+        declarations: true,
+        ..ExtrasOptions::default()
+    };
+    let (result, found) = m35_full(&text, now, &extras);
+    assert!(
+        !result
+            .items
+            .iter()
+            .any(|i| i.path.ends_with("apk_notes.md") || i.path.ends_with("blob_notes.md")),
+        "SCAN_M35_CLUSTERS: extra files require exactly the template extension, including none"
+    );
+    assert!(
+        result
+            .items
+            .iter()
+            .any(|i| i.path.ends_with("apk_notes.txt.apk"))
+            && result.items.iter().any(|i| i.path.ends_with("blob_notes")),
+        "SCAN_M35_CLUSTERS: same extension extras remain members"
+    );
+    assert!(
+        !result
+            .groups
+            .iter()
+            .filter_map(|g| g.cluster.as_ref())
+            .any(|c| c.template == "proj-<r6>"),
+        "SCAN_M35_CLUSTERS: declared candidate does not count toward ten"
+    );
+    assert!(
+        found
+            .declarations
+            .iter()
+            .any(|p| p.ends_with("proj-A00000\\.water-cleanup.json")),
+        "SCAN_M35_CLUSTERS: declared candidate is still discovered"
+    );
+    assert!(
+        found
+            .declarations
+            .iter()
+            .any(|p| p.ends_with("pack-A00000\\inner\\.water-cleanup.json")),
+        "SCAN_M35_CLUSTERS: already found declaration survives cluster ownership"
+    );
+    let nested = result
+        .groups
+        .iter()
+        .find(|g| {
+            g.cluster
+                .as_ref()
+                .is_some_and(|c| c.template == "verify-<r6>")
+        })
+        .expect("SCAN_M35_CLUSTERS: rejected name still searches for clusters");
+    assert_eq!(
+        nested.item_count, 12,
+        "SCAN_M35_CLUSTERS: rejected marker child cluster"
+    );
+    assert!(
+        found
+            .declarations
+            .iter()
+            .any(|p| p.ends_with("rejected\\.water-cleanup.json")),
+        "SCAN_M35_CLUSTERS: rejected name still searches for declarations"
+    );
+    let parent = fx.p("loc/rejected").to_ascii_lowercase();
+    let mut expected = 0xcbf29ce484222325u64;
+    for byte in format!("{parent}\ndir\nverify-<r6>").as_bytes() {
+        expected ^= u64::from(*byte);
+        expected = expected.wrapping_mul(0x100000001b3);
+    }
+    assert_eq!(
+        nested.group_id,
+        format!("leak:{expected:016x}"),
+        "SCAN_M35_CLUSTERS: independent FNV ID"
+    );
+
+    // No target hits: candidate counting emits the first callback. Let its
+    // progress interval pass, then cancel from the next comparison callback.
+    struct CancelCandidates {
+        token: CancelToken,
+        calls: std::sync::atomic::AtomicUsize,
+    }
+    impl ScanObserver for CancelCandidates {
+        fn on_progress(&self, _: &ScanProgress) {
+            if self.calls.fetch_add(1, std::sync::atomic::Ordering::SeqCst) == 0 {
+                std::thread::sleep(Duration::from_millis(60));
+            } else {
+                self.token.cancel();
+            }
+        }
+    }
+    for i in 0..2048 {
+        write_file(&fx.join(&format!("cancel/blob_a{i:07x}")), b"x");
+    }
+    let cancel_plan = ScanPlan::from_json(&plan(
+        vec![m35_marker_target(
+            "cancel-candidates",
+            &fx.p("cancel"),
+            json!({"kind":"dir_name","names":["unmatched"]}),
+            None,
+            "dir",
+        )],
+        vec![],
+    ))
+    .unwrap();
+    let token = CancelToken::new();
+    let observer = CancelCandidates {
+        token: token.clone(),
+        calls: std::sync::atomic::AtomicUsize::new(0),
+    };
+    let (cancelled, _) = scan_full(
+        &cancel_plan,
+        "m35-cancel-candidates",
+        &ScanOptions::default(),
+        &extras,
+        &token,
+        &observer,
+        now,
+    )
+    .unwrap();
+    assert!(
+        observer.calls.load(std::sync::atomic::Ordering::SeqCst) >= 2,
+        "SCAN_M35_CLUSTERS: cancellation reached candidate comparison"
+    );
+    assert_eq!(
+        cancelled.status, "cancelled",
+        "SCAN_M35_CLUSTERS: candidate comparison cancellation"
+    );
+    assert!(
+        cancelled.groups.iter().all(|g| g.cluster.is_none()),
+        "SCAN_M35_CLUSTERS: cancelled candidate group is absent"
+    );
+    let (limited, _) = scan_full(
+        &cancel_plan,
+        "m35-budget-candidates",
+        &ScanOptions {
+            max_entries: 100,
+            max_seconds: 60,
+        },
+        &extras,
+        &CancelToken::new(),
+        &Quiet,
+        now,
+    )
+    .unwrap();
+    assert_eq!(
+        limited.status, "partial",
+        "SCAN_M35_CLUSTERS: candidate budget exhausted"
+    );
+    assert!(
+        limited.issues.iter().all(|i| i.code != "budget_exhausted"
+            || limited.groups.iter().any(|g| g.group_id == i.group_id)),
+        "SCAN_M35_CLUSTERS: abandoned budget issues belong to a location group"
+    );
+    // A root nested in another walk still has no logical parent at depth zero.
+    write_file(&fx.join("loc/parent.json"), b"{}");
+    let outer = m35_marker_target(
+        "outer",
+        &fx.p("loc"),
+        json!({"kind":"dir_name","names":["unmatched"]}),
+        None,
+        "dir",
+    );
+    let inner = m35_marker_target(
+        "inner",
+        &fx.p("loc/rejected"),
+        json!({"kind":"dir_name","names":["rejected"]}),
+        Some(json!([{"kind":"parent_has_file","name":"parent.json"}])),
+        "dir",
+    );
+    let (nested, _) = m35_full(
+        &plan(vec![outer, inner], vec![]),
+        now,
+        &ExtrasOptions::default(),
+    );
+    assert!(
+        nested.items.is_empty(),
+        "SCAN_M35_CLUSTERS: nested target root has no logical parent"
+    );
+    write_file(&fx.join("deep/a/b/c/d/e/.water-cleanup.json"), b"{}");
+    let outer = m35_marker_target(
+        "outer",
+        &fx.p("deep"),
+        json!({"kind":"dir_name","names":["unmatched"]}),
+        None,
+        "dir",
+    );
+    let inner = m35_marker_target(
+        "inner",
+        &fx.p("deep/a/b/c/d/e"),
+        json!({"kind":"dir_name","names":["unmatched"]}),
+        None,
+        "dir",
+    );
+    let (_, found) = m35_full(&plan(vec![outer, inner], vec![]), now, &extras);
+    assert_eq!(
+        found.declarations,
+        vec![fx.p("deep/a/b/c/d/e/.water-cleanup.json")],
+        "SCAN_M35_CLUSTERS: declaration depth is relative to each root"
+    );
+    write_file(&fx.join("shared/a/data"), b"data");
+    write_file(
+        &fx.join("shared/a").join(OsString::from_wide(&[0xd800])),
+        b"invalid",
+    );
+    let discovery = target(
+        "shared-discovery",
+        "protected",
+        "system_temp",
+        json!({"kind":"discovery","root":fx.p("shared")}),
+        "any",
+        0,
+        0,
+    );
+    let marker = m35_marker_target(
+        "shared-marker",
+        &fx.p("shared"),
+        json!({"kind":"dir_name","names":["a"]}),
+        None,
+        "dir",
+    );
+    let (shared, _) = m35_full(
+        &plan(vec![discovery, marker], vec![]),
+        now,
+        &ExtrasOptions::default(),
+    );
+    assert_eq!(
+        shared.items.len(),
+        1,
+        "SCAN_M35_CLUSTERS: discovery excludes ordinary hits after shared traversal"
+    );
+    assert_eq!(
+        shared.items[0].group_id, "shared-marker",
+        "SCAN_M35_CLUSTERS: ordinary owner beats discovery"
+    );
+    assert_eq!(
+        shared.visited_entries, 3,
+        "SCAN_M35_CLUSTERS: overlapping roots share enumeration"
+    );
+    assert!(
+        shared
+            .issues
+            .iter()
+            .all(|i| i.group_id != "shared-discovery"),
+        "SCAN_M35_CLUSTERS: excluded discovery has no measurement issues"
+    );
+    write_file(
+        &fx.join("loc/rejected/verify-A00000")
+            .join(OsString::from_wide(&[0xd800])),
+        b"invalid",
+    );
+    let (with_issue, _) = m35_full(&text, now, &extras);
+    assert!(
+        with_issue
+            .issues
+            .iter()
+            .any(|i| i.group_id == nested_group_id(&fx.p("loc/rejected"))
+                && i.code == "unrepresentable_name"),
+        "SCAN_M35_CLUSTERS: selected cluster retains measurement issues"
+    );
+}
+
+fn nested_group_id(parent: &str) -> String {
+    let mut hash = 0xcbf29ce484222325u64;
+    for byte in format!("{}\ndir\nverify-<r6>", parent.to_ascii_lowercase()).bytes() {
+        hash = (hash ^ u64::from(byte)).wrapping_mul(0x100000001b3);
+    }
+    format!("leak:{hash:016x}")
 }
 
 fn m35_rules_names() {
