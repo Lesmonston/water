@@ -212,46 +212,30 @@
 - **界面单 M6 暂缓**：用户 11-05：“UI整体要做可视化的优化，整体的可视化方案你要想一下用什么替代目前的主要面板。”方案见 [viz-proposal.html](../../design/water-ui-v2/viz-proposal.html)，用户定了以后改设计 v2、UI-M35 与样例，再重出 M6 的单与派单句。M6 本来就最后合入，不影响后端七张。
 - **合入顺序**照第 4 节；过渡期主线不出 release。
 
-派单句（每条单独复制给一个执行者；都是后端单，没有界面单）：
+- **分组派**（11-05）：用户：“后端单我也还没派，一次十单太多了，是不是有些单可以合并？”七张后端单分三组，每组一个执行者**按顺序**做；单子、工作树、检查、回执都不变，每张单仍各交各的回执。服务单 M7 等三组合入后派，界面单 M6 等可视化方案定了再派，前后共 5 个执行者。
 
-**WATER-W10-M1**
+| 组 | 顺序 | 为什么放一起 |
+|---|---|---|
+| A 组：规则与扫描 | M1 → M2 | 两张共用计划 JSON，本来就一起合入；先做轻的规则单 |
+| B 组：三个新包 | M9 → M3 → M8 | 都是新建的小包、写法相同；声明与查重都要自己实现 SHA-256，可以复用 |
+| C 组：执行器与宿主 | M4 → M5 | 都是隔离区那条线：执行器移入、还原、删除，宿主打开隔离区文件夹 |
+
+派单句（每组一条，单独复制给一个执行者；都是后端单）：
+
+**A 组：规则与扫描（WATER-W10-M1、WATER-W10-M2）**
 
 ```text
-你接手 Water 项目 WATER-W10-M1（规则：新字段、新定位、会话开关与新规则，轻门）。先读 F:/new/smaltalk/water/docs/dispatch/tickets/WATER-W10-M1-RULES-20261105.md，按其中列出的顺序读规则与契约，在 F:/new/smaltalk/water/.worktrees/w10-m1（分支 worker/water-w10-m1）从 f93afb8e 开工。
+你接手 Water 项目第十波 A 组的 2 张单，按顺序一张一张做：1）WATER-W10-M1（规则：新字段、新定位、会话开关与新规则，轻门）：工单 F:/new/smaltalk/water/docs/dispatch/tickets/WATER-W10-M1-RULES-20261105.md，工作树 F:/new/smaltalk/water/.worktrees/w10-m1（分支 worker/water-w10-m1）；2）WATER-W10-M2（扫描：新定位、分配大小、泄漏簇、联接索引与空间分布，中门）：工单 F:/new/smaltalk/water/docs/dispatch/tickets/WATER-W10-M2-SCAN-20261105.md，工作树 F:/new/smaltalk/water/.worktrees/w10-m2（分支 worker/water-w10-m2）。每张单都从 f93afb8e 开工，先读它的工单，按工单列出的顺序读规则与契约，在它自己的工作树里做完、提交并交回回执，再开始下一张；不要在一个工作树里改另一张单的目录。某一张受阻就停下写那张单的受阻回执，不要跳到下一张。
 ```
 
-**WATER-W10-M2**
+**B 组：三个新包（WATER-W10-M9、WATER-W10-M3、WATER-W10-M8）**
 
 ```text
-你接手 Water 项目 WATER-W10-M2（扫描：新定位、分配大小、泄漏簇、联接索引与空间分布，中门）。先读 F:/new/smaltalk/water/docs/dispatch/tickets/WATER-W10-M2-SCAN-20261105.md，按其中列出的顺序读规则与契约，在 F:/new/smaltalk/water/.worktrees/w10-m2（分支 worker/water-w10-m2）从 f93afb8e 开工。
+你接手 Water 项目第十波 B 组的 3 张单，按顺序一张一张做：1）WATER-W10-M9（新包：读已安装程序列表，轻门）：工单 F:/new/smaltalk/water/docs/dispatch/tickets/WATER-W10-M9-APPS-20261105.md，工作树 F:/new/smaltalk/water/.worktrees/w10-m9（分支 worker/water-w10-m9）；2）WATER-W10-M3（新包：项目清理声明与工作树登记，中门）：工单 F:/new/smaltalk/water/docs/dispatch/tickets/WATER-W10-M3-MANIFEST-20261105.md，工作树 F:/new/smaltalk/water/.worktrees/w10-m3（分支 worker/water-w10-m3）；3）WATER-W10-M8（新包：用户发起的逐字节查重，中门）：工单 F:/new/smaltalk/water/docs/dispatch/tickets/WATER-W10-M8-DUP-20261105.md，工作树 F:/new/smaltalk/water/.worktrees/w10-m8（分支 worker/water-w10-m8）。每张单都从 f93afb8e 开工，先读它的工单，按工单列出的顺序读规则与契约，在它自己的工作树里做完、提交并交回回执，再开始下一张；不要在一个工作树里改另一张单的目录。某一张受阻就停下写那张单的受阻回执，不要跳到下一张。
 ```
 
-**WATER-W10-M3**
+**C 组：执行器与宿主（WATER-W10-M4、WATER-W10-M5）**
 
 ```text
-你接手 Water 项目 WATER-W10-M3（新包：项目清理声明与工作树登记，中门）。先读 F:/new/smaltalk/water/docs/dispatch/tickets/WATER-W10-M3-MANIFEST-20261105.md，按其中列出的顺序读规则与契约，在 F:/new/smaltalk/water/.worktrees/w10-m3（分支 worker/water-w10-m3）从 f93afb8e 开工。
-```
-
-**WATER-W10-M4**
-
-```text
-你接手 Water 项目 WATER-W10-M4（执行器：解锁对与隔离区，重门）。先读 F:/new/smaltalk/water/docs/dispatch/tickets/WATER-W10-M4-CLEAN-20261105.md，按其中列出的顺序读规则与契约，在 F:/new/smaltalk/water/.worktrees/w10-m4（分支 worker/water-w10-m4）从 f93afb8e 开工。
-```
-
-**WATER-W10-M5**
-
-```text
-你接手 Water 项目 WATER-W10-M5（宿主：转发第十波命令，打开隔离区文件夹，中门，含整机检查）。先读 F:/new/smaltalk/water/docs/dispatch/tickets/WATER-W10-M5-HOST-20261105.md，按其中列出的顺序读规则与契约，在 F:/new/smaltalk/water/.worktrees/w10-m5（分支 worker/water-w10-m5）从 f93afb8e 开工。
-```
-
-**WATER-W10-M8**
-
-```text
-你接手 Water 项目 WATER-W10-M8（新包：用户发起的逐字节查重，中门）。先读 F:/new/smaltalk/water/docs/dispatch/tickets/WATER-W10-M8-DUP-20261105.md，按其中列出的顺序读规则与契约，在 F:/new/smaltalk/water/.worktrees/w10-m8（分支 worker/water-w10-m8）从 f93afb8e 开工。
-```
-
-**WATER-W10-M9**
-
-```text
-你接手 Water 项目 WATER-W10-M9（新包：读已安装程序列表，轻门）。先读 F:/new/smaltalk/water/docs/dispatch/tickets/WATER-W10-M9-APPS-20261105.md，按其中列出的顺序读规则与契约，在 F:/new/smaltalk/water/.worktrees/w10-m9（分支 worker/water-w10-m9）从 f93afb8e 开工。
+你接手 Water 项目第十波 C 组的 2 张单，按顺序一张一张做：1）WATER-W10-M4（执行器：解锁对与隔离区，重门）：工单 F:/new/smaltalk/water/docs/dispatch/tickets/WATER-W10-M4-CLEAN-20261105.md，工作树 F:/new/smaltalk/water/.worktrees/w10-m4（分支 worker/water-w10-m4）；2）WATER-W10-M5（宿主：转发第十波命令，打开隔离区文件夹，中门，含整机检查）：工单 F:/new/smaltalk/water/docs/dispatch/tickets/WATER-W10-M5-HOST-20261105.md，工作树 F:/new/smaltalk/water/.worktrees/w10-m5（分支 worker/water-w10-m5）。每张单都从 f93afb8e 开工，先读它的工单，按工单列出的顺序读规则与契约，在它自己的工作树里做完、提交并交回回执，再开始下一张；不要在一个工作树里改另一张单的目录。某一张受阻就停下写那张单的受阻回执，不要跳到下一张。
 ```

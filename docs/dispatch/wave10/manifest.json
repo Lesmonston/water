@@ -191,7 +191,8 @@
         "docs/acceptance/wave10/m1/"
       ],
       "baselineStatus": "PASSED",
-      "baselineEvidence": "docs/acceptance/wave10/controller/preflight-20261105/m1/2026-11-05T08-18-39.503Z-26060-baseline-result.json"
+      "baselineEvidence": "docs/acceptance/wave10/controller/preflight-20261105/m1/2026-11-05T08-18-39.503Z-26060-baseline-result.json",
+      "bundle": "A"
     },
     {
       "id": "WATER-W10-M2",
@@ -329,7 +330,8 @@
         "GetFileInformationByHandleEx",
         "GetVolumeInformationByHandleW",
         "SHGetKnownFolderPath"
-      ]
+      ],
+      "bundle": "A"
     },
     {
       "id": "WATER-W10-M3",
@@ -428,7 +430,8 @@
           "sha256": "89d99d991d4fcfbdde3275137bfd14406466fc0ade676057e0073fb16a8edf90"
         }
       ],
-      "outputRootExists": false
+      "outputRootExists": false,
+      "bundle": "B"
     },
     {
       "kind": "rust",
@@ -583,7 +586,8 @@
       "baselineEvidence": "docs/acceptance/wave10/controller/preflight-20261105/m4/2026-11-05T08-18-39.542Z-22232-baseline-result.json",
       "relayedAt": "2026-10-27T15:40:00Z",
       "relayEvidence": "user chat 2026-10-28 ~00:40 JST: all external tasks done",
-      "acceptanceNote": "docs/acceptance/wave5/controller/WATER-W5-ACCEPT-PROGRESS-20261028.md"
+      "acceptanceNote": "docs/acceptance/wave5/controller/WATER-W5-ACCEPT-PROGRESS-20261028.md",
+      "bundle": "C"
     },
     {
       "kind": "host",
@@ -979,7 +983,8 @@
       ],
       "baselineStatus": "PASSED",
       "baselineEvidence": "docs/acceptance/wave10/controller/preflight-20261105/m5/2026-11-05T08-18-39.551Z-32008-baseline-result.json",
-      "spawnFile": "src/opener.rs"
+      "spawnFile": "src/opener.rs",
+      "bundle": "C"
     },
     {
       "kind": "ui",
@@ -1270,7 +1275,8 @@
       "allowedFfi": [
         "GetFileInformationByHandleEx",
         "GetVolumeInformationByHandleW"
-      ]
+      ],
+      "bundle": "B"
     },
     {
       "id": "WATER-W10-M9",
@@ -1368,7 +1374,44 @@
         "RegEnumKeyExW",
         "RegQueryValueExW",
         "RegCloseKey"
-      ]
+      ],
+      "bundle": "B"
+    }
+  ],
+  "bundles": [
+    {
+      "id": "A",
+      "name": "规则与扫描",
+      "tasks": [
+        "WATER-W10-M1",
+        "WATER-W10-M2"
+      ],
+      "order": "sequential",
+      "decidedAt": "2026-11-05",
+      "userRequest": "后端单我也还没派，一次十单太多了，是不是有些单可以合并？"
+    },
+    {
+      "id": "B",
+      "name": "三个新包",
+      "tasks": [
+        "WATER-W10-M9",
+        "WATER-W10-M3",
+        "WATER-W10-M8"
+      ],
+      "order": "sequential",
+      "decidedAt": "2026-11-05",
+      "userRequest": "后端单我也还没派，一次十单太多了，是不是有些单可以合并？"
+    },
+    {
+      "id": "C",
+      "name": "执行器与宿主",
+      "tasks": [
+        "WATER-W10-M4",
+        "WATER-W10-M5"
+      ],
+      "order": "sequential",
+      "decidedAt": "2026-11-05",
+      "userRequest": "后端单我也还没派，一次十单太多了，是不是有些单可以合并？"
     }
   ]
 }
