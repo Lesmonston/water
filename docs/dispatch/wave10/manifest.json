@@ -362,7 +362,7 @@
     {
       "id": "WATER-W10-M3",
       "title": "新包：项目清理声明与工作树登记",
-      "status": "DISPATCHED",
+      "status": "VERIFIED",
       "slot": "w10-m3",
       "kind": "rust",
       "worktree": "F:/new/smaltalk/water/.worktrees/w10-m3",
@@ -458,7 +458,25 @@
       ],
       "outputRootExists": false,
       "bundle": "B",
-      "dispatchEvidence": "user chat 2026-11-05 ~17:47 JST: \"三个新单是sol\" (bundles A, B, C to sol); worker tree head/changed files f93afb8e/0 when recorded at 2026-11-05T08:47:40Z"
+      "dispatchEvidence": "user chat 2026-11-05 ~17:47 JST: \"三个新单是sol\" (bundles A, B, C to sol); worker tree head/changed files f93afb8e/0 when recorded at 2026-11-05T08:47:40Z",
+      "submittedHead": "2745166237047abcd656aeeb9ac5b94ffdfb1e21",
+      "implementationCommit": "ec0ed5fd9a3911baec20b8a2c56f5f4510524a6e",
+      "workerSelfReport": "Codex GPT-6",
+      "mergeCommit": "2def17960b279e853bae4243476bd9d093f30c9d",
+      "controllerReview": {
+        "report": "docs/acceptance/wave10/controller/WATER-W10-REVIEW-20261105.md",
+        "evidence": "docs/acceptance/wave10/controller/accept-20261105/m3/",
+        "summary": "audit 0 problems; fresh tree lock, check, real and test finals passed; controller mutations c1-c5 all caught (.git segment, 366 days, keepNewest 9, directory not lowercased before hashing, case-sensitive directory in protects); independent review found no high-severity issue"
+      },
+      "carryOverLater": [
+        "parse reports unknown keys in alphabetical order (serde_json map without preserve_order) and fields in schema order, not in the manifest document order MANIFEST-M35 section 7 asks for; only matters when one manifest has several problems",
+        "protects returns None for \\\\?\\, UNC or ADS-style paths because absolute_parts accepts only X:\\ forms; M7 must pass X:\\ forms (strip \\\\?\\) before calling protects, and read_git_link with a \\\\?\\ worktree_dir reports invalid",
+        "protects returns None when path is an ancestor of dir (contract says so); M7 must still keep a declared project directory out of any plan item that contains it (for example by adding its protected paths to the clean plan protected_paths)",
+        "examples/real_smoke.rs finds the repository root with ancestors().nth(4), which only works under .worktrees/<name>/; run from the main checkout it panics; fix when the crate is next touched",
+        "control characters in a path pattern are reported as MANIFEST_FIELD rather than MANIFEST_PATH",
+        "to_targets trusts its input: a Manifest built without parse() can panic (sibling-complete-file-exists without a suffix) or map an unknown when to 0 hours",
+        "weak tests: the >1 KB .git case also lacks gitdir:, the 8-segment, 255 and 512 limits are tested only on the reject side, MANIFEST_UNREADABLE is not covered"
+      ]
     },
     {
       "kind": "rust",
@@ -1351,7 +1369,7 @@
     {
       "id": "WATER-W10-M9",
       "title": "新包：读已安装程序列表",
-      "status": "DISPATCHED",
+      "status": "VERIFIED",
       "slot": "w10-m9",
       "kind": "rust",
       "worktree": "F:/new/smaltalk/water/.worktrees/w10-m9",
@@ -1446,7 +1464,24 @@
         "RegCloseKey"
       ],
       "bundle": "B",
-      "dispatchEvidence": "user chat 2026-11-05 ~17:47 JST: \"三个新单是sol\" (bundles A, B, C to sol); worker tree head/changed files f93afb8e/1 when recorded at 2026-11-05T08:47:40Z"
+      "dispatchEvidence": "user chat 2026-11-05 ~17:47 JST: \"三个新单是sol\" (bundles A, B, C to sol); worker tree head/changed files f93afb8e/1 when recorded at 2026-11-05T08:47:40Z",
+      "submittedHead": "ad6c18a4b1029d6f78258cc07f9e1dcb60920a88",
+      "implementationCommit": "9bf847f725d863f5c9914e4767025022fe27cce9",
+      "workerSelfReport": "Codex GPT-6",
+      "mergeCommit": "c701d029a57dababa30d3a96dbb36fba611576d2",
+      "controllerReview": {
+        "report": "docs/acceptance/wave10/controller/WATER-W10-REVIEW-20261105.md",
+        "evidence": "docs/acceptance/wave10/controller/accept-20261105/m9/",
+        "summary": "audit 0 problems; fresh tree lock, check, real and test finals passed; controller mutations c1-c6 all caught (case-sensitive sort, user scope skipped, reversed prefix direction, digit-only names, setup not a stop word, % accepted); independent review found no high-severity issue"
+      },
+      "carryOverLater": [
+        "name_tokens keeps a CJK run glued to Latin letters or digits (installed \"腾讯QQ\" is one token, so find(name_tokens(\"QQ\")) is empty); follows the literal APPS-M35 section 4 split rule; M7 must not call such a program uninstalled on this basis alone",
+        "collected_at is Unix seconds as a string (\"-N\" before the epoch); APPS-M35 is silent, M7/IPC must convert to the RFC 3339 form used elsewhere",
+        "values longer than the 2050-unit native buffer are dropped before trimming (a DisplayName padded with thousands of spaces loses the entry)",
+        "the 5000 cap truncates in enumeration order before sorting, and unreadable_keys stops counting at the cap",
+        "a drive-root InstallLocation (D:\\) becomes D: and is treated as missing (literal contract reading)",
+        "weak tests: the registry kind to RegValue::Other mapping, the 5000 cap, truncated and unreadable_keys are not exercised; nc1 relies on the machine having WOW6432Node entries"
+      ]
     }
   ],
   "bundles": [

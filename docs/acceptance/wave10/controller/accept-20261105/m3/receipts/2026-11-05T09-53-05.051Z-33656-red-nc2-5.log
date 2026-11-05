@@ -1,0 +1,31 @@
+{"binary":"C:\\Users\\37310\\.rustup\\toolchains\\1.95.0-x86_64-pc-windows-msvc\\bin\\cargo.exe","args":["test","--offline","--locked","--manifest-path","packages/cleanup-manifest/Cargo.toml","--test","manifest_v1","--","--test-threads=1"],"exitCode":101,"error":null}
+--- stdout ---
+
+running 4 tests
+test manifest_git_link ... ok
+test manifest_parse_contract ... ok
+test manifest_read_files ... ok
+test manifest_targets_and_protect ... FAILED
+
+failures:
+
+---- manifest_targets_and_protect stdout ----
+
+thread 'manifest_targets_and_protect' (33032) panicked at tests\manifest_v1.rs:256:5:
+assertion `left == right` failed: MANIFEST_TARGETS: exact JSON
+  left: [Object {"category": String("custom"), "group_id": String("decl:7ea385aa741c:worktree-builds"), "in_use": Object {"mode": String("runs_from_or_references_item"), "processes": Array []}, "item_type": String("any"), "keep_newest": Number(0), "level": String("confirm"), "match": Object {"base": String("F:\\Project"), "kind": String("pattern"), "segments": Array [String(".worktrees"), String("*"), String(".local"), String("target")]}, "min_age_hours": Number(72), "rule_id": String("decl:worktree-builds"), "target_id": String("decl:7ea385aa741c:worktree-builds.1")}, Object {"category": String("custom"), "group_id": String("decl:7ea385aa741c:worktree-builds"), "in_use": Object {"mode": String("runs_from_or_references_item"), "processes": Array []}, "item_type": String("any"), "keep_newest": Number(0), "level": String("confirm"), "match": Object {"base": String("F:\\Project"), "kind": String("pattern"), "segments": Array [String(".worktrees"), String("*"), String(".local"), String("*-profile-*")]}, "min_age_hours": Number(72), "rule_id": String("decl:worktree-builds"), "target_id": String("decl:7ea385aa741c:worktree-builds.2")}, Object {"category": String("custom"), "group_id": String("decl:7ea385aa741c:partial"), "in_use": Object {"mode": String("runs_from_or_references_item"), "processes": Array []}, "item_type": String("any"), "keep_newest": Number(0), "level": String("recommended"), "match": Object {"base": String("F:\\Project"), "conditions": Array [Object {"kind": String("sibling_without_suffix"), "suffixes": Array [String(".crdownload")]}], "kind": String("pattern"), "segments": Array [String("downloads"), String("*.CrDownload")]}, "min_age_hours": Number(0), "rule_id": String("decl:partial"), "target_id": String("decl:7ea385aa741c:partial.1")}]
+ right: [Object {"category": String("custom"), "group_id": String("decl:ca271bf72343:worktree-builds"), "in_use": Object {"mode": String("runs_from_or_references_item"), "processes": Array []}, "item_type": String("any"), "keep_newest": Number(0), "level": String("confirm"), "match": Object {"base": String("F:\\Project"), "kind": String("pattern"), "segments": Array [String(".worktrees"), String("*"), String(".local"), String("target")]}, "min_age_hours": Number(72), "rule_id": String("decl:worktree-builds"), "target_id": String("decl:ca271bf72343:worktree-builds.1")}, Object {"category": String("custom"), "group_id": String("decl:ca271bf72343:worktree-builds"), "in_use": Object {"mode": String("runs_from_or_references_item"), "processes": Array []}, "item_type": String("any"), "keep_newest": Number(0), "level": String("confirm"), "match": Object {"base": String("F:\\Project"), "kind": String("pattern"), "segments": Array [String(".worktrees"), String("*"), String(".local"), String("*-profile-*")]}, "min_age_hours": Number(72), "rule_id": String("decl:worktree-builds"), "target_id": String("decl:ca271bf72343:worktree-builds.2")}, Object {"category": String("custom"), "group_id": String("decl:ca271bf72343:partial"), "in_use": Object {"mode": String("runs_from_or_references_item"), "processes": Array []}, "item_type": String("any"), "keep_newest": Number(0), "level": String("recommended"), "match": Object {"base": String("F:\\Project"), "conditions": Array [Object {"kind": String("sibling_without_suffix"), "suffixes": Array [String(".crdownload")]}], "kind": String("pattern"), "segments": Array [String("downloads"), String("*.CrDownload")]}, "min_age_hours": Number(0), "rule_id": String("decl:partial"), "target_id": String("decl:ca271bf72343:partial.1")}]
+note: run with `RUST_BACKTRACE=1` environment variable to display a backtrace
+
+
+failures:
+    manifest_targets_and_protect
+
+test result: FAILED. 3 passed; 1 failed; 0 ignored; 0 measured; 0 filtered out; finished in 0.33s
+
+
+--- stderr ---
+   Compiling water-cleanup-manifest v0.1.0 (F:\new\smaltalk\water\.worktrees\accept-w10-m3\packages\cleanup-manifest)
+    Finished `test` profile [unoptimized + debuginfo] target(s) in 1.36s
+     Running tests\manifest_v1.rs (.local\w2-target\debug\deps\manifest_v1-c4bc829e26913465.exe)
+error: test failed, to rerun pass `--test manifest_v1`

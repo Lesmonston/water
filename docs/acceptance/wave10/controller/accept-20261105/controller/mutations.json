@@ -1,0 +1,105 @@
+{
+ "m9": [
+  {
+   "label": "c1",
+   "mode": "red-nc1",
+   "token": "APPS_READ",
+   "file": "packages/installed-apps/src/lib.rs",
+   "old": "            a.name\n                .to_lowercase()\n                .cmp(&b.name.to_lowercase())",
+   "new": "            a.name\n                .cmp(&b.name)",
+   "why": "apps sorted by case-sensitive name instead of case-insensitive"
+  },
+  {
+   "label": "c2",
+   "mode": "red-nc1",
+   "token": "APPS_READ",
+   "file": "packages/installed-apps/src/native_windows.rs",
+   "old": "        (\"user\", -2147483647_isize, 0),\n",
+   "new": "",
+   "why": "the per-user uninstall key is not read"
+  },
+  {
+   "label": "c3",
+   "mode": "red-nc2",
+   "token": "APPS_MATCH",
+   "file": "packages/installed-apps/src/lib.rs",
+   "old": "&& n.starts_with(&q))",
+   "new": "&& q.starts_with(n.as_str()))",
+   "why": "prefix direction reversed: a longer query matches a shorter name word"
+  },
+  {
+   "label": "c4",
+   "mode": "red-nc2",
+   "token": "APPS_MATCH",
+   "file": "packages/installed-apps/src/lib.rs",
+   "old": "    if tokens.iter().all(|s| s.chars().all(char::is_numeric)) {",
+   "new": "    if tokens.is_empty() {",
+   "why": "digit-only installer names are no longer treated as unknown"
+  },
+  {
+   "label": "c5",
+   "mode": "red-nc2",
+   "token": "APPS_MATCH",
+   "file": "packages/installed-apps/src/lib.rs",
+   "old": "        \"setup\",\n",
+   "new": "",
+   "why": "setup is no longer a stop word"
+  },
+  {
+   "label": "c6",
+   "mode": "test",
+   "token": "APPS_ENTRY",
+   "file": "packages/installed-apps/src/lib.rs",
+   "old": "            && !s.contains('%'))",
+   "new": "            && true)",
+   "why": "install locations containing % are accepted"
+  }
+ ],
+ "m3": [
+  {
+   "label": "c1",
+   "mode": "red-nc1",
+   "token": "MANIFEST_FORMAT",
+   "file": "packages/cleanup-manifest/src/lib.rs",
+   "old": "                && !p.eq_ignore_ascii_case(\".git\")",
+   "new": "                && true",
+   "why": "a .git segment is accepted in paths"
+  },
+  {
+   "label": "c2",
+   "mode": "red-nc1",
+   "token": "MANIFEST_FORMAT",
+   "file": "packages/cleanup-manifest/src/lib.rs",
+   "old": "(1..=365).contains(n)",
+   "new": "(1..=366).contains(n)",
+   "why": "older-than-366-days is accepted"
+  },
+  {
+   "label": "c3",
+   "mode": "red-nc1",
+   "token": "MANIFEST_FORMAT",
+   "file": "packages/cleanup-manifest/src/lib.rs",
+   "old": "is_none_or(|n| n > 8)",
+   "new": "is_none_or(|n| n > 9)",
+   "why": "keepNewest 9 is accepted"
+  },
+  {
+   "label": "c4",
+   "mode": "red-nc2",
+   "token": "MANIFEST_TARGETS",
+   "file": "packages/cleanup-manifest/src/lib.rs",
+   "old": "sha256_hex(dir.to_ascii_lowercase().as_bytes())",
+   "new": "sha256_hex(dir.as_bytes())",
+   "why": "declaration id hashes the directory without lowercasing"
+  },
+  {
+   "label": "c5",
+   "mode": "test",
+   "token": "MANIFEST_PROTECT",
+   "file": "packages/cleanup-manifest/src/lib.rs",
+   "old": ".all(|(a, b)| a.to_lowercase() == b.to_lowercase())",
+   "new": ".all(|(a, b)| a == b)",
+   "why": "protects compares the declaration directory case-sensitively"
+  }
+ ]
+}

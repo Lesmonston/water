@@ -1,0 +1,29 @@
+{"binary":"C:\\Users\\37310\\.rustup\\toolchains\\1.95.0-x86_64-pc-windows-msvc\\bin\\cargo.exe","args":["test","--offline","--locked","--manifest-path","packages/cleanup-manifest/Cargo.toml","--test","manifest_v1","--","--test-threads=1"],"exitCode":101,"error":null}
+--- stdout ---
+
+running 4 tests
+test manifest_git_link ... ok
+test manifest_parse_contract ... FAILED
+test manifest_read_files ... ok
+test manifest_targets_and_protect ... ok
+
+failures:
+
+---- manifest_parse_contract stdout ----
+
+thread 'manifest_parse_contract' (31220) panicked at tests\manifest_v1.rs:17:52:
+MANIFEST_FORMAT: reject fixture: Manifest { schema: None, version: 1, project: Some("Water"), producer: Some("总控与执行器"), disposable: [Disposable { id: "worktree-builds", title: "工作树里的构建产物", paths: [".worktrees/*/.local/target", ".worktrees/*/.local/*-profile-*"], when: "older-than-366-days", kind: "build", keep_newest: 0, ask: true, producer: Some("cargo test 与界面冒烟"), fixed_in: None }], protected: [".offline-cache", "docs"], worktrees: [Worktree { path: ".worktrees/w10-m1", note: Some("第十波 M1") }] }
+note: run with `RUST_BACKTRACE=1` environment variable to display a backtrace
+
+
+failures:
+    manifest_parse_contract
+
+test result: FAILED. 3 passed; 1 failed; 0 ignored; 0 measured; 0 filtered out; finished in 0.37s
+
+
+--- stderr ---
+   Compiling water-cleanup-manifest v0.1.0 (F:\new\smaltalk\water\.worktrees\accept-w10-m3\packages\cleanup-manifest)
+    Finished `test` profile [unoptimized + debuginfo] target(s) in 2.43s
+     Running tests\manifest_v1.rs (.local\w2-target\debug\deps\manifest_v1-c4bc829e26913465.exe)
+error: test failed, to rerun pass `--test manifest_v1`

@@ -1,0 +1,188 @@
+#![deny(unsafe_code)]
+
+use serde::{Deserialize, Serialize};
+use std::time::{SystemTime, UNIX_EPOCH};
+
+#[cfg(windows)]
+#[allow(unsafe_code)]
+mod native_windows;
+
+#[derive(Debug, Clone, PartialEq, Eq, Serialize, Deserialize)]
+#[serde(deny_unknown_fields)]
+pub struct App {
+    pub scope: String,
+    pub key: String,
+    pub name: String,
+    pub version: Option<String>,
+    pub install_location: Option<String>,
+}
+
+#[derive(Debug, Clone, PartialEq, Eq, Serialize, Deserialize)]
+#[serde(deny_unknown_fields)]
+pub struct AppList {
+    pub apps_version: String,
+    pub collected_at: String,
+    pub apps: Vec<App>,
+    pub truncated: bool,
+    pub unreadable_keys: u64,
+}
+
+#[derive(Debug, Clone, PartialEq, Eq, Serialize, Deserialize)]
+pub enum AppsError {
+    Unsupported,
+    Json,
+}
+
+#[derive(Debug, Clone, PartialEq, Eq, Serialize, Deserialize)]
+pub enum RegValue {
+    Sz(String),
+    ExpandSz(String),
+    Other,
+}
+
+pub fn read_installed(now: SystemTime) -> Result<AppList, AppsError> {
+    #[cfg(not(windows))]
+    {
+        let _ = now;
+        Err(AppsError::Unsupported)
+    }
+    #[cfg(windows)]
+    {
+        let (mut apps, truncated, unreadable_keys) = native_windows::collect();
+        apps.sort_by(|a, b| {
+            a.name
+                .to_lowercase()
+                .cmp(&b.name.to_lowercase())
+                .then_with(|| a.scope.cmp(&b.scope))
+                .then_with(|| a.key.cmp(&b.key))
+        });
+        let collected_at = match now.duration_since(UNIX_EPOCH) {
+            Ok(d) => d.as_secs().to_string(),
+            Err(e) => format!("-{}", e.duration().as_secs()),
+        };
+        Ok(AppList {
+            apps_version: "water.installed-apps.v1".into(),
+            collected_at,
+            apps,
+            truncated,
+            unreadable_keys,
+        })
+    }
+}
+
+fn string_value(values: &[(String, RegValue)], name: &str) -> Option<String> {
+    let value = match &values.iter().find(|(n, _)| n == name)?.1 {
+        RegValue::Sz(s) | RegValue::ExpandSz(s) => s.trim_end_matches('\0').trim(),
+        RegValue::Other => return None,
+    };
+    (value.chars().count() <= 1024).then(|| value.to_owned())
+}
+
+pub fn parse_entry(scope: &str, key: &str, values: &[(String, RegValue)]) -> Option<App> {
+    let name = string_value(values, "DisplayName")?;
+    if name.is_empty() {
+        return None;
+    }
+    let install_location = string_value(values, "InstallLocation").and_then(|s| {
+        let s = s
+            .strip_prefix('"')
+            .and_then(|s| s.strip_suffix('"'))
+            .unwrap_or(&s);
+        let s = s.trim_end_matches('\\');
+        let b = s.as_bytes();
+        (b.len() >= 3
+            && b[0].is_ascii_alphabetic()
+            && b[1] == b':'
+            && b[2] == b'\\'
+            && !s.contains('%'))
+        .then(|| s.to_owned())
+    });
+    Some(App {
+        scope: scope.into(),
+        key: key.into(),
+        name,
+        version: string_value(values, "DisplayVersion"),
+        install_location,
+    })
+}
+
+pub fn name_tokens(name: &str) -> Vec<String> {
+    name.split(|c: char| !c.is_alphanumeric())
+        .filter(|s| s.chars().count() > 1)
+        .map(str::to_lowercase)
+        .collect()
+}
+
+fn strip_extension<'a>(name: &'a str, extensions: &[&str]) -> &'a str {
+    match name.rsplit_once('.') {
+        Some((base, ext)) if extensions.iter().any(|s| ext.eq_ignore_ascii_case(s)) => base,
+        _ => name,
+    }
+}
+
+pub fn installer_tokens(file_name: &str) -> Vec<String> {
+    let name = strip_extension(file_name, &["part", "crdownload"]);
+    let name = strip_extension(name, &["exe", "msi", "zip", "rar", "7z"]);
+    let stop = [
+        "installer",
+        "install",
+        "x64",
+        "x86",
+        "amd64",
+        "arm64",
+        "win",
+        "win64",
+        "win32",
+        "windows",
+        "full",
+        "offline",
+        "online",
+        "portable",
+        "release",
+        "final",
+        "latest",
+        "v",
+    ];
+    let tokens: Vec<_> = name_tokens(name)
+        .into_iter()
+        .filter(|s| !stop.contains(&s.as_str()))
+        .collect();
+    if tokens.iter().all(|s| s.chars().all(char::is_numeric)) {
+        Vec::new()
+    } else {
+        tokens
+    }
+}
+
+pub fn find(list: &AppList, query: &[String]) -> Vec<usize> {
+    if query.is_empty() {
+        return Vec::new();
+    }
+    list.apps
+        .iter()
+        .enumerate()
+        .filter_map(|(i, app)| {
+            let tokens = name_tokens(&app.name);
+            query
+                .iter()
+                .all(|q| {
+                    let q = q.to_lowercase();
+                    tokens.iter().any(|n| {
+                        n == &q
+                            || (q.chars().count() >= 3
+                                && !q.chars().all(char::is_numeric)
+                                && n.starts_with(&q))
+                    })
+                })
+                .then_some(i)
+        })
+        .collect()
+}
+
+pub fn list_to_json(list: &AppList) -> String {
+    serde_json::to_string(list).expect("AppList contains only JSON-serializable fields")
+}
+
+pub fn list_from_json(s: &str) -> Result<AppList, AppsError> {
+    serde_json::from_str(s).map_err(|_| AppsError::Json)
+}

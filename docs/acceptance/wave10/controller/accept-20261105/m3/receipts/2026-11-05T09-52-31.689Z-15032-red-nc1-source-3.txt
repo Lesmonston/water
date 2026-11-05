@@ -1,0 +1,522 @@
+#![forbid(unsafe_code)]
+
+mod sha256;
+use serde::{Deserialize, Serialize};
+use serde_json::{Map, Value, json};
+pub use sha256::sha256_hex;
+use std::collections::HashSet;
+#[cfg(windows)]
+use std::io::Read;
+use std::path::Path;
+
+pub const FILE_NAME: &str = ".water-cleanup.json";
+pub const MAX_BYTES: u64 = 65_536;
+
+#[derive(Debug, Clone, PartialEq, Eq, Serialize, Deserialize)]
+#[serde(deny_unknown_fields)]
+pub struct Manifest {
+    #[serde(rename = "$schema", default)]
+    pub schema: Option<String>,
+    pub version: u32,
+    #[serde(default)]
+    pub project: Option<String>,
+    #[serde(default)]
+    pub producer: Option<String>,
+    #[serde(default)]
+    pub disposable: Vec<Disposable>,
+    #[serde(default)]
+    pub protected: Vec<String>,
+    #[serde(default)]
+    pub worktrees: Vec<Worktree>,
+}
+#[derive(Debug, Clone, PartialEq, Eq, Serialize, Deserialize)]
+#[serde(deny_unknown_fields)]
+pub struct Disposable {
+    pub id: String,
+    pub title: String,
+    pub paths: Vec<String>,
+    pub when: String,
+    #[serde(default = "other_kind")]
+    pub kind: String,
+    #[serde(rename = "keepNewest", default)]
+    pub keep_newest: u8,
+    #[serde(default)]
+    pub ask: bool,
+    #[serde(default)]
+    pub producer: Option<String>,
+    #[serde(rename = "fixedIn", default)]
+    pub fixed_in: Option<String>,
+}
+fn other_kind() -> String {
+    "other".into()
+}
+#[derive(Debug, Clone, PartialEq, Eq, Serialize, Deserialize)]
+#[serde(deny_unknown_fields)]
+pub struct Worktree {
+    pub path: String,
+    #[serde(default)]
+    pub note: Option<String>,
+}
+#[derive(Debug, Clone, PartialEq, Eq, Serialize, Deserialize)]
+#[serde(deny_unknown_fields)]
+pub struct GitLink {
+    pub state: String,
+    pub gitdir: Option<String>,
+}
+#[derive(Debug, Clone, PartialEq, Eq, Serialize, Deserialize)]
+#[serde(deny_unknown_fields)]
+pub struct Invalid {
+    pub code: String,
+    pub pointer: String,
+}
+#[derive(Debug, Clone, PartialEq, Eq, Serialize, Deserialize)]
+#[serde(deny_unknown_fields)]
+pub struct Loaded {
+    pub path: String,
+    pub dir: String,
+    pub size: u64,
+    pub hash: Option<String>,
+    pub manifest: Option<Manifest>,
+    pub error: Option<Invalid>,
+}
+fn invalid(code: &str, pointer: &str) -> Invalid {
+    Invalid {
+        code: code.into(),
+        pointer: pointer.into(),
+    }
+}
+fn field(pointer: &str) -> Invalid {
+    invalid("MANIFEST_FIELD", pointer)
+}
+fn child(pointer: &str, key: &str) -> String {
+    format!("{pointer}/{}", key.replace('~', "~0").replace('/', "~1"))
+}
+fn keys(obj: &Map<String, Value>, allowed: &[&str], pointer: &str) -> Result<(), Invalid> {
+    for key in obj.keys() {
+        if !allowed.contains(&key.as_str()) {
+            return Err(invalid("MANIFEST_UNKNOWN_KEY", &child(pointer, key)));
+        }
+    }
+    Ok(())
+}
+fn text<'a>(
+    v: Option<&'a Value>,
+    min: usize,
+    max: usize,
+    pointer: &str,
+) -> Result<&'a str, Invalid> {
+    let s = v.and_then(Value::as_str).ok_or_else(|| field(pointer))?;
+    if !(min..=max).contains(&s.chars().count()) || s.chars().any(char::is_control) {
+        return Err(field(pointer));
+    }
+    Ok(s)
+}
+fn optional_text(
+    obj: &Map<String, Value>,
+    key: &str,
+    min: usize,
+    max: usize,
+    pointer: &str,
+    nullable: bool,
+) -> Result<(), Invalid> {
+    if let Some(v) = obj.get(key)
+        && !(nullable && v.is_null())
+    {
+        text(Some(v), min, max, &child(pointer, key))?;
+    }
+    Ok(())
+}
+fn array<'a>(
+    v: &'a Value,
+    min: usize,
+    max: usize,
+    pointer: &str,
+) -> Result<&'a Vec<Value>, Invalid> {
+    let a = v.as_array().ok_or_else(|| field(pointer))?;
+    if !(min..=max).contains(&a.len()) {
+        return Err(field(pointer));
+    }
+    Ok(a)
+}
+fn depth(v: &Value, level: usize) -> bool {
+    match v {
+        Value::Array(a) => level <= 4 && a.iter().all(|v| depth(v, level + 1)),
+        Value::Object(o) => level <= 4 && o.values().all(|v| depth(v, level + 1)),
+        _ => true,
+    }
+}
+fn path_ok(s: &str, wild: bool) -> bool {
+    if s.chars().count() > 512 || s.starts_with(['/', '\\']) || s.contains("**") {
+        return false;
+    }
+    let parts: Vec<_> = s.split(['/', '\\']).collect();
+    (1..=8).contains(&parts.len())
+        && !parts.iter().all(|p| *p == "*")
+        && parts.iter().all(|p| {
+            !p.is_empty()
+                && p.chars().count() <= 255
+                && *p != "."
+                && *p != ".."
+                && true
+                && !p.ends_with(['.', ' '])
+                && !p.chars().any(|c| c.is_control() || ":<>\"|#".contains(c))
+                && (wild || !p.contains(['*', '?']))
+        })
+}
+fn suffix(s: &str) -> Option<String> {
+    let last = s.rsplit(['/', '\\']).next()?;
+    let (_, ext) = last.rsplit_once('.')?;
+    ((1..=16).contains(&ext.len()) && ext.bytes().all(|c| c.is_ascii_alphanumeric()))
+        .then(|| format!(".{}", ext.to_ascii_lowercase()))
+}
+fn days(s: &str) -> Option<u64> {
+    let n = s.strip_prefix("older-than-")?.strip_suffix("-days")?;
+    if n.starts_with('0') || !n.bytes().all(|c| c.is_ascii_digit()) {
+        return None;
+    }
+    n.parse::<u64>().ok().filter(|n| (1..=365).contains(n))
+}
+
+pub fn parse(bytes: &[u8]) -> Result<Manifest, Invalid> {
+    let bytes = bytes.strip_prefix(&[0xef, 0xbb, 0xbf]).unwrap_or(bytes);
+    let s = std::str::from_utf8(bytes).map_err(|_| invalid("MANIFEST_ENCODING", ""))?;
+    let v: Value = serde_json::from_str(s).map_err(|_| invalid("MANIFEST_JSON", ""))?;
+    if !depth(&v, 1) {
+        return Err(invalid("MANIFEST_JSON", ""));
+    }
+    let obj = v.as_object().ok_or_else(|| field(""))?;
+    if obj.get("version").and_then(Value::as_u64) != Some(1) {
+        return Err(invalid("MANIFEST_VERSION", "/version"));
+    }
+    keys(
+        obj,
+        &[
+            "$schema",
+            "version",
+            "project",
+            "producer",
+            "disposable",
+            "protected",
+            "worktrees",
+        ],
+        "",
+    )?;
+    optional_text(obj, "$schema", 0, 256, "", false)?;
+    optional_text(obj, "project", 1, 64, "", false)?;
+    optional_text(obj, "producer", 1, 200, "", false)?;
+    if let Some(items) = obj.get("disposable") {
+        let mut ids = HashSet::new();
+        for (i, v) in array(items, 0, 64, "/disposable")?.iter().enumerate() {
+            let p = format!("/disposable/{i}");
+            let o = v.as_object().ok_or_else(|| field(&p))?;
+            keys(
+                o,
+                &[
+                    "id",
+                    "title",
+                    "paths",
+                    "when",
+                    "kind",
+                    "keepNewest",
+                    "ask",
+                    "producer",
+                    "fixedIn",
+                ],
+                &p,
+            )?;
+            let id = text(o.get("id"), 1, 48, &child(&p, "id"))?;
+            if !id
+                .bytes()
+                .all(|b| b.is_ascii_lowercase() || b.is_ascii_digit() || b == b'-')
+                || !ids.insert(id)
+            {
+                return Err(field(&child(&p, "id")));
+            }
+            text(o.get("title"), 1, 60, &child(&p, "title"))?;
+            let pp = child(&p, "paths");
+            let paths = array(o.get("paths").ok_or_else(|| field(&pp))?, 1, 16, &pp)?;
+            for (j, v) in paths.iter().enumerate() {
+                let ptr = child(&pp, &j.to_string());
+                let s = text(Some(v), 0, usize::MAX, &ptr)?;
+                if !path_ok(s, true) {
+                    return Err(invalid("MANIFEST_PATH", &ptr));
+                }
+            }
+            let wp = child(&p, "when");
+            let w = text(o.get("when"), 0, usize::MAX, &wp)?;
+            if w != "always" && w != "sibling-complete-file-exists" && days(w).is_none() {
+                return Err(field(&wp));
+            }
+            if w == "sibling-complete-file-exists" {
+                for (j, path) in paths.iter().enumerate() {
+                    if suffix(path.as_str().expect("validated string")).is_none() {
+                        return Err(invalid("MANIFEST_PATH", &child(&pp, &j.to_string())));
+                    }
+                }
+            }
+            if let Some(kind) = o.get("kind") {
+                let kp = child(&p, "kind");
+                let k = text(Some(kind), 0, usize::MAX, &kp)?;
+                if !["leak", "cache", "build", "download", "test", "other"].contains(&k) {
+                    return Err(field(&kp));
+                }
+            }
+            if let Some(k) = o.get("keepNewest")
+                && k.as_u64().is_none_or(|n| n > 8)
+            {
+                return Err(field(&child(&p, "keepNewest")));
+            }
+            if let Some(a) = o.get("ask")
+                && !a.is_boolean()
+            {
+                return Err(field(&child(&p, "ask")));
+            }
+            optional_text(o, "producer", 0, 200, &p, false)?;
+            optional_text(o, "fixedIn", 0, 200, &p, true)?;
+        }
+    }
+    if let Some(v) = obj.get("protected") {
+        for (i, v) in array(v, 0, 64, "/protected")?.iter().enumerate() {
+            let p = format!("/protected/{i}");
+            let s = text(Some(v), 0, usize::MAX, &p)?;
+            if !path_ok(s, true) {
+                return Err(invalid("MANIFEST_PATH", &p));
+            }
+        }
+    }
+    if let Some(v) = obj.get("worktrees") {
+        for (i, v) in array(v, 0, 64, "/worktrees")?.iter().enumerate() {
+            let p = format!("/worktrees/{i}");
+            let o = v.as_object().ok_or_else(|| field(&p))?;
+            keys(o, &["path", "note"], &p)?;
+            let pp = child(&p, "path");
+            let s = text(o.get("path"), 0, usize::MAX, &pp)?;
+            if !path_ok(s, false) {
+                return Err(invalid("MANIFEST_PATH", &pp));
+            }
+            optional_text(o, "note", 0, 200, &p, false)?;
+        }
+    }
+    serde_json::from_value(v).map_err(|_| field(""))
+}
+
+pub fn to_targets(manifest: &Manifest, dir: &str, trusted: bool) -> Vec<Value> {
+    if !trusted {
+        return Vec::new();
+    }
+    let hash = sha256_hex(dir.to_ascii_lowercase().as_bytes());
+    let key = &hash[..12];
+    let mut targets = Vec::new();
+    for d in &manifest.disposable {
+        for (j, p) in d.paths.iter().enumerate() {
+            let segments: Vec<_> = p.split(['/', '\\']).collect();
+            let mut m = json!({"kind":"pattern","base":dir,"segments":segments});
+            if d.when == "sibling-complete-file-exists" {
+                m["conditions"] = json!([{"kind":"sibling_without_suffix","suffixes":[suffix(p).expect("validated suffix")]}]);
+            }
+            targets.push(json!({"target_id":format!("decl:{key}:{}.{}",d.id,j+1),"group_id":format!("decl:{key}:{}",d.id),
+            "rule_id":format!("decl:{}",d.id),"level":if d.ask {"confirm"} else {"recommended"},"category":"custom",
+            "match":m,"item_type":"any","min_age_hours":days(&d.when).unwrap_or(0)*24,"keep_newest":d.keep_newest,
+            "in_use":{"mode":"runs_from_or_references_item","processes":[]}}));
+        }
+    }
+    targets
+}
+
+fn absolute_parts(s: &str) -> Option<Vec<String>> {
+    let s = s.replace('/', "\\");
+    let b = s.as_bytes();
+    if b.len() < 3 || !b[0].is_ascii_alphabetic() || b[1..3] != *b":\\" {
+        return None;
+    }
+    let mut out = vec![s[..2].to_owned()];
+    for p in s[3..].split('\\') {
+        match p {
+            "" | "." => {}
+            ".." => {
+                if out.len() == 1 {
+                    return None;
+                }
+                out.pop();
+            }
+            _ => {
+                if p.chars().any(|c| c.is_control() || c == ':') {
+                    return None;
+                }
+                out.push(p.to_owned());
+            }
+        }
+    }
+    Some(out)
+}
+fn glob(pattern: &str, name: &str) -> bool {
+    let name: Vec<_> = name.chars().collect();
+    let mut row = vec![false; name.len() + 1];
+    row[0] = true;
+    for c in pattern.chars() {
+        let mut next = vec![false; row.len()];
+        if c == '*' {
+            next[0] = row[0];
+        }
+        for j in 1..row.len() {
+            next[j] = if c == '*' {
+                row[j] || next[j - 1]
+            } else {
+                row[j - 1] && (c == '?' || c.to_lowercase().eq(name[j - 1].to_lowercase()))
+            };
+        }
+        row = next;
+    }
+    row[name.len()]
+}
+pub fn protects(manifest: &Manifest, dir: &str, path: &str) -> Option<usize> {
+    let base = absolute_parts(dir)?;
+    let path = absolute_parts(path)?;
+    if path.len() < base.len()
+        || !path
+            .iter()
+            .zip(&base)
+            .all(|(a, b)| a.to_lowercase() == b.to_lowercase())
+    {
+        return None;
+    }
+    let path = &path[base.len()..];
+    manifest
+        .protected
+        .iter()
+        .position(|p| p.split(['/', '\\']).zip(path).all(|(p, c)| glob(p, c)))
+}
+
+fn reparse(m: &std::fs::Metadata) -> bool {
+    #[cfg(windows)]
+    {
+        use std::os::windows::fs::MetadataExt;
+        m.file_attributes() & 0x400 != 0
+    }
+    #[cfg(not(windows))]
+    {
+        m.file_type().is_symlink()
+    }
+}
+fn read_small(path: &Path, max: u64) -> std::io::Result<Vec<u8>> {
+    #[cfg(not(windows))]
+    {
+        let _ = (path, max);
+        Err(std::io::Error::from(std::io::ErrorKind::Unsupported))
+    }
+    #[cfg(windows)]
+    {
+        let mut options = std::fs::OpenOptions::new();
+        options.read(true);
+        #[cfg(windows)]
+        {
+            use std::os::windows::fs::OpenOptionsExt;
+            options.custom_flags(0x0020_0000);
+        }
+        let file = options.open(path)?;
+        let mut bytes = Vec::new();
+        file.take(max + 1).read_to_end(&mut bytes)?;
+        Ok(bytes)
+    }
+}
+pub fn read_manifest(path: &str) -> Loaded {
+    let p = Path::new(path);
+    let mut loaded = Loaded {
+        path: path.into(),
+        dir: p
+            .parent()
+            .map_or_else(String::new, |p| p.to_string_lossy().into_owned()),
+        size: 0,
+        hash: None,
+        manifest: None,
+        error: None,
+    };
+    let result = (|| {
+        if !p.is_absolute()
+            || !p
+                .file_name()
+                .is_some_and(|n| n.eq_ignore_ascii_case(FILE_NAME))
+        {
+            return Err(invalid("MANIFEST_NOT_FILE", ""));
+        }
+        let m = std::fs::symlink_metadata(p).map_err(|_| invalid("MANIFEST_NOT_FILE", ""))?;
+        if reparse(&m) {
+            return Err(invalid("MANIFEST_REPARSE", ""));
+        }
+        if !m.is_file() {
+            return Err(invalid("MANIFEST_NOT_FILE", ""));
+        }
+        loaded.size = m.len();
+        if m.len() > MAX_BYTES {
+            return Err(invalid("MANIFEST_TOO_LARGE", ""));
+        }
+        let bytes = read_small(p, MAX_BYTES).map_err(|_| invalid("MANIFEST_UNREADABLE", ""))?;
+        loaded.hash = Some(sha256_hex(&bytes));
+        if bytes.len() as u64 > MAX_BYTES {
+            return Err(invalid("MANIFEST_TOO_LARGE", ""));
+        }
+        loaded.manifest = Some(parse(&bytes)?);
+        Ok(())
+    })();
+    loaded.error = result.err();
+    loaded
+}
+pub fn read_git_link(worktree_dir: &str) -> GitLink {
+    let bad = || GitLink {
+        state: "invalid".into(),
+        gitdir: None,
+    };
+    let p = Path::new(worktree_dir).join(".git");
+    let Ok(m) = std::fs::symlink_metadata(&p) else {
+        return bad();
+    };
+    if reparse(&m) || !m.is_file() || m.len() > 1024 {
+        return bad();
+    }
+    let Ok(bytes) = read_small(&p, 1024) else {
+        return bad();
+    };
+    if bytes.len() > 1024 {
+        return bad();
+    }
+    let first = bytes.split(|b| *b == b'\n').next().unwrap_or(&[]);
+    let Ok(first) = std::str::from_utf8(first) else {
+        return bad();
+    };
+    let Some(target) = first.trim_end_matches(['\r', ' ']).strip_prefix("gitdir: ") else {
+        return bad();
+    };
+    if target.is_empty() || target.chars().count() > 1000 || target.chars().any(char::is_control) {
+        return bad();
+    }
+    let b = target.as_bytes();
+    let target = if b.len() >= 3 && b[0] == b'/' && b[1].is_ascii_alphabetic() && b[2] == b'/' {
+        format!("{}:\\{}", (b[1] as char).to_ascii_uppercase(), &target[3..])
+    } else {
+        target.to_owned()
+    }
+    .replace('/', "\\");
+    if target.starts_with('\\') {
+        return bad();
+    }
+    let dir = if absolute_parts(&target).is_some() {
+        target
+    } else {
+        let Some(parts) = absolute_parts(&format!("{worktree_dir}\\{target}")) else {
+            return bad();
+        };
+        format!("{}\\{}", parts[0], parts[1..].join("\\"))
+    };
+    match std::fs::metadata(&dir) {
+        Ok(m) if m.is_dir() => GitLink {
+            state: "valid".into(),
+            gitdir: Some(dir),
+        },
+        Ok(_) => bad(),
+        Err(e) if e.kind() == std::io::ErrorKind::NotFound => GitLink {
+            state: "detached".into(),
+            gitdir: Some(dir),
+        },
+        Err(_) => bad(),
+    }
+}
