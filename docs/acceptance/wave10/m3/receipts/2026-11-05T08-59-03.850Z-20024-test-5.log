@@ -1,0 +1,41 @@
+{"binary":"C:\\Users\\37310\\.rustup\\toolchains\\1.95.0-x86_64-pc-windows-msvc\\bin\\cargo.exe","args":["test","--offline","--locked","--manifest-path","packages/cleanup-manifest/Cargo.toml","--test","manifest_v1","--","--test-threads=1"],"exitCode":101,"error":null}
+--- stdout ---
+
+running 4 tests
+test manifest_git_link ... FAILED
+test manifest_parse_contract ... FAILED
+test manifest_read_files ... ok
+test manifest_targets_and_protect ... ok
+
+failures:
+
+---- manifest_git_link stdout ----
+
+thread 'manifest_git_link' (19128) panicked at tests\manifest_v1.rs:473:9:
+MANIFEST_GITDIR: path conversion
+note: run with `RUST_BACKTRACE=1` environment variable to display a backtrace
+
+---- manifest_parse_contract stdout ----
+
+thread 'manifest_parse_contract' (32540) panicked at tests\manifest_v1.rs:17:52:
+MANIFEST_FORMAT: reject fixture: Manifest { schema: None, version: 1, project: Some("Water"), producer: Some("总控与执行器"), disposable: [Disposable { id: "worktree-builds", title: "工作树里的构建产物", paths: [".worktrees/*/.local/target", ".worktrees/*/.local/*-profile-*"], when: "older-than-3-days", kind: "build", keep_newest: 0, ask: true, producer: Some("cargo test 与界面冒烟"), fixed_in: None }], protected: ["aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa/aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa/aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa"], worktrees: [Worktree { path: ".worktrees/w10-m1", note: Some("第十波 M1") }] }
+
+
+failures:
+    manifest_git_link
+    manifest_parse_contract
+
+test result: FAILED. 2 passed; 2 failed; 0 ignored; 0 measured; 0 filtered out; finished in 0.33s
+
+
+--- stderr ---
+   Compiling serde_core v1.0.229
+   Compiling zmij v1.0.23
+   Compiling itoa v1.0.18
+   Compiling memchr v2.8.3
+   Compiling serde_json v1.0.151
+   Compiling serde v1.0.229
+   Compiling water-cleanup-manifest v0.1.0 (F:\new\smaltalk\water\.worktrees\w10-m3\packages\cleanup-manifest)
+    Finished `test` profile [unoptimized + debuginfo] target(s) in 7.54s
+     Running tests\manifest_v1.rs (.local\w2-target\debug\deps\manifest_v1-c4bc829e26913465.exe)
+error: test failed, to rerun pass `--test manifest_v1`
