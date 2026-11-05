@@ -241,3 +241,24 @@
 ```text
 你接手 Water 项目第十波 C 组的 2 张单，按顺序一张一张做：1）WATER-W10-M4（执行器：解锁对与隔离区，重门）：工单 F:/new/smaltalk/water/docs/dispatch/tickets/WATER-W10-M4-CLEAN-20261105.md，工作树 F:/new/smaltalk/water/.worktrees/w10-m4（分支 worker/water-w10-m4）；2）WATER-W10-M5（宿主：转发第十波命令，打开隔离区文件夹，中门，含整机检查）：工单 F:/new/smaltalk/water/docs/dispatch/tickets/WATER-W10-M5-HOST-20261105.md，工作树 F:/new/smaltalk/water/.worktrees/w10-m5（分支 worker/water-w10-m5）。每张单都从 f93afb8e 开工，先读它的工单，按工单列出的顺序读规则与契约，在它自己的工作树里做完、提交并交回回执，再开始下一张；不要在一个工作树里改另一张单的目录。某一张受阻就停下写那张单的受阻回执，不要跳到下一张。
 ```
+
+### M1、M4 补单 01（2026-11-05）
+
+两张都受阻，都成立，都是总控写契约时的疏漏：
+- **M1**（回执 `8dab9d76`）：第 6 节在末尾追加 32 条规则后，原测试有三处必然不成立而第 9 节没授权——Agent 规则尾段 `rules()[64..]`、旧条件循环只认两条旧规则、旧兼容夹具留下新的兜底规则对。[补单 01](../tickets/WATER-W10-M1-ADDENDUM-01-20261105.md) 逐处授权，不放宽生产校验。
+- **M4**（回执 `07dc6209`）：“对每个固定盘查隔离区”的真实冒烟需要枚举盘符，执行器没有这种系统函数，检查器也不传盘符。[补单 01](../tickets/WATER-W10-M4-ADDENDUM-01-20261105.md) 改为只查系统盘与本仓库所在盘，不加系统函数；全部固定盘由服务（`Platform::drives`）负责。
+- 两张都是各组第一张，按“受阻就停”，A 组的 M2、C 组的 M5 都还没开始。B 组不受影响。
+
+续做派单句（各发给原来那个组的执行者，也可以新开对话）：
+
+**A 组续做：WATER-W10-M1 补单 01，然后 WATER-W10-M2**
+
+```text
+你接手 Water 项目第十波 A 组，继续按顺序做：先做 WATER-W10-M1 补单 01（追加规则后必然要改的三处旧测试，轻门）：读 F:/new/smaltalk/water/docs/dispatch/tickets/WATER-W10-M1-ADDENDUM-01-20261105.md，按其中列出的顺序读原票、规则、契约与上一轮回执，在 F:/new/smaltalk/water/.worktrees/w10-m1（分支 worker/water-w10-m1）从 8dab9d76 续做；交回后再做 WATER-W10-M2（扫描：新定位、分配大小、泄漏簇、联接索引与空间分布，中门）：工单 F:/new/smaltalk/water/docs/dispatch/tickets/WATER-W10-M2-SCAN-20261105.md，工作树 F:/new/smaltalk/water/.worktrees/w10-m2（分支 worker/water-w10-m2），从 f93afb8e 开工。每张单在它自己的工作树里做完、提交并交回回执，再开始下一张；某一张受阻就停下写那张单的受阻回执，不要跳到下一张。
+```
+
+**C 组续做：WATER-W10-M4 补单 01，然后 WATER-W10-M5**
+
+```text
+你接手 Water 项目第十波 C 组，继续按顺序做：先做 WATER-W10-M4 补单 01（真实冒烟改为查系统盘与本仓库所在盘，重门）：读 F:/new/smaltalk/water/docs/dispatch/tickets/WATER-W10-M4-ADDENDUM-01-20261105.md，按其中列出的顺序读原票、规则、契约与上一轮回执，在 F:/new/smaltalk/water/.worktrees/w10-m4（分支 worker/water-w10-m4）从 07dc6209 续做；交回后再做 WATER-W10-M5（宿主：转发第十波命令，打开隔离区文件夹，中门，含整机检查）：工单 F:/new/smaltalk/water/docs/dispatch/tickets/WATER-W10-M5-HOST-20261105.md，工作树 F:/new/smaltalk/water/.worktrees/w10-m5（分支 worker/water-w10-m5），从 f93afb8e 开工。每张单在它自己的工作树里做完、提交并交回回执，再开始下一张；某一张受阻就停下写那张单的受阻回执，不要跳到下一张。
+```

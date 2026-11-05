@@ -124,7 +124,7 @@
       "branch": "worker/water-w10-m1",
       "baseCommit": "f93afb8e3c5cf4114927fe2ab6c14dbb033c7ffe",
       "snapshotRef": "refs/tags/water-w10-m35-base-20261105",
-      "status": "DISPATCHED",
+      "status": "BLOCKED",
       "readyOn": "2026-11-05",
       "dispatchedAt": "2026-11-05T08:47:40Z",
       "startedAt": null,
@@ -193,7 +193,21 @@
       "baselineStatus": "PASSED",
       "baselineEvidence": "docs/acceptance/wave10/controller/preflight-20261105/m1/2026-11-05T08-18-39.503Z-26060-baseline-result.json",
       "bundle": "A",
-      "dispatchEvidence": "user chat 2026-11-05 ~17:47 JST: \"三个新单是sol\" (bundles A, B, C to sol); worker tree head/changed files f93afb8e/0 when recorded at 2026-11-05T08:47:40Z"
+      "dispatchEvidence": "user chat 2026-11-05 ~17:47 JST: \"三个新单是sol\" (bundles A, B, C to sol); worker tree head/changed files f93afb8e/0 when recorded at 2026-11-05T08:47:40Z",
+      "blockedAt": "2026-11-05T09:08:47Z",
+      "blockedCommit": "8dab9d762744701c3747b507074d053d09b6daa8",
+      "blockedReason": "appending the 32 new rules breaks three old test spots that RULES-M35 section 9 did not authorize: the agent tail rules()[64..], the old M3D condition loop that panics on new conditioned rules, and the legacy fixture that keeps the new partial/unfinished-downloads pair after stripping conditions",
+      "workerSelfReport": "Codex (GPT-6)",
+      "addenda": [
+        {
+          "id": "WATER-W10-M1-ADDENDUM-01",
+          "ticket": "docs/dispatch/tickets/WATER-W10-M1-ADDENDUM-01-20261105.md",
+          "status": "READY",
+          "issuedAt": "2026-11-05T09:08:47Z",
+          "resumeFromCommit": "8dab9d762744701c3747b507074d053d09b6daa8",
+          "change": "authorize rules()[64..78]; keep the old condition loop to node-modules and test-browser-profiles only; build the legacy fixture from the first 78 rules and compare by target_id"
+        }
+      ]
     },
     {
       "id": "WATER-W10-M2",
@@ -524,7 +538,7 @@
       "branch": "worker/water-w10-m4",
       "baseCommit": "f93afb8e3c5cf4114927fe2ab6c14dbb033c7ffe",
       "snapshotRef": "refs/tags/water-w10-m35-base-20261105",
-      "status": "DISPATCHED",
+      "status": "BLOCKED",
       "readyOn": "2026-11-05",
       "dispatchedAt": "2026-11-05T08:47:40Z",
       "startedAt": null,
@@ -591,7 +605,21 @@
       "relayEvidence": "user chat 2026-10-28 ~00:40 JST: all external tasks done",
       "acceptanceNote": "docs/acceptance/wave5/controller/WATER-W5-ACCEPT-PROGRESS-20261028.md",
       "bundle": "C",
-      "dispatchEvidence": "user chat 2026-11-05 ~17:47 JST: \"三个新单是sol\" (bundles A, B, C to sol); worker tree head/changed files f93afb8e/5 when recorded at 2026-11-05T08:47:40Z"
+      "dispatchEvidence": "user chat 2026-11-05 ~17:47 JST: \"三个新单是sol\" (bundles A, B, C to sol); worker tree head/changed files f93afb8e/5 when recorded at 2026-11-05T08:47:40Z",
+      "blockedAt": "2026-11-05T09:08:47Z",
+      "blockedCommit": "07dc620950f7e1b399fe4a1e6358d6dfdcbce4a4",
+      "blockedReason": "CLEAN-M35 section 9 asked the real smoke to list every fixed drive, but the executor has no drive-enumeration system function and the env-only real mode passes no drives",
+      "workerSelfReport": "Codex (GPT-6)",
+      "addenda": [
+        {
+          "id": "WATER-W10-M4-ADDENDUM-01",
+          "ticket": "docs/dispatch/tickets/WATER-W10-M4-ADDENDUM-01-20261105.md",
+          "status": "READY",
+          "issuedAt": "2026-11-05T09:08:47Z",
+          "resumeFromCommit": "07dc620950f7e1b399fe4a1e6358d6dfdcbce4a4",
+          "change": "real smoke checks only the system drive (SystemDrive) and the drive of this repository (CARGO_MANIFEST_DIR); no new system function; output counts only"
+        }
+      ]
     },
     {
       "kind": "host",
