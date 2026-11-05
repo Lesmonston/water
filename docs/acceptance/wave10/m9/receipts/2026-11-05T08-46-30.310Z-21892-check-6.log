@@ -1,0 +1,27 @@
+{"binary":"C:\\Users\\37310\\.rustup\\toolchains\\1.95.0-x86_64-pc-windows-msvc\\bin\\cargo.exe","args":["clippy","--offline","--locked","--manifest-path","packages/installed-apps/Cargo.toml","--all-targets","--","-D","warnings"],"exitCode":101,"error":null}
+--- stdout ---
+
+--- stderr ---
+   Compiling proc-macro2 v1.0.107
+   Compiling quote v1.0.47
+   Compiling unicode-ident v1.0.27
+   Compiling serde_core v1.0.229
+   Compiling zmij v1.0.23
+   Compiling syn v3.0.9
+   Compiling serde v1.0.229
+   Compiling serde_json v1.0.151
+   Compiling serde_derive v1.0.229
+    Checking memchr v2.8.3
+    Checking itoa v1.0.18
+    Checking water-installed-apps v0.1.0 (F:\new\smaltalk\water\.worktrees\w10-m9\packages\installed-apps)
+error: manual implementation of `.is_multiple_of()`
+  --> src\native_windows.rs:77:23
+   |
+77 |     if status != 0 || bytes % 2 != 0 || bytes as usize > data.len() * 2 {
+   |                       ^^^^^^^^^^^^^^ help: replace with: `!bytes.is_multiple_of(2)`
+   |
+   = help: for further information visit https://rust-lang.github.io/rust-clippy/rust-1.95.0/index.html#manual_is_multiple_of
+   = note: `-D clippy::manual-is-multiple-of` implied by `-D warnings`
+   = help: to override `-D warnings` add `#[allow(clippy::manual_is_multiple_of)]`
+
+error: could not compile `water-installed-apps` (lib) due to 1 previous error

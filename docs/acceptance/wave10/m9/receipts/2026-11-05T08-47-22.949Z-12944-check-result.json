@@ -1,0 +1,306 @@
+{
+  "task": "WATER-W10-M9",
+  "mode": "check",
+  "finalGate": false,
+  "manifest": "docs/dispatch/wave10/manifest.json",
+  "startedAt": "2026-11-05T08:47:22.950Z",
+  "realDataRead": false,
+  "productTestsRun": false,
+  "commands": [
+    {
+      "binary": "git",
+      "argv": [
+        "branch",
+        "--show-current"
+      ],
+      "exitCode": 0
+    },
+    {
+      "binary": "git",
+      "argv": [
+        "merge-base",
+        "--is-ancestor",
+        "f93afb8e3c5cf4114927fe2ab6c14dbb033c7ffe",
+        "HEAD"
+      ],
+      "exitCode": 0
+    },
+    {
+      "binary": "git",
+      "argv": [
+        "diff",
+        "--no-renames",
+        "--name-only",
+        "-z",
+        "f93afb8e3c5cf4114927fe2ab6c14dbb033c7ffe",
+        "HEAD"
+      ],
+      "exitCode": 0
+    },
+    {
+      "binary": "git",
+      "argv": [
+        "diff",
+        "--no-renames",
+        "--name-only",
+        "-z",
+        "HEAD"
+      ],
+      "exitCode": 0
+    },
+    {
+      "binary": "git",
+      "argv": [
+        "ls-files",
+        "--others",
+        "--exclude-standard",
+        "-z"
+      ],
+      "exitCode": 0
+    },
+    {
+      "binary": "git",
+      "argv": [
+        "rev-parse",
+        "HEAD"
+      ],
+      "exitCode": 0
+    },
+    {
+      "binary": "git",
+      "argv": [
+        "status",
+        "--porcelain",
+        "--untracked-files=all"
+      ],
+      "exitCode": 0
+    },
+    {
+      "binary": "C:\\Users\\37310\\.cargo\\bin\\rustup.exe",
+      "argv": [
+        "which",
+        "cargo",
+        "--toolchain",
+        "1.95.0"
+      ],
+      "exitCode": 0,
+      "error": null,
+      "log": "2026-11-05T08-47-22.949Z-12944-check-1.log"
+    },
+    {
+      "binary": "C:\\Users\\37310\\.cargo\\bin\\rustup.exe",
+      "argv": [
+        "which",
+        "rustc",
+        "--toolchain",
+        "1.95.0"
+      ],
+      "exitCode": 0,
+      "error": null,
+      "log": "2026-11-05T08-47-22.949Z-12944-check-2.log"
+    },
+    {
+      "binary": "C:\\Users\\37310\\.rustup\\toolchains\\1.95.0-x86_64-pc-windows-msvc\\bin\\rustc.exe",
+      "argv": [
+        "--version"
+      ],
+      "exitCode": 0,
+      "error": null,
+      "log": "2026-11-05T08-47-22.949Z-12944-check-3.log"
+    },
+    {
+      "binary": "C:\\Users\\37310\\.rustup\\toolchains\\1.95.0-x86_64-pc-windows-msvc\\bin\\cargo.exe",
+      "argv": [
+        "metadata",
+        "--offline",
+        "--locked",
+        "--format-version",
+        "1",
+        "--manifest-path",
+        "packages/installed-apps/Cargo.toml"
+      ],
+      "exitCode": 0,
+      "error": null,
+      "log": "2026-11-05T08-47-22.949Z-12944-check-4.log"
+    },
+    {
+      "binary": "C:\\Users\\37310\\.rustup\\toolchains\\1.95.0-x86_64-pc-windows-msvc\\bin\\cargo.exe",
+      "argv": [
+        "fmt",
+        "--manifest-path",
+        "packages/installed-apps/Cargo.toml",
+        "--",
+        "--check"
+      ],
+      "exitCode": 0,
+      "error": null,
+      "log": "2026-11-05T08-47-22.949Z-12944-check-5.log"
+    },
+    {
+      "binary": "C:\\Users\\37310\\.rustup\\toolchains\\1.95.0-x86_64-pc-windows-msvc\\bin\\cargo.exe",
+      "argv": [
+        "clippy",
+        "--offline",
+        "--locked",
+        "--manifest-path",
+        "packages/installed-apps/Cargo.toml",
+        "--all-targets",
+        "--",
+        "-D",
+        "warnings"
+      ],
+      "exitCode": 0,
+      "error": null,
+      "log": "2026-11-05T08-47-22.949Z-12944-check-6.log"
+    },
+    {
+      "binary": "git",
+      "argv": [
+        "branch",
+        "--show-current"
+      ],
+      "exitCode": 0
+    },
+    {
+      "binary": "git",
+      "argv": [
+        "merge-base",
+        "--is-ancestor",
+        "f93afb8e3c5cf4114927fe2ab6c14dbb033c7ffe",
+        "HEAD"
+      ],
+      "exitCode": 0
+    },
+    {
+      "binary": "git",
+      "argv": [
+        "diff",
+        "--no-renames",
+        "--name-only",
+        "-z",
+        "f93afb8e3c5cf4114927fe2ab6c14dbb033c7ffe",
+        "HEAD"
+      ],
+      "exitCode": 0
+    },
+    {
+      "binary": "git",
+      "argv": [
+        "diff",
+        "--no-renames",
+        "--name-only",
+        "-z",
+        "HEAD"
+      ],
+      "exitCode": 0
+    },
+    {
+      "binary": "git",
+      "argv": [
+        "ls-files",
+        "--others",
+        "--exclude-standard",
+        "-z"
+      ],
+      "exitCode": 0
+    },
+    {
+      "binary": "git",
+      "argv": [
+        "rev-parse",
+        "HEAD"
+      ],
+      "exitCode": 0
+    },
+    {
+      "binary": "git",
+      "argv": [
+        "status",
+        "--porcelain",
+        "--untracked-files=all"
+      ],
+      "exitCode": 0
+    }
+  ],
+  "changedPaths": [
+    "packages/installed-apps/Cargo.lock",
+    "packages/installed-apps/Cargo.toml",
+    "packages/installed-apps/README.md",
+    "packages/installed-apps/examples/real_smoke.rs",
+    "packages/installed-apps/src/lib.rs",
+    "packages/installed-apps/src/native_windows.rs",
+    "packages/installed-apps/tests/apps_v1.rs"
+  ],
+  "before": {
+    "head": "f93afb8e3c5cf4114927fe2ab6c14dbb033c7ffe",
+    "status": "?? packages/installed-apps/Cargo.lock\n?? packages/installed-apps/Cargo.toml\n?? packages/installed-apps/README.md\n?? packages/installed-apps/examples/real_smoke.rs\n?? packages/installed-apps/src/lib.rs\n?? packages/installed-apps/src/native_windows.rs\n?? packages/installed-apps/tests/apps_v1.rs"
+  },
+  "sourceState": {
+    "files": [
+      {
+        "path": "packages/installed-apps/Cargo.toml",
+        "snapshot": "2026-11-05T08-47-22.949Z-12944-check-source-0.txt",
+        "sha256": "e6879ff6ab32187d880e2bb628077cb20eea9d54fd9a681697aeaf073ba727c6",
+        "test": false
+      },
+      {
+        "path": "packages/installed-apps/Cargo.lock",
+        "snapshot": "2026-11-05T08-47-22.949Z-12944-check-source-1.txt",
+        "sha256": "f7b0c6b51f9da9a4d46fb39cebdd34129cabad943b6690922024cb1a33220eea",
+        "test": false
+      },
+      {
+        "path": "packages/installed-apps/README.md",
+        "snapshot": "2026-11-05T08-47-22.949Z-12944-check-source-2.txt",
+        "sha256": "a9a85a2e2c2aa056e2665ec2a08d4418a1a80ef222a6dec529070a87339c375a",
+        "test": false
+      },
+      {
+        "path": "packages/installed-apps/src/lib.rs",
+        "snapshot": "2026-11-05T08-47-22.949Z-12944-check-source-3.txt",
+        "sha256": "fa119b59689703faad976c4800f2ea4fb553df49d30050ac8e644b5633b099cf",
+        "test": false
+      },
+      {
+        "path": "packages/installed-apps/src/native_windows.rs",
+        "snapshot": "2026-11-05T08-47-22.949Z-12944-check-source-4.txt",
+        "sha256": "ee78c87d40b43cf7425be82a340abde727eff5b6b2f783f0f614267d729236a2",
+        "test": false
+      },
+      {
+        "path": "packages/installed-apps/tests/apps_v1.rs",
+        "snapshot": "2026-11-05T08-47-22.949Z-12944-check-source-5.txt",
+        "sha256": "6995764caccfe16e956d840e4c00f66970c32614b639a5080b3629d1f5c37f5f",
+        "test": true
+      }
+    ],
+    "productionHash": "425c03e450ba41891fd899494c180f1aad93f0babf99bea417e7038606fc6912",
+    "testHash": "316a5c32ead0c4b20676022349f5339bd82b733dba5374ef303fb6220eae80a7"
+  },
+  "dependencyInventory": [
+    "itoa@1.0.18",
+    "memchr@2.8.3",
+    "proc-macro2@1.0.107",
+    "quote@1.0.47",
+    "serde@1.0.229",
+    "serde_core@1.0.229",
+    "serde_derive@1.0.229",
+    "serde_json@1.0.151",
+    "syn@3.0.9",
+    "unicode-ident@1.0.27",
+    "zmij@1.0.23"
+  ],
+  "ffi": [
+    "RegCloseKey",
+    "RegEnumKeyExW",
+    "RegOpenKeyExW",
+    "RegQueryValueExW"
+  ],
+  "after": {
+    "head": "f93afb8e3c5cf4114927fe2ab6c14dbb033c7ffe",
+    "status": "?? packages/installed-apps/Cargo.lock\n?? packages/installed-apps/Cargo.toml\n?? packages/installed-apps/README.md\n?? packages/installed-apps/examples/real_smoke.rs\n?? packages/installed-apps/src/lib.rs\n?? packages/installed-apps/src/native_windows.rs\n?? packages/installed-apps/tests/apps_v1.rs"
+  },
+  "status": "passed",
+  "error": null,
+  "endedAt": "2026-11-05T08:47:25.730Z"
+}

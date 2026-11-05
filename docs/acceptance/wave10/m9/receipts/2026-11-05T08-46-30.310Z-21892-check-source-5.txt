@@ -1,0 +1,217 @@
+#![forbid(unsafe_code)]
+use std::collections::BTreeSet;
+use water_installed_apps::*;
+
+#[test]
+fn apps_read_real() {
+    let now = std::time::SystemTime::now();
+    let list = read_installed(now).expect("APPS_READ: collect");
+    let again = read_installed(now).expect("APPS_READ: collect again");
+    assert!(list == again, "APPS_READ: stable repeated read");
+    assert!(
+        !list.truncated,
+        "APPS_READ: reference requires complete inventory"
+    );
+    assert!(
+        list.apps
+            .windows(2)
+            .all(|a| (a[0].name.to_lowercase(), &a[0].scope, &a[0].key)
+                <= (a[1].name.to_lowercase(), &a[1].scope, &a[1].key)),
+        "APPS_READ: sorted"
+    );
+    assert!(
+        list.apps
+            .iter()
+            .all(|a| a.install_location.as_ref().is_none_or(|s| {
+                let b = s.as_bytes();
+                b.len() >= 3 && b[0].is_ascii_alphabetic() && b[1..3] == *b":\\" && !s.contains('%')
+            })),
+        "APPS_READ: absolute drive locations"
+    );
+    let script = r#"$ErrorActionPreference='Stop'; $rows=@(); foreach($pair in @(@('machine','Registry::HKEY_LOCAL_MACHINE\SOFTWARE\Microsoft\Windows\CurrentVersion\Uninstall'),@('machine_32','Registry::HKEY_LOCAL_MACHINE\SOFTWARE\WOW6432Node\Microsoft\Windows\CurrentVersion\Uninstall'),@('user','Registry::HKEY_CURRENT_USER\SOFTWARE\Microsoft\Windows\CurrentVersion\Uninstall'))) { if(Test-Path -LiteralPath $pair[1]) { foreach($key in @(Get-ChildItem -LiteralPath $pair[1])) { $p=Get-ItemProperty -LiteralPath $key.PSPath -Name DisplayName -ErrorAction SilentlyContinue; if($null -ne $p -and -not [string]::IsNullOrWhiteSpace($p.DisplayName)) { $rows+=,@($pair[0],$key.PSChildName) } } } }; ConvertTo-Json -InputObject $rows -Compress"#;
+    let out = std::process::Command::new("powershell")
+        .args(["-NoProfile", "-NonInteractive", "-Command", script])
+        .output()
+        .expect("APPS_READ: reference process");
+    assert!(out.status.success(), "APPS_READ: reference status");
+    let reference: Vec<(String, String)> =
+        serde_json::from_slice(&out.stdout).expect("APPS_READ: reference JSON");
+    let expected: BTreeSet<_> = reference.iter().cloned().collect();
+    let actual: BTreeSet<_> = list
+        .apps
+        .iter()
+        .map(|a| (a.scope.clone(), a.key.clone()))
+        .collect();
+    for scope in ["machine", "machine_32", "user"] {
+        assert!(
+            reference.iter().filter(|a| a.0 == scope).count()
+                == list.apps.iter().filter(|a| a.scope == scope).count(),
+            "APPS_READ: per-scope count differs"
+        );
+    }
+    assert!(actual == expected, "APPS_READ: scope/key sets differ");
+    assert!(
+        list_from_json(&list_to_json(&list)).is_ok_and(|a| a == list),
+        "APPS_READ: JSON round trip"
+    );
+    assert!(
+        list_from_json(r#"{"unknown":0}"#).is_err(),
+        "APPS_READ: reject unknown JSON"
+    );
+}
+
+#[test]
+fn apps_entry_rules() {
+    let parse = |v| parse_entry("user", "synthetic", &v);
+    assert!(parse(vec![]).is_none(), "APPS_ENTRY: missing name");
+    assert!(
+        parse(vec![("DisplayName".into(), RegValue::Sz(" \t\0".into()))]).is_none(),
+        "APPS_ENTRY: blank name"
+    );
+    assert!(
+        parse(vec![("DisplayName".into(), RegValue::Other)]).is_none(),
+        "APPS_ENTRY: non-string name"
+    );
+    let base = vec![(
+        "DisplayName".into(),
+        RegValue::ExpandSz(" %APP% \0\0".into()),
+    )];
+    let app = parse(base.clone()).expect("APPS_ENTRY: expandable name");
+    assert!(app.name == "%APP%", "APPS_ENTRY: preserve environment text");
+    for (location, expected) in [
+        (
+            " \"C:\\Program Files\\App\\\"\0",
+            Some("C:\\Program Files\\App"),
+        ),
+        ("relative\\app", None),
+        ("%LOCALAPPDATA%\\App", None),
+        ("C:\\%APP%", None),
+        ("C:relative", None),
+        ("\\\\server\\app", None),
+    ] {
+        let mut v = base.clone();
+        v.push(("InstallLocation".into(), RegValue::Sz(location.into())));
+        let app = parse(v).expect("APPS_ENTRY: location parse");
+        assert!(
+            app.install_location.as_deref() == expected,
+            "APPS_ENTRY: location rule"
+        );
+    }
+    let mut v = base.clone();
+    v.push(("DisplayVersion".into(), RegValue::Other));
+    assert!(
+        parse(v).unwrap().version.is_none(),
+        "APPS_ENTRY: non-string optional"
+    );
+    assert!(
+        parse(vec![(
+            "DisplayName".into(),
+            RegValue::Sz("中".repeat(1025))
+        )])
+        .is_none(),
+        "APPS_ENTRY: long name"
+    );
+    assert!(
+        parse(vec![(
+            "DisplayName".into(),
+            RegValue::Sz("😀".repeat(1024))
+        )])
+        .is_some(),
+        "APPS_ENTRY: count scalar values"
+    );
+    let mut v = base;
+    v.push(("DisplayVersion".into(), RegValue::Sz("a".repeat(1025))));
+    v.push((
+        "InstallLocation".into(),
+        RegValue::ExpandSz("C:\\".to_owned() + &"a".repeat(1025)),
+    ));
+    let app = parse(v).unwrap();
+    assert!(
+        app.version.is_none() && app.install_location.is_none(),
+        "APPS_ENTRY: long optional values"
+    );
+}
+
+#[test]
+fn apps_match() {
+    let names = [
+        "Adobe Audition 2024",
+        "iZotope RX 11 Audio Editor",
+        "MiniMax Hub",
+        "中文软件 安装器",
+        "Photoshop",
+        "Photo",
+    ];
+    let list = AppList {
+        apps_version: "water.installed-apps.v1".into(),
+        collected_at: "0".into(),
+        apps: names
+            .into_iter()
+            .enumerate()
+            .map(|(i, name)| App {
+                scope: "user".into(),
+                key: i.to_string(),
+                name: name.into(),
+                version: None,
+                install_location: None,
+            })
+            .collect(),
+        truncated: false,
+        unreadable_keys: 0,
+    };
+    for (file, expected) in [
+        ("Audition_2024_x64.zip", vec![0]),
+        ("iZotope_RX_11_Audio_Editor_setup.exe", vec![1]),
+        ("RX 10 setup.exe", vec![]),
+        ("setup.exe", vec![]),
+        ("2024.zip", vec![]),
+        ("AUDITION_2024_X64.ZIP.crdownload", vec![0]),
+        ("中文软件_setup.msi", vec![3]),
+    ] {
+        assert!(
+            find(&list, &installer_tokens(file)) == expected,
+            "APPS_MATCH: installer query"
+        );
+    }
+    assert_eq!(
+        installer_tokens("Audition_2024_x64.zip"),
+        ["audition", "2024"],
+        "APPS_MATCH: tokens"
+    );
+    assert_eq!(
+        name_tokens("Setup 2024"),
+        ["setup", "2024"],
+        "APPS_MATCH: name stop words"
+    );
+    assert!(
+        find(&list, &name_tokens("MiniMax Hub")) == [2],
+        "APPS_MATCH: installed name"
+    );
+    let mut absent = list.clone();
+    absent.apps.remove(2);
+    assert!(
+        find(&absent, &name_tokens("MiniMax Hub")).is_empty(),
+        "APPS_MATCH: missing name"
+    );
+    assert!(
+        find(&list, &name_tokens("AUDITION 2024")) == [0],
+        "APPS_MATCH: case"
+    );
+    assert!(
+        find(&list, &name_tokens("photoshop")) == [4],
+        "APPS_MATCH: prefix direction"
+    );
+    assert!(
+        find(&list, &name_tokens("photo")) == [4, 5],
+        "APPS_MATCH: valid prefix"
+    );
+    assert!(
+        find(&list, &name_tokens("ph")).is_empty(),
+        "APPS_MATCH: short prefix"
+    );
+    assert!(
+        find(&list, &name_tokens("Audition 202")).is_empty(),
+        "APPS_MATCH: numeric exact"
+    );
+    assert!(find(&list, &[]).is_empty(), "APPS_MATCH: empty");
+}
