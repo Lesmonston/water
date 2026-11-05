@@ -1,0 +1,184 @@
+{"binary":"C:\\Users\\37310\\.rustup\\toolchains\\1.95.0-x86_64-pc-windows-msvc\\bin\\cargo.exe","args":["test","--offline","--locked","--manifest-path","packages/installed-apps/Cargo.toml","--test","apps_v1","--","--test-threads=1"],"exitCode":101,"error":null}
+--- stdout ---
+
+--- stderr ---
+   Compiling serde_core v1.0.229
+   Compiling zmij v1.0.23
+   Compiling itoa v1.0.18
+   Compiling memchr v2.8.3
+   Compiling serde_json v1.0.151
+   Compiling serde v1.0.229
+   Compiling water-installed-apps v0.1.0 (F:\new\smaltalk\water\.worktrees\w10-m9\packages\installed-apps)
+error[E0277]: the size for values of type `[(std::string::String, water_installed_apps::RegValue)]` cannot be known at compilation time
+  --> tests\apps_v1.rs:65:18
+   |
+65 |     let parse = |v| parse_entry("user", "synthetic", &v);
+   |                  ^ doesn't have a size known at compile-time
+   |
+   = help: the trait `Sized` is not implemented for `[(std::string::String, water_installed_apps::RegValue)]`
+   = note: all function arguments must have a statically known size
+
+error[E0308]: mismatched types
+  --> tests\apps_v1.rs:66:19
+   |
+66 |     assert!(parse(vec![]).is_none(), "APPS_ENTRY: missing name");
+   |             ----- ^^^^^^ expected `[(String, RegValue)]`, found `Vec<_>`
+   |             |
+   |             arguments to this function are incorrect
+   |
+   = note: expected slice `[(std::string::String, water_installed_apps::RegValue)]`
+             found struct `Vec<_>`
+note: closure parameter defined here
+  --> tests\apps_v1.rs:65:18
+   |
+65 |     let parse = |v| parse_entry("user", "synthetic", &v);
+   |                  ^
+
+error[E0308]: mismatched types
+  --> tests\apps_v1.rs:68:15
+   |
+68 |         parse(vec![("DisplayName".into(), RegValue::Sz(" \t\0".into()))]).is_none(),
+   |         ----- ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^ expected `[(String, RegValue)]`, found `Vec<(_, RegValue)>`
+   |         |
+   |         arguments to this function are incorrect
+   |
+   = note: expected slice `[(std::string::String, water_installed_apps::RegValue)]`
+             found struct `Vec<(_, water_installed_apps::RegValue)>`
+note: closure parameter defined here
+  --> tests\apps_v1.rs:65:18
+   |
+65 |     let parse = |v| parse_entry("user", "synthetic", &v);
+   |                  ^
+
+error[E0308]: mismatched types
+  --> tests\apps_v1.rs:72:15
+   |
+72 |         parse(vec![("DisplayName".into(), RegValue::Other)]).is_none(),
+   |         ----- ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^ expected `[(String, RegValue)]`, found `Vec<(_, RegValue)>`
+   |         |
+   |         arguments to this function are incorrect
+   |
+   = note: expected slice `[(std::string::String, water_installed_apps::RegValue)]`
+             found struct `Vec<(_, water_installed_apps::RegValue)>`
+note: closure parameter defined here
+  --> tests\apps_v1.rs:65:18
+   |
+65 |     let parse = |v| parse_entry("user", "synthetic", &v);
+   |                  ^
+
+error[E0308]: mismatched types
+  --> tests\apps_v1.rs:79:21
+   |
+79 |     let app = parse(base.clone()).expect("APPS_ENTRY: expandable name");
+   |               ----- ^^^^^^^^^^^^ expected `[(String, RegValue)]`, found `Vec<(_, RegValue)>`
+   |               |
+   |               arguments to this function are incorrect
+   |
+   = note: expected slice `[(std::string::String, water_installed_apps::RegValue)]`
+             found struct `Vec<(_, water_installed_apps::RegValue)>`
+note: closure parameter defined here
+  --> tests\apps_v1.rs:65:18
+   |
+65 |     let parse = |v| parse_entry("user", "synthetic", &v);
+   |                  ^
+
+error[E0308]: mismatched types
+  --> tests\apps_v1.rs:94:25
+   |
+94 |         let app = parse(v).expect("APPS_ENTRY: location parse");
+   |                   ----- ^ expected `[(String, RegValue)]`, found `Vec<(_, RegValue)>`
+   |                   |
+   |                   arguments to this function are incorrect
+   |
+   = note: expected slice `[(std::string::String, water_installed_apps::RegValue)]`
+             found struct `Vec<(_, water_installed_apps::RegValue)>`
+note: closure parameter defined here
+  --> tests\apps_v1.rs:65:18
+   |
+65 |     let parse = |v| parse_entry("user", "synthetic", &v);
+   |                  ^
+
+error[E0308]: mismatched types
+   --> tests\apps_v1.rs:103:15
+    |
+103 |         parse(v).unwrap().version.is_none(),
+    |         ----- ^ expected `[(String, RegValue)]`, found `Vec<(_, RegValue)>`
+    |         |
+    |         arguments to this function are incorrect
+    |
+    = note: expected slice `[(std::string::String, water_installed_apps::RegValue)]`
+              found struct `Vec<(_, water_installed_apps::RegValue)>`
+note: closure parameter defined here
+   --> tests\apps_v1.rs:65:18
+    |
+ 65 |     let parse = |v| parse_entry("user", "synthetic", &v);
+    |                  ^
+
+error[E0308]: mismatched types
+   --> tests\apps_v1.rs:107:15
+    |
+107 |           parse(vec![(
+    |  _________-----_^
+    | |         |
+    | |         arguments to this function are incorrect
+108 | |             "DisplayName".into(),
+109 | |             RegValue::Sz("中".repeat(1025))
+110 | |         )])
+    | |__________^ expected `[(String, RegValue)]`, found `Vec<(_, RegValue)>`
+    |
+    = note: expected slice `[(std::string::String, water_installed_apps::RegValue)]`
+              found struct `Vec<(_, water_installed_apps::RegValue)>`
+note: closure parameter defined here
+   --> tests\apps_v1.rs:65:18
+    |
+ 65 |     let parse = |v| parse_entry("user", "synthetic", &v);
+    |                  ^
+
+error[E0308]: mismatched types
+   --> tests\apps_v1.rs:115:15
+    |
+115 |           parse(vec![(
+    |  _________-----_^
+    | |         |
+    | |         arguments to this function are incorrect
+116 | |             "DisplayName".into(),
+117 | |             RegValue::Sz("😀".repeat(1024))
+118 | |         )])
+    | |__________^ expected `[(String, RegValue)]`, found `Vec<(_, RegValue)>`
+    |
+    = note: expected slice `[(std::string::String, water_installed_apps::RegValue)]`
+              found struct `Vec<(_, water_installed_apps::RegValue)>`
+note: closure parameter defined here
+   --> tests\apps_v1.rs:65:18
+    |
+ 65 |     let parse = |v| parse_entry("user", "synthetic", &v);
+    |                  ^
+
+error[E0308]: mismatched types
+   --> tests\apps_v1.rs:128:21
+    |
+128 |     let app = parse(v).unwrap();
+    |               ----- ^ expected `[(String, RegValue)]`, found `Vec<(_, RegValue)>`
+    |               |
+    |               arguments to this function are incorrect
+    |
+    = note: expected slice `[(std::string::String, water_installed_apps::RegValue)]`
+              found struct `Vec<(_, water_installed_apps::RegValue)>`
+note: closure parameter defined here
+   --> tests\apps_v1.rs:65:18
+    |
+ 65 |     let parse = |v| parse_entry("user", "synthetic", &v);
+    |                  ^
+
+error[E0277]: the size for values of type `[(std::string::String, water_installed_apps::RegValue)]` cannot be known at compilation time
+  --> tests\apps_v1.rs:66:13
+   |
+66 |     assert!(parse(vec![]).is_none(), "APPS_ENTRY: missing name");
+   |             ^^^^^^^^^^^^^ doesn't have a size known at compile-time
+   |
+   = help: within `([(std::string::String, water_installed_apps::RegValue)],)`, the trait `Sized` is not implemented for `[(std::string::String, water_installed_apps::RegValue)]`
+   = note: required because it appears within the type `([(std::string::String, water_installed_apps::RegValue)],)`
+
+Some errors have detailed explanations: E0277, E0308.
+For more information about an error, try `rustc --explain E0277`.
+error: could not compile `water-installed-apps` (test "apps_v1") due to 11 previous errors
