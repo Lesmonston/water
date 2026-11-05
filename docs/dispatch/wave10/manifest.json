@@ -968,7 +968,7 @@
       "branch": "worker/water-w10-m5",
       "baseCommit": "f93afb8e3c5cf4114927fe2ab6c14dbb033c7ffe",
       "snapshotRef": "refs/tags/water-w10-m35-base-20261105",
-      "status": "DISPATCHED",
+      "status": "BLOCKED",
       "readyOn": "2026-11-05",
       "dispatchedAt": "2026-11-05T08:47:40Z",
       "startedAt": null,
@@ -1057,7 +1057,20 @@
       "baselineEvidence": "docs/acceptance/wave10/controller/preflight-20261105/m5/2026-11-05T08-18-39.551Z-32008-baseline-result.json",
       "spawnFile": "src/opener.rs",
       "bundle": "C",
-      "dispatchEvidence": "user chat 2026-11-05 ~17:47 JST: \"三个新单是sol\" (bundles A, B, C to sol); worker tree head/changed files f93afb8e/0 when recorded at 2026-11-05T08:47:40Z"
+      "dispatchEvidence": "user chat 2026-11-05 ~17:47 JST: \"三个新单是sol\" (bundles A, B, C to sol); worker tree head/changed files f93afb8e/0 when recorded at 2026-11-05T08:47:40Z",
+      "blockedAt": "2026-11-05T11:38:25Z",
+      "blockedCommit": "2d516c46de2660f0b4f77f15a0374ec138469ca5",
+      "blockedReason": "HOST-M35 adds location_ids to scan_start, but the old host_command_registry wrapper-parameter assertion expects [] for scan_start and section 5 does not exempt it; the controller found further old assertions in the same test that fail only because 17 commands are appended or scan_start/clean_prepare gain optional parameters (fixed registry, IPC table, wrapper map, handler registration, old cmd_scan_start call)",
+      "addenda": [
+        {
+          "id": "WATER-W10-M5-ADDENDUM-01",
+          "ticket": "docs/dispatch/tickets/WATER-W10-M5-ADDENDUM-01-20261105.md",
+          "status": "READY",
+          "issuedAt": "2026-11-05T11:38:25Z",
+          "resumeFromCommit": "2d516c46de2660f0b4f77f15a0374ec138469ca5",
+          "change": "authorise in host_v1.rs: cmd_scan_start(backend, None) with request {} unchanged; fixed registry and IPC table compared on the first 19; wrapper map limited to the original 19 with scan_start [locationIds] and clean_prepare six sorted keys; handler registration compared on the first 19; general rule for old assertions that fail only because commands are appended or optional parameters added; new parts checked by HOST_M35_* markers"
+        }
+      ]
     },
     {
       "kind": "ui",

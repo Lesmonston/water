@@ -293,3 +293,13 @@ WATER-W10-M1 补单 02（计划尾段的两处旧断言与同类通则，轻门�
 ```text
 WATER-W10-M4 补单 02（句柄相对改名改用 NtSetInformationFile 类 10，重门）：读 F:/new/smaltalk/water/docs/dispatch/tickets/WATER-W10-M4-ADDENDUM-02-20261105.md，按其中列出的顺序读原票、规则、契约、补单 01、上一轮回执与总控核对脚本，在 F:/new/smaltalk/water/.worktrees/w10-m4（分支 worker/water-w10-m4）从 12c6c556 续做；交回后再做 WATER-W10-M5（宿主，重门）：工单 F:/new/smaltalk/water/docs/dispatch/tickets/WATER-W10-M5-HOST-20261105.md，工作树 F:/new/smaltalk/water/.worktrees/w10-m5（分支 worker/water-w10-m5），从 f93afb8e 开工。每张单在自己的工作树里做完、提交并交回回执再开始下一张；某一张受阻就停下写受阻回执。
 ```
+
+### M5 补单 01（2026-11-05）
+
+- **M5**（回执 `2d516c46`）受阻，成立：HOST-M35 给 `scan_start` 加了 `location_ids`，原测试的包装参数期望是 `[]`，第 5 节豁免里没有。总控通读 `host_command_registry` 后，同一测试里还有几处只因 17 个命令追加、或两个命令多了可选参数而必然失败（固定登记表、IPC 表、包装参数整表、处理器登记、旧的 `cmd_scan_start` 调用），[补单 01](../tickets/WATER-W10-M5-ADDENDUM-01-20261105.md) 一并授权并加通则。教训同 M1：契约改命令表或参数形状时，先把旧测试里整表比较、个数、切片和参数集合的断言逐处列出来。
+
+**WATER-W10-M5 补单 01**
+
+```text
+WATER-W10-M5 补单 01（命令追加与新参数带来的旧断言，重门）：读 F:/new/smaltalk/water/docs/dispatch/tickets/WATER-W10-M5-ADDENDUM-01-20261105.md，按其中列出的顺序读原票、规则、契约与上一轮回执，在 F:/new/smaltalk/water/.worktrees/w10-m5（分支 worker/water-w10-m5）从 2d516c46 续做；做完、提交并交回回执；受阻就停下写受阻回执。
+```
