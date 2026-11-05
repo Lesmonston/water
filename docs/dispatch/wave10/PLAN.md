@@ -273,3 +273,13 @@
 ```text
 WATER-W10-M8 补单 01（同一句柄复查修改时间用 FileBasicInfo，中门）：读 F:/new/smaltalk/water/docs/dispatch/tickets/WATER-W10-M8-ADDENDUM-01-20261105.md，按其中列出的顺序读原票、规则、契约与上一轮回执，在 F:/new/smaltalk/water/.worktrees/w10-m8（分支 worker/water-w10-m8）从 67975926 续做。
 ```
+
+### M1 补单 02（2026-11-05）
+
+- **M1**（回执 `a62e87ce`）补单 01 后再次受阻，成立：同一测试里还有两处按“计划目标的尾段”写的旧断言（尾段恰好 38 个、整个计划最后一项是 `other-agent-sessions#3`），追加新规则后必然不成立，补单 01 只授权了规则切片。[补单 02](../tickets/WATER-W10-M1-ADDENDUM-02-20261105.md) 点名这两处，另加通则：只因末尾追加而失效的尾段、个数、最后一项断言一律截到原有部分来比，原有内容不放松，新增部分由 `RULES_M35_SEEDS` 核对。
+
+**WATER-W10-M1 补单 02，然后 WATER-W10-M2**
+
+```text
+WATER-W10-M1 补单 02（计划尾段的两处旧断言与同类通则，轻门）：读 F:/new/smaltalk/water/docs/dispatch/tickets/WATER-W10-M1-ADDENDUM-02-20261105.md，按其中列出的顺序读原票、规则、契约、补单 01 与上一轮回执，在 F:/new/smaltalk/water/.worktrees/w10-m1（分支 worker/water-w10-m1）从 a62e87ce 续做；交回后再做 WATER-W10-M2（扫描，中门）：工单 F:/new/smaltalk/water/docs/dispatch/tickets/WATER-W10-M2-SCAN-20261105.md，工作树 F:/new/smaltalk/water/.worktrees/w10-m2（分支 worker/water-w10-m2），从 f93afb8e 开工。每张单在自己的工作树里做完、提交并交回回执再开始下一张；某一张受阻就停下写受阻回执。
+```

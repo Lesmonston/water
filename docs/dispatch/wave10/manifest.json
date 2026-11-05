@@ -194,18 +194,28 @@
       "baselineEvidence": "docs/acceptance/wave10/controller/preflight-20261105/m1/2026-11-05T08-18-39.503Z-26060-baseline-result.json",
       "bundle": "A",
       "dispatchEvidence": "user chat 2026-11-05 ~17:47 JST: \"三个新单是sol\" (bundles A, B, C to sol); worker tree head/changed files f93afb8e/0 when recorded at 2026-11-05T08:47:40Z",
-      "blockedAt": "2026-11-05T09:08:47Z",
-      "blockedCommit": "8dab9d762744701c3747b507074d053d09b6daa8",
+      "blockedAt": "2026-11-05T09:22:34Z",
+      "blockedCommit": "a62e87ce9a21ba3a7ab2b45b0f9f2d5a785a7a80",
       "blockedReason": "appending the 32 new rules breaks three old test spots that RULES-M35 section 9 did not authorize: the agent tail rules()[64..], the old M3D condition loop that panics on new conditioned rules, and the legacy fixture that keeps the new partial/unfinished-downloads pair after stripping conditions",
       "workerSelfReport": "Codex (GPT-6)",
       "addenda": [
         {
           "id": "WATER-W10-M1-ADDENDUM-01",
           "ticket": "docs/dispatch/tickets/WATER-W10-M1-ADDENDUM-01-20261105.md",
-          "status": "READY",
+          "status": "BLOCKED",
           "issuedAt": "2026-11-05T09:08:47Z",
           "resumeFromCommit": "8dab9d762744701c3747b507074d053d09b6daa8",
-          "change": "authorize rules()[64..78]; keep the old condition loop to node-modules and test-browser-profiles only; build the legacy fixture from the first 78 rules and compare by target_id"
+          "change": "authorize rules()[64..78]; keep the old condition loop to node-modules and test-browser-profiles only; build the legacy fixture from the first 78 rules and compare by target_id",
+          "blockedCommit": "a62e87ce9a21ba3a7ab2b45b0f9f2d5a785a7a80",
+          "blockedReason": "two more old assertions in rules_resolve_plan treat the plan target tail as the old agent tail: plan.targets[beta+7..].len() == 38 and plan.targets.last() == other-agent-sessions#3"
+        },
+        {
+          "id": "WATER-W10-M1-ADDENDUM-02",
+          "ticket": "docs/dispatch/tickets/WATER-W10-M1-ADDENDUM-02-20261105.md",
+          "status": "READY",
+          "issuedAt": "2026-11-05T09:22:34Z",
+          "resumeFromCommit": "a62e87ce9a21ba3a7ab2b45b0f9f2d5a785a7a80",
+          "change": "bound the agent target slice to 38 and compare its last item; general rule: any old tail/count/last-item assertion that fails only because rules and targets are appended at the end is cut to the original part, original content unchanged, new part checked by RULES_M35_SEEDS"
         }
       ]
     },
