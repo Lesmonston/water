@@ -2,14 +2,15 @@ use serde_json::{Value, json};
 use std::ffi::OsString;
 use std::fs::{self, OpenOptions};
 use std::os::windows::ffi::OsStringExt;
-use std::os::windows::fs::{MetadataExt, OpenOptionsExt};
+use std::os::windows::fs::{FileTimesExt, MetadataExt, OpenOptionsExt};
 use std::path::{Path, PathBuf};
 use std::process::Command;
 use std::time::{Duration, SystemTime, UNIX_EPOCH};
 use water_junk_scan::{
-    CancelToken, Condition, ScanObserver, ScanOptions, ScanPlan, ScanProgress, ScanResult, growth,
-    identity_of, normalize_key, result_from_json, result_to_json, scan, snapshot,
-    snapshot_from_json, snapshot_to_json,
+    CancelToken, Condition, ExtrasOptions, ScanObserver, ScanOptions, ScanPlan, ScanProgress,
+    ScanResult, extras_from_json, extras_to_json, growth, identity_of, name_template,
+    normalize_key, overview_from_json, overview_to_json, result_from_json, result_to_json, scan,
+    scan_full, snapshot, snapshot_from_json, snapshot_to_json, space_overview,
 };
 
 struct Quiet;
@@ -187,6 +188,7 @@ fn item<'a>(result: &'a ScanResult, suffix: &str) -> &'a water_junk_scan::Item {
 
 #[test]
 fn scan_plan_contract() {
+    m35_plan_templates();
     check_m3d_plan();
     let unknown = r#"{"plan_version":"water.scan-plan.v1","rules_data_version":"2026-10-26.1","created_at":"2026-10-26T04:00:00Z","targets":[],"hard_guards":[],"extra":true}"#;
     assert!(ScanPlan::from_json(unknown).is_err());
@@ -329,6 +331,8 @@ fn scan_plan_contract() {
 
 #[test]
 fn scan_pattern_marker_discovery() {
+    m35_markers();
+    m35_clusters();
     check_m3d_conditions();
     check_unique_bytes();
     let fx = Fixture::create();
@@ -655,6 +659,7 @@ fn scan_pattern_marker_discovery() {
 
 #[test]
 fn scan_overlap_and_guards() {
+    m35_rules_names();
     check_single_walk();
     let fx = Fixture::create();
     write_file(&fx.join("overlap/cache/a.bin"), b"aa");
@@ -914,6 +919,7 @@ fn scan_overlap_and_guards() {
 
 #[test]
 fn scan_reparse_budget_cancel() {
+    m35_junctions_overview();
     let fx = Fixture::create();
     write_file(&fx.join("elsewhere/leaf/cache/z.bin"), &[8; 200]);
     junction(&fx.join("base/mid"), &fx.join("elsewhere/leaf"));
@@ -1096,6 +1102,7 @@ fn scan_reparse_budget_cancel() {
 
 #[test]
 fn scan_snapshot_growth_keys() {
+    m35_sizes_compat();
     check_m3d_growth();
     assert_eq!(
         normalize_key("marketplace-upgrade-k2Hq9x"),
@@ -2077,6 +2084,8 @@ fn check_single_walk() {
             empty.eligible_bytes = "0".into();
             empty.unique_bytes = "0".into();
             empty.eligible_unique_bytes = "0".into();
+            empty.disk_bytes = Some("0".into());
+            empty.eligible_disk_bytes = Some("0".into());
             empty.file_count = 0;
             empty.oldest_activity = None;
             empty.newest_activity = None;
@@ -2168,5 +2177,1463 @@ fn check_single_walk() {
         "SCAN_M3C_SINGLE_WALK: {} > {} + 5",
         combined.visited_entries,
         entries
+    );
+}
+
+fn m35_full(
+    text: &str,
+    now: SystemTime,
+    extras: &ExtrasOptions,
+) -> (ScanResult, water_junk_scan::ScanExtras) {
+    scan_full(
+        &ScanPlan::from_json(text).expect("SCAN_M35_PLAN: fixture plan"),
+        "m35",
+        &ScanOptions::default(),
+        extras,
+        &CancelToken::new(),
+        &Quiet,
+        now,
+    )
+    .unwrap()
+}
+
+fn m35_marker_target(
+    id: &str,
+    root: &str,
+    marker: Value,
+    conditions: Option<Value>,
+    kind: &str,
+) -> Value {
+    let mut matcher = json!({"kind":"marker","root":root,"marker":marker,"max_depth":8});
+    if let Some(conditions) = conditions {
+        matcher["conditions"] = conditions;
+    }
+    target(id, "recommended", "custom", matcher, kind, 0, 0)
+}
+
+fn m35_times(path: &Path, created: SystemTime, modified: SystemTime) {
+    let path = m35_verbatim(path);
+    let f = OpenOptions::new()
+        .access_mode(0x100)
+        .custom_flags(0x0200_0000)
+        .open(path)
+        .unwrap();
+    f.set_times(
+        std::fs::FileTimes::new()
+            .set_created(created)
+            .set_modified(modified),
+    )
+    .unwrap();
+}
+
+fn m35_verbatim(path: &Path) -> PathBuf {
+    if path.to_string_lossy().starts_with("\\\\?\\") {
+        path.to_path_buf()
+    } else {
+        PathBuf::from(format!("\\\\?\\{}", path.display()))
+    }
+}
+
+fn m35_old_tree(root: &Path, when: SystemTime) {
+    for child in fs::read_dir(m35_verbatim(root)).unwrap() {
+        let child = child.unwrap();
+        let meta = fs::symlink_metadata(m35_verbatim(&child.path())).unwrap();
+        if meta.file_attributes() & 0x400 != 0 {
+            continue;
+        }
+        if meta.is_dir() {
+            m35_old_tree(&child.path(), when);
+        } else {
+            m35_times(&child.path(), when, when);
+        }
+    }
+    m35_times(root, when, when);
+}
+
+fn m35_plan_templates() {
+    for (name, file, expected) in [
+        ("verify-7mzKFP", false, "verify-<r6>"),
+        ("verify-bjVTM3", false, "verify-<r6>"),
+        ("verify-Nig1h3", false, "verify-<r6>"),
+        (
+            "marketplace-upgrade-0gAvKc",
+            false,
+            "marketplace-upgrade-<r6>",
+        ),
+        ("pgtest-20261006-055219-104832", false, "pgtest-<d>"),
+        ("apk_43181b86.apk", true, "apk_<h>.apk"),
+        ("build-3f907897", false, "build-<h>"),
+        ("rb123-x-chrome-AbC123", false, "rb#-x-chrome-<r6>"),
+        ("scoped_dir12345_678901234", false, "scoped_dir<d>"),
+        ("tmpk3j_9x2a", false, "tmp<p8>"),
+        (
+            "session-550e8400-e29b-41d4-a716-446655440000",
+            false,
+            "session-<u>",
+        ),
+        ("IMG_20261102_123456.jpg", true, "img_<d>.jpg"),
+    ] {
+        assert_eq!(
+            name_template(name, file).as_deref(),
+            Some(expected),
+            "SCAN_M35_TEMPLATE: {name}"
+        );
+    }
+    for name in [
+        "verify-s8-revisions.cjs",
+        ".tmp_w35b",
+        "apk_backup",
+        "apk_F1.apk",
+        "climbmao-1.5.2-vc24-emu.apk.parts",
+        "verify-abcdef",
+        "7mzKFP",
+        "550e8400-e29b-41d4-a716-446655440000",
+        "Release-2026",
+        "v1.2.3",
+        "node_modules",
+    ] {
+        assert_eq!(
+            name_template(name, true),
+            None,
+            "SCAN_M35_TEMPLATE: negative file {name}"
+        );
+        assert_eq!(
+            name_template(name, false),
+            None,
+            "SCAN_M35_TEMPLATE: negative directory {name}"
+        );
+    }
+    let mut value = target(
+        "new",
+        "confirm",
+        "custom",
+        json!({"kind":"pattern","base":"C:\\","segments":["x.part"],"conditions":[{"kind":"sibling_without_suffix","suffixes":[".part"]}]}),
+        "file",
+        24,
+        1,
+    );
+    value["git_is_copy"] = json!(true);
+    value["age_basis"] = json!("latest_created_or_modified");
+    value["keep_by"] = json!("version_name");
+    value["in_use"] = json!({"mode":"runs_from_or_references_item","processes":[],"root_levels":6});
+    value["unlocks_target_ids"] = json!(["protected"]);
+    let guard = target(
+        "protected",
+        "protected",
+        "custom",
+        json!({"kind":"pattern","base":"C:\\","segments":["guard"]}),
+        "any",
+        0,
+        0,
+    );
+    let good = vec![value.clone(), guard.clone()];
+    let parsed = ScanPlan::from_json(&plan(good.clone(), vec![])).expect("SCAN_M35_PLAN: all keys");
+    let encoded = serde_json::to_value(&parsed.targets).unwrap();
+    assert_eq!(encoded, json!(good), "SCAN_M35_PLAN: target roundtrip");
+    for case in 0..13 {
+        let mut bad = good.clone();
+        match case {
+            0 => bad[0]["unlocks_target_ids"] = json!([]),
+            1 => bad[0]["unlocks_target_ids"] = json!(["protected", "protected"]),
+            2 => bad[0]["unlocks_target_ids"] = json!(["new"]),
+            3 => bad[0]["unlocks_target_ids"] = json!(["missing"]),
+            4 => bad[1]["level"] = json!("advisory"),
+            5 => bad[0]["level"] = json!("advisory"),
+            6 => bad[0]["keep_newest"] = json!(0),
+            7 => bad[0]["in_use"]["root_levels"] = json!(0),
+            8 => bad[0]["in_use"]["root_levels"] = json!(7),
+            9 => bad[0]["in_use"]["root_levels"] = Value::Null,
+            10 => bad[0]["in_use"]["mode"] = json!("none"),
+            11 => bad[0]["category"] = json!("dev_cache"),
+            _ => bad[0]["match"]["conditions"] = json!([{"kind":"parent_has_other_match"}]),
+        }
+        assert!(
+            ScanPlan::from_json(&plan(bad, vec![])).is_err(),
+            "SCAN_M35_PLAN: rejection {case}"
+        );
+    }
+    for kind in ["file_name", "dir_name_pattern"] {
+        let row = m35_marker_target(
+            "marker",
+            "F:\\synthetic",
+            json!({"kind":kind,"patterns":["#.#*"]}),
+            Some(json!([{"kind":"parent_has_file_matching","pattern":"*.exe"}])),
+            "any",
+        );
+        let parsed = ScanPlan::from_json(&plan(vec![row.clone()], vec![]))
+            .expect("SCAN_M35_PLAN: new marker");
+        assert_eq!(
+            serde_json::to_value(&parsed.targets[0]).unwrap(),
+            row,
+            "SCAN_M35_PLAN: marker roundtrip"
+        );
+        for patterns in [
+            json!([]),
+            json!(["."]),
+            json!([".."]),
+            json!([""]),
+            json!(["a/b"]),
+            json!(["a\\b"]),
+            json!(["a:b"]),
+            json!(["x", "X"]),
+            json!(["a", "b", "c", "d", "e", "f", "g", "h", "i"]),
+        ] {
+            let mut bad = row.clone();
+            bad["match"]["marker"]["patterns"] = patterns;
+            assert!(
+                ScanPlan::from_json(&plan(vec![bad], vec![])).is_err(),
+                "SCAN_M35_PLAN: patterns"
+            );
+        }
+        for c in [
+            json!([{"kind":"parent_has_file_matching","pattern":""}]),
+            json!([{"kind":"parent_lacks_file_matching","pattern":"x".repeat(65)}]),
+            json!([{"kind":"parent_has_file_matching","pattern":"a/b"}]),
+            json!([{"kind":"parent_has_file_matching","pattern":"*.exe","extra":1}]),
+            json!([{"kind":"sibling_without_suffix","suffixes":[".part",".PART"]}]),
+        ] {
+            let mut bad = row.clone();
+            bad["match"]["conditions"] = c;
+            assert!(
+                ScanPlan::from_json(&plan(vec![bad], vec![])).is_err(),
+                "SCAN_M35_PLAN: conditions"
+            );
+        }
+    }
+    for (kind, conditions, item_type) in [
+        (
+            json!({"kind":"file_name","patterns":["*.pkf"]}),
+            None,
+            "dir",
+        ),
+        (
+            json!({"kind":"file_name","patterns":["*.pkf"]}),
+            Some(json!([{"kind":"parent_has_other_match"}])),
+            "file",
+        ),
+        (
+            json!({"kind":"file_name","patterns":["*.pkf"]}),
+            Some(json!([{"kind":"parent_has_other_entries","except":["a"]}])),
+            "any",
+        ),
+        (
+            json!({"kind":"file","name":"tag","min_bytes":0,"max_bytes":9}),
+            Some(json!([{"kind":"parent_has_other_match"}])),
+            "dir",
+        ),
+        (
+            json!({"kind":"children_all","names":["x"]}),
+            Some(json!([{"kind":"parent_has_other_match"}])),
+            "dir",
+        ),
+    ] {
+        let row = m35_marker_target("bad", "F:\\synthetic", kind, conditions, item_type);
+        assert!(
+            ScanPlan::from_json(&plan(vec![row], vec![])).is_err(),
+            "SCAN_M35_PLAN: marker condition whitelist"
+        );
+    }
+    let old = target(
+        "old",
+        "recommended",
+        "custom",
+        json!({"kind":"marker","root":"F:\\synthetic","marker":{"kind":"dir_name","names":["cache"]},"max_depth":2}),
+        "dir",
+        0,
+        0,
+    );
+    let parsed = ScanPlan::from_json(&plan(vec![old.clone()], vec![])).unwrap();
+    assert_eq!(
+        serde_json::to_value(&parsed.targets[0]).unwrap(),
+        old,
+        "SCAN_M35_PLAN: old keys unchanged"
+    );
+}
+
+fn m35_markers() {
+    let fx = Fixture::create();
+    for rel in [
+        "loc/versions/1.0/a",
+        "loc/versions/2.0/b",
+        "loc/versions/app.exe",
+        "loc/alone/3.0/a",
+        "loc/alone/app.exe",
+        "loc/no-exe/1.0/a",
+        "loc/no-exe/2.0/a",
+        "loc/download/x.part",
+        "loc/download/x",
+        "loc/download/y.part",
+        "loc/download/y",
+        "loc/download/z.parts/chunk",
+        "loc/download/z",
+        "loc/audio/a.pkf",
+        "loc/audio/not.pkf/keep",
+        "loc/install/setup1.exe",
+        "loc/app/setup2.exe",
+        "loc/app/helper.dll",
+        "loc/audition/Conformed Files/a",
+    ] {
+        write_file(
+            &fx.join(rel),
+            if rel.ends_with("/y") || rel.ends_with("/z") {
+                b""
+            } else {
+                b"abc"
+            },
+        );
+    }
+    let mut versions = m35_marker_target(
+        "versions",
+        &fx.p("loc"),
+        json!({"kind":"dir_name_pattern","patterns":["#.#*"]}),
+        Some(
+            json!([{"kind":"parent_has_other_match"},{"kind":"parent_has_file_matching","pattern":"*.exe"}]),
+        ),
+        "dir",
+    );
+    versions["match"]["max_depth"] = json!(3);
+    let files = m35_marker_target(
+        "peaks",
+        &fx.p("loc"),
+        json!({"kind":"file_name","patterns":["*.pkf"]}),
+        None,
+        "file",
+    );
+    let partial = m35_marker_target(
+        "partial",
+        &fx.p("loc"),
+        json!({"kind":"file_name","patterns":["*.part"]}),
+        Some(json!([{"kind":"sibling_without_suffix","suffixes":[".part"]}])),
+        "file",
+    );
+    let mut fallback = partial.clone();
+    fallback["target_id"] = json!("unfinished");
+    fallback["group_id"] = json!("unfinished");
+    fallback["level"] = json!("advisory");
+    fallback["match"]
+        .as_object_mut()
+        .unwrap()
+        .remove("conditions");
+    fallback["match"]["fallback_for"] = json!("partial");
+    let parts = m35_marker_target(
+        "parts",
+        &fx.p("loc"),
+        json!({"kind":"dir_name_pattern","patterns":["*.parts"]}),
+        Some(json!([{"kind":"sibling_without_suffix","suffixes":[".parts"]}])),
+        "dir",
+    );
+    let installers = m35_marker_target(
+        "installers",
+        &fx.p("loc"),
+        json!({"kind":"file_name","patterns":["*setup*.exe"]}),
+        Some(json!([{"kind":"parent_lacks_file_matching","pattern":"*.dll"}])),
+        "file",
+    );
+    let result = run_default(
+        &plan(
+            vec![versions, files, partial, fallback, parts, installers],
+            vec![],
+        ),
+        SystemTime::now(),
+    );
+    assert_eq!(
+        result
+            .items
+            .iter()
+            .filter(|i| i.group_id == "versions")
+            .count(),
+        2,
+        "SCAN_M35_MARKERS: other match and exe"
+    );
+    assert_eq!(
+        result
+            .items
+            .iter()
+            .filter(|i| i.group_id == "peaks")
+            .count(),
+        1,
+        "SCAN_M35_MARKERS: ordinary files only"
+    );
+    assert_eq!(
+        item(&result, "x.part").group_id,
+        "partial",
+        "SCAN_M35_MARKERS: complete sibling"
+    );
+    assert_eq!(
+        item(&result, "y.part").group_id,
+        "unfinished",
+        "SCAN_M35_MARKERS: smaller sibling fallback"
+    );
+    assert!(
+        !result.items.iter().any(|i| i.path.ends_with("z.parts")),
+        "SCAN_M35_MARKERS: directory size comparison"
+    );
+    assert_eq!(
+        result
+            .items
+            .iter()
+            .filter(|i| i.group_id == "installers")
+            .count(),
+        1,
+        "SCAN_M35_MARKERS: dll excludes app"
+    );
+    let mut root = m35_marker_target(
+        "root",
+        &fx.p("loc/versions/1.0"),
+        json!({"kind":"dir_name_pattern","patterns":["#.#*"]}),
+        Some(json!([{"kind":"parent_lacks_file_matching","pattern":"*.dll"}])),
+        "dir",
+    );
+    for conditions in [
+        json!([{"kind":"parent_lacks_file_matching","pattern":"*.dll"}]),
+        json!([{"kind":"parent_has_other_match"}]),
+        json!([{"kind":"parent_has_file_matching","pattern":"*.exe"}]),
+        json!([{"kind":"sibling_without_suffix","suffixes":[".0"]}]),
+    ] {
+        root["match"]["conditions"] = conditions;
+        assert!(
+            run_default(&plan(vec![root.clone()], vec![]), SystemTime::now())
+                .items
+                .is_empty(),
+            "SCAN_M35_MARKERS: root parent absent"
+        );
+    }
+    let mut manifest = target(
+        "manifest",
+        "confirm",
+        "custom",
+        json!({"kind":"pattern","base":fx.p("loc/download"),"segments":["*.part"],"conditions":[{"kind":"sibling_without_suffix","suffixes":[".part"]}]}),
+        "file",
+        0,
+        0,
+    );
+    let result = run_default(&plan(vec![manifest.clone()], vec![]), SystemTime::now());
+    assert_eq!(
+        result.items.len(),
+        1,
+        "SCAN_M35_MARKERS: pattern sibling condition"
+    );
+    manifest["match"] = json!({"kind":"discovery","root":fx.p("loc/audio")});
+    manifest["item_type"] = json!("any");
+    assert_eq!(
+        run_default(&plan(vec![manifest], vec![]), SystemTime::now())
+            .items
+            .len(),
+        2,
+        "SCAN_M35_MARKERS: custom discovery root"
+    );
+}
+
+fn m35_clusters() {
+    let fx = Fixture::create();
+    let now = SystemTime::now();
+    let old = now - Duration::from_secs(40 * 86400);
+    for i in 0..12 {
+        write_file(
+            &fx.join(&format!("loc/.tmp_w35b/verify-A{i:05}/data")),
+            b"abc",
+        );
+        write_file(
+            &fx.join(&format!("loc/images/IMG_202610{:02}_123456.jpg", i + 1)),
+            b"abc",
+        );
+    }
+    write_file(&fx.join("loc/.tmp_w35b/verify-s8-revisions.cjs"), b"report");
+    write_file(&fx.join("loc/.tmp_w35b/report.md"), b"report");
+    write_file(
+        &fx.join("loc/.tmp_w35b/verify-A00000/node_modules/pkg/a"),
+        b"dep",
+    );
+    fs::create_dir_all(fx.join("loc/.tmp_w35b/verify-A00001/.git")).unwrap();
+    for i in 0..11 {
+        write_file(&fx.join(&format!("loc/out/apk_a{i:07x}.apk")), b"apk");
+    }
+    write_file(&fx.join("loc/out/apk_F1.apk"), b"apk");
+    write_file(&fx.join("loc/out/apk_backup/keep"), b"backup");
+    for i in 0..9 {
+        write_file(
+            &fx.join(&format!(
+                "loc/nine/pgtest-202610{:02}-055219-104832/a",
+                i + 1
+            )),
+            b"x",
+        );
+    }
+    for i in 0..10 {
+        write_file(
+            &fx.join(&format!("loc/runs/run-A{i:05}/data")),
+            &vec![1; if i % 2 == 0 { 1 } else { 65536 }],
+        );
+        write_file(
+            &fx.join(&format!(
+                "loc/discovery/pgtest-202610{:02}-055219-104832/a",
+                i + 1
+            )),
+            b"x",
+        );
+    }
+    for i in 0..3 {
+        write_file(&fx.join(&format!("loc/discovery/other-{i}/a")), b"x");
+    }
+    m35_old_tree(&fx.join("loc"), old);
+    for i in 0..10 {
+        m35_times(
+            &fx.join(&format!("loc/runs/run-A{i:05}")),
+            now - Duration::from_secs((i + 2) * 86400),
+            old,
+        );
+    }
+    m35_times(&fx.join("loc/.tmp_w35b/verify-A00002/data"), old, now);
+    m35_times(
+        &fx.join("loc/out/apk_a000000a.apk"),
+        old,
+        old + Duration::from_secs(3600),
+    );
+    let marker = m35_marker_target(
+        "modules",
+        &fx.p("loc"),
+        json!({"kind":"dir_name","names":["node_modules"]}),
+        None,
+        "dir",
+    );
+    let discovery = target(
+        "discovery",
+        "confirm",
+        "system_temp",
+        json!({"kind":"discovery","root":fx.p("loc/discovery")}),
+        "any",
+        0,
+        0,
+    );
+    let text = plan(vec![marker.clone(), discovery], vec![]);
+    let extras = ExtrasOptions {
+        leak_clusters: true,
+        ..ExtrasOptions::default()
+    };
+    let (result, _) = m35_full(&text, now, &extras);
+    let clusters: Vec<_> = result
+        .groups
+        .iter()
+        .filter(|g| g.cluster.is_some())
+        .collect();
+    let mut physical_entries = 0u64;
+    let mut dirs = vec![fx.join("loc")];
+    while let Some(dir) = dirs.pop() {
+        for entry in fs::read_dir(dir).unwrap() {
+            let entry = entry.unwrap();
+            physical_entries += 1;
+            let metadata = fs::symlink_metadata(entry.path()).unwrap();
+            if metadata.is_dir() && metadata.file_attributes() & 0x400 == 0 {
+                dirs.push(entry.path());
+            }
+        }
+    }
+    assert_eq!(
+        result.visited_entries, physical_entries,
+        "SCAN_M35_CLUSTERS: each physical directory listed once"
+    );
+    assert_eq!(
+        clusters.len(),
+        4,
+        "SCAN_M35_CLUSTERS: verify/hash/run/discovery, nine and photos excluded"
+    );
+    let verify = clusters
+        .iter()
+        .find(|g| g.cluster.as_ref().unwrap().template == "verify-<r6>")
+        .unwrap();
+    assert_eq!(
+        verify.level,
+        water_junk_scan::Level::Confirm,
+        "SCAN_M35_CLUSTERS: similar/burst confirms"
+    );
+    assert_eq!(
+        verify.cluster.as_ref().unwrap().member_count,
+        12,
+        "SCAN_M35_CLUSTERS: template member count"
+    );
+    assert_eq!(
+        verify.item_count, 12,
+        "SCAN_M35_CLUSTERS: all verify members"
+    );
+    assert_eq!(
+        item(&result, "verify-A00001").ineligible_reason.as_deref(),
+        Some("repository"),
+        "SCAN_M35_CLUSTERS: repository member"
+    );
+    assert_eq!(
+        item(&result, "verify-A00002").ineligible_reason.as_deref(),
+        Some("too_recent"),
+        "SCAN_M35_CLUSTERS: recent member"
+    );
+    assert!(
+        !result.items.iter().any(|i| i.path.ends_with("node_modules")
+            || i.path.ends_with("report.md")
+            || i.path.ends_with("verify-s8-revisions.cjs")),
+        "SCAN_M35_CLUSTERS: no nested target or report"
+    );
+    let hashed = clusters
+        .iter()
+        .find(|g| g.cluster.as_ref().unwrap().template == "apk_<h>.apk")
+        .unwrap();
+    assert_eq!(
+        (
+            hashed.cluster.as_ref().unwrap().member_count,
+            hashed.item_count
+        ),
+        (11, 12),
+        "SCAN_M35_CLUSTERS: extra file not S1"
+    );
+    assert_eq!(
+        item(&result, "apk_a000000a.apk")
+            .ineligible_reason
+            .as_deref(),
+        Some("keep_newest"),
+        "SCAN_M35_CLUSTERS: keep latest hash"
+    );
+    assert_eq!(
+        item(&result, "apk_F1.apk").group_id,
+        hashed.group_id,
+        "SCAN_M35_CLUSTERS: non hash sibling"
+    );
+    assert_eq!(
+        item(&result, "apk_F1.apk").template,
+        None,
+        "SCAN_M35_CLUSTERS: extra template stays absent"
+    );
+    assert!(
+        !result.items.iter().any(|i| i.path.ends_with("apk_backup")),
+        "SCAN_M35_CLUSTERS: no backup directory"
+    );
+    let runs = clusters
+        .iter()
+        .find(|g| g.cluster.as_ref().unwrap().template == "run-<r6>")
+        .unwrap();
+    assert_eq!(
+        runs.level,
+        water_junk_scan::Level::Advisory,
+        "SCAN_M35_CLUSTERS: only S1 is advisory"
+    );
+    assert!(
+        !runs.cluster.as_ref().unwrap().similar_size && !runs.cluster.as_ref().unwrap().burst,
+        "SCAN_M35_CLUSTERS: S2/S4 both false"
+    );
+    assert_eq!(
+        result
+            .groups
+            .iter()
+            .find(|g| g.group_id == "discovery")
+            .unwrap()
+            .item_count,
+        3,
+        "SCAN_M35_CLUSTERS: discovery members move once"
+    );
+    let (again, _) = m35_full(&text, now, &extras);
+    assert_eq!(
+        again
+            .groups
+            .iter()
+            .filter(|g| g.cluster.is_some())
+            .map(|g| &g.group_id)
+            .collect::<Vec<_>>(),
+        clusters.iter().map(|g| &g.group_id).collect::<Vec<_>>(),
+        "SCAN_M35_CLUSTERS: stable IDs"
+    );
+    let direct = scan(
+        &ScanPlan::from_json(&text).unwrap(),
+        "m35",
+        &ScanOptions::default(),
+        &CancelToken::new(),
+        &Quiet,
+        now,
+    )
+    .unwrap();
+    let (off, _) = m35_full(&text, now, &ExtrasOptions::default());
+    let mut a = direct.clone();
+    let mut b = off.clone();
+    a.ended_at.clear();
+    b.ended_at.clear();
+    assert_eq!(a, b, "SCAN_M35_CLUSTERS: off equals scan");
+    assert!(
+        off.groups.iter().all(|g| g.cluster.is_none()),
+        "SCAN_M35_CLUSTERS: default has no clusters"
+    );
+    // A second random template with the same file prefix cannot be owned twice.
+    for i in 0..10 {
+        write_file(&fx.join(&format!("loc/out/apk_Z{i:05}.apk")), b"apk");
+        m35_times(&fx.join(&format!("loc/out/apk_Z{i:05}.apk")), old, old);
+    }
+    m35_times(&fx.join("loc/out"), old, old);
+    let (mixed, _) = m35_full(&plan(vec![marker], vec![]), now, &extras);
+    let mut paths = std::collections::HashSet::new();
+    assert!(
+        mixed
+            .items
+            .iter()
+            .all(|i| paths.insert(i.path.to_ascii_lowercase())),
+        "SCAN_M35_CLUSTERS: one member owner"
+    );
+    for group in mixed.groups.iter().filter(|g| g.cluster.is_some()) {
+        let info = group.cluster.as_ref().unwrap();
+        assert_eq!(
+            mixed
+                .items
+                .iter()
+                .filter(|i| i.group_id == group.group_id
+                    && i.template.as_deref() == Some(info.template.as_str()))
+                .count() as u64,
+            info.member_count,
+            "SCAN_M35_CLUSTERS: owned template count"
+        );
+    }
+}
+
+fn m35_rules_names() {
+    let fx = Fixture::create();
+    let now = SystemTime::now();
+    let old = now - Duration::from_secs(20 * 86400);
+    write_file(&fx.join("root/copy/.git/a"), b"git");
+    write_file(&fx.join("root/copy/data"), b"x");
+    write_file(&fx.join("root/scope/cache/a"), b"cache");
+    for path in [
+        "apps/one/7.1.0.949/a",
+        "apps/one/7.10.0.1/a",
+        "apps/two/10.0/a",
+        "apps/two/9.9.9/a",
+    ] {
+        write_file(&fx.join(path), b"v");
+    }
+    for i in 0..10 {
+        write_file(&fx.join(&format!("valuable/cert{i}.pem")), b"key");
+    }
+    for path in [
+        "valuable/node_modules/pkg/test.pem",
+        "valuable/site-packages/pkg/a.key",
+        "valuable/dist-packages/pkg/a.db",
+        "valuable/Thumbs.db",
+        "valuable/ehthumbs.db",
+        "valuable/.env.local",
+        "valuable/credentials.json",
+        "valuable/google-services.json",
+        "valuable/data.sqlite-wal",
+    ] {
+        write_file(&fx.join(path), b"x");
+    }
+    for name in ["nul.txt", "trailing.", "trailing "] {
+        write_file(
+            &PathBuf::from(format!("\\\\?\\{}", fx.p(&format!("valuable/{name}")))),
+            b"odd",
+        );
+    }
+    write_file(&m35_verbatim(&fx.join("own-name./data")), b"own");
+    fs::create_dir_all(fx.join("root/.git")).unwrap();
+    write_file(&fx.join("root/new/a"), b"new");
+    m35_old_tree(&fx.dir, old);
+    m35_times(&fx.join("root/new"), now, old);
+    m35_times(&fx.join("root/new/a"), now, old);
+    let mut copy = target(
+        "copy",
+        "recommended",
+        "custom",
+        json!({"kind":"pattern","base":fx.p("root"),"segments":["copy"]}),
+        "dir",
+        0,
+        0,
+    );
+    copy["in_use"] = json!({"mode":"runs_from_or_references_item","processes":[],"root_levels":1});
+    let normal = run_default(&plan(vec![copy.clone()], vec![]), now);
+    assert_eq!(
+        normal.groups[0].in_use.root_levels,
+        Some(1),
+        "SCAN_M35_RULES: root levels carried to group"
+    );
+    assert_eq!(
+        normal.items[0].ineligible_reason.as_deref(),
+        Some("repository"),
+        "SCAN_M35_RULES: original repository guard"
+    );
+    copy["git_is_copy"] = json!(true);
+    assert!(
+        run_default(&plan(vec![copy], vec![]), now).items[0].eligible,
+        "SCAN_M35_RULES: git is download copy"
+    );
+    let protected = target(
+        "protected",
+        "protected",
+        "custom",
+        json!({"kind":"pattern","base":fx.p("root"),"segments":["scope"]}),
+        "dir",
+        0,
+        0,
+    );
+    let mut cache = target(
+        "cache",
+        "recommended",
+        "custom",
+        json!({"kind":"pattern","base":fx.p("root"),"segments":["scope","cache"]}),
+        "dir",
+        0,
+        0,
+    );
+    cache["unlocks_target_ids"] = json!(["protected"]);
+    let unlocked = run_default(&plan(vec![protected.clone(), cache.clone()], vec![]), now);
+    assert!(
+        item(&unlocked, &fx.p("root/scope/cache")).eligible,
+        "SCAN_M35_RULES: named unlock pair"
+    );
+    let mut another = protected.clone();
+    another["target_id"] = json!("another");
+    another["group_id"] = json!("another");
+    another["match"]["segments"] = json!(["scope", "*"]);
+    // An independent containing protected target is never exempted.
+    another["match"]["base"] = json!(fx.path);
+    another["match"]["segments"] = json!(["root"]);
+    let guarded = run_default(&plan(vec![protected, cache, another], vec![]), now);
+    assert_eq!(
+        item(&guarded, &fx.p("root/scope/cache"))
+            .ineligible_reason
+            .as_deref(),
+        Some("inside_protected"),
+        "SCAN_M35_RULES: other protection remains"
+    );
+    let mut versions = target(
+        "versions",
+        "confirm",
+        "custom",
+        json!({"kind":"pattern","base":fx.p("apps"),"segments":["*","*"]}),
+        "dir",
+        0,
+        1,
+    );
+    versions["keep_by"] = json!("version_name");
+    let result = run_default(&plan(vec![versions], vec![]), now);
+    for name in ["7.10.0.1", "10.0"] {
+        assert_eq!(
+            item(&result, name).ineligible_reason.as_deref(),
+            Some("keep_newest"),
+            "SCAN_M35_RULES: numeric version per parent"
+        );
+    }
+    for name in ["7.1.0.949", "9.9.9"] {
+        assert!(
+            item(&result, name).eligible,
+            "SCAN_M35_RULES: old version eligible"
+        );
+    }
+    let mut age = target(
+        "age",
+        "recommended",
+        "custom",
+        json!({"kind":"pattern","base":fx.p("root"),"segments":["new"]}),
+        "dir",
+        168,
+        0,
+    );
+    assert!(
+        run_default(&plan(vec![age.clone()], vec![]), now).items[0].eligible,
+        "SCAN_M35_RULES: modified baseline"
+    );
+    age["age_basis"] = json!("latest_created_or_modified");
+    assert_eq!(
+        run_default(&plan(vec![age], vec![]), now).items[0]
+            .ineligible_reason
+            .as_deref(),
+        Some("too_recent"),
+        "SCAN_M35_RULES: creation is recent"
+    );
+    let names = target(
+        "names",
+        "confirm",
+        "custom",
+        json!({"kind":"pattern","base":fx.path,"segments":["valuable"]}),
+        "dir",
+        0,
+        0,
+    );
+    let result = run_default(&plan(vec![names], vec![]), now);
+    let row = &result.items[0];
+    assert_eq!(
+        row.valuable_count, 14,
+        "SCAN_M35_NAMES: exclusions and full count"
+    );
+    assert_eq!(row.valuable_names.len(), 8, "SCAN_M35_NAMES: cap eight");
+    assert_eq!(
+        row.odd_count, 3,
+        "SCAN_M35_NAMES: device/trailing dot/space"
+    );
+    assert_eq!(row.odd_names.len(), 3, "SCAN_M35_NAMES: odd names retained");
+    assert!(
+        row.valuable_names
+            .windows(2)
+            .all(|p| p[0].to_ascii_lowercase() <= p[1].to_ascii_lowercase()),
+        "SCAN_M35_NAMES: sorted"
+    );
+    let own = target(
+        "own",
+        "confirm",
+        "custom",
+        json!({"kind":"pattern","base":fx.path,"segments":["own-name."]}),
+        "dir",
+        0,
+        0,
+    );
+    let own = run_default(&plan(vec![own], vec![]), now);
+    assert_eq!(
+        own.items[0].odd_count, 1,
+        "SCAN_M35_NAMES: own directory name included"
+    );
+    assert_eq!(
+        own.items[0].total_bytes, "3",
+        "SCAN_M35_NAMES: native verbatim directory measured"
+    );
+    assert!(
+        own.items[0].identity.is_some(),
+        "SCAN_M35_NAMES: literal object identity"
+    );
+    let all = target(
+        "all",
+        "confirm",
+        "custom",
+        json!({"kind":"pattern","base":fx.p("root"),"segments":["*"]}),
+        "any",
+        0,
+        0,
+    );
+    let before = run_default(&plan(vec![all.clone()], vec![]), now);
+    for i in 0..12 {
+        write_file(
+            &fx.join(&format!("root/.water-quarantine/verify-A{i:05}/a")),
+            b"skip",
+        );
+    }
+    let after = run_default(&plan(vec![all], vec![]), now);
+    assert!(
+        !after
+            .items
+            .iter()
+            .any(|i| i.path.to_ascii_lowercase().contains(".git")
+                || i.path.to_ascii_lowercase().contains(".water-quarantine")),
+        "SCAN_M35_QUARANTINE: quarantine/git never items"
+    );
+    assert_eq!(
+        after.visited_entries,
+        before.visited_entries + 1,
+        "SCAN_M35_QUARANTINE: count only directory entry"
+    );
+    let target = target(
+        "inside",
+        "recommended",
+        "custom",
+        json!({"kind":"discovery","root":fx.p("root/.water-quarantine")}),
+        "any",
+        0,
+        0,
+    );
+    let empty = run_default(&plan(vec![target], vec![]), now);
+    assert!(
+        empty.items.is_empty() && empty.issues.is_empty(),
+        "SCAN_M35_QUARANTINE: target root ignored quietly"
+    );
+    let search = m35_marker_target(
+        "search",
+        &fx.p("root"),
+        json!({"kind":"dir_name","names":["never-hit"]}),
+        None,
+        "dir",
+    );
+    let (clusters, _) = m35_full(
+        &plan(vec![search], vec![]),
+        now,
+        &ExtrasOptions {
+            leak_clusters: true,
+            ..ExtrasOptions::default()
+        },
+    );
+    assert!(
+        clusters.groups.iter().all(|g| g.cluster.is_none()),
+        "SCAN_M35_QUARANTINE: quarantine not a cluster source"
+    );
+}
+
+fn m35_junctions_overview() {
+    let fx = Fixture::create();
+    let now = SystemTime::now();
+    write_file(&fx.join("loc/cache/sub/data"), b"cache");
+    junction(&fx.join("loc/links/direct"), &fx.join("loc/cache"));
+    junction(
+        &fx.join("loc/links/inside-target"),
+        &fx.join("loc/cache/sub"),
+    );
+    junction(&fx.join("loc/links/parent-target"), &fx.join("loc"));
+    junction(&fx.join("loc/cache/internal"), &fx.join("loc/cache/sub"));
+    junction(&fx.join("loc/links/chain"), &fx.join("loc/links/direct"));
+    for (a, b) in [
+        ("loc/links/cycle-a", "loc/links/cycle-b"),
+        ("loc/links/cycle-b", "loc/links/cycle-a"),
+    ] {
+        assert!(fx.join(a).starts_with(&fx.dir) && fx.join(b).starts_with(&fx.dir));
+        let out = Command::new("cmd")
+            .args(["/c", "mklink", "/J", fx.p(a).as_str(), fx.p(b).as_str()])
+            .output()
+            .unwrap();
+        assert!(out.status.success(), "SCAN_M35_JUNCTIONS: cycle fixture");
+    }
+    write_file(&fx.join("loc/a/b/c/d/.water-cleanup.json"), b"not parsed");
+    write_file(&fx.join("loc/a/b/c/d/e/.water-cleanup.json"), b"not parsed");
+    let locked = OpenOptions::new()
+        .access_mode(0x100)
+        .share_mode(0)
+        .open(fx.join("loc/a/b/c/d/.water-cleanup.json"))
+        .unwrap();
+    let main = target(
+        "cache",
+        "recommended",
+        "custom",
+        json!({"kind":"pattern","base":fx.p("loc"),"segments":["cache"]}),
+        "dir",
+        0,
+        0,
+    );
+    let search = m35_marker_target(
+        "search",
+        &fx.p("loc"),
+        json!({"kind":"dir_name","names":["never-hit"]}),
+        None,
+        "dir",
+    );
+    let text = plan(vec![main, search], vec![]);
+    let extras = ExtrasOptions {
+        junctions: true,
+        declarations: true,
+        ..ExtrasOptions::default()
+    };
+    let (result, index) = m35_full(&text, now, &extras);
+    assert_eq!(
+        index.junctions.len(),
+        7,
+        "SCAN_M35_JUNCTIONS: all listed links indexed once"
+    );
+    let row = item(&result, &fx.p("loc/cache"));
+    let mut expected = [
+        "loc/links/chain",
+        "loc/links/direct",
+        "loc/links/inside-target",
+        "loc/links/parent-target",
+    ]
+    .map(|p| fx.p(p))
+    .to_vec();
+    expected.sort_by_key(|s| s.to_ascii_lowercase());
+    assert_eq!(
+        row.referenced_by, expected,
+        "SCAN_M35_JUNCTIONS: equal/inside/parent, own link excluded"
+    );
+    assert_eq!(
+        row.referenced_count, 4,
+        "SCAN_M35_JUNCTIONS: reference count"
+    );
+    let chain = index
+        .junctions
+        .iter()
+        .find(|j| j.path.eq_ignore_ascii_case(&fx.p("loc/links/chain")))
+        .unwrap();
+    assert_eq!(
+        chain.final_target.as_deref(),
+        Some(fx.p("loc/cache").as_str()),
+        "SCAN_M35_JUNCTIONS: chain resolved"
+    );
+    assert!(
+        index
+            .junctions
+            .iter()
+            .filter(|j| j.path.contains("cycle-"))
+            .all(|j| j.final_target.is_none()),
+        "SCAN_M35_JUNCTIONS: cycles none"
+    );
+    assert_eq!(
+        index.declarations,
+        vec![fx.p("loc/a/b/c/d/.water-cleanup.json")],
+        "SCAN_M35_JUNCTIONS: depth four only, locked content not read"
+    );
+    drop(locked);
+    let (off, empty) = m35_full(&text, now, &ExtrasOptions::default());
+    assert!(
+        empty.junctions.is_empty()
+            && empty.declarations.is_empty()
+            && off.items.iter().all(|i| i.referenced_by.is_empty()),
+        "SCAN_M35_JUNCTIONS: switches off"
+    );
+    assert_eq!(
+        extras_from_json(&extras_to_json(&index)).unwrap(),
+        index,
+        "SCAN_M35_COMPAT: extras roundtrip"
+    );
+    let mut invalid: Value = serde_json::from_str(&extras_to_json(&index)).unwrap();
+    invalid["unknown"] = json!(1);
+    assert!(
+        extras_from_json(&invalid.to_string()).is_err(),
+        "SCAN_M35_COMPAT: extras strict keys"
+    );
+    invalid.as_object_mut().unwrap().remove("unknown");
+    invalid["extras_version"] = json!("wrong");
+    assert!(
+        extras_from_json(&invalid.to_string()).is_err(),
+        "SCAN_M35_COMPAT: extras version"
+    );
+    let root = m35_marker_target(
+        "root-link",
+        &fx.p("loc/links/direct"),
+        json!({"kind":"dir_name","names":["cache"]}),
+        None,
+        "dir",
+    );
+    assert_eq!(
+        m35_full(&plan(vec![root], vec![]), now, &extras)
+            .1
+            .junctions
+            .len(),
+        1,
+        "SCAN_M35_JUNCTIONS: target root indexed"
+    );
+    // Both invalid-name and stopped root measurements belong only to fallback.
+    write_file(
+        &fx.join("fallback/node_modules")
+            .join(OsString::from_wide(&[0xd800])),
+        b"invalid",
+    );
+    for i in 0..20 {
+        write_file(&fx.join(&format!("fallback/node_modules/f{i}")), b"x");
+    }
+    let main = m35_marker_target(
+        "main",
+        &fx.p("fallback/node_modules"),
+        json!({"kind":"dir_name","names":["node_modules"]}),
+        Some(json!([{"kind":"parent_has_file","name":"package.json"}])),
+        "dir",
+    );
+    let mut fallback = main.clone();
+    fallback["target_id"] = json!("fallback");
+    fallback["group_id"] = json!("fallback");
+    fallback["level"] = json!("advisory");
+    fallback["match"]
+        .as_object_mut()
+        .unwrap()
+        .remove("conditions");
+    fallback["match"]["fallback_for"] = json!("main");
+    let text = plan(vec![main, fallback], vec![]);
+    let complete = run_default(&text, now);
+    assert!(
+        complete
+            .issues
+            .iter()
+            .any(|i| i.group_id == "fallback" && i.code == "unrepresentable_name"),
+        "SCAN_M35_FALLBACK_ISSUES: invalid name final owner"
+    );
+    assert!(
+        !complete.issues.iter().any(|i| i.group_id == "main"),
+        "SCAN_M35_FALLBACK_ISSUES: no primary measurement issues"
+    );
+    let tight = run(
+        &text,
+        now,
+        ScanOptions {
+            max_entries: 1,
+            max_seconds: 900,
+        },
+        &CancelToken::new(),
+    );
+    assert!(
+        tight
+            .issues
+            .iter()
+            .any(|i| i.group_id == "fallback" && i.code == "budget_exhausted" && i.count == 1),
+        "SCAN_M35_FALLBACK_ISSUES: root budget final owner"
+    );
+    assert!(
+        !tight.issues.iter().any(|i| i.group_id == "main"),
+        "SCAN_M35_FALLBACK_ISSUES: no primary budget"
+    );
+    // Independent overview: 12 folders, one regular file and one junction.
+    for i in 1..=12 {
+        write_file(
+            &fx.join(&format!("overview/d{i:02}/data")),
+            &vec![1; i * 8192],
+        );
+    }
+    write_file(&fx.join("overview/zfile.bin"), &vec![1; 13 * 8192]);
+    junction(&fx.join("overview/zero-link"), &fx.join("loc/cache"));
+    let overview = space_overview(
+        &fx.p("overview"),
+        "overview",
+        &ScanOptions::default(),
+        &CancelToken::new(),
+        &Quiet,
+        now,
+    )
+    .unwrap();
+    assert_eq!(overview.top.len(), 10, "SCAN_M35_OVERVIEW: top ten");
+    assert_eq!(
+        overview
+            .top
+            .iter()
+            .map(|e| e.name.as_str())
+            .collect::<Vec<_>>(),
+        [
+            "zfile.bin",
+            "d12",
+            "d11",
+            "d10",
+            "d09",
+            "d08",
+            "d07",
+            "d06",
+            "d05",
+            "d04"
+        ],
+        "SCAN_M35_OVERVIEW: allocation ordering"
+    );
+    assert_eq!(
+        overview.others_count, 4,
+        "SCAN_M35_OVERVIEW: three folders and junction"
+    );
+    assert_eq!(
+        overview.total_bytes,
+        (91 * 8192).to_string(),
+        "SCAN_M35_OVERVIEW: no link traversal"
+    );
+    assert_eq!(overview.file_count, 13, "SCAN_M35_OVERVIEW: logical files");
+    assert_eq!(
+        overview.others_disk_bytes,
+        (6 * 8192).to_string(),
+        "SCAN_M35_OVERVIEW: others allocation"
+    );
+    let link_only = space_overview(
+        &fx.p("overview"),
+        "overview",
+        &ScanOptions::default(),
+        &CancelToken::new(),
+        &Quiet,
+        now,
+    )
+    .unwrap();
+    assert_eq!(
+        overview_from_json(&overview_to_json(&link_only)).unwrap(),
+        link_only,
+        "SCAN_M35_COMPAT: overview roundtrip"
+    );
+    // Expose a reparse item in the top list in a separate small root.
+    junction(&fx.join("link-overview/link"), &fx.join("loc/cache"));
+    let small = space_overview(
+        &fx.p("link-overview"),
+        "overview",
+        &ScanOptions::default(),
+        &CancelToken::new(),
+        &Quiet,
+        now,
+    )
+    .unwrap();
+    assert_eq!(
+        (small.top[0].kind.as_str(), small.top[0].disk_bytes.as_str()),
+        ("reparse", "0"),
+        "SCAN_M35_OVERVIEW: reparse zero"
+    );
+    write_file(&fx.join("link-overview/.water-quarantine/file"), b"stored");
+    let stored = space_overview(
+        &fx.p("link-overview"),
+        "overview",
+        &ScanOptions::default(),
+        &CancelToken::new(),
+        &Quiet,
+        now,
+    )
+    .unwrap();
+    assert!(
+        stored
+            .top
+            .iter()
+            .any(|e| e.name == ".water-quarantine" && e.total_bytes == "6"),
+        "SCAN_M35_OVERVIEW: quarantine counted"
+    );
+}
+
+fn m35_sizes_compat() {
+    let fx = Fixture::create();
+    write_file(&fx.join("files/sparse.bin"), b"");
+    let out = Command::new("fsutil")
+        .args(["sparse", "setflag", fx.p("files/sparse.bin").as_str()])
+        .output()
+        .unwrap();
+    assert!(out.status.success(), "SCAN_M35_SIZES: sparse fixture");
+    OpenOptions::new()
+        .write(true)
+        .open(fx.join("files/sparse.bin"))
+        .unwrap()
+        .set_len(64 * 1024 * 1024)
+        .unwrap();
+    write_file(&fx.join("files/data.bin"), &vec![1; 1024 * 1024]);
+    for name in ["link1.bin", "link2.bin", "link3.bin"] {
+        let out = Command::new("cmd")
+            .args([
+                "/c",
+                "mklink",
+                "/H",
+                fx.p(&format!("files/{name}")).as_str(),
+                fx.p("files/data.bin").as_str(),
+            ])
+            .output()
+            .unwrap();
+        assert!(out.status.success(), "SCAN_M35_SIZES: hardlink fixture");
+    }
+    let now = SystemTime::now();
+    let row = target(
+        "sizes",
+        "recommended",
+        "custom",
+        json!({"kind":"pattern","base":fx.path,"segments":["files"]}),
+        "dir",
+        0,
+        0,
+    );
+    let text = plan(vec![row], vec![]);
+    let result = run_default(&text, now);
+    let item = &result.items[0];
+    assert_eq!(
+        item.total_bytes,
+        (68 * 1024 * 1024).to_string(),
+        "SCAN_M35_SIZES: all logical paths"
+    );
+    assert_eq!(
+        item.unique_bytes,
+        (65 * 1024 * 1024).to_string(),
+        "SCAN_M35_SIZES: hard links unique"
+    );
+    let disk = item.disk_bytes.as_ref().unwrap().parse::<u64>().unwrap();
+    assert!(
+        disk < 8 * 1024 * 1024,
+        "SCAN_M35_SIZES: sparse allocation must be far below length"
+    );
+    assert_eq!(
+        result.groups[0].disk_bytes, item.disk_bytes,
+        "SCAN_M35_SIZES: group disk sum"
+    );
+    assert_eq!(
+        result.groups[0].eligible_disk_bytes, item.disk_bytes,
+        "SCAN_M35_SIZES: eligible disk sum"
+    );
+    let parsed = ScanPlan::from_json(&text).unwrap();
+    let direct = scan(
+        &parsed,
+        "same",
+        &ScanOptions::default(),
+        &CancelToken::new(),
+        &Quiet,
+        now,
+    )
+    .unwrap();
+    let (full, empty) = scan_full(
+        &parsed,
+        "same",
+        &ScanOptions::default(),
+        &ExtrasOptions::default(),
+        &CancelToken::new(),
+        &Quiet,
+        now,
+    )
+    .unwrap();
+    let mut a = direct;
+    let mut b = full;
+    a.ended_at.clear();
+    b.ended_at.clear();
+    assert_eq!(a, b, "SCAN_M35_COMPAT: scan equals default scan_full");
+    assert!(
+        empty.junctions.is_empty() && empty.declarations.is_empty() && !empty.junctions_truncated,
+        "SCAN_M35_COMPAT: empty extras"
+    );
+    let mut legacy: Value = serde_json::from_str(&result_to_json(&result)).unwrap();
+    for row in legacy["items"].as_array_mut().unwrap() {
+        for key in [
+            "disk_bytes",
+            "template",
+            "valuable_count",
+            "valuable_names",
+            "odd_count",
+            "odd_names",
+            "referenced_count",
+            "referenced_by",
+        ] {
+            row.as_object_mut().unwrap().remove(key);
+        }
+    }
+    for row in legacy["groups"].as_array_mut().unwrap() {
+        for key in ["disk_bytes", "eligible_disk_bytes", "cluster"] {
+            row.as_object_mut().unwrap().remove(key);
+        }
+    }
+    let old = result_from_json(&legacy.to_string()).expect("SCAN_M35_COMPAT: old result accepted");
+    assert!(
+        old.items[0].disk_bytes.is_none() && old.groups[0].disk_bytes.is_none(),
+        "SCAN_M35_COMPAT: missing allocation stays None"
+    );
+    assert_eq!(
+        result_from_json(&result_to_json(&result)).unwrap(),
+        result,
+        "SCAN_M35_COMPAT: new result roundtrip"
+    );
+    write_file(&fx.join("vanishing.bin"), b"synthetic");
+    struct Disappear {
+        path: PathBuf,
+        root: PathBuf,
+        done: std::sync::atomic::AtomicBool,
+    }
+    impl ScanObserver for Disappear {
+        fn on_progress(&self, progress: &ScanProgress) {
+            if progress.group_id == "enumerate"
+                && !self.done.swap(true, std::sync::atomic::Ordering::SeqCst)
+            {
+                assert!(self.path.starts_with(&self.root));
+                fs::remove_file(&self.path).unwrap();
+            }
+        }
+    }
+    let enumerate = target(
+        "enumerate",
+        "advisory",
+        "custom",
+        json!({"kind":"pattern","base":fx.path,"segments":["never"]}),
+        "file",
+        0,
+        0,
+    );
+    let advisory = target(
+        "advisory",
+        "advisory",
+        "custom",
+        json!({"kind":"pattern","base":fx.path,"segments":["vanishing.bin"]}),
+        "file",
+        0,
+        0,
+    );
+    let observer = Disappear {
+        path: fx.join("vanishing.bin"),
+        root: fx.dir.clone(),
+        done: std::sync::atomic::AtomicBool::new(false),
+    };
+    let result = scan(
+        &ScanPlan::from_json(&plan(vec![enumerate, advisory], vec![])).unwrap(),
+        "gone",
+        &ScanOptions::default(),
+        &CancelToken::new(),
+        &observer,
+        now,
+    )
+    .unwrap();
+    assert!(
+        result.items[0].identity.is_none(),
+        "SCAN_M35_SIZES: vanished fixture identity unavailable"
+    );
+    assert!(
+        !result
+            .issues
+            .iter()
+            .any(|i| i.code == "identity_unavailable"),
+        "SCAN_M35_SIZES: advisory identity is quiet"
     );
 }
