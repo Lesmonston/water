@@ -1,6 +1,6 @@
 WATER-W10-M1 任务已完成，任务报告在 F:/new/smaltalk/water/.worktrees/w10-m1/docs/dispatch/reports/WATER-W10-M1-REPORT.md
 
-当前交回为文末“补单 02”。前两轮受阻记录保留在下，属于历史状态。
+当前交回为文末“补单 03”。原有各节保留在下，属于历史状态。
 
 ## 身份与交回范围
 
@@ -586,3 +586,54 @@ Archive: 342 entries, 9063332 bytes. All sizes/SHA-256 verified.
              Growth::Slow,
              vec![
 ```
+
+## 补单 03（2026-11-05）：完成，交回 SUBMITTED
+
+- 实际模型：GPT-6（Codex，运行环境未提供更细型号）。只读辅助为继承的同模型，负责校验入口和旧循环审阅，未编辑、构建、测试或开始 M2，现已结束。
+- 工作树 / 分支：`F:/new/smaltalk/water/.worktrees/w10-m1` / `worker/water-w10-m1`。
+- 续做起点：`23cd89da24cd46bea0ec511aebb15039eac6a2c0`，开工干净。按补单顺序读原票、规则、RULES-M35 全文、前两张补单、本补单与历史回执；复核原票有效契约和 ADR。
+- 实现提交：`72ac1178cd30adce9c4d27df988e2057eabfdbcb`。后续仅回执与归档证据提交；原提交和证据保留。
+
+### 三项交付与旧断言改动
+
+1. `windows.json` 的 `jest-cache` 两个 temp base 下首个定位改成 `["jest", "*"]`；`haste-map-*`、`metro-*` 不变，合计六个定位。`rules_v1.rs:3854`、`:3857` 的 `p("system_temp", "jest *")` / `p("user_temp", "jest *")` 分别改成 `p("system_temp", "jest/*")` / `p("user_temp", "jest/*")`（p 的斜线分段）。`:882` 起新增断言，精确核对 `jest-cache#1` / `jest-cache#4` 的 base 与两段 segments。复核所有其余含空格的段，`User Data`、`Profile *`、`Code Cache`、`CEF Cache` 等均为真实目录名，无需拆段。
+2. `rules.rs:449` 在 discovery 解析时拒绝 `KnownFolder::SystemDrive`，返回 `RULES_INVALID_LOCATE`，指向 `/rules/<下标>/locate/<下标>`。其余八个 KnownFolder 经 JSON 解析时本来不接受盘根；`plan.rs:212` 另防御公开 KnownFolders 字段被手工构造为盘根，解析计划前同样拒绝并指回定位。`rules_v1.rs:238` 起新增两个 `RULES_M35_FIELDS` 反例，分别精确核对规则解析与手构 downloads 盘根的错误码、指针。没有放宽计划解析。
+3. `rules_v1.rs:2243` 起的旧循环由只过滤两条 ID，改为原 `rules.rules()[..78]` 的全部 rule_id 成员。两处 `m3d_conditions_json` 调用显式限制在 `node-modules`、`test-browser-profiles`；旧 helper 的 panic 分支保留。其它 76 条的非 marker 形状、marker 字节、兜底线上 target ID、键顺序检查恢复执行，新增 32 条仍由 M35 核对。
+
+按补单第 3 条修改的旧期望值：**无**。恢复整个旧循环后原期望全绿，兜底 ID 已使用完整 target ID，无需修订。原循环过滤器与两处 helper 调用范围的改动如上；没有删除、降低或改写旧标记。
+
+### 检查命令与结果
+
+所有检查在本树根目录执行。共同前缀：`node F:/new/smaltalk/water/scripts/checkup-wave-check.mjs --task WATER-W10-M1`。下表时间为 UTC，完整原始 receipt / log / source snapshot 已 archive。
+
+| Receipt 时间 / PID | 后缀参数 | 结果 |
+|---|---|---|
+| 12-14-01.475Z-29972 | `--mode test` | 新测试先红：2 通过、2 失败；精确复现 drive root discovery rejected 与 jest members in each temp base，编译成功 |
+| 12-15-19.701Z-21404 | `--mode lock` | 通过，依赖与锁不变 |
+| 12-15-23.620Z-17388 | `--mode test` | 通过，精确四测全绿 |
+| 12-15-44.893Z-1164 | `--mode check` | fmt / clippy -D warnings / 政策通过 |
+| 12-16-17.181Z-20272 | `--mode red-nc1` | 预期红，检查器通过；恢复测试时序不合格，未用于最终证据 |
+| 12-16-25.837Z-27864 | `--mode test` | 四测通过；启动早于上一负控 receipt 完成，弃用该配对 |
+| 12-16-56.612Z-2628 | `--mode red-nc2` | 有效负控，命中新字段标记，检查器通过 |
+| 12-17-10.124Z-22048 | `--mode test` | 原字节恢复后四测通过 |
+| 12-17-32.577Z-24016 | `--mode red-nc1` | 严格串行重做有效负控，检查器通过 |
+| 12-17-39.771Z-5108 | `--mode test` | 原字节恢复后四测通过 |
+| 12-17-56.158Z-7828 | `--mode check --final` | 通过，干净实现提交 |
+| 12-18-07.553Z-23392 | `--mode test --final` | 四测通过，proofAudit 采用上面两组有效红绿 |
+| 12-18-14.551Z-23036 | `--mode real --final` | 只读存在性冒烟通过 |
+| 12-18-20.062Z-22584 | `--mode archive` | 通过；566 条 / 15,598,413 字节，逐条大小与 SHA-256 复核通过 |
+
+另执行 `git diff --check` 通过。`cargo fmt` 首次因 cargo 不在 PATH 未执行，随后用检查器定位的 `C:/Users/37310/.rustup/toolchains/1.95.0-x86_64-pc-windows-msvc/bin/cargo.exe fmt --manifest-path packages/junk-rules/Cargo.toml` 成功。一次 rg Windows 通配路径与一次 Node -e 引号解析失败，均未改文件；改用 rg -g 与 PowerShell 完成取证与哈希复核。未下载或改环境。
+
+### 负控、恢复与真实冒烟
+
+- nc1 仅把 `src/plan.rs` 默认调用的空 PlanOptions 改成 claude-code / 30 天，真实默认计划错误产生会话目标。Cargo 101，命中 `RULES_M35_SESSIONS: default off`，另一个失败为新 `RULES_M35_SEEDS: whole plan count`。最终有效组为 12:17:32.578–12:17:39.196 红，12:17:39.774–12:17:49.578 绿。首次组有重叠，已保留并明确弃用。
+- nc2 仅把 custom_discovery 名字比较改成 `name.eq_ignore_ascii_case(allowed) || !allowed.is_empty()`。Cargo 101，命中 `RULES_M35_FIELDS: discovery name filter` 与新种子计数标记。红在 12:17:03.985 完成，立即 checkout 恢复后 12:17:10.125 开始四测全绿。
+- 每次恢复只运行 `git checkout -- packages/junk-rules/src/plan.rs`，恢复后的 SHA-256 均为 `66e2ea0ed0c0b0429d1081ee85d129edbe1c429a17035b7451d8e0b46aa17d1f`，与干净实现提交一致。未改测试造红、无编译失败或超时。
+- final 均绑定 `72ac1178cd30adce9c4d27df988e2057eabfdbcb`。最终冒烟输出仅 `base_present_count:87`、`literal_prefix_present_count:70`、`rule_count:110`、`system_drive_exists:true`。
+
+### 边界与未验证项
+
+未建物理夹具、删除真实数据、列出或读取真实文件内容；无窗口、选择框、浏览器、联网下载或新系统函数。依赖、Cargo.lock、其它包、契约、检查器、台账、Git 配置与远端均未改；未 push、merge 或改写历史。
+
+未验证本机 Jest 实际缓存命中、实际扫描/清理、M1/M2/M7 集成或 macOS。本单交回 SUBMITTED，验收由总控完成。报告与证据提交并核对干净后，才开始 M2 补单 01；本树不再启动测试或后台进程。
