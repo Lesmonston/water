@@ -130,3 +130,101 @@ baseline 明确记录 `productTestsRun: false`、`realDataRead: false`，以及 
 未创建合成夹具、未执行删除、未读真实用户文件内容，未启动原生窗口、选择框或浏览器，未下载依赖。Windows 新功能、macOS、与扫描/服务的集成均未验证。未 push、merge、rebase、改写提交、修改 Git 配置或远端。
 
 按用户“某一张受阻就停下”的指令，WATER-W10-M2 未开始，未读其工单，未在其工作树写入或运行检查。交回本报告后停止本轮工作。
+
+## 补单 01（2026-11-05）：续做检查后再次受阻
+
+以上保留为上一轮 `8dab9d76` 的历史回执。本节是补单 01 的本次交回，未将历史受阻改写为完成。
+
+### 续做身份与范围
+
+- 实际模型：GPT-6（Codex；运行环境未提供更细型号）。
+- 权威补单：`F:/new/smaltalk/water/docs/dispatch/tickets/WATER-W10-M1-ADDENDUM-01-20261105.md`。
+- 工作树/分支：`F:/new/smaltalk/water/.worktrees/w10-m1` / `worker/water-w10-m1`。
+- 续做实际 HEAD：`8dab9d762744701c3747b507074d053d09b6daa8`，开工时干净，符合指定续做起点。
+- 依次阅读原票、执行者规则、RULES-M35 全文及原票有效契约、补单 01、上一轮回执；复核生产接口及指定测试相关段落。
+- baseline 沿用上节通过的记录，按补单“不用重跑”未重跑。
+- 使用原只读辅助核对旧断言范围；未授予其编辑、构建、测试或 M2 权限，已结束辅助。
+- 实现提交 SHA：无。本轮仍在实现前发现必须修改、但补单未明确授权的旧断言；只新增本报告提交。
+
+### 补单已经解决的三处
+
+补单 01 明确批准的三处与上一轮报告一致。以下记录批准的原文与新文，**本轮尚未应用**，避免误报已实现：
+
+| 位置 | 原文/行为 | 补单批准的新文/行为 |
+|---|---|---|
+| `rules_v1.rs:2036` | `rules.rules()[64..]` 与固定 14 个 `AGENT_RULE_IDS` 比较 | `rules.rules()[64..78]`，保留原 ID、顺序、标记 |
+| `:1169–1263` 的旧条件循环 | 所有 marker 目标进入旧条件与字节顺序校验，带条件时调用只认识旧两条规则的 helper | 循环只处理 `node-modules`、`test-browser-profiles`；旧断言、期望、标记与 helper 的 panic 分支保留；新目标独立按 M35 校验 |
+| `:1264–1287` 的旧兼容夹具 | 从当前全部规则移除旧两条兜底，再删除全部条件；当前计划未排除新增规则目标 | 先截取前 78 条再作原变换；比较仅涉及原 78 条生成的目标，按 `target_id` 对齐 |
+
+### 新发现的两处必改旧断言
+
+补单 01 第 20 行明确“除此之外仍只有 SPEC 第 9 节获准的三类”，第 45 行明确受阻时不得自行变通；执行者规则第 2 节与 SPEC 第 9 节仍要求未覆盖的必改旧断言先交受阻回执。
+
+以下两处是同一份指定测试 `rules_resolve_plan` 中的另一段逻辑，既不是补单批准的 `rules()[64..78]`，也不是旧条件循环或旧兼容夹具。
+
+**A. 旧 Agent 计划目标仍被当作整个计划尾段，要求恰好 38 项。**
+
+`packages/junk-rules/tests/rules_v1.rs:1573–1578` 原文：
+
+```rust
+let appended = &plan.targets[beta_position + 7..];
+assert_eq!(
+    appended.len(),
+    38,
+    "RULES_AGENT_TOOLS: appended target count"
+);
+```
+
+SPEC 第 6 节规定在旧最后规则之后追加 32 条。即使会话开关全部关闭，新规则中的固定 pattern 目标仍必须生成，例如 `chromium-partition-cache`、`pagefile`、`minimax-hub-leftover`、`system-tmp-chrome-profiles`；它们都落在这个不设终点的尾段中，尾段必然超过原 38 项。
+
+这里核对的是旧 Agent 全尾段，不是 custom 目标总数或 custom root 顺序；不能把 SPEC 第 9 节针对 custom 计数/顺序的授权扩展到它。补单 01 第 1 条只批准规则 ID 切片的终点，没有批准这个目标切片的终点或 38 的断言。
+
+**B. 整个计划的最后目标仍必须来自旧最后规则。**
+
+`packages/junk-rules/tests/rules_v1.rs:1616–1620` 原文：
+
+```rust
+assert_eq!(
+    plan.targets.last().map(|target| target.target_id.as_str()),
+    Some("other-agent-sessions#3"),
+    "RULES_AGENT_TOOLS: final appended target"
+);
+```
+
+新规则表的第 32 条是 `system-tmp-chrome-profiles`，定位为 `system_drive` 上的 `tmp/chrome_*`，不受会话开关限制。按规则顺序生成计划后，整个计划的最后目标必为 `system-tmp-chrome-profiles#1`。因此保留上述整计划末项断言不可能满足 SPEC 第 6、7 节。
+
+以上是从冻结测试与 SPEC 推出的必然冲突；未运行新实现，不将推导描述为已执行的失败测试。不能通过漏生成新目标、改变顺序或删除旧断言来避开。
+
+### 最小补充需求（未实施）
+
+建议后续编号补单明确允许这两处共同保留旧 Agent 测试的原有语义，例如：
+
+```rust
+let appended = &plan.targets[beta_position + 7..beta_position + 7 + 38];
+// 原 appended.len() == 38 及逐个字段核对原样保留。
+assert_eq!(
+    appended.last().map(|target| target.target_id.as_str()),
+    Some("other-agent-sessions#3"),
+    "RULES_AGENT_TOOLS: final appended target"
+);
+```
+
+另以 `RULES_M35_SEEDS` 核对全部新增目标的顺序、数量和整计划末项，不删减新覆盖。此处只是具体可审阅的补单建议，未改测试、生产代码或冻结文件。
+
+### 本轮命令、证据与未完成事项
+
+| 命令/检查 | 结果 |
+|---|---|
+| `git rev-parse --show-toplevel` | 退出 0，指定 M1 树 |
+| `git branch --show-current` | 退出 0，`worker/water-w10-m1` |
+| `git rev-parse HEAD` | 退出 0，`8dab9d762744701c3747b507074d053d09b6daa8` |
+| `git status --porcelain=v1` | 开工与写本节前均为空 |
+| `git diff --name-only 8dab9d762744701c3747b507074d053d09b6daa8 HEAD` | 写本节前为空，未新增实现提交 |
+| `Get-Content -Encoding UTF8`、`rg -n` | 只读必读材料、代码和上述断言位置 |
+| `Get-FileHash -Algorithm SHA256` | 测试文件仍为 `eaf64136ac8c2f5301ae58b92cb5a9551f92ac77ca03bce27b53ed51bc1dc860`；补单 01 为 `21f86b8fddd19b8ba542359f741389b21a82df6a293d0b8818215b3495ddebb0` |
+
+本轮 SPEC 第 1～8 节均未实现：新字段、`root_levels`、定位、会话与解锁、旧规则调整、32 条新规则、计划 JSON、数据版本全部保持基线。SPEC 第 9 节及补单批准的旧测试尚未修改，实际旧断言修改清单仍为空。
+
+本轮没有运行 `lock`、`check`、`test`、`real`、nc1/nc2、任何 final 或 `archive`；没有负控失败记录或恢复哈希，没有真实冒烟结果，没有新归档证据。没有创建夹具、删除、启动窗口/选择框/浏览器、下载或扫描真实数据。没有修改依赖、锁、其它包、契约、检查器、台账、Git 配置或远端，没有 push 或改写提交。
+
+Windows 新功能、macOS 和集成均未验证。按用户顺序约束，M1 补单 01 受阻后停止，M2 未开始，未读其工单、未进入其工作树执行命令。本轮只提交该受阻回执，交回后停止工作。
