@@ -74,11 +74,7 @@ pub fn quarantine(
             .iter()
             .filter_map(|p| native_windows::resolve_follow(p))
             .collect();
-        let protected_ids: Vec<Identity> = plan
-            .protected_paths
-            .iter()
-            .filter_map(|p| native_windows::resolve_follow(p))
-            .collect();
+        let protected_ids = resolve_protections(plan);
         let mut report = QuarantineReport {
             report_version: "water.quarantine-report.v1".into(),
             quarantine_id: quarantine_id.into(),

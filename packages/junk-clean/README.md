@@ -1,58 +1,55 @@
 # water-junk-clean
 
-Windows cleanup executor for the frozen checkup-v1 MODEL/CLEAN contracts. The independent
-workspace uses Rust 1.95, serde/serde_json only, and has no binary, examples, process launches,
-network access, environment lookup, or GUI. All filesystem operations and the five permitted
-Win32 APIs are confined to `src/native_windows.rs`.
+Windows handle-based cleanup and quarantine executor. This independent Rust 1.95 workspace
+uses only serde/serde_json. Production src has no GUI, network, process launch, environment
+lookup or file-content read. Unsafe filesystem code is confined to src/native_windows.rs.
 
-`CleanPlan::from_json` rejects invalid plans before filesystem access. Public Rust plan fields
-support backend integration; `execute` validates their shape again and independently enforces
-containment, hard guards and protected overlaps, including protection added after parsing.
-Pass a trusted backend plan, `ItemGuard`, a journal writer, `StopFlag`, `CleanObserver`, and
-the evaluation time to `execute`. The host owns user consent and must never expose this API
-as an arbitrary-path WebView command. `identity_of`, `volume_free_bytes` and `report_to_json`
-provide the other frozen entry points.
+execute revalidates a trusted backend CleanPlan, deletes selected entries and writes an
+intent/result journal. PlanItem.unlocked_paths permits at most four explicitly protected
+ancestors for that item only. Other protection spellings, internal identities and hard guards
+remain effective. Protection identities are captured once per run, so retargeting an alias
+cannot erase an existing protection. The host owns user consent; arbitrary WebView paths
+must never reach this API.
 
-Each item gets an intent/result JSONL pair (including skips). `write_all` plus `flush` must
-succeed before any deletion; errors abort execution immediately. A result-journal failure can
-occur after deletion and returns `CleanError::Journal`, so the caller must preserve the prior
-intent. The host's `Write::flush` implementation determines crash durability; an ordinary
-`File::flush` alone does not promise power-loss durability. The disk-journal test also syncs
-and rereads its synthetic journal. Observer callbacks run only after result flush.
+quarantine performs same-volume handle-relative rename into
+.water-quarantine/<id>/<original path without drive>. It never copies across volumes or
+replaces an existing destination. Moves do not free space. This crate writes only the caller's
+journal; the service retains quarantine records. restore checks identity, rebuilds missing
+plain parents, refuses reparse parents and existing destinations, and supports a same-volume
+alternate path beside the original. Only empty quarantine skeleton directories are removed.
 
-Metadata traversal never reads file contents. Identity is volume serial plus FileIdInfo's
-128-bit ID from a no-follow attribute handle. Every path level is checked, including ancestors
-of root; root/item reparse points are rejected. Nested reparse points are unlinked without
-enumerating their targets. Regular readonly files get one permission-clearing retry. Removal
-is iterative postorder with cancellation checks between entries. A failure leaves remaining
-objects in place and contributes to failed_entries. Incomplete residual observations report
-zero freed bytes conservatively. Freed bytes are logical file lengths, not unique physical
-allocation or the measured change in disk free space.
+purge uses iterative postorder traversal. Relative opens support DOS device names, trailing
+dots/spaces and long paths. Name-surrogate links are unlinked without entering their targets;
+other reparse points remain protected. Locked/inaccessible entries are reported individually,
+including an occupied quarantine directory itself. Stop is checked between entries and before
+removing the empty quarantine root. Remaining totals are complete; sorted root-cause leftovers
+are capped at 200. Progress runs after handles close, every 256 removals and at completion.
 
-The implementation repeats checks after guard callbacks and intent flush, and checks the
-root/item chain between deletions. Each directory's identity (volume serial plus FileId) is
-recorded when it is enumerated; before removing any entry below it, every level from the item
-down to that directory must still be a non-reparse directory and the identity must be
-unchanged. Any mismatch stops the item (failed_entries, then partial or failed) without
-touching anything else inside it. A run is `stopped` only when an item was cancelled or cut
-short; cancelled items report the measured bytes_before and zero freed bytes. Path-based
-standard-library removals still do **not** provide an atomic guarantee against hostile
-concurrent replacement in the window between that check and the removal; handle-relative
-deletion is a later CLEAN upgrade. Production races,
-real user data, UI consent wiring and macOS are not verified by this ticket. Non-Windows
-native APIs return Unsupported; there is no real-data test mode.
+list_quarantines observes direct valid ID directories and reports absent/present/unavailable.
+inspect reads metadata without following links and flags odd names, long paths, read-only
+attributes, non-name-surrogate reparse points and inaccessible entries. Its hints are capped
+at 200 independently of full counts. Five JSON helpers serialize these reports. Filesystem
+entry points return Unsupported outside Windows; macOS has not been validated.
 
-The five tests in `tests/clean_v1.rs` exclusively create random `fixture-*` directories under
-this worktree's `.local/w2-d-fixtures/` (the work tree root is two levels above the manifest
-and must contain `.git`; any checkout location works). Cleanup verifies the exact absolute parent/name and
-does not follow links; it removes only that test's newly-created directory. Junction targets,
-locked files, journals and replacements are all synthetic children of that same directory.
-The frozen controller entry point runs offline, jobs=1 and a private Cargo/target/temp setup:
+The ten native functions are CreateFileW, GetFileInformationByHandleEx,
+SetFileInformationByHandle, GetVolumeInformationByHandleW, GetDiskFreeSpaceExW, CloseHandle,
+NtOpenFile, NtCreateFile, NtSetInformationFile and RtlNtStatusToDosError. NtCreateFile is used
+only by create_dir_at, with FILE_CREATE and directory/no-follow options. NtSetInformationFile
+is used only by rename_at, class 10, with a parent handle, one name segment and replacement
+disabled. SetFileInformationByHandle uses only deletion classes 4 and 21. No path rename exists.
 
-```powershell
-node F:/new/smaltalk/water/scripts/checkup-wave-check.mjs --task WATER-W2-D --mode check
-node F:/new/smaltalk/water/scripts/checkup-wave-check.mjs --task WATER-W2-D --mode test
-```
+Freed bytes count successful ordinary-file deletions using size and link count read from the
+same handle immediately before deletion. Data retained through another hard link is excluded.
+This is distinct from allocation and the volume-free-space delta. Journal writes and flushes
+must succeed before mutation; the caller's flush implementation determines crash durability.
+A failure after mutation can still require reconciliation using the durable journal.
 
-Use the ticket's three negative-control and final/archive steps before submitting. These are
-implementation proofs only; independent controller review is still required for VERIFIED.
+All 11 tests are in tests/clean_v1.rs; the original six assertions remain intact. Deletion tests
+create private random fixtures under this worktree's .local, validate the ownership boundary,
+and remove only their own new directory. The contract has one narrow cross-volume TEMP
+exception; same-volume TEMP is reported as not applicable. The real_smoke example only observes
+the system drive and repository drive, deduplicates them, and prints aggregate states/counts
+without drive letters, paths or names. It never moves, restores or deletes real data.
+
+Use the controller-owned WATER-W10-M4 gate for lock/check/test/real, negative controls,
+final checks and archival before submission. Independent controller review is still required.

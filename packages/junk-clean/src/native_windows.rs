@@ -192,6 +192,13 @@ mod windows {
             ea: *const c_void,
             ea_length: u32,
         ) -> i32;
+        fn NtSetInformationFile(
+            handle: *mut c_void,
+            io: *mut IoStatusBlock,
+            information: *const c_void,
+            length: u32,
+            class: i32,
+        ) -> i32;
         fn RtlNtStatusToDosError(status: i32) -> u32;
     }
 
@@ -633,17 +640,19 @@ mod windows {
             ptr::write(base.add(16).cast::<u32>(), (name.len() * 2) as u32);
             ptr::copy_nonoverlapping(name.as_ptr(), base.add(20).cast::<u16>(), name.len());
         }
-        // SAFETY: class 3 reads exactly the FILE_RENAME_INFO buffer initialized above.
-        let ok = unsafe { SetFileInformationByHandle(handle.0, 3, base.cast(), size as u32) };
-        if ok != 0 {
+        let mut io = IoStatusBlock {
+            status_or_pointer: 0,
+            information: 0,
+        };
+        // SAFETY: class 10 reads the aligned FILE_RENAME_INFORMATION buffer above.
+        // Source and target-parent handles are live across this synchronous operation.
+        let status =
+            unsafe { NtSetInformationFile(handle.0, &mut io, base.cast(), size as u32, 10) };
+        if status == 0 {
             Ok(())
         } else {
-            let code = last_error();
-            eprintln!(
-                "CLEAN_M35_RENAME_NATIVE error={code} size={size} units={}",
-                name.len()
-            );
-            Err(code)
+            // SAFETY: pure translation of the returned NT status.
+            Err(unsafe { RtlNtStatusToDosError(status) })
         }
     }
 
@@ -741,7 +750,7 @@ mod windows {
         before: &Snapshot,
         guard: &dyn ItemGuard,
         guard_ids: &[Identity],
-        protected_ids: &[Identity],
+        protected_ids: &[(String, Identity)],
         journal: &mut dyn std::io::Write,
         stop: &StopFlag,
         now: SystemTime,
@@ -1270,6 +1279,7 @@ mod windows {
         kids: Vec<Raw>,
         index: usize,
         blocked: bool,
+        delete_error: Option<u32>,
     }
     struct Purging<'a> {
         report: &'a mut PurgeReport,
@@ -1333,7 +1343,28 @@ mod windows {
     ) -> Result<PurgeReport, CleanError> {
         let root = crate::quarantine::validate_dir(dir)?;
         // Reject every reparse ancestor before writing intent or deleting any object.
-        let mut chain = open_chain(dir, true).map_err(|_| CleanError::InvalidPlan)?;
+        let mut chain = open_chain(dir, false).map_err(|_| CleanError::InvalidPlan)?;
+        let probe = chain.pop().ok_or(CleanError::InvalidPlan)?;
+        let expected = identity_from(&probe).ok_or(CleanError::Native)?;
+        drop(probe);
+        let parent = chain.last().ok_or(CleanError::InvalidPlan)?;
+        let (handle, delete_error) = match purge_open(parent, last_segment(dir), true) {
+            Ok(h) => (h, None),
+            Err(code) => (
+                nt_open(
+                    parent,
+                    last_segment(dir),
+                    FILE_LIST_DIRECTORY | FILE_READ_ATTRIBUTES | SYNCHRONIZE,
+                    SHARE_RW,
+                )
+                .map_err(|_| CleanError::Native)?,
+                Some(code),
+            ),
+        };
+        plain(&handle).map_err(|_| CleanError::InvalidPlan)?;
+        if identity_from(&handle).as_ref() != Some(&expected) {
+            return Err(CleanError::InvalidPlan);
+        }
         let drive = path::volume(dir);
         let mut report = PurgeReport {
             report_version: "water.purge-report.v1".into(),
@@ -1360,7 +1391,6 @@ mod windows {
             serde_json::json!({"journal_version":"water.purge-journal.v1", "event":"intent", "quarantine_dir":dir, "at":time::format(now)?}),
         )?;
         let mut stack: FrameStack<PurgeFrame> = FrameStack::new();
-        let handle = chain.pop().unwrap();
         let mut ctx = Purging {
             report: &mut report,
             observer,
@@ -1380,6 +1410,7 @@ mod windows {
             kids,
             index: 0,
             blocked: ctx.leftovers_count != 0,
+            delete_error,
         });
         while !stack.is_empty() {
             if stop.is_stopped() {
@@ -1390,7 +1421,12 @@ mod windows {
             if frame.index == frame.kids.len() {
                 let frame = stack.pop().unwrap();
                 if !frame.blocked {
-                    if set_delete(&frame.handle) {
+                    if let Some(code) = frame.delete_error {
+                        ctx.error(frame.rel.clone(), Kind::Dir, 0, code);
+                        if let Some(parent) = stack.last_mut() {
+                            parent.blocked = true;
+                        }
+                    } else if set_delete(&frame.handle) {
                         if frame.rel.is_empty() {
                             ctx.report.dir_removed = true;
                         }
@@ -1470,6 +1506,7 @@ mod windows {
                         kids,
                         index: 0,
                         blocked: false,
+                        delete_error: None,
                     }),
                     Err(_) => {
                         ctx.error(rel, kind, size, last_error());
@@ -1498,10 +1535,13 @@ mod windows {
         drop(chain);
         let freed = ctx.freed;
         ctx.report.freed_bytes = freed.to_string();
-        if ctx.report.dir_removed {
+        if stop.is_stopped() {
+            ctx.report.status = RunStatus::Stopped;
+        }
+        if ctx.report.dir_removed && !stop.is_stopped() {
             let (_, removed) = remove_empty_up(root, dir, root);
             ctx.report.root_removed = removed;
-        } else {
+        } else if !ctx.report.dir_removed {
             // Remaining totals are measured without stop filtering; stop only forbids mutation.
             let remaining = inspect_quarantine(dir, &StopFlag::default())?;
             ctx.report.remaining_entries = remaining
@@ -1509,6 +1549,18 @@ mod windows {
                 .checked_add(remaining.dir_count)
                 .ok_or(CleanError::Overflow)?;
             ctx.report.remaining_bytes = remaining.total_bytes;
+            if ctx
+                .report
+                .leftovers
+                .iter()
+                .any(|entry| entry.rel.is_empty())
+            {
+                ctx.report.remaining_entries = ctx
+                    .report
+                    .remaining_entries
+                    .checked_add(1)
+                    .ok_or(CleanError::Overflow)?;
+            }
         }
         ctx.report.volume.free_after = volume_free(&drive)?.to_string();
         ctx.report.ended_at = time::format(SystemTime::now())?;
@@ -1706,14 +1758,9 @@ mod windows {
         guard_ids: &[Identity],
         protected_ids: &[Identity],
         ancestor_protected_ids: &[Identity],
+        unlocked_guard_ids: &[Identity],
     ) -> Result<Snapshot, SkipReason> {
         let walked = walk_item(item)?;
-        let unlocked_guard_ids: Vec<Identity> = item
-            .unlocked_paths
-            .iter()
-            .filter_map(|p| resolve_follow(p))
-            .filter(|id| guard_ids.contains(id))
-            .collect();
         // An opened ancestor (including the drive root) sharing a protected identity means the
         // item sits inside protected data.
         for ancestor in &walked.ancestors {
@@ -2513,6 +2560,7 @@ pub(crate) fn check_chain(_: &PlanItem) -> Result<(), SkipReason> {
 #[cfg(not(windows))]
 pub(crate) fn snapshot(
     _: &PlanItem,
+    _: &[Identity],
     _: &[Identity],
     _: &[Identity],
     _: &[Identity],
