@@ -1,5 +1,7 @@
 WATER-W10-M2 任务已完成，任务报告在 F:/new/smaltalk/water/.worktrees/w10-m2/docs/dispatch/reports/WATER-W10-M2-REPORT.md
 
+当前交回为文末“补单 01”；原有实现与检查记录保留，属于历史状态。
+
 ## 身份、基线与提交
 
 - 日期：2026-11-05；执行者 Codex，实际模型 GPT-6（环境未提供更细型号）。
@@ -182,3 +184,104 @@ Archive: 396 entries, 6036482 bytes. All sizes and SHA-256 verified.
              empty.file_count = 0;
              empty.oldest_activity = None;
 ```
+
+## 补单 01（2026-11-05）：完成，交回 SUBMITTED
+
+### 身份、顺序与提交
+
+- 实际模型：GPT-6（Codex，运行环境未提供更细型号）。使用继承同模型的只读辅助审阅遍历、缓存与兼容边界；辅助未编辑、构建、测试或扫描，现已结束。
+- 先完成 M1 补单 03：实现 `72ac1178cd30adce9c4d27df988e2057eabfdbcb`、回执证据 `2fd789d84177398f97cef2128c1326d4725697a8`，提交并交回、确认干净后才读本补单并进入 M2。
+- 本树 / 分支：`F:/new/smaltalk/water/.worktrees/w10-m2` / `worker/water-w10-m2`；续做起点 `f50da2642dc055d8425b474e30759b6ce22cdc0f`，开工干净。
+- 已按顺序读原票、执行者规则、SCAN-M35 全文、本补单与原回执，并复核有效契约、ADR 与相关代码。baseline 沿用原回执已通过记录，本次未重跑。
+- 实现提交：**`337f41ace967620ecbefecde82c0cf2e17c8fb77`**。三个 final 均绑定该干净提交，后续仅回执与 archive 证据提交；没有改写历史。
+
+### 本补单五项
+
+1. `scan.rs:1248` 起按模板规定的末点、1～8 个 ASCII 字母数字提取扩展名；`hash_extra` 精确核对扩展名（ASCII 不分大小写），无扩展名模板只接受同样无扩展名的额外成员。保留同前缀补充成员的原语义。
+2. 目录候选进入自己的清单时记录是否直接有普通 `.water-cleanup.json`；这类目录不进入候选、不计 S1，且不依赖 declarations 开关。发现的声明路径不因簇认领成员而删除，仍按深度 0～4、路径顺序、最终最多 256 条交给服务。对嵌套 custom root，深度按各个 root 分别判断。
+3. 原 marker 在名字命中后照旧关闭自己的后代匹配，保持 SCAN-M3D 与所有旧断言；附加搜索状态独立。只有实际命中或兜底命中才抑制簇和声明搜索；条件失败且无兜底时仍搜索这些附加结果。长度条件的归属在测量后确定，先保留必要的附加搜索结果，再只按实际 marker 命中排除；簇不会排除已发现声明。
+4. 新私有模块 `src/scan/streaming.rs` 把 pattern、marker、discovery 的重叠位置合为一次物理 DFS；嵌套根在同一次遍历激活，盘根严格排在后代前面，目标根的父条件仍为深度 0。目录清单建小写名字到下标的 HashMap，`cached_child` 不再线性搜索。目标、候选的测量共用该次枚举；逐条累计并保持每个测量根独立的文件身份去重，不能把兄弟目录的 unique/disk 简单相加。
+   - 清单在 Enter 的 `Engine::listing` 放入缓存；当前目录及其祖先使用期间保留；Exit 完成本目录测量和候选收集后立即移除。取消/预算退出时清空剩余清单。概览所用 `measure` 也在每个目录处理完后释放清单。
+   - 候选目录自身测量完成时立即释放其身份 HashSet 和父清单 Arc；父目录只暂存 Child、Measured、直接声明标记和问题。没有潜在十成员模板的搜索目录不保留候选清单；后续只保留待判定的候选测量记录与实际命中，不保留全部已扫描目录的清单或 visited 路径集合。`visited_roots` 仅记录计划内有限的根。
+   - 候选模板用 HashSet 查询；同扩展名 hash 前缀按名字逐字符归一化查询，避免每个子项遍历所有模板。命中用精确路径集合及 BTreeSet 后代范围查询，已认领成员用 HashSet 逐级查祖先。候选计数、判断、补成员、索引与测量相关循环检查取消/预算；进度限流时间在回调前更新，慢观察者不推迟下一次合法进度。
+5. 簇尚未成立时，取消与预算检查使用父位置组；只有成功簇才生成 `leak:` 目标，因此不会给不存在的 leak 组留下 budget_exhausted。候选测量问题保留到成功簇并归该组；最终被普通命中排除的 discovery 不记它不该测量的子树问题。新增独立 FNV-1a 64 位计算，与实际 `group_id` 逐字比对。
+
+原公开接口、ScanResult/ScanOptions 字段、计划与结果版本、原生调用与依赖不变。目录只枚举一次的原断言及新增重叠根断言全部通过。
+
+### 新增测试与旧断言
+
+在指定 `scan_pattern_marker_discovery` 内调用新增 helper `m35_clusters_addendum`，仍精确五测。新增覆盖：
+
+- 有扩展名、无扩展名两种 hash 簇，拒绝其它扩展名；同扩展名非模板文件仍加入。
+- 十个同模板目录中一个直接带声明，剩九个不成簇；该声明仍返回。
+- 成簇成员内部更深处已经发现的声明仍保留。
+- 名字命中但条件失败无兜底的目录内，十二个子目录成簇，直接声明返回。
+- 独立按小写父路径、换行、dir、换行、模板计算 FNV ID。
+- 2,048 个候选文件的目录内，候选判断的进度回调取消，结果 cancelled 且无簇；预算放弃的簇问题均属于实际位置组。
+- 嵌套 marker root 的深度 0 父条件不满足；嵌套位置的声明按各自 root 深度发现。
+- 普通 marker 与 discovery 同时覆盖目录时，普通条目正确归属，visited_entries 精确等于实际三项；被排除 discovery 没有该子树的测量问题。
+- 成功簇保留成员清单里的 unrepresentable_name 问题。
+
+**旧断言修改：无。** 测试 diff 只增加 helper 和调用；全部旧期望、标记、测试名单、fixture 清理边界保持原样。新夹具沿用本树 `.local/w2-b-fixtures/fx-<进程>-<纳秒>` 工厂，仅清理本次目录；未增第六测、ignore 或过滤。
+
+### 检查命令与完整结果
+
+均在本树根执行，共同前缀 `node F:/new/smaltalk/water/scripts/checkup-wave-check.mjs --task WATER-W10-M2`。时间为 UTC，表中对应的 result.json、日志和源码快照已 archive；普通及 final test 均运行完整五测。
+
+| Receipt 时间 / PID | 后缀参数 | 结果 |
+|---|---|---|
+| 12-25-18.783Z-10340 | `--mode real` | 改前只读对照通过 |
+| 12-28-36.042Z-27876 | `--mode test` | 新用例先红，4/5；额外成员扩展名不符 |
+| 12-37-10.196Z-19352 | `--mode test` | 开发期 3/5；旧逻辑问题计数、root 预算最终归属失败，修生产代码，未改断言 |
+| 12-39-38.927Z-14112 | `--mode test` | 开发期 4/5；新增候选取消用例发现状态未及时更新，修正进度/取消接线 |
+| 12-45-31.187Z-7968 | `--mode test` | 5/5 通过 |
+| 12-47-18.116Z-27988 | `--mode check` | Clippy type_complexity 失败；提取 ClusterMember 类型别名，未加 allow |
+| 12-50-04.003Z-30988 | `--mode test` | 补齐嵌套 root、discovery、问题归属用例后 5/5 通过 |
+| 12-52-17.085Z-21676 | `--mode lock` | 通过，依赖与锁不变 |
+| 12-52-25.487Z-33996 | `--mode check` | 政策、fmt、clippy -D warnings 通过 |
+| 12-53-35.369Z-23240 | `--mode red-nc1` | 有效负控，检查器通过 |
+| 12-54-03.094Z-7752 | `--mode test` | 原字节恢复后 5/5 |
+| 12-55-19.131Z-19420 | `--mode red-nc2` | 有效负控，检查器通过 |
+| 12-55-52.563Z-27876 | `--mode test` | 原字节恢复后 5/5 |
+| 12-56-44.162Z-3688 | `--mode red-nc3` | 有效负控，检查器通过 |
+| 12-57-15.360Z-30068 | `--mode test` | 原字节恢复后 5/5 |
+| 12-58-13.235Z-10700 | `--mode check --final` | 干净实现提交通过 |
+| 12-58-40.423Z-23744 | `--mode test --final` | 5/5，三组 proofAudit 通过 |
+| 12-59-14.671Z-34064 | `--mode real --final` | 三段真实只读冒烟 completed，通过 |
+| 13-02-09.175Z-27792 | `--mode archive` | 通过；777 条 / 12,883,101 字节，逐条大小与 SHA-256 核对通过 |
+
+实现期用绝对工具链路径执行 `cargo.exe fmt --manifest-path packages/junk-scan/Cargo.toml`；`git diff --check` 通过。一处补丁上下文未匹配，未写入，读取上下文后重新应用。没有下载、改超时或用编译错误造负控。
+
+### 三条负控与恢复
+
+三条均只改 `src/scan.rs` 的真实生产逻辑一处；每次等 red 完成后立即 `git checkout -- packages/junk-scan/src/scan.rs`，再完整 test。内部 Cargo 均预期 101、4 通过 / 1 失败，外层检查器均通过。
+
+| 负控 | 注入 | 目标失败 |
+|---|---|---|
+| nc1 | 共用的 `CLUSTER_MIN_MEMBERS` 从 10 改为 2，前置候选与最终判断同时使用该承重常量 | `SCAN_M35_CLUSTERS: verify/hash/run/discovery, nine and photos excluded` |
+| nc2 | inside_protected 的解锁查询改查空 ID，忽略实际合法解锁目标 | `SCAN_M35_RULES: named unlock pair` |
+| nc3 | accumulate 的分配量累加从 `child.allocation.unwrap_or(0)` 改为 `child.len` | `SCAN_M35_SIZES: sparse allocation must be far below length` |
+
+三次恢复的 scan.rs SHA-256 均为 `6c1a28ba8757c560672f2e69c828ef15be1fecf7b57aff56ae4c8c58304bbfb2`，与注入前一致。未改动的 streaming.rs SHA-256 为 `cb353fd849fca3714ce6a979590b6d54d9493f377dc11145acf98f5b24025364`。最终 test 的 proofAudit 逐组采用上表对应红绿记录，并验证源码快照及测试哈希；没有红绿重叠执行。
+
+### 真实冒烟前后对照
+
+改前为本轮在 `f50da264` 上的 12:25:18 记录；改后为 `337f41ac` 上的最终 real。两次均只读，三段都 completed；输出仅组级汇总和计数，不输出真实路径、文件名、命令行。
+
+| 段 | 改前 ms / visited_entries | 改后 ms / visited_entries |
+|---|---:|---:|
+| 普通 scan | 21,663 / 284,679 | 50,037 / 283,982 |
+| 三开关 scan_full | 31,020 / 284,679 | 27,964 / 283,982 |
+| 用户目录 space_overview | 42,874 / 653,681 | 76,262 / 654,206 |
+
+实测 full 减少 3,056 ms；普通 scan 与概览本次反而更慢，不能宣称整体加速。两次不是冻结数据，条目数与体量也变化，未测同时运行的其它任务负载，不能把耗时差单独归因于实现。内存边界来自缓存生命周期与代码复核，本次未测进程峰值内存或做同一冻结大目录的性能基准。
+
+改后普通扫描 12 组 / 4,652 项；full 仍为 9 个簇、全部 confirm，23 个联接，0 个声明。概览 top 10、others 227、558,199 个文件，分配量 `90495496368` 字节；只读存在性与占用结果不代表这些内容能清或已清理。改前概览为 557,838 个文件、分配量 `78665294688` 字节。数据现场变化未逐文件取证。
+
+### 边界与未验证项
+
+未改其它包、规则数据、冻结契约、检查器、台账、Cargo.toml/Cargo.lock、原生 FFI、Git 配置或远端；未 push、merge、rebase、amend、reset。没有窗口、选择框、浏览器、联网下载；真实文件只读元数据、身份、时间及重解析点数据，没有读被扫描文件内容或修改真实数据。
+
+未验证 macOS、M1/M2/M7 实际集成、真实清理、极端并发变化、2,000 万条目下的内存峰值。候选与实际输出自身仍随候选/输出数量占内存；声明路径仍按既有语义在最终排序后截到 256，未做百万浅层声明的内存基准。没有把目录清单释放等同于固定的总内存上限。
+
+已完成本票全部授权修改、指定五测、三条红绿及三个 final。回执和证据提交并核对干净后停止本树所有测试、扫描与自有后台进程；状态为 SUBMITTED，等待总控验收。
