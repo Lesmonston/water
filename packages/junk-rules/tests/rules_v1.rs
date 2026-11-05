@@ -235,6 +235,35 @@ fn m35_schema() {
         invalid["locate"][0]["conditions"] = json!([c]);
         m35_reject(invalid, "file condition whitelist");
     }
+    let mut drive_discovery = sample_rule();
+    drive_discovery["min_age_hours"] = json!(24);
+    drive_discovery["locate"] = json!([{"kind":"discovery","base":"system_drive"}]);
+    let error = RuleSet::from_json(&wrap(vec![drive_discovery]))
+        .expect_err("RULES_M35_FIELDS: drive root discovery rejected");
+    assert_eq!(
+        error.code, "RULES_INVALID_LOCATE",
+        "RULES_M35_FIELDS: discovery error code"
+    );
+    assert_eq!(
+        error.path, "/rules/0/locate/0",
+        "RULES_M35_FIELDS: discovery locator pointer"
+    );
+    let mut discovery_rule = sample_rule();
+    discovery_rule["min_age_hours"] = json!(24);
+    discovery_rule["locate"] = json!([{"kind":"discovery","base":"downloads"}]);
+    let discovery_rules = RuleSet::from_json(&wrap(vec![discovery_rule])).unwrap();
+    let mut folders = KnownFolders::from_json(&folders_json()).unwrap();
+    folders.downloads = "F:\\".into();
+    let error = resolve_plan(&discovery_rules, &folders, &[], CREATED_AT)
+        .expect_err("RULES_M35_FIELDS: resolved drive root discovery rejected");
+    assert_eq!(
+        error.code, "RULES_INVALID_LOCATE",
+        "RULES_M35_FIELDS: resolved discovery error code"
+    );
+    assert_eq!(
+        error.path, "/rules/0/locate/0",
+        "RULES_M35_FIELDS: resolved discovery locator pointer"
+    );
     let mut discovery = sample_rule();
     discovery["category"] = json!("custom");
     discovery["min_age_hours"] = json!(24);
@@ -850,6 +879,21 @@ system-tmp-chrome-profiles|系统盘 tmp 里的无头浏览器配置|system_temp
     ];
     let plan = resolve_plan(&rules, &folders, &roots, CREATED_AT).unwrap();
     assert_eq!(plan.targets.len(), 323, "RULES_M35_SEEDS: whole plan count");
+    for (id, base) in [
+        ("jest-cache#1", folders.system_temp.as_str()),
+        ("jest-cache#4", folders.user_temp.as_str()),
+    ] {
+        let target = plan
+            .targets
+            .iter()
+            .find(|t| t.target_id == id)
+            .expect("RULES_M35_SEEDS: jest target");
+        assert!(
+            matches!(&target.match_spec, MatchSpec::Pattern { base: actual, segments }
+                if actual == base && segments == &["jest", "*"]),
+            "RULES_M35_SEEDS: jest members in each temp base"
+        );
+    }
     assert_eq!(
         plan.targets.last().unwrap().target_id,
         "system-tmp-chrome-profiles#1",
@@ -2201,7 +2245,9 @@ fn rules_resolve_plan() {
         .iter()
         .zip(wire["targets"].as_array().unwrap())
         .filter(|(target, _)| {
-            ["node-modules", "test-browser-profiles"].contains(&target.rule_id.as_str())
+            rules.rules()[..78]
+                .iter()
+                .any(|rule| rule.rule_id == target.rule_id)
         })
     {
         let match_json = &value["match"];
@@ -2218,7 +2264,9 @@ fn rules_resolve_plan() {
                         match_json.get("conditions").is_none(),
                         "RULES_M3D_CONDITIONS: empty omitted"
                     );
-                } else {
+                } else if ["node-modules", "test-browser-profiles"]
+                    .contains(&target.rule_id.as_str())
+                {
                     assert_eq!(
                         match_json["conditions"],
                         m3d_conditions_json(&target.rule_id),
@@ -2272,7 +2320,10 @@ fn rules_resolve_plan() {
                     );
                 } else {
                     let mut expected = legacy.trim_end_matches('}').to_string();
-                    if !conditions.is_empty() {
+                    if !conditions.is_empty()
+                        && ["node-modules", "test-browser-profiles"]
+                            .contains(&target.rule_id.as_str())
+                    {
                         // serde_json::Value sorts keys; build condition objects in the frozen wire order.
                         let condition_json = m3d_conditions_json(&target.rule_id)
                             .as_array()
@@ -3800,10 +3851,10 @@ fn seed_table() -> Vec<SeedSpec> {
         InUseMode::CmdlineReferencesItem,
         Growth::Slow,
         vec![
-            p("system_temp", "jest *"),
+            p("system_temp", "jest/*"),
             p("system_temp", "haste-map-*"),
             p("system_temp", "metro-*"),
-            p("user_temp", "jest *"),
+            p("user_temp", "jest/*"),
             p("user_temp", "haste-map-*"),
             p("user_temp", "metro-*"),
         ],

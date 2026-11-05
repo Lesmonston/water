@@ -4,8 +4,8 @@ use crate::m35::{self, AgeBasis, KeepBy, PlanOptions};
 use crate::rules::RuleSet;
 use crate::types::{
     Category, Condition, InUse, ItemType, KNOWN_FOLDER_ORDER, Level, Locator, Marker, MatchSpec,
-    as_str, bounded_u32, expect_keys, field, object, parse_conditions, valid_abs_path,
-    valid_created_at, valid_data_version, valid_root_id, valid_segment,
+    as_str, bounded_u32, expect_keys, field, is_drive_root, object, parse_conditions,
+    valid_abs_path, valid_created_at, valid_data_version, valid_root_id, valid_segment,
 };
 use serde::Serialize;
 use serde_json::{Map, Value};
@@ -207,6 +207,18 @@ pub fn resolve_plan_with(
         }
         if !seen_roots.insert(root.root_id.clone()) {
             return Err(RulesError::new("RULES_DUPLICATE_ID", path));
+        }
+    }
+    for (rule_index, rule) in rules.rules().iter().enumerate() {
+        for (offset, locator) in rule.locate.iter().enumerate() {
+            if let Locator::Discovery { base } = locator
+                && is_drive_root(folders.get(*base))
+            {
+                return Err(RulesError::new(
+                    "RULES_INVALID_LOCATE",
+                    format!("/rules/{rule_index}/locate/{offset}"),
+                ));
+            }
         }
     }
     let mut targets = Vec::new();

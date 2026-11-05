@@ -448,9 +448,11 @@ fn parse_locator(value: &Value, path: &str) -> Result<Locator, RulesError> {
         }
         "discovery" => {
             expect_keys(map, &["kind", "base"], path)?;
-            Ok(Locator::Discovery {
-                base: parse_base(map, path)?,
-            })
+            let base = parse_base(map, path)?;
+            if base == KnownFolder::SystemDrive {
+                return Err(RulesError::new("RULES_INVALID_LOCATE", path));
+            }
+            Ok(Locator::Discovery { base })
         }
         "custom_discovery" => {
             expect_keys(map, &["kind", "root_names"], path)?;
