@@ -6,8 +6,11 @@
 |---|---|---|---|---|---|
 | [WATER-W10-M9 已安装程序](../../../dispatch/tickets/WATER-W10-M9-APPS-20261105.md) | 完成（Codex GPT-6） | `9bf847f7` | `ad6c18a4` | `c701d029` | **VERIFIED** |
 | [WATER-W10-M3 项目声明](../../../dispatch/tickets/WATER-W10-M3-MANIFEST-20261105.md) | 完成（Codex GPT-6） | `ec0ed5fd` | `27451662` | `2def1796` | **VERIFIED** |
+| [WATER-W10-M8 查重](../../../dispatch/tickets/WATER-W10-M8-DUP-20261105.md) | 受阻后经[补单 01](../../../dispatch/tickets/WATER-W10-M8-ADDENDUM-01-20261105.md)完成（Codex GPT-6） | `ef552f5a` | `b408fcff` | `a9053407` | **VERIFIED** |
 
-验收工具在 `.local/w10-accept/`（脚本副本 [accept-kit](accept-kit/)）。验收树 `.worktrees/accept-w10-m9`、`accept-w10-m3` 停在各自交回的 HEAD。验收回执在 [accept-20261105/](accept-20261105/) 下按单分目录；审计输出、变异清单、日志与验收清单在 [accept-20261105/controller](accept-20261105/controller/)。
+B 组（M9 → M3 → M8）三张至此全部合入。
+
+验收工具在 `.local/w10-accept/`（脚本副本 [accept-kit](accept-kit/)）。验收树 `.worktrees/accept-w10-m9`、`accept-w10-m3`、`accept-w10-m8` 停在各自交回的 HEAD。验收回执在 [accept-20261105/](accept-20261105/) 下按单分目录；审计输出、变异清单、日志与验收清单在 [accept-20261105/controller](accept-20261105/controller/)。
 
 ## 1. 收单审计
 
@@ -47,6 +50,17 @@
   - 超长值在去空白前就被丢掉；5000 条上限按枚举顺序截断；
   - 登记类型映射、上限与 `unreadable_keys` 没有测试。
 
-## 5. 结论
+## 5. M8 查重
 
-M9、M3 **VERIFIED**，`git merge --no-ff` 合入主线，合入后两个包与验收证据目录和各自分支逐字节相同。B 组的 M8 交回后续写本报告。
+- **受阻与补单**：第一次交回受阻（`67975926`），成立：契约要求在同一句柄上复查修改时间，却没给读取入口。[补单 01](../../../dispatch/tickets/WATER-W10-M8-ADDENDUM-01-20261105.md) 许用 `GetFileInformationByHandleEx` 类 0（只查询），之后完成。
+- **审计**：0 个问题；三个 final 落在实现提交 `ef552f5a` 上，执行者三条负控（摘要只看大小、硬链接不合并、Offline 位去掉）红绿成对。
+- **新树重跑**：lock、check final、real final 通过（真实冒烟只统计本仓库 `docs/`，只输出计数）。
+- **总控变异**，七条抓住六条：
+  - 抓住：c1 分组编号少一位；c3 等长改写时不复查修改时间；c4 前缀改成 32 KiB；c5 受保护的副本也可删；c6 保留较新的一份；c7 可腾出字节多算一份；
+  - **c2 漏掉**：同名、同内容的两份也算进 `same_name_different`。测试夹具里没有“同名又真重复”的一对，属测试偏弱；
+  - c7 是 c2 漏掉后补的，给 test final 提供有效的 nc2；补上后 test final 通过。
+- **独立审查**：没有高危。中等一条：真实冒烟用 `ancestors().nth(4)` 找 `docs/`，与 M3 同一个毛病；从主检出运行会指到仓库外的 `F:\new\docs`（今天不存在，只会报错）。下次动这两个包时一起改成按本树找。较低的几条（问题清单先截 200 条再排序、`ended_at` 用了当前时间而不是传入的时间、若干上限与后缀没有测试）记入 `carryOverLater`。
+
+## 6. 结论
+
+M9、M3、M8 **VERIFIED**，`git merge --no-ff` 合入主线，合入后各包与验收证据目录和各自分支逐字节相同。B 组完成。A 组（M1 → M2）与 C 组（M4 → M5）交回后续写本报告。

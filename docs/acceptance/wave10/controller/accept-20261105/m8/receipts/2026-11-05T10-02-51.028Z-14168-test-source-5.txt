@@ -1,0 +1,533 @@
+#![forbid(unsafe_code)]
+
+use crate::native_windows::{self, State};
+use crate::sha256::Sha256;
+use crate::util;
+use crate::*;
+use std::collections::{BTreeMap, BTreeSet, HashMap};
+use std::fs::{DirEntry, File, OpenOptions};
+use std::io::{self, Read};
+use std::os::windows::fs::{MetadataExt, OpenOptionsExt};
+use std::path::{Path, PathBuf};
+
+const PREFIX: u64 = 64 * 1024;
+const BLOCK: usize = 1024 * 1024;
+const PROGRESS: u64 = 16 * 1024 * 1024;
+const FILE_BUDGET: u64 = 2_000_000;
+const OFFLINE: u32 = 0x1000 | 0x40000 | 0x400000;
+const REPARSE: u32 = 0x400;
+
+struct Record {
+    copy: DupCopy,
+    before: State,
+    prefix: String,
+    names: BTreeSet<String>,
+    valid: bool,
+}
+struct Runner<'a> {
+    options: &'a DupOptions,
+    cancel: &'a CancelFlag,
+    observer: &'a dyn DupObserver,
+    p: DupProgress,
+    result: DupResult,
+    last_progress: u64,
+}
+enum Todo {
+    Root(PathBuf),
+    Entry(Box<DirEntry>),
+}
+
+impl Runner<'_> {
+    fn issue(&mut self, path: &str, kind: &str) {
+        match kind {
+            "reparse" => self.result.skipped.reparse += 1,
+            "offline" => self.result.skipped.offline += 1,
+            "locked" => self.result.skipped.locked += 1,
+            "changed" => self.result.skipped.changed += 1,
+            _ => self.result.skipped.access_denied += 1,
+        }
+        if self.result.issues.len() < 200 {
+            self.result.issues.push(DupIssue {
+                path: path.into(),
+                kind: kind.into(),
+            });
+        }
+    }
+    fn io_issue(&mut self, path: &str, e: &io::Error) {
+        self.issue(
+            path,
+            if matches!(e.raw_os_error(), Some(32 | 33)) {
+                "locked"
+            } else {
+                "access_denied"
+            },
+        );
+    }
+    fn notify(&self) {
+        self.observer.on_progress(&self.p);
+    }
+    fn push_directory(&mut self, path: &Path, stack: &mut Vec<Todo>) {
+        match std::fs::read_dir(path) {
+            Ok(entries) => {
+                let mut sorted = Vec::new();
+                for entry in entries {
+                    match entry {
+                        Ok(e) => sorted.push(e),
+                        Err(_) => self.issue(&path.to_string_lossy(), "access_denied"),
+                    }
+                }
+                sorted.sort_by_key(DirEntry::file_name);
+                stack.extend(
+                    sorted
+                        .into_iter()
+                        .rev()
+                        .map(|entry| Todo::Entry(Box::new(entry))),
+                );
+            }
+            Err(_) => self.issue(&path.to_string_lossy(), "access_denied"),
+        }
+    }
+    // Root/ancestor metadata comes only from parent directory entries. A chosen
+    // root must not bypass the same reparse and reserved-directory checks as children.
+    fn safe_root(&mut self, path: &Path) -> bool {
+        for ancestor in path.ancestors().collect::<Vec<_>>().into_iter().rev() {
+            let Some(name) = ancestor.file_name() else {
+                continue;
+            };
+            if util::excluded(&name.to_string_lossy()) {
+                return false;
+            }
+            let Some(parent) = ancestor.parent() else {
+                return false;
+            };
+            let found = std::fs::read_dir(parent).ok().and_then(|entries| {
+                entries.filter_map(Result::ok).find(|e| {
+                    e.file_name().to_string_lossy().to_lowercase()
+                        == name.to_string_lossy().to_lowercase()
+                })
+            });
+            let Some(entry) = found else {
+                self.issue(&ancestor.to_string_lossy(), "access_denied");
+                return false;
+            };
+            let Ok(m) = entry.metadata() else {
+                self.issue(&ancestor.to_string_lossy(), "access_denied");
+                return false;
+            };
+            if m.file_attributes() & REPARSE != 0 {
+                self.issue(&ancestor.to_string_lossy(), "reparse");
+                return false;
+            }
+            if !m.is_dir() {
+                self.issue(&ancestor.to_string_lossy(), "access_denied");
+                return false;
+            }
+        }
+        true
+    }
+    fn list(&mut self) -> BTreeMap<u64, Vec<String>> {
+        let mut sizes: BTreeMap<u64, Vec<String>> = BTreeMap::new();
+        let mut stack: Vec<_> = self
+            .options
+            .roots
+            .iter()
+            .rev()
+            .filter_map(|p| util::normalized(p).map(Todo::Root))
+            .collect();
+        while let Some(todo) = stack.pop() {
+            if self.cancel.is_cancelled() {
+                break;
+            }
+            let entry = match todo {
+                Todo::Root(p) => {
+                    if self.safe_root(&p) {
+                        self.push_directory(&p, &mut stack);
+                    }
+                    continue;
+                }
+                Todo::Entry(e) => e,
+            };
+            let path = entry.path().to_string_lossy().into_owned();
+            let Ok(m) = entry.metadata() else {
+                self.issue(&path, "access_denied");
+                continue;
+            };
+            let attrs = m.file_attributes();
+            if attrs & REPARSE != 0 {
+                self.issue(&path, "reparse");
+                continue;
+            }
+            if m.is_dir() {
+                if !util::excluded(&entry.file_name().to_string_lossy()) {
+                    self.push_directory(&entry.path(), &mut stack);
+                }
+                continue;
+            }
+            if !m.is_file() {
+                continue;
+            }
+            if self.p.files_listed == FILE_BUDGET {
+                self.result.status = "budget_exhausted".into();
+                break;
+            }
+            self.p.files_listed += 1;
+            if self.p.files_listed.is_multiple_of(1000) {
+                self.notify();
+            }
+            if attrs & OFFLINE != 0 {
+                self.issue(&path, "offline");
+                continue;
+            }
+            if m.len() == 0 {
+                self.result.skipped.empty += 1;
+                continue;
+            }
+            if m.len() < self.options.min_bytes {
+                self.result.skipped.small += 1;
+                continue;
+            }
+            sizes.entry(m.len()).or_default().push(path);
+        }
+        sizes.retain(|_, v| v.len() > 1);
+        self.p.candidate_files = sizes.values().map(|v| v.len() as u64).sum();
+        self.p.bytes_to_hash = sizes.iter().fold(0u64, |sum, (len, paths)| {
+            sum.saturating_add(
+                len.saturating_add((*len).min(PREFIX))
+                    .saturating_mul(paths.len() as u64),
+            )
+        });
+        sizes
+    }
+    fn open(&mut self, path: &str) -> Option<(File, State, String)> {
+        let file = match OpenOptions::new()
+            .read(true)
+            .share_mode(7)
+            .custom_flags(0x0020_0000 | 0x0800_0000)
+            .open(path)
+        {
+            Ok(f) => f,
+            Err(e) => {
+                self.io_issue(path, &e);
+                return None;
+            }
+        };
+        let before = match native_windows::state(&file) {
+            Ok(s) => s,
+            Err(e) => {
+                self.io_issue(path, &e);
+                return None;
+            }
+        };
+        if before.attributes & REPARSE != 0 {
+            self.issue(path, "reparse");
+            return None;
+        }
+        if before.attributes & OFFLINE != 0 {
+            self.issue(path, "offline");
+            return None;
+        }
+        let id = match native_windows::identity(&file) {
+            Ok(s) => s,
+            Err(e) => {
+                self.io_issue(path, &e);
+                return None;
+            }
+        };
+        Some((file, before, id))
+    }
+    fn digest(
+        &mut self,
+        file: &mut File,
+        before: &State,
+        path: &str,
+        limit: u64,
+    ) -> Option<String> {
+        self.p.current = Some(path.into());
+        self.notify();
+        let mut hasher = Sha256::new();
+        let mut buffer = vec![0u8; BLOCK];
+        let mut read = 0u64;
+        while read < limit {
+            if self.cancel.is_cancelled() {
+                return None;
+            }
+            let count = (limit - read).min(BLOCK as u64) as usize;
+            let n = match file.read(&mut buffer[..count]) {
+                Ok(n) => n,
+                Err(e) => {
+                    self.io_issue(path, &e);
+                    return None;
+                }
+            };
+            if n == 0 {
+                self.issue(path, "changed");
+                return None;
+            }
+            hasher.update(&buffer[..n]);
+            read += n as u64;
+            self.p.bytes_hashed = self.p.bytes_hashed.saturating_add(n as u64);
+            if self.p.bytes_hashed - self.last_progress >= PROGRESS {
+                self.last_progress = self.p.bytes_hashed;
+                self.notify();
+            }
+            if self.cancel.is_cancelled() {
+                return None;
+            }
+        }
+        match native_windows::state(file) {
+            Ok(after) if after.len == before.len && after.write == before.write => {
+                if after.attributes & REPARSE != 0 {
+                    self.issue(path, "reparse");
+                    None
+                } else if after.attributes & OFFLINE != 0 {
+                    self.issue(path, "offline");
+                    None
+                } else {
+                    Some(hasher.finish())
+                }
+            }
+            Ok(_) => {
+                self.issue(path, "changed");
+                None
+            }
+            Err(e) => {
+                self.io_issue(path, &e);
+                None
+            }
+        }
+    }
+    fn copy(&self, path: &str, state: &State, id: String) -> DupCopy {
+        DupCopy {
+            path: path.into(),
+            mtime: util::filetime(state.write),
+            created: util::filetime(state.creation),
+            identity: id,
+            hard_link_paths: Vec::new(),
+            link_count: state.links,
+            protected: self.options.protected.iter().any(|p| util::within(path, p)),
+            preferred: self.options.prefer.iter().any(|p| util::within(path, p)),
+            export_tail: util::export_tail(path),
+            removable: false,
+        }
+    }
+    fn bucket(&mut self, size: u64, paths: Vec<String>) {
+        let mut records: Vec<Record> = Vec::new();
+        let mut identities: HashMap<String, usize> = HashMap::new();
+        for path in paths {
+            if self.cancel.is_cancelled() {
+                return;
+            }
+            let Some((mut file, before, id)) = self.open(&path) else {
+                continue;
+            };
+            if before.len != size {
+                self.issue(&path, "changed");
+                continue;
+            }
+            let copy = self.copy(&path, &before, id.clone());
+            if let Some(&index) = identities.get(&id) {
+                let record = &mut records[index];
+                if record.before.len != before.len || record.before.write != before.write {
+                    record.valid = false;
+                    self.issue(&path, "changed");
+                    continue;
+                }
+                record.names.insert(file_name(&path));
+                let mut aliases = std::mem::take(&mut record.copy.hard_link_paths);
+                if util::order(&copy, &record.copy).is_lt() {
+                    aliases.push(record.copy.path.clone());
+                    record.copy = copy;
+                } else {
+                    aliases.push(path);
+                }
+                aliases.sort();
+                aliases.dedup();
+                aliases.truncate(8);
+                record.copy.hard_link_paths = aliases;
+                continue;
+            }
+            let Some(prefix) = self.digest(&mut file, &before, &path, size.min(PREFIX)) else {
+                continue;
+            };
+            identities.insert(id, records.len());
+            records.push(Record {
+                copy,
+                before,
+                prefix,
+                names: BTreeSet::from([file_name(&path)]),
+                valid: true,
+            });
+        }
+        let mut prefixes: BTreeMap<String, Vec<Record>> = BTreeMap::new();
+        for record in records.into_iter().filter(|r| r.valid) {
+            prefixes
+                .entry(record.prefix.clone())
+                .or_default()
+                .push(record);
+        }
+        let mut completed: Vec<(Record, String, Option<String>)> = Vec::new();
+        for (prefix, records) in prefixes {
+            let full = records.len() > 1;
+            for record in records {
+                if self.cancel.is_cancelled() {
+                    return;
+                }
+                if !full {
+                    completed.push((record, format!("prefix:{prefix}"), None));
+                    continue;
+                }
+                let Some((mut file, before, id)) = self.open(&record.copy.path) else {
+                    continue;
+                };
+                if id != record.copy.identity
+                    || before.len != record.before.len
+                    || before.write != record.before.write
+                {
+                    self.issue(&record.copy.path, "changed");
+                    continue;
+                }
+                let Some(hash) = self.digest(&mut file, &before, &record.copy.path, size) else {
+                    continue;
+                };
+                completed.push((record, format!("full:{hash}"), Some(hash)));
+            }
+        }
+        let mut same_names: BTreeMap<String, BTreeMap<String, String>> = BTreeMap::new();
+        for (r, signature, _) in &completed {
+            for name in &r.names {
+                same_names
+                    .entry(name.clone())
+                    .or_default()
+                    .insert(r.copy.identity.clone(), signature.clone());
+            }
+        }
+        for group in same_names.values() {
+            if group.len() > 1 && group.values().collect::<BTreeSet<_>>().len() > 1 {
+                self.result.same_name_different += 1;
+            }
+        }
+        let mut hashes: BTreeMap<String, Vec<Record>> = BTreeMap::new();
+        for (record, _, hash) in completed {
+            if let Some(hash) = hash {
+                hashes.entry(hash).or_default().push(record);
+            }
+        }
+        for (hash, mut records) in hashes {
+            if records.len() < 2 {
+                continue;
+            }
+            records.sort_by(|a, b| {
+                b.copy
+                    .protected
+                    .cmp(&a.copy.protected)
+                    .then_with(|| b.copy.preferred.cmp(&a.copy.preferred))
+                    .then_with(|| b.before.write.cmp(&a.before.write))
+                    .then_with(|| a.copy.export_tail.cmp(&b.copy.export_tail))
+                    .then_with(|| a.copy.path.cmp(&b.copy.path))
+            });
+            let mut copies: Vec<_> = records.into_iter().map(|r| r.copy).collect();
+            for (i, copy) in copies.iter_mut().enumerate() {
+                copy.removable = i != 0 && !copy.protected;
+            }
+            let bytes = u128::from(size) * copies.iter().filter(|c| c.removable).count() as u128;
+            self.p.found_bytes = self
+                .p
+                .found_bytes
+                .saturating_add(bytes.min(u128::from(u64::MAX)) as u64);
+            self.result.groups.push(DupGroup {
+                group_id: format!("dup:{}:{size}", &hash[..16]),
+                size: size.to_string(),
+                hash,
+                copies,
+                keep_index: 0,
+                reclaimable_bytes: bytes.to_string(),
+            });
+        }
+        self.p.current = None;
+        self.notify();
+    }
+}
+fn file_name(path: &str) -> String {
+    Path::new(path)
+        .file_name()
+        .unwrap_or_default()
+        .to_string_lossy()
+        .to_lowercase()
+}
+
+pub(crate) fn run(
+    id: &str,
+    options: &DupOptions,
+    cancel: &CancelFlag,
+    observer: &dyn DupObserver,
+    now: SystemTime,
+) -> DupResult {
+    let result = DupResult {
+        dup_version: "water.dup-result.v1".into(),
+        scan_id: id.into(),
+        roots: options.roots.clone(),
+        started_at: util::rfc3339(now),
+        ended_at: String::new(),
+        status: "completed".into(),
+        files_listed: 0,
+        candidate_files: 0,
+        hashed_bytes: "0".into(),
+        groups: Vec::new(),
+        groups_truncated: false,
+        same_name_different: 0,
+        skipped: Skipped::default(),
+        issues: Vec::new(),
+    };
+    let p = DupProgress {
+        phase: "listing".into(),
+        files_listed: 0,
+        candidate_files: 0,
+        bytes_to_hash: 0,
+        bytes_hashed: 0,
+        found_bytes: 0,
+        current: None,
+    };
+    let mut runner = Runner {
+        options,
+        cancel,
+        observer,
+        p,
+        result,
+        last_progress: 0,
+    };
+    let sizes = runner.list();
+    runner.p.phase = "hashing".into();
+    for (size, paths) in sizes {
+        if cancel.is_cancelled() {
+            break;
+        }
+        runner.bucket(size, paths);
+    }
+    if cancel.is_cancelled() {
+        runner.result.status = "cancelled".into();
+        runner.result.groups.clear();
+        runner.p.found_bytes = 0;
+    }
+    runner.result.groups.sort_by(|a, b| {
+        b.reclaimable_bytes
+            .parse::<u128>()
+            .expect("generated number")
+            .cmp(
+                &a.reclaimable_bytes
+                    .parse::<u128>()
+                    .expect("generated number"),
+            )
+            .then_with(|| a.hash.cmp(&b.hash))
+    });
+    runner.result.groups_truncated = runner.result.groups.len() > 10000;
+    runner.result.groups.truncate(10000);
+    runner.result.issues.sort_by(|a, b| a.path.cmp(&b.path));
+    runner.result.files_listed = runner.p.files_listed;
+    runner.result.candidate_files = runner.p.candidate_files;
+    runner.result.hashed_bytes = runner.p.bytes_hashed.to_string();
+    runner.result.ended_at = util::rfc3339(SystemTime::now());
+    runner.p.current = None;
+    runner.p.bytes_to_hash = runner.p.bytes_hashed;
+    runner.notify();
+    runner.result
+}

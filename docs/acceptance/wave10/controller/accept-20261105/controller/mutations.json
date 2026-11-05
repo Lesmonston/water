@@ -101,5 +101,70 @@
    "new": ".all(|(a, b)| a == b)",
    "why": "protects compares the declaration directory case-sensitively"
   }
+ ],
+ "m8": [
+  {
+   "label": "c1",
+   "mode": "red-nc1",
+   "token": "DUP_GROUPS",
+   "file": "packages/dup-finder/src/scan.rs",
+   "old": "format!(\"dup:{}:{size}\", &hash[..16])",
+   "new": "format!(\"dup:{}:{size}\", &hash[..15])",
+   "why": "group id uses 15 hash characters instead of 16"
+  },
+  {
+   "label": "c2",
+   "mode": "red-nc2",
+   "token": "DUP_GROUPS",
+   "file": "packages/dup-finder/src/scan.rs",
+   "old": "            if group.len() > 1 && group.values().collect::<BTreeSet<_>>().len() > 1 {",
+   "new": "            if group.len() > 1 {",
+   "why": "same-name files with the same content are counted as same_name_different"
+  },
+  {
+   "label": "c3",
+   "mode": "red-nc3",
+   "token": "DUP_SKIPS",
+   "file": "packages/dup-finder/src/scan.rs",
+   "old": "            Ok(after) if after.len == before.len && after.write == before.write => {",
+   "new": "            Ok(after) if after.len == before.len => {",
+   "why": "same-length rewrite during the read is not detected (modification time not rechecked)"
+  },
+  {
+   "label": "c4",
+   "mode": "red-nc3",
+   "token": "DUP_SKIPS",
+   "file": "packages/dup-finder/src/scan.rs",
+   "old": "const PREFIX: u64 = 64 * 1024;",
+   "new": "const PREFIX: u64 = 32 * 1024;",
+   "why": "prefix stage reads 32 KiB instead of 64 KiB"
+  },
+  {
+   "label": "c5",
+   "mode": "test",
+   "token": "DUP_KEEP",
+   "file": "packages/dup-finder/src/scan.rs",
+   "old": "                copy.removable = i != 0 && !copy.protected;",
+   "new": "                copy.removable = i != 0;",
+   "why": "protected copies other than the first are marked removable"
+  },
+  {
+   "label": "c6",
+   "mode": "test",
+   "token": "DUP_KEEP",
+   "file": "packages/dup-finder/src/scan.rs",
+   "old": "                    .then_with(|| a.before.write.cmp(&b.before.write))",
+   "new": "                    .then_with(|| b.before.write.cmp(&a.before.write))",
+   "why": "the newer copy is kept instead of the older"
+  },
+  {
+   "label": "c7",
+   "mode": "red-nc2",
+   "token": "DUP_GROUPS",
+   "file": "packages/dup-finder/src/scan.rs",
+   "old": "copies.iter().filter(|c| c.removable).count() as u128;",
+   "new": "(copies.iter().filter(|c| c.removable).count() as u128 + 1);",
+   "why": "reclaimable bytes count one copy too many"
+  }
  ]
 }

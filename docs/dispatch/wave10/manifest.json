@@ -1253,7 +1253,7 @@
     {
       "id": "WATER-W10-M8",
       "title": "新包：用户发起的逐字节查重",
-      "status": "BLOCKED",
+      "status": "VERIFIED",
       "slot": "w10-m8",
       "kind": "rust",
       "worktree": "F:/new/smaltalk/water/.worktrees/w10-m8",
@@ -1353,7 +1353,7 @@
       "dispatchEvidence": "user chat 2026-11-05 ~17:47 JST: \"三个新单是sol\" (bundles A, B, C to sol); worker tree head/changed files f93afb8e/0 when recorded at 2026-11-05T08:47:40Z",
       "blockedAt": "2026-11-05T09:16:43Z",
       "blockedCommit": "67975926157a2385b2b5715c55cd95024b1b7c32",
-      "workerSelfReport": "Codex (GPT-6)",
+      "workerSelfReport": "Codex GPT-6",
       "blockedReason": "DUP-M35 section 3 step 6 re-reads size and modified time from the same handle, but section 1 only allowed information classes 1, 9 and 18 (no timestamps) and no File::metadata",
       "addenda": [
         {
@@ -1364,6 +1364,21 @@
           "resumeFromCommit": "67975926157a2385b2b5715c55cd95024b1b7c32",
           "change": "allow GetFileInformationByHandleEx class 0 FileBasicInfo (query only) for the same-handle recheck; no new system function"
         }
+      ],
+      "submittedHead": "b408fcff3550b9589afd30ffb18815c104c7d85b",
+      "implementationCommit": "ef552f5a6ec8753920503143cab439d63c385916",
+      "mergeCommit": "a9053407e1c9494e22d80eab30ac54da5cf91a0a",
+      "controllerReview": {
+        "report": "docs/acceptance/wave10/controller/WATER-W10-REVIEW-20261105.md",
+        "evidence": "docs/acceptance/wave10/controller/accept-20261105/m8/",
+        "summary": "addendum 01 resolved the same-handle modification-time block; audit 0 problems; fresh tree lock, check, real and test finals passed; controller mutations: c1, c3-c7 caught (group id length, mtime recheck, 64 KiB prefix, protected copies removable, newer copy kept, reclaimable bytes), c2 (same-name same-content counted as same_name_different) survives; independent review found no high-severity issue"
+      },
+      "carryOverLater": [
+        "examples/real_smoke.rs scans CARGO_MANIFEST_DIR.ancestors().nth(4)/docs, which is water/docs only under .worktrees/<name>/ (and then the main checkout docs, not the tree own); from the main checkout it points at F:\\new\\docs outside Water; use nth(2) like the tests; same defect as M3 real smoke, fix both when next touched",
+        "issues are capped at 200 in discovery order and only then sorted by path, so listing issues and earlier roots crowd out later ones; DUP-M35 section 5 reads as sort-then-cap",
+        "ended_at uses SystemTime::now() while started_at uses the now argument; junk-scan uses now + elapsed",
+        "weak tests: same-name pair that is also a true duplicate is absent (controller mutation c2 survives); cancel fires before any group forms (groups.clear() untested); the changed-file case also changes content; group order values are all four digits; the nine-roots case is rejected for nesting first; hard_link_paths checked by length only",
+        "never exercised: 2,000,000-file budget, 10,000-group and 200-issue caps, 8 hard-link paths, \" (n)\" and \" 副本\" suffixes, UNC normalisation, protected folder boundary (C:\\a vs C:\\ab), the two recall attributes, SHA-256 fed in non-64-byte chunks"
       ]
     },
     {
