@@ -1,0 +1,28 @@
+[package]
+name = "water-dup-finder"
+version = "0.1.0"
+edition = "2024"
+rust-version = "1.95"
+publish = false
+autobins = false
+autotests = false
+autoexamples = false
+autobenches = false
+
+[workspace]
+
+[lib]
+name = "water_dup_finder"
+path = "src/lib.rs"
+
+[dependencies]
+serde = { version = "=1.0.229", features = ["derive"] }
+serde_json = "=1.0.151"
+
+[[test]]
+name = "dup_v1"
+path = "tests/dup_v1.rs"
+
+[[example]]
+name = "real_smoke"
+path = "examples/real_smoke.rs"
