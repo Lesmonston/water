@@ -34,7 +34,7 @@
 .psec{display:flex;align-items:baseline;gap:8px;font-weight:600;font-size:13px;margin:8px 0 2px;padding-top:8px;border-top:1px solid var(--w-hairline);white-space:nowrap}
 .psec .pr{margin-left:auto;font-family:var(--w-font-display);font-size:13.5px;font-weight:600}
 .psec small{font-weight:400;color:var(--w-ink-3);font-size:11.5px;font-family:var(--w-font)}
-.prow{display:flex;align-items:center;gap:8px;min-height:23px;font-size:12.5px;border-radius:8px;padding:0 8px;margin:0 -8px;white-space:nowrap;transition:background .15s}
+.prow{display:flex;align-items:center;gap:8px;min-height:22px;font-size:12.5px;border-radius:8px;padding:0 8px;margin:0 -8px;white-space:nowrap;transition:background .15s}
 .prow .nm{overflow:hidden;text-overflow:ellipsis;min-width:0}
 .prow .sz{margin-left:auto;font-weight:600;white-space:nowrap}
 .prow .px{color:var(--w-ink-3);font-size:11.5px;white-space:nowrap;min-width:44px;text-align:right}
@@ -57,10 +57,10 @@
 .drow .l1 i{width:7px;height:7px;border-radius:50%;background:var(--w-level-confirm);flex:none}
 .drow .l1 .nm{font-weight:600;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;flex:1;min-width:0}
 .drow .l1 .sz{font-weight:600;white-space:nowrap}
-.drow .l2{display:flex;gap:6px;align-items:center;margin:1px 0 0 14px;min-height:22px}
+.drow .l2{display:flex;gap:6px;align-items:center;margin:1px 0 0 14px;min-height:21px}
 .drow .ev,.qrow .ev{flex:1;min-width:0;color:var(--w-ink-3);font-size:11.5px;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
 .drow .ev.grow{color:var(--w-growth)}
-.drow .btn{height:22px;padding:0 11px;font-size:12px}
+.drow .btn{height:21px;padding:0 11px;font-size:12px}
 .drow .dn{display:none;flex:1;color:var(--w-ink-2);font-size:12px}
 .drow.decided .btn,.drow.decided .ev{display:none}.drow.decided .dn{display:block}
 .drow.sel{background:rgba(212,154,62,.08)}
@@ -75,6 +75,7 @@
 .qrow .bt .link{font-size:12.5px}
 .qrow .dn{font-size:12px;color:var(--w-ink-2);margin-top:6px}
 .qrow .dn:empty{display:none}
+.pnote{font-size:11.5px;color:var(--w-ink-3);line-height:1.4;margin:0 0 3px;white-space:nowrap}
 .pfoot{margin-top:auto;padding-top:12px}
 .pbtn{width:100%}
 .legend.wrap{flex-wrap:wrap;gap:6px 14px;margin-top:4px}
@@ -452,11 +453,15 @@ function spireBands(bytes){
   const tris=[];if(bytes[i]>1e-6)SP_TRIS.forEach(t=>{const q=cl(t.p);if(q.length>=3&&polyArea(q)>1e-7)tris.push({p:q,b:t.b});});
   out.push({poly:bytes[i]>1e-6?cl(SPIRE):[],tris});}
  return out;}
+/* The tip (above the waterline) has its own magnified scale; the body below keeps true capacity scale.
+   Tip area ∝ cleanable bytes against a fixed reference: a 32 GB tip is TIP_HMAX tall, so height = TIP_HMAX × sqrt(bytes / 32). */
+const TIP_REF=32,TIP_HMAX=220,K_TIP=SP_AREA*TIP_HMAX*TIP_HMAX/SP_ASP/TIP_REF;
+function drawTip(g,cx,yw,bands){return drawSpire(g,cx,yw,K_TIP,bands,{cap:TIP_REF});}
 /* bands: [{gb, c (category colour), id, off, melt, hot}] from the waterline up. Returns screen geometry per band. */
 function drawSpire(g,cx,yw,k,bands,opt){
  opt=opt||{};const tot=bands.reduce((a,b)=>a+b.gb,0);const res={bands:[],w:0,h:0,cx};
  if(tot*k<4)return res;
- const s=Math.sqrt(tot*k/(SP_AREA*SP_ASP)),h=s*SP_ASP;res.w=s;res.h=h;res.top=yw-h;
+ const s=Math.sqrt((opt.cap?Math.min(tot,opt.cap):tot)*k/(SP_AREA*SP_ASP)),h=s*SP_ASP;res.w=s;res.h=h;res.top=yw-h;
  const P=p=>[cx+p[0]*s,yw-p[1]*h];
  const geo=spireBands(bands.map(b=>b.gb));
  S('path',{d:dPath(SPIRE.map(P)),fill:'none',stroke:'rgba(16,38,63,.22)','stroke-width':2.4,'stroke-linejoin':'round'},g);
@@ -588,7 +593,7 @@ scene('home',{nav:'check',dur:0,
   const sg=segP(P,[['scope','本次范围'],['whole','本机全部']],st.view,v=>{st.view=v;show('home',{live:true});});sg.style.cssText='align-self:flex-start;margin-top:10px';
   psec(P,'各盘',keys.length===4?'本机 4 个盘':'这次的 '+keys.length+' 个盘');
   keys.forEach(k=>{const d=DRV[k];const r=drvRow(P,k,'可用 '+f1(d.free)+' GB');if(k==='E')H('span','warn',r._n,'  快满了');r._s.textContent='共 '+fmtCap(d.cap)+' GB';r._s.classList.add('mut');this.rows['p'+k]=r;hoverRow(this,r,'p'+k);});
-  psec(P,'上次体检 · 11 月 2 日','15.4 GB');
+  psec(P,'上次体检 · 11 月 2 日','15.4 GB');H('div','pnote',P,'冰山一角放大画：面积按可清字节，32 GB 画满');
   CAT.slice().reverse().forEach(b=>{const r=prow(P,{sw:b.c,n:b.n,s:f1(b.gb)+' GB'});this.rows[b.id]=r;hoverRow(this,r,b.id);});
   H('div','pcap',P,'其中 C 盘 14.0 GB · F 盘 1.4 GB');
   psec(P,'这次检查哪里？');
@@ -598,16 +603,17 @@ scene('home',{nav:'check',dur:0,
   const ft=H('div','pfoot',P);const go=H('button','btn btn-primary pbtn',ft,'开始体检');go.onclick=()=>show('scan',{play:true});const cp=H('div','pcap',ft,'只读取文件名、大小与时间');cp.style.textAlign='center';
  },
  update(t,amb){const R=this.R;R.update(amb);clear(R.gTip);clear(R.gLead);
-  const res=drawSpire(R.gTip,R.cx,R.yw,R.M.k,tipBands(b=>b.gb,{hot:this.hot}));
+  const res=drawTip(R.gTip,R.cx,R.yw,tipBands(b=>b.gb,{hot:this.hot}));
   res.bands.forEach(bb=>{if(bb)lead(R.gLead,bb.c[0],bb.c[1],this.rows[bb.b.id],this.hot===bb.b.id);});
   if(this.hot&&this.hot[0]==='p'){const L=this.letters[this.hot.slice(1)];if(L)lead(R.gLead,L.x,L.y,this.rows[this.hot],true);}
   markHot(this);}});
 
 /* ---------- 2. scan: the tip grows, the camera pulls back ---------- */
-const SCAN_STEPS=[[800,1.2],[1600,3.9],[2400,6.4],[3200,9.8],[4000,12.1],[4800,14.0],[5600,15.4]];
+const SCAN_STEPS=[[500,1.2],[1300,3.9],[2100,6.4],[2900,9.8],[3700,12.1],[4500,14.0],[5400,15.4]];
+const C_DONE=4850,F_DONE=5750;
 const FILL=[['ai','C'],['br','C'],['up','C'],['ot','C'],['dv','C'],['dv','F']];
 function catFill(found){let left=found;const g={};FILL.forEach(([id,k])=>{const b=CAT.find(x=>x.id===id);const v=clamp(left,0,b[k]);g[id]=(g[id]||0)+v;left-=v;});return g;}
-const SCAN_SEEN={codex:2000,kimi:3200,avd:5000,apk:5250,w35b:5500};
+const SCAN_SEEN={codex:2000,kimi:2900,avd:5000,apk:5250,w35b:5500};
 scene('scan',{nav:'check',dur:6200,
  build(el){this.rows={};
   const R=this.R=stage(el,GEO,'scope');bodyLetters(R.gText,R.B);this.under=S('g',null,R.gUnder);
@@ -617,19 +623,20 @@ scene('scan',{nav:'check',dur:6200,
   psec(P,'正在看的位置');
   this.loc=[['C 盘常用位置','7 类'],['F 盘','整盘']].map(r=>{const row=prow(P,{ic:true,n:r[0]+'  ',s:''});H('span','mut',row._n,r[1]);return row;});
   const stop=H('button','btn btn-glass btn-sm',P,'停止');stop.style.cssText='align-self:flex-start;margin-top:10px';
-  this.secF=psec(P,'已找到','0.0 GB');
+  this.secF=psec(P,'已找到','0.0 GB');H('div','pnote',P,'冰山一角放大画：面积按可清字节，32 GB 画满');
   this.crow={};CAT.slice().reverse().forEach(b=>{this.crow[b.id]=prow(P,{sw:b.c,n:b.n,s:'—'});});
   this.rrev=prow(P,{sw:AMBER,round:true,n:'需要你看',s:'—'});this.rpro=prow(P,{sw:VIOLET,round:true,n:'受保护',s:'—'});
   this.files=H('div','pcap',P,'');this.files.style.marginTop='8px';
   H('div','pfoot pcap',P,'声呐一个盘一个盘地扫。找到的东西浮上水面，冰山一点点长高，视野也一点点拉远、变深。');
  },
  update(t,amb){const R=this.R,M=R.M,B=R.B,yw=R.yw;R.update(amb);
-  /* close and shallow at first (the C partition and the tip), then back and deeper to the full view */
-  const cq=easeIO(seg(t,150,5900)),pc=M.byKey.C,f0x=lerp(pc.xm,R.cx,.45),fx=lerp(f0x,R.cx,cq),fy=lerp(yw+60,yw+120,cq);
-  R.cam(lerp(1.9,1,cq),fx,fy,lerp(730,fx,cq),lerp(380,fy,cq));
+  /* horizontally the camera stays on the tip (the iceberg's centre), so the tip never moves sideways;
+     it only starts closer and shallower (1.35x) and pulls back and deepens to the full view */
+  const cq=easeIO(seg(t,150,5900)),fy=lerp(yw+60,yw+120,cq);
+  R.cam(lerp(1.35,1,cq),R.cx,fy,R.cx,lerp(380,fy,cq));
   let found=0,prev=0;SCAN_STEPS.forEach(s=>{found+=(s[1]-prev)*ease((t-s[0])/350);prev=s[1];});
   const g=catFill(found);this.num.textContent=f1(found);this.secF._r.textContent=f1(found)+' GB';
-  clear(R.gTip);drawSpire(R.gTip,R.cx,yw,M.k,tipBands(b=>g[b.id]||0));
+  clear(R.gTip);drawTip(R.gTip,R.cx,yw,tipBands(b=>g[b.id]||0));
   clear(this.under);
   const co=ease((t-1200)/800);if(co>0)drawCore(this.under,R,{op:co});
   let rev=0;CARDS.forEach(c=>{const ta=SCAN_SEEN[c.id];if(t<ta)return;const op=ease((t-ta)/400);rev+=c.gb*op;const fl=1-seg(t,ta,ta+900);const p=chunkXY(R,c);drawChunk(this.under,CSH(c),p[0],p[1],c.gb*M.k,{color:AMBER,op,flash:fl>.02?fl:0});});
@@ -638,16 +645,16 @@ scene('scan',{nav:'check',dur:6200,
    const rr=this.rise[i],p=M.byKey[rr.drv];const y0=yw+R.geo.D*.8,x0=M.at(p,y0,rr.fx),x1=R.cx+(i%2?6:-6),y1=yw+3;const q=easeIO((t-sp)/(ta-sp)),fz=ease((t-ta)/350),fuse=1-fz;
    const x=lerp(x0,x1,q)+Math.sin(q*6+i)*5*(1-q),y=lerp(y0,y1-9,q)-12*fz;drawChunk(this.under,shapeOf('r'+i,500+i),x,y,inc*M.k*fuse*fuse,{color:best?best.c:null,op:clamp(q*5)*fuse});
    for(let k2=0;k2<3;k2++){const bq=clamp(q-.07*(k2+1));if(bq>0&&bq<1)S('circle',{cx:lerp(x0,x1,bq)+Math.sin(bq*9+k2)*3,cy:lerp(y0,y1,bq)+9+k2*3,r:1.3+k2*.5,fill:'none',stroke:'rgba(255,255,255,.9)','stroke-width':.8},this.under);}});
-  const act=t<4800?'C':(t<5800?'F':null);
+  const act=t<C_DONE?'C':(t<F_DONE?'F':null);
   ['C','F'].forEach(k=>{B.setHL(k,k===act);clear(B.parts[k].sonar);});
-  if(act){const p=M.byKey[act],h=B.parts[act],t0=act==='C'?0:4800,Rm=Math.max(Math.abs(R.cx-p.x0),Math.abs(R.cx-p.x1))+R.geo.D;
+  if(act){const p=M.byKey[act],h=B.parts[act],t0=act==='C'?0:C_DONE,Rm=Math.max(Math.abs(R.cx-p.x0),Math.abs(R.cx-p.x1))+R.geo.D;
    for(let m=0;m<8;m++){const age=t-t0-m*1600;if(age<0||age>2600)continue;const q=age/2600,rr=10+q*Rm,fo=Math.pow(1-q,.8);
     S('circle',{cx:R.cx,cy:yw,r:rr,fill:'none',stroke:'#fff','stroke-width':16,opacity:(.26*fo).toFixed(3)},h.sonar);
     S('circle',{cx:R.cx,cy:yw,r:rr,fill:'none',stroke:'#fff','stroke-width':2.4,opacity:(.95*fo).toFixed(3)},h.sonar);
     S('circle',{cx:R.cx,cy:yw,r:Math.max(1,rr-10),fill:'none',stroke:'var(--w-accent)','stroke-width':1.2,opacity:(.55*fo).toFixed(3)},h.sonar);}}
   const setLoc=(r,mode,txt)=>{setIc(r,mode);r._s.textContent=txt;r._s.classList.toggle('mut',mode!=='ok');};
-  setLoc(this.loc[0],t<4800?'run':'ok',t<4800?'扫描中':'14.0 GB');
-  setLoc(this.loc[1],t<4800?'wait':(t<5800?'run':'ok'),t<4800?'等待':(t<5800?'扫描中':'1.4 GB'));
+  setLoc(this.loc[0],t<C_DONE?'run':'ok',t<C_DONE?'扫描中':'14.0 GB');
+  setLoc(this.loc[1],t<C_DONE?'wait':(t<F_DONE?'run':'ok'),t<C_DONE?'等待':(t<F_DONE?'扫描中':'1.4 GB'));
   CAT.forEach(b=>{const r=this.crow[b.id],v=g[b.id]||0;r._s.textContent=v>.05?f1(v)+' GB':'—';r.classList.toggle('dim',v<=.05);});
   this.rrev._s.textContent=rev>.05?f1(rev)+' GB':'—';this.rrev.classList.toggle('dim',rev<=.05);
   this.rpro._s.textContent=co>0?'9.7 GB':'—';this.rpro.classList.toggle('dim',co<=0);
@@ -668,11 +675,11 @@ scene('results',{nav:'check',dur:0,
   heroP(P,'可以放心清理','15.4');
   const mk=H('div','pcap',P);mk.append('缓存 12.1 GB · 旧版本 3.3 GB · ');H('span',null,mk,'比上次多 2.1 GB').style.color='var(--w-growth)';
   this.btn=H('button','btn btn-primary pbtn',P,'清理推荐项 15.4 GB');this.btn.style.marginTop='12px';this.btn.onclick=()=>show('clean',{play:true});
-  this.s1=psec(P,'水面以上 · 推荐清理','15.4 GB');
+  this.s1=psec(P,'水面以上 · 推荐清理','15.4 GB');H('div','pnote',P,'冰山一角放大画：面积按可清字节，32 GB 画满');
   CAT.slice().reverse().forEach(b=>{const r=prow(P,{sw:b.c,n:b.n,s:f1(b.gb)+' GB'});r.classList.add('click');r.title='点一下：这次不清';r.onclick=()=>{st.off[b.id]=!st.off[b.id];self.sync();};this.rows[b.id]=r;hoverRow(this,r,b.id);});
   const chr=prow(P,{sw:AMBER,n:'你选的',s:''});this.rows.chosen=chr;hoverRow(this,chr,'chosen');
   this.skipCap=H('div','pcap',P,'');
-  psec(P,'水面下 · 需要你看','5 项 · 11.0 GB');
+  psec(P,'水面下 · 需要你看','5 项 · 10.7 GB');
   CARDS.forEach(c=>{const d=H('div','drow',P);const l1=H('div','l1',d);H('i',null,l1);const nm=H('span','nm',l1,c.n);nm.title=c.n;H('span','sz',l1,f1(c.gb)+' GB');
    const l2=H('div','l2',d);H('span','ev'+(c.leak?' grow':''),l2,c.drv+' 盘 · '+c.ev);const kb=H('button','btn btn-glass',l2,'保留');const cb=H('button','btn btn-outline',l2,'清理');d._dn=H('span','dn',l2);
    kb.onclick=()=>self.decide(c.id,'keep');cb.onclick=()=>self.decide(c.id,'clean');this.rows[c.id]=d;hoverRow(this,d,c.id);});
@@ -699,7 +706,7 @@ scene('results',{nav:'check',dur:0,
    if(d&&d.mode==='keep'){const dt=RM?1e9:n-d.t,p=ease(dt/900);y=o.y+40*p;fr=p;op=1-.3*p;}
    clear(o.g);if(vis)drawChunk(o.g,CSH(c),x,y,c.gb*M.k*sc*sc,{color:AMBER,frost:fr,op,hot:this.hot===c.id});
    if(ld&&this.hot===c.id)lead(R.gLead,x,y,this.rows[c.id],true);});
-  clear(R.gTip);const res=drawSpire(R.gTip,R.cx,yw,M.k,tipBands(b=>b.gb,{chosen:joined,off:st.off,hot:this.hot}));
+  clear(R.gTip);const res=drawTip(R.gTip,R.cx,yw,tipBands(b=>b.gb,{chosen:joined,off:st.off,hot:this.hot}));
   res.bands.forEach(bb=>{if(bb)lead(R.gLead,bb.c[0],bb.c[1],this.rows[bb.b.id],this.hot===bb.b.id);});
   if(this.hot==='core')lead(R.gLead,this.core[0],this.core[1],this.rows.core,true);
   if(this.hot&&this.hot[0]==='p'){const L=this.letters[this.hot.slice(1)];if(L)lead(R.gLead,L.x,L.y,this.rows[this.hot],true);}
@@ -709,16 +716,16 @@ scene('results',{nav:'check',dur:0,
 const CL_ORDER=[['dv',600,1100],['ot',1600,1000],['up',2500,1000],['br',3400,1100],['ai',4400,1200]];
 const SKIP={br:.4};
 function cleanState(t){const g={},melt={},p={};let fC=0,fF=0;CL_ORDER.forEach(o=>{const b=CAT.find(x=>x.id===o[0]);const keep=SKIP[b.id]||0,net=b.gb-keep;const q=ease(seg(t,o[1],o[1]+o[2]));const gone=net*q;g[b.id]=b.gb-gone;melt[b.id]=q>0&&q<1?q:0;p[b.id]=q;fC+=gone*((b.C-keep)/net);fF+=gone*(b.F/net);});return{g,melt,p,fC,fF};}
-function trayOnDeck(R){const w=156,h=50,x=R.geo.x1-w-16,y=R.yw-h-14;return drawTray(R.gTop,x,y,w,h,3);}
+function trayOnDeck(R){const w=190,h=64,x=R.geo.x1-w-16,y=R.yw-h-14;return drawTray(R.gTop,x,y,w,h,3);}
 scene('clean',{nav:'check',dur:6000,
  build(el){this.rows={};const R=this.R=stage(el,GEO,'scope'),M=R.M;bodyLetters(R.gText,R.B);drawCore(R.gUnder,R);
   CARDS.forEach(c=>{if(c.id==='codex'||c.id==='w35b')return;const p=chunkXY(R,c);drawChunk(R.gUnder,CSH(c),p[0],p[1],c.gb*M.k,{color:AMBER});});
-  this.tr=trayOnDeck(R);const a0=Math.sqrt(1.2*M.k),p0=cubeIn(this.tr.wells[0],a0);drawCube(this.tr.g,p0.x,p0.y,a0,{frost:1});
+  this.tr=trayOnDeck(R);const a0=Math.sqrt(1.2*K_TIP),p0=cubeIn(this.tr.wells[0],a0);drawCube(this.tr.g,p0.x,p0.y,a0,{frost:1});
   this.gFly=S('g',null,R.gTop);this.gDrop=S('g',null,R.gTop);
-  const r0=drawSpire(S('g',{opacity:0},R.gTop),R.cx,R.yw,M.k,tipBands(b=>b.gb,{chosen:3.6}));this.chAt=r0.bands[0].c;
+  const r0=drawTip(S('g',{opacity:0},R.gTop),R.cx,R.yw,tipBands(b=>b.gb,{chosen:3.6}));this.chAt=r0.bands[0].c;
   const P=panel(el);ptitle(P,'正在清理','推荐的缓存直接删除；你选的 2 项先放进隔离区，还在原来的盘上。');
   this.num=heroP(P,'已腾出','0.0');
-  psec(P,'清理进度','从冰山顶上开始');
+  psec(P,'清理进度','从冰山顶上开始');H('div','pnote',P,'冰山一角放大画：面积按可清字节，32 GB 画满');
   CL_ORDER.forEach(o=>{const b=CAT.find(x=>x.id===o[0]);this.rows[b.id]=prow(P,{ic:true,sw:b.c,n:b.n,s:f1(b.gb)+' GB',x:''});});
   this.rows.q=prow(P,{ic:true,sw:AMBER,n:'你选的 2 项 → 隔离区',s:'3.6 GB',x:''});
   psec(P,'各盘');this.dr={};['C','F'].forEach(k=>{const r=drvRow(P,k,'可用 '+f1(DRV[k].free)+' →');this.dr[k]=r._s;r._s.classList.add('acc');});
@@ -728,12 +735,12 @@ scene('clean',{nav:'check',dur:6000,
  update(t,amb){const R=this.R,M=R.M,yw=R.yw;R.update(amb);clear(R.gLead);
   const cs=cleanState(t);clear(R.gTip);clear(this.gFly);clear(this.gDrop);
   const lift=ease(seg(t,200,600));
-  const res=drawSpire(R.gTip,R.cx,yw,M.k,tipBands(b=>cs.g[b.id],{chosen:3.6*(1-lift),melt:cs.melt}));
+  const res=drawTip(R.gTip,R.cx,yw,tipBands(b=>cs.g[b.id],{chosen:3.6*(1-lift),melt:cs.melt}));
   res.bands.forEach(bb=>{if(!bb)return;const id=bb.b.id;if(id!=='chosen'&&cs.p[id]<1)lead(R.gLead,bb.c[0],bb.c[1],this.rows[id],!!cs.melt[id]);
    if(!bb.b.melt)return;const o=CL_ORDER.find(x=>x[0]===id);for(let j=0;j<6;j++){const t0=o[1]+j*o[2]/6,q=seg(t,t0,t0+520);if(q<=0)continue;const r=rng(j*13+o[1])();const x=bb.c[0]+(r-.5)*res.w*.5,y0=bb.c[1];
     if(q<1){const y=lerp(y0,yw,q*q);S('path',{d:`M${x.toFixed(1)} ${(y-4).toFixed(1)}q2.6 3.6 0 5.2q-2.6-1.6 0-5.2Z`,fill:hueRGB(bb.b.c,.8),stroke:'#fff','stroke-width':.6},this.gDrop);}
     const rq=seg(t,t0+520,t0+1100);if(rq>0&&rq<1)S('ellipse',{cx:x,cy:yw+1,rx:3+14*rq,ry:1+2.4*rq,fill:'none',stroke:'#fff','stroke-width':1.2,opacity:(1-rq).toFixed(2)},this.gDrop);}});
-  const W=this.tr.wells;[[1,1.5,-1],[2,2.1,1]].forEach(([wi,gb,side],i)=>{const a=Math.sqrt(gb*M.k),end=cubeIn(W[wi],a),t0=200+i*250;if(t<t0)return;
+  const W=this.tr.wells;[[1,1.5,-1],[2,2.1,1]].forEach(([wi,gb,side],i)=>{const a=Math.sqrt(gb*K_TIP),end=cubeIn(W[wi],a),t0=200+i*250;if(t<t0)return;
    const up=easeIO(seg(t,t0,t0+700)),fly=easeIO(seg(t,t0+700,t0+1900));const ux=this.chAt[0]+side*a*.6-a/2,uy=this.chAt[1]+a/2-70*up;const cx=lerp(ux,end.x,.5),cy=Math.min(uy,end.y)-80;
    const x=(1-fly)*(1-fly)*ux+2*(1-fly)*fly*cx+fly*fly*end.x,y=(1-fly)*(1-fly)*uy+2*(1-fly)*fly*cy+fly*fly*end.y;
    const g=drawCube(this.gFly,x,y,a,{noShadow:fly<.98});if(fly>0&&fly<1)g.setAttribute('transform',`rotate(${(Math.sin(fly*Math.PI)*-14).toFixed(1)} ${(x+a/2).toFixed(1)} ${(y-a/2).toFixed(1)})`);});
@@ -748,9 +755,9 @@ scene('done',{nav:'check',dur:2600,
  build(el){this.rows={};this.hot=null;const R=this.R=stage(el,GEO,'scope'),M=R.M;
   R.B.setFree('C',77.0);R.B.setFree('F',374.1);bodyLetters(R.gText,R.B);const cg=S('g',null,R.gUnder);this.core=drawCore(cg,R);hoverObj(this,cg,'core');
   this.left=[];CARDS.forEach(c=>{if(c.id==='codex'||c.id==='w35b')return;const p=chunkXY(R,c);drawChunk(R.gUnder,CSH(c),p[0],p[1],c.gb*M.k,{color:AMBER});this.left.push(p);});
-  const tr=trayOnDeck(R);[[0,1.2,1],[1,1.5,0],[2,2.1,0]].forEach(([wi,gb,fr])=>{const a=Math.sqrt(gb*M.k),p=cubeIn(tr.wells[wi],a);drawCube(tr.g,p.x,p.y,a,{frost:fr});});
+  const tr=trayOnDeck(R);[[0,1.2,1],[1,1.5,0],[2,2.1,0]].forEach(([wi,gb,fr])=>{const a=Math.sqrt(gb*K_TIP),p=cubeIn(tr.wells[wi],a);drawCube(tr.g,p.x,p.y,a,{frost:fr});});
   this.trayAt=[tr.wells[1].x+tr.wells[1].w/2,tr.wells[1].y+3];
-  const res=drawSpire(R.gTip,R.cx,R.yw,M.k,[{gb:.4,c:CAT[1].c,id:'br'}]);this.nub=res.bands[0]?res.bands[0].c:[R.cx,R.yw-4];
+  const res=drawTip(R.gTip,R.cx,R.yw,[{gb:.4,c:CAT[1].c,id:'br'}]);this.nub=res.bands[0]?res.bands[0].c:[R.cx,R.yw-4];
   this.rip=S('g',null,R.gTop);
   const P=panel(el);ptitle(P,'清理完成');
   heroP(P,'已腾出','15.0');
@@ -864,14 +871,14 @@ scene('trends',{nav:'trends',dur:0,
 
 /* ---------- 8. space: F's used ice as stones, area ∝ size ---------- */
 const OWN={项目:'#2a78d6',游戏:'#eb6834',资料:'#1baf7a',系统与程序:'#6250d6',其它:'#8A96A6'};
-const STONES=[['denglou',319,'项目'],['SteamLibrary',194,'游戏'],['Riot Games',53,'游戏'],['cdisk-cache',31.6,'资料'],['smaltalk',28.4,'项目'],['其它',13.2,'其它'],['Mirasim-A',12.4,'资料']];
+const STONES=[['denglou',319,'项目'],['SteamLibrary',194,'游戏'],['Riot Games',53,'游戏'],['cdisk-cache',31.6,'资料'],['smaltalk',28.4,'项目'],['其它',13.4,'其它'],['Mirasim-A',12.4,'资料']];
 function tint(hex,a){const c=hx(hex),base=[238,242,246];return'rgb('+c.map((v,i)=>Math.round(lerp(base[i],v,a))).join(',')+')';}
 const GEO_S={x0:396,x1:1036,yw:236,D:590};
 scene('space',{nav:'check',dur:0,
  build(el){this.rows={};this.hot=null;
   const R=this.R=stage(el,GEO_S,'whole'),M=R.M,B=R.B;['C','D','E'].forEach(k=>B.setDim(k,true));B.setHL('F',true);
   bodyLetters(R.gText,B,{dim:{C:1,D:1,E:1},inFree:{F:1}});
-  drawSpire(S('g',{opacity:.28},R.gTip),R.cx,R.yw,M.k,tipBands(b=>b.gb));
+  drawTip(S('g',{opacity:.28},R.gTip),R.cx,R.yw,tipBands(b=>b.gb));
   const p=M.byKey.F,fy=B.parts.F.fy+3,rows=[];p.rw.forEach((r,j)=>{const y=R.yw+j;if(y>fy&&r.w>0)rows.push({y,l:r.l,r:r.r});});
   const areaIn=(xa,xb,ya,yb)=>rows.reduce((a,r)=>r.y<ya||r.y>=yb?a:a+Math.max(0,Math.min(r.r,xb)-Math.max(r.l,xa)),0);
   const tot=areaIn(-1e4,1e4,0,1e4),sum=STONES.reduce((a,s)=>a+s[1],0);
