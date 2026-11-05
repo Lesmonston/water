@@ -1,0 +1,37 @@
+{"binary":"C:\\Users\\37310\\.rustup\\toolchains\\1.95.0-x86_64-pc-windows-msvc\\bin\\cargo.exe","args":["test","--offline","--locked","--manifest-path","packages/dup-finder/Cargo.toml","--test","dup_v1","--","--test-threads=1"],"exitCode":101,"error":null}
+--- stdout ---
+
+running 4 tests
+test dup_cancel_and_budget ... ok
+test dup_contract ... FAILED
+test dup_sha256_vectors ... ok
+test dup_skips_and_change ... FAILED
+
+failures:
+
+---- dup_contract stdout ----
+
+thread 'dup_contract' (1136) panicked at tests\dup_v1.rs:215:5:
+assertion `left == right` failed: DUP_GROUPS: only actual content duplicates
+  left: 3
+ right: 1
+note: run with `RUST_BACKTRACE=1` environment variable to display a backtrace
+
+---- dup_skips_and_change stdout ----
+
+thread 'dup_skips_and_change' (12516) panicked at tests\dup_v1.rs:532:5:
+DUP_SKIPS: sparse last byte differs
+
+
+failures:
+    dup_contract
+    dup_skips_and_change
+
+test result: FAILED. 2 passed; 2 failed; 0 ignored; 0 measured; 0 filtered out; finished in 10.19s
+
+
+--- stderr ---
+   Compiling water-dup-finder v0.1.0 (F:\new\smaltalk\water\.worktrees\w10-m8\packages\dup-finder)
+    Finished `test` profile [unoptimized + debuginfo] target(s) in 1.39s
+     Running tests\dup_v1.rs (.local\w2-target\debug\deps\dup_v1-cbef137b4a95b147.exe)
+error: test failed, to rerun pass `--test dup_v1`

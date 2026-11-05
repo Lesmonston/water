@@ -1,0 +1,323 @@
+{
+  "task": "WATER-W10-M8",
+  "mode": "test",
+  "finalGate": false,
+  "manifest": "docs/dispatch/wave10/manifest.json",
+  "startedAt": "2026-11-05T09:43:13.623Z",
+  "realDataRead": false,
+  "productTestsRun": true,
+  "commands": [
+    {
+      "binary": "git",
+      "argv": [
+        "branch",
+        "--show-current"
+      ],
+      "exitCode": 0
+    },
+    {
+      "binary": "git",
+      "argv": [
+        "merge-base",
+        "--is-ancestor",
+        "f93afb8e3c5cf4114927fe2ab6c14dbb033c7ffe",
+        "HEAD"
+      ],
+      "exitCode": 0
+    },
+    {
+      "binary": "git",
+      "argv": [
+        "diff",
+        "--no-renames",
+        "--name-only",
+        "-z",
+        "f93afb8e3c5cf4114927fe2ab6c14dbb033c7ffe",
+        "HEAD"
+      ],
+      "exitCode": 0
+    },
+    {
+      "binary": "git",
+      "argv": [
+        "diff",
+        "--no-renames",
+        "--name-only",
+        "-z",
+        "HEAD"
+      ],
+      "exitCode": 0
+    },
+    {
+      "binary": "git",
+      "argv": [
+        "ls-files",
+        "--others",
+        "--exclude-standard",
+        "-z"
+      ],
+      "exitCode": 0
+    },
+    {
+      "binary": "git",
+      "argv": [
+        "rev-parse",
+        "HEAD"
+      ],
+      "exitCode": 0
+    },
+    {
+      "binary": "git",
+      "argv": [
+        "status",
+        "--porcelain",
+        "--untracked-files=all"
+      ],
+      "exitCode": 0
+    },
+    {
+      "binary": "C:\\Users\\37310\\.cargo\\bin\\rustup.exe",
+      "argv": [
+        "which",
+        "cargo",
+        "--toolchain",
+        "1.95.0"
+      ],
+      "exitCode": 0,
+      "error": null,
+      "log": "2026-11-05T09-43-13.620Z-26324-test-1.log"
+    },
+    {
+      "binary": "C:\\Users\\37310\\.cargo\\bin\\rustup.exe",
+      "argv": [
+        "which",
+        "rustc",
+        "--toolchain",
+        "1.95.0"
+      ],
+      "exitCode": 0,
+      "error": null,
+      "log": "2026-11-05T09-43-13.620Z-26324-test-2.log"
+    },
+    {
+      "binary": "C:\\Users\\37310\\.rustup\\toolchains\\1.95.0-x86_64-pc-windows-msvc\\bin\\rustc.exe",
+      "argv": [
+        "--version"
+      ],
+      "exitCode": 0,
+      "error": null,
+      "log": "2026-11-05T09-43-13.620Z-26324-test-3.log"
+    },
+    {
+      "binary": "C:\\Users\\37310\\.rustup\\toolchains\\1.95.0-x86_64-pc-windows-msvc\\bin\\cargo.exe",
+      "argv": [
+        "metadata",
+        "--offline",
+        "--locked",
+        "--format-version",
+        "1",
+        "--manifest-path",
+        "packages/dup-finder/Cargo.toml"
+      ],
+      "exitCode": 0,
+      "error": null,
+      "log": "2026-11-05T09-43-13.620Z-26324-test-4.log"
+    },
+    {
+      "binary": "C:\\Users\\37310\\.rustup\\toolchains\\1.95.0-x86_64-pc-windows-msvc\\bin\\cargo.exe",
+      "argv": [
+        "test",
+        "--offline",
+        "--locked",
+        "--manifest-path",
+        "packages/dup-finder/Cargo.toml",
+        "--test",
+        "dup_v1",
+        "--",
+        "--test-threads=1"
+      ],
+      "exitCode": 0,
+      "error": null,
+      "log": "2026-11-05T09-43-13.620Z-26324-test-5.log"
+    },
+    {
+      "binary": "git",
+      "argv": [
+        "branch",
+        "--show-current"
+      ],
+      "exitCode": 0
+    },
+    {
+      "binary": "git",
+      "argv": [
+        "merge-base",
+        "--is-ancestor",
+        "f93afb8e3c5cf4114927fe2ab6c14dbb033c7ffe",
+        "HEAD"
+      ],
+      "exitCode": 0
+    },
+    {
+      "binary": "git",
+      "argv": [
+        "diff",
+        "--no-renames",
+        "--name-only",
+        "-z",
+        "f93afb8e3c5cf4114927fe2ab6c14dbb033c7ffe",
+        "HEAD"
+      ],
+      "exitCode": 0
+    },
+    {
+      "binary": "git",
+      "argv": [
+        "diff",
+        "--no-renames",
+        "--name-only",
+        "-z",
+        "HEAD"
+      ],
+      "exitCode": 0
+    },
+    {
+      "binary": "git",
+      "argv": [
+        "ls-files",
+        "--others",
+        "--exclude-standard",
+        "-z"
+      ],
+      "exitCode": 0
+    },
+    {
+      "binary": "git",
+      "argv": [
+        "rev-parse",
+        "HEAD"
+      ],
+      "exitCode": 0
+    },
+    {
+      "binary": "git",
+      "argv": [
+        "status",
+        "--porcelain",
+        "--untracked-files=all"
+      ],
+      "exitCode": 0
+    }
+  ],
+  "changedPaths": [
+    "docs/acceptance/wave10/m8/.gitattributes",
+    "docs/acceptance/wave10/m8/ARCHIVE.json",
+    "docs/acceptance/wave10/m8/receipts/2026-11-05T08-18-39.586Z-33024-baseline-1.log",
+    "docs/acceptance/wave10/m8/receipts/2026-11-05T08-18-39.586Z-33024-baseline-2.log",
+    "docs/acceptance/wave10/m8/receipts/2026-11-05T08-18-39.586Z-33024-baseline-3.log",
+    "docs/acceptance/wave10/m8/receipts/2026-11-05T08-18-39.586Z-33024-baseline-result.json",
+    "docs/acceptance/wave10/m8/receipts/2026-11-05T09-06-35.989Z-30364-baseline-1.log",
+    "docs/acceptance/wave10/m8/receipts/2026-11-05T09-06-35.989Z-30364-baseline-2.log",
+    "docs/acceptance/wave10/m8/receipts/2026-11-05T09-06-35.989Z-30364-baseline-3.log",
+    "docs/acceptance/wave10/m8/receipts/2026-11-05T09-06-35.989Z-30364-baseline-result.json",
+    "docs/dispatch/reports/WATER-W10-M8-REPORT.md",
+    "packages/dup-finder/Cargo.lock",
+    "packages/dup-finder/Cargo.toml",
+    "packages/dup-finder/README.md",
+    "packages/dup-finder/examples/real_smoke.rs",
+    "packages/dup-finder/src/lib.rs",
+    "packages/dup-finder/src/native_windows.rs",
+    "packages/dup-finder/src/scan.rs",
+    "packages/dup-finder/src/sha256.rs",
+    "packages/dup-finder/src/util.rs",
+    "packages/dup-finder/tests/dup_v1.rs"
+  ],
+  "before": {
+    "head": "ef552f5a6ec8753920503143cab439d63c385916",
+    "status": ""
+  },
+  "sourceState": {
+    "files": [
+      {
+        "path": "packages/dup-finder/Cargo.toml",
+        "snapshot": "2026-11-05T09-43-13.620Z-26324-test-source-0.txt",
+        "sha256": "dcadcc435365ded752a382c8fd34eb115caef2e58395ba2d40d802c66befe207",
+        "test": false
+      },
+      {
+        "path": "packages/dup-finder/Cargo.lock",
+        "snapshot": "2026-11-05T09-43-13.620Z-26324-test-source-1.txt",
+        "sha256": "9bd82702fc1814cd6c75220afde2eae13f24e943b28438683236d2601c825931",
+        "test": false
+      },
+      {
+        "path": "packages/dup-finder/README.md",
+        "snapshot": "2026-11-05T09-43-13.620Z-26324-test-source-2.txt",
+        "sha256": "3bce308454f14dfa86e2d764519ace934eadd073798f11dd888ae1c0f04140dd",
+        "test": false
+      },
+      {
+        "path": "packages/dup-finder/src/lib.rs",
+        "snapshot": "2026-11-05T09-43-13.620Z-26324-test-source-3.txt",
+        "sha256": "47457bceb5c0357921258a0f496964affc7c5dcbc82a1d7a78daecd6ffba9bae",
+        "test": false
+      },
+      {
+        "path": "packages/dup-finder/src/native_windows.rs",
+        "snapshot": "2026-11-05T09-43-13.620Z-26324-test-source-4.txt",
+        "sha256": "9fb2ce6c72820f4dba68d9440636d25a939c82e58b1c29f31ad7c356e8b241f2",
+        "test": false
+      },
+      {
+        "path": "packages/dup-finder/src/scan.rs",
+        "snapshot": "2026-11-05T09-43-13.620Z-26324-test-source-5.txt",
+        "sha256": "009814b9bc529e011c0a5094e88d9d9b6d0c78361d8a5e0f8bf6c4650f8f49f4",
+        "test": false
+      },
+      {
+        "path": "packages/dup-finder/src/sha256.rs",
+        "snapshot": "2026-11-05T09-43-13.620Z-26324-test-source-6.txt",
+        "sha256": "c48b6f0f7ad2226600982721bac904dd2edb5c22765e50dcc8f989c56e4ff6b5",
+        "test": false
+      },
+      {
+        "path": "packages/dup-finder/src/util.rs",
+        "snapshot": "2026-11-05T09-43-13.620Z-26324-test-source-7.txt",
+        "sha256": "b7bded2575dc955a57304c5b521e2af972a5eb9495c2f93cd3694d20aa94c2fb",
+        "test": false
+      },
+      {
+        "path": "packages/dup-finder/tests/dup_v1.rs",
+        "snapshot": "2026-11-05T09-43-13.620Z-26324-test-source-8.txt",
+        "sha256": "278b3598025a938dbd436626e1592aa77167b66026acb93771ca658edbf6f998",
+        "test": true
+      }
+    ],
+    "productionHash": "2c9897a3f16ae8fb4e73f450574997daa08bcc6854b5295db802f829b279796d",
+    "testHash": "c709adb56605a52821069d12c3920ba8dbfed1cdf7280c2c55b4857266649d84"
+  },
+  "dependencyInventory": [
+    "itoa@1.0.18",
+    "memchr@2.8.3",
+    "proc-macro2@1.0.107",
+    "quote@1.0.47",
+    "serde@1.0.229",
+    "serde_core@1.0.229",
+    "serde_derive@1.0.229",
+    "serde_json@1.0.151",
+    "syn@3.0.9",
+    "unicode-ident@1.0.27",
+    "zmij@1.0.23"
+  ],
+  "ffi": [
+    "GetFileInformationByHandleEx",
+    "GetVolumeInformationByHandleW"
+  ],
+  "after": {
+    "head": "ef552f5a6ec8753920503143cab439d63c385916",
+    "status": ""
+  },
+  "status": "passed",
+  "error": null,
+  "endedAt": "2026-11-05T09:43:31.520Z"
+}
