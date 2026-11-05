@@ -146,6 +146,7 @@ function task(s) {
     frozenFiles: frozen([s.spec, ...s.also, ...s.alsoRead]), gate: s.gate, baselineStatus: null, baselineEvidence: null, outputRootExists: true,
     expectedTests: s.tests
   }, clone(s.extra));
+  for (const [k, v] of Object.entries(s.extra)) if (v === undefined) delete t[k];
   if (t.kind === 'rust' && !s.extra.packageName) t.packageName ??= t.packageName;
   if (t.kind === 'rust' && s.extra.outputRootExists === false) {
     t.productionFiles = [s.root + '/Cargo.toml', s.root + '/Cargo.lock', s.root + '/README.md'];
@@ -180,7 +181,8 @@ function ticket(s, t) {
   if (s.code.length) L.push('2. 代码：' + s.code.map(c => '`' + c.replace(/（.*$/, '') + '`' + (c.includes('（') ? c.slice(c.indexOf('（')) : '')).join('、') + '。');
   L.push('');
   L.push('## 要做的（全部在 `' + s.root + '/`）', '');
-  s.todo.forEach((x, i) => L.push((i + 1) + '. ' + x + '；'));
+  const todo = s.extra.outputRootExists === false ? [...s.todo, '新建 `examples/real_smoke.rs`（在 `Cargo.toml` 用 `[[example]]` 登记；检查器的 `real` 模式不带参数运行它，输出一行 JSON，不得含绝对路径）'] : s.todo;
+  todo.forEach((x, i) => L.push((i + 1) + '. ' + x + '；'));
   L.push('', '**不变**：' + s.keep, '');
   L.push('## 白名单', '');
   L.push('- `' + s.root + '/` 下的文件' + (s.extra.outputRootExists === false ? '（新包：`Cargo.toml` 照规则第 2 节自己写，锁文件用 `--mode lock` 生成）' : (t.kind === 'rust' || t.kind === 'service' || t.kind === 'host') ? '（不得改 `Cargo.toml` 的依赖、`Cargo.lock`）' : ''));

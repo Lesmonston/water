@@ -1,0 +1,246 @@
+<!doctype html>
+<html lang="zh-CN">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Water 可视化方案</title>
+<link rel="stylesheet" href="tokens.css">
+<style>
+  :root { --c-rec: #2A9D8F; --c-conf: #D49A3E; --c-quar: #8E84D8; --c-used: #C9D3DE; --c-free: #E8F2FB;
+          --s1: #2a78d6; --s2: #eb6834; --s3: #1baf7a; --s4: #eda100; --s5: #6250d6; --s-other: #B7C0CA; }
+  * { box-sizing: border-box; }
+  body { margin: 0; font-family: var(--w-font); color: var(--w-ink); background: #F3F7FC;
+         background-image: radial-gradient(1200px 600px at 10% -10%, var(--w-ambient-1), transparent 60%),
+                           radial-gradient(900px 500px at 100% 0%, var(--w-ambient-2), transparent 60%); }
+  main { max-width: 1040px; margin: 0 auto; padding: 32px 16px 64px; }
+  h1 { font: 300 30px var(--w-font-display); margin: 0 0 6px; }
+  .lead { color: var(--w-ink-2); font-size: 14px; line-height: 1.7; margin: 0 0 24px; }
+  section { background: var(--w-glass); border-radius: var(--w-r-lg); box-shadow: var(--w-glass-shadow); padding: 20px 22px; margin: 0 0 18px; }
+  h2 { font-size: 17px; font-weight: 600; margin: 0 0 4px; }
+  .swap { font-size: 13px; color: var(--w-ink-2); margin: 0 0 14px; }
+  .swap b { color: var(--w-ink); font-weight: 600; }
+  .why { font-size: 12.5px; color: var(--w-ink-3); margin: 12px 0 0; line-height: 1.6; }
+  .legend { display: flex; gap: 14px; flex-wrap: wrap; font-size: 12.5px; color: var(--w-ink-2); margin: 0 0 10px; }
+  .legend i { display: inline-block; width: 10px; height: 10px; border-radius: 3px; margin-right: 5px; vertical-align: -1px; }
+  .drive { display: grid; grid-template-columns: 56px 1fr 210px; align-items: center; gap: 12px; margin: 8px 0; font-size: 13px; }
+  .drive .name { font-weight: 600; }
+  .drive .meta { color: var(--w-ink-2); text-align: right; font-variant-numeric: tabular-nums; }
+  svg { display: block; overflow: visible; }
+  svg text { font-family: var(--w-font); }
+  .hero { display: flex; align-items: baseline; gap: 14px; margin: 4px 0 12px; }
+  .hero .num { font: 200 64px var(--w-font-display); letter-spacing: -1px; }
+  .hero .cap { font-size: 13px; color: var(--w-ink-2); }
+  .btn { display: inline-block; border-radius: 999px; padding: 6px 14px; font-size: 13px; border: 1px solid var(--w-hairline); background: #fff; color: var(--w-ink); }
+  .btn.main { background: var(--w-accent); color: #fff; border-color: var(--w-accent); padding: 9px 18px; }
+  .btn.pick { border-color: var(--w-accent); color: var(--w-accent); }
+  .rank { display: grid; grid-template-columns: 1fr 120px 140px; gap: 10px; align-items: center; padding: 9px 0; border-top: 1px solid var(--w-hairline); font-size: 13px; }
+  .rank:first-of-type { border-top: 0; }
+  .rank .t { font-weight: 600; }
+  .rank .e { color: var(--w-ink-3); font-size: 12px; margin-top: 2px; }
+  .rank .acts { text-align: right; white-space: nowrap; }
+  .alt { border: 1px dashed rgba(16,38,63,.18); background: rgba(255,255,255,.45); }
+  .grid2 { display: grid; grid-template-columns: 1fr 1fr; gap: 18px; }
+  @media (max-width: 760px) { .grid2 { grid-template-columns: 1fr; } .drive { grid-template-columns: 44px 1fr; } .drive .meta { grid-column: 2; text-align: left; } .rank { grid-template-columns: 1fr; } .rank .acts { text-align: left; } }
+  .tip { position: fixed; pointer-events: none; background: rgba(255,255,255,.96); box-shadow: var(--w-glass-shadow-raised); border-radius: 10px; padding: 6px 10px; font-size: 12.5px; display: none; z-index: 9; }
+  table.t { border-collapse: collapse; font-size: 13px; width: 100%; }
+  table.t td { padding: 6px 4px; border-top: 1px solid var(--w-hairline); }
+</style>
+</head>
+<body>
+<main>
+  <h1>可视化方案：每页一个主图</h1>
+  <p class="lead">2026-11-05，总控（Claude）提案，等你定。用户 11-05：“UI 整体要做可视化的优化……想一下用什么替代目前的主要面板。”<br>
+  做法：每页只有一个主图，全都用同一套“容量带”语言——一个盘就是一条水位，Water 认出的东西直接画在水位里，数字标在图上，不用读长列表。颜色固定：<b style="color:var(--c-rec)">推荐清理</b>、<b style="color:var(--c-conf)">需要你看</b>、<b style="color:var(--c-quar)">隔离区</b>、灰色是其它已用、浅水色是可用。下面的数字取自界面样例。</p>
+
+  <section>
+    <h2>1. 首页：磁盘行 → 容量带</h2>
+    <p class="swap">原来：每个盘一块小玻璃，写盘符与可用 GB。<b>换成：每个盘一条容量带</b>，上次体检认出的可清部分直接画在已用里。</p>
+    <div class="legend"><span><i style="background:var(--c-used)"></i>其它已用</span><span><i style="background:var(--c-rec)"></i>推荐清理</span><span><i style="background:var(--c-conf)"></i>需要你看</span><span><i style="background:var(--c-quar)"></i>隔离区</span><span><i style="background:var(--c-free);outline:1px solid #cfe0f2"></i>可用</span></div>
+    <div id="home"></div>
+    <p class="why">为什么：用户打开 Water 第一件事是看“还剩多少、能腾出多少”，一条带同时回答两件事；可用不足 10% 时可用段的数字变橙并加“快满了”。点一条带就选中这个盘去体检（与位置胶囊联动）。</p>
+  </section>
+
+  <section>
+    <h2>2. 结论页主结论 → 大数字 + 清理前后</h2>
+    <p class="swap">原来：大数字 + 一行文字构成 + “包含什么”展开的 8 行列表。<b>换成：大数字下面每个涉及的盘一条“清理前 → 清理后”的容量带</b>，再下面一条构成条代替“包含什么”的列表。</p>
+    <div class="hero"><span class="num">15.4 GB</span><span class="cap">可以放心清理 · 比上次多 2.1 GB · Chrome 开着，会跳过约 0.4 GB</span></div>
+    <div id="beforeafter"></div>
+    <div style="margin:14px 0 6px;font-size:13px;color:var(--w-ink-2)">包含什么（点一段就是“这一类这次不清”，再点恢复）</div>
+    <div id="compose"></div>
+    <div style="margin-top:14px"><span class="btn main">清理推荐项 15.4 GB</span></div>
+    <p class="why">为什么：用户要的结论是“清完盘会怎样”，前后两条带直接给出 C 盘 63.4 → 77.4 GB；构成条把 6 类压成一条，开关就是点段，不再展开成列表（设计 v2 原则 1、3.12）。</p>
+  </section>
+
+  <section>
+    <h2>3. 结论页判断卡 → 排行条</h2>
+    <p class="swap">原来：两列共 5 张卡片，每张一句结论、一行证据、两个按钮。<b>换成：一张面板里 5 行排行条</b>，条长就是体量，泄漏那一行带一条小折线看它怎么长。</p>
+    <div id="rank"></div>
+    <p class="why">为什么：5 张卡要来回扫两列，排行条从上到下就是从大到小，一眼看出哪项值得管；按钮仍是“保留 / 清理”成对、宽度相同。超过 5 项照旧合成一行“还有 7 项需要判断 ›”。</p>
+  </section>
+
+  <div class="grid2">
+    <section>
+      <h2>4. 空间分布 → 树图</h2>
+      <p class="swap">原来：收起的一行文字 + 展开的 10 行清单。<b>换成：这个盘的树图</b>，面积就是占用，颜色是归属。</p>
+      <div class="legend"><span><i style="background:var(--s1)"></i>项目</span><span><i style="background:var(--s2)"></i>游戏</span><span><i style="background:var(--s3)"></i>资料</span><span><i style="background:var(--s5)"></i>系统与程序</span><span><i style="background:var(--s-other)"></i>其它</span></div>
+      <div id="tree"></div>
+      <p class="why">为什么：“F 盘用了 650 GB，是谁？”树图一眼就答，这是磁盘工具用户最熟的样子。只统计、不清理，点块只看详情。</p>
+    </section>
+    <section>
+      <h2>5. 趋势：几天后满 → 可用空间曲线</h2>
+      <p class="swap">原来：每个盘一块玻璃写“约 23 天后满”。<b>换成：每个盘一张小折线</b>，实线是体检记录，虚线按速度推到满的那天。</p>
+      <div id="trend"></div>
+      <p class="why">为什么：“23 天”是怎么来的、清理有没有用，曲线一看就懂；11 月 2 日那次 Water 清理是一个向上的台阶。D、E、F 盘十年内不会满，只画一条平线不标日期。</p>
+    </section>
+  </div>
+
+  <div class="grid2">
+    <section>
+      <h2>6. 隔离区 → 卡片里加 7 天进度</h2>
+      <p class="swap">原来：每张卡写日期、体量、几项、放了几天。<b>换成：每张卡一条体量条 + 7 格天数</b>，满 7 格提醒可以永久删除。</p>
+      <div id="quar"></div>
+    </section>
+    <section>
+      <h2>7. 查重结果 → 份数方块</h2>
+      <p class="swap">原来：每组一行文字。<b>换成：每组一排方块</b>，一块一份，实心是建议留的，斜纹是多出来的。</p>
+      <div id="dup"></div>
+    </section>
+  </div>
+
+  <section class="alt">
+    <h2>备选（不推荐）：结论页整页一张树图</h2>
+    <p class="swap">把 Water 认出的所有东西画成一张树图，颜色是级别，点块做决定。</p>
+    <p class="why">不推荐的原因：一次真实体检有 39 组、6,750 项，小块写不下名字，点块做决定容易误点；而且看不出“清完盘会怎样”。树图只放在“空间分布”这种只看不清的地方。</p>
+  </section>
+
+  <section>
+    <h2>不变的</h2>
+    <p class="why" style="margin:0">体检中的水波进度环；明细仍是表格（超过 7 类用表格最清楚）；材质、字体、圆角、动效照设计 v2；界面不自己算数——图里每个数都来自服务，IPC-M35 现有字段已够画以上所有图（容量带要的“各级在每个盘上的体量”由服务在 <code>app_state.drives</code> 里多给一组按级别的字节数，定稿时补进契约）。</p>
+    <table class="t" style="margin-top:10px" id="tbl"></table>
+  </section>
+</main>
+<div class="tip" id="tip"></div>
+<script>
+const NS = 'http://www.w3.org/2000/svg';
+const tip = document.getElementById('tip');
+const css = n => getComputedStyle(document.documentElement).getPropertyValue(n).trim();
+function el(tag, attrs, parent) { const e = document.createElementNS(NS, tag); for (const k in attrs) e.setAttribute(k, attrs[k]); if (parent) parent.appendChild(e); return e; }
+function hover(node, text) { node.addEventListener('mousemove', ev => { tip.textContent = text; tip.style.display = 'block'; tip.style.left = ev.clientX + 12 + 'px'; tip.style.top = ev.clientY + 12 + 'px'; }); node.addEventListener('mouseleave', () => tip.style.display = 'none'); node.style.cursor = 'default'; }
+const gb = v => (v >= 100 ? v.toFixed(0) : v.toFixed(1)) + ' GB';
+function bar(parent, segs, total, h, w) {
+  const svg = el('svg', { width: '100%', height: h, viewBox: `0 0 ${w} ${h}`, preserveAspectRatio: 'none' }, parent);
+  let x = 0; const gap = 2;
+  segs.forEach((s, i) => { const sw = Math.max(0, s.v / total * w - (i < segs.length - 1 ? gap : 0)); if (sw <= 0) { x += s.v / total * w; return; }
+    const r = el('rect', { x, y: 0, width: sw, height: h, rx: 4, fill: s.c }, svg); if (s.stroke) r.setAttribute('stroke', s.stroke); hover(r, s.label + '：' + gb(s.v)); x += s.v / total * w; });
+  return svg;
+}
+// 1. home capacity bands
+const drives = [
+  { n: 'C 盘', total: 250.0, free: 77.0, rec: 0, conf: 1.8, quar: 2.7, note: '系统盘' },
+  { n: 'D 盘', total: 97.4, free: 30.2, rec: 0, conf: 0, quar: 0 },
+  { n: 'E 盘', total: 575.6, free: 51.8, rec: 0, conf: 0, quar: 0 },
+  { n: 'F 盘', total: 1024.5, free: 372.7, rec: 1.4, conf: 8.9, quar: 2.1 } ];
+drives[0].rec = 14.0; drives[0].free = 63.4;
+const home = document.getElementById('home');
+for (const d of drives) {
+  const row = document.createElement('div'); row.className = 'drive';
+  const name = document.createElement('div'); name.className = 'name'; name.textContent = d.n; row.appendChild(name);
+  const wrap = document.createElement('div'); row.appendChild(wrap);
+  const used = d.total - d.free - d.rec - d.conf - d.quar;
+  bar(wrap, [{ v: used, c: css('--c-used'), label: '其它已用' }, { v: d.rec, c: css('--c-rec'), label: '推荐清理' }, { v: d.conf, c: css('--c-conf'), label: '需要你看' }, { v: d.quar, c: css('--c-quar'), label: '隔离区' }, { v: d.free, c: css('--c-free'), stroke: '#cfe0f2', label: '可用' }], d.total, 18, 600);
+  const meta = document.createElement('div'); meta.className = 'meta';
+  meta.textContent = '可用 ' + gb(d.free) + (d.rec ? ' · 可腾出 ' + gb(d.rec) : '') + (d.free / d.total < 0.1 ? ' · 快满了' : '');
+  row.appendChild(meta); home.appendChild(row);
+}
+// 2. before / after
+const ba = document.getElementById('beforeafter');
+for (const d of [{ n: 'C 盘', total: 250.0, free: 63.4, rec: 14.0 }, { n: 'F 盘', total: 1024.5, free: 372.7, rec: 1.4 }]) {
+  for (const phase of ['现在', '清理后']) {
+    const row = document.createElement('div'); row.className = 'drive';
+    const name = document.createElement('div'); name.className = 'name'; name.textContent = phase === '现在' ? d.n : ''; row.appendChild(name);
+    const wrap = document.createElement('div'); row.appendChild(wrap);
+    const used = d.total - d.free - d.rec;
+    const segs = phase === '现在'
+      ? [{ v: used, c: css('--c-used'), label: '其它已用' }, { v: d.rec, c: css('--c-rec'), label: '这次清理' }, { v: d.free, c: css('--c-free'), stroke: '#cfe0f2', label: '可用' }]
+      : [{ v: used, c: css('--c-used'), label: '其它已用' }, { v: d.free + d.rec, c: css('--c-free'), stroke: css('--c-rec'), label: '清理后可用' }];
+    bar(wrap, segs, d.total, phase === '现在' ? 14 : 14, 600);
+    const meta = document.createElement('div'); meta.className = 'meta';
+    meta.textContent = phase + '可用 ' + gb(phase === '现在' ? d.free : d.free + d.rec);
+    row.appendChild(meta); ba.appendChild(row);
+  }
+}
+// composition bar (what's included)
+const cats = [['AI 编程工具', 6.2, '--s1'], ['浏览器缓存', 3.4, '--s2'], ['开发缓存', 2.4, '--s3'], ['应用更新残留', 2.1, '--s4'], ['其它 2 类', 1.3, '--s-other']];
+const comp = document.getElementById('compose');
+const csvg = el('svg', { width: '100%', height: 44, viewBox: '0 0 1000 44', preserveAspectRatio: 'none' }, comp);
+let cx = 0; const ctot = cats.reduce((a, c) => a + c[1], 0);
+cats.forEach(([n, v, c]) => { const w = v / ctot * 1000; const r = el('rect', { x: cx, y: 0, width: w - 2, height: 16, rx: 4, fill: css(c) }, csvg); hover(r, n + '：' + gb(v) + '（点一下这次不清）');
+  const t = el('text', { x: cx + 2, y: 34, 'font-size': 12, fill: css('--w-ink-2') }, csvg); t.textContent = n + ' ' + gb(v); cx += w; });
+// 3. ranked bars
+const cards = [
+  ['Android 模拟器快照', 'Pixel_7_API_34 · 模拟器没在运行', 4.2, 'conf', null],
+  ['5 个按提交号命名的安装包，留最新 1 个', 'apk_3f9c2e1.apk 等 · F:\\new\\denglou\\_ctl', 2.6, 'conf', null],
+  ['.tmp_w35b 里 81 个同模板目录，还在长', 'verify-****** · 清了不修，会再长回来', 2.1, 'conf', [12, 20, 31, 44, 52, 63, 70, 81]],
+  ['Codex 旧运行时：3 个旧版本', '正在用的 0.98 会保留', 1.5, 'conf', null],
+  ['Kimi Code 30 天前的会话：1,812 条', '可以先放进隔离区试试', 0.3, 'conf', null]];
+const rank = document.getElementById('rank'); const max = 4.2;
+for (const [t, e, v, lvl, spark] of cards) {
+  const row = document.createElement('div'); row.className = 'rank';
+  const a = document.createElement('div'); const tt = document.createElement('div'); tt.className = 't'; tt.textContent = t; const ee = document.createElement('div'); ee.className = 'e'; ee.textContent = e; a.append(tt, ee); row.appendChild(a);
+  const b = document.createElement('div'); const svg = el('svg', { width: 120, height: 26, viewBox: '0 0 120 26' }, b);
+  const r = el('rect', { x: 0, y: 4, width: Math.max(4, v / max * 70), height: 10, rx: 4, fill: css('--c-conf') }, svg); hover(r, t + '：' + gb(v));
+  const lab = el('text', { x: Math.max(4, v / max * 70) + 6, y: 13, 'font-size': 12, fill: css('--w-ink-2') }, svg); lab.textContent = gb(v);
+  if (spark) { const pts = spark.map((s, i) => `${i * 120 / (spark.length - 1)},${25 - s / 81 * 8}`).join(' '); el('polyline', { points: pts, fill: 'none', stroke: css('--w-growth'), 'stroke-width': 2 }, svg); }
+  row.appendChild(b);
+  const acts = document.createElement('div'); acts.className = 'acts'; const k = document.createElement('span'); k.className = 'btn'; k.textContent = '保留'; const c = document.createElement('span'); c.className = 'btn pick'; c.textContent = '清理'; c.style.marginLeft = '6px'; acts.append(k, c); row.appendChild(acts);
+  rank.appendChild(row);
+}
+// 4. treemap (simple slice-and-dice, sorted, two rows)
+const items = [['denglou', 319.0, '--s1', '项目'], ['SteamLibrary', 194.0, '--s2', '游戏'], ['Riot Games', 53.0, '--s2', '游戏'], ['cdisk-cache', 31.6, '--s3', '资料'], ['smaltalk', 28.4, '--s1', '项目'], ['Mirasim-A', 12.4, '--s3', '资料'], ['其它 4 项', 13.2, '--s-other', '其它']];
+const tree = document.getElementById('tree'); const W = 460, H = 220; const tsvg = el('svg', { width: '100%', viewBox: `0 0 ${W} ${H}` }, tree);
+function squarify(list, x, y, w, h) { if (!list.length) return; const tot = list.reduce((a, i) => a + i[1], 0);
+  if (list.length === 1) { place(list[0], x, y, w, h); return; }
+  let acc = 0, k = 0; while (k < list.length - 1 && acc + list[k][1] < tot / 2) acc += list[k++][1]; if (k === 0) { acc = list[0][1]; k = 1; }
+  if (w >= h) { const w1 = w * acc / tot; squarify(list.slice(0, k), x, y, w1, h); squarify(list.slice(k), x + w1, y, w - w1, h); }
+  else { const h1 = h * acc / tot; squarify(list.slice(0, k), x, y, w, h1); squarify(list.slice(k), x, y + h1, w, h - h1); } }
+function place([n, v, c, lab], x, y, w, h) { const r = el('rect', { x: x + 1, y: y + 1, width: Math.max(0, w - 2), height: Math.max(0, h - 2), rx: 6, fill: css(c), 'fill-opacity': .85 }, tsvg); hover(r, n + ' · ' + lab + ' · ' + gb(v));
+  if (w > 60 && h > 30) { const t = el('text', { x: x + 8, y: y + 18, 'font-size': 12, fill: '#fff', 'font-weight': 600 }, tsvg); t.textContent = n; const t2 = el('text', { x: x + 8, y: y + 33, 'font-size': 11.5, fill: '#fff' }, tsvg); t2.textContent = gb(v); } }
+squarify(items, 0, 0, W, H);
+// 5. trend
+const pts = [['10-12', 88.4], ['10-19', 65.3], ['10-26', 64.2], ['11-02', 63.4], ['11-02', 77.0]];
+const tr = document.getElementById('trend'); const TW = 460, TH = 200, pad = 30; const svgT = el('svg', { width: '100%', viewBox: `0 0 ${TW} ${TH}` }, tr);
+const days = [0, 7, 14, 21, 21.2]; const xMax = 21 + 23, yMax = 100; const X = d => pad + d / xMax * (TW - pad - 10), Y = v => TH - 24 - v / yMax * (TH - 40);
+el('line', { x1: pad, y1: Y(0), x2: TW - 10, y2: Y(0), stroke: css('--w-hairline') }, svgT);
+for (const v of [0, 50, 100]) { const t = el('text', { x: 0, y: Y(v) + 4, 'font-size': 11, fill: css('--w-ink-3') }, svgT); t.textContent = v + ' GB'; }
+el('polyline', { points: pts.map((p, i) => X(days[i]) + ',' + Y(p[1])).join(' '), fill: 'none', stroke: css('--w-accent'), 'stroke-width': 2 }, svgT);
+el('line', { x1: X(21.2), y1: Y(77), x2: X(44), y2: Y(0), stroke: css('--w-accent'), 'stroke-width': 2, 'stroke-dasharray': '5 5', 'stroke-opacity': .6 }, svgT);
+pts.forEach((p, i) => { const c = el('circle', { cx: X(days[i]), cy: Y(p[1]), r: 4.5, fill: '#fff', stroke: css('--w-accent'), 'stroke-width': 2 }, svgT); hover(c, 'C 盘 ' + p[0] + ' 可用 ' + gb(p[1])); });
+const a1 = el('text', { x: X(44) - 4, y: Y(0) - 8, 'font-size': 12, 'text-anchor': 'end', fill: css('--w-ink') }, svgT); a1.textContent = '约 23 天后满';
+const a2 = el('text', { x: X(21.2) + 6, y: Y(77) - 8, 'font-size': 11.5, fill: css('--w-ink-2') }, svgT); a2.textContent = 'Water 清理 +13.6 GB';
+for (const [d, l] of [[0, '10 月 12 日'], [21, '11 月 2 日'], [44, '11 月 25 日']]) { const t = el('text', { x: X(d), y: TH - 4, 'font-size': 11, 'text-anchor': 'middle', fill: css('--w-ink-3') }, svgT); t.textContent = l; }
+// 6. quarantine
+const q = [['11 月 2 日 · F 盘', 2.1, 3, 81], ['11 月 2 日 · C 盘', 1.5, 3, 3], ['10 月 26 日 · C 盘', 1.2, 10, 1812]];
+const qd = document.getElementById('quar');
+for (const [n, v, d, cnt] of q) { const row = document.createElement('div'); row.style.margin = '10px 0';
+  const head = document.createElement('div'); head.style.fontSize = '13px'; head.textContent = n + ' · ' + cnt + ' 项 · ' + gb(v) + (d >= 7 ? ' · 已放满 7 天，确认没问题可以永久删除' : ''); row.appendChild(head);
+  const svg = el('svg', { width: '100%', height: 30, viewBox: '0 0 460 30' }, row);
+  const r = el('rect', { x: 0, y: 2, width: v / 2.1 * 250, height: 10, rx: 4, fill: css('--c-quar') }, svg); hover(r, n + '：' + gb(v));
+  for (let i = 0; i < 7; i++) el('rect', { x: 280 + i * 25, y: 2, width: 21, height: 10, rx: 3, fill: i < Math.min(d, 7) ? css('--c-quar') : css('--w-surface-sunken'), 'fill-opacity': i < Math.min(d, 7) ? .45 : 1, stroke: css('--w-hairline') }, svg);
+  const t = el('text', { x: 280, y: 26, 'font-size': 11, fill: css('--w-ink-3') }, svg); t.textContent = '放了 ' + Math.min(d, 7) + (d > 7 ? '+' : '') + ' / 7 天';
+  qd.appendChild(row); }
+// 7. dedupe
+const dup = [['EP02.wav', 2, 2.1], ['公路物语EP03.wav', 2, 1.9], ['小崔.wav', 2, 1.6], ['剧情2.wav', 2, 1.4], ['素材合集.zip', 3, 0.9]];
+const dd = document.getElementById('dup'); const defs = el('svg', { width: 0, height: 0 }, dd);
+const pat = el('pattern', { id: 'hatch', width: 6, height: 6, patternUnits: 'userSpaceOnUse', patternTransform: 'rotate(45)' }, el('defs', {}, defs));
+el('rect', { width: 6, height: 6, fill: css('--w-accent-soft') }, pat); el('line', { x1: 0, y1: 0, x2: 0, y2: 6, stroke: css('--w-accent'), 'stroke-width': 2 }, pat);
+for (const [n, k, s] of dup) { const row = document.createElement('div'); row.className = 'drive'; row.style.gridTemplateColumns = '150px 1fr 70px';
+  const a = document.createElement('div'); a.textContent = n; a.style.fontSize = '13px'; row.appendChild(a);
+  const b = document.createElement('div'); const svg = el('svg', { width: '100%', height: 16, viewBox: '0 0 200 16' }, b);
+  for (let i = 0; i < k; i++) { const r = el('rect', { x: i * 34, y: 1, width: 30, height: 14, rx: 4, fill: i === 0 ? css('--w-accent') : 'url(#hatch)' }, svg); hover(r, i === 0 ? '建议留这一份' : '多出来的一份 · ' + gb(s)); }
+  row.appendChild(b); const m = document.createElement('div'); m.className = 'meta'; m.textContent = '多 ' + gb(s * (k - 1)); row.appendChild(m); dd.appendChild(row); }
+// table view of the main numbers (accessibility)
+const tbl = document.getElementById('tbl');
+for (const d of drives) { const tr2 = document.createElement('tr'); for (const c of [d.n, '容量 ' + gb(d.total), '可用 ' + gb(d.free), '推荐 ' + gb(d.rec), '需要你看 ' + gb(d.conf), '隔离区 ' + gb(d.quar)]) { const td = document.createElement('td'); td.textContent = c; tr2.appendChild(td); } tbl.appendChild(tr2); }
+</script>
+</body>
+</html>

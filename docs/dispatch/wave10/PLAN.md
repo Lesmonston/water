@@ -204,3 +204,54 @@
 | — | 每次扫描后列表太多 | 用户再提 | 第 67 行；设计 v2 第 3.12 节 |
 
 下一步：写定 ADR-019，做基准表与合成夹具，冻结 `contracts/m35-v1/`，跑派前 baseline，出派单句。
+
+## 7. 第十波派单（2026-11-05）
+
+- **基线**：`f93afb8e`（标签 `water-w10-m35-base-20261105`）。契约冻结在 `contracts/m35-v1/`，规则见 [W10-M35-WORKER-RULES](../W10-M35-WORKER-RULES.md)，清单见 [manifest.json](manifest.json)。
+- **派前 baseline**：七张后端单都已通过，回执在 `docs/acceptance/wave10/controller/preflight-20261105/`。
+- **界面单 M6 暂缓**：用户 11-05：“UI整体要做可视化的优化，整体的可视化方案你要想一下用什么替代目前的主要面板。”方案见 [viz-proposal.html](../../design/water-ui-v2/viz-proposal.html)，用户定了以后改设计 v2、UI-M35 与样例，再重出 M6 的单与派单句。M6 本来就最后合入，不影响后端七张。
+- **合入顺序**照第 4 节；过渡期主线不出 release。
+
+派单句（每条单独复制给一个执行者；都是后端单，没有界面单）：
+
+**WATER-W10-M1**
+
+```text
+你接手 Water 项目 WATER-W10-M1（规则：新字段、新定位、会话开关与新规则，轻门）。先读 F:/new/smaltalk/water/docs/dispatch/tickets/WATER-W10-M1-RULES-20261105.md，按其中列出的顺序读规则与契约，在 F:/new/smaltalk/water/.worktrees/w10-m1（分支 worker/water-w10-m1）从 f93afb8e 开工。
+```
+
+**WATER-W10-M2**
+
+```text
+你接手 Water 项目 WATER-W10-M2（扫描：新定位、分配大小、泄漏簇、联接索引与空间分布，中门）。先读 F:/new/smaltalk/water/docs/dispatch/tickets/WATER-W10-M2-SCAN-20261105.md，按其中列出的顺序读规则与契约，在 F:/new/smaltalk/water/.worktrees/w10-m2（分支 worker/water-w10-m2）从 f93afb8e 开工。
+```
+
+**WATER-W10-M3**
+
+```text
+你接手 Water 项目 WATER-W10-M3（新包：项目清理声明与工作树登记，中门）。先读 F:/new/smaltalk/water/docs/dispatch/tickets/WATER-W10-M3-MANIFEST-20261105.md，按其中列出的顺序读规则与契约，在 F:/new/smaltalk/water/.worktrees/w10-m3（分支 worker/water-w10-m3）从 f93afb8e 开工。
+```
+
+**WATER-W10-M4**
+
+```text
+你接手 Water 项目 WATER-W10-M4（执行器：解锁对与隔离区，重门）。先读 F:/new/smaltalk/water/docs/dispatch/tickets/WATER-W10-M4-CLEAN-20261105.md，按其中列出的顺序读规则与契约，在 F:/new/smaltalk/water/.worktrees/w10-m4（分支 worker/water-w10-m4）从 f93afb8e 开工。
+```
+
+**WATER-W10-M5**
+
+```text
+你接手 Water 项目 WATER-W10-M5（宿主：转发第十波命令，打开隔离区文件夹，中门，含整机检查）。先读 F:/new/smaltalk/water/docs/dispatch/tickets/WATER-W10-M5-HOST-20261105.md，按其中列出的顺序读规则与契约，在 F:/new/smaltalk/water/.worktrees/w10-m5（分支 worker/water-w10-m5）从 f93afb8e 开工。
+```
+
+**WATER-W10-M8**
+
+```text
+你接手 Water 项目 WATER-W10-M8（新包：用户发起的逐字节查重，中门）。先读 F:/new/smaltalk/water/docs/dispatch/tickets/WATER-W10-M8-DUP-20261105.md，按其中列出的顺序读规则与契约，在 F:/new/smaltalk/water/.worktrees/w10-m8（分支 worker/water-w10-m8）从 f93afb8e 开工。
+```
+
+**WATER-W10-M9**
+
+```text
+你接手 Water 项目 WATER-W10-M9（新包：读已安装程序列表，轻门）。先读 F:/new/smaltalk/water/docs/dispatch/tickets/WATER-W10-M9-APPS-20261105.md，按其中列出的顺序读规则与契约，在 F:/new/smaltalk/water/.worktrees/w10-m9（分支 worker/water-w10-m9）从 f93afb8e 开工。
+```
