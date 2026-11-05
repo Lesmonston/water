@@ -1,6 +1,6 @@
-WATER-W10-M4 任务受阻，任务报告在 F:/new/smaltalk/water/.worktrees/w10-m4/docs/dispatch/reports/WATER-W10-M4-REPORT.md
+WATER-W10-M4 任务已完成，任务报告在 F:/new/smaltalk/water/.worktrees/w10-m4/docs/dispatch/reports/WATER-W10-M4-REPORT.md
 
-下面保留 `07dc6209` 的原轮受阻内容；当前续做状态见文末“补单 01”。本次仍受阻，原因已变为合成测试中的句柄相对改名返回错误 87。
+下面保留原轮与补单 01 的历史受阻记录；当前交付状态见文末“补单 02”。两处历史阻塞均已按补单解除，最终实现和三个 final 均已完成。
 
 2026-11-05。实际执行模型：GPT-6（Codex；未获运行时更细的型号标识）。本回执是受阻交回，不是实现完成或验收通过。
 
@@ -154,3 +154,75 @@ node F:/new/smaltalk/water/scripts/checkup-wave-check.mjs --task WATER-W10-M4 --
 - 有一个只读辅助审阅代理，仅审契约/源码，没有实现、测试、提交权限；正式代码仍由本执行者独自修改。
 - 没有修改主线、契约、检查器、台账、其它包/工作树或 git 配置/远端；没有 push、merge、rebase、reset、amend。
 - 未开始 M5；交回时没有本任务测试或后台进程。真实用户清理、生产竞态、其它服务接线与 macOS 均未验证。
+
+## 补单 02（2026-11-05）：完成
+
+实际模型：GPT-6（Codex；未获更细的运行时型号标识）。从干净的 `12c6c5563f8eadcefee9937a446a1ddfb390f4f2` 续做，工作树 `F:/new/smaltalk/water/.worktrees/w10-m4`，分支 `worker/water-w10-m4`。已依次重读原票、规则、SPEC/旧契约、补单 01/02、前轮回执、总控 probe.ps1 与 probe-output.txt；只读核对脚本，没有运行它。
+
+**最终实现提交：`b1017bd73cf63183e84cc7f09c368ff1b5ead5b5`。** 三个 final 都在该干净提交上通过；此后只有本回执与 archive 证据改动。WIP `9a689f86` 及两轮受阻提交保留为历史，本次不改写历史，也不自行标总控 VERIFIED。
+
+### SPEC 第 1～8 节与实际断言
+
+| 节 | 最终实现与验证 |
+|---|---|
+| 1 原则 | native_windows.rs 的 rename_at 改用 NtSetInformationFile，仅类 10、目的父句柄和单段 UTF-16 名、替换标志恒 0；缓冲区 8 字节对齐，偏移 0/8/16/20，长度 24+名字字节数；NT 状态通过 RtlNtStatusToDosError 映射。SetFileInformationByHandle 只剩删除类 4/21。生产 stderr 诊断已移除。NtCreateFile 仍只在 create_dir_at、FILE_CREATE=2、目录/不跟随选项。共 10 个 FFI；src 无 std::fs、进程、网络、环境枚举或普通文件内容读取；依赖和锁不变；既有枚举不增成员。 |
+| 2 解锁 | PlanItem 只新增规定的默认/空省略字段；校验 0～4、逐字匹配、严格包含。运行开始保留保护路径文本与身份映射，复核只按单项逐字解锁过滤祖先身份，内部身份与其它保护别名不放宽，硬守卫不解锁。quarantine_unlock_pair 通过：非法解锁、兄弟项、其它保护、同身份保护别名、回调中改指保护别名仍保留原保护身份；合法解锁在更上层硬守卫内仍可按原语义执行。 |
+| 3 移入 | quarantine_move_contract 全部跑到且通过：目录+文件移入，路径布局、同卷身份不变、13 字节与回调；intent/moved/failed 日志；太新、guard、身份变化、已有隔离路径、文件 no-delete-share 占用、目的地同名、隔离根联接与停止。日志 flush 中置 stop 后仍写终结事件；写日志失败不移动。跨盘分支依契约按实际 TEMP 判定，本机检查器将 TEMP 置于同一 F 卷，走 n/a，未创建外卷夹具。 |
+| 4 复原 | quarantine_restore_contract 全部跑到且通过：文件内容与修改时间完全相同、原父目录被删后重建、原位同名拒绝且双方不动、身份变化、上级联接拒绝且目标目录无新增、空骨架/隔离根删除、旁边还原及旁边同名拒绝；另有整个目录还原、预先停止、源已消失。 |
+| 5 purge | quarantine_purge_contract 通过：保留名/尾点/尾空格、只读、深路径、联接本身删除而外部字节完好；同样怪名经 execute 删除；占用文件和子目录只记根因、关闭重试；编号目录本身被占用时保留同身份只读根句柄以清子项，最后报 rel 为空的 dir/in_use，关闭后重试；非名称代理重解析点保留且身份/长度/时间/属性不变；201 条遗留截断为 200，计数/字节完整且有序；写日志失败零删除；第 256 项正好删完编号目录时，回调已在句柄关闭后，置 stop 保留空隔离根并报 stopped。 |
+| 6 查看/JSON | quarantine_inspect_and_list 通过三状态、排序、stray、创建时间、逻辑/分配字节、文件/目录计数、不跟随联接、odd_name/long_path/read_only/reparse 提示、独占子目录无法打开的 access_denied 提示、201 个提示的截断/完整计数。全部新类型按规定导出、派生、deny_unknown_fields/snake_case；五种 report/list/info JSON 往返及未知顶层/嵌套字段拒绝通过。非 Windows I/O 返回 Unsupported，未运行 macOS。 |
+| 7 成因 | 对应原因由实际测试覆盖，不把移入当释放空间；只按成功普通文件删除及同句柄链接数计释放，另报卷前后值。不提权、不查别的进程内存。 |
+| 8 测试 | 仍精确 11 测，0 ignored/filtered；原六测没有改断言或标记，较 f93afb8e 的测试 diff 为 1342 新增、0 删除。测试仅建立本树 .local 随机所有者夹具；结束只删除自己的新目录。最后残余 w10-m4-* 夹具目录为 0，没有盘根创建或真实删除。 |
+
+本轮初次 test（10:12）为 9/11：新检查路径里有正斜杠，另一个新断言试图用 fs::read 打开自定义非名称代理标签文件而得到 1920。前者改成合法反斜杠路径；后者改为不跟随地核对身份及长度/修改时间/属性，避免访问重解析目标。只改新增断言，未改旧六测；之后 11/11。失败日志保留，没有把这次开发失败算作负控或环境超时。
+
+### 全部检查命令与结果
+
+统一入口为 `node F:/new/smaltalk/water/scripts/checkup-wave-check.mjs --task WATER-W10-M4 --mode <模式>`；标 final 的行另加 `--final`，均在本票工作树根目录运行。下表前缀后加 `-<模式>-result.json` 即为归档 receipts 下的回执名（模式 red-ncN 原样）。
+
+| 模式 | 结果 | 回执时间前缀 |
+|---|---|---|
+| lock | passed | 2026-11-05T10-12-18.859Z-26152 |
+| check | passed | 2026-11-05T10-12-21.556Z-25092 |
+| test | failed，9/11，新增夹具断言问题，见上文 | 2026-11-05T10-12-34.203Z-31880 |
+| test | passed，11/11 | 2026-11-05T10-17-05.768Z-31388 |
+| check | passed | 2026-11-05T10-19-22.758Z-11496 |
+| real | passed，只读 | 2026-11-05T10-19-26.094Z-21200 |
+| red-nc1 | passed，有效目标失败 | 2026-11-05T10-20-13.831Z-22352 |
+| test | 原字节恢复后 passed，11/11 | 2026-11-05T10-21-32.861Z-24992 |
+| red-nc2 | passed，有效目标失败 | 2026-11-05T10-23-21.303Z-7208 |
+| test | 原字节恢复后 passed，11/11 | 2026-11-05T10-23-52.118Z-20528 |
+| red-nc3 | passed，有效目标失败 | 2026-11-05T10-24-55.149Z-10044 |
+| test | 原字节恢复后 passed，11/11 | 2026-11-05T10-25-25.816Z-25972 |
+| check --final | passed，干净 b1017bd7 | 2026-11-05T10-26-06.522Z-32868 |
+| test --final | passed，11/11，三条 proofAudit 通过 | 2026-11-05T10-26-10.031Z-31444 |
+| real --final | passed，只读，干净 b1017bd7 | 2026-11-05T10-26-39.154Z-16724 |
+| archive | passed | 2026-11-05T10-28-08.460Z-22352 |
+
+另两次使用已定位的 Rust 1.95 cargo.exe 运行 `fmt --manifest-path packages/junk-clean/Cargo.toml`，均成功；它们不编译、不下载。实际检查/编译/测试一律由检查器离线、jobs=1、私有 home/target/temp 执行；没有改超时或过滤测试。baseline 按补单不重跑。
+
+### 三条负控与原字节恢复
+
+| 负控 | 生产坏态与失败信息 | 恢复 |
+|---|---|---|
+| nc1 | native_windows.rs/rename_at 缓冲偏移 0：0u8→1u8。新移动断言报 CLEAN_M35_MOVE: collision result shape；新复原断言报 CLEAN_M35_RESTORE: overwrite forbidden，证明已有内容被错误替换时会被捕获；旧六测通过。 | git checkout 恢复 native_windows.rs，逐文件 SHA-256 核对，再立即完整 test 全绿。 |
+| nc2 | 只在 purge_open 把 OPTS 改成 OPTS & !OPEN_REPARSE_POINT。报 CLEAN_M35_PURGE: odd files not removed。第二道身份/属性检查仍阻止了进入联接目标，联接成为遗留；不把本次负控描述为外部目标被删除。 | git checkout 恢复 native_windows.rs，逐文件 SHA-256 核对，再立即完整 test 全绿。 |
+| nc3 | 只在 CleanPlan::from_json 反序列化后清空每项 unlocked_paths。报 CLEAN_M35_UNLOCK: missing protected path accepted；其余十测通过。 | git checkout 恢复 model.rs，逐文件 SHA-256 核对，再立即完整 test 全绿。 |
+
+所有负控均只改生产代码，不改测试、不加开关；底层测试真实返回 101，由 red 模式验证为有效失败，没有编译失败、超时、旧标记先失败或被忽略的测试。每条红/恢复绿的精确文件名均在 final test 的 proofAudit 中。
+
+恢复后的 native_windows.rs SHA-256：`d83afebb5b9cc3fb6beafa7380b877c466f93337a7633ab8f253adc07f7782bc`；model.rs：`14ea91416a0a251697da5ed5cb509021fe49402f18473ce2d8226e1c7bb22430`。三次恢复的完整 productionHash 均为 `9eece6a185040be8d92b8835c1b50c08e064977431147edd632f3ee4e3989bf6`，testHash 均为 `366c73f2ca6896115440dc0da68b8bf08deebf2af4991e2f355eca679b64d5c6`，与三个 final 完全一致。
+
+### 真实冒烟、证据与未验证项
+
+补单 01 规定的两处只读真实冒烟，普通 real 与 real --final 输出相同：
+
+```json
+{"absent":2,"checked":2,"present":0,"quarantines":0,"unavailable":0}
+```
+
+只读取隔离根状态和直接编号目录元数据，不输出盘符、路径、名字；未移入、复原、删除或读真实文件内容。原生窗口、选择框、浏览器均为 0。
+
+归档索引 [ARCHIVE.json](../../acceptance/wave10/m4/ARCHIVE.json) 共 389 条、6,418,556 字节，包含全部历史条目；逐条复算长度和 SHA-256 通过。最后 archive 自身回执在本树 .local/checks/WATER-W10-M4 下；产品提交后没有再改产品字节。提交身份只在 commit 命令进程中使用执行者自身身份；未改 git 配置/远端，不 push、不 merge、不改写提交，不动主线台账/契约/检查器/其它包或其它工作树。
+
+只读辅助审阅没有实现/测试/提交权限，未修改文件或运行测试。Windows 合成范围通过本票门，不等于真实用户清理、服务/宿主接线、生产竞态或 macOS 已验收。跨盘真实分支因私有 TEMP 同卷未运行；对应 n/a 已如实记录。M4 交回后停止本票测试与后台进程，接着依 C 组顺序另行开始 M5。
