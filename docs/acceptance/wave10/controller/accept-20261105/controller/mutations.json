@@ -230,6 +230,33 @@
    "old": "                        {\n                            continue;\n                        }\n                        let group_id = format!(\"custom:{}:{}\", root.root_id, rule.rule_id);",
    "new": "                        {\n                        }\n                        let group_id = format!(\"custom:{}:{}\", root.root_id, rule.rule_id);",
    "why": "custom discovery targets every custom root (contract nc2)"
+  },
+  {
+   "label": "c8",
+   "mode": "red-nc2",
+   "token": "RULES_M35_FIELDS",
+   "file": "packages/junk-rules/src/rules.rs",
+   "old": "            if base == KnownFolder::SystemDrive {\n                return Err(RulesError::new(\"RULES_INVALID_LOCATE\", path));\n            }\n",
+   "new": "",
+   "why": "a discovery locator with base system_drive is accepted when rules are parsed"
+  },
+  {
+   "label": "c9",
+   "mode": "red-nc2",
+   "token": "RULES_M35_FIELDS",
+   "file": "packages/junk-rules/src/plan.rs",
+   "old": "                && is_drive_root(folders.get(*base))\n",
+   "new": "                && is_drive_root(folders.get(*base))\n                && false\n",
+   "why": "a discovery base that resolves to a drive root is planned"
+  },
+  {
+   "label": "c10",
+   "mode": "test",
+   "token": "RULES_M35_SEEDS: jest members in each temp base",
+   "file": "packages/junk-rules/rules/windows.json",
+   "old": "          \"base\": \"system_temp\",\n          \"segments\": [\n            \"jest\",\n            \"*\"\n          ]",
+   "new": "          \"base\": \"system_temp\",\n          \"segments\": [\n            \"jest *\"\n          ]",
+   "why": "jest-cache in system_temp goes back to the one-segment \"jest *\" that matches nothing"
   }
  ],
  "m2": [
@@ -238,8 +265,8 @@
    "mode": "red-nc1",
    "token": "SCAN_M35_CLUSTERS",
    "file": "packages/junk-scan/src/scan.rs",
-   "old": "            if members.len() < 10 {",
-   "new": "            if members.len() < 11 {",
+   "old": "            if members.len() < CLUSTER_MIN_MEMBERS {",
+   "new": "            if members.len() < CLUSTER_MIN_MEMBERS + 1 {",
    "why": "a cluster of exactly ten members is not formed"
   },
   {
@@ -268,6 +295,42 @@
    "old": "        item.disk_bytes = Some(format_bytes(hit.disk_bytes));",
    "new": "        item.disk_bytes = Some(format_bytes(hit.total_bytes));",
    "why": "item disk_bytes reports the logical size instead of the allocation"
+  },
+  {
+   "label": "c5",
+   "mode": "red-nc1",
+   "token": "SCAN_M35_CLUSTERS",
+   "file": "packages/junk-scan/src/scan.rs",
+   "old": "    actual_extension.eq_ignore_ascii_case(extension)\n        && match_segment",
+   "new": "    (actual_extension.eq_ignore_ascii_case(extension) || !actual_extension.is_empty())\n        && match_segment",
+   "why": "<h> cluster extras accept files with another extension"
+  },
+  {
+   "label": "c6",
+   "mode": "red-nc1",
+   "token": "SCAN_M35_CLUSTERS",
+   "file": "packages/junk-scan/src/scan/streaming.rs",
+   "old": "                            .filter(|row| !row.declared)\n",
+   "new": "                            .filter(|row| row.declared || !row.declared)\n",
+   "why": "a candidate directory holding .water-cleanup.json still counts toward a cluster"
+  },
+  {
+   "label": "c7",
+   "mode": "red-nc1",
+   "token": "SCAN_M35_CLUSTERS",
+   "file": "packages/junk-scan/src/scan.rs",
+   "old": "            engine.emit(&group, category, false);\n            if engine.stopped(&group) {\n                break;\n            }\n            let key = child.path.to_ascii_lowercase();\n            let eligible = if discovery {",
+   "new": "            let key = child.path.to_ascii_lowercase();\n            let eligible = if discovery {",
+   "why": "the cluster candidate loop neither reports progress nor checks cancel and budget"
+  },
+  {
+   "label": "c8",
+   "mode": "red-nc1",
+   "token": "SCAN_M35_CLUSTERS",
+   "file": "packages/junk-scan/src/scan/streaming.rs",
+   "old": "                                .any(|c| matches!(c, Condition::SiblingWithoutSuffix { .. }))\n                                && owner(row, plan, fallbacks).is_some()",
+   "new": "                                .any(|c| matches!(c, Condition::SiblingWithoutSuffix { .. }))",
+   "why": "a marker directory matched by name only (conditions fail) stops cluster and declaration search"
   }
  ],
  "m4": [

@@ -220,17 +220,33 @@
         {
           "id": "WATER-W10-M1-ADDENDUM-03",
           "ticket": "docs/dispatch/tickets/WATER-W10-M1-ADDENDUM-03-20261105.md",
-          "status": "READY",
+          "status": "VERIFIED",
           "issuedAt": "2026-11-05T11:57:58Z",
           "resumeFromCommit": "23cd89da24cd46bea0ec511aebb15039eac6a2c0",
-          "change": "jest-cache locators become segments [\"jest\",\"*\"] in system_temp and user_temp (contract notation: a space separates segments, as in rule 32); discovery locators reject drive-root bases with RULES_INVALID_LOCATE; the old conditions loop covers all targets of the original 78 rules again, conditions comparison still only for node-modules and test-browser-profiles, expected values updated only where SPEC section 5 or the fallback ID format changed"
+          "change": "jest-cache locators become segments [\"jest\",\"*\"] in system_temp and user_temp (contract notation: a space separates segments, as in rule 32); discovery locators reject drive-root bases with RULES_INVALID_LOCATE; the old conditions loop covers all targets of the original 78 rules again, conditions comparison still only for node-modules and test-browser-profiles, expected values updated only where SPEC section 5 or the fallback ID format changed",
+          "submittedHead": "2fd789d84177398f97cef2128c1326d4725697a8",
+          "implementationCommit": "72ac1178cd30adce9c4d27df988e2057eabfdbcb"
+        },
+        {
+          "id": "WATER-W10-M1-ADDENDUM-04",
+          "ticket": "docs/dispatch/tickets/WATER-W10-M1-ADDENDUM-04-20261106.md",
+          "status": "READY",
+          "issuedAt": "2026-11-05T15:44:06Z",
+          "resumeFromCommit": "2fd789d84177398f97cef2128c1326d4725697a8",
+          "change": "jianying-cache locator 2 becomes [\"JianyingPro\",\"User Data\",\"CEF\",\"Cache\"] and the RULES_M35_SEEDS row follows; SPEC section 6 row 4 reads CEF Cache as two segments"
         }
       ],
-      "submittedHead": "23cd89da24cd46bea0ec511aebb15039eac6a2c0",
+      "submittedHead": "2fd789d84177398f97cef2128c1326d4725697a8",
       "controllerReview": {
+        "report": "docs/acceptance/wave10/controller/WATER-W10-REVIEW-20261105.md",
         "evidence": "docs/acceptance/wave10/controller/accept-20261105/m1/",
-        "summary": "audit 0 problems; fresh tree lock, check, real and test finals passed; controller mutations c1-c7 all caught; independent review: HIGH jest-cache locator implemented as one segment \"jest *\" (matches nothing, loses %TEMP%\\jest); LOW discovery with base system_drive accepted but its plan is rejected; weak: addendum 01 item 2 narrowed the old loop so 76 old rules lost shape, marker-byte and fallback wire-ID checks"
-      }
+        "summary": "round 2 (addendum 03, head 2fd789d8): audit 0 problems; fresh tree lock, check, real and test finals passed; controller mutations c1-c10 all caught (c8/c9 drive-root discovery at parse and at resolve, c10 jest back to one segment); independent review found no HIGH: jest fixed, drive-root discovery rejected on every path, old loop covers all 78 original rules with no weakened expectation; MEDIUM jianying-cache locator 2 is one segment \"CEF Cache\" but the real path is User Data\\CEF\\Cache (same contract-notation ambiguity as jest, controller fault) -> addendum 04 while M1 waits to merge with M2"
+      },
+      "implementationCommit": "72ac1178cd30adce9c4d27df988e2057eabfdbcb",
+      "carryOverLater": [
+        "LOW: at resolve time a drive-root discovery base is a folder value problem but the error points at /rules/<i>/locate/<j>",
+        "LOW: some assertion messages are stale (\"all eight marker targets\" next to 25, \"eight custom rules\" next to 23)"
+      ]
     },
     {
       "id": "WATER-W10-M2",
@@ -371,20 +387,37 @@
       ],
       "bundle": "A",
       "dispatchEvidence": "user chat 2026-11-05 ~17:47 JST: \"三个新单是sol\" (bundles A, B, C to sol); worker tree head/changed files f93afb8e/0 when recorded at 2026-11-05T08:47:40Z",
-      "submittedHead": "f50da2642dc055d8425b474e30759b6ce22cdc0f",
+      "submittedHead": "68f902639b68f942e5556aa2063bfe363bbdaaac",
       "controllerReview": {
+        "report": "docs/acceptance/wave10/controller/WATER-W10-REVIEW-20261105.md",
         "evidence": "docs/acceptance/wave10/controller/accept-20261105/m2/",
-        "summary": "audit 0 problems; fresh tree lock, check, real and test finals passed; controller mutations c1, c3, c4 caught, c2 (FNV prime) survives; independent review: no content read; MEDIUM <h> clusters take other extensions; declarations inside cluster members dropped; name-only marker matches stop searching; listing cache kept for the whole scan with linear child lookup and an unchecked candidate loop"
+        "summary": "round 2 (addendum 01, head 68f90263): audit 0 problems; fresh tree lock, check and real finals passed; controller mutations c1-c4, c6, c8 caught (c2 FNV prime now caught), c5 (extension check in hash_extra) and c7 (cancel check in the build_clusters candidate loop) survive; warm alternating timing old vs new: scan 18.4/18.8 vs 18.1/17.7 s, full 33.0/33.4 vs 19.5/15.8 s, overview 27.1/30.6 vs 30.1/29.3 s (no regression); independent review: all five addendum items done, but HIGH the single-DFS enables pattern targets inside .git when a measurement makes the walk enter it (streaming.rs 426-433 lacks the .git part filter), so .git children become cleanable items; MEDIUM budget_exhausted only on the outermost open measurement group (SCAN-M35 6.4); MEDIUM clusters still searched inside pattern hits and discovery items (5.2, since f50da264); LOW discovery-root cluster member issues counted twice"
       },
       "addenda": [
         {
           "id": "WATER-W10-M2-ADDENDUM-01",
           "ticket": "docs/dispatch/tickets/WATER-W10-M2-ADDENDUM-01-20261105.md",
-          "status": "READY",
+          "status": "REWORK",
           "issuedAt": "2026-11-05T11:57:58Z",
           "resumeFromCommit": "f50da2642dc055d8425b474e30759b6ce22cdc0f",
-          "change": "<h> extra members need the exact extension; a candidate dir holding .water-cleanup.json is not a candidate and declarations inside members are kept; name-only marker matches that fail conditions are searched; indexed child lookup, cancel and budget checks in the cluster loop, listing cache released when no longer needed; budget issue of a dropped cluster goes to the parent group; independent FNV-1a check in tests"
+          "change": "<h> extra members need the exact extension; a candidate dir holding .water-cleanup.json is not a candidate and declarations inside members are kept; name-only marker matches that fail conditions are searched; indexed child lookup, cancel and budget checks in the cluster loop, listing cache released when no longer needed; budget issue of a dropped cluster goes to the parent group; independent FNV-1a check in tests",
+          "submittedHead": "68f902639b68f942e5556aa2063bfe363bbdaaac",
+          "implementationCommit": "337f41ace967620ecbefecde82c0cf2e17c8fb77"
+        },
+        {
+          "id": "WATER-W10-M2-ADDENDUM-02",
+          "ticket": "docs/dispatch/tickets/WATER-W10-M2-ADDENDUM-02-20261106.md",
+          "status": "READY",
+          "issuedAt": "2026-11-05T15:44:06Z",
+          "resumeFromCommit": "68f902639b68f942e5556aa2063bfe363bbdaaac",
+          "change": "no target search of any kind inside a .git directory entered for measurement; budget_exhausted on the final group of every hit being measured and of every unfinished target; clusters whose parent is in or at a final item are dropped (declarations unchanged); tests that kill the surviving c5/c7 mutations; discovery-root cluster member issues recorded once on the leak group"
         }
+      ],
+      "implementationCommit": "337f41ace967620ecbefecde82c0cf2e17c8fb77",
+      "carryOverLater": [
+        "discovery children are measured before coverage is known (streaming.rs 712-727), so a covered child subtree is listed only to be dropped; visited_entries differs from the old engine in that case",
+        "on cancel or budget every fully measured discovery item is dropped (streaming.rs 863-865)",
+        "row.issues accumulates one entry per failing listing instead of a count; potential_children allocates per character; pure-measurement directories go through the full search step (CPU only, no measured regression)"
       ]
     },
     {

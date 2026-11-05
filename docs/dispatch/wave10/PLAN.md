@@ -314,3 +314,14 @@ WATER-W10-M5 补单 01（命令追加与新参数带来的旧断言，重门）�
 ```text
 WATER-W10-M1 补单 03（jest 定位、discovery 盘根、旧循环覆盖面，轻门）：读 F:/new/smaltalk/water/docs/dispatch/tickets/WATER-W10-M1-ADDENDUM-03-20261105.md，按其中列出的顺序读原票、规则、契约、前两张补单与你的回执，在 F:/new/smaltalk/water/.worktrees/w10-m1（分支 worker/water-w10-m1）从 23cd89da 续做；交回后再做 WATER-W10-M2 补单 01（簇成员、项目声明、名字命中、扫描开销，中门）：读 F:/new/smaltalk/water/docs/dispatch/tickets/WATER-W10-M2-ADDENDUM-01-20261105.md，在 F:/new/smaltalk/water/.worktrees/w10-m2（分支 worker/water-w10-m2）从 f50da264 续做。每张单在自己的工作树里做完、提交并交回回执再开始下一张；某一张受阻就停下写受阻回执。
 ```
+
+### M1 补单 04、M2 补单 02（2026-11-06，第二轮验收）
+
+- **M1**（补单 03，`2fd789d8`）验收通过：审计 0 问题，四个 final 重跑通过，总控变异十条全抓住，独立审查没有高危。审查查出剪映 `CEF Cache` 与 `jest *` 同类：真实路径是 `User Data\CEF\Cache`，实现成了单段，只是少清一处缓存。M1 本来就要等 M2 一起合入，[补单 04](../tickets/WATER-W10-M1-ADDENDUM-04-20261106.md) 顺手改掉。
+- **M2**（补单 01，`68f90263`）五条都做到了，热缓存交替计时没有变慢（三开关快约一半）。但独立审查查出高危：新的单次遍历因测量进入 `.git` 后，中间段为 `*` 的 pattern 会在里面启用，`.git` 的子项成了可清条目；另有预算问题只记在最外层组、簇仍会长在 pattern 命中与 discovery 条目里面、discovery 处簇成员问题记两遍，以及两条总控变异漏网。[补单 02](../tickets/WATER-W10-M2-ADDENDUM-02-20261106.md) 逐条修正。
+
+**WATER-W10-M1 补单 04，然后 WATER-W10-M2 补单 02**
+
+```text
+WATER-W10-M1 补单 04（剪映 CEF Cache 拆两段，轻门）：读 F:/new/smaltalk/water/docs/dispatch/tickets/WATER-W10-M1-ADDENDUM-04-20261106.md，按其中列出的顺序读原票、规则、契约、前三张补单与你的回执，在 F:/new/smaltalk/water/.worktrees/w10-m1（分支 worker/water-w10-m1）从 2fd789d8 续做；交回后再做 WATER-W10-M2 补单 02（.git 内不出条目、预算问题归属、簇不进条目内部，中门）：读 F:/new/smaltalk/water/docs/dispatch/tickets/WATER-W10-M2-ADDENDUM-02-20261106.md，在 F:/new/smaltalk/water/.worktrees/w10-m2（分支 worker/water-w10-m2）从 68f90263 续做。每张单在自己的工作树里做完、提交并交回回执再开始下一张；某一张受阻就停下写受阻回执。
+```

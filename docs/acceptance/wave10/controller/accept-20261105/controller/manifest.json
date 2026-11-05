@@ -213,14 +213,27 @@
         {
           "id": "WATER-W10-M1-ADDENDUM-02",
           "ticket": "docs/dispatch/tickets/WATER-W10-M1-ADDENDUM-02-20261105.md",
-          "status": "READY",
+          "status": "SUBMITTED",
           "issuedAt": "2026-11-05T09:22:34Z",
           "resumeFromCommit": "a62e87ce9a21ba3a7ab2b45b0f9f2d5a785a7a80",
           "change": "bound the agent target slice to 38 and compare its last item; general rule: any old tail/count/last-item assertion that fails only because rules and targets are appended at the end is cut to the original part, original content unchanged, new part checked by RULES_M35_SEEDS"
+        },
+        {
+          "id": "WATER-W10-M1-ADDENDUM-03",
+          "ticket": "docs/dispatch/tickets/WATER-W10-M1-ADDENDUM-03-20261105.md",
+          "status": "READY",
+          "issuedAt": "2026-11-05T11:57:58Z",
+          "resumeFromCommit": "23cd89da24cd46bea0ec511aebb15039eac6a2c0",
+          "change": "jest-cache locators become segments [\"jest\",\"*\"] in system_temp and user_temp (contract notation: a space separates segments, as in rule 32); discovery locators reject drive-root bases with RULES_INVALID_LOCATE; the old conditions loop covers all targets of the original 78 rules again, conditions comparison still only for node-modules and test-browser-profiles, expected values updated only where SPEC section 5 or the fallback ID format changed"
         }
       ],
+      "submittedHead": "23cd89da24cd46bea0ec511aebb15039eac6a2c0",
+      "controllerReview": {
+        "evidence": "docs/acceptance/wave10/controller/accept-20261105/m1/",
+        "summary": "audit 0 problems; fresh tree lock, check, real and test finals passed; controller mutations c1-c7 all caught; independent review: HIGH jest-cache locator implemented as one segment \"jest *\" (matches nothing, loses %TEMP%\\jest); LOW discovery with base system_drive accepted but its plan is rejected; weak: addendum 01 item 2 narrowed the old loop so 76 old rules lost shape, marker-byte and fallback wire-ID checks"
+      },
       "acceptsTask": "WATER-W10-M1",
-      "acceptsHead": "23cd89da24cd46bea0ec511aebb15039eac6a2c0"
+      "acceptsHead": "2fd789d84177398f97cef2128c1326d4725697a8"
     },
     {
       "id": "WATER-W10-ACCEPT-M2",
@@ -362,8 +375,23 @@
       ],
       "bundle": "A",
       "dispatchEvidence": "user chat 2026-11-05 ~17:47 JST: \"三个新单是sol\" (bundles A, B, C to sol); worker tree head/changed files f93afb8e/0 when recorded at 2026-11-05T08:47:40Z",
+      "submittedHead": "f50da2642dc055d8425b474e30759b6ce22cdc0f",
+      "controllerReview": {
+        "evidence": "docs/acceptance/wave10/controller/accept-20261105/m2/",
+        "summary": "audit 0 problems; fresh tree lock, check, real and test finals passed; controller mutations c1, c3, c4 caught, c2 (FNV prime) survives; independent review: no content read; MEDIUM <h> clusters take other extensions; declarations inside cluster members dropped; name-only marker matches stop searching; listing cache kept for the whole scan with linear child lookup and an unchecked candidate loop"
+      },
+      "addenda": [
+        {
+          "id": "WATER-W10-M2-ADDENDUM-01",
+          "ticket": "docs/dispatch/tickets/WATER-W10-M2-ADDENDUM-01-20261105.md",
+          "status": "READY",
+          "issuedAt": "2026-11-05T11:57:58Z",
+          "resumeFromCommit": "f50da2642dc055d8425b474e30759b6ce22cdc0f",
+          "change": "<h> extra members need the exact extension; a candidate dir holding .water-cleanup.json is not a candidate and declarations inside members are kept; name-only marker matches that fail conditions are searched; indexed child lookup, cancel and budget checks in the cluster loop, listing cache released when no longer needed; budget issue of a dropped cluster goes to the parent group; independent FNV-1a check in tests"
+        }
+      ],
       "acceptsTask": "WATER-W10-M2",
-      "acceptsHead": "f50da2642dc055d8425b474e30759b6ce22cdc0f"
+      "acceptsHead": "68f902639b68f942e5556aa2063bfe363bbdaaac"
     },
     {
       "id": "WATER-W10-ACCEPT-M3",
