@@ -401,3 +401,13 @@ M7 补单 01 的形状迁移已做完（检查点 `cd0e5d21`），但同一字�
 ```text
 WATER-W10-M7 补单 02（汇总行改为用到才算，修旧 50 ms 超时，轻门）：读 F:/new/smaltalk/water/docs/dispatch/tickets/WATER-W10-M7-ADDENDUM-02-20261106.md，按其中列出的顺序读原单、补单 01、本补单与你的回执，在 F:/new/smaltalk/water/.worktrees/w10-m7（分支 worker/water-w10-m7）从 af7fa295 续做；做完、提交并交回回执；受阻就停下写受阻回执。
 ```
+
+### M6 补单 03（2026-11-06）
+
+M6 补单 02 交回（`3d5e01a7`）：三个 final 重跑通过，负控与总控变异 7/7 抓住，跳过只给真实条目做对了。独立审查两条中等（轮询出错后界面卡死、查重页与完成页走不出去）、七条低，回执“补单 02”一节中文丢成问号（[验收报告](../../acceptance/wave10/controller/WATER-W10-REVIEW-20261105.md)第 12 节）。[补单 03](../tickets/WATER-W10-M6-ADDENDUM-03-20261106.md) 修这九处，外加隔离区按钮写明盘符、查重矩形树图名字、窄窗口滚动条三处样子，并用 UTF-8 补写回执。
+
+**WATER-W10-M6 补单 03（界面单）**
+
+```text
+WATER-W10-M6 补单 03（修两处卡死、七处小错与三处样子，补写回执，中门）：读 F:/new/smaltalk/water/docs/dispatch/tickets/WATER-W10-M6-ADDENDUM-03-20261106.md，按其中列出的顺序读原单、补单 01、02、本补单、你的回执与总控验收记录，在 F:/new/smaltalk/water/.worktrees/w10-m6（分支 worker/water-w10-m6）从 3d5e01a7 续做；做完、提交并交回回执；受阻就停下写受阻回执。
+```
