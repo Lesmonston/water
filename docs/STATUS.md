@@ -422,6 +422,7 @@ A–AB及八补单、AD保持VERIFIED；AC/补单06新增VERIFIED（Windows静�
     - **M1** 留在分支上，等 M2 一起合入。
     - 证据与[验收报告](acceptance/wave10/controller/WATER-W10-REVIEW-20261105.md)第 10 节已更新。
     - **界面**：用户看了第五轮网页后说“可以，定稿吧”。其余九屏已按同样做法铺开，[设计 v3](design/water-ui-v3/DESIGN.md) 第 0～5 节与 `tokens.css` 已改写，十一张截图在 `design/water-ui-v3/previews/`。下一步改 UI-M35，再重出 M6 界面单。
+61. **M6 界面单按设计 v3 重出**（11-06 15:20 JST）：[UI-M35](../contracts/m35-v1/UI-M35.md) 只改样子（`06d266d1`），M6 从 HOLD 改为 READY，新基线 `06d266d1`，总控重跑 baseline 通过（上次是行尾不一致导致的哈希失败，这次哈希从工作树取）。[新单](dispatch/tickets/WATER-W10-M6-UI-20261106.md)，粘贴语在[计划](dispatch/wave10/PLAN.md)第 7 节末尾，模型由用户选。
 ## 真实AA→AD联合验收通过（2026-10-26）
 
 新总控（Claude）接任后按事先冻结的[计划](acceptance/wave1/controller/WATER-W1-AAAD-JOINT-PLAN-20261026.md)执行一次：真实固定AA宿主→原生目录选择→R/Z→AB传输→AD同源报告页，四场景全部通过，4窗/9.993秒/无重试/手动终止0。报告页鼠标下载的Q与Z与当次原字符串逐字节一致，淘汰与正常关闭通过。见[联合验收报告](acceptance/wave1/controller/WATER-W1-AAAD-JOINT-REVIEW-20261026.md)。31任务/槽位不变，没有新READY票；桌面接入扫描、真实用户scope、自然同意鉴真、生产竞态、macOS与M1仍未验收。用户同日要求先暂停安排后续任务，结合本机清理经验重订计划；总控草案见[计划重订（待拍板）](REPLAN-20261026-AGENT-ERA-CHECKUP.md)，拍板前不出新票。

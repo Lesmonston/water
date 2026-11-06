@@ -336,3 +336,13 @@ WATER-W10-M1 补单 04（剪映 CEF Cache 拆两段，轻门）：读 F:/new/sma
 ```text
 WATER-W10-M2 补单 03（遍历之后丢掉的组也要带预算问题，中门）：读 F:/new/smaltalk/water/docs/dispatch/tickets/WATER-W10-M2-ADDENDUM-03-20261106.md，按其中列出的顺序读原票、规则、契约、前两张补单与你的回执，在 F:/new/smaltalk/water/.worktrees/w10-m2（分支 worker/water-w10-m2）从 c4a02875 续做；做完、提交并交回回执；受阻就停下写受阻回执。
 ```
+
+### M6 重出（2026-11-06，设计 v3 定稿）
+
+用户 11-06 放弃冰山动画、要求整体重做视觉，看过设计 v3 后说“可以，定稿吧”。UI-M35 只改样子（`06d266d1`）：令牌换成 v3，顶栏导航，每屏一张黑色主卡放主按钮，红色换成橙红，25 张截图对照 v3；另加“只画服务给的数”一条。数据、命令、行为规则、测试名与负控不变。M6 从 HOLD 改为 READY，新基线 `06d266d1`（tag `water-w10-m6-base-20261106`），总控重跑 baseline 已通过。[新单](../tickets/WATER-W10-M6-UI-20261106.md)取代 11-05 那一版。界面单，模型由用户选。
+
+**WATER-W10-M6（界面单）**
+
+```text
+WATER-W10-M6（界面：按设计 v3 重做，中门，浏览器测试与 25 张截图）：读 F:/new/smaltalk/water/docs/dispatch/tickets/WATER-W10-M6-UI-20261106.md，按其中“先读”的顺序读工作规则、SPEC、设计 v3（设计稿十一屏都在浏览器里点开看）、设计 v2 的规则与仍然有效的契约，在 F:/new/smaltalk/water/.worktrees/w10-m6（分支 worker/water-w10-m6）从 06d266d1 开工；做完、提交并交回回执；受阻就停下写受阻回执。
+```

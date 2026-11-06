@@ -1194,7 +1194,7 @@
         "ui_v2_view_rules",
         "ui_ipc_boundary"
       ],
-      "tokensSource": "docs/design/water-ui-v2/tokens.css",
+      "tokensSource": "docs/design/water-ui-v3/tokens.css",
       "fixtures": "contracts/m35-v1/ui-fixtures-m35.json",
       "browserHelper": "scripts/acceptance/native-vw-private-browser.mjs",
       "screenshotDirEnv": "WATER_W2_SHOTS_DIR",
@@ -1211,32 +1211,31 @@
         "ui_v2_pages_layout_a11y"
       ],
       "requiredScreenshots": [
-        "v2-home-1240x820.png",
-        "v2-home-new-1240x820.png",
-        "v2-scan-1240x820.png",
-        "v2-results-1240x820.png",
-        "v2-results-open-1240x820.png",
-        "v2-results-decided-1240x820.png",
-        "v2-results-folds-1240x820.png",
-        "v2-menu-1240x820.png",
-        "v2-drawer-1240x820.png",
-        "v2-drawer-big-1240x820.png",
-        "v2-details-1240x820.png",
-        "v2-confirm-1240x820.png",
-        "v2-confirm-direct-1240x820.png",
-        "v2-done-1240x820.png",
-        "v2-quarantine-1240x820.png",
-        "v2-dedupe-menu-1240x820.png",
-        "v2-dedupe-intro-1240x820.png",
-        "v2-dedupe-result-1240x820.png",
-        "v2-trends-1240x820.png",
-        "v2-records-1240x820.png",
-        "v2-settings-1240x820.png",
-        "v2-settings-decl-1240x820.png",
-        "v2-results-stale-1240x820.png",
-        "v2-results-empty-1240x820.png",
-        "v2-quarantine-leftover-1240x820.png",
-        "v2-home-narrow-1040x720.png"
+        "v3-home-1240x820.png",
+        "v3-home-new-1240x820.png",
+        "v3-scan-1240x820.png",
+        "v3-results-1240x820.png",
+        "v3-results-decided-1240x820.png",
+        "v3-results-folds-1240x820.png",
+        "v3-results-stale-1240x820.png",
+        "v3-results-empty-1240x820.png",
+        "v3-menu-1240x820.png",
+        "v3-drawer-1240x820.png",
+        "v3-drawer-big-1240x820.png",
+        "v3-details-1240x820.png",
+        "v3-confirm-1240x820.png",
+        "v3-confirm-direct-1240x820.png",
+        "v3-done-1240x820.png",
+        "v3-quarantine-1240x820.png",
+        "v3-quarantine-leftover-1240x820.png",
+        "v3-dedupe-menu-1240x820.png",
+        "v3-dedupe-intro-1240x820.png",
+        "v3-dedupe-1240x820.png",
+        "v3-trends-1240x820.png",
+        "v3-history-1240x820.png",
+        "v3-settings-1240x820.png",
+        "v3-settings-decl-1240x820.png",
+        "v3-home-narrow-1040x720.png"
       ],
       "browserProofs": [
         "nc1",
@@ -1262,14 +1261,14 @@
       "browserBudget": 1,
       "realDataPermission": "none; IPC fixtures only",
       "id": "WATER-W10-M6",
-      "title": "界面：按设计 v2 重做（界面单）",
+      "title": "界面：按设计 v3 重做（界面单）",
       "slot": "w10-m6",
       "worktree": "F:/new/smaltalk/water/.worktrees/w10-m6",
       "branch": "worker/water-w10-m6",
-      "baseCommit": "f93afb8e3c5cf4114927fe2ab6c14dbb033c7ffe",
-      "snapshotRef": "refs/tags/water-w10-m35-base-20261105",
-      "status": "HOLD",
-      "readyOn": "2026-11-05",
+      "baseCommit": "06d266d1483b7ab210dd2c492d39a2511a134abe",
+      "snapshotRef": "refs/tags/water-w10-m6-base-20261106",
+      "status": "READY",
+      "readyOn": "2026-11-06",
       "dispatchedAt": null,
       "startedAt": null,
       "model": null,
@@ -1281,14 +1280,14 @@
         "docs/dispatch/reports/WATER-W10-M6-REPORT.md"
       ],
       "gate": "light",
-      "ticket": "docs/dispatch/tickets/WATER-W10-M6-UI-20261105.md",
+      "ticket": "docs/dispatch/tickets/WATER-W10-M6-UI-20261106.md",
       "spec": "contracts/m35-v1/UI-M35.md",
       "proofTargets": {
         "nc1": "UI_V2_CONCLUSION",
         "nc2": "UI_V2_CONFIRM",
         "nc3": "UI_IPC_NO_PATH"
       },
-      "modelHint": "UI ticket: rebuild to design v2 (frosted white glass, conclusion first); browser tests and 26 screenshots compared page by page with the mockup.",
+      "modelHint": "UI ticket: rebuild to design v3 (final 11-06: sky tiles, one lime highlight, orange-red attention, one dark main card per screen); same data, rules and tests as before; 25 screenshots compared with the v3 previews; draw only numbers the service gives.",
       "mustRead": [
         "docs/dispatch/W10-M35-WORKER-RULES.md",
         "contracts/m35-v1/UI-M35.md",
@@ -1299,9 +1298,12 @@
         "contracts/checkup-v1/IPC.md",
         "contracts/checkup-v1/ui-fixtures.json",
         "contracts/checkup-v1/UI.md",
+        "docs/design/water-ui-v3/DESIGN.md",
+        "docs/design/water-ui-v3/mockup.html",
+        "docs/design/water-ui-v3/tokens.css",
+        "docs/design/water-ui-v3/previews/",
         "docs/design/water-ui-v2/DESIGN.md",
-        "docs/design/water-ui-v2/mockup.html",
-        "docs/design/water-ui-v2/tokens.css",
+        "docs/design/water-ui-v2/previews/",
         "docs/dispatch/wave10/PLAN.md",
         "apps/water/ui/index.html",
         "apps/water/ui/app.mjs",
@@ -1316,7 +1318,7 @@
       "frozenFiles": [
         {
           "path": "contracts/m35-v1/UI-M35.md",
-          "sha256": "50e575824896191b2b1524e7d14c2cf8ef8c55ae05eb98a77ed3cdaca03d082f"
+          "sha256": "8292e85d7327af22ee3f2304ff9953241ee3602c82f738741b8af626ad9d19e4"
         },
         {
           "path": "contracts/m35-v1/IPC-M35.md",
@@ -1351,21 +1353,30 @@
           "sha256": "41ab927cf35868da973dfea5171a066891592fa69c4058945fa929c5c222fab4"
         },
         {
-          "path": "docs/design/water-ui-v2/mockup.html",
-          "sha256": "bd02d7031e3d8f46913db83e6dd1c1db9e3d227f2ed8b942531e5c18ba2905ac"
+          "path": "docs/design/water-ui-v3/DESIGN.md",
+          "sha256": "0da4340331085f9131872e95879236e67ae44ddf5aa57cef1dd517b4124e5d69"
         },
         {
-          "path": "docs/design/water-ui-v2/tokens.css",
-          "sha256": "66d4a75f82a58b6c407af60bed508035dd59c73ba9408b75cd7c4356b06b4cd2"
+          "path": "docs/design/water-ui-v3/mockup.html",
+          "sha256": "96f6980ea330bbed297cc14ce59cc4d9ed29f8050fe53014689101e1f2e19ad0"
+        },
+        {
+          "path": "docs/design/water-ui-v3/tokens.css",
+          "sha256": "2850d65eb9e51eedcfc319850ce92b000184f39766499aa7d84de757223f2697"
         }
       ],
       "allowedPrefixes": [
         "apps/water/ui/",
         "docs/acceptance/wave10/m6/"
       ],
-      "baselineStatus": "FAILED",
-      "baselineEvidence": "docs/acceptance/wave10/controller/preflight-20261105/m6/2026-11-05T08-18-39.569Z-5740-baseline-result.json",
-      "holdReason": "2026-11-05 user: \"UI整体要做可视化的优化，整体的可视化方案你要想一下用什么替代目前的主要面板。\" The UI ticket waits for the visualization scheme (docs/design/water-ui-v2/viz-proposal.html); UI-M35 and the fixtures are revised after the user decides. Baseline also failed on the frozen-file hash of docs/design/water-ui-v2/mockup.html (worktree and controller copies differ, likely line endings); fix when the ticket is reissued."
+      "baselineStatus": "PASSED",
+      "baselineEvidence": "docs/acceptance/wave10/controller/preflight-20261106/m6/2026-11-06T05-55-27.055Z-10824-baseline-result.json",
+      "reissue": {
+        "at": "2026-11-06T05:54:39Z",
+        "from": "docs/dispatch/tickets/WATER-W10-M6-UI-20261105.md",
+        "previousBase": "f93afb8e3c5cf4114927fe2ab6c14dbb033c7ffe",
+        "reason": "user 11-06 dropped the iceberg visuals and approved design v3 (\"可以，定稿吧\"); UI-M35 revised for looks only (06d266d1); frozen hashes taken from the w10-m6 checkout so line endings match"
+      }
     },
     {
       "id": "WATER-W10-M8",
