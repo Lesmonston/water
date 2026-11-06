@@ -1403,6 +1403,271 @@
       ]
     },
     {
+      "kind": "service",
+      "outputRoot": "packages/water-service",
+      "packageName": "water-service",
+      "testTarget": "service_v1",
+      "testFiles": [
+        "packages/water-service/tests/service_v1.rs"
+      ],
+      "productionFiles": [
+        "packages/water-service/Cargo.toml",
+        "packages/water-service/Cargo.lock",
+        "packages/water-service/README.md",
+        "packages/water-service/examples/service_smoke.rs"
+      ],
+      "cargoCacheSource": "F:/new/smaltalk/water/.offline-cache/core/registry",
+      "realMode": "service-smoke",
+      "nativeModule": "native_windows.rs",
+      "allowedEnv": [],
+      "expectedDependencies": [
+        {
+          "name": "serde",
+          "req": "=1.0.229",
+          "kind": null,
+          "optional": false,
+          "path": null,
+          "defaults": true,
+          "features": [
+            "derive"
+          ]
+        },
+        {
+          "name": "serde_json",
+          "req": "=1.0.151",
+          "kind": null,
+          "optional": false,
+          "path": null,
+          "defaults": true,
+          "features": []
+        },
+        {
+          "name": "water-cleanup-manifest",
+          "req": "*",
+          "kind": null,
+          "optional": false,
+          "path": "packages/cleanup-manifest",
+          "defaults": true,
+          "features": []
+        },
+        {
+          "name": "water-dup-finder",
+          "req": "*",
+          "kind": null,
+          "optional": false,
+          "path": "packages/dup-finder",
+          "defaults": true,
+          "features": []
+        },
+        {
+          "name": "water-installed-apps",
+          "req": "*",
+          "kind": null,
+          "optional": false,
+          "path": "packages/installed-apps",
+          "defaults": true,
+          "features": []
+        },
+        {
+          "name": "water-junk-clean",
+          "req": "*",
+          "kind": null,
+          "optional": false,
+          "path": "packages/junk-clean",
+          "defaults": true,
+          "features": []
+        },
+        {
+          "name": "water-junk-rules",
+          "req": "*",
+          "kind": null,
+          "optional": false,
+          "path": "packages/junk-rules",
+          "defaults": true,
+          "features": []
+        },
+        {
+          "name": "water-junk-scan",
+          "req": "*",
+          "kind": null,
+          "optional": false,
+          "path": "packages/junk-scan",
+          "defaults": true,
+          "features": []
+        },
+        {
+          "name": "water-process-scan",
+          "req": "*",
+          "kind": null,
+          "optional": false,
+          "path": "packages/process-scan",
+          "defaults": true,
+          "features": []
+        }
+      ],
+      "allowedFfiNote": "desktop-wave-check does not enforce FFI; SERVICE-M35 section 2 allows only SHQueryRecycleBinW as a new system function, checked by hand at acceptance",
+      "macOS": "unverified",
+      "outputRootExists": true,
+      "nativeWindowBudget": 0,
+      "nativeDirectoryDialogBudget": 0,
+      "expectedTests": [
+        "service_ipc_contract",
+        "service_scan_views",
+        "service_clean_flow",
+        "service_trends_locations",
+        "service_storage_safety",
+        "service_hardening",
+        "m35_scope_and_plan",
+        "m35_conclusion_cards",
+        "m35_rows_and_detail",
+        "m35_clean_split",
+        "m35_quarantine",
+        "m35_trends_history"
+      ],
+      "allowedModes": [
+        "baseline",
+        "lock",
+        "check",
+        "test",
+        "real",
+        "red-nc1",
+        "red-nc2",
+        "red-nc3",
+        "archive"
+      ],
+      "expectedFinalModes": [
+        "check",
+        "test",
+        "real"
+      ],
+      "browserBudget": 0,
+      "realDataPermission": "read-only metadata per ADR-018; clean disabled in the real smoke",
+      "id": "WATER-W10-M7",
+      "title": "服务：算结论、分两块清理、管隔离区与查重",
+      "slot": "w10-m7",
+      "worktree": "F:/new/smaltalk/water/.worktrees/w10-m7",
+      "branch": "worker/water-w10-m7",
+      "baseCommit": "b4b889a9412c47d8227c492eb76ef053fbd2b9c2",
+      "snapshotRef": "refs/tags/water-w10-m7-base-20261106",
+      "status": "READY",
+      "readyOn": "2026-11-06",
+      "dispatchedAt": null,
+      "startedAt": null,
+      "model": null,
+      "modelAssignment": "user-arranged; report actual engine/model",
+      "purpose": "M3.5 conclusion first",
+      "report": "docs/dispatch/reports/WATER-W10-M7-REPORT.md",
+      "evidenceDir": "docs/acceptance/wave10/m7/",
+      "allowedFiles": [
+        "docs/dispatch/reports/WATER-W10-M7-REPORT.md"
+      ],
+      "gate": "medium",
+      "ticket": "docs/dispatch/tickets/WATER-W10-M7-SERVICE-20261106.md",
+      "spec": "contracts/m35-v1/SERVICE-M35.md",
+      "proofTargets": {
+        "nc1": "SERVICE_M35_CLEAN",
+        "nc2": "SERVICE_M35_CONCLUSION",
+        "nc3": "SERVICE_M35_SCOPE"
+      },
+      "modelHint": "Rust service core, largest wave 10 ticket: conclusion view, two-part clean with quarantine, quarantine view, dedupe, settings v3, trends; wires six merged packages; medium gate with a read-only real checkup.",
+      "mustRead": [
+        "docs/dispatch/W10-M35-WORKER-RULES.md",
+        "contracts/m35-v1/SERVICE-M35.md",
+        "contracts/m35-v1/IPC-M35.md",
+        "contracts/m35-v1/RULES-M35.md",
+        "contracts/m35-v1/SCAN-M35.md",
+        "contracts/m35-v1/MANIFEST-M35.md",
+        "contracts/m35-v1/CLEAN-M35.md",
+        "contracts/m35-v1/DUP-M35.md",
+        "contracts/m35-v1/APPS-M35.md",
+        "contracts/desktop-v1/SERVICE.md",
+        "contracts/hardening-v1/SERVICE-HARDENING.md",
+        "contracts/m3c-v1/SERVICE-M3C.md",
+        "contracts/m3c-v1/SERVICE-M3C-ADD-01.md",
+        "contracts/m3d-v1/SERVICE-M3D.md",
+        "contracts/m3c-v1/IPC-M3C.md",
+        "contracts/checkup-v1/IPC.md",
+        "docs/decisions/ADR-019-project-declarations-and-quarantine.md",
+        "docs/design/water-ui-v2/DESIGN.md",
+        "docs/dispatch/wave10/PLAN.md",
+        "packages/junk-rules/src/lib.rs",
+        "packages/junk-scan/src/lib.rs",
+        "packages/cleanup-manifest/src/lib.rs",
+        "packages/junk-clean/src/lib.rs",
+        "packages/dup-finder/src/lib.rs",
+        "packages/installed-apps/src/lib.rs",
+        "packages/water-service/src/",
+        "packages/water-service/tests/service_v1.rs",
+        "packages/water-service/examples/service_smoke.rs",
+        "packages/water-service/Cargo.toml",
+        "packages/water-service/README.md"
+      ],
+      "frozenFiles": [
+        {
+          "path": "contracts/m35-v1/SERVICE-M35.md",
+          "sha256": "39ba60f15086b7fefa504bae362dbe5a9c468250052567263269b233f069dd94"
+        },
+        {
+          "path": "contracts/m35-v1/RULES-M35.md",
+          "sha256": "3dfc034799404b45dbd19b7e44f99dc1875584e7b87285cdcd53340af9193a17"
+        },
+        {
+          "path": "contracts/m35-v1/SCAN-M35.md",
+          "sha256": "89d99d991d4fcfbdde3275137bfd14406466fc0ade676057e0073fb16a8edf90"
+        },
+        {
+          "path": "contracts/m35-v1/MANIFEST-M35.md",
+          "sha256": "4e3dc89590a42d33fb0d1e77f017e5ec26c61c03887f2aca580a096b8dd5f611"
+        },
+        {
+          "path": "contracts/m35-v1/CLEAN-M35.md",
+          "sha256": "9a7a43d758668fc4b6da0db1ef90d6500318ba7df907d01355adfd737012dee5"
+        },
+        {
+          "path": "contracts/m35-v1/DUP-M35.md",
+          "sha256": "40e8295e0904e1c20bd218ac8c32e6ccea21482488fdc358fbaa204fb3117276"
+        },
+        {
+          "path": "contracts/m35-v1/APPS-M35.md",
+          "sha256": "0c224a377648d0d8d8956c48c36818658170f826691dfe9cc186ead1374f1c79"
+        },
+        {
+          "path": "contracts/m3c-v1/SERVICE-M3C.md",
+          "sha256": "29a337e90705adcd28bf98419139efeaf88bcc709e1fa0fc022f28405fcafc26"
+        },
+        {
+          "path": "contracts/m3c-v1/SERVICE-M3C-ADD-01.md",
+          "sha256": "a001a4fc0771304cd8da6e21222b3c95b6fbd47146d35cc23de9216b9d182830"
+        },
+        {
+          "path": "contracts/m3d-v1/SERVICE-M3D.md",
+          "sha256": "c7abb8e82cc4994f7ebed64dd4e625ce35ef0a4ef4fc33753fce48912cc22d4c"
+        },
+        {
+          "path": "contracts/desktop-v1/SERVICE.md",
+          "sha256": "44ae8643cbe64e083807386919192ce15c3cf586d1ecddbcf908ca0f0157180a"
+        },
+        {
+          "path": "contracts/hardening-v1/SERVICE-HARDENING.md",
+          "sha256": "fbec889779d5d95ef2cc23ad4c6ac489010a064be958881b37988a12add57359"
+        }
+      ],
+      "allowedPrefixes": [
+        "packages/water-service/",
+        "docs/acceptance/wave10/m7/"
+      ],
+      "controllerAdditions": [
+        "protects input normalised to X:\\ (strip \\\\?\\, others not cleanable)",
+        "item containing a declaration directory not cleanable",
+        "collected_at to RFC 3339",
+        "installed check also by case-insensitive space-free containment before \"seems uninstalled\"",
+        "executor journal failure reported as failure, quarantine re-inspected",
+        "SERVICE-M35-ADD-01 dropped (iceberg gone, UI draws only existing fields)"
+      ],
+      "baselineStatus": "PASSED",
+      "baselineEvidence": "docs/acceptance/wave10/controller/preflight-20261106/m7/2026-11-06T06-54-54.178Z-30776-baseline-result.json"
+    },
+    {
       "id": "WATER-W10-M8",
       "title": "新包：用户发起的逐字节查重",
       "status": "VERIFIED",

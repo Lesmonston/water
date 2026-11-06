@@ -356,3 +356,21 @@ M6（回执 `920afafa`）受阻成立，责任在总控：单子“先读”要�
 ```text
 WATER-W10-M6 补单 01（看设计稿不用开浏览器，轻门）：读 F:/new/smaltalk/water/docs/dispatch/tickets/WATER-W10-M6-ADDENDUM-01-20261106.md，按其中列出的顺序读原单、本补单与你的回执，在 F:/new/smaltalk/water/.worktrees/w10-m6（分支 worker/water-w10-m6）从 920afafa 续做；做完、提交并交回回执；受阻就停下写受阻回执。
 ```
+
+### M7 服务单（2026-11-06）
+
+M1、M2、M3、M4、M8、M9 与宿主 M5 都已合入，服务单从合入后的主线 `b4b889a9`（tag `water-w10-m7-base-20261106`）开工。[工单](../tickets/WATER-W10-M7-SERVICE-20261106.md)照 SERVICE-M35 全文，另加总控补充六条：
+1. `protects` 前统一成 `X:\` 写法；
+2. 包住声明目录的条目不可清；
+3. `collected_at` 换成 RFC 3339；
+4. “已卸载”前再按显示名宽松核对一次（防“腾讯QQ”这类粘连）；
+5. 执行器写日志失败按失败报，并重新核对隔离区；
+6. SERVICE-M35-ADD-01 不做（冰山已放弃，界面只画已有的数）。
+
+检查器用 `desktop-wave-check.mjs`，中门，真实冒烟只读。
+
+**WATER-W10-M7**
+
+```text
+WATER-W10-M7（服务：算结论、分两块清理、管隔离区与查重，中门，含只读真实冒烟）：读 F:/new/smaltalk/water/docs/dispatch/tickets/WATER-W10-M7-SERVICE-20261106.md，按其中“先读”的顺序读工作规则、SPEC 与总控补充、IPC-M35、仍然有效的契约和六个包的接口，在 F:/new/smaltalk/water/.worktrees/w10-m7（分支 worker/water-w10-m7）从 b4b889a9 开工；做完、提交并交回回执；受阻就停下写受阻回执。
+```
