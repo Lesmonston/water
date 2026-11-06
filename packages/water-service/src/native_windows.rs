@@ -16,8 +16,17 @@ struct NativeTime {
     millis: u16,
 }
 
+#[repr(C)]
+struct RecycleInfo {
+    size: u32,
+    bytes: i64,
+    items: i64,
+}
+
 #[link(name = "kernel32")]
+#[link(name = "shell32")]
 unsafe extern "system" {
+    fn SHQueryRecycleBinW(root: *const u16, info: *mut RecycleInfo) -> i32;
     fn GetVolumeInformationW(
         root: *const u16,
         volume_name: *mut u16,
@@ -44,6 +53,49 @@ unsafe extern "system" {
 }
 
 const _: () = assert!(std::mem::size_of::<NativeTime>() == 16);
+
+pub(crate) fn recycle_bin(root: &str) -> Option<u64> {
+    if root.len() != 3
+        || !root.as_bytes()[0].is_ascii_alphabetic()
+        || &root.as_bytes()[1..] != b":\\"
+    {
+        return None;
+    }
+    let wide: Vec<_> = root.encode_utf16().chain([0]).collect();
+    let mut info = RecycleInfo {
+        size: std::mem::size_of::<RecycleInfo>() as u32,
+        bytes: 0,
+        items: 0,
+    };
+    // SAFETY: root is a live terminated UTF-16 drive root, and info has the SHQUERYRBINFO ABI and size.
+    (unsafe { SHQueryRecycleBinW(wide.as_ptr(), &mut info) } >= 0)
+        .then(|| u64::try_from(info.bytes).ok())
+        .flatten()
+}
+
+pub(crate) fn quarantine_stamp(at: SystemTime) -> String {
+    let [year, month, day, hour, minute, second] = util::parts(at);
+    let utc = NativeTime {
+        year,
+        month,
+        day,
+        hour,
+        minute,
+        second,
+        ..Default::default()
+    };
+    let mut local = NativeTime::default();
+    // SAFETY: null selects the current time zone; both SYSTEMTIME buffers are live and correctly sized.
+    let t = if unsafe { SystemTimeToTzSpecificLocalTime(std::ptr::null(), &utc, &mut local) } != 0 {
+        &local
+    } else {
+        &utc
+    };
+    format!(
+        "{:04}{:02}{:02}-{:02}{:02}{:02}",
+        t.year, t.month, t.day, t.hour, t.minute, t.second
+    )
+}
 
 pub(crate) fn volume_file_system(root: &str) -> Option<String> {
     if root.len() != 3

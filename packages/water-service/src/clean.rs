@@ -1,7 +1,7 @@
 #![forbid(unsafe_code)]
 
 use crate::{
-    IpcError,
+    IpcError, conclusion, m35, quarantine,
     service::{Core, Record, State, lock, trim},
     util, views,
 };
@@ -13,7 +13,7 @@ use std::{
 use water_junk_clean as clean;
 
 pub(crate) fn idle() -> Value {
-    json!({"clean_id":null,"state":"idle","done_items":0,"total_items":0,"freed_bytes":"0","group_index":0,"group_count":0,"current_group_title_zh":null})
+    json!({"clean_id":null,"state":"idle","done_items":0,"total_items":0,"freed_bytes":"0","group_index":0,"group_count":0,"current_group_title_zh":null,"phase":"delete","quarantined_bytes":"0"})
 }
 
 pub(crate) fn prepare(
@@ -21,11 +21,24 @@ pub(crate) fn prepare(
     ids: &[Value],
     excluded: &[Value],
 ) -> Result<Value, IpcError> {
+    prepare_mode(core, ids, excluded, None)
+}
+
+pub(crate) fn prepare_mode(
+    core: &Arc<Core>,
+    ids: &[Value],
+    excluded: &[Value],
+    mode: Option<(&str, &str)>,
+) -> Result<Value, IpcError> {
     let mut s = lock(core)?;
     if s.busy != "idle" {
         return Err(IpcError::new("busy"));
     }
     let r = s.last_record().ok_or_else(|| IpcError::new("stale"))?;
+    if let Some((_, version)) = mode {
+        conclusion::ensure(core, &mut s)?;
+        conclusion::current(&s, s.m35.conclusion.as_ref().unwrap(), version)?;
+    }
     if s.consumed.contains(&r.result.scan_id) {
         return Err(IpcError::new("stale"));
     }
@@ -125,9 +138,42 @@ pub(crate) fn prepare(
                     (util::contains(root, &item.path) && !root.eq_ignore_ascii_case(&item.path))
                         .then_some((root, t))
                 })
-                .max_by_key(|(root, _)| root.len())
-                .ok_or_else(|| IpcError::new("invalid"))?;
-            items.push(json!({"item_id":item.item_id,"group_id":id,"rule_id":group.rule_id,"level":group.level,"path":item.path,"root":target.0,"kind":item.kind,"identity":item.identity,"total_bytes":item.total_bytes,"min_age_hours":target.1.min_age_hours}));
+                .max_by_key(|(root, _)| root.len());
+            let (root, age, unlocks) = if let Some(cluster) = &group.cluster {
+                if water_junk_scan::name_template(m35::name(&item.path), item.kind == "file")
+                    .as_deref()
+                    != Some(cluster.template.as_str())
+                    || std::fs::symlink_metadata(&item.path).is_err()
+                {
+                    continue;
+                }
+                (cluster.parent.clone(), 24, Vec::new())
+            } else {
+                let (root, t) = target.ok_or_else(|| IpcError::new("invalid"))?;
+                let unlocks = r
+                    .result
+                    .items
+                    .iter()
+                    .filter(|p| p.path != item.path && util::contains(&p.path, &item.path))
+                    .filter(|p| {
+                        r.plan.targets.iter().any(|target| {
+                            target.group_id == p.group_id
+                                && t.unlocks_target_ids.contains(&target.target_id)
+                        })
+                    })
+                    .map(|p| p.path.clone())
+                    .collect::<Vec<_>>();
+                (
+                    root.clone(),
+                    if r.saved["unfinished"].get(&item.item_id).is_some() {
+                        0
+                    } else {
+                        t.min_age_hours
+                    },
+                    unlocks,
+                )
+            };
+            items.push(json!({"item_id":item.item_id,"group_id":id,"rule_id":group.rule_id,"level":group.level,"path":item.path,"root":root,"kind":item.kind,"identity":item.identity,"total_bytes":item.total_bytes,"min_age_hours":age,"unlocked_paths":unlocks}));
             let n = util::number(&item.unique_bytes);
             bytes += n;
             *by_drive.entry(util::drive(&item.path)).or_default() += n;
@@ -158,13 +204,88 @@ pub(crate) fn prepare(
     let plan = json!({"plan_version":"water.clean-plan.v1","plan_id":id,"created_at":util::timestamp(now),"items":items,"protected_paths":protected_paths,"hard_guards":r.plan.hard_guards});
     clean::CleanPlan::from_json(&plan.to_string()).map_err(|_| IpcError::new("invalid"))?;
     let token = util::random_hex();
-    let stored = json!({"plan":plan,"scan_id":r.result.scan_id,"token_digest":util::digest(&token),"used":false});
+    let chosen_ids = if mode.is_some() {
+        r.result
+            .items
+            .iter()
+            .filter(|i| {
+                items.iter().any(|p| p["item_id"] == i.item_id)
+                    && conclusion::is_chosen(core, &r, i)
+            })
+            .map(|i| i.item_id.clone())
+            .collect::<Vec<_>>()
+    } else {
+        vec![]
+    };
+    let mut stored = json!({"plan":plan,"scan_id":r.result.scan_id,"token_digest":util::digest(&token),"used":false});
+    if let Some((chosen_mode, _)) = mode {
+        stored["chosen_ids"] = json!(chosen_ids);
+        stored["chosen_mode"] = json!(chosen_mode);
+    }
     core.store.write("plans", &format!("{id}.json"), &stored)?;
     s.plans.insert(id.clone(), stored);
     let total: u64 = by_drive.values().sum();
+    drop(projection);
+    let extra = preview_parts(
+        core,
+        &r,
+        &items,
+        &chosen_ids,
+        mode.map(|x| x.0).unwrap_or("delete"),
+    );
     Ok(
-        json!({"plan_id":id,"confirm_token":token,"item_count":items.len(),"total_bytes":total.to_string(),"groups":groups,"by_drive":by_drive.into_iter().map(|(root,n)|json!({"root":root,"bytes":n.to_string()})).collect::<Vec<_>>(),"irreversible":true,"excluded_count":excluded_count}),
+        json!({"plan_id":id,"confirm_token":token,"item_count":items.len(),"total_bytes":total.to_string(),"groups":groups,"by_drive":by_drive.into_iter().map(|(root,n)|json!({"root":root,"bytes":n.to_string()})).collect::<Vec<_>>(),"irreversible":chosen_ids.is_empty() || mode.is_some_and(|x|x.0=="delete"),"excluded_count":excluded_count,"delete":extra["delete"],"chosen":extra["chosen"],"expected_skip":extra["expected_skip"]}),
     )
+}
+
+pub(crate) fn preview_parts(
+    core: &Core,
+    r: &Record,
+    items: &[Value],
+    chosen: &[String],
+    mode: &str,
+) -> Value {
+    let mut cats = BTreeMap::<String, u64>::new();
+    let mut titles = BTreeMap::<String, u64>::new();
+    let mut skips = BTreeMap::<String, u64>::new();
+    let mut chosen_bytes = 0u64;
+    core.platform.begin_in_use_batch();
+    for p in items {
+        let Some(i) = r.result.items.iter().find(|i| p["item_id"] == i.item_id) else {
+            continue;
+        };
+        let Some(g) = r.result.groups.iter().find(|g| g.group_id == i.group_id) else {
+            continue;
+        };
+        let n = util::number(&i.unique_bytes);
+        if chosen.contains(&i.item_id) {
+            chosen_bytes += n;
+            let title = r.projection().details[&g.group_id]["group"]["title_zh"]
+                .as_str()
+                .unwrap_or("重复文件")
+                .to_owned();
+            *titles.entry(title).or_default() += n;
+        } else {
+            *cats.entry(views::category(g)).or_default() += n;
+        }
+        if let Some(name) = core.platform.in_use(
+            &views::in_use_spec(g),
+            &m35::in_use_path(&i.path, g.in_use.root_levels),
+        ) {
+            *skips.entry(views::product_name(&name)).or_default() += n;
+        }
+    }
+    let skip_bytes = skips.values().sum::<u64>();
+    let session = items.iter().any(|p| {
+        r.result.groups.iter().any(|g| {
+            p["group_id"] == g.group_id
+                && core
+                    .rules
+                    .rule(&g.rule_id)
+                    .is_some_and(|r| r.session_tool.is_some())
+        })
+    });
+    json!({"delete":{"bytes":cats.values().sum::<u64>().to_string(),"categories":cats.into_iter().map(|(c,n)|json!({"title_zh":views::CATEGORIES.iter().find(|x|x.0==c).map(|x|x.1).unwrap_or("其它"),"bytes":n.to_string()})).collect::<Vec<_>>()},"chosen":if chosen.is_empty(){Value::Null}else{json!({"bytes":chosen_bytes.to_string(),"items":titles.into_iter().map(|(title,n)|json!({"title_zh":title,"bytes":n.to_string()})).collect::<Vec<_>>(),"mode":mode,"note_zh":if session{Some("清掉后这些对话不能再续接或回看")}else{None}})},"expected_skip":if skip_bytes==0{Value::Null}else{json!({"bytes":skip_bytes.to_string(),"notes_zh":skips.into_iter().map(|(name,n)|format!("{name} 开着，会跳过约 {}",m35::amount(n))).collect::<Vec<_>>()})}})
 }
 
 pub(crate) fn start(core: &Arc<Core>, id: &str, token: &str) -> Result<Value, IpcError> {
@@ -177,18 +298,28 @@ pub(crate) fn start(core: &Arc<Core>, id: &str, token: &str) -> Result<Value, Ip
     if stored["used"] == true || stored["token_digest"] != util::digest(token) {
         return Err(IpcError::new("invalid"));
     }
+    let dedupe = stored["dedupe_id"].as_str().map(str::to_owned);
     if s.stale_plans.contains(id)
-        || s.last.as_deref() != stored["scan_id"].as_str()
-        || stored["scan_id"]
-            .as_str()
-            .is_none_or(|id| s.consumed.contains(id))
+        || (dedupe.is_none()
+            && (s.last.as_deref() != stored["scan_id"].as_str()
+                || stored["scan_id"]
+                    .as_str()
+                    .is_none_or(|id| s.consumed.contains(id))))
+        || dedupe
+            .as_ref()
+            .is_some_and(|id| !s.m35.dedupes.get(id).is_some_and(|r| r.local))
     {
         return Err(IpcError::new("stale"));
     }
     if s.busy != "idle" {
         return Err(IpcError::new("busy"));
     }
-    let r = s.last_record().ok_or_else(|| IpcError::new("stale"))?;
+    let r = if dedupe.is_some() {
+        s.m35.plan_sources.get(id).cloned()
+    } else {
+        s.last_record()
+    }
+    .ok_or_else(|| IpcError::new("stale"))?;
     let plan = clean::CleanPlan::from_json(&stored["plan"].to_string())
         .map_err(|_| IpcError::new("invalid"))?;
     // The token is spent as soon as the checks pass. A later failure does not restore it.
@@ -223,30 +354,54 @@ pub(crate) fn start(core: &Arc<Core>, id: &str, token: &str) -> Result<Value, Ip
     let stop = clean::StopFlag::default();
     s.stop = Some(stop.clone());
     s.busy = "cleaning";
-    s.clean_progress = json!({"clean_id":clean_id,"state":"running","done_items":0,"total_items":plan.items.len(),"freed_bytes":"0","group_index":usize::from(!group_ids.is_empty()),"group_count":group_ids.len(),"current_group_title_zh":title});
+    s.clean_progress = json!({"clean_id":clean_id,"state":"running","done_items":0,"total_items":plan.items.len(),"freed_bytes":"0","group_index":usize::from(!group_ids.is_empty()),"group_count":group_ids.len(),"current_group_title_zh":title,"phase":"delete","quarantined_bytes":"0"});
     drop(s);
     let worker_core = core.clone();
     let worker_id = clean_id.clone();
     let spawned=std::thread::Builder::new().name("water-clean".into()).spawn(move|| {
         // The whole task is guarded; a panic leaves the service idle and keeps the journal.
         let guarded=std::panic::catch_unwind(std::panic::AssertUnwindSafe(|| {
-        let run=std::panic::catch_unwind(std::panic::AssertUnwindSafe(||->Result<clean::CleanReport,IpcError>{
-            worker_core.store.write("scans",&format!("{}.json",r.result.scan_id),&saved)?;
+        let run=std::panic::catch_unwind(std::panic::AssertUnwindSafe(||->Result<(clean::CleanReport,Vec<clean::QuarantineReport>),IpcError>{
+            if dedupe.is_none() {worker_core.store.write("scans",&format!("{}.json",r.result.scan_id),&saved)?;}
             worker_core.platform.begin_in_use_batch();
             let guard=Guard{core:worker_core.clone(),record:r.clone()};
-            let observer=Observer{core:worker_core.clone(),record:r.clone(),plan:&plan,groups:&group_ids};
             let mut journal=worker_core.store.journal(&worker_id)?;
-            clean::execute(&plan,&guard,&mut journal,&stop,&observer,now).map_err(|_|IpcError::new("unavailable"))
+            let selected=stored["chosen_ids"].as_array().into_iter().flatten().filter_map(Value::as_str).collect::<BTreeSet<_>>();
+            let quarantine_mode=stored["chosen_mode"]=="quarantine";
+            let mut deletion=plan.clone();deletion.items.retain(|i|!quarantine_mode || !selected.contains(i.item_id.as_str()));
+            let mut report=if deletion.items.is_empty() {clean::CleanReport{report_version:"water.clean-report.v1".into(),plan_id:plan.plan_id.clone(),started_at:util::timestamp(now),ended_at:util::timestamp(now),status:clean::RunStatus::Completed,freed_bytes:"0".into(),estimate_bytes:plan.items.iter().map(|i|util::number(&i.total_bytes)).sum::<u64>().to_string(),volumes:vec![],items:vec![]}}else{
+                let observer=Observer{core:worker_core.clone(),record:r.clone(),plan:&plan,groups:&group_ids,offset:0,freed_before:0,quarantined_before:0,quarantining:false};
+                clean::execute(&deletion,&guard,&mut journal,&stop,&observer,now).map_err(quarantine::error)?
+            };
+            let mut reports=Vec::new();
+            let batches=if quarantine_mode {quarantine_batches(&plan,&selected)}else{BTreeMap::new()};
+            let mut done=deletion.items.len();let mut moved=0u64;
+            for (root,items) in batches {
+                let id={let mut s=lock(&worker_core)?;let id=quarantine::unique_id(&worker_core,&s,&root);s.m35.quarantine_ids.insert(id.clone());id};
+                let mut batch=plan.clone();batch.items=items;
+                {let mut s=lock(&worker_core)?;s.clean_progress["phase"]=json!("quarantine");}
+                let observer=Observer{core:worker_core.clone(),record:r.clone(),plan:&plan,groups:&group_ids,offset:done,freed_before:util::number(&report.freed_bytes),quarantined_before:moved,quarantining:true};
+                let target=clean::QuarantineTarget{base:worker_core.platform.quarantine_base(&root)};
+                let moved_report=clean::quarantine(&batch,&id,&target,&guard,&mut journal,&stop,&observer,now).map_err(quarantine::error)?;
+                quarantine::save_moves(&worker_core,&r,&batch,&moved_report,&worker_id).map_err(|_|IpcError{code:"unavailable".into(),message_zh:quarantine::JOURNAL_MESSAGE.into()})?;
+                if moved_report.status==clean::RunStatus::Stopped {report.status=clean::RunStatus::Stopped;}
+                moved+=util::number(&moved_report.moved_bytes);done+=batch.items.len();reports.push(moved_report);
+            }
+            report.ended_at=util::timestamp(worker_core.platform.now());
+            Ok((report,reports))
         }));
         let panicked=run.is_err();
         let finished=match run {
-            Ok(Ok(report))=>{
-                let view=result_view(&worker_core,&r,&plan,&report,&worker_id);
-                let stored=json!({"clean_id":worker_id,"plan_id":plan.plan_id,"scan_id":r.result.scan_id,"report":report,"view":view});
+            Ok(Ok((report,quarantines)))=>{
+                let mut view=result_view(&worker_core,&r,&plan,&report,&worker_id);
+                apply_quarantines(&r,&plan,&mut view,&quarantines);
+                let stored=json!({"clean_id":worker_id,"plan_id":plan.plan_id,"scan_id":r.result.scan_id,"report":report,"quarantine_reports":quarantines,"plan_items":plan.items,"view":view});
                 worker_core.store.write("cleans",&format!("{worker_id}.json"),&stored).map(|()|(stored,report.status))
             },
-            _=>Err(IpcError::new("unavailable")),
+            Ok(Err(e))=>Err(e),
+            Err(_)=>Err(IpcError::new("unavailable")),
         };
+        let _=quarantine::refresh(&worker_core);
         if let Ok(mut s)=lock(&worker_core){
             match finished {
                 Ok((stored,status))=>{
@@ -257,7 +412,7 @@ pub(crate) fn start(core: &Arc<Core>, id: &str, token: &str) -> Result<Value, Ip
                     trim(&worker_core.store,&mut s);
                 },
                 Err(_) if panicked=>s.clean_progress=idle(),
-                Err(_)=>s.clean_progress["state"]=json!("failed"),
+                Err(e)=>{s.clean_progress["state"]=json!("failed");s.m35.failures.insert(worker_id.clone(),e);},
             }
             s.busy="idle";s.stop=None;
         }
@@ -282,6 +437,30 @@ fn consume_confirmation(stored: &mut Value, state: &mut State, scan_id: &str) {
     // Both authorities are consumed under the same task mutex before execution can start.
     stored["used"] = json!(true);
     state.consumed.insert(scan_id.into());
+    if state.last.as_deref() == Some(scan_id) {
+        state
+            .m35
+            .stale
+            .insert(scan_id.into(), "这次体检已被清理用掉".into());
+    }
+}
+
+pub(crate) fn quarantine_batches(
+    plan: &clean::CleanPlan,
+    selected: &BTreeSet<&str>,
+) -> BTreeMap<String, Vec<clean::PlanItem>> {
+    let mut batches = BTreeMap::<String, Vec<clean::PlanItem>>::new();
+    for i in plan
+        .items
+        .iter()
+        .filter(|i| selected.contains(i.item_id.as_str()))
+    {
+        batches
+            .entry(util::drive(&i.path))
+            .or_default()
+            .push(i.clone());
+    }
+    batches
 }
 
 fn ordered_groups(plan: &clean::CleanPlan) -> Vec<String> {
@@ -309,9 +488,10 @@ impl clean::ItemGuard for Guard {
         else {
             return Some("无法确认规则".into());
         };
-        self.core
-            .platform
-            .in_use(&views::in_use_spec(g), &item.path)
+        self.core.platform.in_use(
+            &views::in_use_spec(g),
+            &m35::in_use_path(&item.path, g.in_use.root_levels),
+        )
     }
 }
 
@@ -320,6 +500,10 @@ struct Observer<'a> {
     record: Arc<Record>,
     plan: &'a clean::CleanPlan,
     groups: &'a [String],
+    offset: usize,
+    freed_before: u64,
+    quarantined_before: u64,
+    quarantining: bool,
 }
 impl clean::CleanObserver for Observer<'_> {
     fn on_item(&self, done: usize, total: usize, freed_bytes: u64, item_id: &str) {
@@ -334,9 +518,19 @@ impl clean::CleanObserver for Observer<'_> {
                 .and_then(|g| self.groups.iter().position(|v| v == g))
                 .map(|index| index + 1)
                 .unwrap_or(0);
-            s.clean_progress["done_items"] = json!(done);
-            s.clean_progress["total_items"] = json!(total);
-            s.clean_progress["freed_bytes"] = json!(freed_bytes.to_string());
+            s.clean_progress["done_items"] = json!(self.offset + done);
+            s.clean_progress["total_items"] = json!(self.plan.items.len());
+            if self.quarantining {
+                s.clean_progress["quarantined_bytes"] = json!(
+                    self.quarantined_before
+                        .saturating_add(freed_bytes)
+                        .to_string()
+                );
+            } else {
+                s.clean_progress["freed_bytes"] =
+                    json!(self.freed_before.saturating_add(freed_bytes).to_string());
+            }
+            let _ = total;
             s.clean_progress["group_index"] = json!(index);
             s.clean_progress["current_group_title_zh"] = group
                 .map(|g| self.record.projection().details[g]["group"]["title_zh"].clone())
@@ -357,7 +551,7 @@ fn result_view(
         let deleted=reports.iter().filter(|r|r.status==clean::ItemStatus::Deleted).count();
         let any_deleted=reports.iter().any(|r|r.status==clean::ItemStatus::Deleted || r.status==clean::ItemStatus::Partial);
         let failed=reports.iter().any(|r|r.status==clean::ItemStatus::Failed || r.failed_entries>0);
-        let status=if deleted==reports.len(){"done"}else if any_deleted{"partial"}else if failed{"failed"}else{"skipped"};
+        let status=if !reports.is_empty() && deleted==reports.len(){"done"}else if any_deleted{"partial"}else if failed{"failed"}else{"skipped"};
         let mut counts=[0u64;6];
         for item in &reports {
             use clean::SkipReason::*;
@@ -374,5 +568,76 @@ fn result_view(
         .filter_map(|p| r.result.items.iter().find(|i| i.item_id == p.item_id))
         .map(|i| util::number(&i.unique_bytes))
         .sum();
-    json!({"clean_id":id,"finished_at":report.ended_at,"estimate_bytes":estimate.to_string(),"freed_bytes":report.freed_bytes,"drives":report.volumes,"groups":groups,"journal_display_path":core.store.root.join("journal").join(format!("{id}.jsonl")).to_string_lossy()})
+    json!({"clean_id":id,"finished_at":report.ended_at,"estimate_bytes":estimate.to_string(),"freed_bytes":report.freed_bytes,"drives":report.volumes,"groups":groups,"journal_display_path":core.store.root.join("journal").join(format!("{id}.jsonl")).to_string_lossy(),"quarantined":null})
+}
+
+fn apply_quarantines(
+    r: &Record,
+    plan: &clean::CleanPlan,
+    view: &mut Value,
+    reports: &[clean::QuarantineReport],
+) {
+    let count = reports
+        .iter()
+        .flat_map(|r| &r.items)
+        .filter(|i| i.status == clean::MoveStatus::Moved)
+        .count();
+    if reports.is_empty() {
+        return;
+    }
+    let bytes = reports
+        .iter()
+        .map(|r| util::number(&r.moved_bytes))
+        .sum::<u64>();
+    let mut ids = reports
+        .iter()
+        .filter(|r| r.items.iter().any(|i| i.status == clean::MoveStatus::Moved))
+        .map(|r| r.quarantine_id.clone())
+        .collect::<Vec<_>>();
+    ids.sort_by_key(|s| s.rsplit('-').next().unwrap_or("").to_owned());
+    view["quarantined"] = json!({"quarantine_ids":ids,"bytes":bytes.to_string(),"item_count":count,"notes_zh":["移入隔离区尚未腾出空间，确认没问题后再永久删除"]});
+    for group in view["groups"].as_array_mut().into_iter().flatten() {
+        let moved = reports
+            .iter()
+            .flat_map(|r| &r.items)
+            .filter(|i| {
+                plan.items
+                    .iter()
+                    .any(|p| p.item_id == i.item_id && p.group_id == group["group_id"])
+            })
+            .collect::<Vec<_>>();
+        if moved.is_empty() {
+            continue;
+        }
+        let done = moved
+            .iter()
+            .filter(|i| i.status == clean::MoveStatus::Moved)
+            .count();
+        group["status"] = json!(if done == moved.len() {
+            "quarantined"
+        } else if done > 0 {
+            "partial"
+        } else if moved.iter().any(|i| i.status == clean::MoveStatus::Failed) {
+            "failed"
+        } else {
+            "skipped"
+        });
+        let notes = group["notes_zh"].as_array_mut().unwrap();
+        if done > 0 {
+            notes.push(json!(format!("{done} 项进了隔离区")));
+        }
+        for i in moved
+            .iter()
+            .filter(|i| i.status != clean::MoveStatus::Moved)
+        {
+            notes.push(json!(if i.skip_reason == Some(clean::SkipReason::InUse) {
+                "正在使用，已跳过"
+            } else if i.skip_reason == Some(clean::SkipReason::Cancelled) {
+                "因停止未处理"
+            } else {
+                "没有移入，未通过复核或移动失败"
+            }));
+        }
+    }
+    let _ = r;
 }
