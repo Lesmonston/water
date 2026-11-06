@@ -1,0 +1,29 @@
+{"binary":"C:\\Users\\37310\\.rustup\\toolchains\\1.95.0-x86_64-pc-windows-msvc\\bin\\cargo.exe","args":["test","--offline","--locked","--manifest-path","packages/junk-rules/Cargo.toml","--test","rules_v1","--","--test-threads=1"],"exitCode":101,"error":null}
+--- stdout ---
+
+running 4 tests
+test rules_protection_precedence ... ok
+test rules_resolve_plan ... ok
+test rules_schema_strict ... FAILED
+test rules_seed_coverage ... ok
+
+failures:
+
+---- rules_schema_strict stdout ----
+
+thread 'rules_schema_strict' (35536) panicked at tests\rules_v1.rs:258:10:
+RULES_M35_FIELDS: resolved drive root discovery rejected: ScanPlan { plan_version: "water.scan-plan.v1", rules_data_version: "2026-10-26.1", created_at: "2026-10-26T04:00:00Z", targets: [Target { target_id: "sample-cache#1", group_id: "sample-cache", rule_id: "sample-cache", level: Recommended, category: DevCache, match_spec: Discovery { root: "F:\\" }, item_type: Dir, min_age_hours: 24, keep_newest: 0, in_use: InUse { mode: None, processes: [], root_levels: None }, git_is_copy: false, age_basis: Modified, keep_by: Activity, unlocks_target_ids: [], pattern_conditions: [] }], hard_guards: ["C:\\Users\\u", "C:\\Users\\u\\AppData\\Local", "C:\\Users\\u\\AppData\\Roaming", "C:\\Users\\u\\AppData\\Local\\Temp", "C:\\Windows\\Temp", "C:\\Windows", "C:\\ProgramData", "F:\\", "C:\\"] }
+note: run with `RUST_BACKTRACE=1` environment variable to display a backtrace
+
+
+failures:
+    rules_schema_strict
+
+test result: FAILED. 3 passed; 1 failed; 0 ignored; 0 measured; 0 filtered out; finished in 0.64s
+
+
+--- stderr ---
+   Compiling water-junk-rules v0.1.0 (F:\new\smaltalk\water\.worktrees\accept-w10-m1\packages\junk-rules)
+    Finished `test` profile [unoptimized + debuginfo] target(s) in 2.09s
+     Running tests\rules_v1.rs (.local\w2-target\debug\deps\rules_v1-55c9fa24f5632a0e.exe)
+error: test failed, to rerun pass `--test rules_v1`

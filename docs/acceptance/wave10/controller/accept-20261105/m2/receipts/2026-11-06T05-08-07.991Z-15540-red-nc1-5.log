@@ -1,0 +1,30 @@
+{"binary":"C:\\Users\\37310\\.rustup\\toolchains\\1.95.0-x86_64-pc-windows-msvc\\bin\\cargo.exe","args":["test","--offline","--locked","--manifest-path","packages/junk-scan/Cargo.toml","--test","scan_v1","--","--test-threads=1"],"exitCode":101,"error":null}
+--- stdout ---
+
+running 5 tests
+test scan_overlap_and_guards ... ok
+test scan_pattern_marker_discovery ... FAILED
+test scan_plan_contract ... ok
+test scan_reparse_budget_cancel ... ok
+test scan_snapshot_growth_keys ... ok
+
+failures:
+
+---- scan_pattern_marker_discovery stdout ----
+
+thread 'scan_pattern_marker_discovery' (17012) panicked at tests\scan_v1.rs:3588:5:
+SCAN_M35_CLUSTERS: cancellation occurs after shared walk in build candidate loop
+note: run with `RUST_BACKTRACE=1` environment variable to display a backtrace
+
+
+failures:
+    scan_pattern_marker_discovery
+
+test result: FAILED. 4 passed; 1 failed; 0 ignored; 0 measured; 0 filtered out; finished in 2.36s
+
+
+--- stderr ---
+   Compiling water-junk-scan v0.1.0 (F:\new\smaltalk\water\.worktrees\accept-w10-m2\packages\junk-scan)
+    Finished `test` profile [unoptimized + debuginfo] target(s) in 3.16s
+     Running tests\scan_v1.rs (.local\w2-target\debug\deps\scan_v1-44131edddc8e8920.exe)
+error: test failed, to rerun pass `--test scan_v1`

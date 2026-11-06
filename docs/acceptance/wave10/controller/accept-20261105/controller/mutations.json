@@ -257,6 +257,15 @@
    "old": "          \"base\": \"system_temp\",\n          \"segments\": [\n            \"jest\",\n            \"*\"\n          ]",
    "new": "          \"base\": \"system_temp\",\n          \"segments\": [\n            \"jest *\"\n          ]",
    "why": "jest-cache in system_temp goes back to the one-segment \"jest *\" that matches nothing"
+  },
+  {
+   "label": "c11",
+   "mode": "test",
+   "token": "RULES_M35_SEEDS",
+   "file": "packages/junk-rules/rules/windows.json",
+   "old": "            \"User Data\",\n            \"CEF\",\n            \"Cache\"\n",
+   "new": "            \"User Data\",\n            \"CEF Cache\"\n",
+   "why": "jianying-cache locator 2 goes back to the one-segment \"CEF Cache\" that matches nothing"
   }
  ],
  "m2": [
@@ -331,6 +340,33 @@
    "old": "                                .any(|c| matches!(c, Condition::SiblingWithoutSuffix { .. }))\n                                && owner(row, plan, fallbacks).is_some()",
    "new": "                                .any(|c| matches!(c, Condition::SiblingWithoutSuffix { .. }))",
    "why": "a marker directory matched by name only (conditions fail) stops cluster and declaration search"
+  },
+  {
+   "label": "c9",
+   "mode": "red-nc1",
+   "token": "SCAN_M35_CLUSTERS",
+   "file": "packages/junk-scan/src/scan/streaming.rs",
+   "old": "                    let search_allowed = outside_git(&dir.path);\n",
+   "new": "                    let search_allowed = true || outside_git(&dir.path);\n",
+   "why": "targets search inside a .git directory entered for measurement"
+  },
+  {
+   "label": "c10",
+   "mode": "red-nc1",
+   "token": "SCAN_M35_CLUSTERS",
+   "file": "packages/junk-scan/src/scan.rs",
+   "old": "        if claimed(&member_paths, &parent.to_ascii_lowercase())\n            || claimed(&exact, &parent.to_ascii_lowercase())\n        {",
+   "new": "        if claimed(&member_paths, &parent.to_ascii_lowercase())\n        {",
+   "why": "clusters form inside another final item"
+  },
+  {
+   "label": "c11",
+   "mode": "red-nc1",
+   "token": "SCAN_M35_CLUSTERS",
+   "file": "packages/junk-scan/src/scan.rs",
+   "old": "        if final_discoveries.contains(&(row.path, row.index)) {",
+   "new": "        if final_discoveries.contains(&(row.path, row.index)) || true {",
+   "why": "measurement issues of discovery children that became cluster members are also recorded on the discovery group"
   }
  ],
  "m4": [
@@ -378,6 +414,71 @@
    "old": "            if item.unlocked_paths.len() > 4 {",
    "new": "            if item.unlocked_paths.len() > 5 {",
    "why": "five unlocked paths are accepted"
+  }
+ ],
+ "m5": [
+  {
+   "label": "c1",
+   "mode": "red-nc1",
+   "token": "HOST_M35_REVEAL",
+   "file": "apps/water/host/src/commands.rs",
+   "old": "        .filter(|path| crate::opener::valid_quarantine_path(path))\n",
+   "new": "        .filter(|path| !path.is_empty())\n",
+   "why": "quarantine_reveal opens whatever path the service returns"
+  },
+  {
+   "label": "c2",
+   "mode": "red-nc1",
+   "token": "HOST_M35_REVEAL",
+   "file": "apps/water/host/src/opener.rs",
+   "old": "    let quarantine = last.eq_ignore_ascii_case(\".water-quarantine\")\n",
+   "new": "    let quarantine = true || last.eq_ignore_ascii_case(\".water-quarantine\")\n",
+   "why": "any existing folder counts as a quarantine folder"
+  },
+  {
+   "label": "c3",
+   "mode": "red-nc1",
+   "token": "HOST_M35_REVEAL",
+   "file": "apps/water/host/src/opener.rs",
+   "old": "                && part != \"..\"\n",
+   "new": "",
+   "why": "a path with .. segments is accepted"
+  },
+  {
+   "label": "c4",
+   "mode": "red-nc1",
+   "token": "HOST_M35_REVEAL",
+   "file": "apps/water/host/src/opener.rs",
+   "old": "        if metadata.file_attributes() & 0x400 != 0 {",
+   "new": "        if false && metadata.file_attributes() & 0x400 != 0 {",
+   "why": "a reparse point (junction) passes as a plain quarantine folder"
+  },
+  {
+   "label": "c5",
+   "mode": "red-nc2",
+   "token": "HOST_M35_FORWARD",
+   "file": "apps/water/host/src/commands.rs",
+   "old": "        json!({\"quarantineId\": quarantine_id, \"beside\": beside}),",
+   "new": "        json!({\"quarantineId\": quarantine_id}),",
+   "why": "quarantine_restore drops the beside flag"
+  },
+  {
+   "label": "c6",
+   "mode": "red-nc2",
+   "token": "HOST_M35_FORWARD",
+   "file": "apps/water/host/src/commands.rs",
+   "old": "        json!({\"version\": version, \"decision\": decision}),",
+   "new": "        json!({\"version\": version}),",
+   "why": "conclusion_decide drops the decision"
+  },
+  {
+   "label": "c7",
+   "mode": "red-nc2",
+   "token": "HOST_M35_FORWARD",
+   "file": "apps/water/host/src/commands.rs",
+   "old": "    backend.call(\"dedupe_start\", json!({\"locationId\": location_id}))",
+   "new": "    backend.call(\"dedupe_start\", json!({\"location\": location_id}))",
+   "why": "dedupe_start forwards the wrong argument name"
   }
  ]
 }

@@ -87,3 +87,60 @@ m1 c10 restored exact bytes=true sha 257c6c93be01405e758f5f3dbffb0c4998f66f78187
 m1 test rc=0 {"task":"WATER-W10-ACCEPT-M1","mode":"test","finalGate":false,"status":"passed","error":null,"receipt":"F:\\new\\smaltalk\\water\\.worktrees\\accept-w10-m1\\.local\\checks\\WATER-W10-ACCEPT-M1\\2026-11-05T15-24-25.094Z-25456-test-result.json"}
 m1 survived: none
 m1 test --final rc=0 {"task":"WATER-W10-ACCEPT-M1","mode":"test","finalGate":true,"status":"passed","error":null,"receipt":"F:\\new\\smaltalk\\water\\.worktrees\\accept-w10-m1\\.local\\checks\\WATER-W10-ACCEPT-M1\\2026-11-05T15-24-35.614Z-29292-test-result.json"}
+m1 c1 mutated packages/junk-rules/src/plan.rs: session rules produce targets even when their switch is off (mutated sha 257f809538fbefaeebeef782199b44cdedf37b2e9f1541880083df98c75eeb47)
+m1 red-nc1 rc=0 {"task":"WATER-W10-ACCEPT-M1","mode":"red-nc1","finalGate":false,"status":"passed","error":null,"receipt":"F:\\new\\smaltalk\\water\\.worktrees\\accept-w10-m1\\.local\\checks\\WATER-W10-ACCEPT-M1\\2026-11-06T05-00-15.979Z-9036-red-nc1-result.json"}
+m1 c1 KILLED (expected RULES_M35_SESSIONS)
+m1 c1 restored exact bytes=true sha 66e2ea0ed0c0b0429d1081ee85d129edbe1c429a17035b7451d8e0b46aa17d1f
+m1 test rc=0 {"task":"WATER-W10-ACCEPT-M1","mode":"test","finalGate":false,"status":"passed","error":null,"receipt":"F:\\new\\smaltalk\\water\\.worktrees\\accept-w10-m1\\.local\\checks\\WATER-W10-ACCEPT-M1\\2026-11-06T05-00-31.543Z-10184-test-result.json"}
+m1 c2 mutated packages/junk-rules/src/plan.rs: a session switch of 366 days is accepted (mutated sha d74b5d986282175d7c3f08b7d497efb9114aaaefa584c0b3d8d8fdf8612a1597)
+m1 red-nc1 rc=0 {"task":"WATER-W10-ACCEPT-M1","mode":"red-nc1","finalGate":false,"status":"passed","error":null,"receipt":"F:\\new\\smaltalk\\water\\.worktrees\\accept-w10-m1\\.local\\checks\\WATER-W10-ACCEPT-M1\\2026-11-06T05-00-43.633Z-8180-red-nc1-result.json"}
+m1 c2 KILLED (expected RULES_M35_SESSIONS)
+m1 c2 restored exact bytes=true sha 66e2ea0ed0c0b0429d1081ee85d129edbe1c429a17035b7451d8e0b46aa17d1f
+m1 test rc=0 {"task":"WATER-W10-ACCEPT-M1","mode":"test","finalGate":false,"status":"passed","error":null,"receipt":"F:\\new\\smaltalk\\water\\.worktrees\\accept-w10-m1\\.local\\checks\\WATER-W10-ACCEPT-M1\\2026-11-06T05-00-50.816Z-10096-test-result.json"}
+m1 c3 mutated packages/junk-rules/src/m35.rs: five installed_names are accepted (mutated sha 1b2b049251480390b530567dd468fd44f2df432acfd96de9d72b1ee9dab1c4e9)
+m1 red-nc2 rc=0 {"task":"WATER-W10-ACCEPT-M1","mode":"red-nc2","finalGate":false,"status":"passed","error":null,"receipt":"F:\\new\\smaltalk\\water\\.worktrees\\accept-w10-m1\\.local\\checks\\WATER-W10-ACCEPT-M1\\2026-11-06T05-00-57.914Z-21016-red-nc2-result.json"}
+m1 c3 KILLED (expected RULES_M35_FIELDS)
+m1 c3 restored exact bytes=true sha 7cdace2918d407371af13e9f37cbbc6a7d8ed3a695a8761a4e21e90750e4f9e4
+m1 test rc=0 {"task":"WATER-W10-ACCEPT-M1","mode":"test","finalGate":false,"status":"passed","error":null,"receipt":"F:\\new\\smaltalk\\water\\.worktrees\\accept-w10-m1\\.local\\checks\\WATER-W10-ACCEPT-M1\\2026-11-06T05-01-05.100Z-5060-test-result.json"}
+m1 c4 mutated packages/junk-rules/src/m35.rs: installed_names differing only in case are accepted (mutated sha d0a91149e02cfdb65b81f1a119b543216491d43ab46bb4ed0cffd61ab4a31439)
+m1 red-nc2 rc=0 {"task":"WATER-W10-ACCEPT-M1","mode":"red-nc2","finalGate":false,"status":"passed","error":null,"receipt":"F:\\new\\smaltalk\\water\\.worktrees\\accept-w10-m1\\.local\\checks\\WATER-W10-ACCEPT-M1\\2026-11-06T05-01-11.672Z-35208-red-nc2-result.json"}
+m1 c4 KILLED (expected RULES_M35_FIELDS)
+m1 c4 restored exact bytes=true sha 7cdace2918d407371af13e9f37cbbc6a7d8ed3a695a8761a4e21e90750e4f9e4
+m1 test rc=0 {"task":"WATER-W10-ACCEPT-M1","mode":"test","finalGate":false,"status":"passed","error":null,"receipt":"F:\\new\\smaltalk\\water\\.worktrees\\accept-w10-m1\\.local\\checks\\WATER-W10-ACCEPT-M1\\2026-11-06T05-01-17.810Z-12200-test-result.json"}
+m1 c5 mutated packages/junk-rules/src/m35.rs: in_use_zh is accepted on a rule without an in-use check (mutated sha cc5af13efcf32367ae731c4d845319fb2fbb4800de77df50eb47bd8b7fa3ddd2)
+m1 red-nc2 rc=0 {"task":"WATER-W10-ACCEPT-M1","mode":"red-nc2","finalGate":false,"status":"passed","error":null,"receipt":"F:\\new\\smaltalk\\water\\.worktrees\\accept-w10-m1\\.local\\checks\\WATER-W10-ACCEPT-M1\\2026-11-06T05-01-24.104Z-30100-red-nc2-result.json"}
+m1 c5 KILLED (expected RULES_M35_FIELDS)
+m1 c5 restored exact bytes=true sha 7cdace2918d407371af13e9f37cbbc6a7d8ed3a695a8761a4e21e90750e4f9e4
+m1 test rc=0 {"task":"WATER-W10-ACCEPT-M1","mode":"test","finalGate":false,"status":"passed","error":null,"receipt":"F:\\new\\smaltalk\\water\\.worktrees\\accept-w10-m1\\.local\\checks\\WATER-W10-ACCEPT-M1\\2026-11-06T05-01-30.020Z-15532-test-result.json"}
+m1 c6 mutated packages/junk-rules/src/plan.rs: custom discovery root names compared case-sensitively (mutated sha fb8cf2b12f6250cbd653ab2853584a1426b72dec35722cf7a60377b3e8c8eb1f)
+m1 red-nc2 rc=0 {"task":"WATER-W10-ACCEPT-M1","mode":"red-nc2","finalGate":false,"status":"passed","error":null,"receipt":"F:\\new\\smaltalk\\water\\.worktrees\\accept-w10-m1\\.local\\checks\\WATER-W10-ACCEPT-M1\\2026-11-06T05-01-36.352Z-33620-red-nc2-result.json"}
+m1 c6 KILLED (expected RULES_M35_FIELDS)
+m1 c6 restored exact bytes=true sha 66e2ea0ed0c0b0429d1081ee85d129edbe1c429a17035b7451d8e0b46aa17d1f
+m1 test rc=0 {"task":"WATER-W10-ACCEPT-M1","mode":"test","finalGate":false,"status":"passed","error":null,"receipt":"F:\\new\\smaltalk\\water\\.worktrees\\accept-w10-m1\\.local\\checks\\WATER-W10-ACCEPT-M1\\2026-11-06T05-01-47.621Z-22028-test-result.json"}
+m1 c7 mutated packages/junk-rules/src/plan.rs: custom discovery targets every custom root (contract nc2) (mutated sha e988b4d41665857cf700ffc4767b377dded6c1bcedecd449ad7070c55c92db8d)
+m1 red-nc2 rc=0 {"task":"WATER-W10-ACCEPT-M1","mode":"red-nc2","finalGate":false,"status":"passed","error":null,"receipt":"F:\\new\\smaltalk\\water\\.worktrees\\accept-w10-m1\\.local\\checks\\WATER-W10-ACCEPT-M1\\2026-11-06T05-02-02.575Z-28316-red-nc2-result.json"}
+m1 c7 KILLED (expected RULES_M35_FIELDS)
+m1 c7 restored exact bytes=true sha 66e2ea0ed0c0b0429d1081ee85d129edbe1c429a17035b7451d8e0b46aa17d1f
+m1 test rc=0 {"task":"WATER-W10-ACCEPT-M1","mode":"test","finalGate":false,"status":"passed","error":null,"receipt":"F:\\new\\smaltalk\\water\\.worktrees\\accept-w10-m1\\.local\\checks\\WATER-W10-ACCEPT-M1\\2026-11-06T05-02-09.211Z-30352-test-result.json"}
+m1 c8 mutated packages/junk-rules/src/rules.rs: a discovery locator with base system_drive is accepted when rules are parsed (mutated sha 71225b9e106ea98acea25467df5d994ec310f9a8e6f65a5e2ae4ea15bc230dde)
+m1 red-nc2 rc=0 {"task":"WATER-W10-ACCEPT-M1","mode":"red-nc2","finalGate":false,"status":"passed","error":null,"receipt":"F:\\new\\smaltalk\\water\\.worktrees\\accept-w10-m1\\.local\\checks\\WATER-W10-ACCEPT-M1\\2026-11-06T05-02-15.671Z-10708-red-nc2-result.json"}
+m1 c8 KILLED (expected RULES_M35_FIELDS)
+m1 c8 restored exact bytes=true sha 5348dba38602cd5d1e16718997bf44ef039437f29bd9fbe7e688cc73e51753c9
+m1 test rc=0 {"task":"WATER-W10-ACCEPT-M1","mode":"test","finalGate":false,"status":"passed","error":null,"receipt":"F:\\new\\smaltalk\\water\\.worktrees\\accept-w10-m1\\.local\\checks\\WATER-W10-ACCEPT-M1\\2026-11-06T05-02-22.111Z-10096-test-result.json"}
+m1 c9 mutated packages/junk-rules/src/plan.rs: a discovery base that resolves to a drive root is planned (mutated sha 55fc3aeec39bc88646bec4013cdd6aee206be9e9a56d4a4d061ab8d725938317)
+m1 red-nc2 rc=0 {"task":"WATER-W10-ACCEPT-M1","mode":"red-nc2","finalGate":false,"status":"passed","error":null,"receipt":"F:\\new\\smaltalk\\water\\.worktrees\\accept-w10-m1\\.local\\checks\\WATER-W10-ACCEPT-M1\\2026-11-06T05-02-29.126Z-26276-red-nc2-result.json"}
+m1 c9 KILLED (expected RULES_M35_FIELDS)
+m1 c9 restored exact bytes=true sha 66e2ea0ed0c0b0429d1081ee85d129edbe1c429a17035b7451d8e0b46aa17d1f
+m1 test rc=0 {"task":"WATER-W10-ACCEPT-M1","mode":"test","finalGate":false,"status":"passed","error":null,"receipt":"F:\\new\\smaltalk\\water\\.worktrees\\accept-w10-m1\\.local\\checks\\WATER-W10-ACCEPT-M1\\2026-11-06T05-02-35.107Z-34576-test-result.json"}
+m1 c10 mutated packages/junk-rules/rules/windows.json: jest-cache in system_temp goes back to the one-segment "jest *" that matches nothing (mutated sha dbece932716c87fbce01928738f38024762aa33b9a9dbda6f0fe8c75bc7e4221)
+m1 test rc=1 {"task":"WATER-W10-ACCEPT-M1","mode":"test","finalGate":false,"status":"failed","error":"AssertionError [ERR_ASSERTION]: Unexpected exit, see 2026-11-06T05-02-41.341Z-24604-test-5.log","receipt":"F:\\new\\smaltalk\\water\\.worktrees\\accept-w10-m1\\.local\\checks\\WATER-W10-ACCEPT-M1\\2026-11-06T05-02-41.341Z-24604-test-result.json"}
+m1 c10 KILLED (expected RULES_M35_SEEDS: jest members in each temp base)
+m1 c10 restored exact bytes=true sha 3ee42a081ab6e8b746321ee4e05be8ddb66aef8e8aa9495eb4671e219393fa6e
+m1 test rc=0 {"task":"WATER-W10-ACCEPT-M1","mode":"test","finalGate":false,"status":"passed","error":null,"receipt":"F:\\new\\smaltalk\\water\\.worktrees\\accept-w10-m1\\.local\\checks\\WATER-W10-ACCEPT-M1\\2026-11-06T05-02-51.573Z-34192-test-result.json"}
+m1 c11 mutated packages/junk-rules/rules/windows.json: jianying-cache locator 2 goes back to the one-segment "CEF Cache" that matches nothing (mutated sha 257c6c93be01405e758f5f3dbffb0c4998f66f78187dd8a36d0b52e7195ce7e6)
+m1 test rc=1 {"task":"WATER-W10-ACCEPT-M1","mode":"test","finalGate":false,"status":"failed","error":"AssertionError [ERR_ASSERTION]: Unexpected exit, see 2026-11-06T05-03-03.667Z-25784-test-5.log","receipt":"F:\\new\\smaltalk\\water\\.worktrees\\accept-w10-m1\\.local\\checks\\WATER-W10-ACCEPT-M1\\2026-11-06T05-03-03.667Z-25784-test-result.json"}
+m1 c11 KILLED (expected RULES_M35_SEEDS)
+m1 c11 restored exact bytes=true sha 3ee42a081ab6e8b746321ee4e05be8ddb66aef8e8aa9495eb4671e219393fa6e
+m1 test rc=0 {"task":"WATER-W10-ACCEPT-M1","mode":"test","finalGate":false,"status":"passed","error":null,"receipt":"F:\\new\\smaltalk\\water\\.worktrees\\accept-w10-m1\\.local\\checks\\WATER-W10-ACCEPT-M1\\2026-11-06T05-03-14.707Z-22824-test-result.json"}
+m1 survived: none
+m1 test --final rc=0 {"task":"WATER-W10-ACCEPT-M1","mode":"test","finalGate":true,"status":"passed","error":null,"receipt":"F:\\new\\smaltalk\\water\\.worktrees\\accept-w10-m1\\.local\\checks\\WATER-W10-ACCEPT-M1\\2026-11-06T05-03-21.970Z-22276-test-result.json"}

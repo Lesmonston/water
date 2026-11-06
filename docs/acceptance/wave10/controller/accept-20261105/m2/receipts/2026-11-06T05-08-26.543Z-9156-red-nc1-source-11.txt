@@ -1,0 +1,1012 @@
+//! One physical DFS feeds every logical target that covers a directory.
+//! Listings live only on the DFS stack; cluster proposals retain measurements,
+//! never the listings of completed subtrees.
+use super::*;
+
+pub(super) type ClusterMember = (Child, Measured, Vec<&'static str>);
+
+pub(super) struct ClusterSearch {
+    pub parent: String,
+    pub category: Category,
+    pub discovery: bool,
+    pub group: String,
+    pub members: Vec<ClusterMember>,
+}
+
+pub(super) struct DiscoveryIssues {
+    pub path: String,
+    pub index: usize,
+    pub codes: Vec<&'static str>,
+}
+
+pub(super) struct WalkResult {
+    pub hits: Vec<Hit>,
+    pub searches: Vec<ClusterSearch>,
+    pub discovery_issues: Vec<DiscoveryIssues>,
+}
+
+fn outside_git(path: &str) -> bool {
+    !path
+        .split('\\')
+        .any(|part| part.eq_ignore_ascii_case(".git"))
+}
+
+// Pending search directories are separate from pending measurements. A target
+// may finish searching while its last hit is still being measured.
+fn search_indices(plan: &ScanPlan, path: &str, closed: &[usize]) -> Vec<usize> {
+    if !outside_git(path) {
+        return vec![];
+    }
+    plan.targets
+        .iter()
+        .enumerate()
+        .filter_map(|(i, target)| {
+            let active = match &target.match_spec {
+                Match::Pattern { base, segments, .. } => {
+                    !ignored_root(base)
+                        && relative(base, path).is_some_and(|parts| {
+                            parts.len() < segments.len()
+                                && parts
+                                    .iter()
+                                    .zip(segments)
+                                    .all(|(part, segment)| match_segment(segment, part))
+                        })
+                }
+                Match::Marker {
+                    root,
+                    max_depth,
+                    fallback_for: None,
+                    ..
+                } => {
+                    !ignored_root(root)
+                        && !closed.contains(&i)
+                        && relative(root, path)
+                            .is_some_and(|parts| parts.len() <= *max_depth as usize)
+                }
+                Match::Discovery { root } => !ignored_root(root) && path_eq(root, path),
+                _ => false,
+            };
+            active.then_some(i)
+        })
+        .collect()
+}
+
+fn complete_search_at(remaining: &mut [HashSet<String>], path: &str) {
+    let key = path.to_ascii_lowercase();
+    for paths in remaining {
+        paths.remove(&key);
+    }
+}
+
+enum Purpose {
+    Target(usize),
+    Candidate,
+}
+
+struct Measurement {
+    purpose: Purpose,
+    child: Child,
+    measured: Measured,
+    identities: HashSet<(u32, [u8; 16])>,
+    parent: Option<Arc<Vec<ParentEntry>>>,
+    issues: Vec<&'static str>,
+    declared: bool,
+}
+
+struct Search {
+    parent: String,
+    category: Category,
+    discovery: bool,
+    group: String,
+    candidates: Vec<usize>,
+}
+
+enum Frame {
+    Enter {
+        child: Child,
+        closed: Vec<usize>,
+        measuring: Vec<usize>,
+        starts: Vec<usize>,
+        parent: Option<Arc<Vec<ParentEntry>>>,
+    },
+    Exit {
+        path: String,
+        starts: Vec<usize>,
+        search: Option<Search>,
+        completed_candidates: Vec<usize>,
+    },
+}
+
+fn relative<'a>(root: &str, path: &'a str) -> Option<Vec<&'a str>> {
+    if path_eq(root, path) {
+        Some(vec![])
+    } else if is_proper_ancestor(root, path) {
+        Some(
+            path[root.trim_end_matches('\\').len() + 1..]
+                .split('\\')
+                .collect(),
+        )
+    } else {
+        None
+    }
+}
+
+fn start(
+    pending: &mut HashMap<usize, Measurement>,
+    serial: &mut usize,
+    child: &Child,
+    purpose: Purpose,
+    parent: Option<Arc<Vec<ParentEntry>>>,
+) -> usize {
+    let id = *serial;
+    *serial += 1;
+    let mut measured = Measured::empty(child.mtime, child.creation);
+    if child.kind == Kind::Dir {
+        observe_name(&mut measured, child, &child.path);
+    }
+    pending.insert(
+        id,
+        Measurement {
+            purpose,
+            child: child.clone(),
+            measured,
+            identities: HashSet::new(),
+            parent,
+            issues: vec![],
+            declared: false,
+        },
+    );
+    id
+}
+
+fn owner(row: &Measurement, plan: &ScanPlan, fallbacks: &[Option<usize>]) -> Option<usize> {
+    let Purpose::Target(index) = row.purpose else {
+        return None;
+    };
+    let target = &plan.targets[index];
+    match &target.match_spec {
+        Match::Marker {
+            conditions, marker, ..
+        } => {
+            if conditions_match(
+                &row.child.path,
+                conditions,
+                row.parent.as_deref().map(Vec::as_slice),
+                Some(marker),
+                Some(row.measured.bytes),
+            ) {
+                Some(index)
+            } else {
+                fallbacks[index]
+            }
+        }
+        Match::Pattern { conditions, .. } => conditions_match(
+            &row.child.path,
+            conditions,
+            row.parent.as_deref().map(Vec::as_slice),
+            None,
+            Some(row.measured.bytes),
+        )
+        .then_some(index),
+        Match::Discovery { .. } => Some(index),
+    }
+}
+
+fn finish(
+    engine: &mut Engine<'_>,
+    hits: &mut Vec<Hit>,
+    row: Measurement,
+    plan: &ScanPlan,
+    fallbacks: &[Option<usize>],
+    suppressed: &mut HashSet<String>,
+    deferred: Option<&mut Vec<Measurement>>,
+) {
+    let Purpose::Target(primary) = row.purpose else {
+        return;
+    };
+    let resolved = owner(&row, plan, fallbacks);
+    let target = &plan.targets[resolved.unwrap_or(primary)];
+    if matches!(target.match_spec, Match::Discovery { .. })
+        && let Some(deferred) = deferred
+    {
+        let mut row = row;
+        row.identities = HashSet::new();
+        row.parent = None;
+        deferred.push(row);
+        return;
+    }
+    for code in &row.issues {
+        engine.add_issue(code, &target.group_id);
+    }
+    if engine.stopped(&target.group_id) {
+        return;
+    }
+    let Some(index) = resolved else {
+        return;
+    };
+    if row.child.kind == Kind::Dir
+        && matches!(plan.targets[primary].match_spec, Match::Marker { .. })
+    {
+        suppressed.insert(row.child.path.to_ascii_lowercase());
+    }
+    push_measured_hit(
+        engine,
+        hits,
+        target,
+        index,
+        &row.child.path,
+        row.child.kind,
+        row.measured,
+    );
+}
+
+fn potential_children(
+    engine: &mut Engine<'_>,
+    children: &[Child],
+    group: &str,
+    category: Category,
+) -> HashSet<String> {
+    let mut counts = HashMap::<(bool, String), usize>::new();
+    for c in children {
+        engine.emit(group, category, false);
+        if engine.stopped(group) {
+            return HashSet::new();
+        }
+        if c.kind == Kind::Reparse || c.name.eq_ignore_ascii_case(".git") {
+            continue;
+        }
+        if let Some(t) = name_template(&c.name, c.kind == Kind::File)
+            && !(c.kind == Kind::File && t.contains("<d>"))
+        {
+            *counts.entry((c.kind == Kind::File, t)).or_default() += 1;
+        }
+    }
+    let templates: HashSet<_> = counts
+        .into_iter()
+        .filter(|(_, n)| *n >= CLUSTER_MIN_MEMBERS)
+        .map(|(t, _)| t)
+        .collect();
+    let mut hash_prefixes = HashSet::new();
+    for (file, template) in &templates {
+        if engine.stopped(group) {
+            return HashSet::new();
+        }
+        if *file && let Some((prefix, ext)) = template.split_once("<h>") {
+            hash_prefixes.insert((ext.to_string(), prefix.to_string()));
+        }
+    }
+    let mut out = HashSet::new();
+    for c in children {
+        engine.emit(group, category, false);
+        if engine.stopped(group) {
+            return HashSet::new();
+        }
+        if c.kind == Kind::Reparse || c.name.eq_ignore_ascii_case(".git") {
+            continue;
+        }
+        let matched = name_template(&c.name, c.kind == Kind::File)
+            .is_some_and(|t| templates.contains(&(c.kind == Kind::File, t)));
+        let extra = if c.kind == Kind::File {
+            let (stem, ext) = file_parts(&c.name);
+            let ext = ext.to_ascii_lowercase();
+            let mut prefix = String::new();
+            let mut digit = false;
+            let mut found = false;
+            for ch in stem.chars() {
+                if ch.is_ascii_digit() {
+                    if !digit {
+                        prefix.push('#');
+                    }
+                    digit = true;
+                } else {
+                    prefix.push(ch.to_ascii_lowercase());
+                    digit = false;
+                }
+                if hash_prefixes.contains(&(ext.clone(), prefix.clone())) {
+                    found = true;
+                    break;
+                }
+            }
+            found
+        } else {
+            false
+        };
+        if matched || extra {
+            out.insert(c.path.to_ascii_lowercase());
+        }
+    }
+    out
+}
+
+pub(super) fn walk(
+    engine: &mut Engine<'_>,
+    plan: &ScanPlan,
+    fallbacks: &[Option<usize>],
+) -> WalkResult {
+    let mut hits = vec![];
+    let mut searches = vec![];
+    let mut discovery_issues = vec![];
+    let mut remaining = vec![HashSet::<String>::new(); plan.targets.len()];
+    let mut suppressed = HashSet::new();
+    let mut deferred = vec![];
+    let mut roots = BTreeMap::<String, (String, Vec<usize>)>::new();
+    for (i, target) in plan.targets.iter().enumerate() {
+        if matches!(
+            target.match_spec,
+            Match::Marker {
+                fallback_for: Some(_),
+                ..
+            }
+        ) {
+            continue;
+        }
+        let root = match &target.match_spec {
+            Match::Pattern { base, .. } => base,
+            Match::Marker { root, .. } | Match::Discovery { root } => root,
+        };
+        if ignored_root(root) || !outside_git(root) {
+            continue;
+        }
+        remaining[i].insert(root.to_ascii_lowercase());
+        roots
+            .entry(root.to_ascii_lowercase())
+            .or_insert_with(|| (root.clone(), vec![]))
+            .1
+            .push(i);
+    }
+    let mut roots = roots.into_values().collect::<Vec<_>>();
+    roots.sort_by_key(|(path, ids)| (path.trim_end_matches('\\').matches('\\').count(), ids[0]));
+    let mut visited_roots = HashSet::new();
+    let mut pending = HashMap::<usize, Measurement>::new();
+    let mut serial = 0;
+    for (root, indices) in &roots {
+        if visited_roots.contains(&root.to_ascii_lowercase()) {
+            continue;
+        }
+        let group = &plan.targets[indices[0]].group_id;
+        if engine.stopped(group) {
+            break;
+        }
+        let child = engine.child(root);
+        if child.as_ref().is_none_or(|c| c.kind != Kind::Dir) {
+            let code = if child.as_ref().is_some_and(|c| c.kind == Kind::Reparse) {
+                "base_reparse"
+            } else {
+                "base_missing"
+            };
+            if let Some(c) = &child {
+                engine.index_junction(c);
+            }
+            for i in indices {
+                remaining[*i].clear();
+                engine.add_issue(code, &plan.targets[*i].group_id);
+                if let Some(f) = fallbacks[*i] {
+                    engine.add_issue(code, &plan.targets[f].group_id);
+                }
+            }
+            continue;
+        }
+        let mut stack = vec![Frame::Enter {
+            child: child.unwrap(),
+            closed: vec![],
+            measuring: vec![],
+            starts: vec![],
+            parent: None,
+        }];
+        while let Some(frame) = stack.pop() {
+            match frame {
+                Frame::Exit {
+                    path,
+                    starts,
+                    search,
+                    completed_candidates,
+                } => {
+                    for id in starts {
+                        if let Some(row) = pending.remove(&id) {
+                            finish(
+                                engine,
+                                &mut hits,
+                                row,
+                                plan,
+                                fallbacks,
+                                &mut suppressed,
+                                Some(&mut deferred),
+                            );
+                        }
+                    }
+                    if let Some(search) = search {
+                        let members = search
+                            .candidates
+                            .into_iter()
+                            .filter_map(|id| pending.remove(&id))
+                            .filter(|row| !row.declared)
+                            .map(|row| (row.child, row.measured, row.issues))
+                            .collect::<Vec<_>>();
+                        if !engine.stopped(&search.group) && !members.is_empty() {
+                            searches.push(ClusterSearch {
+                                parent: search.parent,
+                                category: search.category,
+                                discovery: search.discovery,
+                                group: search.group,
+                                members,
+                            });
+                        }
+                    }
+                    for id in completed_candidates {
+                        if let Some(row) = pending.get_mut(&id) {
+                            row.identities = HashSet::new();
+                            row.parent = None;
+                        }
+                    }
+                    engine.cache.remove(&path.to_ascii_lowercase());
+                }
+                Frame::Enter {
+                    child: dir,
+                    mut closed,
+                    mut measuring,
+                    mut starts,
+                    parent,
+                } => {
+                    let mut markers = vec![];
+                    let completed_candidates = measuring
+                        .iter()
+                        .copied()
+                        .filter(|id| {
+                            matches!(pending[id].purpose, Purpose::Candidate)
+                                && path_eq(&pending[id].child.path, &dir.path)
+                        })
+                        .collect();
+                    let mut patterns = vec![];
+                    let mut discoveries = vec![];
+                    let mut custom: Option<(usize, usize)> = None;
+                    let mut custom_descend = false;
+                    let search_allowed = outside_git(&dir.path);
+                    for (index, target) in
+                        plan.targets.iter().enumerate().filter(|_| search_allowed)
+                    {
+                        let target_root = match &target.match_spec {
+                            Match::Pattern { base, .. } => base,
+                            Match::Marker { root, .. } | Match::Discovery { root } => root,
+                        };
+                        if ignored_root(target_root)
+                            || file_name(target_root).eq_ignore_ascii_case(".git")
+                        {
+                            continue;
+                        }
+                        match &target.match_spec {
+                            Match::Marker {
+                                root,
+                                max_depth,
+                                fallback_for: None,
+                                ..
+                            } => {
+                                if let Some(parts) = relative(root, &dir.path)
+                                    && parts.iter().all(|p| !p.eq_ignore_ascii_case(".git"))
+                                    && parts.len() <= *max_depth as usize
+                                {
+                                    if target.category == Category::Custom {
+                                        if custom.is_none_or(|(_, depth)| parts.len() < depth) {
+                                            custom = Some((index, parts.len()));
+                                        }
+                                        custom_descend |= parts.len() < *max_depth as usize;
+                                    }
+                                    if !closed.contains(&index) {
+                                        markers.push((index, parts.len()));
+                                    }
+                                }
+                            }
+                            Match::Pattern { base, segments, .. } => {
+                                if let Some(parts) = relative(base, &dir.path)
+                                    && parts.len() < segments.len()
+                                    && parts.iter().zip(segments).all(|(p, s)| match_segment(s, p))
+                                {
+                                    patterns.push((index, parts.len()));
+                                }
+                            }
+                            Match::Discovery { root } if path_eq(root, &dir.path) => {
+                                discoveries.push(index)
+                            }
+                            _ => {}
+                        }
+                    }
+                    for (root, _) in &roots {
+                        if path_eq(root, &dir.path) {
+                            visited_roots.insert(root.to_ascii_lowercase());
+                        }
+                    }
+                    let primary = patterns
+                        .first()
+                        .map(|(i, _)| *i)
+                        .or_else(|| markers.first().map(|(i, _)| *i))
+                        .or_else(|| discoveries.first().copied())
+                        .or_else(|| custom.map(|(i, _)| i))
+                        .or_else(|| {
+                            measuring.iter().find_map(|id| match pending[id].purpose {
+                                Purpose::Target(i) => Some(i),
+                                _ => None,
+                            })
+                        })
+                        .unwrap_or(indices[0]);
+                    let group = plan.targets[primary].group_id.clone();
+                    if engine.stopped(&group) {
+                        break;
+                    }
+                    let needs_listing = !measuring.is_empty()
+                        || !patterns.is_empty()
+                        || !discoveries.is_empty()
+                        || markers.iter().any(|(i, depth)| {
+                            let Match::Marker {
+                                marker, max_depth, ..
+                            } = &plan.targets[*i].match_spec
+                            else {
+                                return false;
+                            };
+                            *depth < *max_depth as usize
+                                || !matches!(
+                                    marker,
+                                    Marker::DirName { .. }
+                                        | Marker::DirNamePattern { .. }
+                                        | Marker::FileName { .. }
+                                )
+                                || marker_matches(&dir.path, marker, &[])
+                        });
+                    if !needs_listing {
+                        complete_search_at(&mut remaining, &dir.path);
+                        continue;
+                    }
+                    let listing_group = format!("@listing:{}", dir.path);
+                    let listing = engine.listing(&dir.path, &listing_group);
+                    let listing_budget = engine
+                        .issues
+                        .iter()
+                        .any(|i| i.group_id == listing_group && i.code == "budget_exhausted");
+                    engine.issues.retain(|i| i.group_id != listing_group);
+                    let declared = listing.children.iter().any(|c| {
+                        c.kind == Kind::File && c.name.eq_ignore_ascii_case(".water-cleanup.json")
+                    });
+                    for id in &measuring {
+                        let row = pending.get_mut(id).unwrap();
+                        if path_eq(&row.child.path, &dir.path) {
+                            row.declared = declared;
+                        }
+                        row.issues.extend(&listing.issues);
+                    }
+                    let mut descend_marker = false;
+                    for (index, depth) in markers {
+                        let target = &plan.targets[index];
+                        let Match::Marker {
+                            marker, max_depth, ..
+                        } = &target.match_spec
+                        else {
+                            unreachable!()
+                        };
+                        if matches!(marker, Marker::FileName { .. }) {
+                            if depth < *max_depth as usize {
+                                engine.listing_issues(&listing, &target.group_id);
+                                descend_marker = true;
+                            }
+                        } else if marker_matches(&dir.path, marker, &listing.children) {
+                            let id = start(
+                                &mut pending,
+                                &mut serial,
+                                &dir,
+                                Purpose::Target(index),
+                                if depth == 0 { None } else { parent.clone() },
+                            );
+                            let row = pending.get_mut(&id).unwrap();
+                            row.declared = declared;
+                            row.issues.extend(&listing.issues);
+                            if !matches!(
+                                marker,
+                                Marker::DirName { .. } | Marker::DirNamePattern { .. }
+                            ) {
+                                row.issues.extend(&listing.issues);
+                            }
+                            starts.push(id);
+                            measuring.push(id);
+                            closed.push(index);
+                        } else {
+                            if !matches!(
+                                marker,
+                                Marker::DirName { .. } | Marker::DirNamePattern { .. }
+                            ) {
+                                engine.listing_issues(&listing, &target.group_id);
+                                if depth < *max_depth as usize {
+                                    engine.listing_issues(&listing, &target.group_id);
+                                }
+                            } else if depth < *max_depth as usize {
+                                engine.listing_issues(&listing, &target.group_id);
+                            }
+                            if depth < *max_depth as usize {
+                                descend_marker = true;
+                            }
+                        }
+                    }
+                    let group = measuring
+                        .iter()
+                        .find_map(|id| owner(&pending[id], plan, fallbacks))
+                        .map_or(group, |i| plan.targets[i].group_id.clone());
+                    // A marker closes its search at this directory even when
+                    // the measurement's issue ultimately belongs to a fallback.
+                    for index in &closed {
+                        remaining[*index].remove(&dir.path.to_ascii_lowercase());
+                    }
+                    if listing_budget || engine.stopped(&group) {
+                        engine.stopped(&group);
+                        break;
+                    }
+                    let blocked = measuring.iter().any(|id| {
+                        let row = &pending[id];
+                        let Purpose::Target(i) = row.purpose else {
+                            return false;
+                        };
+                        if let Match::Marker { conditions, .. } = &plan.targets[i].match_spec {
+                            // Length-dependent ownership is resolved at exit; keep
+                            // provisional extras until the actual hit is known.
+                            !conditions
+                                .iter()
+                                .any(|c| matches!(c, Condition::SiblingWithoutSuffix { .. }))
+                        } else {
+                            false
+                        }
+                    });
+                    let custom_search = custom.filter(|_| !blocked);
+                    if let Some((_, depth)) = custom_search
+                        && engine.extras_options.declarations
+                        && depth <= 4
+                        && declared
+                    {
+                        for c in &listing.children {
+                            if c.kind == Kind::File
+                                && c.name.eq_ignore_ascii_case(".water-cleanup.json")
+                            {
+                                engine.extras.declarations.push(c.path.clone());
+                            }
+                        }
+                    }
+                    let potential = if engine.extras_options.leak_clusters
+                        && (!discoveries.is_empty() || custom_search.is_some())
+                    {
+                        potential_children(
+                            engine,
+                            &listing.children,
+                            &group,
+                            plan.targets[primary].category,
+                        )
+                    } else {
+                        HashSet::new()
+                    };
+                    let mut search = (!potential.is_empty()).then(|| {
+                        let i = discoveries
+                            .first()
+                            .copied()
+                            .unwrap_or_else(|| custom_search.unwrap().0);
+                        Search {
+                            parent: dir.path.clone(),
+                            category: plan.targets[i].category,
+                            discovery: !discoveries.is_empty(),
+                            group: plan.targets[i].group_id.clone(),
+                            candidates: vec![],
+                        }
+                    });
+                    let parent_entries = Arc::new(
+                        listing
+                            .children
+                            .iter()
+                            .map(|c| ParentEntry {
+                                name: c.name.clone(),
+                                kind: c.kind,
+                                len: c.len,
+                            })
+                            .collect::<Vec<_>>(),
+                    );
+                    for (index, depth) in &patterns {
+                        let target = &plan.targets[*index];
+                        let Match::Pattern { segments, .. } = &target.match_spec else {
+                            unreachable!()
+                        };
+                        if !listing
+                            .children
+                            .iter()
+                            .any(|c| match_segment(&segments[*depth], &c.name))
+                        {
+                            engine.emit(&target.group_id, target.category, true);
+                        }
+                    }
+                    let mut child_frames = vec![];
+                    for child in &listing.children {
+                        if engine.stopped(&group) {
+                            break;
+                        }
+                        for id in &measuring {
+                            let row = pending.get_mut(id).unwrap();
+                            accumulate(
+                                &mut row.measured,
+                                child,
+                                &row.child.path,
+                                &mut row.identities,
+                            );
+                        }
+                        let mut child_starts = vec![];
+                        let mut needs_pattern = false;
+                        for (index, depth) in &patterns {
+                            let target = &plan.targets[*index];
+                            let Match::Pattern { segments, .. } = &target.match_spec else {
+                                unreachable!()
+                            };
+                            if child.name.eq_ignore_ascii_case(".git")
+                                || !match_segment(&segments[*depth], &child.name)
+                            {
+                                continue;
+                            }
+                            if child.kind == Kind::Reparse {
+                                engine.add_issue("reparse_skipped", &target.group_id);
+                                continue;
+                            }
+                            if depth + 1 == segments.len() {
+                                if accept_type(target.item_type, child.kind) {
+                                    child_starts.push(start(
+                                        &mut pending,
+                                        &mut serial,
+                                        child,
+                                        Purpose::Target(*index),
+                                        Some(parent_entries.clone()),
+                                    ));
+                                }
+                            } else if child.kind == Kind::Dir {
+                                needs_pattern = true;
+                            }
+                        }
+                        for (index, target) in
+                            plan.targets.iter().enumerate().filter(|_| search_allowed)
+                        {
+                            if closed.contains(&index) {
+                                continue;
+                            }
+                            if let Match::Marker {
+                                root,
+                                marker: Marker::FileName { patterns },
+                                max_depth,
+                                fallback_for: None,
+                                ..
+                            } = &target.match_spec
+                                && !ignored_root(root)
+                                && !file_name(root).eq_ignore_ascii_case(".git")
+                                && let Some(parts) = relative(root, &dir.path)
+                                && parts.len() < *max_depth as usize
+                                && parts.iter().all(|p| !p.eq_ignore_ascii_case(".git"))
+                                && child.kind == Kind::File
+                                && !child.name.eq_ignore_ascii_case(".git")
+                                && patterns.iter().any(|p| match_segment(p, &child.name))
+                            {
+                                child_starts.push(start(
+                                    &mut pending,
+                                    &mut serial,
+                                    child,
+                                    Purpose::Target(index),
+                                    Some(parent_entries.clone()),
+                                ));
+                            }
+                        }
+                        for index in &discoveries {
+                            let target = &plan.targets[*index];
+                            if child.kind == Kind::Reparse {
+                                engine.add_issue("reparse_skipped", &target.group_id);
+                            } else if !child.name.eq_ignore_ascii_case(".git")
+                                && accept_type(target.item_type, child.kind)
+                            {
+                                child_starts.push(start(
+                                    &mut pending,
+                                    &mut serial,
+                                    child,
+                                    Purpose::Target(*index),
+                                    Some(parent_entries.clone()),
+                                ));
+                            }
+                        }
+                        if potential.contains(&child.path.to_ascii_lowercase()) {
+                            let id = start(
+                                &mut pending,
+                                &mut serial,
+                                child,
+                                Purpose::Candidate,
+                                Some(parent_entries.clone()),
+                            );
+                            search.as_mut().unwrap().candidates.push(id);
+                            child_starts.push(id);
+                        }
+                        if child.kind == Kind::File {
+                            for id in child_starts {
+                                let row = pending.get_mut(&id).unwrap();
+                                accumulate(
+                                    &mut row.measured,
+                                    child,
+                                    &child.path,
+                                    &mut row.identities,
+                                );
+                                if matches!(row.purpose, Purpose::Target(_)) {
+                                    let row = pending.remove(&id).unwrap();
+                                    finish(
+                                        engine,
+                                        &mut hits,
+                                        row,
+                                        plan,
+                                        fallbacks,
+                                        &mut suppressed,
+                                        Some(&mut deferred),
+                                    );
+                                } else {
+                                    row.identities = HashSet::new();
+                                    row.parent = None;
+                                }
+                            }
+                        } else if child.kind == Kind::Dir {
+                            let next = !child.name.eq_ignore_ascii_case(".git")
+                                && (descend_marker
+                                    || needs_pattern
+                                    || (custom_search.is_some() && custom_descend));
+                            let nested_root =
+                                roots.iter().any(|(root, _)| path_eq(root, &child.path));
+                            if next
+                                || !measuring.is_empty()
+                                || !child_starts.is_empty()
+                                || nested_root
+                            {
+                                let mut child_measuring = measuring.clone();
+                                child_measuring.extend(&child_starts);
+                                let target_starts = child_starts
+                                    .into_iter()
+                                    .filter(|id| matches!(pending[id].purpose, Purpose::Target(_)))
+                                    .collect();
+                                child_frames.push(Frame::Enter {
+                                    child: child.clone(),
+                                    closed: closed.clone(),
+                                    measuring: child_measuring,
+                                    starts: target_starts,
+                                    parent: Some(parent_entries.clone()),
+                                });
+                            }
+                        } else if child.kind == Kind::Reparse {
+                            for (i, target) in plan.targets.iter().enumerate() {
+                                if search_allowed
+                                    && !closed.contains(&i)
+                                    && matches!(&target.match_spec, Match::Marker { root, fallback_for: None, max_depth, .. }
+                                    if relative(root, &dir.path).is_some_and(|p| p.len() < *max_depth as usize && p.iter().all(|part| !part.eq_ignore_ascii_case(".git"))))
+                                {
+                                    engine.add_issue("reparse_skipped", &target.group_id);
+                                }
+                            }
+                        }
+                    }
+                    // Empty pattern results finish here too; observers may act at
+                    // this boundary before a later logical target consumes names.
+                    for (index, _) in &patterns {
+                        engine.listing_issues(&listing, &plan.targets[*index].group_id);
+                    }
+                    for index in &discoveries {
+                        engine.listing_issues(&listing, &plan.targets[*index].group_id);
+                    }
+                    if engine.stopped(&group) {
+                        break;
+                    }
+                    complete_search_at(&mut remaining, &dir.path);
+                    for frame in &child_frames {
+                        if let Frame::Enter { child, closed, .. } = frame {
+                            for index in search_indices(plan, &child.path, closed) {
+                                remaining[index].insert(child.path.to_ascii_lowercase());
+                            }
+                        }
+                    }
+                    stack.push(Frame::Exit {
+                        path: dir.path,
+                        starts,
+                        search,
+                        completed_candidates,
+                    });
+                    stack.extend(child_frames.into_iter().rev());
+                }
+            }
+        }
+        if engine.status == "cancelled" {
+            break;
+        }
+    }
+    let mut budget_groups = HashSet::new();
+    for (index, paths) in remaining.iter().enumerate() {
+        if !paths.is_empty() {
+            budget_groups.insert(plan.targets[index].group_id.clone());
+        }
+    }
+    for (_, row) in pending {
+        if let Purpose::Target(primary) = row.purpose {
+            let i = owner(&row, plan, fallbacks).unwrap_or(primary);
+            budget_groups.insert(plan.targets[i].group_id.clone());
+            for code in row.issues {
+                engine.add_issue(code, &plan.targets[i].group_id);
+            }
+        }
+    }
+    engine.cache.clear();
+    // An actual marker hit suppresses searches inside it. Cluster ownership
+    // never removes a declaration that was found by the search.
+    engine
+        .extras
+        .declarations
+        .retain(|path| !claimed(&suppressed, &path.to_ascii_lowercase()));
+    searches.retain(|s| !claimed(&suppressed, &s.parent.to_ascii_lowercase()));
+    // Discovery is resolved after every ordinary target, regardless of which
+    // measurement completed first on the shared walk.
+    let mut covered = hits
+        .iter()
+        .filter(|h| {
+            !matches!(
+                plan.targets[h.target_index].match_spec,
+                Match::Discovery { .. }
+            )
+        })
+        .map(|h| h.path.to_ascii_lowercase())
+        .collect::<std::collections::BTreeSet<_>>();
+    deferred.sort_by_key(|row| match row.purpose {
+        Purpose::Target(i) => (i, row.child.path.to_ascii_lowercase()),
+        _ => unreachable!(),
+    });
+    for mut row in deferred {
+        let Purpose::Target(index) = row.purpose else {
+            unreachable!()
+        };
+        let path = row.child.path.to_ascii_lowercase();
+        if engine.stopped(&plan.targets[index].group_id) {
+            break;
+        }
+        let prefix = format!("{path}\\");
+        if !covered.contains(&path)
+            && !covered
+                .range(prefix.clone()..)
+                .next()
+                .is_some_and(|p| p.starts_with(&prefix))
+        {
+            covered.insert(path);
+            discovery_issues.push(DiscoveryIssues {
+                path: row.child.path.to_ascii_lowercase(),
+                index,
+                codes: std::mem::take(&mut row.issues),
+            });
+            finish(
+                engine,
+                &mut hits,
+                row,
+                plan,
+                fallbacks,
+                &mut suppressed,
+                None,
+            );
+        }
+    }
+    for target in &plan.targets {
+        if !matches!(
+            target.match_spec,
+            Match::Marker {
+                fallback_for: Some(_),
+                ..
+            }
+        ) {
+            engine.emit(&target.group_id, target.category, true);
+        }
+    }
+    // Local stopping checks use provisional groups. Replace their budget
+    // records with the complete set of unfinished searches and final owners.
+    let exhausted = engine.budget_exhausted() && engine.status != "cancelled";
+    engine
+        .issues
+        .retain(|issue| issue.code != "budget_exhausted");
+    if exhausted {
+        for group in budget_groups {
+            engine.add_issue("budget_exhausted", &group);
+        }
+    }
+    WalkResult {
+        hits,
+        searches,
+        discovery_issues,
+    }
+}

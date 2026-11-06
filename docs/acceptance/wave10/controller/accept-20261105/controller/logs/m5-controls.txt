@@ -1,0 +1,39 @@
+m5 lock rc=0 {"task":"WATER-W10-ACCEPT-M5","mode":"lock","finalGate":false,"status":"passed","error":null,"receipt":"F:\\new\\smaltalk\\water\\.worktrees\\accept-w10-m5\\.local\\checks\\WATER-W10-ACCEPT-M5\\2026-11-06T05-10-38.639Z-28944-lock-result.json"}
+m5 check:final rc=0 {"task":"WATER-W10-ACCEPT-M5","mode":"check","finalGate":true,"status":"passed","error":null,"receipt":"F:\\new\\smaltalk\\water\\.worktrees\\accept-w10-m5\\.local\\checks\\WATER-W10-ACCEPT-M5\\2026-11-06T05-11-09.409Z-9332-check-result.json"}
+m5 c1 mutated apps/water/host/src/commands.rs: quarantine_reveal opens whatever path the service returns (mutated sha 4f6f9847bb0a7158e4d16c785d93098da8c4a8a3eb0724f7d293e3c586ebd10d)
+m5 red-nc1 rc=0 {"task":"WATER-W10-ACCEPT-M5","mode":"red-nc1","finalGate":false,"status":"passed","error":null,"receipt":"F:\\new\\smaltalk\\water\\.worktrees\\accept-w10-m5\\.local\\checks\\WATER-W10-ACCEPT-M5\\2026-11-06T05-19-08.829Z-16684-red-nc1-result.json"}
+m5 c1 KILLED (expected HOST_M35_REVEAL)
+m5 c1 restored exact bytes=true sha 27b67b48afceb9dac6196a399e92f3308383973623dda7fc7f2bac1251779795
+m5 test rc=0 {"task":"WATER-W10-ACCEPT-M5","mode":"test","finalGate":false,"status":"passed","error":null,"receipt":"F:\\new\\smaltalk\\water\\.worktrees\\accept-w10-m5\\.local\\checks\\WATER-W10-ACCEPT-M5\\2026-11-06T05-29-42.756Z-28628-test-result.json"}
+m5 c2 mutated apps/water/host/src/opener.rs: any existing folder counts as a quarantine folder (mutated sha 6b9ff59176ee8293af1376052f95a4f8d6e0efb380c18e64aaf2affff4094903)
+m5 red-nc1 rc=0 {"task":"WATER-W10-ACCEPT-M5","mode":"red-nc1","finalGate":false,"status":"passed","error":null,"receipt":"F:\\new\\smaltalk\\water\\.worktrees\\accept-w10-m5\\.local\\checks\\WATER-W10-ACCEPT-M5\\2026-11-06T05-30-23.125Z-8116-red-nc1-result.json"}
+m5 c2 KILLED (expected HOST_M35_REVEAL)
+m5 c2 restored exact bytes=true sha d833fa4e5747bfc896b869a610d87c62125d6d056c77c31720c7d1173db4b6c7
+m5 test rc=0 {"task":"WATER-W10-ACCEPT-M5","mode":"test","finalGate":false,"status":"passed","error":null,"receipt":"F:\\new\\smaltalk\\water\\.worktrees\\accept-w10-m5\\.local\\checks\\WATER-W10-ACCEPT-M5\\2026-11-06T05-30-44.750Z-10472-test-result.json"}
+m5 c3 mutated apps/water/host/src/opener.rs: a path with .. segments is accepted (mutated sha 9bb6138016ed648e9cc5cb86f54df429307a4d4d17684e9e8f2f59e98baaecbd)
+m5 red-nc1 rc=1 {"task":"WATER-W10-ACCEPT-M5","mode":"red-nc1","finalGate":false,"status":"failed","error":"AssertionError [ERR_ASSERTION]: Unexpected exit, see 2026-11-06T05-31-14.287Z-7904-red-nc1-5.log","receipt":"F:\\new\\smaltalk\\water\\.worktrees\\accept-w10-m5\\.local\\checks\\WATER-W10-ACCEPT-M5\\2026-11-06T05-31-14.287Z-7904-red-nc1-result.json"}
+m5 c3 SURVIVED (expected HOST_M35_REVEAL)
+m5 c3 restored exact bytes=true sha d833fa4e5747bfc896b869a610d87c62125d6d056c77c31720c7d1173db4b6c7
+m5 test rc=0 {"task":"WATER-W10-ACCEPT-M5","mode":"test","finalGate":false,"status":"passed","error":null,"receipt":"F:\\new\\smaltalk\\water\\.worktrees\\accept-w10-m5\\.local\\checks\\WATER-W10-ACCEPT-M5\\2026-11-06T05-31-45.286Z-6008-test-result.json"}
+m5 c4 mutated apps/water/host/src/opener.rs: a reparse point (junction) passes as a plain quarantine folder (mutated sha c7c4b32649c60bc32e64a2c8e4dc56d96bed6c06a20cfa0677eca338d22d0297)
+m5 red-nc1 rc=1 {"task":"WATER-W10-ACCEPT-M5","mode":"red-nc1","finalGate":false,"status":"failed","error":"AssertionError [ERR_ASSERTION]: Unexpected exit, see 2026-11-06T05-32-26.293Z-35292-red-nc1-5.log","receipt":"F:\\new\\smaltalk\\water\\.worktrees\\accept-w10-m5\\.local\\checks\\WATER-W10-ACCEPT-M5\\2026-11-06T05-32-26.293Z-35292-red-nc1-result.json"}
+m5 c4 SURVIVED (expected HOST_M35_REVEAL)
+m5 c4 restored exact bytes=true sha d833fa4e5747bfc896b869a610d87c62125d6d056c77c31720c7d1173db4b6c7
+m5 test rc=0 {"task":"WATER-W10-ACCEPT-M5","mode":"test","finalGate":false,"status":"passed","error":null,"receipt":"F:\\new\\smaltalk\\water\\.worktrees\\accept-w10-m5\\.local\\checks\\WATER-W10-ACCEPT-M5\\2026-11-06T05-33-05.933Z-22652-test-result.json"}
+m5 c5 mutated apps/water/host/src/commands.rs: quarantine_restore drops the beside flag (mutated sha 68a9dc545f47d0e473aad99d3ecc4a43e9bc5c7e27d181604ddcf715e43538ec)
+m5 red-nc2 rc=0 {"task":"WATER-W10-ACCEPT-M5","mode":"red-nc2","finalGate":false,"status":"passed","error":null,"receipt":"F:\\new\\smaltalk\\water\\.worktrees\\accept-w10-m5\\.local\\checks\\WATER-W10-ACCEPT-M5\\2026-11-06T05-33-39.542Z-29252-red-nc2-result.json"}
+m5 c5 KILLED (expected HOST_M35_FORWARD)
+m5 c5 restored exact bytes=true sha 27b67b48afceb9dac6196a399e92f3308383973623dda7fc7f2bac1251779795
+m5 test rc=0 {"task":"WATER-W10-ACCEPT-M5","mode":"test","finalGate":false,"status":"passed","error":null,"receipt":"F:\\new\\smaltalk\\water\\.worktrees\\accept-w10-m5\\.local\\checks\\WATER-W10-ACCEPT-M5\\2026-11-06T05-34-10.189Z-34896-test-result.json"}
+m5 c6 mutated apps/water/host/src/commands.rs: conclusion_decide drops the decision (mutated sha 6460632d7309fda51ce0636068eac35967dd91120a68f3a2020423b01569bc59)
+m5 red-nc2 rc=0 {"task":"WATER-W10-ACCEPT-M5","mode":"red-nc2","finalGate":false,"status":"passed","error":null,"receipt":"F:\\new\\smaltalk\\water\\.worktrees\\accept-w10-m5\\.local\\checks\\WATER-W10-ACCEPT-M5\\2026-11-06T05-34-46.282Z-35724-red-nc2-result.json"}
+m5 c6 KILLED (expected HOST_M35_FORWARD)
+m5 c6 restored exact bytes=true sha 27b67b48afceb9dac6196a399e92f3308383973623dda7fc7f2bac1251779795
+m5 test rc=0 {"task":"WATER-W10-ACCEPT-M5","mode":"test","finalGate":false,"status":"passed","error":null,"receipt":"F:\\new\\smaltalk\\water\\.worktrees\\accept-w10-m5\\.local\\checks\\WATER-W10-ACCEPT-M5\\2026-11-06T05-35-03.865Z-24924-test-result.json"}
+m5 c7 mutated apps/water/host/src/commands.rs: dedupe_start forwards the wrong argument name (mutated sha b63f97135b669c0f7906d6aea7ff1b33ba45c67027381840c347d9fdda960b1f)
+m5 red-nc2 rc=0 {"task":"WATER-W10-ACCEPT-M5","mode":"red-nc2","finalGate":false,"status":"passed","error":null,"receipt":"F:\\new\\smaltalk\\water\\.worktrees\\accept-w10-m5\\.local\\checks\\WATER-W10-ACCEPT-M5\\2026-11-06T05-35-33.835Z-17312-red-nc2-result.json"}
+m5 c7 KILLED (expected HOST_M35_FORWARD)
+m5 c7 restored exact bytes=true sha 27b67b48afceb9dac6196a399e92f3308383973623dda7fc7f2bac1251779795
+m5 test rc=0 {"task":"WATER-W10-ACCEPT-M5","mode":"test","finalGate":false,"status":"passed","error":null,"receipt":"F:\\new\\smaltalk\\water\\.worktrees\\accept-w10-m5\\.local\\checks\\WATER-W10-ACCEPT-M5\\2026-11-06T05-36-05.066Z-31396-test-result.json"}
+m5 survived: c3,c4
+m5 test --final rc=0 {"task":"WATER-W10-ACCEPT-M5","mode":"test","finalGate":true,"status":"passed","error":null,"receipt":"F:\\new\\smaltalk\\water\\.worktrees\\accept-w10-m5\\.local\\checks\\WATER-W10-ACCEPT-M5\\2026-11-06T05-36-45.322Z-16144-test-result.json"}
