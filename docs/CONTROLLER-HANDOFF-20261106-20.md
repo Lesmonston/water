@@ -7,7 +7,7 @@
 - M7 补单 05 已验收，**未通过**（REWORK，验收报告第 13.5 节，`1c692377`）：
   - 门禁都过，总控变异 9 条抓住 7 条；
   - 独立审查查出高危，总控已核实：U 盘、映射盘上的“你选的”项选了隔离，会被执行器先挪走，再被服务拒收，结果没有记录，在 Water 里看不到。
-- 已出 [M7 补单 06](dispatch/tickets/WATER-W10-M7-ADDENDUM-06-20261106.md)，**待外派**给 Grok，粘贴语在[计划](dispatch/wave10/PLAN.md)末尾。
+- 已出 [M7 补单 06](dispatch/tickets/WATER-W10-M7-ADDENDUM-06-20261106.md)，**已派给 sol**（22:57），粘贴语在[计划](dispatch/wave10/PLAN.md)末尾。
 - 下面第 6 节第 1 步改为：等补单 06 交回后再验收 M7。M7 的变异清单已写在 `mutations.json`（m7：nc1～nc3、c4～c9）。重验时 nc2 与 c4 应该被补单 06 的新断言抓住。
 
 ## 0. 一句话现状
