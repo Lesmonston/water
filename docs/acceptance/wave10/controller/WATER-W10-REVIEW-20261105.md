@@ -146,3 +146,50 @@ M9、M3、M8、M4 **VERIFIED**，用 `git merge --no-ff` 合入主线；合入�
 [补单 02](../../../dispatch/tickets/WATER-W10-M2-ADDENDUM-02-20261106.md) 逐条要求修正，并补能抓住 c5、c7 的测试。项目声明照补单 01 的意思保留，不因位于条目内而删。不要求性能改动。discovery 先测后判覆盖等三条只记入 `carryOverLater`。
 
 两张续做交回后，按同样流程重新验收，然后一起合入。
+
+## 10. 第三轮：M1 补单 04、M2 补单 02、M5 补单 01（2026-11-06 14:00～14:50 JST）
+
+三张都在 11-06 交回（M1 `02bcbfab`，M2 `c4a02875`，M5 `82560b78`，M5 的代码在 `e6f7fa67`）。
+
+- **审计**：三张都是 0 个问题（输出 [audit-a3.json](accept-20261105/controller/audit-a3.json)）；M2 的测试改动只增不删。上一轮证据移到 `.local/w10-accept/round2-evidence/`；M1、M2 验收树 `merge --ff-only` 前移，M5 新建验收树。新归档是旧的超集（M1 1,192 个、M2 1,242 个、M5 394 个文件），覆盖进本目录。
+- **新树重跑**（按顺序，一次一棵）：
+  - M1：lock、check final、real final、test final 通过；
+  - M2：lock、check final、real final、test final 通过；
+  - M5：lock、check final、native final（开一次 Water 主窗口，合成夹具；开窗前告知了用户）、test final 通过。
+- **总控变异**：
+  - **M1** c1～c11 全部抓住，c11 是剪映 `CEF Cache` 改回单段。
+  - **M2** c1～c11 全部抓住，包括上一轮漏掉的 c5（`hash_extra` 扩展名）和 c7（簇候选循环的取消检查），以及新加的 c9（`.git` 内仍搜索）、c10（簇长在条目里）、c11（discovery 处问题记两遍）。
+  - **M5** 新写 c1～c7。抓住五条：c1 打开未校验的路径、c2 任何文件夹都算隔离区、c5 restore 丢 `beside`、c6 decide 丢 `decision`、c7 dedupe_start 参数名错。**漏掉两条**：
+    - c3 放过 `..`：测试里带 `..` 的路径本来就不存在，碰不到这一检查。实际影响很小，因为通过的路径仍须以 `.water-quarantine`（或它下面的编号）结尾，并且是真实存在的普通文件夹；但契约要求拒收。
+    - c4 关掉重解析点检查：Rust 不把联接当目录，联接用例到不了 0x400 那道检查（审查已预计）。
+
+### 10.1 M1：通过，等 M2 一起合入
+
+M1 只改两行数据，没有再派审查（补单 03 的审查没有高危）。按计划 A 组两张一起合入，所以 M1 留在 `worker/water-w10-m1`，等 M2 补单 03 过了再合。
+
+### 10.2 M2：验收未通过，出补单 03
+
+独立审查确认：
+- `.git` 的高危已修好。审查试了多种写法（中段 `*`、首段 `*`、显式 `.git` 段、`.g*`、`.git` 文件、`.git` 里的 root 与 discovery root、外层测量中的自定义 marker、名为 `.git` 的重解析点），都不在 `.git` 内或 `.git` 处出条目。
+- 第 3、4、5 条做到了。
+
+中等一条，总控对照代码核实：`streaming.rs` 第 997～1007 行先删掉全部 `budget_exhausted`，再只给 `remaining` 和 `pending` 的组重记。离开 `pending` 后才丢的都漏了，而且比 `68f90263` 退步：
+- 第 959 行停下时截断的延后 discovery 行；
+- Exit 帧上按时间丢掉的命中；
+- 第 1058～1063 行因预算整段跳过的簇搜索；
+- 强制收尾时时间用完，状态还会停在 `completed`。
+
+低的两条：
+- root 过滤放宽到任何一段是 `.git`；
+- `.git` 测试只有 pattern 一种真正走到每个目录的守卫。
+
+[补单 03](../../../dispatch/tickets/WATER-W10-M2-ADDENDUM-03-20261106.md) 逐种修正并补测试，用户已派给 sol。
+
+### 10.3 M5：通过，已合入
+
+独立审查没有高危，也没有中等：
+- 17 条命令的名字、顺序、参数照 IPC-M35，界面不传路径；
+- `quarantine_reveal` 只开服务给的、校验过的隔离区文件夹，用 `SystemRoot\explorer.exe` 起进程，不经过 shell；
+- 配置、权限、CSP、依赖没动；旧断言只在补单 01 授权处改了。
+
+低的几条连同 c3、c4 记入 `carryOverLater`。合入 `7aebb2ef`（`--no-ff`），`git diff 82560b78 HEAD -- apps/water/host docs/acceptance/wave10/m5` 为空。C 组（M4、M5）至此全部合入。
