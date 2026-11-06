@@ -1,0 +1,40 @@
+{"binary":"C:\\Users\\37310\\.rustup\\toolchains\\1.95.0-x86_64-pc-windows-msvc\\bin\\cargo.exe","args":["test","--offline","--locked","--manifest-path","packages/junk-scan/Cargo.toml","--test","scan_v1","--","--test-threads=1"],"exitCode":101,"error":null}
+--- stdout ---
+
+running 5 tests
+test scan_overlap_and_guards ... FAILED
+test scan_pattern_marker_discovery ... FAILED
+test scan_plan_contract ... ok
+test scan_reparse_budget_cancel ... ok
+test scan_snapshot_growth_keys ... ok
+
+failures:
+
+---- scan_overlap_and_guards stdout ----
+
+thread 'scan_overlap_and_guards' (22212) panicked at tests\scan_v1.rs:2110:5:
+assertion `left == right` failed: SCAN_M3C_SINGLE_WALK: groups and merging
+  left: [Group { group_id: "tag", rule_id: "tag", level: Recommended, category: DevCache, item_count: 0, eligible_count: 0, total_bytes: "0", eligible_bytes: "0", unique_bytes: "0", eligible_unique_bytes: "0", file_count: 0, oldest_activity: None, newest_activity: None, in_use: InUse { mode: "none", processes: [], root_levels: None }, top_keys: [], disk_bytes: Some("0"), eligible_disk_bytes: Some("0"), cluster: None }, Group { group_id: "children", rule_id: "children", level: Confirm, category: DevCache, item_count: 1, eligible_count: 1, total_bytes: "89", eligible_bytes: "89", unique_bytes: "89", eligible_unique_bytes: "89", file_count: 4, oldest_activity: Some("2026-11-06T06:30:37Z"), newest_activity: Some("2026-11-06T06:30:38Z"), in_use: InUse { mode: "none", processes: [], root_levels: None }, top_keys: [], disk_bytes: Some("112"), eligible_disk_bytes: Some("112"), cluster: None }, Group { group_id: "modules", rule_id: "modules", level: Recommended, category: DevCache, item_count: 1, eligible_count: 1, total_bytes: "3", eligible_bytes: "3", unique_bytes: "3", eligible_unique_bytes: "3", file_count: 2, oldest_activity: Some("2026-11-06T06:30:37Z"), newest_activity: Some("2026-11-06T06:30:38Z"), in_use: InUse { mode: "none", processes: [], root_levels: None }, top_keys: [], disk_bytes: Some("16"), eligible_disk_bytes: Some("16"), cluster: None }, Group { group_id: "build", rule_id: "build", level: Recommended, category: DevCache, item_count: 1, eligible_count: 1, total_bytes: "5", eligible_bytes: "5", unique_bytes: "5", eligible_unique_bytes: "5", file_count: 1, oldest_activity: Some("2026-11-06T06:30:38Z"), newest_activity: Some("2026-11-06T06:30:38Z"), in_use: InUse { mode: "none", processes: [], root_levels: None }, top_keys: [], disk_bytes: Some("8"), eligible_disk_bytes: Some("8"), cluster: None }, Group { group_id: "worktree", rule_id: "worktree", level: Advisory, category: DevCache, item_count: 1, eligible_count: 0, total_bytes: "6", eligible_bytes: "0", unique_bytes: "6", eligible_unique_bytes: "0", file_count: 1, oldest_activity: Some("2026-11-06T06:30:38Z"), newest_activity: Some("2026-11-06T06:30:38Z"), in_use: InUse { mode: "none", processes: [], root_levels: None }, top_keys: [], disk_bytes: Some("8"), eligible_disk_bytes: Some("0"), cluster: None }]
+ right: [Group { group_id: "tag", rule_id: "tag", level: Recommended, category: DevCache, item_count: 0, eligible_count: 0, total_bytes: "0", eligible_bytes: "0", unique_bytes: "0", eligible_unique_bytes: "0", file_count: 0, oldest_activity: None, newest_activity: None, in_use: InUse { mode: "none", processes: [], root_levels: None }, top_keys: [], disk_bytes: Some("0"), eligible_disk_bytes: Some("0"), cluster: None }, Group { group_id: "children", rule_id: "children", level: Confirm, category: DevCache, item_count: 1, eligible_count: 1, total_bytes: "89", eligible_bytes: "89", unique_bytes: "89", eligible_unique_bytes: "89", file_count: 4, oldest_activity: Some("2026-11-06T06:30:37Z"), newest_activity: Some("2026-11-06T06:30:38Z"), in_use: InUse { mode: "none", processes: [], root_levels: None }, top_keys: [], disk_bytes: Some("112"), eligible_disk_bytes: Some("112"), cluster: None }, Group { group_id: "modules", rule_id: "modules", level: Recommended, category: DevCache, item_count: 1, eligible_count: 1, total_bytes: "3", eligible_bytes: "3", unique_bytes: "3", eligible_unique_bytes: "3", file_count: 2, oldest_activity: Some("2026-11-06T06:30:38Z"), newest_activity: Some("2026-11-06T06:30:38Z"), in_use: InUse { mode: "none", processes: [], root_levels: None }, top_keys: [], disk_bytes: Some("16"), eligible_disk_bytes: Some("16"), cluster: None }, Group { group_id: "build", rule_id: "build", level: Recommended, category: DevCache, item_count: 1, eligible_count: 1, total_bytes: "5", eligible_bytes: "5", unique_bytes: "5", eligible_unique_bytes: "5", file_count: 1, oldest_activity: Some("2026-11-06T06:30:38Z"), newest_activity: Some("2026-11-06T06:30:38Z"), in_use: InUse { mode: "none", processes: [], root_levels: None }, top_keys: [], disk_bytes: Some("8"), eligible_disk_bytes: Some("8"), cluster: None }, Group { group_id: "worktree", rule_id: "worktree", level: Advisory, category: DevCache, item_count: 1, eligible_count: 0, total_bytes: "6", eligible_bytes: "0", unique_bytes: "6", eligible_unique_bytes: "0", file_count: 1, oldest_activity: Some("2026-11-06T06:30:38Z"), newest_activity: Some("2026-11-06T06:30:38Z"), in_use: InUse { mode: "none", processes: [], root_levels: None }, top_keys: [], disk_bytes: Some("8"), eligible_disk_bytes: Some("0"), cluster: None }]
+note: run with `RUST_BACKTRACE=1` environment variable to display a backtrace
+
+---- scan_pattern_marker_discovery stdout ----
+
+thread 'scan_pattern_marker_discovery' (22076) panicked at tests\scan_v1.rs:3006:5:
+assertion `left == right` failed: SCAN_M35_CLUSTERS: independent FNV ID
+  left: "leak:1a2642dd7cdb3c44"
+ right: "leak:fb1e0f5ba20f7fd8"
+
+
+failures:
+    scan_overlap_and_guards
+    scan_pattern_marker_discovery
+
+test result: FAILED. 3 passed; 2 failed; 0 ignored; 0 measured; 0 filtered out; finished in 1.89s
+
+
+--- stderr ---
+   Compiling water-junk-scan v0.1.0 (F:\new\smaltalk\water\.worktrees\accept-w10-m2\packages\junk-scan)
+    Finished `test` profile [unoptimized + debuginfo] target(s) in 3.80s
+     Running tests\scan_v1.rs (.local\w2-target\debug\deps\scan_v1-44131edddc8e8920.exe)
+error: test failed, to rerun pass `--test scan_v1`

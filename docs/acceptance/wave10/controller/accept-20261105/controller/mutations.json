@@ -367,6 +367,42 @@
    "old": "        if final_discoveries.contains(&(row.path, row.index)) {",
    "new": "        if final_discoveries.contains(&(row.path, row.index)) || true {",
    "why": "measurement issues of discovery children that became cluster members are also recorded on the discovery group"
+  },
+  {
+   "label": "c12",
+   "mode": "red-nc1",
+   "token": "SCAN_M35_CLUSTERS",
+   "file": "packages/junk-scan/src/scan/streaming.rs",
+   "old": "            budget_groups.insert(plan.targets[index].group_id.clone());\n            continue;\n",
+   "new": "            continue;\n",
+   "why": "deferred discovery rows cut by the stop lose their budget owner"
+  },
+  {
+   "label": "c13",
+   "mode": "red-nc1",
+   "token": "SCAN_M35_CLUSTERS",
+   "file": "packages/junk-scan/src/scan.rs",
+   "old": "    let clusters = if extras.leak_clusters {\n",
+   "new": "    let clusters = if extras.leak_clusters && !engine.budget_exhausted() {\n",
+   "why": "cluster searches are skipped silently when the budget is spent"
+  },
+  {
+   "label": "c14",
+   "mode": "red-nc1",
+   "token": "SCAN_M35_CLUSTERS",
+   "file": "packages/junk-scan/src/scan.rs",
+   "old": "            // Visit the remaining search owners too, without building them.\n            continue;\n",
+   "new": "            break;\n",
+   "why": "only the first unfinished cluster search gets a budget issue"
+  },
+  {
+   "label": "c15",
+   "mode": "red-nc1",
+   "token": "SCAN_M35_CLUSTERS",
+   "file": "packages/junk-scan/src/scan/streaming.rs",
+   "old": "    (!emitted).then(|| target.group_id.clone())\n",
+   "new": "    let _ = emitted;\n    None\n",
+   "why": "a hit dropped after leaving pending (Exit frame) loses its budget owner"
   }
  ],
  "m4": [
