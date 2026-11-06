@@ -431,6 +431,7 @@ A–AB及八补单、AD保持VERIFIED；AC/补单06新增VERIFIED（Windows静�
 63. **M7 服务单出单**（11-06 16:00 JST）：[工单](dispatch/tickets/WATER-W10-M7-SERVICE-20261106.md)从合入后的主线 `b4b889a9` 开工，照 SERVICE-M35 全文，另加总控补充六条（第 17 份交接第 4 节的四条，加上执行器写日志失败的处理，以及 ADD-01 不做）。总控重跑 baseline 已通过。粘贴语在[计划](dispatch/wave10/PLAN.md)第 7 节末尾。
 64. **M6 补单 02、M7 补单 01，第 19 份交接**（11-06 16:50 JST）：M6 又查出契约缺口（卡片与汇总行要“以后都跳过”，接口只有单项跳过），补单 02 定为这一波只给真实条目；M7 开工审阅即受阻（旧形状测试没有迁移授权），补单 01 授权“旧样例加新键”。两张 17:09 JST 记为已外派（M6 补单 02 给 astra，M7 补单 01 给 sol）。[第 19 份交接](CONTROLLER-HANDOFF-20261106-19.md)第 6 节是入口。
 65. **M7 补单 01 受阻，出补单 02**（11-06 18:35 JST）：形状迁移做完，同一字节两次完整测试 11/12，旧 50 ms 断言超时（回执 `af7fa295`）。总控核对是本单引入的变慢：`Projection::new` 给每一组预先算汇总行，“排除规模”用例从旧代码的 21.6～31.0 ms 涨到 36.7～55.6 ms。[补单 02](dispatch/tickets/WATER-W10-M7-ADDENDUM-02-20261106.md) 改为用到才算，时限不动，粘贴语在[计划](dispatch/wave10/PLAN.md)末尾。
+66. **M6 补单 02 收活：REWORK**（11-06 19:00 JST）：三个 final 重跑通过，负控与总控变异 7/7 抓住；25 张截图做成[对照页](https://claude.ai/artifact/JrgdnEjE1Ymw5QGhEaMedo)给用户看。独立审查两条中等（轮询出错后界面卡死、查重页回不去）、七条低，回执“补单 02”一节中文丢成问号。见[验收报告](acceptance/wave10/controller/WATER-W10-REVIEW-20261105.md)第 12 节，补单 03 待出。
 ## 真实AA→AD联合验收通过（2026-10-26）
 
 新总控（Claude）接任后按事先冻结的[计划](acceptance/wave1/controller/WATER-W1-AAAD-JOINT-PLAN-20261026.md)执行一次：真实固定AA宿主→原生目录选择→R/Z→AB传输→AD同源报告页，四场景全部通过，4窗/9.993秒/无重试/手动终止0。报告页鼠标下载的Q与Z与当次原字符串逐字节一致，淘汰与正常关闭通过。见[联合验收报告](acceptance/wave1/controller/WATER-W1-AAAD-JOINT-REVIEW-20261026.md)。31任务/槽位不变，没有新READY票；桌面接入扫描、真实用户scope、自然同意鉴真、生产竞态、macOS与M1仍未验收。用户同日要求先暂停安排后续任务，结合本机清理经验重订计划；总控草案见[计划重订（待拍板）](REPLAN-20261026-AGENT-ERA-CHECKUP.md)，拍板前不出新票。

@@ -1144,6 +1144,237 @@
       "acceptsHead": "82560b780af6965333ec5f98b3ef1e5e95b4fd6e"
     },
     {
+      "kind": "ui",
+      "outputRoot": "apps/water/ui",
+      "testFiles": [
+        "apps/water/ui/tests/unit.test.mjs",
+        "apps/water/ui/tests/browser.test.mjs"
+      ],
+      "unitTestFiles": [
+        "apps/water/ui/tests/unit.test.mjs"
+      ],
+      "browserTestFiles": [
+        "apps/water/ui/tests/browser.test.mjs"
+      ],
+      "expectedTests": [
+        "ui_format_bytes_time",
+        "ui_v2_view_rules",
+        "ui_ipc_boundary"
+      ],
+      "tokensSource": "docs/design/water-ui-v3/tokens.css",
+      "fixtures": "contracts/m35-v1/ui-fixtures-m35.json",
+      "browserHelper": "scripts/acceptance/native-vw-private-browser.mjs",
+      "screenshotDirEnv": "WATER_W2_SHOTS_DIR",
+      "macOS": "unverified",
+      "outputRootExists": true,
+      "nativeWindowBudget": 0,
+      "nativeDirectoryDialogBudget": 0,
+      "expectedBrowserTests": [
+        "ui_v2_home_scan",
+        "ui_v2_conclusion",
+        "ui_v2_drawer_details",
+        "ui_v2_confirm_done",
+        "ui_v2_quarantine_dedupe",
+        "ui_v2_pages_layout_a11y"
+      ],
+      "requiredScreenshots": [
+        "v3-home-1240x820.png",
+        "v3-home-new-1240x820.png",
+        "v3-scan-1240x820.png",
+        "v3-results-1240x820.png",
+        "v3-results-decided-1240x820.png",
+        "v3-results-folds-1240x820.png",
+        "v3-results-stale-1240x820.png",
+        "v3-results-empty-1240x820.png",
+        "v3-menu-1240x820.png",
+        "v3-drawer-1240x820.png",
+        "v3-drawer-big-1240x820.png",
+        "v3-details-1240x820.png",
+        "v3-confirm-1240x820.png",
+        "v3-confirm-direct-1240x820.png",
+        "v3-done-1240x820.png",
+        "v3-quarantine-1240x820.png",
+        "v3-quarantine-leftover-1240x820.png",
+        "v3-dedupe-menu-1240x820.png",
+        "v3-dedupe-intro-1240x820.png",
+        "v3-dedupe-1240x820.png",
+        "v3-trends-1240x820.png",
+        "v3-history-1240x820.png",
+        "v3-settings-1240x820.png",
+        "v3-settings-decl-1240x820.png",
+        "v3-home-narrow-1040x720.png"
+      ],
+      "browserProofs": [
+        "nc1",
+        "nc2",
+        "nc3"
+      ],
+      "allowedModes": [
+        "baseline",
+        "check",
+        "test",
+        "browser",
+        "red-nc1",
+        "red-nc2",
+        "red-nc3",
+        "archive"
+      ],
+      "expectedFinalModes": [
+        "check",
+        "test",
+        "browser"
+      ],
+      "realMode": null,
+      "browserBudget": 1,
+      "realDataPermission": "none; IPC fixtures only",
+      "id": "WATER-W10-ACCEPT-M6",
+      "title": "界面：按设计 v3 重做（界面单）",
+      "slot": "w10-m6",
+      "worktree": "F:/new/smaltalk/water/.worktrees/accept-w10-m6",
+      "branch": "controller/accept-w10-m6",
+      "baseCommit": "06d266d1483b7ab210dd2c492d39a2511a134abe",
+      "snapshotRef": "refs/tags/water-w10-m6-base-20261106",
+      "status": "CONTROLLER_ACCEPTANCE",
+      "readyOn": "2026-11-06",
+      "dispatchedAt": null,
+      "startedAt": null,
+      "model": null,
+      "modelAssignment": "user-arranged; report actual engine/model",
+      "purpose": "M3.5 conclusion first",
+      "report": "docs/dispatch/reports/WATER-W10-M6-REPORT.md",
+      "evidenceDir": "docs/acceptance/wave10/controller/accept-20261105/m6/",
+      "allowedFiles": [
+        "docs/dispatch/reports/WATER-W10-M6-REPORT.md"
+      ],
+      "gate": "light",
+      "ticket": "docs/dispatch/tickets/WATER-W10-M6-UI-20261106.md",
+      "spec": "contracts/m35-v1/UI-M35.md",
+      "proofTargets": {
+        "nc1": "UI_V2_CONCLUSION",
+        "nc2": "UI_V2_CONFIRM",
+        "nc3": "UI_IPC_NO_PATH"
+      },
+      "modelHint": "UI ticket: rebuild to design v3 (final 11-06: sky tiles, one lime highlight, orange-red attention, one dark main card per screen); same data, rules and tests as before; 25 screenshots compared with the v3 previews; draw only numbers the service gives.",
+      "mustRead": [
+        "docs/dispatch/W10-M35-WORKER-RULES.md",
+        "contracts/m35-v1/UI-M35.md",
+        "contracts/m35-v1/IPC-M35.md",
+        "contracts/m35-v1/ui-fixtures-m35.json",
+        "contracts/m3c-v1/IPC-M3C.md",
+        "contracts/m3c-v1/ui-fixtures-m3c.json",
+        "contracts/checkup-v1/IPC.md",
+        "contracts/checkup-v1/ui-fixtures.json",
+        "contracts/checkup-v1/UI.md",
+        "docs/design/water-ui-v3/DESIGN.md",
+        "docs/design/water-ui-v3/mockup.html",
+        "docs/design/water-ui-v3/tokens.css",
+        "docs/design/water-ui-v3/previews/",
+        "docs/design/water-ui-v2/DESIGN.md",
+        "docs/design/water-ui-v2/previews/",
+        "docs/dispatch/wave10/PLAN.md",
+        "apps/water/ui/index.html",
+        "apps/water/ui/app.mjs",
+        "apps/water/ui/ipc.mjs",
+        "apps/water/ui/model.mjs",
+        "apps/water/ui/format.mjs",
+        "apps/water/ui/views/",
+        "apps/water/ui/styles/",
+        "apps/water/ui/tests/unit.test.mjs",
+        "apps/water/ui/tests/browser.test.mjs"
+      ],
+      "frozenFiles": [
+        {
+          "path": "contracts/m35-v1/UI-M35.md",
+          "sha256": "8292e85d7327af22ee3f2304ff9953241ee3602c82f738741b8af626ad9d19e4"
+        },
+        {
+          "path": "contracts/m35-v1/IPC-M35.md",
+          "sha256": "9605b8e6c1e25cc399d0f44e4af039c5a55ea314845b211603f91ce680446889"
+        },
+        {
+          "path": "contracts/m35-v1/ui-fixtures-m35.json",
+          "sha256": "8bb75e4e7860345bbde9f0561e4b4c119891bb3219a102093a2f5c095706450c"
+        },
+        {
+          "path": "contracts/m3c-v1/IPC-M3C.md",
+          "sha256": "d0b6bb18a5deedc8200569cc9f3c68a544d564c8a07c45d0905e9ab01a07e6a5"
+        },
+        {
+          "path": "contracts/m3c-v1/ui-fixtures-m3c.json",
+          "sha256": "c01bc0cb59d3bd0d61a1410446659e032dcfc1bfc8ad3fb3635331924f23a033"
+        },
+        {
+          "path": "contracts/checkup-v1/IPC.md",
+          "sha256": "62f726ced5f863f1b47db261976d8b5e5183f65669b2ba09d2f85a3977161be2"
+        },
+        {
+          "path": "contracts/checkup-v1/ui-fixtures.json",
+          "sha256": "2dd62585cb7ca31d429af8bf5360dda44d645dd73a5d3f79542d4d23ce1840e2"
+        },
+        {
+          "path": "contracts/checkup-v1/UI.md",
+          "sha256": "dbc92ff9de2f388d94c7210541662e5c0f9052084afdf4b795805768710cb52b"
+        },
+        {
+          "path": "docs/design/water-ui-v2/DESIGN.md",
+          "sha256": "41ab927cf35868da973dfea5171a066891592fa69c4058945fa929c5c222fab4"
+        },
+        {
+          "path": "docs/design/water-ui-v3/DESIGN.md",
+          "sha256": "0da4340331085f9131872e95879236e67ae44ddf5aa57cef1dd517b4124e5d69"
+        },
+        {
+          "path": "docs/design/water-ui-v3/mockup.html",
+          "sha256": "96f6980ea330bbed297cc14ce59cc4d9ed29f8050fe53014689101e1f2e19ad0"
+        },
+        {
+          "path": "docs/design/water-ui-v3/tokens.css",
+          "sha256": "2850d65eb9e51eedcfc319850ce92b000184f39766499aa7d84de757223f2697"
+        }
+      ],
+      "allowedPrefixes": [
+        "apps/water/ui/",
+        "docs/acceptance/wave10/m6/",
+        "docs/acceptance/wave10/controller/accept-20261105/m6/"
+      ],
+      "baselineStatus": "PASSED",
+      "baselineEvidence": "docs/acceptance/wave10/controller/preflight-20261106/m6/2026-11-06T05-55-27.055Z-10824-baseline-result.json",
+      "reissue": {
+        "at": "2026-11-06T05:54:39Z",
+        "from": "docs/dispatch/tickets/WATER-W10-M6-UI-20261105.md",
+        "previousBase": "f93afb8e3c5cf4114927fe2ab6c14dbb033c7ffe",
+        "reason": "user 11-06 dropped the iceberg visuals and approved design v3 (\"可以，定稿吧\"); UI-M35 revised for looks only (06d266d1); frozen hashes taken from the w10-m6 checkout so line endings match"
+      },
+      "blockedAt": "2026-11-06T07:30:03Z",
+      "blockedCommit": "e63161cfa0957be3e72ce7975783fcaa305d5bc7",
+      "blockedReason": "preview block resolved; new contract gap: cards and summary rows ask for \"skip from now on\" but skip_add only takes a single item id",
+      "addenda": [
+        {
+          "id": "WATER-W10-M6-ADDENDUM-01",
+          "ticket": "docs/dispatch/tickets/WATER-W10-M6-ADDENDUM-01-20261106.md",
+          "status": "BLOCKED",
+          "issuedAt": "2026-11-06T06:41:45Z",
+          "resumeFromCommit": "920afafa68099da57d1d3385ca3e7585bb6bbfa7",
+          "change": "read the eleven v3 preview PNGs and the mockup source instead of opening a browser; no extra browser; replace styles/tokens.css first so check, test and browser modes can run",
+          "blockedCommit": "e63161cfa0957be3e72ce7975783fcaa305d5bc7",
+          "blockedReason": "preview block resolved; new contract gap: cards and summary rows ask for \"skip from now on\" but skip_add only takes a single item id"
+        },
+        {
+          "id": "WATER-W10-M6-ADDENDUM-02",
+          "ticket": "docs/dispatch/tickets/WATER-W10-M6-ADDENDUM-02-20261106.md",
+          "status": "READY",
+          "issuedAt": "2026-11-06T07:30:03Z",
+          "resumeFromCommit": "e63161cfa0957be3e72ce7975783fcaa305d5bc7",
+          "change": "no whole-card or whole-row \"skip from now on\" this wave: card menus ignore skip, r: rows and m: units only expand; skip_add only with a real item id (per-item drawer rows of groups with at most 8 items, expanded items); new assertions in ui_v2_conclusion and ui_v2_drawer_details",
+          "dispatchReportedAt": "2026-11-06T08:09:19Z",
+          "model": "astra (user-reported)",
+          "dispatchEvidence": "user chat 2026-11-06 ~17:09 JST: \"界面是ASTRA，另外一单是sol\"; worker tree head/changed files e63161cf/22 when recorded (last edit 17:07 JST)"
+        }
+      ],
+      "acceptsTask": "WATER-W10-M6",
+      "acceptsHead": "3d5e01a7f593c73a27e57b968d4d11f5174ff91e"
+    },
+    {
       "id": "WATER-W10-ACCEPT-M8",
       "title": "新包：用户发起的逐字节查重",
       "status": "CONTROLLER_ACCEPTANCE",

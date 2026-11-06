@@ -516,5 +516,70 @@
    "new": "    backend.call(\"dedupe_start\", json!({\"location\": location_id}))",
    "why": "dedupe_start forwards the wrong argument name"
   }
+ ],
+ "m6": [
+  {
+   "label": "nc1",
+   "mode": "red-nc1",
+   "token": "UI_V2_CONCLUSION",
+   "file": "apps/water/ui/model.mjs",
+   "old": "export function viewCards(conclusion) { return conclusion.cards; }",
+   "new": "export function viewCards(conclusion) { return [...conclusion.cards].sort((a, b) => (BigInt(b.bytes) > BigInt(a.bytes) ? 1 : BigInt(b.bytes) < BigInt(a.bytes) ? -1 : 0)); }",
+   "why": "cards re-sorted by bytes instead of the service order"
+  },
+  {
+   "label": "nc2",
+   "mode": "red-nc2",
+   "token": "UI_V2_CONFIRM",
+   "file": "apps/water/ui/app.mjs",
+   "old": "async function prepare(chosenMode = 'quarantine') {",
+   "new": "async function prepare(chosenMode = 'delete') {",
+   "why": "first prepare defaults to direct delete"
+  },
+  {
+   "label": "nc3",
+   "mode": "red-nc3",
+   "token": "UI_IPC_NO_PATH",
+   "file": "apps/water/ui/ipc.mjs",
+   "old": "query:query(term)}));",
+   "new": "query:query(term), display_path:term}));",
+   "why": "group_items search also sends a display_path"
+  },
+  {
+   "label": "c4",
+   "mode": "browser",
+   "token": "UI_V2_CONCLUSION",
+   "file": "apps/water/ui/views/results.mjs",
+   "old": "    if (c.menu.includes('detail')) entries.push(['查看明细', () => a.detail(c.group_id)]);\n",
+   "new": "    if (c.menu.includes('skip')) entries.push(['以后都跳过', () => a.skipItem(c.group_id)]);\n    if (c.menu.includes('detail')) entries.push(['查看明细', () => a.detail(c.group_id)]);\n",
+   "why": "card menu offers skip from now on (addendum 02 forbids it)"
+  },
+  {
+   "label": "c5",
+   "mode": "browser",
+   "token": "UI_V2_DRAWER",
+   "file": "apps/water/ui/views/detail.mjs",
+   "old": "if (itemRow(g, r) &&",
+   "new": "if (true &&",
+   "why": "r: summary rows offer skip from now on"
+  },
+  {
+   "label": "c6",
+   "mode": "browser",
+   "token": "UI_V2_DRAWER",
+   "file": "apps/water/ui/views/detail.mjs",
+   "old": "() => a.skipItem(r.row_id)]",
+   "new": "() => a.skipItem(g.group_id)]",
+   "why": "per-item drawer row skips with the group ID"
+  },
+  {
+   "label": "c7",
+   "mode": "browser",
+   "token": "UI_V2_DRAWER",
+   "file": "apps/water/ui/views/detail.mjs",
+   "old": "[['以后都跳过', () => a.skipItem(i.item_id)]]",
+   "new": "[['以后都跳过', () => a.skipItem(s.drawer.rowId ?? g.group_id)]]",
+   "why": "expanded item skips with the row or group ID"
+  }
  ]
 }

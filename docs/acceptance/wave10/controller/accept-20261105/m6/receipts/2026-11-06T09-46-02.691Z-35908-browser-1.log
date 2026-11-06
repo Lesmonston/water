@@ -1,0 +1,72 @@
+{"binary":"C:\\Program Files\\nodejs\\node.exe","args":["--test","--test-concurrency=1","--test-reporter=tap","apps/water/ui/tests/browser.test.mjs"],"exitCode":1,"error":null}
+--- stdout ---
+TAP version 13
+# Subtest: ui_v2_home_scan
+ok 1 - ui_v2_home_scan
+  ---
+  duration_ms: 2935.0755
+  type: 'test'
+  ...
+# Subtest: ui_v2_conclusion
+ok 2 - ui_v2_conclusion
+  ---
+  duration_ms: 3296.6342
+  type: 'test'
+  ...
+# Subtest: ui_v2_drawer_details
+not ok 3 - ui_v2_drawer_details
+  ---
+  duration_ms: 823.6327
+  type: 'test'
+  location: 'F:\\new\\smaltalk\\water\\.worktrees\\accept-w10-m6\\apps\\water\\ui\\tests\\browser.test.mjs:201:1'
+  failureType: 'testCodeFailure'
+  error: |-
+    UI_V2_DRAWER: small row sends real item ID
+    + actual - expected
+    
+      {
+    +   itemId: 'codex-runtimes'
+    -   itemId: 'i-000301'
+      }
+    
+  code: 'ERR_ASSERTION'
+  name: 'AssertionError'
+  expected:
+    itemId: 'i-000301'
+  actual:
+    itemId: 'codex-runtimes'
+  operator: 'deepStrictEqual'
+  stack: |-
+    TestContext.<anonymous> (file:///F:/new/smaltalk/water/.worktrees/accept-w10-m6/apps/water/ui/tests/browser.test.mjs:205:10)
+    async Test.run (node:internal/test_runner/test:1313:7)
+    async Test.processPendingSubtests (node:internal/test_runner/test:897:7)
+  ...
+# Subtest: ui_v2_confirm_done
+ok 4 - ui_v2_confirm_done
+  ---
+  duration_ms: 1898.933
+  type: 'test'
+  ...
+# Subtest: ui_v2_quarantine_dedupe
+ok 5 - ui_v2_quarantine_dedupe
+  ---
+  duration_ms: 3511.9178
+  type: 'test'
+  ...
+# Subtest: ui_v2_pages_layout_a11y
+ok 6 - ui_v2_pages_layout_a11y
+  ---
+  duration_ms: 4868.3419
+  type: 'test'
+  ...
+1..6
+# tests 6
+# suites 0
+# pass 5
+# fail 1
+# cancelled 0
+# skipped 0
+# todo 0
+# duration_ms 17943.8727
+
+--- stderr ---
