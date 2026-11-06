@@ -469,3 +469,19 @@ M10 改为 READY：总控已建工作树 `.worktrees/w10-m10`（基线 `51d85191
 ```text
 WATER-W10-M10（执行器补修：永久删除的遗留与隔离编号，重门，含只读真实冒烟）：读 F:/new/smaltalk/water/docs/dispatch/tickets/WATER-W10-M10-CLEAN-FIX-20261106.md，按其中“先读”的顺序读工作规则、SPEC 与本单补充、仍然有效的 M4 原单与补单 01、02 和契约，在 F:/new/smaltalk/water/.worktrees/w10-m10（分支 worker/water-w10-m10）从 51d85191 开工；做完、提交并交回回执；受阻就停下写受阻回执。
 ```
+
+### M11 界面小修（2026-11-07）
+
+用户 11-07：“出界面小单”。[M11 工单](../tickets/WATER-W10-M11-UI-FIX-20261107.md)修 M6 验收复查留下的四条低：
+- 热力格子在夏令时跳过零点的时区少画最新一天（智利时区实测，9 月 8 日那条记录没有格子）；
+- 有别的请求在途时，“体检”点击被吞；
+- 拦截“体检”不看当前在哪一页，清掉了查重结果；
+- 首页“打开文件夹”偶尔没反应。
+
+样子、数据、命令都不变，只新增断言。基线是合入 M6、M7 后的主线 `32d7b642`（tag `water-w10-m11-base-20261107`）。总控已建工作树 `.worktrees/w10-m11`，12 个冻结哈希都对，派前 baseline 通过（[回执](../../acceptance/wave10/controller/preflight-20261107/m11/)）。不跑 cargo，可与 M10 同时做。界面单，模型由用户选，一般是 astra。
+
+**WATER-W10-M11**（界面单）
+
+```text
+WATER-W10-M11（界面小修：M6 留下的四处小毛病，轻门，浏览器测试与 25 张截图）：读 F:/new/smaltalk/water/docs/dispatch/tickets/WATER-W10-M11-UI-FIX-20261107.md，按其中“先读”的顺序读工作规则、本单、M6 原单与补单 03 的相关几节和代码，在 F:/new/smaltalk/water/.worktrees/w10-m11（分支 worker/water-w10-m11）从 32d7b642 开工；做完、提交并交回回执；受阻就停下写受阻回执。
+```
