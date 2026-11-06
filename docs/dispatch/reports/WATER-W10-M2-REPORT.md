@@ -1,6 +1,6 @@
 WATER-W10-M2 任务已完成，任务报告在 F:/new/smaltalk/water/.worktrees/w10-m2/docs/dispatch/reports/WATER-W10-M2-REPORT.md
 
-当前交回为文末“补单 02”；原有实现与检查记录保留，属于历史状态。
+当前交回为文末“补单 03”；原有实现与检查记录保留，属于历史状态。
 
 ## 身份、基线与提交
 
@@ -373,3 +373,108 @@ Archive: 396 entries, 6036482 bytes. All sizes and SHA-256 verified.
 没有窗口、选择框、浏览器、联网下载、新系统函数或原生 FFI 改动；依赖、Cargo.toml/Cargo.lock、其它包、规则数据、冻结契约、检查器、台账、Git 配置与远端不变。未 push、合主线或改写历史。新增夹具仅由现有 Fixture 在本树 `.local/w2-b-fixtures/fx-<进程>-<纳秒>` 创建并按原边界清理各自一个目录。
 
 未验证 macOS、M1/M2/M7 实际集成、真实清理、生产竞态、百万条目性能或峰值内存；不把只读冒烟称为清理验收。完成回执与证据提交并确认工作树干净后，停止本树测试、扫描与自有后台进程，等待总控复验。
+
+## 补单 03（2026-11-06）：完成，交回 SUBMITTED
+
+### 身份、起点与实现
+
+- 实际模型：GPT-6（Codex；环境未提供更细型号）；未使用子代理。
+- 本树 / 分支：`F:/new/smaltalk/water/.worktrees/w10-m2` / `worker/water-w10-m2`。
+- 续做起点：`c4a0287523a8d51f37e28d1d5bff33d51f729a31`，开工干净。依次读了指定原票、规则、SCAN-M35 全文与有效旧契约、补单 01、02、03 和原回执；本补单无其它票的前置依赖。baseline 沿用原票已通过记录，本次未重跑。
+- 实现提交：**`995473af0aea24b79bd93823dccc0ed63a9da4ce`**。三个 final 都绑定该干净提交；之后仅提交本回执和 archive 证据。
+- 产品仅改 `src/scan.rs`、`src/scan/streaming.rs`；测试只在指定 `tests/scan_v1.rs` 新增 helper 与调用。相对续做起点，测试为 **219 行新增、0 行删除**，所有旧断言（含前两张补单）原样保留，仍精确五测。
+
+### 四种预算遗漏的处理
+
+1. **延后的 discovery**：预算归属集合从遍历开始就保留。解析 `deferred` 时，不再在第一个 stopped 行直接 break；触发行和后续各行的所属 discovery 组都进入集合，不输出这些被预算中断的行。收尾重建预算问题时统一去重，不再把这些组删掉。原有“停下时丢弃已测完的 discovery 条目”行为仍保留，本单只补问题归属。
+2. **Exit / 身份读取前后丢掉的命中**：`finish` 返回未能输出的命中的最终组；`push_measured_hit` 用返回值区分已输出与被 stopped 丢弃。Exit、文件命中收尾与延后 discovery 收尾均把该结果并入同一个归属集合。条件及兜底仍由 `owner` 决定，局部检查使用的临时组不作为最终预算归属。另跟踪尚未完成的簇候选收集，避免它在 Exit 或中断栈释放后失去所属位置组。
+3. **跳过自选位置建簇**：移除 `scan_full` 中绕过 `build_clusters` 的预算判断。打开 leak_clusters 后，每个尚未处理的搜索都经过 `stopped(group)`，即使预算已经耗尽，也继续登记其余搜索的组；候选循环中停止后同样继续处理后续搜索的停止归属。命中索引的准备工作使用待建簇的位置组，避免把这个阶段的预算问题记到已经输出的普通命中组。不会创建不存在的 leak 组来承接问题。
+4. **强制 emit 之后时间耗尽**：此时即使 walk 还保留 completed，下一阶段也不会静默跳过待建簇搜索；它的 stopped 检查会设置 partial 并给相应位置组记一次 budget_exhausted。没有待建簇工作且条目已经全部输出时，不给完成的组凭空补记问题。
+
+原有“未完成搜索记目标自己的组、未完成测量记最终归属组、已完成并输出的组不记”断言继续通过。取消优先：收尾回调取消会设置 cancelled，最终 cancelled 结果移除 budget_exhausted，不把取消当作预算问题。
+
+### 新增测试与 `.git` 边界
+
+在 `scan_pattern_marker_discovery` 中新增 `m35_clusters_addendum03`，使用原 Fixture 工厂，仅在本树 `.local/w2-b-fixtures/fx-<进程>-<纳秒>` 建立并清理各自一个合成目录：
+
+- 两个浅 discovery 根各有一个已测完、进入 deferred 的文件；较深 pattern 根的目录命中在测量时耗尽条目预算。断言三个组各一条 budget_exhausted、status 为 partial；保持中断 discovery 条目不输出。此用例在 `c4a02875` 产品上已先红。
+- 两个 custom marker 根各有十个 hash 文件候选，搜索和候选测量先完成；较深 pattern 的命中再耗尽预算。断言两个未建簇的位置组和 pattern 组各有一条预算问题、status 为 partial、没有 leak 组。
+- 预先取消与零条目预算同时出现时，结果 cancelled 且没有 budget_exhausted。
+- marker、file_name、discovery 的根全部位于 `.git` 外，外层 pattern 命中测量迫使物理 DFS 进入 `.GiT`；其中包含对象目录、普通文件、十二个模板目录和声明。断言没有 `.git` 本身或其后代条目、声明或簇；包含项仍计入全部 19 字节。
+
+`.git` 的每目录检查仍由共用 `search_allowed = outside_git(dir.path)` 约束目标激活与 file_name 搜索；将这两个分支里重复的相对路径 `.git` 条件合并到该共用检查，外部根用例可直接验证这道门。discovery 仍只在 root 本身启用，不会把后代目录当作它的 root。计划根的过滤**保持按任意路径段检查 `.git`**：自选位置处于 `.git` 任意后代时仍安静返回空，不记 base_missing；没有退回“只有根名字等于 `.git` 才跳过”的旧口径。
+
+未新增情况 2、4 的专门时间边界故障注入：公开入口没有可控时钟，无法在不依赖睡眠及机器调度的情况下，把耗时精确放在 Exit / 身份读取或遍历结束后的强制 emit 区间。本单没有加不稳定的时间断言；上述路径已实现并经源码检查，不能把这称为已经实测了那两个时间边界。
+
+### 检查命令与结果
+
+全部在本树根执行，共同前缀：`node F:/new/smaltalk/water/scripts/checkup-wave-check.mjs --task WATER-W10-M2`。Receipt 省略 `2026-11-06T` 与 `-result.json`；所有测试均运行完整五测，未过滤、ignore 或新增第六测。
+
+| Receipt | 参数 | 结果 |
+|---|---|---|
+| 05-20-58.412Z-28264-test | `--mode test` | 新用例先红，4/5，内部 Cargo 101；deferred-a 缺预算问题 |
+| 05-22-13.766Z-31240-test | `--mode test` | 初步修复后 5/5，退出 0 |
+| 05-23-42.269Z-1596-lock | `--mode lock` | 退出 0，依赖与锁不变 |
+| 05-23-56.633Z-30444-check | `--mode check` | 退出 1；Clippy 要求 Option 的 let-else 使用 `?`，按提示修正，未加 allow |
+| 05-24-43.494Z-34324-check | `--mode check` | 退出 0，政策、fmt、clippy -D warnings 通过 |
+| 05-25-06.232Z-20696-test | `--mode test` | 最终实现 5/5，退出 0；随后提交实现 |
+| 05-26-11.458Z-32672-test | `--mode test` | 额外变异：移除 deferred 预算补记，目标新断言红，4/5、Cargo 101 |
+| 05-26-37.831Z-6300-test | `--mode test` | 原字节恢复，5/5，退出 0 |
+| 05-27-37.195Z-12140-test | `--mode test` | 额外变异：恢复预算后静默跳过 build_clusters，新位置组断言红，4/5、Cargo 101 |
+| 05-27-58.556Z-28832-test | `--mode test` | 原字节恢复，5/5，退出 0 |
+| 05-28-32.964Z-26652-test | `--mode test` | 额外变异：search_allowed 置 true，外部根 git 新断言红，4/5、Cargo 101 |
+| 05-28-46.578Z-19108-test | `--mode test` | 原字节恢复，5/5，退出 0 |
+| 05-29-11.149Z-22576-red-nc1 | `--mode red-nc1` | 退出 0，有效负控，内部 Cargo 101 |
+| 05-29-28.823Z-14176-test | `--mode test` | nc1 恢复，5/5，退出 0 |
+| 05-30-05.191Z-12788-red-nc2 | `--mode red-nc2` | 退出 0，有效负控，内部 Cargo 101 |
+| 05-30-42.485Z-30036-test | `--mode test` | nc2 恢复，5/5，退出 0 |
+| 05-31-14.746Z-10216-red-nc3 | `--mode red-nc3` | 退出 0，有效负控，内部 Cargo 101 |
+| 05-31-35.579Z-10956-test | `--mode test` | nc3 恢复，5/5，退出 0 |
+| 05-32-00.437Z-29836-check | `--mode check --final` | 干净实现提交上通过，退出 0 |
+| 05-32-17.877Z-31152-test | `--mode test --final` | 5/5，退出 0，proofAudit 采用本轮三组红绿 |
+| 05-32-45.449Z-24016-real | `--mode real --final` | 退出 0；实际三段状态及覆盖限制见下 |
+| 05-35-38.102Z-16376-archive | `--mode archive` | 退出 0；累计 1,652 条、31,887,201 字节，全部源文件与归档的长度和 SHA-256 核对通过 |
+
+实现期间使用绝对 1.95.0 工具链路径运行 cargo fmt，git diff --check 通过。直接调用 PATH 中的 rustup 失败后改用该已安装工具链；提取检查回执的一次 Node `-e` 命令因 PowerShell 引号传递失败，改用标准输入读取脚本后成功。二者均为诊断辅助命令，没有被当作产品测试或有效负控，也未安装或下载工具。
+
+### 三条负控、额外变异及恢复哈希
+
+规定负控均仅改 `src/scan.rs` 的真实生产逻辑一处，测试不变；每条内部 Cargo 均为 4 通过 / 1 失败，外层 red 检查通过：
+
+| 负控 | 唯一改动 | 失败标记 |
+|---|---|---|
+| nc1 | CLUSTER_MIN_MEMBERS：10 → 2 | `SCAN_M35_CLUSTERS: verify/hash/run/discovery, nine and photos excluded`，5 而非 4 个簇 |
+| nc2 | unlocks_target_ids 改查空 ID | `SCAN_M35_RULES: named unlock pair` |
+| nc3 | 分配大小累加改用 child.len | `SCAN_M35_SIZES: sparse allocation must be far below length` |
+
+另三条变异分别由新增的 deferred-a、cluster-a、outside-root 断言抓住（对应上表）。每次等待检查退出后立即 `git checkout --` 恢复对应单文件，再完整 test；没有重叠执行，也没有用编译错误或超时制造有效红。
+
+恢复后文件 SHA-256 与实现提交相同：
+
+- `src/scan.rs`：`4577f6e7531a76de915e8daf208aec306bf94bd0fc21402c36f56adccb411276`（簇跳过变异及三条规定负控后均相同）。
+- `src/scan/streaming.rs`：`636478b48349c1982bc9ac214ae996734fc9d583dae89b78966fdb522adbe565`（deferred 与 git 变异后均相同）。
+- `tests/scan_v1.rs`：`2bb78b1362426ee6648c3599f1f5f6d5b55c61761eeb32c3cdf18dcbcd2a6510`，所有变异期间保持不变。
+
+最终 test 的 productionHash 为 `bffa24a10e5a8c9466f2323765af36664bf9e04b2d6a27e545a4825b03ce56cb`，testHash 为 `7f6517ae953f46a4ce69206dfb0dcf8221300e2581031429917617ea25137067`；三个 final 前后树均干净。
+
+### 真实只读冒烟
+
+只执行本轮一次 real final，不做新旧性能比较。三段均只输出组级汇总和计数，不含真实路径、文件名或进程命令行：
+
+| 段 | 状态 | 用时 ms | visited_entries | 汇总 |
+|---|---|---:|---:|---|
+| 普通 scan | completed | 36,599 | 278,488 | 12 组、4,190 项 |
+| 三开关 scan_full | **partial** | 28,251 | 278,502 | 21 组、4,196 项；9 个簇全部 confirm；23 个联接、未截断；0 个声明 |
+| 用户目录 space_overview | completed | 77,323 | 666,723 | 569,601 个文件，top 10、others 227；无 issue |
+
+full 的 partial 来自 `system-temp-old` 的一条 access_denied（count 1），该组另有 identity_unavailable（count 5）；普通 scan 的该组有 identity_unavailable（count 2）。两段还记录原有组的 reparse_skipped；**本轮真实扫描没有 budget_exhausted**。这反映本次可见性与现场变化，不将 full 写成 completed，也没有重跑以掩盖 partial。未对访问失败的具体真实对象另行取证。
+
+概览分配量 `106181925360`、逻辑量 `105761975604` 字节，others 分配量 `7263998160`。real 门总墙钟约 149.9 秒，含包装与编译。条目数与上一轮不同，未在固定现场对照；不据此宣称加速或覆盖全部真实位置。
+
+### 保留项与交付边界
+
+补单列出的遗留均未扩做：discovery 子项先测后判覆盖、停止时丢弃已测完的 discovery 条目、row.issues 逐条累积、名字逐字符分配、search_indices 每个子帧重复匹配，以及 remaining 按帧存路径的 CPU 开销。没有性能重写。
+
+未修改依赖、Cargo.toml/Cargo.lock、原生 FFI、公开接口、其它包、规则数据、契约、检查器、主线台账或其它工作树；未修改 Git 配置或远端、未 push、merge 或改写历史。没有窗口、选择框、浏览器、联网下载；真实文件只读元数据、时间、身份及重解析点数据，没有读扫描对象内容、删除或改写真实数据。
+
+未验证上述两个精确时间边界、macOS、M1/M2/M7 实际集成、真实清理、生产竞态、百万条目性能或峰值内存。回执与 archive 证据单独提交并核对干净后停止本树检查和自有后台进程；本单为 SUBMITTED，等待总控复验，不自行标记 VERIFIED。
