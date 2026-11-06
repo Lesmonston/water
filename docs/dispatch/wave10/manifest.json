@@ -1267,7 +1267,7 @@
       "branch": "worker/water-w10-m6",
       "baseCommit": "06d266d1483b7ab210dd2c492d39a2511a134abe",
       "snapshotRef": "refs/tags/water-w10-m6-base-20261106",
-      "status": "READY",
+      "status": "BLOCKED",
       "readyOn": "2026-11-06",
       "dispatchedAt": null,
       "startedAt": null,
@@ -1376,7 +1376,20 @@
         "from": "docs/dispatch/tickets/WATER-W10-M6-UI-20261105.md",
         "previousBase": "f93afb8e3c5cf4114927fe2ab6c14dbb033c7ffe",
         "reason": "user 11-06 dropped the iceberg visuals and approved design v3 (\"可以，定稿吧\"); UI-M35 revised for looks only (06d266d1); frozen hashes taken from the w10-m6 checkout so line endings match"
-      }
+      },
+      "blockedAt": "2026-11-06T06:41:45Z",
+      "blockedCommit": "920afafa68099da57d1d3385ca3e7585bb6bbfa7",
+      "blockedReason": "ticket asked to open the v3 mockup in a browser before coding, but the same ticket allows a browser only in browser mode, which the token policy stops until styles/tokens.css is replaced; controller fault",
+      "addenda": [
+        {
+          "id": "WATER-W10-M6-ADDENDUM-01",
+          "ticket": "docs/dispatch/tickets/WATER-W10-M6-ADDENDUM-01-20261106.md",
+          "status": "READY",
+          "issuedAt": "2026-11-06T06:41:45Z",
+          "resumeFromCommit": "920afafa68099da57d1d3385ca3e7585bb6bbfa7",
+          "change": "read the eleven v3 preview PNGs and the mockup source instead of opening a browser; no extra browser; replace styles/tokens.css first so check, test and browser modes can run"
+        }
+      ]
     },
     {
       "id": "WATER-W10-M8",

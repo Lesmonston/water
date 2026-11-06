@@ -346,3 +346,13 @@ WATER-W10-M2 补单 03（遍历之后丢掉的组也要带预算问题，中门�
 ```text
 WATER-W10-M6（界面：按设计 v3 重做，中门，浏览器测试与 25 张截图）：读 F:/new/smaltalk/water/docs/dispatch/tickets/WATER-W10-M6-UI-20261106.md，按其中“先读”的顺序读工作规则、SPEC、设计 v3（设计稿十一屏都在浏览器里点开看）、设计 v2 的规则与仍然有效的契约，在 F:/new/smaltalk/water/.worktrees/w10-m6（分支 worker/water-w10-m6）从 06d266d1 开工；做完、提交并交回回执；受阻就停下写受阻回执。
 ```
+
+### M6 补单 01（2026-11-06）
+
+M6（回执 `920afafa`）受阻成立，责任在总控：单子“先读”要求在浏览器里看设计稿十一屏，又规定浏览器只在 `browser` 模式由检查器启动，而该模式在换掉 `tokens.css` 之前会被源码政策拦下。[补单 01](../tickets/WATER-W10-M6-ADDENDUM-01-20261106.md) 改为看十一张截图和设计稿源码，不另开浏览器，并说明先换令牌各模式即可运行。
+
+**WATER-W10-M6 补单 01（界面单）**
+
+```text
+WATER-W10-M6 补单 01（看设计稿不用开浏览器，轻门）：读 F:/new/smaltalk/water/docs/dispatch/tickets/WATER-W10-M6-ADDENDUM-01-20261106.md，按其中列出的顺序读原单、本补单与你的回执，在 F:/new/smaltalk/water/.worktrees/w10-m6（分支 worker/water-w10-m6）从 920afafa 续做；做完、提交并交回回执；受阻就停下写受阻回执。
+```
