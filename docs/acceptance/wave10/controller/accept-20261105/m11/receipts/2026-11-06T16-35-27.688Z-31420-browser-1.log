@@ -1,0 +1,66 @@
+{"binary":"C:\\Program Files\\nodejs\\node.exe","args":["--test","--test-concurrency=1","--test-reporter=tap","apps/water/ui/tests/browser.test.mjs"],"exitCode":1,"error":null}
+--- stdout ---
+TAP version 13
+# Subtest: ui_v2_home_scan
+ok 1 - ui_v2_home_scan
+  ---
+  duration_ms: 4496.672
+  type: 'test'
+  ...
+# Subtest: ui_v2_conclusion
+ok 2 - ui_v2_conclusion
+  ---
+  duration_ms: 3652.4998
+  type: 'test'
+  ...
+# Subtest: ui_v2_drawer_details
+ok 3 - ui_v2_drawer_details
+  ---
+  duration_ms: 2547.1457
+  type: 'test'
+  ...
+# Subtest: ui_v2_confirm_done
+not ok 4 - ui_v2_confirm_done
+  ---
+  duration_ms: 5644.9375
+  type: 'test'
+  location: 'F:\\new\\smaltalk\\water\\.worktrees\\accept-w10-m11\\apps\\water\\ui\\tests\\browser.test.mjs:274:1'
+  failureType: 'testCodeFailure'
+  error: |-
+    UI_V2_CONFIRM: 体检 from another page shows the done page left behind
+    
+    'results' !== 'done'
+    
+  code: 'ERR_ASSERTION'
+  name: 'AssertionError'
+  expected: 'done'
+  actual: 'results'
+  operator: 'strictEqual'
+  stack: |-
+    TestContext.<anonymous> (file:///F:/new/smaltalk/water/.worktrees/accept-w10-m11/apps/water/ui/tests/browser.test.mjs:312:10)
+    async Test.run (node:internal/test_runner/test:1313:7)
+    async Test.processPendingSubtests (node:internal/test_runner/test:897:7)
+  ...
+# Subtest: ui_v2_quarantine_dedupe
+ok 5 - ui_v2_quarantine_dedupe
+  ---
+  duration_ms: 15803.8846
+  type: 'test'
+  ...
+# Subtest: ui_v2_pages_layout_a11y
+ok 6 - ui_v2_pages_layout_a11y
+  ---
+  duration_ms: 6223.5127
+  type: 'test'
+  ...
+1..6
+# tests 6
+# suites 0
+# pass 5
+# fail 1
+# cancelled 0
+# skipped 0
+# todo 0
+# duration_ms 39083.9305
+
+--- stderr ---

@@ -1,830 +1,1005 @@
 {
- "m9": [
-  {
-   "label": "c1",
-   "mode": "red-nc1",
-   "token": "APPS_READ",
-   "file": "packages/installed-apps/src/lib.rs",
-   "old": "            a.name\n                .to_lowercase()\n                .cmp(&b.name.to_lowercase())",
-   "new": "            a.name\n                .cmp(&b.name)",
-   "why": "apps sorted by case-sensitive name instead of case-insensitive"
-  },
-  {
-   "label": "c2",
-   "mode": "red-nc1",
-   "token": "APPS_READ",
-   "file": "packages/installed-apps/src/native_windows.rs",
-   "old": "        (\"user\", -2147483647_isize, 0),\n",
-   "new": "",
-   "why": "the per-user uninstall key is not read"
-  },
-  {
-   "label": "c3",
-   "mode": "red-nc2",
-   "token": "APPS_MATCH",
-   "file": "packages/installed-apps/src/lib.rs",
-   "old": "&& n.starts_with(&q))",
-   "new": "&& q.starts_with(n.as_str()))",
-   "why": "prefix direction reversed: a longer query matches a shorter name word"
-  },
-  {
-   "label": "c4",
-   "mode": "red-nc2",
-   "token": "APPS_MATCH",
-   "file": "packages/installed-apps/src/lib.rs",
-   "old": "    if tokens.iter().all(|s| s.chars().all(char::is_numeric)) {",
-   "new": "    if tokens.is_empty() {",
-   "why": "digit-only installer names are no longer treated as unknown"
-  },
-  {
-   "label": "c5",
-   "mode": "red-nc2",
-   "token": "APPS_MATCH",
-   "file": "packages/installed-apps/src/lib.rs",
-   "old": "        \"setup\",\n",
-   "new": "",
-   "why": "setup is no longer a stop word"
-  },
-  {
-   "label": "c6",
-   "mode": "test",
-   "token": "APPS_ENTRY",
-   "file": "packages/installed-apps/src/lib.rs",
-   "old": "            && !s.contains('%'))",
-   "new": "            && true)",
-   "why": "install locations containing % are accepted"
-  }
- ],
- "m3": [
-  {
-   "label": "c1",
-   "mode": "red-nc1",
-   "token": "MANIFEST_FORMAT",
-   "file": "packages/cleanup-manifest/src/lib.rs",
-   "old": "                && !p.eq_ignore_ascii_case(\".git\")",
-   "new": "                && true",
-   "why": "a .git segment is accepted in paths"
-  },
-  {
-   "label": "c2",
-   "mode": "red-nc1",
-   "token": "MANIFEST_FORMAT",
-   "file": "packages/cleanup-manifest/src/lib.rs",
-   "old": "(1..=365).contains(n)",
-   "new": "(1..=366).contains(n)",
-   "why": "older-than-366-days is accepted"
-  },
-  {
-   "label": "c3",
-   "mode": "red-nc1",
-   "token": "MANIFEST_FORMAT",
-   "file": "packages/cleanup-manifest/src/lib.rs",
-   "old": "is_none_or(|n| n > 8)",
-   "new": "is_none_or(|n| n > 9)",
-   "why": "keepNewest 9 is accepted"
-  },
-  {
-   "label": "c4",
-   "mode": "red-nc2",
-   "token": "MANIFEST_TARGETS",
-   "file": "packages/cleanup-manifest/src/lib.rs",
-   "old": "sha256_hex(dir.to_ascii_lowercase().as_bytes())",
-   "new": "sha256_hex(dir.as_bytes())",
-   "why": "declaration id hashes the directory without lowercasing"
-  },
-  {
-   "label": "c5",
-   "mode": "test",
-   "token": "MANIFEST_PROTECT",
-   "file": "packages/cleanup-manifest/src/lib.rs",
-   "old": ".all(|(a, b)| a.to_lowercase() == b.to_lowercase())",
-   "new": ".all(|(a, b)| a == b)",
-   "why": "protects compares the declaration directory case-sensitively"
-  }
- ],
- "m8": [
-  {
-   "label": "c1",
-   "mode": "red-nc1",
-   "token": "DUP_GROUPS",
-   "file": "packages/dup-finder/src/scan.rs",
-   "old": "format!(\"dup:{}:{size}\", &hash[..16])",
-   "new": "format!(\"dup:{}:{size}\", &hash[..15])",
-   "why": "group id uses 15 hash characters instead of 16"
-  },
-  {
-   "label": "c2",
-   "mode": "red-nc2",
-   "token": "DUP_GROUPS",
-   "file": "packages/dup-finder/src/scan.rs",
-   "old": "            if group.len() > 1 && group.values().collect::<BTreeSet<_>>().len() > 1 {",
-   "new": "            if group.len() > 1 {",
-   "why": "same-name files with the same content are counted as same_name_different"
-  },
-  {
-   "label": "c3",
-   "mode": "red-nc3",
-   "token": "DUP_SKIPS",
-   "file": "packages/dup-finder/src/scan.rs",
-   "old": "            Ok(after) if after.len == before.len && after.write == before.write => {",
-   "new": "            Ok(after) if after.len == before.len => {",
-   "why": "same-length rewrite during the read is not detected (modification time not rechecked)"
-  },
-  {
-   "label": "c4",
-   "mode": "red-nc3",
-   "token": "DUP_SKIPS",
-   "file": "packages/dup-finder/src/scan.rs",
-   "old": "const PREFIX: u64 = 64 * 1024;",
-   "new": "const PREFIX: u64 = 32 * 1024;",
-   "why": "prefix stage reads 32 KiB instead of 64 KiB"
-  },
-  {
-   "label": "c5",
-   "mode": "test",
-   "token": "DUP_KEEP",
-   "file": "packages/dup-finder/src/scan.rs",
-   "old": "                copy.removable = i != 0 && !copy.protected;",
-   "new": "                copy.removable = i != 0;",
-   "why": "protected copies other than the first are marked removable"
-  },
-  {
-   "label": "c6",
-   "mode": "test",
-   "token": "DUP_KEEP",
-   "file": "packages/dup-finder/src/scan.rs",
-   "old": "                    .then_with(|| a.before.write.cmp(&b.before.write))",
-   "new": "                    .then_with(|| b.before.write.cmp(&a.before.write))",
-   "why": "the newer copy is kept instead of the older"
-  },
-  {
-   "label": "c7",
-   "mode": "red-nc2",
-   "token": "DUP_GROUPS",
-   "file": "packages/dup-finder/src/scan.rs",
-   "old": "copies.iter().filter(|c| c.removable).count() as u128;",
-   "new": "(copies.iter().filter(|c| c.removable).count() as u128 + 1);",
-   "why": "reclaimable bytes count one copy too many"
-  }
- ],
- "m1": [
-  {
-   "label": "c1",
-   "mode": "red-nc1",
-   "token": "RULES_M35_SESSIONS",
-   "file": "packages/junk-rules/src/plan.rs",
-   "old": "        .filter(|rule| rule.session_tool.is_none());",
-   "new": "        .filter(|_rule| true);",
-   "why": "session rules produce targets even when their switch is off"
-  },
-  {
-   "label": "c2",
-   "mode": "red-nc1",
-   "token": "RULES_M35_SESSIONS",
-   "file": "packages/junk-rules/src/plan.rs",
-   "old": "            || !(1..=365).contains(&switch.min_age_days)",
-   "new": "            || !(1..=366).contains(&switch.min_age_days)",
-   "why": "a session switch of 366 days is accepted"
-  },
-  {
-   "label": "c3",
-   "mode": "red-nc2",
-   "token": "RULES_M35_FIELDS",
-   "file": "packages/junk-rules/src/m35.rs",
-   "old": "            || !(1..=4).contains(&names.len())",
-   "new": "            || !(1..=5).contains(&names.len())",
-   "why": "five installed_names are accepted"
-  },
-  {
-   "label": "c4",
-   "mode": "red-nc2",
-   "token": "RULES_M35_FIELDS",
-   "file": "packages/junk-rules/src/m35.rs",
-   "old": "            if !seen.insert(name.to_lowercase()) {",
-   "new": "            if !seen.insert(name.clone()) {",
-   "why": "installed_names differing only in case are accepted"
-  },
-  {
-   "label": "c5",
-   "mode": "red-nc2",
-   "token": "RULES_M35_FIELDS",
-   "file": "packages/junk-rules/src/m35.rs",
-   "old": "        || (rule.in_use_zh.is_some() && rule.in_use.mode == InUseMode::None)",
-   "new": "        || false",
-   "why": "in_use_zh is accepted on a rule without an in-use check"
-  },
-  {
-   "label": "c6",
-   "mode": "red-nc2",
-   "token": "RULES_M35_FIELDS",
-   "file": "packages/junk-rules/src/plan.rs",
-   "old": "                            .any(|allowed| name.eq_ignore_ascii_case(allowed))",
-   "new": "                            .any(|allowed| name == allowed)",
-   "why": "custom discovery root names compared case-sensitively"
-  },
-  {
-   "label": "c7",
-   "mode": "red-nc2",
-   "token": "RULES_M35_FIELDS",
-   "file": "packages/junk-rules/src/plan.rs",
-   "old": "                        {\n                            continue;\n                        }\n                        let group_id = format!(\"custom:{}:{}\", root.root_id, rule.rule_id);",
-   "new": "                        {\n                        }\n                        let group_id = format!(\"custom:{}:{}\", root.root_id, rule.rule_id);",
-   "why": "custom discovery targets every custom root (contract nc2)"
-  },
-  {
-   "label": "c8",
-   "mode": "red-nc2",
-   "token": "RULES_M35_FIELDS",
-   "file": "packages/junk-rules/src/rules.rs",
-   "old": "            if base == KnownFolder::SystemDrive {\n                return Err(RulesError::new(\"RULES_INVALID_LOCATE\", path));\n            }\n",
-   "new": "",
-   "why": "a discovery locator with base system_drive is accepted when rules are parsed"
-  },
-  {
-   "label": "c9",
-   "mode": "red-nc2",
-   "token": "RULES_M35_FIELDS",
-   "file": "packages/junk-rules/src/plan.rs",
-   "old": "                && is_drive_root(folders.get(*base))\n",
-   "new": "                && is_drive_root(folders.get(*base))\n                && false\n",
-   "why": "a discovery base that resolves to a drive root is planned"
-  },
-  {
-   "label": "c10",
-   "mode": "test",
-   "token": "RULES_M35_SEEDS: jest members in each temp base",
-   "file": "packages/junk-rules/rules/windows.json",
-   "old": "          \"base\": \"system_temp\",\n          \"segments\": [\n            \"jest\",\n            \"*\"\n          ]",
-   "new": "          \"base\": \"system_temp\",\n          \"segments\": [\n            \"jest *\"\n          ]",
-   "why": "jest-cache in system_temp goes back to the one-segment \"jest *\" that matches nothing"
-  },
-  {
-   "label": "c11",
-   "mode": "test",
-   "token": "RULES_M35_SEEDS",
-   "file": "packages/junk-rules/rules/windows.json",
-   "old": "            \"User Data\",\n            \"CEF\",\n            \"Cache\"\n",
-   "new": "            \"User Data\",\n            \"CEF Cache\"\n",
-   "why": "jianying-cache locator 2 goes back to the one-segment \"CEF Cache\" that matches nothing"
-  }
- ],
- "m2": [
-  {
-   "label": "c1",
-   "mode": "red-nc1",
-   "token": "SCAN_M35_CLUSTERS",
-   "file": "packages/junk-scan/src/scan.rs",
-   "old": "            if members.len() < CLUSTER_MIN_MEMBERS {",
-   "new": "            if members.len() < CLUSTER_MIN_MEMBERS + 1 {",
-   "why": "a cluster of exactly ten members is not formed"
-  },
-  {
-   "label": "c2",
-   "mode": "red-nc1",
-   "token": "SCAN_M35_CLUSTERS",
-   "file": "packages/junk-scan/src/scan.rs",
-   "old": "        hash = (hash ^ u64::from(byte)).wrapping_mul(0x100000001b3);",
-   "new": "        hash = (hash ^ u64::from(byte)).wrapping_mul(0x100000001b5);",
-   "why": "cluster group id is not FNV-1a 64"
-  },
-  {
-   "label": "c3",
-   "mode": "red-nc2",
-   "token": "SCAN_M35_RULES",
-   "file": "packages/junk-scan/src/scan.rs",
-   "old": "            && !hit.unlocks_target_ids.contains(&item.target_id)",
-   "new": "            && true",
-   "why": "unlock pairs are ignored and the item stays inside_protected (contract nc2)"
-  },
-  {
-   "label": "c4",
-   "mode": "red-nc3",
-   "token": "SCAN_M35_SIZES",
-   "file": "packages/junk-scan/src/scan.rs",
-   "old": "        item.disk_bytes = Some(format_bytes(hit.disk_bytes));",
-   "new": "        item.disk_bytes = Some(format_bytes(hit.total_bytes));",
-   "why": "item disk_bytes reports the logical size instead of the allocation"
-  },
-  {
-   "label": "c5",
-   "mode": "red-nc1",
-   "token": "SCAN_M35_CLUSTERS",
-   "file": "packages/junk-scan/src/scan.rs",
-   "old": "    actual_extension.eq_ignore_ascii_case(extension)\n        && match_segment",
-   "new": "    (actual_extension.eq_ignore_ascii_case(extension) || !actual_extension.is_empty())\n        && match_segment",
-   "why": "<h> cluster extras accept files with another extension"
-  },
-  {
-   "label": "c6",
-   "mode": "red-nc1",
-   "token": "SCAN_M35_CLUSTERS",
-   "file": "packages/junk-scan/src/scan/streaming.rs",
-   "old": "                            .filter(|row| !row.declared)\n",
-   "new": "                            .filter(|row| row.declared || !row.declared)\n",
-   "why": "a candidate directory holding .water-cleanup.json still counts toward a cluster"
-  },
-  {
-   "label": "c7",
-   "mode": "red-nc1",
-   "token": "SCAN_M35_CLUSTERS",
-   "file": "packages/junk-scan/src/scan.rs",
-   "old": "            engine.emit(&group, category, false);\n            if engine.stopped(&group) {\n                break;\n            }\n            let key = child.path.to_ascii_lowercase();\n            let eligible = if discovery {",
-   "new": "            let key = child.path.to_ascii_lowercase();\n            let eligible = if discovery {",
-   "why": "the cluster candidate loop neither reports progress nor checks cancel and budget"
-  },
-  {
-   "label": "c8",
-   "mode": "red-nc1",
-   "token": "SCAN_M35_CLUSTERS",
-   "file": "packages/junk-scan/src/scan/streaming.rs",
-   "old": "                                .any(|c| matches!(c, Condition::SiblingWithoutSuffix { .. }))\n                                && owner(row, plan, fallbacks).is_some()",
-   "new": "                                .any(|c| matches!(c, Condition::SiblingWithoutSuffix { .. }))",
-   "why": "a marker directory matched by name only (conditions fail) stops cluster and declaration search"
-  },
-  {
-   "label": "c9",
-   "mode": "red-nc1",
-   "token": "SCAN_M35_CLUSTERS",
-   "file": "packages/junk-scan/src/scan/streaming.rs",
-   "old": "                    let search_allowed = outside_git(&dir.path);\n",
-   "new": "                    let search_allowed = true || outside_git(&dir.path);\n",
-   "why": "targets search inside a .git directory entered for measurement"
-  },
-  {
-   "label": "c10",
-   "mode": "red-nc1",
-   "token": "SCAN_M35_CLUSTERS",
-   "file": "packages/junk-scan/src/scan.rs",
-   "old": "        if claimed(&member_paths, &parent.to_ascii_lowercase())\n            || claimed(&exact, &parent.to_ascii_lowercase())\n        {",
-   "new": "        if claimed(&member_paths, &parent.to_ascii_lowercase())\n        {",
-   "why": "clusters form inside another final item"
-  },
-  {
-   "label": "c11",
-   "mode": "red-nc1",
-   "token": "SCAN_M35_CLUSTERS",
-   "file": "packages/junk-scan/src/scan.rs",
-   "old": "        if final_discoveries.contains(&(row.path, row.index)) {",
-   "new": "        if final_discoveries.contains(&(row.path, row.index)) || true {",
-   "why": "measurement issues of discovery children that became cluster members are also recorded on the discovery group"
-  },
-  {
-   "label": "c12",
-   "mode": "red-nc1",
-   "token": "SCAN_M35_CLUSTERS",
-   "file": "packages/junk-scan/src/scan/streaming.rs",
-   "old": "            budget_groups.insert(plan.targets[index].group_id.clone());\n            continue;\n",
-   "new": "            continue;\n",
-   "why": "deferred discovery rows cut by the stop lose their budget owner"
-  },
-  {
-   "label": "c13",
-   "mode": "red-nc1",
-   "token": "SCAN_M35_CLUSTERS",
-   "file": "packages/junk-scan/src/scan.rs",
-   "old": "    let clusters = if extras.leak_clusters {\n",
-   "new": "    let clusters = if extras.leak_clusters && !engine.budget_exhausted() {\n",
-   "why": "cluster searches are skipped silently when the budget is spent"
-  },
-  {
-   "label": "c14",
-   "mode": "red-nc1",
-   "token": "SCAN_M35_CLUSTERS",
-   "file": "packages/junk-scan/src/scan.rs",
-   "old": "            // Visit the remaining search owners too, without building them.\n            continue;\n",
-   "new": "            break;\n",
-   "why": "only the first unfinished cluster search gets a budget issue"
-  },
-  {
-   "label": "c15",
-   "mode": "red-nc1",
-   "token": "SCAN_M35_CLUSTERS",
-   "file": "packages/junk-scan/src/scan/streaming.rs",
-   "old": "    (!emitted).then(|| target.group_id.clone())\n",
-   "new": "    let _ = emitted;\n    None\n",
-   "why": "a hit dropped after leaving pending (Exit frame) loses its budget owner"
-  }
- ],
- "m4": [
-  {
-   "label": "c1",
-   "mode": "red-nc1",
-   "token": "CLEAN_M35_RESTORE",
-   "file": "packages/junk-clean/src/native_windows.rs",
-   "old": "            80 | 183 => MoveError::DestinationExists,",
-   "new": "            80 => MoveError::DestinationExists,",
-   "why": "an existing name (183 from the NT rename) is reported as other, not destination_exists"
-  },
-  {
-   "label": "c2",
-   "mode": "red-nc1",
-   "token": "CLEAN_M35_RESTORE",
-   "file": "packages/junk-clean/src/native_windows.rs",
-   "old": "            ptr::write(base, 0u8); // ReplaceIfExists: never overwrite.",
-   "new": "            ptr::write(base, 1u8); // ReplaceIfExists: never overwrite.",
-   "why": "rename may overwrite (contract nc1)"
-  },
-  {
-   "label": "c3",
-   "mode": "red-nc2",
-   "token": "CLEAN_M35_PURGE",
-   "file": "packages/junk-clean/src/native_windows.rs",
-   "old": "                32 | 33 => LeftoverReason::InUse,",
-   "new": "                33 => LeftoverReason::InUse,",
-   "why": "a sharing violation during purge is not reported as in_use"
-  },
-  {
-   "label": "c4",
-   "mode": "red-nc3",
-   "token": "CLEAN_M35_UNLOCK",
-   "file": "packages/junk-clean/src/model.rs",
-   "old": "                if !path::strictly_contains(unlocked, &item.path)",
-   "new": "                if false && !path::strictly_contains(unlocked, &item.path)",
-   "why": "an unlocked path that does not contain the item is accepted"
-  },
-  {
-   "label": "c5",
-   "mode": "red-nc3",
-   "token": "CLEAN_M35_UNLOCK",
-   "file": "packages/junk-clean/src/model.rs",
-   "old": "            if item.unlocked_paths.len() > 4 {",
-   "new": "            if item.unlocked_paths.len() > 5 {",
-   "why": "five unlocked paths are accepted"
-  }
- ],
- "m5": [
-  {
-   "label": "c1",
-   "mode": "red-nc1",
-   "token": "HOST_M35_REVEAL",
-   "file": "apps/water/host/src/commands.rs",
-   "old": "        .filter(|path| crate::opener::valid_quarantine_path(path))\n",
-   "new": "        .filter(|path| !path.is_empty())\n",
-   "why": "quarantine_reveal opens whatever path the service returns"
-  },
-  {
-   "label": "c2",
-   "mode": "red-nc1",
-   "token": "HOST_M35_REVEAL",
-   "file": "apps/water/host/src/opener.rs",
-   "old": "    let quarantine = last.eq_ignore_ascii_case(\".water-quarantine\")\n",
-   "new": "    let quarantine = true || last.eq_ignore_ascii_case(\".water-quarantine\")\n",
-   "why": "any existing folder counts as a quarantine folder"
-  },
-  {
-   "label": "c3",
-   "mode": "red-nc1",
-   "token": "HOST_M35_REVEAL",
-   "file": "apps/water/host/src/opener.rs",
-   "old": "                && part != \"..\"\n",
-   "new": "",
-   "why": "a path with .. segments is accepted"
-  },
-  {
-   "label": "c4",
-   "mode": "red-nc1",
-   "token": "HOST_M35_REVEAL",
-   "file": "apps/water/host/src/opener.rs",
-   "old": "        if metadata.file_attributes() & 0x400 != 0 {",
-   "new": "        if false && metadata.file_attributes() & 0x400 != 0 {",
-   "why": "a reparse point (junction) passes as a plain quarantine folder"
-  },
-  {
-   "label": "c5",
-   "mode": "red-nc2",
-   "token": "HOST_M35_FORWARD",
-   "file": "apps/water/host/src/commands.rs",
-   "old": "        json!({\"quarantineId\": quarantine_id, \"beside\": beside}),",
-   "new": "        json!({\"quarantineId\": quarantine_id}),",
-   "why": "quarantine_restore drops the beside flag"
-  },
-  {
-   "label": "c6",
-   "mode": "red-nc2",
-   "token": "HOST_M35_FORWARD",
-   "file": "apps/water/host/src/commands.rs",
-   "old": "        json!({\"version\": version, \"decision\": decision}),",
-   "new": "        json!({\"version\": version}),",
-   "why": "conclusion_decide drops the decision"
-  },
-  {
-   "label": "c7",
-   "mode": "red-nc2",
-   "token": "HOST_M35_FORWARD",
-   "file": "apps/water/host/src/commands.rs",
-   "old": "    backend.call(\"dedupe_start\", json!({\"locationId\": location_id}))",
-   "new": "    backend.call(\"dedupe_start\", json!({\"location\": location_id}))",
-   "why": "dedupe_start forwards the wrong argument name"
-  }
- ],
- "m6": [
-  {
-   "label": "nc1",
-   "mode": "red-nc1",
-   "token": "UI_V2_CONCLUSION",
-   "file": "apps/water/ui/model.mjs",
-   "old": "export function viewCards(conclusion) { return conclusion.cards; }",
-   "new": "export function viewCards(conclusion) { return [...conclusion.cards].sort((a, b) => (BigInt(b.bytes) > BigInt(a.bytes) ? 1 : BigInt(b.bytes) < BigInt(a.bytes) ? -1 : 0)); }",
-   "why": "cards re-sorted by bytes instead of the service order"
-  },
-  {
-   "label": "nc2",
-   "mode": "red-nc2",
-   "token": "UI_V2_CONFIRM",
-   "file": "apps/water/ui/app.mjs",
-   "old": "async function prepare(chosenMode = 'quarantine') {",
-   "new": "async function prepare(chosenMode = 'delete') {",
-   "why": "first prepare defaults to direct delete"
-  },
-  {
-   "label": "nc3",
-   "mode": "red-nc3",
-   "token": "UI_IPC_NO_PATH",
-   "file": "apps/water/ui/ipc.mjs",
-   "old": "query:query(term)}));",
-   "new": "query:query(term), display_path:term}));",
-   "why": "group_items search also sends a display_path"
-  },
-  {
-   "label": "c4",
-   "mode": "browser",
-   "token": "UI_V2_CONCLUSION",
-   "file": "apps/water/ui/views/results.mjs",
-   "old": "    if (c.menu.includes('detail')) entries.push(['查看明细', () => a.detail(c.group_id)]);\n",
-   "new": "    if (c.menu.includes('skip')) entries.push(['以后都跳过', () => a.skipItem(c.group_id)]);\n    if (c.menu.includes('detail')) entries.push(['查看明细', () => a.detail(c.group_id)]);\n",
-   "why": "card menu offers skip from now on (addendum 02 forbids it)"
-  },
-  {
-   "label": "c5",
-   "mode": "browser",
-   "token": "UI_V2_DRAWER",
-   "file": "apps/water/ui/views/detail.mjs",
-   "old": "if (itemRow(g, r) &&",
-   "new": "if (true &&",
-   "why": "r: summary rows offer skip from now on"
-  },
-  {
-   "label": "c6",
-   "mode": "browser",
-   "token": "UI_V2_DRAWER",
-   "file": "apps/water/ui/views/detail.mjs",
-   "old": "() => a.skipItem(r.row_id)]",
-   "new": "() => a.skipItem(g.group_id)]",
-   "why": "per-item drawer row skips with the group ID"
-  },
-  {
-   "label": "c7",
-   "mode": "browser",
-   "token": "UI_V2_DRAWER",
-   "file": "apps/water/ui/views/detail.mjs",
-   "old": "[['以后都跳过', () => a.skipItem(i.item_id)]]",
-   "new": "[['以后都跳过', () => a.skipItem(s.drawer.rowId ?? g.group_id)]]",
-   "why": "expanded item skips with the row or group ID"
-  },
-  {
-   "label": "c8",
-   "mode": "browser",
-   "token": "UI_V2_HOME",
-   "file": "apps/water/ui/app.mjs",
-   "old": "async function stopTask(request) { await request(); resumePolling(); }",
-   "new": "async function stopTask(request) { await request(); }",
-   "why": "stop commands no longer resume a paused poll (1.1)"
-  },
-  {
-   "label": "c9",
-   "mode": "browser",
-   "token": "UI_V2_HOME",
-   "file": "apps/water/ui/app.mjs",
-   "old": "s.pollPaused ? button('重新连接'",
-   "new": "s.pollPaused && s.error ? button('重新连接'",
-   "why": "retry button disappears once the error text is cleared (1.1)"
-  },
-  {
-   "label": "c10",
-   "mode": "browser",
-   "token": "UI_V2_DEDUPE",
-   "file": "apps/water/ui/views/dedupe.mjs",
-   "old": "button('返回', a.returnToCheckup,",
-   "new": "button('返回', a.chooseLocations,",
-   "why": "dedupe back ignores an existing conclusion (1.2)"
-  },
-  {
-   "label": "c11",
-   "mode": "browser",
-   "token": "UI_V2_DEDUPE",
-   "file": "apps/water/ui/app.mjs",
-   "old": "if (s.busy === 'idle' && ['dedupe', 'done'].includes(s.mode)) { event.preventDefault(); a.returnToCheckup(); }",
-   "new": "if (false) { event.preventDefault(); a.returnToCheckup(); }",
-   "why": "checkup nav on the dedupe or done screen only repaints it (1.2)"
-  },
-  {
-   "label": "c12",
-   "mode": "browser",
-   "token": "UI_V2_DEDUPE",
-   "file": "apps/water/ui/app.mjs",
-   "old": "if (scope === 'dedupe' && error?.code === 'stale') await recoverDedupe();",
-   "new": "if (false) await recoverDedupe();",
-   "why": "dedupe stale is not re-read (2.1)"
-  },
-  {
-   "label": "c13",
-   "mode": "browser",
-   "token": "UI_V2_PAGES",
-   "file": "apps/water/ui/app.mjs",
-   "old": "category:(id, enabled) => run(async () => { s.locations = await ipc.locations_set_category(id, enabled); }),",
-   "new": "category:(id, enabled) => run(async () => { s.locations = await ipc.locations_set_category(id, enabled); markStale(); }),",
-   "why": "category toggle marks the conclusion stale again (2.2)"
-  },
-  {
-   "label": "c14",
-   "mode": "browser",
-   "token": "UI_V2_DEDUPE",
-   "file": "apps/water/ui/views/dedupe.mjs",
-   "old": "heading(v.more ? '找到重复文件' :",
-   "new": "heading(false ? '找到重复文件' :",
-   "why": "dedupe headline counts the truncated list (2.3)"
-  },
-  {
-   "label": "c15",
-   "mode": "browser",
-   "token": "UI_V2_PAGES",
-   "file": "apps/water/ui/views/trends.mjs",
-   "old": "const hasDaily = value => value && value.days_to_full !== null && BigInt(value.bytes_per_day) > 0n;",
-   "new": "const hasDaily = value => !!value;",
-   "why": "trends draws a daily rate for drives without a forecast (2.4)"
-  },
-  {
-   "label": "c16",
-   "mode": "browser",
-   "token": "UI_V2_CONCLUSION",
-   "file": "apps/water/ui/views/results.mjs",
-   "old": "if (c.menu.includes('copy_clue') && clue) entries.push(['复制线索给 agent', () => a.copy(clue.copy_text)]);",
-   "new": "if (c.menu.includes('copy_clue')) entries.push(['复制线索给 agent', () => a.copy(clue?.copy_text ?? '')]);",
-   "why": "copy clue offered when the clue is not listed (2.5)"
-  },
-  {
-   "label": "c17",
-   "mode": "browser",
-   "token": "UI_V2_PAGES",
-   "file": "apps/water/ui/views/charts.mjs",
-   "old": "const date = new Date(entry.at); date.setHours(0, 0, 0, 0);",
-   "new": "const date = new Date(entry.at.slice(0, 10) + 'T00:00:00'); date.setHours(0, 0, 0, 0);",
-   "why": "heatmap buckets by the UTC date again (2.6)"
-  },
-  {
-   "label": "c18",
-   "mode": "browser",
-   "token": "UI_V2_QUARANTINE",
-   "file": "apps/water/ui/app.mjs",
-   "old": "      if (route === 'quarantine' && revision !== quarantineRevision) return;\n",
-   "new": "",
-   "why": "a late quarantine_list reply overwrites a newer view (2.7)"
-  },
-  {
-   "label": "c19",
-   "mode": "browser",
-   "token": "UI_V2_QUARANTINE",
-   "file": "apps/water/ui/views/quarantine.mjs",
-   "old": "button(`打开 ${root.display_path[0].toUpperCase()} 盘隔离区`,",
-   "new": "button('打开文件夹',",
-   "why": "quarantine root buttons lose the drive letter (3.1)"
-  }
- ],
- "m7": [
-  {
-   "label": "nc1",
-   "mode": "red-nc1",
-   "token": "SERVICE_M35_CLEAN",
-   "file": "packages/water-service/src/clean.rs",
-   "old": "deletion.items.retain(|i|!quarantine_mode || !selected.contains(i.item_id.as_str()));",
-   "new": "deletion.items.retain(|_i|true);",
-   "why": "chosen items also go into the direct-delete block"
-  },
-  {
-   "label": "nc2",
-   "mode": "red-nc2",
-   "token": "SERVICE_M35_CONCLUSION",
-   "file": "packages/water-service/src/conclusion.rs",
-   "old": "\"clues\":clues.iter().take(3).cloned()",
-   "new": "\"clues\":clues.iter().take(4).cloned()",
-   "why": "conclusion lists more than three clues"
-  },
-  {
-   "label": "nc3",
-   "mode": "red-nc3",
-   "token": "SERVICE_M35_SCOPE",
-   "file": "packages/water-service/src/m35.rs",
-   "old": ".any(|d| local_path(&d.dir).is_some_and(|dir| util::contains(path, &dir)))",
-   "new": ".any(|_d| false)",
-   "why": "an item that contains a declaration folder stays cleanable (controller addition 2)"
-  },
-  {
-   "label": "c4",
-   "mode": "test",
-   "token": "SERVICE_M35_SCOPE",
-   "file": "packages/water-service/src/m35.rs",
-   "old": "let path = path.strip_prefix(r\"\\\\?\\\").unwrap_or(path);",
-   "new": "let path = path;",
-   "why": "extended-prefix paths are not normalised before protects (controller addition 1)"
-  },
-  {
-   "label": "c5",
-   "mode": "test",
-   "token": "SERVICE_M35_SCOPE",
-   "file": "packages/water-service/src/m35.rs",
-   "old": "UNIX_EPOCH.checked_add(Duration::from_secs(seconds as u64))?",
-   "new": "UNIX_EPOCH.checked_add(Duration::from_secs(seconds as u64 / 1000))?",
-   "why": "collected_at converted with the wrong unit (controller addition 3)"
-  },
-  {
-   "label": "c6",
-   "mode": "test",
-   "token": "SERVICE_M35_SCOPE",
-   "file": "packages/water-service/src/m35.rs",
-   "old": "|| list\n                            .apps\n                            .iter()\n                            .any(|a| compact(&a.name).contains(&compact(n)))",
-   "new": "|| false",
-   "why": "no loose display-name check before seems-uninstalled (controller addition 4)"
-  },
-  {
-   "label": "c7",
-   "mode": "test",
-   "token": "SERVICE_M35_QUARANTINE",
-   "file": "packages/water-service/src/quarantine.rs",
-   "old": "if e == clean::CleanError::Journal {",
-   "new": "if false {",
-   "why": "journal failure loses its fixed message (controller addition 5)"
-  },
-  {
-   "label": "c8",
-   "mode": "test",
-   "token": "SERVICE_M35_ROWS",
-   "file": "packages/water-service/src/views.rs",
-   "old": "if let Some(rows) = self.summary_rows.get(id) {",
-   "new": "if let Some(rows) = self.summary_rows.values().next() {",
-   "why": "lazy row cache returns another group's rows (addendum 02)"
-  },
-  {
-   "label": "c9",
-   "mode": "test",
-   "token": "SERVICE_M35_CLEAN",
-   "file": "packages/water-service/src/conclusion.rs",
-   "old": "g.level == Level::Confirm",
-   "new": "g.level != Level::Confirm",
-   "why": "the chosen / recommended split is inverted"
-  },
-  {
-   "label": "c10",
-   "mode": "test",
-   "token": "SERVICE_M35_CLEAN",
-   "file": "packages/water-service/src/clean.rs",
-   "old": "quarantine::registered_base(core, &util::drive(&item.path)).is_some()",
-   "new": "true",
-   "why": "prepare keeps chosen items on drives without a quarantine root (addendum 06 item 1)"
-  },
-  {
-   "label": "c11",
-   "mode": "test",
-   "token": "SERVICE_M35_CLEAN",
-   "file": "packages/water-service/src/clean.rs",
-   "old": "let moved_report=if let Some((_,target))=quarantine::registered_target(&worker_core,&root) {",
-   "new": "let moved_report=if let Some((_,target))=Some(((),clean::QuarantineTarget{base:worker_core.platform.quarantine_base(&root)})) {",
-   "why": "start no longer re-checks the drive before the executor moves the batch (addendum 06 item 1)"
-  },
-  {
-   "label": "c12",
-   "mode": "test",
-   "token": "SERVICE_M35_CLEAN",
-   "file": "packages/water-service/src/dedupe.rs",
-   "old": "crate::quarantine::registered_base(core, &util::drive(&copy.path)).is_some()",
-   "new": "true",
-   "why": "dedupe prepare keeps copies on drives without a quarantine root (addendum 06 item 1)"
-  },
-  {
-   "label": "c13",
-   "mode": "test",
-   "token": "SERVICE_M35_SCOPE",
-   "file": "packages/water-service/src/service.rs",
-   "old": "while id == \"common\" || s.settings.custom_roots.iter().any(|r| r.root_id == id) {",
-   "new": "while s.settings.custom_roots.iter().any(|r| r.root_id == id) {",
-   "why": "a folder named common takes the common id again (addendum 06 item 2)"
-  },
-  {
-   "label": "c14",
-   "mode": "test",
-   "token": "SERVICE_M35_SCOPE",
-   "file": "packages/water-service/src/m35.rs",
-   "old": ".filter(|id| home.iter().any(|row| row[\"location_id\"] == *id))",
-   "new": ".filter(|_id| true)",
-   "why": "the default scope fails on an absent saved drive again (addendum 06 item 3)"
-  },
-  {
-   "label": "c15",
-   "mode": "test",
-   "token": "SERVICE_M35_QUARANTINE",
-   "file": "packages/water-service/src/quarantine.rs",
-   "old": "            cache.dirs.insert(q.quarantine_id.clone(), q.dir.clone());\n",
-   "new": "",
-   "why": "a quarantine folder whose inspect fails loses its record again (addendum 06 item 4)"
-  }
- ]
+  "m9": [
+    {
+      "label": "c1",
+      "mode": "red-nc1",
+      "token": "APPS_READ",
+      "file": "packages/installed-apps/src/lib.rs",
+      "old": "            a.name\n                .to_lowercase()\n                .cmp(&b.name.to_lowercase())",
+      "new": "            a.name\n                .cmp(&b.name)",
+      "why": "apps sorted by case-sensitive name instead of case-insensitive"
+    },
+    {
+      "label": "c2",
+      "mode": "red-nc1",
+      "token": "APPS_READ",
+      "file": "packages/installed-apps/src/native_windows.rs",
+      "old": "        (\"user\", -2147483647_isize, 0),\n",
+      "new": "",
+      "why": "the per-user uninstall key is not read"
+    },
+    {
+      "label": "c3",
+      "mode": "red-nc2",
+      "token": "APPS_MATCH",
+      "file": "packages/installed-apps/src/lib.rs",
+      "old": "&& n.starts_with(&q))",
+      "new": "&& q.starts_with(n.as_str()))",
+      "why": "prefix direction reversed: a longer query matches a shorter name word"
+    },
+    {
+      "label": "c4",
+      "mode": "red-nc2",
+      "token": "APPS_MATCH",
+      "file": "packages/installed-apps/src/lib.rs",
+      "old": "    if tokens.iter().all(|s| s.chars().all(char::is_numeric)) {",
+      "new": "    if tokens.is_empty() {",
+      "why": "digit-only installer names are no longer treated as unknown"
+    },
+    {
+      "label": "c5",
+      "mode": "red-nc2",
+      "token": "APPS_MATCH",
+      "file": "packages/installed-apps/src/lib.rs",
+      "old": "        \"setup\",\n",
+      "new": "",
+      "why": "setup is no longer a stop word"
+    },
+    {
+      "label": "c6",
+      "mode": "test",
+      "token": "APPS_ENTRY",
+      "file": "packages/installed-apps/src/lib.rs",
+      "old": "            && !s.contains('%'))",
+      "new": "            && true)",
+      "why": "install locations containing % are accepted"
+    }
+  ],
+  "m3": [
+    {
+      "label": "c1",
+      "mode": "red-nc1",
+      "token": "MANIFEST_FORMAT",
+      "file": "packages/cleanup-manifest/src/lib.rs",
+      "old": "                && !p.eq_ignore_ascii_case(\".git\")",
+      "new": "                && true",
+      "why": "a .git segment is accepted in paths"
+    },
+    {
+      "label": "c2",
+      "mode": "red-nc1",
+      "token": "MANIFEST_FORMAT",
+      "file": "packages/cleanup-manifest/src/lib.rs",
+      "old": "(1..=365).contains(n)",
+      "new": "(1..=366).contains(n)",
+      "why": "older-than-366-days is accepted"
+    },
+    {
+      "label": "c3",
+      "mode": "red-nc1",
+      "token": "MANIFEST_FORMAT",
+      "file": "packages/cleanup-manifest/src/lib.rs",
+      "old": "is_none_or(|n| n > 8)",
+      "new": "is_none_or(|n| n > 9)",
+      "why": "keepNewest 9 is accepted"
+    },
+    {
+      "label": "c4",
+      "mode": "red-nc2",
+      "token": "MANIFEST_TARGETS",
+      "file": "packages/cleanup-manifest/src/lib.rs",
+      "old": "sha256_hex(dir.to_ascii_lowercase().as_bytes())",
+      "new": "sha256_hex(dir.as_bytes())",
+      "why": "declaration id hashes the directory without lowercasing"
+    },
+    {
+      "label": "c5",
+      "mode": "test",
+      "token": "MANIFEST_PROTECT",
+      "file": "packages/cleanup-manifest/src/lib.rs",
+      "old": ".all(|(a, b)| a.to_lowercase() == b.to_lowercase())",
+      "new": ".all(|(a, b)| a == b)",
+      "why": "protects compares the declaration directory case-sensitively"
+    }
+  ],
+  "m8": [
+    {
+      "label": "c1",
+      "mode": "red-nc1",
+      "token": "DUP_GROUPS",
+      "file": "packages/dup-finder/src/scan.rs",
+      "old": "format!(\"dup:{}:{size}\", &hash[..16])",
+      "new": "format!(\"dup:{}:{size}\", &hash[..15])",
+      "why": "group id uses 15 hash characters instead of 16"
+    },
+    {
+      "label": "c2",
+      "mode": "red-nc2",
+      "token": "DUP_GROUPS",
+      "file": "packages/dup-finder/src/scan.rs",
+      "old": "            if group.len() > 1 && group.values().collect::<BTreeSet<_>>().len() > 1 {",
+      "new": "            if group.len() > 1 {",
+      "why": "same-name files with the same content are counted as same_name_different"
+    },
+    {
+      "label": "c3",
+      "mode": "red-nc3",
+      "token": "DUP_SKIPS",
+      "file": "packages/dup-finder/src/scan.rs",
+      "old": "            Ok(after) if after.len == before.len && after.write == before.write => {",
+      "new": "            Ok(after) if after.len == before.len => {",
+      "why": "same-length rewrite during the read is not detected (modification time not rechecked)"
+    },
+    {
+      "label": "c4",
+      "mode": "red-nc3",
+      "token": "DUP_SKIPS",
+      "file": "packages/dup-finder/src/scan.rs",
+      "old": "const PREFIX: u64 = 64 * 1024;",
+      "new": "const PREFIX: u64 = 32 * 1024;",
+      "why": "prefix stage reads 32 KiB instead of 64 KiB"
+    },
+    {
+      "label": "c5",
+      "mode": "test",
+      "token": "DUP_KEEP",
+      "file": "packages/dup-finder/src/scan.rs",
+      "old": "                copy.removable = i != 0 && !copy.protected;",
+      "new": "                copy.removable = i != 0;",
+      "why": "protected copies other than the first are marked removable"
+    },
+    {
+      "label": "c6",
+      "mode": "test",
+      "token": "DUP_KEEP",
+      "file": "packages/dup-finder/src/scan.rs",
+      "old": "                    .then_with(|| a.before.write.cmp(&b.before.write))",
+      "new": "                    .then_with(|| b.before.write.cmp(&a.before.write))",
+      "why": "the newer copy is kept instead of the older"
+    },
+    {
+      "label": "c7",
+      "mode": "red-nc2",
+      "token": "DUP_GROUPS",
+      "file": "packages/dup-finder/src/scan.rs",
+      "old": "copies.iter().filter(|c| c.removable).count() as u128;",
+      "new": "(copies.iter().filter(|c| c.removable).count() as u128 + 1);",
+      "why": "reclaimable bytes count one copy too many"
+    }
+  ],
+  "m1": [
+    {
+      "label": "c1",
+      "mode": "red-nc1",
+      "token": "RULES_M35_SESSIONS",
+      "file": "packages/junk-rules/src/plan.rs",
+      "old": "        .filter(|rule| rule.session_tool.is_none());",
+      "new": "        .filter(|_rule| true);",
+      "why": "session rules produce targets even when their switch is off"
+    },
+    {
+      "label": "c2",
+      "mode": "red-nc1",
+      "token": "RULES_M35_SESSIONS",
+      "file": "packages/junk-rules/src/plan.rs",
+      "old": "            || !(1..=365).contains(&switch.min_age_days)",
+      "new": "            || !(1..=366).contains(&switch.min_age_days)",
+      "why": "a session switch of 366 days is accepted"
+    },
+    {
+      "label": "c3",
+      "mode": "red-nc2",
+      "token": "RULES_M35_FIELDS",
+      "file": "packages/junk-rules/src/m35.rs",
+      "old": "            || !(1..=4).contains(&names.len())",
+      "new": "            || !(1..=5).contains(&names.len())",
+      "why": "five installed_names are accepted"
+    },
+    {
+      "label": "c4",
+      "mode": "red-nc2",
+      "token": "RULES_M35_FIELDS",
+      "file": "packages/junk-rules/src/m35.rs",
+      "old": "            if !seen.insert(name.to_lowercase()) {",
+      "new": "            if !seen.insert(name.clone()) {",
+      "why": "installed_names differing only in case are accepted"
+    },
+    {
+      "label": "c5",
+      "mode": "red-nc2",
+      "token": "RULES_M35_FIELDS",
+      "file": "packages/junk-rules/src/m35.rs",
+      "old": "        || (rule.in_use_zh.is_some() && rule.in_use.mode == InUseMode::None)",
+      "new": "        || false",
+      "why": "in_use_zh is accepted on a rule without an in-use check"
+    },
+    {
+      "label": "c6",
+      "mode": "red-nc2",
+      "token": "RULES_M35_FIELDS",
+      "file": "packages/junk-rules/src/plan.rs",
+      "old": "                            .any(|allowed| name.eq_ignore_ascii_case(allowed))",
+      "new": "                            .any(|allowed| name == allowed)",
+      "why": "custom discovery root names compared case-sensitively"
+    },
+    {
+      "label": "c7",
+      "mode": "red-nc2",
+      "token": "RULES_M35_FIELDS",
+      "file": "packages/junk-rules/src/plan.rs",
+      "old": "                        {\n                            continue;\n                        }\n                        let group_id = format!(\"custom:{}:{}\", root.root_id, rule.rule_id);",
+      "new": "                        {\n                        }\n                        let group_id = format!(\"custom:{}:{}\", root.root_id, rule.rule_id);",
+      "why": "custom discovery targets every custom root (contract nc2)"
+    },
+    {
+      "label": "c8",
+      "mode": "red-nc2",
+      "token": "RULES_M35_FIELDS",
+      "file": "packages/junk-rules/src/rules.rs",
+      "old": "            if base == KnownFolder::SystemDrive {\n                return Err(RulesError::new(\"RULES_INVALID_LOCATE\", path));\n            }\n",
+      "new": "",
+      "why": "a discovery locator with base system_drive is accepted when rules are parsed"
+    },
+    {
+      "label": "c9",
+      "mode": "red-nc2",
+      "token": "RULES_M35_FIELDS",
+      "file": "packages/junk-rules/src/plan.rs",
+      "old": "                && is_drive_root(folders.get(*base))\n",
+      "new": "                && is_drive_root(folders.get(*base))\n                && false\n",
+      "why": "a discovery base that resolves to a drive root is planned"
+    },
+    {
+      "label": "c10",
+      "mode": "test",
+      "token": "RULES_M35_SEEDS: jest members in each temp base",
+      "file": "packages/junk-rules/rules/windows.json",
+      "old": "          \"base\": \"system_temp\",\n          \"segments\": [\n            \"jest\",\n            \"*\"\n          ]",
+      "new": "          \"base\": \"system_temp\",\n          \"segments\": [\n            \"jest *\"\n          ]",
+      "why": "jest-cache in system_temp goes back to the one-segment \"jest *\" that matches nothing"
+    },
+    {
+      "label": "c11",
+      "mode": "test",
+      "token": "RULES_M35_SEEDS",
+      "file": "packages/junk-rules/rules/windows.json",
+      "old": "            \"User Data\",\n            \"CEF\",\n            \"Cache\"\n",
+      "new": "            \"User Data\",\n            \"CEF Cache\"\n",
+      "why": "jianying-cache locator 2 goes back to the one-segment \"CEF Cache\" that matches nothing"
+    }
+  ],
+  "m2": [
+    {
+      "label": "c1",
+      "mode": "red-nc1",
+      "token": "SCAN_M35_CLUSTERS",
+      "file": "packages/junk-scan/src/scan.rs",
+      "old": "            if members.len() < CLUSTER_MIN_MEMBERS {",
+      "new": "            if members.len() < CLUSTER_MIN_MEMBERS + 1 {",
+      "why": "a cluster of exactly ten members is not formed"
+    },
+    {
+      "label": "c2",
+      "mode": "red-nc1",
+      "token": "SCAN_M35_CLUSTERS",
+      "file": "packages/junk-scan/src/scan.rs",
+      "old": "        hash = (hash ^ u64::from(byte)).wrapping_mul(0x100000001b3);",
+      "new": "        hash = (hash ^ u64::from(byte)).wrapping_mul(0x100000001b5);",
+      "why": "cluster group id is not FNV-1a 64"
+    },
+    {
+      "label": "c3",
+      "mode": "red-nc2",
+      "token": "SCAN_M35_RULES",
+      "file": "packages/junk-scan/src/scan.rs",
+      "old": "            && !hit.unlocks_target_ids.contains(&item.target_id)",
+      "new": "            && true",
+      "why": "unlock pairs are ignored and the item stays inside_protected (contract nc2)"
+    },
+    {
+      "label": "c4",
+      "mode": "red-nc3",
+      "token": "SCAN_M35_SIZES",
+      "file": "packages/junk-scan/src/scan.rs",
+      "old": "        item.disk_bytes = Some(format_bytes(hit.disk_bytes));",
+      "new": "        item.disk_bytes = Some(format_bytes(hit.total_bytes));",
+      "why": "item disk_bytes reports the logical size instead of the allocation"
+    },
+    {
+      "label": "c5",
+      "mode": "red-nc1",
+      "token": "SCAN_M35_CLUSTERS",
+      "file": "packages/junk-scan/src/scan.rs",
+      "old": "    actual_extension.eq_ignore_ascii_case(extension)\n        && match_segment",
+      "new": "    (actual_extension.eq_ignore_ascii_case(extension) || !actual_extension.is_empty())\n        && match_segment",
+      "why": "<h> cluster extras accept files with another extension"
+    },
+    {
+      "label": "c6",
+      "mode": "red-nc1",
+      "token": "SCAN_M35_CLUSTERS",
+      "file": "packages/junk-scan/src/scan/streaming.rs",
+      "old": "                            .filter(|row| !row.declared)\n",
+      "new": "                            .filter(|row| row.declared || !row.declared)\n",
+      "why": "a candidate directory holding .water-cleanup.json still counts toward a cluster"
+    },
+    {
+      "label": "c7",
+      "mode": "red-nc1",
+      "token": "SCAN_M35_CLUSTERS",
+      "file": "packages/junk-scan/src/scan.rs",
+      "old": "            engine.emit(&group, category, false);\n            if engine.stopped(&group) {\n                break;\n            }\n            let key = child.path.to_ascii_lowercase();\n            let eligible = if discovery {",
+      "new": "            let key = child.path.to_ascii_lowercase();\n            let eligible = if discovery {",
+      "why": "the cluster candidate loop neither reports progress nor checks cancel and budget"
+    },
+    {
+      "label": "c8",
+      "mode": "red-nc1",
+      "token": "SCAN_M35_CLUSTERS",
+      "file": "packages/junk-scan/src/scan/streaming.rs",
+      "old": "                                .any(|c| matches!(c, Condition::SiblingWithoutSuffix { .. }))\n                                && owner(row, plan, fallbacks).is_some()",
+      "new": "                                .any(|c| matches!(c, Condition::SiblingWithoutSuffix { .. }))",
+      "why": "a marker directory matched by name only (conditions fail) stops cluster and declaration search"
+    },
+    {
+      "label": "c9",
+      "mode": "red-nc1",
+      "token": "SCAN_M35_CLUSTERS",
+      "file": "packages/junk-scan/src/scan/streaming.rs",
+      "old": "                    let search_allowed = outside_git(&dir.path);\n",
+      "new": "                    let search_allowed = true || outside_git(&dir.path);\n",
+      "why": "targets search inside a .git directory entered for measurement"
+    },
+    {
+      "label": "c10",
+      "mode": "red-nc1",
+      "token": "SCAN_M35_CLUSTERS",
+      "file": "packages/junk-scan/src/scan.rs",
+      "old": "        if claimed(&member_paths, &parent.to_ascii_lowercase())\n            || claimed(&exact, &parent.to_ascii_lowercase())\n        {",
+      "new": "        if claimed(&member_paths, &parent.to_ascii_lowercase())\n        {",
+      "why": "clusters form inside another final item"
+    },
+    {
+      "label": "c11",
+      "mode": "red-nc1",
+      "token": "SCAN_M35_CLUSTERS",
+      "file": "packages/junk-scan/src/scan.rs",
+      "old": "        if final_discoveries.contains(&(row.path, row.index)) {",
+      "new": "        if final_discoveries.contains(&(row.path, row.index)) || true {",
+      "why": "measurement issues of discovery children that became cluster members are also recorded on the discovery group"
+    },
+    {
+      "label": "c12",
+      "mode": "red-nc1",
+      "token": "SCAN_M35_CLUSTERS",
+      "file": "packages/junk-scan/src/scan/streaming.rs",
+      "old": "            budget_groups.insert(plan.targets[index].group_id.clone());\n            continue;\n",
+      "new": "            continue;\n",
+      "why": "deferred discovery rows cut by the stop lose their budget owner"
+    },
+    {
+      "label": "c13",
+      "mode": "red-nc1",
+      "token": "SCAN_M35_CLUSTERS",
+      "file": "packages/junk-scan/src/scan.rs",
+      "old": "    let clusters = if extras.leak_clusters {\n",
+      "new": "    let clusters = if extras.leak_clusters && !engine.budget_exhausted() {\n",
+      "why": "cluster searches are skipped silently when the budget is spent"
+    },
+    {
+      "label": "c14",
+      "mode": "red-nc1",
+      "token": "SCAN_M35_CLUSTERS",
+      "file": "packages/junk-scan/src/scan.rs",
+      "old": "            // Visit the remaining search owners too, without building them.\n            continue;\n",
+      "new": "            break;\n",
+      "why": "only the first unfinished cluster search gets a budget issue"
+    },
+    {
+      "label": "c15",
+      "mode": "red-nc1",
+      "token": "SCAN_M35_CLUSTERS",
+      "file": "packages/junk-scan/src/scan/streaming.rs",
+      "old": "    (!emitted).then(|| target.group_id.clone())\n",
+      "new": "    let _ = emitted;\n    None\n",
+      "why": "a hit dropped after leaving pending (Exit frame) loses its budget owner"
+    }
+  ],
+  "m4": [
+    {
+      "label": "c1",
+      "mode": "red-nc1",
+      "token": "CLEAN_M35_RESTORE",
+      "file": "packages/junk-clean/src/native_windows.rs",
+      "old": "            80 | 183 => MoveError::DestinationExists,",
+      "new": "            80 => MoveError::DestinationExists,",
+      "why": "an existing name (183 from the NT rename) is reported as other, not destination_exists"
+    },
+    {
+      "label": "c2",
+      "mode": "red-nc1",
+      "token": "CLEAN_M35_RESTORE",
+      "file": "packages/junk-clean/src/native_windows.rs",
+      "old": "            ptr::write(base, 0u8); // ReplaceIfExists: never overwrite.",
+      "new": "            ptr::write(base, 1u8); // ReplaceIfExists: never overwrite.",
+      "why": "rename may overwrite (contract nc1)"
+    },
+    {
+      "label": "c3",
+      "mode": "red-nc2",
+      "token": "CLEAN_M35_PURGE",
+      "file": "packages/junk-clean/src/native_windows.rs",
+      "old": "                32 | 33 => LeftoverReason::InUse,",
+      "new": "                33 => LeftoverReason::InUse,",
+      "why": "a sharing violation during purge is not reported as in_use"
+    },
+    {
+      "label": "c4",
+      "mode": "red-nc3",
+      "token": "CLEAN_M35_UNLOCK",
+      "file": "packages/junk-clean/src/model.rs",
+      "old": "                if !path::strictly_contains(unlocked, &item.path)",
+      "new": "                if false && !path::strictly_contains(unlocked, &item.path)",
+      "why": "an unlocked path that does not contain the item is accepted"
+    },
+    {
+      "label": "c5",
+      "mode": "red-nc3",
+      "token": "CLEAN_M35_UNLOCK",
+      "file": "packages/junk-clean/src/model.rs",
+      "old": "            if item.unlocked_paths.len() > 4 {",
+      "new": "            if item.unlocked_paths.len() > 5 {",
+      "why": "five unlocked paths are accepted"
+    }
+  ],
+  "m5": [
+    {
+      "label": "c1",
+      "mode": "red-nc1",
+      "token": "HOST_M35_REVEAL",
+      "file": "apps/water/host/src/commands.rs",
+      "old": "        .filter(|path| crate::opener::valid_quarantine_path(path))\n",
+      "new": "        .filter(|path| !path.is_empty())\n",
+      "why": "quarantine_reveal opens whatever path the service returns"
+    },
+    {
+      "label": "c2",
+      "mode": "red-nc1",
+      "token": "HOST_M35_REVEAL",
+      "file": "apps/water/host/src/opener.rs",
+      "old": "    let quarantine = last.eq_ignore_ascii_case(\".water-quarantine\")\n",
+      "new": "    let quarantine = true || last.eq_ignore_ascii_case(\".water-quarantine\")\n",
+      "why": "any existing folder counts as a quarantine folder"
+    },
+    {
+      "label": "c3",
+      "mode": "red-nc1",
+      "token": "HOST_M35_REVEAL",
+      "file": "apps/water/host/src/opener.rs",
+      "old": "                && part != \"..\"\n",
+      "new": "",
+      "why": "a path with .. segments is accepted"
+    },
+    {
+      "label": "c4",
+      "mode": "red-nc1",
+      "token": "HOST_M35_REVEAL",
+      "file": "apps/water/host/src/opener.rs",
+      "old": "        if metadata.file_attributes() & 0x400 != 0 {",
+      "new": "        if false && metadata.file_attributes() & 0x400 != 0 {",
+      "why": "a reparse point (junction) passes as a plain quarantine folder"
+    },
+    {
+      "label": "c5",
+      "mode": "red-nc2",
+      "token": "HOST_M35_FORWARD",
+      "file": "apps/water/host/src/commands.rs",
+      "old": "        json!({\"quarantineId\": quarantine_id, \"beside\": beside}),",
+      "new": "        json!({\"quarantineId\": quarantine_id}),",
+      "why": "quarantine_restore drops the beside flag"
+    },
+    {
+      "label": "c6",
+      "mode": "red-nc2",
+      "token": "HOST_M35_FORWARD",
+      "file": "apps/water/host/src/commands.rs",
+      "old": "        json!({\"version\": version, \"decision\": decision}),",
+      "new": "        json!({\"version\": version}),",
+      "why": "conclusion_decide drops the decision"
+    },
+    {
+      "label": "c7",
+      "mode": "red-nc2",
+      "token": "HOST_M35_FORWARD",
+      "file": "apps/water/host/src/commands.rs",
+      "old": "    backend.call(\"dedupe_start\", json!({\"locationId\": location_id}))",
+      "new": "    backend.call(\"dedupe_start\", json!({\"location\": location_id}))",
+      "why": "dedupe_start forwards the wrong argument name"
+    }
+  ],
+  "m6": [
+    {
+      "label": "nc1",
+      "mode": "red-nc1",
+      "token": "UI_V2_CONCLUSION",
+      "file": "apps/water/ui/model.mjs",
+      "old": "export function viewCards(conclusion) { return conclusion.cards; }",
+      "new": "export function viewCards(conclusion) { return [...conclusion.cards].sort((a, b) => (BigInt(b.bytes) > BigInt(a.bytes) ? 1 : BigInt(b.bytes) < BigInt(a.bytes) ? -1 : 0)); }",
+      "why": "cards re-sorted by bytes instead of the service order"
+    },
+    {
+      "label": "nc2",
+      "mode": "red-nc2",
+      "token": "UI_V2_CONFIRM",
+      "file": "apps/water/ui/app.mjs",
+      "old": "async function prepare(chosenMode = 'quarantine') {",
+      "new": "async function prepare(chosenMode = 'delete') {",
+      "why": "first prepare defaults to direct delete"
+    },
+    {
+      "label": "nc3",
+      "mode": "red-nc3",
+      "token": "UI_IPC_NO_PATH",
+      "file": "apps/water/ui/ipc.mjs",
+      "old": "query:query(term)}));",
+      "new": "query:query(term), display_path:term}));",
+      "why": "group_items search also sends a display_path"
+    },
+    {
+      "label": "c4",
+      "mode": "browser",
+      "token": "UI_V2_CONCLUSION",
+      "file": "apps/water/ui/views/results.mjs",
+      "old": "    if (c.menu.includes('detail')) entries.push(['查看明细', () => a.detail(c.group_id)]);\n",
+      "new": "    if (c.menu.includes('skip')) entries.push(['以后都跳过', () => a.skipItem(c.group_id)]);\n    if (c.menu.includes('detail')) entries.push(['查看明细', () => a.detail(c.group_id)]);\n",
+      "why": "card menu offers skip from now on (addendum 02 forbids it)"
+    },
+    {
+      "label": "c5",
+      "mode": "browser",
+      "token": "UI_V2_DRAWER",
+      "file": "apps/water/ui/views/detail.mjs",
+      "old": "if (itemRow(g, r) &&",
+      "new": "if (true &&",
+      "why": "r: summary rows offer skip from now on"
+    },
+    {
+      "label": "c6",
+      "mode": "browser",
+      "token": "UI_V2_DRAWER",
+      "file": "apps/water/ui/views/detail.mjs",
+      "old": "() => a.skipItem(r.row_id)]",
+      "new": "() => a.skipItem(g.group_id)]",
+      "why": "per-item drawer row skips with the group ID"
+    },
+    {
+      "label": "c7",
+      "mode": "browser",
+      "token": "UI_V2_DRAWER",
+      "file": "apps/water/ui/views/detail.mjs",
+      "old": "[['以后都跳过', () => a.skipItem(i.item_id)]]",
+      "new": "[['以后都跳过', () => a.skipItem(s.drawer.rowId ?? g.group_id)]]",
+      "why": "expanded item skips with the row or group ID"
+    },
+    {
+      "label": "c8",
+      "mode": "browser",
+      "token": "UI_V2_HOME",
+      "file": "apps/water/ui/app.mjs",
+      "old": "async function stopTask(request) { await request(); resumePolling(); }",
+      "new": "async function stopTask(request) { await request(); }",
+      "why": "stop commands no longer resume a paused poll (1.1)"
+    },
+    {
+      "label": "c9",
+      "mode": "browser",
+      "token": "UI_V2_HOME",
+      "file": "apps/water/ui/app.mjs",
+      "old": "s.pollPaused ? button('重新连接'",
+      "new": "s.pollPaused && s.error ? button('重新连接'",
+      "why": "retry button disappears once the error text is cleared (1.1)"
+    },
+    {
+      "label": "c10",
+      "mode": "browser",
+      "token": "UI_V2_DEDUPE",
+      "file": "apps/water/ui/views/dedupe.mjs",
+      "old": "button('返回', a.returnToCheckup,",
+      "new": "button('返回', a.chooseLocations,",
+      "why": "dedupe back ignores an existing conclusion (1.2)"
+    },
+    {
+      "label": "c11",
+      "mode": "browser",
+      "token": "UI_V2_DEDUPE",
+      "file": "apps/water/ui/app.mjs",
+      "old": "if (s.busy === 'idle' && ['dedupe', 'done'].includes(s.mode)) { event.preventDefault(); a.returnToCheckup(); }",
+      "new": "if (false) { event.preventDefault(); a.returnToCheckup(); }",
+      "why": "checkup nav on the dedupe or done screen only repaints it (1.2)"
+    },
+    {
+      "label": "c12",
+      "mode": "browser",
+      "token": "UI_V2_DEDUPE",
+      "file": "apps/water/ui/app.mjs",
+      "old": "if (scope === 'dedupe' && error?.code === 'stale') await recoverDedupe();",
+      "new": "if (false) await recoverDedupe();",
+      "why": "dedupe stale is not re-read (2.1)"
+    },
+    {
+      "label": "c13",
+      "mode": "browser",
+      "token": "UI_V2_PAGES",
+      "file": "apps/water/ui/app.mjs",
+      "old": "category:(id, enabled) => run(async () => { s.locations = await ipc.locations_set_category(id, enabled); }),",
+      "new": "category:(id, enabled) => run(async () => { s.locations = await ipc.locations_set_category(id, enabled); markStale(); }),",
+      "why": "category toggle marks the conclusion stale again (2.2)"
+    },
+    {
+      "label": "c14",
+      "mode": "browser",
+      "token": "UI_V2_DEDUPE",
+      "file": "apps/water/ui/views/dedupe.mjs",
+      "old": "heading(v.more ? '找到重复文件' :",
+      "new": "heading(false ? '找到重复文件' :",
+      "why": "dedupe headline counts the truncated list (2.3)"
+    },
+    {
+      "label": "c15",
+      "mode": "browser",
+      "token": "UI_V2_PAGES",
+      "file": "apps/water/ui/views/trends.mjs",
+      "old": "const hasDaily = value => value && value.days_to_full !== null && BigInt(value.bytes_per_day) > 0n;",
+      "new": "const hasDaily = value => !!value;",
+      "why": "trends draws a daily rate for drives without a forecast (2.4)"
+    },
+    {
+      "label": "c16",
+      "mode": "browser",
+      "token": "UI_V2_CONCLUSION",
+      "file": "apps/water/ui/views/results.mjs",
+      "old": "if (c.menu.includes('copy_clue') && clue) entries.push(['复制线索给 agent', () => a.copy(clue.copy_text)]);",
+      "new": "if (c.menu.includes('copy_clue')) entries.push(['复制线索给 agent', () => a.copy(clue?.copy_text ?? '')]);",
+      "why": "copy clue offered when the clue is not listed (2.5)"
+    },
+    {
+      "label": "c17",
+      "mode": "browser",
+      "token": "UI_V2_PAGES",
+      "file": "apps/water/ui/views/charts.mjs",
+      "old": "const date = new Date(entry.at); date.setHours(0, 0, 0, 0);",
+      "new": "const date = new Date(entry.at.slice(0, 10) + 'T00:00:00'); date.setHours(0, 0, 0, 0);",
+      "why": "heatmap buckets by the UTC date again (2.6)"
+    },
+    {
+      "label": "c18",
+      "mode": "browser",
+      "token": "UI_V2_QUARANTINE",
+      "file": "apps/water/ui/app.mjs",
+      "old": "      if (route === 'quarantine' && revision !== quarantineRevision) return;\n",
+      "new": "",
+      "why": "a late quarantine_list reply overwrites a newer view (2.7)"
+    },
+    {
+      "label": "c19",
+      "mode": "browser",
+      "token": "UI_V2_QUARANTINE",
+      "file": "apps/water/ui/views/quarantine.mjs",
+      "old": "button(`打开 ${root.display_path[0].toUpperCase()} 盘隔离区`,",
+      "new": "button('打开文件夹',",
+      "why": "quarantine root buttons lose the drive letter (3.1)"
+    }
+  ],
+  "m7": [
+    {
+      "label": "nc1",
+      "mode": "red-nc1",
+      "token": "SERVICE_M35_CLEAN",
+      "file": "packages/water-service/src/clean.rs",
+      "old": "deletion.items.retain(|i|!quarantine_mode || !selected.contains(i.item_id.as_str()));",
+      "new": "deletion.items.retain(|_i|true);",
+      "why": "chosen items also go into the direct-delete block"
+    },
+    {
+      "label": "nc2",
+      "mode": "red-nc2",
+      "token": "SERVICE_M35_CONCLUSION",
+      "file": "packages/water-service/src/conclusion.rs",
+      "old": "\"clues\":clues.iter().take(3).cloned()",
+      "new": "\"clues\":clues.iter().take(4).cloned()",
+      "why": "conclusion lists more than three clues"
+    },
+    {
+      "label": "nc3",
+      "mode": "red-nc3",
+      "token": "SERVICE_M35_SCOPE",
+      "file": "packages/water-service/src/m35.rs",
+      "old": ".any(|d| local_path(&d.dir).is_some_and(|dir| util::contains(path, &dir)))",
+      "new": ".any(|_d| false)",
+      "why": "an item that contains a declaration folder stays cleanable (controller addition 2)"
+    },
+    {
+      "label": "c4",
+      "mode": "test",
+      "token": "SERVICE_M35_SCOPE",
+      "file": "packages/water-service/src/m35.rs",
+      "old": "let path = path.strip_prefix(r\"\\\\?\\\").unwrap_or(path);",
+      "new": "let path = path;",
+      "why": "extended-prefix paths are not normalised before protects (controller addition 1)"
+    },
+    {
+      "label": "c5",
+      "mode": "test",
+      "token": "SERVICE_M35_SCOPE",
+      "file": "packages/water-service/src/m35.rs",
+      "old": "UNIX_EPOCH.checked_add(Duration::from_secs(seconds as u64))?",
+      "new": "UNIX_EPOCH.checked_add(Duration::from_secs(seconds as u64 / 1000))?",
+      "why": "collected_at converted with the wrong unit (controller addition 3)"
+    },
+    {
+      "label": "c6",
+      "mode": "test",
+      "token": "SERVICE_M35_SCOPE",
+      "file": "packages/water-service/src/m35.rs",
+      "old": "|| list\n                            .apps\n                            .iter()\n                            .any(|a| compact(&a.name).contains(&compact(n)))",
+      "new": "|| false",
+      "why": "no loose display-name check before seems-uninstalled (controller addition 4)"
+    },
+    {
+      "label": "c7",
+      "mode": "test",
+      "token": "SERVICE_M35_QUARANTINE",
+      "file": "packages/water-service/src/quarantine.rs",
+      "old": "if e == clean::CleanError::Journal {",
+      "new": "if false {",
+      "why": "journal failure loses its fixed message (controller addition 5)"
+    },
+    {
+      "label": "c8",
+      "mode": "test",
+      "token": "SERVICE_M35_ROWS",
+      "file": "packages/water-service/src/views.rs",
+      "old": "if let Some(rows) = self.summary_rows.get(id) {",
+      "new": "if let Some(rows) = self.summary_rows.values().next() {",
+      "why": "lazy row cache returns another group's rows (addendum 02)"
+    },
+    {
+      "label": "c9",
+      "mode": "test",
+      "token": "SERVICE_M35_CLEAN",
+      "file": "packages/water-service/src/conclusion.rs",
+      "old": "g.level == Level::Confirm",
+      "new": "g.level != Level::Confirm",
+      "why": "the chosen / recommended split is inverted"
+    },
+    {
+      "label": "c10",
+      "mode": "test",
+      "token": "SERVICE_M35_CLEAN",
+      "file": "packages/water-service/src/clean.rs",
+      "old": "quarantine::registered_base(core, &util::drive(&item.path)).is_some()",
+      "new": "true",
+      "why": "prepare keeps chosen items on drives without a quarantine root (addendum 06 item 1)"
+    },
+    {
+      "label": "c11",
+      "mode": "test",
+      "token": "SERVICE_M35_CLEAN",
+      "file": "packages/water-service/src/clean.rs",
+      "old": "let moved_report=if let Some((_,target))=quarantine::registered_target(&worker_core,&root) {",
+      "new": "let moved_report=if let Some((_,target))=Some(((),clean::QuarantineTarget{base:worker_core.platform.quarantine_base(&root)})) {",
+      "why": "start no longer re-checks the drive before the executor moves the batch (addendum 06 item 1)"
+    },
+    {
+      "label": "c12",
+      "mode": "test",
+      "token": "SERVICE_M35_CLEAN",
+      "file": "packages/water-service/src/dedupe.rs",
+      "old": "crate::quarantine::registered_base(core, &util::drive(&copy.path)).is_some()",
+      "new": "true",
+      "why": "dedupe prepare keeps copies on drives without a quarantine root (addendum 06 item 1)"
+    },
+    {
+      "label": "c13",
+      "mode": "test",
+      "token": "SERVICE_M35_SCOPE",
+      "file": "packages/water-service/src/service.rs",
+      "old": "while id == \"common\" || s.settings.custom_roots.iter().any(|r| r.root_id == id) {",
+      "new": "while s.settings.custom_roots.iter().any(|r| r.root_id == id) {",
+      "why": "a folder named common takes the common id again (addendum 06 item 2)"
+    },
+    {
+      "label": "c14",
+      "mode": "test",
+      "token": "SERVICE_M35_SCOPE",
+      "file": "packages/water-service/src/m35.rs",
+      "old": ".filter(|id| home.iter().any(|row| row[\"location_id\"] == *id))",
+      "new": ".filter(|_id| true)",
+      "why": "the default scope fails on an absent saved drive again (addendum 06 item 3)"
+    },
+    {
+      "label": "c15",
+      "mode": "test",
+      "token": "SERVICE_M35_QUARANTINE",
+      "file": "packages/water-service/src/quarantine.rs",
+      "old": "            cache.dirs.insert(q.quarantine_id.clone(), q.dir.clone());\n",
+      "new": "",
+      "why": "a quarantine folder whose inspect fails loses its record again (addendum 06 item 4)"
+    }
+  ],
+  "m11": [
+    {
+      "label": "nc1",
+      "mode": "red-nc1",
+      "token": "UI_V2_PAGES",
+      "file": "apps/water/ui/views/charts.mjs",
+      "old": "localDateKey(day) <= lastKey;",
+      "new": "day.getTime() <= last;",
+      "why": "heatmap walks timestamps again and misses the last day where DST skips midnight (1.1)"
+    },
+    {
+      "label": "nc2",
+      "mode": "red-nc2",
+      "token": "UI_V2_DEDUPE",
+      "file": "apps/water/ui/app.mjs",
+      "old": "const checkupIsReturn = () => s.route === 'home' && s.busy === 'idle'",
+      "new": "const checkupIsReturn = () => s.busy === 'idle'",
+      "why": "体检 interception ignores the current route and drops the dedupe result (1.3)"
+    },
+    {
+      "label": "nc3",
+      "mode": "red-nc3",
+      "token": "UI_V2_QUARANTINE",
+      "file": "apps/water/ui/app.mjs",
+      "old": "if (revision === quarantineRevision) s.quarantine = view;",
+      "new": "if (revision !== quarantineRevision) return; s.quarantine = view;",
+      "why": "open folder ends silently when a newer quarantine view arrived (1.4)"
+    },
+    {
+      "label": "c4",
+      "mode": "browser",
+      "token": "UI_V2_DEDUPE",
+      "file": "apps/water/ui/app.mjs",
+      "old": "if (s.pending) checkupQueued = true; else a.returnToCheckup();",
+      "new": "if (!s.pending) a.returnToCheckup();",
+      "why": "体检 click while a request is pending is dropped again (1.2)"
+    },
+    {
+      "label": "c5",
+      "mode": "browser",
+      "token": "UI_V2_CONFIRM",
+      "file": "apps/water/ui/app.mjs",
+      "old": "const checkupIsReturn = () => s.route === 'home' && s.busy === 'idle'",
+      "new": "const checkupIsReturn = () => (s.route === 'home' || s.mode === 'done') && s.busy === 'idle'",
+      "why": "done page is dropped when 体检 is clicked from another page (1.3, done case)"
+    },
+    {
+      "label": "c6",
+      "mode": "browser",
+      "token": "UI_V2_QUARANTINE",
+      "file": "apps/water/ui/app.mjs",
+      "old": "else if (roots.length) show('roots');",
+      "new": "else show('roots');",
+      "why": "open folder pops an empty chooser when no roots remain (1.4)"
+    }
+  ],
+  "m10": [
+    {
+      "label": "nc1",
+      "mode": "red-nc1",
+      "token": "CLEAN_M35_PURGE",
+      "file": "packages/junk-clean/src/native_windows.rs",
+      "old": "Err(code) if raw.attr & (DIRECTORY | REPARSE) == DIRECTORY => {",
+      "new": "Err(code) if false && raw.attr & (DIRECTORY | REPARSE) == DIRECTORY => {",
+      "why": "purge no longer falls back to a no-DELETE open for an occupied subfolder (item 1)"
+    },
+    {
+      "label": "nc2",
+      "mode": "red-nc2",
+      "token": "CLEAN_M35_PURGE",
+      "file": "packages/junk-clean/src/native_windows.rs",
+      "old": "Err(ChainError::Other(code @ (32 | 33))) => {",
+      "new": "Err(ChainError::Other(code @ (32 | 33))) if false => {",
+      "why": "an exclusively locked quarantine id folder is InvalidPlan again (item 2)"
+    },
+    {
+      "label": "nc3",
+      "mode": "red-nc3",
+      "token": "CLEAN_M35_MOVE",
+      "file": "packages/junk-clean/src/quarantine.rs",
+      "old": "        && path::validate(&format!(\"X:\\\\{id}\")).is_ok()\n",
+      "new": "",
+      "why": "valid_id accepts device names again (item 3)"
+    },
+    {
+      "label": "c4",
+      "mode": "test",
+      "token": "CLEAN_M35_MOVE",
+      "file": "packages/junk-clean/src/native_windows.rs",
+      "old": "Some(if matches!(error, ChainError::Missing) {",
+      "new": "Some(if false && matches!(error, ChainError::Missing) {",
+      "why": "a source whose parent vanished after precheck is Changed, not Gone (item 4b)"
+    },
+    {
+      "label": "c5",
+      "mode": "test",
+      "token": "CLEAN_M35_MOVE",
+      "file": "packages/junk-clean/src/native_windows.rs",
+      "old": "Err(code @ (2 | 3)) => {\n                    result.status = MoveStatus::Skipped;",
+      "new": "Err(code @ (2 | 3)) if false => {\n                    result.status = MoveStatus::Skipped;",
+      "why": "a source that vanished at the final open is a move error, not Gone (item 4b)"
+    },
+    {
+      "label": "c6",
+      "mode": "test",
+      "token": "CLEAN_M35_MOVE",
+      "file": "packages/junk-clean/src/native_windows.rs",
+      "old": "&& enumerate(handle).is_ok_and(|kids| kids.is_empty())",
+      "new": "&& false",
+      "why": "new empty skeleton directories are left behind after an all-skip move (item 4c)"
+    },
+    {
+      "label": "c7",
+      "mode": "test",
+      "token": "CLEAN_M35_MOVE",
+      "file": "packages/junk-clean/src/native_windows.rs",
+      "old": "if identity_from(handle).as_ref() == Some(expected)\n",
+      "new": "if true\n",
+      "why": "skeleton cleanup no longer checks it is the directory this run created (item 4c)"
+    },
+    {
+      "label": "c8",
+      "mode": "test",
+      "token": "CLEAN_M35_PURGE",
+      "file": "packages/junk-clean/src/native_windows.rs",
+      "old": "Some(handle) => inspect_opened(dir, &StopFlag::default(), info_header(dir), handle),",
+      "new": "Some(_handle) => inspect_quarantine(dir, &StopFlag::default()),",
+      "why": "the final residual check reopens by name instead of the verified handle (item 4a)"
+    },
+    {
+      "label": "c9",
+      "mode": "test",
+      "token": "CLEAN_M35_PURGE",
+      "file": "packages/junk-clean/src/native_windows.rs",
+      "old": "                        delete_error,\n                    }),",
+      "new": "                        delete_error: None,\n                    }),",
+      "why": "an occupied subfolder loses its root-cause open error (item 1)"
+    },
+    {
+      "label": "c10",
+      "mode": "test",
+      "token": "CLEAN_M35_MOVE",
+      "file": "packages/junk-clean/src/move_checks.rs",
+      "old": "first.is_some_and(|root| !root.eq_ignore_ascii_case(candidate))",
+      "new": "first.is_some_and(|root| root != candidate)",
+      "why": "second quarantine root check becomes case-sensitive (item 5)"
+    },
+    {
+      "label": "c11",
+      "mode": "test",
+      "token": "CLEAN_M35_MOVE",
+      "file": "packages/junk-clean/src/move_checks.rs",
+      "old": "actual == Some(expected)",
+      "new": "actual.is_some()",
+      "why": "final source handle identity is no longer compared (item 5)"
+    },
+    {
+      "label": "c12",
+      "mode": "test",
+      "token": "CLEAN_M35_MOVE",
+      "file": "packages/junk-clean/src/native_windows.rs",
+      "old": "if !move_checks::source_matches(identity_from(&handle).as_ref(), &item.identity) {",
+      "new": "if false {",
+      "why": "production call site of the pre-rename identity recheck removed (reviewer MEDIUM: helper-only test)"
+    },
+    {
+      "label": "c13",
+      "mode": "test",
+      "token": "CLEAN_M35_MOVE",
+      "file": "packages/junk-clean/src/quarantine.rs",
+      "old": "} else if move_checks::second_root(first_root.as_deref(), &root) {",
+      "new": "} else if false {",
+      "why": "production call site of the second quarantine root rule removed (reviewer MEDIUM: helper-only test)"
+    }
+  ]
 }

@@ -11,12 +11,13 @@ const slot=process.argv[2],ctl='F:/new/smaltalk/water',muts=JSON.parse(readFileS
 const tree=ctl+'/.worktrees/accept-w10-'+slot,id='WATER-W10-ACCEPT-'+slot.toUpperCase(),logs=ctl+'/.local/w10-accept/logs',log=logs+'/'+slot+'-controls.txt';
 const manifest=ctl+'/.local/w10-accept/manifest.json',[script,envName]=(slot==='m5'||slot==='m7')?['desktop-wave-check.mjs','WATER_W3_OVERRIDE_MANIFEST']:['checkup-wave-check.mjs','WATER_W2_SELFTEST_MANIFEST'];
 mkdirSync(logs,{recursive:true});
+const ui=JSON.parse(readFileSync(manifest,'utf8')).tasks.find(t=>t.id===id)?.kind==='ui';
 const env={...process.env,[envName]:manifest};
 const say=s=>{appendFileSync(log,s+'\n');console.log(s);};
 const sha=b=>createHash('sha256').update(b).digest('hex');
 const gate=(mode,fin)=>{const r=spawnSync(process.execPath,[ctl+'/scripts/'+script,'--task',id,'--mode',mode,...(fin?['--final']:[])],{cwd:tree,env,encoding:'utf8',windowsHide:true,timeout:1800000});const line=(r.stdout??'').trim().split('\n').at(-1);say(slot+' '+mode+(fin?' --final':'')+' rc='+r.status+' '+line);let receipt=null;try{receipt=JSON.parse(line).receipt;}catch{}return {rc:r.status,receipt,line};};
-// The UI slot (K6) fails by "# fail N" from node:test; Rust slots by cargo's "test result: FAILED".
-const failedRun=t=>slot!=='m6'?/test result: FAILED/.test(t)&&!/error\[E\d+\]|could not compile/.test(t):/^# fail [1-9]/m.test(t)&&!/SyntaxError|ERR_MODULE_NOT_FOUND|CDP timeout/.test(t);
+// UI slots (kind ui: M6, M11) fail by "# fail N" from node:test; Rust slots by cargo's "test result: FAILED".
+const failedRun=t=>!ui?/test result: FAILED/.test(t)&&!/error\[E\d+\]|could not compile/.test(t):/^# fail [1-9]/m.test(t)&&!/SyntaxError|ERR_MODULE_NOT_FOUND|CDP timeout/.test(t);
 const commandLogs=receipt=>{const r=JSON.parse(readFileSync(receipt,'utf8'));const dir=receipt.replace(/[^\\/]+$/,'');return r.commands.filter(c=>c.log).map(c=>readFileSync(join(dir,c.log),'utf8'));};
 const tokenInLogs=(receipt,token)=>commandLogs(receipt).some(t=>t.includes(token)&&failedRun(t));
 // User 11-06: timing-only failures may be rerun (up to 3 times) instead of stopping.

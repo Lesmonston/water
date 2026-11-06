@@ -252,6 +252,355 @@
       "acceptsHead": "02bcbfab2d71f4dd306738573a20ddb09069da09"
     },
     {
+      "kind": "rust",
+      "outputRoot": "packages/junk-clean",
+      "packageName": "water-junk-clean",
+      "testTarget": "clean_v1",
+      "testFiles": [
+        "packages/junk-clean/tests/clean_v1.rs"
+      ],
+      "productionFiles": [
+        "packages/junk-clean/Cargo.toml",
+        "packages/junk-clean/Cargo.lock",
+        "packages/junk-clean/README.md",
+        "packages/junk-clean/examples/real_smoke.rs"
+      ],
+      "cargoCacheSource": "F:/new/smaltalk/water/.offline-cache/core/registry",
+      "nativeModule": "native_windows.rs",
+      "macOS": "unverified",
+      "outputRootExists": true,
+      "nativeWindowBudget": 0,
+      "nativeDirectoryDialogBudget": 0,
+      "expectedTests": [
+        "clean_plan_contract",
+        "clean_revalidation_skips",
+        "clean_no_follow",
+        "clean_partial_stop_journal",
+        "clean_report_volume",
+        "clean_handle_hardening",
+        "quarantine_unlock_pair",
+        "quarantine_move_contract",
+        "quarantine_restore_contract",
+        "quarantine_purge_contract",
+        "quarantine_inspect_and_list"
+      ],
+      "allowedModes": [
+        "baseline",
+        "lock",
+        "check",
+        "test",
+        "archive",
+        "real",
+        "red-nc1",
+        "red-nc2",
+        "red-nc3"
+      ],
+      "expectedFinalModes": [
+        "check",
+        "test",
+        "real"
+      ],
+      "forbidPatterns": [
+        [
+          "\\bstd::fs\\b",
+          "Path-based file access (std::fs) is not allowed"
+        ],
+        [
+          "\\bfs::",
+          "Path-based file access (fs::) is not allowed"
+        ],
+        [
+          "\\bPath(?:Buf)?\\b",
+          "Path objects are not allowed; file access goes through handles"
+        ],
+        [
+          "\\b(?:remove_file|remove_dir|read_dir|symlink_metadata|set_permissions|OpenOptions)\\b",
+          "Path-based file operation is not allowed"
+        ]
+      ],
+      "allowedFfi": [
+        "CreateFileW",
+        "GetFileInformationByHandleEx",
+        "SetFileInformationByHandle",
+        "GetVolumeInformationByHandleW",
+        "GetDiskFreeSpaceExW",
+        "CloseHandle",
+        "NtOpenFile",
+        "NtCreateFile",
+        "RtlNtStatusToDosError",
+        "NtSetInformationFile"
+      ],
+      "realMode": "env-only",
+      "browserBudget": 0,
+      "realDataPermission": "none; synthetic fixtures under own .local only",
+      "id": "WATER-W10-ACCEPT-M10",
+      "title": "执行器补修：永久删除的遗留与隔离编号",
+      "slot": "w10-m10",
+      "worktree": "F:/new/smaltalk/water/.worktrees/accept-w10-m10",
+      "branch": "controller/accept-w10-m10",
+      "baseCommit": "51d851914c5845ac9b818f0e9053051b0cb88b1a",
+      "snapshotRef": "refs/tags/water-w10-m10-base-20261106",
+      "status": "CONTROLLER_ACCEPTANCE",
+      "readyOn": "2026-11-07",
+      "dispatchedAt": "2026-11-06T15:46:27Z",
+      "startedAt": null,
+      "model": "sol (user-reported)",
+      "modelAssignment": "user-arranged; report actual engine/model",
+      "purpose": "M3.5 release fixes from WATER-W10-M4 carryOverLater 1, 2, 3, 5, 6",
+      "report": "docs/dispatch/reports/WATER-W10-M10-REPORT.md",
+      "evidenceDir": "docs/acceptance/wave10/controller/accept-20261105/m10/",
+      "allowedFiles": [
+        "docs/dispatch/reports/WATER-W10-M10-REPORT.md"
+      ],
+      "gate": "heavy",
+      "ticket": "docs/dispatch/tickets/WATER-W10-M10-CLEAN-FIX-20261106.md",
+      "spec": "contracts/m35-v1/CLEAN-M35.md",
+      "proofTargets": {
+        "nc1": "CLEAN_M35_PURGE",
+        "nc2": "CLEAN_M35_PURGE",
+        "nc3": "CLEAN_M35_MOVE"
+      },
+      "modelHint": "Rust handle-based deletion engine fixes: purge subfolder in use, exclusive-locked quarantine folder, device-name ids, small purge/move fixes and missing tests; heavy gate; public API unchanged; deletes only test fixtures.",
+      "mustRead": [
+        "docs/dispatch/W10-M35-WORKER-RULES.md",
+        "contracts/m35-v1/CLEAN-M35.md",
+        "contracts/checkup-v1/CLEAN.md",
+        "contracts/hardening-v1/CLEAN-HARDENING.md",
+        "docs/decisions/ADR-019-project-declarations-and-quarantine.md",
+        "contracts/m35-v1/RULES-M35.md",
+        "docs/dispatch/wave10/PLAN.md",
+        "packages/junk-clean/src/lib.rs",
+        "packages/junk-clean/src/model.rs",
+        "packages/junk-clean/src/native_windows.rs",
+        "packages/junk-clean/src/path.rs",
+        "packages/junk-clean/tests/clean_v1.rs",
+        "docs/dispatch/tickets/WATER-W10-M4-CLEAN-20261105.md",
+        "docs/dispatch/tickets/WATER-W10-M4-ADDENDUM-01-20261105.md",
+        "docs/dispatch/tickets/WATER-W10-M4-ADDENDUM-02-20261105.md",
+        "packages/junk-clean/src/quarantine.rs"
+      ],
+      "frozenFiles": [
+        {
+          "path": "contracts/m35-v1/CLEAN-M35.md",
+          "sha256": "9a7a43d758668fc4b6da0db1ef90d6500318ba7df907d01355adfd737012dee5"
+        },
+        {
+          "path": "contracts/checkup-v1/CLEAN.md",
+          "sha256": "95b5ad120c6d7a04d427318c09df8e58ba77d6f96167cb040bc07a33e5c5a55f"
+        },
+        {
+          "path": "contracts/hardening-v1/CLEAN-HARDENING.md",
+          "sha256": "b22cfe2458d17303fd5ffde08899ef6df89c4484ba502c0d4af4139c8a18dc85"
+        },
+        {
+          "path": "docs/decisions/ADR-019-project-declarations-and-quarantine.md",
+          "sha256": "005709e26035f08e3729303c8ebed961b7c23c3b4e02ec28ab8823a36b885e97"
+        },
+        {
+          "path": "contracts/m35-v1/RULES-M35.md",
+          "sha256": "3dfc034799404b45dbd19b7e44f99dc1875584e7b87285cdcd53340af9193a17"
+        }
+      ],
+      "allowedPrefixes": [
+        "packages/junk-clean/",
+        "docs/acceptance/wave10/m10/",
+        "docs/acceptance/wave10/controller/accept-20261105/m10/"
+      ],
+      "baselineStatus": "PASSED",
+      "holdReason": "dispatch after WATER-W10-M7 merges (both run cargo; one cargo tree at a time); controller then creates the worktree, recomputes frozen hashes from it and runs baseline",
+      "issuedAt": "2026-11-06T12:51:46Z",
+      "baselineEvidence": "docs/acceptance/wave10/controller/preflight-20261107/m10/2026-11-06T15-36-15.888Z-10448-baseline-result.json",
+      "dispatchEvidence": "user chat 2026-11-07 ~00:46 JST: \"M10是sol，M11是opus\"; worker tree head/changed files 51d85191/3 when recorded at 2026-11-06T15:46:27Z",
+      "acceptsTask": "WATER-W10-M10",
+      "acceptsHead": "27fe2cf63e11865f05049722e1dfdb29b418b9e3"
+    },
+    {
+      "kind": "ui",
+      "outputRoot": "apps/water/ui",
+      "testFiles": [
+        "apps/water/ui/tests/unit.test.mjs",
+        "apps/water/ui/tests/browser.test.mjs"
+      ],
+      "unitTestFiles": [
+        "apps/water/ui/tests/unit.test.mjs"
+      ],
+      "browserTestFiles": [
+        "apps/water/ui/tests/browser.test.mjs"
+      ],
+      "expectedTests": [
+        "ui_format_bytes_time",
+        "ui_v2_view_rules",
+        "ui_ipc_boundary"
+      ],
+      "tokensSource": "docs/design/water-ui-v3/tokens.css",
+      "fixtures": "contracts/m35-v1/ui-fixtures-m35.json",
+      "browserHelper": "scripts/acceptance/native-vw-private-browser.mjs",
+      "screenshotDirEnv": "WATER_W2_SHOTS_DIR",
+      "macOS": "unverified",
+      "outputRootExists": true,
+      "nativeWindowBudget": 0,
+      "nativeDirectoryDialogBudget": 0,
+      "expectedBrowserTests": [
+        "ui_v2_home_scan",
+        "ui_v2_conclusion",
+        "ui_v2_drawer_details",
+        "ui_v2_confirm_done",
+        "ui_v2_quarantine_dedupe",
+        "ui_v2_pages_layout_a11y"
+      ],
+      "requiredScreenshots": [
+        "v3-home-1240x820.png",
+        "v3-home-new-1240x820.png",
+        "v3-scan-1240x820.png",
+        "v3-results-1240x820.png",
+        "v3-results-decided-1240x820.png",
+        "v3-results-folds-1240x820.png",
+        "v3-results-stale-1240x820.png",
+        "v3-results-empty-1240x820.png",
+        "v3-menu-1240x820.png",
+        "v3-drawer-1240x820.png",
+        "v3-drawer-big-1240x820.png",
+        "v3-details-1240x820.png",
+        "v3-confirm-1240x820.png",
+        "v3-confirm-direct-1240x820.png",
+        "v3-done-1240x820.png",
+        "v3-quarantine-1240x820.png",
+        "v3-quarantine-leftover-1240x820.png",
+        "v3-dedupe-menu-1240x820.png",
+        "v3-dedupe-intro-1240x820.png",
+        "v3-dedupe-1240x820.png",
+        "v3-trends-1240x820.png",
+        "v3-history-1240x820.png",
+        "v3-settings-1240x820.png",
+        "v3-settings-decl-1240x820.png",
+        "v3-home-narrow-1040x720.png"
+      ],
+      "browserProofs": [
+        "nc1",
+        "nc2",
+        "nc3"
+      ],
+      "allowedModes": [
+        "baseline",
+        "check",
+        "test",
+        "browser",
+        "red-nc1",
+        "red-nc2",
+        "red-nc3",
+        "archive"
+      ],
+      "expectedFinalModes": [
+        "check",
+        "test",
+        "browser"
+      ],
+      "realMode": null,
+      "browserBudget": 1,
+      "realDataPermission": "none; IPC fixtures only",
+      "id": "WATER-W10-ACCEPT-M11",
+      "title": "界面小修：M6 留下的四处小毛病（界面单）",
+      "slot": "w10-m11",
+      "worktree": "F:/new/smaltalk/water/.worktrees/accept-w10-m11",
+      "branch": "controller/accept-w10-m11",
+      "baseCommit": "32d7b642c56361ede7be9df453cba594ae2c3dd7",
+      "snapshotRef": "refs/tags/water-w10-m11-base-20261107",
+      "status": "CONTROLLER_ACCEPTANCE",
+      "readyOn": "2026-11-07",
+      "dispatchedAt": "2026-11-06T15:46:27Z",
+      "startedAt": null,
+      "model": "opus (user-reported)",
+      "modelAssignment": "user-arranged; report actual engine/model",
+      "purpose": "M3.5 release fixes from WATER-W10-M6 carryOverLater 1-4",
+      "report": "docs/dispatch/reports/WATER-W10-M11-REPORT.md",
+      "evidenceDir": "docs/acceptance/wave10/controller/accept-20261105/m11/",
+      "allowedFiles": [
+        "docs/dispatch/reports/WATER-W10-M11-REPORT.md"
+      ],
+      "gate": "light",
+      "ticket": "docs/dispatch/tickets/WATER-W10-M11-UI-FIX-20261107.md",
+      "spec": "contracts/m35-v1/UI-M35.md",
+      "proofTargets": {
+        "nc1": "UI_V2_PAGES",
+        "nc2": "UI_V2_DEDUPE",
+        "nc3": "UI_V2_QUARANTINE"
+      },
+      "modelHint": "UI ticket: fix the four M6 lows (heatmap day loop across DST, 体检 click lost while a request is pending, 体检 interception only on the home route, open-folder after a newer quarantine view); looks, data and commands unchanged; add assertions only; 25 screenshots regenerated, expected identical.",
+      "mustRead": [
+        "docs/dispatch/W10-M35-WORKER-RULES.md",
+        "contracts/m35-v1/UI-M35.md",
+        "contracts/m35-v1/IPC-M35.md",
+        "contracts/m35-v1/ui-fixtures-m35.json",
+        "docs/dispatch/tickets/WATER-W10-M6-UI-20261106.md",
+        "docs/dispatch/tickets/WATER-W10-M6-ADDENDUM-03-20261106.md",
+        "apps/water/ui/app.mjs",
+        "apps/water/ui/views/charts.mjs",
+        "apps/water/ui/views/home.mjs",
+        "apps/water/ui/format.mjs",
+        "apps/water/ui/tests/browser.test.mjs"
+      ],
+      "frozenFiles": [
+        {
+          "path": "contracts/m35-v1/UI-M35.md",
+          "sha256": "8292e85d7327af22ee3f2304ff9953241ee3602c82f738741b8af626ad9d19e4"
+        },
+        {
+          "path": "contracts/m35-v1/IPC-M35.md",
+          "sha256": "9605b8e6c1e25cc399d0f44e4af039c5a55ea314845b211603f91ce680446889"
+        },
+        {
+          "path": "contracts/m35-v1/ui-fixtures-m35.json",
+          "sha256": "8bb75e4e7860345bbde9f0561e4b4c119891bb3219a102093a2f5c095706450c"
+        },
+        {
+          "path": "contracts/m3c-v1/IPC-M3C.md",
+          "sha256": "d0b6bb18a5deedc8200569cc9f3c68a544d564c8a07c45d0905e9ab01a07e6a5"
+        },
+        {
+          "path": "contracts/m3c-v1/ui-fixtures-m3c.json",
+          "sha256": "c01bc0cb59d3bd0d61a1410446659e032dcfc1bfc8ad3fb3635331924f23a033"
+        },
+        {
+          "path": "contracts/checkup-v1/IPC.md",
+          "sha256": "62f726ced5f863f1b47db261976d8b5e5183f65669b2ba09d2f85a3977161be2"
+        },
+        {
+          "path": "contracts/checkup-v1/ui-fixtures.json",
+          "sha256": "2dd62585cb7ca31d429af8bf5360dda44d645dd73a5d3f79542d4d23ce1840e2"
+        },
+        {
+          "path": "contracts/checkup-v1/UI.md",
+          "sha256": "dbc92ff9de2f388d94c7210541662e5c0f9052084afdf4b795805768710cb52b"
+        },
+        {
+          "path": "docs/design/water-ui-v2/DESIGN.md",
+          "sha256": "41ab927cf35868da973dfea5171a066891592fa69c4058945fa929c5c222fab4"
+        },
+        {
+          "path": "docs/design/water-ui-v3/DESIGN.md",
+          "sha256": "0da4340331085f9131872e95879236e67ae44ddf5aa57cef1dd517b4124e5d69"
+        },
+        {
+          "path": "docs/design/water-ui-v3/mockup.html",
+          "sha256": "96f6980ea330bbed297cc14ce59cc4d9ed29f8050fe53014689101e1f2e19ad0"
+        },
+        {
+          "path": "docs/design/water-ui-v3/tokens.css",
+          "sha256": "2850d65eb9e51eedcfc319850ce92b000184f39766499aa7d84de757223f2697"
+        }
+      ],
+      "allowedPrefixes": [
+        "apps/water/ui/",
+        "docs/acceptance/wave10/m11/",
+        "docs/acceptance/wave10/controller/accept-20261105/m11/"
+      ],
+      "baselineStatus": "PASSED",
+      "baselineEvidence": "docs/acceptance/wave10/controller/preflight-20261107/m11/2026-11-06T15-43-40.947Z-25636-baseline-result.json",
+      "dispatchEvidence": "user chat 2026-11-07 ~00:46 JST: \"M10是sol，M11是opus\"; worker tree head/changed files 32d7b642/0 when recorded at 2026-11-06T15:46:27Z",
+      "acceptsTask": "WATER-W10-M11",
+      "acceptsHead": "19b76a1a61ec34998e10946381d95c6900ce33c4"
+    },
+    {
       "id": "WATER-W10-ACCEPT-M2",
       "title": "扫描：新定位、分配大小、泄漏簇、联接索引与空间分布",
       "status": "CONTROLLER_ACCEPTANCE",

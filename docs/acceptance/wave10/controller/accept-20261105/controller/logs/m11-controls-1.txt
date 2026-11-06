@@ -1,0 +1,32 @@
+m11 nc1 mutated apps/water/ui/views/charts.mjs: heatmap walks timestamps again and misses the last day where DST skips midnight (1.1) (mutated sha cb77d1fe85c2e51afedd5c5fca3648210b5c09d08be2072dbf408a25e64595bc)
+m11 red-nc1 rc=0 {"task":"WATER-W10-ACCEPT-M11","mode":"red-nc1","finalGate":false,"status":"passed","error":null,"receipt":"F:\\new\\smaltalk\\water\\.worktrees\\accept-w10-m11\\.local\\checks\\WATER-W10-ACCEPT-M11\\2026-11-06T16-31-49.614Z-24108-red-nc1-result.json"}
+m11 nc1 KILLED (expected UI_V2_PAGES)
+m11 nc1 restored exact bytes=true sha 2e14b1a734f930e13e1ed2d59a91f0661c16a63c4e0ebe6495e49ab2e12fa8ac
+m11 test rc=0 {"task":"WATER-W10-ACCEPT-M11","mode":"test","finalGate":false,"status":"passed","error":null,"receipt":"F:\\new\\smaltalk\\water\\.worktrees\\accept-w10-m11\\.local\\checks\\WATER-W10-ACCEPT-M11\\2026-11-06T16-32-34.031Z-38096-test-result.json"}
+m11 nc2 mutated apps/water/ui/app.mjs: 体检 interception ignores the current route and drops the dedupe result (1.3) (mutated sha b2796815337f1527bc9ec7efde37f1957abc3009f1f5e61e0b1364f77b64ced9)
+m11 red-nc2 rc=0 {"task":"WATER-W10-ACCEPT-M11","mode":"red-nc2","finalGate":false,"status":"passed","error":null,"receipt":"F:\\new\\smaltalk\\water\\.worktrees\\accept-w10-m11\\.local\\checks\\WATER-W10-ACCEPT-M11\\2026-11-06T16-32-43.637Z-12980-red-nc2-result.json"}
+m11 nc2 KILLED (expected UI_V2_DEDUPE)
+m11 nc2 restored exact bytes=true sha cd9799226c42d876f9ad29a75a9293123aaccd3c3d8b45f4cd2364a4fc95d560
+m11 test rc=0 {"task":"WATER-W10-ACCEPT-M11","mode":"test","finalGate":false,"status":"passed","error":null,"receipt":"F:\\new\\smaltalk\\water\\.worktrees\\accept-w10-m11\\.local\\checks\\WATER-W10-ACCEPT-M11\\2026-11-06T16-33-29.357Z-35156-test-result.json"}
+m11 nc3 mutated apps/water/ui/app.mjs: open folder ends silently when a newer quarantine view arrived (1.4) (mutated sha 9f591eb6c6e11d8f8b40de8e55eccd10021ba78076cb829d1dc4b3526796516e)
+m11 red-nc3 rc=0 {"task":"WATER-W10-ACCEPT-M11","mode":"red-nc3","finalGate":false,"status":"passed","error":null,"receipt":"F:\\new\\smaltalk\\water\\.worktrees\\accept-w10-m11\\.local\\checks\\WATER-W10-ACCEPT-M11\\2026-11-06T16-33-32.890Z-35060-red-nc3-result.json"}
+m11 nc3 KILLED (expected UI_V2_QUARANTINE)
+m11 nc3 restored exact bytes=true sha cd9799226c42d876f9ad29a75a9293123aaccd3c3d8b45f4cd2364a4fc95d560
+m11 test rc=0 {"task":"WATER-W10-ACCEPT-M11","mode":"test","finalGate":false,"status":"passed","error":null,"receipt":"F:\\new\\smaltalk\\water\\.worktrees\\accept-w10-m11\\.local\\checks\\WATER-W10-ACCEPT-M11\\2026-11-06T16-34-24.862Z-25768-test-result.json"}
+m11 c4 mutated apps/water/ui/app.mjs: 体检 click while a request is pending is dropped again (1.2) (mutated sha 50475927462143780392e1ce9f084bf476a54725a542de64b1eb1ce3da567ab4)
+m11 browser rc=1 {"task":"WATER-W10-ACCEPT-M11","mode":"browser","finalGate":false,"status":"failed","error":"AssertionError [ERR_ASSERTION]: Unexpected exit, see 2026-11-06T16-34-31.607Z-25792-browser-1.log","receipt":"F:\\new\\smaltalk\\water\\.worktrees\\accept-w10-m11\\.local\\checks\\WATER-W10-ACCEPT-M11\\2026-11-06T16-34-31.607Z-25792-browser-result.json"}
+m11 c4 KILLED (expected UI_V2_DEDUPE)
+m11 c4 restored exact bytes=true sha cd9799226c42d876f9ad29a75a9293123aaccd3c3d8b45f4cd2364a4fc95d560
+m11 test rc=0 {"task":"WATER-W10-ACCEPT-M11","mode":"test","finalGate":false,"status":"passed","error":null,"receipt":"F:\\new\\smaltalk\\water\\.worktrees\\accept-w10-m11\\.local\\checks\\WATER-W10-ACCEPT-M11\\2026-11-06T16-35-23.832Z-36104-test-result.json"}
+m11 c5 mutated apps/water/ui/app.mjs: done page is dropped when 体检 is clicked from another page (1.3, done case) (mutated sha 4b78bf95e1dd0ffc47dcf7c6ad24dde86bec7a0b39983c37aeb6ea4f45470f6b)
+m11 browser rc=1 {"task":"WATER-W10-ACCEPT-M11","mode":"browser","finalGate":false,"status":"failed","error":"AssertionError [ERR_ASSERTION]: Unexpected exit, see 2026-11-06T16-35-27.688Z-31420-browser-1.log","receipt":"F:\\new\\smaltalk\\water\\.worktrees\\accept-w10-m11\\.local\\checks\\WATER-W10-ACCEPT-M11\\2026-11-06T16-35-27.688Z-31420-browser-result.json"}
+m11 c5 KILLED (expected UI_V2_CONFIRM)
+m11 c5 restored exact bytes=true sha cd9799226c42d876f9ad29a75a9293123aaccd3c3d8b45f4cd2364a4fc95d560
+m11 test rc=0 {"task":"WATER-W10-ACCEPT-M11","mode":"test","finalGate":false,"status":"passed","error":null,"receipt":"F:\\new\\smaltalk\\water\\.worktrees\\accept-w10-m11\\.local\\checks\\WATER-W10-ACCEPT-M11\\2026-11-06T16-36-09.244Z-28660-test-result.json"}
+m11 c6 mutated apps/water/ui/app.mjs: open folder pops an empty chooser when no roots remain (1.4) (mutated sha 1147bd9054583c346b18f5247924bee5bc674b43b725471ca985aeac22095a27)
+m11 browser rc=1 {"task":"WATER-W10-ACCEPT-M11","mode":"browser","finalGate":false,"status":"failed","error":"AssertionError [ERR_ASSERTION]: Unexpected exit, see 2026-11-06T16-36-13.088Z-27864-browser-1.log","receipt":"F:\\new\\smaltalk\\water\\.worktrees\\accept-w10-m11\\.local\\checks\\WATER-W10-ACCEPT-M11\\2026-11-06T16-36-13.088Z-27864-browser-result.json"}
+m11 c6 KILLED (expected UI_V2_QUARANTINE)
+m11 c6 restored exact bytes=true sha cd9799226c42d876f9ad29a75a9293123aaccd3c3d8b45f4cd2364a4fc95d560
+m11 test rc=0 {"task":"WATER-W10-ACCEPT-M11","mode":"test","finalGate":false,"status":"passed","error":null,"receipt":"F:\\new\\smaltalk\\water\\.worktrees\\accept-w10-m11\\.local\\checks\\WATER-W10-ACCEPT-M11\\2026-11-06T16-36-59.097Z-32436-test-result.json"}
+m11 survived: none
+m11 test --final rc=0 {"task":"WATER-W10-ACCEPT-M11","mode":"test","finalGate":true,"status":"passed","error":null,"receipt":"F:\\new\\smaltalk\\water\\.worktrees\\accept-w10-m11\\.local\\checks\\WATER-W10-ACCEPT-M11\\2026-11-06T16-37-04.949Z-26736-test-result.json"}
