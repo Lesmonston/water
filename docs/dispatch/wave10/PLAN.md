@@ -391,3 +391,13 @@ WATER-W10-M6 补单 02（“以后都跳过”这一波只给单个条目，轻�
 ```text
 WATER-W10-M7 补单 01（旧形状测试迁到 IPC-M35 的新字段，中门）：读 F:/new/smaltalk/water/docs/dispatch/tickets/WATER-W10-M7-ADDENDUM-01-20261106.md，按其中列出的顺序读原单、本补单与你的回执，在 F:/new/smaltalk/water/.worktrees/w10-m7（分支 worker/water-w10-m7）从 50fb2ab4 续做；做完、提交并交回回执；受阻就停下写受阻回执。
 ```
+
+### M7 补单 02（2026-11-06）
+
+M7 补单 01 的形状迁移已做完（检查点 `cd0e5d21`），但同一字节两次完整测试都是 11/12，旧的 50 ms 断言超时，执行者按规则停下（回执 `af7fa295`）。总控核对：“排除规模”用例在旧代码上的 7 次记录是 21.6～31.0 ms，这次是 36.7 与 55.6 ms，是本单引入的变慢——`Projection::new` 给每一组预先算汇总行，`make_rows` 每组扫全部条目，而汇总行只有无结论模型时的 `group_detail` 用到。[补单 02](../tickets/WATER-W10-M7-ADDENDUM-02-20261106.md) 改为用到才算，时限不动。
+
+**WATER-W10-M7 补单 02**
+
+```text
+WATER-W10-M7 补单 02（汇总行改为用到才算，修旧 50 ms 超时，轻门）：读 F:/new/smaltalk/water/docs/dispatch/tickets/WATER-W10-M7-ADDENDUM-02-20261106.md，按其中列出的顺序读原单、补单 01、本补单与你的回执，在 F:/new/smaltalk/water/.worktrees/w10-m7（分支 worker/water-w10-m7）从 af7fa295 续做；做完、提交并交回回执；受阻就停下写受阻回执。
+```

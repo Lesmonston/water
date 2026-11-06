@@ -1686,13 +1686,23 @@
         {
           "id": "WATER-W10-M7-ADDENDUM-01",
           "ticket": "docs/dispatch/tickets/WATER-W10-M7-ADDENDUM-01-20261106.md",
-          "status": "READY",
+          "status": "BLOCKED",
           "issuedAt": "2026-11-06T07:30:03Z",
           "resumeFromCommit": "50fb2ab401f8291658c7bb6f1ed52537abddf443",
           "change": "old shape expectations for AppState, ScanProgress, CleanProgress, GroupDetail, Locations, Trends, CleanPreview and CleanResultView become old fixture plus the IPC-M35 keys, values from the mapped v2_* fixtures; shape() stays strict; card menus keep skip as frozen",
           "dispatchReportedAt": "2026-11-06T08:09:19Z",
           "model": "sol (user-reported)",
-          "dispatchEvidence": "user chat 2026-11-06 ~17:09 JST: \"界面是ASTRA，另外一单是sol\"; worker tree head/changed files 50fb2ab4/11 when recorded (last edit 17:02 JST)"
+          "dispatchEvidence": "user chat 2026-11-06 ~17:09 JST: \"界面是ASTRA，另外一单是sol\"; worker tree head/changed files 50fb2ab4/11 when recorded (last edit 17:02 JST)",
+          "blockedCommit": "af7fa295fa8a03873c6267d251305a4879ab1d29",
+          "blockedReason": "shape migration done (checkpoint cd0e5d21, 11/12); old 50 ms assertions failed twice on the same bytes (SERVICE_RETURN_BUDGET: clean_prepare; SERVICE_M3C_EXCLUDE scale prepare 55.6 ms, old code 21.6-31.0 ms): Projection::new builds summary rows for every group (views.rs 265-270, make_rows scans all items per group)"
+        },
+        {
+          "id": "WATER-W10-M7-ADDENDUM-02",
+          "ticket": "docs/dispatch/tickets/WATER-W10-M7-ADDENDUM-02-20261106.md",
+          "status": "READY",
+          "issuedAt": "2026-11-06T09:35:41Z",
+          "resumeFromCommit": "af7fa295fa8a03873c6267d251305a4879ab1d29",
+          "change": "summary rows built on first use per group and cached in the projection, not in Projection::new; optional group-to-items index and pre-parsed sort keys with byte-identical output; 50 ms limits, fixture sizes and call() timing unchanged; report the scale_ms lines against the old 21.6-31.0 ms; then finish full green, three negative controls, check/test/real finals and archive"
         }
       ]
     },
