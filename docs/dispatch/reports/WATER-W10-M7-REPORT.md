@@ -1,5 +1,7 @@
 WATER-W10-M7 任务已完成，任务报告在 F:/new/smaltalk/water/.worktrees/w10-m7/docs/dispatch/reports/WATER-W10-M7-REPORT.md
 
+**当前状态（补单 06，2026-11-06）：Codex（GPT-6）从干净的 `2917e5fc` 续做。实现提交为 `db9c9185` 与最终 `d2f642a466f18f97db8cb2ad87a7f5c0668e241d`；已修复隔离根的准备期过滤与逐批执行前检查、保留编号迁移、默认体检跳过离线盘、检查失败保留隔离记录，以及还原收尾顺序。仅在指定四个测试中追加断言，原断言和计时规则未改，仍为 12 个测试。最终提交上的三条负控均命中并立即恢复绿；干净提交的 check／test／real 三个 final 通过，archive 已完成。详见文末“补单 06”。下列各补单状态为历史记录。**
+
 **当前状态（补单 05，2026-11-06）：从 `44f22980` 续做。产品代码未改，仍为 `8b639ec450d1cc9afa941f36c14131e204fa0630`。测试 `call()` 对 11 条同步写文件命令上限 200 ms，`custom_root_add` 不计时，其余 50 ms；该测试改动已提交为 `492c9c8423eeb45ed456310971596c05bf0266fa`。官方 `check` 通过；同一字节一次完整 `test` 12/12。三条负控各红一次并立即恢复原字节再绿。干净实现提交上 `check`／`test`／`real` 三个 final 通过。`archive` 已跑。详见文末“补单 05”。**
 
 **当前状态（补单 04，2026-11-06）：从 `9aba0889` 续做。未验收实现已提交为 `8b639ec450d1cc9afa941f36c14131e204fa0630`。后台扫描／清理／查重／永久删除收尾的磁盘读写已移出状态锁，`m35::event` 已拆成锁外写文件、短锁入列。本地量到后台持锁最长 3.05 ms。官方 `check` 通过；同一字节官方 `test` 12/12、11/12（`conclusion_decide`）、原样重跑 12/12、再 11/12（`cluster_mark_fixed`），累计两次失败，按补单停止。负控、三个 final 和真实冒烟未运行。详见文末“补单 04”。**
@@ -607,3 +609,116 @@ finished in 29.27s
 
 归档索引：`docs/acceptance/wave10/m7/ARCHIVE.json`，**1319** 个检查器生成证据文件，合计 **36,629,843** 字节；由 `--mode archive` 按原字节复制。归档器自身本次 result（`2026-11-06T13-03-17.046Z-10820-archive-result.json`，SHA-256 `b3873838c34862ddc1d814886e60c05cef78eabaf9b9e7bb5b872693d2526e08`）在复制完成后才生成，故不计入本索引。
 
+## 补单 06
+
+### 现场、身份与提交
+
+- 实际执行者：Codex（GPT-6）；没有启动子代理、worker 或其它执行者。
+- 唯一工作树为 `F:/new/smaltalk/water/.worktrees/w10-m7`，分支 `worker/water-w10-m7`；开工 HEAD 为 `2917e5fc30ba532f8fd3d0ac843fb25ffd6d6f1b`，`git status --short` 为空。依次读取权威路径上的原单、补单 01～05、补单 06 与本回执；没有合并或复制票面到本树。
+- 实现提交 `db9c9185753048d87c872f822283bba501cc6926`：本补单修复及断言。随后追加最终实现提交 `d2f642a466f18f97db8cb2ad87a7f5c0668e241d`：核对根时保留平台原始的 `QuarantineTarget.base`，Windows 继续传 `None`，测试平台继续使用 `.local` 下的 `Some(base)`。未改写任何旧提交。
+- 两个实现提交相对续做起点只改服务的 `src/{clean,dedupe,m35,quarantine,service}.rs` 与 `tests/service_v1.rs`，共 +713/−73。提交身份仅在提交进程中设置为 `Codex (GPT-6) <codex-gpt-6@localhost>`；未改 Git 配置。
+- 本次没有重跑 baseline，也没有重做补单 03／04 已有的临时性能测量。最初裸 `cargo fmt` 因 cargo 不在 PATH 而未执行，之后使用 `C:/Users/37310/.cargo/bin/rustup.exe which cargo --toolchain 1.95.0` 定位工具，格式化成功；没有安装或下载。
+
+### 补单逐项实现与新增验证
+
+1. **不能隔离的盘在准备期排除。** `quarantine::registered_target` 将平台的 `quarantine_base` 解析成实际根，与 `quarantine_roots()` 不分 ASCII 大小写比较；`registered_base` 与 `save_moves` 共用此谓词。`clean::prepare_mode` 仅在结论来源且模式为 quarantine 时排除这类盘上的“你选的”条目；组、数量、总字节、按盘字节、chosen 字节和行都按过滤后内容生成。按盘写中文提示；保留会话说明，用“；”连接。全部过滤为空仍返回 invalid；有直接删除项但所选项全被排除时保留零体量的 chosen 对象以展示原因。delete 模式不受影响。准备时每个盘只查询一次，避免逐项枚举盘列表。
+2. **查重准备期同样排除。** `dedupe::prepare` 在生成副本计划前核对登记根，不计入被排除副本的数量与字节。全空时 invalid，message_zh 包含盘符与不能放进隔离区的原因；混合计划的说明也写入 chosen.note_zh。
+3. **逐批执行前再次核对。** `clean::start` 每批调用 quarantine 前重新取得已登记的目标，未通过就完全不调用执行器；该批每项写为 failed／quarantine_unavailable，零移动字节、无目的地和新身份，推进完成数量，结果组显示失败及中文原因。通过时将同一次核对取得的原始 target 交给执行器。没有引入“先挪后查”的旁路；保存报告仍使用同一核对逻辑。
+4. **保留 common。** `add_root` 把 common 当作已占用，按原后缀规则生成 common-2 等。`load_settings` 先汇集全部现存编号，再把历史 common 改为下一个空闲编号，避免抢占后面的 common-2；迁移后只保存一次设置。
+5. **默认范围跳过当前不存在的位置。** `m35::scope` 仅对隐式 `{}` 范围过滤不在 home 中的编号，继续扫描其它位置；显式 locationIds 中含未知编号仍返回 invalid。
+6. **检查失败保留记录。** 列表一旦列出编号目录，就先把它记入 dirs，再调用 inspect。inspect 报错或本轮检查发现目录已消失，都不能据此删记录；只有后续成功列表不再列出该目录时才删除。`refresh_with` 将同一核对流程的检查函数参数化；生产固定传入依赖包的 inspect，测试传入报错的假检查函数，没有产品故障开关。
+7. **还原最后才空闲。** `quarantine::restore` 在记录改写／删除、事件保存、隔离区刷新全部完成后才设置 idle 并清空 stop。整个收尾在 catch_unwind 内，错误／panic 也会释放忙碌状态；磁盘操作始终不持有状态锁。没有额外新增还原并发测试，既有冲突／旁边还原测试全部通过。
+
+新增断言都在票面指定的原测试函数内，使用对应标记：
+
+| 测试 | 新增覆盖 |
+|---|---|
+| m35_clean_split / SERVICE_M35_CLEAN | 不可隔离盘准备期过滤、chosen／total／count／by_drive 不多计、会话提示连接、全空 invalid、delete 模式仍执行；准备后根不再登记时逐项失败、原因与进度；查重同样拒绝或逐批失败；原文件存在且大小不变、隔离目录未创建、执行器的 guard 没收到被拒绝批次 |
+| m35_scope_and_plan / SERVICE_M35_SCOPE | common 新编号、home 编号唯一、该文件夹确实产生扫描组；历史 common 与已占用 common-2 迁移成 common-3 并落盘、仍可扫描；默认范围跳过已存但不在 home 的 drive-z、保留其它位置，显式传入仍 invalid；没有声明保护时带扩展前缀的条目仍可清 |
+| m35_quarantine / SERVICE_M35_QUARANTINE | 已列出目录的 inspect 假错误后，磁盘记录逐字节不变、缓存保留；下次正常检查仍是可还原卡；从列表移除该合成目录后才删记录 |
+| m35_conclusion_cards / SERVICE_M35_CONCLUSION | 合成扫描记录含四个被引用条目产生四条线索，结论恰好展示三条，more_clues 为 1 |
+
+测试文件相对 `2917e5fc` 的 diff 为 **+535/−0**；没有删除或改动原断言，没有新增测试函数，`#[test]` 仍为精确 12 个。call() 的计时方式及 11 条同步写文件命令的 200 ms 名单逐字保留，custom_root_add 不计时，其余原时限不变。查重夹具按实际结束时间对齐假时钟，再留足一小时；没有新增依赖机器速度的等待或重试。
+
+所有新物理夹具都由既有 Fixture 在本树 `.local/w3-f1-fixtures/service-<随机值>` 内新建并按既有边界校验回收。即使模拟根不可用，也保留显式的合成 base，回归时不会写真实盘根；inspect 错误用假函数产生，不改 ACL、不造文件系统竞态。Z 盘仅是内存中的离线编号，默认扫描不会访问它。
+
+### SERVICE-M35 与原单补充对照
+
+| SPEC 节 | 本次状态 |
+|---|---|
+| 1～2 边界与 Platform | 公开接口、依赖、FFI 不变；只有服务内部增加根核对与 inspect 参数化函数；Windows base=None 保留 |
+| 3 设置 | 修复保留编号迁移；旧 v1/v2→v3 行为仍由原测试覆盖 |
+| 4 体检 | 默认范围容忍离线的已存位置；显式范围严格校验；补扩展路径无声明的反面断言 |
+| 5 结论 | 生产结论算法未改，补四条线索验证上限与剩余数 |
+| 6 清理 | 增加准备过滤及逐批执行前核对；原两块划分、令牌、解锁与记录格式不变 |
+| 7 隔离区 | inspect 失败不删记录，restore 收尾先保存／刷新再 idle；既有还原／永久删除回归通过 |
+| 8 查重 | 准备期过滤不可隔离盘副本，清理复用同一逐批检查 |
+| 9～10 设置、趋势 | 本补单未改业务行为，完整套件回归通过 |
+| 11～12 测试、负控、real | 精确 12 个测试、三条新提交负控及恢复、三个 final、一次清理关闭的 real 全部完成 |
+
+原单第 2 节六条补充继续保留：路径统一与非本地保护、声明目录上级保护、collected_at 的 RFC 3339 转换、安装程序宽松核对、日志失败不报成功及重新核对、未实现 SERVICE-M35-ADD-01。它们的原有断言随完整 12 测试通过；本次仅为第一条补了“扩展前缀但无声明时仍可清”的断言。
+
+六个依赖包未修改；本补单新使用的 QuarantineTarget、MoveReport、MoveError::QuarantineUnavailable、QuarantineReport 与 inspect 均已有，实际签名可直接满足本次调用，没有发现新的签名／契约冲突。原有接口差异仍见补单 01，并未把本次有限核对说成重新审阅全部六包。
+
+### 检查命令与结果
+
+以下都在唯一工作树根执行，命令前缀为 `node F:/new/smaltalk/water/scripts/desktop-wave-check.mjs --task WATER-W10-M7`，模式和 final 标志如下。每次测试／负控／final 前按进程名检查 cargo、rustc、rustup、node、clippy，均未见其它检查进程；没有读取或输出命令行。所有检查器退出码均为 0；负控内部 cargo test 以 101 退出并命中目标，是预期的红灯。
+
+所有下表文件均在归档的 `docs/acceptance/wave10/m7/receipts/`；本次 archive-result 在复制之后才生成，保留在 `.local/checks/WATER-W10-M7/`，不冒充已在本次索引内。
+
+| 回执文件 | 模式与结果 |
+|---|---|
+| 2026-11-06T14-04-12.537Z-22792-lock-result.json | lock 通过 |
+| 2026-11-06T14-04-20.616Z-32684-check-result.json | 初版 check 通过，fmt／clippy -D warnings |
+| 2026-11-06T14-04-38.135Z-14236-test-result.json | 初版完整 test 12/12 |
+| 2026-11-06T14-06-25.904Z-24020-check-result.json | 加每盘准备缓存后 check 通过 |
+| 2026-11-06T14-06-47.836Z-31840-test-result.json | 同上 test 12/12，随后提交 db9c9185 |
+| 2026-11-06T14-08-35.996Z-16308-red-nc1-result.json | db9c9185 的 nc1 目标命中，9 passed／3 failed；仅历史证据 |
+| 2026-11-06T14-10-04.225Z-35240-test-result.json | 上条立即恢复后的 test 12/12 |
+| 2026-11-06T14-12-13.045Z-31556-check-result.json | 保留原始 target 后 check 通过 |
+| 2026-11-06T14-12-33.685Z-20696-test-result.json | 最终字节完整 test 12/12，随后提交 d2f642a4 |
+| 2026-11-06T14-14-43.732Z-18136-red-nc1-result.json | 最终提交 nc1 命中，8 passed／4 failed，详见下文 |
+| 2026-11-06T14-16-12.662Z-4768-test-result.json | nc1 立即恢复后 test 12/12 |
+| 2026-11-06T14-18-26.379Z-35392-red-nc2-result.json | 最终提交 nc2 命中，11 passed／1 failed |
+| 2026-11-06T14-20-11.298Z-35744-test-result.json | nc2 立即恢复后 test 12/12 |
+| 2026-11-06T14-22-10.135Z-36200-red-nc3-result.json | 最终提交 nc3 命中，11 passed／1 failed |
+| 2026-11-06T14-23-24.063Z-29956-test-result.json | nc3 立即恢复后 test 12/12 |
+| 2026-11-06T14-24-51.329Z-35232-check-result.json | 干净 d2f642a4，check --final 通过 |
+| 2026-11-06T14-24-57.393Z-21432-test-result.json | 同一干净提交，test --final 12/12，proofAudit 三条全部通过 |
+| 2026-11-06T14-26-09.320Z-11272-real-result.json | 同一干净提交，real --final 通过 |
+| 2026-11-06T14-27-57.012Z-23272-archive-result.json | archive 通过 |
+
+没有非负控的完整测试失败，没有使用补单 05 的计时失败重跑额度。最终三个 final 前后 HEAD 都是 d2f642a4，工作树都干净；其间没有修改产品或测试。
+
+最终稳定 `productionHash`：`ccdb5318ca85cb14f87245ff3e0f7a805a1a286c252844869f59ad5267fb1f91`；`testHash`：`96691219061abc0bfe29bbb221bf403c20a0f0c6a092e56190693137b4002a6b`。三次恢复绿及三个 final 均为这份字节。最终文件 SHA-256：
+
+| 文件 | SHA-256 |
+|---|---|
+| src/clean.rs | 2081b6d6af14f4d1c93552ec274c353ed782e426ba866451b241599d36735dc9 |
+| src/dedupe.rs | 88d102b0df6c8adf8f57c5568d47908a72361050251f11b0a1a968feeb04c3c3 |
+| src/m35.rs | 2e4a5d8d7738acbca1ae515cc1345dc48f4845e622138b7946593a855f7df73c |
+| src/quarantine.rs | d812cbc22c27b7832eda9aacbfe3a9dbf68566a641fe69a1f403aa9cb957181d |
+| src/service.rs | 412665a7c970d8d8aba56ff02ebd2ee874b251695a1cfa26b9c14ae8ea0f315a |
+| tests/service_v1.rs | 43934baddfc153560d979c5d98400d976f63f57511247b92e70828258771c4f4 |
+
+关键回执 SHA-256：check final `b9c0b3e9c65ab5bef882783526ca140294c8a9de00584d7cdfb922625ff32491`；test final `decd521bd96f2395008096a0df0fbcf0460670ed4c09e365e8b34f43758fa393`；real final `62667f069b16442c7cebf09de632c47d68ab3007e4e633cc87e86800791caeda`。
+
+### 最终提交上的三条负控
+
+每条只改一个生产位置，测试未改；完成后立即 `git checkout -- <该文件>`，记录恢复后的 SHA-256，再跑完整 test。最终 test --final 的 proofAudit 精确引用下列三对。
+
+1. **nc1 / SERVICE_M35_CLEAN**：`src/clean.rs` 的 `let quarantine_mode=stored["chosen_mode"]=="quarantine";` 改成 false，让“你选的”也走 execute。首个失败为 m35_clean_split 的 `SERVICE_M35_CLEAN: must move chosen`。另有 m35_quarantine、m35_trends_history 受同一故障影响；同轮更靠后的旧 service_clean_flow 还因 `SERVICE_M3C_SKIP: add "i-000051" took 123.8253ms` 失败，这个计时失败不当作负控证据，也没有修改其旧断言。立即恢复后的完整测试和后续 final 都为 12/12。恢复 clean.rs 的 SHA-256 为上表 2081b6d6…。
+2. **nc2 / SERVICE_M35_CONCLUSION**：`src/conclusion.rs` 的卡片 `.take(5)` 改成 `.take(6)`。仅 m35_conclusion_cards 的 `SERVICE_M35_CONCLUSION: cap` 失败。恢复 SHA-256 `65b71998678c1bff26e1b587c8ede3754d5eda8640ef0a7b998c4fef21d882a8`，立即完整 12/12。
+3. **nc3 / SERVICE_M35_SCOPE**：`src/m35.rs` 的 `manifest::to_targets(parsed, &m.dir, trusted)` 改成最后参数 true。仅 m35_scope_and_plan 的 `SERVICE_M35_SCOPE: common leaked into folder scope` 失败。恢复 m35.rs 的 SHA-256 为上表 2e4a5d8d…，立即完整 12/12。
+
+proofAudit 的 red→restored 分别是：14:14:43→14:16:12、14:18:26→14:20:11、14:22:10→14:23:24（完整文件名见上表）。较早在 db9c9185 上做的 nc1 不用于最终字节的证明。
+
+### 真实冒烟、遗留与未验证
+
+- 本次只运行一次 real --final：cards 5、clues 3、conclusion_rows 13、drives 4、folds 3、quarantine_cards 0。清理开关关闭，只读常用位置，输出只有计数；没有真实清理、移动、还原或永久删除。
+- 补单第 7 节四条遗留均未改：抽屉“上次没清完”的勾选与计划不一致；只有泄漏卡能复制且线索可能不在前三条；conclusion_decide 写设置锁内仍找 .git；标记已修后的卡片证据仍按全部成员计数。
+- 不可隔离盘与准备后离线由假平台在同一物理盘的合成夹具中模拟，不能冒充真实 U 盘／映射盘／拔插验收。没有实测执行器运行中拔盘、生产并发、断电重启竞态，也没有新增还原写盘窗口的并发测试。
+- 原有真实双盘移动、真实声明范围、长列表极值、所有查重取消／保留数量边界与 macOS 等未验证项继续保留，未因本次 12/12 而宣称已完成。
+- 契约、样例、检查器、台账、其它包、Cargo.toml、Cargo.lock、系统函数与白名单均未改。未开窗口、选择框、浏览器，未联网或下载，未 push、改远端、合主线或改写提交。
+
+归档索引 `docs/acceptance/wave10/m7/ARCHIVE.json`：**1703** 个检查器生成证据文件、**49,554,811** 字节；历史证据保留，本次由 archive 原字节复制。当前 archive-result 的 SHA-256 为 `0869f09231f14a8a6e23a3184fda595e79c6c756de42249ccffc8389512cacf1`，在复制后生成，因此不计入这 1703 个文件。交回提交仅包含本回执与检查器生成的证据。
