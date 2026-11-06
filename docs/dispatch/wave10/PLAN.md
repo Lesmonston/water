@@ -374,3 +374,20 @@ M1、M2、M3、M4、M8、M9 与宿主 M5 都已合入，服务单从合入后的
 ```text
 WATER-W10-M7（服务：算结论、分两块清理、管隔离区与查重，中门，含只读真实冒烟）：读 F:/new/smaltalk/water/docs/dispatch/tickets/WATER-W10-M7-SERVICE-20261106.md，按其中“先读”的顺序读工作规则、SPEC 与总控补充、IPC-M35、仍然有效的契约和六个包的接口，在 F:/new/smaltalk/water/.worktrees/w10-m7（分支 worker/water-w10-m7）从 b4b889a9 开工；做完、提交并交回回执；受阻就停下写受阻回执。
 ```
+
+### M6 补单 02、M7 补单 01（2026-11-06）
+
+- **M6**（回执 `e63161cf`）补单 01 解除了看设计稿的矛盾，但又查出一处契约缺口，成立：卡片与抽屉汇总行要“以后都跳过”，接口只有按单个条目的 `skip_add {itemId}`，拼不出整组、整行跳过。[补单 02](../tickets/WATER-W10-M6-ADDENDUM-02-20261106.md) 定为这一波只给真实条目（逐项行与展开后的单项）。整组、整行跳过记为后续，要另定接口。
+- **M7**（回执 `50fb2ab4`）受阻成立：IPC-M35 给八种旧返回值加了字段，旧的严格形状测试比的是旧样例，SPEC 没有授权迁移，与 SERVICE-M3C-ADD-01 当年同一类。[补单 01](../tickets/WATER-W10-M7-ADDENDUM-01-20261106.md) 授权改为“旧样例加新键”，新键的值从对应的 `v2_*` 样例取，`shape()` 照旧严格。
+
+**WATER-W10-M6 补单 02（界面单）**
+
+```text
+WATER-W10-M6 补单 02（“以后都跳过”这一波只给单个条目，轻门）：读 F:/new/smaltalk/water/docs/dispatch/tickets/WATER-W10-M6-ADDENDUM-02-20261106.md，按其中列出的顺序读原单、补单 01、本补单与你的回执，在 F:/new/smaltalk/water/.worktrees/w10-m6（分支 worker/water-w10-m6）从 e63161cf 续做；做完、提交并交回回执；受阻就停下写受阻回执。
+```
+
+**WATER-W10-M7 补单 01**
+
+```text
+WATER-W10-M7 补单 01（旧形状测试迁到 IPC-M35 的新字段，中门）：读 F:/new/smaltalk/water/docs/dispatch/tickets/WATER-W10-M7-ADDENDUM-01-20261106.md，按其中列出的顺序读原单、本补单与你的回执，在 F:/new/smaltalk/water/.worktrees/w10-m7（分支 worker/water-w10-m7）从 50fb2ab4 续做；做完、提交并交回回执；受阻就停下写受阻回执。
+```

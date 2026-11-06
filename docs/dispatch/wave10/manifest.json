@@ -1388,17 +1388,27 @@
         "previousBase": "f93afb8e3c5cf4114927fe2ab6c14dbb033c7ffe",
         "reason": "user 11-06 dropped the iceberg visuals and approved design v3 (\"可以，定稿吧\"); UI-M35 revised for looks only (06d266d1); frozen hashes taken from the w10-m6 checkout so line endings match"
       },
-      "blockedAt": "2026-11-06T06:41:45Z",
-      "blockedCommit": "920afafa68099da57d1d3385ca3e7585bb6bbfa7",
-      "blockedReason": "ticket asked to open the v3 mockup in a browser before coding, but the same ticket allows a browser only in browser mode, which the token policy stops until styles/tokens.css is replaced; controller fault",
+      "blockedAt": "2026-11-06T07:30:03Z",
+      "blockedCommit": "e63161cfa0957be3e72ce7975783fcaa305d5bc7",
+      "blockedReason": "preview block resolved; new contract gap: cards and summary rows ask for \"skip from now on\" but skip_add only takes a single item id",
       "addenda": [
         {
           "id": "WATER-W10-M6-ADDENDUM-01",
           "ticket": "docs/dispatch/tickets/WATER-W10-M6-ADDENDUM-01-20261106.md",
-          "status": "READY",
+          "status": "BLOCKED",
           "issuedAt": "2026-11-06T06:41:45Z",
           "resumeFromCommit": "920afafa68099da57d1d3385ca3e7585bb6bbfa7",
-          "change": "read the eleven v3 preview PNGs and the mockup source instead of opening a browser; no extra browser; replace styles/tokens.css first so check, test and browser modes can run"
+          "change": "read the eleven v3 preview PNGs and the mockup source instead of opening a browser; no extra browser; replace styles/tokens.css first so check, test and browser modes can run",
+          "blockedCommit": "e63161cfa0957be3e72ce7975783fcaa305d5bc7",
+          "blockedReason": "preview block resolved; new contract gap: cards and summary rows ask for \"skip from now on\" but skip_add only takes a single item id"
+        },
+        {
+          "id": "WATER-W10-M6-ADDENDUM-02",
+          "ticket": "docs/dispatch/tickets/WATER-W10-M6-ADDENDUM-02-20261106.md",
+          "status": "READY",
+          "issuedAt": "2026-11-06T07:30:03Z",
+          "resumeFromCommit": "e63161cfa0957be3e72ce7975783fcaa305d5bc7",
+          "change": "no whole-card or whole-row \"skip from now on\" this wave: card menus ignore skip, r: rows and m: units only expand; skip_add only with a real item id (per-item drawer rows of groups with at most 8 items, expanded items); new assertions in ui_v2_conclusion and ui_v2_drawer_details"
         }
       ]
     },
@@ -1549,7 +1559,7 @@
       "branch": "worker/water-w10-m7",
       "baseCommit": "b4b889a9412c47d8227c492eb76ef053fbd2b9c2",
       "snapshotRef": "refs/tags/water-w10-m7-base-20261106",
-      "status": "READY",
+      "status": "BLOCKED",
       "readyOn": "2026-11-06",
       "dispatchedAt": null,
       "startedAt": null,
@@ -1665,7 +1675,20 @@
         "SERVICE-M35-ADD-01 dropped (iceberg gone, UI draws only existing fields)"
       ],
       "baselineStatus": "PASSED",
-      "baselineEvidence": "docs/acceptance/wave10/controller/preflight-20261106/m7/2026-11-06T06-54-54.178Z-30776-baseline-result.json"
+      "baselineEvidence": "docs/acceptance/wave10/controller/preflight-20261106/m7/2026-11-06T06-54-54.178Z-30776-baseline-result.json",
+      "blockedAt": "2026-11-06T07:30:03Z",
+      "blockedCommit": "50fb2ab401f8291658c7bb6f1ed52537abddf443",
+      "blockedReason": "IPC-M35 adds keys to eight old return values but the strict shape() tests compare them with the old fixtures and SERVICE-M35 section 11 did not authorise migrating them",
+      "addenda": [
+        {
+          "id": "WATER-W10-M7-ADDENDUM-01",
+          "ticket": "docs/dispatch/tickets/WATER-W10-M7-ADDENDUM-01-20261106.md",
+          "status": "READY",
+          "issuedAt": "2026-11-06T07:30:03Z",
+          "resumeFromCommit": "50fb2ab401f8291658c7bb6f1ed52537abddf443",
+          "change": "old shape expectations for AppState, ScanProgress, CleanProgress, GroupDetail, Locations, Trends, CleanPreview and CleanResultView become old fixture plus the IPC-M35 keys, values from the mapped v2_* fixtures; shape() stays strict; card menus keep skip as frozen"
+        }
+      ]
     },
     {
       "id": "WATER-W10-M8",
