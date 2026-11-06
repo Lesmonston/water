@@ -155,14 +155,17 @@ struct Engine<'a> {
 }
 
 impl<'a> Engine<'a> {
+    fn budget_exhausted(&self) -> bool {
+        self.visited > self.options.max_entries
+            || self.started.elapsed() > Duration::from_secs(self.options.max_seconds)
+    }
+
     fn stopped(&mut self, group_id: &str) -> bool {
         if self.cancel.is_cancelled() {
             self.status = "cancelled";
             return true;
         }
-        if self.visited > self.options.max_entries
-            || self.started.elapsed() > Duration::from_secs(self.options.max_seconds)
-        {
+        if self.budget_exhausted() {
             // Recorded once per group, not once per call.
             if !self
                 .issues
@@ -1045,14 +1048,30 @@ pub fn scan_full(
             fallbacks[main] = Some(index);
         }
     }
-    let (mut hits, searches) = streaming::walk(&mut engine, plan, &fallbacks);
+    let streaming::WalkResult {
+        mut hits,
+        searches,
+        discovery_issues,
+    } = streaming::walk(&mut engine, plan, &fallbacks);
     let guard_hits = hits.clone();
     let mut expanded = plan.clone();
-    let clusters = if extras.leak_clusters {
-        build_clusters(&mut engine, &mut hits, &mut expanded, searches)
-    } else {
-        BTreeMap::new()
-    };
+    let clusters =
+        if extras.leak_clusters && !engine.budget_exhausted() && engine.status != "cancelled" {
+            build_clusters(&mut engine, &mut hits, &mut expanded, searches)
+        } else {
+            BTreeMap::new()
+        };
+    let final_discoveries: HashSet<_> = hits
+        .iter()
+        .map(|hit| (hit.path.to_ascii_lowercase(), hit.target_index))
+        .collect();
+    for row in discovery_issues {
+        if final_discoveries.contains(&(row.path, row.index)) {
+            for code in row.codes {
+                engine.add_issue(code, &plan.targets[row.index].group_id);
+            }
+        }
+    }
     let plan = &expanded;
     crate::extras::resolve_junctions(&mut engine.extras);
     engine
@@ -1323,7 +1342,9 @@ fn build_clusters(
         if engine.stopped(&group) {
             break;
         }
-        if claimed(&member_paths, &parent.to_ascii_lowercase()) {
+        if claimed(&member_paths, &parent.to_ascii_lowercase())
+            || claimed(&exact, &parent.to_ascii_lowercase())
+        {
             continue;
         }
         let mut templates: BTreeMap<(String, String), Vec<streaming::ClusterMember>> =

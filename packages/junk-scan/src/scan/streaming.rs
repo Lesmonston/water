@@ -13,6 +13,71 @@ pub(super) struct ClusterSearch {
     pub members: Vec<ClusterMember>,
 }
 
+pub(super) struct DiscoveryIssues {
+    pub path: String,
+    pub index: usize,
+    pub codes: Vec<&'static str>,
+}
+
+pub(super) struct WalkResult {
+    pub hits: Vec<Hit>,
+    pub searches: Vec<ClusterSearch>,
+    pub discovery_issues: Vec<DiscoveryIssues>,
+}
+
+fn outside_git(path: &str) -> bool {
+    !path
+        .split('\\')
+        .any(|part| part.eq_ignore_ascii_case(".git"))
+}
+
+// Pending search directories are separate from pending measurements. A target
+// may finish searching while its last hit is still being measured.
+fn search_indices(plan: &ScanPlan, path: &str, closed: &[usize]) -> Vec<usize> {
+    if !outside_git(path) {
+        return vec![];
+    }
+    plan.targets
+        .iter()
+        .enumerate()
+        .filter_map(|(i, target)| {
+            let active = match &target.match_spec {
+                Match::Pattern { base, segments, .. } => {
+                    !ignored_root(base)
+                        && relative(base, path).is_some_and(|parts| {
+                            parts.len() < segments.len()
+                                && parts
+                                    .iter()
+                                    .zip(segments)
+                                    .all(|(part, segment)| match_segment(segment, part))
+                        })
+                }
+                Match::Marker {
+                    root,
+                    max_depth,
+                    fallback_for: None,
+                    ..
+                } => {
+                    !ignored_root(root)
+                        && !closed.contains(&i)
+                        && relative(root, path)
+                            .is_some_and(|parts| parts.len() <= *max_depth as usize)
+                }
+                Match::Discovery { root } => !ignored_root(root) && path_eq(root, path),
+                _ => false,
+            };
+            active.then_some(i)
+        })
+        .collect()
+}
+
+fn complete_search_at(remaining: &mut [HashSet<String>], path: &str) {
+    let key = path.to_ascii_lowercase();
+    for paths in remaining {
+        paths.remove(&key);
+    }
+}
+
 enum Purpose {
     Target(usize),
     Candidate,
@@ -257,9 +322,11 @@ pub(super) fn walk(
     engine: &mut Engine<'_>,
     plan: &ScanPlan,
     fallbacks: &[Option<usize>],
-) -> (Vec<Hit>, Vec<ClusterSearch>) {
+) -> WalkResult {
     let mut hits = vec![];
     let mut searches = vec![];
+    let mut discovery_issues = vec![];
+    let mut remaining = vec![HashSet::<String>::new(); plan.targets.len()];
     let mut suppressed = HashSet::new();
     let mut deferred = vec![];
     let mut roots = BTreeMap::<String, (String, Vec<usize>)>::new();
@@ -277,9 +344,10 @@ pub(super) fn walk(
             Match::Pattern { base, .. } => base,
             Match::Marker { root, .. } | Match::Discovery { root } => root,
         };
-        if ignored_root(root) || file_name(root).eq_ignore_ascii_case(".git") {
+        if ignored_root(root) || !outside_git(root) {
             continue;
         }
+        remaining[i].insert(root.to_ascii_lowercase());
         roots
             .entry(root.to_ascii_lowercase())
             .or_insert_with(|| (root.clone(), vec![]))
@@ -310,6 +378,7 @@ pub(super) fn walk(
                 engine.index_junction(c);
             }
             for i in indices {
+                remaining[*i].clear();
                 engine.add_issue(code, &plan.targets[*i].group_id);
                 if let Some(f) = fallbacks[*i] {
                     engine.add_issue(code, &plan.targets[f].group_id);
@@ -391,7 +460,10 @@ pub(super) fn walk(
                     let mut discoveries = vec![];
                     let mut custom: Option<(usize, usize)> = None;
                     let mut custom_descend = false;
-                    for (index, target) in plan.targets.iter().enumerate() {
+                    let search_allowed = outside_git(&dir.path);
+                    for (index, target) in
+                        plan.targets.iter().enumerate().filter(|_| search_allowed)
+                    {
                         let target_root = match &target.match_spec {
                             Match::Pattern { base, .. } => base,
                             Match::Marker { root, .. } | Match::Discovery { root } => root,
@@ -479,6 +551,7 @@ pub(super) fn walk(
                                 || marker_matches(&dir.path, marker, &[])
                         });
                     if !needs_listing {
+                        complete_search_at(&mut remaining, &dir.path);
                         continue;
                     }
                     let listing_group = format!("@listing:{}", dir.path);
@@ -553,6 +626,11 @@ pub(super) fn walk(
                         .iter()
                         .find_map(|id| owner(&pending[id], plan, fallbacks))
                         .map_or(group, |i| plan.targets[i].group_id.clone());
+                    // A marker closes its search at this directory even when
+                    // the measurement's issue ultimately belongs to a fallback.
+                    for index in &closed {
+                        remaining[*index].remove(&dir.path.to_ascii_lowercase());
+                    }
                     if listing_budget || engine.stopped(&group) {
                         engine.stopped(&group);
                         break;
@@ -680,7 +758,9 @@ pub(super) fn walk(
                                 needs_pattern = true;
                             }
                         }
-                        for (index, target) in plan.targets.iter().enumerate() {
+                        for (index, target) in
+                            plan.targets.iter().enumerate().filter(|_| search_allowed)
+                        {
                             if closed.contains(&index) {
                                 continue;
                             }
@@ -789,7 +869,8 @@ pub(super) fn walk(
                             }
                         } else if child.kind == Kind::Reparse {
                             for (i, target) in plan.targets.iter().enumerate() {
-                                if !closed.contains(&i)
+                                if search_allowed
+                                    && !closed.contains(&i)
                                     && matches!(&target.match_spec, Match::Marker { root, fallback_for: None, max_depth, .. }
                                     if relative(root, &dir.path).is_some_and(|p| p.len() < *max_depth as usize && p.iter().all(|part| !part.eq_ignore_ascii_case(".git"))))
                                 {
@@ -809,6 +890,14 @@ pub(super) fn walk(
                     if engine.stopped(&group) {
                         break;
                     }
+                    complete_search_at(&mut remaining, &dir.path);
+                    for frame in &child_frames {
+                        if let Frame::Enter { child, closed, .. } = frame {
+                            for index in search_indices(plan, &child.path, closed) {
+                                remaining[index].insert(child.path.to_ascii_lowercase());
+                            }
+                        }
+                    }
                     stack.push(Frame::Exit {
                         path: dir.path,
                         starts,
@@ -823,9 +912,16 @@ pub(super) fn walk(
             break;
         }
     }
+    let mut budget_groups = HashSet::new();
+    for (index, paths) in remaining.iter().enumerate() {
+        if !paths.is_empty() {
+            budget_groups.insert(plan.targets[index].group_id.clone());
+        }
+    }
     for (_, row) in pending {
         if let Purpose::Target(primary) = row.purpose {
             let i = owner(&row, plan, fallbacks).unwrap_or(primary);
+            budget_groups.insert(plan.targets[i].group_id.clone());
             for code in row.issues {
                 engine.add_issue(code, &plan.targets[i].group_id);
             }
@@ -855,7 +951,7 @@ pub(super) fn walk(
         Purpose::Target(i) => (i, row.child.path.to_ascii_lowercase()),
         _ => unreachable!(),
     });
-    for row in deferred {
+    for mut row in deferred {
         let Purpose::Target(index) = row.purpose else {
             unreachable!()
         };
@@ -871,6 +967,11 @@ pub(super) fn walk(
                 .is_some_and(|p| p.starts_with(&prefix))
         {
             covered.insert(path);
+            discovery_issues.push(DiscoveryIssues {
+                path: row.child.path.to_ascii_lowercase(),
+                index,
+                codes: std::mem::take(&mut row.issues),
+            });
             finish(
                 engine,
                 &mut hits,
@@ -893,5 +994,20 @@ pub(super) fn walk(
             engine.emit(&target.group_id, target.category, true);
         }
     }
-    (hits, searches)
+    // Local stopping checks use provisional groups. Replace their budget
+    // records with the complete set of unfinished searches and final owners.
+    let exhausted = engine.budget_exhausted() && engine.status != "cancelled";
+    engine
+        .issues
+        .retain(|issue| issue.code != "budget_exhausted");
+    if exhausted {
+        for group in budget_groups {
+            engine.add_issue("budget_exhausted", &group);
+        }
+    }
+    WalkResult {
+        hits,
+        searches,
+        discovery_issues,
+    }
 }

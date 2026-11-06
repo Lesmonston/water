@@ -334,6 +334,7 @@ fn scan_pattern_marker_discovery() {
     m35_markers();
     m35_clusters();
     m35_clusters_addendum();
+    m35_clusters_addendum02();
     check_m3d_conditions();
     check_unique_bytes();
     let fx = Fixture::create();
@@ -3190,6 +3191,452 @@ fn m35_clusters_addendum() {
             .any(|i| i.group_id == nested_group_id(&fx.p("loc/rejected"))
                 && i.code == "unrepresentable_name"),
         "SCAN_M35_CLUSTERS: selected cluster retains measurement issues"
+    );
+}
+
+fn m35_clusters_addendum02() {
+    let fx = Fixture::create();
+    let now = SystemTime::now();
+    let extras = ExtrasOptions {
+        leak_clusters: true,
+        declarations: true,
+        ..ExtrasOptions::default()
+    };
+    for (case, base_rel, repo_rel, segments) in [
+        (
+            "middle",
+            "middle",
+            "middle/claude/.GiT",
+            json!(["claude", "*", "*"]),
+        ),
+        ("first", "first/base", "first/base/.git", json!(["*", "*"])),
+    ] {
+        write_file(&fx.join(&format!("{repo_rel}/objects/data")), b"object");
+        write_file(&fx.join(&format!("{repo_rel}/refs/data")), b"refs");
+        write_file(&fx.join(&format!("{repo_rel}/.water-cleanup.json")), b"{}");
+        for i in 0..12 {
+            write_file(&fx.join(&format!("{repo_rel}/verify-A{i:05}/data")), b"x");
+        }
+        let measured_rel = if case == "middle" {
+            "middle/claude"
+        } else {
+            "first/base"
+        };
+        let root_rel = if case == "middle" { "middle" } else { "first" };
+        let measured_name = if case == "middle" { "claude" } else { "base" };
+        let rows = vec![
+            target(
+                "git-discovery",
+                "confirm",
+                "system_temp",
+                json!({"kind":"discovery","root":fx.p(root_rel)}),
+                "any",
+                0,
+                0,
+            ),
+            target(
+                "git-pattern",
+                "confirm",
+                "custom",
+                json!({"kind":"pattern","base":fx.p(base_rel),"segments":segments}),
+                "any",
+                0,
+                0,
+            ),
+            target(
+                "git-measure",
+                "confirm",
+                "custom",
+                json!({"kind":"pattern","base":fx.p(root_rel),"segments":[measured_name]}),
+                "dir",
+                0,
+                0,
+            ),
+            m35_marker_target(
+                "git-marker",
+                &fx.p(repo_rel),
+                json!({"kind":"dir_name","names":["objects"]}),
+                None,
+                "dir",
+            ),
+            m35_marker_target(
+                "git-files",
+                &fx.p(repo_rel),
+                json!({"kind":"file_name","patterns":["*"]}),
+                None,
+                "file",
+            ),
+            target(
+                "git-inner-discovery",
+                "confirm",
+                "custom",
+                json!({"kind":"discovery","root":fx.p(&format!("{repo_rel}/refs"))}),
+                "any",
+                0,
+                0,
+            ),
+        ];
+        let (result, found) = m35_full(&plan(rows, vec![]), now, &extras);
+        assert!(
+            result.items.iter().all(|i| {
+                let path = i.path.to_ascii_lowercase();
+                !path.contains("\\.git\\") && !path.ends_with("\\.git")
+            }),
+            "SCAN_M35_CLUSTERS: {case} wildcard never searches inside git"
+        );
+        assert!(
+            found.declarations.is_empty(),
+            "SCAN_M35_CLUSTERS: git declarations are not searched"
+        );
+        assert!(
+            result.groups.iter().all(|g| g.cluster.is_none()),
+            "SCAN_M35_CLUSTERS: git clusters are not searched"
+        );
+        let measured = result
+            .items
+            .iter()
+            .find(|i| i.group_id == "git-measure" && i.path == fx.p(measured_rel))
+            .unwrap();
+        assert_eq!(
+            measured.total_bytes, "24",
+            "SCAN_M35_CLUSTERS: git bytes remain in the containing measurement"
+        );
+    }
+
+    fs::create_dir_all(fx.join("early")).unwrap();
+    fs::create_dir_all(fx.join("later")).unwrap();
+    write_file(&fx.join("budget/finished"), b"done");
+    for i in 0..8 {
+        write_file(&fx.join(&format!("budget/a/leaf/data{i}")), b"x");
+    }
+    let budget_plan = plan(
+        vec![
+            m35_marker_target(
+                "budget-early",
+                &fx.p("early"),
+                json!({"kind":"dir_name","names":["early"]}),
+                None,
+                "dir",
+            ),
+            target(
+                "budget-discovery",
+                "confirm",
+                "system_temp",
+                json!({"kind":"discovery","root":fx.p("budget")}),
+                "any",
+                0,
+                0,
+            ),
+            target(
+                "budget-pattern",
+                "confirm",
+                "custom",
+                json!({"kind":"pattern","base":fx.p("budget"),"segments":["a","leaf"]}),
+                "dir",
+                0,
+                0,
+            ),
+            target(
+                "budget-same-root-complete",
+                "confirm",
+                "custom",
+                json!({"kind":"pattern","base":fx.p("budget"),"segments":["finished"]}),
+                "file",
+                0,
+                0,
+            ),
+            m35_marker_target(
+                "budget-later",
+                &fx.p("later"),
+                json!({"kind":"dir_name","names":["later"]}),
+                None,
+                "dir",
+            ),
+        ],
+        vec![],
+    );
+    let limited = run(
+        &budget_plan,
+        now,
+        ScanOptions {
+            max_entries: 4,
+            max_seconds: 60,
+        },
+        &CancelToken::new(),
+    );
+    assert_eq!(
+        limited.status, "partial",
+        "SCAN_M35_CLUSTERS: nested measurement budget stops scan"
+    );
+    for group in ["budget-pattern", "budget-discovery", "budget-later"] {
+        assert!(
+            limited
+                .issues
+                .iter()
+                .any(|i| i.group_id == group && i.code == "budget_exhausted" && i.count == 1),
+            "SCAN_M35_CLUSTERS: each unfinished group has one budget issue: {group}"
+        );
+    }
+    assert!(
+        limited.items.iter().any(|i| i.group_id == "budget-early"),
+        "SCAN_M35_CLUSTERS: completed earlier item survives budget"
+    );
+    assert!(
+        !limited.issues.iter().any(|i| i.group_id == "budget-early"),
+        "SCAN_M35_CLUSTERS: completed group has no budget issue"
+    );
+    assert!(
+        limited
+            .items
+            .iter()
+            .any(|i| i.group_id == "budget-same-root-complete"),
+        "SCAN_M35_CLUSTERS: completed search shares an unfinished root"
+    );
+    assert!(
+        !limited
+            .issues
+            .iter()
+            .any(|i| i.group_id == "budget-same-root-complete"),
+        "SCAN_M35_CLUSTERS: completed same-root search has no budget issue"
+    );
+
+    for mode in ["pattern", "discovery", "fallback"] {
+        let root = format!("inside-{mode}");
+        for i in 0..12 {
+            write_file(&fx.join(&format!("{root}/cache/verify-A{i:05}/data")), b"x");
+        }
+        write_file(
+            &fx.join(&format!("{root}/cache/.water-cleanup.json")),
+            b"{}",
+        );
+        let search = m35_marker_target(
+            "inside-search",
+            &fx.p(&root),
+            json!({"kind":"dir_name","names":["unmatched"]}),
+            None,
+            "dir",
+        );
+        let mut rows = vec![search];
+        if mode == "pattern" {
+            rows.push(target(
+                "inside-owner",
+                "confirm",
+                "custom",
+                json!({"kind":"pattern","base":fx.p(&root),"segments":["cache"]}),
+                "dir",
+                0,
+                0,
+            ));
+        } else if mode == "discovery" {
+            rows.push(target(
+                "inside-owner",
+                "confirm",
+                "custom",
+                json!({"kind":"discovery","root":fx.p(&root)}),
+                "dir",
+                0,
+                0,
+            ));
+        } else {
+            let main = m35_marker_target(
+                "inside-main",
+                &fx.p(&root),
+                json!({"kind":"dir_name","names":["cache"]}),
+                Some(json!([{"kind":"parent_has_file","name":"missing.json"}])),
+                "dir",
+            );
+            let mut fallback = main.clone();
+            fallback["target_id"] = json!("inside-owner");
+            fallback["group_id"] = json!("inside-owner");
+            fallback["level"] = json!("advisory");
+            fallback["match"]
+                .as_object_mut()
+                .unwrap()
+                .remove("conditions");
+            fallback["match"]["fallback_for"] = json!("inside-main");
+            rows.extend([main, fallback]);
+        }
+        let (result, found) = m35_full(&plan(rows, vec![]), now, &extras);
+        assert!(
+            result.groups.iter().all(|g| g.cluster.is_none()),
+            "SCAN_M35_CLUSTERS: {mode} item contains no cluster"
+        );
+        assert_eq!(
+            result.items.len(),
+            1,
+            "SCAN_M35_CLUSTERS: {mode} measurement appears once"
+        );
+        assert_eq!(
+            result.items[0].group_id, "inside-owner",
+            "SCAN_M35_CLUSTERS: containing item retains its owner"
+        );
+        assert!(
+            !result
+                .issues
+                .iter()
+                .any(|i| i.group_id.starts_with("leak:")),
+            "SCAN_M35_CLUSTERS: suppressed candidates have no cluster issues"
+        );
+        if mode != "fallback" {
+            assert!(
+                found
+                    .declarations
+                    .iter()
+                    .any(|p| p.ends_with("cache\\.water-cleanup.json")),
+                "SCAN_M35_CLUSTERS: declarations already found inside ordinary items survive"
+            );
+        }
+    }
+
+    for i in 0..10 {
+        for ext in ["", ".apk", ".txt"] {
+            write_file(
+                &fx.join(&format!("extensions/artifact_a{i:07x}{ext}")),
+                b"x",
+            );
+        }
+    }
+    for ext in ["", ".apk", ".txt"] {
+        write_file(&fx.join(&format!("extensions/artifact_Notes{ext}")), b"x");
+    }
+    let search = m35_marker_target(
+        "extensions",
+        &fx.p("extensions"),
+        json!({"kind":"dir_name","names":["unmatched"]}),
+        None,
+        "dir",
+    );
+    let (result, _) = m35_full(&plan(vec![search], vec![]), now, &extras);
+    for ext in ["", ".apk", ".txt"] {
+        let template = format!("artifact_<h>{ext}");
+        let group = result
+            .groups
+            .iter()
+            .find(|g| g.cluster.as_ref().is_some_and(|c| c.template == template))
+            .expect("SCAN_M35_CLUSTERS: same-prefix extension cluster exists");
+        assert_eq!(
+            group.item_count, 11,
+            "SCAN_M35_CLUSTERS: {template} rejects same-prefix foreign extensions"
+        );
+        assert!(
+            result
+                .items
+                .iter()
+                .filter(|i| i.group_id == group.group_id)
+                .all(|i| {
+                    let actual = Path::new(&i.path)
+                        .extension()
+                        .and_then(|e| e.to_str())
+                        .map(|e| format!(".{e}"))
+                        .unwrap_or_default();
+                    actual == ext
+                }),
+            "SCAN_M35_CLUSTERS: hash extras preserve exact extension including none"
+        );
+    }
+
+    // The sentinel is emitted only after the shared walk. Its delay opens the
+    // next progress slot specifically in build_clusters' candidate loop.
+    struct CancelBuild {
+        token: CancelToken,
+        armed: std::sync::atomic::AtomicBool,
+        calls: std::sync::atomic::AtomicUsize,
+    }
+    impl ScanObserver for CancelBuild {
+        fn on_progress(&self, progress: &ScanProgress) {
+            use std::sync::atomic::Ordering::SeqCst;
+            if progress.group_id == "build-sentinel" {
+                self.armed.store(true, SeqCst);
+                std::thread::sleep(Duration::from_millis(60));
+            } else if progress.group_id == "build-candidates" && self.armed.load(SeqCst) {
+                self.calls.fetch_add(1, SeqCst);
+                self.token.cancel();
+            }
+        }
+    }
+    for i in 0..12 {
+        write_file(&fx.join(&format!("build/verify-A{i:05}/data")), b"x");
+    }
+    let rows = ["build-candidates", "build-sentinel"]
+        .into_iter()
+        .map(|id| {
+            m35_marker_target(
+                id,
+                &fx.p("build"),
+                json!({"kind":"dir_name","names":["unmatched"]}),
+                None,
+                "dir",
+            )
+        })
+        .collect();
+    let token = CancelToken::new();
+    let observer = CancelBuild {
+        token: token.clone(),
+        armed: std::sync::atomic::AtomicBool::new(false),
+        calls: std::sync::atomic::AtomicUsize::new(0),
+    };
+    let (cancelled, _) = scan_full(
+        &ScanPlan::from_json(&plan(rows, vec![])).unwrap(),
+        "m35-build-cancel",
+        &ScanOptions::default(),
+        &extras,
+        &token,
+        &observer,
+        now,
+    )
+    .unwrap();
+    assert!(
+        observer.calls.load(std::sync::atomic::Ordering::SeqCst) > 0,
+        "SCAN_M35_CLUSTERS: cancellation occurs after shared walk in build candidate loop"
+    );
+    assert_eq!(
+        cancelled.status, "cancelled",
+        "SCAN_M35_CLUSTERS: build candidate loop observes cancellation"
+    );
+    assert!(
+        cancelled.groups.iter().all(|g| g.cluster.is_none()),
+        "SCAN_M35_CLUSTERS: build cancellation leaves no cluster"
+    );
+
+    for i in 0..10 {
+        write_file(
+            &fx.join(&format!("discovery-issues/verify-A{i:05}/data")),
+            b"x",
+        );
+    }
+    write_file(
+        &fx.join("discovery-issues/verify-A00000")
+            .join(OsString::from_wide(&[0xd800])),
+        b"invalid",
+    );
+    let discovery = target(
+        "issue-discovery",
+        "confirm",
+        "system_temp",
+        json!({"kind":"discovery","root":fx.p("discovery-issues")}),
+        "any",
+        0,
+        0,
+    );
+    let (result, _) = m35_full(&plan(vec![discovery], vec![]), now, &extras);
+    let issues: Vec<_> = result
+        .issues
+        .iter()
+        .filter(|i| i.code == "unrepresentable_name")
+        .collect();
+    assert_eq!(
+        issues.len(),
+        1,
+        "SCAN_M35_CLUSTERS: discovery cluster measurement issue has one owner"
+    );
+    assert_eq!(
+        issues[0].group_id,
+        nested_group_id(&fx.p("discovery-issues")),
+        "SCAN_M35_CLUSTERS: discovery measurement issue belongs only to leak group"
+    );
+    assert_eq!(
+        issues[0].count, 1,
+        "SCAN_M35_CLUSTERS: discovery cluster issue is counted once"
     );
 }
 
