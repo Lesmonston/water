@@ -11,6 +11,7 @@ pub(crate) fn valid_id(id: &str) -> bool {
     (1..=48).contains(&id.len())
         && !id.starts_with('-')
         && id.bytes().all(|b| b.is_ascii_alphanumeric() || b == b'-')
+        && path::validate(&format!("X:\\{id}")).is_ok()
 }
 
 pub(crate) fn validate_root(root: &str) -> Result<(), CleanError> {
@@ -115,10 +116,7 @@ pub fn quarantine(
                             || path::contains(&item.path, &root)
                         {
                             result.skip_reason = Some(SkipReason::Guarded);
-                        } else if first_root
-                            .as_ref()
-                            .is_some_and(|p| !p.eq_ignore_ascii_case(&root))
-                        {
+                        } else if move_checks::second_root(first_root.as_deref(), &root) {
                             result.status = MoveStatus::Failed;
                             result.move_error = Some(MoveError::NotSameVolume);
                         } else {

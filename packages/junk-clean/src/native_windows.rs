@@ -126,8 +126,8 @@ mod windows {
     const _: () = assert!(size_of::<FileBasicInfo>() == 40);
     const _: () = assert!(size_of::<FileStandardInfo>() == 24);
 
-    // SAFETY: these declarations use Win32/NT system ABI widths; only the eight functions
-    // permitted by the SPEC appear here.
+    // SAFETY: these declarations use Win32/NT system ABI widths; only the ten functions
+    // permitted by the SPEC and M4 addendum 02 appear here.
     #[link(name = "kernel32")]
     unsafe extern "system" {
         fn CreateFileW(
@@ -621,6 +621,7 @@ mod windows {
         };
         let owned = (!raw.is_null()).then(|| Handle(raw));
         if status != 0 {
+            // SAFETY: pure translation of the returned NT status; owned closes any handle.
             return Err(unsafe { RtlNtStatusToDosError(status) });
         }
         owned.ok_or(ERR_INVALID_NAME)
@@ -693,6 +694,17 @@ mod windows {
         create_from: Option<usize>,
         delete_last: bool,
     ) -> Result<FrameStack<Handle>, ChainError> {
+        directory_chain_tracked(name, create_from, delete_last, &mut Vec::new())
+    }
+
+    // Record identities only for directories created by this invocation. Never adopt an
+    // existing directory, including one created concurrently after a missing-name response.
+    fn directory_chain_tracked(
+        name: &str,
+        create_from: Option<usize>,
+        delete_last: bool,
+        created: &mut Vec<(String, Identity)>,
+    ) -> Result<FrameStack<Handle>, ChainError> {
         let mut handles = FrameStack::new();
         let root = open_root(&name[..3]).ok_or_else(|| ChainError::Other(last_error()))?;
         plain(&root)?;
@@ -716,7 +728,15 @@ mod windows {
                 Ok(h) => h,
                 Err(2 | 3) if create_from.is_some_and(|start| i >= start) => {
                     match create_dir_at(parent, part) {
-                        Ok(h) => h,
+                        Ok(h) => {
+                            let identity =
+                                identity_from(&h).ok_or_else(|| ChainError::Other(last_error()))?;
+                            created.push((
+                                format!("{}{}", &name[..3], parts[..=i].join("\\")),
+                                identity,
+                            ));
+                            h
+                        }
                         // A concurrent creator is allowed only after a fresh no-follow open.
                         Err(80 | 183) => {
                             nt_open(parent, part, access, SHARE_RW).map_err(chain_error)?
@@ -730,6 +750,25 @@ mod windows {
             handles.push(next);
         }
         Ok(handles)
+    }
+
+    #[derive(Default)]
+    struct MoveSkeleton(Vec<(String, Identity)>);
+    impl Drop for MoveSkeleton {
+        fn drop(&mut self) {
+            // Later-declared source/destination chains have already closed. Reopen no-follow,
+            // match the identity we created, and remove only a currently empty directory.
+            for (name, expected) in self.0.iter().rev() {
+                if let Ok(chain) = open_chain(name, true) {
+                    let handle = chain.last().unwrap();
+                    if identity_from(handle).as_ref() == Some(expected)
+                        && enumerate(handle).is_ok_and(|kids| kids.is_empty())
+                    {
+                        set_delete(handle);
+                    }
+                }
+            }
+        }
     }
 
     fn move_error(code: u32) -> MoveError {
@@ -768,7 +807,8 @@ mod windows {
         let dest = format!("{root}\\{id}\\{}", &item.path[3..]);
         let (dest_parent, dest_name) = dest.rsplit_once('\\').ok_or(CleanError::InvalidPlan)?;
         let start = root[3..].split('\\').count() - 1;
-        let qroot_chain = match directory_chain(root, Some(start), false) {
+        let mut skeleton = MoveSkeleton::default();
+        let qroot_chain = match directory_chain_tracked(root, Some(start), false, &mut skeleton.0) {
             Ok(h) => h,
             Err(e) => {
                 result.move_error = Some(MoveError::QuarantineUnavailable);
@@ -791,17 +831,18 @@ mod windows {
                 return Ok(result);
             }
         }
-        let dest_chain = match directory_chain(dest_parent, Some(start), false) {
-            Ok(h) => h,
-            Err(e) => {
-                result.move_error = Some(MoveError::QuarantineUnavailable);
-                result.error_code = match e {
-                    ChainError::Other(c) => Some(c),
-                    _ => None,
-                };
-                return Ok(result);
-            }
-        };
+        let dest_chain =
+            match directory_chain_tracked(dest_parent, Some(start), false, &mut skeleton.0) {
+                Ok(h) => h,
+                Err(e) => {
+                    result.move_error = Some(MoveError::QuarantineUnavailable);
+                    result.error_code = match e {
+                        ChainError::Other(c) => Some(c),
+                        _ => None,
+                    };
+                    return Ok(result);
+                }
+            };
         let source_parent = item.path.rsplit_once('\\').unwrap().0;
         let source_chain = match open_chain(
             if source_parent.len() == 2 {
@@ -812,9 +853,13 @@ mod windows {
             false,
         ) {
             Ok(h) => h,
-            Err(_) => {
+            Err(error) => {
                 result.status = MoveStatus::Skipped;
-                result.skip_reason = Some(SkipReason::Changed);
+                result.skip_reason = Some(if matches!(error, ChainError::Missing) {
+                    SkipReason::Gone
+                } else {
+                    SkipReason::Changed
+                });
                 return Ok(result);
             }
         };
@@ -845,7 +890,7 @@ mod windows {
                 SHARE_RWD,
             )
             .and_then(|handle| {
-                if identity_from(&handle).as_ref() != Some(&item.identity) {
+                if !move_checks::source_matches(identity_from(&handle).as_ref(), &item.identity) {
                     return Ok(None);
                 }
                 if attr_tag(&handle).is_none_or(|(attr, _)| {
@@ -865,10 +910,16 @@ mod windows {
                     result.status = MoveStatus::Moved;
                     result.identity = Some(actual);
                     result.destination = Some(dest);
+                    skeleton.0.clear();
                 }
                 Ok(None) => {
                     result.status = MoveStatus::Skipped;
                     result.skip_reason = Some(SkipReason::Changed);
+                }
+                Err(code @ (2 | 3)) => {
+                    result.status = MoveStatus::Skipped;
+                    result.skip_reason = Some(SkipReason::Gone);
+                    result.error_code = Some(code);
                 }
                 Err(code) => {
                     result.move_error = Some(move_error(code));
@@ -1095,11 +1146,8 @@ mod windows {
             info.hard_truncated = true;
         }
     }
-    pub(crate) fn inspect_quarantine(
-        dir: &str,
-        stop: &StopFlag,
-    ) -> Result<QuarantineInfo, CleanError> {
-        let mut result = QuarantineInfo {
+    fn info_header(dir: &str) -> QuarantineInfo {
+        QuarantineInfo {
             info_version: "water.quarantine-info.v1".into(),
             dir: dir.into(),
             quarantine_id: last_segment(dir).into(),
@@ -1110,7 +1158,13 @@ mod windows {
             dir_count: 0,
             hard_entries: Vec::new(),
             hard_truncated: false,
-        };
+        }
+    }
+    pub(crate) fn inspect_quarantine(
+        dir: &str,
+        stop: &StopFlag,
+    ) -> Result<QuarantineInfo, CleanError> {
+        let mut result = info_header(dir);
         let mut chain = match open_chain(dir, false) {
             Ok(h) => h,
             Err(ChainError::Missing) => {
@@ -1131,10 +1185,19 @@ mod windows {
                 return Ok(result);
             }
         };
+        inspect_opened(dir, stop, result, chain.pop().unwrap())
+    }
+
+    fn inspect_opened(
+        dir: &str,
+        stop: &StopFlag,
+        mut result: QuarantineInfo,
+        handle: Handle,
+    ) -> Result<QuarantineInfo, CleanError> {
         let mut stack: FrameStack<ReadFrame> = FrameStack::new();
         let mut bytes = 0u64;
         let mut disk = 0u64;
-        let initial = enumerate(chain.last().unwrap());
+        let initial = enumerate(&handle);
         if initial.is_err() {
             add_hint(
                 &mut result,
@@ -1149,7 +1212,7 @@ mod windows {
         let mut kids = initial.unwrap_or_default();
         kids.sort_by(|a, b| a.name.cmp(&b.name));
         stack.push(ReadFrame {
-            handle: chain.pop().unwrap(),
+            handle,
             rel: String::new(),
             kids,
             index: 0,
@@ -1343,28 +1406,53 @@ mod windows {
     ) -> Result<PurgeReport, CleanError> {
         let root = crate::quarantine::validate_dir(dir)?;
         // Reject every reparse ancestor before writing intent or deleting any object.
-        let mut chain = open_chain(dir, false).map_err(|_| CleanError::InvalidPlan)?;
-        let probe = chain.pop().ok_or(CleanError::InvalidPlan)?;
-        let expected = identity_from(&probe).ok_or(CleanError::Native)?;
-        drop(probe);
-        let parent = chain.last().ok_or(CleanError::InvalidPlan)?;
-        let (handle, delete_error) = match purge_open(parent, last_segment(dir), true) {
-            Ok(h) => (h, None),
-            Err(code) => (
-                nt_open(
+        let (mut chain, busy) = match open_chain(dir, false) {
+            Ok(chain) => (chain, None),
+            Err(ChainError::Other(code @ (32 | 33))) => {
+                // Only a locked final component is an in_use leftover. Every ancestor still
+                // has to open no-follow; the parent's listing must identify a plain directory.
+                let parent = dir.rsplit_once('\\').ok_or(CleanError::InvalidPlan)?.0;
+                let chain = open_chain(parent, false).map_err(|_| CleanError::InvalidPlan)?;
+                let raw = enumerate(chain.last().unwrap())
+                    .map_err(|_| CleanError::Native)?
+                    .into_iter()
+                    .find(|raw| raw.name.eq_ignore_ascii_case(last_segment(dir)))
+                    .ok_or(CleanError::InvalidPlan)?;
+                if raw.attr & (DIRECTORY | REPARSE) != DIRECTORY {
+                    return Err(CleanError::InvalidPlan);
+                }
+                (chain, Some(code))
+            }
+            Err(_) => return Err(CleanError::InvalidPlan),
+        };
+        let opened = if let Some(code) = busy {
+            Err(code)
+        } else {
+            let probe = chain.pop().ok_or(CleanError::InvalidPlan)?;
+            let expected = identity_from(&probe).ok_or(CleanError::Native)?;
+            drop(probe);
+            let parent = chain.last().ok_or(CleanError::InvalidPlan)?;
+            let attempt = match purge_open(parent, last_segment(dir), true) {
+                Ok(h) => Ok((h, None)),
+                Err(code) => match nt_open(
                     parent,
                     last_segment(dir),
                     FILE_LIST_DIRECTORY | FILE_READ_ATTRIBUTES | SYNCHRONIZE,
                     SHARE_RW,
-                )
-                .map_err(|_| CleanError::Native)?,
-                Some(code),
-            ),
+                ) {
+                    Ok(h) => Ok((h, Some(code))),
+                    Err(c @ (32 | 33)) => Err(c),
+                    Err(_) => return Err(CleanError::Native),
+                },
+            };
+            if let Ok((handle, _)) = &attempt {
+                plain(handle).map_err(|_| CleanError::InvalidPlan)?;
+                if identity_from(handle).as_ref() != Some(&expected) {
+                    return Err(CleanError::InvalidPlan);
+                }
+            }
+            attempt
         };
-        plain(&handle).map_err(|_| CleanError::InvalidPlan)?;
-        if identity_from(&handle).as_ref() != Some(&expected) {
-            return Err(CleanError::InvalidPlan);
-        }
         let drive = path::volume(dir);
         let mut report = PurgeReport {
             report_version: "water.purge-report.v1".into(),
@@ -1397,21 +1485,26 @@ mod windows {
             freed: 0,
             leftovers_count: 0,
         };
-        let kids = match enumerate(&handle) {
-            Ok(k) => k,
-            Err(_) => {
-                ctx.error(String::new(), Kind::Dir, 0, last_error());
-                Vec::new()
-            }
-        };
-        stack.push(PurgeFrame {
-            handle,
-            rel: String::new(),
-            kids,
-            index: 0,
-            blocked: ctx.leftovers_count != 0,
-            delete_error,
-        });
+        if let Ok((handle, delete_error)) = opened {
+            let kids = match enumerate(&handle) {
+                Ok(k) => k,
+                Err(_) => {
+                    ctx.error(String::new(), Kind::Dir, 0, last_error());
+                    Vec::new()
+                }
+            };
+            stack.push(PurgeFrame {
+                handle,
+                rel: String::new(),
+                kids,
+                index: 0,
+                blocked: ctx.leftovers_count != 0,
+                delete_error,
+            });
+        } else if let Err(code) = opened {
+            ctx.error(String::new(), Kind::Dir, 0, code);
+        }
+        let mut residual_root = None;
         while !stack.is_empty() {
             if stop.is_stopped() {
                 ctx.report.status = RunStatus::Stopped;
@@ -1432,6 +1525,7 @@ mod windows {
                         }
                         drop(frame);
                         ctx.removed(0)?;
+                        continue;
                     } else {
                         ctx.error(frame.rel.clone(), Kind::Dir, 0, last_error());
                         if let Some(parent) = stack.last_mut() {
@@ -1440,6 +1534,9 @@ mod windows {
                     }
                 } else if let Some(parent) = stack.last_mut() {
                     parent.blocked = true;
+                }
+                if frame.rel.is_empty() {
+                    residual_root = Some(frame.handle);
                 }
                 continue;
             }
@@ -1470,14 +1567,30 @@ mod windows {
                 frame.blocked = true;
                 continue;
             }
-            let handle = match purge_open(&frame.handle, &raw.name, raw.attr & DIRECTORY != 0) {
-                Ok(h) => h,
-                Err(c) => {
-                    ctx.error(rel, kind, size, c);
-                    frame.blocked = true;
-                    continue;
-                }
-            };
+            let (handle, delete_error) =
+                match purge_open(&frame.handle, &raw.name, raw.attr & DIRECTORY != 0) {
+                    Ok(h) => (h, None),
+                    Err(code) if raw.attr & (DIRECTORY | REPARSE) == DIRECTORY => {
+                        match nt_open(
+                            &frame.handle,
+                            &raw.name,
+                            FILE_LIST_DIRECTORY | FILE_READ_ATTRIBUTES | SYNCHRONIZE,
+                            SHARE_RWD,
+                        ) {
+                            Ok(h) => (h, Some(code)),
+                            Err(c) => {
+                                ctx.error(rel, kind, size, c);
+                                frame.blocked = true;
+                                continue;
+                            }
+                        }
+                    }
+                    Err(c) => {
+                        ctx.error(rel, kind, size, c);
+                        frame.blocked = true;
+                        continue;
+                    }
+                };
             let (attr, tag) = match attr_tag(&handle) {
                 Some(a) => a,
                 None => {
@@ -1506,7 +1619,7 @@ mod windows {
                         kids,
                         index: 0,
                         blocked: false,
-                        delete_error: None,
+                        delete_error,
                     }),
                     Err(_) => {
                         ctx.error(rel, kind, size, last_error());
@@ -1531,6 +1644,13 @@ mod windows {
                 }
             }
         }
+        // A stop can leave the root frame on the stack. Keep its verified handle while
+        // closing descendants first; reconciliation must observe this object, not a new name.
+        while let Some(frame) = stack.pop() {
+            if frame.rel.is_empty() {
+                residual_root = Some(frame.handle);
+            }
+        }
         drop(stack);
         drop(chain);
         let freed = ctx.freed;
@@ -1543,7 +1663,19 @@ mod windows {
             ctx.report.root_removed = removed;
         } else if !ctx.report.dir_removed {
             // Remaining totals are measured without stop filtering; stop only forbids mutation.
-            let remaining = inspect_quarantine(dir, &StopFlag::default())?;
+            let inspection = match residual_root {
+                Some(handle) => inspect_opened(dir, &StopFlag::default(), info_header(dir), handle),
+                None => inspect_quarantine(dir, &StopFlag::default()),
+            };
+            let remaining = match inspection {
+                Ok(remaining) => remaining,
+                Err(_) => {
+                    // Mutation has already happened. A replaced/unreadable name during the
+                    // final read must not discard the partial report or its terminal journal.
+                    ctx.leftover(String::new(), Kind::Dir, 0, LeftoverReason::Other, None);
+                    info_header(dir)
+                }
+            };
             ctx.report.remaining_entries = remaining
                 .file_count
                 .checked_add(remaining.dir_count)

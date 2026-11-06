@@ -21,6 +21,10 @@ use std::{
 };
 use water_junk_clean::*;
 
+// Exercise the production gates without creating either drive-root quarantine directory.
+#[path = "../src/move_checks.rs"]
+mod move_checks;
+
 const REPARSE: u32 = 0x400;
 
 struct Fixture {
@@ -1703,6 +1707,32 @@ fn quarantine_unlock_pair() {
     let mut value = plan_value(vec![item(&root, &cache, "unlocked")]);
     value["protected_paths"] = json!([s(&protected)]);
     value["items"][0]["unlocked_paths"] = json!([s(&protected)]);
+    let unrelated = f.dir("unrelated");
+    let mut noncontaining = value.clone();
+    noncontaining["protected_paths"] = json!([s(&unrelated)]);
+    noncontaining["items"][0]["unlocked_paths"] = json!([s(&unrelated)]);
+    assert!(
+        matches!(
+            CleanPlan::from_json(&noncontaining.to_string()),
+            Err(CleanError::InvalidPlan)
+        ),
+        "CLEAN_M35_UNLOCK: listed unlock need not contain item"
+    );
+    let ancestor_alias = f.base.join("ancestor-alias");
+    f.junction(&ancestor_alias, &root);
+    let mut independent = value.clone();
+    independent["protected_paths"] = json!([s(&protected), s(&ancestor_alias)]);
+    let blocked = run(&parse(independent));
+    assert_eq!(
+        blocked.items[0].skip_reason,
+        Some(SkipReason::ProtectedOverlap),
+        "CLEAN_M35_UNLOCK: unrelated protected ancestor identity unlocked"
+    );
+    assert_eq!(
+        fs::read(&cache).unwrap(),
+        b"disposable",
+        "CLEAN_M35_UNLOCK: protected ancestor lost data"
+    );
     for bad in [
         vec![s(&root)],
         vec![s(&cache)],
@@ -1832,6 +1862,53 @@ fn quarantine_unlock_pair() {
 
 #[test]
 fn quarantine_move_contract() {
+    // Reject DOS devices before even creating the quarantine root.
+    let devices = QFixture::new("device-ids");
+    let source = devices.file("root/data", b"must-stay");
+    let device_plan = parse(plan_value(vec![item(&devices.base, &source, "device")]));
+    let mut names = vec!["CON".to_owned(), "PRN".into(), "AUX".into(), "NUL".into()];
+    for prefix in ["COM", "LPT"] {
+        for n in 1..=9 {
+            names.push(format!("{prefix}{n}"));
+        }
+    }
+    for name in names {
+        for invalid in [
+            name.clone(),
+            name.to_ascii_lowercase(),
+            format!("{name}.txt"),
+            format!("{name}."),
+        ] {
+            let mut log = Vec::new();
+            assert!(
+                matches!(
+                    quarantine(
+                        &device_plan,
+                        &invalid,
+                        &QuarantineTarget {
+                            base: Some(devices.root())
+                        },
+                        &NoGuard,
+                        &mut log,
+                        &StopFlag::default(),
+                        &Observer::new(),
+                        SystemTime::now()
+                    ),
+                    Err(CleanError::InvalidPlan)
+                ),
+                "CLEAN_M35_MOVE: device id accepted: {invalid}"
+            );
+            assert!(
+                !Path::new(&devices.root()).exists() && log.is_empty(),
+                "CLEAN_M35_MOVE: device rejection created directories or journal"
+            );
+            assert_eq!(
+                fs::read(&source).unwrap(),
+                b"must-stay",
+                "CLEAN_M35_MOVE: device moved source"
+            );
+        }
+    }
     let f = QFixture::new("move");
     let root = f.dir("root");
     let directory = f.dir("root/cache");
@@ -1942,6 +2019,11 @@ fn quarantine_move_contract() {
         failed.items[0].move_error,
         Some(MoveError::DestinationExists),
         "CLEAN_M35_MOVE: collision reason"
+    );
+    assert_eq!(
+        failed.items[0].error_code,
+        Some(183),
+        "CLEAN_M35_MOVE: NT collision code 183 mapping"
     );
     assert_eq!(
         fs::read(&source).unwrap(),
@@ -2140,6 +2222,14 @@ fn quarantine_move_contract() {
         "CLEAN_M35_MOVE: journal failure ignored"
     );
     assert!(source.exists(), "CLEAN_M35_MOVE: moved before intent flush");
+    assert!(
+        !Path::new(&format!("{}\\flush-stop", f.root())).exists(),
+        "CLEAN_M35_MOVE: skipped batch left newly created skeleton"
+    );
+    assert!(
+        !Path::new(&format!("{}\\bad-journal", f.root())).exists(),
+        "CLEAN_M35_MOVE: failed intent left newly created skeleton"
+    );
     let temp = std::env::temp_dir();
     if s(&temp)[..2].eq_ignore_ascii_case(&s(&f.base)[..2]) {
         eprintln!("CLEAN_M35_CROSS_VOLUME n/a");
@@ -2174,6 +2264,226 @@ fn quarantine_move_contract() {
         assert_plain_ancestors(&temp);
         remove_owned(&base, &base);
     }
+
+    let extra = QFixture::new("move-gates");
+    let extra_root = extra.dir("root");
+    let tree = extra.dir("root/locked-dir");
+    let leaf = extra.file("root/locked-dir/data", b"directory-lock");
+    let plan = parse(plan_value(vec![item(&extra_root, &tree, "locked-dir")]));
+    let held = OpenOptions::new()
+        .read(true)
+        .custom_flags(0x0200_0000)
+        .share_mode(3)
+        .open(&tree)
+        .unwrap();
+    let failed = qrun(&plan, &extra.root(), "locked-dir");
+    assert_eq!(
+        failed.items[0].move_error,
+        Some(MoveError::Locked),
+        "CLEAN_M35_MOVE: directory lock mapping"
+    );
+    assert_eq!(
+        fs::read(&leaf).unwrap(),
+        b"directory-lock",
+        "CLEAN_M35_MOVE: directory lock changed source"
+    );
+    assert!(
+        !Path::new(&extra.root()).exists(),
+        "CLEAN_M35_MOVE: all failed left fresh quarantine skeleton"
+    );
+    drop(held);
+
+    let containing = extra.dir("container");
+    let inner_root = s(&containing.join(".water-quarantine"));
+    let plan = parse(plan_value(vec![item(
+        &extra.base,
+        &containing,
+        "contains-root",
+    )]));
+    assert_eq!(
+        qrun(&plan, &inner_root, "guarded").items[0].skip_reason,
+        Some(SkipReason::Guarded),
+        "CLEAN_M35_MOVE: item containing quarantine root accepted"
+    );
+    assert!(
+        !Path::new(&inner_root).exists(),
+        "CLEAN_M35_MOVE: guarded item created quarantine root"
+    );
+    let second = QFixture::new("second-root");
+    assert!(
+        !move_checks::second_root(None, &extra.root()),
+        "CLEAN_M35_MOVE: first root rejected"
+    );
+    assert!(
+        !move_checks::second_root(Some(&extra.root()), &extra.root().to_ascii_uppercase()),
+        "CLEAN_M35_MOVE: equivalent quarantine root rejected"
+    );
+    assert!(
+        move_checks::second_root(Some(&extra.root()), &second.root()),
+        "CLEAN_M35_MOVE: second quarantine root accepted"
+    );
+
+    let source = extra.file("root/replaced", b"original");
+    let saved = extra.base.join("saved-original");
+    let plan = parse(plan_value(vec![item(
+        &extra_root,
+        &source,
+        "replace-at-intent",
+    )]));
+    struct ReplaceAtIntent {
+        source: PathBuf,
+        saved: PathBuf,
+        done: bool,
+    }
+    impl Write for ReplaceAtIntent {
+        fn write(&mut self, bytes: &[u8]) -> io::Result<usize> {
+            Ok(bytes.len())
+        }
+        fn flush(&mut self) -> io::Result<()> {
+            if !self.done {
+                self.done = true;
+                fs::rename(&self.source, &self.saved)?;
+                fs::write(&self.source, b"replacement")?;
+            }
+            Ok(())
+        }
+    }
+    let report = quarantine(
+        &plan,
+        "replaced",
+        &QuarantineTarget {
+            base: Some(extra.root()),
+        },
+        &NoGuard,
+        &mut ReplaceAtIntent {
+            source: source.clone(),
+            saved: saved.clone(),
+            done: false,
+        },
+        &StopFlag::default(),
+        &Observer::new(),
+        SystemTime::now() + Duration::from_secs(2),
+    )
+    .unwrap();
+    assert_eq!(
+        report.items[0].skip_reason,
+        Some(SkipReason::Changed),
+        "CLEAN_M35_MOVE: intent-time replacement moved"
+    );
+    let actual = identity_of(&s(&source)).unwrap();
+    assert!(
+        !move_checks::source_matches(Some(&actual), &plan.items[0].identity),
+        "CLEAN_M35_MOVE: final source identity gate accepted replacement"
+    );
+    assert!(
+        !move_checks::source_matches(None, &plan.items[0].identity),
+        "CLEAN_M35_MOVE: final source identity gate accepted unreadable identity"
+    );
+    assert!(
+        move_checks::source_matches(Some(&plan.items[0].identity), &plan.items[0].identity),
+        "CLEAN_M35_MOVE: final source identity gate rejected expected identity"
+    );
+    assert_eq!(
+        fs::read(&source).unwrap(),
+        b"replacement",
+        "CLEAN_M35_MOVE: replacement lost"
+    );
+    assert_eq!(
+        fs::read(&saved).unwrap(),
+        b"original",
+        "CLEAN_M35_MOVE: original lost"
+    );
+    assert!(
+        !Path::new(&extra.root()).exists(),
+        "CLEAN_M35_MOVE: changed-only batch left skeleton"
+    );
+
+    struct GoneAtIntent {
+        source: PathBuf,
+        done: bool,
+    }
+    impl Write for GoneAtIntent {
+        fn write(&mut self, bytes: &[u8]) -> io::Result<usize> {
+            Ok(bytes.len())
+        }
+        fn flush(&mut self) -> io::Result<()> {
+            if !self.done {
+                self.done = true;
+                fs::remove_file(&self.source)?;
+            }
+            Ok(())
+        }
+    }
+    let source = extra.file("root/gone-at-intent", b"gone");
+    let plan = parse(plan_value(vec![item(
+        &extra_root,
+        &source,
+        "gone-at-intent",
+    )]));
+    let report = quarantine(
+        &plan,
+        "gone",
+        &QuarantineTarget {
+            base: Some(extra.root()),
+        },
+        &NoGuard,
+        &mut GoneAtIntent {
+            source,
+            done: false,
+        },
+        &StopFlag::default(),
+        &Observer::new(),
+        SystemTime::now() + Duration::from_secs(2),
+    )
+    .unwrap();
+    assert_eq!(
+        report.items[0].status,
+        MoveStatus::Skipped,
+        "CLEAN_M35_MOVE: gone item failed"
+    );
+    assert_eq!(
+        report.items[0].skip_reason,
+        Some(SkipReason::Gone),
+        "CLEAN_M35_MOVE: gone reason"
+    );
+    assert!(
+        !Path::new(&extra.root()).exists(),
+        "CLEAN_M35_MOVE: gone-only batch left skeleton"
+    );
+
+    let existing = extra.dir(".water-quarantine/existing");
+    let source = extra.file("root/existing-stop", b"keep");
+    let plan = parse(plan_value(vec![item(
+        &extra_root,
+        &source,
+        "existing-stop",
+    )]));
+    let stop = StopFlag::default();
+    let report = quarantine(
+        &plan,
+        "existing",
+        &QuarantineTarget {
+            base: Some(extra.root()),
+        },
+        &NoGuard,
+        &mut QStopJournal {
+            bytes: Vec::new(),
+            stop: stop.clone(),
+        },
+        &stop,
+        &Observer::new(),
+        SystemTime::now() + Duration::from_secs(2),
+    )
+    .unwrap();
+    assert_eq!(
+        report.items[0].skip_reason,
+        Some(SkipReason::Cancelled),
+        "CLEAN_M35_MOVE: existing batch setup"
+    );
+    assert!(
+        existing.exists() && fs::read_dir(&existing).unwrap().next().is_none(),
+        "CLEAN_M35_MOVE: removed preexisting empty batch or retained new intermediate directories"
+    );
 }
 
 #[test]
@@ -2238,6 +2548,11 @@ fn quarantine_restore_contract() {
         collision.items[0].reason,
         Some(RestoreError::DestinationExists),
         "CLEAN_M35_RESTORE: overwrite forbidden"
+    );
+    assert_eq!(
+        collision.items[0].error_code,
+        Some(183),
+        "CLEAN_M35_RESTORE: NT collision code 183 mapping"
     );
     assert_eq!(
         fs::read(&source).unwrap(),
@@ -2379,6 +2694,217 @@ fn qodd(f: &QFixture, prefix: &str) -> (PathBuf, u64) {
 
 #[test]
 fn quarantine_purge_contract() {
+    let occupied = QFixture::new("purge-occupied-child");
+    let dir = occupied.dir(".water-quarantine/occupied");
+    let child = occupied.dir(".water-quarantine/occupied/terminal");
+    occupied.file(".water-quarantine/occupied/terminal/data", b"child-bytes");
+    occupied.file(".water-quarantine/occupied/terminal/deep/data", b"nested");
+    let held = OpenOptions::new()
+        .read(true)
+        .custom_flags(0x0200_0000)
+        .share_mode(3)
+        .open(&child)
+        .unwrap();
+    let result = purge(
+        &s(&dir),
+        &mut Vec::new(),
+        &StopFlag::default(),
+        &QObserver::default(),
+        SystemTime::now(),
+    );
+    assert!(
+        result.is_ok(),
+        "CLEAN_M35_PURGE: occupied child returned error {result:?}"
+    );
+    let report = result.unwrap();
+    assert_eq!(
+        fs::read_dir(&child).unwrap().count(),
+        0,
+        "CLEAN_M35_PURGE: occupied child contents retained"
+    );
+    assert_eq!(
+        report.freed_bytes, "17",
+        "CLEAN_M35_PURGE: occupied child freed bytes"
+    );
+    assert_eq!(
+        report.remaining_entries, 1,
+        "CLEAN_M35_PURGE: occupied child remaining entries"
+    );
+    assert_eq!(
+        report.remaining_bytes, "0",
+        "CLEAN_M35_PURGE: occupied child remaining bytes"
+    );
+    assert_eq!(
+        report.leftovers.len(),
+        1,
+        "CLEAN_M35_PURGE: occupied child root cause"
+    );
+    assert!(
+        report.leftovers.iter().any(|e| e.rel == "terminal"
+            && e.kind == Kind::Dir
+            && e.reason == LeftoverReason::InUse),
+        "CLEAN_M35_PURGE: occupied child reason"
+    );
+    drop(held);
+    assert!(
+        qpurge(&s(&dir)).root_removed,
+        "CLEAN_M35_PURGE: occupied child retry"
+    );
+    for (access, share) in [(0x8000_0000, 0), (0x0001_0000, 7)] {
+        let root = occupied.dir(".water-quarantine/exclusive");
+        let data = occupied.file(".water-quarantine/exclusive/data", b"busy");
+        let held = OpenOptions::new()
+            .access_mode(access)
+            .custom_flags(0x0200_0000)
+            .share_mode(share)
+            .open(&root)
+            .unwrap();
+        let mut log = Vec::new();
+        let result = purge(
+            &s(&root),
+            &mut log,
+            &StopFlag::default(),
+            &QObserver::default(),
+            SystemTime::now(),
+        );
+        assert!(
+            result.is_ok(),
+            "CLEAN_M35_PURGE: occupied root became InvalidPlan {result:?}"
+        );
+        let report = result.unwrap();
+        assert!(
+            !report.dir_removed
+                && report.leftovers.iter().any(|e| e.rel.is_empty()
+                    && e.kind == Kind::Dir
+                    && e.reason == LeftoverReason::InUse),
+            "CLEAN_M35_PURGE: occupied root missing in_use {report:?}"
+        );
+        assert_eq!(
+            report.freed_bytes, "0",
+            "CLEAN_M35_PURGE: exclusive root freed bytes"
+        );
+        assert!(data.exists(), "CLEAN_M35_PURGE: exclusive root mutated");
+        let events: Vec<Value> = log
+            .split(|b| *b == b'\n')
+            .filter(|line| !line.is_empty())
+            .map(|line| serde_json::from_slice(line).unwrap())
+            .collect();
+        assert_eq!(
+            events
+                .iter()
+                .map(|e| e["event"].as_str().unwrap())
+                .collect::<Vec<_>>(),
+            ["intent", "done"],
+            "CLEAN_M35_PURGE: occupied root journal incomplete"
+        );
+        drop(held);
+        assert!(
+            qpurge(&s(&root)).root_removed,
+            "CLEAN_M35_PURGE: exclusive root retry"
+        );
+    }
+    let hard = QFixture::new("purge-hardlinks");
+    let dir = hard.dir(".water-quarantine/links");
+    let retained = hard.file(".water-quarantine/links/retained", b"external-link");
+    let outside = hard.base.join("outside-link");
+    fs::hard_link(&retained, &outside).unwrap();
+    let internal = hard.file(".water-quarantine/links/one", b"last-link");
+    fs::hard_link(&internal, dir.join("two")).unwrap();
+    hard.file(".water-quarantine/links/plain", b"plain");
+    let report = qpurge(&s(&dir));
+    assert_eq!(
+        report.freed_bytes, "14",
+        "CLEAN_M35_PURGE: count only last hardlink plus ordinary bytes"
+    );
+    assert_eq!(
+        fs::read(&outside).unwrap(),
+        b"external-link",
+        "CLEAN_M35_PURGE: external hardlink changed"
+    );
+    assert!(
+        report.dir_removed && report.root_removed,
+        "CLEAN_M35_PURGE: hardlink batch incomplete"
+    );
+
+    // Replace the public name after 256 actual removals. Final reconciliation must neither
+    // traverse the replacement junction nor lose the partial report and done event.
+    let race = QFixture::new("purge-final-read");
+    let dir = race.dir(".water-quarantine/race");
+    for n in 0..257 {
+        race.file(&format!(".water-quarantine/race/f{n:03}"), b"x");
+    }
+    let outside = race.dir("outside");
+    let keep = race.file("outside/keep", b"external-safe");
+    struct SwapAfterProgress<'a> {
+        fixture: &'a QFixture,
+        dir: PathBuf,
+        saved: PathBuf,
+        outside: PathBuf,
+        done: AtomicBool,
+        stop: StopFlag,
+    }
+    impl PurgeObserver for SwapAfterProgress<'_> {
+        fn on_progress(&self, entries: u64, _: u64) {
+            if entries == 256 && !self.done.swap(true, Ordering::SeqCst) {
+                fs::rename(&self.dir, &self.saved).unwrap();
+                self.fixture.junction(&self.dir, &self.outside);
+                self.stop.stop();
+            }
+        }
+    }
+    let saved = race.base.join(".water-quarantine\\saved");
+    let stop = StopFlag::default();
+    let observer = SwapAfterProgress {
+        fixture: &race,
+        dir: dir.clone(),
+        saved: saved.clone(),
+        outside,
+        done: AtomicBool::new(false),
+        stop: stop.clone(),
+    };
+    let mut log = Vec::new();
+    let result = purge(&s(&dir), &mut log, &stop, &observer, SystemTime::now());
+    assert!(
+        result.is_ok(),
+        "CLEAN_M35_PURGE: final reconciliation discarded partial report {result:?}"
+    );
+    let report = result.unwrap();
+    assert!(
+        observer.done.load(Ordering::SeqCst),
+        "CLEAN_M35_PURGE: final reconciliation race not exercised"
+    );
+    assert_eq!(
+        report.freed_bytes, "256",
+        "CLEAN_M35_PURGE: final reconciliation lost removals"
+    );
+    assert!(
+        report.status == RunStatus::Stopped
+            && !report.dir_removed
+            && report.remaining_entries == 1
+            && report.remaining_bytes == "1",
+        "CLEAN_M35_PURGE: final reconciliation hid leftovers"
+    );
+    let events: Vec<Value> = log
+        .split(|b| *b == b'\n')
+        .filter(|line| !line.is_empty())
+        .map(|line| serde_json::from_slice(line).unwrap())
+        .collect();
+    assert_eq!(
+        events.last().unwrap()["event"],
+        "done",
+        "CLEAN_M35_PURGE: final reconciliation omitted done"
+    );
+    assert_eq!(
+        fs::read(&keep).unwrap(),
+        b"external-safe",
+        "CLEAN_M35_PURGE: final reconciliation followed replacement"
+    );
+    assert_eq!(
+        size(&saved),
+        1,
+        "CLEAN_M35_PURGE: final reconciliation lost original residual"
+    );
+
     let f = QFixture::new("purge");
     let (dir, bytes) = qodd(&f, ".water-quarantine/purge");
     let outside = f.dir("outside");
