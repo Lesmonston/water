@@ -6,7 +6,7 @@ use crate::{
     util,
 };
 use serde_json::{Value, json};
-use std::collections::{BTreeMap, BTreeSet};
+use std::collections::{BTreeMap, BTreeSet, HashMap};
 use water_junk_rules::RuleSet;
 use water_junk_scan::{Group, Growth, Level, ScanResult};
 
@@ -63,11 +63,19 @@ pub(crate) const CATEGORIES: [(&str, &str, &str, &str); 9] = [
 ];
 
 pub(crate) fn category(g: &Group) -> String {
-    serde_json::to_value(g.category)
-        .expect("enum")
-        .as_str()
-        .expect("enum text")
-        .into()
+    use water_junk_scan::Category::*;
+    match g.category {
+        AgentTool => "agent_tool",
+        Browser => "browser",
+        SystemTemp => "system_temp",
+        AppLeftover => "app_leftover",
+        DevCache => "dev_cache",
+        CrashLog => "crash_log",
+        GpuSystem => "gpu_system",
+        Custom => "custom",
+        Unrecognized => "unrecognized",
+    }
+    .into()
 }
 
 pub(crate) fn enabled(settings: &Settings, category: &str) -> bool {
@@ -82,6 +90,56 @@ fn unit(rules: &RuleSet, group: &Group) -> &'static str {
     }
 }
 
+fn text(record: &Record, g: &Group, rules: &RuleSet) -> Option<water_junk_rules::RuleText> {
+    if let Some(text) = rules.text(&g.group_id) {
+        return Some(text);
+    }
+    if let Some(cluster) = &g.cluster {
+        return Some(water_junk_rules::RuleText {
+            title_zh: format!(
+                "{} · {}",
+                crate::m35::name(&cluster.parent),
+                cluster.template
+            ),
+            owner_zh: "所在项目".into(),
+            what_zh: "同一位置里反复生成、名字模板相同的临时条目。".into(),
+            why_zh: "只按名字、数量、体量与时间聚类，仍需你确认。".into(),
+            after_zh: "清理存量前，请先核对生产者；不修复还会再次累积。".into(),
+            fix_hint_zh: Some("先找出生成它们的代码并修好，再清存量。".into()),
+        });
+    }
+    let id = g.rule_id.strip_prefix("decl:")?;
+    let base = record
+        .plan
+        .targets
+        .iter()
+        .find(|t| t.group_id == g.group_id)
+        .and_then(|t| match &t.match_spec {
+            water_junk_rules::MatchSpec::Pattern { base, .. } => Some(base.as_str()),
+            _ => None,
+        })?;
+    let declaration = record.saved["declarations"].as_array()?.iter().find(|d| {
+        d["path"]
+            .as_str()
+            .is_some_and(|p| crate::m35::parent(p).eq_ignore_ascii_case(base))
+    })?;
+    let entry = declaration["manifest"]["disposable"]
+        .as_array()?
+        .iter()
+        .find(|d| d["id"] == id)?;
+    Some(water_junk_rules::RuleText {
+        title_zh: entry["title"].as_str()?.into(),
+        owner_zh: declaration["manifest"]["project"]
+            .as_str()
+            .unwrap_or("项目声明")
+            .into(),
+        what_zh: "项目声明中列出的可清理产物。".into(),
+        why_zh: "你已信任此版本的项目声明；保护、身份和在用检查仍然生效。".into(),
+        after_zh: "先放进同盘隔离区，核对后可还原或永久删除。".into(),
+        fix_hint_zh: None,
+    })
+}
+
 fn custom_path(record: &Record, group_id: &str) -> String {
     record
         .plan
@@ -89,7 +147,8 @@ fn custom_path(record: &Record, group_id: &str) -> String {
         .iter()
         .find(|t| t.group_id == group_id)
         .and_then(|t| match &t.match_spec {
-            water_junk_rules::MatchSpec::Marker { root, .. } => Some(root.clone()),
+            water_junk_rules::MatchSpec::Marker { root, .. }
+            | water_junk_rules::MatchSpec::Discovery { root } => Some(root.clone()),
             _ => None,
         })
         .unwrap_or_default()
@@ -141,7 +200,10 @@ pub(crate) fn scan_in_use(result: &ScanResult, platform: &dyn Platform) -> (Valu
             .iter()
             .filter(|i| i.group_id == g.group_id && i.eligible)
         {
-            if let Some(name) = platform.in_use(&spec, &item.path) {
+            if let Some(name) = platform.in_use(
+                &spec,
+                &crate::m35::in_use_path(&item.path, g.in_use.root_levels),
+            ) {
                 count += 1;
                 unknown |= name == IN_USE_UNKNOWN;
                 let label = product_name(&name);
@@ -176,7 +238,9 @@ fn eligible(item: &water_junk_scan::Item, settings: &Settings) -> bool {
 pub(crate) struct Projection {
     pub view: Value,
     pub details: BTreeMap<String, Value>,
-    ids: BTreeMap<String, usize>,
+    summary_rows: BTreeMap<String, std::sync::Arc<Vec<crate::conclusion::Row>>>,
+    items_by_group: BTreeMap<String, Vec<usize>>,
+    ids: HashMap<String, usize>,
     paths: BTreeMap<String, Vec<usize>>,
     positions: BTreeMap<String, (usize, usize)>,
     group_indices: BTreeMap<String, usize>,
@@ -184,6 +248,8 @@ pub(crate) struct Projection {
     skipped: BTreeSet<usize>,
     occupied: BTreeMap<String, BTreeSet<usize>>,
     unknown: BTreeMap<String, BTreeSet<usize>>,
+    item_bytes: Vec<u64>,
+    parent_hash: Vec<u64>,
 }
 
 impl Projection {
@@ -199,12 +265,21 @@ impl Projection {
             details,
             ..Default::default()
         };
+        p.item_bytes.reserve(record.result.items.len());
+        p.parent_hash.reserve(record.result.items.len());
         for (index, item) in record.result.items.iter().enumerate() {
+            p.items_by_group
+                .entry(item.group_id.clone())
+                .or_default()
+                .push(index);
             p.ids.insert(item.item_id.clone(), index);
             p.paths
                 .entry(item.path.to_ascii_lowercase())
                 .or_default()
                 .push(index);
+            p.item_bytes.push(util::number(&item.unique_bytes));
+            p.parent_hash
+                .push(crate::conclusion::parent_fnv(&item.path));
             if skipped(item, settings) {
                 p.skipped.insert(index);
             }
@@ -255,23 +330,75 @@ impl Projection {
         self.ids.get(id).copied()
     }
 
+    pub fn group_items(&self, id: &str) -> &[usize] {
+        self.items_by_group
+            .get(id)
+            .map(Vec::as_slice)
+            .unwrap_or(&[])
+    }
+
+    /// Scan facts are immutable. Cache membership and ordering on first use;
+    /// selection and occupancy are still projected from the current settings.
+    pub fn summary_rows(
+        &mut self,
+        record: &Record,
+        id: &str,
+    ) -> std::sync::Arc<Vec<crate::conclusion::Row>> {
+        if let Some(rows) = self.summary_rows.get(id) {
+            return rows.clone();
+        }
+        let rows = std::sync::Arc::new(crate::conclusion::make_rows(
+            record,
+            id,
+            self.group_items(id),
+            &self.item_bytes,
+            &self.parent_hash,
+        ));
+        self.summary_rows.insert(id.to_owned(), rows.clone());
+        rows
+    }
+
+    pub fn cached_row(&self, id: &str) -> Option<&crate::conclusion::Row> {
+        self.summary_rows
+            .values()
+            .flat_map(|rows| rows.iter())
+            .find(|row| row.id == id)
+    }
+
     pub fn is_skipped(&self, index: usize) -> bool {
         self.skipped.contains(&index)
     }
 
-    pub fn refresh_path(
+    pub fn any_index_skipped(&self, indices: &[usize]) -> bool {
+        if self.skipped.is_empty() {
+            return false;
+        }
+        if self.skipped.len() <= indices.len() {
+            self.skipped.iter().any(|n| indices.contains(n))
+        } else {
+            indices.iter().any(|n| self.skipped.contains(n))
+        }
+    }
+
+    pub fn group_in_use(&self, group_id: &str) -> bool {
+        self.occupied
+            .get(group_id)
+            .is_some_and(|set| !set.is_empty())
+    }
+
+    pub fn has_path(&self, lower: &str) -> bool {
+        self.paths.contains_key(lower)
+    }
+
+    pub fn refresh_path_lower(
         &mut self,
         record: &Record,
-        path: &str,
+        lower: &str,
         settings: &Settings,
         rules: &RuleSet,
         platform: &dyn Platform,
     ) {
-        let indices = self
-            .paths
-            .get(&path.to_ascii_lowercase())
-            .cloned()
-            .unwrap_or_default();
+        let indices = self.paths.get(lower).cloned().unwrap_or_default();
         for index in indices {
             let item = &record.result.items[index];
             let after = skipped(item, settings);
@@ -434,7 +561,7 @@ fn summary(g: &Group, eligible_count: u64, rules: &RuleSet, platform: &dyn Platf
     text
 }
 
-fn product_name(name: &str) -> String {
+pub(crate) fn product_name(name: &str) -> String {
     PRODUCT_NAMES
         .iter()
         .find(|(process, _)| process.eq_ignore_ascii_case(name))
@@ -468,7 +595,7 @@ pub(crate) fn group(
     platform: &dyn Platform,
     settings: &Settings,
 ) -> Value {
-    let text = rules.text(&g.group_id);
+    let text = text(record, g, rules);
     let eligible_count = record
         .result
         .items
@@ -591,20 +718,23 @@ pub(crate) fn insight(
         .find(|g| g.group_id == growth.group_id)
         .map(|g| unit(rules, g))
         .unwrap_or("项");
+    let compared = if record.previous_at.is_none() {
+        "与更早的一次体检相比".to_owned()
+    } else {
+        format!("与 {} 月 {} 日相比", date.0, date.1)
+    };
     let message = if growth.leak_suspect {
         format!(
-            "与 {} 月 {} 日相比多了 {} 个（{}），每天约 {}。",
-            date.0,
-            date.1,
+            "{}多了 {} 个（{}），每天约 {}。",
+            compared,
             growth.count_delta,
             amount(&growth.bytes_delta),
             amount(&growth.bytes_per_day)
         )
     } else {
         format!(
-            "与 {} 月 {} 日相比多了 {} 个{}（{}）。",
-            date.0,
-            date.1,
+            "{}多了 {} 个{}（{}）。",
+            compared,
             growth.count_delta,
             unit,
             amount(&growth.bytes_delta)
@@ -656,7 +786,7 @@ pub(crate) fn build(
             if g.level == Level::Recommended {
                 totals[1] += util::bytes(&view["eligible_bytes"]);
             }
-            let text = rules.text(&g.group_id);
+            let text = text(record, g, rules);
             let rule = rules.rule(&g.rule_id);
             let mut items: Vec<_> = record
                 .result
@@ -676,7 +806,7 @@ pub(crate) fn build(
                     "level_not_cleanable"=>"这一类只统计占用，不清理".into(),"hard_guard"=>"这是系统或用户的关键目录".into(),
                     "contains_protected"=>"里面有受保护的数据".into(),"inside_protected"=>"位于受保护的数据之内".into(),"repository"=>"这是代码仓库".into(),
                     "too_recent"=>format!("最近 {} 小时内有改动",rule.map(|r|r.min_age_hours).unwrap_or(0)),
-                    "user_skipped"=>"已设为以后都跳过".into(),"keep_newest"=>format!("按规则保留最新的 {} 个",rule.map(|r|r.keep_newest).unwrap_or(0)),_=>"无法确认这一项的身份".into() }) };
+                    "user_skipped"=>"已设为以后都跳过".into(),"keep_newest"=>format!("按规则保留最新的 {} 个",rule.map(|r|r.keep_newest).unwrap_or(0)),"identity_unavailable"=>"无法确认这一项的身份".into(),_=>r.into() }) };
                 json!({"item_id":i.item_id,"in_use":if eligible(i, settings) { record.saved["item_in_use"].get(&i.item_id).cloned().unwrap_or(Value::Null) } else { Value::Null },"display_path":i.path,"total_bytes":i.unique_bytes,"newest_activity":i.newest_activity,"eligible":eligible(i, settings),"reason_zh":reason})
             }).collect();
             details.insert(g.group_id.clone(),json!({"group":view,"what_zh":text.as_ref().map(|t|t.what_zh.as_str()).unwrap_or("未识别的位置，只统计占用。"),

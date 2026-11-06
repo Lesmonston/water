@@ -1,0 +1,227 @@
+{
+  "task": "WATER-W10-M7",
+  "kind": "service",
+  "mode": "lock",
+  "finalGate": false,
+  "manifest": "docs/dispatch/wave10/manifest.json",
+  "startedAt": "2026-11-06T08:19:09.543Z",
+  "realDataRead": false,
+  "productTestsRun": false,
+  "nativeWindows": 0,
+  "directoryDialogs": 0,
+  "commands": [
+    {
+      "binary": "git",
+      "argv": [
+        "branch",
+        "--show-current"
+      ],
+      "exitCode": 0
+    },
+    {
+      "binary": "git",
+      "argv": [
+        "merge-base",
+        "--is-ancestor",
+        "b4b889a9412c47d8227c492eb76ef053fbd2b9c2",
+        "HEAD"
+      ],
+      "exitCode": 0
+    },
+    {
+      "binary": "git",
+      "argv": [
+        "diff",
+        "--no-renames",
+        "--name-only",
+        "-z",
+        "b4b889a9412c47d8227c492eb76ef053fbd2b9c2",
+        "HEAD"
+      ],
+      "exitCode": 0
+    },
+    {
+      "binary": "git",
+      "argv": [
+        "diff",
+        "--no-renames",
+        "--name-only",
+        "-z",
+        "HEAD"
+      ],
+      "exitCode": 0
+    },
+    {
+      "binary": "git",
+      "argv": [
+        "ls-files",
+        "--others",
+        "--exclude-standard",
+        "-z"
+      ],
+      "exitCode": 0
+    },
+    {
+      "binary": "git",
+      "argv": [
+        "rev-parse",
+        "HEAD"
+      ],
+      "exitCode": 0
+    },
+    {
+      "binary": "git",
+      "argv": [
+        "status",
+        "--porcelain",
+        "--untracked-files=all"
+      ],
+      "exitCode": 0
+    },
+    {
+      "binary": "C:\\Users\\37310\\.cargo\\bin\\rustup.exe",
+      "argv": [
+        "which",
+        "cargo",
+        "--toolchain",
+        "1.95.0"
+      ],
+      "exitCode": 0,
+      "error": null,
+      "log": "2026-11-06T08-19-09.542Z-34144-lock-1.log"
+    },
+    {
+      "binary": "C:\\Users\\37310\\.cargo\\bin\\rustup.exe",
+      "argv": [
+        "which",
+        "rustc",
+        "--toolchain",
+        "1.95.0"
+      ],
+      "exitCode": 0,
+      "error": null,
+      "log": "2026-11-06T08-19-09.542Z-34144-lock-2.log"
+    },
+    {
+      "binary": "C:\\Users\\37310\\.rustup\\toolchains\\1.95.0-x86_64-pc-windows-msvc\\bin\\rustc.exe",
+      "argv": [
+        "--version"
+      ],
+      "exitCode": 0,
+      "error": null,
+      "log": "2026-11-06T08-19-09.542Z-34144-lock-3.log"
+    },
+    {
+      "binary": "C:\\Users\\37310\\.rustup\\toolchains\\1.95.0-x86_64-pc-windows-msvc\\bin\\cargo.exe",
+      "argv": [
+        "metadata",
+        "--offline",
+        "--locked",
+        "--format-version",
+        "1",
+        "--manifest-path",
+        "packages/water-service/Cargo.toml"
+      ],
+      "exitCode": 0,
+      "error": null,
+      "log": "2026-11-06T08-19-09.542Z-34144-lock-4.log"
+    },
+    {
+      "binary": "git",
+      "argv": [
+        "branch",
+        "--show-current"
+      ],
+      "exitCode": 0
+    },
+    {
+      "binary": "git",
+      "argv": [
+        "merge-base",
+        "--is-ancestor",
+        "b4b889a9412c47d8227c492eb76ef053fbd2b9c2",
+        "HEAD"
+      ],
+      "exitCode": 0
+    },
+    {
+      "binary": "git",
+      "argv": [
+        "diff",
+        "--no-renames",
+        "--name-only",
+        "-z",
+        "b4b889a9412c47d8227c492eb76ef053fbd2b9c2",
+        "HEAD"
+      ],
+      "exitCode": 0
+    },
+    {
+      "binary": "git",
+      "argv": [
+        "diff",
+        "--no-renames",
+        "--name-only",
+        "-z",
+        "HEAD"
+      ],
+      "exitCode": 0
+    },
+    {
+      "binary": "git",
+      "argv": [
+        "ls-files",
+        "--others",
+        "--exclude-standard",
+        "-z"
+      ],
+      "exitCode": 0
+    },
+    {
+      "binary": "git",
+      "argv": [
+        "rev-parse",
+        "HEAD"
+      ],
+      "exitCode": 0
+    },
+    {
+      "binary": "git",
+      "argv": [
+        "status",
+        "--porcelain",
+        "--untracked-files=all"
+      ],
+      "exitCode": 0
+    }
+  ],
+  "changedPaths": [
+    "docs/dispatch/reports/WATER-W10-M7-REPORT.md",
+    "packages/water-service/Cargo.lock",
+    "packages/water-service/Cargo.toml",
+    "packages/water-service/src/clean.rs",
+    "packages/water-service/src/conclusion.rs",
+    "packages/water-service/src/dedupe.rs",
+    "packages/water-service/src/lib.rs",
+    "packages/water-service/src/m35.rs",
+    "packages/water-service/src/native_windows.rs",
+    "packages/water-service/src/quarantine.rs",
+    "packages/water-service/src/service.rs",
+    "packages/water-service/src/storage.rs",
+    "packages/water-service/src/util.rs",
+    "packages/water-service/src/views.rs",
+    "packages/water-service/tests/service_v1.rs"
+  ],
+  "before": {
+    "head": "50fb2ab401f8291658c7bb6f1ed52537abddf443",
+    "status": "M packages/water-service/Cargo.lock\n M packages/water-service/Cargo.toml\n M packages/water-service/src/clean.rs\n M packages/water-service/src/lib.rs\n M packages/water-service/src/native_windows.rs\n M packages/water-service/src/service.rs\n M packages/water-service/src/storage.rs\n M packages/water-service/src/util.rs\n M packages/water-service/src/views.rs\n M packages/water-service/tests/service_v1.rs\n?? packages/water-service/src/conclusion.rs\n?? packages/water-service/src/dedupe.rs\n?? packages/water-service/src/m35.rs\n?? packages/water-service/src/quarantine.rs"
+  },
+  "registryPackages": 11,
+  "after": {
+    "head": "50fb2ab401f8291658c7bb6f1ed52537abddf443",
+    "status": "M packages/water-service/Cargo.lock\n M packages/water-service/Cargo.toml\n M packages/water-service/src/clean.rs\n M packages/water-service/src/lib.rs\n M packages/water-service/src/native_windows.rs\n M packages/water-service/src/service.rs\n M packages/water-service/src/storage.rs\n M packages/water-service/src/util.rs\n M packages/water-service/src/views.rs\n M packages/water-service/tests/service_v1.rs\n?? packages/water-service/src/conclusion.rs\n?? packages/water-service/src/dedupe.rs\n?? packages/water-service/src/m35.rs\n?? packages/water-service/src/quarantine.rs"
+  },
+  "status": "passed",
+  "error": null,
+  "endedAt": "2026-11-06T08:19:11.622Z"
+}

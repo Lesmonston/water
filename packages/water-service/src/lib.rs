@@ -2,8 +2,12 @@
 #![deny(unsafe_code)]
 
 mod clean;
+mod conclusion;
+mod dedupe;
+mod m35;
 #[allow(unsafe_code)]
 mod native_windows;
+mod quarantine;
 mod service;
 mod storage;
 mod util;
@@ -75,6 +79,18 @@ pub trait Platform: Send + Sync {
     fn orphan_chains(&self) -> Vec<water_process_scan::OrphanChain> {
         Vec::new()
     }
+    fn recycle_bin(&self, _root: &str) -> Option<u64> {
+        None
+    }
+    fn installed_apps(&self) -> Option<water_installed_apps::AppList> {
+        None
+    }
+    fn quarantine_roots(&self) -> Vec<String> {
+        Vec::new()
+    }
+    fn quarantine_base(&self, _root: &str) -> Option<String> {
+        None
+    }
 }
 
 #[derive(Debug, Clone)]
@@ -108,6 +124,18 @@ impl WindowsPlatform {
 }
 
 impl Platform for WindowsPlatform {
+    fn recycle_bin(&self, root: &str) -> Option<u64> {
+        native_windows::recycle_bin(root)
+    }
+    fn installed_apps(&self) -> Option<water_installed_apps::AppList> {
+        water_installed_apps::read_installed(self.now()).ok()
+    }
+    fn quarantine_roots(&self) -> Vec<String> {
+        self.drives()
+            .into_iter()
+            .map(|d| format!("{}.water-quarantine", d.root))
+            .collect()
+    }
     fn volume_file_system(&self, root: &str) -> Option<String> {
         native_windows::volume_file_system(root)
     }

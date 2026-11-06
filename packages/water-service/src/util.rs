@@ -85,8 +85,11 @@ pub(crate) fn record_id(id: &str, prefix: &str) -> bool {
 }
 
 pub(crate) fn parts(at: SystemTime) -> [u16; 6] {
-    let secs = at.duration_since(UNIX_EPOCH).unwrap_or_default().as_secs();
-    let z = (secs / 86400) as i64 + 719468;
+    let secs = match at.duration_since(UNIX_EPOCH) {
+        Ok(d) => i64::try_from(d.as_secs()).unwrap_or(i64::MAX),
+        Err(e) => -i64::try_from(e.duration().as_secs()).unwrap_or(i64::MAX),
+    };
+    let z = secs.div_euclid(86400) + 719468;
     let era = z.div_euclid(146097);
     let doe = z - era * 146097;
     let yoe = (doe - doe / 1460 + doe / 36524 - doe / 146096) / 365;
@@ -99,9 +102,9 @@ pub(crate) fn parts(at: SystemTime) -> [u16; 6] {
         y as u16,
         m as u16,
         d as u16,
-        ((secs / 3600) % 24) as u16,
-        ((secs / 60) % 60) as u16,
-        (secs % 60) as u16,
+        (secs.div_euclid(3600).rem_euclid(24)) as u16,
+        (secs.div_euclid(60).rem_euclid(60)) as u16,
+        secs.rem_euclid(60) as u16,
     ]
 }
 
@@ -120,7 +123,7 @@ pub(crate) fn parse_time(s: &str) -> Option<SystemTime> {
     let h = s[11..13].parse::<u64>().ok()?;
     let n = s[14..16].parse::<u64>().ok()?;
     let sec = s[17..19].parse::<u64>().ok()?;
-    if !(1970..=9999).contains(&y)
+    if !(1..=9999).contains(&y)
         || !(1..=12).contains(&m)
         || !(1..=31).contains(&d)
         || h > 23
@@ -134,9 +137,14 @@ pub(crate) fn parse_time(s: &str) -> Option<SystemTime> {
     let yo = y - era * 400;
     let mp = m + if m > 2 { -3 } else { 9 };
     let days = era * 146097 + yo * 365 + yo / 4 - yo / 100 + (153 * mp + 2) / 5 + d - 1 - 719468;
-    let at = UNIX_EPOCH.checked_add(Duration::from_secs(
-        u64::try_from(days).ok()? * 86400 + h * 3600 + n * 60 + sec,
-    ))?;
+    let seconds = days
+        .checked_mul(86400)?
+        .checked_add((h * 3600 + n * 60 + sec) as i64)?;
+    let at = if seconds < 0 {
+        UNIX_EPOCH.checked_sub(Duration::from_secs(seconds.unsigned_abs()))?
+    } else {
+        UNIX_EPOCH.checked_add(Duration::from_secs(seconds as u64))?
+    };
     (timestamp(at) == s).then_some(at)
 }
 

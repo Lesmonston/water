@@ -5,7 +5,7 @@ use std::{
     collections::{BTreeMap, BTreeSet, VecDeque, hash_map::RandomState},
     fs::{self, File, FileTimes, OpenOptions},
     hash::{BuildHasher, Hasher},
-    os::windows::fs::OpenOptionsExt,
+    os::windows::fs::{FileTimesExt, OpenOptionsExt},
     path::{Path, PathBuf},
     process::Command,
     sync::{
@@ -29,14 +29,28 @@ const DISABLED: &str = "这一版只做体检，清理功能会在下一版开�
 // This keeps fixture authorisation and the storage barrier out of the product.
 #[path = "../src/clean.rs"]
 mod clean;
+#[path = "../src/conclusion.rs"]
+mod conclusion;
+#[path = "../src/dedupe.rs"]
+mod dedupe;
 #[path = "../src/storage.rs"]
 mod disk_storage;
+#[path = "../src/m35.rs"]
+mod m35;
+#[path = "../src/quarantine.rs"]
+mod quarantine;
 #[path = "../src/service.rs"]
 mod service;
 #[path = "../src/util.rs"]
 mod util;
 #[path = "../src/views.rs"]
 mod views;
+mod native_windows {
+    pub(crate) fn quarantine_stamp(at: std::time::SystemTime) -> String {
+        let [y, m, d, h, n, s] = super::util::parts(at);
+        format!("{y:04}{m:02}{d:02}-{h:02}{n:02}{s:02}")
+    }
+}
 const IN_USE_UNKNOWN: &str = "无法确认占用状态";
 
 // The sources use their crate-private error constructors. Public platform
@@ -84,6 +98,7 @@ mod storage {
     pub(crate) struct Store {
         inner: disk_storage::Store,
         pub after_snapshot: Mutex<Option<SnapshotBarrier>>,
+        pub fail_journal: AtomicBool,
     }
     impl std::ops::Deref for Store {
         type Target = disk_storage::Store;
@@ -96,6 +111,7 @@ mod storage {
             Ok(Self {
                 inner: disk_storage::Store::new(root)?,
                 after_snapshot: Mutex::new(None),
+                fail_journal: AtomicBool::new(false),
             })
         }
         pub fn write(&self, dir: &str, name: &str, value: &Value) -> Result<(), IpcError> {
@@ -110,6 +126,40 @@ mod storage {
                 }
             }
             Ok(())
+        }
+        pub fn journal(&self, id: &str) -> Result<TestJournal, IpcError> {
+            Ok(TestJournal {
+                inner: self.inner.journal(id)?,
+                fail: self.fail_journal.swap(false, Ordering::SeqCst),
+            })
+        }
+        pub fn purge_journal(&self, id: &str) -> Result<TestJournal, IpcError> {
+            Ok(TestJournal {
+                inner: self.inner.purge_journal(id)?,
+                fail: self.fail_journal.swap(false, Ordering::SeqCst),
+            })
+        }
+    }
+    pub(crate) struct TestJournal {
+        inner: disk_storage::DurableFile,
+        fail: bool,
+    }
+    impl std::io::Write for TestJournal {
+        fn write(&mut self, bytes: &[u8]) -> std::io::Result<usize> {
+            if self.fail
+                && [
+                    b"\"event\":\"moved\"".as_slice(),
+                    b"\"event\":\"done\"".as_slice(),
+                ]
+                .iter()
+                .any(|word| bytes.windows(word.len()).any(|b| b == *word))
+            {
+                return Err(std::io::Error::other("synthetic durable journal failure"));
+            }
+            std::io::Write::write(&mut self.inner, bytes)
+        }
+        fn flush(&mut self) -> std::io::Result<()> {
+            std::io::Write::flush(&mut self.inner)
         }
     }
 }
@@ -165,8 +215,29 @@ struct Fake {
     drives: Arc<Mutex<Vec<DriveInfo>>>,
     file_systems: Arc<Mutex<BTreeMap<String, String>>>,
     orphans: Arc<Mutex<Vec<water_process_scan::OrphanChain>>>,
+    apps: Arc<Mutex<Option<water_installed_apps::AppList>>>,
+    quarantines: Arc<Mutex<Vec<String>>>,
+    queried_paths: Arc<Mutex<Vec<String>>>,
+    quarantine_bases: Arc<Mutex<BTreeMap<String, String>>>,
 }
 impl Platform for Fake {
+    fn installed_apps(&self) -> Option<water_installed_apps::AppList> {
+        self.apps.lock().unwrap().clone()
+    }
+    fn quarantine_roots(&self) -> Vec<String> {
+        self.quarantines.lock().unwrap().clone()
+    }
+    fn quarantine_base(&self, root: &str) -> Option<String> {
+        self.quarantine_bases
+            .lock()
+            .unwrap()
+            .get(root)
+            .cloned()
+            .or_else(|| self.quarantines.lock().unwrap().first().cloned())
+    }
+    fn recycle_bin(&self, _root: &str) -> Option<u64> {
+        Some(4096)
+    }
     fn known_folders(&self) -> Result<KnownFolders, PublicIpcError> {
         Ok(self.folders.clone())
     }
@@ -209,6 +280,7 @@ impl Platform for Fake {
         )
     }
     fn in_use(&self, spec: &InUseSpec, path: &str) -> Option<String> {
+        self.queried_paths.lock().unwrap().push(path.into());
         if std::thread::current().name() == Some("water-clean")
             && self.panic_in_use.swap(false, Ordering::SeqCst)
         {
@@ -307,6 +379,10 @@ impl Fixture {
             }])),
             file_systems: Arc::new(Mutex::new(BTreeMap::new())),
             orphans: Arc::new(Mutex::new(Vec::new())),
+            apps: Arc::new(Mutex::new(None)),
+            quarantines: Arc::new(Mutex::new(vec![path(".water-quarantine")])),
+            queried_paths: Arc::new(Mutex::new(Vec::new())),
+            quarantine_bases: Arc::new(Mutex::new(BTreeMap::new())),
         };
         Self {
             root,
@@ -407,16 +483,45 @@ fn age(path: &Path, seconds: u64) {
         .custom_flags(0x02000000)
         .open(path)
         .unwrap();
-    file.set_times(FileTimes::new().set_modified(UNIX_EPOCH + Duration::from_secs(seconds)))
-        .unwrap();
+    file.set_times(
+        FileTimes::new()
+            .set_modified(UNIX_EPOCH + Duration::from_secs(seconds))
+            .set_created(UNIX_EPOCH + Duration::from_secs(seconds)),
+    )
+    .unwrap();
 }
 fn call(s: &impl TestService, c: &str, a: Value) -> Value {
     let started = Instant::now();
     let result = s.call(c, a).unwrap_or_else(|e| panic!("{c}: {e:?}"));
-    assert!(
-        started.elapsed() <= Duration::from_millis(50),
-        "SERVICE_RETURN_BUDGET: {c}"
-    );
+    // SERVICE.md L46: call except custom_root_add (folder picker) must return in 50 ms.
+    // Addendum 05: commands that sync-write files in the same call get 200 ms.
+    if c == "custom_root_add" {
+        return result;
+    }
+    if matches!(
+        c,
+        "conclusion_decide"
+            | "cluster_mark_fixed"
+            | "locations_set_session_cleanup"
+            | "manifest_trust"
+            | "locations_set_category"
+            | "custom_root_remove"
+            | "skip_add"
+            | "skip_remove"
+            | "clean_prepare"
+            | "clean_start"
+            | "quarantine_restore"
+    ) {
+        assert!(
+            started.elapsed() <= Duration::from_millis(200),
+            "SERVICE_RETURN_BUDGET: {c}"
+        );
+    } else {
+        assert!(
+            started.elapsed() <= Duration::from_millis(50),
+            "SERVICE_RETURN_BUDGET: {c}"
+        );
+    }
     result
 }
 fn wait(s: &impl TestService, c: &str) -> Value {
@@ -458,6 +563,74 @@ fn fixtures() -> Value {
     for (key, value) in increment.as_object().unwrap() {
         base[key] = value.clone();
     }
+    let m35: Value = serde_json::from_str(include_str!(
+        "../../../contracts/m35-v1/ui-fixtures-m35.json"
+    ))
+    .unwrap();
+    fn add(to: &mut Value, from: &Value, keys: &[&str]) {
+        for key in keys {
+            assert!(
+                from.as_object().is_some_and(|m| m.contains_key(*key)),
+                "SERVICE_M35_SCOPE: missing sample {key}"
+            );
+            to[key] = from[key].clone();
+        }
+    }
+    for key in ["app_state_fresh", "app_state_after_scan"] {
+        add(&mut base[key], &m35["v2_app_state_plain"], &["quarantine"]);
+    }
+    for sample in base["scan_progress_sequence"].as_array_mut().unwrap() {
+        if sample["state"] == "idle" {
+            sample["locations"] = json!([]);
+        } else {
+            let from = m35["v2_scan_progress_sequence"]
+                .as_array()
+                .unwrap()
+                .iter()
+                .find(|p| p["state"] == sample["state"])
+                .unwrap();
+            add(sample, from, &["locations"]);
+        }
+    }
+    for sample in base["clean_progress_sequence"].as_array_mut().unwrap() {
+        if sample["state"] == "idle" {
+            sample["phase"] = json!("delete");
+            sample["quarantined_bytes"] = json!("0");
+        } else {
+            let from = m35["v2_clean_progress_sequence"]
+                .as_array()
+                .unwrap()
+                .iter()
+                .find(|p| p["state"] == sample["state"])
+                .unwrap();
+            add(sample, from, &["phase", "quarantined_bytes"]);
+        }
+    }
+    for sample in base["group_details"].as_object_mut().unwrap().values_mut() {
+        add(
+            sample,
+            &m35["v2_group_detail_items"],
+            &["rows", "rows_note_zh"],
+        );
+    }
+    add(
+        &mut base["locations"],
+        &m35["v2_locations"],
+        &["home", "sessions", "manifests"],
+    );
+    add(&mut base["trends"], &m35["v2_trends"], &["clusters"]);
+    add(
+        &mut base["clean_prepare_default"],
+        &m35["v2_clean_prepare_quarantine"],
+        &["delete", "chosen", "expected_skip"],
+    );
+    base["clean_prepare_default"]["chosen"] = Value::Null;
+    add(
+        &mut base["clean_result"],
+        &m35["v2_clean_result"],
+        &["quarantined"],
+    );
+    base["clean_result"]["quarantined"] = Value::Null;
     for key in [
         "app_state_fresh",
         "app_state_after_scan",
@@ -3881,5 +4054,2237 @@ fn scale_projection(s: &Service, item_id: &Value, recommended: u64, count: u64, 
         scan["recommended_by_drive"][0]["bytes"],
         recommended.to_string(),
         "SERVICE_M3C_SKIP: scale recommended drive"
+    );
+}
+
+fn m35_scan(s: &impl TestService, ids: Value) -> Value {
+    let id = call(s, "scan_start", json!({"locationIds":ids}));
+    let p = wait(s, "scan_progress");
+    assert!(
+        p["state"] == "completed" || p["state"] == "partial",
+        "SERVICE_M35_SCOPE: {p}"
+    );
+    call(s, "scan_result", json!({"scanId":id["scan_id"]}))
+}
+fn m35_add(s: &impl TestService, f: &Fixture, relative: &str) -> String {
+    let root = f.root.join(relative);
+    fs::create_dir_all(&root).unwrap();
+    f.pick(Some(&root));
+    call(s, "custom_root_add", json!({}))["added"]["root_id"]
+        .as_str()
+        .unwrap()
+        .into()
+}
+fn m35_decide(s: &impl TestService, gid: &str) -> Value {
+    let c = call(s, "conclusion_get", json!({}));
+    call(
+        s,
+        "conclusion_decide",
+        json!({"version":c["version"],"decision":{"group":gid,"choice":"clean"}}),
+    )
+}
+fn m35_run_clean(s: &impl TestService, preview: &Value) -> (Value, Value) {
+    let id = call(
+        s,
+        "clean_start",
+        json!({"planId":preview["plan_id"],"confirmToken":preview["confirm_token"]}),
+    );
+    let p = wait(s, "clean_progress");
+    let result = call(s, "clean_result", json!({"cleanId":id["clean_id"]}));
+    (p, result)
+}
+fn m35_decl(f: &Fixture, path: &str, protected: Value) -> PathBuf {
+    let path = f.root.join(path).join(".water-cleanup.json");
+    fs::create_dir_all(path.parent().unwrap()).unwrap();
+    fs::write(&path,json!({"version":1,"project":"Synthetic","protected":protected,"disposable":[{"id":"builds","title":"声明构建目录","paths":["output"],"when":"always","ask":true}]}).to_string()).unwrap();
+    path
+}
+
+// Synthetic record injection is confined to the test crate's private service;
+// production never exposes this authority. Executed paths stay in this fixture.
+fn m35_replace_record(s: &service::Service, saved: Value) {
+    let mut state = s.core.state.lock().unwrap();
+    let record = service::Record {
+        result: water_junk_scan::result_from_json(&saved["result"].to_string()).unwrap(),
+        plan: water_junk_rules::ScanPlan::from_json(&saved["plan"].to_string()).unwrap(),
+        growth: serde_json::from_value(saved["growth"].clone()).unwrap(),
+        saved,
+        previous_at: None,
+        projection: Mutex::new(views::Projection::default()),
+    };
+    *record.projection() = views::Projection::new(
+        &record,
+        &s.core.rules,
+        s.core.platform.as_ref(),
+        &state.settings,
+    );
+    let id = record.result.scan_id.clone();
+    state.records.retain(|r| r.result.scan_id != id);
+    state.records.push(Arc::new(record));
+    state.last = Some(id.clone());
+    state.local_scans.insert(id.clone());
+    state.consumed.remove(&id);
+    state.m35.stale.remove(&id);
+    state.m35.conclusion = None;
+}
+
+fn m35_safety_facts() {
+    let f = Fixture::new();
+    f.seed();
+    let s = source_service(&f, true);
+    let result = scanned(&s);
+    let base = scan_saved(&f, &result);
+    let index = base["result"]["items"]
+        .as_array()
+        .unwrap()
+        .iter()
+        .position(|i| i["group_id"] == "npm-cache")
+        .unwrap();
+    for (key, value, reason) in [
+        ("referenced_count", json!(1), "引用"),
+        ("valuable_count", json!(1), "贵重文件"),
+        ("odd_count", json!(1), "名字特殊"),
+    ] {
+        let mut raw = base.clone();
+        let i = &mut raw["result"]["items"][index];
+        i[key] = value;
+        if key == "referenced_count" {
+            i["referenced_by"] = json!(["F:\\synthetic-link"]);
+        }
+        if key == "valuable_count" {
+            i["valuable_names"] = json!(["signing.jks"]);
+        }
+        if key == "odd_count" {
+            i["odd_names"] = json!(["npm-cache"]);
+        }
+        let mut typed = water_junk_scan::result_from_json(&raw["result"].to_string()).unwrap();
+        let notes = m35::supplement(&s.core, &mut typed, &[], &BTreeMap::new());
+        assert!(
+            !typed.items[index].eligible
+                && typed.items[index]
+                    .ineligible_reason
+                    .as_deref()
+                    .unwrap()
+                    .contains(reason),
+            "SERVICE_M35_SCOPE: {key}"
+        );
+        for (k, v) in notes.as_object().unwrap() {
+            raw[k] = v.clone();
+        }
+        raw["result"] = json!(typed);
+        m35_replace_record(&s, raw);
+        assert!(
+            s.call("clean_prepare", json!({"groupIds":["npm-cache"]}))
+                .is_err(),
+            "SERVICE_M35_CLEAN: unsafe fact reached plan {key}"
+        );
+    }
+    let mut raw = base.clone();
+    raw["result"]["items"][index]["odd_count"] = json!(1);
+    raw["result"]["items"][index]["odd_names"] = json!(["nested\\nul"]);
+    let mut typed = water_junk_scan::result_from_json(&raw["result"].to_string()).unwrap();
+    let extra = m35::supplement(&s.core, &mut typed, &[], &BTreeMap::new());
+    assert!(
+        typed.items[index].eligible
+            && extra["item_notes"][typed.items[index].item_id.as_str()][0]
+                .as_str()
+                .unwrap()
+                .contains("Water 能删"),
+        "SERVICE_M35_SCOPE: contained odd name"
+    );
+    let confirm = base["result"]["items"]
+        .as_array()
+        .unwrap()
+        .iter()
+        .position(|i| i["group_id"] == "downloads-installers")
+        .unwrap();
+    let mut typed = water_junk_scan::result_from_json(&base["result"].to_string()).unwrap();
+    typed.items[confirm].valuable_count = 1;
+    typed.items[confirm].valuable_names = vec!["release.key".into()];
+    m35::supplement(&s.core, &mut typed, &[], &BTreeMap::new());
+    assert!(
+        typed.items[confirm].eligible,
+        "SERVICE_M35_SCOPE: confirm valuable stays confirm"
+    );
+}
+
+#[test]
+fn m35_scope_and_plan() {
+    m35_safety_facts();
+    let f = Fixture::new();
+    f.seed();
+    f.file("project/output/data", 123);
+    m35_decl(&f, "project", json!(["private"]));
+    f.age_all(NOW - 40 * 86400);
+    let s = f.service(true);
+    let root = m35_add(&s, &f, "project");
+    for ids in [
+        json!([]),
+        json!(["missing"]),
+        json!([root, root]),
+        json!(vec!["common"; 25]),
+    ] {
+        assert_eq!(
+            s.call("scan_start", json!({"locationIds":ids}))
+                .unwrap_err()
+                .code,
+            "invalid",
+            "SERVICE_M35_SCOPE: invalid scope"
+        );
+    }
+    let r = m35_scan(&s, json!([root]));
+    let saved = scan_saved(&f, &r);
+    assert!(
+        saved["plan"]["targets"]
+            .as_array()
+            .unwrap()
+            .iter()
+            .all(|t| t["group_id"].as_str().unwrap().starts_with("custom:")),
+        "SERVICE_M35_SCOPE: common leaked into folder scope"
+    );
+    assert!(
+        !saved["plan"]["targets"]
+            .as_array()
+            .unwrap()
+            .iter()
+            .any(|t| t["group_id"].as_str().unwrap().starts_with("decl:")),
+        "SERVICE_M35_SCOPE: untrusted declaration became a target"
+    );
+    let loc = call(&s, "locations_get", json!({}));
+    let mf = loc["manifests"][0]["manifest_id"].clone();
+    assert_eq!(
+        loc["manifests"][0]["state"], "untrusted",
+        "SERVICE_M35_SCOPE: discovery"
+    );
+    call(
+        &s,
+        "manifest_trust",
+        json!({"manifestId":mf,"trusted":true}),
+    );
+    let r = m35_scan(&s, json!([root]));
+    let saved = scan_saved(&f, &r);
+    assert!(
+        saved["plan"]["targets"]
+            .as_array()
+            .unwrap()
+            .iter()
+            .any(|t| t["group_id"].as_str().unwrap().starts_with("decl:")),
+        "SERVICE_M35_SCOPE: trusted declaration missing"
+    );
+    let reloaded = f.service(false);
+    assert_eq!(
+        call(&reloaded, "app_state", json!({}))["last_scan"]["scan_id"],
+        r["scan_id"],
+        "SERVICE_M35_SCOPE: declaration reload"
+    );
+    drop(reloaded);
+    fs::write(
+        f.root.join("project/.water-cleanup.json"),
+        json!({"version":1,"protected":["output"]}).to_string(),
+    )
+    .unwrap();
+    m35_scan(&s, json!([root]));
+    let loc = call(&s, "locations_get", json!({}));
+    assert_eq!(
+        loc["manifests"][0]["state"], "changed",
+        "SERVICE_M35_SCOPE: changed trust"
+    );
+    call(
+        &s,
+        "locations_set_session_cleanup",
+        json!({"tool":"claude-code","enabled":true,"days":30}),
+    );
+    f.file("user_profile/.claude/projects/project/old.jsonl", 64);
+    f.age_all(NOW - 40 * 86400);
+    let r = m35_scan(&s, json!(["common"]));
+    let saved = scan_saved(&f, &r);
+    assert!(
+        saved["plan"]["targets"]
+            .as_array()
+            .unwrap()
+            .iter()
+            .any(|t| t["rule_id"] == "claude-code-old-sessions" && t["min_age_hours"] == 720),
+        "SERVICE_M35_SCOPE: session options"
+    );
+    let p = call(
+        &s,
+        "clean_prepare",
+        json!({"groupIds":["claude-code-old-sessions"]}),
+    );
+    assert!(
+        read_plan(&f, &p)["plan"]["items"][0]["unlocked_paths"]
+            .as_array()
+            .is_some_and(|x| !x.is_empty()),
+        "SERVICE_M35_SCOPE: unlock pair"
+    );
+    f.file("roaming_app_data/QQ/Partitions/account/Cache/x", 12);
+    f.age_all(NOW - 40 * 86400);
+    f.fake.queried_paths.lock().unwrap().clear();
+    f.fake.now.store(NOW + 300, Ordering::SeqCst);
+    let r = m35_scan(&s, json!(["common"]));
+    assert!(
+        f.fake
+            .queried_paths
+            .lock()
+            .unwrap()
+            .contains(&slash(&f.root.join("roaming_app_data/QQ"))),
+        "SERVICE_M35_SCOPE: root_levels"
+    );
+    drop(s);
+    let s = f.service(false);
+    assert_eq!(
+        call(&s, "app_state", json!({}))["last_scan"]["scan_id"],
+        r["scan_id"],
+        "SERVICE_M35_SCOPE: root_levels reload"
+    );
+    drop(s);
+    assert_eq!(
+        m35::collected_at("1"),
+        Some("1970-01-01T00:00:01Z".into()),
+        "SERVICE_M35_SCOPE: positive epoch"
+    );
+    assert_eq!(
+        m35::collected_at("-1"),
+        Some("1969-12-31T23:59:59Z".into()),
+        "SERVICE_M35_SCOPE: negative epoch"
+    );
+    assert_eq!(
+        m35::collected_at("bad"),
+        None,
+        "SERVICE_M35_SCOPE: invalid epoch"
+    );
+    // Production supplement with synthetic facts exercises spellings the real scanner
+    // cannot emit on this fixed local-volume fixture. No invented path is executed.
+    let mut ss = source_service(&f, false);
+    let mut record = scan_saved(&f, &r);
+    let mut result = water_junk_scan::result_from_json(&record["result"].to_string()).unwrap();
+    let index = result
+        .items
+        .iter()
+        .position(|i| i.group_id == "npm-cache")
+        .unwrap();
+    let original = result.items[index].path.clone();
+    let d = m35_decl(&f, "local_app_data/npm-cache", json!(["cache"]));
+    let loaded = water_cleanup_manifest::read_manifest(&slash(&d));
+    result.items[index].path = format!(r"\\?\{}\cache", original);
+    m35::supplement(&ss.core, &mut result, &[loaded], &BTreeMap::new());
+    assert!(
+        !result.items[index].eligible
+            && result.items[index]
+                .ineligible_reason
+                .as_deref()
+                .unwrap_or("")
+                .contains("项目声明"),
+        "SERVICE_M35_SCOPE: extended path protects"
+    );
+    result.items[index].path = "\\\\server\\share\\cache".into();
+    result.items[index].eligible = true;
+    result.items[index].ineligible_reason = None;
+    m35::supplement(&ss.core, &mut result, &[], &BTreeMap::new());
+    assert_eq!(
+        result.items[index].ineligible_reason.as_deref(),
+        Some("路径格式无法核对项目声明"),
+        "SERVICE_M35_SCOPE: UNC"
+    );
+    result.items[index].path = original;
+    result.items[index].eligible = true;
+    let loaded = water_cleanup_manifest::read_manifest(&slash(&d));
+    m35::supplement(&ss.core, &mut result, &[loaded], &BTreeMap::new());
+    assert_eq!(
+        result.items[index].ineligible_reason.as_deref(),
+        Some("里面有项目的声明文件，不能整块清理"),
+        "SERVICE_M35_SCOPE: declaration ancestor"
+    );
+    let mut rules: Value =
+        serde_json::from_str(include_str!("../../junk-rules/rules/windows.json")).unwrap();
+    let rule = rules["rules"]
+        .as_array_mut()
+        .unwrap()
+        .iter_mut()
+        .find(|r| r["rule_id"] == "minimax-hub-leftover")
+        .unwrap();
+    rule["installed_names"] = json!(["QQ"]);
+    // RuleSet is private to the service: use a fresh Core built through its test-only
+    // field ownership, never add a production rule override.
+    let core = Arc::get_mut(&mut ss.core).unwrap();
+    core.rules = water_junk_rules::RuleSet::from_json(&rules.to_string()).unwrap();
+    let proto = result.items[index].clone();
+    let mut g = result
+        .groups
+        .iter()
+        .find(|g| g.group_id == proto.group_id)
+        .unwrap()
+        .clone();
+    g.rule_id = "minimax-hub-leftover".into();
+    g.group_id = "synthetic-leftover".into();
+    g.level = water_junk_scan::Level::Confirm;
+    result.groups.push(g);
+    let mut i = proto;
+    i.group_id = "synthetic-leftover".into();
+    i.item_id = "synthetic-item".into();
+    i.eligible = true;
+    i.ineligible_reason = None;
+    result.items.push(i);
+    *f.fake.apps.lock().unwrap() = Some(water_installed_apps::AppList {
+        apps_version: "water.installed-apps.v1".into(),
+        collected_at: "-1".into(),
+        apps: vec![water_installed_apps::App {
+            scope: "user".into(),
+            key: "qq".into(),
+            name: "腾讯QQ".into(),
+            version: None,
+            install_location: None,
+        }],
+        truncated: false,
+        unreadable_keys: 0,
+    });
+    let extra = m35::supplement(core, &mut result, &[], &BTreeMap::new());
+    let i = result.items.last().unwrap();
+    assert!(
+        !i.eligible
+            && i.ineligible_reason
+                .as_deref()
+                .unwrap()
+                .contains("QQ 还装着"),
+        "SERVICE_M35_SCOPE: loose installed match"
+    );
+    assert_eq!(
+        extra["installed_apps_at"], "1969-12-31T23:59:59Z",
+        "SERVICE_M35_SCOPE: stored apps time"
+    );
+    record["result"] = json!(result);
+
+    // The extended spelling must also remain cleanable without a declaration.
+    let mut unprotected =
+        water_junk_scan::result_from_json(&scan_saved(&f, &r)["result"].to_string()).unwrap();
+    unprotected.items[index].path = format!(r"\\?\{}", unprotected.items[index].path);
+    m35::supplement(&ss.core, &mut unprotected, &[], &BTreeMap::new());
+    assert!(
+        unprotected.items[index].eligible && unprotected.items[index].ineligible_reason.is_none(),
+        "SERVICE_M35_SCOPE: undeclared extended path stays cleanable"
+    );
+
+    {
+        let f = Fixture::new();
+        f.seed();
+        f.file("common/node_modules/pkg/data", 41);
+        f.age_all(NOW - 40 * 86400);
+        let s = source_service(&f, true);
+        let id = m35_add(&s, &f, "common");
+        assert_eq!(id, "common-2", "SERVICE_M35_SCOPE: common ID is reserved");
+        let home = call(&s, "locations_get", json!({}))["home"]
+            .as_array()
+            .unwrap()
+            .clone();
+        assert_eq!(
+            home.iter()
+                .map(|r| r["location_id"].as_str().unwrap())
+                .collect::<BTreeSet<_>>()
+                .len(),
+            home.len(),
+            "SERVICE_M35_SCOPE: unique home IDs"
+        );
+        let scan = m35_scan(&s, json!([id]));
+        assert!(
+            scan_saved(&f, &scan)["result"]["groups"]
+                .as_array()
+                .unwrap()
+                .iter()
+                .any(|g| g["group_id"]
+                    .as_str()
+                    .unwrap()
+                    .starts_with("custom:common-2:")
+                    && g["item_count"].as_u64().unwrap() > 0),
+            "SERVICE_M35_SCOPE: common folder can be scanned"
+        );
+        // Simulate an older settings file, with common-2 already occupied.
+        m35_add(&s, &f, "other");
+        drop(s);
+        let path = f.data.join("settings.json");
+        let mut settings: Value = serde_json::from_slice(&fs::read(&path).unwrap()).unwrap();
+        settings["custom_roots"][0]["root_id"] = json!("common");
+        settings["custom_roots"][1]["root_id"] = json!("common-2");
+        fs::write(&path, settings.to_string()).unwrap();
+        let s = source_service(&f, true);
+        let migrated: Value = serde_json::from_slice(&fs::read(&path).unwrap()).unwrap();
+        assert_eq!(
+            migrated["custom_roots"][0]["root_id"], "common-3",
+            "SERVICE_M35_SCOPE: migrate reserved ID and save"
+        );
+        assert_eq!(
+            migrated["custom_roots"][1]["root_id"], "common-2",
+            "SERVICE_M35_SCOPE: migration preserves occupied ID"
+        );
+        let home = call(&s, "locations_get", json!({}))["home"]
+            .as_array()
+            .unwrap()
+            .clone();
+        assert_eq!(
+            home.iter()
+                .map(|r| r["location_id"].as_str().unwrap())
+                .collect::<BTreeSet<_>>()
+                .len(),
+            home.len(),
+            "SERVICE_M35_SCOPE: unique migrated home IDs"
+        );
+        let scan = m35_scan(&s, json!(["common-3"]));
+        assert!(
+            scan_saved(&f, &scan)["result"]["groups"]
+                .as_array()
+                .unwrap()
+                .iter()
+                .any(|g| g["group_id"]
+                    .as_str()
+                    .unwrap()
+                    .starts_with("custom:common-3:")
+                    && g["item_count"].as_u64().unwrap() > 0),
+            "SERVICE_M35_SCOPE: migrated folder can be scanned"
+        );
+        // Only the default selection tolerates a persisted drive missing from home.
+        s.core
+            .state
+            .lock()
+            .unwrap()
+            .settings
+            .custom_roots
+            .push(service::CustomRoot {
+                root_id: "drive-z".into(),
+                path: "Z:\\".into(),
+                added_at: "2026-01-01T00:00:00Z".into(),
+            });
+        call(&s, "scan_start", json!({}));
+        let progress = wait(&s, "scan_progress");
+        assert_eq!(
+            progress["state"], "completed",
+            "SERVICE_M35_SCOPE: default scan skips absent drive"
+        );
+        assert!(
+            progress["locations"]
+                .as_array()
+                .unwrap()
+                .iter()
+                .all(|l| l["location_id"] != "drive-z")
+                && progress["locations"]
+                    .as_array()
+                    .unwrap()
+                    .iter()
+                    .any(|l| l["location_id"] == "common-3"),
+            "SERVICE_M35_SCOPE: default scan retains available folders"
+        );
+        assert_eq!(
+            s.call("scan_start", json!({"locationIds":["common", "drive-z"]}))
+                .unwrap_err()
+                .code,
+            "invalid",
+            "SERVICE_M35_SCOPE: explicit absent drive is invalid"
+        );
+    }
+}
+
+#[test]
+fn m35_conclusion_cards() {
+    m35_selection_layers();
+    let f = Fixture::new();
+    f.seed();
+    for n in 0..7 {
+        f.file(&format!("project{n}/backup{n}.bak-20261001/data"), 100 + n);
+        m35_decl(&f, &format!("project{n}"), json!([]));
+        f.file(&format!("project{n}/output/data"), 200 + n);
+    }
+    f.age_all(NOW - 40 * 86400);
+    let s = f.service(true);
+    for n in 0..7 {
+        m35_add(&s, &f, &format!("project{n}"));
+    }
+    scanned(&s);
+    let locations = call(&s, "locations_get", json!({}));
+    for m in locations["manifests"].as_array().unwrap() {
+        call(
+            &s,
+            "manifest_trust",
+            json!({"manifestId":m["manifest_id"],"trusted":true}),
+        );
+    }
+    f.fake.now.store(NOW + 60, Ordering::SeqCst);
+    let r = scanned(&s);
+    let c = call(&s, "conclusion_get", json!({}));
+    assert_eq!(
+        c["cards"].as_array().unwrap().len(),
+        5,
+        "SERVICE_M35_CONCLUSION: cap"
+    );
+    assert!(
+        c["more_cards"]["count"].as_u64().unwrap_or(0) >= 2,
+        "SERVICE_M35_CONCLUSION: remaining cards aggregated"
+    );
+    assert!(
+        c["cards"]
+            .as_array()
+            .unwrap()
+            .iter()
+            .all(|c| c["menu"].as_array().unwrap().contains(&json!("skip"))),
+        "SERVICE_M35_CONCLUSION: frozen menus"
+    );
+    let d = call(
+        &s,
+        "detail_get",
+        json!({"version":c["version"],"mode":"category"}),
+    );
+    assert!(
+        d["sections"]
+            .as_array()
+            .unwrap()
+            .iter()
+            .flat_map(|s| s["rows"].as_array().unwrap())
+            .any(|r| r["row_key"] == "m:custom-app-backups"),
+        "SERVICE_M35_CONCLUSION: merged rule"
+    );
+    let gid = c["cards"][0]["group_id"].as_str().unwrap();
+    let kept_id = gid.to_owned();
+    let kept = call(
+        &s,
+        "conclusion_decide",
+        json!({"version":c["version"],"decision":{"group":gid,"choice":"keep"}}),
+    );
+    assert_ne!(
+        c["version"], kept["version"],
+        "SERVICE_M35_CONCLUSION: version"
+    );
+    assert!(
+        s.call(
+            "conclusion_decide",
+            json!({"version":c["version"],"decision":{"group":gid,"choice":"clean"}})
+        )
+        .is_err(),
+        "SERVICE_M35_CONCLUSION: old version"
+    );
+    let disk: Value =
+        serde_json::from_slice(&fs::read(f.data.join("settings.json")).unwrap()).unwrap();
+    assert_eq!(
+        disk["keeps"][0]["key"], gid,
+        "SERVICE_M35_CONCLUSION: keep persistence"
+    );
+    scanned(&s);
+    let c = call(&s, "conclusion_get", json!({}));
+    assert!(
+        c["kept_before"]["count"].as_u64().unwrap_or(0) > 0,
+        "SERVICE_M35_CONCLUSION: previously kept"
+    );
+    let card = c["cards"][0].clone();
+    let c = call(
+        &s,
+        "conclusion_decide",
+        json!({"version":c["version"],"decision":{"group":card["group_id"],"choice":"clean"}}),
+    );
+    assert!(
+        util::bytes(&c["plan"]["chosen_bytes"]) > 0,
+        "SERVICE_M35_CONCLUSION: chosen bytes"
+    );
+    let lines = 1
+        + c["cards"].as_array().unwrap().len()
+        + c["clues"].as_array().unwrap().len()
+        + c["folds"].as_array().unwrap().len()
+        + usize::from(!c["more_cards"].is_null())
+        + usize::from(!c["kept_before"].is_null());
+    assert!(lines <= 20, "SERVICE_M35_CONCLUSION: visible rows");
+    assert!(
+        c["clues"].as_array().unwrap().len() <= 3,
+        "SERVICE_M35_CONCLUSION: clues cap"
+    );
+    let expanded = call(
+        &s,
+        "group_items",
+        json!({"groupId":kept_id,"rowId":null,"query":null}),
+    );
+    let path = expanded["items"][0]["display_path"].as_str().unwrap();
+    let path = if Path::new(path).is_dir() {
+        format!("{path}\\data")
+    } else {
+        path.to_owned()
+    };
+    File::options()
+        .write(true)
+        .open(&path)
+        .unwrap()
+        .set_len(4 << 20)
+        .unwrap();
+    f.fake.now.store(NOW + 120, Ordering::SeqCst);
+    scanned(&s);
+    let c = call(&s, "conclusion_get", json!({}));
+    assert!(
+        c["cards"]
+            .as_array()
+            .unwrap()
+            .iter()
+            .any(|c| c["group_id"] == kept_id),
+        "SERVICE_M35_CONCLUSION: grown kept item returns"
+    );
+    let detail = call(&s, "group_detail", json!({"groupId":"chrome-cache"}));
+    let item = &detail["items"][0];
+    call(&s, "skip_add", json!({"itemId":item["item_id"]}));
+    let stale = call(&s, "conclusion_get", json!({}));
+    assert_eq!(
+        stale["stale_reason_zh"], "跳过名单变了",
+        "SERVICE_M35_CONCLUSION: skip stale"
+    );
+    assert_eq!(
+        s.call(
+            "clean_prepare",
+            json!({"conclusionVersion":stale["version"],"chosenMode":"quarantine"})
+        )
+        .unwrap_err()
+        .code,
+        "stale",
+        "SERVICE_M35_CONCLUSION: stale prepare"
+    );
+    let _ = r;
+
+    {
+        let f = Fixture::new();
+        f.seed();
+        let s = source_service(&f, false);
+        let scan = scanned(&s);
+        let mut saved = scan_saved(&f, &scan);
+        let items = saved["result"]["items"].as_array_mut().unwrap();
+        assert!(
+            items.len() >= 4,
+            "SERVICE_M35_CONCLUSION: four clue sources"
+        );
+        for item in items.iter_mut().take(4) {
+            item["referenced_count"] = json!(1);
+            item["referenced_by"] = json!([slash(&f.root.join("synthetic-reference"))]);
+        }
+        m35_replace_record(&s, saved);
+        let c = call(&s, "conclusion_get", json!({}));
+        assert_eq!(
+            c["clues"].as_array().unwrap().len(),
+            3,
+            "SERVICE_M35_CONCLUSION: exactly three of four clues"
+        );
+        assert_eq!(
+            c["more_clues"], 1,
+            "SERVICE_M35_CONCLUSION: remaining clue count"
+        );
+    }
+}
+
+fn m35_selection_layers() {
+    let f = Fixture::new();
+    f.seed();
+    let s = f.service(true);
+    scanned(&s);
+    let c = call(&s, "conclusion_get", json!({}));
+    let d = call(&s, "group_detail", json!({"groupId":"npm-cache"}));
+    let item = d["items"][0]["item_id"].clone();
+    let row = d["rows"][0]["row_id"].clone();
+    let c = call(
+        &s,
+        "conclusion_decide",
+        json!({"version":c["version"],"decision":{"category":"dev_cache","include":false}}),
+    );
+    let choices = call(
+        &s,
+        "group_items",
+        json!({"groupId":"npm-cache","rowId":null,"query":null}),
+    );
+    assert_eq!(
+        choices["items"][0]["included"], false,
+        "SERVICE_M35_CONCLUSION: category decision"
+    );
+    let c = call(
+        &s,
+        "conclusion_decide",
+        json!({"version":c["version"],"decision":{"group":"npm-cache","choice":"clean"}}),
+    );
+    let choices = call(
+        &s,
+        "group_items",
+        json!({"groupId":"npm-cache","rowId":null,"query":null}),
+    );
+    assert_eq!(
+        choices["items"][0]["included"], true,
+        "SERVICE_M35_CONCLUSION: group overrides category"
+    );
+    let c = call(
+        &s,
+        "conclusion_decide",
+        json!({"version":c["version"],"decision":{"row":row,"include":false}}),
+    );
+    let choices = call(
+        &s,
+        "group_items",
+        json!({"groupId":"npm-cache","rowId":null,"query":null}),
+    );
+    assert_eq!(
+        choices["items"][0]["included"], false,
+        "SERVICE_M35_CONCLUSION: row overrides group"
+    );
+    let c = call(
+        &s,
+        "conclusion_decide",
+        json!({"version":c["version"],"decision":{"item":item,"include":true}}),
+    );
+    let choices = call(
+        &s,
+        "group_items",
+        json!({"groupId":"npm-cache","rowId":null,"query":null}),
+    );
+    assert_eq!(
+        choices["items"][0]["included"], true,
+        "SERVICE_M35_CONCLUSION: item overrides row"
+    );
+    assert_eq!(s.call("conclusion_decide",json!({"version":c["version"],"decision":{"group":"claude-code-sessions","choice":"clean"}})).unwrap_err().code,"invalid","SERVICE_M35_CONCLUSION: protected decision rejected");
+    call(
+        &s,
+        "locations_set_session_cleanup",
+        json!({"tool":"grok","enabled":true,"days":7}),
+    );
+    let c = call(&s, "conclusion_get", json!({}));
+    assert_eq!(
+        c["stale_reason_zh"], "会话开关或项目声明的信任变了",
+        "SERVICE_M35_CONCLUSION: settings stale"
+    );
+    scanned(&s);
+    f.fake.hold.store(true, Ordering::SeqCst);
+    let id = call(&s, "scan_start", json!({}));
+    let c = call(&s, "conclusion_get", json!({}));
+    call(&s, "scan_cancel", json!({"scanId":id["scan_id"]}));
+    f.fake.hold.store(false, Ordering::SeqCst);
+    wait(&s, "scan_progress");
+    assert_eq!(
+        c["stale_reason_zh"], "有了更新的体检",
+        "SERVICE_M35_CONCLUSION: new scan stale"
+    );
+}
+
+#[test]
+fn m35_rows_and_detail() {
+    m35_row_patterns();
+    let f = Fixture::new();
+    for n in 0..12 {
+        f.file(&format!("windows/Temp/verify-A{n:05}/data"), 100);
+    }
+    f.seed();
+    f.age_all(NOW - 40 * 86400);
+    let s = f.service(true);
+    scanned(&s);
+    let c = call(&s, "conclusion_get", json!({}));
+    let leak = c["cards"]
+        .as_array()
+        .unwrap()
+        .iter()
+        .find(|v| v["kind"] == "leak")
+        .unwrap();
+    let gid = leak["group_id"].clone();
+    let d = call(&s, "group_detail", json!({"groupId":gid}));
+    assert!(
+        d["rows"].as_array().unwrap().len() <= 8,
+        "SERVICE_M35_ROWS: bound"
+    );
+    assert!(
+        d["rows"][0]["label_zh"]
+            .as_str()
+            .unwrap()
+            .contains("******"),
+        "SERVICE_M35_ROWS: template label"
+    );
+    let row = d["rows"][0]["row_id"].clone();
+    assert_eq!(
+        row.as_str().unwrap().len(),
+        18,
+        "SERVICE_M35_ROWS: opaque row"
+    );
+    let found = call(
+        &s,
+        "group_items",
+        json!({"groupId":gid,"rowId":row,"query":null}),
+    );
+    assert_eq!(found["items_total"], 12, "SERVICE_M35_ROWS: row expansion");
+    let search = call(
+        &s,
+        "group_items",
+        json!({"groupId":gid,"rowId":null,"query":"A00001"}),
+    );
+    assert_eq!(search["items_total"], 1, "SERVICE_M35_ROWS: search");
+    let d = call(&s, "group_detail", json!({"groupId":"chrome-cache"}));
+    assert_eq!(
+        d["rows"].as_array().unwrap().len(),
+        2,
+        "SERVICE_M35_ROWS: individual rows"
+    );
+    assert!(
+        d["rows"]
+            .as_array()
+            .unwrap()
+            .iter()
+            .any(|r| r["selectable"] == false && r["release_zh"] == "关掉 Chrome 后可清"),
+        "SERVICE_M35_ROWS: release"
+    );
+    for mode in ["category", "location"] {
+        let d = call(
+            &s,
+            "detail_get",
+            json!({"version":c["version"],"mode":mode}),
+        );
+        assert_eq!(
+            d["plan_bytes"], c["plan"]["bytes"],
+            "SERVICE_M35_ROWS: shared selection"
+        );
+    }
+    for query in ["x/y", "x:y", "x\\y", ""] {
+        assert_eq!(
+            s.call(
+                "group_items",
+                json!({"groupId":gid,"rowId":null,"query":query})
+            )
+            .unwrap_err()
+            .code,
+            "invalid",
+            "SERVICE_M35_ROWS: query boundary"
+        );
+    }
+}
+
+fn m35_row_patterns() {
+    let f = Fixture::new();
+    f.seed();
+    let s = source_service(&f, false);
+    let result = scanned(&s);
+    let mut raw = scan_saved(&f, &result);
+    let proto = raw["result"]["items"]
+        .as_array()
+        .unwrap()
+        .iter()
+        .find(|i| i["group_id"] == "npm-cache")
+        .unwrap()
+        .clone();
+    raw["result"]["items"]
+        .as_array_mut()
+        .unwrap()
+        .retain(|i| i["group_id"] != "npm-cache");
+    for n in 0..20 {
+        let mut i = proto.clone();
+        i["item_id"] = json!(format!("row-item-{n}"));
+        i["path"] = json!(format!(
+            "{}\\p{}\\file{n}",
+            slash(&f.root),
+            if n < 4 { 0 } else { n }
+        ));
+        i["template"] = if n < 2 {
+            json!("verify-<r6>")
+        } else {
+            Value::Null
+        };
+        i["unique_bytes"] = json!((1000 - n).to_string());
+        raw["result"]["items"].as_array_mut().unwrap().push(i);
+    }
+    for g in raw["result"]["groups"].as_array_mut().unwrap() {
+        if g["group_id"] == "npm-cache" {
+            g["item_count"] = json!(20);
+            g["eligible_count"] = json!(20);
+        }
+    }
+    m35_replace_record(&s, raw);
+    let c = call(&s, "conclusion_get", json!({}));
+    let d = call(&s, "group_detail", json!({"groupId":"npm-cache"}));
+    let rows = d["rows"].as_array().unwrap();
+    assert_eq!(rows.len(), 8, "SERVICE_M35_ROWS: top seven plus other");
+    assert_eq!(
+        rows[0]["row_id"],
+        format!("r:{}", &util::digest("npm-cache\nt\nverify-<r6>")[..16]),
+        "SERVICE_M35_ROWS: stable sha row id"
+    );
+    assert!(
+        rows.iter()
+            .any(|r| r["label_zh"].as_str().unwrap().starts_with("p0 ×")),
+        "SERVICE_M35_ROWS: parent grouping"
+    );
+    assert!(
+        rows.last().unwrap()["label_zh"]
+            .as_str()
+            .unwrap()
+            .starts_with("其它"),
+        "SERVICE_M35_ROWS: remainder"
+    );
+    let same = call(&s, "group_detail", json!({"groupId":"npm-cache"}));
+    assert_eq!(d["rows"], same["rows"], "SERVICE_M35_ROWS: stable rows");
+    let _ = c;
+}
+
+#[test]
+fn m35_clean_split() {
+    m35_session_unlocks();
+    m35_unfinished_and_template();
+    m35_two_disk_records();
+    for mode in ["quarantine", "delete"] {
+        let f = Fixture::new();
+        f.seed();
+        f.age_all(NOW - 40 * 86400);
+        let s = f.service(true);
+        scanned(&s);
+        let c = m35_decide(&s, "downloads-installers");
+        let preview = call(
+            &s,
+            "clean_prepare",
+            json!({"conclusionVersion":c["version"],"chosenMode":mode}),
+        );
+        assert!(
+            util::bytes(&preview["delete"]["bytes"]) > 0,
+            "SERVICE_M35_CLEAN: delete split"
+        );
+        assert_eq!(
+            preview["chosen"]["mode"], mode,
+            "SERVICE_M35_CLEAN: chosen mode"
+        );
+        let (p, result) = m35_run_clean(&s, &preview);
+        assert_eq!(p["state"], "completed", "SERVICE_M35_CLEAN: completion");
+        assert!(
+            !f.root.join("downloads/old.exe").exists(),
+            "SERVICE_M35_CLEAN: source"
+        );
+        if mode == "quarantine" {
+            assert_eq!(
+                result["quarantined"]["item_count"], 1,
+                "SERVICE_M35_CLEAN: must move chosen"
+            );
+            let q = call(&s, "quarantine_list", json!({}));
+            assert_eq!(
+                q["cards"].as_array().unwrap().len(),
+                1,
+                "SERVICE_M35_CLEAN: record"
+            );
+            let id = q["cards"][0]["quarantine_id"].as_str().unwrap();
+            let record: Value = serde_json::from_slice(
+                &fs::read(f.data.join("quarantine").join(format!("{id}.json"))).unwrap(),
+            )
+            .unwrap();
+            assert_eq!(
+                record["entries"][0]["original"],
+                slash(&f.root.join("downloads/old.exe")),
+                "SERVICE_M35_CLEAN: original record"
+            );
+            assert!(
+                record["entries"][0]["identity"].is_object(),
+                "SERVICE_M35_CLEAN: identity record"
+            );
+        } else {
+            assert!(
+                result["quarantined"].is_null(),
+                "SERVICE_M35_CLEAN: direct delete"
+            );
+        }
+        let stale = call(&s, "conclusion_get", json!({}));
+        assert_eq!(
+            stale["stale_reason_zh"], "这次体检已被清理用掉",
+            "SERVICE_M35_CLEAN: consumed"
+        );
+    }
+    let f = Fixture::new();
+    f.seed();
+    let s = source_service(&f, true);
+    scanned(&s);
+    let c = m35_decide(&s, "downloads-installers");
+    let p = call(
+        &s,
+        "clean_prepare",
+        json!({"conclusionVersion":c["version"],"chosenMode":"quarantine"}),
+    );
+    s.core.store.fail_journal.store(true, Ordering::SeqCst);
+    let id = call(
+        &s,
+        "clean_start",
+        json!({"planId":p["plan_id"],"confirmToken":p["confirm_token"]}),
+    );
+    assert_eq!(
+        wait(&s, "clean_progress")["state"],
+        "failed",
+        "SERVICE_M35_CLEAN: journal failure state"
+    );
+    let e = s
+        .call("clean_result", json!({"cleanId":id["clean_id"]}))
+        .unwrap_err();
+    assert_eq!(
+        e.message_zh,
+        quarantine::JOURNAL_MESSAGE,
+        "SERVICE_M35_CLEAN: journal failure message"
+    );
+    assert_eq!(
+        call(&s, "quarantine_list", json!({}))["cards"][0]["restorable"],
+        false,
+        "SERVICE_M35_CLEAN: disk reconciliation"
+    );
+
+    for stage in ["prepare", "start", "delete"] {
+        let f = Fixture::new();
+        f.seed();
+        let session = f.file("user_profile/.claude/projects/project/old.jsonl", 19);
+        let original = f.root.join("downloads/old.exe");
+        f.age_all(NOW - 40 * 86400);
+        let s = source_service(&f, true);
+        call(
+            &s,
+            "locations_set_session_cleanup",
+            json!({"tool":"claude-code","enabled":true,"days":30}),
+        );
+        scanned(&s);
+        m35_decide(&s, "downloads-installers");
+        let c = m35_decide(&s, "claude-code-old-sessions");
+        let drive = util::drive(&slash(&original));
+        let base = slash(&f.root.join(".water-quarantine"));
+        // Always retain an explicit synthetic base, even when the drive is
+        // unavailable. A regression must never write a real volume root.
+        f.fake
+            .quarantine_bases
+            .lock()
+            .unwrap()
+            .insert(drive.clone(), base.clone());
+        if stage != "start" {
+            f.fake.quarantines.lock().unwrap().clear();
+        }
+        let mode = if stage == "delete" {
+            "delete"
+        } else {
+            "quarantine"
+        };
+        let p = call(
+            &s,
+            "clean_prepare",
+            json!({"conclusionVersion":c["version"],"chosenMode":mode}),
+        );
+        let plan = read_plan(&f, &p);
+        if stage == "prepare" {
+            assert!(
+                plan["plan"]["items"]
+                    .as_array()
+                    .unwrap()
+                    .iter()
+                    .all(|i| i["path"] != slash(&original) && i["path"] != slash(&session)),
+                "SERVICE_M35_CLEAN: unavailable chosen items excluded"
+            );
+            assert_eq!(
+                p["chosen"]["bytes"], "0",
+                "SERVICE_M35_CLEAN: unavailable chosen bytes excluded"
+            );
+            assert_eq!(
+                p["chosen"]["items"],
+                json!([]),
+                "SERVICE_M35_CLEAN: unavailable chosen rows excluded"
+            );
+            assert_eq!(
+                p["total_bytes"], p["delete"]["bytes"],
+                "SERVICE_M35_CLEAN: unavailable total excluded"
+            );
+            assert_eq!(
+                p["item_count"].as_u64().unwrap() as usize,
+                plan["plan"]["items"].as_array().unwrap().len(),
+                "SERVICE_M35_CLEAN: unavailable item count excluded"
+            );
+            assert_eq!(
+                p["by_drive"]
+                    .as_array()
+                    .unwrap()
+                    .iter()
+                    .map(|d| util::bytes(&d["bytes"]))
+                    .sum::<u64>(),
+                util::bytes(&p["delete"]["bytes"]),
+                "SERVICE_M35_CLEAN: unavailable drive bytes excluded"
+            );
+            let note = p["chosen"]["note_zh"].as_str().unwrap();
+            assert!(
+                note.starts_with("清掉后这些对话不能再续接或回看；")
+                    && note.contains(&format!("{} 盘不能放进隔离区", &drive[..1]))
+                    && note.contains("这 2 项这次不清理"),
+                "SERVICE_M35_CLEAN: unavailable note preserves session warning"
+            );
+            assert_eq!(
+                clean::prepare_mode(
+                    &s.core,
+                    &[json!("downloads-installers")],
+                    &[],
+                    Some(("quarantine", c["version"].as_str().unwrap()))
+                )
+                .unwrap_err()
+                .code,
+                "invalid",
+                "SERVICE_M35_CLEAN: all unavailable is invalid"
+            );
+        } else if stage == "delete" {
+            assert!(
+                plan["plan"]["items"]
+                    .as_array()
+                    .unwrap()
+                    .iter()
+                    .any(|i| i["path"] == slash(&original)),
+                "SERVICE_M35_CLEAN: delete mode unaffected by unavailable root"
+            );
+        } else {
+            assert!(
+                util::bytes(&p["chosen"]["bytes"]) > 0,
+                "SERVICE_M35_CLEAN: supported at prepare"
+            );
+            f.fake.quarantines.lock().unwrap().clear();
+        }
+        f.fake.queried_paths.lock().unwrap().clear();
+        let (progress, result) = m35_run_clean(&s, &p);
+        assert_eq!(
+            progress["state"], "completed",
+            "SERVICE_M35_CLEAN: unavailable batch completes"
+        );
+        if stage == "delete" {
+            assert!(
+                !original.exists() && !session.exists(),
+                "SERVICE_M35_CLEAN: delete still executes"
+            );
+        } else {
+            assert!(
+                original.exists() && session.exists(),
+                "SERVICE_M35_CLEAN: unavailable sources untouched"
+            );
+            assert_eq!(
+                fs::metadata(&original).unwrap().len(),
+                60,
+                "SERVICE_M35_CLEAN: original size unchanged"
+            );
+            assert_eq!(
+                fs::metadata(&session).unwrap().len(),
+                19,
+                "SERVICE_M35_CLEAN: session size unchanged"
+            );
+            assert!(
+                !Path::new(&base).exists(),
+                "SERVICE_M35_CLEAN: no quarantine directory created"
+            );
+            assert!(
+                !f.fake
+                    .queried_paths
+                    .lock()
+                    .unwrap()
+                    .iter()
+                    .any(|p| p == &slash(&original) || p == &slash(&session)),
+                "SERVICE_M35_CLEAN: unavailable batch never reaches executor guard"
+            );
+            if stage == "start" {
+                for gid in ["downloads-installers", "claude-code-old-sessions"] {
+                    let group = result["groups"]
+                        .as_array()
+                        .unwrap()
+                        .iter()
+                        .find(|g| g["group_id"] == gid)
+                        .unwrap();
+                    assert_eq!(
+                        group["status"], "failed",
+                        "SERVICE_M35_CLEAN: unavailable batch failure"
+                    );
+                    assert!(
+                        group["notes_zh"]
+                            .as_array()
+                            .unwrap()
+                            .iter()
+                            .any(|n| n.as_str().unwrap().contains("不能放进隔离区")),
+                        "SERVICE_M35_CLEAN: unavailable batch reason"
+                    );
+                }
+                assert_eq!(
+                    progress["done_items"], progress["total_items"],
+                    "SERVICE_M35_CLEAN: rejected batch progress"
+                );
+                let stored: Value = serde_json::from_slice(
+                    &fs::read(
+                        f.data
+                            .join("cleans")
+                            .join(format!("{}.json", result["clean_id"].as_str().unwrap())),
+                    )
+                    .unwrap(),
+                )
+                .unwrap();
+                assert!(
+                    stored["quarantine_reports"][0]["items"]
+                        .as_array()
+                        .unwrap()
+                        .iter()
+                        .all(|i| i["status"] == "failed"
+                            && i["move_error"] == "quarantine_unavailable"),
+                    "SERVICE_M35_CLEAN: every unavailable item recorded failed"
+                );
+            }
+        }
+    }
+
+    for stage in ["prepare", "start"] {
+        let f = Fixture::new();
+        let a = f.file("duplicates/original.bin", 2 << 20);
+        let b = f.root.join("duplicates/copy.bin");
+        fs::copy(&a, &b).unwrap();
+        f.age_all(
+            SystemTime::now()
+                .duration_since(UNIX_EPOCH)
+                .unwrap()
+                .as_secs()
+                - 2 * 86400,
+        );
+        let s = source_service(&f, true);
+        let root = m35_add(&s, &f, "duplicates");
+        let id = call(&s, "dedupe_start", json!({"locationId":root}));
+        assert_eq!(
+            wait(&s, "dedupe_progress")["state"],
+            "completed",
+            "SERVICE_M35_CLEAN: unavailable dedupe scan"
+        );
+        let v = call(
+            &s,
+            "dedupe_result",
+            json!({"dedupeId":id["dedupe_id"],"expand":false}),
+        );
+        let v = call(
+            &s,
+            "dedupe_decide",
+            json!({"dedupeId":id["dedupe_id"],"version":v["version"],"groupId":v["groups"][0]["group_id"],"include":true}),
+        );
+        f.fake.now.store(
+            util::parse_time(v["finished_at"].as_str().unwrap())
+                .unwrap()
+                .duration_since(UNIX_EPOCH)
+                .unwrap()
+                .as_secs()
+                + 3600,
+            Ordering::SeqCst,
+        );
+        let drive = util::drive(&slash(&a));
+        let base = slash(&f.root.join(".water-quarantine"));
+        f.fake
+            .quarantine_bases
+            .lock()
+            .unwrap()
+            .insert(drive.clone(), base.clone());
+        if stage == "prepare" {
+            f.fake.quarantines.lock().unwrap().clear();
+        }
+        let preview = s.call(
+            "clean_prepare",
+            json!({"dedupeId":id["dedupe_id"],"dedupeVersion":v["version"]}),
+        );
+        if stage == "prepare" {
+            let error = preview.unwrap_err();
+            assert_eq!(
+                error.code, "invalid",
+                "SERVICE_M35_CLEAN: unavailable dedupe plan invalid"
+            );
+            assert!(
+                error
+                    .message_zh
+                    .contains(&format!("{} 盘不能放进隔离区", &drive[..1])),
+                "SERVICE_M35_CLEAN: unavailable dedupe plan reason"
+            );
+            assert!(
+                s.core.state.lock().unwrap().plans.is_empty(),
+                "SERVICE_M35_CLEAN: no unavailable dedupe plan stored"
+            );
+        } else {
+            let preview = preview.unwrap();
+            f.fake.quarantines.lock().unwrap().clear();
+            f.fake.queried_paths.lock().unwrap().clear();
+            let (_, result) = m35_run_clean(&s, &preview);
+            assert_eq!(
+                result["groups"][0]["status"], "failed",
+                "SERVICE_M35_CLEAN: disconnected dedupe batch failed"
+            );
+            assert!(
+                result["groups"][0]["notes_zh"]
+                    .as_array()
+                    .unwrap()
+                    .iter()
+                    .any(|n| n.as_str().unwrap().contains("不能放进隔离区")),
+                "SERVICE_M35_CLEAN: disconnected dedupe reason"
+            );
+            assert!(
+                f.fake.queried_paths.lock().unwrap().is_empty(),
+                "SERVICE_M35_CLEAN: dedupe batch never reaches executor guard"
+            );
+        }
+        assert!(
+            a.exists() && b.exists() && !Path::new(&base).exists(),
+            "SERVICE_M35_CLEAN: dedupe copies untouched"
+        );
+        assert_eq!(
+            fs::metadata(&a).unwrap().len(),
+            2 << 20,
+            "SERVICE_M35_CLEAN: original duplicate size unchanged"
+        );
+        assert_eq!(
+            fs::metadata(&b).unwrap().len(),
+            2 << 20,
+            "SERVICE_M35_CLEAN: extra duplicate size unchanged"
+        );
+    }
+}
+
+fn m35_two_disk_records() {
+    let f = Fixture::new();
+    f.seed();
+    let s = source_service(&f, true);
+    scanned(&s);
+    let preview = call(
+        &s,
+        "clean_prepare",
+        json!({"groupIds":["downloads-installers"]}),
+    );
+    let mut plan =
+        water_junk_clean::CleanPlan::from_json(&read_plan(&f, &preview)["plan"].to_string())
+            .unwrap();
+    let mut second = plan.items[0].clone();
+    second.item_id = "second-volume-item".into();
+    second.path = "X:\\synthetic\\second.exe".into();
+    second.root = "X:\\synthetic".into();
+    plan.items.push(second);
+    let ids = plan
+        .items
+        .iter()
+        .map(|i| i.item_id.as_str())
+        .collect::<BTreeSet<_>>();
+    let batches = clean::quarantine_batches(&plan, &ids);
+    assert_eq!(
+        batches.len(),
+        2,
+        "SERVICE_M35_CLEAN: separate drive batches"
+    );
+    let roots = [
+        slash(&f.root.join("first/.water-quarantine")),
+        slash(&f.root.join("second/.water-quarantine")),
+    ];
+    *f.fake.quarantines.lock().unwrap() = roots.to_vec();
+    *f.fake.quarantine_bases.lock().unwrap() = BTreeMap::from([
+        ("F:\\".into(), roots[0].clone()),
+        ("X:\\".into(), roots[1].clone()),
+    ]);
+    let record = s.core.state.lock().unwrap().last_record().unwrap();
+    for (drive, items) in batches {
+        let qid = {
+            let mut state = s.core.state.lock().unwrap();
+            let id = quarantine::unique_id(&s.core, &state, &drive);
+            state.m35.quarantine_ids.insert(id.clone());
+            id
+        };
+        let mut batch = plan.clone();
+        batch.items = items;
+        // Fake executor output verifies service record routing for two logical
+        // volumes. Only these record files are written; X: is never accessed.
+        let report = water_junk_clean::QuarantineReport {
+            report_version: "water.quarantine-report.v1".into(),
+            quarantine_id: qid.clone(),
+            started_at: "2027-01-15T08:00:00Z".into(),
+            ended_at: "2027-01-15T08:00:00Z".into(),
+            status: water_junk_clean::RunStatus::Completed,
+            moved_bytes: batch.items[0].total_bytes.clone(),
+            items: batch
+                .items
+                .iter()
+                .map(|i| water_junk_clean::MoveReport {
+                    item_id: i.item_id.clone(),
+                    status: water_junk_clean::MoveStatus::Moved,
+                    skip_reason: None,
+                    move_error: None,
+                    error_code: None,
+                    destination: Some(format!(
+                        "{}\\{qid}\\{}",
+                        f.fake.quarantine_base(&drive).unwrap(),
+                        &i.path[3..]
+                    )),
+                    identity: Some(i.identity.clone()),
+                    bytes: i.total_bytes.clone(),
+                })
+                .collect(),
+        };
+        quarantine::save_moves(&s.core, &record, &batch, &report, "clean-synthetic").unwrap();
+        let stored: Value = serde_json::from_slice(
+            &fs::read(f.data.join("quarantine").join(format!("{qid}.json"))).unwrap(),
+        )
+        .unwrap();
+        assert_eq!(
+            stored["root"],
+            f.fake.quarantine_base(&drive).unwrap(),
+            "SERVICE_M35_CLEAN: per-drive record root"
+        );
+        assert!(
+            qid.ends_with(&drive[..1].to_ascii_lowercase()),
+            "SERVICE_M35_CLEAN: per-drive id"
+        );
+        assert_eq!(
+            stored["entries"].as_array().unwrap().len(),
+            1,
+            "SERVICE_M35_CLEAN: per-drive entries"
+        );
+    }
+    assert_eq!(
+        fs::read_dir(f.data.join("quarantine")).unwrap().count(),
+        2,
+        "SERVICE_M35_CLEAN: two records"
+    );
+}
+
+fn m35_unfinished_and_template() {
+    for gid in ["npm-cache", "downloads-installers"] {
+        let f = Fixture::new();
+        f.seed();
+        let s = source_service(&f, true);
+        let result = scanned(&s);
+        let mut raw = scan_saved(&f, &result);
+        let id = raw["result"]["items"]
+            .as_array()
+            .unwrap()
+            .iter()
+            .find(|i| i["group_id"] == gid)
+            .unwrap()["item_id"]
+            .clone();
+        {
+            let mut state = s.core.state.lock().unwrap();
+            state.cleans.insert("clean-20270115T080000Z-fffe".into(),json!({"scan_id":result["scan_id"],"view":{"finished_at":"2027-01-15T09:00:00Z"},"report":{"items":[{"item_id":id,"status":"partial","skip_reason":null}]}}));
+        }
+        for i in raw["result"]["items"]
+            .as_array_mut()
+            .unwrap()
+            .iter_mut()
+            .filter(|i| i["item_id"] == id)
+        {
+            i["eligible"] = json!(false);
+            i["ineligible_reason"] = json!("too_recent");
+        }
+        let paths = m35::unfinished_paths(&s.core.state.lock().unwrap());
+        let mut typed = water_junk_scan::result_from_json(&raw["result"].to_string()).unwrap();
+        let extras = m35::supplement(&s.core, &mut typed, &[], &paths);
+        raw["result"] = json!(typed);
+        for (key, value) in extras.as_object().unwrap() {
+            raw[key] = value.clone();
+        }
+        m35_replace_record(&s, raw);
+        let c = call(&s, "conclusion_get", json!({}));
+        assert!(
+            c["cards"]
+                .as_array()
+                .unwrap()
+                .iter()
+                .any(|c| c["kind"] == "unfinished"),
+            "SERVICE_M35_CLEAN: unfinished card"
+        );
+        let c = m35_decide(&s, "unfinished");
+        let d = call(&s, "group_detail", json!({"groupId":"unfinished"}));
+        assert_eq!(d["items_total"], 1, "SERVICE_M35_CLEAN: unfinished drawer");
+        let p = call(
+            &s,
+            "clean_prepare",
+            json!({"conclusionVersion":c["version"],"chosenMode":"quarantine"}),
+        );
+        assert!(
+            read_plan(&f, &p)["plan"]["items"]
+                .as_array()
+                .unwrap()
+                .iter()
+                .any(|i| i["item_id"] == id && i["min_age_hours"] == 0),
+            "SERVICE_M35_CLEAN: unfinished age gate"
+        );
+    }
+    let f = Fixture::new();
+    f.seed();
+    for n in 0..12 {
+        f.file(&format!("windows/Temp/verify-A{n:05}/file"), 100);
+    }
+    f.age_all(NOW - 4 * 86400);
+    let s = f.service(true);
+    scanned(&s);
+    let c = call(&s, "conclusion_get", json!({}));
+    let gid = c["cards"]
+        .as_array()
+        .unwrap()
+        .iter()
+        .find(|c| c["kind"] == "leak")
+        .unwrap()["group_id"]
+        .clone();
+    let detail = call(
+        &s,
+        "group_items",
+        json!({"groupId":gid,"rowId":null,"query":null}),
+    );
+    let source = detail["items"][0]["display_path"].as_str().unwrap();
+    let destination = format!("{}\\reviewed-report", m35::parent(source));
+    fs::rename(source, &destination).unwrap();
+    let c = m35_decide(&s, gid.as_str().unwrap());
+    let p = call(
+        &s,
+        "clean_prepare",
+        json!({"conclusionVersion":c["version"],"chosenMode":"quarantine"}),
+    );
+    assert!(
+        !read_plan(&f, &p)["plan"]["items"]
+            .as_array()
+            .unwrap()
+            .iter()
+            .any(|i| i["path"] == source || i["path"] == destination),
+        "SERVICE_M35_CLEAN: renamed member"
+    );
+    assert!(
+        Path::new(&destination).exists(),
+        "SERVICE_M35_CLEAN: renamed output preserved"
+    );
+}
+
+fn m35_session_unlocks() {
+    for mode in ["quarantine", "delete"] {
+        let f = Fixture::new();
+        f.seed();
+        let session = f.file("user_profile/.claude/projects/project/old.jsonl", 19);
+        let cache = f.file(
+            "user_profile/.grok2/AppData/Local/npm-cache/_cacache/entry",
+            23,
+        );
+        f.age_all(NOW - 40 * 86400);
+        let s = f.service(true);
+        call(
+            &s,
+            "locations_set_session_cleanup",
+            json!({"tool":"claude-code","enabled":true,"days":30}),
+        );
+        scanned(&s);
+        let c = m35_decide(&s, "claude-code-old-sessions");
+        let p = call(
+            &s,
+            "clean_prepare",
+            json!({"conclusionVersion":c["version"],"chosenMode":mode}),
+        );
+        let plan = read_plan(&f, &p);
+        for gid in ["claude-code-old-sessions", "grok-home-caches"] {
+            assert!(
+                plan["plan"]["items"]
+                    .as_array()
+                    .unwrap()
+                    .iter()
+                    .any(|i| i["group_id"] == gid
+                        && i["unlocked_paths"]
+                            .as_array()
+                            .is_some_and(|v| !v.is_empty())),
+                "SERVICE_M35_CLEAN: unlock {gid}"
+            );
+        }
+        assert_eq!(
+            p["chosen"]["note_zh"], "清掉后这些对话不能再续接或回看",
+            "SERVICE_M35_CLEAN: session warning"
+        );
+        let (_, r) = m35_run_clean(&s, &p);
+        assert!(
+            !session.exists() && !cache.exists(),
+            "SERVICE_M35_CLEAN: unlocked items not executed {r}"
+        );
+        assert!(
+            f.root
+                .join("user_profile/.claude/projects/keep.json")
+                .exists(),
+            "SERVICE_M35_CLEAN: protected sibling"
+        );
+    }
+}
+
+#[test]
+fn m35_quarantine() {
+    m35_purge_log_failure();
+    let f = Fixture::new();
+    f.seed();
+    let s = f.service(true);
+    scanned(&s);
+    let c = m35_decide(&s, "downloads-installers");
+    let p = call(
+        &s,
+        "clean_prepare",
+        json!({"conclusionVersion":c["version"],"chosenMode":"quarantine"}),
+    );
+    m35_run_clean(&s, &p);
+    let q = call(&s, "quarantine_list", json!({}));
+    let id = q["cards"][0]["quarantine_id"].clone();
+    assert!(
+        !call(&s, "app_state", json!({}))["quarantine"].is_null(),
+        "SERVICE_M35_QUARANTINE: bar"
+    );
+    assert_eq!(
+        q["roots"][0]["target_id"], "qroot-t1",
+        "SERVICE_M35_QUARANTINE: test root id"
+    );
+    fs::write(f.root.join("downloads/old.exe"), "new").unwrap();
+    let conflict = call(
+        &s,
+        "quarantine_restore",
+        json!({"quarantineId":id,"beside":false}),
+    );
+    assert_eq!(
+        conflict["restored_count"], 0,
+        "SERVICE_M35_QUARANTINE: no overwrite"
+    );
+    assert_eq!(
+        conflict["conflicts"].as_array().unwrap().len(),
+        1,
+        "SERVICE_M35_QUARANTINE: conflict"
+    );
+    let restored = call(
+        &s,
+        "quarantine_restore",
+        json!({"quarantineId":id,"beside":true}),
+    );
+    assert_eq!(
+        restored["restored_count"], 1,
+        "SERVICE_M35_QUARANTINE: beside"
+    );
+    assert!(
+        f.root.join("downloads/old.exe（还原 1）").exists(),
+        "SERVICE_M35_QUARANTINE: beside path"
+    );
+    assert!(
+        restored["view"]["cards"].as_array().unwrap().is_empty(),
+        "SERVICE_M35_QUARANTINE: removed restored card"
+    );
+    drop(s);
+    let dir = f.root.join(".water-quarantine/20261106-120000-f");
+    fs::create_dir_all(&dir).unwrap();
+    fs::write(dir.join("locked.bin"), vec![0u8; 4096]).unwrap();
+    let held = OpenOptions::new()
+        .read(true)
+        .share_mode(1 | 2)
+        .open(dir.join("locked.bin"))
+        .unwrap();
+    let s = f.service(true);
+    let q = call(&s, "quarantine_list", json!({}));
+    assert_eq!(
+        q["cards"][0]["restorable"], false,
+        "SERVICE_M35_QUARANTINE: foreign"
+    );
+    let id = q["cards"][0]["quarantine_id"].clone();
+    assert!(
+        s.call("quarantine_locate", json!({"targetId":"not-found"}))
+            .is_err(),
+        "SERVICE_M35_QUARANTINE: locate reject"
+    );
+    let located = call(&s, "quarantine_locate", json!({"targetId":id}));
+    assert_eq!(
+        located["path"],
+        slash(&dir),
+        "SERVICE_M35_QUARANTINE: locate card"
+    );
+    call(&s, "quarantine_delete", json!({"quarantineId":id}));
+    assert_eq!(
+        wait(&s, "quarantine_progress")["state"],
+        "completed",
+        "SERVICE_M35_QUARANTINE: purge completion"
+    );
+    let q = call(&s, "quarantine_list", json!({}));
+    assert_eq!(
+        q["cards"][0]["state"], "leftover",
+        "SERVICE_M35_QUARANTINE: leftover"
+    );
+    assert!(
+        q["cards"][0]["leftovers"][0]["reason_zh"]
+            .as_str()
+            .unwrap()
+            .contains("关掉后再试"),
+        "SERVICE_M35_QUARANTINE: reason"
+    );
+    drop(held);
+    call(&s, "quarantine_delete", json!({"quarantineId":id}));
+    wait(&s, "quarantine_progress");
+    assert!(
+        call(&s, "quarantine_list", json!({}))["cards"]
+            .as_array()
+            .unwrap()
+            .is_empty(),
+        "SERVICE_M35_QUARANTINE: retry removed"
+    );
+    assert!(
+        call(&s, "app_state", json!({}))["quarantine"].is_null(),
+        "SERVICE_M35_QUARANTINE: empty bar"
+    );
+
+    {
+        let f = Fixture::new();
+        f.seed();
+        let s = source_service(&f, true);
+        scanned(&s);
+        let c = m35_decide(&s, "downloads-installers");
+        let p = call(
+            &s,
+            "clean_prepare",
+            json!({"conclusionVersion":c["version"],"chosenMode":"quarantine"}),
+        );
+        m35_run_clean(&s, &p);
+        let q = call(&s, "quarantine_list", json!({}));
+        let id = q["cards"][0]["quarantine_id"].as_str().unwrap();
+        let record_path = f.data.join("quarantine").join(format!("{id}.json"));
+        let before = fs::read(&record_path).unwrap();
+        let mut inspected = 0;
+        // The listed synthetic batch is present; only the executor's inspect
+        // operation fails. No filesystem permission changes or races needed.
+        let calls = AtomicU64::new(0);
+        quarantine::refresh_with(&s.core, |_, _| {
+            calls.fetch_add(1, Ordering::SeqCst);
+            Err(water_junk_clean::CleanError::InvalidPlan)
+        })
+        .unwrap();
+        inspected += calls.load(Ordering::SeqCst);
+        assert_eq!(
+            inspected, 1,
+            "SERVICE_M35_QUARANTINE: inspection failed for listed batch"
+        );
+        assert_eq!(
+            fs::read(&record_path).unwrap(),
+            before,
+            "SERVICE_M35_QUARANTINE: failed inspect preserves record bytes"
+        );
+        assert!(
+            s.core
+                .state
+                .lock()
+                .unwrap()
+                .m35
+                .quarantine
+                .records
+                .contains_key(id),
+            "SERVICE_M35_QUARANTINE: failed inspect preserves cached record"
+        );
+        assert!(
+            call(&s, "quarantine_list", json!({}))["cards"]
+                .as_array()
+                .unwrap()
+                .is_empty(),
+            "SERVICE_M35_QUARANTINE: failed inspect omits card this time"
+        );
+        quarantine::refresh(&s.core).unwrap();
+        assert_eq!(
+            call(&s, "quarantine_list", json!({}))["cards"][0]["restorable"],
+            true,
+            "SERVICE_M35_QUARANTINE: next inspection restores recovery card"
+        );
+        assert_eq!(
+            fs::read(&record_path).unwrap(),
+            before,
+            "SERVICE_M35_QUARANTINE: successful retry keeps record"
+        );
+        // Simulate the user's removal from the quarantine listing by moving
+        // this batch elsewhere within the same newly created fixture.
+        fs::rename(
+            f.root.join(".water-quarantine").join(id),
+            f.root.join("removed-batch"),
+        )
+        .unwrap();
+        quarantine::refresh(&s.core).unwrap();
+        assert!(
+            !record_path.exists(),
+            "SERVICE_M35_QUARANTINE: absent from listing removes record"
+        );
+    }
+}
+
+fn m35_purge_log_failure() {
+    let f = Fixture::new();
+    f.seed();
+    let s = source_service(&f, true);
+    scanned(&s);
+    let c = m35_decide(&s, "downloads-installers");
+    let p = call(
+        &s,
+        "clean_prepare",
+        json!({"conclusionVersion":c["version"],"chosenMode":"quarantine"}),
+    );
+    m35_run_clean(&s, &p);
+    let q = call(&s, "quarantine_list", json!({}));
+    let id = q["cards"][0]["quarantine_id"].clone();
+    s.core.store.fail_journal.store(true, Ordering::SeqCst);
+    call(&s, "quarantine_delete", json!({"quarantineId":id}));
+    let start = Instant::now();
+    loop {
+        match s.call("quarantine_progress", json!({})) {
+            Err(e) => {
+                assert_eq!(
+                    e.message_zh,
+                    quarantine::JOURNAL_MESSAGE,
+                    "SERVICE_M35_QUARANTINE: purge journal error"
+                );
+                break;
+            }
+            Ok(p) if p["state"] == "running" => {}
+            Ok(p) => panic!("SERVICE_M35_QUARANTINE: purge journal reported success {p}"),
+        };
+        assert!(
+            start.elapsed() < Duration::from_secs(10),
+            "SERVICE_M35_QUARANTINE: purge journal completion"
+        );
+        std::thread::sleep(Duration::from_millis(2));
+    }
+    assert_eq!(
+        call(&s, "app_state", json!({}))["busy"],
+        "idle",
+        "SERVICE_M35_QUARANTINE: journal idle"
+    );
+    assert!(
+        call(&s, "quarantine_list", json!({}))["cards"]
+            .as_array()
+            .unwrap()
+            .is_empty(),
+        "SERVICE_M35_QUARANTINE: inspect after lost report"
+    );
+}
+
+#[test]
+fn m35_trends_history() {
+    m35_cluster_and_forecast();
+    m35_dedupe_guards();
+    let f = Fixture::new();
+    f.seed();
+    let a = f.file("duplicates/original.bin", 2 << 20);
+    let b = f.root.join("duplicates/copy.bin");
+    fs::copy(&a, &b).unwrap();
+    f.age_all(
+        SystemTime::now()
+            .duration_since(UNIX_EPOCH)
+            .unwrap()
+            .as_secs()
+            - 2 * 86400,
+    );
+    let s = f.service(true);
+    let root = m35_add(&s, &f, "duplicates");
+    let id = call(&s, "dedupe_start", json!({"locationId":root}));
+    assert_eq!(
+        wait(&s, "dedupe_progress")["state"],
+        "completed",
+        "SERVICE_M35_TRENDS: dedupe"
+    );
+    let v = call(
+        &s,
+        "dedupe_result",
+        json!({"dedupeId":id["dedupe_id"],"expand":false}),
+    );
+    assert_eq!(
+        v["groups"].as_array().unwrap().len(),
+        1,
+        "SERVICE_M35_TRENDS: exact duplicate"
+    );
+    assert_eq!(
+        v["chosen_bytes"], "0",
+        "SERVICE_M35_TRENDS: default unselected"
+    );
+    let v = call(
+        &s,
+        "dedupe_decide",
+        json!({"dedupeId":id["dedupe_id"],"version":v["version"],"groupId":v["groups"][0]["group_id"],"include":true}),
+    );
+    // The finder stamps its actual completion time. Align the fake clock to that
+    // value, with a full hour margin; do not derive the age gate from CPU speed.
+    f.fake.now.store(
+        util::parse_time(v["finished_at"].as_str().unwrap())
+            .unwrap()
+            .duration_since(UNIX_EPOCH)
+            .unwrap()
+            .as_secs()
+            + 3600,
+        Ordering::SeqCst,
+    );
+    assert_eq!(
+        v["chosen_bytes"],
+        (2 << 20).to_string(),
+        "SERVICE_M35_TRENDS: chosen"
+    );
+    let p = call(
+        &s,
+        "clean_prepare",
+        json!({"dedupeId":id["dedupe_id"],"dedupeVersion":v["version"]}),
+    );
+    assert_eq!(
+        p["chosen"]["mode"], "quarantine",
+        "SERVICE_M35_TRENDS: duplicate plan"
+    );
+    let (_, clean) = m35_run_clean(&s, &p);
+    let saved_clean: Value = serde_json::from_slice(
+        &fs::read(
+            f.data
+                .join("cleans")
+                .join(format!("{}.json", clean["clean_id"].as_str().unwrap())),
+        )
+        .unwrap(),
+    )
+    .unwrap();
+    assert_eq!(
+        clean["quarantined"]["item_count"], 1,
+        "SERVICE_M35_TRENDS: duplicate move {saved_clean}"
+    );
+    let history = call(&s, "history_list", json!({}));
+    assert!(
+        history
+            .as_array()
+            .unwrap()
+            .iter()
+            .any(|r| r["kind"] == "dedupe"),
+        "SERVICE_M35_TRENDS: dedupe history"
+    );
+    assert!(
+        history.as_array().unwrap().iter().any(|r| r["summary_zh"]
+            .as_str()
+            .unwrap_or("")
+            .contains("进了隔离区")),
+        "SERVICE_M35_TRENDS: quarantine history"
+    );
+    drop(s);
+    for version in ["water.settings.v1", "water.settings.v2"] {
+        let path = f.data.join("settings.json");
+        let settings = json!({"settings_version":version,"categories":{"agent_tool":true,"browser":true,"system_temp":true,"app_leftover":true,"dev_cache":true,"crash_log":true,"gpu_system":true},"custom_roots":[]});
+        fs::write(&path, settings.to_string()).unwrap();
+        let s = f.service(false);
+        call(
+            &s,
+            "locations_set_category",
+            json!({"category":"browser","enabled":false}),
+        );
+        let settings: Value = serde_json::from_slice(&fs::read(&path).unwrap()).unwrap();
+        assert_eq!(
+            settings["settings_version"], "water.settings.v3",
+            "SERVICE_M35_TRENDS: settings migration"
+        );
+        for key in ["sessions", "trusts", "fixed_marks", "keeps"] {
+            assert!(
+                settings[key].as_array().is_some_and(|x| x.is_empty()),
+                "SERVICE_M35_TRENDS: default {key}"
+            );
+        }
+    }
+}
+
+fn m35_dedupe_guards() {
+    let f = Fixture::new();
+    let a = f.file("dup/a.bin", 2 << 20);
+    let b = f.root.join("dup/b.bin");
+    fs::copy(&a, &b).unwrap();
+    let linked = f.file("dup/linkset.bin", 3 << 20);
+    fs::hard_link(&linked, f.root.join("dup/linkset-two.bin")).unwrap();
+    let copy = f.root.join("dup/linkset-copy.bin");
+    fs::copy(&linked, &copy).unwrap();
+    f.age_all(
+        SystemTime::now()
+            .duration_since(UNIX_EPOCH)
+            .unwrap()
+            .as_secs()
+            - 4 * 86400,
+    );
+    let s = f.service(true);
+    let root = m35_add(&s, &f, "dup");
+    let id = call(&s, "dedupe_start", json!({"locationId":root}));
+    wait(&s, "dedupe_progress");
+    let mut v = call(
+        &s,
+        "dedupe_result",
+        json!({"dedupeId":id["dedupe_id"],"expand":true}),
+    );
+    for group in v["groups"].as_array().unwrap().clone() {
+        if group["removable"] == true {
+            v = call(
+                &s,
+                "dedupe_decide",
+                json!({"dedupeId":id["dedupe_id"],"version":v["version"],"groupId":group["group_id"],"include":true}),
+            );
+        }
+    }
+    let p = call(
+        &s,
+        "clean_prepare",
+        json!({"dedupeId":id["dedupe_id"],"dedupeVersion":v["version"]}),
+    );
+    let plan = read_plan(&f, &p);
+    assert!(
+        plan["plan"]["items"]
+            .as_array()
+            .unwrap()
+            .iter()
+            .all(|i| i["path"] != slash(&linked)
+                && i["path"] != slash(&f.root.join("dup/linkset-two.bin"))),
+        "SERVICE_M35_CLEAN: linked copy not removable"
+    );
+    let group = v["groups"]
+        .as_array()
+        .unwrap()
+        .iter()
+        .find(|g| g["size"] == "2097152")
+        .unwrap();
+    let keep = group["keep"]["display_path"].as_str().unwrap();
+    let held_path = format!("{keep}.held");
+    fs::rename(keep, &held_path).unwrap();
+    fs::write(keep, vec![0u8; 2 << 20]).unwrap();
+    let prepared = s.call(
+        "clean_prepare",
+        json!({"dedupeId":id["dedupe_id"],"dedupeVersion":v["version"]}),
+    );
+    if let Ok(p) = prepared {
+        assert!(
+            !read_plan(&f, &p)["plan"]["items"]
+                .as_array()
+                .unwrap()
+                .iter()
+                .any(|i| i["group_id"] == group["group_id"]),
+            "SERVICE_M35_CLEAN: changed keep excludes whole group"
+        );
+        assert!(
+            p["chosen"]["items"][0]["title_zh"]
+                .as_str()
+                .unwrap()
+                .contains("已经变化"),
+            "SERVICE_M35_CLEAN: changed keep preview"
+        );
+    } else {
+        let error = prepared.unwrap_err();
+        assert!(
+            error.code == "invalid" && error.message_zh.contains("已经变化"),
+            "SERVICE_M35_CLEAN: changed keep whole plan empty"
+        );
+    }
+    let before = v["version"].clone();
+    let changed = call(
+        &s,
+        "dedupe_decide",
+        json!({"dedupeId":id["dedupe_id"],"version":v["version"],"groupId":group["group_id"],"include":false}),
+    );
+    assert_ne!(
+        before, changed["version"],
+        "SERVICE_M35_TRENDS: dedupe revision"
+    );
+    assert_eq!(s.call("dedupe_decide",json!({"dedupeId":id["dedupe_id"],"version":before,"groupId":group["group_id"],"include":true})).unwrap_err().code,"stale","SERVICE_M35_TRENDS: dedupe stale");
+}
+
+fn m35_cluster_and_forecast() {
+    let f = Fixture::new();
+    f.seed();
+    for n in 0..12 {
+        f.file(&format!("windows/Temp/verify-A{n:05}/file"), 100);
+    }
+    f.age_all(NOW - 10 * 86400);
+    let s = f.service(false);
+    let a = scanned(&s);
+    let a_id = a["scan_id"].clone();
+    f.fake.now.store(NOW + 2 * 3600, Ordering::SeqCst);
+    let b = scanned(&s);
+    for n in 12..15 {
+        let p = f.file(&format!("windows/Temp/verify-A{n:05}/file"), 100);
+        age(p.parent().unwrap(), NOW + 3 * 3600);
+    }
+    f.fake.now.store(NOW + 27 * 3600, Ordering::SeqCst);
+    let c = scanned(&s);
+    let saved = scan_saved(&f, &c);
+    assert_eq!(
+        saved["growth_base_scan_id"], b["scan_id"],
+        "SERVICE_M35_TRENDS: newest qualifying growth base"
+    );
+    assert_ne!(
+        saved["growth_base_scan_id"], a_id,
+        "SERVICE_M35_TRENDS: old qualifying base not picked"
+    );
+    let trends = call(&s, "trends", json!({}));
+    let cluster = trends["clusters"]
+        .as_array()
+        .unwrap()
+        .iter()
+        .find(|r| r["state"] == "growing")
+        .unwrap_or_else(|| panic!("SERVICE_M35_TRENDS: growing cluster {trends}"));
+    let gid = cluster["group_id"].clone();
+    let fixed = call(
+        &s,
+        "cluster_mark_fixed",
+        json!({"groupId":gid,"fixed":true}),
+    );
+    assert_eq!(
+        fixed["clusters"]
+            .as_array()
+            .unwrap()
+            .iter()
+            .find(|g| g["group_id"] == gid)
+            .unwrap()["state"],
+        "stopped",
+        "SERVICE_M35_TRENDS: fixed stopped"
+    );
+    drop(s);
+    let mut saved = saved;
+    let new_id = "scan-20270117T080000Z-00ab";
+    saved["scan_id"] = json!(new_id);
+    saved["result"]["scan_id"] = json!(new_id);
+    saved["finished_at"] = json!("2027-01-17T08:00:00Z");
+    saved["result"]["ended_at"] = json!("2027-01-17T08:00:00Z");
+    saved["growth_base_scan_id"] = json!("scan-20260101T080000Z-0000");
+    saved["growth"] = json!([{"group_id":"codex-marketplace-staging","bytes_delta":"2097152000","count_delta":20,"days":2.0,"bytes_per_day":"1048576000","leak_suspect":false}]);
+    write_scan(&f, &saved);
+    let s = f.service(false);
+    let d = call(
+        &s,
+        "group_detail",
+        json!({"groupId":"codex-marketplace-staging"}),
+    );
+    assert!(
+        d["group"]["growth"]["since"].is_null(),
+        "SERVICE_M35_TRENDS: missing base since"
+    );
+    assert!(
+        call(&s, "app_state", json!({}))["insights"]
+            .as_array()
+            .unwrap()
+            .iter()
+            .any(|i| i["message_zh"]
+                .as_str()
+                .unwrap()
+                .contains("与更早的一次体检相比")),
+        "SERVICE_M35_TRENDS: missing base wording"
+    );
+    drop(s);
+    let s = source_service(&f, false);
+    for (n, free) in [
+        (0, 2u64 << 30),
+        (1, 4u64 << 30),
+        (2, 3u64 << 30),
+        (3, 2u64 << 30),
+    ] {
+        let mut point = saved.clone();
+        let at = util::timestamp(UNIX_EPOCH + Duration::from_secs(NOW + n * 2 * 86400));
+        let id = format!("scan-20270101T000000Z-{n:04x}");
+        point["scan_id"] = json!(id);
+        point["result"]["scan_id"] = json!(id);
+        point["finished_at"] = json!(at);
+        point["result"]["ended_at"] = json!(at);
+        point["drives"] = json!([{"root":"F:\\","free_bytes":free.to_string(),"total_bytes":(20u64<<30).to_string()}]);
+        if n == 0 {
+            s.core.state.lock().unwrap().records.clear();
+        }
+        m35_replace_record(&s, point);
+    }
+    f.fake.now.store(NOW + 7 * 86400, Ordering::SeqCst);
+    let trends = call(&s, "trends", json!({}));
+    assert_eq!(
+        trends["forecast"][0]["note_zh"], "Water 以外的清理之后重新起算",
+        "SERVICE_M35_TRENDS: external cleanup reset"
+    );
+    assert_eq!(
+        trends["forecast"][0]["basis_days"], 4.0,
+        "SERVICE_M35_TRENDS: reset basis"
+    );
+    assert_eq!(
+        trends["forecast"][0]["days_to_full"], 4,
+        "SERVICE_M35_TRENDS: reset forecast"
+    );
+    let mut state = s.core.state.lock().unwrap();
+    let record = state.last_record().unwrap();
+    let mut suspected = record.saved.clone();
+    for g in suspected["result"]["groups"]
+        .as_array_mut()
+        .unwrap()
+        .iter_mut()
+        .filter(|g| g["rule_id"] == "leak-cluster")
+    {
+        g["level"] = json!("advisory");
+    }
+    state.m35.conclusion = None;
+    drop(state);
+    m35_replace_record(&s, suspected);
+    let trends = call(&s, "trends", json!({}));
+    assert!(
+        trends["clusters"]
+            .as_array()
+            .unwrap()
+            .iter()
+            .any(|g| g["state"] == "suspected"),
+        "SERVICE_M35_TRENDS: suspected cluster"
     );
 }

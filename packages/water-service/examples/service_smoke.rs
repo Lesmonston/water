@@ -38,7 +38,7 @@ fn run() -> Result<(), IpcError> {
     })?;
     let app = service.call("app_state", json!({}))?;
     let started = Instant::now();
-    let scan = service.call("scan_start", json!({}))?;
+    let scan = service.call("scan_start", json!({"locationIds":["common"]}))?;
     loop {
         std::thread::sleep(Duration::from_millis(250));
         let p = service.call("scan_progress", json!({}))?;
@@ -61,18 +61,20 @@ fn run() -> Result<(), IpcError> {
         .call("clean_prepare", json!({"groupIds":["chrome-cache"]}))
         .expect_err("clean must be disabled");
     assert_eq!(error.message_zh, "这一版只做体检，清理功能会在下一版开放。");
-    let categories:Vec<_>=result["categories"].as_array().expect("categories").iter().map(|c|json!({"category":c["category"],"group_count":c["groups"].as_array().expect("groups").len(),"total_bytes":c["total_bytes"]})).collect();
-    // Distinct in-use notes over all groups, sorted (SERVICE-HARDENING §10).
-    let in_use_labels: std::collections::BTreeSet<_> = result["categories"]
-        .as_array()
-        .expect("categories")
-        .iter()
-        .flat_map(|c| c["groups"].as_array().expect("groups"))
-        .filter_map(|g| g["in_use"]["process_label_zh"].as_str())
-        .collect();
+    let c = service.call("conclusion_get", json!({}))?;
+    let q = service.call("quarantine_list", json!({}))?;
+    let cards = c["cards"].as_array().expect("cards").len();
+    let folds = c["folds"].as_array().expect("folds").len();
+    let clues = c["clues"].as_array().expect("clues").len();
+    let rows = 1
+        + cards
+        + folds
+        + clues
+        + usize::from(!c["more_cards"].is_null())
+        + usize::from(!c["kept_before"].is_null());
     println!(
         "{}",
-        json!({"status":result["status"],"duration_ms":result["duration_ms"],"totals":result["totals"],"categories":categories,"insights":result["insights"].as_array().expect("insights").len(),"drives":app["drives"].as_array().expect("drives").len(),"clean_prepare_code":error.code,"in_use_labels":in_use_labels})
+        json!({"cards":cards,"folds":folds,"clues":clues,"conclusion_rows":rows,"quarantine_cards":q["cards"].as_array().expect("quarantine cards").len(),"drives":app["drives"].as_array().expect("drives").len()})
     );
     Ok(())
 }

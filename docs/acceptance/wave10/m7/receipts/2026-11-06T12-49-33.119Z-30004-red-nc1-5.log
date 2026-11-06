@@ -1,0 +1,53 @@
+{"binary":"C:\\Users\\37310\\.rustup\\toolchains\\1.95.0-x86_64-pc-windows-msvc\\bin\\cargo.exe","args":["test","--offline","--locked","--manifest-path","packages/water-service/Cargo.toml","--test","service_v1","--","--test-threads=1"],"exitCode":101,"error":null}
+--- stdout ---
+
+running 12 tests
+test m35_clean_split ... FAILED
+test m35_conclusion_cards ... ok
+test m35_quarantine ... FAILED
+test m35_rows_and_detail ... ok
+test m35_scope_and_plan ... ok
+test m35_trends_history ... FAILED
+test service_clean_flow ... ok
+test service_hardening ... ok
+test service_ipc_contract ... ok
+test service_scan_views ... ok
+test service_storage_safety ... ok
+test service_trends_locations ... ok
+
+failures:
+
+---- m35_clean_split stdout ----
+
+thread 'm35_clean_split' (34128) panicked at tests\service_v1.rs:4892:13:
+assertion `left == right` failed: SERVICE_M35_CLEAN: must move chosen
+  left: Null
+ right: 1
+note: run with `RUST_BACKTRACE=1` environment variable to display a backtrace
+
+---- m35_quarantine stdout ----
+
+thread 'm35_quarantine' (24400) panicked at tests\service_v1.rs:495:50:
+quarantine_delete: IpcError { code: "invalid", message_zh: "所选内容无法清理，请重新选择。" }
+
+---- m35_trends_history stdout ----
+
+thread 'm35_trends_history' (9300) panicked at tests\service_v1.rs:5472:5:
+assertion `left == right` failed: SERVICE_M35_TRENDS: duplicate move {"clean_id":"clean-20261106T134957Z-4b51","plan_id":"plan-20261106T134957Z-72c5","plan_items":[{"group_id":"dup:5647f05ec1895894:2097152","identity":{"file_id":"87ce3900000029000000000000000000","volume_serial":"C248BB02"},"item_id":"dupitem-4fd34794303d966f","kind":"file","level":"confirm","min_age_hours":1,"path":"F:\\new\\smaltalk\\water\\.worktrees\\w10-m7\\.local\\w3-f1-fixtures\\service-b2baa123b96ac1a6\\duplicates\\original.bin","root":"F:\\new\\smaltalk\\water\\.worktrees\\w10-m7\\.local\\w3-f1-fixtures\\service-b2baa123b96ac1a6\\duplicates","rule_id":"dedupe","total_bytes":"2097152"}],"quarantine_reports":[],"report":{"ended_at":"2026-11-06T13:49:57Z","estimate_bytes":"2097152","freed_bytes":"2097152","items":[{"bytes_before":"2097152","bytes_freed":"2097152","failed_entries":0,"item_id":"dupitem-4fd34794303d966f","skip_reason":null,"status":"deleted"}],"plan_id":"plan-20261106T134957Z-72c5","report_version":"water.clean-report.v1","started_at":"2026-11-06T13:49:57Z","status":"completed","volumes":[{"free_after":"297634738176","free_before":"297632641024","root":"F:\\"}]},"scan_id":"dedupe-20270115T080000Z-7ce4","view":{"clean_id":"clean-20261106T134957Z-4b51","drives":[{"free_after":"297634738176","free_before":"297632641024","root":"F:\\"}],"estimate_bytes":"2097152","finished_at":"2026-11-06T13:49:57Z","freed_bytes":"2097152","groups":[{"freed_bytes":"2097152","group_id":"dup:5647f05ec1895894:2097152","notes_zh":[],"status":"done","title_zh":"未识别"}],"journal_display_path":"F:\\new\\smaltalk\\water\\.worktrees\\w10-m7\\.local/w3-f1-fixtures\\service-b2baa123b96ac1a6\\data\\journal\\clean-20261106T134957Z-4b51.jsonl","quarantined":null}}
+  left: Null
+ right: 1
+
+
+failures:
+    m35_clean_split
+    m35_quarantine
+    m35_trends_history
+
+test result: FAILED. 9 passed; 3 failed; 0 ignored; 0 measured; 0 filtered out; finished in 63.12s
+
+
+--- stderr ---
+   Compiling water-service v0.1.0 (F:\new\smaltalk\water\.worktrees\w10-m7\packages\water-service)
+    Finished `test` profile [unoptimized + debuginfo] target(s) in 3.57s
+     Running tests\service_v1.rs (.local\w3-target\debug\deps\service_v1-9ced97dc996b0b10.exe)
+error: test failed, to rerun pass `--test service_v1`

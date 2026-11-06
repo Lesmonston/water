@@ -1,0 +1,1521 @@
+#![forbid(unsafe_code)]
+
+use crate::{
+    IpcError, m35, quarantine,
+    service::{Core, Record, State, lock},
+    util, views,
+};
+use serde_json::{Value, json};
+use std::{
+    collections::{BTreeMap, BTreeSet},
+    sync::Arc,
+};
+use water_junk_scan::{Item, Level};
+
+#[derive(Default, Clone)]
+pub(crate) struct Decisions {
+    groups: BTreeMap<String, String>,
+    categories: BTreeMap<String, bool>,
+    rows: BTreeMap<String, bool>,
+    items: BTreeMap<String, bool>,
+}
+#[derive(Clone)]
+pub(crate) struct Unit {
+    pub id: String,
+    pub groups: Vec<String>,
+    pub items: Vec<String>,
+    pub level: Level,
+    pub category: String,
+    pub title: String,
+    pub kind: String,
+}
+#[derive(Clone)]
+pub(crate) struct Model {
+    pub record: Arc<Record>,
+    pub serial: u64,
+    pub units: Vec<Unit>,
+    pub rows: BTreeMap<String, Vec<Row>>,
+    pub kept: BTreeSet<String>,
+    base: Option<Arc<Record>>,
+    decisions: Decisions,
+}
+#[derive(Clone)]
+pub(crate) struct Row {
+    pub id: String,
+    pub label: String,
+    pub items: Vec<String>,
+}
+
+pub(crate) fn build(core: &Core, s: &State, r: Arc<Record>) -> Model {
+    let mut by_rule = BTreeMap::<String, Vec<String>>::new();
+    for g in &r.result.groups {
+        let key = if g.rule_id == "leak-cluster" || g.rule_id.starts_with("decl:") {
+            g.group_id.clone()
+        } else {
+            g.rule_id.clone()
+        };
+        by_rule.entry(key).or_default().push(g.group_id.clone());
+    }
+    let unfinished: BTreeSet<_> = r.saved["unfinished"]
+        .as_object()
+        .into_iter()
+        .flatten()
+        .map(|(id, _)| id.clone())
+        .collect();
+    let p = r.projection();
+    let mut units = Vec::new();
+    for groups in by_rule.into_values() {
+        let first = r
+            .result
+            .groups
+            .iter()
+            .find(|g| g.group_id == groups[0])
+            .unwrap();
+        let id = if groups.len() > 1 {
+            format!("m:{}", first.rule_id)
+        } else {
+            groups[0].clone()
+        };
+        let level = r
+            .result
+            .groups
+            .iter()
+            .filter(|g| groups.contains(&g.group_id))
+            .map(|g| g.level)
+            .min_by_key(|l| l.rank())
+            .unwrap();
+        let items = r
+            .result
+            .items
+            .iter()
+            .filter(|i| groups.contains(&i.group_id) && !unfinished.contains(&i.item_id))
+            .map(|i| i.item_id.clone())
+            .collect();
+        let rule = core.rules.rule(&first.rule_id);
+        let kind = if first.rule_id == "leak-cluster" {
+            "leak"
+        } else if first.rule_id.starts_with("decl:") {
+            "declaration"
+        } else if rule.is_some_and(|r| r.session_tool.is_some()) {
+            "session"
+        } else {
+            "group"
+        };
+        let title = p.details[&groups[0]]["group"]["title_zh"]
+            .as_str()
+            .unwrap_or("未识别")
+            .to_owned();
+        units.push(Unit {
+            id,
+            groups,
+            items,
+            level,
+            category: views::category(first),
+            title,
+            kind: kind.into(),
+        });
+    }
+    drop(p);
+    if !unfinished.is_empty() {
+        let groups = r
+            .result
+            .items
+            .iter()
+            .filter(|i| unfinished.contains(&i.item_id))
+            .map(|i| i.group_id.clone())
+            .collect::<BTreeSet<_>>()
+            .into_iter()
+            .collect();
+        units.push(Unit {
+            id: "unfinished".into(),
+            groups,
+            items: unfinished.into_iter().collect(),
+            level: Level::Confirm,
+            category: "custom".into(),
+            title: "上次没清完的项目".into(),
+            kind: "unfinished".into(),
+        });
+    }
+    units.sort_by(|a, b| a.id.cmp(&b.id));
+    let rows = r
+        .result
+        .groups
+        .iter()
+        .map(|g| (g.group_id.clone(), make_rows(&r, &g.group_id)))
+        .collect();
+    let base = r.saved["growth_base_scan_id"]
+        .as_str()
+        .and_then(|id| s.records.iter().find(|r| r.result.scan_id == id))
+        .cloned();
+    let mut c = Model {
+        record: r,
+        serial: 1,
+        units,
+        rows,
+        kept: BTreeSet::new(),
+        base,
+        decisions: Decisions::default(),
+    };
+    for u in &c.units {
+        let bytes = unit_bytes(s, &c, u, true);
+        if s.settings
+            .keeps
+            .iter()
+            .any(|k| k.key == u.id && bytes as u128 <= u128::from(k.bytes) * 101 / 100 + (1 << 20))
+        {
+            c.kept.insert(u.id.clone());
+        }
+    }
+    c
+}
+pub(crate) fn ensure(core: &Core, s: &mut State) -> Result<(), IpcError> {
+    let r = s.last_record().ok_or_else(|| IpcError::new("not_found"))?;
+    if s.m35
+        .conclusion
+        .as_ref()
+        .is_none_or(|c| c.record.result.scan_id != r.result.scan_id)
+    {
+        s.m35.conclusion = Some(build(core, s, r));
+    }
+    Ok(())
+}
+pub(crate) fn version(c: &Model) -> String {
+    let id = &c.record.result.scan_id;
+    format!("cv-{}-{}", &id[id.len().saturating_sub(8)..], c.serial)
+}
+pub(crate) fn stale(s: &State, c: &Model) -> Option<String> {
+    if let Some(reason) = s.m35.stale.get(&c.record.result.scan_id) {
+        return Some(reason.clone());
+    }
+    if s.last.as_deref() != Some(&c.record.result.scan_id) {
+        Some("有了更新的体检".into())
+    } else if s.consumed.contains(&c.record.result.scan_id) {
+        Some("这次体检已被清理用掉".into())
+    } else {
+        None
+    }
+}
+pub(crate) fn current(s: &State, c: &Model, v: &str) -> Result<(), IpcError> {
+    if version(c) != v || stale(s, c).is_some() {
+        Err(IpcError::new("stale"))
+    } else {
+        Ok(())
+    }
+}
+fn item<'a>(c: &'a Model, id: &str) -> Option<&'a Item> {
+    c.record
+        .projection()
+        .item_index(id)
+        .map(|n| &c.record.result.items[n])
+}
+fn eligible(s: &State, r: &Record, i: &Item) -> bool {
+    i.eligible
+        && !views::skipped(i, &s.settings)
+        && r.result.groups.iter().any(|g| {
+            g.group_id == i.group_id
+                && g.level.cleanable()
+                && views::enabled(&s.settings, &views::category(g))
+        })
+}
+fn unit_bytes(s: &State, c: &Model, u: &Unit, cleanable: bool) -> u64 {
+    u.items
+        .iter()
+        .filter_map(|id| item(c, id))
+        .filter(|i| !cleanable || eligible(s, &c.record, i))
+        .map(|i| util::number(&i.unique_bytes))
+        .sum()
+}
+fn choice<'a>(c: &'a Model, u: &Unit) -> &'a str {
+    c.decisions
+        .groups
+        .get(&u.id)
+        .map(String::as_str)
+        .unwrap_or(if c.kept.contains(&u.id) {
+            "keep"
+        } else {
+            "undecided"
+        })
+}
+
+pub(crate) fn selected(s: &State, c: &Model) -> BTreeSet<String> {
+    let mut out = BTreeSet::new();
+    for u in &c.units {
+        for id in &u.items {
+            let Some(i) = item(c, id).filter(|i| eligible(s, &c.record, i)) else {
+                continue;
+            };
+            let mut include = u.level == Level::Recommended;
+            if let Some(v) = c.decisions.categories.get(&u.category) {
+                include = *v;
+            }
+            match choice(c, u) {
+                "clean" => include = true,
+                "keep" => include = false,
+                _ => {}
+            }
+            if let Some(v) = c
+                .decisions
+                .groups
+                .get(&i.group_id)
+                .filter(|_| i.group_id != u.id)
+            {
+                match v.as_str() {
+                    "clean" => include = true,
+                    "keep" => include = false,
+                    _ => {}
+                }
+            }
+            if let Some(rows) = c.rows.get(&i.group_id) {
+                for row in rows {
+                    if row.items.contains(id)
+                        && let Some(v) = c.decisions.rows.get(&row.id)
+                    {
+                        include = *v;
+                    }
+                }
+            }
+            if let Some(v) = c.decisions.items.get(id) {
+                include = *v;
+            }
+            if include {
+                out.insert(id.clone());
+            }
+        }
+    }
+    out
+}
+
+pub(crate) fn get(core: &Arc<Core>) -> Result<Value, IpcError> {
+    let mut s = lock(core)?;
+    ensure(core, &mut s)?;
+    Ok(view(core, &s, s.m35.conclusion.as_ref().unwrap()))
+}
+pub(crate) fn decide(core: &Arc<Core>, a: &Value) -> Result<Value, IpcError> {
+    let mut s = lock(core)?;
+    ensure(core, &mut s)?;
+    current(
+        &s,
+        s.m35.conclusion.as_ref().unwrap(),
+        a["version"].as_str().unwrap(),
+    )?;
+    let mut c = s.m35.conclusion.take().unwrap();
+    let before = c.clone();
+    let mut settings = s.settings.clone();
+    let d = &a["decision"];
+    let validation = (|| {
+        if let Some(id) = d["group"].as_str() {
+            let u = c
+                .units
+                .iter()
+                .find(|u| u.id == id || u.groups.iter().any(|g| g == id))
+                .ok_or_else(|| IpcError::new("invalid"))?;
+            if !u.level.cleanable() || unit_bytes(&s, &c, u, true) == 0 {
+                return Err(IpcError::new("invalid"));
+            }
+            let value = d["choice"].as_str().unwrap();
+            let bytes = if u.id == id {
+                unit_bytes(&s, &c, u, true)
+            } else {
+                c.record
+                    .result
+                    .items
+                    .iter()
+                    .filter(|i| i.group_id == id && eligible(&s, &c.record, i))
+                    .map(|i| util::number(&i.unique_bytes))
+                    .sum()
+            };
+            settings.keeps.retain(|k| k.key != id);
+            if value == "keep" {
+                settings.keeps.push(m35::Keep {
+                    key: id.into(),
+                    bytes,
+                    decided_at: util::timestamp(core.platform.now()),
+                });
+            }
+            if value == "undecided" {
+                c.decisions.groups.remove(id);
+                c.kept.remove(id);
+            } else {
+                c.decisions.groups.insert(id.into(), value.into());
+                if value == "clean" {
+                    c.kept.remove(id);
+                }
+            }
+        } else if let Some(id) = d["category"].as_str() {
+            let cats = category_rows(&s, &c, &selected(&s, &c));
+            if !cats.iter().any(|x| x["category_id"] == id) {
+                return Err(IpcError::new("invalid"));
+            }
+            let include = d["include"].as_bool().unwrap();
+            if id == "other" {
+                let shown: BTreeSet<_> = cats
+                    .iter()
+                    .filter_map(|r| r["category_id"].as_str())
+                    .collect();
+                for u in &c.units {
+                    if u.level == Level::Recommended && !shown.contains(u.category.as_str()) {
+                        c.decisions.categories.insert(u.category.clone(), include);
+                    }
+                }
+            } else {
+                c.decisions.categories.insert(id.into(), include);
+            }
+        } else if let Some(id) = d["row"].as_str() {
+            if let Some(u) = c
+                .units
+                .iter()
+                .find(|u| u.id.starts_with("m:") && u.groups.iter().any(|g| g == id))
+            {
+                if !u.level.cleanable()
+                    || !c
+                        .record
+                        .result
+                        .items
+                        .iter()
+                        .any(|i| i.group_id == id && eligible(&s, &c.record, i))
+                {
+                    return Err(IpcError::new("invalid"));
+                }
+                c.decisions.groups.insert(
+                    id.into(),
+                    if d["include"] == true {
+                        "clean"
+                    } else {
+                        "keep"
+                    }
+                    .into(),
+                );
+            } else {
+                let row = c
+                    .rows
+                    .values()
+                    .flatten()
+                    .find(|r| r.id == id)
+                    .ok_or_else(|| IpcError::new("invalid"))?;
+                if !row_selectable(&s, &c.record, row) {
+                    return Err(IpcError::new("invalid"));
+                }
+                c.decisions
+                    .rows
+                    .insert(id.into(), d["include"].as_bool().unwrap());
+            }
+        } else {
+            let id = d["item"].as_str().unwrap();
+            if !item(&c, id).is_some_and(|i| eligible(&s, &c.record, i)) {
+                return Err(IpcError::new("invalid"));
+            }
+            c.decisions
+                .items
+                .insert(id.into(), d["include"].as_bool().unwrap());
+        }
+        m35::bound(&mut settings);
+        if d.get("group").is_some() {
+            core.store.write("", "settings.json", &json!(settings))?;
+        }
+        s.settings = settings;
+        c.serial += 1;
+        Ok(())
+    })();
+    let ok = validation.is_ok();
+    let result = validation.map(|()| view(core, &s, &c));
+    s.m35.conclusion = Some(if ok { c } else { before });
+    result
+}
+
+fn category_rows(s: &State, c: &Model, selected: &BTreeSet<String>) -> Vec<Value> {
+    let mut cats = BTreeMap::<String, (u64, u64, bool, bool)>::new();
+    for u in c.units.iter().filter(|u| u.level == Level::Recommended) {
+        let bytes = unit_bytes(s, c, u, true);
+        if bytes == 0 {
+            continue;
+        }
+        let x = cats.entry(u.category.clone()).or_default();
+        x.0 += bytes;
+        x.1 += u.groups.len() as u64;
+        x.2 |= is_new(c, u);
+        x.3 |= u.items.iter().any(|i| selected.contains(i));
+    }
+    let mut cats: Vec<_> = cats.into_iter().collect();
+    cats.sort_by(|a, b| b.1.0.cmp(&a.1.0).then(a.0.cmp(&b.0)));
+    let others = if cats.len() > 7 {
+        Some(
+            cats.drain(7..)
+                .map(|(_, v)| v)
+                .fold((0, 0, false, false), |a, b| {
+                    (a.0 + b.0, a.1 + b.1, a.2 || b.2, a.3 || b.3)
+                }),
+        )
+    } else {
+        None
+    };
+    if let Some(x) = others {
+        cats.push(("other".into(), x));
+    }
+    cats.into_iter().map(|(id,(bytes,n,new,included))|json!({"category_id":id,"title_zh":views::CATEGORIES.iter().find(|x|x.0==id).map(|x|x.1).unwrap_or("其它"),"bytes":bytes.to_string(),"group_count":n,"is_new":new,"included":included})).collect()
+}
+fn is_new(c: &Model, u: &Unit) -> bool {
+    let r = &c.record;
+    if let Some(base) = &c.base {
+        return u.groups.iter().any(|id| {
+            let current = r.result.groups.iter().find(|g| g.group_id == *id);
+            current.is_some_and(|g| {
+                base.result
+                    .groups
+                    .iter()
+                    .find(|old| old.group_id == *id)
+                    .is_none_or(|old| {
+                        util::number(&g.unique_bytes) > util::number(&old.unique_bytes)
+                            || g.item_count > old.item_count
+                    })
+            })
+        });
+    }
+    u.groups.iter().any(|id| {
+        r.growth.iter().any(|g| {
+            g.group_id == *id
+                && (g.count_delta > 0 || g.bytes_delta.parse::<i128>().unwrap_or(0) > 0)
+        })
+    })
+}
+pub(crate) fn is_chosen(core: &Core, r: &Record, i: &Item) -> bool {
+    r.result
+        .groups
+        .iter()
+        .find(|g| g.group_id == i.group_id)
+        .is_some_and(|g| {
+            g.level == Level::Confirm
+                || g.rule_id == "leak-cluster"
+                || g.rule_id.starts_with("decl:")
+                || core
+                    .rules
+                    .rule(&g.rule_id)
+                    .is_some_and(|r| r.session_tool.is_some())
+        })
+}
+
+pub(crate) fn expected_skip<'a>(r: &Record, items: impl Iterator<Item = &'a Item>) -> Value {
+    let mut bytes = 0u64;
+    let mut notes = BTreeSet::new();
+    for i in items {
+        if let Some(note) = r.saved["item_in_use"].get(&i.item_id) {
+            bytes += util::number(&i.unique_bytes);
+            notes.insert(format!(
+                "{}，会跳过约 {}",
+                note["process_label_zh"].as_str().unwrap_or("程序开着"),
+                m35::amount(util::number(&i.unique_bytes))
+            ));
+        }
+    }
+    if bytes == 0 {
+        Value::Null
+    } else {
+        json!({"bytes":bytes.to_string(),"notes_zh":notes})
+    }
+}
+
+fn view(core: &Core, s: &State, c: &Model) -> Value {
+    let r = &c.record;
+    let selected = selected(s, c);
+    let mut bytes = 0;
+    let mut chosen = 0;
+    let mut by_drive = BTreeMap::<String, u64>::new();
+    for i in r
+        .result
+        .items
+        .iter()
+        .filter(|i| selected.contains(&i.item_id))
+    {
+        let n = util::number(&i.unique_bytes);
+        bytes += n;
+        if is_chosen(core, r, i) {
+            chosen += n;
+        }
+        *by_drive.entry(util::drive(&i.path)).or_default() += n;
+    }
+    let categories = category_rows(s, c, &selected);
+    let mut summary = categories
+        .iter()
+        .take(2)
+        .map(|c| {
+            format!(
+                "{} {}",
+                c["title_zh"].as_str().unwrap(),
+                m35::amount(util::bytes(&c["bytes"]))
+            )
+        })
+        .collect::<Vec<_>>();
+    let delta: r#i128 = r
+        .growth
+        .iter()
+        .filter(|g| {
+            r.result
+                .groups
+                .iter()
+                .any(|x| x.group_id == g.group_id && x.level == Level::Recommended)
+        })
+        .map(|g| g.bytes_delta.parse::<i128>().unwrap_or(0))
+        .sum();
+    if delta > 0 {
+        summary.push(format!(
+            "比上次多 {}",
+            m35::amount(delta.min(u64::MAX as i128) as u64)
+        ));
+    }
+    let skip = expected_skip(
+        r,
+        r.result
+            .items
+            .iter()
+            .filter(|i| selected.contains(&i.item_id)),
+    );
+    summary.extend(
+        skip["notes_zh"]
+            .as_array()
+            .into_iter()
+            .flatten()
+            .filter_map(Value::as_str)
+            .map(str::to_owned),
+    );
+    let clues = clues(core, s, r);
+    let mut candidates: Vec<_> = c
+        .units
+        .iter()
+        .filter(|u| {
+            u.level == Level::Confirm && unit_bytes(s, c, u, true) > 0 && !c.kept.contains(&u.id)
+        })
+        .collect();
+    candidates.sort_by(|a, b| {
+        unit_bytes(s, c, b, true)
+            .cmp(&unit_bytes(s, c, a, true))
+            .then(a.id.cmp(&b.id))
+    });
+    let more = if candidates.len() > 5 {
+        let rest = &candidates[5..];
+        let total = rest.iter().map(|u| unit_bytes(s, c, u, true)).sum::<u64>();
+        let max = unit_bytes(s, c, rest[0], true);
+        json!({"count":rest.len(),"bytes":total.to_string(),"max_bytes":max.to_string(),"text_zh":format!("还有 {} 项需要判断，都不大于 {}，共 {}，默认不清",rest.len(),m35::amount(max),m35::amount(total))})
+    } else {
+        Value::Null
+    };
+    let cards: Vec<_> = candidates
+        .iter()
+        .take(5)
+        .map(|u| card(core, s, c, u, &clues))
+        .collect();
+    let kept_bytes = c
+        .units
+        .iter()
+        .filter(|u| c.kept.contains(&u.id))
+        .map(|u| unit_bytes(s, c, u, true))
+        .sum::<u64>();
+    let kept = if c.kept.is_empty() {
+        Value::Null
+    } else {
+        json!({"count":c.kept.len(),"bytes":kept_bytes.to_string(),"text_zh":format!("你上次保留的 {} 项",c.kept.len())})
+    };
+    let folds = folds(core, r);
+    let pending = c
+        .units
+        .iter()
+        .filter(|u| u.level == Level::Confirm && choice(c, u) == "undecided")
+        .collect::<Vec<_>>();
+    let scope: Vec<m35::Location> =
+        serde_json::from_value(r.saved["scope"].clone()).unwrap_or_default();
+    json!({"version":version(c),"scan_id":r.result.scan_id,"status":r.result.status,"finished_at":r.saved["finished_at"],"duration_ms":r.saved["duration_ms"],"stale":stale(s,c).is_some(),"stale_reason_zh":stale(s,c),"scope":{"labels_zh":if scope.is_empty(){vec!["常用位置".to_owned()]}else{scope.iter().map(|l|l.label_zh.clone()).collect()},"only_folder":scope.len()==1 && scope[0].kind=="folder"},"quarantine":quarantine::bar(s),"plan":{"bytes":bytes.to_string(),"delete_bytes":(bytes-chosen).to_string(),"chosen_bytes":chosen.to_string(),"item_count":selected.len(),"summary_zh":summary.join(" · "),"categories":categories,"by_drive":by_drive.into_iter().map(|(root,n)|json!({"root":root,"bytes":n.to_string()})).collect::<Vec<_>>(),"expected_skip":skip},"cards":cards,"more_cards":more,"kept_before":kept,"clues":clues.iter().take(3).cloned().collect::<Vec<_>>(),"more_clues":clues.len().saturating_sub(3),"folds":folds,"detail_pending":{"count":pending.len(),"bytes":pending.iter().map(|u|unit_bytes(s,c,u,true)).sum::<u64>().to_string()}})
+}
+
+fn card(core: &Core, s: &State, c: &Model, u: &Unit, clues: &[Value]) -> Value {
+    let r = &c.record;
+    let n = unit_bytes(s, c, u, true);
+    let items: Vec<_> = u.items.iter().filter_map(|id| item(c, id)).collect();
+    let first_group = r
+        .result
+        .groups
+        .iter()
+        .find(|g| u.groups.contains(&g.group_id))
+        .unwrap();
+    let rule = core.rules.rule(&first_group.rule_id);
+    let mut title = format!("{} · {}", u.title, m35::amount(n));
+    if let Some(cluster) = &first_group.cluster {
+        title = format!(
+            "{} 里有 {} 个同模板目录，{}",
+            tail2(&cluster.parent),
+            cluster.member_count,
+            if cluster_state(s, r, first_group) == "growing" {
+                "还在长"
+            } else {
+                "已经不长了"
+            }
+        );
+    }
+    if u.kind == "session" {
+        let days = rule
+            .and_then(|r| r.session_tool.as_ref())
+            .and_then(|tool| s.settings.sessions.iter().find(|x| &x.tool == tool))
+            .map(|x| x.days)
+            .unwrap_or(30);
+        title = format!(
+            "{} 有 {} 个 {days} 天前的会话",
+            rule.map(|r| r.owner_zh.as_str()).unwrap_or("工具"),
+            items.len()
+        );
+    }
+    if u.kind == "unfinished" {
+        title = format!("上次没清完的 {} 项", items.len());
+    }
+    let mut notes = items
+        .iter()
+        .flat_map(|i| {
+            r.saved["item_notes"][&i.item_id]
+                .as_array()
+                .into_iter()
+                .flatten()
+        })
+        .filter_map(Value::as_str)
+        .collect::<Vec<_>>();
+    if let Some(uninstalled) = notes.iter().find(|x| x.contains("似乎已卸载")) {
+        title = (*uninstalled).into();
+    }
+    let valuable: Vec<_> = items
+        .iter()
+        .flat_map(|i| i.valuable_names.iter())
+        .take(3)
+        .cloned()
+        .collect();
+    if u.kind == "unfinished" {
+        notes.extend(
+            items
+                .iter()
+                .filter_map(|i| r.saved["unfinished"][&i.item_id].as_str()),
+        );
+    }
+    let oldest = items
+        .iter()
+        .map(|i| i.newest_activity.as_str())
+        .min()
+        .unwrap_or("");
+    let newest = items
+        .iter()
+        .map(|i| i.newest_activity.as_str())
+        .max()
+        .unwrap_or("");
+    let fixed = s
+        .settings
+        .fixed_marks
+        .iter()
+        .find(|m| u.groups.contains(&m.group_id));
+    let after_fixed = fixed.map(|f| {
+        items
+            .iter()
+            .filter(|i| {
+                r.saved["item_created"][&i.item_id]
+                    .as_str()
+                    .unwrap_or(&i.newest_activity)
+                    > f.fixed_at.as_str()
+            })
+            .count()
+    });
+    let evidence = format!(
+        "{} 项 · {} ～ {} · {}{}{}{}",
+        items.len(),
+        oldest,
+        newest,
+        items
+            .first()
+            .map(|i| m35::parent(&i.path))
+            .unwrap_or_default(),
+        if valuable.is_empty() {
+            String::new()
+        } else {
+            format!(" · 含 {}", valuable.join("、"))
+        },
+        if notes.is_empty() {
+            String::new()
+        } else {
+            format!(" · {}", notes.join("；"))
+        },
+        after_fixed
+            .map(|n| format!(" · 标记已修后新增 {n} 项"))
+            .unwrap_or_default()
+    );
+    let clue = clues
+        .iter()
+        .find(|v| v["clue_id"] == format!("cl-{}", &util::digest(&u.groups[0])[..12]));
+    let mut menu = vec!["skip", "detail"];
+    if clue.is_some() {
+        menu.push("copy_clue");
+    }
+    json!({"card_id":u.id,"kind":u.kind,"level":u.level,"title_zh":title,"evidence_zh":evidence,"bytes":n.to_string(),"decision":choice(c,u),"decided_before_zh":if c.kept.contains(&u.id){Some("上次你选了保留")}else{None},"warning_zh":match u.kind.as_str(){"leak"=>Some("清了不修，会再长回来"),"session"=>Some("清掉后这些对话不能再续接或回看；可以先放进隔离区试试"),_=>None},"group_id":u.id,"menu":menu,"clue_id":clue.map(|c|c["clue_id"].clone())})
+}
+fn tail2(path: &str) -> String {
+    let mut v = path.rsplit('\\').take(2).collect::<Vec<_>>();
+    v.reverse();
+    v.join("\\")
+}
+
+fn row_items<'a>(r: &'a Record, row: &Row) -> Vec<&'a Item> {
+    let p = r.projection();
+    row.items
+        .iter()
+        .filter_map(|id| p.item_index(id).map(|n| &r.result.items[n]))
+        .collect()
+}
+fn row_selectable(s: &State, r: &Record, row: &Row) -> bool {
+    row_items(r, row)
+        .iter()
+        .any(|i| eligible(s, r, i) && r.saved["item_in_use"].get(&i.item_id).is_none())
+}
+pub(crate) fn make_rows(r: &Record, id: &str) -> Vec<Row> {
+    let mut items = r
+        .result
+        .items
+        .iter()
+        .filter(|i| i.group_id == id)
+        .collect::<Vec<_>>();
+    items.sort_by(|a, b| {
+        util::number(&b.unique_bytes)
+            .cmp(&util::number(&a.unique_bytes))
+            .then(a.item_id.cmp(&b.item_id))
+    });
+    if items.len() <= 8 {
+        return items
+            .into_iter()
+            .map(|i| Row {
+                id: i.item_id.clone(),
+                label: m35::name(&i.path).into(),
+                items: vec![i.item_id.clone()],
+            })
+            .collect();
+    }
+    let mut rows = Vec::new();
+    let mut used = BTreeSet::new();
+    let mut templates = BTreeMap::<String, Vec<String>>::new();
+    for i in &items {
+        if let Some(t) = &i.template {
+            templates
+                .entry(t.clone())
+                .or_default()
+                .push(i.item_id.clone());
+        }
+    }
+    for (template, ids) in templates.into_iter().filter(|(_, v)| v.len() >= 2) {
+        used.extend(ids.iter().cloned());
+        let label = template
+            .replace("<r6>", "******")
+            .replace("<p8>", "********")
+            .replace("<h>", "*")
+            .replace("<d>", "*")
+            .replace("<u>", "*")
+            .replace('#', "*");
+        rows.push(Row {
+            id: row_id(id, "t", &template),
+            label: format!("{label} × {}", ids.len()),
+            items: ids,
+        });
+    }
+    let mut parents = BTreeMap::<String, Vec<String>>::new();
+    for i in items.iter().filter(|i| !used.contains(&i.item_id)) {
+        parents
+            .entry(m35::parent(&i.path).to_ascii_lowercase())
+            .or_default()
+            .push(i.item_id.clone());
+    }
+    for (parent, ids) in parents.into_iter().filter(|(_, v)| v.len() >= 2) {
+        used.extend(ids.iter().cloned());
+        rows.push(Row {
+            id: row_id(id, "d", &parent),
+            label: format!("{} × {}", m35::name(&parent), ids.len()),
+            items: ids,
+        });
+    }
+    rows.extend(
+        items
+            .iter()
+            .filter(|i| !used.contains(&i.item_id))
+            .map(|i| Row {
+                id: i.item_id.clone(),
+                label: m35::name(&i.path).into(),
+                items: vec![i.item_id.clone()],
+            }),
+    );
+    let bytes: BTreeMap<_, _> = items
+        .iter()
+        .map(|i| (i.item_id.as_str(), util::number(&i.unique_bytes)))
+        .collect();
+    rows.sort_by(|a, b| {
+        b.items
+            .iter()
+            .map(|i| bytes[i.as_str()])
+            .sum::<u64>()
+            .cmp(&a.items.iter().map(|i| bytes[i.as_str()]).sum::<u64>())
+            .then(a.id.cmp(&b.id))
+    });
+    if rows.len() > 8 {
+        let ids = rows.drain(7..).flat_map(|r| r.items).collect::<Vec<_>>();
+        rows.push(Row {
+            id: row_id(id, "other", ""),
+            label: format!("其它 {} 项", ids.len()),
+            items: ids,
+        });
+    }
+    rows
+}
+fn row_id(group: &str, kind: &str, key: &str) -> String {
+    format!(
+        "r:{}",
+        &util::digest(&format!("{group}\n{kind}\n{}", key.to_ascii_lowercase()))[..16]
+    )
+}
+fn row_view(
+    core: &Core,
+    s: &State,
+    r: &Record,
+    row: &Row,
+    c: Option<&Model>,
+    selected: &BTreeSet<String>,
+) -> Value {
+    let items = row_items(r, row);
+    let group = items
+        .first()
+        .and_then(|i| r.result.groups.iter().find(|g| g.group_id == i.group_id));
+    let can_clean = group
+        .is_some_and(|g| g.level.cleanable() && views::enabled(&s.settings, &views::category(g)));
+    let eligible = |i: &Item| can_clean && i.eligible && !views::skipped(i, &s.settings);
+    let selectable = items
+        .iter()
+        .filter(|i| eligible(i))
+        .any(|i| r.saved["item_in_use"].get(&i.item_id).is_none());
+    let all_in_use = !items.is_empty()
+        && items
+            .iter()
+            .all(|i| r.saved["item_in_use"].get(&i.item_id).is_some());
+    let release = if all_in_use {
+        let g = r
+            .result
+            .groups
+            .iter()
+            .find(|g| g.group_id == items[0].group_id);
+        Some(
+            g.and_then(|g| core.rules.rule(&g.rule_id))
+                .and_then(|r| r.in_use_zh.clone())
+                .unwrap_or_else(|| {
+                    format!(
+                        "{}，关掉后可清",
+                        r.saved["item_in_use"][&items[0].item_id]["process_label_zh"]
+                            .as_str()
+                            .unwrap_or("程序正在使用")
+                    )
+                }),
+        )
+    } else {
+        None
+    };
+    let included = items
+        .iter()
+        .filter(|i| eligible(i))
+        .all(|i| selected.contains(&i.item_id))
+        && items.iter().any(|i| eligible(i));
+    let _ = c;
+    json!({"row_id":row.id,"label_zh":row.label,"count":items.len(),"bytes":items.iter().map(|i|util::number(&i.unique_bytes)).sum::<u64>().to_string(),"oldest":items.iter().map(|i|&i.newest_activity).min(),"newest":items.iter().map(|i|&i.newest_activity).max(),"included":included,"selectable":selectable,"release_zh":release,"expandable":items.len()>1})
+}
+
+pub(crate) fn group_detail(
+    core: &Core,
+    s: &State,
+    r: &Arc<Record>,
+    id: &str,
+) -> Result<Value, IpcError> {
+    let model = s
+        .m35
+        .conclusion
+        .as_ref()
+        .filter(|c| c.record.result.scan_id == r.result.scan_id);
+    let chosen = model.map(|c| selected(s, c)).unwrap_or_else(|| {
+        let recommended = r
+            .result
+            .groups
+            .iter()
+            .filter(|g| {
+                g.level == Level::Recommended && views::enabled(&s.settings, &views::category(g))
+            })
+            .map(|g| g.group_id.as_str())
+            .collect::<BTreeSet<_>>();
+        r.result
+            .items
+            .iter()
+            .filter(|i| {
+                i.eligible
+                    && !views::skipped(i, &s.settings)
+                    && recommended.contains(i.group_id.as_str())
+            })
+            .map(|i| i.item_id.clone())
+            .collect()
+    });
+    let p = r.projection();
+    if id == "unfinished" {
+        let u = model
+            .and_then(|c| c.units.iter().find(|u| u.id == id))
+            .ok_or_else(|| IpcError::new("not_found"))?;
+        let mut out = p.details[&u.groups[0]].clone();
+        drop(p);
+        let items = u
+            .items
+            .iter()
+            .filter_map(|id| model.and_then(|c| item(c, id)))
+            .collect::<Vec<_>>();
+        let bytes = items
+            .iter()
+            .map(|i| util::number(&i.unique_bytes))
+            .sum::<u64>();
+        out["group"]["group_id"] = json!(id);
+        out["group"]["title_zh"] = json!(u.title);
+        out["group"]["level"] = json!("confirm");
+        out["group"]["total_bytes"] = json!(bytes.to_string());
+        out["group"]["eligible_bytes"] = json!(bytes.to_string());
+        out["group"]["item_count"] = json!(items.len());
+        out["group"]["eligible_count"] = json!(items.len());
+        out["group"]["default_selected"] = json!(false);
+        out["items_total"] = json!(items.len());
+        out["rows"] = json!(
+            u.items
+                .iter()
+                .take(8)
+                .filter_map(|id| model.and_then(|c| item(c, id)))
+                .map(|i| row_view(
+                    core,
+                    s,
+                    r,
+                    &Row {
+                        id: i.item_id.clone(),
+                        label: m35::name(&i.path).into(),
+                        items: vec![i.item_id.clone()]
+                    },
+                    model,
+                    &chosen
+                ))
+                .collect::<Vec<_>>()
+        );
+        out["rows_note_zh"] = Value::Null;
+        out["items"]=json!(items.iter().take(200).map(|i|json!({"item_id":i.item_id,"in_use":r.saved["item_in_use"].get(&i.item_id),"display_path":i.path,"total_bytes":i.unique_bytes,"newest_activity":i.newest_activity,"eligible":eligible(s,r,i),"reason_zh":i.ineligible_reason})).collect::<Vec<_>>());
+        return Ok(out);
+    }
+    if id.starts_with("m:") {
+        let groups = r
+            .result
+            .groups
+            .iter()
+            .filter(|g| {
+                format!("m:{}", g.rule_id) == id
+                    && g.rule_id != "leak-cluster"
+                    && !g.rule_id.starts_with("decl:")
+            })
+            .collect::<Vec<_>>();
+        if groups.len() < 2 {
+            return Err(IpcError::new("not_found"));
+        }
+        let mut out = p.details[&groups[0].group_id].clone();
+        let mut g = out["group"].clone();
+        g["group_id"] = json!(id);
+        for key in ["item_count", "eligible_count", "file_count"] {
+            g[key] = json!(
+                groups
+                    .iter()
+                    .map(|g| p.details[&g.group_id]["group"][key].as_u64().unwrap_or(0))
+                    .sum::<u64>()
+            );
+        }
+        for key in ["total_bytes", "eligible_bytes", "logical_bytes"] {
+            g[key] = json!(
+                groups
+                    .iter()
+                    .map(|g| util::bytes(&p.details[&g.group_id]["group"][key]))
+                    .sum::<u64>()
+                    .to_string()
+            );
+        }
+        g["selectable"] = json!(
+            groups
+                .iter()
+                .any(|g| p.details[&g.group_id]["group"]["selectable"] == true)
+        );
+        g["level"] = json!(
+            groups
+                .iter()
+                .map(|g| g.level)
+                .min_by_key(|l| l.rank())
+                .unwrap()
+        );
+        g["default_selected"] = json!(g["selectable"] == true && g["level"] == "recommended");
+        out["group"] = g;
+        out["items_total"] = out["group"]["item_count"].clone();
+        let mut items = groups
+            .iter()
+            .flat_map(|g| p.details[&g.group_id]["items"].as_array().unwrap().clone())
+            .collect::<Vec<_>>();
+        drop(p);
+        let mut rows = groups
+            .iter()
+            .map(|g| {
+                let ids = r
+                    .result
+                    .items
+                    .iter()
+                    .filter(|i| i.group_id == g.group_id)
+                    .map(|i| i.item_id.clone())
+                    .collect();
+                row_view(
+                    core,
+                    s,
+                    r,
+                    &Row {
+                        id: g.group_id.clone(),
+                        label: location(r, &g.group_id),
+                        items: ids,
+                    },
+                    model,
+                    &chosen,
+                )
+            })
+            .collect::<Vec<_>>();
+        rows.sort_by_key(|v| std::cmp::Reverse(util::bytes(&v["bytes"])));
+        out["rows"] = json!(rows);
+        out["rows_note_zh"] = Value::Null;
+        items.sort_by_key(|i| std::cmp::Reverse(util::bytes(&i["total_bytes"])));
+        items.truncate(200);
+        out["items"] = json!(items);
+        return Ok(out);
+    }
+    let mut out = p
+        .details
+        .get(id)
+        .cloned()
+        .ok_or_else(|| IpcError::new("not_found"))?;
+    drop(p);
+    let rows = if let Some(rows) = model.and_then(|c| c.rows.get(id)) {
+        rows.iter()
+            .map(|row| row_view(core, s, r, row, model, &chosen))
+            .collect::<Vec<_>>()
+    } else {
+        let cached = r.projection().summary_rows[id].clone();
+        cached
+            .as_ref()
+            .iter()
+            .map(|row| row_view(core, s, r, row, model, &chosen))
+            .collect()
+    };
+    out["rows"] = json!(rows);
+    out["rows_note_zh"] = Value::Null;
+    Ok(out)
+}
+fn location(r: &Record, gid: &str) -> String {
+    r.plan
+        .targets
+        .iter()
+        .find(|t| t.group_id == gid)
+        .map(|t| match &t.match_spec {
+            water_junk_rules::MatchSpec::Pattern { base, .. } => base.clone(),
+            water_junk_rules::MatchSpec::Marker { root, .. }
+            | water_junk_rules::MatchSpec::Discovery { root } => root.clone(),
+        })
+        .or_else(|| {
+            r.result
+                .groups
+                .iter()
+                .find(|g| g.group_id == gid)
+                .and_then(|g| g.cluster.as_ref())
+                .map(|c| c.parent.clone())
+        })
+        .unwrap_or_default()
+}
+
+pub(crate) fn items(core: &Arc<Core>, a: &Value) -> Result<Value, IpcError> {
+    let mut s = lock(core)?;
+    ensure(core, &mut s)?;
+    let c = s.m35.conclusion.as_ref().unwrap();
+    let chosen = selected(&s, c);
+    let id = a["groupId"].as_str().unwrap();
+    let u = c
+        .units
+        .iter()
+        .find(|u| u.id == id || u.groups.iter().any(|g| g == id))
+        .ok_or_else(|| IpcError::new("not_found"))?;
+    let mut ids: BTreeSet<_> = if id == u.id {
+        u.items.iter().cloned().collect()
+    } else {
+        c.record
+            .result
+            .items
+            .iter()
+            .filter(|i| i.group_id == id)
+            .map(|i| i.item_id.clone())
+            .collect()
+    };
+    if let Some(row) = a["rowId"].as_str() {
+        let members = if u.id.starts_with("m:") && u.groups.iter().any(|g| g == row) {
+            c.record
+                .result
+                .items
+                .iter()
+                .filter(|i| i.group_id == row)
+                .map(|i| i.item_id.clone())
+                .collect::<Vec<_>>()
+        } else {
+            c.rows
+                .values()
+                .flatten()
+                .find(|r| r.id == row && r.items.iter().all(|i| ids.contains(i)))
+                .ok_or_else(|| IpcError::new("invalid"))?
+                .items
+                .clone()
+        };
+        ids.retain(|i| members.contains(i));
+    }
+    let query = a["query"].as_str().map(str::to_lowercase);
+    let mut items = ids
+        .iter()
+        .filter_map(|id| item(c, id))
+        .filter(|i| {
+            query
+                .as_ref()
+                .is_none_or(|q| m35::name(&i.path).to_lowercase().contains(q))
+        })
+        .collect::<Vec<_>>();
+    items.sort_by(|a, b| {
+        util::number(&b.unique_bytes)
+            .cmp(&util::number(&a.unique_bytes))
+            .then(a.path.cmp(&b.path))
+    });
+    let total = items.len();
+    let out=items.into_iter().take(200).map(|i|{let reason=if views::skipped(i,&s.settings){Some("已设为以后都跳过".to_owned())}else{i.ineligible_reason.clone()};let notes=c.record.saved["item_notes"][&i.item_id].as_array().cloned().unwrap_or_default();json!({"item_id":i.item_id,"display_path":i.path,"total_bytes":i.unique_bytes,"newest_activity":i.newest_activity,"eligible":eligible(&s,&c.record,i),"included":chosen.contains(&i.item_id),"reason_zh":reason,"notes_zh":notes})}).collect::<Vec<_>>();
+    Ok(json!({"items":out,"items_total":total}))
+}
+
+pub(crate) fn detail(core: &Arc<Core>, a: &Value) -> Result<Value, IpcError> {
+    let mut s = lock(core)?;
+    ensure(core, &mut s)?;
+    let c = s.m35.conclusion.as_ref().unwrap();
+    current(&s, c, a["version"].as_str().unwrap())?;
+    let chosen = selected(&s, c);
+    let mut sections = BTreeMap::<String, Vec<Value>>::new();
+    for u in &c.units {
+        let loc = if u.groups.len() > 1 {
+            format!("{} 个位置", u.groups.len())
+        } else {
+            location(&c.record, &u.groups[0])
+        };
+        let key = if a["mode"] == "category" {
+            if u.level.cleanable() {
+                u.category.clone()
+            } else {
+                "zz-other".into()
+            }
+        } else {
+            loc.clone()
+        };
+        let bytes = unit_bytes(&s, c, u, false);
+        let selected_bytes = u
+            .items
+            .iter()
+            .filter(|i| chosen.contains(*i))
+            .filter_map(|i| item(c, i))
+            .map(|i| util::number(&i.unique_bytes))
+            .sum::<u64>();
+        sections.entry(key).or_default().push(json!({"row_key":u.id,"title_zh":u.title,"location_zh":loc,"level":u.level,"bytes":bytes.to_string(),"chosen_bytes":selected_bytes.to_string(),"selectable":u.level.cleanable() && unit_bytes(&s,c,u,true)>0,"choice":choice(c,u),"is_new":is_new(c,u)}));
+    }
+    let out=sections.into_iter().map(|(key,mut rows)|{rows.sort_by_key(|v|std::cmp::Reverse(util::bytes(&v["bytes"])));let bytes=rows.iter().map(|r|util::bytes(&r["bytes"])).sum::<u64>();let chosen=rows.iter().map(|r|util::bytes(&r["chosen_bytes"])).sum::<u64>();let n=rows.len();
+        let mut unchanged=Vec::new();rows.retain(|row|{let same=c.record.previous_at.is_some() && c.units.iter().find(|u|u.id==row["row_key"]).is_some_and(|u|u.groups.iter().all(|id|c.record.growth.iter().any(|g|g.group_id==*id && g.count_delta==0 && g.bytes_delta=="0")));if same{unchanged.push(row.clone());}!same});
+        json!({"section_id":format!("section-{}",&util::digest(&key)[..12]),"title_zh":views::CATEGORIES.iter().find(|c|c.0==key).map(|c|c.1.to_owned()).unwrap_or_else(||if key=="zz-other" {"受保护与仅供参考".into()}else{key}),"group_count":n,"bytes":bytes.to_string(),"chosen_bytes":chosen.to_string(),"rows":rows,"unchanged":if unchanged.is_empty(){Value::Null}else{json!({"count":unchanged.len(),"bytes":unchanged.iter().map(|r|util::bytes(&r["bytes"])).sum::<u64>().to_string(),"rows":unchanged})}})
+    }).collect::<Vec<_>>();
+    let total = c
+        .record
+        .result
+        .items
+        .iter()
+        .filter(|i| chosen.contains(&i.item_id))
+        .map(|i| util::number(&i.unique_bytes))
+        .sum::<u64>();
+    Ok(json!({"version":version(c),"mode":a["mode"],"plan_bytes":total.to_string(),"sections":out}))
+}
+
+pub(crate) fn cluster_state(s: &State, r: &Record, g: &water_junk_scan::Group) -> &'static str {
+    if g.level == Level::Advisory {
+        return "suspected";
+    }
+    if let Some(f) = s
+        .settings
+        .fixed_marks
+        .iter()
+        .find(|m| m.group_id == g.group_id)
+        && !r
+            .result
+            .items
+            .iter()
+            .filter(|i| i.group_id == g.group_id)
+            .any(|i| i.newest_activity > f.fixed_at)
+    {
+        return "stopped";
+    }
+    if r.growth.iter().any(|x| {
+        x.group_id == g.group_id
+            && (x.count_delta > 0 || x.bytes_delta.parse::<i128>().unwrap_or(0) > 0)
+    }) {
+        "growing"
+    } else {
+        "stopped"
+    }
+}
+pub(crate) fn clusters(core: &Core, s: &State, r: &Record) -> Vec<Value> {
+    let clues = clues(core, s, r);
+    r.result.groups.iter().filter(|g|g.rule_id=="leak-cluster").map(|g|{let growth=r.growth.iter().find(|x|x.group_id==g.group_id);let clue_id=format!("cl-{}",&util::digest(&g.group_id)[..12]);let clue=clues.iter().find(|x|x["clue_id"]==clue_id);json!({"group_id":g.group_id,"title_zh":g.cluster.as_ref().map(|c|format!("{} · {}",tail2(&c.parent),c.template)),"rate_zh":format!("每天约 +{} 个 · +{}",growth.map(|x|(x.count_delta.max(0) as f64 / x.days.max(1.0)).round() as u64).unwrap_or(0),m35::amount(growth.map(|x|util::number(&x.bytes_per_day)).unwrap_or(0))),"state":cluster_state(s,r,g),"fixed_at":s.settings.fixed_marks.iter().find(|x|x.group_id==g.group_id).map(|x|&x.fixed_at),"clue_id":clue.map(|x|x["clue_id"].clone()),"copy_text":clue.map(|x|x["copy_text"].clone())})}).collect()
+}
+
+fn clues(_core: &Core, _s: &State, r: &Record) -> Vec<Value> {
+    let mut candidates = Vec::<(u64, String, String, String)>::new();
+    let mut detached = BTreeMap::<String, Vec<&Item>>::new();
+    for g in &r.result.groups {
+        if let Some(cluster) = &g.cluster {
+            let members = r
+                .result
+                .items
+                .iter()
+                .filter(|i| i.group_id == g.group_id)
+                .collect::<Vec<_>>();
+            let mut days = BTreeMap::<String, u64>::new();
+            for i in &members {
+                let at = r.saved["item_created"][&i.item_id]
+                    .as_str()
+                    .unwrap_or(&i.newest_activity);
+                if let Some(day) = at.get(..10) {
+                    *days.entry(day.into()).or_default() += 1;
+                }
+            }
+            let mut root = cluster.parent.clone();
+            let mut repo = None;
+            while root.len() > 3 {
+                if std::fs::symlink_metadata(format!("{root}\\.git")).is_ok() {
+                    repo = Some(root.clone());
+                    break;
+                }
+                root = m35::parent(&root);
+            }
+            let text = format!(
+                "{} 里有 {} 个 {}，每天新增约 {} 个",
+                cluster.parent,
+                cluster.member_count,
+                cluster.template,
+                cluster.member_count / 14
+            );
+            let copy = format!(
+                "检查清单\n模板：{}\n数量：{}\n总量：{}\n最近 14 天创建分布：{}\n最新一个：{}\n所在仓库根：{}\n先找出生成它们的代码并修好，再清存量；修好后用 Water 标记为已修。",
+                cluster.template,
+                cluster.member_count,
+                m35::amount(util::number(&g.unique_bytes)),
+                days.into_iter()
+                    .rev()
+                    .take(14)
+                    .map(|(d, n)| format!("{d} {n} 个"))
+                    .collect::<Vec<_>>()
+                    .join("；"),
+                g.newest_activity.as_deref().unwrap_or("未知"),
+                repo.as_deref().unwrap_or("未发现")
+            );
+            candidates.push((
+                util::number(&g.unique_bytes),
+                format!("cl-{}", &util::digest(&g.group_id)[..12]),
+                text,
+                copy,
+            ));
+        }
+    }
+    for i in &r.result.items {
+        let notes = r.saved["item_notes"][&i.item_id]
+            .as_array()
+            .into_iter()
+            .flatten()
+            .filter_map(Value::as_str)
+            .collect::<Vec<_>>();
+        if notes.contains(&"已脱离 git") {
+            detached.entry(m35::parent(&i.path)).or_default().push(i);
+        }
+        if i.referenced_count > 0 {
+            let text = format!(
+                "{} 指向 {}，改指别处后可清",
+                i.referenced_by
+                    .first()
+                    .map(String::as_str)
+                    .unwrap_or("联接"),
+                i.path
+            );
+            candidates.push((
+                util::number(&i.unique_bytes),
+                format!("cl-{}", &util::digest(&i.item_id)[..12]),
+                text.clone(),
+                text,
+            ));
+        }
+        if i.odd_count > 0 {
+            let text = format!(
+                "{} 里有名为 {} 的文件，多半是脚本里写了 > nul；在 bash 里应写 /dev/null",
+                i.path,
+                i.odd_names.first().map(String::as_str).unwrap_or("nul")
+            );
+            candidates.push((
+                util::number(&i.unique_bytes),
+                format!("cl-odd-{}", &util::digest(&i.item_id)[..12]),
+                text.clone(),
+                text,
+            ));
+        }
+    }
+    for (parent, items) in detached {
+        let text = format!(
+            "{parent} 里 {} 棵树已脱离 git，要先查有没有未提交的改动",
+            items.len()
+        );
+        let copy = format!(
+            "{text}\n逐棵核对：\n{}\n1. 检查未提交、未跟踪及被忽略的成果。\n2. 核对分支与主线是否收齐。\n3. 核对签名、数据库及离线成果已有备份。\ngit 查不了已脱离目录里有没有未提交的东西；先人工核对，再决定清理。",
+            items
+                .iter()
+                .map(|i| i.path.as_str())
+                .collect::<Vec<_>>()
+                .join("\n")
+        );
+        candidates.push((
+            items.iter().map(|i| util::number(&i.unique_bytes)).sum(),
+            format!("cl-git-{}", &util::digest(&parent)[..12]),
+            text,
+            copy,
+        ));
+    }
+    candidates.sort_by(|a, b| b.0.cmp(&a.0).then(a.1.cmp(&b.1)));
+    candidates
+        .into_iter()
+        .map(|(_, id, text, copy)| json!({"clue_id":id,"text_zh":text,"copy_text":copy}))
+        .collect()
+}
+
+fn folds(core: &Core, r: &Record) -> Vec<Value> {
+    let mut out = Vec::new();
+    for (kind, level) in [
+        ("advisory", Level::Advisory),
+        ("protected", Level::Protected),
+    ] {
+        let mut groups = r
+            .result
+            .groups
+            .iter()
+            .filter(|g| {
+                g.level == level
+                    && g.item_count > 0
+                    && !(kind == "advisory"
+                        && core
+                            .rules
+                            .rule(&g.rule_id)
+                            .is_some_and(|r| r.advice_zh.is_some()))
+            })
+            .collect::<Vec<_>>();
+        groups.sort_by_key(|g| std::cmp::Reverse(util::number(&g.unique_bytes)));
+        if groups.is_empty() {
+            continue;
+        }
+        let rows=groups.iter().take(10).map(|g|json!({"title_zh":r.projection().details[&g.group_id]["group"]["title_zh"],"bytes":g.unique_bytes,"note_zh":null})).collect::<Vec<_>>();
+        let bytes = groups
+            .iter()
+            .map(|g| util::number(&g.unique_bytes))
+            .sum::<u64>();
+        let names = rows
+            .iter()
+            .take(3)
+            .filter_map(|v| v["title_zh"].as_str())
+            .collect::<Vec<_>>()
+            .join("、");
+        out.push(json!({"kind":kind,"text_zh":format!("{} {}：{names}",m35::amount(bytes),if kind=="protected"{"受保护"}else{"只统计、不清理"}),"bytes":bytes.to_string(),"rows":rows}));
+    }
+    let spaces = r.saved["space"]
+        .as_array()
+        .into_iter()
+        .flatten()
+        .collect::<Vec<_>>();
+    if !spaces.is_empty() {
+        let rows = spaces
+            .iter()
+            .flat_map(|v| v["top"].as_array().into_iter().flatten())
+            .take(10)
+            .map(|v| json!({"title_zh":v["name"],"bytes":v["disk_bytes"],"note_zh":space_label(v)}))
+            .collect::<Vec<_>>();
+        let text = rows
+            .iter()
+            .take(3)
+            .map(|v| {
+                format!(
+                    "{} {}",
+                    v["title_zh"].as_str().unwrap_or(""),
+                    m35::amount(util::bytes(&v["bytes"]))
+                )
+            })
+            .collect::<Vec<_>>()
+            .join("、");
+        out.push(json!({"kind":"space","text_zh":format!("空间分布：{text}"),"bytes":spaces.iter().map(|v|util::bytes(&v["disk_bytes"])).sum::<u64>().to_string(),"rows":rows}));
+    }
+    let mut system = r
+        .result
+        .groups
+        .iter()
+        .filter(|g| g.item_count > 0)
+        .filter_map(|g| {
+            core.rules.rule(&g.rule_id).and_then(|rule| {
+                rule.advice_zh
+                    .as_ref()
+                    .map(|a| json!({"title_zh":rule.title_zh,"bytes":g.unique_bytes,"note_zh":a}))
+            })
+        })
+        .collect::<Vec<_>>();
+    system.extend(r.saved["recycle_bins"].as_array().into_iter().flatten().filter(|v|util::bytes(&v["bytes"])>0).map(|v|json!({"title_zh":format!("回收站（{} 盘）",v["root"].as_str().unwrap_or("").get(..1).unwrap_or("")),"bytes":v["bytes"],"note_zh":"在资源管理器里清空回收站"})));
+    if !system.is_empty() {
+        let n = system.len();
+        let bytes = system.iter().map(|v| util::bytes(&v["bytes"])).sum::<u64>();
+        system.truncate(10);
+        out.push(json!({"kind":"system","text_zh":format!("{n} 条系统建议，可以再腾出约 {}，要在 Windows 设置里改",m35::amount(bytes)),"bytes":bytes.to_string(),"rows":system}));
+    }
+    out
+}
+fn space_label(v: &Value) -> &'static str {
+    let name = v["name"].as_str().unwrap_or("");
+    if v["has_git"] == true {
+        "项目"
+    } else if [
+        "steamapps",
+        "Steam",
+        "SteamLibrary",
+        "Epic Games",
+        "WeGameApps",
+        "Riot Games",
+        "Games",
+    ]
+    .iter()
+    .any(|s| s.eq_ignore_ascii_case(name))
+    {
+        "游戏"
+    } else if [
+        "Program Files",
+        "Program Files (x86)",
+        "ProgramData",
+        "Windows",
+    ]
+    .iter()
+    .any(|s| s.eq_ignore_ascii_case(name))
+    {
+        "系统与程序"
+    } else if ["$Recycle.Bin", "System Volume Information"]
+        .iter()
+        .any(|s| s.eq_ignore_ascii_case(name))
+    {
+        "系统"
+    } else if name.eq_ignore_ascii_case(".water-quarantine") {
+        "隔离区"
+    } else if v["kind"] == "file" {
+        "文件"
+    } else {
+        "资料"
+    }
+}

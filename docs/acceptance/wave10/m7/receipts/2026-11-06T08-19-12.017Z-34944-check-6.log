@@ -1,0 +1,39 @@
+{"binary":"C:\\Users\\37310\\.rustup\\toolchains\\1.95.0-x86_64-pc-windows-msvc\\bin\\cargo.exe","args":["clippy","--offline","--locked","--manifest-path","packages/water-service/Cargo.toml","--all-targets","--","-D","warnings"],"exitCode":101,"error":null}
+--- stdout ---
+
+--- stderr ---
+    Checking water-service v0.1.0 (F:\new\smaltalk\water\.worktrees\w10-m7\packages\water-service)
+error: this boolean expression can be simplified
+   --> src\service.rs:135:24
+    |
+135 |                       || (!(g.rule_id == "leak-cluster"
+    |  ________________________^
+136 | |                         && g.group_id.starts_with("leak:")
+137 | |                         && g.cluster.is_some())
+138 | |                         && !plan
+139 | |                             .targets
+140 | |                             .iter()
+141 | |                             .any(|t| t.group_id == g.group_id && t.rule_id == g.rule_id))
+    | |_________________________________________________________________________________________^
+    |
+    = help: for further information visit https://rust-lang.github.io/rust-clippy/rust-1.95.0/index.html#nonminimal_bool
+    = note: `-D clippy::nonminimal-bool` implied by `-D warnings`
+    = help: to override `-D warnings` add `#[allow(clippy::nonminimal_bool)]`
+help: try
+    |
+135 ~                     || !(plan
+136 +                             .targets
+137 +                             .iter()
+138 +                             .any(|t| t.group_id == g.group_id && t.rule_id == g.rule_id) || g.rule_id == "leak-cluster" && g.group_id.starts_with("leak:") && g.cluster.is_some())
+    |
+
+error: the `declarations:` in this pattern is redundant
+   --> src\service.rs:870:13
+    |
+870 |             declarations: mut declarations,
+    |             ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^ help: use shorthand field pattern: `mut declarations`
+    |
+    = note: `-D non-shorthand-field-patterns` implied by `-D warnings`
+    = help: to override `-D warnings` add `#[allow(non_shorthand_field_patterns)]`
+
+error: could not compile `water-service` (lib) due to 2 previous errors

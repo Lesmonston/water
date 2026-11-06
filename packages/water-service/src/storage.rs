@@ -59,7 +59,16 @@ impl Store {
         }
         fs::create_dir_all(&root).map_err(unavailable)?;
         let store = Self { root };
-        for dir in ["scans", "snapshots", "plans", "cleans", "journal"] {
+        for dir in [
+            "scans",
+            "snapshots",
+            "plans",
+            "cleans",
+            "journal",
+            "quarantine",
+            "dedupes",
+            "events",
+        ] {
             let path = store.root.join(dir);
             if path.exists() && !plain_directory(&path) {
                 return Err(unavailable(()));
@@ -70,7 +79,18 @@ impl Store {
     }
 
     fn path(&self, dir: &str, name: &str) -> Result<PathBuf, IpcError> {
-        if !["", "scans", "snapshots", "plans", "cleans", "journal"].contains(&dir)
+        if ![
+            "",
+            "scans",
+            "snapshots",
+            "plans",
+            "cleans",
+            "journal",
+            "quarantine",
+            "dedupes",
+            "events",
+        ]
+        .contains(&dir)
             || name.is_empty()
             || !name
                 .bytes()
@@ -131,9 +151,16 @@ impl Store {
                     "scans" | "snapshots" => "scan-",
                     "plans" => "plan-",
                     "cleans" => "clean-",
+                    "dedupes" => "dedupe-",
+                    "events" => "event-",
+                    "quarantine" => "",
                     _ => return None,
                 };
-                if !util::record_id(id, prefix) {
+                if !(if dir == "quarantine" {
+                    crate::quarantine::id_ok(id)
+                } else {
+                    util::record_id(id, prefix)
+                }) {
                     return None;
                 }
                 Some((
@@ -158,14 +185,20 @@ impl Store {
         let prefix = match dir {
             "scans" | "snapshots" => "scan-",
             "cleans" => "clean-",
+            "dedupes" => "dedupe-",
+            "events" => "event-",
+            "quarantine" => "",
             _ => return vec![],
         };
         ids.iter()
             .filter(|id| {
-                util::record_id(id, prefix)
-                    && self
-                        .path(dir, &format!("{id}.json"))
-                        .is_ok_and(|p| p.is_file() && fs::remove_file(p).is_ok())
+                (if dir == "quarantine" {
+                    crate::quarantine::id_ok(id)
+                } else {
+                    util::record_id(id, prefix)
+                }) && self
+                    .path(dir, &format!("{id}.json"))
+                    .is_ok_and(|p| p.is_file() && fs::remove_file(p).is_ok())
             })
             .cloned()
             .collect()
@@ -239,6 +272,14 @@ impl Store {
             .write(true)
             .create_new(true)
             .open(self.path("journal", &format!("{id}.jsonl"))?)
+            .map_err(unavailable)?;
+        Ok(DurableFile(file))
+    }
+    pub fn purge_journal(&self, id: &str) -> Result<DurableFile, IpcError> {
+        let file = OpenOptions::new()
+            .append(true)
+            .create(true)
+            .open(self.path("journal", &format!("{id}-purge.jsonl"))?)
             .map_err(unavailable)?;
         Ok(DurableFile(file))
     }
