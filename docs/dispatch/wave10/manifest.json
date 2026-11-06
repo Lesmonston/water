@@ -2008,6 +2008,164 @@
         "a drive-root InstallLocation (D:\\) becomes D: and is treated as missing (literal contract reading)",
         "weak tests: the registry kind to RegValue::Other mapping, the 5000 cap, truncated and unreadable_keys are not exercised; nc1 relies on the machine having WOW6432Node entries"
       ]
+    },
+    {
+      "kind": "rust",
+      "outputRoot": "packages/junk-clean",
+      "packageName": "water-junk-clean",
+      "testTarget": "clean_v1",
+      "testFiles": [
+        "packages/junk-clean/tests/clean_v1.rs"
+      ],
+      "productionFiles": [
+        "packages/junk-clean/Cargo.toml",
+        "packages/junk-clean/Cargo.lock",
+        "packages/junk-clean/README.md",
+        "packages/junk-clean/examples/real_smoke.rs"
+      ],
+      "cargoCacheSource": "F:/new/smaltalk/water/.offline-cache/core/registry",
+      "nativeModule": "native_windows.rs",
+      "macOS": "unverified",
+      "outputRootExists": true,
+      "nativeWindowBudget": 0,
+      "nativeDirectoryDialogBudget": 0,
+      "expectedTests": [
+        "clean_plan_contract",
+        "clean_revalidation_skips",
+        "clean_no_follow",
+        "clean_partial_stop_journal",
+        "clean_report_volume",
+        "clean_handle_hardening",
+        "quarantine_unlock_pair",
+        "quarantine_move_contract",
+        "quarantine_restore_contract",
+        "quarantine_purge_contract",
+        "quarantine_inspect_and_list"
+      ],
+      "allowedModes": [
+        "baseline",
+        "lock",
+        "check",
+        "test",
+        "archive",
+        "real",
+        "red-nc1",
+        "red-nc2",
+        "red-nc3"
+      ],
+      "expectedFinalModes": [
+        "check",
+        "test",
+        "real"
+      ],
+      "forbidPatterns": [
+        [
+          "\\bstd::fs\\b",
+          "Path-based file access (std::fs) is not allowed"
+        ],
+        [
+          "\\bfs::",
+          "Path-based file access (fs::) is not allowed"
+        ],
+        [
+          "\\bPath(?:Buf)?\\b",
+          "Path objects are not allowed; file access goes through handles"
+        ],
+        [
+          "\\b(?:remove_file|remove_dir|read_dir|symlink_metadata|set_permissions|OpenOptions)\\b",
+          "Path-based file operation is not allowed"
+        ]
+      ],
+      "allowedFfi": [
+        "CreateFileW",
+        "GetFileInformationByHandleEx",
+        "SetFileInformationByHandle",
+        "GetVolumeInformationByHandleW",
+        "GetDiskFreeSpaceExW",
+        "CloseHandle",
+        "NtOpenFile",
+        "NtCreateFile",
+        "RtlNtStatusToDosError",
+        "NtSetInformationFile"
+      ],
+      "realMode": "env-only",
+      "browserBudget": 0,
+      "realDataPermission": "none; synthetic fixtures under own .local only",
+      "id": "WATER-W10-M10",
+      "title": "执行器补修：永久删除的遗留与隔离编号",
+      "slot": "w10-m10",
+      "worktree": "F:/new/smaltalk/water/.worktrees/w10-m10",
+      "branch": "worker/water-w10-m10",
+      "baseCommit": "51d851914c5845ac9b818f0e9053051b0cb88b1a",
+      "snapshotRef": "refs/tags/water-w10-m10-base-20261106",
+      "status": "HOLD",
+      "readyOn": null,
+      "dispatchedAt": null,
+      "startedAt": null,
+      "model": null,
+      "modelAssignment": "user-arranged; report actual engine/model",
+      "purpose": "M3.5 release fixes from WATER-W10-M4 carryOverLater 1, 2, 3, 5, 6",
+      "report": "docs/dispatch/reports/WATER-W10-M10-REPORT.md",
+      "evidenceDir": "docs/acceptance/wave10/m10/",
+      "allowedFiles": [
+        "docs/dispatch/reports/WATER-W10-M10-REPORT.md"
+      ],
+      "gate": "heavy",
+      "ticket": "docs/dispatch/tickets/WATER-W10-M10-CLEAN-FIX-20261106.md",
+      "spec": "contracts/m35-v1/CLEAN-M35.md",
+      "proofTargets": {
+        "nc1": "CLEAN_M35_PURGE",
+        "nc2": "CLEAN_M35_PURGE",
+        "nc3": "CLEAN_M35_MOVE"
+      },
+      "modelHint": "Rust handle-based deletion engine fixes: purge subfolder in use, exclusive-locked quarantine folder, device-name ids, small purge/move fixes and missing tests; heavy gate; public API unchanged; deletes only test fixtures.",
+      "mustRead": [
+        "docs/dispatch/W10-M35-WORKER-RULES.md",
+        "contracts/m35-v1/CLEAN-M35.md",
+        "contracts/checkup-v1/CLEAN.md",
+        "contracts/hardening-v1/CLEAN-HARDENING.md",
+        "docs/decisions/ADR-019-project-declarations-and-quarantine.md",
+        "contracts/m35-v1/RULES-M35.md",
+        "docs/dispatch/wave10/PLAN.md",
+        "packages/junk-clean/src/lib.rs",
+        "packages/junk-clean/src/model.rs",
+        "packages/junk-clean/src/native_windows.rs",
+        "packages/junk-clean/src/path.rs",
+        "packages/junk-clean/tests/clean_v1.rs",
+        "docs/dispatch/tickets/WATER-W10-M4-CLEAN-20261105.md",
+        "docs/dispatch/tickets/WATER-W10-M4-ADDENDUM-01-20261105.md",
+        "docs/dispatch/tickets/WATER-W10-M4-ADDENDUM-02-20261105.md",
+        "packages/junk-clean/src/quarantine.rs"
+      ],
+      "frozenFiles": [
+        {
+          "path": "contracts/m35-v1/CLEAN-M35.md",
+          "sha256": "9a7a43d758668fc4b6da0db1ef90d6500318ba7df907d01355adfd737012dee5"
+        },
+        {
+          "path": "contracts/checkup-v1/CLEAN.md",
+          "sha256": "95b5ad120c6d7a04d427318c09df8e58ba77d6f96167cb040bc07a33e5c5a55f"
+        },
+        {
+          "path": "contracts/hardening-v1/CLEAN-HARDENING.md",
+          "sha256": "b22cfe2458d17303fd5ffde08899ef6df89c4484ba502c0d4af4139c8a18dc85"
+        },
+        {
+          "path": "docs/decisions/ADR-019-project-declarations-and-quarantine.md",
+          "sha256": "005709e26035f08e3729303c8ebed961b7c23c3b4e02ec28ab8823a36b885e97"
+        },
+        {
+          "path": "contracts/m35-v1/RULES-M35.md",
+          "sha256": "3dfc034799404b45dbd19b7e44f99dc1875584e7b87285cdcd53340af9193a17"
+        }
+      ],
+      "allowedPrefixes": [
+        "packages/junk-clean/",
+        "docs/acceptance/wave10/m10/"
+      ],
+      "baselineStatus": "PENDING",
+      "holdReason": "dispatch after WATER-W10-M7 merges (both run cargo; one cargo tree at a time); controller then creates the worktree, recomputes frozen hashes from it and runs baseline",
+      "issuedAt": "2026-11-06T12:51:46Z"
     }
   ],
   "bundles": [

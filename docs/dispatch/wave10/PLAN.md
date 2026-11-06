@@ -441,3 +441,9 @@ M7 补单 04（Grok）把后台线程的磁盘读写移出了状态锁，后台�
 ```text
 WATER-W10-M7 补单 05（同步写文件的命令测试上限 200 ms，计时失败可多重跑，轻门）：读 F:/new/smaltalk/water/docs/dispatch/tickets/WATER-W10-M7-ADDENDUM-05-20261106.md，按其中列出的顺序读原单、补单 01～04、本补单与你的回执，在 F:/new/smaltalk/water/.worktrees/w10-m7（分支 worker/water-w10-m7）从 44f22980 续做；做完、提交并交回回执；受阻就停下写受阻回执。
 ```
+
+### M10 执行器补修与收尾清单（2026-11-06，HOLD）
+
+用户“按推荐做”：趁 M7 还在做，先写好不占机器的准备。
+- [M10 工单](../tickets/WATER-W10-M10-CLEAN-FIX-20261106.md)：修 M4 遗留的第 1、2、3、5、6 条（永久删除时子文件夹被占用、编号目录被独占、编号放过设备名、几处小错与补测试），公开接口不变。基线 `51d85191`（tag `water-w10-m10-base-20261106`）。M7 合入后再派，派单时总控建工作树、跑 baseline，再给粘贴语。
+- [收尾与 M3.5 收口清单](CLOSE-CHECKLIST.md)：合入顺序、第七次整合检查、release 与收口报告。合并预检（`git merge-tree`）：M6、M7 与主线两两都没有冲突。
