@@ -493,10 +493,13 @@ fn age(path: &Path, seconds: u64) {
 fn call(s: &impl TestService, c: &str, a: Value) -> Value {
     let started = Instant::now();
     let result = s.call(c, a).unwrap_or_else(|e| panic!("{c}: {e:?}"));
-    assert!(
-        started.elapsed() <= Duration::from_millis(50),
-        "SERVICE_RETURN_BUDGET: {c}"
-    );
+    // SERVICE.md L46: call except custom_root_add (folder picker) must return in 50 ms.
+    if c != "custom_root_add" {
+        assert!(
+            started.elapsed() <= Duration::from_millis(50),
+            "SERVICE_RETURN_BUDGET: {c}"
+        );
+    }
     result
 }
 fn wait(s: &impl TestService, c: &str) -> Value {

@@ -248,6 +248,8 @@ pub(crate) struct Projection {
     skipped: BTreeSet<usize>,
     occupied: BTreeMap<String, BTreeSet<usize>>,
     unknown: BTreeMap<String, BTreeSet<usize>>,
+    item_bytes: Vec<u64>,
+    parent_hash: Vec<u64>,
 }
 
 impl Projection {
@@ -263,6 +265,8 @@ impl Projection {
             details,
             ..Default::default()
         };
+        p.item_bytes.reserve(record.result.items.len());
+        p.parent_hash.reserve(record.result.items.len());
         for (index, item) in record.result.items.iter().enumerate() {
             p.items_by_group
                 .entry(item.group_id.clone())
@@ -273,6 +277,9 @@ impl Projection {
                 .entry(item.path.to_ascii_lowercase())
                 .or_default()
                 .push(index);
+            p.item_bytes.push(util::number(&item.unique_bytes));
+            p.parent_hash
+                .push(crate::conclusion::parent_fnv(&item.path));
             if skipped(item, settings) {
                 p.skipped.insert(index);
             }
@@ -344,6 +351,8 @@ impl Projection {
             record,
             id,
             self.group_items(id),
+            &self.item_bytes,
+            &self.parent_hash,
         ));
         self.summary_rows.insert(id.to_owned(), rows.clone());
         rows
@@ -377,19 +386,19 @@ impl Projection {
             .is_some_and(|set| !set.is_empty())
     }
 
-    pub fn refresh_path(
+    pub fn has_path(&self, lower: &str) -> bool {
+        self.paths.contains_key(lower)
+    }
+
+    pub fn refresh_path_lower(
         &mut self,
         record: &Record,
-        path: &str,
+        lower: &str,
         settings: &Settings,
         rules: &RuleSet,
         platform: &dyn Platform,
     ) {
-        let indices = self
-            .paths
-            .get(&path.to_ascii_lowercase())
-            .cloned()
-            .unwrap_or_default();
+        let indices = self.paths.get(lower).cloned().unwrap_or_default();
         for index in indices {
             let item = &record.result.items[index];
             let after = skipped(item, settings);

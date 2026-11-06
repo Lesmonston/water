@@ -773,15 +773,7 @@ impl Service {
         m35::invalidate(&mut s, "跳过名单变了");
         let stale: Vec<_> = s.plans.keys().cloned().collect();
         s.stale_plans.extend(stale);
-        for record in &s.records {
-            record.projection().refresh_path(
-                record,
-                &item.path,
-                &s.settings,
-                &core.rules,
-                core.platform.as_ref(),
-            );
-        }
+        refresh_skip_records(core, &s, &item.path);
         Ok(locations(core, &s))
     }
 
@@ -804,16 +796,25 @@ impl Service {
         m35::invalidate(&mut s, "跳过名单变了");
         let stale: Vec<_> = s.plans.keys().cloned().collect();
         s.stale_plans.extend(stale);
-        for record in &s.records {
-            record.projection().refresh_path(
-                record,
-                &removed.path,
-                &s.settings,
-                &self.core.rules,
-                self.core.platform.as_ref(),
-            );
-        }
+        refresh_skip_records(&self.core, &s, &removed.path);
         Ok(locations(&self.core, &s))
+    }
+}
+
+fn refresh_skip_records(core: &Core, s: &State, path: &str) {
+    let key = path.to_ascii_lowercase();
+    for record in &s.records {
+        let mut p = record.projection();
+        if !p.has_path(&key) {
+            continue;
+        }
+        p.refresh_path_lower(
+            record,
+            &key,
+            &s.settings,
+            &core.rules,
+            core.platform.as_ref(),
+        );
     }
 }
 

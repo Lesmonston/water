@@ -139,6 +139,7 @@ struct MakeEntry<'a> {
     item: &'a Item,
     rec: usize,
     bytes: u64,
+    parent: &'a str,
 }
 
 struct FnvHasher(u64);
@@ -894,7 +895,26 @@ fn row_selectable(s: &State, r: &Record, row: &Row) -> bool {
         .iter()
         .any(|i| eligible(s, r, i) && r.saved["item_in_use"].get(&i.item_id).is_none())
 }
-pub(crate) fn make_rows(r: &Record, id: &str, indices: &[usize]) -> Vec<Row> {
+pub(crate) fn parent_fnv(path: &str) -> u64 {
+    fnv1a_lower(parent_ref(path))
+}
+
+fn fnv1a_lower(s: &str) -> u64 {
+    let mut h = 0xcbf29ce484222325u64;
+    for &b in s.as_bytes() {
+        h ^= u64::from(b.to_ascii_lowercase());
+        h = h.wrapping_mul(0x0100_0000_01b3);
+    }
+    h
+}
+
+pub(crate) fn make_rows(
+    r: &Record,
+    id: &str,
+    indices: &[usize],
+    item_bytes: &[u64],
+    parent_hash: &[u64],
+) -> Vec<Row> {
     #[derive(Copy, Clone)]
     struct IgnoreAscii<'a>(&'a str);
     impl PartialEq for IgnoreAscii<'_> {
@@ -905,15 +925,7 @@ pub(crate) fn make_rows(r: &Record, id: &str, indices: &[usize]) -> Vec<Row> {
     impl Eq for IgnoreAscii<'_> {}
     impl Hash for IgnoreAscii<'_> {
         fn hash<H: Hasher>(&self, state: &mut H) {
-            let bytes = self.0.as_bytes();
-            let mut buf = [0u8; 64];
-            for chunk in bytes.chunks(64) {
-                for (i, &b) in chunk.iter().enumerate() {
-                    buf[i] = b.to_ascii_lowercase();
-                }
-                state.write(&buf[..chunk.len()]);
-            }
-            state.write_u8(0xff);
+            state.write_u64(fnv1a_lower(self.0));
         }
     }
     enum Slot {
@@ -933,6 +945,8 @@ pub(crate) fn make_rows(r: &Record, id: &str, indices: &[usize]) -> Vec<Row> {
             }
         }
     }
+    let hashed = parent_hash.len() == r.result.items.len();
+    let sized = item_bytes.len() == r.result.items.len();
     let mut entries = indices
         .iter()
         .map(|&rec| {
@@ -940,14 +954,20 @@ pub(crate) fn make_rows(r: &Record, id: &str, indices: &[usize]) -> Vec<Row> {
             MakeEntry {
                 item,
                 rec,
-                bytes: util::number(&item.unique_bytes),
+                bytes: if sized {
+                    item_bytes[rec]
+                } else {
+                    util::number(&item.unique_bytes)
+                },
+                parent: parent_ref(&item.path),
             }
         })
         .collect::<Vec<_>>();
-    entries.sort_by(|a, b| {
+    // item_id is unique, so unstable equals the previous stable order.
+    entries.sort_unstable_by(|a, b| {
         b.bytes
             .cmp(&a.bytes)
-            .then(a.item.item_id.cmp(&b.item.item_id))
+            .then_with(|| a.item.item_id.cmp(&b.item.item_id))
     });
     if entries.len() <= 8 {
         return entries.iter().map(Row::from_entry).collect();
@@ -982,15 +1002,26 @@ pub(crate) fn make_rows(r: &Record, id: &str, indices: &[usize]) -> Vec<Row> {
             members,
         ));
     }
-    let leftover_n = used.iter().filter(|used| !**used).count();
-    let mut seen = HashSet::<IgnoreAscii, BuildHasherDefault<FnvHasher>>::with_capacity_and_hasher(
+    let leftover_n = if groups.is_empty() {
+        entries.len()
+    } else {
+        used.iter().filter(|used| !**used).count()
+    };
+    let mut seen = HashSet::<u64, BuildHasherDefault<FnvHasher>>::with_capacity_and_hasher(
         leftover_n,
         BuildHasherDefault::default(),
     );
-    let parent_dup = entries
-        .iter()
-        .enumerate()
-        .any(|(pos, e)| !used[pos] && !seen.insert(IgnoreAscii(parent_ref(&e.item.path))));
+    let parent_dup = entries.iter().enumerate().any(|(pos, e)| {
+        if used[pos] {
+            return false;
+        }
+        let h = if hashed {
+            parent_hash[e.rec]
+        } else {
+            fnv1a_lower(e.parent)
+        };
+        !seen.insert(h)
+    });
     if parent_dup {
         let mut parents =
             HashMap::<IgnoreAscii, Slot, BuildHasherDefault<FnvHasher>>::with_capacity_and_hasher(
@@ -1002,7 +1033,7 @@ pub(crate) fn make_rows(r: &Record, id: &str, indices: &[usize]) -> Vec<Row> {
                 continue;
             }
             parents
-                .entry(IgnoreAscii(parent_ref(&e.item.path)))
+                .entry(IgnoreAscii(e.parent))
                 .and_modify(|slot| slot.push(pos))
                 .or_insert(Slot::One(pos));
         }
@@ -1061,7 +1092,7 @@ pub(crate) fn make_rows(r: &Record, id: &str, indices: &[usize]) -> Vec<Row> {
         return rows;
     }
     let leftover = (0..entries.len()).filter(|&p| !used[p]).collect::<Vec<_>>();
-    groups.sort_by(|a, b| b.0.cmp(&a.0).then(a.1.cmp(&b.1)));
+    groups.sort_unstable_by(|a, b| b.0.cmp(&a.0).then_with(|| a.1.cmp(&b.1)));
     let ranked = groups.len() + leftover.len();
     let take = if ranked > 8 { 7 } else { ranked };
     let mut rows = Vec::with_capacity(take + 1);
@@ -1274,7 +1305,7 @@ pub(crate) fn group_detail(
     let chosen = model
         .filter(|c| decisions_active(c))
         .map(|c| selected(s, c));
-    let p = r.projection();
+    let mut p = r.projection();
     if id == "unfinished" {
         let u = model
             .and_then(|c| c.units.iter().find(|u| u.id == id))
@@ -1399,13 +1430,12 @@ pub(crate) fn group_detail(
         out["items"] = json!(items);
         return Ok(out);
     }
-    let mut out = p
-        .details
-        .get(id)
-        .cloned()
-        .ok_or_else(|| IpcError::new("not_found"))?;
+    if !p.details.contains_key(id) {
+        return Err(IpcError::new("not_found"));
+    }
+    let cached = p.summary_rows(r, id);
+    let mut out = p.details[id].clone();
     drop(p);
-    let cached = r.projection().summary_rows(r, id);
     let rows = cached
         .iter()
         .map(|row| row_view(core, s, r, row, model, chosen.as_ref()))
