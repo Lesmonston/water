@@ -129,8 +129,10 @@ try {
             if ($null -eq $target) { throw ('Step ' + $index + ': control not found') }
             if (!$target.Current.IsEnabled) { throw ('Step ' + $index + ': control disabled') }
             $pattern = $null
-            if (!$target.TryGetCurrentPattern([System.Windows.Automation.InvokePattern]::Pattern, [ref]$pattern)) { throw ('Step ' + $index + ': control has no invoke pattern') }
-            $pattern.Invoke()
+            # Buttons with aria-pressed (M3.5 location picks) are exposed as toggle buttons: toggle them instead.
+            if ($target.TryGetCurrentPattern([System.Windows.Automation.InvokePattern]::Pattern, [ref]$pattern)) { $pattern.Invoke() }
+            elseif ($target.TryGetCurrentPattern([System.Windows.Automation.TogglePattern]::Pattern, [ref]$pattern)) { $pattern.Toggle() }
+            else { throw ('Step ' + $index + ': control has no invoke or toggle pattern') }
         } elseif ($step.wait) {
             $entry['kind'] = 'wait'
             $limit = [DateTime]::UtcNow.AddSeconds([int]$step.seconds); $found = $null
