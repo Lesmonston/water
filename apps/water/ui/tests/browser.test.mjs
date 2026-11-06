@@ -49,7 +49,14 @@ function fakeHost(f, options) {
       case 'skip_add': c.skipIds.push(args.itemId); c.conclusion = copy(f.v2_conclusion_stale); return copy(c.locations);
       case 'skip_remove': c.locations.skipped = c.locations.skipped.filter(x => x.skip_id !== args.skipId); return copy(c.locations);
       case 'clean_prepare': {
-        let p = copy(args.dedupeId ? f.v2_clean_prepare_quarantine : args.chosenMode === 'delete' ? f.v2_clean_prepare_delete : options.onlyDelete ? f.v2_clean_prepare_delete_only : f.v2_clean_prepare_quarantine);
+        let p = copy(args.chosenMode === 'delete' ? f.v2_clean_prepare_delete : BigInt(c.conclusion.plan.chosen_bytes) === 0n ? f.v2_clean_prepare_delete_only : f.v2_clean_prepare_quarantine);
+        if (args.dedupeId) {
+          const chosen = c.dup.groups.filter(g => g.included);
+          p.total_bytes = c.dup.chosen_bytes; p.delete = {bytes:'0', categories:[]}; p.irreversible = false; p.by_drive = []; p.expected_skip = null;
+          p.chosen = {bytes:c.dup.chosen_bytes, items:chosen.map(g => ({title_zh:g.name_zh, bytes:String(BigInt(g.size) * BigInt(g.copies - 1))})), mode:'quarantine', note_zh:null};
+          p.groups = chosen.map(g => ({group_id:g.group_id, title_zh:g.name_zh, level:'confirm', item_count:g.copies - 1, total_bytes:String(BigInt(g.size) * BigInt(g.copies - 1)), in_use_note_zh:null}));
+          p.item_count = chosen.reduce((n, g) => n + g.copies - 1, 0);
+        }
         p.plan_id += '-' + c.calls.length; p.confirm_token += '-' + c.calls.length; c.plan = p; return p;
       }
       case 'clean_start': if (!c.plan || c.plan.confirm_token !== args.confirmToken) throw copy(f.errors.invalid); c.plan = null; c.busy = 'cleaning'; c.clean = 0; return copy(f.v2_clean_start);
@@ -227,7 +234,8 @@ test('ui_v2_drawer_details', async () => {
 });
 
 test('ui_v2_confirm_done', async () => {
-  await results(); await click('clean-prepare'); await wait('document.querySelector("[data-key=mode-quarantine]")', 'UI_V2_CONFIRM');
+  await results({conclusion:'v2_conclusion_after_decide'}); await click('clean-prepare'); await wait('document.querySelector("[data-key=mode-quarantine]")', 'UI_V2_CONFIRM');
+  assert.equal(await evalJs('document.querySelector("#confirm-title").textContent'), `清理 ${formatBytes(f.v2_conclusion_after_decide.plan.bytes)}？`, 'UI_V2_CONFIRM: preview matches decided plan');
   assert.equal((await lastCall('clean_prepare')).args.chosenMode, 'quarantine', 'UI_V2_CONFIRM: initial request defaults to quarantine');
   assert(await evalJs('document.querySelector("[data-key=mode-quarantine]").checked'), 'UI_V2_CONFIRM: conservative default');
   assert(await evalJs('document.body.textContent.includes("Chrome 开着")'), 'UI_V2_CONFIRM: expected skip reason visible');
