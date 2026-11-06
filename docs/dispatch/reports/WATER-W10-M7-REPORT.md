@@ -1,5 +1,7 @@
 WATER-W10-M7 任务受阻，任务报告在 F:/new/smaltalk/water/.worktrees/w10-m7/docs/dispatch/reports/WATER-W10-M7-REPORT.md
 
+**当前状态（补单 03，2026-11-06）：从 `658c281a` 续做。未验收实现已提交为 `7a151dfb02c868eff81cdaece88d12176fa895aa`。`custom_root_add` 已按契约豁免 50 ms；一万项分组首次 `group_detail` 本机空闲 5 次均 4.3～5.0 ms。官方 `check` 通过；同一字节官方 `test` 12/12、11/12（`dedupe_progress`）、原样重跑 12/12、再 11/12（`skip_remove`），累计两次失败，按补单停止。负控、三个 final 和真实冒烟未运行。详见文末“补单 03”。**
+
 **当前状态（补单 02，2026-11-06）：用户“继续”后接续 `4566dd8c` 上未提交的服务源码。未验收实现已提交为 `4d146934664a5958c4460e5a7a8a34366a151ae2`。官方 `check` 通过；同一字节连续两次官方 `test` 失败（11/12 再 10/12），按工作规则停止。负控、三个 final 和真实冒烟未运行。详见文末“补单 02”。**
 
 **当前状态（补单 01，2026-11-06）：原形状授权缺口已解除，已提交未验收实现 `cd0e5d2186544b329cd2d3ed552edaec9a316259`。最终同字节两次 `test` 都是 11/12，通过的不是整单；旧 `service_clean_flow` 连续因 50 ms 时限失败，按工作规则停止。三条负控、三个 final 和真实冒烟均未运行。详见文末“补单 01”。以下原有各节保留为 `50fb2ab4` 时的历史记录，不代表补单后的产品仍未改动。**
@@ -298,3 +300,107 @@ finished in 29.27s
 - 合成夹具仅测试过程在 `.local` 下当次新建并删除；没有清理、移动或删除真实文件。
 
 归档索引：`docs/acceptance/wave10/m7/ARCHIVE.json`，**850** 个检查器生成证据文件，合计 **21,955,568** 字节；由 `--mode archive` 按原字节复制，含补单 01 已归档的 512 份及此后的 check／test 日志与源码快照。归档器自身本次 result（`2026-11-06T11-13-47.076Z-3340-archive-result.json`，SHA-256 `04ba89c7b139fe6f12bf3b7267866c1286df2e1465674110e2765b67b75c55ca`）在复制完成后才生成，故不计入本索引。三次官方回执的归档副本 SHA-256 与 `.local/checks` 原件一致。
+
+## 补单 03
+
+### 现场与执行者
+
+- 实际执行者：Grok 4.6；未启动子代理、worker 或其它执行者。
+- 工作树 `F:/new/smaltalk/water/.worktrees/w10-m7`，分支 `worker/water-w10-m7`。补单指定从 `658c281ae891161e6b9840fb0024fb7a13db4607` 续做。已提交内容不改写。
+- 开工前按补单顺序读了原单、补单 01、补单 02、补单 03 与当时回执。票面在主仓库 `F:/new/smaltalk/water/docs/dispatch/tickets/`，工作树内当时没有补单 03 文件，直接读权威路径，未复制进工作树。
+- 未验收实现：`7a151dfb02c868eff81cdaece88d12176fa895aa`（`wip: speed 10k group_detail and exempt custom_root_add from 50ms (M7 addendum 03)`）。只含 `packages/water-service/src/{conclusion,service,views}.rs` 与 `tests/service_v1.rs`，+100/−57。提交身份仅进程环境：Grok 4.6 `<grok-4.6@localhost>`。
+- `baseline` 未重跑。未改契约、样例、检查器、台账、规模夹具、50 ms 这个数、其它命令的时限或其它包。
+
+### 获准修改的旧期望（第六类）
+
+`tests/service_v1.rs` 的 `call()`：
+
+| 项 | 原来 | 现在 |
+|---|---|---|
+| 位置 | 第 493～500 行 | 第 493～504 行 |
+| 断言 | 每个命令 `started.elapsed() <= Duration::from_millis(50)`，失败信息 `SERVICE_RETURN_BUDGET: {c}` | 仅当 `c != "custom_root_add"` 时做同一断言；`custom_root_add` 不计时限 |
+| 50 ms 这个数 | 50 | 50，未改 |
+| 计时方式 | `Instant::now()` 后 `elapsed()` | 相同 |
+| 其它命令／重试 | 无例外 | 无其它例外，无重试 |
+
+依据：`contracts/desktop-v1/SERVICE.md` 第 46 行，“`call` 除 `custom_root_add`（会等用户在选择框里操作）外必须在 50 ms 内返回”。
+
+### 一万项分组首次 `group_detail`
+
+产品改动（输出算法未改：行 ID、顺序、标签、所含条目、`rows_note_zh`）：
+
+1. `Projection::new` 给每条扫描项一次算好 `unique_bytes` 与父目录 FNV，缓存在投影里。服务启动／扫描完成时算，不占命令的 50 ms。
+2. `make_rows` 用这些缓存：父目录是否重复改为 `HashSet<u64>`，不再在首次打开时把每条路径再小写并哈希一遍；每项的父目录在构造 `MakeEntry` 时只取一次；等值键用 `sort_unstable_by`（`item_id` 唯一，顺序与原来稳定排序相同）。
+3. `group_detail` 先算该组汇总行再克隆详情 JSON，避免两次取投影锁。
+
+本机空闲、检查器同一套离线／私有 target／`test` profile（未优化）下，临时测试量 5 次「一万项分组第一次 `group_detail`」（每次新建 `Service`，不经 `call()` 的 50 ms 断言）。计时测试随后整段删除，未提交，测试文件不留计时代码。
+
+| 次 | 耗时 |
+|---|---|
+| 0 | 4.9922 ms |
+| 1 | 4.4081 ms |
+| 2 | 4.8673 ms |
+| 3 | 4.5777 ms |
+| 4 | 4.2657 ms |
+
+五次都不超过 30 ms。
+
+### `skip_remove` 与 `cluster_mark_fixed`
+
+**`skip_remove`（`add_skip` 同路径）看到的：** 持有状态锁期间写一次 `settings.json`；`m35::invalidate` 只给结论打过期标记、把计划列入 stale，不重建结论模型、不调用 `Projection::new`；随后对每条记录 `refresh_path`，这是已有投影上的增量更新。不是重算结论、不是建投影、不是多次写盘。
+
+**改了什么：** 路径小写一次；投影 `paths` 里没有该键的记录直接跳过，不再对 60 条记录各做一次查找。刷新仍在状态锁内，避免投影与返回值窗口不一致。
+
+**`cluster_mark_fixed` 看到的：** 一次 `settings.json` 写入；结论若在只把 `serial` 加一，不重建模型；不碰投影；然后在同一把锁里算 `trends()`（`clusters` → `clues` 可能对簇父目录做 `.git` 的 `symlink_metadata`）。不是重算结论、不是建投影、不是多次写盘。锁范围未改。
+
+本轮官方失败里没有再出现 `cluster_mark_fixed`。`skip_remove` 仍有一次 50 ms 失败，见下。
+
+### 验证
+
+跑测试前按进程名查看：`Get-Process` 过滤 `cargo`／`rustc`／`rustup`／`node`／`clippy`。check 与每次 `test` 前表都是空的（未见其它检查进程）。开工时只用 `rustup which` 定位 1.95.0，不是并行检查。
+
+官方命令均在工作树根：`node F:/new/smaltalk/water/scripts/desktop-wave-check.mjs --task WATER-W10-M7 --mode <模式>`。同一产品／测试字节：`productionHash` `aa5b962a35af0a86c33e3464aefadfd0d7daac992db623a5736e4671eee026fb`，`testHash` `4d4a0894d88ccb3de71f7131dc0e76b4936e1d6329eb0a92f1c0a29d84c80ff4`。
+
+| 回执 | 模式／结果 | 说明 |
+|---|---|---|
+| `2026-11-06T11-45-45.922Z-25676-check-result.json` SHA-256 `0e6492cc6023ea84c507f4c527efdc94c4135895f72395c9ed85960fbc98be67` | check 通过／0 | `fmt`／`clippy -D warnings` 退出 0 |
+| `2026-11-06T11-46-04.424Z-29900-test-result.json` SHA-256 `6ecc7c7d9b38b7473c5b6e4462cb0dd804b4e350028299e1b088a7de37477648` | test 通过／0 | 12/12 |
+| `2026-11-06T11-47-25.110Z-12400-test-result.json` SHA-256 `cd99e19b066ea79886a7638483fdc2d75dba241390a502acc822446691868201` | test 失败／1 | 11/12。`m35_trends_history`：`SERVICE_RETURN_BUDGET: dedupe_progress`（`tests/service_v1.rs:498`）。日志 SHA-256 `3e275224fa0223d4d3fc35f8705521bb2bfbf0c0b44bdef6151784b885f61178` |
+| `2026-11-06T11-49-04.875Z-3752-test-result.json` SHA-256 `90b2d50988834a32f2be03a037c074097bd48e487075e0b56e60a578d96335c7` | test 通过／0 | 原样重跑，12/12 |
+| `2026-11-06T11-50-22.594Z-21872-test-result.json` SHA-256 `8a555080eb2bb4beb08767b007d82324bfc5d2b16f0b5e75d07382e589e209c5` | test 失败／1 | 11/12。`service_clean_flow`：`SERVICE_RETURN_BUDGET: skip_remove`。日志 SHA-256 `702c3990bed3a1e946e6c40f15204883c0b4c7b16fad0ca58ba27434fdd76b06` |
+
+补单：“中途某次失败，可以原样重跑一次；同一字节累计两次失败就停下”。第二次失败后停止实现和测试，未调大 50 ms，未给 `dedupe_progress`／`skip_remove` 开例外。
+
+生产源码 SHA-256（与上述官方回执快照一致）：
+
+| 文件 | SHA-256 |
+|---|---|
+| `src/conclusion.rs` | `65b71998678c1bff26e1b587c8ede3754d5eda8640ef0a7b998c4fef21d882a8` |
+| `src/service.rs` | `5cd675521cd17c39afd9b6c559451e82f70da20f58bc967de388bedee25e014e` |
+| `src/views.rs` | `a6ab30cfe2ede45921de35f5ff2bcd6f55b64a8bf9d7ef3b42ea116978e63224` |
+| `tests/service_v1.rs` | `a075daa35c5f1cc1b7641fe52dd8161d734957d1cfe891b46d1a9aa749177787` |
+
+`src/clean.rs` 本补单未改，仍为 `280f7d28c6ae98f20ccdcaa06e03aa5fc66b50fd762272a7d08345a956fcf51e`。
+
+### 阻塞与最小补充需求
+
+当前阻塞是：同一字节未能连续三次完整 `test` 全绿。累计两次失败的命令是 `dedupe_progress` 与 `skip_remove`，都仍受 50 ms 断言约束。`custom_root_add` 已按本补单豁免，这两次失败里没有它。一万项分组首次打开在本机空闲 5 次都在 5 ms 内，两次失败的官方套件里 `service_clean_flow` 也绿过（含规模夹具），所以这不是补单点名的首次打开路径。
+
+`dedupe_progress` 只在锁下克隆进度 JSON；`skip_remove` 仍含一次 `settings.json` 写入。补单不准给这两个命令开例外，也不准改 50 ms。按规则不能再改产品或重跑。
+
+请总控在 50 ms、夹具规模和计时方式均不变的前提下明确其一：
+
+1. 在实现提交 `7a151dfb`（`productionHash` `aa5b962a…`）上安排空闲官方 `test` 复验，凑连续三次绿；或
+2. 若认为轮询命令（`dedupe_progress`）与写盘的 `skip_remove` 仍属本单产品问题，另发补单指定可改位置。
+
+不要授权放宽 50 ms 这个数。
+
+### 未实施与未验证
+
+- 三条负控、`check --final`、`test --final`、`real --final`：**未运行**。
+- 真实只读冒烟：**未运行**。
+- SERVICE-M35 第 1～10 节与原单第 2 节总控补充：仍以补单 01 已提交实现为准，本补单未重新验收。
+- 未打开产品窗口、选择框或浏览器；未 push、改远端、改写历史、改台账／契约／样例／检查器／其它包。
+- 合成夹具仅测试过程在 `.local` 下当次新建并删除；没有清理、移动或删除真实文件。
+
+归档索引：`docs/acceptance/wave10/m7/ARCHIVE.json`，**962** 个检查器生成证据文件，合计 **25,402,008** 字节；由 `--mode archive` 按原字节复制。归档器自身本次 result（`2026-11-06T11-52-18.069Z-13044-archive-result.json`，SHA-256 `24fea43cbe8b7df0422f1930184e0affca534e55dbcfc6c046737c16d21679c0`）在复制完成后才生成，故不计入本索引。
