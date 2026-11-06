@@ -2153,7 +2153,7 @@
       "branch": "worker/water-w10-m10",
       "baseCommit": "51d851914c5845ac9b818f0e9053051b0cb88b1a",
       "snapshotRef": "refs/tags/water-w10-m10-base-20261106",
-      "status": "DISPATCHED",
+      "status": "VERIFIED",
       "readyOn": "2026-11-07",
       "dispatchedAt": "2026-11-06T15:46:27Z",
       "startedAt": null,
@@ -2222,7 +2222,24 @@
       "holdReason": "dispatch after WATER-W10-M7 merges (both run cargo; one cargo tree at a time); controller then creates the worktree, recomputes frozen hashes from it and runs baseline",
       "issuedAt": "2026-11-06T12:51:46Z",
       "baselineEvidence": "docs/acceptance/wave10/controller/preflight-20261107/m10/2026-11-06T15-36-15.888Z-10448-baseline-result.json",
-      "dispatchEvidence": "user chat 2026-11-07 ~00:46 JST: \"M10是sol，M11是opus\"; worker tree head/changed files 51d85191/3 when recorded at 2026-11-06T15:46:27Z"
+      "dispatchEvidence": "user chat 2026-11-07 ~00:46 JST: \"M10是sol，M11是opus\"; worker tree head/changed files 51d85191/3 when recorded at 2026-11-06T15:46:27Z",
+      "submittedHead": "27fe2cf63e11865f05049722e1dfdb29b418b9e3",
+      "implementationCommit": "df22c25c39a1c3145644847371f691a252c1c684",
+      "workerSelfReport": "Codex GPT-6",
+      "mergeCommit": "f500088c",
+      "controllerReview": {
+        "report": "docs/acceptance/wave10/controller/WATER-W10-REVIEW-20261105.md",
+        "evidence": "docs/acceptance/wave10/controller/accept-20261105/m10/",
+        "summary": "round 1 (head 27fe2cf6, code df22c25c): audit 0 problems, receipt UTF-8; fresh tree lock, check, real and test finals passed; 3 negative controls plus 10 controller mutations: caught nc1-nc3, c6 (empty skeleton kept), c8 (final check reopens by name), c9 (occupied child loses its open error), c10 and c11 (the extracted move_checks helpers); survived c4 and c5 (Gone mapping branches: the Gone test reaches Gone through the older preflight), c7 (skeleton cleanup without the identity check), c12 and c13 (production call sites of the pre-rename identity recheck and the second-root rule: tests only call the helpers); independent read-only review found no high issue and no product bug of medium severity: the occupied-child fallback, locked id folder, residual check on the kept handle and skeleton cleanup all re-check identity, type and reparse attributes and never follow links; public API, FFI list and Cargo files unchanged; the one medium is the helper-only coverage of two ticket section 5 checks, accepted because neither has a deterministic hook (nothing runs between the second preflight and the rename; a second root needs two real drive roots), as with the M2/M4/M5 survivors"
+      },
+      "carryOverLater": [
+        "MEDIUM (tests): the pre-rename identity recheck (native_windows.rs ~893) and the second-root rule (quarantine.rs ~119) are tested only through the extracted move_checks helpers (tests include src/move_checks.rs by #[path]); removing either production call keeps all 11 tests green (controller mutations c12, c13); the receipt presents the helper tests as coverage",
+        "LOW (tests): the Gone test reaches Gone through the existing second preflight; the new Gone branches (source chain Missing ~856, open/rename 2|3 ~919) are untested (mutations c4, c5 survive); the receipt row 4b overstates this",
+        "LOW (tests): MoveSkeleton cleanup's identity check is untested (mutation c7 survives); only an empty directory inside .water-quarantine is at stake",
+        "LOW: a purge of an exclusively locked id folder reports remaining_bytes 0 (inspect by name fails with 32), so the service may show the card as a normal batch instead of 上次没删完; reopening with SHARE_RWD could list it",
+        "LOW: volume_free(...)? and time::format(...)? after deletion has started could still turn a partial purge into Err without the done line (not seen in practice)",
+        "LOW: the Err(2|3) arm at the final open also catches rename_at errors; Skipped/Gone now carries error_code while other skip reasons do not; a directory whose identity cannot be read right after creation is not tracked for skeleton cleanup"
+      ]
     },
     {
       "kind": "ui",
@@ -2315,7 +2332,7 @@
       "branch": "worker/water-w10-m11",
       "baseCommit": "32d7b642c56361ede7be9df453cba594ae2c3dd7",
       "snapshotRef": "refs/tags/water-w10-m11-base-20261107",
-      "status": "DISPATCHED",
+      "status": "VERIFIED",
       "readyOn": "2026-11-07",
       "dispatchedAt": "2026-11-06T15:46:27Z",
       "startedAt": null,
@@ -2405,7 +2422,22 @@
       ],
       "baselineStatus": "PASSED",
       "baselineEvidence": "docs/acceptance/wave10/controller/preflight-20261107/m11/2026-11-06T15-43-40.947Z-25636-baseline-result.json",
-      "dispatchEvidence": "user chat 2026-11-07 ~00:46 JST: \"M10是sol，M11是opus\"; worker tree head/changed files 32d7b642/0 when recorded at 2026-11-06T15:46:27Z"
+      "dispatchEvidence": "user chat 2026-11-07 ~00:46 JST: \"M10是sol，M11是opus\"; worker tree head/changed files 32d7b642/0 when recorded at 2026-11-06T15:46:27Z",
+      "submittedHead": "19b76a1a61ec34998e10946381d95c6900ce33c4",
+      "implementationCommit": "5b7c422d9c6afc1ce30f5f842a34f3a595632d43",
+      "workerSelfReport": "Claude Opus 5.5 (a Codex session only ran a baseline before the user switched to opus)",
+      "mergeCommit": "cd326e4c",
+      "controllerReview": {
+        "report": "docs/acceptance/wave10/controller/WATER-W10-REVIEW-20261105.md",
+        "evidence": "docs/acceptance/wave10/controller/accept-20261105/m11/",
+        "summary": "round 1 (head 19b76a1a, code 5b7c422d): audit 0 problems, receipt UTF-8; fresh tree check, test and browser finals passed (headless browser, no window), 25 screenshots byte-identical to the M6 hand-back; 3 negative controls plus 3 controller mutations all caught (nc1 heatmap timestamp walk, nc2 体检 interception without the route check, nc3 revealRoots ends on a newer view, c4 queued click dropped, c5 done page dropped from another page, c6 empty root chooser); independent read-only review found no high or medium issue: all four fixes correct, each new assertion fails on the old code, no test hook in product code"
+      },
+      "carryOverLater": [
+        "LOW: heatmap loops forever if a history entry's at is unparseable (first/last NaN, NaN day keys compare equal, setDate never advances); the old timestamp loop drew nothing; IPC guarantees at, so latent; guard with Number.isFinite(last) (charts.mjs ~81-89)",
+        "LOW: a queued 体检 click is not cleared on route change, so leaving to 隔离区 and coming back while the request is still pending can still drop the dedupe result when it ends (reset checkupQueued in routeChanged)",
+        "LOW: the queued 体检 replay ignores s.modal, so it can close a confirm dialog the pending request just opened (prepareDedupe); add !s.modal to the replay check",
+        "test note: the Santiago heatmap case does not assert in-page that 2026-09-06 midnight is skipped (relies on tz data); the multi-root branch of the 1.4 assertion throws a token-less TypeError if no reveal happens"
+      ]
     }
   ],
   "bundles": [

@@ -474,3 +474,15 @@ M2 补单 03 交回 `9c37e92d`（实现 `995473af`）。
 - **判断**：产品改动正确、安全；测试缺口记为遗留，不返工，照 M2、M4、M5 变异没抓住时的先例。
 
 **结论：通过。** 两张单的合入记录（实现提交、执行者、审查摘要、遗留）写进 `record-verified.cjs`。合入顺序：先 M10，再 M11（界面单后合）。
+
+### 14.3 M10、M11 合入（2026-11-07 02:10 JST）
+
+- 先记验收（`c4cb58d9`），再依次 `--no-ff` 合入：M10 `f500088c`、M11 `cd326e4c`。
+- `git diff 27fe2cf6 HEAD -- packages/junk-clean docs/acceptance/wave10/m10 docs/dispatch/reports/WATER-W10-M10-REPORT.md` 与 `git diff 19b76a1a HEAD -- apps/water/ui docs/acceptance/wave10/m11 docs/dispatch/reports/WATER-W10-M11-REPORT.md` 都为空。
+- `record-verified.cjs` 把 M10、M11 记为 VERIFIED。
+- **合入后的测试**：主线 `cd326e4c` 上离线、单线程（[脚本](accept-20261105/controller/logs/integ-c.sh)、[输出](accept-20261105/controller/logs/integ-c.txt)）：
+  - `junk-clean` 11 个测试通过；
+  - `water-service` 12 个测试通过（服务建在执行器之上，说明 M7 与 M10 拼在一起能编译、能跑；没有计时失败）；
+  - 界面单元测试 3 个通过。
+
+至此第十波十一张单（M1～M11）全部合入。下一步照[收尾清单](../../../dispatch/wave10/CLOSE-CHECKLIST.md)做第七次整合检查（开窗前告诉用户）、release、M3.5 收口报告。
