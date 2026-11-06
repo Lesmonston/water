@@ -1,6 +1,7 @@
 #![deny(unsafe_code)]
 
 mod model;
+mod move_checks;
 #[allow(unsafe_code)]
 mod native_windows;
 mod path;

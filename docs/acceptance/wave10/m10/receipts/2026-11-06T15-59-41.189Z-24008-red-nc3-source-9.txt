@@ -1,0 +1,255 @@
+#![forbid(unsafe_code)]
+
+use crate::*;
+use std::{io::Write, time::SystemTime};
+
+pub trait PurgeObserver: Sync {
+    fn on_progress(&self, removed_entries: u64, freed_bytes: u64);
+}
+
+pub(crate) fn valid_id(id: &str) -> bool {
+    (1..=48).contains(&id.len())
+        && !id.starts_with('-')
+        && id.bytes().all(|b| b.is_ascii_alphanumeric() || b == b'-')
+
+}
+
+pub(crate) fn validate_root(root: &str) -> Result<(), CleanError> {
+    path::validate(root)?;
+    if !root
+        .rsplit('\\')
+        .next()
+        .is_some_and(|p| p.eq_ignore_ascii_case(".water-quarantine"))
+    {
+        return Err(CleanError::InvalidPlan);
+    }
+    Ok(())
+}
+
+pub(crate) fn validate_dir(dir: &str) -> Result<&str, CleanError> {
+    path::validate(dir)?;
+    let (root, id) = dir.rsplit_once('\\').ok_or(CleanError::InvalidPlan)?;
+    validate_root(root)?;
+    if !valid_id(id) {
+        return Err(CleanError::InvalidPlan);
+    }
+    Ok(root)
+}
+
+#[allow(clippy::too_many_arguments)]
+pub fn quarantine(
+    plan: &CleanPlan,
+    quarantine_id: &str,
+    target: &QuarantineTarget,
+    guard: &dyn ItemGuard,
+    journal: &mut dyn Write,
+    stop: &StopFlag,
+    observer: &dyn CleanObserver,
+    now: SystemTime,
+) -> Result<QuarantineReport, CleanError> {
+    #[cfg(not(windows))]
+    {
+        let _ = (
+            plan,
+            quarantine_id,
+            target,
+            guard,
+            journal,
+            stop,
+            observer,
+            now,
+        );
+        Err(CleanError::Unsupported)
+    }
+    #[cfg(windows)]
+    {
+        plan.validate_shape()?;
+        if !valid_id(quarantine_id) {
+            return Err(CleanError::InvalidPlan);
+        }
+        if let Some(base) = &target.base {
+            validate_root(base)?;
+        }
+        let guard_ids: Vec<Identity> = plan
+            .hard_guards
+            .iter()
+            .filter_map(|p| native_windows::resolve_follow(p))
+            .collect();
+        let protected_ids = resolve_protections(plan);
+        let mut report = QuarantineReport {
+            report_version: "water.quarantine-report.v1".into(),
+            quarantine_id: quarantine_id.into(),
+            started_at: time::format(now)?,
+            ended_at: String::new(),
+            status: RunStatus::Completed,
+            moved_bytes: "0".into(),
+            items: Vec::new(),
+        };
+        let mut first_root: Option<String> = None;
+        let mut moved = 0u64;
+        for (index, item) in plan.items.iter().enumerate() {
+            let mut result = MoveReport {
+                item_id: item.item_id.clone(),
+                status: MoveStatus::Skipped,
+                skip_reason: None,
+                move_error: None,
+                error_code: None,
+                destination: None,
+                identity: None,
+                bytes: "0".into(),
+            };
+            if stop.is_stopped() {
+                result.skip_reason = Some(SkipReason::Cancelled);
+                report.status = RunStatus::Stopped;
+            } else {
+                match preflight(plan, item, guard, now, &guard_ids, &protected_ids) {
+                    Err(reason) => result.skip_reason = Some(reason),
+                    Ok(before) => {
+                        result.bytes = before.bytes.to_string();
+                        let root = target.base.clone().unwrap_or_else(|| {
+                            format!("{}.water-quarantine", path::volume(&item.root))
+                        });
+                        if item
+                            .path
+                            .split('\\')
+                            .any(|p| p.eq_ignore_ascii_case(".water-quarantine"))
+                            || path::contains(&item.path, &root)
+                        {
+                            result.skip_reason = Some(SkipReason::Guarded);
+                        } else if move_checks::second_root(first_root.as_deref(), &root) {
+                            result.status = MoveStatus::Failed;
+                            result.move_error = Some(MoveError::NotSameVolume);
+                        } else {
+                            first_root.get_or_insert(root.clone());
+                            // The native operation owns both chains across the journal flush.
+                            result = native_windows::move_to_quarantine(
+                                plan,
+                                item,
+                                &root,
+                                quarantine_id,
+                                &before,
+                                guard,
+                                &guard_ids,
+                                &protected_ids,
+                                journal,
+                                stop,
+                                now,
+                            )?;
+                        }
+                    }
+                }
+            }
+            if result.skip_reason == Some(SkipReason::Cancelled) {
+                report.status = RunStatus::Stopped;
+            }
+            if result.status == MoveStatus::Moved {
+                moved = moved
+                    .checked_add(
+                        result
+                            .bytes
+                            .parse::<u64>()
+                            .map_err(|_| CleanError::Native)?,
+                    )
+                    .ok_or(CleanError::Overflow)?;
+            }
+            report.items.push(result);
+            observer.on_item(index + 1, plan.items.len(), moved, &item.item_id);
+        }
+        report.moved_bytes = moved.to_string();
+        report.ended_at = time::format(SystemTime::now())?;
+        Ok(report)
+    }
+}
+
+pub fn restore(
+    dir: &str,
+    requests: &[RestoreRequest],
+    stop: &StopFlag,
+    now: SystemTime,
+) -> Result<RestoreReport, CleanError> {
+    #[cfg(windows)]
+    {
+        validate_dir(dir)?;
+        for request in requests {
+            let original = format!("{}{}", path::volume(dir), request.rel);
+            path::validate(&original)?;
+            if request.rel.is_empty() || request.rel.starts_with('\\') || !request.identity.valid()
+            {
+                return Err(CleanError::InvalidPlan);
+            }
+            if let Some(to) = &request.to {
+                path::validate(to)?;
+                if path::volume(to) != path::volume(dir) {
+                    return Err(CleanError::InvalidPlan);
+                }
+            }
+        }
+        native_windows::restore_quarantine(dir, requests, stop, now)
+    }
+    #[cfg(not(windows))]
+    {
+        let _ = (dir, requests, stop, now);
+        Err(CleanError::Unsupported)
+    }
+}
+
+pub fn purge(
+    dir: &str,
+    journal: &mut dyn Write,
+    stop: &StopFlag,
+    observer: &dyn PurgeObserver,
+    now: SystemTime,
+) -> Result<PurgeReport, CleanError> {
+    #[cfg(windows)]
+    {
+        validate_dir(dir)?;
+        native_windows::purge_quarantine(dir, journal, stop, observer, now)
+    }
+    #[cfg(not(windows))]
+    {
+        let _ = (dir, journal, stop, observer, now);
+        Err(CleanError::Unsupported)
+    }
+}
+
+pub fn list_quarantines(root: &str) -> Result<QuarantineList, CleanError> {
+    #[cfg(windows)]
+    {
+        validate_root(root)?;
+        native_windows::list_quarantines(root)
+    }
+    #[cfg(not(windows))]
+    {
+        let _ = root;
+        Err(CleanError::Unsupported)
+    }
+}
+
+pub fn inspect(dir: &str, stop: &StopFlag) -> Result<QuarantineInfo, CleanError> {
+    #[cfg(windows)]
+    {
+        validate_dir(dir)?;
+        native_windows::inspect_quarantine(dir, stop)
+    }
+    #[cfg(not(windows))]
+    {
+        let _ = (dir, stop);
+        Err(CleanError::Unsupported)
+    }
+}
+
+pub fn quarantine_report_to_json(r: &QuarantineReport) -> String {
+    serde_json::to_string(r).expect("serializable quarantine report")
+}
+pub fn restore_report_to_json(r: &RestoreReport) -> String {
+    serde_json::to_string(r).expect("serializable restore report")
+}
+pub fn purge_report_to_json(r: &PurgeReport) -> String {
+    serde_json::to_string(r).expect("serializable purge report")
+}
+pub fn quarantine_list_to_json(r: &QuarantineList) -> String {
+    serde_json::to_string(r).expect("serializable quarantine list")
+}
+pub fn quarantine_info_to_json(r: &QuarantineInfo) -> String {
+    serde_json::to_string(r).expect("serializable quarantine info")
+}

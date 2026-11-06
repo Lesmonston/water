@@ -38,6 +38,14 @@ only by create_dir_at, with FILE_CREATE and directory/no-follow options. NtSetIn
 is used only by rename_at, class 10, with a parent handle, one name segment and replacement
 disabled. SetFileInformationByHandle uses only deletion classes 4 and 21. No path rename exists.
 
+Quarantine IDs also reject DOS device names (case-insensitive) before directory creation.
+Failed or skipped moves remove only empty directories created by that move, after checking
+their identities; existing skeletons remain. Purge can empty an occupied child directory
+through a non-DELETE handle and retain only that directory as in_use. Exclusive/DELETE-handle
+occupation of a batch is reported as a root in_use leftover. Final residual inspection retains
+the verified original directory handle so replacing its public name cannot discard a partial
+report or redirect the residual walk. Inaccessible subtrees remain reported as root causes.
+
 Freed bytes count successful ordinary-file deletions using size and link count read from the
 same handle immediately before deletion. Data retained through another hard link is excluded.
 This is distinct from allocation and the volume-free-space delta. Journal writes and flushes
@@ -51,5 +59,5 @@ exception; same-volume TEMP is reported as not applicable. The real_smoke exampl
 the system drive and repository drive, deduplicates them, and prints aggregate states/counts
 without drive letters, paths or names. It never moves, restores or deletes real data.
 
-Use the controller-owned WATER-W10-M4 gate for lock/check/test/real, negative controls,
+Use the controller-owned WATER-W10-M10 gate for lock/check/test/real, negative controls,
 final checks and archival before submission. Independent controller review is still required.

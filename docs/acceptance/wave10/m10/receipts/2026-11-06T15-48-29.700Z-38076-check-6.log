@@ -1,0 +1,30 @@
+{"binary":"C:\\Users\\37310\\.rustup\\toolchains\\1.95.0-x86_64-pc-windows-msvc\\bin\\cargo.exe","args":["clippy","--offline","--locked","--manifest-path","packages/junk-clean/Cargo.toml","--all-targets","--","-D","warnings"],"exitCode":101,"error":null}
+--- stdout ---
+
+--- stderr ---
+    Checking serde_core v1.0.229
+    Checking zmij v1.0.23
+    Checking memchr v2.8.3
+    Checking itoa v1.0.18
+    Checking serde_json v1.0.151
+    Checking serde v1.0.229
+    Checking water-junk-clean v0.1.0 (F:\new\smaltalk\water\.worktrees\w10-m10\packages\junk-clean)
+error: this expression creates a reference which is immediately dereferenced by the compiler
+    --> src\native_windows.rs:1437:23
+     |
+1437 |                 plain(&handle).map_err(|_| CleanError::InvalidPlan)?;
+     |                       ^^^^^^^ help: change this to: `handle`
+     |
+     = help: for further information visit https://rust-lang.github.io/rust-clippy/rust-1.95.0/index.html#needless_borrow
+     = note: `-D clippy::needless-borrow` implied by `-D warnings`
+     = help: to override `-D warnings` add `#[allow(clippy::needless_borrow)]`
+
+error: this expression creates a reference which is immediately dereferenced by the compiler
+    --> src\native_windows.rs:1438:34
+     |
+1438 |                 if identity_from(&handle).as_ref() != Some(&expected) {
+     |                                  ^^^^^^^ help: change this to: `handle`
+     |
+     = help: for further information visit https://rust-lang.github.io/rust-clippy/rust-1.95.0/index.html#needless_borrow
+
+error: could not compile `water-junk-clean` (lib) due to 2 previous errors
