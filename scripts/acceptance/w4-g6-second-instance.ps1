@@ -19,9 +19,15 @@ public static class W {
   [DllImport("user32.dll")] public static extern IntPtr GetForegroundWindow();
   [DllImport("user32.dll")] public static extern bool GetWindowRect(IntPtr h, out RECT r);
   [DllImport("user32.dll")] public static extern bool PrintWindow(IntPtr h, IntPtr hdc, uint flags);
+  [DllImport("user32.dll")] public static extern bool SetProcessDpiAwarenessContext(IntPtr value);
+  [DllImport("user32.dll")] public static extern bool SetProcessDPIAware();
   [StructLayout(LayoutKind.Sequential)] public struct RECT { public int Left, Top, Right, Bottom; }
 }
 '@
+# DPI-unaware, GetWindowRect returns the pre-scaling size (1254x858 for a 1568x1072 window at 125 %) and the
+# screenshot misses the right fifth (sixth integration, 2026-11-02). Become per-monitor aware before any window call.
+$dpiAware = [W]::SetProcessDpiAwarenessContext([IntPtr](-4))
+if (-not $dpiAware) { $dpiAware = [W]::SetProcessDPIAware() }
 # PrintWindow renders only Water's own window. Copying the screen rectangle (the earlier version) captured
 # whatever covered the window, once another app's page with personal content (2026-11-01 release smoke).
 function Shot([IntPtr]$h, [string]$name) {
@@ -37,7 +43,7 @@ function Shot([IntPtr]$h, [string]$name) {
 }
 New-Item -ItemType Directory -Path $DataDir | Out-Null
 $env:WATER_DATA_DIR = $DataDir
-$out = [ordered]@{ exe = $Exe; dataDir = $DataDir; started = (Get-Date).ToString('o') }
+$out = [ordered]@{ exe = $Exe; dataDir = $DataDir; started = (Get-Date).ToString('o'); dpiAware = $dpiAware }
 $first = Start-Process -FilePath $Exe -PassThru
 $out.firstPid = $first.Id
 $h = [IntPtr]::Zero; $deadline = (Get-Date).AddSeconds(30)
