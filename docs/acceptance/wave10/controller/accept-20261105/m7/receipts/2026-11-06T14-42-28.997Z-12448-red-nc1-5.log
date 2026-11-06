@@ -1,0 +1,61 @@
+{"binary":"C:\\Users\\37310\\.rustup\\toolchains\\1.95.0-x86_64-pc-windows-msvc\\bin\\cargo.exe","args":["test","--offline","--locked","--manifest-path","packages/water-service/Cargo.toml","--test","service_v1","--","--test-threads=1"],"exitCode":101,"error":null}
+--- stdout ---
+
+running 12 tests
+test m35_clean_split ... FAILED
+test m35_conclusion_cards ... ok
+test m35_quarantine ... FAILED
+test m35_rows_and_detail ... ok
+test m35_scope_and_plan ... ok
+test m35_trends_history ... FAILED
+test service_clean_flow ... FAILED
+test service_hardening ... ok
+test service_ipc_contract ... ok
+test service_scan_views ... ok
+test service_storage_safety ... ok
+test service_trends_locations ... ok
+
+failures:
+
+---- m35_clean_split stdout ----
+
+thread 'm35_clean_split' (21968) panicked at tests\service_v1.rs:5046:13:
+assertion `left == right` failed: SERVICE_M35_CLEAN: must move chosen
+  left: Number(0)
+ right: 1
+note: run with `RUST_BACKTRACE=1` environment variable to display a backtrace
+
+---- m35_quarantine stdout ----
+
+thread 'm35_quarantine' (5908) panicked at tests\service_v1.rs:495:50:
+quarantine_delete: IpcError { code: "invalid", message_zh: "所选内容无法清理，请重新选择。" }
+
+---- m35_trends_history stdout ----
+
+thread 'm35_trends_history' (17092) panicked at tests\service_v1.rs:6007:5:
+assertion `left == right` failed: SERVICE_M35_TRENDS: duplicate move {"clean_id":"clean-20261106T154312Z-76c4","plan_id":"plan-20261106T154312Z-4591","plan_items":[{"group_id":"dup:5647f05ec1895894:2097152","identity":{"file_id":"b26e3b00000011000000000000000000","volume_serial":"C248BB02"},"item_id":"dupitem-e76456f9b00ad6cd","kind":"file","level":"confirm","min_age_hours":1,"path":"F:\\new\\smaltalk\\water\\.worktrees\\accept-w10-m7\\.local\\w3-f1-fixtures\\service-2294ae86639a1b9f\\duplicates\\original.bin","root":"F:\\new\\smaltalk\\water\\.worktrees\\accept-w10-m7\\.local\\w3-f1-fixtures\\service-2294ae86639a1b9f\\duplicates","rule_id":"dedupe","total_bytes":"2097152"}],"quarantine_reports":[{"ended_at":"2026-11-06T14:43:12Z","items":[{"bytes":"0","destination":null,"error_code":null,"identity":null,"item_id":"dupitem-e76456f9b00ad6cd","move_error":null,"skip_reason":"gone","status":"skipped"}],"moved_bytes":"0","quarantine_id":"20261107-004312-f","report_version":"water.quarantine-report.v1","started_at":"2026-11-06T15:43:12Z","status":"completed"}],"report":{"ended_at":"2026-11-06T15:43:12Z","estimate_bytes":"2097152","freed_bytes":"2097152","items":[{"bytes_before":"2097152","bytes_freed":"2097152","failed_entries":0,"item_id":"dupitem-e76456f9b00ad6cd","skip_reason":null,"status":"deleted"}],"plan_id":"plan-20261106T154312Z-4591","report_version":"water.clean-report.v1","started_at":"2026-11-06T15:43:12Z","status":"completed","volumes":[{"free_after":"297005576192","free_before":"297003479040","root":"F:\\"}]},"scan_id":"dedupe-20270115T080000Z-16ac","view":{"clean_id":"clean-20261106T154312Z-76c4","drives":[{"free_after":"297005576192","free_before":"297003479040","root":"F:\\"}],"estimate_bytes":"2097152","finished_at":"2026-11-06T15:43:12Z","freed_bytes":"2097152","groups":[{"freed_bytes":"2097152","group_id":"dup:5647f05ec1895894:2097152","notes_zh":["没有移入，未通过复核或移动失败"],"status":"skipped","title_zh":"未识别"}],"journal_display_path":"F:\\new\\smaltalk\\water\\.worktrees\\accept-w10-m7\\.local/w3-f1-fixtures\\service-2294ae86639a1b9f\\data\\journal\\clean-20261106T154312Z-76c4.jsonl","quarantined":{"bytes":"0","item_count":0,"notes_zh":["移入隔离区尚未腾出空间，确认没问题后再永久删除"],"quarantine_ids":[]}}}
+  left: Number(0)
+ right: 1
+
+---- service_clean_flow stdout ----
+SERVICE_M3C_SKIP scale_ms {"add":[12.8847,5.905900000000001,6.612299999999999,5.8614,5.826300000000001],"items":10000,"remove":[5.7838,6.18,6.3343,5.7433,6.2835]}
+SERVICE_M3C_EXCLUDE scale_ms 28.9413
+
+thread 'service_clean_flow' (32136) panicked at tests\service_v1.rs:515:9:
+SERVICE_RETURN_BUDGET: clean_prepare
+
+
+failures:
+    m35_clean_split
+    m35_quarantine
+    m35_trends_history
+    service_clean_flow
+
+test result: FAILED. 8 passed; 4 failed; 0 ignored; 0 measured; 0 filtered out; finished in 79.71s
+
+
+--- stderr ---
+   Compiling water-service v0.1.0 (F:\new\smaltalk\water\.worktrees\accept-w10-m7\packages\water-service)
+    Finished `test` profile [unoptimized + debuginfo] target(s) in 17.46s
+     Running tests\service_v1.rs (.local\w3-target\debug\deps\service_v1-b0c813043e2292fb.exe)
+error: test failed, to rerun pass `--test service_v1`

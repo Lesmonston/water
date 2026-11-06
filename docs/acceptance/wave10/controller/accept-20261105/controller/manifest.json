@@ -1711,7 +1711,7 @@
         {
           "id": "WATER-W10-M7-ADDENDUM-05",
           "ticket": "docs/dispatch/tickets/WATER-W10-M7-ADDENDUM-05-20261106.md",
-          "status": "READY",
+          "status": "REWORK",
           "issuedAt": "2026-11-06T12:42:05Z",
           "resumeFromCommit": "44f229800f570d8ef90e7011f2ab96540f76e149",
           "userDecision": "2026-11-06 user: \"测试放宽到 200 ms\"; \"记录一下这种无效的硬卡，后续可以放松一点，已经阻断太多次了\"",
@@ -1720,11 +1720,25 @@
           "model": "grok 4.6 (same conversation; commits by Grok 4.6)",
           "dispatchEvidence": "controller gave the paste line ~21:43 JST for the open grok conversation; worker commits 492c9c84 (21:46) and 2917e5fc (22:05) by Grok 4.6",
           "returnedHead": "2917e5fc30ba532f8fd3d0ac843fb25ffd6d6f1b",
-          "returnNote": "receipt first line says done (22:05 JST); not yet reported by the user nor accepted when handoff 20 was written"
+          "submittedHead": "2917e5fc30ba532f8fd3d0ac843fb25ffd6d6f1b",
+          "implementationCommit": "492c9c8423eeb45ed456310971596c05bf0266fa",
+          "reworkReason": "audit clean; lock/check/real finals pass; controller mutations 7 of 9 caught (nc2 clue cap 3 and c4 \\? prefix strip survive); independent review HIGH: items on drives outside quarantine_roots() (USB, mapped) are moved by clean::quarantine before save_moves rejects the root, leaving files with no record or card; MEDIUM folder root_id common collides with the common location; LOW-MEDIUM {} scan invalid when a saved drive root is absent; LOW refresh deletes a record when inspect errors; LOW restore marks idle before saving the record",
+          "acceptance": "docs/acceptance/wave10/controller/WATER-W10-REVIEW-20261105.md section 13.5"
+        },
+        {
+          "id": "WATER-W10-M7-ADDENDUM-06",
+          "ticket": "docs/dispatch/tickets/WATER-W10-M7-ADDENDUM-06-20261106.md",
+          "status": "READY",
+          "issuedAt": "2026-11-06T13:54:02Z",
+          "resumeFromCommit": "2917e5fc30ba532f8fd3d0ac843fb25ffd6d6f1b",
+          "change": "chosen items on drives without a quarantine root are left out of quarantine-mode plans (noted in chosen.note_zh), re-checked before each batch, never moved then rejected; dedupe source likewise; common reserved as a folder id (renamed on load); {} scan skips saved locations that are absent; refresh keeps records whose inspect fails; restore saves the record before going idle; new assertions for clue cap 3 and a prefixed path outside declarations staying cleanable; redo the three controls and finals",
+          "dispatchReportedAt": "2026-11-06T13:57:00Z",
+          "model": "sol (user-reported)",
+          "dispatchEvidence": "user chat 2026-11-06 ~22:57 JST: \"给sol了\"; worker tree head/changed files 2917e5fc/0 when recorded; ticket line naming the executor changed from Grok to sol at the same time"
         }
       ],
       "acceptsTask": "WATER-W10-M7",
-      "acceptsHead": "2917e5fc30ba532f8fd3d0ac843fb25ffd6d6f1b"
+      "acceptsHead": "84f76974e2d4bf34c4be65708899087db007f492"
     },
     {
       "id": "WATER-W10-ACCEPT-M8",

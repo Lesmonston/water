@@ -771,6 +771,60 @@
    "old": "g.level == Level::Confirm",
    "new": "g.level != Level::Confirm",
    "why": "the chosen / recommended split is inverted"
+  },
+  {
+   "label": "c10",
+   "mode": "test",
+   "token": "SERVICE_M35_CLEAN",
+   "file": "packages/water-service/src/clean.rs",
+   "old": "quarantine::registered_base(core, &util::drive(&item.path)).is_some()",
+   "new": "true",
+   "why": "prepare keeps chosen items on drives without a quarantine root (addendum 06 item 1)"
+  },
+  {
+   "label": "c11",
+   "mode": "test",
+   "token": "SERVICE_M35_CLEAN",
+   "file": "packages/water-service/src/clean.rs",
+   "old": "let moved_report=if let Some((_,target))=quarantine::registered_target(&worker_core,&root) {",
+   "new": "let moved_report=if let Some((_,target))=Some(((),clean::QuarantineTarget{base:worker_core.platform.quarantine_base(&root)})) {",
+   "why": "start no longer re-checks the drive before the executor moves the batch (addendum 06 item 1)"
+  },
+  {
+   "label": "c12",
+   "mode": "test",
+   "token": "SERVICE_M35_CLEAN",
+   "file": "packages/water-service/src/dedupe.rs",
+   "old": "crate::quarantine::registered_base(core, &util::drive(&copy.path)).is_some()",
+   "new": "true",
+   "why": "dedupe prepare keeps copies on drives without a quarantine root (addendum 06 item 1)"
+  },
+  {
+   "label": "c13",
+   "mode": "test",
+   "token": "SERVICE_M35_SCOPE",
+   "file": "packages/water-service/src/service.rs",
+   "old": "while id == \"common\" || s.settings.custom_roots.iter().any(|r| r.root_id == id) {",
+   "new": "while s.settings.custom_roots.iter().any(|r| r.root_id == id) {",
+   "why": "a folder named common takes the common id again (addendum 06 item 2)"
+  },
+  {
+   "label": "c14",
+   "mode": "test",
+   "token": "SERVICE_M35_SCOPE",
+   "file": "packages/water-service/src/m35.rs",
+   "old": ".filter(|id| home.iter().any(|row| row[\"location_id\"] == *id))",
+   "new": ".filter(|_id| true)",
+   "why": "the default scope fails on an absent saved drive again (addendum 06 item 3)"
+  },
+  {
+   "label": "c15",
+   "mode": "test",
+   "token": "SERVICE_M35_QUARANTINE",
+   "file": "packages/water-service/src/quarantine.rs",
+   "old": "            cache.dirs.insert(q.quarantine_id.clone(), q.dir.clone());\n",
+   "new": "",
+   "why": "a quarantine folder whose inspect fails loses its record again (addendum 06 item 4)"
   }
  ]
 }
