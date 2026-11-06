@@ -184,12 +184,14 @@ function seedFixture(dataDir) {
   const settings = {settings_version: 'water.settings.v1', categories: Object.fromEntries(f.categoriesOff.map(c => [c, false])), custom_roots: [{root_id: 'fixture', path: dir, added_at: new Date().toISOString().replace(/\.\d+Z$/, 'Z')}]};
   writeFileSync(join(dataDir, 'settings.json'), JSON.stringify(settings, null, 2) + '\n', {flag: 'wx'});
   record.nativeFixture = {dir: relative(root, dir).split(sep).join('/'), files: f.files.length, agedTo: when.toISOString()};
+  if (f.flow === 'quarantine-purge') record.nativeFixture.quarantineRootExisted = existsSync(dir.slice(0, 3) + '.water-quarantine');
   return dir;
 }
 function checkFixture(dataDir, dir) {
   const f = task.nativeFixture, size = e => e.text !== undefined ? Buffer.byteLength(e.text) : e.bytes;
   for (const p of f.gone) assert(!existsSync(join(dir, p)), 'Fixture path not deleted: ' + p);
   for (const p of f.kept) { const e = f.files.find(x => x.path === p), q = join(dir, p); assert(existsSync(q), 'Fixture path lost: ' + p); if (e) assert.equal(readFileSync(q).length, size(e), 'Fixture file changed: ' + p); }
+  if (f.flow === 'quarantine-purge') return checkQuarantineFlow(dataDir, dir);
   const cleans = readdirSync(join(dataDir, 'cleans')); assert.equal(cleans.length, 1, 'Exactly one clean record expected');
   const rec = json(join(dataDir, 'cleans', cleans[0])).report;
   record.nativeClean = {status: rec.status, freedBytes: rec.freed_bytes, items: rec.items.map(i => ({status: i.status, bytesBefore: i.bytes_before, bytesFreed: i.bytes_freed, failed: i.failed_entries}))};
@@ -198,6 +200,32 @@ function checkFixture(dataDir, dir) {
   const journals = readdirSync(join(dataDir, 'journal')); assert.equal(journals.length, 1, 'Exactly one journal expected');
   const events = readFileSync(join(dataDir, 'journal', journals[0]), 'utf8').trim().split(/\r?\n/).map(l => JSON.parse(l).event);
   record.nativeJournal = events; assert(events.includes('intent') && events.includes('result'), 'Journal lacks intent or result lines');
+}
+// M3.5 (wave 10) loop: recommended items are deleted directly, the item the steps chose goes into the drive's
+// quarantine, and the steps then permanently delete that batch. The quarantine root is created on the fixture's
+// drive for the run; when it did not exist before, the purge must leave none behind.
+function checkQuarantineFlow(dataDir, dir) {
+  const f = task.nativeFixture, qroot = dir.slice(0, 3) + '.water-quarantine';
+  const cleans = readdirSync(join(dataDir, 'cleans')); assert.equal(cleans.length, 1, 'Exactly one clean record expected');
+  const stored = json(join(dataDir, 'cleans', cleans[0])), rec = stored.report, moves = stored.quarantine_reports ?? [];
+  record.nativeClean = {status: rec.status, freedBytes: rec.freed_bytes, items: rec.items.map(i => ({status: i.status, bytesBefore: i.bytes_before, bytesFreed: i.bytes_freed, failed: i.failed_entries})),
+    quarantine: moves.map(q => ({status: q.status, movedBytes: q.moved_bytes, items: (q.items ?? []).map(i => i.status)}))};
+  assert.equal(rec.status, 'completed', 'Clean run did not complete'); assert.equal(rec.freed_bytes, String(f.directFreedBytes), 'Directly freed bytes differ from the fixture');
+  assert(rec.items.some(i => i.status === 'deleted') && rec.items.every(i => i.failed_entries === 0), 'Recommended fixture items must be deleted without failures');
+  assert.equal(moves.length, 1, 'Exactly one quarantine batch expected'); assert.equal(moves[0].status, 'completed', 'Quarantine batch did not complete');
+  assert.equal(moves[0].moved_bytes, String(f.quarantinedBytes), 'Quarantined bytes differ from the fixture');
+  assert((moves[0].items ?? []).length > 0 && moves[0].items.every(i => i.status === 'moved'), 'Every chosen fixture item must be moved');
+  assert.equal(readdirSync(join(dataDir, 'quarantine')).length, 0, 'The purged batch still has a quarantine record');
+  const journals = readdirSync(join(dataDir, 'journal')).sort(); record.nativeJournals = journals;
+  const cleanJournal = journals.find(n => !n.endsWith('-purge.jsonl')), purgeJournal = journals.find(n => n.endsWith('-purge.jsonl'));
+  assert(cleanJournal && purgeJournal && journals.length === 2, 'Expected one clean journal and one purge journal');
+  const events = readFileSync(join(dataDir, 'journal', cleanJournal), 'utf8').trim().split(/\r?\n/).map(l => JSON.parse(l).event);
+  record.nativeJournal = events; assert(events.includes('intent') && events.includes('result'), 'Clean journal lacks intent or result lines');
+  const purges = readdirSync(join(dataDir, 'events')).map(n => json(join(dataDir, 'events', n))).filter(e => e.kind === 'purge');
+  record.nativePurge = purges.map(e => ({bytes: e.bytes})); assert.equal(purges.length, 1, 'Exactly one purge event expected');
+  assert.equal(purges[0].bytes, String(f.purgedBytes), 'Purged bytes differ from the quarantined fixture item');
+  record.nativeQuarantineRoot = {path: qroot, existedBefore: record.nativeFixture.quarantineRootExisted, existsAfter: existsSync(qroot)};
+  if (!record.nativeFixture.quarantineRootExisted) assert(!existsSync(qroot), 'The purge left an empty quarantine root behind: ' + qroot);
 }
 // One owned window per task. Hosts with nativeSteps (wired, F3) are driven through the steps by the
 // wired observer and may read real data through the app; afterwards the service store is checked.

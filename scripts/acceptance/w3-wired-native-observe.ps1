@@ -59,6 +59,24 @@ function Named([string]$name, [string]$type) {
     } else { $cond = $byName }
     return $window.FindFirst([System.Windows.Automation.TreeScope]::Descendants, $cond)
 }
+# Optional per-step "match" (exact, prefix, contains) and "pick" (first, last); defaults keep the exact first match.
+# M3.5 (wave 10): a folder name carries the run stamp, and a page card and its confirm dialog share a button name.
+function Find-Target([string]$name, [string]$type, [string]$match, [string]$pick) {
+    if ((!$match -or $match -eq 'exact') -and (!$pick -or $pick -eq 'first')) { return Named $name $type }
+    if ($type) { $cond = New-Object System.Windows.Automation.PropertyCondition($A::ControlTypeProperty, [System.Windows.Automation.ControlType]::$type) }
+    else { $cond = [System.Windows.Automation.Condition]::TrueCondition }
+    $hits = @()
+    foreach ($e in $window.FindAll([System.Windows.Automation.TreeScope]::Descendants, $cond)) {
+        $n = [string]$e.Current.Name
+        if ($match -eq 'prefix') { $ok = $n.StartsWith($name, [StringComparison]::Ordinal) }
+        elseif ($match -eq 'contains') { $ok = $n.Contains($name) }
+        else { $ok = $n -ceq $name }
+        if ($ok) { $hits += $e }
+    }
+    if ($hits.Count -eq 0) { return $null }
+    if ($pick -eq 'last') { return $hits[$hits.Count - 1] }
+    return $hits[0]
+}
 function Shot([string]$label) {
     if ($label -notmatch '^[a-z][a-z0-9-]{0,31}$') { throw 'Bad screenshot label' }
     $hwnd = [IntPtr]$window.Current.NativeWindowHandle; $rect = New-Object W3Wired+RECT
@@ -106,7 +124,8 @@ try {
         if ($step.invoke) {
             $entry['kind'] = 'invoke'
             $limit = [DateTime]::UtcNow.AddSeconds(15); $target = $null
-            while ($null -eq $target -and [DateTime]::UtcNow -lt $limit -and [DateTime]::UtcNow -lt $deadline) { $target = Named $step.invoke $step.type; if ($null -eq $target) { Start-Sleep -Milliseconds 200 } }
+            # A control found while the page is still busy may be disabled for a moment: keep looking until it is enabled.
+            while (($null -eq $target -or !$target.Current.IsEnabled) -and [DateTime]::UtcNow -lt $limit -and [DateTime]::UtcNow -lt $deadline) { $target = Find-Target $step.invoke $step.type $step.match $step.pick; if ($null -eq $target -or !$target.Current.IsEnabled) { Start-Sleep -Milliseconds 200 } }
             if ($null -eq $target) { throw ('Step ' + $index + ': control not found') }
             if (!$target.Current.IsEnabled) { throw ('Step ' + $index + ': control disabled') }
             $pattern = $null
@@ -117,7 +136,7 @@ try {
             $limit = [DateTime]::UtcNow.AddSeconds([int]$step.seconds); $found = $null
             while ($null -eq $found -and [DateTime]::UtcNow -lt $limit -and [DateTime]::UtcNow -lt $deadline) {
                 if ($step.fail -and $null -ne (Named $step.fail $null)) { throw ('Step ' + $index + ': failure text shown') }
-                $found = Named $step.wait $null; if ($null -eq $found) { Start-Sleep -Milliseconds 250 }
+                $found = Find-Target $step.wait $null $step.match $step.pick; if ($null -eq $found) { Start-Sleep -Milliseconds 250 }
             }
             if ($null -eq $found) { throw ('Step ' + $index + ': expected text not observed') }
             if ($step.absent -and $null -ne (Named $step.absent $null)) { throw ('Step ' + $index + ': unexpected text shown') }
