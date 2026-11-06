@@ -200,9 +200,9 @@ fn finish(
     fallbacks: &[Option<usize>],
     suppressed: &mut HashSet<String>,
     deferred: Option<&mut Vec<Measurement>>,
-) {
+) -> Option<String> {
     let Purpose::Target(primary) = row.purpose else {
-        return;
+        return None;
     };
     let resolved = owner(&row, plan, fallbacks);
     let target = &plan.targets[resolved.unwrap_or(primary)];
@@ -213,23 +213,21 @@ fn finish(
         row.identities = HashSet::new();
         row.parent = None;
         deferred.push(row);
-        return;
+        return None;
     }
     for code in &row.issues {
         engine.add_issue(code, &target.group_id);
     }
     if engine.stopped(&target.group_id) {
-        return;
+        return resolved.map(|_| target.group_id.clone());
     }
-    let Some(index) = resolved else {
-        return;
-    };
+    let index = resolved?;
     if row.child.kind == Kind::Dir
         && matches!(plan.targets[primary].match_spec, Match::Marker { .. })
     {
         suppressed.insert(row.child.path.to_ascii_lowercase());
     }
-    push_measured_hit(
+    let emitted = push_measured_hit(
         engine,
         hits,
         target,
@@ -238,6 +236,7 @@ fn finish(
         row.child.kind,
         row.measured,
     );
+    (!emitted).then(|| target.group_id.clone())
 }
 
 fn potential_children(
@@ -326,6 +325,10 @@ pub(super) fn walk(
     let mut hits = vec![];
     let mut searches = vec![];
     let mut discovery_issues = vec![];
+    // Durable owners include measurements that leave pending at Exit but
+    // cannot be emitted. Local stopped() issues may use provisional owners.
+    let mut budget_groups = HashSet::new();
+    let mut unfinished_clusters = HashMap::new();
     let mut remaining = vec![HashSet::<String>::new(); plan.targets.len()];
     let mut suppressed = HashSet::new();
     let mut deferred = vec![];
@@ -403,7 +406,7 @@ pub(super) fn walk(
                 } => {
                     for id in starts {
                         if let Some(row) = pending.remove(&id) {
-                            finish(
+                            budget_groups.extend(finish(
                                 engine,
                                 &mut hits,
                                 row,
@@ -411,10 +414,11 @@ pub(super) fn walk(
                                 fallbacks,
                                 &mut suppressed,
                                 Some(&mut deferred),
-                            );
+                            ));
                         }
                     }
                     if let Some(search) = search {
+                        unfinished_clusters.remove(&search.parent);
                         let members = search
                             .candidates
                             .into_iter()
@@ -430,6 +434,8 @@ pub(super) fn walk(
                                 group: search.group,
                                 members,
                             });
+                        } else if !members.is_empty() {
+                            budget_groups.insert(search.group);
                         }
                     }
                     for id in completed_candidates {
@@ -481,7 +487,6 @@ pub(super) fn walk(
                                 ..
                             } => {
                                 if let Some(parts) = relative(root, &dir.path)
-                                    && parts.iter().all(|p| !p.eq_ignore_ascii_case(".git"))
                                     && parts.len() <= *max_depth as usize
                                 {
                                     if target.category == Category::Custom {
@@ -690,6 +695,9 @@ pub(super) fn walk(
                             candidates: vec![],
                         }
                     });
+                    if let Some(search) = &search {
+                        unfinished_clusters.insert(search.parent.clone(), search.group.clone());
+                    }
                     let parent_entries = Arc::new(
                         listing
                             .children
@@ -775,7 +783,6 @@ pub(super) fn walk(
                                 && !file_name(root).eq_ignore_ascii_case(".git")
                                 && let Some(parts) = relative(root, &dir.path)
                                 && parts.len() < *max_depth as usize
-                                && parts.iter().all(|p| !p.eq_ignore_ascii_case(".git"))
                                 && child.kind == Kind::File
                                 && !child.name.eq_ignore_ascii_case(".git")
                                 && patterns.iter().any(|p| match_segment(p, &child.name))
@@ -827,7 +834,7 @@ pub(super) fn walk(
                                 );
                                 if matches!(row.purpose, Purpose::Target(_)) {
                                     let row = pending.remove(&id).unwrap();
-                                    finish(
+                                    budget_groups.extend(finish(
                                         engine,
                                         &mut hits,
                                         row,
@@ -835,7 +842,7 @@ pub(super) fn walk(
                                         fallbacks,
                                         &mut suppressed,
                                         Some(&mut deferred),
-                                    );
+                                    ));
                                 } else {
                                     row.identities = HashSet::new();
                                     row.parent = None;
@@ -912,7 +919,7 @@ pub(super) fn walk(
             break;
         }
     }
-    let mut budget_groups = HashSet::new();
+    budget_groups.extend(unfinished_clusters.into_values());
     for (index, paths) in remaining.iter().enumerate() {
         if !paths.is_empty() {
             budget_groups.insert(plan.targets[index].group_id.clone());
@@ -957,7 +964,10 @@ pub(super) fn walk(
         };
         let path = row.child.path.to_ascii_lowercase();
         if engine.stopped(&plan.targets[index].group_id) {
-            break;
+            // Include the triggering row and every remaining deferred owner;
+            // none of these measurements are in pending any more.
+            budget_groups.insert(plan.targets[index].group_id.clone());
+            continue;
         }
         let prefix = format!("{path}\\");
         if !covered.contains(&path)
@@ -972,7 +982,7 @@ pub(super) fn walk(
                 index,
                 codes: std::mem::take(&mut row.issues),
             });
-            finish(
+            budget_groups.extend(finish(
                 engine,
                 &mut hits,
                 row,
@@ -980,7 +990,7 @@ pub(super) fn walk(
                 fallbacks,
                 &mut suppressed,
                 None,
-            );
+            ));
         }
     }
     for target in &plan.targets {
@@ -996,6 +1006,9 @@ pub(super) fn walk(
     }
     // Local stopping checks use provisional groups. Replace their budget
     // records with the complete set of unfinished searches and final owners.
+    if engine.cancel.is_cancelled() {
+        engine.status = "cancelled";
+    }
     let exhausted = engine.budget_exhausted() && engine.status != "cancelled";
     engine
         .issues

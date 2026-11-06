@@ -331,6 +331,7 @@ fn scan_plan_contract() {
 
 #[test]
 fn scan_pattern_marker_discovery() {
+    m35_clusters_addendum03();
     m35_markers();
     m35_clusters();
     m35_clusters_addendum();
@@ -3637,6 +3638,224 @@ fn m35_clusters_addendum02() {
     assert_eq!(
         issues[0].count, 1,
         "SCAN_M35_CLUSTERS: discovery cluster issue is counted once"
+    );
+}
+
+fn m35_clusters_addendum03() {
+    let fx = Fixture::create();
+    let now = SystemTime::now();
+    // The shallower discovery roots finish before the deeper pattern root.
+    // Their file measurements have left pending and are waiting in deferred.
+    for root in ["deferred-a", "deferred-b"] {
+        write_file(&fx.join(&format!("{root}/waiting.bin")), b"waiting");
+    }
+    for i in 0..8 {
+        write_file(&fx.join(&format!("deep/pattern/hit/data{i}")), b"x");
+    }
+    let discoveries = ["deferred-a", "deferred-b"].into_iter().map(|id| {
+        target(
+            id,
+            "confirm",
+            "system_temp",
+            json!({"kind":"discovery","root":fx.p(id)}),
+            "any",
+            0,
+            0,
+        )
+    });
+    let pattern = target(
+        "deferred-pattern",
+        "confirm",
+        "custom",
+        json!({"kind":"pattern","base":fx.p("deep/pattern"),"segments":["hit"]}),
+        "dir",
+        0,
+        0,
+    );
+    let text = plan(discoveries.chain([pattern]).collect(), vec![]);
+    let result = run(
+        &text,
+        now,
+        ScanOptions {
+            max_entries: 4,
+            max_seconds: 60,
+        },
+        &CancelToken::new(),
+    );
+    assert_eq!(
+        result.status, "partial",
+        "SCAN_M35_CLUSTERS: deferred budget is partial"
+    );
+    for group in ["deferred-a", "deferred-b", "deferred-pattern"] {
+        assert!(
+            result
+                .issues
+                .iter()
+                .any(|i| i.group_id == group && i.code == "budget_exhausted" && i.count == 1),
+            "SCAN_M35_CLUSTERS: dropped deferred or measured group has one budget issue: {group}"
+        );
+    }
+    assert!(
+        result.items.is_empty(),
+        "SCAN_M35_CLUSTERS: interrupted deferred entries remain omitted"
+    );
+    let token = CancelToken::new();
+    token.cancel();
+    let cancelled = run(
+        &text,
+        now,
+        ScanOptions {
+            max_entries: 0,
+            max_seconds: 60,
+        },
+        &token,
+    );
+    assert_eq!(
+        cancelled.status, "cancelled",
+        "SCAN_M35_CLUSTERS: cancellation wins over budget"
+    );
+    assert!(
+        cancelled
+            .issues
+            .iter()
+            .all(|i| i.code != "budget_exhausted"),
+        "SCAN_M35_CLUSTERS: cancellation has no budget issues"
+    );
+
+    // Both custom searches have completed the walk and retained candidates;
+    // a deeper, unrelated measurement exhausts the budget before build_clusters.
+    let mut rows = vec![];
+    for root in ["cluster-a", "cluster-b"] {
+        for i in 0..10 {
+            write_file(&fx.join(&format!("{root}/artifact_a{i:07x}")), b"x");
+        }
+        rows.push(m35_marker_target(
+            root,
+            &fx.p(root),
+            json!({"kind":"dir_name","names":["unmatched"]}),
+            None,
+            "dir",
+        ));
+    }
+    rows.push(target(
+        "cluster-budget-pattern",
+        "confirm",
+        "custom",
+        json!({"kind":"pattern","base":fx.p("deep/pattern"),"segments":["hit"]}),
+        "dir",
+        0,
+        0,
+    ));
+    let extras = ExtrasOptions {
+        leak_clusters: true,
+        declarations: true,
+        ..ExtrasOptions::default()
+    };
+    let (result, _) = scan_full(
+        &ScanPlan::from_json(&plan(rows, vec![])).unwrap(),
+        "m35-skipped-cluster-budget",
+        &ScanOptions {
+            max_entries: 22,
+            max_seconds: 60,
+        },
+        &extras,
+        &CancelToken::new(),
+        &Quiet,
+        now,
+    )
+    .unwrap();
+    assert_eq!(
+        result.status, "partial",
+        "SCAN_M35_CLUSTERS: skipped cluster search is partial"
+    );
+    for group in ["cluster-a", "cluster-b", "cluster-budget-pattern"] {
+        assert!(
+            result
+                .issues
+                .iter()
+                .any(|i| i.group_id == group && i.code == "budget_exhausted" && i.count == 1),
+            "SCAN_M35_CLUSTERS: every skipped custom cluster search has one budget issue: {group}"
+        );
+    }
+    assert!(
+        result.groups.iter().all(|g| g.cluster.is_none()),
+        "SCAN_M35_CLUSTERS: skipped clusters have no leak groups"
+    );
+
+    // All search roots are outside .git. An outer pattern measurement makes
+    // the physical DFS visit .git even though target searches must be closed.
+    for i in 0..12 {
+        write_file(
+            &fx.join(&format!("git-outer/container/.GiT/verify-A{i:05}/data")),
+            b"x",
+        );
+    }
+    write_file(
+        &fx.join("git-outer/container/.GiT/objects/cache.bin"),
+        b"cache",
+    );
+    write_file(
+        &fx.join("git-outer/container/.GiT/.water-cleanup.json"),
+        b"{}",
+    );
+    let rows = vec![
+        target(
+            "outside-measure",
+            "confirm",
+            "custom",
+            json!({"kind":"pattern","base":fx.p("git-outer"),"segments":["container"]}),
+            "dir",
+            0,
+            0,
+        ),
+        m35_marker_target(
+            "outside-marker",
+            &fx.p("git-outer"),
+            json!({"kind":"dir_name","names":["objects"]}),
+            None,
+            "dir",
+        ),
+        m35_marker_target(
+            "outside-files",
+            &fx.p("git-outer"),
+            json!({"kind":"file_name","patterns":["*"]}),
+            None,
+            "file",
+        ),
+        target(
+            "outside-discovery",
+            "confirm",
+            "system_temp",
+            json!({"kind":"discovery","root":fx.p("git-outer")}),
+            "any",
+            0,
+            0,
+        ),
+    ];
+    let (result, found) = m35_full(&plan(rows, vec![]), now, &extras);
+    assert_eq!(
+        result.status, "completed",
+        "SCAN_M35_CLUSTERS: git measurement completes"
+    );
+    assert!(
+        result.items.iter().all(|i| {
+            let path = i.path.to_ascii_lowercase();
+            !path.contains("\\.git\\") && !path.ends_with("\\.git")
+        }),
+        "SCAN_M35_CLUSTERS: outside-root marker/file/discovery never search inside git"
+    );
+    assert!(
+        found.declarations.is_empty(),
+        "SCAN_M35_CLUSTERS: outside-root search finds no git declarations"
+    );
+    assert!(
+        result.groups.iter().all(|g| g.cluster.is_none()),
+        "SCAN_M35_CLUSTERS: outside-root search finds no git clusters"
+    );
+    assert_eq!(
+        item(&result, &fx.p("git-outer/container")).total_bytes,
+        "19",
+        "SCAN_M35_CLUSTERS: outside-root git contents are still measured"
     );
 }
 

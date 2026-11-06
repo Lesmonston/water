@@ -606,11 +606,11 @@ fn push_measured_hit(
     path: &str,
     kind: Kind,
     measured: Measured,
-) {
+) -> bool {
     // A stop during the walk leaves size, newest_activity and the .git check
     // incomplete: the entry is not an obtained result and is not output.
     if engine.stopped(&target.group_id) {
-        return;
+        return false;
     }
     let identity = if matches!(
         &target.match_spec,
@@ -629,9 +629,10 @@ fn push_measured_hit(
         finish_identity(path).ok()
     };
     if engine.stopped(&target.group_id) {
-        return;
+        return false;
     }
     push_complete_hit(engine, hits, target, index, path, kind, measured, identity);
+    true
 }
 
 #[allow(clippy::too_many_arguments)]
@@ -1055,12 +1056,13 @@ pub fn scan_full(
     } = streaming::walk(&mut engine, plan, &fallbacks);
     let guard_hits = hits.clone();
     let mut expanded = plan.clone();
-    let clusters =
-        if extras.leak_clusters && !engine.budget_exhausted() && engine.status != "cancelled" {
-            build_clusters(&mut engine, &mut hits, &mut expanded, searches)
-        } else {
-            BTreeMap::new()
-        };
+    // Even a skipped search must pass through stopped(): it owns both the
+    // partial status and the budget issue for this unfinished location.
+    let clusters = if extras.leak_clusters {
+        build_clusters(&mut engine, &mut hits, &mut expanded, searches)
+    } else {
+        BTreeMap::new()
+    };
     let final_discoveries: HashSet<_> = hits
         .iter()
         .map(|hit| (hit.path.to_ascii_lowercase(), hit.target_index))
@@ -1245,6 +1247,11 @@ pub fn scan_full(
             cluster: clusters.get(&target.group_id).cloned(),
         });
     }
+    if engine.status == "cancelled" {
+        engine
+            .issues
+            .retain(|issue| issue.code != "budget_exhausted");
+    }
     engine
         .issues
         .sort_by(|a, b| a.group_id.cmp(&b.group_id).then(a.code.cmp(&b.code)));
@@ -1304,11 +1311,16 @@ fn build_clusters(
     mut searches: Vec<streaming::ClusterSearch>,
 ) -> BTreeMap<String, ClusterInfo> {
     use std::collections::BTreeSet;
+    let Some(first_search) = searches.first() else {
+        return BTreeMap::new();
+    };
     let mut exact = HashSet::new();
     let mut discovery_exact = HashSet::new();
     let mut non_discovery = BTreeSet::new();
     for hit in hits.iter() {
-        if engine.stopped(&hit.group_id) {
+        // This indexing serves unfinished cluster searches, not the already
+        // emitted ordinary hit's group.
+        if engine.stopped(&first_search.group) {
             break;
         }
         let path = hit.path.to_ascii_lowercase();
@@ -1340,7 +1352,8 @@ fn build_clusters(
             members: candidates,
         } = search;
         if engine.stopped(&group) {
-            break;
+            // Visit the remaining search owners too, without building them.
+            continue;
         }
         if claimed(&member_paths, &parent.to_ascii_lowercase())
             || claimed(&exact, &parent.to_ascii_lowercase())
@@ -1389,7 +1402,7 @@ fn build_clusters(
             available.push((child, measured, issues));
         }
         if engine.stopped(&group) {
-            break;
+            continue;
         }
         for ((kind, template), mut members) in templates {
             if engine.stopped(&group) {
