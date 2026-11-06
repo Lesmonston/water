@@ -1,0 +1,87 @@
+{"binary":"C:\\Program Files\\nodejs\\node.exe","args":["--test","--test-concurrency=1","--test-reporter=tap","apps/water/ui/tests/browser.test.mjs"],"exitCode":1,"error":null}
+--- stdout ---
+TAP version 13
+# Subtest: ui_v2_home_scan
+ok 1 - ui_v2_home_scan
+  ---
+  duration_ms: 4014.2913
+  type: 'test'
+  ...
+# Subtest: ui_v2_conclusion
+not ok 2 - ui_v2_conclusion
+  ---
+  duration_ms: 351.9776
+  type: 'test'
+  location: 'F:\\new\\smaltalk\\water\\.worktrees\\accept-w10-m6\\apps\\water\\ui\\tests\\browser.test.mjs:209:1'
+  failureType: 'testCodeFailure'
+  error: |-
+    UI_V2_CONCLUSION: preserve all card order, never resort by bytes
+    + actual - expected
+    
+      [
+    +   'card:custom:drive-f:custom-avd-snapshots',
+    +   'card:custom:drive-f:installer-files',
+    +   'card:leak:7b30fa8fd7ceb684',
+    +   'card:codex-runtimes',
+        'card:kimi-code-old-sessions',
+    -   'card:codex-runtimes',
+    -   'card:leak:7b30fa8fd7ceb684',
+    -   'card:custom:drive-f:installer-files',
+    -   'card:custom:drive-f:custom-avd-snapshots'
+      ]
+    
+  code: 'ERR_ASSERTION'
+  name: 'AssertionError'
+  expected:
+    0: 'card:kimi-code-old-sessions'
+    1: 'card:codex-runtimes'
+    2: 'card:leak:7b30fa8fd7ceb684'
+    3: 'card:custom:drive-f:installer-files'
+    4: 'card:custom:drive-f:custom-avd-snapshots'
+  actual:
+    0: 'card:custom:drive-f:custom-avd-snapshots'
+    1: 'card:custom:drive-f:installer-files'
+    2: 'card:leak:7b30fa8fd7ceb684'
+    3: 'card:codex-runtimes'
+    4: 'card:kimi-code-old-sessions'
+  operator: 'deepStrictEqual'
+  stack: |-
+    TestContext.<anonymous> (file:///F:/new/smaltalk/water/.worktrees/accept-w10-m6/apps/water/ui/tests/browser.test.mjs:211:10)
+    async Test.run (node:internal/test_runner/test:1313:7)
+    async Test.processPendingSubtests (node:internal/test_runner/test:897:7)
+  ...
+# Subtest: ui_v2_drawer_details
+ok 3 - ui_v2_drawer_details
+  ---
+  duration_ms: 2683.4325
+  type: 'test'
+  ...
+# Subtest: ui_v2_confirm_done
+ok 4 - ui_v2_confirm_done
+  ---
+  duration_ms: 4941.5991
+  type: 'test'
+  ...
+# Subtest: ui_v2_quarantine_dedupe
+ok 5 - ui_v2_quarantine_dedupe
+  ---
+  duration_ms: 12493.3328
+  type: 'test'
+  ...
+# Subtest: ui_v2_pages_layout_a11y
+ok 6 - ui_v2_pages_layout_a11y
+  ---
+  duration_ms: 6599.5201
+  type: 'test'
+  ...
+1..6
+# tests 6
+# suites 0
+# pass 5
+# fail 1
+# cancelled 0
+# skipped 0
+# todo 0
+# duration_ms 31744.7605
+
+--- stderr ---

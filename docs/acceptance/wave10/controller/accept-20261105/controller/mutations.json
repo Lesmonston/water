@@ -580,6 +580,114 @@
    "old": "[['以后都跳过', () => a.skipItem(i.item_id)]]",
    "new": "[['以后都跳过', () => a.skipItem(s.drawer.rowId ?? g.group_id)]]",
    "why": "expanded item skips with the row or group ID"
+  },
+  {
+   "label": "c8",
+   "mode": "browser",
+   "token": "UI_V2_HOME",
+   "file": "apps/water/ui/app.mjs",
+   "old": "async function stopTask(request) { await request(); resumePolling(); }",
+   "new": "async function stopTask(request) { await request(); }",
+   "why": "stop commands no longer resume a paused poll (1.1)"
+  },
+  {
+   "label": "c9",
+   "mode": "browser",
+   "token": "UI_V2_HOME",
+   "file": "apps/water/ui/app.mjs",
+   "old": "s.pollPaused ? button('重新连接'",
+   "new": "s.pollPaused && s.error ? button('重新连接'",
+   "why": "retry button disappears once the error text is cleared (1.1)"
+  },
+  {
+   "label": "c10",
+   "mode": "browser",
+   "token": "UI_V2_DEDUPE",
+   "file": "apps/water/ui/views/dedupe.mjs",
+   "old": "button('返回', a.returnToCheckup,",
+   "new": "button('返回', a.chooseLocations,",
+   "why": "dedupe back ignores an existing conclusion (1.2)"
+  },
+  {
+   "label": "c11",
+   "mode": "browser",
+   "token": "UI_V2_DEDUPE",
+   "file": "apps/water/ui/app.mjs",
+   "old": "if (s.busy === 'idle' && ['dedupe', 'done'].includes(s.mode)) { event.preventDefault(); a.returnToCheckup(); }",
+   "new": "if (false) { event.preventDefault(); a.returnToCheckup(); }",
+   "why": "checkup nav on the dedupe or done screen only repaints it (1.2)"
+  },
+  {
+   "label": "c12",
+   "mode": "browser",
+   "token": "UI_V2_DEDUPE",
+   "file": "apps/water/ui/app.mjs",
+   "old": "if (scope === 'dedupe' && error?.code === 'stale') await recoverDedupe();",
+   "new": "if (false) await recoverDedupe();",
+   "why": "dedupe stale is not re-read (2.1)"
+  },
+  {
+   "label": "c13",
+   "mode": "browser",
+   "token": "UI_V2_PAGES",
+   "file": "apps/water/ui/app.mjs",
+   "old": "category:(id, enabled) => run(async () => { s.locations = await ipc.locations_set_category(id, enabled); }),",
+   "new": "category:(id, enabled) => run(async () => { s.locations = await ipc.locations_set_category(id, enabled); markStale(); }),",
+   "why": "category toggle marks the conclusion stale again (2.2)"
+  },
+  {
+   "label": "c14",
+   "mode": "browser",
+   "token": "UI_V2_DEDUPE",
+   "file": "apps/water/ui/views/dedupe.mjs",
+   "old": "heading(v.more ? '找到重复文件' :",
+   "new": "heading(false ? '找到重复文件' :",
+   "why": "dedupe headline counts the truncated list (2.3)"
+  },
+  {
+   "label": "c15",
+   "mode": "browser",
+   "token": "UI_V2_PAGES",
+   "file": "apps/water/ui/views/trends.mjs",
+   "old": "const hasDaily = value => value && value.days_to_full !== null && BigInt(value.bytes_per_day) > 0n;",
+   "new": "const hasDaily = value => !!value;",
+   "why": "trends draws a daily rate for drives without a forecast (2.4)"
+  },
+  {
+   "label": "c16",
+   "mode": "browser",
+   "token": "UI_V2_CONCLUSION",
+   "file": "apps/water/ui/views/results.mjs",
+   "old": "if (c.menu.includes('copy_clue') && clue) entries.push(['复制线索给 agent', () => a.copy(clue.copy_text)]);",
+   "new": "if (c.menu.includes('copy_clue')) entries.push(['复制线索给 agent', () => a.copy(clue?.copy_text ?? '')]);",
+   "why": "copy clue offered when the clue is not listed (2.5)"
+  },
+  {
+   "label": "c17",
+   "mode": "browser",
+   "token": "UI_V2_PAGES",
+   "file": "apps/water/ui/views/charts.mjs",
+   "old": "const date = new Date(entry.at); date.setHours(0, 0, 0, 0);",
+   "new": "const date = new Date(entry.at.slice(0, 10) + 'T00:00:00'); date.setHours(0, 0, 0, 0);",
+   "why": "heatmap buckets by the UTC date again (2.6)"
+  },
+  {
+   "label": "c18",
+   "mode": "browser",
+   "token": "UI_V2_QUARANTINE",
+   "file": "apps/water/ui/app.mjs",
+   "old": "      if (route === 'quarantine' && revision !== quarantineRevision) return;\n",
+   "new": "",
+   "why": "a late quarantine_list reply overwrites a newer view (2.7)"
+  },
+  {
+   "label": "c19",
+   "mode": "browser",
+   "token": "UI_V2_QUARANTINE",
+   "file": "apps/water/ui/views/quarantine.mjs",
+   "old": "button(`打开 ${root.display_path[0].toUpperCase()} 盘隔离区`,",
+   "new": "button('打开文件夹',",
+   "why": "quarantine root buttons lose the drive letter (3.1)"
   }
  ]
 }

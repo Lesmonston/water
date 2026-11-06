@@ -1423,7 +1423,10 @@
           "status": "READY",
           "issuedAt": "2026-11-06T10:02:40Z",
           "resumeFromCommit": "3d5e01a7f593c73a27e57b968d4d11f5174ff91e",
-          "change": "retry stays reachable while polling is paused and stop commands resume polling; a way out of the dedupe result and done screens; dedupe stale re-reads the dedupe view instead of marking the conclusion stale; category toggles do not mark it stale; dedupe headline without a truncated group count; no replaced bytes_per_day (note_zh instead); copy clue only when the clue is listed; heatmap by local date; late quarantine_list replies dropped; drive letter on quarantine folder buttons, readable treemap names, no native scrollbar on the narrow home card; new assertions in the named tests; receipt addendum 02 section rewritten in UTF-8"
+          "change": "retry stays reachable while polling is paused and stop commands resume polling; a way out of the dedupe result and done screens; dedupe stale re-reads the dedupe view instead of marking the conclusion stale; category toggles do not mark it stale; dedupe headline without a truncated group count; no replaced bytes_per_day (note_zh instead); copy clue only when the clue is listed; heatmap by local date; late quarantine_list replies dropped; drive letter on quarantine folder buttons, readable treemap names, no native scrollbar on the narrow home card; new assertions in the named tests; receipt addendum 02 section rewritten in UTF-8",
+          "dispatchReportedAt": "2026-11-06T11:26:00Z",
+          "model": "astra (user-reported)",
+          "dispatchEvidence": "user chat 2026-11-06 ~20:26 JST: \"是astra，界面单一般都是astra\" (reported after the return); receipt names Codex GPT-6"
         }
       ]
     },
@@ -1711,10 +1714,24 @@
         {
           "id": "WATER-W10-M7-ADDENDUM-02",
           "ticket": "docs/dispatch/tickets/WATER-W10-M7-ADDENDUM-02-20261106.md",
-          "status": "READY",
+          "status": "BLOCKED",
           "issuedAt": "2026-11-06T09:35:41Z",
           "resumeFromCommit": "af7fa295fa8a03873c6267d251305a4879ab1d29",
-          "change": "summary rows built on first use per group and cached in the projection, not in Projection::new; optional group-to-items index and pre-parsed sort keys with byte-identical output; 50 ms limits, fixture sizes and call() timing unchanged; report the scale_ms lines against the old 21.6-31.0 ms; then finish full green, three negative controls, check/test/real finals and archive"
+          "change": "summary rows built on first use per group and cached in the projection, not in Projection::new; optional group-to-items index and pre-parsed sort keys with byte-identical output; 50 ms limits, fixture sizes and call() timing unchanged; report the scale_ms lines against the old 21.6-31.0 ms; then finish full green, three negative controls, check/test/real finals and archive",
+          "dispatchReportedAt": "2026-11-06T11:24:00Z",
+          "model": "grok 4.6 (user-reported)",
+          "dispatchEvidence": "user chat 2026-11-06 ~20:24 JST: \"是grok续做的，记到grok头上\"; sol (Codex GPT-6) opened it first at ~19:05 and blocked on uncommitted edits it did not own (4566dd8c); grok then resumed, claimed those edits and committed 4d146934",
+          "blockedCommit": "658c281ae891161e6b9840fb0024fb7a13db4607",
+          "candidateImplementation": "4d146934664a5958c4460e5a7a8a34366a151ae2",
+          "blockedReason": "lazy summary rows done (exclude-scale 27.6 ms, back in the old 21.6-31.0 ms band); full suite still red: two worker runs under controller load (custom_root_add; cluster_mark_fixed + skip_remove), controller idle reruns on the same product bytes pass / custom_root_add / custom_root_add + group_detail. custom_root_add is exempt from 50 ms by desktop-v1 SERVICE.md line 46 but the test call() helper times it; first group_detail of the 10k group has too little margin"
+        },
+        {
+          "id": "WATER-W10-M7-ADDENDUM-03",
+          "ticket": "docs/dispatch/tickets/WATER-W10-M7-ADDENDUM-03-20261106.md",
+          "status": "READY",
+          "issuedAt": "2026-11-06T11:28:59Z",
+          "resumeFromCommit": "658c281ae891161e6b9840fb0024fb7a13db4607",
+          "change": "sixth allowed old-expectation change: call() skips the 50 ms assertion for custom_root_add only (desktop-v1 SERVICE.md line 46); first group_detail of the 10k group at most 30 ms in 5 local idle measurements, byte-identical output; check skip_remove and cluster_mark_fixed for work under the state lock; three consecutive green full tests before the negative controls, then finals, real and archive"
         }
       ]
     },

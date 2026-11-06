@@ -411,3 +411,13 @@ M6 补单 02 交回（`3d5e01a7`）：三个 final 重跑通过，负控与总�
 ```text
 WATER-W10-M6 补单 03（修两处卡死、七处小错与三处样子，补写回执，中门）：读 F:/new/smaltalk/water/docs/dispatch/tickets/WATER-W10-M6-ADDENDUM-03-20261106.md，按其中列出的顺序读原单、补单 01、02、本补单、你的回执与总控验收记录，在 F:/new/smaltalk/water/.worktrees/w10-m6（分支 worker/water-w10-m6）从 3d5e01a7 续做；做完、提交并交回回执；受阻就停下写受阻回执。
 ```
+
+### M7 补单 03（2026-11-06）
+
+M7 补单 02 由 Grok 续做（sol 先接到时发现工作树里有不是自己的未提交改动，停下，回执 `4566dd8c`），实现 `4d146934` 把汇总行改成用到才算，“排除规模”回到 27.6 ms。但完整测试仍不稳（回执 `658c281a`）。总控空闲时重跑三次：一绿两红，失败多是 `custom_root_add`。而旧契约 desktop-v1 SERVICE 第 46 行本就规定这个命令不受 50 ms 限制（要等用户在选择框里操作），是测试的 `call()` 卡多了；另有一次一万项分组首次 `group_detail` 超时，需要再提速。[补单 03](../tickets/WATER-W10-M7-ADDENDUM-03-20261106.md) 准许 `call()` 对 `custom_root_add` 不计时，要求首次 `group_detail` 在 30 ms 内，并且连续三次全绿再做负控。
+
+**WATER-W10-M7 补单 03**
+
+```text
+WATER-W10-M7 补单 03（custom_root_add 不计 50 ms，一万项分组首次打开再提速，轻门）：读 F:/new/smaltalk/water/docs/dispatch/tickets/WATER-W10-M7-ADDENDUM-03-20261106.md，按其中列出的顺序读原单、补单 01、02、本补单与你的回执，在 F:/new/smaltalk/water/.worktrees/w10-m7（分支 worker/water-w10-m7）从 658c281a 续做；做完、提交并交回回执；受阻就停下写受阻回执。
+```
