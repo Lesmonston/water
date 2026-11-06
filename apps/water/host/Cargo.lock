@@ -3653,6 +3653,14 @@ dependencies = [
 ]
 
 [[package]]
+name = "water-cleanup-manifest"
+version = "0.1.0"
+dependencies = [
+ "serde",
+ "serde_json",
+]
+
+[[package]]
 name = "water-contracts"
 version = "0.1.0"
 dependencies = [
@@ -3674,6 +3682,22 @@ dependencies = [
  "water-process-scan",
  "water-scope-registry",
  "water-service",
+]
+
+[[package]]
+name = "water-dup-finder"
+version = "0.1.0"
+dependencies = [
+ "serde",
+ "serde_json",
+]
+
+[[package]]
+name = "water-installed-apps"
+version = "0.1.0"
+dependencies = [
+ "serde",
+ "serde_json",
 ]
 
 [[package]]
@@ -3740,6 +3764,9 @@ version = "0.1.0"
 dependencies = [
  "serde",
  "serde_json",
+ "water-cleanup-manifest",
+ "water-dup-finder",
+ "water-installed-apps",
  "water-junk-clean",
  "water-junk-rules",
  "water-junk-scan",
