@@ -1,6 +1,6 @@
 WATER-W10-M1 任务已完成，任务报告在 F:/new/smaltalk/water/.worktrees/w10-m1/docs/dispatch/reports/WATER-W10-M1-REPORT.md
 
-当前交回为文末“补单 03”。原有各节保留在下，属于历史状态。
+当前交回为文末“补单 04”。原有各节保留在下，属于历史状态。
 
 ## 身份与交回范围
 
@@ -637,3 +637,50 @@ Archive: 342 entries, 9063332 bytes. All sizes/SHA-256 verified.
 未建物理夹具、删除真实数据、列出或读取真实文件内容；无窗口、选择框、浏览器、联网下载或新系统函数。依赖、Cargo.lock、其它包、契约、检查器、台账、Git 配置与远端均未改；未 push、merge 或改写历史。
 
 未验证本机 Jest 实际缓存命中、实际扫描/清理、M1/M2/M7 集成或 macOS。本单交回 SUBMITTED，验收由总控完成。报告与证据提交并核对干净后，才开始 M2 补单 01；本树不再启动测试或后台进程。
+
+## 补单 04（2026-11-06）：完成，交回 SUBMITTED
+
+- 实际模型：GPT-6（Codex，运行环境未提供更细型号）；未使用子代理。
+- 工作树 / 分支：`F:/new/smaltalk/water/.worktrees/w10-m1` / `worker/water-w10-m1`。
+- 续做起点：`2fd789d84177398f97cef2128c1326d4725697a8`，开工干净；按指定顺序读原票、规则、契约、补单 01～03、补单 04 与历史回执。原票 baseline 已通过，本次不重跑。
+- 实现提交：`2d1c71b7d7d988a70f209753a571f964f30be6e5`。仅两处指定改动；原有提交与证据保留，后续提交仅含回执与归档。
+
+### 两处改动
+
+1. `packages/junk-rules/rules/windows.json:5210`：`jianying-cache` 第二个定位从 `["JianyingPro", "User Data", "CEF Cache"]` 改为 `["JianyingPro", "User Data", "CEF", "Cache"]`；第一个定位与全部其它规则不变。
+2. `packages/junk-rules/tests/rules_v1.rs:708`：种子表第二个定位从 `JianyingPro/User Data/CEF Cache` 改为 `JianyingPro/User Data/CEF/Cache`。没有修改其它期望或测试。
+
+补单 03 中将 `CEF Cache` 当作真实单段名字的历史判断由本补单纠正；其它含空格段照补单保留。冻结 SPEC 未改。
+
+### 检查命令与结果
+
+全部在 M1 工作树根执行，共同前缀为 `node F:/new/smaltalk/water/scripts/checkup-wave-check.mjs --task WATER-W10-M1`。下表 receipt 名省略 `2026-11-06T` 与 `-result.json`；完整命令、时间与日志已归档。
+
+| Receipt | 参数 | 结果 |
+|---|---|---|
+| 04-07-55.945Z-3544-test | `--mode test` | 先改期望：退出 1，四测 3 过 1 失败；编译成功，`RULES_M35_SEEDS: locator` 精确指出旧单段与新两段不一致 |
+| 04-08-25.343Z-15448-lock | `--mode lock` | 退出 0，依赖与锁不变 |
+| 04-08-37.405Z-15908-test | `--mode test` | 修正规则后退出 0，精确四测通过 |
+| 04-09-10.442Z-28996-red-nc1 | `--mode red-nc1` | 退出 0，有效目标红，Cargo 101 |
+| 04-09-45.335Z-32400-test | `--mode test` | nc1 恢复后退出 0，四测通过 |
+| 04-10-06.912Z-14956-red-nc2 | `--mode red-nc2` | 退出 0，有效目标红，Cargo 101 |
+| 04-10-28.856Z-9528-test | `--mode test` | nc2 恢复后退出 0，四测通过 |
+| 04-10-48.972Z-27732-check | `--mode check --final` | 退出 0，源码政策、fmt、clippy -D warnings 通过 |
+| 04-11-13.461Z-22740-test | `--mode test --final` | 退出 0，四测通过；proofAudit 选用本轮上述两组严格串行红绿 |
+| 04-11-45.328Z-18620-real | `--mode real --final` | 退出 0，只读存在性冒烟通过 |
+| 04-12-11.380Z-33196-archive | `--mode archive` | 退出 0；累计 735 个条目、20,742,313 字节；逐条长度与 SHA-256 复核通过 |
+
+三个 final 均绑定干净实现提交 `2d1c71b7d7d988a70f209753a571f964f30be6e5`。`git diff --check` 通过。只读查找不存在的 `index.json` 曾失败，实际归档索引为 `ARCHIVE.json`，已据此完成复核；无产品影响。
+
+### 负控与恢复哈希
+
+- nc1 只在 `src/plan.rs` 默认入口把 `PlanOptions::default()` 换为 claude-code / 30 天开关，让默认计划产生会话目标；命中 `RULES_M35_SESSIONS: default off`（另有新种子总数标记），非编译错误或超时。
+- nc2 只把 custom_discovery 的名字过滤改为 `name.eq_ignore_ascii_case(allowed) || !allowed.is_empty()`；命中 `RULES_M35_FIELDS: discovery name filter`（另有新种子总数标记）。未修改测试造红。
+- 每条负控退出后立即 `git checkout -- packages/junk-rules/src/plan.rs`，再独立运行 `--mode test`；两次恢复 SHA-256 均为 `66e2ea0ed0c0b0429d1081ee85d129edbe1c429a17035b7451d8e0b46aa17d1f`，与干净实现一致。
+- 最终 `windows.json` SHA-256：`3ee42a081ab6e8b746321ee4e05be8ddb66aef8e8aa9495eb4671e219393fa6e`；`rules_v1.rs`：`3fc4de7e59caf2702c10f6020924e6a597fde9d8ab35b7d4cccf1817ae0a9b09`。
+
+### 真实冒烟、边界与未验证项
+
+冒烟只输出计数与布尔值：`base_present_count: 87`、`literal_prefix_present_count: 70`、`rule_count: 110`、`system_drive_exists: true`。它不证明本机剪映缓存实际命中；未列真实目录或读真实文件内容。
+
+未建物理夹具、删除真实数据、打开窗口/选择框/浏览器、下载依赖、添加系统函数；未改契约、检查器、台账、其它包、Git 配置或远端，未 push、合主线或改写历史。未验证真实清理、M1/M2/M7 集成或 macOS。回执与证据提交并核实干净后交回本单，再开始 M2 补单 02；M1 不再运行测试或后台进程。
