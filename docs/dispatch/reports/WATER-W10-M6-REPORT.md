@@ -83,3 +83,72 @@ AssertionError [ERR_ASSERTION]: styles/tokens.css must equal the design tokens b
 - 实际启动浏览器 0、原生窗口 0、选择框 0；没有本次自有后台进程。
 - 未读取真实用户数据，未扫描或清理真实文件，未造删除夹具，未下载、联网查资料或运行 Cargo。
 - 未 push、merge、改写历史、修改 Git 配置、契约、设计稿、台账或其它包；没有产品实现与平台验收结论。
+
+## 补单 01（2026-11-06）：预览阻塞已解除，发现整组跳过的契约缺口
+
+本节是从 `920afafa68099da57d1d3385ca3e7585bb6bbfa7` 续做的记录；上面各节是原单历史，按补单要求保留。状态仍为**任务受阻**，原因已经变化。
+
+### 续做核对与已完成阅读
+
+- 实际执行者仍为 Codex（系统标识 GPT-6，具体模型快照未提供），没有子代理。
+- 已按顺序读取权威原单、补单 01、自己的原回执。工作树、分支正确，续做 HEAD 为 `920afafa68099da57d1d3385ca3e7585bb6bbfa7`，开始时干净。
+- 补单 01 已解除“必须先开浏览器看设计”的冲突。这次使用图片查看工具，逐张看过 v3 的 `home`、`scan`、`results`、`drawer`、`confirm`、`done`、`quarantine`、`trends`、`history`、`settings`、`dedupe` 十一张原截图，没有启动浏览器。
+- 已读取 v3 mockup 的样式、图表脚本及部分页面源码；整份输出的中段被截断，未把它记作源码全部读完。v3 DESIGN、工作规则与 UI-M35 全文沿用原单已经读过的内容。
+- 继续核对 v2 行为规则、IPC-M35、IPC-M3C、IPC 与旧 UI 约束，以及本次相关夹具与计划条目时，发现下述接口缺口。为核实缺口，只读查看 SERVICE-M35、HOST-M35 相关条款与既有 `skip_add` 实现。完整先读清单尚未完成，未开始产品实现。
+
+### 新阻塞：卡片和汇总行要求“以后都跳过”，接口只有单项跳过
+
+要求与接口的具体冲突如下（路径均相对 Water 项目根，权威文件也在主树核对过）：
+
+| 来源 | 当前冻结内容 |
+|---|---|
+| `contracts/m35-v1/UI-M35.md:41`，第 3 节 3.4 行 | 每个抽屉汇总行的菜单有“以后都跳过”，命令列为 `skip_add` |
+| `docs/design/water-ui-v2/DESIGN.md` 第 3.3、3.4、3.12 节 | 判断卡有“以后都跳过”；一行汇总可以整行“以后都跳过” |
+| `contracts/m35-v1/IPC-M35.md:104` | `Card.menu` 的 `skip` 对应“以后都跳过”；Card 给出 `group_id`，没有条目 ID |
+| `contracts/m3c-v1/IPC-M3C.md:19`、第 3 节 | `skip_add` 只收 `{itemId}`，必须是最新扫描中的单个条目；跳过只匹配该条目的完整路径，不连带上级或下级；跳过名单至多 64 条 |
+| `contracts/m35-v1/IPC-M35.md` 第 1、10 节 | 原 19 个命令旧形状和语义不变；新增 17 个命令没有组级或汇总行级跳过命令，也没有扩展 `skip_add` |
+| `contracts/m35-v1/IPC-M35.md:138`、第 4 节 | `group_items` 最多返回 200 项，无分页参数或游标 |
+| `contracts/m35-v1/SERVICE-M35.md:40` | “原有的类别、自选位置、跳过名单不变” |
+| `contracts/m35-v1/SERVICE-M35.md:135`～143 | 汇总行 ID 为 `r:` 加哈希，合并行的 row ID 为组 ID；只有一项一行的情况才是条目 ID |
+
+**冻结样例里的具体反例**：`contracts/m35-v1/ui-fixtures-m35.json` 的 `v2_group_detail_rows` 是 `system-temp-old`，共 8,470 项，其中可选汇总行：
+
+```text
+row_id: r:f1c74035973ccb9f
+label_zh: *.tmp 文件 × 6,120
+count: 6120
+selectable: true
+expandable: true
+```
+
+这一行只给 `row_id`，没有 `item_id` 或 `item_ids`。`v2_conclusion_typical.cards` 的五张卡也都给了 `skip` 菜单，但只提供 `group_id`。
+
+不能在现有契约下把这些操作实现为“全部以后跳过”：
+
+1. 把 `row_id` / `group_id` 当 `itemId` 发送，会违反单项 ID 语义；既有 `packages/water-service/src/service.rs:671` 的 `add_skip()` 用 `item_index(item_id)` 查单个条目，查不到就 `invalid`，第 700 行还执行 64 条上限。
+2. 先调 `group_items` 再遍历 `skip_add`，最多取得 200 项，无法取得示例中的 6,120 项；即便全拿到，也超出 64 条上限，且中途失败会留下部分跳过。
+3. `conclusion_decide {row, include:false}` / `{group, choice:"keep"}` 是本次决定，不能冒充永久跳过。
+4. 不能从显示路径推导父目录发送，也不能擅自把行为降级为只跳过显示的前几项。
+
+这个缺口不是补单 01 所说的“换完令牌后旧页面暂时难看或测试变红”。它是 UI 要求与冻结 IPC/服务语义不一致；M6 仅获准改 UI，不能自行添加接口或改服务。因此依据执行者规则第 2 节“契约冲突或缺东西时写受阻回执，不要自行变通”停止。
+
+### 最小补充需求
+
+请总控冻结一种一致的处理方式，并同步本票相关规则和夹具：
+
+- 范围较小的修订：本波“以后都跳过”仅出现在已经取得真实 `item_id` 的逐项菜单；卡片与汇总行只提供查看/展开入口。明确这替代 v2 的整组、整行跳过要求，并修订 Card.menu 的 `skip` 含义或样例。
+- 若仍要求整组、整行永久跳过：需要给 IPC、宿主和服务补充按组/行 ID 跳过的协议，冻结版本绑定、64 条上限与原子失败语义、未来新成员是否跳过，并给对应样例与测试。M6 再消费该协议。
+
+由总控选择并发正式补单；执行者没有自行选择产品行为，也没有向用户请求临时放宽权限。
+
+### 本次检查、改动与未验证项
+
+- `git status --short`：空；`git branch --show-current`：`worker/water-w10-m6`；`git rev-parse HEAD`：上述续做提交。
+- Node 只读解析冻结 JSON，输出并核对上述组 ID、总项数、6,120 项汇总行、对象键集和五张卡的 `skip` 菜单；没有造夹具、没有调用服务。
+- `rg` 核对 M35 契约、补单与 M3C 契约中的全部 `skip_add` / 跳过条款，未找到组级跳过扩展；只读查看服务的单项查找与 64 条拒绝分支。
+- `git diff --exit-code 920afafa68099da57d1d3385ca3e7585bb6bbfa7 -- apps/water/ui`：退出码 0。
+- 实现提交 SHA：无。本次仅追加这一节回执；原证据不变，没有新的正式检查器证据需要归档。
+- 没有重跑要求精确首次 HEAD 的 baseline；没有运行 check、test、browser、负控、final 或 archive。
+- 未进入动手阶段，因此没有换令牌、改旧断言或做半成品页面。SPEC 1～8 的产品实现、三条负控、25 张截图与逐张差异仍未完成。
+- 没有浏览器、原生窗口、选择框、自有后台进程；没有扫描真实数据、删除文件、联网、下载或 Cargo。
+- 没有修改契约、设计稿、台账、检查器、其它包或 Git 配置；没有 push、merge 或改写历史。
