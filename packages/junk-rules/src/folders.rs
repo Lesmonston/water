@@ -94,6 +94,7 @@ impl KnownFolders {
             KnownFolder::Windows => &self.windows,
             KnownFolder::ProgramData => &self.program_data,
             KnownFolder::Downloads => &self.downloads,
+            KnownFolder::SystemDrive => &self.windows[..3],
         }
     }
 

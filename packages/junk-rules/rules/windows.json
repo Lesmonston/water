@@ -1,6 +1,6 @@
 {
   "rules_version": "water.junk-rules.v1",
-  "data_version": "2026-11-02.1",
+  "data_version": "2026-11-02.2",
   "rules": [
     {
       "rule_id": "codex-marketplace-staging",
@@ -44,7 +44,8 @@
           "ref": "agent-era-disk-junk-cleanup",
           "checked_on": "2026-10-26"
         }
-      ]
+      ],
+      "git_is_copy": true
     },
     {
       "rule_id": "codex-runtimes",
@@ -67,7 +68,7 @@
       "min_age_hours": 24,
       "keep_newest": 1,
       "in_use": {
-        "mode": "none",
+        "mode": "runs_from_or_references_item",
         "processes": []
       },
       "growth": "slow",
@@ -86,7 +87,8 @@
           "ref": "agent-era-disk-junk-cleanup",
           "checked_on": "2026-10-26"
         }
-      ]
+      ],
+      "in_use_zh": "关掉 Codex 后可清"
     },
     {
       "rule_id": "claude-desktop-old-versions",
@@ -129,7 +131,8 @@
           "ref": "agent-era-disk-junk-cleanup",
           "checked_on": "2026-10-26"
         }
-      ]
+      ],
+      "in_use_zh": "关掉 Claude 后可清"
     },
     {
       "rule_id": "claude-desktop-packages",
@@ -318,6 +321,34 @@
           "segments": [
             "puppeteer_dev_profile-*"
           ]
+        },
+        {
+          "kind": "pattern",
+          "base": "system_temp",
+          "segments": [
+            "scoped_dir*"
+          ]
+        },
+        {
+          "kind": "pattern",
+          "base": "system_temp",
+          "segments": [
+            "*chrome_profile*"
+          ]
+        },
+        {
+          "kind": "pattern",
+          "base": "user_temp",
+          "segments": [
+            "scoped_dir*"
+          ]
+        },
+        {
+          "kind": "pattern",
+          "base": "user_temp",
+          "segments": [
+            "*chrome_profile*"
+          ]
         }
       ],
       "item_type": "dir",
@@ -347,7 +378,8 @@
           "ref": "agent-era-disk-junk-cleanup",
           "checked_on": "2026-10-26"
         }
-      ]
+      ],
+      "in_use_zh": "测试结束、浏览器关掉后可清"
     },
     {
       "rule_id": "claude-code-sessions",
@@ -388,7 +420,8 @@
           "ref": "agent-era-disk-junk-cleanup",
           "checked_on": "2026-10-26"
         }
-      ]
+      ],
+      "retention_zh": "Claude Code 默认删除 30 天前的会话"
     },
     {
       "rule_id": "claude-code-file-history",
@@ -604,7 +637,8 @@
           "ref": "2026-10-26 总控本机只读摸底",
           "checked_on": "2026-10-26"
         }
-      ]
+      ],
+      "in_use_zh": "关掉 Chrome 后可清"
     },
     {
       "rule_id": "edge-cache",
@@ -656,7 +690,8 @@
           "ref": "2026-10-26 总控本机只读摸底",
           "checked_on": "2026-10-26"
         }
-      ]
+      ],
+      "in_use_zh": "关掉 Edge 后可清"
     },
     {
       "rule_id": "brave-cache",
@@ -708,7 +743,8 @@
           "ref": "2026-10-26 总控本机只读摸底",
           "checked_on": "2026-10-26"
         }
-      ]
+      ],
+      "in_use_zh": "关掉 Brave 后可清"
     },
     {
       "rule_id": "chrome-code-gpu-cache",
@@ -823,7 +859,8 @@
           "ref": "2026-10-26 总控本机只读摸底",
           "checked_on": "2026-10-26"
         }
-      ]
+      ],
+      "in_use_zh": "关掉 Chrome 后可清"
     },
     {
       "rule_id": "edge-code-gpu-cache",
@@ -938,7 +975,8 @@
           "ref": "2026-10-26 总控本机只读摸底",
           "checked_on": "2026-10-26"
         }
-      ]
+      ],
+      "in_use_zh": "关掉 Edge 后可清"
     },
     {
       "rule_id": "brave-code-gpu-cache",
@@ -1053,7 +1091,8 @@
           "ref": "2026-10-26 总控本机只读摸底",
           "checked_on": "2026-10-26"
         }
-      ]
+      ],
+      "in_use_zh": "关掉 Brave 后可清"
     },
     {
       "rule_id": "chrome-service-worker-cache",
@@ -1107,7 +1146,8 @@
           "ref": "2026-10-26 总控本机只读摸底",
           "checked_on": "2026-10-26"
         }
-      ]
+      ],
+      "in_use_zh": "关掉 Chrome 后可清"
     },
     {
       "rule_id": "edge-service-worker-cache",
@@ -1161,7 +1201,8 @@
           "ref": "2026-10-26 总控本机只读摸底",
           "checked_on": "2026-10-26"
         }
-      ]
+      ],
+      "in_use_zh": "关掉 Edge 后可清"
     },
     {
       "rule_id": "brave-service-worker-cache",
@@ -1215,7 +1256,8 @@
           "ref": "2026-10-26 总控本机只读摸底",
           "checked_on": "2026-10-26"
         }
-      ]
+      ],
+      "in_use_zh": "关掉 Brave 后可清"
     },
     {
       "rule_id": "chrome-crash-reports",
@@ -2515,7 +2557,8 @@
           "ref": "agent-era-disk-junk-cleanup",
           "checked_on": "2026-10-26"
         }
-      ]
+      ],
+      "advice_zh": "Chrome 设置 › 系统 › 关掉“设备端 AI”，Chrome 会自己删掉它。"
     },
     {
       "rule_id": "firefox-cache",
@@ -2556,7 +2599,8 @@
           "ref": "2026-10-26 总控本机只读摸底",
           "checked_on": "2026-10-26"
         }
-      ]
+      ],
+      "in_use_zh": "关掉 Firefox 后可清"
     },
     {
       "rule_id": "electron-app-cache",
@@ -2626,8 +2670,9 @@
       "min_age_hours": 1,
       "keep_newest": 0,
       "in_use": {
-        "mode": "none",
-        "processes": []
+        "mode": "runs_from_or_references_item",
+        "processes": [],
+        "root_levels": 1
       },
       "growth": "slow",
       "what_zh": "许多桌面应用内嵌的网页引擎留下的缓存目录。",
@@ -2640,7 +2685,8 @@
           "ref": "2026-10-26 总控本机只读摸底",
           "checked_on": "2026-10-26"
         }
-      ]
+      ],
+      "in_use_zh": "关掉对应的程序后可清"
     },
     {
       "rule_id": "app-logs",
@@ -2897,7 +2943,8 @@
           "ref": "https://learn.microsoft.com/windows/deployment/do/delivery-optimization-workflow",
           "checked_on": "2026-10-26"
         }
-      ]
+      ],
+      "advice_zh": "设置 › 系统 › 存储 › 临时文件，勾选“传递优化文件”后删除。"
     },
     {
       "rule_id": "windows-update-download",
@@ -2965,7 +3012,8 @@
           "ref": "2026-10-26 总控本机只读摸底",
           "checked_on": "2026-10-26"
         }
-      ]
+      ],
+      "age_basis": "latest_created_or_modified"
     },
     {
       "rule_id": "user-temp-old",
@@ -2997,7 +3045,8 @@
           "ref": "2026-10-26 总控本机只读摸底",
           "checked_on": "2026-10-26"
         }
-      ]
+      ],
+      "age_basis": "latest_created_or_modified"
     },
     {
       "rule_id": "npm-cache",
@@ -3421,27 +3470,59 @@
           "kind": "pattern",
           "base": "system_temp",
           "segments": [
-            "jest"
+            "jest",
+            "*"
+          ]
+        },
+        {
+          "kind": "pattern",
+          "base": "system_temp",
+          "segments": [
+            "haste-map-*"
+          ]
+        },
+        {
+          "kind": "pattern",
+          "base": "system_temp",
+          "segments": [
+            "metro-*"
           ]
         },
         {
           "kind": "pattern",
           "base": "user_temp",
           "segments": [
-            "jest"
+            "jest",
+            "*"
+          ]
+        },
+        {
+          "kind": "pattern",
+          "base": "user_temp",
+          "segments": [
+            "haste-map-*"
+          ]
+        },
+        {
+          "kind": "pattern",
+          "base": "user_temp",
+          "segments": [
+            "metro-*"
           ]
         }
       ],
-      "item_type": "dir",
-      "min_age_hours": 1,
+      "item_type": "any",
+      "min_age_hours": 168,
       "keep_newest": 0,
       "in_use": {
-        "mode": "none",
-        "processes": []
+        "mode": "cmdline_references_item",
+        "processes": [
+          "node.exe"
+        ]
       },
       "growth": "slow",
       "what_zh": "Jest 为加快测试而留下的转换缓存，每个工作区都可能有一份。",
-      "why_zh": "可以重建。正在跑测试时请先停掉，避免写到一半的目录被清走。",
+      "why_zh": "可以重建。正在跑测试时请先停掉，避免写到一半的目录被清走。缓存有时是源码的唯一副本，一周内用过的不清。",
       "after_zh": "测试还能跑，只是下一次会重新转换，开始会慢一些。",
       "fix_hint_zh": null,
       "sources": [
@@ -3455,7 +3536,8 @@
           "ref": "agent-era-disk-junk-cleanup",
           "checked_on": "2026-10-26"
         }
-      ]
+      ],
+      "in_use_zh": "测试跑完后可清"
     },
     {
       "rule_id": "huggingface-models",
@@ -3907,7 +3989,8 @@
           "ref": "agent-era-disk-junk-cleanup",
           "checked_on": "2026-10-26"
         }
-      ]
+      ],
+      "in_use_zh": "关掉无头浏览器后可清"
     },
     {
       "rule_id": "node-modules",
@@ -4276,7 +4359,8 @@
           "ref": "2026-10-28 总控本机只读核查：.local/share/claude 共 718 MB，versions 下有 2.1.285、2.1.287、2.1.296，各约 245 MB。",
           "checked_on": "2026-10-28"
         }
-      ]
+      ],
+      "in_use_zh": "关掉 Claude 后可清"
     },
     {
       "rule_id": "cursor-compile-cache",
@@ -4436,8 +4520,9 @@
       "min_age_hours": 168,
       "keep_newest": 0,
       "in_use": {
-        "mode": "none",
-        "processes": []
+        "mode": "runs_from_or_references_item",
+        "processes": [],
+        "root_levels": 2
       },
       "growth": "slow",
       "what_zh": "各个 Agent 工具自己的运行日志。",
@@ -4465,7 +4550,8 @@
           "ref": "https://docs.github.com/en/copilot/reference/copilot-cli-reference/cli-config-dir-reference",
           "checked_on": "2026-10-28"
         }
-      ]
+      ],
+      "in_use_zh": "关掉对应的工具后可清"
     },
     {
       "rule_id": "electron-gpu-caches",
@@ -4543,8 +4629,9 @@
       "min_age_hours": 1,
       "keep_newest": 0,
       "in_use": {
-        "mode": "none",
-        "processes": []
+        "mode": "runs_from_or_references_item",
+        "processes": [],
+        "root_levels": 1
       },
       "growth": "slow",
       "what_zh": "桌面应用网页引擎生成的显卡着色器缓存，用来加快画面显示。",
@@ -4557,7 +4644,8 @@
           "ref": "2026-10-28 总控本机只读体检：应用的显卡着色器缓存目录共 41 个，约 45 MB，其中可清的 34 个。",
           "checked_on": "2026-10-28"
         }
-      ]
+      ],
+      "in_use_zh": "关掉对应的程序后可清"
     },
     {
       "rule_id": "grok-other-homes",
@@ -4903,6 +4991,1487 @@
           "checked_on": "2026-10-28"
         }
       ]
+    },
+    {
+      "rule_id": "chromium-partition-cache",
+      "title_zh": "桌面程序的分区网页缓存",
+      "owner_zh": "桌面程序",
+      "category": "app_leftover",
+      "level": "recommended",
+      "locate": [
+        {
+          "kind": "pattern",
+          "base": "roaming_app_data",
+          "segments": [
+            "*",
+            "Partitions",
+            "*",
+            "Cache"
+          ]
+        },
+        {
+          "kind": "pattern",
+          "base": "roaming_app_data",
+          "segments": [
+            "*",
+            "Partitions",
+            "*",
+            "Code Cache"
+          ]
+        },
+        {
+          "kind": "pattern",
+          "base": "roaming_app_data",
+          "segments": [
+            "*",
+            "Partitions",
+            "*",
+            "GPUCache"
+          ]
+        },
+        {
+          "kind": "pattern",
+          "base": "local_app_data",
+          "segments": [
+            "*",
+            "Partitions",
+            "*",
+            "Cache"
+          ]
+        },
+        {
+          "kind": "pattern",
+          "base": "local_app_data",
+          "segments": [
+            "*",
+            "Partitions",
+            "*",
+            "Code Cache"
+          ]
+        },
+        {
+          "kind": "pattern",
+          "base": "local_app_data",
+          "segments": [
+            "*",
+            "Partitions",
+            "*",
+            "GPUCache"
+          ]
+        }
+      ],
+      "item_type": "dir",
+      "min_age_hours": 1,
+      "keep_newest": 0,
+      "in_use": {
+        "mode": "runs_from_or_references_item",
+        "processes": [],
+        "root_levels": 3
+      },
+      "growth": "slow",
+      "what_zh": "微信开发者工具、QQ 等桌面程序在各个分区里存下的网页缓存。",
+      "why_zh": "只认网页、代码和图形缓存；登录信息与网站存储不在这里。对应程序在运行时跳过。",
+      "after_zh": "下次打开网页可能慢一点，程序会重新生成缓存。",
+      "fix_hint_zh": null,
+      "sources": [
+        {
+          "kind": "local_observation",
+          "ref": "C7、C13（微信开发者工具 68 个 4.12 GB，QQ）",
+          "checked_on": "2026-11-02"
+        }
+      ],
+      "in_use_zh": "关掉对应的程序后可清"
+    },
+    {
+      "rule_id": "steam-html-cache",
+      "title_zh": "Steam 内置网页缓存",
+      "owner_zh": "Steam",
+      "category": "app_leftover",
+      "level": "recommended",
+      "locate": [
+        {
+          "kind": "pattern",
+          "base": "local_app_data",
+          "segments": [
+            "Steam",
+            "htmlcache",
+            "Default",
+            "Cache"
+          ]
+        },
+        {
+          "kind": "pattern",
+          "base": "local_app_data",
+          "segments": [
+            "Steam",
+            "htmlcache",
+            "Default",
+            "Code Cache"
+          ]
+        },
+        {
+          "kind": "pattern",
+          "base": "local_app_data",
+          "segments": [
+            "Steam",
+            "htmlcache",
+            "Default",
+            "GPUCache"
+          ]
+        }
+      ],
+      "item_type": "dir",
+      "min_age_hours": 1,
+      "keep_newest": 0,
+      "in_use": {
+        "mode": "process_running",
+        "processes": [
+          "steam.exe",
+          "steamwebhelper.exe"
+        ]
+      },
+      "growth": "slow",
+      "what_zh": "Steam 内置网页留下的网页、代码与图形缓存。",
+      "why_zh": "超过一小时的缓存可以重新生成；Steam 或它的网页程序运行时跳过。",
+      "after_zh": "下次打开商店等页面可能慢一点，登录数据不在清理范围内。",
+      "fix_hint_zh": null,
+      "sources": [
+        {
+          "kind": "local_observation",
+          "ref": "C13",
+          "checked_on": "2026-11-02"
+        }
+      ],
+      "in_use_zh": "关掉 Steam 后可清"
+    },
+    {
+      "rule_id": "wegame-browser-cache",
+      "title_zh": "WeGame 内置网页缓存",
+      "owner_zh": "WeGame",
+      "category": "app_leftover",
+      "level": "recommended",
+      "locate": [
+        {
+          "kind": "pattern",
+          "base": "roaming_app_data",
+          "segments": [
+            "Tencent",
+            "WeGame",
+            "qbcore*",
+            "cache"
+          ]
+        }
+      ],
+      "item_type": "dir",
+      "min_age_hours": 1,
+      "keep_newest": 0,
+      "in_use": {
+        "mode": "process_running",
+        "processes": [
+          "wegame.exe"
+        ]
+      },
+      "growth": "slow",
+      "what_zh": "WeGame 内置浏览器留下的网页缓存。",
+      "why_zh": "只清一小时以前的缓存，不包含登录信息；程序运行时跳过。",
+      "after_zh": "下次打开页面会重新生成缓存。",
+      "fix_hint_zh": null,
+      "sources": [
+        {
+          "kind": "local_observation",
+          "ref": "C13",
+          "checked_on": "2026-11-02"
+        }
+      ],
+      "in_use_zh": "关掉 WeGame 后可清"
+    },
+    {
+      "rule_id": "jianying-cache",
+      "title_zh": "剪映缓存",
+      "owner_zh": "剪映",
+      "category": "app_leftover",
+      "level": "recommended",
+      "locate": [
+        {
+          "kind": "pattern",
+          "base": "local_app_data",
+          "segments": [
+            "JianyingPro",
+            "User Data",
+            "Cache"
+          ]
+        },
+        {
+          "kind": "pattern",
+          "base": "local_app_data",
+          "segments": [
+            "JianyingPro",
+            "User Data",
+            "CEF",
+            "Cache"
+          ]
+        }
+      ],
+      "item_type": "dir",
+      "min_age_hours": 1,
+      "keep_newest": 0,
+      "in_use": {
+        "mode": "process_running",
+        "processes": [
+          "jianyingpro.exe"
+        ]
+      },
+      "growth": "slow",
+      "what_zh": "剪映程序的数据目录里留下的网页缓存。",
+      "why_zh": "只清超过一小时的这两个缓存目录，程序运行时跳过。",
+      "after_zh": "下次打开程序可能慢一点，不涉及你的工程文件。",
+      "fix_hint_zh": null,
+      "sources": [
+        {
+          "kind": "local_observation",
+          "ref": "C13",
+          "checked_on": "2026-11-02"
+        }
+      ],
+      "in_use_zh": "关掉剪映后可清"
+    },
+    {
+      "rule_id": "jianying-update-download",
+      "title_zh": "剪映旧更新包",
+      "owner_zh": "剪映",
+      "category": "app_leftover",
+      "level": "recommended",
+      "locate": [
+        {
+          "kind": "pattern",
+          "base": "local_app_data",
+          "segments": [
+            "JianyingPro",
+            "User Data",
+            "Download",
+            "*.exe"
+          ]
+        }
+      ],
+      "item_type": "file",
+      "min_age_hours": 168,
+      "keep_newest": 0,
+      "in_use": {
+        "mode": "process_running",
+        "processes": [
+          "jianyingpro.exe"
+        ]
+      },
+      "growth": "slow",
+      "what_zh": "剪映下载目录中一周以前的程序更新包。",
+      "why_zh": "更新包可以重新下载；程序运行时跳过，只认这个固定下载位置。",
+      "after_zh": "需要旧更新包时要重新下载，不会删除工程。",
+      "fix_hint_zh": null,
+      "sources": [
+        {
+          "kind": "local_observation",
+          "ref": "C14",
+          "checked_on": "2026-11-02"
+        }
+      ],
+      "in_use_zh": "关掉剪映后可清"
+    },
+    {
+      "rule_id": "ubisoft-patch-staging",
+      "title_zh": "Ubisoft 补丁暂存",
+      "owner_zh": "Ubisoft",
+      "category": "app_leftover",
+      "level": "recommended",
+      "locate": [
+        {
+          "kind": "pattern",
+          "base": "program_data",
+          "segments": [
+            "Ubisoft",
+            "Ubisoft Game Launcher",
+            "patch"
+          ]
+        }
+      ],
+      "item_type": "dir",
+      "min_age_hours": 24,
+      "keep_newest": 0,
+      "in_use": {
+        "mode": "process_running",
+        "processes": [
+          "upc.exe",
+          "ubisoftconnect.exe"
+        ]
+      },
+      "growth": "slow",
+      "what_zh": "Ubisoft 启动器留下的补丁暂存目录。",
+      "why_zh": "只清一天以前的暂存，启动器运行时跳过；被占用的文件会留下并报告原因。",
+      "after_zh": "下次更新可能需要重新下载补丁。",
+      "fix_hint_zh": null,
+      "sources": [
+        {
+          "kind": "local_observation",
+          "ref": "C21",
+          "checked_on": "2026-11-02"
+        }
+      ],
+      "in_use_zh": "关掉 Ubisoft 启动器后可清"
+    },
+    {
+      "rule_id": "app-backups",
+      "title_zh": "程序留下的旧备份",
+      "owner_zh": "桌面程序",
+      "category": "app_leftover",
+      "level": "confirm",
+      "locate": [
+        {
+          "kind": "pattern",
+          "base": "roaming_app_data",
+          "segments": [
+            "*",
+            "*.bak-########"
+          ]
+        }
+      ],
+      "item_type": "any",
+      "min_age_hours": 168,
+      "keep_newest": 0,
+      "in_use": {
+        "mode": "none",
+        "processes": []
+      },
+      "growth": "slow",
+      "what_zh": "程序数据目录中名字带备份日期的旧副本。",
+      "why_zh": "同一系列可能只有这一份，不自动保留一份；需要你确认是否还要用。",
+      "after_zh": "先放进隔离区，确认无用后再永久删除。",
+      "fix_hint_zh": null,
+      "sources": [
+        {
+          "kind": "local_observation",
+          "ref": "C17（@mirasim\\desktop.bak-20261009）",
+          "checked_on": "2026-11-02"
+        }
+      ]
+    },
+    {
+      "rule_id": "custom-app-backups",
+      "title_zh": "程序留下的旧备份",
+      "owner_zh": "桌面程序",
+      "category": "custom",
+      "level": "confirm",
+      "locate": [
+        {
+          "kind": "marker",
+          "marker": {
+            "kind": "dir_name_pattern",
+            "patterns": [
+              "*.bak-########",
+              "*-backup-########",
+              "*_backup_########"
+            ]
+          },
+          "max_depth": 3
+        }
+      ],
+      "item_type": "dir",
+      "min_age_hours": 168,
+      "keep_newest": 0,
+      "in_use": {
+        "mode": "none",
+        "processes": []
+      },
+      "growth": "slow",
+      "what_zh": "自选位置中三层以内、名字带备份日期的程序旧副本。",
+      "why_zh": "同系列可能只有一份，不自动保留最新；一周没动也要由你确认。",
+      "after_zh": "先放进隔离区，核对是否仍需恢复后再永久删除。",
+      "fix_hint_zh": null,
+      "sources": [
+        {
+          "kind": "local_observation",
+          "ref": "D10（claude-full-backup-20260820 等）",
+          "checked_on": "2026-11-02"
+        }
+      ]
+    },
+    {
+      "rule_id": "android-avd-snapshots",
+      "title_zh": "安卓模拟器快照",
+      "owner_zh": "安卓模拟器",
+      "category": "dev_cache",
+      "level": "confirm",
+      "locate": [
+        {
+          "kind": "pattern",
+          "base": "user_profile",
+          "segments": [
+            ".android",
+            "avd",
+            "*.avd",
+            "snapshots"
+          ]
+        }
+      ],
+      "item_type": "dir",
+      "min_age_hours": 24,
+      "keep_newest": 0,
+      "in_use": {
+        "mode": "process_running",
+        "processes": [
+          "emulator.exe",
+          "qemu-system-x86_64.exe"
+        ]
+      },
+      "growth": "slow",
+      "what_zh": "安卓模拟器为恢复运行状态保存的快照。",
+      "why_zh": "只列一天以前的快照，模拟器运行时跳过；请确认不再需要恢复这些状态。",
+      "after_zh": "清理时先进隔离区；模拟器退出时可能再存，可用 -no-snapshot 启动。",
+      "fix_hint_zh": null,
+      "sources": [
+        {
+          "kind": "local_observation",
+          "ref": "denglou A4、回执 3.6",
+          "checked_on": "2026-11-02"
+        }
+      ],
+      "in_use_zh": "关掉安卓模拟器后可清"
+    },
+    {
+      "rule_id": "custom-avd-snapshots",
+      "title_zh": "安卓模拟器快照",
+      "owner_zh": "安卓模拟器",
+      "category": "custom",
+      "level": "confirm",
+      "locate": [
+        {
+          "kind": "marker",
+          "marker": {
+            "kind": "dir_name",
+            "names": [
+              "snapshots"
+            ]
+          },
+          "max_depth": 8,
+          "conditions": [
+            {
+              "kind": "path_has_any",
+              "names": [
+                ".avd"
+              ]
+            }
+          ]
+        }
+      ],
+      "item_type": "dir",
+      "min_age_hours": 24,
+      "keep_newest": 0,
+      "in_use": {
+        "mode": "process_running",
+        "processes": [
+          "emulator.exe",
+          "qemu-system-x86_64.exe"
+        ]
+      },
+      "growth": "slow",
+      "what_zh": "安卓模拟器为恢复运行状态保存的快照。",
+      "why_zh": "只列一天以前的快照，模拟器运行时跳过；请确认不再需要恢复这些状态。",
+      "after_zh": "清理时先进隔离区；模拟器退出时可能再存，可用 -no-snapshot 启动。",
+      "fix_hint_zh": null,
+      "sources": [
+        {
+          "kind": "local_observation",
+          "ref": "denglou A4、回执 3.6（F:\\cdisk-cache\\android-avd）",
+          "checked_on": "2026-11-02"
+        }
+      ],
+      "in_use_zh": "关掉安卓模拟器后可清"
+    },
+    {
+      "rule_id": "embedded-browser-cache",
+      "title_zh": "内置浏览器的网页缓存",
+      "owner_zh": "内置浏览器",
+      "category": "custom",
+      "level": "recommended",
+      "locate": [
+        {
+          "kind": "marker",
+          "marker": {
+            "kind": "dir_name",
+            "names": [
+              "Cache",
+              "Code Cache",
+              "GPUCache"
+            ]
+          },
+          "max_depth": 10,
+          "conditions": [
+            {
+              "kind": "parent_has_file",
+              "name": "Preferences"
+            }
+          ]
+        }
+      ],
+      "item_type": "dir",
+      "min_age_hours": 1,
+      "keep_newest": 0,
+      "in_use": {
+        "mode": "runs_from_or_references_item",
+        "processes": [],
+        "root_levels": 2
+      },
+      "growth": "slow",
+      "what_zh": "企业微信等程序的内置浏览器中，旁边有 Preferences 的标准网页缓存目录。",
+      "why_zh": "只认网页、代码与图形缓存；登录数据和网站存储不在这三个目录内，程序运行时跳过。",
+      "after_zh": "下次打开页面可能慢一点，不需要清掉登录状态。",
+      "fix_hint_zh": null,
+      "sources": [
+        {
+          "kind": "local_observation",
+          "ref": "D5（企业微信 12 个）",
+          "checked_on": "2026-11-02"
+        }
+      ],
+      "in_use_zh": "关掉对应的程序后可清"
+    },
+    {
+      "rule_id": "quark-video-cache",
+      "title_zh": "夸克视频缓存",
+      "owner_zh": "夸克",
+      "category": "custom",
+      "level": "recommended",
+      "locate": [
+        {
+          "kind": "marker",
+          "marker": {
+            "kind": "dir_name",
+            "names": [
+              "videoCache"
+            ]
+          },
+          "max_depth": 6,
+          "conditions": [
+            {
+              "kind": "path_has_any",
+              "names": [
+                "quark"
+              ]
+            }
+          ]
+        }
+      ],
+      "item_type": "dir",
+      "min_age_hours": 24,
+      "keep_newest": 0,
+      "in_use": {
+        "mode": "process_running",
+        "processes": [
+          "quark.exe"
+        ]
+      },
+      "growth": "slow",
+      "what_zh": "夸克路径里的视频播放缓存，可能包含稀疏文件。",
+      "why_zh": "只清一天以前的缓存；夸克运行时跳过，不涉及你另存的视频文件。",
+      "after_zh": "下次播放可能重新加载视频缓存。",
+      "fix_hint_zh": null,
+      "sources": [
+        {
+          "kind": "local_observation",
+          "ref": "D2（D:\\ProgramData\\Quark\\videoCache）",
+          "checked_on": "2026-11-02"
+        }
+      ],
+      "in_use_zh": "关掉夸克后可清"
+    },
+    {
+      "rule_id": "app-old-versions",
+      "title_zh": "软件旧版本",
+      "owner_zh": "桌面程序",
+      "category": "custom",
+      "level": "confirm",
+      "locate": [
+        {
+          "kind": "marker",
+          "marker": {
+            "kind": "dir_name_pattern",
+            "patterns": [
+              "#.#*"
+            ]
+          },
+          "max_depth": 4,
+          "conditions": [
+            {
+              "kind": "parent_has_other_match"
+            },
+            {
+              "kind": "parent_has_file_matching",
+              "pattern": "*.exe"
+            }
+          ]
+        }
+      ],
+      "item_type": "dir",
+      "min_age_hours": 168,
+      "keep_newest": 1,
+      "in_use": {
+        "mode": "runs_from_or_references_item",
+        "processes": []
+      },
+      "growth": "slow",
+      "what_zh": "程序旁边存在多个版本号目录时，一周以前的旧版本。",
+      "why_zh": "同一父目录留名字里版本号最大的一个；名字无法证明哪个版本在用，所以需要确认，运行中的会跳过。",
+      "after_zh": "先放进隔离区，核对程序能正常运行后再永久删除。",
+      "fix_hint_zh": null,
+      "sources": [
+        {
+          "kind": "local_observation",
+          "ref": "D4（D:\\quark\\7.1.0.949）",
+          "checked_on": "2026-11-02"
+        }
+      ],
+      "keep_by": "version_name",
+      "in_use_zh": "关掉使用这个版本的程序后可清"
+    },
+    {
+      "rule_id": "app-update-archives",
+      "title_zh": "没装上的更新包",
+      "owner_zh": "桌面程序",
+      "category": "custom",
+      "level": "confirm",
+      "locate": [
+        {
+          "kind": "marker",
+          "marker": {
+            "kind": "file_name",
+            "patterns": [
+              "#.#*.zip"
+            ]
+          },
+          "max_depth": 6,
+          "conditions": [
+            {
+              "kind": "path_has_any",
+              "names": [
+                "versions"
+              ]
+            }
+          ]
+        }
+      ],
+      "item_type": "file",
+      "min_age_hours": 720,
+      "keep_newest": 0,
+      "in_use": {
+        "mode": "none",
+        "processes": []
+      },
+      "growth": "slow",
+      "what_zh": "版本目录里按版本号命名、一个月没动的压缩包，可能是没装上的更新。",
+      "why_zh": "QQ 等程序最新下载的包不一定已经装上；只看名字无法确认，需由你判断。",
+      "after_zh": "先放进隔离区，需要这个更新包时可在永久删除前取回。",
+      "fix_hint_zh": null,
+      "sources": [
+        {
+          "kind": "local_observation",
+          "ref": "D3（QQ versions\\9.9.33-51802.zip）",
+          "checked_on": "2026-11-02"
+        }
+      ]
+    },
+    {
+      "rule_id": "game-logs",
+      "title_zh": "游戏日志",
+      "owner_zh": "英雄联盟",
+      "category": "custom",
+      "level": "recommended",
+      "locate": [
+        {
+          "kind": "marker",
+          "marker": {
+            "kind": "dir_name",
+            "names": [
+              "Logs"
+            ]
+          },
+          "max_depth": 6,
+          "conditions": [
+            {
+              "kind": "parent_has_file_matching",
+              "pattern": "League*Legends.exe"
+            }
+          ]
+        }
+      ],
+      "item_type": "dir",
+      "min_age_hours": 24,
+      "keep_newest": 0,
+      "in_use": {
+        "mode": "runs_from_or_references_item",
+        "processes": [],
+        "root_levels": 1
+      },
+      "growth": "slow",
+      "what_zh": "英雄联盟游戏程序旁边生成的运行日志。",
+      "why_zh": "一天以前的日志通常可以清；游戏目录里有程序运行时跳过。",
+      "after_zh": "无法再用这些旧日志排查历史问题，新日志会继续生成。",
+      "fix_hint_zh": null,
+      "sources": [
+        {
+          "kind": "local_observation",
+          "ref": "F10（F:\\WeGameApps\\lol\\Game\\Logs）",
+          "checked_on": "2026-11-02"
+        }
+      ],
+      "in_use_zh": "关掉英雄联盟后可清"
+    },
+    {
+      "rule_id": "steam-logs",
+      "title_zh": "Steam 日志",
+      "owner_zh": "Steam",
+      "category": "custom",
+      "level": "recommended",
+      "locate": [
+        {
+          "kind": "marker",
+          "marker": {
+            "kind": "dir_name",
+            "names": [
+              "logs"
+            ]
+          },
+          "max_depth": 4,
+          "conditions": [
+            {
+              "kind": "parent_has_file",
+              "name": "steam.exe"
+            }
+          ]
+        }
+      ],
+      "item_type": "dir",
+      "min_age_hours": 24,
+      "keep_newest": 0,
+      "in_use": {
+        "mode": "runs_from_or_references_item",
+        "processes": [],
+        "root_levels": 1
+      },
+      "growth": "slow",
+      "what_zh": "Steam 程序目录旁边生成的运行日志。",
+      "why_zh": "一天以前的日志通常可以清；程序运行或网页子进程引用 Steam 目录时跳过。",
+      "after_zh": "历史排查记录会消失，之后的新日志仍会生成。",
+      "fix_hint_zh": null,
+      "sources": [
+        {
+          "kind": "local_observation",
+          "ref": "D6（D:\\steam\\logs，steamwebhelper.exe 引用时跳过）",
+          "checked_on": "2026-11-02"
+        }
+      ],
+      "in_use_zh": "关掉 Steam 及网页子进程后可清"
+    },
+    {
+      "rule_id": "partial-downloads",
+      "title_zh": "已下载完的分段文件",
+      "owner_zh": "下载工具",
+      "category": "custom",
+      "level": "recommended",
+      "locate": [
+        {
+          "kind": "marker",
+          "marker": {
+            "kind": "file_name",
+            "patterns": [
+              "*.part",
+              "*.crdownload",
+              "*.temp"
+            ]
+          },
+          "max_depth": 8,
+          "conditions": [
+            {
+              "kind": "sibling_without_suffix",
+              "suffixes": [
+                ".part",
+                ".crdownload",
+                ".temp"
+              ]
+            }
+          ]
+        },
+        {
+          "kind": "marker",
+          "marker": {
+            "kind": "dir_name_pattern",
+            "patterns": [
+              "*.parts"
+            ]
+          },
+          "max_depth": 8,
+          "conditions": [
+            {
+              "kind": "sibling_without_suffix",
+              "suffixes": [
+                ".parts"
+              ]
+            }
+          ]
+        }
+      ],
+      "item_type": "any",
+      "min_age_hours": 24,
+      "keep_newest": 0,
+      "in_use": {
+        "mode": "none",
+        "processes": []
+      },
+      "growth": "slow",
+      "what_zh": "下载工具留下的分段文件或分段目录。",
+      "why_zh": "旁边有去掉后缀的同名完整文件，且它不小于分段体量，超过一天才可清。",
+      "after_zh": "保留同名完整文件，分段副本清掉后不能再用来续传。",
+      "fix_hint_zh": null,
+      "sources": [
+        {
+          "kind": "local_observation",
+          "ref": "denglou A2",
+          "checked_on": "2026-11-02"
+        }
+      ]
+    },
+    {
+      "rule_id": "unfinished-downloads",
+      "title_zh": "没下载完的文件",
+      "owner_zh": "下载工具",
+      "category": "custom",
+      "level": "advisory",
+      "locate": [
+        {
+          "kind": "marker",
+          "marker": {
+            "kind": "file_name",
+            "patterns": [
+              "*.part",
+              "*.crdownload",
+              "*.temp"
+            ]
+          },
+          "max_depth": 8,
+          "fallback_for": "partial-downloads"
+        },
+        {
+          "kind": "marker",
+          "marker": {
+            "kind": "dir_name_pattern",
+            "patterns": [
+              "*.parts"
+            ]
+          },
+          "max_depth": 8,
+          "fallback_for": "partial-downloads"
+        }
+      ],
+      "item_type": "any",
+      "min_age_hours": 0,
+      "keep_newest": 0,
+      "in_use": {
+        "mode": "none",
+        "processes": []
+      },
+      "growth": "slow",
+      "what_zh": "名字像下载分段，但没有足够大的同名完整文件作对照。",
+      "why_zh": "可能还没下完或仍需续传，Water 无法仅凭名字确认，所以不提供清理。",
+      "after_zh": "请在下载工具中核对任务状态后决定。",
+      "fix_hint_zh": null,
+      "sources": [
+        {
+          "kind": "local_observation",
+          "ref": "E2（3 个 .temp）",
+          "checked_on": "2026-11-02"
+        }
+      ]
+    },
+    {
+      "rule_id": "installer-files",
+      "title_zh": "安装包",
+      "owner_zh": "软件安装程序",
+      "category": "custom",
+      "level": "confirm",
+      "locate": [
+        {
+          "kind": "marker",
+          "marker": {
+            "kind": "file_name",
+            "patterns": [
+              "*.msi",
+              "*.msix",
+              "*.msixbundle",
+              "*.appx",
+              "*setup*.zip",
+              "*setup*.rar",
+              "*setup*.7z"
+            ]
+          },
+          "max_depth": 3
+        },
+        {
+          "kind": "marker",
+          "marker": {
+            "kind": "file_name",
+            "patterns": [
+              "*#*.exe",
+              "*setup*.exe",
+              "*install*.exe"
+            ]
+          },
+          "max_depth": 3,
+          "conditions": [
+            {
+              "kind": "parent_lacks_file_matching",
+              "pattern": "*.dll"
+            }
+          ]
+        }
+      ],
+      "item_type": "file",
+      "min_age_hours": 168,
+      "keep_newest": 0,
+      "in_use": {
+        "mode": "none",
+        "processes": []
+      },
+      "growth": "slow",
+      "what_zh": "自选位置前三层里一周没动的安装包或安装程序压缩包。",
+      "why_zh": "程序文件要带数字或安装字样，且旁边没有动态库；也可能是单文件工具，需要你确认。",
+      "after_zh": "先放进隔离区，若仍需安装或使用，可在永久删除前取回。",
+      "fix_hint_zh": null,
+      "sources": [
+        {
+          "kind": "local_observation",
+          "ref": "E2（WorkBuddy、CC-Switch、marvis）、D7、D8",
+          "checked_on": "2026-11-02"
+        }
+      ]
+    },
+    {
+      "rule_id": "audition-peak-files",
+      "title_zh": "Audition 波形缓存",
+      "owner_zh": "Adobe Audition",
+      "category": "custom",
+      "level": "recommended",
+      "locate": [
+        {
+          "kind": "marker",
+          "marker": {
+            "kind": "file_name",
+            "patterns": [
+              "*.pkf"
+            ]
+          },
+          "max_depth": 12
+        }
+      ],
+      "item_type": "file",
+      "min_age_hours": 24,
+      "keep_newest": 0,
+      "in_use": {
+        "mode": "none",
+        "processes": []
+      },
+      "growth": "slow",
+      "what_zh": "Audition 为音频显示生成的波形缓存文件。",
+      "why_zh": "一天以前的波形缓存可重新生成；被程序占用的文件会留下并报告原因。",
+      "after_zh": "下次查看波形时可能等待重新生成，原音频不在清理范围内。",
+      "fix_hint_zh": null,
+      "sources": [
+        {
+          "kind": "local_observation",
+          "ref": "E1",
+          "checked_on": "2026-11-02"
+        }
+      ]
+    },
+    {
+      "rule_id": "audition-conformed",
+      "title_zh": "Audition 转换副本",
+      "owner_zh": "Adobe Audition",
+      "category": "custom",
+      "level": "advisory",
+      "locate": [
+        {
+          "kind": "marker",
+          "marker": {
+            "kind": "dir_name",
+            "names": [
+              "Conformed Files"
+            ]
+          },
+          "max_depth": 12
+        }
+      ],
+      "item_type": "dir",
+      "min_age_hours": 0,
+      "keep_newest": 0,
+      "in_use": {
+        "mode": "none",
+        "processes": []
+      },
+      "growth": "slow",
+      "what_zh": "Audition 生成的转换音频副本，工程可能直接引用其中的文件。",
+      "why_zh": "本次清理曾发现工程引用其中五个；Water 不读工程内容，不能断定可删。",
+      "after_zh": "请在工程内核对媒体引用，不提供应用内清理。",
+      "fix_hint_zh": null,
+      "sources": [
+        {
+          "kind": "local_observation",
+          "ref": "E1（工程直接引用其中 5 个）",
+          "checked_on": "2026-11-02"
+        }
+      ]
+    },
+    {
+      "rule_id": "media-render-caches",
+      "title_zh": "视频软件的缓存与代理",
+      "owner_zh": "视频软件",
+      "category": "custom",
+      "level": "advisory",
+      "locate": [
+        {
+          "kind": "marker",
+          "marker": {
+            "kind": "dir_name",
+            "names": [
+              "CacheClip",
+              "ProxyMedia",
+              "OptimizedMedia"
+            ]
+          },
+          "max_depth": 8
+        }
+      ],
+      "item_type": "dir",
+      "min_age_hours": 0,
+      "keep_newest": 0,
+      "in_use": {
+        "mode": "none",
+        "processes": []
+      },
+      "growth": "slow",
+      "what_zh": "达芬奇等视频软件的渲染缓存、代理或优化媒体。",
+      "why_zh": "这些文件可能被工程直接引用；Water 不读工程内容，无法确认可删。",
+      "after_zh": "请从对应软件中管理缓存或代理媒体，不提供应用内清理。",
+      "fix_hint_zh": null,
+      "sources": [
+        {
+          "kind": "local_observation",
+          "ref": "10-29 第 22～27 项（达芬奇）",
+          "checked_on": "2026-11-02"
+        }
+      ]
+    },
+    {
+      "rule_id": "custom-temp-old",
+      "title_zh": "临时文件夹里的旧东西",
+      "owner_zh": "临时文件夹",
+      "category": "custom",
+      "level": "confirm",
+      "locate": [
+        {
+          "kind": "custom_discovery",
+          "root_names": [
+            "tmp",
+            "temp"
+          ]
+        }
+      ],
+      "item_type": "any",
+      "min_age_hours": 168,
+      "keep_newest": 0,
+      "in_use": {
+        "mode": "none",
+        "processes": []
+      },
+      "growth": "slow",
+      "what_zh": "你选的文件夹最后一级名为 tmp 或 temp，其中未被其它规则识别的旧条目。",
+      "why_zh": "修改与创建时间取较晚的一个，一周没动也可能有用，需由你确认。",
+      "after_zh": "先放进隔离区，核对不再需要后再永久删除。",
+      "fix_hint_zh": null,
+      "sources": [
+        {
+          "kind": "local_observation",
+          "ref": "F8（F:\\tmp）",
+          "checked_on": "2026-11-02"
+        }
+      ],
+      "age_basis": "latest_created_or_modified"
+    },
+    {
+      "rule_id": "pagefile",
+      "title_zh": "页面文件",
+      "owner_zh": "Windows",
+      "category": "gpu_system",
+      "level": "advisory",
+      "locate": [
+        {
+          "kind": "pattern",
+          "base": "system_drive",
+          "segments": [
+            "pagefile.sys"
+          ]
+        }
+      ],
+      "item_type": "file",
+      "min_age_hours": 0,
+      "keep_newest": 0,
+      "in_use": {
+        "mode": "none",
+        "processes": []
+      },
+      "growth": "slow",
+      "what_zh": "Windows 在系统盘上用于虚拟内存的页面文件。",
+      "why_zh": "这是系统正在管理的文件，Water 不删除也不替你修改设置。",
+      "after_zh": "按实际内存用量调整上限后需要重启，设置过小可能影响程序。",
+      "fix_hint_zh": null,
+      "sources": [
+        {
+          "kind": "local_observation",
+          "ref": "C22",
+          "checked_on": "2026-11-02"
+        }
+      ],
+      "advice_zh": "设置 › 系统 › 关于 › 高级系统设置 › 虚拟内存，按实际用量设上限；要重启。"
+    },
+    {
+      "rule_id": "grok-home-caches",
+      "title_zh": "Grok 账号目录里的 npm 缓存",
+      "owner_zh": "Grok",
+      "category": "agent_tool",
+      "level": "recommended",
+      "locate": [
+        {
+          "kind": "pattern",
+          "base": "user_profile",
+          "segments": [
+            ".grok#",
+            "AppData",
+            "Local",
+            "npm-cache",
+            "_cacache"
+          ]
+        }
+      ],
+      "item_type": "dir",
+      "min_age_hours": 1,
+      "keep_newest": 0,
+      "in_use": {
+        "mode": "none",
+        "processes": []
+      },
+      "growth": "slow",
+      "what_zh": "Grok 各账号主目录中 npm 下载内容留下的缓存。",
+      "why_zh": "只认账号目录里的这个缓存子目录；账号的会话、登录配置仍受保护。",
+      "after_zh": "下次安装依赖可能重新下载，缓存重新下载不等于能撤销清理。",
+      "fix_hint_zh": null,
+      "sources": [
+        {
+          "kind": "local_observation",
+          "ref": "H5（~\\.grok2\\AppData\\Local\\npm-cache，四个账号 1.46 GB）",
+          "checked_on": "2026-11-02"
+        }
+      ],
+      "unlocks": "grok-other-homes"
+    },
+    {
+      "rule_id": "claude-code-old-sessions",
+      "title_zh": "Claude Code 旧会话",
+      "owner_zh": "Claude Code",
+      "category": "agent_tool",
+      "level": "confirm",
+      "locate": [
+        {
+          "kind": "pattern",
+          "base": "user_profile",
+          "segments": [
+            ".claude",
+            "projects",
+            "*",
+            "*.jsonl"
+          ]
+        },
+        {
+          "kind": "pattern",
+          "base": "user_profile",
+          "segments": [
+            ".claude",
+            "projects",
+            "*",
+            "????????-????-????-????-????????????"
+          ]
+        }
+      ],
+      "item_type": "any",
+      "min_age_hours": 720,
+      "keep_newest": 0,
+      "in_use": {
+        "mode": "runs_from_or_references_item",
+        "processes": []
+      },
+      "growth": "slow",
+      "what_zh": "Claude Code 保存的旧对话及以会话编号命名的附带目录，不包括记忆目录。",
+      "why_zh": "只有打开本工具的会话清理开关才会列出；近期写入按年龄门槛保留，从条目内运行或引用它时跳过。",
+      "after_zh": "清掉后这些对话不能再续接或回看；可选择直接删除，或先隔离并试着继续对话后再决定。",
+      "fix_hint_zh": null,
+      "sources": [
+        {
+          "kind": "local_observation",
+          "ref": "ADR-019 第 5 节、H1",
+          "checked_on": "2026-11-02"
+        }
+      ],
+      "session_tool": "claude-code",
+      "unlocks": "claude-code-sessions",
+      "in_use_zh": "关掉 Claude Code 后可清",
+      "retention_zh": "Claude Code 默认删除 30 天前的会话"
+    },
+    {
+      "rule_id": "codex-old-sessions",
+      "title_zh": "Codex 旧会话",
+      "owner_zh": "Codex",
+      "category": "agent_tool",
+      "level": "confirm",
+      "locate": [
+        {
+          "kind": "pattern",
+          "base": "user_profile",
+          "segments": [
+            ".codex*",
+            "sessions",
+            "#",
+            "#",
+            "#",
+            "rollout-*"
+          ]
+        }
+      ],
+      "item_type": "file",
+      "min_age_hours": 720,
+      "keep_newest": 0,
+      "in_use": {
+        "mode": "runs_from_or_references_item",
+        "processes": []
+      },
+      "growth": "slow",
+      "what_zh": "Codex 保存的旧对话记录。",
+      "why_zh": "只有打开本工具的会话清理开关才会列出；近期写入按年龄门槛保留，从条目内运行或引用它时跳过。",
+      "after_zh": "清掉后这些对话不能再续接或回看；可选择直接删除，或先隔离并试着继续对话后再决定。",
+      "fix_hint_zh": null,
+      "sources": [
+        {
+          "kind": "local_observation",
+          "ref": "ADR-019 第 5 节、H1",
+          "checked_on": "2026-11-02"
+        }
+      ],
+      "session_tool": "codex",
+      "unlocks": "codex-sessions",
+      "in_use_zh": "关掉 Codex 后可清"
+    },
+    {
+      "rule_id": "cursor-old-chats",
+      "title_zh": "Cursor 旧聊天",
+      "owner_zh": "Cursor",
+      "category": "agent_tool",
+      "level": "confirm",
+      "locate": [
+        {
+          "kind": "pattern",
+          "base": "user_profile",
+          "segments": [
+            ".cursor",
+            "chats",
+            "*"
+          ]
+        }
+      ],
+      "item_type": "dir",
+      "min_age_hours": 720,
+      "keep_newest": 0,
+      "in_use": {
+        "mode": "runs_from_or_references_item",
+        "processes": []
+      },
+      "growth": "slow",
+      "what_zh": "Cursor 保存的旧对话记录。",
+      "why_zh": "只有打开本工具的会话清理开关才会列出；近期写入按年龄门槛保留，从条目内运行或引用它时跳过。",
+      "after_zh": "清掉后这些对话不能再续接或回看；可选择直接删除，或先隔离并试着继续对话后再决定。",
+      "fix_hint_zh": null,
+      "sources": [
+        {
+          "kind": "local_observation",
+          "ref": "H4",
+          "checked_on": "2026-11-02"
+        }
+      ],
+      "session_tool": "cursor",
+      "unlocks": "cursor-chats",
+      "in_use_zh": "关掉 Cursor 后可清"
+    },
+    {
+      "rule_id": "grok-old-sessions",
+      "title_zh": "Grok 旧会话",
+      "owner_zh": "Grok",
+      "category": "agent_tool",
+      "level": "confirm",
+      "locate": [
+        {
+          "kind": "pattern",
+          "base": "user_profile",
+          "segments": [
+            ".grok",
+            "sessions",
+            "*",
+            "*"
+          ]
+        }
+      ],
+      "item_type": "dir",
+      "min_age_hours": 720,
+      "keep_newest": 0,
+      "in_use": {
+        "mode": "runs_from_or_references_item",
+        "processes": []
+      },
+      "growth": "slow",
+      "what_zh": "Grok 保存的旧对话记录。",
+      "why_zh": "只有打开本工具的会话清理开关才会列出；近期写入按年龄门槛保留，从条目内运行或引用它时跳过。",
+      "after_zh": "清掉后这些对话不能再续接或回看；可选择直接删除，或先隔离并试着继续对话后再决定。",
+      "fix_hint_zh": null,
+      "sources": [
+        {
+          "kind": "local_observation",
+          "ref": "H6",
+          "checked_on": "2026-11-02"
+        }
+      ],
+      "session_tool": "grok",
+      "unlocks": "grok-sessions",
+      "in_use_zh": "关掉 Grok 后可清"
+    },
+    {
+      "rule_id": "kimi-code-old-sessions",
+      "title_zh": "Kimi Code 旧会话",
+      "owner_zh": "Kimi Code",
+      "category": "agent_tool",
+      "level": "confirm",
+      "locate": [
+        {
+          "kind": "pattern",
+          "base": "user_profile",
+          "segments": [
+            ".kimi-code",
+            "sessions",
+            "wd_*"
+          ]
+        }
+      ],
+      "item_type": "dir",
+      "min_age_hours": 720,
+      "keep_newest": 0,
+      "in_use": {
+        "mode": "runs_from_or_references_item",
+        "processes": []
+      },
+      "growth": "slow",
+      "what_zh": "Kimi Code 保存的旧对话记录。",
+      "why_zh": "只有打开本工具的会话清理开关才会列出；近期写入按年龄门槛保留，从条目内运行或引用它时跳过。",
+      "after_zh": "清掉后这些对话不能再续接或回看；可选择直接删除，或先隔离并试着继续对话后再决定。",
+      "fix_hint_zh": null,
+      "sources": [
+        {
+          "kind": "local_observation",
+          "ref": "Kimi 试验",
+          "checked_on": "2026-11-02"
+        }
+      ],
+      "session_tool": "kimi-code",
+      "unlocks": "kimi-code-sessions",
+      "in_use_zh": "关掉 Kimi Code 后可清"
+    },
+    {
+      "rule_id": "minimax-hub-leftover",
+      "title_zh": "卸载后留下的应用数据",
+      "owner_zh": "MiniMax Hub",
+      "category": "app_leftover",
+      "level": "confirm",
+      "locate": [
+        {
+          "kind": "pattern",
+          "base": "roaming_app_data",
+          "segments": [
+            "@hilo"
+          ]
+        }
+      ],
+      "item_type": "dir",
+      "min_age_hours": 720,
+      "keep_newest": 0,
+      "in_use": {
+        "mode": "none",
+        "processes": []
+      },
+      "growth": "slow",
+      "what_zh": "MiniMax Hub 在应用数据目录中留下的数据，包括它的全局数据。",
+      "why_zh": "安装列表里仍有 MiniMax Hub 时不可清；找不到只说明似乎已卸载，仍需你确认。",
+      "after_zh": "先放进隔离区；其中可能有独有数据，永久删除前请核对。",
+      "fix_hint_zh": null,
+      "sources": [
+        {
+          "kind": "local_observation",
+          "ref": "H8（%APPDATA%\\@hilo，内有 MiniMax Hub Global，1.21 GB；11-01 注册表里已没有它的安装记录）",
+          "checked_on": "2026-11-02"
+        }
+      ],
+      "installed_names": [
+        "MiniMax Hub"
+      ]
+    },
+    {
+      "rule_id": "system-tmp-chrome-profiles",
+      "title_zh": "系统盘 tmp 里的无头浏览器配置",
+      "owner_zh": "无头浏览器",
+      "category": "system_temp",
+      "level": "confirm",
+      "locate": [
+        {
+          "kind": "pattern",
+          "base": "system_drive",
+          "segments": [
+            "tmp",
+            "chrome_*"
+          ]
+        }
+      ],
+      "item_type": "dir",
+      "min_age_hours": 24,
+      "keep_newest": 0,
+      "in_use": {
+        "mode": "cmdline_references_item",
+        "processes": [
+          "chrome.exe",
+          "msedge.exe"
+        ]
+      },
+      "growth": "slow",
+      "what_zh": "系统盘 tmp 目录里按固定前缀命名的无头浏览器临时配置。",
+      "why_zh": "只认这个精确位置，一天以前且没有浏览器进程引用时才可清，不扩展到其它名字相似的目录。",
+      "after_zh": "先放进隔离区，清掉后这些测试配置中的登录状态也会消失。",
+      "fix_hint_zh": null,
+      "sources": [
+        {
+          "kind": "local_observation",
+          "ref": "C18（C:\\tmp 里 9 个 chrome_*）",
+          "checked_on": "2026-11-02"
+        }
+      ],
+      "in_use_zh": "测试结束、浏览器关掉后可清"
     }
   ]
 }
