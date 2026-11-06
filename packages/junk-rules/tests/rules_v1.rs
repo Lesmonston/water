@@ -705,7 +705,7 @@ fn m35_seeds() {
     let table = r#"chromium-partition-cache|桌面程序的分区网页缓存|app_leftover|recommended|dir|1|0|runs|3||pattern:roaming_app_data:*/Partitions/*/Cache;pattern:roaming_app_data:*/Partitions/*/Code Cache;pattern:roaming_app_data:*/Partitions/*/GPUCache;pattern:local_app_data:*/Partitions/*/Cache;pattern:local_app_data:*/Partitions/*/Code Cache;pattern:local_app_data:*/Partitions/*/GPUCache
 steam-html-cache|Steam 内置网页缓存|app_leftover|recommended|dir|1|0|process_running||steam.exe,steamwebhelper.exe|pattern:local_app_data:Steam/htmlcache/Default/Cache;pattern:local_app_data:Steam/htmlcache/Default/Code Cache;pattern:local_app_data:Steam/htmlcache/Default/GPUCache
 wegame-browser-cache|WeGame 内置网页缓存|app_leftover|recommended|dir|1|0|process_running||wegame.exe|pattern:roaming_app_data:Tencent/WeGame/qbcore*/cache
-jianying-cache|剪映缓存|app_leftover|recommended|dir|1|0|process_running||jianyingpro.exe|pattern:local_app_data:JianyingPro/User Data/Cache;pattern:local_app_data:JianyingPro/User Data/CEF Cache
+jianying-cache|剪映缓存|app_leftover|recommended|dir|1|0|process_running||jianyingpro.exe|pattern:local_app_data:JianyingPro/User Data/Cache;pattern:local_app_data:JianyingPro/User Data/CEF/Cache
 jianying-update-download|剪映旧更新包|app_leftover|recommended|file|168|0|process_running||jianyingpro.exe|pattern:local_app_data:JianyingPro/User Data/Download/*.exe
 ubisoft-patch-staging|Ubisoft 补丁暂存|app_leftover|recommended|dir|24|0|process_running||upc.exe,ubisoftconnect.exe|pattern:program_data:Ubisoft/Ubisoft Game Launcher/patch
 app-backups|程序留下的旧备份|app_leftover|confirm|any|168|0|none|||pattern:roaming_app_data:*/*.bak-########
