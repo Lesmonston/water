@@ -27,7 +27,7 @@ function fakeHost(f, options) {
     c.calls.push({command, args:copy(args)});
     if (c.nextError?.command === command) { const error = c.nextError.error; c.nextError = null; throw copy(error); }
     switch (command) {
-      case 'app_state': { const app = copy(f[options.noQuarantine ? 'v2_app_state_plain' : 'v2_app_state_quarantine']); app.busy = c.busy; if (c.noLast) app.last_scan = null; if (c.quarantine.cards.length === 0) app.quarantine = null; return app; }
+      case 'app_state': { const app = copy(f[options.noQuarantine ? 'v2_app_state_plain' : c.quarantine.bytes === f.v2_quarantine_leftover.bytes ? 'v2_app_state_leftover' : 'v2_app_state_quarantine']); app.busy = c.busy; if (c.noLast) app.last_scan = null; if (c.quarantine.cards.length === 0) app.quarantine = null; return app; }
       case 'locations_get': return copy(c.locations);
       case 'trends': return copy(c.trends ?? f.v2_trends);
       case 'scan_start': c.busy = 'scanning'; c.scan = 0; return copy(f.v2_scan_start);
@@ -267,6 +267,7 @@ test('ui_v2_quarantine_dedupe', async () => {
   await click('restore-beside'); assert.equal((await lastCall('quarantine_restore')).args.beside, true, 'UI_V2_QUARANTINE: second restore explicit');
   await reset({}, 'quarantine'); await wait('document.querySelector("[data-key=purge-' + id + ']")'); await click('purge-' + id); await click('purge-confirm'); await control('c.purge=1');
   await wait(`window.__waterTest.busy==="idle" && document.querySelectorAll('[data-quarantine]').length===${f.v2_quarantine_leftover.cards.length}`, 'UI_V2_QUARANTINE'); await shot('quarantine-leftover');
+  assert.equal(await evalJs('document.querySelector(".quarantine-size").textContent'), formatBytes(f.v2_app_state_leftover.quarantine.bytes), 'UI_V2_QUARANTINE: persistent navigation refreshes remaining bytes');
   const leftId = f.v2_quarantine_leftover.cards[0].quarantine_id; await click('purge-' + leftId); await click('purge-confirm'); assert.equal((await lastCall('quarantine_delete')).args.quarantineId, leftId, 'UI_V2_QUARANTINE: retry same batch');
   await reset({quarantine:'v2_quarantine_foreign'}, 'quarantine'); await wait('document.querySelector("[data-quarantine]")'); assert.equal(await evalJs('document.querySelectorAll("[data-key^=restore-]").length'), 0, 'UI_V2_QUARANTINE: no restore without record');
   await reset({quarantine:'v2_quarantine_empty'}, 'quarantine'); await wait('document.body.textContent.includes("隔离区是空的")', 'UI_V2_QUARANTINE');
