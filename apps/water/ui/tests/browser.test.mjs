@@ -29,6 +29,7 @@ function fakeHost(f, options) {
   const NativeDate = Date; window.Date = class extends NativeDate { constructor(...args) { super(...(args.length ? args : ['2026-11-02T09:00:00Z'])); } static now() { return NativeDate.parse('2026-11-02T09:00:00Z'); } };
   window.__TAURI__ = {core:{invoke:async (command, args) => {
     c.calls.push({command, args:copy(args)});
+    if (c.holdNext === command) { c.holdNext = null; c.held = command; await new Promise(resolve => { c.release = resolve; }); c.held = null; }
     if (c.nextError?.command === command) { const error = c.nextError.error; c.nextError = null; throw copy(error); }
     if (command === 'conclusion_get' && c.noConclusion) throw copy(f.v2_errors.conclusion_not_found);
     if (command === 'dedupe_result' && c.rejectDedupeRefresh) throw {code:'not_found', message_zh:'查重已不存在'};
@@ -83,7 +84,7 @@ function fakeHost(f, options) {
       case 'quarantine_restore': { const r = copy(args.beside ? f.v2_restore_beside : f.v2_restore_conflict); c.quarantine = copy(r.view); return r; }
       case 'quarantine_reveal': return {};
       case 'quarantine_delete': c.busy = 'purging'; c.purge = 0; return {};
-      case 'quarantine_progress': { const p = copy(f.v2_quarantine_progress_sequence[c.purge]); if (p.state !== 'running') { c.busy = 'idle'; c.quarantine = copy(f.v2_quarantine_leftover); } return p; }
+      case 'quarantine_progress': { const p = copy(f.v2_quarantine_progress_sequence[c.purge]); if (p.state !== 'running') { c.busy = 'idle'; c.quarantine = copy(c.purgeView ?? f.v2_quarantine_leftover); } return p; }
       case 'dedupe_start': c.busy = 'deduping'; c.dedupe = 0; return copy(f.v2_dedupe_start);
       case 'dedupe_progress': { const p = copy(f.v2_dedupe_progress_sequence[c.dedupe]); if (p.state !== 'running') c.busy = 'idle'; return p; }
       case 'dedupe_cancel': c.dedupe = f.v2_dedupe_progress_sequence.length - 1; return {};
@@ -303,6 +304,15 @@ test('ui_v2_confirm_done', async () => {
     await wait('document.querySelector("#page").dataset.page==="home"', 'UI_V2_CONFIRM');
     assert(await evalJs('document.querySelector("#notice").hidden && !document.querySelector("[data-key=scan-start]").disabled'), 'UI_V2_CONFIRM: not_found completion returns to usable home without error');
   }
+  await results({conclusion:'v2_conclusion_after_decide'}); await click('clean-prepare'); await wait('document.querySelector("[data-key=confirm-start]")'); await click('confirm-start');
+  await wait('document.querySelector("[data-key=clean-stop]")', 'UI_V2_CONFIRM'); await control('c.clean=2'); await wait('document.querySelector("#page").dataset.page==="done"', 'UI_V2_CONFIRM');
+  const doneReads = await callCount('conclusion_get');
+  await click('done-quarantine'); await wait('document.querySelector("[data-quarantine]")', 'UI_V2_CONFIRM');
+  await click('nav-home'); await wait('location.hash==="#home" && document.querySelector("#page").dataset.page!=="quarantine"', 'UI_V2_CONFIRM'); await pause(100);
+  assert.equal(await evalJs('document.querySelector("#page").dataset.page'), 'done', 'UI_V2_CONFIRM: 体检 from another page shows the done page left behind');
+  assert.equal(await callCount('conclusion_get'), doneReads, 'UI_V2_CONFIRM: going back to the done page rereads nothing');
+  await click('nav-home'); await wait('document.querySelector("#page").dataset.page==="results"', 'UI_V2_CONFIRM');
+  assert.equal(await callCount('conclusion_get'), doneReads + 1, 'UI_V2_CONFIRM: a second 体检 click on the done page then finishes like 完成');
 });
 
 test('ui_v2_quarantine_dedupe', async () => {
@@ -379,6 +389,50 @@ test('ui_v2_quarantine_dedupe', async () => {
   await wait('document.querySelector("[data-key=poll-retry]")', 'UI_V2_QUARANTINE'); await click('nav-history'); await pageIs('history');
   assert(await evalJs('!!document.querySelector("[data-key=poll-retry]")'), 'UI_V2_QUARANTINE: purge recovery survives navigation');
   await control('c.purge=1'); await click('poll-retry'); await wait('window.__waterTest.busy==="idle" && document.querySelector("#notice").hidden', 'UI_V2_QUARANTINE');
+  for (const withConclusion of [false, true]) {
+    await finishedDedupe(withConclusion ? {} : {noConclusion:true, noLast:true}, withConclusion);
+    const reads = await callCount('conclusion_get');
+    await control('c.holdNext="dedupe_decide"'); await click('dup-' + f.v2_dedupe_result.groups[0].group_id); await wait('window.__waterTest.held==="dedupe_decide"', 'UI_V2_DEDUPE');
+    await click('nav-home'); await click('nav-home'); await pause(100);
+    assert.equal(await evalJs('document.querySelector("#page").dataset.page'), 'dedupe', 'UI_V2_DEDUPE: 体检 clicked during a pending request waits for it');
+    await control('c.release()'); await wait('document.querySelector("#page").dataset.page!=="dedupe"', 'UI_V2_DEDUPE');
+    assert.equal(await evalJs('document.querySelector("#page").dataset.page'), withConclusion ? 'results' : 'home', 'UI_V2_DEDUPE: queued 体检 returns once the pending request ends');
+    assert.equal(await callCount('conclusion_get'), reads + (withConclusion ? 0 : 1), 'UI_V2_DEDUPE: repeated 体检 clicks during a request return only once');
+    assert(await evalJs('document.querySelector("#notice").hidden'), 'UI_V2_DEDUPE: queued return has no spurious error');
+  }
+  await finishedDedupe({}, true);
+  const dedupeReads = [await callCount('dedupe_result'), await callCount('conclusion_get')];
+  await click('nav-quarantine'); await wait('document.querySelector("[data-quarantine]")', 'UI_V2_DEDUPE');
+  await click('nav-home'); await wait('location.hash==="#home" && document.querySelector("#page").dataset.page!=="quarantine"', 'UI_V2_DEDUPE'); await pause(100);
+  assert(await evalJs('document.querySelector("#page").dataset.page==="dedupe" && !!document.querySelector(".dedupe-row")'), 'UI_V2_DEDUPE: 体检 from another page shows the dedupe result left behind');
+  assert.deepEqual([await callCount('dedupe_result'), await callCount('conclusion_get')], dedupeReads, 'UI_V2_DEDUPE: going back to the dedupe result rereads neither dedupe_result nor conclusion_get');
+  await click('nav-home'); await wait('document.querySelector("#page").dataset.page!=="dedupe"', 'UI_V2_DEDUPE');
+  assert.equal(await evalJs('document.querySelector("#page").dataset.page'), 'results', 'UI_V2_DEDUPE: a second 体检 click on the dedupe result then returns');
+  const oneRoot = {...structuredClone(f.v2_quarantine_leftover), roots:f.v2_quarantine_leftover.roots.slice(0, 1)};
+  for (const purgeView of [oneRoot, f.v2_quarantine_leftover, {bytes:'0', roots:[], cards:[]}]) {
+    await reset({}, 'quarantine'); await wait('document.querySelector("[data-quarantine]")');
+    await click('purge-' + f.v2_quarantine_list.cards[0].quarantine_id); await click('purge-confirm');
+    await wait('window.__waterTest.calls.some(x=>x.command==="quarantine_progress")', 'UI_V2_QUARANTINE');
+    await click('nav-home'); await wait('document.querySelector("[data-key=home-reveal]")', 'UI_V2_QUARANTINE');
+    const reveals = await callCount('quarantine_reveal'), states = await callCount('app_state');
+    await control(`c.purgeView=${JSON.stringify(purgeView)};c.holdNextQuarantine=true`);
+    await click('home-reveal'); await wait('window.__waterTest.quarantineHeld', 'UI_V2_QUARANTINE');
+    await control('c.purge=1'); await wait(`window.__waterTest.calls.filter(x=>x.command==="app_state").length>${states}`, 'UI_V2_QUARANTINE');
+    await control('c.releaseQuarantine()'); await wait('window.__waterTest.quarantineReleased', 'UI_V2_QUARANTINE');
+    if (purgeView.roots.length === 1) {
+      await wait(`window.__waterTest.calls.filter(x=>x.command==="quarantine_reveal").length>${reveals}`, 'UI_V2_QUARANTINE');
+      assert.deepEqual((await lastCall('quarantine_reveal')).args, {targetId:purgeView.roots[0].target_id}, 'UI_V2_QUARANTINE: open folder still finishes on the newer view after a purge ends mid-read');
+    } else if (purgeView.roots.length) {
+      await wait('document.querySelector("dialog[open] [data-key^=root-open-]")', 'UI_V2_QUARANTINE');
+      assert.deepEqual(await evalJs('[...document.querySelectorAll("dialog[open] [data-key^=root-open-]")].map(n=>n.dataset.key)'), purgeView.roots.map(r => 'root-open-' + r.target_id), 'UI_V2_QUARANTINE: several roots after a purge open the chooser on the newer view');
+      await click('root-open-' + purgeView.roots[0].target_id);
+      assert.deepEqual((await lastCall('quarantine_reveal')).args, {targetId:purgeView.roots[0].target_id}, 'UI_V2_QUARANTINE: chooser opens the chosen root');
+    } else {
+      await pause(100);
+      assert(await evalJs('!document.querySelector("dialog[open]") && document.querySelector("#notice").hidden'), 'UI_V2_QUARANTINE: no roots left means no empty chooser and no error');
+      assert.equal(await callCount('quarantine_reveal'), reveals, 'UI_V2_QUARANTINE: nothing to open once every root is gone');
+    }
+  }
 });
 
 test('ui_v2_pages_layout_a11y', async () => {
@@ -434,4 +488,13 @@ test('ui_v2_pages_layout_a11y', async () => {
   await browser.size(1040, 720); await reset();
   assert.equal(await evalJs('getComputedStyle(document.querySelector(".location-list")).scrollbarWidth'), 'thin', 'UI_V2_PAGES: home location scrollbar matches v3');
   await browser.size(1240, 820);
+  await browser.send('Emulation.setTimezoneOverride', {timezoneId:'America/Santiago'});
+  try {
+    const dst = [{...f.v2_history[0], id:'dst-after', at:'2026-09-08T15:00:00Z', summary_zh:'夏令时之后的清理'}, {...f.v2_history[0], id:'dst-before', at:'2026-09-03T15:00:00Z', summary_zh:'夏令时之前的清理'}];
+    await reset({history:dst}, 'history'); await wait('document.querySelector(".heatmap")');
+    const latest = await evalJs(`import('/format.mjs').then(m=>m.localDateKey(${JSON.stringify(dst[0].at)}))`);
+    assert(await evalJs(`[...document.querySelectorAll('.heat')].some(x=>x.title.startsWith(${JSON.stringify(latest)}) && x.classList.contains('latest') && x.title.includes(${JSON.stringify(dst[0].summary_zh)}))`), 'UI_V2_PAGES: a midnight skipped by DST still leaves a latest cell for the newest day');
+    const keys = await evalJs('[...document.querySelectorAll(".heat")].map(x=>x.title.slice(0,10))'), day = key => Date.parse(key + 'T00:00:00Z');
+    assert(new Date(day(keys[0])).getUTCDay() === 1 && keys.at(-1) === latest && keys.every((key, i) => !i || day(key) - day(keys[i - 1]) === 86400000), 'UI_V2_PAGES: heat cells cover every local day from Monday to the newest, none missing or repeated');
+  } finally { await browser.send('Emulation.setTimezoneOverride', {timezoneId:''}); }
 });

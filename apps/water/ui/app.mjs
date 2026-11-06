@@ -17,8 +17,9 @@ import {locations} from './views/locations.mjs';
 
 const s = {app:null, locations:null, busy:'idle', pending:false, connecting:true, error:'', route:'home', mode:'home', selectedLocations:new Set(), conclusion:null, openFolds:new Set(), scanSamples:[], detailMode:'category', detailQuery:'', openSection:null, modal:null, historyDetails:new Map(), pollPaused:false};
 const page = document.getElementById('page'), main = document.getElementById('main');
-let timer, polling = false, stopped = false, routeEpoch = 0, quarantineRevision = 0, overlay, opener, sampleSecond = -1;
+let timer, polling = false, stopped = false, routeEpoch = 0, quarantineRevision = 0, overlay, opener, sampleSecond = -1, checkupQueued = false;
 const busy = () => s.pending || s.busy !== 'idle' || !s.app;
+const checkupIsReturn = () => s.route === 'home' && s.busy === 'idle' && ['dedupe', 'done'].includes(s.mode);
 function fail(error, scope) {
   if (error?.code === 'stale' && scope === 'conclusion') { markStale(); s.modal = null; s.preview = null; }
   s.error = error?.message_zh || (error?.code === 'unavailable' ? '无法连接 Water 服务' : 'Water 服务暂时不可用');
@@ -29,7 +30,10 @@ async function run(task, scope) {
     if (scope === 'dedupe' && error?.code === 'stale') await recoverDedupe();
     else fail(error, scope);
   }
-  finally { s.pending = false; render(); }
+  finally {
+    s.pending = false; render();
+    if (checkupQueued) { checkupQueued = false; if (checkupIsReturn()) a.returnToCheckup(); }
+  }
 }
 function markStale() { if (s.conclusion) s.conclusion = {...s.conclusion, stale:true}; }
 function navigate(route) {
@@ -178,7 +182,7 @@ const a = {
   finish:() => run(() => returnToCheckup(true)),
   copy:async text => { try { await navigator.clipboard.writeText(text); } catch { s.copyText = text; show('copy'); render(); } },
   reveal:id => run(() => ipc.quarantine_reveal(id)),
-  revealRoots:() => run(async () => { const revision = quarantineRevision, view = await ipc.quarantine_list(); if (revision !== quarantineRevision) return; s.quarantine = view; if (s.quarantine.roots.length === 1) await ipc.quarantine_reveal(s.quarantine.roots[0].target_id); else show('roots'); }),
+  revealRoots:() => run(async () => { const revision = quarantineRevision, view = await ipc.quarantine_list(); if (revision === quarantineRevision) s.quarantine = view; const roots = s.quarantine.roots; if (roots.length === 1) await ipc.quarantine_reveal(roots[0].target_id); else if (roots.length) show('roots'); }),
   restore:(id, beside) => run(async () => { const v = await ipc.quarantine_restore(id, beside); installQuarantine(v.view); s.app = await ipc.app_state(); if (v.conflicts.length) { s.conflict = {id, result:v}; show('conflict'); } else s.modal = null; }),
   confirmPurge:c => { if (busy()) return; s.purgeCard = c; show('purge'); render(); },
   purge:() => run(async () => { await ipc.quarantine_delete(s.purgeCard.quarantine_id); quarantineRevision++; s.modal = null; s.busy = 'purging'; s.pollPaused = false; schedule(); }),
@@ -207,7 +211,8 @@ function top() {
     for (const [id, label, glyph] of [['home', '体检', 'pulse'], ['quarantine', '隔离区', 'box'], ['trends', '趋势', 'trend'], ['history', '记录', 'history']]) {
       const link = add(el('a', '', undefined, {href:`#${id}`, 'data-route':id, 'data-key':`nav-${id}`}), icon(glyph), el('span', '', label));
       if (id === 'home') link.addEventListener('click', event => {
-        if (s.busy === 'idle' && ['dedupe', 'done'].includes(s.mode)) { event.preventDefault(); a.returnToCheckup(); }
+        if (!checkupIsReturn()) return;
+        event.preventDefault(); if (s.pending) checkupQueued = true; else a.returnToCheckup();
       });
       if (id === 'quarantine') add(link, el('span', 'quarantine-size')); add(nav, link);
     }

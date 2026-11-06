@@ -84,8 +84,9 @@ export function heatmap(entries) {
     const key = localDateKey(date); first = Math.min(first, date.getTime()); last = Math.max(last, date.getTime());
     const existing = days.get(key) ?? []; existing.push(entry); days.set(key, existing);
   }
-  const start = new Date(first); start.setDate(start.getDate() - (start.getDay() + 6) % 7);
-  for (const day = new Date(start); day.getTime() <= last; day.setDate(day.getDate() + 1)) {
+  const start = new Date(first), lastKey = localDateKey(last); start.setDate(start.getDate() - (start.getDay() + 6) % 7);
+  // Compare local calendar days, not timestamps: where DST skips midnight the walk lands on 01:00 and would miss the last day.
+  for (const day = new Date(start); localDateKey(day) <= lastKey; day.setDate(day.getDate() + 1)) {
     const key = localDateKey(day);
     const records = days.get(key) ?? [], grade = e => ['clean', 'purge'].includes(e.kind) ? bytes(e.bytes) >= 8n * 1024n ** 3n ? 4 : bytes(e.bytes) >= 2n * 1024n ** 3n ? 3 : 2 : 1;
     const depth = records.reduce((m, e) => Math.max(m, grade(e)), 0);
