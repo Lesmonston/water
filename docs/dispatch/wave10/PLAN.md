@@ -325,3 +325,14 @@ WATER-W10-M1 补单 03（jest 定位、discovery 盘根、旧循环覆盖面，�
 ```text
 WATER-W10-M1 补单 04（剪映 CEF Cache 拆两段，轻门）：读 F:/new/smaltalk/water/docs/dispatch/tickets/WATER-W10-M1-ADDENDUM-04-20261106.md，按其中列出的顺序读原票、规则、契约、前三张补单与你的回执，在 F:/new/smaltalk/water/.worktrees/w10-m1（分支 worker/water-w10-m1）从 2fd789d8 续做；交回后再做 WATER-W10-M2 补单 02（.git 内不出条目、预算问题归属、簇不进条目内部，中门）：读 F:/new/smaltalk/water/docs/dispatch/tickets/WATER-W10-M2-ADDENDUM-02-20261106.md，在 F:/new/smaltalk/water/.worktrees/w10-m2（分支 worker/water-w10-m2）从 68f90263 续做。每张单在自己的工作树里做完、提交并交回回执再开始下一张；某一张受阻就停下写受阻回执。
 ```
+
+### M2 补单 03（2026-11-06，第三轮验收）
+
+- **M1**（补单 04，`02bcbfab`）验收通过：审计 0 问题，lock、check、real、test 四个 final 重跑通过，总控变异十一条全抓住（含剪映 `CEF Cache` 改回单段）。
+- **M2**（补单 02，`c4a02875`）四个 final 重跑通过，总控变异十一条全抓住（上一轮漏掉的 c5、c7 这次抓住了），独立审查确认 `.git` 内已不出任何条目。但第 2 条只做到一半：遍历之后才丢掉条目的组（延后的 discovery 行、Exit 帧上按时间丢掉的命中、因预算跳过的簇搜索），`budget_exhausted` 被收尾时统一删掉又没补回，比 `68f90263` 退步；强制收尾时时间用完还会停在 `completed`。[补单 03](../tickets/WATER-W10-M2-ADDENDUM-03-20261106.md) 逐种修正并补测试。
+
+**WATER-W10-M2 补单 03**
+
+```text
+WATER-W10-M2 补单 03（遍历之后丢掉的组也要带预算问题，中门）：读 F:/new/smaltalk/water/docs/dispatch/tickets/WATER-W10-M2-ADDENDUM-03-20261106.md，按其中列出的顺序读原票、规则、契约、前两张补单与你的回执，在 F:/new/smaltalk/water/.worktrees/w10-m2（分支 worker/water-w10-m2）从 c4a02875 续做；做完、提交并交回回执；受阻就停下写受阻回执。
+```
