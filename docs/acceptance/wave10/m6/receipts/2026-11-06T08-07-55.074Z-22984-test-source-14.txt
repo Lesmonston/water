@@ -1,0 +1,79 @@
+import {formatBytes} from '../format.mjs';
+export function el(tag, cls = '', text, attrs = {}) {
+  const node = document.createElement(tag);
+  if (cls) node.className = cls;
+  if (text !== undefined && text !== null) node.textContent = text;
+  for (const [name, value] of Object.entries(attrs)) node.setAttribute(name, String(value));
+  return node;
+}
+export function add(node, ...children) { node.append(...children.flat().filter(c => c != null)); return node; }
+export function svg(tag, attrs = {}) {
+  const node = document.createElementNS(document.getElementById('sprite').namespaceURI, tag);
+  for (const [name, value] of Object.entries(attrs)) node.setAttribute(name, String(value));
+  return node;
+}
+export const icon = name => add(svg('svg', {class:'i', 'aria-hidden':'true'}), svg('use', {href:`#i-${name}`}));
+export function button(text, action, cls = 'btn soft', key, disabled = false) {
+  const node = el('button', cls, text, {type:'button'});
+  if (key) node.dataset.key = key;
+  node.disabled = disabled; node.addEventListener('click', action); return node;
+}
+export function iconButton(label, glyph, action, key) {
+  const b = button('', action, 'icon-btn', key);
+  b.setAttribute('aria-label', label); b.title = label; return add(b, icon(glyph));
+}
+export function metric(value, label, raw = false) {
+  const text = raw ? String(value) : formatBytes(value), n = el('div', 'number');
+  const match = /^(.*) (GB|MB)$/.exec(text);
+  if (match) add(n, el('span', '', match[1]), el('small', '', match[2])); else n.textContent = text;
+  return add(el('div', 'metric'), n, label ? el('div', 'sub', label) : null);
+}
+export function heading(title, subtitle, metrics = []) {
+  return add(el('header', 'heading'), add(el('div', 'heading-title'), el('p', 'eyebrow', subtitle), el('h1', '', title)), add(el('div', 'bigs'), metrics));
+}
+export function card(title, cls = '', tools = []) {
+  return add(el('section', `card ${cls}`), add(el('div', 'card-head'), el('h2', '', title), add(el('div', 'card-tools'), tools)));
+}
+export const tag = (text, kind = '') => el('span', `tag ${kind}`, text);
+export function check(label, checked, change, key, disabled = false) {
+  const input = el('input', 'check', undefined, {type:'checkbox', 'aria-label':label, 'data-key':key});
+  input.checked = checked; input.disabled = disabled;
+  input.addEventListener('change', () => change(input.checked)); return input;
+}
+export function toggle(label, checked, action, key, disabled = false) {
+  const b = button('', action, `switch ${checked ? 'on' : ''}`, key, disabled);
+  b.setAttribute('role', 'switch'); b.setAttribute('aria-checked', String(checked)); b.setAttribute('aria-label', label); b.title = label; return b;
+}
+export function row(title, subtitle, ...end) {
+  return add(el('div', 'row'), add(el('div', 'grow'), el('strong', '', title), subtitle ? el('p', 'sub', subtitle) : null), end);
+}
+export function empty(title, detail = '') { return add(card(title, 'empty'), el('p', 'sub', detail)); }
+export const catIcon = c => ({agent_tool:'chip', browser:'globe', dev_cache:'code', system_temp:'hourglass', app_leftover:'box', crash_log:'warn', gpu_system:'gpu'}[c] ?? 'folder');
+let menuSerial = 0;
+export function menu(label, entries, key) {
+  const root = el('div', 'menu-wrap'), panel = el('div', 'menu', undefined, {role:'menu', id:`menu-${++menuSerial}`}); panel.hidden = true;
+  const trigger = iconButton(label, 'more', () => panel.hidden ? open() : close(), key);
+  trigger.setAttribute('aria-haspopup', 'menu'); trigger.setAttribute('aria-expanded', 'false'); trigger.setAttribute('aria-controls', panel.id);
+  const close = () => { panel.hidden = true; trigger.setAttribute('aria-expanded', 'false'); trigger.focus(); };
+  const open = () => {
+    root.closest('dialog, main, header')?.querySelectorAll('.menu').forEach(other => { other.hidden = true; other.previousElementSibling?.setAttribute('aria-expanded', 'false'); });
+    panel.hidden = false; trigger.setAttribute('aria-expanded', 'true'); panel.querySelector('button')?.focus();
+  };
+  for (const [text, action, danger = false] of entries) add(panel, button(text, () => { close(); action(); }, `menu-item ${danger ? 'danger' : ''}`));
+  panel.querySelectorAll('button').forEach(b => b.setAttribute('role', 'menuitem'));
+  root.addEventListener('keydown', event => {
+    if (event.key === 'Escape' && !panel.hidden) { event.preventDefault(); event.stopPropagation(); close(); }
+    if (!['ArrowDown', 'ArrowUp', 'Home', 'End'].includes(event.key)) return;
+    event.preventDefault(); if (panel.hidden) { open(); return; }
+    const choices = [...panel.querySelectorAll('button')], index = choices.indexOf(document.activeElement);
+    choices[event.key === 'Home' ? 0 : event.key === 'End' ? choices.length - 1 : (index + (event.key === 'ArrowUp' ? -1 : 1) + choices.length) % choices.length]?.focus();
+  });
+  root.addEventListener('focusout', event => { if (!root.contains(event.relatedTarget)) { panel.hidden = true; trigger.setAttribute('aria-expanded', 'false'); } });
+  return add(root, trigger, panel);
+}
+export function search(label, submit, key, value = '') {
+  const form = el('form', 'search'), input = el('input', '', undefined, {type:'search', placeholder:label, 'aria-label':label, maxlength:64, 'data-key':key}); input.value = value;
+  add(form, icon('search'), input, button('搜索', () => submit(input.value), 'btn soft', `${key}-go`));
+  form.addEventListener('submit', event => { event.preventDefault(); submit(input.value); }); return form;
+}
+export function skipNotice(value) { return value ? el('p', 'warning', value.notes_zh.join('；')) : null; }

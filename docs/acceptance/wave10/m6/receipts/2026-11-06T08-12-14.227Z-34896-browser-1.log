@@ -1,0 +1,74 @@
+{"binary":"C:\\Program Files\\nodejs\\node.exe","args":["--test","--test-concurrency=1","--test-reporter=tap","apps/water/ui/tests/browser.test.mjs"],"exitCode":1,"error":null}
+--- stdout ---
+TAP version 13
+# Subtest: ui_v2_home_scan
+not ok 1 - ui_v2_home_scan
+  ---
+  duration_ms: 14758.6748
+  type: 'test'
+  location: 'F:\\new\\smaltalk\\water\\.worktrees\\w10-m6\\apps\\water\\ui\\tests\\browser.test.mjs:145:1'
+  failureType: 'testCodeFailure'
+  error: 'UI_V2_HOME: document.querySelectorAll(".scan-location").length===2'
+  code: 'ERR_ASSERTION'
+  name: 'AssertionError'
+  operator: 'fail'
+  stack: |-
+    wait (file:///F:/new/smaltalk/water/.worktrees/w10-m6/apps/water/ui/tests/browser.test.mjs:87:10)
+    async TestContext.<anonymous> (file:///F:/new/smaltalk/water/.worktrees/w10-m6/apps/water/ui/tests/browser.test.mjs:155:30)
+    async Test.run (node:internal/test_runner/test:1313:7)
+    async startSubtestAfterBootstrap (node:internal/test_runner/harness:385:3)
+  ...
+# Subtest: ui_v2_conclusion
+ok 2 - ui_v2_conclusion
+  ---
+  duration_ms: 3146.4377
+  type: 'test'
+  ...
+# Subtest: ui_v2_drawer_details
+ok 3 - ui_v2_drawer_details
+  ---
+  duration_ms: 2886.4932
+  type: 'test'
+  ...
+# Subtest: ui_v2_confirm_done
+ok 4 - ui_v2_confirm_done
+  ---
+  duration_ms: 1820.8086
+  type: 'test'
+  ...
+# Subtest: ui_v2_quarantine_dedupe
+not ok 5 - ui_v2_quarantine_dedupe
+  ---
+  duration_ms: 899.948
+  type: 'test'
+  location: 'F:\\new\\smaltalk\\water\\.worktrees\\w10-m6\\apps\\water\\ui\\tests\\browser.test.mjs:241:1'
+  failureType: 'testCodeFailure'
+  error: 'UI_V2_PAGES: missing purge-confirm'
+  code: 'ERR_ASSERTION'
+  name: 'AssertionError'
+  expected: true
+  actual: false
+  operator: '=='
+  stack: |-
+    click (file:///F:/new/smaltalk/water/.worktrees/w10-m6/apps/water/ui/tests/browser.test.mjs:84:30)
+    async TestContext.<anonymous> (file:///F:/new/smaltalk/water/.worktrees/w10-m6/apps/water/ui/tests/browser.test.mjs:253:99)
+    async Test.run (node:internal/test_runner/test:1313:7)
+    async Test.processPendingSubtests (node:internal/test_runner/test:897:7)
+  ...
+# Subtest: ui_v2_pages_layout_a11y
+ok 6 - ui_v2_pages_layout_a11y
+  ---
+  duration_ms: 4643.1801
+  type: 'test'
+  ...
+1..6
+# tests 6
+# suites 0
+# pass 4
+# fail 2
+# cancelled 0
+# skipped 0
+# todo 0
+# duration_ms 28847.9604
+
+--- stderr ---
