@@ -1,0 +1,385 @@
+<!doctype html>
+<html lang="zh-CN">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Water 设计 v3 · 第四轮</title>
+<!-- Round 4 (2026-11-06): one soft sky page, big dark title with big light numbers, a bento grid of unequal cards,
+     one dark hero card per screen holding the main action, charts with character (tick dial, dot stems, pill bars).
+     Two screens first: ?s=home and ?s=results -->
+<style>
+:root{
+  --bg1:#C9DCF3; --bg2:#E4EEF9; --bg3:#F5F8FC;
+  --ink:#111418; --ink-2:#5C6470; --ink-3:#9AA2AD; --line:#E7EBF0;
+  --card:#FFFFFF; --card-soft:rgba(255,255,255,.66);
+  --dark:#15181D; --dark-2:#22262D; --on-dark:#FFFFFF; --on-dark-2:#9EA6B2;
+  --accent:#2F6BFF; --accent-2:#DCE6FF;
+  --warn:#F2A93B; --warn-soft:#FFF1D9; --bad:#E5484D; --bad-soft:#FDE6E7; --ok:#2FA36B; --ok-soft:#E0F4E9;
+  --tick:#E2E7EE; --tick-2:#C9D2DD;
+  --hatch:repeating-linear-gradient(135deg,#C3D0E2 0 1.6px,transparent 1.6px 6px);
+  --r:26px;
+  --sh:0 1px 2px rgba(17,20,24,.03),0 10px 30px rgba(31,64,112,.06);
+  --font:"Segoe UI Variable Text","Segoe UI","Microsoft YaHei UI",system-ui,sans-serif;
+  --num:"Segoe UI Variable Display","Segoe UI","Microsoft YaHei UI",sans-serif;
+  --mono:"Cascadia Mono","Consolas",monospace;
+}
+*{box-sizing:border-box;margin:0;padding:0}
+html,body{height:100%}
+body{background:#E3E9F0;font-family:var(--font);font-size:13px;line-height:1.5;color:var(--ink);display:grid;place-items:center;-webkit-font-smoothing:antialiased}
+button{font:inherit;color:inherit;border:0;background:none;cursor:pointer}
+svg.i{width:16px;height:16px;fill:none;stroke:currentColor;stroke-width:1.7;stroke-linecap:round;stroke-linejoin:round;flex:none}
+svg.i.s{width:14px;height:14px}
+.v{font-family:var(--num);font-variant-numeric:tabular-nums}
+.mono{font-family:var(--mono);font-size:12px}
+.muted{color:var(--ink-3)}
+
+.win{position:relative;width:1240px;height:820px;border-radius:20px;overflow:hidden;box-shadow:0 30px 80px rgba(20,45,80,.16);
+  background:radial-gradient(700px 420px at 12% -10%,rgba(255,255,255,.7),transparent 65%),
+             radial-gradient(900px 500px at 100% 0%,#BBD2F0 0%,transparent 60%),
+             linear-gradient(170deg,var(--bg1) 0%,var(--bg2) 38%,var(--bg3) 72%)}
+.top{height:66px;display:flex;align-items:center;padding:0 28px}
+.brand{display:flex;align-items:center;gap:9px;font-weight:700;font-size:16px;width:240px;letter-spacing:.01em}
+.brand svg{width:24px;height:24px}
+.nav{margin:0 auto;display:flex;gap:4px;padding:4px;border-radius:999px;background:rgba(255,255,255,.55)}
+.nav a{height:34px;padding:0 16px;border-radius:999px;display:flex;align-items:center;gap:6px;font-size:13px;color:var(--ink-2);cursor:pointer}
+.nav a.on{background:var(--dark);color:#fff;font-weight:600}
+.nav .n{font-family:var(--num);font-size:11px;color:var(--warn);font-weight:600}
+.top-r{width:240px;display:flex;justify-content:flex-end;gap:8px}
+.ib{width:36px;height:36px;border-radius:50%;display:grid;place-items:center;background:rgba(255,255,255,.75)}
+
+.screen{display:none;position:absolute;inset:66px 0 0 0;padding:4px 28px 26px;flex-direction:column}
+.screen.on{display:flex}
+
+/* title row: big dark title left, big light numbers right (Crextio-like) */
+.head{display:flex;justify-content:space-between;align-items:flex-end;height:96px;flex:none}
+.h1{font-size:40px;font-weight:400;letter-spacing:-.01em;line-height:1.15}
+.h1 small{display:block;font-size:13px;color:var(--ink-2);letter-spacing:0;margin-bottom:6px}
+.bigs{display:flex;gap:34px;align-items:flex-end}
+.bg{display:flex;flex-direction:column;align-items:flex-start}
+.bg .n{font-family:var(--num);font-size:46px;font-weight:300;line-height:1;letter-spacing:-.03em;display:flex;align-items:baseline;gap:4px}
+.bg .n small{font-size:15px;letter-spacing:0;color:var(--ink-2);font-weight:400}
+.bg .k{display:flex;align-items:center;gap:6px;font-size:12px;color:var(--ink-2);margin-top:6px}
+.bg .k .ic{width:22px;height:22px;border-radius:50%;background:rgba(255,255,255,.75);display:grid;place-items:center}
+
+/* pill bar: proportions as pills of different styles */
+.pillbar{display:flex;gap:8px;margin-top:18px;flex:none;align-items:flex-end}
+.pb{display:flex;flex-direction:column;gap:6px;min-width:70px}
+.pb .lb{font-size:11px;color:var(--ink-2);white-space:nowrap}
+.pb .p{height:36px;border-radius:999px;display:flex;align-items:center;padding:0 14px;font-family:var(--num);font-size:13px;font-weight:600;white-space:nowrap}
+.p.dark{background:var(--dark);color:#fff}
+.p.acc{background:var(--accent);color:#fff}
+.p.warn{background:var(--warn);color:#3B2A08}
+.p.hatch{background:var(--hatch),rgba(255,255,255,.55);color:var(--ink)}
+.p.line{border:1.5px solid rgba(17,20,24,.18);color:var(--ink-2)}
+.p.soft{background:rgba(255,255,255,.8);color:var(--ink-2)}
+
+/* bento */
+.bento{flex:1;min-height:0;display:grid;gap:14px;margin-top:18px}
+.card{background:var(--card);border-radius:var(--r);box-shadow:var(--sh);padding:20px 22px;display:flex;flex-direction:column;min-width:0;min-height:0;position:relative}
+.card.soft{background:var(--card-soft)}
+.card.dark{background:var(--dark);color:var(--on-dark)}
+.ch{display:flex;align-items:center;gap:8px;font-size:15px;font-weight:600;height:30px;flex:none}
+.ch .r{margin-left:auto;display:flex;gap:6px;align-items:center}
+.rb{width:32px;height:32px;border-radius:50%;border:1px solid var(--line);display:grid;place-items:center;color:var(--ink-2)}
+.dark .rb{border-color:#33383F;color:#C9CFD8}
+.sub{font-size:12px;color:var(--ink-3)}
+.dark .sub{color:var(--on-dark-2)}
+.num{font-family:var(--num);font-size:36px;font-weight:300;letter-spacing:-.02em;line-height:1.1;display:flex;align-items:baseline;gap:4px}
+.num small{font-size:14px;color:var(--ink-2);letter-spacing:0;font-weight:400}
+.dark .num small{color:var(--on-dark-2)}
+.tag{display:inline-flex;align-items:center;gap:5px;height:24px;padding:0 10px;border-radius:999px;font-size:11px;font-weight:600;white-space:nowrap}
+.tag.warn{background:var(--warn-soft);color:#9A6210}
+.tag.ok{background:var(--ok-soft);color:var(--ok)}
+.tag.bad{background:var(--bad-soft);color:var(--bad)}
+.tag.acc{background:var(--accent-2);color:var(--accent)}
+.tag.dk{background:#2A2E35;color:#DDE2E9}
+.bottom{margin-top:auto}
+
+/* dial made of radial ticks */
+.dial{position:relative;display:grid;place-items:center;flex:none}
+.dial .c{position:absolute;inset:0;display:flex;flex-direction:column;align-items:center;justify-content:center}
+.dial .c .n{font-family:var(--num);font-size:30px;font-weight:300;letter-spacing:-.02em;line-height:1}
+.dial .c .n small{font-size:12px;color:var(--ink-2)}
+.dial .c .k{font-size:11px;color:var(--ink-3);margin-top:4px}
+.dial.sm .c .n{font-size:17px;font-weight:400}
+
+/* dot stems */
+.stems{position:relative;display:flex;align-items:flex-end;justify-content:space-between;height:100%}
+.stems .s{position:relative;flex:1;display:flex;justify-content:center;height:100%}
+.stems .s i{position:absolute;bottom:0;width:2px;border-radius:2px;background:var(--ink)}
+.stems .s b{position:absolute;width:9px;height:9px;border-radius:50%;background:var(--ink);transform:translateY(50%)}
+.stems .s.mute i,.stems .s.mute b{background:var(--tick-2)}
+.stems .s.hl i{width:8px;background:var(--accent);border-radius:999px}
+.stems .s.hl b{display:none}
+.stems .s.wn i{width:8px;background:var(--warn);border-radius:999px}
+.stems .s.wn b{display:none}
+.stems .bub{position:absolute;transform:translate(-50%,-130%);background:var(--warn);color:#3B2A08;font-family:var(--num);font-size:11px;font-weight:700;padding:2px 8px;border-radius:999px;white-space:nowrap}
+.stems .bub.acc{background:var(--accent);color:#fff}
+.xl{display:flex;justify-content:space-between;font-size:11px;color:var(--ink-3);margin-top:10px;font-family:var(--num)}
+
+/* buttons */
+.btn{height:40px;padding:0 18px;border-radius:999px;font-size:13px;font-weight:600;display:inline-flex;align-items:center;justify-content:center;gap:8px;white-space:nowrap}
+.btn.big{height:52px;font-size:15px}
+.btn.white{background:#fff;color:var(--ink)}
+.btn.white .q{font-family:var(--num);font-weight:400;color:var(--ink-3)}
+.btn.ghost{background:rgba(255,255,255,.08);color:#fff}
+.btn.soft{background:#F1F4F8;color:var(--ink)}
+.btn.acc{background:var(--accent);color:#fff}
+.btn.full{width:100%}
+
+/* rows in the dark card */
+.opt{display:flex;align-items:center;gap:12px;padding:10px 0;border-top:1px solid #2A2E35}
+.opt:first-child{border-top:0}
+.opt .ic{width:34px;height:34px;border-radius:11px;background:#23272E;display:grid;place-items:center;color:#C9CFD8;flex:none}
+.opt .t{flex:1;min-width:0}
+.opt .t .a{font-size:13px;font-weight:600}
+.opt .t .b{font-size:11px;color:var(--on-dark-2)}
+.ck{width:20px;height:20px;border-radius:50%;border:1.5px solid #4A5059;display:grid;place-items:center;color:transparent;flex:none}
+.ck.on{background:var(--accent);border-color:var(--accent);color:#fff}
+.ck svg{width:11px;height:11px;stroke-width:2.6}
+.tgd{width:34px;height:20px;border-radius:999px;background:#3A3F47;position:relative;flex:none}
+.tgd::after{content:"";position:absolute;top:3px;left:3px;width:14px;height:14px;border-radius:50%;background:#fff}
+.tgd.on{background:var(--accent)} .tgd.on::after{left:17px}
+
+/* judgement card buttons */
+.pair{display:flex;gap:8px}
+.pair .btn{flex:1;height:34px;font-size:12px}
+.seg2{display:flex;gap:3px;height:12px}
+.seg2 i{border-radius:999px}
+.clue{display:flex;align-items:center;gap:12px;padding:12px 0;border-top:1px solid var(--line)}
+.clue:first-of-type{border-top:0}
+.clue .ic{width:36px;height:36px;border-radius:12px;background:#F1F4F8;display:grid;place-items:center;color:var(--ink-2);flex:none}
+.clue .t{flex:1;min-width:0}
+.clue .t .a{font-weight:600}
+.clue .t .b{font-size:11px;color:var(--ink-3)}
+.tm{position:relative;flex:1;min-height:0;margin-top:12px}
+.tm .tl{position:absolute;border-radius:10px;padding:8px 10px;display:flex;flex-direction:column;justify-content:space-between;overflow:hidden;color:#12324F}
+.tm .tl .a{font-size:11px;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+.tm .tl .n{font-family:var(--num);font-size:15px;text-align:right}
+.tm .tl.big .n{font-size:24px;font-weight:300}
+.tm .tl.k1{background:#A9D6FA}.tm .tl.k2{background:#C4E2FB}.tm .tl.k3{background:#DCEEFD}
+.tm .tl.sel{background:var(--accent);color:#fff}
+.tm .tl.look{background:#fff;border:1.5px solid var(--warn);color:#8A5A10}
+.tm .tl.look.big{background:#FFF7EA}
+.cp{height:30px;padding:0 12px;border-radius:999px;background:#F1F4F8;font-size:12px;font-weight:600;display:inline-flex;align-items:center;gap:6px}
+</style>
+</head>
+<body>
+<svg width="0" height="0" style="position:absolute">
+  <symbol id="i-pulse" viewBox="0 0 24 24"><path d="M3 12h4l2.5-6 4 12 2.5-6h5"/></symbol>
+  <symbol id="i-box" viewBox="0 0 24 24"><path d="M3.5 4.5h17v4h-17z"/><path d="M5 8.5v10a1.5 1.5 0 0 0 1.5 1.5h11a1.5 1.5 0 0 0 1.5-1.5v-10"/><path d="M10 12.5h4"/></symbol>
+  <symbol id="i-trend" viewBox="0 0 24 24"><path d="M3.5 17l5.5-5.5 4 4 7.5-7.5"/><path d="M15 8h5.5v5.5"/></symbol>
+  <symbol id="i-clock" viewBox="0 0 24 24"><circle cx="12" cy="12" r="8.5"/><path d="M12 7.5V12l3 2"/></symbol>
+  <symbol id="i-gear" viewBox="0 0 24 24"><circle cx="12" cy="12" r="3"/><path d="M12 3.5v2.2M12 18.3v2.2M3.5 12h2.2M18.3 12h2.2M6 6l1.6 1.6M16.4 16.4L18 18M6 18l1.6-1.6M16.4 7.6L18 6"/><circle cx="12" cy="12" r="6.3"/></symbol>
+  <symbol id="i-drive" viewBox="0 0 24 24"><rect x="3.5" y="6" width="17" height="12" rx="3"/><path d="M7 14h5"/><circle cx="16.5" cy="14" r=".6" fill="currentColor"/></symbol>
+  <symbol id="i-sys" viewBox="0 0 24 24"><rect x="3.5" y="6" width="17" height="12" rx="3"/><path d="M7 10h10M7 14h5"/><circle cx="16.5" cy="14" r=".6" fill="currentColor"/></symbol>
+  <symbol id="i-folder" viewBox="0 0 24 24"><path d="M3.5 7.5a2 2 0 0 1 2-2h4l2 2h7a2 2 0 0 1 2 2v7.5a2 2 0 0 1-2 2h-13a2 2 0 0 1-2-2z"/></symbol>
+  <symbol id="i-plus" viewBox="0 0 24 24"><path d="M12 5.5v13M5.5 12h13"/></symbol>
+  <symbol id="i-arrow" viewBox="0 0 24 24"><path d="M7.5 16.5l9-9M9.5 7.5h7v7"/></symbol>
+  <symbol id="i-more" viewBox="0 0 24 24"><circle cx="6.5" cy="12" r=".9" fill="currentColor"/><circle cx="12" cy="12" r=".9" fill="currentColor"/><circle cx="17.5" cy="12" r=".9" fill="currentColor"/></symbol>
+  <symbol id="i-check" viewBox="0 0 24 24"><path d="M5.5 12.5l4 4 9-9"/></symbol>
+  <symbol id="i-copy" viewBox="0 0 24 24"><rect x="9" y="9" width="11" height="11" rx="2.5"/><path d="M15 9V6.5A2.5 2.5 0 0 0 12.5 4h-6A2.5 2.5 0 0 0 4 6.5v6A2.5 2.5 0 0 0 6.5 15H9"/></symbol>
+  <symbol id="i-eye" viewBox="0 0 24 24"><path d="M2.5 12S6 5.5 12 5.5 21.5 12 21.5 12 18 18.5 12 18.5 2.5 12 2.5 12z"/><circle cx="12" cy="12" r="2.8"/></symbol>
+  <symbol id="i-leak" viewBox="0 0 24 24"><path d="M12 3.5c3.2 4.2 6 7.3 6 10.8a6 6 0 0 1-12 0c0-3.5 2.8-6.6 6-10.8z"/></symbol>
+  <symbol id="i-ai" viewBox="0 0 24 24"><rect x="4.5" y="6.5" width="15" height="12" rx="3.5"/><path d="M12 3.5v3M9.5 12h.01M14.5 12h.01M9.5 15.5h5"/></symbol>
+  <symbol id="i-browser" viewBox="0 0 24 24"><rect x="3.5" y="4.5" width="17" height="15" rx="3"/><path d="M3.5 9h17"/></symbol>
+  <symbol id="i-code" viewBox="0 0 24 24"><path d="M8.5 8l-4 4 4 4M15.5 8l4 4-4 4"/></symbol>
+  <symbol id="i-pkg" viewBox="0 0 24 24"><path d="M12 3.5l7.5 4.2v8.6L12 20.5l-7.5-4.2V7.7z"/><path d="M4.5 7.7L12 12l7.5-4.3M12 12v8.5"/></symbol>
+  <symbol id="i-temp" viewBox="0 0 24 24"><path d="M7.5 3.5h9M7.5 20.5h9"/><path d="M8.5 3.5c0 5 7 5 7 8.5s-7 3.5-7 8.5M15.5 3.5c0 5-7 5-7 8.5"/></symbol>
+  <symbol id="i-snap" viewBox="0 0 24 24"><rect x="4" y="6.5" width="16" height="12" rx="3"/><circle cx="12" cy="12.5" r="3"/><path d="M9 6.5l1.2-2h3.6l1.2 2"/></symbol>
+  <symbol id="i-agent" viewBox="0 0 24 24"><path d="M12 3.5v5M12 15.5v5M3.5 12h5M15.5 12h5M6 6l3.2 3.2M14.8 14.8L18 18M6 18l3.2-3.2M14.8 9.2L18 6"/></symbol>
+  <symbol id="i-refresh" viewBox="0 0 24 24"><path d="M19.5 12a7.5 7.5 0 1 1-2.2-5.3"/><path d="M19.5 4.5v4.5H15"/></symbol>
+</svg>
+
+<div class="win">
+  <header class="top">
+    <div class="brand">
+      <svg viewBox="0 0 48 48"><mask id="mk" maskUnits="userSpaceOnUse" x="0" y="0" width="48" height="48"><rect width="48" height="48" fill="#fff"/><path d="M24 23.5 L21.5 39 M24 23.5 L35 31.5" stroke="#000" stroke-width="1.4" fill="none"/></mask><g fill="#111418"><path d="M19.5 17 L24.5 8.5 L27 12 L29.5 17 Z"/><path d="M4.5 20 H43.5" fill="none" stroke="#111418" stroke-width="2.4" stroke-linecap="round"/><path d="M10 23.5 H38 L35 31.5 L28.5 42.5 L21.5 39 L14 32 Z" mask="url(#mk)"/></g></svg>
+      Water
+    </div>
+    <nav class="nav">
+      <a class="on"><svg class="i s"><use href="#i-pulse"/></svg>体检</a>
+      <a><svg class="i s"><use href="#i-box"/></svg>隔离区 <span class="n">4.8 GB</span></a>
+      <a><svg class="i s"><use href="#i-trend"/></svg>趋势</a>
+      <a><svg class="i s"><use href="#i-clock"/></svg>记录</a>
+    </nav>
+    <div class="top-r"><span class="ib"><svg class="i s"><use href="#i-eye"/></svg></span><span class="ib"><svg class="i s"><use href="#i-gear"/></svg></span></div>
+  </header>
+
+  <!-- ================= home ================= -->
+  <section class="screen" data-s="home">
+    <div class="head">
+      <div class="h1"><small>磁盘体检</small>这次检查哪里？</div>
+      <div class="bigs">
+        <div class="bg"><div class="n">77.0<small>GB</small></div><div class="k"><span class="ic"><svg class="i s"><use href="#i-sys"/></svg></span>C 盘可用</div></div>
+        <div class="bg"><div class="n">31.2<small>GB</small></div><div class="k"><span class="ic"><svg class="i s"><use href="#i-pulse"/></svg></span>上次可清</div></div>
+        <div class="bg"><div class="n">4.8<small>GB</small></div><div class="k"><span class="ic"><svg class="i s"><use href="#i-box"/></svg></span>隔离区</div></div>
+      </div>
+    </div>
+    <div class="pillbar">
+      <div class="pb" style="flex:57"><span class="lb">C 盘 · 系统与程序</span><span class="p dark">57%</span></div>
+      <div class="pb" style="flex:12"><span class="lb">上次查到可清</span><span class="p acc">12%</span></div>
+      <div class="pb" style="flex:31"><span class="lb">可用</span><span class="p hatch">31%</span></div>
+      <div class="pb" style="flex:0 0 120px"><span class="lb">满的那天</span><span class="p line">11 月 29 日</span></div>
+    </div>
+    <div class="bento" style="grid-template-columns:300px 1fr 1fr 320px;grid-template-rows:1fr 1fr">
+      <div class="card" style="grid-row:1/3">
+        <div class="ch">C 盘<span class="sub" style="font-weight:400">系统盘</span><span class="r"><span class="rb"><svg class="i s"><use href="#i-arrow"/></svg></span></span></div>
+        <div style="flex:1;display:grid;place-items:center">
+          <div class="dial" data-dial='{"size":210,"p":69,"warn":[60,69],"n":60}'><div class="c"><span class="n">77.0<small> GB</small></span><span class="k">可用 · 共 250 GB</span></div></div>
+        </div>
+        <div class="bottom" style="display:flex;justify-content:space-between;align-items:center">
+          <span class="tag warn">约 23 天后满</span><span class="sub v">每天 −3.3 GB</span>
+        </div>
+      </div>
+      <div class="card">
+        <div class="ch">F 盘<span class="r"><span class="rb"><svg class="i s"><use href="#i-arrow"/></svg></span></span></div>
+        <div style="display:flex;align-items:center;gap:18px;flex:1">
+          <div class="dial sm" data-dial='{"size":96,"p":80,"n":40}'><div class="c"><span class="n">80%</span></div></div>
+          <div><div class="num">372.7<small>GB</small></div><div class="sub">可用 · 共 1.8 TB</div></div>
+        </div>
+      </div>
+      <div class="card">
+        <div class="ch">D · E 盘<span class="r"><span class="rb"><svg class="i s"><use href="#i-arrow"/></svg></span></span></div>
+        <div style="display:flex;flex-direction:column;justify-content:center;gap:14px;flex:1">
+          <div style="display:flex;align-items:center;gap:14px"><div class="dial sm" data-dial='{"size":58,"p":75,"n":30}'><div class="c"><span class="n" style="font-size:13px">D</span></div></div><div class="v" style="font-size:24px;font-weight:300">30.2<span class="sub"> GB 可用</span></div><span class="sub v" style="margin-left:auto">75%</span></div>
+          <div style="display:flex;align-items:center;gap:14px"><div class="dial sm" data-dial='{"size":58,"p":78,"n":30}'><div class="c"><span class="n" style="font-size:13px">E</span></div></div><div class="v" style="font-size:24px;font-weight:300">51.8<span class="sub"> GB 可用</span></div><span class="sub v" style="margin-left:auto">78%</span></div>
+        </div>
+      </div>
+      <div class="card" style="grid-column:2/4">
+        <div class="ch">C 盘最近 30 天<span class="sub" style="font-weight:400;margin-left:4px">可用空间</span><span class="r"><span class="tag acc">10/26 清理过</span></span></div>
+        <div style="flex:1;margin-top:16px;padding-top:18px" data-stems='{"v":[150,148,147,146,143,140,139,137,133,130,128,126,122,119,116,113,111,108,105,101,98,96,94,91,88,86,83,81,79,77],"hl":[18],"wn":[29],"bub":[[29,"77.0"]],"bubAcc":[[18,"清理"]]}'></div>
+        <div class="xl"><span>10/8</span><span>10/22</span><span>今天</span></div>
+      </div>
+      <div class="card dark" style="grid-column:4;grid-row:1/3">
+        <div class="ch">本次体检<span class="r"><span class="tag dk">2 处</span></span></div>
+        <div class="sub" style="margin-top:2px">只读取名字、大小与时间</div>
+        <div style="margin-top:14px">
+          <div class="opt"><span class="ic"><svg class="i"><use href="#i-sys"/></svg></span><div class="t"><div class="a">C 盘常用位置</div><div class="b">7 类</div></div><span class="ck on"><svg class="i"><use href="#i-check"/></svg></span></div>
+          <div class="opt"><span class="ic"><svg class="i"><use href="#i-drive"/></svg></span><div class="t"><div class="a">F 盘</div><div class="b">整盘</div></div><span class="ck on"><svg class="i"><use href="#i-check"/></svg></span></div>
+          <div class="opt"><span class="ic"><svg class="i"><use href="#i-drive"/></svg></span><div class="t"><div class="a">D 盘</div><div class="b">整盘</div></div><span class="ck"></span></div>
+          <div class="opt"><span class="ic"><svg class="i"><use href="#i-drive"/></svg></span><div class="t"><div class="a">E 盘</div><div class="b">整盘</div></div><span class="ck"></span></div>
+          <div class="opt"><span class="ic"><svg class="i"><use href="#i-folder"/></svg></span><div class="t"><div class="a">denglou</div><div class="b">文件夹</div></div><span class="ck"></span></div>
+        </div>
+        <div class="bottom" style="display:flex;flex-direction:column;gap:10px">
+          <button class="btn ghost full"><svg class="i s"><use href="#i-plus"/></svg>加文件夹</button>
+          <button class="btn white big full">开始体检</button>
+        </div>
+      </div>
+    </div>
+  </section>
+
+  <!-- ================= results ================= -->
+  <section class="screen" data-s="results">
+    <div class="head">
+      <div class="h1"><small>C 盘常用位置、F 盘 · 10 分钟前</small>可以放心清理</div>
+      <div class="bigs">
+        <div class="bg"><div class="n">15.4<small>GB</small></div><div class="k"><span class="ic"><svg class="i s"><use href="#i-check"/></svg></span>放心清</div></div>
+        <div class="bg"><div class="n">7.4<small>GB</small></div><div class="k"><span class="ic"><svg class="i s"><use href="#i-eye"/></svg></span>要你看</div></div>
+        <div class="bg"><div class="n">+2.1<small>GB</small></div><div class="k"><span class="ic"><svg class="i s"><use href="#i-trend"/></svg></span>比上次</div></div>
+      </div>
+    </div>
+    <div class="pillbar">
+      <div class="pb" style="flex:27"><span class="lb">放心清</span><span class="p acc">27%</span></div>
+      <div class="pb" style="flex:13"><span class="lb">要你看</span><span class="p warn">13%</span></div>
+      <div class="pb" style="flex:11"><span class="lb">只统计</span><span class="p hatch">11%</span></div>
+      <div class="pb" style="flex:17"><span class="lb">受保护</span><span class="p dark">17%</span></div>
+      <div class="pb" style="flex:31"><span class="lb">系统设置里还能省</span><span class="p line">31%</span></div>
+      <div class="pb" style="flex:0 0 100px"><span class="lb">这次看到</span><span class="p soft">56.1 GB</span></div>
+    </div>
+    <div class="bento" style="grid-template-columns:300px 1fr 1fr 1fr;grid-template-rows:1fr 1fr">
+      <div class="card dark" style="grid-row:1/3">
+        <div class="ch">这次清理<span class="r"><span class="rb"><svg class="i s"><use href="#i-refresh"/></svg></span></span></div>
+        <div class="num" style="font-size:52px;margin-top:10px">16.9<small>GB</small></div>
+        <div class="sub">推荐 15.4 · 你选的 1.5</div>
+        <div style="margin-top:14px">
+          <div class="opt"><span class="ic"><svg class="i"><use href="#i-ai"/></svg></span><div class="t"><div class="a">AI 编程工具</div></div><span class="v" style="font-size:12px;color:#C9CFD8">6.2</span><span class="tgd on"></span></div>
+          <div class="opt"><span class="ic"><svg class="i"><use href="#i-browser"/></svg></span><div class="t"><div class="a">浏览器缓存</div></div><span class="v" style="font-size:12px;color:#C9CFD8">3.4</span><span class="tgd on"></span></div>
+          <div class="opt"><span class="ic"><svg class="i"><use href="#i-code"/></svg></span><div class="t"><div class="a">开发缓存</div></div><span class="v" style="font-size:12px;color:#C9CFD8">2.4</span><span class="tgd on"></span></div>
+          <div class="opt"><span class="ic"><svg class="i"><use href="#i-pkg"/></svg></span><div class="t"><div class="a">安装包</div></div><span class="v" style="font-size:12px;color:#C9CFD8">2.1</span><span class="tgd on"></span></div>
+          <div class="opt"><span class="ic"><svg class="i"><use href="#i-temp"/></svg></span><div class="t"><div class="a">临时文件</div></div><span class="v" style="font-size:12px;color:#C9CFD8">1.3</span><span class="tgd on"></span></div>
+        </div>
+        <div class="bottom" style="display:flex;flex-direction:column;gap:10px">
+          <span class="tag warn" style="align-self:flex-start">Chrome 开着 · 跳过 0.4 GB</span>
+          <button class="btn white big full">清理 <span class="q">16.9 GB</span></button>
+        </div>
+      </div>
+      <div class="card">
+        <div class="ch"><svg class="i"><use href="#i-snap"/></svg>模拟器快照<span class="r"><span class="rb"><svg class="i s"><use href="#i-more"/></svg></span></span></div>
+        <div class="sub">F 盘 · 41 天没打开</div>
+        <div class="num" style="margin-top:12px">4.2<small>GB</small></div>
+        <div class="seg2" style="margin-top:12px"><i style="flex:2.3;background:var(--warn)"></i><i style="flex:1.2;background:#F7CE87"></i><i style="flex:.7;background:#FBE3B8"></i></div>
+        <div class="xl" style="margin-top:6px"><span>3 个快照</span><span>2.3 · 1.2 · 0.7</span></div>
+        <div class="bottom pair" style="padding-top:12px"><button class="btn soft">保留</button><button class="btn acc">清理</button></div>
+      </div>
+      <div class="card">
+        <div class="ch"><svg class="i"><use href="#i-leak"/></svg><span class="mono" style="font-size:14px">verify-*</span><span class="r"><span class="rb"><svg class="i s"><use href="#i-more"/></svg></span></span></div>
+        <div class="sub">81 个 · 每天都在长</div>
+        <div class="num" style="margin-top:12px">2.1<small>GB</small></div>
+        <div style="height:44px;margin-top:10px;padding-top:4px" data-stems='{"v":[2,3,2,4,5,4,6,7,6,8,9,8,10,11],"mute":1,"wn":[13]}'></div>
+        <div class="bottom pair" style="padding-top:12px"><button class="btn soft">保留</button><button class="btn acc">清理</button></div>
+      </div>
+      <div class="card">
+        <div class="ch"><svg class="i"><use href="#i-ai"/></svg>Codex 旧运行时<span class="r"><span class="tag acc">已加入</span></span></div>
+        <div class="sub">留下在用的 0.49</div>
+        <div class="num" style="margin-top:12px">1.5<small>GB</small></div>
+        <div class="seg2" style="margin-top:12px"><i style="flex:.6;background:var(--accent)"></i><i style="flex:.5;background:var(--accent)"></i><i style="flex:.4;background:var(--accent)"></i><i style="flex:.6;background:var(--hatch),#EEF2F8"></i></div>
+        <div class="xl" style="margin-top:6px"><span>0.46 · 0.47 · 0.48</span><span>0.49 在用</span></div>
+        <div class="bottom pair" style="padding-top:12px"><button class="btn soft">撤销</button></div>
+      </div>
+      <div class="card" style="grid-column:2/4">
+        <div class="ch">这次能清什么<span class="sub" style="font-weight:400;margin-left:6px">面积就是体量</span><span class="r"><span class="tag acc">放心清</span><span class="tag warn">要你看</span></span></div>
+        <div class="tm" data-tm='[["模拟器快照",4.2,"look"],["Codex 旧运行时",2.4,"k1"],["Chrome 网页缓存",2.1,"k1"],["verify-*",2.1,"look"],["旧安装包",2.1,"k1"],["Claude 缓存",1.9,"k2"],["Cursor 缓存",1.9,"k2"],["Codex 运行时 × 3",1.5,"sel"],["Edge 缓存",1.3,"k2"],["Temp",1.3,"k2"],["npm 缓存",1.2,"k3"],["Jest 缓存",1.2,"k3"]]'></div>
+      </div>
+      <div class="card">
+        <div class="ch"><svg class="i"><use href="#i-agent"/></svg>交给 agent<span class="r"><span class="rb"><svg class="i s"><use href="#i-copy"/></svg></span></span></div>
+        <div class="sub">清了不修，还会再长</div>
+        <div style="margin-top:8px">
+          <div class="clue"><span class="ic"><svg class="i"><use href="#i-folder"/></svg></span><div class="t"><div class="a">工作树脱离 git</div><div class="b">denglou · 11 棵 · 11 GB</div></div></div>
+          <div class="clue"><span class="ic"><svg class="i"><use href="#i-leak"/></svg></span><div class="t"><div class="a"><span class="mono" style="font-size:13px">verify-*</span> 没人删</div><div class="b">fix-r9 · 每次验证 +1</div></div></div>
+        </div>
+        <div class="bottom"><button class="btn soft full"><svg class="i s"><use href="#i-copy"/></svg>复制线索</button></div>
+      </div>
+    </div>
+  </section>
+</div>
+
+<script>
+// Mockup only: draw tick dials and dot stems from data attributes.
+const q=new URLSearchParams(location.search).get('s')||'home';
+document.querySelector(`.screen[data-s="${q}"]`)?.classList.add('on');
+const NS='http://www.w3.org/2000/svg',sv=(t,a)=>{const e=document.createElementNS(NS,t);for(const k in a)e.setAttribute(k,a[k]);return e;};
+document.querySelectorAll('.screen.on [data-dial]').forEach(el=>{
+  const d=JSON.parse(el.dataset.dial),S=d.size,n=d.n||60,R=S/2-2,L=S>150?14:9,on=Math.round(n*d.p/100);
+  const s=sv('svg',{width:S,height:S,viewBox:`0 0 ${S} ${S}`});
+  for(let i=0;i<n;i++){const a=(i/n)*Math.PI*2-Math.PI/2,c=Math.cos(a),si=Math.sin(a);
+    let col=i<on?'#111418':'#DDE3EA';
+    if(d.warn&&i>=Math.round(n*d.warn[0]/100)&&i<Math.round(n*d.warn[1]/100))col='#F2A93B';
+    s.append(sv('line',{x1:S/2+c*(R-L),y1:S/2+si*(R-L),x2:S/2+c*R,y2:S/2+si*R,stroke:col,'stroke-width':S>150?2.4:2,'stroke-linecap':'round'}));}
+  el.style.width=S+'px';el.style.height=S+'px';el.prepend(s);
+});
+document.querySelectorAll('.screen.on [data-stems]').forEach(el=>{
+  const d=JSON.parse(el.dataset.stems),max=Math.max(...d.v),box=document.createElement('div');box.className='stems';el.append(box);
+  d.v.forEach((x,i)=>{const s=document.createElement('div');s.className='s';
+    if(d.mute&&!(d.wn||[]).includes(i))s.classList.add('mute');
+    if((d.hl||[]).includes(i))s.classList.add('hl');if((d.wn||[]).includes(i))s.classList.add('wn');
+    const ht=(x/max*100).toFixed(1);s.innerHTML=`<i style="height:${ht}%"></i><b style="bottom:${ht}%"></b>`;box.append(s);});
+  const pos=i=>((i+.5)/d.v.length*100);
+  (d.bub||[]).forEach(([i,t])=>{const b=document.createElement('span');b.className='bub';b.textContent=t;b.style.left=pos(i)+'%';b.style.bottom=(d.v[i]/max*100)+'%';box.append(b);});
+  (d.bubAcc||[]).forEach(([i,t])=>{const b=document.createElement('span');b.className='bub acc';b.textContent=t;b.style.left=pos(i)+'%';b.style.bottom=(d.v[i]/max*100)+'%';box.append(b);});
+});
+// squarified treemap
+document.querySelectorAll('.screen.on [data-tm]').forEach(el=>{
+  const items=JSON.parse(el.dataset.tm).sort((a,b)=>b[1]-a[1]),W=el.clientWidth,H=el.clientHeight,G=6,tot=items.reduce((a,b)=>a+b[1],0);
+  let x=0,y=0,w=W,h=H,row=[];
+  const worst=(r,len)=>{const t=r.reduce((a,b)=>a+b.a,0);return Math.max(...r.map(o=>Math.max(len*len*o.a/(t*t),(t*t)/(len*len*o.a))));};
+  const place=(o,px,py,pw,ph)=>{const [n,v,k]=o.it,d=document.createElement('div');d.className='tl '+k+(pw*ph>W*H*.11?' big':'');
+    d.style.cssText='left:'+(px+G/2)+'px;top:'+(py+G/2)+'px;width:'+(pw-G)+'px;height:'+(ph-G)+'px';
+    d.innerHTML=(pw-G>78&&ph-G>56?'<span class="a">'+n+'</span>':'<span></span>')+'<span class="n">'+v.toFixed(1)+'</span>';d.title=n;el.append(d);};
+  const lay=r=>{const t=r.reduce((a,b)=>a+b.a,0);if(w>=h){const cw=t/h;let cy=y;r.forEach(o=>{const ch=o.a/cw;place(o,x,cy,cw,ch);cy+=ch;});x+=cw;w-=cw;}else{const rh=t/w;let cx=x;r.forEach(o=>{const cw=o.a/rh;place(o,cx,y,cw,rh);cx+=cw;});y+=rh;h-=rh;}};
+  items.map(it=>({it,a:it[1]/tot*W*H})).forEach(o=>{const len=Math.min(w,h);if(!row.length||worst([...row,o],len)<=worst(row,len))row.push(o);else{lay(row);row=[o];}});
+  if(row.length)lay(row);
+});
+</script>
+</body>
+</html>
