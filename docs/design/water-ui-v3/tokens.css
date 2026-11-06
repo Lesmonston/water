@@ -1,18 +1,24 @@
-/* Water UI v3 tokens (2026-11-06): pale sky header, white sheet and cards. Source of truth for the v3 mockup. */
+/* Water UI v3 tokens (2026-11-06, round 2): pale sky header, white sheet and cards, validated chart palettes. Source of truth for the v3 mockup. */
 :root{
   --sky-top:#AFC7E6; --sky-mid:#C7D9EF; --sky-low:#DCE7F4;
   --hero-ink:#0F2238; --hero-ink-2:#45607F; --hero-ink-3:#6E86A3;
-  --sheet:#F2F5F9; --card:#FFFFFF; --line:#E6EBF1; --line-2:#EEF1F5;
+  --sheet:#F2F5F9; --card:#FFFFFF; --line:#E6EBF1; --line-2:#EEF1F5; --track:#E9EEF4;
   --ink:#14181F; --ink-2:#5B6573; --ink-3:#98A2B0;
   --accent:#2E6FD8; --accent-soft:#E7EFFB;
   --ok:#2E9E66; --ok-soft:#DFF3E8; --ok-bar:#BFE5CF; --ok-bar-2:#8FD1AC;
   --warn:#D98A12; --warn-soft:#FCEFD8; --warn-bar:#F4D49B;
   --bad:#DC4A4F; --bad-soft:#FCE7E8;
-  --mute-bar:#DDE3EA;
+  /* categories (validated: dataviz validate_palette, light) */
+  --c-ai:#4F7FEF; --c-web:#2FB3A1; --c-dev:#9479F0; --c-pkg:#EE9B4B; --c-tmp:#E86F9A;
+  /* space classes (validated) */
+  --k-clean:#2F6FE4; --k-look:#E9A23B; --k-count:#9C8FE0; --k-prot:#4A68B0; --k-sys:#3BB39E;
+  --k-used:#CDD6E2; --k-free:#EEF2F7;
   --r-card:22px; --r-sheet:30px;
   --sh-card:0 1px 2px rgba(16,38,63,.04),0 10px 28px rgba(16,38,63,.05);
   --sh-float:0 12px 34px rgba(25,55,95,.14);
-  --font:"Segoe UI Variable Text","Segoe UI","Microsoft YaHei UI","PingFang SC",system-ui,sans-serif;
+  --font:"Segoe UI Variable Text","Segoe UI","Microsoft YaHei UI",system-ui,sans-serif;
   --font-num:"Segoe UI Variable Display","Segoe UI","Microsoft YaHei UI",system-ui,sans-serif;
+  --font-cjk-light:"Segoe UI Variable Display","Microsoft YaHei UI Light","Microsoft YaHei UI",sans-serif;
   --mono:"Cascadia Mono","Consolas",monospace;
+  /* type scale: 11 axis · 12 secondary · 13 body · 14 title · 16 section · 30 card number · 40 hero title · 56 hero number */
 }
