@@ -1,0 +1,716 @@
+{
+  "task": "WATER-W10-ACCEPT-INTEG7-HOST",
+  "kind": "host",
+  "mode": "native",
+  "finalGate": true,
+  "manifest": ".local/w10-integ7/desktop-manifest.json",
+  "startedAt": "2026-11-06T17:57:38.409Z",
+  "realDataRead": true,
+  "productTestsRun": false,
+  "nativeWindows": 1,
+  "directoryDialogs": 0,
+  "commands": [
+    {
+      "binary": "git",
+      "argv": [
+        "branch",
+        "--show-current"
+      ],
+      "exitCode": 0
+    },
+    {
+      "binary": "git",
+      "argv": [
+        "merge-base",
+        "--is-ancestor",
+        "c1dd420cb358cd6eb34622fe980d709d64e74d7e",
+        "HEAD"
+      ],
+      "exitCode": 0
+    },
+    {
+      "binary": "git",
+      "argv": [
+        "diff",
+        "--no-renames",
+        "--name-only",
+        "-z",
+        "c1dd420cb358cd6eb34622fe980d709d64e74d7e",
+        "HEAD"
+      ],
+      "exitCode": 0
+    },
+    {
+      "binary": "git",
+      "argv": [
+        "diff",
+        "--no-renames",
+        "--name-only",
+        "-z",
+        "HEAD"
+      ],
+      "exitCode": 0
+    },
+    {
+      "binary": "git",
+      "argv": [
+        "ls-files",
+        "--others",
+        "--exclude-standard",
+        "-z"
+      ],
+      "exitCode": 0
+    },
+    {
+      "binary": "git",
+      "argv": [
+        "rev-parse",
+        "HEAD"
+      ],
+      "exitCode": 0
+    },
+    {
+      "binary": "git",
+      "argv": [
+        "status",
+        "--porcelain",
+        "--untracked-files=all"
+      ],
+      "exitCode": 0
+    },
+    {
+      "binary": "C:\\Users\\37310\\.cargo\\bin\\rustup.exe",
+      "argv": [
+        "which",
+        "cargo",
+        "--toolchain",
+        "1.95.0"
+      ],
+      "exitCode": 0,
+      "error": null,
+      "log": "2026-11-06T17-57-38.408Z-38492-native-1.log"
+    },
+    {
+      "binary": "C:\\Users\\37310\\.cargo\\bin\\rustup.exe",
+      "argv": [
+        "which",
+        "rustc",
+        "--toolchain",
+        "1.95.0"
+      ],
+      "exitCode": 0,
+      "error": null,
+      "log": "2026-11-06T17-57-38.408Z-38492-native-2.log"
+    },
+    {
+      "binary": "C:\\Users\\37310\\.rustup\\toolchains\\1.95.0-x86_64-pc-windows-msvc\\bin\\rustc.exe",
+      "argv": [
+        "--version"
+      ],
+      "exitCode": 0,
+      "error": null,
+      "log": "2026-11-06T17-57-38.408Z-38492-native-3.log"
+    },
+    {
+      "binary": "C:\\Users\\37310\\.rustup\\toolchains\\1.95.0-x86_64-pc-windows-msvc\\bin\\cargo.exe",
+      "argv": [
+        "--config",
+        "source.crates-io.replace-with=\"water-cn\"",
+        "--config",
+        "source.water-cn.registry=\"sparse+https://mirrors.ustc.edu.cn/crates.io-index/\"",
+        "--config",
+        "http.multiplexing=false",
+        "--config",
+        "http.proxy=\"\"",
+        "metadata",
+        "--offline",
+        "--locked",
+        "--format-version",
+        "1",
+        "--filter-platform",
+        "x86_64-pc-windows-msvc",
+        "--manifest-path",
+        "apps/water/host/Cargo.toml"
+      ],
+      "exitCode": 0,
+      "error": null,
+      "log": "2026-11-06T17-57-38.408Z-38492-native-4.log"
+    },
+    {
+      "binary": "C:\\Users\\37310\\.rustup\\toolchains\\1.95.0-x86_64-pc-windows-msvc\\bin\\cargo.exe",
+      "argv": [
+        "--config",
+        "source.crates-io.replace-with=\"water-cn\"",
+        "--config",
+        "source.water-cn.registry=\"sparse+https://mirrors.ustc.edu.cn/crates.io-index/\"",
+        "--config",
+        "http.multiplexing=false",
+        "--config",
+        "http.proxy=\"\"",
+        "build",
+        "--offline",
+        "--locked",
+        "--manifest-path",
+        "apps/water/host/Cargo.toml",
+        "--bin",
+        "water"
+      ],
+      "exitCode": 0,
+      "error": null,
+      "log": "2026-11-06T17-57-38.408Z-38492-native-5.log"
+    },
+    {
+      "binary": "powershell.exe",
+      "argv": [
+        "-NoProfile",
+        "-NonInteractive",
+        "-File",
+        "F:\\new\\smaltalk\\water\\scripts\\acceptance\\w3-wired-native-observe.ps1",
+        "-TestProcessId",
+        "17180",
+        "-EvidencePath",
+        "F:\\new\\smaltalk\\water\\.worktrees\\integ-w8b\\.local\\checks\\WATER-W10-ACCEPT-INTEG7-HOST\\2026-11-06T17-57-38.408Z-38492-uia.json",
+        "-ShotPrefix",
+        "F:\\new\\smaltalk\\water\\.worktrees\\integ-w8b\\.local\\checks\\WATER-W10-ACCEPT-INTEG7-HOST\\2026-11-06T17-57-38.408Z-38492",
+        "-StepsPath",
+        "F:\\new\\smaltalk\\water\\.worktrees\\integ-w8b\\.local\\checks\\WATER-W10-ACCEPT-INTEG7-HOST\\2026-11-06T17-57-38.408Z-38492-steps.json",
+        "-ExpectedExe",
+        "F:\\new\\smaltalk\\water\\.worktrees\\integ-w8b\\.local\\w3-target\\debug\\water.exe",
+        "-DataDir",
+        "F:\\new\\smaltalk\\water\\.worktrees\\integ-w8b\\.local\\w10-m5-native\\2026-11-06T17-57-38.408Z-38492",
+        "-EvidenceRoot",
+        "F:\\new\\smaltalk\\water\\.worktrees\\integ-w8b\\.local\\checks\\WATER-W10-ACCEPT-INTEG7-HOST",
+        "-Title",
+        "Water",
+        "-MaximumSeconds",
+        "300"
+      ],
+      "exitCode": 0,
+      "error": null,
+      "log": "2026-11-06T17-57-38.408Z-38492-native-6.log"
+    },
+    {
+      "binary": "powershell.exe",
+      "argv": [
+        "-NoProfile",
+        "-NonInteractive",
+        "-Command",
+        "$ErrorActionPreference=\"Stop\"; $e=[DateTime]::UtcNow.AddSeconds(5); do { $r=@(Get-CimInstance Win32_Process -Filter \"ProcessId=7524 OR ProcessId=10836 OR ProcessId=21260 OR ProcessId=18600 OR ProcessId=1168 OR ProcessId=2336\"); if($r.Count -eq 0){break}; Start-Sleep -Milliseconds 100 } while([DateTime]::UtcNow -lt $e); [ordered]@{remaining=@($r | Select-Object ProcessId,Name)} | ConvertTo-Json -Depth 4 -Compress"
+      ],
+      "exitCode": 0,
+      "error": null,
+      "log": "2026-11-06T17-57-38.408Z-38492-native-7.log"
+    },
+    {
+      "binary": "git",
+      "argv": [
+        "branch",
+        "--show-current"
+      ],
+      "exitCode": 0
+    },
+    {
+      "binary": "git",
+      "argv": [
+        "merge-base",
+        "--is-ancestor",
+        "c1dd420cb358cd6eb34622fe980d709d64e74d7e",
+        "HEAD"
+      ],
+      "exitCode": 0
+    },
+    {
+      "binary": "git",
+      "argv": [
+        "diff",
+        "--no-renames",
+        "--name-only",
+        "-z",
+        "c1dd420cb358cd6eb34622fe980d709d64e74d7e",
+        "HEAD"
+      ],
+      "exitCode": 0
+    },
+    {
+      "binary": "git",
+      "argv": [
+        "diff",
+        "--no-renames",
+        "--name-only",
+        "-z",
+        "HEAD"
+      ],
+      "exitCode": 0
+    },
+    {
+      "binary": "git",
+      "argv": [
+        "ls-files",
+        "--others",
+        "--exclude-standard",
+        "-z"
+      ],
+      "exitCode": 0
+    },
+    {
+      "binary": "git",
+      "argv": [
+        "rev-parse",
+        "HEAD"
+      ],
+      "exitCode": 0
+    },
+    {
+      "binary": "git",
+      "argv": [
+        "status",
+        "--porcelain",
+        "--untracked-files=all"
+      ],
+      "exitCode": 0
+    }
+  ],
+  "changedPaths": [],
+  "before": {
+    "head": "c1dd420cb358cd6eb34622fe980d709d64e74d7e",
+    "status": ""
+  },
+  "sourceState": {
+    "files": [
+      {
+        "path": "apps/water/host/Cargo.toml",
+        "snapshot": "2026-11-06T17-57-38.408Z-38492-native-source-0.txt",
+        "sha256": "86bcff390c8aa2486035e75bb833350cd09d6b7c30ec2d6e2c89c52ca6b99554",
+        "test": false
+      },
+      {
+        "path": "apps/water/host/Cargo.lock",
+        "snapshot": "2026-11-06T17-57-38.408Z-38492-native-source-1.txt",
+        "sha256": "9cb25ca63eb3bb29c772bd885412bb1fdffbde27beb9966d89cdb70c96b3a753",
+        "test": false
+      },
+      {
+        "path": "apps/water/host/build.rs",
+        "snapshot": "2026-11-06T17-57-38.408Z-38492-native-source-2.txt",
+        "sha256": "6aeeab41bc35efde4e3c2b644a6248f7fc06d24ae30b75c0d33491cbb0c1fa31",
+        "test": false
+      },
+      {
+        "path": "apps/water/host/tauri.conf.json",
+        "snapshot": "2026-11-06T17-57-38.408Z-38492-native-source-3.txt",
+        "sha256": "df06347617d4bfa27e762293a01093ddcfda72ec2707c754401071f117f01838",
+        "test": false
+      },
+      {
+        "path": "apps/water/host/capabilities/main.json",
+        "snapshot": "2026-11-06T17-57-38.408Z-38492-native-source-4.txt",
+        "sha256": "c730195d10a4ae97ab1d77c8af1558930c4732b15355711392f82a9f522a57c2",
+        "test": false
+      },
+      {
+        "path": "apps/water/host/README.md",
+        "snapshot": "2026-11-06T17-57-38.408Z-38492-native-source-5.txt",
+        "sha256": "3da055c6972ee0e768465b5ea2891cce1413739c4338ad6bda4ae16fa2e30034",
+        "test": false
+      },
+      {
+        "path": "apps/water/host/src/commands.rs",
+        "snapshot": "2026-11-06T17-57-38.408Z-38492-native-source-6.txt",
+        "sha256": "27b67b48afceb9dac6196a399e92f3308383973623dda7fc7f2bac1251779795",
+        "test": false
+      },
+      {
+        "path": "apps/water/host/src/data.rs",
+        "snapshot": "2026-11-06T17-57-38.408Z-38492-native-source-7.txt",
+        "sha256": "c18c91e119966c1ccbb308d88b01580e8d677d64fe40de4de2413acd30eaa1d2",
+        "test": false
+      },
+      {
+        "path": "apps/water/host/src/lib.rs",
+        "snapshot": "2026-11-06T17-57-38.408Z-38492-native-source-8.txt",
+        "sha256": "e79eb949541bb485679ed871eba09c762d84d68c01498029b04d8dd0920f119c",
+        "test": false
+      },
+      {
+        "path": "apps/water/host/src/main.rs",
+        "snapshot": "2026-11-06T17-57-38.408Z-38492-native-source-9.txt",
+        "sha256": "d51c12d67e878314ce514aa0e19213826f7458f104ab2c25ebf03d49382abc73",
+        "test": false
+      },
+      {
+        "path": "apps/water/host/src/opener.rs",
+        "snapshot": "2026-11-06T17-57-38.408Z-38492-native-source-10.txt",
+        "sha256": "d833fa4e5747bfc896b869a610d87c62125d6d056c77c31720c7d1173db4b6c7",
+        "test": false
+      },
+      {
+        "path": "apps/water/host/src/picker.rs",
+        "snapshot": "2026-11-06T17-57-38.408Z-38492-native-source-11.txt",
+        "sha256": "3524895df656ace4b64b5b24df3d0532cd1922d8f211a118dff6bc6ab6566c96",
+        "test": false
+      },
+      {
+        "path": "apps/water/host/src/policy.rs",
+        "snapshot": "2026-11-06T17-57-38.408Z-38492-native-source-12.txt",
+        "sha256": "86929f2960c7952f0ccfc878e7fce68081611cd137163c88d3ee9801433667a0",
+        "test": false
+      },
+      {
+        "path": "apps/water/host/src/service.rs",
+        "snapshot": "2026-11-06T17-57-38.408Z-38492-native-source-13.txt",
+        "sha256": "b701b9a15a150c91993f375e05a1b4eac3bb78ce087b309bf250885e641b83c5",
+        "test": false
+      },
+      {
+        "path": "apps/water/host/src/startup.rs",
+        "snapshot": "2026-11-06T17-57-38.408Z-38492-native-source-14.txt",
+        "sha256": "10be522ef66e2bd018e4bbba103db6382dcd06e1dfa69ada1c9098253a06bbe6",
+        "test": false
+      },
+      {
+        "path": "apps/water/host/tests/host_v1.rs",
+        "snapshot": "2026-11-06T17-57-38.408Z-38492-native-source-15.txt",
+        "sha256": "07de01a0a63bc4c57e592014b4e7616d7a6c1b103d7d123a57df2c3f0cdfba63",
+        "test": true
+      }
+    ],
+    "productionHash": "2c7daff83cf5351f87a5d3ac77d3500676798495074d912b7fb4b27cba47a0d4",
+    "testHash": "b041c24a7030c6674b547206bbfe4c282b3df06ee19a0cef7c5046ce987ae909"
+  },
+  "registryPackages": 395,
+  "nativeFixture": {
+    "dir": ".local/w10-m5-native/2026-11-06T17-57-38.408Z-38492-fixture",
+    "files": 7,
+    "agedTo": "2026-10-27T17:57:41.031Z",
+    "quarantineRootExisted": false
+  },
+  "nativePid": 17180,
+  "native": {
+    "startedAt": "2026-11-06T17:57:42.3466054Z",
+    "processId": 17180,
+    "title": "Water",
+    "systemWindows": 1,
+    "directoryDialogs": 0,
+    "stepCount": 17,
+    "steps": [
+      {
+        "index": 1,
+        "kind": "wait",
+        "passed": true,
+        "ms": 1187
+      },
+      {
+        "index": 2,
+        "kind": "invoke",
+        "passed": true,
+        "ms": 90
+      },
+      {
+        "index": 3,
+        "kind": "invoke",
+        "passed": true,
+        "ms": 46
+      },
+      {
+        "index": 4,
+        "kind": "invoke",
+        "passed": true,
+        "ms": 89
+      },
+      {
+        "index": 5,
+        "kind": "wait",
+        "passed": true,
+        "ms": 1175
+      },
+      {
+        "index": 6,
+        "kind": "invoke",
+        "passed": true,
+        "ms": 51
+      },
+      {
+        "index": 7,
+        "kind": "wait",
+        "passed": true,
+        "ms": 442
+      },
+      {
+        "index": 8,
+        "kind": "invoke",
+        "passed": true,
+        "ms": 47
+      },
+      {
+        "index": 9,
+        "kind": "wait",
+        "passed": true,
+        "ms": 1143
+      },
+      {
+        "index": 10,
+        "kind": "invoke",
+        "passed": true,
+        "ms": 35
+      },
+      {
+        "index": 11,
+        "kind": "wait",
+        "passed": true,
+        "ms": 1078
+      },
+      {
+        "index": 12,
+        "kind": "invoke",
+        "passed": true,
+        "ms": 33
+      },
+      {
+        "index": 13,
+        "kind": "wait",
+        "passed": true,
+        "ms": 1081
+      },
+      {
+        "index": 14,
+        "kind": "invoke",
+        "passed": true,
+        "ms": 27
+      },
+      {
+        "index": 15,
+        "kind": "wait",
+        "passed": true,
+        "ms": 28
+      },
+      {
+        "index": 16,
+        "kind": "invoke",
+        "passed": true,
+        "ms": 44
+      },
+      {
+        "index": 17,
+        "kind": "wait",
+        "passed": true,
+        "ms": 1077
+      }
+    ],
+    "screenshots": [
+      {
+        "name": "home",
+        "file": "2026-11-06T17-57-38.408Z-38492-home.png",
+        "width": 1568,
+        "height": 1072,
+        "restored": false
+      },
+      {
+        "name": "results",
+        "file": "2026-11-06T17-57-38.408Z-38492-results.png",
+        "width": 1568,
+        "height": 1072,
+        "restored": false
+      },
+      {
+        "name": "confirm",
+        "file": "2026-11-06T17-57-38.408Z-38492-confirm.png",
+        "width": 1568,
+        "height": 1072,
+        "restored": false
+      },
+      {
+        "name": "done",
+        "file": "2026-11-06T17-57-38.408Z-38492-done.png",
+        "width": 1568,
+        "height": 1072,
+        "restored": false
+      },
+      {
+        "name": "quarantine",
+        "file": "2026-11-06T17-57-38.408Z-38492-quarantine.png",
+        "width": 1568,
+        "height": 1072,
+        "restored": false
+      },
+      {
+        "name": "purged",
+        "file": "2026-11-06T17-57-38.408Z-38492-purged.png",
+        "width": 1568,
+        "height": 1072,
+        "restored": false
+      }
+    ],
+    "restores": 0,
+    "pageAccepted": true,
+    "backdropType": 2,
+    "children": [
+      {
+        "processId": 7524,
+        "parentProcessId": 17180,
+        "name": "msedgewebview2.exe"
+      },
+      {
+        "processId": 10836,
+        "parentProcessId": 7524,
+        "name": "msedgewebview2.exe"
+      },
+      {
+        "processId": 21260,
+        "parentProcessId": 7524,
+        "name": "msedgewebview2.exe"
+      },
+      {
+        "processId": 18600,
+        "parentProcessId": 7524,
+        "name": "msedgewebview2.exe"
+      },
+      {
+        "processId": 1168,
+        "parentProcessId": 7524,
+        "name": "msedgewebview2.exe"
+      },
+      {
+        "processId": 2336,
+        "parentProcessId": 7524,
+        "name": "msedgewebview2.exe"
+      }
+    ],
+    "privateWebviewObserved": true,
+    "closeRequested": true,
+    "exitCode": 0,
+    "error": null,
+    "rawWindows": 2,
+    "eventTargets": 1,
+    "updatedAt": "2026-11-06T17:57:51.2563585Z",
+    "endedAt": "2026-11-06T17:57:51.2553576Z"
+  },
+  "nativeExit": {
+    "code": 0,
+    "signal": null
+  },
+  "nativeWallMs": 10257,
+  "screenshots": [
+    {
+      "name": "home",
+      "file": "2026-11-06T17-57-38.408Z-38492-home.png",
+      "width": 1568,
+      "height": 1072,
+      "restored": false,
+      "sha256": "204db52247d47d6c64e520d48b83039cb296995da62c87be4d771aca1d7e4405"
+    },
+    {
+      "name": "results",
+      "file": "2026-11-06T17-57-38.408Z-38492-results.png",
+      "width": 1568,
+      "height": 1072,
+      "restored": false,
+      "sha256": "9c1d1e310224bc13017657ea285bf812f104e391be186c9b6dfe588b0b2876dc"
+    },
+    {
+      "name": "confirm",
+      "file": "2026-11-06T17-57-38.408Z-38492-confirm.png",
+      "width": 1568,
+      "height": 1072,
+      "restored": false,
+      "sha256": "90ebc03b042c35469785a6a03d9f4cb6c16f00cdd56ae61c86d7be15fec06e4d"
+    },
+    {
+      "name": "done",
+      "file": "2026-11-06T17-57-38.408Z-38492-done.png",
+      "width": 1568,
+      "height": 1072,
+      "restored": false,
+      "sha256": "48ff375e750371a6212d96ccda387f81b2b97e254749b23c85ced3078d0a6641"
+    },
+    {
+      "name": "quarantine",
+      "file": "2026-11-06T17-57-38.408Z-38492-quarantine.png",
+      "width": 1568,
+      "height": 1072,
+      "restored": false,
+      "sha256": "56749b52224659c1244665a52081bd6212c7c27e8a28c2fc9dfae52421037267"
+    },
+    {
+      "name": "purged",
+      "file": "2026-11-06T17-57-38.408Z-38492-purged.png",
+      "width": 1568,
+      "height": 1072,
+      "restored": false,
+      "sha256": "61481f1ea520d950388e29d785695bd9e26d7d781eb9740f613ffc35fd50e26f"
+    }
+  ],
+  "nativeRestores": 0,
+  "childClose": {
+    "remaining": []
+  },
+  "nativeStore": {
+    "top": [
+      "cleans",
+      "dedupes",
+      "events",
+      "journal",
+      "plans",
+      "quarantine",
+      "scans",
+      "settings.json",
+      "snapshots",
+      "water.lock",
+      "webview"
+    ],
+    "counts": {
+      "scans": 1,
+      "plans": 1,
+      "cleans": 1,
+      "quarantine": 0,
+      "dedupes": 0
+    }
+  },
+  "nativeClean": {
+    "status": "completed",
+    "freedBytes": "3145815",
+    "items": [
+      {
+        "status": "deleted",
+        "bytesBefore": "3145815",
+        "bytesFreed": "3145815",
+        "failed": 0
+      }
+    ],
+    "quarantine": [
+      {
+        "status": "completed",
+        "movedBytes": "1048576",
+        "items": [
+          "moved"
+        ]
+      }
+    ]
+  },
+  "nativeJournals": [
+    "20261107-025747-f-purge.jsonl",
+    "clean-20261106T175746Z-6834.jsonl"
+  ],
+  "nativeJournal": [
+    "intent",
+    "result",
+    "intent",
+    "moved"
+  ],
+  "nativePurge": [
+    {
+      "bytes": "1048576"
+    }
+  ],
+  "nativeQuarantineRoot": {
+    "path": "F:\\.water-quarantine",
+    "existedBefore": false,
+    "existsAfter": false
+  },
+  "after": {
+    "head": "c1dd420cb358cd6eb34622fe980d709d64e74d7e",
+    "status": ""
+  },
+  "status": "passed",
+  "error": null,
+  "endedAt": "2026-11-06T17:57:52.701Z"
+}

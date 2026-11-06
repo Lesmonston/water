@@ -1,0 +1,190 @@
+{
+  "task": "WATER-W10-ACCEPT-INTEG7-PROCESS",
+  "mode": "archive",
+  "finalGate": false,
+  "manifest": ".local/w10-integ7/checkup-manifest.json",
+  "startedAt": "2026-11-06T18:01:51.072Z",
+  "realDataRead": false,
+  "productTestsRun": false,
+  "commands": [
+    {
+      "binary": "git",
+      "argv": [
+        "branch",
+        "--show-current"
+      ],
+      "exitCode": 0
+    },
+    {
+      "binary": "git",
+      "argv": [
+        "merge-base",
+        "--is-ancestor",
+        "c1dd420cb358cd6eb34622fe980d709d64e74d7e",
+        "HEAD"
+      ],
+      "exitCode": 0
+    },
+    {
+      "binary": "git",
+      "argv": [
+        "diff",
+        "--no-renames",
+        "--name-only",
+        "-z",
+        "c1dd420cb358cd6eb34622fe980d709d64e74d7e",
+        "HEAD"
+      ],
+      "exitCode": 0
+    },
+    {
+      "binary": "git",
+      "argv": [
+        "diff",
+        "--no-renames",
+        "--name-only",
+        "-z",
+        "HEAD"
+      ],
+      "exitCode": 0
+    },
+    {
+      "binary": "git",
+      "argv": [
+        "ls-files",
+        "--others",
+        "--exclude-standard",
+        "-z"
+      ],
+      "exitCode": 0
+    },
+    {
+      "binary": "git",
+      "argv": [
+        "rev-parse",
+        "HEAD"
+      ],
+      "exitCode": 0
+    },
+    {
+      "binary": "git",
+      "argv": [
+        "status",
+        "--porcelain",
+        "--untracked-files=all"
+      ],
+      "exitCode": 0
+    },
+    {
+      "binary": "git",
+      "argv": [
+        "branch",
+        "--show-current"
+      ],
+      "exitCode": 0
+    },
+    {
+      "binary": "git",
+      "argv": [
+        "merge-base",
+        "--is-ancestor",
+        "c1dd420cb358cd6eb34622fe980d709d64e74d7e",
+        "HEAD"
+      ],
+      "exitCode": 0
+    },
+    {
+      "binary": "git",
+      "argv": [
+        "diff",
+        "--no-renames",
+        "--name-only",
+        "-z",
+        "c1dd420cb358cd6eb34622fe980d709d64e74d7e",
+        "HEAD"
+      ],
+      "exitCode": 0
+    },
+    {
+      "binary": "git",
+      "argv": [
+        "diff",
+        "--no-renames",
+        "--name-only",
+        "-z",
+        "HEAD"
+      ],
+      "exitCode": 0
+    },
+    {
+      "binary": "git",
+      "argv": [
+        "ls-files",
+        "--others",
+        "--exclude-standard",
+        "-z"
+      ],
+      "exitCode": 0
+    },
+    {
+      "binary": "git",
+      "argv": [
+        "rev-parse",
+        "HEAD"
+      ],
+      "exitCode": 0
+    },
+    {
+      "binary": "git",
+      "argv": [
+        "status",
+        "--porcelain",
+        "--untracked-files=all"
+      ],
+      "exitCode": 0
+    }
+  ],
+  "changedPaths": [
+    "docs/acceptance/wave10/controller/integ7-20261107/process/.gitattributes",
+    "docs/acceptance/wave10/controller/integ7-20261107/process/ARCHIVE.json",
+    "docs/acceptance/wave10/controller/integ7-20261107/process/receipts/2026-11-06T17-48-47.401Z-36816-lock-result.json",
+    "docs/acceptance/wave10/controller/integ7-20261107/process/receipts/2026-11-06T17-48-52.162Z-38856-check-result.json",
+    "docs/acceptance/wave10/controller/integ7-20261107/process/receipts/2026-11-06T17-48-52.162Z-38856-check-source-0.txt",
+    "docs/acceptance/wave10/controller/integ7-20261107/process/receipts/2026-11-06T17-48-52.162Z-38856-check-source-1.txt",
+    "docs/acceptance/wave10/controller/integ7-20261107/process/receipts/2026-11-06T17-48-52.162Z-38856-check-source-2.txt",
+    "docs/acceptance/wave10/controller/integ7-20261107/process/receipts/2026-11-06T17-48-52.162Z-38856-check-source-3.txt",
+    "docs/acceptance/wave10/controller/integ7-20261107/process/receipts/2026-11-06T17-48-52.162Z-38856-check-source-4.txt",
+    "docs/acceptance/wave10/controller/integ7-20261107/process/receipts/2026-11-06T17-48-52.162Z-38856-check-source-5.txt",
+    "docs/acceptance/wave10/controller/integ7-20261107/process/receipts/2026-11-06T17-48-56.936Z-27124-test-result.json",
+    "docs/acceptance/wave10/controller/integ7-20261107/process/receipts/2026-11-06T17-48-56.936Z-27124-test-source-0.txt",
+    "docs/acceptance/wave10/controller/integ7-20261107/process/receipts/2026-11-06T17-48-56.936Z-27124-test-source-1.txt",
+    "docs/acceptance/wave10/controller/integ7-20261107/process/receipts/2026-11-06T17-48-56.936Z-27124-test-source-2.txt",
+    "docs/acceptance/wave10/controller/integ7-20261107/process/receipts/2026-11-06T17-48-56.936Z-27124-test-source-3.txt",
+    "docs/acceptance/wave10/controller/integ7-20261107/process/receipts/2026-11-06T17-48-56.936Z-27124-test-source-4.txt",
+    "docs/acceptance/wave10/controller/integ7-20261107/process/receipts/2026-11-06T17-48-56.936Z-27124-test-source-5.txt",
+    "docs/acceptance/wave10/controller/integ7-20261107/process/receipts/2026-11-06T17-49-13.291Z-36528-real-result.json",
+    "docs/acceptance/wave10/controller/integ7-20261107/process/receipts/2026-11-06T17-49-13.291Z-36528-real-source-0.txt",
+    "docs/acceptance/wave10/controller/integ7-20261107/process/receipts/2026-11-06T17-49-13.291Z-36528-real-source-1.txt",
+    "docs/acceptance/wave10/controller/integ7-20261107/process/receipts/2026-11-06T17-49-13.291Z-36528-real-source-2.txt",
+    "docs/acceptance/wave10/controller/integ7-20261107/process/receipts/2026-11-06T17-49-13.291Z-36528-real-source-3.txt",
+    "docs/acceptance/wave10/controller/integ7-20261107/process/receipts/2026-11-06T17-49-13.291Z-36528-real-source-4.txt",
+    "docs/acceptance/wave10/controller/integ7-20261107/process/receipts/2026-11-06T17-49-13.291Z-36528-real-source-5.txt",
+    "docs/acceptance/wave10/controller/integ7-20261107/process/receipts/2026-11-06T17-58-49.779Z-22296-archive-result.json",
+    "docs/acceptance/wave10/controller/integ7-20261107/process/receipts/2026-11-06T18-01-46.961Z-22736-real-result.json"
+  ],
+  "before": {
+    "head": "c1dd420cb358cd6eb34622fe980d709d64e74d7e",
+    "status": "?? docs/acceptance/wave10/controller/integ7-20261107/process/.gitattributes\n?? docs/acceptance/wave10/controller/integ7-20261107/process/ARCHIVE.json\n?? docs/acceptance/wave10/controller/integ7-20261107/process/receipts/2026-11-06T17-48-47.401Z-36816-lock-result.json\n?? docs/acceptance/wave10/controller/integ7-20261107/process/receipts/2026-11-06T17-48-52.162Z-38856-check-result.json\n?? docs/acceptance/wave10/controller/integ7-20261107/process/receipts/2026-11-06T17-48-52.162Z-38856-check-source-0.txt\n?? docs/acceptance/wave10/controller/integ7-20261107/process/receipts/2026-11-06T17-48-52.162Z-38856-check-source-1.txt\n?? docs/acceptance/wave10/controller/integ7-20261107/process/receipts/2026-11-06T17-48-52.162Z-38856-check-source-2.txt\n?? docs/acceptance/wave10/controller/integ7-20261107/process/receipts/2026-11-06T17-48-52.162Z-38856-check-source-3.txt\n?? docs/acceptance/wave10/controller/integ7-20261107/process/receipts/2026-11-06T17-48-52.162Z-38856-check-source-4.txt\n?? docs/acceptance/wave10/controller/integ7-20261107/process/receipts/2026-11-06T17-48-52.162Z-38856-check-source-5.txt\n?? docs/acceptance/wave10/controller/integ7-20261107/process/receipts/2026-11-06T17-48-56.936Z-27124-test-result.json\n?? docs/acceptance/wave10/controller/integ7-20261107/process/receipts/2026-11-06T17-48-56.936Z-27124-test-source-0.txt\n?? docs/acceptance/wave10/controller/integ7-20261107/process/receipts/2026-11-06T17-48-56.936Z-27124-test-source-1.txt\n?? docs/acceptance/wave10/controller/integ7-20261107/process/receipts/2026-11-06T17-48-56.936Z-27124-test-source-2.txt\n?? docs/acceptance/wave10/controller/integ7-20261107/process/receipts/2026-11-06T17-48-56.936Z-27124-test-source-3.txt\n?? docs/acceptance/wave10/controller/integ7-20261107/process/receipts/2026-11-06T17-48-56.936Z-27124-test-source-4.txt\n?? docs/acceptance/wave10/controller/integ7-20261107/process/receipts/2026-11-06T17-48-56.936Z-27124-test-source-5.txt\n?? docs/acceptance/wave10/controller/integ7-20261107/process/receipts/2026-11-06T17-49-13.291Z-36528-real-result.json\n?? docs/acceptance/wave10/controller/integ7-20261107/process/receipts/2026-11-06T17-49-13.291Z-36528-real-source-0.txt\n?? docs/acceptance/wave10/controller/integ7-20261107/process/receipts/2026-11-06T17-49-13.291Z-36528-real-source-1.txt\n?? docs/acceptance/wave10/controller/integ7-20261107/process/receipts/2026-11-06T17-49-13.291Z-36528-real-source-2.txt\n?? docs/acceptance/wave10/controller/integ7-20261107/process/receipts/2026-11-06T17-49-13.291Z-36528-real-source-3.txt\n?? docs/acceptance/wave10/controller/integ7-20261107/process/receipts/2026-11-06T17-49-13.291Z-36528-real-source-4.txt\n?? docs/acceptance/wave10/controller/integ7-20261107/process/receipts/2026-11-06T17-49-13.291Z-36528-real-source-5.txt"
+  },
+  "archived": {
+    "files": 44,
+    "bytes": 504133
+  },
+  "after": {
+    "head": "c1dd420cb358cd6eb34622fe980d709d64e74d7e",
+    "status": "?? docs/acceptance/wave10/controller/integ7-20261107/process/.gitattributes\n?? docs/acceptance/wave10/controller/integ7-20261107/process/ARCHIVE.json\n?? docs/acceptance/wave10/controller/integ7-20261107/process/receipts/2026-11-06T17-48-47.401Z-36816-lock-result.json\n?? docs/acceptance/wave10/controller/integ7-20261107/process/receipts/2026-11-06T17-48-52.162Z-38856-check-result.json\n?? docs/acceptance/wave10/controller/integ7-20261107/process/receipts/2026-11-06T17-48-52.162Z-38856-check-source-0.txt\n?? docs/acceptance/wave10/controller/integ7-20261107/process/receipts/2026-11-06T17-48-52.162Z-38856-check-source-1.txt\n?? docs/acceptance/wave10/controller/integ7-20261107/process/receipts/2026-11-06T17-48-52.162Z-38856-check-source-2.txt\n?? docs/acceptance/wave10/controller/integ7-20261107/process/receipts/2026-11-06T17-48-52.162Z-38856-check-source-3.txt\n?? docs/acceptance/wave10/controller/integ7-20261107/process/receipts/2026-11-06T17-48-52.162Z-38856-check-source-4.txt\n?? docs/acceptance/wave10/controller/integ7-20261107/process/receipts/2026-11-06T17-48-52.162Z-38856-check-source-5.txt\n?? docs/acceptance/wave10/controller/integ7-20261107/process/receipts/2026-11-06T17-48-56.936Z-27124-test-result.json\n?? docs/acceptance/wave10/controller/integ7-20261107/process/receipts/2026-11-06T17-48-56.936Z-27124-test-source-0.txt\n?? docs/acceptance/wave10/controller/integ7-20261107/process/receipts/2026-11-06T17-48-56.936Z-27124-test-source-1.txt\n?? docs/acceptance/wave10/controller/integ7-20261107/process/receipts/2026-11-06T17-48-56.936Z-27124-test-source-2.txt\n?? docs/acceptance/wave10/controller/integ7-20261107/process/receipts/2026-11-06T17-48-56.936Z-27124-test-source-3.txt\n?? docs/acceptance/wave10/controller/integ7-20261107/process/receipts/2026-11-06T17-48-56.936Z-27124-test-source-4.txt\n?? docs/acceptance/wave10/controller/integ7-20261107/process/receipts/2026-11-06T17-48-56.936Z-27124-test-source-5.txt\n?? docs/acceptance/wave10/controller/integ7-20261107/process/receipts/2026-11-06T17-49-13.291Z-36528-real-result.json\n?? docs/acceptance/wave10/controller/integ7-20261107/process/receipts/2026-11-06T17-49-13.291Z-36528-real-source-0.txt\n?? docs/acceptance/wave10/controller/integ7-20261107/process/receipts/2026-11-06T17-49-13.291Z-36528-real-source-1.txt\n?? docs/acceptance/wave10/controller/integ7-20261107/process/receipts/2026-11-06T17-49-13.291Z-36528-real-source-2.txt\n?? docs/acceptance/wave10/controller/integ7-20261107/process/receipts/2026-11-06T17-49-13.291Z-36528-real-source-3.txt\n?? docs/acceptance/wave10/controller/integ7-20261107/process/receipts/2026-11-06T17-49-13.291Z-36528-real-source-4.txt\n?? docs/acceptance/wave10/controller/integ7-20261107/process/receipts/2026-11-06T17-49-13.291Z-36528-real-source-5.txt\n?? docs/acceptance/wave10/controller/integ7-20261107/process/receipts/2026-11-06T17-58-49.779Z-22296-archive-result.json\n?? docs/acceptance/wave10/controller/integ7-20261107/process/receipts/2026-11-06T18-01-46.961Z-22736-real-result.json"
+  },
+  "status": "passed",
+  "error": null,
+  "endedAt": "2026-11-06T18:01:54.183Z"
+}
