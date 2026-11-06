@@ -444,20 +444,23 @@ pub(crate) fn restore(core: &Arc<Core>, a: &Value) -> Result<Value, IpcError> {
         }
     }
     record["entries"] = json!(keep);
+    drop(s);
     if keep.is_empty() {
         core.store.remove("quarantine", &[id.into()]);
     } else {
         core.store
             .write("quarantine", &format!("{id}.json"), &record)?;
     }
-    m35::event(
+    let event = m35::write_event(
         core,
-        &mut s,
         "restore",
         format!("还原隔离区 · {restored} 项"),
         bytes.to_string(),
     )?;
-    drop(s);
+    {
+        let mut s = lock(core)?;
+        m35::push_event(&mut s, event);
+    }
     refresh(core)?;
     Ok(
         json!({"restored_count":restored,"restored_bytes":bytes.to_string(),"conflicts":conflicts,"view":lock(core)?.m35.quarantine.view}),
@@ -510,15 +513,24 @@ pub(crate) fn purge(core: &Arc<Core>, a: &Value) -> Result<Value, IpcError> {
         let result=std::panic::catch_unwind(std::panic::AssertUnwindSafe(||{
             let mut journal=worker.store.purge_journal(&worker_id)?;
             let report=clean::purge(&dir,&mut journal,&stop,&Observer(worker.clone()),worker.platform.now()).map_err(error)?;
-            let mut s=lock(&worker)?;
+            let stored={
+                let s=lock(&worker)?;
+                if report.dir_removed {None} else {
+                    Some(s.m35.quarantine.records.get(&worker_id).cloned().unwrap_or_else(||json!({"record_version":"water.quarantine-record.v1","quarantine_id":worker_id,"created_at":report.started_at,"clean_id":null,"root":m35::parent(&dir),"entries":[],"last_purge":null})))
+                }
+            };
             if report.dir_removed {worker.store.remove("quarantine",std::slice::from_ref(&worker_id));}else {
-                let mut stored=s.m35.quarantine.records.get(&worker_id).cloned().unwrap_or_else(||json!({"record_version":"water.quarantine-record.v1","quarantine_id":worker_id,"created_at":report.started_at,"clean_id":null,"root":m35::parent(&dir),"entries":[],"last_purge":null}));
+                let mut stored=stored.expect("purge record");
                 stored["last_purge"]=json!(report);worker.store.write("quarantine",&format!("{worker_id}.json"),&stored)?;
             }
-            let final_state=if report.status==clean::RunStatus::Stopped{"stopped"}else{"completed"};
-            s.m35.purge_progress=json!({"quarantine_id":worker_id,"state":"running","removed_entries":report.removed_entries,"freed_bytes":report.freed_bytes});
             let tail=if report.remaining_entries>0{format!("，还剩 {} 项",report.remaining_entries)}else{String::new()};
-            m35::event(&worker,&mut s,"purge",format!("永久删除隔离区 · 腾出 {}{tail}",m35::amount(util::number(&report.freed_bytes))),report.freed_bytes)?;
+            let event=m35::write_event(&worker,"purge",format!("永久删除隔离区 · 腾出 {}{tail}",m35::amount(util::number(&report.freed_bytes))),report.freed_bytes.clone())?;
+            let final_state=if report.status==clean::RunStatus::Stopped{"stopped"}else{"completed"};
+            {
+                let mut s=lock(&worker)?;
+                m35::push_event(&mut s,event);
+                s.m35.purge_progress=json!({"quarantine_id":worker_id,"state":"running","removed_entries":report.removed_entries,"freed_bytes":report.freed_bytes});
+            }
             Ok::<_,IpcError>(final_state)
         })).unwrap_or_else(|_|Err(IpcError::new("unavailable")));
         let _=refresh(&worker);

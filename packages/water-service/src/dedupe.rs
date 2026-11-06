@@ -41,7 +41,7 @@ pub(crate) fn load(core: &Core, s: &mut State) {
     }
     trim(core, s);
 }
-fn trim(core: &Core, s: &mut State) {
+fn trim_state(s: &mut State) -> Vec<String> {
     let mut ids = s.m35.dedupes.keys().cloned().collect::<Vec<_>>();
     ids.sort_by(|a, b| {
         s.m35.dedupes[b]
@@ -54,6 +54,10 @@ fn trim(core: &Core, s: &mut State) {
     for id in &dropped {
         s.m35.dedupes.remove(id);
     }
+    dropped
+}
+fn trim(core: &Core, s: &mut State) {
+    let dropped = trim_state(s);
     core.store.remove("dedupes", &dropped);
 }
 struct Observer(Arc<Core>);
@@ -160,45 +164,45 @@ pub(crate) fn start(core: &Arc<Core>, a: &Value) -> Result<Value, IpcError> {
                     &format!("{worker_id}.json"),
                     &json!({"label":label,"result":result}),
                 )?;
-                let mut s = lock(&worker)?;
-                s.m35.dedupe_progress["state"] = json!(if result.status == "cancelled" {
+                let found: u64 = result
+                    .groups
+                    .iter()
+                    .map(|g| util::number(&g.reclaimable_bytes))
+                    .sum();
+                let files_listed = result.files_listed;
+                let candidate_files = result.candidate_files;
+                let final_state = if result.status == "cancelled" {
                     "cancelled"
                 } else {
                     "completed"
-                });
-                s.m35.dedupe_progress["found_bytes"] = json!(
-                    result
-                        .groups
-                        .iter()
-                        .map(|g| util::number(&g.reclaimable_bytes))
-                        .sum::<u64>()
-                        .to_string()
-                );
-                s.m35.dedupe_progress["files_listed"] = json!(result.files_listed);
-                s.m35.dedupe_progress["candidate_files"] = json!(result.candidate_files);
-                m35::event(
+                };
+                let event = m35::write_event(
                     &worker,
-                    &mut s,
                     "dedupe",
                     format!("查重完成 · {} 组", result.groups.len()),
-                    result
-                        .groups
-                        .iter()
-                        .map(|g| util::number(&g.reclaimable_bytes))
-                        .sum::<u64>()
-                        .to_string(),
+                    found.to_string(),
                 )?;
-                s.m35.dedupes.insert(
-                    worker_id.clone(),
-                    Record {
-                        result,
-                        label,
-                        serial: 1,
-                        included: BTreeSet::new(),
-                        local: true,
-                    },
-                );
-                trim(&worker, &mut s);
+                let dropped = {
+                    let mut s = lock(&worker)?;
+                    s.m35.dedupe_progress["found_bytes"] = json!(found.to_string());
+                    s.m35.dedupe_progress["files_listed"] = json!(files_listed);
+                    s.m35.dedupe_progress["candidate_files"] = json!(candidate_files);
+                    m35::push_event(&mut s, event);
+                    s.m35.dedupes.insert(
+                        worker_id.clone(),
+                        Record {
+                            result,
+                            label,
+                            serial: 1,
+                            included: BTreeSet::new(),
+                            local: true,
+                        },
+                    );
+                    trim_state(&mut s)
+                };
+                worker.store.remove("dedupes", &dropped);
+                let mut s = lock(&worker)?;
+                s.m35.dedupe_progress["state"] = json!(final_state);
                 Ok::<_, IpcError>(())
             }))
             .unwrap_or_else(|_| Err(IpcError::new("unavailable")));

@@ -2,7 +2,7 @@
 
 use crate::{
     IpcError, conclusion, m35, quarantine,
-    service::{Core, Record, State, lock, trim},
+    service::{Core, Record, State, lock, trim_files, trim_state},
     util, views,
 };
 use serde_json::{Value, json};
@@ -410,19 +410,28 @@ pub(crate) fn start(core: &Arc<Core>, id: &str, token: &str) -> Result<Value, Ip
             Err(_)=>Err(IpcError::new("unavailable")),
         };
         let _=quarantine::refresh(&worker_core);
-        if let Ok(mut s)=lock(&worker_core){
-            match finished {
-                Ok((stored,status))=>{
-                    s.clean_progress["state"]=json!(if status==clean::RunStatus::Stopped{"stopped"}else{"completed"});
+        match finished {
+            Ok((stored,status))=>{
+                let ids=if let Ok(mut s)=lock(&worker_core){
                     s.clean_progress["group_index"]=json!(group_ids.len());s.clean_progress["current_group_title_zh"]=Value::Null;
                     s.clean_order.push(worker_id.clone());
                     s.cleans.insert(worker_id,stored);
-                    trim(&worker_core.store,&mut s);
-                },
-                Err(_) if panicked=>s.clean_progress=idle(),
-                Err(e)=>{s.clean_progress["state"]=json!("failed");s.m35.failures.insert(worker_id.clone(),e);},
-            }
-            s.busy="idle";s.stop=None;
+                    Some(trim_state(&mut s))
+                }else{None};
+                if let Some((scans,cleans))=ids{
+                    trim_files(&worker_core.store,&scans,&cleans);
+                }
+                if let Ok(mut s)=lock(&worker_core){
+                    s.clean_progress["state"]=json!(if status==clean::RunStatus::Stopped{"stopped"}else{"completed"});
+                    s.busy="idle";s.stop=None;
+                }
+            },
+            Err(_) if panicked=>{
+                if let Ok(mut s)=lock(&worker_core){s.clean_progress=idle();s.busy="idle";s.stop=None;}
+            },
+            Err(e)=>{
+                if let Ok(mut s)=lock(&worker_core){s.clean_progress["state"]=json!("failed");s.m35.failures.insert(worker_id.clone(),e);s.busy="idle";s.stop=None;}
+            },
         }
         }));
         if guarded.is_err() {

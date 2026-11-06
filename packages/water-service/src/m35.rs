@@ -661,7 +661,8 @@ pub(crate) fn dispatch(core: &Arc<Core>, c: &str, a: &Value) -> Result<Value, Ip
             if let Some(c) = &mut s.m35.conclusion {
                 c.serial += 1;
             }
-            Ok(crate::service::trends(core, &s))
+            drop(s);
+            Ok(crate::service::trends(core, &*lock(core)?))
         }
         _ => Err(IpcError::new("invalid")),
     }
@@ -818,18 +819,20 @@ pub(crate) fn locations_extra(core: &Core, s: &State) -> (Vec<Value>, Vec<Value>
     (sessions, manifests)
 }
 
-pub(crate) fn event(
+pub(crate) fn write_event(
     core: &Core,
-    s: &mut State,
     kind: &str,
     summary: String,
     bytes: String,
-) -> Result<(), IpcError> {
+) -> Result<Value, IpcError> {
     let at = core.platform.now();
     let id = util::new_id("event", at);
     let event =
         json!({"kind":kind,"id":id,"at":util::timestamp(at),"summary_zh":summary,"bytes":bytes});
     core.store.write("events", &format!("{id}.json"), &event)?;
+    Ok(event)
+}
+
+pub(crate) fn push_event(s: &mut State, event: Value) {
     s.m35.events.push(event);
-    Ok(())
 }

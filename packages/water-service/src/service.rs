@@ -1081,21 +1081,26 @@ impl ScanJob {
                     })
             });
         let _ = quarantine::refresh(&worker_core);
-        if let Ok(mut s) = lock(&worker_core) {
-            if stored.is_ok() {
+        if stored.is_ok() {
+            let ids = lock(&worker_core).ok().map(|mut s| trim_state(&mut s));
+            if let Some((scans, cleans)) = ids {
+                trim_files(&worker_core.store, &scans, &cleans);
+            }
+            if let Ok(mut s) = lock(&worker_core) {
                 s.scan_progress["state"] = json!(status);
-                trim(&worker_core.store, &mut s);
                 if completed {
                     s.m35.conclusion = None;
                 }
-            } else {
-                if s.last.as_deref() == Some(worker_id.as_str()) {
-                    s.last = previous_last;
-                }
-                s.local_scans.remove(&worker_id);
-                s.records.retain(|r| r.result.scan_id != worker_id);
-                s.scan_progress["state"] = json!("failed");
+                s.busy = "idle";
+                s.cancel = None;
             }
+        } else if let Ok(mut s) = lock(&worker_core) {
+            if s.last.as_deref() == Some(worker_id.as_str()) {
+                s.last = previous_last;
+            }
+            s.local_scans.remove(&worker_id);
+            s.records.retain(|r| r.result.scan_id != worker_id);
+            s.scan_progress["state"] = json!("failed");
             s.busy = "idle";
             s.cancel = None;
         }
@@ -1354,10 +1359,10 @@ impl scan::ScanObserver for Progress {
 /// Keeps the newest 60 scans and cleans that were read in successfully. Only those trimmed
 /// records are deleted (unreadable files stay in place); a snapshot goes only together with
 /// its scan record. Deletion is best effort and never changes a status or fails startup.
-pub(crate) fn trim(store: &Store, s: &mut State) {
+pub(crate) fn trim_state(s: &mut State) -> (Vec<String>, Vec<String>) {
     s.records
         .sort_by(|a, b| a.result.ended_at.cmp(&b.result.ended_at));
-    let dropped = if s.records.len() > 60 {
+    let scan_dropped = if s.records.len() > 60 {
         let excess = s.records.len() - 60;
         s.records
             .drain(..excess)
@@ -1366,8 +1371,6 @@ pub(crate) fn trim(store: &Store, s: &mut State) {
     } else {
         vec![]
     };
-    let removed = store.remove("scans", &dropped);
-    store.remove("snapshots", &removed);
     let mut cleans: Vec<_> = s
         .clean_order
         .iter()
@@ -1387,7 +1390,7 @@ pub(crate) fn trim(store: &Store, s: &mut State) {
         .take(60)
         .map(|(_, id)| id)
         .collect::<Vec<_>>();
-    let dropped = s
+    let clean_dropped = s
         .cleans
         .keys()
         .filter(|id| !keep.contains(id))
@@ -1395,7 +1398,18 @@ pub(crate) fn trim(store: &Store, s: &mut State) {
         .collect::<Vec<_>>();
     s.cleans.retain(|id, _| keep.contains(id));
     s.clean_order.retain(|id| keep.contains(id));
-    store.remove("cleans", &dropped);
+    (scan_dropped, clean_dropped)
+}
+
+pub(crate) fn trim_files(store: &Store, scan_dropped: &[String], clean_dropped: &[String]) {
+    let removed = store.remove("scans", scan_dropped);
+    store.remove("snapshots", &removed);
+    store.remove("cleans", clean_dropped);
+}
+
+pub(crate) fn trim(store: &Store, s: &mut State) {
+    let (scans, cleans) = trim_state(s);
+    trim_files(store, &scans, &cleans);
 }
 
 /// Unreadable, wrong-version or incomplete-category settings fall back to defaults. Otherwise
