@@ -4,193 +4,316 @@
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width, initial-scale=1">
 <title>Water 设计 v3</title>
-<!-- Water UI v3, round 3 (2026-11-06): the reference's rhythm. Each card says one thing: title, one grey line,
-     one number with a small badge, one strip of thin ticks. Wide cards: number left, 2x2 small numbers right,
-     a full-width strip of thin bars with small markers at the bottom. No rings, no fat bars, no rainbow.
-     Open with ?s=home|scan|results|drawer|confirm|done|quarantine|trends|history|settings|dedupe -->
+<!-- Final (2026-11-06): approved round 5 rolled out to all eleven screens: ?s=home scan results drawer confirm done quarantine trends history settings dedupe.
+     Round 5 (2026-11-06): round 4 restyled after the analytics reference (small corners, hairlines, sky tiles, lime, orange-red).
+     Round 4 (2026-11-06): one soft sky page, big dark title with big light numbers, a bento grid of unequal cards,
+     one dark hero card per screen holding the main action, charts with character (tick dial, dot stems, pill bars).
+     Two screens first: ?s=home and ?s=results -->
 <style>
 :root{
-  --sky-top:#9FBFE7; --sky-mid:#BBD2EE; --sky-low:#D7E5F4;
-  --on-sky:#FFFFFF; --on-sky-2:#F3F7FC; --on-sky-ink:#29466B;
-  --sheet:#F1F4F8; --card:#FFFFFF; --line:#E8ECF1; --line-2:#F0F2F5;
-  --ink:#16191F; --ink-2:#5E6672; --ink-3:#9AA3AF;
-  --accent:#2F6FE0;
-  --ok:#3BA56E; --ok-soft:#E1F4E9;
-  --warn:#E09A2B; --warn-soft:#FCF0DA;
-  --bad:#E0565B; --bad-soft:#FCE6E7;
-  /* thin-tick colours: pale greens, greys, one blue, amber and red only for state */
-  --t-g:#CBE9D6; --t-g2:#9BD6B3; --t-g3:#5CBB89;
-  --t-s:#E3E8EE; --t-s2:#C6D0DC;
-  --t-b:#B4CBF3; --t-b2:#4C84E8;
-  --t-a:#F4D9A4; --t-a2:#E7A847;
-  --t-r:#F2B8BA; --t-r2:#E0565B;
-  --r-card:22px; --r-sheet:30px;
-  --sh-card:0 1px 2px rgba(16,38,63,.035),0 8px 24px rgba(16,38,63,.045);
+  --bg1:#C9DCF3; --bg2:#E4EEF9; --bg3:#F5F8FC;
+  --ink:#111418; --ink-2:#5C6470; --ink-3:#9AA2AD; --line:#E7EBF0;
+  --card:#FFFFFF; --card-soft:rgba(255,255,255,.66);
+  --dark:#15181D; --dark-2:#22262D; --on-dark:#FFFFFF; --on-dark-2:#9EA6B2;
+  --accent:#2F6BFF; --accent-2:#DCE6FF;
+  --warn:#F2A93B; --warn-soft:#FFF1D9; --bad:#E5484D; --bad-soft:#FDE6E7; --ok:#2FA36B; --ok-soft:#E0F4E9;
+  --tick:#E2E7EE; --tick-2:#C9D2DD;
+  --hatch:repeating-linear-gradient(135deg,#C3D0E2 0 1.6px,transparent 1.6px 6px);
+  --r:26px;
+  --sh:0 1px 2px rgba(17,20,24,.03),0 10px 30px rgba(31,64,112,.06);
   --font:"Segoe UI Variable Text","Segoe UI","Microsoft YaHei UI",system-ui,sans-serif;
-  --font-num:"Segoe UI Variable Display","Segoe UI","Microsoft YaHei UI",system-ui,sans-serif;
-  --font-title:"Segoe UI Variable Display","Microsoft YaHei UI Light","Microsoft YaHei UI",sans-serif;
+  --num:"Segoe UI Variable Display","Segoe UI","Microsoft YaHei UI",sans-serif;
   --mono:"Cascadia Mono","Consolas",monospace;
-  /* type: 11 labels · 12 grey line · 13 body · 14 card title · 16 small numbers · 32 card number · 52 hero */
 }
 *{box-sizing:border-box;margin:0;padding:0}
 html,body{height:100%}
-body{background:#E7ECF2;font-family:var(--font);font-size:13px;line-height:1.5;color:var(--ink);display:grid;place-items:center;-webkit-font-smoothing:antialiased}
+body{background:#E3E9F0;font-family:var(--font);font-size:13px;line-height:1.5;color:var(--ink);display:grid;place-items:center;-webkit-font-smoothing:antialiased}
 button{font:inherit;color:inherit;border:0;background:none;cursor:pointer}
-svg.i{width:16px;height:16px;fill:none;stroke:currentColor;stroke-width:1.6;stroke-linecap:round;stroke-linejoin:round;flex:none}
+svg.i{width:16px;height:16px;fill:none;stroke:currentColor;stroke-width:1.7;stroke-linecap:round;stroke-linejoin:round;flex:none}
 svg.i.s{width:14px;height:14px}
-
-.win{position:relative;width:1240px;height:820px;border-radius:18px;overflow:hidden;box-shadow:0 30px 80px rgba(20,45,80,.18);
-  background:radial-gradient(760px 300px at 70% -60px,rgba(255,255,255,.5),transparent 70%),
-             linear-gradient(180deg,var(--sky-top) 0%,var(--sky-mid) 45%,var(--sky-low) 100%)}
-.top{height:62px;display:flex;align-items:center;padding:0 24px;position:relative;z-index:3}
-.brand{display:flex;align-items:center;gap:9px;font-weight:600;font-size:15px;color:#fff;width:220px}
-.brand svg{width:24px;height:24px}
-.nav{margin:0 auto;display:flex;gap:2px;padding:3px;border-radius:999px;background:rgba(255,255,255,.28)}
-.nav a{height:32px;padding:0 14px;border-radius:999px;display:flex;align-items:center;gap:6px;font-size:13px;color:#fff;cursor:pointer;white-space:nowrap}
-.nav a.on{background:#fff;color:var(--ink);font-weight:600}
-.nav .n{font-family:var(--font-num);font-size:11px;opacity:.85}
-.top-r{width:220px;display:flex;justify-content:flex-end;align-items:center;gap:8px}
-.ibtn{width:34px;height:34px;border-radius:50%;display:grid;place-items:center;background:rgba(255,255,255,.85);color:var(--ink)}
-.ibtn.on{background:#fff;box-shadow:0 2px 8px rgba(25,55,95,.12)}
-
-.screen{display:none;position:absolute;inset:62px 0 0 0;flex-direction:column}
-.screen.on{display:flex}
-.hero{height:156px;padding:22px 40px 0;display:flex;justify-content:space-between;align-items:flex-start;flex:none}
-.hero.short{height:146px}
-.eyebrow{font-size:12px;color:var(--on-sky-2);opacity:.9;letter-spacing:.02em}
-.title{font-family:var(--font-title);font-weight:300;font-size:52px;line-height:1.1;color:var(--on-sky);letter-spacing:-.02em;margin-top:6px;text-shadow:0 1px 18px rgba(40,80,140,.18);display:flex;align-items:baseline}
-.title .u{font-size:22px;margin-left:8px;letter-spacing:0;opacity:.92}
-.hero-r{display:flex;flex-direction:column;align-items:flex-end;gap:16px}
-.pills{display:flex;gap:8px;align-items:center}
-.pl{height:30px;padding:0 12px;border-radius:999px;background:rgba(255,255,255,.88);display:inline-flex;align-items:center;gap:5px;font-size:12px;color:var(--ink);white-space:nowrap}
-.pl .k{color:var(--ink-3)}
-.pl b{font-family:var(--font-num);font-weight:600}
-.pl.ok{background:var(--ok-soft);color:var(--ok);font-weight:600}
-.pl.warn{background:#FFF5E3;color:#A86E14;font-weight:600}
-.pl.round{width:30px;padding:0;justify-content:center}
-.hero-strip{margin-top:14px;width:430px}
-
-.tabs{display:flex;gap:12px;padding:0 24px;position:relative;z-index:2;margin-bottom:-22px;flex:none;align-items:flex-end}
-.tab{flex:1;min-width:0;height:60px;border-radius:18px;background:rgba(255,255,255,.26);display:flex;align-items:center;gap:10px;padding:0 12px;color:#fff}
-.tab.on{background:#fff;color:var(--ink);height:68px;box-shadow:0 12px 30px rgba(25,55,95,.12)}
-.tab.fixed{flex:0 0 280px}
-.tab .ti{width:34px;height:34px;border-radius:11px;display:grid;place-items:center;background:rgba(255,255,255,.3);flex:none}
-.tab.on .ti{background:#EEF3FB;color:var(--accent)}
-.tab .tt{min-width:0;flex:1}
-.tab .tn{font-size:13px;font-weight:600;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
-.tab .td{font-size:11px;opacity:.85;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;font-family:var(--font-num)}
-.tab.on .td{color:var(--ink-3);opacity:1}
-.tab .tc{width:22px;height:22px;border-radius:50%;display:grid;place-items:center;border:1.5px solid rgba(255,255,255,.7);flex:none;color:transparent}
-.tab.on .tc{background:var(--ink);border-color:var(--ink);color:#fff}
-.tab .tc svg{width:12px;height:12px;stroke-width:2.4}
-.tab.add{background:transparent;border:1.5px dashed rgba(255,255,255,.75);justify-content:center;font-size:12px;gap:6px;flex:0 0 104px}
-
-.sheet{flex:1;min-height:0;background:var(--sheet);border-radius:var(--r-sheet) var(--r-sheet) 0 0;padding:40px 24px 24px;display:flex;gap:14px}
-.sheet.plain{padding-top:24px}
-.col{flex:1;min-width:0;display:flex;flex-direction:column;gap:14px}
-.col>.fill{flex:1;min-height:0}
-.side{flex:0 0 320px;display:flex;flex-direction:column}
-.row{display:flex;gap:14px}
-.row>*{flex:1;min-width:0}
-
-/* card anatomy */
-.card{background:var(--card);border-radius:var(--r-card);box-shadow:var(--sh-card);padding:20px 22px;display:flex;flex-direction:column;min-width:0}
-.ch{display:flex;align-items:center;gap:8px;font-size:14px;font-weight:600;height:30px;flex:none}
-.ch .r{margin-left:auto;display:flex;gap:6px;align-items:center}
-.rb{width:30px;height:30px;border-radius:50%;border:1px solid var(--line);display:grid;place-items:center;color:var(--ink-2);background:#fff;flex:none}
-.sub{font-size:12px;color:var(--ink-3);margin-top:2px;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
-.big{font-family:var(--font-num);font-size:32px;font-weight:400;letter-spacing:-.02em;line-height:1.2;display:flex;align-items:center;gap:6px;margin-top:14px;font-variant-numeric:tabular-nums}
-.big .u{font-size:15px;color:var(--ink-2);letter-spacing:0;align-self:flex-end;margin-bottom:5px;margin-left:-2px}
-.bd{width:16px;height:16px;border-radius:50%;display:grid;place-items:center;flex:none}
-.bd svg{width:10px;height:10px;stroke-width:2.6}
-.bd.ok{background:var(--ok-soft);color:var(--ok)} .bd.warn{background:var(--warn-soft);color:var(--warn)} .bd.bad{background:var(--bad-soft);color:var(--bad)} .bd.info{background:#E6EEFC;color:var(--accent)}
-.foot{margin-top:auto;padding-top:14px;display:flex;justify-content:flex-end;gap:8px;flex:none}
-.v{font-family:var(--font-num);font-variant-numeric:tabular-nums}
+.v{font-family:var(--num);font-variant-numeric:tabular-nums}
 .mono{font-family:var(--mono);font-size:12px}
 .muted{color:var(--ink-3)}
 
-/* thin-tick strip with end labels (the reference's meter) */
-.mt{margin-top:auto;padding-top:16px}
-.mt .lb{display:flex;justify-content:space-between;font-size:11px;color:var(--ink-3);margin-bottom:6px}
-.mt .nb{display:flex;justify-content:space-between;font-size:11px;color:var(--ink-3);margin-top:5px;font-family:var(--font-num)}
-.ticks{display:flex;gap:2px;height:22px;align-items:stretch}
-.ticks i{flex:1;border-radius:1.5px;min-width:1.5px}
-/* thin bars of varying height with markers (the reference's lower charts) */
-.wave{position:relative;display:flex;gap:3px;align-items:flex-end;height:96px}
-.wave i{flex:1;border-radius:2px;min-width:2px}
-.wave .mk{position:absolute;width:18px;height:18px;border-radius:50%;background:#fff;display:grid;place-items:center;transform:translate(-50%,0);box-shadow:0 1px 4px rgba(16,38,63,.12)}
-.wave .mk svg{width:10px;height:10px;stroke-width:2.6}
-.wave .mk.ok{color:var(--ok)} .wave .mk.bad{color:var(--bad)} .wave .mk.warn{color:var(--warn)} .wave .mk.info{color:var(--accent)}
-.wave .lab{position:absolute;transform:translate(-50%,0);font-size:11px;font-family:var(--font-num);color:var(--ink-2)}
-.wx{display:flex;justify-content:space-between;font-size:11px;color:var(--ink-3);margin-top:6px;font-family:var(--font-num)}
+.win{position:relative;width:1240px;height:820px;border-radius:20px;overflow:hidden;box-shadow:0 30px 80px rgba(20,45,80,.16);
+  background:radial-gradient(700px 420px at 12% -10%,rgba(255,255,255,.7),transparent 65%),
+             radial-gradient(900px 500px at 100% 0%,#BBD2F0 0%,transparent 60%),
+             linear-gradient(170deg,var(--bg1) 0%,var(--bg2) 38%,var(--bg3) 72%)}
+.top{height:66px;display:flex;align-items:center;padding:0 28px}
+.brand{display:flex;align-items:center;gap:9px;font-weight:700;font-size:16px;width:240px;letter-spacing:.01em}
+.brand svg{width:24px;height:24px}
+.nav{margin:0 auto;display:flex;gap:4px;padding:4px;border-radius:999px;background:rgba(255,255,255,.55)}
+.nav a{height:34px;padding:0 16px;border-radius:999px;display:flex;align-items:center;gap:6px;font-size:13px;color:var(--ink-2);cursor:pointer}
+.nav a.on{background:var(--dark);color:#fff;font-weight:600}
+.nav .n{font-family:var(--num);font-size:11px;color:var(--warn);font-weight:600}
+.top-r{width:240px;display:flex;justify-content:flex-end;gap:8px}
+.ib{width:36px;height:36px;border-radius:50%;display:grid;place-items:center;background:rgba(255,255,255,.75)}
 
-/* wide card: number left, 2x2 small numbers right, wave at the bottom */
-.wide-top{display:flex;justify-content:space-between;align-items:flex-start;gap:20px}
-.q4{display:grid;grid-template-columns:auto auto;gap:12px 28px;margin-top:4px}
-.q4 .s .x{font-family:var(--font-num);font-size:16px;display:flex;align-items:center;gap:6px;line-height:1.3}
-.q4 .s .k{font-size:11px;color:var(--ink-3)}
-.wide-wave{margin-top:auto;padding-top:14px}
+.screen{display:none;position:absolute;inset:66px 0 0 0;padding:4px 28px 26px;flex-direction:column}
+.screen.on{display:flex}
+
+/* title row: big dark title left, big light numbers right (Crextio-like) */
+.head{display:flex;justify-content:space-between;align-items:flex-end;height:96px;flex:none}
+.h1{font-size:40px;font-weight:400;letter-spacing:-.01em;line-height:1.15}
+.h1 small{display:block;font-size:13px;color:var(--ink-2);letter-spacing:0;margin-bottom:6px}
+.bigs{display:flex;gap:34px;align-items:flex-end}
+.bg{display:flex;flex-direction:column;align-items:flex-start}
+.bg .n{font-family:var(--num);font-size:46px;font-weight:300;line-height:1;letter-spacing:-.03em;display:flex;align-items:baseline;gap:4px}
+.bg .n small{font-size:15px;letter-spacing:0;color:var(--ink-2);font-weight:400}
+.bg .k{display:flex;align-items:center;gap:6px;font-size:12px;color:var(--ink-2);margin-top:6px}
+.bg .k .ic{width:22px;height:22px;border-radius:50%;background:rgba(255,255,255,.75);display:grid;place-items:center}
+
+/* pill bar: proportions as pills of different styles */
+.pillbar{display:flex;gap:8px;margin-top:18px;flex:none;align-items:flex-end}
+.pb{display:flex;flex-direction:column;gap:6px;min-width:70px}
+.pb .lb{font-size:11px;color:var(--ink-2);white-space:nowrap}
+.pb .p{height:36px;border-radius:999px;display:flex;align-items:center;padding:0 14px;font-family:var(--num);font-size:13px;font-weight:600;white-space:nowrap}
+.p.dark{background:var(--dark);color:#fff}
+.p.acc{background:var(--accent);color:#fff}
+.p.warn{background:var(--warn);color:#3B2A08}
+.p.hatch{background:var(--hatch),rgba(255,255,255,.55);color:var(--ink)}
+.p.line{border:1.5px solid rgba(17,20,24,.18);color:var(--ink-2)}
+.p.soft{background:rgba(255,255,255,.8);color:var(--ink-2)}
+
+/* bento */
+.bento{flex:1;min-height:0;display:grid;gap:14px;margin-top:18px}
+.card{background:var(--card);border-radius:var(--r);box-shadow:var(--sh);padding:20px 22px;display:flex;flex-direction:column;min-width:0;min-height:0;position:relative}
+.card.soft{background:var(--card-soft)}
+.card.dark{background:var(--dark);color:var(--on-dark)}
+.ch{display:flex;align-items:center;gap:8px;font-size:15px;font-weight:600;height:30px;flex:none}
+.ch .r{margin-left:auto;display:flex;gap:6px;align-items:center}
+.rb{width:32px;height:32px;border-radius:50%;border:1px solid var(--line);display:grid;place-items:center;color:var(--ink-2)}
+.dark .rb{border-color:#33383F;color:#C9CFD8}
+.sub{font-size:12px;color:var(--ink-3)}
+.dark .sub{color:var(--on-dark-2)}
+.num{font-family:var(--num);font-size:36px;font-weight:300;letter-spacing:-.02em;line-height:1.1;display:flex;align-items:baseline;gap:4px}
+.num small{font-size:14px;color:var(--ink-2);letter-spacing:0;font-weight:400}
+.dark .num small{color:var(--on-dark-2)}
+.tag{display:inline-flex;align-items:center;gap:5px;height:24px;padding:0 10px;border-radius:999px;font-size:11px;font-weight:600;white-space:nowrap}
+.tag.warn{background:var(--warn-soft);color:#9A6210}
+.tag.ok{background:var(--ok-soft);color:var(--ok)}
+.tag.bad{background:var(--bad-soft);color:var(--bad)}
+.tag.acc{background:var(--accent-2);color:var(--accent)}
+.tag.dk{background:#2A2E35;color:#DDE2E9}
+.bottom{margin-top:auto}
+
+/* dial made of radial ticks */
+.dial{position:relative;display:grid;place-items:center;flex:none}
+.dial .c{position:absolute;inset:0;display:flex;flex-direction:column;align-items:center;justify-content:center}
+.dial .c .n{font-family:var(--num);font-size:30px;font-weight:300;letter-spacing:-.02em;line-height:1}
+.dial .c .n small{font-size:12px;color:var(--ink-2)}
+.dial .c .k{font-size:11px;color:var(--ink-3);margin-top:4px}
+.dial.sm .c .n{font-size:17px;font-weight:400}
+
+/* dot stems */
+.stems{position:relative;display:flex;align-items:flex-end;justify-content:space-between;height:100%}
+.stems .s{position:relative;flex:1;display:flex;justify-content:center;height:100%}
+.stems .s i{position:absolute;bottom:0;width:2px;border-radius:2px;background:var(--ink)}
+.stems .s b{position:absolute;width:9px;height:9px;border-radius:50%;background:var(--ink);transform:translateY(50%)}
+.stems .s.mute i,.stems .s.mute b{background:var(--tick-2)}
+.stems .s.hl i{width:8px;background:var(--accent);border-radius:999px}
+.stems .s.hl b{display:none}
+.stems .s.wn i{width:8px;background:var(--warn);border-radius:999px}
+.stems .s.wn b{display:none}
+.stems .bub{position:absolute;transform:translate(-50%,-130%);background:var(--warn);color:#3B2A08;font-family:var(--num);font-size:11px;font-weight:700;padding:2px 8px;border-radius:999px;white-space:nowrap}
+.stems .bub.acc{background:var(--accent);color:#fff}
+.xl{display:flex;justify-content:space-between;font-size:11px;color:var(--ink-3);margin-top:10px;font-family:var(--num)}
 
 /* buttons */
-.btn{height:38px;padding:0 18px;border-radius:999px;font-size:13px;font-weight:600;display:inline-flex;align-items:center;justify-content:center;gap:7px;white-space:nowrap}
-.btn.sm{height:30px;padding:0 13px;font-size:12px}
-.btn.big{height:46px;padding:0 24px;font-size:14px}
-.btn.primary{background:var(--ink);color:#fff}
-.btn.primary .q{font-family:var(--font-num);font-weight:400;opacity:.65}
-.btn.second{background:#fff;border:1px solid var(--line);color:var(--ink)}
-.btn.glass{background:rgba(255,255,255,.88);color:var(--ink)}
-.btn.soft{background:var(--sheet);color:var(--ink)}
-.btn.acc{background:#E8F0FD;color:var(--accent)}
-.btn.redt{color:var(--bad);background:var(--sheet)}
-.btn.text{padding:0;height:auto;color:var(--accent);font-size:12px}
+.btn{height:40px;padding:0 18px;border-radius:999px;font-size:13px;font-weight:600;display:inline-flex;align-items:center;justify-content:center;gap:8px;white-space:nowrap}
+.btn.big{height:52px;font-size:15px}
+.btn.white{background:#fff;color:var(--ink)}
+.btn.white .q{font-family:var(--num);font-weight:400;color:var(--ink-3)}
+.btn.ghost{background:rgba(255,255,255,.08);color:#fff}
+.btn.soft{background:#F1F4F8;color:var(--ink)}
+.btn.acc{background:var(--accent);color:#fff}
 .btn.full{width:100%}
 
-/* rows */
-.list{display:flex;flex-direction:column}
-.li{display:flex;align-items:center;gap:12px;min-height:44px;padding:4px 0;border-top:1px solid var(--line-2)}
+/* rows in the dark card */
+.opt{display:flex;align-items:center;gap:12px;padding:10px 0;border-top:1px solid #2A2E35}
+.opt:first-child{border-top:0}
+.opt .ic{width:34px;height:34px;border-radius:11px;background:#23272E;display:grid;place-items:center;color:#C9CFD8;flex:none}
+.opt .t{flex:1;min-width:0}
+.opt .t .a{font-size:13px;font-weight:600}
+.opt .t .b{font-size:11px;color:var(--on-dark-2)}
+.ck{width:20px;height:20px;border-radius:50%;border:1.5px solid #4A5059;display:grid;place-items:center;color:transparent;flex:none}
+.ck.on{background:var(--accent);border-color:var(--accent);color:#fff}
+.ck svg{width:11px;height:11px;stroke-width:2.6}
+.tgd{width:34px;height:20px;border-radius:999px;background:#3A3F47;position:relative;flex:none}
+.tgd::after{content:"";position:absolute;top:3px;left:3px;width:14px;height:14px;border-radius:50%;background:#fff}
+.tgd.on{background:var(--accent)} .tgd.on::after{left:17px}
+
+/* judgement card buttons */
+.pair{display:flex;gap:8px}
+.pair .btn{flex:1;height:34px;font-size:12px}
+.seg2{display:flex;gap:3px;height:12px}
+.seg2 i{border-radius:999px}
+.clue{display:flex;align-items:center;gap:12px;padding:12px 0;border-top:1px solid var(--line)}
+.clue:first-of-type{border-top:0}
+.clue .ic{width:36px;height:36px;border-radius:12px;background:#F1F4F8;display:grid;place-items:center;color:var(--ink-2);flex:none}
+.clue .t{flex:1;min-width:0}
+.clue .t .a{font-weight:600}
+.clue .t .b{font-size:11px;color:var(--ink-3)}
+.tm{position:relative;flex:1;min-height:0;margin-top:12px}
+.tm .tl{position:absolute;border-radius:10px;padding:8px 10px;display:flex;flex-direction:column;justify-content:space-between;overflow:hidden;color:#12324F}
+.tm .tl .a{font-size:11px;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+.tm .tl .n{font-family:var(--num);font-size:15px;text-align:right}
+.tm .tl.big .n{font-size:24px;font-weight:300}
+.tm .tl.k1{background:#A9D6FA}.tm .tl.k2{background:#C4E2FB}.tm .tl.k3{background:#DCEEFD}
+.tm .tl.sel{background:var(--accent);color:#fff}
+.tm .tl.look{background:#fff;border:1.5px solid var(--warn);color:#8A5A10}
+.tm .tl.look.big{background:#FFF7EA}
+.cp{height:30px;padding:0 12px;border-radius:999px;background:#F1F4F8;font-size:12px;font-weight:600;display:inline-flex;align-items:center;gap:6px}
+</style>
+
+<style>
+/* ---- round 5 overrides ---- */
+:root{
+  --bg1:#E3ECF6; --bg2:#F0F4F9; --bg3:#F8FAFC;
+  --lime:#D6F03C; --lime-ink:#1C2400; --lime-soft:#F1FAC8;
+  --sky1:#7CCBF1; --sky2:#A6DCF7; --sky3:#C8EAFB; --sky4:#E2F3FD;
+  --hot:#FF4F2B; --hot-soft:#FFE7E1;
+  --grey1:#D5D8DD; --grey2:#E7E9EC;
+  --accent:#111418; --accent-2:#F1FAC8;
+  --r:10px;
+  --sh:0 1px 0 rgba(17,20,24,.04);
+}
+.win{border-radius:12px;background:linear-gradient(175deg,var(--bg1) 0%,var(--bg2) 34%,var(--bg3) 70%)}
+.card{border:1px solid rgba(17,20,24,.07)}
+.card.dark{border-color:#111418}
+.nav{border-radius:8px;background:rgba(255,255,255,.7);padding:3px}
+.nav a{border-radius:6px}
+.ib{border-radius:8px;background:#fff;border:1px solid rgba(17,20,24,.07)}
+.rb{border-radius:8px}
+.btn{border-radius:8px}
+.btn.big{border-radius:10px}
+.btn.acc{background:var(--lime);color:var(--lime-ink)}
+.btn.soft{background:var(--grey2)}
+.tag{border-radius:4px}
+.tag.acc{background:var(--lime-soft);color:#4A5A00}
+.tag.warn{background:var(--hot-soft);color:#C2361A}
+.tag.dk{background:#2A2E35}
+.pb .p{border-radius:4px}
+.p.acc{background:var(--lime);color:var(--lime-ink)}
+.p.warn{background:#fff;border:1.5px solid var(--hot);color:var(--hot)}
+.p.dark{background:var(--ink)}
+.p.hatch{background:var(--hatch),#fff}
+.p.line{border:1.5px solid var(--grey1);color:var(--ink-2)}
+.p.sky{background:var(--sky2);color:#0F3550}
+.p.soft{background:#fff;border:1px solid rgba(17,20,24,.07)}
+.bg .k .ic{border-radius:6px;background:#fff}
+.opt .ic{border-radius:8px}
+.ck{border-radius:5px}
+.ck.on{background:var(--lime);border-color:var(--lime);color:var(--lime-ink)}
+.tgd{border-radius:6px}
+.tgd::after{border-radius:4px}
+.tgd.on{background:var(--lime)}
+.tgd.on::after{background:var(--lime-ink)}
+.seg2{gap:2px}
+.seg2 i{border-radius:2px}
+.stems .s.hl i{background:var(--lime);border-radius:3px}
+.stems .s.wn i{background:var(--hot);border-radius:3px}
+.stems .bub{border-radius:4px;background:var(--hot);color:#fff}
+.stems .bub.acc{background:var(--lime);color:var(--lime-ink)}
+.clue .ic{border-radius:8px}
+.cp{border-radius:6px;background:var(--grey2)}
+.tm .tl{border-radius:3px;color:#0F3550}
+.tm .tl.k1{background:var(--sky1)}.tm .tl.k2{background:var(--sky2)}.tm .tl.k3{background:var(--sky3)}
+.tm .tl.sel{background:var(--lime);color:var(--lime-ink)}
+.tm .tl.look{background:#fff;border:1.5px solid var(--hot);color:var(--hot)}
+.tm .tl.look.big{background:#fff}
+.tm .tl.hot{background:var(--hot);color:#fff}
+.tm .tl.prot{background:var(--grey2);color:var(--ink-2)}
+.tm .tl .a{font-family:var(--mono);font-size:11px}
+.nav .n{color:var(--hot)}
+</style>
+
+<style>
+/* ---- final: pieces for the other nine screens ---- */
+.ib.on{background:var(--ink);color:#fff;border-color:var(--ink)}
+.tag.sky{background:var(--sky4);color:#0F3550}
+.tag.gr{background:var(--grey2);color:var(--ink-2)}
+.tag.hotd{background:rgba(255,79,43,.18);color:#FF8E75}
+.p.s1{background:var(--sky1);color:#0F3550}.p.s2{background:var(--sky2);color:#0F3550}.p.s3{background:var(--sky3);color:#0F3550}.p.s4{background:var(--sky4);color:#0F3550}
+.p.g2{background:var(--grey2);color:var(--ink-2)}
+.dark .dial .c .k,.dark .dial .c .n small{color:var(--on-dark-2)}
+.opt .val{font-family:var(--num);font-size:13px;color:#C9CFD8;font-variant-numeric:tabular-nums}
+.btn.ink{background:var(--ink);color:#fff}
+.btn.white.hot{color:var(--hot)}
+.btn.hott{background:#fff;color:var(--hot);border:1px solid rgba(255,79,43,.45)}
+.pair.lg .btn{height:40px;font-size:13px}
+.sq{display:flex;gap:2px;height:12px}
+.sq i{flex:1;border-radius:1.5px}
+.stems .s.pj i{background:var(--grey1)}
+.stems .s.pj b{width:7px;height:7px;background:#fff;border:1.5px solid var(--grey1)}
+.stems .bub.ink{background:var(--ink);color:#fff}
+.stems.mini .s i{width:1.5px}
+.stems.mini .s b{width:5px;height:5px}
+.stems.mini .s.hl i,.stems.mini .s.wn i{width:4px}
+.ax{position:relative;height:14px;margin-top:10px;font-size:11px;color:var(--ink-3);font-family:var(--num);flex:none}
+.ax span{position:absolute;top:0;white-space:nowrap;transform:translateX(-50%)}
+.ax span:first-child{transform:none}
+.ax span:last-child{transform:translateX(-100%)}
+/* list rows on white cards */
+.li{display:flex;align-items:center;gap:12px;padding:10px 0;border-top:1px solid var(--line)}
 .li:first-child{border-top:0}
+.li.c{padding:5px 0}
+.sq.g{display:grid;gap:6px;height:auto}
+.sq.g i{aspect-ratio:1;border-radius:3px}
+.li .lic{width:32px;height:32px;border-radius:8px;background:var(--grey2);display:grid;place-items:center;color:var(--ink-2);flex:none}
 .li .lt{flex:1;min-width:0}
-.li .a{white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
-.li .b{font-size:11px;color:var(--ink-3);white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
-.li .sz{font-family:var(--font-num);white-space:nowrap;text-align:right}
-.li .ticks{height:16px}
-.lic{width:30px;height:30px;border-radius:10px;background:var(--sheet);display:grid;place-items:center;color:var(--ink-2);flex:none}
-
-/* side panel (the reference's assistant column) */
-.panel{background:var(--card);border-radius:var(--r-card);box-shadow:var(--sh-card);padding:20px 22px 20px;display:flex;flex-direction:column;flex:1;min-height:0}
-.pbody{flex:1;min-height:0;display:flex;flex-direction:column;gap:14px;margin-top:14px}
-.msg{display:flex;gap:10px;align-items:flex-start}
-.msg .av{width:26px;height:26px;border-radius:50%;background:var(--sheet);display:grid;place-items:center;color:var(--ink-2);flex:none}
-.msg .bb{background:var(--sheet);border-radius:14px 14px 14px 4px;padding:10px 12px;font-size:12px;line-height:1.55;flex:1;min-width:0}
-.msg .bb .t{font-size:13px;font-weight:600}
-.msg .tm{font-size:11px;color:var(--ink-3);margin-left:auto;flex:none;padding-top:4px}
-.chipsrow{display:flex;gap:6px;flex-wrap:wrap}
-.cp{height:28px;padding:0 11px;border-radius:999px;background:var(--sheet);font-size:12px;display:inline-flex;align-items:center;gap:5px}
-.cp.dark{background:var(--ink);color:#fff}
-.inbar{display:flex;align-items:center;gap:8px;height:46px;border-radius:999px;background:var(--sheet);padding:0 6px 0 16px;font-size:12px;color:var(--ink-3);margin-top:12px}
-.inbar .go{margin-left:auto;height:36px;padding:0 18px;border-radius:999px;background:var(--ink);color:#fff;display:flex;align-items:center;gap:6px;font-size:13px;font-weight:600}
-
-.tg{width:34px;height:20px;border-radius:999px;background:#DCE2EA;position:relative;flex:none}
-.tg::after{content:"";position:absolute;top:3px;left:3px;width:14px;height:14px;border-radius:50%;background:#fff;box-shadow:0 1px 3px rgba(0,0,0,.15)}
-.tg.on{background:var(--ink)} .tg.on::after{left:17px}
-.cb{width:17px;height:17px;border-radius:5px;border:1.5px solid #C8D0DA;display:grid;place-items:center;flex:none;color:transparent}
-.cb.on{background:var(--ink);border-color:var(--ink);color:#fff}
+.li .lt .a{font-size:13px;font-weight:600;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+.li .lt .b{font-size:11px;color:var(--ink-3);white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+.li .sz{font-family:var(--num);font-size:13px;min-width:58px;text-align:right;font-variant-numeric:tabular-nums;flex:none}
+.li .bar{flex:none}
+.cb{width:18px;height:18px;border-radius:4px;border:1.5px solid var(--grey1);display:grid;place-items:center;color:transparent;flex:none}
+.cb.on{background:var(--lime);border-color:var(--lime);color:var(--lime-ink)}
 .cb svg{width:11px;height:11px;stroke-width:2.6}
-.seg{display:inline-flex;padding:3px;border-radius:999px;background:var(--sheet);gap:2px}
-.seg span{height:24px;padding:0 10px;border-radius:999px;font-size:11px;display:flex;align-items:center;color:var(--ink-2)}
-.seg span.on{background:#fff;color:var(--ink);font-weight:600;box-shadow:0 1px 4px rgba(0,0,0,.08)}
-
-.scrim{position:absolute;inset:0;background:rgba(18,32,52,.26);backdrop-filter:blur(3px);z-index:10;display:none}
-.drawer{position:absolute;top:12px;right:12px;bottom:12px;width:460px;background:#fff;border-radius:24px;box-shadow:0 20px 60px rgba(15,34,56,.25);z-index:11;padding:22px 24px;display:none;flex-direction:column}
-.modal{position:absolute;left:50%;top:50%;transform:translate(-50%,-50%);width:560px;background:#fff;border-radius:26px;box-shadow:0 30px 80px rgba(15,34,56,.3);z-index:11;padding:26px 28px 24px;display:none;flex-direction:column}
-.show{display:flex!important}.scrim.show{display:block!important}
-.opt{flex:1;border:1.5px solid var(--line);border-radius:16px;padding:12px 14px;display:flex;gap:10px;align-items:flex-start}
-.opt.on{border-color:var(--ink)}
-.opt .r{width:16px;height:16px;border-radius:50%;border:1.5px solid #C8D0DA;flex:none;margin-top:2px;display:grid;place-items:center}
-.opt.on .r{border-color:var(--ink)} .opt.on .r::after{content:"";width:7px;height:7px;border-radius:50%;background:var(--ink)}
-.opt .a{font-weight:600}.opt .b{font-size:11px;color:var(--ink-3)}
-.snav .li{border:0;border-radius:12px;padding:0 12px;min-height:40px;color:var(--ink-2);gap:10px}
-.snav .li.on{background:var(--sheet);color:var(--ink);font-weight:600}
+.tgl{width:34px;height:20px;border-radius:6px;background:var(--grey1);position:relative;flex:none}
+.tgl::after{content:"";position:absolute;top:3px;left:3px;width:14px;height:14px;border-radius:4px;background:#fff}
+.tgl.on{background:var(--lime)}
+.tgl.on::after{left:17px;background:var(--lime-ink)}
+.segc{display:inline-flex;background:var(--grey2);border-radius:6px;padding:2px;flex:none}
+.segc span{padding:3px 10px;border-radius:4px;font-size:11px;color:var(--ink-2)}
+.segc span.on{background:#fff;color:var(--ink);font-weight:600;box-shadow:0 0 0 1px rgba(17,20,24,.07)}
+.segc.off{opacity:.45}
+.snav .li{border:0;padding:9px 10px;border-radius:6px;gap:10px;font-size:13px;color:var(--ink-2)}
+.snav .li.on{background:var(--grey2);color:var(--ink);font-weight:600}
+/* heatmap */
+.hm-wrap{display:grid;grid-template-columns:16px auto;grid-template-rows:16px auto;gap:6px 8px;flex:none}
+.hm-m{display:grid;grid-auto-flow:column;grid-auto-columns:22px;gap:3px;font-size:11px;color:var(--ink-3);white-space:nowrap}
+.hm-d{display:grid;grid-template-rows:repeat(7,22px);gap:3px;font-size:10px;color:var(--ink-3);align-items:center}
+.hm{display:grid;grid-template-rows:repeat(7,22px);grid-auto-columns:22px;grid-auto-flow:column;gap:3px}
+.hm i{border-radius:3px;background:var(--grey2)}
+.hm i.pre{background:transparent;box-shadow:inset 0 0 0 1px var(--grey2)}
+.hm i.fu{visibility:hidden}
+.hm i.sc{background:var(--sky4)}
+.hm i.l1{background:var(--sky3)}.hm i.l2{background:var(--sky2)}.hm i.l3{background:var(--sky1)}
+.hm i.last{background:var(--lime)}
+.hm i.stop{background:#fff;box-shadow:inset 0 0 0 1.5px var(--hot)}
+.lgd{display:flex;flex-direction:column;gap:9px;font-size:12px;color:var(--ink-2)}
+.lgd span{display:flex;align-items:center;gap:8px}
+.lgd i{width:12px;height:12px;border-radius:2px;flex:none}
+/* drawer and confirm over the conclusion */
+.scrim{position:absolute;inset:0;background:rgba(17,20,24,.28);display:none;z-index:5}
+.drawer{position:absolute;top:12px;right:12px;bottom:12px;width:480px;background:#fff;border-radius:10px;border:1px solid rgba(17,20,24,.07);box-shadow:0 24px 60px rgba(17,20,24,.18);padding:22px 24px;display:none;flex-direction:column;z-index:6}
+.modal{position:absolute;left:50%;top:50%;transform:translate(-50%,-50%);width:600px;background:#fff;border-radius:12px;border:1px solid rgba(17,20,24,.07);box-shadow:0 30px 80px rgba(17,20,24,.22);padding:26px 28px;display:none;z-index:6}
+.win.ov-drawer .scrim,.win.ov-confirm .scrim{display:block}
+.win.ov-drawer .drawer{display:flex}
+.win.ov-confirm .modal{display:block}
+.search{display:flex;align-items:center;gap:8px;height:36px;border-radius:8px;background:var(--grey2);padding:0 12px;color:var(--ink-3);font-size:12px;margin-top:18px}
+.dfoot{margin-top:auto;display:flex;justify-content:space-between;align-items:baseline;border-top:1px solid var(--line);padding-top:14px;font-size:12px;color:var(--ink-2)}
+.dfoot .v{font-size:20px;color:var(--ink);font-weight:300}
+.ml{font-size:12px;color:var(--ink-2);margin:22px 0 8px}
+.ro{flex:1;border:1px solid var(--grey1);border-radius:8px;padding:14px 16px;display:flex;gap:12px;align-items:flex-start}
+.ro.on{border-color:var(--ink);box-shadow:inset 0 0 0 1px var(--ink)}
+.ro .rd{width:18px;height:18px;border-radius:50%;border:1.5px solid var(--grey1);flex:none;margin-top:1px}
+.ro.on .rd{border:5px solid var(--ink)}
+.ro .a{font-size:14px;font-weight:600}
+.ro .b{font-size:12px;color:var(--ink-3);margin-top:2px}
+.warnline{display:flex;align-items:center;gap:8px;margin-top:16px;font-size:12px;color:#C2361A}
+.warnline svg{color:var(--hot)}
+.rb.sm{width:26px;height:26px}
 </style>
 </head>
 <body>
@@ -207,627 +330,592 @@ svg.i.s{width:14px;height:14px}
   <symbol id="i-arrow" viewBox="0 0 24 24"><path d="M7.5 16.5l9-9M9.5 7.5h7v7"/></symbol>
   <symbol id="i-more" viewBox="0 0 24 24"><circle cx="6.5" cy="12" r=".9" fill="currentColor"/><circle cx="12" cy="12" r=".9" fill="currentColor"/><circle cx="17.5" cy="12" r=".9" fill="currentColor"/></symbol>
   <symbol id="i-check" viewBox="0 0 24 24"><path d="M5.5 12.5l4 4 9-9"/></symbol>
-  <symbol id="i-x" viewBox="0 0 24 24"><path d="M7 7l10 10M17 7L7 17"/></symbol>
-  <symbol id="i-up" viewBox="0 0 24 24"><path d="M12 5.5l6.5 11h-13z"/></symbol>
   <symbol id="i-copy" viewBox="0 0 24 24"><rect x="9" y="9" width="11" height="11" rx="2.5"/><path d="M15 9V6.5A2.5 2.5 0 0 0 12.5 4h-6A2.5 2.5 0 0 0 4 6.5v6A2.5 2.5 0 0 0 6.5 15H9"/></symbol>
-  <symbol id="i-lock" viewBox="0 0 24 24"><rect x="5" y="10.5" width="14" height="10" rx="2.5"/><path d="M8.5 10.5V8a3.5 3.5 0 0 1 7 0v2.5"/></symbol>
-  <symbol id="i-refresh" viewBox="0 0 24 24"><path d="M19.5 12a7.5 7.5 0 1 1-2.2-5.3"/><path d="M19.5 4.5v4.5H15"/></symbol>
-  <symbol id="i-search" viewBox="0 0 24 24"><circle cx="11" cy="11" r="6.5"/><path d="M20 20l-4.2-4.2"/></symbol>
-  <symbol id="i-chev" viewBox="0 0 24 24"><path d="M9.5 6.5l5.5 5.5-5.5 5.5"/></symbol>
-  <symbol id="i-agent" viewBox="0 0 24 24"><path d="M12 3.5v5M12 15.5v5M3.5 12h5M15.5 12h5M6 6l3.2 3.2M14.8 14.8L18 18M6 18l3.2-3.2M14.8 9.2L18 6"/></symbol>
+  <symbol id="i-eye" viewBox="0 0 24 24"><path d="M2.5 12S6 5.5 12 5.5 21.5 12 21.5 12 18 18.5 12 18.5 2.5 12 2.5 12z"/><circle cx="12" cy="12" r="2.8"/></symbol>
   <symbol id="i-leak" viewBox="0 0 24 24"><path d="M12 3.5c3.2 4.2 6 7.3 6 10.8a6 6 0 0 1-12 0c0-3.5 2.8-6.6 6-10.8z"/></symbol>
-  <symbol id="i-shield" viewBox="0 0 24 24"><path d="M12 3.5l7.5 3v5.5c0 4.6-3.2 7.6-7.5 8.5-4.3-.9-7.5-3.9-7.5-8.5V6.5z"/></symbol>
-  <symbol id="i-bars" viewBox="0 0 24 24"><path d="M5.5 19.5v-7M10 19.5v-13M14.5 19.5v-9M19 19.5v-5"/></symbol>
-  <symbol id="i-restore" viewBox="0 0 24 24"><path d="M4.5 12a7.5 7.5 0 1 0 2.2-5.3"/><path d="M4.5 4.5V9H9"/></symbol>
+  <symbol id="i-ai" viewBox="0 0 24 24"><rect x="4.5" y="6.5" width="15" height="12" rx="3.5"/><path d="M12 3.5v3M9.5 12h.01M14.5 12h.01M9.5 15.5h5"/></symbol>
   <symbol id="i-browser" viewBox="0 0 24 24"><rect x="3.5" y="4.5" width="17" height="15" rx="3"/><path d="M3.5 9h17"/></symbol>
   <symbol id="i-code" viewBox="0 0 24 24"><path d="M8.5 8l-4 4 4 4M15.5 8l4 4-4 4"/></symbol>
   <symbol id="i-pkg" viewBox="0 0 24 24"><path d="M12 3.5l7.5 4.2v8.6L12 20.5l-7.5-4.2V7.7z"/><path d="M4.5 7.7L12 12l7.5-4.3M12 12v8.5"/></symbol>
   <symbol id="i-temp" viewBox="0 0 24 24"><path d="M7.5 3.5h9M7.5 20.5h9"/><path d="M8.5 3.5c0 5 7 5 7 8.5s-7 3.5-7 8.5M15.5 3.5c0 5-7 5-7 8.5"/></symbol>
-  <symbol id="i-ai" viewBox="0 0 24 24"><rect x="4.5" y="6.5" width="15" height="12" rx="3.5"/><path d="M12 3.5v3M9.5 12h.01M14.5 12h.01M9.5 15.5h5"/></symbol>
-  <symbol id="i-dup" viewBox="0 0 24 24"><rect x="8.5" y="8.5" width="11" height="11" rx="2.5"/><rect x="4.5" y="4.5" width="11" height="11" rx="2.5"/></symbol>
-  <symbol id="i-cpu" viewBox="0 0 24 24"><rect x="6.5" y="6.5" width="11" height="11" rx="2"/><path d="M9.5 3.5v3M14.5 3.5v3M9.5 17.5v3M14.5 17.5v3M3.5 9.5h3M3.5 14.5h3M17.5 9.5h3M17.5 14.5h3"/></symbol>
-  <symbol id="i-eye" viewBox="0 0 24 24"><path d="M2.5 12S6 5.5 12 5.5 21.5 12 21.5 12 18 18.5 12 18.5 2.5 12 2.5 12z"/><circle cx="12" cy="12" r="2.8"/></symbol>
-  <symbol id="i-chat" viewBox="0 0 24 24"><path d="M4.5 6.5a2 2 0 0 1 2-2h11a2 2 0 0 1 2 2v8a2 2 0 0 1-2 2H10l-4 3.5v-3.5h.5a2 2 0 0 1-2-2z"/></symbol>
-  <symbol id="i-layers" viewBox="0 0 24 24"><path d="M12 4l8.5 4.5L12 13 3.5 8.5z"/><path d="M3.5 12.5L12 17l8.5-4.5"/></symbol>
   <symbol id="i-snap" viewBox="0 0 24 24"><rect x="4" y="6.5" width="16" height="12" rx="3"/><circle cx="12" cy="12.5" r="3"/><path d="M9 6.5l1.2-2h3.6l1.2 2"/></symbol>
+  <symbol id="i-agent" viewBox="0 0 24 24"><path d="M12 3.5v5M12 15.5v5M3.5 12h5M15.5 12h5M6 6l3.2 3.2M14.8 14.8L18 18M6 18l3.2-3.2M14.8 9.2L18 6"/></symbol>
+  <symbol id="i-restore" viewBox="0 0 24 24"><path d="M4.5 12a7.5 7.5 0 1 0 2.2-5.3"/><path d="M4.5 4.5V9H9"/></symbol>
+  <symbol id="i-x" viewBox="0 0 24 24"><path d="M7 7l10 10M17 7L7 17"/></symbol>
+  <symbol id="i-up" viewBox="0 0 24 24"><path d="M12 5.5l6.5 11h-13z"/></symbol>
+  <symbol id="i-bars" viewBox="0 0 24 24"><path d="M5.5 19.5v-7M10 19.5v-13M14.5 19.5v-9M19 19.5v-5"/></symbol>
+  <symbol id="i-cpu" viewBox="0 0 24 24"><rect x="6.5" y="6.5" width="11" height="11" rx="2"/><path d="M9.5 3.5v3M14.5 3.5v3M9.5 17.5v3M14.5 17.5v3M3.5 9.5h3M3.5 14.5h3M17.5 9.5h3M17.5 14.5h3"/></symbol>
+  <symbol id="i-dup" viewBox="0 0 24 24"><rect x="8.5" y="8.5" width="11" height="11" rx="2.5"/><rect x="4.5" y="4.5" width="11" height="11" rx="2.5"/></symbol>
+  <symbol id="i-search" viewBox="0 0 24 24"><circle cx="11" cy="11" r="6.5"/><path d="M20 20l-4.2-4.2"/></symbol>
+  <symbol id="i-shield" viewBox="0 0 24 24"><path d="M12 3.5l7.5 3v5.5c0 4.6-3.2 7.6-7.5 8.5-4.3-.9-7.5-3.9-7.5-8.5V6.5z"/></symbol>
+  <symbol id="i-lock" viewBox="0 0 24 24"><rect x="5" y="10.5" width="14" height="10" rx="2.5"/><path d="M8.5 10.5V8a3.5 3.5 0 0 1 7 0v2.5"/></symbol>
+  <symbol id="i-layers" viewBox="0 0 24 24"><path d="M12 4l8.5 4.5L12 13 3.5 8.5z"/><path d="M3.5 12.5L12 17l8.5-4.5"/></symbol>
+  <symbol id="i-chat" viewBox="0 0 24 24"><path d="M4.5 6.5a2 2 0 0 1 2-2h11a2 2 0 0 1 2 2v8a2 2 0 0 1-2 2H10l-4 3.5v-3.5h.5a2 2 0 0 1-2-2z"/></symbol>
+  <symbol id="i-refresh" viewBox="0 0 24 24"><path d="M19.5 12a7.5 7.5 0 1 1-2.2-5.3"/><path d="M19.5 4.5v4.5H15"/></symbol>
 </svg>
 
-<div class="win" id="win">
+<div class="win">
   <header class="top">
     <div class="brand">
-      <svg viewBox="0 0 48 48"><mask id="mk" maskUnits="userSpaceOnUse" x="0" y="0" width="48" height="48"><rect width="48" height="48" fill="#fff"/><path d="M24 23.5 L21.5 39 M24 23.5 L35 31.5" stroke="#000" stroke-width="1.4" fill="none"/></mask><g fill="#fff"><path d="M19.5 17 L24.5 8.5 L27 12 L29.5 17 Z"/><path d="M4.5 20 H43.5" fill="none" stroke="#fff" stroke-width="2.4" stroke-linecap="round"/><path d="M10 23.5 H38 L35 31.5 L28.5 42.5 L21.5 39 L14 32 Z" mask="url(#mk)"/></g></svg>
+      <svg viewBox="0 0 48 48"><mask id="mk" maskUnits="userSpaceOnUse" x="0" y="0" width="48" height="48"><rect width="48" height="48" fill="#fff"/><path d="M24 23.5 L21.5 39 M24 23.5 L35 31.5" stroke="#000" stroke-width="1.4" fill="none"/></mask><g fill="#111418"><path d="M19.5 17 L24.5 8.5 L27 12 L29.5 17 Z"/><path d="M4.5 20 H43.5" fill="none" stroke="#111418" stroke-width="2.4" stroke-linecap="round"/><path d="M10 23.5 H38 L35 31.5 L28.5 42.5 L21.5 39 L14 32 Z" mask="url(#mk)"/></g></svg>
       Water
     </div>
-    <nav class="nav" id="nav">
-      <a data-go="home" data-for="home scan results drawer confirm done dedupe"><svg class="i s"><use href="#i-pulse"/></svg>体检</a>
-      <a data-go="quarantine" data-for="quarantine"><svg class="i s"><use href="#i-box"/></svg>隔离区<span class="n">4.8 GB</span></a>
-      <a data-go="trends" data-for="trends"><svg class="i s"><use href="#i-trend"/></svg>趋势</a>
-      <a data-go="history" data-for="history"><svg class="i s"><use href="#i-clock"/></svg>记录</a>
+    <nav class="nav">
+      <a data-for="home scan results done dedupe"><svg class="i s"><use href="#i-pulse"/></svg>体检</a>
+      <a data-for="quarantine"><svg class="i s"><use href="#i-box"/></svg>隔离区 <span class="n">4.8 GB</span></a>
+      <a data-for="trends"><svg class="i s"><use href="#i-trend"/></svg>趋势</a>
+      <a data-for="history"><svg class="i s"><use href="#i-clock"/></svg>记录</a>
     </nav>
-    <div class="top-r">
-      <span class="ibtn" title="只读扫描"><svg class="i s"><use href="#i-eye"/></svg></span>
-      <button class="ibtn" data-go="settings" id="gear"><svg class="i s"><use href="#i-gear"/></svg></button>
-    </div>
+    <div class="top-r"><span class="ib"><svg class="i s"><use href="#i-eye"/></svg></span><span class="ib" data-for="settings"><svg class="i s"><use href="#i-gear"/></svg></span></div>
   </header>
 
-  <!-- ============ home ============ -->
+  <!-- ================= home ================= -->
   <section class="screen" data-s="home">
-    <div class="hero">
-      <div>
-        <div class="eyebrow">磁盘体检 · 只读取名字、大小与时间</div>
-        <div class="title">这次检查哪里？</div>
-      </div>
-      <div class="hero-r">
-        <div class="pills"><span class="pl"><span class="k">上次</span>10 月 26 日</span><span class="pl"><span class="k">可清</span><b>31.2 GB</b></span><span class="pl ok">C 盘偏满</span></div>
+    <div class="head">
+      <div class="h1"><small>磁盘体检</small>这次检查哪里？</div>
+      <div class="bigs">
+        <div class="bg"><div class="n">77.0<small>GB</small></div><div class="k"><span class="ic"><svg class="i s"><use href="#i-sys"/></svg></span>C 盘可用</div></div>
+        <div class="bg"><div class="n">31.2<small>GB</small></div><div class="k"><span class="ic"><svg class="i s"><use href="#i-pulse"/></svg></span>上次可清</div></div>
+        <div class="bg"><div class="n">4.8<small>GB</small></div><div class="k"><span class="ic"><svg class="i s"><use href="#i-box"/></svg></span>隔离区</div></div>
       </div>
     </div>
-    <div class="tabs">
-      <div class="tab on"><div class="ti"><svg class="i"><use href="#i-sys"/></svg></div><div class="tt"><div class="tn">C 盘常用位置</div><div class="td">7 类</div></div><div class="tc"><svg class="i"><use href="#i-check"/></svg></div></div>
-      <div class="tab"><div class="ti"><svg class="i"><use href="#i-drive"/></svg></div><div class="tt"><div class="tn">D 盘</div><div class="td">可用 30.2 GB</div></div><div class="tc"></div></div>
-      <div class="tab"><div class="ti"><svg class="i"><use href="#i-drive"/></svg></div><div class="tt"><div class="tn">E 盘</div><div class="td">可用 51.8 GB</div></div><div class="tc"></div></div>
-      <div class="tab on"><div class="ti"><svg class="i"><use href="#i-drive"/></svg></div><div class="tt"><div class="tn">F 盘</div><div class="td">可用 372.7 GB</div></div><div class="tc"><svg class="i"><use href="#i-check"/></svg></div></div>
-      <div class="tab"><div class="ti"><svg class="i"><use href="#i-folder"/></svg></div><div class="tt"><div class="tn">denglou</div><div class="td">文件夹</div></div><div class="tc"></div></div>
-      <div class="tab add"><svg class="i s"><use href="#i-plus"/></svg>文件夹</div>
+    <div class="pillbar">
+      <div class="pb" style="flex:57"><span class="lb">C 盘 · 系统与程序</span><span class="p dark">57%</span></div>
+      <div class="pb" style="flex:12"><span class="lb">上次查到可清</span><span class="p acc">12%</span></div>
+      <div class="pb" style="flex:31"><span class="lb">可用</span><span class="p hatch">31%</span></div>
+      <div class="pb" style="flex:0 0 120px"><span class="lb">满的那天</span><span class="p line">11 月 29 日</span></div>
     </div>
-    <div class="sheet">
-      <div class="col">
-        <div class="row">
-          <div class="card">
-            <div class="ch"><svg class="i"><use href="#i-sys"/></svg>C 盘<span class="r"><span class="rb"><svg class="i s"><use href="#i-arrow"/></svg></span></span></div>
-            <div class="sub">系统盘 · 共 250 GB</div>
-            <div class="big">77.0<span class="u">GB</span><span class="bd warn"><svg class="i"><use href="#i-up"/></svg></span></div>
-            <div class="mt"><div class="lb"><span>已用</span><span>可用</span></div><div class="ticks" data-ticks='[[0.69,"s2"],[0.31,"g"]]'></div><div class="nb"><span>173 GB</span><span>77.0 GB</span></div></div>
-          </div>
-          <div class="card">
-            <div class="ch"><svg class="i"><use href="#i-drive"/></svg>F 盘<span class="r"><span class="rb"><svg class="i s"><use href="#i-arrow"/></svg></span></span></div>
-            <div class="sub">共 1.8 TB</div>
-            <div class="big">372.7<span class="u">GB</span><span class="bd ok"><svg class="i"><use href="#i-check"/></svg></span></div>
-            <div class="mt"><div class="lb"><span>已用</span><span>可用</span></div><div class="ticks" data-ticks='[[0.8,"s2"],[0.2,"g"]]'></div><div class="nb"><span>1.4 TB</span><span>372.7 GB</span></div></div>
-          </div>
-          <div class="card">
-            <div class="ch"><svg class="i"><use href="#i-box"/></svg>隔离区<span class="r"><span class="rb"><svg class="i s"><use href="#i-arrow"/></svg></span></span></div>
-            <div class="sub">3 次清理 · 3 个删不掉</div>
-            <div class="big">4.8<span class="u">GB</span><span class="bd bad"><svg class="i"><use href="#i-x"/></svg></span></div>
-            <div class="mt"><div class="lb"><span>最早放了</span><span>满 7 天提醒</span></div><div class="ticks" data-ticks='[[0.5,"g2"],[0.29,"a"],[0.21,"s"]]'></div><div class="nb"><span>11 天</span><span>14 天</span></div></div>
-          </div>
+    <div class="bento" style="grid-template-columns:300px 1fr 1fr 320px;grid-template-rows:1fr 1fr">
+      <div class="card" style="grid-row:1/3">
+        <div class="ch">C 盘<span class="sub" style="font-weight:400">系统盘</span><span class="r"><span class="rb"><svg class="i s"><use href="#i-arrow"/></svg></span></span></div>
+        <div style="flex:1;display:grid;place-items:center">
+          <div class="dial" data-dial='{"size":210,"p":69,"warn":[60,69],"n":60}'><div class="c"><span class="n">77.0<small> GB</small></span><span class="k">可用 · 共 250 GB</span></div></div>
         </div>
-        <div class="row fill">
-          <div class="card">
-            <div class="ch"><svg class="i"><use href="#i-trend"/></svg>C 盘可用空间<span class="r"><span class="rb"><svg class="i s"><use href="#i-arrow"/></svg></span></span></div>
-            <div class="wide-top">
-              <div><div class="sub">按现在的速度</div><div class="big">23<span class="u">天后满</span><span class="bd warn"><svg class="i"><use href="#i-up"/></svg></span></div></div>
-              <div class="q4">
-                <div class="s"><div class="x v">−3.3 GB</div><div class="k">每天</div></div>
-                <div class="s"><div class="x v">2 <span class="bd warn"><svg class="i"><use href="#i-up"/></svg></span></div><div class="k">在长的</div></div>
-                <div class="s"><div class="x v">4 <span class="bd ok"><svg class="i"><use href="#i-check"/></svg></span></div><div class="k">次体检</div></div>
-                <div class="s"><div class="x v">11/29</div><div class="k">满的那天</div></div>
-              </div>
-            </div>
-            <div class="wide-wave"><div class="wave" style="height:84px" data-wave='{"v":[150,148,147,146,143,140,139,137,133,130,128,126,122,119,116,113,111,108,105,101,98,96,94,91,88,86,83,81,79,77],"tone":"g","last":"a2","mk":[[29,"warn"]]}'></div><div class="wx"><span>10/8</span><span>今天</span></div></div>
-          </div>
-          <div class="card">
-            <div class="ch"><svg class="i"><use href="#i-pulse"/></svg>最近几次体检<span class="r"><span class="rb"><svg class="i s"><use href="#i-arrow"/></svg></span></span></div>
-            <div class="wide-top">
-              <div><div class="sub">上次可清</div><div class="big">31.2<span class="u">GB</span><span class="bd ok"><svg class="i"><use href="#i-check"/></svg></span></div></div>
-              <div class="q4">
-                <div class="s"><div class="x v">11</div><div class="k">次体检</div></div>
-                <div class="s"><div class="x v">4 <span class="bd ok"><svg class="i"><use href="#i-check"/></svg></span></div><div class="k">次清理</div></div>
-                <div class="s"><div class="x v">52.3 GB</div><div class="k">已腾出</div></div>
-                <div class="s"><div class="x v">48 秒</div><div class="k">上次用时</div></div>
-              </div>
-            </div>
-            <div class="wide-wave"><div class="wave" style="height:84px" data-wave='{"v":[8,22,4,26,3,31,6,18,5,24,9,29,4,31.2,6,12,3,7,2,5,3,4,2,3,5,2,4,3,2,3],"tone":"g","hl":[1,5,13],"mk":[[5,"ok"],[13,"ok"],[11,"bad"]]}'></div><div class="wx"><span>10/8</span><span>今天</span></div></div>
-          </div>
+        <div class="bottom" style="display:flex;justify-content:space-between;align-items:center">
+          <span class="tag warn">约 23 天后满</span><span class="sub v">每天 −3.3 GB</span>
         </div>
       </div>
-      <div class="side">
-        <div class="panel">
-          <div class="ch"><svg class="i"><use href="#i-pulse"/></svg>本次体检<span class="r"><span class="rb"><svg class="i s"><use href="#i-more"/></svg></span></span></div>
-          <div class="pbody">
-            <div class="msg"><span class="av"><svg class="i s"><use href="#i-sys"/></svg></span><div class="bb"><div class="t">C 盘常用位置</div>AI 工具、浏览器、临时文件等 7 类</div></div>
-            <div class="msg"><span class="av"><svg class="i s"><use href="#i-drive"/></svg></span><div class="bb"><div class="t">F 盘</div>整盘，1.4 TB</div></div>
-            <div style="flex:1"></div>
-            <div class="chipsrow"><span class="cp dark">C 盘常用位置</span><span class="cp dark">F 盘</span><span class="cp">D 盘</span><span class="cp">E 盘</span><span class="cp">denglou</span></div>
-          </div>
-          <div class="inbar"><svg class="i s"><use href="#i-eye"/></svg>只读，不打开文件<span class="go">开始体检</span></div>
+      <div class="card">
+        <div class="ch">F 盘<span class="r"><span class="rb"><svg class="i s"><use href="#i-arrow"/></svg></span></span></div>
+        <div style="display:flex;align-items:center;gap:18px;flex:1">
+          <div class="dial sm" data-dial='{"size":96,"p":80,"n":40}'><div class="c"><span class="n">80%</span></div></div>
+          <div><div class="num">372.7<small>GB</small></div><div class="sub">可用 · 共 1.8 TB</div></div>
+        </div>
+      </div>
+      <div class="card">
+        <div class="ch">D · E 盘<span class="r"><span class="rb"><svg class="i s"><use href="#i-arrow"/></svg></span></span></div>
+        <div style="display:flex;flex-direction:column;justify-content:center;gap:14px;flex:1">
+          <div style="display:flex;align-items:center;gap:14px"><div class="dial sm" data-dial='{"size":58,"p":75,"n":30}'><div class="c"><span class="n" style="font-size:13px">D</span></div></div><div class="v" style="font-size:24px;font-weight:300">30.2<span class="sub"> GB 可用</span></div><span class="sub v" style="margin-left:auto">75%</span></div>
+          <div style="display:flex;align-items:center;gap:14px"><div class="dial sm" data-dial='{"size":58,"p":78,"n":30}'><div class="c"><span class="n" style="font-size:13px">E</span></div></div><div class="v" style="font-size:24px;font-weight:300">51.8<span class="sub"> GB 可用</span></div><span class="sub v" style="margin-left:auto">78%</span></div>
+        </div>
+      </div>
+      <div class="card" style="grid-column:2/4">
+        <div class="ch">C 盘最近 30 天<span class="sub" style="font-weight:400;margin-left:4px">可用空间</span><span class="r"><span class="tag acc">10/26 清理过</span></span></div>
+        <div style="flex:1;margin-top:16px;padding-top:18px" data-stems='{"v":[150,148,147,146,143,140,139,137,133,130,128,126,122,119,116,113,111,108,105,101,98,96,94,91,88,86,83,81,79,77],"hl":[18],"wn":[29],"bub":[[29,"77.0"]],"bubAcc":[[18,"清理"]]}'></div>
+        <div class="xl"><span>10/8</span><span>10/22</span><span>今天</span></div>
+      </div>
+      <div class="card dark" style="grid-column:4;grid-row:1/3">
+        <div class="ch">本次体检<span class="r"><span class="tag dk">2 处</span></span></div>
+        <div class="sub" style="margin-top:2px">只读取名字、大小与时间</div>
+        <div style="margin-top:14px">
+          <div class="opt"><span class="ic"><svg class="i"><use href="#i-sys"/></svg></span><div class="t"><div class="a">C 盘常用位置</div><div class="b">7 类</div></div><span class="ck on"><svg class="i"><use href="#i-check"/></svg></span></div>
+          <div class="opt"><span class="ic"><svg class="i"><use href="#i-drive"/></svg></span><div class="t"><div class="a">F 盘</div><div class="b">整盘</div></div><span class="ck on"><svg class="i"><use href="#i-check"/></svg></span></div>
+          <div class="opt"><span class="ic"><svg class="i"><use href="#i-drive"/></svg></span><div class="t"><div class="a">D 盘</div><div class="b">整盘</div></div><span class="ck"></span></div>
+          <div class="opt"><span class="ic"><svg class="i"><use href="#i-drive"/></svg></span><div class="t"><div class="a">E 盘</div><div class="b">整盘</div></div><span class="ck"></span></div>
+          <div class="opt"><span class="ic"><svg class="i"><use href="#i-folder"/></svg></span><div class="t"><div class="a">denglou</div><div class="b">文件夹</div></div><span class="ck"></span></div>
+        </div>
+        <div class="bottom" style="display:flex;flex-direction:column;gap:10px">
+          <button class="btn ghost full"><svg class="i s"><use href="#i-plus"/></svg>加文件夹</button>
+          <button class="btn white big full">开始体检</button>
         </div>
       </div>
     </div>
   </section>
 
-  <!-- ============ scanning ============ -->
+  <!-- ================= scan ================= -->
   <section class="screen" data-s="scan">
-    <div class="hero">
-      <div>
-        <div class="eyebrow">正在体检 · 0:36</div>
-        <div class="title">19.4<span class="u">GB 已发现</span></div>
-      </div>
-      <div class="hero-r">
-        <div class="pills"><span class="pl"><span class="k">已检查</span><b>182,340</b></span><span class="pl ok">进行中</span></div>
-        <button class="btn glass">停止</button>
-      </div>
+    <div class="head">
+      <div class="h1"><small>C 盘常用位置、F 盘 · 只读取名字、大小与时间</small>正在体检</div>
+      <div class="bigs"><div class="bg"><div class="n">19.4<small>GB</small></div><div class="k"><span class="ic"><svg class="i s"><use href="#i-pulse"/></svg></span>已发现</div></div><div class="bg"><div class="n">182,340</div><div class="k"><span class="ic"><svg class="i s"><use href="#i-layers"/></svg></span>个文件已检查</div></div><div class="bg"><div class="n">0:36</div><div class="k"><span class="ic"><svg class="i s"><use href="#i-clock"/></svg></span>已用时</div></div></div>
     </div>
-    <div class="tabs">
-      <div class="tab on fixed"><div class="ti"><svg class="i"><use href="#i-sys"/></svg></div><div class="tt"><div class="tn">C 盘常用位置</div><div class="td">完成 · 16.2 GB</div></div><span class="bd ok"><svg class="i"><use href="#i-check"/></svg></span></div>
-      <div class="tab on fixed"><div class="ti"><svg class="i"><use href="#i-drive"/></svg></div><div class="tt"><div class="tn">F 盘</div><div class="td">扫描中 · 3.2 GB</div></div></div>
+    <div class="pillbar">
+      <div class="pb" style="flex:62"><span class="lb">已检查</span><span class="p dark">62%</span></div><div class="pb" style="flex:38"><span class="lb">剩余</span><span class="p hatch">38%</span></div><div class="pb" style="flex:0 0 120px"><span class="lb">预计还要</span><span class="p line">约 0:22</span></div>
     </div>
-    <div class="sheet">
-      <div class="col">
-        <div class="row">
-          <div class="card">
-            <div class="ch"><svg class="i"><use href="#i-pulse"/></svg>进度</div>
-            <div class="sub">按已检查的文件估算</div>
-            <div class="big">62<span class="u">%</span></div>
-            <div class="mt"><div class="lb"><span>已检查</span><span>剩余</span></div><div class="ticks" data-ticks='[[0.62,"g2"],[0.38,"s"]]'></div><div class="nb"><span>182,340 个文件</span><span>0:36</span></div></div>
-          </div>
-          <div class="card">
-            <div class="ch"><svg class="i"><use href="#i-sys"/></svg>C 盘常用位置</div>
-            <div class="sub">7 类 · 用时 0:21</div>
-            <div class="big">16.2<span class="u">GB</span><span class="bd ok"><svg class="i"><use href="#i-check"/></svg></span></div>
-            <div class="mt"><div class="lb"><span>完成</span><span></span></div><div class="ticks" data-ticks='[[1,"g2"]]'></div><div class="nb"><span>0:00</span><span>0:21</span></div></div>
-          </div>
-          <div class="card">
-            <div class="ch"><svg class="i"><use href="#i-drive"/></svg>F 盘</div>
-            <div class="sub">整盘 · 扫描中</div>
-            <div class="big">3.2<span class="u">GB</span></div>
-            <div class="mt"><div class="lb"><span>已检查</span><span>剩余</span></div><div class="ticks" data-ticks='[[0.35,"g2"],[0.65,"s"]]'></div><div class="nb"><span>96,118 个文件</span><span>0:15</span></div></div>
-          </div>
+    <div class="bento" style="grid-template-columns:320px 1fr 1fr;grid-template-rows:1fr 1fr">
+      <div class="card dark" style="grid-row:1/3">
+        <div class="ch">进度<span class="r"><span class="tag dk">进行中</span></span></div>
+        <div class="sub" style="margin-top:2px">按已检查的文件估算</div>
+        <div style="flex:1;display:grid;place-items:center">
+          <div class="dial" data-dial='{"size":220,"p":62,"n":60,"dark":1}'><div class="c"><span class="n">62<small> %</small></span><span class="k">已检查</span></div></div>
         </div>
-        <div class="card fill">
-          <div class="ch"><svg class="i"><use href="#i-trend"/></svg>发现的可清空间</div>
-          <div class="wide-top">
-            <div><div class="sub">每秒一根</div><div class="big">19.4<span class="u">GB</span></div></div>
-            <div class="q4" style="grid-template-columns:auto auto auto auto">
-              <div class="s"><div class="x v">16.2 <span class="bd ok"><svg class="i"><use href="#i-check"/></svg></span></div><div class="k">C 盘常用位置</div></div>
-              <div class="s"><div class="x v">3.2</div><div class="k">F 盘</div></div>
-              <div class="s"><div class="x v">0:36</div><div class="k">用时</div></div>
-              <div class="s"><div class="x v">182,340</div><div class="k">个文件</div></div>
-            </div>
-          </div>
-          <div class="wide-wave"><div class="wave" style="height:120px" data-wave='{"v":[0.2,0.6,1.2,1.9,2.7,3.8,4.6,5.3,6.1,6.9,7.6,8.4,9.1,10.2,11.0,11.8,12.9,13.6,14.6,15.3,16.0,16.2,16.4,16.7,17.0,17.1,17.4,17.7,18.0,18.2,18.5,18.7,18.9,19.1,19.3,19.4],"tone":"g","last":"g3","mk":[[20,"ok"]]}'></div><div class="wx"><span>0:00</span><span>0:21 C 盘完成</span><span>0:36</span></div></div>
+        <div class="bottom" style="display:flex;flex-direction:column;gap:12px">
+          <div class="sub">停下也保留已经查到的</div>
+          <button class="btn white big full">停止</button>
         </div>
+      </div>
+      <div class="card">
+        <div class="ch"><svg class="i"><use href="#i-sys"/></svg>C 盘常用位置<span class="r"><span class="tag acc">完成</span></span></div>
+        <div class="sub">7 类 · 用时 0:21</div>
+        <div class="num" style="margin-top:12px">16.2<small>GB</small></div>
+        <div class="bottom"><div data-sq='{"n":40,"f":1,"c":"lime"}'></div><div class="xl"><span>0:00</span><span>0:21</span></div></div>
+      </div>
+      <div class="card">
+        <div class="ch"><svg class="i"><use href="#i-drive"/></svg>F 盘<span class="r"><span class="tag gr">扫描中</span></span></div>
+        <div class="sub">整盘 · 96,118 个文件</div>
+        <div class="num" style="margin-top:12px">3.2<small>GB</small></div>
+        <div class="bottom"><div data-sq='{"n":40,"f":0.35,"c":"sky1"}'></div><div class="xl"><span>已检查 35%</span><span>0:15</span></div></div>
+      </div>
+      <div class="card" style="grid-column:2/4">
+        <div class="ch">发现的可清空间<span class="sub" style="font-weight:400;margin-left:4px">每秒一根</span></div>
+        <div style="flex:1;min-height:0;margin-top:12px;padding-top:22px" data-stems='{"v":[0.2,0.6,1.2,1.9,2.7,3.8,4.6,5.3,6.1,6.9,7.6,8.4,9.1,10.2,11,11.8,12.9,13.6,14.6,15.3,16,16.2,16.4,16.7,17,17.1,17.4,17.7,18,18.2,18.5,18.7,18.9,19.1,19.3,19.4],"hl":[21],"bubAcc":[[21,"C 盘 16.2"]],"bubInk":[[35,"19.4"]],"ax":[[0,"0:00"],[21,"0:21 C 盘完成"],[35,"0:36"]]}'></div>
       </div>
     </div>
   </section>
 
-  <!-- ============ conclusion ============ -->
+  <!-- ================= results ================= -->
   <section class="screen" data-s="results">
-    <div class="hero">
-      <div>
-        <div class="eyebrow">可以放心清理 · C 盘常用位置、F 盘 · 10 分钟前</div>
-        <div class="title">15.4<span class="u">GB</span></div>
-        <div class="hero-strip"><div class="ticks" style="height:16px" data-ticks='[[0.275,"w"],[0.725,"wl"]]'></div></div>
-      </div>
-      <div class="hero-r">
-        <div class="pills"><span class="pl"><span class="k">比上次</span><b>+2.1 GB</b></span><span class="pl warn">Chrome 开着 · 跳过 0.4 GB</span><span class="pl round"><svg class="i s"><use href="#i-refresh"/></svg></span></div>
-        <button class="btn primary big">清理 <span class="q">16.9 GB</span></button>
+    <div class="head">
+      <div class="h1"><small>C 盘常用位置、F 盘 · 10 分钟前</small>可以放心清理</div>
+      <div class="bigs">
+        <div class="bg"><div class="n">15.4<small>GB</small></div><div class="k"><span class="ic"><svg class="i s"><use href="#i-check"/></svg></span>放心清</div></div>
+        <div class="bg"><div class="n">7.4<small>GB</small></div><div class="k"><span class="ic"><svg class="i s"><use href="#i-eye"/></svg></span>要你看</div></div>
+        <div class="bg"><div class="n">+2.1<small>GB</small></div><div class="k"><span class="ic"><svg class="i s"><use href="#i-trend"/></svg></span>比上次</div></div>
       </div>
     </div>
-    <div class="tabs">
-      <div class="tab on"><div class="ti"><svg class="i"><use href="#i-ai"/></svg></div><div class="tt"><div class="tn">AI 编程工具</div><div class="td">6.2 GB</div></div><div class="tc"><svg class="i"><use href="#i-check"/></svg></div></div>
-      <div class="tab on"><div class="ti"><svg class="i"><use href="#i-browser"/></svg></div><div class="tt"><div class="tn">浏览器缓存</div><div class="td">3.4 GB</div></div><div class="tc"><svg class="i"><use href="#i-check"/></svg></div></div>
-      <div class="tab on"><div class="ti"><svg class="i"><use href="#i-code"/></svg></div><div class="tt"><div class="tn">开发缓存</div><div class="td">2.4 GB · 新</div></div><div class="tc"><svg class="i"><use href="#i-check"/></svg></div></div>
-      <div class="tab on"><div class="ti"><svg class="i"><use href="#i-pkg"/></svg></div><div class="tt"><div class="tn">安装包</div><div class="td">2.1 GB</div></div><div class="tc"><svg class="i"><use href="#i-check"/></svg></div></div>
-      <div class="tab on"><div class="ti"><svg class="i"><use href="#i-temp"/></svg></div><div class="tt"><div class="tn">临时文件</div><div class="td">1.3 GB</div></div><div class="tc"><svg class="i"><use href="#i-check"/></svg></div></div>
+    <div class="pillbar">
+      <div class="pb" style="flex:27"><span class="lb">放心清</span><span class="p acc">27%</span></div>
+      <div class="pb" style="flex:13"><span class="lb">要你看</span><span class="p warn">13%</span></div>
+      <div class="pb" style="flex:11"><span class="lb">只统计</span><span class="p sky">11%</span></div>
+      <div class="pb" style="flex:17"><span class="lb">受保护</span><span class="p dark">17%</span></div>
+      <div class="pb" style="flex:31"><span class="lb">系统设置里还能省</span><span class="p line">31%</span></div>
+      <div class="pb" style="flex:0 0 100px"><span class="lb">这次看到</span><span class="p soft">56.1 GB</span></div>
     </div>
-    <div class="sheet">
-      <div class="col">
-        <div class="row">
-          <div class="card">
-            <div class="ch"><svg class="i"><use href="#i-snap"/></svg>模拟器快照<span class="r"><span class="rb"><svg class="i s"><use href="#i-more"/></svg></span></span></div>
-            <div class="sub">F 盘 · 模拟器没在运行</div>
-            <div class="big">4.2<span class="u">GB</span><span class="bd warn"><svg class="i"><use href="#i-up"/></svg></span></div>
-            <div class="mt"><div class="lb"><span>3 个快照</span><span>41 天没打开</span></div><div class="ticks" data-ticks='[[0.55,"a"],[0.28,"a2"],[0.17,"a"]]'></div></div>
-            <div class="foot"><button class="btn sm soft">保留</button><button class="btn sm acc">清理</button></div>
-          </div>
-          <div class="card">
-            <div class="ch"><svg class="i"><use href="#i-leak"/></svg><span class="mono" style="font-size:13px">verify-*</span><span class="r"><span class="rb"><svg class="i s"><use href="#i-more"/></svg></span></span></div>
-            <div class="sub">81 个同名模板 · 还在长</div>
-            <div class="big">2.1<span class="u">GB</span><span class="bd warn"><svg class="i"><use href="#i-up"/></svg></span></div>
-            <div class="mt"><div class="wave" style="height:30px;gap:2px" data-wave='{"v":[2,3,2,4,5,4,6,7,6,8,9,8,10,11,10,12,13,12,14,15],"tone":"a","last":"a2"}'></div></div>
-            <div class="foot"><button class="btn sm soft">保留</button><button class="btn sm acc">清理</button></div>
-          </div>
-          <div class="card">
-            <div class="ch"><svg class="i"><use href="#i-ai"/></svg>Codex 旧运行时<span class="r"><span class="rb"><svg class="i s"><use href="#i-more"/></svg></span></span></div>
-            <div class="sub">留下在用的 0.49</div>
-            <div class="big">1.5<span class="u">GB</span><span class="bd info"><svg class="i"><use href="#i-check"/></svg></span></div>
-            <div class="mt"><div class="lb"><span>3 份旧版</span><span>在用</span></div><div class="ticks" data-ticks='[[0.72,"b"],[0.28,"s"]]'></div></div>
-            <div class="foot"><span class="muted" style="font-size:12px;margin-right:auto;align-self:center">已加入清理</span><button class="btn sm soft">撤销</button></div>
-          </div>
+    <div class="bento" style="grid-template-columns:300px 1fr 1fr 1fr;grid-template-rows:1fr 1fr">
+      <div class="card dark" style="grid-row:1/3">
+        <div class="ch">这次清理<span class="r"><span class="rb"><svg class="i s"><use href="#i-refresh"/></svg></span></span></div>
+        <div class="num" style="font-size:52px;margin-top:10px">16.9<small>GB</small></div>
+        <div class="sub">推荐 15.4 · 你选的 1.5</div>
+        <div style="margin-top:14px">
+          <div class="opt"><span class="ic"><svg class="i"><use href="#i-ai"/></svg></span><div class="t"><div class="a">AI 编程工具</div></div><span class="v" style="font-size:12px;color:#C9CFD8">6.2</span><span class="tgd on"></span></div>
+          <div class="opt"><span class="ic"><svg class="i"><use href="#i-browser"/></svg></span><div class="t"><div class="a">浏览器缓存</div></div><span class="v" style="font-size:12px;color:#C9CFD8">3.4</span><span class="tgd on"></span></div>
+          <div class="opt"><span class="ic"><svg class="i"><use href="#i-code"/></svg></span><div class="t"><div class="a">开发缓存</div></div><span class="v" style="font-size:12px;color:#C9CFD8">2.4</span><span class="tgd on"></span></div>
+          <div class="opt"><span class="ic"><svg class="i"><use href="#i-pkg"/></svg></span><div class="t"><div class="a">安装包</div></div><span class="v" style="font-size:12px;color:#C9CFD8">2.1</span><span class="tgd on"></span></div>
+          <div class="opt"><span class="ic"><svg class="i"><use href="#i-temp"/></svg></span><div class="t"><div class="a">临时文件</div></div><span class="v" style="font-size:12px;color:#C9CFD8">1.3</span><span class="tgd on"></span></div>
         </div>
-        <div class="row fill">
-          <div class="card">
-            <div class="ch"><svg class="i"><use href="#i-layers"/></svg>这次看到的<span class="r"><span class="rb"><svg class="i s"><use href="#i-arrow"/></svg></span></span></div>
-            <div class="wide-top">
-              <div><div class="sub">一共</div><div class="big">56.1<span class="u">GB</span></div></div>
-              <div class="q4">
-                <div class="s"><div class="x v">15.4 <span class="bd ok"><svg class="i"><use href="#i-check"/></svg></span></div><div class="k">放心清</div></div>
-                <div class="s"><div class="x v">7.4 <span class="bd warn"><svg class="i"><use href="#i-up"/></svg></span></div><div class="k">要你看</div></div>
-                <div class="s"><div class="x v">6.3</div><div class="k">只统计</div></div>
-                <div class="s"><div class="x v">9.7 <span class="bd info"><svg class="i"><use href="#i-lock"/></svg></span></div><div class="k">受保护</div></div>
-              </div>
-            </div>
-            <div class="wide-wave"><div class="ticks" style="height:34px" data-ticks='[[0.275,"g3"],[0.132,"a"],[0.112,"s2"],[0.173,"b"],[0.308,"s"]]'></div><div class="wx"><span>放心清</span><span>系统设置里还能省 17.3 GB</span></div></div>
-          </div>
-          <div class="card">
-            <div class="ch"><svg class="i"><use href="#i-bars"/></svg>和上次比<span class="r"><span class="rb"><svg class="i s"><use href="#i-arrow"/></svg></span></span></div>
-            <div class="wide-top">
-              <div><div class="sub">多出来</div><div class="big">+2.1<span class="u">GB</span><span class="bd warn"><svg class="i"><use href="#i-up"/></svg></span></div></div>
-              <div class="q4">
-                <div class="s"><div class="x v">+1.2</div><div class="k">开发缓存</div></div>
-                <div class="s"><div class="x v">+0.6</div><div class="k">AI 工具</div></div>
-                <div class="s"><div class="x v">+0.3</div><div class="k">浏览器</div></div>
-                <div class="s"><div class="x v">12 天</div><div class="k">距上次</div></div>
-              </div>
-            </div>
-            <div class="wide-wave"><div class="wave" style="height:70px" data-wave='{"v":[22,26,31,18,24,29,31.2,12,14,16,13.3,15.4],"tone":"g","last":"g3","mk":[[6,"ok"],[11,"info"]]}'></div><div class="wx"><span>9/28</span><span>这次</span></div></div>
-          </div>
+        <div class="bottom" style="display:flex;flex-direction:column;gap:10px">
+          <span class="tag warn" style="align-self:flex-start">Chrome 开着 · 跳过 0.4 GB</span>
+          <button class="btn white big full">清理 <span class="q">16.9 GB</span></button>
         </div>
       </div>
-      <div class="side">
-        <div class="panel">
-          <div class="ch"><svg class="i"><use href="#i-agent"/></svg>交给 agent<span class="r"><span class="rb"><svg class="i s"><use href="#i-copy"/></svg></span></span></div>
-          <div class="pbody">
-            <div class="msg"><span class="av"><svg class="i s"><use href="#i-folder"/></svg></span><div class="bb"><div class="t">11 棵工作树脱离 git</div><span class="mono muted" style="font-size:11px">denglou\.worktrees · 11 GB</span></div><span class="tm">先查</span></div>
-            <div class="msg"><span class="av"><svg class="i s"><use href="#i-leak"/></svg></span><div class="bb"><div class="t"><span class="mono" style="font-size:12px">verify-*</span> 没人删</div><span class="mono muted" style="font-size:11px">fix-r9\.tmp_w35b · 每次 +1</span></div><span class="tm">会再长</span></div>
-            <div style="flex:1"></div>
-            <div class="chipsrow"><span class="cp">只统计 6.3 GB ›</span><span class="cp">受保护 9.7 GB ›</span><span class="cp">系统建议 5 条 ›</span><span class="cp">全部明细 ›</span></div>
-          </div>
-          <div class="inbar"><svg class="i s"><use href="#i-copy"/></svg>线索复制给项目的 agent<span class="go">复制</span></div>
+      <div class="card">
+        <div class="ch"><svg class="i"><use href="#i-snap"/></svg>模拟器快照<span class="r"><span class="rb"><svg class="i s"><use href="#i-more"/></svg></span></span></div>
+        <div class="sub">F 盘 · 41 天没打开</div>
+        <div class="num" style="margin-top:12px">4.2<small>GB</small></div>
+        <div class="seg2" style="margin-top:12px;height:14px"><i style="flex:2.3;background:var(--hot)"></i><i style="flex:1.2;background:#FF9A82"></i><i style="flex:.7;background:#FFC9BB"></i></div>
+        <div class="xl" style="margin-top:6px"><span>3 个快照</span><span>2.3 · 1.2 · 0.7</span></div>
+        <div class="bottom pair" style="padding-top:12px"><button class="btn soft">保留</button><button class="btn acc">清理</button></div>
+      </div>
+      <div class="card">
+        <div class="ch"><svg class="i"><use href="#i-leak"/></svg><span class="mono" style="font-size:14px">verify-*</span><span class="r"><span class="rb"><svg class="i s"><use href="#i-more"/></svg></span></span></div>
+        <div class="sub">81 个 · 每天都在长</div>
+        <div class="num" style="margin-top:12px">2.1<small>GB</small></div>
+        <div style="height:44px;margin-top:10px;padding-top:4px" data-stems='{"v":[2,3,2,4,5,4,6,7,6,8,9,8,10,11],"mute":1,"wn":[13]}'></div>
+        <div class="bottom pair" style="padding-top:12px"><button class="btn soft">保留</button><button class="btn acc">清理</button></div>
+      </div>
+      <div class="card">
+        <div class="ch"><svg class="i"><use href="#i-ai"/></svg>Codex 旧运行时<span class="r"><span class="tag acc">已加入</span></span></div>
+        <div class="sub">留下在用的 0.49</div>
+        <div class="num" style="margin-top:12px">1.5<small>GB</small></div>
+        <div class="seg2" style="margin-top:12px;height:14px"><i style="flex:.6;background:var(--lime)"></i><i style="flex:.5;background:var(--lime)"></i><i style="flex:.4;background:var(--lime)"></i><i style="flex:.6;background:var(--grey2)"></i></div>
+        <div class="xl" style="margin-top:6px"><span>0.46 · 0.47 · 0.48</span><span>0.49 在用</span></div>
+        <div class="bottom pair" style="padding-top:12px"><button class="btn soft">撤销</button></div>
+      </div>
+      <div class="card" style="grid-column:2/4">
+        <div class="ch">这次能清什么<span class="sub" style="font-weight:400;margin-left:6px">面积就是体量</span><span class="r"><span class="tag" style="background:var(--sky2);color:#0F3550">放心清</span><span class="tag acc">已选</span><span class="tag warn">要你看</span></span></div>
+        <div class="tm" data-tm='[["模拟器快照",4.2,"look"],["Codex 旧运行时",2.4,"k1"],["Chrome 网页缓存",2.1,"k1"],["verify-*",2.1,"look"],["旧安装包",2.1,"k1"],["Claude 缓存",1.9,"k2"],["Cursor 缓存",1.9,"k2"],["Codex 运行时 × 3",1.5,"sel"],["Edge 缓存",1.3,"k2"],["Temp",1.3,"k2"],["npm 缓存",1.2,"k3"],["Jest 缓存",1.2,"k3"]]'></div>
+      </div>
+      <div class="card">
+        <div class="ch"><svg class="i"><use href="#i-agent"/></svg>交给 agent<span class="r"><span class="rb"><svg class="i s"><use href="#i-copy"/></svg></span></span></div>
+        <div class="sub">清了不修，还会再长</div>
+        <div style="margin-top:8px">
+          <div class="clue"><span class="ic"><svg class="i"><use href="#i-folder"/></svg></span><div class="t"><div class="a">工作树脱离 git</div><div class="b">denglou · 11 棵 · 11 GB</div></div></div>
+          <div class="clue"><span class="ic"><svg class="i"><use href="#i-leak"/></svg></span><div class="t"><div class="a"><span class="mono" style="font-size:13px">verify-*</span> 没人删</div><div class="b">fix-r9 · 每次验证 +1</div></div></div>
         </div>
+        <div class="bottom"><button class="btn soft full"><svg class="i s"><use href="#i-copy"/></svg>复制线索</button></div>
       </div>
     </div>
   </section>
 
-  <!-- ============ done ============ -->
+  <!-- ================= done ================= -->
   <section class="screen" data-s="done">
-    <div class="hero">
-      <div>
-        <div class="eyebrow">清理完成 · 14:20</div>
-        <div class="title">15.0<span class="u">GB 已腾出</span></div>
-      </div>
-      <div class="hero-r">
-        <div class="pills"><span class="pl"><span class="k">预计</span><b>15.4 GB</b></span><span class="pl"><span class="k">隔离区</span><b>3.6 GB</b></span><span class="pl ok">完成</span></div>
-        <div style="display:flex;gap:8px"><button class="btn glass">去隔离区</button><button class="btn primary">完成</button></div>
-      </div>
+    <div class="head">
+      <div class="h1"><small>11 月 6 日 14:20 · 用时 0:48</small>清理完成</div>
+      <div class="bigs"><div class="bg"><div class="n">15.0<small>GB</small></div><div class="k"><span class="ic"><svg class="i s"><use href="#i-check"/></svg></span>已腾出</div></div><div class="bg"><div class="n">1.5<small>GB</small></div><div class="k"><span class="ic"><svg class="i s"><use href="#i-box"/></svg></span>进隔离区</div></div><div class="bg"><div class="n">0.4<small>GB</small></div><div class="k"><span class="ic"><svg class="i s"><use href="#i-browser"/></svg></span>跳过</div></div></div>
     </div>
-    <div class="tabs">
-      <div class="tab on fixed"><div class="ti"><svg class="i"><use href="#i-sys"/></svg></div><div class="tt"><div class="tn">C 盘 · +14.6 GB</div><div class="td">62.0 → 76.6 GB</div></div><span class="bd ok"><svg class="i"><use href="#i-check"/></svg></span></div>
-      <div class="tab on fixed"><div class="ti"><svg class="i"><use href="#i-drive"/></svg></div><div class="tt"><div class="tn">F 盘 · +0.4 GB</div><div class="td">372.7 → 373.1 GB</div></div><span class="bd ok"><svg class="i"><use href="#i-check"/></svg></span></div>
+    <div class="pillbar">
+      <div class="pb" style="flex:89"><span class="lb">已清理 · 12 组</span><span class="p acc">89%</span></div><div class="pb" style="flex:9"><span class="lb">隔离区</span><span class="p sky">9%</span></div><div class="pb" style="flex:2"><span class="lb">跳过</span><span class="p warn">2%</span></div><div class="pb" style="flex:0 0 110px"><span class="lb">这次一共</span><span class="p soft">16.9 GB</span></div>
     </div>
-    <div class="sheet">
-      <div class="col">
-        <div class="row">
-          <div class="card">
-            <div class="ch"><svg class="i"><use href="#i-check"/></svg>已清理</div>
-            <div class="sub">12 组 · 会自动重新生成</div>
-            <div class="big">15.0<span class="u">GB</span><span class="bd ok"><svg class="i"><use href="#i-check"/></svg></span></div>
-            <div class="mt"><div class="lb"><span>占这次</span><span></span></div><div class="ticks" data-ticks='[[0.79,"g2"],[0.21,"s"]]'></div><div class="nb"><span>79%</span><span>19.0 GB</span></div></div>
-          </div>
-          <div class="card">
-            <div class="ch"><svg class="i"><use href="#i-box"/></svg>移到隔离区</div>
-            <div class="sub">2 项 · 可以还原</div>
-            <div class="big">3.6<span class="u">GB</span><span class="bd info"><svg class="i"><use href="#i-restore"/></svg></span></div>
-            <div class="mt"><div class="lb"><span>占这次</span><span></span></div><div class="ticks" data-ticks='[[0.19,"b"],[0.81,"s"]]'></div><div class="nb"><span>19%</span><span>19.0 GB</span></div></div>
-          </div>
-          <div class="card">
-            <div class="ch"><svg class="i"><use href="#i-browser"/></svg>跳过</div>
-            <div class="sub">8 项 · Chrome 在用</div>
-            <div class="big">0.4<span class="u">GB</span><span class="bd warn"><svg class="i"><use href="#i-up"/></svg></span></div>
-            <div class="mt"><div class="lb"><span>占这次</span><span></span></div><div class="ticks" data-ticks='[[0.02,"a2"],[0.98,"s"]]'></div><div class="nb"><span>2%</span><span>19.0 GB</span></div></div>
-          </div>
+    <div class="bento" style="grid-template-columns:300px 1fr 1fr 320px;grid-template-rows:1fr 1fr">
+      <div class="card" style="grid-row:1/3">
+        <div class="ch">C 盘<span class="sub" style="font-weight:400">系统盘</span><span class="r"><span class="rb"><svg class="i s"><use href="#i-arrow"/></svg></span></span></div>
+        <div style="flex:1;display:grid;place-items:center">
+          <div class="dial" data-dial='{"size":210,"p":63,"gain":[63,69],"n":60}'><div class="c"><span class="n">91.6<small> GB</small></span><span class="k">可用 · 清理前 77.0</span></div></div>
         </div>
-        <div class="card fill">
-          <div class="ch"><svg class="i"><use href="#i-trend"/></svg>C 盘可用空间<span class="r"><span class="rb"><svg class="i s"><use href="#i-arrow"/></svg></span></span></div>
-          <div class="wide-top">
-            <div><div class="sub">现在</div><div class="big">76.6<span class="u">GB</span><span class="bd ok"><svg class="i"><use href="#i-check"/></svg></span></div></div>
-            <div class="q4" style="grid-template-columns:auto auto auto auto">
-              <div class="s"><div class="x v">+14.6 GB</div><div class="k">这次</div></div>
-              <div class="s"><div class="x v">62.0 GB</div><div class="k">清理前</div></div>
-              <div class="s"><div class="x v">27 天</div><div class="k">往后推了</div></div>
-              <div class="s"><div class="x v">31%</div><div class="k">可用</div></div>
-            </div>
-          </div>
-          <div class="wide-wave"><div class="wave" style="height:110px" data-wave='{"v":[150,148,147,146,143,140,139,137,133,130,128,126,122,119,116,113,111,108,105,101,98,96,94,91,88,86,83,81,79,77,62,76.6],"tone":"g","hl":[31],"hlc":"g3","mk":[[31,"ok"]]}'></div><div class="wx"><span>10/8</span><span>清理后</span></div></div>
+        <div class="bottom" style="display:flex;justify-content:space-between;align-items:center">
+          <span class="tag acc">+14.6 GB</span><span class="sub">满的那天推到 12 月 3 日</span>
         </div>
       </div>
-      <div class="side">
-        <div class="panel">
-          <div class="ch"><svg class="i"><use href="#i-bars"/></svg>按类别</div>
-          <div class="pbody" style="gap:0">
-            <div class="list" data-rows='[["AI 编程工具",6.2],["浏览器缓存",3.0],["开发缓存",2.4],["安装包",2.1],["临时文件",1.3]]'></div>
-          </div>
+      <div class="card">
+        <div class="ch">F 盘<span class="r"><span class="rb"><svg class="i s"><use href="#i-arrow"/></svg></span></span></div>
+        <div style="display:flex;align-items:center;gap:18px;flex:1">
+          <div class="dial sm" data-dial='{"size":96,"p":80,"n":40}'><div class="c"><span class="n">80%</span></div></div>
+          <div><div class="num">373.1<small>GB</small></div><div class="sub">+0.4 GB · 共 1.8 TB</div></div>
+        </div>
+      </div>
+      <div class="card">
+        <div class="ch"><svg class="i"><use href="#i-box"/></svg>放进隔离区<span class="r"><span class="rb"><svg class="i s"><use href="#i-arrow"/></svg></span></span></div>
+        <div class="sub">Codex 旧运行时 × 3 · 可以还原</div>
+        <div class="num" style="margin-top:12px">1.5<small>GB</small></div>
+        <div class="bottom"><div data-sq='{"n":14,"seg":[[0.07142857142857142,"ink"]],"hot":7}'></div><div class="xl"><span>今天放进</span><span>满 7 天提醒</span></div></div>
+      </div>
+      <div class="card" style="grid-column:2/4">
+        <div class="ch">按类别<span class="sub" style="font-weight:400;margin-left:4px">已清理的 15.0 GB</span></div>
+        <div style="margin-top:4px">
+          <div class="li c"><div class="lt"><div class="a">AI 编程工具</div></div><div class="bar" style="width:170px" data-sq='{"n":28,"f":1,"c":"sky1"}'></div><span class="sz">6.2</span></div><div class="li c"><div class="lt"><div class="a">浏览器缓存</div></div><div class="bar" style="width:170px" data-sq='{"n":28,"f":0.48387096774193544,"c":"sky1"}'></div><span class="sz">3.0</span></div><div class="li c"><div class="lt"><div class="a">开发缓存</div></div><div class="bar" style="width:170px" data-sq='{"n":28,"f":0.3870967741935484,"c":"sky1"}'></div><span class="sz">2.4</span></div><div class="li c"><div class="lt"><div class="a">安装包</div></div><div class="bar" style="width:170px" data-sq='{"n":28,"f":0.33870967741935487,"c":"sky1"}'></div><span class="sz">2.1</span></div><div class="li c"><div class="lt"><div class="a">临时文件</div></div><div class="bar" style="width:170px" data-sq='{"n":28,"f":0.20967741935483872,"c":"sky1"}'></div><span class="sz">1.3</span></div>
+        </div>
+      </div>
+      <div class="card dark" style="grid-column:4;grid-row:1/3">
+        <div class="ch">这次清理<span class="r"><span class="tag dk">完成</span></span></div>
+        <div class="num" style="font-size:52px;margin-top:10px">15.0<small>GB</small></div>
+        <div class="sub">预计 15.4 · 实际 15.0</div>
+        <div style="margin-top:14px">
+          <div class="opt"><span class="ic"><svg class="i"><use href="#i-check"/></svg></span><div class="t"><div class="a">已清理</div><div class="b">12 组 · 会自动重新生成</div></div><span class="val">15.0</span></div><div class="opt"><span class="ic"><svg class="i"><use href="#i-box"/></svg></span><div class="t"><div class="a">放进隔离区</div><div class="b">1 项 · 7 天后提醒你</div></div><span class="val">1.5</span></div><div class="opt"><span class="ic"><svg class="i"><use href="#i-browser"/></svg></span><div class="t"><div class="a">跳过</div><div class="b">8 项 · Chrome 在用</div></div><span class="val">0.4</span></div>
+        </div>
+        <div class="bottom" style="display:flex;flex-direction:column;gap:10px">
+          <button class="btn ghost full"><svg class="i s"><use href="#i-box"/></svg>去隔离区</button>
+          <button class="btn white big full">完成</button>
         </div>
       </div>
     </div>
   </section>
 
-  <!-- ============ quarantine ============ -->
+  <!-- ================= quarantine ================= -->
   <section class="screen" data-s="quarantine">
-    <div class="hero short">
-      <div>
-        <div class="eyebrow">隔离区 · 还在原来的盘上，可以还原</div>
-        <div class="title">4.8<span class="u">GB</span></div>
-      </div>
-      <div class="hero-r">
-        <div class="pills"><span class="pl"><span class="k">清理</span><b>3 次</b></span><span class="pl warn">最早的放了 11 天</span></div>
-        <button class="btn glass"><svg class="i s"><use href="#i-folder"/></svg>打开文件夹</button>
-      </div>
+    <div class="head">
+      <div class="h1"><small>还在原来的盘上，可以还原</small>隔离区里有 3 批</div>
+      <div class="bigs"><div class="bg"><div class="n">4.8<small>GB</small></div><div class="k"><span class="ic"><svg class="i s"><use href="#i-box"/></svg></span>一共</div></div><div class="bg"><div class="n">11<small>天</small></div><div class="k"><span class="ic"><svg class="i s"><use href="#i-clock"/></svg></span>最早的放了</div></div><div class="bg"><div class="n">3<small>个</small></div><div class="k"><span class="ic"><svg class="i s"><use href="#i-x"/></svg></span>删不掉</div></div></div>
     </div>
-    <div class="sheet plain">
-      <div class="col">
-        <div class="row">
-          <div class="card">
-            <div class="ch"><svg class="i"><use href="#i-box"/></svg>11 月 2 日<span class="r"><span class="rb"><svg class="i s"><use href="#i-more"/></svg></span></span></div>
-            <div class="sub">verify-* × 81 · Codex 运行时 × 3</div>
-            <div class="big">3.6<span class="u">GB</span><span class="bd ok"><svg class="i"><use href="#i-check"/></svg></span></div>
-            <div class="mt"><div class="lb"><span>放了</span><span>满 7 天提醒</span></div><div class="ticks" data-ticks='[[0.286,"g2"],[0.714,"s"]]'></div><div class="nb"><span>4 天</span><span>14 天</span></div></div>
-            <div class="foot"><button class="btn sm soft"><svg class="i s"><use href="#i-restore"/></svg>还原</button><button class="btn sm redt">永久删除</button></div>
-          </div>
-          <div class="card">
-            <div class="ch"><svg class="i"><use href="#i-box"/></svg>10 月 26 日<span class="r"><span class="rb"><svg class="i s"><use href="#i-more"/></svg></span></span></div>
-            <div class="sub">Kimi Code 旧会话 × 1,812</div>
-            <div class="big">1.2<span class="u">GB</span><span class="bd warn"><svg class="i"><use href="#i-up"/></svg></span></div>
-            <div class="mt"><div class="lb"><span>放了</span><span>满 7 天提醒</span></div><div class="ticks" data-ticks='[[0.5,"g2"],[0.286,"a2"],[0.214,"s"]]'></div><div class="nb"><span>11 天</span><span>14 天</span></div></div>
-            <div class="foot"><button class="btn sm soft"><svg class="i s"><use href="#i-restore"/></svg>还原</button><button class="btn sm redt">永久删除</button></div>
-          </div>
-          <div class="card">
-            <div class="ch"><svg class="i"><use href="#i-box"/></svg>11 月 1 日<span class="r"><span class="rb"><svg class="i s"><use href="#i-more"/></svg></span></span></div>
-            <div class="sub">还剩 3 个：2 个在用，1 个保留名</div>
-            <div class="big">12<span class="u">MB</span><span class="bd bad"><svg class="i"><use href="#i-x"/></svg></span></div>
-            <div class="mt"><div class="lb"><span>已删</span><span>剩下</span></div><div class="ticks" data-ticks='[[0.97,"g2"],[0.03,"r2"]]'></div><div class="nb"><span>7.7 GB</span><span>12 MB</span></div></div>
-            <div class="foot"><button class="btn sm soft">打开文件夹</button><button class="btn sm acc">再试一次</button></div>
-          </div>
+    <div class="pillbar">
+      <div class="pb" style="flex:75"><span class="lb">11 月 2 日</span><span class="p sky">3.6 GB</span></div><div class="pb" style="flex:25"><span class="lb">10 月 26 日 · 满 7 天</span><span class="p warn">1.2 GB</span></div><div class="pb" style="flex:0 0 96px"><span class="lb">11 月 1 日 · 删剩</span><span class="p line">12 MB</span></div><div class="pb" style="flex:0 0 130px"><span class="lb">在哪个盘</span><span class="p soft">C 2.7 · F 2.1</span></div>
+    </div>
+    <div class="bento" style="grid-template-columns:320px 1fr 1fr;grid-template-rows:1fr 1fr">
+      <div class="card dark" style="grid-row:1/3">
+        <div class="ch">最早的一批<span class="r"><span class="tag hotd">满 7 天</span></span></div>
+        <div class="sub" style="margin-top:2px">10 月 26 日 · Kimi Code 旧会话 × 1,812</div>
+        <div style="flex:1;display:flex;flex-direction:column;justify-content:center;gap:10px">
+          <div class="num" style="font-size:52px">11<small>天</small></div>
+          <div class="sub">一格一天，满 7 天提醒你</div>
+          <div style="margin-top:6px" data-sq='{"n":14,"seg":[[0.7857142857142857,"white"]],"hot":7,"cols":7}'></div>
         </div>
-        <div class="card fill">
-          <div class="ch"><svg class="i"><use href="#i-clock"/></svg>每天放进来的<span class="r"><span class="rb"><svg class="i s"><use href="#i-arrow"/></svg></span></span></div>
-          <div class="wide-top">
-            <div><div class="sub">最近 14 天</div><div class="big">4.8<span class="u">GB</span></div></div>
-            <div class="q4" style="grid-template-columns:auto auto auto auto">
-              <div class="s"><div class="x v">2.7 GB</div><div class="k">在 C 盘</div></div>
-              <div class="s"><div class="x v">2.1 GB</div><div class="k">在 F 盘</div></div>
-              <div class="s"><div class="x v">1 <span class="bd warn"><svg class="i"><use href="#i-up"/></svg></span></div><div class="k">放满 7 天</div></div>
-              <div class="s"><div class="x v">3 <span class="bd bad"><svg class="i"><use href="#i-x"/></svg></span></div><div class="k">删不掉</div></div>
-            </div>
-          </div>
-          <div class="wide-wave"><div class="wave" style="height:110px" data-wave='{"v":[0.05,0.05,1.2,0.05,0.05,0.05,0.05,0.05,0.05,0.05,0.05,0.05,0.05,0.05,0.05,0.05,0.05,0.05,0.012,3.6,0.05],"tone":"s","hl":[2,18,19],"hlc":"g2","mk":[[2,"warn"],[18,"bad"],[19,"ok"]],"lab":[[2,"1.2"],[19,"3.6"]]}'></div><div class="wx"><span>10/24</span><span>今天</span></div></div>
+        <div class="bottom">
+          <div style="display:flex;align-items:baseline;justify-content:space-between"><div class="num">1.2<small>GB</small></div><span class="sub">在 C 盘</span></div>
+          <div class="pair lg" style="margin-top:14px"><button class="btn ghost"><svg class="i s"><use href="#i-restore"/></svg>还原</button><button class="btn white hot">永久删除</button></div>
         </div>
+      </div>
+      <div class="card">
+        <div class="ch"><svg class="i"><use href="#i-box"/></svg>11 月 2 日<span class="r"><span class="rb"><svg class="i s"><use href="#i-more"/></svg></span></span></div>
+        <div class="sub">verify-* × 81 · Codex 运行时 × 3</div>
+        <div class="num" style="margin-top:12px">3.6<small>GB</small></div>
+        <div class="bottom"><div data-sq='{"n":14,"seg":[[0.2857142857142857,"ink"]],"hot":7}'></div><div class="xl"><span>放了 4 天</span><span>满 7 天提醒</span></div><div class="pair" style="padding-top:12px"><button class="btn soft"><svg class="i s"><use href="#i-restore"/></svg>还原</button><button class="btn hott">永久删除</button></div></div>
+      </div>
+      <div class="card">
+        <div class="ch"><svg class="i"><use href="#i-box"/></svg>11 月 1 日<span class="r"><span class="tag warn">删不掉</span><span class="rb"><svg class="i s"><use href="#i-more"/></svg></span></span></div>
+        <div class="sub">还剩 3 个：2 个在用，1 个保留名</div>
+        <div class="num" style="margin-top:12px">12<small>MB</small></div>
+        <div class="bottom"><div data-sq='{"n":30,"seg":[[0.97,"sky1"],[0.03,"hot"]]}'></div><div class="xl"><span>已删 7.7 GB</span><span>剩下 12 MB</span></div><div class="pair" style="padding-top:12px"><button class="btn soft">打开文件夹</button><button class="btn acc">再试一次</button></div></div>
+      </div>
+      <div class="card" style="grid-column:2/4">
+        <div class="ch"><svg class="i"><use href="#i-clock"/></svg>每天放进来的<span class="sub" style="font-weight:400;margin-left:4px">最近 3 周</span><span class="r"><span class="rb"><svg class="i s"><use href="#i-folder"/></svg></span></span></div>
+        <div style="flex:1;min-height:0;margin-top:12px;padding-top:22px" data-stems='{"v":[0.05,0.05,0.05,0.05,0.05,0.05,0.05,0.05,0.05,1.2,0.05,0.05,0.05,0.05,0.05,0.05,3.6,0.05,0.05,0.05,0.05],"mute":1,"wn":[9],"hl":[16],"bub":[[9,"1.2 · 满 7 天"]],"bubAcc":[[16,"3.6"]],"ax":[[0,"10/17"],[9,"10/26"],[16,"11/2"],[20,"今天"]]}'></div>
       </div>
     </div>
   </section>
 
-  <!-- ============ trends ============ -->
+  <!-- ================= trends ================= -->
   <section class="screen" data-s="trends">
-    <div class="hero short">
-      <div>
-        <div class="eyebrow">趋势 · 最近 30 天</div>
-        <div class="title">C 盘约 23 天后满</div>
-      </div>
-      <div class="hero-r"><div class="pills"><span class="pl"><span class="k">每天</span><b>−3.3 GB</b></span><span class="pl warn">在长 2 处</span></div></div>
+    <div class="head">
+      <div class="h1"><small>趋势 · 最近 30 天</small>C 盘约 23 天后满</div>
+      <div class="bigs"><div class="bg"><div class="n">−3.3<small>GB</small></div><div class="k"><span class="ic"><svg class="i s"><use href="#i-trend"/></svg></span>每天</div></div><div class="bg"><div class="n">11/29</div><div class="k"><span class="ic"><svg class="i s"><use href="#i-clock"/></svg></span>满的那天</div></div><div class="bg"><div class="n">2<small>处</small></div><div class="k"><span class="ic"><svg class="i s"><use href="#i-leak"/></svg></span>一直在长</div></div></div>
     </div>
-    <div class="sheet plain">
-      <div class="col">
-        <div class="card fill">
-          <div class="ch"><svg class="i"><use href="#i-sys"/></svg>C 盘可用空间<span class="r"><span class="rb"><svg class="i s"><use href="#i-arrow"/></svg></span></span></div>
-          <div class="wide-top">
-            <div><div class="sub">今天</div><div class="big">77.0<span class="u">GB</span><span class="bd warn"><svg class="i"><use href="#i-up"/></svg></span></div></div>
-            <div class="q4" style="grid-template-columns:auto auto auto auto">
-              <div class="s"><div class="x v">−3.3 GB</div><div class="k">每天</div></div>
-              <div class="s"><div class="x v">23 天</div><div class="k">后满</div></div>
-              <div class="s"><div class="x v">11/29 <span class="bd bad"><svg class="i"><use href="#i-x"/></svg></span></div><div class="k">满的那天</div></div>
-              <div class="s"><div class="x v">4</div><div class="k">次体检</div></div>
-            </div>
-          </div>
-          <div class="wide-wave"><div class="wave" style="height:150px" data-wave='{"v":[150,148,147,146,143,140,139,137,133,130,128,126,122,119,116,113,111,108,105,101,98,96,94,91,88,86,83,81,79,77],"proj":[74,70,67,64,60,57,54,50,47,44,40,37,34,30,27,24,20,17,14,10,7,4,1],"tone":"g","last":"g3","mk":[[29,"info"],[52,"bad"]]}'></div><div class="wx"><span>10/8</span><span>今天</span><span>11/29</span></div></div>
+    <div class="pillbar">
+      <div class="pb" style="flex:88"><span class="lb">每天少的 3.3 GB · 其它写入</span><span class="p sky">2.9 GB</span></div><div class="pb" style="flex:0 0 96px"><span class="lb">verify-*</span><span class="p warn">0.3</span></div><div class="pb" style="flex:0 0 96px"><span class="lb">Codex 运行时</span><span class="p warn">0.1</span></div>
+    </div>
+    <div class="bento" style="grid-template-columns:1fr 1fr .8fr 300px;grid-template-rows:1.2fr 1fr">
+      <div class="card" style="grid-column:1/4">
+        <div class="ch"><svg class="i"><use href="#i-sys"/></svg>C 盘可用空间<span class="sub" style="font-weight:400;margin-left:4px">过去 30 天 · 往后按每天 −3.3 GB 算</span><span class="r"><span class="tag warn">约 23 天后满</span></span></div>
+        <div style="flex:1;min-height:0;margin-top:12px;padding-top:22px" data-stems='{"v":[150,148,147,146,143,140,139,137,133,130,128,126,122,119,116,113,111,108,105,101,98,96,94,91,88,86,83,81,79,77],"pj":[74,70,67,64,60,57,54,50,47,44,40,37,34,30,27,24,20,17,14,10,7,4,1],"hl":[18],"wn":[52],"bubAcc":[[18,"清理"]],"bubInk":[[29,"77.0"]],"bub":[[52,"满"]],"ax":[[0,"10/8"],[18,"10/26"],[29,"今天"],[52,"11/29"]]}'></div>
+      </div>
+      <div class="card">
+        <div class="ch"><svg class="i"><use href="#i-leak"/></svg>一直在长的</div>
+        <div style="margin-top:4px">
+          <div class="li"><div class="lt"><div class="a mono" style="font-size:13px">verify-*</div><div class="b">denglou · fix-r9</div></div><div style="width:92px;height:26px;flex:none" data-stems='{"v":[2,3,2,4,5,4,6,7,6,8,9,8,10,11],"mute":1,"wn":[13],"mini":1}'></div><span class="tag warn">+0.3/天</span></div>
+          <div class="li"><div class="lt"><div class="a" style="font-size:13px">Codex 运行时</div><div class="b">每次升级留一份</div></div><div style="width:92px;height:26px;flex:none" data-stems='{"v":[3,3,4,4,4,5,5,5,6,6,6,7,7,7],"mute":1,"wn":[13],"mini":1}'></div><span class="tag warn">+0.1/天</span></div>
+          <div class="li"><div class="lt"><div class="a" style="font-size:13px">npm 缓存</div><div class="b">10/26 清过，没再长</div></div><div style="width:92px;height:26px;flex:none" data-stems='{"v":[9,9,10,10,11,2,2,2,2,2,2,2,2,2],"mute":1,"mini":1}'></div><span class="tag gr">已止住</span></div>
         </div>
-        <div class="row">
-          <div class="card">
-            <div class="ch"><svg class="i"><use href="#i-leak"/></svg>一直在长的</div>
-            <div class="list" style="margin-top:6px">
-              <div class="li"><div class="lt"><div class="a mono">verify-*</div><div class="b">denglou · fix-r9</div></div><div class="wave" style="height:24px;width:110px;gap:2px" data-wave='{"v":[2,3,2,4,5,4,6,7,6,8,9,8,10,11],"tone":"a","last":"a2"}'></div><span class="sz" style="width:66px">+0.3 GB</span></div>
-              <div class="li"><div class="lt"><div class="a mono">.codex\runtimes</div><div class="b">每次升级留一份</div></div><div class="wave" style="height:24px;width:110px;gap:2px" data-wave='{"v":[3,3,4,4,4,5,5,5,6,6,6,7,7,7],"tone":"a","last":"a2"}'></div><span class="sz" style="width:66px">+0.1 GB</span></div>
-            </div>
-          </div>
-          <div class="card">
-            <div class="ch"><svg class="i"><use href="#i-drive"/></svg>其它盘</div>
-            <div class="list" style="margin-top:6px">
-              <div class="li"><div class="lt"><div class="a">D 盘</div><div class="b v">30.2 GB 可用</div></div><div class="wave" style="height:24px;width:110px;gap:2px" data-wave='{"v":[31,31,31,30,31,31,30,30,31,30,30,30,31,30],"tone":"g","last":"g2","floor":25}'></div><span class="sz" style="width:66px">−0.8 GB</span></div>
-              <div class="li"><div class="lt"><div class="a">E 盘</div><div class="b v">51.8 GB 可用</div></div><div class="wave" style="height:24px;width:110px;gap:2px" data-wave='{"v":[53,53,53,53,53,52,52,52,52,52,52,52,52,52],"tone":"g","last":"g2","floor":45}'></div><span class="sz" style="width:66px">−0.2 GB</span></div>
-            </div>
-          </div>
-          <div class="card" style="flex:.7">
-            <div class="ch"><svg class="i"><use href="#i-cpu"/></svg>残留进程</div>
-            <div class="sub">只列，不替你结束</div>
-            <div class="big">3<span class="u">个</span></div>
-            <div class="mt"><div class="lb"><span>node × 2</span><span>java</span></div><div class="ticks" style="height:16px" data-ticks='[[0.62,"s2"],[0.38,"s"]]'></div><div class="nb"><span>1.3 GB 内存</span><span></span></div></div>
-          </div>
+      </div>
+      <div class="card">
+        <div class="ch"><svg class="i"><use href="#i-drive"/></svg>其它盘<span class="r"><span class="sub" style="font-weight:400">30 天变化</span></span></div>
+        <div style="margin-top:4px">
+          <div class="li"><div class="dial sm" data-dial='{"size":40,"p":75,"n":24}'><div class="c"><span class="n" style="font-size:11px;font-weight:600">D</span></div></div><div class="lt"><div class="a">D 盘</div><div class="b">30.2 GB 可用</div></div><span class="tag gr">稳定</span><span class="sz">−0.8 GB</span></div><div class="li"><div class="dial sm" data-dial='{"size":40,"p":78,"n":24}'><div class="c"><span class="n" style="font-size:11px;font-weight:600">E</span></div></div><div class="lt"><div class="a">E 盘</div><div class="b">51.8 GB 可用</div></div><span class="tag gr">稳定</span><span class="sz">−0.2 GB</span></div><div class="li"><div class="dial sm" data-dial='{"size":40,"p":80,"n":24}'><div class="c"><span class="n" style="font-size:11px;font-weight:600">F</span></div></div><div class="lt"><div class="a">F 盘</div><div class="b">372.7 GB 可用</div></div><span class="tag gr">稳定</span><span class="sz">−1.1 GB</span></div>
         </div>
+      </div>
+      <div class="card">
+        <div class="ch"><svg class="i"><use href="#i-cpu"/></svg>残留进程</div>
+        <div class="sub">只列，不替你结束</div>
+        <div class="num" style="margin-top:12px">3<small>个</small></div>
+        <div class="bottom"><div data-sq='{"n":24,"seg":[[0.69,"ink"],[0.31,"grey1"]]}'></div><div class="xl"><span>node × 2 · 0.9 GB</span><span>java · 0.4</span></div></div>
+      </div>
+      <div class="card dark" style="grid-column:4;grid-row:1/3">
+        <div class="ch">C 盘<span class="r"><span class="tag hotd">23 天后满</span></span></div>
+        <div style="flex:1;display:grid;place-items:center">
+          <div class="dial" data-dial='{"size":190,"p":69,"warn":[60,69],"n":60,"dark":1}'><div class="c"><span class="n">77.0<small> GB</small></span><span class="k">可用 · 共 250 GB</span></div></div>
+        </div>
+        <div>
+          <div class="opt"><span class="ic"><svg class="i"><use href="#i-trend"/></svg></span><div class="t"><div class="a">每天</div><div class="b">最近 30 天的平均</div></div><span class="val">−3.3</span></div><div class="opt"><span class="ic"><svg class="i"><use href="#i-check"/></svg></span><div class="t"><div class="a">上次清理</div><div class="b">10 月 26 日</div></div><span class="val">29.6</span></div><div class="opt"><span class="ic"><svg class="i"><use href="#i-pulse"/></svg></span><div class="t"><div class="a">上次查到可清</div><div class="b">11 月 6 日</div></div><span class="val">31.2</span></div>
+        </div>
+        <div class="bottom" style="padding-top:14px"><button class="btn white big full">体检 C 盘</button></div>
       </div>
     </div>
   </section>
 
-  <!-- ============ history ============ -->
+  <!-- ================= history ================= -->
   <section class="screen" data-s="history">
-    <div class="hero short">
-      <div>
-        <div class="eyebrow">记录</div>
-        <div class="title">52.3<span class="u">GB 一共腾出</span></div>
-      </div>
-      <div class="hero-r"><div class="pills"><span class="pl"><span class="k">体检</span><b>11</b></span><span class="pl"><span class="k">清理</span><b>4</b></span></div></div>
+    <div class="head">
+      <div class="h1"><small>记录 · 从 8 月 24 日开始</small>一共腾出 70.0 GB</div>
+      <div class="bigs"><div class="bg"><div class="n">21<small>次</small></div><div class="k"><span class="ic"><svg class="i s"><use href="#i-pulse"/></svg></span>体检</div></div><div class="bg"><div class="n">8<small>次</small></div><div class="k"><span class="ic"><svg class="i s"><use href="#i-check"/></svg></span>清理</div></div><div class="bg"><div class="n">29.6<small>GB</small></div><div class="k"><span class="ic"><svg class="i s"><use href="#i-trend"/></svg></span>最多一次</div></div></div>
     </div>
-    <div class="sheet plain">
-      <div class="col">
-        <div class="card fill">
-          <div class="ch"><svg class="i"><use href="#i-bars"/></svg>每天腾出<span class="r"><span class="rb"><svg class="i s"><use href="#i-arrow"/></svg></span></span></div>
-          <div class="wide-top">
-            <div><div class="sub">最近 30 天</div><div class="big">52.3<span class="u">GB</span><span class="bd ok"><svg class="i"><use href="#i-check"/></svg></span></div></div>
-            <div class="q4" style="grid-template-columns:auto auto auto auto">
-              <div class="s"><div class="x v">29.6 GB</div><div class="k">最多一次</div></div>
-              <div class="s"><div class="x v">4 <span class="bd ok"><svg class="i"><use href="#i-check"/></svg></span></div><div class="k">次清理</div></div>
-              <div class="s"><div class="x v">11</div><div class="k">次体检</div></div>
-              <div class="s"><div class="x v">1 <span class="bd warn"><svg class="i"><use href="#i-up"/></svg></span></div><div class="k">次停下</div></div>
-            </div>
+    <div class="pillbar">
+      <div class="pb" style="flex:35"><span class="lb">AI 编程工具</span><span class="p s1">24.5 GB</span></div><div class="pb" style="flex:21"><span class="lb">开发缓存</span><span class="p s2">14.7</span></div><div class="pb" style="flex:17"><span class="lb">浏览器缓存</span><span class="p s3">11.9</span></div><div class="pb" style="flex:15"><span class="lb">安装包</span><span class="p s4">10.5</span></div><div class="pb" style="flex:12"><span class="lb">临时文件</span><span class="p g2">8.4</span></div>
+    </div>
+    <div class="bento" style="grid-template-columns:1fr 330px;grid-template-rows:1.3fr 1fr">
+      <div class="card">
+        <div class="ch"><svg class="i"><use href="#i-clock"/></svg>每天<span class="sub" style="font-weight:400;margin-left:4px">一格一天，越深腾出越多</span></div>
+        <div style="flex:1;display:flex;gap:40px;align-items:center;margin-top:8px">
+          <div class="hm-wrap" data-heat='{"start":"08-17","today":"11-06","first":"08-24","weeks":12,"last":"11-06","clean":{"08-31":3.2,"09-14":4.1,"09-28":2.7,"10-12":2.1,"10-19":5.6,"10-26":29.6,"11-02":7.7,"11-06":15},"scan":["08-24","08-27","09-03","09-09","09-18","09-23","10-02","10-07","10-15","10-22","10-29","11-04","11-05"],"stop":["10-30"]}'>
+            <span></span><div class="hm-m"></div>
+            <div class="hm-d"><span>一</span><span></span><span>三</span><span></span><span>五</span><span></span><span>日</span></div><div class="hm"></div>
           </div>
-          <div class="wide-wave"><div class="wave" style="height:150px" data-wave='{"v":[0.3,0.3,0.3,0.3,2.1,0.3,0.3,0.3,0.3,0.3,0.3,5.6,0.3,0.3,0.3,0.3,0.3,0.3,29.6,0.3,0.3,0.3,0.3,0.3,0.3,0.3,7.7,0.3,0.3,15.0],"tone":"s","hl":[4,11,18,26,29],"hlc":"g2","mk":[[18,"ok"],[29,"ok"],[22,"warn"]],"lab":[[4,"2.1"],[11,"5.6"],[18,"29.6"],[26,"7.7"],[29,"15.0"]]}'></div><div class="wx"><span>10/8</span><span>今天</span></div></div>
-        </div>
-        <div class="card" style="padding-top:10px;padding-bottom:10px">
-          <div class="list">
-            <div class="li"><div class="lic"><svg class="i s"><use href="#i-box"/></svg></div><div class="lt"><div class="a">清理 12 组，2 项进隔离区</div><div class="b">11 月 6 日 14:20 · C、F</div></div><span class="sz">15.0 GB</span><span class="bd ok"><svg class="i"><use href="#i-check"/></svg></span></div>
-            <div class="li"><div class="lic"><svg class="i s"><use href="#i-pulse"/></svg></div><div class="lt"><div class="a">体检 C 盘常用位置、F 盘</div><div class="b">11 月 6 日 14:08 · 48 秒</div></div><span class="sz muted">可清 15.4 GB</span><span class="bd info"><svg class="i"><use href="#i-check"/></svg></span></div>
-            <div class="li"><div class="lic"><svg class="i s"><use href="#i-dup"/></svg></div><div class="lt"><div class="a">查重 E 盘</div><div class="b">11 月 5 日 21:40 · 1,204 个文件</div></div><span class="sz muted">多出 9.0 GB</span><span class="bd info"><svg class="i"><use href="#i-check"/></svg></span></div>
+          <div class="lgd">
+            <span><i style="background:var(--lime)"></i>最近一次 · 15.0 GB</span>
+            <span><i style="background:var(--sky1)"></i>腾出 8 GB 以上</span>
+            <span><i style="background:var(--sky2)"></i>2 ～ 8 GB</span>
+            <span><i style="background:var(--sky3)"></i>2 GB 以下</span>
+            <span><i style="background:var(--sky4)"></i>只体检</span>
+            <span><i style="background:#fff;box-shadow:inset 0 0 0 1.5px var(--hot)"></i>体检停下</span>
+            <span><i style="background:var(--grey2)"></i>没打开</span>
+          </div>
+          <div style="flex:1;min-width:0;display:flex;flex-direction:column;gap:12px;align-self:stretch;justify-content:center">
+            <div><div style="display:flex;justify-content:space-between;font-size:12px;color:var(--ink-2)"><span>8 月</span><span class="v" style="color:var(--ink)">3.2 GB</span></div><div style="margin-top:6px" data-sq='{"n":24,"f":0.08579088471849868,"c":"sky1"}'></div></div><div><div style="display:flex;justify-content:space-between;font-size:12px;color:var(--ink-2)"><span>9 月</span><span class="v" style="color:var(--ink)">6.8 GB</span></div><div style="margin-top:6px" data-sq='{"n":24,"f":0.18230563002680966,"c":"sky1"}'></div></div><div><div style="display:flex;justify-content:space-between;font-size:12px;color:var(--ink-2)"><span>10 月</span><span class="v" style="color:var(--ink)">37.3 GB</span></div><div style="margin-top:6px" data-sq='{"n":24,"f":1,"c":"sky1"}'></div></div><div><div style="display:flex;justify-content:space-between;font-size:12px;color:var(--ink-2)"><span>11 月</span><span class="v" style="color:var(--ink)">22.7 GB</span></div><div style="margin-top:6px" data-sq='{"n":24,"f":0.6085790884718499,"c":"lime"}'></div></div>
           </div>
         </div>
+      </div>
+      <div class="card" style="padding-top:8px;padding-bottom:8px">
+        <div class="li"><span class="lic"><svg class="i s"><use href="#i-box"/></svg></span><div class="lt"><div class="a">清理 12 组，1 项进隔离区</div><div class="b">11 月 6 日 14:20 · C 盘、F 盘</div></div><span class="tag acc">最近</span><span class="sz">15.0 GB</span></div>
+        <div class="li"><span class="lic"><svg class="i s"><use href="#i-dup"/></svg></span><div class="lt"><div class="a">查重 E 盘</div><div class="b">11 月 5 日 21:40 · 1,204 个文件</div></div><span class="sz">多出 9.0</span></div>
+        <div class="li"><span class="lic"><svg class="i s"><use href="#i-pulse"/></svg></span><div class="lt"><div class="a">体检停下</div><div class="b">10 月 30 日 09:12 · 你点了停止 · 已查到的保留</div></div><span class="tag warn">停下</span><span class="sz">可清 6.1</span></div>
+      </div>
+      <div class="card dark" style="grid-column:2;grid-row:1/3">
+        <div class="ch">最近几次清理<span class="r"><span class="tag dk">8 次</span></span></div>
+        <div class="num" style="font-size:52px;margin-top:10px">29.6<small>GB</small></div>
+        <div class="sub">最多的一次 · 10 月 26 日</div>
+        <div style="margin-top:12px">
+          <div class="opt"><div class="t"><div class="a">11 月 6 日</div><div class="b">C、F</div></div><div style="width:96px;flex:none" data-sq='{"n":16,"f":0.5067567567567567,"c":"lime"}'></div><span class="val" style="min-width:34px;text-align:right">15.0</span></div><div class="opt"><div class="t"><div class="a">11 月 2 日</div><div class="b">C</div></div><div style="width:96px;flex:none" data-sq='{"n":16,"f":0.26013513513513514,"c":"sky1"}'></div><span class="val" style="min-width:34px;text-align:right">7.7</span></div><div class="opt"><div class="t"><div class="a">10 月 26 日</div><div class="b">C、F</div></div><div style="width:96px;flex:none" data-sq='{"n":16,"f":1,"c":"sky1"}'></div><span class="val" style="min-width:34px;text-align:right">29.6</span></div><div class="opt"><div class="t"><div class="a">10 月 19 日</div><div class="b">C</div></div><div style="width:96px;flex:none" data-sq='{"n":16,"f":0.18918918918918917,"c":"sky1"}'></div><span class="val" style="min-width:34px;text-align:right">5.6</span></div><div class="opt"><div class="t"><div class="a">10 月 12 日</div><div class="b">C</div></div><div style="width:96px;flex:none" data-sq='{"n":16,"f":0.07094594594594594,"c":"sky1"}'></div><span class="val" style="min-width:34px;text-align:right">2.1</span></div>
+        </div>
+        <div class="bottom" style="padding-top:12px"><button class="btn white big full">查看上次结果</button></div>
       </div>
     </div>
   </section>
 
-  <!-- ============ settings ============ -->
+  <!-- ================= settings ================= -->
   <section class="screen" data-s="settings">
-    <div class="hero short">
-      <div>
-        <div class="eyebrow">设置</div>
-        <div class="title">扫描内容</div>
-      </div>
+    <div class="head">
+      <div class="h1"><small>设置 · 改了马上生效</small>扫描内容</div>
+      <div class="bigs"></div>
     </div>
-    <div class="sheet plain">
-      <div class="card snav" style="flex:0 0 200px;padding:10px;align-self:flex-start">
-        <div class="list">
-          <div class="li on"><svg class="i s"><use href="#i-layers"/></svg>扫描内容</div>
-          <div class="li"><svg class="i s"><use href="#i-eye"/></svg>跳过名单</div>
-          <div class="li"><svg class="i s"><use href="#i-shield"/></svg>项目声明</div>
-          <div class="li"><svg class="i s"><use href="#i-lock"/></svg>关于与隐私</div>
+    <div class="bento" style="grid-template-columns:200px 1fr 1fr 290px;grid-template-rows:1.55fr 1fr">
+      <div class="card snav" style="grid-row:1/3;padding:12px">
+        <div class="li on"><svg class="i s"><use href="#i-layers"/></svg>扫描内容</div>
+        <div class="li"><svg class="i s"><use href="#i-eye"/></svg>跳过名单</div>
+        <div class="li"><svg class="i s"><use href="#i-shield"/></svg>项目声明</div>
+        <div class="li"><svg class="i s"><use href="#i-lock"/></svg>关于与隐私</div>
+      </div>
+      <div class="card" style="grid-column:2/4">
+        <div class="ch">C 盘常用位置查哪些<span class="r"><span class="sub" style="font-weight:400">上次查到 · GB</span></span></div>
+        <div style="margin-top:2px">
+          <div class="li c"><span class="lic"><svg class="i s"><use href="#i-ai"/></svg></span><div class="lt"><div class="a">AI 编程工具</div><div class="b">Codex、Claude Code、Cursor 的缓存与旧版本</div></div><div class="bar" style="width:200px" data-sq='{"n":32,"f":0.616822429906542,"c":"sky1"}'></div><span class="sz">13.2</span><span class="tgl on"></span></div><div class="li c"><span class="lic"><svg class="i s"><use href="#i-code"/></svg></span><div class="lt"><div class="a">开发缓存</div><div class="b">npm、pip、Gradle、Jest</div></div><div class="bar" style="width:200px" data-sq='{"n":32,"f":0.35514018691588783,"c":"sky1"}'></div><span class="sz">7.6</span><span class="tgl on"></span></div><div class="li c"><span class="lic"><svg class="i s"><use href="#i-browser"/></svg></span><div class="lt"><div class="a">浏览器缓存</div><div class="b">Chrome、Edge 的网页缓存，不碰登录</div></div><div class="bar" style="width:200px" data-sq='{"n":32,"f":0.2850467289719626,"c":"sky1"}'></div><span class="sz">6.1</span><span class="tgl on"></span></div><div class="li c"><span class="lic"><svg class="i s"><use href="#i-pkg"/></svg></span><div class="lt"><div class="a">安装包</div><div class="b">下载文件夹里装过的安装包</div></div><div class="bar" style="width:200px" data-sq='{"n":32,"f":0.2429906542056075,"c":"sky1"}'></div><span class="sz">5.2</span><span class="tgl on"></span></div><div class="li c"><span class="lic"><svg class="i s"><use href="#i-temp"/></svg></span><div class="lt"><div class="a">临时文件</div><div class="b">系统与用户 Temp</div></div><div class="bar" style="width:200px" data-sq='{"n":32,"f":0.09345794392523366,"c":"sky1"}'></div><span class="sz">2.0</span><span class="tgl on"></span></div><div class="li c"><span class="lic"><svg class="i s"><use href="#i-layers"/></svg></span><div class="lt"><div class="a">本地模型</div><div class="b">默认不查 · 删了要重新下载</div></div><div class="bar" style="width:200px" data-sq='{"n":32,"f":1,"c":"grey1"}'></div><span class="sz">21.4</span><span class="tgl"></span></div>
         </div>
       </div>
-      <div class="col">
-        <div class="card">
-          <div class="ch">C 盘常用位置查哪些<span class="r"><span class="muted" style="font-size:11px;font-weight:400">上次查到</span></span></div>
-          <div class="list" style="margin-top:6px" data-cats='[["AI 编程工具",13.2,1],["浏览器缓存",6.1,1],["开发缓存",7.6,1],["安装包",5.2,1],["临时文件",2.0,1],["本地模型",21.4,0]]'></div>
+      <div class="card" style="grid-column:2/4">
+        <div class="ch"><svg class="i"><use href="#i-chat"/></svg>会话记录<span class="sub" style="font-weight:400;margin-left:4px">默认不清，打开后只清比这更早的</span></div>
+        <div style="margin-top:2px">
+          <div class="li c"><span class="lic"><svg class="i s"><use href="#i-chat"/></svg></span><div class="lt"><div class="a">Claude Code</div><div class="b">它自己删 30 天前的</div></div><span class="sz" style="margin-right:12px">6.4 GB</span><span class="segc"><span>7 天</span><span class="on">30 天</span><span>90 天</span></span><span class="tgl on"></span></div><div class="li c"><span class="lic"><svg class="i s"><use href="#i-chat"/></svg></span><div class="lt"><div class="a">Codex</div><div class="b">它自己不删</div></div><span class="sz" style="margin-right:12px">2.9 GB</span><span class="segc off"><span>7 天</span><span class="on">30 天</span><span>90 天</span></span><span class="tgl"></span></div><div class="li c"><span class="lic"><svg class="i s"><use href="#i-chat"/></svg></span><div class="lt"><div class="a">Kimi Code</div><div class="b">它自己不删</div></div><span class="sz" style="margin-right:12px">1.2 GB</span><span class="segc off"><span>7 天</span><span>30 天</span><span class="on">90 天</span></span><span class="tgl"></span></div>
         </div>
-        <div class="card">
-          <div class="ch"><svg class="i"><use href="#i-chat"/></svg>会话记录<span class="r"><span class="muted" style="font-size:11px;font-weight:400">默认不清</span></span></div>
-          <div class="list" style="margin-top:6px">
-            <div class="li"><div class="lt"><div class="a">Claude Code</div><div class="b">它自己删 30 天前的</div></div><span class="sz">6.4 GB</span><span class="seg"><span>7 天</span><span class="on">30 天</span><span>90 天</span></span><span class="tg on"></span></div>
-            <div class="li"><div class="lt"><div class="a">Codex</div><div class="b">它自己不删</div></div><span class="sz">2.9 GB</span><span class="tg"></span></div>
-          </div>
+      </div>
+      <div class="card dark" style="grid-column:4;grid-row:1/3">
+        <div class="ch"><svg class="i"><use href="#i-shield"/></svg>隐私</div>
+        <div class="sub" style="margin-top:2px">每次体检都一样</div>
+        <div style="margin-top:14px">
+          <div class="opt"><span class="ic"><svg class="i"><use href="#i-eye"/></svg></span><div class="t"><div class="a">只读名字、大小与时间</div><div class="b">不打开文件看内容</div></div></div><div class="opt"><span class="ic"><svg class="i"><use href="#i-lock"/></svg></span><div class="t"><div class="a">不联网</div><div class="b">不上传，也不检查更新</div></div></div><div class="opt"><span class="ic"><svg class="i"><use href="#i-box"/></svg></span><div class="t"><div class="a">先放进隔离区</div><div class="b">确认清理时可以改成直接删除</div></div></div><div class="opt"><span class="ic"><svg class="i"><use href="#i-shield"/></svg></span><div class="t"><div class="a">项目声明优先</div><div class="b">仓库里写了不能清的，一律不碰</div></div></div>
+        </div>
+        <div class="bottom" style="display:flex;flex-direction:column;gap:10px">
+          <div class="sub">Water 0.1.0 · 记录只存在这台电脑上</div>
+          <button class="btn ghost full"><svg class="i s"><use href="#i-folder"/></svg>打开记录文件夹</button>
         </div>
       </div>
     </div>
   </section>
 
-  <!-- ============ dedupe ============ -->
+  <!-- ================= dedupe ================= -->
   <section class="screen" data-s="dedupe">
-    <div class="hero short">
-      <div>
-        <div class="eyebrow">E 盘的重复文件 · 1,204 个文件 · 3 分 12 秒</div>
-        <div class="title">9.0<span class="u">GB 多出来的</span></div>
-      </div>
-      <div class="hero-r">
-        <div class="pills"><span class="pl"><span class="k">已选</span><b>2 组</b></span><span class="pl"><span class="k">同名不同内容</span><b>3 组没算</b></span></div>
-        <button class="btn primary big">清理所选 <span class="q">4.0 GB</span></button>
-      </div>
+    <div class="head">
+      <div class="h1"><small>E 盘的重复文件 · 1,204 个文件 · 3 分 12 秒</small>找到 6 组重复</div>
+      <div class="bigs"><div class="bg"><div class="n">9.0<small>GB</small></div><div class="k"><span class="ic"><svg class="i s"><use href="#i-dup"/></svg></span>多出来的</div></div><div class="bg"><div class="n">4.0<small>GB</small></div><div class="k"><span class="ic"><svg class="i s"><use href="#i-check"/></svg></span>已选</div></div><div class="bg"><div class="n">3<small>组</small></div><div class="k"><span class="ic"><svg class="i s"><use href="#i-eye"/></svg></span>同名没算</div></div></div>
     </div>
-    <div class="sheet plain">
-      <div class="col">
-        <div class="card" style="padding-top:10px;padding-bottom:10px">
-          <div class="list" data-dups='[[1,"mirasim-a-backup.zip",3,3.2,"留 E:\\backup 那份"],[0,"Android Studio 安装包.exe",2,1.1,"留更早的"],[1,"游戏录像 2026-10-12.mp4",2,0.8,"留 E:\\videos 那份"],[0,"dataset-v3.parquet",2,0.7,"留更早的"],[0,"还有 2 组",0,3.2,"都小于 500 MB"]]'></div>
+    <div class="pillbar">
+      <div class="pb" style="flex:44"><span class="lb">已选 · 2 组</span><span class="p acc">44%</span></div><div class="pb" style="flex:56"><span class="lb">没选 · 4 组</span><span class="p sky">56%</span></div><div class="pb" style="flex:0 0 150px"><span class="lb">只按内容比</span><span class="p line">同名不算重复</span></div>
+    </div>
+    <div class="bento" style="grid-template-columns:1fr 1fr 320px;grid-template-rows:.9fr 1.1fr">
+      <div class="card" style="grid-column:1/3">
+        <div class="ch">每组多出来的<span class="sub" style="font-weight:400;margin-left:6px">面积就是体量</span><span class="r"><span class="tag acc">已选</span><span class="tag" style="background:var(--sky2);color:#0F3550">没选</span></span></div>
+        <div class="tm" data-tm='[["mirasim-a-backup.zip",3.2,"sel"],["logs-2025.tar",1.9,"k2"],["照片备份 2024",1.3,"k2"],["Android Studio 安装包.exe",1.1,"k1"],["游戏录像 2026-10-12.mp4",0.8,"sel"],["dataset-v3.parquet",0.7,"k3"]]'></div>
+      </div>
+      <div class="card" style="grid-column:1/3;padding-top:8px;padding-bottom:12px">
+        <div class="li"><span class="cb on"><svg class="i"><use href="#i-check"/></svg></span><div class="lt"><div class="a">mirasim-a-backup.zip</div><div class="b">3 份 · 留 E:\backup 那份</div></div><span class="sz">3.2 GB</span><span class="rb sm"><svg class="i s"><use href="#i-more"/></svg></span></div><div class="li"><span class="cb"><svg class="i"><use href="#i-check"/></svg></span><div class="lt"><div class="a">logs-2025.tar</div><div class="b">2 份 · 留更早的</div></div><span class="sz">1.9 GB</span><span class="rb sm"><svg class="i s"><use href="#i-more"/></svg></span></div><div class="li"><span class="cb"><svg class="i"><use href="#i-check"/></svg></span><div class="lt"><div class="a">照片备份 2024</div><div class="b">2 份 · 文件夹，内容完全一样</div></div><span class="sz">1.3 GB</span><span class="rb sm"><svg class="i s"><use href="#i-more"/></svg></span></div><div class="li"><span class="cb on"><svg class="i"><use href="#i-check"/></svg></span><div class="lt"><div class="a">游戏录像 2026-10-12.mp4</div><div class="b">2 份 · 留 E:\videos 那份</div></div><span class="sz">0.8 GB</span><span class="rb sm"><svg class="i s"><use href="#i-more"/></svg></span></div>
+        <div class="bottom xl" style="margin-top:6px"><span>还有 2 组 · 1.8 GB</span><span>同名不同内容的 3 组不算重复</span></div>
+      </div>
+      <div class="card dark" style="grid-column:3;grid-row:1/3">
+        <div class="ch">清理所选<span class="r"><span class="tag dk">2 组</span></span></div>
+        <div class="num" style="font-size:52px;margin-top:10px">4.0<small>GB</small></div>
+        <div class="sub">每组留一份，多的先进隔离区</div>
+        <div style="margin-top:14px">
+          <div class="opt"><span class="ic"><svg class="i"><use href="#i-dup"/></svg></span><div class="t"><div class="a">mirasim-a-backup.zip</div><div class="b">去掉 2 份 · 留 E:\backup</div></div><span class="val">3.2</span></div><div class="opt"><span class="ic"><svg class="i"><use href="#i-dup"/></svg></span><div class="t"><div class="a">游戏录像 2026-10-12.mp4</div><div class="b">去掉 1 份 · 留 E:\videos</div></div><span class="val">0.8</span></div>
         </div>
-        <div class="muted" style="font-size:11px;padding:0 8px">勾上的先进隔离区</div>
+        <div class="bottom" style="display:flex;flex-direction:column;gap:10px">
+          <div class="sub">7 天后提醒你永久删除</div>
+          <button class="btn white big full">清理所选 <span class="q">4.0 GB</span></button>
+        </div>
       </div>
     </div>
   </section>
 
-  <div class="scrim" id="scrim"></div>
-  <aside class="drawer" id="drawer">
-    <div class="ch" style="font-size:15px"><svg class="i"><use href="#i-code"/></svg>Jest 转换缓存<span class="r"><span class="rb"><svg class="i s"><use href="#i-x"/></svg></span></span></div>
-    <div class="sub">下次跑测试慢几秒 · 一周没用过，Jest 没在运行</div>
-    <div class="big">1.2<span class="u">GB</span><span class="bd ok"><svg class="i"><use href="#i-check"/></svg></span></div>
-    <div style="display:flex;align-items:center;gap:8px;margin-top:18px;height:38px;border-radius:999px;background:var(--sheet);padding:0 14px;color:var(--ink-3);font-size:12px"><svg class="i s"><use href="#i-search"/></svg>找某一项</div>
-    <div class="list" style="margin-top:8px" data-drows='[[1,"jest_* × 33",1.0,"%TEMP%\\jest"],[1,"haste-map-* × 6",0.1,"%TEMP%"],[0,"metro-cache",0.1,"Node 在用"]]'></div>
-    <div class="foot" style="justify-content:space-between;border-top:1px solid var(--line-2);font-size:12px;color:var(--ink-2)"><span>这次清 2 行</span><span class="v" style="color:var(--ink);font-weight:600">1.1 GB</span></div>
-  </aside>
-  <div class="modal" id="modal">
-    <div style="font-size:20px;font-weight:600">清理 <span class="v">19.0 GB</span>？</div>
-    <div class="mt" style="padding-top:18px"><div class="lb"><span>直接删除 · 会自动重新生成</span><span>你选的 2 项</span></div><div class="ticks" style="height:26px" data-ticks='[[0.81,"g2"],[0.19,"b"]]'></div><div class="nb"><span>15.4 GB</span><span>3.6 GB</span></div></div>
-    <div style="display:flex;gap:10px;margin-top:20px">
-      <div class="opt on"><span class="r"></span><div><div class="a">先放进隔离区</div><div class="b">可以还原，没问题再删</div></div></div>
-      <div class="opt"><span class="r"></span><div><div class="a">直接删除</div><div class="b">马上腾出，不能恢复</div></div></div>
+  <!-- ov:drawer -->
+  <div class="scrim"></div>
+  <aside class="drawer">
+    <div class="ch" style="font-size:16px"><svg class="i"><use href="#i-code"/></svg>Jest 转换缓存<span class="r"><span class="rb"><svg class="i s"><use href="#i-x"/></svg></span></span></div>
+    <div class="sub" style="margin-top:2px">下次跑测试慢几秒 · 一周没用过，Jest 没在运行</div>
+    <div style="display:flex;align-items:baseline;gap:10px;margin-top:16px"><div class="num">1.2<small>GB</small></div><span class="tag sky">放心清</span><span class="tag gr">开发缓存</span></div>
+    <div data-sq='{"n":48,"seg":[[0.917,"lime"],[0.083,"grey1"]]}' style="margin-top:14px;height:14px"></div>
+    <div class="xl" style="margin-top:6px"><span>这次清 1.1</span><span>留下 0.1 · Node 在用</span></div>
+    <div class="search"><svg class="i s"><use href="#i-search"/></svg>找某一项</div>
+    <div style="margin-top:8px">
+      <div class="li"><span class="cb on"><svg class="i"><use href="#i-check"/></svg></span><div class="lt"><div class="a mono" style="font-size:13px">jest_* × 33</div><div class="b mono">%TEMP%\jest</div></div><span class="sz">1.0 GB</span><span class="rb sm"><svg class="i s"><use href="#i-more"/></svg></span></div>
+      <div class="li"><span class="cb on"><svg class="i"><use href="#i-check"/></svg></span><div class="lt"><div class="a mono" style="font-size:13px">haste-map-* × 6</div><div class="b mono">%TEMP%</div></div><span class="sz">0.1 GB</span><span class="rb sm"><svg class="i s"><use href="#i-more"/></svg></span></div>
+      <div class="li"><span class="cb"><svg class="i"><use href="#i-check"/></svg></span><div class="lt"><div class="a mono" style="font-size:13px">metro-cache</div><div class="b">这次跳过</div></div><span class="tag warn">Node 在用</span><span class="sz">0.1 GB</span><span class="rb sm"><svg class="i s"><use href="#i-more"/></svg></span></div>
     </div>
-    <div style="margin-top:14px;display:flex;gap:8px;align-items:center;font-size:12px;color:#A86E14"><span class="bd warn"><svg class="i"><use href="#i-up"/></svg></span>Chrome 开着，约 0.4 GB 会跳过</div>
-    <div style="display:flex;justify-content:flex-end;gap:10px;margin-top:20px"><button class="btn second">取消</button><button class="btn primary">开始清理</button></div>
+    <div class="dfoot"><span>这次清 2 行</span><span class="v">1.1 GB</span></div>
+  </aside>
+  <!-- /ov:drawer -->
+  <!-- ov:confirm -->
+  <div class="scrim"></div>
+  <div class="modal">
+    <div style="display:flex;align-items:baseline;justify-content:space-between;gap:16px"><div style="font-size:26px;font-weight:400">清理 <span class="v">16.9 GB</span>？</div><span class="sub">C 盘常用位置、F 盘 · 13 组</span></div>
+    <div data-sq='{"n":60,"seg":[[0.911,"lime"],[0.089,"sky1"]]}' style="margin-top:20px;height:18px"></div>
+    <div class="xl" style="margin-top:8px"><span>直接删除 · 会自动重新生成 · 15.4 GB</span><span>你选的 1 项 · 1.5 GB</span></div>
+    <div class="ml">你选的 Codex 旧运行时怎么处理</div>
+    <div style="display:flex;gap:10px">
+      <div class="ro on"><span class="rd"></span><div><div class="a">先放进隔离区</div><div class="b">可以还原，没问题再删</div></div></div>
+      <div class="ro"><span class="rd"></span><div><div class="a">直接删除</div><div class="b">马上腾出，不能恢复</div></div></div>
+    </div>
+    <div class="warnline"><svg class="i s"><use href="#i-up"/></svg>Chrome 开着，约 0.4 GB 会跳过</div>
+    <div style="display:flex;justify-content:flex-end;gap:10px;margin-top:22px"><button class="btn soft">取消</button><button class="btn ink">开始清理</button></div>
   </div>
+  <!-- /ov:confirm -->
 </div>
 
 <script>
-// Mockup only: pick a screen from ?s=, draw the thin-tick strips and bars, let the nav switch screens.
+// Mockup only: pick a screen from ?s= (drawer and confirm open over the conclusion), light the nav, then draw the charts.
 const q=new URLSearchParams(location.search).get('s')||'home';
-const base={drawer:'results',confirm:'results'}[q]||q;
-const $=(s,r=document)=>[...r.querySelectorAll(s)];
-const h=(t,a={},html='')=>{const e=document.createElement(t);for(const k in a)k==='style'?e.style.cssText=a[k]:e.setAttribute(k,a[k]);if(html)e.innerHTML=html;return e;};
-const C={g:'var(--t-g)',g2:'var(--t-g2)',g3:'var(--t-g3)',s:'var(--t-s)',s2:'var(--t-s2)',b:'var(--t-b)',b2:'var(--t-b2)',a:'var(--t-a)',a2:'var(--t-a2)',r:'var(--t-r)',r2:'var(--t-r2)',w:'rgba(255,255,255,.96)',wl:'rgba(255,255,255,.34)'};
-const glyph={ok:'i-check',bad:'i-x',warn:'i-up',info:'i-check'};
-const fmt=x=>x>=100?x.toFixed(0):x.toFixed(1);
-function show(s){
-  $('.screen').forEach(e=>e.classList.toggle('on',e.dataset.s===s));
-  $('#nav a').forEach(a=>a.classList.toggle('on',a.dataset.for.split(' ').includes(s)));
-  gear.classList.toggle('on',s==='settings');
+if(!document.querySelector('.screen.on')){
+  const base={drawer:'results',confirm:'results'}[q]||q,w=document.querySelector('.win');
+  document.querySelector(`.screen[data-s="${base}"]`)?.classList.add('on');
+  if(base!==q)w.classList.add('ov-'+q);
 }
-// equal-height ticks, coloured by segments in order; tick count from width
-function ticks(el){
-  const segs=JSON.parse(el.dataset.ticks),w=el.clientWidth||300,n=Math.max(12,Math.round(w/(el.closest('.li')?5:5.2)));
-  let acc=0;const edges=segs.map(([f,c])=>[acc+=f,c]);
-  for(let i=0;i<n;i++){const p=(i+.5)/n;const c=(edges.find(([e])=>p<=e+1e-9)||edges.at(-1))[1];el.append(h('i',{style:`background:${C[c]||c}`}));}
-}
-// bars of varying height; optional projection (paler), highlights, markers and value labels
-function wave(el){
-  const d=JSON.parse(el.dataset.wave),all=[...d.v,...(d.proj||[])],max=Math.max(...all),fl=d.floor||0,n=all.length;
-  all.forEach((x,i)=>{const pr=i>=d.v.length;let c=C[d.tone];
-    if(d.hl&&d.hl.includes(i))c=C[d.hlc||'g2'];
-    if(d.last&&i===d.v.length-1)c=C[d.last];
-    if(pr)c='rgba(224,86,91,.14)';
-    const ht=Math.max(4,((x-fl)/(max-fl))*100);
-    el.append(h('i',{style:`height:${ht}%;background:${c}`+(pr?';outline:1px dashed rgba(224,86,91,.28);outline-offset:-1px':'')}));});
-  (d.mk||[]).forEach(([i,k])=>{const x=all[i],ht=Math.max(4,((x-fl)/(max-fl))*100);
-    const m=h('span',{class:'mk '+k,style:`left:${(i+.5)/n*100}%;bottom:calc(${ht}% + 6px)`},`<svg class="i"><use href="#${glyph[k]}"/></svg>`);el.append(m);});
-  (d.lab||[]).forEach(([i,t])=>{const x=all[i],ht=Math.max(4,((x-fl)/(max-fl))*100);
-    const busy=(d.mk||[]).some(([j])=>j===i);el.append(h('span',{class:'lab',style:`left:${(i+.5)/n*100}%;bottom:calc(${ht}% + ${busy?28:6}px)`},t));});
-}
-function rows(el){
-  const rs=JSON.parse(el.dataset.rows),max=Math.max(...rs.map(r=>r[1]));
-  rs.forEach(([n,x])=>{const li=h('div',{class:'li',style:'flex-direction:column;align-items:stretch;gap:6px;padding:12px 0'});
-    li.append(h('div',{style:'display:flex;justify-content:space-between'},`<span>${n}</span><span class="v">${fmt(x)} GB</span>`));
-    const t=h('div',{class:'ticks',style:'height:14px','data-ticks':JSON.stringify([[x/max,'g2'],[1-x/max,'s']])});li.append(t);el.append(li);});
-}
-function cats(el){
-  const rs=JSON.parse(el.dataset.cats),max=Math.max(...rs.map(r=>r[1]));
-  rs.forEach(([n,x,on])=>{const li=h('div',{class:'li'});
-    li.append(h('div',{class:'lt'},`<div class="a">${n}</div>`));
-    li.append(h('div',{class:'ticks',style:'width:260px;height:14px','data-ticks':JSON.stringify([[x/max,on?'g2':'s2'],[1-x/max,'s']])}));
-    li.append(h('span',{class:'sz',style:'width:62px'},fmt(x)+' GB'));
-    const ctl=h('span',{style:'width:54px;display:flex;justify-content:flex-end'});ctl.append(on?h('span',{class:'tg on'}):h('span',{class:'muted',style:'font-size:11px'},'只统计'));li.append(ctl);el.append(li);});
-}
-function dups(el){
-  const rs=JSON.parse(el.dataset.dups),max=Math.max(...rs.map(r=>r[3]));
-  rs.forEach(([on,n,k,x,why])=>{const li=h('div',{class:'li',style:'min-height:58px'});
-    li.append(h('span',{class:'cb'+(on?' on':'')},on?'<svg class="i"><use href="#i-check"/></svg>':''));
-    li.append(h('div',{class:'lt'},`<div class="a">${n}${k?` <span class="muted v" style="font-size:12px">× ${k}</span>`:''}</div><div class="b">${why}</div>`));
-    li.append(h('div',{class:'ticks',style:'width:300px;height:14px','data-ticks':JSON.stringify([[x/max,on?'g2':'s2'],[1-x/max,'s']])}));
-    li.append(h('span',{class:'sz',style:'width:60px'},fmt(x)+' GB'));el.append(li);});
-}
-function drows(el){
-  const rs=JSON.parse(el.dataset.drows),max=Math.max(...rs.map(r=>r[2]));
-  rs.forEach(([on,n,x,b])=>{const li=h('div',{class:'li'});
-    li.append(h('span',{class:'cb'+(on?' on':'')},on?'<svg class="i"><use href="#i-check"/></svg>':''));
-    li.append(h('div',{class:'lt'},`<div class="a mono" style="${on?'':'color:var(--ink-3)'}">${n}</div><div class="b">${b}</div>`));
-    li.append(h('div',{class:'ticks',style:'width:120px;height:14px','data-ticks':JSON.stringify([[x/max,on?'g2':'s2'],[1-x/max,'s']])}));
-    li.append(h('span',{class:'sz',style:'width:50px'},fmt(x)+' GB'));li.append(h('span',{class:'rb'},'<svg class="i s"><use href="#i-more"/></svg>'));el.append(li);});
-}
-show(base);
-if(q==='drawer'){scrim.classList.add('show');drawer.classList.add('show');}
-if(q==='confirm'){scrim.classList.add('show');modal.classList.add('show');}
-$('[data-rows]').forEach(rows);$('[data-cats]').forEach(cats);$('[data-dups]').forEach(dups);$('[data-drows]').forEach(drows);
-const draw=()=>{$('[data-ticks]').forEach(e=>{if(!e.firstChild&&e.offsetParent)ticks(e)});$('[data-wave]').forEach(e=>{if(!e.firstChild&&e.offsetParent)wave(e)});};
-requestAnimationFrame(draw);
-$('[data-go]').forEach(a=>a.addEventListener('click',()=>{scrim.classList.remove('show');drawer.classList.remove('show');modal.classList.remove('show');show(a.dataset.go);requestAnimationFrame(draw);}));
+document.querySelectorAll('.win').forEach(w=>{const s=w.querySelector('.screen.on')?.dataset.s;
+  w.querySelectorAll('[data-for]').forEach(a=>a.classList.toggle('on',a.dataset.for.split(' ').includes(s)));});
+const COL={white:'#FFFFFF',lime:'#D6F03C',sky1:'#7CCBF1',sky2:'#A6DCF7',sky3:'#C8EAFB',sky4:'#E2F3FD',ink:'#111418',hot:'#FF4F2B',grey1:'#D5D8DD',grey2:'#E7E9EC'};
+const NS='http://www.w3.org/2000/svg',sv=(t,a)=>{const e=document.createElementNS(NS,t);for(const k in a)e.setAttribute(k,a[k]);return e;};
+const live=el=>{const s=el.closest('.screen');return !s||s.classList.contains('on');};
+// tick dials: black ticks for used, orange-red for the warning band, lime for space just freed; white ticks on a dark card
+document.querySelectorAll('[data-dial]').forEach(el=>{if(!live(el))return;
+  const d=JSON.parse(el.dataset.dial),S=d.size,n=d.n||60,R=S/2-2,L=S>150?14:S>60?9:6,on=Math.round(n*d.p/100);
+  const onC=d.dark?'#FFFFFF':'#111418',offC=d.dark?'#30353D':'#E3E6EA',band=(r,i)=>r&&i>=Math.round(n*r[0]/100)&&i<Math.round(n*r[1]/100);
+  const s=sv('svg',{width:S,height:S,viewBox:`0 0 ${S} ${S}`});
+  for(let i=0;i<n;i++){const a=(i/n)*Math.PI*2-Math.PI/2,c=Math.cos(a),si=Math.sin(a);
+    let col=i<on?onC:offC;if(band(d.warn,i))col=COL.hot;if(band(d.gain,i))col=COL.lime;
+    s.append(sv('line',{x1:S/2+c*(R-L),y1:S/2+si*(R-L),x2:S/2+c*R,y2:S/2+si*R,stroke:col,'stroke-width':S>150?3:S>60?2.4:2,'stroke-linecap':'butt'}));}
+  el.style.width=S+'px';el.style.height=S+'px';el.prepend(s);
+});
+// dot stems; pj = projected values after today, ax = axis labels at stem positions
+document.querySelectorAll('[data-stems]').forEach(el=>{if(!live(el))return;
+  const d=JSON.parse(el.dataset.stems),all=d.v.concat(d.pj||[]),max=Math.max(...all),box=document.createElement('div');
+  box.className='stems'+(d.mini?' mini':'');el.append(box);
+  all.forEach((x,i)=>{const s=document.createElement('div');s.className='s';
+    if(i>=d.v.length)s.classList.add('pj');else if(d.mute&&!(d.wn||[]).includes(i)&&!(d.hl||[]).includes(i))s.classList.add('mute');
+    if((d.hl||[]).includes(i))s.classList.add('hl');if((d.wn||[]).includes(i))s.classList.add('wn');
+    const ht=(x/max*100).toFixed(1);s.innerHTML=`<i style="height:${ht}%"></i><b style="bottom:${ht}%"></b>`;box.append(s);});
+  const pos=i=>((i+.5)/all.length*100);
+  const bub=(arr,cls)=>(arr||[]).forEach(([i,t])=>{const b=document.createElement('span');b.className='bub'+cls;b.textContent=t;b.style.left=pos(i)+'%';b.style.bottom=(all[i]/max*100)+'%';box.append(b);});
+  bub(d.bub,'');bub(d.bubAcc,' acc');bub(d.bubInk,' ink');
+  if(d.ax){const ax=document.createElement('div');ax.className='ax';d.ax.forEach(([i,t])=>{const sp=document.createElement('span');sp.textContent=t;sp.style.left=pos(i)+'%';ax.append(sp);});el.after(ax);}
+});
+// square bars: n cells coloured by segments in order; cells from index hot on turn orange-red
+document.querySelectorAll('[data-sq]').forEach(el=>{
+  const d=JSON.parse(el.dataset.sq),n=d.n||30,segs=d.seg||[[d.f,d.c]],dark=!!el.closest('.dark');el.classList.add('sq');
+  if(d.cols){el.classList.add('g');el.style.gridTemplateColumns='repeat('+d.cols+',1fr)';}
+  for(let i=0;i<n;i++){const x=(i+.5)/n;let acc=0,c=null;for(const [f,cc] of segs){acc+=f;if(x<acc){c=cc;break;}}
+    const e=document.createElement('i');let col=c?COL[c]:(dark?'#2E333B':COL.grey2);
+    if(c==='sky1'&&dark)col='#A6DCF7';if(c&&d.hot!=null&&i>=d.hot)col=COL.hot;
+    e.style.background=col;el.append(e);}
+});
+// heatmap: one cell per day, weeks as columns
+document.querySelectorAll('[data-heat]').forEach(el=>{if(!live(el))return;
+  const d=JSON.parse(el.dataset.heat),DAY=864e5,P=k=>Date.UTC(2026,+k.slice(0,2)-1,+k.slice(3));
+  const start=P(d.start),today=P(d.today),first=P(d.first),pad=x=>String(x).padStart(2,'0');
+  const hm=el.querySelector('.hm'),mo=el.querySelector('.hm-m');let lastM=-1;
+  for(let w=0;w<d.weeks;w++){
+    const m=new Date(start+w*7*DAY).getUTCMonth(),lab=document.createElement('span');
+    if(m!==lastM){lab.textContent=(m+1)+' 月';lastM=m;}mo.append(lab);
+    for(let r=0;r<7;r++){const t=start+(w*7+r)*DAY,dt=new Date(t),k=pad(dt.getUTCMonth()+1)+'-'+pad(dt.getUTCDate()),c=document.createElement('i');
+      let cls='',tip=(dt.getUTCMonth()+1)+' 月 '+dt.getUTCDate()+' 日';
+      if(t>today)cls='fu';else if(t<first)cls='pre';
+      else if(d.clean[k]!=null){const g=d.clean[k];cls=k===d.last?'last':g>8?'l3':g>=2?'l2':'l1';tip+=' · 腾出 '+g.toFixed(1)+' GB';}
+      else if(d.stop.includes(k)){cls='stop';tip+=' · 体检停下';}
+      else if(d.scan.includes(k)){cls='sc';tip+=' · 只体检';}
+      if(cls)c.className=cls;c.title=tip;hm.append(c);}
+  }
+});
+// squarified treemap
+document.querySelectorAll('.screen.on [data-tm]').forEach(el=>{
+  const items=JSON.parse(el.dataset.tm).sort((a,b)=>b[1]-a[1]),W=el.clientWidth,H=el.clientHeight,G=6,tot=items.reduce((a,b)=>a+b[1],0);
+  let x=0,y=0,w=W,h=H,row=[];
+  const worst=(r,len)=>{const t=r.reduce((a,b)=>a+b.a,0);return Math.max(...r.map(o=>Math.max(len*len*o.a/(t*t),(t*t)/(len*len*o.a))));};
+  const place=(o,px,py,pw,ph)=>{const [n,v,k]=o.it,d=document.createElement('div');d.className='tl '+k+(pw*ph>W*H*.11?' big':'');
+    d.style.cssText='left:'+(px+G/2)+'px;top:'+(py+G/2)+'px;width:'+(pw-G)+'px;height:'+(ph-G)+'px';
+    d.innerHTML=(pw-G>78&&ph-G>56?'<span class="a">'+n+'</span>':'<span></span>')+'<span class="n">'+v.toFixed(1)+'</span>';d.title=n;el.append(d);};
+  const lay=r=>{const t=r.reduce((a,b)=>a+b.a,0);if(w>=h){const cw=t/h;let cy=y;r.forEach(o=>{const ch=o.a/cw;place(o,x,cy,cw,ch);cy+=ch;});x+=cw;w-=cw;}else{const rh=t/w;let cx=x;r.forEach(o=>{const cw=o.a/rh;place(o,cx,y,cw,rh);cx+=cw;});y+=rh;h-=rh;}};
+  items.map(it=>({it,a:it[1]/tot*W*H})).forEach(o=>{const len=Math.min(w,h);if(!row.length||worst([...row,o],len)<=worst(row,len))row.push(o);else{lay(row);row=[o];}});
+  if(row.length)lay(row);
+});
 </script>
 </body>
 </html>

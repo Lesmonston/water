@@ -1,24 +1,25 @@
-/* Water UI v3 tokens (2026-11-06, round 2): pale sky header, white sheet and cards, validated chart palettes. Source of truth for the v3 mockup. */
+/* Water UI v3 tokens (2026-11-06, final: approved round 5 rolled out to all eleven screens). Source of truth for the v3 mockup and the M6 UI ticket. */
 :root{
-  --sky-top:#AFC7E6; --sky-mid:#C7D9EF; --sky-low:#DCE7F4;
-  --hero-ink:#0F2238; --hero-ink-2:#45607F; --hero-ink-3:#6E86A3;
-  --sheet:#F2F5F9; --card:#FFFFFF; --line:#E6EBF1; --line-2:#EEF1F5; --track:#E9EEF4;
-  --ink:#14181F; --ink-2:#5B6573; --ink-3:#98A2B0;
-  --accent:#2E6FD8; --accent-soft:#E7EFFB;
-  --ok:#2E9E66; --ok-soft:#DFF3E8; --ok-bar:#BFE5CF; --ok-bar-2:#8FD1AC;
-  --warn:#D98A12; --warn-soft:#FCEFD8; --warn-bar:#F4D49B;
-  --bad:#DC4A4F; --bad-soft:#FCE7E8;
-  /* categories (validated: dataviz validate_palette, light) */
-  --c-ai:#4F7FEF; --c-web:#2FB3A1; --c-dev:#9479F0; --c-pkg:#EE9B4B; --c-tmp:#E86F9A;
-  /* space classes (validated) */
-  --k-clean:#2F6FE4; --k-look:#E9A23B; --k-count:#9C8FE0; --k-prot:#4A68B0; --k-sys:#3BB39E;
-  --k-used:#CDD6E2; --k-free:#EEF2F7;
-  --r-card:22px; --r-sheet:30px;
-  --sh-card:0 1px 2px rgba(16,38,63,.04),0 10px 28px rgba(16,38,63,.05);
-  --sh-float:0 12px 34px rgba(25,55,95,.14);
+  /* window: one soft sky-to-white gradient, top to bottom (175deg) */
+  --bg-1:#E3ECF6; --bg-2:#F0F4F9; --bg-3:#F8FAFC;
+  /* text and lines */
+  --ink:#111418; --ink-2:#5C6470; --ink-3:#9AA2AD; --line:#E7EBF0; --hairline:rgba(17,20,24,.07);
+  /* surfaces: white cards with a hairline; one dark main card per screen */
+  --card:#FFFFFF; --dark:#15181D; --dark-2:#22262D; --dark-line:#2A2E35; --on-dark:#FFFFFF; --on-dark-2:#9EA6B2;
+  /* data: four sky steps for magnitude, darker = more */
+  --sky-1:#7CCBF1; --sky-2:#A6DCF7; --sky-3:#C8EAFB; --sky-4:#E2F3FD; --sky-ink:#0F3550;
+  /* the one highlight: safe to clean, selected, switched on, done, the latest */
+  --lime:#D6F03C; --lime-ink:#1C2400; --lime-soft:#F1FAC8; --lime-text:#4A5A00;
+  /* attention: outline = look at it, solid = a problem (cannot delete, full, stopped); always with words beside it */
+  --hot:#FF4F2B; --hot-soft:#FFE7E1; --hot-text:#C2361A; --hot-on-dark:#FF8E75;
+  /* neutral: off, not selected, protected, empty cells and ticks */
+  --grey-1:#D5D8DD; --grey-2:#E7E9EC; --tick-off:#E3E6EA; --tick-off-dark:#30353D; --cell-off-dark:#2E333B;
+  /* shape: small corners and hairlines, almost no shadow */
+  --r-win:12px; --r-card:10px; --r-btn:8px; --r-btn-big:10px; --r-ctl:6px; --r-tag:4px; --r-cell:3px;
+  --sh-card:0 1px 0 rgba(17,20,24,.04); --sh-float:0 24px 60px rgba(17,20,24,.18); --scrim:rgba(17,20,24,.28);
+  /* type */
   --font:"Segoe UI Variable Text","Segoe UI","Microsoft YaHei UI",system-ui,sans-serif;
-  --font-num:"Segoe UI Variable Display","Segoe UI","Microsoft YaHei UI",system-ui,sans-serif;
-  --font-cjk-light:"Segoe UI Variable Display","Microsoft YaHei UI Light","Microsoft YaHei UI",sans-serif;
+  --font-num:"Segoe UI Variable Display","Segoe UI","Microsoft YaHei UI",sans-serif;
   --mono:"Cascadia Mono","Consolas",monospace;
-  /* type scale: 11 axis · 12 secondary · 13 body · 14 title · 16 section · 30 card number · 40 hero title · 56 hero number */
+  /* type scale: 11 axis and labels · 12 secondary · 13 body · 15 card title · 36 card number (52 in the dark card) · 40 page title · 46 big numbers beside it; weights 300 numbers, 400 text, 600 titles */
 }
