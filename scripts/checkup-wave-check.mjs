@@ -50,7 +50,10 @@ function rustEnv(){
   const cargo=command(rustup,['which','cargo','--toolchain','1.95.0']).stdout.trim(),rustc=command(rustup,['which','rustc','--toolchain','1.95.0']).stdout.trim();
   assert(isAbsolute(cargo)&&isAbsolute(rustc));assert(command(rustc,['--version']).stdout.startsWith('rustc 1.95.0 '));
   for(let p=root;;p=dirname(p)){for(const n of['config','config.toml'])assert(!existsSync(join(p,'.cargo',n)),'Unexpected cargo config at '+p);if(dirname(p)===p)break;}
-  const home=local('.local/w2-cargo-home'),target=local('.local/w2-target'),tmp=local('.local/w2-tmp');
+  // One target directory per package: every package's real smoke is an example named real_smoke, and in a tree that
+  // holds several packages (integration tree A) a fresh unit is not relinked, so a shared target ran another
+  // package's real_smoke.exe (seventh integration, 2026-11-07).
+  const home=local('.local/w2-cargo-home'),target=local('.local/w2-target/'+task.outputRoot.split('/').pop()),tmp=local('.local/w2-tmp');
   for(const n of['config','config.toml'])assert(!existsSync(join(home,n)));
   if(!existsSync(join(home,'registry'))){const src=resolve(task.cargoCacheSource);const rel=relative(controller,src);assert(!rel.startsWith('..')&&!isAbsolute(rel));cpSync(src,join(home,'registry'),{recursive:true,force:false,errorOnExist:true});record.cacheCopiedFrom=src;}
   Object.assign(env,{RUSTUP_TOOLCHAIN:'1.95.0',RUSTC:rustc,RUSTDOC:join(dirname(rustc),'rustdoc.exe'),CARGO_HOME:home,CARGO_TARGET_DIR:target,CARGO_BUILD_JOBS:'1',CARGO_NET_OFFLINE:'true',CARGO_TERM_COLOR:'never',TEMP:tmp,TMP:tmp,TMPDIR:tmp});
