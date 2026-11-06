@@ -1,0 +1,117 @@
+{"binary":"C:\\Users\\37310\\.rustup\\toolchains\\1.95.0-x86_64-pc-windows-msvc\\bin\\cargo.exe","args":["test","--offline","--locked","--manifest-path","packages/water-service/Cargo.toml","--test","service_v1","--","--test-threads=1"],"exitCode":101,"error":null}
+--- stdout ---
+
+running 12 tests
+test m35_clean_split ... FAILED
+test m35_conclusion_cards ... FAILED
+test m35_quarantine ... FAILED
+test m35_rows_and_detail ... FAILED
+test m35_scope_and_plan ... FAILED
+test m35_trends_history ... FAILED
+test service_clean_flow ... FAILED
+test service_hardening ... FAILED
+test service_ipc_contract ... FAILED
+test service_scan_views ... ok
+test service_storage_safety ... FAILED
+test service_trends_locations ... FAILED
+
+failures:
+
+---- m35_clean_split stdout ----
+
+thread 'm35_clean_split' (21232) panicked at tests\service_v1.rs:483:5:
+SERVICE_RETURN_BUDGET: scan_progress
+note: run with `RUST_BACKTRACE=1` environment variable to display a backtrace
+
+---- m35_conclusion_cards stdout ----
+
+thread 'm35_conclusion_cards' (34252) panicked at tests\service_v1.rs:483:5:
+SERVICE_RETURN_BUDGET: scan_start
+
+---- m35_quarantine stdout ----
+
+thread 'm35_quarantine' (36804) panicked at tests\service_v1.rs:483:5:
+SERVICE_RETURN_BUDGET: scan_progress
+
+---- m35_rows_and_detail stdout ----
+
+thread 'm35_rows_and_detail' (28484) panicked at tests\service_v1.rs:483:5:
+SERVICE_RETURN_BUDGET: scan_progress
+
+---- m35_scope_and_plan stdout ----
+
+thread 'm35_scope_and_plan' (34300) panicked at tests\service_v1.rs:4187:5:
+assertion `left == right` failed: SERVICE_M35_SCOPE: root_levels reload
+  left: String("scan-20270115T080000Z-e74a")
+ right: String("scan-20270115T080000Z-11fb")
+
+---- m35_trends_history stdout ----
+
+thread 'm35_trends_history' (2160) panicked at tests\service_v1.rs:4777:5:
+assertion `left == right` failed: SERVICE_M35_TRENDS: duplicate move
+  left: Number(0)
+ right: 1
+
+---- service_clean_flow stdout ----
+
+thread 'service_clean_flow' (30328) panicked at tests\service_v1.rs:483:5:
+SERVICE_RETURN_BUDGET: scan_progress
+
+---- service_hardening stdout ----
+
+thread 'water-scan' (24520) panicked at tests\service_v1.rs:236:13:
+fake platform: drives failed inside the scan task
+
+thread 'service_hardening' (14472) panicked at tests\service_v1.rs:483:5:
+SERVICE_RETURN_BUDGET: scan_progress
+
+---- service_ipc_contract stdout ----
+
+thread 'service_ipc_contract' (21996) panicked at tests\service_v1.rs:483:5:
+SERVICE_RETURN_BUDGET: scan_progress
+
+---- service_storage_safety stdout ----
+
+thread 'service_storage_safety' (26700) panicked at tests\service_v1.rs:483:5:
+SERVICE_RETURN_BUDGET: scan_start
+
+---- service_trends_locations stdout ----
+
+thread 'service_trends_locations' (9844) panicked at tests\service_v1.rs:483:5:
+SERVICE_RETURN_BUDGET: scan_start
+
+
+failures:
+    m35_clean_split
+    m35_conclusion_cards
+    m35_quarantine
+    m35_rows_and_detail
+    m35_scope_and_plan
+    m35_trends_history
+    service_clean_flow
+    service_hardening
+    service_ipc_contract
+    service_storage_safety
+    service_trends_locations
+
+test result: FAILED. 1 passed; 11 failed; 0 ignored; 0 measured; 0 filtered out; finished in 10.98s
+
+
+--- stderr ---
+   Compiling serde_core v1.0.229
+   Compiling zmij v1.0.23
+   Compiling itoa v1.0.18
+   Compiling memchr v2.8.3
+   Compiling serde_json v1.0.151
+   Compiling serde v1.0.229
+   Compiling water-installed-apps v0.1.0 (F:\new\smaltalk\water\.worktrees\w10-m7\packages\installed-apps)
+   Compiling water-process-scan v0.1.0 (F:\new\smaltalk\water\.worktrees\w10-m7\packages\process-scan)
+   Compiling water-junk-clean v0.1.0 (F:\new\smaltalk\water\.worktrees\w10-m7\packages\junk-clean)
+   Compiling water-cleanup-manifest v0.1.0 (F:\new\smaltalk\water\.worktrees\w10-m7\packages\cleanup-manifest)
+   Compiling water-dup-finder v0.1.0 (F:\new\smaltalk\water\.worktrees\w10-m7\packages\dup-finder)
+   Compiling water-junk-rules v0.1.0 (F:\new\smaltalk\water\.worktrees\w10-m7\packages\junk-rules)
+   Compiling water-junk-scan v0.1.0 (F:\new\smaltalk\water\.worktrees\w10-m7\packages\junk-scan)
+   Compiling water-service v0.1.0 (F:\new\smaltalk\water\.worktrees\w10-m7\packages\water-service)
+    Finished `test` profile [unoptimized + debuginfo] target(s) in 1m 01s
+     Running tests\service_v1.rs (.local\w3-target\debug\deps\service_v1-9ced97dc996b0b10.exe)
+error: test failed, to rerun pass `--test service_v1`

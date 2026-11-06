@@ -1,0 +1,16 @@
+{"binary":"C:\\Users\\37310\\.rustup\\toolchains\\1.95.0-x86_64-pc-windows-msvc\\bin\\cargo.exe","args":["clippy","--offline","--locked","--manifest-path","packages/water-service/Cargo.toml","--all-targets","--","-D","warnings"],"exitCode":101,"error":null}
+--- stdout ---
+
+--- stderr ---
+    Checking water-service v0.1.0 (F:\new\smaltalk\water\.worktrees\w10-m7\packages\water-service)
+error: this creates an owned instance just for comparison
+    --> tests\service_v1.rs:5434:32
+     |
+5434 |         .find(|g| g["size"] == (2 << 20).to_string())
+     |                                ^^^^^^^^^^^^^^^^^^^^^ help: try: `(2 << 20)`
+     |
+     = help: for further information visit https://rust-lang.github.io/rust-clippy/rust-1.95.0/index.html#cmp_owned
+     = note: `-D clippy::cmp-owned` implied by `-D warnings`
+     = help: to override `-D warnings` add `#[allow(clippy::cmp_owned)]`
+
+error: could not compile `water-service` (test "service_v1") due to 1 previous error

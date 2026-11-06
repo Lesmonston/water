@@ -1,0 +1,97 @@
+{"binary":"C:\\Users\\37310\\.rustup\\toolchains\\1.95.0-x86_64-pc-windows-msvc\\bin\\cargo.exe","args":["clippy","--offline","--locked","--manifest-path","packages/water-service/Cargo.toml","--all-targets","--","-D","warnings"],"exitCode":101,"error":null}
+--- stdout ---
+
+--- stderr ---
+    Checking water-service v0.1.0 (F:\new\smaltalk\water\.worktrees\w10-m7\packages\water-service)
+error[E0631]: type mismatch in closure arguments
+   --> src\conclusion.rs:886:17
+    |
+883 |     let eligible = |i: &&Item| can_clean && i.eligible && !views::skipped(i, &s.settings);
+    |                    ----------- found signature defined here
+...
+886 |         .filter(eligible)
+    |          ------ ^^^^^^^^ expected due to this
+    |          |
+    |          required by a bound introduced by this call
+    |
+    = note: expected closure signature `for<'a> fn(&'a &&water_junk_scan::Item) -> _`
+               found closure signature `fn(&&water_junk_scan::Item) -> _`
+note: required by a bound in `std::iter::Iterator::filter`
+   --> /rustc/59807616e1fa2540724bfbac14d7976d7e4a3860/library\core\src\iter\traits\iterator.rs:911:4
+help: consider wrapping the function in a closure
+    |
+886 |         .filter(|arg0: &&&water_junk_scan::Item| eligible(*arg0))
+    |                 ++++++++++++++++++++++++++++++++         +++++++
+help: consider adjusting the signature so it borrows its argument
+    |
+883 |     let eligible = |i: &&&Item| can_clean && i.eligible && !views::skipped(i, &s.settings);
+    |                        +
+
+error[E0599]: the method `any` exists for struct `Filter<Iter<'_, &Item>, {closure@conclusion.rs:883:20}>`, but its trait bounds were not satisfied
+   --> src\conclusion.rs:887:10
+    |
+883 |       let eligible = |i: &&Item| can_clean && i.eligible && !views::skipped(i, &s.settings);
+    |                      ----------- doesn't satisfy `<_ as FnOnce<(&&&Item,)>>::Output = bool`
+884 |       let selectable = items
+    |  ______________________-
+885 | |         .iter()
+886 | |         .filter(eligible)
+887 | |         .any(|i| r.saved["item_in_use"].get(&i.item_id).is_none());
+    | |         -^^^ method cannot be called due to unsatisfied trait bounds
+    | |_________|
+    |
+    |
+    = note: the following trait bounds were not satisfied:
+            `<{closure@src\conclusion.rs:883:20: 883:31} as std::ops::FnOnce<(&&&water_junk_scan::Item,)>>::Output = bool`
+            which is required by `std::iter::Filter<std::slice::Iter<'_, &water_junk_scan::Item>, {closure@src\conclusion.rs:883:20: 883:31}>: std::iter::Iterator`
+    = note: the full name for the type has been written to 'F:\new\smaltalk\water\.worktrees\w10-m7\.local\w3-target\debug\deps\water_service-1c43b6a825cd5317.long-type-7453356615765003826.txt'
+    = note: consider using `--verbose` to print the full type name to the console
+
+error[E0631]: type mismatch in closure arguments
+   --> src\conclusion.rs:915:17
+    |
+883 |     let eligible = |i: &&Item| can_clean && i.eligible && !views::skipped(i, &s.settings);
+    |                    ----------- found signature defined here
+...
+915 |         .filter(eligible)
+    |          ------ ^^^^^^^^ expected due to this
+    |          |
+    |          required by a bound introduced by this call
+    |
+    = note: expected closure signature `for<'a> fn(&'a &&water_junk_scan::Item) -> _`
+               found closure signature `fn(&&water_junk_scan::Item) -> _`
+note: required by a bound in `std::iter::Iterator::filter`
+   --> /rustc/59807616e1fa2540724bfbac14d7976d7e4a3860/library\core\src\iter\traits\iterator.rs:911:4
+help: consider wrapping the function in a closure
+    |
+915 |         .filter(|arg0: &&&water_junk_scan::Item| eligible(*arg0))
+    |                 ++++++++++++++++++++++++++++++++         +++++++
+help: consider adjusting the signature so it borrows its argument
+    |
+883 |     let eligible = |i: &&&Item| can_clean && i.eligible && !views::skipped(i, &s.settings);
+    |                        +
+
+error[E0599]: the method `all` exists for struct `Filter<Iter<'_, &Item>, {closure@conclusion.rs:883:20}>`, but its trait bounds were not satisfied
+   --> src\conclusion.rs:916:10
+    |
+883 |       let eligible = |i: &&Item| can_clean && i.eligible && !views::skipped(i, &s.settings);
+    |                      ----------- doesn't satisfy `<_ as FnOnce<(&&&Item,)>>::Output = bool`
+...
+913 |       let included = items
+    |  ____________________-
+914 | |         .iter()
+915 | |         .filter(eligible)
+916 | |         .all(|i| selected.contains(&i.item_id))
+    | |         -^^^ method cannot be called due to unsatisfied trait bounds
+    | |_________|
+    |
+    |
+    = note: the following trait bounds were not satisfied:
+            `<{closure@src\conclusion.rs:883:20: 883:31} as std::ops::FnOnce<(&&&water_junk_scan::Item,)>>::Output = bool`
+            which is required by `std::iter::Filter<std::slice::Iter<'_, &water_junk_scan::Item>, {closure@src\conclusion.rs:883:20: 883:31}>: std::iter::Iterator`
+    = note: the full name for the type has been written to 'F:\new\smaltalk\water\.worktrees\w10-m7\.local\w3-target\debug\deps\water_service-1c43b6a825cd5317.long-type-2398221671781454436.txt'
+    = note: consider using `--verbose` to print the full type name to the console
+
+Some errors have detailed explanations: E0599, E0631.
+For more information about an error, try `rustc --explain E0599`.
+error: could not compile `water-service` (lib) due to 4 previous errors

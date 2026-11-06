@@ -1,0 +1,14 @@
+{"binary":"C:\\Users\\37310\\.rustup\\toolchains\\1.95.0-x86_64-pc-windows-msvc\\bin\\cargo.exe","args":["test","--offline","--locked","--manifest-path","packages/water-service/Cargo.toml","--test","service_v1","--","--test-threads=1"],"exitCode":4294967295,"error":null}
+--- stdout ---
+
+running 12 tests
+test m35_clean_split ... 
+--- stderr ---
+   Compiling water-service v0.1.0 (F:\new\smaltalk\water\.worktrees\w10-m7\packages\water-service)
+    Finished `test` profile [unoptimized + debuginfo] target(s) in 9.23s
+     Running tests\service_v1.rs (.local\w3-target\debug\deps\service_v1-9ced97dc996b0b10.exe)
+error: test failed, to rerun pass `--test service_v1`
+
+Caused by:
+  process didn't exit successfully: `F:\new\smaltalk\water\.worktrees\w10-m7\.local\w3-target\debug\deps\service_v1-9ced97dc996b0b10.exe --test-threads=1` (exit code: 0xffffffff)
+note: test exited abnormally; to see the full output pass --no-capture to the harness.

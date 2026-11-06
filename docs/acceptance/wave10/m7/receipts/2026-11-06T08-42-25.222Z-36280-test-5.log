@@ -1,0 +1,53 @@
+{"binary":"C:\\Users\\37310\\.rustup\\toolchains\\1.95.0-x86_64-pc-windows-msvc\\bin\\cargo.exe","args":["test","--offline","--locked","--manifest-path","packages/water-service/Cargo.toml","--test","service_v1","--","--test-threads=1"],"exitCode":101,"error":null}
+--- stdout ---
+
+running 12 tests
+test m35_clean_split ... ok
+test m35_conclusion_cards ... ok
+test m35_quarantine ... ok
+test m35_rows_and_detail ... ok
+test m35_scope_and_plan ... FAILED
+test m35_trends_history ... FAILED
+test service_clean_flow ... FAILED
+test service_hardening ... ok
+test service_ipc_contract ... ok
+test service_scan_views ... ok
+test service_storage_safety ... ok
+test service_trends_locations ... ok
+
+failures:
+
+---- m35_scope_and_plan stdout ----
+
+thread 'm35_scope_and_plan' (23332) panicked at tests\service_v1.rs:4246:5:
+assertion `left == right` failed: SERVICE_M35_SCOPE: declaration ancestor
+  left: Some("里面有项目的声明文件，不能整块清理；项目声明为不能碰")
+ right: Some("里面有项目的声明文件，不能整块清理")
+note: run with `RUST_BACKTRACE=1` environment variable to display a backtrace
+
+---- m35_trends_history stdout ----
+
+thread 'm35_trends_history' (34224) panicked at tests\service_v1.rs:4810:5:
+assertion `left == right` failed: SERVICE_M35_TRENDS: duplicate move {"clean_id":"clean-20261106T094256Z-1394","plan_id":"plan-20261106T094256Z-5720","plan_items":[{"group_id":"dup:5647f05ec1895894:2097152","identity":{"file_id":"b87e3800000009000000000000000000","volume_serial":"C248BB02"},"item_id":"dupitem-12587d4c6cc57ce8","kind":"file","level":"confirm","min_age_hours":1,"path":"F:\\new\\smaltalk\\water\\.worktrees\\w10-m7\\.local\\w3-f1-fixtures\\service-5e221b08c9d8746d\\duplicates\\original.bin","root":"F:\\new\\smaltalk\\water\\.worktrees\\w10-m7\\.local\\w3-f1-fixtures\\service-5e221b08c9d8746d\\duplicates","rule_id":"dedupe","total_bytes":"2097152"}],"quarantine_reports":[{"ended_at":"2026-11-06T08:42:56Z","items":[{"bytes":"0","destination":null,"error_code":null,"identity":null,"item_id":"dupitem-12587d4c6cc57ce8","move_error":null,"skip_reason":"too_recent","status":"skipped"}],"moved_bytes":"0","quarantine_id":"20261106-184256-f","report_version":"water.quarantine-report.v1","started_at":"2026-11-06T09:42:56Z","status":"completed"}],"report":{"ended_at":"2026-11-06T09:42:56Z","estimate_bytes":"2097152","freed_bytes":"0","items":[],"plan_id":"plan-20261106T094256Z-5720","report_version":"water.clean-report.v1","started_at":"2026-11-06T09:42:56Z","status":"completed","volumes":[]},"scan_id":"dedupe-20270115T080000Z-4b62","view":{"clean_id":"clean-20261106T094256Z-1394","drives":[],"estimate_bytes":"2097152","finished_at":"2026-11-06T09:42:56Z","freed_bytes":"0","groups":[{"freed_bytes":"0","group_id":"dup:5647f05ec1895894:2097152","notes_zh":["没有移入，未通过复核或移动失败"],"status":"skipped","title_zh":"未识别"}],"journal_display_path":"F:\\new\\smaltalk\\water\\.worktrees\\w10-m7\\.local/w3-f1-fixtures\\service-5e221b08c9d8746d\\data\\journal\\clean-20261106T094256Z-1394.jsonl","quarantined":{"bytes":"0","item_count":0,"notes_zh":["移入隔离区尚未腾出空间，确认没问题后再永久删除"],"quarantine_ids":[]}}}
+  left: Number(0)
+ right: 1
+
+---- service_clean_flow stdout ----
+
+thread 'service_clean_flow' (32064) panicked at tests\service_v1.rs:3813:9:
+SERVICE_M3C_SKIP: scale remove 51.5467ms
+
+
+failures:
+    m35_scope_and_plan
+    m35_trends_history
+    service_clean_flow
+
+test result: FAILED. 9 passed; 3 failed; 0 ignored; 0 measured; 0 filtered out; finished in 47.53s
+
+
+--- stderr ---
+   Compiling water-service v0.1.0 (F:\new\smaltalk\water\.worktrees\w10-m7\packages\water-service)
+    Finished `test` profile [unoptimized + debuginfo] target(s) in 20.89s
+     Running tests\service_v1.rs (.local\w3-target\debug\deps\service_v1-9ced97dc996b0b10.exe)
+error: test failed, to rerun pass `--test service_v1`
