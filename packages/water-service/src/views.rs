@@ -6,7 +6,7 @@ use crate::{
     util,
 };
 use serde_json::{Value, json};
-use std::collections::{BTreeMap, BTreeSet};
+use std::collections::{BTreeMap, BTreeSet, HashMap};
 use water_junk_rules::RuleSet;
 use water_junk_scan::{Group, Growth, Level, ScanResult};
 
@@ -238,8 +238,9 @@ fn eligible(item: &water_junk_scan::Item, settings: &Settings) -> bool {
 pub(crate) struct Projection {
     pub view: Value,
     pub details: BTreeMap<String, Value>,
-    pub summary_rows: BTreeMap<String, std::sync::Arc<Vec<crate::conclusion::Row>>>,
-    ids: BTreeMap<String, usize>,
+    summary_rows: BTreeMap<String, std::sync::Arc<Vec<crate::conclusion::Row>>>,
+    items_by_group: BTreeMap<String, Vec<usize>>,
+    ids: HashMap<String, usize>,
     paths: BTreeMap<String, Vec<usize>>,
     positions: BTreeMap<String, (usize, usize)>,
     group_indices: BTreeMap<String, usize>,
@@ -262,13 +263,11 @@ impl Projection {
             details,
             ..Default::default()
         };
-        for g in &record.result.groups {
-            p.summary_rows.insert(
-                g.group_id.clone(),
-                std::sync::Arc::new(crate::conclusion::make_rows(record, &g.group_id)),
-            );
-        }
         for (index, item) in record.result.items.iter().enumerate() {
+            p.items_by_group
+                .entry(item.group_id.clone())
+                .or_default()
+                .push(index);
             p.ids.insert(item.item_id.clone(), index);
             p.paths
                 .entry(item.path.to_ascii_lowercase())
@@ -324,8 +323,58 @@ impl Projection {
         self.ids.get(id).copied()
     }
 
+    pub fn group_items(&self, id: &str) -> &[usize] {
+        self.items_by_group
+            .get(id)
+            .map(Vec::as_slice)
+            .unwrap_or(&[])
+    }
+
+    /// Scan facts are immutable. Cache membership and ordering on first use;
+    /// selection and occupancy are still projected from the current settings.
+    pub fn summary_rows(
+        &mut self,
+        record: &Record,
+        id: &str,
+    ) -> std::sync::Arc<Vec<crate::conclusion::Row>> {
+        if let Some(rows) = self.summary_rows.get(id) {
+            return rows.clone();
+        }
+        let rows = std::sync::Arc::new(crate::conclusion::make_rows(
+            record,
+            id,
+            self.group_items(id),
+        ));
+        self.summary_rows.insert(id.to_owned(), rows.clone());
+        rows
+    }
+
+    pub fn cached_row(&self, id: &str) -> Option<&crate::conclusion::Row> {
+        self.summary_rows
+            .values()
+            .flat_map(|rows| rows.iter())
+            .find(|row| row.id == id)
+    }
+
     pub fn is_skipped(&self, index: usize) -> bool {
         self.skipped.contains(&index)
+    }
+
+    pub fn any_index_skipped(&self, indices: &[usize]) -> bool {
+        if self.skipped.is_empty() {
+            return false;
+        }
+        if self.skipped.len() <= indices.len() {
+            self.skipped.iter().any(|n| indices.contains(n))
+        } else {
+            indices.iter().any(|n| self.skipped.contains(n))
+        }
+    }
+
+    pub fn group_in_use(&self, group_id: &str) -> bool {
+        self.occupied
+            .get(group_id)
+            .is_some_and(|set| !set.is_empty())
     }
 
     pub fn refresh_path(

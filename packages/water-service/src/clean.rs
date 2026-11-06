@@ -7,7 +7,7 @@ use crate::{
 };
 use serde_json::{Value, json};
 use std::{
-    collections::{BTreeMap, BTreeSet},
+    collections::{BTreeMap, BTreeSet, HashSet},
     sync::Arc,
 };
 use water_junk_clean as clean;
@@ -73,10 +73,10 @@ pub(crate) fn prepare_mode(
         .map(|v| v.skipped)
         .unwrap_or_default();
     let projection = r.projection();
-    let excluded: BTreeSet<_> = excluded.iter().filter_map(Value::as_str).collect();
-    for id in &excluded {
+    let excluded: HashSet<&str> = excluded.iter().filter_map(Value::as_str).collect();
+    for eid in &excluded {
         let item = projection
-            .item_index(id)
+            .item_index(eid)
             .map(|index| &r.result.items[index])
             .ok_or_else(|| IpcError::new("invalid"))?;
         if !ids
@@ -104,13 +104,11 @@ pub(crate) fn prepare_mode(
         }
         let before = items.len();
         let mut bytes = 0;
-        for (index, item) in r
-            .result
-            .items
-            .iter()
-            .enumerate()
-            .filter(|(_, i)| i.group_id == id && i.eligible && i.identity.is_some())
-        {
+        for &index in projection.group_items(id) {
+            let item = &r.result.items[index];
+            if !item.eligible || item.identity.is_none() {
+                continue;
+            }
             if projection.is_skipped(index) {
                 continue;
             }
@@ -150,19 +148,22 @@ pub(crate) fn prepare_mode(
                 (cluster.parent.clone(), 24, Vec::new())
             } else {
                 let (root, t) = target.ok_or_else(|| IpcError::new("invalid"))?;
-                let unlocks = r
-                    .result
-                    .items
-                    .iter()
-                    .filter(|p| p.path != item.path && util::contains(&p.path, &item.path))
-                    .filter(|p| {
-                        r.plan.targets.iter().any(|target| {
-                            target.group_id == p.group_id
-                                && t.unlocks_target_ids.contains(&target.target_id)
+                let unlocks = if t.unlocks_target_ids.is_empty() {
+                    Vec::new()
+                } else {
+                    r.result
+                        .items
+                        .iter()
+                        .filter(|p| p.path != item.path && util::contains(&p.path, &item.path))
+                        .filter(|p| {
+                            r.plan.targets.iter().any(|target| {
+                                target.group_id == p.group_id
+                                    && t.unlocks_target_ids.contains(&target.target_id)
+                            })
                         })
-                    })
-                    .map(|p| p.path.clone())
-                    .collect::<Vec<_>>();
+                        .map(|p| p.path.clone())
+                        .collect::<Vec<_>>()
+                };
                 (
                     root.clone(),
                     if r.saved["unfinished"].get(&item.item_id).is_some() {
@@ -185,17 +186,20 @@ pub(crate) fn prepare_mode(
     if items.is_empty() {
         return Err(IpcError::new("invalid"));
     }
-    let protected_paths: Vec<_> =
-        r.result
-            .items
-            .iter()
-            .filter(|i| {
-                r.result.groups.iter().any(|g| {
-                    g.group_id == i.group_id && g.level == water_junk_scan::Level::Protected
-                })
-            })
-            .map(|i| i.path.clone())
-            .collect();
+    let protected_groups: HashSet<&str> = r
+        .result
+        .groups
+        .iter()
+        .filter(|g| g.level == water_junk_scan::Level::Protected)
+        .map(|g| g.group_id.as_str())
+        .collect();
+    let protected_paths: Vec<_> = r
+        .result
+        .items
+        .iter()
+        .filter(|i| protected_groups.contains(i.group_id.as_str()))
+        .map(|i| i.path.clone())
+        .collect();
     let now = core.platform.now();
     let mut id = util::new_id("plan", now);
     while s.plans.contains_key(&id) {
@@ -249,9 +253,13 @@ pub(crate) fn preview_parts(
     let mut titles = BTreeMap::<String, u64>::new();
     let mut skips = BTreeMap::<String, u64>::new();
     let mut chosen_bytes = 0u64;
+    let projection = r.projection();
     core.platform.begin_in_use_batch();
     for p in items {
-        let Some(i) = r.result.items.iter().find(|i| p["item_id"] == i.item_id) else {
+        let Some(i) = p["item_id"]
+            .as_str()
+            .and_then(|id| projection.item_index(id).map(|n| &r.result.items[n]))
+        else {
             continue;
         };
         let Some(g) = r.result.groups.iter().find(|g| g.group_id == i.group_id) else {
@@ -260,7 +268,7 @@ pub(crate) fn preview_parts(
         let n = util::number(&i.unique_bytes);
         if chosen.contains(&i.item_id) {
             chosen_bytes += n;
-            let title = r.projection().details[&g.group_id]["group"]["title_zh"]
+            let title = projection.details[&g.group_id]["group"]["title_zh"]
                 .as_str()
                 .unwrap_or("重复文件")
                 .to_owned();

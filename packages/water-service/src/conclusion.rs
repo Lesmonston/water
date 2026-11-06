@@ -7,7 +7,8 @@ use crate::{
 };
 use serde_json::{Value, json};
 use std::{
-    collections::{BTreeMap, BTreeSet},
+    collections::{BTreeMap, BTreeSet, HashMap, HashSet},
+    hash::{BuildHasherDefault, Hash, Hasher},
     sync::Arc,
 };
 use water_junk_scan::{Item, Level};
@@ -34,7 +35,6 @@ pub(crate) struct Model {
     pub record: Arc<Record>,
     pub serial: u64,
     pub units: Vec<Unit>,
-    pub rows: BTreeMap<String, Vec<Row>>,
     pub kept: BTreeSet<String>,
     base: Option<Arc<Record>>,
     decisions: Decisions,
@@ -44,6 +44,121 @@ pub(crate) struct Row {
     pub id: String,
     pub label: String,
     pub items: Vec<String>,
+    indices: Vec<usize>,
+    bytes: u64,
+    oldest: usize,
+    newest: usize,
+    any_eligible: bool,
+    stats: bool,
+}
+
+impl Row {
+    fn from_entry(entry: &MakeEntry<'_>) -> Self {
+        Self {
+            id: entry.item.item_id.clone(),
+            label: m35::name(&entry.item.path).into(),
+            items: vec![entry.item.item_id.clone()],
+            indices: vec![entry.rec],
+            bytes: entry.bytes,
+            oldest: entry.rec,
+            newest: entry.rec,
+            any_eligible: entry.item.eligible,
+            stats: true,
+        }
+    }
+
+    fn from_recs(id: String, label: String, recs: Vec<usize>, r: &Record) -> Self {
+        let mut row = Self::bare(id, label, Vec::new(), recs);
+        row.fill_stats(r);
+        row
+    }
+
+    fn bare(id: String, label: String, items: Vec<String>, indices: Vec<usize>) -> Self {
+        Self {
+            id,
+            label,
+            items,
+            indices,
+            bytes: 0,
+            oldest: 0,
+            newest: 0,
+            any_eligible: false,
+            stats: false,
+        }
+    }
+
+    fn fill_stats(&mut self, r: &Record) {
+        if self.indices.is_empty() {
+            return;
+        }
+        let mut bytes = 0u64;
+        let mut oldest = self.indices[0];
+        let mut newest = self.indices[0];
+        let mut any_eligible = false;
+        for &n in &self.indices {
+            let i = &r.result.items[n];
+            bytes += util::number(&i.unique_bytes);
+            if i.newest_activity < r.result.items[oldest].newest_activity {
+                oldest = n;
+            }
+            if i.newest_activity > r.result.items[newest].newest_activity {
+                newest = n;
+            }
+            any_eligible |= i.eligible;
+        }
+        self.bytes = bytes;
+        self.oldest = oldest;
+        self.newest = newest;
+        self.any_eligible = any_eligible;
+        self.stats = true;
+    }
+
+    fn member_ids(&self, r: &Record) -> Vec<String> {
+        if !self.indices.is_empty() {
+            self.indices
+                .iter()
+                .map(|&n| r.result.items[n].item_id.clone())
+                .collect()
+        } else {
+            self.items.clone()
+        }
+    }
+
+    fn contains_only(&self, r: &Record, ids: &BTreeSet<String>) -> bool {
+        if !self.indices.is_empty() {
+            self.indices
+                .iter()
+                .all(|&n| ids.contains(&r.result.items[n].item_id))
+        } else {
+            self.items.iter().all(|id| ids.contains(id))
+        }
+    }
+}
+
+struct MakeEntry<'a> {
+    item: &'a Item,
+    rec: usize,
+    bytes: u64,
+}
+
+struct FnvHasher(u64);
+
+impl Default for FnvHasher {
+    fn default() -> Self {
+        Self(0xcbf29ce484222325)
+    }
+}
+
+impl Hasher for FnvHasher {
+    fn finish(&self) -> u64 {
+        self.0
+    }
+    fn write(&mut self, bytes: &[u8]) {
+        for &b in bytes {
+            self.0 ^= u64::from(b);
+            self.0 = self.0.wrapping_mul(0x0100_0000_01b3);
+        }
+    }
 }
 
 pub(crate) fn build(core: &Core, s: &State, r: Arc<Record>) -> Model {
@@ -84,11 +199,16 @@ pub(crate) fn build(core: &Core, s: &State, r: Arc<Record>) -> Model {
             .map(|g| g.level)
             .min_by_key(|l| l.rank())
             .unwrap();
-        let items = r
-            .result
-            .items
+        let mut indices = groups
             .iter()
-            .filter(|i| groups.contains(&i.group_id) && !unfinished.contains(&i.item_id))
+            .flat_map(|id| p.group_items(id).iter().copied())
+            .collect::<Vec<_>>();
+        // Match the original scan order even when a unit merges several groups.
+        indices.sort_unstable();
+        let items = indices
+            .into_iter()
+            .map(|index| &r.result.items[index])
+            .filter(|i| !unfinished.contains(&i.item_id))
             .map(|i| i.item_id.clone())
             .collect();
         let rule = core.rules.rule(&first.rule_id);
@@ -137,12 +257,6 @@ pub(crate) fn build(core: &Core, s: &State, r: Arc<Record>) -> Model {
         });
     }
     units.sort_by(|a, b| a.id.cmp(&b.id));
-    let rows = r
-        .result
-        .groups
-        .iter()
-        .map(|g| (g.group_id.clone(), make_rows(&r, &g.group_id)))
-        .collect();
     let base = r.saved["growth_base_scan_id"]
         .as_str()
         .and_then(|id| s.records.iter().find(|r| r.result.scan_id == id))
@@ -151,7 +265,6 @@ pub(crate) fn build(core: &Core, s: &State, r: Arc<Record>) -> Model {
         record: r,
         serial: 1,
         units,
-        rows,
         kept: BTreeSet::new(),
         base,
         decisions: Decisions::default(),
@@ -239,6 +352,20 @@ fn choice<'a>(c: &'a Model, u: &Unit) -> &'a str {
 
 pub(crate) fn selected(s: &State, c: &Model) -> BTreeSet<String> {
     let mut out = BTreeSet::new();
+    let row_choices = {
+        let projection = c.record.projection();
+        c.decisions
+            .rows
+            .iter()
+            .flat_map(|(id, include)| {
+                projection.cached_row(id).into_iter().flat_map(move |row| {
+                    row.member_ids(&c.record)
+                        .into_iter()
+                        .map(move |id| (id, *include))
+                })
+            })
+            .collect::<BTreeMap<_, _>>()
+    };
     for u in &c.units {
         for id in &u.items {
             let Some(i) = item(c, id).filter(|i| eligible(s, &c.record, i)) else {
@@ -270,14 +397,8 @@ pub(crate) fn selected(s: &State, c: &Model) -> BTreeSet<String> {
                     _ => {}
                 }
             }
-            if let Some(rows) = c.rows.get(&i.group_id) {
-                for row in rows {
-                    if row.items.contains(id)
-                        && let Some(v) = c.decisions.rows.get(&row.id)
-                    {
-                        include = *v;
-                    }
-                }
+            if let Some(value) = row_choices.get(id) {
+                include = *value;
             }
             if let Some(v) = c.decisions.items.get(id) {
                 include = *v;
@@ -391,13 +512,13 @@ pub(crate) fn decide(core: &Arc<Core>, a: &Value) -> Result<Value, IpcError> {
                     .into(),
                 );
             } else {
-                let row = c
-                    .rows
-                    .values()
-                    .flatten()
-                    .find(|r| r.id == id)
-                    .ok_or_else(|| IpcError::new("invalid"))?;
-                if !row_selectable(&s, &c.record, row) {
+                let row = find_row(
+                    &c.record,
+                    id,
+                    c.record.result.groups.iter().map(|g| g.group_id.as_str()),
+                )
+                .ok_or_else(|| IpcError::new("invalid"))?;
+                if !row_selectable(&s, &c.record, &row) {
                     return Err(IpcError::new("invalid"));
                 }
                 c.decisions
@@ -759,6 +880,9 @@ fn tail2(path: &str) -> String {
 }
 
 fn row_items<'a>(r: &'a Record, row: &Row) -> Vec<&'a Item> {
+    if !row.indices.is_empty() {
+        return row.indices.iter().map(|&n| &r.result.items[n]).collect();
+    }
     let p = r.projection();
     row.items
         .iter()
@@ -770,41 +894,79 @@ fn row_selectable(s: &State, r: &Record, row: &Row) -> bool {
         .iter()
         .any(|i| eligible(s, r, i) && r.saved["item_in_use"].get(&i.item_id).is_none())
 }
-pub(crate) fn make_rows(r: &Record, id: &str) -> Vec<Row> {
-    let mut items = r
-        .result
-        .items
-        .iter()
-        .filter(|i| i.group_id == id)
-        .collect::<Vec<_>>();
-    items.sort_by(|a, b| {
-        util::number(&b.unique_bytes)
-            .cmp(&util::number(&a.unique_bytes))
-            .then(a.item_id.cmp(&b.item_id))
-    });
-    if items.len() <= 8 {
-        return items
-            .into_iter()
-            .map(|i| Row {
-                id: i.item_id.clone(),
-                label: m35::name(&i.path).into(),
-                items: vec![i.item_id.clone()],
-            })
-            .collect();
-    }
-    let mut rows = Vec::new();
-    let mut used = BTreeSet::new();
-    let mut templates = BTreeMap::<String, Vec<String>>::new();
-    for i in &items {
-        if let Some(t) = &i.template {
-            templates
-                .entry(t.clone())
-                .or_default()
-                .push(i.item_id.clone());
+pub(crate) fn make_rows(r: &Record, id: &str, indices: &[usize]) -> Vec<Row> {
+    #[derive(Copy, Clone)]
+    struct IgnoreAscii<'a>(&'a str);
+    impl PartialEq for IgnoreAscii<'_> {
+        fn eq(&self, other: &Self) -> bool {
+            self.0.eq_ignore_ascii_case(other.0)
         }
     }
-    for (template, ids) in templates.into_iter().filter(|(_, v)| v.len() >= 2) {
-        used.extend(ids.iter().cloned());
+    impl Eq for IgnoreAscii<'_> {}
+    impl Hash for IgnoreAscii<'_> {
+        fn hash<H: Hasher>(&self, state: &mut H) {
+            let bytes = self.0.as_bytes();
+            let mut buf = [0u8; 64];
+            for chunk in bytes.chunks(64) {
+                for (i, &b) in chunk.iter().enumerate() {
+                    buf[i] = b.to_ascii_lowercase();
+                }
+                state.write(&buf[..chunk.len()]);
+            }
+            state.write_u8(0xff);
+        }
+    }
+    enum Slot {
+        One(usize),
+        Many(Vec<usize>),
+    }
+    impl Slot {
+        fn push(&mut self, pos: usize) {
+            match self {
+                Self::Many(v) => v.push(pos),
+                Self::One(_) => {
+                    let Self::One(first) = std::mem::replace(self, Self::Many(Vec::new())) else {
+                        unreachable!()
+                    };
+                    *self = Self::Many(vec![first, pos]);
+                }
+            }
+        }
+    }
+    let mut entries = indices
+        .iter()
+        .map(|&rec| {
+            let item = &r.result.items[rec];
+            MakeEntry {
+                item,
+                rec,
+                bytes: util::number(&item.unique_bytes),
+            }
+        })
+        .collect::<Vec<_>>();
+    entries.sort_by(|a, b| {
+        b.bytes
+            .cmp(&a.bytes)
+            .then(a.item.item_id.cmp(&b.item.item_id))
+    });
+    if entries.len() <= 8 {
+        return entries.iter().map(Row::from_entry).collect();
+    }
+    let mut used = vec![false; entries.len()];
+    let mut groups = Vec::<(u64, String, String, Vec<usize>)>::new();
+    let mut templates = BTreeMap::<&str, Vec<usize>>::new();
+    for (pos, e) in entries.iter().enumerate() {
+        if let Some(t) = e.item.template.as_deref() {
+            templates.entry(t).or_default().push(pos);
+        }
+    }
+    for (template, members) in templates {
+        if members.len() < 2 {
+            continue;
+        }
+        for &pos in &members {
+            used[pos] = true;
+        }
         let label = template
             .replace("<r6>", "******")
             .replace("<p8>", "********")
@@ -812,58 +974,160 @@ pub(crate) fn make_rows(r: &Record, id: &str) -> Vec<Row> {
             .replace("<d>", "*")
             .replace("<u>", "*")
             .replace('#', "*");
-        rows.push(Row {
-            id: row_id(id, "t", &template),
-            label: format!("{label} × {}", ids.len()),
-            items: ids,
-        });
+        let bytes = members.iter().map(|&p| entries[p].bytes).sum();
+        groups.push((
+            bytes,
+            row_id(id, "t", template),
+            format!("{label} × {}", members.len()),
+            members,
+        ));
     }
-    let mut parents = BTreeMap::<String, Vec<String>>::new();
-    for i in items.iter().filter(|i| !used.contains(&i.item_id)) {
-        parents
-            .entry(m35::parent(&i.path).to_ascii_lowercase())
-            .or_default()
-            .push(i.item_id.clone());
-    }
-    for (parent, ids) in parents.into_iter().filter(|(_, v)| v.len() >= 2) {
-        used.extend(ids.iter().cloned());
-        rows.push(Row {
-            id: row_id(id, "d", &parent),
-            label: format!("{} × {}", m35::name(&parent), ids.len()),
-            items: ids,
-        });
-    }
-    rows.extend(
-        items
-            .iter()
-            .filter(|i| !used.contains(&i.item_id))
-            .map(|i| Row {
-                id: i.item_id.clone(),
-                label: m35::name(&i.path).into(),
-                items: vec![i.item_id.clone()],
-            }),
+    let leftover_n = used.iter().filter(|used| !**used).count();
+    let mut seen = HashSet::<IgnoreAscii, BuildHasherDefault<FnvHasher>>::with_capacity_and_hasher(
+        leftover_n,
+        BuildHasherDefault::default(),
     );
-    let bytes: BTreeMap<_, _> = items
+    let parent_dup = entries
         .iter()
-        .map(|i| (i.item_id.as_str(), util::number(&i.unique_bytes)))
-        .collect();
-    rows.sort_by(|a, b| {
-        b.items
+        .enumerate()
+        .any(|(pos, e)| !used[pos] && !seen.insert(IgnoreAscii(parent_ref(&e.item.path))));
+    if parent_dup {
+        let mut parents =
+            HashMap::<IgnoreAscii, Slot, BuildHasherDefault<FnvHasher>>::with_capacity_and_hasher(
+                leftover_n,
+                BuildHasherDefault::default(),
+            );
+        for (pos, e) in entries.iter().enumerate() {
+            if used[pos] {
+                continue;
+            }
+            parents
+                .entry(IgnoreAscii(parent_ref(&e.item.path)))
+                .and_modify(|slot| slot.push(pos))
+                .or_insert(Slot::One(pos));
+        }
+        for (key, slot) in parents {
+            let Slot::Many(members) = slot else {
+                continue;
+            };
+            for &pos in &members {
+                used[pos] = true;
+            }
+            let parent = key.0.to_ascii_lowercase();
+            let bytes = members.iter().map(|&p| entries[p].bytes).sum();
+            let n = members.len();
+            groups.push((
+                bytes,
+                row_id(id, "d", &parent),
+                format!("{} × {}", m35::name(&parent), n),
+                members,
+            ));
+        }
+    }
+    if groups.is_empty() {
+        let mut rows = entries
             .iter()
-            .map(|i| bytes[i.as_str()])
-            .sum::<u64>()
-            .cmp(&a.items.iter().map(|i| bytes[i.as_str()]).sum::<u64>())
-            .then(a.id.cmp(&b.id))
-    });
-    if rows.len() > 8 {
-        let ids = rows.drain(7..).flat_map(|r| r.items).collect::<Vec<_>>();
+            .take(7)
+            .map(Row::from_entry)
+            .collect::<Vec<_>>();
+        let rest = &entries[7..];
+        let mut bytes = 0u64;
+        let mut oldest = rest[0].rec;
+        let mut newest = rest[0].rec;
+        let mut any_eligible = false;
+        let mut recs = Vec::with_capacity(rest.len());
+        for e in rest {
+            recs.push(e.rec);
+            bytes += e.bytes;
+            if e.item.newest_activity < r.result.items[oldest].newest_activity {
+                oldest = e.rec;
+            }
+            if e.item.newest_activity > r.result.items[newest].newest_activity {
+                newest = e.rec;
+            }
+            any_eligible |= e.item.eligible;
+        }
         rows.push(Row {
             id: row_id(id, "other", ""),
-            label: format!("其它 {} 项", ids.len()),
-            items: ids,
+            label: format!("其它 {} 项", rest.len()),
+            items: Vec::new(),
+            indices: recs,
+            bytes,
+            oldest,
+            newest,
+            any_eligible,
+            stats: true,
         });
+        return rows;
+    }
+    let leftover = (0..entries.len()).filter(|&p| !used[p]).collect::<Vec<_>>();
+    groups.sort_by(|a, b| b.0.cmp(&a.0).then(a.1.cmp(&b.1)));
+    let ranked = groups.len() + leftover.len();
+    let take = if ranked > 8 { 7 } else { ranked };
+    let mut rows = Vec::with_capacity(take + 1);
+    let mut gi = 0;
+    let mut si = 0;
+    let pick_group = |gi: usize, si: usize| match (groups.get(gi), leftover.get(si)) {
+        (Some(g), Some(&p)) => match g.0.cmp(&entries[p].bytes) {
+            std::cmp::Ordering::Greater => true,
+            std::cmp::Ordering::Less => false,
+            std::cmp::Ordering::Equal => g.1 <= entries[p].item.item_id,
+        },
+        (Some(_), None) => true,
+        _ => false,
+    };
+    while rows.len() < take {
+        if pick_group(gi, si) {
+            let g = &groups[gi];
+            rows.push(Row::from_recs(
+                g.1.clone(),
+                g.2.clone(),
+                g.3.iter().map(|&p| entries[p].rec).collect(),
+                r,
+            ));
+            gi += 1;
+        } else {
+            rows.push(Row::from_entry(&entries[leftover[si]]));
+            si += 1;
+        }
+    }
+    if ranked > 8 {
+        let mut other = Vec::new();
+        while gi < groups.len() || si < leftover.len() {
+            if pick_group(gi, si) {
+                other.extend(groups[gi].3.iter().map(|&p| entries[p].rec));
+                gi += 1;
+            } else {
+                other.push(entries[leftover[si]].rec);
+                si += 1;
+            }
+        }
+        rows.push(Row::from_recs(
+            row_id(id, "other", ""),
+            format!("其它 {} 项", other.len()),
+            other,
+            r,
+        ));
     }
     rows
+}
+
+fn parent_ref(path: &str) -> &str {
+    path.rsplit_once('\\').map(|(p, _)| p).unwrap_or("")
+}
+
+fn find_row<'a>(record: &Record, id: &str, groups: impl Iterator<Item = &'a str>) -> Option<Row> {
+    let mut projection = record.projection();
+    if let Some(row) = projection.cached_row(id) {
+        return Some(row.clone());
+    }
+    for group in groups {
+        let rows = projection.summary_rows(record, group);
+        if let Some(row) = rows.iter().find(|row| row.id == id) {
+            return Some(row.clone());
+        }
+    }
+    None
 }
 fn row_id(group: &str, kind: &str, key: &str) -> String {
     format!(
@@ -871,43 +1135,119 @@ fn row_id(group: &str, kind: &str, key: &str) -> String {
         &util::digest(&format!("{group}\n{kind}\n{}", key.to_ascii_lowercase()))[..16]
     )
 }
+fn decisions_active(c: &Model) -> bool {
+    !c.decisions.categories.is_empty()
+        || !c.decisions.groups.is_empty()
+        || !c.decisions.rows.is_empty()
+        || !c.decisions.items.is_empty()
+}
+
+fn unit_kept(c: &Model, group_id: &str) -> bool {
+    c.kept.contains(group_id)
+        || c.units.iter().any(|u| {
+            c.kept.contains(&u.id) && (u.id == group_id || u.groups.iter().any(|g| g == group_id))
+        })
+}
+
 fn row_view(
     core: &Core,
     s: &State,
     r: &Record,
     row: &Row,
     c: Option<&Model>,
-    selected: &BTreeSet<String>,
+    selected: Option<&BTreeSet<String>>,
 ) -> Value {
-    let items = row_items(r, row);
-    let group = items
-        .first()
-        .and_then(|i| r.result.groups.iter().find(|g| g.group_id == i.group_id));
+    let items = if row.indices.is_empty() {
+        row_items(r, row)
+    } else {
+        Vec::new()
+    };
+    let count = if row.indices.is_empty() {
+        items.len()
+    } else {
+        row.indices.len()
+    };
+    let at = |k: usize| {
+        if row.indices.is_empty() {
+            items[k]
+        } else {
+            &r.result.items[row.indices[k]]
+        }
+    };
+    if count == 0 {
+        return json!({"row_id":row.id,"label_zh":row.label,"count":0,"bytes":"0","oldest":null,"newest":null,"included":false,"selectable":false,"release_zh":null,"expandable":false});
+    }
+    let first = at(0);
+    let group = r
+        .result
+        .groups
+        .iter()
+        .find(|g| g.group_id == first.group_id);
     let can_clean = group
         .is_some_and(|g| g.level.cleanable() && views::enabled(&s.settings, &views::category(g)));
-    let eligible = |i: &Item| can_clean && i.eligible && !views::skipped(i, &s.settings);
-    let selectable = items
-        .iter()
-        .filter(|i| eligible(i))
-        .any(|i| r.saved["item_in_use"].get(&i.item_id).is_none());
-    let all_in_use = !items.is_empty()
-        && items
-            .iter()
-            .all(|i| r.saved["item_in_use"].get(&i.item_id).is_some());
+    let recommended = group.is_some_and(|g| g.level == Level::Recommended);
+    let in_use = r.saved.get("item_in_use");
+    if row.stats && selected.is_none() {
+        let p = r.projection();
+        let skip_hit = if row.indices.is_empty() {
+            row.items
+                .iter()
+                .any(|id| p.item_index(id).is_some_and(|n| p.is_skipped(n)))
+        } else {
+            p.any_index_skipped(&row.indices)
+        };
+        let in_use_hit = p.group_in_use(&first.group_id);
+        drop(p);
+        if !skip_hit && !in_use_hit {
+            let kept = c.is_some_and(|m| unit_kept(m, &first.group_id));
+            let included = can_clean && row.any_eligible && recommended && !kept;
+            return json!({"row_id":row.id,"label_zh":row.label,"count":count,"bytes":row.bytes.to_string(),"oldest":r.result.items[row.oldest].newest_activity,"newest":r.result.items[row.newest].newest_activity,"included":included,"selectable":can_clean && row.any_eligible,"release_zh":null,"expandable":count>1});
+        }
+    }
+    let mut bytes = 0u64;
+    let mut oldest = &first.newest_activity;
+    let mut newest = &first.newest_activity;
+    let mut any_eligible = false;
+    let mut all_eligible_included = true;
+    let mut selectable = false;
+    let mut all_in_use = true;
+    for k in 0..count {
+        let i = at(k);
+        bytes += util::number(&i.unique_bytes);
+        if i.newest_activity < *oldest {
+            oldest = &i.newest_activity;
+        }
+        if i.newest_activity > *newest {
+            newest = &i.newest_activity;
+        }
+        let occupied = in_use.and_then(|v| v.get(&i.item_id)).is_some();
+        if !occupied {
+            all_in_use = false;
+        }
+        if can_clean && i.eligible && !views::skipped(i, &s.settings) {
+            any_eligible = true;
+            if let Some(selected) = selected {
+                if !selected.contains(&i.item_id) {
+                    all_eligible_included = false;
+                }
+            } else if !recommended || c.is_some_and(|m| unit_kept(m, &i.group_id)) {
+                all_eligible_included = false;
+            }
+            if !occupied {
+                selectable = true;
+            }
+        }
+    }
     let release = if all_in_use {
-        let g = r
-            .result
-            .groups
-            .iter()
-            .find(|g| g.group_id == items[0].group_id);
         Some(
-            g.and_then(|g| core.rules.rule(&g.rule_id))
-                .and_then(|r| r.in_use_zh.clone())
+            group
+                .and_then(|g| core.rules.rule(&g.rule_id))
+                .and_then(|rule| rule.in_use_zh.clone())
                 .unwrap_or_else(|| {
                     format!(
                         "{}，关掉后可清",
-                        r.saved["item_in_use"][&items[0].item_id]["process_label_zh"]
-                            .as_str()
+                        in_use
+                            .and_then(|v| v[&first.item_id]["process_label_zh"].as_str())
                             .unwrap_or("程序正在使用")
                     )
                 }),
@@ -915,13 +1255,7 @@ fn row_view(
     } else {
         None
     };
-    let included = items
-        .iter()
-        .filter(|i| eligible(i))
-        .all(|i| selected.contains(&i.item_id))
-        && items.iter().any(|i| eligible(i));
-    let _ = c;
-    json!({"row_id":row.id,"label_zh":row.label,"count":items.len(),"bytes":items.iter().map(|i|util::number(&i.unique_bytes)).sum::<u64>().to_string(),"oldest":items.iter().map(|i|&i.newest_activity).min(),"newest":items.iter().map(|i|&i.newest_activity).max(),"included":included,"selectable":selectable,"release_zh":release,"expandable":items.len()>1})
+    json!({"row_id":row.id,"label_zh":row.label,"count":count,"bytes":bytes.to_string(),"oldest":oldest,"newest":newest,"included":all_eligible_included && any_eligible,"selectable":selectable,"release_zh":release,"expandable":count>1})
 }
 
 pub(crate) fn group_detail(
@@ -935,27 +1269,11 @@ pub(crate) fn group_detail(
         .conclusion
         .as_ref()
         .filter(|c| c.record.result.scan_id == r.result.scan_id);
-    let chosen = model.map(|c| selected(s, c)).unwrap_or_else(|| {
-        let recommended = r
-            .result
-            .groups
-            .iter()
-            .filter(|g| {
-                g.level == Level::Recommended && views::enabled(&s.settings, &views::category(g))
-            })
-            .map(|g| g.group_id.as_str())
-            .collect::<BTreeSet<_>>();
-        r.result
-            .items
-            .iter()
-            .filter(|i| {
-                i.eligible
-                    && !views::skipped(i, &s.settings)
-                    && recommended.contains(i.group_id.as_str())
-            })
-            .map(|i| i.item_id.clone())
-            .collect()
-    });
+    // Without decisions, an eligible recommended row is included directly.
+    // Opening one drawer must not allocate a selected-ID set for the entire scan.
+    let chosen = model
+        .filter(|c| decisions_active(c))
+        .map(|c| selected(s, c));
     let p = r.projection();
     if id == "unfinished" {
         let u = model
@@ -990,13 +1308,14 @@ pub(crate) fn group_detail(
                     core,
                     s,
                     r,
-                    &Row {
-                        id: i.item_id.clone(),
-                        label: m35::name(&i.path).into(),
-                        items: vec![i.item_id.clone()]
-                    },
+                    &Row::bare(
+                        i.item_id.clone(),
+                        m35::name(&i.path).into(),
+                        vec![i.item_id.clone()],
+                        Vec::new(),
+                    ),
                     model,
-                    &chosen
+                    chosen.as_ref()
                 ))
                 .collect::<Vec<_>>()
         );
@@ -1061,24 +1380,14 @@ pub(crate) fn group_detail(
         let mut rows = groups
             .iter()
             .map(|g| {
-                let ids = r
-                    .result
-                    .items
-                    .iter()
-                    .filter(|i| i.group_id == g.group_id)
-                    .map(|i| i.item_id.clone())
-                    .collect();
+                let indices = r.projection().group_items(&g.group_id).to_vec();
                 row_view(
                     core,
                     s,
                     r,
-                    &Row {
-                        id: g.group_id.clone(),
-                        label: location(r, &g.group_id),
-                        items: ids,
-                    },
+                    &Row::from_recs(g.group_id.clone(), location(r, &g.group_id), indices, r),
                     model,
-                    &chosen,
+                    chosen.as_ref(),
                 )
             })
             .collect::<Vec<_>>();
@@ -1096,18 +1405,11 @@ pub(crate) fn group_detail(
         .cloned()
         .ok_or_else(|| IpcError::new("not_found"))?;
     drop(p);
-    let rows = if let Some(rows) = model.and_then(|c| c.rows.get(id)) {
-        rows.iter()
-            .map(|row| row_view(core, s, r, row, model, &chosen))
-            .collect::<Vec<_>>()
-    } else {
-        let cached = r.projection().summary_rows[id].clone();
-        cached
-            .as_ref()
-            .iter()
-            .map(|row| row_view(core, s, r, row, model, &chosen))
-            .collect()
-    };
+    let cached = r.projection().summary_rows(r, id);
+    let rows = cached
+        .iter()
+        .map(|row| row_view(core, s, r, row, model, chosen.as_ref()))
+        .collect::<Vec<_>>();
     out["rows"] = json!(rows);
     out["rows_note_zh"] = Value::Null;
     Ok(out)
@@ -1165,13 +1467,10 @@ pub(crate) fn items(core: &Arc<Core>, a: &Value) -> Result<Value, IpcError> {
                 .map(|i| i.item_id.clone())
                 .collect::<Vec<_>>()
         } else {
-            c.rows
-                .values()
-                .flatten()
-                .find(|r| r.id == row && r.items.iter().all(|i| ids.contains(i)))
+            find_row(&c.record, row, u.groups.iter().map(String::as_str))
+                .filter(|row| row.contains_only(&c.record, &ids))
                 .ok_or_else(|| IpcError::new("invalid"))?
-                .items
-                .clone()
+                .member_ids(&c.record)
         };
         ids.retain(|i| members.contains(i));
     }
