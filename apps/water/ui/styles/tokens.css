@@ -1,72 +1,25 @@
-/* Water UI v1 design tokens: white frosted glass over pale water light. Controller-owned design source.
-   Revision 2 (2026-10-26, after user review): heavier white frost, solid accents, no gradient text or glow.
-   Products import this file unchanged; components reference variables only. */
-:root {
-  /* Ink: one deep navy; hierarchy by opacity */
-  --w-ink: #10263F;
-  --w-ink-2: rgba(16, 38, 63, .66);
-  --w-ink-3: rgba(16, 38, 63, .48);
-  --w-ink-4: rgba(16, 38, 63, .28);
-  --w-hairline: rgba(16, 38, 63, .07);
-
-  /* Window and ambient: painted above the Mica window, single pale ice-blue hue */
-  --w-window: rgba(248, 250, 253, .86);
-  --w-window-blur: 60px;
-  --w-sidebar: rgba(255, 255, 255, .28);
-  --w-ambient-1: rgba(198, 224, 248, .75);
-  --w-ambient-2: rgba(214, 230, 246, .60);
-  --w-ambient-3: rgba(222, 236, 248, .55);
-  --w-grain-opacity: .05;
-
-  /* Frosted glass: white, strong blur, low saturation boost */
-  --w-glass: rgba(255, 255, 255, .74);
-  --w-glass-strong: rgba(255, 255, 255, .88);   /* sheets, dialogs, dock */
-  --w-glass-weak: rgba(255, 255, 255, .50);
-  --w-glass-blur: 36px;
-  --w-glass-blur-strong: 50px;
-  --w-glass-saturate: 125%;
-  --w-glass-shadow: inset 0 1px 0 rgba(255,255,255,.95), 0 0 0 1px rgba(255,255,255,.7),
-                    0 1px 2px rgba(16,38,63,.04), 0 14px 34px -18px rgba(16,38,63,.16);
-  --w-glass-shadow-raised: inset 0 1px 0 #fff, 0 0 0 1px rgba(255,255,255,.8),
-                    0 2px 6px rgba(16,38,63,.05), 0 30px 70px -30px rgba(16,38,63,.28);
-  --w-surface-sunken: rgba(16, 38, 63, .03);    /* stat strips, item lists inside glass */
-
-  /* Accent: one solid blue; no gradients on controls or text */
-  --w-accent: #1F6FD1;          /* white text 5.0:1 */
-  --w-accent-hover: #1A62BA;
-  --w-accent-soft: #E4EFFB;
-  --w-focus: 0 0 0 3px rgba(31, 111, 209, .28);
-
-  /* Water drawings (vials, gauge): pale two-tone only */
-  --w-water: #9CCBF4;
-  --w-water-deep: #6EAEEB;
-  --w-water-back: #D5E8FA;
-  --w-water-free: #CFEDE6;      /* reclaimable layer above the water line */
-
-  /* Safety levels: plain dots and thin bars, no glow */
-  --w-level-recommended: #2A9D8F;
-  --w-level-confirm: #D49A3E;
-  --w-level-advisory: #9AA7B6;
-  --w-level-protected: #8E84D8;
-  --w-level-unrecognized: #B7C0CA;
-
-  /* Signals */
-  --w-growth: #B5652A;
-  --w-growth-line: #D49A5A;
-  --w-danger: #C23B45;
-  --w-danger-soft: rgba(194, 59, 69, .07);
-  --w-success: #2A8F6E;
-
-  /* Type */
-  --w-font: "Segoe UI Variable Text", "Segoe UI", "Microsoft YaHei UI", "PingFang SC", system-ui, sans-serif;
-  --w-font-display: "Segoe UI Variable Display", "Segoe UI", "Microsoft YaHei UI", system-ui, sans-serif;
-  --w-font-mono: "Cascadia Mono", Consolas, monospace;
-  --w-fs-cap: 12.5px; --w-fs-md: 14px; --w-fs-lg: 16px; --w-fs-xl: 22px; --w-fs-2xl: 28px; --w-fs-hero: 84px;
-  --w-hero-weight: 200;
-
-  /* Geometry and motion */
-  --w-r-sm: 10px; --w-r: 14px; --w-r-lg: 20px; --w-r-xl: 24px; --w-r-pill: 999px;
-  --w-ease: cubic-bezier(.22, .8, .2, 1); --w-dur: 220ms;
-  --w-sidebar-w: 232px; --w-content-max: 1040px;
+/* Water UI v3 tokens (2026-11-06, final: approved round 5 rolled out to all eleven screens). Source of truth for the v3 mockup and the M6 UI ticket. */
+:root{
+  /* window: one soft sky-to-white gradient, top to bottom (175deg) */
+  --bg-1:#E3ECF6; --bg-2:#F0F4F9; --bg-3:#F8FAFC;
+  /* text and lines */
+  --ink:#111418; --ink-2:#5C6470; --ink-3:#9AA2AD; --line:#E7EBF0; --hairline:rgba(17,20,24,.07);
+  /* surfaces: white cards with a hairline; one dark main card per screen */
+  --card:#FFFFFF; --dark:#15181D; --dark-2:#22262D; --dark-line:#2A2E35; --on-dark:#FFFFFF; --on-dark-2:#9EA6B2;
+  /* data: four sky steps for magnitude, darker = more */
+  --sky-1:#7CCBF1; --sky-2:#A6DCF7; --sky-3:#C8EAFB; --sky-4:#E2F3FD; --sky-ink:#0F3550;
+  /* the one highlight: safe to clean, selected, switched on, done, the latest */
+  --lime:#D6F03C; --lime-ink:#1C2400; --lime-soft:#F1FAC8; --lime-text:#4A5A00;
+  /* attention: outline = look at it, solid = a problem (cannot delete, full, stopped); always with words beside it */
+  --hot:#FF4F2B; --hot-soft:#FFE7E1; --hot-text:#C2361A; --hot-on-dark:#FF8E75;
+  /* neutral: off, not selected, protected, empty cells and ticks */
+  --grey-1:#D5D8DD; --grey-2:#E7E9EC; --tick-off:#E3E6EA; --tick-off-dark:#30353D; --cell-off-dark:#2E333B;
+  /* shape: small corners and hairlines, almost no shadow */
+  --r-win:12px; --r-card:10px; --r-btn:8px; --r-btn-big:10px; --r-ctl:6px; --r-tag:4px; --r-cell:3px;
+  --sh-card:0 1px 0 rgba(17,20,24,.04); --sh-float:0 24px 60px rgba(17,20,24,.18); --scrim:rgba(17,20,24,.28);
+  /* type */
+  --font:"Segoe UI Variable Text","Segoe UI","Microsoft YaHei UI",system-ui,sans-serif;
+  --font-num:"Segoe UI Variable Display","Segoe UI","Microsoft YaHei UI",sans-serif;
+  --mono:"Cascadia Mono","Consolas",monospace;
+  /* type scale: 11 axis and labels · 12 secondary · 13 body · 15 card title · 36 card number (52 in the dark card) · 40 page title · 46 big numbers beside it; weights 300 numbers, 400 text, 600 titles */
 }
-@media (prefers-reduced-motion: reduce) { :root { --w-dur: 0ms; } }

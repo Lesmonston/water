@@ -1,24 +1,30 @@
-import {add, el, heading, empty, button, icon} from './common.mjs';
-import {formatBytes, dateTime, middlePath} from '../format.mjs';
+import {add, el, heading, metric, card, button, row, empty} from './common.mjs';
+import {heatmap, blocks, proportions} from './charts.mjs';
+import {formatBytes, dateTime} from '../format.mjs';
 import {resultList} from './done.mjs';
-export function history(state, actions) {
-  const page = add(el('section'), heading('清理记录', '每一次体检与清理，都有迹可循。'));
-  if (!state.history) return add(page, el('p', 'sub', '正在读取记录…'));
-  if (!state.history.length) return add(page, empty('还没有记录', '完成体检或清理后，可在这里回看结果。'));
-  const list = el('div', 'glass history-list');
-  for (const entry of [...state.history].sort((a, b) => Date.parse(b.at) - Date.parse(a.at))) {
-    const row = button('', () => actions.historyDetail(entry), 'history-row', `history-${entry.id}`);
-    row.setAttribute('aria-expanded', String(state.historyOpen === entry.id));
-    add(row, icon(entry.kind === 'clean' ? 'check' : 'pulse'), add(el('span', 'grow-fill'), el('strong', '', entry.kind === 'clean' ? '清理完成' : '体检记录'), el('span', 'cap', `${dateTime(entry.at)} · ${entry.summary_zh}`)), add(el('span', 'history-size'), el('b', '', formatBytes(entry.bytes)), el('span', 'cap', entry.kind === 'clean' ? '已释放' : '可放心清理')), icon('chev'));
-    const section = add(el('section'), row);
-    if (state.historyOpen === entry.id) {
-      const data = state.historyDetails.get(entry.id), detail = el('div', 'history-detail');
-      if (!data) add(detail, el('p', 'cap', '正在读取详情…'));
-      else if (entry.kind === 'clean') add(detail, resultList(data), el('p', 'cap', '清理日志位置'), el('code', 'path', middlePath(data.journal_display_path, 90), {title:data.journal_display_path}));
-      else add(detail, el('p', 'sub', `共识别 ${formatBytes(data.totals.recognized_bytes)} · ${data.categories.length} 类位置`));
-      add(section, detail);
+export function history(s, a) {
+  const list = s.history, page = add(el('section', 'screen'), heading('每一次，都记得', '每一次体检与清理，都有迹可循。'));
+  if (!list) return add(page, el('p', 'sub', '正在读取记录…'));
+  if (!list.length) return add(page, empty('还没有记录'));
+  add(page, proportions(list.map(e => ({title:dateTime(e.at), bytes:e.bytes, kind:e.kind === 'clean' ? 'lime' : 'sky'}))));
+  const left = el('div', 'history-content'), heat = card('每天');
+  add(heat, el('p', 'sub', '一格一天，同一天取最深一级；悬停查看每条记录。'), heatmap(list), el('p', 'sub', '浅蓝：体检或其它操作 · 天蓝越深：当次释放越多'));
+  add(left, heat);
+  const rows = card('体检与清理记录');
+  for (const e of list) {
+    const b = button('', () => a.historyDetail(e), 'history-row', `history-${e.id}`); b.setAttribute('aria-expanded', String(s.historyOpen === e.id));
+    add(b, row(e.summary_zh, dateTime(e.at), el('span', '', formatBytes(e.bytes)))); add(rows, b);
+    if (s.historyOpen === e.id) {
+      const detail = s.historyDetails.get(e.id);
+      if (detail?.groups) add(rows, resultList(detail));
+      else if (detail?.totals) add(rows, el('p', 'sub', `识别到 ${formatBytes(detail.totals.recognized_bytes)}`));
+      else if (detail?.groups === undefined && detail?.extra_bytes) add(rows, el('p', 'sub', `多出来 ${formatBytes(detail.extra_bytes)}`));
+      else add(rows, el('p', 'sub', e.summary_zh));
     }
-    add(list, section);
   }
-  return add(page, list);
+  add(left, rows);
+  const main = card('最近几次清理', 'dark main-card');
+  for (const e of list) if (['clean', 'purge'].includes(e.kind)) add(main, row(dateTime(e.at), e.summary_zh, el('span', '', formatBytes(e.bytes))));
+  add(main, add(el('div', 'bottom'), button('查看上次结果', a.showResults, 'btn primary', 'history-last', a.busy())));
+  return add(page, add(el('div', 'with-hero'), left, main));
 }

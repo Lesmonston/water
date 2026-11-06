@@ -1,85 +1,79 @@
-import {formatBytes, percent} from '../format.mjs';
-import {levels} from '../model.mjs';
+import {formatBytes} from '../format.mjs';
 export function el(tag, cls = '', text, attrs = {}) {
   const node = document.createElement(tag);
   if (cls) node.className = cls;
-  if (text !== undefined) node.textContent = text;
+  if (text !== undefined && text !== null) node.textContent = text;
   for (const [name, value] of Object.entries(attrs)) node.setAttribute(name, String(value));
   return node;
 }
-export function add(node, ...children) { node.append(...children.filter(c => c != null)); return node; }
+export function add(node, ...children) { node.append(...children.flat().filter(c => c != null && c !== false)); return node; }
 export function svg(tag, attrs = {}) {
   const node = document.createElementNS(document.getElementById('sprite').namespaceURI, tag);
-  for (const [key, value] of Object.entries(attrs)) node.setAttribute(key, String(value));
+  for (const [name, value] of Object.entries(attrs)) node.setAttribute(name, String(value));
   return node;
 }
-export function icon(name, cls = '') { return add(svg('svg', {class:`i ${cls}`, 'aria-hidden':'true'}), svg('use', {href:`#i-${name}`})); }
-export function button(text, action, cls = 'btn btn-glass', key, disabled = false) {
+export const icon = name => add(svg('svg', {class:'i', 'aria-hidden':'true'}), svg('use', {href:`#i-${name}`}));
+export function button(text, action, cls = 'btn soft', key, disabled = false) {
   const node = el('button', cls, text, {type:'button'});
   if (key) node.dataset.key = key;
-  node.disabled = disabled;
-  node.addEventListener('click', action);
-  return node;
+  node.disabled = disabled; node.addEventListener('click', action); return node;
 }
-export function heading(title, subtitle) { return add(el('header', 'page-heading'), el('h1', '', title), el('p', 'sub', subtitle)); }
-export function metric(value, label = '', cls = 'kpi') {
-  const text = formatBytes(value), split = text.lastIndexOf(' ');
-  return add(el('div', cls), el('span', '', text.slice(0, split)), el('small', '', `${text.slice(split + 1)}${label ? ' ' + label : ''}`));
+export function iconButton(label, glyph, action, key) {
+  const b = button('', action, 'icon-btn', key);
+  b.setAttribute('aria-label', label); b.title = label; return add(b, icon(glyph));
 }
-export function level(name) { return add(el('span', `level ${name}`), el('i'), el('span', '', levels[name] ?? levels.unrecognized)); }
-export function check(label, checked, change, key, mixed = false) {
+export function metric(value, label, raw = false) {
+  const text = raw ? String(value) : formatBytes(value), n = el('div', 'number');
+  const match = /^(.*) (GB|MB)$/.exec(text);
+  if (match) add(n, el('span', '', match[1]), el('small', '', match[2])); else n.textContent = text;
+  return add(el('div', 'metric'), n, label ? el('div', 'sub', label) : null);
+}
+export function heading(title, subtitle, metrics = []) {
+  return add(el('header', 'heading'), add(el('div', 'heading-title'), el('p', 'eyebrow', subtitle), el('h1', '', title)), add(el('div', 'bigs'), metrics));
+}
+export function card(title, cls = '', tools = []) {
+  return add(el('section', `card ${cls}`), add(el('div', 'card-head'), el('h2', '', title), add(el('div', 'card-tools'), tools)));
+}
+export const tag = (text, kind = '') => el('span', `tag ${kind}`, text);
+export function check(label, checked, change, key, disabled = false) {
   const input = el('input', 'check', undefined, {type:'checkbox', 'aria-label':label, 'data-key':key});
-  input.checked = checked; input.indeterminate = mixed;
-  input.addEventListener('change', () => change(input.checked));
-  return input;
+  input.checked = checked; input.disabled = disabled;
+  input.addEventListener('change', () => change(input.checked)); return input;
 }
-export const catIcon = c => ({agent_tool:'chip', browser:'globe', system_temp:'hourglass', app_leftover:'box', dev_cache:'code', crash_log:'warn', gpu_system:'gpu', custom:'folder', unrecognized:'info'}[c] ?? 'folder');
-// Shown under a stop button when the stop failed while progress reading is paused; never part of the notice.
-export function stopNote(state) { return state.stopFailed ? el('p', 'cap stop-note', '停止请求没有送达，请先重新连接再试。') : null; }
-export function empty(title, subtitle) { return add(el('section', 'glass empty'), icon('berg'), el('h2', '', title), el('p', 'sub', subtitle)); }
-export function insight(item, open) {
-  return add(el('aside', 'glass insight'), icon('trend', 'growth'), add(el('div', 'grow-fill'), el('strong', '', item.title_zh), el('p', 'sub', item.message_zh)), button('查看修复建议', () => open(item.group_id), 'btn btn-ghost', `insight-${item.group_id}`));
+export function toggle(label, checked, action, key, disabled = false) {
+  const b = button('', action, `switch ${checked ? 'on' : ''}`, key, disabled);
+  b.setAttribute('role', 'switch'); b.setAttribute('aria-checked', String(checked)); b.setAttribute('aria-label', label); b.title = label; return b;
 }
-let serial = 0;
-export function water({used = 0, reclaim = 0, before = null, gauge = false, progress = 0} = {}) {
-  const clip = `water-${++serial}`, width = gauge ? 330 : 100, height = gauge ? 330 : 170;
-  const top = gauge ? 24 : 4, bottom = height - top, area = bottom - top;
-  const y = bottom - area * Math.max(0, Math.min(100, used)) / 100;
-  const node = svg('svg', {viewBox:`0 0 ${width} ${height}`, class:gauge ? 'water-gauge' : 'water-vial', 'aria-hidden':'true'});
-  const shape = gauge ? svg('circle', {cx:165, cy:165, r:141}) : svg('rect', {x:4, y:4, width:92, height:162, rx:32});
-  add(node, add(svg('defs'), add(svg('clipPath', {id:clip}), shape)));
-  const liquid = svg('g', {'clip-path':`url(#${clip})`});
-  add(liquid, svg('rect', {width, height, class:'vial-glass'}));
-  const wave = (offset, cls) => {
-    const path = svg('path', {d:`M-120 ${y + offset} q30 -9 60 0 t60 0 t60 0 t60 0 t60 0 t60 0 t60 0 t60 0 t60 0 V${height} H-120Z`, class:cls});
-    path.style.setProperty('--wave-delay', `${-(performance.now() % (cls.includes('slow') ? 13000 : 8000))}ms`);
-    return path;
+export function row(title, subtitle, ...end) {
+  return add(el('div', 'row'), add(el('div', 'grow'), el('strong', '', title), subtitle ? el('p', 'sub', subtitle) : null), end);
+}
+export function empty(title, detail = '') { return add(card(title, 'empty'), el('p', 'sub', detail)); }
+export const catIcon = c => ({agent_tool:'chip', browser:'globe', dev_cache:'code', system_temp:'hourglass', app_leftover:'box', crash_log:'warn', gpu_system:'gpu'}[c] ?? 'folder');
+let menuSerial = 0;
+export function menu(label, entries, key) {
+  const root = el('div', 'menu-wrap'), panel = el('div', 'menu', undefined, {role:'menu', id:`menu-${++menuSerial}`}); panel.hidden = true;
+  const trigger = iconButton(label, 'more', () => panel.hidden ? open() : close(), key);
+  trigger.setAttribute('aria-haspopup', 'menu'); trigger.setAttribute('aria-expanded', 'false'); trigger.setAttribute('aria-controls', panel.id);
+  const close = () => { panel.hidden = true; trigger.setAttribute('aria-expanded', 'false'); trigger.focus(); };
+  const open = () => {
+    root.closest('dialog, main, header')?.querySelectorAll('.menu').forEach(other => { other.hidden = true; other.previousElementSibling?.setAttribute('aria-expanded', 'false'); });
+    panel.hidden = false; trigger.setAttribute('aria-expanded', 'true'); panel.querySelector('button')?.focus();
   };
-  if (reclaim > 0) add(liquid, wave(-3 - area * Math.min(100, reclaim) / 100, 'water-free wave'));
-  add(liquid, wave(-3, 'water-back wave'), wave(3, 'water-front wave slow'));
-  if (before !== null) add(liquid, svg('line', {x1:0, x2:width, y1:bottom - area * before / 100, y2:bottom - area * before / 100, class:'before-line'}));
-  add(node, liquid);
-  if (!gauge) {
-    const edge = shape.cloneNode(); edge.setAttribute('class', 'vial-edge');
-    const outline = shape.cloneNode(); outline.setAttribute('class', 'vial-outline');
-    add(node, edge, outline,
-      svg('ellipse', {cx:50, cy:7, rx:18, ry:3, class:'vial-mouth'}),
-      svg('path', {d:'M13 32Q16 10 37 10H63Q84 10 87 32', class:'vial-top'}),
-      svg('path', {d:'M12 40V129 M88 40V129', class:'vial-highlight'}));
-  }
-  if (gauge) add(node, svg('circle', {cx:165, cy:165, r:153, class:'gauge-track'}), svg('circle', {cx:165, cy:165, r:153, class:'gauge-progress', pathLength:100, 'stroke-dasharray':`${progress} 100`, transform:'rotate(-90 165 165)'}));
-  return node;
+  for (const [text, action, danger = false] of entries) add(panel, button(text, () => { close(); action(); }, `menu-item ${danger ? 'danger' : ''}`));
+  panel.querySelectorAll('button').forEach(b => b.setAttribute('role', 'menuitem'));
+  root.addEventListener('keydown', event => {
+    if (event.key === 'Escape' && !panel.hidden) { event.preventDefault(); event.stopPropagation(); close(); }
+    if (!['ArrowDown', 'ArrowUp', 'Home', 'End'].includes(event.key)) return;
+    event.preventDefault(); if (panel.hidden) { open(); return; }
+    const choices = [...panel.querySelectorAll('button')], index = choices.indexOf(document.activeElement);
+    choices[event.key === 'Home' ? 0 : event.key === 'End' ? choices.length - 1 : (index + (event.key === 'ArrowUp' ? -1 : 1) + choices.length) % choices.length]?.focus();
+  });
+  root.addEventListener('focusout', event => { if (!root.contains(event.relatedTarget)) { panel.hidden = true; trigger.setAttribute('aria-expanded', 'false'); } });
+  return add(root, trigger, panel);
 }
-export function driveWater(drive, recommended = '0', before = null) {
-  return water({used:100 - percent(drive.free_bytes, drive.total_bytes), reclaim:percent(recommended, drive.total_bytes), before});
+export function search(label, submit, key, value = '') {
+  const form = el('form', 'search'), input = el('input', '', undefined, {type:'search', placeholder:label, 'aria-label':label, maxlength:64, 'data-key':key}); input.value = value;
+  add(form, icon('search'), input, button('搜索', () => submit(input.value), 'btn soft', `${key}-go`));
+  form.addEventListener('submit', event => { event.preventDefault(); submit(input.value); }); return form;
 }
-export function progressRing(value, title, progress, draining = false) {
-  return add(el('div', 'gauge'), water({used:draining ? 100 - progress : progress, gauge:true, progress}), add(el('div', 'gauge-center'), el('p', 'cap', title), metric(value, '', 'gauge-value'), el('span', 'cap', `${Math.round(progress)}%`)));
-}
-export function copyButton(text, key = 'copy-hint') {
-  const node = button('复制给项目维护者', async () => {
-    try { await navigator.clipboard.writeText(text); node.textContent = '已复制'; }
-    catch { node.textContent = '未能复制，请选择文字复制'; }
-  }, 'btn btn-ghost', key);
-  return node;
-}
+export function skipNotice(value) { return value ? el('p', 'warning', value.notes_zh.join('；')) : null; }

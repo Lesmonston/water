@@ -1,86 +1,13 @@
-import {bytes} from './format.mjs';
-export const levels = Object.freeze({recommended:'推荐清理', confirm:'需要确认', advisory:'仅供参考', protected:'受保护', unrecognized:'未识别'});
-export const categoryOrder = ['agent_tool', 'browser', 'system_temp', 'app_leftover', 'dev_cache', 'crash_log', 'gpu_system', 'custom', 'unrecognized'];
-export function groups(result) { return result?.categories.flatMap(c => c.groups) ?? []; }
-export function canSelect(group) { return group?.selectable === true; }
-export function resetSelection(result) {
-  return new Map(groups(result).filter(g => canSelect(g) && g.default_selected).map(g => [g.group_id, new Set()]));
-}
-export function installResult(state, result) {
-  return {...state, result, selection:resetSelection(result), manualExclusions:new Set(), details:new Map(), excludedDetails:new Map(), skipFailure:'', stale:false, filter:'all', drive:null};
-}
-// Fresh details and the metadata needed to count exclusions have separate lifetimes.
-export function selectionDetails(state) { return new Map([...(state.excludedDetails ?? []), ...state.details]); }
-export function refreshResult(state, result) {
-  const excludedDetails = new Map([...selectionDetails(state)].map(([id, data]) => [id, {...data, items:data.items.filter(item => state.selection.get(id)?.has(item.item_id))}]).filter(([, data]) => data.items.length));
-  return {...state, result, details:new Map(), excludedDetails};
-}
-const copySelection = selection => new Map([...selection.keys()].map(id => [id, new Set(selection.get?.(id) ?? [])]));
-export function setSelected(result, selection, id, checked, details = new Map()) {
-  const next = copySelection(selection), group = groups(result).find(g => g.group_id === id);
-  if (!canSelect(group)) { next.delete(id); return next; }
-  if (checked) { if (!next.has(id) || !hasSelectedItems(group, next, details)) next.set(id, new Set()); } else next.delete(id);
-  return next;
-}
-export function selectCategory(result, selection, category, checked, drive = null, details = new Map(), filter = 'all') {
-  return groups(result).filter(g => g.category === category && (filter === 'all' || g.level === filter) && (!drive || g.by_drive?.some(d => d.root === drive && d.item_count > 0))).reduce((next, g) => setSelected(result, next, g.group_id, checked, details), copySelection(selection));
-}
-export function excludedItems(group, selection, details = new Map(), drive = null) {
-  const excluded = selection.get?.(group.group_id);
-  return (details.get(group.group_id)?.items ?? []).filter(item => item.eligible && excluded?.has(item.item_id) && (!drive || itemDrive(item, group) === drive));
-}
-export function itemDrive(item, group) { return /^[A-Za-z]:[\\/]/.test(item.display_path) ? item.display_path.slice(0, 2).toUpperCase() + '\\' : group.drive_root; }
-export function selectedGroups(result, selection, details = new Map()) {
-  return groups(result).filter(g => hasSelectedItems(g, selection, details));
-}
-export function hasSelectedItems(group, selection, details = new Map()) {
-  return canSelect(group) && selection.has(group.group_id) && excludedItems(group, selection, details).length < group.eligible_count;
-}
-export function selectedBytes(result, selection, details = new Map(), drive = null) {
-  return selectedGroups(result, selection, details).reduce((sum, g) => {
-    const total = bytes(drive ? g.by_drive?.find(d => d.root === drive)?.eligible_bytes ?? '0' : g.eligible_bytes);
-    const excluded = excludedItems(g, selection, details, drive).reduce((n, item) => n + bytes(item.total_bytes), 0n);
-    return sum + (total > excluded ? total - excluded : 0n);
-  }, 0n);
-}
-export function selectedCount(result, selection, details = new Map()) {
-  return selectedGroups(result, selection, details).reduce((sum, g) => sum + Math.max(0, g.eligible_count - excludedItems(g, selection, details).length), 0);
-}
-export function setItemSelected(result, selection, data, itemId, checked, details = new Map([[data.group.group_id, data]])) {
-  const item = data.items.find(i => i.item_id === itemId), group = groups(result).find(g => g.group_id === data.group.group_id);
-  if (!canSelect(group) || !hasSelectedItems(group, selection, details) || !item?.eligible || !item.item_id) return copySelection(selection);
-  const next = copySelection(selection), excluded = next.get(group.group_id);
-  if (checked) excluded.delete(itemId); else excluded.add(itemId);
-  // Emptying a group is an opt-out, even if a later settings refresh restores items.
-  if (!hasSelectedItems(group, next, details)) next.delete(group.group_id);
-  return next;
-}
-export function cleanSelection(result, selection, details = new Map()) {
-  const selected = selectedGroups(result, selection, details);
-  return {groupIds:selected.map(g => g.group_id), excludeItemIds:[...new Set(selected.flatMap(g => [...selection.get(g.group_id)]))]};
-}
-// Filtering projects only the quantities supplied by IPC-M3C. It never edits selection.
-export function driveResult(result, drive) {
-  if (!drive) return result;
-  const categories = result.categories.map(category => {
-    const projected = category.groups.flatMap(group => {
-      const part = group.by_drive?.find(d => d.root === drive);
-      const total = ['advisory', 'protected'].includes(group.level) ? (group.by_drive?.length === 1 ? group.total_bytes : null) : part?.eligible_bytes;
-      return part?.item_count ? [{...group, item_count:part.item_count, total_bytes:total,
-        summary_zh:`${part.item_count.toLocaleString('en-US')} 项 · ${drive.slice(0, 2)}`} ] : [];
-    });
-    return {...category, groups:projected, partial_bytes:projected.some(g => g.total_bytes === null), total_bytes:projected.reduce((sum, g) => sum + bytes(g.total_bytes ?? '0'), 0n).toString()};
-  }).filter(category => category.groups.length);
-  const totals = Object.fromEntries(['recommended', 'confirm', 'advisory', 'protected', 'unrecognized'].map(level => [level + '_bytes', categories.flatMap(c => c.groups).filter(g => g.level === level).reduce((sum, g) => sum + bytes(g.total_bytes ?? '0'), 0n).toString()]));
-  const partial_totals = Object.fromEntries(categories.flatMap(c => c.groups).filter(g => g.total_bytes === null).map(g => [g.level + '_bytes', true]));
-  partial_totals.recognized_bytes = categories.some(c => c.partial_bytes);
-  totals.recognized_bytes = Object.values(totals).reduce((sum, value) => sum + bytes(value), 0n).toString();
-  return {...result, categories, totals, partial_totals, recommended_by_drive:result.recommended_by_drive.filter(d => d.root === drive)};
-}
-export function sortedGroups(items, sort) {
-  const value = g => bytes(sort === 'growth' ? g.growth?.bytes_delta ?? '0' : g.total_bytes ?? '0');
-  const order = Object.keys(levels);
-  return [...items].sort((a, b) => (sort === 'growth' ? 0 : order.indexOf(a.level) - order.indexOf(b.level)) || (value(a) === value(b) ? 0 : value(a) > value(b) ? -1 : 1));
+export const levels = Object.freeze({recommended:'放心清', confirm:'要你看', advisory:'只统计', protected:'受保护', unrecognized:'未识别'});
+export function viewCards(conclusion) { return conclusion.cards; }
+export function validQuery(value) { return typeof value === 'string' && [...value].length <= 64 && !/[\\/:\u0000-\u001f\u007f]/.test(value); }
+export function itemRow(group, row) { return !group.group_id.startsWith('m:') && !row.row_id.startsWith('r:') && group.item_count <= 8; }
+export function cleanLabel(plan) { return `${BigInt(plan.chosen_bytes) > 0n ? '清理' : '清理推荐项'}`; }
+export function canonicalRoute(value) {
+  const name = value.replace(/^#\/?/, '');
+  const alias = {results:'home', locations:'settings/content', about:'settings/about', settings:'settings/content'};
+  const route = alias[name] ?? name;
+  return ['home', 'quarantine', 'trends', 'history', 'settings/content', 'settings/skip', 'settings/decl', 'settings/about'].includes(route) ? route : 'home';
 }
 // Monotone cubic Hermite interpolation. Limited shared tangents keep the
 // Bezier controls ordered inside each interval, with no overshoot at extrema.

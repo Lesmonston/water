@@ -1,1556 +1,307 @@
-import {test, before, after, beforeEach, afterEach} from 'node:test';
+import {test, before, after, afterEach} from 'node:test';
 import assert from 'node:assert/strict';
 import {createServer} from 'node:http';
 import {readFileSync, writeFileSync, mkdirSync, realpathSync} from 'node:fs';
 import {resolve, dirname, join, relative, isAbsolute, extname} from 'node:path';
 import {fileURLToPath} from 'node:url';
 import {openPrivateBrowser} from '../../../../scripts/acceptance/native-vw-private-browser.mjs';
-import {formatBytes, count, byteDelta, countDelta, elapsed} from '../format.mjs';
-import {groups, resetSelection, selectedBytes, sortedGroups} from '../model.mjs';
-
-const root = resolve(dirname(fileURLToPath(import.meta.url)), '../../../..');
-const ui = join(root, 'apps/water/ui');
-const fixture = JSON.parse(readFileSync(join(root, 'contracts/checkup-v1/ui-fixtures.json'), 'utf8'));
-const m3c = {...fixture, ...JSON.parse(readFileSync(join(root, 'contracts/m3c-v1/ui-fixtures-m3c.json'), 'utf8'))};
-const shots = resolve(process.env.WATER_W2_SHOTS_DIR ?? join(root, '.local/ui-shots', new Date().toISOString().replaceAll(':', '-')));
-const localRelative = relative(join(root, '.local'), shots);
-assert(localRelative && !localRelative.startsWith('..') && !isAbsolute(localRelative), 'Screenshots must stay in this worktree .local');
-mkdirSync(shots, {recursive:true});
-assert(!relative(realpathSync(join(root, '.local')), realpathSync(shots)).startsWith('..'));
-let server, browser, base, injection, scenario = 0, currentTest;
-const errors = [];
-const lateErrors = [];
-const defaults = groups(fixture.scan_result).filter(g => g.selectable && g.default_selected);
-const selectionText = n => `已选 ${count(n)} 组`;
-const cleanEntry = fixture.history_list.find(e => e.id === fixture.clean_start.clean_id);
-
-// Test-only host. Production modules have no replay branch, fixture import, or test hook.
+import {formatBytes} from '../format.mjs';
+const root = resolve(dirname(fileURLToPath(import.meta.url)), '../../../..'), ui = join(root, 'apps/water/ui');
+const f = Object.assign({}, ...['checkup-v1/ui-fixtures.json', 'm3c-v1/ui-fixtures-m3c.json', 'm35-v1/ui-fixtures-m35.json'].map(p => JSON.parse(readFileSync(join(root, 'contracts', p), 'utf8'))));
+const shots = resolve(process.env.WATER_W2_SHOTS_DIR);
+assert(relative(join(root, '.local'), shots) && !relative(join(root, '.local'), shots).startsWith('..') && !isAbsolute(relative(join(root, '.local'), shots)));
+mkdirSync(shots, {recursive:true}); assert(!relative(realpathSync(join(root, '.local')), realpathSync(shots)).startsWith('..'));
+let server, browser, base, injection, sequence = 0;
+const pause = ms => new Promise(ok => setTimeout(ok, ms));
 function fakeHost(f, options) {
   const copy = value => structuredClone(value);
-  if (options.longResults) {
-    for (const category of f.scan_result.categories) {
-      category.groups = category.groups.flatMap(group => Array.from({length:3}, (_, i) => ({...copy(group), group_id:`${group.group_id}-polish-${i}`})));
-      category.total_bytes = (BigInt(category.total_bytes) * 3n).toString();
-    }
-    for (const key of Object.keys(f.scan_result.totals)) f.scan_result.totals[key] = (BigInt(f.scan_result.totals[key]) * 3n).toString();
-    for (const drive of f.scan_result.recommended_by_drive) drive.bytes = (BigInt(drive.bytes) * 3n).toString();
-  }
-  if (options.negativeGrowth) {
-    const delta = {bytes_delta:'-1288490189', count_delta:-5};
-    Object.assign(f.scan_result.categories[0].groups[0].growth, delta);
-    Object.assign(f.group_details['codex-marketplace-staging'].group.growth, delta);
-    Object.assign(f.trends.growth[0], delta);
-  }
-  const NativeDate = Date;
-  const now = NativeDate.parse(f.scan_result.finished_at) + (options.due ? 9 * 86400000 : 0);
-  window.Date = class extends NativeDate { constructor(...args) { super(...(args.length ? args : [now])); } static now() { return now; } };
-  const control = window.__waterTest = {owner:options.owner, scenario:options.scenario, calls:[], errors:[], scanIndex:0, cleanIndex:0, holdScan:true, holdClean:true, holdApp:!!options.holdApp, scanIdleBefore:0, offline:false, progressErrors:{scan_progress:[], clean_progress:[]}, holdProgress:null, delayedError:null, nextError:null, scanned:!!options.scanned, busy:options.busy ?? 'idle', locations:copy(f.locations), addCancelled:false, plan:null, planSequence:0, consumed:false, cleanFinished:!!options.cleanFinished};
-  control.categoryOverrides = {};
-  // Capture the ordinary state installation only for testing the independent
-  // notice guards after deliberately resolving an uncertain settings outcome.
-  if (options.observeAppState) {
-    const assign = Object.assign;
-    Object.assign = function(target, ...sources) {
-      if (sources.some(s => s?.selection instanceof Map && s.result)) { control.appState = target; Object.assign = assign; }
-      return assign(target, ...sources);
-    };
-  }
-  // Observe the actual detail Map through its ordinary operations, without a product hook.
-  if (options.observeDetailCache) {
-    const set = Map.prototype.set, iterator = Map.prototype[Symbol.iterator];
-    control.detailCacheReads = 0;
-    Map.prototype.set = function(id, value) {
-      if (!control.detailCache && value?.group?.group_id === options.observeDetailCache && Array.isArray(value.items)) control.detailCache = this;
-      return set.call(this, id, value);
-    };
-    Map.prototype[Symbol.iterator] = function() {
-      if (this === control.detailCache) control.detailCacheReads++;
-      return iterator.call(this);
-    };
-  }
-  // Opt-in current service: immutable scan facts, projected through today's skip list.
-  const snapshot = copy(f);
-  if (options.liveSkips) {
-    const data = snapshot.group_details['custom:drive-f:node-modules'], item = data.items[3];
-    item.eligible = true; item.reason_zh = null;
-    data.group.eligible_count++; data.group.eligible_bytes = String(BigInt(data.group.eligible_bytes) + BigInt(item.total_bytes));
-    data.group.by_drive[0].eligible_bytes = data.group.eligible_bytes;
-    Object.assign(snapshot.scan_result.categories.flatMap(c => c.groups).find(g => g.group_id === data.group.group_id), copy(data.group));
-    if (options.preScanSkip) control.locations.skipped.push({skip_id:'s-before-scan', display_path:snapshot.group_details['codex-marketplace-staging'].items[0].display_path, added_at:f.scan_result.finished_at});
-  }
-  function projectSkips() {
-    if (!options.liveSkips) return;
-    f.scan_result = copy(snapshot.scan_result); f.group_details = copy(snapshot.group_details);
-    for (const group of f.scan_result.categories.flatMap(c => c.groups)) {
-      const data = f.group_details[group.group_id];
-      for (const item of data?.items ?? []) if (item.eligible && control.locations.skipped.some(s => s.display_path.toLowerCase() === item.display_path.toLowerCase())) {
-        item.eligible = false; item.reason_zh = '已设为以后都跳过'; item.in_use = null;
-        group.eligible_count--; group.eligible_bytes = String(BigInt(group.eligible_bytes) - BigInt(item.total_bytes));
-        const drive = group.by_drive.find(d => d.root === item.display_path.slice(0, 3));
-        if (drive) drive.eligible_bytes = String(BigInt(drive.eligible_bytes) - BigInt(item.total_bytes));
-        if (group.level === 'recommended') {
-          f.scan_result.totals.recommended_bytes = String(BigInt(f.scan_result.totals.recommended_bytes) - BigInt(item.total_bytes));
-          const row = f.scan_result.recommended_by_drive.find(d => d.root === item.display_path.slice(0, 3));
-          if (row) row.bytes = String(BigInt(row.bytes) - BigInt(item.total_bytes));
-        }
-      }
-      group.selectable = ['recommended', 'confirm'].includes(group.level) && group.eligible_count > 0 && control.categoryOverrides[group.category] !== false;
-      group.default_selected = group.selectable && group.level === 'recommended';
-      if (group.eligible_count < group.item_count) group.summary_zh += ` · 跳过 ${group.item_count - group.eligible_count} 个`;
-      if (data) data.group = copy(group);
-    }
-    f.scan_result.recommended_by_drive = f.scan_result.recommended_by_drive.filter(d => BigInt(d.bytes) > 0n);
-  }
-  projectSkips();
-  // Only harness resets bypass the close prompt; every scenario still tests the real close guard.
-  addEventListener('beforeunload', event => { if (control.resetting) event.stopImmediatePropagation(); }, {capture:true});
-  addEventListener('error', e => control.errors.push(e.message));
-  addEventListener('unhandledrejection', e => control.errors.push(String(e.reason)));
-  const consoleError = console.error.bind(console);
-  console.error = (...args) => { control.errors.push(args.map(String).join(' ')); consoleError(...args); };
-  if (options.locked) control.locations.categories[0].locked = true;
+  const c = window.__waterTest = {calls:[], errors:[], scan:0, clean:0, dedupe:0, purge:0, busy:options.busy ?? 'idle', conclusion:copy(f[options.conclusion ?? 'v2_conclusion_typical']), locations:copy(f.v2_locations), quarantine:copy(f[options.quarantine ?? 'v2_quarantine_list']), dup:copy(f[options.dup ?? 'v2_dedupe_result']), clipboard:[], resetting:false, skipIds:[], scanned:false, cleaned:false};
+  if (options.reverseCards) c.conclusion.cards.reverse();
+  if (options.noLast) c.noLast = true;
   if (options.unavailable) return;
-  const fail = key => { throw copy(f.errors[key] ?? {code:'not_found', message_zh:'这份记录暂时无法读取。'}); };
+  Object.defineProperty(navigator, 'clipboard', {configurable:true, value:{writeText:async text => { if (c.clipboardFail) throw new Error('denied'); c.clipboard.push(text); }}});
+  addEventListener('beforeunload', event => { if (c.resetting) event.stopImmediatePropagation(); }, {capture:true});
+  addEventListener('error', event => c.errors.push(event.message)); addEventListener('unhandledrejection', event => c.errors.push(String(event.reason)));
+  const NativeDate = Date; window.Date = class extends NativeDate { constructor(...args) { super(...(args.length ? args : ['2026-11-02T09:00:00Z'])); } static now() { return NativeDate.parse('2026-11-02T09:00:00Z'); } };
   window.__TAURI__ = {core:{invoke:async (command, args) => {
-    control.calls.push({command, args:copy(args), at:performance.now()});
-    if (Object.entries(args).some(([key, value]) => [value].flat().some(v => typeof v === 'string' && (key === 'confirmToken' ? /\\/.test(v) : /[A-Za-z]:[\\/]|\\/.test(v) || v.startsWith('/'))))) throw new Error('PATH_SENT_TO_HOST');
-    if (control.offline) throw copy(f.errors.unavailable);
-    // Hold only the next page read, with its response captured at issuance.
-    if (control.heldRead?.command === command && !control.heldRead.started) {
-      const held = control.heldRead; held.started = true;
-      while (!held.release) await new Promise(ok => setTimeout(ok, 20));
-      held.finished = true;
-      if (held.error) throw copy(held.error);
-      return copy(held.value);
-    }
-    if (control.holdProgress?.command === command) {
-      if (!control.holdProgress.failed) { control.holdProgress.failed = true; throw copy(f.errors.unavailable); }
-      while (control.holdProgress) await new Promise(ok => setTimeout(ok, 20));
-    }
-    if (control.delayedError?.command === command) {
-      const held = control.delayedError; held.started = true;
-      held.stopNoteAtStart = document.querySelector('.stop-note')?.textContent ?? null;
-      while (!held.release) await new Promise(ok => setTimeout(ok, 20));
-      held.finished = true; if (held.error) throw copy(held.error);
-    }
-    if (control.progressErrors[command]?.length) throw copy(control.progressErrors[command].shift());
-    if (control.nextError?.command === command) { const error = control.nextError.error; control.nextError = null; if (command === 'clean_start') control.consumed = true; throw error; }
+    c.calls.push({command, args:copy(args)});
+    if (c.nextError?.command === command) { const error = c.nextError.error; c.nextError = null; throw copy(error); }
     switch (command) {
-      case 'app_state': {
-        while (control.holdApp) await new Promise(ok => setTimeout(ok, 20));
-        const value = {...copy(options.due ? f.app_state_due : control.scanned ? f.app_state_after_scan : f.app_state_fresh), busy:control.busy};
-        if (control.cleanFinished) for (const drive of value.drives) { const after = f.clean_result.drives.find(d => d.root === drive.root); if (after) drive.free_bytes = after.free_after; }
-        return value;
+      case 'app_state': { const app = copy(f[options.noQuarantine ? 'v2_app_state_plain' : 'v2_app_state_quarantine']); app.busy = c.busy; if (c.noLast) app.last_scan = null; if (c.quarantine.cards.length === 0) app.quarantine = null; return app; }
+      case 'locations_get': return copy(c.locations);
+      case 'trends': return copy(c.trends ?? f.v2_trends);
+      case 'scan_start': c.busy = 'scanning'; c.scan = 0; return copy(f.v2_scan_start);
+      case 'scan_cancel': c.scan = f.v2_scan_progress_sequence.length - 1; return {};
+      case 'scan_progress': { const p = copy(f.v2_scan_progress_sequence[c.scan]); if (p.state !== 'running') { c.busy = 'idle'; c.scanned = true; } return p; }
+      case 'conclusion_get': return copy(c.conclusion);
+      case 'conclusion_decide': {
+        if (args.version !== c.conclusion.version) throw copy(f.v2_errors.conclusion_stale);
+        c.conclusion = copy(c.nextConclusion ?? (args.decision.category ? f.v2_conclusion_category_off : f.v2_conclusion_after_decide)); c.nextConclusion = null;
+        if (args.decision.group && c.undo) c.conclusion = copy(f.v2_conclusion_typical);
+        return copy(c.conclusion);
       }
-      case 'scan_start': if (control.busy !== 'idle') fail('busy'); control.busy = 'scanning'; control.scanIndex = 0; control.consumed = false; return copy(f.scan_start);
-      case 'scan_cancel': control.scanStopped = true; control.holdScan = false; return {};
-      case 'scan_progress': {
-        const value = copy(f.scan_progress_sequence[control.scanIndex]);
-        if (control.scanIdleBefore > 0) { control.scanIdleBefore--; return {...value, scan_id:null, state:'idle'}; }
-        if (control.scanStopped) value.state = 'cancelled';
-        if (control.scanTerminalIdle && value.state === 'completed') value.state = 'idle';
-        if (value.state !== 'running') { control.busy = 'idle'; control.scanned = true; }
-        if (!control.holdScan) control.scanIndex = Math.min(control.scanIndex + 1, f.scan_progress_sequence.length - 1);
-        return value;
-      }
-      case 'scan_result': return {...copy(control.scanResult ?? f.scan_result), ...(control.scanStopped ? {status:'partial'} : {})};
+      case 'detail_get': { const d = copy(args.mode === 'category' ? f.v2_detail_category : f.v2_detail_location); d.version = c.conclusion.version; d.plan_bytes = c.conclusion.plan.bytes; return d; }
       case 'group_detail': {
-        if (!f.group_details[args.groupId]) fail('not_found');
-        const value = copy(f.group_details[args.groupId]);
-        value.items = value.items.filter(item => item.item_id !== control.omitDetailItem);
-        return value;
+        const source = args.groupId === 'codex-runtimes' ? f.v2_group_detail_items : args.groupId.startsWith('m:') ? f.v2_group_detail_merged : f.v2_group_detail_rows;
+        const d = copy(source); d.group.group_id = args.groupId; return d;
       }
+      case 'group_items': return copy(args.query !== null ? f.v2_group_items_search : f.v2_group_items_row);
+      case 'skip_add': c.skipIds.push(args.itemId); c.conclusion = copy(f.v2_conclusion_stale); return copy(c.locations);
+      case 'skip_remove': c.locations.skipped = c.locations.skipped.filter(x => x.skip_id !== args.skipId); return copy(c.locations);
       case 'clean_prepare': {
-        if (control.busy !== 'idle') fail('busy');
-        const groups = f.scan_result.categories.flatMap(c => c.groups);
-        const selected = args.groupIds.map(id => groups.find(g => g.group_id === id));
-        if (!selected.length || selected.some(g => !g?.selectable)) fail('invalid');
-        const defaultIds = f.clean_prepare_default.groups.map(g => g.group_id);
-        const value = copy(f.clean_prepare_default);
-        value.confirm_token = '/opaque+token=' + (++control.planSequence);
-        if (options.liveSkips || args.groupIds.length !== defaultIds.length || !defaultIds.every(id => args.groupIds.includes(id))) {
-          value.groups = selected.map(g => ({group_id:g.group_id, title_zh:g.title_zh, level:g.level, item_count:g.eligible_count, total_bytes:g.eligible_bytes, in_use_note_zh:g.in_use?.process_label_zh ?? null}));
-          value.total_bytes = selected.reduce((s, g) => s + BigInt(g.eligible_bytes), 0n).toString();
-          value.item_count = selected.reduce((s, g) => s + g.eligible_count, 0);
-          value.by_drive = [...new Set(selected.map(g => g.drive_root))].map(root => ({root, bytes:selected.filter(g => g.drive_root === root).reduce((s, g) => s + BigInt(g.eligible_bytes), 0n).toString()}));
-        }
-        value.excluded_count = 0;
-        for (const itemId of args.excludeItemIds ?? []) {
-          const skipped = selected.some(g => f.group_details[g.group_id]?.items.some(item => item.item_id === itemId && !item.eligible && item.reason_zh === '已设为以后都跳过'));
-          if (skipped) continue;
-          const group = selected.find(g => f.group_details[g.group_id]?.items.some(item => item.item_id === itemId && item.eligible));
-          if (!group) fail('invalid');
-          const item = f.group_details[group.group_id].items.find(item => item.item_id === itemId);
-          const previewGroup = value.groups.find(g => g.group_id === group.group_id);
-          previewGroup.item_count--; previewGroup.total_bytes = String(BigInt(previewGroup.total_bytes) - BigInt(item.total_bytes));
-          value.item_count--; value.total_bytes = String(BigInt(value.total_bytes) - BigInt(item.total_bytes)); value.excluded_count++;
-          const drive = value.by_drive.find(d => d.root === item.display_path.slice(0, 3));
-          if (drive) drive.bytes = String(BigInt(drive.bytes) - BigInt(item.total_bytes));
-        }
-        value.groups = value.groups.filter(g => g.item_count > 0);
-        control.plan = value; control.consumed = false; return copy(value);
+        let p = copy(args.dedupeId ? f.v2_clean_prepare_quarantine : args.chosenMode === 'delete' ? f.v2_clean_prepare_delete : options.onlyDelete ? f.v2_clean_prepare_delete_only : f.v2_clean_prepare_quarantine);
+        p.plan_id += '-' + c.calls.length; p.confirm_token += '-' + c.calls.length; c.plan = p; return p;
       }
-      case 'clean_start':
-        if (control.busy !== 'idle') fail('busy');
-        if (!control.plan || control.consumed || args.planId !== control.plan.plan_id || args.confirmToken !== control.plan.confirm_token) fail('invalid');
-        control.consumed = true; control.busy = 'cleaning'; return copy(f.clean_start);
-      case 'clean_stop': control.cleanStopped = true; control.holdClean = false; return {};
-      case 'clean_progress': {
-        const value = copy(f.clean_progress_sequence[control.cleanIndex]);
-        if (control.cleanIdleBefore > 0) { control.cleanIdleBefore--; return {...value, state:'idle'}; }
-        if (control.cleanStopped) value.state = 'stopped';
-        if (value.state !== 'running') { control.busy = 'idle'; control.cleanFinished = true; }
-        if (!control.holdClean) control.cleanIndex = Math.min(control.cleanIndex + 1, f.clean_progress_sequence.length - 1);
-        return value;
-      }
-      case 'clean_result': return copy(f.clean_result);
-      case 'trends': return options.emptyTrends ? {points:[], growth:[], leaks:[]} : copy(f.trends);
-      case 'history_list': return options.emptyHistory ? [] : copy(f.history_list.filter(e => control.cleanFinished || e.id !== f.clean_start.clean_id));
-      case 'locations_get': return copy(control.locations);
-      case 'locations_set_category': {
-        const category = control.locations.categories.find(c => c.category === args.category);
-        if (!category || category.locked) fail('invalid'); category.enabled = args.enabled;
-        control.categoryOverrides[args.category] = args.enabled; projectSkips();
-        if (control.failAfterWrite === command) throw copy(f.errors.unavailable);
-        return copy(control.locations);
-      }
-      case 'custom_root_add': if (control.addCancelled) return copy(f.custom_root_add_cancelled); control.locations.custom_roots.push(copy(f.custom_root_add_added.added)); return copy(f.custom_root_add_added);
-      case 'custom_root_remove': control.locations.custom_roots = control.locations.custom_roots.filter(r => r.root_id !== args.rootId); return copy(control.locations);
-      case 'skip_add': {
-        const data = Object.values(f.group_details).find(d => d.items.some(item => item.item_id === args.itemId));
-        const item = data?.items.find(item => item.item_id === args.itemId);
-        if (!item || !data.group.selectable) fail('invalid');
-        if (!control.locations.skipped.some(s => s.display_path.toLowerCase() === item.display_path.toLowerCase())) {
-          if (control.locations.skipped.length >= 64) fail('invalid');
-          let sequence = 1;
-          while (control.locations.skipped.some(s => s.skip_id === `s-${String(sequence).padStart(6, '0')}`)) sequence++;
-          control.locations.skipped.push({skip_id:`s-${String(sequence).padStart(6, '0')}`, display_path:item.display_path, added_at:f.scan_result.finished_at});
-        }
-        if (options.liveSkips) projectSkips();
-        else if (!options.skipKeepsCurrentScan && item.eligible) {
-          item.eligible = false; item.reason_zh = '已设为以后都跳过';
-          data.group.eligible_count--; data.group.eligible_bytes = String(BigInt(data.group.eligible_bytes) - BigInt(item.total_bytes));
-          data.group.selectable = data.group.eligible_count > 0;
-          const drive = data.group.by_drive.find(d => d.root === item.display_path.slice(0, 3));
-          if (drive) drive.eligible_bytes = String(BigInt(drive.eligible_bytes) - BigInt(item.total_bytes));
-          for (const category of f.scan_result.categories) category.groups = category.groups.map(g => g.group_id === data.group.group_id ? copy(data.group) : g);
-        }
-        if (control.failAfterWrite === command) throw copy(f.errors.unavailable);
-        return copy(control.locations);
-      }
-      case 'skip_remove':
-        if (!control.locations.skipped.some(s => s.skip_id === args.skipId)) fail('not_found');
-        control.locations.skipped = control.locations.skipped.filter(s => s.skip_id !== args.skipId); projectSkips();
-        if (control.failAfterWrite === command) throw copy(f.errors.unavailable);
-        return copy(control.locations);
-      default: throw new Error('Unexpected command ' + command);
+      case 'clean_start': if (!c.plan || c.plan.confirm_token !== args.confirmToken) throw copy(f.errors.invalid); c.plan = null; c.busy = 'cleaning'; c.clean = 0; return copy(f.v2_clean_start);
+      case 'clean_stop': c.clean = f.v2_clean_progress_sequence.length - 1; return {};
+      case 'clean_progress': { const p = copy(f.v2_clean_progress_sequence[c.clean]); if (p.state !== 'running') c.busy = 'idle'; return p; }
+      case 'clean_result': return copy(f.v2_clean_result);
+      case 'quarantine_list': return copy(c.quarantine);
+      case 'quarantine_restore': { const r = copy(args.beside ? f.v2_restore_beside : f.v2_restore_conflict); c.quarantine = copy(r.view); return r; }
+      case 'quarantine_reveal': return {};
+      case 'quarantine_delete': c.busy = 'purging'; c.purge = 0; return {};
+      case 'quarantine_progress': { const p = copy(f.v2_quarantine_progress_sequence[c.purge]); if (p.state !== 'running') { c.busy = 'idle'; c.quarantine = copy(f.v2_quarantine_leftover); } return p; }
+      case 'dedupe_start': c.busy = 'deduping'; c.dedupe = 0; return copy(f.v2_dedupe_start);
+      case 'dedupe_progress': { const p = copy(f.v2_dedupe_progress_sequence[c.dedupe]); if (p.state !== 'running') c.busy = 'idle'; return p; }
+      case 'dedupe_cancel': c.dedupe = f.v2_dedupe_progress_sequence.length - 1; return {};
+      case 'dedupe_result': return copy(args.expand ? f.v2_dedupe_result_expanded : c.dup);
+      case 'dedupe_decide': c.dup = copy(f.v2_dedupe_decided); return copy(c.dup);
+      case 'locations_set_category': c.locations.categories.find(x => x.category === args.category).enabled = args.enabled; return copy(c.locations);
+      case 'locations_set_session_cleanup': Object.assign(c.locations.sessions.find(x => x.tool === args.tool), {enabled:args.enabled, days:args.days}); return copy(c.locations);
+      case 'manifest_trust': c.locations.manifests.find(x => x.manifest_id === args.manifestId).state = args.trusted ? 'trusted' : 'untrusted'; return copy(c.locations);
+      case 'cluster_mark_fixed': c.trends = copy(f.v2_trends_after_fixed); return copy(c.trends);
+      case 'custom_root_add': c.locations = copy(f.v2_locations_new_folder); return copy(f.v2_custom_root_add_folder);
+      case 'custom_root_remove': c.locations.home = c.locations.home.filter(x => x.location_id !== args.rootId); return copy(c.locations);
+      case 'history_list': return copy(f.v2_history);
+      case 'scan_result': return copy(f.scan_result);
+      default: throw {code:'invalid', message_zh:'未知命令'};
     }
   }}};
 }
-
-async function reset(options = {}, route = 'home') {
-  if (scenario) { await safeCalls(); await control('window.__waterTest.resetting=true'); }
-  options = {...options, owner:currentTest, scenario:++scenario};
-  if (injection) await browser.send('Page.removeScriptToEvaluateOnNewDocument', {identifier:injection});
-  const data = structuredClone(options.m3c ? m3c : fixture);
-  if (options.emptyM3c) data.trends = structuredClone(m3c.trends_empty);
-  if (options.singleDrive) data.scan_result.categories = data.scan_result.categories.map(c => ({...c, groups:c.groups.filter(g => g.by_drive.every(d => d.root === 'F:\\'))})).filter(c => c.groups.length);
-  if (options.multiDriveGroup) {
-    const g = data.scan_result.categories[0].groups[0];
-    g.by_drive = [{root:'C:\\', item_count:46, eligible_bytes:'2705829396'}, {root:'F:\\', item_count:2, eligible_bytes:'1073741824'}];
-    for (const drive of data.scan_result.recommended_by_drive) drive.bytes = String(BigInt(drive.bytes) + (drive.root === 'F:\\' ? 1073741824n : -1073741824n));
-  }
-  if (options.multiDriveProtected) {
-    for (const level of ['advisory', 'protected']) {
-      const g = groups(data.scan_result).find(g => g.level === level && g.item_count > 1);
-      g.by_drive = [{root:'C:\\', item_count:g.item_count - 1, eligible_bytes:'0'}, {root:'F:\\', item_count:1, eligible_bytes:'0'}];
-    }
-  }
-  injection = (await browser.send('Page.addScriptToEvaluateOnNewDocument', {source:`(${fakeHost.toString()})(${JSON.stringify(data)}, ${JSON.stringify(options)});`})).identifier;
-  await browser.goto(`${base}/index.html?scenario=${scenario}#/${route}`);
-  await waitFor(`window.__waterTest?.scenario === ${scenario} && document.querySelector("#page").children.length > 0`);
-  if (options.unavailable) await noticeSettled('document.body.textContent.includes("无法连接 Water 服务")', 'unavailable notice shows');
-  else if (!options.holdApp) await waitFor(`document.querySelector(".version")?.textContent.includes(${JSON.stringify(fixture.app_state_fresh.app_version)})`);
-}
+const evalJs = code => browser.evaluate(code);
+const control = code => evalJs(`(()=>{const c=window.__waterTest;${code}})()`);
 const q = key => `[data-key="${key}"]`;
-const click = key => browser.click(q(key));
-const text = () => browser.evaluate('document.body.textContent');
-const pageIs = name => waitFor(`document.querySelector('#page').dataset.page === ${JSON.stringify(name)}`);
-const waitText = value => waitFor(`document.body.textContent.includes(${JSON.stringify(value)})`);
-const control = code => browser.evaluate(`(()=>{${code}})()`);
-// Bounded polls never throw, so a regression fails on the marked assertion instead of a timeout.
-async function settle(expression, attempts = 200) {
-  let settled = false;
-  for (let attempt = 0; attempt < attempts; attempt++) {
-    settled = await browser.evaluate(`(() => { try { return !!(${expression}); } catch { return false; } })()`);
-    if (settled) break;
-    await new Promise(ok => setTimeout(ok, 25));
-  }
-  return settled;
+const click = async key => { assert(await evalJs(`!!document.querySelector(${JSON.stringify(q(key))})`), `UI_V2_PAGES: missing ${key}`); await browser.click(q(key)); };
+async function wait(expression, marker = 'UI_V2_PAGES') {
+  for (let i = 0; i < 400; i++) { if (await evalJs(`(()=>{try{return !!(${expression})}catch{return false}})()`)) return; await pause(25); }
+  assert.fail(`${marker}: ${expression}`);
 }
-async function waitFor(expression) {
-  assert(await settle(expression, 400), `UI_TEST_BOUNDS: ${expression}`);
+const pageIs = name => wait(`document.querySelector('#page').dataset.page===${JSON.stringify(name)}`);
+async function idle() { await wait('!document.querySelector("dialog button:disabled") && !document.querySelector("[data-key=scan-start]:disabled") || document.querySelector("#page").dataset.page!=="home"'); await pause(40); }
+async function reset(options = {}, route = 'home') {
+  if (sequence) { await safeCalls(); await control('c.resetting=true'); }
+  if (injection) await browser.send('Page.removeScriptToEvaluateOnNewDocument', {identifier:injection});
+  injection = (await browser.send('Page.addScriptToEvaluateOnNewDocument', {source:`(${fakeHost.toString()})(${JSON.stringify(f)},${JSON.stringify(options)})`})).identifier;
+  await browser.goto(`${base}/index.html?case=${++sequence}#${route}`);
+  await wait(options.unavailable ? 'document.body.textContent.includes("无法连接 Water 服务")' : 'document.querySelectorAll(".location-select").length>0 || window.__waterTest.calls.some(x=>x.command==="locations_get")');
+  await pause(100);
 }
-async function noticeSettled(expression, label, attempts) {
-  assert(await settle(expression, attempts), `UI_NOTICE_SCOPE: ${label}`);
-}
-const noticeText = (value, label, attempts) => noticeSettled(`document.body.textContent.includes(${JSON.stringify(value)})`, label, attempts);
-// Pausing takes twenty failed 250 ms progress reads, longer than the default bound.
-const pausedNotice = label => noticeSettled('!!document.querySelector("[data-key=progress-reconnect]")', label, 600);
 async function key(value, shift = false) {
-  const code = value === ' ' ? 'Space' : value;
-  const vk = {Tab:9, Escape:27, Enter:13, ' ':32}[value];
-  await browser.send('Input.dispatchKeyEvent', {type:'keyDown', key:value, code, windowsVirtualKeyCode:vk, modifiers:shift ? 8 : 0, ...(value === 'Enter' ? {text:'\r'} : {})});
-  await browser.send('Input.dispatchKeyEvent', {type:'keyUp', key:value, code, windowsVirtualKeyCode:vk, modifiers:shift ? 8 : 0});
+  const vk = {Tab:9, Escape:27, Enter:13, Delete:46, ArrowDown:40, ArrowUp:38}[value];
+  await browser.send('Input.dispatchKeyEvent', {type:'keyDown', key:value, code:value, windowsVirtualKeyCode:vk, modifiers:shift ? 8 : 0, ...(value === 'Enter' ? {text:'\r'} : {})});
+  await browser.send('Input.dispatchKeyEvent', {type:'keyUp', key:value, code:value, windowsVirtualKeyCode:vk, modifiers:shift ? 8 : 0});
 }
-async function shot(name) {
-  await browser.send('Animation.setPlaybackRate', {playbackRate:1});
-  await new Promise(ok => setTimeout(ok, 450));
-  writeFileSync(join(shots, `${name}.png`), await browser.screenshot(), {flag:'wx'});
-  await noOverflow();
-  if (name.endsWith('1240x820')) { await browser.size(1040, 720); await noOverflow(); await browser.size(1240, 820); }
+async function menuItem(text) {
+  const selector = await evalJs(`(()=>{const b=[...document.querySelectorAll('.menu:not([hidden]) button')].find(b=>b.textContent===${JSON.stringify(text)});if(!b)return null;b.dataset.testAction='chosen';return '[data-test-action="chosen"]'})()`);
+  assert(selector, `UI_V2_DRAWER: missing menu ${text}`); await browser.click(selector); await pause(60);
 }
+async function setSearch(key, value) {
+  await click(key); await evalJs(`document.querySelector(${JSON.stringify(q(key))}).value=${JSON.stringify(value)}`); await click(key + '-go'); await pause(100);
+}
+const lastCall = name => control(`return c.calls.filter(x=>x.command===${JSON.stringify(name)}).at(-1)`);
+const callCount = name => control(`return c.calls.filter(x=>x.command===${JSON.stringify(name)}).length`);
 async function safeCalls() {
-  const values = await browser.evaluate('window.__waterTest.calls');
-  for (const {args} of values) for (const [key, entry] of Object.entries(args)) for (const value of [entry].flat()) if (typeof value === 'string') assert(!(key === 'confirmToken' ? /\\/.test(value) : /[A-Za-z]:[\\/]|\\/.test(value)), 'IPC must contain IDs, never paths');
-  const runtime = await browser.evaluate('({owner:window.__waterTest.owner, errors:window.__waterTest.errors.splice(0)})');
-  if (runtime.owner === currentTest) errors.push(...runtime.errors);
-  else lateErrors.push(...runtime.errors.map(message => ({owner:runtime.owner, message})));
-  assert.deepEqual(errors, [], `UI_TEST_BOUNDS: ${currentTest}: no console errors, runtime errors or unhandled rejections in this test`);
+  const calls = await control('return c.calls');
+  function safe(value, key) {
+    if (value && typeof value === 'object') { for (const [k, v] of Object.entries(value)) safe(v, k); }
+    else if (typeof value === 'string') assert(!(key === 'confirmToken' ? /\\/.test(value) : /[A-Za-z]:[\\/]|\\|^\//.test(value)), 'UI_IPC_NO_PATH: no path arguments');
+  }
+  for (const call of calls) safe(call.args);
+  assert.deepEqual(await control('return c.errors'), [], 'UI_V2_PAGES: no runtime errors');
 }
-async function noOverflow() {
-  assert(await browser.evaluate('document.documentElement.scrollWidth <= innerWidth && document.querySelector("#main").scrollWidth <= document.querySelector("#main").clientWidth'), 'No horizontal overflow');
+async function noOverflow() { assert(await evalJs('document.documentElement.scrollWidth<=innerWidth && document.querySelector("#main").scrollWidth<=document.querySelector("#main").clientWidth'), 'UI_V2_PAGES: no horizontal overflow'); }
+async function shot(id, narrow = false) {
+  if (id !== 'results-folds') await evalJs('document.querySelector("#main").scrollTop=0');
+  await pause(120); await noOverflow();
+  writeFileSync(join(shots, `v3-${id}-${narrow ? '1040x720' : '1240x820'}.png`), await browser.screenshot(), {flag:'wx'});
 }
-
+async function results(options = {}) { await reset(options); await click('view-results'); await pageIs('results'); await pause(100); }
+async function detail(group) { await click(`card-menu-${group}`); await menuItem('查看明细'); await wait('document.querySelector("dialog.drawer[open]")', 'UI_V2_DRAWER'); }
+async function openSystemDrawer() { await click('details-open'); await pageIs('details'); await click('section-system_temp'); await click('detail-system-temp-old'); await wait('document.querySelector(".summary-row")', 'UI_V2_DRAWER'); }
+async function checkPrimary() {
+  assert(await evalJs('document.querySelectorAll("#page .primary").length<=1 && document.querySelectorAll("#page .main-card.dark").length<=1 && [...document.querySelectorAll("#page .primary")].every(b=>b.closest(".main-card.dark"))'), 'UI_V2_PAGES: one main action in one dark card');
+}
 before(async () => {
   server = createServer((req, res) => {
-    const path = new URL(req.url, 'http://127.0.0.1').pathname.slice(1) || 'index.html';
-    if (!/^(?:index\.html|(?:app|ipc|model|format)\.mjs|views\/[a-z]+\.mjs|styles\/[a-z]+\.css)$/.test(path)) { res.writeHead(404).end(); return; }
-    try {
-      const data = readFileSync(join(ui, path));
-      res.writeHead(200, {'content-type':{'.html':'text/html; charset=utf-8', '.mjs':'text/javascript; charset=utf-8', '.css':'text/css; charset=utf-8'}[extname(path)], 'cache-control':'no-store', 'content-security-policy':"default-src 'self'; connect-src 'none'; img-src 'self'; object-src 'none'; base-uri 'none'"}).end(data);
-    } catch { res.writeHead(404).end(); }
+    const p = new URL(req.url, 'http://127.0.0.1').pathname.slice(1) || 'index.html';
+    if (!/^(?:index\.html|(?:app|ipc|model|format)\.mjs|views\/[a-z]+\.mjs|styles\/[a-z]+\.css)$/.test(p)) { res.writeHead(404).end(); return; }
+    try { res.writeHead(200, {'content-type':{'.html':'text/html; charset=utf-8', '.css':'text/css; charset=utf-8', '.mjs':'text/javascript; charset=utf-8'}[extname(p)], 'cache-control':'no-store', 'content-security-policy':"default-src 'self'; connect-src 'none'; img-src 'self'; object-src 'none'; base-uri 'none'"}).end(readFileSync(join(ui, p))); } catch { res.writeHead(404).end(); }
   });
   await new Promise(ok => server.listen(0, '127.0.0.1', ok)); base = `http://127.0.0.1:${server.address().port}`;
   browser = await openPrivateBrowser(); await browser.size(1240, 820);
-  await browser.send('Animation.enable');
 });
-beforeEach(context => { currentTest = context.name; errors.length = 0; });
-afterEach(async () => { if (browser && scenario) await safeCalls(); currentTest = null; });
-after(async () => {
-  try { if (browser && scenario) await safeCalls(); }
-  finally { try { if (browser) await browser.close(); } finally { if (server) await new Promise(ok => server.close(ok)); } }
-  assert.deepEqual(lateErrors, [], 'UI_TEST_BOUNDS: console errors arriving after afterEach are reported separately with their originating test');
-});
+afterEach(async () => { if (browser && sequence) await safeCalls(); });
+after(async () => { try { if (browser) await browser.close(); } finally { if (server) await new Promise(ok => server.close(ok)); } });
 
-test('ui_home_and_scan', async () => {
-  for (const [options, expected] of [[{m3c:true}, '还没有体检过'], [{m3c:true, due:true, scanned:true}, '已经 9 天没有体检'], [{m3c:true, scanned:true}, null]]) {
-    await reset(options);
-    assert(await settle('!!document.querySelector(".cta")'), 'UI_M3C_DUE: home is loaded');
-    assert.equal(await browser.evaluate('document.querySelector(".checkup-due span")?.textContent ?? null'), expected, 'UI_M3C_DUE: never, nine days and no reminder');
-    if (options.due) await shot('home-due-1240x820');
-    if (expected) {
-      await click('checkup-now');
-      assert(await settle('document.querySelector("#page").dataset.page === "scan"'), 'UI_M3C_DUE: reminder starts checkup only on click');
-      assert.equal(await browser.evaluate('window.__waterTest.calls.filter(c=>c.command==="scan_start").length'), 1, 'UI_M3C_DUE: one explicit start');
-    }
-  }
-  await reset({holdApp:true}); await waitText('正在读取…');
-  assert(!(await text()).includes('无法连接 Water 服务'), 'Pending startup must be neutral');
-  await shot('loading-1240x820');
-  await control('window.__waterTest.holdApp=false'); await waitText('尚未体检');
-  assert((await text()).includes(formatBytes(fixture.app_state_fresh.drives.find(d => d.is_system).free_bytes).replace(' ', ''))); await noOverflow(); await shot('home-1240x820');
-  const before = await browser.evaluate('window.__waterTest.calls.length');
-  await new Promise(ok => setTimeout(ok, 550));
-  assert.equal(await browser.evaluate('window.__waterTest.calls.length'), before, 'Idle must not poll');
-  await control('window.__waterTest.scanIdleBefore=2');
+test('ui_v2_home_scan', async () => {
+  await reset();
+  assert.equal(await evalJs('document.querySelector(".quarantine-size").textContent'), formatBytes(f.v2_app_state_quarantine.quarantine.bytes), 'UI_V2_HOME: persistent quarantine amount');
+  assert(await evalJs('document.body.textContent.includes("这次检查哪里？")'), 'UI_V2_HOME: frozen title');
+  await checkPrimary(); await shot('home');
+  await browser.size(1040, 720); await shot('home-narrow', true); await browser.size(1240, 820);
+  await click('location-drive-f');
+  assert.equal(await evalJs('document.querySelector("[data-key=location-drive-f]").getAttribute("aria-pressed")'), 'true', 'UI_V2_HOME: location toggled');
   await click('scan-start'); await pageIs('scan');
-  await waitFor('window.__waterTest.scanIdleBefore===0'); await pageIs('scan');
-  assert.equal(await browser.evaluate('window.__waterTest.calls.filter(c=>c.command==="scan_result").length'), 0, 'Initial idle must not fetch a result');
-  await control(`window.__waterTest.progressErrors.scan_progress=${JSON.stringify([fixture.errors.busy, fixture.errors.busy])}`);
-  await noticeText('正在重新连接 Water 服务…', 'scan reconnecting notice shows'); await pageIs('scan');
-  await noticeSettled('window.__waterTest.progressErrors.scan_progress.length===0 && !document.body.textContent.includes("正在重新连接 Water 服务…")', 'scan reconnecting notice clears');
-  await control('window.__waterTest.scanIndex=2'); await waitText(count(fixture.scan_progress_sequence[2].visited_entries));
-  assert((await text()).includes(formatBytes(fixture.scan_progress_sequence[2].found_bytes).split(' ')[0]));
-  assert((await text()).includes(elapsed(fixture.scan_progress_sequence[2].elapsed_ms)));
-  await shot('scan-1240x820');
-  await click('nav-locations'); await waitText('自定义文件夹');
-  assert(await browser.evaluate(`document.querySelector(${JSON.stringify(q('add-root'))}).disabled`), 'Cannot start location changes during scan');
-  await click('nav-home'); await pageIs('scan');
-  await control('window.__waterTest.holdScan=false'); await pageIs('results'); await waitText(selectionText(defaults.length));
-  const times = await browser.evaluate('window.__waterTest.calls.filter(c=>c.command==="scan_progress").map(c=>c.at)');
-  for (let i = 1; i < times.length; i++) assert(times[i] - times[i - 1] >= 230, 'No excessive polling');
-  await safeCalls();
-
-  for (const error of [fixture.errors.unavailable, fixture.errors.busy, {code:'not_found', message_zh:'这份趋势暂时无法读取。'}, fixture.errors.stale]) {
-    await reset({scanned:true, busy:'scanning'}); await pageIs('scan'); await waitText('停止扫描');
-    await control("window.__waterTest.holdProgress={command:'scan_progress',failed:false}");
-    assert(await settle('document.querySelector("#notice span")?.textContent === "正在重新连接 Water 服务…"'), 'UI_RECOVER_ERROR: progress is reconnecting before the page read');
-    await control(`window.__waterTest.nextError={command:'trends',error:${JSON.stringify(error)}}`);
-    await click('nav-trends'); await pageIs('trends');
-    assert(await settle('window.__waterTest.nextError === null && document.body.textContent.includes("正在读取趋势…")'), 'UI_RECOVER_ERROR: trends fails while progress is reconnecting, before pausing');
-    assert(await browser.evaluate('!document.querySelector("[data-key=progress-reconnect]")'), 'UI_RECOVER_ERROR: this is recovery before the retry limit');
-    await control('window.__waterTest.holdProgress=null');
-    assert(await settle('document.body.textContent.includes("增长最多")'), 'UI_RECOVER_ERROR: recovery fills missing trends');
-    const notice = await browser.evaluate('({hidden:document.querySelector("#notice").hidden, message:document.querySelector("#notice span")?.textContent})');
-    if (['unavailable', 'busy'].includes(error.code)) assert.equal(notice.hidden, true, `UI_RECOVER_ERROR: recovery clears ${error.code}: ${JSON.stringify(notice)}`);
-    else assert.deepEqual(notice, {hidden:false, message:error.message_zh}, `UI_RECOVER_ERROR: recovery preserves ${error.code}`);
-  }
-  // Identical text for different error codes makes text-based recovery insufficient.
-  for (const code of ['unavailable', 'busy', 'not_found', 'invalid']) {
-    await reset({scanned:true, busy:'scanning'}); await waitText('停止扫描');
-    await control("window.__waterTest.holdProgress={command:'scan_progress',failed:false}");
-    assert(await settle('window.__waterTest.holdProgress.failed && !document.querySelector("#notice").hidden'), 'UI_RECOVER_ERROR: reconnecting state established');
-    await control(`window.__waterTest.nextError={command:'trends',error:{code:${JSON.stringify(code)},message_zh:'相同的读取失败说明'}}`);
-    await click('nav-trends');
-    assert(await settle('window.__waterTest.nextError === null'), 'UI_RECOVER_ERROR: page error received');
-    await control('window.__waterTest.holdProgress=null');
-    assert(await settle('!!document.querySelector(".growth-list")'), 'UI_RECOVER_ERROR: recovered data is rendered');
-    assert.equal(await browser.evaluate('document.querySelector("#notice").hidden'), ['unavailable', 'busy'].includes(code), `UI_RECOVER_ERROR: ${code} is decided by state, despite identical error text`);
-  }
+  assert.deepEqual((await lastCall('scan_start')).args.locationIds, ['common', 'drive-f'], 'UI_V2_HOME: only selected locations');
+  await wait('document.querySelectorAll(".scan-location").length===2', 'UI_V2_HOME');
+  await control('c.scan=1'); await wait('document.body.textContent.includes("19.4")', 'UI_V2_HOME');
+  assert.deepEqual(await evalJs('[...document.querySelectorAll(".scan-location")].map(n=>n.dataset.location)'), f.v2_scan_progress_sequence[2].locations.map(l => l.location_id), 'UI_V2_HOME: location rows in service order');
+  await shot('scan'); await checkPrimary();
+  await click('scan-stop'); await pageIs('results'); assert.equal((await lastCall('scan_cancel')).args.scanId, f.v2_scan_start.scan_id, 'UI_V2_HOME: stop by ID');
+  await reset({noQuarantine:true}); assert.equal(await evalJs('document.querySelector(".quarantine-size").textContent'), '', 'UI_V2_HOME: absent quarantine hidden');
+  await click('add-root'); await wait(`document.querySelector('[data-key="location-${f.v2_custom_root_add_folder.added.root_id}"]')`, 'UI_V2_HOME');
+  assert.deepEqual(await evalJs('[...document.querySelectorAll(".location-select[aria-pressed=true]")].map(n=>n.dataset.key)'), ['location-' + f.v2_custom_root_add_folder.added.root_id], 'UI_V2_HOME: added folder selected alone');
+  await shot('home-new'); await click('scan-start'); await pageIs('scan');
+  assert.deepEqual((await lastCall('scan_start')).args.locationIds, [f.v2_custom_root_add_folder.added.root_id], 'UI_V2_HOME: folder-only request');
 });
 
-test('ui_results_detail_confirm', async () => {
-  await reset({m3c:true, scanned:true}, 'results');
-  assert(await settle('!!document.querySelector("[data-key=drive-F]")'), 'UI_M3C_DRIVE: multiple drives offer filtering');
-  const groupId = 'custom:drive-f:node-modules', data = m3c.group_details[groupId], item = data.items[1];
-  await click(`select-${groupId}`);
-  const chosen = await browser.evaluate('document.querySelector(".dock b").textContent');
-  const baseBytes = selectedBytes(m3c.scan_result, resetSelection(m3c.scan_result)) + BigInt(data.group.eligible_bytes);
-  assert.equal(chosen, formatBytes(baseBytes), 'UI_M3C_EXCLUDE: opt in to the confirm group');
-  assert((await text()).includes(data.group.in_use.process_label_zh), 'UI_M3C_INUSE_ITEM: group uses the counted in-use sentence');
-  await click(`detail-${groupId}`);
-  assert(await settle('!!document.querySelector("[data-key=item-i-000202]")'), 'UI_M3C_EXCLUDE: eligible items have checkboxes');
-  assert.equal(await browser.evaluate('document.querySelector(".in-use-item")?.textContent ?? null'), 'Codex 正在使用', 'UI_M3C_INUSE_ITEM: per-item label matches host');
-  assert.equal(await browser.evaluate('document.querySelector("[data-key=item-i-000201]")?.disabled ?? null'), false, 'UI_M3C_INUSE_ITEM: occupied items remain selectable');
-  assert.equal(await browser.evaluate('document.querySelector("[data-key=item-i-000204]")'), null, 'UI_M3C_EXCLUDE: ineligible items cannot be selected');
-  await browser.evaluate('document.querySelector("dialog").scrollTop=document.querySelector("dialog").scrollHeight');
-  const itemScroll = await browser.evaluate('document.querySelector("dialog").scrollTop');
-  assert(itemScroll > 0, 'UI_M3C_EXCLUDE: the drawer actually scrolls before scroll preservation is checked');
-  await control('window.__waterTest.openDrawer=document.querySelector("dialog");window.__waterTest.itemBox=document.querySelector("[data-key=item-i-000202]");window.__waterTest.drawerFocus=[];document.addEventListener("focusin",e=>window.__waterTest.drawerFocus.push(window.__waterTest.openDrawer.contains(e.target)));window.__waterTest.drawerChanges=[];window.__waterTest.drawerObserver=new MutationObserver(records=>window.__waterTest.drawerChanges.push(...records.map(r=>r.type)));window.__waterTest.drawerObserver.observe(document.querySelector("#overlays"),{childList:true});window.__waterTest.drawerObserver.observe(window.__waterTest.openDrawer,{attributes:true,attributeFilter:["open"]})');
-  await click('item-i-000202');
-  assert(await browser.evaluate('document.querySelector("dialog[open]") === window.__waterTest.openDrawer && document.querySelector("[data-key=item-i-000202]") === window.__waterTest.itemBox && window.__waterTest.drawerChanges.length === 0'), 'UI_M3C_EXCLUDE: item changes keep the same open drawer, backdrop and checkbox');
-  assert(await browser.evaluate('window.__waterTest.drawerFocus.every(Boolean)'), 'UI_M3C_EXCLUDE: item changes never move focus behind the drawer');
-  await control('window.__waterTest.drawerObserver.disconnect()');
-  assert.equal(await browser.evaluate('document.querySelector("dialog").scrollTop'), itemScroll, 'UI_M3C_EXCLUDE: item redraw preserves the drawer scroll position');
-  assert.equal(await browser.evaluate('document.activeElement.dataset.key'), 'item-i-000202', 'UI_M3C_EXCLUDE: item redraw preserves focus while the item stays enabled');
-  assert.equal(await browser.evaluate('document.querySelector(".dock b").textContent'), formatBytes(baseBytes - BigInt(item.total_bytes)), 'UI_M3C_EXCLUDE: item removal reduces selected bytes');
-  assert.equal(await browser.evaluate('document.querySelector(".selected-count").textContent'), `${count(groups(m3c.scan_result).filter(g => g.default_selected).reduce((sum, g) => sum + g.eligible_count, 0) + data.group.eligible_count - 1)} 项`, 'UI_M3C_EXCLUDE: selected item count also deducts the excluded item');
-  assert.equal(await browser.evaluate('document.querySelector("[data-key=item-i-000202]").checked'), false, 'UI_M3C_EXCLUDE: item stays unchecked');
-  await browser.evaluate('document.querySelector("dialog").scrollTop=document.querySelector(".items").offsetTop-160');
-  await shot('detail-exclude-1240x820');
-  await key('Escape'); await waitFor('!document.querySelector("dialog[open]")');
-  await click('clean-prepare');
-  assert(await settle('!!document.querySelector(".confirm[open]")'), 'UI_M3C_EXCLUDE: excluded selection produces preview');
-  assert.deepEqual(await browser.evaluate('window.__waterTest.calls.findLast(c=>c.command==="clean_prepare").args.excludeItemIds'), [item.item_id], 'UI_M3C_EXCLUDE: clean_prepare sends the exact exclusion');
-  assert.equal(await browser.evaluate('document.querySelector(".excluded-count")?.textContent'), '已排除 1 项', 'UI_M3C_EXCLUDE: host exclusion count displayed');
-  await key('Escape'); await waitFor('!document.querySelector("dialog[open]")');
-  await click(`select-${groupId}`); await click('clean-prepare');
-  assert(await settle('!!document.querySelector(".confirm[open]")'), 'UI_M3C_EXCLUDE: remaining groups prepare');
-  assert.deepEqual(await browser.evaluate('window.__waterTest.calls.findLast(c=>c.command==="clean_prepare").args.excludeItemIds'), [], 'UI_M3C_EXCLUDE: deselecting the whole group drops its exclusions');
-  assert.equal(await browser.evaluate('document.querySelector(".excluded-count")'), null, 'UI_M3C_EXCLUDE: zero exclusions are not shown');
-  await key('Escape'); await waitFor('!document.querySelector("dialog[open]")');
-  await click(`select-${groupId}`); await click(`detail-${groupId}`);
-  for (const id of ['i-000201', 'i-000202', 'i-000203']) await click(`item-${id}`);
-  assert(await browser.evaluate('document.querySelectorAll(".items input").length === 3 && [...document.querySelectorAll(".items input")].every(e=>!e.checked && e.disabled) && !!document.querySelector(".item-selection-note")'), 'UI_M3C_EXCLUDE: emptied drawer immediately disables items and explains result-page reselection');
-  assert(await browser.evaluate('(()=>{const d=document.querySelector("dialog[open]"),a=document.activeElement,r=a.getBoundingClientRect(),p=d.getBoundingClientRect();return d.contains(a)&&!a.disabled&&r.top>=p.top&&r.bottom<=p.bottom})()'), 'UI_M3C_EXCLUDE: disabling the last item leaves focus on a visible enabled drawer control');
-  assert(await browser.evaluate('document.activeElement.matches(".item-selection-note") && document.activeElement.tabIndex === -1 && document.activeElement.getAttribute("role") === "status"'), 'UI_M3C_EXCLUDE: disabling the last item focuses its non-writing status explanation');
-  const skipsBeforeSpace = await browser.evaluate('window.__waterTest.calls.filter(c=>c.command==="skip_add").length');
-  await key(' ');
-  assert.equal(await browser.evaluate('window.__waterTest.calls.filter(c=>c.command==="skip_add").length'), skipsBeforeSpace, 'UI_M3C_EXCLUDE: another Space on the status cannot write persistent settings');
-  await control('const box=document.querySelector("[data-key=item-i-000202]");box.checked=true;box.dispatchEvent(new Event("change",{bubbles:true}))');
-  assert(await browser.evaluate('[...document.querySelectorAll(".items input")].every(e=>!e.checked && e.disabled)'), 'UI_M3C_EXCLUDE: forged item change cannot reselect an emptied group');
-  assert(await browser.evaluate(`(()=>{const box=document.querySelector(${JSON.stringify(q(`select-${groupId}`))});return !box.checked && !box.indeterminate})()`), 'UI_M3C_EXCLUDE: entirely excluded group is unchecked, not mixed');
-  assert(await browser.evaluate('!document.querySelector("[data-key=category-custom]").checked && document.querySelector("[data-key=category-custom]").indeterminate'), 'UI_M3C_EXCLUDE: category treats the emptied group as unselected');
-  await key('Escape'); await waitFor('!document.querySelector("dialog[open]")'); await click(`detail-${groupId}`);
-  assert(await settle('!!document.querySelector(".item-selection-note")'), 'UI_M3C_EXCLUDE: reopening an emptied group explains how to reselect it');
-  assert(await browser.evaluate('document.querySelectorAll(".items input").length === 3 && [...document.querySelectorAll(".items input")].every(e=>!e.checked && e.disabled)'), 'UI_M3C_EXCLUDE: emptied group items are unchecked and disabled');
-  await key('Escape'); await waitFor('!document.querySelector("dialog[open]")'); await click('clean-prepare');
-  assert(await settle('!!document.querySelector(".confirm[open]")'), 'UI_M3C_EXCLUDE: other groups remain preparable');
-  assert(!(await browser.evaluate('window.__waterTest.calls.findLast(c=>c.command==="clean_prepare").args.groupIds')).includes(groupId), 'UI_M3C_EXCLUDE: entirely excluded group is omitted');
-  await key('Escape'); await waitFor('!document.querySelector("dialog[open]")'); await click(`select-${groupId}`); await click(`detail-${groupId}`);
-  assert(await settle('document.querySelectorAll(".items input").length === 3 && [...document.querySelectorAll(".items input")].every(e=>e.checked && !e.disabled)'), 'UI_M3C_EXCLUDE: result-page reselection restores all eligible items');
-  assert.equal(await browser.evaluate('document.querySelector(".item-selection-note")'), null, 'UI_M3C_EXCLUDE: reselected group no longer needs the opt-in note');
-
-  await reset({m3c:true, scanned:true}, 'results');
-  await click(`select-${groupId}`); await click(`detail-${groupId}`); await waitText('这是什么'); await click('item-i-000202');
-  await key('Escape'); await waitFor('!document.querySelector("dialog[open]")');
-  await control(`window.__waterTest.omitDetailItem=${JSON.stringify(item.item_id)}`);
-  await click(`detail-${groupId}`);
-  assert(await settle('!!document.querySelector(".items") && !document.querySelector("[data-key=item-i-000202]")'), 'UI_M3C_EXCLUDE: refreshed display list omits the excluded item');
-  assert.equal(await browser.evaluate('document.querySelector(".dock b").textContent'), formatBytes(baseBytes - BigInt(item.total_bytes)), 'UI_M3C_EXCLUDE: an omitted exclusion still deducts its known bytes');
-  assert.equal(await browser.evaluate('document.querySelector(".selected-count").textContent'), `${count(groups(m3c.scan_result).filter(g => g.default_selected).reduce((sum, g) => sum + g.eligible_count, 0) + data.group.eligible_count - 1)} 项`, 'UI_M3C_EXCLUDE: an omitted exclusion still deducts its item count');
-  await key('Escape'); await waitFor('!document.querySelector("dialog[open]")'); await click('clean-prepare');
-  assert(await settle('!!document.querySelector(".confirm[open]")'), 'UI_M3C_EXCLUDE: truncated details still permit a preview');
-  assert.deepEqual(await browser.evaluate('window.__waterTest.calls.findLast(c=>c.command==="clean_prepare").args.excludeItemIds'), [item.item_id], 'UI_M3C_EXCLUDE: clean_prepare retains exclusions absent from refreshed details');
-  assert.equal(await browser.evaluate('document.querySelector(".excluded-count")?.textContent'), '已排除 1 项', 'UI_M3C_EXCLUDE: host still receives and counts the omitted exclusion');
-  await key('Escape'); await waitFor('!document.querySelector("dialog[open]")');
-  await control('window.__waterTest.omitDetailItem=null'); await click(`detail-${groupId}`);
-  assert(await settle('document.querySelector("[data-key=item-i-000202]")?.checked === false'), 'UI_M3C_EXCLUDE: the returning item remains excluded');
-
-  for (const drive of [null, 'F']) {
-    await reset({m3c:true, scanned:true, multiDriveGroup:true}, 'results');
-    const before = await browser.evaluate('[...document.querySelectorAll(".group-row input:checked")].map(e=>e.dataset.key)');
-    await click('filter-recommended'); if (drive) await click(`drive-${drive}`);
-    assert(await browser.evaluate('document.querySelector("[data-key=category-agent_tool]").checked && !document.querySelector("[data-key=category-agent_tool]").indeterminate'), 'UI_M3C_DRIVE: category state includes only the visible recommended groups');
-    const visible = await browser.evaluate('[...document.querySelectorAll(".sheet")].find(e=>e.querySelector("[data-key=category-agent_tool]")) ? [...document.querySelector("[data-key=category-agent_tool]").closest(".sheet").querySelectorAll(".group-row input")].map(e=>e.dataset.key) : []');
-    assert.equal(visible.length, drive ? 1 : 3, 'UI_M3C_DRIVE: level and drive filters intersect before category selection');
-    await click('category-agent_tool'); await click('filter-all'); if (drive) await click('drive-all');
-    assert.deepEqual(await browser.evaluate('[...document.querySelectorAll(".group-row input:checked")].map(e=>e.dataset.key)'), before.filter(id => !visible.includes(id)), 'UI_M3C_DRIVE: clearing filtered category preserves hidden selected groups');
-    await click('filter-recommended'); if (drive) await click(`drive-${drive}`); await click('category-agent_tool');
-    await click('filter-all'); if (drive) await click('drive-all');
-    assert.deepEqual(await browser.evaluate('[...document.querySelectorAll(".group-row input:checked")].map(e=>e.dataset.key)'), before, 'UI_M3C_DRIVE: selecting filtered category never includes hidden confirm groups');
-    assert.equal(await browser.evaluate('document.querySelector("[data-key=select-codex-runtimes]").checked'), false, 'UI_M3C_DRIVE: hidden codex-runtimes stays unselected after filtered select-all');
-    await click('select-codex-runtimes'); await click('filter-recommended'); if (drive) await click(`drive-${drive}`);
-    const visibleBytes = groups(m3c.scan_result).filter(g => g.category === 'agent_tool' && g.level === 'recommended').reduce((sum, g) => sum + BigInt(drive ? (g.group_id === 'codex-marketplace-staging' ? '1073741824' : '0') : g.eligible_bytes), 0n);
-    assert.equal(await browser.evaluate('document.querySelector("[data-key=category-agent_tool]").closest(".sheet-head").querySelector(".category-total .cap")?.textContent'), `已选 ${formatBytes(visibleBytes)}`, 'UI_M3C_DRIVE: category selected bytes use the same level and drive intersection');
-    await click('category-agent_tool');
-    assert.equal(await browser.evaluate('document.querySelector("[data-key=category-agent_tool]").closest(".sheet-head").querySelector(".category-total .cap")'), null, 'UI_M3C_DRIVE: categories without a visible selection hide the selected line');
-    await click('filter-protected');
-    assert(await browser.evaluate('[...document.querySelectorAll(".category-total")].every(e=>!e.querySelector(".cap"))'), 'UI_M3C_DRIVE: protected categories never imply a tiny selected amount');
+test('ui_v2_conclusion', async () => {
+  await results({reverseCards:true});
+  assert.deepEqual(await evalJs('[...document.querySelectorAll(".judgment")].map(n=>n.dataset.card)'), [...f.v2_conclusion_typical.cards].reverse().map(c=>c.card_id), 'UI_V2_CONCLUSION: preserve all card order, never resort by bytes');
+  for (const c of f.v2_conclusion_typical.cards) {
+    await click(`card-menu-${c.group_id}`);
+    assert(!(await evalJs('document.querySelector(".menu:not([hidden])").textContent')).includes('以后都跳过'), 'UI_V2_CONCLUSION: ignore every card skip menu'); await key('Escape');
   }
-
-  await reset({m3c:true, scanned:true, multiDriveGroup:true}, 'results');
-  assert(await settle('!!document.querySelector("[data-key=drive-F]")'), 'UI_M3C_DRIVE: filter ready');
-  const selectedBefore = await browser.evaluate('[...document.querySelectorAll(".group-row input:checked")].map(e=>e.dataset.key)');
-  await click('drive-F');
-  const fGroups = groups(m3c.scan_result).filter(g => g.by_drive.some(d => d.root === 'F:\\'));
-  const expectedTotal = fGroups.reduce((sum, g) => sum + BigInt(['advisory', 'protected'].includes(g.level) ? g.total_bytes : g.by_drive.find(d => d.root === 'F:\\').eligible_bytes), 1073741824n);
-  assert.equal(await browser.evaluate('document.querySelector(".spectrum > .split b").textContent'), formatBytes(expectedTotal), 'UI_M3C_DRIVE: total uses by_drive quantities');
-  assert.equal(await browser.evaluate('document.querySelector("[data-key=detail-codex-marketplace-staging] .group-size").textContent'), '1.0 GB', 'UI_M3C_DRIVE: split group displays only F bytes');
-  assert.equal(await browser.evaluate('document.querySelector("[data-key=detail-codex-marketplace-staging] .group-meta > span").textContent'), '2 项 · F:', 'UI_M3C_DRIVE: split group displays only F item count');
-  assert.equal(await browser.evaluate('document.querySelector("[data-key=detail-chrome-cache]")'), null, 'UI_M3C_DRIVE: groups without F items are hidden');
-  const selectedF = fGroups.filter(g => g.default_selected).reduce((sum, g) => sum + BigInt(g.by_drive.find(d => d.root === 'F:\\').eligible_bytes), 1073741824n);
-  assert.equal(await browser.evaluate('document.querySelector(".dock b").textContent'), formatBytes(selectedBytes(m3c.scan_result, resetSelection(m3c.scan_result))), 'UI_M3C_DRIVE: dock bytes cover all selected drives');
-  assert.equal(await browser.evaluate('document.querySelector(".dock-drive").textContent'), `其中 F: ${formatBytes(selectedF)}`, 'UI_M3C_DRIVE: filtered drive has its own subtotal');
-  assert.equal(await browser.evaluate('document.querySelector(".dock-selection > span").textContent'), selectionText(groups(m3c.scan_result).filter(g => g.default_selected).length), 'UI_M3C_DRIVE: dock group count covers all selected drives');
-  assert.equal(await browser.evaluate('document.querySelector(".selected-count").textContent'), `${count(groups(m3c.scan_result).filter(g => g.default_selected).reduce((sum, g) => sum + g.eligible_count, 0))} 项`, 'UI_M3C_DRIVE: dock item count covers all selected drives');
-  await shot('results-drive-1240x820');
-  assert(await browser.evaluate('document.querySelector("[data-key=category-agent_tool]").checked && !document.querySelector("[data-key=category-agent_tool]").indeterminate'), 'UI_M3C_DRIVE: category state ignores hidden confirm groups');
-  await click('category-agent_tool'); await click('drive-all');
-  assert.deepEqual(await browser.evaluate('[...document.querySelectorAll(".group-row input:checked")].map(e=>e.dataset.key)'), selectedBefore.filter(id => id !== 'select-codex-marketplace-staging'), 'UI_M3C_DRIVE: clearing F category retains selected C-only groups');
-  await click('drive-F'); await click('category-agent_tool');
-  await click('drive-all');
-  assert.deepEqual(await browser.evaluate('[...document.querySelectorAll(".group-row input:checked")].map(e=>e.dataset.key)'), selectedBefore, 'UI_M3C_DRIVE: filtering preserves selection');
-  assert.equal(await browser.evaluate('document.querySelector("[data-key=select-codex-runtimes]").checked'), false, 'UI_M3C_DRIVE: checking F category never opts in a hidden C confirm group');
-  await click(`select-${groupId}`); await click(`detail-${groupId}`); await waitText('这是什么'); await click('item-i-000202'); await key('Escape'); await waitFor('!document.querySelector("dialog[open]")');
-  await click('drive-F');
-  assert.equal(await browser.evaluate('document.querySelector(".dock-drive").textContent'), `其中 F: ${formatBytes(selectedF + BigInt(data.group.eligible_bytes) - BigInt(item.total_bytes))}`, 'UI_M3C_DRIVE: drive subtotal deducts its excluded item');
-  assert.equal(await browser.evaluate('document.querySelector(".dock b").textContent'), formatBytes(baseBytes - BigInt(item.total_bytes)), 'UI_M3C_DRIVE: global dock also deducts the item');
-  await click('clean-prepare'); assert(await settle('!!document.querySelector(".confirm[open]")'), 'UI_M3C_DRIVE: filtered view prepares all selected groups');
-  assert.deepEqual(await browser.evaluate('window.__waterTest.calls.findLast(c=>c.command==="clean_prepare").args'), {groupIds:[...groups(m3c.scan_result).filter(g => g.default_selected || g.group_id === groupId).map(g => g.group_id)], excludeItemIds:[item.item_id]}, 'UI_M3C_DRIVE: preparation matches the global dock scope');
-
-  await reset({m3c:true, scanned:true, multiDriveProtected:true}, 'results'); await click('drive-F');
-  for (const level of ['advisory', 'protected']) {
-    const group = groups(m3c.scan_result).find(g => g.level === level && g.item_count > 1);
-    assert.equal(await browser.evaluate(`document.querySelector(${JSON.stringify(q(`detail-${group.group_id}`) + ' .group-size')}).textContent`), '—', 'UI_M3C_DRIVE: unknown cross-drive protected/advisory bytes are not zero');
-    const known = fGroups.filter(g => g.level === level && g.group_id !== group.group_id).reduce((sum, g) => sum + BigInt(g.total_bytes), 0n);
-    assert.equal(await browser.evaluate(`document.querySelector('[data-key=legend-${level}] b').textContent`), `至少 ${formatBytes(known)}`, 'UI_M3C_DRIVE: partial level totals are explicitly lower bounds');
-  }
-  await reset({m3c:true, scanned:true, singleDrive:true}, 'results');
-  assert(await settle('!!document.querySelector(".dock")'), 'UI_M3C_DRIVE: single-drive result loaded');
-  assert.equal(await browser.evaluate('document.querySelector(".drive-filter")'), null, 'UI_M3C_DRIVE: no redundant filter for one drive');
-
-  // Progress can finish while a details request is pending on the results page.
-  for (const busy of ['scanning', 'cleaning']) {
-    await reset({m3c:true, scanned:true, busy}, 'results');
-    const staleDetail = structuredClone(m3c.group_details['codex-marketplace-staging']);
-    staleDetail.group.title_zh = 'OLD-SCAN-DETAIL';
-    const newResult = structuredClone(m3c.scan_result); newResult.scan_id = 'scan-new-result';
-    newResult.categories[0].groups[0].title_zh = 'NEW-SCAN-GROUP';
-    await control(`window.__waterTest.heldRead={command:'group_detail',value:${JSON.stringify(staleDetail)}};window.__waterTest.scanResult=${JSON.stringify(newResult)}`);
-    await click('detail-codex-marketplace-staging');
-    assert(await settle('window.__waterTest.heldRead.started === true'), 'UI_READ_ORDER: detail held against the old scan');
-    await control(`window.__waterTest.${busy === 'scanning' ? 'holdScan' : 'holdClean'}=false`);
-    assert(await settle(busy === 'scanning' ? 'document.querySelector("#page").textContent.includes("NEW-SCAN-GROUP")' : 'document.querySelector("#page").textContent.includes("结果已过期")'), 'UI_READ_ORDER: result changes or expires before detail returns');
-    await control('window.__waterTest.heldRead.release=true');
-    assert(await settle('window.__waterTest.heldRead.finished === true && !document.querySelector("[data-key=rescan]").disabled'), 'UI_READ_ORDER: old detail finishes');
-    assert(await browser.evaluate('!document.querySelector("dialog[open]") && !document.body.textContent.includes("OLD-SCAN-DETAIL")'), 'UI_READ_ORDER: old detail cannot open or overwrite the current scan');
-    assert((await text()).includes(busy === 'scanning' ? 'NEW-SCAN-GROUP' : m3c.group_details['codex-marketplace-staging'].group.title_zh), 'UI_READ_ORDER: current group survives discarded details');
-    if (busy === 'cleaning') {
-      await click(`select-${groupId}`);
-      assert.equal(await browser.evaluate(`document.querySelector(${JSON.stringify(q(`select-${groupId}`))}).checked`), false, 'UI_READ_ORDER: stale results cannot opt in a group');
-      await click(`detail-${groupId}`);
-      assert(await settle('!!document.querySelector(".drawer[open]") && !!document.querySelector("[data-key=item-i-000202]")'), 'UI_READ_ORDER: already-stale results still open group details');
-      assert(await browser.evaluate('document.querySelectorAll(".items input").length === 3 && [...document.querySelectorAll(".items input, .item-skip")].every(e=>e.disabled)'), 'UI_READ_ORDER: stale detail keeps item selection and persistent skip disabled');
-      assert.equal(await browser.evaluate('document.querySelector(".item-selection-note")?.textContent'), '结果已过期，请重新体检后再清理。', 'UI_M3C_EXCLUDE: stale drawer requests a new scan instead of unavailable reselection');
-      await key('Escape'); await waitFor('!document.querySelector("dialog[open]")');
-      await browser.click('.insight button');
-      assert(await settle('!!document.querySelector(".drawer[open]")'), 'UI_READ_ORDER: stale insight still opens read-only details');
-      assert.equal(await browser.evaluate('document.querySelector("#detail-title").textContent'), m3c.group_details['codex-marketplace-staging'].group.title_zh, 'UI_READ_ORDER: stale insight opens its own group');
-      assert(await browser.evaluate('document.querySelectorAll(".items input").length > 0 && [...document.querySelectorAll(".items input, .item-skip")].every(e=>e.disabled)'), 'UI_READ_ORDER: selected stale group also keeps every item action disabled');
-    }
-  }
-
-  await reset({scanned:true}, 'results');
-  await pageIs('results');
-  assert.equal(await browser.evaluate('document.querySelector(".res-hero .kpi").textContent'), formatBytes(fixture.scan_result.totals.recommended_bytes).replace(' ', ''), 'Hero must use fixture bytes, not mockup numbers');
-  assert.equal(await browser.evaluate('document.querySelector(".dock b").textContent'), formatBytes(selectedBytes(fixture.scan_result, resetSelection(fixture.scan_result))));
-  assert.deepEqual(await browser.evaluate('[...document.querySelectorAll(".sheet:first-of-type .group-open")].map(e=>e.dataset.key)'), sortedGroups(fixture.scan_result.categories[0].groups, 'bytes').map(g => `detail-${g.group_id}`));
-  assert(await browser.evaluate('document.querySelector("[data-key=rescan]").classList.contains("btn-glass")'));
-  await noOverflow(); await shot('results-1240x820');
-  await browser.size(1040, 720); await noOverflow(); await shot('results-1040x720'); await browser.size(1240, 820);
-  await click('detail-codex-marketplace-staging'); await waitText('这是什么'); await shot('detail-1240x820');
-  assert((await text()).includes(count(fixture.group_details['codex-marketplace-staging'].group.file_count))); await key('Escape'); await waitFor('!document.querySelector("dialog[open]")');
-  assert.equal(await browser.evaluate('document.activeElement.dataset.key'), 'detail-codex-marketplace-staging');
-  await click('select-codex-marketplace-staging'); await waitText(selectionText(defaults.length - 1));
-  await click('select-codex-marketplace-staging'); await waitText(selectionText(defaults.length));
-  const extra = groups(fixture.scan_result).filter(g => g.category === 'agent_tool' && g.selectable && !g.default_selected).length;
-  await click('category-agent_tool'); await waitText(selectionText(defaults.length + extra));
-  assert.equal(await browser.evaluate('document.querySelectorAll(".group-row input:checked").length'), defaults.length + extra);
-  assert.equal(await browser.evaluate(`document.querySelector(${JSON.stringify(q('select-claude-code-sessions'))})`), null);
-  await click('select-codex-runtimes'); await waitText(selectionText(defaults.length));
-  await click('filter-protected');
-  assert.equal(await browser.evaluate('document.querySelectorAll(".group-row input").length'), 0);
-  await click('detail-claude-code-sessions'); await waitText('Water 不会清理此类数据。'); await key('Escape');
-  await click('filter-all'); await click('clean-prepare'); await waitFor('!!document.querySelector(".confirm[open]")');
-  assert((await text()).includes('不进入回收站，无法恢复'));
-  assert((await text()).includes(count(fixture.clean_prepare_default.item_count)));
-  assert.equal(await browser.evaluate('document.querySelector("[data-key=confirm-start]").textContent'), `永久删除 ${formatBytes(fixture.clean_prepare_default.total_bytes)}`);
-  assert.equal(await browser.evaluate('document.activeElement.dataset.key'), 'confirm-cancel');
-  await key('Tab'); assert.equal(await browser.evaluate('document.activeElement.dataset.key'), 'confirm-start');
-  await key('Tab'); assert(await browser.evaluate('document.activeElement.classList.contains("confirm-list")'));
-  await key('Tab', true); assert.equal(await browser.evaluate('document.activeElement.dataset.key'), 'confirm-start');
-  await key('Escape'); await waitFor('!document.querySelector("dialog[open]")');
-  assert.equal(await browser.evaluate('window.__waterTest.calls.filter(c=>c.command==="clean_start").length'), 0);
-  await click('clean-prepare'); await waitFor('!!document.querySelector(".confirm[open]")'); await shot('confirm-1240x820');
-  await click('confirm-start'); await pageIs('cleaning'); await waitText('已释放');
-  assert.equal(await browser.evaluate('window.__waterTest.calls.filter(c=>c.command==="clean_start").length'), 1);
-  await safeCalls();
-
-  await reset({scanned:true, busy:'cleaning'}); await pageIs('cleaning'); await waitText('已处理');
-  await control("window.__waterTest.holdProgress={command:'clean_progress',failed:false}");
-  assert(await settle('document.querySelector("#notice span")?.textContent === "正在重新连接 Water 服务…"'), 'UI_RECOVER_NONBLOCK: cleaning progress is reconnecting');
-  await control(`window.__waterTest.nextError={command:'trends',error:${JSON.stringify(fixture.errors.unavailable)}}`);
-  await click('nav-trends'); await pageIs('trends');
-  assert(await settle('window.__waterTest.nextError === null'), 'UI_RECOVER_NONBLOCK: the offline page read finishes');
-  await control(`window.__waterTest.heldRead={command:'trends',value:${JSON.stringify(fixture.trends)}};window.__waterTest.holdProgress=null;window.__waterTest.holdClean=false`);
-  assert(await settle('window.__waterTest.heldRead.started === true'), 'UI_RECOVER_NONBLOCK: hold the recovery page read');
-  assert(await settle('window.__waterTest.cleanFinished === true && window.__waterTest.calls.some(c=>c.command==="clean_result")'), 'UI_RECOVER_NONBLOCK: cleaning reaches its result while the page read is still held');
-  assert.equal(await browser.evaluate('window.__waterTest.heldRead.finished === true'), false, 'UI_RECOVER_NONBLOCK: the page response has not arrived');
-  await control('window.__waterTest.heldRead.release=true');
-  assert(await settle('document.body.textContent.includes("增长最多")'), 'UI_RECOVER_NONBLOCK: the page eventually fills independently');
+  await results(); await checkPrimary(); await shot('results');
+  await click(`card-menu-${f.v2_conclusion_typical.cards[0].group_id}`); await shot('menu'); await key('Escape');
+  assert.equal(await evalJs('document.querySelectorAll(".judgment").length'), 5, 'UI_V2_CONCLUSION: all five supplied cards');
+  assert(await evalJs('document.querySelectorAll(".judgment,.clues>.row,.fold,.result-content>.summary-link,.main-card>.row").length<=20'), 'UI_V2_CONCLUSION: collapsed conclusion at most 20 rows');
+  await click('clean-codex-runtimes'); await wait(`document.body.textContent.includes(${JSON.stringify(formatBytes(f.v2_conclusion_after_decide.plan.bytes))})`, 'UI_V2_CONCLUSION');
+  assert.equal(await evalJs('document.querySelector("[data-group=codex-runtimes] .decided-text").textContent'), '已加入清理 · ' + formatBytes(f.v2_conclusion_after_decide.cards.find(c=>c.group_id==='codex-runtimes').bytes), 'UI_V2_CONCLUSION: repaint decision from returned view');
+  assert.equal(await evalJs('document.querySelector(".main-card .summary").textContent'), f.v2_conclusion_after_decide.plan.summary_zh, 'UI_V2_CONCLUSION: full summary replaced');
+  await shot('results-decided');
+  await click('category-app_leftover'); await wait('document.querySelector("[data-key=category-app_leftover]").getAttribute("aria-checked")==="false"', 'UI_V2_CONCLUSION');
+  assert.deepEqual((await lastCall('conclusion_decide')).args.decision, {category:'app_leftover', include:false}, 'UI_V2_CONCLUSION: categories decided by service');
+  await click('fold-protected'); assert(await evalJs('document.querySelector("[data-key=fold-protected]").parentElement.open'), 'UI_V2_CONCLUSION: fold expands in place'); await shot('results-folds');
+  await click('copy-' + f.v2_conclusion_typical.clues[0].clue_id); assert.equal(await control('return c.clipboard.at(-1)'), f.v2_conclusion_typical.clues[0].copy_text, 'UI_V2_CONCLUSION: exact clue copied');
+  await control('c.clipboardFail=true'); await click('copy-' + f.v2_conclusion_typical.clues[1].clue_id); await wait('document.querySelector("textarea[readonly]")', 'UI_V2_CONCLUSION');
+  assert.equal(await evalJs('document.querySelector("textarea").value'), f.v2_conclusion_typical.clues[1].copy_text, 'UI_V2_CONCLUSION: manual copy fallback'); await key('Escape');
+  await results({conclusion:'v2_conclusion_stale'}); assert(await evalJs('document.querySelector("[data-key=clean-prepare]").disabled'), 'UI_V2_CONCLUSION: stale disables cleanup'); await shot('results-stale');
+  await results({conclusion:'v2_conclusion_empty'}); assert.equal(await evalJs('document.querySelectorAll(".judgment,.primary").length'), 0, 'UI_V2_CONCLUSION: empty has no judgments or primary'); await shot('results-empty');
+  await results({conclusion:'v2_conclusion_folder_only'}); assert(await evalJs('document.body.textContent.includes("这次只看了这个文件夹")'), 'UI_V2_CONCLUSION: folder scope explicit');
 });
 
-test('ui_clean_done_and_pages', async () => {
-  await reset({m3c:true, scanned:true}, 'results');
-  await click('detail-custom:drive-f:node-modules');
-  assert(await settle('!!document.querySelector("[data-key=skip-i-000202]")'), 'UI_M3C_SKIP: eligible item offers persistent skip');
-  assert(await browser.evaluate('[...document.querySelectorAll(".items input")].every(e=>!e.checked && e.disabled)'), 'UI_M3C_EXCLUDE: unselected group items are unchecked and disabled');
-  assert.equal(await browser.evaluate('document.querySelector(".item-selection-note").textContent'), '先在结果页勾选这个分组，才能逐项排除。', 'UI_M3C_EXCLUDE: unselected group explains how to opt in');
-  const beforeItemClick = await browser.evaluate('document.querySelector(".dock").textContent');
-  await control('const box=document.querySelector("[data-key=item-i-000202]");box.checked=true;box.dispatchEvent(new Event("change",{bubbles:true}))');
-  assert.equal(await browser.evaluate('document.querySelector(".dock").textContent'), beforeItemClick, 'UI_M3C_EXCLUDE: dispatching change on a disabled item cannot select its siblings');
-  assert.equal(await browser.evaluate('document.querySelector("[data-key=skip-i-000202]").disabled'), false, 'UI_M3C_SKIP: unselected group still permits persistent skip');
-  await click('skip-i-000202');
-  assert(await settle('!!document.querySelector(".detail-notice")'), 'UI_M3C_SKIP: success has a readable notice');
-  assert.equal(await browser.evaluate('document.querySelector(".detail-notice").textContent'), '以后体检会跳过这个文件夹，可以在‘位置’里恢复', 'UI_M3C_SKIP: success copy');
-  assert.deepEqual(await browser.evaluate('window.__waterTest.calls.findLast(c=>c.command==="skip_add").args'), {itemId:'i-000202'}, 'UI_M3C_SKIP: only itemId is sent');
-  assert(await browser.evaluate('window.__waterTest.calls.filter(c=>c.command==="group_detail").length === 2 && !document.querySelector("[data-key=item-i-000202]")'), 'UI_M3C_SKIP: reread details after successful skip');
-  await key('Escape'); await waitFor('!document.querySelector("dialog[open]")');
-  assert.equal(await browser.evaluate('document.activeElement.dataset.key'), 'detail-custom:drive-f:node-modules', 'UI_M3C_SKIP: refreshed drawer returns focus to the original group button');
-  assert.equal(await browser.evaluate(`document.querySelector(${JSON.stringify(q('select-custom:drive-f:node-modules'))}).checked`), false, 'UI_M3C_SKIP: skipping in an unselected group leaves it unselected');
-  await click('nav-locations');
-  assert(await settle('!!document.querySelector("[data-key=restore-s-000003]")'), 'UI_M3C_SKIP: newly skipped folder is listed');
-  await click('restore-s-000003');
-  assert(await settle('!document.querySelector("[data-key=restore-s-000003]")'), 'UI_M3C_SKIP: restore removes its row');
-  assert.deepEqual(await browser.evaluate('window.__waterTest.calls.findLast(c=>c.command==="skip_remove").args'), {skipId:'s-000003'}, 'UI_M3C_SKIP: restore sends only skipId');
-  const skipCalls = await browser.evaluate('window.__waterTest.calls.filter(c=>c.command.startsWith("skip_"))');
-  for (const {args} of skipCalls) assert(Object.values(args).every(value => typeof value === 'string' && !/[\\/:]/.test(value)), 'UI_IPC_NO_PATH: new commands contain opaque IDs only');
-  for (const skipKeepsCurrentScan of [false, true]) {
-    await reset({m3c:true, scanned:true, skipKeepsCurrentScan}, 'results');
-    await click('select-custom:drive-f:node-modules'); await click('detail-custom:drive-f:node-modules'); await waitText('这是什么');
-    await click('skip-i-000202');
-    assert(await settle('!!document.querySelector(".detail-notice") && !document.querySelector("[data-key=detail-close]").disabled'), 'UI_M3C_SKIP: selected group refresh completes');
-    if (skipKeepsCurrentScan) assert(await browser.evaluate('!document.querySelector("[data-key=item-i-000202]").checked && !document.querySelector("[data-key=item-i-000202]").disabled'), 'UI_M3C_SKIP: legacy service leaves skipped item excluded this time');
-    else assert.equal(await browser.evaluate('document.querySelector("[data-key=item-i-000202]")'), null, 'UI_M3C_SKIP: current service makes skipped item ineligible');
-    await key('Escape'); await waitFor('!document.querySelector("dialog[open]")');
-    assert.equal(await browser.evaluate('document.activeElement.dataset.key'), 'detail-custom:drive-f:node-modules', 'UI_M3C_SKIP: selected group also preserves drawer return focus');
-    await click('clean-prepare'); assert(await settle('!!document.querySelector(".confirm[open]")'), 'UI_M3C_SKIP: skipped selection can still prepare');
-    assert.deepEqual(await browser.evaluate('window.__waterTest.calls.findLast(c=>c.command==="clean_prepare").args.excludeItemIds'), skipKeepsCurrentScan ? ['i-000202'] : [], 'UI_M3C_SKIP: exclude legacy item, prune newly ineligible item');
-  }
-  await reset({m3c:true, scanned:true, skipKeepsCurrentScan:true}, 'results');
-  await click('select-custom:drive-f:node-modules'); await click('detail-custom:drive-f:node-modules'); await waitText('这是什么');
-  await control("window.__waterTest.delayedError={command:'skip_add',error:null}"); await click('skip-i-000202');
-  assert(await settle('window.__waterTest.delayedError.started === true'), 'UI_M3C_SKIP: hold legacy skip success before navigation');
-  await browser.evaluate('location.hash="#/about"'); await pageIs('about');
-  await control('window.__waterTest.delayedError.release=true');
-  assert(await settle('window.__waterTest.delayedError.finished === true'), 'UI_M3C_SKIP: skip succeeds after leaving its route');
-  await browser.evaluate('location.hash="#/results"'); await pageIs('results');
-  assert(await settle('document.querySelector("[data-key=rescan]")?.disabled === false'), 'UI_M3C_SKIP: route-changed skip finishes without blocking results');
-  assert(await browser.evaluate('!document.querySelector("dialog[open]") && window.__waterTest.calls.filter(c=>c.command==="group_detail").length === 2'), 'UI_M3C_SKIP: route-changed success reconciles exclusions without reopening the drawer');
-  await click('clean-prepare'); assert(await settle('!!document.querySelector(".confirm[open]")'), 'UI_M3C_SKIP: route-changed selection can prepare');
-  assert.deepEqual(await browser.evaluate('window.__waterTest.calls.findLast(c=>c.command==="clean_prepare").args.excludeItemIds'), ['i-000202'], 'UI_M3C_SKIP: success still excludes the legacy item after a route change');
-
-  const recommendedId = 'codex-marketplace-staging', nodeId = 'custom:drive-f:node-modules';
-  const recommendedItem = m3c.group_details[recommendedId].items[0];
-  const recommendedBytes = BigInt(m3c.scan_result.totals.recommended_bytes);
-  const defaultCount = groups(m3c.scan_result).filter(g => g.default_selected).reduce((sum, g) => sum + g.eligible_count, 0);
-  // Manual opt-outs survive both sides of a live settings projection. Insurance
-  // exclusions still disappear when the service confirms an item is skipped.
-  for (const manual of [true, false]) {
-    await reset({m3c:true, scanned:true, liveSkips:true}, 'results');
-    await click(`select-${nodeId}`); await click(`detail-${nodeId}`); await waitText('这是什么');
-    if (manual) await click('item-i-000202');
-    const includedBytes = recommendedBytes + 450635299n;
-    await click('skip-i-000202');
-    assert(await settle('!!document.querySelector(".detail-notice") && !document.querySelector("[data-key=detail-close]")?.disabled'), 'UI_M3C_EXCLUDE: live skip confirms the manually excluded or insurance-only item is ineligible');
-    assert.equal(await browser.evaluate('document.querySelector(".dock b").textContent'), formatBytes(includedBytes), 'UI_M3C_EXCLUDE: a skipped manual exclusion is not deducted twice');
-    assert.equal(await browser.evaluate('document.querySelector(".selected-count").textContent'), `${count(defaultCount + 1)} 项`, 'UI_M3C_EXCLUDE: a skipped manual exclusion is not counted twice');
-    await key('Escape'); await waitFor('!document.querySelector("dialog[open]")'); await click('clean-prepare');
-    assert(await settle('!!document.querySelector(".confirm[open]")'), 'UI_M3C_EXCLUDE: currently skipped manual IDs are accepted by prepare');
-    assert.deepEqual(await browser.evaluate('window.__waterTest.calls.findLast(c=>c.command==="clean_prepare").args.excludeItemIds'), manual ? ['i-000202'] : [], 'UI_M3C_EXCLUDE: only manual exclusions retain currently skipped IDs');
-    assert.equal(await browser.evaluate('window.__waterTest.plan.excluded_count'), 0, 'UI_M3C_EXCLUDE: currently skipped IDs are ignored in excluded_count');
-    assert.equal(await browser.evaluate('window.__waterTest.plan.total_bytes'), includedBytes.toString(), 'UI_M3C_EXCLUDE: skipped manual preview matches the dock');
-    await key('Escape'); await waitFor('!document.querySelector("dialog[open]")'); await click('nav-locations'); await waitText('以后都跳过的文件夹');
-    // Hold the restored exclusion metadata as well as the result itself. Cleanup
-    // must remain blocked until the actual item state has been reconciled.
-    if (manual) await control("window.__waterTest.delayedError={command:'group_detail',error:null}");
-    await click('restore-s-000003');
-    if (manual) {
-      assert(await settle('window.__waterTest.delayedError.started === true'), 'UI_M3C_EXCLUDE: restore rereads the retained ineligible manual metadata');
-      await browser.evaluate('location.hash="#/results"'); await pageIs('results');
-      assert.equal(await browser.evaluate('document.querySelector("[data-key=clean-prepare]")?.disabled'), true, 'UI_M3C_EXCLUDE: restoration blocks cleanup until exclusion metadata arrives');
-      await control('window.__waterTest.delayedError.release=true');
-    } else { await waitFor('!document.querySelector("[data-key=restore-s-000003]") && !document.querySelector("[data-key=add-root]")?.disabled'); await browser.evaluate('location.hash="#/results"'); await pageIs('results'); }
-    assert(await settle('document.querySelector("[data-key=clean-prepare]")?.disabled === false'), 'UI_M3C_EXCLUDE: restored metadata settles before cleanup is enabled');
-    const expectedBytes = includedBytes + (manual ? 0n : 996147200n), expectedCount = defaultCount + (manual ? 1 : 2);
-    assert.equal(await browser.evaluate('document.querySelector(".dock b").textContent'), formatBytes(expectedBytes), 'UI_M3C_EXCLUDE: restoration keeps manual opt-outs and includes insurance-only items');
-    assert.equal(await browser.evaluate('document.querySelector(".selected-count").textContent'), `${count(expectedCount)} 项`, 'UI_M3C_EXCLUDE: restored dock counts respect the source of each exclusion');
-    await click(`detail-${nodeId}`); await waitText('这是什么');
-    assert.equal(await browser.evaluate('document.querySelector("[data-key=item-i-000202]")?.checked'), !manual, 'UI_M3C_EXCLUDE: the restored item remains unchecked only after a manual opt-out');
-    await key('Escape'); await waitFor('!document.querySelector("dialog[open]")'); await click('clean-prepare');
-    assert(await settle('!!document.querySelector(".confirm[open]")'), 'UI_M3C_EXCLUDE: restored manual selection prepares');
-    assert.deepEqual(await browser.evaluate('window.__waterTest.calls.findLast(c=>c.command==="clean_prepare").args.excludeItemIds'), manual ? ['i-000202'] : [], 'UI_M3C_EXCLUDE: restored manual opt-out still reaches clean_prepare');
-    assert.equal(await browser.evaluate('window.__waterTest.plan.total_bytes'), expectedBytes.toString(), 'UI_M3C_EXCLUDE: restored manual plan bytes match the dock');
-    assert.equal(await browser.evaluate('window.__waterTest.plan.item_count'), expectedCount, 'UI_M3C_EXCLUDE: restored manual plan count matches the dock');
-  }
-  for (const outcome of ['missing', 'failure']) {
-    await reset({m3c:true, scanned:true, liveSkips:true}, 'results');
-    await click(`select-${nodeId}`); await click(`detail-${nodeId}`); await waitText('这是什么'); await click('item-i-000202'); await click('skip-i-000202');
-    await waitFor('!!document.querySelector(".detail-notice") && !document.querySelector("[data-key=detail-close]")?.disabled');
-    await key('Escape'); await waitFor('!document.querySelector("dialog[open]")'); await click('nav-locations'); await waitText('以后都跳过的文件夹');
-    await control(outcome === 'missing' ? 'window.__waterTest.omitDetailItem="i-000202"' : `window.__waterTest.nextError={command:'group_detail',error:${JSON.stringify(fixture.errors.unavailable)}}`);
-    await click('restore-s-000003'); await waitFor('!document.querySelector("[data-key=add-root]")?.disabled');
-    await browser.evaluate('location.hash="#/results"'); await pageIs('results');
-    assert.equal(await browser.evaluate('document.querySelector("[data-key=clean-prepare]")?.disabled'), true, `UI_M3C_EXCLUDE: ${outcome} restored exclusion metadata requires a rescan instead of uncertain counts`);
-    assert((await text()).includes('结果已过期，请重新体检后再清理。'), 'UI_M3C_EXCLUDE: unavailable exclusion status has a readable stale explanation');
-  }
-  // The retained exclusion is outside the fresh drawer window. Removing its last
-  // visible sibling must still remove the group, at the real action call site.
-  await reset({m3c:true, scanned:true, liveSkips:true}, 'results');
-  await click(`select-${nodeId}`); await click(`detail-${nodeId}`); await waitText('这是什么'); await click('item-i-000202');
-  await key('Escape'); await waitFor('!document.querySelector("dialog[open]")');
-  await control('window.__waterTest.omitDetailItem="i-000202"'); await click(`detail-${nodeId}`); await waitText('这是什么'); await click('item-i-000201');
-  await key('Escape'); await waitFor('!document.querySelector("dialog[open]")');
-  const truncatedDock = await browser.evaluate('document.querySelector(".dock").textContent');
-  await click('nav-locations'); await waitText('以后都跳过的文件夹'); await click('restore-s-000002');
-  await waitFor('!document.querySelector("[data-key=restore-s-000002]") && !document.querySelector("[data-key=add-root]")?.disabled');
-  await browser.evaluate('location.hash="#/results"'); await pageIs('results');
-  assert.equal(await browser.evaluate('document.querySelector(".dock").textContent'), truncatedDock, 'UI_M3C_EXCLUDE: action passes retained metadata when emptying a truncated drawer');
-  assert(await browser.evaluate(`!document.querySelector(${JSON.stringify(q(`select-${nodeId}`))}).checked`), 'UI_M3C_EXCLUDE: a later restore cannot revive the truncated emptied group');
-  for (const mode of ['exclude-all', 'skip-last', 'partial']) {
-    await reset({m3c:true, scanned:true, liveSkips:true}, 'results');
-    await click(`select-${nodeId}`); await click(`detail-${nodeId}`); await waitText('这是什么');
-    assert.equal(await browser.evaluate('document.querySelectorAll(".items input").length'), 2, 'UI_M3C_EXCLUDE: live node group begins with two eligible and two skipped items');
-    await click('item-i-000202');
-    if (mode === 'exclude-all') await click('item-i-000201');
-    if (mode === 'skip-last') {
-      await click('skip-i-000201');
-      assert(await settle('!!document.querySelector(".detail-notice") && !document.querySelector("[data-key=detail-close]")?.disabled'), 'UI_M3C_EXCLUDE: skipping the last included item completes the refresh');
-    }
-    const beforeRestore = await browser.evaluate('document.querySelector(".dock").textContent');
-    if (mode !== 'partial') assert(await browser.evaluate('[...document.querySelectorAll(".items input")].every(e=>!e.checked && e.disabled) && !!document.querySelector(".item-selection-note")'), 'UI_M3C_EXCLUDE: emptied live group requests result-page reselection');
-    await key('Escape'); await waitFor('!document.querySelector("dialog[open]")');
-    await click('nav-locations'); await waitText('以后都跳过的文件夹');
-    const restoreId = mode === 'skip-last' ? 's-000003' : 's-000002';
-    await click(`restore-${restoreId}`);
-    assert(await settle(`!document.querySelector('[data-key=restore-${restoreId}]') && !document.querySelector('[data-key=add-root]')?.disabled`), 'UI_M3C_EXCLUDE: restoration of the emptied or partial group finishes');
-    await browser.evaluate('location.hash="#/results"'); await pageIs('results');
-    if (mode !== 'partial') {
-      assert.equal(await browser.evaluate('document.querySelector(".dock").textContent'), beforeRestore, 'UI_M3C_EXCLUDE: restored items do not change the dock after their group was emptied');
-      assert(await browser.evaluate(`(()=>{const b=document.querySelector(${JSON.stringify(q(`select-${nodeId}`))});return b&&!b.checked&&!b.indeterminate})()`), 'UI_M3C_EXCLUDE: the restored emptied group remains unchecked');
-    }
-    const expectedBytes = mode === 'partial' ? recommendedBytes + 450635299n + 700701149n : recommendedBytes;
-    const expectedCount = mode === 'partial' ? defaultCount + 2 : defaultCount;
-    assert.equal(await browser.evaluate('document.querySelector(".dock b").textContent'), formatBytes(expectedBytes), 'UI_M3C_EXCLUDE: partial restoration adds bytes only while the group remains selected');
-    assert.equal(await browser.evaluate('document.querySelector(".selected-count").textContent'), `${count(expectedCount)} 项`, 'UI_M3C_EXCLUDE: partial restoration adds items only while the group remains selected');
-    await click(`detail-${nodeId}`); await waitText('这是什么');
-    assert.equal(await browser.evaluate('document.querySelector("[data-key=item-i-000201]")?.checked'), mode === 'partial', 'UI_M3C_EXCLUDE: restored drawer follows the explicit group choice');
-    if (mode === 'partial') assert(await browser.evaluate('document.querySelector("[data-key=item-i-000203]")?.checked && !document.querySelector("[data-key=item-i-000202]")?.checked'), 'UI_M3C_EXCLUDE: partial restoration includes the restored item and retains the independent exclusion');
-    else assert(await browser.evaluate('[...document.querySelectorAll(".items input")].every(e=>!e.checked && e.disabled)'), 'UI_M3C_EXCLUDE: restoration cannot enable the emptied drawer');
-    await key('Escape'); await waitFor('!document.querySelector("dialog[open]")'); await click('clean-prepare');
-    assert(await settle('!!document.querySelector(".confirm[open]")'), 'UI_M3C_EXCLUDE: remaining explicit selection prepares after restoration');
-    const prepared = await browser.evaluate('window.__waterTest.calls.findLast(c=>c.command==="clean_prepare").args');
-    assert.equal(prepared.groupIds.includes(nodeId), mode === 'partial', 'UI_M3C_EXCLUDE: clean_prepare omits the restored emptied group');
-    assert.deepEqual(prepared.excludeItemIds, mode === 'partial' ? ['i-000202'] : [], 'UI_M3C_EXCLUDE: clean_prepare matches remaining manual exclusions');
-    assert.equal(await browser.evaluate('window.__waterTest.plan.total_bytes'), expectedBytes.toString(), 'UI_M3C_EXCLUDE: restored preview bytes equal the dock');
-    assert.equal(await browser.evaluate('window.__waterTest.plan.item_count'), expectedCount, 'UI_M3C_EXCLUDE: restored preview count equals the dock');
-    if (mode !== 'partial') {
-      await key('Escape'); await waitFor('!document.querySelector("dialog[open]")'); await click(`select-${nodeId}`); await click(`detail-${nodeId}`); await waitText('这是什么');
-      assert(await browser.evaluate('document.querySelectorAll(".items input").length > 0 && [...document.querySelectorAll(".items input")].every(e=>e.checked && !e.disabled)'), 'UI_M3C_EXCLUDE: only result-page reselection opts the restored group in with fresh exclusions');
-    }
-  }
-  // Keep an independent manual exclusion while skipping and restoring a default-selected group.
-  await reset({m3c:true, scanned:true, liveSkips:true}, 'results');
-  await click(`select-${nodeId}`); await click(`detail-${nodeId}`); await waitText('这是什么'); await click('item-i-000202');
-  assert.equal(await browser.evaluate('document.querySelector("[data-key=item-i-000202]")?.checked'), false, 'UI_M3C_EXCLUDE: independent manual exclusion is established before another group is skipped');
-  await key('Escape'); await waitFor('!document.querySelector("dialog[open]")');
-  const liveBaseBytes = recommendedBytes + BigInt(m3c.group_details[nodeId].group.eligible_bytes) - 700701149n - 996147200n;
-  const liveBaseCount = defaultCount + 1;
-  const aiCategoryBytes = BigInt(m3c.scan_result.categories.find(c => c.category === 'agent_tool').total_bytes);
-  await click(`detail-${recommendedId}`); await waitText('这是什么'); await click('skip-i-000100');
-  assert(await settle('!!document.querySelector(".detail-notice") && !document.querySelector("[data-key=detail-close]")?.disabled'), 'UI_M3C_SKIP: live skip completes both result and detail rereads');
-  assert.equal(await browser.evaluate('document.querySelector(".res-hero .kpi").textContent'), formatBytes(recommendedBytes - BigInt(recommendedItem.total_bytes)).replace(' ', ''), 'UI_M3C_SKIP: live skip deducts the recommended hero');
-  assert.equal(await browser.evaluate('document.querySelector("[data-key=legend-recommended] b").textContent'), formatBytes(recommendedBytes - BigInt(recommendedItem.total_bytes)), 'UI_M3C_SKIP: live skip deducts the legend');
-  assert.equal(await browser.evaluate('document.querySelector("[data-key=category-agent_tool]").closest(".sheet-head").querySelector(".category-total b").textContent'), formatBytes(aiCategoryBytes), 'UI_M3C_SKIP: live skip preserves category total occupancy');
-  assert.equal(await browser.evaluate('document.querySelector(".dock b").textContent'), formatBytes(liveBaseBytes - BigInt(recommendedItem.total_bytes)), 'UI_M3C_SKIP: refreshing keeps an independent excluded item deducted');
-  assert.equal(await browser.evaluate('document.querySelector(".selected-count").textContent'), `${count(liveBaseCount - 1)} 项`, 'UI_M3C_SKIP: refreshed counts deduct each skipped or excluded item once');
-  assert.equal(await browser.evaluate('document.querySelector("[data-key=item-i-000100]")'), null, 'UI_M3C_SKIP: new service explicitly marks the skipped item ineligible');
-  await key('Escape'); await waitFor('!document.querySelector("dialog[open]")');
-  await click('nav-home'); await pageIs('home');
-  assert.equal(await browser.evaluate('document.querySelector(".last span").textContent'), `可放心清理 ${formatBytes(recommendedBytes - BigInt(recommendedItem.total_bytes))}`, 'UI_M3C_SKIP: home last checkup uses the refreshed total');
-  await click('nav-locations'); await waitText('以后都跳过的文件夹'); await click('restore-s-000003');
-  assert(await settle('!document.querySelector("[data-key=restore-s-000003]") && !document.querySelector("[data-key=add-root]")?.disabled'), 'UI_M3C_SKIP: live restore finishes its result reread');
-  assert((await text()).includes('已恢复，这个文件夹以后会照常体检。'), 'UI_M3C_SKIP: restore explains future scans without claiming a current matching item');
-  await browser.evaluate('location.hash="#/results"'); await pageIs('results');
-  assert.equal(await browser.evaluate('document.querySelector(".dock b").textContent'), formatBytes(liveBaseBytes), 'UI_M3C_SKIP: restore puts the item bytes back in the global dock');
-  assert.equal(await browser.evaluate('document.querySelector(".selected-count").textContent'), `${count(liveBaseCount)} 项`, 'UI_M3C_SKIP: restore puts the item count back in the global dock');
-  assert((await browser.evaluate('document.querySelector("[data-key=detail-codex-marketplace-staging] .group-meta").textContent')).includes('48 个目录 · 最近 10 月 25 日 · 跳过 1 个'), 'UI_M3C_SKIP: restored group row uses the service total and skipped count');
-  await click(`detail-${recommendedId}`);
-  assert(await settle('document.querySelector("[data-key=item-i-000100]")?.checked && !document.querySelector("[data-key=item-i-000100]")?.disabled'), 'UI_M3C_SKIP: reopened restored item is eligible and selected');
-  await key('Escape'); await waitFor('!document.querySelector("dialog[open]")'); await click('clean-prepare');
-  assert(await settle('!!document.querySelector(".confirm[open]")'), 'UI_M3C_SKIP: restored selection prepares');
-  assert.deepEqual(await browser.evaluate('window.__waterTest.calls.findLast(c=>c.command==="clean_prepare").args'), {groupIds:groups(m3c.scan_result).filter(g => g.default_selected || g.group_id === nodeId).map(g => g.group_id), excludeItemIds:['i-000202']}, 'UI_M3C_SKIP: result refresh retains only the independent manual exclusion');
-  assert.equal(await browser.evaluate('window.__waterTest.plan.total_bytes'), liveBaseBytes.toString(), 'UI_M3C_SKIP: live restore prepare bytes equal the dock');
-  assert.equal(await browser.evaluate('window.__waterTest.plan.item_count'), liveBaseCount, 'UI_M3C_SKIP: live restore prepare count equals the dock');
-
-  // A folder already skipped before this scan can re-enter a default-selected group.
-  await reset({m3c:true, scanned:true, liveSkips:true, preScanSkip:true, observeDetailCache:recommendedId}, 'results');
-  assert(await settle('document.querySelector(".res-hero .kpi")?.textContent === ' + JSON.stringify(formatBytes(recommendedBytes - BigInt(recommendedItem.total_bytes)).replace(' ', ''))), 'UI_M3C_SKIP: initial result reflects the pre-scan skip');
-  await click(`detail-${recommendedId}`); await waitText('这是什么');
-  assert.equal(await browser.evaluate('document.querySelector("[data-key=item-i-000100]")'), null, 'UI_M3C_SKIP: pre-scan skipped item begins ineligible');
-  assert(await browser.evaluate('window.__waterTest.detailCacheReads > 0'), 'UI_M3C_SKIP: cache observer sees the actual populated detail cache');
-  await key('Escape'); await waitFor('!document.querySelector("dialog[open]")');
-  await click('nav-locations'); await waitText('以后都跳过的文件夹'); await click('restore-s-before-scan');
-  assert(await settle('!document.querySelector("[data-key=restore-s-before-scan]") && !document.querySelector("[data-key=add-root]")?.disabled'), 'UI_M3C_SKIP: pre-scan restore reread completes');
-  await browser.evaluate('location.hash="#/results"'); await pageIs('results');
-  await control('window.__waterTest.detailCacheReads=0'); await click('filter-recommended');
-  assert.equal(await browser.evaluate('window.__waterTest.detailCacheReads'), 0, 'UI_M3C_SKIP: result refresh discards the old detail cache before any drawer is reopened');
-  assert.equal(await browser.evaluate('document.querySelector(".dock b").textContent'), formatBytes(recommendedBytes), 'UI_M3C_SKIP: pre-scan restore enters the default selection bytes');
-  assert.equal(await browser.evaluate('document.querySelector(".selected-count").textContent'), `${count(defaultCount)} 项`, 'UI_M3C_SKIP: pre-scan restore enters the default selection count');
-  await click(`detail-${recommendedId}`);
-  assert(await settle('document.querySelector("[data-key=item-i-000100]")?.checked && !document.querySelector("[data-key=item-i-000100]")?.disabled'), 'UI_M3C_SKIP: cached pre-scan skipped detail is discarded on restore');
-  await key('Escape'); await waitFor('!document.querySelector("dialog[open]")'); await click('clean-prepare');
-  assert(await settle('!!document.querySelector(".confirm[open]")'), 'UI_M3C_SKIP: pre-scan restored default selection prepares');
-  assert.deepEqual(await browser.evaluate('window.__waterTest.calls.findLast(c=>c.command==="clean_prepare").args'), {groupIds:groups(m3c.scan_result).filter(g => g.default_selected).map(g => g.group_id), excludeItemIds:[]}, 'UI_M3C_SKIP: pre-scan restore prepare scope equals the default selected groups');
-  assert.equal(await browser.evaluate('window.__waterTest.plan.total_bytes'), recommendedBytes.toString(), 'UI_M3C_SKIP: pre-scan restore preview bytes equal the dock');
-  assert.equal(await browser.evaluate('window.__waterTest.plan.item_count'), defaultCount, 'UI_M3C_SKIP: pre-scan restore preview count equals the dock');
-  // The host accepts redundant exclusions of currently skipped items without invalid.
-  const ignored = await browser.evaluate('(async()=>{const c=window.__waterTest.calls.findLast(c=>c.command==="clean_prepare");return await window.__TAURI__.core.invoke("clean_prepare",{...c.args,groupIds:[...c.args.groupIds,"custom:drive-f:node-modules"],excludeItemIds:["i-000203"]})})()');
-  assert.equal(ignored.excluded_count, 0, 'UI_M3C_SKIP: host ignores exclusions belonging to currently skipped items');
-
-  for (const operation of ['skip', 'restore']) for (const outcome of ['success', 'failure', 'wrong-scan']) {
-    await reset({m3c:true, scanned:true, liveSkips:true, preScanSkip:operation === 'restore'}, 'results');
-    if (operation === 'skip') { await click(`detail-${recommendedId}`); await waitText('这是什么'); }
-    else { await click('nav-locations'); await waitText('以后都跳过的文件夹'); }
-    if (outcome === 'wrong-scan') await control(`window.__waterTest.heldRead={command:'scan_result',value:${JSON.stringify({...m3c.scan_result, scan_id:'scan-unrelated'})}}`);
-    else await control(`window.__waterTest.delayedError={command:'scan_result',error:${JSON.stringify(outcome === 'failure' ? fixture.errors.unavailable : null)}}`);
-    await click(operation === 'skip' ? 'skip-i-000100' : 'restore-s-before-scan');
-    const held = outcome === 'wrong-scan' ? 'heldRead' : 'delayedError';
-    assert(await settle(`window.__waterTest.${held}.started === true`), `UI_M3C_SKIP: ${operation} ${outcome} result reread is held`);
-    if (operation === 'skip') assert.equal(await browser.evaluate('document.querySelector("[data-key=clean-prepare]")?.disabled'), true, 'UI_M3C_SKIP: cleanup is disabled until the result reread completes');
-    await browser.evaluate('location.hash="#/about"'); await pageIs('about');
-    await browser.evaluate('location.hash="#/results"'); await pageIs('results');
-    assert.equal(await browser.evaluate('document.querySelector("[data-key=clean-prepare]")?.disabled'), true, 'UI_M3C_SKIP: navigation cannot bypass the pending reread');
-    await click('clean-prepare');
-    assert.equal(await browser.evaluate('window.__waterTest.calls.filter(c=>c.command==="clean_prepare").length'), 0, 'UI_M3C_SKIP: no cleanup plan is requested while reread waits');
-    await control(`window.__waterTest.${held}.release=true`);
-    assert(await settle('document.querySelector("[data-key=rescan]")?.disabled === false'), `UI_M3C_SKIP: ${outcome} reread finishes`);
-    if (outcome === 'success') assert.equal(await browser.evaluate('document.querySelector("[data-key=clean-prepare]")?.disabled'), false, 'UI_M3C_SKIP: a valid refreshed result enables cleanup');
-    else {
-      assert((await text()).includes('结果已过期，请重新体检后再清理。'), 'UI_M3C_SKIP: failed or mismatched reread marks results stale');
-      assert.equal(await browser.evaluate('document.querySelector("[data-key=clean-prepare]")?.disabled'), true, 'UI_M3C_SKIP: stale reread cannot prepare cleanup');
-      assert.equal(await browser.evaluate('window.__waterTest.calls.filter(c=>c.command==="scan_result").at(-1).args.scanId'), m3c.scan_result.scan_id, 'UI_M3C_SKIP: reread uses the original scan ID');
-    }
-  }
-
-  await reset({m3c:true, scanned:true, liveSkips:true}, 'results');
-  await click(`detail-${recommendedId}`); await waitText('这是什么');
-  await control(`window.__waterTest.delayedError={command:'skip_add',error:${JSON.stringify(fixture.errors.unavailable)}}`); await click('skip-i-000100');
-  assert(await settle('window.__waterTest.delayedError.started === true'), 'UI_M3C_SKIP: hold skip failure before leaving results');
-  await browser.evaluate('location.hash="#/about"'); await pageIs('about'); await control('window.__waterTest.delayedError.release=true');
-  assert(await settle('window.__waterTest.delayedError.finished === true'), 'UI_M3C_SKIP: skip fails after navigation');
-  await browser.evaluate('location.hash="#/results"'); await pageIs('results');
-  assert(await settle('document.querySelector("#notice")?.textContent.includes("跳过没有成功")'), 'UI_M3C_SKIP: returning to results reports the route-changed skip failure');
-  assert.equal(await browser.evaluate('document.querySelector(".dock b").textContent'), formatBytes(recommendedBytes), 'UI_M3C_SKIP: failed skip preserves the original selected bytes');
-  await click(`detail-${recommendedId}`);
-  assert(await settle('document.querySelector("[data-key=item-i-000100]")?.checked === true'), 'UI_M3C_SKIP: failed skip preserves the item selection');
-
-  for (const code of ['busy', 'invalid', 'stale']) {
-    await reset({m3c:true, scanned:true, liveSkips:true, observeAppState:true}, 'results');
-    await click(`detail-${recommendedId}`); await waitText('这是什么');
-    await control(`window.__waterTest.nextError={command:'skip_add',error:${JSON.stringify(fixture.errors.invalid)}}`); await click('skip-i-000100');
-    assert(await settle('!document.querySelector("[data-key=rescan]")?.disabled && !document.querySelector("dialog[open]")'), 'UI_M3C_SKIP: initial skip failure settles');
-    assert.equal(await browser.evaluate('document.querySelector("#notice span")?.textContent'), '跳过没有成功，这一项保留原来的勾选状态。', 'UI_M3C_SKIP: an immediate skip failure uses skip-specific copy instead of the service cleaning error');
-    assert.equal(await browser.evaluate('document.querySelector("[data-key=clean-prepare]")?.disabled'), true, 'UI_M3C_SKIP: even an invalid settings write expires the current result');
-    // Resolve only the uncertainty in this test-observed state. Real users must
-    // rescan; keeping the old notice here isolates two otherwise shadowed guards.
-    await control(`window.__waterTest.appState.stale=false;window.__waterTest.nextError={command:'group_detail',error:${JSON.stringify(fixture.errors[code])}}`); await click(`detail-${recommendedId}`);
-    assert(await settle(`document.querySelector('#notice span')?.textContent === ${JSON.stringify(fixture.errors[code].message_zh)}`), `UI_M3C_SKIP: later non-clean ${code} error takes priority over skip failure`);
-    assert(await browser.evaluate('window.__waterTest.appState.skipFailure.includes("跳过没有成功")'), 'UI_M3C_SKIP: later non-clean error wins while the old skip failure still exists');
-    await control(`window.__waterTest.appState.stale=false;window.__waterTest.delayedError={command:'clean_prepare',error:${JSON.stringify(fixture.errors[code])}}`); await click('filter-all'); await click('clean-prepare');
-    assert(await settle('window.__waterTest.delayedError.started === true'), 'UI_M3C_SKIP: hold cleanup preparation independently of later error rendering');
-    assert.equal(await browser.evaluate('window.__waterTest.appState.skipFailure'), '', 'UI_M3C_SKIP: starting cleanup clears skip failure before its response arrives');
-    assert(!(await browser.evaluate('document.querySelector("#notice").textContent')).includes('跳过没有成功'), 'UI_M3C_SKIP: a pending cleanup already drops the earlier skip-failure notice');
-    await control('window.__waterTest.delayedError.release=true');
-    assert(await settle(`document.querySelector('#notice span')?.textContent === ${JSON.stringify(fixture.errors[code].message_zh)}`), `UI_M3C_SKIP: later ${code} error takes priority over skip failure`);
-    assert(!(await browser.evaluate('document.querySelector("#notice").textContent')).includes('跳过没有成功'), 'UI_M3C_SKIP: cleanup never reuses the earlier skip-failure notice');
-    if (code === 'stale') assert((await text()).includes('结果已过期，请重新体检后再清理。'), 'UI_M3C_SKIP: stale explanation remains visible after a failed skip');
-  }
-
-  for (const [command, keyName] of [['skip_add', 'skip-i-000100'], ['skip_remove', 'restore-s-000001'], ['locations_set_category', 'location-browser']]) {
-    for (const failure of ['busy', 'stale', 'applied']) {
-      const afterWrite = failure === 'applied';
-      await reset({m3c:true, scanned:true, liveSkips:true}, 'results');
-      if (command === 'skip_add') { await click(`detail-${recommendedId}`); await waitText('这是什么'); }
-      else { await click('nav-locations'); await waitText('以后都跳过的文件夹'); }
-      await control(afterWrite ? `window.__waterTest.failAfterWrite=${JSON.stringify(command)}` : `window.__waterTest.nextError={command:${JSON.stringify(command)},error:${JSON.stringify(fixture.errors[failure])}}`);
-      await click(keyName);
-      assert(await settle('window.__waterTest.nextError === null && !!document.querySelector("#notice span") && !document.querySelector("dialog[open]")'), `UI_M3C_SKIP: ${command} settings failure settles`);
-      if (afterWrite) {
-        const applied = command === 'skip_add' ? 'window.__waterTest.locations.skipped.some(s=>s.skip_id==="s-000003")' : command === 'skip_remove' ? '!window.__waterTest.locations.skipped.some(s=>s.skip_id==="s-000001")' : 'window.__waterTest.locations.categories.find(c=>c.category==="browser").enabled === false';
-        assert(await browser.evaluate(applied), `UI_M3C_SKIP: ${command} can apply before the host reports failure`);
-      }
-      await browser.evaluate('location.hash="#/results"'); await pageIs('results');
-      assert.equal(await browser.evaluate('document.querySelector("[data-key=clean-prepare]")?.disabled'), true, `UI_M3C_SKIP: ${command} failure expires results even after navigation`);
-      assert((await text()).includes('结果已过期，请重新体检后再清理。'), `UI_M3C_SKIP: ${command} uncertain outcome explains the required rescan`);
-      await click('clean-prepare');
-      assert.equal(await browser.evaluate('window.__waterTest.calls.filter(c=>c.command==="clean_prepare").length'), 0, `UI_M3C_SKIP: ${command} uncertain settings cannot produce a cleanup plan`);
-    }
-  }
-
-  for (const outcome of ['success', 'failure', 'wrong-scan']) {
-    await reset({m3c:true, scanned:true, liveSkips:true, observeDetailCache:recommendedId}, 'results');
-    await click(`detail-${recommendedId}`); await waitText('这是什么');
-    await key('Escape'); await waitFor('!document.querySelector("dialog[open]")');
-    await click('nav-locations'); await waitText('自定义文件夹');
-    if (outcome === 'wrong-scan') await control(`window.__waterTest.heldRead={command:'scan_result',value:${JSON.stringify({...m3c.scan_result, scan_id:'scan-unrelated'})}}`);
-    else await control(`window.__waterTest.delayedError={command:'scan_result',error:${JSON.stringify(outcome === 'failure' ? fixture.errors.unavailable : null)}}`);
-    await click('location-browser');
-    const held = outcome === 'wrong-scan' ? 'heldRead' : 'delayedError';
-    assert(await settle(`window.__waterTest.${held}.started === true`), 'UI_M3C_DRIVE: category changes reread the current result');
-    await browser.evaluate('location.hash="#/results"'); await pageIs('results');
-    assert.equal(await browser.evaluate('document.querySelector("[data-key=clean-prepare]")?.disabled'), true, 'UI_M3C_DRIVE: category reread blocks cleanup across navigation');
-    await click('clean-prepare');
-    assert.equal(await browser.evaluate('window.__waterTest.calls.filter(c=>c.command==="clean_prepare").length'), 0, 'UI_M3C_DRIVE: category refresh cannot send a premature plan');
-    await control(`window.__waterTest.${held}.release=true`);
-    assert(await settle('document.querySelector("[data-key=rescan]")?.disabled === false'), 'UI_M3C_DRIVE: category reread settles');
-    assert.equal(await browser.evaluate('window.__waterTest.calls.findLast(c=>c.command==="scan_result").args.scanId'), m3c.scan_result.scan_id, 'UI_M3C_DRIVE: category reread uses the same scan ID');
-    if (outcome !== 'success') {
-      assert((await text()).includes('结果已过期，请重新体检后再清理。'), 'UI_M3C_DRIVE: failed or mismatched category reread makes results stale');
-      assert.equal(await browser.evaluate('document.querySelector("[data-key=clean-prepare]")?.disabled'), true, 'UI_M3C_DRIVE: stale category results cannot prepare');
-      continue;
-    }
-    await control('window.__waterTest.detailCacheReads=0'); await click('filter-all');
-    assert.equal(await browser.evaluate('window.__waterTest.detailCacheReads'), 0, 'UI_M3C_DRIVE: category refresh clears cached details without reopening a drawer');
-    const remaining = groups(m3c.scan_result).filter(g => g.default_selected && g.category !== 'browser');
-    const bytes = remaining.reduce((sum, g) => sum + BigInt(g.eligible_bytes), 0n);
-    assert.equal(await browser.evaluate('document.querySelector(".dock b").textContent'), formatBytes(bytes), 'UI_M3C_DRIVE: disabled categories leave the selected byte total');
-    assert.equal(await browser.evaluate('document.querySelector(".selected-count").textContent'), `${count(remaining.reduce((sum, g) => sum + g.eligible_count, 0))} 项`, 'UI_M3C_DRIVE: disabled categories leave the selected item total');
-    assert.equal(await browser.evaluate('document.querySelector("[data-key=select-chrome-cache]")'), null, 'UI_M3C_DRIVE: disabled category groups become nonselectable');
-    await click('clean-prepare'); assert(await settle('!!document.querySelector(".confirm[open]")'), 'UI_M3C_DRIVE: refreshed remaining selection prepares');
-    assert.deepEqual(await browser.evaluate('window.__waterTest.calls.findLast(c=>c.command==="clean_prepare").args.groupIds'), remaining.map(g => g.group_id), 'UI_M3C_DRIVE: category refresh preserves other choices and omits disabled groups');
-    assert.equal(await browser.evaluate('window.__waterTest.plan.total_bytes'), bytes.toString(), 'UI_M3C_DRIVE: category preview bytes equal the dock');
-  }
-
-  await reset({m3c:true, scanned:true, liveSkips:true}, 'results');
-  const skipIdentity = await browser.evaluate('(async()=>{const host=window.__TAURI__.core;const a=await host.invoke("skip_add",{itemId:"i-000100"});const first=a.skipped.find(s=>s.skip_id==="s-000003").skip_id;const duplicate=await host.invoke("skip_add",{itemId:"i-000100"});await host.invoke("skip_remove",{skipId:first});const b=await host.invoke("skip_add",{itemId:"i-000101"});const c=await host.invoke("skip_add",{itemId:"i-000100"});let missing;try{await host.invoke("skip_remove",{skipId:"s-missing"})}catch(e){missing=e.code}return {first,second:b.skipped.find(s=>s.skip_id==="s-000003").skip_id,ids:c.skipped.map(s=>s.skip_id),duplicate:duplicate.skipped.length===a.skipped.length,missing}})()');
-  assert.equal(new Set(skipIdentity.ids).size, skipIdentity.ids.length, 'UI_M3C_SKIP: IDs are distinct among current skip entries');
-  assert.equal(skipIdentity.first, skipIdentity.second, 'UI_M3C_SKIP: removing a skip frees the smallest numeric ID for reuse');
-  assert.deepEqual(skipIdentity.ids, ['s-000001', 's-000002', 's-000003', 's-000004'], 'UI_M3C_SKIP: additions allocate the smallest available numeric ID');
-  assert.equal(skipIdentity.duplicate, true, 'UI_M3C_SKIP: adding the same path keeps its existing skip');
-  assert.equal(skipIdentity.missing, 'not_found', 'UI_M3C_SKIP: removing an unknown skip returns not_found');
-
-  await reset({m3c:true}, 'locations');
-  assert(await settle('!!document.querySelector(".skipped-roots")'), 'UI_M3C_SKIP: frozen skipped fixture loaded');
-  assert.equal(await browser.evaluate('document.querySelectorAll(".skipped-roots .location-row").length'), 2, 'UI_M3C_SKIP: both fixture entries appear');
-  assert((await text()).includes('整个 F 盘') && (await text()).includes('也可以选择整个非系统盘'), 'UI_M3C_DRIVE: drive root and picker explanation');
-  await browser.evaluate('document.querySelector("#main").scrollTop=document.querySelector(".custom-roots").offsetTop-140');
-  await shot('locations-skipped-1240x820');
-  for (const skip of m3c.locations.skipped) await click(`restore-${skip.skip_id}`);
-  assert(await settle('!document.querySelector(".skipped-roots")'), 'UI_M3C_SKIP: empty skipped section is hidden');
-
-  await reset({m3c:true}, 'trends');
-  assert(await settle('!!document.querySelector(".forecast") && !!document.querySelector(".orphans")'), 'UI_M3C_FORECAST: forecast and process cards loaded');
-  for (const drive of m3c.trends.forecast) {
-    const expected = drive.days_to_full === null ? drive.note_zh : `按最近 ${drive.basis_days} 天的速度，约 ${drive.days_to_full} 天后满`;
-    assert((await text()).includes(expected), `UI_M3C_FORECAST: ${drive.root} shows its forecast or explanation`);
-  }
-  assert.equal(await browser.evaluate('document.querySelectorAll(".forecast-full").length'), 1, 'UI_M3C_FORECAST: no fullness warning for zero or negative speed');
-  const chains = await browser.evaluate('[...document.querySelectorAll(".orphan-row")].map(e=>({name:e.querySelector("b").textContent, pattern:e.querySelector(".orphan-pattern").textContent, count:e.children[1].textContent, memory:e.querySelector(".orphan-memory").textContent, started:e.querySelector(".orphan-start").textContent}))');
-  assert.deepEqual(chains.map(c => [c.name, c.pattern, c.count, c.memory]), m3c.trends.orphans.chains.map(c => [c.name, c.matched_pattern, `${count(c.process_count)} 个进程`, c.memory_bytes === null ? '—' : formatBytes(c.memory_bytes)]), 'UI_M3C_ORPHANS: names, patterns, counts and nullable memory match fixtures');
-  assert(chains.every(c => c.started.startsWith('开始于 ') && c.started.length > 10), 'UI_M3C_ORPHANS: start times appear');
-  assert.equal(await browser.evaluate('document.querySelector(".orphans").querySelectorAll("button, input, a").length'), 0, 'UI_M3C_ORPHANS: read-only card has no process controls');
-  assert((await text()).includes('这些进程在启动它的程序退出后还留着，Water 只列出、不会结束它们。'), 'UI_M3C_ORPHANS: read-only explanation');
-  await shot('trends-forecast-1240x820');
-  await reset({m3c:true, emptyM3c:true}, 'trends');
-  assert(await settle('!!document.querySelector(".chart")'), 'UI_M3C_FORECAST: empty incremental cards retain the existing chart');
-  assert.equal(await browser.evaluate('document.querySelector(".forecast, .orphans")'), null, 'UI_M3C_ORPHANS: absent orphan snapshot and empty forecasts have no cards');
-
-  // A prior locations read must lose to every subsequent write on that page.
-  for (const [key, command] of [['location-browser', 'locations_set_category'], ['remove-water', 'custom_root_remove'], ['add-root', 'custom_root_add'], ['restore-s-000001', 'skip_remove']]) {
-    for (const error of [null, fixture.errors.stale]) {
-      await reset({m3c:true}, 'locations'); await waitText('自定义文件夹');
-      await click('nav-about'); await pageIs('about');
-      const old = {...structuredClone(m3c.locations), custom_roots:[{...m3c.locations.custom_roots[0], display_path:'OLD-RESPONSE'}]};
-      await control(`window.__waterTest.heldRead={command:'locations_get',value:${JSON.stringify(old)},error:${JSON.stringify(error)}}`);
-      await click('nav-locations');
-      assert(await settle('window.__waterTest.heldRead.started === true'), `UI_READ_ORDER: old read held before ${command}`);
-      await click(key);
-      assert(await settle(`window.__waterTest.calls.some(c=>c.command===${JSON.stringify(command)}) && !document.querySelector('[data-key=add-root]').disabled`), `UI_READ_ORDER: ${command} completes while old read waits`);
-      const expected = await browser.evaluate('document.querySelector("#page").textContent');
-      await control('window.__waterTest.heldRead.release=true');
-      assert(await settle('window.__waterTest.heldRead.finished === true'), `UI_READ_ORDER: release old locations ${command} response`);
-      await browser.evaluate('new Promise(ok=>requestAnimationFrame(()=>requestAnimationFrame(ok)))');
-      assert.equal(await browser.evaluate('document.querySelector("#page").textContent'), expected, `UI_READ_ORDER: ${command} data survives an older response`);
-      assert(await browser.evaluate('document.querySelector("#notice").hidden'), `UI_READ_ORDER: old error after ${command} is discarded`);
-    }
-  }
-  // A write (including skip_add from its drawer) can also be superseded by navigation and a newer read.
-  for (const [key, command, origin] of [['location-browser', 'locations_set_category', 'locations'], ['remove-water', 'custom_root_remove', 'locations'], ['add-root', 'custom_root_add', 'locations'], ['restore-s-000001', 'skip_remove', 'locations'], ['skip-i-000202', 'skip_add', 'results']]) {
-    for (const error of [null, fixture.errors.stale]) {
-      await reset({m3c:true, scanned:true}, origin);
-      if (origin === 'results') { await click('detail-custom:drive-f:node-modules'); await waitText('这是什么'); }
-      else await waitText('自定义文件夹');
-      const old = {...structuredClone(m3c.locations), custom_roots:[{...m3c.locations.custom_roots[0], display_path:'OLD-WRITE'}]};
-      await control(`window.__waterTest.heldRead={command:${JSON.stringify(command)},value:${JSON.stringify(command === 'custom_root_add' ? m3c.custom_root_add_drive : old)},error:${JSON.stringify(error)}}`);
-      await click(key);
-      assert(await settle('window.__waterTest.heldRead.started === true'), `UI_READ_ORDER: ${command} write held`);
-      await browser.evaluate('location.hash="#/about"'); await pageIs('about');
-      await browser.evaluate('location.hash="#/locations"'); await pageIs('locations');
-      assert(await settle('document.querySelector("#page").textContent.includes("整个 F 盘")'), 'UI_READ_ORDER: newer locations read wins');
-      await control('window.__waterTest.heldRead.release=true');
-      assert(await settle('window.__waterTest.heldRead.finished === true && !document.querySelector("[data-key=add-root]").disabled'), 'UI_READ_ORDER: older write finishes');
-      assert(!(await text()).includes('OLD-WRITE'), `UI_READ_ORDER: ${command} cannot overwrite newer read`);
-      assert(await browser.evaluate('document.querySelector("#notice").hidden && !document.querySelector("dialog[open]")'), `UI_READ_ORDER: ${command} has no stale notice or drawer`);
-    }
-  }
-  await reset({scanned:true});
-  await click('view-results'); await pageIs('results'); await waitText(selectionText(defaults.length));
-  await click('clean-prepare'); await waitFor('!!document.querySelector("dialog.confirm[open]")');
-  await click('confirm-start');
-  await pageIs('cleaning');
-  assert(await settle('document.body.textContent.includes("停止后，正在删除的这一项会停在中途，已经删掉的部分无法恢复。")'), 'UI_CLEAN_TEXT: cleaning explains that the current item stops partway through');
-  assert(!(await text()).includes('停止后会完成当前一项，并保留已完成的结果。'), 'UI_CLEAN_TEXT: the old completion promise is absent');
-  await shot('cleaning-1240x820');
-  await control(`window.__waterTest.progressErrors.clean_progress=${JSON.stringify([fixture.errors.busy, fixture.errors.busy])}`);
-  await noticeText('正在重新连接 Water 服务…', 'clean reconnecting notice shows'); await pageIs('cleaning');
-  assert(await browser.evaluate('(()=>{const e=new Event("beforeunload",{cancelable:true});dispatchEvent(e);return e.defaultPrevented})()'), 'Close protection survives a failed progress query');
-  await noticeSettled('window.__waterTest.progressErrors.clean_progress.length===0 && !document.body.textContent.includes("正在重新连接 Water 服务…")', 'clean reconnecting notice clears');
-  await pageIs('cleaning');
-  await control(`window.__waterTest.progressErrors.clean_progress=Array.from({length:20},()=>(${JSON.stringify(fixture.errors.unavailable)}))`);
-  await noticeText('重新连接', 'clean paused notice shows', 600);
-  await pausedNotice('clean paused reconnect button shows');
-  await pageIs('cleaning'); await shot('paused-1240x820');
-  assert(await browser.evaluate('(()=>{const e=new Event("beforeunload",{cancelable:true});dispatchEvent(e);return e.defaultPrevented})()'), 'Exhausted retries must still protect cleanup');
-  const paused = await browser.evaluate('window.__waterTest.calls.filter(c=>c.command==="clean_progress").length');
-  await new Promise(ok => setTimeout(ok, 550));
-  assert.equal(await browser.evaluate('window.__waterTest.calls.filter(c=>c.command==="clean_progress").length'), paused, 'Retries stop after twenty consecutive failures');
-  await click('progress-reconnect'); await pageIs('cleaning');
-  await waitFor(`window.__waterTest.calls.filter(c=>c.command==='clean_progress').length>${paused}`);
-  assert.equal(await browser.evaluate('window.__waterTest.calls.filter(c=>c.command==="clean_start").length'), 1, 'Reconnect must not restart cleanup');
-  await control('window.__waterTest.holdClean=false'); await pageIs('done');
-  assert.equal(await browser.evaluate('document.querySelector(".done-hero .kpi").textContent'), formatBytes(fixture.clean_result.freed_bytes).replace(' ', '') + ' 已释放', 'Actual freed bytes must come from clean_result');
-  assert((await text()).includes('6 个配置正在使用，已跳过')); await noOverflow(); await shot('done-1240x820');
-  const calls = await browser.evaluate('window.__waterTest.calls.length'); await new Promise(ok => setTimeout(ok, 550));
-  assert.equal(await browser.evaluate('window.__waterTest.calls.length'), calls, 'Completed cleanup stops polling');
-  assert(await browser.evaluate('(()=>{const c=window.__waterTest.calls;return c.findLastIndex(x=>x.command==="app_state")>c.findLastIndex(x=>x.command==="clean_result")})()'), 'Refresh app state after cleanup');
-  await click('nav-home'); await pageIs('home'); await waitText('查看结果');
-  assert.equal(await browser.evaluate('document.querySelector("[data-key=scan-start]").disabled'), false, 'Home can start the next checkup');
-  assert((await text()).includes(formatBytes(fixture.clean_result.drives.find(d => d.root === fixture.app_state_fresh.drives.find(d => d.is_system).root).free_after).replace(' ', '')));
-  await click('nav-trends'); await waitText('增长最多'); await noOverflow(); await shot('trends-1240x820');
-  const chart = await browser.evaluate('[...document.querySelectorAll(".chart-point")].map(e=>({x:+e.getAttribute("cx"),y:+e.getAttribute("cy")}))');
-  for (let i = 2; i < chart.length; i++) assert(Math.abs((chart[i].x - chart[i - 1].x) - (chart[1].x - chart[0].x)) < .01, 'Checkups use equal horizontal intervals');
-  assert(await browser.evaluate('document.querySelector(".chart-line").getAttribute("d").includes("C")'));
-  assert.equal(await browser.evaluate('document.querySelectorAll(".chart-label").length'), 4);
-  await click('nav-history'); await waitText(cleanEntry.summary_zh); await shot('history-1240x820');
-  await click(`history-${fixture.history_list[0].id}`); await waitText('清理日志位置');
-  assert((await text()).includes('6 个配置正在使用，已跳过'));
-  await click('nav-locations'); await waitText('自定义文件夹'); await shot('locations-1240x820');
-  await click('location-browser'); await waitFor(`document.querySelector(${JSON.stringify(q('location-browser'))}).getAttribute('aria-checked') === 'false'`);
-  await control('window.__waterTest.addCancelled=true'); await click('add-root');
-  assert.equal(await browser.evaluate('window.__waterTest.locations.custom_roots.length'), 1);
-  await control('window.__waterTest.addCancelled=false'); await click('add-root'); await waitText('D:\\projects');
-  await click('remove-projects'); await waitFor('window.__waterTest.locations.custom_roots.length === 1');
-  await click('nav-about'); await waitText('Water 读取什么'); await shot('about-1240x820'); await noOverflow(); await safeCalls();
-
-  for (const error of [null, {code:'not_found', message_zh:'旧记录读取失败。'}, fixture.errors.stale]) {
-    await reset({scanned:true, busy:'cleaning'}); await pageIs('cleaning'); await waitText('已处理');
-    const oldHistory = fixture.history_list.filter(entry => entry.id !== cleanEntry.id);
-    await control(`window.__waterTest.heldRead={command:'history_list',value:${JSON.stringify(oldHistory)},error:${JSON.stringify(error)}}`);
-    await click('nav-history'); await pageIs('history');
-    assert(await settle('window.__waterTest.heldRead.started === true'), 'UI_READ_ORDER: first history read is held');
-    await control('window.__waterTest.holdClean=false');
-    assert(await settle(`document.body.textContent.includes(${JSON.stringify(cleanEntry.summary_zh)})`), 'UI_READ_ORDER: the later history read shows the completed cleanup');
-    assert.equal(await browser.evaluate('window.__waterTest.calls.filter(c=>c.command==="history_list").length'), 2, 'UI_READ_ORDER: both reads were issued on the same page');
-    await control('window.__waterTest.heldRead.release=true');
-    assert(await settle('window.__waterTest.heldRead.finished === true'), 'UI_READ_ORDER: release the older response last');
-    // Wait for the response continuation and paint before judging persistent page state.
-    await browser.evaluate('new Promise(ok=>requestAnimationFrame(()=>requestAnimationFrame(ok)))');
-    assert((await text()).includes(cleanEntry.summary_zh), 'UI_READ_ORDER: an older success cannot overwrite the new history');
-    assert(await browser.evaluate('document.querySelector("#notice").hidden'), 'UI_READ_ORDER: an older failure cannot write a notice');
-    await browser.evaluate('location.hash="#/results"'); await pageIs('results');
-    assert(await settle('document.querySelector("[data-key=clean-prepare]")?.disabled === true'), 'UI_READ_ORDER: cleanup still marks the results stale');
-  }
+test('ui_v2_drawer_details', async () => {
+  await results(); await detail('codex-runtimes');
+  assert.equal(await evalJs('document.querySelectorAll(".summary-row").length'), f.v2_group_detail_items.rows.length, 'UI_V2_DRAWER: small groups show each supplied item'); await shot('drawer');
+  const small = f.v2_group_detail_items.rows[0]; await click('row-menu-' + small.row_id); await menuItem('以后都跳过');
+  assert.deepEqual((await lastCall('skip_add')).args, {itemId:small.row_id}, 'UI_V2_DRAWER: small row sends real item ID');
+  await results(); await openSystemDrawer();
+  assert.equal(await evalJs('document.querySelectorAll(".summary-row").length'), f.v2_group_detail_rows.rows.length, 'UI_V2_DRAWER: summary rows as supplied');
+  assert(await evalJs('document.querySelectorAll(".summary-row").length<=8'), 'UI_V2_DRAWER: at most eight rows');
+  await click('row-' + f.v2_group_detail_rows.rows[0].row_id);
+  assert.deepEqual((await lastCall('conclusion_decide')).args.decision, {row:f.v2_group_detail_rows.rows[0].row_id, include:false}, 'UI_V2_DRAWER: row checkbox sends a decision');
+  assert(await evalJs(`document.querySelector(${JSON.stringify(q('row-' + f.v2_group_detail_rows.rows[0].row_id))}).checked`), 'UI_V2_DRAWER: fresh service row controls selection, no local override');
+  for (const r of f.v2_group_detail_rows.rows) { await click('row-menu-' + r.row_id); assert(!(await evalJs('document.querySelector(".menu:not([hidden])").textContent')).includes('以后都跳过'), 'UI_V2_DRAWER: summary row cannot be skipped'); await key('Escape'); }
+  await shot('drawer-big');
+  const countBefore = await callCount('group_items'); await setSearch('drawer-search', 'C:\\Temp');
+  assert.equal(await callCount('group_items'), countBefore, 'UI_V2_DRAWER: path search is not sent');
+  await setSearch('drawer-search', '20261005');
+  await wait('window.__waterTest.calls.some(c=>c.command==="group_items") || document.querySelector("#notice:not([hidden])")', 'UI_IPC_NO_PATH');
+  assert.deepEqual((await lastCall('group_items'))?.args, {groupId:'system-temp-old', rowId:null, query:'20261005'}, 'UI_IPC_NO_PATH: search sends query only, never display_path');
+  assert.equal(await evalJs('document.querySelectorAll(".item-row").length'), f.v2_group_items_search.items.length, 'UI_V2_DRAWER: search items supplied');
+  await click('item-' + f.v2_group_items_search.items[0].item_id);
+  assert.deepEqual((await lastCall('conclusion_decide')).args.decision, {item:f.v2_group_items_search.items[0].item_id, include:false}, 'UI_V2_DRAWER: item checkbox sends a decision');
+  await click('item-menu-' + f.v2_group_items_search.items[0].item_id); await menuItem('以后都跳过');
+  assert.deepEqual((await lastCall('skip_add')).args, {itemId:f.v2_group_items_search.items[0].item_id}, 'UI_V2_DRAWER: expanded item ID');
+  await results(); await openSystemDrawer(); await click('row-menu-' + f.v2_group_detail_rows.rows[1].row_id); await menuItem('展开看每一项');
+  assert.equal((await lastCall('group_items')).args.rowId, f.v2_group_detail_rows.rows[1].row_id, 'UI_V2_DRAWER: expanding uses row ID'); await key('Escape');
+  await pageIs('details'); await click('section-dev_cache');
+  assert.equal(await evalJs('document.querySelectorAll(".section-toggle[aria-expanded=true]").length'), 1, 'UI_V2_DRAWER: only one expanded section');
+  assert(await evalJs('document.body.textContent.includes("3 个位置") && document.body.textContent.includes("和上次一样的")'), 'UI_V2_DRAWER: merged and unchanged rows');
+  await shot('details'); await click('detail-m:cachedir-tagged');
+  const merged = f.v2_group_detail_merged.rows[0]; await click('row-menu-' + merged.row_id);
+  assert(!(await evalJs('document.querySelector(".menu:not([hidden])").textContent')).includes('以后都跳过'), 'UI_V2_DRAWER: merged group row cannot skip'); await key('Escape'); await key('Escape');
+  await click('detail-mode-location'); assert.equal((await lastCall('detail_get')).args.mode, 'location', 'UI_V2_DRAWER: location mode command');
+  for (const call of (await control('return c.calls')).filter(x=>x.command==='skip_add')) assert(!/^(r:|m:)/.test(call.args.itemId) && call.args.itemId !== 'system-temp-old', 'UI_V2_DRAWER: skips are item IDs');
 });
 
-test('ui_layout_states_a11y', async () => {
-  await reset({scanned:true}, 'results'); await waitText(selectionText(defaults.length));
-  for (const dimensions of [[1240, 820], [1040, 720]]) { await browser.size(...dimensions); await noOverflow(); }
+test('ui_v2_confirm_done', async () => {
+  await results(); await click('clean-prepare'); await wait('document.querySelector("[data-key=mode-quarantine]")', 'UI_V2_CONFIRM');
+  assert.equal((await lastCall('clean_prepare')).args.chosenMode, 'quarantine', 'UI_V2_CONFIRM: initial request defaults to quarantine');
+  assert(await evalJs('document.querySelector("[data-key=mode-quarantine]").checked'), 'UI_V2_CONFIRM: conservative default');
+  assert(await evalJs('document.body.textContent.includes("Chrome 开着")'), 'UI_V2_CONFIRM: expected skip reason visible');
+  await shot('confirm');
+  await click('mode-delete'); await wait('document.querySelector("[data-key=confirm-start]").textContent.startsWith("删除 ")', 'UI_V2_CONFIRM');
+  assert.equal((await lastCall('clean_prepare')).args.chosenMode, 'delete', 'UI_V2_CONFIRM: mode change prepares again');
+  assert.equal(await evalJs('getComputedStyle(document.querySelector("[data-key=confirm-start]")).backgroundColor'), 'rgb(255, 79, 43)', 'UI_V2_CONFIRM: irreversible choice is orange-red'); await shot('confirm-direct');
+  await click('confirm-cancel'); await click('clean-prepare'); await wait('document.querySelector("[data-key=confirm-start]")');
+  assert(await evalJs('document.querySelector("[data-key=mode-quarantine]").checked'), 'UI_V2_CONFIRM: reopening resets mode');
+  await click('confirm-start'); await pageIs('cleaning');
+  assert(await evalJs('(()=>{const e=new Event("beforeunload",{cancelable:true});window.dispatchEvent(e);return e.defaultPrevented})()'), 'UI_V2_CONFIRM: cleanup guards window close');
+  await control('c.clean=2'); await pageIs('done');
+  assert(await evalJs(`document.body.textContent.includes(${JSON.stringify('另有 ' + formatBytes(f.v2_clean_result.quarantined.bytes) + ' 在隔离区')})`), 'UI_V2_CONFIRM: quarantined bytes are not freed bytes'); await checkPrimary(); await shot('done');
+  await click('done-finish'); await pageIs('results');
+  await results({onlyDelete:true}); await click('clean-prepare'); await wait('document.querySelector("dialog[open]")'); assert.equal(await evalJs('document.querySelectorAll(".choice-modes").length'), 0, 'UI_V2_CONFIRM: no chosen section when null'); await key('Escape');
+  await control('c.nextError={command:"clean_prepare",error:{code:"invalid",message_zh:"计划为空，请重新选择。"}}'); await click('clean-prepare');
+  assert(await evalJs('document.querySelector("#notice").textContent.includes("计划为空，请重新选择。") && !document.querySelector("dialog[open]")'), 'UI_V2_CONFIRM: prepare error stays on conclusion');
+});
+
+test('ui_v2_quarantine_dedupe', async () => {
+  await reset({}, 'quarantine'); await wait('document.querySelectorAll("[data-quarantine]").length>0'); await shot('quarantine'); await checkPrimary();
+  assert.equal(await evalJs('document.querySelectorAll("[data-quarantine]").length'), f.v2_quarantine_list.cards.length, 'UI_V2_QUARANTINE: all cards');
+  assert(await evalJs('document.body.textContent.includes("7 天")'), 'UI_V2_QUARANTINE: seven-day reminder');
+  await click('root-' + f.v2_quarantine_list.roots[0].target_id); assert.deepEqual((await lastCall('quarantine_reveal')).args, {targetId:f.v2_quarantine_list.roots[0].target_id}, 'UI_V2_QUARANTINE: reveal sends only root ID');
+  const id = f.v2_quarantine_list.cards[0].quarantine_id;
+  await click('purge-' + id); assert.equal(await callCount('quarantine_delete'), 0, 'UI_V2_QUARANTINE: second confirmation required'); await click('purge-cancel');
+  await click('restore-20261102-174012-c'); await wait('document.querySelector("[data-key=restore-beside]")', 'UI_V2_QUARANTINE');
+  assert.deepEqual((await lastCall('quarantine_restore')).args, {quarantineId:'20261102-174012-c', beside:false}, 'UI_V2_QUARANTINE: conflict before beside');
+  await click('restore-beside'); assert.equal((await lastCall('quarantine_restore')).args.beside, true, 'UI_V2_QUARANTINE: second restore explicit');
+  await reset({}, 'quarantine'); await wait('document.querySelector("[data-key=purge-' + id + ']")'); await click('purge-' + id); await click('purge-confirm'); await control('c.purge=1');
+  await wait(`window.__waterTest.busy==="idle" && document.querySelectorAll('[data-quarantine]').length===${f.v2_quarantine_leftover.cards.length}`, 'UI_V2_QUARANTINE'); await shot('quarantine-leftover');
+  const leftId = f.v2_quarantine_leftover.cards[0].quarantine_id; await click('purge-' + leftId); await click('purge-confirm'); assert.equal((await lastCall('quarantine_delete')).args.quarantineId, leftId, 'UI_V2_QUARANTINE: retry same batch');
+  await reset({quarantine:'v2_quarantine_foreign'}, 'quarantine'); await wait('document.querySelector("[data-quarantine]")'); assert.equal(await evalJs('document.querySelectorAll("[data-key^=restore-]").length'), 0, 'UI_V2_QUARANTINE: no restore without record');
+  await reset({quarantine:'v2_quarantine_empty'}, 'quarantine'); await wait('document.body.textContent.includes("隔离区是空的")', 'UI_V2_QUARANTINE');
+  await reset(); await click('location-menu-drive-e'); await shot('dedupe-menu'); await menuItem('查重复文件'); await shot('dedupe-intro');
+  assert.equal(await callCount('dedupe_start'), 0, 'UI_V2_DEDUPE: no content read before consent');
+  await click('dedupe-start'); await pageIs('dedupe'); assert.deepEqual((await lastCall('dedupe_start')).args, {locationId:'drive-e'}, 'UI_V2_DEDUPE: chosen location');
+  await wait('document.querySelector("[data-key=dedupe-stop]")', 'UI_V2_DEDUPE'); await click('dedupe-stop'); await wait('document.querySelector(".dedupe-row")', 'UI_V2_DEDUPE');
+  assert.equal(await evalJs('document.querySelectorAll(".dedupe-row input:checked").length'), 0, 'UI_V2_DEDUPE: none selected by default');
+  await click('dup-' + f.v2_dedupe_result.groups[0].group_id); await wait('document.querySelectorAll(".dedupe-row input:checked").length===2', 'UI_V2_DEDUPE');
+  assert.equal((await lastCall('dedupe_decide')).args.groupId, f.v2_dedupe_result.groups[0].group_id, 'UI_V2_DEDUPE: selected by ID'); await shot('dedupe');
+  await click('dedupe-prepare'); await wait('document.querySelector("dialog[open]")'); assert.deepEqual(Object.keys((await lastCall('clean_prepare')).args), ['dedupeId', 'dedupeVersion'], 'UI_V2_DEDUPE: dedupe prepare shape');
+  assert.equal(await evalJs('document.querySelectorAll("[data-key=mode-delete]").length'), 0, 'UI_V2_DEDUPE: duplicates cannot switch to direct deletion'); await key('Escape');
+  await reset({dup:'v2_dedupe_result_more'}); await click('location-menu-drive-f'); await menuItem('查重复文件'); await click('dedupe-start'); await wait('document.querySelector("[data-key=dedupe-stop]")'); await click('dedupe-stop'); await wait('document.querySelector("[data-key=dedupe-more]")'); await click('dedupe-more');
+  assert.equal((await lastCall('dedupe_result')).args.expand, true, 'UI_V2_DEDUPE: expand asks service');
+});
+
+test('ui_v2_pages_layout_a11y', async () => {
+  await reset({}, 'trends'); await wait('document.querySelector("[data-key=trend-scan]")'); await shot('trends'); await checkPrimary();
+  assert(await evalJs('document.body.textContent.includes("仍在长") && document.body.textContent.includes("已止住") && document.body.textContent.includes("疑似")'), 'UI_V2_PAGES: all cluster states');
+  await click('cluster-' + f.v2_trends.clusters[0].group_id); await menuItem('标记为已修'); assert.equal((await lastCall('cluster_mark_fixed')).args.fixed, true, 'UI_V2_PAGES: mark fixed');
+  await click('nav-history'); await pageIs('history'); await wait('document.querySelector(".heatmap")'); await shot('history'); await checkPrimary();
+  assert(await evalJs('document.querySelector(".eyebrow").textContent.includes("每一次体检与清理，都有迹可循。")'), 'UI_V2_PAGES: frozen history text');
+  const dayTip = await evalJs('[...document.querySelectorAll(".heat")].find(x=>x.title.startsWith("2026-11-02")).title');
+  for (const e of f.v2_history.filter(e=>e.at.startsWith('2026-11-02'))) assert(dayTip.includes(e.summary_zh), 'UI_V2_PAGES: heatmap retains each same-day entry');
+  await click('nav-settings'); await wait('document.querySelector("[data-key=session-claude-code]")'); await shot('settings'); await checkPrimary();
+  await click('session-claude-code'); assert.equal((await lastCall('locations_set_session_cleanup')).args.enabled, true, 'UI_V2_PAGES: session toggle');
+  await click('settings-skip'); await wait('document.querySelector("[data-key^=skip-remove-]")'); await click('skip-remove-s-000001'); assert.equal((await lastCall('skip_remove')).args.skipId, 's-000001', 'UI_V2_PAGES: remove skip ID');
+  await click('settings-decl'); await wait('document.querySelector("[data-key^=trust-]")'); await shot('settings-decl');
+  const trust = f.v2_locations.manifests.find(m=>m.state==='untrusted'); await click('trust-' + trust.manifest_id); assert.deepEqual((await lastCall('manifest_trust')).args, {manifestId:trust.manifest_id, trusted:true}, 'UI_V2_PAGES: trust declaration');
+  await click('settings-about'); await wait('document.body.textContent.includes("可重新下载不等于可回滚")');
+  for (const [old, dest] of [['results', 'home'], ['locations', 'settings/content'], ['about', 'settings/about']]) { await evalJs(`location.hash=${JSON.stringify(old)}`); await wait(`location.hash===${JSON.stringify('#' + dest)}`, 'UI_V2_PAGES'); }
+  await results(); await detail('codex-runtimes');
+  await key('Tab', true); assert(await evalJs('document.querySelector("dialog").contains(document.activeElement)'), 'UI_V2_PAGES: backward focus stays in dialog');
+  await key('Escape'); assert(!(await evalJs('!!document.querySelector("dialog[open]")')), 'UI_V2_PAGES: escape closes drawer');
+  await evalJs('document.querySelector("[data-group=codex-runtimes]").focus()'); await key('Enter'); await wait('window.__waterTest.calls.some(x=>x.command==="conclusion_decide")'); assert.equal((await lastCall('conclusion_decide')).args.decision.choice, 'clean', 'UI_V2_PAGES: enter chooses clean');
+  await results(); await evalJs('document.querySelector("[data-group=codex-runtimes]").focus()'); await key('Delete'); assert.equal((await lastCall('conclusion_decide')).args.decision.choice, 'keep', 'UI_V2_PAGES: delete chooses keep');
+  await results(); await click('card-menu-codex-runtimes'); await key('ArrowDown'); assert.equal(await evalJs('document.activeElement.getAttribute("role")'), 'menuitem', 'UI_V2_PAGES: menu arrows'); await key('Escape');
+  await browser.size(1040, 720);
+  for (const route of ['home', 'quarantine', 'trends', 'history', 'settings/content', 'settings/skip', 'settings/decl', 'settings/about']) { await reset({}, route); await noOverflow(); await checkPrimary(); }
   await browser.size(1240, 820);
-  await browser.send('Emulation.setEmulatedMedia', {features:[{name:'prefers-reduced-motion', value:'reduce'}]});
-  await click('detail-codex-marketplace-staging'); await waitText('这是什么');
-  assert(await browser.evaluate('document.getAnimations().every(a=>a.playState!=="running")'), 'Reduced motion must disable every animation');
-  await key('Escape'); await waitFor('!document.querySelector("dialog[open]")');
-  // Walk the real keyboard order and visit every enabled control, including offscreen rows.
-  await browser.evaluate('document.activeElement.blur(); document.querySelector("#main").scrollTop=0');
-  const expected = await browser.evaluate('[...document.querySelectorAll("a[href], button:not(:disabled), input:not(:disabled), [tabindex]")].filter(e=>e.tabIndex>=0 && e.getClientRects().length).map(e=>e.dataset.key).filter(Boolean)');
-  const reached = new Set();
-  for (let i = 0; i < expected.length + 8; i++) { await key('Tab'); reached.add(await browser.evaluate('document.activeElement.dataset.key')); }
-  assert(expected.every(k => reached.has(k)), 'Tab must reach every visible enabled control');
-  await browser.evaluate(`document.querySelector(${JSON.stringify(q('select-codex-marketplace-staging'))}).focus()`);
-  await key(' '); await waitText(selectionText(defaults.length - 1)); await key(' '); await waitText(selectionText(defaults.length));
-  await browser.evaluate(`document.querySelector(${JSON.stringify(q('detail-codex-marketplace-staging'))}).focus()`);
-  await key('Enter'); await waitText('这是什么'); await key('Escape');
-  await control(`window.__waterTest.nextError={command:'clean_prepare',error:${JSON.stringify(fixture.errors.stale)}}`);
-  await click('clean-prepare'); await noticeText(fixture.errors.stale.message_zh, 'stale notice shows');
-  assert(await browser.evaluate('!document.querySelector(".note")'), 'UI_NOTICE_SCOPE: the visible stale notice replaces the duplicate body line, including when scrolled');
-  assert(await browser.evaluate('document.querySelector("#notice").getBoundingClientRect().top >= 0 && document.querySelector("#notice").getBoundingClientRect().bottom <= innerHeight'), 'Error remains visible while results are scrolled');
-  assert(await browser.evaluate(`document.querySelector(${JSON.stringify(q('clean-prepare'))}).disabled`));
-  await browser.evaluate('document.querySelector("#main").scrollTop += document.querySelector(".toolbar").getBoundingClientRect().top - 8');
-  const noticeTop = await browser.evaluate(`(() => {
-    const notice = document.querySelector('#notice'), rect = notice.getBoundingClientRect();
-    const x = document.querySelector('[data-key=filter-all]').getBoundingClientRect().left + 20;
-    return {scroll:document.querySelector('#main').scrollTop, top:rect.top, samples:Array.from({length:Math.ceil(rect.top)}, (_, y) => {
-      const hit = document.elementFromPoint(x, y);
-      const style = hit && getComputedStyle(hit);
-      const color = style?.backgroundColor;
-      const frosted = !!color && color.startsWith('rgba(') && Number(color.split(',').at(-1).replace(')', '')) > 0 && Number(color.split(',').at(-1).replace(')', '')) < 1 && style.backdropFilter.includes('blur(');
-      return {y, tag:hit?.tagName, className:hit?.getAttribute('class'), body:!!hit?.closest('#page, .toolbar'), covered:!!hit?.closest('#notice') || !!hit?.closest('.titlebar') && frosted};
-    })};
-  })()`);
-  assert(noticeTop.scroll > 0 && noticeTop.top >= 0 && noticeTop.samples.every(hit => !hit.body && hit.covered), `UI_NOTICE_TOP: no scrolled body or toolbar visible through the gap above the pinned notice: ${JSON.stringify(noticeTop)}`);
-  // Frame the first card below the notice after probing the toolbar behind the top mask.
-  await browser.evaluate('document.querySelector("#main").scrollTop += document.querySelector(".sheet").getBoundingClientRect().top - document.querySelector("#notice").getBoundingClientRect().bottom - 16');
-  assert(await browser.evaluate('document.querySelector(".sheet-head").getBoundingClientRect().top >= document.querySelector("#notice").getBoundingClientRect().bottom + 15'), 'UI_NOTICE_TOP: the screenshot has a complete first card header below the notice');
-  assert(await browser.evaluate(`(() => {
-    const bar = document.querySelector('.titlebar'), notice = document.querySelector('#notice'), style = getComputedStyle(bar);
-    const alpha = Number(style.backgroundColor.split(',').at(-1).replace(')', ''));
-    const text = document.querySelector('.sheet-head h2').getBoundingClientRect();
-    return style.backgroundColor.startsWith('rgba(') && alpha > 0 && alpha < 1 && style.backdropFilter.includes('blur(')
-      && bar.getBoundingClientRect().bottom <= notice.getBoundingClientRect().top
-      && text.top > notice.getBoundingClientRect().bottom;
-  })()`), 'UI_NOTICE_TOP: translucent frosted titlebar, notice and readable body occupy separate vertical regions');
-  await shot('stale-1240x820');
-  await click('rescan'); await pageIs('scan'); await waitFor(`!!document.querySelector(${JSON.stringify(q('scan-stop'))})`); await click('scan-stop');
-  await pageIs('results'); await waitText('部分结果'); await waitText(selectionText(defaults.length)); await safeCalls();
-  await click('select-codex-marketplace-staging'); await waitText(selectionText(defaults.length - 1));
-  await click('rescan'); await pageIs('scan'); await control('window.__waterTest.holdScan=false');
-  await pageIs('results'); await waitText(selectionText(defaults.length));
-  assert(await browser.evaluate('document.querySelector("[data-key=select-codex-marketplace-staging]").checked'), 'A real new scan resets changed selection');
-  await reset({scanned:true}); await shot('home-last-scan-1240x820');
-  assert(await browser.evaluate('!!document.querySelector(".water-free") && !!document.querySelector(".vial-mouth")'));
-  assert(await browser.evaluate('document.getAnimations().every(a=>a.playState!=="running")'), 'Reduced motion disables home waves and orb');
-  await control(`window.__waterTest.nextError={command:'scan_start',error:${JSON.stringify(fixture.errors.busy)}}`);
-  await click('scan-start'); await noticeText(fixture.errors.busy.message_zh, 'busy notice shows'); await shot('busy-1240x820');
-  assert(await browser.evaluate('document.querySelector("#notice").getBoundingClientRect().top >= 0 && document.querySelector("#notice").getBoundingClientRect().bottom <= innerHeight'));
-  await control("window.__waterTest.nextError={command:'scan_start',error:{unexpected:true}}");
-  await click('scan-start'); await noticeText('Water 服务暂时不可用', 'unknown error notice shows');
-  await click('scan-start'); await pageIs('scan'); await waitText('停止扫描');
-  assert(await browser.evaluate('!!document.querySelector(".wave") && !!document.querySelector(".spin")'));
-  assert(await browser.evaluate('document.getAnimations().every(a=>a.playState!=="running")'), 'Reduced motion disables scan waves, spinner and entrance');
-  await reset({scanned:true}, 'results'); await waitText(selectionText(defaults.length));
-  await click('clean-prepare'); await waitFor('!!document.querySelector("dialog.confirm[open]")');
-  await control(`window.__waterTest.nextError={command:'clean_start',error:${JSON.stringify(fixture.errors.unavailable)}}`);
-  await click('confirm-start'); await noticeText('请重新点击“清理所选”并确认。', 'failed clean_start notice shows');
-  assert(await browser.evaluate('document.querySelector("#notice span")?.textContent.endsWith(" 请重新点击“清理所选”并确认。")'), 'UI_STALE_START: non-stale start failures retain the retry suffix');
-  assert.equal(await browser.evaluate('document.querySelector("dialog[open]")'), null, 'Failed clean_start closes confirmation');
-  assert.equal(await browser.evaluate('window.__waterTest.calls.filter(c=>c.command==="clean_start").length'), 1);
-  await click('clean-prepare'); await waitFor('!!document.querySelector("dialog.confirm[open]")');
-  assert.equal(await browser.evaluate('window.__waterTest.calls.filter(c=>c.command==="clean_prepare").length'), 2, 'Retry requires a new preview');
-  await click('confirm-start'); await pageIs('cleaning'); await waitText('已释放');
-  assert(await browser.evaluate('(()=>{const starts=window.__waterTest.calls.filter(c=>c.command==="clean_start");return starts[0].args.confirmToken!==starts[1].args.confirmToken})()'), 'The consumed token is not reused');
-  await click('nav-history'); await waitText('清理记录');
-  await waitFor('!!document.querySelector(".history-row")');
-  assert(!(await text()).includes(cleanEntry.summary_zh));
-  const historiesBefore = await browser.evaluate('window.__waterTest.calls.filter(c=>c.command==="history_list").length');
-  await control('window.__waterTest.holdClean=false'); await waitText(cleanEntry.summary_zh);
-  await pageIs('history');
-  assert.equal(await browser.evaluate('window.__waterTest.calls.filter(c=>c.command==="history_list").length'), historiesBefore + 1, 'Visible history reloads as soon as cleaning ends');
-  await click('nav-home'); await pageIs('home'); await waitText('查看结果');
-  assert.equal(await browser.evaluate('document.querySelector("[data-key=scan-start]").disabled'), false);
-  await reset(); await control('window.__waterTest.scanIdleBefore=20'); await click('scan-start');
-  await noticeText('体检没有开始，请重试', 'scan never started notice shows', 600); await pageIs('home');
-  assert.equal(await browser.evaluate('window.__waterTest.calls.filter(c=>c.command==="scan_progress").length'), 20);
-  assert.equal(await browser.evaluate('window.__waterTest.calls.filter(c=>c.command==="scan_result").length'), 0);
-  await reset(); await click('scan-start'); await waitText('停止扫描');
-  await control('window.__waterTest.scanTerminalIdle=true;window.__waterTest.holdScan=false');
-  await pageIs('results'); await waitText(selectionText(defaults.length));
-  await reset({scanned:true,negativeGrowth:true}, 'results'); await waitText(selectionText(defaults.length));
-  assert(await browser.evaluate('document.querySelector("[data-key=detail-codex-marketplace-staging] .growth use").getAttribute("href")==="#i-down"'));
-  await click('detail-codex-marketplace-staging'); await waitText(`${byteDelta('-1288490189')} · ${countDelta(-5)} 项`); await key('Escape');
-  await click('nav-trends'); await waitText(`${byteDelta('-1288490189')} · ${countDelta(-5)} 项`);
-  assert(!(await text()).includes('+−') && !(await text()).includes('+-'));
-  await reset({locked:true}, 'locations'); await waitText('自定义文件夹');
-  assert(await browser.evaluate(`document.querySelector(${JSON.stringify(q('location-agent_tool'))}).disabled`));
-  assert(await browser.evaluate('(()=>{const icon=k=>document.querySelector("[data-key=location-"+k+"]").closest(".location-row").querySelector("use").getAttribute("href");return icon("agent_tool")!==icon("gpu_system")})()'));
-  await reset({emptyTrends:true}, 'trends'); await waitText('再体检一次就能看到变化'); await shot('trends-empty-1240x820');
-  await reset({emptyHistory:true}, 'history'); await waitText('还没有记录');
-  await reset({busy:'scanning'}); await pageIs('scan'); await waitText('停止扫描');
-  await click('nav-locations'); await waitText('自定义文件夹');
-  assert(await browser.evaluate(`document.querySelector(${JSON.stringify(q('add-root'))}).disabled`));
-  await reset({unavailable:true}); await noticeText('无法连接 Water 服务', 'unavailable notice stays'); await shot('unavailable-1240x820');
-  await noOverflow(); await safeCalls();
-
-  for (const message of [fixture.errors.stale.message_zh, '这次体检结果已经失效，请先重新体检。']) {
-    await reset({scanned:true}, 'results'); await waitText(selectionText(defaults.length));
-    await click('clean-prepare'); await waitFor('!!document.querySelector("dialog.confirm[open]")');
-    await control(`window.__waterTest.nextError={command:'clean_start',error:{code:'stale',message_zh:${JSON.stringify(message)}}}`);
-    await click('confirm-start');
-    assert(await settle('window.__waterTest.nextError === null && !!document.querySelector("#notice span")'), 'UI_STALE_START: stale clean_start responds');
-    assert.equal(await browser.evaluate('document.querySelector("#notice span").textContent'), message, 'UI_STALE_START: show only the host sentence, without the retry suffix');
-    assert(await browser.evaluate('!document.querySelector(".note") && !document.querySelector("dialog[open]") && document.querySelector("[data-key=clean-prepare]").disabled'), 'UI_STALE_START: no duplicate stale body, confirmation closes and cleaning is disabled');
-    await click('dismiss-error');
-    assert(await browser.evaluate('document.querySelector("#notice").hidden && document.querySelector(".note")?.textContent === "结果已过期，请重新体检后再清理。"'), 'UI_STALE_START: closing the notice restores the body explanation');
-  }
-});
-
-test('ui_m1_polish', async () => {
-  const dimensions = [[1240, 820], [1040, 720]], wrapMeasurements = [], dockMeasurements = [];
-  await browser.send('Emulation.setEmulatedMedia', {features:[{name:'prefers-reduced-motion', value:'reduce'}]});
-  // The iceberg and pulse symbols must be the DESIGN.md section 10 text itself, not a copy kept in this test.
-  const design = readFileSync(join(root, 'docs/design/water-ui-v1/DESIGN.md'), 'utf8'), indexSource = readFileSync(join(ui, 'index.html'), 'utf8');
-  const designSymbol = (id, token) => {
-    const start = design.indexOf(`<symbol id="${id}"`), end = design.indexOf('</symbol>', start);
-    assert(start >= 0 && end > start, `${token}: DESIGN.md section 10 defines ${id}`);
-    return design.slice(start, end + '</symbol>'.length);
-  };
-  assert(indexSource.includes(designSymbol('i-berg', 'UI_BRAND_MARK')), 'UI_BRAND_MARK: index.html sprite carries i-berg exactly as DESIGN.md section 10');
-  assert(indexSource.includes(designSymbol('i-pulse', 'UI_NAV_PULSE')), 'UI_NAV_PULSE: index.html sprite carries i-pulse exactly as DESIGN.md section 10');
-  const ink = 'rgb(16, 38, 63)';
-  const noDrop = async stage => assert(await browser.evaluate('!document.querySelector("#i-drop") && ![...document.querySelectorAll("use")].some(use => use.getAttribute("href") === "#i-drop")'), `UI_BRAND_MARK: ${stage}: the retired drop is neither in the sprite nor referenced`);
-  const assertMark = async (selector, size, stage) => {
-    const mark = await browser.evaluate(`(() => {
-      const icon = document.querySelector(${JSON.stringify(selector)}), rect = icon?.getBoundingClientRect();
-      return icon ? {href:icon.querySelector('use')?.getAttribute('href'), width:rect.width, height:rect.height, color:getComputedStyle(icon).color} : null;
-    })()`);
-    assert.deepEqual(mark, {href:'#i-berg', width:size, height:size, color:ink}, `UI_BRAND_MARK: ${stage} is the ink iceberg at ${size}x${size}`);
-  };
-  const navIcons = () => browser.evaluate(`Object.fromEntries([...document.querySelectorAll('.nav a')].map(link => {
-    const icon = link.querySelector('.i'), style = getComputedStyle(icon), rect = icon.getBoundingClientRect();
-    return [link.dataset.key, {href:icon.querySelector('use').getAttribute('href'), width:rect.width, height:rect.height, strokeWidth:style.strokeWidth, fill:style.fill, color:style.color, on:link.classList.contains('on')}];
-  }))`);
-  await reset(); await waitText('体检后可查看能够清理的空间。');
-  assert(await browser.evaluate('!!document.querySelector("#sprite symbol#i-berg") && !!document.querySelector("#sprite symbol#i-pulse")'), 'UI_BRAND_MARK: both symbols exist inside the rendered sprite');
-  await noDrop('home');
-  await assertMark('.brand > .i', 30, 'sidebar brand');
-  const homeNav = await navIcons(), others = ['nav-trends', 'nav-history', 'nav-locations', 'nav-about'];
-  const {color:homeOn, on:homeSelected, ...homeIcon} = homeNav['nav-home'];
-  assert.deepEqual({...homeIcon, on:homeSelected}, {href:'#i-pulse', width:18, height:18, strokeWidth:'1.5px', fill:'none', on:true}, 'UI_NAV_PULSE: the checkup nav uses the 18x18 pulse line with a 1.5px stroke and no fill');
-  assert.deepEqual(others.map(key => homeNav[key].href), ['#i-trend', '#i-history', '#i-folder', '#i-shield'], 'UI_NAV_PULSE: the other four nav icons stay trend, history, folder, shield');
-  const othersOff = [...new Set(others.map(key => homeNav[key].color))];
-  assert(othersOff.length === 1 && others.every(key => !homeNav[key].on) && othersOff[0] !== homeOn, `UI_NAV_PULSE: unselected nav icons share one colour distinct from the selected one: ${JSON.stringify(homeNav)}`);
-  await click('nav-trends'); await pageIs('trends');
-  const trendsNav = await navIcons();
-  assert.equal(homeOn, trendsNav['nav-trends'].color, 'UI_NAV_PULSE: selected pulse colour equals another selected nav icon');
-  assert.equal(trendsNav['nav-home'].color, othersOff[0], 'UI_NAV_PULSE: unselected pulse colour equals the other unselected nav icons');
-  await reset({scanned:true, cleanFinished:true}, 'history'); await waitText(cleanEntry.summary_zh);
-  await noDrop('populated history');
-  const historyRows = await browser.evaluate('[...document.querySelectorAll(".history-row")].map(row => ({title:row.querySelector("strong")?.textContent, icon:row.querySelector("use")?.getAttribute("href")}))');
-  assert(historyRows.some(row => row.title === '清理完成') && historyRows.some(row => row.title === '体检记录'), `UI_BRAND_MARK: populated history has both a cleanup and a checkup row: ${JSON.stringify(historyRows)}`);
-  assert(historyRows.filter(row => row.title === '清理完成').every(row => row.icon === '#i-check'), `UI_BRAND_MARK: the cleanup history row uses the check icon: ${JSON.stringify(historyRows)}`);
-  assert(await browser.evaluate('[...document.querySelectorAll(".history-row")].some(row => row.querySelector("strong")?.textContent === "体检记录" && row.querySelector("use")?.getAttribute("href") === "#i-pulse")'), 'UI_BRAND_MARK: the checkup history row uses the pulse icon');
-  await click('nav-about'); await waitText('Water 读取什么');
-  await noDrop('about');
-  await assertMark('.about-brand > .i', 42, 'about brand card');
-  for (const [options, route, title] of [[{emptyTrends:true}, 'trends', '再体检一次就能看到变化'], [{emptyHistory:true}, 'history', '还没有记录']]) {
-    await reset(options, route); await waitText(title);
-    await noDrop(`${route} empty state`);
-    await assertMark('.empty > .i', 36, `${route} empty state`);
-  }
-  await reset(); await waitText('体检后可查看能够清理的空间。');
-  for (const [width, height] of dimensions) {
-    await browser.size(width, height);
-    const measured = await browser.evaluate(`(() => {
-      return ['.side-foot p', '.drive-main .sub'].map(selector => {
-        const element = document.querySelector(selector), lines = [];
-        const walker = document.createTreeWalker(element, NodeFilter.SHOW_TEXT);
-        while (walker.nextNode()) {
-          const node = walker.currentNode;
-          let offset = 0;
-          for (const character of node.textContent) {
-            const range = document.createRange();
-            range.setStart(node, offset); offset += character.length; range.setEnd(node, offset);
-            const rect = [...range.getClientRects()].find(r => r.width > 0 && r.height > 0);
-            if (!rect || !character.trim()) continue;
-            let line = lines.find(line => Math.abs(line.top - rect.top) < 1);
-            if (!line) { line = {top:rect.top, text:'', count:0}; lines.push(line); }
-            line.text += character; line.count++;
-          }
-        }
-        return {selector, text:element.textContent, lines};
-      });
-    })()`);
-    wrapMeasurements.push({width, height, measured});
-    await noOverflow();
-  }
-  console.log('Polish wrap measurements: ' + JSON.stringify(wrapMeasurements));
-  for (const {width, height, measured} of wrapMeasurements) {
-    assert.equal(measured[0].text, '不读取文件内容，不上传任何数据', 'UI_FOOTER_WRAP: sidebar copy stays unchanged');
-    assert(measured[1].text.endsWith('体检后可查看能够清理的空间。'), 'UI_FOOTER_WRAP: measure the fresh home description');
-    for (const {selector, lines} of measured) assert(lines.length > 0 && lines.every(line => line.count >= 4), `UI_FOOTER_WRAP: ${width}x${height} ${selector}: ${JSON.stringify(lines)}`);
-  }
-
-  await reset({scanned:true, longResults:true}, 'results');
-  await waitFor('!!document.querySelector(".dock")');
-  const ids = await browser.evaluate('[...document.querySelectorAll(".group-open")].map(e=>e.dataset.key.slice(7))');
-  assert.equal(ids.length, groups(fixture.scan_result).length * 3, 'UI_DOCK_CLEARANCE: use the long host result');
-  assert(ids.every(id => /^[A-Za-z0-9][A-Za-z0-9:._-]{0,255}$/.test(id) && !/^[A-Za-z]:/.test(id)) && new Set(ids).size === ids.length, 'UI_DOCK_CLEARANCE: unique path-free group IDs');
-  for (const [width, height] of dimensions) {
-    await browser.size(width, height);
-    await browser.evaluate('document.querySelector("#main").scrollTop = document.querySelector("#main").scrollHeight');
-    const measured = await browser.evaluate(`(() => {
-      const main = document.querySelector('#main'), row = [...document.querySelectorAll('.group-row')].at(-1).getBoundingClientRect(), dock = document.querySelector('.dock').getBoundingClientRect();
-      return {scrollTop:main.scrollTop, scrollHeight:main.scrollHeight, clientHeight:main.clientHeight, rowTop:row.top, rowBottom:row.bottom, dockTop:dock.top, dockBottom:dock.bottom, gap:dock.top - row.bottom};
-    })()`);
-    dockMeasurements.push({width, height, ...measured});
-    assert(measured.scrollHeight > measured.clientHeight && measured.scrollTop > 0 && Math.abs(measured.scrollTop + measured.clientHeight - measured.scrollHeight) <= 1, 'UI_DOCK_CLEARANCE: result must overflow and be scrolled to the bottom');
-    assert(measured.rowTop >= 0 && measured.dockBottom <= height && measured.rowBottom <= measured.dockTop - 16, `UI_DOCK_CLEARANCE: ${width}x${height} ${JSON.stringify(measured)}`);
-    await shot(`results-bottom-${width}x${height}`);
-  }
-  console.log('Polish dock measurements: ' + JSON.stringify(dockMeasurements));
-
-  await browser.size(1240, 820);
-  await reset({scanned:true}, 'results'); await waitText(selectionText(defaults.length));
-  const message = '这一版只做体检，清理功能会在下一版开放。';
-  const prepareUnavailable = async () => {
-    await control(`window.__waterTest.nextError={command:'clean_prepare',error:{code:'unavailable',message_zh:${JSON.stringify(message)}}}`);
-    await click('clean-prepare'); await noticeText(message, 'host message shows on results');
-    assert(await browser.evaluate(`!document.querySelector('#notice').hidden && document.querySelector('#notice span').textContent === ${JSON.stringify(message)}`), 'UI_NOTICE_SCOPE: show the exact host message on results');
-  };
-  const absent = async () => assert(await browser.evaluate(`document.querySelector('#notice').hidden && !document.body.textContent.includes(${JSON.stringify(message)})`), 'UI_NOTICE_SCOPE: old command error must disappear after navigation');
-  await prepareUnavailable(); await shot('notice-results-1240x820');
-  await click('nav-trends'); await pageIs('trends'); await waitText('比较每次体检，找出一直在变大的东西。');
-  await absent(); await shot('notice-trends-1240x820');
-  await click('nav-home'); await pageIs('home'); await click('view-results'); await pageIs('results'); await absent();
-  await prepareUnavailable();
-  await click('nav-history'); await pageIs('history'); await absent();
-  await browser.evaluate('location.hash = "#/results"'); await pageIs('results'); await absent();
-  assert.equal(await browser.evaluate('window.__waterTest.calls.filter(c=>c.command==="clean_prepare").length'), 2, 'UI_NOTICE_SCOPE: a new click requests a fresh host message');
-
-  await reset({scanned:true}, 'results'); await waitText(selectionText(defaults.length));
-  await control("window.__waterTest.delayedError={command:'clean_prepare',started:false,release:false,error:null}");
-  await click('clean-prepare');
-  assert(await settle('window.__waterTest.delayedError.started'), 'UI_RETURN_SCOPE: the preview is held before navigation');
-  await click('nav-trends'); await pageIs('trends');
-  await browser.evaluate('location.hash = "#/results"'); await pageIs('results');
-  assert.equal(await browser.evaluate('window.__waterTest.delayedError.finished === true'), false, 'UI_RETURN_SCOPE: return to results before the preview settles');
-  await control('window.__waterTest.delayedError.release=true');
-  assert(await settle('window.__waterTest.delayedError.finished === true && !document.querySelector("[data-key=clean-prepare]").disabled'), 'UI_RETURN_SCOPE: the old preview finishes on the returned results page');
-  await settle('!!document.querySelector("dialog[open]")', 20);
-  assert(await browser.evaluate('!document.querySelector("dialog[open]") && !document.querySelector("dialog.confirm")'), 'UI_RETURN_SCOPE: a preview from an earlier route version cannot open confirmation after returning to the same address');
-  await click('clean-prepare');
-  assert(await settle('!!document.querySelector("dialog.confirm[open]")'), 'UI_RETURN_SCOPE: a new click opens a fresh confirmation');
-  assert.equal(await browser.evaluate('window.__waterTest.calls.filter(c=>c.command==="clean_prepare").length'), 2, 'UI_RETURN_SCOPE: returning requires a second preview request');
-  await key('Escape'); await waitFor('!document.querySelector("dialog[open]")');
-
-  await reset({scanned:true}, 'results'); await waitText(selectionText(defaults.length));
-  const delayedSuccess = async (command, start, label) => {
-    await control(`window.__waterTest.delayedError={command:'${command}',started:false,release:false,error:null}`);
-    await click(start); await waitFor('window.__waterTest.delayedError.started');
-    await click('nav-trends'); await pageIs('trends');
-    await control('window.__waterTest.delayedError.release=true');
-    assert(await settle('window.__waterTest.delayedError.finished === true'), `${label}: the delayed command settles`);
-    // Give a wrongly scoped success time to open its dialog, then judge on the marked assertion.
-    await settle('!!document.querySelector("dialog[open]")', 20);
-  };
-  await delayedSuccess('clean_prepare', 'clean-prepare', 'UI_CLEAN_SCOPE');
-  assert(await browser.evaluate('!document.querySelector("dialog[open]") && !document.querySelector("dialog.confirm")'), 'UI_CLEAN_SCOPE: a clean_prepare that succeeds after leaving results opens no confirmation on the new page');
-  await click('nav-home'); await pageIs('home'); await click('view-results'); await pageIs('results');
-  assert(await settle('!document.querySelector("[data-key=clean-prepare]").disabled'), 'UI_CLEAN_SCOPE: results settle after returning');
-  assert(await browser.evaluate('!document.querySelector("dialog[open]") && !document.querySelector("dialog.confirm") && document.querySelector("#notice").hidden'), 'UI_CLEAN_SCOPE: returning to results shows no confirmation from the old preview');
-  await click('clean-prepare'); await waitFor('!!document.querySelector("dialog.confirm[open]")');
-  assert.equal(await browser.evaluate('window.__waterTest.calls.filter(c=>c.command==="clean_prepare").length'), 2, 'UI_CLEAN_SCOPE: confirming needs a new click on 清理所选');
-  await key('Escape'); await waitFor('!document.querySelector("dialog[open]")');
-  await delayedSuccess('group_detail', 'detail-codex-marketplace-staging', 'UI_COMMAND_SCOPE');
-  assert(await browser.evaluate('!document.querySelector("dialog[open]")'), 'UI_COMMAND_SCOPE: a group detail that arrives after leaving results opens no drawer on the new page');
-  await browser.evaluate('location.hash = "#/results"'); await pageIs('results');
-  assert(await browser.evaluate('!document.querySelector("dialog[open]")'), 'UI_COMMAND_SCOPE: returning to results shows no drawer from the old request');
-
-  await reset({scanned:true}, 'results'); await waitText(selectionText(defaults.length));
-  await control(`window.__waterTest.delayedError={command:'clean_prepare',started:false,release:false,error:${JSON.stringify(fixture.errors.stale)}}`);
-  await click('clean-prepare'); await waitFor('window.__waterTest.delayedError.started');
-  await click('nav-trends'); await pageIs('trends');
-  await control('window.__waterTest.delayedError.release=true');
-  await noticeSettled('window.__waterTest.delayedError.finished === true', 'delayed command settles');
-  assert(await browser.evaluate('document.querySelector("#notice").hidden'), 'UI_COMMAND_SCOPE: delayed old-page failure cannot show on the new page');
-  await browser.evaluate('location.hash = "#/results"'); await pageIs('results');
-  const staleResults = 'document.querySelector("#notice").hidden && document.querySelector(".note")?.textContent === "结果已过期，请重新体检后再清理。" && document.querySelector("[data-key=clean-prepare]").disabled';
-  assert(await settle(staleResults), 'UI_COMMAND_SCOPE: a stale that arrives after leaving results is still recorded: back on results the stale note shows and 清理所选 is disabled, without a notice');
-
-  await reset({scanned:true, busy:'scanning'}); await pageIs('scan');
-  await waitText('停止扫描');
-  await control(`window.__waterTest.nextError={command:'scan_cancel',error:${JSON.stringify(fixture.errors.invalid)}}`);
-  await click('scan-stop'); await noticeText(fixture.errors.invalid.message_zh, 'stop failure shows before pausing');
-  await control("window.__waterTest.holdProgress={command:'scan_progress',failed:false}");
-  await noticeText('正在重新连接 Water 服务…', 'reconnecting notice shows');
-  await shot('reconnecting-1240x820');
-  await click('nav-trends'); await pageIs('trends');
-  assert(await browser.evaluate('!document.querySelector("#notice").hidden && document.querySelector("#notice").textContent.includes("正在重新连接 Water 服务…")'), 'UI_NOTICE_SCOPE: reconnecting status survives navigation');
-  await control('window.__waterTest.holdProgress=null');
-  // Bounded poll that never throws, so a notice stuck after recovery fails on the marked assertion below.
-  let recovered;
-  for (let attempt = 0; attempt < 200; attempt++) {
-    recovered = await browser.evaluate('({hidden:document.querySelector("#notice").hidden, text:document.querySelector("#notice").textContent})');
-    if (recovered.hidden) break;
-    await new Promise(ok => setTimeout(ok, 25));
-  }
-  assert(recovered.hidden, `UI_NOTICE_SCOPE: the notice hides once reconnecting recovers: ${JSON.stringify(recovered)}`);
-  assert(!(await text()).includes(fixture.errors.invalid.message_zh), 'UI_NOTICE_SCOPE: navigation while reconnecting clears the old command error after recovery');
-  const pausedMessage = fixture.errors.unavailable.message_zh;
-  assert.notEqual(pausedMessage, '未能读取任务进度，请重新连接。', 'UI_NOTICE_SCOPE: host reason must differ from the fallback');
-  const assertPaused = async (message, stage) => {
-    const notice = await browser.evaluate(`(() => {
-      const notice = document.querySelector('#notice'), button = notice.querySelector('[data-key=progress-reconnect]');
-      return {hidden:notice.hidden, message:notice.querySelector('span')?.textContent, buttonText:button?.textContent, disabled:button?.disabled};
-    })()`);
-    assert.deepEqual(notice, {hidden:false, message, buttonText:'重新连接', disabled:false}, `UI_NOTICE_SCOPE: ${stage}: paused reason and enabled reconnect button stay exact`);
-    console.log('Polish paused notice: ' + JSON.stringify({stage, ...notice}));
-  };
-  await control(`window.__waterTest.progressErrors.scan_progress=Array.from({length:20},()=>(${JSON.stringify(fixture.errors.unavailable)}))`);
-  await pausedNotice('scan paused notice shows');
-  assert.equal(await browser.evaluate('window.__waterTest.progressErrors.scan_progress.length'), 0, 'UI_NOTICE_SCOPE: all 20 unavailable responses are consumed before pausing');
-  await assertPaused(pausedMessage, 'scan before navigation');
-  await click('nav-home'); await pageIs('scan');
-  await control(`window.__waterTest.nextError={command:'scan_cancel',error:${JSON.stringify(fixture.errors.invalid)}}`);
-  await click('scan-stop');
-  await assertPaused(pausedMessage, 'command failure while paused');
-  assert(!(await text()).includes(fixture.errors.invalid.message_zh), 'UI_COMMAND_SCOPE: paused command error cannot replace the pause reason');
-  const stopNote = "停止请求没有送达，请先重新连接再试。";
-  const stopFeedback = () => browser.evaluate(`(() => {
-    const note = document.querySelector('.stop-note'), stop = document.querySelector('[data-key=scan-stop], [data-key=clean-stop]');
-    return {text:note?.textContent ?? null, below:!!note && !!stop && note.getBoundingClientRect().top >= stop.getBoundingClientRect().bottom, inNotice:document.querySelector('#notice').textContent.includes(${JSON.stringify(stopNote)}), onPage:document.querySelector('#page').textContent.includes(${JSON.stringify(stopNote)})};
-  })()`);
-  await settle(`!!document.querySelector('.stop-note') || window.__waterTest.nextError === null && !document.querySelector('[data-key=scan-stop]').disabled`);
-  let feedback = await stopFeedback();
-  assert.deepEqual(feedback, {text:stopNote, below:true, inNotice:false, onPage:true}, 'UI_STOP_FEEDBACK: a stop that fails while paused shows the line under the stop button, outside the notice');
-  await assertPaused(pausedMessage, 'stop feedback keeps the pause reason');
-  await shot('stop-failed-1240x820');
-  for (const destination of ['history', 'home']) {
-    await click(`nav-${destination}`); await pageIs(destination === 'home' ? 'scan' : destination);
-    await assertPaused(pausedMessage, `scan after ${destination}`);
-    assert.equal((await stopFeedback()).onPage, false, `UI_STOP_FEEDBACK: the stop line goes away after leaving the page (${destination})`);
-  }
-  await control(`window.__waterTest.nextError={command:'scan_cancel',error:${JSON.stringify(fixture.errors.invalid)}}`);
-  await click('scan-stop'); await settle('!!document.querySelector(".stop-note")');
-  assert.equal((await stopFeedback()).text, stopNote, 'UI_STOP_FEEDBACK: a second failed stop shows the line again');
-  await click('progress-reconnect'); await noticeSettled('document.querySelector("#notice").hidden', 'paused notice clears after reconnect');
-  assert(!(await text()).includes(fixture.errors.invalid.message_zh), 'UI_COMMAND_SCOPE: paused command error does not reappear after recovery');
-  feedback = await stopFeedback();
-  assert.equal(feedback.onPage, false, `UI_STOP_FEEDBACK: the stop line goes away after reconnecting: ${JSON.stringify(feedback)}`);
-
-  // Keep the host unavailable beyond the reconnect click, then restore progress on another page.
-  await reset({scanned:true, busy:'cleaning'}); await pageIs('cleaning'); await waitText('已释放');
-  await click('nav-history'); await pageIs('history'); await waitFor('!!document.querySelector(".history-row")');
-  await control('window.__waterTest.cleanIdleBefore=1'); await pausedNotice('clean pauses before the offline reads');
-  await control('window.__waterTest.offline=true');
-  const pendingScanEntry = fixture.history_list.find(entry => entry.kind === 'scan');
-  const detailReads = await browser.evaluate('window.__waterTest.calls.filter(c=>c.command==="scan_result").length');
-  await click(`history-${pendingScanEntry.id}`);
-  assert(await settle(`window.__waterTest.calls.filter(c=>c.command==='scan_result').length > ${detailReads} && !document.querySelector('[data-key=progress-reconnect]').disabled`), 'UI_RECONNECT_READ: expanding history attempts its detail while the host is offline');
-  assert((await text()).includes('正在读取详情…'), 'UI_RECONNECT_READ: the expanded detail is still missing');
-  const trendsReads = await browser.evaluate('window.__waterTest.calls.filter(c=>c.command==="trends").length');
-  await click('nav-trends'); await pageIs('trends');
-  assert(await settle(`window.__waterTest.calls.filter(c=>c.command==='trends').length > ${trendsReads}`), 'UI_RECONNECT_READ: offline navigation attempts trends');
-  assert((await text()).includes('正在读取趋势…'), 'UI_RECONNECT_READ: the failed trends read leaves missing data');
-  const failedTrendsReads = await browser.evaluate('window.__waterTest.calls.filter(c=>c.command==="trends").length');
-  await click('progress-reconnect');
-  assert.equal(await browser.evaluate('window.__waterTest.calls.filter(c=>c.command==="trends").length'), failedTrendsReads, 'UI_RECONNECT_READ: the reconnect button only resumes progress, without reading trends before recovery');
-  assert(await settle('document.querySelector("#notice span")?.textContent === "正在重新连接 Water 服务…"'), 'UI_RECONNECT_READ: the offline reconnect shows only the reconnect explanation');
-  await pausedNotice('offline reconnect exhausts its progress retries');
-  await assertPaused(pausedMessage, 'offline reconnect pauses again');
-  assert.equal(await browser.evaluate('window.__waterTest.calls.filter(c=>c.command==="trends").length'), failedTrendsReads, 'UI_RECONNECT_READ: no page reads run during failed progress retries');
-  await click('progress-reconnect');
-  assert(await settle('document.querySelector("#notice span")?.textContent === "正在重新连接 Water 服务…"'), 'UI_RECONNECT_READ: a second reconnect still waits for real progress');
-  await control('window.__waterTest.offline=false');
-  assert(await settle('document.querySelector("#notice").hidden && document.body.textContent.includes("增长最多") && !document.body.textContent.includes("正在读取趋势…")'), 'UI_RECONNECT_READ: first successful progress re-reads missing trends and leaves no failed-read error');
-  assert.equal(await browser.evaluate('window.__waterTest.calls.filter(c=>c.command==="trends").length'), failedTrendsReads + 1, 'UI_RECONNECT_READ: missing trends is read once on recovery');
-  await click('nav-history'); await pageIs('history');
-  assert(await settle('!document.body.textContent.includes("正在读取详情…") && !!document.querySelector(".history-detail")?.textContent.includes("共识别")'), 'UI_RECONNECT_READ: returning to history fills the still-expanded missing detail');
-  assert.equal(await browser.evaluate('window.__waterTest.calls.filter(c=>c.command==="scan_result").length'), detailReads + 2, 'UI_RECONNECT_READ: only the failed detail and the returning-page retry read the scan');
-  assert.equal(await browser.evaluate('window.__waterTest.calls.filter(c=>c.command==="clean_start").length'), 0, 'UI_RECONNECT_READ: recovery never restarts cleaning');
-
-  await click('nav-home'); await pageIs('cleaning');
-  await control('window.__waterTest.cleanIdleBefore=1'); await pausedNotice('clean pauses before stop failure');
-  await control(`window.__waterTest.nextError={command:'clean_stop',error:${JSON.stringify(fixture.errors.invalid)}}`);
-  await click('clean-stop');
-  assert(await settle('window.__waterTest.nextError === null && !document.querySelector("[data-key=clean-stop]").disabled'), 'UI_CLEAN_STOP: failed clean_stop finishes');
-  assert.deepEqual(await stopFeedback(), {text:stopNote, below:true, inNotice:false, onPage:true}, 'UI_CLEAN_STOP: clean_stop failure is below the cleaning stop button, outside the notice');
-  assert(await browser.evaluate('!!document.querySelector(".cleaning-status .stop-note")'), 'UI_CLEAN_STOP: feedback belongs to the cleaning card');
-  await shot('clean-stop-failed-1240x820');
-  await control(`window.__waterTest.announcements=[];window.__waterTest.announcementTimes=[];new MutationObserver(()=>{const text=document.querySelector('#announcer').textContent;window.__waterTest.announcements.push(text);window.__waterTest.announcementTimes.push({text,at:performance.now()});}).observe(document.querySelector('#announcer'),{childList:true,subtree:true,characterData:true});window.__waterTest.delayedError={command:'clean_stop',started:false,release:false,error:${JSON.stringify(fixture.errors.invalid)}}`);
-  await click('clean-stop');
-  assert(await settle('window.__waterTest.delayedError.started'), 'UI_CLEAN_STOP: the repeated stop is held');
-  assert.equal(await browser.evaluate('window.__waterTest.delayedError.stopNoteAtStart'), null, 'UI_CLEAN_STOP: clear the old feedback before issuing the repeated stop');
-  assert.equal((await stopFeedback()).onPage, false, 'UI_CLEAN_STOP: feedback stays clear while the repeated stop is pending');
-  await control('window.__waterTest.delayedError.release=true');
-  assert(await settle(`document.querySelector('.stop-note')?.textContent === ${JSON.stringify(stopNote)} && window.__waterTest.announcements.includes(${JSON.stringify(stopNote)})`), 'UI_CLEAN_STOP: the repeated failed stop shows and announces the same message again');
-  const announcements = await browser.evaluate('window.__waterTest.announcements');
-  assert(announcements.indexOf('') >= 0 && announcements.indexOf('') < announcements.indexOf(stopNote), `UI_CLEAN_STOP: clear the live region before repeating the announcement: ${JSON.stringify(announcements)}`);
-  const announcementTimes = await browser.evaluate('window.__waterTest.announcementTimes');
-  const clearedAt = announcementTimes.find(entry => entry.text === '')?.at, repeatedAt = announcementTimes.find(entry => entry.text === stopNote)?.at;
-  assert(repeatedAt - clearedAt >= 100, `UI_CLEAN_STOP: leave at least 100 ms between clearing and repeating: ${JSON.stringify(announcementTimes)}`);
-  await click('progress-reconnect');
-  assert(await settle('document.querySelector("#notice").hidden && !document.querySelector(".cleaning-status .stop-note")'), 'UI_CLEAN_STOP: reconnecting clears the cleaning stop feedback');
-
-  await reset({scanned:true, busy:'cleaning'}); await pageIs('cleaning');
-  await control('window.__waterTest.cleanIdleBefore=1');
-  await pausedNotice('clean paused notice shows');
-  const cleanPausedMessage = '未能确认清理状态，请重新连接。';
-  await assertPaused(cleanPausedMessage, 'clean before navigation');
-  for (const destination of ['history', 'home']) {
-    await click(`nav-${destination}`); await pageIs(destination === 'home' ? 'cleaning' : destination);
-    await assertPaused(cleanPausedMessage, `clean after ${destination}`);
-  }
-  const failedRead = async (command, open) => {
-    const before = await browser.evaluate(`window.__waterTest.calls.filter(c=>c.command==='${command}').length`);
-    await control(`window.__waterTest.nextError={command:'${command}',error:${JSON.stringify(fixture.errors.unavailable)}}`);
-    await open();
-    assert(await settle(`window.__waterTest.nextError === null && window.__waterTest.calls.filter(c=>c.command==='${command}').length > ${before} && !document.querySelector('[data-key=progress-reconnect]')?.disabled`), `UI_NOTICE_SCOPE: the paused ${command} read fails`);
-  };
-  await failedRead('trends', async () => { await click('nav-trends'); await pageIs('trends'); });
-  await assertPaused(cleanPausedMessage, 'trends read failed while paused');
-  assert((await text()).includes('正在读取趋势…'), 'UI_NOTICE_SCOPE: a paused trends read that failed leaves the page loading');
-  await click('progress-reconnect'); await noticeSettled('document.querySelector("#notice").hidden', 'paused notice clears after reconnect');
-  await noticeSettled('document.body.textContent.includes("增长最多") && !document.body.textContent.includes("正在读取趋势…")', 'trends is read again after reconnect and shows its data');
-  await control('window.__waterTest.cleanIdleBefore=1');
-  await pausedNotice('clean pauses again');
-  await click('nav-history'); await pageIs('history'); await waitFor('!!document.querySelector(".history-row")');
-  const scanEntry = fixture.history_list.find(entry => entry.kind === 'scan');
-  await failedRead('scan_result', () => click(`history-${scanEntry.id}`));
-  await assertPaused(cleanPausedMessage, 'history detail read failed while paused');
-  assert((await text()).includes('正在读取详情…'), 'UI_NOTICE_SCOPE: a paused history detail read that failed leaves the entry loading');
-  await click('progress-reconnect');
-  await noticeSettled('document.querySelector("#notice").hidden && !document.body.textContent.includes("正在读取详情…") && !!document.querySelector(".history-detail")?.textContent.includes("共识别")', 'the expanded history entry is read again after reconnect');
-  await click('nav-home'); await pageIs('cleaning');
-  await control('window.__waterTest.holdClean=false'); await pageIs('done');
-
-  await reset({scanned:true}, 'results'); await waitText(selectionText(defaults.length));
-  await control(`window.__waterTest.nextError={command:'clean_prepare',error:${JSON.stringify(fixture.errors.stale)}}`);
-  await click('clean-prepare'); await noticeText(fixture.errors.stale.message_zh, 'stale notice shows on results');
-  await click('nav-trends'); await pageIs('trends');
-  await browser.evaluate('location.hash = "#/results"'); await pageIs('results');
-  assert(await browser.evaluate('document.querySelector("#notice").hidden && document.querySelector(".note").textContent === "结果已过期，请重新体检后再清理。" && document.querySelector("[data-key=clean-prepare]").disabled'), 'UI_NOTICE_SCOPE: stale result body and guard remain after dismissing the error');
-  await noOverflow(); await safeCalls();
+  const css = readFileSync(join(ui, 'styles/app.css'), 'utf8'), tokens = readFileSync(join(ui, 'styles/tokens.css'));
+  assert(!css.includes('--w-'), 'UI_V2_PAGES: no old token references'); assert.deepEqual(tokens, readFileSync(join(root, 'docs/design/water-ui-v3/tokens.css')), 'UI_V2_PAGES: v3 tokens exact');
+  await reset({unavailable:true}); assert(await evalJs('document.body.textContent.includes("无法连接 Water 服务")'), 'UI_V2_PAGES: unavailable state');
+  await browser.send('Emulation.setEmulatedMedia', {features:[{name:'prefers-reduced-motion', value:'reduce'}]}); await reset(); assert.equal(await evalJs('getComputedStyle(document.querySelector(".btn")).transitionDuration'), '0s', 'UI_V2_PAGES: reduced motion');
+  await safeCalls();
 });

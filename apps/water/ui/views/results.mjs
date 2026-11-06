@@ -1,64 +1,48 @@
-import {add, el, metric, button, level, check, icon, catIcon, insight, empty} from './common.mjs';
-import {formatBytes, bytes, percent, dateTime, count} from '../format.mjs';
-import {levels, canSelect, hasSelectedItems, selectedGroups, selectedBytes, selectedCount, selectionDetails, sortedGroups, categoryOrder, groups, driveResult} from '../model.mjs';
-const totalText = (value, partial) => `${partial ? '至少 ' : ''}${formatBytes(value)}`;
-export function results(state, actions) {
-  const details = selectionDetails(state);
-  const r = state.result && driveResult(state.result, state.drive), page = el('section');
-  if (!r) return add(page, empty('尚未体检', '完成一次体检后，这里会显示按类别整理的结果。'), button('开始体检', actions.scan, 'btn btn-primary', 'scan-start', actions.busy()));
-  const drives = [...new Set(groups(state.result).flatMap(g => (g.by_drive ?? []).filter(d => d.item_count > 0).map(d => d.root)))].sort();
-  if (drives.length > 1) {
-    const filter = el('div', 'seg drive-filter', undefined, {'aria-label':'按盘筛选'});
-    for (const drive of [null, ...drives]) {
-      const label = drive ? `${drive.slice(0, 2)} ${state.app?.drives.find(d => d.root === drive)?.label_zh ?? ''}`.trim() : '全部盘';
-      const option = button(label, () => actions.drive(drive), `segment ${state.drive === drive ? 'on' : ''}`, drive ? `drive-${drive.slice(0, 1)}` : 'drive-all');
-      option.setAttribute('aria-pressed', String(state.drive === drive)); add(filter, option);
-    }
-    add(page, filter, el('p', 'cap', '筛选只影响显示，清理包含全部已选分组。'));
+import {add, el, heading, metric, card, button, iconButton, menu, row, toggle, tag, skipNotice} from './common.mjs';
+import {treemap, proportions} from './charts.mjs';
+import {formatBytes, relativeTime} from '../format.mjs';
+import {viewCards, cleanLabel} from '../model.mjs';
+export function results(s, a) {
+  const v = s.conclusion, p = v.plan, page = el('section', 'screen conclusion');
+  add(page, heading(BigInt(p.bytes) === 0n ? '没有可以放心清理的东西' : '可以放心清理', `${v.scope.only_folder ? '这次只看了这个文件夹 · ' : ''}${v.scope.labels_zh.join('、')} · ${relativeTime(v.finished_at)}`, [metric(p.delete_bytes, '推荐直接清理'), metric(p.chosen_bytes, '你选的'), metric(p.bytes, '本次计划')]));
+  if (v.stale) add(page, el('p', 'warning stale', '结果已过期 · 重新体检'));
+  add(page, proportions(p.categories.map(c => ({title:c.title_zh, bytes:c.bytes, kind:c.included ? 'sky' : 'neutral'}))));
+  const grid = el('div', 'results-grid'), main = card('这次清理', 'dark main-card', [iconButton('重新体检', 'refresh', a.chooseLocations, 'rescan')]);
+  add(main, metric(p.bytes), el('p', 'sub summary', p.summary_zh), el('h3', 'sub', '包含什么'));
+  for (const c of p.categories) add(main, row(c.title_zh, c.is_new ? '新' : '', el('span', 'sub', formatBytes(c.bytes)), toggle(c.title_zh, c.included, () => a.decide({category:c.category_id, include:!c.included}), `category-${c.category_id}`, a.busy() || v.stale)));
+  add(main, add(el('div', 'bottom action-stack'), skipNotice(p.expected_skip), BigInt(p.bytes) > 0n ? button(`${cleanLabel(p)} ${formatBytes(p.bytes)}`, a.prepare, 'btn primary', 'clean-prepare', a.busy() || v.stale) : null));
+  const content = el('div', 'result-content'), cards = el('div', 'judgments');
+  if (v.cards.length) cards.setAttribute('aria-label', '需要你看一眼');
+  for (const c of viewCards(v)) {
+    const entries = [];
+    if (c.menu.includes('detail')) entries.push(['查看明细', () => a.detail(c.group_id)]);
+    if (c.menu.includes('copy_clue')) entries.push(['复制线索给 agent', () => a.copy(v.clues.find(x => x.clue_id === c.clue_id)?.copy_text ?? '')]);
+    const node = card(c.title_zh, `judgment ${c.decision !== 'undecided' ? 'decided' : ''}`, [menu(`${c.title_zh}菜单`, entries, `card-menu-${c.group_id}`)]);
+    node.dataset.card = c.card_id; node.dataset.group = c.group_id; node.tabIndex = 0;
+    node.addEventListener('keydown', event => {
+      if (event.target !== node || a.busy() || v.stale) return;
+      if (event.key === 'Enter' || event.key === 'Delete') { event.preventDefault(); a.decide({group:c.group_id, choice:event.key === 'Enter' ? 'clean' : 'keep'}); }
+    });
+    if (c.decision === 'undecided') add(node, el('p', 'sub evidence', c.evidence_zh), metric(c.bytes), c.warning_zh && el('p', 'warning', c.warning_zh), c.decided_before_zh && el('p', 'sub', c.decided_before_zh), add(el('div', 'bottom pair'), button('保留', () => a.decide({group:c.group_id, choice:'keep'}), 'btn soft', `keep-${c.group_id}`, a.busy() || v.stale), button('清理', () => a.decide({group:c.group_id, choice:'clean'}), 'btn lime', `clean-${c.group_id}`, a.busy() || v.stale)));
+    else add(node, el('p', 'decided-text', c.decision === 'clean' ? `已加入清理 · ${formatBytes(c.bytes)}` : '已保留'), button('撤销', () => a.decide({group:c.group_id, choice:'undecided'}), 'btn soft', `undo-${c.group_id}`, a.busy() || v.stale));
+    add(cards, node);
   }
-  const summary = add(el('div', 'glass spectrum'), add(el('div', 'split'), el('span', 'cap', '本次体检共识别'), el('b', '', totalText(r.totals.recognized_bytes, r.partial_totals?.recognized_bytes))));
-  const bar = el('div', 'spec-bar'), legend = el('div', 'legend');
-  for (const key of ['recommended', 'confirm', 'advisory', 'protected']) {
-    const segment = el('i', key); segment.style.setProperty('--fill', String(percent(r.totals[`${key}_bytes`], r.totals.recognized_bytes))); add(bar, segment);
-    const b = button('', () => actions.filter(key), 'legend-item', `legend-${key}`); add(b, level(key), el('b', '', totalText(r.totals[`${key}_bytes`], r.partial_totals?.[`${key}_bytes`]))); add(legend, b);
+  add(content, cards);
+  for (const extra of [v.more_cards, v.kept_before]) if (extra) add(content, button(`${extra.text_zh} ›`, a.details, 'summary-link', extra === v.more_cards ? 'more-cards' : 'kept-before'));
+  const lower = el('div', 'result-lower');
+  if (p.categories.length || v.cards.length) add(lower, add(card('这次能清什么', 'treemap-card'), treemap([...p.categories.map(c => ({title:c.title_zh, bytes:c.bytes})), ...v.cards.map(c => ({title:c.title_zh, bytes:c.bytes, kind:c.decision === 'clean' ? 'selected' : 'look'}))])));
+  else add(lower, add(card('这次不用清理'), el('p', 'sub', '受保护的数据仍然保留，可以展开下方清单查看。')));
+  const clues = card('交给 agent', 'clues');
+  for (const clue of v.clues) add(clues, row(clue.text_zh, '', iconButton('复制线索', 'copy', () => a.copy(clue.copy_text), `copy-${clue.clue_id}`)));
+  if (v.more_clues) add(clues, button(`还有 ${v.more_clues} 条 ›`, () => a.navigate('trends'), 'summary-link', 'more-clues'));
+  if (v.clues.length || v.more_clues) add(lower, clues);
+  add(content, lower); add(grid, main, content); add(page, grid);
+  for (const fold of v.folds) {
+    const details = el('details', 'fold'); details.open = s.openFolds.has(fold.kind);
+    details.addEventListener('toggle', () => details.open ? s.openFolds.add(fold.kind) : s.openFolds.delete(fold.kind));
+    add(details, el('summary', '', fold.text_zh, {'data-key':`fold-${fold.kind}`}));
+    for (const item of fold.rows) add(details, row(item.title_zh, item.note_zh, item.bytes !== null && el('span', '', formatBytes(item.bytes)))); add(page, details);
   }
-  add(summary, bar, legend);
-  add(page, add(el('div', 'res-hero'), add(el('div'), el('p', 'cap', '可放心清理'), metric(r.totals.recommended_bytes), el('p', 'cap result-meta', `${r.recommended_by_drive.map(d => `${d.root.slice(0, 2)} ${formatBytes(d.bytes)}`).join(' · ')}　扫描于 ${dateTime(r.finished_at)}，用时 ${Math.round(r.duration_ms / 1000)} 秒`), r.status !== 'completed' ? el('p', 'growth', '部分结果') : null), summary));
-  r.insights.forEach(i => add(page, insight(i, actions.detail)));
-  if (state.stale && (state.errorCode !== 'stale' || state.reconnecting || state.pollPaused)) add(page, el('p', 'glass note', '结果已过期，请重新体检后再清理。'));
-  const filters = el('div', 'seg', undefined, {'aria-label':'按级别过滤'});
-  for (const [key, label] of [['all', '全部'], ...Object.entries(levels).filter(([key]) => key !== 'unrecognized')]) add(filters, button(label, () => actions.filter(key), `segment ${state.filter === key ? 'on' : ''}`, `filter-${key}`));
-  const sort = el('div', 'seg', undefined, {'aria-label':'排序'});
-  for (const [key, label] of [['bytes', '按体量'], ['growth', '按增长']]) add(sort, button(label, () => actions.sort(key), `segment ${state.sort === key ? 'on' : ''}`, `sort-${key}`));
-  add(page, add(el('div', 'toolbar'), filters, sort));
-  let visible = 0;
-  for (const category of [...r.categories].sort((a, b) => categoryOrder.indexOf(a.category) - categoryOrder.indexOf(b.category))) {
-    const rows = sortedGroups(category.groups.filter(g => state.filter === 'all' || g.level === state.filter), state.sort);
-    if (!rows.length) continue;
-    visible += rows.length;
-    const selectable = rows.filter(canSelect), selected = selectable.filter(g => hasSelectedItems(g, state.selection, details));
-    const selectedTotal = selectedBytes({...state.result, categories:[{...category, groups:rows}]}, state.selection, details, state.drive);
-    const checkbox = check(`全选${category.title_zh}`, !!selectable.length && selected.length === selectable.length, value => actions.selectCategory(category.category, value), `category-${category.category}`, selected.length > 0 && selected.length < selectable.length);
-    checkbox.disabled = !selectable.length || actions.busy() || state.stale;
-    const sheet = add(el('section', 'glass sheet'), add(el('div', 'sheet-head'), checkbox, add(el('div', 'cat-icon'), icon(catIcon(category.category))), add(el('div', 'grow-fill'), el('h2', '', category.title_zh), el('span', 'cap', category.subtitle_zh)), add(el('div', 'category-total'), el('b', '', totalText(category.total_bytes, category.partial_bytes)), selected.length ? el('span', 'cap', `已选 ${formatBytes(selectedTotal)}`) : null)));
-    for (const g of rows) {
-      let control;
-      if (canSelect(g)) { const selected = hasSelectedItems(g, state.selection, details); control = check(`选择${g.title_zh}`, selected, value => actions.select(g.group_id, value), `select-${g.group_id}`, selected && !!state.selection.get(g.group_id)?.size); control.disabled = actions.busy() || state.stale; }
-      else control = icon(g.level === 'protected' ? 'lock' : 'info', g.level);
-      const text = add(el('span', 'group-text'), el('strong', '', g.title_zh), add(el('span', 'group-meta'), el('span', '', g.summary_zh), g.growth ? add(el('span', 'growth'), icon(bytes(g.growth.bytes_delta) < 0n ? 'down' : 'up'), document.createTextNode(formatBytes(g.growth.bytes_delta))) : null), g.in_use ? el('span', 'cap', g.in_use.process_label_zh) : null);
-      const detail = button('', () => actions.detail(g.group_id), 'group-open', `detail-${g.group_id}`);
-      detail.setAttribute('aria-label', `查看${g.title_zh}详情`);
-      add(detail, text, level(g.level), el('span', 'group-size', g.total_bytes === null ? '—' : formatBytes(g.total_bytes)), icon('chev', 'chevron'));
-      add(sheet, add(el('div', `group-row ${canSelect(g) ? '' : 'muted'}`), control, detail));
-    }
-    add(page, sheet);
-  }
-  if (!visible) add(page, empty('没有符合条件的分组', '试试切换到“全部”。'));
+  add(page, button('查看全部明细', a.details, 'summary-link', 'details-open'));
   return page;
-}
-export function dock(state, actions) {
-  if (!state.result) return null;
-  state = {...state, details:selectionDetails(state)};
-  const selected = selectedGroups(state.result, state.selection, state.details);
-  return add(el('div', 'dock'), add(el('span', 'cap dock-selection'), el('span', '', `已选 ${count(selected.length)} 组`), el('span', 'selected-count', `${count(selectedCount(state.result, state.selection, state.details))} 项`)), add(el('div', 'dock-bytes'), el('b', '', formatBytes(selectedBytes(state.result, state.selection, state.details))), state.drive ? el('span', 'cap dock-drive', `其中 ${state.drive.slice(0, 2)} ${formatBytes(selectedBytes(state.result, state.selection, state.details, state.drive))}`) : null), button('重新扫描', actions.scan, 'btn btn-glass', 'rescan', actions.busy()), button('清理所选', actions.prepare, 'btn btn-primary', 'clean-prepare', actions.busy() || !selected.length || state.stale));
 }
