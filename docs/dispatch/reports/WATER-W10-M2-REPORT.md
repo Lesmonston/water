@@ -1,6 +1,6 @@
 WATER-W10-M2 任务已完成，任务报告在 F:/new/smaltalk/water/.worktrees/w10-m2/docs/dispatch/reports/WATER-W10-M2-REPORT.md
 
-当前交回为文末“补单 01”；原有实现与检查记录保留，属于历史状态。
+当前交回为文末“补单 02”；原有实现与检查记录保留，属于历史状态。
 
 ## 身份、基线与提交
 
@@ -285,3 +285,91 @@ Archive: 396 entries, 6036482 bytes. All sizes and SHA-256 verified.
 未验证 macOS、M1/M2/M7 实际集成、真实清理、极端并发变化、2,000 万条目下的内存峰值。候选与实际输出自身仍随候选/输出数量占内存；声明路径仍按既有语义在最终排序后截到 256，未做百万浅层声明的内存基准。没有把目录清单释放等同于固定的总内存上限。
 
 已完成本票全部授权修改、指定五测、三条红绿及三个 final。回执和证据提交并核对干净后停止本树所有测试、扫描与自有后台进程；状态为 SUBMITTED，等待总控验收。
+
+## 补单 02（2026-11-06）：完成，交回 SUBMITTED
+
+- 实际模型：GPT-6（Codex，运行环境未提供更细型号）；未使用子代理。
+- 先交回 M1 补单 04：实现 `2d1c71b7d7d988a70f209753a571f964f30be6e5`，回执与证据 `02bcbfab2d71f4dd306738573a20ddb09069da09`，确认工作树干净后才开始本单。
+- 本树 / 分支：`F:/new/smaltalk/water/.worktrees/w10-m2` / `worker/water-w10-m2`。
+- 续做起点：`68f902639b68f942e5556aa2063bfe363bbdaaac`，开工干净。已读指定原票、规则、SCAN-M35、有效旧契约、补单 01、补单 02 与历史回执。baseline 沿用已通过记录，未重跑。
+- 实现提交：`cd08848363844da83e50a187b15a1eee8d8fc94c`；只改 `src/scan.rs`、`src/scan/streaming.rs` 和指定 `tests/scan_v1.rs`。后续仅回执和归档证据提交。
+
+### 五项交付
+
+1. **`.git` 内只测量**：`streaming.rs` 的共用 `outside_git` 按完整路径段、不分 ASCII 大小写检查 `.git`。计划根在其中时不启动搜索；DFS 进入这些目录测量时，两个目标激活循环共用 `search_allowed`，同时关闭 pattern、目录 marker、file_name、discovery；没有 custom/discovery 搜索上下文，所以簇候选与声明也不搜索。重解析点的目标搜索分支使用同一门。已有测量仍累加所有普通文件，因此包含项的字节不丢。未只补 pattern 一处。
+2. **预算归属**：独立维护每个目标尚未完成的搜索目录集合，与尚在测量的记录分开。根尚未抵达时仍在集合；搜索一个目录完成后换成需要搜索的子目录，marker 命中关闭自己分支的搜索。停止后汇总尚未完成的搜索目标组和每个测量记录经 `owner` 得出的最终归属组，用组集合去重，替换局部停止检查的临时 budget 记录，每组只记一次。已完成搜索且无未完测量的组不受影响；原兜底预算归属断言仍通过。walk 已因预算/取消结束时不再启动构簇，避免给已完成普通组补记问题。
+3. **簇不在最终条目内**：`build_clusters` 用普通和 discovery 最终命中的路径集合检查簇父目录；父目录等于或位于任一命中之内时直接丢弃整个 proposal，不创建组、簇或候选问题。已认领簇成员的后代排除照旧。声明不使用这份新增排除；pattern/discovery 条目内已经找到的声明仍返回，marker 原有搜索边界保持。
+4. **增强漏检测试**：同一父目录下同时造三个同前缀 hash 文件簇（无扩展名、`.apk`、`.txt`），每种十个模板文件加一个同前缀非模板文件，逐组精确为十一项且扩展名一致。构簇取消测试用第二个未命中 marker 的最终进度作 sentinel，等合法进度间隔后，只在 `build_clusters` 的候选循环回调取消；另断言该回调确实发生、结果 cancelled、无簇。没有改原取消用例或原断言。
+5. **discovery 问题只记一次**：延后的 discovery 收尾暂存测量问题；构簇后，仍属于 discovery 的实际条目才把问题记回原组。变成簇成员的记录只由候选问题路径记到 leak 组；不再两组重复计数。
+
+保留现有单次物理 DFS、清单缓存生命周期及名字索引；没有为性能重写遍历。补单列为遗留的 discovery 预先测量、停止时丢弃已测完的延后 discovery 条目、问题逐条暂存及名字前缀分配方式，均未另行修复。不把本次用时与上次冷缓存结果作性能结论。
+
+### 新增用例与旧断言
+
+在原 `scan_pattern_marker_discovery` 中调用 `m35_clusters_addendum02`，仍精确五测。相对续做起点，测试 diff 为 **447 行新增、0 行删除**，补单 01 新增断言也全部保留。
+
+- discovery root 与三段 pattern 共 base，中间段 `*`，子项 `.GiT` 内含 objects、refs、普通文件、十二个模板目录及声明；另测第一段 `*`、base 内 `.git`、外层 discovery 正在测量的情况。两例都没有 `.git` 本身或其后代条目/声明/簇，包含项仍有完整 24 字节。计划还显式包含 `.git` 内的 marker、file_name、discovery 根。
+- 测量 discovery 子项中的 pattern 命中时耗尽预算：pattern、discovery、尚未走到根的目标各有一条 budget_exhausted；此前已完成的组、同 root 已完成的文件目标都没有预算问题，已出条目保留。
+- pattern、discovery、兜底三种包含项内部各有十二个模板子目录：仅有原项，无内部簇或 leak 问题；pattern/discovery 内已找到声明保留。
+- 同前缀、跨扩展名的三种文件簇，以及只在构簇候选循环中触发的取消，见上。
+- discovery 下十个簇成员，其中一个含无法表示的文件名：只有 leak 组的一条 unrepresentable_name，count 为 1，discovery 不重复记。
+
+### 检查命令与结果
+
+全部在本树根执行。共同前缀：`node F:/new/smaltalk/water/scripts/checkup-wave-check.mjs --task WATER-W10-M2`。Receipt 省略 `2026-11-06T` 与 `-result.json`；完整原始日志和源码快照均已归档。
+
+| Receipt | 参数 | 结果 |
+|---|---|---|
+| 04-20-53.975Z-15548-test | `--mode test` | 新用例先红，退出 1，4/5；编译成功，精确复现 middle wildcard 在 git 内出条目 |
+| 04-22-13.588Z-32428-test | `--mode test` | 修复后退出 0，5/5 |
+| 04-23-11.618Z-30212-lock | `--mode lock` | 退出 0，依赖与锁不变 |
+| 04-23-29.415Z-27864-check | `--mode check` | 退出 0，源码政策、fmt、clippy -D warnings 通过 |
+| 04-24-35.091Z-33556-test | `--mode test` | 增加同 root 已完成目标的预算反例后退出 0，5/5；随后提交实现 |
+| 04-25-30.998Z-6560-test | `--mode test` | c5 额外变异，退出 1，目标断言红：无扩展名簇错收 33 而非 11 项 |
+| 04-25-52.842Z-30976-test | `--mode test` | 恢复原字节后退出 0，5/5 |
+| 04-26-26.286Z-27992-test | `--mode test` | c7 额外变异，退出 1，未发生构簇候选回调的新断言红 |
+| 04-26-46.769Z-5852-test | `--mode test` | 恢复原字节后退出 0，5/5 |
+| 04-27-15.898Z-33368-test | `--mode test` | 禁用 git 排除的额外变异，退出 1，middle wildcard 新断言红 |
+| 04-27-48.422Z-16476-test | `--mode test` | 恢复原字节后退出 0，5/5 |
+| 04-28-16.621Z-21900-red-nc1 | `--mode red-nc1` | 退出 0，有效目标红，内部 Cargo 101 |
+| 04-28-41.917Z-19236-test | `--mode test` | nc1 恢复后退出 0，5/5 |
+| 04-29-08.323Z-35348-red-nc2 | `--mode red-nc2` | 退出 0，有效目标红，内部 Cargo 101 |
+| 04-29-26.093Z-13064-test | `--mode test` | nc2 恢复后退出 0，5/5 |
+| 04-29-48.654Z-12628-red-nc3 | `--mode red-nc3` | 退出 0，有效目标红，内部 Cargo 101 |
+| 04-30-13.245Z-35480-test | `--mode test` | nc3 恢复后退出 0，5/5 |
+| 04-30-44.312Z-2456-check | `--mode check --final` | 退出 0，干净实现提交上通过 |
+| 04-31-15.800Z-23400-test | `--mode test --final` | 退出 0，5/5，proofAudit 采用本轮三组规定红绿 |
+| 04-31-33.833Z-9476-real | `--mode real --final` | 退出 0，三段真实只读冒烟 completed |
+| 04-34-38.503Z-24140-archive | `--mode archive` | 退出 0，累计 1,203 条、21,655,319 字节；全部归档与源文件的长度/SHA-256 核对通过 |
+
+三个 final 均绑定干净实现提交 `cd08848363844da83e50a187b15a1eee8d8fc94c`。另用绝对工具链路径运行 `cargo.exe fmt --manifest-path packages/junk-scan/Cargo.toml`，`git diff --check` 通过。一处新增用例补丁上下文未匹配，未写入，读取上下文后重新应用。无编译错误、超时或改测试造红。
+
+### 变异、三条负控与恢复哈希
+
+额外变异也仅改生产逻辑：c5 将扩展名判断放宽为“相等或实际扩展名非空”；c7 删除 `build_clusters` 候选循环的 emit 与 stopped 检查；git 变异仅把共用排除比较的名字从 `.git` 改为 `.git-disabled`。三者均由新增 `SCAN_M35_CLUSTERS` 断言抓住，退出后立即 checkout 该单文件并完整五测恢复。
+
+| 规定负控 | 唯一生产改动 | 失败标记 |
+|---|---|---|
+| nc1 | `CLUSTER_MIN_MEMBERS`：10 → 2 | `SCAN_M35_CLUSTERS: verify/hash/run/discovery, nine and photos excluded` |
+| nc2 | 解锁查询改查空 ID，忽略实际 unlocks_target_ids | `SCAN_M35_RULES: named unlock pair` |
+| nc3 | 分配大小累加由 allocation 改成逻辑长度 child.len | `SCAN_M35_SIZES: sparse allocation must be far below length` |
+
+每次均严格等待 red/test 退出后，立即 `git checkout -- packages/junk-scan/src/scan.rs`（git 额外变异恢复 `src/scan/streaming.rs`），再运行完整 test；没有红绿重叠。恢复哈希与实现提交一致：
+
+- `src/scan.rs`：`76676c9c1e80bf60f4fe0f56ebca3db494eca148ded64f4ffbad34b19c7e82b4`，c5/c7 与三条规定负控恢复后均相同。
+- `src/scan/streaming.rs`：`3f49fb5d53922a26f4681b981efe470a3793c0dd907330014c76e41db310f757`。
+- `tests/scan_v1.rs`：`90aac8a72ec080b5f581ad3a18e3cc3158cd80c264306f8d9e387e2fb3de0b9c`，所有变异期间不变。
+
+### 真实冒烟与未验证项
+
+| 段 | 状态 | 用时 ms | visited_entries |
+|---|---|---:|---:|
+| 普通 scan | completed | 51,769 | 275,905 |
+| 三开关 scan_full | completed | 28,207 | 275,902 |
+| 用户目录 space_overview | completed | 76,023 | 665,510 |
+
+普通扫描 12 组、4,163 项；full 为 8 个簇、全为 confirm，23 个联接、0 个声明。空间概览 top 10、others 227、568,396 个文件，分配量 `106130833376` 字节，无问题。只输出汇总和计数，不含真实路径、文件名或进程命令行；没有读取被扫描文件内容、修改或清理真实数据。
+
+没有窗口、选择框、浏览器、联网下载、新系统函数或原生 FFI 改动；依赖、Cargo.toml/Cargo.lock、其它包、规则数据、冻结契约、检查器、台账、Git 配置与远端不变。未 push、合主线或改写历史。新增夹具仅由现有 Fixture 在本树 `.local/w2-b-fixtures/fx-<进程>-<纳秒>` 创建并按原边界清理各自一个目录。
+
+未验证 macOS、M1/M2/M7 实际集成、真实清理、生产竞态、百万条目性能或峰值内存；不把只读冒烟称为清理验收。完成回执与证据提交并确认工作树干净后，停止本树测试、扫描与自有后台进程，等待总控复验。
