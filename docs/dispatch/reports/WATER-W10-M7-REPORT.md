@@ -1,5 +1,7 @@
 WATER-W10-M7 任务受阻，任务报告在 F:/new/smaltalk/water/.worktrees/w10-m7/docs/dispatch/reports/WATER-W10-M7-REPORT.md
 
+**当前状态（补单 04，2026-11-06）：从 `9aba0889` 续做。未验收实现已提交为 `8b639ec450d1cc9afa941f36c14131e204fa0630`。后台扫描／清理／查重／永久删除收尾的磁盘读写已移出状态锁，`m35::event` 已拆成锁外写文件、短锁入列。本地量到后台持锁最长 3.05 ms。官方 `check` 通过；同一字节官方 `test` 12/12、11/12（`conclusion_decide`）、原样重跑 12/12、再 11/12（`cluster_mark_fixed`），累计两次失败，按补单停止。负控、三个 final 和真实冒烟未运行。详见文末“补单 04”。**
+
 **当前状态（补单 03，2026-11-06）：从 `658c281a` 续做。未验收实现已提交为 `7a151dfb02c868eff81cdaece88d12176fa895aa`。`custom_root_add` 已按契约豁免 50 ms；一万项分组首次 `group_detail` 本机空闲 5 次均 4.3～5.0 ms。官方 `check` 通过；同一字节官方 `test` 12/12、11/12（`dedupe_progress`）、原样重跑 12/12、再 11/12（`skip_remove`），累计两次失败，按补单停止。负控、三个 final 和真实冒烟未运行。详见文末“补单 03”。**
 
 **当前状态（补单 02，2026-11-06）：用户“继续”后接续 `4566dd8c` 上未提交的服务源码。未验收实现已提交为 `4d146934664a5958c4460e5a7a8a34366a151ae2`。官方 `check` 通过；同一字节连续两次官方 `test` 失败（11/12 再 10/12），按工作规则停止。负控、三个 final 和真实冒烟未运行。详见文末“补单 02”。**
@@ -404,3 +406,109 @@ finished in 29.27s
 - 合成夹具仅测试过程在 `.local` 下当次新建并删除；没有清理、移动或删除真实文件。
 
 归档索引：`docs/acceptance/wave10/m7/ARCHIVE.json`，**962** 个检查器生成证据文件，合计 **25,402,008** 字节；由 `--mode archive` 按原字节复制。归档器自身本次 result（`2026-11-06T11-52-18.069Z-13044-archive-result.json`，SHA-256 `24fea43cbe8b7df0422f1930184e0affca534e55dbcfc6c046737c16d21679c0`）在复制完成后才生成，故不计入本索引。
+
+## 补单 04
+
+### 现场与执行者
+
+- 实际执行者：Grok 4.6；未启动子代理、worker 或其它执行者。
+- 工作树 `F:/new/smaltalk/water/.worktrees/w10-m7`，分支 `worker/water-w10-m7`。补单指定从 `9aba0889a1e32decf9e1a9b0cdbc35209ffaf2dd` 续做。已提交内容不改写。
+- 开工前按补单顺序读了原单、补单 01、补单 02、补单 03、补单 04 与当时回执。票面在主仓库 `F:/new/smaltalk/water/docs/dispatch/tickets/`，工作树内没有补单 04 文件，直接读权威路径，未复制进工作树。
+- 未验收实现：`8b639ec450d1cc9afa941f36c14131e204fa0630`（`wip: move background disk I/O off the state lock (M7 addendum 04)`）。只含 `packages/water-service/src/{clean,dedupe,m35,quarantine,service}.rs`，+115/−73。提交身份仅进程环境：Grok 4.6 `<grok-4.6@localhost>`。
+- `baseline` 未重跑。未改契约、样例、检查器、台账、测试文件、50 ms 这个数、夹具规模、计时方式或其它包。`tests/service_v1.rs` SHA-256 仍为 `a075daa35c5f1cc1b7641fe52dd8161d734957d1cfe891b46d1a9aa749177787`。
+
+### 产品改动
+
+1. **后台收尾磁盘移出状态锁。** 扫描／清理／查重／永久删除线程在锁里只做内存换入和取出（要删的编号、进度数字、插入记录），放锁后再写或删文件。发布 `completed`／`idle` 放在删文件之后，避免 `wait()` 看到完成时磁盘上还多一条。写盘失败时的回滚仍是：扫描回滚 `last` 与记录；查重／永久删除把任务标失败；事件文件先写成功才入列。
+2. **`m35::event` 拆开。** `write_event` 在锁外生成并写入 `events/{id}.json`；`push_event` 短锁把该对象放进 `s.m35.events`。查重结束、永久删除结束、以及命令路径的还原（原 `quarantine.rs` 第 453 行）都走这一对。
+3. **命令自己的 `settings.json`。** `skip_add`／`skip_remove`／`cluster_mark_fixed`／`manifest_trust`／会话开关等仍在命令里写盘；写失败时内存尚未替换。`cluster_mark_fixed` 写完设置并更新内存后放锁，再另一次短锁算 `trends()`（`.git` 的 `symlink_metadata` 不再与设置写盘共用一把锁）。
+4. **`service::trim`／`dedupe::trim`。** 拆成内存 `trim_state` 与锁外 `trim_files`。启动路径仍一次调用原来的 `trim`（当时状态尚未放进互斥锁）。
+
+### 持锁时间（只在本地，已从产品删除）
+
+给 `lock()` 加过临时 `LockGuard`：放锁后把时长记进内存，在 `Service::drop` 写到 `C:\Windows\TEMP\w10-m7-lock-holds-*.log`。Drop 里不写盘，避免把记账算进命令的 50 ms。计时代码在官方检查前已整段删除，测试文件和产品都不留。
+
+改动前、改动后各跑一遍完整 `service_v1`（检查器同一套离线／私有 target／`--test-threads=1`）。改动前那次 12/12；改动后第一次因 trim 与 `idle` 窗口看到 61 条扫描记录，已改成先删文件再发布完成，再跑 12/12。下面的前五名是各次日志里持锁最长的调用点。
+
+改动前最长 5 处（命令路径，均为写 `settings.json` 或同类落盘，补单允许留在命令里）：
+
+| ms | 线程 | 函数 |
+|---|---|---|
+| 16.0385 | `service_clean_flow` | `remove_skip` |
+| 14.3595 | `service_clean_flow` | `add_skip` |
+| 12.9943 | `service_hardening` | `add_root` 第二次拿锁 |
+| 12.5744 | `m35_clean_split` | `settings_command` |
+| 12.4358 | `service_storage_safety` | `locations_set_category`／`custom_root_remove` |
+
+改动前后台最长：`water-purge` 8.7769 ms（永久删除结束写记录＋事件）、`water-dedupe` 6.1103 ms（查重结束写事件＋trim）、`water-scan` 4.7387 ms（扫描结束 trim）。81924 次后台持锁里没有超过 10 ms 的；这是空闲本机，补单指出的 Windows 落盘抖动没有在这次本地跑里出现。
+
+改动后最长 5 处（仍是命令路径落盘）：
+
+| ms | 线程 | 函数 |
+|---|---|---|
+| 14.4204 | `service_ipc_contract` | `add_root` 第二次拿锁 |
+| 13.5950 | `service_clean_flow` | `clean::prepare` |
+| 12.8921 | `m35_clean_split` | `settings_command` |
+| 12.7544 | `service_clean_flow` | `clean::start` |
+| 12.0877 | `service_storage_safety` | `locations_set_category`／`custom_root_remove` |
+
+改动后后台每一次持锁：
+
+| 线程 | 次数 | 最长 ms |
+|---|---|---|
+| `water-scan` | 81844 | 3.0452 |
+| `water-clean` | 124 | 0.1055 |
+| `water-dedupe` | 23 | 0.0232 |
+| `water-purge` | 10 | 0.0211 |
+
+后台全部 ≤ 10 ms。查重／永久删除结束处从数毫秒落到 0.02 ms 量级，与把写盘移出锁相符。
+
+### 验证
+
+跑测试前按进程名查看：`Get-Process` 过滤 `cargo`／`rustc`／`rustup`／`node`／`clippy`。check 与每次 `test` 前表都是空的（未见其它检查进程）。
+
+官方命令均在工作树根：`node F:/new/smaltalk/water/scripts/desktop-wave-check.mjs --task WATER-W10-M7 --mode <模式>`。同一产品／测试字节：`productionHash` `06967d1d0aff2cc3a79068f216fe1a7405208636bd5316f698b9fa6b9370eb4b`，`testHash` `4d4a0894d88ccb3de71f7131dc0e76b4936e1d6329eb0a92f1c0a29d84c80ff4`。
+
+| 回执 | 模式／结果 | 说明 |
+|---|---|---|
+| `2026-11-06T12-21-47.191Z-34852-check-result.json` SHA-256 `f500493926d82c9a7da686e34258ca99b3fb2200c83ae3e6718fd09273ff7df6` | check 通过／0 | `fmt`／`clippy -D warnings` 退出 0 |
+| `2026-11-06T12-22-04.831Z-19056-test-result.json` SHA-256 `7becd018ce9b98c6c30c7b56bd2fc0ba3f8d69c3829ddf8415fd4936d261dd8e` | test 通过／0 | 12/12 |
+| `2026-11-06T12-23-40.115Z-27860-test-result.json` SHA-256 `9d5f1d632ed281b439b79344b0f3b43cf97576a9da7d4ff6137394d3660d1597` | test 失败／1 | 11/12。`m35_conclusion_cards`：`SERVICE_RETURN_BUDGET: conclusion_decide`（`tests/service_v1.rs:498`）。日志 SHA-256 `c0e7c9a27efac8b0f03f9be872f252863c017e689f8adaedabd2217473e59665` |
+| `2026-11-06T12-25-29.693Z-12696-test-result.json` SHA-256 `b8d4fdbaca273b27b724a38cee2587b3a5304603f1df189f869ea9594eb54dfa` | test 通过／0 | 原样重跑，12/12 |
+| `2026-11-06T12-26-52.337Z-15488-test-result.json` SHA-256 `8ddeceeebd80e8c99da7c4d73e9f278f0283bbf86e85b07773e5fdd31525166b` | test 失败／1 | 11/12。`m35_trends_history`：`SERVICE_RETURN_BUDGET: cluster_mark_fixed`。日志 SHA-256 `df975bc8e4a829ed5516d985d5ee42f65f4fa83a0f6973873cde9d6ef5b3f35d` |
+
+补单：“中途某次失败，可以原样重跑一次；同一字节累计两次失败就停下”。第二次失败后停止实现和测试，未调大 50 ms，未给 `conclusion_decide`／`cluster_mark_fixed` 开例外。
+
+生产源码 SHA-256（与上述官方回执快照一致）：
+
+| 文件 | SHA-256 |
+|---|---|
+| `src/clean.rs` | `cb26651be97a1d871b9177454bb3085745de75177258a18650447a3c6ec87a04` |
+| `src/dedupe.rs` | `ad7c735c46a1a2f84b96baf5a53c23b73a4a499c3ae334fba45dea58f15ee975` |
+| `src/m35.rs` | `a0dfabb33417aa8b8f562004fc61af6a57ae178258301b86a2ad50cc278d9f98` |
+| `src/quarantine.rs` | `813f7e9834835f47a64ab854c1b0d4fd43daf84f7e7209d1e7c43130d57dcce9` |
+| `src/service.rs` | `0f6c282dd970b7b27de18ca3acf95f396b979f9afe9a7394ebd2cfbf2b32d930` |
+
+### 阻塞与最小补充需求
+
+当前阻塞是：同一字节未能连续三次完整 `test` 全绿。累计两次失败的命令是 `conclusion_decide` 与 `cluster_mark_fixed`，都仍受 50 ms 断言约束。这两条都是**命令自己写 `settings.json`**（`Store::write` 里有 `sync_all`），补单第 3 条允许把这次写盘留在命令里。它们不再是轮询进度去等后台锁。
+
+本地量到的后台持锁在改完后最长 3.05 ms，查重／永久删除结束处约 0.02 ms。补单 03 里失败的 `dedupe_progress`／`skip_remove` 这次官方套件没有再出现。剩下的 50 ms 失败落在写设置的命令自身：Windows 上一次 `sync_all` 仍可能把该命令撑过 50 ms。把写盘移出状态锁只能让别的命令不等锁，不能缩短写盘命令自己的 `call()` 耗时。
+
+请总控在 50 ms、夹具规模和计时方式均不变的前提下明确其一：
+
+1. 在实现提交 `8b639ec4`（`productionHash` `06967d1d…`）上安排空闲官方 `test` 复验，凑连续三次绿；或
+2. 若认为写 `settings.json` 的命令自身仍须进 50 ms，另发补单指定可改位置（例如命令是否还要 `sync_all`、是否允许这些命令在写盘期间不算 50 ms）。
+
+不要授权放宽 50 ms 这个数。
+
+### 未实施与未验证
+
+- 三条负控、`check --final`、`test --final`、`real --final`：**未运行**。
+- 真实只读冒烟：**未运行**。
+- SERVICE-M35 第 1～10 节与原单第 2 节总控补充：仍以补单 01 已提交实现为准，本补单未重新验收。
+- 未打开产品窗口、选择框或浏览器；未 push、改远端、改写历史、改台账／契约／样例／检查器／其它包。
+- 合成夹具仅测试过程在 `.local` 下当次新建并删除；没有清理、移动或删除真实文件。
+- 临时持锁日志只写在 `C:\Windows\TEMP\w10-m7-lock-holds-before.log` 与 `w10-m7-lock-holds-after.log`，未提交。
+
+归档索引：`docs/acceptance/wave10/m7/ARCHIVE.json`，**1074** 个检查器生成证据文件，合计 **28,906,992** 字节；由 `--mode archive` 按原字节复制。归档器自身本次 result（`2026-11-06T12-29-15.139Z-33056-archive-result.json`，SHA-256 `9fb7650b1d12e216f236201ae4a8c7d53389735538f197088683534a26e5112d`）在复制完成后才生成，故不计入本索引。
