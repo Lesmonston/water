@@ -16,7 +16,8 @@ export function results(s, a) {
   for (const c of viewCards(v)) {
     const entries = [];
     if (c.menu.includes('detail')) entries.push(['查看明细', () => a.detail(c.group_id)]);
-    if (c.menu.includes('copy_clue')) entries.push(['复制线索给 agent', () => a.copy(v.clues.find(x => x.clue_id === c.clue_id)?.copy_text ?? '')]);
+    const clue = v.clues.find(x => x.clue_id === c.clue_id);
+    if (c.menu.includes('copy_clue') && clue) entries.push(['复制线索给 agent', () => a.copy(clue.copy_text)]);
     const node = card(c.title_zh, `judgment ${c.decision !== 'undecided' ? 'decided' : ''}`, [menu(`${c.title_zh}菜单`, entries, `card-menu-${c.group_id}`)]);
     node.dataset.card = c.card_id; node.dataset.group = c.group_id; node.tabIndex = 0;
     node.addEventListener('keydown', event => {

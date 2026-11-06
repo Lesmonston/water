@@ -5,11 +5,13 @@ export function trends(s, a) {
   const data = s.trends, page = el('section', 'screen');
   if (!data) return add(page, heading('趋势', '正在读取…'));
   const system = s.app?.drives.find(d => d.is_system), f = data.forecast.find(f => f.root === system?.root), days = f?.days_to_full;
-  const title = days !== null && days > 0 && days <= 90 ? `${system.root.slice(0, 1)} 盘约 ${days} 天后满` : '空间趋势';
-  add(page, heading(title, '每次体检留下的空间记录', f ? [metric(f.bytes_per_day, '日均空间消耗'), metric(f.basis_days, '预测依据天数', true)] : []));
-  add(page, proportions(data.forecast.map(f => ({title:`${f.root.slice(0, 1)} 盘 · 日均空间消耗`, bytes:BigInt(f.bytes_per_day) < 0n ? '0' : f.bytes_per_day}))));
+  const hasDaily = value => value && value.days_to_full !== null && BigInt(value.bytes_per_day) > 0n;
+  const title = hasDaily(f) && days > 0 && days <= 90 ? `${system.root.slice(0, 1)} 盘约 ${days} 天后满` : '空间趋势';
+  add(page, heading(title, '每次体检留下的空间记录', hasDaily(f) ? [metric(f.bytes_per_day, '日均空间消耗'), metric(f.basis_days, '预测依据天数', true)] : []));
+  add(page, proportions(data.forecast.filter(hasDaily).map(f => ({title:`${f.root.slice(0, 1)} 盘 · 日均空间消耗`, bytes:f.bytes_per_day}))));
+  for (const value of data.forecast) if (!hasDaily(value)) add(page, el('p', 'sub forecast-note', `${value.root.slice(0, 1)} 盘 · ${value.note_zh ?? '暂不预测'}`));
   const grid = el('div', 'with-hero'), left = el('div', 'trend-content');
-  add(left, add(card(`${system?.root.slice(0, 1) ?? ''} 盘可用空间`), stems(data.points.filter(p => p.root === system?.root).map(p => ({bytes:p.free_bytes, label:p.at.slice(5, 10)})), '已记录的可用空间与预测', days > 0 && days <= 90 ? days : 0), f?.note_zh && el('p', 'sub', f.note_zh)));
+  add(left, add(card(`${system?.root.slice(0, 1) ?? ''} 盘可用空间`), stems(data.points.filter(p => p.root === system?.root).map(p => ({bytes:p.free_bytes, label:p.at.slice(5, 10)})), '已记录的可用空间与预测', hasDaily(f) && days > 0 && days <= 90 ? days : 0), f?.note_zh && el('p', 'sub', f.note_zh)));
   const clusters = card('一直在长的');
   for (const c of data.clusters) {
     const entries = [['标记为已修', () => a.markFixed(c.group_id, true)]];
@@ -30,6 +32,6 @@ export function trends(s, a) {
   }
   const main = card(system ? `${system.root.slice(0, 1)} 盘` : '磁盘体检', 'dark main-card');
   if (system) add(main, add(el('div', 'dial-slot'), dial(100 - percent(system.free_bytes, system.total_bytes), formatBytes(system.free_bytes), `可用 · 共 ${formatBytes(system.total_bytes)}`)));
-  if (f) add(main, row('日均空间消耗', '', el('span', '', formatBytes(f.bytes_per_day))), el('p', 'sub', f.note_zh ?? (days > 0 && days <= 90 ? `约 ${days} 天后满` : '稳定')));
+  if (f) add(main, hasDaily(f) && row('日均空间消耗', '', el('span', '', formatBytes(f.bytes_per_day))), el('p', 'sub', f.note_zh ?? (hasDaily(f) && days > 0 && days <= 90 ? `约 ${days} 天后满` : '稳定')));
   add(main, add(el('div', 'bottom'), button('体检常用位置', a.scanCommon, 'btn primary', 'trend-scan', a.busy()))); return add(page, add(grid, left, main));
 }

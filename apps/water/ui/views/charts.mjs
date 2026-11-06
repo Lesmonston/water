@@ -1,5 +1,5 @@
 import {add, el, svg} from './common.mjs';
-import {bytes, formatBytes, percent} from '../format.mjs';
+import {bytes, formatBytes, percent, localDateKey} from '../format.mjs';
 // Geometry only: charts never derive new displayed byte quantities.
 export function dial(value, text, caption = '', size = '', gain = null) {
   const box = el('div', `dial ${size}`), drawing = svg('svg', {viewBox:'0 0 220 220', 'aria-hidden':'true'});
@@ -58,6 +58,7 @@ export function stems(points, label = '空间记录', projectedDays = 0) {
 }
 export function treemap(items) {
   const root = el('div', 'treemap'), graph = svg('svg', {viewBox:'0 0 720 220', role:'img', 'aria-label':'面积表示体量，按服务返回顺序排列'});
+  const labels = el('div', 'tile-labels');
   const total = items.reduce((n, i) => n + bytes(i.bytes), 0n);
   let x = 0, y = 0, w = 720, h = 220, remaining = 100;
   for (const [i, item] of items.entries()) {
@@ -67,22 +68,28 @@ export function treemap(items) {
     add(g, add(svg('title'), document.createTextNode(`${item.title} · ${formatBytes(item.bytes)}`)), svg('rect', {x:x + 2, y:y + 2, width:Math.max(0, rw - 4), height:Math.max(0, rh - 4), rx:3}));
     if (rw > 75 && rh > 32) add(g, add(svg('text', {x:x + rw - 9, y:y + rh - 11, 'text-anchor':'end'}), document.createTextNode(formatBytes(item.bytes))));
     if (rw > 120 && rh > 65) add(g, add(svg('text', {x:x + 10, y:y + 20, class:'tile-label'}), document.createTextNode(item.title.length > 14 ? item.title.slice(0, 13) + '…' : item.title)));
+    else {
+      if (rw > 20 && rh > 24) add(g, add(svg('text', {x:x + 8, y:y + 17, class:'tile-label'}), document.createTextNode(String(i + 1))));
+      add(labels, el('span', 'tile-key', `${i + 1}. ${item.title}`));
+    }
     add(graph, g); if (wide) { x += rw; w -= rw; } else { y += rh; h -= rh; } remaining = Math.max(0, remaining - area);
   }
-  return add(root, graph);
+  return add(root, graph, labels.children.length ? labels : null);
 }
 export function heatmap(entries) {
   const root = el('div', 'heatmap'); if (!entries.length) return root;
   const days = new Map(); let first = Infinity, last = 0;
   for (const entry of entries) {
-    const day = Date.parse(entry.at.slice(0, 10)); first = Math.min(first, day); last = Math.max(last, day);
-    const existing = days.get(day) ?? []; existing.push(entry); days.set(day, existing);
+    const date = new Date(entry.at); date.setHours(0, 0, 0, 0);
+    const key = localDateKey(date); first = Math.min(first, date.getTime()); last = Math.max(last, date.getTime());
+    const existing = days.get(key) ?? []; existing.push(entry); days.set(key, existing);
   }
-  const start = first - ((new Date(first).getUTCDay() + 6) % 7) * 86400000;
-  for (let day = start; day <= last; day += 86400000) {
-    const records = days.get(day) ?? [], grade = e => ['clean', 'purge'].includes(e.kind) ? bytes(e.bytes) >= 8n * 1024n ** 3n ? 4 : bytes(e.bytes) >= 2n * 1024n ** 3n ? 3 : 2 : 1;
+  const start = new Date(first); start.setDate(start.getDate() - (start.getDay() + 6) % 7);
+  for (const day = new Date(start); day.getTime() <= last; day.setDate(day.getDate() + 1)) {
+    const key = localDateKey(day);
+    const records = days.get(key) ?? [], grade = e => ['clean', 'purge'].includes(e.kind) ? bytes(e.bytes) >= 8n * 1024n ** 3n ? 4 : bytes(e.bytes) >= 2n * 1024n ** 3n ? 3 : 2 : 1;
     const depth = records.reduce((m, e) => Math.max(m, grade(e)), 0);
-    const cell = el('button', `heat depth-${depth}`, '', {type:'button', title:`${new Date(day).toISOString().slice(0, 10)}${records.map(e => `\n${e.summary_zh} · ${formatBytes(e.bytes)}`).join('')}`});
+    const cell = el('button', `heat depth-${depth}`, '', {type:'button', title:`${key}${records.map(e => `\n${e.summary_zh} · ${formatBytes(e.bytes)}`).join('')}`});
     if (records.includes(entries[0])) cell.classList.add('latest');
     cell.setAttribute('aria-label', cell.title); add(root, cell);
   }

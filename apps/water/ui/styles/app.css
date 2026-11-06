@@ -287,7 +287,11 @@ h1{font-size:34px}
 }
 
 .home-grid>.main-card{min-height:0;height:100%}
-.location-list{min-height:0;overflow:auto;flex:1}
+.location-list{min-height:0;overflow:auto;flex:1;scrollbar-width:thin;scrollbar-color:var(--on-dark-2) var(--dark)}
+.location-list::-webkit-scrollbar{width:6px}
+.location-list::-webkit-scrollbar-thumb{background:var(--on-dark-2);border-radius:var(--r-tag)}
+.tile-labels{display:flex;flex-wrap:wrap;gap:6px 16px;margin-top:8px}
+.tile-key{font:11px var(--mono);color:var(--sky-ink);overflow-wrap:anywhere}
 .location-list .menu{top:auto;bottom:36px}
 .location-list .location-select{padding:8px 0}
 .location-list .location-row{min-height:58px}

@@ -7,7 +7,7 @@ export function quarantine(s, a) {
   if (!v.cards.length) return add(page, add(card('隔离区是空的'), el('p', 'sub', '没有等待处理的内容。')));
   add(page, proportions(v.cards.map(c => ({title:dateTime(c.created_at), bytes:c.bytes, kind:c.reminder_zh ? 'look' : 'sky'}))));
   const roots = el('div', 'root-actions');
-  for (const root of v.roots) add(roots, button('打开文件夹', () => a.reveal(root.target_id), 'btn soft', `root-${root.target_id}`)); add(page, roots);
+  for (const root of v.roots) add(roots, button(`打开 ${root.display_path[0].toUpperCase()} 盘隔离区`, () => a.reveal(root.target_id), 'btn soft', `root-${root.target_id}`)); add(page, roots);
   const grid = el('div', 'quarantine-grid');
   for (const [index, c] of v.cards.entries()) {
     const node = card(dateTime(c.created_at), index === 0 ? 'dark main-card' : '', [menu('隔离区菜单', [['打开文件夹', () => a.reveal(c.quarantine_id)]], `quarantine-menu-${c.quarantine_id}`)]);

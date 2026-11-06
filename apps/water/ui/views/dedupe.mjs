@@ -10,7 +10,7 @@ export function dedupe(s, a) {
     add(main, dial(p ? percent(p.bytes_hashed, p.bytes_to_hash) : 0, p ? `${percent(p.bytes_hashed, p.bytes_to_hash).toFixed(0)}%` : '…', p?.phase === 'hashing' ? '比对内容' : '列出文件'), button('停止', a.stopDedupe, 'btn primary bottom', 'dedupe-stop', s.pending)); return add(page, main);
   }
   if (!v) return add(page, heading('重复文件', '尚无查重结果'));
-  add(page, heading(`找到 ${v.groups.length} 组重复`, v.location_label_zh, [metric(v.extra_bytes, '多出来的'), metric(v.chosen_bytes, '已选'), metric(v.same_name_different, '组同名不同内容', true)]));
+  add(page, heading(v.more ? '找到重复文件' : `找到 ${v.groups.length} 组重复`, v.location_label_zh, [metric(v.extra_bytes, '多出来的'), metric(v.chosen_bytes, '已选'), metric(v.same_name_different, '组同名不同内容', true)]), button('返回', a.returnToCheckup, 'btn soft', 'dedupe-back', a.busy()));
   add(page, proportions(v.groups.map(g => ({title:g.name_zh, bytes:g.size, kind:g.included ? 'lime' : 'sky'}))));
   const content = el('div', 'dedupe-content');
   add(content, add(card('每组文件的大小'), treemap(v.groups.map(g => ({title:`${g.name_zh} · ${g.copies} 份`, bytes:g.size, kind:g.included ? 'selected' : 'sky2'})))));

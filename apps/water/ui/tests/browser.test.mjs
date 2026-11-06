@@ -18,6 +18,10 @@ function fakeHost(f, options) {
   const c = window.__waterTest = {calls:[], errors:[], scan:0, clean:0, dedupe:0, purge:0, busy:options.busy ?? 'idle', conclusion:copy(f[options.conclusion ?? 'v2_conclusion_typical']), locations:copy(f.v2_locations), quarantine:copy(f[options.quarantine ?? 'v2_quarantine_list']), dup:copy(f[options.dup ?? 'v2_dedupe_result']), clipboard:[], resetting:false, skipIds:[], scanned:false, cleaned:false};
   if (options.reverseCards) c.conclusion.cards.reverse();
   if (options.noLast) c.noLast = true;
+  c.noConclusion = !!options.noConclusion;
+  if (options.missingCardClue) c.conclusion.clues = c.conclusion.clues.filter(x => x.clue_id !== 'clue-verify-fix-r9');
+  if (options.trends) c.trends = copy(options.trends);
+  if (options.history) c.history = copy(options.history);
   if (options.unavailable) return;
   Object.defineProperty(navigator, 'clipboard', {configurable:true, value:{writeText:async text => { if (c.clipboardFail) throw new Error('denied'); c.clipboard.push(text); }}});
   addEventListener('beforeunload', event => { if (c.resetting) event.stopImmediatePropagation(); }, {capture:true});
@@ -26,6 +30,18 @@ function fakeHost(f, options) {
   window.__TAURI__ = {core:{invoke:async (command, args) => {
     c.calls.push({command, args:copy(args)});
     if (c.nextError?.command === command) { const error = c.nextError.error; c.nextError = null; throw copy(error); }
+    if (command === 'conclusion_get' && c.noConclusion) throw copy(f.v2_errors.conclusion_not_found);
+    if (command === 'dedupe_result' && c.rejectDedupeRefresh) throw {code:'not_found', message_zh:'查重已不存在'};
+    if (command === 'quarantine_list' && c.holdNextQuarantine) {
+      c.holdNextQuarantine = false;
+      const snapshot = copy(c.quarantine); c.quarantineHeld = true;
+      return new Promise(resolve => { c.releaseQuarantine = () => { c.quarantineReleased = true; resolve(snapshot); }; });
+    }
+    if (command === 'quarantine_restore' && c.restoreView) {
+      c.quarantine = copy(c.restoreView);
+      return {...copy(f.v2_restore_beside), conflicts:[], view:copy(c.quarantine)};
+    }
+    if (command === 'history_list' && c.history) return copy(c.history);
     switch (command) {
       case 'app_state': { const app = copy(f[options.noQuarantine ? 'v2_app_state_plain' : c.quarantine.bytes === f.v2_quarantine_leftover.bytes ? 'v2_app_state_leftover' : 'v2_app_state_quarantine']); app.busy = c.busy; if (c.noLast) app.last_scan = null; if (c.quarantine.cards.length === 0) app.quarantine = null; return app; }
       case 'locations_get': return copy(c.locations);
@@ -135,6 +151,12 @@ async function shot(id, narrow = false) {
 async function results(options = {}) { await reset(options); await click('view-results'); await pageIs('results'); await pause(100); }
 async function detail(group) { await click(`card-menu-${group}`); await menuItem('查看明细'); await wait('document.querySelector("dialog.drawer[open]")', 'UI_V2_DRAWER'); }
 async function openSystemDrawer() { await click('details-open'); await pageIs('details'); await click('section-system_temp'); await click('detail-system-temp-old'); await wait('document.querySelector(".summary-row")', 'UI_V2_DRAWER'); }
+async function finishedDedupe(options = {}, withConclusion = false) {
+  if (withConclusion) { await results(options); await click('rescan'); } else await reset(options);
+  await click('location-menu-drive-e'); await menuItem('查重复文件'); await click('dedupe-start');
+  await wait('document.querySelector("[data-key=dedupe-stop]")', 'UI_V2_DEDUPE');
+  await click('dedupe-stop'); await wait('document.querySelector(".dedupe-row")', 'UI_V2_DEDUPE');
+}
 async function checkPrimary() {
   assert(await evalJs('document.querySelectorAll("#page .primary").length<=1 && document.querySelectorAll("#page .main-card.dark").length<=1 && [...document.querySelectorAll("#page .primary")].every(b=>b.closest(".main-card.dark"))'), 'UI_V2_PAGES: one main action in one dark card');
 }
@@ -170,6 +192,18 @@ test('ui_v2_home_scan', async () => {
   assert.deepEqual(await evalJs('[...document.querySelectorAll(".location-select[aria-pressed=true]")].map(n=>n.dataset.key)'), ['location-' + f.v2_custom_root_add_folder.added.root_id], 'UI_V2_HOME: added folder selected alone');
   await shot('home-new'); await click('scan-start'); await pageIs('scan');
   assert.deepEqual((await lastCall('scan_start')).args.locationIds, [f.v2_custom_root_add_folder.added.root_id], 'UI_V2_HOME: folder-only request');
+  await wait('document.querySelector("[data-key=scan-stop]")', 'UI_V2_HOME');
+  await control('c.nextError={command:"scan_progress",error:{code:"unavailable",message_zh:"进度连接中断"}}');
+  await wait('document.querySelector("[data-key=poll-retry]")', 'UI_V2_HOME');
+  await click('nav-history'); await pageIs('history');
+  assert(await evalJs('!!document.querySelector("[data-key=poll-retry]")'), 'UI_V2_HOME: paused polling keeps recovery after navigation');
+  await click('nav-home'); await pageIs('scan');
+  await control('c.nextError={command:"scan_cancel",error:{code:"unavailable",message_zh:"停止没有送达"}}');
+  await click('scan-stop');
+  assert(await evalJs('!!document.querySelector("[data-key=poll-retry]")'), 'UI_V2_HOME: failed stop cannot hide recovery');
+  await click('scan-stop');
+  await wait('document.querySelector("#page").dataset.page==="results"', 'UI_V2_HOME');
+  assert.equal(await evalJs('document.querySelectorAll("[data-key=poll-retry]").length'), 0, 'UI_V2_HOME: successful stop resumes polling to completion');
 });
 
 test('ui_v2_conclusion', async () => {
@@ -196,6 +230,9 @@ test('ui_v2_conclusion', async () => {
   await results({conclusion:'v2_conclusion_stale'}); assert(await evalJs('document.querySelector("[data-key=clean-prepare]").disabled'), 'UI_V2_CONCLUSION: stale disables cleanup'); await shot('results-stale');
   await results({conclusion:'v2_conclusion_empty'}); assert.equal(await evalJs('document.querySelectorAll(".judgment,.primary").length'), 0, 'UI_V2_CONCLUSION: empty has no judgments or primary'); await shot('results-empty');
   await results({conclusion:'v2_conclusion_folder_only'}); assert(await evalJs('document.body.textContent.includes("这次只看了这个文件夹")'), 'UI_V2_CONCLUSION: folder scope explicit');
+  await results({missingCardClue:true}); await click('card-menu-leak:7b30fa8fd7ceb684');
+  assert(!(await evalJs('document.querySelector(".menu:not([hidden])").textContent')).includes('复制线索给 agent'), 'UI_V2_CONCLUSION: missing clue cannot offer empty clipboard copy');
+  assert.equal(await control('return c.clipboard.length'), 0, 'UI_V2_CONCLUSION: missing clue never copies an empty string'); await key('Escape');
 });
 
 test('ui_v2_drawer_details', async () => {
@@ -253,6 +290,19 @@ test('ui_v2_confirm_done', async () => {
   await results({onlyDelete:true}); await click('clean-prepare'); await wait('document.querySelector("dialog[open]")'); assert.equal(await evalJs('document.querySelectorAll(".choice-modes").length'), 0, 'UI_V2_CONFIRM: no chosen section when null'); await key('Escape');
   await control('c.nextError={command:"clean_prepare",error:{code:"invalid",message_zh:"计划为空，请重新选择。"}}'); await click('clean-prepare');
   assert(await evalJs('document.querySelector("#notice").textContent.includes("计划为空，请重新选择。") && !document.querySelector("dialog[open]")'), 'UI_V2_CONFIRM: prepare error stays on conclusion');
+  for (const exit of ['done-finish', 'nav-home']) {
+    await results({conclusion:'v2_conclusion_after_decide'}); await click('clean-prepare'); await wait('document.querySelector("[data-key=confirm-start]")'); await click('confirm-start');
+    await wait('document.querySelector("[data-key=clean-stop]")', 'UI_V2_CONFIRM');
+    await control('c.nextError={command:"clean_progress",error:{code:"unavailable",message_zh:"清理进度暂不可用"}}');
+    await wait('document.querySelector("[data-key=poll-retry]")', 'UI_V2_CONFIRM');
+    await click('nav-history'); await pageIs('history');
+    assert(await evalJs('!!document.querySelector("[data-key=poll-retry]")'), 'UI_V2_CONFIRM: cleanup pause survives navigation');
+    await click('nav-home'); await pageIs('cleaning'); await click('clean-stop');
+    await wait('document.querySelector("#page").dataset.page==="done"', 'UI_V2_CONFIRM');
+    await control('c.noConclusion=true'); await click(exit);
+    await wait('document.querySelector("#page").dataset.page==="home"', 'UI_V2_CONFIRM');
+    assert(await evalJs('document.querySelector("#notice").hidden && !document.querySelector("[data-key=scan-start]").disabled'), 'UI_V2_CONFIRM: not_found completion returns to usable home without error');
+  }
 });
 
 test('ui_v2_quarantine_dedupe', async () => {
@@ -282,6 +332,53 @@ test('ui_v2_quarantine_dedupe', async () => {
   assert.equal(await evalJs('document.querySelectorAll("[data-key=mode-delete]").length'), 0, 'UI_V2_DEDUPE: duplicates cannot switch to direct deletion'); await key('Escape');
   await reset({dup:'v2_dedupe_result_more'}); await click('location-menu-drive-f'); await menuItem('查重复文件'); await click('dedupe-start'); await wait('document.querySelector("[data-key=dedupe-stop]")'); await click('dedupe-stop'); await wait('document.querySelector("[data-key=dedupe-more]")'); await click('dedupe-more');
   assert.equal((await lastCall('dedupe_result')).args.expand, true, 'UI_V2_DEDUPE: expand asks service');
+  for (const withConclusion of [false, true]) for (const exit of ['dedupe-back', 'nav-home']) {
+    await finishedDedupe(withConclusion ? {} : {noConclusion:true, noLast:true}, withConclusion);
+    assert(await evalJs('!!document.querySelector("[data-key=dedupe-back]")'), 'UI_V2_DEDUPE: result page always provides return');
+    await click(exit); await wait(`document.querySelector('#page').dataset.page===${JSON.stringify(withConclusion ? 'results' : 'home')}`, 'UI_V2_DEDUPE');
+    assert(await evalJs('document.querySelector("#notice").hidden'), 'UI_V2_DEDUPE: leaving results has no spurious error');
+  }
+  await finishedDedupe({dup:'v2_dedupe_result_more'});
+  assert(!(await evalJs('document.querySelector("h1").textContent')).includes('8 组'), 'UI_V2_DEDUPE: truncated groups do not become total count');
+  assert(await evalJs(`document.body.textContent.includes(${JSON.stringify(f.v2_dedupe_result_more.more.text_zh)})`), 'UI_V2_DEDUPE: service more text stays visible');
+  for (const command of ['dedupe_decide', 'clean_prepare']) {
+    await finishedDedupe({}, true);
+    if (command === 'clean_prepare') await click('dup-' + f.v2_dedupe_result.groups[0].group_id);
+    const reads = await callCount('dedupe_result');
+    await control(`c.nextError={command:${JSON.stringify(command)},error:{code:'stale',message_zh:'查重版本过期'}};c.dup.version='dv-refreshed'`);
+    await click(command === 'clean_prepare' ? 'dedupe-prepare' : 'dup-' + f.v2_dedupe_result.groups[0].group_id);
+    await wait(`window.__waterTest.calls.filter(x=>x.command==='dedupe_result').length>${reads}`, 'UI_V2_DEDUPE');
+    assert.deepEqual((await lastCall('dedupe_result')).args, {dedupeId:f.v2_dedupe_result.dedupe_id, expand:false}, 'UI_V2_DEDUPE: stale refresh reads the current dedupe result');
+    const conclusions = await callCount('conclusion_get'); await click('dedupe-back'); await pageIs('results');
+    assert.equal(await callCount('conclusion_get'), conclusions, 'UI_V2_DEDUPE: cached conclusion is retained without replacing it');
+    assert(!(await evalJs('document.querySelector("[data-key=clean-prepare]").disabled')), 'UI_V2_DEDUPE: dedupe stale must not invalidate the retained conclusion');
+  }
+  await finishedDedupe({}, true);
+  await control('c.nextError={command:"dedupe_decide",error:{code:"stale",message_zh:"旧查重"}};c.rejectDedupeRefresh=true');
+  await click('dup-' + f.v2_dedupe_result.groups[0].group_id);
+  await wait('document.querySelector("#page").dataset.page==="home"', 'UI_V2_DEDUPE');
+  assert(await evalJs('document.querySelector("#notice").textContent.includes("查重结果已失效，请重新查重")'), 'UI_V2_DEDUPE: failed refresh returns home with actionable message');
+  await reset({}, 'quarantine'); await wait('document.querySelector("[data-quarantine]")');
+  for (const root of f.v2_quarantine_list.roots) assert.equal(await evalJs(`document.querySelector(${JSON.stringify(q('root-' + root.target_id))}).textContent`), `打开 ${root.display_path[0]} 盘隔离区`, 'UI_V2_QUARANTINE: every root action names its drive');
+  await click('nav-home'); await pageIs('home');
+  await control('c.holdNextQuarantine=true;c.restoreView={bytes:"0",roots:[],cards:[]}');
+  await click('nav-quarantine'); await wait('window.__waterTest.quarantineHeld', 'UI_V2_QUARANTINE');
+  await click('restore-' + f.v2_quarantine_list.cards[0].quarantine_id);
+  await wait('document.body.textContent.includes("隔离区是空的")', 'UI_V2_QUARANTINE');
+  await control('c.releaseQuarantine()'); await wait('window.__waterTest.quarantineReleased', 'UI_V2_QUARANTINE'); await pause(100);
+  assert.equal(await evalJs('document.querySelectorAll("[data-quarantine]").length'), 0, 'UI_V2_QUARANTINE: late list cannot overwrite newer restore view');
+  await reset({noConclusion:true, noLast:true}); await click('location-menu-drive-e'); await menuItem('查重复文件'); await click('dedupe-start');
+  await wait('document.querySelector("[data-key=dedupe-stop]")', 'UI_V2_DEDUPE');
+  await control('c.nextError={command:"dedupe_progress",error:{code:"unavailable",message_zh:"查重进度中断"}}');
+  await wait('document.querySelector("[data-key=poll-retry]")', 'UI_V2_DEDUPE'); await click('dedupe-stop');
+  await wait('document.querySelector(".dedupe-row")', 'UI_V2_DEDUPE');
+  assert.equal(await evalJs('document.querySelectorAll("[data-key=poll-retry]").length'), 0, 'UI_V2_DEDUPE: stop resumes paused dedupe polling');
+  await reset({}, 'quarantine'); await wait('document.querySelector("[data-quarantine]")');
+  await click('purge-' + f.v2_quarantine_list.cards[0].quarantine_id); await click('purge-confirm');
+  await control('c.nextError={command:"quarantine_progress",error:{code:"unavailable",message_zh:"删除进度中断"}}');
+  await wait('document.querySelector("[data-key=poll-retry]")', 'UI_V2_QUARANTINE'); await click('nav-history'); await pageIs('history');
+  assert(await evalJs('!!document.querySelector("[data-key=poll-retry]")'), 'UI_V2_QUARANTINE: purge recovery survives navigation');
+  await control('c.purge=1'); await click('poll-retry'); await wait('window.__waterTest.busy==="idle" && document.querySelector("#notice").hidden', 'UI_V2_QUARANTINE');
 });
 
 test('ui_v2_pages_layout_a11y', async () => {
@@ -313,4 +410,28 @@ test('ui_v2_pages_layout_a11y', async () => {
   await reset({unavailable:true}); assert(await evalJs('document.body.textContent.includes("无法连接 Water 服务")'), 'UI_V2_PAGES: unavailable state');
   await browser.send('Emulation.setEmulatedMedia', {features:[{name:'prefers-reduced-motion', value:'reduce'}]}); await reset(); assert.equal(await evalJs('getComputedStyle(document.querySelector(".btn")).transitionDuration'), '0s', 'UI_V2_PAGES: reduced motion');
   await safeCalls();
+  await results(); await click('nav-settings'); await wait('document.querySelector("[data-key=setting-browser]")');
+  await click('setting-browser'); await click('nav-home'); await pageIs('results');
+  assert(!(await evalJs('document.querySelector("[data-key=clean-prepare]").disabled')), 'UI_V2_PAGES: category preference does not expire the current conclusion');
+  const negativeTrends = structuredClone(f.v2_trends); negativeTrends.forecast.find(x => x.root.startsWith('F:')).bytes_per_day = '-1073741824';
+  negativeTrends.forecast.find(x => x.root.startsWith('F:')).days_to_full = 2;
+  for (const data of [f.v2_trends, negativeTrends]) {
+    await reset({trends:data}, 'trends'); await wait('document.querySelector("[data-key=trend-scan]")');
+    assert(!(await evalJs('document.querySelector(".proportions").textContent')).includes('F 盘'), 'UI_V2_PAGES: no fabricated daily bytes for null or nonpositive forecast');
+    assert(await evalJs(`document.body.textContent.includes(${JSON.stringify(data.forecast.find(x=>x.root.startsWith('F:')).note_zh)})`), 'UI_V2_PAGES: forecast explanation displayed');
+  }
+  await browser.send('Emulation.setTimezoneOverride', {timezoneId:'Asia/Tokyo'});
+  try {
+    const entry = {...f.v2_history[0], id:'local-midnight', at:'2026-11-02T15:30:00Z', summary_zh:'本地零点后的清理'};
+    await reset({history:[entry]}, 'history'); await wait('document.querySelector(".heatmap")');
+    const expected = await evalJs(`import('/format.mjs').then(m=>m.localDateKey(${JSON.stringify(entry.at)}))`);
+    assert.notEqual(expected, entry.at.slice(0, 10), 'UI_V2_PAGES: controlled timezone covers the date boundary');
+    assert(await evalJs(`[...document.querySelectorAll('.heat')].some(x=>x.title.startsWith(${JSON.stringify(expected)}) && x.title.includes(${JSON.stringify(entry.summary_zh)}))`), 'UI_V2_PAGES: heat cell uses the same local date as list formatting');
+  } finally { await browser.send('Emulation.setTimezoneOverride', {timezoneId:''}); }
+  await finishedDedupe();
+  const missingName = f.v2_dedupe_result.groups[3].name_zh;
+  assert((await evalJs('(()=>{const chart=document.querySelector(".treemap").cloneNode(true);chart.querySelectorAll("title").forEach(n=>n.remove());return chart.textContent})()')).includes(missingName), 'UI_V2_PAGES: narrow treemap tile has a visible name outside its tooltip');
+  await browser.size(1040, 720); await reset();
+  assert.equal(await evalJs('getComputedStyle(document.querySelector(".location-list")).scrollbarWidth'), 'thin', 'UI_V2_PAGES: home location scrollbar matches v3');
+  await browser.size(1240, 820);
 });

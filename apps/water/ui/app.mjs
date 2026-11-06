@@ -17,15 +17,18 @@ import {locations} from './views/locations.mjs';
 
 const s = {app:null, locations:null, busy:'idle', pending:false, connecting:true, error:'', route:'home', mode:'home', selectedLocations:new Set(), conclusion:null, openFolds:new Set(), scanSamples:[], detailMode:'category', detailQuery:'', openSection:null, modal:null, historyDetails:new Map(), pollPaused:false};
 const page = document.getElementById('page'), main = document.getElementById('main');
-let timer, polling = false, stopped = false, routeEpoch = 0, overlay, opener, sampleSecond = -1;
+let timer, polling = false, stopped = false, routeEpoch = 0, quarantineRevision = 0, overlay, opener, sampleSecond = -1;
 const busy = () => s.pending || s.busy !== 'idle' || !s.app;
-function fail(error) {
-  if (error?.code === 'stale') { if (s.conclusion) s.conclusion = {...s.conclusion, stale:true}; s.modal = null; s.preview = null; }
+function fail(error, scope) {
+  if (error?.code === 'stale' && scope === 'conclusion') { markStale(); s.modal = null; s.preview = null; }
   s.error = error?.message_zh || (error?.code === 'unavailable' ? '无法连接 Water 服务' : 'Water 服务暂时不可用');
 }
-async function run(task) {
+async function run(task, scope) {
   if (s.pending) return; s.pending = true; s.error = ''; render();
-  try { await task(); } catch (error) { fail(error); }
+  try { await task(); } catch (error) {
+    if (scope === 'dedupe' && error?.code === 'stale') await recoverDedupe();
+    else fail(error, scope);
+  }
   finally { s.pending = false; render(); }
 }
 function markStale() { if (s.conclusion) s.conclusion = {...s.conclusion, stale:true}; }
@@ -34,16 +37,42 @@ function navigate(route) {
   if (s.route === next) { s.modal = null; render(); void loadRoute(); return; }
   location.hash = next;
 }
-async function readConclusion() { s.conclusion = await ipc.conclusion_get(); }
+async function readConclusion() {
+  try { s.conclusion = await ipc.conclusion_get(); }
+  catch (error) { if (error?.code === 'stale') markStale(); throw error; }
+}
+async function returnToCheckup(fresh = false) {
+  if (s.busy !== 'idle') return;
+  if (fresh || !s.conclusion) {
+    try { await readConclusion(); }
+    catch (error) { if (error?.code !== 'not_found') throw error; s.conclusion = null; }
+  }
+  s.mode = s.conclusion ? 'results' : 'home'; s.dedupe = null; s.dedupeId = null; s.preview = null; s.modal = null;
+  main.scrollTop = 0; navigate('home');
+}
+async function recoverDedupe() {
+  s.preview = null; s.modal = null;
+  try {
+    s.dedupe = await ipc.dedupe_result(s.dedupe?.dedupe_id ?? s.dedupeId, false);
+    if (s.busy === 'deduping') s.busy = 'idle';
+    s.mode = 'dedupe'; s.pollPaused = false;
+  } catch {
+    s.dedupe = null; s.dedupeId = null; s.mode = 'home';
+    if (s.busy === 'deduping') s.busy = 'idle';
+    s.pollPaused = false; navigate('home'); s.error = '查重结果已失效，请重新查重';
+  }
+}
+function installQuarantine(view) { quarantineRevision++; s.quarantine = view; }
 async function loadRoute() {
-  const epoch = ++routeEpoch, route = s.route;
+  const epoch = ++routeEpoch, route = s.route, revision = quarantineRevision;
   try {
     const get = route === 'quarantine' ? ipc.quarantine_list : route === 'trends' ? ipc.trends : route === 'history' ? ipc.history_list : route.startsWith('settings/') ? ipc.locations_get : null;
     if (get) {
       const value = await get(); if (epoch !== routeEpoch || s.route !== route) return;
+      if (route === 'quarantine' && revision !== quarantineRevision) return;
       s[route === 'history' ? 'history' : route.startsWith('settings/') ? 'locations' : route] = value;
     }
-  } catch (error) { if (epoch === routeEpoch) fail(error); }
+  } catch (error) { if (epoch === routeEpoch && (route !== 'quarantine' || revision === quarantineRevision)) fail(error); }
   if (epoch === routeEpoch) render();
 }
 async function connect() {
@@ -60,11 +89,13 @@ async function connect() {
   await loadRoute();
 }
 function schedule() { clearTimeout(timer); if (!stopped && s.busy !== 'idle' && !s.pollPaused) timer = setTimeout(poll, 250); }
+function resumePolling() { s.pollPaused = false; s.pollReason = ''; s.error = ''; schedule(); }
+async function stopTask(request) { await request(); resumePolling(); }
 async function poll() {
   if (polling || s.busy === 'idle' || s.pollPaused || stopped) return;
   polling = true;
+  const kind = s.busy;
   try {
-    const kind = s.busy;
     if (kind === 'scanning') {
       const p = await ipc.scan_progress(); s.scanProgress = p; s.scanId = p.scan_id ?? s.scanId;
       const second = Math.floor(p.elapsed_ms / 1000);
@@ -80,9 +111,12 @@ async function poll() {
       else if (p.state === 'failed') { s.busy = 'idle'; s.error = '查重未能完成，请重试。'; s.mode = 'home'; }
     } else if (kind === 'purging') {
       const p = await ipc.quarantine_progress(); s.quarantineProgress = p;
-      if (['completed', 'stopped', 'failed'].includes(p.state)) { s.quarantine = await ipc.quarantine_list(); s.app = await ipc.app_state(); s.busy = 'idle'; }
+      if (['completed', 'stopped', 'failed'].includes(p.state)) { installQuarantine(await ipc.quarantine_list()); s.app = await ipc.app_state(); s.busy = 'idle'; }
     }
-  } catch (error) { fail(error); s.pollPaused = true; }
+  } catch (error) {
+    if (kind === 'deduping' && error?.code === 'stale') await recoverDedupe();
+    else { fail(error); s.pollReason = s.error; s.pollPaused = true; }
+  }
   finally { polling = false; render(); schedule(); }
 }
 async function beginScan() {
@@ -106,11 +140,12 @@ function show(kind) { if (!s.modal) opener = document.activeElement?.dataset.key
 function close() { if (s.pending) return; s.modal = null; s.preview = null; render(); }
 const a = {
   busy, connect, navigate, close,
+  returnToCheckup:() => run(() => returnToCheckup(s.mode === 'done')),
   chooseLocations:() => { s.mode = 'home'; s.modal = null; main.scrollTop = 0; render(); },
   selectLocation:id => { if (busy()) return; s.selectedLocations.has(id) ? s.selectedLocations.delete(id) : s.selectedLocations.add(id); render(); },
   scan:() => run(beginScan),
   scanCommon:() => run(async () => { s.selectedLocations = new Set(['common']); await beginScan(); }),
-  stopScan:() => run(() => ipc.scan_cancel(s.scanId)), stopClean:() => run(() => ipc.clean_stop()),
+  stopScan:() => run(() => stopTask(() => ipc.scan_cancel(s.scanId))), stopClean:() => run(() => stopTask(() => ipc.clean_stop())),
   showResults:() => run(async () => { await readConclusion(); s.mode = 'results'; main.scrollTop = 0; navigate('home'); }),
   addRoot:() => run(async () => { if (s.busy !== 'idle') return; const v = await ipc.custom_root_add(); if (!v.cancelled) { s.locations = await ipc.locations_get(); s.selectedLocations = new Set([v.added.root_id]); s.revealLocation = v.added.root_id; } }),
   removeRoot:id => run(async () => { s.locations = await ipc.custom_root_remove(id); s.selectedLocations.delete(id); }),
@@ -119,40 +154,40 @@ const a = {
     s.conclusion = await ipc.conclusion_decide(s.conclusion.version, decision);
     if (s.mode === 'details') s.detailsView = await ipc.detail_get(s.conclusion.version, s.detailMode);
     if (s.modal === 'drawer') await refreshDrawer();
-  }),
-  detail:id => run(async () => { const epoch = routeEpoch, value = await ipc.group_detail(id); if (epoch !== routeEpoch) return; if (!s.conclusion) await readConclusion(); s.drawer = {data:value, query:null, rowId:null, items:null, error:''}; show('drawer'); }),
+  }, 'conclusion'),
+  detail:id => run(async () => { const epoch = routeEpoch, value = await ipc.group_detail(id); if (epoch !== routeEpoch) return; if (!s.conclusion) await readConclusion(); s.drawer = {data:value, query:null, rowId:null, items:null, error:''}; show('drawer'); }, 'conclusion'),
   searchItems:query => {
     if (!validQuery(query)) { s.drawer.error = '搜索词不能含有 \\、/ 或 :。'; render(); return; }
-    return run(async () => { s.drawer.query = query || null; s.drawer.rowId = null; s.drawer.error = ''; s.drawer.items = await ipc.group_items(s.drawer.data.group.group_id, null, s.drawer.query); });
+    return run(async () => { s.drawer.query = query || null; s.drawer.rowId = null; s.drawer.error = ''; s.drawer.items = await ipc.group_items(s.drawer.data.group.group_id, null, s.drawer.query); }, 'conclusion');
   },
-  expandRow:rowId => run(async () => { s.drawer.rowId = rowId; s.drawer.query = null; s.drawer.items = await ipc.group_items(s.drawer.data.group.group_id, rowId, null); }),
+  expandRow:rowId => run(async () => { s.drawer.rowId = rowId; s.drawer.query = null; s.drawer.items = await ipc.group_items(s.drawer.data.group.group_id, rowId, null); }, 'conclusion'),
   summaryRows:() => { s.drawer.items = null; s.drawer.query = null; s.drawer.rowId = null; render(); },
   skipItem:itemId => run(async () => { if (s.conclusion?.stale) return; s.locations = await ipc.skip_add(itemId); await readConclusion(); s.modal = null; }),
-  details:() => run(async () => { s.detailsView = await ipc.detail_get(s.conclusion.version, s.detailMode); s.mode = 'details'; s.modal = null; main.scrollTop = 0; }),
-  detailsMode:mode => run(async () => { s.detailsView = await ipc.detail_get(s.conclusion.version, mode); s.detailMode = mode; s.openSection = null; }),
+  details:() => run(async () => { s.detailsView = await ipc.detail_get(s.conclusion.version, s.detailMode); s.mode = 'details'; s.modal = null; main.scrollTop = 0; }, 'conclusion'),
+  detailsMode:mode => run(async () => { s.detailsView = await ipc.detail_get(s.conclusion.version, mode); s.detailMode = mode; s.openSection = null; }, 'conclusion'),
   openSection:id => { s.openSection = s.openSection === id ? null : id; render(); },
   searchDetails:query => { s.detailQuery = query; render(); },
-  prepare:() => run(async () => { s.prepareSource = 'conclusion'; await prepare(); }),
-  prepareDedupe:() => run(async () => { s.prepareSource = 'dedupe'; await prepare(); }),
-  changeMode:mode => run(() => prepare(mode)),
+  prepare:() => run(async () => { s.prepareSource = 'conclusion'; await prepare(); }, 'conclusion'),
+  prepareDedupe:() => run(async () => { s.prepareSource = 'dedupe'; await prepare(); }, 'dedupe'),
+  changeMode:mode => run(() => prepare(mode), s.prepareSource),
   startClean:() => run(async () => {
     const p = s.preview; if (!p || s.busy !== 'idle') return;
     s.preview = null; s.modal = null;
     const v = await ipc.clean_start(p.plan_id, p.confirm_token); s.cleanId = v.clean_id; s.cleanProgress = null; s.busy = 'cleaning'; s.pollPaused = false; navigate('home'); schedule();
-  }),
-  finish:() => run(async () => { await readConclusion(); s.mode = 'results'; }),
+  }, s.prepareSource),
+  finish:() => run(() => returnToCheckup(true)),
   copy:async text => { try { await navigator.clipboard.writeText(text); } catch { s.copyText = text; show('copy'); render(); } },
   reveal:id => run(() => ipc.quarantine_reveal(id)),
-  revealRoots:() => run(async () => { s.quarantine = await ipc.quarantine_list(); if (s.quarantine.roots.length === 1) await ipc.quarantine_reveal(s.quarantine.roots[0].target_id); else show('roots'); }),
-  restore:(id, beside) => run(async () => { const v = await ipc.quarantine_restore(id, beside); s.quarantine = v.view; s.app = await ipc.app_state(); if (v.conflicts.length) { s.conflict = {id, result:v}; show('conflict'); } else s.modal = null; }),
+  revealRoots:() => run(async () => { const revision = quarantineRevision, view = await ipc.quarantine_list(); if (revision !== quarantineRevision) return; s.quarantine = view; if (s.quarantine.roots.length === 1) await ipc.quarantine_reveal(s.quarantine.roots[0].target_id); else show('roots'); }),
+  restore:(id, beside) => run(async () => { const v = await ipc.quarantine_restore(id, beside); installQuarantine(v.view); s.app = await ipc.app_state(); if (v.conflicts.length) { s.conflict = {id, result:v}; show('conflict'); } else s.modal = null; }),
   confirmPurge:c => { if (busy()) return; s.purgeCard = c; show('purge'); render(); },
-  purge:() => run(async () => { await ipc.quarantine_delete(s.purgeCard.quarantine_id); s.modal = null; s.busy = 'purging'; s.pollPaused = false; schedule(); }),
+  purge:() => run(async () => { await ipc.quarantine_delete(s.purgeCard.quarantine_id); quarantineRevision++; s.modal = null; s.busy = 'purging'; s.pollPaused = false; schedule(); }),
   dedupeIntro:loc => { if (busy()) return; s.dedupeLocation = loc; show('dedupe-intro'); render(); },
-  startDedupe:() => run(async () => { const v = await ipc.dedupe_start(s.dedupeLocation.location_id); s.dedupeId = v.dedupe_id; s.dedupeProgress = null; s.modal = null; s.busy = 'deduping'; s.pollPaused = false; s.mode = 'dedupe'; navigate('home'); schedule(); }),
-  stopDedupe:() => run(() => ipc.dedupe_cancel(s.dedupeId)),
-  dedupeDecide:(groupId, include) => run(async () => { s.dedupe = await ipc.dedupe_decide(s.dedupe.dedupe_id, s.dedupe.version, groupId, include); }),
-  expandDedupe:() => run(async () => { s.dedupe = await ipc.dedupe_result(s.dedupe.dedupe_id, true); }),
-  category:(id, enabled) => run(async () => { s.locations = await ipc.locations_set_category(id, enabled); markStale(); }),
+  startDedupe:() => run(async () => { const v = await ipc.dedupe_start(s.dedupeLocation.location_id); s.dedupeId = v.dedupe_id; s.dedupeProgress = null; s.modal = null; s.busy = 'deduping'; s.pollPaused = false; s.mode = 'dedupe'; navigate('home'); schedule(); }, 'dedupe'),
+  stopDedupe:() => run(() => stopTask(() => ipc.dedupe_cancel(s.dedupeId)), 'dedupe'),
+  dedupeDecide:(groupId, include) => run(async () => { s.dedupe = await ipc.dedupe_decide(s.dedupe.dedupe_id, s.dedupe.version, groupId, include); }, 'dedupe'),
+  expandDedupe:() => run(async () => { s.dedupe = await ipc.dedupe_result(s.dedupe.dedupe_id, true); }, 'dedupe'),
+  category:(id, enabled) => run(async () => { s.locations = await ipc.locations_set_category(id, enabled); }),
   session:(id, enabled, days) => run(async () => { s.locations = await ipc.locations_set_session_cleanup(id, enabled, days); markStale(); }),
   trust:(id, trusted) => run(async () => { s.locations = await ipc.manifest_trust(id, trusted); markStale(); }),
   removeSkip:id => run(async () => { s.locations = await ipc.skip_remove(id); markStale(); }),
@@ -171,6 +206,9 @@ function top() {
     const nav = el('nav', 'nav', undefined, {'aria-label':'主导航'});
     for (const [id, label, glyph] of [['home', '体检', 'pulse'], ['quarantine', '隔离区', 'box'], ['trends', '趋势', 'trend'], ['history', '记录', 'history']]) {
       const link = add(el('a', '', undefined, {href:`#${id}`, 'data-route':id, 'data-key':`nav-${id}`}), icon(glyph), el('span', '', label));
+      if (id === 'home') link.addEventListener('click', event => {
+        if (s.busy === 'idle' && ['dedupe', 'done'].includes(s.mode)) { event.preventDefault(); a.returnToCheckup(); }
+      });
       if (id === 'quarantine') add(link, el('span', 'quarantine-size')); add(nav, link);
     }
     const gear = add(el('a', 'icon-btn', undefined, {href:'#settings', 'aria-label':'设置', title:'设置', 'data-key':'nav-settings'}), icon('settings'));
@@ -210,8 +248,8 @@ function paintOverlay(activeKey) {
 }
 function render() {
   const activeKey = document.activeElement?.dataset.key, scroll = main.scrollTop, drawerScroll = overlay?.querySelector('.drawer-list')?.scrollTop ?? 0;
-  top(); const notice = document.getElementById('notice'); notice.hidden = !s.error; notice.replaceChildren();
-  if (s.error) add(notice, el('span', '', s.error), s.pollPaused ? button('重新连接', () => { s.pollPaused = false; s.error = ''; schedule(); render(); }, 'btn soft', 'poll-retry') : null);
+  top(); const notice = document.getElementById('notice'); notice.hidden = !s.error && !s.pollPaused; notice.replaceChildren();
+  if (!notice.hidden) add(notice, el('span', '', s.error || s.pollReason || '进度读取已暂停，请重新连接。'), s.pollPaused ? button('重新连接', () => { resumePolling(); render(); }, 'btn soft', 'poll-retry', s.pending) : null);
   let view, name = s.route;
   if (s.route === 'home') {
     name = s.busy === 'scanning' ? 'scan' : s.busy === 'cleaning' ? 'cleaning' : s.busy === 'deduping' ? 'dedupe' : s.mode;
