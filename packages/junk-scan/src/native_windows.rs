@@ -5,11 +5,14 @@ pub(crate) struct DirectoryEntry {
     pub attributes: u32,
     pub len: u64,
     pub mtime: std::time::SystemTime,
+    pub creation: std::time::SystemTime,
+    pub allocation: u64,
+    pub reparse_tag: u32,
     pub identity: Option<(u32, [u8; 16])>,
 }
 
 #[cfg(windows)]
-pub(crate) use windows::{identity_of, known_folders, list_directory};
+pub(crate) use windows::{allocation_of, identity_of, known_folders, list_directory, reparse_data};
 
 #[cfg(windows)]
 mod windows {
@@ -44,6 +47,15 @@ mod windows {
     struct FileIdInfo {
         _volume_serial: u64,
         file_id: [u8; 16],
+    }
+
+    #[repr(C)]
+    struct FileStandardInfo {
+        allocation: i64,
+        end_of_file: i64,
+        links: u32,
+        delete_pending: u8,
+        directory: u8,
     }
 
     #[repr(C)]
@@ -154,6 +166,16 @@ mod windows {
             fs_name: *mut u16,
             fs_name_size: u32,
         ) -> i32;
+        fn DeviceIoControl(
+            handle: *mut c_void,
+            code: u32,
+            input: *const c_void,
+            input_size: u32,
+            output: *mut c_void,
+            output_size: u32,
+            returned: *mut u32,
+            overlapped: *mut c_void,
+        ) -> i32;
     }
 
     struct OwnedHandle(*mut c_void);
@@ -169,11 +191,90 @@ mod windows {
     }
 
     fn wide_path(path: &str) -> Vec<u16> {
-        Path::new(path)
+        // Preserve enumerated device names and trailing dots/spaces. Public
+        // paths keep their ordinary form; only native calls use this prefix.
+        let verbatim = if path.as_bytes().get(1..3) == Some(b":\\") {
+            format!("\\\\?\\{path}")
+        } else {
+            path.to_string()
+        };
+        Path::new(&verbatim)
             .as_os_str()
             .encode_wide()
             .chain([0])
             .collect()
+    }
+
+    fn attribute_handle(path: &str) -> Result<OwnedHandle, ScanError> {
+        let wide = wide_path(path);
+        // SAFETY: live NUL-terminated path, attribute-only access, full sharing,
+        // existing object, open the reparse point itself; no content or mutation.
+        let raw = unsafe {
+            CreateFileW(
+                wide.as_ptr(),
+                FILE_READ_ATTRIBUTES,
+                FILE_SHARE_ALL,
+                ptr::null(),
+                OPEN_EXISTING,
+                FILE_FLAG_OPEN_REPARSE_POINT | FILE_FLAG_BACKUP_SEMANTICS,
+                ptr::null_mut(),
+            )
+        };
+        if raw.is_null() || raw as isize == INVALID_HANDLE {
+            return Err(ScanError::Native);
+        }
+        Ok(OwnedHandle(raw))
+    }
+
+    pub(crate) fn allocation_of(path: &str) -> Result<u64, ScanError> {
+        let handle = attribute_handle(path)?;
+        let mut info = FileStandardInfo {
+            allocation: 0,
+            end_of_file: 0,
+            links: 0,
+            delete_pending: 0,
+            directory: 0,
+        };
+        // SAFETY: info is writable for its declared size and the handle is live.
+        // FileStandardInfo (1) returns attributes only, never file contents.
+        let ok = unsafe {
+            GetFileInformationByHandleEx(
+                handle.0,
+                1,
+                (&mut info as *mut FileStandardInfo).cast(),
+                size_of::<FileStandardInfo>() as u32,
+            )
+        };
+        if ok == 0 {
+            return Err(ScanError::Native);
+        }
+        Ok(info.allocation.max(0) as u64)
+    }
+
+    pub(crate) fn reparse_data(path: &str) -> Result<Vec<u8>, ScanError> {
+        let handle = attribute_handle(path)?;
+        let mut buffer = vec![0u8; 16_384];
+        let mut returned = 0;
+        // SAFETY: live reparse-point handle and writable bounded output. Only
+        // FSCTL_GET_REPARSE_POINT (0x000900A8) is issued; there is no input,
+        // write access, asynchronous operation, or target traversal.
+        let ok = unsafe {
+            DeviceIoControl(
+                handle.0,
+                0x0009_00a8,
+                ptr::null(),
+                0,
+                buffer.as_mut_ptr().cast(),
+                buffer.len() as u32,
+                &mut returned,
+                ptr::null_mut(),
+            )
+        };
+        if ok == 0 || returned as usize > buffer.len() {
+            return Err(ScanError::Native);
+        }
+        buffer.truncate(returned as usize);
+        Ok(buffer)
     }
 
     fn read_wide(ptr: *const u16) -> Result<String, ScanError> {
@@ -305,7 +406,7 @@ mod windows {
     }
 
     /// Streams directory metadata; the callback can stop before the next buffer.
-    /// No child file is opened, and neither file contents nor allocation sizes are read.
+    /// No child file is opened. Creation/allocation/tag are metadata in the same buffer.
     pub(crate) fn list_directory(
         path: &str,
         mut visit: impl FnMut(DirectoryEntry) -> bool,
@@ -402,6 +503,14 @@ mod windows {
                         len: info.end_of_file.max(0) as u64,
                         mtime: std::time::SystemTime::UNIX_EPOCH
                             + std::time::Duration::from_nanos(ticks.saturating_mul(100)),
+                        creation: std::time::SystemTime::UNIX_EPOCH
+                            + std::time::Duration::from_nanos(
+                                (info.creation.saturating_sub(116_444_736_000_000_000).max(0)
+                                    as u64)
+                                    .saturating_mul(100),
+                            ),
+                        allocation: info.allocation.max(0) as u64,
+                        reparse_tag: info.reparse_tag,
                         identity: (has_serial && info.file_id != [0; 16])
                             .then_some((serial, info.file_id)),
                     };
@@ -454,10 +563,25 @@ pub(crate) fn list_directory(
             },
             len: meta.len(),
             mtime: meta.modified().unwrap_or(std::time::SystemTime::UNIX_EPOCH),
+            creation: meta.created().unwrap_or(std::time::SystemTime::UNIX_EPOCH),
+            allocation: meta.len(),
+            reparse_tag: 0,
             identity: None, // Non-Windows counts every path's length.
         }) {
             break;
         }
     }
     Ok(())
+}
+
+#[cfg(not(windows))]
+pub(crate) fn allocation_of(path: &str) -> Result<u64, crate::error::ScanError> {
+    std::fs::symlink_metadata(path)
+        .map(|m| m.len())
+        .map_err(|_| crate::error::ScanError::Native)
+}
+
+#[cfg(not(windows))]
+pub(crate) fn reparse_data(_: &str) -> Result<Vec<u8>, crate::error::ScanError> {
+    Err(crate::error::ScanError::Unsupported)
 }

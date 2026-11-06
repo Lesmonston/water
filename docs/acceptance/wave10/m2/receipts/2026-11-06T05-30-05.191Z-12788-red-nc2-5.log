@@ -1,0 +1,43 @@
+{"binary":"C:\\Users\\37310\\.rustup\\toolchains\\1.95.0-x86_64-pc-windows-msvc\\bin\\cargo.exe","args":["test","--offline","--locked","--manifest-path","packages/junk-scan/Cargo.toml","--test","scan_v1","--","--test-threads=1"],"exitCode":101,"error":null}
+--- stdout ---
+
+running 5 tests
+test scan_overlap_and_guards ... FAILED
+test scan_pattern_marker_discovery ... ok
+test scan_plan_contract ... ok
+test scan_reparse_budget_cancel ... ok
+test scan_snapshot_growth_keys ... ok
+
+failures:
+
+---- scan_overlap_and_guards stdout ----
+
+thread 'scan_overlap_and_guards' (26264) panicked at tests\scan_v1.rs:3959:5:
+SCAN_M35_RULES: named unlock pair
+note: run with `RUST_BACKTRACE=1` environment variable to display a backtrace
+
+
+failures:
+    scan_overlap_and_guards
+
+test result: FAILED. 4 passed; 1 failed; 0 ignored; 0 measured; 0 filtered out; finished in 4.91s
+
+
+--- stderr ---
+   Compiling water-junk-scan v0.1.0 (F:\new\smaltalk\water\.worktrees\w10-m2\packages\junk-scan)
+warning: field `target_id` is never read
+   --> src\scan.rs:114:5
+    |
+112 | struct Hit {
+    |        --- field in this struct
+113 |     target_index: usize,
+114 |     target_id: String,
+    |     ^^^^^^^^^
+    |
+    = note: `Hit` has a derived impl for the trait `Clone`, but this is intentionally ignored during dead code analysis
+    = note: `#[warn(dead_code)]` (part of `#[warn(unused)]`) on by default
+
+warning: `water-junk-scan` (lib) generated 1 warning
+    Finished `test` profile [unoptimized + debuginfo] target(s) in 4.54s
+     Running tests\scan_v1.rs (.local\w2-target\debug\deps\scan_v1-44131edddc8e8920.exe)
+error: test failed, to rerun pass `--test scan_v1`

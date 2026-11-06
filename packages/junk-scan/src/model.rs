@@ -54,6 +54,16 @@ pub enum ItemType {
 pub struct InUse {
     pub mode: String,
     pub processes: Vec<String>,
+    #[serde(
+        default,
+        skip_serializing_if = "Option::is_none",
+        deserialize_with = "deserialize_root_levels"
+    )]
+    pub root_levels: Option<u8>,
+}
+
+fn deserialize_root_levels<'de, D: serde::Deserializer<'de>>(d: D) -> Result<Option<u8>, D::Error> {
+    u8::deserialize(d).map(Some)
 }
 
 #[derive(Debug, Clone, PartialEq, Eq, Serialize, Deserialize)]
@@ -112,6 +122,12 @@ pub struct Group {
     pub newest_activity: Option<String>,
     pub in_use: InUse,
     pub top_keys: Vec<TopKey>,
+    #[serde(default, skip_serializing_if = "Option::is_none")]
+    pub disk_bytes: Option<String>,
+    #[serde(default, skip_serializing_if = "Option::is_none")]
+    pub eligible_disk_bytes: Option<String>,
+    #[serde(default, skip_serializing_if = "Option::is_none")]
+    pub cluster: Option<ClusterInfo>,
 }
 
 #[derive(Debug, Clone, PartialEq, Eq, Serialize, Deserialize)]
@@ -128,6 +144,94 @@ pub struct Item {
     pub identity: Option<Identity>,
     pub eligible: bool,
     pub ineligible_reason: Option<String>,
+    #[serde(default, skip_serializing_if = "Option::is_none")]
+    pub disk_bytes: Option<String>,
+    #[serde(default, skip_serializing_if = "Option::is_none")]
+    pub template: Option<String>,
+    #[serde(default)]
+    pub valuable_count: u64,
+    #[serde(default)]
+    pub valuable_names: Vec<String>,
+    #[serde(default)]
+    pub odd_count: u64,
+    #[serde(default)]
+    pub odd_names: Vec<String>,
+    #[serde(default)]
+    pub referenced_count: u64,
+    #[serde(default)]
+    pub referenced_by: Vec<String>,
+}
+
+#[derive(Debug, Clone, PartialEq, Eq, Serialize, Deserialize)]
+#[serde(deny_unknown_fields)]
+pub struct ClusterInfo {
+    pub parent: String,
+    pub kind: String,
+    pub template: String,
+    pub member_count: u64,
+    pub similar_size: bool,
+    pub burst: bool,
+    pub burst_day: Option<String>,
+    pub keep_newest: u64,
+}
+
+#[derive(Debug, Clone, Default, PartialEq, Eq, Serialize, Deserialize)]
+#[serde(deny_unknown_fields)]
+pub struct ExtrasOptions {
+    pub leak_clusters: bool,
+    pub junctions: bool,
+    pub declarations: bool,
+}
+
+#[derive(Debug, Clone, PartialEq, Eq, Serialize, Deserialize)]
+#[serde(deny_unknown_fields)]
+pub struct ScanExtras {
+    pub extras_version: String,
+    pub scan_id: String,
+    pub junctions: Vec<Junction>,
+    pub junctions_truncated: bool,
+    pub declarations: Vec<String>,
+}
+
+#[derive(Debug, Clone, PartialEq, Eq, Serialize, Deserialize)]
+#[serde(deny_unknown_fields)]
+pub struct Junction {
+    pub path: String,
+    pub tag: String,
+    pub target: Option<String>,
+    pub final_target: Option<String>,
+}
+
+#[derive(Debug, Clone, PartialEq, Eq, Serialize, Deserialize)]
+#[serde(deny_unknown_fields)]
+pub struct SpaceOverview {
+    pub overview_version: String,
+    pub scan_id: String,
+    pub root: String,
+    pub started_at: String,
+    pub ended_at: String,
+    pub status: String,
+    pub visited_entries: u64,
+    pub disk_bytes: String,
+    pub total_bytes: String,
+    pub file_count: u64,
+    pub top: Vec<SpaceEntry>,
+    pub others_count: u64,
+    pub others_disk_bytes: String,
+    pub issues: Vec<Issue>,
+}
+
+#[derive(Debug, Clone, PartialEq, Eq, Serialize, Deserialize)]
+#[serde(deny_unknown_fields)]
+pub struct SpaceEntry {
+    pub name: String,
+    pub path: String,
+    pub kind: String,
+    pub disk_bytes: String,
+    pub total_bytes: String,
+    pub file_count: u64,
+    pub newest_activity: Option<String>,
+    pub has_git: bool,
 }
 
 #[derive(Debug, Clone, PartialEq, Serialize, Deserialize)]
