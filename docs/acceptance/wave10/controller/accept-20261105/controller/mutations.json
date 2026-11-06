@@ -689,5 +689,88 @@
    "new": "button('打开文件夹',",
    "why": "quarantine root buttons lose the drive letter (3.1)"
   }
+ ],
+ "m7": [
+  {
+   "label": "nc1",
+   "mode": "red-nc1",
+   "token": "SERVICE_M35_CLEAN",
+   "file": "packages/water-service/src/clean.rs",
+   "old": "deletion.items.retain(|i|!quarantine_mode || !selected.contains(i.item_id.as_str()));",
+   "new": "deletion.items.retain(|_i|true);",
+   "why": "chosen items also go into the direct-delete block"
+  },
+  {
+   "label": "nc2",
+   "mode": "red-nc2",
+   "token": "SERVICE_M35_CONCLUSION",
+   "file": "packages/water-service/src/conclusion.rs",
+   "old": "\"clues\":clues.iter().take(3).cloned()",
+   "new": "\"clues\":clues.iter().take(4).cloned()",
+   "why": "conclusion lists more than three clues"
+  },
+  {
+   "label": "nc3",
+   "mode": "red-nc3",
+   "token": "SERVICE_M35_SCOPE",
+   "file": "packages/water-service/src/m35.rs",
+   "old": ".any(|d| local_path(&d.dir).is_some_and(|dir| util::contains(path, &dir)))",
+   "new": ".any(|_d| false)",
+   "why": "an item that contains a declaration folder stays cleanable (controller addition 2)"
+  },
+  {
+   "label": "c4",
+   "mode": "test",
+   "token": "SERVICE_M35_SCOPE",
+   "file": "packages/water-service/src/m35.rs",
+   "old": "let path = path.strip_prefix(r\"\\\\?\\\").unwrap_or(path);",
+   "new": "let path = path;",
+   "why": "extended-prefix paths are not normalised before protects (controller addition 1)"
+  },
+  {
+   "label": "c5",
+   "mode": "test",
+   "token": "SERVICE_M35_SCOPE",
+   "file": "packages/water-service/src/m35.rs",
+   "old": "UNIX_EPOCH.checked_add(Duration::from_secs(seconds as u64))?",
+   "new": "UNIX_EPOCH.checked_add(Duration::from_secs(seconds as u64 / 1000))?",
+   "why": "collected_at converted with the wrong unit (controller addition 3)"
+  },
+  {
+   "label": "c6",
+   "mode": "test",
+   "token": "SERVICE_M35_SCOPE",
+   "file": "packages/water-service/src/m35.rs",
+   "old": "|| list\n                            .apps\n                            .iter()\n                            .any(|a| compact(&a.name).contains(&compact(n)))",
+   "new": "|| false",
+   "why": "no loose display-name check before seems-uninstalled (controller addition 4)"
+  },
+  {
+   "label": "c7",
+   "mode": "test",
+   "token": "SERVICE_M35_QUARANTINE",
+   "file": "packages/water-service/src/quarantine.rs",
+   "old": "if e == clean::CleanError::Journal {",
+   "new": "if false {",
+   "why": "journal failure loses its fixed message (controller addition 5)"
+  },
+  {
+   "label": "c8",
+   "mode": "test",
+   "token": "SERVICE_M35_ROWS",
+   "file": "packages/water-service/src/views.rs",
+   "old": "if let Some(rows) = self.summary_rows.get(id) {",
+   "new": "if let Some(rows) = self.summary_rows.values().next() {",
+   "why": "lazy row cache returns another group's rows (addendum 02)"
+  },
+  {
+   "label": "c9",
+   "mode": "test",
+   "token": "SERVICE_M35_CLEAN",
+   "file": "packages/water-service/src/conclusion.rs",
+   "old": "g.level == Level::Confirm",
+   "new": "g.level != Level::Confirm",
+   "why": "the chosen / recommended split is inverted"
+  }
  ]
 }
