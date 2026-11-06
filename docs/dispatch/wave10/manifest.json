@@ -1278,7 +1278,7 @@
       "branch": "worker/water-w10-m6",
       "baseCommit": "06d266d1483b7ab210dd2c492d39a2511a134abe",
       "snapshotRef": "refs/tags/water-w10-m6-base-20261106",
-      "status": "BLOCKED",
+      "status": "VERIFIED",
       "readyOn": "2026-11-06",
       "dispatchedAt": null,
       "startedAt": null,
@@ -1388,9 +1388,6 @@
         "previousBase": "f93afb8e3c5cf4114927fe2ab6c14dbb033c7ffe",
         "reason": "user 11-06 dropped the iceberg visuals and approved design v3 (\"可以，定稿吧\"); UI-M35 revised for looks only (06d266d1); frozen hashes taken from the w10-m6 checkout so line endings match"
       },
-      "blockedAt": "2026-11-06T07:30:03Z",
-      "blockedCommit": "e63161cfa0957be3e72ce7975783fcaa305d5bc7",
-      "blockedReason": "preview block resolved; new contract gap: cards and summary rows ask for \"skip from now on\" but skip_add only takes a single item id",
       "addenda": [
         {
           "id": "WATER-W10-M6-ADDENDUM-01",
@@ -1420,14 +1417,32 @@
         {
           "id": "WATER-W10-M6-ADDENDUM-03",
           "ticket": "docs/dispatch/tickets/WATER-W10-M6-ADDENDUM-03-20261106.md",
-          "status": "READY",
+          "status": "VERIFIED",
           "issuedAt": "2026-11-06T10:02:40Z",
           "resumeFromCommit": "3d5e01a7f593c73a27e57b968d4d11f5174ff91e",
           "change": "retry stays reachable while polling is paused and stop commands resume polling; a way out of the dedupe result and done screens; dedupe stale re-reads the dedupe view instead of marking the conclusion stale; category toggles do not mark it stale; dedupe headline without a truncated group count; no replaced bytes_per_day (note_zh instead); copy clue only when the clue is listed; heatmap by local date; late quarantine_list replies dropped; drive letter on quarantine folder buttons, readable treemap names, no native scrollbar on the narrow home card; new assertions in the named tests; receipt addendum 02 section rewritten in UTF-8",
           "dispatchReportedAt": "2026-11-06T11:26:00Z",
           "model": "astra (user-reported)",
-          "dispatchEvidence": "user chat 2026-11-06 ~20:26 JST: \"是astra，界面单一般都是astra\" (reported after the return); receipt names Codex GPT-6"
+          "dispatchEvidence": "user chat 2026-11-06 ~20:26 JST: \"是astra，界面单一般都是astra\" (reported after the return); receipt names Codex GPT-6",
+          "submittedHead": "dbcf33669dc641c7549e8bd9351bef8616757983",
+          "implementationCommit": "31fd786d43808db3972aa42cc198fec33f8b4f34"
         }
+      ],
+      "submittedHead": "dbcf33669dc641c7549e8bd9351bef8616757983",
+      "implementationCommit": "31fd786d43808db3972aa42cc198fec33f8b4f34",
+      "workerSelfReport": "Codex GPT-6",
+      "mergeCommit": "569554e1",
+      "controllerReview": {
+        "report": "docs/acceptance/wave10/controller/WATER-W10-REVIEW-20261105.md",
+        "evidence": "docs/acceptance/wave10/controller/accept-20261105/m6/",
+        "summary": "round 6 (addendum 03, head dbcf3366, code 31fd786d): audit 0 problems, receipt restored as UTF-8 (no ? runs, no U+FFFD); fresh tree check, test and browser finals passed (headless browser, no window); 3 negative controls plus 16 controller mutations all caught (c4-c7 addendum 02 item-only skips; c8-c19 addendum 03: stop resumes polling, retry follows pollPaused, dedupe back/nav exits, dedupe stale re-read, category toggle not stale, no truncated group count, no replaced bytes_per_day, clue copy only when listed, local-date heatmap, late quarantine_list dropped, drive letter on root buttons); independent re-review: all 2 MEDIUM and 7 LOW of round 5 fixed, 4 new LOW carried over; 25 screenshots shown to the user as a comparison page"
+      },
+      "carryOverLater": [
+        "LOW: heatmap loop drops the newest day in zones whose DST change skips local midnight (e.g. America/Santiago); JST unaffected (charts.mjs ~88)",
+        "LOW: the 体检 nav click is swallowed while another request is pending (preventDefault before run(), app.mjs ~210)",
+        "LOW: the 体检 nav interception fires from any route while mode is dedupe or done, so leaving the dedupe result for 隔离区 and clicking 体检 discards it (app.mjs ~210, 50)",
+        "LOW: home 打开文件夹 can silently do nothing when a purge finishes while quarantine_list is loading (revision guard drops the reply, app.mjs ~181)",
+        "whole-group and whole-row skip from now on deferred (addendum 02): needs its own IPC (version binding, 64-entry limit, atomic failure, new members)"
       ]
     },
     {
@@ -1577,7 +1592,7 @@
       "branch": "worker/water-w10-m7",
       "baseCommit": "b4b889a9412c47d8227c492eb76ef053fbd2b9c2",
       "snapshotRef": "refs/tags/water-w10-m7-base-20261106",
-      "status": "BLOCKED",
+      "status": "VERIFIED",
       "readyOn": "2026-11-06",
       "dispatchedAt": null,
       "startedAt": null,
@@ -1694,9 +1709,6 @@
       ],
       "baselineStatus": "PASSED",
       "baselineEvidence": "docs/acceptance/wave10/controller/preflight-20261106/m7/2026-11-06T06-54-54.178Z-30776-baseline-result.json",
-      "blockedAt": "2026-11-06T07:30:03Z",
-      "blockedCommit": "50fb2ab401f8291658c7bb6f1ed52537abddf443",
-      "blockedReason": "IPC-M35 adds keys to eight old return values but the strict shape() tests compare them with the old fixtures and SERVICE-M35 section 11 did not authorise migrating them",
       "addenda": [
         {
           "id": "WATER-W10-M7-ADDENDUM-01",
@@ -1771,14 +1783,38 @@
         {
           "id": "WATER-W10-M7-ADDENDUM-06",
           "ticket": "docs/dispatch/tickets/WATER-W10-M7-ADDENDUM-06-20261106.md",
-          "status": "READY",
+          "status": "VERIFIED",
           "issuedAt": "2026-11-06T13:54:02Z",
           "resumeFromCommit": "2917e5fc30ba532f8fd3d0ac843fb25ffd6d6f1b",
           "change": "chosen items on drives without a quarantine root are left out of quarantine-mode plans (noted in chosen.note_zh), re-checked before each batch, never moved then rejected; dedupe source likewise; common reserved as a folder id (renamed on load); {} scan skips saved locations that are absent; refresh keeps records whose inspect fails; restore saves the record before going idle; new assertions for clue cap 3 and a prefixed path outside declarations staying cleanable; redo the three controls and finals",
           "dispatchReportedAt": "2026-11-06T13:57:00Z",
           "model": "sol (user-reported)",
-          "dispatchEvidence": "user chat 2026-11-06 ~22:57 JST: \"给sol了\"; worker tree head/changed files 2917e5fc/0 when recorded; ticket line naming the executor changed from Grok to sol at the same time"
+          "dispatchEvidence": "user chat 2026-11-06 ~22:57 JST: \"给sol了\"; worker tree head/changed files 2917e5fc/0 when recorded; ticket line naming the executor changed from Grok to sol at the same time",
+          "submittedHead": "84f76974e2d4bf34c4be65708899087db007f492",
+          "implementationCommit": "d2f642a466f18f97db8cb2ad87a7f5c0668e241d"
         }
+      ],
+      "submittedHead": "84f76974e2d4bf34c4be65708899087db007f492",
+      "implementationCommit": "d2f642a466f18f97db8cb2ad87a7f5c0668e241d",
+      "workerSelfReport": "Codex GPT-6 (base, addenda 01 and 06) + Grok 4.6 (addenda 02-05)",
+      "mergeCommit": "8de11268",
+      "controllerReview": {
+        "report": "docs/acceptance/wave10/controller/WATER-W10-REVIEW-20261105.md",
+        "evidence": "docs/acceptance/wave10/controller/accept-20261105/m7/",
+        "summary": "round 7 (addendum 06, head 84f76974, code d2f642a4): audit 0 problems; fresh tree lock, check and real finals passed; controller negative controls and mutations nc1-nc3, c4-c15 all detected: 11 with the ticket token, 4 (c11 start re-check, c12 dedupe prepare filter, c14 absent saved drive, c15 inspect error keeps record) fail the designated addendum 06 tests through the shared call()/unwrap_err() without the token, judged caught by the controller (nc2 clue cap and c4 extended prefix, missed in round 6, now caught by the addendum 06 assertions; c10-c15 hit addendum 06: prepare and dedupe skip drives without a quarantine root, start re-checks each batch, common id reserved, absent saved drive skipped by the default scope, inspect error keeps the record); timing-only test failures rerun per the user 11-06 rule; test final passed first time; independent read-only review found no high or medium issue: the only clean::quarantine call is gated by registered_target, the same check save_moves uses, so nothing can be moved before the root is checked; Windows still passes base None; earlier rounds: addenda 02-04 (lazy summary rows, background disk I/O outside the state lock) and 05 (200 ms test limit for the 11 file-writing commands, user decision) resolved the timing blocks; addendum 05 round 6 REWORK for the non-fixed-drive quarantine HIGH"
+      },
+      "carryOverLater": [
+        "LOW: drawer rows of a recommended group show unfinished (上次没清完) items as included although the plan leaves them out (conclusion.rs fast path)",
+        "LOW: copy_clue only reaches leak-cluster cards; a card's clue_id can point outside the three returned clues",
+        "LOW: conclusion_decide still probes .git along leak-cluster ancestors while holding the lock that wrote settings (addendum 04 asked for no other disk I/O there)",
+        "LOW: after 标记为已修 the leak card evidence still counts every member instead of only those after the mark (SERVICE-M35 section 10)",
+        "LOW: when every chosen item is on a drive without a quarantine root, chosen is a 0-byte quarantine block while irreversible is true (IPC-M35 section 5 wording)",
+        "LOW: a clean whose quarantine batch was rejected reads oddly: quarantined text with item_count 0, one identical note per failed item, history shows 清理 0 组 跳过 0 项 with no failure",
+        "LOW: restore error paths (record or event write failing after files were restored) skip refresh, leaving a stale cached record; a failed event write reports an error although the restore worked",
+        "LOW: after the common id migration, old records' custom:common:* groups, saved keeps and root_view lookups no longer match until the next scan (cosmetic)",
+        "LOW (controller): several addendum 06 assertions fail through call()/unwrap_err() without SERVICE_M35_CLEAN / SCOPE / QUARANTINE in the message (mutations c11, c12, c14, c15); add the token when these tests are next touched",
+        "timing: skip_add occasionally takes 120-200+ ms on this machine (worker nc1 run, controller restore runs); both the 200 ms call() limit and the old 50 ms scale assertion in service_clean_flow (SERVICE_M3C_SKIP: scale add, seen at 175 ms) can flake; timing-only failures are rerun per the user's 11-06 rule; a later ticket should loosen the old scale assertion for this file-writing command",
+        "not verified: real USB or mapped drives, unplugging during a clean, production concurrency, restart races, macOS"
       ]
     },
     {
@@ -2117,8 +2153,8 @@
       "branch": "worker/water-w10-m10",
       "baseCommit": "51d851914c5845ac9b818f0e9053051b0cb88b1a",
       "snapshotRef": "refs/tags/water-w10-m10-base-20261106",
-      "status": "HOLD",
-      "readyOn": null,
+      "status": "READY",
+      "readyOn": "2026-11-07",
       "dispatchedAt": null,
       "startedAt": null,
       "model": null,
@@ -2182,9 +2218,10 @@
         "packages/junk-clean/",
         "docs/acceptance/wave10/m10/"
       ],
-      "baselineStatus": "PENDING",
+      "baselineStatus": "PASSED",
       "holdReason": "dispatch after WATER-W10-M7 merges (both run cargo; one cargo tree at a time); controller then creates the worktree, recomputes frozen hashes from it and runs baseline",
-      "issuedAt": "2026-11-06T12:51:46Z"
+      "issuedAt": "2026-11-06T12:51:46Z",
+      "baselineEvidence": "docs/acceptance/wave10/controller/preflight-20261107/m10/2026-11-06T15-36-15.888Z-10448-baseline-result.json"
     }
   ],
   "bundles": [

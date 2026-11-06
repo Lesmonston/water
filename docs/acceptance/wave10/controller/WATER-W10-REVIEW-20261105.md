@@ -415,3 +415,16 @@ M2 补单 03 交回 `9c37e92d`（实现 `995473af`）。
   - 这台机器上 `skip_add` 偶尔要 120～200 多毫秒，200 ms 的 `call()` 上限与旧的 50 ms 规模断言都可能偶发失败。按规矩重跑；以后的单子应放宽这条旧断言（`skip_add` 会写文件）。
 
 **结论：通过。** 合入记录（实现提交、执行者、审查摘要、遗留）写进 `record-verified.cjs`，先合入 M7，再合入 M6（第 13.7 节）。
+
+### 13.7 M7、M6 合入（2026-11-07 00:35 JST）
+
+- 先记验收（`c8b191bf`），再依次 `--no-ff` 合入：M7 `8de11268`、M6 `569554e1`。合入前 `merge-tree` 预检过，两者没有冲突，改的目录不重叠。
+- `git diff 84f76974 HEAD -- packages/water-service docs/acceptance/wave10/m7` 与 `git diff dbcf3366 HEAD -- apps/water/ui docs/acceptance/wave10/m6` 都为空，两份回执也与交回时逐字节一致。
+- `record-verified.cjs` 把 M7、M6 及其补单 06、补单 03 记为 VERIFIED，写入合入提交、实现提交、执行者、审查摘要与遗留。
+- **合入后的测试**：主线 `569554e1` 上离线、单线程（[脚本](accept-20261105/controller/logs/integ-b.sh)、[输出](accept-20261105/controller/logs/integ-b.txt)）：
+  - `water-service` 12 个测试通过（83 秒，没有计时失败）；
+  - 界面单元测试 3 个通过。
+
+  界面浏览器测试与整机检查留给第七次整合（[收尾清单](../../../dispatch/wave10/CLOSE-CHECKLIST.md)第 3 节）。
+
+至此第十波已合入九张：M1～M9。剩 M10（执行器补修），派单见计划。

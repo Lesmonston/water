@@ -457,3 +457,15 @@ WATER-W10-M7 补单 05（同步写文件的命令测试上限 200 ms，计时失
 ```text
 WATER-W10-M7 补单 06（非固定盘不进隔离区，另修三处、补两处测试，中门）：读 F:/new/smaltalk/water/docs/dispatch/tickets/WATER-W10-M7-ADDENDUM-06-20261106.md，按其中列出的顺序读原单、补单 01～05、本补单与你的回执，在 F:/new/smaltalk/water/.worktrees/w10-m7（分支 worker/water-w10-m7）从 2917e5fc 续做；做完、提交并交回回执；受阻就停下写受阻回执。
 ```
+
+### M7、M6 合入，M10 派单（2026-11-07）
+
+M7 补单 06 验收通过（验收报告第 13.6 节），M7 `8de11268`、M6 `569554e1` 依次合入（第 13.7 节）。主线上服务 12 个测试、界面单元 3 个测试都通过。
+
+M10 改为 READY：总控已建工作树 `.worktrees/w10-m10`（基线 `51d85191`，tag `water-w10-m10-base-20261106`），从工作树重算的 13 个冻结哈希都对，派前 baseline 通过（[回执](../../acceptance/wave10/controller/preflight-20261107/m10/)）。后端单，模型由用户选。
+
+**WATER-W10-M10**
+
+```text
+WATER-W10-M10（执行器补修：永久删除的遗留与隔离编号，重门，含只读真实冒烟）：读 F:/new/smaltalk/water/docs/dispatch/tickets/WATER-W10-M10-CLEAN-FIX-20261106.md，按其中“先读”的顺序读工作规则、SPEC 与本单补充、仍然有效的 M4 原单与补单 01、02 和契约，在 F:/new/smaltalk/water/.worktrees/w10-m10（分支 worker/water-w10-m10）从 51d85191 开工；做完、提交并交回回执；受阻就停下写受阻回执。
+```
