@@ -494,7 +494,29 @@ fn call(s: &impl TestService, c: &str, a: Value) -> Value {
     let started = Instant::now();
     let result = s.call(c, a).unwrap_or_else(|e| panic!("{c}: {e:?}"));
     // SERVICE.md L46: call except custom_root_add (folder picker) must return in 50 ms.
-    if c != "custom_root_add" {
+    // Addendum 05: commands that sync-write files in the same call get 200 ms.
+    if c == "custom_root_add" {
+        return result;
+    }
+    if matches!(
+        c,
+        "conclusion_decide"
+            | "cluster_mark_fixed"
+            | "locations_set_session_cleanup"
+            | "manifest_trust"
+            | "locations_set_category"
+            | "custom_root_remove"
+            | "skip_add"
+            | "skip_remove"
+            | "clean_prepare"
+            | "clean_start"
+            | "quarantine_restore"
+    ) {
+        assert!(
+            started.elapsed() <= Duration::from_millis(200),
+            "SERVICE_RETURN_BUDGET: {c}"
+        );
+    } else {
         assert!(
             started.elapsed() <= Duration::from_millis(50),
             "SERVICE_RETURN_BUDGET: {c}"
