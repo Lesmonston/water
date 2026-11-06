@@ -369,15 +369,22 @@ pub(crate) fn save_moves(
 // Used both before execution and when accepting its report. Test platforms
 // supply a base under .local; Windows defaults to the source drive's root.
 pub(crate) fn registered_base(core: &Core, drive: &str) -> Option<String> {
-    let base = core
-        .platform
-        .quarantine_base(drive)
+    registered_target(core, drive).map(|(root, _)| root)
+}
+
+pub(crate) fn registered_target(
+    core: &Core,
+    drive: &str,
+) -> Option<(String, clean::QuarantineTarget)> {
+    let base = core.platform.quarantine_base(drive);
+    let root = base
+        .clone()
         .unwrap_or_else(|| format!("{drive}.water-quarantine"));
     core.platform
         .quarantine_roots()
         .iter()
-        .any(|root| root.eq_ignore_ascii_case(&base))
-        .then_some(base)
+        .any(|r| r.eq_ignore_ascii_case(&root))
+        .then_some((root, clean::QuarantineTarget { base }))
 }
 
 pub(crate) fn unavailable_note(drive: &str, count: usize) -> String {

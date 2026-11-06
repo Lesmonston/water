@@ -424,8 +424,7 @@ pub(crate) fn start(core: &Arc<Core>, id: &str, token: &str) -> Result<Value, Ip
                 let observer=Observer{core:worker_core.clone(),record:r.clone(),plan:&plan,groups:&group_ids,offset:done,freed_before:util::number(&report.freed_bytes),quarantined_before:moved,quarantining:true};
                 // Recheck each drive immediately before calling the executor.
                 // An unavailable batch produces failures without moving files.
-                let moved_report=if let Some(base)=quarantine::registered_base(&worker_core,&root) {
-                    let target=clean::QuarantineTarget{base:Some(base)};
+                let moved_report=if let Some((_,target))=quarantine::registered_target(&worker_core,&root) {
                     let report=clean::quarantine(&batch,&id,&target,&guard,&mut journal,&stop,&observer,now).map_err(quarantine::error)?;
                     quarantine::save_moves(&worker_core,&r,&batch,&report,&worker_id).map_err(|_|IpcError{code:"unavailable".into(),message_zh:quarantine::JOURNAL_MESSAGE.into()})?;
                     report
