@@ -65,6 +65,9 @@ pub(crate) fn prepare_mode(
     let mut items = Vec::new();
     let mut groups = Vec::new();
     let mut by_drive = BTreeMap::<String, u64>::new();
+    let mut unavailable = BTreeMap::<String, usize>::new();
+    let mut available = BTreeMap::<String, bool>::new();
+    let mut skipped_session = false;
     // Disk settings can only narrow a locally authorised scan, never add paths.
     let disk_skips = core
         .store
@@ -120,6 +123,19 @@ pub(crate) fn prepare_mode(
                     .any(|v| v.path.eq_ignore_ascii_case(&item.path))
             {
                 excluded_count += 1;
+                continue;
+            }
+            if mode.is_some_and(|m| m.0 == "quarantine")
+                && conclusion::is_chosen(core, &r, item)
+                && !*available.entry(util::drive(&item.path)).or_insert_with(|| {
+                    quarantine::registered_base(core, &util::drive(&item.path)).is_some()
+                })
+            {
+                *unavailable.entry(util::drive(&item.path)).or_default() += 1;
+                skipped_session |= core
+                    .rules
+                    .rule(&group.rule_id)
+                    .is_some_and(|rule| rule.session_tool.is_some());
                 continue;
             }
             let target = r
@@ -230,13 +246,30 @@ pub(crate) fn prepare_mode(
     s.plans.insert(id.clone(), stored);
     let total: u64 = by_drive.values().sum();
     drop(projection);
-    let extra = preview_parts(
+    let mut extra = preview_parts(
         core,
         &r,
         &items,
         &chosen_ids,
         mode.map(|x| x.0).unwrap_or("delete"),
     );
+    if !unavailable.is_empty() {
+        if extra["chosen"].is_null() {
+            extra["chosen"] = json!({"bytes":"0","items":[],"mode":"quarantine","note_zh":null});
+        }
+        let mut notes = Vec::new();
+        if let Some(note) = extra["chosen"]["note_zh"].as_str() {
+            notes.push(note.to_owned());
+        } else if skipped_session {
+            notes.push("清掉后这些对话不能再续接或回看".into());
+        }
+        notes.extend(
+            unavailable
+                .into_iter()
+                .map(|(drive, count)| quarantine::unavailable_note(&drive, count)),
+        );
+        extra["chosen"]["note_zh"] = json!(notes.join("；"));
+    }
     Ok(
         json!({"plan_id":id,"confirm_token":token,"item_count":items.len(),"total_bytes":total.to_string(),"groups":groups,"by_drive":by_drive.into_iter().map(|(root,n)|json!({"root":root,"bytes":n.to_string()})).collect::<Vec<_>>(),"irreversible":chosen_ids.is_empty() || mode.is_some_and(|x|x.0=="delete"),"excluded_count":excluded_count,"delete":extra["delete"],"chosen":extra["chosen"],"expected_skip":extra["expected_skip"]}),
     )
@@ -389,9 +422,17 @@ pub(crate) fn start(core: &Arc<Core>, id: &str, token: &str) -> Result<Value, Ip
                 let mut batch=plan.clone();batch.items=items;
                 {let mut s=lock(&worker_core)?;s.clean_progress["phase"]=json!("quarantine");}
                 let observer=Observer{core:worker_core.clone(),record:r.clone(),plan:&plan,groups:&group_ids,offset:done,freed_before:util::number(&report.freed_bytes),quarantined_before:moved,quarantining:true};
-                let target=clean::QuarantineTarget{base:worker_core.platform.quarantine_base(&root)};
-                let moved_report=clean::quarantine(&batch,&id,&target,&guard,&mut journal,&stop,&observer,now).map_err(quarantine::error)?;
-                quarantine::save_moves(&worker_core,&r,&batch,&moved_report,&worker_id).map_err(|_|IpcError{code:"unavailable".into(),message_zh:quarantine::JOURNAL_MESSAGE.into()})?;
+                // Recheck each drive immediately before calling the executor.
+                // An unavailable batch produces failures without moving files.
+                let moved_report=if let Some(base)=quarantine::registered_base(&worker_core,&root) {
+                    let target=clean::QuarantineTarget{base:Some(base)};
+                    let report=clean::quarantine(&batch,&id,&target,&guard,&mut journal,&stop,&observer,now).map_err(quarantine::error)?;
+                    quarantine::save_moves(&worker_core,&r,&batch,&report,&worker_id).map_err(|_|IpcError{code:"unavailable".into(),message_zh:quarantine::JOURNAL_MESSAGE.into()})?;
+                    report
+                } else {
+                    if let Some(last)=batch.items.last() {clean::CleanObserver::on_item(&observer,batch.items.len(),batch.items.len(),0,&last.item_id);}
+                    clean::QuarantineReport{report_version:"water.quarantine-report.v1".into(),quarantine_id:id,started_at:util::timestamp(now),ended_at:util::timestamp(worker_core.platform.now()),status:clean::RunStatus::Completed,moved_bytes:"0".into(),items:batch.items.iter().map(|i|clean::MoveReport{item_id:i.item_id.clone(),status:clean::MoveStatus::Failed,skip_reason:None,move_error:Some(clean::MoveError::QuarantineUnavailable),error_code:None,destination:None,identity:None,bytes:"0".into()}).collect()}
+                };
                 if moved_report.status==clean::RunStatus::Stopped {report.status=clean::RunStatus::Stopped;}
                 moved+=util::number(&moved_report.moved_bytes);done+=batch.items.len();reports.push(moved_report);
             }
@@ -647,13 +688,23 @@ fn apply_quarantines(
             .iter()
             .filter(|i| i.status != clean::MoveStatus::Moved)
         {
-            notes.push(json!(if i.skip_reason == Some(clean::SkipReason::InUse) {
-                "正在使用，已跳过"
-            } else if i.skip_reason == Some(clean::SkipReason::Cancelled) {
-                "因停止未处理"
-            } else {
-                "没有移入，未通过复核或移动失败"
-            }));
+            notes.push(json!(
+                if i.move_error == Some(clean::MoveError::QuarantineUnavailable) {
+                    let drive = plan
+                        .items
+                        .iter()
+                        .find(|p| p.item_id == i.item_id)
+                        .map(|p| util::drive(&p.path))
+                        .unwrap_or_default();
+                    quarantine::unavailable_note(&drive, 1)
+                } else if i.skip_reason == Some(clean::SkipReason::InUse) {
+                    "正在使用，已跳过".into()
+                } else if i.skip_reason == Some(clean::SkipReason::Cancelled) {
+                    "因停止未处理".into()
+                } else {
+                    "没有移入，未通过复核或移动失败".into()
+                }
+            ));
         }
     }
     let _ = r;

@@ -702,7 +702,7 @@ impl Service {
         };
         let mut id = base.clone();
         let mut suffix = 2;
-        while s.settings.custom_roots.iter().any(|r| r.root_id == id) {
+        while id == "common" || s.settings.custom_roots.iter().any(|r| r.root_id == id) {
             id = format!("{base}-{suffix}");
             suffix += 1;
         }
@@ -1483,6 +1483,21 @@ fn load_settings(store: &Store, folders: &KnownFolders, platform: &dyn Platform)
             custom_roots.push(root);
         }
     }
+    // Reserve the built-in location ID before migrating any persisted folder.
+    // Include all existing IDs so migration cannot steal a later folder's ID.
+    let mut occupied: BTreeSet<_> = custom_roots.iter().map(|r| r.root_id.clone()).collect();
+    let mut migrated = false;
+    for root in &mut custom_roots {
+        if root.root_id == "common" {
+            let mut suffix = 2;
+            while occupied.contains(&format!("common-{suffix}")) {
+                suffix += 1;
+            }
+            root.root_id = format!("common-{suffix}");
+            occupied.insert(root.root_id.clone());
+            migrated = true;
+        }
+    }
     let mut settings = Settings {
         settings_version: "water.settings.v3".into(),
         categories: raw.categories,
@@ -1497,7 +1512,7 @@ fn load_settings(store: &Store, folders: &KnownFolders, platform: &dyn Platform)
         return Settings::default();
     }
     m35::bound(&mut settings);
-    if settings.custom_roots.len() != listed {
+    if migrated || settings.custom_roots.len() != listed {
         let _ = store.write("", "settings.json", &json!(settings));
     }
     settings

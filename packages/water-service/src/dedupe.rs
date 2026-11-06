@@ -363,6 +363,8 @@ pub(crate) fn prepare(core: &Arc<Core>, a: &Value) -> Result<Value, IpcError> {
     let mut items = Vec::new();
     let mut notes = Vec::new();
     let mut by_drive = BTreeMap::<String, u64>::new();
+    let mut unavailable = BTreeMap::<String, usize>::new();
+    let mut available = BTreeMap::<String, bool>::new();
     for g in record
         .result
         .groups
@@ -389,6 +391,12 @@ pub(crate) fn prepare(core: &Arc<Core>, a: &Value) -> Result<Value, IpcError> {
             .filter(|(n, c)| *n != g.keep_index && c.removable && c.link_count == 1)
             .map(|(_, c)| c)
         {
+            if !*available.entry(util::drive(&copy.path)).or_insert_with(|| {
+                crate::quarantine::registered_base(core, &util::drive(&copy.path)).is_some()
+            }) {
+                *unavailable.entry(util::drive(&copy.path)).or_default() += 1;
+                continue;
+            }
             let Some((volume, file)) = copy.identity.split_once(':') else {
                 continue;
             };
@@ -412,6 +420,11 @@ pub(crate) fn prepare(core: &Arc<Core>, a: &Value) -> Result<Value, IpcError> {
             groups.push(json!({"group_id":g.group_id,"rule_id":"dedupe","level":"confirm","category":"custom","item_count":count,"eligible_count":count,"total_bytes":bytes.to_string(),"eligible_bytes":bytes.to_string(),"unique_bytes":bytes.to_string(),"eligible_unique_bytes":bytes.to_string(),"file_count":count,"oldest_activity":null,"newest_activity":null,"in_use":{"mode":"runs_from_or_references_item","processes":[]},"top_keys":[]}));
         }
     }
+    notes.extend(
+        unavailable
+            .into_iter()
+            .map(|(drive, count)| crate::quarantine::unavailable_note(&drive, count)),
+    );
     if plans.is_empty() {
         return Err(IpcError {
             code: "invalid".into(),
@@ -459,6 +472,6 @@ pub(crate) fn prepare(core: &Arc<Core>, a: &Value) -> Result<Value, IpcError> {
         format!("重复文件 · {}", notes.join("；"))
     };
     Ok(
-        json!({"plan_id":plan_id,"confirm_token":token,"item_count":plans.len(),"total_bytes":total.to_string(),"groups":groups.iter().map(|g|json!({"group_id":g["group_id"],"title_zh":title,"level":"confirm","item_count":g["item_count"],"total_bytes":g["total_bytes"],"in_use_note_zh":null})).collect::<Vec<_>>(),"by_drive":by_drive.into_iter().map(|(root,n)|json!({"root":root,"bytes":n.to_string()})).collect::<Vec<_>>(),"irreversible":false,"excluded_count":0,"delete":{"bytes":"0","categories":[]},"chosen":{"bytes":total.to_string(),"items":[{"title_zh":title,"bytes":total.to_string()}],"mode":"quarantine","note_zh":null},"expected_skip":null}),
+        json!({"plan_id":plan_id,"confirm_token":token,"item_count":plans.len(),"total_bytes":total.to_string(),"groups":groups.iter().map(|g|json!({"group_id":g["group_id"],"title_zh":title,"level":"confirm","item_count":g["item_count"],"total_bytes":g["total_bytes"],"in_use_note_zh":null})).collect::<Vec<_>>(),"by_drive":by_drive.into_iter().map(|(root,n)|json!({"root":root,"bytes":n.to_string()})).collect::<Vec<_>>(),"irreversible":false,"excluded_count":0,"delete":{"bytes":"0","categories":[]},"chosen":{"bytes":total.to_string(),"items":[{"title_zh":title,"bytes":total.to_string()}],"mode":"quarantine","note_zh":if notes.is_empty(){None}else{Some(notes.join("；"))}},"expected_skip":null}),
     )
 }

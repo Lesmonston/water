@@ -177,6 +177,7 @@ pub(crate) fn scope(core: &Core, s: &State, args: &Value) -> Result<Vec<Location
     } else {
         std::iter::once("common".to_owned())
             .chain(s.settings.custom_roots.iter().map(|r| r.root_id.clone()))
+            .filter(|id| home.iter().any(|row| row["location_id"] == *id))
             .collect()
     };
     ids.into_iter()

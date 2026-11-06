@@ -70,6 +70,13 @@ fn valid_record(v: &Value, id: &str, roots: &[String]) -> bool {
 }
 
 pub(crate) fn refresh(core: &Arc<Core>) -> Result<(), IpcError> {
+    refresh_with(core, clean::inspect)
+}
+
+pub(crate) fn refresh_with(
+    core: &Arc<Core>,
+    inspect: impl Fn(&str, &clean::StopFlag) -> Result<clean::QuarantineInfo, clean::CleanError>,
+) -> Result<(), IpcError> {
     let roots = core.platform.quarantine_roots();
     let records = core
         .store
@@ -96,7 +103,10 @@ pub(crate) fn refresh(core: &Arc<Core>) -> Result<(), IpcError> {
         seen_roots.push(root.clone());
         let mut root_bytes = 0u64;
         for q in list.quarantines {
-            let Ok(info) = clean::inspect(&q.dir, &clean::StopFlag::default()) else {
+            // Listing is the authority for presence. Inspection failure (or a
+            // disappearance since listing) must not erase a recovery record.
+            cache.dirs.insert(q.quarantine_id.clone(), q.dir.clone());
+            let Ok(info) = inspect(&q.dir, &clean::StopFlag::default()) else {
                 continue;
             };
             if !info.exists {
@@ -110,7 +120,6 @@ pub(crate) fn refresh(core: &Arc<Core>) -> Result<(), IpcError> {
                 bytes
             };
             root_bytes += bytes;
-            cache.dirs.insert(q.quarantine_id.clone(), q.dir.clone());
             let created = record
                 .and_then(|r| r["created_at"].as_str())
                 .map(str::to_owned)
@@ -335,18 +344,8 @@ pub(crate) fn save_moves(
             .iter()
             .find(|i| i.item_id == moved.item_id)
             .ok_or_else(|| IpcError::new("unavailable"))?;
-        let base = core
-            .platform
-            .quarantine_base(&util::drive(&item.path))
-            .unwrap_or_else(|| format!("{}.water-quarantine", util::drive(&item.path)));
-        if !core
-            .platform
-            .quarantine_roots()
-            .iter()
-            .any(|r| r.eq_ignore_ascii_case(&base))
-        {
-            return Err(IpcError::new("unavailable"));
-        }
+        let base = registered_base(core, &util::drive(&item.path))
+            .ok_or_else(|| IpcError::new("unavailable"))?;
         root = Some(base);
         let title = source
             .projection()
@@ -365,6 +364,24 @@ pub(crate) fn save_moves(
         )?;
     }
     Ok(())
+}
+
+// Used both before execution and when accepting its report. Test platforms
+// supply a base under .local; Windows defaults to the source drive's root.
+pub(crate) fn registered_base(core: &Core, drive: &str) -> Option<String> {
+    let base = core
+        .platform
+        .quarantine_base(drive)
+        .unwrap_or_else(|| format!("{drive}.water-quarantine"));
+    core.platform
+        .quarantine_roots()
+        .iter()
+        .any(|root| root.eq_ignore_ascii_case(&base))
+        .then_some(base)
+}
+
+pub(crate) fn unavailable_note(drive: &str, count: usize) -> String {
+    format!("{} 盘不能放进隔离区，这 {count} 项这次不清理", &drive[..1])
 }
 
 pub(crate) fn restore(core: &Arc<Core>, a: &Value) -> Result<Value, IpcError> {
@@ -417,54 +434,56 @@ pub(crate) fn restore(core: &Arc<Core>, a: &Value) -> Result<Value, IpcError> {
     let stop = clean::StopFlag::default();
     s.stop = Some(stop.clone());
     drop(s);
-    let run = std::panic::catch_unwind(std::panic::AssertUnwindSafe(|| {
-        clean::restore(&dir, &requests, &stop, core.platform.now())
-    }));
+    // Keep the operation exclusive through durable record updates and refresh.
+    // All disk work remains outside the state lock, including error paths.
+    let run = std::panic::catch_unwind(std::panic::AssertUnwindSafe(
+        || -> Result<Value, IpcError> {
+            let report =
+                clean::restore(&dir, &requests, &stop, core.platform.now()).map_err(error)?;
+            let mut restored = 0;
+            let mut bytes = 0u64;
+            let mut conflicts = Vec::new();
+            let mut keep = Vec::new();
+            for e in entries {
+                if report
+                    .items
+                    .iter()
+                    .any(|i| i.rel == e["rel"] && i.status == clean::RestoreStatus::Restored)
+                {
+                    restored += 1;
+                    bytes += util::bytes(&e["bytes"]);
+                } else {
+                    conflicts.push(json!({"label_zh":e["original"],"reason_zh":if report.items.iter().any(|i|i.rel==e["rel"] && i.reason==Some(clean::RestoreError::DestinationExists)){"原位置已有同名的项，可以还原到旁边"}else{"没有还原，请核对身份、路径与占用状态"}}));
+                    keep.push(e);
+                }
+            }
+            record["entries"] = json!(keep);
+            if keep.is_empty() {
+                core.store.remove("quarantine", &[id.into()]);
+            } else {
+                core.store
+                    .write("quarantine", &format!("{id}.json"), &record)?;
+            }
+            let event = m35::write_event(
+                core,
+                "restore",
+                format!("还原隔离区 · {restored} 项"),
+                bytes.to_string(),
+            )?;
+            {
+                let mut s = lock(core)?;
+                m35::push_event(&mut s, event);
+            }
+            refresh(core)?;
+            Ok(
+                json!({"restored_count":restored,"restored_bytes":bytes.to_string(),"conflicts":conflicts,"view":lock(core)?.m35.quarantine.view}),
+            )
+        },
+    ));
     let mut s = lock(core)?;
     s.busy = "idle";
     s.stop = None;
-    let report = run
-        .map_err(|_| IpcError::new("unavailable"))?
-        .map_err(error)?;
-    let mut restored = 0;
-    let mut bytes = 0u64;
-    let mut conflicts = Vec::new();
-    let mut keep = Vec::new();
-    for e in entries {
-        if report
-            .items
-            .iter()
-            .any(|i| i.rel == e["rel"] && i.status == clean::RestoreStatus::Restored)
-        {
-            restored += 1;
-            bytes += util::bytes(&e["bytes"]);
-        } else {
-            conflicts.push(json!({"label_zh":e["original"],"reason_zh":if report.items.iter().any(|i|i.rel==e["rel"] && i.reason==Some(clean::RestoreError::DestinationExists)){"原位置已有同名的项，可以还原到旁边"}else{"没有还原，请核对身份、路径与占用状态"}}));
-            keep.push(e);
-        }
-    }
-    record["entries"] = json!(keep);
-    drop(s);
-    if keep.is_empty() {
-        core.store.remove("quarantine", &[id.into()]);
-    } else {
-        core.store
-            .write("quarantine", &format!("{id}.json"), &record)?;
-    }
-    let event = m35::write_event(
-        core,
-        "restore",
-        format!("还原隔离区 · {restored} 项"),
-        bytes.to_string(),
-    )?;
-    {
-        let mut s = lock(core)?;
-        m35::push_event(&mut s, event);
-    }
-    refresh(core)?;
-    Ok(
-        json!({"restored_count":restored,"restored_bytes":bytes.to_string(),"conflicts":conflicts,"view":lock(core)?.m35.quarantine.view}),
-    )
+    run.unwrap_or_else(|_| Err(IpcError::new("unavailable")))
 }
 
 struct Observer(Arc<Core>);

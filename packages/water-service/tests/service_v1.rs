@@ -4453,6 +4453,132 @@ fn m35_scope_and_plan() {
         "SERVICE_M35_SCOPE: stored apps time"
     );
     record["result"] = json!(result);
+
+    // The extended spelling must also remain cleanable without a declaration.
+    let mut unprotected =
+        water_junk_scan::result_from_json(&scan_saved(&f, &r)["result"].to_string()).unwrap();
+    unprotected.items[index].path = format!(r"\\?\{}", unprotected.items[index].path);
+    m35::supplement(&ss.core, &mut unprotected, &[], &BTreeMap::new());
+    assert!(
+        unprotected.items[index].eligible && unprotected.items[index].ineligible_reason.is_none(),
+        "SERVICE_M35_SCOPE: undeclared extended path stays cleanable"
+    );
+
+    {
+        let f = Fixture::new();
+        f.seed();
+        f.file("common/node_modules/pkg/data", 41);
+        f.age_all(NOW - 40 * 86400);
+        let s = source_service(&f, true);
+        let id = m35_add(&s, &f, "common");
+        assert_eq!(id, "common-2", "SERVICE_M35_SCOPE: common ID is reserved");
+        let home = call(&s, "locations_get", json!({}))["home"]
+            .as_array()
+            .unwrap()
+            .clone();
+        assert_eq!(
+            home.iter()
+                .map(|r| r["location_id"].as_str().unwrap())
+                .collect::<BTreeSet<_>>()
+                .len(),
+            home.len(),
+            "SERVICE_M35_SCOPE: unique home IDs"
+        );
+        let scan = m35_scan(&s, json!([id]));
+        assert!(
+            scan_saved(&f, &scan)["result"]["groups"]
+                .as_array()
+                .unwrap()
+                .iter()
+                .any(|g| g["group_id"]
+                    .as_str()
+                    .unwrap()
+                    .starts_with("custom:common-2:")
+                    && g["item_count"].as_u64().unwrap() > 0),
+            "SERVICE_M35_SCOPE: common folder can be scanned"
+        );
+        // Simulate an older settings file, with common-2 already occupied.
+        m35_add(&s, &f, "other");
+        drop(s);
+        let path = f.data.join("settings.json");
+        let mut settings: Value = serde_json::from_slice(&fs::read(&path).unwrap()).unwrap();
+        settings["custom_roots"][0]["root_id"] = json!("common");
+        settings["custom_roots"][1]["root_id"] = json!("common-2");
+        fs::write(&path, settings.to_string()).unwrap();
+        let s = source_service(&f, true);
+        let migrated: Value = serde_json::from_slice(&fs::read(&path).unwrap()).unwrap();
+        assert_eq!(
+            migrated["custom_roots"][0]["root_id"], "common-3",
+            "SERVICE_M35_SCOPE: migrate reserved ID and save"
+        );
+        assert_eq!(
+            migrated["custom_roots"][1]["root_id"], "common-2",
+            "SERVICE_M35_SCOPE: migration preserves occupied ID"
+        );
+        let home = call(&s, "locations_get", json!({}))["home"]
+            .as_array()
+            .unwrap()
+            .clone();
+        assert_eq!(
+            home.iter()
+                .map(|r| r["location_id"].as_str().unwrap())
+                .collect::<BTreeSet<_>>()
+                .len(),
+            home.len(),
+            "SERVICE_M35_SCOPE: unique migrated home IDs"
+        );
+        let scan = m35_scan(&s, json!(["common-3"]));
+        assert!(
+            scan_saved(&f, &scan)["result"]["groups"]
+                .as_array()
+                .unwrap()
+                .iter()
+                .any(|g| g["group_id"]
+                    .as_str()
+                    .unwrap()
+                    .starts_with("custom:common-3:")
+                    && g["item_count"].as_u64().unwrap() > 0),
+            "SERVICE_M35_SCOPE: migrated folder can be scanned"
+        );
+        // Only the default selection tolerates a persisted drive missing from home.
+        s.core
+            .state
+            .lock()
+            .unwrap()
+            .settings
+            .custom_roots
+            .push(service::CustomRoot {
+                root_id: "drive-z".into(),
+                path: "Z:\\".into(),
+                added_at: "2026-01-01T00:00:00Z".into(),
+            });
+        call(&s, "scan_start", json!({}));
+        let progress = wait(&s, "scan_progress");
+        assert_eq!(
+            progress["state"], "completed",
+            "SERVICE_M35_SCOPE: default scan skips absent drive"
+        );
+        assert!(
+            progress["locations"]
+                .as_array()
+                .unwrap()
+                .iter()
+                .all(|l| l["location_id"] != "drive-z")
+                && progress["locations"]
+                    .as_array()
+                    .unwrap()
+                    .iter()
+                    .any(|l| l["location_id"] == "common-3"),
+            "SERVICE_M35_SCOPE: default scan retains available folders"
+        );
+        assert_eq!(
+            s.call("scan_start", json!({"locationIds":["common", "drive-z"]}))
+                .unwrap_err()
+                .code,
+            "invalid",
+            "SERVICE_M35_SCOPE: explicit absent drive is invalid"
+        );
+    }
 }
 
 #[test]
@@ -4612,6 +4738,34 @@ fn m35_conclusion_cards() {
         "SERVICE_M35_CONCLUSION: stale prepare"
     );
     let _ = r;
+
+    {
+        let f = Fixture::new();
+        f.seed();
+        let s = source_service(&f, false);
+        let scan = scanned(&s);
+        let mut saved = scan_saved(&f, &scan);
+        let items = saved["result"]["items"].as_array_mut().unwrap();
+        assert!(
+            items.len() >= 4,
+            "SERVICE_M35_CONCLUSION: four clue sources"
+        );
+        for item in items.iter_mut().take(4) {
+            item["referenced_count"] = json!(1);
+            item["referenced_by"] = json!([slash(&f.root.join("synthetic-reference"))]);
+        }
+        m35_replace_record(&s, saved);
+        let c = call(&s, "conclusion_get", json!({}));
+        assert_eq!(
+            c["clues"].as_array().unwrap().len(),
+            3,
+            "SERVICE_M35_CONCLUSION: exactly three of four clues"
+        );
+        assert_eq!(
+            c["more_clues"], 1,
+            "SERVICE_M35_CONCLUSION: remaining clue count"
+        );
+    }
 }
 
 fn m35_selection_layers() {
@@ -4959,6 +5113,309 @@ fn m35_clean_split() {
         false,
         "SERVICE_M35_CLEAN: disk reconciliation"
     );
+
+    for stage in ["prepare", "start", "delete"] {
+        let f = Fixture::new();
+        f.seed();
+        let session = f.file("user_profile/.claude/projects/project/old.jsonl", 19);
+        let original = f.root.join("downloads/old.exe");
+        f.age_all(NOW - 40 * 86400);
+        let s = source_service(&f, true);
+        call(
+            &s,
+            "locations_set_session_cleanup",
+            json!({"tool":"claude-code","enabled":true,"days":30}),
+        );
+        scanned(&s);
+        m35_decide(&s, "downloads-installers");
+        let c = m35_decide(&s, "claude-code-old-sessions");
+        let drive = util::drive(&slash(&original));
+        let base = slash(&f.root.join(".water-quarantine"));
+        // Always retain an explicit synthetic base, even when the drive is
+        // unavailable. A regression must never write a real volume root.
+        f.fake
+            .quarantine_bases
+            .lock()
+            .unwrap()
+            .insert(drive.clone(), base.clone());
+        if stage != "start" {
+            f.fake.quarantines.lock().unwrap().clear();
+        }
+        let mode = if stage == "delete" {
+            "delete"
+        } else {
+            "quarantine"
+        };
+        let p = call(
+            &s,
+            "clean_prepare",
+            json!({"conclusionVersion":c["version"],"chosenMode":mode}),
+        );
+        let plan = read_plan(&f, &p);
+        if stage == "prepare" {
+            assert!(
+                plan["plan"]["items"]
+                    .as_array()
+                    .unwrap()
+                    .iter()
+                    .all(|i| i["path"] != slash(&original) && i["path"] != slash(&session)),
+                "SERVICE_M35_CLEAN: unavailable chosen items excluded"
+            );
+            assert_eq!(
+                p["chosen"]["bytes"], "0",
+                "SERVICE_M35_CLEAN: unavailable chosen bytes excluded"
+            );
+            assert_eq!(
+                p["chosen"]["items"],
+                json!([]),
+                "SERVICE_M35_CLEAN: unavailable chosen rows excluded"
+            );
+            assert_eq!(
+                p["total_bytes"], p["delete"]["bytes"],
+                "SERVICE_M35_CLEAN: unavailable total excluded"
+            );
+            assert_eq!(
+                p["item_count"].as_u64().unwrap() as usize,
+                plan["plan"]["items"].as_array().unwrap().len(),
+                "SERVICE_M35_CLEAN: unavailable item count excluded"
+            );
+            assert_eq!(
+                p["by_drive"]
+                    .as_array()
+                    .unwrap()
+                    .iter()
+                    .map(|d| util::bytes(&d["bytes"]))
+                    .sum::<u64>(),
+                util::bytes(&p["delete"]["bytes"]),
+                "SERVICE_M35_CLEAN: unavailable drive bytes excluded"
+            );
+            let note = p["chosen"]["note_zh"].as_str().unwrap();
+            assert!(
+                note.starts_with("清掉后这些对话不能再续接或回看；")
+                    && note.contains(&format!("{} 盘不能放进隔离区", &drive[..1]))
+                    && note.contains("这 2 项这次不清理"),
+                "SERVICE_M35_CLEAN: unavailable note preserves session warning"
+            );
+            assert_eq!(
+                clean::prepare_mode(
+                    &s.core,
+                    &[json!("downloads-installers")],
+                    &[],
+                    Some(("quarantine", c["version"].as_str().unwrap()))
+                )
+                .unwrap_err()
+                .code,
+                "invalid",
+                "SERVICE_M35_CLEAN: all unavailable is invalid"
+            );
+        } else if stage == "delete" {
+            assert!(
+                plan["plan"]["items"]
+                    .as_array()
+                    .unwrap()
+                    .iter()
+                    .any(|i| i["path"] == slash(&original)),
+                "SERVICE_M35_CLEAN: delete mode unaffected by unavailable root"
+            );
+        } else {
+            assert!(
+                util::bytes(&p["chosen"]["bytes"]) > 0,
+                "SERVICE_M35_CLEAN: supported at prepare"
+            );
+            f.fake.quarantines.lock().unwrap().clear();
+        }
+        f.fake.queried_paths.lock().unwrap().clear();
+        let (progress, result) = m35_run_clean(&s, &p);
+        assert_eq!(
+            progress["state"], "completed",
+            "SERVICE_M35_CLEAN: unavailable batch completes"
+        );
+        if stage == "delete" {
+            assert!(
+                !original.exists() && !session.exists(),
+                "SERVICE_M35_CLEAN: delete still executes"
+            );
+        } else {
+            assert!(
+                original.exists() && session.exists(),
+                "SERVICE_M35_CLEAN: unavailable sources untouched"
+            );
+            assert_eq!(
+                fs::metadata(&original).unwrap().len(),
+                60,
+                "SERVICE_M35_CLEAN: original size unchanged"
+            );
+            assert_eq!(
+                fs::metadata(&session).unwrap().len(),
+                19,
+                "SERVICE_M35_CLEAN: session size unchanged"
+            );
+            assert!(
+                !Path::new(&base).exists(),
+                "SERVICE_M35_CLEAN: no quarantine directory created"
+            );
+            assert!(
+                !f.fake
+                    .queried_paths
+                    .lock()
+                    .unwrap()
+                    .iter()
+                    .any(|p| p == &slash(&original) || p == &slash(&session)),
+                "SERVICE_M35_CLEAN: unavailable batch never reaches executor guard"
+            );
+            if stage == "start" {
+                for gid in ["downloads-installers", "claude-code-old-sessions"] {
+                    let group = result["groups"]
+                        .as_array()
+                        .unwrap()
+                        .iter()
+                        .find(|g| g["group_id"] == gid)
+                        .unwrap();
+                    assert_eq!(
+                        group["status"], "failed",
+                        "SERVICE_M35_CLEAN: unavailable batch failure"
+                    );
+                    assert!(
+                        group["notes_zh"]
+                            .as_array()
+                            .unwrap()
+                            .iter()
+                            .any(|n| n.as_str().unwrap().contains("不能放进隔离区")),
+                        "SERVICE_M35_CLEAN: unavailable batch reason"
+                    );
+                }
+                assert_eq!(
+                    progress["done_items"], progress["total_items"],
+                    "SERVICE_M35_CLEAN: rejected batch progress"
+                );
+                let stored: Value = serde_json::from_slice(
+                    &fs::read(
+                        f.data
+                            .join("cleans")
+                            .join(format!("{}.json", result["clean_id"].as_str().unwrap())),
+                    )
+                    .unwrap(),
+                )
+                .unwrap();
+                assert!(
+                    stored["quarantine_reports"][0]["items"]
+                        .as_array()
+                        .unwrap()
+                        .iter()
+                        .all(|i| i["status"] == "failed"
+                            && i["move_error"] == "quarantine_unavailable"),
+                    "SERVICE_M35_CLEAN: every unavailable item recorded failed"
+                );
+            }
+        }
+    }
+
+    for stage in ["prepare", "start"] {
+        let f = Fixture::new();
+        let a = f.file("duplicates/original.bin", 2 << 20);
+        let b = f.root.join("duplicates/copy.bin");
+        fs::copy(&a, &b).unwrap();
+        f.age_all(
+            SystemTime::now()
+                .duration_since(UNIX_EPOCH)
+                .unwrap()
+                .as_secs()
+                - 2 * 86400,
+        );
+        let s = source_service(&f, true);
+        let root = m35_add(&s, &f, "duplicates");
+        let id = call(&s, "dedupe_start", json!({"locationId":root}));
+        assert_eq!(
+            wait(&s, "dedupe_progress")["state"],
+            "completed",
+            "SERVICE_M35_CLEAN: unavailable dedupe scan"
+        );
+        let v = call(
+            &s,
+            "dedupe_result",
+            json!({"dedupeId":id["dedupe_id"],"expand":false}),
+        );
+        let v = call(
+            &s,
+            "dedupe_decide",
+            json!({"dedupeId":id["dedupe_id"],"version":v["version"],"groupId":v["groups"][0]["group_id"],"include":true}),
+        );
+        f.fake.now.store(
+            util::parse_time(v["finished_at"].as_str().unwrap())
+                .unwrap()
+                .duration_since(UNIX_EPOCH)
+                .unwrap()
+                .as_secs()
+                + 3600,
+            Ordering::SeqCst,
+        );
+        let drive = util::drive(&slash(&a));
+        let base = slash(&f.root.join(".water-quarantine"));
+        f.fake
+            .quarantine_bases
+            .lock()
+            .unwrap()
+            .insert(drive.clone(), base.clone());
+        if stage == "prepare" {
+            f.fake.quarantines.lock().unwrap().clear();
+        }
+        let preview = s.call(
+            "clean_prepare",
+            json!({"dedupeId":id["dedupe_id"],"dedupeVersion":v["version"]}),
+        );
+        if stage == "prepare" {
+            let error = preview.unwrap_err();
+            assert_eq!(
+                error.code, "invalid",
+                "SERVICE_M35_CLEAN: unavailable dedupe plan invalid"
+            );
+            assert!(
+                error
+                    .message_zh
+                    .contains(&format!("{} 盘不能放进隔离区", &drive[..1])),
+                "SERVICE_M35_CLEAN: unavailable dedupe plan reason"
+            );
+            assert!(
+                s.core.state.lock().unwrap().plans.is_empty(),
+                "SERVICE_M35_CLEAN: no unavailable dedupe plan stored"
+            );
+        } else {
+            let preview = preview.unwrap();
+            f.fake.quarantines.lock().unwrap().clear();
+            f.fake.queried_paths.lock().unwrap().clear();
+            let (_, result) = m35_run_clean(&s, &preview);
+            assert_eq!(
+                result["groups"][0]["status"], "failed",
+                "SERVICE_M35_CLEAN: disconnected dedupe batch failed"
+            );
+            assert!(
+                result["groups"][0]["notes_zh"]
+                    .as_array()
+                    .unwrap()
+                    .iter()
+                    .any(|n| n.as_str().unwrap().contains("不能放进隔离区")),
+                "SERVICE_M35_CLEAN: disconnected dedupe reason"
+            );
+            assert!(
+                f.fake.queried_paths.lock().unwrap().is_empty(),
+                "SERVICE_M35_CLEAN: dedupe batch never reaches executor guard"
+            );
+        }
+        assert!(
+            a.exists() && b.exists() && !Path::new(&base).exists(),
+            "SERVICE_M35_CLEAN: dedupe copies untouched"
+        );
+        assert_eq!(
+            fs::metadata(&a).unwrap().len(),
+            2 << 20,
+            "SERVICE_M35_CLEAN: original duplicate size unchanged"
+        );
+        assert_eq!(
+            fs::metadata(&b).unwrap().len(),
+            2 << 20,
+            "SERVICE_M35_CLEAN: extra duplicate size unchanged"
+        );
+    }
 }
 
 fn m35_two_disk_records() {
@@ -5339,6 +5796,84 @@ fn m35_quarantine() {
         call(&s, "app_state", json!({}))["quarantine"].is_null(),
         "SERVICE_M35_QUARANTINE: empty bar"
     );
+
+    {
+        let f = Fixture::new();
+        f.seed();
+        let s = source_service(&f, true);
+        scanned(&s);
+        let c = m35_decide(&s, "downloads-installers");
+        let p = call(
+            &s,
+            "clean_prepare",
+            json!({"conclusionVersion":c["version"],"chosenMode":"quarantine"}),
+        );
+        m35_run_clean(&s, &p);
+        let q = call(&s, "quarantine_list", json!({}));
+        let id = q["cards"][0]["quarantine_id"].as_str().unwrap();
+        let record_path = f.data.join("quarantine").join(format!("{id}.json"));
+        let before = fs::read(&record_path).unwrap();
+        let mut inspected = 0;
+        // The listed synthetic batch is present; only the executor's inspect
+        // operation fails. No filesystem permission changes or races needed.
+        let calls = AtomicU64::new(0);
+        quarantine::refresh_with(&s.core, |_, _| {
+            calls.fetch_add(1, Ordering::SeqCst);
+            Err(water_junk_clean::CleanError::InvalidPlan)
+        })
+        .unwrap();
+        inspected += calls.load(Ordering::SeqCst);
+        assert_eq!(
+            inspected, 1,
+            "SERVICE_M35_QUARANTINE: inspection failed for listed batch"
+        );
+        assert_eq!(
+            fs::read(&record_path).unwrap(),
+            before,
+            "SERVICE_M35_QUARANTINE: failed inspect preserves record bytes"
+        );
+        assert!(
+            s.core
+                .state
+                .lock()
+                .unwrap()
+                .m35
+                .quarantine
+                .records
+                .contains_key(id),
+            "SERVICE_M35_QUARANTINE: failed inspect preserves cached record"
+        );
+        assert!(
+            call(&s, "quarantine_list", json!({}))["cards"]
+                .as_array()
+                .unwrap()
+                .is_empty(),
+            "SERVICE_M35_QUARANTINE: failed inspect omits card this time"
+        );
+        quarantine::refresh(&s.core).unwrap();
+        assert_eq!(
+            call(&s, "quarantine_list", json!({}))["cards"][0]["restorable"],
+            true,
+            "SERVICE_M35_QUARANTINE: next inspection restores recovery card"
+        );
+        assert_eq!(
+            fs::read(&record_path).unwrap(),
+            before,
+            "SERVICE_M35_QUARANTINE: successful retry keeps record"
+        );
+        // Simulate the user's removal from the quarantine listing by moving
+        // this batch elsewhere within the same newly created fixture.
+        fs::rename(
+            f.root.join(".water-quarantine").join(id),
+            f.root.join("removed-batch"),
+        )
+        .unwrap();
+        quarantine::refresh(&s.core).unwrap();
+        assert!(
+            !record_path.exists(),
+            "SERVICE_M35_QUARANTINE: absent from listing removes record"
+        );
+    }
 }
 
 fn m35_purge_log_failure() {
