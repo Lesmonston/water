@@ -1,0 +1,42 @@
+{"binary":"C:\\Users\\37310\\.rustup\\toolchains\\1.95.0-x86_64-pc-windows-msvc\\bin\\cargo.exe","args":["test","--offline","--locked","--manifest-path","packages/water-service/Cargo.toml","--test","service_v1","--","--test-threads=1"],"exitCode":101,"error":null}
+--- stdout ---
+
+running 12 tests
+test m35_clean_split ... ok
+test m35_conclusion_cards ... ok
+test m35_quarantine ... ok
+test m35_rows_and_detail ... ok
+test m35_scope_and_plan ... ok
+test m35_trends_history ... FAILED
+test service_clean_flow ... FAILED
+test service_hardening ... ok
+test service_ipc_contract ... ok
+test service_scan_views ... ok
+test service_storage_safety ... ok
+test service_trends_locations ... ok
+
+failures:
+
+---- m35_trends_history stdout ----
+
+thread 'm35_trends_history' (35468) panicked at tests\service_v1.rs:496:5:
+SERVICE_RETURN_BUDGET: cluster_mark_fixed
+note: run with `RUST_BACKTRACE=1` environment variable to display a backtrace
+
+---- service_clean_flow stdout ----
+
+thread 'service_clean_flow' (32504) panicked at tests\service_v1.rs:496:5:
+SERVICE_RETURN_BUDGET: skip_remove
+
+
+failures:
+    m35_trends_history
+    service_clean_flow
+
+test result: FAILED. 10 passed; 2 failed; 0 ignored; 0 measured; 0 filtered out; finished in 54.95s
+
+
+--- stderr ---
+    Finished `test` profile [unoptimized + debuginfo] target(s) in 0.08s
+     Running tests\service_v1.rs (.local\w3-target\debug\deps\service_v1-9ced97dc996b0b10.exe)
+error: test failed, to rerun pass `--test service_v1`

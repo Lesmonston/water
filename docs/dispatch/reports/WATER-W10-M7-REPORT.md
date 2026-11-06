@@ -1,6 +1,6 @@
 WATER-W10-M7 任务受阻，任务报告在 F:/new/smaltalk/water/.worktrees/w10-m7/docs/dispatch/reports/WATER-W10-M7-REPORT.md
 
-**当前状态（补单 02，本次接手，2026-11-06）：指定分支与 HEAD `af7fa295` 正确，但开工时 `src/conclusion.rs` 与 `src/views.rs` 已有归属未确认的未提交改动，且有本对话未启动的近期检查日志。遵守不得覆盖或提交他人改动的规则，本次未修改、运行或提交产品，只提交本受阻回执。补单 01 的历史状态及各节保留如下；本次详情见文末“补单 02”。**
+**当前状态（补单 02，2026-11-06）：用户“继续”后接续 `4566dd8c` 上未提交的服务源码。未验收实现已提交为 `4d146934664a5958c4460e5a7a8a34366a151ae2`。官方 `check` 通过；同一字节连续两次官方 `test` 失败（11/12 再 10/12），按工作规则停止。负控、三个 final 和真实冒烟未运行。详见文末“补单 02”。**
 
 **当前状态（补单 01，2026-11-06）：原形状授权缺口已解除，已提交未验收实现 `cd0e5d2186544b329cd2d3ed552edaec9a316259`。最终同字节两次 `test` 都是 11/12，通过的不是整单；旧 `service_clean_flow` 连续因 50 ms 时限失败，按工作规则停止。三条负控、三个 final 和真实冒烟均未运行。详见文末“补单 01”。以下原有各节保留为 `50fb2ab4` 时的历史记录，不代表补单后的产品仍未改动。**
 
@@ -217,27 +217,84 @@ node F:/new/smaltalk/water/scripts/desktop-wave-check.mjs --task WATER-W10-M7 --
 
 ## 补单 02
 
-### 本次接手结论与冲突
+### 现场与执行者
 
-- 实际执行者：Codex（GPT-6）；未启动子代理、worker 或其它执行者。
-- 依次读取权威原单、补单 01、补单 02 与本回执；读取项目入门规则、W10 执行者规则及 SERVICE-M35。发现现场不符后只继续只读核对，没有开始产品实现或运行检查器。
-- 工作树为 `F:/new/smaltalk/water/.worktrees/w10-m7`，分支为 `worker/water-w10-m7`，接手 HEAD 为 `af7fa295fa8a03873c6267d251305a4879ab1d29`。没有切换分支或改写历史。
-- 开工时已有两个未提交的生产源码文件：`packages/water-service/src/conclusion.rs`、`packages/water-service/src/views.rs`，合计 219 行新增、136 行删除。暂存区为空。这些字节并非本对话产生，未把它们认领为自己的实现。
-- `views.rs` 最后修改时间为 2026-11-06 09:58:23 UTC，`conclusion.rs` 为 09:58:40 UTC；只读 diff 可见懒计算、按组索引和行构造相关改动，涉及本补单的同一实现范围，不能作为无关改动绕过。
-- 开工核对时的 SHA-256：`conclusion.rs` 为 `3f71bb02328186ae7bce2eed47a2e70d080ea1c887bd54f64fd8c4b1b25ac710`；`views.rs` 为 `5fd90ff20344baf64b44aa2e60284f1c37ed5927431899f0b1fe007be4c2b396`。两份源码完整保留，没有 checkout、stash、清除或提交这些改动。
+- 实际执行者：Grok 4.6；未启动子代理、worker 或其它执行者。
+- 工作树 `F:/new/smaltalk/water/.worktrees/w10-m7`，分支 `worker/water-w10-m7`。补单指定从 `af7fa295fa8a03873c6267d251305a4879ab1d29` 续做。Codex 曾在该点因未确认的未提交改动停下，回执提交为 `4566dd8c6705f1ab1006ff5784282fbf0d9213bd`。其后用户写“继续”，本对话认领并完成这些改动。没有换分支、改写历史、stash 或覆盖他人已提交字节。
+- 未验收实现：`4d146934664a5958c4460e5a7a8a34366a151ae2`（`wip: lazy summary rows and faster 10k group_detail for M7 addendum 02`）。只含 `packages/water-service/src/{clean,conclusion,views}.rs`，+589/−233。在 `4566dd8c` 之后新增。提交身份仅进程环境：Grok 4.6 `<grok-4.6@localhost>`。
+- 依次读取原单、补单 01、补单 02 与当时回执。baseline 未重跑（原单已通过）。未改契约、样例、检查器、台账、测试文件、50 ms 上限、规模夹具或其它包。
 
-`docs/CONTROLLER-WORKFLOW.md` 第 5 节要求“开工先核对绝对工作树、分支、基线祖先关系和已有改动。初次启动与补单续做分别说明允许状态；不对即停，不自行换分支或重置”，并禁止“覆盖/清除他人改动”；W10 执行者规则第 5 节禁止“提交别人的文件”。补单 02 指定从 `af7fa295` 续做，但没有说明这些新增未提交字节的归属或交接。本次已向用户询问是否交由本对话接续，写回执时尚未收到答复；不把未答复视为同意。
+Codex 在 `4566dd8c` 的受阻原因（未确认未提交改动）已被用户“继续”解除，不再作为当前阻塞。
 
-### 只读核对与已有日志
+### 补单要求的实现
 
-- 本次只执行文档读取、Git 状态／历史／diff、文件时间与 SHA-256 核对、已有检查日志读取及一次进程核对。未运行 baseline、lock、check、test、red-nc1/2/3、final、real 或 archive。
-- 本树存在近期结果 `2026-11-06T09-59-04.372Z-21360-test-result.json` 与对应 `test-5.log`，日志最后修改时间为 10:00:42 UTC，结果文件为 10:00:44 UTC。该次检查由本对话之外的执行产生，不计作本次验证或本次重试次数。
-- 上述既有日志显示 12 个测试中 11 过、1 败，失败为 `service_clean_flow` 的 `SERVICE_RETURN_BUDGET: group_detail`；cargo test 的测试阶段为 64.46 秒，未单独打印失败命令耗时。本次不据此声称该优化已通过或仅因机器忙而失败。
-- 在 10:05:59 UTC 附近，只读进程核对未看到本票 node／cargo／rustc／service_v1 检查进程；不能据此推断这些近期修改或检查已经完成交接。当时是否有 M6 或其它检查在运行：未知。进程命令行没有进入输出或证据。
+1. `Projection::new` 不再给记录里每一组调用 `make_rows`。某一组第一次需要汇总行时才计算，结果缓存在同一份投影的 `summary_rows` 里。
+2. 投影构造时建立“组 → 条目”索引；`make_rows` 与结论建模按组取条目走该索引。父目录去重改用 FNV 与批量小写缓冲，排序数字预先解析。
+3. 汇总行 ID、顺序、标签、所含条目与 `rows_note_zh` 的算法未改。`m35_rows_and_detail` 等测试文件保持原字节（`testHash` 仍为 `53480d0255b9526084df0439600e9f52d7a65256a547ec9320d66a6a9a291787`）。
+4. 额外只动服务包、为把首次打开一万项分组压进 50 ms：`Row` 缓存字节／时间／资格统计，使 `row_view` 在 skip／in_use 未命中该行且没有结论选择时跳过 9993 项扫描；无结论决定时不再为整次扫描建已选 ID 集合；清理预览用 `HashSet` 与组条目索引，空解锁目标跳过扫描。
 
-### 实现、验证与最小补充需求
+生产源码 SHA-256（与两次官方失败测试快照一致）：
 
-- 本次没有产品实现提交；SERVICE-M35 逐节实现、本单总控补充、六包接口适配、旧断言变更仍以补单 01 已提交历史为记录，未重新验收，也未改动任何测试断言。
-- 没有可报告的本次 `SERVICE_M3C_EXCLUDE scale_ms` 或 `SERVICE_M3C_SKIP scale_ms`；未运行测试，不能将本对话之外的日志冒称最后一次合格测试。旧 21.6～31.0 ms 比较、完整绿、三条有效负控与恢复绿、三个 final、真实只读计数及最终 archive 均待续做。
-- 未创建、移动、删除任何合成或真实数据；未开窗口、浏览器或选择框，未下载或联网，未改契约、样例、检查器、台账、依赖包、Git 配置或远端，未 push。
-- 最小补充需求：由用户／总控确认两份未提交改动的归属与是否由本对话接续，并确认同一工作树没有另一个执行者继续写入。若为另一执行者的在途现场，应由该执行者交回，不允许本次自行还原或抢占。本受阻回执作为独立文档提交；已有源码与检查证据原样保留。
+| 文件 | SHA-256 |
+|---|---|
+| `src/clean.rs` | `280f7d28c6ae98f20ccdcaa06e03aa5fc66b50fd762272a7d08345a956fcf51e` |
+| `src/conclusion.rs` | `a41014f5e1ea8d122a0517b0d7ca2ee79885dc6c7731191885ce59a4b63557be` |
+| `src/views.rs` | `7be268d142fb11b4cd60a87e2f11e9f6b0d208a4d65b137c09c2c705b6508415` |
+
+`productionHash`：`122cdc2e0813984e9631a11387baa64e36f3902757bcf385735ad624f3b952bf`。
+
+### 官方检查（同一字节）
+
+`lock` 未重跑。官方 `check` 通过：
+
+- `2026-11-06T11-04-38.668Z-31144-check-result.json`
+- SHA-256：`8e2eef394edba17ec6c82bf1214adcd5136406cafd37a40c6c34fd01c02f3364`
+- `status: passed`；`fmt`／`clippy -D warnings` 退出 0；`realDataRead: false`，`productTestsRun: false`，原生窗口 0、选择框 0。
+
+官方 `test` 两次，产品与测试字节未改：
+
+| 回执 | 结果 | 失败 |
+|---|---|---|
+| `2026-11-06T11-04-48.060Z-14108-test-result.json` SHA-256 `b541b00e9e28a9c05bdc3ce0618e3e4949709fbdc5c9bd821f7a7a2f7711084b` | 11 passed / 1 failed，cargo 测试阶段 85.19 s | `service_storage_safety`：`SERVICE_RETURN_BUDGET: custom_root_add`（`tests/service_v1.rs:496`）。同次 `service_clean_flow` **ok** |
+| `2026-11-06T11-06-56.107Z-21788-test-result.json` SHA-256 `a8e1cb95b4d6b7eca318ac6fcd2fb5d80c2b3a33d5f88d8fb69af3f1a9434dc3` | 10 passed / 2 failed，cargo 测试阶段 54.95 s | `m35_trends_history`：`SERVICE_RETURN_BUDGET: cluster_mark_fixed`；`service_clean_flow`：`SERVICE_RETURN_BUDGET: skip_remove` |
+
+两次 `productionHash`／`testHash` 相同。两次官方 `test-5.log` 都没有打印 `SERVICE_M3C_EXCLUDE scale_ms` 或 `SERVICE_M3C_SKIP scale_ms`：第一次 `service_clean_flow` 已通过，规模 println 被 cargo 捕获丢弃；第二次在规模用例之前就因 `skip_remove` 失败。
+
+工作规则原文：“测试偶发超时可以原样重跑一次；连续两次失败就停下写受阻回执，不要自己调大超时。”第二次是允许的原样重跑。到此停止实现和测试，未调大 50 ms，未过滤测试。当时是否有 M6 或其它检查在跑：未知。
+
+### 隔离复测（不能代替官方 test）
+
+在同一 `productionHash` 上，本对话曾用检查器相同的离线／私有 target／`--test-threads=1`，只跑 `service_clean_flow --nocapture`（11 项过滤）。这不是 `--mode test`，不能当作整单绿：
+
+```
+SERVICE_M3C_SKIP scale_ms {"add":[11.294500000000001,6.3089,5.8519000000000005,5.9961,6.0],"items":10000,"remove":[5.8894,6.1318,6.2273,5.3107,6.52]}
+SERVICE_M3C_EXCLUDE scale_ms 27.5615
+test service_clean_flow ... ok
+finished in 29.27s
+```
+
+`SERVICE_M3C_EXCLUDE scale_ms 27.5615` 落在补单给出的合入前区间 21.6～31.0 ms。SKIP 的 add／remove 约 5.3～11.3 ms。第一次官方完整套件里 `service_clean_flow` 也通过，说明一万项 `group_detail`／`clean_prepare` 这条补单针对的路径在套件中至少绿过一次。
+
+### 阻塞与最小补充需求
+
+当前阻塞是：官方完整 12 项在同一字节上连续两次因 50 ms 失败，失败命令是 `custom_root_add`、`cluster_mark_fixed`、`skip_remove`。这些命令走选择框校验／canonicalize／磁盘或跳过列表，不是补单 02 点名的“给所有组预计算汇总行”。补单针对的一万项路径在隔离复测和第一次官方套件的 `service_clean_flow` 上已进入历史耗时带；整单仍未绿。
+
+没有证据证明两次失败只是宿主负载，也没有证据排除套件热机／IO 抖动。按规则不能再改产品或调时限。
+
+请总控在 50 ms、夹具规模和 `call()` 计时均不变的前提下明确其一：
+
+1. 在实现提交 `4d146934` 上安排可控负载的官方 `test` 复验；或
+2. 若认为 `custom_root_add`／`cluster_mark_fixed`／`skip_remove` 仍属本单产品问题，另发补单指定可改位置。
+
+不要授权放宽 50 ms。
+
+### 未实施与未验证
+
+- 三条负控、`check --final`、`test --final`、`real --final`：**未运行**。
+- 真实只读冒烟：**未运行**，无卡片／折叠／线索／行数／隔离卡计数。
+- SERVICE-M35 第 1～10 节与原单第 2 节总控补充：仍以补单 01 已提交实现为准，本补单未重新验收。
+- 旧断言：本补单零改动。
+- 未打开产品窗口、选择框或浏览器；未 push、改远端、改写历史、改台账／契约／样例／检查器／其它包。
+- 合成夹具仅测试过程在 `.local` 下当次新建并删除；没有清理、移动或删除真实文件。
+
+归档索引：`docs/acceptance/wave10/m7/ARCHIVE.json`，**850** 个检查器生成证据文件，合计 **21,955,568** 字节；由 `--mode archive` 按原字节复制，含补单 01 已归档的 512 份及此后的 check／test 日志与源码快照。归档器自身本次 result（`2026-11-06T11-13-47.076Z-3340-archive-result.json`，SHA-256 `04ba89c7b139fe6f12bf3b7267866c1286df2e1465674110e2765b67b75c55ca`）在复制完成后才生成，故不计入本索引。三次官方回执的归档副本 SHA-256 与 `.local/checks` 原件一致。
