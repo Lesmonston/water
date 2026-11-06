@@ -1,56 +1,37 @@
-import {add, el, heading, empty, svg, level, copyButton, button} from './common.mjs';
-import {formatBytes, byteDelta, countDelta, count, percent, bytes, dateTime} from '../format.mjs';
-import {monotoneSegments} from '../model.mjs';
-export function trends(state, actions) {
-  const page = add(el('section'), heading('增长趋势', '比较每次体检，找出一直在变大的东西。')), data = state.trends;
-  if (!data) return add(page, el('p', 'sub', '正在读取趋势…'));
-  if (data.forecast?.length || data.orphans) {
-    const overview = el('div', 'trend-overview');
-    if (data.forecast?.length) {
-      const forecast = add(el('section', 'glass forecast'), el('h2', '', '几天后满'));
-      for (const drive of data.forecast) {
-        const positive = bytes(drive.bytes_per_day) > 0n && drive.days_to_full !== null;
-        add(forecast, add(el('div', 'forecast-row', undefined, {'data-drive':drive.root}), el('b', '', drive.root.slice(0, 2)), el('span', positive ? 'forecast-full' : 'cap', positive ? `按最近 ${drive.basis_days} 天的速度，约 ${drive.days_to_full} 天后满` : drive.note_zh ?? '可用空间没有减少')));
-      }
-      add(overview, forecast);
-    }
-    if (data.orphans) {
-      const orphans = add(el('section', 'glass orphans'), el('h2', '', '残留进程'), el('p', 'cap', '这些进程在启动它的程序退出后还留着，Water 只列出、不会结束它们。'));
-      for (const chain of data.orphans.chains) add(orphans, add(el('div', 'orphan-row'), add(el('div'), el('b', '', chain.name), el('span', 'cap orphan-pattern', chain.matched_pattern)), el('span', 'cap', `${count(chain.process_count)} 个进程`), el('span', 'orphan-memory', chain.memory_bytes === null ? '—' : formatBytes(chain.memory_bytes)), el('span', 'cap orphan-start', `开始于 ${dateTime(chain.started_at)}`)));
-      add(overview, orphans);
-    }
-    add(page, overview);
+import {add, el, heading, metric, card, button, row, menu, tag} from './common.mjs';
+import {dial, stems, proportions} from './charts.mjs';
+import {formatBytes, percent} from '../format.mjs';
+export function trends(s, a) {
+  const data = s.trends, page = el('section', 'screen');
+  if (!data) return add(page, heading('趋势', '正在读取…'));
+  const system = s.app?.drives.find(d => d.is_system), f = data.forecast.find(f => f.root === system?.root), days = f?.days_to_full;
+  const hasDaily = value => value && value.days_to_full !== null && BigInt(value.bytes_per_day) > 0n;
+  const title = hasDaily(f) && days > 0 && days <= 90 ? `${system.root.slice(0, 1)} 盘约 ${days} 天后满` : '空间趋势';
+  add(page, heading(title, '每次体检留下的空间记录', hasDaily(f) ? [metric(f.bytes_per_day, '日均空间消耗'), metric(f.basis_days, '预测依据天数', true)] : []));
+  add(page, proportions(data.forecast.filter(hasDaily).map(f => ({title:`${f.root.slice(0, 1)} 盘 · 日均空间消耗`, bytes:f.bytes_per_day}))));
+  for (const value of data.forecast) if (!hasDaily(value)) add(page, el('p', 'sub forecast-note', `${value.root.slice(0, 1)} 盘 · ${value.note_zh ?? '暂不预测'}`));
+  const grid = el('div', 'with-hero'), left = el('div', 'trend-content');
+  add(left, add(card(`${system?.root.slice(0, 1) ?? ''} 盘可用空间`), stems(data.points.filter(p => p.root === system?.root).map(p => ({bytes:p.free_bytes, label:p.at.slice(5, 10)})), '已记录的可用空间与预测', hasDaily(f) && days > 0 && days <= 90 ? days : 0), f?.note_zh && el('p', 'sub', f.note_zh)));
+  const clusters = card('一直在长的');
+  for (const c of data.clusters) {
+    const entries = [['标记为已修', () => a.markFixed(c.group_id, true)]];
+    if (c.copy_text) entries.push(['复制线索给 agent', () => a.copy(c.copy_text)]);
+    add(clusters, row(c.title_zh, c.rate_zh, tag({growing:'仍在长', stopped:'已止住', suspected:'疑似'}[c.state], c.state === 'growing' ? 'hot' : ''), menu(`${c.title_zh}菜单`, entries, `cluster-${c.group_id}`)));
   }
-  const root = state.app?.drives.find(d => d.is_system)?.root ?? data.points[0]?.root;
-  const all = data.points.filter(p => p.root === root).sort((a, b) => Date.parse(a.at) - Date.parse(b.at));
-  const latest = all.length ? Date.parse(all.at(-1).at) : 0;
-  const points = all.filter(p => Date.parse(p.at) >= latest - 30 * 86400000);
-  if (points.length < 2) return add(page, empty('再体检一次就能看到变化', 'Water 会在本机记录体量变化，帮助你发现持续增长的分组。'));
-  const chart = add(el('section', 'glass chart'), add(el('div', 'split'), el('h2', '', `${root?.slice(0, 2) ?? ''} 盘可用空间 · 最近 30 天`), el('span', 'cap', `${points.length} 次体检`)));
-  const drawing = svg('svg', {viewBox:'0 0 880 230', role:'img', 'aria-label':'每次体检时的可用空间折线图；下方提供文字明细'});
-  const maximum = points.reduce((m, p) => bytes(p.free_bytes) > m ? bytes(p.free_bytes) : m, 1n);
-  const coords = points.map((p, i) => ({x:20 + i / (points.length - 1) * 840, y:190 - percent(p.free_bytes, maximum) * 1.5, p}));
-  for (const y of [40, 115, 190]) add(drawing, svg('line', {x1:20, x2:860, y1:y, y2:y, class:'chart-grid'}));
-  const path = `M${coords[0].x} ${coords[0].y} ` + monotoneSegments(coords).map(({c1, c2, end}) => `C${c1.x} ${c1.y} ${c2.x} ${c2.y} ${end.x} ${end.y}`).join(' ');
-  add(drawing, svg('path', {d:`${path} L860 190 L20 190Z`, class:'chart-area'}), svg('path', {d:path, class:'chart-line'}));
-  const minimum = points.reduce((m, p, i) => bytes(p.free_bytes) < bytes(points[m].free_bytes) ? i : m, 0);
-  // IPC v1 has no event kind on trend points; the recovery after the low point
-  // is the cleanup annotation requested by the design, not a cleanup receipt.
-  const recovered = points.findIndex((p, i) => i > minimum && bytes(p.free_bytes) > bytes(points[minimum].free_bytes));
-  const today = new Date().toISOString().slice(0, 10);
-  for (const [i, point] of coords.entries()) {
-    add(drawing, add(svg('circle', {cx:point.x, cy:point.y, r:4, class:'chart-point'}), add(svg('title'), document.createTextNode(`${dateTime(point.p.at)} · ${formatBytes(point.p.free_bytes)}`))));
-    if ([0, minimum, recovered, coords.length - 1].includes(i)) {
-      const prefix = i === coords.length - 1 && point.p.at.slice(0, 10) === today ? '今天 ' : i === recovered ? '清理后 ' : `${point.p.at.slice(5, 10)} · `;
-      add(drawing, add(svg('text', {x:point.x, y:point.y + (i === minimum ? 24 : -14), 'text-anchor':i === 0 ? 'start' : i === coords.length - 1 ? 'end' : 'middle', class:'chart-label'}), document.createTextNode(`${prefix}${formatBytes(point.p.free_bytes)}`)));
-    }
+  add(left, clusters);
+  const others = card('其它盘');
+  for (const other of data.forecast.filter(f => f !== data.forecast.find(x => x.root === system?.root))) {
+    const drive = s.app?.drives.find(d => d.root === other.root), prediction = other.note_zh ?? (other.days_to_full > 0 && other.days_to_full <= 90 ? `约 ${other.days_to_full} 天后满` : '稳定');
+    add(others, row(`${other.root.slice(0, 1)} 盘`, prediction, drive && dial(100 - percent(drive.free_bytes, drive.total_bytes), formatBytes(drive.free_bytes), '可用', 'tiny')));
   }
-  const values = el('details', 'chart-values'); add(values, el('summary', 'cap', '查看每次体检的空间记录'));
-  points.forEach(p => add(values, el('p', 'cap', `${dateTime(p.at)} · ${formatBytes(p.free_bytes)}`)));
-  add(chart, drawing, values); add(page, chart);
-  const growth = add(el('div', 'glass growth-list'), add(el('div', 'growth-row cap'), el('span', '', '增长最多'), el('span', '', '与上次相比'), el('span', '', '日均')));
-  for (const g of data.growth) add(growth, add(el('div', 'growth-row'), add(el('div'), button(g.title_zh, () => actions.detail(g.group_id), 'text-link', `growth-${g.group_id}`), g.level === 'protected' ? level(g.level) : null), el('span', 'growth', `${byteDelta(g.bytes_delta)}${g.count_delta ? ' · ' + countDelta(g.count_delta) + ' 项' : ''}`), el('span', '', formatBytes(g.bytes_per_day))));
-  const leaks = el('div', 'leaks');
-  for (const leak of data.leaks) add(leaks, add(el('section', 'glass leak'), el('p', 'growth', `疑似泄漏 · ${leak.active ? '持续增长' : '已停止'}`), el('h2', '', leak.title_zh), el('p', 'sub', leak.message_zh), el('p', 'fix', leak.fix_hint_zh), copyButton(leak.fix_hint_zh, `copy-${leak.group_id}`), button('查看详情', () => actions.detail(leak.group_id), 'btn btn-ghost', `leak-${leak.group_id}`)));
-  add(page, add(el('div', 'two'), growth, leaks)); return page;
+  add(left, others);
+  if (data.orphans) {
+    const o = add(el('details', 'fold'), el('summary', '', `残留进程 · ${data.orphans.total_memory_bytes === null ? '内存未知' : formatBytes(data.orphans.total_memory_bytes)}`));
+    for (const chain of data.orphans.chains) add(o, row(chain.name, `${chain.process_count} 个 · ${chain.started_at}`, el('span', '', chain.memory_bytes === null ? '—' : formatBytes(chain.memory_bytes))));
+    add(left, o);
+  }
+  const main = card(system ? `${system.root.slice(0, 1)} 盘` : '磁盘体检', 'dark main-card');
+  if (system) add(main, add(el('div', 'dial-slot'), dial(100 - percent(system.free_bytes, system.total_bytes), formatBytes(system.free_bytes), `可用 · 共 ${formatBytes(system.total_bytes)}`)));
+  if (f) add(main, hasDaily(f) && row('日均空间消耗', '', el('span', '', formatBytes(f.bytes_per_day))), el('p', 'sub', f.note_zh ?? (hasDaily(f) && days > 0 && days <= 90 ? `约 ${days} 天后满` : '稳定')));
+  add(main, add(el('div', 'bottom'), button('体检常用位置', a.scanCommon, 'btn primary', 'trend-scan', a.busy()))); return add(page, add(grid, left, main));
 }

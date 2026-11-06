@@ -1,17 +1,20 @@
-import {add, el, metric, driveWater, button, icon} from './common.mjs';
-import {formatBytes, percent} from '../format.mjs';
-export function resultList(result) {
-  const list = el('div', 'glass result-list');
-  const labels = {done:'已清理', partial:'部分完成', skipped:'已跳过', failed:'失败'};
-  for (const group of result.groups) add(list, add(el('div', 'clean-row'), icon(group.status === 'done' ? 'check' : 'warn', group.status === 'done' ? 'success' : 'growth'), add(el('div', 'grow-fill'), el('span', '', group.title_zh), el('span', 'cap', ` · ${labels[group.status]}${group.notes_zh.length ? ' · ' + group.notes_zh.join('；') : ''}`)), el('b', '', formatBytes(group.freed_bytes))));
-  return list;
+import {add, el, heading, metric, card, button, row} from './common.mjs';
+import {dial, blocks, proportions} from './charts.mjs';
+import {formatBytes, percent, dateTime} from '../format.mjs';
+export function resultList(r) {
+  const list = el('div', 'result-list'), labels = {done:'已清理', partial:'部分完成', skipped:'已跳过', failed:'失败', quarantined:'进隔离区'};
+  const max = r.groups.reduce((m, g) => BigInt(g.freed_bytes) > m ? BigInt(g.freed_bytes) : m, 1n);
+  for (const g of r.groups) add(list, row(g.title_zh, `${labels[g.status]}${g.notes_zh.length ? ' · ' + g.notes_zh.join('；') : ''}`, blocks(g.freed_bytes, max), el('span', '', formatBytes(g.freed_bytes)))); return list;
 }
-export function done(state, actions) {
-  const r = state.cleaned, page = el('section'), vials = el('div', 'vials');
-  for (const drive of r.drives) {
-    const original = state.app?.drives.find(d => d.root === drive.root);
-    add(vials, add(el('div', 'vial-caption'), original ? driveWater({...original, free_bytes:drive.free_after}, '0', 100 - percent(drive.free_before, original.total_bytes)) : null, el('b', '', drive.root.slice(0, 2)), el('span', 'cap', `${formatBytes(drive.free_before)} → ${formatBytes(drive.free_after)}`)));
-  }
-  add(page, add(el('div', 'glass done-hero'), add(el('div', 'grow-fill'), el('p', 'cap', state.cleanTerminal === 'stopped' ? '清理已停止' : state.cleanTerminal === 'failed' ? '清理已结束，请查看结果' : '清理完成'), metric(r.freed_bytes, '已释放'), el('p', 'sub', `预计 ${formatBytes(r.estimate_bytes)}，实际 ${formatBytes(r.freed_bytes)}；差额来自跳过或未完成的项。`), add(el('div', 'actions'), button('回到结果', () => actions.navigate('results'), 'btn btn-primary', 'back-results'), button('查看清理记录', () => actions.navigate('history'), 'btn btn-glass', 'view-history'))), vials), resultList(r));
-  return page;
+export function done(s, a) {
+  const r = s.cleaned, page = add(el('section', 'screen'), heading('清理完成', dateTime(r.finished_at), [metric(r.freed_bytes, '已腾出'), r.quarantined && metric(r.quarantined.bytes, '进隔离区'), metric(r.estimate_bytes, '原预计释放')]));
+  add(page, proportions([{title:'已腾出', bytes:r.freed_bytes, kind:'lime'}, ...(r.quarantined ? [{title:'隔离区', bytes:r.quarantined.bytes}] : [])]));
+  const grid = el('div', 'with-hero'), content = el('div', 'done-content'), drives = el('div', 'done-drives');
+  for (const d of r.drives) { const source = s.app.drives.find(x => x.root === d.root); add(drives, add(card(`${d.root.slice(0, 1)} 盘`), dial(source ? 100 - percent(d.free_after, source.total_bytes) : 0, formatBytes(d.free_after), `可用 · 清理前 ${formatBytes(d.free_before)}`, '', source ? [100 - percent(d.free_after, source.total_bytes), 100 - percent(d.free_before, source.total_bytes)] : null))); }
+  add(content, drives, add(card('各组结果'), resultList(r)));
+  const main = add(card('这次清理', 'dark main-card'), metric(r.freed_bytes, '已腾出'), el('p', 'sub', `预计 ${formatBytes(r.estimate_bytes)}`));
+  if (r.quarantined) add(main, el('p', '', `另有 ${formatBytes(r.quarantined.bytes)} 在隔离区，确认没问题后再永久删除`), r.quarantined.notes_zh.map(n => el('p', 'sub', n)));
+  if (r.groups.some(g => ['partial', 'skipped', 'failed'].includes(g.status))) add(main, el('p', 'warning', '部分完成，请查看各组结果。'));
+  add(main, add(el('div', 'bottom action-stack'), r.quarantined && button('去隔离区', () => a.navigate('quarantine'), 'btn ghost', 'done-quarantine'), button('完成', a.finish, 'btn primary', 'done-finish')));
+  return add(page, add(grid, content, main));
 }

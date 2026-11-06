@@ -1,381 +1,278 @@
 import * as ipc from './ipc.mjs';
-import {installResult as nextResult, refreshResult, selectionDetails, setSelected, selectCategory, setItemSelected, cleanSelection} from './model.mjs';
-import {formatBytes} from './format.mjs';
-import {el, add, icon, button} from './views/common.mjs';
+import {canonicalRoute, validQuery} from './model.mjs';
+import {formatBytes, elapsed} from './format.mjs';
+import {el, add, button, icon, iconButton, row} from './views/common.mjs';
 import {home} from './views/home.mjs';
 import {scan} from './views/scan.mjs';
-import {results, dock} from './views/results.mjs';
-import {detail, updateDetailSelection} from './views/detail.mjs';
+import {results} from './views/results.mjs';
+import {detail, details} from './views/detail.mjs';
 import {confirm} from './views/confirm.mjs';
 import {cleaning} from './views/cleaning.mjs';
 import {done} from './views/done.mjs';
+import {quarantine} from './views/quarantine.mjs';
+import {dedupe} from './views/dedupe.mjs';
 import {trends} from './views/trends.mjs';
-import {history as historyView} from './views/history.mjs';
+import {history as records} from './views/history.mjs';
 import {locations} from './views/locations.mjs';
-import {about} from './views/about.mjs';
 
-const routes = ['home', 'results', 'trends', 'history', 'locations', 'about'];
-const state = {app:null, connecting:true, busy:'idle', pending:false, error:'', errorCode:null, info:'', result:null, selection:new Map(), details:new Map(), drive:null, filter:'all', sort:'bytes', stale:false, cleaned:null, showDone:false, progressFailures:0, reconnecting:false, recoveryPending:false, pollPaused:false, pauseReason:'', stopFailed:false, historyDetails:new Map()};
-let route = 'home', timer, stopAnnouncement, polling = false, overlay, opener, routeVersion = 0;
-const routeReads = new Map();
+const s = {app:null, locations:null, busy:'idle', pending:false, connecting:true, error:'', route:'home', mode:'home', selectedLocations:new Set(), conclusion:null, openFolds:new Set(), scanSamples:[], detailMode:'category', detailQuery:'', openSection:null, modal:null, historyDetails:new Map(), pollPaused:false};
 const page = document.getElementById('page'), main = document.getElementById('main');
-const motionObserver = new IntersectionObserver(entries => entries.forEach(entry => entry.target.style.setProperty('--motion-state', entry.isIntersecting ? 'running' : 'paused')));
-const actions = {
-  busy:() => state.pending || state.busy !== 'idle' || !state.app,
-  navigate, connect, reconnectProgress:() => { if (!polling) { clearError(); beginPolling(); render(); } },
-  scan:() => run(async inScope => {
-    if (state.busy !== 'idle') return;
-    const value = await ipc.scan_start();
-    state.scanId = value.scan_id; state.scanProgress = null; state.busy = 'scanning'; state.cleaned = null; state.stale = true;
-    state.scanRunningSeen = false; state.scanIdleCount = 0;
-    if (inScope()) navigate('home');
-    beginPolling();
-  }),
-  stopScan:() => run(inScope => stop(() => ipc.scan_cancel(state.scanId ?? state.scanProgress?.scan_id), inScope), true),
-  stopClean:() => run(inScope => stop(() => ipc.clean_stop(), inScope), true),
-  detail:id => run(async inScope => {
-    const scanId = state.result?.scan_id, stale = state.stale;
-    const value = await ipc.group_detail(id);
-    if (inScope() && state.result?.scan_id === scanId && state.stale === stale) { rememberDetail(value); showOverlay(detail(value, closeOverlay, state, actions), 'detail-close'); }
-  }),
-  selectItem:(data, itemId, checked) => {
-    if (actions.busy() || state.stale) return;
-    state.selection = setItemSelected(state.result, state.selection, data, itemId, checked, selectionDetails(state));
-    if (!checked && state.selection.get(data.group.group_id)?.has(itemId)) state.manualExclusions.add(itemId);
-    else state.manualExclusions.delete(itemId);
-    retainManualExclusions();
-    if (overlay) updateDetailSelection(overlay, data, state);
-    render();
-  },
-  skipItem:(data, itemId) => locationOperation(async isCurrent => {
-    if (state.stale) return;
-    const scanId = state.result?.scan_id;
-    state.skipFailure = '';
-    const sameScan = () => state.result?.scan_id === scanId;
-    let value;
-    try { value = await settingsWrite(() => ipc.skip_add(itemId)); }
-    catch (error) {
-      state.skipFailure = '跳过没有成功，这一项保留原来的勾选状态。';
-      throw {...error, message_zh:state.skipFailure + (error?.code === 'stale' ? '结果已过期，请重新体检后再清理。' : '')};
-    }
-    if (sameScan()) state.selection = setItemSelected(state.result, state.selection, data, itemId, false, selectionDetails(state));
-    await refreshAfterSettings(scanId);
-    if (isCurrent()) state.locations = value;
-    if (!sameScan() || state.stale) return;
-    // Reconcile the insurance exclusion even after navigation; only the drawer is route-owned.
-    try {
-      const refreshed = await ipc.group_detail(data.group.group_id);
-      if (sameScan() && !state.stale) {
-        rememberDetail(refreshed);
-        if (isCurrent()) { state.info = '以后体检会跳过这个文件夹，可以在‘位置’里恢复'; showOverlay(detail(refreshed, closeOverlay, state, actions), 'detail-close', opener); }
-      } else fault({code:'stale', message_zh:'结果已过期，请重新体检后再清理。'});
-    } catch { fault({code:'stale', message_zh:'结果已过期，请重新体检后再清理。'}); }
-  }),
-  select:(id, checked) => { if (actions.busy() || state.stale) return; state.selection = setSelected(state.result, state.selection, id, checked, selectionDetails(state)); retainManualExclusions(); render(); },
-  selectCategory:(category, checked) => { if (actions.busy() || state.stale) return; state.selection = selectCategory(state.result, state.selection, category, checked, state.drive, selectionDetails(state), state.filter); retainManualExclusions(); render(); },
-  filter:value => { state.filter = value; render(); },
-  drive:value => { state.drive = value; render(); },
-  sort:value => { state.sort = value; render(); },
-  prepare:() => run(async inScope => {
-    if (state.busy !== 'idle' || state.stale) return;
-    state.skipFailure = '';
-    render();
-    const {groupIds, excludeItemIds} = cleanSelection(state.result, state.selection, selectionDetails(state));
-    if (!groupIds.length) return;
-    let preview = await ipc.clean_prepare(groupIds, excludeItemIds);
-    // A preview that arrives after the user left the results page is dropped; returning needs a new click.
-    if (!inScope()) return;
-    showOverlay(confirm(preview, closeOverlay, () => run(async inScope => {
-      const {plan_id, confirm_token} = preview; preview = null;
-      closeOverlay(true);
-      let value;
-      try { value = await ipc.clean_start(plan_id, confirm_token); }
-      catch (error) {
-        if (error?.code === 'stale') throw error;
-        throw {...error, message_zh:(error?.message_zh || (error?.code === 'unavailable' ? '无法连接 Water 服务' : 'Water 服务暂时不可用')) + ' 请重新点击“清理所选”并确认。'};
-      }
-      state.busy = 'cleaning'; state.cleanId = value.clean_id; state.cleanProgress = null; state.cleaned = null;
-      if (inScope()) navigate('home');
-      beginPolling();
-    })), 'confirm-cancel');
-  }),
-  toggleCategory:(category, enabled) => locationOperation(async isCurrent => {
-    const scanId = !state.stale && state.result?.scan_id;
-    const value = await settingsWrite(() => ipc.locations_set_category(category, enabled));
-    await refreshAfterSettings(scanId);
-    if (isCurrent()) state.locations = value;
-  }),
-  addRoot:() => locationOperation(async isCurrent => {
-    const value = await ipc.custom_root_add();
-    if (!value.cancelled && isCurrent()) { const locations = await ipc.locations_get(); if (isCurrent()) state.locations = locations; }
-  }),
-  removeRoot:id => locationOperation(async isCurrent => { const value = await ipc.custom_root_remove(id); if (isCurrent()) state.locations = value; }),
-  restoreSkip:id => locationOperation(async isCurrent => {
-    const scanId = !state.stale && state.result?.scan_id;
-    const value = await settingsWrite(() => ipc.skip_remove(id));
-    await refreshAfterSettings(scanId);
-    if (isCurrent()) { state.locations = value; if (scanId && !state.stale) state.info = '已恢复，这个文件夹以后会照常体检。'; }
-  }),
-  historyDetail:entry => run(async () => {
-    if (state.historyOpen === entry.id) { state.historyOpen = null; return; }
-    state.historyOpen = entry.id;
-    await readHistoryDetail(entry);
-  })
-};
-function retainManualExclusions() {
-  const active = new Set([...state.selection.values()].flatMap(ids => [...ids]));
-  state.manualExclusions = new Set([...state.manualExclusions].filter(id => active.has(id)));
+let timer, polling = false, stopped = false, routeEpoch = 0, quarantineRevision = 0, overlay, opener, sampleSecond = -1;
+const busy = () => s.pending || s.busy !== 'idle' || !s.app;
+function fail(error, scope) {
+  if (error?.code === 'stale' && scope === 'conclusion') { markStale(); s.modal = null; s.preview = null; }
+  s.error = error?.message_zh || (error?.code === 'unavailable' ? '无法连接 Water 服务' : 'Water 服务暂时不可用');
 }
-async function settingsWrite(request) {
-  try { return await request(); }
-  catch (error) { if (state.result && !state.stale) { state.stale = true; closeOverlay(true); } throw error; }
+async function run(task, scope) {
+  if (s.pending) return; s.pending = true; s.error = ''; render();
+  try { await task(); } catch (error) {
+    if (scope === 'dedupe' && error?.code === 'stale') await recoverDedupe();
+    else fail(error, scope);
+  }
+  finally { s.pending = false; render(); }
 }
-async function refreshAfterSettings(scanId) {
-  if (!scanId) return;
+function markStale() { if (s.conclusion) s.conclusion = {...s.conclusion, stale:true}; }
+function navigate(route) {
+  const next = canonicalRoute(route);
+  if (s.route === next) { s.modal = null; render(); void loadRoute(); return; }
+  location.hash = next;
+}
+async function readConclusion() {
+  try { s.conclusion = await ipc.conclusion_get(); }
+  catch (error) { if (error?.code === 'stale') markStale(); throw error; }
+}
+async function returnToCheckup(fresh = false) {
+  if (s.busy !== 'idle') return;
+  if (fresh || !s.conclusion) {
+    try { await readConclusion(); }
+    catch (error) { if (error?.code !== 'not_found') throw error; s.conclusion = null; }
+  }
+  s.mode = s.conclusion ? 'results' : 'home'; s.dedupe = null; s.dedupeId = null; s.preview = null; s.modal = null;
+  main.scrollTop = 0; navigate('home');
+}
+async function recoverDedupe() {
+  s.preview = null; s.modal = null;
   try {
-    if (state.result?.scan_id !== scanId || state.stale) throw new Error('scan changed');
-    const value = await ipc.scan_result(scanId);
-    if (state.result?.scan_id !== scanId || state.stale || value.scan_id !== scanId) throw new Error('scan changed');
-    Object.assign(state, refreshResult(state, value));
-    // A retained manual exclusion may have become eligible again. Reconcile its
-    // counting metadata before enabling cleanup, without repopulating the drawer cache.
-    for (const [id, data] of state.excludedDetails) {
-      if (!data.items.some(item => !item.eligible && state.manualExclusions.has(item.item_id))) continue;
-      const refreshed = await ipc.group_detail(id);
-      if (state.result?.scan_id !== scanId || state.stale) throw new Error('scan changed');
-      if (data.items.some(item => !item.eligible && state.manualExclusions.has(item.item_id) && !refreshed.items.some(fresh => fresh.item_id === item.item_id))) throw new Error('excluded item state unavailable');
-      rememberDetail(refreshed, false);
-    }
-    if (state.app?.last_scan?.scan_id === scanId) state.app = {...state.app, last_scan:{...state.app.last_scan, recommended_bytes:value.totals.recommended_bytes, recommended_by_drive:value.recommended_by_drive}};
+    s.dedupe = await ipc.dedupe_result(s.dedupe?.dedupe_id ?? s.dedupeId, false);
+    if (s.busy === 'deduping') s.busy = 'idle';
+    s.mode = 'dedupe'; s.pollPaused = false;
   } catch {
-    fault({code:'stale', message_zh:'结果已过期，请重新体检后再清理。'});
+    s.dedupe = null; s.dedupeId = null; s.mode = 'home';
+    if (s.busy === 'deduping') s.busy = 'idle';
+    s.pollPaused = false; navigate('home'); s.error = '查重结果已失效，请重新查重';
   }
 }
-function rememberDetail(data, cache = true) {
-  const excluded = state.selection.get(data.group.group_id);
-  // Keep known metadata for excluded items outside the refreshed display window.
-  // The drawer still renders only the fresh response; counts and plans keep the exclusions.
-  const retained = (selectionDetails(state).get(data.group.group_id)?.items ?? []).filter(item => excluded?.has(item.item_id) && !data.items.some(fresh => fresh.item_id === item.item_id));
-  const known = {...data, items:[...data.items, ...retained]};
-  if (cache) state.details.set(data.group.group_id, known);
-  else state.excludedDetails.set(data.group.group_id, {...known, items:known.items.filter(item => excluded?.has(item.item_id))});
-  if (!state.result) return;
-  state.result = {...state.result, categories:state.result.categories.map(c => ({...c, groups:c.groups.map(g => g.group_id === data.group.group_id ? data.group : g)}))};
-  if (excluded) state.selection.set(data.group.group_id, new Set([...excluded].filter(id => state.manualExclusions.has(id) || !data.items.some(item => item.item_id === id && item.eligible === false))));
-}
-function nextRouteRead(key) {
-  const request = (routeReads.get(key) ?? 0) + 1;
-  routeReads.set(key, request);
-  return () => routeReads.get(key) === request;
-}
-function locationOperation(operation) {
-  return run(async inScope => {
-    if (state.busy !== 'idle') return;
-    const isLatest = nextRouteRead('locations'), isCurrent = () => isLatest() && inScope();
-    try { await operation(isCurrent); }
-    catch (error) { if (isCurrent()) throw error; }
-  });
-}
-async function readHistoryDetail(entry, isCurrent = () => true) {
-  if (!state.historyDetails.has(entry.id)) {
-    const value = await (entry.kind === 'clean' ? ipc.clean_result(entry.id) : ipc.scan_result(entry.id));
-    if (isCurrent()) state.historyDetails.set(entry.id, value);
-  }
-}
-// A stop that fails while progress is paused cannot use the notice, which keeps the pause reason.
-async function stop(request, inScope) {
-  try { await request(); }
-  catch (error) {
-    if (inScope() && state.pollPaused) {
-      state.stopFailed = true;
-      clearTimeout(stopAnnouncement);
-      const announcer = document.getElementById('announcer'); announcer.textContent = '';
-      stopAnnouncement = setTimeout(() => { if (state.stopFailed && inScope()) announcer.textContent = '停止请求没有送达，请先重新连接再试。'; }, 120);
+function installQuarantine(view) { quarantineRevision++; s.quarantine = view; }
+async function loadRoute() {
+  const epoch = ++routeEpoch, route = s.route, revision = quarantineRevision;
+  try {
+    const get = route === 'quarantine' ? ipc.quarantine_list : route === 'trends' ? ipc.trends : route === 'history' ? ipc.history_list : route.startsWith('settings/') ? ipc.locations_get : null;
+    if (get) {
+      const value = await get(); if (epoch !== routeEpoch || s.route !== route) return;
+      if (route === 'quarantine' && revision !== quarantineRevision) return;
+      s[route === 'history' ? 'history' : route.startsWith('settings/') ? 'locations' : route] = value;
     }
-    throw error;
-  }
+  } catch (error) { if (epoch === routeEpoch && (route !== 'quarantine' || revision === quarantineRevision)) fail(error); }
+  if (epoch === routeEpoch) render();
 }
-function clearError() { state.error = ''; state.errorCode = null; state.info = ''; }
-// Superseded reads are discarded before fault(); other stale commands still invalidate results.
-// The notice and overlay belong only to the page that issued the current command.
-function fault(error, show = true) {
-  if (error?.code === 'stale') state.stale = true;
-  if (!show) return;
-  state.error = typeof error?.message_zh === 'string' && error.message_zh ? error.message_zh : error?.code === 'unavailable' ? '无法连接 Water 服务' : 'Water 服务暂时不可用';
-  state.errorCode = error?.code ?? null;
-  if (error?.code === 'stale') closeOverlay(true);
-}
-async function run(fn, clearStop = false) {
-  if (state.pending) return;
-  const version = routeVersion, origin = location.hash, paused = state.pollPaused;
-  const inScope = () => version === routeVersion && origin === location.hash;
-  state.pending = true; clearError(); if (clearStop) state.stopFailed = false; render();
-  const controls = [...(overlay?.querySelectorAll('button, input') ?? [])].map(node => [node, node.disabled]);
-  controls.forEach(([node]) => { node.disabled = true; });
-  try { await fn(inScope); } catch (error) { fault(error, inScope() && !paused && !state.pollPaused); }
-  finally { state.pending = false; controls.forEach(([node, disabled]) => { node.disabled = disabled; }); render(); }
-}
-function installResult(value) { Object.assign(state, nextResult(state, value)); }
 async function connect() {
-  state.connecting = true;
   await run(async () => {
+    s.connecting = true;
     try {
-      state.app = await ipc.app_state(); state.busy = state.app.busy;
-      if (state.busy !== 'idle') { state.scanRunningSeen = false; state.scanIdleCount = 0; beginPolling(); }
-      if (state.app.last_scan) installResult(await ipc.scan_result(state.app.last_scan.scan_id));
-    } finally { state.connecting = false; }
+      s.app = await ipc.app_state(); s.busy = s.app.busy;
+      s.locations = await ipc.locations_get();
+      s.selectedLocations = new Set(s.locations.home.filter(l => l.default_selected).map(l => l.location_id));
+      try { s.trends = await ipc.trends(); } catch { s.trends = null; }
+      if (s.busy !== 'idle') schedule();
+    } finally { s.connecting = false; }
   });
   await loadRoute();
 }
-function sidebar() {
-  const side = document.getElementById('sidebar');
-  if (!side.children.length) {
-    add(side, add(el('div', 'brand'), icon('berg'), add(el('div'), el('b', '', 'Water'), el('small', '', '磁盘体检'))));
-    const nav = el('nav', 'nav', undefined, {'aria-label':'主导航'});
-    for (const [key, label, glyph] of [['home', '体检', 'pulse'], ['trends', '增长趋势', 'trend'], ['history', '清理记录', 'history'], ['locations', '扫描位置', 'folder'], ['about', '关于与隐私', 'shield']]) {
-      const link = el('a', '', undefined, {href:`#/${key}`, 'data-route':key, 'data-key':`nav-${key}`}); add(link, icon(glyph), el('span', '', label)); add(nav, link);
-      link.addEventListener('click', event => { event.preventDefault(); navigate(key); });
+function schedule() { clearTimeout(timer); if (!stopped && s.busy !== 'idle' && !s.pollPaused) timer = setTimeout(poll, 250); }
+function resumePolling() { s.pollPaused = false; s.pollReason = ''; s.error = ''; schedule(); }
+async function stopTask(request) { await request(); resumePolling(); }
+async function poll() {
+  if (polling || s.busy === 'idle' || s.pollPaused || stopped) return;
+  polling = true;
+  const kind = s.busy;
+  try {
+    if (kind === 'scanning') {
+      const p = await ipc.scan_progress(); s.scanProgress = p; s.scanId = p.scan_id ?? s.scanId;
+      const second = Math.floor(p.elapsed_ms / 1000);
+      if (second !== sampleSecond) { s.scanSamples.push({bytes:p.found_bytes, label:elapsed(p.elapsed_ms)}); sampleSecond = second; }
+      if (['completed', 'partial', 'cancelled'].includes(p.state)) { await readConclusion(); s.busy = 'idle'; s.mode = 'results'; s.app = await ipc.app_state(); }
+      else if (p.state === 'failed') { s.busy = 'idle'; s.error = '体检未能完成，请重新体检。'; s.mode = 'home'; }
+    } else if (kind === 'cleaning') {
+      const p = await ipc.clean_progress(); s.cleanProgress = p; s.cleanId = p.clean_id ?? s.cleanId;
+      if (['completed', 'stopped', 'failed'].includes(p.state)) { s.cleaned = await ipc.clean_result(s.cleanId); s.busy = 'idle'; s.mode = 'done'; markStale(); s.app = await ipc.app_state(); }
+    } else if (kind === 'deduping') {
+      const p = await ipc.dedupe_progress(); s.dedupeProgress = p; s.dedupeId = p.dedupe_id ?? s.dedupeId;
+      if (['completed', 'cancelled'].includes(p.state)) { s.dedupe = await ipc.dedupe_result(s.dedupeId, false); s.busy = 'idle'; s.mode = 'dedupe'; }
+      else if (p.state === 'failed') { s.busy = 'idle'; s.error = '查重未能完成，请重试。'; s.mode = 'home'; }
+    } else if (kind === 'purging') {
+      const p = await ipc.quarantine_progress(); s.quarantineProgress = p;
+      if (['completed', 'stopped', 'failed'].includes(p.state)) { installQuarantine(await ipc.quarantine_list()); s.app = await ipc.app_state(); s.busy = 'idle'; }
     }
-    add(side, nav, add(el('footer', 'side-foot'), el('b', '', '本地只读扫描'), el('p', '', '不读取文件内容，不上传任何数据'), el('span', 'version')));
+  } catch (error) {
+    if (kind === 'deduping' && error?.code === 'stale') await recoverDedupe();
+    else { fail(error); s.pollReason = s.error; s.pollPaused = true; }
   }
-  side.querySelector('.version').textContent = state.app ? `Water ${state.app.app_version}` : 'Water';
-  side.querySelectorAll('[data-route]').forEach(link => { const active = link.dataset.route === (route === 'results' ? 'home' : route); link.classList.toggle('on', active); if (active) link.setAttribute('aria-current', 'page'); else link.removeAttribute('aria-current'); });
+  finally { polling = false; render(); schedule(); }
+}
+async function beginScan() {
+  if (s.busy !== 'idle') return;
+  const value = await ipc.scan_start([...s.selectedLocations]);
+  markStale(); s.scanId = value.scan_id; s.scanProgress = null; s.scanSamples = []; sampleSecond = -1; s.busy = 'scanning'; s.pollPaused = false; s.mode = 'scan'; s.modal = null; navigate('home'); schedule();
+}
+async function refreshDrawer() {
+  const d = s.drawer; if (!d) return;
+  d.data = await ipc.group_detail(d.data.group.group_id);
+  if (d.items) d.items = await ipc.group_items(d.data.group.group_id, d.rowId, d.query);
+}
+async function prepare(chosenMode = 'quarantine') {
+  if (s.busy !== 'idle' || s.conclusion?.stale && s.prepareSource !== 'dedupe') return;
+  const epoch = routeEpoch;
+  const value = await ipc.clean_prepare(s.prepareSource === 'dedupe' ? {dedupeId:s.dedupe.dedupe_id, dedupeVersion:s.dedupe.version} : {conclusionVersion:s.conclusion.version, chosenMode});
+  if (epoch !== routeEpoch) return;
+  s.preview = value; show('confirm');
+}
+function show(kind) { if (!s.modal) opener = document.activeElement?.dataset.key; s.modal = kind; }
+function close() { if (s.pending) return; s.modal = null; s.preview = null; render(); }
+const a = {
+  busy, connect, navigate, close,
+  returnToCheckup:() => run(() => returnToCheckup(s.mode === 'done')),
+  chooseLocations:() => { s.mode = 'home'; s.modal = null; main.scrollTop = 0; render(); },
+  selectLocation:id => { if (busy()) return; s.selectedLocations.has(id) ? s.selectedLocations.delete(id) : s.selectedLocations.add(id); render(); },
+  scan:() => run(beginScan),
+  scanCommon:() => run(async () => { s.selectedLocations = new Set(['common']); await beginScan(); }),
+  stopScan:() => run(() => stopTask(() => ipc.scan_cancel(s.scanId))), stopClean:() => run(() => stopTask(() => ipc.clean_stop())),
+  showResults:() => run(async () => { await readConclusion(); s.mode = 'results'; main.scrollTop = 0; navigate('home'); }),
+  addRoot:() => run(async () => { if (s.busy !== 'idle') return; const v = await ipc.custom_root_add(); if (!v.cancelled) { s.locations = await ipc.locations_get(); s.selectedLocations = new Set([v.added.root_id]); s.revealLocation = v.added.root_id; } }),
+  removeRoot:id => run(async () => { s.locations = await ipc.custom_root_remove(id); s.selectedLocations.delete(id); }),
+  decide:decision => run(async () => {
+    if (s.busy !== 'idle' || !s.conclusion || s.conclusion.stale) return;
+    s.conclusion = await ipc.conclusion_decide(s.conclusion.version, decision);
+    if (s.mode === 'details') s.detailsView = await ipc.detail_get(s.conclusion.version, s.detailMode);
+    if (s.modal === 'drawer') await refreshDrawer();
+  }, 'conclusion'),
+  detail:id => run(async () => { const epoch = routeEpoch, value = await ipc.group_detail(id); if (epoch !== routeEpoch) return; if (!s.conclusion) await readConclusion(); s.drawer = {data:value, query:null, rowId:null, items:null, error:''}; show('drawer'); }, 'conclusion'),
+  searchItems:query => {
+    if (!validQuery(query)) { s.drawer.error = '搜索词不能含有 \\、/ 或 :。'; render(); return; }
+    return run(async () => { s.drawer.query = query || null; s.drawer.rowId = null; s.drawer.error = ''; s.drawer.items = await ipc.group_items(s.drawer.data.group.group_id, null, s.drawer.query); }, 'conclusion');
+  },
+  expandRow:rowId => run(async () => { s.drawer.rowId = rowId; s.drawer.query = null; s.drawer.items = await ipc.group_items(s.drawer.data.group.group_id, rowId, null); }, 'conclusion'),
+  summaryRows:() => { s.drawer.items = null; s.drawer.query = null; s.drawer.rowId = null; render(); },
+  skipItem:itemId => run(async () => { if (s.conclusion?.stale) return; s.locations = await ipc.skip_add(itemId); await readConclusion(); s.modal = null; }),
+  details:() => run(async () => { s.detailsView = await ipc.detail_get(s.conclusion.version, s.detailMode); s.mode = 'details'; s.modal = null; main.scrollTop = 0; }, 'conclusion'),
+  detailsMode:mode => run(async () => { s.detailsView = await ipc.detail_get(s.conclusion.version, mode); s.detailMode = mode; s.openSection = null; }, 'conclusion'),
+  openSection:id => { s.openSection = s.openSection === id ? null : id; render(); },
+  searchDetails:query => { s.detailQuery = query; render(); },
+  prepare:() => run(async () => { s.prepareSource = 'conclusion'; await prepare(); }, 'conclusion'),
+  prepareDedupe:() => run(async () => { s.prepareSource = 'dedupe'; await prepare(); }, 'dedupe'),
+  changeMode:mode => run(() => prepare(mode), s.prepareSource),
+  startClean:() => run(async () => {
+    const p = s.preview; if (!p || s.busy !== 'idle') return;
+    s.preview = null; s.modal = null;
+    const v = await ipc.clean_start(p.plan_id, p.confirm_token); s.cleanId = v.clean_id; s.cleanProgress = null; s.busy = 'cleaning'; s.pollPaused = false; navigate('home'); schedule();
+  }, s.prepareSource),
+  finish:() => run(() => returnToCheckup(true)),
+  copy:async text => { try { await navigator.clipboard.writeText(text); } catch { s.copyText = text; show('copy'); render(); } },
+  reveal:id => run(() => ipc.quarantine_reveal(id)),
+  revealRoots:() => run(async () => { const revision = quarantineRevision, view = await ipc.quarantine_list(); if (revision !== quarantineRevision) return; s.quarantine = view; if (s.quarantine.roots.length === 1) await ipc.quarantine_reveal(s.quarantine.roots[0].target_id); else show('roots'); }),
+  restore:(id, beside) => run(async () => { const v = await ipc.quarantine_restore(id, beside); installQuarantine(v.view); s.app = await ipc.app_state(); if (v.conflicts.length) { s.conflict = {id, result:v}; show('conflict'); } else s.modal = null; }),
+  confirmPurge:c => { if (busy()) return; s.purgeCard = c; show('purge'); render(); },
+  purge:() => run(async () => { await ipc.quarantine_delete(s.purgeCard.quarantine_id); quarantineRevision++; s.modal = null; s.busy = 'purging'; s.pollPaused = false; schedule(); }),
+  dedupeIntro:loc => { if (busy()) return; s.dedupeLocation = loc; show('dedupe-intro'); render(); },
+  startDedupe:() => run(async () => { const v = await ipc.dedupe_start(s.dedupeLocation.location_id); s.dedupeId = v.dedupe_id; s.dedupeProgress = null; s.modal = null; s.busy = 'deduping'; s.pollPaused = false; s.mode = 'dedupe'; navigate('home'); schedule(); }, 'dedupe'),
+  stopDedupe:() => run(() => stopTask(() => ipc.dedupe_cancel(s.dedupeId)), 'dedupe'),
+  dedupeDecide:(groupId, include) => run(async () => { s.dedupe = await ipc.dedupe_decide(s.dedupe.dedupe_id, s.dedupe.version, groupId, include); }, 'dedupe'),
+  expandDedupe:() => run(async () => { s.dedupe = await ipc.dedupe_result(s.dedupe.dedupe_id, true); }, 'dedupe'),
+  category:(id, enabled) => run(async () => { s.locations = await ipc.locations_set_category(id, enabled); }),
+  session:(id, enabled, days) => run(async () => { s.locations = await ipc.locations_set_session_cleanup(id, enabled, days); markStale(); }),
+  trust:(id, trusted) => run(async () => { s.locations = await ipc.manifest_trust(id, trusted); markStale(); }),
+  removeSkip:id => run(async () => { s.locations = await ipc.skip_remove(id); markStale(); }),
+  markFixed:(id, fixed) => run(async () => { s.trends = await ipc.cluster_mark_fixed(id, fixed); }),
+  historyDetail:entry => run(async () => {
+    if (s.historyOpen === entry.id) { s.historyOpen = null; return; } s.historyOpen = entry.id;
+    if (entry.kind === 'clean') s.historyDetails.set(entry.id, await ipc.clean_result(entry.id));
+    else if (entry.kind === 'scan') s.historyDetails.set(entry.id, await ipc.scan_result(entry.id));
+    else if (entry.kind === 'dedupe') s.historyDetails.set(entry.id, await ipc.dedupe_result(entry.id, false));
+  })
+};
+function top() {
+  const header = document.getElementById('top');
+  if (!header.children.length) {
+    add(header, add(el('div', 'brand'), icon('berg'), el('span', '', 'Water')));
+    const nav = el('nav', 'nav', undefined, {'aria-label':'主导航'});
+    for (const [id, label, glyph] of [['home', '体检', 'pulse'], ['quarantine', '隔离区', 'box'], ['trends', '趋势', 'trend'], ['history', '记录', 'history']]) {
+      const link = add(el('a', '', undefined, {href:`#${id}`, 'data-route':id, 'data-key':`nav-${id}`}), icon(glyph), el('span', '', label));
+      if (id === 'home') link.addEventListener('click', event => {
+        if (s.busy === 'idle' && ['dedupe', 'done'].includes(s.mode)) { event.preventDefault(); a.returnToCheckup(); }
+      });
+      if (id === 'quarantine') add(link, el('span', 'quarantine-size')); add(nav, link);
+    }
+    const gear = add(el('a', 'icon-btn', undefined, {href:'#settings', 'aria-label':'设置', title:'设置', 'data-key':'nav-settings'}), icon('settings'));
+    add(header, nav, add(el('div', 'top-actions'), iconButton('本地只读扫描', 'eye', () => navigate('settings/about'), 'privacy'), gear));
+  }
+  header.querySelectorAll('[data-route]').forEach(link => { const selected = link.dataset.route === s.route; link.classList.toggle('on', selected); selected ? link.setAttribute('aria-current', 'page') : link.removeAttribute('aria-current'); });
+  const q = s.app?.quarantine; header.querySelector('.quarantine-size').textContent = q ? formatBytes(q.bytes) : '';
+  header.querySelector('[data-key=nav-settings]').classList.toggle('on', s.route.startsWith('settings/'));
+}
+function simpleModal(title, content, actions) {
+  return add(el('dialog', 'confirm', undefined, {'aria-labelledby':'modal-title'}), el('h2', '', title, {id:'modal-title'}), content, add(el('div', 'dialog-actions'), actions));
+}
+function paintOverlay(activeKey) {
+  const prior = overlay;
+  if (prior) { prior.close(); prior.remove(); overlay = null; }
+  if (!s.modal) { if (prior && opener) document.querySelector(`[data-key="${CSS.escape(opener)}"]`)?.focus({preventScroll:true}); return; }
+  if (s.modal === 'confirm') overlay = confirm(s, a);
+  else if (s.modal === 'drawer') overlay = detail(s, a);
+  else if (s.modal === 'copy') { const field = el('textarea', 'copy-text', s.copyText, {readonly:'', 'aria-label':'线索全文', 'data-key':'copy-text'}); overlay = simpleModal('选中文字复制线索', field, [button('关闭', close, 'btn soft', 'modal-close')]); }
+  else if (s.modal === 'roots') overlay = simpleModal('打开隔离区文件夹', s.quarantine.roots.map(r => row(r.display_path, formatBytes(r.bytes), button('打开文件夹', () => a.reveal(r.target_id), 'btn soft', `root-open-${r.target_id}`))), [button('取消', close, 'btn soft', 'modal-close')]);
+  else if (s.modal === 'conflict') overlay = simpleModal('原位置已有内容', s.conflict.result.conflicts.map(c => row(c.label_zh, c.reason_zh)), [button('放弃', close, 'btn soft', 'restore-cancel', s.pending), button('还原到旁边', () => a.restore(s.conflict.id, true), 'btn ink', 'restore-beside', s.pending)]);
+  else if (s.modal === 'purge') overlay = simpleModal(`永久删除 ${formatBytes(s.purgeCard.bytes)}？`, el('p', '', '不进入回收站，无法恢复。'), [button('取消', close, 'btn soft', 'purge-cancel', s.pending), button('永久删除', a.purge, 'btn danger-solid', 'purge-confirm', s.pending)]);
+  else if (s.modal === 'dedupe-intro') overlay = simpleModal('查重复文件', el('p', '', '查重要读文件内容来比对，只在这台电脑上算，不保存内容、不上传。只比大小相同的文件，可能要几分钟。'), [button('取消', close, 'btn soft', 'dedupe-cancel', s.pending), button('开始查重', a.startDedupe, 'btn ink', 'dedupe-start', s.pending)]);
+  if (!overlay) return;
+  document.getElementById('overlays').append(overlay);
+  overlay.addEventListener('cancel', e => { e.preventDefault(); close(); });
+  overlay.addEventListener('keydown', e => {
+    if (e.key !== 'Tab') return;
+    const all = [...overlay.querySelectorAll('button:not(:disabled),input:not(:disabled),select:not(:disabled),textarea,[tabindex="0"]')].filter(n => n.getClientRects().length);
+    if (!all.length) { e.preventDefault(); return; }
+    if (e.shiftKey && document.activeElement === all[0]) { e.preventDefault(); all.at(-1).focus(); }
+    else if (!e.shiftKey && document.activeElement === all.at(-1)) { e.preventDefault(); all[0].focus(); }
+  });
+  overlay.showModal();
+  const focus = activeKey && overlay.querySelector(`[data-key="${CSS.escape(activeKey)}"]`);
+  (focus ?? overlay.querySelector(s.modal === 'confirm' ? '[data-key=confirm-cancel]' : 'button, input, textarea'))?.focus({preventScroll:true});
 }
 function render() {
-  const activeKey = document.activeElement?.dataset.key, scroll = main.scrollTop;
-  sidebar();
-  const skipFailure = route === 'results' ? state.skipFailure : '';
-  const notice = document.getElementById('notice'); notice.replaceChildren(); notice.hidden = !state.error && !state.info && !skipFailure && !state.reconnecting && !state.pollPaused;
-  if (!notice.hidden) add(notice, el('span', '', state.pollPaused ? state.pauseReason : state.reconnecting ? '正在重新连接 Water 服务…' : state.error || skipFailure || state.info), state.pollPaused ? button('重新连接', actions.reconnectProgress, 'btn btn-glass', 'progress-reconnect', state.pending) : state.reconnecting ? null : button('关闭提示', () => { clearError(); state.skipFailure = ''; render(); }, 'btn btn-ghost', 'dismiss-error'));
-  let view;
-  if (route === 'home' && state.busy === 'scanning') view = scan(state, actions);
-  else if (route === 'home' && state.busy === 'cleaning') view = cleaning(state, actions);
-  else if (route === 'home' && state.showDone && state.cleaned) view = done(state, actions);
-  else view = {home, results, trends, history:historyView, locations, about}[route](state, actions);
-  page.replaceChildren(view); page.dataset.page = route === 'home' ? state.busy === 'scanning' ? 'scan' : state.busy === 'cleaning' ? 'cleaning' : state.showDone && state.cleaned ? 'done' : 'home' : route;
-  motionObserver.disconnect(); page.querySelectorAll('.wave, .orb-btn').forEach(node => motionObserver.observe(node));
-  const slot = document.getElementById('dock-slot'); slot.replaceChildren();
-  if (route === 'results') { const bar = dock(state, actions); if (bar) slot.append(bar); }
-  main.scrollTop = scroll;
-  if (activeKey && !overlay) [...document.querySelectorAll('[data-key]')].find(e => e.dataset.key === activeKey)?.focus({preventScroll:true});
-}
-function navigate(next) {
-  if (!routes.includes(next)) next = 'home';
-  state.showDone = false;
-  if (location.hash === `#/${next}`) { route = next; render(); return; }
-  location.hash = `#/${next}`;
-}
-// missingOnly: after reconnecting, re-read only what a paused read left missing, including an expanded history entry.
-async function loadRoute(missingOnly = false) {
-  const version = routeVersion, current = route, origin = location.hash, paused = state.pollPaused;
-  const read = {trends:ipc.trends, history:ipc.history_list, locations:ipc.locations_get}[current];
-  const shouldRead = read && !(missingOnly && state[current]);
-  const request = (routeReads.get(current) ?? 0) + (shouldRead ? 1 : 0);
-  routeReads.set(current, request);
-  const isLatest = () => request === routeReads.get(current);
-  const inScope = () => version === routeVersion && origin === location.hash && isLatest();
-  try {
-    if (shouldRead) { const value = await read(); if (inScope()) state[current] = value; }
-    const open = !state.pollPaused && current === 'history' && inScope() && state.history?.find(entry => entry.id === state.historyOpen);
-    if (open) await readHistoryDetail(open, inScope);
-  } catch (error) { if (isLatest()) fault(error, inScope() && !paused && !state.pollPaused); }
-  if (inScope()) render();
+  const activeKey = document.activeElement?.dataset.key, scroll = main.scrollTop, drawerScroll = overlay?.querySelector('.drawer-list')?.scrollTop ?? 0;
+  top(); const notice = document.getElementById('notice'); notice.hidden = !s.error && !s.pollPaused; notice.replaceChildren();
+  if (!notice.hidden) add(notice, el('span', '', s.error || s.pollReason || '进度读取已暂停，请重新连接。'), s.pollPaused ? button('重新连接', () => { resumePolling(); render(); }, 'btn soft', 'poll-retry', s.pending) : null);
+  let view, name = s.route;
+  if (s.route === 'home') {
+    name = s.busy === 'scanning' ? 'scan' : s.busy === 'cleaning' ? 'cleaning' : s.busy === 'deduping' ? 'dedupe' : s.mode;
+    if (s.modal === 'drawer' && s.conclusion) name = 'results';
+    view = {home, scan, cleaning, results, details, done, dedupe}[name] ?? home;
+  } else view = s.route.startsWith('settings/') ? locations : {quarantine, trends, history:records}[s.route];
+  page.replaceChildren(view(s, a)); page.dataset.page = name; main.scrollTop = scroll;
+  if (s.revealLocation) {
+    const list = page.querySelector('.location-list'), item = page.querySelector(`[data-key="${CSS.escape('location-' + s.revealLocation)}"]`);
+    if (list && item) { list.scrollTop += Math.max(0, item.getBoundingClientRect().bottom - list.getBoundingClientRect().bottom); s.revealLocation = null; }
+  }
+  paintOverlay(activeKey); if (overlay?.querySelector('.drawer-list')) overlay.querySelector('.drawer-list').scrollTop = drawerScroll;
+  if (!overlay && activeKey) document.querySelector(`[data-key="${CSS.escape(activeKey)}"]`)?.focus({preventScroll:true});
 }
 function routeChanged() {
-  routeVersion++;
-  closeOverlay(true); const value = location.hash.slice(2); route = routes.includes(value) ? value : 'home';
-  clearError(); state.stopFailed = false;
-  state.showDone = false;
-  try { localStorage.setItem('water-last-page', route); } catch {}
-  page.classList.remove('enter'); void page.offsetWidth; page.classList.add('enter'); main.scrollTop = 0;
+  routeEpoch++; s.route = canonicalRoute(location.hash); if (location.hash !== `#${s.route}`) history.replaceState(null, '', `#${s.route}`);
+  s.modal = null; s.error = ''; main.scrollTop = 0;
+  try { localStorage.setItem('water-last-page', s.route); } catch {}
   render(); void loadRoute();
 }
-function startPolling() { clearTimeout(timer); timer = setTimeout(poll, 250); }
-function beginPolling() { state.progressFailures = 0; state.reconnecting = false; state.pollPaused = false; state.stopFailed = false; startPolling(); }
-function pauseProgress(error) { fault(error); state.pauseReason = state.error; clearError(); state.reconnecting = false; state.recoveryPending = true; state.pollPaused = true; }
-async function readProgress() {
-  try {
-    const value = await (state.busy === 'scanning' ? ipc.scan_progress() : ipc.clean_progress());
-    state.progressFailures = 0; state.reconnecting = false;
-    if (state.recoveryPending) {
-      state.recoveryPending = false;
-      if (['unavailable', 'busy'].includes(state.errorCode)) clearError();
-      void loadRoute(true);
-    }
-    return value;
-  } catch (error) {
-    state.recoveryPending = true;
-    if (['busy', 'unavailable'].includes(error?.code) && ++state.progressFailures < 20) state.reconnecting = true;
-    else pauseProgress(error);
-    return null;
-  }
-}
-async function poll() {
-  if (polling || state.busy === 'idle' || state.pollPaused) return;
-  polling = true;
-  try {
-    const p = await readProgress();
-    if (!p) return;
-    if (state.busy === 'scanning') {
-      state.scanProgress = p; state.scanId = p.scan_id ?? state.scanId;
-      document.getElementById('announcer').textContent = `正在体检，已发现 ${formatBytes(p.found_bytes)}，${p.percent}%`;
-      if (p.state === 'running') { state.scanRunningSeen = true; state.scanIdleCount = 0; }
-      if (p.state === 'idle' && !state.scanRunningSeen) {
-        if (++state.scanIdleCount >= 20) { state.busy = 'idle'; fault({message_zh:'体检没有开始，请重试'}); }
-        return;
-      }
-      if (p.state !== 'running') {
-        if (['completed', 'partial', 'cancelled', 'idle'].includes(p.state) && state.scanId) {
-          installResult(await ipc.scan_result(state.scanId));
-          if (['partial', 'cancelled'].includes(p.state)) state.result = {...state.result, status:'partial'};
-          state.busy = 'idle';
-          if (route === 'home') navigate('results');
-          try { state.app = await ipc.app_state(); } catch (error) { fault(error); }
-        } else { state.busy = 'idle'; fault({message_zh:'体检未能完成，请重新体检。'}); }
-      }
-    } else {
-      state.cleanProgress = p; state.cleanId = p.clean_id ?? state.cleanId;
-      document.getElementById('announcer').textContent = `正在清理，已释放 ${formatBytes(p.freed_bytes)}`;
-      if (['completed', 'stopped', 'failed'].includes(p.state) && state.cleanId) {
-        state.cleaned = await ipc.clean_result(state.cleanId);
-        state.busy = 'idle'; state.stale = true; state.skipFailure = ''; state.cleanTerminal = p.state; state.showDone = route === 'home';
-        state.history = null; state.historyDetails.clear(); state.historyOpen = null;
-        try { state.app = await ipc.app_state(); } catch (error) { fault(error); }
-        if (route === 'history') await loadRoute();
-      } else if (p.state !== 'running') {
-        pauseProgress({message_zh:'未能确认清理状态，请重新连接。'});
-      }
-    }
-  } catch (error) { pauseProgress(error); }
-  finally { polling = false; render(); if (state.busy !== 'idle' && !state.pollPaused) startPolling(); }
-}
-function showOverlay(panel, focusKey, returnKey = document.activeElement?.dataset.key) {
-  if (overlay) closeOverlay(true);
-  opener = returnKey;
-  overlay = panel; document.getElementById('overlays').append(panel);
-  panel.addEventListener('cancel', event => { event.preventDefault(); if (!state.pending) closeOverlay(); });
-  panel.addEventListener('keydown', event => {
-    if (event.key !== 'Tab') return;
-    const nodes = [...panel.querySelectorAll('button:not(:disabled), input:not(:disabled), [tabindex="0"]')];
-    if (!nodes.length) { event.preventDefault(); return; }
-    const first = nodes[0], last = nodes.at(-1);
-    if (event.shiftKey && (document.activeElement === first || !panel.contains(document.activeElement))) { event.preventDefault(); last.focus(); }
-    else if (!event.shiftKey && document.activeElement === last) { event.preventDefault(); first.focus(); }
-  });
-  panel.showModal(); [...panel.querySelectorAll('[data-key]')].find(e => e.dataset.key === focusKey)?.focus();
-}
-function closeOverlay(immediate = false) {
-  if (!overlay) return;
-  const panel = overlay, key = opener; overlay = null;
-  const finish = () => { panel.close(); panel.remove(); [...document.querySelectorAll('[data-key]')].find(e => e.dataset.key === key)?.focus({preventScroll:true}); };
-  if (immediate || matchMedia('(prefers-reduced-motion: reduce)').matches || document.documentElement.dataset.input === 'keyboard') finish();
-  else { panel.classList.add('closing'); setTimeout(finish, 220); }
-}
-document.addEventListener('keydown', () => { document.documentElement.dataset.input = 'keyboard'; });
-document.addEventListener('pointerdown', () => { document.documentElement.dataset.input = 'pointer'; });
 window.addEventListener('hashchange', routeChanged);
-window.addEventListener('pagehide', () => { clearTimeout(timer); clearTimeout(stopAnnouncement); motionObserver.disconnect(); });
-window.addEventListener('beforeunload', event => { if (state.busy === 'cleaning') { event.preventDefault(); event.returnValue = ''; } });
-if (!location.hash) { let saved; try { saved = localStorage.getItem('water-last-page'); } catch {} history.replaceState(null, '', `#/${routes.includes(saved) ? saved : 'home'}`); }
-route = routes.includes(location.hash.slice(2)) ? location.hash.slice(2) : 'home';
+window.addEventListener('beforeunload', event => { if (['cleaning', 'purging'].includes(s.busy)) { event.preventDefault(); event.returnValue = ''; } });
+window.addEventListener('pagehide', () => { stopped = true; clearTimeout(timer); });
+if (!location.hash) { let saved; try { saved = localStorage.getItem('water-last-page'); } catch {} history.replaceState(null, '', `#${canonicalRoute(saved ?? 'home')}`); }
+s.route = canonicalRoute(location.hash); if (location.hash !== `#${s.route}`) history.replaceState(null, '', `#${s.route}`);
 render(); void connect();

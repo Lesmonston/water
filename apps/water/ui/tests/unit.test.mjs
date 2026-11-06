@@ -70,99 +70,21 @@ test('ui_format_bytes_time', () => {
   }
 });
 
-test('ui_selection_rules', () => {
-  const result = structuredClone(fixture.scan_result);
-  const initial = model.resetSelection(result);
-  assert.equal(initial.size, 13);
-  assert.equal(model.selectedBytes(result, initial), 33535104647n);
-  for (const group of model.groups(result).filter(g => !g.selectable)) {
-    assert.equal(model.setSelected(result, initial, group.group_id, true).has(group.group_id), false, 'UI_LEVEL_GUARD: direct selection must reject nonselectable groups');
-    assert.equal(model.canSelect(group), false, 'UI_LEVEL_GUARD: nonselectable must remain false');
-  }
-  const disabled = {...model.groups(result)[0], group_id:'disabled', selectable:false, default_selected:true};
-  const extra = {...result, categories:[{category:'test', groups:[disabled]}]};
-  assert.equal(model.resetSelection(extra).size, 0, 'UI_LEVEL_GUARD: inconsistent defaults cannot select protected data');
-  assert.equal(model.selectedBytes(extra, new Set(['disabled'])), 0n, 'UI_LEVEL_GUARD: forged selection cannot affect totals');
-  assert.equal(model.setSelected(result, initial, 'missing', true).has('missing'), false);
-  let next = model.setSelected(result, initial, 'codex-marketplace-staging', false);
-  assert.equal(initial.has('codex-marketplace-staging'), true, 'model must not mutate previous state');
-  assert.equal(model.selectedBytes(result, next), 29755533427n);
-  next = model.selectCategory(result, next, 'agent_tool', true);
-  assert.equal(next.has('codex-runtimes'), true);
-  assert.equal(next.has('claude-code-sessions'), false, 'UI_LEVEL_GUARD: category selection must not select protected groups');
-  next = model.selectCategory(result, next, 'agent_tool', false);
-  assert.equal(model.selectedGroups(result, next).some(g => g.category === 'agent_tool'), false);
-  assert.notDeepEqual(next, initial, 'manual selection must really change first');
-  const refreshed = model.installResult({result, selection:next, stale:true, filter:'protected'}, structuredClone(result));
-  assert.deepEqual(refreshed.selection, initial, 'new scan resets prior manual selection through the application transition');
-  assert.equal(refreshed.stale, false); assert.equal(refreshed.filter, 'all');
-  const order = ['recommended', 'confirm', 'advisory', 'protected', 'unrecognized'];
-  for (const category of result.categories) {
-    const sorted = model.sortedGroups(category.groups, 'bytes');
-    for (let i = 1; i < sorted.length; i++) {
-      const a = sorted[i - 1], b = sorted[i];
-      assert(order.indexOf(a.level) <= order.indexOf(b.level), 'Level precedes size');
-      if (a.level === b.level) assert(bytes(a.total_bytes) >= bytes(b.total_bytes));
-    }
-    const growing = model.sortedGroups(category.groups, 'growth');
-    for (let i = 1; i < growing.length; i++) assert(bytes(growing[i - 1].growth?.bytes_delta ?? '0') >= bytes(growing[i].growth?.bytes_delta ?? '0'));
-  }
-  const large = {...disabled, selectable:true, eligible_bytes:'9007199254740993'};
-  assert.equal(model.selectedBytes({...extra, categories:[{groups:[large]}]}, new Set(['disabled'])), 9007199254740993n);
-  const data = m3c.group_details['custom:drive-f:node-modules'], item = data.items[1], details = new Map([[data.group.group_id, data]]);
-  let chosen = model.setSelected(m3c.scan_result, model.resetSelection(m3c.scan_result), data.group.group_id, true);
-  const originalBytes = model.selectedBytes(m3c.scan_result, chosen, details), originalCount = model.selectedCount(m3c.scan_result, chosen, details);
-  const previous = chosen;
-  chosen = model.setItemSelected(m3c.scan_result, chosen, data, item.item_id, false);
-  assert(chosen instanceof Map && chosen.get(data.group.group_id) instanceof Set, 'UI_M3C_EXCLUDE: selection is a group-to-exclusions map');
-  assert.equal(previous.get(data.group.group_id).size, 0, 'UI_M3C_EXCLUDE: editing an item does not mutate prior selection');
-  assert.equal(model.selectedBytes(m3c.scan_result, chosen, details), originalBytes - bytes(item.total_bytes), 'UI_M3C_EXCLUDE: excluded bytes leave selection');
-  assert.equal(model.selectedCount(m3c.scan_result, chosen, details), originalCount - 1, 'UI_M3C_EXCLUDE: excluded item leaves count');
-  assert.deepEqual(model.cleanSelection(m3c.scan_result, chosen, details).excludeItemIds, [item.item_id], 'UI_M3C_EXCLUDE: exact item exclusion');
-  const unselected = model.setSelected(m3c.scan_result, chosen, data.group.group_id, false);
-  for (const checked of [false, true]) assert.deepEqual(model.setItemSelected(m3c.scan_result, unselected, data, item.item_id, checked), unselected, 'UI_M3C_EXCLUDE: item changes never opt an unselected group into cleanup');
-  assert.deepEqual(model.cleanSelection(m3c.scan_result, unselected, details).excludeItemIds, [], 'UI_M3C_EXCLUDE: deselecting a group clears exclusions');
-  assert.equal(model.setSelected(m3c.scan_result, unselected, data.group.group_id, true).get(data.group.group_id).size, 0, 'UI_M3C_EXCLUDE: reselecting a group starts fresh');
-  for (const item of data.items.filter(i => i.eligible)) chosen = model.setItemSelected(m3c.scan_result, chosen, data, item.item_id, false);
-  assert(!model.cleanSelection(m3c.scan_result, chosen, details).groupIds.includes(data.group.group_id), 'UI_M3C_EXCLUDE: an emptied group never reaches the plan');
-  assert.deepEqual(model.cleanSelection(m3c.scan_result, chosen, details).excludeItemIds, [], 'UI_M3C_EXCLUDE: an emptied group sends no orphan exclusions');
-  assert.deepEqual(model.setItemSelected(m3c.scan_result, chosen, data, 'i-000204', true), chosen, 'UI_M3C_EXCLUDE: protected item cannot be opted in');
-  assert.deepEqual(model.setItemSelected(m3c.scan_result, chosen, data, item.item_id, true), chosen, 'UI_M3C_EXCLUDE: emptied groups cannot be reselected through item changes');
-  assert.equal(chosen.has(data.group.group_id), false, 'UI_M3C_EXCLUDE: excluding the last item removes the group selection');
-  const truncated = {...data, items:[data.items[0]]};
-  const retained = new Map([[data.group.group_id, {...data, items:data.items.filter(i => i.eligible)}]]);
-  const allExcluded = new Map([[data.group.group_id, new Set(data.items.filter(i => i.eligible).map(i => i.item_id))]]);
-  assert.deepEqual(model.setItemSelected(m3c.scan_result, allExcluded, truncated, data.items[0].item_id, true, retained), allExcluded, 'UI_M3C_EXCLUDE: retained metadata prevents item changes from reselecting an emptied truncated group');
-  const lastVisible = new Map([[data.group.group_id, new Set(data.items.filter(i => i.eligible && i.item_id !== data.items[0].item_id).map(i => i.item_id))]]);
-  const emptiedTruncated = model.setItemSelected(m3c.scan_result, lastVisible, truncated, data.items[0].item_id, false, retained);
-  assert.equal(emptiedTruncated.has(data.group.group_id), false, 'UI_M3C_EXCLUDE: retained exclusions count when removing the last visible item');
-  const restoredResult = structuredClone(m3c.scan_result);
-  const restoredGroup = model.groups(restoredResult).find(g => g.group_id === data.group.group_id);
-  restoredGroup.eligible_count++; restoredGroup.eligible_bytes = String(bytes(restoredGroup.eligible_bytes) + bytes(data.items[3].total_bytes));
-  const emptiedRefresh = model.refreshResult({result:m3c.scan_result, selection:chosen, details}, restoredResult);
-  assert(!model.cleanSelection(emptiedRefresh.result, emptiedRefresh.selection, model.selectionDetails(emptiedRefresh)).groupIds.includes(data.group.group_id), 'UI_M3C_EXCLUDE: restoring an item cannot reselect an emptied group');
-  const oneExcluded = model.setItemSelected(m3c.scan_result, previous, data, item.item_id, false);
-  const reread = model.refreshResult({result:m3c.scan_result, selection:oneExcluded, details, filter:'confirm', drive:'F:\\', stale:false}, structuredClone(m3c.scan_result));
-  assert.equal(reread.details.size, 0, 'UI_M3C_SKIP: result reread clears the detail cache');
-  assert.equal(reread.selection, oneExcluded, 'UI_M3C_SKIP: result reread preserves the exact selection');
-  const manual = new Set([item.item_id]);
-  const keptManual = model.refreshResult({selection:oneExcluded, details, manualExclusions:manual}, structuredClone(m3c.scan_result));
-  assert.equal(keptManual.manualExclusions, manual, 'UI_M3C_EXCLUDE: same-scan reread preserves manual exclusion provenance');
-  assert.equal(model.installResult({...keptManual, stale:true}, m3c.scan_result).manualExclusions.size, 0, 'UI_M3C_EXCLUDE: a new scan resets manual exclusion provenance');
-  assert.equal(reread.filter, 'confirm', 'UI_M3C_SKIP: result reread keeps level filtering');
-  assert.equal(reread.drive, 'F:\\', 'UI_M3C_SKIP: result reread keeps drive filtering');
-  assert.equal(model.selectedBytes(reread.result, reread.selection, model.selectionDetails(reread)), originalBytes - bytes(item.total_bytes), 'UI_M3C_SKIP: known exclusions still deduct bytes after cache invalidation');
-  assert.equal(model.selectedCount(reread.result, reread.selection, model.selectionDetails(reread)), originalCount - 1, 'UI_M3C_SKIP: known exclusions still deduct counts after cache invalidation');
-  assert.deepEqual(model.cleanSelection(reread.result, reread.selection).excludeItemIds, [item.item_id], 'UI_M3C_SKIP: exclusions reach the service by ID without cached details');
-  const hidden = 'codex-runtimes';
-  const withConfirm = model.setSelected(m3c.scan_result, model.resetSelection(m3c.scan_result), hidden, true);
-  const visibleCleared = model.selectCategory(m3c.scan_result, withConfirm, 'agent_tool', false, null, new Map(), 'recommended');
-  assert(visibleCleared.has(hidden), 'UI_M3C_DRIVE: clearing recommended groups preserves a hidden selected confirm group');
-  const visibleSelected = model.selectCategory(m3c.scan_result, model.resetSelection(m3c.scan_result), 'agent_tool', true, null, new Map(), 'recommended');
-  assert(!visibleSelected.has(hidden), 'UI_M3C_DRIVE: selecting recommended groups never selects a hidden confirm group');
-  const withoutDrive = structuredClone(m3c.scan_result);
-  for (const group of model.groups(withoutDrive).filter(g => ['advisory', 'protected'].includes(g.level))) delete group.by_drive;
-  assert.doesNotThrow(() => model.driveResult(withoutDrive, 'F:\\'), 'UI_M3C_DRIVE: missing by_drive does not throw during projection');
+test('ui_v2_view_rules', () => {
+  const f = JSON.parse(readFileSync(new URL('../../../../contracts/m35-v1/ui-fixtures-m35.json', import.meta.url), 'utf8'));
+  const v = structuredClone(f.v2_conclusion_typical); v.cards.reverse();
+  assert.deepEqual(model.viewCards(v), v.cards, 'UI_V2_CONCLUSION: service order retained');
+  assert.equal(model.viewCards(v).length, v.cards.length, 'UI_V2_CONCLUSION: every card retained');
+  for (const route of ['#results', '#/results']) assert.equal(model.canonicalRoute(route), 'home');
+  assert.equal(model.canonicalRoute('#locations'), 'settings/content');
+  assert.equal(model.canonicalRoute('#about'), 'settings/about');
+  assert.equal(model.canonicalRoute('#settings/decl'), 'settings/decl');
+  for (const query of ['20261005', '中文', '', 'a'.repeat(64)]) assert(model.validQuery(query), 'UI_V2_DRAWER: legal search');
+  for (const query of ['C:\\Temp', '/tmp', 'a:b', '\u0001', 'a'.repeat(65)]) assert(!model.validQuery(query), 'UI_IPC_NO_PATH: invalid search');
+  const items = f.v2_group_detail_items, rows = f.v2_group_detail_rows, merged = f.v2_group_detail_merged;
+  assert(items.rows.every(r => model.itemRow(items.group, r)), 'UI_V2_DRAWER: small group has real item IDs');
+  assert(rows.rows.every(r => !model.itemRow(rows.group, r)), 'UI_V2_DRAWER: summary IDs are not item IDs');
+  assert(merged.rows.every(r => !model.itemRow(merged.group, r)), 'UI_V2_DRAWER: merged group IDs are not item IDs');
 });
 
 test('ui_ipc_boundary', async () => {
@@ -171,7 +93,14 @@ test('ui_ipc_boundary', async () => {
     app_state:[], scan_start:[], scan_cancel:['scan-a'], scan_progress:[], scan_result:['scan-a'], group_detail:['custom:water:cachedir-tagged'], clean_prepare:[['group-a', 'custom:water:cachedir-tagged']], clean_start:['plan-a', 'token-a'], clean_stop:[], clean_progress:[], clean_result:['clean-a'], trends:[], history_list:[], locations_get:[], locations_set_category:['agent_tool', false], custom_root_add:[], custom_root_remove:['root-a'], skip_add:['i-000201'], skip_remove:['s-000001']
   };
   const keys = {scan_cancel:['scanId'], scan_result:['scanId'], group_detail:['groupId'], clean_prepare:['groupIds'], clean_start:['planId', 'confirmToken'], clean_result:['cleanId'], locations_set_category:['category', 'enabled'], custom_root_remove:['rootId'], skip_add:['itemId'], skip_remove:['skipId']};
-  assert.deepEqual(Object.keys(ipc).sort(), Object.keys(cases).sort());
+  const newCases = {
+    conclusion_get:[[], {}], conclusion_decide:[['cv-1', {group:'group-a', choice:'clean'}], {version:'cv-1', decision:{group:'group-a', choice:'clean'}}],
+    detail_get:[['cv-1', 'category'], {version:'cv-1', mode:'category'}], group_items:[['group-a', null, 'term'], {groupId:'group-a', rowId:null, query:'term'}],
+    quarantine_list:[[], {}], quarantine_restore:[['q-1', false], {quarantineId:'q-1', beside:false}], quarantine_delete:[['q-1'], {quarantineId:'q-1'}], quarantine_progress:[[], {}], quarantine_reveal:[['qroot-c'], {targetId:'qroot-c'}],
+    dedupe_start:[['drive-e'], {locationId:'drive-e'}], dedupe_progress:[[], {}], dedupe_cancel:[['dup-1'], {dedupeId:'dup-1'}], dedupe_result:[['dup-1', false], {dedupeId:'dup-1', expand:false}], dedupe_decide:[['dup-1', 'dv-1', 'group-a', true], {dedupeId:'dup-1', version:'dv-1', groupId:'group-a', include:true}],
+    locations_set_session_cleanup:[['codex', true, 30], {tool:'codex', enabled:true, days:30}], manifest_trust:[['mf-1', true], {manifestId:'mf-1', trusted:true}], cluster_mark_fixed:[['group-a', true], {groupId:'group-a', fixed:true}]
+  };
+  assert.deepEqual(Object.keys(ipc).sort(), [...Object.keys(cases), ...Object.keys(newCases)].sort());
   try {
     globalThis.__TAURI__ = {core:{invoke:async (command, args) => { calls.push({command, args}); return {ok:true}; }}};
     for (const [name, args] of Object.entries(cases)) {
@@ -184,12 +113,24 @@ test('ui_ipc_boundary', async () => {
       await ipc.clean_start('plan-a', token);
       assert.equal(calls.at(-1).args.confirmToken, token);
     }
-    assert.equal(Object.keys(ipc).length, 19, 'UI_IPC_NO_PATH: 19 commands, original positional calls retained');
+    assert.equal(Object.keys(ipc).length, 36, 'UI_IPC_NO_PATH: 36 commands, original positional calls retained');
     await ipc.clean_prepare(['group-a'], ['i-000201']);
     assert.deepEqual(calls.at(-1), {command:'clean_prepare', args:{groupIds:['group-a'], excludeItemIds:['i-000201']}}, 'UI_M3C_EXCLUDE: item IDs reach clean_prepare');
     await ipc.clean_prepare(['group-a'], []);
     assert.deepEqual(calls.at(-1).args, {groupIds:['group-a'], excludeItemIds:[]}, 'UI_M3C_EXCLUDE: explicit empty exclusion list accepted');
+    for (const [name, [args, expected]] of Object.entries(newCases)) {
+      await ipc[name](...args); assert.deepEqual(calls.at(-1), {command:name, args:expected}, 'UI_IPC_NO_PATH: exact new command shape');
+    }
+    await ipc.scan_start(['common', 'drive-f']); assert.deepEqual(calls.at(-1).args, {locationIds:['common', 'drive-f']});
+    await ipc.clean_prepare({conclusionVersion:'cv-1', chosenMode:'quarantine'}); assert.deepEqual(calls.at(-1).args, {conclusionVersion:'cv-1', chosenMode:'quarantine'});
+    await ipc.clean_prepare({dedupeId:'dup-1', dedupeVersion:'dv-1'}); assert.deepEqual(calls.at(-1).args, {dedupeId:'dup-1', dedupeVersion:'dv-1'});
+    await ipc.group_items('m:cachedir-tagged', 'r:0123456789abcdef', null);
+    assert.deepEqual(calls.at(-1).args, {groupId:'m:cachedir-tagged', rowId:'r:0123456789abcdef', query:null});
     const size = calls.length;
+    for (const bad of ['C:\\Temp', '/tmp', 'a:b', '\u0001', 'x'.repeat(65)]) await assert.rejects(ipc.group_items('group-a', null, bad), e => e.code === 'invalid', 'UI_IPC_NO_PATH: search refuses paths');
+    await assert.rejects(ipc.conclusion_decide('cv-1', {group:'g', choice:'clean', path:'C:/x'}), e => e.code === 'invalid');
+    await assert.rejects(ipc.scan_start(['common', 'common']), e => e.code === 'invalid');
+    await assert.rejects(ipc.locations_set_session_cleanup('codex', true, 14), e => e.code === 'invalid');
     for (const bad of ['C:\\private', 'F:/private', '/tmp/private', '\\\\server\\share', '', null]) {
       await assert.rejects(ipc.skip_add(bad), e => e.code === 'invalid', 'UI_IPC_NO_PATH: skip_add rejects paths');
       await assert.rejects(ipc.skip_remove(bad), e => e.code === 'invalid', 'UI_IPC_NO_PATH: skip_remove rejects paths');
@@ -203,6 +144,7 @@ test('ui_ipc_boundary', async () => {
     await assert.rejects(ipc.locations_set_category('browser', 'yes'), e => e.code === 'invalid');
     assert.equal(calls.length, size, 'invalid inputs must never reach host');
     delete globalThis.__TAURI__;
+    for (const [name, [args]] of Object.entries(newCases)) await assert.rejects(ipc[name](...args), e => e.code === 'unavailable');
     for (const [name, args] of Object.entries(cases)) await assert.rejects(ipc[name](...args), e => e.code === 'unavailable');
   } finally { if (original === undefined) delete globalThis.__TAURI__; else globalThis.__TAURI__ = original; }
 });

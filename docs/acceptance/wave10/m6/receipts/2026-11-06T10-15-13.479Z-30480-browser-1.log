@@ -1,0 +1,110 @@
+{"binary":"C:\\Program Files\\nodejs\\node.exe","args":["--test","--test-concurrency=1","--test-reporter=tap","apps/water/ui/tests/browser.test.mjs"],"exitCode":1,"error":null}
+--- stdout ---
+TAP version 13
+# Subtest: ui_v2_home_scan
+not ok 1 - ui_v2_home_scan
+  ---
+  duration_ms: 4070.8326
+  type: 'test'
+  location: 'F:\\new\\smaltalk\\water\\.worktrees\\w10-m6\\apps\\water\\ui\\tests\\browser.test.mjs:175:1'
+  failureType: 'testCodeFailure'
+  error: 'UI_V2_HOME: paused polling keeps recovery after navigation'
+  code: 'ERR_ASSERTION'
+  name: 'AssertionError'
+  expected: true
+  actual: false
+  operator: '=='
+  stack: |-
+    TestContext.<anonymous> (file:///F:/new/smaltalk/water/.worktrees/w10-m6/apps/water/ui/tests/browser.test.mjs:199:3)
+    async Test.run (node:internal/test_runner/test:1313:7)
+    async startSubtestAfterBootstrap (node:internal/test_runner/harness:385:3)
+  ...
+# Subtest: ui_v2_conclusion
+not ok 2 - ui_v2_conclusion
+  ---
+  duration_ms: 3596.4491
+  type: 'test'
+  location: 'F:\\new\\smaltalk\\water\\.worktrees\\w10-m6\\apps\\water\\ui\\tests\\browser.test.mjs:209:1'
+  failureType: 'testCodeFailure'
+  error: 'UI_V2_CONCLUSION: missing clue cannot offer empty clipboard copy'
+  code: 'ERR_ASSERTION'
+  name: 'AssertionError'
+  expected: true
+  actual: false
+  operator: '=='
+  stack: |-
+    TestContext.<anonymous> (file:///F:/new/smaltalk/water/.worktrees/w10-m6/apps/water/ui/tests/browser.test.mjs:234:3)
+    async Test.run (node:internal/test_runner/test:1313:7)
+    async Test.processPendingSubtests (node:internal/test_runner/test:897:7)
+  ...
+# Subtest: ui_v2_drawer_details
+ok 3 - ui_v2_drawer_details
+  ---
+  duration_ms: 3184.2242
+  type: 'test'
+  ...
+# Subtest: ui_v2_confirm_done
+not ok 4 - ui_v2_confirm_done
+  ---
+  duration_ms: 2974.271
+  type: 'test'
+  location: 'F:\\new\\smaltalk\\water\\.worktrees\\w10-m6\\apps\\water\\ui\\tests\\browser.test.mjs:273:1'
+  failureType: 'testCodeFailure'
+  error: 'UI_V2_CONFIRM: cleanup pause survives navigation'
+  code: 'ERR_ASSERTION'
+  name: 'AssertionError'
+  expected: true
+  actual: false
+  operator: '=='
+  stack: |-
+    TestContext.<anonymous> (file:///F:/new/smaltalk/water/.worktrees/w10-m6/apps/water/ui/tests/browser.test.mjs:299:5)
+    async Test.run (node:internal/test_runner/test:1313:7)
+    async Test.processPendingSubtests (node:internal/test_runner/test:897:7)
+  ...
+# Subtest: ui_v2_quarantine_dedupe
+not ok 5 - ui_v2_quarantine_dedupe
+  ---
+  duration_ms: 4367.4639
+  type: 'test'
+  location: 'F:\\new\\smaltalk\\water\\.worktrees\\w10-m6\\apps\\water\\ui\\tests\\browser.test.mjs:308:1'
+  failureType: 'testCodeFailure'
+  error: 'UI_V2_DEDUPE: result page always provides return'
+  code: 'ERR_ASSERTION'
+  name: 'AssertionError'
+  expected: true
+  actual: false
+  operator: '=='
+  stack: |-
+    TestContext.<anonymous> (file:///F:/new/smaltalk/water/.worktrees/w10-m6/apps/water/ui/tests/browser.test.mjs:337:5)
+    async Test.run (node:internal/test_runner/test:1313:7)
+    async Test.processPendingSubtests (node:internal/test_runner/test:897:7)
+  ...
+# Subtest: ui_v2_pages_layout_a11y
+not ok 6 - ui_v2_pages_layout_a11y
+  ---
+  duration_ms: 5269.1925
+  type: 'test'
+  location: 'F:\\new\\smaltalk\\water\\.worktrees\\w10-m6\\apps\\water\\ui\\tests\\browser.test.mjs:372:1'
+  failureType: 'testCodeFailure'
+  error: 'UI_V2_PAGES: category preference does not expire the current conclusion'
+  code: 'ERR_ASSERTION'
+  name: 'AssertionError'
+  expected: true
+  actual: false
+  operator: '=='
+  stack: |-
+    TestContext.<anonymous> (file:///F:/new/smaltalk/water/.worktrees/w10-m6/apps/water/ui/tests/browser.test.mjs:403:3)
+    async Test.run (node:internal/test_runner/test:1313:7)
+    async Test.processPendingSubtests (node:internal/test_runner/test:897:7)
+  ...
+1..6
+# tests 6
+# suites 0
+# pass 1
+# fail 5
+# cancelled 0
+# skipped 0
+# todo 0
+# duration_ms 24038.3918
+
+--- stderr ---

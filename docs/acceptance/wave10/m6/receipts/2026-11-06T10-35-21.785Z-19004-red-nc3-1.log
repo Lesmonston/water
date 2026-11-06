@@ -1,0 +1,74 @@
+{"binary":"C:\\Program Files\\nodejs\\node.exe","args":["--test","--test-concurrency=1","--test-reporter=tap","apps/water/ui/tests/browser.test.mjs"],"exitCode":1,"error":null}
+--- stdout ---
+TAP version 13
+# Subtest: ui_v2_home_scan
+ok 1 - ui_v2_home_scan
+  ---
+  duration_ms: 4487.5112
+  type: 'test'
+  ...
+# Subtest: ui_v2_conclusion
+ok 2 - ui_v2_conclusion
+  ---
+  duration_ms: 3606.1942
+  type: 'test'
+  ...
+# Subtest: ui_v2_drawer_details
+not ok 3 - ui_v2_drawer_details
+  ---
+  duration_ms: 1807.549
+  type: 'test'
+  location: 'F:\\new\\smaltalk\\water\\.worktrees\\w10-m6\\apps\\water\\ui\\tests\\browser.test.mjs:238:1'
+  failureType: 'testCodeFailure'
+  error: |-
+    UI_IPC_NO_PATH: search sends query only, never display_path
+    + actual - expected
+    
+    + undefined
+    - {
+    -   groupId: 'system-temp-old',
+    -   query: '20261005',
+    -   rowId: null
+    - }
+    
+  code: 'ERR_ASSERTION'
+  name: 'AssertionError'
+  expected:
+    groupId: 'system-temp-old'
+    rowId: ~
+    query: '20261005'
+  operator: 'deepStrictEqual'
+  stack: |-
+    TestContext.<anonymous> (file:///F:/new/smaltalk/water/.worktrees/w10-m6/apps/water/ui/tests/browser.test.mjs:255:10)
+    async Test.run (node:internal/test_runner/test:1313:7)
+    async Test.processPendingSubtests (node:internal/test_runner/test:897:7)
+  ...
+# Subtest: ui_v2_confirm_done
+ok 4 - ui_v2_confirm_done
+  ---
+  duration_ms: 4485.1482
+  type: 'test'
+  ...
+# Subtest: ui_v2_quarantine_dedupe
+ok 5 - ui_v2_quarantine_dedupe
+  ---
+  duration_ms: 11540.4151
+  type: 'test'
+  ...
+# Subtest: ui_v2_pages_layout_a11y
+ok 6 - ui_v2_pages_layout_a11y
+  ---
+  duration_ms: 6945.5258
+  type: 'test'
+  ...
+1..6
+# tests 6
+# suites 0
+# pass 5
+# fail 1
+# cancelled 0
+# skipped 0
+# todo 0
+# duration_ms 33487.4793
+
+--- stderr ---

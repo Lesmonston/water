@@ -1,7 +1,6 @@
-import {add, el, heading, icon} from './common.mjs';
-export function about(state) {
-  const page = add(el('section'), heading('关于与隐私', '空间由你掌控，数据留在本机。'));
-  add(page, add(el('div', 'glass about-brand'), icon('berg'), add(el('div'), el('h2', '', 'Water'), el('p', 'cap', state.app ? `版本 ${state.app.app_version}` : '服务未连接'))));
-  for (const [title, text] of [['Water 读取什么', '文件名、大小、时间与属性，以及正在运行的程序列表，用于判断文件是否被占用。'], ['不读取什么', '文件内容、浏览器登录信息与网站数据、聊天记录内容。Cookies、登录信息、本地存储与 IndexedDB 始终受保护，Water 不会清理。网站离线数据（Service Worker 缓存）只在你确认后清理，清理后不影响登录。'], ['数据留在本机', '不上传任何数据。扫描、体检结果和清理记录都保留在这台设备上。'], ['清理由你确认', '删除只在你选择分组并确认后执行。文件将被永久删除，不进入回收站，无法恢复。可重新下载或生成，并不代表可以回滚。']]) add(page, add(el('section', 'glass privacy-section'), el('h2', '', title), el('p', 'sub', text)));
-  return page;
+import {add, el, card} from './common.mjs';
+export function about() {
+  const node = el('div', 'privacy');
+  for (const [title, text] of [['Water 读取什么', '一般体检读取名字、大小、时间与属性，以及进程信息。项目声明、工作树指向和你单独发起的查重有明确的内容读取范围。'], ['保护你的数据', '浏览器登录信息、Cookies、网站存储、源码与未知数据库受到保护。会话记录只有在设置中明确允许后，才会列出旧会话供你决定。'], ['数据留在本机', '不上传。体检结果和清理记录保存在这台电脑上。'], ['清理由你决定', '可再生缓存直接删除。你选的部分默认先放进同盘隔离区，可以还原；隔离区永久删除后才释放空间。直接删除与永久删除无法恢复。可重新下载不等于可回滚。']]) add(node, add(card(title), el('p', 'sub', text)));
+  return node;
 }
