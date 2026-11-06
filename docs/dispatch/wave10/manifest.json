@@ -1742,10 +1742,23 @@
         {
           "id": "WATER-W10-M7-ADDENDUM-04",
           "ticket": "docs/dispatch/tickets/WATER-W10-M7-ADDENDUM-04-20261106.md",
-          "status": "READY",
+          "status": "BLOCKED",
           "issuedAt": "2026-11-06T11:56:51Z",
           "resumeFromCommit": "9aba0889a1e32decf9e1a9b0cdbc35209ffaf2dd",
-          "change": "no disk reads or writes under the state lock in background threads (scan, clean, dedupe, purge completion: records, events, trim deletions, quarantine inspection); m35::event split so the file is written outside the lock; commands may keep their own settings.json write but nothing else on disk under that lock; local lock-hold timing (not committed), every background hold at most 10 ms; three consecutive green full tests, then controls, finals, real and archive"
+          "change": "no disk reads or writes under the state lock in background threads (scan, clean, dedupe, purge completion: records, events, trim deletions, quarantine inspection); m35::event split so the file is written outside the lock; commands may keep their own settings.json write but nothing else on disk under that lock; local lock-hold timing (not committed), every background hold at most 10 ms; three consecutive green full tests, then controls, finals, real and archive",
+          "model": "grok 4.6 (receipt; same conversation)",
+          "blockedCommit": "44f229800f570d8ef90e7011f2ab96540f76e149",
+          "candidateImplementation": "8b639ec450d1cc9afa941f36c14131e204fa0630",
+          "blockedReason": "background disk I/O moved out of the state lock (longest background hold 3.05 ms); still two timing failures on commands that write settings.json themselves (conclusion_decide, cluster_mark_fixed): Windows sync_all spikes past 50 ms"
+        },
+        {
+          "id": "WATER-W10-M7-ADDENDUM-05",
+          "ticket": "docs/dispatch/tickets/WATER-W10-M7-ADDENDUM-05-20261106.md",
+          "status": "READY",
+          "issuedAt": "2026-11-06T12:42:05Z",
+          "resumeFromCommit": "44f229800f570d8ef90e7011f2ab96540f76e149",
+          "userDecision": "2026-11-06 user: \"测试放宽到 200 ms\"; \"记录一下这种无效的硬卡，后续可以放松一点，已经阻断太多次了\"",
+          "change": "seventh allowed old-expectation change: call() gives a fixed list of 11 commands that write files in their own call (settings.json writers, clean_prepare, clean_start, quarantine_restore) a 200 ms limit, everything else stays 50 ms, custom_root_add untimed; timing-only full-test failures may be rerun up to 3 times; the three-consecutive-greens rule is dropped; no product change"
         }
       ]
     },

@@ -431,3 +431,13 @@ M7 补单 03（Grok）做到了：`custom_root_add` 不计时，一万项分组�
 ```text
 WATER-W10-M7 补单 04（后台线程不在状态锁里读写磁盘，中门）：读 F:/new/smaltalk/water/docs/dispatch/tickets/WATER-W10-M7-ADDENDUM-04-20261106.md，按其中列出的顺序读原单、补单 01～03、本补单与你的回执，在 F:/new/smaltalk/water/.worktrees/w10-m7（分支 worker/water-w10-m7）从 9aba0889 续做；做完、提交并交回回执；受阻就停下写受阻回执。
 ```
+
+### M7 补单 05（2026-11-06）
+
+M7 补单 04（Grok）把后台线程的磁盘读写移出了状态锁，后台持锁最长 3 ms；剩下的超时都是命令自己当场写设置文件，Windows 刷盘偶尔超过 50 ms（回执 `44f22980`）。用户定：“测试放宽到 200 ms”，并要求以后不再这样硬卡。[补单 05](../tickets/WATER-W10-M7-ADDENDUM-05-20261106.md)：11 个在自己调用里同步写文件的命令测试上限 200 ms，其余照旧 50 ms；只因计时失败可原样重跑最多 3 次；取消“连续三次全绿”；产品不改。
+
+**WATER-W10-M7 补单 05**
+
+```text
+WATER-W10-M7 补单 05（同步写文件的命令测试上限 200 ms，计时失败可多重跑，轻门）：读 F:/new/smaltalk/water/docs/dispatch/tickets/WATER-W10-M7-ADDENDUM-05-20261106.md，按其中列出的顺序读原单、补单 01～04、本补单与你的回执，在 F:/new/smaltalk/water/.worktrees/w10-m7（分支 worker/water-w10-m7）从 44f22980 续做；做完、提交并交回回执；受阻就停下写受阻回执。
+```
