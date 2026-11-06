@@ -124,7 +124,7 @@
       "branch": "worker/water-w10-m1",
       "baseCommit": "f93afb8e3c5cf4114927fe2ab6c14dbb033c7ffe",
       "snapshotRef": "refs/tags/water-w10-m35-base-20261105",
-      "status": "REWORK",
+      "status": "VERIFIED",
       "readyOn": "2026-11-05",
       "dispatchedAt": "2026-11-05T08:47:40Z",
       "startedAt": null,
@@ -194,10 +194,7 @@
       "baselineEvidence": "docs/acceptance/wave10/controller/preflight-20261105/m1/2026-11-05T08-18-39.503Z-26060-baseline-result.json",
       "bundle": "A",
       "dispatchEvidence": "user chat 2026-11-05 ~17:47 JST: \"三个新单是sol\" (bundles A, B, C to sol); worker tree head/changed files f93afb8e/0 when recorded at 2026-11-05T08:47:40Z",
-      "blockedAt": "2026-11-05T09:22:34Z",
-      "blockedCommit": "a62e87ce9a21ba3a7ab2b45b0f9f2d5a785a7a80",
-      "blockedReason": "appending the 32 new rules breaks three old test spots that RULES-M35 section 9 did not authorize: the agent tail rules()[64..], the old M3D condition loop that panics on new conditioned rules, and the legacy fixture that keeps the new partial/unfinished-downloads pair after stripping conditions",
-      "workerSelfReport": "Codex (GPT-6)",
+      "workerSelfReport": "Codex GPT-6",
       "addenda": [
         {
           "id": "WATER-W10-M1-ADDENDUM-01",
@@ -230,28 +227,31 @@
         {
           "id": "WATER-W10-M1-ADDENDUM-04",
           "ticket": "docs/dispatch/tickets/WATER-W10-M1-ADDENDUM-04-20261106.md",
-          "status": "READY",
+          "status": "VERIFIED",
           "issuedAt": "2026-11-05T15:44:06Z",
           "resumeFromCommit": "2fd789d84177398f97cef2128c1326d4725697a8",
-          "change": "jianying-cache locator 2 becomes [\"JianyingPro\",\"User Data\",\"CEF\",\"Cache\"] and the RULES_M35_SEEDS row follows; SPEC section 6 row 4 reads CEF Cache as two segments"
+          "change": "jianying-cache locator 2 becomes [\"JianyingPro\",\"User Data\",\"CEF\",\"Cache\"] and the RULES_M35_SEEDS row follows; SPEC section 6 row 4 reads CEF Cache as two segments",
+          "submittedHead": "02bcbfab2d71f4dd306738573a20ddb09069da09",
+          "implementationCommit": "2d1c71b7d7d988a70f209753a571f964f30be6e5"
         }
       ],
-      "submittedHead": "2fd789d84177398f97cef2128c1326d4725697a8",
+      "submittedHead": "02bcbfab2d71f4dd306738573a20ddb09069da09",
       "controllerReview": {
         "report": "docs/acceptance/wave10/controller/WATER-W10-REVIEW-20261105.md",
         "evidence": "docs/acceptance/wave10/controller/accept-20261105/m1/",
-        "summary": "round 2 (addendum 03, head 2fd789d8): audit 0 problems; fresh tree lock, check, real and test finals passed; controller mutations c1-c10 all caught (c8/c9 drive-root discovery at parse and at resolve, c10 jest back to one segment); independent review found no HIGH: jest fixed, drive-root discovery rejected on every path, old loop covers all 78 original rules with no weakened expectation; MEDIUM jianying-cache locator 2 is one segment \"CEF Cache\" but the real path is User Data\\CEF\\Cache (same contract-notation ambiguity as jest, controller fault) -> addendum 04 while M1 waits to merge with M2"
+        "summary": "round 3 (addendum 04, head 02bcbfab): audit 0 problems; fresh tree lock, check, real and test finals passed; controller mutations c1-c11 all caught (c11: JianyingPro CEF Cache back to a single segment); a two-line data change, not reviewed again (the addendum 03 review found no high-severity issue) Earlier: round 2 (addendum 03, head 2fd789d8): audit 0 problems; fresh tree lock, check, real and test finals passed; controller mutations c1-c10 all caught (c8/c9 drive-root discovery at parse and at resolve, c10 jest back to one segment); independent review found no HIGH: jest fixed, drive-root discovery rejected on every path, old loop covers all 78 original rules with no weakened expectation; MEDIUM jianying-cache locator 2 is one segment \"CEF Cache\" but the real path is User Data\\CEF\\Cache (same contract-notation ambiguity as jest, controller fault) -> addendum 04 while M1 waits to merge with M2"
       },
-      "implementationCommit": "72ac1178cd30adce9c4d27df988e2057eabfdbcb",
+      "implementationCommit": "2d1c71b7d7d988a70f209753a571f964f30be6e5",
       "carryOverLater": [
         "LOW: at resolve time a drive-root discovery base is a folder value problem but the error points at /rules/<i>/locate/<j>",
         "LOW: some assertion messages are stale (\"all eight marker targets\" next to 25, \"eight custom rules\" next to 23)"
-      ]
+      ],
+      "mergeCommit": "e144a5804919b6daba57629afab2580c927139ec"
     },
     {
       "id": "WATER-W10-M2",
       "title": "扫描：新定位、分配大小、泄漏簇、联接索引与空间分布",
-      "status": "REWORK",
+      "status": "VERIFIED",
       "slot": "w10-m2",
       "kind": "rust",
       "worktree": "F:/new/smaltalk/water/.worktrees/w10-m2",
@@ -387,11 +387,11 @@
       ],
       "bundle": "A",
       "dispatchEvidence": "user chat 2026-11-05 ~17:47 JST: \"三个新单是sol\" (bundles A, B, C to sol); worker tree head/changed files f93afb8e/0 when recorded at 2026-11-05T08:47:40Z",
-      "submittedHead": "c4a0287523a8d51f37e28d1d5bff33d51f729a31",
+      "submittedHead": "9c37e92d563547607b03f62e7d7e226ff2c6d0ab",
       "controllerReview": {
         "report": "docs/acceptance/wave10/controller/WATER-W10-REVIEW-20261105.md",
         "evidence": "docs/acceptance/wave10/controller/accept-20261105/m2/",
-        "summary": "round 3 (addendum 02, head c4a02875): audit 0 problems; test diff only adds lines; fresh tree lock, check, real and test finals passed; controller mutations c1-c11 all caught (c5 and c7 now caught); independent review: .git fix holds (no item at or inside .git on any path tried), items 3-5 done; MEDIUM: streaming.rs 997-1007 deletes every budget_exhausted and re-adds only for remaining searches and pending rows, so a deferred discovery group cut by the stop at 959, a hit dropped on an Exit frame and cluster searches skipped by the gate at scan.rs 1058-1063 end with no issue (regression from 68f90263), and a time stop during the forced final emits leaves status completed; LOW: root filter now excludes any root with a .git segment, the .git test reaches the per-directory guard only for the pattern kind. Earlier: round 2 (addendum 01, head 68f90263): audit 0 problems; fresh tree lock, check and real finals passed; controller mutations c1-c4, c6, c8 caught (c2 FNV prime now caught), c5 (extension check in hash_extra) and c7 (cancel check in the build_clusters candidate loop) survive; warm alternating timing old vs new: scan 18.4/18.8 vs 18.1/17.7 s, full 33.0/33.4 vs 19.5/15.8 s, overview 27.1/30.6 vs 30.1/29.3 s (no regression); independent review: all five addendum items done, but HIGH the single-DFS enables pattern targets inside .git when a measurement makes the walk enter it (streaming.rs 426-433 lacks the .git part filter), so .git children become cleanable items; MEDIUM budget_exhausted only on the outermost open measurement group (SCAN-M35 6.4); MEDIUM clusters still searched inside pattern hits and discovery items (5.2, since f50da264); LOW discovery-root cluster member issues counted twice"
+        "summary": "round 4 (addendum 03, head 9c37e92d, code 995473af): audit 0 problems; test diff only adds lines; fresh tree lock, check, real and test finals passed; controller mutations c1-c14 caught (new c12 deferred discovery owner, c13 silent cluster skip, c14 only the first cluster search), c15 (hit dropped at an Exit frame loses its budget owner) survives because the time-budget cases have no deterministic test; independent review found no high or medium issue: the four budget cases are fixed, cancel stays cancelled, and nothing can be found at or inside .git through the shared search_allowed gate (every item, declaration, candidate and hit path enumerated); warm alternating timing old (f50da264) vs new, scan/full/overview: old 20.7/34.0/30.8 and 13.5/20.3/25.6 s, new 18.3/19.0/30.9 and 12.8/12.9/20.9 s (no slowdown) Earlier: round 3 (addendum 02, head c4a02875): audit 0 problems; test diff only adds lines; fresh tree lock, check, real and test finals passed; controller mutations c1-c11 all caught (c5 and c7 now caught); independent review: .git fix holds (no item at or inside .git on any path tried), items 3-5 done; MEDIUM: streaming.rs 997-1007 deletes every budget_exhausted and re-adds only for remaining searches and pending rows, so a deferred discovery group cut by the stop at 959, a hit dropped on an Exit frame and cluster searches skipped by the gate at scan.rs 1058-1063 end with no issue (regression from 68f90263), and a time stop during the forced final emits leaves status completed; LOW: root filter now excludes any root with a .git segment, the .git test reaches the per-directory guard only for the pattern kind. Earlier: round 2 (addendum 01, head 68f90263): audit 0 problems; fresh tree lock, check and real finals passed; controller mutations c1-c4, c6, c8 caught (c2 FNV prime now caught), c5 (extension check in hash_extra) and c7 (cancel check in the build_clusters candidate loop) survive; warm alternating timing old vs new: scan 18.4/18.8 vs 18.1/17.7 s, full 33.0/33.4 vs 19.5/15.8 s, overview 27.1/30.6 vs 30.1/29.3 s (no regression); independent review: all five addendum items done, but HIGH the single-DFS enables pattern targets inside .git when a measurement makes the walk enter it (streaming.rs 426-433 lacks the .git part filter), so .git children become cleanable items; MEDIUM budget_exhausted only on the outermost open measurement group (SCAN-M35 6.4); MEDIUM clusters still searched inside pattern hits and discovery items (5.2, since f50da264); LOW discovery-root cluster member issues counted twice"
       },
       "addenda": [
         {
@@ -417,21 +417,32 @@
         {
           "id": "WATER-W10-M2-ADDENDUM-03",
           "ticket": "docs/dispatch/tickets/WATER-W10-M2-ADDENDUM-03-20261106.md",
-          "status": "READY",
+          "status": "VERIFIED",
           "issuedAt": "2026-11-06T05:13:39Z",
           "resumeFromCommit": "c4a0287523a8d51f37e28d1d5bff33d51f729a31",
           "change": "budget_exhausted on every group whose items were dropped after the walk (deferred discovery rows cut by the stop, hits dropped on an Exit frame by the time budget, cluster searches skipped by the budget gate); any work skipped for the budget makes the status partial; tests for the deferred-discovery and skipped-cluster cases; .git guard test with marker, file_name and discovery roots outside .git",
           "dispatchReportedAt": "2026-11-06T05:18:42Z",
           "model": "sol (user-reported)",
-          "dispatchEvidence": "user chat 2026-11-06 ~14:18 JST: \"已派出 SOL\"; worker tree head/changed files c4a02875/0 when recorded"
+          "dispatchEvidence": "user chat 2026-11-06 ~14:18 JST: \"已派出 SOL\"; worker tree head/changed files c4a02875/0 when recorded",
+          "submittedHead": "9c37e92d563547607b03f62e7d7e226ff2c6d0ab",
+          "implementationCommit": "995473af0aea24b79bd93823dccc0ed63a9da4ce"
         }
       ],
-      "implementationCommit": "cd08848363844da83e50a187b15a1eee8d8fc94c",
+      "implementationCommit": "995473af0aea24b79bd93823dccc0ed63a9da4ce",
       "carryOverLater": [
         "discovery children are measured before coverage is known (streaming.rs 712-727), so a covered child subtree is listed only to be dropped; visited_entries differs from the old engine in that case",
         "on cancel or budget every fully measured discovery item is dropped (streaming.rs 863-865)",
-        "row.issues accumulates one entry per failing listing instead of a count; potential_children allocates per character; pure-measurement directories go through the full search step (CPU only, no measured regression)"
-      ]
+        "row.issues accumulates one entry per failing listing instead of a count; potential_children allocates per character; pure-measurement directories go through the full search step (CPU only, no measured regression)",
+        "weak tests: controller mutation c15 survives; addendum 03 cases 2 and 4 (time budget at an Exit frame or identity read, time spent during the forced final emits) have no deterministic test (no controllable clock); also untested: removing the unfinished_clusters flush (streaming.rs ~922), the Exit else-branch budget insert (~437), reverting the cluster hit-index stop to hit.group_id (scan.rs ~1323), and a cancel arriving after a budget issue was recorded",
+        "LOW: budget_exhausted can land on a group whose remaining work would have produced nothing (deferred rows hit stopped() before the coverage test; build_clusters hits stopped() before claimed()); per-group attribution only, the status is partial anyway",
+        "LOW: partial with no budget_exhausted when the time budget expires exactly at a final Exit whose row has no owner or whose search has no members",
+        "behaviour change: a cancel arriving during the final forced progress callbacks now returns cancelled (matches the spec) where it used to stay completed",
+        "the new assertion \"interrupted deferred entries remain omitted\" pins the backlog item \"measured discovery entries dropped on stop\"; the ticket that fixes it must explicitly allow changing that assertion",
+        "deferred rows dropped at a stop lose their access_denied / unrepresentable_name codes (pre-existing)",
+        "the .git guard is now one per-directory gate (search_allowed); the duplicate relative-path checks were removed, so the outside-root test and controller mutation c9 are the only protection; roots with any .git segment are skipped without base_missing"
+      ],
+      "workerSelfReport": "Codex GPT-6",
+      "mergeCommit": "256e3eaf6fe7ac1500ea544e27b1e28654ea53fd"
     },
     {
       "id": "WATER-W10-M3",
