@@ -421,3 +421,13 @@ M7 补单 02 由 Grok 续做（sol 先接到时发现工作树里有不是自己
 ```text
 WATER-W10-M7 补单 03（custom_root_add 不计 50 ms，一万项分组首次打开再提速，轻门）：读 F:/new/smaltalk/water/docs/dispatch/tickets/WATER-W10-M7-ADDENDUM-03-20261106.md，按其中列出的顺序读原单、补单 01、02、本补单与你的回执，在 F:/new/smaltalk/water/.worktrees/w10-m7（分支 worker/water-w10-m7）从 658c281a 续做；做完、提交并交回回执；受阻就停下写受阻回执。
 ```
+
+### M7 补单 04（2026-11-06）
+
+M7 补单 03（Grok）做到了：`custom_root_add` 不计时，一万项分组首次打开 4～5 ms。但完整测试仍不稳，这次是 `dedupe_progress` 和 `skip_remove` 超时（回执 `9aba0889`）。总控看代码发现，查重、永久删除、清理收尾时，后台线程在持有状态锁时写事件、写或删记录文件，任何轮询都可能等一次落盘。[补单 04](../tickets/WATER-W10-M7-ADDENDUM-04-20261106.md) 要求后台线程一律在锁外读写磁盘，本地量持锁时长（每次不超过 10 ms），并且连续三次全绿。
+
+**WATER-W10-M7 补单 04**
+
+```text
+WATER-W10-M7 补单 04（后台线程不在状态锁里读写磁盘，中门）：读 F:/new/smaltalk/water/docs/dispatch/tickets/WATER-W10-M7-ADDENDUM-04-20261106.md，按其中列出的顺序读原单、补单 01～03、本补单与你的回执，在 F:/new/smaltalk/water/.worktrees/w10-m7（分支 worker/water-w10-m7）从 9aba0889 续做；做完、提交并交回回执；受阻就停下写受阻回执。
+```

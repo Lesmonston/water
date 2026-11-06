@@ -1728,10 +1728,24 @@
         {
           "id": "WATER-W10-M7-ADDENDUM-03",
           "ticket": "docs/dispatch/tickets/WATER-W10-M7-ADDENDUM-03-20261106.md",
-          "status": "READY",
+          "status": "BLOCKED",
           "issuedAt": "2026-11-06T11:28:59Z",
           "resumeFromCommit": "658c281ae891161e6b9840fb0024fb7a13db4607",
-          "change": "sixth allowed old-expectation change: call() skips the 50 ms assertion for custom_root_add only (desktop-v1 SERVICE.md line 46); first group_detail of the 10k group at most 30 ms in 5 local idle measurements, byte-identical output; check skip_remove and cluster_mark_fixed for work under the state lock; three consecutive green full tests before the negative controls, then finals, real and archive"
+          "change": "sixth allowed old-expectation change: call() skips the 50 ms assertion for custom_root_add only (desktop-v1 SERVICE.md line 46); first group_detail of the 10k group at most 30 ms in 5 local idle measurements, byte-identical output; check skip_remove and cluster_mark_fixed for work under the state lock; three consecutive green full tests before the negative controls, then finals, real and archive",
+          "dispatchReportedAt": "2026-11-06T11:40:00Z",
+          "model": "grok 4.6 (receipt; same conversation as addendum 02)",
+          "dispatchEvidence": "controller gave the paste line ~20:35 JST for the open grok conversation; receipt 9aba0889 names Grok 4.6",
+          "blockedCommit": "9aba0889a1e32decf9e1a9b0cdbc35209ffaf2dd",
+          "candidateImplementation": "7a151dfb02c868eff81cdaece88d12176fa895aa",
+          "blockedReason": "custom_root_add exempted in call(); first 10k group_detail 4.3-5.0 ms; still not three greens: dedupe_progress and skip_remove over 50 ms. Controller: background threads write and delete files while holding the state lock (dedupe and purge completion via m35::event and trim, clean and scan trim), so any poll can wait on a disk write"
+        },
+        {
+          "id": "WATER-W10-M7-ADDENDUM-04",
+          "ticket": "docs/dispatch/tickets/WATER-W10-M7-ADDENDUM-04-20261106.md",
+          "status": "READY",
+          "issuedAt": "2026-11-06T11:56:51Z",
+          "resumeFromCommit": "9aba0889a1e32decf9e1a9b0cdbc35209ffaf2dd",
+          "change": "no disk reads or writes under the state lock in background threads (scan, clean, dedupe, purge completion: records, events, trim deletions, quarantine inspection); m35::event split so the file is written outside the lock; commands may keep their own settings.json write but nothing else on disk under that lock; local lock-hold timing (not committed), every background hold at most 10 ms; three consecutive green full tests, then controls, finals, real and archive"
         }
       ]
     },
