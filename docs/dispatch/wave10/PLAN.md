@@ -485,3 +485,5 @@ WATER-W10-M10（执行器补修：永久删除的遗留与隔离编号，重门�
 ```text
 WATER-W10-M11（界面小修：M6 留下的四处小毛病，轻门，浏览器测试与 25 张截图）：读 F:/new/smaltalk/water/docs/dispatch/tickets/WATER-W10-M11-UI-FIX-20261107.md，按其中“先读”的顺序读工作规则、本单、M6 原单与补单 03 的相关几节和代码，在 F:/new/smaltalk/water/.worktrees/w10-m11（分支 worker/water-w10-m11）从 32d7b642 开工；做完、提交并交回回执；受阻就停下写受阻回执。
 ```
+
+派单（11-07 00:46 JST，用户：“M10是sol，M11是opus”）：M10 给 sol，M11 给 opus（界面单这次没给 astra）。

@@ -441,6 +441,7 @@ A–AB及八补单、AD保持VERIFIED；AC/补单06新增VERIFIED（Windows静�
 73. **M7 补单 06 交回、验收中；第 21 份交接**（11-06 23:50 JST）：sol 交回 `84f76974`（实现 `d2f642a4`）。审计 0 个问题，lock、check、real 三个 final 通过，独立复查确认修复正确、没有新的高危或中等。变异续跑在后台（总控的变异脚本已改成计时失败可重跑）。[第 21 份交接](CONTROLLER-HANDOFF-20261106-21.md)第 3 节是入口。
 74. **M7 通过，M7、M6 合入；M10 READY**（11-07 00:40 JST）：M7 补单 06 验收通过，15 条变异全部能被测试发现（4 条失败信息不带标记，记为低），test final 通过；M7 `8de11268`、M6 `569554e1` 依次合入，主线上服务 12 个、界面单元 3 个测试都通过。第十波已合入 M1～M9。M10 工作树已建、baseline 通过，粘贴语在[计划](dispatch/wave10/PLAN.md)末尾，等用户派。见[验收报告](acceptance/wave10/controller/WATER-W10-REVIEW-20261105.md)第 13.6、13.7 节。
 75. **M11 界面小修 READY**（11-07 00:50 JST，用户“出界面小单”）：[M11 工单](dispatch/tickets/WATER-W10-M11-UI-FIX-20261107.md)修 M6 留下的四条低（热力格子夏令时少一天、“体检”点击被吞、拦截不看当前页、打开文件夹偶尔没反应）。基线 `32d7b642`，工作树已建、baseline 通过，粘贴语在[计划](dispatch/wave10/PLAN.md)末尾。不跑 cargo，可与 M10 同时做。
+76. **M10、M11 已派**（11-07 00:46 JST，用户：“M10是sol，M11是opus”）：M10 执行器补修给 sol，M11 界面小修给 opus。两张都交回、验收合入后，照[收尾清单](dispatch/wave10/CLOSE-CHECKLIST.md)做第七次整合检查。
 ## 真实AA→AD联合验收通过（2026-10-26）
 
 新总控（Claude）接任后按事先冻结的[计划](acceptance/wave1/controller/WATER-W1-AAAD-JOINT-PLAN-20261026.md)执行一次：真实固定AA宿主→原生目录选择→R/Z→AB传输→AD同源报告页，四场景全部通过，4窗/9.993秒/无重试/手动终止0。报告页鼠标下载的Q与Z与当次原字符串逐字节一致，淘汰与正常关闭通过。见[联合验收报告](acceptance/wave1/controller/WATER-W1-AAAD-JOINT-REVIEW-20261026.md)。31任务/槽位不变，没有新READY票；桌面接入扫描、真实用户scope、自然同意鉴真、生产竞态、macOS与M1仍未验收。用户同日要求先暂停安排后续任务，结合本机清理经验重订计划；总控草案见[计划重订（待拍板）](REPLAN-20261026-AGENT-ERA-CHECKUP.md)，拍板前不出新票。
