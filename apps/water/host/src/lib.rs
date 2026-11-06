@@ -3,6 +3,7 @@
 
 mod commands;
 mod data;
+mod opener;
 mod picker;
 mod policy;
 mod service;
@@ -10,6 +11,7 @@ mod startup;
 
 pub use commands::*;
 pub use data::{DataDirectories, DataDirectoryError, prepare_data_directories};
+pub use opener::{ExplorerOpener, Opener};
 pub use picker::{pick_folder, picker_failure};
 pub use policy::{
     CAPABILITY, CONFIG, CSP, ConfigError, is_bundled_navigation, validate_capability,
@@ -139,7 +141,12 @@ pub fn clean_state(backend: &dyn Backend) -> CleanState {
         return CleanState::NotCleaning;
     }
     match backend.call("app_state", json!({})) {
-        Ok(state) if state.get("busy").and_then(Value::as_str) == Some("cleaning") => {
+        Ok(state)
+            if matches!(
+                state.get("busy").and_then(Value::as_str),
+                Some("cleaning" | "purging")
+            ) =>
+        {
             CleanState::Cleaning
         }
         Ok(_) => CleanState::NotCleaning,
@@ -280,6 +287,23 @@ where
             commands::custom_root_remove,
             commands::skip_add,
             commands::skip_remove,
+            commands::conclusion_get,
+            commands::conclusion_decide,
+            commands::detail_get,
+            commands::group_items,
+            commands::quarantine_list,
+            commands::quarantine_restore,
+            commands::quarantine_delete,
+            commands::quarantine_progress,
+            commands::quarantine_reveal,
+            commands::dedupe_start,
+            commands::dedupe_progress,
+            commands::dedupe_cancel,
+            commands::dedupe_result,
+            commands::dedupe_decide,
+            commands::locations_set_session_cleanup,
+            commands::manifest_trust,
+            commands::cluster_mark_fixed,
         ])
         .build(tauri::generate_context!())
         .map_err(|_| StartupError::Failed)?;

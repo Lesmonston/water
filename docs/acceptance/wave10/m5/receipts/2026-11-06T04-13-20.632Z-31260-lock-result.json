@@ -1,0 +1,262 @@
+{
+  "task": "WATER-W10-M5",
+  "kind": "host",
+  "mode": "lock",
+  "finalGate": false,
+  "manifest": "docs/dispatch/wave10/manifest.json",
+  "startedAt": "2026-11-06T04:13:20.636Z",
+  "realDataRead": false,
+  "productTestsRun": false,
+  "nativeWindows": 0,
+  "directoryDialogs": 0,
+  "commands": [
+    {
+      "binary": "git",
+      "argv": [
+        "branch",
+        "--show-current"
+      ],
+      "exitCode": 0
+    },
+    {
+      "binary": "git",
+      "argv": [
+        "merge-base",
+        "--is-ancestor",
+        "f93afb8e3c5cf4114927fe2ab6c14dbb033c7ffe",
+        "HEAD"
+      ],
+      "exitCode": 0
+    },
+    {
+      "binary": "git",
+      "argv": [
+        "diff",
+        "--no-renames",
+        "--name-only",
+        "-z",
+        "f93afb8e3c5cf4114927fe2ab6c14dbb033c7ffe",
+        "HEAD"
+      ],
+      "exitCode": 0
+    },
+    {
+      "binary": "git",
+      "argv": [
+        "diff",
+        "--no-renames",
+        "--name-only",
+        "-z",
+        "HEAD"
+      ],
+      "exitCode": 0
+    },
+    {
+      "binary": "git",
+      "argv": [
+        "ls-files",
+        "--others",
+        "--exclude-standard",
+        "-z"
+      ],
+      "exitCode": 0
+    },
+    {
+      "binary": "git",
+      "argv": [
+        "rev-parse",
+        "HEAD"
+      ],
+      "exitCode": 0
+    },
+    {
+      "binary": "git",
+      "argv": [
+        "status",
+        "--porcelain",
+        "--untracked-files=all"
+      ],
+      "exitCode": 0
+    },
+    {
+      "binary": "C:\\Users\\37310\\.cargo\\bin\\rustup.exe",
+      "argv": [
+        "which",
+        "cargo",
+        "--toolchain",
+        "1.95.0"
+      ],
+      "exitCode": 0,
+      "error": null,
+      "log": "2026-11-06T04-13-20.632Z-31260-lock-1.log"
+    },
+    {
+      "binary": "C:\\Users\\37310\\.cargo\\bin\\rustup.exe",
+      "argv": [
+        "which",
+        "rustc",
+        "--toolchain",
+        "1.95.0"
+      ],
+      "exitCode": 0,
+      "error": null,
+      "log": "2026-11-06T04-13-20.632Z-31260-lock-2.log"
+    },
+    {
+      "binary": "C:\\Users\\37310\\.rustup\\toolchains\\1.95.0-x86_64-pc-windows-msvc\\bin\\rustc.exe",
+      "argv": [
+        "--version"
+      ],
+      "exitCode": 0,
+      "error": null,
+      "log": "2026-11-06T04-13-20.632Z-31260-lock-3.log"
+    },
+    {
+      "binary": "C:\\Users\\37310\\.rustup\\toolchains\\1.95.0-x86_64-pc-windows-msvc\\bin\\cargo.exe",
+      "argv": [
+        "--config",
+        "source.crates-io.replace-with=\"water-cn\"",
+        "--config",
+        "source.water-cn.registry=\"sparse+https://mirrors.ustc.edu.cn/crates.io-index/\"",
+        "--config",
+        "http.multiplexing=false",
+        "--config",
+        "http.proxy=\"\"",
+        "metadata",
+        "--offline",
+        "--format-version",
+        "1",
+        "--filter-platform",
+        "x86_64-pc-windows-msvc",
+        "--manifest-path",
+        "apps/water/host/Cargo.toml"
+      ],
+      "exitCode": 0,
+      "error": null,
+      "log": "2026-11-06T04-13-20.632Z-31260-lock-4.log"
+    },
+    {
+      "binary": "C:\\Users\\37310\\.rustup\\toolchains\\1.95.0-x86_64-pc-windows-msvc\\bin\\cargo.exe",
+      "argv": [
+        "--config",
+        "source.crates-io.replace-with=\"water-cn\"",
+        "--config",
+        "source.water-cn.registry=\"sparse+https://mirrors.ustc.edu.cn/crates.io-index/\"",
+        "--config",
+        "http.multiplexing=false",
+        "--config",
+        "http.proxy=\"\"",
+        "metadata",
+        "--offline",
+        "--locked",
+        "--format-version",
+        "1",
+        "--filter-platform",
+        "x86_64-pc-windows-msvc",
+        "--manifest-path",
+        "apps/water/host/Cargo.toml"
+      ],
+      "exitCode": 0,
+      "error": null,
+      "log": "2026-11-06T04-13-20.632Z-31260-lock-5.log"
+    },
+    {
+      "binary": "git",
+      "argv": [
+        "branch",
+        "--show-current"
+      ],
+      "exitCode": 0
+    },
+    {
+      "binary": "git",
+      "argv": [
+        "merge-base",
+        "--is-ancestor",
+        "f93afb8e3c5cf4114927fe2ab6c14dbb033c7ffe",
+        "HEAD"
+      ],
+      "exitCode": 0
+    },
+    {
+      "binary": "git",
+      "argv": [
+        "diff",
+        "--no-renames",
+        "--name-only",
+        "-z",
+        "f93afb8e3c5cf4114927fe2ab6c14dbb033c7ffe",
+        "HEAD"
+      ],
+      "exitCode": 0
+    },
+    {
+      "binary": "git",
+      "argv": [
+        "diff",
+        "--no-renames",
+        "--name-only",
+        "-z",
+        "HEAD"
+      ],
+      "exitCode": 0
+    },
+    {
+      "binary": "git",
+      "argv": [
+        "ls-files",
+        "--others",
+        "--exclude-standard",
+        "-z"
+      ],
+      "exitCode": 0
+    },
+    {
+      "binary": "git",
+      "argv": [
+        "rev-parse",
+        "HEAD"
+      ],
+      "exitCode": 0
+    },
+    {
+      "binary": "git",
+      "argv": [
+        "status",
+        "--porcelain",
+        "--untracked-files=all"
+      ],
+      "exitCode": 0
+    }
+  ],
+  "changedPaths": [
+    "apps/water/host/README.md",
+    "apps/water/host/src/commands.rs",
+    "apps/water/host/src/lib.rs",
+    "apps/water/host/src/opener.rs",
+    "apps/water/host/tests/host_v1.rs",
+    "docs/acceptance/wave10/m5/.gitattributes",
+    "docs/acceptance/wave10/m5/ARCHIVE.json",
+    "docs/acceptance/wave10/m5/receipts/2026-11-05T08-18-39.551Z-32008-baseline-1.log",
+    "docs/acceptance/wave10/m5/receipts/2026-11-05T08-18-39.551Z-32008-baseline-2.log",
+    "docs/acceptance/wave10/m5/receipts/2026-11-05T08-18-39.551Z-32008-baseline-3.log",
+    "docs/acceptance/wave10/m5/receipts/2026-11-05T08-18-39.551Z-32008-baseline-result.json",
+    "docs/acceptance/wave10/m5/receipts/2026-11-05T10-34-04.111Z-33584-baseline-1.log",
+    "docs/acceptance/wave10/m5/receipts/2026-11-05T10-34-04.111Z-33584-baseline-2.log",
+    "docs/acceptance/wave10/m5/receipts/2026-11-05T10-34-04.111Z-33584-baseline-3.log",
+    "docs/acceptance/wave10/m5/receipts/2026-11-05T10-34-04.111Z-33584-baseline-result.json",
+    "docs/dispatch/reports/WATER-W10-M5-REPORT.md"
+  ],
+  "before": {
+    "head": "2d516c46de2660f0b4f77f15a0374ec138469ca5",
+    "status": "M apps/water/host/README.md\n M apps/water/host/src/commands.rs\n M apps/water/host/src/lib.rs\n M apps/water/host/tests/host_v1.rs\n?? apps/water/host/src/opener.rs"
+  },
+  "registryPackages": 395,
+  "after": {
+    "head": "2d516c46de2660f0b4f77f15a0374ec138469ca5",
+    "status": "M apps/water/host/README.md\n M apps/water/host/src/commands.rs\n M apps/water/host/src/lib.rs\n M apps/water/host/tests/host_v1.rs\n?? apps/water/host/src/opener.rs"
+  },
+  "status": "passed",
+  "error": null,
+  "endedAt": "2026-11-06T04:13:48.478Z"
+}

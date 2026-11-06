@@ -195,12 +195,20 @@ impl Backend for Recorder {
 fn exercise(backend: &dyn Backend) -> Vec<Result<Value, IpcFailure>> {
     vec![
         cmd_app_state(backend),
-        cmd_scan_start(backend),
+        cmd_scan_start(backend, None),
         cmd_scan_cancel(backend, "scan-1".into()),
         cmd_scan_progress(backend),
         cmd_scan_result(backend, "scan-2".into()),
         cmd_group_detail(backend, "group-甲".into()),
-        cmd_clean_prepare(backend, vec!["g1".into(), "g2".into()], None),
+        cmd_clean_prepare(
+            backend,
+            Some(vec!["g1".into(), "g2".into()]),
+            None,
+            None,
+            None,
+            None,
+            None,
+        ),
         cmd_clean_start(backend, "plan-1".into(), "token-1".into()),
         cmd_clean_stop(backend),
         cmd_clean_progress(backend),
@@ -282,7 +290,7 @@ fn host_command_registry() {
         ("skip_remove", json!({"skipId": "skip-乙"})),
     ];
     let names: Vec<_> = expected.iter().map(|(name, _)| *name).collect();
-    assert_eq!(COMMANDS.as_slice(), names, "HOST_COMMANDS fixed registry");
+    assert_eq!(&COMMANDS[..19], names, "HOST_COMMANDS fixed registry");
     let contract_names: Vec<_> = include_str!("../../../../contracts/checkup-v1/IPC.md")
         .lines()
         .filter_map(|line| {
@@ -298,8 +306,10 @@ fn host_command_registry() {
                 })
                 .filter(|name| matches!(*name, "skip_add" | "skip_remove")),
         )
+        .chain(m35_command_table().iter().map(|(name, _)| name.as_str()))
+        .map(str::to_owned)
         .collect();
-    assert_eq!(names, contract_names, "HOST_COMMANDS IPC table");
+    assert_eq!(names, &contract_names[..19], "HOST_COMMANDS IPC table");
     // Inspect the actual Tauri wrappers, independently of the cmd_* adapters.
     let src = Path::new(env!("CARGO_MANIFEST_DIR")).join("src");
     let mut files: Vec<_> = fs::read_dir(&src)
@@ -375,12 +385,27 @@ fn host_command_registry() {
             )
         })
         .collect();
+    expected_wrappers.insert("scan_start".to_owned(), vec!["locationIds".to_owned()]);
     expected_wrappers.insert(
         "clean_prepare".to_owned(),
-        vec!["excludeItemIds".to_owned(), "groupIds".to_owned()],
+        [
+            "chosenMode",
+            "conclusionVersion",
+            "dedupeId",
+            "dedupeVersion",
+            "excludeItemIds",
+            "groupIds",
+        ]
+        .map(str::to_owned)
+        .to_vec(),
     );
     assert_eq!(
-        wrappers, expected_wrappers,
+        wrappers
+            .iter()
+            .filter(|(name, _)| names.contains(&name.as_str()))
+            .map(|(name, keys)| (name.clone(), keys.clone()))
+            .collect::<std::collections::BTreeMap<_, _>>(),
+        expected_wrappers,
         "HOST_COMMANDS actual Tauri camelCase parameters"
     );
     let lib = fs::read_to_string(src.join("lib.rs")).unwrap();
@@ -396,9 +421,9 @@ fn host_command_registry() {
         .filter(|entry| !entry.is_empty())
         .map(|entry| entry.strip_prefix("commands::").unwrap_or(entry))
         .collect();
-    assert_eq!(COMMANDS.len(), 19, "HOST_M3C_SKIP command count");
+    assert_eq!(COMMANDS.len(), 36, "HOST_M3C_SKIP command count");
     assert_eq!(
-        &COMMANDS[17..],
+        &COMMANDS[17..19],
         ["skip_add", "skip_remove"],
         "HOST_M3C_SKIP appended command order"
     );
@@ -436,7 +461,12 @@ fn host_command_registry() {
             "HOST_M3C_SKIP exact command names, keys and values"
         );
     }
-    assert_eq!(handlers, names, "HOST_COMMANDS actual handler registration");
+    assert_eq!(
+        &handlers[..19],
+        names,
+        "HOST_COMMANDS actual handler registration"
+    );
+    assert_m35_registry(&contract_names, &wrappers, &handlers);
     assert_eq!(
         lib.matches("tauri::generate_handler![").count(),
         1,
@@ -508,6 +538,557 @@ fn host_command_registry() {
             message_zh: "这个文件夹不能加入体检，请换一个。".into()
         }),
         "HOST_COMMANDS reject before opening any dialog"
+    );
+}
+
+fn m35_command_table() -> Vec<(String, Vec<String>)> {
+    include_str!("../../../../contracts/m35-v1/IPC-M35.md")
+        .split_once("## 1. 命令")
+        .expect("HOST_M35_COMMANDS section 1")
+        .1
+        .split_once("原有命令的变化")
+        .expect("HOST_M35_COMMANDS table end")
+        .0
+        .lines()
+        .filter(|line| line.starts_with("| `"))
+        .map(|line| {
+            let cells: Vec<_> = line.split('|').map(str::trim).collect();
+            let name = cells[1].trim_matches('`').to_owned();
+            let mut keys = if cells[2] == "无" {
+                vec![]
+            } else {
+                cells[2]
+                    .trim_matches('`')
+                    .trim_start_matches('{')
+                    .trim_end_matches('}')
+                    .split(',')
+                    .map(|key| key.trim().to_owned())
+                    .collect::<Vec<_>>()
+            };
+            keys.sort();
+            (name, keys)
+        })
+        .collect()
+}
+
+fn assert_m35_registry(
+    contract_names: &[String],
+    wrappers: &std::collections::BTreeMap<String, Vec<String>>,
+    handlers: &[&str],
+) {
+    let appended = [
+        "conclusion_get",
+        "conclusion_decide",
+        "detail_get",
+        "group_items",
+        "quarantine_list",
+        "quarantine_restore",
+        "quarantine_delete",
+        "quarantine_progress",
+        "quarantine_reveal",
+        "dedupe_start",
+        "dedupe_progress",
+        "dedupe_cancel",
+        "dedupe_result",
+        "dedupe_decide",
+        "locations_set_session_cleanup",
+        "manifest_trust",
+        "cluster_mark_fixed",
+    ];
+    let table = m35_command_table();
+    assert_eq!(table.len(), 17, "HOST_M35_COMMANDS IPC additions");
+    assert_eq!(COMMANDS.len(), 36, "HOST_M35_COMMANDS count");
+    assert_eq!(
+        &COMMANDS[19..],
+        appended,
+        "HOST_M35_COMMANDS exact addition order"
+    );
+    assert_eq!(
+        COMMANDS.as_slice(),
+        contract_names,
+        "HOST_M35_COMMANDS complete IPC table"
+    );
+    assert_eq!(
+        handlers, COMMANDS,
+        "HOST_M35_COMMANDS complete handler registry"
+    );
+    let actual: std::collections::BTreeMap<_, _> = wrappers
+        .iter()
+        .filter(|(name, _)| appended.contains(&name.as_str()))
+        .map(|(name, keys)| (name.clone(), keys.clone()))
+        .collect();
+    assert_eq!(
+        actual,
+        table.into_iter().collect(),
+        "HOST_M35_COMMANDS new wrapper camelCase keys"
+    );
+    assert_eq!(
+        wrappers.len(),
+        36,
+        "HOST_M35_COMMANDS no extra IPC wrappers"
+    );
+    assert!(
+        !COMMANDS.contains(&"quarantine_locate")
+            && !handlers.contains(&"quarantine_locate")
+            && !wrappers.contains_key("quarantine_locate"),
+        "HOST_M35_COMMANDS internal locate never exposed"
+    );
+    let source = include_str!("../src/commands.rs");
+    let tokens = wiring_tokens(source);
+    let reveal = wiring_block(
+        &tokens,
+        &["fn", "quarantine_reveal", "("],
+        "HOST_M35_REVEAL",
+    );
+    let call = wiring_tokens(
+        "cmd_quarantine_reveal(backend.inner().as_ref(), &ExplorerOpener, target_id)",
+    );
+    assert!(
+        reveal.windows(call.len()).any(|w| w == call),
+        "HOST_M35_REVEAL real opener wrapper wiring"
+    );
+}
+
+fn assert_m35_forward() {
+    for reply in [
+        Ok(json!({"unknown": [null, {"中文": "9007199254740993"}]})),
+        Err(IpcFailure {
+            code: "stale".into(),
+            message_zh: "原样转交。".into(),
+        }),
+    ] {
+        let backend = Recorder {
+            calls: Mutex::new(vec![]),
+            reply: reply.clone(),
+        };
+        for (ids, expected) in [
+            (None, json!({})),
+            (
+                Some(vec!["位置-甲".into(), "".into(), "位置-甲".into()]),
+                json!({"locationIds": ["位置-甲", "", "位置-甲"]}),
+            ),
+            (Some(vec![]), json!({"locationIds": []})),
+        ] {
+            assert_eq!(
+                cmd_scan_start(&backend, ids),
+                reply,
+                "HOST_M35_FORWARD scan reply"
+            );
+            let call = backend.calls.lock().unwrap().pop().unwrap();
+            assert_eq!(call.0, "scan_start", "HOST_M35_FORWARD scan command");
+            assert_eq!(
+                call.1.to_string().as_bytes(),
+                expected.to_string().as_bytes(),
+                "HOST_M35_FORWARD scan exact bytes including None omission"
+            );
+        }
+        let old = Some(vec!["g2".into(), "g1".into()]);
+        for excluded in [None, Some(vec![]), Some(vec!["i-甲".into(), "i-甲".into()])] {
+            let mut expected = json!({"groupIds": ["g2", "g1"]});
+            if let Some(ids) = excluded.as_ref().filter(|ids| !ids.is_empty()) {
+                expected["excludeItemIds"] = json!(ids);
+            }
+            assert_eq!(
+                cmd_clean_prepare(&backend, old.clone(), excluded, None, None, None, None),
+                reply,
+                "HOST_M35_FORWARD legacy prepare reply"
+            );
+            let call = backend.calls.lock().unwrap().pop().unwrap();
+            assert_eq!(
+                call.0, "clean_prepare",
+                "HOST_M35_FORWARD legacy prepare command"
+            );
+            assert_eq!(
+                call.1.to_string().as_bytes(),
+                expected.to_string().as_bytes(),
+                "HOST_M35_FORWARD legacy prepare byte-identical"
+            );
+        }
+        for (conclusion, mode, dedupe, version, expected) in [
+            (
+                Some("v:甲".into()),
+                Some("quarantine".into()),
+                None,
+                None,
+                json!({"conclusionVersion":"v:甲", "chosenMode":"quarantine"}),
+            ),
+            (
+                None,
+                None,
+                Some("dup:1".into()),
+                Some("v:2".into()),
+                json!({"dedupeId":"dup:1", "dedupeVersion":"v:2"}),
+            ),
+            (None, None, None, None, json!({})),
+            (
+                Some("".into()),
+                Some("unknown".into()),
+                Some("".into()),
+                Some("".into()),
+                json!({"conclusionVersion":"", "chosenMode":"unknown", "dedupeId":"", "dedupeVersion":""}),
+            ),
+        ] {
+            assert_eq!(
+                cmd_clean_prepare(&backend, None, None, conclusion, mode, dedupe, version),
+                reply,
+                "HOST_M35_FORWARD optional prepare reply"
+            );
+            let call = backend.calls.lock().unwrap().pop().unwrap();
+            assert_eq!(
+                call.0, "clean_prepare",
+                "HOST_M35_FORWARD optional prepare command"
+            );
+            assert_eq!(
+                call.1, expected,
+                "HOST_M35_FORWARD only present prepare keys, no host validation"
+            );
+        }
+        let results = [
+            cmd_conclusion_get(&backend),
+            cmd_conclusion_decide(
+                &backend,
+                "v:1".into(),
+                json!({"group":"g-甲", "choice":"keep", "unknown":null}),
+            ),
+            cmd_detail_get(&backend, "v:2".into(), "not-validated".into()),
+            cmd_group_items(&backend, "g-甲".into(), None, None),
+            cmd_quarantine_list(&backend),
+            cmd_quarantine_restore(&backend, "q-甲".into(), true),
+            cmd_quarantine_delete(&backend, "q-乙".into()),
+            cmd_quarantine_progress(&backend),
+            cmd_dedupe_start(&backend, "location-甲".into()),
+            cmd_dedupe_progress(&backend),
+            cmd_dedupe_cancel(&backend, "d-甲".into()),
+            cmd_dedupe_result(&backend, "d-乙".into(), false),
+            cmd_dedupe_decide(&backend, "d-丙".into(), "v:3".into(), "g-乙".into(), true),
+            cmd_locations_set_session_cleanup(&backend, "tool-甲".into(), false, 17),
+            cmd_manifest_trust(&backend, "m-甲".into(), true),
+            cmd_cluster_mark_fixed(&backend, "g-丙".into(), false),
+            cmd_group_items(
+                &backend,
+                "g-丁".into(),
+                Some("row-1".into()),
+                Some("搜索".into()),
+            ),
+        ];
+        for result in results {
+            assert_eq!(result, reply, "HOST_M35_FORWARD untouched reply");
+        }
+        assert_eq!(
+            *backend.calls.lock().unwrap(),
+            [
+                ("conclusion_get".into(), json!({})),
+                (
+                    "conclusion_decide".into(),
+                    json!({"version":"v:1", "decision":{"group":"g-甲", "choice":"keep", "unknown":null}})
+                ),
+                (
+                    "detail_get".into(),
+                    json!({"version":"v:2", "mode":"not-validated"})
+                ),
+                (
+                    "group_items".into(),
+                    json!({"groupId":"g-甲", "rowId":null, "query":null})
+                ),
+                ("quarantine_list".into(), json!({})),
+                (
+                    "quarantine_restore".into(),
+                    json!({"quarantineId":"q-甲", "beside":true})
+                ),
+                ("quarantine_delete".into(), json!({"quarantineId":"q-乙"})),
+                ("quarantine_progress".into(), json!({})),
+                ("dedupe_start".into(), json!({"locationId":"location-甲"})),
+                ("dedupe_progress".into(), json!({})),
+                ("dedupe_cancel".into(), json!({"dedupeId":"d-甲"})),
+                (
+                    "dedupe_result".into(),
+                    json!({"dedupeId":"d-乙", "expand":false})
+                ),
+                (
+                    "dedupe_decide".into(),
+                    json!({"dedupeId":"d-丙", "version":"v:3", "groupId":"g-乙", "include":true})
+                ),
+                (
+                    "locations_set_session_cleanup".into(),
+                    json!({"tool":"tool-甲", "enabled":false, "days":17})
+                ),
+                (
+                    "manifest_trust".into(),
+                    json!({"manifestId":"m-甲", "trusted":true})
+                ),
+                (
+                    "cluster_mark_fixed".into(),
+                    json!({"groupId":"g-丙", "fixed":false})
+                ),
+                (
+                    "group_items".into(),
+                    json!({"groupId":"g-丁", "rowId":"row-1", "query":"搜索"})
+                ),
+            ],
+            "HOST_M35_FORWARD all new forwarding commands, exact names/keys/values"
+        );
+    }
+}
+
+struct RecordingOpener {
+    paths: Mutex<Vec<String>>,
+    fail: bool,
+}
+
+impl Opener for RecordingOpener {
+    fn open_folder(&self, path: &str) -> Result<(), ()> {
+        self.paths.lock().unwrap().push(path.to_owned());
+        if self.fail { Err(()) } else { Ok(()) }
+    }
+}
+
+fn assert_m35_reveal() {
+    let mut fixture = WiringFixture::new();
+    let quarantine = fixture.root.join(".water-quarantine");
+    let numbered = quarantine.join("20261105-163012-F");
+    let ordinary = fixture.root.join("ordinary");
+    let file = quarantine.join("file");
+    fs::create_dir_all(&numbered).unwrap();
+    fs::create_dir(&ordinary).unwrap();
+    fs::write(&file, b"owned fixture").unwrap();
+    let comma = fixture.root.join("comma,parent/.water-quarantine");
+    fs::create_dir_all(&comma).unwrap();
+    let path_text = |p: &Path| p.to_str().unwrap().replace('/', "\\");
+    let opener = RecordingOpener {
+        paths: Mutex::new(vec![]),
+        fail: false,
+    };
+    for path in [&quarantine, &numbered] {
+        let path = path_text(path).replace(".water-quarantine", ".WaTeR-QuArAnTiNe");
+        let backend = Recorder {
+            calls: Mutex::new(vec![]),
+            reply: Ok(json!({"path":path})),
+        };
+        assert_eq!(
+            cmd_quarantine_reveal(&backend, &opener, "qroot-t1".into()),
+            Ok(json!({})),
+            "HOST_M35_REVEAL valid directory"
+        );
+        assert_eq!(
+            *backend.calls.lock().unwrap(),
+            [("quarantine_locate".into(), json!({"targetId":"qroot-t1"}))],
+            "HOST_M35_REVEAL locate exact payload"
+        );
+        assert_eq!(
+            opener.paths.lock().unwrap().last(),
+            Some(&path),
+            "HOST_M35_REVEAL opens exact unmodified path"
+        );
+    }
+    assert_eq!(
+        opener.paths.lock().unwrap().len(),
+        2,
+        "HOST_M35_REVEAL exactly two valid opens"
+    );
+    let failure = IpcFailure {
+        code: "not_found".into(),
+        message_zh: "服务原样未找到。".into(),
+    };
+    let backend = Recorder {
+        calls: Mutex::new(vec![]),
+        reply: Err(failure.clone()),
+    };
+    assert_eq!(
+        cmd_quarantine_reveal(&backend, &opener, "missing".into()),
+        Err(failure),
+        "HOST_M35_REVEAL service failure untouched"
+    );
+    let valid = path_text(&quarantine);
+    let mut bad = vec![
+        json!({}),
+        json!({"path":null}),
+        json!({"path":42}),
+        json!({"path":path_text(&ordinary)}),
+        json!({"path":format!("{valid}\\..\\.water-quarantine")}),
+        json!({"path":format!("{valid},other")}),
+        json!({"path":path_text(&comma)}),
+        json!({"path":r"\\server\share\.water-quarantine"}),
+        json!({"path":path_text(&file)}),
+        json!({"path":format!("{valid}\\missing")}),
+        json!({"path":valid.replace('\\', "/")}),
+    ];
+    for suffix in [
+        "bad_id",
+        "bad%id",
+        "bad;id",
+        "bad\"id",
+        "bad\nid",
+        ".",
+        "..",
+        "",
+        "id.",
+        "id ",
+        "id:stream",
+    ] {
+        bad.push(json!({"path":format!("{valid}\\{suffix}")}));
+    }
+    for name in ["a".repeat(48), "a".repeat(49)] {
+        let path = quarantine.join(&name);
+        fs::create_dir(&path).unwrap();
+        let backend = Recorder {
+            calls: Mutex::new(vec![]),
+            reply: Ok(json!({"path":path_text(&path)})),
+        };
+        let result = cmd_quarantine_reveal(&backend, &opener, name.clone());
+        if name.len() == 48 {
+            assert_eq!(
+                result,
+                Ok(json!({})),
+                "HOST_M35_REVEAL 48 character identifier accepted"
+            );
+        } else {
+            assert_eq!(
+                result
+                    .expect_err("HOST_M35_REVEAL reject oversized ID")
+                    .code,
+                "invalid",
+                "HOST_M35_REVEAL 49 character identifier rejected"
+            );
+        }
+    }
+    let before = opener.paths.lock().unwrap().len();
+    for reply in bad {
+        let backend = Recorder {
+            calls: Mutex::new(vec![]),
+            reply: Ok(reply.clone()),
+        };
+        assert_eq!(
+            cmd_quarantine_reveal(&backend, &opener, "target".into())
+                .expect_err("HOST_M35_REVEAL unsafe path must fail")
+                .code,
+            "invalid",
+            "HOST_M35_REVEAL reject malformed or unsafe location: {reply}"
+        );
+    }
+    assert_eq!(
+        opener.paths.lock().unwrap().len(),
+        before,
+        "HOST_M35_REVEAL invalid paths never open"
+    );
+    #[cfg(windows)]
+    {
+        let link = quarantine.join("junction");
+        junction(&link, &ordinary, &fixture.root);
+        let backend = Recorder {
+            calls: Mutex::new(vec![]),
+            reply: Ok(json!({"path":path_text(&link)})),
+        };
+        let result = cmd_quarantine_reveal(&backend, &opener, "link".into());
+        fs::remove_dir(&link).expect("HOST_M35_REVEAL unlink only own junction");
+        assert_eq!(
+            result.expect_err("HOST_M35_REVEAL junction must fail").code,
+            "invalid",
+            "HOST_M35_REVEAL rejects junction"
+        );
+        assert_eq!(
+            opener.paths.lock().unwrap().len(),
+            before,
+            "HOST_M35_REVEAL junction never opens"
+        );
+    }
+    let failing = RecordingOpener {
+        paths: Mutex::new(vec![]),
+        fail: true,
+    };
+    let backend = Recorder {
+        calls: Mutex::new(vec![]),
+        reply: Ok(json!({"path":valid})),
+    };
+    assert_eq!(
+        cmd_quarantine_reveal(&backend, &failing, "qroot-t1".into())
+            .expect_err("HOST_M35_REVEAL opener error must fail")
+            .code,
+        "unavailable",
+        "HOST_M35_REVEAL opener failure mapping"
+    );
+    assert_eq!(
+        failing.paths.lock().unwrap().as_slice(),
+        [valid],
+        "HOST_M35_REVEAL failing opener tried once"
+    );
+    fixture
+        .cleanup()
+        .expect("HOST_M35_REVEAL owned fixture cleanup");
+}
+
+struct PurgingBackend {
+    stops: AtomicUsize,
+}
+
+impl Backend for PurgingBackend {
+    fn call(&self, command: &str, args: Value) -> Result<Value, IpcFailure> {
+        assert_eq!(args, json!({}), "HOST_M35_PURGE_EXIT empty control payload");
+        match command {
+            "app_state" => Ok(
+                json!({"busy": if self.stops.load(Ordering::SeqCst) == 0 { "purging" } else { "idle" }}),
+            ),
+            "clean_stop" => {
+                self.stops.fetch_add(1, Ordering::SeqCst);
+                Ok(json!({}))
+            }
+            _ => panic!("HOST_M35_PURGE_EXIT unexpected command"),
+        }
+    }
+}
+
+fn assert_m35_purge_exit() {
+    let backend = PurgingBackend {
+        stops: AtomicUsize::new(0),
+    };
+    assert_eq!(
+        clean_state(&backend),
+        CleanState::Cleaning,
+        "HOST_M35_PURGE_EXIT purging means cleaning"
+    );
+    assert_eq!(
+        stop_cleaning_within(&backend, Duration::from_millis(1), Duration::from_secs(1)),
+        CleanStop::Stopped,
+        "HOST_M35_PURGE_EXIT stop purging before exit"
+    );
+    assert_eq!(
+        backend.stops.load(Ordering::SeqCst),
+        1,
+        "HOST_M35_PURGE_EXIT sends one stop"
+    );
+    let backend = PurgingBackend {
+        stops: AtomicUsize::new(0),
+    };
+    assert!(
+        stop_cleaning_and_wait(&backend, Duration::from_millis(1)),
+        "HOST_M35_PURGE_EXIT close also stops purging"
+    );
+    assert_eq!(
+        backend.stops.load(Ordering::SeqCst),
+        1,
+        "HOST_M35_PURGE_EXIT close sends one stop"
+    );
+    let readonly = Recorder {
+        calls: Mutex::new(vec![]),
+        reply: Ok(json!({"busy":"deduping"})),
+    };
+    assert_eq!(
+        clean_state(&readonly),
+        CleanState::NotCleaning,
+        "HOST_M35_PURGE_EXIT deduping is read-only"
+    );
+    assert_eq!(
+        stop_cleaning_within(&readonly, Duration::from_millis(1), Duration::ZERO),
+        CleanStop::Idle,
+        "HOST_M35_PURGE_EXIT read-only task permits exit"
+    );
+    assert!(
+        readonly
+            .calls
+            .lock()
+            .unwrap()
+            .iter()
+            .all(|(command, _)| command == "app_state"),
+        "HOST_M35_PURGE_EXIT no stop for deduping"
     );
 }
 
@@ -1418,6 +1999,9 @@ fn wiring_block<'a>(tokens: &'a [&'a str], prefix: &[&str], marker: &str) -> &'a
 
 #[test]
 fn host_service_wiring() {
+    assert_m35_forward();
+    assert_m35_reveal();
+    assert_m35_purge_exit();
     for reply in [
         Ok(json!({"unknown": ["原样", null]})),
         Err(IpcFailure {
@@ -1433,10 +2017,14 @@ fn host_service_wiring() {
             assert_eq!(
                 cmd_clean_prepare(
                     &backend,
-                    vec!["g1".into(), "g2".into()],
+                    Some(vec!["g1".into(), "g2".into()]),
                     excluded
                         .clone()
                         .map(|ids| ids.into_iter().map(String::from).collect()),
+                    None,
+                    None,
+                    None,
+                    None,
                 ),
                 reply,
                 "HOST_M3C_EXCLUDE untouched backend reply"
@@ -1820,7 +2408,16 @@ fn host_service_wiring() {
         json!({"code": "unavailable", "message_zh": "这一版只做体检，清理功能会在下一版开放。"});
     assert_ne!(
         serde_json::to_value(
-            cmd_clean_prepare(direct.as_ref(), vec!["g1".into()], None).unwrap_err()
+            cmd_clean_prepare(
+                direct.as_ref(),
+                Some(vec!["g1".into()]),
+                None,
+                None,
+                None,
+                None,
+                None
+            )
+            .unwrap_err()
         )
         .unwrap(),
         cleanup_closed,
@@ -1887,8 +2484,19 @@ fn host_service_wiring() {
     assert_eq!(state["busy"], "idle", "HOST_WIRING idle service");
     assert_eq!(state, raw_state, "HOST_WIRING success passes through");
     assert_ne!(
-        serde_json::to_value(cmd_clean_prepare(&backend, vec!["g1".into()], None).unwrap_err())
-            .unwrap(),
+        serde_json::to_value(
+            cmd_clean_prepare(
+                &backend,
+                Some(vec!["g1".into()]),
+                None,
+                None,
+                None,
+                None,
+                None
+            )
+            .unwrap_err()
+        )
+        .unwrap(),
         json!({"code": "unavailable", "message_zh": "这一版只做体检，清理功能会在下一版开放。"}),
         "HOST_CLEAN_ENABLED exact failure"
     );

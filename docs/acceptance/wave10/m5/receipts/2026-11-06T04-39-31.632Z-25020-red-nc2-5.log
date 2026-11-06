@@ -1,0 +1,32 @@
+{"binary":"C:\\Users\\37310\\.rustup\\toolchains\\1.95.0-x86_64-pc-windows-msvc\\bin\\cargo.exe","args":["--config","source.crates-io.replace-with=\"water-cn\"","--config","source.water-cn.registry=\"sparse+https://mirrors.ustc.edu.cn/crates.io-index/\"","--config","http.multiplexing=false","--config","http.proxy=\"\"","test","--offline","--locked","--manifest-path","apps/water/host/Cargo.toml","--test","host_v1","--","--test-threads=1"],"exitCode":101,"error":null}
+--- stdout ---
+
+running 5 tests
+test host_command_registry ... ok
+test host_config_boundary ... ok
+test host_data_directory ... ok
+test host_navigation_boundary ... ok
+test host_service_wiring ... FAILED
+
+failures:
+
+---- host_service_wiring stdout ----
+
+thread 'host_service_wiring' (6296) panicked at tests\host_v1.rs:679:13:
+assertion `left == right` failed: HOST_M35_FORWARD scan exact bytes including None omission
+  left: [123, 34, 108, 111, 99, 97, 116, 105, 111, 110, 73, 100, 115, 34, 58, 110, 117, 108, 108, 125]
+ right: [123, 34, 108, 111, 99, 97, 116, 105, 111, 110, 73, 100, 115, 34, 58, 91, 34, 228, 189, 141, 231, 189, 174, 45, 231, 148, 178, 34, 44, 34, 34, 44, 34, 228, 189, 141, 231, 189, 174, 45, 231, 148, 178, 34, 93, 125]
+note: run with `RUST_BACKTRACE=1` environment variable to display a backtrace
+
+
+failures:
+    host_service_wiring
+
+test result: FAILED. 4 passed; 1 failed; 0 ignored; 0 measured; 0 filtered out; finished in 0.48s
+
+
+--- stderr ---
+   Compiling water-desktop v0.1.0 (F:\new\smaltalk\water\.worktrees\w10-m5\apps\water\host)
+    Finished `test` profile [unoptimized + debuginfo] target(s) in 15.69s
+     Running tests\host_v1.rs (.local\w3-target\debug\deps\host_v1-4bae60485fc0e21a.exe)
+error: test failed, to rerun pass `--test host_v1`
