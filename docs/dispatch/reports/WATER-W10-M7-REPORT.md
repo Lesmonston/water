@@ -1,4 +1,6 @@
-WATER-W10-M7 任务受阻，任务报告在 F:/new/smaltalk/water/.worktrees/w10-m7/docs/dispatch/reports/WATER-W10-M7-REPORT.md
+WATER-W10-M7 任务已完成，任务报告在 F:/new/smaltalk/water/.worktrees/w10-m7/docs/dispatch/reports/WATER-W10-M7-REPORT.md
+
+**当前状态（补单 05，2026-11-06）：从 `44f22980` 续做。产品代码未改，仍为 `8b639ec450d1cc9afa941f36c14131e204fa0630`。测试 `call()` 对 11 条同步写文件命令上限 200 ms，`custom_root_add` 不计时，其余 50 ms；该测试改动已提交为 `492c9c8423eeb45ed456310971596c05bf0266fa`。官方 `check` 通过；同一字节一次完整 `test` 12/12。三条负控各红一次并立即恢复原字节再绿。干净实现提交上 `check`／`test`／`real` 三个 final 通过。`archive` 已跑。详见文末“补单 05”。**
 
 **当前状态（补单 04，2026-11-06）：从 `9aba0889` 续做。未验收实现已提交为 `8b639ec450d1cc9afa941f36c14131e204fa0630`。后台扫描／清理／查重／永久删除收尾的磁盘读写已移出状态锁，`m35::event` 已拆成锁外写文件、短锁入列。本地量到后台持锁最长 3.05 ms。官方 `check` 通过；同一字节官方 `test` 12/12、11/12（`conclusion_decide`）、原样重跑 12/12、再 11/12（`cluster_mark_fixed`），累计两次失败，按补单停止。负控、三个 final 和真实冒烟未运行。详见文末“补单 04”。**
 
@@ -512,3 +514,96 @@ finished in 29.27s
 - 临时持锁日志只写在 `C:\Windows\TEMP\w10-m7-lock-holds-before.log` 与 `w10-m7-lock-holds-after.log`，未提交。
 
 归档索引：`docs/acceptance/wave10/m7/ARCHIVE.json`，**1074** 个检查器生成证据文件，合计 **28,906,992** 字节；由 `--mode archive` 按原字节复制。归档器自身本次 result（`2026-11-06T12-29-15.139Z-33056-archive-result.json`，SHA-256 `9fb7650b1d12e216f236201ae4a8c7d53389735538f197088683534a26e5112d`）在复制完成后才生成，故不计入本索引。
+
+## 补单 05
+
+### 现场与执行者
+
+- 实际执行者：Grok 4.6；未启动子代理、worker 或其它执行者。
+- 工作树 `F:/new/smaltalk/water/.worktrees/w10-m7`，分支 `worker/water-w10-m7`。补单指定从 `44f229800f570d8ef90e7011f2ab96540f76e149` 续做。已提交内容不改写。
+- 开工前按补单顺序读了原单、补单 01、补单 02、补单 03、补单 04、补单 05 与当时回执。票面在主仓库 `F:/new/smaltalk/water/docs/dispatch/tickets/`，工作树内没有补单 05 文件，直接读权威路径，未复制进工作树。
+- 产品代码这次未改，仍停在 `8b639ec450d1cc9afa941f36c14131e204fa0630`。补单 02～04 的产品改动全部保留。
+- 干净实现提交：`492c9c8423eeb45ed456310971596c05bf0266fa`（`wip: raise sync-write command test budget to 200ms (M7 addendum 05)`）。只含 `packages/water-service/tests/service_v1.rs`，+23/−1。提交身份仅进程环境：Grok 4.6 `<grok-4.6@localhost>`。
+- `baseline` 未重跑。未改契约、样例、检查器、台账、产品源码、夹具规模、计时方式或其它包。未给名单外的命令开 200 ms，未加重试。
+
+### `call()` 计时（第七类旧期望）
+
+文件：`packages/water-service/tests/service_v1.rs` 的 `call()`。
+
+- **原来**（补单 03／04，约第 493～504 行）：`custom_root_add` 不计时；其余一律 `Duration::from_millis(50)`，失败信息 `SERVICE_RETURN_BUDGET: {c}`。
+- **现在**（第 493～526 行）：`custom_root_add` 仍不计时并直接返回。写死的同步写文件名单走 `Duration::from_millis(200)`（第 515～518 行）：`conclusion_decide`、`cluster_mark_fixed`、`locations_set_session_cleanup`、`manifest_trust`、`locations_set_category`、`custom_root_remove`、`skip_add`、`skip_remove`、`clean_prepare`、`clean_start`、`quarantine_restore`。其余命令仍 `Duration::from_millis(50)`（第 520～523 行），包括所有 `*_progress` 与只读命令。计时仍是 `Instant::now()` 包住一次 `s.call`；两个上限写死在 `call()` 里；产品与测试都不加重试。
+- 本机未再发现名单外的同步写文件命令因超时失败，因此没有自行加名。
+
+`tests/service_v1.rs` SHA-256：`6c06f07eeebb74e0d58e1e1764bd0763a4975333ce3f6fc2879e9ecc5439a275`。
+
+### SPEC 与原单第 2 节
+
+本补单不改产品。SERVICE-M35 第 1～10 节与原单第 2 节六条总控补充仍以补单 01 起、经补单 02～04 保留的实现 `8b639ec4` 为准。六个包的公开接口本补单未重新逐项核对。
+
+### 改过的旧断言
+
+仅 `call()` 的返回时限，如上。其它原有断言与 12 个测试名未改。
+
+### 验证
+
+跑测试前按进程名查看：`Get-Process` 过滤 `cargo`／`rustc`／`rustup`／`node`／`clippy`。check、每次 `test`、负控、final 与 `real` 前表都是空的（未见其它检查进程）。
+
+官方命令均在工作树根：`node F:/new/smaltalk/water/scripts/desktop-wave-check.mjs --task WATER-W10-M7 --mode <模式>`。同一产品／测试字节：`productionHash` `06967d1d0aff2cc3a79068f216fe1a7405208636bd5316f698b9fa6b9370eb4b`，`testHash` `bb2e3685025aab76d1bef5f2138ae4a1b778f82e3e04ec8bcaf42943944464ab`。负控红灯的 `productionHash` 不同、`testHash` 相同。
+
+| 回执 | 模式／结果 | 说明 |
+|---|---|---|
+| `2026-11-06T12-46-36.614Z-18544-check-result.json` SHA-256 `52a8b68d60b767a2704a8a2ba78344b8b213978bc0dd4e0ee2d0ac77573e8086` | check 通过／0 | `fmt`／`clippy -D warnings` 退出 0 |
+| `2026-11-06T12-46-50.965Z-7044-test-result.json` SHA-256 `97002f3178313501b0c21d28adb9ac9b02aa69564cae610f243ae34639e61f02` | test 通过／0 | 12/12。一次完整绿后开始负控，未重跑 |
+| `2026-11-06T12-49-33.119Z-30004-red-nc1-result.json` SHA-256 `3dd169a547991f1f08d24f4c2dd9fee015e76f7c1f88c0322ca708aeef35fc90` | red-nc1 通过／0 | 见下 |
+| `2026-11-06T12-50-53.998Z-9300-test-result.json` SHA-256 `579a15495fbdaeec8b9c3f4776e3fbd06dc5da46a4acc4613c6b64f728ec096a` | test 通过／0 | nc1 恢复后 12/12 |
+| `2026-11-06T12-52-22.287Z-33756-red-nc2-result.json` SHA-256 `63bda489e63a7ce5964a2e0c8a37b205e18104f4d274518bcd824241efdc898c` | red-nc2 通过／0 | 见下 |
+| `2026-11-06T12-53-43.122Z-35792-test-result.json` SHA-256 `6f7e64865ecd77b591345d927e48ca4dec58facb3cda3eae26c3b24d3d7bf108` | test 通过／0 | nc2 恢复后 12/12 |
+| `2026-11-06T12-55-16.781Z-7044-red-nc3-result.json` SHA-256 `31bf9672fc5351b810f4070ee6bf1e2a831e2480fd8eb2dcc71a08df0114a535` | red-nc3 通过／0 | 见下 |
+| `2026-11-06T12-56-56.663Z-2136-test-result.json` SHA-256 `8f8a4733aad298b472521b428f2b933b3f07342260c678f5d896ccd43e6720bd` | test 通过／0 | nc3 恢复后 12/12 |
+| `2026-11-06T12-59-01.154Z-24328-check-result.json` SHA-256 `fe19bad09a8eea5414c55a6e9f08dad5abe8d772e8c2ca6241a315c1c8a78ba5` | check --final 通过／0 | `fmt`／`clippy -D warnings` 退出 0 |
+| `2026-11-06T12-59-16.654Z-34732-test-result.json` SHA-256 `12f25544f580ffa5acf3e65876b057dd33144467748219a3bd721072953d15b8` | test --final 通过／0 | 12/12；`proofAudit` 三条负控均有立即恢复绿 |
+| `2026-11-06T13-00-54.357Z-31608-real-result.json` SHA-256 `420bd0d4e12dc5896934493a84d7e1729f632be9f79d2e96fdb39f4324715a5e` | real --final 通过／0 | 只读冒烟，见下 |
+| `2026-11-06T13-03-17.046Z-10820-archive-result.json` SHA-256 `b3873838c34862ddc1d814886e60c05cef78eabaf9b9e7bb5b872693d2526e08` | archive 通过／0 | 见文末索引 |
+
+完整 `test` 没有出现 `SERVICE_RETURN_BUDGET` 失败，因此没有使用“计时失败最多 3 次”的重跑。
+
+生产源码 SHA-256（与官方回执快照一致，与补单 04 相同）：
+
+| 文件 | SHA-256 |
+|---|---|
+| `src/clean.rs` | `cb26651be97a1d871b9177454bb3085745de75177258a18650447a3c6ec87a04` |
+| `src/conclusion.rs` | `65b71998678c1bff26e1b587c8ede3754d5eda8640ef0a7b998c4fef21d882a8` |
+| `src/dedupe.rs` | `ad7c735c46a1a2f84b96baf5a53c23b73a4a499c3ae334fba45dea58f15ee975` |
+| `src/m35.rs` | `a0dfabb33417aa8b8f562004fc61af6a57ae178258301b86a2ad50cc278d9f98` |
+| `src/quarantine.rs` | `813f7e9834835f47a64ab854c1b0d4fd43daf84f7e7209d1e7c43130d57dcce9` |
+| `src/service.rs` | `0f6c282dd970b7b27de18ca3acf95f396b979f9afe9a7394ebd2cfbf2b32d930` |
+
+### 负控
+
+每条只改 `packages/water-service/src/` 一处，跑 `--mode red-ncN`，`git checkout -- <文件>` 恢复原字节后立即 `--mode test`。恢复后 `productionHash` 均为 `06967d1d0aff2cc3a79068f216fe1a7405208636bd5316f698b9fa6b9370eb4b`。
+
+1. **nc1**（`SERVICE_M35_CLEAN`）：`src/clean.rs` 第 378 行，`let quarantine_mode=stored["chosen_mode"]=="quarantine";` 改为 `let quarantine_mode=false;`，使「你选的」一块也走 `execute`。红灯：`m35_clean_split` 失败信息 `SERVICE_M35_CLEAN: must move chosen`（同套件还有 `m35_quarantine`、`m35_trends_history` 因同一改动失败，标记分别为隔离区缺卡与 `SERVICE_M35_TRENDS: duplicate move`）。9 passed; 3 failed。恢复后 `src/clean.rs` SHA-256 `cb26651be97a1d871b9177454bb3085745de75177258a18650447a3c6ec87a04`。
+2. **nc2**（`SERVICE_M35_CONCLUSION`）：`src/conclusion.rs` 第 729 行，`.take(5)` 改为 `.take(6)`，卡片不限 5 张。红灯：仅 `m35_conclusion_cards`，`SERVICE_M35_CONCLUSION: cap`。11 passed; 1 failed。恢复后 `src/conclusion.rs` SHA-256 `65b71998678c1bff26e1b587c8ede3754d5eda8640ef0a7b998c4fef21d882a8`。
+3. **nc3**（`SERVICE_M35_SCOPE`）：`src/m35.rs` 第 253 行，`manifest::to_targets(parsed, &m.dir, trusted)` 改为 `to_targets(..., true)`，不信任的声明也转成目标。红灯：仅 `m35_scope_and_plan`，`SERVICE_M35_SCOPE: common leaked into folder scope`（`decl:` 目标出现后不再全部以 `custom:` 开头；紧随其后的“untrusted declaration became a target”同一原因）。11 passed; 1 failed。恢复后 `src/m35.rs` SHA-256 `a0dfabb33417aa8b8f562004fc61af6a57ae178258301b86a2ad50cc278d9f98`。
+
+`test --final` 的 `proofAudit`：
+
+| label | red | restored |
+|---|---|---|
+| nc1 | `2026-11-06T12-49-33.119Z-30004-red-nc1-result.json` | `2026-11-06T12-50-53.998Z-9300-test-result.json` |
+| nc2 | `2026-11-06T12-52-22.287Z-33756-red-nc2-result.json` | `2026-11-06T12-53-43.122Z-35792-test-result.json` |
+| nc3 | `2026-11-06T12-55-16.781Z-7044-red-nc3-result.json` | `2026-11-06T12-56-56.663Z-2136-test-result.json` |
+
+### 真实冒烟
+
+`real --final` 只读体检常用位置，清理关闭。`realSummary`：`cards` 5、`clues` 3、`conclusion_rows` 13、`drives` 4、`folds` 3、`quarantine_cards` 0。输出无绝对路径。没有清理、移动或删除任何真实文件。
+
+### 未做或未验证
+
+- 整盘真实 `space_overview`、真实跨盘分批、真实声明范围、查重取消与保留数量的全部边界、所有长列表极值、生产并发与重启竞态、还原大批量的 50 ms 预算、macOS 均未验收。
+- 两逻辑盘记录测试是服务层假报告，不能冒充真实双盘移动。
+- 未打开产品窗口、选择框或浏览器；未 push、改远端、改写历史、改台账／契约／样例／检查器／其它包。
+- 合成夹具仅测试过程在 `.local` 下当次新建并删除。
+
+归档索引：`docs/acceptance/wave10/m7/ARCHIVE.json`，**1319** 个检查器生成证据文件，合计 **36,629,843** 字节；由 `--mode archive` 按原字节复制。归档器自身本次 result（`2026-11-06T13-03-17.046Z-10820-archive-result.json`，SHA-256 `b3873838c34862ddc1d814886e60c05cef78eabaf9b9e7bb5b872693d2526e08`）在复制完成后才生成，故不计入本索引。
+
