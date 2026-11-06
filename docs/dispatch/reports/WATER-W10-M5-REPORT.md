@@ -1,4 +1,4 @@
-WATER-W10-M5 任务受阻，任务报告在 F:/new/smaltalk/water/.worktrees/w10-m5/docs/dispatch/reports/WATER-W10-M5-REPORT.md
+WATER-W10-M5 任务已完成，任务报告在 F:/new/smaltalk/water/.worktrees/w10-m5/docs/dispatch/reports/WATER-W10-M5-REPORT.md
 
 2026-11-05。实际模型：GPT-6（Codex；未获更细的运行时型号标识）。本回执为受阻交回，不是实现完成或总控验收通过。
 
@@ -145,3 +145,30 @@ node F:/new/smaltalk/water/scripts/desktop-wave-check.mjs --task WATER-W10-M5 --
 ### 未做与未验证
 
 尚不宣称总控验收通过。新命令的真实 M7 服务接线、真实 Explorer 打开、真实隔离/永久删除、真实 purging 中关窗与系统关机、macOS、发布打包均未验证。没有删除、移动任何真实用户数据，没有改其它包、台账、契约、检查器、共享规则、Git 配置或远端；没有 push、merge 或改写历史。本轮无辅助代理。
+
+### 补单 01 完成记录：三个 final 与归档
+
+三个 final 按 check → test → native 顺序在干净提交 `761edd0e1e1990203e16a56d62bc8bfe83a5ab46` 上完成。该提交只在实现 `e6f7fa673294715b86abc3dde7a12b156f9aa801` 后增加上述过程回执与开窗前预算；产品与测试字节相同。此后只提交回执与归档证据，没有再改产品或重跑通过的门。
+
+| 参数（与上节相同检查入口） | 回执 | 结果 |
+|---|---|---|
+| `--mode check --final` | `2026-11-06T04-42-18.699Z-7372-check-result.json` | passed；依赖、源码政策、fmt、Clippy 均通过。 |
+| `--mode test --final` | `2026-11-06T04-42-46.512Z-26492-test-result.json` | passed；精确 5/5，0 ignored、0 filtered；proofAudit 两条均绑定前述红测与紧随其后的原字节绿测。 |
+| `--mode native --final` | `2026-11-06T04-43-15.194Z-21872-native-result.json` | passed；仅本次一窗，具体结果如下。 |
+| `--mode archive` | `2026-11-06T04-43-58.822Z-30372-archive-result.json` | passed；归档索引 226 条、20,471,246 字节。此 archive 自身回执留在 `.local/checks/WATER-W10-M5/`，其余按归档器约定复制。 |
+
+三个 final 的完整生产哈希均为 `d08884f75af4182a49bde5c39cfd6be64144ed0470b937fbff635ae6076cb7b4`，测试哈希均为 `b041c24a7030c6674b547206bbfe4c282b3df06ee19a0cef7c5046ce987ae909`。归档后逐个复算所有条目的长度、SHA-256，并与 `.local` 原文件逐字节比较；226/226 通过。上一轮 8 条证据与原索引条目、Git 提交 `2d516c46` 中的原始证据字节均保留一致；原受阻正文保留，仅首行按本轮完成状态更新。三个 final 快照中的所有产品/测试文件也逐个与当前文件哈希比对通过。
+
+交回前的只读首行校验初次因 PowerShell 管道默认编码把脚本中的中文变成问号而失败；显式设 UTF-8 后以原文件重新核对。回执文件本身始终为正确 UTF-8，没有因此修改产品或重跑检查门。
+
+全量暂存归档的额外 `git diff --cached --check` 把原始 CRLF 观察日志/JSON 的回车报告成尾部空白。证据有 `-text` 原字节保真要求，未修改这些字节或任何 Git 配置；归档继续按哈希核验，空白检查限定于可编辑回执、索引与 `.gitattributes`，通过。宿主源码的 `git diff --check` 与三个正式 final 已先行通过。
+
+整机检查：
+
+- 1 个 Water 主窗口、0 个选择框、0 个浏览器、0 个 Explorer；`systemWindows=1`（底层 rawWindows=2、eventTargets=1），Mica `backdropType=2`，页面接受，9/9 自动化步骤全部通过。
+- 启动后用时 17,677 ms；进程 26460 正常 exit 0，无强制终止请求。6 个已记录 WebView 子进程全部退出，`childClose.remaining=[]`，私有 WebView 目录核对通过；归档后再按这些 PID 只读查询，未发现仍存活的本任务进程。
+- 合成缓存目录已删除，源码与测试浏览器配置原样保留。清理状态 `completed`；唯一项 `deleted`，释放 `3145815` 字节，失败项 0。scans、snapshots、plans、cleans、journal 各恰好 1 份，日志同时有 intent/result。
+- 七个类别关闭，只有本树本次合成夹具可选；原生扫描会只读统计受保护位置，因此回执如实记为 `realDataRead=true`，不把它说成完全未访问真实元数据。没有读取真实文件内容或清理真实数据。
+- 截图为 `2026-11-06T04-43-15.194Z-21872-` 前缀的 home、results、confirm、done、history 五张，均为 1568×1072；确认页由冻结观察器恢复窗口一次。已查看 done 截图，显示“清理完成”“3 MB 已释放”及合成缓存已清理；界面保持冻结基线，并非本单实现新界面。没有新增截图、额外开窗或点击“打开文件夹”。
+
+证据入口：[ARCHIVE.json](../../acceptance/wave10/m5/ARCHIVE.json)，回执与五张截图都在其 receipts 目录。Windows 单票实现与上述检查完成，仍待总控独立验收/集成；上一节列出的 M7 接线、真实打开/删除、关机竞态与其它平台限制保持。
