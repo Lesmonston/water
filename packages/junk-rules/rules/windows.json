@@ -1,6 +1,6 @@
 {
   "rules_version": "water.junk-rules.v1",
-  "data_version": "2026-11-02.2",
+  "data_version": "2026-11-07.1",
   "rules": [
     {
       "rule_id": "codex-marketplace-staging",
@@ -5917,9 +5917,9 @@
           "marker": {
             "kind": "file_name",
             "patterns": [
-              "*#*.exe",
               "*setup*.exe",
-              "*install*.exe"
+              "*installer*.exe",
+              "*#.#*.exe"
             ]
           },
           "max_depth": 3,
@@ -5940,7 +5940,7 @@
       },
       "growth": "slow",
       "what_zh": "自选位置前三层里一周没动的安装包或安装程序压缩包。",
-      "why_zh": "程序文件要带数字或安装字样，且旁边没有动态库；也可能是单文件工具，需要你确认。",
+      "why_zh": "程序文件名要带 setup、installer 或版本号（如 5.1.0），且旁边没有动态库；卸载程序和程序自带的小工具不算。",
       "after_zh": "先放进隔离区，若仍需安装或使用，可在永久删除前取回。",
       "fix_hint_zh": null,
       "sources": [
