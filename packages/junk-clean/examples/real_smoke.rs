@@ -1,36 +1,58 @@
 #![forbid(unsafe_code)]
 
+use std::{os::windows::process::CommandExt, process::Command};
 use water_junk_clean::list_quarantines;
 
 fn main() -> Result<(), Box<dyn std::error::Error>> {
-    let system = std::env::var("SystemDrive")?;
-    let manifest = env!("CARGO_MANIFEST_DIR");
-    let repository = manifest.get(..2).ok_or("invalid manifest drive")?;
-    let mut drives = vec![system.to_ascii_uppercase(), repository.to_ascii_uppercase()];
-    for drive in &drives {
-        if drive.len() != 2
+    // Discover drive metadata only, without new native functions in the executor.
+    // The subprocess output stays private; the smoke result uses anonymous indices.
+    let output = Command::new("powershell.exe")
+        .args([
+            "-NoProfile", "-NonInteractive", "-Command",
+            "$ErrorActionPreference='Stop'; [System.IO.DriveInfo]::GetDrives() | Where-Object { $_.DriveType -eq [System.IO.DriveType]::Fixed } | ForEach-Object { $_.Name }",
+        ])
+        .creation_flags(0x0800_0000) // CREATE_NO_WINDOW
+        .output()?;
+    if !output.status.success() {
+        return Err("fixed-drive metadata query failed".into());
+    }
+    let mut drives = Vec::new();
+    for drive in std::str::from_utf8(&output.stdout)?.lines() {
+        let drive = drive.trim();
+        if drive.len() != 3
             || !drive.as_bytes()[0].is_ascii_alphabetic()
             || drive.as_bytes()[1] != b':'
+            || drive.as_bytes()[2] != b'\\'
         {
             return Err("invalid drive".into());
         }
+        drives.push(drive.to_ascii_uppercase());
     }
     drives.sort();
     drives.dedup();
-    let (mut absent, mut present, mut unavailable, mut quarantines) = (0u64, 0u64, 0u64, 0u64);
-    for drive in &drives {
-        let list = list_quarantines(&format!("{drive}\\.water-quarantine"))?;
-        match list.state.as_str() {
-            "absent" => absent += 1,
-            "present" => present += 1,
-            "unavailable" => unavailable += 1,
-            _ => return Err("invalid quarantine state".into()),
+    if drives.is_empty() {
+        return Err("no fixed drives discovered".into());
+    }
+    let mut roots = Vec::new();
+    for name in [".flick-quarantine", ".water-quarantine"] {
+        let (mut absent, mut present, mut unavailable, mut quarantines) = (0u64, 0u64, 0u64, 0u64);
+        let mut volumes = Vec::new();
+        for (index, drive) in drives.iter().enumerate() {
+            let list = list_quarantines(&format!("{drive}{name}"))?;
+            match list.state.as_str() {
+                "absent" => absent += 1,
+                "present" => present += 1,
+                "unavailable" => unavailable += 1,
+                _ => return Err("invalid quarantine state".into()),
+            }
+            quarantines += list.quarantines.len() as u64;
+            volumes.push(serde_json::json!({"volume_index":index + 1, "state":list.state, "quarantines":list.quarantines.len()}));
         }
-        quarantines += list.quarantines.len() as u64;
+        roots.push(serde_json::json!({"name":name, "absent":absent, "present":present, "unavailable":unavailable, "quarantines":quarantines, "volumes":volumes}));
     }
     println!(
         "{}",
-        serde_json::json!({"checked":drives.len(), "absent":absent, "present":present, "unavailable":unavailable, "quarantines":quarantines})
+        serde_json::json!({"fixed_drives":drives.len(), "checked":drives.len() * roots.len(), "roots":roots})
     );
     Ok(())
 }

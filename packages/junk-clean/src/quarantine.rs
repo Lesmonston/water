@@ -16,11 +16,9 @@ pub(crate) fn valid_id(id: &str) -> bool {
 
 pub(crate) fn validate_root(root: &str) -> Result<(), CleanError> {
     path::validate(root)?;
-    if !root
-        .rsplit('\\')
-        .next()
-        .is_some_and(|p| p.eq_ignore_ascii_case(".water-quarantine"))
-    {
+    if !root.rsplit('\\').next().is_some_and(|p| {
+        p.eq_ignore_ascii_case(".flick-quarantine") || p.eq_ignore_ascii_case(".water-quarantine")
+    }) {
         return Err(CleanError::InvalidPlan);
     }
     Ok(())
@@ -64,6 +62,7 @@ pub fn quarantine(
     #[cfg(windows)]
     {
         plan.validate_shape()?;
+        plan.validate_disjoint_items()?;
         if !valid_id(quarantine_id) {
             return Err(CleanError::InvalidPlan);
         }
@@ -107,13 +106,12 @@ pub fn quarantine(
                     Ok(before) => {
                         result.bytes = before.bytes.to_string();
                         let root = target.base.clone().unwrap_or_else(|| {
-                            format!("{}.water-quarantine", path::volume(&item.root))
+                            format!("{}.flick-quarantine", path::volume(&item.root))
                         });
-                        if item
-                            .path
-                            .split('\\')
-                            .any(|p| p.eq_ignore_ascii_case(".water-quarantine"))
-                            || path::contains(&item.path, &root)
+                        if item.path.split('\\').any(|p| {
+                            p.eq_ignore_ascii_case(".flick-quarantine")
+                                || p.eq_ignore_ascii_case(".water-quarantine")
+                        }) || path::contains(&item.path, &root)
                         {
                             result.skip_reason = Some(SkipReason::Guarded);
                         } else if move_checks::second_root(first_root.as_deref(), &root) {

@@ -1,0 +1,366 @@
+{
+  "task": "WATER-W11-N3",
+  "mode": "red-nc1",
+  "finalGate": false,
+  "manifest": "docs/dispatch/wave11/manifest.json",
+  "startedAt": "2026-11-07T07:03:44.736Z",
+  "realDataRead": false,
+  "productTestsRun": true,
+  "commands": [
+    {
+      "binary": "git",
+      "argv": [
+        "branch",
+        "--show-current"
+      ],
+      "exitCode": 0
+    },
+    {
+      "binary": "git",
+      "argv": [
+        "merge-base",
+        "--is-ancestor",
+        "ccc584b3894e28d1f6bb8f86748d03c143a38e5b",
+        "HEAD"
+      ],
+      "exitCode": 0
+    },
+    {
+      "binary": "git",
+      "argv": [
+        "diff",
+        "--no-renames",
+        "--name-only",
+        "-z",
+        "ccc584b3894e28d1f6bb8f86748d03c143a38e5b",
+        "HEAD"
+      ],
+      "exitCode": 0
+    },
+    {
+      "binary": "git",
+      "argv": [
+        "diff",
+        "--no-renames",
+        "--name-only",
+        "-z",
+        "HEAD"
+      ],
+      "exitCode": 0
+    },
+    {
+      "binary": "git",
+      "argv": [
+        "ls-files",
+        "--others",
+        "--exclude-standard",
+        "-z"
+      ],
+      "exitCode": 0
+    },
+    {
+      "binary": "git",
+      "argv": [
+        "rev-parse",
+        "HEAD"
+      ],
+      "exitCode": 0
+    },
+    {
+      "binary": "git",
+      "argv": [
+        "status",
+        "--porcelain",
+        "--untracked-files=all"
+      ],
+      "exitCode": 0
+    },
+    {
+      "binary": "C:\\Users\\37310\\.cargo\\bin\\rustup.exe",
+      "argv": [
+        "which",
+        "cargo",
+        "--toolchain",
+        "1.95.0"
+      ],
+      "exitCode": 0,
+      "error": null,
+      "log": "2026-11-07T07-03-44.735Z-11048-red-nc1-1.log"
+    },
+    {
+      "binary": "C:\\Users\\37310\\.cargo\\bin\\rustup.exe",
+      "argv": [
+        "which",
+        "rustc",
+        "--toolchain",
+        "1.95.0"
+      ],
+      "exitCode": 0,
+      "error": null,
+      "log": "2026-11-07T07-03-44.735Z-11048-red-nc1-2.log"
+    },
+    {
+      "binary": "C:\\Users\\37310\\.rustup\\toolchains\\1.95.0-x86_64-pc-windows-msvc\\bin\\rustc.exe",
+      "argv": [
+        "--version"
+      ],
+      "exitCode": 0,
+      "error": null,
+      "log": "2026-11-07T07-03-44.735Z-11048-red-nc1-3.log"
+    },
+    {
+      "binary": "C:\\Users\\37310\\.rustup\\toolchains\\1.95.0-x86_64-pc-windows-msvc\\bin\\cargo.exe",
+      "argv": [
+        "metadata",
+        "--offline",
+        "--locked",
+        "--format-version",
+        "1",
+        "--manifest-path",
+        "packages/junk-clean/Cargo.toml"
+      ],
+      "exitCode": 0,
+      "error": null,
+      "log": "2026-11-07T07-03-44.735Z-11048-red-nc1-4.log"
+    },
+    {
+      "binary": "git",
+      "argv": [
+        "diff",
+        "--name-only",
+        "HEAD",
+        "--",
+        "packages/junk-clean/src"
+      ],
+      "exitCode": 0
+    },
+    {
+      "binary": "git",
+      "argv": [
+        "diff",
+        "--name-only",
+        "HEAD",
+        "--",
+        "packages/junk-clean/tests/clean_v1.rs"
+      ],
+      "exitCode": 0
+    },
+    {
+      "binary": "C:\\Users\\37310\\.rustup\\toolchains\\1.95.0-x86_64-pc-windows-msvc\\bin\\cargo.exe",
+      "argv": [
+        "test",
+        "--offline",
+        "--locked",
+        "--manifest-path",
+        "packages/junk-clean/Cargo.toml",
+        "--test",
+        "clean_v1",
+        "--",
+        "--test-threads=1"
+      ],
+      "exitCode": 101,
+      "error": null,
+      "log": "2026-11-07T07-03-44.735Z-11048-red-nc1-5.log"
+    },
+    {
+      "binary": "git",
+      "argv": [
+        "branch",
+        "--show-current"
+      ],
+      "exitCode": 0
+    },
+    {
+      "binary": "git",
+      "argv": [
+        "merge-base",
+        "--is-ancestor",
+        "ccc584b3894e28d1f6bb8f86748d03c143a38e5b",
+        "HEAD"
+      ],
+      "exitCode": 0
+    },
+    {
+      "binary": "git",
+      "argv": [
+        "diff",
+        "--no-renames",
+        "--name-only",
+        "-z",
+        "ccc584b3894e28d1f6bb8f86748d03c143a38e5b",
+        "HEAD"
+      ],
+      "exitCode": 0
+    },
+    {
+      "binary": "git",
+      "argv": [
+        "diff",
+        "--no-renames",
+        "--name-only",
+        "-z",
+        "HEAD"
+      ],
+      "exitCode": 0
+    },
+    {
+      "binary": "git",
+      "argv": [
+        "ls-files",
+        "--others",
+        "--exclude-standard",
+        "-z"
+      ],
+      "exitCode": 0
+    },
+    {
+      "binary": "git",
+      "argv": [
+        "rev-parse",
+        "HEAD"
+      ],
+      "exitCode": 0
+    },
+    {
+      "binary": "git",
+      "argv": [
+        "status",
+        "--porcelain",
+        "--untracked-files=all"
+      ],
+      "exitCode": 0
+    }
+  ],
+  "changedPaths": [
+    "packages/junk-clean/README.md",
+    "packages/junk-clean/examples/real_smoke.rs",
+    "packages/junk-clean/src/lib.rs",
+    "packages/junk-clean/src/model.rs",
+    "packages/junk-clean/src/quarantine.rs",
+    "packages/junk-clean/tests/clean_v1.rs"
+  ],
+  "before": {
+    "head": "0743dab9dfa2d571235c8fe4fb63ea24162932c0",
+    "status": "M packages/junk-clean/src/quarantine.rs"
+  },
+  "sourceState": {
+    "files": [
+      {
+        "path": "packages/junk-clean/Cargo.toml",
+        "snapshot": "2026-11-07T07-03-44.735Z-11048-red-nc1-source-0.txt",
+        "sha256": "dc0775d8fb4b9f32e5276659e7f8f67a19bc30a9f1d9878c420be794471510cc",
+        "test": false
+      },
+      {
+        "path": "packages/junk-clean/Cargo.lock",
+        "snapshot": "2026-11-07T07-03-44.735Z-11048-red-nc1-source-1.txt",
+        "sha256": "0ae95b4caaada24df0d40653e4dbd8598a926692aa48e882c522ab6f4efb513f",
+        "test": false
+      },
+      {
+        "path": "packages/junk-clean/README.md",
+        "snapshot": "2026-11-07T07-03-44.735Z-11048-red-nc1-source-2.txt",
+        "sha256": "b7897b751cad89d1bfc427020b70c2b8e848ae6a552ca6ca6294d9d5fab33829",
+        "test": false
+      },
+      {
+        "path": "packages/junk-clean/examples/real_smoke.rs",
+        "snapshot": "2026-11-07T07-03-44.735Z-11048-red-nc1-source-3.txt",
+        "sha256": "3604f220b3fb24d4a411aae0d4513782e40ef13065b5fdb9a5efe8255a07d2c0",
+        "test": false
+      },
+      {
+        "path": "packages/junk-clean/src/lib.rs",
+        "snapshot": "2026-11-07T07-03-44.735Z-11048-red-nc1-source-4.txt",
+        "sha256": "12676c60a005d860416523bf57d3324993daf9b6eecd863c99c63fc9c0f56299",
+        "test": false
+      },
+      {
+        "path": "packages/junk-clean/src/model.rs",
+        "snapshot": "2026-11-07T07-03-44.735Z-11048-red-nc1-source-5.txt",
+        "sha256": "132e28e2e8b40e2ed453f6c6db6cfed0583c538690e5f2d140e79e2dc2e31070",
+        "test": false
+      },
+      {
+        "path": "packages/junk-clean/src/move_checks.rs",
+        "snapshot": "2026-11-07T07-03-44.735Z-11048-red-nc1-source-6.txt",
+        "sha256": "25c9e6cb872527257759fa465311fa21636475c5d79ccc8b940dd866ac74fa69",
+        "test": false
+      },
+      {
+        "path": "packages/junk-clean/src/native_windows.rs",
+        "snapshot": "2026-11-07T07-03-44.735Z-11048-red-nc1-source-7.txt",
+        "sha256": "9944fbab0cf0a0a1722f877f39e7605f01c51a92f198f3c6971ff0bc98a7201a",
+        "test": false
+      },
+      {
+        "path": "packages/junk-clean/src/path.rs",
+        "snapshot": "2026-11-07T07-03-44.735Z-11048-red-nc1-source-8.txt",
+        "sha256": "c730a15e3914f00d950257720ed05e6884c0caa9e3f0257929c10977762c9d4b",
+        "test": false
+      },
+      {
+        "path": "packages/junk-clean/src/quarantine.rs",
+        "snapshot": "2026-11-07T07-03-44.735Z-11048-red-nc1-source-9.txt",
+        "sha256": "55c1bfb37b6e439396bf27fbc8d487a40fdf687b935bac8e3b6d7c48e909e852",
+        "test": false
+      },
+      {
+        "path": "packages/junk-clean/src/quarantine_model.rs",
+        "snapshot": "2026-11-07T07-03-44.735Z-11048-red-nc1-source-10.txt",
+        "sha256": "2888ada7fb4b5e0c5fb642cbdd3afbcf67f951384c4b5729deda37b680db46c7",
+        "test": false
+      },
+      {
+        "path": "packages/junk-clean/src/time.rs",
+        "snapshot": "2026-11-07T07-03-44.735Z-11048-red-nc1-source-11.txt",
+        "sha256": "8afb72161217016944441db6eef20e8efebf90c193eb47840ebeb879d5966b22",
+        "test": false
+      },
+      {
+        "path": "packages/junk-clean/tests/clean_v1.rs",
+        "snapshot": "2026-11-07T07-03-44.735Z-11048-red-nc1-source-12.txt",
+        "sha256": "6f0c9f70592186f9dde17f5bb194b3bd5c0b69dfd104676dad96ef8107cca1b5",
+        "test": true
+      }
+    ],
+    "productionHash": "1debc573759c027ff6a5ca478e2cf47c380441bf3de9e45248063bd7f8c6f9fe",
+    "testHash": "06a29fdc517364c11791223c0f3cdea2740125a5e784a2a2781db2bdbfa45d42"
+  },
+  "dependencyInventory": [
+    "itoa@1.0.18",
+    "memchr@2.8.3",
+    "proc-macro2@1.0.107",
+    "quote@1.0.47",
+    "serde@1.0.229",
+    "serde_core@1.0.229",
+    "serde_derive@1.0.229",
+    "serde_json@1.0.151",
+    "syn@3.0.9",
+    "unicode-ident@1.0.27",
+    "zmij@1.0.23"
+  ],
+  "ffi": [
+    "CloseHandle",
+    "CreateFileW",
+    "GetDiskFreeSpaceExW",
+    "GetFileInformationByHandleEx",
+    "GetVolumeInformationByHandleW",
+    "NtCreateFile",
+    "NtOpenFile",
+    "NtSetInformationFile",
+    "RtlNtStatusToDosError",
+    "SetFileInformationByHandle"
+  ],
+  "observedExpectedFailure": true,
+  "expectation": {
+    "target": "CLEAN_W11_RENAME"
+  },
+  "after": {
+    "head": "0743dab9dfa2d571235c8fe4fb63ea24162932c0",
+    "status": "M packages/junk-clean/src/quarantine.rs"
+  },
+  "status": "passed",
+  "error": null,
+  "endedAt": "2026-11-07T07:06:16.367Z"
+}
