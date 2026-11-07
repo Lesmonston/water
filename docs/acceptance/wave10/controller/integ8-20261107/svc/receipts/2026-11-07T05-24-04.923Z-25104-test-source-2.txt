@@ -1,0 +1,15 @@
+# Water service
+
+M3.5 (WATER-W10-M7 / addendum 01) implements IPC-M35 in the service: scoped checkups, settings v3, declaration protection and trust, conclusion cards and layered choices, bounded summary rows, split direct deletion and same-volume quarantine, restore/purge reconciliation, explicit duplicate finding, and growth/forecast updates. The host alone implements `quarantine_reveal`; the internal `quarantine_locate` accepts only IDs for configured quarantine roots or their valid batch directories. All old command shapes remain supported; their response objects include the new M35 keys.
+
+Only junk-clean executes deletion, moves, restore and purge. Duplicate content is read only by dup-finder after `dedupe_start`; declarations and `.git` small files are read only by cleanup-manifest. Other file inspection is metadata only. Quarantine moves do not release space. A journal failure makes the result fail and triggers disk reconciliation, without retrying moves. A stored scan or dedupe never grants cleanup authority after restart.
+
+For this ticket use `node F:/new/smaltalk/water/scripts/desktop-wave-check.mjs --task WATER-W10-M7 --mode <mode>` from the assigned worktree. The exact 12 tests use only a fresh `.local/w3-f1-fixtures/service-*` directory per fixture, including test quarantine roots. The smoke checks only common locations with cleaning disabled, emits counts only, and opens no windows. The only new FFI is the read-only `SHQueryRecycleBinW`.
+
+Windows IPC v1 service library, independent of Tauri. `Service::new(ServiceConfig)` accepts the application's private data directory, a `Platform`, and a `FolderPicker`; the host forwards commands to `Service::call`. JSON arguments have exact camelCase keys; responses use the frozen snake_case views.
+
+Scanning and cleaning run on owned background threads. The service serializes task starts and location edits, keeps view projections in memory, persists settings/records through flushed temporary files and rename, and bounds retained scan/clean records to 60. Process command lines remain inside the accepted process-scan snapshot. Callers must keep the service alive until a task completes or cancel/stop and poll it to completion before shutting down.
+
+M1 hosts must set `clean_enabled: false`. With cleaning enabled, selection consists only of known group IDs; the service derives paths, identities, protection boundaries and rules from its latest scan, validates the plan with junk-clean, persists a SHA-256 token digest, consumes confirmation once, and flushes each journal record to disk. Token entropy comes from fresh standard-library `RandomState` instances; no time/PID seeds or extra FFI are used. The F1 smoke always disables cleaning and emits only aggregate JSON.
+
+No product window, picker, browser or network access is needed for service checks. Existing fixture junction tests may invoke the local `mklink` fallback. macOS support is not implemented or verified by this Windows ticket.

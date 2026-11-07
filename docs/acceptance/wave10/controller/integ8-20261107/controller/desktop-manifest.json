@@ -1,0 +1,878 @@
+{
+  "schemaVersion": 1,
+  "wave": "water-wave10-main-integration-8",
+  "status": "CONTROLLER_INTEGRATION",
+  "controller": "Claude",
+  "controllerRoot": "F:/new/smaltalk/water",
+  "controllerBranch": "main",
+  "helpers": {
+    "M1": "scripts/checkup-wave-check.mjs",
+    "M2": "scripts/checkup-wave-check.mjs",
+    "M3": "scripts/checkup-wave-check.mjs",
+    "M4": "scripts/checkup-wave-check.mjs",
+    "M5": "scripts/desktop-wave-check.mjs",
+    "M6": "scripts/checkup-wave-check.mjs",
+    "M8": "scripts/checkup-wave-check.mjs",
+    "M9": "scripts/checkup-wave-check.mjs"
+  },
+  "baseCommit": "f93afb8e3c5cf4114927fe2ab6c14dbb033c7ffe",
+  "baseTag": "water-w10-m35-base-20261105",
+  "plan": "docs/dispatch/wave10/PLAN.md",
+  "workerRules": "docs/dispatch/W10-M35-WORKER-RULES.md",
+  "userDecision": "2026-11-02: wave 10 plan approved as recommended (\"全部按推荐\"); design v2 approved (\"可以\"); the five new items approved (sessions with a switch and a delete-or-quarantine choice, dedupe, installed programs, system advice, space overview). First batch M1-M6, M8, M9 together; M1 and M2 share the plan JSON and merge together; M7 service is dispatched after M1-M4, M8, M9 merge; M6 merges last.",
+  "offlineCache": {
+    "core": "F:/new/smaltalk/water/.offline-cache/core/registry",
+    "desktop": "F:/new/smaltalk/water/.offline-cache/desktop/registry",
+    "copiedFrom": [
+      "F:/new/smaltalk/water/.worktrees/a/.local/cargo-home/registry",
+      "F:/new/smaltalk/water/.worktrees/ac/.local/desktop-cargo-home/registry"
+    ],
+    "check": "diff -rq byte-identical, 11159 files"
+  },
+  "frozenFiles": [
+    {
+      "path": "docs/decisions/ADR-018-device-junk-checkup-and-in-app-cleanup.md",
+      "sha256": "1195b17c469b3abe290f4d334628fa36583ca7f20c46349aaf1071ff839a0579"
+    },
+    {
+      "path": "docs/decisions/ADR-019-project-declarations-and-quarantine.md",
+      "sha256": "005709e26035f08e3729303c8ebed961b7c23c3b4e02ec28ab8823a36b885e97"
+    },
+    {
+      "path": "contracts/checkup-v1/MODEL.md",
+      "sha256": "fe0c9a4f5d96ce9297e8f72e75df8c6f666f9a6af440fc198aa7b3362692188b"
+    },
+    {
+      "path": "contracts/checkup-v1/IPC.md",
+      "sha256": "62f726ced5f863f1b47db261976d8b5e5183f65669b2ba09d2f85a3977161be2"
+    },
+    {
+      "path": "contracts/m3c-v1/IPC-M3C.md",
+      "sha256": "d0b6bb18a5deedc8200569cc9f3c68a544d564c8a07c45d0905e9ab01a07e6a5"
+    },
+    {
+      "path": "contracts/m35-v1/IPC-M35.md",
+      "sha256": "9605b8e6c1e25cc399d0f44e4af039c5a55ea314845b211603f91ce680446889"
+    },
+    {
+      "path": "contracts/desktop-bootstrap-mirror-v1/MIRROR.json",
+      "sha256": "494e2b42e0803ba79170ffc162e8ac4938add6284b17dfdeb1f78fb527455e0f"
+    },
+    {
+      "path": "docs/dispatch/W10-M35-WORKER-RULES.md",
+      "sha256": "7c2c267e4e47436c6d98d39a901999cfc7bdeeab48cc1d649f66f9a9a8c39293"
+    }
+  ],
+  "readyReport": "docs/dispatch/wave10/PLAN.md",
+  "laterTasks": [
+    {
+      "id": "WATER-W10-M7",
+      "title": "服务：结论视图、两块清理、隔离区与查重",
+      "spec": "contracts/m35-v1/SERVICE-M35.md",
+      "dispatch": "after M1-M4, M8, M9 are merged; ticket written then with the merged HEAD"
+    }
+  ],
+  "tasks": [
+    {
+      "kind": "service",
+      "outputRoot": "packages/water-service",
+      "packageName": "water-service",
+      "testTarget": "service_v1",
+      "testFiles": [
+        "packages/water-service/tests/service_v1.rs"
+      ],
+      "productionFiles": [
+        "packages/water-service/Cargo.toml",
+        "packages/water-service/Cargo.lock",
+        "packages/water-service/README.md",
+        "packages/water-service/examples/service_smoke.rs"
+      ],
+      "cargoCacheSource": "F:/new/smaltalk/water/.offline-cache/core/registry",
+      "realMode": "service-smoke",
+      "nativeModule": "native_windows.rs",
+      "allowedEnv": [],
+      "expectedDependencies": [
+        {
+          "name": "serde",
+          "req": "=1.0.229",
+          "kind": null,
+          "optional": false,
+          "path": null,
+          "defaults": true,
+          "features": [
+            "derive"
+          ]
+        },
+        {
+          "name": "serde_json",
+          "req": "=1.0.151",
+          "kind": null,
+          "optional": false,
+          "path": null,
+          "defaults": true,
+          "features": []
+        },
+        {
+          "name": "water-cleanup-manifest",
+          "req": "*",
+          "kind": null,
+          "optional": false,
+          "path": "packages/cleanup-manifest",
+          "defaults": true,
+          "features": []
+        },
+        {
+          "name": "water-dup-finder",
+          "req": "*",
+          "kind": null,
+          "optional": false,
+          "path": "packages/dup-finder",
+          "defaults": true,
+          "features": []
+        },
+        {
+          "name": "water-installed-apps",
+          "req": "*",
+          "kind": null,
+          "optional": false,
+          "path": "packages/installed-apps",
+          "defaults": true,
+          "features": []
+        },
+        {
+          "name": "water-junk-clean",
+          "req": "*",
+          "kind": null,
+          "optional": false,
+          "path": "packages/junk-clean",
+          "defaults": true,
+          "features": []
+        },
+        {
+          "name": "water-junk-rules",
+          "req": "*",
+          "kind": null,
+          "optional": false,
+          "path": "packages/junk-rules",
+          "defaults": true,
+          "features": []
+        },
+        {
+          "name": "water-junk-scan",
+          "req": "*",
+          "kind": null,
+          "optional": false,
+          "path": "packages/junk-scan",
+          "defaults": true,
+          "features": []
+        },
+        {
+          "name": "water-process-scan",
+          "req": "*",
+          "kind": null,
+          "optional": false,
+          "path": "packages/process-scan",
+          "defaults": true,
+          "features": []
+        }
+      ],
+      "allowedFfiNote": "desktop-wave-check does not enforce FFI; SERVICE-M35 section 2 allows only SHQueryRecycleBinW as a new system function, checked by hand at acceptance",
+      "macOS": "unverified",
+      "outputRootExists": true,
+      "nativeWindowBudget": 0,
+      "nativeDirectoryDialogBudget": 0,
+      "expectedTests": [
+        "service_ipc_contract",
+        "service_scan_views",
+        "service_clean_flow",
+        "service_trends_locations",
+        "service_storage_safety",
+        "service_hardening",
+        "m35_scope_and_plan",
+        "m35_conclusion_cards",
+        "m35_rows_and_detail",
+        "m35_clean_split",
+        "m35_quarantine",
+        "m35_trends_history"
+      ],
+      "allowedModes": [
+        "baseline",
+        "lock",
+        "check",
+        "test",
+        "archive",
+        "real",
+        "red-nc1",
+        "red-nc2",
+        "red-nc3"
+      ],
+      "expectedFinalModes": [
+        "check",
+        "test",
+        "real"
+      ],
+      "browserBudget": 0,
+      "realDataPermission": "read-only metadata per ADR-018; clean disabled in the real smoke",
+      "id": "WATER-W10-ACCEPT-INTEG8-SVC",
+      "title": "服务补修：程序目录不算、已装程序整名对上、线索合并、卡片说人话",
+      "slot": "w10-m14",
+      "worktree": "F:/new/smaltalk/water/.worktrees/integ-w8a",
+      "branch": "controller/integ8-a",
+      "baseCommit": "63a500aed769a7134b70edff0510c6f18a28e9d1",
+      "snapshotRef": "refs/tags/water-w10-m14-base-20261107",
+      "status": "CONTROLLER_INTEGRATION",
+      "readyOn": "2026-11-07",
+      "dispatchedAt": "2026-11-07T03:17:00Z",
+      "startedAt": null,
+      "model": "sol (user-reported)",
+      "modelAssignment": "user-arranged; report actual engine/model",
+      "purpose": "M3.5 close recheck R1, R2, R3, R4, R5, R8 on the service side",
+      "report": "docs/dispatch/reports/WATER-W10-M14-REPORT.md",
+      "evidenceDir": "docs/acceptance/wave10/controller/integ8-20261107/svc/",
+      "allowedFiles": [
+        "docs/dispatch/reports/WATER-W10-M14-REPORT.md"
+      ],
+      "gate": "medium",
+      "ticket": "docs/dispatch/tickets/WATER-W10-M14-SERVICE-FIX-20261107.md",
+      "spec": "contracts/m35-v1/SERVICE-M35.md",
+      "proofTargets": {
+        "nc1": "SERVICE_M35_SCOPE",
+        "nc2": "SERVICE_M35_SCOPE",
+        "nc3": "SERVICE_M35_CONCLUSION"
+      },
+      "modelHint": "Rust service: supplement eligibility (program folders, whole-name installed pairing), clue merging, card title/evidence and fold note texts; IPC shape unchanged; medium gate with read-only service smoke.",
+      "mustRead": [
+        "docs/acceptance/wave10/controller/WATER-M35-CLOSE-20261107.md",
+        "docs/dispatch/W10-M35-WORKER-RULES.md",
+        "contracts/m35-v1/SERVICE-M35.md",
+        "contracts/m35-v1/IPC-M35.md",
+        "contracts/m35-v1/RULES-M35.md",
+        "contracts/m35-v1/SCAN-M35.md",
+        "contracts/m35-v1/MANIFEST-M35.md",
+        "contracts/m35-v1/CLEAN-M35.md",
+        "contracts/m35-v1/DUP-M35.md",
+        "contracts/m35-v1/APPS-M35.md",
+        "contracts/desktop-v1/SERVICE.md",
+        "contracts/hardening-v1/SERVICE-HARDENING.md",
+        "contracts/m3c-v1/SERVICE-M3C.md",
+        "contracts/m3c-v1/SERVICE-M3C-ADD-01.md",
+        "contracts/m3d-v1/SERVICE-M3D.md",
+        "contracts/m3c-v1/IPC-M3C.md",
+        "contracts/checkup-v1/IPC.md",
+        "docs/decisions/ADR-019-project-declarations-and-quarantine.md",
+        "docs/design/water-ui-v2/DESIGN.md",
+        "docs/dispatch/wave10/PLAN.md",
+        "packages/junk-rules/src/lib.rs",
+        "packages/junk-scan/src/lib.rs",
+        "packages/cleanup-manifest/src/lib.rs",
+        "packages/junk-clean/src/lib.rs",
+        "packages/dup-finder/src/lib.rs",
+        "packages/installed-apps/src/lib.rs",
+        "packages/water-service/src/",
+        "packages/water-service/tests/service_v1.rs",
+        "packages/water-service/examples/service_smoke.rs",
+        "packages/water-service/Cargo.toml",
+        "packages/water-service/README.md",
+        "packages/water-service/src/m35.rs",
+        "packages/water-service/src/conclusion.rs"
+      ],
+      "frozenFiles": [
+        {
+          "path": "contracts/m35-v1/SERVICE-M35.md",
+          "sha256": "39ba60f15086b7fefa504bae362dbe5a9c468250052567263269b233f069dd94"
+        },
+        {
+          "path": "contracts/m35-v1/RULES-M35.md",
+          "sha256": "3dfc034799404b45dbd19b7e44f99dc1875584e7b87285cdcd53340af9193a17"
+        },
+        {
+          "path": "contracts/m35-v1/SCAN-M35.md",
+          "sha256": "89d99d991d4fcfbdde3275137bfd14406466fc0ade676057e0073fb16a8edf90"
+        },
+        {
+          "path": "contracts/m35-v1/MANIFEST-M35.md",
+          "sha256": "4e3dc89590a42d33fb0d1e77f017e5ec26c61c03887f2aca580a096b8dd5f611"
+        },
+        {
+          "path": "contracts/m35-v1/CLEAN-M35.md",
+          "sha256": "9a7a43d758668fc4b6da0db1ef90d6500318ba7df907d01355adfd737012dee5"
+        },
+        {
+          "path": "contracts/m35-v1/DUP-M35.md",
+          "sha256": "40e8295e0904e1c20bd218ac8c32e6ccea21482488fdc358fbaa204fb3117276"
+        },
+        {
+          "path": "contracts/m35-v1/APPS-M35.md",
+          "sha256": "0c224a377648d0d8d8956c48c36818658170f826691dfe9cc186ead1374f1c79"
+        },
+        {
+          "path": "contracts/m3c-v1/SERVICE-M3C.md",
+          "sha256": "29a337e90705adcd28bf98419139efeaf88bcc709e1fa0fc022f28405fcafc26"
+        },
+        {
+          "path": "contracts/m3c-v1/SERVICE-M3C-ADD-01.md",
+          "sha256": "a001a4fc0771304cd8da6e21222b3c95b6fbd47146d35cc23de9216b9d182830"
+        },
+        {
+          "path": "contracts/m3d-v1/SERVICE-M3D.md",
+          "sha256": "c7abb8e82cc4994f7ebed64dd4e625ce35ef0a4ef4fc33753fce48912cc22d4c"
+        },
+        {
+          "path": "contracts/desktop-v1/SERVICE.md",
+          "sha256": "44ae8643cbe64e083807386919192ce15c3cf586d1ecddbcf908ca0f0157180a"
+        },
+        {
+          "path": "contracts/hardening-v1/SERVICE-HARDENING.md",
+          "sha256": "fbec889779d5d95ef2cc23ad4c6ac489010a064be958881b37988a12add57359"
+        }
+      ],
+      "allowedPrefixes": [
+        "packages/water-service/",
+        "docs/acceptance/wave10/m14/",
+        "docs/acceptance/wave10/controller/integ8-20261107/svc/"
+      ],
+      "baselineStatus": "PASSED",
+      "defaultExecutor": "sol",
+      "source": "docs/acceptance/wave10/controller/WATER-M35-CLOSE-20261107.md",
+      "issuedAt": "2026-11-07T03:03:59Z",
+      "baselineEvidence": "docs/acceptance/wave10/controller/preflight-20261107/m14/2026-11-07T03-03-23.835Z-21532-baseline-result.json",
+      "dispatchEvidence": "user chat 2026-11-07 ~12:17 JST: \"12是astra，14是sol\" (the M12 paste line also covers M13, in order); worker tree head/changed files 98f9678e/1 when recorded at 2026-11-07T03:18:03Z",
+      "submittedHead": "8b4da83785acd43e93d36be4ac0fbe412519365b",
+      "implementationCommit": "b35ca69475f68f18633700f2712081659e0be6f9",
+      "workerSelfReport": "Codex GPT-6",
+      "mergeCommit": "467f9e43",
+      "controllerReview": {
+        "report": "docs/acceptance/wave10/controller/WATER-W10-REVIEW-20261105.md",
+        "section": "16",
+        "evidence": "docs/acceptance/wave10/controller/accept-20261105/m14/",
+        "summary": "round 1 (head 8b4da837, code b35ca694): audit 0 problems, IPC shape unchanged, only the pre-listed old assertion block changed; fresh tree lock, check and real finals passed, test final passed on a timing-only rerun; nc1-nc3 and controller c1-c5 all caught (c5 redone after the first mutation did not compile)"
+      },
+      "carryOverLater": [
+        "LOW: a merged link clue ends with \"…等 N 项\" where N is the total, not the remainder",
+        "by design: the program-folder check is conservative; a real installer next to an uninstaller (D:\\11\\MostLogin-setup.exe in the close recheck) is held back too"
+      ],
+      "acceptsTask": "WATER-W10-M14",
+      "acceptsHead": "63a500aed769a7134b70edff0510c6f18a28e9d1"
+    },
+    {
+      "kind": "host",
+      "outputRoot": "apps/water/host",
+      "packageName": "water-desktop",
+      "binName": "water",
+      "windowTitle": "Water",
+      "testTarget": "host_v1",
+      "testFiles": [
+        "apps/water/host/tests/host_v1.rs"
+      ],
+      "productionFiles": [
+        "apps/water/host/Cargo.toml",
+        "apps/water/host/Cargo.lock",
+        "apps/water/host/build.rs",
+        "apps/water/host/tauri.conf.json",
+        "apps/water/host/capabilities/main.json",
+        "apps/water/host/README.md"
+      ],
+      "allowedEnv": [
+        "\"WATER_DATA_DIR\"",
+        "\"SystemRoot\""
+      ],
+      "expectedConfig": {
+        "productName": "Water",
+        "version": "0.1.0",
+        "identifier": "app.water.desktop",
+        "build": {
+          "frontendDist": "../ui"
+        },
+        "app": {
+          "windows": [],
+          "withGlobalTauri": true,
+          "security": {
+            "csp": "default-src 'self'; script-src 'self'; style-src 'self'; img-src 'self' data:; connect-src ipc: http://ipc.localhost; font-src 'self'; object-src 'none'; base-uri 'none'; form-action 'none'; frame-ancestors 'none'",
+            "assetProtocol": {
+              "enable": false
+            },
+            "capabilities": [
+              "main"
+            ]
+          }
+        },
+        "bundle": {
+          "active": false
+        },
+        "plugins": {}
+      },
+      "expectedCapability": {
+        "identifier": "main",
+        "windows": [
+          "main"
+        ],
+        "permissions": [
+          "core:window:allow-start-dragging"
+        ]
+      },
+      "cargoCacheSource": "F:/new/smaltalk/water/.offline-cache/desktop/registry",
+      "referenceLock": "apps/desktop-preview/Cargo.lock",
+      "macOS": "unverified",
+      "outputRootExists": true,
+      "forbidSetup": true,
+      "expectedTests": [
+        "host_config_boundary",
+        "host_navigation_boundary",
+        "host_command_registry",
+        "host_data_directory",
+        "host_service_wiring"
+      ],
+      "expectedDependencies": [
+        {
+          "name": "serde",
+          "req": "=1.0.229",
+          "kind": null,
+          "optional": false,
+          "path": null,
+          "defaults": true,
+          "features": [
+            "derive"
+          ]
+        },
+        {
+          "name": "serde_json",
+          "req": "=1.0.151",
+          "kind": null,
+          "optional": false,
+          "path": null,
+          "defaults": true,
+          "features": []
+        },
+        {
+          "name": "tauri",
+          "req": "=2.12.5",
+          "kind": null,
+          "optional": false,
+          "path": null,
+          "defaults": false,
+          "features": [
+            "common-controls-v6",
+            "wry"
+          ]
+        },
+        {
+          "name": "tauri-build",
+          "req": "=2.7.4",
+          "kind": "build",
+          "optional": false,
+          "path": null,
+          "defaults": true,
+          "features": []
+        },
+        {
+          "name": "water-native-picker",
+          "req": "*",
+          "kind": null,
+          "optional": false,
+          "path": "packages/native-picker",
+          "defaults": true,
+          "features": []
+        },
+        {
+          "name": "water-contracts",
+          "req": "*",
+          "kind": null,
+          "optional": false,
+          "path": "crates/water-contracts",
+          "defaults": true,
+          "features": []
+        },
+        {
+          "name": "water-scope-registry",
+          "req": "*",
+          "kind": null,
+          "optional": false,
+          "path": "packages/scope-registry",
+          "defaults": true,
+          "features": []
+        },
+        {
+          "name": "water-service",
+          "req": "*",
+          "kind": null,
+          "optional": false,
+          "path": "packages/water-service",
+          "defaults": true,
+          "features": []
+        },
+        {
+          "name": "water-junk-rules",
+          "req": "*",
+          "kind": null,
+          "optional": false,
+          "path": "packages/junk-rules",
+          "defaults": true,
+          "features": []
+        },
+        {
+          "name": "water-process-scan",
+          "req": "*",
+          "kind": null,
+          "optional": false,
+          "path": "packages/process-scan",
+          "defaults": true,
+          "features": []
+        }
+      ],
+      "allowedModes": [
+        "baseline",
+        "lock",
+        "check",
+        "test",
+        "native",
+        "red-nc1",
+        "red-nc2",
+        "archive"
+      ],
+      "expectedFinalModes": [
+        "check",
+        "test",
+        "native"
+      ],
+      "realMode": null,
+      "nativeModule": null,
+      "nativeWindowBudget": 1,
+      "nativeDirectoryDialogBudget": 0,
+      "browserBudget": 0,
+      "realDataPermission": "native --final only: fixture clean loop; categories off, only the synthetic fixture is selectable; protected locations are measured read-only; process list read for in-use",
+      "nativeObserver": "scripts/acceptance/w3-wired-native-observe.ps1",
+      "nativeMaximumSeconds": 300,
+      "nativeRealData": true,
+      "nativeSteps": [
+        {
+          "wait": "这次检查哪里？",
+          "absent": "无法连接 Water 服务",
+          "seconds": 45,
+          "shot": "home"
+        },
+        {
+          "invoke": "常用位置",
+          "type": "Button",
+          "match": "contains"
+        },
+        {
+          "invoke": "-fixture",
+          "type": "Button",
+          "match": "contains"
+        },
+        {
+          "invoke": "开始体检",
+          "type": "Button"
+        },
+        {
+          "wait": "可以放心清理",
+          "fail": "体检未能完成，请重新体检。",
+          "seconds": 120,
+          "shot": "results"
+        },
+        {
+          "invoke": "清理",
+          "type": "Button"
+        },
+        {
+          "wait": "已加入清理",
+          "match": "prefix",
+          "seconds": 20
+        },
+        {
+          "invoke": "清理 ",
+          "type": "Button",
+          "match": "prefix"
+        },
+        {
+          "wait": "先放进隔离区",
+          "seconds": 30,
+          "shot": "confirm"
+        },
+        {
+          "invoke": "开始清理",
+          "type": "Button"
+        },
+        {
+          "wait": "清理完成",
+          "seconds": 90,
+          "shot": "done"
+        },
+        {
+          "invoke": "去隔离区",
+          "type": "Button"
+        },
+        {
+          "wait": "隔离区里有 1 批",
+          "seconds": 30,
+          "shot": "quarantine"
+        },
+        {
+          "invoke": "永久删除",
+          "type": "Button"
+        },
+        {
+          "wait": "不进入回收站，无法恢复。",
+          "seconds": 15
+        },
+        {
+          "invoke": "永久删除",
+          "type": "Button",
+          "pick": "last"
+        },
+        {
+          "wait": "隔离区是空的",
+          "seconds": 90,
+          "shot": "purged"
+        }
+      ],
+      "nativeStore": {
+        "allowedTop": [
+          "cleans",
+          "dedupes",
+          "events",
+          "journal",
+          "plans",
+          "quarantine",
+          "scans",
+          "settings.json",
+          "snapshots",
+          "water.lock",
+          "webview"
+        ],
+        "counts": {
+          "scans": 1,
+          "plans": 1,
+          "cleans": 1,
+          "quarantine": 0,
+          "dedupes": 0
+        }
+      },
+      "nativeFixture": {
+        "flow": "quarantine-purge",
+        "ageHours": 240,
+        "categoriesOff": [
+          "agent_tool",
+          "browser",
+          "system_temp",
+          "app_leftover",
+          "dev_cache",
+          "crash_log",
+          "gpu_system"
+        ],
+        "files": [
+          {
+            "path": "projA/build-cache/CACHEDIR.TAG",
+            "text": "Signature: 8a477f597d28d172789f06886806bc55\n# Water M2 native fixture: safe to delete.\n"
+          },
+          {
+            "path": "projA/build-cache/blob-1.bin",
+            "bytes": 2097152
+          },
+          {
+            "path": "projA/build-cache/sub/blob-2.bin",
+            "bytes": 1048576
+          },
+          {
+            "path": "projA/src/main.rs",
+            "text": "fn main() {}\n"
+          },
+          {
+            "path": "setups/tool-1.2.msi",
+            "bytes": 1048576
+          },
+          {
+            "path": "lab/profile-a/Local State",
+            "text": "{}\n"
+          },
+          {
+            "path": "lab/profile-a/Default/Preferences",
+            "text": "{}\n"
+          }
+        ],
+        "gone": [
+          "projA/build-cache",
+          "setups/tool-1.2.msi"
+        ],
+        "kept": [
+          "projA/src/main.rs",
+          "lab/profile-a/Local State",
+          "lab/profile-a/Default/Preferences"
+        ],
+        "directFreedBytes": 3145815,
+        "quarantinedBytes": 1048576,
+        "purgedBytes": 1048576
+      },
+      "id": "WATER-W10-ACCEPT-INTEG8-HOST",
+      "title": "宿主：转发第十波命令，打开隔离区文件夹",
+      "slot": "w10-m5",
+      "worktree": "F:/new/smaltalk/water/.worktrees/integ-w8b",
+      "branch": "controller/integ8-b",
+      "baseCommit": "63a500aed769a7134b70edff0510c6f18a28e9d1",
+      "snapshotRef": "refs/tags/water-w10-m35-base-20261105",
+      "status": "CONTROLLER_INTEGRATION",
+      "readyOn": "2026-11-05",
+      "dispatchedAt": "2026-11-05T08:47:40Z",
+      "startedAt": null,
+      "model": "sol (user-reported)",
+      "modelAssignment": "user-arranged; report actual engine/model",
+      "purpose": "M3.5 conclusion first",
+      "report": "docs/dispatch/reports/WATER-W10-M5-REPORT.md",
+      "evidenceDir": "docs/acceptance/wave10/controller/integ8-20261107/host/",
+      "allowedFiles": [
+        "docs/dispatch/reports/WATER-W10-M5-REPORT.md"
+      ],
+      "gate": "heavy-native",
+      "ticket": "docs/dispatch/tickets/WATER-W10-M5-HOST-20261105.md",
+      "spec": "contracts/m35-v1/HOST-M35.md",
+      "nativeDataPrefix": ".local/w10-m5-native/",
+      "proofTargets": {
+        "nc1": "HOST_M35_REVEAL",
+        "nc2": "HOST_M35_FORWARD"
+      },
+      "modelHint": "Tauri host thin adapters, one guarded Explorer opener, host tests; one native window in the final.",
+      "mustRead": [
+        "docs/dispatch/W10-M35-WORKER-RULES.md",
+        "contracts/m35-v1/HOST-M35.md",
+        "contracts/m35-v1/IPC-M35.md",
+        "contracts/m3c-v1/HOST-M3C.md",
+        "contracts/m3c-v1/IPC-M3C.md",
+        "contracts/m3-v1/HOST-M3-FIX.md",
+        "contracts/m3-v1/HOST-M3.md",
+        "contracts/m2-v1/HOST-M2.md",
+        "contracts/desktop-v1/HOST.md",
+        "contracts/checkup-v1/IPC.md",
+        "contracts/m35-v1/SERVICE-M35.md",
+        "docs/dispatch/wave10/PLAN.md",
+        "apps/water/host/src/commands.rs",
+        "apps/water/host/src/lib.rs",
+        "apps/water/host/src/service.rs",
+        "apps/water/host/tests/host_v1.rs"
+      ],
+      "frozenFiles": [
+        {
+          "path": "contracts/m35-v1/HOST-M35.md",
+          "sha256": "fc5b36a879b6d68363145cfa3e7c8a575f25c283de699bbf279a06f2f8e61d2a"
+        },
+        {
+          "path": "contracts/m35-v1/IPC-M35.md",
+          "sha256": "9605b8e6c1e25cc399d0f44e4af039c5a55ea314845b211603f91ce680446889"
+        },
+        {
+          "path": "contracts/m3c-v1/HOST-M3C.md",
+          "sha256": "e6c9a195404807ba206b22325d8a098642cd960df0c60b8eaa211df646a4cd29"
+        },
+        {
+          "path": "contracts/m3c-v1/IPC-M3C.md",
+          "sha256": "d0b6bb18a5deedc8200569cc9f3c68a544d564c8a07c45d0905e9ab01a07e6a5"
+        },
+        {
+          "path": "contracts/m3-v1/HOST-M3-FIX.md",
+          "sha256": "82a719a90ab2ea2b076b8b65a85665ddf8a815bd43e2abbc26eb8b692aca65b2"
+        },
+        {
+          "path": "contracts/m3-v1/HOST-M3.md",
+          "sha256": "9d6ff18afe2ca065b007efdda2a63c2611f9b7ea3f755e5d836d0d342ef983df"
+        },
+        {
+          "path": "contracts/m2-v1/HOST-M2.md",
+          "sha256": "0ff719abc4c87e8ad0a4a13477ac0d37543ae58666da2e30d94d97290297c7c3"
+        },
+        {
+          "path": "contracts/desktop-v1/HOST.md",
+          "sha256": "3d1f3cbb2f98415f73721ef111cfc13b6d0fed78a2b09641008495c2d8f304fc"
+        },
+        {
+          "path": "contracts/checkup-v1/IPC.md",
+          "sha256": "62f726ced5f863f1b47db261976d8b5e5183f65669b2ba09d2f85a3977161be2"
+        },
+        {
+          "path": "contracts/m35-v1/SERVICE-M35.md",
+          "sha256": "39ba60f15086b7fefa504bae362dbe5a9c468250052567263269b233f069dd94"
+        }
+      ],
+      "allowedPrefixes": [
+        "apps/water/host/",
+        "docs/acceptance/wave10/m5/",
+        "docs/acceptance/wave10/controller/integ8-20261107/host/"
+      ],
+      "baselineStatus": "PASSED",
+      "baselineEvidence": "docs/acceptance/wave10/controller/preflight-20261105/m5/2026-11-05T08-18-39.551Z-32008-baseline-result.json",
+      "spawnFile": "src/opener.rs",
+      "bundle": "C",
+      "dispatchEvidence": "user chat 2026-11-05 ~17:47 JST: \"三个新单是sol\" (bundles A, B, C to sol); worker tree head/changed files f93afb8e/0 when recorded at 2026-11-05T08:47:40Z",
+      "addenda": [
+        {
+          "id": "WATER-W10-M5-ADDENDUM-01",
+          "ticket": "docs/dispatch/tickets/WATER-W10-M5-ADDENDUM-01-20261105.md",
+          "status": "VERIFIED",
+          "issuedAt": "2026-11-05T11:38:25Z",
+          "resumeFromCommit": "2d516c46de2660f0b4f77f15a0374ec138469ca5",
+          "change": "authorise in host_v1.rs: cmd_scan_start(backend, None) with request {} unchanged; fixed registry and IPC table compared on the first 19; wrapper map limited to the original 19 with scan_start [locationIds] and clean_prepare six sorted keys; handler registration compared on the first 19; general rule for old assertions that fail only because commands are appended or optional parameters added; new parts checked by HOST_M35_* markers",
+          "submittedHead": "82560b780af6965333ec5f98b3ef1e5e95b4fd6e",
+          "implementationCommit": "e6f7fa673294715b86abc3dde7a12b156f9aa801"
+        }
+      ],
+      "submittedHead": "82560b780af6965333ec5f98b3ef1e5e95b4fd6e",
+      "implementationCommit": "e6f7fa673294715b86abc3dde7a12b156f9aa801",
+      "workerSelfReport": "Codex GPT-6",
+      "mergeCommit": "7aebb2ef005310be1f539af036885c48453ac045",
+      "controllerReview": {
+        "report": "docs/acceptance/wave10/controller/WATER-W10-REVIEW-20261105.md",
+        "evidence": "docs/acceptance/wave10/controller/accept-20261105/m5/",
+        "summary": "round 3 (addendum 01, head 82560b78, code e6f7fa67): audit 0 problems; fresh tree lock, check, native (one Water window, synthetic fixture) and test finals passed; controller mutations c1 (reveal opens an unchecked path), c2 (any folder counts as a quarantine), c5 (restore drops beside), c6 (decide drops decision), c7 (dedupe_start argument name) caught; c3 (.. segments accepted) and c4 (reparse check off) survive; independent review found no high or medium issue: the 17 commands match IPC-M35 names, order and arguments, the UI passes no paths, quarantine_reveal opens only a checked quarantine folder through SystemRoot explorer.exe without a shell, config, capabilities, CSP and dependencies unchanged, old assertions changed only where addendum 01 allows"
+      },
+      "carryOverLater": [
+        "weak tests: controller mutation c3 (accept .. segments) survives because the .. cases use paths that do not exist; harmless in effect (an accepted path must still end in .water-quarantine or an id under it and exist as a plain folder) but the contract rejects it, so a test should reach an existing folder through ..",
+        "weak tests: controller mutation c4 (reparse attribute check off) survives because Rust does not report a junction as a directory, so the junction case never reaches the 0x400 check",
+        "the bad-path cases for %, ;, \" and UNC are rejected only because the paths do not exist, so removing those character checks fails no test; some cases do not assert that nothing was opened",
+        "only the last path segment is checked for a reparse point (as the contract says); a race between the check and the launch, and mapped or subst drives pass (README says so)",
+        "one old assertion message still says 19 commands (old assertions may not be changed)"
+      ],
+      "acceptsTask": "WATER-W10-M5",
+      "acceptsHead": "63a500aed769a7134b70edff0510c6f18a28e9d1"
+    }
+  ],
+  "bundles": [
+    {
+      "id": "A",
+      "name": "规则与扫描",
+      "tasks": [
+        "WATER-W10-M1",
+        "WATER-W10-M2"
+      ],
+      "order": "sequential",
+      "decidedAt": "2026-11-05",
+      "userRequest": "后端单我也还没派，一次十单太多了，是不是有些单可以合并？",
+      "dispatchedAt": "2026-11-05T08:47:40Z",
+      "model": "sol (user-reported)"
+    },
+    {
+      "id": "B",
+      "name": "三个新包",
+      "tasks": [
+        "WATER-W10-M9",
+        "WATER-W10-M3",
+        "WATER-W10-M8"
+      ],
+      "order": "sequential",
+      "decidedAt": "2026-11-05",
+      "userRequest": "后端单我也还没派，一次十单太多了，是不是有些单可以合并？",
+      "dispatchedAt": "2026-11-05T08:47:40Z",
+      "model": "sol (user-reported)"
+    },
+    {
+      "id": "C",
+      "name": "执行器与宿主",
+      "tasks": [
+        "WATER-W10-M4",
+        "WATER-W10-M5"
+      ],
+      "order": "sequential",
+      "decidedAt": "2026-11-05",
+      "userRequest": "后端单我也还没派，一次十单太多了，是不是有些单可以合并？",
+      "dispatchedAt": "2026-11-05T08:47:40Z",
+      "model": "sol (user-reported)"
+    }
+  ]
+}

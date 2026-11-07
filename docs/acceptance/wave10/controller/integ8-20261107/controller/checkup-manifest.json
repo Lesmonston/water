@@ -1,0 +1,429 @@
+{
+  "schemaVersion": 1,
+  "wave": "water-wave10-main-integration-8",
+  "status": "CONTROLLER_INTEGRATION",
+  "controller": "Claude",
+  "controllerRoot": "F:/new/smaltalk/water",
+  "controllerBranch": "main",
+  "helpers": {
+    "M1": "scripts/checkup-wave-check.mjs",
+    "M2": "scripts/checkup-wave-check.mjs",
+    "M3": "scripts/checkup-wave-check.mjs",
+    "M4": "scripts/checkup-wave-check.mjs",
+    "M5": "scripts/desktop-wave-check.mjs",
+    "M6": "scripts/checkup-wave-check.mjs",
+    "M8": "scripts/checkup-wave-check.mjs",
+    "M9": "scripts/checkup-wave-check.mjs"
+  },
+  "baseCommit": "f93afb8e3c5cf4114927fe2ab6c14dbb033c7ffe",
+  "baseTag": "water-w10-m35-base-20261105",
+  "plan": "docs/dispatch/wave10/PLAN.md",
+  "workerRules": "docs/dispatch/W10-M35-WORKER-RULES.md",
+  "userDecision": "2026-11-02: wave 10 plan approved as recommended (\"全部按推荐\"); design v2 approved (\"可以\"); the five new items approved (sessions with a switch and a delete-or-quarantine choice, dedupe, installed programs, system advice, space overview). First batch M1-M6, M8, M9 together; M1 and M2 share the plan JSON and merge together; M7 service is dispatched after M1-M4, M8, M9 merge; M6 merges last.",
+  "offlineCache": {
+    "core": "F:/new/smaltalk/water/.offline-cache/core/registry",
+    "desktop": "F:/new/smaltalk/water/.offline-cache/desktop/registry",
+    "copiedFrom": [
+      "F:/new/smaltalk/water/.worktrees/a/.local/cargo-home/registry",
+      "F:/new/smaltalk/water/.worktrees/ac/.local/desktop-cargo-home/registry"
+    ],
+    "check": "diff -rq byte-identical, 11159 files"
+  },
+  "frozenFiles": [
+    {
+      "path": "docs/decisions/ADR-018-device-junk-checkup-and-in-app-cleanup.md",
+      "sha256": "1195b17c469b3abe290f4d334628fa36583ca7f20c46349aaf1071ff839a0579"
+    },
+    {
+      "path": "docs/decisions/ADR-019-project-declarations-and-quarantine.md",
+      "sha256": "005709e26035f08e3729303c8ebed961b7c23c3b4e02ec28ab8823a36b885e97"
+    },
+    {
+      "path": "contracts/checkup-v1/MODEL.md",
+      "sha256": "fe0c9a4f5d96ce9297e8f72e75df8c6f666f9a6af440fc198aa7b3362692188b"
+    },
+    {
+      "path": "contracts/checkup-v1/IPC.md",
+      "sha256": "62f726ced5f863f1b47db261976d8b5e5183f65669b2ba09d2f85a3977161be2"
+    },
+    {
+      "path": "contracts/m3c-v1/IPC-M3C.md",
+      "sha256": "d0b6bb18a5deedc8200569cc9f3c68a544d564c8a07c45d0905e9ab01a07e6a5"
+    },
+    {
+      "path": "contracts/m35-v1/IPC-M35.md",
+      "sha256": "9605b8e6c1e25cc399d0f44e4af039c5a55ea314845b211603f91ce680446889"
+    },
+    {
+      "path": "contracts/desktop-bootstrap-mirror-v1/MIRROR.json",
+      "sha256": "494e2b42e0803ba79170ffc162e8ac4938add6284b17dfdeb1f78fb527455e0f"
+    },
+    {
+      "path": "docs/dispatch/W10-M35-WORKER-RULES.md",
+      "sha256": "7c2c267e4e47436c6d98d39a901999cfc7bdeeab48cc1d649f66f9a9a8c39293"
+    }
+  ],
+  "readyReport": "docs/dispatch/wave10/PLAN.md",
+  "laterTasks": [
+    {
+      "id": "WATER-W10-M7",
+      "title": "服务：结论视图、两块清理、隔离区与查重",
+      "spec": "contracts/m35-v1/SERVICE-M35.md",
+      "dispatch": "after M1-M4, M8, M9 are merged; ticket written then with the merged HEAD"
+    }
+  ],
+  "tasks": [
+    {
+      "kind": "rust",
+      "outputRoot": "packages/junk-rules",
+      "packageName": "water-junk-rules",
+      "testTarget": "rules_v1",
+      "expectedTests": [
+        "rules_schema_strict",
+        "rules_protection_precedence",
+        "rules_resolve_plan",
+        "rules_seed_coverage"
+      ],
+      "productionFiles": [
+        "packages/junk-rules/Cargo.toml",
+        "packages/junk-rules/Cargo.lock",
+        "packages/junk-rules/README.md",
+        "packages/junk-rules/rules/windows.json"
+      ],
+      "testFiles": [
+        "packages/junk-rules/tests/rules_v1.rs"
+      ],
+      "allowedModes": [
+        "baseline",
+        "lock",
+        "check",
+        "test",
+        "archive",
+        "real",
+        "red-nc1",
+        "red-nc2"
+      ],
+      "expectedFinalModes": [
+        "check",
+        "test",
+        "real"
+      ],
+      "cargoCacheSource": "F:/new/smaltalk/water/.offline-cache/core/registry",
+      "realMode": "env-only",
+      "nativeModule": null,
+      "nativeWindowBudget": 0,
+      "nativeDirectoryDialogBudget": 0,
+      "browserBudget": 0,
+      "realDataPermission": "read-only metadata per ADR-018",
+      "macOS": "unverified",
+      "outputRootExists": true,
+      "id": "WATER-W10-ACCEPT-INTEG8-RULES",
+      "title": "规则补修：“安装包”只认安装程序",
+      "slot": "w10-m12",
+      "worktree": "F:/new/smaltalk/water/.worktrees/integ-w8a",
+      "branch": "controller/integ8-a",
+      "baseCommit": "63a500aed769a7134b70edff0510c6f18a28e9d1",
+      "snapshotRef": "refs/tags/water-w10-m12-base-20261107",
+      "status": "CONTROLLER_INTEGRATION",
+      "readyOn": "2026-11-07",
+      "dispatchedAt": "2026-11-07T03:17:00Z",
+      "startedAt": null,
+      "model": "astra (user-reported)",
+      "modelAssignment": "user-arranged; report actual engine/model",
+      "purpose": "M3.5 close recheck R1: installer-files second locator only setup, installer or version names",
+      "report": "docs/dispatch/reports/WATER-W10-M12-REPORT.md",
+      "evidenceDir": "docs/acceptance/wave10/controller/integ8-20261107/rules/",
+      "allowedFiles": [
+        "docs/dispatch/reports/WATER-W10-M12-REPORT.md"
+      ],
+      "gate": "light",
+      "ticket": "docs/dispatch/tickets/WATER-W10-M12-RULES-FIX-20261107.md",
+      "spec": "contracts/m35-v1/RULES-M35.md",
+      "proofTargets": {
+        "nc1": "RULES_M35_SEEDS",
+        "nc2": "RULES_M35_VERSION"
+      },
+      "modelHint": "Rules data only: installer-files patterns, why_zh, data_version; pre-listed old assertions; light gate.",
+      "mustRead": [
+        "docs/acceptance/wave10/controller/WATER-M35-CLOSE-20261107.md",
+        "docs/dispatch/W10-M35-WORKER-RULES.md",
+        "contracts/m35-v1/RULES-M35.md",
+        "contracts/checkup-v1/RULES.md",
+        "contracts/checkup-v1/MODEL.md",
+        "contracts/m3c-v1/RULES-M3C.md",
+        "contracts/m3d-v1/RULES-M3D.md",
+        "contracts/m35-v1/SCAN-M35.md",
+        "docs/dispatch/wave10/PLAN.md",
+        "packages/junk-rules/src/types.rs",
+        "packages/junk-rules/src/rules.rs",
+        "packages/junk-rules/src/plan.rs",
+        "packages/junk-rules/src/folders.rs",
+        "packages/junk-rules/rules/windows.json",
+        "packages/junk-rules/tests/rules_v1.rs"
+      ],
+      "frozenFiles": [
+        {
+          "path": "contracts/m35-v1/RULES-M35.md",
+          "sha256": "3dfc034799404b45dbd19b7e44f99dc1875584e7b87285cdcd53340af9193a17"
+        },
+        {
+          "path": "contracts/checkup-v1/RULES.md",
+          "sha256": "11bbc3652d4e722618875e16bdca28676553fade0fb38e754316f053ce925949"
+        },
+        {
+          "path": "contracts/checkup-v1/MODEL.md",
+          "sha256": "fe0c9a4f5d96ce9297e8f72e75df8c6f666f9a6af440fc198aa7b3362692188b"
+        },
+        {
+          "path": "contracts/m3c-v1/RULES-M3C.md",
+          "sha256": "2fe859274ca3c8c6a3ca9533d30eb4b16deb2a1801c3c1463f2f976a23e28220"
+        },
+        {
+          "path": "contracts/m3d-v1/RULES-M3D.md",
+          "sha256": "65b68ff3f3ba1f01d9b85f922c97c8c8b018494385ba38ce584166a0e549e393"
+        },
+        {
+          "path": "contracts/m35-v1/SCAN-M35.md",
+          "sha256": "89d99d991d4fcfbdde3275137bfd14406466fc0ade676057e0073fb16a8edf90"
+        }
+      ],
+      "allowedPrefixes": [
+        "packages/junk-rules/",
+        "docs/acceptance/wave10/m12/",
+        "docs/acceptance/wave10/controller/integ8-20261107/rules/"
+      ],
+      "baselineStatus": "PASSED",
+      "defaultExecutor": "sol",
+      "source": "docs/acceptance/wave10/controller/WATER-M35-CLOSE-20261107.md",
+      "issuedAt": "2026-11-07T03:03:59Z",
+      "baselineEvidence": "docs/acceptance/wave10/controller/preflight-20261107/m12/2026-11-07T03-03-07.873Z-25592-baseline-result.json",
+      "dispatchEvidence": "user chat 2026-11-07 ~12:17 JST: \"12是astra，14是sol\" (the M12 paste line also covers M13, in order)",
+      "workerSelfReport": "Codex GPT-6 (user arranged astra)",
+      "negativeControlPaths": [
+        "packages/junk-rules/src",
+        "packages/junk-rules/rules/windows.json"
+      ],
+      "resume": {
+        "fromCommit": "5f2b1885d750e78e2bbfe95bb2ce719e0ca64b04",
+        "how": "reply in the same conversation; no addendum (scope unchanged)",
+        "checkerFix": "checkup-wave-check.mjs reads task.negativeControlPaths (default <outputRoot>/src)"
+      },
+      "submittedHead": "d16fbefba32d453a2786e23607e4d3ac86487cfe",
+      "implementationCommit": "eb2026c633041dfdafcb6025d55555df8de83f23",
+      "mergeCommit": "de1bf0e5",
+      "controllerReview": {
+        "report": "docs/acceptance/wave10/controller/WATER-W10-REVIEW-20261105.md",
+        "section": "16",
+        "evidence": "docs/acceptance/wave10/controller/accept-20261105/m12/",
+        "summary": "round 1 after the checker fix (blocked 5f2b1885, head d16fbefb, code eb2026c6): audit 0 problems, only the three ticket data changes, 6 pre-listed old assertions; fresh tree lock, check, real and test finals passed; nc1, nc2 and controller c1 (*installer* widened to *install* in place) caught"
+      },
+      "carryOverLater": [],
+      "acceptsTask": "WATER-W10-M12",
+      "acceptsHead": "63a500aed769a7134b70edff0510c6f18a28e9d1"
+    },
+    {
+      "id": "WATER-W10-ACCEPT-INTEG8-SCAN",
+      "title": "扫描补修：泄漏簇不认会话、备份与程序资源",
+      "status": "CONTROLLER_INTEGRATION",
+      "slot": "w10-m13",
+      "kind": "rust",
+      "worktree": "F:/new/smaltalk/water/.worktrees/integ-w8a",
+      "branch": "controller/integ8-a",
+      "baseCommit": "63a500aed769a7134b70edff0510c6f18a28e9d1",
+      "snapshotRef": "refs/tags/water-w10-m13-base-20261107",
+      "ticket": "docs/dispatch/tickets/WATER-W10-M13-SCAN-FIX-20261107.md",
+      "report": "docs/dispatch/reports/WATER-W10-M13-REPORT.md",
+      "spec": "contracts/m35-v1/SCAN-M35.md",
+      "outputRoot": "packages/junk-scan",
+      "packageName": "water-junk-scan",
+      "testTarget": "scan_v1",
+      "expectedTests": [
+        "scan_plan_contract",
+        "scan_pattern_marker_discovery",
+        "scan_overlap_and_guards",
+        "scan_reparse_budget_cancel",
+        "scan_snapshot_growth_keys"
+      ],
+      "proofTargets": {
+        "nc1": "SCAN_M35_CLUSTERS",
+        "nc2": "SCAN_M35_CLUSTERS",
+        "nc3": "SCAN_M35_CLUSTERS"
+      },
+      "productionFiles": [
+        "packages/junk-scan/Cargo.toml",
+        "packages/junk-scan/Cargo.lock",
+        "packages/junk-scan/README.md"
+      ],
+      "testFiles": [
+        "packages/junk-scan/tests/scan_v1.rs"
+      ],
+      "allowedFiles": [
+        "docs/dispatch/reports/WATER-W10-M13-REPORT.md"
+      ],
+      "allowedPrefixes": [
+        "packages/junk-scan/",
+        "docs/acceptance/wave10/m13/",
+        "docs/acceptance/wave10/controller/integ8-20261107/scan/"
+      ],
+      "evidenceDir": "docs/acceptance/wave10/controller/integ8-20261107/scan/",
+      "allowedModes": [
+        "baseline",
+        "lock",
+        "check",
+        "test",
+        "archive",
+        "real",
+        "red-nc1",
+        "red-nc2",
+        "red-nc3"
+      ],
+      "expectedFinalModes": [
+        "check",
+        "test",
+        "real"
+      ],
+      "mustRead": [
+        "docs/acceptance/wave10/controller/WATER-M35-CLOSE-20261107.md",
+        "docs/dispatch/W10-M35-WORKER-RULES.md",
+        "contracts/m35-v1/SCAN-M35.md",
+        "contracts/checkup-v1/SCAN.md",
+        "contracts/checkup-v1/MODEL.md",
+        "contracts/m3c-v1/SCAN-M3C.md",
+        "contracts/m3d-v1/SCAN-M3D.md",
+        "contracts/m3d-v1/RULES-M3D.md",
+        "contracts/m35-v1/RULES-M35.md",
+        "docs/dispatch/wave10/PLAN.md",
+        "packages/junk-scan/src/plan.rs",
+        "packages/junk-scan/src/scan.rs",
+        "packages/junk-scan/src/model.rs",
+        "packages/junk-scan/src/native_windows.rs",
+        "packages/junk-scan/src/snapshot.rs",
+        "packages/junk-scan/src/lib.rs",
+        "packages/junk-scan/examples/real_smoke.rs",
+        "packages/junk-scan/tests/scan_v1.rs",
+        "packages/junk-scan/src/templates.rs",
+        "packages/junk-scan/src/scan/streaming.rs"
+      ],
+      "cargoCacheSource": "F:/new/smaltalk/water/.offline-cache/core/registry",
+      "realMode": "scan-plan",
+      "nativeModule": "native_windows.rs",
+      "nativeWindowBudget": 0,
+      "nativeDirectoryDialogBudget": 0,
+      "browserBudget": 0,
+      "realDataPermission": "read-only metadata per ADR-018; group-level output only",
+      "dispatchedAt": "2026-11-07T03:17:00Z",
+      "startedAt": null,
+      "model": "astra (user-reported)",
+      "modelAssignment": "user-arranged; report actual engine/model",
+      "macOS": "unverified",
+      "gate": "medium",
+      "baselineStatus": "PASSED",
+      "readyOn": "2026-11-07",
+      "purpose": "M3.5 close recheck R3: stricter <r6>, no <u> or jsonl file clusters, no backup templates, no clusters under conversation folders",
+      "modelHint": "Rust scan engine: template grammar and cluster exclusions in two places (potential_children, build_clusters); fixture names from the real recheck; medium gate.",
+      "frozenFiles": [
+        {
+          "path": "contracts/m35-v1/SCAN-M35.md",
+          "sha256": "89d99d991d4fcfbdde3275137bfd14406466fc0ade676057e0073fb16a8edf90"
+        },
+        {
+          "path": "contracts/checkup-v1/SCAN.md",
+          "sha256": "c72b72d16635f57827d460e0c12e0044d86677e1a2a93e9f72664625dfa6d5e3"
+        },
+        {
+          "path": "contracts/checkup-v1/MODEL.md",
+          "sha256": "fe0c9a4f5d96ce9297e8f72e75df8c6f666f9a6af440fc198aa7b3362692188b"
+        },
+        {
+          "path": "contracts/m3c-v1/SCAN-M3C.md",
+          "sha256": "9ae9c1eab0f0c81a2943a7bff30163f9504e102c69ba9b9d56d3d8db9d38f2e2"
+        },
+        {
+          "path": "contracts/m3d-v1/SCAN-M3D.md",
+          "sha256": "d79fb5867ec84083d9c4cecebe23dbaf6f1a4cef5d92b9ce6085ad057dbee850"
+        },
+        {
+          "path": "contracts/m3d-v1/RULES-M3D.md",
+          "sha256": "65b68ff3f3ba1f01d9b85f922c97c8c8b018494385ba38ce584166a0e549e393"
+        },
+        {
+          "path": "contracts/m35-v1/RULES-M35.md",
+          "sha256": "3dfc034799404b45dbd19b7e44f99dc1875584e7b87285cdcd53340af9193a17"
+        }
+      ],
+      "outputRootExists": true,
+      "allowedFfi": [
+        "CloseHandle",
+        "CoTaskMemFree",
+        "CreateFileW",
+        "DeviceIoControl",
+        "GetFileInformationByHandleEx",
+        "GetVolumeInformationByHandleW",
+        "SHGetKnownFolderPath"
+      ],
+      "defaultExecutor": "sol",
+      "source": "docs/acceptance/wave10/controller/WATER-M35-CLOSE-20261107.md",
+      "issuedAt": "2026-11-07T03:03:59Z",
+      "baselineEvidence": "docs/acceptance/wave10/controller/preflight-20261107/m13/2026-11-07T03-03-15.661Z-9728-baseline-result.json",
+      "dispatchEvidence": "user chat 2026-11-07 ~12:17 JST: \"12是astra，14是sol\" (the M12 paste line also covers M13, in order)",
+      "note": "starts after M12 in the same astra conversation; tree 98f9678e/0 when recorded",
+      "submittedHead": "19fca064a6ee91d7ed36700413812d069443ce4c",
+      "implementationCommit": "0cdff543826ee37b76b5e54b9a6b0271e9df74fe",
+      "workerSelfReport": "Codex GPT-6 (user arranged astra)",
+      "mergeCommit": "0886186c",
+      "controllerReview": {
+        "report": "docs/acceptance/wave10/controller/WATER-W10-REVIEW-20261105.md",
+        "section": "16",
+        "evidence": "docs/acceptance/wave10/controller/accept-20261105/m13/",
+        "summary": "round 1 (head 19fca064, code 0cdff543): audit 0 problems, shared cluster_candidate_allowed in potential_children and build_clusters, no old assertion changed; fresh tree lock, check, real and test finals passed; nc1-nc3, c1 (.jsonl), c2 (backup), c4 (one ancestor short) caught; c3 (skip the check at the build_clusters call site) survives as an equivalent mutant: every candidate already passed it in potential_children"
+      },
+      "carryOverLater": [
+        "equivalent: the cluster_candidate_allowed call in build_clusters is defence in depth (all candidates come from potential_children, streaming.rs 673-698); no test can tell it apart (controller c3)"
+      ],
+      "acceptsTask": "WATER-W10-M13",
+      "acceptsHead": "63a500aed769a7134b70edff0510c6f18a28e9d1"
+    }
+  ],
+  "bundles": [
+    {
+      "id": "A",
+      "name": "规则与扫描",
+      "tasks": [
+        "WATER-W10-M1",
+        "WATER-W10-M2"
+      ],
+      "order": "sequential",
+      "decidedAt": "2026-11-05",
+      "userRequest": "后端单我也还没派，一次十单太多了，是不是有些单可以合并？",
+      "dispatchedAt": "2026-11-05T08:47:40Z",
+      "model": "sol (user-reported)"
+    },
+    {
+      "id": "B",
+      "name": "三个新包",
+      "tasks": [
+        "WATER-W10-M9",
+        "WATER-W10-M3",
+        "WATER-W10-M8"
+      ],
+      "order": "sequential",
+      "decidedAt": "2026-11-05",
+      "userRequest": "后端单我也还没派，一次十单太多了，是不是有些单可以合并？",
+      "dispatchedAt": "2026-11-05T08:47:40Z",
+      "model": "sol (user-reported)"
+    },
+    {
+      "id": "C",
+      "name": "执行器与宿主",
+      "tasks": [
+        "WATER-W10-M4",
+        "WATER-W10-M5"
+      ],
+      "order": "sequential",
+      "decidedAt": "2026-11-05",
+      "userRequest": "后端单我也还没派，一次十单太多了，是不是有些单可以合并？",
+      "dispatchedAt": "2026-11-05T08:47:40Z",
+      "model": "sol (user-reported)"
+    }
+  ]
+}

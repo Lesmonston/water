@@ -1,0 +1,16 @@
+{"binary":"C:\\Users\\37310\\.rustup\\toolchains\\1.95.0-x86_64-pc-windows-msvc\\bin\\cargo.exe","args":["fmt","--manifest-path","packages/water-service/Cargo.toml","--","--check"],"exitCode":1,"error":null}
+--- stdout ---
+Diff in \\?\F:\new\smaltalk\water\.worktrees\integ-w8a\packages\water-service\tests\service_v1.rs:4292:
+     // Before W10-M12 the rules also took unins000.exe as an installer; since M12 it is no item at
+     // all. Either way it must never be clean-able.
+     let uninstaller = "selected/prog/App/unins000.exe";
+[31m-    if let Some(i) = items.iter().find(|i| i["path"] == slash(&f.root.join(uninstaller))) {
+[0m[32m+    if let Some(i) = items
+[0m[32m+        .iter()
+[0m[32m+        .find(|i| i["path"] == slash(&f.root.join(uninstaller)))
+[0m[32m+    {
+[0m         assert_eq!(
+             i["eligible"], false,
+             "SERVICE_M35_SCOPE: program file {uninstaller}"
+
+--- stderr ---

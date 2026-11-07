@@ -8,7 +8,7 @@ const fs = require('fs'), path = require('path');
 const [run, outFile] = process.argv.slice(2);
 if (!run || !outFile) throw Error('usage: summarize.cjs <run> <out>');
 const read = p => JSON.parse(fs.readFileSync(p, 'utf8').replace(/^﻿/, ''));
-const redact = s => s.replace(/[A-Za-z]:\\[^·；，]*?(?=( · |；|，|$| 里有))/g, '<路径>').replace(/[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}/g, '<uuid>');
+const redact = s => s.replace(/[A-Za-z]:\\[^·；，]*?(?=( · |；|，|$| 里有| 引用了))/g, '<路径>').replace(/[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}/g, '<uuid>');
 const observe = read(path.join(run, 'out', 'observe.json'));
 const dump = n => read(path.join(run, 'out', 'dump-' + n + '.json')).map(r => r.name);
 const scans = path.join(run, 'data', 'scans'), scanFile = fs.readdirSync(scans)[0], scan = read(path.join(scans, scanFile)), r = scan.result;
@@ -37,7 +37,7 @@ const summary = {
     heading: pick(conclusion, /放心清理/), scope_line: redact(conclusion.find(t => / · /.test(t) && /刚刚|分钟/.test(t)) || ''),
     cards: pick(conclusion, /^.+ · [\d.]+ [KMG]B$|同模板目录，已经|同模板目录，每天/).filter(t => !/菜单$/.test(t) && !/^\d+\. /.test(t)).map(redact),
     evidence: pick(conclusion, /^\d+ 项 · /).map(redact), more_cards: pick(conclusion, /^还有 \d+ 项需要判断/), clues_more: pick(conclusion, /^还有 \d+ 条/),
-    clues_shown: pick(conclusion, /里有 \d+ 个 .*每天新增/).map(redact), folds: pick(conclusion, /只统计、不清理|^空间分布：|条系统建议/).filter((t, i, a) => a.indexOf(t) === i).map(t => /^空间分布：/.test(t) ? '空间分布：<前三个文件夹>' : t)
+    clues_shown: pick(conclusion, /里有 \d+ 个 .*(每天新增|最近 14 天)|引用了 \d+ 项/).map(redact), folds: pick(conclusion, /只统计、不清理|^空间分布：|条系统建议/).filter((t, i, a) => a.indexOf(t) === i).map(t => /^空间分布：/.test(t) ? '空间分布：<前三个文件夹>' : t)
   },
   groups, leak_groups: leaks.length, leak_kinds: leakKinds, installers,
   detail: pick(dump('detail'), / · \d+ 组 · /), quarantine: pick(dump('quarantine'), /隔离区/)
