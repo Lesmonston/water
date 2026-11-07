@@ -50,7 +50,7 @@ impl IpcError {
                 "invalid" => "所选内容无法清理，请重新选择。",
                 "not_found" => "找不到这条记录，请重新体检。",
                 "cancelled" => "已取消。",
-                _ => "Water 服务暂时不可用。",
+                _ => "Flick 服务暂时不可用。",
             }
             .into(),
         }
@@ -133,7 +133,13 @@ impl Platform for WindowsPlatform {
     fn quarantine_roots(&self) -> Vec<String> {
         self.drives()
             .into_iter()
-            .map(|d| format!("{}.water-quarantine", d.root))
+            .flat_map(|d| {
+                [
+                    format!("{}.flick-quarantine", d.root),
+                    format!("{}.water-quarantine", d.root),
+                ]
+            })
+            .filter(|root| storage::plain_directory(std::path::Path::new(root)))
             .collect()
     }
     fn volume_file_system(&self, root: &str) -> Option<String> {

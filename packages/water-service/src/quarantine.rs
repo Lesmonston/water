@@ -101,6 +101,9 @@ pub(crate) fn refresh_with(
             continue;
         }
         seen_roots.push(root.clone());
+        if !crate::storage::plain_directory(std::path::Path::new(root)) {
+            continue;
+        }
         let mut root_bytes = 0u64;
         for q in list.quarantines {
             // Listing is the authority for presence. Inspection failure (or a
@@ -187,7 +190,15 @@ pub(crate) fn refresh_with(
         }
         total += root_bytes;
         let target = if root.len() == 20 && root.as_bytes().get(1) == Some(&b':') {
-            format!("qroot-{}", root[..1].to_ascii_lowercase())
+            let legacy = m35::name(root).eq_ignore_ascii_case(".water-quarantine")
+                && roots.iter().any(|other| {
+                    other.eq_ignore_ascii_case(&format!("{}.flick-quarantine", &root[..3]))
+                });
+            format!(
+                "qroot-{}{}",
+                root[..1].to_ascii_lowercase(),
+                if legacy { "-legacy" } else { "" }
+            )
         } else {
             format!("qroot-t{}", index + 1)
         };
@@ -266,11 +277,11 @@ fn reason(kind: &str, dir: bool, name: &str) -> String {
             }
         }
         "odd_name" => format!(
-            "名字是系统保留名 {}（Water 能删，点再试一次）",
+            "名字是系统保留名 {}（Flick 能删，点再试一次）",
             m35::name(name)
         ),
-        "long_path" => "路径太长（Water 能删，点再试一次）".into(),
-        "read_only" => "只读文件（Water 能删，点再试一次）".into(),
+        "long_path" => "路径太长（Flick 能删，点再试一次）".into(),
+        "read_only" => "只读文件（Flick 能删，点再试一次）".into(),
         "reparse" => "云端占位或特殊链接，请在对应程序里处理".into(),
         "access_denied" => "没有权限".into(),
         _ => "暂时无法删除，请再试一次".into(),
@@ -379,12 +390,26 @@ pub(crate) fn registered_target(
     let base = core.platform.quarantine_base(drive);
     let root = base
         .clone()
-        .unwrap_or_else(|| format!("{drive}.water-quarantine"));
-    core.platform
-        .quarantine_roots()
-        .iter()
-        .any(|r| r.eq_ignore_ascii_case(&root))
-        .then_some((root, clean::QuarantineTarget { base }))
+        .unwrap_or_else(|| format!("{drive}.flick-quarantine"));
+    // Existing roots determine what is shown, not whether the executor may
+    // create its destination. Explicit fixture registrations retain priority.
+    let registered = if base.is_some() {
+        core.platform
+            .quarantine_roots()
+            .iter()
+            .any(|r| r.eq_ignore_ascii_case(&root))
+    } else {
+        core.platform
+            .drives()
+            .iter()
+            .any(|d| d.root.eq_ignore_ascii_case(drive))
+    };
+    registered.then(|| {
+        let target = clean::QuarantineTarget {
+            base: Some(root.clone()),
+        };
+        (root, target)
+    })
 }
 
 pub(crate) fn unavailable_note(drive: &str, count: usize) -> String {

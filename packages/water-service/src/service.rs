@@ -921,15 +921,7 @@ impl ScanJob {
         }));
         let mut result = match result {
             Ok(Ok((v, extras))) => {
-                for path in extras.declarations {
-                    if !declarations
-                        .iter()
-                        .any(|d| d.path.eq_ignore_ascii_case(&path))
-                    {
-                        let path = m35::local_path(&path).unwrap_or(path);
-                        declarations.push(water_cleanup_manifest::read_manifest(&path));
-                    }
-                }
+                declarations = m35::load_declarations(extras.declarations, &declarations);
                 v
             }
             _ => scan::ScanResult {
@@ -945,6 +937,31 @@ impl ScanJob {
             },
         };
         let supplemented = m35::supplement(&worker_core, &mut result, &declarations, &unfinished);
+        // A shadowed legacy declaration loses its old consent as well as its
+        // targets. Removing the new file later must not revive that consent.
+        {
+            let mut s = lock(&worker_core).expect("service state");
+            let mut settings = s.settings.clone();
+            settings.trusts.retain(|t| {
+                !declarations.iter().any(|d| {
+                    d.path.eq_ignore_ascii_case(&t.path)
+                        && d.error
+                            .as_ref()
+                            .is_some_and(|e| e.code == "MANIFEST_SHADOWED")
+                })
+            });
+            if settings.trusts.len() != s.settings.trusts.len() {
+                // Even a failed persistence must not leave in-memory consent.
+                s.settings = settings.clone();
+                if worker_core
+                    .store
+                    .write("", "settings.json", &json!(settings))
+                    .is_err()
+                {
+                    result.status = "failed".into();
+                }
+            }
+        }
         let mut spaces = Vec::new();
         if matches!(result.status.as_str(), "completed" | "partial") {
             for l in scope.iter().filter(|l| l.kind == "drive") {
@@ -1236,7 +1253,7 @@ fn progress_categories(plan: &water_junk_rules::ScanPlan) -> Vec<Value> {
                 | water_junk_rules::MatchSpec::Discovery { root } = &t.match_spec
                     && seen.insert(root)
                 {
-                    result.push(json!({"category":cat,"title_zh":format!("自定义 · {root}"),"state":"waiting","found_bytes":"0"}));
+                    result.push(json!({"category":cat,"title_zh":format!("你加的位置 · {root}"),"state":"waiting","found_bytes":"0"}));
                 }
             }
         } else if !targets.is_empty() {
@@ -1287,7 +1304,7 @@ impl scan::ScanObserver for Progress {
                                 || match &t.match_spec {
                                     water_junk_rules::MatchSpec::Marker { root, .. }
                                     | water_junk_rules::MatchSpec::Discovery { root } => {
-                                        row["title_zh"] == format!("自定义 · {root}")
+                                        row["title_zh"] == format!("你加的位置 · {root}")
                                     }
                                     _ => false,
                                 })
@@ -1796,7 +1813,7 @@ fn forecast(core: &Core, s: &State, points: &[Value]) -> Vec<Value> {
         let (last,free_last) = points[points.len()-1];
         let days = last.duration_since(first).unwrap_or_default().as_secs_f64()/86400.0;
         let basis = (days*10.0).round()/10.0;
-        if points.len()<3 || days<3.0 { return json!({"root":root,"days_to_full":null,"bytes_per_day":"0","basis_days":basis,"note_zh":if reset{"Water 以外的清理之后重新起算"}else{"至少需要 3 天内 3 次体检才能估算"}}); }
+        if points.len()<3 || days<3.0 { return json!({"root":root,"days_to_full":null,"bytes_per_day":"0","basis_days":basis,"note_zh":if reset{"Flick 以外的清理之后重新起算"}else{"至少需要 3 天内 3 次体检才能估算"}}); }
         let freed: u128 = s.cleans.values().filter(|c|c["view"]["finished_at"].as_str().and_then(util::parse_time).is_some_and(|t|t>first && t<=last))
             .flat_map(|c|c["view"]["drives"].as_array().into_iter().flatten())
             .filter(|d|d["root"].as_str().is_some_and(|r|r.eq_ignore_ascii_case(&root)))
@@ -1805,6 +1822,6 @@ fn forecast(core: &Core, s: &State, points: &[Value]) -> Vec<Value> {
         let estimate = (free_last as f64/rate).floor();
         let (days_to_full,note) = if rate<=0.0 {(None,Some("最近 30 天可用空间没有减少"))} else if estimate>3650.0 {(None,Some("按现在的速度，十年内不会满"))} else {(Some(estimate as u64),None)};
         let rounded = rate.trunc();
-        json!({"root":root,"days_to_full":days_to_full,"bytes_per_day":if rounded == 0.0 {"0".to_owned()} else {format!("{rounded:.0}")},"basis_days":basis,"note_zh":if reset{Some("Water 以外的清理之后重新起算")}else{note}})
+        json!({"root":root,"days_to_full":days_to_full,"bytes_per_day":if rounded == 0.0 {"0".to_owned()} else {format!("{rounded:.0}")},"basis_days":basis,"note_zh":if reset{Some("Flick 以外的清理之后重新起算")}else{note}})
     }).collect()
 }
