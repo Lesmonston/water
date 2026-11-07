@@ -7,13 +7,13 @@ $window = $null
 while ([DateTime]::UtcNow -lt $deadline) {
     $windows = [System.Windows.Automation.AutomationElement]::RootElement.FindAll([System.Windows.Automation.TreeScope]::Children,[System.Windows.Automation.Condition]::TrueCondition)
     foreach ($candidate in $windows) {
-        if ($candidate.Current.ProcessId -eq $TestProcessId -and $candidate.Current.Name -eq 'Water - Select a read-only directory') { $window = $candidate; break }
+        if ($candidate.Current.ProcessId -eq $TestProcessId -and $candidate.Current.Name -in @('Flick - Select a read-only directory', 'Water - Select a read-only directory')) { $window = $candidate; break }
     }
     if ($null -ne $window) { break }
     Start-Sleep -Milliseconds 50
 }
 if ($null -eq $window) { throw 'Controlled picker window not found' }
-Write-Output ('WATER_UI_WINDOW ' + $TestProcessId + ' ' + $window.Current.ClassName + ' visible=' + (-not $window.Current.IsOffscreen))
+Write-Output ('WATER_UI_WINDOW ' + $TestProcessId + ' ' + $window.Current.ClassName + ' visible=' + (-not $window.Current.IsOffscreen) + ' title=' + $window.Current.Name)
 $buttonId = if ($Action -eq 'cancel') { '2' } else { '1' }
 Add-Type -TypeDefinition @'
 using System;

@@ -222,7 +222,7 @@ pub(crate) fn choose(initial_directory: &str) -> Result<Option<String>, PickerEr
         );
         Com::<ItemVtable>::from_output(result, raw_folder)?
     };
-    let title = wide("Water - Select a read-only directory");
+    let title = wide("Flick - Select a read-only directory");
     let label = wide("Use this directory");
     let methods = dialog.vtable();
     // SAFETY: live IFileOpenDialog, correctly typed slots 9/12/17/18, and live
