@@ -1,5 +1,5 @@
 {
-  "_m35_readme": "Increment for IPC-M35 (wave 10, design v2), overlaid after checkup-v1/ui-fixtures.json and m3c-v1/ui-fixtures-m3c.json; test-only, never shipped. It adds keys only (all v2_*), it overrides none. Each v2_* value is one command response; *_sequence values are arrays returned in order by successive progress polls; v2_errors holds rejection values ({code, message_zh}). Story (times UTC; the mockup's clock is JST): 11-02 17:31 checkup of C 盘常用位置 + F 盘 (v2_scan_start, v2_scan_progress_sequence) -> v2_conclusion_typical (cv-16Z-5d2b-1) -> conclusion_decide: leak:7b30fa8fd7ceb684 clean, codex-runtimes clean, custom:drive-f:custom-avd-snapshots keep -> v2_conclusion_after_decide (cv-16Z-5d2b-4) -> v2_clean_prepare_quarantine / v2_clean_prepare_delete ({conclusionVersion: cv-16Z-5d2b-4, chosenMode}) -> v2_clean_start -> v2_clean_progress_sequence -> v2_clean_result -> v2_quarantine_list, v2_app_state_quarantine. v2_conclusion_category_off (cv-16Z-5d2b-5) adds {category: app_leftover, include: false} (screen results-decided); v2_conclusion_stale is cv-16Z-5d2b-1 gone stale; v2_clean_prepare_delete_only answers {conclusionVersion: cv-16Z-5d2b-1, chosenMode: quarantine} (nothing chosen). Drawers and details belong to cv-16Z-5d2b-1 except v2_group_detail_items (group_detail codex-runtimes after the decide, rows checked). v2_group_detail_rows = group_detail system-temp-old; v2_group_detail_merged = group_detail m:cachedir-tagged; v2_group_items_search = group_items {groupId: system-temp-old, rowId: null, query: 20261005}; v2_group_items_row = {groupId: system-temp-old, rowId: r:82b4fec15771312c, query: null}; v2_group_items_notes = {groupId: custom:drive-f:git-worktrees, rowId: null, query: denglou}. Quarantine: v2_restore_conflict / v2_restore_beside answer quarantine_restore {quarantineId: 20261102-174012-c, beside: false / true}; v2_quarantine_progress_sequence and v2_quarantine_after_purge follow quarantine_delete {quarantineId: 20261026-131020-c}; v2_quarantine_leftover pairs with v2_app_state_leftover; v2_quarantine_foreign has a card without a record (restorable false). Dedupe: v2_dedupe_start {locationId: drive-e} -> v2_dedupe_progress_sequence -> v2_dedupe_result {expand: false} -> v2_dedupe_decided (first two groups included); v2_dedupe_result_more / _expanded are drive-f with expand false / true. Settings: v2_locations_session_enabled answers locations_set_session_cleanup {tool: claude-code, enabled: true, days: 30}; v2_locations_trusted answers manifest_trust {manifestId: mf-cfaa91e460b6, trusted: true}; v2_locations_new_folder follows v2_custom_root_add_folder. v2_trends_after_fixed answers cluster_mark_fixed {groupId: leak:7b30fa8fd7ceb684, fixed: true}. Wording and headline numbers follow docs/design/water-ui-v2/mockup.html; bytes are 1024-based as format.mjs shows them. As in the mockup, the 4.8 GB quarantine bar (the state after the clean) is also shown on the conclusion screens.",
+  "_m35_readme": "Synthetic conclusion, settings, quarantine and duplicate-file responses extending the other UI fixtures. Each v2_* value is one command response; *_sequence arrays supply successive progress polls; v2_errors contains rejection values. All user and project paths are fictional. Byte values use binary units.",
   "v2_app_state_plain": {
     "app_version": "0.2.0",
     "platform": "windows",
@@ -54,7 +54,7 @@
       {
         "kind": "leak",
         "group_id": "leak:7b30fa8fd7ceb684",
-        "title_zh": "fix-r9\\.tmp_w35b 里的 verify-****** 还在长",
+        "title_zh": "fix-demo\\.tmp-checks 里的 verify-****** 还在长",
         "message_zh": "最近 14 天每天新增约 4 个目录，结束验证后没有删除。"
       }
     ],
@@ -238,7 +238,7 @@
     "custom_roots": [
       {
         "root_id": "worktrees",
-        "display_path": "F:\\new\\smaltalk\\water\\.worktrees",
+        "display_path": "D:\\code\\flick\\.worktrees",
         "last_scanned_at": "2026-10-31T02:10:00Z",
         "found_bytes": "5583825268",
         "is_drive_root": false
@@ -247,12 +247,12 @@
     "skipped": [
       {
         "skip_id": "s-000001",
-        "display_path": "F:\\new\\zbbody\\node_modules",
+        "display_path": "D:\\code\\engine-lab\\node_modules",
         "added_at": "2026-10-31T02:12:00Z"
       },
       {
         "skip_id": "s-000002",
-        "display_path": "F:\\new\\smaltalk\\water\\.offline-cache",
+        "display_path": "D:\\code\\flick\\.offline-cache",
         "added_at": "2026-11-01T03:20:00Z"
       }
     ],
@@ -297,7 +297,7 @@
         "location_id": "worktrees",
         "kind": "folder",
         "label_zh": ".worktrees",
-        "display_path": "F:\\new\\smaltalk\\water\\.worktrees",
+        "display_path": "D:\\code\\flick\\.worktrees",
         "default_selected": false,
         "free_bytes": null,
         "total_bytes": null
@@ -353,13 +353,13 @@
     "manifests": [
       {
         "manifest_id": "mf-cfaa91e460b6",
-        "display_path": "F:\\new\\denglou\\.water-cleanup.json",
-        "project_zh": "denglou",
+        "display_path": "D:\\code\\demo-app\\.water-cleanup.json",
+        "project_zh": "demo-app",
         "state": "untrusted",
         "error_zh": null,
         "disposable": [
           {
-            "title_zh": ".tmp_w35b/verify-* 超过 1 天",
+            "title_zh": ".tmp-checks/verify-* 超过 1 天",
             "kind": "leak",
             "paths_count": 1,
             "ask": true
@@ -382,8 +382,8 @@
       },
       {
         "manifest_id": "mf-14e4cb4d5be5",
-        "display_path": "F:\\new\\smaltalk\\water\\.water-cleanup.json",
-        "project_zh": "Water",
+        "display_path": "D:\\code\\flick\\.water-cleanup.json",
+        "project_zh": "Flick",
         "state": "trusted",
         "error_zh": null,
         "disposable": [
@@ -411,8 +411,8 @@
       },
       {
         "manifest_id": "mf-d7a4e3bd455c",
-        "display_path": "F:\\new\\zbbody\\.water-cleanup.json",
-        "project_zh": "zbbody",
+        "display_path": "D:\\code\\engine-lab\\.water-cleanup.json",
+        "project_zh": "engine-lab",
         "state": "changed",
         "error_zh": null,
         "disposable": [
@@ -428,7 +428,7 @@
       },
       {
         "manifest_id": "mf-c0025beeb24f",
-        "display_path": "F:\\Mirasim-A\\.water-cleanup.json",
+        "display_path": "F:\\Apps\\Acme\\.water-cleanup.json",
         "project_zh": null,
         "state": "invalid",
         "error_zh": "声明里有不认识的键 keepLatest，整份不生效",
@@ -440,8 +440,8 @@
   },
   "v2_custom_root_add_folder": {
     "added": {
-      "root_id": "denglou",
-      "display_path": "F:\\new\\denglou",
+      "root_id": "demo-app",
+      "display_path": "D:\\code\\demo-app",
       "last_scanned_at": null,
       "found_bytes": null,
       "is_drive_root": false
@@ -502,14 +502,14 @@
     "custom_roots": [
       {
         "root_id": "worktrees",
-        "display_path": "F:\\new\\smaltalk\\water\\.worktrees",
+        "display_path": "D:\\code\\flick\\.worktrees",
         "last_scanned_at": "2026-10-31T02:10:00Z",
         "found_bytes": "5583825268",
         "is_drive_root": false
       },
       {
-        "root_id": "denglou",
-        "display_path": "F:\\new\\denglou",
+        "root_id": "demo-app",
+        "display_path": "D:\\code\\demo-app",
         "last_scanned_at": null,
         "found_bytes": null,
         "is_drive_root": false
@@ -518,12 +518,12 @@
     "skipped": [
       {
         "skip_id": "s-000001",
-        "display_path": "F:\\new\\zbbody\\node_modules",
+        "display_path": "D:\\code\\engine-lab\\node_modules",
         "added_at": "2026-10-31T02:12:00Z"
       },
       {
         "skip_id": "s-000002",
-        "display_path": "F:\\new\\smaltalk\\water\\.offline-cache",
+        "display_path": "D:\\code\\flick\\.offline-cache",
         "added_at": "2026-11-01T03:20:00Z"
       }
     ],
@@ -568,16 +568,16 @@
         "location_id": "worktrees",
         "kind": "folder",
         "label_zh": ".worktrees",
-        "display_path": "F:\\new\\smaltalk\\water\\.worktrees",
+        "display_path": "D:\\code\\flick\\.worktrees",
         "default_selected": false,
         "free_bytes": null,
         "total_bytes": null
       },
       {
-        "location_id": "denglou",
+        "location_id": "demo-app",
         "kind": "folder",
-        "label_zh": "denglou",
-        "display_path": "F:\\new\\denglou",
+        "label_zh": "demo-app",
+        "display_path": "D:\\code\\demo-app",
         "default_selected": false,
         "free_bytes": null,
         "total_bytes": null
@@ -633,13 +633,13 @@
     "manifests": [
       {
         "manifest_id": "mf-cfaa91e460b6",
-        "display_path": "F:\\new\\denglou\\.water-cleanup.json",
-        "project_zh": "denglou",
+        "display_path": "D:\\code\\demo-app\\.water-cleanup.json",
+        "project_zh": "demo-app",
         "state": "untrusted",
         "error_zh": null,
         "disposable": [
           {
-            "title_zh": ".tmp_w35b/verify-* 超过 1 天",
+            "title_zh": ".tmp-checks/verify-* 超过 1 天",
             "kind": "leak",
             "paths_count": 1,
             "ask": true
@@ -662,8 +662,8 @@
       },
       {
         "manifest_id": "mf-14e4cb4d5be5",
-        "display_path": "F:\\new\\smaltalk\\water\\.water-cleanup.json",
-        "project_zh": "Water",
+        "display_path": "D:\\code\\flick\\.water-cleanup.json",
+        "project_zh": "Flick",
         "state": "trusted",
         "error_zh": null,
         "disposable": [
@@ -691,8 +691,8 @@
       },
       {
         "manifest_id": "mf-d7a4e3bd455c",
-        "display_path": "F:\\new\\zbbody\\.water-cleanup.json",
-        "project_zh": "zbbody",
+        "display_path": "D:\\code\\engine-lab\\.water-cleanup.json",
+        "project_zh": "engine-lab",
         "state": "changed",
         "error_zh": null,
         "disposable": [
@@ -708,7 +708,7 @@
       },
       {
         "manifest_id": "mf-c0025beeb24f",
-        "display_path": "F:\\Mirasim-A\\.water-cleanup.json",
+        "display_path": "F:\\Apps\\Acme\\.water-cleanup.json",
         "project_zh": null,
         "state": "invalid",
         "error_zh": "声明里有不认识的键 keepLatest，整份不生效",
@@ -773,7 +773,7 @@
     "custom_roots": [
       {
         "root_id": "worktrees",
-        "display_path": "F:\\new\\smaltalk\\water\\.worktrees",
+        "display_path": "D:\\code\\flick\\.worktrees",
         "last_scanned_at": "2026-10-31T02:10:00Z",
         "found_bytes": "5583825268",
         "is_drive_root": false
@@ -782,12 +782,12 @@
     "skipped": [
       {
         "skip_id": "s-000001",
-        "display_path": "F:\\new\\zbbody\\node_modules",
+        "display_path": "D:\\code\\engine-lab\\node_modules",
         "added_at": "2026-10-31T02:12:00Z"
       },
       {
         "skip_id": "s-000002",
-        "display_path": "F:\\new\\smaltalk\\water\\.offline-cache",
+        "display_path": "D:\\code\\flick\\.offline-cache",
         "added_at": "2026-11-01T03:20:00Z"
       }
     ],
@@ -832,7 +832,7 @@
         "location_id": "worktrees",
         "kind": "folder",
         "label_zh": ".worktrees",
-        "display_path": "F:\\new\\smaltalk\\water\\.worktrees",
+        "display_path": "D:\\code\\flick\\.worktrees",
         "default_selected": false,
         "free_bytes": null,
         "total_bytes": null
@@ -888,13 +888,13 @@
     "manifests": [
       {
         "manifest_id": "mf-cfaa91e460b6",
-        "display_path": "F:\\new\\denglou\\.water-cleanup.json",
-        "project_zh": "denglou",
+        "display_path": "D:\\code\\demo-app\\.water-cleanup.json",
+        "project_zh": "demo-app",
         "state": "untrusted",
         "error_zh": null,
         "disposable": [
           {
-            "title_zh": ".tmp_w35b/verify-* 超过 1 天",
+            "title_zh": ".tmp-checks/verify-* 超过 1 天",
             "kind": "leak",
             "paths_count": 1,
             "ask": true
@@ -917,8 +917,8 @@
       },
       {
         "manifest_id": "mf-14e4cb4d5be5",
-        "display_path": "F:\\new\\smaltalk\\water\\.water-cleanup.json",
-        "project_zh": "Water",
+        "display_path": "D:\\code\\flick\\.water-cleanup.json",
+        "project_zh": "Flick",
         "state": "trusted",
         "error_zh": null,
         "disposable": [
@@ -946,8 +946,8 @@
       },
       {
         "manifest_id": "mf-d7a4e3bd455c",
-        "display_path": "F:\\new\\zbbody\\.water-cleanup.json",
-        "project_zh": "zbbody",
+        "display_path": "D:\\code\\engine-lab\\.water-cleanup.json",
+        "project_zh": "engine-lab",
         "state": "changed",
         "error_zh": null,
         "disposable": [
@@ -963,7 +963,7 @@
       },
       {
         "manifest_id": "mf-c0025beeb24f",
-        "display_path": "F:\\Mirasim-A\\.water-cleanup.json",
+        "display_path": "F:\\Apps\\Acme\\.water-cleanup.json",
         "project_zh": null,
         "state": "invalid",
         "error_zh": "声明里有不认识的键 keepLatest，整份不生效",
@@ -1028,7 +1028,7 @@
     "custom_roots": [
       {
         "root_id": "worktrees",
-        "display_path": "F:\\new\\smaltalk\\water\\.worktrees",
+        "display_path": "D:\\code\\flick\\.worktrees",
         "last_scanned_at": "2026-10-31T02:10:00Z",
         "found_bytes": "5583825268",
         "is_drive_root": false
@@ -1037,12 +1037,12 @@
     "skipped": [
       {
         "skip_id": "s-000001",
-        "display_path": "F:\\new\\zbbody\\node_modules",
+        "display_path": "D:\\code\\engine-lab\\node_modules",
         "added_at": "2026-10-31T02:12:00Z"
       },
       {
         "skip_id": "s-000002",
-        "display_path": "F:\\new\\smaltalk\\water\\.offline-cache",
+        "display_path": "D:\\code\\flick\\.offline-cache",
         "added_at": "2026-11-01T03:20:00Z"
       }
     ],
@@ -1087,7 +1087,7 @@
         "location_id": "worktrees",
         "kind": "folder",
         "label_zh": ".worktrees",
-        "display_path": "F:\\new\\smaltalk\\water\\.worktrees",
+        "display_path": "D:\\code\\flick\\.worktrees",
         "default_selected": false,
         "free_bytes": null,
         "total_bytes": null
@@ -1143,13 +1143,13 @@
     "manifests": [
       {
         "manifest_id": "mf-cfaa91e460b6",
-        "display_path": "F:\\new\\denglou\\.water-cleanup.json",
-        "project_zh": "denglou",
+        "display_path": "D:\\code\\demo-app\\.water-cleanup.json",
+        "project_zh": "demo-app",
         "state": "trusted",
         "error_zh": null,
         "disposable": [
           {
-            "title_zh": ".tmp_w35b/verify-* 超过 1 天",
+            "title_zh": ".tmp-checks/verify-* 超过 1 天",
             "kind": "leak",
             "paths_count": 1,
             "ask": true
@@ -1172,8 +1172,8 @@
       },
       {
         "manifest_id": "mf-14e4cb4d5be5",
-        "display_path": "F:\\new\\smaltalk\\water\\.water-cleanup.json",
-        "project_zh": "Water",
+        "display_path": "D:\\code\\flick\\.water-cleanup.json",
+        "project_zh": "Flick",
         "state": "trusted",
         "error_zh": null,
         "disposable": [
@@ -1201,8 +1201,8 @@
       },
       {
         "manifest_id": "mf-d7a4e3bd455c",
-        "display_path": "F:\\new\\zbbody\\.water-cleanup.json",
-        "project_zh": "zbbody",
+        "display_path": "D:\\code\\engine-lab\\.water-cleanup.json",
+        "project_zh": "engine-lab",
         "state": "changed",
         "error_zh": null,
         "disposable": [
@@ -1218,7 +1218,7 @@
       },
       {
         "manifest_id": "mf-c0025beeb24f",
-        "display_path": "F:\\Mirasim-A\\.water-cleanup.json",
+        "display_path": "F:\\Apps\\Acme\\.water-cleanup.json",
         "project_zh": null,
         "state": "invalid",
         "error_zh": "声明里有不认识的键 keepLatest，整份不生效",
@@ -1585,7 +1585,7 @@
         "kind": "group",
         "level": "confirm",
         "title_zh": "5 个按提交号命名的安装包，留最新 1 个",
-        "evidence_zh": "apk_3f9c2e1.apk 等 · F:\\new\\denglou\\_ctl",
+        "evidence_zh": "apk_3f9c2e1.apk 等 · D:\\code\\demo-app\\build-output",
         "bytes": "2791493650",
         "decision": "undecided",
         "decided_before_zh": null,
@@ -1601,8 +1601,8 @@
         "card_id": "card:leak:7b30fa8fd7ceb684",
         "kind": "leak",
         "level": "confirm",
-        "title_zh": "fix-r9\\.tmp_w35b 里有 81 个同模板目录，还在长",
-        "evidence_zh": "verify-****** · 最早 10 月 12 日，最新 2 小时前 · F:\\new\\denglou",
+        "title_zh": "fix-demo\\.tmp-checks 里有 81 个同模板目录，还在长",
+        "evidence_zh": "verify-****** · 最早 10 月 12 日，最新 2 小时前 · D:\\code\\demo-app",
         "bytes": "2254592384",
         "decision": "undecided",
         "decided_before_zh": null,
@@ -1613,7 +1613,7 @@
           "detail",
           "copy_clue"
         ],
-        "clue_id": "clue-verify-fix-r9"
+        "clue_id": "clue-verify-fix-demo"
       },
       {
         "card_id": "card:codex-runtimes",
@@ -1663,19 +1663,19 @@
     },
     "clues": [
       {
-        "clue_id": "clue-worktrees-denglou",
-        "text_zh": "F:\\new\\denglou\\.worktrees 里 11 棵工作树已脱离 git，约 2.6 GB；其中一棵里有 release.jks 这类签名文件，删之前要查有没有未提交的改动",
-        "copy_text": "工作树检查清单（Water 只看了名字和大小，没有跑 git）\n位置：F:\\new\\denglou\\.worktrees，11 棵，约 2.6 GB\n这些工作树的 .git 文件指向的目录已经不在了（已脱离 git）\nfix-r9 里有签名文件 release.jks\n1. 在主仓库运行 git worktree list，确认它们不在列表里\n2. 逐棵查有没有未提交、未推送的改动\n3. 把 release.jks 这类贵重文件挪走或确认已有备份\n4. 确认没用后再删，或者写进仓库根的 .water-cleanup.json"
+        "clue_id": "clue-worktrees-demo-app",
+        "text_zh": "D:\\code\\demo-app\\.worktrees 里 11 棵工作树已脱离 git，约 2.6 GB；其中一棵里有 release.jks 这类签名文件，删之前要查有没有未提交的改动",
+        "copy_text": "工作树检查清单（Water 只看了名字和大小，没有跑 git）\n位置：D:\\code\\demo-app\\.worktrees，11 棵，约 2.6 GB\n这些工作树的 .git 文件指向的目录已经不在了（已脱离 git）\nfix-demo 里有签名文件 release.jks\n1. 在主仓库运行 git worktree list，确认它们不在列表里\n2. 逐棵查有没有未提交、未推送的改动\n3. 把 release.jks 这类贵重文件挪走或确认已有备份\n4. 确认没用后再删，或者写进仓库根的 .water-cleanup.json"
       },
       {
-        "clue_id": "clue-verify-fix-r9",
-        "text_zh": "fix-r9\\.tmp_w35b 里有 81 个 verify-******，每天新增约 4 个：每次验证建一个目录、结束不删，生产者还没修",
-        "copy_text": "泄漏线索（Water 只看了名字、大小与时间）\n位置：F:\\new\\denglou\\worktrees\\fix-r9\\.tmp_w35b\n模板：verify-******（目录），81 个，共 2.1 GB\n最近 14 天每天新建：0、2、3、5、6、4、7、6、5、8、6、7、9、6\n最新一个：11 月 2 日 15:31\n所在仓库根：F:\\new\\denglou\\worktrees\\fix-r9（有 .git）\n先找出生成它们的代码并修好，再清存量；修好后用 Water 标记为已修。"
+        "clue_id": "clue-verify-fix-demo",
+        "text_zh": "fix-demo\\.tmp-checks 里有 81 个 verify-******，每天新增约 4 个：每次验证建一个目录、结束不删，生产者还没修",
+        "copy_text": "泄漏线索（Water 只看了名字、大小与时间）\n位置：D:\\code\\demo-app\\worktrees\\fix-demo\\.tmp-checks\n模板：verify-******（目录），81 个，共 2.1 GB\n最近 14 天每天新建：0、2、3、5、6、4、7、6、5、8、6、7、9、6\n最新一个：11 月 2 日 15:31\n所在仓库根：D:\\code\\demo-app\\worktrees\\fix-demo（有 .git）\n先找出生成它们的代码并修好，再清存量；修好后用 Water 标记为已修。"
       },
       {
-        "clue_id": "clue-junction-grok2",
-        "text_zh": "F:\\new\\audit-b57a\\node_modules 指向 F:\\new\\grok2\\server\\node_modules，audit-b57a 改指 ui-v2 之后 grok2 才能清",
-        "copy_text": "联接线索（Water 只读了联接指向哪里）\n联接：F:\\new\\audit-b57a\\node_modules\n指向：F:\\new\\grok2\\server\\node_modules（约 0.9 GB）\n1. 把 audit-b57a 的 node_modules 改指 F:\\new\\ui-v2\\node_modules，或在 audit-b57a 里重新安装依赖\n2. 改完再体检一次，grok2\\server\\node_modules 就能清了"
+        "clue_id": "clue-junction-server-kit",
+        "text_zh": "D:\\code\\audit-tool\\node_modules 指向 D:\\code\\server-kit\\server\\node_modules，audit-tool 改指 ui-kit 之后 server-kit 才能清",
+        "copy_text": "联接线索（Water 只读了联接指向哪里）\n联接：D:\\code\\audit-tool\\node_modules\n指向：D:\\code\\server-kit\\server\\node_modules（约 0.9 GB）\n1. 把 audit-tool 的 node_modules 改指 D:\\code\\ui-kit\\node_modules，或在 audit-tool 里重新安装依赖\n2. 改完再体检一次，server-kit\\server\\node_modules 就能清了"
       }
     ],
     "more_clues": 1,
@@ -1688,12 +1688,12 @@
           {
             "title_zh": "Git 工作树或子模块 · 21 棵",
             "bytes": "3328570244",
-            "note_zh": "F:\\new\\denglou、F:\\new\\smaltalk\\water"
+            "note_zh": "D:\\code\\demo-app、D:\\code\\flick"
           },
           {
             "title_zh": "程序或工具自带的依赖 · 7 处",
             "bytes": "1396048116",
-            "note_zh": "F:\\Mirasim-A"
+            "note_zh": "F:\\Apps\\Acme"
           },
           {
             "title_zh": "浏览器数据目录 · 3 处",
@@ -1756,11 +1756,11 @@
       },
       {
         "kind": "space",
-        "text_zh": "空间分布：F 盘最大的是 denglou 319 GB、Steam 194 GB、英雄联盟 53 GB",
+        "text_zh": "空间分布：F 盘最大的是 demo-app 319 GB、Steam 194 GB、英雄联盟 53 GB",
         "bytes": null,
         "rows": [
           {
-            "title_zh": "F:\\new\\denglou",
+            "title_zh": "D:\\code\\demo-app",
             "bytes": "342524108603",
             "note_zh": "项目"
           },
@@ -1775,17 +1775,17 @@
             "note_zh": "游戏"
           },
           {
-            "title_zh": "F:\\cdisk-cache",
+            "title_zh": "F:\\sample-cache",
             "bytes": "33930456047",
             "note_zh": "资料"
           },
           {
-            "title_zh": "F:\\new\\smaltalk",
+            "title_zh": "D:\\code",
             "bytes": "30494448210",
             "note_zh": "项目"
           },
           {
-            "title_zh": "F:\\Mirasim-A",
+            "title_zh": "F:\\Apps\\Acme",
             "bytes": "13314614870",
             "note_zh": "资料"
           },
@@ -1952,7 +1952,7 @@
         "kind": "group",
         "level": "confirm",
         "title_zh": "5 个按提交号命名的安装包，留最新 1 个",
-        "evidence_zh": "apk_3f9c2e1.apk 等 · F:\\new\\denglou\\_ctl",
+        "evidence_zh": "apk_3f9c2e1.apk 等 · D:\\code\\demo-app\\build-output",
         "bytes": "2791493650",
         "decision": "undecided",
         "decided_before_zh": null,
@@ -1968,8 +1968,8 @@
         "card_id": "card:leak:7b30fa8fd7ceb684",
         "kind": "leak",
         "level": "confirm",
-        "title_zh": "fix-r9\\.tmp_w35b 里有 81 个同模板目录，还在长",
-        "evidence_zh": "verify-****** · 最早 10 月 12 日，最新 2 小时前 · F:\\new\\denglou",
+        "title_zh": "fix-demo\\.tmp-checks 里有 81 个同模板目录，还在长",
+        "evidence_zh": "verify-****** · 最早 10 月 12 日，最新 2 小时前 · D:\\code\\demo-app",
         "bytes": "2254592384",
         "decision": "clean",
         "decided_before_zh": null,
@@ -1980,7 +1980,7 @@
           "detail",
           "copy_clue"
         ],
-        "clue_id": "clue-verify-fix-r9"
+        "clue_id": "clue-verify-fix-demo"
       },
       {
         "card_id": "card:codex-runtimes",
@@ -2030,19 +2030,19 @@
     },
     "clues": [
       {
-        "clue_id": "clue-worktrees-denglou",
-        "text_zh": "F:\\new\\denglou\\.worktrees 里 11 棵工作树已脱离 git，约 2.6 GB；其中一棵里有 release.jks 这类签名文件，删之前要查有没有未提交的改动",
-        "copy_text": "工作树检查清单（Water 只看了名字和大小，没有跑 git）\n位置：F:\\new\\denglou\\.worktrees，11 棵，约 2.6 GB\n这些工作树的 .git 文件指向的目录已经不在了（已脱离 git）\nfix-r9 里有签名文件 release.jks\n1. 在主仓库运行 git worktree list，确认它们不在列表里\n2. 逐棵查有没有未提交、未推送的改动\n3. 把 release.jks 这类贵重文件挪走或确认已有备份\n4. 确认没用后再删，或者写进仓库根的 .water-cleanup.json"
+        "clue_id": "clue-worktrees-demo-app",
+        "text_zh": "D:\\code\\demo-app\\.worktrees 里 11 棵工作树已脱离 git，约 2.6 GB；其中一棵里有 release.jks 这类签名文件，删之前要查有没有未提交的改动",
+        "copy_text": "工作树检查清单（Water 只看了名字和大小，没有跑 git）\n位置：D:\\code\\demo-app\\.worktrees，11 棵，约 2.6 GB\n这些工作树的 .git 文件指向的目录已经不在了（已脱离 git）\nfix-demo 里有签名文件 release.jks\n1. 在主仓库运行 git worktree list，确认它们不在列表里\n2. 逐棵查有没有未提交、未推送的改动\n3. 把 release.jks 这类贵重文件挪走或确认已有备份\n4. 确认没用后再删，或者写进仓库根的 .water-cleanup.json"
       },
       {
-        "clue_id": "clue-verify-fix-r9",
-        "text_zh": "fix-r9\\.tmp_w35b 里有 81 个 verify-******，每天新增约 4 个：每次验证建一个目录、结束不删，生产者还没修",
-        "copy_text": "泄漏线索（Water 只看了名字、大小与时间）\n位置：F:\\new\\denglou\\worktrees\\fix-r9\\.tmp_w35b\n模板：verify-******（目录），81 个，共 2.1 GB\n最近 14 天每天新建：0、2、3、5、6、4、7、6、5、8、6、7、9、6\n最新一个：11 月 2 日 15:31\n所在仓库根：F:\\new\\denglou\\worktrees\\fix-r9（有 .git）\n先找出生成它们的代码并修好，再清存量；修好后用 Water 标记为已修。"
+        "clue_id": "clue-verify-fix-demo",
+        "text_zh": "fix-demo\\.tmp-checks 里有 81 个 verify-******，每天新增约 4 个：每次验证建一个目录、结束不删，生产者还没修",
+        "copy_text": "泄漏线索（Water 只看了名字、大小与时间）\n位置：D:\\code\\demo-app\\worktrees\\fix-demo\\.tmp-checks\n模板：verify-******（目录），81 个，共 2.1 GB\n最近 14 天每天新建：0、2、3、5、6、4、7、6、5、8、6、7、9、6\n最新一个：11 月 2 日 15:31\n所在仓库根：D:\\code\\demo-app\\worktrees\\fix-demo（有 .git）\n先找出生成它们的代码并修好，再清存量；修好后用 Water 标记为已修。"
       },
       {
-        "clue_id": "clue-junction-grok2",
-        "text_zh": "F:\\new\\audit-b57a\\node_modules 指向 F:\\new\\grok2\\server\\node_modules，audit-b57a 改指 ui-v2 之后 grok2 才能清",
-        "copy_text": "联接线索（Water 只读了联接指向哪里）\n联接：F:\\new\\audit-b57a\\node_modules\n指向：F:\\new\\grok2\\server\\node_modules（约 0.9 GB）\n1. 把 audit-b57a 的 node_modules 改指 F:\\new\\ui-v2\\node_modules，或在 audit-b57a 里重新安装依赖\n2. 改完再体检一次，grok2\\server\\node_modules 就能清了"
+        "clue_id": "clue-junction-server-kit",
+        "text_zh": "D:\\code\\audit-tool\\node_modules 指向 D:\\code\\server-kit\\server\\node_modules，audit-tool 改指 ui-kit 之后 server-kit 才能清",
+        "copy_text": "联接线索（Water 只读了联接指向哪里）\n联接：D:\\code\\audit-tool\\node_modules\n指向：D:\\code\\server-kit\\server\\node_modules（约 0.9 GB）\n1. 把 audit-tool 的 node_modules 改指 D:\\code\\ui-kit\\node_modules，或在 audit-tool 里重新安装依赖\n2. 改完再体检一次，server-kit\\server\\node_modules 就能清了"
       }
     ],
     "more_clues": 1,
@@ -2055,12 +2055,12 @@
           {
             "title_zh": "Git 工作树或子模块 · 21 棵",
             "bytes": "3328570244",
-            "note_zh": "F:\\new\\denglou、F:\\new\\smaltalk\\water"
+            "note_zh": "D:\\code\\demo-app、D:\\code\\flick"
           },
           {
             "title_zh": "程序或工具自带的依赖 · 7 处",
             "bytes": "1396048116",
-            "note_zh": "F:\\Mirasim-A"
+            "note_zh": "F:\\Apps\\Acme"
           },
           {
             "title_zh": "浏览器数据目录 · 3 处",
@@ -2123,11 +2123,11 @@
       },
       {
         "kind": "space",
-        "text_zh": "空间分布：F 盘最大的是 denglou 319 GB、Steam 194 GB、英雄联盟 53 GB",
+        "text_zh": "空间分布：F 盘最大的是 demo-app 319 GB、Steam 194 GB、英雄联盟 53 GB",
         "bytes": null,
         "rows": [
           {
-            "title_zh": "F:\\new\\denglou",
+            "title_zh": "D:\\code\\demo-app",
             "bytes": "342524108603",
             "note_zh": "项目"
           },
@@ -2142,17 +2142,17 @@
             "note_zh": "游戏"
           },
           {
-            "title_zh": "F:\\cdisk-cache",
+            "title_zh": "F:\\sample-cache",
             "bytes": "33930456047",
             "note_zh": "资料"
           },
           {
-            "title_zh": "F:\\new\\smaltalk",
+            "title_zh": "D:\\code",
             "bytes": "30494448210",
             "note_zh": "项目"
           },
           {
-            "title_zh": "F:\\Mirasim-A",
+            "title_zh": "F:\\Apps\\Acme",
             "bytes": "13314614870",
             "note_zh": "资料"
           },
@@ -2319,7 +2319,7 @@
         "kind": "group",
         "level": "confirm",
         "title_zh": "5 个按提交号命名的安装包，留最新 1 个",
-        "evidence_zh": "apk_3f9c2e1.apk 等 · F:\\new\\denglou\\_ctl",
+        "evidence_zh": "apk_3f9c2e1.apk 等 · D:\\code\\demo-app\\build-output",
         "bytes": "2791493650",
         "decision": "undecided",
         "decided_before_zh": null,
@@ -2335,8 +2335,8 @@
         "card_id": "card:leak:7b30fa8fd7ceb684",
         "kind": "leak",
         "level": "confirm",
-        "title_zh": "fix-r9\\.tmp_w35b 里有 81 个同模板目录，还在长",
-        "evidence_zh": "verify-****** · 最早 10 月 12 日，最新 2 小时前 · F:\\new\\denglou",
+        "title_zh": "fix-demo\\.tmp-checks 里有 81 个同模板目录，还在长",
+        "evidence_zh": "verify-****** · 最早 10 月 12 日，最新 2 小时前 · D:\\code\\demo-app",
         "bytes": "2254592384",
         "decision": "clean",
         "decided_before_zh": null,
@@ -2347,7 +2347,7 @@
           "detail",
           "copy_clue"
         ],
-        "clue_id": "clue-verify-fix-r9"
+        "clue_id": "clue-verify-fix-demo"
       },
       {
         "card_id": "card:codex-runtimes",
@@ -2397,19 +2397,19 @@
     },
     "clues": [
       {
-        "clue_id": "clue-worktrees-denglou",
-        "text_zh": "F:\\new\\denglou\\.worktrees 里 11 棵工作树已脱离 git，约 2.6 GB；其中一棵里有 release.jks 这类签名文件，删之前要查有没有未提交的改动",
-        "copy_text": "工作树检查清单（Water 只看了名字和大小，没有跑 git）\n位置：F:\\new\\denglou\\.worktrees，11 棵，约 2.6 GB\n这些工作树的 .git 文件指向的目录已经不在了（已脱离 git）\nfix-r9 里有签名文件 release.jks\n1. 在主仓库运行 git worktree list，确认它们不在列表里\n2. 逐棵查有没有未提交、未推送的改动\n3. 把 release.jks 这类贵重文件挪走或确认已有备份\n4. 确认没用后再删，或者写进仓库根的 .water-cleanup.json"
+        "clue_id": "clue-worktrees-demo-app",
+        "text_zh": "D:\\code\\demo-app\\.worktrees 里 11 棵工作树已脱离 git，约 2.6 GB；其中一棵里有 release.jks 这类签名文件，删之前要查有没有未提交的改动",
+        "copy_text": "工作树检查清单（Water 只看了名字和大小，没有跑 git）\n位置：D:\\code\\demo-app\\.worktrees，11 棵，约 2.6 GB\n这些工作树的 .git 文件指向的目录已经不在了（已脱离 git）\nfix-demo 里有签名文件 release.jks\n1. 在主仓库运行 git worktree list，确认它们不在列表里\n2. 逐棵查有没有未提交、未推送的改动\n3. 把 release.jks 这类贵重文件挪走或确认已有备份\n4. 确认没用后再删，或者写进仓库根的 .water-cleanup.json"
       },
       {
-        "clue_id": "clue-verify-fix-r9",
-        "text_zh": "fix-r9\\.tmp_w35b 里有 81 个 verify-******，每天新增约 4 个：每次验证建一个目录、结束不删，生产者还没修",
-        "copy_text": "泄漏线索（Water 只看了名字、大小与时间）\n位置：F:\\new\\denglou\\worktrees\\fix-r9\\.tmp_w35b\n模板：verify-******（目录），81 个，共 2.1 GB\n最近 14 天每天新建：0、2、3、5、6、4、7、6、5、8、6、7、9、6\n最新一个：11 月 2 日 15:31\n所在仓库根：F:\\new\\denglou\\worktrees\\fix-r9（有 .git）\n先找出生成它们的代码并修好，再清存量；修好后用 Water 标记为已修。"
+        "clue_id": "clue-verify-fix-demo",
+        "text_zh": "fix-demo\\.tmp-checks 里有 81 个 verify-******，每天新增约 4 个：每次验证建一个目录、结束不删，生产者还没修",
+        "copy_text": "泄漏线索（Water 只看了名字、大小与时间）\n位置：D:\\code\\demo-app\\worktrees\\fix-demo\\.tmp-checks\n模板：verify-******（目录），81 个，共 2.1 GB\n最近 14 天每天新建：0、2、3、5、6、4、7、6、5、8、6、7、9、6\n最新一个：11 月 2 日 15:31\n所在仓库根：D:\\code\\demo-app\\worktrees\\fix-demo（有 .git）\n先找出生成它们的代码并修好，再清存量；修好后用 Water 标记为已修。"
       },
       {
-        "clue_id": "clue-junction-grok2",
-        "text_zh": "F:\\new\\audit-b57a\\node_modules 指向 F:\\new\\grok2\\server\\node_modules，audit-b57a 改指 ui-v2 之后 grok2 才能清",
-        "copy_text": "联接线索（Water 只读了联接指向哪里）\n联接：F:\\new\\audit-b57a\\node_modules\n指向：F:\\new\\grok2\\server\\node_modules（约 0.9 GB）\n1. 把 audit-b57a 的 node_modules 改指 F:\\new\\ui-v2\\node_modules，或在 audit-b57a 里重新安装依赖\n2. 改完再体检一次，grok2\\server\\node_modules 就能清了"
+        "clue_id": "clue-junction-server-kit",
+        "text_zh": "D:\\code\\audit-tool\\node_modules 指向 D:\\code\\server-kit\\server\\node_modules，audit-tool 改指 ui-kit 之后 server-kit 才能清",
+        "copy_text": "联接线索（Water 只读了联接指向哪里）\n联接：D:\\code\\audit-tool\\node_modules\n指向：D:\\code\\server-kit\\server\\node_modules（约 0.9 GB）\n1. 把 audit-tool 的 node_modules 改指 D:\\code\\ui-kit\\node_modules，或在 audit-tool 里重新安装依赖\n2. 改完再体检一次，server-kit\\server\\node_modules 就能清了"
       }
     ],
     "more_clues": 1,
@@ -2422,12 +2422,12 @@
           {
             "title_zh": "Git 工作树或子模块 · 21 棵",
             "bytes": "3328570244",
-            "note_zh": "F:\\new\\denglou、F:\\new\\smaltalk\\water"
+            "note_zh": "D:\\code\\demo-app、D:\\code\\flick"
           },
           {
             "title_zh": "程序或工具自带的依赖 · 7 处",
             "bytes": "1396048116",
-            "note_zh": "F:\\Mirasim-A"
+            "note_zh": "F:\\Apps\\Acme"
           },
           {
             "title_zh": "浏览器数据目录 · 3 处",
@@ -2490,11 +2490,11 @@
       },
       {
         "kind": "space",
-        "text_zh": "空间分布：F 盘最大的是 denglou 319 GB、Steam 194 GB、英雄联盟 53 GB",
+        "text_zh": "空间分布：F 盘最大的是 demo-app 319 GB、Steam 194 GB、英雄联盟 53 GB",
         "bytes": null,
         "rows": [
           {
-            "title_zh": "F:\\new\\denglou",
+            "title_zh": "D:\\code\\demo-app",
             "bytes": "342524108603",
             "note_zh": "项目"
           },
@@ -2509,17 +2509,17 @@
             "note_zh": "游戏"
           },
           {
-            "title_zh": "F:\\cdisk-cache",
+            "title_zh": "F:\\sample-cache",
             "bytes": "33930456047",
             "note_zh": "资料"
           },
           {
-            "title_zh": "F:\\new\\smaltalk",
+            "title_zh": "D:\\code",
             "bytes": "30494448210",
             "note_zh": "项目"
           },
           {
-            "title_zh": "F:\\Mirasim-A",
+            "title_zh": "F:\\Apps\\Acme",
             "bytes": "13314614870",
             "note_zh": "资料"
           },
@@ -2686,7 +2686,7 @@
         "kind": "group",
         "level": "confirm",
         "title_zh": "5 个按提交号命名的安装包，留最新 1 个",
-        "evidence_zh": "apk_3f9c2e1.apk 等 · F:\\new\\denglou\\_ctl",
+        "evidence_zh": "apk_3f9c2e1.apk 等 · D:\\code\\demo-app\\build-output",
         "bytes": "2791493650",
         "decision": "undecided",
         "decided_before_zh": null,
@@ -2702,8 +2702,8 @@
         "card_id": "card:leak:7b30fa8fd7ceb684",
         "kind": "leak",
         "level": "confirm",
-        "title_zh": "fix-r9\\.tmp_w35b 里有 81 个同模板目录，还在长",
-        "evidence_zh": "verify-****** · 最早 10 月 12 日，最新 2 小时前 · F:\\new\\denglou",
+        "title_zh": "fix-demo\\.tmp-checks 里有 81 个同模板目录，还在长",
+        "evidence_zh": "verify-****** · 最早 10 月 12 日，最新 2 小时前 · D:\\code\\demo-app",
         "bytes": "2254592384",
         "decision": "undecided",
         "decided_before_zh": null,
@@ -2714,7 +2714,7 @@
           "detail",
           "copy_clue"
         ],
-        "clue_id": "clue-verify-fix-r9"
+        "clue_id": "clue-verify-fix-demo"
       },
       {
         "card_id": "card:codex-runtimes",
@@ -2764,19 +2764,19 @@
     },
     "clues": [
       {
-        "clue_id": "clue-worktrees-denglou",
-        "text_zh": "F:\\new\\denglou\\.worktrees 里 11 棵工作树已脱离 git，约 2.6 GB；其中一棵里有 release.jks 这类签名文件，删之前要查有没有未提交的改动",
-        "copy_text": "工作树检查清单（Water 只看了名字和大小，没有跑 git）\n位置：F:\\new\\denglou\\.worktrees，11 棵，约 2.6 GB\n这些工作树的 .git 文件指向的目录已经不在了（已脱离 git）\nfix-r9 里有签名文件 release.jks\n1. 在主仓库运行 git worktree list，确认它们不在列表里\n2. 逐棵查有没有未提交、未推送的改动\n3. 把 release.jks 这类贵重文件挪走或确认已有备份\n4. 确认没用后再删，或者写进仓库根的 .water-cleanup.json"
+        "clue_id": "clue-worktrees-demo-app",
+        "text_zh": "D:\\code\\demo-app\\.worktrees 里 11 棵工作树已脱离 git，约 2.6 GB；其中一棵里有 release.jks 这类签名文件，删之前要查有没有未提交的改动",
+        "copy_text": "工作树检查清单（Water 只看了名字和大小，没有跑 git）\n位置：D:\\code\\demo-app\\.worktrees，11 棵，约 2.6 GB\n这些工作树的 .git 文件指向的目录已经不在了（已脱离 git）\nfix-demo 里有签名文件 release.jks\n1. 在主仓库运行 git worktree list，确认它们不在列表里\n2. 逐棵查有没有未提交、未推送的改动\n3. 把 release.jks 这类贵重文件挪走或确认已有备份\n4. 确认没用后再删，或者写进仓库根的 .water-cleanup.json"
       },
       {
-        "clue_id": "clue-verify-fix-r9",
-        "text_zh": "fix-r9\\.tmp_w35b 里有 81 个 verify-******，每天新增约 4 个：每次验证建一个目录、结束不删，生产者还没修",
-        "copy_text": "泄漏线索（Water 只看了名字、大小与时间）\n位置：F:\\new\\denglou\\worktrees\\fix-r9\\.tmp_w35b\n模板：verify-******（目录），81 个，共 2.1 GB\n最近 14 天每天新建：0、2、3、5、6、4、7、6、5、8、6、7、9、6\n最新一个：11 月 2 日 15:31\n所在仓库根：F:\\new\\denglou\\worktrees\\fix-r9（有 .git）\n先找出生成它们的代码并修好，再清存量；修好后用 Water 标记为已修。"
+        "clue_id": "clue-verify-fix-demo",
+        "text_zh": "fix-demo\\.tmp-checks 里有 81 个 verify-******，每天新增约 4 个：每次验证建一个目录、结束不删，生产者还没修",
+        "copy_text": "泄漏线索（Water 只看了名字、大小与时间）\n位置：D:\\code\\demo-app\\worktrees\\fix-demo\\.tmp-checks\n模板：verify-******（目录），81 个，共 2.1 GB\n最近 14 天每天新建：0、2、3、5、6、4、7、6、5、8、6、7、9、6\n最新一个：11 月 2 日 15:31\n所在仓库根：D:\\code\\demo-app\\worktrees\\fix-demo（有 .git）\n先找出生成它们的代码并修好，再清存量；修好后用 Water 标记为已修。"
       },
       {
-        "clue_id": "clue-junction-grok2",
-        "text_zh": "F:\\new\\audit-b57a\\node_modules 指向 F:\\new\\grok2\\server\\node_modules，audit-b57a 改指 ui-v2 之后 grok2 才能清",
-        "copy_text": "联接线索（Water 只读了联接指向哪里）\n联接：F:\\new\\audit-b57a\\node_modules\n指向：F:\\new\\grok2\\server\\node_modules（约 0.9 GB）\n1. 把 audit-b57a 的 node_modules 改指 F:\\new\\ui-v2\\node_modules，或在 audit-b57a 里重新安装依赖\n2. 改完再体检一次，grok2\\server\\node_modules 就能清了"
+        "clue_id": "clue-junction-server-kit",
+        "text_zh": "D:\\code\\audit-tool\\node_modules 指向 D:\\code\\server-kit\\server\\node_modules，audit-tool 改指 ui-kit 之后 server-kit 才能清",
+        "copy_text": "联接线索（Water 只读了联接指向哪里）\n联接：D:\\code\\audit-tool\\node_modules\n指向：D:\\code\\server-kit\\server\\node_modules（约 0.9 GB）\n1. 把 audit-tool 的 node_modules 改指 D:\\code\\ui-kit\\node_modules，或在 audit-tool 里重新安装依赖\n2. 改完再体检一次，server-kit\\server\\node_modules 就能清了"
       }
     ],
     "more_clues": 1,
@@ -2789,12 +2789,12 @@
           {
             "title_zh": "Git 工作树或子模块 · 21 棵",
             "bytes": "3328570244",
-            "note_zh": "F:\\new\\denglou、F:\\new\\smaltalk\\water"
+            "note_zh": "D:\\code\\demo-app、D:\\code\\flick"
           },
           {
             "title_zh": "程序或工具自带的依赖 · 7 处",
             "bytes": "1396048116",
-            "note_zh": "F:\\Mirasim-A"
+            "note_zh": "F:\\Apps\\Acme"
           },
           {
             "title_zh": "浏览器数据目录 · 3 处",
@@ -2857,11 +2857,11 @@
       },
       {
         "kind": "space",
-        "text_zh": "空间分布：F 盘最大的是 denglou 319 GB、Steam 194 GB、英雄联盟 53 GB",
+        "text_zh": "空间分布：F 盘最大的是 demo-app 319 GB、Steam 194 GB、英雄联盟 53 GB",
         "bytes": null,
         "rows": [
           {
-            "title_zh": "F:\\new\\denglou",
+            "title_zh": "D:\\code\\demo-app",
             "bytes": "342524108603",
             "note_zh": "项目"
           },
@@ -2876,17 +2876,17 @@
             "note_zh": "游戏"
           },
           {
-            "title_zh": "F:\\cdisk-cache",
+            "title_zh": "F:\\sample-cache",
             "bytes": "33930456047",
             "note_zh": "资料"
           },
           {
-            "title_zh": "F:\\new\\smaltalk",
+            "title_zh": "D:\\code",
             "bytes": "30494448210",
             "note_zh": "项目"
           },
           {
-            "title_zh": "F:\\Mirasim-A",
+            "title_zh": "F:\\Apps\\Acme",
             "bytes": "13314614870",
             "note_zh": "资料"
           },
@@ -3020,7 +3020,7 @@
     "stale_reason_zh": null,
     "scope": {
       "labels_zh": [
-        "denglou"
+        "demo-app"
       ],
       "only_folder": true
     },
@@ -3051,16 +3051,16 @@
     },
     "cards": [
       {
-        "card_id": "card:custom:denglou:installer-files",
+        "card_id": "card:custom:demo-app:installer-files",
         "kind": "group",
         "level": "confirm",
         "title_zh": "6 个按提交号命名的安装包，留最新 1 个",
-        "evidence_zh": "apk_3f9c2e1.apk 等 · 比上次多 1 个 · F:\\new\\denglou\\_ctl",
+        "evidence_zh": "apk_3f9c2e1.apk 等 · 比上次多 1 个 · D:\\code\\demo-app\\build-output",
         "bytes": "2931926042",
         "decision": "keep",
         "decided_before_zh": "上次你选了保留",
         "warning_zh": null,
-        "group_id": "custom:denglou:installer-files",
+        "group_id": "custom:demo-app:installer-files",
         "menu": [
           "skip",
           "detail"
@@ -3071,8 +3071,8 @@
         "card_id": "card:leak:7b30fa8fd7ceb684",
         "kind": "leak",
         "level": "confirm",
-        "title_zh": "fix-r9\\.tmp_w35b 里有 74 个同模板目录，还在长",
-        "evidence_zh": "verify-****** · 最早 10 月 12 日，最新 3 小时前 · F:\\new\\denglou",
+        "title_zh": "fix-demo\\.tmp-checks 里有 74 个同模板目录，还在长",
+        "evidence_zh": "verify-****** · 最早 10 月 12 日，最新 3 小时前 · D:\\code\\demo-app",
         "bytes": "2057972913",
         "decision": "undecided",
         "decided_before_zh": null,
@@ -3083,14 +3083,14 @@
           "detail",
           "copy_clue"
         ],
-        "clue_id": "clue-verify-fix-r9"
+        "clue_id": "clue-verify-fix-demo"
       },
       {
         "card_id": "card:unfinished:clean-20261029T021500Z-91ab",
         "kind": "unfinished",
         "level": "confirm",
         "title_zh": "上次没清完的 6 项",
-        "evidence_zh": "10 月 29 日清理时还不满 1 天，这次可以清了 · F:\\new\\denglou\\build",
+        "evidence_zh": "10 月 29 日清理时还不满 1 天，这次可以清了 · D:\\code\\demo-app\\build",
         "bytes": "197793610",
         "decision": "undecided",
         "decided_before_zh": null,
@@ -3107,14 +3107,14 @@
     "kept_before": null,
     "clues": [
       {
-        "clue_id": "clue-worktrees-denglou",
-        "text_zh": "F:\\new\\denglou\\.worktrees 里 11 棵工作树已脱离 git，约 2.6 GB；其中一棵里有 release.jks 这类签名文件，删之前要查有没有未提交的改动",
-        "copy_text": "工作树检查清单（Water 只看了名字和大小，没有跑 git）\n位置：F:\\new\\denglou\\.worktrees，11 棵，约 2.6 GB\n这些工作树的 .git 文件指向的目录已经不在了（已脱离 git）\nfix-r9 里有签名文件 release.jks\n1. 在主仓库运行 git worktree list，确认它们不在列表里\n2. 逐棵查有没有未提交、未推送的改动\n3. 把 release.jks 这类贵重文件挪走或确认已有备份\n4. 确认没用后再删，或者写进仓库根的 .water-cleanup.json"
+        "clue_id": "clue-worktrees-demo-app",
+        "text_zh": "D:\\code\\demo-app\\.worktrees 里 11 棵工作树已脱离 git，约 2.6 GB；其中一棵里有 release.jks 这类签名文件，删之前要查有没有未提交的改动",
+        "copy_text": "工作树检查清单（Water 只看了名字和大小，没有跑 git）\n位置：D:\\code\\demo-app\\.worktrees，11 棵，约 2.6 GB\n这些工作树的 .git 文件指向的目录已经不在了（已脱离 git）\nfix-demo 里有签名文件 release.jks\n1. 在主仓库运行 git worktree list，确认它们不在列表里\n2. 逐棵查有没有未提交、未推送的改动\n3. 把 release.jks 这类贵重文件挪走或确认已有备份\n4. 确认没用后再删，或者写进仓库根的 .water-cleanup.json"
       },
       {
-        "clue_id": "clue-verify-fix-r9",
-        "text_zh": "fix-r9\\.tmp_w35b 里有 74 个 verify-******，每天新增约 4 个：每次验证建一个目录、结束不删，生产者还没修",
-        "copy_text": "泄漏线索（Water 只看了名字、大小与时间）\n位置：F:\\new\\denglou\\worktrees\\fix-r9\\.tmp_w35b\n模板：verify-******（目录），74 个，共 1.9 GB\n最近 14 天每天新建：0、0、2、3、5、6、4、7、6、5、8、6、7、9\n最新一个：10 月 31 日 12:10\n所在仓库根：F:\\new\\denglou\\worktrees\\fix-r9（有 .git）\n先找出生成它们的代码并修好，再清存量；修好后用 Water 标记为已修。"
+        "clue_id": "clue-verify-fix-demo",
+        "text_zh": "fix-demo\\.tmp-checks 里有 74 个 verify-******，每天新增约 4 个：每次验证建一个目录、结束不删，生产者还没修",
+        "copy_text": "泄漏线索（Water 只看了名字、大小与时间）\n位置：D:\\code\\demo-app\\worktrees\\fix-demo\\.tmp-checks\n模板：verify-******（目录），74 个，共 1.9 GB\n最近 14 天每天新建：0、0、2、3、5、6、4、7、6、5、8、6、7、9\n最新一个：10 月 31 日 12:10\n所在仓库根：D:\\code\\demo-app\\worktrees\\fix-demo（有 .git）\n先找出生成它们的代码并修好，再清存量；修好后用 Water 标记为已修。"
       }
     ],
     "more_clues": 0,
@@ -3127,7 +3127,7 @@
           {
             "title_zh": "Git 工作树或子模块 · 11 棵",
             "bytes": "2813336775",
-            "note_zh": "F:\\new\\denglou\\.worktrees"
+            "note_zh": "D:\\code\\demo-app\\.worktrees"
           }
         ]
       },
@@ -3613,7 +3613,7 @@
         "rows": [
           {
             "row_key": "leak:7b30fa8fd7ceb684",
-            "title_zh": ".tmp_w35b\\verify-*",
+            "title_zh": ".tmp-checks\\verify-*",
             "location_zh": "F 盘",
             "level": "confirm",
             "bytes": "2254592384",
@@ -4205,7 +4205,7 @@
           },
           {
             "row_key": "leak:7b30fa8fd7ceb684",
-            "title_zh": ".tmp_w35b\\verify-*",
+            "title_zh": ".tmp-checks\\verify-*",
             "location_zh": "F 盘",
             "level": "confirm",
             "bytes": "2254592384",
@@ -4465,7 +4465,7 @@
     "items": [
       {
         "item_id": "i-000301",
-        "display_path": "C:\\Users\\37310\\.codex\\runtimes\\0.94",
+        "display_path": "C:\\Users\\alice\\.codex\\runtimes\\0.94",
         "total_bytes": "545701642",
         "newest_activity": "2026-09-18T02:14:00Z",
         "eligible": true,
@@ -4474,7 +4474,7 @@
       },
       {
         "item_id": "i-000302",
-        "display_path": "C:\\Users\\37310\\.codex\\runtimes\\0.95",
+        "display_path": "C:\\Users\\alice\\.codex\\runtimes\\0.95",
         "total_bytes": "529604931",
         "newest_activity": "2026-09-29T07:40:00Z",
         "eligible": true,
@@ -4483,7 +4483,7 @@
       },
       {
         "item_id": "i-000303",
-        "display_path": "C:\\Users\\37310\\.codex\\runtimes\\0.97",
+        "display_path": "C:\\Users\\alice\\.codex\\runtimes\\0.97",
         "total_bytes": "522725435",
         "newest_activity": "2026-10-20T05:03:00Z",
         "eligible": true,
@@ -4492,7 +4492,7 @@
       },
       {
         "item_id": "i-000304",
-        "display_path": "C:\\Users\\37310\\.codex\\runtimes\\0.98",
+        "display_path": "C:\\Users\\alice\\.codex\\runtimes\\0.98",
         "total_bytes": "537268327",
         "newest_activity": "2026-11-02T08:12:00Z",
         "eligible": false,
@@ -4507,7 +4507,7 @@
     "rows": [
       {
         "row_id": "i-000301",
-        "label_zh": "C:\\Users\\37310\\.codex\\runtimes\\0.94",
+        "label_zh": "C:\\Users\\alice\\.codex\\runtimes\\0.94",
         "count": 1,
         "bytes": "545701642",
         "oldest": "2026-09-18T02:14:00Z",
@@ -4519,7 +4519,7 @@
       },
       {
         "row_id": "i-000302",
-        "label_zh": "C:\\Users\\37310\\.codex\\runtimes\\0.95",
+        "label_zh": "C:\\Users\\alice\\.codex\\runtimes\\0.95",
         "count": 1,
         "bytes": "529604931",
         "oldest": "2026-09-29T07:40:00Z",
@@ -4531,7 +4531,7 @@
       },
       {
         "row_id": "i-000303",
-        "label_zh": "C:\\Users\\37310\\.codex\\runtimes\\0.97",
+        "label_zh": "C:\\Users\\alice\\.codex\\runtimes\\0.97",
         "count": 1,
         "bytes": "522725435",
         "oldest": "2026-10-20T05:03:00Z",
@@ -4543,7 +4543,7 @@
       },
       {
         "row_id": "i-000304",
-        "label_zh": "C:\\Users\\37310\\.codex\\runtimes\\0.98",
+        "label_zh": "C:\\Users\\alice\\.codex\\runtimes\\0.98",
         "count": 1,
         "bytes": "537268327",
         "oldest": "2026-11-02T08:12:00Z",
@@ -4746,7 +4746,7 @@
     "items": [
       {
         "item_id": "i-005101",
-        "display_path": "F:\\new\\smaltalk\\water\\.worktrees\\w9-l2\\target",
+        "display_path": "D:\\code\\flick\\.worktrees\\cache-b\\target",
         "total_bytes": "101722478",
         "newest_activity": "2026-10-31T12:40:00Z",
         "eligible": true,
@@ -4755,7 +4755,7 @@
       },
       {
         "item_id": "i-005102",
-        "display_path": "F:\\new\\denglou\\native\\core\\target",
+        "display_path": "D:\\code\\demo-app\\native\\core\\target",
         "total_bytes": "93025098",
         "newest_activity": "2026-10-29T09:15:00Z",
         "eligible": true,
@@ -4764,7 +4764,7 @@
       },
       {
         "item_id": "i-005103",
-        "display_path": "F:\\new\\zbbody\\engine\\target",
+        "display_path": "D:\\code\\engine-lab\\engine\\target",
         "total_bytes": "64712005",
         "newest_activity": "2026-10-12T08:20:00Z",
         "eligible": true,
@@ -4776,8 +4776,8 @@
     "top_keys": [],
     "rows": [
       {
-        "row_id": "custom:water:cachedir-tagged",
-        "label_zh": "F:\\new\\smaltalk\\water",
+        "row_id": "custom:flick:cachedir-tagged",
+        "label_zh": "D:\\code\\flick",
         "count": 21,
         "bytes": "641985172",
         "oldest": "2026-09-14T02:00:00Z",
@@ -4788,8 +4788,8 @@
         "expandable": true
       },
       {
-        "row_id": "custom:denglou:cachedir-tagged",
-        "label_zh": "F:\\new\\denglou",
+        "row_id": "custom:demo-app:cachedir-tagged",
+        "label_zh": "D:\\code\\demo-app",
         "count": 28,
         "bytes": "619086536",
         "oldest": "2026-08-30T05:10:00Z",
@@ -4800,8 +4800,8 @@
         "expandable": true
       },
       {
-        "row_id": "custom:zbbody:cachedir-tagged",
-        "label_zh": "F:\\new\\zbbody",
+        "row_id": "custom:engine-lab:cachedir-tagged",
+        "label_zh": "D:\\code\\engine-lab",
         "count": 12,
         "bytes": "243705508",
         "oldest": "2026-07-02T03:00:00Z",
@@ -4988,7 +4988,7 @@
     "items": [
       {
         "item_id": "i-006101",
-        "display_path": "F:\\new\\denglou\\.worktrees\\fix-r9",
+        "display_path": "D:\\code\\demo-app\\.worktrees\\fix-demo",
         "total_bytes": "642234591",
         "newest_activity": "2026-10-30T10:12:00Z",
         "eligible": false,
@@ -5001,7 +5001,7 @@
       },
       {
         "item_id": "i-006102",
-        "display_path": "F:\\new\\denglou\\.worktrees\\ui",
+        "display_path": "D:\\code\\demo-app\\.worktrees\\ui",
         "total_bytes": "512528819",
         "newest_activity": "2026-10-28T04:40:00Z",
         "eligible": false,
@@ -5014,7 +5014,7 @@
       },
       {
         "item_id": "i-006103",
-        "display_path": "F:\\new\\denglou\\.worktrees\\w31b",
+        "display_path": "D:\\code\\demo-app\\.worktrees\\feature-c",
         "total_bytes": "316319005",
         "newest_activity": "2026-10-21T02:05:00Z",
         "eligible": false,
@@ -5026,7 +5026,7 @@
       },
       {
         "item_id": "i-006104",
-        "display_path": "F:\\new\\denglou\\.worktrees\\w32c",
+        "display_path": "D:\\code\\demo-app\\.worktrees\\feature-d",
         "total_bytes": "266419693",
         "newest_activity": "2026-10-22T06:30:00Z",
         "eligible": false,
@@ -5038,7 +5038,7 @@
       },
       {
         "item_id": "i-006105",
-        "display_path": "F:\\new\\denglou\\.worktrees\\w46a",
+        "display_path": "D:\\code\\demo-app\\.worktrees\\feature-e",
         "total_bytes": "245866867",
         "newest_activity": "2026-11-02T03:15:00Z",
         "eligible": false,
@@ -5050,7 +5050,7 @@
       },
       {
         "item_id": "i-006106",
-        "display_path": "F:\\new\\denglou\\.worktrees\\audit-153-2",
+        "display_path": "D:\\code\\demo-app\\.worktrees\\audit-demo",
         "total_bytes": "207990282",
         "newest_activity": "2026-11-01T09:00:00Z",
         "eligible": false,
@@ -5062,7 +5062,7 @@
       },
       {
         "item_id": "i-006107",
-        "display_path": "F:\\new\\denglou\\.worktrees\\w29b",
+        "display_path": "D:\\code\\demo-app\\.worktrees\\feature-f",
         "total_bytes": "185482021",
         "newest_activity": "2026-10-28T12:10:00Z",
         "eligible": false,
@@ -5074,7 +5074,7 @@
       },
       {
         "item_id": "i-006108",
-        "display_path": "F:\\new\\denglou\\.worktrees\\w30a",
+        "display_path": "D:\\code\\demo-app\\.worktrees\\feature-g",
         "total_bytes": "159720301",
         "newest_activity": "2026-10-29T08:44:00Z",
         "eligible": false,
@@ -5086,7 +5086,7 @@
       },
       {
         "item_id": "i-006109",
-        "display_path": "F:\\new\\denglou\\.worktrees\\w28h",
+        "display_path": "D:\\code\\demo-app\\.worktrees\\feature-h",
         "total_bytes": "126318139",
         "newest_activity": "2026-10-27T05:20:00Z",
         "eligible": false,
@@ -5098,7 +5098,7 @@
       },
       {
         "item_id": "i-006110",
-        "display_path": "F:\\new\\denglou\\.worktrees\\w50d",
+        "display_path": "D:\\code\\demo-app\\.worktrees\\feature-i",
         "total_bytes": "103032770",
         "newest_activity": "2026-10-31T01:00:00Z",
         "eligible": false,
@@ -5110,7 +5110,7 @@
       },
       {
         "item_id": "i-006111",
-        "display_path": "F:\\new\\denglou\\.worktrees\\ex08",
+        "display_path": "D:\\code\\demo-app\\.worktrees\\example-demo",
         "total_bytes": "50682577",
         "newest_activity": "2026-10-26T11:30:00Z",
         "eligible": false,
@@ -5307,7 +5307,7 @@
       },
       {
         "group_id": "leak:7b30fa8fd7ceb684",
-        "title_zh": ".tmp_w35b\\verify-*",
+        "title_zh": ".tmp-checks\\verify-*",
         "level": "confirm",
         "item_count": 81,
         "total_bytes": "2254592384",
@@ -5355,7 +5355,7 @@
       "bytes": "3852624392",
       "items": [
         {
-          "title_zh": "fix-r9\\.tmp_w35b 里有 81 个同模板目录，还在长",
+          "title_zh": "fix-demo\\.tmp-checks 里有 81 个同模板目录，还在长",
           "bytes": "2254592384"
         },
         {
@@ -5557,7 +5557,7 @@
       },
       {
         "group_id": "leak:7b30fa8fd7ceb684",
-        "title_zh": ".tmp_w35b\\verify-*",
+        "title_zh": ".tmp-checks\\verify-*",
         "level": "confirm",
         "item_count": 81,
         "total_bytes": "2254592384",
@@ -5605,7 +5605,7 @@
       "bytes": "3852624392",
       "items": [
         {
-          "title_zh": "fix-r9\\.tmp_w35b 里有 81 个同模板目录，还在长",
+          "title_zh": "fix-demo\\.tmp-checks 里有 81 个同模板目录，还在长",
           "bytes": "2254592384"
         },
         {
@@ -5867,7 +5867,7 @@
       "freed_bytes": "16116143335",
       "group_index": 22,
       "group_count": 24,
-      "current_group_title_zh": ".tmp_w35b\\verify-*",
+      "current_group_title_zh": ".tmp-checks\\verify-*",
       "phase": "quarantine",
       "quarantined_bytes": "1113855062"
     },
@@ -6060,7 +6060,7 @@
       },
       {
         "group_id": "leak:7b30fa8fd7ceb684",
-        "title_zh": ".tmp_w35b\\verify-*",
+        "title_zh": ".tmp-checks\\verify-*",
         "status": "quarantined",
         "freed_bytes": "0",
         "notes_zh": []
@@ -6073,7 +6073,7 @@
         "notes_zh": []
       }
     ],
-    "journal_display_path": "C:\\Users\\37310\\AppData\\Local\\Water\\journal\\clean-20261102T083945Z-6c0d.jsonl",
+    "journal_display_path": "C:\\Users\\alice\\AppData\\Local\\Water\\journal\\clean-20261102T083945Z-6c0d.jsonl",
     "quarantined": {
       "quarantine_ids": [
         "20261102-174012-f",
@@ -6291,121 +6291,121 @@
         "rows": [],
         "leftovers": [
           {
-            "display_name": "new\\smaltalk\\water\\.worktrees\\w9-l1\\.local\\chrome-profile-01",
+            "display_name": "code\\flick\\.worktrees\\cache-a\\.local\\chrome-profile-01",
             "bytes": "4332996",
             "reason_zh": "有程序正占着这个文件夹（可能是打开的终端）",
             "retry": false
           },
           {
-            "display_name": "new\\smaltalk\\water\\.worktrees\\w9-l2\\.local\\chrome-profile-02",
+            "display_name": "code\\flick\\.worktrees\\cache-b\\.local\\chrome-profile-02",
             "bytes": "11234861",
             "reason_zh": "路径太长（Water 能删，点再试一次）",
             "retry": true
           },
           {
-            "display_name": "new\\smaltalk\\water\\.worktrees\\w9-l3\\.local\\chrome-profile-03",
+            "display_name": "code\\flick\\.worktrees\\cache-c\\.local\\chrome-profile-03",
             "bytes": "6971883",
             "reason_zh": "只读文件（Water 能删，点再试一次）",
             "retry": true
           },
           {
-            "display_name": "new\\smaltalk\\water\\.worktrees\\w9-l4\\.local\\chrome-profile-04",
+            "display_name": "code\\flick\\.worktrees\\cache-d\\.local\\chrome-profile-04",
             "bytes": "14773796",
             "reason_zh": "云端占位或特殊链接，请在对应程序里处理",
             "retry": false
           },
           {
-            "display_name": "new\\smaltalk\\water\\.worktrees\\w9-l1\\.local\\chrome-profile-05",
+            "display_name": "code\\flick\\.worktrees\\cache-a\\.local\\chrome-profile-05",
             "bytes": "10179448",
             "reason_zh": "没有权限",
             "retry": false
           },
           {
-            "display_name": "new\\smaltalk\\water\\.worktrees\\w9-l2\\.local\\chrome-profile-06",
+            "display_name": "code\\flick\\.worktrees\\cache-b\\.local\\chrome-profile-06",
             "bytes": "6039493",
             "reason_zh": "有程序正占着这个文件夹（可能是打开的终端）",
             "retry": false
           },
           {
-            "display_name": "new\\smaltalk\\water\\.worktrees\\w9-l3\\.local\\chrome-profile-07",
+            "display_name": "code\\flick\\.worktrees\\cache-c\\.local\\chrome-profile-07",
             "bytes": "13556684",
             "reason_zh": "路径太长（Water 能删，点再试一次）",
             "retry": true
           },
           {
-            "display_name": "new\\smaltalk\\water\\.worktrees\\w9-l4\\.local\\chrome-profile-08",
+            "display_name": "code\\flick\\.worktrees\\cache-d\\.local\\chrome-profile-08",
             "bytes": "9263872",
             "reason_zh": "只读文件（Water 能删，点再试一次）",
             "retry": true
           },
           {
-            "display_name": "new\\smaltalk\\water\\.worktrees\\w9-l1\\.local\\chrome-profile-09",
+            "display_name": "code\\flick\\.worktrees\\cache-a\\.local\\chrome-profile-09",
             "bytes": "4867228",
             "reason_zh": "云端占位或特殊链接，请在对应程序里处理",
             "retry": false
           },
           {
-            "display_name": "new\\smaltalk\\water\\.worktrees\\w9-l2\\.local\\chrome-profile-10",
+            "display_name": "code\\flick\\.worktrees\\cache-b\\.local\\chrome-profile-10",
             "bytes": "12237952",
             "reason_zh": "没有权限",
             "retry": false
           },
           {
-            "display_name": "new\\smaltalk\\water\\.worktrees\\w9-l3\\.local\\chrome-profile-11",
+            "display_name": "code\\flick\\.worktrees\\cache-c\\.local\\chrome-profile-11",
             "bytes": "8477626",
             "reason_zh": "有程序正占着这个文件夹（可能是打开的终端）",
             "retry": false
           },
           {
-            "display_name": "new\\smaltalk\\water\\.worktrees\\w9-l4\\.local\\chrome-profile-12",
+            "display_name": "code\\flick\\.worktrees\\cache-d\\.local\\chrome-profile-12",
             "bytes": "4043201",
             "reason_zh": "路径太长（Water 能删，点再试一次）",
             "retry": true
           },
           {
-            "display_name": "new\\smaltalk\\water\\.worktrees\\w9-l1\\.local\\chrome-profile-13",
+            "display_name": "code\\flick\\.worktrees\\cache-a\\.local\\chrome-profile-13",
             "bytes": "11595952",
             "reason_zh": "只读文件（Water 能删，点再试一次）",
             "retry": true
           },
           {
-            "display_name": "new\\smaltalk\\water\\.worktrees\\w9-l2\\.local\\chrome-profile-14",
+            "display_name": "code\\flick\\.worktrees\\cache-b\\.local\\chrome-profile-14",
             "bytes": "7308540",
             "reason_zh": "云端占位或特殊链接，请在对应程序里处理",
             "retry": false
           },
           {
-            "display_name": "new\\smaltalk\\water\\.worktrees\\w9-l3\\.local\\chrome-profile-15",
+            "display_name": "code\\flick\\.worktrees\\cache-c\\.local\\chrome-profile-15",
             "bytes": "14362502",
             "reason_zh": "没有权限",
             "retry": false
           },
           {
-            "display_name": "new\\smaltalk\\water\\.worktrees\\w9-l4\\.local\\chrome-profile-16",
+            "display_name": "code\\flick\\.worktrees\\cache-d\\.local\\chrome-profile-16",
             "bytes": "10462010",
             "reason_zh": "有程序正占着这个文件夹（可能是打开的终端）",
             "retry": false
           },
           {
-            "display_name": "new\\smaltalk\\water\\.worktrees\\w9-l1\\.local\\chrome-profile-17",
+            "display_name": "code\\flick\\.worktrees\\cache-a\\.local\\chrome-profile-17",
             "bytes": "6359668",
             "reason_zh": "路径太长（Water 能删，点再试一次）",
             "retry": true
           },
           {
-            "display_name": "new\\smaltalk\\water\\.worktrees\\w9-l2\\.local\\chrome-profile-18",
+            "display_name": "code\\flick\\.worktrees\\cache-b\\.local\\chrome-profile-18",
             "bytes": "13125874",
             "reason_zh": "只读文件（Water 能删，点再试一次）",
             "retry": true
           },
           {
-            "display_name": "new\\smaltalk\\water\\.worktrees\\w9-l3\\.local\\chrome-profile-19",
+            "display_name": "code\\flick\\.worktrees\\cache-c\\.local\\chrome-profile-19",
             "bytes": "9487467",
             "reason_zh": "云端占位或特殊链接，请在对应程序里处理",
             "retry": false
           },
           {
-            "display_name": "new\\smaltalk\\water\\.worktrees\\w9-l4\\.local\\chrome-profile-20",
+            "display_name": "code\\flick\\.worktrees\\cache-d\\.local\\chrome-profile-20",
             "bytes": "5411770",
             "reason_zh": "没有权限",
             "retry": false
@@ -6436,12 +6436,12 @@
         "reminder_zh": "已经放了 14 天，确认没问题可以永久删除",
         "rows": [
           {
-            "label_zh": "new\\old-exports",
+            "label_zh": "code\\old-exports",
             "count": 30,
             "bytes": "1986547148"
           },
           {
-            "label_zh": "Users\\37310\\Videos\\cache",
+            "label_zh": "Users\\alice\\Videos\\cache",
             "count": 7,
             "bytes": "483629288"
           }
@@ -6461,7 +6461,7 @@
     "restored_bytes": "1068427077",
     "conflicts": [
       {
-        "label_zh": "C:\\Users\\37310\\.codex\\runtimes\\0.95",
+        "label_zh": "C:\\Users\\alice\\.codex\\runtimes\\0.95",
         "reason_zh": "原位置已经有同名的文件夹"
       }
     ],
@@ -6857,11 +6857,11 @@
         "copies": 2,
         "size": "2254623545",
         "keep": {
-          "display_path": "E:\\跑团\\团2\\EP02.wav",
+          "display_path": "E:\\media\\session-2\\EP02.wav",
           "reason_zh": "这份更早"
         },
         "others": [
-          "E:\\跑团\\团2\\降噪\\EP02.wav"
+          "E:\\media\\session-2\\processed\\EP02.wav"
         ],
         "included": false,
         "removable": true,
@@ -6869,15 +6869,15 @@
       },
       {
         "group_id": "dup:1d0e8ac16fd3c269:2040529218",
-        "name_zh": "公路物语EP03.wav",
+        "name_zh": "session-EP03.wav",
         "copies": 2,
         "size": "2040529218",
         "keep": {
-          "display_path": "E:\\跑团\\团2\\公路物语EP03.wav",
+          "display_path": "E:\\media\\session-2\\session-EP03.wav",
           "reason_zh": "这份更早"
         },
         "others": [
-          "E:\\跑团\\团2\\降噪\\公路物语EP03.wav"
+          "E:\\media\\session-2\\processed\\session-EP03.wav"
         ],
         "included": false,
         "removable": true,
@@ -6885,15 +6885,15 @@
       },
       {
         "group_id": "dup:fd7566321c685d88:1718080634",
-        "name_zh": "小崔.wav",
+        "name_zh": "speaker-a.wav",
         "copies": 2,
         "size": "1718080634",
         "keep": {
-          "display_path": "E:\\跑团\\原始录音\\小崔.wav",
+          "display_path": "E:\\media\\originals\\speaker-a.wav",
           "reason_zh": "按位置排在前面"
         },
         "others": [
-          "E:\\跑团\\团2\\小崔.wav"
+          "E:\\media\\session-2\\speaker-a.wav"
         ],
         "included": false,
         "removable": true,
@@ -6901,15 +6901,15 @@
       },
       {
         "group_id": "dup:5294de54ddcfddd7:1504353878",
-        "name_zh": "剧情2.wav",
+        "name_zh": "scene-2.wav",
         "copies": 2,
         "size": "1504353878",
         "keep": {
-          "display_path": "E:\\跑团\\团2\\剧情2.wav",
+          "display_path": "E:\\media\\session-2\\scene-2.wav",
           "reason_zh": "这份更早"
         },
         "others": [
-          "E:\\跑团\\团2\\降噪\\水枪靶场跑团01-剧情2.wav"
+          "E:\\media\\session-2\\processed\\session-01-scene-2.wav"
         ],
         "included": false,
         "removable": true,
@@ -6917,15 +6917,15 @@
       },
       {
         "group_id": "dup:9aacc0b807b7e5d4:1181220608",
-        "name_zh": "跑团4.m4a",
+        "name_zh": "session-4.m4a",
         "copies": 2,
         "size": "1181220608",
         "keep": {
-          "display_path": "E:\\跑团\\团4\\降噪\\跑团4.m4a",
+          "display_path": "E:\\media\\session-4\\processed\\session-4.m4a",
           "reason_zh": "这份更早"
         },
         "others": [
-          "E:\\跑团\\团4\\小明4.m4a"
+          "E:\\media\\session-4\\speaker-b-4.m4a"
         ],
         "included": false,
         "removable": true,
@@ -6933,15 +6933,15 @@
       },
       {
         "group_id": "dup:21f0fbe24482c108:967254717",
-        "name_zh": "跑团3.m4a",
+        "name_zh": "session-3.m4a",
         "copies": 2,
         "size": "967254717",
         "keep": {
-          "display_path": "E:\\跑团\\团4\\降噪\\跑团3.m4a",
+          "display_path": "E:\\media\\session-4\\processed\\session-3.m4a",
           "reason_zh": "这份更早"
         },
         "others": [
-          "E:\\跑团\\团4\\小明3.m4a"
+          "E:\\media\\session-4\\speaker-b-3.m4a"
         ],
         "included": false,
         "removable": true,
@@ -6967,11 +6967,11 @@
         "copies": 2,
         "size": "2254602071",
         "keep": {
-          "display_path": "E:\\跑团\\团2\\EP02.wav",
+          "display_path": "E:\\media\\session-2\\EP02.wav",
           "reason_zh": "这份更早"
         },
         "others": [
-          "E:\\跑团\\团2\\降噪\\EP02.wav"
+          "E:\\media\\session-2\\processed\\EP02.wav"
         ],
         "included": true,
         "removable": true,
@@ -6979,15 +6979,15 @@
       },
       {
         "group_id": "dup:1d0e8ac16fd3c269:2040588026",
-        "name_zh": "公路物语EP03.wav",
+        "name_zh": "session-EP03.wav",
         "copies": 2,
         "size": "2040588026",
         "keep": {
-          "display_path": "E:\\跑团\\团2\\公路物语EP03.wav",
+          "display_path": "E:\\media\\session-2\\session-EP03.wav",
           "reason_zh": "这份更早"
         },
         "others": [
-          "E:\\跑团\\团2\\降噪\\公路物语EP03.wav"
+          "E:\\media\\session-2\\processed\\session-EP03.wav"
         ],
         "included": true,
         "removable": true,
@@ -6995,15 +6995,15 @@
       },
       {
         "group_id": "dup:fd7566321c685d88:1718184379",
-        "name_zh": "小崔.wav",
+        "name_zh": "speaker-a.wav",
         "copies": 2,
         "size": "1718184379",
         "keep": {
-          "display_path": "E:\\跑团\\原始录音\\小崔.wav",
+          "display_path": "E:\\media\\originals\\speaker-a.wav",
           "reason_zh": "按位置排在前面"
         },
         "others": [
-          "E:\\跑团\\团2\\小崔.wav"
+          "E:\\media\\session-2\\speaker-a.wav"
         ],
         "included": false,
         "removable": true,
@@ -7011,15 +7011,15 @@
       },
       {
         "group_id": "dup:5294de54ddcfddd7:1503769137",
-        "name_zh": "剧情2.wav",
+        "name_zh": "scene-2.wav",
         "copies": 2,
         "size": "1503769137",
         "keep": {
-          "display_path": "E:\\跑团\\团2\\剧情2.wav",
+          "display_path": "E:\\media\\session-2\\scene-2.wav",
           "reason_zh": "这份更早"
         },
         "others": [
-          "E:\\跑团\\团2\\降噪\\水枪靶场跑团01-剧情2.wav"
+          "E:\\media\\session-2\\processed\\session-01-scene-2.wav"
         ],
         "included": false,
         "removable": true,
@@ -7027,15 +7027,15 @@
       },
       {
         "group_id": "dup:9aacc0b807b7e5d4:1181157835",
-        "name_zh": "跑团4.m4a",
+        "name_zh": "session-4.m4a",
         "copies": 2,
         "size": "1181157835",
         "keep": {
-          "display_path": "E:\\跑团\\团4\\降噪\\跑团4.m4a",
+          "display_path": "E:\\media\\session-4\\processed\\session-4.m4a",
           "reason_zh": "这份更早"
         },
         "others": [
-          "E:\\跑团\\团4\\小明4.m4a"
+          "E:\\media\\session-4\\speaker-b-4.m4a"
         ],
         "included": false,
         "removable": true,
@@ -7043,15 +7043,15 @@
       },
       {
         "group_id": "dup:21f0fbe24482c108:967032164",
-        "name_zh": "跑团3.m4a",
+        "name_zh": "session-3.m4a",
         "copies": 2,
         "size": "967032164",
         "keep": {
-          "display_path": "E:\\跑团\\团4\\降噪\\跑团3.m4a",
+          "display_path": "E:\\media\\session-4\\processed\\session-3.m4a",
           "reason_zh": "这份更早"
         },
         "others": [
-          "E:\\跑团\\团4\\小明3.m4a"
+          "E:\\media\\session-4\\speaker-b-3.m4a"
         ],
         "included": false,
         "removable": true,
@@ -7081,7 +7081,7 @@
           "reason_zh": "按位置排在前面"
         },
         "others": [
-          "F:\\cdisk-cache\\setup\\android-studio-2025.1.1.13-windows.exe",
+          "F:\\sample-cache\\setup\\android-studio-2025.1.1.13-windows.exe",
           "F:\\下载\\android-studio-2025.1.1.13-windows.exe"
         ],
         "included": false,
@@ -7094,7 +7094,7 @@
         "copies": 2,
         "size": "1932873637",
         "keep": {
-          "display_path": "F:\\new\\climbmao\\podcast\\out\\EP01-成片.mp4",
+          "display_path": "D:\\code\\video-lab\\podcast\\out\\EP01-成片.mp4",
           "reason_zh": "这份在‘以这里为准’的文件夹里"
         },
         "others": [
@@ -7158,11 +7158,11 @@
         "copies": 2,
         "size": "430023380",
         "keep": {
-          "display_path": "F:\\new\\denglou\\release\\release-1.5.2.apk",
+          "display_path": "D:\\code\\demo-app\\release\\release-1.5.2.apk",
           "reason_zh": "这份在项目声明保护的位置里"
         },
         "others": [
-          "F:\\new\\denglou\\_ctl\\release-1.5.2.apk"
+          "D:\\code\\demo-app\\build-output\\release-1.5.2.apk"
         ],
         "included": false,
         "removable": true,
@@ -7170,15 +7170,15 @@
       },
       {
         "group_id": "dup:bfc8cddc55bb872a:321945031",
-        "name_zh": "mirasim-setup-2.4.0.exe",
+        "name_zh": "acme-setup-1.2.3.exe",
         "copies": 2,
         "size": "321945031",
         "keep": {
-          "display_path": "F:\\installers\\mirasim-setup-2.4.0.exe",
+          "display_path": "F:\\installers\\acme-setup-1.2.3.exe",
           "reason_zh": "按位置排在前面"
         },
         "others": [
-          "F:\\Mirasim-A\\update\\mirasim-setup-2.4.0.exe"
+          "F:\\Apps\\Acme\\update\\acme-setup-1.2.3.exe"
         ],
         "included": false,
         "removable": true,
@@ -7228,7 +7228,7 @@
           "reason_zh": "按位置排在前面"
         },
         "others": [
-          "F:\\cdisk-cache\\setup\\android-studio-2025.1.1.13-windows.exe",
+          "F:\\sample-cache\\setup\\android-studio-2025.1.1.13-windows.exe",
           "F:\\下载\\android-studio-2025.1.1.13-windows.exe"
         ],
         "included": false,
@@ -7241,7 +7241,7 @@
         "copies": 2,
         "size": "1932957610",
         "keep": {
-          "display_path": "F:\\new\\climbmao\\podcast\\out\\EP01-成片.mp4",
+          "display_path": "D:\\code\\video-lab\\podcast\\out\\EP01-成片.mp4",
           "reason_zh": "这份在‘以这里为准’的文件夹里"
         },
         "others": [
@@ -7305,11 +7305,11 @@
         "copies": 2,
         "size": "430081634",
         "keep": {
-          "display_path": "F:\\new\\denglou\\release\\release-1.5.2.apk",
+          "display_path": "D:\\code\\demo-app\\release\\release-1.5.2.apk",
           "reason_zh": "这份在项目声明保护的位置里"
         },
         "others": [
-          "F:\\new\\denglou\\_ctl\\release-1.5.2.apk"
+          "D:\\code\\demo-app\\build-output\\release-1.5.2.apk"
         ],
         "included": false,
         "removable": true,
@@ -7317,15 +7317,15 @@
       },
       {
         "group_id": "dup:bfc8cddc55bb872a:322225627",
-        "name_zh": "mirasim-setup-2.4.0.exe",
+        "name_zh": "acme-setup-1.2.3.exe",
         "copies": 2,
         "size": "322225627",
         "keep": {
-          "display_path": "F:\\installers\\mirasim-setup-2.4.0.exe",
+          "display_path": "F:\\installers\\acme-setup-1.2.3.exe",
           "reason_zh": "按位置排在前面"
         },
         "others": [
-          "F:\\Mirasim-A\\update\\mirasim-setup-2.4.0.exe"
+          "F:\\Apps\\Acme\\update\\acme-setup-1.2.3.exe"
         ],
         "included": false,
         "removable": true,
@@ -7353,7 +7353,7 @@
         "copies": 2,
         "size": "103311247",
         "keep": {
-          "display_path": "F:\\cdisk-cache\\gradle\\wrapper\\dists\\gradle-8.10-bin.zip",
+          "display_path": "F:\\sample-cache\\gradle\\wrapper\\dists\\gradle-8.10-bin.zip",
           "reason_zh": "按位置排在前面"
         },
         "others": [
@@ -7433,11 +7433,11 @@
         "copies": 2,
         "size": "17361151",
         "keep": {
-          "display_path": "F:\\new\\denglou\\release\\keystore-backup.zip",
+          "display_path": "D:\\code\\demo-app\\release\\keystore-backup.zip",
           "reason_zh": "这份在项目声明保护的位置里"
         },
         "others": [
-          "F:\\new\\denglou\\release\\old\\keystore-backup.zip"
+          "D:\\code\\demo-app\\release\\old\\keystore-backup.zip"
         ],
         "included": false,
         "removable": false,
@@ -7593,12 +7593,12 @@
     "clusters": [
       {
         "group_id": "leak:7b30fa8fd7ceb684",
-        "title_zh": ".tmp_w35b\\verify-*",
+        "title_zh": ".tmp-checks\\verify-*",
         "rate_zh": "每天约 +4 个 · +0.1 GB",
         "state": "growing",
         "fixed_at": null,
-        "clue_id": "clue-verify-fix-r9",
-        "copy_text": "泄漏线索（Water 只看了名字、大小与时间）\n位置：F:\\new\\denglou\\worktrees\\fix-r9\\.tmp_w35b\n模板：verify-******（目录），81 个，共 2.1 GB\n最近 14 天每天新建：0、2、3、5、6、4、7、6、5、8、6、7、9、6\n最新一个：11 月 2 日 15:31\n所在仓库根：F:\\new\\denglou\\worktrees\\fix-r9（有 .git）\n先找出生成它们的代码并修好，再清存量；修好后用 Water 标记为已修。"
+        "clue_id": "clue-verify-fix-demo",
+        "copy_text": "泄漏线索（Water 只看了名字、大小与时间）\n位置：D:\\code\\demo-app\\worktrees\\fix-demo\\.tmp-checks\n模板：verify-******（目录），81 个，共 2.1 GB\n最近 14 天每天新建：0、2、3、5、6、4、7、6、5、8、6、7、9、6\n最新一个：11 月 2 日 15:31\n所在仓库根：D:\\code\\demo-app\\worktrees\\fix-demo（有 .git）\n先找出生成它们的代码并修好，再清存量；修好后用 Water 标记为已修。"
       },
       {
         "group_id": "leak:effb8ca30d910f9c",
@@ -7616,7 +7616,7 @@
         "state": "suspected",
         "fixed_at": null,
         "clue_id": "clue-jest-temp",
-        "copy_text": "疑似泄漏线索（Water 只看了名字、大小与时间）\n位置：C:\\Users\\37310\\AppData\\Local\\Temp\\jest\n模板：haste-map-*（文件），33 个，共 410 MB\n只体检过一次，下次体检后才能判断是不是一直在长\n先找出生成它们的测试配置；确认是泄漏再修好、清存量。"
+        "copy_text": "疑似泄漏线索（Water 只看了名字、大小与时间）\n位置：C:\\Users\\alice\\AppData\\Local\\Temp\\jest\n模板：haste-map-*（文件），33 个，共 410 MB\n只体检过一次，下次体检后才能判断是不是一直在长\n先找出生成它们的测试配置；确认是泄漏再修好、清存量。"
       }
     ]
   },
@@ -7765,12 +7765,12 @@
     "clusters": [
       {
         "group_id": "leak:7b30fa8fd7ceb684",
-        "title_zh": ".tmp_w35b\\verify-*",
+        "title_zh": ".tmp-checks\\verify-*",
         "rate_zh": "11 月 2 日标记为已修 · 之后新长 0 个",
         "state": "stopped",
         "fixed_at": "2026-11-02T09:10:00Z",
-        "clue_id": "clue-verify-fix-r9",
-        "copy_text": "泄漏线索（Water 只看了名字、大小与时间）\n位置：F:\\new\\denglou\\worktrees\\fix-r9\\.tmp_w35b\n模板：verify-******（目录），81 个，共 2.1 GB\n最近 14 天每天新建：0、2、3、5、6、4、7、6、5、8、6、7、9、6\n最新一个：11 月 2 日 15:31\n所在仓库根：F:\\new\\denglou\\worktrees\\fix-r9（有 .git）\n先找出生成它们的代码并修好，再清存量；修好后用 Water 标记为已修。"
+        "clue_id": "clue-verify-fix-demo",
+        "copy_text": "泄漏线索（Water 只看了名字、大小与时间）\n位置：D:\\code\\demo-app\\worktrees\\fix-demo\\.tmp-checks\n模板：verify-******（目录），81 个，共 2.1 GB\n最近 14 天每天新建：0、2、3、5、6、4、7、6、5、8、6、7、9、6\n最新一个：11 月 2 日 15:31\n所在仓库根：D:\\code\\demo-app\\worktrees\\fix-demo（有 .git）\n先找出生成它们的代码并修好，再清存量；修好后用 Water 标记为已修。"
       },
       {
         "group_id": "leak:effb8ca30d910f9c",
@@ -7788,7 +7788,7 @@
         "state": "suspected",
         "fixed_at": null,
         "clue_id": "clue-jest-temp",
-        "copy_text": "疑似泄漏线索（Water 只看了名字、大小与时间）\n位置：C:\\Users\\37310\\AppData\\Local\\Temp\\jest\n模板：haste-map-*（文件），33 个，共 410 MB\n只体检过一次，下次体检后才能判断是不是一直在长\n先找出生成它们的测试配置；确认是泄漏再修好、清存量。"
+        "copy_text": "疑似泄漏线索（Water 只看了名字、大小与时间）\n位置：C:\\Users\\alice\\AppData\\Local\\Temp\\jest\n模板：haste-map-*（文件），33 个，共 410 MB\n只体检过一次，下次体检后才能判断是不是一直在长\n先找出生成它们的测试配置；确认是泄漏再修好、清存量。"
       }
     ]
   },

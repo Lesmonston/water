@@ -8,7 +8,7 @@ import {openPrivateBrowser} from '../../../../scripts/acceptance/native-vw-priva
 import {formatBytes} from '../format.mjs';
 const root = resolve(dirname(fileURLToPath(import.meta.url)), '../../../..'), ui = join(root, 'apps/water/ui');
 const f = Object.assign({}, ...['checkup-v1/ui-fixtures.json', 'm3c-v1/ui-fixtures-m3c.json', 'm35-v1/ui-fixtures-m35.json'].map(p => JSON.parse(readFileSync(join(root, 'contracts', p), 'utf8'))));
-// W12 shapes (SPEC 1.4, 1.5, 2.1, 2.2, 4.4): copies of the frozen fixtures with the new keys filled in.
+// Extend the shared samples with skip descriptors, diagnostics and app information.
 const rowSkip = {'i-000304':null, 'r:cfa406d79748c3e3':null, 'r:65e5f165ea872216':null};
 const withSkip = (d, skip) => ({...structuredClone(d), rows:d.rows.map(r => ({...structuredClone(r), skip:Object.hasOwn(rowSkip, r.row_id) ? rowSkip[r.row_id] : skip}))});
 Object.assign(f, {
@@ -17,9 +17,9 @@ Object.assign(f, {
     ...f.v2_locations.skipped.map(x => ({skip_id:x.skip_id, kind:'path', display_zh:x.display_path, display_path:x.display_path, added_at:x.added_at})),
     {skip_id:'s-000003', kind:'group', display_zh:'Python 工具缓存 · D 盘', display_path:null, added_at:'2026-11-01T08:30:00Z'},
     {skip_id:'s-000004', kind:'template', display_zh:'verify-****** · 系统临时目录里的旧文件', display_path:null, added_at:'2026-11-02T03:05:00Z'},
-    {skip_id:'s-000005', kind:'folder', display_zh:'.tmp_w35b 里的 系统临时目录里的旧文件', display_path:null, added_at:'2026-11-02T06:40:00Z'}]},
+    {skip_id:'s-000005', kind:'folder', display_zh:'.tmp-checks 里的 系统临时目录里的旧文件', display_path:null, added_at:'2026-11-02T06:40:00Z'}]},
   w12_clean_result:{...structuredClone(f.v2_clean_result), journal_note_zh:null},
-  w12_app_info:{name:'Flick', version:'0.3.0', license:'MIT OR Apache-2.0', homepage:'https://github.com/dfan0519-tech/flick'},
+  w12_app_info:{name:'Flick', version:'0.3.0', license:'MIT OR Apache-2.0', homepage:'https://example.com/flick'},
   w12_diagnostics:{diagnostics_version:'flick.diagnostics.v1', service_version:'0.3.0',
     settings:{settings_version:'water.settings.v4', categories_on:6, categories_off:1, custom_roots:2, skipped:{path:2, group:1, template:1, folder:1}, session_cleanup_on:1, trusted_declarations:1},
     last_scan:{status:'completed', duration_ms:48210, scope:{drives:1, folders:1, common:1}, groups:96, items:69947, eligible_items:12040, levels:{recommended:31, confirm:9, advisory:40, protected:16}, issues:{access_denied:3}},
@@ -33,14 +33,19 @@ let server, browser, base, injection, sequence = 0;
 const pause = ms => new Promise(ok => setTimeout(ok, ms));
 function fakeHost(f, options) {
   const copy = value => structuredClone(value);
-  // Every case starts past the first-run page except the UI_W12_INTRO ones.
+  // Skip onboarding unless the case explicitly exercises it.
   if (options.intro === 'blocked') Object.defineProperty(window, 'localStorage', {configurable:true, get() { throw new DOMException('storage blocked', 'SecurityError'); }});
   else if (!options.intro) localStorage.setItem('flick.intro.v1', '1');
   const c = window.__waterTest = {calls:[], errors:[], scan:0, clean:0, dedupe:0, purge:0, busy:options.busy ?? 'idle', conclusion:copy(typeof options.conclusion === 'object' ? options.conclusion : f[options.conclusion ?? 'v2_conclusion_typical']), locations:copy(f[options.locations ?? 'w12_locations']), quarantine:copy(f[options.quarantine ?? 'v2_quarantine_list']), dup:copy(f[options.dup ?? 'v2_dedupe_result']), clipboard:[], resetting:false, skipIds:[], scanned:false, cleaned:false, cleanResult:copy(options.cleanResult ?? f.w12_clean_result)};
+  function refreshSkippedConclusion() {
+    const version = c.conclusion.version;
+    c.conclusion = copy(c.nextConclusion ?? c.conclusion); c.nextConclusion = null;
+    c.conclusion.version = version.replace(/-(\d+)$/, (_, n) => '-' + (Number(n) + 1));
+  }
   if (options.reverseCards) c.conclusion.cards.reverse();
   if (options.noLast) c.noLast = true;
   c.noConclusion = !!options.noConclusion;
-  if (options.missingCardClue) c.conclusion.clues = c.conclusion.clues.filter(x => x.clue_id !== 'clue-verify-fix-r9');
+  if (options.missingCardClue) c.conclusion.clues = c.conclusion.clues.filter(x => x.clue_id !== 'clue-verify-fix-demo');
   if (options.trends) c.trends = copy(options.trends);
   if (options.history) c.history = copy(options.history);
   if (options.unavailable) return;
@@ -84,11 +89,14 @@ function fakeHost(f, options) {
         const d = copy(source); d.group.group_id = args.groupId; return d;
       }
       case 'group_items': return copy(args.query !== null ? f.v2_group_items_search : f.v2_group_items_row);
-      case 'skip_add': c.skipIds.push(args.itemId); c.conclusion = copy(f.v2_conclusion_stale); return copy(c.locations);
-      case 'skip_unit_add': if (args.conclusionVersion !== c.conclusion.version) throw copy(f.v2_errors.conclusion_stale); c.conclusion = copy(f.v2_conclusion_stale); return copy(c.locations);
+      case 'skip_add': c.skipIds.push(args.itemId); refreshSkippedConclusion(); return copy(c.locations);
+      case 'skip_unit_add':
+        if (args.conclusionVersion !== c.conclusion.version) throw copy(f.v2_errors.conclusion_stale);
+        refreshSkippedConclusion(); c.conclusion.cards = c.conclusion.cards.filter(card => card.card_id !== args.unitId);
+        return copy(c.locations);
       case 'diagnostics_get': return copy(f.w12_diagnostics);
       case 'app_info': return copy(f.w12_app_info);
-      case 'skip_remove': c.locations.skipped = c.locations.skipped.filter(x => x.skip_id !== args.skipId); return copy(c.locations);
+      case 'skip_remove': c.locations.skipped = c.locations.skipped.filter(x => x.skip_id !== args.skipId); refreshSkippedConclusion(); return copy(c.locations);
       case 'clean_prepare': {
         let p = copy(args.chosenMode === 'delete' ? f.v2_clean_prepare_delete : BigInt(c.conclusion.plan.chosen_bytes) === 0n ? f.v2_clean_prepare_delete_only : f.v2_clean_prepare_quarantine);
         if (args.dedupeId) {
@@ -246,7 +254,7 @@ test('ui_v2_home_scan', async () => {
   await click('scan-stop');
   await wait('document.querySelector("#page").dataset.page==="results"', 'UI_V2_HOME');
   assert.equal(await evalJs('document.querySelectorAll("[data-key=poll-retry]").length'), 0, 'UI_V2_HOME: successful stop resumes polling to completion');
-  // Service-owned text is renamed by N8; keep the frozen fixture and screenshot inputs intact.
+  // Exercise the service response with the current product name.
   const renamedTrends = structuredClone(f.v2_trends);
   for (const forecast of renamedTrends.forecast) if (forecast.note_zh) forecast.note_zh = forecast.note_zh.replaceAll('Water', 'Flick');
   await reset({trends:renamedTrends});
@@ -271,7 +279,7 @@ test('ui_v2_home_scan', async () => {
 });
 
 test('ui_v2_conclusion', async () => {
-  // W12: the card menu follows menu.skip (supersedes M6 addendum 02, which ignored it).
+  // Offer the skip action only when the service supplies it.
   const cardSkips = structuredClone(f.v2_conclusion_typical); cardSkips.cards[1].menu = cardSkips.cards[1].menu.filter(m => m !== 'skip');
   await results({reverseCards:true, conclusion:cardSkips});
   assert.deepEqual(await evalJs('[...document.querySelectorAll(".judgment")].map(n=>n.dataset.card)'), [...f.v2_conclusion_typical.cards].reverse().map(c=>c.card_id), 'UI_V2_CONCLUSION: preserve all card order, never resort by bytes');
@@ -284,7 +292,12 @@ test('ui_v2_conclusion', async () => {
   await wait(`window.__waterTest.calls.filter(x=>x.command==="conclusion_get").length>${reads}`, 'UI_W12_SKIP');
   assert.deepEqual(await lastCall('skip_unit_add'), {command:'skip_unit_add', args:{conclusionVersion:cardSkips.version, unitId:skipCard.card_id}}, 'UI_W12_SKIP: a card skip sends exactly skip_unit_add {conclusionVersion, unitId: card_id}');
   assert.equal(await callCount('skip_add'), 0, 'UI_W12_SKIP: a card skip never sends skip_add');
-  await wait('document.querySelector(".warning.stale")', 'UI_W12_SKIP');
+  await wait('!document.querySelector("[data-key=clean-prepare]:disabled")', 'UI_W13_FRESH');
+  assert.equal(await evalJs('document.querySelectorAll(".warning.stale").length'), 0, 'UI_W13_FRESH: skipping a card keeps the conclusion fresh');
+  assert.deepEqual(await evalJs('[...document.querySelectorAll(".judgment")].map(n=>n.dataset.card)'), [...cardSkips.cards].reverse().filter(c => c.card_id !== skipCard.card_id).map(c => c.card_id), 'UI_W13_FRESH: only the skipped card disappears, service order is retained');
+  await click('clean-prepare');
+  assert.equal((await lastCall('clean_prepare')).args.conclusionVersion, 'cv-16Z-5d2b-2', 'UI_W13_FRESH: skipping a card rereads the incremented conclusion version');
+  await key('Escape');
   await results(); await checkPrimary(); await shot('results');
   await click(`card-menu-${f.v2_conclusion_typical.cards[0].group_id}`); await shot('menu'); await key('Escape');
   assert.equal(await evalJs('document.querySelectorAll(".judgment").length'), 5, 'UI_V2_CONCLUSION: all five supplied cards');
@@ -573,7 +586,10 @@ test('ui_v2_pages_layout_a11y', async () => {
   await click('settings-skip'); await wait('document.querySelector("[data-key^=skip-remove-]")');
   assert.deepEqual(await evalJs('[...document.querySelectorAll(".settings-content .row")].map(r=>[r.querySelector("strong").textContent,r.querySelector(".sub").textContent])'), (await evalJs(`import('/format.mjs').then(m=>${JSON.stringify(f.w12_locations.skipped.map(x => x.added_at))}.map(m.localDateKey))`)).map((day, i) => [f.w12_locations.skipped[i].display_zh, `加入于 ${day}`]), 'UI_W12_SKIP: the skip list shows display_zh and the date it was added');
   await shot('settings-skip');
+  const emptyReads = await callCount('conclusion_get');
   await click('skip-remove-s-000001'); assert.equal((await lastCall('skip_remove')).args.skipId, 's-000001', 'UI_V2_PAGES: remove skip ID');
+  await wait('!document.querySelector("[data-key=skip-remove-s-000001]")', 'UI_W13_FRESH');
+  assert.equal(await callCount('conclusion_get'), emptyReads, 'UI_W13_FRESH: removing a skip before loading a conclusion does not fetch one');
   await click('settings-decl'); await wait('document.querySelector("[data-key^=trust-]")'); await shot('settings-decl');
   const trust = f.v2_locations.manifests.find(m=>m.state==='untrusted'); await click('trust-' + trust.manifest_id); assert.deepEqual((await lastCall('manifest_trust')).args, {manifestId:trust.manifest_id, trusted:true}, 'UI_V2_PAGES: trust declaration');
   await click('settings-about'); await wait('document.body.textContent.includes("可重新下载不等于可回滚")');
@@ -589,6 +605,27 @@ test('ui_v2_pages_layout_a11y', async () => {
   assert.equal(diagnostics, `Flick 诊断信息\n${JSON.stringify({app:info, platform:agent, service:f.w12_diagnostics}, null, 2)}`, 'UI_W12_ABOUT: diagnostics are app_info, the platform and diagnostics_get as JSON');
   await reset({locations:'v2_locations'}, 'settings/skip'); await wait('document.querySelector("[data-key^=skip-remove-]")', 'UI_W12_SKIP');
   assert.deepEqual(await evalJs('[...document.querySelectorAll(".settings-content .row strong")].map(n=>n.textContent)'), f.v2_locations.skipped.map(x => x.display_path), 'UI_W12_SKIP: without display_zh the skip list falls back to display_path');
+  const skippedConclusion = structuredClone(f.v2_conclusion_typical); skippedConclusion.cards.shift();
+  await results({conclusion:skippedConclusion});
+  await click('nav-settings'); await wait('document.querySelector("[data-key=settings-skip]")', 'UI_W13_FRESH'); await click('settings-skip'); await wait('document.querySelector("[data-key=skip-remove-s-000001]")', 'UI_W13_FRESH');
+  const skipReads = await callCount('conclusion_get');
+  await control(`c.nextConclusion=${JSON.stringify(f.v2_conclusion_typical)}`);
+  await click('skip-remove-s-000001'); await wait('!document.querySelector("[data-key=skip-remove-s-000001]") && !document.querySelector("[data-key=skip-remove-s-000002]:disabled")', 'UI_W13_FRESH');
+  assert.equal(await callCount('conclusion_get'), skipReads + 1, 'UI_W13_FRESH: removing a skip rereads the conclusion exactly once');
+  assert.deepEqual((await control('return c.calls.slice(-2)')).map(x => x.command), ['skip_remove', 'conclusion_get'], 'UI_W13_FRESH: the conclusion is fetched after skip removal succeeds');
+  await click('nav-home'); await pageIs('results');
+  assert.equal(await evalJs('document.body.textContent.includes("结果已过期 · 重新体检")'), false, 'UI_W13_FRESH: removing a skip does not mark the conclusion stale');
+  assert.equal(await evalJs('document.querySelector("[data-key=clean-prepare]").disabled'), false, 'UI_W13_FRESH: cleanup remains available after removing a skip');
+  assert.deepEqual(await evalJs('[...document.querySelectorAll(".judgment")].map(n=>n.dataset.card)'), f.v2_conclusion_typical.cards.map(c=>c.card_id), 'UI_W13_FRESH: the restored card is drawn from the new conclusion');
+  await click('clean-prepare');
+  assert.equal((await lastCall('clean_prepare')).args.conclusionVersion, 'cv-16Z-5d2b-2', 'UI_W13_FRESH: cleanup uses the refreshed conclusion version'); await key('Escape');
+  await click('nav-settings'); await wait('document.querySelector("[data-key=settings-skip]")', 'UI_W13_FRESH'); await click('settings-skip'); await wait('document.querySelector("[data-key=skip-remove-s-000002]")', 'UI_W13_FRESH');
+  await control('c.noConclusion=true');
+  const missingReads = await callCount('conclusion_get');
+  await click('skip-remove-s-000002'); await wait('!document.querySelector("[data-key=skip-remove-s-000002]")', 'UI_W13_FRESH');
+  assert.equal(await callCount('conclusion_get'), missingReads + 1, 'UI_W13_FRESH: a missing conclusion is checked once after removal');
+  await click('nav-home'); await pageIs('home');
+  assert(await evalJs('document.querySelector("#notice").hidden && !document.querySelector("[data-key=scan-start]").disabled'), 'UI_W13_FRESH: not_found returns to usable home without an error or the cached conclusion');
   for (const [old, dest] of [['results', 'home'], ['locations', 'settings/content'], ['about', 'settings/about']]) { await evalJs(`location.hash=${JSON.stringify(old)}`); await wait(`location.hash===${JSON.stringify('#' + dest)}`, 'UI_V2_PAGES'); }
   await results(); await detail('codex-runtimes');
   await key('Tab', true); assert(await evalJs('document.querySelector("dialog").contains(document.activeElement)'), 'UI_V2_PAGES: backward focus stays in dialog');
