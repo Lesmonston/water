@@ -44,6 +44,10 @@ jobs:
         run: cargo fmt --manifest-path ${{ matrix.crate }}/Cargo.toml -- --check
       - name: Clippy
         run: cargo clippy --locked --manifest-path ${{ matrix.crate }}/Cargo.toml --all-targets -- -D warnings
+      - name: Test fixtures
+        # native-root and scope-registry read small junction fixtures from .local/; this creates them and sets the
+        # index variables for the next step.
+        run: node scripts/ci/prepare-test-fixtures.mjs
       - name: Test
         run: cargo test --locked --manifest-path ${{ matrix.crate }}/Cargo.toml
 

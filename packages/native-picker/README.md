@@ -31,17 +31,16 @@ unsafe 限于 `src/native_windows.rs`；其余模块和测试禁止 unsafe。
 错误文本不会加入路径或 HRESULT。SelectedScope 无公开构造器、序列化、
 Clone、Debug 或 Default，也不会经 HTTP/IPC 暴露能力。
 
-验证通过本票冻结工具执行：
+测试会弹出真实的文件夹对话框，由驱动脚本自动点按，并要事先准备好空目录索引（`WATER_PICKER_INDEX`），所以 CI 只编译不运行：
 
 ```powershell
-node scripts/parallel-wave-check.mjs --task WATER-W1-S --mode suite
+cargo test --locked --manifest-path packages/native-picker/Cargo.toml --no-run
 ```
 
 五项测试从 WATER_PICKER_INDEX 读取本树固定空目录索引；真实取消、确认、
 full/duplicate 失败和 P 生命周期均由冻结驱动操作当前测试 PID 的系统按钮。
 测试只用已准备的四空目录/一 junction，普通内容为 0 字节，不创建或清理夹具。
 三项生产负控分别破坏取消映射、scope ID 传递和返回前登记存活状态。
-完整日志、先红、最终字节重放和恢复哈希在 S 工单回执及证据目录中。
 
 这是 Windows 受控范围验证。COM 分配失败、宿主 apartment 冲突、恶意并发
 替换和不同初始目录的人工导航未做故障注入；错误分支和所有权按源码审阅。

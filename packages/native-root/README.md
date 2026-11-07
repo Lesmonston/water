@@ -8,4 +8,4 @@ Windows 目录元数据与句柄身份观察，冻结接口见 [SPEC](../../cont
 
 身份是观察时的卷序列号及 128 位文件 ID，不能当作永久唯一标识。祖先预检仍有并发替换窗口；`authorization_granted`、`traversal_allowed`、`race_protection_verified` 始终为 false。此库不授权选择、不遍历、不扫描或删除。
 
-检查入口为 `node scripts/next-core-check.mjs --task WATER-W1-N --mode <mode>`。五个测试只读取冻结 prepare 工具生成的本树 index 与有界夹具元数据，不读取普通文件正文。Windows 合成样本检查、真实用户范围、生产竞态与 macOS 验证分别记录在任务回执，不能互相替代。
+测试前先在仓库根目录运行 `node scripts/ci/prepare-test-fixtures.mjs`：它在 `.local/` 下建好夹具，并给出 `WATER_NATIVE_ROOT_FIXTURE_INDEX`；设好这个环境变量后运行 `cargo test --locked --manifest-path packages/native-root/Cargo.toml`。五个测试只读夹具索引与有界的夹具元数据，不读取普通文件正文。真实用户范围、生产竞态与 macOS 未验证。

@@ -46,7 +46,7 @@ while (queue.length) {
   const dir = queue.shift(); if (crates.has(dir)) continue; crates.add(dir);
   for (const m of read(dir + '/Cargo.toml').toString('utf8').matchAll(/^[\w-]+\s*=\s*\{[^}\n]*\bpath\s*=\s*"([^"]+)"/gm)) queue.push(posix.normalize(dir + '/' + m[1]));
 }
-const ROOTS = [...crates, 'apps/water/ui', 'packaging/windows'];
+const ROOTS = [...crates, 'apps/water/ui', 'packaging/windows', 'scripts/ci'];
 const FILES = ['.github/workflows/ci.yml', 'rust-toolchain.toml', '.gitattributes'];
 const selected = new Set([...ROOTS.flatMap(under), ...FILES.filter(f => blobs.has(f))]);
 for (const f of FILES) if (!blobs.has(f)) throw Error('Missing ' + f);

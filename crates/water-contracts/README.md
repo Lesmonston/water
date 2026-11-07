@@ -16,8 +16,8 @@ filesystem traversal, process execution, network access or deletion interface.
 Protected ancestor validation indexes protected paths per scope and uses binary
 search instead of comparing every pair of findings.
 
-Run the assigned controller helper from the worktree root, using the commands
-in WATER-W1-A. The `contract_v1` integration target has exactly five tests and
+Run `cargo test --locked --manifest-path crates/water-contracts/Cargo.toml` from
+the repository root. The `contract_v1` integration target has exactly five tests and
 consumes the frozen synthetic fixtures; it never reads user directories.
 
 The implementation is tested on Windows. macOS execution is unverified.

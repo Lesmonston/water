@@ -33,9 +33,9 @@ backs `orphans` and `ProcessSummary::descendant_pids`.
 Windows x64 only for a live snapshot; other targets return `ProcError::Unsupported`.
 macOS is unverified.
 
-The assigned test target is `tests/process_v1.rs` (`process_v1`). Run the
-wave checker from the worktree root:
+The test target is `tests/process_v1.rs` (`process_v1`). Run it from the
+repository root:
 
 ```powershell
-node F:/new/smaltalk/water/scripts/checkup-wave-check.mjs --task WATER-W8-K1 --mode test
+cargo test --locked --manifest-path packages/process-scan/Cargo.toml
 ```

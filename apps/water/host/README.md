@@ -126,11 +126,10 @@ which fails before any dialog can open.
 `water-desktop` and `water_desktop`. UI assets are read-only. The
 current frontendDist also embeds frontend tests, as acknowledged by HOST section 7.
 
-Run only the assigned controller gate from the worktree root:
+Run the tests from the repository root:
 
 ```powershell
-node F:/new/smaltalk/water/scripts/desktop-wave-check.mjs --task WATER-W12-P3 --mode check
-node F:/new/smaltalk/water/scripts/desktop-wave-check.mjs --task WATER-W12-P3 --mode test
+cargo test --locked --manifest-path apps/water/host/Cargo.toml
 ```
 
 The unique `host_v1` target has five tests, with synthetic data only under this

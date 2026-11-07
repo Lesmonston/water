@@ -66,5 +66,5 @@ execute and quarantine reject duplicate or ancestor/descendant item paths, using
 case-insensitive path components, before resolving filesystem identities or writing a journal.
 JSON parsing and all public interfaces retain their existing contracts.
 
-Use the controller-owned WATER-W11-N3 gate for lock/check/test/real, negative controls,
-final checks and archival before submission. Independent controller review is still required.
+Run `cargo test --locked --manifest-path packages/junk-clean/Cargo.toml` from the repository root.
+The tests create their fixtures under `.local/` in the checkout and remove only what they created.

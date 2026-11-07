@@ -56,7 +56,7 @@
 | J1 扫描 | `packages/junk-scan` | 中门（影响哪些条目可清） | sol |
 | S1 服务 | `packages/water-service` | 中门 | sol |
 | R1 规则 | `packages/junk-rules` | 轻门 | sol |
-| U1 界面样例 | 三份 `ui-fixtures*.json` 与 `apps/water/ui/tests` | 轻门，含浏览器 | opus |
+| U1 界面样例 | 三份 `ui-fixtures*.json` 与 `apps/water/ui/tests` | 轻门，含浏览器 | astra（用户 11-08 派） |
 
 - 四张按目录切开，可以同时做。
 - 契约 [W13](../../../contracts/w13-v1/W13.md) 一份，已冻结。

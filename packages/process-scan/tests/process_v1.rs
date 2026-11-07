@@ -620,22 +620,22 @@ fn process_path_reference() {
     }
 
     let msys_cases = [
-        (r"bash -l /f/new/denglou/_ctl/server_up.sh", true),
-        (r#"node "/f/new/denglou/_ctl/x.js""#, true),
-        (r"tool --dir=/f/new/denglou/_ctl", true),
-        (r"bash /F/New/Denglou/_CTL/a.sh", true),
-        (r"bash /f/new/denglou/_ctlx/a.sh", false),
-        (r"bash c:/f/new/denglou/_ctl/a.sh", false),
-        (r"bash /g/new/denglou/_ctl/a.sh", false),
-        (r"bash F:\new\denglou\_ctl\a.sh", true),
-        (r"bash F:/new/denglou/_ctl/a.sh", true),
-        (r"bash \f\new\denglou\_ctl\a.sh", true),
-        (r"bash '/f/new/denglou/_ctl'", true),
-        (r"bash /f/new/denglou/_ctl tail", true),
-        (r"bash /f/new/denglou/_ctl=1", false),
-        (r"bash x/f/new/denglou/_ctl/a.sh", false),
+        (r"bash -l /f/code/demo-app/_ctl/server_up.sh", true),
+        (r#"node "/f/code/demo-app/_ctl/x.js""#, true),
+        (r"tool --dir=/f/code/demo-app/_ctl", true),
+        (r"bash /F/Code/Demo-App/_CTL/a.sh", true),
+        (r"bash /f/code/demo-app/_ctlx/a.sh", false),
+        (r"bash c:/f/code/demo-app/_ctl/a.sh", false),
+        (r"bash /g/code/demo-app/_ctl/a.sh", false),
+        (r"bash F:\code\demo-app\_ctl\a.sh", true),
+        (r"bash F:/code/demo-app/_ctl/a.sh", true),
+        (r"bash \f\code\demo-app\_ctl\a.sh", true),
+        (r"bash '/f/code/demo-app/_ctl'", true),
+        (r"bash /f/code/demo-app/_ctl tail", true),
+        (r"bash /f/code/demo-app/_ctl=1", false),
+        (r"bash x/f/code/demo-app/_ctl/a.sh", false),
         (
-            r"bash c:/f/new/denglou/_ctl/a.sh /f/new/denglou/_ctl/a.sh",
+            r"bash c:/f/code/demo-app/_ctl/a.sh /f/code/demo-app/_ctl/a.sh",
             true,
         ),
     ];
@@ -659,7 +659,7 @@ fn process_path_reference() {
             .contains(&drive_root),
         "PROCESS_M3D_MSYS: drive-root probe is present"
     );
-    for query in [r"F:\new\denglou\_ctl", "f:/NEW/Denglou/_CTL/"] {
+    for query in [r"F:\code\demo-app\_ctl", "f:/CODE/Demo-App/_CTL/"] {
         for names in [&[][..], &["cmd.exe"][..]] {
             let references = snap.references_path(query, names);
             let combined = snap.runs_from_or_references(query, names);

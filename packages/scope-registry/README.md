@@ -12,4 +12,4 @@
 
 后续原生扫描器须持有效 ScanPermit 并调用 `Registry::check_permit`，重新打开原生根后比对许可身份，按子段在句柄边界内有界遍历。这条链路本票未接入，不能仅凭序列化观察或任意路径授权。
 
-定向门只通过 `node scripts/scope-export-check.mjs --task WATER-W1-P --mode <mode>`，五项测试只读本树冻结 prepare 创建的空目录和 junction，以及 prepare 索引。无普通内容写入或夹具清理。验证范围为当前 Windows 受控合成场景；原生用户选择、强制 native refresh 失败、RootChanged 实触、生产竞态、macOS、桌面和删除未验证。
+测试前先在仓库根目录运行 `node scripts/ci/prepare-test-fixtures.mjs`：它在 `.local/` 下建好空目录与 junction，并给出 `WATER_SCOPE_FIXTURE_INDEX`；设好这个环境变量后运行 `cargo test --locked --manifest-path packages/scope-registry/Cargo.toml`。五项测试只读这些空目录、junction 与索引，不写普通内容，也不清理夹具。验证范围为当前 Windows 受控合成场景；原生用户选择、强制 native refresh 失败、RootChanged 实触、生产竞态、macOS、桌面和删除未验证。
