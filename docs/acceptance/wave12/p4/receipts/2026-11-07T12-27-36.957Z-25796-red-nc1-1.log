@@ -1,0 +1,66 @@
+{"binary":"C:\\Program Files\\nodejs\\node.exe","args":["--test","--test-concurrency=1","--test-reporter=tap","apps/water/ui/tests/browser.test.mjs"],"exitCode":1,"error":null}
+--- stdout ---
+TAP version 13
+# Subtest: ui_v2_home_scan
+ok 1 - ui_v2_home_scan
+  ---
+  duration_ms: 5306.2601
+  type: 'test'
+  ...
+# Subtest: ui_v2_conclusion
+not ok 2 - ui_v2_conclusion
+  ---
+  duration_ms: 316.1568
+  type: 'test'
+  location: 'F:\\new\\smaltalk\\water\\.worktrees\\w12-p4\\apps\\water\\ui\\tests\\browser.test.mjs:273:1'
+  failureType: 'testCodeFailure'
+  error: |-
+    UI_W12_SKIP: a card offers 以后都跳过 exactly when its menu has skip
+    
+    false !== true
+    
+  code: 'ERR_ASSERTION'
+  name: 'AssertionError'
+  expected: true
+  actual: false
+  operator: 'strictEqual'
+  stack: |-
+    TestContext.<anonymous> (file:///F:/new/smaltalk/water/.worktrees/w12-p4/apps/water/ui/tests/browser.test.mjs:280:12)
+    async Test.run (node:internal/test_runner/test:1313:7)
+    async Test.processPendingSubtests (node:internal/test_runner/test:897:7)
+  ...
+# Subtest: ui_v2_drawer_details
+ok 3 - ui_v2_drawer_details
+  ---
+  duration_ms: 3033.6104
+  type: 'test'
+  ...
+# Subtest: ui_v2_confirm_done
+ok 4 - ui_v2_confirm_done
+  ---
+  duration_ms: 9215.7914
+  type: 'test'
+  ...
+# Subtest: ui_v2_quarantine_dedupe
+ok 5 - ui_v2_quarantine_dedupe
+  ---
+  duration_ms: 16698.1978
+  type: 'test'
+  ...
+# Subtest: ui_v2_pages_layout_a11y
+ok 6 - ui_v2_pages_layout_a11y
+  ---
+  duration_ms: 7094.3399
+  type: 'test'
+  ...
+1..6
+# tests 6
+# suites 0
+# pass 5
+# fail 1
+# cancelled 0
+# skipped 0
+# todo 0
+# duration_ms 42256.5556
+
+--- stderr ---
