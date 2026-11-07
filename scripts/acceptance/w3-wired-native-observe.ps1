@@ -1,6 +1,7 @@
 # ASCII-only bounded observer for the wave 3 wired desktop host (F3). Observes, drives and closes
 # only its own window. Steps (UTF-8 JSON written by the gate from the manifest) wait for exact page
-# texts, invoke named buttons or links through UI Automation, and take PrintWindow images of the own
+# texts (or for a named control to go), invoke named buttons, links or menu buttons through UI
+# Automation, and take PrintWindow images of the own
 # window. No mouse or keyboard input is synthesized. Page texts are only compared in memory; the
 # evidence records which steps passed, their timing and the image files, never the page contents.
 # Child processes are recorded by name and id; command lines are checked in memory, never written.
@@ -132,7 +133,9 @@ try {
             # Buttons with aria-pressed (M3.5 location picks) are exposed as toggle buttons: toggle them instead.
             if ($target.TryGetCurrentPattern([System.Windows.Automation.InvokePattern]::Pattern, [ref]$pattern)) { $pattern.Invoke() }
             elseif ($target.TryGetCurrentPattern([System.Windows.Automation.TogglePattern]::Pattern, [ref]$pattern)) { $pattern.Toggle() }
-            else { throw ('Step ' + $index + ': control has no invoke or toggle pattern') }
+            # W12 integration 10: a card's menu button (aria-haspopup) is exposed only as expand/collapse; Expand clicks it.
+            elseif ($target.TryGetCurrentPattern([System.Windows.Automation.ExpandCollapsePattern]::Pattern, [ref]$pattern)) { $pattern.Expand() }
+            else { throw ('Step ' + $index + ': control has no invoke, toggle or expand pattern') }
         } elseif ($step.wait) {
             $entry['kind'] = 'wait'
             $limit = [DateTime]::UtcNow.AddSeconds([int]$step.seconds); $found = $null
@@ -142,6 +145,13 @@ try {
             }
             if ($null -eq $found) { throw ('Step ' + $index + ': expected text not observed') }
             if ($step.absent -and $null -ne (Named $step.absent $null)) { throw ('Step ' + $index + ': unexpected text shown') }
+            if ($step.shot) { Start-Sleep -Milliseconds 700; Shot $step.shot }
+        } elseif ($step.gone) {
+            # W12 integration 10: wait until a control with this exact name has left the page (a card after "skip from now on").
+            $entry['kind'] = 'gone'
+            $limit = [DateTime]::UtcNow.AddSeconds([int]$step.seconds); $still = Named $step.gone $null
+            while ($null -ne $still -and [DateTime]::UtcNow -lt $limit -and [DateTime]::UtcNow -lt $deadline) { Start-Sleep -Milliseconds 250; $still = Named $step.gone $null }
+            if ($null -ne $still) { throw ('Step ' + $index + ': control still shown') }
             if ($step.shot) { Start-Sleep -Milliseconds 700; Shot $step.shot }
         } else { throw ('Step ' + $index + ': unknown step') }
         $entry['passed'] = $true; $entry['ms'] = [int]([DateTime]::UtcNow - $began).TotalMilliseconds; Save-Record

@@ -1,0 +1,39 @@
+name: 规则 / Rule
+description: 一个没认出来的大目录，或一条清得不对的规则 / A large folder Flick does not recognise, or a rule that gets it wrong
+labels: [rules]
+body:
+  - type: markdown
+    attributes:
+      value: |
+        请把路径里的用户名换成 alice 之类 / Replace your user name in paths with something like alice.
+  - type: input
+    id: path
+    attributes:
+      label: 路径的样子 / Path shape
+      placeholder: C:\Users\alice\AppData\Local\SomeTool\cache
+    validations:
+      required: true
+  - type: input
+    id: owner
+    attributes:
+      label: 哪个程序产生的 / Which program writes it
+  - type: input
+    id: size
+    attributes:
+      label: 大约多大，长得快吗 / Roughly how large, and how fast it grows
+  - type: textarea
+    id: safety
+    attributes:
+      label: 删了会怎样 / What happens if it is deleted
+      description: 会自动重新生成？要重新下载？会丢登录或设置？ / Regenerated automatically? Downloaded again? Lost logins or settings?
+    validations:
+      required: true
+  - type: textarea
+    id: sources
+    attributes:
+      label: 依据 / Sources
+      description: 官方文档链接，或你看到的情况 / Official docs, or what you observed
+  - type: input
+    id: rule
+    attributes:
+      label: 现有规则 ID（如果是改规则）/ Existing rule id (if changing one)

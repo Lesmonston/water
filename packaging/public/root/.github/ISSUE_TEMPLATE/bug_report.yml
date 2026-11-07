@@ -1,0 +1,38 @@
+name: 问题 / Bug
+description: Flick 出错、卡住或结果不对 / Flick failed, hung or showed a wrong result
+labels: [bug]
+body:
+  - type: markdown
+    attributes:
+      value: |
+        删除或移动了不该动的东西，请不要在这里报，按 SECURITY.md 私下报告。
+        If Flick deleted or moved something it should not have, report it privately as described in SECURITY.md instead.
+        请把路径里的用户名换掉 / Replace your user name in any path.
+  - type: input
+    id: version
+    attributes:
+      label: 版本 / Version
+      description: 设置 → 关于与隐私 → 版本旁的“复制” / Settings → About & privacy → Copy next to the version
+    validations:
+      required: true
+  - type: input
+    id: windows
+    attributes:
+      label: Windows 版本 / Windows version
+      placeholder: Windows 11 24H2
+  - type: textarea
+    id: what
+    attributes:
+      label: 发生了什么，你原本以为会怎样 / What happened, and what you expected
+    validations:
+      required: true
+  - type: textarea
+    id: steps
+    attributes:
+      label: 怎么重现 / Steps to reproduce
+  - type: textarea
+    id: diagnostics
+    attributes:
+      label: 诊断信息 / Diagnostics
+      description: 设置 → 关于与隐私 →“复制诊断信息”，不含路径 / Settings → About & privacy → Copy diagnostics (no paths)
+      render: json
