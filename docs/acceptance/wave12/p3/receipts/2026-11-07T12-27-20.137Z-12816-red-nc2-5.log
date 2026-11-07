@@ -1,0 +1,32 @@
+{"binary":"C:\\Users\\37310\\.rustup\\toolchains\\1.95.0-x86_64-pc-windows-msvc\\bin\\cargo.exe","args":["--config","source.crates-io.replace-with=\"water-cn\"","--config","source.water-cn.registry=\"sparse+https://mirrors.ustc.edu.cn/crates.io-index/\"","--config","http.multiplexing=false","--config","http.proxy=\"\"","test","--offline","--locked","--manifest-path","apps/water/host/Cargo.toml","--test","host_v1","--","--test-threads=1"],"exitCode":101,"error":null}
+--- stdout ---
+
+running 5 tests
+test host_command_registry ... FAILED
+test host_config_boundary ... ok
+test host_data_directory ... ok
+test host_navigation_boundary ... ok
+test host_service_wiring ... ok
+
+failures:
+
+---- host_command_registry stdout ----
+
+thread 'host_command_registry' (32216) panicked at tests\host_v1.rs:643:5:
+assertion `left == right` failed: HOST_W12_INFO exact host-owned app info including package version
+  left: Object {"homepage": String("https://github.com/dfan0519-tech/flick"), "license": String("MIT OR Apache-2.0"), "name": String("Flick"), "version": String("9.9.9")}
+ right: Object {"homepage": String("https://github.com/dfan0519-tech/flick"), "license": String("MIT OR Apache-2.0"), "name": String("Flick"), "version": String("0.1.0")}
+note: run with `RUST_BACKTRACE=1` environment variable to display a backtrace
+
+
+failures:
+    host_command_registry
+
+test result: FAILED. 4 passed; 1 failed; 0 ignored; 0 measured; 0 filtered out; finished in 13.19s
+
+
+--- stderr ---
+   Compiling water-desktop v0.1.0 (F:\new\smaltalk\water\.worktrees\w12-p3\apps\water\host)
+    Finished `test` profile [unoptimized + debuginfo] target(s) in 12.50s
+     Running tests\host_v1.rs (.local\w3-target\debug\deps\host_v1-2ac300bd573e4d1f.exe)
+error: test failed, to rerun pass `--test host_v1`
