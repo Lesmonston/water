@@ -5962,9 +5962,12 @@ fn m35_clean_split() {
         "clean_start",
         json!({"planId":p["plan_id"],"confirmToken":p["confirm_token"]}),
     );
+    // W12 integration (controller, user-approved test-only migration): the test journal fails the quarantine's
+    // "moved" line after old.exe was moved. With the W12-P1 executor the move batch returns its report with
+    // journal_error instead of Err(Journal), so the service saves the moved item and stops the run.
     assert_eq!(
         wait(&s, "clean_progress")["state"],
-        "completed",
+        "stopped",
         "SERVICE_M35_CLEAN: journal failure state"
     );
     let recorded = call(&s, "clean_result", json!({"cleanId":id["clean_id"]}));
@@ -5974,12 +5977,18 @@ fn m35_clean_split() {
             .unwrap()
             .iter()
             .any(|g| g["group_id"] == "downloads-installers"
-                && g["status"] == "failed"
+                && g["status"] == "quarantined"
                 && g["notes_zh"]
                     .as_array()
                     .unwrap()
-                    .contains(&json!("没能放进隔离区：journal write failed"))),
+                    .contains(&json!("1 项进了隔离区"))),
         "SERVICE_M35_CLEAN: journal failure message"
+    );
+    assert!(
+        recorded["journal_note_zh"]
+            .as_str()
+            .is_some_and(|n| n.starts_with("清理日志没写全")),
+        "SERVICE_W12_RECORD: journal note after the move"
     );
     assert!(
         util::bytes(&recorded["freed_bytes"]) > 0,
@@ -5987,7 +5996,7 @@ fn m35_clean_split() {
     );
     assert_eq!(
         call(&s, "quarantine_list", json!({}))["cards"][0]["restorable"],
-        false,
+        true,
         "SERVICE_M35_CLEAN: disk reconciliation"
     );
 
