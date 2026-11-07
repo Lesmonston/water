@@ -1,0 +1,753 @@
+#![forbid(unsafe_code)]
+
+use std::fs::{self, OpenOptions};
+use std::io::{Seek, SeekFrom, Write};
+use std::os::windows::fs::{MetadataExt, OpenOptionsExt};
+use std::path::{Path, PathBuf};
+use std::sync::{
+    Mutex,
+    atomic::{AtomicBool, Ordering},
+};
+use std::time::{Duration, SystemTime, UNIX_EPOCH};
+use water_dup_finder::*;
+
+#[derive(Default)]
+struct Observe(Mutex<Vec<DupProgress>>);
+impl DupObserver for Observe {
+    fn on_progress(&self, p: &DupProgress) {
+        self.0.lock().unwrap().push(p.clone());
+    }
+}
+struct Fixture {
+    root: PathBuf,
+    parent: PathBuf,
+    junctions: Vec<PathBuf>,
+    offline: Vec<PathBuf>,
+}
+impl Fixture {
+    fn new() -> Self {
+        let parent = Path::new(env!("CARGO_MANIFEST_DIR"))
+            .ancestors()
+            .nth(2)
+            .unwrap()
+            .join(".local")
+            .canonicalize()
+            .unwrap();
+        let parent = PathBuf::from(
+            parent
+                .to_string_lossy()
+                .strip_prefix(r"\\?\")
+                .unwrap_or(&parent.to_string_lossy()),
+        );
+        let stamp = SystemTime::now()
+            .duration_since(UNIX_EPOCH)
+            .unwrap()
+            .as_nanos();
+        let root = parent.join(format!("water-w10-m8-{}-{stamp}", std::process::id()));
+        fs::create_dir(&root).unwrap();
+        Self {
+            root,
+            parent,
+            junctions: Vec::new(),
+            offline: Vec::new(),
+        }
+    }
+    fn dir(&self, name: &str) -> PathBuf {
+        let p = self.root.join(name.replace('/', "\\"));
+        fs::create_dir_all(&p).unwrap();
+        p
+    }
+    fn write(&self, name: &str, bytes: &[u8]) -> PathBuf {
+        let p = self.root.join(name.replace('/', "\\"));
+        fs::create_dir_all(p.parent().unwrap()).unwrap();
+        fs::write(&p, bytes).unwrap();
+        p
+    }
+    fn junction(&mut self, path: PathBuf, target: &Path) {
+        assert!(
+            path.starts_with(&self.root) && target.starts_with(&self.root),
+            "DUP_GROUPS: junction bounds"
+        );
+        let out = std::process::Command::new("cmd")
+            .args(["/c", "mklink", "/J"])
+            .arg(&path)
+            .arg(target)
+            .output()
+            .unwrap();
+        assert!(out.status.success(), "DUP_GROUPS: junction creation");
+        self.junctions.push(path);
+    }
+    fn set_offline(&mut self, path: &Path) {
+        let script = format!(
+            "$p='{}'; [IO.File]::SetAttributes($p,([IO.File]::GetAttributes($p) -bor 0x1000))",
+            path.to_string_lossy().replace('\'', "''")
+        );
+        let out = std::process::Command::new("powershell")
+            .args(["-NoProfile", "-NonInteractive", "-Command", &script])
+            .output()
+            .unwrap();
+        assert!(out.status.success(), "DUP_SKIPS: set Offline");
+        self.offline.push(path.into());
+        assert_ne!(
+            fs::metadata(path).unwrap().file_attributes() & 0x1000,
+            0,
+            "DUP_SKIPS: Offline fixture effective"
+        );
+    }
+}
+impl Drop for Fixture {
+    fn drop(&mut self) {
+        assert!(
+            self.root.is_absolute()
+                && self.root.parent() == Some(self.parent.as_path())
+                && self
+                    .root
+                    .file_name()
+                    .unwrap()
+                    .to_string_lossy()
+                    .starts_with("water-w10-m8-"),
+            "DUP_SKIPS: owned cleanup bounds"
+        );
+        for p in &self.offline {
+            assert!(
+                p.starts_with(&self.root),
+                "DUP_SKIPS: attribute cleanup bounds"
+            );
+            let script = format!(
+                "$p='{}'; [IO.File]::SetAttributes($p,([IO.File]::GetAttributes($p) -band (-bnot 0x1000)))",
+                p.to_string_lossy().replace('\'', "''")
+            );
+            let out = std::process::Command::new("powershell")
+                .args(["-NoProfile", "-NonInteractive", "-Command", &script])
+                .output()
+                .unwrap();
+            assert!(out.status.success(), "DUP_SKIPS: clear owned Offline");
+        }
+        for p in self.junctions.iter().rev() {
+            assert!(
+                p.starts_with(&self.root),
+                "DUP_SKIPS: junction cleanup bounds"
+            );
+            fs::remove_dir(p).unwrap();
+        }
+        fs::remove_dir_all(&self.root).unwrap();
+    }
+}
+fn options(roots: &[&Path], min_bytes: u64) -> DupOptions {
+    DupOptions {
+        roots: roots
+            .iter()
+            .map(|p| p.to_string_lossy().into_owned())
+            .collect(),
+        min_bytes,
+        prefer: Vec::new(),
+        protected: Vec::new(),
+    }
+}
+fn scan(o: &DupOptions) -> DupResult {
+    find_duplicates(
+        "fixture",
+        o,
+        &CancelFlag::default(),
+        &Observe::default(),
+        SystemTime::now(),
+    )
+    .expect("DUP_GROUPS: scan")
+}
+fn mtime(path: &Path, seconds: u64) {
+    OpenOptions::new()
+        .write(true)
+        .open(path)
+        .unwrap()
+        .set_modified(UNIX_EPOCH + Duration::from_secs(seconds))
+        .unwrap();
+}
+fn identity_ok(s: &str) -> bool {
+    s.len() == 41
+        && s.as_bytes()[8] == b':'
+        && s[..8]
+            .bytes()
+            .all(|b| b.is_ascii_digit() || (b'A'..=b'F').contains(&b))
+        && s[9..]
+            .bytes()
+            .all(|b| b.is_ascii_digit() || (b'a'..=b'f').contains(&b))
+}
+
+#[test]
+fn dup_contract() {
+    let mut f = Fixture::new();
+    let root = f.dir("scan");
+    let data = vec![7; 70001];
+    for name in ["scan/a.bin", "scan/b.bin", "scan/c.bin"] {
+        f.write(name, &data);
+    }
+    let mut tail = vec![8; 90001];
+    f.write("scan/tail-a/same.bin", &tail);
+    tail[90000] = 9;
+    f.write("scan/tail-b/SAME.BIN", &tail);
+    let mut head = vec![10; 100001];
+    f.write("scan/head-a/head.bin", &head);
+    head[0] = 11;
+    f.write("scan/head-b/HEAD.BIN", &head);
+    f.write("scan/empty", &[]);
+    f.write("scan/small", &[1]);
+    for folder in [
+        ".git",
+        ".water-quarantine",
+        "$Recycle.Bin",
+        "System Volume Information",
+    ] {
+        f.write(&format!("scan/{folder}/hidden.bin"), &data);
+    }
+    for folder in [".flick-quarantine", ".FLICK-Quarantine"] {
+        let rename = Fixture::new();
+        let root = rename.dir("scan");
+        rename.write("scan/a.bin", &data);
+        rename.write("scan/b.bin", &data);
+        let hidden = rename.write(&format!("scan/{folder}/hidden.bin"), &data);
+        let result = scan(&options(&[&root], 65537));
+        assert_eq!(
+            (
+                result.files_listed,
+                result.candidate_files,
+                result.groups.len()
+            ),
+            (2, 2, 1),
+            "DUP_W11_RENAME: {folder} excluded from listing and candidates"
+        );
+        assert_eq!(
+            result.groups[0].copies.len(),
+            2,
+            "DUP_W11_RENAME: {folder} does not add a duplicate copy"
+        );
+        assert!(
+            result.groups.iter().flat_map(|g| &g.copies).all(|c| {
+                c.path != hidden.to_string_lossy()
+                    && !c
+                        .hard_link_paths
+                        .iter()
+                        .any(|p| p == &hidden.to_string_lossy())
+            }),
+            "DUP_W11_RENAME: {folder} hidden file never enters any group"
+        );
+        let selected = scan(&options(&[hidden.parent().unwrap()], 1));
+        assert!(
+            selected.files_listed == 0
+                && selected.candidate_files == 0
+                && selected.groups.is_empty()
+                && selected.skipped.access_denied == 0,
+            "DUP_W11_RENAME: {folder} excluded when selected as the root"
+        );
+    }
+    let outside = f.dir("outside");
+    f.write("outside/copy.bin", &data);
+    f.junction(root.join("link"), &outside);
+    let o = options(&[&root], 65537);
+    let observed = Observe::default();
+    let r = find_duplicates(
+        "contract",
+        &o,
+        &CancelFlag::default(),
+        &observed,
+        UNIX_EPOCH + Duration::from_secs(946684800),
+    )
+    .unwrap();
+    assert_eq!(
+        r.groups.len(),
+        1,
+        "DUP_GROUPS: only actual content duplicates"
+    );
+    assert_eq!(
+        r.groups[0].copies.len(),
+        3,
+        "DUP_GROUPS: triple, no junction or reserved copies"
+    );
+    assert_eq!(r.groups[0].size, "70001", "DUP_GROUPS: exact size");
+    assert_eq!(r.groups[0].reclaimable_bytes, "140002", "DUP_GROUPS: bytes");
+    assert_eq!(
+        r.same_name_different, 2,
+        "DUP_GROUPS: first-byte and last-byte differences"
+    );
+    assert_eq!(
+        (r.skipped.empty, r.skipped.small),
+        (1, 1),
+        "DUP_GROUPS: empty/small"
+    );
+    assert_eq!(r.files_listed, 9, "DUP_GROUPS: traversal exclusions");
+    assert_eq!(r.candidate_files, 7, "DUP_GROUPS: size candidates");
+    assert_eq!(
+        r.groups[0].group_id,
+        format!("dup:{}:70001", &r.groups[0].hash[..16]),
+        "DUP_GROUPS: stable id"
+    );
+    assert!(
+        r.groups[0].copies.iter().all(|c| identity_ok(&c.identity)),
+        "DUP_GROUPS: identity format"
+    );
+    assert_eq!(
+        r.started_at, "2000-01-01T00:00:00Z",
+        "DUP_GROUPS: UTC start"
+    );
+    assert_eq!(
+        observed.0.lock().unwrap().last().unwrap().found_bytes,
+        140002,
+        "DUP_GROUPS: found progress"
+    );
+    let volume = std::process::Command::new("cmd")
+        .args(["/c", "vol", &root.to_string_lossy()[..2]])
+        .output()
+        .unwrap();
+    assert!(volume.status.success(), "DUP_GROUPS: volume reference");
+    let serial = volume
+        .stdout
+        .windows(9)
+        .find(|b| b[4] == b'-' && b[..4].iter().chain(&b[5..]).all(u8::is_ascii_hexdigit))
+        .map(|b| {
+            String::from_utf8(b.to_vec())
+                .unwrap()
+                .replace('-', "")
+                .to_ascii_uppercase()
+        })
+        .expect("DUP_GROUPS: volume serial");
+    assert!(
+        r.groups[0].copies.iter().all(|c| c.identity[..8] == serial),
+        "DUP_GROUPS: executor-compatible 32-bit volume"
+    );
+    let root_alias = options(&[&root.join("link")], 1);
+    let alias_only = scan(&root_alias);
+    assert!(
+        alias_only.groups.is_empty() && alias_only.skipped.reparse > 0,
+        "DUP_GROUPS: chosen root junction rejected"
+    );
+    let child = scan(&options(&[&root.join("link").join("not-present")], 1));
+    assert_eq!(
+        (child.skipped.reparse, child.skipped.access_denied),
+        (1, 0),
+        "DUP_GROUPS: ancestor junction checked before descendants"
+    );
+    let reserved = scan(&options(&[&root.join(".git").join("not-present")], 1));
+    assert_eq!(
+        (reserved.files_listed, reserved.skipped.access_denied),
+        (0, 0),
+        "DUP_GROUPS: reserved ancestor checked before descendants"
+    );
+
+    let a = f.dir("hard/a");
+    let b = f.dir("hard/b");
+    let normal = f.dir("hard/normal");
+    let first = f.write("hard/a/one.bin", &vec![12; 5000]);
+    fs::hard_link(&first, b.join("two.bin")).unwrap();
+    let links_only = scan(&options(&[&a, &b], 1));
+    assert!(
+        links_only.groups.is_empty(),
+        "DUP_GROUPS: hard links alone are one file"
+    );
+    f.write("hard/normal/third.bin", &vec![12; 5000]);
+    let links = scan(&options(&[&a, &b, &normal], 1));
+    assert_eq!(links.groups.len(), 1, "DUP_GROUPS: ordinary hard-link copy");
+    let copies = &links.groups[0].copies;
+    assert_eq!(
+        copies.len(),
+        2,
+        "DUP_GROUPS: identities deduplicate aliases"
+    );
+    let aliased = copies
+        .iter()
+        .find(|c| c.link_count == 2)
+        .expect("DUP_GROUPS: real link count");
+    assert_eq!(
+        aliased.hard_link_paths.len(),
+        1,
+        "DUP_GROUPS: alias retained"
+    );
+    assert_ne!(
+        copies[0].identity, copies[1].identity,
+        "DUP_GROUPS: distinct identity"
+    );
+    let mut per_alias = Vec::new();
+    for alias in [&a, &b] {
+        let r = scan(&options(&[alias, &normal], 1));
+        per_alias.push(
+            r.groups[0]
+                .copies
+                .iter()
+                .find(|c| c.link_count == 2)
+                .unwrap()
+                .identity
+                .clone(),
+        );
+    }
+    assert_eq!(
+        per_alias[0], per_alias[1],
+        "DUP_GROUPS: two hard-link paths share identity"
+    );
+
+    for case in 0..5 {
+        let folder = f.dir(&format!("keep/{case}"));
+        let (left, right) = if case == 3 {
+            ("z.bin", "a_copy.bin")
+        } else {
+            ("a.bin", "z.bin")
+        };
+        let p = f.write(
+            &format!("keep/{case}/{left}"),
+            &vec![20 + case; 3000 + case as usize],
+        );
+        let q = f.write(
+            &format!("keep/{case}/{right}"),
+            &vec![20 + case; 3000 + case as usize],
+        );
+        mtime(&p, 946684800);
+        mtime(&q, 946684800);
+        let mut o = options(&[&folder], 1);
+        let expected = match case {
+            0 => {
+                o.protected = vec![q.to_string_lossy().into_owned()];
+                o.prefer = vec![p.to_string_lossy().into_owned()];
+                &q
+            }
+            1 => {
+                o.prefer = vec![q.to_string_lossy().into_owned()];
+                mtime(&q, 946684802);
+                &q
+            }
+            2 => {
+                mtime(&q, 946684798);
+                &q
+            }
+            _ => &p,
+        };
+        let result = scan(&o);
+        let group = &result.groups[0];
+        assert_eq!(
+            group.copies[0].path,
+            expected.to_string_lossy(),
+            "DUP_KEEP: five-level ordering"
+        );
+        assert_eq!(group.keep_index, 0, "DUP_KEEP: first copy");
+        assert!(
+            !group.copies[0].removable && group.copies[1].removable,
+            "DUP_KEEP: suggestions only"
+        );
+    }
+    let mut o = options(&[&a, &normal], 1);
+    o.protected = vec![
+        a.to_string_lossy().into_owned(),
+        normal.to_string_lossy().into_owned(),
+    ];
+    let both = scan(&o);
+    assert_eq!(
+        both.groups[0].reclaimable_bytes, "0",
+        "DUP_KEEP: two protected"
+    );
+    assert!(
+        both.groups[0]
+            .copies
+            .iter()
+            .all(|c| c.protected && !c.removable),
+        "DUP_KEEP: all protected unremovable"
+    );
+    let mut prefixed = o.clone();
+    prefixed.roots = prefixed.roots.iter().map(|p| format!(r"\\?\{p}")).collect();
+    let prefixed_result = scan(&prefixed);
+    assert!(
+        prefixed_result.groups[0]
+            .copies
+            .iter()
+            .all(|c| c.protected && !c.removable),
+        "DUP_KEEP: ordinary protected paths cover verbatim roots"
+    );
+    let mut preferred = options(&[&a, &normal], 1);
+    preferred.prefer = vec![format!(r"\\?\{}", normal.to_string_lossy())];
+    assert!(
+        scan(&preferred).groups[0].copies[0].preferred,
+        "DUP_KEEP: verbatim preference covers ordinary root"
+    );
+    let ordered = scan(&options(&[&f.root.join("keep")], 1));
+    assert!(
+        ordered
+            .groups
+            .windows(2)
+            .all(|g| g[0].reclaimable_bytes.parse::<u64>().unwrap()
+                >= g[1].reclaimable_bytes.parse::<u64>().unwrap()),
+        "DUP_KEEP: numeric group order"
+    );
+}
+
+struct Change {
+    target: PathBuf,
+    fired: AtomicBool,
+}
+impl DupObserver for Change {
+    fn on_progress(&self, p: &DupProgress) {
+        if p.phase == "hashing"
+            && p.bytes_hashed >= 16 * 1024 * 1024
+            && p.current.as_deref() == self.target.to_str()
+            && !self.fired.swap(true, Ordering::SeqCst)
+        {
+            let mut file = OpenOptions::new().write(true).open(&self.target).unwrap();
+            file.seek(SeekFrom::End(-1)).unwrap();
+            file.write_all(&[33]).unwrap();
+            file.set_modified(UNIX_EPOCH + Duration::from_secs(2_000_000_000))
+                .unwrap();
+        }
+    }
+}
+#[test]
+fn dup_skips_and_change() {
+    let mut f = Fixture::new();
+    let offline_root = f.dir("offline");
+    let off = f.write("offline/a.bin", &vec![1; 8192]);
+    f.write("offline/b.bin", &vec![1; 8192]);
+    f.set_offline(&off);
+    let r = scan(&options(&[&offline_root], 1));
+    assert_eq!(r.skipped.offline, 1, "DUP_SKIPS: Offline counted");
+    assert!(
+        r.groups.is_empty() && r.hashed_bytes == "0",
+        "DUP_SKIPS: Offline never read"
+    );
+    let locked_root = f.dir("locked");
+    let locked = f.write("locked/a.bin", &vec![2; 8193]);
+    f.write("locked/b.bin", &vec![2; 8193]);
+    let handle = OpenOptions::new()
+        .read(true)
+        .share_mode(0)
+        .open(&locked)
+        .unwrap();
+    let r = scan(&options(&[&locked_root], 1));
+    assert_eq!(r.skipped.locked, 1, "DUP_SKIPS: locked counted");
+    assert!(r.groups.is_empty(), "DUP_SKIPS: locked absent");
+    drop(handle);
+    let change_root = f.dir("change");
+    let n = 20 * 1024 * 1024 + 1;
+    let target = f.write("change/a.bin", &vec![3; n]);
+    f.write("change/b.bin", &vec![3; n]);
+    f.write("change/c.bin", &vec![3; n]);
+    let observer = Change {
+        target: target.clone(),
+        fired: AtomicBool::new(false),
+    };
+    let r = find_duplicates(
+        "change",
+        &options(&[&change_root], 1),
+        &CancelFlag::default(),
+        &observer,
+        SystemTime::now(),
+    )
+    .unwrap();
+    assert!(
+        observer.fired.load(Ordering::SeqCst),
+        "DUP_SKIPS: change callback reached"
+    );
+    assert_eq!(
+        r.skipped.changed, 1,
+        "DUP_SKIPS: same-size time change detected"
+    );
+    assert!(
+        r.groups.len() == 1
+            && r.groups[0].copies.len() == 2
+            && r.groups[0]
+                .copies
+                .iter()
+                .all(|c| c.path != target.to_string_lossy()),
+        "DUP_SKIPS: changed file removed, stable copies retained"
+    );
+    let sparse_root = f.dir("sparse");
+    let size = 64 * 1024 * 1024 + 1;
+    for (name, last) in [("a.bin", 0u8), ("b.bin", 1)] {
+        let p = sparse_root.join(name);
+        drop(fs::File::create(&p).unwrap());
+        let out = std::process::Command::new("fsutil")
+            .args(["sparse", "setflag"])
+            .arg(&p)
+            .output()
+            .unwrap();
+        assert!(out.status.success(), "DUP_SKIPS: sparse flag");
+        let mut file = OpenOptions::new().write(true).open(&p).unwrap();
+        file.set_len(size).unwrap();
+        file.seek(SeekFrom::End(-1)).unwrap();
+        file.write_all(&[last]).unwrap();
+    }
+    let r = scan(&options(&[&sparse_root], 1));
+    assert!(r.groups.is_empty(), "DUP_SKIPS: sparse last byte differs");
+    assert_eq!(
+        r.hashed_bytes,
+        (2 * (65536 + size)).to_string(),
+        "DUP_SKIPS: hash all logical bytes including prefix and last byte"
+    );
+    assert!(
+        r.issues.windows(2).all(|i| i[0].path <= i[1].path),
+        "DUP_SKIPS: sorted issues"
+    );
+}
+
+struct CancelAtHash {
+    flag: CancelFlag,
+    listing: AtomicBool,
+    called: AtomicBool,
+}
+impl DupObserver for CancelAtHash {
+    fn on_progress(&self, p: &DupProgress) {
+        if p.phase == "listing" && p.files_listed == 1000 {
+            self.listing.store(true, Ordering::SeqCst);
+        }
+        if p.phase == "hashing" && p.current.is_some() {
+            self.called.store(true, Ordering::SeqCst);
+            self.flag.cancel();
+        }
+    }
+}
+#[test]
+fn dup_cancel_and_budget() {
+    let f = Fixture::new();
+    let root = f.dir("scan");
+    for i in 0..1001 {
+        f.write(&format!("scan/small-{i:04}"), &[1]);
+    }
+    f.write("scan/a.bin", &vec![4; 2048]);
+    f.write("scan/b.bin", &vec![4; 2048]);
+    let o = options(&[&root], 2);
+    let flag = CancelFlag::default();
+    let obs = CancelAtHash {
+        flag: flag.clone(),
+        listing: AtomicBool::new(false),
+        called: AtomicBool::new(false),
+    };
+    let r = find_duplicates("cancel", &o, &flag, &obs, SystemTime::now()).unwrap();
+    assert!(
+        obs.listing.load(Ordering::SeqCst)
+            && obs.called.load(Ordering::SeqCst)
+            && flag.is_cancelled(),
+        "DUP_CANCEL: listing cadence and first hashing callback"
+    );
+    assert_eq!(r.status, "cancelled", "DUP_CANCEL: status");
+    assert!(
+        r.groups.is_empty() && r.hashed_bytes == "0",
+        "DUP_CANCEL: no partial groups or content"
+    );
+    let done = scan(&o);
+    assert_eq!(done.status, "completed", "DUP_CANCEL: normal status");
+    assert_eq!(done.groups.len(), 1, "DUP_CANCEL: JSON fixture nonempty");
+    assert_eq!(
+        result_from_json(&result_to_json(&done)),
+        Ok(done.clone()),
+        "DUP_CANCEL: JSON round trip"
+    );
+    let mut json: serde_json::Value = serde_json::from_str(&result_to_json(&done)).unwrap();
+    json["unexpected"] = serde_json::json!(true);
+    assert_eq!(
+        result_from_json(&json.to_string()),
+        Err(DupError::Json),
+        "DUP_CANCEL: unknown JSON field"
+    );
+    let mut cases = Vec::new();
+    cases.push(options(&[&root, &root.join("child")], 1));
+    cases.push(options(
+        &[
+            &root,
+            &PathBuf::from(format!(r"\\?\{}", root.to_string_lossy())),
+        ],
+        1,
+    ));
+    cases.push(options(
+        &[
+            &root,
+            &PathBuf::from(root.to_string_lossy().to_uppercase().replace('\\', "/")),
+        ],
+        1,
+    ));
+    let mut empty = o.clone();
+    empty.roots.clear();
+    cases.push(empty);
+    let mut nine = o.clone();
+    nine.roots = vec![root.to_string_lossy().into_owned(); 9];
+    cases.push(nine);
+    let mut relative = o.clone();
+    relative.roots = vec!["relative".into()];
+    cases.push(relative);
+    let mut prefer = o.clone();
+    prefer.prefer = vec![root.to_string_lossy().into_owned(); 9];
+    cases.push(prefer);
+    let mut protected = o.clone();
+    protected.protected = vec![root.to_string_lossy().into_owned(); 1025];
+    cases.push(protected);
+    for invalid in cases {
+        assert_eq!(
+            find_duplicates(
+                "bad",
+                &invalid,
+                &CancelFlag::default(),
+                &Observe::default(),
+                SystemTime::now()
+            ),
+            Err(DupError::InvalidOptions),
+            "DUP_CANCEL: invalid options"
+        );
+    }
+    for id in ["".to_owned(), "x".repeat(65)] {
+        assert_eq!(
+            find_duplicates(
+                &id,
+                &o,
+                &CancelFlag::default(),
+                &Observe::default(),
+                SystemTime::now()
+            ),
+            Err(DupError::InvalidOptions),
+            "DUP_CANCEL: scan id bound"
+        );
+    }
+    assert_eq!(
+        DupOptions::default().min_bytes,
+        1024 * 1024,
+        "DUP_CANCEL: default minimum"
+    );
+}
+
+#[test]
+fn dup_sha256_vectors() {
+    for (input, expected) in [
+        (
+            Vec::new(),
+            "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+        ),
+        (
+            b"abc".to_vec(),
+            "ba7816bf8f01cfea414140de5dae2223b00361a396177a9cb410ff61f20015ad",
+        ),
+        (
+            b"abcdbcdecdefdefgefghfghighijhijkijkljklmklmnlmnomnopnopq".to_vec(),
+            "248d6a61d20638b8e5c026930c3e6039a33ce45964ff2167f6ecedd419db06c1",
+        ),
+        (
+            vec![b'a'; 55],
+            "9f4390f8d30c2dd92ec9f095b65e2b9ae9b0a925a5258e241c9f1e910f734318",
+        ),
+        (
+            vec![b'a'; 56],
+            "b35439a4ac6f0948b6d6f9e3c6af0f5f590ce20f1bde7090ef7970686ec6738a",
+        ),
+        (
+            vec![b'a'; 63],
+            "7d3e74a05d7db15bce4ad9ec0658ea98e3f06eeecf16b4c6fff2da457ddc2f34",
+        ),
+        (
+            vec![b'a'; 64],
+            "ffe054fe7ae0cb6dc65c3af9b61d5209f439851db43d0ba5997337df154668eb",
+        ),
+        (
+            vec![b'a'; 65],
+            "635361c48bb9eab14198e76ea8ab7f1a41685d6ad62aa9146d301d4f17eb0ae0",
+        ),
+        (
+            vec![b'a'; 1_000_000],
+            "cdc76e5c9914fb9281a1c7e284d73e67f1809a48a497200e046d39ccc7112cd0",
+        ),
+    ] {
+        assert_eq!(
+            sha256_hex(&input),
+            expected,
+            "DUP_SHA256: independent vectors"
+        );
+    }
+}
