@@ -1,0 +1,17 @@
+[
+  {"wait": "这次检查哪里？", "absent": "无法连接 Water 服务", "seconds": 60, "shot": "home"},
+  {"dump": "home"},
+  {"invoke": "常用位置", "type": "Button", "match": "contains"},
+  {"invoke": "D 盘", "type": "Button", "match": "contains"},
+  {"invoke": "Mirasim-A", "type": "Button", "match": "contains"},
+  {"dump": "home-picked", "shot": "home-picked"},
+  {"invoke": "开始体检", "type": "Button"},
+  {"wait": "放心清理", "match": "contains", "fail": "体检未能完成，请重新体检。", "seconds": 600, "shot": "conclusion"},
+  {"dump": "conclusion", "expand": true, "shot": "conclusion-open"},
+  {"invoke": "查看全部明细", "type": "Button"},
+  {"wait": "全部明细", "seconds": 30, "shot": "detail"},
+  {"dump": "detail"},
+  {"invoke": "隔离区"},
+  {"wait": "仍在原来的盘上，永久删除后才腾出空间", "seconds": 30, "shot": "quarantine"},
+  {"dump": "quarantine"}
+]
