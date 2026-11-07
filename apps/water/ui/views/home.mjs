@@ -3,7 +3,7 @@ import {dial, stems, spaceBar} from './charts.mjs';
 import {formatBytes, percent, relativeTime, byteDelta} from '../format.mjs';
 export function home(s, a) {
   const app = s.app, page = el('section', 'screen home-screen');
-  if (!app) return add(page, heading('这次检查哪里？', '磁盘体检'), empty(s.connecting ? '正在读取…' : '无法连接 Water 服务'), button('重新连接', a.connect, 'btn soft', 'reconnect', s.pending));
+  if (!app) return add(page, heading('这次检查哪里？', '磁盘体检'), empty(s.connecting ? '正在读取…' : '无法连接 Flick 服务'), button('重新连接', a.connect, 'btn soft', 'reconnect', s.pending));
   const system = app.drives.find(d => d.is_system), last = app.last_scan;
   add(page, heading('这次检查哪里？', '磁盘体检', [system && metric(system.free_bytes, `${system.root.slice(0, 1)} 盘可用`), last && metric(last.recommended_bytes, '上次可清'), app.quarantine && metric(app.quarantine.bytes, '隔离区')]));
   if (system) add(page, spaceBar(system));

@@ -52,6 +52,6 @@ export function details(s, a) {
     }
     add(list, part);
   }
-  const main = add(card('本次清理', 'dark main-card'), metric(view.plan_bytes), el('p', 'sub', '勾选交给 Water 重新核对'), add(el('div', 'bottom'), button(`清理所选 ${formatBytes(view.plan_bytes)}`, a.prepare, 'btn primary', 'details-prepare', a.busy() || s.conclusion.stale || BigInt(view.plan_bytes) === 0n)));
+  const main = add(card('本次清理', 'dark main-card'), metric(view.plan_bytes), el('p', 'sub', '勾选交给 Flick 重新核对'), add(el('div', 'bottom'), button(`清理所选 ${formatBytes(view.plan_bytes)}`, a.prepare, 'btn primary', 'details-prepare', a.busy() || s.conclusion.stale || BigInt(view.plan_bytes) === 0n)));
   return add(page, add(layout, list, main));
 }

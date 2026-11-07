@@ -22,7 +22,7 @@ const busy = () => s.pending || s.busy !== 'idle' || !s.app;
 const checkupIsReturn = () => s.route === 'home' && s.busy === 'idle' && ['dedupe', 'done'].includes(s.mode);
 function fail(error, scope) {
   if (error?.code === 'stale' && scope === 'conclusion') { markStale(); s.modal = null; s.preview = null; }
-  s.error = error?.message_zh || (error?.code === 'unavailable' ? '无法连接 Water 服务' : 'Water 服务暂时不可用');
+  s.error = error?.message_zh || (error?.code === 'unavailable' ? '无法连接 Flick 服务' : 'Flick 服务暂时不可用');
 }
 async function run(task, scope) {
   if (s.pending) return; s.pending = true; s.error = ''; render();
@@ -206,7 +206,7 @@ const a = {
 function top() {
   const header = document.getElementById('top');
   if (!header.children.length) {
-    add(header, add(el('div', 'brand'), icon('berg'), el('span', '', 'Water')));
+    add(header, add(el('div', 'brand'), icon('flick'), el('span', '', 'Flick')));
     const nav = el('nav', 'nav', undefined, {'aria-label':'主导航'});
     for (const [id, label, glyph] of [['home', '体检', 'pulse'], ['quarantine', '隔离区', 'box'], ['trends', '趋势', 'trend'], ['history', '记录', 'history']]) {
       const link = add(el('a', '', undefined, {href:`#${id}`, 'data-route':id, 'data-key':`nav-${id}`}), icon(glyph), el('span', '', label));

@@ -1,4 +1,4 @@
-# Water WebView UI · M3.5 / design v3
+# Flick WebView UI · M3.5 / design v3
 
 原生 ES 模块，无 npm 或运行时依赖。由可信宿主提供 36 个 IPC 命令；无内置回放数据。开发测试中的假宿主只位于 tests/browser.test.mjs。
 

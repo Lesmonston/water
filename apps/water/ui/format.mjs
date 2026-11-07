@@ -7,6 +7,7 @@ export function bytes(value) {
 }
 export function formatBytes(value) {
   const n = bytes(value), abs = n < 0n ? -n : n, sign = n < 0n ? '−' : '';
+  if (n === 0n) return '0 MB';
   if (abs < MB) return `${sign}<1 MB`;
   const roundedMB = (abs + MB / 2n) / MB;
   if (abs < GB && roundedMB < 1024n) return `${sign}${count(roundedMB)} MB`;

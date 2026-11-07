@@ -4,7 +4,7 @@ import {formatBytes, relativeTime} from '../format.mjs';
 import {viewCards, cleanLabel} from '../model.mjs';
 export function results(s, a) {
   const v = s.conclusion, p = v.plan, page = el('section', 'screen conclusion');
-  add(page, heading(BigInt(p.bytes) === 0n ? '没有可以放心清理的东西' : '可以放心清理', `${v.scope.only_folder ? '这次只看了这个文件夹 · ' : ''}${v.scope.labels_zh.join('、')} · ${relativeTime(v.finished_at)}`, [metric(p.delete_bytes, '推荐直接清理'), metric(p.chosen_bytes, '你选的'), metric(p.bytes, '本次计划')]));
+  add(page, heading(BigInt(p.bytes) === 0n ? '没有可以放心清理的东西' : '可以放心清理', `${v.scope.only_folder ? '这次只看了这个文件夹 · ' : ''}${v.scope.labels_zh.join('、')} · ${relativeTime(v.finished_at)}${v.status === 'partial' ? ' · 部分完成：有的位置没有权限，或时间到了' : ''}`, [metric(p.delete_bytes, '推荐直接清理'), metric(p.chosen_bytes, '你选的'), metric(p.bytes, '本次计划')]));
   if (v.stale) add(page, el('p', 'warning stale', '结果已过期 · 重新体检'));
   add(page, proportions(p.categories.map(c => ({title:c.title_zh, bytes:c.bytes, kind:c.included ? 'sky' : 'neutral'}))));
   const grid = el('div', 'results-grid'), main = card('这次清理', 'dark main-card', [iconButton('重新体检', 'refresh', a.chooseLocations, 'rescan')]);
