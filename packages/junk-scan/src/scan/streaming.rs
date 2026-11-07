@@ -567,7 +567,9 @@ pub(super) fn walk(
                         .any(|i| i.group_id == listing_group && i.code == "budget_exhausted");
                     engine.issues.retain(|i| i.group_id != listing_group);
                     let declared = listing.children.iter().any(|c| {
-                        c.kind == Kind::File && c.name.eq_ignore_ascii_case(".water-cleanup.json")
+                        c.kind == Kind::File
+                            && (c.name.eq_ignore_ascii_case(".water-cleanup.json")
+                                || c.name.eq_ignore_ascii_case(".flick-cleanup.json"))
                     });
                     for id in &measuring {
                         let row = pending.get_mut(id).unwrap();
@@ -664,7 +666,8 @@ pub(super) fn walk(
                     {
                         for c in &listing.children {
                             if c.kind == Kind::File
-                                && c.name.eq_ignore_ascii_case(".water-cleanup.json")
+                                && (c.name.eq_ignore_ascii_case(".water-cleanup.json")
+                                    || c.name.eq_ignore_ascii_case(".flick-cleanup.json"))
                             {
                                 engine.extras.declarations.push(c.path.clone());
                             }

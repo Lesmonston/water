@@ -1,6 +1,6 @@
 # water-junk-scan
 
-Read-only Windows junk scanner for Water checkup v1.
+Read-only Windows junk scanner for Flick checkup v1.
 
 The crate locates entries from a scan plan, measures logical size and activity
 without reading file contents, classifies cleanability, and emits snapshots.
@@ -35,7 +35,7 @@ items or at least 1 GiB per day. Rates still use the exact elapsed interval.
 
 `scan` remains the default-options wrapper around `scan_full`. All modes read names and metadata only; directory listings are shared across pattern, marker, discovery and measurement work. Allocation sizes and creation times come from the same directory enumeration, with file-identity deduplication within each item.
 
-`scan_full` can additionally report leak clusters, junction references and declaration file locations. It never parses declaration contents or follows a reparse point. Cluster membership and names are descriptive; use checks, valuable-file decisions and actual cleaning belong to the service/executor. `.water-quarantine` and `.git` are never scan targets.
+`scan_full` can additionally report leak clusters, junction references and declaration file locations (`.flick-cleanup.json` and `.water-cleanup.json`, Flick first when both exist in one directory). It never parses declaration contents or follows a reparse point. Cluster membership and names are descriptive; use checks, valuable-file decisions and actual cleaning belong to the service/executor. `.flick-quarantine`, `.water-quarantine` and `.git` are never scan targets. Both quarantine names are matched without ASCII case sensitivity and remain included in `space_overview`.
 
 Six-character random suffixes require an ASCII uppercase letter and a digit or lowercase letter. File clusters exclude UUID tails and JSONL files; all clusters exclude templates containing `backup` or `bak`. A directory is excluded from cluster searches when its own name or one of its four nearest ancestors is `sessions`, `subagents`, `conversations`, `chats`, or `transcripts` (ASCII case-insensitive). Streaming candidates and final cluster assembly share these checks, including extra hash-file siblings; ordinary targets still run normally.
 

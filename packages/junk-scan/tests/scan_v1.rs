@@ -3195,6 +3195,57 @@ fn m35_clusters() {
 }
 
 fn m35_clusters_addendum() {
+    {
+        let fx = Fixture::create();
+        let now = SystemTime::now();
+        let extras = ExtrasOptions {
+            leak_clusters: true,
+            declarations: true,
+            ..ExtrasOptions::default()
+        };
+        for (case, names) in [
+            ("none", vec![]),
+            ("old", vec![".water-cleanup.json"]),
+            ("new", vec![".flick-cleanup.json"]),
+            ("mixed", vec![".FlIcK-ClEaNuP.JsOn"]),
+            ("both", vec![".flick-cleanup.json", ".water-cleanup.json"]),
+        ] {
+            for i in 0..10 {
+                write_file(&fx.join(&format!("{case}/proj-A{i:05}/data")), b"data");
+            }
+            let mut handles = vec![];
+            let mut expected = vec![];
+            for name in names {
+                let rel = format!("{case}/proj-A00000/{name}");
+                write_file(&fx.join(&rel), b"not parsed as JSON");
+                handles.push(
+                    OpenOptions::new()
+                        .read(true)
+                        .share_mode(0)
+                        .open(fx.join(&rel))
+                        .expect("SCAN_W11_RENAME: lock synthetic declaration"),
+                );
+                expected.push(fx.p(&rel));
+            }
+            let search = m35_marker_target(
+                "rename-declarations",
+                &fx.p(case),
+                json!({"kind":"dir_name","names":["never-hit"]}),
+                None,
+                "dir",
+            );
+            let (result, found) = m35_full(&plan(vec![search], vec![]), now, &extras);
+            assert_eq!(
+                found.declarations, expected,
+                "SCAN_W11_RENAME: {case} declaration locations, Flick before Water, no content reads"
+            );
+            assert_eq!(
+                result.groups.iter().filter(|g| g.cluster.is_some()).count(),
+                usize::from(case == "none"),
+                "SCAN_W11_RENAME: {case} declaration excludes one of ten cluster candidates"
+            );
+        }
+    }
     let fx = Fixture::create();
     let now = SystemTime::now();
     let old = now - Duration::from_secs(40 * 86400);
@@ -4436,6 +4487,72 @@ fn m35_rules_names() {
         clusters.groups.iter().all(|g| g.cluster.is_none()),
         "SCAN_M35_QUARANTINE: quarantine not a cluster source"
     );
+    for name in [".flick-quarantine", ".FlIcK-QuArAnTiNe"] {
+        let fx = Fixture::create();
+        fs::create_dir_all(fx.join("root")).expect("SCAN_W11_RENAME: synthetic root");
+        let all = crate::target(
+            "rename-all",
+            "confirm",
+            "custom",
+            json!({"kind":"pattern","base":fx.p("root"),"segments":["*"]}),
+            "any",
+            0,
+            0,
+        );
+        let text = plan(vec![all], vec![]);
+        let before = run_default(&text, now);
+        for i in 0..12 {
+            write_file(
+                &fx.join(&format!("root/{name}/verify-A{i:05}/data")),
+                b"stored",
+            );
+        }
+        let after = run_default(&text, now);
+        assert!(
+            after.items.is_empty(),
+            "SCAN_W11_RENAME: {name} never becomes an item"
+        );
+        assert_eq!(
+            after.visited_entries,
+            before.visited_entries + 1,
+            "SCAN_W11_RENAME: {name} counted once without entering"
+        );
+        for rel in [format!("root/{name}"), format!("root/{name}/verify-A00000")] {
+            let inside = crate::target(
+                "rename-inside",
+                "recommended",
+                "custom",
+                json!({"kind":"discovery","root":fx.p(&rel)}),
+                "any",
+                0,
+                0,
+            );
+            let empty = run_default(&plan(vec![inside], vec![]), now);
+            assert!(
+                empty.items.is_empty() && empty.issues.is_empty() && empty.visited_entries == 0,
+                "SCAN_W11_RENAME: {name} root and descendant quietly ignored"
+            );
+        }
+        let search = m35_marker_target(
+            "rename-search",
+            &fx.p("root"),
+            json!({"kind":"dir_name","names":["never-hit"]}),
+            None,
+            "dir",
+        );
+        let (clusters, _) = m35_full(
+            &plan(vec![search], vec![]),
+            now,
+            &ExtrasOptions {
+                leak_clusters: true,
+                ..ExtrasOptions::default()
+            },
+        );
+        assert!(
+            clusters.items.is_empty() && clusters.groups.iter().all(|g| g.cluster.is_none()),
+            "SCAN_W11_RENAME: {name} never becomes a cluster source"
+        );
+    }
 }
 
 fn m35_junctions_overview() {
@@ -4736,6 +4853,25 @@ fn m35_junctions_overview() {
             .any(|e| e.name == ".water-quarantine" && e.total_bytes == "6"),
         "SCAN_M35_OVERVIEW: quarantine counted"
     );
+    write_file(&fx.join("link-overview/.FlIcK-QuArAnTiNe/file"), b"stored");
+    let stored = space_overview(
+        &fx.p("link-overview"),
+        "overview",
+        &ScanOptions::default(),
+        &CancelToken::new(),
+        &Quiet,
+        now,
+    )
+    .expect("SCAN_W11_RENAME: overview includes quarantine");
+    for name in [".FlIcK-QuArAnTiNe", ".water-quarantine"] {
+        assert!(
+            stored
+                .top
+                .iter()
+                .any(|e| e.name == name && e.total_bytes == "6"),
+            "SCAN_W11_RENAME: overview counts {name} storage"
+        );
+    }
 }
 
 fn m35_sizes_compat() {
