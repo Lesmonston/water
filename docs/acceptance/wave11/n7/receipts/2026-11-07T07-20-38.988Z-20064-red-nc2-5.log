@@ -1,0 +1,31 @@
+{"binary":"C:\\Users\\37310\\.rustup\\toolchains\\1.95.0-x86_64-pc-windows-msvc\\bin\\cargo.exe","args":["test","--offline","--locked","--manifest-path","packages/dup-finder/Cargo.toml","--test","dup_v1","--","--test-threads=1"],"exitCode":101,"error":null}
+--- stdout ---
+
+running 4 tests
+test dup_cancel_and_budget ... ok
+test dup_contract ... FAILED
+test dup_sha256_vectors ... ok
+test dup_skips_and_change ... ok
+
+failures:
+
+---- dup_contract stdout ----
+
+thread 'dup_contract' (26428) panicked at tests\dup_v1.rs:209:9:
+assertion `left == right` failed: DUP_W11_RENAME: .FLICK-Quarantine excluded from listing and candidates
+  left: (3, 3, 1)
+ right: (2, 2, 1)
+note: run with `RUST_BACKTRACE=1` environment variable to display a backtrace
+
+
+failures:
+    dup_contract
+
+test result: FAILED. 3 passed; 1 failed; 0 ignored; 0 measured; 0 filtered out; finished in 23.07s
+
+
+--- stderr ---
+   Compiling water-dup-finder v0.1.0 (F:\new\smaltalk\water\.worktrees\w11-n7\packages\dup-finder)
+    Finished `test` profile [unoptimized + debuginfo] target(s) in 2.35s
+     Running tests\dup_v1.rs (.local\w2-target\dup-finder\debug\deps\dup_v1-cbef137b4a95b147.exe)
+error: test failed, to rerun pass `--test dup_v1`
