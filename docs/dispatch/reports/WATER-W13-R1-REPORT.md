@@ -1,4 +1,4 @@
-WATER-W13-R1 任务受阻，任务报告在 F:/new/smaltalk/water/.worktrees/w13-r1/docs/dispatch/reports/WATER-W13-R1-REPORT.md
+WATER-W13-R1 任务已完成，任务报告在 F:/new/smaltalk/water/.worktrees/w13-r1/docs/dispatch/reports/WATER-W13-R1-REPORT.md
 
 ## 1. 交付状态与实现
 
@@ -8,38 +8,12 @@ WATER-W13-R1 任务受阻，任务报告在 F:/new/smaltalk/water/.worktrees/w13
 - 分支：`worker/water-w13-r1`。
 - 首次 HEAD / 基线：`6b7703e84e8903d03a6c2ef0c0550187034717ac`，与 `water-w13-r1-base-20261108` 一致，开工时干净。
 - 实现提交：`5e8332871a045e51597121406860eb872b8c00f4`。
-- 实现已完成；常规 check、test、real、两条负控及各自恢复测试通过，check final 与 real final 通过。**test final 因检查器的生产快照遗漏规则 JSON 而失败，原样重跑仍失败，不能报任务完成或验收通过。**
+- 补单 01 续做起点及本次三个 final 的受测 HEAD：`504bd856890e599b1dfa66260b64320dec79d53f`，续做开工时干净；产品文件与实现提交 `5e833287` 完全一致。
+- 已按补单 01 重采两条负控及各自恢复测试，三个 final 和 archive 全部通过，原受阻已解除。本次只更新回执及归档证据；这是执行者交回完成，不代表总控验收通过。
 
-## 2. 受阻原因与最小补充
+## 2. 原受阻与修正结果
 
-`test --final` 两次在运行产品测试之前报：
-
-```text
-AssertionError [ERR_ASSERTION]: Missing valid negative control nc1
-```
-
-当前权威检查器 `scripts/checkup-wave-check.mjs` 的 `capture()`（第 98 行）只采集 `task.productionFiles`、`src/` 与测试文件。R1 在 manifest 中虽然有 `negativeControlPaths: ["packages/junk-rules/rules/windows.json"]`，却没有 `productionFiles`。因此负控准许修改规则 JSON，但它不进入 `sourceState.files` 或 `productionHash`。
-
-`proofAudit()`（第 104～105 行）要求红、绿的 `productionHash` 不同；实际两个红和恢复绿的该值均为：
-
-```text
-773dd9fec428798f84fd196377d9b47f64bc6c32354e912e80f3f0f3eef8c36c
-```
-
-它们的测试哈希也相同，且均未采集规则 JSON。不是产品断言未打红：nc1、nc2 的 cargo 均退出 101，唯一失败测试都是 `rules_seed_coverage`，失败信息均带 `RULES_W13_SOURCES`，随后精确恢复测试均为 4 绿。
-
-需总控作的最小补充：让 R1 的生产快照包含规则数据，例如在权威 manifest 的 R1 项加入：
-
-```json
-"productionFiles": ["packages/junk-rules/rules/windows.json"]
-```
-
-也可由总控作等价的检查器修正。修正后在本实现上重新采集两条红和各自恢复绿，再按顺序运行三个 final、archive，补交回执。本执行者没有改 manifest、契约、检查器或其它包，也没有通过修改 `src/` 人为制造生产哈希差异。
-
-两次失败的正式证据：
-
-- `docs/acceptance/wave13/r1/receipts/2026-11-07T16-38-31.966Z-20284-test-result.json`
-- `docs/acceptance/wave13/r1/receipts/2026-11-07T16-39-00.192Z-31712-test-result.json`
+原受阻属清单遗漏：R1 的 `negativeControlPaths` 允许改规则 JSON，但缺少 `productionFiles`，规则数据未进入生产快照，导致原红、绿的 `productionHash` 相同，两次 `test --final` 报 `Missing valid negative control nc1`。总控已按补单 01 将 `Cargo.toml`、`Cargo.lock`、`README.md` 与 `rules/windows.json` 加入 R1 的 `productionFiles`；本执行者未改清单、检查器、契约或实现。本次重采证明已有规则 JSON 快照，三个 final 均通过，详见第 8 节。旧红、绿及两次失败 final 的归档原字节均保留；失败回执前缀为 `2026-11-07T16-38-31.966Z-20284`、`2026-11-07T16-39-00.192Z-31712`，原受阻报告可在提交 `504bd856` 追溯。
 
 ## 3. 按工单逐项对照
 
@@ -53,7 +27,7 @@ AssertionError [ERR_ASSERTION]: Missing valid negative control nc1
 | 1.3 包说明 | README 的阶段表述改成功能说明，版本同步。整个包的文本检索未再发现工单号、私有文档路径、原本机项目名或原角色称呼。 |
 | 2 测试 | 在既有 `m35_seeds` 中遍历每条规则的每个本机观察，检查 `YYYY-MM-DD` 和日期后的空格、以及无两种路径分隔符；两个断言均带 `RULES_W13_SOURCES`。仍为原名的 4 个测试，无 ignore、过滤、拆分或删测。 |
 | 3 负控 | 两条均只改规则 JSON 中第一条本机观察的一处 `ref`，产品入口 `RuleSet::embedded()` 确实消费该数据；详见第 6 节。 |
-| 4 门 | 按指定入口执行，final 绑定干净实现提交；唯一未通过项为检查器负控证明审计。 |
+| 4 门 | 按指定入口执行；补单 01 的三个 final 均绑定干净 HEAD `504bd856`，负控证明审计及产品测试全部通过，产品实现仍为 `5e833287`。 |
 | 5 边界 | 产品改动仅以下三个文件；没有修改 `src/`、依赖、锁文件、系统调用、台账或其它包。无原生窗口、选择框、浏览器或删除操作。 |
 
 产品文件：
@@ -93,7 +67,7 @@ AssertionError [ERR_ASSERTION]: Missing valid negative control nc1
 
 历史合成夹具的独立版本值（如 `2026-10-26.1`）仍用于严格格式拒收和旧计划字节回归，不是当前内嵌数据版本断言，因此保留。
 
-## 5. 检查命令与结果
+## 5. 主单首次执行的检查命令与结果（历史）
 
 均从指定工作树根执行。检查命令统一为：
 
@@ -143,7 +117,7 @@ node F:/new/smaltalk/water/scripts/checkup-wave-check.mjs --task WATER-W13-R1 --
 | nc1 变异 | `7419fe973b2ddcf4cdcfb428f27a5e2f3a5413bb0aba5d656ed394afcee8568e` |
 | nc2 变异 | `4b84e50df7fb9980ad0943e2c344125f142a8e52964f1e76dd2570c8921fc459` |
 
-这些数据哈希与第 2 节的检查器 `productionHash` 含义不同。当前检查器未归档变异 JSON 快照；本回执保留具体变异、数据哈希及真实断言日志，明确报告此证据缺口，不冒充 final 已采信。
+这些数据哈希与检查器 `productionHash` 含义不同。主单首次执行时未采集变异 JSON 快照，不能作为新清单下的证明；该历史缺口已在补单 01 重采时补齐，两条变异及恢复的 JSON 快照均已归档，final 采信情况见第 8 节。
 
 ## 7. 真实冒烟、选择与未验证项
 
@@ -165,4 +139,61 @@ node F:/new/smaltalk/water/scripts/checkup-wave-check.mjs --task WATER-W13-R1 --
 - 所有 Cargo 构建与测试由指定检查器设为离线、单线程及本树私有 target。原生窗口 0、选择框 0、浏览器 0。未创建物理清理夹具，未删除任何数据。
 - 交回前只读核对工具进程及本树归属，运行中的本单工具进程为 0；没有终止其它任务的进程，未输出进程命令行。
 - 提交使用进程内 `GPT-6 <gpt-6@localhost>` 身份；不改 git 配置、远端或历史，没有 push、merge、rebase、reset、amend 或提交他人文件。
-- 此次只能交受阻回执。后续剩余工作是总控修正快照配置并重新采集证明，不能把常规 test 绿或两条红门通过当成三个 final 全部通过。
+- 首次执行曾因清单遗漏交受阻回执；补单 01 已完成重采和三个 final，当前交回状态为任务已完成。
+
+## 8. 补单 01
+
+按 `WATER-W13-R1-ADDENDUM-01-20261108.md` 从干净的 `504bd856890e599b1dfa66260b64320dec79d53f` 续做，没有修改产品文件。未重复首次 baseline、lock 或其它检查；只按补单顺序执行以下 8 个命令，检查入口及工作目录同第 5 节。
+
+### 8.1 命令与结果
+
+| 完整模式参数 | 日志前缀（UTC） | 检查器退出码 | 结果 |
+|---|---|---:|---|
+| `--mode red-nc1` | `2026-11-07T17-41-11.993Z-18208` | 0 | cargo 101；3 绿 1 红，唯一失败为 `rules_seed_coverage`，标记 `RULES_W13_SOURCES`；1.19 秒。 |
+| `--mode test` | `2026-11-07T17-41-27.043Z-8852` | 0 | nc1 恢复原字节后立即测试，4 绿；1.18 秒。 |
+| `--mode red-nc2` | `2026-11-07T17-41-57.424Z-34692` | 0 | cargo 101；3 绿 1 红，唯一失败为 `rules_seed_coverage`，标记 `RULES_W13_SOURCES`；0.92 秒。 |
+| `--mode test` | `2026-11-07T17-42-06.263Z-38892` | 0 | nc2 恢复原字节后立即测试，4 绿；1.54 秒。 |
+| `--mode check --final` | `2026-11-07T17-42-35.963Z-2004` | 0 | fmt、clippy 通过。 |
+| `--mode test --final` | `2026-11-07T17-42-42.254Z-28092` | 0 | proofAudit 通过；4 passed，0 failed，0 ignored，0 measured，0 filtered out；1.92 秒。 |
+| `--mode real --final` | `2026-11-07T17-42-49.688Z-35640` | 0 | 只读存在性冒烟通过，结果同第 7 节。 |
+| `--mode archive` | `2026-11-07T17-43-19.269Z-35644` | 0 | 累计 295 个来源文件、7,571,506 字节，本次新增 128 个来源文件。 |
+
+每次红门后第一步均为恢复 `rules/windows.json`，核对 SHA-256 为 `e1966f126de76acf23fb46977bd9576284b1b0f234c9fc48e45ad5c144db4236`，然后立即运行 test。两条红之间只有该恢复绿，没有插入其它红门。三个 final 串行运行，前后工作树均干净，所有受测 HEAD 都是 `504bd856`。没有超时或其它计时失败，没有重跑。
+
+### 8.2 新快照与生产哈希
+
+四份红、绿回执的 `sourceState.files` 均包含 `packages/junk-rules/rules/windows.json`，其快照为各自前缀后的 `-<模式>-source-3.txt`，已归档并逐项复算哈希。
+
+| 回执 | `productionHash` |
+|---|---|
+| nc1 红 | `2a33a0bb46f94c7880823eeee04c0a4c538a37d43e4093b881427e4544f38fd5` |
+| nc1 恢复绿 | `da7221563a147668255d6e2d33e165c2d3f446458df61eb806facacb31bfee53` |
+| nc2 红 | `31c7e3f0edd3b1dd38dfb84a7790aa0baafc6d880de1fe96b28a6ce248c6da99` |
+| nc2 恢复绿 | `da7221563a147668255d6e2d33e165c2d3f446458df61eb806facacb31bfee53` |
+
+两组的红、绿生产哈希各自不同，两个恢复绿与三个 final 的生产哈希一致；四份回执的 `testHash` 均为 `163719a52eeda428b6c40755f1f99835f324980687dddc69960854da5f3b81f3`，测试文件没有变化。规则 JSON 快照的哈希分别为第 6 节列出的 nc1 变异值、nc2 变异值和恢复原值，均逐字节一致。
+
+### 8.3 final 实际采信的证明
+
+`2026-11-07T17-42-42.254Z-28092-test-result.json` 的 `proofAudit` 原值如下；均为本次重采回执：
+
+```json
+[
+  {
+    "label": "nc1",
+    "red": "2026-11-07T17-41-11.993Z-18208-red-nc1-result.json",
+    "restored": "2026-11-07T17-41-27.043Z-8852-test-result.json"
+  },
+  {
+    "label": "nc2",
+    "red": "2026-11-07T17-41-57.424Z-34692-red-nc2-result.json",
+    "restored": "2026-11-07T17-42-06.263Z-38892-test-result.json"
+  }
+]
+```
+
+### 8.4 证据保留与交回边界
+
+原归档的 167 个来源文件及索引条目逐项与 `504bd856` 比对，全部保留、原字节不变，包括旧红、绿及两次失败 final。当前 295 个来源文件全部按 `ARCHIVE.json` 复算大小与 SHA-256 通过。本次 128 个新增来源文件包含此前留在 `.local` 的首次 archive 回执；本次 archive 自己的回执仍在 `.local/checks/WATER-W13-R1/`，没有手工添加或修改证据。索引与 `.gitattributes` 不计入来源文件数。
+
+本次只提交回执、更新后的归档索引和 archive 生成的新证据；产品文件与 `5e833287` 保持一致，旧证据不删不改。沿用 GPT-6 进程内提交身份，不改配置、远端、历史；不 merge、rebase 或 push。构建与测试均离线、单线程、使用本树私有 target；原生窗口 0、选择框 0、浏览器 0，没有删除操作。真实读取仅为已知目录与字面前缀的存在性检查；macOS 与完整设备扫描仍未验证。补单的两条负控和三个 final 已全部满足，没有剩余受阻项；交回后不继续测试。
