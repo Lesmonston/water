@@ -1,0 +1,330 @@
+{
+  "task": "WATER-W10-M12",
+  "mode": "test",
+  "finalGate": false,
+  "manifest": "docs/dispatch/wave10/manifest.json",
+  "startedAt": "2026-11-07T03:24:30.237Z",
+  "realDataRead": false,
+  "productTestsRun": true,
+  "commands": [
+    {
+      "binary": "git",
+      "argv": [
+        "branch",
+        "--show-current"
+      ],
+      "exitCode": 0
+    },
+    {
+      "binary": "git",
+      "argv": [
+        "merge-base",
+        "--is-ancestor",
+        "98f9678e6a49bb63b87272644dae15c721384d9c",
+        "HEAD"
+      ],
+      "exitCode": 0
+    },
+    {
+      "binary": "git",
+      "argv": [
+        "diff",
+        "--no-renames",
+        "--name-only",
+        "-z",
+        "98f9678e6a49bb63b87272644dae15c721384d9c",
+        "HEAD"
+      ],
+      "exitCode": 0
+    },
+    {
+      "binary": "git",
+      "argv": [
+        "diff",
+        "--no-renames",
+        "--name-only",
+        "-z",
+        "HEAD"
+      ],
+      "exitCode": 0
+    },
+    {
+      "binary": "git",
+      "argv": [
+        "ls-files",
+        "--others",
+        "--exclude-standard",
+        "-z"
+      ],
+      "exitCode": 0
+    },
+    {
+      "binary": "git",
+      "argv": [
+        "rev-parse",
+        "HEAD"
+      ],
+      "exitCode": 0
+    },
+    {
+      "binary": "git",
+      "argv": [
+        "status",
+        "--porcelain",
+        "--untracked-files=all"
+      ],
+      "exitCode": 0
+    },
+    {
+      "binary": "C:\\Users\\37310\\.cargo\\bin\\rustup.exe",
+      "argv": [
+        "which",
+        "cargo",
+        "--toolchain",
+        "1.95.0"
+      ],
+      "exitCode": 0,
+      "error": null,
+      "log": "2026-11-07T03-24-30.236Z-16544-test-1.log"
+    },
+    {
+      "binary": "C:\\Users\\37310\\.cargo\\bin\\rustup.exe",
+      "argv": [
+        "which",
+        "rustc",
+        "--toolchain",
+        "1.95.0"
+      ],
+      "exitCode": 0,
+      "error": null,
+      "log": "2026-11-07T03-24-30.236Z-16544-test-2.log"
+    },
+    {
+      "binary": "C:\\Users\\37310\\.rustup\\toolchains\\1.95.0-x86_64-pc-windows-msvc\\bin\\rustc.exe",
+      "argv": [
+        "--version"
+      ],
+      "exitCode": 0,
+      "error": null,
+      "log": "2026-11-07T03-24-30.236Z-16544-test-3.log"
+    },
+    {
+      "binary": "C:\\Users\\37310\\.rustup\\toolchains\\1.95.0-x86_64-pc-windows-msvc\\bin\\cargo.exe",
+      "argv": [
+        "metadata",
+        "--offline",
+        "--locked",
+        "--format-version",
+        "1",
+        "--manifest-path",
+        "packages/junk-rules/Cargo.toml"
+      ],
+      "exitCode": 0,
+      "error": null,
+      "log": "2026-11-07T03-24-30.236Z-16544-test-4.log"
+    },
+    {
+      "binary": "C:\\Users\\37310\\.rustup\\toolchains\\1.95.0-x86_64-pc-windows-msvc\\bin\\cargo.exe",
+      "argv": [
+        "test",
+        "--offline",
+        "--locked",
+        "--manifest-path",
+        "packages/junk-rules/Cargo.toml",
+        "--test",
+        "rules_v1",
+        "--",
+        "--test-threads=1"
+      ],
+      "exitCode": 0,
+      "error": null,
+      "log": "2026-11-07T03-24-30.236Z-16544-test-5.log"
+    },
+    {
+      "binary": "git",
+      "argv": [
+        "branch",
+        "--show-current"
+      ],
+      "exitCode": 0
+    },
+    {
+      "binary": "git",
+      "argv": [
+        "merge-base",
+        "--is-ancestor",
+        "98f9678e6a49bb63b87272644dae15c721384d9c",
+        "HEAD"
+      ],
+      "exitCode": 0
+    },
+    {
+      "binary": "git",
+      "argv": [
+        "diff",
+        "--no-renames",
+        "--name-only",
+        "-z",
+        "98f9678e6a49bb63b87272644dae15c721384d9c",
+        "HEAD"
+      ],
+      "exitCode": 0
+    },
+    {
+      "binary": "git",
+      "argv": [
+        "diff",
+        "--no-renames",
+        "--name-only",
+        "-z",
+        "HEAD"
+      ],
+      "exitCode": 0
+    },
+    {
+      "binary": "git",
+      "argv": [
+        "ls-files",
+        "--others",
+        "--exclude-standard",
+        "-z"
+      ],
+      "exitCode": 0
+    },
+    {
+      "binary": "git",
+      "argv": [
+        "rev-parse",
+        "HEAD"
+      ],
+      "exitCode": 0
+    },
+    {
+      "binary": "git",
+      "argv": [
+        "status",
+        "--porcelain",
+        "--untracked-files=all"
+      ],
+      "exitCode": 0
+    }
+  ],
+  "changedPaths": [
+    "docs/acceptance/wave10/m12/.gitattributes",
+    "docs/acceptance/wave10/m12/ARCHIVE.json",
+    "docs/acceptance/wave10/m12/receipts/2026-11-07T03-03-07.873Z-25592-baseline-1.log",
+    "docs/acceptance/wave10/m12/receipts/2026-11-07T03-03-07.873Z-25592-baseline-2.log",
+    "docs/acceptance/wave10/m12/receipts/2026-11-07T03-03-07.873Z-25592-baseline-3.log",
+    "docs/acceptance/wave10/m12/receipts/2026-11-07T03-03-07.873Z-25592-baseline-result.json",
+    "docs/acceptance/wave10/m12/receipts/2026-11-07T03-14-04.071Z-26168-baseline-1.log",
+    "docs/acceptance/wave10/m12/receipts/2026-11-07T03-14-04.071Z-26168-baseline-2.log",
+    "docs/acceptance/wave10/m12/receipts/2026-11-07T03-14-04.071Z-26168-baseline-3.log",
+    "docs/acceptance/wave10/m12/receipts/2026-11-07T03-14-04.071Z-26168-baseline-result.json",
+    "docs/dispatch/reports/WATER-W10-M12-REPORT.md",
+    "packages/junk-rules/README.md",
+    "packages/junk-rules/rules/windows.json",
+    "packages/junk-rules/tests/rules_v1.rs"
+  ],
+  "before": {
+    "head": "5f2b1885d750e78e2bbfe95bb2ce719e0ca64b04",
+    "status": "M packages/junk-rules/README.md\n M packages/junk-rules/rules/windows.json\n M packages/junk-rules/tests/rules_v1.rs"
+  },
+  "sourceState": {
+    "files": [
+      {
+        "path": "packages/junk-rules/Cargo.toml",
+        "snapshot": "2026-11-07T03-24-30.236Z-16544-test-source-0.txt",
+        "sha256": "b208419139ad9e00094796070ed94c874e68051718dbccae9e977ab5b2a2891f",
+        "test": false
+      },
+      {
+        "path": "packages/junk-rules/Cargo.lock",
+        "snapshot": "2026-11-07T03-24-30.236Z-16544-test-source-1.txt",
+        "sha256": "8fa9f0654764a3478f9620856784816467bea29ee9a091a2df50af3707143d0c",
+        "test": false
+      },
+      {
+        "path": "packages/junk-rules/README.md",
+        "snapshot": "2026-11-07T03-24-30.236Z-16544-test-source-2.txt",
+        "sha256": "37e90a53a25fa5083e7ed965027bc3eb1ee8cd05205d4225331dc3111383db84",
+        "test": false
+      },
+      {
+        "path": "packages/junk-rules/rules/windows.json",
+        "snapshot": "2026-11-07T03-24-30.236Z-16544-test-source-3.txt",
+        "sha256": "8245e53f439b36b1d09ba7a86044e6debd177e9691a6b22108db30e63daeeb0b",
+        "test": false
+      },
+      {
+        "path": "packages/junk-rules/src/error.rs",
+        "snapshot": "2026-11-07T03-24-30.236Z-16544-test-source-4.txt",
+        "sha256": "3b2dda7c38f28398577e76b76b44ea6b0343709f68c5d0fd5134607656655800",
+        "test": false
+      },
+      {
+        "path": "packages/junk-rules/src/folders.rs",
+        "snapshot": "2026-11-07T03-24-30.236Z-16544-test-source-5.txt",
+        "sha256": "ba28d8ddd2ef9ff2e993f3cfb7fdcb907bd27558dd23c637ccbc31ef4d9e5ce0",
+        "test": false
+      },
+      {
+        "path": "packages/junk-rules/src/lib.rs",
+        "snapshot": "2026-11-07T03-24-30.236Z-16544-test-source-6.txt",
+        "sha256": "ab64a92e86ed90b63fe9c159dcf26a68465792e35cc024b72c312c87bcd4f335",
+        "test": false
+      },
+      {
+        "path": "packages/junk-rules/src/m35.rs",
+        "snapshot": "2026-11-07T03-24-30.236Z-16544-test-source-7.txt",
+        "sha256": "7cdace2918d407371af13e9f37cbbc6a7d8ed3a695a8761a4e21e90750e4f9e4",
+        "test": false
+      },
+      {
+        "path": "packages/junk-rules/src/plan.rs",
+        "snapshot": "2026-11-07T03-24-30.236Z-16544-test-source-8.txt",
+        "sha256": "66e2ea0ed0c0b0429d1081ee85d129edbe1c429a17035b7451d8e0b46aa17d1f",
+        "test": false
+      },
+      {
+        "path": "packages/junk-rules/src/rules.rs",
+        "snapshot": "2026-11-07T03-24-30.236Z-16544-test-source-9.txt",
+        "sha256": "5348dba38602cd5d1e16718997bf44ef039437f29bd9fbe7e688cc73e51753c9",
+        "test": false
+      },
+      {
+        "path": "packages/junk-rules/src/types.rs",
+        "snapshot": "2026-11-07T03-24-30.236Z-16544-test-source-10.txt",
+        "sha256": "3777b57303133ce94e0ca81f36fcf23ee0baec56d8666d3784f778e5f397782a",
+        "test": false
+      },
+      {
+        "path": "packages/junk-rules/tests/rules_v1.rs",
+        "snapshot": "2026-11-07T03-24-30.236Z-16544-test-source-11.txt",
+        "sha256": "e05c1cd9b20b8d78a1598a4611dd068f44f5d54a7dcff6a8d30fc6c052f2335d",
+        "test": true
+      }
+    ],
+    "productionHash": "045b7fbeb7785a0684dc4309ca4ca13181657a9028a5100170c3d8557cc689b0",
+    "testHash": "885112e3f32214b9d7a54bee168822162e616928ed3eac816fbcbe637ec1b723"
+  },
+  "dependencyInventory": [
+    "itoa@1.0.18",
+    "memchr@2.8.3",
+    "proc-macro2@1.0.107",
+    "quote@1.0.47",
+    "serde@1.0.229",
+    "serde_core@1.0.229",
+    "serde_derive@1.0.229",
+    "serde_json@1.0.151",
+    "syn@3.0.9",
+    "unicode-ident@1.0.27",
+    "zmij@1.0.23"
+  ],
+  "after": {
+    "head": "5f2b1885d750e78e2bbfe95bb2ce719e0ca64b04",
+    "status": "M packages/junk-rules/README.md\n M packages/junk-rules/rules/windows.json\n M packages/junk-rules/tests/rules_v1.rs"
+  },
+  "status": "passed",
+  "error": null,
+  "endedAt": "2026-11-07T03:24:36.149Z"
+}

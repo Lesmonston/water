@@ -1,0 +1,300 @@
+//! Optional M3.5 fields and validation shared by rule and plan readers.
+use crate::RulesError;
+use crate::rules::Rule;
+use crate::types::{
+    Category, Condition, Growth, InUseMode, ItemType, Level, Locator, Marker, as_str, bounded_u32,
+    require_chars, segments_may_overlap, valid_rule_id, valid_segment,
+};
+use serde_json::{Map, Value};
+use std::collections::HashSet;
+
+#[derive(Debug, Clone, Copy, Default, PartialEq, Eq)]
+pub enum AgeBasis {
+    #[default]
+    Modified,
+    LatestCreatedOrModified,
+}
+
+impl AgeBasis {
+    pub fn as_str(self) -> &'static str {
+        match self {
+            Self::Modified => "modified",
+            Self::LatestCreatedOrModified => "latest_created_or_modified",
+        }
+    }
+}
+
+#[derive(Debug, Clone, Copy, Default, PartialEq, Eq)]
+pub enum KeepBy {
+    #[default]
+    Activity,
+    VersionName,
+}
+
+impl KeepBy {
+    pub fn as_str(self) -> &'static str {
+        match self {
+            Self::Activity => "activity",
+            Self::VersionName => "version_name",
+        }
+    }
+}
+
+#[derive(Debug, Clone, Default, PartialEq, Eq)]
+pub struct PlanOptions {
+    pub sessions: Vec<SessionSwitch>,
+}
+
+#[derive(Debug, Clone, PartialEq, Eq)]
+pub struct SessionSwitch {
+    pub tool: String,
+    pub min_age_days: u16,
+}
+
+pub(crate) const SESSION_TOOLS: [(&str, &str); 5] = [
+    ("claude-code", "claude-code-sessions"),
+    ("codex", "codex-sessions"),
+    ("cursor", "cursor-chats"),
+    ("grok", "grok-sessions"),
+    ("kimi-code", "kimi-code-sessions"),
+];
+
+pub(crate) fn optional_text(
+    map: &Map<String, Value>,
+    key: &str,
+    path: &str,
+    min: usize,
+    max: usize,
+) -> Result<Option<String>, RulesError> {
+    map.get(key)
+        .map(|value| {
+            let field_path = format!("{path}/{key}");
+            let text = as_str(value, &field_path)?;
+            require_chars(text, min, max, &field_path)?;
+            Ok(text.to_string())
+        })
+        .transpose()
+}
+
+pub(crate) fn git_is_copy(map: &Map<String, Value>, path: &str) -> Result<bool, RulesError> {
+    map.get("git_is_copy").map_or(Ok(false), |v| {
+        v.as_bool()
+            .ok_or_else(|| RulesError::new("RULES_INVALID_FIELD", format!("{path}/git_is_copy")))
+    })
+}
+
+pub(crate) fn age_basis(map: &Map<String, Value>, path: &str) -> Result<AgeBasis, RulesError> {
+    let Some(value) = map.get("age_basis") else {
+        return Ok(AgeBasis::Modified);
+    };
+    match value.as_str() {
+        Some("modified") => Ok(AgeBasis::Modified),
+        Some("latest_created_or_modified") => Ok(AgeBasis::LatestCreatedOrModified),
+        _ => Err(RulesError::new(
+            "RULES_INVALID_FIELD",
+            format!("{path}/age_basis"),
+        )),
+    }
+}
+
+pub(crate) fn keep_by(map: &Map<String, Value>, path: &str) -> Result<KeepBy, RulesError> {
+    let Some(value) = map.get("keep_by") else {
+        return Ok(KeepBy::Activity);
+    };
+    match value.as_str() {
+        Some("activity") => Ok(KeepBy::Activity),
+        Some("version_name") => Ok(KeepBy::VersionName),
+        _ => Err(RulesError::new(
+            "RULES_INVALID_FIELD",
+            format!("{path}/keep_by"),
+        )),
+    }
+}
+
+pub(crate) fn root_levels(
+    map: &Map<String, Value>,
+    mode: InUseMode,
+    path: &str,
+) -> Result<Option<u8>, RulesError> {
+    map.get("root_levels")
+        .map(|value| {
+            let field_path = format!("{path}/root_levels");
+            if mode != InUseMode::RunsFromOrReferencesItem {
+                return Err(RulesError::new("RULES_INVALID_IN_USE", field_path));
+            }
+            Ok(bounded_u32(value, 1, 6, &field_path)? as u8)
+        })
+        .transpose()
+}
+
+pub(crate) fn patterns(value: &Value, path: &str) -> Result<Vec<String>, RulesError> {
+    let items = value
+        .as_array()
+        .ok_or_else(|| RulesError::new("RULES_INVALID_LOCATE", path))?;
+    if !(1..=8).contains(&items.len()) {
+        return Err(RulesError::new("RULES_INVALID_LOCATE", path));
+    }
+    let mut seen = HashSet::new();
+    items
+        .iter()
+        .enumerate()
+        .map(|(i, value)| {
+            let item_path = format!("{path}/{i}");
+            let text = as_str(value, &item_path)?;
+            if !valid_segment(text) || !seen.insert(text.to_ascii_lowercase()) {
+                return Err(RulesError::new("RULES_INVALID_LOCATE", item_path));
+            }
+            Ok(text.to_string())
+        })
+        .collect()
+}
+
+pub(crate) fn validate_marker(
+    marker: &Marker,
+    conditions: &[Condition],
+    item_type: ItemType,
+    path: &str,
+) -> Result<(), RulesError> {
+    if matches!(marker, Marker::FileName { .. }) && item_type == ItemType::Dir {
+        return Err(RulesError::new("RULES_INVALID_ITEM_TYPE", path));
+    }
+    for condition in conditions {
+        if matches!(condition, Condition::ParentHasOtherMatch)
+            && !matches!(
+                marker,
+                Marker::DirName { .. } | Marker::DirNamePattern { .. } | Marker::FileName { .. }
+            )
+        {
+            return Err(RulesError::new("RULES_INVALID_CONDITIONS", path));
+        }
+        if matches!(marker, Marker::FileName { .. })
+            && !matches!(
+                condition,
+                Condition::ParentHasFile { .. }
+                    | Condition::ParentHasFileMatching { .. }
+                    | Condition::ParentLacksFileMatching { .. }
+                    | Condition::PathHasAny { .. }
+                    | Condition::NoAncestorSuffix { .. }
+                    | Condition::SiblingWithoutSuffix { .. }
+            )
+        {
+            return Err(RulesError::new("RULES_INVALID_CONDITIONS", path));
+        }
+    }
+    Ok(())
+}
+
+pub(crate) fn validate_rule(rule: &Rule, path: &str) -> Result<(), RulesError> {
+    let invalid = || RulesError::new("RULES_INVALID_FIELD", path);
+    if (rule.git_is_copy && !rule.level.is_cleanable())
+        || (rule.keep_by == KeepBy::VersionName && rule.keep_newest == 0)
+        || (rule.advice_zh.is_some() && rule.level != Level::Advisory)
+        || (rule.in_use_zh.is_some() && rule.in_use.mode == InUseMode::None)
+        || (rule.retention_zh.is_some() && rule.category != Category::AgentTool)
+    {
+        return Err(invalid());
+    }
+    if let Some(names) = &rule.installed_names {
+        let mut seen = HashSet::new();
+        if rule.category != Category::AppLeftover
+            || rule.level != Level::Confirm
+            || !(1..=4).contains(&names.len())
+        {
+            return Err(invalid());
+        }
+        for name in names {
+            require_chars(name, 2, 60, &format!("{path}/installed_names"))?;
+            if !seen.insert(name.to_lowercase()) {
+                return Err(invalid());
+            }
+        }
+    }
+    for locator in &rule.locate {
+        if let Locator::Marker {
+            marker, conditions, ..
+        } = locator
+        {
+            validate_marker(marker, conditions, rule.item_type, path)?;
+        }
+        if rule.category == Category::Custom
+            && rule.item_type == ItemType::File
+            && !matches!(
+                locator,
+                Locator::Marker {
+                    marker: Marker::FileName { .. },
+                    ..
+                }
+            )
+        {
+            return Err(invalid());
+        }
+    }
+    if rule.unlocks.as_ref().is_some_and(|id| !valid_rule_id(id)) {
+        return Err(invalid());
+    }
+    Ok(())
+}
+
+pub(crate) fn validate_links(rules: &[Rule]) -> Result<(), RulesError> {
+    let mut tools = HashSet::new();
+    for (index, rule) in rules.iter().enumerate() {
+        let invalid =
+            || RulesError::new("RULES_INVALID_UNLOCKS", format!("/rules/{index}/unlocks"));
+        if let Some(id) = &rule.unlocks {
+            let protected = rules
+                .iter()
+                .find(|r| &r.rule_id == id)
+                .ok_or_else(invalid)?;
+            if !rule.level.is_cleanable()
+                || rule.rule_id == *id
+                || protected.level != Level::Protected
+                || protected.category != rule.category
+            {
+                return Err(invalid());
+            }
+            for locator in &rule.locate {
+                let Locator::Pattern { base, segments } = locator else {
+                    return Err(invalid());
+                };
+                if !protected.locate.iter().any(|other| match other {
+                    Locator::Pattern {
+                        base: parent_base,
+                        segments: parent,
+                    } => {
+                        base == parent_base
+                            && segments.len() > parent.len()
+                            && segments
+                                .iter()
+                                .zip(parent)
+                                .all(|(a, b)| segments_may_overlap(a, b))
+                    }
+                    _ => false,
+                }) {
+                    return Err(invalid());
+                }
+            }
+        }
+        if let Some(tool) = &rule.session_tool {
+            let session_invalid = || {
+                RulesError::new(
+                    "RULES_INVALID_SESSIONS",
+                    format!("/rules/{index}/session_tool"),
+                )
+            };
+            let (_, protected) = SESSION_TOOLS
+                .iter()
+                .find(|(id, _)| tool == id)
+                .ok_or_else(session_invalid)?;
+            if rule.category != Category::AgentTool
+                || rule.level != Level::Confirm
+                || rule.unlocks.as_deref() != Some(*protected)
+                || rule.growth != Growth::Slow
+                || rule.min_age_hours != 720
+                || !tools.insert(tool)
+            {
+                return Err(session_invalid());
+            }
+        }
+    }
+    Ok(())
+}
