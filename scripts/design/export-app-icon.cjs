@@ -1,15 +1,16 @@
-// Export the Water app icon (DESIGN §10) from brand/water-app-icon.svg to brand/water-app-icon.ico.
-// Usage (repo root): node scripts/design/export-app-icon.cjs
+// Export an app icon SVG to a multi-size ICO next to it.
+// Usage (repo root): node scripts/design/export-app-icon.cjs [<brand folder> <name>]
+// Defaults to the Water icon (water-ui-v1 DESIGN §10); Flick (2026-11-07): docs/design/flick-brand flick-app-icon.
 // Local headless Chrome rasterises the SVG on a transparent canvas at each size (no network, no
 // downloads); the PNGs are packed into one ICO with PNG-compressed entries, smallest first.
 const fs = require('fs'), path = require('path'), {spawnSync} = require('child_process');
-const brand = 'docs/design/water-ui-v1/brand';
+const brand = process.argv[2] ?? 'docs/design/water-ui-v1/brand', name = process.argv[3] ?? 'water-app-icon';
 const sizes = [16, 24, 32, 48, 256];
 const chrome = ['C:/Program Files/Google/Chrome/Application/chrome.exe', 'C:/Program Files (x86)/Microsoft/Edge/Application/msedge.exe'].find(p => fs.existsSync(p));
 if (!chrome) throw new Error('no local Chrome or Edge');
 const tmp = path.resolve('.local/design-icon-export');
 fs.mkdirSync(tmp, {recursive: true});
-const svg = fs.readFileSync(path.join(brand, 'water-app-icon.svg'));
+const svg = fs.readFileSync(path.join(brand, name + '.svg'));
 const page = `<!doctype html><meta charset="utf-8"><pre id="out"></pre><script>
 const img = new Image();
 img.onload = () => {
@@ -42,5 +43,5 @@ pngs.forEach((p, i) => {
   offset += p.data.length;
 });
 const ico = Buffer.concat([head, ...pngs.map(p => p.data)]);
-fs.writeFileSync(path.join(brand, 'water-app-icon.ico'), ico);
-console.log(`water-app-icon.ico: ${pngs.map(p => p.size + 'px ' + p.data.length + 'B').join(', ')}; ${ico.length} bytes; PNGs in ${tmp}`);
+fs.writeFileSync(path.join(brand, name + '.ico'), ico);
+console.log(`${name}.ico:${pngs.map(p => p.size + 'px ' + p.data.length + 'B').join(', ')}; ${ico.length} bytes; PNGs in ${tmp}`);
