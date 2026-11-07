@@ -15,6 +15,7 @@ export function done(s, a) {
   const main = add(card('这次清理', 'dark main-card'), metric(r.freed_bytes, '已腾出'), el('p', 'sub', `预计 ${formatBytes(r.estimate_bytes)}`));
   if (r.quarantined) add(main, el('p', '', `另有 ${formatBytes(r.quarantined.bytes)} 在隔离区，确认没问题后再永久删除`), r.quarantined.notes_zh.map(n => el('p', 'sub', n)));
   if (r.groups.some(g => ['partial', 'skipped', 'failed'].includes(g.status))) add(main, el('p', 'warning', '部分完成，请查看各组结果。'));
+  if (r.journal_note_zh) add(main, el('p', 'warning', r.journal_note_zh));
   add(main, add(el('div', 'bottom action-stack'), r.quarantined && button('去隔离区', () => a.navigate('quarantine'), 'btn ghost', 'done-quarantine'), button('完成', a.finish, 'btn primary', 'done-finish')));
   return add(page, add(grid, content, main));
 }

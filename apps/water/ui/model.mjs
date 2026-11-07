@@ -1,4 +1,5 @@
 export const levels = Object.freeze({recommended:'放心清', confirm:'要你看', advisory:'只统计', protected:'受保护', unrecognized:'未识别'});
+export const clusterStates = Object.freeze({growing:'仍在长', stopped:'已止住', suspected:'疑似', new:'新发现'});
 export function viewCards(conclusion) { return conclusion.cards; }
 export function validQuery(value) { return typeof value === 'string' && [...value].length <= 64 && !/[\\/:\u0000-\u001f\u007f]/.test(value); }
 export function itemRow(group, row) { return !group.group_id.startsWith('m:') && !row.row_id.startsWith('r:') && group.item_count <= 8; }

@@ -1,0 +1,160 @@
+import test from 'node:test';
+import assert from 'node:assert/strict';
+import {readFileSync} from 'node:fs';
+import {bytes, formatBytes, byteDelta, countDelta, count, relativeTime, elapsed, percent, middlePath} from '../format.mjs';
+import * as model from '../model.mjs';
+import * as ipc from '../ipc.mjs';
+const fixture = JSON.parse(readFileSync(new URL('../../../../contracts/checkup-v1/ui-fixtures.json', import.meta.url), 'utf8'));
+const m3c = {...fixture, ...JSON.parse(readFileSync(new URL('../../../../contracts/m3c-v1/ui-fixtures-m3c.json', import.meta.url), 'utf8'))};
+
+test('ui_format_bytes_time', () => {
+  assert.equal(formatBytes('0'), '0 MB', 'UI_W11_ZERO: zero bytes display as zero');
+  assert.equal(byteDelta('0'), '0 MB', 'UI_W11_ZERO: zero delta has no plus sign');
+  assert.equal(formatBytes('1'), '<1 MB', 'UI_W11_ZERO: positive sub-MB bytes remain below one MB');
+  assert.equal(formatBytes('1048575'), '<1 MB');
+  assert.equal(formatBytes('1048576'), '1 MB');
+  assert.equal(formatBytes('859832320'), '820 MB');
+  assert.equal(formatBytes('1572864'), '2 MB');
+  assert.equal(formatBytes('1073741824'), '1.0 GB');
+  assert.equal(formatBytes('14602888806'), '13.6 GB');
+  assert.equal(formatBytes('9007199254740993'), '8,388,608.0 GB');
+  assert.equal(formatBytes('2000000000000'), '1,862.6 GB');
+  assert.equal(formatBytes(String(1000n * 1024n ** 2n)), '1,000 MB');
+  assert.equal(formatBytes(String(1024n ** 3n - 1n)), '1.0 GB');
+  assert.equal(formatBytes(String(1024n ** 3n - 524288n)), '1.0 GB');
+  assert.equal(formatBytes(String(1024n ** 3n - 524289n)), '1,023 MB');
+  assert.equal(bytes('9007199254740993') + 1n, 9007199254740994n);
+  assert.equal(formatBytes('-1288490189'), '−1.2 GB');
+  assert.equal(byteDelta('-1288490189'), '−1.2 GB');
+  assert.equal(byteDelta('1288490189'), '+1.2 GB');
+  assert.equal(countDelta(-5), '−5');
+  assert.equal(countDelta(5), '+5');
+  assert.equal(countDelta(0), '0');
+  assert.equal(count(69947), '69,947');
+  assert.equal(count('9007199254740993'), '9,007,199,254,740,993');
+  const now = Date.parse('2026-10-26T12:00:00Z');
+  assert.equal(relativeTime('2026-10-26T10:00:00Z', now), '2 小时前');
+  assert.equal(relativeTime('2026-10-26T11:58:00Z', now), '2 分钟前');
+  assert.equal(relativeTime('2026-10-26T11:59:50Z', now), '刚刚');
+  assert.equal(relativeTime('2026-10-25T00:00:00Z', now), '10 月 25 日');
+  assert.equal(relativeTime('2024-10-25T00:00:00Z', now), '2024 年 10 月 25 日');
+  const previousTZ = process.env.TZ;
+  try {
+    for (const zone of ['UTC', 'Asia/Tokyo', 'America/Los_Angeles']) {
+      process.env.TZ = zone;
+      assert.equal(relativeTime('2026-10-24T23:30:00Z', now), '10 月 24 日');
+      assert.equal(relativeTime('2024-10-24T23:30:00Z', now), '2024 年 10 月 24 日');
+    }
+  } finally { if (previousTZ === undefined) delete process.env.TZ; else process.env.TZ = previousTZ; }
+  assert.equal(relativeTime(null, now), '尚无记录');
+  assert.equal(elapsed(36000), '0:36');
+  assert.equal(elapsed(120000), '2:00');
+  assert.equal(percent('9007199254740993', '18014398509481986'), 50);
+  assert.equal(percent('4', '0'), 0);
+  assert.equal(percent('20', '10'), 100);
+  assert.throws(() => bytes(9007199254740993));
+  assert.throws(() => bytes('1.2'));
+  assert.equal(middlePath('short'), 'short');
+  assert.equal(middlePath('a'.repeat(100)).length, 56);
+  for (const values of [[1, 2, 3, 4], [16, 23, 8, 67, 59], [2, 2, 2], [9, 8, 8, 0], [0, 1000, 1001]]) {
+    const points = values.map((y, i) => ({x:i * 100, y}));
+    const segments = model.monotoneSegments(points);
+    for (const [i, {start, c1, c2, end}] of segments.entries()) {
+      let previous = start.y;
+      for (let step = 0; step <= 100; step++) {
+        const t = step / 100, u = 1 - t, value = u ** 3 * start.y + 3 * u ** 2 * t * c1.y + 3 * u * t ** 2 * c2.y + t ** 3 * end.y;
+        assert(value >= Math.min(start.y, end.y) - 1e-9 && value <= Math.max(start.y, end.y) + 1e-9, 'Curve must not overshoot its data');
+        assert((value - previous) * Math.sign(end.y - start.y) >= -1e-9, 'Curve must remain monotone within each interval');
+        previous = value;
+      }
+      if (i) assert(Math.abs((start.y - segments[i - 1].c2.y) - (c1.y - start.y)) < 1e-9, 'Shared tangent must stay smooth');
+    }
+  }
+});
+
+test('ui_v2_view_rules', () => {
+  const f = JSON.parse(readFileSync(new URL('../../../../contracts/m35-v1/ui-fixtures-m35.json', import.meta.url), 'utf8'));
+  const v = structuredClone(f.v2_conclusion_typical); v.cards.reverse();
+  assert.deepEqual(model.viewCards(v), v.cards, 'UI_V2_CONCLUSION: service order retained');
+  assert.equal(model.viewCards(v).length, v.cards.length, 'UI_V2_CONCLUSION: every card retained');
+  for (const route of ['#results', '#/results']) assert.equal(model.canonicalRoute(route), 'home');
+  assert.equal(model.canonicalRoute('#locations'), 'settings/content');
+  assert.equal(model.canonicalRoute('#about'), 'settings/about');
+  assert.equal(model.canonicalRoute('#settings/decl'), 'settings/decl');
+  for (const query of ['20261005', '中文', '', 'a'.repeat(64)]) assert(model.validQuery(query), 'UI_V2_DRAWER: legal search');
+  for (const query of ['C:\\Temp', '/tmp', 'a:b', '\u0001', 'a'.repeat(65)]) assert(!model.validQuery(query), 'UI_IPC_NO_PATH: invalid search');
+  const items = f.v2_group_detail_items, rows = f.v2_group_detail_rows, merged = f.v2_group_detail_merged;
+  assert(items.rows.every(r => model.itemRow(items.group, r)), 'UI_V2_DRAWER: small group has real item IDs');
+  assert(rows.rows.every(r => !model.itemRow(rows.group, r)), 'UI_V2_DRAWER: summary IDs are not item IDs');
+  assert(merged.rows.every(r => !model.itemRow(merged.group, r)), 'UI_V2_DRAWER: merged group IDs are not item IDs');
+  assert.deepEqual(model.clusterStates, {growing:'仍在长', stopped:'已止住', suspected:'疑似', new:'新发现'}, 'UI_W12_FIXES: a cluster never compared before reads 新发现');
+});
+
+test('ui_ipc_boundary', async () => {
+  const calls = [], original = globalThis.__TAURI__;
+  const cases = {
+    app_state:[], scan_start:[], scan_cancel:['scan-a'], scan_progress:[], scan_result:['scan-a'], group_detail:['custom:water:cachedir-tagged'], clean_prepare:[['group-a', 'custom:water:cachedir-tagged']], clean_start:['plan-a', 'token-a'], clean_stop:[], clean_progress:[], clean_result:['clean-a'], trends:[], history_list:[], locations_get:[], locations_set_category:['agent_tool', false], custom_root_add:[], custom_root_remove:['root-a'], skip_add:['i-000201'], skip_remove:['s-000001'], skip_unit_add:['cv-1', 'card:codex-runtimes'], diagnostics_get:[], app_info:[]
+  };
+  const keys = {scan_cancel:['scanId'], scan_result:['scanId'], group_detail:['groupId'], clean_prepare:['groupIds'], clean_start:['planId', 'confirmToken'], clean_result:['cleanId'], locations_set_category:['category', 'enabled'], custom_root_remove:['rootId'], skip_add:['itemId'], skip_remove:['skipId'], skip_unit_add:['conclusionVersion', 'unitId']};
+  const newCases = {
+    conclusion_get:[[], {}], conclusion_decide:[['cv-1', {group:'group-a', choice:'clean'}], {version:'cv-1', decision:{group:'group-a', choice:'clean'}}],
+    detail_get:[['cv-1', 'category'], {version:'cv-1', mode:'category'}], group_items:[['group-a', null, 'term'], {groupId:'group-a', rowId:null, query:'term'}],
+    quarantine_list:[[], {}], quarantine_restore:[['q-1', false], {quarantineId:'q-1', beside:false}], quarantine_delete:[['q-1'], {quarantineId:'q-1'}], quarantine_progress:[[], {}], quarantine_reveal:[['qroot-c'], {targetId:'qroot-c'}],
+    dedupe_start:[['drive-e'], {locationId:'drive-e'}], dedupe_progress:[[], {}], dedupe_cancel:[['dup-1'], {dedupeId:'dup-1'}], dedupe_result:[['dup-1', false], {dedupeId:'dup-1', expand:false}], dedupe_decide:[['dup-1', 'dv-1', 'group-a', true], {dedupeId:'dup-1', version:'dv-1', groupId:'group-a', include:true}],
+    locations_set_session_cleanup:[['codex', true, 30], {tool:'codex', enabled:true, days:30}], manifest_trust:[['mf-1', true], {manifestId:'mf-1', trusted:true}], cluster_mark_fixed:[['group-a', true], {groupId:'group-a', fixed:true}]
+  };
+  assert.deepEqual(Object.keys(ipc).sort(), [...Object.keys(cases), ...Object.keys(newCases)].sort());
+  try {
+    globalThis.__TAURI__ = {core:{invoke:async (command, args) => { calls.push({command, args}); return {ok:true}; }}};
+    for (const [name, args] of Object.entries(cases)) {
+      await ipc[name](...args);
+      const call = calls.at(-1); assert.equal(call.command, name); assert.deepEqual(Object.keys(call.args), keys[name] ?? []);
+      assert.deepEqual(Object.values(call.args), args);
+      for (const value of Object.values(call.args).flat()) { assert(['string', 'boolean'].includes(typeof value)); if (typeof value === 'string') assert(!/[A-Za-z]:[\\/]|\\/.test(value)); }
+    }
+    for (const token of ['abc/def+=', '/+=', 'a'.repeat(512)]) {
+      await ipc.clean_start('plan-a', token);
+      assert.equal(calls.at(-1).args.confirmToken, token);
+    }
+    assert.equal(Object.keys(ipc).length, 39, 'UI_IPC_NO_PATH: 39 commands, original positional calls retained');
+    await ipc.clean_prepare(['group-a'], ['i-000201']);
+    assert.deepEqual(calls.at(-1), {command:'clean_prepare', args:{groupIds:['group-a'], excludeItemIds:['i-000201']}}, 'UI_M3C_EXCLUDE: item IDs reach clean_prepare');
+    await ipc.clean_prepare(['group-a'], []);
+    assert.deepEqual(calls.at(-1).args, {groupIds:['group-a'], excludeItemIds:[]}, 'UI_M3C_EXCLUDE: explicit empty exclusion list accepted');
+    for (const [name, [args, expected]] of Object.entries(newCases)) {
+      await ipc[name](...args); assert.deepEqual(calls.at(-1), {command:name, args:expected}, 'UI_IPC_NO_PATH: exact new command shape');
+    }
+    await ipc.scan_start(['common', 'drive-f']); assert.deepEqual(calls.at(-1).args, {locationIds:['common', 'drive-f']});
+    await ipc.clean_prepare({conclusionVersion:'cv-1', chosenMode:'quarantine'}); assert.deepEqual(calls.at(-1).args, {conclusionVersion:'cv-1', chosenMode:'quarantine'});
+    await ipc.clean_prepare({dedupeId:'dup-1', dedupeVersion:'dv-1'}); assert.deepEqual(calls.at(-1).args, {dedupeId:'dup-1', dedupeVersion:'dv-1'});
+    await ipc.group_items('m:cachedir-tagged', 'r:0123456789abcdef', null);
+    assert.deepEqual(calls.at(-1).args, {groupId:'m:cachedir-tagged', rowId:'r:0123456789abcdef', query:null});
+    for (const unitId of ['card:custom:drive-f:custom-avd-snapshots', 'card:m:cachedir-tagged', 'r:59e431c1522f4cab', 'custom:water:cachedir-tagged']) {
+      await ipc.skip_unit_add('cv-16Z-5d2b-1', unitId);
+      assert.deepEqual(calls.at(-1), {command:'skip_unit_add', args:{conclusionVersion:'cv-16Z-5d2b-1', unitId}}, 'UI_W12_SKIP: skip_unit_add sends exactly the conclusion version and the unit ID');
+    }
+    for (const name of ['diagnostics_get', 'app_info']) { await ipc[name]('C:\\private'); assert.deepEqual(calls.at(-1), {command:name, args:{}}, 'UI_W12_SKIP: ' + name + ' never forwards an argument'); }
+    const size = calls.length;
+    for (const bad of ['C:\\Temp', '/tmp', 'a:b', '\u0001', 'x'.repeat(65)]) await assert.rejects(ipc.group_items('group-a', null, bad), e => e.code === 'invalid', 'UI_IPC_NO_PATH: search refuses paths');
+    await assert.rejects(ipc.conclusion_decide('cv-1', {group:'g', choice:'clean', path:'C:/x'}), e => e.code === 'invalid');
+    await assert.rejects(ipc.scan_start(['common', 'common']), e => e.code === 'invalid');
+    await assert.rejects(ipc.locations_set_session_cleanup('codex', true, 14), e => e.code === 'invalid');
+    for (const bad of ['C:\\private', 'F:/private', '/tmp/private', '\\\\server\\share', '', null]) {
+      await assert.rejects(ipc.skip_add(bad), e => e.code === 'invalid', 'UI_IPC_NO_PATH: skip_add rejects paths');
+      await assert.rejects(ipc.skip_remove(bad), e => e.code === 'invalid', 'UI_IPC_NO_PATH: skip_remove rejects paths');
+      await assert.rejects(ipc.clean_prepare(['group-a'], [bad]), e => e.code === 'invalid', 'UI_IPC_NO_PATH: exclusions reject paths');
+    }
+    for (const bad of [null, 'i-1', ['i-1', 'i-1'], Array.from({length:5001}, (_, i) => `i-${i}`)]) await assert.rejects(ipc.clean_prepare(['group-a'], bad), e => e.code === 'invalid', 'UI_M3C_EXCLUDE: exclusions are bounded unique ID arrays');
+    for (const bad of ['', 'a'.repeat(513), 'C:\\private', '\\\\server\\share', 'abc\\def', null, 3]) await assert.rejects(ipc.clean_start('plan-a', bad), e => e.code === 'invalid');
+    for (const bad of ['plan/a', 'plan+=', 'C:\\private']) await assert.rejects(ipc.clean_start(bad, 'abc/def+='), e => e.code === 'invalid');
+    for (const bad of ['C:\\Users\\private', 'C:/Users/private', '/tmp/private', '..', '', 12, null]) await assert.rejects(ipc.group_detail(bad), e => e.code === 'invalid');
+    await assert.rejects(ipc.clean_prepare(['safe', 'D:\\private']), e => e.code === 'invalid');
+    await assert.rejects(ipc.locations_set_category('browser', 'yes'), e => e.code === 'invalid');
+    for (const bad of ['C:\\private', 'F:/private', '/tmp/private', '\\\\server\\share', '..', '', 12, null, undefined]) await assert.rejects(ipc.skip_unit_add('cv-1', bad), e => e.code === 'invalid', 'UI_W12_SKIP: skip_unit_add refuses paths and non-IDs as the unit');
+    for (const bad of ['', 'a'.repeat(65), 'cv/1', 'cv 1', null, 3, undefined]) await assert.rejects(ipc.skip_unit_add(bad, 'card:codex-runtimes'), e => e.code === 'invalid', 'UI_W12_SKIP: skip_unit_add refuses a malformed conclusion version');
+    assert.equal(calls.length, size, 'invalid inputs must never reach host');
+    delete globalThis.__TAURI__;
+    for (const [name, [args]] of Object.entries(newCases)) await assert.rejects(ipc[name](...args), e => e.code === 'unavailable');
+    for (const [name, args] of Object.entries(cases)) await assert.rejects(ipc[name](...args), e => e.code === 'unavailable');
+  } finally { if (original === undefined) delete globalThis.__TAURI__; else globalThis.__TAURI__ = original; }
+});

@@ -8,6 +8,24 @@ import {openPrivateBrowser} from '../../../../scripts/acceptance/native-vw-priva
 import {formatBytes} from '../format.mjs';
 const root = resolve(dirname(fileURLToPath(import.meta.url)), '../../../..'), ui = join(root, 'apps/water/ui');
 const f = Object.assign({}, ...['checkup-v1/ui-fixtures.json', 'm3c-v1/ui-fixtures-m3c.json', 'm35-v1/ui-fixtures-m35.json'].map(p => JSON.parse(readFileSync(join(root, 'contracts', p), 'utf8'))));
+// W12 shapes (SPEC 1.4, 1.5, 2.1, 2.2, 4.4): copies of the frozen fixtures with the new keys filled in.
+const rowSkip = {'i-000304':null, 'r:cfa406d79748c3e3':null, 'r:65e5f165ea872216':null};
+const withSkip = (d, skip) => ({...structuredClone(d), rows:d.rows.map(r => ({...structuredClone(r), skip:Object.hasOwn(rowSkip, r.row_id) ? rowSkip[r.row_id] : skip}))});
+Object.assign(f, {
+  w12_group_detail_items:withSkip(f.v2_group_detail_items, 'item'), w12_group_detail_rows:withSkip(f.v2_group_detail_rows, 'unit'), w12_group_detail_merged:withSkip(f.v2_group_detail_merged, 'unit'),
+  w12_locations:{...structuredClone(f.v2_locations), skipped:[
+    ...f.v2_locations.skipped.map(x => ({skip_id:x.skip_id, kind:'path', display_zh:x.display_path, display_path:x.display_path, added_at:x.added_at})),
+    {skip_id:'s-000003', kind:'group', display_zh:'Python 工具缓存 · D 盘', display_path:null, added_at:'2026-11-01T08:30:00Z'},
+    {skip_id:'s-000004', kind:'template', display_zh:'verify-****** · 系统临时目录里的旧文件', display_path:null, added_at:'2026-11-02T03:05:00Z'},
+    {skip_id:'s-000005', kind:'folder', display_zh:'.tmp_w35b 里的 系统临时目录里的旧文件', display_path:null, added_at:'2026-11-02T06:40:00Z'}]},
+  w12_clean_result:{...structuredClone(f.v2_clean_result), journal_note_zh:null},
+  w12_app_info:{name:'Flick', version:'0.3.0', license:'MIT OR Apache-2.0', homepage:'https://github.com/dfan0519-tech/flick'},
+  w12_diagnostics:{diagnostics_version:'flick.diagnostics.v1', service_version:'0.3.0',
+    settings:{settings_version:'water.settings.v4', categories_on:6, categories_off:1, custom_roots:2, skipped:{path:2, group:1, template:1, folder:1}, session_cleanup_on:1, trusted_declarations:1},
+    last_scan:{status:'completed', duration_ms:48210, scope:{drives:1, folders:1, common:1}, groups:96, items:69947, eligible_items:12040, levels:{recommended:31, confirm:9, advisory:40, protected:16}, issues:{access_denied:3}},
+    last_clean:{status:'completed', freed_bytes:'16116143335', items:{done:1290, skipped:8, quarantined:84}, skip_reasons:{in_use:8}, quarantine_batches:2, journal_error:false},
+    quarantine:{batches:2, bytes:'5153960755'}, store:{scans:12, snapshots:12, plans:30, cleans:6, quarantine:2, events:240, dedupes:3}}
+});
 const shots = resolve(process.env.WATER_W2_SHOTS_DIR);
 assert(relative(join(root, '.local'), shots) && !relative(join(root, '.local'), shots).startsWith('..') && !isAbsolute(relative(join(root, '.local'), shots)));
 mkdirSync(shots, {recursive:true}); assert(!relative(realpathSync(join(root, '.local')), realpathSync(shots)).startsWith('..'));
@@ -15,7 +33,10 @@ let server, browser, base, injection, sequence = 0;
 const pause = ms => new Promise(ok => setTimeout(ok, ms));
 function fakeHost(f, options) {
   const copy = value => structuredClone(value);
-  const c = window.__waterTest = {calls:[], errors:[], scan:0, clean:0, dedupe:0, purge:0, busy:options.busy ?? 'idle', conclusion:copy(f[options.conclusion ?? 'v2_conclusion_typical']), locations:copy(f.v2_locations), quarantine:copy(f[options.quarantine ?? 'v2_quarantine_list']), dup:copy(f[options.dup ?? 'v2_dedupe_result']), clipboard:[], resetting:false, skipIds:[], scanned:false, cleaned:false};
+  // Every case starts past the first-run page except the UI_W12_INTRO ones.
+  if (options.intro === 'blocked') Object.defineProperty(window, 'localStorage', {configurable:true, get() { throw new DOMException('storage blocked', 'SecurityError'); }});
+  else if (!options.intro) localStorage.setItem('flick.intro.v1', '1');
+  const c = window.__waterTest = {calls:[], errors:[], scan:0, clean:0, dedupe:0, purge:0, busy:options.busy ?? 'idle', conclusion:copy(typeof options.conclusion === 'object' ? options.conclusion : f[options.conclusion ?? 'v2_conclusion_typical']), locations:copy(f[options.locations ?? 'w12_locations']), quarantine:copy(f[options.quarantine ?? 'v2_quarantine_list']), dup:copy(f[options.dup ?? 'v2_dedupe_result']), clipboard:[], resetting:false, skipIds:[], scanned:false, cleaned:false, cleanResult:copy(options.cleanResult ?? f.w12_clean_result)};
   if (options.reverseCards) c.conclusion.cards.reverse();
   if (options.noLast) c.noLast = true;
   c.noConclusion = !!options.noConclusion;
@@ -59,11 +80,14 @@ function fakeHost(f, options) {
       }
       case 'detail_get': { const d = copy(args.mode === 'category' ? f.v2_detail_category : f.v2_detail_location); d.version = c.conclusion.version; d.plan_bytes = c.conclusion.plan.bytes; return d; }
       case 'group_detail': {
-        const source = args.groupId === 'codex-runtimes' ? f.v2_group_detail_items : args.groupId.startsWith('m:') ? f.v2_group_detail_merged : f.v2_group_detail_rows;
+        const source = args.groupId === 'codex-runtimes' ? f.w12_group_detail_items : args.groupId.startsWith('m:') ? f.w12_group_detail_merged : f.w12_group_detail_rows;
         const d = copy(source); d.group.group_id = args.groupId; return d;
       }
       case 'group_items': return copy(args.query !== null ? f.v2_group_items_search : f.v2_group_items_row);
       case 'skip_add': c.skipIds.push(args.itemId); c.conclusion = copy(f.v2_conclusion_stale); return copy(c.locations);
+      case 'skip_unit_add': if (args.conclusionVersion !== c.conclusion.version) throw copy(f.v2_errors.conclusion_stale); c.conclusion = copy(f.v2_conclusion_stale); return copy(c.locations);
+      case 'diagnostics_get': return copy(f.w12_diagnostics);
+      case 'app_info': return copy(f.w12_app_info);
       case 'skip_remove': c.locations.skipped = c.locations.skipped.filter(x => x.skip_id !== args.skipId); return copy(c.locations);
       case 'clean_prepare': {
         let p = copy(args.chosenMode === 'delete' ? f.v2_clean_prepare_delete : BigInt(c.conclusion.plan.chosen_bytes) === 0n ? f.v2_clean_prepare_delete_only : f.v2_clean_prepare_quarantine);
@@ -79,7 +103,7 @@ function fakeHost(f, options) {
       case 'clean_start': if (!c.plan || c.plan.confirm_token !== args.confirmToken) throw copy(f.errors.invalid); c.plan = null; c.busy = 'cleaning'; c.clean = 0; return copy(f.v2_clean_start);
       case 'clean_stop': c.clean = f.v2_clean_progress_sequence.length - 1; return {};
       case 'clean_progress': { const p = copy(f.v2_clean_progress_sequence[c.clean]); if (p.state !== 'running') c.busy = 'idle'; return p; }
-      case 'clean_result': return copy(f.v2_clean_result);
+      case 'clean_result': return copy(c.cleanResult);
       case 'quarantine_list': return copy(c.quarantine);
       case 'quarantine_restore': { const r = copy(args.beside ? f.v2_restore_beside : f.v2_restore_conflict); c.quarantine = copy(r.view); return r; }
       case 'quarantine_reveal': return {};
@@ -161,6 +185,18 @@ async function finishedDedupe(options = {}, withConclusion = false) {
 async function checkPrimary() {
   assert(await evalJs('document.querySelectorAll("#page .primary").length<=1 && document.querySelectorAll("#page .main-card.dark").length<=1 && [...document.querySelectorAll("#page .primary")].every(b=>b.closest(".main-card.dark"))'), 'UI_V2_PAGES: one main action in one dark card');
 }
+async function rowMenu(id) {
+  if (!(await evalJs(`!!document.querySelector(${JSON.stringify(q('row-menu-' + id))})`))) return '';
+  await click('row-menu-' + id); const text = await evalJs('document.querySelector(".menu:not([hidden])").textContent'); await key('Escape'); return text;
+}
+// A page stuck in a loop cannot answer CDP. Race the probe; when it is late, stop the runaway
+// script so the page stays usable, and report 'late' instead of letting the run hit a CDP timeout.
+async function bounded(expression, ms = 3000) {
+  let timer; const probe = browser.send('Runtime.evaluate', {expression, returnByValue:true}).then(r => r.exceptionDetails ? 'threw' : r.result.value, () => 'late');
+  const outcome = await Promise.race([probe, new Promise(ok => { timer = setTimeout(() => ok('late'), ms); })]); clearTimeout(timer);
+  if (outcome === 'late') { await browser.send('Runtime.terminateExecution').catch(() => {}); await probe; }
+  return outcome;
+}
 before(async () => {
   server = createServer((req, res) => {
     const p = new URL(req.url, 'http://127.0.0.1').pathname.slice(1) || 'index.html';
@@ -219,15 +255,36 @@ test('ui_v2_home_scan', async () => {
   assert(!(await evalJs('document.body.innerText')).includes('Water'), 'UI_W11_BRAND: unavailable page has no visible Water name');
   assert.equal(await evalJs('document.querySelector("#notice span").textContent'), '无法连接 Flick 服务', 'UI_W11_BRAND: unavailable notice uses Flick');
   assert.equal(await evalJs('document.querySelector(".empty h2").textContent'), '无法连接 Flick 服务', 'UI_W11_BRAND: unavailable home uses Flick');
+  const pageName = () => evalJs('document.querySelector("#page").dataset.page');
+  await evalJs('localStorage.removeItem("flick.intro.v1")'); await reset({intro:'fresh'});
+  await wait('document.querySelector("#page").dataset.page==="intro"', 'UI_W12_INTRO');
+  assert.equal(await evalJs('document.querySelector("#page h1").textContent'), 'Flick 怎么用', 'UI_W12_INTRO: first run shows how Flick works');
+  assert.deepEqual(await evalJs('[...document.querySelectorAll("#page .main-card .row strong")].map(n=>n.textContent)'), ['体检只读：只看名字、大小和时间，不读文件内容。', '清什么由你点：推荐的直接清，要确认的先放进隔离区。', '隔离区里的随时能还原，永久删除前会再问一次。'], 'UI_W12_INTRO: the three frozen lines');
+  assert.deepEqual(await evalJs('[...document.querySelectorAll("#page .primary")].map(n=>n.textContent)'), ['开始'], 'UI_W12_INTRO: one main button 开始');
+  await checkPrimary(); await shot('intro');
+  await click('intro-start'); await wait('document.querySelector("#page").dataset.page==="home"', 'UI_W12_INTRO');
+  await browser.send('Page.reload', {}); await wait('window.__waterTest?.calls.some(x=>x.command==="locations_get")', 'UI_W12_INTRO'); await pause(100);
+  assert.equal(await pageName(), 'home', 'UI_W12_INTRO: after 开始 a refresh goes straight to the home page');
+  await reset({intro:'blocked'}); await pause(100);
+  assert.equal(await pageName(), 'home', 'UI_W12_INTRO: storage that throws never blocks the way to the home page');
+  assert(await evalJs('!!document.querySelector("[data-key=scan-start]")'), 'UI_W12_INTRO: blocked storage still reaches a usable home page');
 });
 
 test('ui_v2_conclusion', async () => {
-  await results({reverseCards:true});
+  // W12: the card menu follows menu.skip (supersedes M6 addendum 02, which ignored it).
+  const cardSkips = structuredClone(f.v2_conclusion_typical); cardSkips.cards[1].menu = cardSkips.cards[1].menu.filter(m => m !== 'skip');
+  await results({reverseCards:true, conclusion:cardSkips});
   assert.deepEqual(await evalJs('[...document.querySelectorAll(".judgment")].map(n=>n.dataset.card)'), [...f.v2_conclusion_typical.cards].reverse().map(c=>c.card_id), 'UI_V2_CONCLUSION: preserve all card order, never resort by bytes');
-  for (const c of f.v2_conclusion_typical.cards) {
+  for (const c of cardSkips.cards) {
     await click(`card-menu-${c.group_id}`);
-    assert(!(await evalJs('document.querySelector(".menu:not([hidden])").textContent')).includes('以后都跳过'), 'UI_V2_CONCLUSION: ignore every card skip menu'); await key('Escape');
+    assert.equal((await evalJs('document.querySelector(".menu:not([hidden])").textContent')).includes('以后都跳过'), c.menu.includes('skip'), 'UI_W12_SKIP: a card offers 以后都跳过 exactly when its menu has skip'); await key('Escape');
   }
+  const skipCard = cardSkips.cards[0], reads = await callCount('conclusion_get');
+  await click(`card-menu-${skipCard.group_id}`); await menuItem('以后都跳过');
+  await wait(`window.__waterTest.calls.filter(x=>x.command==="conclusion_get").length>${reads}`, 'UI_W12_SKIP');
+  assert.deepEqual(await lastCall('skip_unit_add'), {command:'skip_unit_add', args:{conclusionVersion:cardSkips.version, unitId:skipCard.card_id}}, 'UI_W12_SKIP: a card skip sends exactly skip_unit_add {conclusionVersion, unitId: card_id}');
+  assert.equal(await callCount('skip_add'), 0, 'UI_W12_SKIP: a card skip never sends skip_add');
+  await wait('document.querySelector(".warning.stale")', 'UI_W12_SKIP');
   await results(); await checkPrimary(); await shot('results');
   await click(`card-menu-${f.v2_conclusion_typical.cards[0].group_id}`); await shot('menu'); await key('Escape');
   assert.equal(await evalJs('document.querySelectorAll(".judgment").length'), 5, 'UI_V2_CONCLUSION: all five supplied cards');
@@ -264,15 +321,18 @@ test('ui_v2_conclusion', async () => {
 test('ui_v2_drawer_details', async () => {
   await results(); await detail('codex-runtimes');
   assert.equal(await evalJs('document.querySelectorAll(".summary-row").length'), f.v2_group_detail_items.rows.length, 'UI_V2_DRAWER: small groups show each supplied item'); await shot('drawer');
-  const small = f.v2_group_detail_items.rows[0]; await click('row-menu-' + small.row_id); await menuItem('以后都跳过');
-  assert.deepEqual((await lastCall('skip_add')).args, {itemId:small.row_id}, 'UI_V2_DRAWER: small row sends real item ID');
+  for (const r of f.w12_group_detail_items.rows) assert.equal((await rowMenu(r.row_id)).includes('以后都跳过'), r.skip !== null, 'UI_W12_SKIP: a one-item row offers 以后都跳过 exactly when its skip key is set');
+  const small = f.w12_group_detail_items.rows.find(r => r.skip === 'item'); await click('row-menu-' + small.row_id); await menuItem('以后都跳过');
+  assert.deepEqual(await lastCall('skip_add'), {command:'skip_add', args:{itemId:small.row_id}}, 'UI_W12_SKIP: an "item" row sends exactly skip_add {itemId: row_id}');
+  assert.equal(await callCount('skip_unit_add'), 0, 'UI_W12_SKIP: an "item" row never sends skip_unit_add');
   await results(); await openSystemDrawer();
   assert.equal(await evalJs('document.querySelectorAll(".summary-row").length'), f.v2_group_detail_rows.rows.length, 'UI_V2_DRAWER: summary rows as supplied');
   assert(await evalJs('document.querySelectorAll(".summary-row").length<=8'), 'UI_V2_DRAWER: at most eight rows');
   await click('row-' + f.v2_group_detail_rows.rows[0].row_id);
   assert.deepEqual((await lastCall('conclusion_decide')).args.decision, {row:f.v2_group_detail_rows.rows[0].row_id, include:false}, 'UI_V2_DRAWER: row checkbox sends a decision');
   assert(await evalJs(`document.querySelector(${JSON.stringify(q('row-' + f.v2_group_detail_rows.rows[0].row_id))}).checked`), 'UI_V2_DRAWER: fresh service row controls selection, no local override');
-  for (const r of f.v2_group_detail_rows.rows) { await click('row-menu-' + r.row_id); assert(!(await evalJs('document.querySelector(".menu:not([hidden])").textContent')).includes('以后都跳过'), 'UI_V2_DRAWER: summary row cannot be skipped'); await key('Escape'); }
+  assert.deepEqual(f.w12_group_detail_rows.rows.map(r => r.skip).filter((v, i, all) => all.indexOf(v) === i).sort(), ['unit', null].sort(), 'UI_W12_SKIP: the summary drawer covers unit and null rows');
+  for (const r of f.w12_group_detail_rows.rows) assert.equal((await rowMenu(r.row_id)).includes('以后都跳过'), r.skip !== null, 'UI_W12_SKIP: a summary row offers 以后都跳过 exactly when its skip key is set');
   await shot('drawer-big');
   const countBefore = await callCount('group_items'); await setSearch('drawer-search', 'C:\\Temp');
   assert.equal(await callCount('group_items'), countBefore, 'UI_V2_DRAWER: path search is not sent');
@@ -284,14 +344,21 @@ test('ui_v2_drawer_details', async () => {
   assert.deepEqual((await lastCall('conclusion_decide')).args.decision, {item:f.v2_group_items_search.items[0].item_id, include:false}, 'UI_V2_DRAWER: item checkbox sends a decision');
   await click('item-menu-' + f.v2_group_items_search.items[0].item_id); await menuItem('以后都跳过');
   assert.deepEqual((await lastCall('skip_add')).args, {itemId:f.v2_group_items_search.items[0].item_id}, 'UI_V2_DRAWER: expanded item ID');
+  await results(); await openSystemDrawer();
+  const unitRow = f.w12_group_detail_rows.rows.find(r => r.skip === 'unit'), skipAdds = await callCount('skip_add');
+  await click('row-menu-' + unitRow.row_id); await menuItem('以后都跳过'); await wait('!document.querySelector("dialog.drawer[open]")', 'UI_W12_SKIP');
+  assert.deepEqual(await lastCall('skip_unit_add'), {command:'skip_unit_add', args:{conclusionVersion:f.v2_conclusion_typical.version, unitId:unitRow.row_id}}, 'UI_W12_SKIP: a "unit" row sends exactly skip_unit_add {conclusionVersion, unitId: row_id}');
+  assert.equal(await callCount('skip_add'), skipAdds, 'UI_W12_SKIP: a "unit" row never sends skip_add');
   await results(); await openSystemDrawer(); await click('row-menu-' + f.v2_group_detail_rows.rows[1].row_id); await menuItem('展开看每一项');
   assert.equal((await lastCall('group_items')).args.rowId, f.v2_group_detail_rows.rows[1].row_id, 'UI_V2_DRAWER: expanding uses row ID'); await key('Escape');
   await pageIs('details'); await click('section-dev_cache');
   assert.equal(await evalJs('document.querySelectorAll(".section-toggle[aria-expanded=true]").length'), 1, 'UI_V2_DRAWER: only one expanded section');
   assert(await evalJs('document.body.textContent.includes("3 个位置") && document.body.textContent.includes("和上次一样的")'), 'UI_V2_DRAWER: merged and unchanged rows');
   await shot('details'); await click('detail-m:cachedir-tagged');
-  const merged = f.v2_group_detail_merged.rows[0]; await click('row-menu-' + merged.row_id);
-  assert(!(await evalJs('document.querySelector(".menu:not([hidden])").textContent')).includes('以后都跳过'), 'UI_V2_DRAWER: merged group row cannot skip'); await key('Escape'); await key('Escape');
+  const merged = f.w12_group_detail_merged.rows[0]; await click('row-menu-' + merged.row_id);
+  assert(await evalJs('document.querySelector(".menu:not([hidden])").textContent.includes("以后都跳过")'), 'UI_W12_SKIP: a merged drawer group row with skip "unit" offers 以后都跳过');
+  await menuItem('以后都跳过'); await wait('!document.querySelector("dialog.drawer[open]")', 'UI_W12_SKIP');
+  assert.deepEqual(await lastCall('skip_unit_add'), {command:'skip_unit_add', args:{conclusionVersion:f.v2_conclusion_typical.version, unitId:merged.row_id}}, 'UI_W12_SKIP: a merged drawer group row sends skip_unit_add with its group ID');
   await click('detail-mode-location'); assert.equal((await lastCall('detail_get')).args.mode, 'location', 'UI_V2_DRAWER: location mode command');
   for (const call of (await control('return c.calls')).filter(x=>x.command==='skip_add')) assert(!/^(r:|m:)/.test(call.args.itemId) && call.args.itemId !== 'system-temp-old', 'UI_V2_DRAWER: skips are item IDs');
 });
@@ -338,6 +405,27 @@ test('ui_v2_confirm_done', async () => {
   assert.equal(await callCount('conclusion_get'), doneReads, 'UI_V2_CONFIRM: going back to the done page rereads nothing');
   await click('nav-home'); await wait('document.querySelector("#page").dataset.page==="results"', 'UI_V2_CONFIRM');
   assert.equal(await callCount('conclusion_get'), doneReads + 1, 'UI_V2_CONFIRM: a second 体检 click on the done page then finishes like 完成');
+  for (const note of [null, '清理日志没写全，后面的 3 项没有清']) {
+    await results({conclusion:'v2_conclusion_after_decide', cleanResult:{...f.w12_clean_result, journal_note_zh:note}}); await click('clean-prepare'); await wait('document.querySelector("[data-key=confirm-start]")'); await click('confirm-start');
+    await wait('document.querySelector("[data-key=clean-stop]")', 'UI_W12_FIXES'); await control('c.clean=2'); await pageIs('done');
+    const warnings = await evalJs('[...document.querySelectorAll("#page .main-card .warning")].map(n=>[n.className,n.textContent])');
+    assert.deepEqual(warnings, [['warning', '部分完成，请查看各组结果。'], ...(note ? [['warning', note]] : [])], 'UI_W12_FIXES: journal_note_zh shows as a reminder styled like the partial one, and only when set');
+  }
+  // A queued 体检 click is dropped by a page change, and never replayed over an open dialog.
+  await click('nav-settings'); await wait('document.querySelector("[data-key=setting-browser]")', 'UI_W12_FIXES');
+  await control('c.holdNext="locations_set_category"'); await click('setting-browser'); await wait('window.__waterTest.held==="locations_set_category"', 'UI_W12_FIXES');
+  await click('nav-home'); await pageIs('done'); await click('nav-home');
+  await click('nav-history'); await pageIs('history'); await click('nav-home'); await pageIs('done');
+  const queuedReads = await callCount('conclusion_get');
+  await control('c.release()'); await wait('!window.__waterTest.held && !document.querySelector("[data-key=done-finish]:disabled")', 'UI_W12_FIXES'); await pause(150);
+  assert.equal(await evalJs('document.querySelector("#page").dataset.page'), 'done', 'UI_W12_FIXES: a 体检 click queued before a page change is dropped');
+  assert.equal(await callCount('conclusion_get'), queuedReads, 'UI_W12_FIXES: the dropped click reads nothing');
+  await finishedDedupe({}, true); await click('dup-' + f.v2_dedupe_result.groups[0].group_id); await wait('document.querySelectorAll(".dedupe-row input:checked").length===2', 'UI_W12_FIXES');
+  await control('c.holdNext="clean_prepare"'); await click('dedupe-prepare'); await wait('window.__waterTest.held==="clean_prepare"', 'UI_W12_FIXES');
+  await click('nav-home'); await control('c.release()');
+  await wait('!window.__waterTest.held && document.querySelector("dialog[open] [data-key=confirm-start]")', 'UI_W12_FIXES'); await pause(150);
+  assert(await evalJs('document.querySelector("#page").dataset.page==="dedupe" && !!document.querySelector("dialog[open] [data-key=confirm-start]")'), 'UI_W12_FIXES: a queued 体检 click is not replayed over an open dialog');
+  await key('Escape');
 });
 
 test('ui_v2_quarantine_dedupe', async () => {
@@ -468,12 +556,39 @@ test('ui_v2_pages_layout_a11y', async () => {
   assert(await evalJs('document.querySelector(".eyebrow").textContent.includes("每一次体检与清理，都有迹可循。")'), 'UI_V2_PAGES: frozen history text');
   const dayTip = await evalJs('[...document.querySelectorAll(".heat")].find(x=>x.title.startsWith("2026-11-02")).title');
   for (const e of f.v2_history.filter(e=>e.at.startsWith('2026-11-02'))) assert(dayTip.includes(e.summary_zh), 'UI_V2_PAGES: heatmap retains each same-day entry');
+  // The history list arrives while the test holds it, so the redraw with an unreadable time runs under a bounded probe.
+  const unreadable = [{...f.v2_history[0], id:'unreadable-time', at:'not-a-time', summary_zh:'时间读不出的记录'}, ...f.v2_history];
+  await control(`c.history=${JSON.stringify(unreadable)};c.holdNext="history_list"`);
+  await click('nav-trends'); await pageIs('trends'); await click('nav-history'); await wait('window.__waterTest.held==="history_list"', 'UI_W12_FIXES');
+  let drawn = await bounded('(window.__waterTest.release(), true)');
+  for (let i = 0; drawn === true && i < 40; i++) { const seen = await bounded('!!document.querySelector("[data-key=history-unreadable-time]") && document.querySelectorAll(".heat").length>0'); if (seen !== false) drawn = seen === true ? 'drawn' : seen; else await pause(25); }
+  assert.equal(drawn, 'drawn', 'UI_W12_FIXES: the heatmap finishes drawing when one history time cannot be read');
+  assert(await evalJs('[...document.querySelectorAll(".heat")].every(x=>!x.title.includes("NaN") && !x.title.includes("时间读不出的记录")) && document.querySelectorAll(".heat.latest").length===1'), 'UI_W12_FIXES: the unreadable entry is skipped and the newest readable day stays latest');
+  assert.equal(await evalJs('[...document.querySelectorAll(".heat")].find(x=>x.title.startsWith("2026-11-02")).title'), dayTip, 'UI_W12_FIXES: readable days draw as before');
+  const newTrends = structuredClone(f.v2_trends); newTrends.clusters.push({group_id:'leak:0f3e5a77c1d2b9e4', title_zh:'haste-map-*', rate_zh:'最近 14 天新增 5 个', state:'new', fixed_at:null, clue_id:null, copy_text:null});
+  await control(`c.trends=${JSON.stringify(newTrends)}`); await click('nav-trends'); await wait('document.body.textContent.includes("haste-map-*")', 'UI_W12_FIXES');
+  assert.deepEqual(await evalJs('(()=>{const t=[...document.querySelectorAll(".row")].find(r=>r.textContent.includes("haste-map-*")).querySelector(".tag");return [t.textContent,t.classList.contains("hot")]})()'), ['新发现', false], 'UI_W12_FIXES: a never-compared cluster is tagged 新发现 without the hot colour');
   await click('nav-settings'); await wait('document.querySelector("[data-key=session-claude-code]")'); await shot('settings'); await checkPrimary();
   await click('session-claude-code'); assert.equal((await lastCall('locations_set_session_cleanup')).args.enabled, true, 'UI_V2_PAGES: session toggle');
-  await click('settings-skip'); await wait('document.querySelector("[data-key^=skip-remove-]")'); await click('skip-remove-s-000001'); assert.equal((await lastCall('skip_remove')).args.skipId, 's-000001', 'UI_V2_PAGES: remove skip ID');
+  await click('settings-skip'); await wait('document.querySelector("[data-key^=skip-remove-]")');
+  assert.deepEqual(await evalJs('[...document.querySelectorAll(".settings-content .row")].map(r=>[r.querySelector("strong").textContent,r.querySelector(".sub").textContent])'), (await evalJs(`import('/format.mjs').then(m=>${JSON.stringify(f.w12_locations.skipped.map(x => x.added_at))}.map(m.localDateKey))`)).map((day, i) => [f.w12_locations.skipped[i].display_zh, `加入于 ${day}`]), 'UI_W12_SKIP: the skip list shows display_zh and the date it was added');
+  await shot('settings-skip');
+  await click('skip-remove-s-000001'); assert.equal((await lastCall('skip_remove')).args.skipId, 's-000001', 'UI_V2_PAGES: remove skip ID');
   await click('settings-decl'); await wait('document.querySelector("[data-key^=trust-]")'); await shot('settings-decl');
   const trust = f.v2_locations.manifests.find(m=>m.state==='untrusted'); await click('trust-' + trust.manifest_id); assert.deepEqual((await lastCall('manifest_trust')).args, {manifestId:trust.manifest_id, trusted:true}, 'UI_V2_PAGES: trust declaration');
   await click('settings-about'); await wait('document.body.textContent.includes("可重新下载不等于可回滚")');
+  await wait('document.querySelector("[data-key=about-copy-homepage]")', 'UI_W12_ABOUT');
+  const info = f.w12_app_info;
+  assert.deepEqual(await evalJs('[...document.querySelectorAll(".about-info .row strong")].map(n=>n.textContent)'), [`Flick ${info.version}`, `许可证 ${info.license}`, `项目地址 ${info.homepage}`], 'UI_W12_ABOUT: the three lines come from app_info');
+  await shot('settings-about'); await checkPrimary();
+  await click('about-copy-homepage'); assert.equal(await control('return c.clipboard.at(-1)'), info.homepage, 'UI_W12_ABOUT: 复制 copies the project address');
+  const copies = await control('return c.clipboard.length'); await click('about-copy-diagnostics');
+  await wait(`window.__waterTest.clipboard.length>${copies}`, 'UI_W12_ABOUT');
+  const diagnostics = await control('return c.clipboard.at(-1)'), agent = await evalJs('navigator.userAgent');
+  assert.equal(diagnostics.split('\n')[0], 'Flick 诊断信息', 'UI_W12_ABOUT: diagnostics start with their title line');
+  assert.equal(diagnostics, `Flick 诊断信息\n${JSON.stringify({app:info, platform:agent, service:f.w12_diagnostics}, null, 2)}`, 'UI_W12_ABOUT: diagnostics are app_info, the platform and diagnostics_get as JSON');
+  await reset({locations:'v2_locations'}, 'settings/skip'); await wait('document.querySelector("[data-key^=skip-remove-]")', 'UI_W12_SKIP');
+  assert.deepEqual(await evalJs('[...document.querySelectorAll(".settings-content .row strong")].map(n=>n.textContent)'), f.v2_locations.skipped.map(x => x.display_path), 'UI_W12_SKIP: without display_zh the skip list falls back to display_path');
   for (const [old, dest] of [['results', 'home'], ['locations', 'settings/content'], ['about', 'settings/about']]) { await evalJs(`location.hash=${JSON.stringify(old)}`); await wait(`location.hash===${JSON.stringify('#' + dest)}`, 'UI_V2_PAGES'); }
   await results(); await detail('codex-runtimes');
   await key('Tab', true); assert(await evalJs('document.querySelector("dialog").contains(document.activeElement)'), 'UI_V2_PAGES: backward focus stays in dialog');
