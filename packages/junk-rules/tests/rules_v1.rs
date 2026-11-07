@@ -6,6 +6,8 @@ use water_junk_rules::{
 };
 
 const CANARY: &str = "CANARY_ECHO_VALUE_9f3c2a";
+const EXPECTED_RULE_COUNT: usize = 118;
+const EXPECTED_DATA_VERSION: &str = "2026-11-08.1";
 const CREATED_AT: &str = "2026-10-26T04:00:00Z";
 
 fn m35_reject(rule: Value, label: &str) {
@@ -859,6 +861,30 @@ fn m35_resolve() {
 
 fn m35_seeds() {
     let rules = RuleSet::embedded();
+    for rule in rules.rules() {
+        for source in &rule.sources {
+            if source.kind != water_junk_rules::SourceKind::LocalObservation {
+                continue;
+            }
+            let reference = source.ref_text.as_bytes();
+            assert!(
+                reference.get(..11).is_some_and(|prefix| {
+                    prefix.iter().enumerate().all(|(index, byte)| match index {
+                        4 | 7 => *byte == b'-',
+                        10 => *byte == b' ',
+                        _ => byte.is_ascii_digit(),
+                    })
+                }),
+                "RULES_W13_SOURCES: {} observation starts with YYYY-MM-DD",
+                rule.rule_id
+            );
+            assert!(
+                !source.ref_text.contains(['\\', '/']),
+                "RULES_W13_SOURCES: {} observation has no path separators",
+                rule.rule_id
+            );
+        }
+    }
     let new_rows = [
         (
             "vrchat-cache",
@@ -985,7 +1011,11 @@ fn m35_seeds() {
             vec![p("user_profile", ".claude/downloads/*")],
         ),
     ];
-    assert_eq!(rules.rules().len(), 118, "RULES_W12_NEW: exact rule count");
+    assert_eq!(
+        rules.rules().len(),
+        EXPECTED_RULE_COUNT,
+        "RULES_W12_NEW: exact rule count"
+    );
     for (index, (id, category, level, kind, age, keep, mode, processes, growth, locators)) in
         new_rows.iter().enumerate()
     {
@@ -1028,7 +1058,7 @@ fn m35_seeds() {
             "RULES_W12_NEW: source kind"
         );
         assert_eq!(
-            rule.sources[0].ref_text, "2026-11-07 总控 C 盘只读调查",
+            rule.sources[0].ref_text, "2026-11-07 维护者本机只读检查（C 盘）",
             "RULES_W12_NEW: source reference"
         );
         assert_eq!(
@@ -1060,7 +1090,7 @@ fn m35_seeds() {
         }
     }
     assert_eq!(
-        rules.data_version, "2026-11-07.3",
+        rules.data_version, EXPECTED_DATA_VERSION,
         "RULES_M35_VERSION: embedded version"
     );
     // Independent frozen rows: ID | title | category | level | type | hours |
@@ -1102,7 +1132,11 @@ system-tmp-chrome-profiles|系统盘 tmp 里的无头浏览器配置|system_temp
         .map(|line| line.split('|').collect())
         .collect();
     assert_eq!(rows.len(), 32, "RULES_M35_SEEDS: expected rows");
-    assert_eq!(rules.rules().len(), 118, "RULES_M35_SEEDS: total rows");
+    assert_eq!(
+        rules.rules().len(),
+        EXPECTED_RULE_COUNT,
+        "RULES_M35_SEEDS: total rows"
+    );
     let data: Value = serde_json::from_str(include_str!("../rules/windows.json")).unwrap();
     for (rule, row) in rules.rules()[78..].iter().zip(&rows) {
         assert_eq!(row.len(), 11, "RULES_M35_SEEDS: frozen row fields");
@@ -1492,7 +1526,7 @@ fn sample_rule() -> Value {
         "fix_hint_zh": null,
         "sources": [{
             "kind":"local_observation",
-            "ref":"2026-10-26 总控本机只读摸底",
+            "ref":"2026-10-26 维护者本机只读检查",
             "checked_on":"2026-10-26"
         }]
     })
@@ -1520,7 +1554,7 @@ fn git_worktree_json() -> Value {
         "after_zh": "确认不再需要后，在主仓库里用 git worktree remove 删除，主仓库的登记会一并清掉。",
         "fix_hint_zh": null,
         "sources": [
-            {"kind":"local_observation","ref":"F 盘清理记录 docs/maintenance/F-CLEANUP-20261029.md：130 棵已合并的旧工作树共 56 GB","checked_on":"2026-10-29"},
+            {"kind":"local_observation","ref":"2026-10-29 维护者本机清理时确认：130 棵已合并的旧工作树共 56 GB。","checked_on":"2026-10-29"},
             {"kind":"official_doc","ref":"https://git-scm.com/docs/git-worktree","checked_on":"2026-10-31"}
         ]
     })
@@ -1620,7 +1654,7 @@ fn m3d_fallback_json(id: &str) -> Value {
             "名字叫 node_modules，但旁边没有像项目的文件，多半是全局安装的命令行工具、桌面程序解包出的文件，或某个程序自带的依赖。",
             "删掉可能让对应的工具或程序打不开。Flick 无法确认它属于谁，所以不提供清理，仅供参考。",
             "确认是不再用的工具后，用安装它的方式卸载，例如 npm uninstall -g。",
-            "10-29 场景复现 docs/acceptance/wave8/controller/WATER-M3-REPLAY-20261101.md：npm 全局目录、Electron 解包目录、Mirasim 程序目录被认成项目依赖",
+            "2026-10-29 维护者本机只读检查：npm 全局目录、Electron 解包目录和桌面程序自带的依赖被认成项目依赖。",
         ),
         "browser-data-dirs" => (
             "浏览器数据目录",
@@ -1631,7 +1665,7 @@ fn m3d_fallback_json(id: &str) -> Value {
             "看起来像完整的浏览器配置，但路径里没有自动化测试工具的名字，多半是某个桌面程序内嵌浏览器（Chromium、WebView2、CEF）的数据。",
             "里面可能有登录状态和程序数据，删掉可能要重新登录或让程序出错，所以不提供清理，仅供参考。",
             "要清理，请在对应程序里退出登录或卸载程序。",
-            "10-29 场景复现 docs/acceptance/wave8/controller/WATER-M3-REPLAY-20261101.md：内嵌浏览器的数据目录被认成测试用浏览器配置",
+            "2026-10-29 维护者本机只读检查：内嵌浏览器的数据目录被认成测试用浏览器配置。",
         ),
         _ => panic!("RULES_M3D_FALLBACK: unexpected rule"),
     };
@@ -2482,7 +2516,11 @@ fn rules_protection_precedence() {
     .expect("root shader caches must not collide with protected profiles");
     assert_eq!(subset_set.rules().len(), 6);
     let embedded = RuleSet::embedded();
-    assert_eq!(embedded.rules().len(), 118, "seed set must load");
+    assert_eq!(
+        embedded.rules().len(),
+        EXPECTED_RULE_COUNT,
+        "seed set must load"
+    );
 
     let agent_rules: Value = serde_json::from_str(include_str!("../rules/windows.json"))
         .expect("RULES_AGENT_TOOLS: embedded JSON");
@@ -2768,15 +2806,15 @@ fn rules_resolve_plan() {
     assert_eq!(expected, 338);
     assert_eq!(plan.plan_version, "water.scan-plan.v1");
     assert_eq!(
-        plan.rules_data_version, "2026-11-07.3",
+        plan.rules_data_version, EXPECTED_DATA_VERSION,
         "RULES_M35_VERSION: plan data version"
     );
     assert_eq!(
-        plan.rules_data_version, "2026-11-07.3",
+        plan.rules_data_version, EXPECTED_DATA_VERSION,
         "RULES_M3_WORDING: plan data version"
     );
     assert_eq!(
-        plan.rules_data_version, "2026-11-07.3",
+        plan.rules_data_version, EXPECTED_DATA_VERSION,
         "RULES_M3C_VERSION: plan data version"
     );
     assert_eq!(plan.created_at, CREATED_AT);
@@ -3306,7 +3344,7 @@ fn rules_seed_coverage() {
     m35_seeds();
     let rules = RuleSet::embedded();
     assert_eq!(
-        rules.data_version, "2026-11-07.3",
+        rules.data_version, EXPECTED_DATA_VERSION,
         "RULES_M3D_VERSION: embedded version"
     );
     let m3d_embedded: Value = serde_json::from_str(include_str!("../rules/windows.json"))
@@ -3344,7 +3382,7 @@ fn rules_seed_coverage() {
         );
     }
     assert_eq!(
-        rules.data_version, "2026-11-07.3",
+        rules.data_version, EXPECTED_DATA_VERSION,
         "RULES_M3C_VERSION: embedded version"
     );
     assert_eq!(
@@ -3503,19 +3541,19 @@ fn rules_seed_coverage() {
     for (id, expected_ref) in [
         (
             "electron-gpu-caches",
-            "2026-10-28 总控本机只读体检：应用的显卡着色器缓存目录共 41 个，约 45 MB，其中可清的 34 个。",
+            "2026-10-28 维护者本机只读检查：应用的显卡着色器缓存目录共 41 个，约 45 MB，其中可清的 34 个。",
         ),
         (
             "kimi-code-sessions",
-            "2026-10-28 总控本机只读体检：.kimi-code 的 sessions 与 file-history 共约 351 MB，受保护。",
+            "2026-10-28 维护者本机只读检查：.kimi-code 的 sessions 与 file-history 共约 351 MB，受保护。",
         ),
         (
             "workbuddy-memory-sessions",
-            "2026-10-28 总控本机只读核查：.workbuddy 与 .workbuddy-ai 内有 memory、sessions、plans、plugins 等目录，其中 memory 与 sessions 受保护。",
+            "2026-10-28 维护者本机只读检查：.workbuddy 与 .workbuddy-ai 内有 memory、sessions、plans、plugins 等目录，其中 memory 与 sessions 受保护。",
         ),
         (
             "other-agent-sessions",
-            "2026-10-28 总控本机只读核查：.dsh 共约 3 MB，内有 profiles、sessions、storages 与 settings.yaml，其中 sessions 受保护。",
+            "2026-10-28 维护者本机只读检查：.dsh 共约 3 MB，内有 profiles、sessions、storages 与 settings.yaml，其中 sessions 受保护。",
         ),
     ] {
         let rule = rules.rule(id).expect("RULES_M3_WORDING: source rule");
@@ -3654,10 +3692,7 @@ fn rules_seed_coverage() {
             spec.id
         );
         assert!(rule.fix_hint_zh.is_none(), "RULES_AGENT_TOOLS: no fix hint");
-        let observation_prefix = match spec.id {
-            "electron-gpu-caches" | "kimi-code-sessions" => "2026-10-28 总控本机只读体检：",
-            _ => "2026-10-28 总控本机只读核查：",
-        };
+        let observation_prefix = "2026-10-28 维护者本机只读检查：";
         assert!(
             rule.sources.iter().any(|source| {
                 source.kind == water_junk_rules::SourceKind::LocalObservation
