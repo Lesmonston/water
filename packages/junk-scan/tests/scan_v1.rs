@@ -129,6 +129,22 @@ fn junction(link: &Path, target: &Path) {
     );
 }
 
+fn junction_attributes(link: &Path, hidden: bool, system: bool) {
+    let mut args = vec!["/c", "attrib"];
+    if hidden {
+        args.push("+h");
+    }
+    if system {
+        args.push("+s");
+    }
+    args.extend(["/l", link.to_str().unwrap()]);
+    let out = Command::new("cmd").args(args).output().unwrap();
+    assert!(
+        out.status.success(),
+        "SCAN_W13_JUNCTIONS: link attributes fixture"
+    );
+}
+
 fn plan(targets: Vec<Value>, hard_guards: Vec<String>) -> String {
     json!({
         "plan_version": "water.scan-plan.v1",
@@ -2869,9 +2885,9 @@ fn m13_installer_patterns() {
     let fx = Fixture::create();
     let accepted = [
         "MostLogin-setup.exe",
-        "Mirasim-0.0.783.exe",
+        "SampleTool-0.0.783.exe",
         "WorkBuddy 5.1.0.exe",
-        "cc-switch_installer.exe",
+        "UtilitySuite_installer.exe",
     ];
     let rejected = [
         "unins000.exe",
@@ -4559,6 +4575,7 @@ fn m35_junctions_overview() {
     let fx = Fixture::create();
     let now = SystemTime::now();
     write_file(&fx.join("loc/cache/sub/data"), b"cache");
+    write_file(&fx.join("loc/attr-cache/data"), b"attributes");
     junction(&fx.join("loc/links/direct"), &fx.join("loc/cache"));
     junction(
         &fx.join("loc/links/inside-target"),
@@ -4567,6 +4584,30 @@ fn m35_junctions_overview() {
     junction(&fx.join("loc/links/parent-target"), &fx.join("loc"));
     junction(&fx.join("loc/cache/internal"), &fx.join("loc/cache/sub"));
     junction(&fx.join("loc/links/chain"), &fx.join("loc/links/direct"));
+    junction(
+        &fx.join("loc/compat/hidden-system"),
+        &fx.join("loc/attr-cache"),
+    );
+    junction(
+        &fx.join("loc/compat/hidden-only"),
+        &fx.join("loc/attr-cache"),
+    );
+    junction(
+        &fx.join("loc/compat/system-only"),
+        &fx.join("loc/attr-cache"),
+    );
+    junction(
+        &fx.join("loc/compat/hidden-system-chain"),
+        &fx.join("loc/attr-cache"),
+    );
+    junction(
+        &fx.join("loc/compat/normal-chain"),
+        &fx.join("loc/compat/hidden-system-chain"),
+    );
+    junction_attributes(&fx.join("loc/compat/hidden-system"), true, true);
+    junction_attributes(&fx.join("loc/compat/hidden-only"), true, false);
+    junction_attributes(&fx.join("loc/compat/system-only"), false, true);
+    junction_attributes(&fx.join("loc/compat/hidden-system-chain"), true, true);
     for (a, b) in [
         ("loc/links/cycle-a", "loc/links/cycle-b"),
         ("loc/links/cycle-b", "loc/links/cycle-a"),
@@ -4594,6 +4635,15 @@ fn m35_junctions_overview() {
         0,
         0,
     );
+    let attrs = target(
+        "attrs",
+        "recommended",
+        "custom",
+        json!({"kind":"pattern","base":fx.p("loc"),"segments":["attr-cache"]}),
+        "dir",
+        0,
+        0,
+    );
     let search = m35_marker_target(
         "search",
         &fx.p("loc"),
@@ -4601,7 +4651,7 @@ fn m35_junctions_overview() {
         None,
         "dir",
     );
-    let text = plan(vec![main, search], vec![]);
+    let text = plan(vec![main, attrs, search], vec![]);
     let extras = ExtrasOptions {
         junctions: true,
         declarations: true,
@@ -4610,26 +4660,69 @@ fn m35_junctions_overview() {
     let (result, index) = m35_full(&text, now, &extras);
     assert_eq!(
         index.junctions.len(),
-        7,
-        "SCAN_M35_JUNCTIONS: all listed links indexed once"
+        10,
+        "SCAN_W13_JUNCTIONS: compatibility links are excluded from index"
     );
     let row = item(&result, &fx.p("loc/cache"));
     let mut expected = [
         "loc/links/chain",
         "loc/links/direct",
         "loc/links/inside-target",
-        "loc/links/parent-target",
     ]
     .map(|p| fx.p(p))
     .to_vec();
     expected.sort_by_key(|s| s.to_ascii_lowercase());
     assert_eq!(
         row.referenced_by, expected,
-        "SCAN_M35_JUNCTIONS: equal/inside/parent, own link excluded"
+        "SCAN_W13_JUNCTIONS: equal/inside, parent-target excluded, own link excluded"
     );
     assert_eq!(
-        row.referenced_count, 4,
-        "SCAN_M35_JUNCTIONS: reference count"
+        row.referenced_count, 3,
+        "SCAN_W13_JUNCTIONS: reference count"
+    );
+    let attr_row = item(&result, &fx.p("loc/attr-cache"));
+    let mut attr_expected = ["loc/compat/hidden-only", "loc/compat/system-only"]
+        .map(|p| fx.p(p))
+        .to_vec();
+    attr_expected.sort_by_key(|s| s.to_ascii_lowercase());
+    assert_eq!(
+        attr_row.referenced_by, attr_expected,
+        "SCAN_W13_JUNCTIONS: single attributes count, hidden-system excluded"
+    );
+    assert_eq!(
+        attr_row.referenced_count, 2,
+        "SCAN_W13_JUNCTIONS: single attribute reference count"
+    );
+    assert!(
+        !index.junctions.iter().any(|j| {
+            j.path.ends_with("hidden-system") || j.path.ends_with("hidden-system-chain")
+        }),
+        "SCAN_W13_JUNCTIONS: hidden-system links are not indexed"
+    );
+    assert!(
+        index
+            .junctions
+            .iter()
+            .any(|j| j.path.ends_with("hidden-only"))
+            && index
+                .junctions
+                .iter()
+                .any(|j| j.path.ends_with("system-only")),
+        "SCAN_W13_JUNCTIONS: single attributes remain indexed"
+    );
+    let normal_chain = index
+        .junctions
+        .iter()
+        .find(|j| j.path.ends_with("normal-chain"))
+        .unwrap();
+    assert_eq!(
+        normal_chain.final_target.as_deref(),
+        Some(fx.p("loc/compat/hidden-system-chain").as_str()),
+        "SCAN_W13_JUNCTIONS: hidden-system target is not resolved"
+    );
+    assert!(
+        result.issues.iter().any(|i| i.code == "reparse_skipped"),
+        "SCAN_W13_JUNCTIONS: hidden-system links remain skipped"
     );
     let chain = index
         .junctions

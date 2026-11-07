@@ -31,7 +31,7 @@ fallback items use their own target's eligibility settings.
 Snapshot growth requires at least 24 hours between observations. A leak hint
 also requires increasing bytes, together with 20 additional recently active
 items or at least 1 GiB per day. Rates still use the exact elapsed interval.
-# M3.5 additions
+# Scanner capabilities
 
 `scan` remains the default-options wrapper around `scan_full`. All modes read names and metadata only; directory listings are shared across pattern, marker, discovery and measurement work. Allocation sizes and creation times come from the same directory enumeration, with file-identity deduplication within each item.
 
