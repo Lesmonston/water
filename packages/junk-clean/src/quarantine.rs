@@ -83,6 +83,7 @@ pub fn quarantine(
             status: RunStatus::Completed,
             moved_bytes: "0".into(),
             items: Vec::new(),
+            journal_error: None,
         };
         let mut first_root: Option<String> = None;
         let mut moved = 0u64;

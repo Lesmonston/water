@@ -203,6 +203,7 @@ pub fn execute(
         estimate_bytes: plan.estimate()?.to_string(),
         volumes,
         items: Vec::with_capacity(plan.items.len()),
+        journal_error: None,
     };
     let mut freed = 0u64;
     let mut interrupted = false;

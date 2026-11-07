@@ -6768,6 +6768,7 @@ fn m35_two_disk_records() {
                     bytes: i.total_bytes.clone(),
                 })
                 .collect(),
+            journal_error: None,
         };
         quarantine::save_moves(&s.core, &record, &batch, &report, "clean-synthetic").unwrap();
         let stored: Value = serde_json::from_slice(

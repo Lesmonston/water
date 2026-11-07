@@ -215,6 +215,9 @@ pub enum SkipReason {
     InUse,
     TooRecent,
     Cancelled,
+    /// W12: the journal stopped accepting lines after an action already ran; this item was not touched.
+    /// Interface landed by the controller in the wave 12 base; WATER-W12-P1 produces it.
+    JournalFailed,
 }
 
 #[derive(Clone, Copy, Debug, PartialEq, Eq, Serialize, Deserialize)]
@@ -277,4 +280,7 @@ pub struct CleanReport {
     pub estimate_bytes: String,
     pub volumes: Vec<VolumeReport>,
     pub items: Vec<ItemReport>,
+    /// W12: set when the journal failed after an action ran; the report is still returned (contracts/w12-v1/W12.md section 3).
+    #[serde(default, skip_serializing_if = "Option::is_none")]
+    pub journal_error: Option<String>,
 }

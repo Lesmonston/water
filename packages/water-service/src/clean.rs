@@ -470,7 +470,7 @@ pub(crate) fn start(core: &Arc<Core>, id: &str, token: &str) -> Result<Value, Ip
             let selected=stored["chosen_ids"].as_array().into_iter().flatten().filter_map(Value::as_str).collect::<BTreeSet<_>>();
             let quarantine_mode=stored["chosen_mode"]=="quarantine";
             let mut deletion=plan.clone();deletion.items.retain(|i|!quarantine_mode || !selected.contains(i.item_id.as_str()));
-            let mut report=if deletion.items.is_empty() {clean::CleanReport{report_version:"water.clean-report.v1".into(),plan_id:plan.plan_id.clone(),started_at:util::timestamp(now),ended_at:util::timestamp(now),status:clean::RunStatus::Completed,freed_bytes:"0".into(),estimate_bytes:plan.items.iter().map(|i|util::number(&i.total_bytes)).sum::<u64>().to_string(),volumes:vec![],items:vec![]}}else{
+            let mut report=if deletion.items.is_empty() {clean::CleanReport{report_version:"water.clean-report.v1".into(),plan_id:plan.plan_id.clone(),started_at:util::timestamp(now),ended_at:util::timestamp(now),status:clean::RunStatus::Completed,freed_bytes:"0".into(),estimate_bytes:plan.items.iter().map(|i|util::number(&i.total_bytes)).sum::<u64>().to_string(),volumes:vec![],items:vec![],journal_error:None}}else{
                 let observer=Observer{core:worker_core.clone(),record:r.clone(),plan:&plan,groups:&group_ids,offset:0,freed_before:0,quarantined_before:0,quarantining:false};
                 clean::execute(&deletion,&guard,&mut journal,&stop,&observer,now).map_err(quarantine::error)?
             };
@@ -490,7 +490,7 @@ pub(crate) fn start(core: &Arc<Core>, id: &str, token: &str) -> Result<Value, Ip
                     report
                 } else {
                     if let Some(last)=batch.items.last() {clean::CleanObserver::on_item(&observer,batch.items.len(),batch.items.len(),0,&last.item_id);}
-                    clean::QuarantineReport{report_version:"water.quarantine-report.v1".into(),quarantine_id:id,started_at:util::timestamp(now),ended_at:util::timestamp(worker_core.platform.now()),status:clean::RunStatus::Completed,moved_bytes:"0".into(),items:batch.items.iter().map(|i|clean::MoveReport{item_id:i.item_id.clone(),status:clean::MoveStatus::Failed,skip_reason:None,move_error:Some(clean::MoveError::QuarantineUnavailable),error_code:None,destination:None,identity:None,bytes:"0".into()}).collect()}
+                    clean::QuarantineReport{report_version:"water.quarantine-report.v1".into(),quarantine_id:id,started_at:util::timestamp(now),ended_at:util::timestamp(worker_core.platform.now()),status:clean::RunStatus::Completed,moved_bytes:"0".into(),items:batch.items.iter().map(|i|clean::MoveReport{item_id:i.item_id.clone(),status:clean::MoveStatus::Failed,skip_reason:None,move_error:Some(clean::MoveError::QuarantineUnavailable),error_code:None,destination:None,identity:None,bytes:"0".into()}).collect(),journal_error:None}
                 };
                 if moved_report.status==clean::RunStatus::Stopped {report.status=clean::RunStatus::Stopped;}
                 moved+=util::number(&moved_report.moved_bytes);done+=batch.items.len();reports.push(moved_report);
@@ -672,7 +672,7 @@ fn result_view(
         let mut counts=[0u64;6];
         for item in &reports {
             use clean::SkipReason::*;
-            match item.skip_reason {Some(InUse)=>counts[0]+=1,Some(Changed|Gone)=>counts[1]+=1,Some(TooRecent)=>counts[2]+=1,Some(Reparse|OutsideRoot|Guarded|ProtectedOverlap)=>counts[3]+=1,Some(Cancelled)=>counts[4]+=1,None=>{}}
+            match item.skip_reason {Some(InUse)=>counts[0]+=1,Some(Changed|Gone)=>counts[1]+=1,Some(TooRecent)=>counts[2]+=1,Some(Reparse|OutsideRoot|Guarded|ProtectedOverlap)=>counts[3]+=1,Some(Cancelled|JournalFailed)=>counts[4]+=1,None=>{}}
             counts[5]+=item.failed_entries;
         }
         let tails=[" 项正在使用，已跳过"," 项已经变化，已跳过"," 项刚有改动，已跳过"," 项未通过安全复核，已跳过"," 项因停止未处理"," 个文件无法删除"];
