@@ -1,10 +1,10 @@
-//! Thin synchronous adapters: backend replies are returned without interpretation.
+//! Thin synchronous adapters and host-owned commands; backend replies pass through unchanged.
 use crate::{Backend, ExplorerOpener, IpcFailure, Opener};
 use serde_json::{Value, json};
 use std::sync::Arc;
 use tauri::State;
 
-pub const COMMANDS: [&str; 36] = [
+pub const COMMANDS: [&str; 39] = [
     "app_state",
     "scan_start",
     "scan_cancel",
@@ -41,6 +41,9 @@ pub const COMMANDS: [&str; 36] = [
     "locations_set_session_cleanup",
     "manifest_trust",
     "cluster_mark_fixed",
+    "skip_unit_add",
+    "diagnostics_get",
+    "app_info",
 ];
 
 pub fn cmd_app_state(backend: &dyn Backend) -> Result<Value, IpcFailure> {
@@ -603,4 +606,47 @@ pub(crate) fn quarantine_reveal(
     target_id: String,
 ) -> Result<Value, IpcFailure> {
     cmd_quarantine_reveal(backend.inner().as_ref(), &ExplorerOpener, target_id)
+}
+
+pub fn cmd_skip_unit_add(
+    backend: &dyn Backend,
+    conclusion_version: String,
+    unit_id: String,
+) -> Result<Value, IpcFailure> {
+    backend.call(
+        "skip_unit_add",
+        json!({"conclusionVersion": conclusion_version, "unitId": unit_id}),
+    )
+}
+
+#[tauri::command]
+pub(crate) fn skip_unit_add(
+    backend: State<'_, Arc<dyn Backend>>,
+    conclusion_version: String,
+    unit_id: String,
+) -> Result<Value, IpcFailure> {
+    cmd_skip_unit_add(backend.inner().as_ref(), conclusion_version, unit_id)
+}
+
+pub fn cmd_diagnostics_get(backend: &dyn Backend) -> Result<Value, IpcFailure> {
+    backend.call("diagnostics_get", json!({}))
+}
+
+#[tauri::command]
+pub(crate) fn diagnostics_get(backend: State<'_, Arc<dyn Backend>>) -> Result<Value, IpcFailure> {
+    cmd_diagnostics_get(backend.inner().as_ref())
+}
+
+pub fn cmd_app_info() -> Value {
+    json!({
+        "name": "Flick",
+        "version": env!("CARGO_PKG_VERSION"),
+        "license": "MIT OR Apache-2.0",
+        "homepage": "https://github.com/dfan0519-tech/flick",
+    })
+}
+
+#[tauri::command]
+pub(crate) fn app_info() -> Value {
+    cmd_app_info()
 }

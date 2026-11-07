@@ -96,13 +96,18 @@ fn host_config_boundary() {
     let config: Value = serde_json::from_str(raw).expect("HOST_CONFIG JSON");
     let capability: Value = serde_json::from_str(cap_raw).expect("HOST_CONFIG capability JSON");
     assert_eq!(
+        config["bundle"],
+        json!({"active": false, "publisher": "Flick"}),
+        "HOST_W12_INFO exact bundle publisher and disabled bundling"
+    );
+    assert_eq!(
         config,
         json!({
             "productName": "Flick", "version": "0.1.0", "identifier": "app.water.desktop",
             "build": {"frontendDist": "../ui"},
             "app": {"windows": [], "withGlobalTauri": true, "security": {
                 "csp": expected_csp, "assetProtocol": {"enable": false}, "capabilities": ["main"]
-            }}, "bundle": {"active": false}, "plugins": {}
+            }}, "bundle": {"active": false, "publisher": "Flick"}, "plugins": {}
         }),
         "HOST_CONFIG exact config"
     );
@@ -132,6 +137,7 @@ fn host_config_boundary() {
         ("/app/security/assetProtocol/enable", json!(true)),
         ("/app/security/capabilities", json!(["main", "extra"])),
         ("/bundle/active", json!(true)),
+        ("/bundle/publisher", json!("Other")),
         ("/plugins", json!({"shell": {}})),
     ] {
         let mut bad = config.clone();
@@ -195,6 +201,24 @@ fn host_config_boundary() {
         "HOST_CONFIG duplicate key"
     );
     assert!(validate_config("{}").is_err(), "HOST_CONFIG missing fields");
+    let mut missing_publisher = config.clone();
+    missing_publisher["bundle"]
+        .as_object_mut()
+        .unwrap()
+        .remove("publisher");
+    assert!(
+        validate_config(&missing_publisher.to_string()).is_err(),
+        "HOST_W12_INFO missing publisher rejected"
+    );
+    assert!(
+        validate_config(&raw.replacen(
+            "\"publisher\":",
+            "\"publisher\":\"Flick\",\"publisher\":",
+            1
+        ))
+        .is_err(),
+        "HOST_W12_INFO duplicate publisher rejected"
+    );
     assert!(
         validate_capability("{}").is_err(),
         "HOST_CONFIG missing capability fields"
@@ -490,7 +514,7 @@ fn host_command_registry() {
         .filter(|entry| !entry.is_empty())
         .map(|entry| entry.strip_prefix("commands::").unwrap_or(entry))
         .collect();
-    assert_eq!(COMMANDS.len(), 36, "HOST_M3C_SKIP command count");
+    assert_eq!(COMMANDS.len(), 39, "HOST_M3C_SKIP command count");
     assert_eq!(
         &COMMANDS[17..19],
         ["skip_add", "skip_remove"],
@@ -498,7 +522,7 @@ fn host_command_registry() {
     );
     assert_eq!(
         handlers, COMMANDS,
-        "HOST_M3C_SKIP handler registration matches all 19 commands"
+        "HOST_M3C_SKIP handler registration matches all commands"
     );
     for reply in [
         Ok(json!({"skipped": [{"unknown": "原样"}]})),
@@ -536,6 +560,96 @@ fn host_command_registry() {
         "HOST_COMMANDS actual handler registration"
     );
     assert_m35_registry(&contract_names, &wrappers, &handlers);
+    let w12_names = ["skip_unit_add", "diagnostics_get", "app_info"];
+    assert_eq!(
+        &COMMANDS[36..],
+        w12_names,
+        "HOST_W12_FORWARD exact appended command order"
+    );
+    assert_eq!(
+        &handlers[36..],
+        w12_names,
+        "HOST_W12_FORWARD exact appended handler order"
+    );
+    for (name, keys) in [
+        ("skip_unit_add", vec!["conclusionVersion", "unitId"]),
+        ("diagnostics_get", vec![]),
+        ("app_info", vec![]),
+    ] {
+        assert_eq!(
+            wrappers.get(name),
+            Some(&keys.into_iter().map(str::to_owned).collect::<Vec<_>>()),
+            "HOST_W12_FORWARD exact Tauri camelCase parameters for {name}"
+        );
+    }
+    let command_tokens = wiring_tokens(include_str!("../src/commands.rs"));
+    for (name, call) in [
+        (
+            "skip_unit_add",
+            "cmd_skip_unit_add(backend.inner().as_ref(), conclusion_version, unit_id)",
+        ),
+        (
+            "diagnostics_get",
+            "cmd_diagnostics_get(backend.inner().as_ref())",
+        ),
+        ("app_info", "cmd_app_info()"),
+    ] {
+        let body = wiring_block(&command_tokens, &["fn", name, "("], "HOST_W12_FORWARD");
+        assert_eq!(
+            body,
+            wiring_tokens(call),
+            "HOST_W12_FORWARD actual Tauri wrapper delegates to {name} adapter"
+        );
+    }
+    for reply in [
+        Ok(json!({"unknown": [null, {"中文": "9007199254740993"}]})),
+        Err(IpcFailure {
+            code: "stale".into(),
+            message_zh: "原样失败。".into(),
+        }),
+        Err(IpcFailure {
+            code: "busy".into(),
+            message_zh: "原样忙碌。".into(),
+        }),
+    ] {
+        for (version, unit) in [("v:甲", "m:组-乙"), ("", ""), ("invalid", "r:其它")] {
+            let backend = Recorder {
+                calls: Mutex::new(vec![]),
+                reply: reply.clone(),
+            };
+            assert_eq!(
+                cmd_skip_unit_add(&backend, version.into(), unit.into()),
+                reply,
+                "HOST_W12_FORWARD skip unit reply unchanged"
+            );
+            assert_eq!(
+                cmd_diagnostics_get(&backend),
+                reply,
+                "HOST_W12_FORWARD diagnostics reply unchanged"
+            );
+            assert_eq!(
+                *backend.calls.lock().unwrap(),
+                [
+                    (
+                        "skip_unit_add".into(),
+                        json!({"conclusionVersion": version, "unitId": unit})
+                    ),
+                    ("diagnostics_get".into(), json!({}))
+                ],
+                "HOST_W12_FORWARD exact command names, keys and unvalidated values"
+            );
+        }
+    }
+    assert_eq!(
+        cmd_app_info(),
+        json!({
+            "name": "Flick",
+            "version": env!("CARGO_PKG_VERSION"),
+            "license": "MIT OR Apache-2.0",
+            "homepage": "https://github.com/dfan0519-tech/flick",
+        }),
+        "HOST_W12_INFO exact host-owned app info including package version"
+    );
     assert_eq!(
         lib.matches("tauri::generate_handler![").count(),
         1,
@@ -666,14 +780,14 @@ fn assert_m35_registry(
     ];
     let table = m35_command_table();
     assert_eq!(table.len(), 17, "HOST_M35_COMMANDS IPC additions");
-    assert_eq!(COMMANDS.len(), 36, "HOST_M35_COMMANDS count");
+    assert_eq!(COMMANDS.len(), 39, "HOST_M35_COMMANDS count");
     assert_eq!(
-        &COMMANDS[19..],
+        &COMMANDS[19..36],
         appended,
         "HOST_M35_COMMANDS exact addition order"
     );
     assert_eq!(
-        COMMANDS.as_slice(),
+        &COMMANDS[..36],
         contract_names,
         "HOST_M35_COMMANDS complete IPC table"
     );
@@ -693,7 +807,7 @@ fn assert_m35_registry(
     );
     assert_eq!(
         wrappers.len(),
-        36,
+        39,
         "HOST_M35_COMMANDS no extra IPC wrappers"
     );
     assert!(
