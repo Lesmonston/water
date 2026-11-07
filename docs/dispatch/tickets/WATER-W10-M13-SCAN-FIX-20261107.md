@@ -1,6 +1,6 @@
 # WATER-W10-M13：扫描补修，泄漏簇不认会话、备份与程序资源（中门）
 
-2026-11-07，正式单，总控（Claude）。默认执行者：sol（后端单）。状态以[第十波 manifest](../wave10/manifest.json) 中本单的 `status` 为准；READY 不代表已外贴。可以新开对话执行。
+2026-11-07，正式单，总控（Claude）。执行者：astra（用户 11-07 派，排在 M12 之后；后端单默认是 sol）。状态以[第十波 manifest](../wave10/manifest.json) 中本单的 `status` 为准；READY 不代表已外贴。可以新开对话执行。
 
 ## 0. 背景
 

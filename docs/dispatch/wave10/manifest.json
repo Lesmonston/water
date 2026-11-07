@@ -2490,11 +2490,11 @@
       "branch": "worker/water-w10-m12",
       "baseCommit": "98f9678e6a49bb63b87272644dae15c721384d9c",
       "snapshotRef": "refs/tags/water-w10-m12-base-20261107",
-      "status": "READY",
+      "status": "BLOCKED",
       "readyOn": "2026-11-07",
-      "dispatchedAt": null,
+      "dispatchedAt": "2026-11-07T03:17:00Z",
       "startedAt": null,
-      "model": null,
+      "model": "astra (user-reported)",
       "modelAssignment": "user-arranged; report actual engine/model",
       "purpose": "M3.5 close recheck R1: installer-files second locator only setup, installer or version names",
       "report": "docs/dispatch/reports/WATER-W10-M12-REPORT.md",
@@ -2561,12 +2561,25 @@
       "defaultExecutor": "sol",
       "source": "docs/acceptance/wave10/controller/WATER-M35-CLOSE-20261107.md",
       "issuedAt": "2026-11-07T03:03:59Z",
-      "baselineEvidence": "docs/acceptance/wave10/controller/preflight-20261107/m12/2026-11-07T03-03-07.873Z-25592-baseline-result.json"
+      "baselineEvidence": "docs/acceptance/wave10/controller/preflight-20261107/m12/2026-11-07T03-03-07.873Z-25592-baseline-result.json",
+      "dispatchEvidence": "user chat 2026-11-07 ~12:17 JST: \"12是astra，14是sol\" (the M12 paste line also covers M13, in order)",
+      "blockedCommit": "5f2b1885d750e78e2bbfe95bb2ce719e0ca64b04",
+      "workerSelfReport": "Codex (GPT-6)",
+      "blockedReason": "ticket section 4 puts both negative controls in rules/windows.json, but checkup-wave-check.mjs required every Rust red-ncN to change <outputRoot>/src (line 189); controller ticket/checker mismatch",
+      "negativeControlPaths": [
+        "packages/junk-rules/src",
+        "packages/junk-rules/rules/windows.json"
+      ],
+      "resume": {
+        "fromCommit": "5f2b1885d750e78e2bbfe95bb2ce719e0ca64b04",
+        "how": "reply in the same conversation; no addendum (scope unchanged)",
+        "checkerFix": "checkup-wave-check.mjs reads task.negativeControlPaths (default <outputRoot>/src)"
+      }
     },
     {
       "id": "WATER-W10-M13",
       "title": "扫描补修：泄漏簇不认会话、备份与程序资源",
-      "status": "READY",
+      "status": "DISPATCHED",
       "slot": "w10-m13",
       "kind": "rust",
       "worktree": "F:/new/smaltalk/water/.worktrees/w10-m13",
@@ -2652,9 +2665,9 @@
       "nativeDirectoryDialogBudget": 0,
       "browserBudget": 0,
       "realDataPermission": "read-only metadata per ADR-018; group-level output only",
-      "dispatchedAt": null,
+      "dispatchedAt": "2026-11-07T03:17:00Z",
       "startedAt": null,
-      "model": null,
+      "model": "astra (user-reported)",
       "modelAssignment": "user-arranged; report actual engine/model",
       "macOS": "unverified",
       "gate": "medium",
@@ -2705,7 +2718,9 @@
       "defaultExecutor": "sol",
       "source": "docs/acceptance/wave10/controller/WATER-M35-CLOSE-20261107.md",
       "issuedAt": "2026-11-07T03:03:59Z",
-      "baselineEvidence": "docs/acceptance/wave10/controller/preflight-20261107/m13/2026-11-07T03-03-15.661Z-9728-baseline-result.json"
+      "baselineEvidence": "docs/acceptance/wave10/controller/preflight-20261107/m13/2026-11-07T03-03-15.661Z-9728-baseline-result.json",
+      "dispatchEvidence": "user chat 2026-11-07 ~12:17 JST: \"12是astra，14是sol\" (the M12 paste line also covers M13, in order)",
+      "note": "starts after M12 in the same astra conversation; tree 98f9678e/0 when recorded"
     },
     {
       "kind": "service",
@@ -2854,11 +2869,11 @@
       "branch": "worker/water-w10-m14",
       "baseCommit": "98f9678e6a49bb63b87272644dae15c721384d9c",
       "snapshotRef": "refs/tags/water-w10-m14-base-20261107",
-      "status": "READY",
+      "status": "DISPATCHED",
       "readyOn": "2026-11-07",
-      "dispatchedAt": null,
+      "dispatchedAt": "2026-11-07T03:17:00Z",
       "startedAt": null,
-      "model": null,
+      "model": "sol (user-reported)",
       "modelAssignment": "user-arranged; report actual engine/model",
       "purpose": "M3.5 close recheck R1, R2, R3, R4, R5, R8 on the service side",
       "report": "docs/dispatch/reports/WATER-W10-M14-REPORT.md",
@@ -2968,7 +2983,8 @@
       "defaultExecutor": "sol",
       "source": "docs/acceptance/wave10/controller/WATER-M35-CLOSE-20261107.md",
       "issuedAt": "2026-11-07T03:03:59Z",
-      "baselineEvidence": "docs/acceptance/wave10/controller/preflight-20261107/m14/2026-11-07T03-03-23.835Z-21532-baseline-result.json"
+      "baselineEvidence": "docs/acceptance/wave10/controller/preflight-20261107/m14/2026-11-07T03-03-23.835Z-21532-baseline-result.json",
+      "dispatchEvidence": "user chat 2026-11-07 ~12:17 JST: \"12是astra，14是sol\" (the M12 paste line also covers M13, in order); worker tree head/changed files 98f9678e/1 when recorded at 2026-11-07T03:18:03Z"
     }
   ],
   "bundles": [

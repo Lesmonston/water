@@ -1,6 +1,6 @@
 # WATER-W10-M12：规则补修，“安装包”只认安装程序（轻门）
 
-2026-11-07，正式单，总控（Claude）。默认执行者：sol（后端单）。状态以[第十波 manifest](../wave10/manifest.json) 中本单的 `status` 为准；READY 不代表已外贴。可以新开对话执行。
+2026-11-07，正式单，总控（Claude）。执行者：astra（用户 11-07 派；后端单默认是 sol）。状态以[第十波 manifest](../wave10/manifest.json) 中本单的 `status` 为准；READY 不代表已外贴。可以新开对话执行。
 
 ## 0. 背景
 
@@ -72,6 +72,8 @@ M3.5 收口时总控用 release 版做了真实只读体检，见[收口报告](
 | nc2 | `data_version` 退回 `2026-11-02.2` | `RULES_M35_VERSION` |
 
 本单的负控改的是 `rules/windows.json`，不是 `src/`（本单只改数据）。做法：改一处 → `--mode red-ncN` → `git checkout` 恢复原字节 → 立即 `--mode test`。
+
+11-07 12:25 补：检查器原来要求 Rust 负控必须改 `src/`，与上面冲突（执行者受阻回执 `5f2b1885`）。总控已改检查器：按 manifest 里本单的 `negativeControlPaths`（`packages/junk-rules/src` 或 `packages/junk-rules/rules/windows.json`）判断。不禁止改测试、失败标记、恢复后变绿等别的核验都不变。从 `5f2b1885` 续做，不用重跑 baseline。
 
 ## 5. 命令（在工作树根目录执行）
 

@@ -1,6 +1,6 @@
 # WATER-W10-M14：服务补修，程序目录不算、已装程序要整名对上、线索合并、卡片说人话（中门）
 
-2026-11-07，正式单，总控（Claude）。默认执行者：sol（后端单）。状态以[第十波 manifest](../wave10/manifest.json) 中本单的 `status` 为准；READY 不代表已外贴。可以新开对话执行。
+2026-11-07，正式单，总控（Claude）。执行者：sol（用户 11-07 派）。状态以[第十波 manifest](../wave10/manifest.json) 中本单的 `status` 为准；READY 不代表已外贴。可以新开对话执行。
 
 ## 0. 背景
 

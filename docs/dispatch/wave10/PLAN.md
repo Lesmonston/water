@@ -515,3 +515,12 @@ WATER-W10-M11（界面小修：M6 留下的四处小毛病，轻门，浏览器�
 基线都是 `98f9678e`（tag `water-w10-m12/m13/m14-base-20261107`），工作树已建，派前 baseline 通过（[回执](../../acceptance/wave10/controller/preflight-20261107/)）。
 
 三张单互不依赖，合入顺序 M12、M13、M14。合入后做第八次整合，再用 `m35-close-observe.ps1` 在同一位置复验，然后收口。M12 很小，与 M13 交给同一个执行者按顺序做；M14 另给一个执行者，可以同时进行。服务测试有计时，机器忙时只因计时失败的原样重跑。
+
+**派单**（11-07 约 12:17 JST，用户原话：“12是astra，14是sol”）：
+- M12→M13 给 astra，执行者自报 Codex GPT-6；
+- M14 给 sol。
+
+**M12 受阻**（回执 `5f2b1885`），是总控的疏漏：
+- 工单要求两条负控只改 `rules/windows.json`，检查器却要求 Rust 负控必须改 `src/`。
+- 总控改了 `checkup-wave-check.mjs`：按任务的 `negativeControlPaths` 判断，不写时仍是 `src/`；M12 的清单写上了这两处路径。
+- 范围没变，不出补单，给同一个对话贴一句续做。

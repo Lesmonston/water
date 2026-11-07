@@ -448,6 +448,10 @@ A–AB及八补单、AD保持VERIFIED；AC/补单06新增VERIFIED（Windows静�
 80. **第 22 份交接**（11-07 03:20 JST，用户收工）：第十波 M1～M11 全部合入，第七次整合通过，release `water-0.1.0-c1dd420c` 已编好；执行者通用规则与工作流 v2 已落地。下一步问用户开不开始写 M3.5 收口报告。[第 22 份交接](CONTROLLER-HANDOFF-20261107-22.md)第 3 节是入口。
 81. **M3.5 收口报告：建议先修再收口**（11-07 11:50 JST，用户：“开始写”）：用 release `water-0.1.0-c1dd420c` 在新数据目录上对 D 盘与 `F:\Mirasim-A` 做真实只读体检（开窗前告知用户；总控工具 `m35-close-observe.ps1`），8.96 秒出结论，零计划零清理；F1、F2 修法仍成立，推荐只有内嵌浏览器缓存等 96 MB。查出契约层的两类认错：“安装包”卡把卸载程序、CPU-Z 本体、Python 与 setuptools 的启动程序当安装包（可清 28 项里只有 1 个真安装包），已装程序按单个词配错；泄漏簇把会话记录（绕过默认关的会话开关）、备份、程序资源当泄漏，线索 786 条。都只是“需确认”、先隔离，没有损失。67 行经验：做了 53、复验有问题 4、已有 7、没做 3（第 11、60、61 行）。见[收口报告](acceptance/wave10/controller/WATER-M35-CLOSE-20261107.md)；第 6 节是建议的小单。等用户定：先修再收口，还是现在收口。
 82. **收口前补修三张单 READY**（11-07 12:10 JST，用户：“先修再收口”）：[M12 规则](dispatch/tickets/WATER-W10-M12-RULES-FIX-20261107.md)（安装包只认 setup、installer、版本号）、[M13 扫描](dispatch/tickets/WATER-W10-M13-SCAN-FIX-20261107.md)（泄漏簇不认会话、备份与程序资源）、[M14 服务](dispatch/tickets/WATER-W10-M14-SERVICE-FIX-20261107.md)（程序目录不算、已装程序整名对上、线索合并、卡片说人话）。基线 `98f9678e`，工作树已建，派前 baseline 通过；契约不动，补充写在各单。默认执行者 sol；M12→M13 一个执行者按顺序，M14 另一个。合入后做第八次整合与同位置复验，再收口。见[计划](dispatch/wave10/PLAN.md)“M12～M14 收口前补修”。
+83. **M12～M14 派出，M12 受阻已解**（11-07 12:25 JST）：
+    - **派单**：用户原话“12是astra，14是sol”，即 M12→M13 给 astra（执行者自报 Codex GPT-6），M14 给 sol。
+    - **M12 受阻**（`5f2b1885`）：工单让负控只改规则数据，检查器却要求改 `src/`，属总控疏漏。
+    - **处理**：检查器改为读任务的 `negativeControlPaths`。给 astra 同一个对话贴一句续做，不出补单。
 ## 真实AA→AD联合验收通过（2026-10-26）
 
 新总控（Claude）接任后按事先冻结的[计划](acceptance/wave1/controller/WATER-W1-AAAD-JOINT-PLAN-20261026.md)执行一次：真实固定AA宿主→原生目录选择→R/Z→AB传输→AD同源报告页，四场景全部通过，4窗/9.993秒/无重试/手动终止0。报告页鼠标下载的Q与Z与当次原字符串逐字节一致，淘汰与正常关闭通过。见[联合验收报告](acceptance/wave1/controller/WATER-W1-AAAD-JOINT-REVIEW-20261026.md)。31任务/槽位不变，没有新READY票；桌面接入扫描、真实用户scope、自然同意鉴真、生产竞态、macOS与M1仍未验收。用户同日要求先暂停安排后续任务，结合本机清理经验重订计划；总控草案见[计划重订（待拍板）](REPLAN-20261026-AGENT-ERA-CHECKUP.md)，拍板前不出新票。

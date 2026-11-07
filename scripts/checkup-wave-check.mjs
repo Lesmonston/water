@@ -3,6 +3,7 @@
 // Usage from the task worktree root:
 //   node F:/new/smaltalk/water/scripts/checkup-wave-check.mjs --task WATER-W2-A --mode <mode> [--final]
 // Modes: baseline | lock | check | test | browser | real | red-nc1 | red-nc2 | red-nc3 | archive
+// Rust negative controls change <outputRoot>/src unless the task lists negativeControlPaths (W10-M12: rules data only).
 // UI browser runs write screenshots to WATER_W2_SHOTS_DIR under .local/checks; archive copies them into the evidence dir.
 import assert from 'node:assert/strict';
 import {spawnSync} from 'node:child_process';
@@ -186,7 +187,7 @@ try{
       record.sourceState=capture();dependencyPolicy(rust);unsafePolicy();
       if(mode==='check'){command(rust.cargo,['fmt',...rust.manifestArgs,'--','--check']);command(rust.cargo,['clippy','--offline','--locked',...rust.manifestArgs,'--all-targets','--','-D','warnings']);}
       else if(mode==='test'||mode.startsWith('red-')){
-        const red=mode.startsWith('red-');if(red){assert(!finalGate);assert(task.proofTargets?.[mode.slice(4)],'No such negative control');assert.notEqual(git(['diff','--name-only','HEAD','--',task.outputRoot+'/src']),'','A negative control needs an uncommitted change under '+task.outputRoot+'/src');assert.equal(git(['diff','--name-only','HEAD','--',...task.testFiles]),'','Negative controls must not edit tests');}
+        const red=mode.startsWith('red-');if(red){assert(!finalGate);assert(task.proofTargets?.[mode.slice(4)],'No such negative control');const ncPaths=task.negativeControlPaths??[task.outputRoot+'/src'];assert.notEqual(git(['diff','--name-only','HEAD','--',...ncPaths]),'','A negative control needs an uncommitted change under '+ncPaths.join(' or '));assert.equal(git(['diff','--name-only','HEAD','--',...task.testFiles]),'','Negative controls must not edit tests');}
         if(finalGate)proofAudit(record.sourceState);
         const r=command(rust.cargo,['test','--offline','--locked',...rust.manifestArgs,'--test',task.testTarget,'--','--test-threads=1'],{expected:red?101:0});
         exactTests(r.text,task.expectedTests,!red);record.productTestsRun=true;
