@@ -28,8 +28,70 @@ pub(crate) struct CustomRoot {
 #[serde(deny_unknown_fields)]
 pub(crate) struct Skipped {
     pub skip_id: String,
-    pub path: String,
+    #[serde(default = "default_skip_kind")]
+    pub kind: String,
+    #[serde(default)]
+    pub path: Option<String>,
+    #[serde(default)]
+    pub group_id: Option<String>,
+    #[serde(default)]
+    pub template: Option<String>,
+    #[serde(default)]
+    pub folder: Option<String>,
+    #[serde(default)]
+    pub title_zh: String,
     pub added_at: String,
+}
+
+fn default_skip_kind() -> String {
+    "path".into()
+}
+
+impl Skipped {
+    pub(crate) fn matches(&self, item: &scan::Item) -> bool {
+        match self.kind.as_str() {
+            "path" => self
+                .path
+                .as_deref()
+                .is_some_and(|p| p.eq_ignore_ascii_case(&item.path)),
+            "group" => self.group_id.as_deref() == Some(item.group_id.as_str()),
+            "template" => {
+                self.group_id.as_deref() == Some(item.group_id.as_str())
+                    && self.template.as_deref() == item.template.as_deref()
+            }
+            "folder" => {
+                self.group_id.as_deref() == Some(item.group_id.as_str())
+                    && self
+                        .folder
+                        .as_deref()
+                        .is_some_and(|p| m35::parent(&item.path).eq_ignore_ascii_case(p))
+            }
+            _ => false,
+        }
+    }
+    pub(crate) fn same_as(&self, other: &Skipped) -> bool {
+        self.kind.eq_ignore_ascii_case(&other.kind)
+            && self
+                .group_id
+                .as_deref()
+                .unwrap_or("")
+                .eq_ignore_ascii_case(other.group_id.as_deref().unwrap_or(""))
+            && self
+                .path
+                .as_deref()
+                .unwrap_or("")
+                .eq_ignore_ascii_case(other.path.as_deref().unwrap_or(""))
+            && self
+                .template
+                .as_deref()
+                .unwrap_or("")
+                .eq_ignore_ascii_case(other.template.as_deref().unwrap_or(""))
+            && self
+                .folder
+                .as_deref()
+                .unwrap_or("")
+                .eq_ignore_ascii_case(other.folder.as_deref().unwrap_or(""))
+    }
 }
 
 #[derive(Clone, Serialize, Deserialize)]
@@ -53,7 +115,7 @@ pub(crate) struct Settings {
 impl Default for Settings {
     fn default() -> Self {
         Self {
-            settings_version: "water.settings.v3".into(),
+            settings_version: "water.settings.v4".into(),
             categories: views::CATEGORIES[..7]
                 .iter()
                 .map(|c| (c.0.into(), true))
@@ -357,7 +419,7 @@ impl Service {
                             "groups",
                             "journal_display_path",
                         ],
-                        &["quarantined"],
+                        &["quarantined", "journal_note_zh"],
                     )
                     && v["clean_id"] == *id
                     && v["view"]["clean_id"] == *id
@@ -450,6 +512,11 @@ impl Service {
             ),
             "custom_root_add" => self.add_root(),
             "skip_add" => self.add_skip(args["itemId"].as_str().expect("validated")),
+            "skip_unit_add" => self.add_skip_unit(
+                args["conclusionVersion"].as_str().expect("validated"),
+                args["unitId"].as_str().expect("validated"),
+            ),
+            "diagnostics_get" => diagnostics(core),
             "skip_remove" => self.remove_skip(args["skipId"].as_str().expect("validated")),
             "app_state" => {
                 let drives=core.platform.drives().into_iter().map(|d|json!({"root":d.root,"label_zh":if d.is_system{"系统盘"}else{"本地磁盘"},"is_system":d.is_system,"total_bytes":d.total_bytes.to_string(),"free_bytes":d.free_bytes.to_string()})).collect::<Vec<_>>();
@@ -525,6 +592,9 @@ impl Service {
                         let mut view = v["view"].clone();
                         if view.get("quarantined").is_none() {
                             view["quarantined"] = Value::Null;
+                        }
+                        if view.get("journal_note_zh").is_none() {
+                            view["journal_note_zh"] = Value::Null;
                         }
                         view
                     })
@@ -742,11 +812,12 @@ impl Service {
         {
             return Err(IpcError::new("invalid"));
         }
-        if s.settings
-            .skipped
-            .iter()
-            .any(|v| v.path.eq_ignore_ascii_case(&item.path))
-        {
+        if s.settings.skipped.iter().any(|v| {
+            v.kind == "path"
+                && v.path
+                    .as_deref()
+                    .is_some_and(|p| p.eq_ignore_ascii_case(&item.path))
+        }) {
             let stale: Vec<_> = s.plans.keys().cloned().collect();
             s.stale_plans.extend(stale);
             return Ok(locations(core, &s));
@@ -765,15 +836,21 @@ impl Service {
             .ok_or_else(|| IpcError::new("invalid"))?;
         settings.skipped.push(Skipped {
             skip_id: format!("s-{sequence:06}"),
-            path: item.path.clone(),
+            kind: "path".into(),
+            path: Some(item.path.clone()),
+            group_id: None,
+            template: None,
+            folder: None,
+            title_zh: item.path.clone(),
             added_at: util::timestamp(core.platform.now()),
         });
         core.store.write("", "settings.json", &json!(settings))?;
+        let changed = settings.skipped.last().unwrap().clone();
         s.settings = settings;
-        m35::invalidate(&mut s, "跳过名单变了");
+        invalidate_skips(&mut s);
         let stale: Vec<_> = s.plans.keys().cloned().collect();
         s.stale_plans.extend(stale);
-        refresh_skip_records(core, &s, &item.path);
+        refresh_skip_records(core, &s, &changed);
         Ok(locations(core, &s))
     }
 
@@ -793,24 +870,95 @@ impl Service {
             .store
             .write("", "settings.json", &json!(settings))?;
         s.settings = settings;
-        m35::invalidate(&mut s, "跳过名单变了");
+        invalidate_skips(&mut s);
         let stale: Vec<_> = s.plans.keys().cloned().collect();
         s.stale_plans.extend(stale);
-        refresh_skip_records(&self.core, &s, &removed.path);
+        refresh_skip_records(&self.core, &s, &removed);
         Ok(locations(&self.core, &s))
+    }
+
+    fn add_skip_unit(&self, version: &str, unit_id: &str) -> Result<Value, IpcError> {
+        let core = &self.core;
+        let mut s = lock(core)?;
+        if s.busy != "idle" {
+            return Err(IpcError::new("busy"));
+        }
+        conclusion::ensure(core, &mut s)?;
+        let c = s
+            .m35
+            .conclusion
+            .as_ref()
+            .ok_or_else(|| IpcError::new("invalid"))?;
+        if conclusion::version(c) != version {
+            return Err(IpcError::new("stale"));
+        }
+        let specs = conclusion::skip_specs(core, &s, c, unit_id)?;
+        let existing = s.settings.skipped.clone();
+        let mut additions = Vec::new();
+        for spec in specs {
+            if existing.iter().any(|v| v.same_as(&spec))
+                || additions.iter().any(|v: &Skipped| v.same_as(&spec))
+            {
+                continue;
+            }
+            additions.push(Skipped {
+                skip_id: String::new(),
+                kind: spec.kind,
+                path: spec.path,
+                group_id: spec.group_id,
+                template: spec.template,
+                folder: spec.folder,
+                title_zh: spec.title_zh,
+                added_at: util::timestamp(core.platform.now()),
+            });
+        }
+        if additions.is_empty() {
+            let stale: Vec<_> = s.plans.keys().cloned().collect();
+            s.stale_plans.extend(stale);
+            return Ok(locations(core, &s));
+        }
+        if s.settings.skipped.len() + additions.len() > 64 {
+            return Err(IpcError::new("invalid"));
+        }
+        let mut settings = s.settings.clone();
+        for mut item in additions.clone() {
+            let sequence = (1..=999999)
+                .find(|n| {
+                    !settings
+                        .skipped
+                        .iter()
+                        .any(|v| v.skip_id == format!("s-{n:06}"))
+                })
+                .ok_or_else(|| IpcError::new("invalid"))?;
+            item.skip_id = format!("s-{sequence:06}");
+            settings.skipped.push(item);
+        }
+        settings.settings_version = "water.settings.v4".into();
+        core.store.write("", "settings.json", &json!(settings))?;
+        s.settings = settings;
+        invalidate_skips(&mut s);
+        let stale: Vec<_> = s.plans.keys().cloned().collect();
+        s.stale_plans.extend(stale);
+        for changed in additions {
+            refresh_skip_records(core, &s, &changed);
+        }
+        Ok(locations(core, &s))
     }
 }
 
-fn refresh_skip_records(core: &Core, s: &State, path: &str) {
-    let key = path.to_ascii_lowercase();
+fn invalidate_skips(s: &mut State) {
+    m35::invalidate(s, "跳过名单变了");
+    if let Some(c) = &mut s.m35.conclusion {
+        c.serial += 1;
+    }
+}
+
+fn refresh_skip_records(core: &Core, s: &State, changed: &Skipped) {
     for record in &s.records {
         let mut p = record.projection();
-        if !p.has_path(&key) {
-            continue;
-        }
-        p.refresh_path_lower(
+        p.refresh_skip(
             record,
-            &key,
+            changed,
             &s.settings,
             &core.rules,
             core.platform.as_ref(),
@@ -1131,12 +1279,15 @@ fn validate(command: &str, args: &Value) -> Result<(), IpcError> {
     let bad = || IpcError::new("invalid");
     let keys: &[&str] = match command {
         "app_state" | "scan_start" | "scan_progress" | "clean_stop" | "clean_progress"
-        | "trends" | "history_list" | "locations_get" | "custom_root_add" => &[],
+        | "trends" | "history_list" | "locations_get" | "custom_root_add" | "diagnostics_get" => {
+            &[]
+        }
         "scan_cancel" | "scan_result" => &["scanId"],
         "group_detail" => &["groupId"],
         "clean_prepare" if args.get("excludeItemIds").is_some() => &["groupIds", "excludeItemIds"],
         "clean_prepare" => &["groupIds"],
         "skip_add" => &["itemId"],
+        "skip_unit_add" => &["conclusionVersion", "unitId"],
         "skip_remove" => &["skipId"],
         "clean_start" => &["planId", "confirmToken"],
         "clean_result" => &["cleanId"],
@@ -1169,6 +1320,9 @@ fn validate(command: &str, args: &Value) -> Result<(), IpcError> {
                         .len()
                         == v.len()
             }),
+            "conclusionVersion" => args[key]
+                .as_str()
+                .is_some_and(|v| (1..=64).contains(&v.len()) && util::id_ok(v)),
             _ => args[key].as_str().is_some_and(util::id_ok),
         };
         if !valid {
@@ -1460,6 +1614,7 @@ fn load_settings(store: &Store, folders: &KnownFolders, platform: &dyn Platform)
         "water.settings.v1",
         "water.settings.v2",
         "water.settings.v3",
+        "water.settings.v4",
     ]
     .contains(&raw.settings_version.as_str())
         || raw.skipped.len() > 64
@@ -1474,10 +1629,8 @@ fn load_settings(store: &Store, folders: &KnownFolders, platform: &dyn Platform)
         || raw
             .skipped
             .iter()
-            .map(|v| v.path.to_ascii_lowercase())
-            .collect::<BTreeSet<_>>()
-            .len()
-            != raw.skipped.len()
+            .enumerate()
+            .any(|(n, v)| raw.skipped[..n].iter().any(|p| p.same_as(v)))
         || raw.categories.len() != 7
         || !views::CATEGORIES[..7]
             .iter()
@@ -1516,10 +1669,22 @@ fn load_settings(store: &Store, folders: &KnownFolders, platform: &dyn Platform)
         }
     }
     let mut settings = Settings {
-        settings_version: "water.settings.v3".into(),
+        settings_version: "water.settings.v4".into(),
         categories: raw.categories,
         custom_roots,
-        skipped: raw.skipped,
+        skipped: raw
+            .skipped
+            .into_iter()
+            .map(|mut v| {
+                if v.kind.is_empty() {
+                    v.kind = "path".into();
+                }
+                if v.kind == "path" && v.title_zh.is_empty() {
+                    v.title_zh = v.path.clone().unwrap_or_default();
+                }
+                v
+            })
+            .collect(),
         sessions: raw.sessions,
         trusts: raw.trusts,
         fixed_marks: raw.fixed_marks,
@@ -1529,7 +1694,10 @@ fn load_settings(store: &Store, folders: &KnownFolders, platform: &dyn Platform)
         return Settings::default();
     }
     m35::bound(&mut settings);
-    if migrated || settings.custom_roots.len() != listed {
+    if migrated
+        || settings.custom_roots.len() != listed
+        || raw.settings_version != "water.settings.v4"
+    {
         let _ = store.write("", "settings.json", &json!(settings));
     }
     settings
@@ -1560,7 +1728,7 @@ pub(crate) fn locations(core: &Core, s: &State) -> Value {
     let mut skipped = s.settings.skipped.clone();
     skipped.sort_by(|a, b| a.added_at.cmp(&b.added_at).then(a.skip_id.cmp(&b.skip_id)));
     let (sessions, manifests) = m35::locations_extra(core, s);
-    json!({"categories":views::CATEGORIES[..7].iter().map(|(c,t,_,d)|json!({"category":c,"title_zh":t,"description_zh":d,"enabled":views::enabled(&s.settings,c),"locked":false})).collect::<Vec<_>>(),"custom_roots":s.settings.custom_roots.iter().map(|r|root_view(s,r)).collect::<Vec<_>>(),"skipped":skipped.iter().map(|v|json!({"skip_id":v.skip_id,"display_path":v.path,"added_at":v.added_at})).collect::<Vec<_>>(),"home":m35::home(core,s),"sessions":sessions,"manifests":manifests})
+    json!({"categories":views::CATEGORIES[..7].iter().map(|(c,t,_,d)|json!({"category":c,"title_zh":t,"description_zh":d,"enabled":views::enabled(&s.settings,c),"locked":false})).collect::<Vec<_>>(),"custom_roots":s.settings.custom_roots.iter().map(|r|root_view(s,r)).collect::<Vec<_>>(),"skipped":skipped.iter().map(|v|json!({"skip_id":v.skip_id,"kind":v.kind,"display_zh":if v.title_zh.is_empty(){v.path.clone().unwrap_or_default()}else{v.title_zh.clone()},"display_path":if v.kind=="path"{v.path.clone()}else{None::<String>},"added_at":v.added_at})).collect::<Vec<_>>(),"home":m35::home(core,s),"sessions":sessions,"manifests":manifests})
 }
 
 fn added_7d(s: &State, r: &Record) -> Option<String> {
@@ -1688,8 +1856,94 @@ fn valid_skip(v: &Skipped) -> bool {
     v.skip_id.len() == 8
         && v.skip_id.starts_with("s-")
         && v.skip_id[2..].bytes().all(|c| c.is_ascii_digit())
-        && !v.path.is_empty()
+        && ["path", "group", "template", "folder"].contains(&v.kind.as_str())
+        && match v.kind.as_str() {
+            "path" => {
+                v.path.as_deref().is_some_and(|p| !p.is_empty())
+                    && v.group_id.is_none()
+                    && v.template.is_none()
+                    && v.folder.is_none()
+            }
+            "group" => {
+                v.path.is_none()
+                    && v.group_id.as_deref().is_some_and(util::id_ok)
+                    && v.template.is_none()
+                    && v.folder.is_none()
+            }
+            "template" => {
+                v.path.is_none()
+                    && v.group_id.as_deref().is_some_and(util::id_ok)
+                    && v.template.as_deref().is_some_and(|s| !s.is_empty())
+                    && v.folder.is_none()
+            }
+            "folder" => {
+                v.path.is_none()
+                    && v.group_id.as_deref().is_some_and(util::id_ok)
+                    && v.template.is_none()
+                    && v.folder.as_deref().is_some_and(|s| !s.is_empty())
+            }
+            _ => false,
+        }
         && util::parse_time(&v.added_at).is_some()
+}
+
+fn diagnostics(core: &Core) -> Result<Value, IpcError> {
+    let s = lock(core)?;
+    let counts = |values: Vec<String>| {
+        let mut out = BTreeMap::<String, u64>::new();
+        for code in values {
+            if [
+                "deleted",
+                "partial",
+                "skipped",
+                "failed",
+                "moved",
+                "gone",
+                "changed",
+                "reparse",
+                "outside_root",
+                "guarded",
+                "protected_overlap",
+                "in_use",
+                "too_recent",
+                "cancelled",
+                "journal_failed",
+            ]
+            .contains(&code.as_str())
+            {
+                *out.entry(code).or_default() += 1;
+            }
+        }
+        out
+    };
+    let last_scan=s.records.last().map(|r| {
+        let scope:Vec<m35::Location>=serde_json::from_value(r.saved["scope"].clone()).unwrap_or_default();
+        let mut issues=BTreeMap::<String,u64>::new();
+        for issue in &r.result.issues { if ["access_denied","unrepresentable_name","budget_exhausted","base_reparse","base_missing","reparse_skipped","identity_unavailable"].contains(&issue.code.as_str()) { *issues.entry(issue.code.clone()).or_default()+=issue.count; } }
+        let levels=|level|r.result.groups.iter().filter(|g|g.level==level).count();
+        json!({"status":r.result.status,"duration_ms":r.saved["duration_ms"],"scope":{"drives":scope.iter().filter(|l|l.kind=="drive").count(),"folders":scope.iter().filter(|l|l.kind=="folder").count(),"common":scope.iter().filter(|l|l.kind=="common").count()},"groups":r.result.groups.len(),"items":r.result.items.len(),"eligible_items":r.result.items.iter().filter(|i|i.eligible && !views::skipped(i,&s.settings)).count(),"levels":{"recommended":levels(scan::Level::Recommended),"confirm":levels(scan::Level::Confirm),"advisory":levels(scan::Level::Advisory),"protected":levels(scan::Level::Protected)},"issues":issues})
+    });
+    let last_clean=s.clean_order.last().and_then(|id|s.cleans.get(id)).map(|v| {
+        let items=v["report"]["items"].as_array().into_iter().flatten().chain(v["quarantine_reports"].as_array().into_iter().flatten().flat_map(|q|q["items"].as_array().into_iter().flatten())).collect::<Vec<_>>();
+        json!({"status":v["report"]["status"],"freed_bytes":v["view"]["freed_bytes"],"items":counts(items.iter().filter_map(|i|i["status"].as_str().map(str::to_owned)).collect()),"skip_reasons":counts(items.iter().filter_map(|i|i["skip_reason"].as_str().map(str::to_owned)).collect()),"quarantine_batches":v["quarantine_reports"].as_array().map_or(0,Vec::len),"journal_error":v["report"]["journal_error"].is_string() || v["quarantine_reports"].as_array().into_iter().flatten().any(|q|q["journal_error"].is_string())})
+    });
+    let skipped = |kind| s.settings.skipped.iter().filter(|v| v.kind == kind).count();
+    // Directory counts do not need to load stored record contents.
+    let store = |dir| {
+        std::fs::read_dir(core.store.root.join(dir))
+            .ok()
+            .into_iter()
+            .flatten()
+            .filter_map(Result::ok)
+            .filter(|e| {
+                e.file_name().to_str().is_some_and(|n| n.ends_with(".json"))
+                    && e.file_type().is_ok_and(|t| t.is_file() && !t.is_symlink())
+            })
+            .count()
+    };
+    Ok(
+        json!({"diagnostics_version":"flick.diagnostics.v1","service_version":env!("CARGO_PKG_VERSION"),"settings":{"settings_version":s.settings.settings_version,"categories_on":s.settings.categories.values().filter(|v|**v).count(),"categories_off":s.settings.categories.values().filter(|v|!**v).count(),"custom_roots":s.settings.custom_roots.len(),"skipped":{"path":skipped("path"),"group":skipped("group"),"template":skipped("template"),"folder":skipped("folder")},"session_cleanup_on":s.settings.sessions.iter().filter(|v|v.enabled).count(),"trusted_declarations":s.settings.trusts.len()},"last_scan":last_scan,"last_clean":last_clean,"quarantine":{"batches":s.m35.quarantine.view["cards"].as_array().map_or(0,Vec::len),"bytes":s.m35.quarantine.view["bytes"].as_str().unwrap_or("0")},"store":{"scans":store("scans"),"snapshots":store("snapshots"),"plans":store("plans"),"cleans":store("cleans"),"quarantine":store("quarantine"),"events":store("events"),"dedupes":store("dedupes")}}),
+    )
 }
 
 fn checkup_due(core: &Core, last: Option<&Record>) -> Value {

@@ -643,10 +643,25 @@ pub(crate) fn expected_skip<'a>(r: &Record, items: impl Iterator<Item = &'a Item
 
 fn view(core: &Core, s: &State, c: &Model) -> Value {
     let r = &c.record;
-    let selected = selected(s, c);
+    let mut selected = selected(s, c);
     let mut bytes = 0;
     let mut chosen = 0;
     let mut by_drive = BTreeMap::<String, u64>::new();
+    let mut plan_items = r
+        .result
+        .items
+        .iter()
+        .filter(|i| selected.contains(&i.item_id))
+        .map(|i| json!({"path":i.path,"item_id":i.item_id,"group_id":i.group_id}))
+        .collect::<Vec<_>>();
+    // clean_prepare visits the selected group IDs in sorted order. Match its
+    // tie breaker when two groups describe exactly the same path.
+    plan_items.sort_by(|a, b| a["group_id"].as_str().cmp(&b["group_id"].as_str()));
+    crate::clean::retain_outermost(&mut plan_items);
+    selected = plan_items
+        .iter()
+        .filter_map(|v| v["item_id"].as_str().map(str::to_owned))
+        .collect();
     for i in r
         .result
         .items
@@ -778,6 +793,164 @@ fn view(core: &Core, s: &State, c: &Model) -> Value {
     let scope: Vec<m35::Location> =
         serde_json::from_value(r.saved["scope"].clone()).unwrap_or_default();
     json!({"version":version(c),"scan_id":r.result.scan_id,"status":r.result.status,"finished_at":r.saved["finished_at"],"duration_ms":r.saved["duration_ms"],"stale":stale(s,c).is_some(),"stale_reason_zh":stale(s,c),"scope":{"labels_zh":if scope.is_empty(){vec!["常用位置".to_owned()]}else{scope.iter().map(|l|l.label_zh.clone()).collect()},"only_folder":scope.len()==1 && scope[0].kind=="folder"},"quarantine":quarantine::bar(s),"plan":{"bytes":bytes.to_string(),"delete_bytes":(bytes-chosen).to_string(),"chosen_bytes":chosen.to_string(),"item_count":selected.len(),"summary_zh":summary.join(" · "),"categories":categories,"by_drive":by_drive.into_iter().map(|(root,n)|json!({"root":root,"bytes":n.to_string()})).collect::<Vec<_>>(),"expected_skip":skip},"cards":cards,"more_cards":more,"kept_before":kept,"clues":clues.iter().take(3).cloned().collect::<Vec<_>>(),"more_clues":clues.len().saturating_sub(3),"folds":folds,"detail_pending":{"count":pending.len(),"bytes":pending.iter().map(|u|unit_bytes(s,c,u,true)).sum::<u64>().to_string()}})
+}
+
+pub(crate) fn skip_specs(
+    core: &Core,
+    s: &State,
+    c: &Model,
+    unit_id: &str,
+) -> Result<Vec<crate::service::Skipped>, IpcError> {
+    let r = &c.record;
+    let spec = |group_id: &str,
+                kind: &str,
+                template: Option<String>,
+                folder: Option<String>,
+                title_zh: String| crate::service::Skipped {
+        skip_id: String::new(),
+        kind: kind.into(),
+        path: None,
+        group_id: Some(group_id.into()),
+        template,
+        folder,
+        title_zh,
+        added_at: String::new(),
+    };
+    let group_spec = |id: &str| {
+        let title = r.projection().details[id]["group"]["title_zh"]
+            .as_str()
+            .unwrap_or("未识别")
+            .to_owned();
+        let scope: Vec<m35::Location> =
+            serde_json::from_value(r.saved["scope"].clone()).unwrap_or_default();
+        let path = location(r, id);
+        let label = scope
+            .iter()
+            .filter(|l| l.path.as_ref().is_some_and(|p| util::contains(p, &path)))
+            .max_by_key(|l| l.path.as_ref().map_or(0, String::len))
+            .map(|l| l.label_zh.clone())
+            .unwrap_or_else(|| {
+                let drive = util::drive(&path);
+                if drive.is_empty() {
+                    "常用位置".into()
+                } else {
+                    format!("{} 盘", &drive[..1])
+                }
+            });
+        spec(id, "group", None, None, format!("{title} · {label}"))
+    };
+    // A repeated click is a no-op even after its successful first click hid the
+    // card/disabled the row. It must still resolve to this conclusion's unit.
+    if let Some(u) = c
+        .units
+        .iter()
+        .find(|u| u.id == unit_id && u.kind != "unfinished" && u.level.cleanable())
+    {
+        let specs = u.groups.iter().map(|id| group_spec(id)).collect::<Vec<_>>();
+        if specs
+            .iter()
+            .all(|spec| s.settings.skipped.iter().any(|v| v.same_as(spec)))
+        {
+            return Ok(specs);
+        }
+    }
+    let v = view(core, s, c);
+    if v["cards"].as_array().into_iter().flatten().any(|card| {
+        card["card_id"] == unit_id
+            && card["menu"]
+                .as_array()
+                .is_some_and(|m| m.contains(&json!("skip")))
+    }) {
+        let u = c
+            .units
+            .iter()
+            .find(|u| u.id == unit_id)
+            .ok_or_else(|| IpcError::new("invalid"))?;
+        return Ok(u.groups.iter().map(|id| group_spec(id)).collect());
+    }
+    for u in c.units.iter().filter(|u| u.id.starts_with("m:")) {
+        if u.groups.iter().any(|g| g == unit_id) {
+            let existing = group_spec(unit_id);
+            if s.settings.skipped.iter().any(|v| v.same_as(&existing)) {
+                return Ok(vec![existing]);
+            }
+            let detail = group_detail(core, s, r, &u.id)?;
+            if detail["rows"]
+                .as_array()
+                .into_iter()
+                .flatten()
+                .any(|row| row["row_id"] == unit_id && row["skip"] == "unit")
+            {
+                return Ok(vec![group_spec(unit_id)]);
+            }
+        }
+    }
+    let row = find_row(
+        r,
+        unit_id,
+        r.result.groups.iter().map(|g| g.group_id.as_str()),
+    )
+    .ok_or_else(|| IpcError::new("invalid"))?;
+    let members = row_items(r, &row);
+    let first = members.first().ok_or_else(|| IpcError::new("invalid"))?;
+    let detail = group_detail(core, s, r, &first.group_id)?;
+    let first = *first;
+    let candidate = if let Some(t) = &first.template
+        && row_id(&first.group_id, "t", t) == unit_id
+    {
+        Some(spec(
+            &first.group_id,
+            "template",
+            Some(t.clone()),
+            None,
+            format!(
+                "{} · {}",
+                template_label(t),
+                detail["group"]["title_zh"].as_str().unwrap_or("未识别")
+            ),
+        ))
+    } else if row_id(&first.group_id, "d", &m35::parent(&first.path)) == unit_id {
+        let parent = m35::parent(&first.path);
+        Some(spec(
+            &first.group_id,
+            "folder",
+            None,
+            Some(parent.clone()),
+            format!(
+                "{} 里的 {}",
+                m35::name(&parent),
+                detail["group"]["title_zh"].as_str().unwrap_or("未识别")
+            ),
+        ))
+    } else {
+        None
+    };
+    if let Some(candidate) = &candidate
+        && s.settings.skipped.iter().any(|v| v.same_as(candidate))
+    {
+        return Ok(vec![candidate.clone()]);
+    }
+    if !detail["rows"]
+        .as_array()
+        .into_iter()
+        .flatten()
+        .any(|row| row["row_id"] == unit_id && row["skip"] == "unit")
+    {
+        return Err(IpcError::new("invalid"));
+    }
+    candidate
+        .map(|spec| vec![spec])
+        .ok_or_else(|| IpcError::new("invalid"))
+}
+
+fn template_label(template: &str) -> String {
+    template
+        .replace("<r6>", "******")
+        .replace("<p8>", "********")
+        .replace("<h>", "*")
+        .replace("<d>", "*")
+        .replace("<u>", "*")
+        .replace('#', "*")
 }
 
 fn card(core: &Core, s: &State, c: &Model, u: &Unit, clues: &[Value]) -> Value {
@@ -919,7 +1092,22 @@ fn card(core: &Core, s: &State, c: &Model, u: &Unit, clues: &[Value]) -> Value {
     let clue = clues
         .iter()
         .find(|v| v["clue_id"] == format!("cl-{}", &util::digest(&u.groups[0])[..12]));
-    let mut menu = vec!["skip", "detail"];
+    let mut menu = Vec::new();
+    if u.kind != "unfinished"
+        && u.groups.iter().any(|id| {
+            r.result
+                .groups
+                .iter()
+                .any(|g| g.group_id == *id && g.level.cleanable())
+                && r.result
+                    .items
+                    .iter()
+                    .any(|i| i.group_id == *id && eligible(s, r, i))
+        })
+    {
+        menu.push("skip");
+    }
+    menu.push("detail");
     if clue.is_some() {
         menu.push("copy_clue");
     }
@@ -1053,13 +1241,7 @@ pub(crate) fn make_rows(
         for &pos in &members {
             used[pos] = true;
         }
-        let label = template
-            .replace("<r6>", "******")
-            .replace("<p8>", "********")
-            .replace("<h>", "*")
-            .replace("<d>", "*")
-            .replace("<u>", "*")
-            .replace('#', "*");
+        let label = template_label(template);
         let bytes = members.iter().map(|&p| entries[p].bytes).sum();
         groups.push((
             bytes,
@@ -1254,6 +1436,36 @@ fn row_view(
     c: Option<&Model>,
     selected: Option<&BTreeSet<String>>,
 ) -> Value {
+    let mut v = row_view_base(core, s, r, row, c, selected);
+    let members = row_items(r, row);
+    let can_skip = members.iter().any(|i| eligible(s, r, i));
+    v["skip"] = if !can_skip {
+        Value::Null
+    } else if !row.id.starts_with("r:") && members.iter().any(|i| i.item_id == row.id) {
+        json!("item")
+    } else if r.result.groups.iter().any(|g| g.group_id == row.id)
+        || members.first().is_some_and(|i| {
+            i.template
+                .as_ref()
+                .is_some_and(|t| row.id == row_id(&i.group_id, "t", t))
+                || row.id == row_id(&i.group_id, "d", &m35::parent(&i.path))
+        })
+    {
+        json!("unit")
+    } else {
+        Value::Null
+    };
+    v
+}
+
+fn row_view_base(
+    core: &Core,
+    s: &State,
+    r: &Record,
+    row: &Row,
+    c: Option<&Model>,
+    selected: Option<&BTreeSet<String>>,
+) -> Value {
     let items = if row.indices.is_empty() {
         row_items(r, row)
     } else {
@@ -1295,7 +1507,12 @@ fn row_view(
         };
         let in_use_hit = p.group_in_use(&first.group_id);
         drop(p);
-        if !skip_hit && !in_use_hit {
+        if !skip_hit
+            && !in_use_hit
+            && r.saved["unfinished"]
+                .as_object()
+                .is_none_or(|m| m.is_empty())
+        {
             let kept = c.is_some_and(|m| unit_kept(m, &first.group_id));
             let included = can_clean && row.any_eligible && recommended && !kept;
             return json!({"row_id":row.id,"label_zh":row.label,"count":count,"bytes":row.bytes.to_string(),"oldest":r.result.items[row.oldest].newest_activity,"newest":r.result.items[row.newest].newest_activity,"included":included,"selectable":can_clean && row.any_eligible,"release_zh":null,"expandable":count>1});
@@ -1327,7 +1544,10 @@ fn row_view(
                 if !selected.contains(&i.item_id) {
                     all_eligible_included = false;
                 }
-            } else if !recommended || c.is_some_and(|m| unit_kept(m, &i.group_id)) {
+            } else if !recommended
+                || r.saved["unfinished"].get(&i.item_id).is_some()
+                || c.is_some_and(|m| unit_kept(m, &i.group_id))
+            {
                 all_eligible_included = false;
             }
             if !occupied {
@@ -1677,6 +1897,15 @@ pub(crate) fn cluster_state(s: &State, r: &Record, g: &water_junk_scan::Group) -
     {
         return "stopped";
     }
+    if !r.growth.iter().any(|x| x.group_id == g.group_id)
+        && !s
+            .settings
+            .fixed_marks
+            .iter()
+            .any(|m| m.group_id == g.group_id)
+    {
+        return "new";
+    }
     if r.growth.iter().any(|x| {
         x.group_id == g.group_id
             && (x.count_delta > 0 || x.bytes_delta.parse::<i128>().unwrap_or(0) > 0)
@@ -1688,7 +1917,7 @@ pub(crate) fn cluster_state(s: &State, r: &Record, g: &water_junk_scan::Group) -
 }
 pub(crate) fn clusters(core: &Core, s: &State, r: &Record) -> Vec<Value> {
     let clues = clues(core, s, r);
-    r.result.groups.iter().filter(|g|g.rule_id=="leak-cluster").map(|g|{let growth=r.growth.iter().find(|x|x.group_id==g.group_id);let clue_id=format!("cl-{}",&util::digest(&g.group_id)[..12]);let clue=clues.iter().find(|x|x["clue_id"]==clue_id);json!({"group_id":g.group_id,"title_zh":g.cluster.as_ref().map(|c|format!("{} · {}",tail2(&c.parent),c.template)),"rate_zh":format!("每天约 +{} 个 · +{}",growth.map(|x|(x.count_delta.max(0) as f64 / x.days.max(1.0)).round() as u64).unwrap_or(0),m35::amount(growth.map(|x|util::number(&x.bytes_per_day)).unwrap_or(0))),"state":cluster_state(s,r,g),"fixed_at":s.settings.fixed_marks.iter().find(|x|x.group_id==g.group_id).map(|x|&x.fixed_at),"clue_id":clue.map(|x|x["clue_id"].clone()),"copy_text":clue.map(|x|x["copy_text"].clone())})}).collect()
+    r.result.groups.iter().filter(|g|g.rule_id=="leak-cluster").map(|g|{let growth=r.growth.iter().find(|x|x.group_id==g.group_id);let clue_id=format!("cl-{}",&util::digest(&g.group_id)[..12]);let clue=clues.iter().find(|x|x["clue_id"]==clue_id);json!({"group_id":g.group_id,"title_zh":g.cluster.as_ref().map(|c|format!("{} · {}",tail2(&c.parent),c.template)),"rate_zh":if cluster_state(s,r,g)=="new"{recent_text(recent_count(r,&g.group_id))}else{format!("每天约 +{} 个 · +{}",growth.map(|x|(x.count_delta.max(0) as f64 / x.days.max(1.0)).round() as u64).unwrap_or(0),m35::amount(growth.map(|x|util::number(&x.bytes_per_day)).unwrap_or(0)))},"state":cluster_state(s,r,g),"fixed_at":s.settings.fixed_marks.iter().find(|x|x.group_id==g.group_id).map(|x|&x.fixed_at),"clue_id":clue.map(|x|x["clue_id"].clone()),"copy_text":clue.map(|x|x["copy_text"].clone())})}).collect()
 }
 
 fn recent_count(r: &Record, group_id: &str) -> usize {
@@ -1716,7 +1945,7 @@ fn recent_text(count: usize) -> String {
     }
 }
 
-fn clues(_core: &Core, _s: &State, r: &Record) -> Vec<Value> {
+fn clues(_core: &Core, s: &State, r: &Record) -> Vec<Value> {
     let mut candidates = Vec::<(u64, String, String, String)>::new();
     let mut detached = BTreeMap::<String, Vec<&Item>>::new();
     let mut referenced = BTreeMap::<String, Vec<&Item>>::new();
@@ -1728,6 +1957,9 @@ fn clues(_core: &Core, _s: &State, r: &Record) -> Vec<Value> {
                 .iter()
                 .filter(|i| i.group_id == g.group_id)
                 .collect::<Vec<_>>();
+            if !members.is_empty() && members.iter().all(|i| views::skipped(i, &s.settings)) {
+                continue;
+            }
             if !members.is_empty() && members.iter().all(|i| m35::program_directory_blocked(i)) {
                 continue;
             }

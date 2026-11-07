@@ -617,6 +617,9 @@ fn fixtures() -> Value {
             &m35["v2_group_detail_items"],
             &["rows", "rows_note_zh"],
         );
+        for row in sample["rows"].as_array_mut().into_iter().flatten() {
+            row["skip"] = Value::Null;
+        }
     }
     add(
         &mut base["locations"],
@@ -636,6 +639,7 @@ fn fixtures() -> Value {
         &["quarantined"],
     );
     base["clean_result"]["quarantined"] = Value::Null;
+    base["clean_result"]["journal_note_zh"] = Value::Null;
     for key in [
         "app_state_fresh",
         "app_state_after_scan",
@@ -1843,6 +1847,7 @@ const TOO_BROAD: &str = "这个位置太大或包含系统目录，请选择具�
 
 #[test]
 fn service_hardening() {
+    w12_skips_and_diagnostics();
     let f = Fixture::new();
     assert_eq!(
         Service::new(ServiceConfig {
@@ -5030,6 +5035,30 @@ fn w11_wording() {
                 .any(|c| c["text_zh"].as_str().unwrap().ends_with(&wanted)),
             "SERVICE_W11_WORDING: same recent count in clue"
         );
+        let trends = call(&s, "trends", json!({}));
+        let trend = trends["clusters"]
+            .as_array()
+            .unwrap()
+            .iter()
+            .find(|g| g["group_id"] == gid)
+            .unwrap();
+        assert_eq!(
+            trend["state"],
+            if growth.is_none() {
+                "new"
+            } else if growth == Some(1) {
+                "growing"
+            } else {
+                "stopped"
+            },
+            "SERVICE_W12_TRENDS: comparison state"
+        );
+        if growth.is_none() {
+            assert_eq!(
+                trend["rate_zh"], wanted,
+                "SERVICE_W12_TRENDS: zero and nonzero recent count"
+            );
+        }
     }
     // Selected custom groups contribute their titles in descending selected size.
     let mut custom = scan_saved(&f, &scan);
@@ -5680,6 +5709,7 @@ fn m35_selection_layers() {
 
 #[test]
 fn m35_rows_and_detail() {
+    w12_skip_rows();
     m35_row_patterns();
     let f = Fixture::new();
     for n in 0..12 {
@@ -5829,11 +5859,26 @@ fn m35_row_patterns() {
     );
     let same = call(&s, "group_detail", json!({"groupId":"npm-cache"}));
     assert_eq!(d["rows"], same["rows"], "SERVICE_M35_ROWS: stable rows");
+    assert_eq!(
+        rows.last().unwrap()["skip"],
+        Value::Null,
+        "SERVICE_W12_SKIP: other row cannot skip"
+    );
+    assert_eq!(
+        rows[0]["skip"], "unit",
+        "SERVICE_W12_SKIP: template row capability"
+    );
+    assert!(
+        rows.iter()
+            .any(|r| r["row_id"] == "row-item-4" && r["skip"] == "item"),
+        "SERVICE_W12_SKIP: individual capability"
+    );
     let _ = c;
 }
 
 #[test]
 fn m35_clean_split() {
+    w12_records();
     w11_nested();
     m35_session_unlocks();
     m35_unfinished_and_template();
@@ -5919,16 +5964,26 @@ fn m35_clean_split() {
     );
     assert_eq!(
         wait(&s, "clean_progress")["state"],
-        "failed",
+        "completed",
         "SERVICE_M35_CLEAN: journal failure state"
     );
-    let e = s
-        .call("clean_result", json!({"cleanId":id["clean_id"]}))
-        .unwrap_err();
-    assert_eq!(
-        e.message_zh,
-        quarantine::JOURNAL_MESSAGE,
+    let recorded = call(&s, "clean_result", json!({"cleanId":id["clean_id"]}));
+    assert!(
+        recorded["groups"]
+            .as_array()
+            .unwrap()
+            .iter()
+            .any(|g| g["group_id"] == "downloads-installers"
+                && g["status"] == "failed"
+                && g["notes_zh"]
+                    .as_array()
+                    .unwrap()
+                    .contains(&json!("没能放进隔离区：journal write failed"))),
         "SERVICE_M35_CLEAN: journal failure message"
+    );
+    assert!(
+        util::bytes(&recorded["freed_bytes"]) > 0,
+        "SERVICE_W12_RECORD: completed direct deletion retained after journal error"
     );
     assert_eq!(
         call(&s, "quarantine_list", json!({}))["cards"][0]["restorable"],
@@ -6311,6 +6366,29 @@ fn w11_nested() {
             "SERVICE_W11_NESTED: selected outer or inner ID"
         );
         assert_eq!(p["item_count"], 1, "SERVICE_W11_NESTED: preview count");
+        for (home, preview) in [
+            ("bytes", "total_bytes"),
+            ("delete_bytes", "delete"),
+            ("chosen_bytes", "chosen"),
+        ] {
+            let value = if preview == "total_bytes" {
+                p[preview].clone()
+            } else {
+                json!(util::bytes(&p[preview]["bytes"]).to_string())
+            };
+            assert_eq!(
+                c["plan"][home], value,
+                "SERVICE_W12_NESTED: home block {home}"
+            );
+        }
+        assert_eq!(
+            c["plan"]["item_count"], p["item_count"],
+            "SERVICE_W12_NESTED: item count"
+        );
+        assert_eq!(
+            c["plan"]["by_drive"], p["by_drive"],
+            "SERVICE_W12_NESTED: drives"
+        );
         assert_eq!(
             p["total_bytes"],
             bytes.to_string(),
@@ -6841,6 +6919,37 @@ fn m35_unfinished_and_template() {
                 .any(|c| c["kind"] == "unfinished"),
             "SERVICE_M35_CLEAN: unfinished card"
         );
+        assert!(
+            c["cards"]
+                .as_array()
+                .unwrap()
+                .iter()
+                .filter(|c| c["kind"] == "unfinished")
+                .all(|c| !c["menu"].as_array().unwrap().contains(&json!("skip"))),
+            "SERVICE_W12_SKIP: unfinished card has no skip"
+        );
+        assert_eq!(
+            s.call(
+                "skip_unit_add",
+                json!({"conclusionVersion":c["version"],"unitId":"unfinished"})
+            )
+            .unwrap_err()
+            .code,
+            "invalid",
+            "SERVICE_W12_SKIP: unfinished unit rejected"
+        );
+        if gid == "npm-cache" {
+            let detail = call(&s, "group_detail", json!({"groupId":gid}));
+            assert!(
+                detail["rows"]
+                    .as_array()
+                    .unwrap()
+                    .iter()
+                    .filter(|r| r["row_id"] == id)
+                    .all(|r| r["included"] == false),
+                "SERVICE_W12_NESTED: unfinished recommended row excluded"
+            );
+        }
         let c = m35_decide(&s, "unfinished");
         let d = call(&s, "group_detail", json!({"groupId":"unfinished"}));
         assert_eq!(d["items_total"], 1, "SERVICE_M35_CLEAN: unfinished drawer");
@@ -7303,7 +7412,11 @@ fn m35_trends_history() {
         "SERVICE_M35_TRENDS: quarantine history"
     );
     drop(s);
-    for version in ["water.settings.v1", "water.settings.v2"] {
+    for version in [
+        "water.settings.v1",
+        "water.settings.v2",
+        "water.settings.v3",
+    ] {
         let path = f.data.join("settings.json");
         let settings = json!({"settings_version":version,"categories":{"agent_tool":true,"browser":true,"system_temp":true,"app_leftover":true,"dev_cache":true,"crash_log":true,"gpu_system":true},"custom_roots":[]});
         fs::write(&path, settings.to_string()).unwrap();
@@ -7315,7 +7428,7 @@ fn m35_trends_history() {
         );
         let settings: Value = serde_json::from_slice(&fs::read(&path).unwrap()).unwrap();
         assert_eq!(
-            settings["settings_version"], "water.settings.v3",
+            settings["settings_version"], "water.settings.v4",
             "SERVICE_M35_TRENDS: settings migration"
         );
         for key in ["sessions", "trusts", "fixed_marks", "keeps"] {
@@ -7426,6 +7539,860 @@ fn m35_dedupe_guards() {
     assert_eq!(s.call("dedupe_decide",json!({"dedupeId":id["dedupe_id"],"version":before,"groupId":group["group_id"],"include":true})).unwrap_err().code,"stale","SERVICE_M35_TRENDS: dedupe stale");
 }
 
+fn w12_skips_and_diagnostics() {
+    w12_merged_skip_limit();
+    let f = Fixture::new();
+    f.seed();
+    let s = source_service(&f, true);
+    let empty = call(&s, "diagnostics_get", json!({}));
+    assert!(
+        empty["last_scan"].is_null() && empty["last_clean"].is_null(),
+        "SERVICE_W12_DIAG: empty"
+    );
+    let scan = scanned(&s);
+    let c = call(&s, "conclusion_get", json!({}));
+    for args in [
+        json!({"conclusionVersion":"wrong","unitId":"downloads-installers"}),
+        json!({"conclusionVersion":c["version"],"unitId":"missing"}),
+    ] {
+        assert_eq!(
+            s.call("skip_unit_add", args.clone()).unwrap_err().code,
+            if args["conclusionVersion"] == "wrong" {
+                "stale"
+            } else {
+                "invalid"
+            },
+            "SERVICE_W12_SKIP: invalid authority"
+        );
+    }
+    let loc = call(
+        &s,
+        "skip_unit_add",
+        json!({"conclusionVersion":c["version"],"unitId":"downloads-installers"}),
+    );
+    assert_eq!(
+        loc["skipped"][0]["kind"], "group",
+        "SERVICE_W12_SKIP: group kind"
+    );
+    assert!(
+        loc["skipped"][0]["display_path"].is_null(),
+        "SERVICE_W12_SKIP: no path for unit"
+    );
+    assert!(
+        loc["skipped"][0]["display_zh"]
+            .as_str()
+            .unwrap()
+            .contains(" · "),
+        "SERVICE_W12_SKIP: stored group title"
+    );
+    let changed = call(&s, "conclusion_get", json!({}));
+    let bytes_before = fs::read(f.data.join("settings.json")).unwrap();
+    assert_eq!(
+        call(
+            &s,
+            "skip_unit_add",
+            json!({"conclusionVersion":changed["version"],"unitId":"downloads-installers"})
+        ),
+        loc,
+        "SERVICE_W12_SKIP: duplicate returns unchanged Locations"
+    );
+    assert_eq!(
+        fs::read(f.data.join("settings.json")).unwrap(),
+        bytes_before,
+        "SERVICE_W12_SKIP: duplicate does not write"
+    );
+    assert_ne!(
+        changed["version"], c["version"],
+        "SERVICE_W12_SKIP: version increments"
+    );
+    assert_eq!(
+        call(
+            &s,
+            "group_detail",
+            json!({"groupId":"downloads-installers"})
+        )["group"]["eligible_count"],
+        0,
+        "SERVICE_W12_SKIP: immediate"
+    );
+    f.file("downloads/new.exe", 71);
+    f.age_all(NOW - 40 * 86400);
+    scanned(&s);
+    let detail = call(
+        &s,
+        "group_detail",
+        json!({"groupId":"downloads-installers"}),
+    );
+    assert_eq!(
+        detail["group"]["eligible_count"], 0,
+        "SERVICE_W12_SKIP: rescan includes new group member"
+    );
+    assert_eq!(
+        detail["items_total"], 2,
+        "SERVICE_W12_SKIP: new member exists"
+    );
+    let disk: Value =
+        serde_json::from_slice(&fs::read(f.data.join("settings.json")).unwrap()).unwrap();
+    assert_eq!(
+        disk["settings_version"], "water.settings.v4",
+        "SERVICE_W12_SKIP: writes v4"
+    );
+    assert_eq!(
+        disk["skipped"][0]["title_zh"], loc["skipped"][0]["display_zh"],
+        "SERVICE_W12_SKIP: title persisted"
+    );
+    {
+        let restarted = f.service(false);
+        assert_eq!(
+            call(&restarted, "locations_get", json!({}))["skipped"],
+            loc["skipped"],
+            "SERVICE_W12_SKIP: v4 survives restart"
+        );
+    }
+    let diag = call(&s, "diagnostics_get", json!({}));
+    assert_eq!(
+        diag["diagnostics_version"], "flick.diagnostics.v1",
+        "SERVICE_W12_DIAG: version"
+    );
+    assert_eq!(
+        diag["settings"]["skipped"],
+        json!({"path":0,"group":1,"template":0,"folder":0}),
+        "SERVICE_W12_DIAG: skip counts"
+    );
+    let record = s.core.state.lock().unwrap().last_record().unwrap();
+    assert_eq!(
+        diag["last_scan"]["items"],
+        record.result.items.len(),
+        "SERVICE_W12_DIAG: items"
+    );
+    assert_eq!(
+        diag["last_scan"]["groups"],
+        record.result.groups.len(),
+        "SERVICE_W12_DIAG: groups"
+    );
+    assert_eq!(diag["store"]["scans"], 2, "SERVICE_W12_DIAG: stored scans");
+    let text = diag.to_string();
+    assert!(
+        !text.contains('\\')
+            && !text.contains(&slash(&f.root))
+            && !text.contains("downloads-installers")
+            && !text.contains(scan["scan_id"].as_str().unwrap())
+            && record
+                .result
+                .items
+                .iter()
+                .all(|i| !text.contains(&i.item_id)),
+        "SERVICE_W12_DIAG: no paths names or ids"
+    );
+    call(
+        &s,
+        "skip_remove",
+        json!({"skipId":loc["skipped"][0]["skip_id"]}),
+    );
+    assert_eq!(
+        call(
+            &s,
+            "group_detail",
+            json!({"groupId":"downloads-installers"})
+        )["group"]["eligible_count"],
+        2,
+        "SERVICE_W12_SKIP: remove group"
+    );
+    {
+        let mut state = s.core.state.lock().unwrap();
+        state.busy = "cleaning";
+    }
+    assert_eq!(
+        s.call(
+            "skip_unit_add",
+            json!({"conclusionVersion":changed["version"],"unitId":"downloads-installers"})
+        )
+        .unwrap_err()
+        .code,
+        "busy",
+        "SERVICE_W12_SKIP: busy"
+    );
+    s.core.state.lock().unwrap().busy = "idle";
+    drop(s);
+    for version in [
+        "water.settings.v1",
+        "water.settings.v2",
+        "water.settings.v3",
+    ] {
+        let mut old = disk.clone();
+        old["settings_version"] = json!(version);
+        old["skipped"] = json!([{"skip_id":"s-000001","path":slash(&f.root.join("downloads/old.exe")),"added_at":"2027-01-01T00:00:00Z"}]);
+        fs::write(f.data.join("settings.json"), old.to_string()).unwrap();
+        let migrated = f.service(false);
+        let loc = call(&migrated, "locations_get", json!({}));
+        assert_eq!(
+            loc["skipped"][0]["kind"], "path",
+            "SERVICE_W12_SKIP: legacy path"
+        );
+        assert_eq!(
+            loc["skipped"][0]["display_zh"], loc["skipped"][0]["display_path"],
+            "SERVICE_W12_SKIP: legacy title"
+        );
+        let written: Value =
+            serde_json::from_slice(&fs::read(f.data.join("settings.json")).unwrap()).unwrap();
+        assert_eq!(
+            written["settings_version"], "water.settings.v4",
+            "SERVICE_W12_SKIP: migration writeback"
+        );
+    }
+}
+
+fn w12_skip_rows() {
+    {
+        let f = Fixture::new();
+        f.seed();
+        for n in 0..12 {
+            f.file(&format!("windows/Temp/verify-A{n:05}/data"), 100);
+        }
+        f.age_all(NOW - 20 * 86400);
+        let s = f.service(false);
+        scanned(&s);
+        let c = call(&s, "conclusion_get", json!({}));
+        let gid = c["cards"]
+            .as_array()
+            .unwrap()
+            .iter()
+            .find(|c| c["kind"] == "leak")
+            .expect("SERVICE_W12_SKIP: leak fixture")["card_id"]
+            .clone();
+        let clue = format!("cl-{}", &util::digest(gid.as_str().unwrap())[..12]);
+        let loc = call(
+            &s,
+            "skip_unit_add",
+            json!({"conclusionVersion":c["version"],"unitId":gid}),
+        );
+        let hidden = call(&s, "conclusion_get", json!({}));
+        assert!(
+            !hidden["cards"]
+                .as_array()
+                .unwrap()
+                .iter()
+                .any(|c| c["card_id"] == gid)
+                && !hidden["clues"]
+                    .as_array()
+                    .unwrap()
+                    .iter()
+                    .any(|c| c["clue_id"] == clue),
+            "SERVICE_W12_SKIP: all skipped cluster hides card and clue"
+        );
+        f.file("windows/Temp/verify-A99999/data", 99);
+        f.age_all(NOW - 20 * 86400);
+        scanned(&s);
+        assert_eq!(
+            call(&s, "group_detail", json!({"groupId":gid}))["group"]["eligible_count"],
+            0,
+            "SERVICE_W12_SKIP: new leak member after actual rescan"
+        );
+        call(
+            &s,
+            "skip_remove",
+            json!({"skipId":loc["skipped"][0]["skip_id"]}),
+        );
+    }
+    for kind in ["template", "folder"] {
+        let f = Fixture::new();
+        f.seed();
+        let s = source_service(&f, false);
+        let scan = scanned(&s);
+        let mut raw = scan_saved(&f, &scan);
+        let proto = raw["result"]["items"]
+            .as_array()
+            .unwrap()
+            .iter()
+            .find(|i| i["group_id"] == "npm-cache")
+            .unwrap()
+            .clone();
+        raw["result"]["items"]
+            .as_array_mut()
+            .unwrap()
+            .retain(|i| i["group_id"] != "npm-cache");
+        for n in 0..10 {
+            let mut i = proto.clone();
+            i["item_id"] = json!(format!("unit-row-{n}"));
+            i["path"] = json!(format!("{}\\RowParent\\cache-{n}", slash(&f.root)));
+            i["template"] = if kind == "template" {
+                json!("cache-<d>")
+            } else {
+                Value::Null
+            };
+            raw["result"]["items"].as_array_mut().unwrap().push(i);
+        }
+        m35_replace_record(&s, raw.clone());
+        let c = call(&s, "conclusion_get", json!({}));
+        let d = call(&s, "group_detail", json!({"groupId":"npm-cache"}));
+        assert_eq!(
+            d["rows"][0]["skip"], "unit",
+            "SERVICE_W12_SKIP: aggregate row"
+        );
+        let loc = call(
+            &s,
+            "skip_unit_add",
+            json!({"conclusionVersion":c["version"],"unitId":d["rows"][0]["row_id"]}),
+        );
+        assert_eq!(
+            loc["skipped"][0]["kind"], kind,
+            "SERVICE_W12_SKIP: row kind"
+        );
+        let now = call(&s, "conclusion_get", json!({}));
+        assert_eq!(
+            call(
+                &s,
+                "skip_unit_add",
+                json!({"conclusionVersion":now["version"],"unitId":d["rows"][0]["row_id"]})
+            ),
+            loc,
+            "SERVICE_W12_SKIP: duplicate row"
+        );
+        let disk: Value =
+            serde_json::from_slice(&fs::read(f.data.join("settings.json")).unwrap()).unwrap();
+        if kind == "folder" {
+            assert!(
+                disk["skipped"][0]["folder"]
+                    .as_str()
+                    .unwrap()
+                    .ends_with("RowParent"),
+                "SERVICE_W12_SKIP: folder preserves case"
+            );
+        } else {
+            assert!(
+                disk["skipped"][0]["title_zh"]
+                    .as_str()
+                    .unwrap()
+                    .starts_with("cache-* · "),
+                "SERVICE_W12_SKIP: template display label"
+            );
+        }
+        assert_eq!(
+            call(&s, "group_detail", json!({"groupId":"npm-cache"}))["group"]["eligible_count"],
+            0,
+            "SERVICE_W12_SKIP: row immediate"
+        );
+        let mut next = raw["result"]["items"]
+            .as_array()
+            .unwrap()
+            .iter()
+            .find(|i| i["group_id"] == "npm-cache")
+            .unwrap()
+            .clone();
+        next["item_id"] = json!("unit-row-new");
+        next["path"] = json!(format!("{}\\ROWPARENT\\new", slash(&f.root)));
+        raw["result"]["items"].as_array_mut().unwrap().push(next);
+        m35_replace_record(&s, raw);
+        assert_eq!(
+            call(&s, "group_detail", json!({"groupId":"npm-cache"}))["group"]["eligible_count"],
+            0,
+            "SERVICE_W12_SKIP: row matches new member"
+        );
+        call(
+            &s,
+            "skip_remove",
+            json!({"skipId":loc["skipped"][0]["skip_id"]}),
+        );
+        assert_eq!(
+            call(&s, "group_detail", json!({"groupId":"npm-cache"}))["group"]["eligible_count"],
+            11,
+            "SERVICE_W12_SKIP: remove row"
+        );
+    }
+}
+
+fn w12_merged_skip_limit() {
+    let f = Fixture::new();
+    f.seed();
+    let s = source_service(&f, false);
+    let scan = scanned(&s);
+    let mut raw = scan_saved(&f, &scan);
+    let proto_g = raw["result"]["groups"]
+        .as_array()
+        .unwrap()
+        .iter()
+        .find(|g| g["group_id"] == "downloads-installers")
+        .unwrap()
+        .clone();
+    let proto_i = raw["result"]["items"]
+        .as_array()
+        .unwrap()
+        .iter()
+        .find(|i| i["group_id"] == "downloads-installers")
+        .unwrap()
+        .clone();
+    let mut groups = Vec::new();
+    let mut items = Vec::new();
+    for n in 0..3 {
+        let id = format!("merge-{n}");
+        let mut g = proto_g.clone();
+        g["group_id"] = json!(id);
+        g["eligible_count"] = json!(1);
+        g["item_count"] = json!(1);
+        let mut i = proto_i.clone();
+        i["group_id"] = json!(id);
+        i["item_id"] = json!(format!("merge-item-{n}"));
+        i["path"] = json!(slash(&f.root.join(format!("downloads/merge-{n}.exe"))));
+        groups.push(g);
+        items.push(i);
+    }
+    raw["result"]["groups"] = json!(groups);
+    raw["result"]["items"] = json!(items);
+    m35_replace_record(&s, raw);
+    let c = call(&s, "conclusion_get", json!({}));
+    let card = c["cards"][0]["card_id"].clone();
+    assert_eq!(
+        card, "m:downloads-installers",
+        "SERVICE_W12_SKIP: merged card"
+    );
+    let detail = call(&s, "group_detail", json!({"groupId":card}));
+    assert!(
+        detail["rows"]
+            .as_array()
+            .unwrap()
+            .iter()
+            .all(|r| r["skip"] == "unit"),
+        "SERVICE_W12_SKIP: merged group rows"
+    );
+    let one = call(
+        &s,
+        "skip_unit_add",
+        json!({"conclusionVersion":c["version"],"unitId":"merge-0"}),
+    );
+    assert_eq!(
+        one["skipped"].as_array().unwrap().len(),
+        1,
+        "SERVICE_W12_SKIP: merged row adds one group"
+    );
+    let current = call(&s, "conclusion_get", json!({}));
+    assert_eq!(
+        call(
+            &s,
+            "skip_unit_add",
+            json!({"conclusionVersion":current["version"],"unitId":"merge-0"})
+        ),
+        one,
+        "SERVICE_W12_SKIP: duplicate merged row"
+    );
+    let newest = call(&s, "conclusion_get", json!({}));
+    let two = call(
+        &s,
+        "skip_unit_add",
+        json!({"conclusionVersion":newest["version"],"unitId":card}),
+    );
+    assert_eq!(
+        two["skipped"].as_array().unwrap().len(),
+        3,
+        "SERVICE_W12_SKIP: merged card deduplicates existing group"
+    );
+    for entry in two["skipped"].as_array().unwrap() {
+        call(&s, "skip_remove", json!({"skipId":entry["skip_id"]}));
+    }
+    let path = f.data.join("settings.json");
+    let mut settings: Value = serde_json::from_slice(&fs::read(&path).unwrap()).unwrap();
+    settings["skipped"]=json!((0..63).map(|n|json!({"skip_id":format!("s-{:06}",n+1),"kind":"path","path":slash(&f.root.join(format!("unrelated-{n}"))),"group_id":null,"template":null,"folder":null,"title_zh":format!("synthetic-{n}"),"added_at":"2027-01-01T00:00:00Z"})).collect::<Vec<_>>());
+    {
+        s.core.state.lock().unwrap().settings = serde_json::from_value(settings.clone()).unwrap();
+    }
+    fs::write(&path, settings.to_string()).unwrap();
+    let before = fs::read(&path).unwrap();
+    let c = call(&s, "conclusion_get", json!({}));
+    assert_eq!(
+        s.call(
+            "skip_unit_add",
+            json!({"conclusionVersion":c["version"],"unitId":card})
+        )
+        .unwrap_err()
+        .code,
+        "invalid",
+        "SERVICE_W12_SKIP: over 64 is atomic"
+    );
+    assert_eq!(
+        fs::read(&path).unwrap(),
+        before,
+        "SERVICE_W12_SKIP: failed multi-add leaves bytes unchanged"
+    );
+    assert_eq!(
+        call(&s, "locations_get", json!({}))["skipped"]
+            .as_array()
+            .unwrap()
+            .len(),
+        63,
+        "SERVICE_W12_SKIP: failed multi-add leaves state unchanged"
+    );
+    let loc = call(
+        &s,
+        "skip_unit_add",
+        json!({"conclusionVersion":c["version"],"unitId":"merge-0"}),
+    );
+    assert_eq!(
+        loc["skipped"].as_array().unwrap().len(),
+        64,
+        "SERVICE_W12_SKIP: one row fits exactly"
+    );
+}
+
+fn w12_records() {
+    w12_journal_stops_batches();
+    let f = Fixture::new();
+    f.seed();
+    let s = source_service(&f, true);
+    scanned(&s);
+    let c = m35_decide(&s, "downloads-installers");
+    let p = call(
+        &s,
+        "clean_prepare",
+        json!({"conclusionVersion":c["version"],"chosenMode":"quarantine"}),
+    );
+    let root = slash(&f.root.join("bad-quarantine-name"));
+    f.fake.quarantines.lock().unwrap().push(root.clone());
+    f.fake
+        .quarantine_bases
+        .lock()
+        .unwrap()
+        .insert(util::drive(&slash(&f.root)), root);
+    let (progress, result) = m35_run_clean(&s, &p);
+    assert_eq!(
+        progress["state"], "completed",
+        "SERVICE_W12_RECORD: failed batch still saves record"
+    );
+    let group = result["groups"]
+        .as_array()
+        .unwrap()
+        .iter()
+        .find(|g| g["group_id"] == "downloads-installers")
+        .unwrap();
+    assert_eq!(
+        group["status"], "failed",
+        "SERVICE_W12_RECORD: batch group failed"
+    );
+    assert!(
+        group["notes_zh"]
+            .as_array()
+            .unwrap()
+            .iter()
+            .any(|n| n.as_str().unwrap().starts_with("没能放进隔离区：")),
+        "SERVICE_W12_RECORD: batch error note"
+    );
+    assert!(
+        util::bytes(&result["freed_bytes"]) > 0,
+        "SERVICE_W12_RECORD: direct result retained"
+    );
+    let stored: Value = serde_json::from_slice(
+        &fs::read(
+            f.data
+                .join("cleans")
+                .join(format!("{}.json", result["clean_id"].as_str().unwrap())),
+        )
+        .unwrap(),
+    )
+    .unwrap();
+    assert_eq!(stored["view"], result, "SERVICE_W12_RECORD: durable result");
+    let record = s.core.state.lock().unwrap().last_record().unwrap();
+    let plan =
+        water_junk_clean::CleanPlan::from_json(&read_plan(&f, &p)["plan"].to_string()).unwrap();
+    let mut report: water_junk_clean::CleanReport =
+        serde_json::from_value(stored["report"].clone()).unwrap();
+    report.journal_error = Some("journal write failed".into());
+    report.status = water_junk_clean::RunStatus::Stopped;
+    for i in &mut report.items {
+        i.status = water_junk_clean::ItemStatus::Skipped;
+        i.skip_reason = Some(water_junk_clean::SkipReason::JournalFailed);
+    }
+    let id = "clean-20270115T080000Z-ab12";
+    let stored = clean::save_result(&s.core, &record, &plan, &report, &[], &[], id).unwrap();
+    s.core
+        .state
+        .lock()
+        .unwrap()
+        .cleans
+        .insert(id.into(), stored.clone());
+    let v = call(&s, "clean_result", json!({"cleanId":id}));
+    assert_eq!(
+        v["journal_note_zh"],
+        format!("清理日志没写全，后面的 {} 项没有清", report.items.len()),
+        "SERVICE_W12_RECORD: journal note"
+    );
+    assert!(
+        v["groups"].as_array().unwrap().iter().any(|g| g["notes_zh"]
+            .as_array()
+            .unwrap()
+            .iter()
+            .any(|n| n.as_str().unwrap().contains("项因日志写不进去未处理"))),
+        "SERVICE_W12_RECORD: per-group journal reason"
+    );
+    assert!(
+        fs::read(f.data.join("cleans").join(format!("{id}.json"))).is_ok(),
+        "SERVICE_W12_RECORD: journal report saved"
+    );
+    let mut q = water_junk_clean::QuarantineReport {
+        report_version: "water.quarantine-report.v1".into(),
+        quarantine_id: "synthetic".into(),
+        started_at: report.started_at.clone(),
+        ended_at: report.ended_at.clone(),
+        status: water_junk_clean::RunStatus::Stopped,
+        moved_bytes: "0".into(),
+        items: vec![],
+        journal_error: Some("journal write failed".into()),
+    };
+    let chosen = plan
+        .items
+        .iter()
+        .find(|i| i.group_id == "downloads-installers")
+        .unwrap();
+    q.items.push(water_junk_clean::MoveReport {
+        item_id: chosen.item_id.clone(),
+        status: water_junk_clean::MoveStatus::Skipped,
+        skip_reason: Some(water_junk_clean::SkipReason::JournalFailed),
+        move_error: None,
+        error_code: None,
+        destination: None,
+        identity: None,
+        bytes: "0".into(),
+    });
+    let saved = clean::save_result(
+        &s.core,
+        &record,
+        &plan,
+        &report,
+        &[q],
+        &[],
+        "clean-20270115T080000Z-ab13",
+    )
+    .unwrap();
+    assert_eq!(
+        saved["view"]["journal_note_zh"],
+        format!("清理日志没写全，后面的 {} 项没有清", report.items.len() + 1),
+        "SERVICE_W12_RECORD: count across both reports"
+    );
+    drop(s);
+    let reopened = f.service(false);
+    assert_eq!(
+        call(
+            &reopened,
+            "clean_result",
+            json!({"cleanId":"clean-20270115T080000Z-ab13"})
+        )["journal_note_zh"],
+        saved["view"]["journal_note_zh"],
+        "SERVICE_W12_RECORD: journal view survives restart"
+    );
+}
+
+struct JournalStopsExecutor {
+    quarantines: Arc<AtomicU64>,
+    break_in_quarantine: bool,
+}
+impl clean::Executor for JournalStopsExecutor {
+    fn execute(
+        &self,
+        plan: &water_junk_clean::CleanPlan,
+        e: clean::Execution<'_>,
+    ) -> Result<water_junk_clean::CleanReport, water_junk_clean::CleanError> {
+        if self.break_in_quarantine {
+            return clean::Executor::execute(&clean::NativeExecutor, plan, e);
+        }
+        let mut first = plan.clone();
+        first.items.truncate(1);
+        let mut report = clean::Executor::execute(&clean::NativeExecutor, &first, e)?;
+        assert_eq!(
+            report.items[0].status,
+            water_junk_clean::ItemStatus::Deleted,
+            "SERVICE_W12_RECORD: injected first deletion is real"
+        );
+        report.status = water_junk_clean::RunStatus::Stopped;
+        report.journal_error = Some("journal write failed".into());
+        report.items.extend(
+            plan.items
+                .iter()
+                .skip(1)
+                .map(|i| water_junk_clean::ItemReport {
+                    item_id: i.item_id.clone(),
+                    status: water_junk_clean::ItemStatus::Skipped,
+                    skip_reason: Some(water_junk_clean::SkipReason::JournalFailed),
+                    bytes_before: "0".into(),
+                    bytes_freed: "0".into(),
+                    failed_entries: 0,
+                }),
+        );
+        Ok(report)
+    }
+    fn quarantine(
+        &self,
+        plan: &water_junk_clean::CleanPlan,
+        id: &str,
+        target: &water_junk_clean::QuarantineTarget,
+        e: clean::Execution<'_>,
+    ) -> Result<water_junk_clean::QuarantineReport, water_junk_clean::CleanError> {
+        self.quarantines.fetch_add(1, Ordering::SeqCst);
+        if self.break_in_quarantine {
+            return Ok(water_junk_clean::QuarantineReport {
+                report_version: "water.quarantine-report.v1".into(),
+                quarantine_id: id.into(),
+                started_at: util::timestamp(e.now),
+                ended_at: util::timestamp(e.now),
+                status: water_junk_clean::RunStatus::Stopped,
+                moved_bytes: "0".into(),
+                journal_error: Some("journal write failed".into()),
+                items: plan
+                    .items
+                    .iter()
+                    .map(|i| water_junk_clean::MoveReport {
+                        item_id: i.item_id.clone(),
+                        status: water_junk_clean::MoveStatus::Skipped,
+                        skip_reason: Some(water_junk_clean::SkipReason::JournalFailed),
+                        move_error: None,
+                        error_code: None,
+                        destination: None,
+                        identity: None,
+                        bytes: "0".into(),
+                    })
+                    .collect(),
+            });
+        }
+        clean::Executor::quarantine(&clean::NativeExecutor, plan, id, target, e)
+    }
+}
+
+fn w12_journal_stops_batches() {
+    for from_quarantine in [false, true] {
+        let f = Fixture::new();
+        f.seed();
+        let s = source_service(&f, true);
+        let scan = scanned(&s);
+        if from_quarantine {
+            let mut raw = scan_saved(&f, &scan);
+            let mut i = raw["result"]["items"]
+                .as_array()
+                .unwrap()
+                .iter()
+                .find(|i| i["group_id"] == "downloads-installers")
+                .unwrap()
+                .clone();
+            i["item_id"] = json!("synthetic-second-drive");
+            i["path"] = json!("X:\\synthetic\\second.exe");
+            raw["result"]["items"].as_array_mut().unwrap().push(i);
+            let mut target = raw["plan"]["targets"]
+                .as_array()
+                .unwrap()
+                .iter()
+                .find(|t| t["group_id"] == "downloads-installers")
+                .unwrap()
+                .clone();
+            target["target_id"] = json!("synthetic-second-target");
+            target["match"]["base"] = json!("X:\\synthetic");
+            raw["plan"]["targets"].as_array_mut().unwrap().push(target);
+            m35_replace_record(&s, raw);
+            let root = slash(&f.root.join("second/.flick-quarantine"));
+            f.fake.quarantines.lock().unwrap().push(root.clone());
+            f.fake
+                .quarantine_bases
+                .lock()
+                .unwrap()
+                .insert("X:\\".into(), root);
+        }
+        let c = m35_decide(&s, "downloads-installers");
+        let p = call(
+            &s,
+            "clean_prepare",
+            json!({"conclusionVersion":c["version"],"chosenMode":"quarantine"}),
+        );
+        let raw = read_plan(&f, &p);
+        let items = raw["plan"]["items"].as_array().unwrap();
+        let direct = items
+            .iter()
+            .filter(|i| i["group_id"] != "downloads-installers")
+            .collect::<Vec<_>>();
+        let chosen = items
+            .iter()
+            .filter(|i| i["group_id"] == "downloads-installers")
+            .count();
+        assert!(
+            direct.len() > 1 && chosen > 0,
+            "SERVICE_W12_RECORD: split fixture"
+        );
+        let calls = Arc::new(AtomicU64::new(0));
+        let started = clean::start_with_executor(
+            &s.core,
+            p["plan_id"].as_str().unwrap(),
+            p["confirm_token"].as_str().unwrap(),
+            Arc::new(JournalStopsExecutor {
+                quarantines: calls.clone(),
+                break_in_quarantine: from_quarantine,
+            }),
+        )
+        .unwrap();
+        assert_eq!(
+            wait(&s, "clean_progress")["state"],
+            "stopped",
+            "SERVICE_W12_RECORD: injected report stops operation"
+        );
+        let result = call(&s, "clean_result", json!({"cleanId":started["clean_id"]}));
+        assert_eq!(
+            calls.load(Ordering::SeqCst),
+            u64::from(from_quarantine),
+            "SERVICE_W12_RECORD: no later executor call"
+        );
+        assert!(
+            f.root.join("downloads/old.exe").exists(),
+            "SERVICE_W12_RECORD: skipped quarantine source stays"
+        );
+        assert!(
+            !f.root.join(".flick-quarantine").exists()
+                && !f.root.join("second/.flick-quarantine").exists(),
+            "SERVICE_W12_RECORD: no quarantine directory created"
+        );
+        assert!(
+            call(&s, "quarantine_list", json!({}))["cards"]
+                .as_array()
+                .unwrap()
+                .is_empty(),
+            "SERVICE_W12_RECORD: no recovery record for skipped batch"
+        );
+        let expected = if from_quarantine {
+            chosen
+        } else {
+            direct.len() - 1 + chosen
+        };
+        assert_eq!(
+            result["journal_note_zh"],
+            format!("清理日志没写全，后面的 {expected} 项没有清"),
+            "SERVICE_W12_RECORD: full journal failure count"
+        );
+        let group = result["groups"]
+            .as_array()
+            .unwrap()
+            .iter()
+            .find(|g| g["group_id"] == "downloads-installers")
+            .unwrap();
+        assert_eq!(
+            group["status"], "skipped",
+            "SERVICE_W12_RECORD: unrun group skipped"
+        );
+        let saved: Value = serde_json::from_slice(
+            &fs::read(
+                f.data
+                    .join("cleans")
+                    .join(format!("{}.json", started["clean_id"].as_str().unwrap())),
+            )
+            .unwrap(),
+        )
+        .unwrap();
+        assert_eq!(
+            saved["view"], result,
+            "SERVICE_W12_RECORD: saved report through start layer"
+        );
+        assert!(
+            util::bytes(&result["freed_bytes"]) > 0,
+            "SERVICE_W12_RECORD: actual deleted bytes retained"
+        );
+        if !from_quarantine {
+            assert_eq!(
+                result["freed_bytes"], saved["report"]["items"][0]["bytes_freed"],
+                "SERVICE_W12_RECORD: exact first deletion bytes"
+            );
+        }
+    }
+}
+
 fn m35_cluster_and_forecast() {
     let f = Fixture::new();
     f.seed();
@@ -7435,6 +8402,30 @@ fn m35_cluster_and_forecast() {
     f.age_all(NOW - 10 * 86400);
     let s = f.service(false);
     let a = scanned(&s);
+    let initial = call(&s, "trends", json!({}));
+    let home = call(&s, "conclusion_get", json!({}));
+    let new_cluster = initial["clusters"]
+        .as_array()
+        .unwrap()
+        .iter()
+        .find(|g| g["state"] == "new")
+        .expect("SERVICE_W12_TRENDS: no prior comparison is new");
+    assert_eq!(
+        new_cluster["rate_zh"], "最近 14 天新增 12 个",
+        "SERVICE_W12_TRENDS: same recent count"
+    );
+    assert!(
+        home["cards"]
+            .as_array()
+            .unwrap()
+            .iter()
+            .any(|c| c["group_id"] == new_cluster["group_id"]
+                && c["title_zh"]
+                    .as_str()
+                    .unwrap()
+                    .ends_with(new_cluster["rate_zh"].as_str().unwrap())),
+        "SERVICE_W12_TRENDS: home agrees"
+    );
     let a_id = a["scan_id"].clone();
     f.fake.now.store(NOW + 2 * 3600, Ordering::SeqCst);
     let b = scanned(&s);

@@ -119,7 +119,7 @@ pub(crate) fn prepare_mode(
                     .skipped
                     .iter()
                     .chain(&disk_skips)
-                    .any(|v| v.path.eq_ignore_ascii_case(&item.path))
+                    .any(|v| v.matches(item))
             {
                 excluded_count += 1;
                 continue;
@@ -298,7 +298,7 @@ pub(crate) fn prepare_mode(
     )
 }
 
-fn retain_outermost(items: &mut Vec<Value>) {
+pub(crate) fn retain_outermost(items: &mut Vec<Value>) {
     // Same component-prefix ordering and ASCII folding as the executor's
     // validate_disjoint_items. Keep input order (and the outer item's mode).
     let mut paths = items
@@ -389,7 +389,61 @@ pub(crate) fn preview_parts(
     json!({"delete":{"bytes":cats.values().sum::<u64>().to_string(),"categories":cats.into_iter().map(|(c,n)|json!({"title_zh":views::CATEGORIES.iter().find(|x|x.0==c).map(|x|x.1).unwrap_or("其它"),"bytes":n.to_string()})).collect::<Vec<_>>()},"chosen":if chosen.is_empty(){Value::Null}else{json!({"bytes":chosen_bytes.to_string(),"items":titles.into_iter().map(|(title,n)|json!({"title_zh":title,"bytes":n.to_string()})).collect::<Vec<_>>(),"mode":mode,"note_zh":if session{Some("清掉后这些对话不能再续接或回看")}else{None}})},"expected_skip":if skip_bytes==0{Value::Null}else{json!({"bytes":skip_bytes.to_string(),"notes_zh":skips.into_iter().map(|(name,n)|format!("{name} 开着，会跳过约 {}",m35::amount(n))).collect::<Vec<_>>()})}})
 }
 
+pub(crate) struct Execution<'a> {
+    pub guard: &'a dyn clean::ItemGuard,
+    pub journal: &'a mut dyn std::io::Write,
+    pub stop: &'a clean::StopFlag,
+    pub observer: &'a dyn clean::CleanObserver,
+    pub now: std::time::SystemTime,
+}
+
+pub(crate) trait Executor: Send + Sync {
+    fn execute(
+        &self,
+        plan: &clean::CleanPlan,
+        execution: Execution<'_>,
+    ) -> Result<clean::CleanReport, clean::CleanError>;
+    fn quarantine(
+        &self,
+        plan: &clean::CleanPlan,
+        id: &str,
+        target: &clean::QuarantineTarget,
+        execution: Execution<'_>,
+    ) -> Result<clean::QuarantineReport, clean::CleanError>;
+}
+
+pub(crate) struct NativeExecutor;
+impl Executor for NativeExecutor {
+    fn execute(
+        &self,
+        plan: &clean::CleanPlan,
+        e: Execution<'_>,
+    ) -> Result<clean::CleanReport, clean::CleanError> {
+        clean::execute(plan, e.guard, e.journal, e.stop, e.observer, e.now)
+    }
+    fn quarantine(
+        &self,
+        plan: &clean::CleanPlan,
+        id: &str,
+        target: &clean::QuarantineTarget,
+        e: Execution<'_>,
+    ) -> Result<clean::QuarantineReport, clean::CleanError> {
+        clean::quarantine(
+            plan, id, target, e.guard, e.journal, e.stop, e.observer, e.now,
+        )
+    }
+}
+
 pub(crate) fn start(core: &Arc<Core>, id: &str, token: &str) -> Result<Value, IpcError> {
+    start_with_executor(core, id, token, Arc::new(NativeExecutor))
+}
+
+pub(crate) fn start_with_executor(
+    core: &Arc<Core>,
+    id: &str,
+    token: &str,
+    executor: Arc<dyn Executor>,
+) -> Result<Value, IpcError> {
     let mut s = lock(core)?;
     let mut stored = s
         .plans
@@ -459,87 +513,291 @@ pub(crate) fn start(core: &Arc<Core>, id: &str, token: &str) -> Result<Value, Ip
     drop(s);
     let worker_core = core.clone();
     let worker_id = clean_id.clone();
-    let spawned=std::thread::Builder::new().name("water-clean".into()).spawn(move|| {
-        // The whole task is guarded; a panic leaves the service idle and keeps the journal.
-        let guarded=std::panic::catch_unwind(std::panic::AssertUnwindSafe(|| {
-        let run=std::panic::catch_unwind(std::panic::AssertUnwindSafe(||->Result<(clean::CleanReport,Vec<clean::QuarantineReport>),IpcError>{
-            if dedupe.is_none() {worker_core.store.write("scans",&format!("{}.json",r.result.scan_id),&saved)?;}
-            worker_core.platform.begin_in_use_batch();
-            let guard=Guard{core:worker_core.clone(),record:r.clone()};
-            let mut journal=worker_core.store.journal(&worker_id)?;
-            let selected=stored["chosen_ids"].as_array().into_iter().flatten().filter_map(Value::as_str).collect::<BTreeSet<_>>();
-            let quarantine_mode=stored["chosen_mode"]=="quarantine";
-            let mut deletion=plan.clone();deletion.items.retain(|i|!quarantine_mode || !selected.contains(i.item_id.as_str()));
-            let mut report=if deletion.items.is_empty() {clean::CleanReport{report_version:"water.clean-report.v1".into(),plan_id:plan.plan_id.clone(),started_at:util::timestamp(now),ended_at:util::timestamp(now),status:clean::RunStatus::Completed,freed_bytes:"0".into(),estimate_bytes:plan.items.iter().map(|i|util::number(&i.total_bytes)).sum::<u64>().to_string(),volumes:vec![],items:vec![],journal_error:None}}else{
-                let observer=Observer{core:worker_core.clone(),record:r.clone(),plan:&plan,groups:&group_ids,offset:0,freed_before:0,quarantined_before:0,quarantining:false};
-                clean::execute(&deletion,&guard,&mut journal,&stop,&observer,now).map_err(quarantine::error)?
-            };
-            let mut reports=Vec::new();
-            let batches=if quarantine_mode {quarantine_batches(&plan,&selected)}else{BTreeMap::new()};
-            let mut done=deletion.items.len();let mut moved=0u64;
-            for (root,items) in batches {
-                let id={let mut s=lock(&worker_core)?;let id=quarantine::unique_id(&worker_core,&s,&root);s.m35.quarantine_ids.insert(id.clone());id};
-                let mut batch=plan.clone();batch.items=items;
-                {let mut s=lock(&worker_core)?;s.clean_progress["phase"]=json!("quarantine");}
-                let observer=Observer{core:worker_core.clone(),record:r.clone(),plan:&plan,groups:&group_ids,offset:done,freed_before:util::number(&report.freed_bytes),quarantined_before:moved,quarantining:true};
-                // Recheck each drive immediately before calling the executor.
-                // An unavailable batch produces failures without moving files.
-                let moved_report=if let Some((_,target))=quarantine::registered_target(&worker_core,&root) {
-                    let report=clean::quarantine(&batch,&id,&target,&guard,&mut journal,&stop,&observer,now).map_err(quarantine::error)?;
-                    quarantine::save_moves(&worker_core,&r,&batch,&report,&worker_id).map_err(|_|IpcError{code:"unavailable".into(),message_zh:quarantine::JOURNAL_MESSAGE.into()})?;
-                    report
-                } else {
-                    if let Some(last)=batch.items.last() {clean::CleanObserver::on_item(&observer,batch.items.len(),batch.items.len(),0,&last.item_id);}
-                    clean::QuarantineReport{report_version:"water.quarantine-report.v1".into(),quarantine_id:id,started_at:util::timestamp(now),ended_at:util::timestamp(worker_core.platform.now()),status:clean::RunStatus::Completed,moved_bytes:"0".into(),items:batch.items.iter().map(|i|clean::MoveReport{item_id:i.item_id.clone(),status:clean::MoveStatus::Failed,skip_reason:None,move_error:Some(clean::MoveError::QuarantineUnavailable),error_code:None,destination:None,identity:None,bytes:"0".into()}).collect(),journal_error:None}
+    let spawned = std::thread::Builder::new()
+        .name("water-clean".into())
+        .spawn(move || {
+            // The whole task is guarded; a panic leaves the service idle and keeps the journal.
+            let guarded = std::panic::catch_unwind(std::panic::AssertUnwindSafe(|| {
+                let run = std::panic::catch_unwind(std::panic::AssertUnwindSafe(
+                    || -> Result<_, IpcError> {
+                        if dedupe.is_none() {
+                            worker_core.store.write(
+                                "scans",
+                                &format!("{}.json", r.result.scan_id),
+                                &saved,
+                            )?;
+                        }
+                        worker_core.platform.begin_in_use_batch();
+                        let guard = Guard {
+                            core: worker_core.clone(),
+                            record: r.clone(),
+                        };
+                        let mut journal = worker_core.store.journal(&worker_id)?;
+                        let selected = stored["chosen_ids"]
+                            .as_array()
+                            .into_iter()
+                            .flatten()
+                            .filter_map(Value::as_str)
+                            .collect::<BTreeSet<_>>();
+                        let quarantine_mode = stored["chosen_mode"] == "quarantine";
+                        let mut deletion = plan.clone();
+                        deletion
+                            .items
+                            .retain(|i| !quarantine_mode || !selected.contains(i.item_id.as_str()));
+                        let mut report = if deletion.items.is_empty() {
+                            clean::CleanReport {
+                                report_version: "water.clean-report.v1".into(),
+                                plan_id: plan.plan_id.clone(),
+                                started_at: util::timestamp(now),
+                                ended_at: util::timestamp(now),
+                                status: clean::RunStatus::Completed,
+                                freed_bytes: "0".into(),
+                                estimate_bytes: plan
+                                    .items
+                                    .iter()
+                                    .map(|i| util::number(&i.total_bytes))
+                                    .sum::<u64>()
+                                    .to_string(),
+                                volumes: vec![],
+                                items: vec![],
+                                journal_error: None,
+                            }
+                        } else {
+                            let observer = Observer {
+                                core: worker_core.clone(),
+                                record: r.clone(),
+                                plan: &plan,
+                                groups: &group_ids,
+                                offset: 0,
+                                freed_before: 0,
+                                quarantined_before: 0,
+                                quarantining: false,
+                            };
+                            executor
+                                .execute(
+                                    &deletion,
+                                    Execution {
+                                        guard: &guard,
+                                        journal: &mut journal,
+                                        stop: &stop,
+                                        observer: &observer,
+                                        now,
+                                    },
+                                )
+                                .map_err(quarantine::error)?
+                        };
+                        let mut reports = Vec::<clean::QuarantineReport>::new();
+                        let mut batch_errors = Vec::new();
+                        let batches = if quarantine_mode {
+                            quarantine_batches(&plan, &selected)
+                        } else {
+                            BTreeMap::new()
+                        };
+                        let mut done = deletion.items.len();
+                        let mut moved = 0u64;
+                        for (root, items) in batches {
+                            let id = {
+                                let mut s = lock(&worker_core)?;
+                                let id = quarantine::unique_id(&worker_core, &s, &root);
+                                s.m35.quarantine_ids.insert(id.clone());
+                                id
+                            };
+                            let mut batch = plan.clone();
+                            batch.items = items;
+                            if report.journal_error.is_some()
+                                || reports.iter().any(|r| r.journal_error.is_some())
+                            {
+                                let mut skipped = failed_batch(&batch, &id, now);
+                                skipped.status = clean::RunStatus::Stopped;
+                                for i in &mut skipped.items {
+                                    i.status = clean::MoveStatus::Skipped;
+                                    i.skip_reason = Some(clean::SkipReason::JournalFailed);
+                                    i.move_error = None;
+                                }
+                                report.status = clean::RunStatus::Stopped;
+                                done += batch.items.len();
+                                reports.push(skipped);
+                                continue;
+                            }
+                            {
+                                let mut s = lock(&worker_core)?;
+                                s.clean_progress["phase"] = json!("quarantine");
+                            }
+                            let observer = Observer {
+                                core: worker_core.clone(),
+                                record: r.clone(),
+                                plan: &plan,
+                                groups: &group_ids,
+                                offset: done,
+                                freed_before: util::number(&report.freed_bytes),
+                                quarantined_before: moved,
+                                quarantining: true,
+                            };
+                            // Recheck each drive immediately before calling the executor.
+                            // An unavailable batch produces failures without moving files.
+                            let moved_report = if let Some((_, target)) =
+                                quarantine::registered_target(&worker_core, &root)
+                            {
+                                let report = match executor.quarantine(
+                                    &batch,
+                                    &id,
+                                    &target,
+                                    Execution {
+                                        guard: &guard,
+                                        journal: &mut journal,
+                                        stop: &stop,
+                                        observer: &observer,
+                                        now,
+                                    },
+                                ) {
+                                    Ok(report) => report,
+                                    Err(e) => {
+                                        if e == clean::CleanError::Journal
+                                            && !report.items.iter().any(|i| {
+                                                matches!(
+                                                    i.status,
+                                                    clean::ItemStatus::Deleted
+                                                        | clean::ItemStatus::Partial
+                                                )
+                                            })
+                                            && moved == 0
+                                        {
+                                            return Err(quarantine::error(e));
+                                        }
+                                        for item in &batch.items {
+                                            batch_errors
+                                                .push((item.group_id.clone(), e.to_string()));
+                                        }
+                                        failed_batch(&batch, &id, now)
+                                    }
+                                };
+                                quarantine::save_moves(
+                                    &worker_core,
+                                    &r,
+                                    &batch,
+                                    &report,
+                                    &worker_id,
+                                )
+                                .map_err(|_| IpcError {
+                                    code: "unavailable".into(),
+                                    message_zh: quarantine::JOURNAL_MESSAGE.into(),
+                                })?;
+                                report
+                            } else {
+                                if let Some(last) = batch.items.last() {
+                                    clean::CleanObserver::on_item(
+                                        &observer,
+                                        batch.items.len(),
+                                        batch.items.len(),
+                                        0,
+                                        &last.item_id,
+                                    );
+                                }
+                                clean::QuarantineReport {
+                                    report_version: "water.quarantine-report.v1".into(),
+                                    quarantine_id: id,
+                                    started_at: util::timestamp(now),
+                                    ended_at: util::timestamp(worker_core.platform.now()),
+                                    status: clean::RunStatus::Completed,
+                                    moved_bytes: "0".into(),
+                                    items: batch
+                                        .items
+                                        .iter()
+                                        .map(|i| clean::MoveReport {
+                                            item_id: i.item_id.clone(),
+                                            status: clean::MoveStatus::Failed,
+                                            skip_reason: None,
+                                            move_error: Some(
+                                                clean::MoveError::QuarantineUnavailable,
+                                            ),
+                                            error_code: None,
+                                            destination: None,
+                                            identity: None,
+                                            bytes: "0".into(),
+                                        })
+                                        .collect(),
+                                    journal_error: None,
+                                }
+                            };
+                            if moved_report.status == clean::RunStatus::Stopped {
+                                report.status = clean::RunStatus::Stopped;
+                            }
+                            moved += util::number(&moved_report.moved_bytes);
+                            done += batch.items.len();
+                            reports.push(moved_report);
+                        }
+                        report.ended_at = util::timestamp(worker_core.platform.now());
+                        Ok((report, reports, batch_errors))
+                    },
+                ));
+                let panicked = run.is_err();
+                let finished = match run {
+                    Ok(Ok((report, quarantines, batch_errors))) => save_result(
+                        &worker_core,
+                        &r,
+                        &plan,
+                        &report,
+                        &quarantines,
+                        &batch_errors,
+                        &worker_id,
+                    )
+                    .map(|stored| (stored, report.status)),
+                    Ok(Err(e)) => Err(e),
+                    Err(_) => Err(IpcError::new("unavailable")),
                 };
-                if moved_report.status==clean::RunStatus::Stopped {report.status=clean::RunStatus::Stopped;}
-                moved+=util::number(&moved_report.moved_bytes);done+=batch.items.len();reports.push(moved_report);
+                let _ = quarantine::refresh(&worker_core);
+                match finished {
+                    Ok((stored, status)) => {
+                        let ids = if let Ok(mut s) = lock(&worker_core) {
+                            s.clean_progress["group_index"] = json!(group_ids.len());
+                            s.clean_progress["current_group_title_zh"] = Value::Null;
+                            s.clean_order.push(worker_id.clone());
+                            s.cleans.insert(worker_id, stored);
+                            Some(trim_state(&mut s))
+                        } else {
+                            None
+                        };
+                        if let Some((scans, cleans)) = ids {
+                            trim_files(&worker_core.store, &scans, &cleans);
+                        }
+                        if let Ok(mut s) = lock(&worker_core) {
+                            s.clean_progress["state"] =
+                                json!(if status == clean::RunStatus::Stopped {
+                                    "stopped"
+                                } else {
+                                    "completed"
+                                });
+                            s.busy = "idle";
+                            s.stop = None;
+                        }
+                    }
+                    Err(_) if panicked => {
+                        if let Ok(mut s) = lock(&worker_core) {
+                            s.clean_progress = idle();
+                            s.busy = "idle";
+                            s.stop = None;
+                        }
+                    }
+                    Err(e) => {
+                        if let Ok(mut s) = lock(&worker_core) {
+                            s.clean_progress["state"] = json!("failed");
+                            s.m35.failures.insert(worker_id.clone(), e);
+                            s.busy = "idle";
+                            s.stop = None;
+                        }
+                    }
+                }
+            }));
+            if guarded.is_err() {
+                let mut s = worker_core
+                    .state
+                    .lock()
+                    .unwrap_or_else(std::sync::PoisonError::into_inner);
+                s.clean_progress = idle();
+                s.busy = "idle";
+                s.stop = None;
             }
-            report.ended_at=util::timestamp(worker_core.platform.now());
-            Ok((report,reports))
-        }));
-        let panicked=run.is_err();
-        let finished=match run {
-            Ok(Ok((report,quarantines)))=>{
-                let mut view=result_view(&worker_core,&r,&plan,&report,&worker_id);
-                apply_quarantines(&r,&plan,&mut view,&quarantines);
-                let stored=json!({"clean_id":worker_id,"plan_id":plan.plan_id,"scan_id":r.result.scan_id,"report":report,"quarantine_reports":quarantines,"plan_items":plan.items,"view":view});
-                worker_core.store.write("cleans",&format!("{worker_id}.json"),&stored).map(|()|(stored,report.status))
-            },
-            Ok(Err(e))=>Err(e),
-            Err(_)=>Err(IpcError::new("unavailable")),
-        };
-        let _=quarantine::refresh(&worker_core);
-        match finished {
-            Ok((stored,status))=>{
-                let ids=if let Ok(mut s)=lock(&worker_core){
-                    s.clean_progress["group_index"]=json!(group_ids.len());s.clean_progress["current_group_title_zh"]=Value::Null;
-                    s.clean_order.push(worker_id.clone());
-                    s.cleans.insert(worker_id,stored);
-                    Some(trim_state(&mut s))
-                }else{None};
-                if let Some((scans,cleans))=ids{
-                    trim_files(&worker_core.store,&scans,&cleans);
-                }
-                if let Ok(mut s)=lock(&worker_core){
-                    s.clean_progress["state"]=json!(if status==clean::RunStatus::Stopped{"stopped"}else{"completed"});
-                    s.busy="idle";s.stop=None;
-                }
-            },
-            Err(_) if panicked=>{
-                if let Ok(mut s)=lock(&worker_core){s.clean_progress=idle();s.busy="idle";s.stop=None;}
-            },
-            Err(e)=>{
-                if let Ok(mut s)=lock(&worker_core){s.clean_progress["state"]=json!("failed");s.m35.failures.insert(worker_id.clone(),e);s.busy="idle";s.stop=None;}
-            },
-        }
-        }));
-        if guarded.is_err() {
-            let mut s=worker_core.state.lock().unwrap_or_else(std::sync::PoisonError::into_inner);
-            s.clean_progress=idle();
-            s.busy="idle";s.stop=None;
-        }
-    });
+        });
     if spawned.is_err() {
         let mut s = lock(core)?;
         s.busy = "idle";
@@ -669,13 +927,13 @@ fn result_view(
         let any_deleted=reports.iter().any(|r|r.status==clean::ItemStatus::Deleted || r.status==clean::ItemStatus::Partial);
         let failed=reports.iter().any(|r|r.status==clean::ItemStatus::Failed || r.failed_entries>0);
         let status=if !reports.is_empty() && deleted==reports.len(){"done"}else if any_deleted{"partial"}else if failed{"failed"}else{"skipped"};
-        let mut counts=[0u64;6];
+        let mut counts=[0u64;7];
         for item in &reports {
             use clean::SkipReason::*;
-            match item.skip_reason {Some(InUse)=>counts[0]+=1,Some(Changed|Gone)=>counts[1]+=1,Some(TooRecent)=>counts[2]+=1,Some(Reparse|OutsideRoot|Guarded|ProtectedOverlap)=>counts[3]+=1,Some(Cancelled|JournalFailed)=>counts[4]+=1,None=>{}}
+            match item.skip_reason {Some(InUse)=>counts[0]+=1,Some(Changed|Gone)=>counts[1]+=1,Some(TooRecent)=>counts[2]+=1,Some(Reparse|OutsideRoot|Guarded|ProtectedOverlap)=>counts[3]+=1,Some(Cancelled)=>counts[4]+=1,Some(JournalFailed)=>counts[6]+=1,None=>{}}
             counts[5]+=item.failed_entries;
         }
-        let tails=[" 项正在使用，已跳过"," 项已经变化，已跳过"," 项刚有改动，已跳过"," 项未通过安全复核，已跳过"," 项因停止未处理"," 个文件无法删除"];
+        let tails=[" 项正在使用，已跳过"," 项已经变化，已跳过"," 项刚有改动，已跳过"," 项未通过安全复核，已跳过"," 项因停止未处理"," 个文件无法删除"," 项因日志写不进去未处理"];
         let notes:Vec<_>=counts.into_iter().zip(tails).filter(|(n,_)|*n>0).map(|(n,t)|format!("{n}{t}")).collect();
         json!({"group_id":group,"title_zh":r.projection().details[&group]["group"]["title_zh"],"status":status,"freed_bytes":reports.iter().map(|i|util::number(&i.bytes_freed)).sum::<u64>().to_string(),"notes_zh":notes})
     }).collect();
@@ -685,7 +943,83 @@ fn result_view(
         .filter_map(|p| r.result.items.iter().find(|i| i.item_id == p.item_id))
         .map(|i| util::number(&i.unique_bytes))
         .sum();
-    json!({"clean_id":id,"finished_at":report.ended_at,"estimate_bytes":estimate.to_string(),"freed_bytes":report.freed_bytes,"drives":report.volumes,"groups":groups,"journal_display_path":core.store.root.join("journal").join(format!("{id}.jsonl")).to_string_lossy(),"quarantined":null})
+    json!({"clean_id":id,"finished_at":report.ended_at,"estimate_bytes":estimate.to_string(),"freed_bytes":report.freed_bytes,"drives":report.volumes,"groups":groups,"journal_display_path":core.store.root.join("journal").join(format!("{id}.jsonl")).to_string_lossy(),"quarantined":null,"journal_note_zh":null})
+}
+
+fn failed_batch(
+    batch: &clean::CleanPlan,
+    id: &str,
+    now: std::time::SystemTime,
+) -> clean::QuarantineReport {
+    clean::QuarantineReport {
+        report_version: "water.quarantine-report.v1".into(),
+        quarantine_id: id.into(),
+        started_at: util::timestamp(now),
+        ended_at: util::timestamp(now),
+        status: clean::RunStatus::Completed,
+        moved_bytes: "0".into(),
+        journal_error: None,
+        items: batch
+            .items
+            .iter()
+            .map(|i| clean::MoveReport {
+                item_id: i.item_id.clone(),
+                status: clean::MoveStatus::Failed,
+                skip_reason: None,
+                move_error: Some(clean::MoveError::Other),
+                error_code: None,
+                destination: None,
+                identity: None,
+                bytes: "0".into(),
+            })
+            .collect(),
+    }
+}
+
+pub(crate) fn save_result(
+    core: &Core,
+    r: &Record,
+    plan: &clean::CleanPlan,
+    report: &clean::CleanReport,
+    quarantines: &[clean::QuarantineReport],
+    errors: &[(String, String)],
+    id: &str,
+) -> Result<Value, IpcError> {
+    let mut view = result_view(core, r, plan, report, id);
+    apply_quarantines(r, plan, &mut view, quarantines);
+    let journal_error =
+        report.journal_error.is_some() || quarantines.iter().any(|q| q.journal_error.is_some());
+    let n = report
+        .items
+        .iter()
+        .filter(|i| i.skip_reason == Some(clean::SkipReason::JournalFailed))
+        .count()
+        + quarantines
+            .iter()
+            .flat_map(|q| &q.items)
+            .filter(|i| i.skip_reason == Some(clean::SkipReason::JournalFailed))
+            .count();
+    if journal_error {
+        view["journal_note_zh"] = json!(format!("清理日志没写全，后面的 {n} 项没有清"));
+    }
+    for (id, reason) in errors {
+        for g in view["groups"]
+            .as_array_mut()
+            .into_iter()
+            .flatten()
+            .filter(|g| g["group_id"] == *id)
+        {
+            g["status"] = json!("failed");
+            let note = json!(format!("没能放进隔离区：{reason}"));
+            let notes = g["notes_zh"].as_array_mut().unwrap();
+            if !notes.contains(&note) {
+                notes.push(note);
+            }
+        }
+    }
+    let stored = json!({"clean_id":id,"plan_id":plan.plan_id,"scan_id":r.result.scan_id,"report":report,"quarantine_reports":quarantines,"plan_items":plan.items,"view":view});
+    core.store.write("cleans", &format!("{id}.json"), &stored)?;
+    Ok(stored)
 }
 
 fn apply_quarantines(
@@ -740,13 +1074,20 @@ fn apply_quarantines(
             "skipped"
         });
         let notes = group["notes_zh"].as_array_mut().unwrap();
+        let journal_failed = moved
+            .iter()
+            .filter(|i| i.skip_reason == Some(clean::SkipReason::JournalFailed))
+            .count();
+        if journal_failed > 0 {
+            notes.push(json!(format!("{journal_failed} 项因日志写不进去未处理")));
+        }
         if done > 0 {
             notes.push(json!(format!("{done} 项进了隔离区")));
         }
-        for i in moved
-            .iter()
-            .filter(|i| i.status != clean::MoveStatus::Moved)
-        {
+        for i in moved.iter().filter(|i| {
+            i.status != clean::MoveStatus::Moved
+                && i.skip_reason != Some(clean::SkipReason::JournalFailed)
+        }) {
             notes.push(json!(
                 if i.move_error == Some(clean::MoveError::QuarantineUnavailable) {
                     let drive = plan
