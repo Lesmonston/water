@@ -23,6 +23,8 @@ use std::time::{Duration, Instant, SystemTime};
 
 const REPARSE: u32 = 0x400;
 const DIRECTORY: u32 = 0x10;
+const HIDDEN: u32 = 0x2;
+const SYSTEM: u32 = 0x4;
 const CLUSTER_MIN_MEMBERS: usize = 10;
 
 mod streaming;
@@ -93,6 +95,7 @@ struct Child {
     name: String,
     path: String,
     kind: Kind,
+    attributes: u32,
     len: u64,
     mtime: SystemTime,
     creation: SystemTime,
@@ -247,6 +250,7 @@ impl<'a> Engine<'a> {
                 name,
                 path,
                 kind: kind_from_attributes(entry.attributes),
+                attributes: entry.attributes,
                 len: entry.len,
                 mtime: clamp_time(entry.mtime),
                 creation: clamp_time(entry.creation),
@@ -298,6 +302,7 @@ impl<'a> Engine<'a> {
     fn index_junction(&mut self, child: &Child) {
         if !self.extras_options.junctions
             || child.kind != Kind::Reparse
+            || child.attributes & (HIDDEN | SYSTEM) == (HIDDEN | SYSTEM)
             || self
                 .extras
                 .junctions
@@ -375,6 +380,7 @@ fn child_from_meta(name: String, path: String, meta: &Metadata) -> Child {
         name,
         path,
         kind: kind_from_attributes(attrs),
+        attributes: attrs,
         len: meta.len(),
         mtime: clamp_time(meta.modified().unwrap_or(SystemTime::UNIX_EPOCH)),
         creation: clamp_time(meta.created().unwrap_or(SystemTime::UNIX_EPOCH)),
@@ -1187,11 +1193,11 @@ pub fn scan_full(
             {
                 continue;
             }
-            if junction.final_target.as_ref().is_some_and(|p| {
-                path_eq(p, &item.path)
-                    || is_proper_ancestor(p, &item.path)
-                    || is_proper_ancestor(&item.path, p)
-            }) {
+            if junction
+                .final_target
+                .as_ref()
+                .is_some_and(|p| path_eq(p, &item.path) || is_proper_ancestor(&item.path, p))
+            {
                 item.referenced_count += 1;
                 if item.referenced_by.len() < 8 {
                     item.referenced_by.push(junction.path.clone());

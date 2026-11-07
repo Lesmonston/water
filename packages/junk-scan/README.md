@@ -31,12 +31,15 @@ fallback items use their own target's eligibility settings.
 Snapshot growth requires at least 24 hours between observations. A leak hint
 also requires increasing bytes, together with 20 additional recently active
 items or at least 1 GiB per day. Rates still use the exact elapsed interval.
-# M3.5 additions
+
+## Sizes, clusters and junction references
 
 `scan` remains the default-options wrapper around `scan_full`. All modes read names and metadata only; directory listings are shared across pattern, marker, discovery and measurement work. Allocation sizes and creation times come from the same directory enumeration, with file-identity deduplication within each item.
 
 `scan_full` can additionally report leak clusters, junction references and declaration file locations (`.flick-cleanup.json` and `.water-cleanup.json`, Flick first when both exist in one directory). It never parses declaration contents or follows a reparse point. Cluster membership and names are descriptive; use checks, valuable-file decisions and actual cleaning belong to the service/executor. `.flick-quarantine`, `.water-quarantine` and `.git` are never scan targets. Both quarantine names are matched without ASCII case sensitivity and remain included in `space_overview`.
 
+Junctions with both hidden and system attributes are omitted from the reference index, including when used as scan roots. Junctions with only one of these attributes remain indexed. An item is referenced only when an external indexed junction's final target equals the item or lies inside it; targets above the item do not count. Comparisons follow path segments without ASCII case sensitivity.
+
 Six-character random suffixes require an ASCII uppercase letter and a digit or lowercase letter. File clusters exclude UUID tails and JSONL files; all clusters exclude templates containing `backup` or `bak`. A directory is excluded from cluster searches when its own name or one of its four nearest ancestors is `sessions`, `subagents`, `conversations`, `chats`, or `transcripts` (ASCII case-insensitive). Streaming candidates and final cluster assembly share these checks, including extra hash-file siblings; ordinary targets still run normally.
 
-`space_overview` makes an independent read-only traversal of one directory, including quarantine storage, and reports its ten largest direct children by allocated bytes. Its result does not authorize cleaning. The real smoke example runs the ordinary scan, all three extras and the user-profile overview, emitting summaries and counts only.
+`space_overview` makes an independent read-only traversal of one directory, including quarantine storage, and reports its ten largest direct children by allocated bytes. Its result does not authorize cleaning. The real smoke example runs the ordinary scan, all three extras and the user-profile overview, emitting summaries and counts only. It checks the indexed junction attributes and requires the hidden-and-system count to be zero.

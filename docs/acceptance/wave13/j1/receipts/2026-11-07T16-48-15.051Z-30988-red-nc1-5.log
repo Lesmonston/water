@@ -1,0 +1,58 @@
+{"binary":"C:\\Users\\37310\\.rustup\\toolchains\\1.95.0-x86_64-pc-windows-msvc\\bin\\cargo.exe","args":["test","--offline","--locked","--manifest-path","packages/junk-scan/Cargo.toml","--test","scan_v1","--","--test-threads=1"],"exitCode":101,"error":null}
+--- stdout ---
+
+running 5 tests
+test scan_overlap_and_guards ... ok
+test scan_pattern_marker_discovery ... ok
+test scan_plan_contract ... ok
+test scan_reparse_budget_cancel ... FAILED
+test scan_snapshot_growth_keys ... ok
+
+failures:
+
+---- scan_reparse_budget_cancel stdout ----
+
+thread 'scan_reparse_budget_cancel' (33828) panicked at tests\scan_v1.rs:4661:5:
+assertion `left == right` failed: SCAN_W13_JUNCTIONS: compatibility links are excluded from index
+  left: 12
+ right: 10
+note: run with `RUST_BACKTRACE=1` environment variable to display a backtrace
+
+
+failures:
+    scan_reparse_budget_cancel
+
+test result: FAILED. 4 passed; 1 failed; 0 ignored; 0 measured; 0 filtered out; finished in 4.72s
+
+
+--- stderr ---
+   Compiling water-junk-scan v0.1.0 (F:\new\smaltalk\water\.worktrees\w13-j1\packages\junk-scan)
+warning: constant `HIDDEN` is never used
+  --> src\scan.rs:26:7
+   |
+26 | const HIDDEN: u32 = 0x2;
+   |       ^^^^^^
+   |
+   = note: `#[warn(dead_code)]` (part of `#[warn(unused)]`) on by default
+
+warning: constant `SYSTEM` is never used
+  --> src\scan.rs:27:7
+   |
+27 | const SYSTEM: u32 = 0x4;
+   |       ^^^^^^
+
+warning: field `attributes` is never read
+  --> src\scan.rs:98:5
+   |
+94 | struct Child {
+   |        ----- field in this struct
+...
+98 |     attributes: u32,
+   |     ^^^^^^^^^^
+   |
+   = note: `Child` has a derived impl for the trait `Clone`, but this is intentionally ignored during dead code analysis
+
+warning: `water-junk-scan` (lib) generated 3 warnings
+    Finished `test` profile [unoptimized + debuginfo] target(s) in 3.22s
+     Running tests\scan_v1.rs (.local\w2-target\junk-scan\debug\deps\scan_v1-44131edddc8e8920.exe)
+error: test failed, to rerun pass `--test scan_v1`

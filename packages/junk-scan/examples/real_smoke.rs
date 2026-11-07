@@ -1,4 +1,6 @@
 use serde::Serialize;
+use std::fs;
+use std::os::windows::fs::MetadataExt;
 use std::time::{Instant, SystemTime};
 use water_junk_scan::{
     CancelToken, ExtrasOptions, ScanObserver, ScanOptions, ScanPlan, ScanProgress, ScanResult,
@@ -47,6 +49,7 @@ struct FullOut {
     confirm_cluster_count: usize,
     advisory_cluster_count: usize,
     junction_count: usize,
+    hidden_system_junction_count: usize,
     junctions_truncated: bool,
     declaration_count: usize,
 }
@@ -106,6 +109,21 @@ fn main() {
         SystemTime::now(),
     )
     .expect("full scan");
+    let hidden_system_junction_count = extras
+        .junctions
+        .iter()
+        .filter(|junction| {
+            fs::symlink_metadata(&junction.path)
+                .expect("read indexed junction attributes")
+                .file_attributes()
+                & 0x6
+                == 0x6
+        })
+        .count();
+    assert_eq!(
+        hidden_system_junction_count, 0,
+        "compatibility junctions must not be indexed"
+    );
     let full = FullOut {
         summary: summarize(&result, started.elapsed().as_millis()),
         cluster_count: result.groups.iter().filter(|g| g.cluster.is_some()).count(),
@@ -120,6 +138,7 @@ fn main() {
             .filter(|g| g.cluster.is_some() && g.level == water_junk_scan::Level::Advisory)
             .count(),
         junction_count: extras.junctions.len(),
+        hidden_system_junction_count,
         junctions_truncated: extras.junctions_truncated,
         declaration_count: extras.declarations.len(),
     };

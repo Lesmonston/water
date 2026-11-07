@@ -1,0 +1,37 @@
+{"binary":"C:\\Users\\37310\\.rustup\\toolchains\\1.95.0-x86_64-pc-windows-msvc\\bin\\cargo.exe","args":["fmt","--manifest-path","packages/junk-scan/Cargo.toml","--","--check"],"exitCode":1,"error":null}
+--- stdout ---
+Diff in \\?\F:\new\smaltalk\water\.worktrees\w13-j1\packages\junk-scan\src\scan.rs:1193:
+             {
+                 continue;
+             }
+-            if junction.final_target.as_ref().is_some_and(|p| {
+-                path_eq(p, &item.path)
+-                    || is_proper_ancestor(&item.path, p)
+-            }) {
++            if junction
++                .final_target
++                .as_ref()
++                .is_some_and(|p| path_eq(p, &item.path) || is_proper_ancestor(&item.path, p))
++            {
+                 item.referenced_count += 1;
+                 if item.referenced_by.len() < 8 {
+                     item.referenced_by.push(junction.path.clone());
+Diff in \\?\F:\new\smaltalk\water\.worktrees\w13-j1\packages\junk-scan\tests\scan_v1.rs:4700:
+         "SCAN_W13_JUNCTIONS: hidden-system links are not indexed"
+     );
+     assert!(
+-        index.junctions.iter().any(|j| j.path.ends_with("hidden-only"))
+-            && index.junctions.iter().any(|j| j.path.ends_with("system-only")),
++        index
++            .junctions
++            .iter()
++            .any(|j| j.path.ends_with("hidden-only"))
++            && index
++                .junctions
++                .iter()
++                .any(|j| j.path.ends_with("system-only")),
+         "SCAN_W13_JUNCTIONS: single attributes remain indexed"
+     );
+     let normal_chain = index
+
+--- stderr ---
