@@ -1,0 +1,36 @@
+{"binary":"C:\\Users\\37310\\.rustup\\toolchains\\1.95.0-x86_64-pc-windows-msvc\\bin\\cargo.exe","args":["test","--offline","--locked","--manifest-path","packages/junk-scan/Cargo.toml","--test","scan_v1","--","--test-threads=1"],"exitCode":101,"error":null}
+--- stdout ---
+
+running 5 tests
+test scan_overlap_and_guards ... ok
+test scan_pattern_marker_discovery ... ok
+test scan_plan_contract ... ok
+test scan_reparse_budget_cancel ... FAILED
+test scan_snapshot_growth_keys ... ok
+
+failures:
+
+---- scan_reparse_budget_cancel stdout ----
+
+thread 'scan_reparse_budget_cancel' (33036) panicked at tests\scan_v1.rs:4723:5:
+SCAN_W13_JUNCTIONS: hidden-system links remain skipped
+note: run with `RUST_BACKTRACE=1` environment variable to display a backtrace
+
+
+failures:
+    scan_reparse_budget_cancel
+
+test result: FAILED. 4 passed; 1 failed; 0 ignored; 0 measured; 0 filtered out; finished in 3.09s
+
+
+--- stderr ---
+   Compiling serde_core v1.0.229
+   Compiling zmij v1.0.23
+   Compiling itoa v1.0.18
+   Compiling memchr v2.8.3
+   Compiling serde_json v1.0.151
+   Compiling serde v1.0.229
+   Compiling water-junk-scan v0.1.0 (F:\new\smaltalk\water\.worktrees\w13-j1\packages\junk-scan)
+    Finished `test` profile [unoptimized + debuginfo] target(s) in 20.14s
+     Running tests\scan_v1.rs (.local\w2-target\junk-scan\debug\deps\scan_v1-44131edddc8e8920.exe)
+error: test failed, to rerun pass `--test scan_v1`
