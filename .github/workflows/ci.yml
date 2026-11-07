@@ -1,0 +1,72 @@
+# Flick CI: format, lint and tests on Windows for the crates the desktop app is built from, plus the UI unit tests.
+# Runs only in the public repository (dfan0519-tech/flick); in the private working repository every job is skipped.
+# The folder picker tests open real dialogs, so CI only builds them; the browser and real-window checks stay local.
+name: CI
+
+on:
+  push:
+    branches: [main]
+  pull_request:
+
+permissions:
+  contents: read
+
+env:
+  CARGO_TERM_COLOR: never
+  RUST_TOOLCHAIN: "1.95.0"
+
+jobs:
+  rust:
+    if: github.repository == 'dfan0519-tech/flick'
+    runs-on: windows-latest
+    strategy:
+      fail-fast: false
+      matrix:
+        crate:
+          - packages/junk-rules
+          - packages/junk-scan
+          - packages/junk-clean
+          - packages/cleanup-manifest
+          - packages/dup-finder
+          - packages/installed-apps
+          - packages/process-scan
+          - packages/native-root
+          - packages/scope-registry
+          - packages/water-service
+          - apps/water/host
+    steps:
+      - uses: actions/checkout@v4
+      - name: Toolchain
+        run: |
+          rustup toolchain install $env:RUST_TOOLCHAIN --profile minimal --component rustfmt,clippy
+          rustup default $env:RUST_TOOLCHAIN
+      - name: Format
+        run: cargo fmt --manifest-path ${{ matrix.crate }}/Cargo.toml -- --check
+      - name: Clippy
+        run: cargo clippy --locked --manifest-path ${{ matrix.crate }}/Cargo.toml --all-targets -- -D warnings
+      - name: Test
+        run: cargo test --locked --manifest-path ${{ matrix.crate }}/Cargo.toml
+
+  picker:
+    if: github.repository == 'dfan0519-tech/flick'
+    runs-on: windows-latest
+    steps:
+      - uses: actions/checkout@v4
+      - name: Toolchain
+        run: |
+          rustup toolchain install $env:RUST_TOOLCHAIN --profile minimal --component rustfmt,clippy
+          rustup default $env:RUST_TOOLCHAIN
+      - name: Format
+        run: cargo fmt --manifest-path packages/native-picker/Cargo.toml -- --check
+      - name: Clippy
+        run: cargo clippy --locked --manifest-path packages/native-picker/Cargo.toml --all-targets -- -D warnings
+      - name: Build tests (they open real dialogs, so they are not run here)
+        run: cargo test --locked --manifest-path packages/native-picker/Cargo.toml --no-run
+
+  ui:
+    if: github.repository == 'dfan0519-tech/flick'
+    runs-on: windows-latest
+    steps:
+      - uses: actions/checkout@v4
+      - name: UI unit tests
+        run: node --test apps/water/ui/tests/unit.test.mjs
