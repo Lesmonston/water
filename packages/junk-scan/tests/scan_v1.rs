@@ -2254,6 +2254,31 @@ fn m35_old_tree(root: &Path, when: SystemTime) {
 }
 
 fn m35_plan_templates() {
+    for tail in ["7mzKFP", "bjVTM3", "Nig1h3", "0gAvKc", "AbC123", "A00001"] {
+        for file in [false, true] {
+            let name = format!("verify-{tail}{}", if file { ".tmp" } else { "" });
+            let expected = if file {
+                "verify-<r6>.tmp"
+            } else {
+                "verify-<r6>"
+            };
+            assert_eq!(
+                name_template(&name, file).as_deref(),
+                Some(expected),
+                "SCAN_M35_TEMPLATE: M13 random suffix {name}"
+            );
+        }
+    }
+    for tail in ["color0", "step01", "271590", "q0uodi", "abcdef", "ABCDEF"] {
+        for file in [false, true] {
+            let name = format!("verify-{tail}{}", if file { ".tmp" } else { "" });
+            assert_eq!(
+                name_template(&name, file),
+                None,
+                "SCAN_M35_TEMPLATE: M13 ordinary suffix {name}"
+            );
+        }
+    }
     for (name, file, expected) in [
         ("verify-7mzKFP", false, "verify-<r6>"),
         ("verify-bjVTM3", false, "verify-<r6>"),
@@ -2627,7 +2652,286 @@ fn m35_markers() {
     );
 }
 
+fn m13_expected_cluster_id(parent: &str, kind: &str, template: &str) -> String {
+    let mut hash = 0xcbf29ce484222325u64;
+    for byte in format!("{}\n{kind}\n{template}", parent.to_ascii_lowercase()).bytes() {
+        hash = (hash ^ u64::from(byte)).wrapping_mul(0x100000001b3);
+    }
+    format!("leak:{hash:016x}")
+}
+
+fn m13_cluster_exclusions() {
+    let fx = Fixture::create();
+    let mut excluded = Vec::new();
+    let mut ordinary_dirs = Vec::new();
+    for i in 0..12 {
+        let uuid = format!("{:08x}-e29b-41d4-a716-{i:012x}", 0x550e8400u32 + i);
+        let resource = if i < 10 {
+            format!("icon_type_color{i}.png")
+        } else {
+            format!("icon_type_step{:02}.png", i - 9)
+        };
+        for rel in [
+            format!("loc/res/{resource}"),
+            format!("loc/help/image/uuid-{uuid}.png"),
+            format!(
+                "loc/codex/sessions/2026/10/05/rollout-2026-10-05T00-19-{:02}-{uuid}.jsonl",
+                40 + i
+            ),
+            format!(
+                "loc/proj/550e8400-e29b-41d4-a716-446655440000/subagents/agent-a0123456789abcde{i:x}.jsonl"
+            ),
+            format!("loc/jsonl/agent-a{i:07x}.JSONL"),
+            format!("loc/hash/apk_backup_a{i:07x}.apk"),
+            format!("loc/hash/apk_{uuid}.apk"),
+        ] {
+            write_file(&fx.join(&rel), b"x");
+            excluded.push(fx.p(&rel));
+        }
+        for rel in [
+            format!(
+                "loc/backups/claude-code-sessions.backup-20260713-{:06}",
+                213450 + i
+            ),
+            format!("loc/bak/tool.BaK-20260713-{:06}", 213450 + i),
+            format!("loc/work/sessions/x/y/run-{uuid}"),
+            format!("loc/work/Conversations/run-{uuid}"),
+            format!("loc/work/chats/run-{uuid}"),
+            format!("loc/work/TRANSCRIPTS/run-{uuid}"),
+            format!("loc/boundary/SesSions/a/b/c/d/run-{uuid}"),
+        ] {
+            write_file(&fx.join(&format!("{rel}/node_modules/keep")), b"x");
+            ordinary_dirs.push(fx.p(&format!("{rel}/node_modules")));
+            excluded.push(fx.p(&rel));
+        }
+        for rel in [
+            format!("loc/work/runs/session-{uuid}/data"),
+            format!("loc/verify/verify-A{i:05}/data"),
+            format!("loc/boundary/SesSions/a/b/c/d/e/run-{uuid}/data"),
+            format!("loc/not-sessions/run-{uuid}/data"),
+            format!("loc/hash/apk_a{i:07x}.apk"),
+            format!("loc/random/cache-A{i:05}.tmp"),
+            format!("loc/python/tmpa{i:07}.tmp"),
+        ] {
+            write_file(&fx.join(&rel), b"x");
+        }
+    }
+    let now = SystemTime::now();
+    m35_old_tree(&fx.join("loc"), now - Duration::from_secs(40 * 86400));
+    let marker = m35_marker_target(
+        "modules",
+        &fx.p("loc"),
+        json!({"kind":"dir_name","names":["node_modules"]}),
+        None,
+        "dir",
+    );
+    let extras = ExtrasOptions {
+        leak_clusters: true,
+        ..ExtrasOptions::default()
+    };
+    let (result, _) = m35_full(&plan(vec![marker], vec![]), now, &extras);
+    for path in &excluded {
+        assert!(
+            !result
+                .items
+                .iter()
+                .any(|item| item.group_id.starts_with("leak:")
+                    && (item.path == *path || item.path.starts_with(&format!("{path}\\")))),
+            "SCAN_M35_CLUSTERS: M13 excluded entry never a leak member: {path}"
+        );
+    }
+    for path in &ordinary_dirs {
+        assert!(
+            result
+                .items
+                .iter()
+                .any(|item| item.group_id == "modules" && item.path == *path),
+            "SCAN_M35_CLUSTERS: M13 exclusions preserve ordinary nested target: {path}"
+        );
+    }
+    let expected = [
+        ("loc/work/runs", "dir", "session-<u>"),
+        ("loc/verify", "dir", "verify-<r6>"),
+        ("loc/boundary/SesSions/a/b/c/d/e", "dir", "run-<u>"),
+        ("loc/not-sessions", "dir", "run-<u>"),
+        ("loc/hash", "file", "apk_<h>.apk"),
+        ("loc/random", "file", "cache-<r6>.tmp"),
+        ("loc/python", "file", "tmp<p8>.tmp"),
+    ];
+    assert_eq!(
+        result
+            .groups
+            .iter()
+            .filter(|group| group.cluster.is_some())
+            .count(),
+        expected.len(),
+        "SCAN_M35_CLUSTERS: M13 exact surviving clusters"
+    );
+    for (parent, kind, template) in expected {
+        let id = m13_expected_cluster_id(&fx.p(parent), kind, template);
+        let group = result
+            .groups
+            .iter()
+            .find(|group| group.group_id == id)
+            .expect("SCAN_M35_CLUSTERS: M13 expected FNV group ID");
+        let info = group
+            .cluster
+            .as_ref()
+            .expect("SCAN_M35_CLUSTERS: M13 cluster info");
+        assert_eq!(
+            info.member_count, 12,
+            "SCAN_M35_CLUSTERS: M13 exact member count"
+        );
+        assert_eq!(
+            group.item_count, 12,
+            "SCAN_M35_CLUSTERS: M13 no excluded extras"
+        );
+        assert_eq!(
+            info.template, template,
+            "SCAN_M35_CLUSTERS: M13 exact template"
+        );
+        assert_eq!(
+            group.level,
+            water_junk_scan::Level::Confirm,
+            "SCAN_M35_CLUSTERS: M13 unchanged level"
+        );
+    }
+
+    // Discovery exclusions stay ordinary items, including their Item.template.
+    let parents = [
+        "loc/res",
+        "loc/help/image",
+        "loc/codex/sessions/2026/10/05",
+        "loc/proj/550e8400-e29b-41d4-a716-446655440000/subagents",
+        "loc/backups",
+        "loc/bak",
+        "loc/work/sessions/x/y",
+        "loc/jsonl",
+        "loc/work/Conversations",
+        "loc/work/chats",
+        "loc/work/TRANSCRIPTS",
+        "loc/boundary/SesSions/a/b/c/d",
+    ];
+    let rows = parents
+        .iter()
+        .enumerate()
+        .map(|(index, parent)| {
+            target(
+                &format!("ordinary-{index}"),
+                "confirm",
+                "system_temp",
+                json!({"kind":"discovery","root":fx.p(parent)}),
+                "any",
+                0,
+                0,
+            )
+        })
+        .collect();
+    let (discovery, _) = m35_full(&plan(rows, vec![]), now, &extras);
+    assert!(
+        discovery.groups.iter().all(|group| group.cluster.is_none()),
+        "SCAN_M35_CLUSTERS: M13 discovery exclusions"
+    );
+    for (index, parent) in parents.iter().enumerate() {
+        let group = discovery
+            .groups
+            .iter()
+            .find(|group| group.group_id == format!("ordinary-{index}"))
+            .unwrap();
+        assert_eq!(
+            group.item_count,
+            if parent.ends_with("/d") { 13 } else { 12 },
+            "SCAN_M35_CLUSTERS: M13 ordinary discovery count"
+        );
+    }
+    for path in &excluded {
+        if let Some(item) = discovery.items.iter().find(|item| item.path == *path) {
+            let name = path.rsplit('\\').next().unwrap();
+            assert_eq!(
+                item.template,
+                name_template(name, item.kind == "file"),
+                "SCAN_M35_CLUSTERS: M13 ordinary item template"
+            );
+        }
+    }
+    let resource = discovery
+        .items
+        .iter()
+        .find(|item| item.path.ends_with("icon_type_color0.png"))
+        .unwrap();
+    assert_eq!(
+        resource.template, None,
+        "SCAN_M35_CLUSTERS: M13 Item.template rejects lowercase digit suffix"
+    );
+}
+
+fn m13_installer_patterns() {
+    let fx = Fixture::create();
+    let accepted = [
+        "MostLogin-setup.exe",
+        "Mirasim-0.0.783.exe",
+        "WorkBuddy 5.1.0.exe",
+        "cc-switch_installer.exe",
+    ];
+    let rejected = [
+        "unins000.exe",
+        "Uninstall.exe",
+        "install-service.exe",
+        "clash-verge-service-install.exe",
+        "cpuz_x64.exe",
+        "cli-32.exe",
+        "f2py.exe",
+        "ct2-marian-converter.exe",
+    ];
+    for name in accepted.iter().chain(&rejected) {
+        write_file(&fx.join(&format!("loc/{name}")), b"x");
+    }
+    write_file(&fx.join("loc/app/a.dll"), b"x");
+    write_file(&fx.join("loc/app/Tool-setup.exe"), b"x");
+    let mut row = m35_marker_target(
+        "installers",
+        &fx.p("loc"),
+        json!({"kind":"file_name","patterns":["*setup*.exe","*installer*.exe","*#.#*.exe"]}),
+        Some(json!([{"kind":"parent_lacks_file_matching","pattern":"*.dll"}])),
+        "file",
+    );
+    row["match"]["max_depth"] = json!(3);
+    let result = run_default(&plan(vec![row], vec![]), SystemTime::now());
+    assert_eq!(
+        result.items.len(),
+        4,
+        "SCAN_M35_RULES: exact M12 installer matches"
+    );
+    for name in accepted {
+        assert!(
+            result
+                .items
+                .iter()
+                .any(|item| item.path == fx.p(&format!("loc/{name}"))),
+            "SCAN_M35_RULES: installer matches {name}"
+        );
+    }
+    for name in rejected {
+        assert!(
+            !result
+                .items
+                .iter()
+                .any(|item| item.path == fx.p(&format!("loc/{name}"))),
+            "SCAN_M35_RULES: tool excluded {name}"
+        );
+    }
+    assert!(
+        !result
+            .items
+            .iter()
+            .any(|item| item.path.ends_with("Tool-setup.exe")),
+        "SCAN_M35_RULES: DLL guard excludes installed program"
+    );
+}
+
 fn m35_clusters() {
+    m13_cluster_exclusions();
+    m13_installer_patterns();
     let fx = Fixture::create();
     let now = SystemTime::now();
     let old = now - Duration::from_secs(40 * 86400);

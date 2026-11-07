@@ -37,4 +37,6 @@ items or at least 1 GiB per day. Rates still use the exact elapsed interval.
 
 `scan_full` can additionally report leak clusters, junction references and declaration file locations. It never parses declaration contents or follows a reparse point. Cluster membership and names are descriptive; use checks, valuable-file decisions and actual cleaning belong to the service/executor. `.water-quarantine` and `.git` are never scan targets.
 
+Six-character random suffixes require an ASCII uppercase letter and a digit or lowercase letter. File clusters exclude UUID tails and JSONL files; all clusters exclude templates containing `backup` or `bak`. A directory is excluded from cluster searches when its own name or one of its four nearest ancestors is `sessions`, `subagents`, `conversations`, `chats`, or `transcripts` (ASCII case-insensitive). Streaming candidates and final cluster assembly share these checks, including extra hash-file siblings; ordinary targets still run normally.
+
 `space_overview` makes an independent read-only traversal of one directory, including quarantine storage, and reports its ten largest direct children by allocated bytes. Its result does not authorize cleaning. The real smoke example runs the ordinary scan, all three extras and the user-profile overview, emitting summaries and counts only.

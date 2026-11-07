@@ -70,9 +70,10 @@ pub fn name_template(name: &str, is_file: bool) -> Option<String> {
             found = Some((start, "<h>"));
         } else if tail.len() == 6
             && tail.iter().all(|c| c.is_ascii_alphanumeric())
-            && (tail.iter().any(|c| c.is_ascii_digit())
-                || (tail.iter().any(|c| c.is_ascii_uppercase())
-                    && tail.iter().any(|c| c.is_ascii_lowercase())))
+            && tail.iter().any(|c| c.is_ascii_uppercase())
+            && tail
+                .iter()
+                .any(|c| c.is_ascii_digit() || c.is_ascii_lowercase())
         {
             found = Some((start, "<r6>"));
         }

@@ -1,0 +1,49 @@
+{"binary":"C:\\Users\\37310\\.rustup\\toolchains\\1.95.0-x86_64-pc-windows-msvc\\bin\\cargo.exe","args":["test","--offline","--locked","--manifest-path","packages/junk-scan/Cargo.toml","--test","scan_v1","--","--test-threads=1"],"exitCode":101,"error":null}
+--- stdout ---
+
+running 5 tests
+test scan_overlap_and_guards ... ok
+test scan_pattern_marker_discovery ... FAILED
+test scan_plan_contract ... FAILED
+test scan_reparse_budget_cancel ... ok
+test scan_snapshot_growth_keys ... ok
+
+failures:
+
+---- scan_pattern_marker_discovery stdout ----
+
+thread 'scan_pattern_marker_discovery' (26340) panicked at tests\scan_v1.rs:2734:9:
+SCAN_M35_CLUSTERS: M13 excluded entry never a leak member: F:\new\smaltalk\water\.worktrees\w10-m13\.local\w2-b-fixtures\fx-25692-1794023395458305500\loc\res\icon_type_color0.png
+note: run with `RUST_BACKTRACE=1` environment variable to display a backtrace
+
+---- scan_plan_contract stdout ----
+
+thread 'scan_plan_contract' (25208) panicked at tests\scan_v1.rs:2275:13:
+assertion `left == right` failed: SCAN_M35_TEMPLATE: M13 ordinary suffix verify-color0
+  left: Some("verify-<r6>")
+ right: None
+
+
+failures:
+    scan_pattern_marker_discovery
+    scan_plan_contract
+
+test result: FAILED. 3 passed; 2 failed; 0 ignored; 0 measured; 0 filtered out; finished in 2.48s
+
+
+--- stderr ---
+   Compiling proc-macro2 v1.0.107
+   Compiling quote v1.0.47
+   Compiling unicode-ident v1.0.27
+   Compiling serde_core v1.0.229
+   Compiling zmij v1.0.23
+   Compiling syn v3.0.9
+   Compiling serde v1.0.229
+   Compiling serde_json v1.0.151
+   Compiling serde_derive v1.0.229
+   Compiling itoa v1.0.18
+   Compiling memchr v2.8.3
+   Compiling water-junk-scan v0.1.0 (F:\new\smaltalk\water\.worktrees\w10-m13\packages\junk-scan)
+    Finished `test` profile [unoptimized + debuginfo] target(s) in 1m 14s
+     Running tests\scan_v1.rs (.local\w2-target\junk-scan\debug\deps\scan_v1-44131edddc8e8920.exe)
+error: test failed, to rerun pass `--test scan_v1`
