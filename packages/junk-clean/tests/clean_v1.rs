@@ -262,6 +262,43 @@ fn reject(value: Value) {
 
 #[test]
 fn clean_plan_contract() {
+    let empty = parse(plan_value(vec![]));
+    let clean = run(&empty);
+    assert_eq!(
+        clean.journal_error, None,
+        "CLEAN_W12_JOURNAL: clean default"
+    );
+    assert!(
+        !serde_json::from_str::<Value>(&report_to_json(&clean))
+            .expect("CLEAN_W12_JOURNAL: clean JSON")
+            .as_object()
+            .expect("CLEAN_W12_JOURNAL: clean object")
+            .contains_key("journal_error"),
+        "CLEAN_W12_JOURNAL: absent clean error must not serialize"
+    );
+    let quarantine = quarantine(
+        &empty,
+        "empty",
+        &QuarantineTarget { base: None },
+        &NoGuard,
+        &mut Vec::new(),
+        &StopFlag::default(),
+        &Observer::new(),
+        SystemTime::now(),
+    )
+    .expect("CLEAN_W12_JOURNAL: empty quarantine");
+    assert_eq!(
+        quarantine.journal_error, None,
+        "CLEAN_W12_JOURNAL: move default"
+    );
+    assert!(
+        !serde_json::from_str::<Value>(&quarantine_report_to_json(&quarantine))
+            .expect("CLEAN_W12_JOURNAL: quarantine JSON")
+            .as_object()
+            .expect("CLEAN_W12_JOURNAL: quarantine object")
+            .contains_key("journal_error"),
+        "CLEAN_W12_JOURNAL: absent quarantine error must not serialize"
+    );
     // CLEAN_W11_NESTED: exercise both public execution entries, including Rust callers
     // constructing/editing public fields rather than relying on JSON validation.
     let overlap = QFixture::new("w11-overlap");
@@ -647,6 +684,43 @@ struct DiskObserver {
     stop: StopFlag,
     callbacks: Mutex<usize>,
 }
+
+// A transient failure on one complete line: continuing afterwards would succeed,
+// so the assertions detect both a missing report and an unsafe later action.
+struct FailLineJournal {
+    fail_at: usize,
+    flush_fails: bool,
+    writes: usize,
+    flushes: usize,
+}
+impl FailLineJournal {
+    fn new(fail_at: usize, flush_fails: bool) -> Self {
+        Self {
+            fail_at,
+            flush_fails,
+            writes: 0,
+            flushes: 0,
+        }
+    }
+}
+impl Write for FailLineJournal {
+    fn write(&mut self, bytes: &[u8]) -> io::Result<usize> {
+        self.writes += 1;
+        if !self.flush_fails && self.writes == self.fail_at {
+            Err(io::Error::other("injected line write failure"))
+        } else {
+            Ok(bytes.len())
+        }
+    }
+    fn flush(&mut self) -> io::Result<()> {
+        self.flushes += 1;
+        if self.flush_fails && self.flushes == self.fail_at {
+            Err(io::Error::other("injected line flush failure"))
+        } else {
+            Ok(())
+        }
+    }
+}
 impl CleanObserver for DiskObserver {
     fn on_item(&self, done: usize, total: usize, _: u64, id: &str) {
         // Read the actual journal file before completing the observer callback.
@@ -745,10 +819,17 @@ fn clean_partial_stop_journal() {
             &observer,
             SystemTime::now(),
         )
-        .unwrap_err();
-        assert_eq!(error, CleanError::Journal);
-        assert!(observer.0.lock().unwrap().is_empty());
-        assert_eq!(fs::read(&next).unwrap(), b"next-item");
+        .expect_err("CLEAN_W12_JOURNAL_FIRST: execute must reject first intent");
+        assert_eq!(error, CleanError::Journal, "CLEAN_W12_JOURNAL_FIRST: error");
+        assert!(
+            observer.0.lock().unwrap().is_empty(),
+            "CLEAN_W12_JOURNAL_FIRST: callback before intent"
+        );
+        assert_eq!(
+            fs::read(&next).ok().as_deref(),
+            Some(b"next-item".as_slice()),
+            "CLEAN_W12_JOURNAL_FIRST: source changed"
+        );
     }
     // An exclusively locked single file reports failed, with zero freed bytes.
     let lock = OpenOptions::new()
@@ -790,7 +871,7 @@ fn clean_partial_stop_journal() {
     assert_eq!(report.status, RunStatus::Stopped);
     assert!(next.exists());
 
-    // A result flush failure aborts the whole run, even though the first deletion occurred.
+    // A result flush failure preserves the deletion report and stops later items.
     struct ResultFailure {
         flushes: usize,
     }
@@ -813,7 +894,7 @@ fn clean_partial_stop_journal() {
         item(&root, &next, "unreached"),
     ]));
     let observer = Observer::new();
-    let err = execute(
+    let report = execute(
         &result_plan,
         &NoGuard,
         &mut ResultFailure { flushes: 0 },
@@ -821,10 +902,283 @@ fn clean_partial_stop_journal() {
         &observer,
         SystemTime::now(),
     )
-    .unwrap_err();
-    assert_eq!(err, CleanError::Journal);
-    assert!(!before_result.exists() && next.exists());
-    assert!(observer.0.lock().unwrap().is_empty());
+    .expect("CLEAN_W12_JOURNAL: result failure lost deletion report");
+    assert_eq!(
+        report.status,
+        RunStatus::Stopped,
+        "CLEAN_W12_JOURNAL: result status"
+    );
+    assert_eq!(
+        report.journal_error.as_deref(),
+        Some("journal write failed"),
+        "CLEAN_W12_JOURNAL: result error"
+    );
+    assert_eq!(
+        report.items.len(),
+        2,
+        "CLEAN_W12_JOURNAL: result item count"
+    );
+    assert_eq!(
+        report.items[0].status,
+        ItemStatus::Deleted,
+        "CLEAN_W12_JOURNAL: deletion lost"
+    );
+    assert_eq!(
+        report.items[0].bytes_freed, "15",
+        "CLEAN_W12_JOURNAL: deleted bytes"
+    );
+    assert_eq!(
+        report.items[1].skip_reason,
+        Some(SkipReason::JournalFailed),
+        "CLEAN_W12_JOURNAL: later reason"
+    );
+    assert_eq!(report.freed_bytes, "15", "CLEAN_W12_JOURNAL: total bytes");
+    assert!(
+        !before_result.exists() && next.exists(),
+        "CLEAN_W12_JOURNAL: later source changed"
+    );
+    assert_eq!(
+        *observer.0.lock().unwrap(),
+        vec![
+            (1, 2, 15, "result-failure".into()),
+            (2, 2, 15, "unreached".into())
+        ],
+        "CLEAN_W12_JOURNAL: report progress"
+    );
+
+    for flush_fails in [false, true] {
+        for (count, fail_at) in [(3, 2), (3, 3), (3, 4), (3, 5), (3, 6), (1, 2)] {
+            let f = Fixture::new();
+            let root = f.dir("root");
+            let paths: Vec<_> = (0..count)
+                .map(|i| f.file(&format!("root/{i}"), b"abc"))
+                .collect();
+            let plan = parse(plan_value(
+                paths
+                    .iter()
+                    .enumerate()
+                    .map(|(i, p)| item(&root, p, &i.to_string()))
+                    .collect(),
+            ));
+            let mut journal = FailLineJournal::new(fail_at, flush_fails);
+            let observer = Observer::new();
+            let report = execute(
+                &plan,
+                &NoGuard,
+                &mut journal,
+                &StopFlag::default(),
+                &observer,
+                SystemTime::now() + Duration::from_secs(2),
+            )
+            .expect("CLEAN_W12_JOURNAL: execute lost completed actions");
+            let deleted = fail_at / 2;
+            assert_eq!(
+                report.status,
+                RunStatus::Stopped,
+                "CLEAN_W12_JOURNAL: stopped"
+            );
+            assert_eq!(
+                report.journal_error.as_deref(),
+                Some("journal write failed"),
+                "CLEAN_W12_JOURNAL: error text"
+            );
+            assert_eq!(report.items.len(), count, "CLEAN_W12_JOURNAL: all outcomes");
+            assert_eq!(
+                report.freed_bytes,
+                (deleted * 3).to_string(),
+                "CLEAN_W12_JOURNAL: actual total"
+            );
+            assert_eq!(
+                journal.writes, fail_at,
+                "CLEAN_W12_JOURNAL: journal retried after failure"
+            );
+            assert_eq!(report.volumes.len(), 1, "CLEAN_W12_JOURNAL: acted volume");
+            assert_eq!(
+                report.volumes[0].root,
+                s(&root)[..3].to_ascii_uppercase(),
+                "CLEAN_W12_JOURNAL: volume root"
+            );
+            assert!(
+                report.volumes[0].free_before.parse::<u64>().is_ok()
+                    && report.volumes[0].free_after.parse::<u64>().is_ok(),
+                "CLEAN_W12_JOURNAL: volume measurements"
+            );
+            for (i, (path, result)) in paths.iter().zip(&report.items).enumerate() {
+                assert_eq!(
+                    result.item_id,
+                    i.to_string(),
+                    "CLEAN_W12_JOURNAL: item order"
+                );
+                assert_eq!(
+                    result.status,
+                    if i < deleted {
+                        ItemStatus::Deleted
+                    } else {
+                        ItemStatus::Skipped
+                    },
+                    "CLEAN_W12_JOURNAL: item status"
+                );
+                assert_eq!(
+                    result.skip_reason,
+                    if i < deleted {
+                        None
+                    } else {
+                        Some(SkipReason::JournalFailed)
+                    },
+                    "CLEAN_W12_JOURNAL: item reason"
+                );
+                assert_eq!(
+                    result.bytes_freed,
+                    if i < deleted { "3" } else { "0" },
+                    "CLEAN_W12_JOURNAL: item bytes"
+                );
+                assert_eq!(
+                    path.exists(),
+                    i >= deleted,
+                    "CLEAN_W12_JOURNAL: source existence"
+                );
+                if i >= deleted {
+                    assert_eq!(
+                        fs::read(path).ok().as_deref(),
+                        Some(b"abc".as_slice()),
+                        "CLEAN_W12_JOURNAL: later bytes"
+                    );
+                    assert_eq!(
+                        identity_of(&s(path)).ok().as_ref(),
+                        Some(&plan.items[i].identity),
+                        "CLEAN_W12_JOURNAL: later identity"
+                    );
+                }
+            }
+            assert_eq!(
+                observer.0.lock().unwrap().len(),
+                count,
+                "CLEAN_W12_JOURNAL: progress count"
+            );
+        }
+    }
+
+    // Zero reclaimed bytes still count as an action: an empty directory or an
+    // externally hard-linked child can be removed before a journal failure.
+    for partial in [false, true] {
+        let f = Fixture::new();
+        let root = f.dir("root");
+        let source = f.dir("root/source");
+        let next = f.file("root/next", b"keep");
+        let mut held = None;
+        let outside = f.base.join("outside-link");
+        if partial {
+            let link = f.file("root/source/link", b"linked");
+            fs::hard_link(&link, &outside).unwrap();
+            let locked = f.file("root/source/locked", b"locked");
+            held = Some(
+                OpenOptions::new()
+                    .read(true)
+                    .share_mode(0)
+                    .open(&locked)
+                    .unwrap(),
+            );
+        }
+        let plan = parse(plan_value(vec![
+            item(&root, &source, "source"),
+            item(&root, &next, "next"),
+        ]));
+        let report = execute(
+            &plan,
+            &NoGuard,
+            &mut FailLineJournal::new(2, true),
+            &StopFlag::default(),
+            &Observer::new(),
+            SystemTime::now() + Duration::from_secs(2),
+        )
+        .expect("CLEAN_W12_JOURNAL: zero-byte action report lost");
+        assert_eq!(
+            report.status,
+            RunStatus::Stopped,
+            "CLEAN_W12_JOURNAL: zero-byte stopped"
+        );
+        assert_eq!(
+            report.journal_error.as_deref(),
+            Some("journal write failed"),
+            "CLEAN_W12_JOURNAL: zero-byte error"
+        );
+        assert_eq!(
+            report.freed_bytes, "0",
+            "CLEAN_W12_JOURNAL: zero-byte total"
+        );
+        assert_eq!(
+            report.items[0].status,
+            if partial {
+                ItemStatus::Partial
+            } else {
+                ItemStatus::Deleted
+            },
+            "CLEAN_W12_JOURNAL: zero-byte actual result"
+        );
+        assert_eq!(
+            report.items[1].skip_reason,
+            Some(SkipReason::JournalFailed),
+            "CLEAN_W12_JOURNAL: zero-byte later reason"
+        );
+        assert_eq!(
+            fs::read(&next).ok().as_deref(),
+            Some(b"keep".as_slice()),
+            "CLEAN_W12_JOURNAL: zero-byte later source"
+        );
+        if partial {
+            assert_eq!(
+                fs::read(&outside).ok().as_deref(),
+                Some(b"linked".as_slice()),
+                "CLEAN_W12_JOURNAL: outside hard link changed"
+            );
+            assert!(
+                !source.join("link").exists() && source.join("locked").exists(),
+                "CLEAN_W12_JOURNAL: partial residual"
+            );
+            assert!(
+                report.items[0].failed_entries >= 1,
+                "CLEAN_W12_JOURNAL: partial failures lost"
+            );
+        } else {
+            assert!(
+                !source.exists(),
+                "CLEAN_W12_JOURNAL: empty directory not deleted"
+            );
+        }
+        drop(held);
+    }
+    // A logged skip is not an action. A later failed intent must still return Err.
+    let untouched = Fixture::new();
+    let untouched_root = untouched.dir("root");
+    let a = untouched.file("root/a", b"keep");
+    let b = untouched.file("root/b", b"keep");
+    let mut plan = parse(plan_value(vec![
+        item(&untouched_root, &a, "a"),
+        item(&untouched_root, &b, "b"),
+    ]));
+    plan.items[0].min_age_hours = 1;
+    let result = execute(
+        &plan,
+        &NoGuard,
+        &mut FailLineJournal::new(3, false),
+        &StopFlag::default(),
+        &Observer::new(),
+        SystemTime::now() + Duration::from_secs(2),
+    );
+    assert!(
+        matches!(result, Err(CleanError::Journal)),
+        "CLEAN_W12_JOURNAL_FIRST: a skipped item is not an action: {result:?}"
+    );
+    assert_eq!(
+        fs::read(&a).ok().as_deref(),
+        Some(b"keep".as_slice()),
+        "CLEAN_W12_JOURNAL_FIRST: skipped source changed"
+    );
+    assert_eq!(
+        fs::read(&b).ok().as_deref(),
+        Some(b"keep".as_slice()),
+        "CLEAN_W12_JOURNAL_FIRST: unlogged source changed"
+    );
 
     // Stop after an actual child deletion, using a separate bounded observer of this fixture.
     let many = fixture.dir("root/many");
@@ -1944,6 +2298,279 @@ fn quarantine_unlock_pair() {
 
 #[test]
 fn quarantine_move_contract() {
+    for flush_fails in [false, true] {
+        for (count, fail_at) in [(3, 1), (3, 2), (3, 3), (3, 4), (3, 5), (3, 6), (1, 2)] {
+            let f = QFixture::new("w12-journal");
+            let root = f.dir("root");
+            let paths: Vec<_> = (0..count)
+                .map(|i| f.file(&format!("root/{i}"), b"abc"))
+                .collect();
+            let plan = parse(plan_value(
+                paths
+                    .iter()
+                    .enumerate()
+                    .map(|(i, p)| item(&root, p, &i.to_string()))
+                    .collect(),
+            ));
+            let mut journal = FailLineJournal::new(fail_at, flush_fails);
+            let observer = Observer::new();
+            let result = quarantine(
+                &plan,
+                "w12",
+                &QuarantineTarget {
+                    base: Some(f.root()),
+                },
+                &NoGuard,
+                &mut journal,
+                &StopFlag::default(),
+                &observer,
+                SystemTime::now() + Duration::from_secs(2),
+            );
+            if fail_at == 1 {
+                assert!(
+                    matches!(result, Err(CleanError::Journal)),
+                    "CLEAN_W12_JOURNAL_FIRST: quarantine accepted first failure: {result:?}"
+                );
+                assert!(
+                    !Path::new(&f.root()).exists(),
+                    "CLEAN_W12_JOURNAL_FIRST: quarantine left skeleton"
+                );
+                assert!(
+                    observer.0.lock().unwrap().is_empty(),
+                    "CLEAN_W12_JOURNAL_FIRST: quarantine callback"
+                );
+                for (i, path) in paths.iter().enumerate() {
+                    assert_eq!(
+                        fs::read(path).ok().as_deref(),
+                        Some(b"abc".as_slice()),
+                        "CLEAN_W12_JOURNAL_FIRST: quarantine changed bytes"
+                    );
+                    assert_eq!(
+                        identity_of(&s(path)).ok().as_ref(),
+                        Some(&plan.items[i].identity),
+                        "CLEAN_W12_JOURNAL_FIRST: quarantine changed identity"
+                    );
+                }
+                continue;
+            }
+            let report = result.expect("CLEAN_W12_JOURNAL: quarantine lost completed actions");
+            let moved = fail_at / 2;
+            assert_eq!(
+                report.status,
+                RunStatus::Stopped,
+                "CLEAN_W12_JOURNAL: quarantine stopped"
+            );
+            assert_eq!(
+                report.journal_error.as_deref(),
+                Some("journal write failed"),
+                "CLEAN_W12_JOURNAL: quarantine error text"
+            );
+            assert_eq!(
+                report.items.len(),
+                count,
+                "CLEAN_W12_JOURNAL: quarantine all outcomes"
+            );
+            assert_eq!(
+                report.moved_bytes,
+                (moved * 3).to_string(),
+                "CLEAN_W12_JOURNAL: actual moved total"
+            );
+            assert_eq!(
+                journal.writes, fail_at,
+                "CLEAN_W12_JOURNAL: quarantine journal retried after failure"
+            );
+            for (i, (path, result)) in paths.iter().zip(&report.items).enumerate() {
+                let destination = format!("{}\\w12\\{}", f.root(), &s(path)[3..]);
+                assert_eq!(
+                    result.item_id,
+                    i.to_string(),
+                    "CLEAN_W12_JOURNAL: quarantine item order"
+                );
+                assert_eq!(
+                    result.status,
+                    if i < moved {
+                        MoveStatus::Moved
+                    } else {
+                        MoveStatus::Skipped
+                    },
+                    "CLEAN_W12_JOURNAL: quarantine item status"
+                );
+                assert_eq!(
+                    result.skip_reason,
+                    if i < moved {
+                        None
+                    } else {
+                        Some(SkipReason::JournalFailed)
+                    },
+                    "CLEAN_W12_JOURNAL: quarantine item reason"
+                );
+                assert_eq!(
+                    result.move_error, None,
+                    "CLEAN_W12_JOURNAL: quarantine move error"
+                );
+                assert_eq!(
+                    result.error_code, None,
+                    "CLEAN_W12_JOURNAL: quarantine native error"
+                );
+                assert_eq!(
+                    path.exists(),
+                    i >= moved,
+                    "CLEAN_W12_JOURNAL: quarantine source existence"
+                );
+                if i < moved {
+                    assert_eq!(result.bytes, "3", "CLEAN_W12_JOURNAL: moved item bytes");
+                    assert_eq!(
+                        result.destination.as_deref(),
+                        Some(destination.as_str()),
+                        "CLEAN_W12_JOURNAL: destination retained"
+                    );
+                    assert_eq!(
+                        result.identity.as_ref(),
+                        Some(&plan.items[i].identity),
+                        "CLEAN_W12_JOURNAL: moved identity retained"
+                    );
+                    assert_eq!(
+                        fs::read(&destination).ok().as_deref(),
+                        Some(b"abc".as_slice()),
+                        "CLEAN_W12_JOURNAL: destination bytes"
+                    );
+                    assert_eq!(
+                        identity_of(&destination).ok().as_ref(),
+                        Some(&plan.items[i].identity),
+                        "CLEAN_W12_JOURNAL: destination identity"
+                    );
+                } else {
+                    assert_eq!(
+                        result.destination, None,
+                        "CLEAN_W12_JOURNAL: skipped destination"
+                    );
+                    assert_eq!(
+                        result.identity, None,
+                        "CLEAN_W12_JOURNAL: skipped move identity"
+                    );
+                    assert!(
+                        !Path::new(&destination).exists(),
+                        "CLEAN_W12_JOURNAL: later destination created"
+                    );
+                    assert_eq!(
+                        fs::read(path).ok().as_deref(),
+                        Some(b"abc".as_slice()),
+                        "CLEAN_W12_JOURNAL: quarantine later bytes"
+                    );
+                    assert_eq!(
+                        identity_of(&s(path)).ok().as_ref(),
+                        Some(&plan.items[i].identity),
+                        "CLEAN_W12_JOURNAL: quarantine later identity"
+                    );
+                }
+            }
+            assert_eq!(
+                observer.0.lock().unwrap().len(),
+                count,
+                "CLEAN_W12_JOURNAL: quarantine progress count"
+            );
+            qroundtrip(
+                &report,
+                quarantine_report_to_json(&report),
+                "CLEAN_W12_JOURNAL",
+            );
+        }
+    }
+    for fail_at in [2, 3] {
+        let f = QFixture::new("w12-empty-move");
+        let source = f.dir("root/empty");
+        let next = f.file("root/next", b"keep");
+        let plan = parse(plan_value(vec![
+            item(&f.base, &source, "empty"),
+            item(&f.base, &next, "next"),
+        ]));
+        let report = quarantine(
+            &plan,
+            "empty",
+            &QuarantineTarget {
+                base: Some(f.root()),
+            },
+            &NoGuard,
+            &mut FailLineJournal::new(fail_at, true),
+            &StopFlag::default(),
+            &Observer::new(),
+            SystemTime::now() + Duration::from_secs(2),
+        )
+        .expect("CLEAN_W12_JOURNAL: zero-byte move report lost");
+        assert_eq!(
+            report.status,
+            RunStatus::Stopped,
+            "CLEAN_W12_JOURNAL: zero-byte move stopped"
+        );
+        assert_eq!(
+            report.journal_error.as_deref(),
+            Some("journal write failed"),
+            "CLEAN_W12_JOURNAL: zero-byte move error"
+        );
+        assert_eq!(
+            report.moved_bytes, "0",
+            "CLEAN_W12_JOURNAL: zero-byte moved total"
+        );
+        assert_eq!(
+            report.items[0].status,
+            MoveStatus::Moved,
+            "CLEAN_W12_JOURNAL: zero-byte move result"
+        );
+        assert_eq!(
+            report.items[0].identity.as_ref(),
+            Some(&plan.items[0].identity),
+            "CLEAN_W12_JOURNAL: zero-byte move identity"
+        );
+        assert!(
+            !source.exists(),
+            "CLEAN_W12_JOURNAL: zero-byte source remains"
+        );
+        assert_eq!(
+            report.items[1].skip_reason,
+            Some(SkipReason::JournalFailed),
+            "CLEAN_W12_JOURNAL: zero-byte move later reason"
+        );
+        assert_eq!(
+            fs::read(&next).ok().as_deref(),
+            Some(b"keep".as_slice()),
+            "CLEAN_W12_JOURNAL: zero-byte move later source"
+        );
+    }
+    let f = QFixture::new("w12-no-move");
+    let source = f.file("root/locked", b"keep");
+    let plan = parse(plan_value(vec![item(&f.base, &source, "locked")]));
+    let held = OpenOptions::new()
+        .read(true)
+        .share_mode(3)
+        .open(&source)
+        .unwrap();
+    let result = quarantine(
+        &plan,
+        "locked",
+        &QuarantineTarget {
+            base: Some(f.root()),
+        },
+        &NoGuard,
+        &mut FailLineJournal::new(2, true),
+        &StopFlag::default(),
+        &Observer::new(),
+        SystemTime::now() + Duration::from_secs(2),
+    );
+    assert!(
+        matches!(result, Err(CleanError::Journal)),
+        "CLEAN_W12_JOURNAL_FIRST: failed move is not an action: {result:?}"
+    );
+    assert_eq!(
+        fs::read(&source).ok().as_deref(),
+        Some(b"keep".as_slice()),
+        "CLEAN_W12_JOURNAL_FIRST: failed move changed source"
+    );
+    assert!(
+        !Path::new(&f.root()).exists(),
+        "CLEAN_W12_JOURNAL_FIRST: failed move left skeleton"
+    );
+    drop(held);
+
     let renamed = QFixture::new("w11-move");
     for (index, name) in [".flick-quarantine", ".fLiCk-QuArAnTiNe"]
         .iter()

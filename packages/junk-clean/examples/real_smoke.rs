@@ -6,7 +6,12 @@ use water_junk_clean::list_quarantines;
 fn main() -> Result<(), Box<dyn std::error::Error>> {
     // Discover drive metadata only, without new native functions in the executor.
     // The subprocess output stays private; the smoke result uses anonymous indices.
-    let output = Command::new("powershell.exe")
+    let system_root = std::env::var_os("SystemRoot").unwrap_or_else(|| "C:\\Windows".into());
+    let powershell = format!(
+        "{}\\System32\\WindowsPowerShell\\v1.0\\powershell.exe",
+        system_root.to_string_lossy().trim_end_matches(['\\', '/'])
+    );
+    let output = Command::new(powershell)
         .args([
             "-NoProfile", "-NonInteractive", "-Command",
             "$ErrorActionPreference='Stop'; [System.IO.DriveInfo]::GetDrives() | Where-Object { $_.DriveType -eq [System.IO.DriveType]::Fixed } | ForEach-Object { $_.Name }",

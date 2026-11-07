@@ -793,7 +793,7 @@ mod windows {
         journal: &mut dyn std::io::Write,
         stop: &StopFlag,
         now: SystemTime,
-    ) -> Result<MoveReport, CleanError> {
+    ) -> Result<(MoveReport, bool), CleanError> {
         let mut result = MoveReport {
             item_id: item.item_id.clone(),
             status: MoveStatus::Failed,
@@ -816,19 +816,19 @@ mod windows {
                     ChainError::Other(c) => Some(c),
                     _ => None,
                 };
-                return Ok(result);
+                return Ok((result, false));
             }
         };
         match identity_from(qroot_chain.last().unwrap()) {
             Some(actual) if actual.volume_serial == item.identity.volume_serial => {}
             Some(_) => {
                 result.move_error = Some(MoveError::NotSameVolume);
-                return Ok(result);
+                return Ok((result, false));
             }
             None => {
                 result.move_error = Some(MoveError::QuarantineUnavailable);
                 result.error_code = Some(last_error());
-                return Ok(result);
+                return Ok((result, false));
             }
         }
         let dest_chain =
@@ -840,7 +840,7 @@ mod windows {
                         ChainError::Other(c) => Some(c),
                         _ => None,
                     };
-                    return Ok(result);
+                    return Ok((result, false));
                 }
             };
         let source_parent = item.path.rsplit_once('\\').unwrap().0;
@@ -860,7 +860,7 @@ mod windows {
                 } else {
                     SkipReason::Changed
                 });
-                return Ok(result);
+                return Ok((result, false));
             }
         };
         crate::journal_line(
@@ -927,15 +927,16 @@ mod windows {
                 }
             }
         }
-        crate::journal_line(
+        let journal_failed = crate::journal_line(
             journal,
             serde_json::json!({
                 "journal_version":"water.quarantine-journal.v1", "event": if result.status == MoveStatus::Moved { "moved" } else { "failed" },
                 "quarantine_id": id, "item_id":item.item_id, "path":item.path, "move_error":result.move_error,
                 "at":time::format(SystemTime::now())?
             }),
-        )?;
-        Ok(result)
+        ).is_err();
+        // Preserve the actual move even when its terminal journal line cannot be saved.
+        Ok((result, journal_failed))
     }
 
     // Only empty skeleton directories are removed, never their contents. Stop at the qroot.

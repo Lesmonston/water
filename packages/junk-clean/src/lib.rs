@@ -207,14 +207,33 @@ pub fn execute(
     };
     let mut freed = 0u64;
     let mut interrupted = false;
+    let mut acted = false;
     for (index, item) in plan.items.iter().enumerate() {
+        if report.journal_error.is_some() {
+            report
+                .items
+                .push(ItemReport::skipped(item, SkipReason::JournalFailed));
+            observer.on_item(index + 1, plan.items.len(), freed, &item.item_id);
+            continue;
+        }
         let inspected = if stop.is_stopped() {
             Err(SkipReason::Cancelled)
         } else {
             preflight(plan, item, guard, now, &guard_ids, &protected_ids)
         };
         // Skips also receive an intent/result pair, making every item auditable.
-        intent(plan, item, journal)?;
+        if let Err(error) = intent(plan, item, journal) {
+            if !acted {
+                return Err(error);
+            }
+            interrupted = true;
+            report.journal_error = Some(error.to_string());
+            report
+                .items
+                .push(ItemReport::skipped(item, SkipReason::JournalFailed));
+            observer.on_item(index + 1, plan.items.len(), freed, &item.item_id);
+            continue;
+        }
         let (result, cut_short) = match inspected {
             Err(reason) => (ItemReport::skipped(item, reason), false),
             Ok(before) => {
@@ -232,8 +251,10 @@ pub fn execute(
                 }
             }
         };
-        // Only a cancelled or stop-interrupted item makes the whole run "stopped".
+        // Cancellation, an interrupted deletion, or a journal failure stops the run.
         interrupted |= cut_short || result.skip_reason == Some(SkipReason::Cancelled);
+        // Removing an empty directory or a hard link is an action even if it frees zero bytes.
+        acted |= matches!(result.status, ItemStatus::Deleted | ItemStatus::Partial);
         freed = freed
             .checked_add(
                 result
@@ -242,16 +263,32 @@ pub fn execute(
                     .map_err(|_| CleanError::Native)?,
             )
             .ok_or(CleanError::Overflow)?;
-        journal_line(
+        let journal_result = journal_line(
             journal,
             serde_json::json!({
                 "event": "result", "item_id": result.item_id, "status": result.status,
                 "skip_reason": result.skip_reason, "bytes_freed": result.bytes_freed,
                 "at": time::format(SystemTime::now())?
             }),
-        )?;
+        );
         report.items.push(result);
+        if let Err(error) = journal_result {
+            if !acted {
+                return Err(error);
+            }
+            interrupted = true;
+            report.journal_error = Some(error.to_string());
+        }
         observer.on_item(index + 1, plan.items.len(), freed, &item.item_id);
+    }
+    if report.journal_error.is_some() {
+        // On an interrupted journal, only retain volumes on which an action actually ran.
+        report.volumes.retain(|volume| {
+            plan.items.iter().zip(&report.items).any(|(item, result)| {
+                matches!(result.status, ItemStatus::Deleted | ItemStatus::Partial)
+                    && path::volume(&item.root) == volume.root
+            })
+        });
     }
     for volume in &mut report.volumes {
         volume.free_after = volume_free_bytes(&volume.root)?.to_string();
