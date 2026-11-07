@@ -697,7 +697,7 @@ fn m35_resolve() {
 fn m35_seeds() {
     let rules = RuleSet::embedded();
     assert_eq!(
-        rules.data_version, "2026-11-02.2",
+        rules.data_version, "2026-11-07.1",
         "RULES_M35_VERSION: embedded version"
     );
     // Independent frozen rows: ID | title | category | level | type | hours |
@@ -720,7 +720,7 @@ game-logs|游戏日志|custom|recommended|dir|24|0|runs|1||marker:dir_name:Logs:
 steam-logs|Steam 日志|custom|recommended|dir|24|0|runs|1||marker:dir_name:logs:4
 partial-downloads|已下载完的分段文件|custom|recommended|any|24|0|none|||marker:file_name:*.part,*.crdownload,*.temp:8;marker:dir_name_pattern:*.parts:8
 unfinished-downloads|没下载完的文件|custom|advisory|any|0|0|none|||marker:file_name:*.part,*.crdownload,*.temp:8;marker:dir_name_pattern:*.parts:8
-installer-files|安装包|custom|confirm|file|168|0|none|||marker:file_name:*.msi,*.msix,*.msixbundle,*.appx,*setup*.zip,*setup*.rar,*setup*.7z:3;marker:file_name:*#*.exe,*setup*.exe,*install*.exe:3
+installer-files|安装包|custom|confirm|file|168|0|none|||marker:file_name:*.msi,*.msix,*.msixbundle,*.appx,*setup*.zip,*setup*.rar,*setup*.7z:3;marker:file_name:*setup*.exe,*installer*.exe,*#.#*.exe:3
 audition-peak-files|Audition 波形缓存|custom|recommended|file|24|0|none|||marker:file_name:*.pkf:12
 audition-conformed|Audition 转换副本|custom|advisory|dir|0|0|none|||marker:dir_name:Conformed Files:12
 media-render-caches|视频软件的缓存与代理|custom|advisory|dir|0|0|none|||marker:dir_name:CacheClip,ProxyMedia,OptimizedMedia:8
@@ -2391,11 +2391,15 @@ fn rules_resolve_plan() {
     assert_eq!(expected, 323);
     assert_eq!(plan.plan_version, "water.scan-plan.v1");
     assert_eq!(
-        plan.rules_data_version, "2026-11-02.2",
+        plan.rules_data_version, "2026-11-07.1",
+        "RULES_M35_VERSION: plan data version"
+    );
+    assert_eq!(
+        plan.rules_data_version, "2026-11-07.1",
         "RULES_M3_WORDING: plan data version"
     );
     assert_eq!(
-        plan.rules_data_version, "2026-11-02.2",
+        plan.rules_data_version, "2026-11-07.1",
         "RULES_M3C_VERSION: plan data version"
     );
     assert_eq!(plan.created_at, CREATED_AT);
@@ -2860,10 +2864,44 @@ fn rules_resolve_plan() {
 
 #[test]
 fn rules_seed_coverage() {
+    let installer_rules = RuleSet::embedded();
+    let installer = installer_rules
+        .rule("installer-files")
+        .expect("RULES_M35_SEEDS: installer rule exists");
+    assert_eq!(installer.locate.len(), 2, "RULES_M35_SEEDS: two locators");
+    let Locator::Marker {
+        marker: Marker::FileName { patterns },
+        max_depth,
+        conditions,
+        fallback_for,
+    } = &installer.locate[1]
+    else {
+        panic!("RULES_M35_SEEDS: installer file-name locator");
+    };
+    assert_eq!(
+        patterns,
+        &["*setup*.exe", "*installer*.exe", "*#.#*.exe"],
+        "RULES_M35_SEEDS: exact installer patterns and order"
+    );
+    for rejected in ["*#*.exe", "*install*.exe"] {
+        assert!(
+            !patterns.iter().any(|pattern| pattern == rejected),
+            "RULES_M35_SEEDS: broad executable patterns excluded"
+        );
+    }
+    assert_eq!(*max_depth, 3, "RULES_M35_SEEDS: installer depth");
+    assert_eq!(
+        conditions,
+        &[Condition::ParentLacksFileMatching {
+            pattern: "*.dll".into()
+        }],
+        "RULES_M35_SEEDS: installer DLL guard"
+    );
+    assert!(fallback_for.is_none(), "RULES_M35_SEEDS: no fallback");
     m35_seeds();
     let rules = RuleSet::embedded();
     assert_eq!(
-        rules.data_version, "2026-11-02.2",
+        rules.data_version, "2026-11-07.1",
         "RULES_M3D_VERSION: embedded version"
     );
     let m3d_embedded: Value = serde_json::from_str(include_str!("../rules/windows.json"))
@@ -2901,7 +2939,7 @@ fn rules_seed_coverage() {
         );
     }
     assert_eq!(
-        rules.data_version, "2026-11-02.2",
+        rules.data_version, "2026-11-07.1",
         "RULES_M3C_VERSION: embedded version"
     );
     assert_eq!(
