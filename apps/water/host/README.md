@@ -1,8 +1,9 @@
 # Flick desktop host
 
 Windows desktop host for the verified `../ui` frontend. `run(service_backend)`
-wires 36 IPC commands: 35 thin adapters to `water_service::Service` through
-`ServiceBackend`, and the guarded `quarantine_reveal` adapter described below.
+wires 39 IPC commands: 37 thin adapters to `water_service::Service` through
+`ServiceBackend`, the guarded `quarantine_reveal` adapter described below, and
+the host-owned `app_info` response.
 `CLEAN_ENABLED` is true: cleanup uses the service's existing plan and confirmation
 flow.
 
@@ -54,7 +55,7 @@ individual synchronous backend call that itself fails to return.
 
 The single `main` window is 1240×820 (minimum 1040×720), centered, transparent,
 with Mica and the system title bar. Tauri applies Mica on supported Windows systems
-and leaves unsupported systems without that effect. JavaScript and the 36 IPC
+and leaves unsupported systems without that effect. JavaScript and the 39 IPC
 commands are enabled. Developer tools, drag-and-drop, external navigation, new
 windows, downloads and permission requests are disabled. Only the bundled root
 and index page can be navigated to. The sole frontend window permission is dragging.
@@ -73,6 +74,12 @@ optional groups, exclusions, conclusion version/mode and dedupe ID/version. It
 omits absent keys and empty exclusions, preserving legacy request bytes.
 The 17 additions follow IPC-M35 section 1 in both registries; `group_items`
 preserves explicit nulls for omitted row/search values.
+
+The three W12 commands follow those additions in both registries:
+`skip_unit_add` forwards exactly `conclusionVersion` and `unitId`,
+`diagnostics_get` forwards `{}`, and `app_info` returns the Flick name, host
+package version, `MIT OR Apache-2.0` license and project homepage without a
+service call. The bundle publisher is `Flick`; bundling remains disabled.
 
 `quarantine_reveal` privately calls `quarantine_locate` with a target ID and
 validates its returned path before opening anything. Only absolute disk paths
@@ -122,8 +129,8 @@ current frontendDist also embeds frontend tests, as acknowledged by HOST section
 Run only the assigned controller gate from the worktree root:
 
 ```powershell
-node F:/new/smaltalk/water/scripts/desktop-wave-check.mjs --task WATER-W11-N2 --mode check
-node F:/new/smaltalk/water/scripts/desktop-wave-check.mjs --task WATER-W11-N2 --mode test
+node F:/new/smaltalk/water/scripts/desktop-wave-check.mjs --task WATER-W12-P3 --mode check
+node F:/new/smaltalk/water/scripts/desktop-wave-check.mjs --task WATER-W12-P3 --mode test
 ```
 
 The unique `host_v1` target has five tests, with synthetic data only under this
@@ -151,7 +158,7 @@ open a window or picker and never scan real user locations.
 The native final gate has a ticket-wide one-window budget. Its 17 steps run a
 checkup, preview, confirmation, cleanup, quarantine and permanent purge through the UI. The seven
 categories are disabled and only a synthetic fixture under this worktree's
-`.local/w11-n2-native/` is selectable; protected locations are measured read-only.
+`.local/w12-p3-native/` is selectable; protected locations are measured read-only.
 It archives the assigned window screenshots and verifies fixture deletion and retained
 guard files, one scan, snapshot, plan and clean, the clean and purge journals, a private WebView profile
 and child process exit. Do not launch the binary or a picker manually. All registry packages
@@ -165,6 +172,6 @@ normal backend. It does not launch a second instance, inject startup failure,
 request a real system shutdown or close the window during active cleanup.
 Tests use a recording Opener, including an owned junction rejection fixture;
 neither tests nor the native gate click “打开文件夹” or launch Explorer.
-The baseline UI and service retain their Water names in this host-only native
-check. The fixture enters the baseline service's `.water-quarantine` before
+The baseline UI and service are unchanged in this host-only native check.
+The fixture enters the baseline service's `.flick-quarantine` before
 permanent purge. Exclusions and persistent skips are not exercised by this flow.

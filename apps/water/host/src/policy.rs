@@ -62,6 +62,7 @@ struct AssetProtocol {
 #[serde(deny_unknown_fields)]
 struct Bundle {
     active: bool,
+    publisher: String,
 }
 
 #[derive(Deserialize)]
@@ -89,6 +90,7 @@ pub fn validate_config(raw: &str) -> Result<(), ConfigError> {
         || config.app.security.asset_protocol.enable
         || config.app.security.capabilities != ["main"]
         || config.bundle.active
+        || config.bundle.publisher != "Flick"
         || !config.plugins.is_empty()
     {
         return Err(ConfigError);

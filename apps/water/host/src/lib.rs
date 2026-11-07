@@ -304,6 +304,9 @@ where
             commands::locations_set_session_cleanup,
             commands::manifest_trust,
             commands::cluster_mark_fixed,
+            commands::skip_unit_add,
+            commands::diagnostics_get,
+            commands::app_info,
         ])
         .build(tauri::generate_context!())
         .map_err(|_| StartupError::Failed)?;
