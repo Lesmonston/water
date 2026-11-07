@@ -402,7 +402,7 @@
       "branch": "worker/water-w12-p2",
       "baseCommit": "6fd29e342b76ff2ceecd74e66805300405ef1334",
       "snapshotRef": "refs/tags/water-w12-p2-base-20261107",
-      "status": "DISPATCHED",
+      "status": "VERIFIED",
       "modelAssignment": "user-arranged; report actual engine/model",
       "purpose": "skip_unit_add (group, template, folder kinds; settings v4; card menu and row skip keys), diagnostics_get, conclusion plan without nested double count, drawer and plan agree on unfinished items, trends state new, clean record kept on journal failure and quarantine error, refresh order",
       "report": "docs/dispatch/reports/WATER-W12-P2-REPORT.md",
@@ -498,10 +498,33 @@
           "ticket": "docs/dispatch/tickets/WATER-W12-P2-ADDENDUM-01-20261107.md",
           "issuedIn": "0f667157",
           "dispatchReportedAt": "2026-11-07T13:13:27Z",
+          "resumeFromCommit": "6fd29e342b76ff2ceecd74e66805300405ef1334",
+          "resumeNote": "no worker commit existed when the addendum was forwarded (22:13 JST); the first, 846ca073, is 22:23 and includes it",
           "dispatchEvidence": "user 2026-11-07: \"已发给 P2\"",
           "reason": "W12-P1 independent review: the service kept running quarantine batches after the executor returned a report with journal_error",
           "controllerMutationPlanned": "clean_start keeps running the remaining batches after journal_error"
         }
+      ],
+      "submittedHead": "67dd9f05fe738ad411a8f17b9e473211839a948c",
+      "implementationCommit": "89b79d4f359c7a11ae6f73a17879a88217d8a6ff",
+      "mergeCommit": "0b38128b0bbcedc9748011249df9dec6a6eabf36",
+      "workerSelfReport": "Codex GPT-6",
+      "controllerReview": {
+        "report": "docs/acceptance/wave12/controller/WATER-W12-REVIEW-20261107.md",
+        "evidence": "docs/acceptance/wave12/p2/",
+        "summary": "medium gate: audit 0 problems after the controller added the missing addendum resumeFromCommit (base 6fd29e34, no worker commit existed when the addendum went out); fresh tree lock, check, real and test finals; three ticket controls replayed and caught; controller mutations c1 (keep running quarantine batches after journal_error, addendum 01), c2 (folder skips case-sensitive) and c3 (diagnostics carry the data folder) all caught at their intended assertions; independent review found no high issue and one medium carried over; implementation commits 846ca073 and 89b79d4f (finals on the latter)"
+      },
+      "carryOverLater": [
+        "medium: a leak cluster skipped from its card keeps its clue while any member is not cleanable (too recent, or kept as newest for <h> templates), because the clue check counts only members that were cleanable and skipped; w12_skip_rows ages every member to 20 days, so no test sees it",
+        "a quarantine batch that returns Err(Journal) after earlier work becomes a failed group, not a journal stop: later batches still go to the executor, journal_note_zh stays null and diagnostics last_clean.journal_error is false (safe: the executor writes intent before acting)",
+        "\"nothing done yet\" is judged by moved bytes: if earlier batches moved only 0-byte items, a later Err(Journal) returns JOURNAL_MESSAGE and the clean record is not saved (the quarantine records still are)",
+        "a quarantine id is reserved in memory and written into the stored report for batches that never run (no folder, no save_moves)",
+        "journal_note_zh can read \"后面的 0 项没有清\" when the failure is on the last item; with W12-P1 the m35_clean_split journal fixture produces exactly this",
+        "quarantine failure notes carry English executor errors (journal write failed, filesystem operation failed) in the Chinese UI",
+        "when every batch is unrun or failed the view still writes a quarantined block with item_count 0; unrun batches do not advance the progress observer",
+        "skip_unit_add with no scan returns not_found rather than stale or invalid",
+        "template skips dedupe case-insensitively but match the template exactly (contract wording)",
+        "tests weaker than named: template and folder fixtures share one template and parent, so a unit skip that matched the whole group would pass; the journal-stop test injects a quarantine report with journal_error and nothing moved, which W12-P1 never produces; SERVICE_W12_DIAG runs only with last_clean null; the 4.2 drawer assertion passes if the row is absent"
       ]
     },
     {

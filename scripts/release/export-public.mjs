@@ -92,6 +92,8 @@ const ERRORS = [
   ['user-name', /37310/],
   ['mirasim', /mirasim/i],
   ['private-folder', /smaltalk|VaultSystem|git-central|[A-Za-z]:[\\/]+new[\\/]/i],
+  // The maintainer's other project folders; only names distinctive enough not to be ordinary words.
+  ['private-project', /denglou|登楼|zbbody|climbmao|grok2|audit-b57a|feishu-bot|wechtmini|podcut|pi-studio|heybox/i],
   ['identity', /Riku Toto|xiluotaka|usr_40dd3b2f/i],
   ['old-local-service', /127\.0\.0\.1:7890/],
   ['secret', /ghp_[A-Za-z0-9]{20,}|github_pat_[A-Za-z0-9_]{20,}|\bsk-[A-Za-z0-9]{20,}|AKIA[0-9A-Z]{16}|-----BEGIN [A-Z ]*PRIVATE KEY-----/],
@@ -103,7 +105,7 @@ const WARNINGS = [
   ['private-process', /docs\/(?:acceptance|dispatch|maintenance|STATUS|CONTROLLER)|CONTROLLER-HANDOFF|总控|派单|工单|收单|交接/],
   ['ticket-id', /WATER-(?:W|M|N|P)\d+[-A-Z0-9]*/],
   ['worktrees', /\.worktrees/],
-  ['home-path', /[A-Za-z]:[\\/]+Users[\\/]+(?!(?:Public|Default|All Users|<|%|\$|\{|someone|user|name)\b)[^\\/\s"'`]+/i],
+  ['home-path', /[A-Za-z]:[\\/]+Users[\\/]+(?!(?:Public|Default|All Users|<|%|\$|\{|someone|user|name|alice)\b)[^\\/\s"'`]+/i],
   ['local-time-zone', /JST/],
 ];
 const hits = [], size = {warn: 1 << 20, error: 20 << 20};

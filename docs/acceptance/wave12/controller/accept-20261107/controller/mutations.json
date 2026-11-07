@@ -54,5 +54,61 @@
    "new": "                if false {\n                    return Err(CleanError::Journal);",
    "why": "quarantine treats a result-line failure after a failed (not moved) first item as already acted"
   }
+ ],
+ "p2": [
+  {
+   "label": "nc1",
+   "mode": "red-nc1",
+   "token": "SERVICE_W12_SKIP",
+   "file": "packages/water-service/src/service.rs",
+   "old": "            &settings,",
+   "new": "            &Settings { skipped: settings.skipped.iter().filter(|v|v.kind != \"group\").cloned().collect(), ..settings.clone() },",
+   "why": "ticket control replayed from worker receipt 2026-11-07T13-45-02.719Z-31900-red-nc1-result.json"
+  },
+  {
+   "label": "nc2",
+   "mode": "red-nc2",
+   "token": "SERVICE_W12_NESTED",
+   "file": "packages/water-service/src/conclusion.rs",
+   "old": "    crate::clean::retain_outermost(&mut plan_items);",
+   "new": "    plan_items.retain(|_| true);",
+   "why": "ticket control replayed from worker receipt 2026-11-07T13-53-28.175Z-28848-red-nc2-result.json"
+  },
+  {
+   "label": "nc3",
+   "mode": "red-nc3",
+   "token": "SERVICE_W12_RECORD",
+   "file": "packages/water-service/src/clean.rs",
+   "old": "                                        for item in &batch.items {",
+   "new": "                                        if e != clean::CleanError::Journal { return Err(quarantine::error(e)); }\n                                        for item in &batch.items {",
+   "why": "ticket control replayed from worker receipt 2026-11-07T13-58-30.813Z-33720-red-nc3-result.json"
+  },
+  {
+   "label": "c1",
+   "mode": "test",
+   "token": "SERVICE_W12_RECORD",
+   "file": "packages/water-service/src/clean.rs",
+   "old": "                            if report.journal_error.is_some()\n                                || reports.iter().any(|r| r.journal_error.is_some())\n                            {",
+   "new": "                            if (report.journal_error.is_some()\n                                || reports.iter().any(|r| r.journal_error.is_some())) && false\n                            {",
+   "why": "clean_start keeps running the remaining quarantine batches after a report with journal_error (addendum 01)"
+  },
+  {
+   "label": "c2",
+   "mode": "test",
+   "token": "SERVICE_W12_SKIP",
+   "file": "packages/water-service/src/service.rs",
+   "old": ".is_some_and(|p| m35::parent(&item.path).eq_ignore_ascii_case(p))",
+   "new": ".is_some_and(|p| m35::parent(&item.path) == p)",
+   "why": "folder skips compare the parent folder case-sensitively"
+  },
+  {
+   "label": "c3",
+   "mode": "test",
+   "token": "SERVICE_W12_DIAG",
+   "file": "packages/water-service/src/service.rs",
+   "old": "json!({\"diagnostics_version\":\"flick.diagnostics.v1\",",
+   "new": "json!({\"store_root\":core.store.root.display().to_string(),\"diagnostics_version\":\"flick.diagnostics.v1\",",
+   "why": "diagnostics_get carries the data folder path"
+  }
  ]
 }

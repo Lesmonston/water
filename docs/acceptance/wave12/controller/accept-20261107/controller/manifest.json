@@ -238,8 +238,279 @@
       "baselineEvidence": "docs/acceptance/wave12/controller/preflight-20261107/p1/2026-11-07T12-04-45.392Z-22912-baseline-result.json",
       "dispatchReportedAt": "2026-11-07T12:09:44Z",
       "dispatchEvidence": "user 2026-11-07 after the paste lines: \"界面单是opus，其他的都是sol\"",
+      "submittedHead": "606d5c5ebffff132a153cf451d46bb82e0da5207",
+      "implementationCommit": "149602577d489fe59f3aebcc0c1aa063e186ac76",
+      "mergeCommit": "292dcbed8e125ed5a7f48bb0973982237551aebb",
+      "workerSelfReport": "Codex GPT-6",
+      "controllerReview": {
+        "report": "docs/acceptance/wave12/controller/WATER-W12-REVIEW-20261107.md",
+        "evidence": "docs/acceptance/wave12/p1/",
+        "summary": "heavy gate: audit 0 problems; fresh tree lock, check, real and test finals; three ticket controls replayed and caught; controller mutations c2 and c3 caught, c1 (keep every planned volume after a journal failure) survived as an equivalent mutant on single-volume fixtures; independent review found no high or medium issue in the executor and a wave-level service gap sent to P2 as addendum 01"
+      },
+      "carryOverLater": [
+        "volume retention after a journal failure is untested across two volumes (controller mutation c1 survived; every fixture is on one volume)",
+        "execute maps any intent error after an action to JournalFailed, not only CleanError::Journal (a time-format error would read as a journal failure; quarantine matches Journal only)",
+        "a result-line failure for an item that was not acted on keeps its real reason instead of JournalFailed; reasonable, untested",
+        "quarantine: the current JournalFailed item keeps bytes = before.bytes while later ones show 0 (cosmetic; the service filters on moved)",
+        "real_smoke: SystemRoot set but empty does not fall back to C:Windows",
+        "combined with W12-P2 the old service test SERVICE_M35_CLEAN journal failure state (quarantine closing line fails after a move) changes from failed/error to record kept; migrate it on main after P2 merges"
+      ],
       "acceptsTask": "WATER-W12-P1",
       "acceptsHead": "606d5c5ebffff132a153cf451d46bb82e0da5207"
+    },
+    {
+      "kind": "service",
+      "outputRoot": "packages/water-service",
+      "packageName": "water-service",
+      "testTarget": "service_v1",
+      "testFiles": [
+        "packages/water-service/tests/service_v1.rs"
+      ],
+      "productionFiles": [
+        "packages/water-service/Cargo.toml",
+        "packages/water-service/Cargo.lock",
+        "packages/water-service/README.md",
+        "packages/water-service/examples/service_smoke.rs"
+      ],
+      "cargoCacheSource": "F:/new/smaltalk/water/.offline-cache/core/registry",
+      "realMode": "service-smoke",
+      "nativeModule": "native_windows.rs",
+      "allowedEnv": [],
+      "expectedDependencies": [
+        {
+          "name": "serde",
+          "req": "=1.0.229",
+          "kind": null,
+          "optional": false,
+          "path": null,
+          "defaults": true,
+          "features": [
+            "derive"
+          ]
+        },
+        {
+          "name": "serde_json",
+          "req": "=1.0.151",
+          "kind": null,
+          "optional": false,
+          "path": null,
+          "defaults": true,
+          "features": []
+        },
+        {
+          "name": "water-cleanup-manifest",
+          "req": "*",
+          "kind": null,
+          "optional": false,
+          "path": "packages/cleanup-manifest",
+          "defaults": true,
+          "features": []
+        },
+        {
+          "name": "water-dup-finder",
+          "req": "*",
+          "kind": null,
+          "optional": false,
+          "path": "packages/dup-finder",
+          "defaults": true,
+          "features": []
+        },
+        {
+          "name": "water-installed-apps",
+          "req": "*",
+          "kind": null,
+          "optional": false,
+          "path": "packages/installed-apps",
+          "defaults": true,
+          "features": []
+        },
+        {
+          "name": "water-junk-clean",
+          "req": "*",
+          "kind": null,
+          "optional": false,
+          "path": "packages/junk-clean",
+          "defaults": true,
+          "features": []
+        },
+        {
+          "name": "water-junk-rules",
+          "req": "*",
+          "kind": null,
+          "optional": false,
+          "path": "packages/junk-rules",
+          "defaults": true,
+          "features": []
+        },
+        {
+          "name": "water-junk-scan",
+          "req": "*",
+          "kind": null,
+          "optional": false,
+          "path": "packages/junk-scan",
+          "defaults": true,
+          "features": []
+        },
+        {
+          "name": "water-process-scan",
+          "req": "*",
+          "kind": null,
+          "optional": false,
+          "path": "packages/process-scan",
+          "defaults": true,
+          "features": []
+        }
+      ],
+      "allowedFfiNote": "desktop-wave-check does not enforce FFI; SERVICE-M35 section 2 allows only SHQueryRecycleBinW as a new system function, checked by hand at acceptance",
+      "macOS": "unverified",
+      "outputRootExists": true,
+      "nativeWindowBudget": 0,
+      "nativeDirectoryDialogBudget": 0,
+      "expectedTests": [
+        "service_ipc_contract",
+        "service_scan_views",
+        "service_clean_flow",
+        "service_trends_locations",
+        "service_storage_safety",
+        "service_hardening",
+        "m35_scope_and_plan",
+        "m35_conclusion_cards",
+        "m35_rows_and_detail",
+        "m35_clean_split",
+        "m35_quarantine",
+        "m35_trends_history"
+      ],
+      "allowedModes": [
+        "baseline",
+        "lock",
+        "check",
+        "test",
+        "archive",
+        "real",
+        "red-nc1",
+        "red-nc2",
+        "red-nc3"
+      ],
+      "expectedFinalModes": [
+        "check",
+        "test",
+        "real"
+      ],
+      "browserBudget": 0,
+      "realDataPermission": "read-only metadata per ADR-018; clean disabled in the real smoke",
+      "id": "WATER-W12-ACCEPT-P2",
+      "title": "服务：整组整行跳过、诊断信息、首页去嵌套与几处收尾",
+      "slot": "w12-p2",
+      "worktree": "F:/new/smaltalk/water/.worktrees/accept-w12-p2",
+      "branch": "controller/accept-w12-p2",
+      "baseCommit": "6fd29e342b76ff2ceecd74e66805300405ef1334",
+      "snapshotRef": "refs/tags/water-w12-p2-base-20261107",
+      "status": "CONTROLLER_ACCEPTANCE",
+      "modelAssignment": "user-arranged; report actual engine/model",
+      "purpose": "skip_unit_add (group, template, folder kinds; settings v4; card menu and row skip keys), diagnostics_get, conclusion plan without nested double count, drawer and plan agree on unfinished items, trends state new, clean record kept on journal failure and quarantine error, refresh order",
+      "report": "docs/dispatch/reports/WATER-W12-P2-REPORT.md",
+      "evidenceDir": "docs/acceptance/wave12/controller/accept-20261107/p2/",
+      "allowedFiles": [
+        "docs/dispatch/reports/WATER-W12-P2-REPORT.md"
+      ],
+      "gate": "medium",
+      "ticket": "docs/dispatch/tickets/WATER-W12-P2-SERVICE-20261107.md",
+      "spec": "contracts/w12-v1/W12.md",
+      "proofTargets": {
+        "nc1": "SERVICE_W12_SKIP",
+        "nc2": "SERVICE_W12_NESTED",
+        "nc3": "SERVICE_W12_RECORD"
+      },
+      "modelHint": "Service: W12 sections 1, 2.2, 4; executor interface already in the base; two pre-listed old assertions; medium gate.",
+      "mustRead": [
+        "docs/dispatch/WORKER-RULES.md",
+        "docs/dispatch/W12-WORKER-RULES.md",
+        "contracts/w12-v1/W12.md",
+        "contracts/m35-v1/IPC-M35.md",
+        "contracts/m35-v1/SERVICE-M35.md",
+        "contracts/m3c-v1/IPC-M3C.md",
+        "contracts/m3c-v1/SERVICE-M3C.md",
+        "contracts/m3c-v1/SERVICE-M3C-ADD-01.md",
+        "docs/dispatch/tickets/WATER-W11-N8-SERVICE-20261107.md"
+      ],
+      "frozenFiles": [
+        {
+          "path": "contracts/w12-v1/W12.md",
+          "sha256": "0d65a0b05ef0ad9f7d4fceadde71727d596339b1b9d960644e10775af210ebe3"
+        },
+        {
+          "path": "contracts/m35-v1/IPC-M35.md",
+          "sha256": "9605b8e6c1e25cc399d0f44e4af039c5a55ea314845b211603f91ce680446889"
+        },
+        {
+          "path": "contracts/m35-v1/SERVICE-M35.md",
+          "sha256": "39ba60f15086b7fefa504bae362dbe5a9c468250052567263269b233f069dd94"
+        },
+        {
+          "path": "contracts/m3c-v1/IPC-M3C.md",
+          "sha256": "d0b6bb18a5deedc8200569cc9f3c68a544d564c8a07c45d0905e9ab01a07e6a5"
+        },
+        {
+          "path": "contracts/m3c-v1/SERVICE-M3C.md",
+          "sha256": "29a337e90705adcd28bf98419139efeaf88bcc709e1fa0fc022f28405fcafc26"
+        },
+        {
+          "path": "contracts/m3c-v1/SERVICE-M3C-ADD-01.md",
+          "sha256": "a001a4fc0771304cd8da6e21222b3c95b6fbd47146d35cc23de9216b9d182830"
+        },
+        {
+          "path": "contracts/m35-v1/CLEAN-M35.md",
+          "sha256": "9a7a43d758668fc4b6da0db1ef90d6500318ba7df907d01355adfd737012dee5"
+        },
+        {
+          "path": "contracts/checkup-v1/IPC.md",
+          "sha256": "62f726ced5f863f1b47db261976d8b5e5183f65669b2ba09d2f85a3977161be2"
+        },
+        {
+          "path": "contracts/checkup-v1/MODEL.md",
+          "sha256": "fe0c9a4f5d96ce9297e8f72e75df8c6f666f9a6af440fc198aa7b3362692188b"
+        },
+        {
+          "path": "docs/decisions/ADR-019-project-declarations-and-quarantine.md",
+          "sha256": "005709e26035f08e3729303c8ebed961b7c23c3b4e02ec28ab8823a36b885e97"
+        },
+        {
+          "path": "contracts/w11-v1/RENAME-FLICK.md",
+          "sha256": "97e5c969bae70e9dd92fcbf09810ea29af6167bbc8626a023e9d191a6b4479d8"
+        }
+      ],
+      "allowedPrefixes": [
+        "packages/water-service/",
+        "docs/acceptance/wave12/p2/",
+        "docs/acceptance/wave12/controller/accept-20261107/p2/"
+      ],
+      "hint": "Service, batch 2 on main after N3, N5, N6; section 1.8 nested-item dedupe is nc3; line numbers rechecked on this base.",
+      "readyOn": "2026-11-07",
+      "dispatchedAt": "2026-11-07T12:09:44Z",
+      "startedAt": null,
+      "model": "sol (user-arranged)",
+      "defaultExecutor": "sol",
+      "issuedAt": "2026-11-07T12:04:20Z",
+      "baselineStatus": "PASSED",
+      "source": "docs/dispatch/wave12/PLAN.md",
+      "baselineEvidence": "docs/acceptance/wave12/controller/preflight-20261107/p2/2026-11-07T12-04-50.991Z-30140-baseline-result.json",
+      "dispatchReportedAt": "2026-11-07T12:09:44Z",
+      "dispatchEvidence": "user 2026-11-07 after the paste lines: \"界面单是opus，其他的都是sol\"",
+      "addenda": [
+        {
+          "id": "WATER-W12-P2-ADDENDUM-01",
+          "ticket": "docs/dispatch/tickets/WATER-W12-P2-ADDENDUM-01-20261107.md",
+          "issuedIn": "0f667157",
+          "dispatchReportedAt": "2026-11-07T13:13:27Z",
+          "resumeFromCommit": "6fd29e342b76ff2ceecd74e66805300405ef1334",
+          "resumeNote": "no worker commit existed when the addendum was forwarded (22:13 JST); the first, 846ca073, is 22:23 and includes it",
+          "dispatchEvidence": "user 2026-11-07: \"已发给 P2\"",
+          "reason": "W12-P1 independent review: the service kept running quarantine batches after the executor returned a report with journal_error",
+          "controllerMutationPlanned": "clean_start keeps running the remaining batches after journal_error"
+        }
+      ],
+      "acceptsTask": "WATER-W12-P2",
+      "acceptsHead": "67dd9f05fe738ad411a8f17b9e473211839a948c"
     }
   ],
   "mergeOrder": [

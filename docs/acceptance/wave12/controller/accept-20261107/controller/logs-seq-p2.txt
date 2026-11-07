@@ -1,0 +1,35 @@
+=== p2 2026-11-07T14:30:05Z
+p2 lock rc=0 {"task":"WATER-W12-ACCEPT-P2","mode":"lock","finalGate":false,"status":"passed","error":null,"receipt":"F:\\new\\smaltalk\\water\\.worktrees\\accept-w12-p2\\.local\\checks\\WATER-W12-ACCEPT-P2\\2026-11-07T14-30-06.436Z-27504-lock-result.json"}
+p2 check:final rc=0 {"task":"WATER-W12-ACCEPT-P2","mode":"check","finalGate":true,"status":"passed","error":null,"receipt":"F:\\new\\smaltalk\\water\\.worktrees\\accept-w12-p2\\.local\\checks\\WATER-W12-ACCEPT-P2\\2026-11-07T14-30-13.158Z-4892-check-result.json"}
+p2 real:final rc=0 {"task":"WATER-W12-ACCEPT-P2","mode":"real","finalGate":true,"status":"passed","error":null,"receipt":"F:\\new\\smaltalk\\water\\.worktrees\\accept-w12-p2\\.local\\checks\\WATER-W12-ACCEPT-P2\\2026-11-07T14-31-06.844Z-11032-real-result.json"}
+p2 nc1 mutated packages/water-service/src/service.rs: ticket control replayed from worker receipt 2026-11-07T13-45-02.719Z-31900-red-nc1-result.json (mutated sha 23c37e9645d0304894048d7c46cae6103a13506d7fd0660bfd8086279d49a13b)
+p2 red-nc1 rc=0 {"task":"WATER-W12-ACCEPT-P2","mode":"red-nc1","finalGate":false,"status":"passed","error":null,"receipt":"F:\\new\\smaltalk\\water\\.worktrees\\accept-w12-p2\\.local\\checks\\WATER-W12-ACCEPT-P2\\2026-11-07T14-34-10.583Z-23076-red-nc1-result.json"}
+p2 nc1 KILLED (expected SERVICE_W12_SKIP)
+p2 nc1 restored exact bytes=true sha c4b2e21ba1c0618a91f8d8dc5f4cb9e40b883e0da8265768ea9db21edf15b5a8
+p2 test rc=0 {"task":"WATER-W12-ACCEPT-P2","mode":"test","finalGate":false,"status":"passed","error":null,"receipt":"F:\\new\\smaltalk\\water\\.worktrees\\accept-w12-p2\\.local\\checks\\WATER-W12-ACCEPT-P2\\2026-11-07T14-36-52.833Z-37512-test-result.json"}
+p2 nc2 mutated packages/water-service/src/conclusion.rs: ticket control replayed from worker receipt 2026-11-07T13-53-28.175Z-28848-red-nc2-result.json (mutated sha 10a38346459609be0020dd067645ccd2faca8f11003acb73f17ee3a9560fbe20)
+p2 red-nc2 rc=0 {"task":"WATER-W12-ACCEPT-P2","mode":"red-nc2","finalGate":false,"status":"passed","error":null,"receipt":"F:\\new\\smaltalk\\water\\.worktrees\\accept-w12-p2\\.local\\checks\\WATER-W12-ACCEPT-P2\\2026-11-07T14-39-30.578Z-36752-red-nc2-result.json"}
+p2 nc2 KILLED (expected SERVICE_W12_NESTED)
+p2 nc2 restored exact bytes=true sha dfc708f445dd88989ab2988ad6fea676e864d2359b457e1c1a3e3e38af845972
+p2 test rc=0 {"task":"WATER-W12-ACCEPT-P2","mode":"test","finalGate":false,"status":"passed","error":null,"receipt":"F:\\new\\smaltalk\\water\\.worktrees\\accept-w12-p2\\.local\\checks\\WATER-W12-ACCEPT-P2\\2026-11-07T14-41-26.310Z-27608-test-result.json"}
+p2 nc3 mutated packages/water-service/src/clean.rs: ticket control replayed from worker receipt 2026-11-07T13-58-30.813Z-33720-red-nc3-result.json (mutated sha 4d5f5d7d1b449c2de2baa3f53b3f4b46921d6cc4513fbf8f92f6095ec84e1f91)
+p2 red-nc3 rc=0 {"task":"WATER-W12-ACCEPT-P2","mode":"red-nc3","finalGate":false,"status":"passed","error":null,"receipt":"F:\\new\\smaltalk\\water\\.worktrees\\accept-w12-p2\\.local\\checks\\WATER-W12-ACCEPT-P2\\2026-11-07T14-43-13.789Z-36096-red-nc3-result.json"}
+p2 nc3 KILLED (expected SERVICE_W12_RECORD)
+p2 nc3 restored exact bytes=true sha 12fdd5428f4da51d02141386e5927e19d61ee55581e2909cf6c58ef3dde6de78
+p2 test rc=0 {"task":"WATER-W12-ACCEPT-P2","mode":"test","finalGate":false,"status":"passed","error":null,"receipt":"F:\\new\\smaltalk\\water\\.worktrees\\accept-w12-p2\\.local\\checks\\WATER-W12-ACCEPT-P2\\2026-11-07T14-44-53.687Z-22416-test-result.json"}
+p2 c1 mutated packages/water-service/src/clean.rs: clean_start keeps running the remaining quarantine batches after a report with journal_error (addendum 01) (mutated sha cc93830ae91ba067a57fcdec332ac326f7e6a5633c14fc4f8a9f61e828070efe)
+p2 test rc=1 {"task":"WATER-W12-ACCEPT-P2","mode":"test","finalGate":false,"status":"failed","error":"AssertionError [ERR_ASSERTION]: Unexpected exit, see 2026-11-07T14-46-33.888Z-7272-test-5.log","receipt":"F:\\new\\smaltalk\\water\\.worktrees\\accept-w12-p2\\.local\\checks\\WATER-W12-ACCEPT-P2\\2026-11-07T14-46-33.888Z-7272-test-result.json"}
+p2 c1 KILLED (expected SERVICE_W12_RECORD)
+p2 c1 restored exact bytes=true sha 12fdd5428f4da51d02141386e5927e19d61ee55581e2909cf6c58ef3dde6de78
+p2 c2 mutated packages/water-service/src/service.rs: folder skips compare the parent folder case-sensitively (mutated sha 4e225b2a8b72ef858eaa1d0fb4a3c18dd1d1af2f94d157b7a17c6415168bdfe4)
+p2 test rc=1 {"task":"WATER-W12-ACCEPT-P2","mode":"test","finalGate":false,"status":"failed","error":"AssertionError [ERR_ASSERTION]: Unexpected exit, see 2026-11-07T14-47-55.269Z-30412-test-5.log","receipt":"F:\\new\\smaltalk\\water\\.worktrees\\accept-w12-p2\\.local\\checks\\WATER-W12-ACCEPT-P2\\2026-11-07T14-47-55.269Z-30412-test-result.json"}
+p2 c2 KILLED (expected SERVICE_W12_SKIP)
+p2 c2 restored exact bytes=true sha c4b2e21ba1c0618a91f8d8dc5f4cb9e40b883e0da8265768ea9db21edf15b5a8
+p2 c3 mutated packages/water-service/src/service.rs: diagnostics_get carries the data folder path (mutated sha f458b1015aace04a3a3e4e7c9e5774287fd6c5c810cb3e4d44dd27de73b8c669)
+p2 test rc=1 {"task":"WATER-W12-ACCEPT-P2","mode":"test","finalGate":false,"status":"failed","error":"AssertionError [ERR_ASSERTION]: Unexpected exit, see 2026-11-07T14-49-28.223Z-38712-test-5.log","receipt":"F:\\new\\smaltalk\\water\\.worktrees\\accept-w12-p2\\.local\\checks\\WATER-W12-ACCEPT-P2\\2026-11-07T14-49-28.223Z-38712-test-result.json"}
+p2 c3 KILLED (expected SERVICE_W12_DIAG)
+p2 c3 restored exact bytes=true sha c4b2e21ba1c0618a91f8d8dc5f4cb9e40b883e0da8265768ea9db21edf15b5a8
+p2 survived: none
+p2 test --final rc=0 {"task":"WATER-W12-ACCEPT-P2","mode":"test","finalGate":true,"status":"passed","error":null,"receipt":"F:\\new\\smaltalk\\water\\.worktrees\\accept-w12-p2\\.local\\checks\\WATER-W12-ACCEPT-P2\\2026-11-07T14-50-49.887Z-31604-test-result.json"}
+=== p2 done rc=0 2026-11-07T14:52:19Z
+SEQ-DONE

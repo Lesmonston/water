@@ -1,0 +1,2081 @@
+#![forbid(unsafe_code)]
+
+use crate::{
+    FolderPicker, IpcError, Platform, ServiceConfig, clean, conclusion, m35, quarantine,
+    storage::{Store, plain_directory},
+    util, views,
+};
+use serde::{Deserialize, Serialize};
+use serde_json::{Value, json};
+use std::{
+    collections::{BTreeMap, BTreeSet},
+    path::Path,
+    sync::{Arc, Mutex, PoisonError},
+    time::{Duration, Instant, SystemTime},
+};
+use water_junk_rules::{KnownFolders, RuleSet};
+use water_junk_scan as scan;
+
+#[derive(Clone, Serialize, Deserialize)]
+#[serde(deny_unknown_fields)]
+pub(crate) struct CustomRoot {
+    pub root_id: String,
+    pub path: String,
+    pub added_at: String,
+}
+
+#[derive(Clone, Serialize, Deserialize)]
+#[serde(deny_unknown_fields)]
+pub(crate) struct Skipped {
+    pub skip_id: String,
+    #[serde(default = "default_skip_kind")]
+    pub kind: String,
+    #[serde(default)]
+    pub path: Option<String>,
+    #[serde(default)]
+    pub group_id: Option<String>,
+    #[serde(default)]
+    pub template: Option<String>,
+    #[serde(default)]
+    pub folder: Option<String>,
+    #[serde(default)]
+    pub title_zh: String,
+    pub added_at: String,
+}
+
+fn default_skip_kind() -> String {
+    "path".into()
+}
+
+impl Skipped {
+    pub(crate) fn matches(&self, item: &scan::Item) -> bool {
+        match self.kind.as_str() {
+            "path" => self
+                .path
+                .as_deref()
+                .is_some_and(|p| p.eq_ignore_ascii_case(&item.path)),
+            "group" => self.group_id.as_deref() == Some(item.group_id.as_str()),
+            "template" => {
+                self.group_id.as_deref() == Some(item.group_id.as_str())
+                    && self.template.as_deref() == item.template.as_deref()
+            }
+            "folder" => {
+                self.group_id.as_deref() == Some(item.group_id.as_str())
+                    && self
+                        .folder
+                        .as_deref()
+                        .is_some_and(|p| m35::parent(&item.path) == p)
+            }
+            _ => false,
+        }
+    }
+    pub(crate) fn same_as(&self, other: &Skipped) -> bool {
+        self.kind.eq_ignore_ascii_case(&other.kind)
+            && self
+                .group_id
+                .as_deref()
+                .unwrap_or("")
+                .eq_ignore_ascii_case(other.group_id.as_deref().unwrap_or(""))
+            && self
+                .path
+                .as_deref()
+                .unwrap_or("")
+                .eq_ignore_ascii_case(other.path.as_deref().unwrap_or(""))
+            && self
+                .template
+                .as_deref()
+                .unwrap_or("")
+                .eq_ignore_ascii_case(other.template.as_deref().unwrap_or(""))
+            && self
+                .folder
+                .as_deref()
+                .unwrap_or("")
+                .eq_ignore_ascii_case(other.folder.as_deref().unwrap_or(""))
+    }
+}
+
+#[derive(Clone, Serialize, Deserialize)]
+#[serde(deny_unknown_fields)]
+pub(crate) struct Settings {
+    pub settings_version: String,
+    pub categories: BTreeMap<String, bool>,
+    pub custom_roots: Vec<CustomRoot>,
+    #[serde(default)]
+    pub skipped: Vec<Skipped>,
+    #[serde(default)]
+    pub sessions: Vec<m35::Session>,
+    #[serde(default)]
+    pub trusts: Vec<m35::Trust>,
+    #[serde(default)]
+    pub fixed_marks: Vec<m35::Fixed>,
+    #[serde(default)]
+    pub keeps: Vec<m35::Keep>,
+}
+
+impl Default for Settings {
+    fn default() -> Self {
+        Self {
+            settings_version: "water.settings.v4".into(),
+            categories: views::CATEGORIES[..7]
+                .iter()
+                .map(|c| (c.0.into(), true))
+                .collect(),
+            custom_roots: vec![],
+            skipped: vec![],
+            sessions: vec![],
+            trusts: vec![],
+            fixed_marks: vec![],
+            keeps: vec![],
+        }
+    }
+}
+
+pub(crate) struct Record {
+    pub saved: Value,
+    pub result: scan::ScanResult,
+    pub plan: water_junk_rules::ScanPlan,
+    pub growth: Vec<scan::Growth>,
+    pub previous_at: Option<String>,
+    pub projection: Mutex<views::Projection>,
+}
+
+const RECORD_KEYS: [&str; 11] = [
+    "record_version",
+    "scan_id",
+    "started_at",
+    "finished_at",
+    "duration_ms",
+    "drives",
+    "plan",
+    "result",
+    "growth",
+    "previous_scan_id",
+    "consumed",
+];
+
+impl Record {
+    fn load(saved: Value) -> Option<Self> {
+        // `in_use` / `item_in_use` / `orphans` / `growth_base_scan_id` are independently optional.
+        let optional = [
+            "in_use",
+            "item_in_use",
+            "orphans",
+            "growth_base_scan_id",
+            "scope",
+            "declarations",
+            "item_notes",
+            "recycle_bins",
+            "space",
+            "installed_apps_at",
+            "unfinished",
+            "item_created",
+        ];
+        let keys_ok = saved.as_object().is_some_and(|m| {
+            RECORD_KEYS.iter().all(|k| m.contains_key(*k))
+                && m.keys()
+                    .all(|k| RECORD_KEYS.contains(&k.as_str()) || optional.contains(&k.as_str()))
+        });
+        if saved["record_version"] != "water.scan-record.v1" || !keys_ok {
+            return None;
+        }
+        let result = scan::result_from_json(&saved["result"].to_string()).ok()?;
+        let plan = water_junk_rules::ScanPlan::from_json(&saved["plan"].to_string()).ok()?;
+        if saved["scan_id"] != result.scan_id
+            || util::parse_time(saved["finished_at"].as_str()?).is_none()
+            || !saved["consumed"].is_boolean()
+            || saved["duration_ms"].as_u64().is_none()
+            || !matches!(
+                result.status.as_str(),
+                "completed" | "partial" | "cancelled" | "failed"
+            )
+            || util::parse_time(&result.started_at).is_none()
+            || util::parse_time(&result.ended_at).is_none()
+            || result.groups.iter().any(|g| {
+                g.eligible_count > g.item_count
+                    || g.total_bytes.parse::<u64>().is_err()
+                    || g.eligible_bytes.parse::<u64>().is_err()
+                    || !m35::valid_in_use(&g.in_use)
+                    || !((g.rule_id == "leak-cluster"
+                        && g.group_id.starts_with("leak:")
+                        && g.cluster.is_some())
+                        || plan
+                            .targets
+                            .iter()
+                            .any(|t| t.group_id == g.group_id && t.rule_id == g.rule_id))
+            })
+            || result.items.iter().any(|i| {
+                i.total_bytes.parse::<u64>().is_err()
+                    || !result.groups.iter().any(|g| g.group_id == i.group_id)
+                    || (i.eligible && i.identity.is_none())
+            })
+            || saved.get("in_use").is_some_and(|m| {
+                !m.as_object().is_some_and(|m| {
+                    m.iter().all(|(id, v)| {
+                        result.groups.iter().any(|g| &g.group_id == id)
+                            && (util::exact_keys(v, &["process_label_zh"])
+                                || (util::exact_keys(v, &["process_label_zh", "item_count"])
+                                    && (v["item_count"].is_null()
+                                        || v["item_count"].as_u64().is_some_and(|n| {
+                                            n <= result
+                                                .groups
+                                                .iter()
+                                                .find(|g| &g.group_id == id)
+                                                .map(|g| g.item_count)
+                                                .unwrap_or(0)
+                                        }))))
+                            && v["process_label_zh"].is_string()
+                    })
+                })
+            })
+        {
+            return None;
+        }
+        if saved.get("item_in_use").is_some_and(|m| {
+            !m.as_object().is_some_and(|m| {
+                m.iter().all(|(id, v)| {
+                    result.items.iter().any(|i| &i.item_id == id)
+                        && util::exact_keys(v, &["process_label_zh"])
+                        && v["process_label_zh"].is_string()
+                })
+            })
+        }) || saved.get("orphans").is_some_and(|v| !valid_orphans(v))
+        {
+            return None;
+        }
+        result
+            .groups
+            .iter()
+            .try_fold(0u64, |sum, g| sum.checked_add(util::number(&g.total_bytes)))?;
+        result
+            .items
+            .iter()
+            .try_fold(0u64, |sum, i| sum.checked_add(util::number(&i.total_bytes)))?;
+        let growth = serde_json::from_value(saved["growth"].clone()).ok()?;
+        Some(Self {
+            saved,
+            result,
+            plan,
+            growth,
+            previous_at: None,
+            projection: Mutex::new(views::Projection::default()),
+        })
+    }
+    pub fn completed(&self) -> bool {
+        matches!(self.result.status.as_str(), "completed" | "partial")
+    }
+    pub fn projection(&self) -> std::sync::MutexGuard<'_, views::Projection> {
+        self.projection
+            .lock()
+            .unwrap_or_else(PoisonError::into_inner)
+    }
+}
+
+pub(crate) struct State {
+    pub m35: m35::Extension,
+    pub settings: Settings,
+    pub records: Vec<Arc<Record>>,
+    pub last: Option<String>,
+    pub consumed: BTreeSet<String>,
+    /// Scans completed by this process. Only these can be a cleaning source; records read
+    /// back from disk are shown but never trusted for `clean_prepare`.
+    pub local_scans: BTreeSet<String>,
+    pub plans: BTreeMap<String, Value>,
+    pub stale_plans: BTreeSet<String>,
+    pub cleans: BTreeMap<String, Value>,
+    pub clean_order: Vec<String>,
+    pub busy: &'static str,
+    pub scan_progress: Value,
+    pub scan_started: Option<Instant>,
+    pub clean_progress: Value,
+    pub cancel: Option<scan::CancelToken>,
+    pub stop: Option<water_junk_clean::StopFlag>,
+}
+
+impl State {
+    pub fn last_record(&self) -> Option<Arc<Record>> {
+        self.records
+            .iter()
+            .find(|r| Some(&r.result.scan_id) == self.last.as_ref())
+            .cloned()
+    }
+}
+
+pub(crate) struct Core {
+    pub config_version: String,
+    pub clean_enabled: bool,
+    pub platform: Box<dyn Platform>,
+    pub picker: Box<dyn FolderPicker>,
+    pub rules: RuleSet,
+    pub folders: KnownFolders,
+    pub store: Store,
+    pub state: Mutex<State>,
+}
+
+pub struct Service {
+    pub(crate) core: Arc<Core>,
+}
+
+impl Drop for Service {
+    fn drop(&mut self) {
+        if let Ok(s) = lock(&self.core) {
+            if let Some(c) = &s.cancel {
+                c.cancel();
+            }
+            if let Some(c) = &s.m35.dedupe_cancel {
+                c.cancel();
+            }
+            if let Some(stop) = &s.stop {
+                stop.stop();
+            }
+        }
+    }
+}
+
+/// A poisoned state lock is recovered: the data is used as it is, never left unusable.
+pub(crate) fn lock(core: &Core) -> Result<std::sync::MutexGuard<'_, State>, IpcError> {
+    Ok(core.state.lock().unwrap_or_else(PoisonError::into_inner))
+}
+
+fn idle_scan() -> Value {
+    json!({"scan_id":null,"state":"idle","categories":[],"locations":[],"visited_entries":0,"found_bytes":"0","percent":0,"elapsed_ms":0})
+}
+
+impl Service {
+    pub fn new(config: ServiceConfig) -> Result<Self, IpcError> {
+        let store = Store::new(config.data_dir)?;
+        let folders = config.platform.known_folders()?;
+        let rules = RuleSet::embedded();
+        let settings = load_settings(&store, &folders, config.platform.as_ref());
+        let mut records: Vec<_> = store
+            .records("scans")
+            .into_iter()
+            .filter_map(|(id, v)| Record::load(v).filter(|r| r.result.scan_id == id))
+            .collect();
+        records.sort_by(|a, b| a.result.ended_at.cmp(&b.result.ended_at));
+        let timestamps: BTreeMap<_, _> = records
+            .iter()
+            .map(|r| (r.result.scan_id.clone(), r.result.ended_at.clone()))
+            .collect();
+        for r in &mut records {
+            r.previous_at = if r.saved.get("growth_base_scan_id").is_some() {
+                r.saved["growth_base_scan_id"]
+                    .as_str()
+                    .and_then(|id| timestamps.get(id))
+                    .cloned()
+            } else {
+                r.saved["previous_scan_id"]
+                    .as_str()
+                    .and_then(|id| timestamps.get(id))
+                    .cloned()
+            };
+            *r.projection() =
+                views::Projection::new(r, &rules, config.platform.as_ref(), &settings);
+        }
+        let last = records
+            .iter()
+            .rev()
+            .find(|r| r.completed())
+            .map(|r| r.result.scan_id.clone());
+        let consumed = records
+            .iter()
+            .filter(|r| r.saved["consumed"] == true)
+            .map(|r| r.result.scan_id.clone())
+            .collect();
+        let mut plans: BTreeMap<_, _> = store
+            .records("plans")
+            .into_iter()
+            .filter(|(id, v)| {
+                m35::keys_with(
+                    v,
+                    &["plan", "scan_id", "token_digest", "used"],
+                    &["chosen_ids", "chosen_mode", "dedupe_id"],
+                ) && water_junk_clean::CleanPlan::from_json(&v["plan"].to_string())
+                    .is_ok_and(|p| p.plan_id == *id)
+                    && v["scan_id"].as_str().is_some()
+                    && v["token_digest"]
+                        .as_str()
+                        .is_some_and(|s| s.len() == 64 && s.bytes().all(|b| b.is_ascii_hexdigit()))
+                    && v["used"].is_boolean()
+            })
+            .collect();
+        let clean_records: Vec<_> = store
+            .records("cleans")
+            .into_iter()
+            .filter(|(id, v)| {
+                m35::keys_with(
+                    v,
+                    &["clean_id", "plan_id", "scan_id", "report", "view"],
+                    &["quarantine_reports", "plan_items", "message_zh"],
+                ) && serde_json::from_value::<water_junk_clean::CleanReport>(v["report"].clone())
+                    .is_ok_and(|r| r.report_version == "water.clean-report.v1")
+                    && m35::keys_with(
+                        &v["view"],
+                        &[
+                            "clean_id",
+                            "finished_at",
+                            "estimate_bytes",
+                            "freed_bytes",
+                            "drives",
+                            "groups",
+                            "journal_display_path",
+                        ],
+                        &["quarantined", "journal_note_zh"],
+                    )
+                    && v["clean_id"] == *id
+                    && v["view"]["clean_id"] == *id
+                    && v["view"]["finished_at"]
+                        .as_str()
+                        .and_then(util::parse_time)
+                        .is_some()
+            })
+            .collect();
+        // Storage tidy (SERVICE-HARDENING §4); plans whose file was removed are dropped here too.
+        for id in store.tidy() {
+            plans.remove(&id);
+        }
+        // Plans read back from disk are records only and can never be executed.
+        let stale_plans = plans.keys().cloned().collect();
+        let clean_order = clean_records.iter().map(|(id, _)| id.clone()).collect();
+        let cleans = clean_records.into_iter().collect();
+        let mut state = State {
+            m35: m35::Extension::default(),
+            settings,
+            records: records.into_iter().map(Arc::new).collect(),
+            last,
+            consumed,
+            local_scans: BTreeSet::new(),
+            plans,
+            stale_plans,
+            cleans,
+            clean_order,
+            busy: "idle",
+            scan_progress: idle_scan(),
+            scan_started: None,
+            clean_progress: clean::idle(),
+            cancel: None,
+            stop: None,
+        };
+        trim(&store, &mut state);
+        let service = Self {
+            core: Arc::new(Core {
+                config_version: config.app_version,
+                clean_enabled: config.clean_enabled,
+                platform: config.platform,
+                picker: config.picker,
+                rules,
+                folders,
+                store,
+                state: Mutex::new(state),
+            }),
+        };
+        m35::startup(&service.core)?;
+        Ok(service)
+    }
+
+    pub fn call(&self, command: &str, args: Value) -> Result<Value, IpcError> {
+        // A panic anywhere in a command becomes the fixed unavailable error.
+        std::panic::catch_unwind(std::panic::AssertUnwindSafe(|| {
+            self.dispatch(command, args)
+        }))
+        .unwrap_or_else(|_| Err(IpcError::new("unavailable")))
+    }
+
+    fn dispatch(&self, command: &str, args: Value) -> Result<Value, IpcError> {
+        let core = &self.core;
+        // The switch answers first: a disabled build never inspects cleaning arguments.
+        if matches!(command, "clean_prepare" | "clean_start") && !core.clean_enabled {
+            return Err(IpcError::disabled());
+        }
+        validate(command, &args)?;
+        if m35::owns(command) {
+            return m35::dispatch(core, command, &args);
+        }
+        match command {
+            "scan_start" => self.scan_start(&args),
+            "clean_prepare"
+                if args.get("conclusionVersion").is_some() || args.get("dedupeId").is_some() =>
+            {
+                m35::prepare(core, &args)
+            }
+            "clean_prepare" => clean::prepare(
+                core,
+                args["groupIds"].as_array().expect("validated"),
+                args.get("excludeItemIds")
+                    .and_then(Value::as_array)
+                    .map(Vec::as_slice)
+                    .unwrap_or(&[]),
+            ),
+            "clean_start" => clean::start(
+                core,
+                args["planId"].as_str().expect("validated"),
+                args["confirmToken"].as_str().expect("validated"),
+            ),
+            "custom_root_add" => self.add_root(),
+            "skip_add" => self.add_skip(args["itemId"].as_str().expect("validated")),
+            "skip_unit_add" => self.add_skip_unit(
+                args["conclusionVersion"].as_str().expect("validated"),
+                args["unitId"].as_str().expect("validated"),
+            ),
+            "diagnostics_get" => diagnostics(core),
+            "skip_remove" => self.remove_skip(args["skipId"].as_str().expect("validated")),
+            "app_state" => {
+                let drives=core.platform.drives().into_iter().map(|d|json!({"root":d.root,"label_zh":if d.is_system{"系统盘"}else{"本地磁盘"},"is_system":d.is_system,"total_bytes":d.total_bytes.to_string(),"free_bytes":d.free_bytes.to_string()})).collect::<Vec<_>>();
+                let s = lock(core)?;
+                let last = s.last_record();
+                let summary=last.as_ref().map(|r|{let p=r.projection(); json!({"scan_id":r.result.scan_id,"finished_at":r.saved["finished_at"],"recommended_bytes":p.view["totals"]["recommended_bytes"],"recommended_by_drive":p.view["recommended_by_drive"],"added_7d_bytes":added_7d(&s,r)})});
+                Ok(
+                    json!({"app_version":core.config_version,"platform":"windows","busy":s.busy,"drives":drives,"last_scan":summary,"quarantine":quarantine::bar(&s),"checkup_due":checkup_due(core, last.as_deref()),"insights":last.map(|r|r.projection().view["insights"].clone()).unwrap_or(json!([]))}),
+                )
+            }
+            "scan_progress" => {
+                let s = lock(core)?;
+                let mut progress = s.scan_progress.clone();
+                if s.busy == "scanning"
+                    && let Some(start) = s.scan_started
+                {
+                    progress["elapsed_ms"] = json!(start.elapsed().as_millis() as u64);
+                }
+                Ok(progress)
+            }
+            "clean_progress" => Ok(lock(core)?.clean_progress.clone()),
+            "scan_cancel" => {
+                let s = lock(core)?;
+                if s.busy != "scanning" || s.scan_progress["scan_id"] != args["scanId"] {
+                    return Err(IpcError::new("not_found"));
+                }
+                if let Some(c) = &s.cancel {
+                    c.cancel();
+                }
+                Ok(json!({}))
+            }
+            "clean_stop" => {
+                if let Some(stop) = &lock(core)?.stop {
+                    stop.stop();
+                }
+                Ok(json!({}))
+            }
+            "scan_result" => {
+                let s = lock(core)?;
+                let mut view = s
+                    .records
+                    .iter()
+                    .find(|r| r.result.scan_id == args["scanId"])
+                    .map(|r| r.projection().view.clone())
+                    .ok_or_else(|| IpcError::new("not_found"))?;
+                for category in view["categories"].as_array_mut().expect("view categories") {
+                    for group in category["groups"].as_array_mut().expect("view groups") {
+                        selection(&s.settings, group);
+                    }
+                }
+                Ok(view)
+            }
+            "group_detail" => {
+                let s = lock(core)?;
+                let r = s.last_record().ok_or_else(|| IpcError::new("not_found"))?;
+                let mut v = conclusion::group_detail(
+                    core,
+                    &s,
+                    &r,
+                    args["groupId"].as_str().expect("validated"),
+                )?;
+                selection(&s.settings, &mut v["group"]);
+                Ok(v)
+            }
+            "clean_result" => {
+                let s = lock(core)?;
+                if let Some(e) = s.m35.failures.get(args["cleanId"].as_str().unwrap()) {
+                    return Err(e.clone());
+                }
+                s.cleans
+                    .get(args["cleanId"].as_str().expect("validated"))
+                    .map(|v| {
+                        let mut view = v["view"].clone();
+                        if view.get("quarantined").is_none() {
+                            view["quarantined"] = Value::Null;
+                        }
+                        if view.get("journal_note_zh").is_none() {
+                            view["journal_note_zh"] = Value::Null;
+                        }
+                        view
+                    })
+                    .ok_or_else(|| IpcError::new("not_found"))
+            }
+            "locations_get" => Ok(locations(core, &*lock(core)?)),
+            "locations_set_category" | "custom_root_remove" => {
+                let mut s = lock(core)?;
+                if s.busy != "idle" {
+                    return Err(IpcError::new("busy"));
+                }
+                let mut settings = s.settings.clone();
+                if command == "locations_set_category" {
+                    settings.categories.insert(
+                        args["category"].as_str().expect("validated").into(),
+                        args["enabled"].as_bool().expect("validated"),
+                    );
+                } else {
+                    let index = settings
+                        .custom_roots
+                        .iter()
+                        .position(|r| r.root_id == args["rootId"])
+                        .ok_or_else(|| IpcError::new("not_found"))?;
+                    settings.custom_roots.remove(index);
+                }
+                core.store.write("", "settings.json", &json!(settings))?;
+                s.settings = settings;
+                Ok(locations(core, &s))
+            }
+            "trends" => Ok(trends(core, &*lock(core)?)),
+            "history_list" => Ok(history(&*lock(core)?)),
+            _ => Err(IpcError::new("invalid")),
+        }
+    }
+
+    fn scan_start(&self, args: &Value) -> Result<Value, IpcError> {
+        let core = self.core.clone();
+        let mut s = lock(&core)?;
+        if s.busy != "idle" {
+            return Err(IpcError::new("busy"));
+        }
+        let at = core.platform.now();
+        let mut id = util::new_id("scan", at);
+        while s.records.iter().any(|r| r.result.scan_id == id) {
+            id = util::new_id("scan", at);
+        }
+        let settings = s.settings.clone();
+        let scope = m35::scope(&core, &s, args)?;
+        // A new scan consumes the previous scan's authority to prepare/execute plans,
+        // even when the new scan is subsequently cancelled. Persist before scanning.
+        let previous = s.last_record();
+        let growth_base = select_growth_base(&s.records, at);
+        let s_last = s.last.clone();
+        if let Some(previous) = &previous {
+            s.consumed.insert(previous.result.scan_id.clone());
+            s.m35
+                .stale
+                .insert(previous.result.scan_id.clone(), "有了更新的体检".into());
+        }
+        s.stale_plans = s.plans.keys().cloned().collect();
+        let cancel = scan::CancelToken::new();
+        s.cancel = Some(cancel.clone());
+        s.scan_started = Some(Instant::now());
+        s.busy = "scanning";
+        s.scan_progress = json!({"scan_id":id,"state":"running","categories":[],"locations":m35::progress_locations(&scope),"visited_entries":0,"found_bytes":"0","percent":0,"elapsed_ms":0});
+        let unfinished = m35::unfinished_paths(&s);
+        drop(s);
+        let job = ScanJob {
+            core: core.clone(),
+            id: id.clone(),
+            previous,
+            growth_base,
+            previous_last: s_last.clone(),
+            cancel,
+            settings,
+            at,
+            scope,
+            unfinished,
+        };
+        let previous_last = s_last;
+        let spawned = std::thread::Builder::new()
+            .name("water-scan".into())
+            .spawn(move || {
+                let worker_core = job.core.clone();
+                let worker_id = job.id.clone();
+                // The whole task is guarded, not only the scanner call.
+                let guarded = std::panic::catch_unwind(std::panic::AssertUnwindSafe(|| job.run()));
+                if guarded.is_err() {
+                    let persisted = worker_core
+                        .store
+                        .read("scans", &format!("{worker_id}.json"))
+                        .is_some();
+                    let mut s = worker_core
+                        .state
+                        .lock()
+                        .unwrap_or_else(PoisonError::into_inner);
+                    // A record that never reached disk must not stay as last, so a restart cannot
+                    // promote a half-written completion. A fully written record is left in place.
+                    if !persisted {
+                        if s.last.as_deref() == Some(worker_id.as_str()) {
+                            s.last = previous_last;
+                        }
+                        s.local_scans.remove(&worker_id);
+                        s.records.retain(|r| r.result.scan_id != worker_id);
+                        s.scan_progress["state"] = json!("failed");
+                    }
+                    s.busy = "idle";
+                    s.cancel = None;
+                }
+            });
+        if spawned.is_err() {
+            let mut s = lock(&core)?;
+            s.busy = "idle";
+            s.cancel = None;
+            s.scan_progress["state"] = json!("failed");
+            return Err(IpcError::new("unavailable"));
+        }
+        Ok(json!({"scan_id":id}))
+    }
+
+    fn add_root(&self) -> Result<Value, IpcError> {
+        if lock(&self.core)?.busy != "idle" {
+            return Err(IpcError::new("busy"));
+        }
+        let picked = self.core.picker.pick()?;
+        let Some(path) = picked else {
+            return Ok(json!({"cancelled":true}));
+        };
+        let mut s = lock(&self.core)?;
+        if s.busy != "idle" {
+            return Err(IpcError::new("busy"));
+        }
+        if let Some(root) = s
+            .settings
+            .custom_roots
+            .iter()
+            .find(|r| r.path.eq_ignore_ascii_case(&path))
+        {
+            return Ok(json!({"added":root_view(&s,root)}));
+        }
+        if s.settings.custom_roots.len() >= 16
+            || !valid_custom(&path, &self.core.folders, self.core.platform.as_ref())
+        {
+            return Err(IpcError {
+                code: "invalid".into(),
+                message_zh: "这个位置太大或包含系统目录，请选择具体的项目文件夹。".into(),
+            });
+        }
+        if is_drive_root(&path) && !supported_volume(self.core.platform.as_ref(), &path) {
+            return Err(IpcError {
+                code: "invalid".into(),
+                message_zh: "只支持 NTFS 或 ReFS 格式的盘".into(),
+            });
+        }
+        let path = if is_drive_root(&path) {
+            util::drive(&path)
+        } else {
+            path
+        };
+        let base: String = path
+            .rsplit('\\')
+            .next()
+            .unwrap_or("")
+            .chars()
+            .filter(char::is_ascii_alphanumeric)
+            .take(24)
+            .flat_map(char::to_lowercase)
+            .collect();
+        let base = if is_drive_root(&path) {
+            format!("drive-{}", path[..1].to_ascii_lowercase())
+        } else if base.is_empty() {
+            "root".into()
+        } else {
+            base
+        };
+        let mut id = base.clone();
+        let mut suffix = 2;
+        while id == "common" || s.settings.custom_roots.iter().any(|r| r.root_id == id) {
+            id = format!("{base}-{suffix}");
+            suffix += 1;
+        }
+        let root = CustomRoot {
+            root_id: id,
+            path,
+            added_at: util::timestamp(self.core.platform.now()),
+        };
+        let mut settings = s.settings.clone();
+        settings.custom_roots.push(root.clone());
+        self.core
+            .store
+            .write("", "settings.json", &json!(settings))?;
+        s.settings = settings;
+        Ok(json!({"added":root_view(&s,&root)}))
+    }
+}
+
+impl Service {
+    fn add_skip(&self, item_id: &str) -> Result<Value, IpcError> {
+        let core = &self.core;
+        let mut s = lock(core)?;
+        if s.busy != "idle" {
+            return Err(IpcError::new("busy"));
+        }
+        let record = s.last_record().ok_or_else(|| IpcError::new("invalid"))?;
+        let index = record
+            .projection()
+            .item_index(item_id)
+            .ok_or_else(|| IpcError::new("invalid"))?;
+        let item = &record.result.items[index];
+        if !record
+            .result
+            .groups
+            .iter()
+            .any(|g| g.group_id == item.group_id && g.level.cleanable())
+        {
+            return Err(IpcError::new("invalid"));
+        }
+        if s.settings.skipped.iter().any(|v| {
+            v.kind == "path"
+                && v.path
+                    .as_deref()
+                    .is_some_and(|p| p.eq_ignore_ascii_case(&item.path))
+        }) {
+            let stale: Vec<_> = s.plans.keys().cloned().collect();
+            s.stale_plans.extend(stale);
+            return Ok(locations(core, &s));
+        }
+        if s.settings.skipped.len() >= 64 {
+            return Err(IpcError::new("invalid"));
+        }
+        let mut settings = s.settings.clone();
+        let sequence = (1..=999999)
+            .find(|n| {
+                !settings
+                    .skipped
+                    .iter()
+                    .any(|v| v.skip_id == format!("s-{n:06}"))
+            })
+            .ok_or_else(|| IpcError::new("invalid"))?;
+        settings.skipped.push(Skipped {
+            skip_id: format!("s-{sequence:06}"),
+            kind: "path".into(),
+            path: Some(item.path.clone()),
+            group_id: None,
+            template: None,
+            folder: None,
+            title_zh: item.path.clone(),
+            added_at: util::timestamp(core.platform.now()),
+        });
+        core.store.write("", "settings.json", &json!(settings))?;
+        let changed = settings.skipped.last().unwrap().clone();
+        s.settings = settings;
+        invalidate_skips(&mut s);
+        let stale: Vec<_> = s.plans.keys().cloned().collect();
+        s.stale_plans.extend(stale);
+        refresh_skip_records(core, &s, &changed);
+        Ok(locations(core, &s))
+    }
+
+    fn remove_skip(&self, id: &str) -> Result<Value, IpcError> {
+        let mut s = lock(&self.core)?;
+        if s.busy != "idle" {
+            return Err(IpcError::new("busy"));
+        }
+        let mut settings = s.settings.clone();
+        let index = settings
+            .skipped
+            .iter()
+            .position(|v| v.skip_id == id)
+            .ok_or_else(|| IpcError::new("not_found"))?;
+        let removed = settings.skipped.remove(index);
+        self.core
+            .store
+            .write("", "settings.json", &json!(settings))?;
+        s.settings = settings;
+        invalidate_skips(&mut s);
+        let stale: Vec<_> = s.plans.keys().cloned().collect();
+        s.stale_plans.extend(stale);
+        refresh_skip_records(&self.core, &s, &removed);
+        Ok(locations(&self.core, &s))
+    }
+
+    fn add_skip_unit(&self, version: &str, unit_id: &str) -> Result<Value, IpcError> {
+        let core = &self.core;
+        let mut s = lock(core)?;
+        if s.busy != "idle" {
+            return Err(IpcError::new("busy"));
+        }
+        conclusion::ensure(core, &mut s)?;
+        let c = s
+            .m35
+            .conclusion
+            .as_ref()
+            .ok_or_else(|| IpcError::new("invalid"))?;
+        if conclusion::version(c) != version {
+            return Err(IpcError::new("stale"));
+        }
+        let specs = conclusion::skip_specs(core, &s, c, unit_id)?;
+        let existing = s.settings.skipped.clone();
+        let mut additions = Vec::new();
+        for spec in specs {
+            if existing.iter().any(|v| v.same_as(&spec))
+                || additions.iter().any(|v: &Skipped| v.same_as(&spec))
+            {
+                continue;
+            }
+            additions.push(Skipped {
+                skip_id: String::new(),
+                kind: spec.kind,
+                path: spec.path,
+                group_id: spec.group_id,
+                template: spec.template,
+                folder: spec.folder,
+                title_zh: spec.title_zh,
+                added_at: util::timestamp(core.platform.now()),
+            });
+        }
+        if additions.is_empty() {
+            let stale: Vec<_> = s.plans.keys().cloned().collect();
+            s.stale_plans.extend(stale);
+            return Ok(locations(core, &s));
+        }
+        if s.settings.skipped.len() + additions.len() > 64 {
+            return Err(IpcError::new("invalid"));
+        }
+        let mut settings = s.settings.clone();
+        for mut item in additions.clone() {
+            let sequence = (1..=999999)
+                .find(|n| {
+                    !settings
+                        .skipped
+                        .iter()
+                        .any(|v| v.skip_id == format!("s-{n:06}"))
+                })
+                .ok_or_else(|| IpcError::new("invalid"))?;
+            item.skip_id = format!("s-{sequence:06}");
+            settings.skipped.push(item);
+        }
+        settings.settings_version = "water.settings.v4".into();
+        core.store.write("", "settings.json", &json!(settings))?;
+        s.settings = settings;
+        invalidate_skips(&mut s);
+        let stale: Vec<_> = s.plans.keys().cloned().collect();
+        s.stale_plans.extend(stale);
+        for changed in additions {
+            refresh_skip_records(core, &s, &changed);
+        }
+        Ok(locations(core, &s))
+    }
+}
+
+fn invalidate_skips(s: &mut State) {
+    m35::invalidate(s, "跳过名单变了");
+    if let Some(c) = &mut s.m35.conclusion {
+        c.serial += 1;
+    }
+}
+
+fn refresh_skip_records(core: &Core, s: &State, changed: &Skipped) {
+    for record in &s.records {
+        let mut p = record.projection();
+        p.refresh_skip(
+            record,
+            changed,
+            &s.settings,
+            &core.rules,
+            core.platform.as_ref(),
+        );
+    }
+}
+
+struct ScanJob {
+    core: Arc<Core>,
+    id: String,
+    previous: Option<Arc<Record>>,
+    growth_base: Option<Arc<Record>>,
+    previous_last: Option<String>,
+    cancel: scan::CancelToken,
+    settings: Settings,
+    at: SystemTime,
+    scope: Vec<m35::Location>,
+    unfinished: BTreeMap<String, String>,
+}
+
+impl ScanJob {
+    fn run(self) {
+        let ScanJob {
+            core: worker_core,
+            id: worker_id,
+            previous,
+            growth_base,
+            previous_last,
+            cancel,
+            settings,
+            at,
+            scope,
+            unfinished,
+        } = self;
+        let started = Instant::now();
+        // Plan construction and bounded declaration reads run on the worker, so
+        // IPC polling never waits on them while the service mutex is held.
+        let roots = m35::scope_roots(&scope);
+        let options = water_junk_rules::PlanOptions {
+            sessions: settings
+                .sessions
+                .iter()
+                .filter(|x| x.enabled)
+                .map(|x| water_junk_rules::SessionSwitch {
+                    tool: x.tool.clone(),
+                    min_age_days: x.days,
+                })
+                .collect(),
+        };
+        let mut plan = water_junk_rules::resolve_plan_with(
+            &worker_core.rules,
+            &worker_core.folders,
+            &roots,
+            &util::timestamp(at),
+            &options,
+        )
+        .expect("validated settings and scope");
+        plan.targets.retain(|t| {
+            (t.level == water_junk_rules::Level::Protected
+                || views::enabled(&settings, t.category.as_str()))
+                && (scope.iter().any(|l| l.location_id == "common")
+                    || t.group_id.starts_with("custom:"))
+        });
+        let mut declarations =
+            m35::trusted_plan(&settings, &scope, &mut plan).expect("validated declaration plan");
+        let plan_json = water_junk_rules::plan_to_json(&plan);
+        let parsed = scan::ScanPlan::from_json(&plan_json).expect("validated scan plan");
+        if let Ok(mut s) = lock(&worker_core) {
+            s.scan_progress["categories"] = json!(progress_categories(&plan));
+        }
+        let observer = Progress {
+            core: worker_core.clone(),
+            plan: plan.clone(),
+            reported: Mutex::new(BTreeMap::new()),
+            last_found: Mutex::new(0),
+            started,
+        };
+        let result = std::panic::catch_unwind(std::panic::AssertUnwindSafe(|| {
+            if let Some(previous) = &previous {
+                let mut invalidated = previous.saved.clone();
+                invalidated["consumed"] = json!(true);
+                if worker_core
+                    .store
+                    .write(
+                        "scans",
+                        &format!("{}.json", previous.result.scan_id),
+                        &invalidated,
+                    )
+                    .is_err()
+                {
+                    return Err(scan::ScanError::Native);
+                }
+            }
+            worker_core.platform.begin_in_use_batch();
+            scan::scan_full(
+                &parsed,
+                &worker_id,
+                &scan::ScanOptions::default(),
+                &scan::ExtrasOptions {
+                    leak_clusters: true,
+                    junctions: true,
+                    declarations: true,
+                },
+                &cancel,
+                &observer,
+                at,
+            )
+        }));
+        let mut result = match result {
+            Ok(Ok((v, extras))) => {
+                declarations = m35::load_declarations(extras.declarations, &declarations);
+                v
+            }
+            _ => scan::ScanResult {
+                result_version: "water.scan-result.v1".into(),
+                scan_id: worker_id.clone(),
+                started_at: util::timestamp(at),
+                ended_at: util::timestamp(worker_core.platform.now()),
+                status: "failed".into(),
+                visited_entries: 0,
+                groups: vec![],
+                items: vec![],
+                issues: vec![],
+            },
+        };
+        let supplemented = m35::supplement(&worker_core, &mut result, &declarations, &unfinished);
+        // A shadowed legacy declaration loses its old consent as well as its
+        // targets. Removing the new file later must not revive that consent.
+        {
+            let mut s = lock(&worker_core).expect("service state");
+            let mut settings = s.settings.clone();
+            settings.trusts.retain(|t| {
+                !declarations.iter().any(|d| {
+                    d.path.eq_ignore_ascii_case(&t.path)
+                        && d.error
+                            .as_ref()
+                            .is_some_and(|e| e.code == "MANIFEST_SHADOWED")
+                })
+            });
+            if settings.trusts.len() != s.settings.trusts.len() {
+                // Even a failed persistence must not leave in-memory consent.
+                s.settings = settings.clone();
+                if worker_core
+                    .store
+                    .write("", "settings.json", &json!(settings))
+                    .is_err()
+                {
+                    result.status = "failed".into();
+                }
+            }
+        }
+        let mut spaces = Vec::new();
+        if matches!(result.status.as_str(), "completed" | "partial") {
+            for l in scope.iter().filter(|l| l.kind == "drive") {
+                if let Ok(mut s) = lock(&worker_core) {
+                    for row in s.scan_progress["locations"]
+                        .as_array_mut()
+                        .into_iter()
+                        .flatten()
+                        .filter(|row| row["location_id"] == l.location_id)
+                    {
+                        row["state"] = json!("running");
+                        row["label_zh"] = json!(format!("{} · 空间分布", l.label_zh));
+                    }
+                }
+                let root = l.path.as_deref().unwrap();
+                spaces.push(
+                    match scan::space_overview(
+                        root,
+                        &worker_id,
+                        &scan::ScanOptions::default(),
+                        &cancel,
+                        &observer,
+                        at,
+                    ) {
+                        Ok(v) => json!(v),
+                        Err(_) => json!({"root":root,"status":"failed","top":[],"disk_bytes":"0"}),
+                    },
+                );
+            }
+        }
+        let snapshot = views::display_snapshot(&result);
+        let growth = if matches!(result.status.as_str(), "completed" | "partial") {
+            growth_base
+                .as_ref()
+                .map(|p| scan::growth(&views::display_snapshot(&p.result), &snapshot))
+                .unwrap_or_default()
+        } else {
+            vec![]
+        };
+        let drives=worker_core.platform.drives().into_iter().map(|d|json!({"root":d.root,"is_system":d.is_system,"total_bytes":d.total_bytes.to_string(),"free_bytes":d.free_bytes.to_string()})).collect::<Vec<_>>();
+        // Still inside this scan's in-use batch; the result is saved and views reuse it.
+        let (in_use, item_in_use) = views::scan_in_use(&result, worker_core.platform.as_ref());
+        let orphans = orphan_views(worker_core.platform.as_ref());
+        let plan_value = serde_json::from_str::<Value>(&plan_json).unwrap_or(Value::Null);
+        let recycle_bins=worker_core.platform.drives().into_iter().map(|d|json!({"root":d.root,"bytes":worker_core.platform.recycle_bin(&d.root).map(|n|n.to_string())})).collect::<Vec<_>>();
+        let mut saved = json!({"record_version":"water.scan-record.v1","scan_id":worker_id,"started_at":result.started_at,"finished_at":result.ended_at,"duration_ms":started.elapsed().as_millis() as u64,"drives":drives,"plan":plan_value,"result":result,"growth":growth,"previous_scan_id":previous.as_ref().map(|p|&p.result.scan_id),"growth_base_scan_id":growth_base.as_ref().map(|p|&p.result.scan_id),"consumed":false,"in_use":in_use,"item_in_use":item_in_use,"orphans":orphans,"scope":scope,"declarations":declarations.iter().map(m35::declaration_value).collect::<Vec<_>>(),"space":spaces,"recycle_bins":recycle_bins});
+        for (key, value) in supplemented.as_object().unwrap() {
+            saved[key] = value.clone();
+        }
+        let record = Record {
+            saved,
+            result,
+            plan,
+            growth,
+            previous_at: growth_base.as_ref().map(|p| p.result.ended_at.clone()),
+            projection: Mutex::new(views::Projection::default()),
+        };
+        *record.projection() = views::Projection::new(
+            &record,
+            &worker_core.rules,
+            worker_core.platform.as_ref(),
+            &settings,
+        );
+        // Memory first, then disk. A restart only treats this scan as last_scan when both succeed.
+        let completed = record.completed();
+        let status = record.result.status.clone();
+        let visited = record.result.visited_entries;
+        let found = record
+            .result
+            .groups
+            .iter()
+            .map(|g| util::number(&g.unique_bytes))
+            .sum::<u64>()
+            .to_string();
+        let category_totals: Vec<_> = record.projection().view["categories"]
+            .as_array()
+            .map(|cats| {
+                cats.iter()
+                    .map(|c| {
+                        (
+                            c["category"].clone(),
+                            c["title_zh"].clone(),
+                            util::bytes(&c["total_bytes"]),
+                        )
+                    })
+                    .collect()
+            })
+            .unwrap_or_default();
+        let saved = record.saved.clone();
+        let snapshot_value = json!(snapshot);
+        if let Ok(mut s) = lock(&worker_core) {
+            s.scan_progress["percent"] = json!(100);
+            s.scan_progress["elapsed_ms"] = json!(started.elapsed().as_millis() as u64);
+            s.scan_progress["visited_entries"] = json!(visited);
+            s.scan_progress["found_bytes"] = json!(found);
+            if completed {
+                for row in s.scan_progress["locations"]
+                    .as_array_mut()
+                    .into_iter()
+                    .flatten()
+                {
+                    row["state"] = json!("done");
+                }
+            }
+            if let Some(rows) = s.scan_progress["categories"].as_array_mut() {
+                for row in rows {
+                    let total = category_totals
+                        .iter()
+                        .filter(|(c, t, _)| *c == row["category"] && *t == row["title_zh"])
+                        .map(|(_, _, n)| *n)
+                        .sum::<u64>();
+                    row["found_bytes"] = json!(total.to_string());
+                }
+            }
+            // last is published in memory first; disk write happens without this lock so
+            // progress polls keep the 50 ms budget. A failed write rolls last back.
+            if completed {
+                s.last = Some(worker_id.clone());
+                s.local_scans.insert(worker_id.clone());
+            }
+            s.records.push(Arc::new(record));
+        }
+        let stored = worker_core
+            .store
+            .write("snapshots", &format!("{worker_id}.json"), &snapshot_value)
+            .and_then(|()| {
+                worker_core
+                    .store
+                    .write("scans", &format!("{worker_id}.json"), &saved)
+                    .inspect_err(|_| {
+                        worker_core
+                            .store
+                            .remove("snapshots", std::slice::from_ref(&worker_id));
+                    })
+            });
+        let _ = quarantine::refresh(&worker_core);
+        if stored.is_ok() {
+            let ids = lock(&worker_core).ok().map(|mut s| trim_state(&mut s));
+            if let Some((scans, cleans)) = ids {
+                trim_files(&worker_core.store, &scans, &cleans);
+            }
+            if let Ok(mut s) = lock(&worker_core) {
+                s.scan_progress["state"] = json!(status);
+                if completed {
+                    s.m35.conclusion = None;
+                }
+                s.busy = "idle";
+                s.cancel = None;
+            }
+        } else if let Ok(mut s) = lock(&worker_core) {
+            if s.last.as_deref() == Some(worker_id.as_str()) {
+                s.last = previous_last;
+            }
+            s.local_scans.remove(&worker_id);
+            s.records.retain(|r| r.result.scan_id != worker_id);
+            s.scan_progress["state"] = json!("failed");
+            s.busy = "idle";
+            s.cancel = None;
+        }
+    }
+}
+
+fn validate(command: &str, args: &Value) -> Result<(), IpcError> {
+    if let Some(result) = m35::validate(command, args) {
+        return result;
+    }
+    let bad = || IpcError::new("invalid");
+    let keys: &[&str] = match command {
+        "app_state" | "scan_start" | "scan_progress" | "clean_stop" | "clean_progress"
+        | "trends" | "history_list" | "locations_get" | "custom_root_add" | "diagnostics_get" => {
+            &[]
+        }
+        "scan_cancel" | "scan_result" => &["scanId"],
+        "group_detail" => &["groupId"],
+        "clean_prepare" if args.get("excludeItemIds").is_some() => &["groupIds", "excludeItemIds"],
+        "clean_prepare" => &["groupIds"],
+        "skip_add" => &["itemId"],
+        "skip_unit_add" => &["conclusionVersion", "unitId"],
+        "skip_remove" => &["skipId"],
+        "clean_start" => &["planId", "confirmToken"],
+        "clean_result" => &["cleanId"],
+        "locations_set_category" => &["category", "enabled"],
+        "custom_root_remove" => &["rootId"],
+        _ => return Err(bad()),
+    };
+    let object = args.as_object().ok_or_else(bad)?;
+    if object.len() != keys.len() || !keys.iter().all(|k| object.contains_key(*k)) {
+        return Err(bad());
+    }
+    for key in keys {
+        let valid = match *key {
+            "enabled" => args[key].is_boolean(),
+            "category" => args[key]
+                .as_str()
+                .is_some_and(|s| views::CATEGORIES[..7].iter().any(|c| c.0 == s)),
+            "confirmToken" => args[key]
+                .as_str()
+                .is_some_and(|s| (1..=512).contains(&s.chars().count()) && !s.contains('\\')),
+            "groupIds" | "excludeItemIds" => args[key].as_array().is_some_and(|v| {
+                (if *key == "groupIds" {
+                    !v.is_empty()
+                } else {
+                    v.len() <= 5000
+                }) && v.iter().all(|i| i.as_str().is_some_and(util::id_ok))
+                    && v.iter()
+                        .filter_map(Value::as_str)
+                        .collect::<BTreeSet<_>>()
+                        .len()
+                        == v.len()
+            }),
+            "conclusionVersion" => args[key]
+                .as_str()
+                .is_some_and(|v| (1..=64).contains(&v.len()) && util::id_ok(v)),
+            _ => args[key].as_str().is_some_and(util::id_ok),
+        };
+        if !valid {
+            return Err(bad());
+        }
+    }
+    Ok(())
+}
+
+fn selection(settings: &Settings, group: &mut Value) {
+    let selectable = matches!(group["level"].as_str(), Some("recommended" | "confirm"))
+        && group["eligible_count"].as_u64().is_some_and(|n| n > 0)
+        && views::enabled(settings, group["category"].as_str().unwrap_or(""));
+    group["selectable"] = json!(selectable);
+    group["default_selected"] = json!(selectable && group["level"] == "recommended");
+}
+
+fn is_drive_root(path: &str) -> bool {
+    path.len() == 3 && path.as_bytes()[0].is_ascii_alphabetic() && &path.as_bytes()[1..] == b":\\"
+}
+
+fn supported_volume(platform: &dyn Platform, path: &str) -> bool {
+    platform
+        .volume_file_system(path)
+        .is_some_and(|s| s.eq_ignore_ascii_case("NTFS") || s.eq_ignore_ascii_case("ReFS"))
+}
+
+fn valid_custom(path: &str, folders: &KnownFolders, platform: &dyn Platform) -> bool {
+    if is_drive_root(path) {
+        return platform
+            .drives()
+            .iter()
+            .any(|d| d.root.eq_ignore_ascii_case(path) && !d.is_system)
+            && !folders.values().any(|p| {
+                util::contains(path, p)
+                    || util::contains(path, &canonical(p).unwrap_or_else(|| p.to_owned()))
+            });
+    }
+    let bytes = path.as_bytes();
+    bytes.len() > 3
+        && bytes[0].is_ascii_alphabetic()
+        && bytes[1..3] == *b":\\"
+        && !path.contains('/')
+        && !path.ends_with('\\')
+        && !path[3..].split('\\').any(|p| {
+            p.is_empty() || p == "." || p == ".." || p.ends_with(['.', ' ']) || p.contains(':')
+        })
+        && plain_directory(Path::new(path))
+        // The canonical form must be the given text itself (ASCII case aside): short names,
+        // aliases and other spellings of a directory are rejected.
+        && canonical(path).is_some_and(|c| c.eq_ignore_ascii_case(path))
+        && !folders.values().any(|p| {
+            // Text form and canonical form: a known folder reached through a junction in
+            // an ancestor still counts as contained (scanner and cleaner never follow it).
+            let canon = canonical(p).unwrap_or_else(|| p.to_owned());
+            util::contains(path, p) || util::contains(path, &canon)
+        })
+        && !util::contains(
+            &canonical(&folders.windows).unwrap_or_else(|| folders.windows.clone()),
+            path,
+        )
+}
+
+fn canonical(path: &str) -> Option<String> {
+    let resolved = std::fs::canonicalize(path).ok()?;
+    let text = resolved.to_str()?;
+    Some(text.strip_prefix(r"\\?\").unwrap_or(text).to_owned())
+}
+
+fn progress_categories(plan: &water_junk_rules::ScanPlan) -> Vec<Value> {
+    let mut result = Vec::new();
+    for (cat, title, _, _) in views::CATEGORIES {
+        let targets: Vec<_> = plan
+            .targets
+            .iter()
+            .filter(|t| t.category.as_str() == cat)
+            .collect();
+        if cat == "custom" {
+            let mut seen = BTreeSet::new();
+            for t in targets {
+                if let water_junk_rules::MatchSpec::Marker { root, .. }
+                | water_junk_rules::MatchSpec::Discovery { root } = &t.match_spec
+                    && seen.insert(root)
+                {
+                    result.push(json!({"category":cat,"title_zh":format!("你加的位置 · {root}"),"state":"waiting","found_bytes":"0"}));
+                }
+            }
+        } else if !targets.is_empty() {
+            result
+                .push(json!({"category":cat,"title_zh":title,"state":"waiting","found_bytes":"0"}));
+        }
+    }
+    result
+}
+
+struct Progress {
+    core: Arc<Core>,
+    plan: water_junk_rules::ScanPlan,
+    reported: Mutex<BTreeMap<String, usize>>,
+    last_found: Mutex<u64>,
+    started: Instant,
+}
+impl scan::ScanObserver for Progress {
+    fn on_progress(&self, p: &scan::ScanProgress) {
+        // The accepted scanner emits exactly once at each target boundary (pattern/marker, then discovery).
+        let mut reported = self.reported.lock().unwrap_or_else(PoisonError::into_inner);
+        *reported.entry(p.group_id.clone()).or_default() += 1;
+        let mut last_found = self
+            .last_found
+            .lock()
+            .unwrap_or_else(PoisonError::into_inner);
+        let delta = p.found_bytes.saturating_sub(*last_found);
+        *last_found = p.found_bytes;
+        if let Ok(s) = lock(&self.core) {
+            let mut progress = s.scan_progress.clone();
+            drop(s);
+            progress["visited_entries"] = json!(p.visited_entries);
+            progress["found_bytes"] = json!(p.found_bytes.to_string());
+            progress["elapsed_ms"] = json!(self.started.elapsed().as_millis() as u64);
+            let n: usize = reported.values().sum();
+            progress["percent"] = json!((n * 100 / self.plan.targets.len().max(1)).min(99));
+            for row in progress["categories"]
+                .as_array_mut()
+                .expect("progress array")
+            {
+                let targets: Vec<_> = self
+                    .plan
+                    .targets
+                    .iter()
+                    .filter(|t| {
+                        t.category.as_str() == row["category"]
+                            && (t.category.as_str() != "custom"
+                                || match &t.match_spec {
+                                    water_junk_rules::MatchSpec::Marker { root, .. }
+                                    | water_junk_rules::MatchSpec::Discovery { root } => {
+                                        row["title_zh"] == format!("你加的位置 · {root}")
+                                    }
+                                    _ => false,
+                                })
+                    })
+                    .collect();
+                let groups: BTreeSet<_> = targets.iter().map(|t| t.group_id.as_str()).collect();
+                let done: usize = groups
+                    .iter()
+                    .map(|id| reported.get(*id).copied().unwrap_or(0))
+                    .sum();
+                row["state"] = json!(if done >= targets.len() {
+                    "done"
+                } else if done > 0 {
+                    "running"
+                } else {
+                    "waiting"
+                });
+                // B reports cumulative bytes; attribute each target's delta to its category.
+                if groups.contains(p.group_id.as_str()) {
+                    let previous = util::bytes(&row["found_bytes"]);
+                    row["found_bytes"] = json!((previous + delta).to_string());
+                }
+            }
+            for row in progress["locations"].as_array_mut().into_iter().flatten() {
+                let id = row["location_id"].as_str().unwrap_or("");
+                let prefix = format!("custom:{id}:");
+                let targets = self
+                    .plan
+                    .targets
+                    .iter()
+                    .filter(|t| {
+                        if id == "common" {
+                            !t.group_id.starts_with("custom:") && !t.group_id.starts_with("decl:")
+                        } else {
+                            t.group_id.starts_with(&prefix)
+                        }
+                    })
+                    .collect::<Vec<_>>();
+                let groups = targets
+                    .iter()
+                    .map(|t| t.group_id.as_str())
+                    .collect::<BTreeSet<_>>();
+                let done = groups
+                    .iter()
+                    .map(|id| reported.get(*id).copied().unwrap_or(0))
+                    .sum::<usize>();
+                row["state"] = json!(if done >= targets.len() {
+                    "done"
+                } else if done > 0 {
+                    "running"
+                } else {
+                    "waiting"
+                });
+                if groups.contains(p.group_id.as_str()) {
+                    row["found_bytes"] = json!(
+                        util::bytes(&row["found_bytes"])
+                            .saturating_add(delta)
+                            .to_string()
+                    );
+                }
+            }
+            if let Ok(mut s) = lock(&self.core) {
+                s.scan_progress = progress;
+            }
+        }
+    }
+}
+
+/// Keeps the newest 60 scans and cleans that were read in successfully. Only those trimmed
+/// records are deleted (unreadable files stay in place); a snapshot goes only together with
+/// its scan record. Deletion is best effort and never changes a status or fails startup.
+pub(crate) fn trim_state(s: &mut State) -> (Vec<String>, Vec<String>) {
+    s.records
+        .sort_by(|a, b| a.result.ended_at.cmp(&b.result.ended_at));
+    let scan_dropped = if s.records.len() > 60 {
+        let excess = s.records.len() - 60;
+        s.records
+            .drain(..excess)
+            .map(|r| r.result.scan_id.clone())
+            .collect()
+    } else {
+        vec![]
+    };
+    let mut cleans: Vec<_> = s
+        .clean_order
+        .iter()
+        .filter_map(|id| {
+            s.cleans.get(id).map(|v| {
+                (
+                    v["view"]["finished_at"].as_str().unwrap_or("").to_owned(),
+                    id.clone(),
+                )
+            })
+        })
+        .collect();
+    cleans.sort_by(|a, b| a.0.cmp(&b.0));
+    let keep = cleans
+        .into_iter()
+        .rev()
+        .take(60)
+        .map(|(_, id)| id)
+        .collect::<Vec<_>>();
+    let clean_dropped = s
+        .cleans
+        .keys()
+        .filter(|id| !keep.contains(id))
+        .cloned()
+        .collect::<Vec<_>>();
+    s.cleans.retain(|id, _| keep.contains(id));
+    s.clean_order.retain(|id| keep.contains(id));
+    (scan_dropped, clean_dropped)
+}
+
+pub(crate) fn trim_files(store: &Store, scan_dropped: &[String], clean_dropped: &[String]) {
+    let removed = store.remove("scans", scan_dropped);
+    store.remove("snapshots", &removed);
+    store.remove("cleans", clean_dropped);
+}
+
+pub(crate) fn trim(store: &Store, s: &mut State) {
+    let (scans, cleans) = trim_state(s);
+    trim_files(store, &scans, &cleans);
+}
+
+/// Unreadable, wrong-version or incomplete-category settings fall back to defaults. Otherwise
+/// the category toggles are kept and each custom root is checked on its own; any dropped root
+/// leads to one atomic rewrite (best effort: a failed write keeps the filtered copy in memory).
+fn load_settings(store: &Store, folders: &KnownFolders, platform: &dyn Platform) -> Settings {
+    #[derive(Deserialize)]
+    #[serde(deny_unknown_fields)]
+    struct Raw {
+        settings_version: String,
+        categories: BTreeMap<String, bool>,
+        custom_roots: Vec<Value>,
+        #[serde(default)]
+        skipped: Vec<Skipped>,
+        #[serde(default)]
+        sessions: Vec<m35::Session>,
+        #[serde(default)]
+        trusts: Vec<m35::Trust>,
+        #[serde(default)]
+        fixed_marks: Vec<m35::Fixed>,
+        #[serde(default)]
+        keeps: Vec<m35::Keep>,
+    }
+    let Some(raw) = store
+        .read("", "settings.json")
+        .and_then(|v| serde_json::from_value::<Raw>(v).ok())
+    else {
+        return Settings::default();
+    };
+    if ![
+        "water.settings.v1",
+        "water.settings.v2",
+        "water.settings.v3",
+        "water.settings.v4",
+    ]
+    .contains(&raw.settings_version.as_str())
+        || raw.skipped.len() > 64
+        || raw.skipped.iter().any(|v| !valid_skip(v))
+        || raw
+            .skipped
+            .iter()
+            .map(|v| v.skip_id.as_str())
+            .collect::<BTreeSet<_>>()
+            .len()
+            != raw.skipped.len()
+        || raw
+            .skipped
+            .iter()
+            .enumerate()
+            .any(|(n, v)| raw.skipped[..n].iter().any(|p| p.same_as(v)))
+        || raw.categories.len() != 7
+        || !views::CATEGORIES[..7]
+            .iter()
+            .all(|c| raw.categories.contains_key(c.0))
+    {
+        return Settings::default();
+    }
+    let listed = raw.custom_roots.len();
+    let mut custom_roots: Vec<CustomRoot> = vec![];
+    for value in raw.custom_roots {
+        let Ok(root) = serde_json::from_value::<CustomRoot>(value) else {
+            continue;
+        };
+        if custom_roots.len() < 16
+            && util::id_ok(&root.root_id)
+            && !custom_roots.iter().any(|r| r.root_id == root.root_id)
+            && valid_custom(&root.path, folders, platform)
+            && (!is_drive_root(&root.path) || supported_volume(platform, &root.path))
+        {
+            custom_roots.push(root);
+        }
+    }
+    // Reserve the built-in location ID before migrating any persisted folder.
+    // Include all existing IDs so migration cannot steal a later folder's ID.
+    let mut occupied: BTreeSet<_> = custom_roots.iter().map(|r| r.root_id.clone()).collect();
+    let mut migrated = false;
+    for root in &mut custom_roots {
+        if root.root_id == "common" {
+            let mut suffix = 2;
+            while occupied.contains(&format!("common-{suffix}")) {
+                suffix += 1;
+            }
+            root.root_id = format!("common-{suffix}");
+            occupied.insert(root.root_id.clone());
+            migrated = true;
+        }
+    }
+    let mut settings = Settings {
+        settings_version: "water.settings.v4".into(),
+        categories: raw.categories,
+        custom_roots,
+        skipped: raw
+            .skipped
+            .into_iter()
+            .map(|mut v| {
+                if v.kind.is_empty() {
+                    v.kind = "path".into();
+                }
+                if v.kind == "path" && v.title_zh.is_empty() {
+                    v.title_zh = v.path.clone().unwrap_or_default();
+                }
+                v
+            })
+            .collect(),
+        sessions: raw.sessions,
+        trusts: raw.trusts,
+        fixed_marks: raw.fixed_marks,
+        keeps: raw.keeps,
+    };
+    if !m35::valid_settings(&settings) {
+        return Settings::default();
+    }
+    m35::bound(&mut settings);
+    if migrated
+        || settings.custom_roots.len() != listed
+        || raw.settings_version != "water.settings.v4"
+    {
+        let _ = store.write("", "settings.json", &json!(settings));
+    }
+    settings
+}
+
+fn root_view(s: &State, root: &CustomRoot) -> Value {
+    let prefix = format!("custom:{}:", root.root_id);
+    let record = s.records.iter().rev().find(|r| {
+        r.completed()
+            && r.plan
+                .targets
+                .iter()
+                .any(|t| t.group_id.starts_with(&prefix) && matches!(&t.match_spec,water_junk_rules::MatchSpec::Marker{root: path,..}|water_junk_rules::MatchSpec::Discovery{root:path} if path.eq_ignore_ascii_case(&root.path)))
+    });
+    let total = record.map(|r| {
+        r.result
+            .groups
+            .iter()
+            .filter(|g| g.group_id.starts_with(&prefix))
+            .map(|g| util::number(&g.unique_bytes))
+            .sum::<u64>()
+            .to_string()
+    });
+    json!({"root_id":root.root_id,"display_path":root.path,"last_scanned_at":record.map(|r|r.saved["finished_at"].clone()),"found_bytes":total,"is_drive_root":is_drive_root(&root.path)})
+}
+
+pub(crate) fn locations(core: &Core, s: &State) -> Value {
+    let mut skipped = s.settings.skipped.clone();
+    skipped.sort_by(|a, b| a.added_at.cmp(&b.added_at).then(a.skip_id.cmp(&b.skip_id)));
+    let (sessions, manifests) = m35::locations_extra(core, s);
+    json!({"categories":views::CATEGORIES[..7].iter().map(|(c,t,_,d)|json!({"category":c,"title_zh":t,"description_zh":d,"enabled":views::enabled(&s.settings,c),"locked":false})).collect::<Vec<_>>(),"custom_roots":s.settings.custom_roots.iter().map(|r|root_view(s,r)).collect::<Vec<_>>(),"skipped":skipped.iter().map(|v|json!({"skip_id":v.skip_id,"kind":v.kind,"display_zh":if v.title_zh.is_empty(){v.path.clone().unwrap_or_default()}else{v.title_zh.clone()},"display_path":if v.kind=="path"{v.path.clone()}else{None::<String>},"added_at":v.added_at})).collect::<Vec<_>>(),"home":m35::home(core,s),"sessions":sessions,"manifests":manifests})
+}
+
+fn added_7d(s: &State, r: &Record) -> Option<String> {
+    let now = util::parse_time(&r.result.ended_at)?;
+    let previous = s.records.iter().filter(|p| p.completed()).find(|p| {
+        util::parse_time(&p.result.ended_at)
+            .and_then(|t| now.duration_since(t).ok())
+            .is_some_and(|d| d >= Duration::from_secs(3600) && d <= Duration::from_secs(7 * 86400))
+    })?;
+    Some(
+        r.result
+            .groups
+            .iter()
+            .map(|g| {
+                let old = previous
+                    .result
+                    .groups
+                    .iter()
+                    .find(|p| p.group_id == g.group_id)
+                    .map(|p| util::number(&p.unique_bytes))
+                    .unwrap_or(0);
+                util::number(&g.unique_bytes).saturating_sub(old)
+            })
+            .sum::<u64>()
+            .to_string(),
+    )
+}
+
+fn select_growth_base(records: &[Arc<Record>], at: SystemTime) -> Option<Arc<Record>> {
+    let cutoff = at.checked_sub(Duration::from_secs(86_400))?;
+    records
+        .iter()
+        .filter(|r| r.completed())
+        .filter_map(|r| {
+            let ended = util::parse_time(&r.result.ended_at)?;
+            (ended <= cutoff).then_some((ended, r.clone()))
+        })
+        .max_by_key(|(ended, _)| *ended)
+        .map(|(_, r)| r)
+}
+
+fn history(s: &State) -> Value {
+    let mut rows: Vec<_> = s
+        .records
+        .iter()
+        .map(|r| {
+            let categories: BTreeSet<_> = r
+                .result
+                .groups
+                .iter()
+                .filter(|g| g.item_count > 0)
+                .map(views::category)
+                .collect();
+            let n = categories.len();
+            let summary_zh = if r.result.status == "cancelled" {
+                format!("已停止，识别 {n} 类位置")
+            } else {
+                format!("识别 {n} 类位置")
+            };
+            json!({"kind":"scan","id":r.result.scan_id,"at":r.saved["finished_at"],"summary_zh":summary_zh,"bytes":r.projection().view["totals"]["recommended_bytes"]})
+        })
+        .collect();
+    rows.extend(s.cleans.iter().map(|(id, v)| {
+        let groups = v["view"]["groups"].as_array();
+        let n = groups
+            .map(|groups| {
+                groups
+                    .iter()
+                    .filter(|g| g["status"] == "done" || g["status"] == "partial")
+                    .count()
+            })
+            .unwrap_or(0);
+        let items = v["report"]["items"].as_array();
+        let skipped = items
+            .map(|items| items.iter().filter(|i| i["status"] == "skipped").count())
+            .unwrap_or(0);
+        let failed = items
+            .map(|items| items.iter().filter(|i| i["status"] == "failed").count())
+            .unwrap_or(0);
+        let mut summary_zh = if failed > 0 {
+            format!("清理 {n} 组，跳过 {skipped} 项，失败 {failed} 项")
+        } else {
+            format!("清理 {n} 组，跳过 {skipped} 项")
+        };
+        let quarantined=v["view"]["quarantined"]["item_count"].as_u64().unwrap_or(0);
+        if quarantined>0 {summary_zh.push_str(&format!("，{quarantined} 项进了隔离区"));}
+        json!({"kind":"clean","id":id,"at":v["view"]["finished_at"],"summary_zh":summary_zh,"bytes":v["view"]["freed_bytes"]})
+    }));
+    rows.extend(s.m35.events.clone());
+    rows.sort_by(|a, b| b["at"].as_str().cmp(&a["at"].as_str()));
+    rows.truncate(100);
+    json!(rows)
+}
+
+pub(crate) fn trends(core: &Core, s: &State) -> Value {
+    let recent: Vec<_> = s
+        .records
+        .iter()
+        .filter(|r| {
+            r.completed()
+                && util::parse_time(&r.result.ended_at)
+                    .and_then(|t| core.platform.now().duration_since(t).ok())
+                    .is_some_and(|d| d <= Duration::from_secs(30 * 86400))
+        })
+        .collect();
+    let points:Vec<_>=recent.iter().flat_map(|r|r.saved["drives"].as_array().into_iter().flatten().map(|d|json!({"at":r.saved["finished_at"],"root":d["root"],"free_bytes":d["free_bytes"]}))).collect();
+    let last = s.last_record();
+    let mut growth = last.as_ref().map(|r| r.growth.clone()).unwrap_or_default();
+    growth.sort_by_key(|g| std::cmp::Reverse(g.bytes_delta.parse::<i128>().unwrap_or(0)));
+    let growth:Vec<_>=growth.iter().take(10).map(|g|json!({"group_id":g.group_id,"title_zh":core.rules.text(&g.group_id).map(|t|t.title_zh).unwrap_or_else(||"未识别".into()),"level":last.as_ref().and_then(|r|r.result.groups.iter().find(|x|x.group_id==g.group_id)).map(|g|g.level),"bytes_delta":g.bytes_delta,"count_delta":g.count_delta,"bytes_per_day":g.bytes_per_day})).collect();
+    let mut seen = BTreeSet::new();
+    let mut leaks = Vec::new();
+    for r in recent.iter().rev() {
+        for g in &r.growth {
+            if g.leak_suspect && seen.insert(&g.group_id) && leaks.len() < 5 {
+                let insight = views::insight(r, g, &core.rules, core.platform.as_ref());
+                leaks.push(json!({"group_id":g.group_id,"title_zh":core.rules.text(&g.group_id).map(|t|t.title_zh).unwrap_or_else(||"未识别".into()),"message_zh":insight["message_zh"],"fix_hint_zh":core.rules.text(&g.group_id).and_then(|t|t.fix_hint_zh).unwrap_or_default(),"active":last.as_ref().is_some_and(|r|r.growth.iter().any(|x|x.group_id==g.group_id && x.leak_suspect))}));
+            }
+        }
+    }
+    json!({"points":points,"growth":growth,"leaks":leaks,"forecast":forecast(core,s,&points),"orphans":latest_orphans(s),"clusters":last.as_ref().map(|r|conclusion::clusters(core,s,r)).unwrap_or_default()})
+}
+
+fn valid_skip(v: &Skipped) -> bool {
+    v.skip_id.len() == 8
+        && v.skip_id.starts_with("s-")
+        && v.skip_id[2..].bytes().all(|c| c.is_ascii_digit())
+        && ["path", "group", "template", "folder"].contains(&v.kind.as_str())
+        && match v.kind.as_str() {
+            "path" => {
+                v.path.as_deref().is_some_and(|p| !p.is_empty())
+                    && v.group_id.is_none()
+                    && v.template.is_none()
+                    && v.folder.is_none()
+            }
+            "group" => {
+                v.path.is_none()
+                    && v.group_id.as_deref().is_some_and(util::id_ok)
+                    && v.template.is_none()
+                    && v.folder.is_none()
+            }
+            "template" => {
+                v.path.is_none()
+                    && v.group_id.as_deref().is_some_and(util::id_ok)
+                    && v.template.as_deref().is_some_and(|s| !s.is_empty())
+                    && v.folder.is_none()
+            }
+            "folder" => {
+                v.path.is_none()
+                    && v.group_id.as_deref().is_some_and(util::id_ok)
+                    && v.template.is_none()
+                    && v.folder.as_deref().is_some_and(|s| !s.is_empty())
+            }
+            _ => false,
+        }
+        && util::parse_time(&v.added_at).is_some()
+}
+
+fn diagnostics(core: &Core) -> Result<Value, IpcError> {
+    let s = lock(core)?;
+    let counts = |values: Vec<String>| {
+        let mut out = BTreeMap::<String, u64>::new();
+        for code in values {
+            if [
+                "deleted",
+                "partial",
+                "skipped",
+                "failed",
+                "moved",
+                "gone",
+                "changed",
+                "reparse",
+                "outside_root",
+                "guarded",
+                "protected_overlap",
+                "in_use",
+                "too_recent",
+                "cancelled",
+                "journal_failed",
+            ]
+            .contains(&code.as_str())
+            {
+                *out.entry(code).or_default() += 1;
+            }
+        }
+        out
+    };
+    let last_scan=s.records.last().map(|r| {
+        let scope:Vec<m35::Location>=serde_json::from_value(r.saved["scope"].clone()).unwrap_or_default();
+        let mut issues=BTreeMap::<String,u64>::new();
+        for issue in &r.result.issues { if ["access_denied","unrepresentable_name","budget_exhausted","base_reparse","base_missing","reparse_skipped","identity_unavailable"].contains(&issue.code.as_str()) { *issues.entry(issue.code.clone()).or_default()+=issue.count; } }
+        let levels=|level|r.result.groups.iter().filter(|g|g.level==level).count();
+        json!({"status":r.result.status,"duration_ms":r.saved["duration_ms"],"scope":{"drives":scope.iter().filter(|l|l.kind=="drive").count(),"folders":scope.iter().filter(|l|l.kind=="folder").count(),"common":scope.iter().filter(|l|l.kind=="common").count()},"groups":r.result.groups.len(),"items":r.result.items.len(),"eligible_items":r.result.items.iter().filter(|i|i.eligible && !views::skipped(i,&s.settings)).count(),"levels":{"recommended":levels(scan::Level::Recommended),"confirm":levels(scan::Level::Confirm),"advisory":levels(scan::Level::Advisory),"protected":levels(scan::Level::Protected)},"issues":issues})
+    });
+    let last_clean=s.clean_order.last().and_then(|id|s.cleans.get(id)).map(|v| {
+        let items=v["report"]["items"].as_array().into_iter().flatten().chain(v["quarantine_reports"].as_array().into_iter().flatten().flat_map(|q|q["items"].as_array().into_iter().flatten())).collect::<Vec<_>>();
+        json!({"status":v["report"]["status"],"freed_bytes":v["view"]["freed_bytes"],"items":counts(items.iter().filter_map(|i|i["status"].as_str().map(str::to_owned)).collect()),"skip_reasons":counts(items.iter().filter_map(|i|i["skip_reason"].as_str().map(str::to_owned)).collect()),"quarantine_batches":v["quarantine_reports"].as_array().map_or(0,Vec::len),"journal_error":v["report"]["journal_error"].is_string() || v["quarantine_reports"].as_array().into_iter().flatten().any(|q|q["journal_error"].is_string())})
+    });
+    let skipped = |kind| s.settings.skipped.iter().filter(|v| v.kind == kind).count();
+    // Directory counts do not need to load stored record contents.
+    let store = |dir| {
+        std::fs::read_dir(core.store.root.join(dir))
+            .ok()
+            .into_iter()
+            .flatten()
+            .filter_map(Result::ok)
+            .filter(|e| {
+                e.file_name().to_str().is_some_and(|n| n.ends_with(".json"))
+                    && e.file_type().is_ok_and(|t| t.is_file() && !t.is_symlink())
+            })
+            .count()
+    };
+    Ok(
+        json!({"diagnostics_version":"flick.diagnostics.v1","service_version":env!("CARGO_PKG_VERSION"),"settings":{"settings_version":s.settings.settings_version,"categories_on":s.settings.categories.values().filter(|v|**v).count(),"categories_off":s.settings.categories.values().filter(|v|!**v).count(),"custom_roots":s.settings.custom_roots.len(),"skipped":{"path":skipped("path"),"group":skipped("group"),"template":skipped("template"),"folder":skipped("folder")},"session_cleanup_on":s.settings.sessions.iter().filter(|v|v.enabled).count(),"trusted_declarations":s.settings.trusts.len()},"last_scan":last_scan,"last_clean":last_clean,"quarantine":{"batches":s.m35.quarantine.view["cards"].as_array().map_or(0,Vec::len),"bytes":s.m35.quarantine.view["bytes"].as_str().unwrap_or("0")},"store":{"scans":store("scans"),"snapshots":store("snapshots"),"plans":store("plans"),"cleans":store("cleans"),"quarantine":store("quarantine"),"events":store("events"),"dedupes":store("dedupes")}}),
+    )
+}
+
+fn checkup_due(core: &Core, last: Option<&Record>) -> Value {
+    let Some(last) = last else {
+        return json!({"days_since_last":null});
+    };
+    let days = util::parse_time(&last.result.ended_at)
+        .and_then(|t| core.platform.now().duration_since(t).ok())
+        .map(|d| d.as_secs() / 86400)
+        .unwrap_or(0);
+    if days >= 7 {
+        json!({"days_since_last":days})
+    } else {
+        Value::Null
+    }
+}
+
+fn orphan_views(platform: &dyn Platform) -> Value {
+    let mut chains = platform.orphan_chains();
+    chains.sort_by(|a, b| {
+        b.memory_bytes
+            .as_deref()
+            .map(util::number)
+            .cmp(&a.memory_bytes.as_deref().map(util::number))
+    });
+    json!(chains.into_iter().take(50).map(|c|json!({"name":c.name,"matched_pattern":c.matched_pattern,"process_count":c.descendant_pids.len()+1,"memory_bytes":c.memory_bytes,"started_at":c.created_at})).collect::<Vec<_>>())
+}
+
+fn valid_orphans(v: &Value) -> bool {
+    v.as_array().is_some_and(|rows| {
+        rows.len() <= 50
+            && rows.iter().all(|r| {
+                util::exact_keys(
+                    r,
+                    &[
+                        "name",
+                        "matched_pattern",
+                        "process_count",
+                        "memory_bytes",
+                        "started_at",
+                    ],
+                ) && r["name"].is_string()
+                    && r["matched_pattern"].is_string()
+                    && r["process_count"].as_u64().is_some_and(|n| n > 0)
+                    && (r["memory_bytes"].is_null()
+                        || r["memory_bytes"]
+                            .as_str()
+                            .is_some_and(|s| s.parse::<u64>().is_ok()))
+                    && (r["started_at"].is_null()
+                        || r["started_at"]
+                            .as_str()
+                            .and_then(util::parse_time)
+                            .is_some())
+            })
+    })
+}
+
+fn latest_orphans(s: &State) -> Value {
+    let Some(r) = s
+        .records
+        .iter()
+        .rev()
+        .find(|r| r.completed() && r.saved.get("orphans").is_some())
+    else {
+        return Value::Null;
+    };
+    let chains = &r.saved["orphans"];
+    let memory: Vec<_> = chains
+        .as_array()
+        .into_iter()
+        .flatten()
+        .filter_map(|c| c["memory_bytes"].as_str())
+        .map(util::number)
+        .collect();
+    let total = if memory.is_empty() {
+        None
+    } else {
+        Some(
+            memory
+                .iter()
+                .fold(0u64, |s, n| s.saturating_add(*n))
+                .to_string(),
+        )
+    };
+    json!({"scan_id":r.result.scan_id,"at":r.saved["finished_at"],"total_memory_bytes":total,"chains":chains})
+}
+
+fn forecast(core: &Core, s: &State, points: &[Value]) -> Vec<Value> {
+    let fixed: BTreeSet<_> = core
+        .platform
+        .drives()
+        .into_iter()
+        .map(|d| d.root.to_ascii_uppercase())
+        .collect();
+    let mut by_drive = BTreeMap::<String, Vec<(std::time::SystemTime, u64)>>::new();
+    for p in points {
+        let Some(root) = p["root"]
+            .as_str()
+            .map(str::to_ascii_uppercase)
+            .filter(|r| fixed.contains(r))
+        else {
+            continue;
+        };
+        if let Some(at) = p["at"].as_str().and_then(util::parse_time) {
+            by_drive
+                .entry(root)
+                .or_default()
+                .push((at, util::bytes(&p["free_bytes"])));
+        }
+    }
+    by_drive.into_iter().map(|(root,mut points)| {
+        points.sort_by_key(|p|p.0);
+        let capacity=core.platform.drives().into_iter().find(|d|d.root.eq_ignore_ascii_case(&root)).map(|d|d.total_bytes).unwrap_or(0);
+        let freed_between=|first:SystemTime,last:SystemTime| -> u128 {
+            s.cleans.values().filter(|c|c["view"]["finished_at"].as_str().and_then(util::parse_time).is_some_and(|t|t>first && t<=last)).flat_map(|c|c["view"]["drives"].as_array().into_iter().flatten()).filter(|d|d["root"].as_str().is_some_and(|r|r.eq_ignore_ascii_case(&root))).map(|d|u128::from(util::bytes(&d["free_after"]).saturating_sub(util::bytes(&d["free_before"])))).sum()
+        };
+        let cutoff=points.windows(2).enumerate().filter_map(|(i,p)| {let increase=p[1].1.saturating_sub(p[0].1);(increase>(1<<30).max(capacity/50) && freed_between(p[0].0,p[1].0)*10 < u128::from(increase)*9).then_some(i+1)}).next_back();
+        if let Some(index)=cutoff {points.drain(..index);}
+        let reset=cutoff.is_some();
+        let (first,free_first) = points[0];
+        let (last,free_last) = points[points.len()-1];
+        let days = last.duration_since(first).unwrap_or_default().as_secs_f64()/86400.0;
+        let basis = (days*10.0).round()/10.0;
+        if points.len()<3 || days<3.0 { return json!({"root":root,"days_to_full":null,"bytes_per_day":"0","basis_days":basis,"note_zh":if reset{"Flick 以外的清理之后重新起算"}else{"至少需要 3 天内 3 次体检才能估算"}}); }
+        let freed: u128 = s.cleans.values().filter(|c|c["view"]["finished_at"].as_str().and_then(util::parse_time).is_some_and(|t|t>first && t<=last))
+            .flat_map(|c|c["view"]["drives"].as_array().into_iter().flatten())
+            .filter(|d|d["root"].as_str().is_some_and(|r|r.eq_ignore_ascii_case(&root)))
+            .map(|d|u128::from(util::bytes(&d["free_after"]).saturating_sub(util::bytes(&d["free_before"])))).sum();
+        let rate = (free_first as f64 - free_last as f64 + freed as f64)/days;
+        let estimate = (free_last as f64/rate).floor();
+        let (days_to_full,note) = if rate<=0.0 {(None,Some("最近 30 天可用空间没有减少"))} else if estimate>3650.0 {(None,Some("按现在的速度，十年内不会满"))} else {(Some(estimate as u64),None)};
+        let rounded = rate.trunc();
+        json!({"root":root,"days_to_full":days_to_full,"bytes_per_day":if rounded == 0.0 {"0".to_owned()} else {format!("{rounded:.0}")},"basis_days":basis,"note_zh":if reset{Some("Flick 以外的清理之后重新起算")}else{note}})
+    }).collect()
+}

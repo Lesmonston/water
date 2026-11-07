@@ -1,0 +1,41 @@
+   Compiling water-service v0.1.0 (F:\new\smaltalk\water\.worktrees\accept-w12-p2\packages\water-service)
+warning: unreachable statement
+    --> tests\service_v1.rs:5976:5
+     |
+5971 | /     panic!("PROBE2
+5972 | | progress={probe_p}
+5973 | | result={probe_r}
+5974 | | quarantine={probe_q}
+5975 | | installer_in_place={installer} qroot_exists={qroot}");
+     | |_____________________________________________________- any code following this expression is unreachable
+5976 |       let recorded = call(&s, "clean_result", json!({"cleanId":id["clean_id"]}));
+     |       ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^ unreachable statement
+     |
+     = note: `#[warn(unreachable_code)]` (part of `#[warn(unused)]`) on by default
+
+warning: `water-service` (test "service_v1") generated 1 warning
+    Finished `test` profile [unoptimized + debuginfo] target(s) in 4.53s
+     Running tests\service_v1.rs (.worktrees/accept-w12-p2/.local/w3-target\debug\deps\service_v1-6d8b5c657095e818.exe)
+
+running 1 test
+test m35_clean_split ... FAILED
+
+failures:
+
+---- m35_clean_split stdout ----
+
+thread 'm35_clean_split' (30192) panicked at tests\service_v1.rs:5971:5:
+PROBE2
+progress={"clean_id":"clean-20270115T080000Z-de1a","current_group_title_zh":null,"done_items":12,"freed_bytes":"100","group_count":5,"group_index":5,"phase":"delete","quarantined_bytes":"0","state":"stopped","total_items":13}
+result={"clean_id":"clean-20270115T080000Z-de1a","drives":[{"free_after":"162287935488","free_before":"162287935488","root":"F:\\"}],"estimate_bytes":"600","finished_at":"2027-01-15T08:00:00Z","freed_bytes":"100","groups":[{"freed_bytes":"100","group_id":"chrome-cache","notes_zh":["1 项因日志写不进去未处理"],"status":"partial","title_zh":"Chrome 网页缓存"},{"freed_bytes":"0","group_id":"codex-marketplace-staging","notes_zh":["1 项因日志写不进去未处理"],"status":"skipped","title_zh":"Codex 插件市场升级残留"},{"freed_bytes":"0","group_id":"downloads-installers","notes_zh":["1 项因日志写不进去未处理"],"status":"skipped","title_zh":"下载的安装包"},{"freed_bytes":"0","group_id":"npm-cache","notes_zh":["1 项因日志写不进去未处理"],"status":"skipped","title_zh":"npm 下载缓存"},{"freed_bytes":"0","group_id":"system-temp-old","notes_zh":["8 项因日志写不进去未处理"],"status":"skipped","title_zh":"系统临时目录旧文件"}],"journal_display_path":"F:\\new\\smaltalk\\water\\.worktrees\\accept-w12-p2\\.local/w3-f1-fixtures\\service-73e5d1b33810ca98\\data\\journal\\clean-20270115T080000Z-de1a.jsonl","journal_note_zh":"清理日志没写全，后面的 12 项没有清","quarantined":{"bytes":"0","item_count":0,"notes_zh":["移入隔离区尚未腾出空间，确认没问题后再永久删除"],"quarantine_ids":[]}}
+quarantine={"bytes":"0","cards":[],"roots":[]}
+installer_in_place=true qroot_exists=false
+note: run with `RUST_BACKTRACE=1` environment variable to display a backtrace
+
+
+failures:
+    m35_clean_split
+
+test result: FAILED. 0 passed; 1 failed; 0 ignored; 0 measured; 11 filtered out; finished in 7.06s
+
+error: test failed, to rerun pass `--test service_v1`
