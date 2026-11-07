@@ -752,7 +752,10 @@ fn view(core: &Core, s: &State, c: &Model) -> Value {
         .units
         .iter()
         .filter(|u| {
-            u.level == Level::Confirm && unit_bytes(s, c, u, true) > 0 && !c.kept.contains(&u.id)
+            u.level == Level::Confirm
+                && unit_bytes(s, c, u, true) > 0
+                && !c.kept.contains(&u.id)
+                && !(u.kind == "leak" && u.groups.iter().all(|g| all_members_skipped(s, r, g)))
         })
         .collect();
     candidates.sort_by(|a, b| {
@@ -1917,7 +1920,18 @@ pub(crate) fn cluster_state(s: &State, r: &Record, g: &water_junk_scan::Group) -
 }
 pub(crate) fn clusters(core: &Core, s: &State, r: &Record) -> Vec<Value> {
     let clues = clues(core, s, r);
-    r.result.groups.iter().filter(|g|g.rule_id=="leak-cluster").map(|g|{let growth=r.growth.iter().find(|x|x.group_id==g.group_id);let clue_id=format!("cl-{}",&util::digest(&g.group_id)[..12]);let clue=clues.iter().find(|x|x["clue_id"]==clue_id);json!({"group_id":g.group_id,"title_zh":g.cluster.as_ref().map(|c|format!("{} · {}",tail2(&c.parent),c.template)),"rate_zh":if cluster_state(s,r,g)=="new"{recent_text(recent_count(r,&g.group_id))}else{format!("每天约 +{} 个 · +{}",growth.map(|x|(x.count_delta.max(0) as f64 / x.days.max(1.0)).round() as u64).unwrap_or(0),m35::amount(growth.map(|x|util::number(&x.bytes_per_day)).unwrap_or(0)))},"state":cluster_state(s,r,g),"fixed_at":s.settings.fixed_marks.iter().find(|x|x.group_id==g.group_id).map(|x|&x.fixed_at),"clue_id":clue.map(|x|x["clue_id"].clone()),"copy_text":clue.map(|x|x["copy_text"].clone())})}).collect()
+    r.result.groups.iter().filter(|g|g.rule_id=="leak-cluster" && !all_members_skipped(s, r, &g.group_id)).map(|g|{let growth=r.growth.iter().find(|x|x.group_id==g.group_id);let clue_id=format!("cl-{}",&util::digest(&g.group_id)[..12]);let clue=clues.iter().find(|x|x["clue_id"]==clue_id);json!({"group_id":g.group_id,"title_zh":g.cluster.as_ref().map(|c|format!("{} · {}",tail2(&c.parent),c.template)),"rate_zh":if cluster_state(s,r,g)=="new"{recent_text(recent_count(r,&g.group_id))}else{format!("每天约 +{} 个 · +{}",growth.map(|x|(x.count_delta.max(0) as f64 / x.days.max(1.0)).round() as u64).unwrap_or(0),m35::amount(growth.map(|x|util::number(&x.bytes_per_day)).unwrap_or(0)))},"state":cluster_state(s,r,g),"fixed_at":s.settings.fixed_marks.iter().find(|x|x.group_id==g.group_id).map(|x|&x.fixed_at),"clue_id":clue.map(|x|x["clue_id"].clone()),"copy_text":clue.map(|x|x["copy_text"].clone())})}).collect()
+}
+
+fn all_members_skipped(s: &State, r: &Record, group_id: &str) -> bool {
+    let mut members = r
+        .result
+        .items
+        .iter()
+        .filter(|i| i.group_id == group_id)
+        .peekable();
+    members.peek().is_some()
+        && members.all(|i| s.settings.skipped.iter().any(|skip| skip.matches(i)))
 }
 
 fn recent_count(r: &Record, group_id: &str) -> usize {
@@ -1957,7 +1971,7 @@ fn clues(_core: &Core, s: &State, r: &Record) -> Vec<Value> {
                 .iter()
                 .filter(|i| i.group_id == g.group_id)
                 .collect::<Vec<_>>();
-            if !members.is_empty() && members.iter().all(|i| views::skipped(i, &s.settings)) {
+            if all_members_skipped(s, r, &g.group_id) {
                 continue;
             }
             if !members.is_empty() && members.iter().all(|i| m35::program_directory_blocked(i)) {

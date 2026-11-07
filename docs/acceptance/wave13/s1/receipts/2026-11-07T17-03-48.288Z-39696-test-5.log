@@ -1,0 +1,55 @@
+{"binary":"C:\\Users\\37310\\.rustup\\toolchains\\1.95.0-x86_64-pc-windows-msvc\\bin\\cargo.exe","args":["test","--offline","--locked","--manifest-path","packages/water-service/Cargo.toml","--test","service_v1","--","--test-threads=1"],"exitCode":101,"error":null}
+--- stdout ---
+
+running 12 tests
+test m35_clean_split ... ok
+test m35_conclusion_cards ... ok
+test m35_quarantine ... FAILED
+test m35_rows_and_detail ... FAILED
+test m35_scope_and_plan ... FAILED
+test m35_trends_history ... ok
+test service_clean_flow ... FAILED
+test service_hardening ... ok
+test service_ipc_contract ... ok
+test service_scan_views ... ok
+test service_storage_safety ... ok
+test service_trends_locations ... ok
+
+failures:
+
+---- m35_quarantine stdout ----
+
+thread 'm35_quarantine' (39720) panicked at tests\service_v1.rs:520:9:
+SERVICE_RETURN_BUDGET: quarantine_restore
+note: run with `RUST_BACKTRACE=1` environment variable to display a backtrace
+
+---- m35_rows_and_detail stdout ----
+
+thread 'm35_rows_and_detail' (22952) panicked at tests\service_v1.rs:525:9:
+SERVICE_RETURN_BUDGET: scan_progress
+
+---- m35_scope_and_plan stdout ----
+
+thread 'm35_scope_and_plan' (5600) panicked at tests\service_v1.rs:520:9:
+SERVICE_RETURN_BUDGET: locations_set_session_cleanup
+
+---- service_clean_flow stdout ----
+
+thread 'service_clean_flow' (34636) panicked at tests\service_v1.rs:520:9:
+SERVICE_RETURN_BUDGET: skip_add
+
+
+failures:
+    m35_quarantine
+    m35_rows_and_detail
+    m35_scope_and_plan
+    service_clean_flow
+
+test result: FAILED. 8 passed; 4 failed; 0 ignored; 0 measured; 0 filtered out; finished in 214.01s
+
+
+--- stderr ---
+   Compiling water-service v0.1.0 (F:\new\smaltalk\water\.worktrees\w13-s1\packages\water-service)
+    Finished `test` profile [unoptimized + debuginfo] target(s) in 28.83s
+     Running tests\service_v1.rs (.local\w3-target\debug\deps\service_v1-be7d1ebc4bac31ec.exe)
+error: test failed, to rerun pass `--test service_v1`

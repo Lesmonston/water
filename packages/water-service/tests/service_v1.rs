@@ -1443,6 +1443,8 @@ fn service_trends_locations() {
             .iter()
             .all(|v| v["message_zh"].as_str().unwrap().contains("+<1 MB"))
     );
+    // Scan timestamps include real elapsed time; query after both scans finish.
+    f.fake.now.store(NOW + 2 * 86400 + 60, Ordering::SeqCst);
     let trends = call(&s, "trends", json!({}));
     assert_eq!(trends["points"].as_array().unwrap().len(), 2);
     assert!(!trends["growth"].as_array().unwrap().is_empty());
@@ -5570,21 +5572,81 @@ fn m35_conclusion_cards() {
     );
     let detail = call(&s, "group_detail", json!({"groupId":"chrome-cache"}));
     let item = &detail["items"][0];
-    call(&s, "skip_add", json!({"itemId":item["item_id"]}));
-    let stale = call(&s, "conclusion_get", json!({}));
+    let preview = call(
+        &s,
+        "clean_prepare",
+        json!({"conclusionVersion":c["version"],"chosenMode":"quarantine"}),
+    );
+    let loc = call(&s, "skip_add", json!({"itemId":item["item_id"]}));
+    let fresh = call(&s, "conclusion_get", json!({}));
     assert_eq!(
-        stale["stale_reason_zh"], "跳过名单变了",
-        "SERVICE_M35_CONCLUSION: skip stale"
+        fresh["stale"], false,
+        "SERVICE_W13_FRESH: path skip stays fresh"
+    );
+    assert_eq!(
+        fresh["stale_reason_zh"],
+        Value::Null,
+        "SERVICE_W13_FRESH: no stale reason"
+    );
+    let serial = |v: &Value| {
+        v["version"]
+            .as_str()
+            .unwrap()
+            .rsplit('-')
+            .next()
+            .unwrap()
+            .parse::<u64>()
+            .unwrap()
+    };
+    assert_eq!(
+        serial(&fresh),
+        serial(&c) + 1,
+        "SERVICE_W13_FRESH: path skip increments once"
     );
     assert_eq!(
         s.call(
-            "clean_prepare",
-            json!({"conclusionVersion":stale["version"],"chosenMode":"quarantine"})
+            "clean_start",
+            json!({"planId":preview["plan_id"],"confirmToken":preview["confirm_token"]})
         )
         .unwrap_err()
         .code,
         "stale",
-        "SERVICE_M35_CONCLUSION: stale prepare"
+        "SERVICE_W13_FRESH: old plan invalidated"
+    );
+    let other = fresh["cards"][0]["card_id"].clone();
+    let decided = call(
+        &s,
+        "conclusion_decide",
+        json!({"version":fresh["version"],"decision":{"group":other,"choice":"clean"}}),
+    );
+    assert_eq!(
+        decided["stale"], false,
+        "SERVICE_W13_FRESH: other card still usable"
+    );
+    call(
+        &s,
+        "skip_remove",
+        json!({"skipId":loc["skipped"][0]["skip_id"]}),
+    );
+    let restored = call(&s, "conclusion_get", json!({}));
+    assert_eq!(
+        restored["stale"], false,
+        "SERVICE_W13_FRESH: removal stays fresh"
+    );
+    assert_eq!(
+        serial(&restored),
+        serial(&decided) + 1,
+        "SERVICE_W13_FRESH: removal increments once"
+    );
+    assert_eq!(
+        call(&s, "group_detail", json!({"groupId":"chrome-cache"}))["items"],
+        detail["items"],
+        "SERVICE_W13_FRESH: path item restored"
+    );
+    call(
+        &s,
+        "clean_prepare",
+        json!({"conclusionVersion":restored["version"],"chosenMode":"quarantine"}),
     );
     let _ = r;
 
@@ -5879,6 +5941,7 @@ fn m35_row_patterns() {
 #[test]
 fn m35_clean_split() {
     w12_records();
+    w13_journal_batches();
     w11_nested();
     m35_session_unlocks();
     m35_unfinished_and_template();
@@ -5962,9 +6025,7 @@ fn m35_clean_split() {
         "clean_start",
         json!({"planId":p["plan_id"],"confirmToken":p["confirm_token"]}),
     );
-    // W12 integration (controller, user-approved test-only migration): the test journal fails the quarantine's
-    // "moved" line after old.exe was moved. With the W12-P1 executor the move batch returns its report with
-    // journal_error instead of Err(Journal), so the service saves the moved item and stops the run.
+    // The journal fails after the move, so its report must survive the interruption.
     assert_eq!(
         wait(&s, "clean_progress")["state"],
         "stopped",
@@ -5984,11 +6045,9 @@ fn m35_clean_split() {
                     .contains(&json!("1 项进了隔离区"))),
         "SERVICE_M35_CLEAN: journal failure message"
     );
-    assert!(
-        recorded["journal_note_zh"]
-            .as_str()
-            .is_some_and(|n| n.starts_with("清理日志没写全")),
-        "SERVICE_W12_RECORD: journal note after the move"
+    assert_eq!(
+        recorded["journal_note_zh"], "清理日志没写全，这次要清的都已处理",
+        "SERVICE_W13_JOURNAL: no unprocessed items after the move"
     );
     assert!(
         util::bytes(&recorded["freed_bytes"]) > 0,
@@ -7560,6 +7619,11 @@ fn w12_skips_and_diagnostics() {
     );
     let scan = scanned(&s);
     let c = call(&s, "conclusion_get", json!({}));
+    let prepared = call(
+        &s,
+        "clean_prepare",
+        json!({"conclusionVersion":c["version"],"chosenMode":"quarantine"}),
+    );
     for args in [
         json!({"conclusionVersion":"wrong","unitId":"downloads-installers"}),
         json!({"conclusionVersion":c["version"],"unitId":"missing"}),
@@ -7595,6 +7659,40 @@ fn w12_skips_and_diagnostics() {
         "SERVICE_W12_SKIP: stored group title"
     );
     let changed = call(&s, "conclusion_get", json!({}));
+    assert_eq!(
+        changed["stale"], false,
+        "SERVICE_W13_FRESH: unit skip stays fresh"
+    );
+    assert_eq!(
+        changed["stale_reason_zh"],
+        Value::Null,
+        "SERVICE_W13_FRESH: unit skip has no stale reason"
+    );
+    let serial = |v: &Value| {
+        v["version"]
+            .as_str()
+            .unwrap()
+            .rsplit('-')
+            .next()
+            .unwrap()
+            .parse::<u64>()
+            .unwrap()
+    };
+    assert_eq!(
+        serial(&changed),
+        serial(&c) + 1,
+        "SERVICE_W13_FRESH: unit skip increments once"
+    );
+    assert_eq!(
+        s.call(
+            "clean_start",
+            json!({"planId":prepared["plan_id"],"confirmToken":prepared["confirm_token"]})
+        )
+        .unwrap_err()
+        .code,
+        "stale",
+        "SERVICE_W13_FRESH: card skip invalidates prepared plan"
+    );
     let bytes_before = fs::read(f.data.join("settings.json")).unwrap();
     assert_eq!(
         call(
@@ -7706,6 +7804,11 @@ fn w12_skips_and_diagnostics() {
         2,
         "SERVICE_W12_SKIP: remove group"
     );
+    assert_eq!(
+        call(&s, "conclusion_get", json!({}))["stale"],
+        false,
+        "SERVICE_W13_FRESH: unit removal stays fresh"
+    );
     {
         let mut state = s.core.state.lock().unwrap();
         state.busy = "cleaning";
@@ -7758,6 +7861,7 @@ fn w12_skip_rows() {
             f.file(&format!("windows/Temp/verify-A{n:05}/data"), 100);
         }
         f.age_all(NOW - 20 * 86400);
+        age(&f.root.join("windows/Temp/verify-A00011"), NOW - 3600);
         let s = f.service(false);
         scanned(&s);
         let c = call(&s, "conclusion_get", json!({}));
@@ -7769,6 +7873,45 @@ fn w12_skip_rows() {
             .expect("SERVICE_W12_SKIP: leak fixture")["card_id"]
             .clone();
         let clue = format!("cl-{}", &util::digest(gid.as_str().unwrap())[..12]);
+        let detail = call(&s, "group_detail", json!({"groupId":gid}));
+        assert!(
+            detail["items"]
+                .as_array()
+                .unwrap()
+                .iter()
+                .any(|i| i["eligible"] == false),
+            "SERVICE_W13_CLUE: recent member retained"
+        );
+        let old = detail["items"]
+            .as_array()
+            .unwrap()
+            .iter()
+            .find(|i| i["eligible"] == true)
+            .unwrap();
+        let partial = call(&s, "skip_add", json!({"itemId":old["item_id"]}));
+        let c = call(&s, "conclusion_get", json!({}));
+        assert!(
+            c["clues"]
+                .as_array()
+                .unwrap()
+                .iter()
+                .any(|v| v["clue_id"] == clue),
+            "SERVICE_W13_CLUE: partial skip retains clue"
+        );
+        assert!(
+            call(&s, "trends", json!({}))["clusters"]
+                .as_array()
+                .unwrap()
+                .iter()
+                .any(|v| v["group_id"] == gid),
+            "SERVICE_W13_CLUE: partial skip retains trends cluster"
+        );
+        call(
+            &s,
+            "skip_remove",
+            json!({"skipId":partial["skipped"][0]["skip_id"]}),
+        );
+        let c = call(&s, "conclusion_get", json!({}));
         let loc = call(
             &s,
             "skip_unit_add",
@@ -7786,7 +7929,15 @@ fn w12_skip_rows() {
                     .unwrap()
                     .iter()
                     .any(|c| c["clue_id"] == clue),
-            "SERVICE_W12_SKIP: all skipped cluster hides card and clue"
+            "SERVICE_W13_CLUE: all matching members hide card and clue"
+        );
+        assert!(
+            !call(&s, "trends", json!({}))["clusters"]
+                .as_array()
+                .unwrap()
+                .iter()
+                .any(|v| v["group_id"] == gid),
+            "SERVICE_W13_CLUE: all matching members hide trends cluster"
         );
         f.file("windows/Temp/verify-A99999/data", 99);
         f.age_all(NOW - 20 * 86400);
@@ -8087,9 +8238,12 @@ fn w12_records() {
         group["notes_zh"]
             .as_array()
             .unwrap()
-            .iter()
-            .any(|n| n.as_str().unwrap().starts_with("没能放进隔离区：")),
-        "SERVICE_W12_RECORD: batch error note"
+            .contains(&json!("没能放进隔离区：清理计划无效")),
+        "SERVICE_W13_JOURNAL: exact batch error note"
+    );
+    assert!(
+        result["quarantined"].is_null(),
+        "SERVICE_W13_JOURNAL: failed batch has no quarantine summary"
     );
     assert!(
         util::bytes(&result["freed_bytes"]) > 0,
@@ -8193,6 +8347,349 @@ fn w12_records() {
         saved["view"]["journal_note_zh"],
         "SERVICE_W12_RECORD: journal view survives restart"
     );
+}
+
+// Only the first, local batch can reach the native executor. Later drive letters
+// are logical test inputs; their reports and errors are injected in memory.
+struct BatchErrorExecutor {
+    calls: Arc<Mutex<Vec<Vec<String>>>>,
+    fail_at: usize,
+    error: water_junk_clean::CleanError,
+}
+impl clean::Executor for BatchErrorExecutor {
+    fn execute(
+        &self,
+        plan: &water_junk_clean::CleanPlan,
+        e: clean::Execution<'_>,
+    ) -> Result<water_junk_clean::CleanReport, water_junk_clean::CleanError> {
+        clean::Executor::execute(&clean::NativeExecutor, plan, e)
+    }
+    fn quarantine(
+        &self,
+        plan: &water_junk_clean::CleanPlan,
+        id: &str,
+        target: &water_junk_clean::QuarantineTarget,
+        e: clean::Execution<'_>,
+    ) -> Result<water_junk_clean::QuarantineReport, water_junk_clean::CleanError> {
+        let mut calls = self.calls.lock().unwrap();
+        let index = calls.len();
+        calls.push(plan.items.iter().map(|i| i.item_id.clone()).collect());
+        drop(calls);
+        if index == self.fail_at {
+            return Err(self.error);
+        }
+        if index < self.fail_at {
+            return clean::Executor::quarantine(&clean::NativeExecutor, plan, id, target, e);
+        }
+        Ok(water_junk_clean::QuarantineReport {
+            report_version: "water.quarantine-report.v1".into(),
+            quarantine_id: id.into(),
+            started_at: util::timestamp(e.now),
+            ended_at: util::timestamp(e.now),
+            status: water_junk_clean::RunStatus::Completed,
+            moved_bytes: "0".into(),
+            journal_error: None,
+            items: plan
+                .items
+                .iter()
+                .map(|i| water_junk_clean::MoveReport {
+                    item_id: i.item_id.clone(),
+                    status: water_junk_clean::MoveStatus::Skipped,
+                    skip_reason: Some(water_junk_clean::SkipReason::Changed),
+                    move_error: None,
+                    error_code: None,
+                    destination: None,
+                    identity: None,
+                    bytes: "0".into(),
+                })
+                .collect(),
+        })
+    }
+}
+
+fn w13_journal_batches() {
+    use water_junk_clean::{CleanError, ItemStatus, MoveStatus, SkipReason};
+    let reasons = [
+        (CleanError::InvalidPlan, "清理计划无效"),
+        (CleanError::Native, "文件操作失败"),
+        (CleanError::Unsupported, "这台电脑不支持"),
+        (CleanError::Journal, "日志写不进去"),
+        (CleanError::Overflow, "数量超出范围"),
+    ];
+    for (error, reason) in reasons {
+        assert_eq!(
+            clean::quarantine_failure_reason(error),
+            reason,
+            "SERVICE_W13_JOURNAL: exact Chinese reason"
+        );
+    }
+    // Direct action, earlier quarantine action, zero-byte variants, first-intent
+    // failure, and the four non-journal errors all pass through the start layer.
+    let mut cases = vec![
+        (true, false, 0, CleanError::Journal),
+        (true, true, 0, CleanError::Journal),
+        (false, false, 1, CleanError::Journal),
+        (false, true, 1, CleanError::Journal),
+        (false, false, 0, CleanError::Journal),
+    ];
+    cases.extend(
+        reasons
+            .into_iter()
+            .filter(|(e, _)| *e != CleanError::Journal)
+            .map(|(e, _)| (true, false, 0, e)),
+    );
+    for (direct, zero, fail_at, error) in cases {
+        let f = Fixture::new();
+        f.seed();
+        if zero {
+            File::options()
+                .write(true)
+                .open(f.root.join(if direct {
+                    "local_app_data/npm-cache/cache"
+                } else {
+                    "downloads/old.exe"
+                }))
+                .unwrap()
+                .set_len(0)
+                .unwrap();
+        }
+        f.age_all(NOW - 40 * 86400);
+        let s = source_service(&f, true);
+        let scan = scanned(&s);
+        let mut raw = scan_saved(&f, &scan);
+        raw["result"]["items"].as_array_mut().unwrap().retain(|i| {
+            i["group_id"] == "downloads-installers" || (direct && i["group_id"] == "npm-cache")
+        });
+        let sample = raw["result"]["items"]
+            .as_array()
+            .unwrap()
+            .iter()
+            .find(|i| i["group_id"] == "downloads-installers")
+            .unwrap()
+            .clone();
+        let target = raw["plan"]["targets"]
+            .as_array()
+            .unwrap()
+            .iter()
+            .find(|t| t["group_id"] == "downloads-installers")
+            .unwrap()
+            .clone();
+        for (drive, count) in [("X", 2), ("Y", 3)] {
+            for n in 0..count {
+                let mut item = sample.clone();
+                item["item_id"] = json!(format!("synthetic-{drive}-{n}"));
+                item["path"] = json!(format!("{drive}:\\synthetic\\item-{n}.exe"));
+                item["total_bytes"] = json!("60");
+                item["unique_bytes"] = json!("60");
+                raw["result"]["items"].as_array_mut().unwrap().push(item);
+            }
+            let mut t = target.clone();
+            t["target_id"] = json!(format!("synthetic-{drive}"));
+            t["match"]["base"] = json!(format!("{drive}:\\synthetic"));
+            raw["plan"]["targets"].as_array_mut().unwrap().push(t);
+            let base = slash(&f.root.join(format!("{drive}/.flick-quarantine")));
+            f.fake.quarantines.lock().unwrap().push(base.clone());
+            f.fake
+                .quarantine_bases
+                .lock()
+                .unwrap()
+                .insert(format!("{drive}:\\"), base);
+        }
+        m35_replace_record(&s, raw);
+        let c = m35_decide(&s, "downloads-installers");
+        let p = call(
+            &s,
+            "clean_prepare",
+            json!({"conclusionVersion":c["version"],"chosenMode":"quarantine"}),
+        );
+        let planned = read_plan(&f, &p);
+        let items = planned["plan"]["items"].as_array().unwrap();
+        assert_eq!(
+            items.len(),
+            6 + usize::from(direct),
+            "SERVICE_W13_JOURNAL: exact split fixture"
+        );
+        let calls = Arc::new(Mutex::new(Vec::new()));
+        let started = clean::start_with_executor(
+            &s.core,
+            p["plan_id"].as_str().unwrap(),
+            p["confirm_token"].as_str().unwrap(),
+            Arc::new(BatchErrorExecutor {
+                calls: calls.clone(),
+                fail_at,
+                error,
+            }),
+        )
+        .unwrap();
+        let progress = wait(&s, "clean_progress");
+        if error == CleanError::Journal && !direct && fail_at == 0 {
+            assert_eq!(
+                progress["state"], "failed",
+                "SERVICE_W13_JOURNAL: first intent still fails"
+            );
+            assert_eq!(
+                s.call("clean_result", json!({"cleanId":started["clean_id"]}))
+                    .unwrap_err()
+                    .message_zh,
+                quarantine::JOURNAL_MESSAGE,
+                "SERVICE_W13_JOURNAL: no-action journal message"
+            );
+            assert!(
+                s.core.state.lock().unwrap().cleans.is_empty(),
+                "SERVICE_W13_JOURNAL: no fabricated action record"
+            );
+            assert_eq!(
+                calls.lock().unwrap().len(),
+                1,
+                "SERVICE_W13_JOURNAL: first intent stops"
+            );
+            continue;
+        }
+        if error == CleanError::Journal {
+            assert_eq!(
+                progress["state"], "stopped",
+                "SERVICE_W13_JOURNAL: later journal error stops"
+            );
+            assert_eq!(
+                calls.lock().unwrap().len(),
+                fail_at + 1,
+                "SERVICE_W13_JOURNAL: no calls after failed batch"
+            );
+        } else {
+            assert_eq!(
+                progress["state"], "completed",
+                "SERVICE_W13_JOURNAL: other errors retain completion"
+            );
+            assert_eq!(
+                calls.lock().unwrap().len(),
+                3,
+                "SERVICE_W13_JOURNAL: other errors continue batches"
+            );
+        }
+        let result = call(&s, "clean_result", json!({"cleanId":started["clean_id"]}));
+        let saved: Value = serde_json::from_slice(
+            &fs::read(
+                f.data
+                    .join("cleans")
+                    .join(format!("{}.json", started["clean_id"].as_str().unwrap())),
+            )
+            .unwrap(),
+        )
+        .unwrap();
+        assert_eq!(
+            saved["view"], result,
+            "SERVICE_W13_JOURNAL: durable readable result"
+        );
+        if error == CleanError::Journal {
+            let expected = 6 - fail_at;
+            assert_eq!(
+                result["journal_note_zh"],
+                format!("清理日志没写全，后面的 {expected} 项没有清"),
+                "SERVICE_W13_JOURNAL: exact remaining count"
+            );
+            let qs: Vec<water_junk_clean::QuarantineReport> =
+                serde_json::from_value(saved["quarantine_reports"].clone()).unwrap();
+            assert_eq!(
+                qs.iter()
+                    .flat_map(|q| &q.items)
+                    .filter(|i| i.skip_reason == Some(SkipReason::JournalFailed))
+                    .count(),
+                expected,
+                "SERVICE_W13_JOURNAL: failed and later batches marked"
+            );
+            assert_eq!(
+                qs[fail_at].items.len(),
+                if fail_at == 0 { 1 } else { 2 },
+                "SERVICE_W13_JOURNAL: failing batch retained"
+            );
+            assert_eq!(
+                qs.last().unwrap().items.len(),
+                3,
+                "SERVICE_W13_JOURNAL: final batch retained"
+            );
+            if direct {
+                let report: water_junk_clean::CleanReport =
+                    serde_json::from_value(saved["report"].clone()).unwrap();
+                assert_eq!(
+                    report.items.len(),
+                    1,
+                    "SERVICE_W13_JOURNAL: one direct action"
+                );
+                assert_eq!(
+                    report.items[0].status,
+                    ItemStatus::Deleted,
+                    "SERVICE_W13_JOURNAL: real direct deletion"
+                );
+                assert_eq!(
+                    result["freed_bytes"],
+                    if zero { "0" } else { "90" },
+                    "SERVICE_W13_JOURNAL: exact direct bytes"
+                );
+                assert!(
+                    result["quarantined"].is_null(),
+                    "SERVICE_W13_JOURNAL: no moves means null"
+                );
+            } else {
+                assert_eq!(
+                    qs[0].items[0].status,
+                    MoveStatus::Moved,
+                    "SERVICE_W13_JOURNAL: real first batch move"
+                );
+                assert_eq!(
+                    qs[0].moved_bytes,
+                    if zero { "0" } else { "60" },
+                    "SERVICE_W13_JOURNAL: exact moved bytes"
+                );
+                assert_eq!(
+                    result["quarantined"]["item_count"], 1,
+                    "SERVICE_W13_JOURNAL: zero-byte move still counts"
+                );
+            }
+            assert!(
+                !f.root.join("X/.flick-quarantine").exists()
+                    && !f.root.join("Y/.flick-quarantine").exists(),
+                "SERVICE_W13_JOURNAL: later directories absent"
+            );
+            assert_eq!(
+                fs::read_dir(f.data.join("quarantine")).unwrap().count(),
+                fail_at,
+                "SERVICE_W13_JOURNAL: no recovery records for failed or later batches"
+            );
+            assert_eq!(
+                call(&s, "diagnostics_get", json!({}))["last_clean"]["journal_error"],
+                true,
+                "SERVICE_W13_JOURNAL: diagnostics retains error"
+            );
+        } else {
+            let reason = reasons.iter().find(|(e, _)| *e == error).unwrap().1;
+            assert!(
+                result["groups"]
+                    .as_array()
+                    .unwrap()
+                    .iter()
+                    .any(|g| g["notes_zh"]
+                        .as_array()
+                        .unwrap()
+                        .contains(&json!(format!("没能放进隔离区：{reason}")))),
+                "SERVICE_W13_JOURNAL: Chinese batch error through start layer"
+            );
+            assert!(
+                result["quarantined"].is_null(),
+                "SERVICE_W13_JOURNAL: all failed or skipped means null"
+            );
+        }
+        drop(s);
+        let reopened = f.service(false);
+        assert_eq!(
+            call(
+                &reopened,
+                "clean_result",
+                json!({"cleanId":started["clean_id"]})
+            ),
+            result,
+            "SERVICE_W13_JOURNAL: result survives restart"
+        );
+    }
 }
 
 struct JournalStopsExecutor {
