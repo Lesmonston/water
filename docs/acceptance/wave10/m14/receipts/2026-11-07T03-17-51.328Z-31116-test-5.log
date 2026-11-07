@@ -1,0 +1,72 @@
+{"binary":"C:\\Users\\37310\\.rustup\\toolchains\\1.95.0-x86_64-pc-windows-msvc\\bin\\cargo.exe","args":["test","--offline","--locked","--manifest-path","packages/water-service/Cargo.toml","--test","service_v1","--","--test-threads=1"],"exitCode":101,"error":null}
+--- stdout ---
+
+running 12 tests
+test m35_clean_split ... ok
+test m35_conclusion_cards ... FAILED
+test m35_quarantine ... ok
+test m35_rows_and_detail ... ok
+test m35_scope_and_plan ... FAILED
+test m35_trends_history ... ok
+test service_clean_flow ... FAILED
+test service_hardening ... ok
+test service_ipc_contract ... ok
+test service_scan_views ... ok
+test service_storage_safety ... ok
+test service_trends_locations ... ok
+
+failures:
+
+---- m35_conclusion_cards stdout ----
+
+thread 'm35_conclusion_cards' (26996) panicked at tests\service_v1.rs:4696:5:
+assertion `left == right` failed: SERVICE_M35_CONCLUSION: four references merge case insensitively
+  left: Array [Object {"clue_id": String("cl-1111a6cb6c71"), "copy_text": String("F:\\NEW\\SMALTALK\\WATER\\.WORKTREES\\W10-M14\\.LOCAL\\W3-F1-FIXTURES\\SERVICE-2ED11A9CF138F5A1\\SYNTHETIC-REFERENCE 指向 F:\\new\\smaltalk\\water\\.worktrees\\w10-m14\\.local\\w3-f1-fixtures\\service-2ed11a9cf138f5a1\\local_app_data\\Google\\Chrome\\User Data\\Default\\Cache，改指别处后可清"), "text_zh": String("F:\\NEW\\SMALTALK\\WATER\\.WORKTREES\\W10-M14\\.LOCAL\\W3-F1-FIXTURES\\SERVICE-2ED11A9CF138F5A1\\SYNTHETIC-REFERENCE 指向 F:\\new\\smaltalk\\water\\.worktrees\\w10-m14\\.local\\w3-f1-fixtures\\service-2ed11a9cf138f5a1\\local_app_data\\Google\\Chrome\\User Data\\Default\\Cache，改指别处后可清")}, Object {"clue_id": String("cl-0807205603a9"), "copy_text": String("F:\\new\\smaltalk\\water\\.worktrees\\w10-m14\\.local\\w3-f1-fixtures\\service-2ed11a9cf138f5a1\\synthetic-reference 指向 F:\\new\\smaltalk\\water\\.worktrees\\w10-m14\\.local\\w3-f1-fixtures\\service-2ed11a9cf138f5a1\\user_profile\\.codex\\sessions，改指别处后可清"), "text_zh": String("F:\\new\\smaltalk\\water\\.worktrees\\w10-m14\\.local\\w3-f1-fixtures\\service-2ed11a9cf138f5a1\\synthetic-reference 指向 F:\\new\\smaltalk\\water\\.worktrees\\w10-m14\\.local\\w3-f1-fixtures\\service-2ed11a9cf138f5a1\\user_profile\\.codex\\sessions，改指别处后可清")}, Object {"clue_id": String("cl-6385557e1e11"), "copy_text": String("F:\\new\\smaltalk\\water\\.worktrees\\w10-m14\\.local\\w3-f1-fixtures\\service-2ed11a9cf138f5a1\\synthetic-reference 指向 F:\\new\\smaltalk\\water\\.worktrees\\w10-m14\\.local\\w3-f1-fixtures\\service-2ed11a9cf138f5a1\\user_profile\\.codex\\.tmp\\marketplaces\\.staging\\marketplace-upgrade-old，改指别处后可清"), "text_zh": String("F:\\new\\smaltalk\\water\\.worktrees\\w10-m14\\.local\\w3-f1-fixtures\\service-2ed11a9cf138f5a1\\synthetic-reference 指向 F:\\new\\smaltalk\\water\\.worktrees\\w10-m14\\.local\\w3-f1-fixtures\\service-2ed11a9cf138f5a1\\user_profile\\.codex\\.tmp\\marketplaces\\.staging\\marketplace-upgrade-old，改指别处后可清")}]
+ right: Array [Object {"clue_id": String("cl-ref-5b99bfbcd687"), "copy_text": String("F:\\new\\smaltalk\\water\\.worktrees\\w10-m14\\.local\\w3-f1-fixtures\\service-2ed11a9cf138f5a1\\synthetic-reference 引用了 4 项，共 <1 MB；改指别处后这些才能清\nF:\\new\\smaltalk\\water\\.worktrees\\w10-m14\\.local\\w3-f1-fixtures\\service-2ed11a9cf138f5a1\\user_profile\\.codex\\.tmp\\marketplaces\\.staging\\marketplace-upgrade-old\nF:\\new\\smaltalk\\water\\.worktrees\\w10-m14\\.local\\w3-f1-fixtures\\service-2ed11a9cf138f5a1\\user_profile\\.claude\\projects\nF:\\new\\smaltalk\\water\\.worktrees\\w10-m14\\.local\\w3-f1-fixtures\\service-2ed11a9cf138f5a1\\user_profile\\.codex\\sessions\nF:\\new\\smaltalk\\water\\.worktrees\\w10-m14\\.local\\w3-f1-fixtures\\service-2ed11a9cf138f5a1\\local_app_data\\Google\\Chrome\\User Data\\Default\\Cache"), "text_zh": String("F:\\new\\smaltalk\\water\\.worktrees\\w10-m14\\.local\\w3-f1-fixtures\\service-2ed11a9cf138f5a1\\synthetic-reference 引用了 4 项，共 <1 MB；改指别处后这些才能清")}]
+note: run with `RUST_BACKTRACE=1` environment variable to display a backtrace
+
+---- m35_scope_and_plan stdout ----
+
+thread 'm35_scope_and_plan' (1636) panicked at tests\service_v1.rs:4257:9:
+assertion `left == right` failed: SERVICE_M35_SCOPE: program file selected/apps/Bar/Bar-1.2.0.exe
+  left: Bool(true)
+ right: false
+
+---- service_clean_flow stdout ----
+SERVICE_M3C_SKIP scale_ms {"add":[28.528000000000002,8.216299999999999,8.2858,7.2942,9.4352],"items":10000,"remove":[8.963000000000001,7.3719,7.714300000000001,12.112599999999999,6.9742]}
+
+thread 'service_clean_flow' (22444) panicked at tests\service_v1.rs:520:9:
+SERVICE_RETURN_BUDGET: scan_result
+
+
+failures:
+    m35_conclusion_cards
+    m35_scope_and_plan
+    service_clean_flow
+
+test result: FAILED. 9 passed; 3 failed; 0 ignored; 0 measured; 0 filtered out; finished in 87.15s
+
+
+--- stderr ---
+   Compiling proc-macro2 v1.0.107
+   Compiling unicode-ident v1.0.27
+   Compiling quote v1.0.47
+   Compiling serde_core v1.0.229
+   Compiling zmij v1.0.23
+   Compiling syn v3.0.9
+   Compiling serde v1.0.229
+   Compiling serde_json v1.0.151
+   Compiling serde_derive v1.0.229
+   Compiling itoa v1.0.18
+   Compiling memchr v2.8.3
+   Compiling water-junk-scan v0.1.0 (F:\new\smaltalk\water\.worktrees\w10-m14\packages\junk-scan)
+   Compiling water-dup-finder v0.1.0 (F:\new\smaltalk\water\.worktrees\w10-m14\packages\dup-finder)
+   Compiling water-installed-apps v0.1.0 (F:\new\smaltalk\water\.worktrees\w10-m14\packages\installed-apps)
+   Compiling water-junk-clean v0.1.0 (F:\new\smaltalk\water\.worktrees\w10-m14\packages\junk-clean)
+   Compiling water-junk-rules v0.1.0 (F:\new\smaltalk\water\.worktrees\w10-m14\packages\junk-rules)
+   Compiling water-process-scan v0.1.0 (F:\new\smaltalk\water\.worktrees\w10-m14\packages\process-scan)
+   Compiling water-cleanup-manifest v0.1.0 (F:\new\smaltalk\water\.worktrees\w10-m14\packages\cleanup-manifest)
+   Compiling water-service v0.1.0 (F:\new\smaltalk\water\.worktrees\w10-m14\packages\water-service)
+    Finished `test` profile [unoptimized + debuginfo] target(s) in 1m 11s
+     Running tests\service_v1.rs (.local\w3-target\debug\deps\service_v1-78ca933d9f763152.exe)
+error: test failed, to rerun pass `--test service_v1`
