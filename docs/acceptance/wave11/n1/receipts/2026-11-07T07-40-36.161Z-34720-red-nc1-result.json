@@ -1,0 +1,345 @@
+{
+  "task": "WATER-W11-N1",
+  "mode": "red-nc1",
+  "finalGate": false,
+  "manifest": "docs/dispatch/wave11/manifest.json",
+  "startedAt": "2026-11-07T07:40:36.162Z",
+  "realDataRead": false,
+  "productTestsRun": false,
+  "commands": [
+    {
+      "binary": "git",
+      "argv": [
+        "branch",
+        "--show-current"
+      ],
+      "exitCode": 0
+    },
+    {
+      "binary": "git",
+      "argv": [
+        "merge-base",
+        "--is-ancestor",
+        "ccc584b3894e28d1f6bb8f86748d03c143a38e5b",
+        "HEAD"
+      ],
+      "exitCode": 0
+    },
+    {
+      "binary": "git",
+      "argv": [
+        "diff",
+        "--no-renames",
+        "--name-only",
+        "-z",
+        "ccc584b3894e28d1f6bb8f86748d03c143a38e5b",
+        "HEAD"
+      ],
+      "exitCode": 0
+    },
+    {
+      "binary": "git",
+      "argv": [
+        "diff",
+        "--no-renames",
+        "--name-only",
+        "-z",
+        "HEAD"
+      ],
+      "exitCode": 0
+    },
+    {
+      "binary": "git",
+      "argv": [
+        "ls-files",
+        "--others",
+        "--exclude-standard",
+        "-z"
+      ],
+      "exitCode": 0
+    },
+    {
+      "binary": "git",
+      "argv": [
+        "rev-parse",
+        "HEAD"
+      ],
+      "exitCode": 0
+    },
+    {
+      "binary": "git",
+      "argv": [
+        "status",
+        "--porcelain",
+        "--untracked-files=all"
+      ],
+      "exitCode": 0
+    },
+    {
+      "binary": "git",
+      "argv": [
+        "diff",
+        "--name-only",
+        "HEAD",
+        "--",
+        "apps/water/ui"
+      ],
+      "exitCode": 0
+    },
+    {
+      "binary": "git",
+      "argv": [
+        "branch",
+        "--show-current"
+      ],
+      "exitCode": 0
+    },
+    {
+      "binary": "git",
+      "argv": [
+        "merge-base",
+        "--is-ancestor",
+        "ccc584b3894e28d1f6bb8f86748d03c143a38e5b",
+        "HEAD"
+      ],
+      "exitCode": 0
+    },
+    {
+      "binary": "git",
+      "argv": [
+        "diff",
+        "--no-renames",
+        "--name-only",
+        "-z",
+        "ccc584b3894e28d1f6bb8f86748d03c143a38e5b",
+        "HEAD"
+      ],
+      "exitCode": 0
+    },
+    {
+      "binary": "git",
+      "argv": [
+        "diff",
+        "--no-renames",
+        "--name-only",
+        "-z",
+        "HEAD"
+      ],
+      "exitCode": 0
+    },
+    {
+      "binary": "git",
+      "argv": [
+        "ls-files",
+        "--others",
+        "--exclude-standard",
+        "-z"
+      ],
+      "exitCode": 0
+    },
+    {
+      "binary": "git",
+      "argv": [
+        "rev-parse",
+        "HEAD"
+      ],
+      "exitCode": 0
+    },
+    {
+      "binary": "git",
+      "argv": [
+        "status",
+        "--porcelain",
+        "--untracked-files=all"
+      ],
+      "exitCode": 0
+    }
+  ],
+  "changedPaths": [
+    "apps/water/ui/README.md",
+    "apps/water/ui/app.mjs",
+    "apps/water/ui/format.mjs",
+    "apps/water/ui/index.html",
+    "apps/water/ui/tests/browser.test.mjs",
+    "apps/water/ui/tests/unit.test.mjs",
+    "apps/water/ui/views/about.mjs",
+    "apps/water/ui/views/detail.mjs",
+    "apps/water/ui/views/home.mjs",
+    "apps/water/ui/views/locations.mjs",
+    "apps/water/ui/views/results.mjs"
+  ],
+  "before": {
+    "head": "5f392089d1205c3e9b8d077c964fea84e620b2e1",
+    "status": ""
+  },
+  "sourceState": {
+    "files": [
+      {
+        "path": "apps/water/ui/.gitattributes",
+        "snapshot": "2026-11-07T07-40-36.161Z-34720-red-nc1-source-0.txt",
+        "sha256": "5cc80342beda57a939d17b28e92712c5625e1e1c8b307c205c80ec2d5ebea5aa",
+        "test": false
+      },
+      {
+        "path": "apps/water/ui/README.md",
+        "snapshot": "2026-11-07T07-40-36.161Z-34720-red-nc1-source-1.txt",
+        "sha256": "6b04b9b63f3f5170ee04a4b7d4c9ac67ea962c0824db2c701ad65c8ecd9ea5a8",
+        "test": false
+      },
+      {
+        "path": "apps/water/ui/app.mjs",
+        "snapshot": "2026-11-07T07-40-36.161Z-34720-red-nc1-source-2.txt",
+        "sha256": "841503ca4d51aca459f9940a2b85edeaa45415b28a300f8ba299f0c7302da51d",
+        "test": false
+      },
+      {
+        "path": "apps/water/ui/format.mjs",
+        "snapshot": "2026-11-07T07-40-36.161Z-34720-red-nc1-source-3.txt",
+        "sha256": "d191979a04bc32a338ba530382250d4024729831e1d54ab4dcc9a4c0b581e273",
+        "test": false
+      },
+      {
+        "path": "apps/water/ui/index.html",
+        "snapshot": "2026-11-07T07-40-36.161Z-34720-red-nc1-source-4.txt",
+        "sha256": "80101ac360fd821cbc9b194406f2fbcad567cefe4f6cbac7a47ebc71f0db339c",
+        "test": false
+      },
+      {
+        "path": "apps/water/ui/ipc.mjs",
+        "snapshot": "2026-11-07T07-40-36.161Z-34720-red-nc1-source-5.txt",
+        "sha256": "51ab428a2e1f971af09d981e7585ef270f10438658d46a2509023bc0671498fd",
+        "test": false
+      },
+      {
+        "path": "apps/water/ui/model.mjs",
+        "snapshot": "2026-11-07T07-40-36.161Z-34720-red-nc1-source-6.txt",
+        "sha256": "ba16dbd24d01cd47a5f01acda1cd8502d48ce8b7148aaca2d43df6f4d8b7ee1e",
+        "test": false
+      },
+      {
+        "path": "apps/water/ui/styles/app.css",
+        "snapshot": "2026-11-07T07-40-36.161Z-34720-red-nc1-source-7.txt",
+        "sha256": "dd7b60527bd4898a25ea49e2e80cd309bba26f2da6df3bc55a28bb8ce2668b57",
+        "test": false
+      },
+      {
+        "path": "apps/water/ui/styles/tokens.css",
+        "snapshot": "2026-11-07T07-40-36.161Z-34720-red-nc1-source-8.txt",
+        "sha256": "2850d65eb9e51eedcfc319850ce92b000184f39766499aa7d84de757223f2697",
+        "test": false
+      },
+      {
+        "path": "apps/water/ui/tests/browser.test.mjs",
+        "snapshot": "2026-11-07T07-40-36.161Z-34720-red-nc1-source-9.txt",
+        "sha256": "0117002bdd254f278c787367ae39b01c14b861826768a665b4499dc675c6e4ed",
+        "test": true
+      },
+      {
+        "path": "apps/water/ui/tests/unit.test.mjs",
+        "snapshot": "2026-11-07T07-40-36.161Z-34720-red-nc1-source-10.txt",
+        "sha256": "d77cd3b892ed5ef3c93c59bc0f15fd204c10a154706d64312a562ad3dc446baf",
+        "test": true
+      },
+      {
+        "path": "apps/water/ui/views/about.mjs",
+        "snapshot": "2026-11-07T07-40-36.161Z-34720-red-nc1-source-11.txt",
+        "sha256": "ddd8e54cab19bf239985fee3a20328af3944de8e577d75175e32519db1abb2c3",
+        "test": false
+      },
+      {
+        "path": "apps/water/ui/views/charts.mjs",
+        "snapshot": "2026-11-07T07-40-36.161Z-34720-red-nc1-source-12.txt",
+        "sha256": "2e14b1a734f930e13e1ed2d59a91f0661c16a63c4e0ebe6495e49ab2e12fa8ac",
+        "test": false
+      },
+      {
+        "path": "apps/water/ui/views/cleaning.mjs",
+        "snapshot": "2026-11-07T07-40-36.161Z-34720-red-nc1-source-13.txt",
+        "sha256": "484c4ef9e9157a029ab608c38cac7c3297bbdf70a5c30b44470471cd68091757",
+        "test": false
+      },
+      {
+        "path": "apps/water/ui/views/common.mjs",
+        "snapshot": "2026-11-07T07-40-36.161Z-34720-red-nc1-source-14.txt",
+        "sha256": "a3ef7570214e7f48de24aea1fef9a63aa64a5fb787944c9efd2d782225d11c4c",
+        "test": false
+      },
+      {
+        "path": "apps/water/ui/views/confirm.mjs",
+        "snapshot": "2026-11-07T07-40-36.161Z-34720-red-nc1-source-15.txt",
+        "sha256": "7d02b9c961a1be56ace27b09ee61d36a0dfad410205094c60d0fa5ab0ff1ceaf",
+        "test": false
+      },
+      {
+        "path": "apps/water/ui/views/dedupe.mjs",
+        "snapshot": "2026-11-07T07-40-36.161Z-34720-red-nc1-source-16.txt",
+        "sha256": "01d2eba71eb074522a7c926152e441e02b417ac91aa7791c854c05767b8b17ef",
+        "test": false
+      },
+      {
+        "path": "apps/water/ui/views/detail.mjs",
+        "snapshot": "2026-11-07T07-40-36.161Z-34720-red-nc1-source-17.txt",
+        "sha256": "051a68b749642623c84e9c0ec316af17fad802438b2b9d3554e6ba5656c593a7",
+        "test": false
+      },
+      {
+        "path": "apps/water/ui/views/done.mjs",
+        "snapshot": "2026-11-07T07-40-36.161Z-34720-red-nc1-source-18.txt",
+        "sha256": "7a66ea64022fe006b66da5725a7ec5f0e8038769166102719cb6de25f024bbb2",
+        "test": false
+      },
+      {
+        "path": "apps/water/ui/views/history.mjs",
+        "snapshot": "2026-11-07T07-40-36.161Z-34720-red-nc1-source-19.txt",
+        "sha256": "58ec0c1d1993156dd7ffe8da43b704c73a8c731de0c72f849522bb99592023f2",
+        "test": false
+      },
+      {
+        "path": "apps/water/ui/views/home.mjs",
+        "snapshot": "2026-11-07T07-40-36.161Z-34720-red-nc1-source-20.txt",
+        "sha256": "2b8e77b1448e835614fbfb3e803c480ec91ab5859acf3a66b1e9f605f5ef8600",
+        "test": false
+      },
+      {
+        "path": "apps/water/ui/views/locations.mjs",
+        "snapshot": "2026-11-07T07-40-36.161Z-34720-red-nc1-source-21.txt",
+        "sha256": "4edeb97b8311e70de42742f15183bbf0b5bd3e061a1b28b3305417ba6e977c5c",
+        "test": false
+      },
+      {
+        "path": "apps/water/ui/views/quarantine.mjs",
+        "snapshot": "2026-11-07T07-40-36.161Z-34720-red-nc1-source-22.txt",
+        "sha256": "fe1d64f87b2f4ba765f68a870f4face5a2f45606fcc68811601bfef9c3252e2a",
+        "test": false
+      },
+      {
+        "path": "apps/water/ui/views/results.mjs",
+        "snapshot": "2026-11-07T07-40-36.161Z-34720-red-nc1-source-23.txt",
+        "sha256": "63a2ef42c946b14c8f0511221741b93c7dc5e56121f5ff283ae4e487682d4778",
+        "test": false
+      },
+      {
+        "path": "apps/water/ui/views/scan.mjs",
+        "snapshot": "2026-11-07T07-40-36.161Z-34720-red-nc1-source-24.txt",
+        "sha256": "847c51dce07c808bc638e542fdbaeb1386d74f19fea648d98e67ace84f08f255",
+        "test": false
+      },
+      {
+        "path": "apps/water/ui/views/trends.mjs",
+        "snapshot": "2026-11-07T07-40-36.161Z-34720-red-nc1-source-25.txt",
+        "sha256": "c7b59d0e9125c63dffe006e06732ead58b89887e35928c0dcf3e425ed4151f35",
+        "test": false
+      }
+    ],
+    "productionHash": "535647c322fc8b195518564ca59cd5682c99d4bc8d7589b147456c2bfb128e94",
+    "testHash": "93790846e8f8609ff4f3e27410c802168167c3fa7cc5478b427687d925a1d0a8"
+  },
+  "uiFiles": 26,
+  "after": {
+    "head": "5f392089d1205c3e9b8d077c964fea84e620b2e1",
+    "status": ""
+  },
+  "status": "failed",
+  "error": "AssertionError [ERR_ASSERTION]: A negative control needs an uncommitted production change\n    at uiGate (file:///F:/new/smaltalk/water/scripts/checkup-wave-check.mjs:159:198)\n    at file:///F:/new/smaltalk/water/scripts/checkup-wave-check.mjs:182:29\n    at ModuleJob.run (node:internal/modules/esm/module_job:439:25)\n    at async node:internal/modules/esm/loader:633:26\n    at async asyncRunEntryPointWithESMLoader (node:internal/modules/run_main:101:5)",
+  "endedAt": "2026-11-07T07:40:38.670Z"
+}
