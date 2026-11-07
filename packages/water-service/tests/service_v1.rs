@@ -4292,7 +4292,10 @@ fn m14_program_directories() {
     // Before W10-M12 the rules also took unins000.exe as an installer; since M12 it is no item at
     // all. Either way it must never be clean-able.
     let uninstaller = "selected/prog/App/unins000.exe";
-    if let Some(i) = items.iter().find(|i| i["path"] == slash(&f.root.join(uninstaller))) {
+    if let Some(i) = items
+        .iter()
+        .find(|i| i["path"] == slash(&f.root.join(uninstaller)))
+    {
         assert_eq!(
             i["eligible"], false,
             "SERVICE_M35_SCOPE: program file {uninstaller}"
