@@ -2,7 +2,7 @@
 
 更新时间：2026-11-06 00:50 JST（第十波 A 组第二轮验收：M1 通过、出补单 04，M2 出补单 02，见第 57 条；此前 2026-11-02 19:45 第 14 份交接；第十波：五件新事项已拍板，长列表与常驻隔离区入口进了设计 v2，见第 47 条；下一步基准表、夹具与契约；此前用户 18:05 认可界面设计 v2，并要求把每一轮清理的经验全部做进 Water，[第十波计划](dispatch/wave10/PLAN.md)逐条对照 67 条经验，[ADR-019 草案](decisions/ADR-019-project-declarations-and-quarantine.md)；设计稿：[设计 v2](design/water-ui-v2/DESIGN.md)、[可点的设计稿](design/water-ui-v2/mockup.html)；此前 **M3 达成**：第六次整合检查通过，release `water-0.1.0-bb92c87e` 编好，F1/F2 在 D 盘与 `F:\Mirasim-A` 只读复验通过，“几天后满”与手算一致，见[收口报告](acceptance/wave9/controller/WATER-M3-CLOSE-20261102.md)；下一步第十波，先按收口结果重看计划第 4、5 节；此前第九波四张单全部验收合入（L1 `28736089`、L2 `37fa96f1`、L4 `b39bfcdf`、L3 `bc433e6c`，[验收报告](acceptance/wave9/controller/WATER-W9-REVIEW-20261102.md)）；L2 开工检查后受阻（`5431e812`，单子里“夹具只建普通文件与目录”与原有测试的联接、硬链接夹具冲突，总控疏漏），补单 01 已出，待外贴；第九波已拍板“全部按推荐”：契约冻结 `contracts/m3d-v1/`，基线 `57ecd7ce`，L1～L4 四张单 11-02 派出（L1、L2、L4 给 sol，L3 给 grok），见[计划](dispatch/wave9/PLAN.md)第 8 节；第十波等第九波收口后再做；denglou 收尾回执已并入[总控清理的固定做法](maintenance/CLEANUP-METHOD.md)；`yb-release` 里的正式签名本机副本已随隔离区删除，EAS 仍有，要不要再下一份离线备份由用户定；denglou 隔离目录用户 12:00 已删，F 盘可用 372.72 GB，四盘合计 532.5 GB；剩一个 3.3 MB 的 `nul` 文件待用 `\\?\` 命令删，`F:\_denglou-quarantine-20261102`（5.72 GB）可删；下一轮计划草案待拍板：[第九波 M3 收口、第十波 M3.5“结论优先”](dispatch/wave9/PLAN.md)；四个盘清理结束，用户删完隔离目录，四盘可用 205.7 → 368.2 GB；M2 自清理 01:13 达成；见[清理记录](maintenance/CLEANUP-20261101.md)；M3 等用户拍板 F1、F2 修法；第 13 份交接）。
 
-更换总控请先读[最新交接报告（2026-11-07 第 22 份）](CONTROLLER-HANDOFF-20261107-22.md)；[第 21 份](CONTROLLER-HANDOFF-20261106-21.md)、[第 20 份](CONTROLLER-HANDOFF-20261106-20.md)、[第 19 份](CONTROLLER-HANDOFF-20261106-19.md)、[第 18 份](CONTROLLER-HANDOFF-20261106-18.md)、[第 17 份](CONTROLLER-HANDOFF-20261105-17.md)、[第 16 份](CONTROLLER-HANDOFF-20261105-16.md)、[第 15 份](CONTROLLER-HANDOFF-20261102-15.md)、[第 14 份](CONTROLLER-HANDOFF-20261102-14.md)、[第 13 份](CONTROLLER-HANDOFF-20261102-13.md)、[第 12 份](CONTROLLER-HANDOFF-20261101-12.md)、[第 11 份](CONTROLLER-HANDOFF-20261101-11.md)、[第 10 份](CONTROLLER-HANDOFF-20261031-10.md)、[第 9 份](CONTROLLER-HANDOFF-20261028-9.md)、[第 8 份](CONTROLLER-HANDOFF-20261027-8.md)、[第 7 份](CONTROLLER-HANDOFF-20261027-7.md)、[第 6 份](CONTROLLER-HANDOFF-20261027-6.md)、[第 5 份](CONTROLLER-HANDOFF-20261026-5.md)、[第 4 份](CONTROLLER-HANDOFF-20261026-4.md)、[第 3 份](CONTROLLER-HANDOFF-20261026-3.md)、[第 2 份](CONTROLLER-HANDOFF-20261026-2.md)、[上午那份](CONTROLLER-HANDOFF-20261026.md)及其只读状态快照仅供追溯。M1 已达成；第四、五波已全部验收合入，打开清理的 release 版已编好，M2 只差自清理；M3 第六波三张已全部验收合入，第四次整合检查通过，含第六波的 release 版 `water-0.1.0-b62f9c5c` 已编好；第七波（M3 收尾）四张已全部验收合入（见下文）。此前[接手验收摘要](CONTROLLER-HANDOFF-20261017.md)仅供历史追溯；当前任务状态以本页、registry/manifest及最新正式验收为准。
+更换总控请先读[最新交接报告（2026-11-07 第 23 份）](CONTROLLER-HANDOFF-20261107-23.md)；[第 22 份](CONTROLLER-HANDOFF-20261107-22.md)、[第 21 份](CONTROLLER-HANDOFF-20261106-21.md)、[第 20 份](CONTROLLER-HANDOFF-20261106-20.md)、[第 19 份](CONTROLLER-HANDOFF-20261106-19.md)、[第 18 份](CONTROLLER-HANDOFF-20261106-18.md)、[第 17 份](CONTROLLER-HANDOFF-20261105-17.md)、[第 16 份](CONTROLLER-HANDOFF-20261105-16.md)、[第 15 份](CONTROLLER-HANDOFF-20261102-15.md)、[第 14 份](CONTROLLER-HANDOFF-20261102-14.md)、[第 13 份](CONTROLLER-HANDOFF-20261102-13.md)、[第 12 份](CONTROLLER-HANDOFF-20261101-12.md)、[第 11 份](CONTROLLER-HANDOFF-20261101-11.md)、[第 10 份](CONTROLLER-HANDOFF-20261031-10.md)、[第 9 份](CONTROLLER-HANDOFF-20261028-9.md)、[第 8 份](CONTROLLER-HANDOFF-20261027-8.md)、[第 7 份](CONTROLLER-HANDOFF-20261027-7.md)、[第 6 份](CONTROLLER-HANDOFF-20261027-6.md)、[第 5 份](CONTROLLER-HANDOFF-20261026-5.md)、[第 4 份](CONTROLLER-HANDOFF-20261026-4.md)、[第 3 份](CONTROLLER-HANDOFF-20261026-3.md)、[第 2 份](CONTROLLER-HANDOFF-20261026-2.md)、[上午那份](CONTROLLER-HANDOFF-20261026.md)及其只读状态快照仅供追溯。M1 已达成；第四、五波已全部验收合入，打开清理的 release 版已编好，M2 只差自清理；M3 第六波三张已全部验收合入，第四次整合检查通过，含第六波的 release 版 `water-0.1.0-b62f9c5c` 已编好；第七波（M3 收尾）四张已全部验收合入（见下文）。此前[接手验收摘要](CONTROLLER-HANDOFF-20261017.md)仅供历史追溯；当前任务状态以本页、registry/manifest及最新正式验收为准。
 
 ## 已确认
 
@@ -458,7 +458,7 @@ A–AB及八补单、AD保持VERIFIED；AC/补单06新增VERIFIED（Windows静�
     - **合入**：依次合入 M12 `de1bf0e5`、M13 `0886186c`、M14 `467f9e43`。
     - **下一步**：第八次整合、release、在 D 盘与 `F:\Mirasim-A` 同位置复验，然后收口。
     - 见[验收报告](acceptance/wave10/controller/WATER-W10-REVIEW-20261105.md)第 16 节。
-85. **第八次整合通过，修完复验通过，建议 M3.5 收口**（11-07 14:45 JST，用户：“开始整合”）：
+85. **第八次整合通过，修完复验通过，建议 M3.5 收口**（11-07 约 14:38 JST，用户：“开始整合”）：
     - **范围**：受测提交 `63a500ae`。只重跑改过的规则、扫描、服务与宿主，其余六部分与第七次的 `c1dd420c` 逐字节相同，沿用第七次的结果。
     - **测试修改**：服务测试第一轮失败——M14 的测试要求 `unins000.exe` 是安装包条目，M12 合入后它本来就不该是。用户：“总控直接改”，测试改为“出现时必须被挡”（`fd7cfb0e`）；再按 rustfmt 改格式（`63a500ae`）。
     - **计时**：`skip_add` 只因计时失败两次，原样重跑后通过。
@@ -467,16 +467,20 @@ A–AB及八补单、AD保持VERIFIED；AC/补单06新增VERIFIED（Windows静�
     - **同位置真实复验**：R1～R4 都消失——安装包卡没有了，泄漏簇从 58 组降到 4 组，线索从 786 条降到 5 条；卡片只写日期，折叠行标出位置。
     - **新低项**：没有更早体检时，泄漏卡写“已经不长了”，与线索矛盾。
     - 见[第八次整合报告](acceptance/wave10/controller/WATER-W10-INTEGRATION8-20261107.md)、[收口报告](acceptance/wave10/controller/WATER-M35-CLOSE-20261107.md)第 2.5 节。等用户定：M3.5 收不收口、下一波先做什么。
-86. **M3.5 收口**（11-07 14:55 JST，用户：“收口”）：
+86. **M3.5 收口**（11-07 约 14:40 JST，用户：“收口”）：
     - **结果**：第十波 M1～M14 全部合入，第八次整合通过，release `water-0.1.0-63a500ae`。
     - **登记**：收口报告、[路线图](ROADMAP.md)（新增 M3.5 一行）、第十波清单都已标为收口。
     - **低项**：留给下一波，见收口报告第 4 节。
     - **下一步**：等用户定下一波先做什么。
-87. **第十一波按推荐排；软件改名 Flick，标志选定**（11-07 15:20 JST）：
+87. **第十一波按推荐排；软件改名 Flick，标志选定**（11-07 约 14:55 JST）：
     - **第十一波**：用户：“按推荐排”。第十一波先收尾（界面、服务、执行器各一张），Water 自己的项目声明由总控写，“以后都跳过”放第十二波，然后进 M4。
     - **改名**：用户：“然后软件名改成Flick，你再设计一下logo”。总控在[画布](https://claude.ai/artifact/QaQwhvVUTZTZQPiLtsJAKS)上出四个方向，用户选 **D 一笔弹出**；改名范围选“看得见的全改”，包括窗口与程序名、`.flick-quarantine`、数据目录 `%LOCALAPPDATA%\Flick`（搬旧目录），声明文件新旧两个名字都认；代码包名和仓库名不动。
     - **品牌规范**：见 [Flick 品牌](design/flick-brand/BRAND.md)；应用图标 ICO 已导出。
     - **下一步**：改名并进第十一波计划。
+88. **第十一波计划获批；第 23 份交接**（11-07 约 15:00 JST）：
+    - **计划**：用户：“按计划出单”，即[第十一波计划](dispatch/wave11/PLAN.md)，收尾与改名合成一波、八张单、分两批；数据目录搬家失败时这次照旧用旧目录、下次再试。
+    - **进度**：出单准备到“预列旧断言”时，用户要压缩上下文，先写[第 23 份交接](CONTROLLER-HANDOFF-20261107-23.md)，第 3 节是入口。
+    - **订正**：下午几处估写的时间（第 85～87 条、收口报告、第十波计划与清单）已按本机时钟改正。
 ## 真实AA→AD联合验收通过（2026-10-26）
 
 新总控（Claude）接任后按事先冻结的[计划](acceptance/wave1/controller/WATER-W1-AAAD-JOINT-PLAN-20261026.md)执行一次：真实固定AA宿主→原生目录选择→R/Z→AB传输→AD同源报告页，四场景全部通过，4窗/9.993秒/无重试/手动终止0。报告页鼠标下载的Q与Z与当次原字符串逐字节一致，淘汰与正常关闭通过。见[联合验收报告](acceptance/wave1/controller/WATER-W1-AAAD-JOINT-REVIEW-20261026.md)。31任务/槽位不变，没有新READY票；桌面接入扫描、真实用户scope、自然同意鉴真、生产竞态、macOS与M1仍未验收。用户同日要求先暂停安排后续任务，结合本机清理经验重订计划；总控草案见[计划重订（待拍板）](REPLAN-20261026-AGENT-ERA-CHECKUP.md)，拍板前不出新票。
