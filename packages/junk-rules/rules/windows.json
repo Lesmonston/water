@@ -1,6 +1,6 @@
 {
   "rules_version": "water.junk-rules.v1",
-  "data_version": "2026-11-07.2",
+  "data_version": "2026-11-07.3",
   "rules": [
     {
       "rule_id": "codex-marketplace-staging",
@@ -3787,6 +3787,36 @@
             "Intel",
             "ShaderCache"
           ]
+        },
+        {
+          "kind": "pattern",
+          "base": "user_profile",
+          "segments": [
+            "AppData",
+            "LocalLow",
+            "Intel",
+            "ShaderCache"
+          ]
+        },
+        {
+          "kind": "pattern",
+          "base": "user_profile",
+          "segments": [
+            "AppData",
+            "LocalLow",
+            "NVIDIA",
+            "DXCache"
+          ]
+        },
+        {
+          "kind": "pattern",
+          "base": "user_profile",
+          "segments": [
+            "AppData",
+            "LocalLow",
+            "NVIDIA",
+            "GLCache"
+          ]
         }
       ],
       "item_type": "dir",
@@ -3806,6 +3836,11 @@
           "kind": "local_observation",
           "ref": "2026-10-26 总控本机只读摸底",
           "checked_on": "2026-10-26"
+        },
+        {
+          "kind": "local_observation",
+          "ref": "2026-11-07 总控 C 盘只读调查",
+          "checked_on": "2026-11-07"
         }
       ]
     },
@@ -6472,6 +6507,362 @@
         }
       ],
       "in_use_zh": "测试结束、浏览器关掉后可清"
+    },
+    {
+      "rule_id": "vrchat-cache",
+      "title_zh": "VRChat 世界与角色缓存",
+      "owner_zh": "VRChat",
+      "category": "app_leftover",
+      "level": "confirm",
+      "locate": [
+        {
+          "kind": "pattern",
+          "base": "user_profile",
+          "segments": [
+            "AppData",
+            "LocalLow",
+            "VRChat",
+            "VRChat",
+            "Cache-WindowsPlayer",
+            "*"
+          ]
+        },
+        {
+          "kind": "pattern",
+          "base": "user_profile",
+          "segments": [
+            "AppData",
+            "LocalLow",
+            "VRChat",
+            "VRChat",
+            "TextureDiskCache-WindowsPlayer",
+            "*"
+          ]
+        }
+      ],
+      "item_type": "dir",
+      "min_age_hours": 168,
+      "keep_newest": 0,
+      "in_use": {
+        "mode": "process_running",
+        "processes": [
+          "vrchat.exe"
+        ]
+      },
+      "growth": "slow",
+      "what_zh": "VRChat 下载世界、角色和纹理时保存的缓存，玩过的内容越多，占用可能越大。",
+      "why_zh": "这里只认下载缓存，一周没改动且 VRChat 关掉后才可清。是否愿意下次重新下载，需要你确认。",
+      "after_zh": "下次进入对应世界或遇到对应角色时会重新下载，等待时间和网络用量可能增加。",
+      "fix_hint_zh": null,
+      "sources": [
+        {
+          "kind": "local_observation",
+          "ref": "2026-11-07 总控 C 盘只读调查",
+          "checked_on": "2026-11-07"
+        }
+      ],
+      "in_use_zh": "关掉 VRChat 后可清"
+    },
+    {
+      "rule_id": "wecom-upgrade-staging",
+      "title_zh": "企业微信没装上的更新",
+      "owner_zh": "企业微信",
+      "category": "app_leftover",
+      "level": "confirm",
+      "locate": [
+        {
+          "kind": "pattern",
+          "base": "roaming_app_data",
+          "segments": [
+            "Tencent",
+            "WXWork",
+            "upgrade",
+            "*"
+          ]
+        }
+      ],
+      "item_type": "any",
+      "min_age_hours": 720,
+      "keep_newest": 0,
+      "in_use": {
+        "mode": "process_running",
+        "processes": [
+          "wxwork.exe"
+        ]
+      },
+      "growth": "one_off",
+      "what_zh": "企业微信下载好但没装上的更新，留在升级暂存目录里。",
+      "why_zh": "一个月没改动且企业微信关掉后才列出。先确认不再需要这份更新，再清掉它。",
+      "after_zh": "已安装的程序仍可使用；需要这份更新时可能重新下载。",
+      "fix_hint_zh": null,
+      "sources": [
+        {
+          "kind": "local_observation",
+          "ref": "2026-11-07 总控 C 盘只读调查",
+          "checked_on": "2026-11-07"
+        }
+      ],
+      "in_use_zh": "关掉企业微信后可清"
+    },
+    {
+      "rule_id": "npm-global-reify-leftovers",
+      "title_zh": "npm 全局升级失败副本",
+      "owner_zh": "npm",
+      "category": "dev_cache",
+      "level": "recommended",
+      "locate": [
+        {
+          "kind": "pattern",
+          "base": "roaming_app_data",
+          "segments": [
+            "npm",
+            "node_modules",
+            ".*-*"
+          ]
+        },
+        {
+          "kind": "pattern",
+          "base": "roaming_app_data",
+          "segments": [
+            "npm",
+            "node_modules",
+            "@*",
+            ".*-*"
+          ]
+        }
+      ],
+      "item_type": "dir",
+      "min_age_hours": 24,
+      "keep_newest": 0,
+      "in_use": {
+        "mode": "none",
+        "processes": []
+      },
+      "growth": "leak_prone",
+      "what_zh": "npm 升级全局工具失败时，留下以点开头、带随机尾巴的包目录副本。",
+      "why_zh": "只认这类隐藏副本目录，超过一天才可清；普通包、命令入口和锁文件不在清理范围内。",
+      "after_zh": "保留正常包目录。以后重试安装或升级时，缺的副本会重新生成。",
+      "fix_hint_zh": "若这些副本反复增长，先排查 npm 全局升级失败的原因；升级工具应只回收本次创建且已不再使用的副本。",
+      "sources": [
+        {
+          "kind": "local_observation",
+          "ref": "2026-11-07 总控 C 盘只读调查",
+          "checked_on": "2026-11-07"
+        }
+      ]
+    },
+    {
+      "rule_id": "wechat-xlog",
+      "title_zh": "微信运行日志",
+      "owner_zh": "微信",
+      "category": "crash_log",
+      "level": "recommended",
+      "locate": [
+        {
+          "kind": "pattern",
+          "base": "roaming_app_data",
+          "segments": [
+            "Tencent",
+            "xwechat",
+            "log",
+            "*.xlog"
+          ]
+        }
+      ],
+      "item_type": "file",
+      "min_age_hours": 168,
+      "keep_newest": 0,
+      "in_use": {
+        "mode": "none",
+        "processes": []
+      },
+      "growth": "slow",
+      "what_zh": "微信按天写下的运行日志，本机观察到每天约增加 60 MB。",
+      "why_zh": "只清一周以前的日志文件，不包括聊天记录或账号数据。若正在排查旧问题，可以先留下。",
+      "after_zh": "微信会继续生成新日志；已清的旧日志不能再用于排查当时的问题。",
+      "fix_hint_zh": null,
+      "sources": [
+        {
+          "kind": "local_observation",
+          "ref": "2026-11-07 总控 C 盘只读调查",
+          "checked_on": "2026-11-07"
+        }
+      ]
+    },
+    {
+      "rule_id": "chromium-component-crx-cache",
+      "title_zh": "浏览器组件下载缓存",
+      "owner_zh": "Chrome、Edge、Brave",
+      "category": "browser",
+      "level": "recommended",
+      "locate": [
+        {
+          "kind": "pattern",
+          "base": "local_app_data",
+          "segments": [
+            "Google",
+            "Chrome",
+            "User Data",
+            "component_crx_cache"
+          ]
+        },
+        {
+          "kind": "pattern",
+          "base": "local_app_data",
+          "segments": [
+            "Microsoft",
+            "Edge",
+            "User Data",
+            "component_crx_cache"
+          ]
+        },
+        {
+          "kind": "pattern",
+          "base": "local_app_data",
+          "segments": [
+            "BraveSoftware",
+            "Brave-Browser",
+            "User Data",
+            "component_crx_cache"
+          ]
+        }
+      ],
+      "item_type": "dir",
+      "min_age_hours": 24,
+      "keep_newest": 0,
+      "in_use": {
+        "mode": "process_running",
+        "processes": [
+          "chrome.exe",
+          "msedge.exe",
+          "brave.exe"
+        ]
+      },
+      "growth": "slow",
+      "what_zh": "Chrome、Edge 和 Brave 下载浏览器组件时保存的缓存包。",
+      "why_zh": "只认组件下载缓存，一天没改动且这三种浏览器都关掉后才可清，不包括登录信息和网站存储。",
+      "after_zh": "浏览器需要组件时可能重新下载；首次使用对应功能时可能多等一会儿。",
+      "fix_hint_zh": null,
+      "sources": [
+        {
+          "kind": "local_observation",
+          "ref": "2026-11-07 总控 C 盘只读调查",
+          "checked_on": "2026-11-07"
+        }
+      ],
+      "in_use_zh": "关掉 Chrome、Edge 和 Brave 后可清"
+    },
+    {
+      "rule_id": "onedrive-logs",
+      "title_zh": "OneDrive 运行日志",
+      "owner_zh": "OneDrive",
+      "category": "crash_log",
+      "level": "recommended",
+      "locate": [
+        {
+          "kind": "pattern",
+          "base": "local_app_data",
+          "segments": [
+            "Microsoft",
+            "OneDrive",
+            "logs",
+            "*"
+          ]
+        }
+      ],
+      "item_type": "any",
+      "min_age_hours": 168,
+      "keep_newest": 0,
+      "in_use": {
+        "mode": "none",
+        "processes": []
+      },
+      "growth": "slow",
+      "what_zh": "OneDrive 在本机留下的同步与运行日志。",
+      "why_zh": "只清日志目录里一周没改动的条目，同步文件不在这里。需要排查旧问题时可以先留下。",
+      "after_zh": "OneDrive 会继续生成日志；已清的旧记录不能再用于排查当时的问题。",
+      "fix_hint_zh": null,
+      "sources": [
+        {
+          "kind": "local_observation",
+          "ref": "2026-11-07 总控 C 盘只读调查",
+          "checked_on": "2026-11-07"
+        }
+      ]
+    },
+    {
+      "rule_id": "copilot-sdk-runtimes",
+      "title_zh": "Copilot SDK 旧运行时",
+      "owner_zh": "GitHub Copilot SDK",
+      "category": "agent_tool",
+      "level": "recommended",
+      "locate": [
+        {
+          "kind": "pattern",
+          "base": "local_app_data",
+          "segments": [
+            "github-copilot-sdk",
+            "cli",
+            "copilot-sdk-runtime-*"
+          ]
+        }
+      ],
+      "item_type": "dir",
+      "min_age_hours": 24,
+      "keep_newest": 1,
+      "in_use": {
+        "mode": "none",
+        "processes": []
+      },
+      "growth": "slow",
+      "what_zh": "GitHub Copilot SDK 下载到本机的运行时副本，更新后可能留下多份。",
+      "why_zh": "保留最近活动的一份，只清一天以前的其它副本；此规则没有专属在用检测，清理前请先停用依赖这些副本的工具。",
+      "after_zh": "以后需要旧运行时可能重新下载。保留一份不保证每个旧版本都能直接启动。",
+      "fix_hint_zh": null,
+      "sources": [
+        {
+          "kind": "local_observation",
+          "ref": "2026-11-07 总控 C 盘只读调查",
+          "checked_on": "2026-11-07"
+        }
+      ]
+    },
+    {
+      "rule_id": "claude-code-installer-downloads",
+      "title_zh": "Claude Code 安装下载残留",
+      "owner_zh": "Claude Code",
+      "category": "agent_tool",
+      "level": "recommended",
+      "locate": [
+        {
+          "kind": "pattern",
+          "base": "user_profile",
+          "segments": [
+            ".claude",
+            "downloads",
+            "*"
+          ]
+        }
+      ],
+      "item_type": "any",
+      "min_age_hours": 24,
+      "keep_newest": 0,
+      "in_use": {
+        "mode": "none",
+        "processes": []
+      },
+      "growth": "one_off",
+      "what_zh": "Claude Code 下载并完成安装后，留在下载目录里的安装程序。",
+      "why_zh": "只认安装下载目录里一天没改动的条目，不包括会话、记忆和文件历史。",
+      "after_zh": "已安装的 Claude Code 仍可使用；以后安装时可能需要重新下载。",
+      "fix_hint_zh": null,
+      "sources": [
+        {
+          "kind": "local_observation",
+          "ref": "2026-11-07 总控 C 盘只读调查",
+          "checked_on": "2026-11-07"
+        }
+      ]
     }
   ]
 }
