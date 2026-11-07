@@ -1,0 +1,52 @@
+{"binary":"C:\\Users\\37310\\.rustup\\toolchains\\1.95.0-x86_64-pc-windows-msvc\\bin\\cargo.exe","args":["test","--offline","--locked","--manifest-path","packages/water-service/Cargo.toml","--test","service_v1","--","--test-threads=1"],"exitCode":101,"error":null}
+--- stdout ---
+
+running 12 tests
+test m35_clean_split ... ok
+test m35_conclusion_cards ... FAILED
+test m35_quarantine ... ok
+test m35_rows_and_detail ... ok
+test m35_scope_and_plan ... ok
+test m35_trends_history ... ok
+test service_clean_flow ... ok
+test service_hardening ... ok
+test service_ipc_contract ... ok
+test service_scan_views ... ok
+test service_storage_safety ... ok
+test service_trends_locations ... ok
+
+failures:
+
+---- m35_conclusion_cards stdout ----
+
+thread 'm35_conclusion_cards' (27208) panicked at tests\service_v1.rs:5263:5:
+assertion `left == right` failed: SERVICE_M35_CONCLUSION: file cluster and UUID title
+  left: String("…\\subagents 里有 12 个同模板文件，最近 14 天新增 2 个")
+ right: "…\\subagents 里有 12 个同模板文件，已经不长了"
+note: run with `RUST_BACKTRACE=1` environment variable to display a backtrace
+
+
+failures:
+    m35_conclusion_cards
+
+test result: FAILED. 11 passed; 1 failed; 0 ignored; 0 measured; 0 filtered out; finished in 65.17s
+
+
+--- stderr ---
+   Compiling serde_core v1.0.229
+   Compiling zmij v1.0.23
+   Compiling itoa v1.0.18
+   Compiling memchr v2.8.3
+   Compiling serde_json v1.0.151
+   Compiling serde v1.0.229
+   Compiling water-dup-finder v0.1.0 (F:\new\smaltalk\water\.worktrees\w11-n8\packages\dup-finder)
+   Compiling water-cleanup-manifest v0.1.0 (F:\new\smaltalk\water\.worktrees\w11-n8\packages\cleanup-manifest)
+   Compiling water-installed-apps v0.1.0 (F:\new\smaltalk\water\.worktrees\w11-n8\packages\installed-apps)
+   Compiling water-junk-scan v0.1.0 (F:\new\smaltalk\water\.worktrees\w11-n8\packages\junk-scan)
+   Compiling water-process-scan v0.1.0 (F:\new\smaltalk\water\.worktrees\w11-n8\packages\process-scan)
+   Compiling water-junk-clean v0.1.0 (F:\new\smaltalk\water\.worktrees\w11-n8\packages\junk-clean)
+   Compiling water-junk-rules v0.1.0 (F:\new\smaltalk\water\.worktrees\w11-n8\packages\junk-rules)
+   Compiling water-service v0.1.0 (F:\new\smaltalk\water\.worktrees\w11-n8\packages\water-service)
+    Finished `test` profile [unoptimized + debuginfo] target(s) in 52.79s
+     Running tests\service_v1.rs (.local\w3-target\debug\deps\service_v1-fd16274ba3f6bc08.exe)
+error: test failed, to rerun pass `--test service_v1`
