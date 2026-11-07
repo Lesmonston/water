@@ -1,0 +1,53 @@
+{"binary":"C:\\Users\\37310\\.rustup\\toolchains\\1.95.0-x86_64-pc-windows-msvc\\bin\\cargo.exe","args":["test","--offline","--locked","--manifest-path","packages/junk-clean/Cargo.toml","--test","clean_v1","--","--test-threads=1"],"exitCode":101,"error":null}
+--- stdout ---
+
+running 11 tests
+test clean_handle_hardening ... ok
+test clean_no_follow ... ok
+test clean_partial_stop_journal ... FAILED
+test clean_plan_contract ... ok
+test clean_report_volume ... ok
+test clean_revalidation_skips ... ok
+test quarantine_inspect_and_list ... ok
+test quarantine_move_contract ... FAILED
+test quarantine_purge_contract ... ok
+test quarantine_restore_contract ... ok
+test quarantine_unlock_pair ... ok
+
+failures:
+
+---- clean_partial_stop_journal stdout ----
+
+thread 'clean_partial_stop_journal' (35688) panicked at tests\clean_v1.rs:887:6:
+CLEAN_W12_JOURNAL: result failure lost deletion report: Journal
+note: run with `RUST_BACKTRACE=1` environment variable to display a backtrace
+
+---- quarantine_move_contract stdout ----
+
+thread 'quarantine_move_contract' (9136) panicked at tests\clean_v1.rs:2069:33:
+CLEAN_W12_JOURNAL: quarantine lost completed actions: Journal
+
+
+failures:
+    clean_partial_stop_journal
+    quarantine_move_contract
+
+test result: FAILED. 9 passed; 2 failed; 0 ignored; 0 measured; 0 filtered out; finished in 244.65s
+
+
+--- stderr ---
+   Compiling proc-macro2 v1.0.107
+   Compiling unicode-ident v1.0.27
+   Compiling quote v1.0.47
+   Compiling serde_core v1.0.229
+   Compiling zmij v1.0.23
+   Compiling syn v3.0.9
+   Compiling serde v1.0.229
+   Compiling serde_json v1.0.151
+   Compiling serde_derive v1.0.229
+   Compiling itoa v1.0.18
+   Compiling memchr v2.8.3
+   Compiling water-junk-clean v0.1.0 (F:\new\smaltalk\water\.worktrees\w12-p1\packages\junk-clean)
+    Finished `test` profile [unoptimized + debuginfo] target(s) in 50.92s
+     Running tests\clean_v1.rs (.local\w2-target\junk-clean\debug\deps\clean_v1-607b5e28434d5f75.exe)
+error: test failed, to rerun pass `--test clean_v1`

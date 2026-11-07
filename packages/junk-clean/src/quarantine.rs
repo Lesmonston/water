@@ -87,7 +87,9 @@ pub fn quarantine(
         };
         let mut first_root: Option<String> = None;
         let mut moved = 0u64;
+        let mut acted = false;
         for (index, item) in plan.items.iter().enumerate() {
+            let mut journal_failed = false;
             let mut result = MoveReport {
                 item_id: item.item_id.clone(),
                 status: MoveStatus::Skipped,
@@ -98,7 +100,9 @@ pub fn quarantine(
                 identity: None,
                 bytes: "0".into(),
             };
-            if stop.is_stopped() {
+            if report.journal_error.is_some() {
+                result.skip_reason = Some(SkipReason::JournalFailed);
+            } else if stop.is_stopped() {
                 result.skip_reason = Some(SkipReason::Cancelled);
                 report.status = RunStatus::Stopped;
             } else {
@@ -121,7 +125,7 @@ pub fn quarantine(
                         } else {
                             first_root.get_or_insert(root.clone());
                             // The native operation owns both chains across the journal flush.
-                            result = native_windows::move_to_quarantine(
+                            match native_windows::move_to_quarantine(
                                 plan,
                                 item,
                                 &root,
@@ -133,7 +137,17 @@ pub fn quarantine(
                                 journal,
                                 stop,
                                 now,
-                            )?;
+                            ) {
+                                Ok((outcome, failed)) => {
+                                    result = outcome;
+                                    journal_failed = failed;
+                                }
+                                Err(CleanError::Journal) if acted => {
+                                    result.skip_reason = Some(SkipReason::JournalFailed);
+                                    journal_failed = true;
+                                }
+                                Err(error) => return Err(error),
+                            }
                         }
                     }
                 }
@@ -142,6 +156,7 @@ pub fn quarantine(
                 report.status = RunStatus::Stopped;
             }
             if result.status == MoveStatus::Moved {
+                acted = true;
                 moved = moved
                     .checked_add(
                         result
@@ -150,6 +165,13 @@ pub fn quarantine(
                             .map_err(|_| CleanError::Native)?,
                     )
                     .ok_or(CleanError::Overflow)?;
+            }
+            if journal_failed {
+                if !acted {
+                    return Err(CleanError::Journal);
+                }
+                report.status = RunStatus::Stopped;
+                report.journal_error = Some(CleanError::Journal.to_string());
             }
             report.items.push(result);
             observer.on_item(index + 1, plan.items.len(), moved, &item.item_id);
