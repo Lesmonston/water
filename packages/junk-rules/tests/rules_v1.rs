@@ -2392,6 +2392,10 @@ fn rules_resolve_plan() {
     assert_eq!(plan.plan_version, "water.scan-plan.v1");
     assert_eq!(
         plan.rules_data_version, "2026-11-07.1",
+        "RULES_M35_VERSION: plan data version"
+    );
+    assert_eq!(
+        plan.rules_data_version, "2026-11-07.1",
         "RULES_M3_WORDING: plan data version"
     );
     assert_eq!(
