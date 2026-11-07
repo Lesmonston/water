@@ -106,7 +106,6 @@ pub(crate) fn prepare_mode(
             return Err(IpcError::new("invalid"));
         }
         let before = items.len();
-        let mut bytes = 0;
         for &index in projection.group_items(id) {
             let item = &r.result.items[index];
             if !item.eligible || item.identity.is_none() {
@@ -123,19 +122,6 @@ pub(crate) fn prepare_mode(
                     .any(|v| v.path.eq_ignore_ascii_case(&item.path))
             {
                 excluded_count += 1;
-                continue;
-            }
-            if mode.is_some_and(|m| m.0 == "quarantine")
-                && conclusion::is_chosen(core, &r, item)
-                && !*available.entry(util::drive(&item.path)).or_insert_with(|| {
-                    quarantine::registered_base(core, &util::drive(&item.path)).is_some()
-                })
-            {
-                *unavailable.entry(util::drive(&item.path)).or_default() += 1;
-                skipped_session |= core
-                    .rules
-                    .rule(&group.rule_id)
-                    .is_some_and(|rule| rule.session_tool.is_some());
                 continue;
             }
             let target = r
@@ -191,14 +177,51 @@ pub(crate) fn prepare_mode(
                 )
             };
             items.push(json!({"item_id":item.item_id,"group_id":id,"rule_id":group.rule_id,"level":group.level,"path":item.path,"root":root,"kind":item.kind,"identity":item.identity,"total_bytes":item.total_bytes,"min_age_hours":age,"unlocked_paths":unlocks}));
-            let n = util::number(&item.unique_bytes);
-            bytes += n;
-            *by_drive.entry(util::drive(&item.path)).or_default() += n;
         }
         if items.len() > before {
-            groups.push(json!({"group_id":id,"title_zh":projection.details[id]["group"]["title_zh"],"level":group.level,"item_count":items.len()-before,"total_bytes":bytes.to_string(),"in_use_note_zh":if projection.details[id]["group"]["in_use"].is_null(){None}else{Some("运行中，占用的项会跳过")}}));
+            groups.push(json!({"group_id":id,"title_zh":projection.details[id]["group"]["title_zh"],"level":group.level,"item_count":0,"total_bytes":"0","in_use_note_zh":if projection.details[id]["group"]["in_use"].is_null(){None}else{Some("运行中，占用的项会跳过")}}));
         }
     }
+    retain_outermost(&mut items);
+    items.retain(|p| {
+        let item = &r.result.items[projection
+            .item_index(p["item_id"].as_str().unwrap())
+            .unwrap()];
+        if mode.is_some_and(|m| m.0 == "quarantine")
+            && conclusion::is_chosen(core, &r, item)
+            && !*available.entry(util::drive(&item.path)).or_insert_with(|| {
+                quarantine::registered_base(core, &util::drive(&item.path)).is_some()
+            })
+        {
+            *unavailable.entry(util::drive(&item.path)).or_default() += 1;
+            skipped_session |= core
+                .rules
+                .rule(p["rule_id"].as_str().unwrap())
+                .is_some_and(|rule| rule.session_tool.is_some());
+            false
+        } else {
+            true
+        }
+    });
+    let mut totals = BTreeMap::<String, (usize, u64)>::new();
+    for p in &items {
+        let item = &r.result.items[projection
+            .item_index(p["item_id"].as_str().unwrap())
+            .unwrap()];
+        let n = util::number(&item.unique_bytes);
+        let total = totals.entry(item.group_id.clone()).or_default();
+        total.0 += 1;
+        total.1 += n;
+        *by_drive.entry(util::drive(&item.path)).or_default() += n;
+    }
+    groups.retain_mut(|g| {
+        let Some((count, bytes)) = totals.get(g["group_id"].as_str().unwrap()) else {
+            return false;
+        };
+        g["item_count"] = json!(count);
+        g["total_bytes"] = json!(bytes.to_string());
+        true
+    });
     if items.is_empty() {
         return Err(IpcError::new("invalid"));
     }
@@ -273,6 +296,43 @@ pub(crate) fn prepare_mode(
     Ok(
         json!({"plan_id":id,"confirm_token":token,"item_count":items.len(),"total_bytes":total.to_string(),"groups":groups,"by_drive":by_drive.into_iter().map(|(root,n)|json!({"root":root,"bytes":n.to_string()})).collect::<Vec<_>>(),"irreversible":chosen_ids.is_empty() || mode.is_some_and(|x|x.0=="delete"),"excluded_count":excluded_count,"delete":extra["delete"],"chosen":extra["chosen"],"expected_skip":extra["expected_skip"]}),
     )
+}
+
+fn retain_outermost(items: &mut Vec<Value>) {
+    // Same component-prefix ordering and ASCII folding as the executor's
+    // validate_disjoint_items. Keep input order (and the outer item's mode).
+    let mut paths = items
+        .iter()
+        .enumerate()
+        .map(|(index, item)| {
+            (
+                format!(
+                    "{}\\",
+                    item["path"]
+                        .as_str()
+                        .unwrap()
+                        .trim_end_matches('\\')
+                        .to_ascii_lowercase()
+                ),
+                index,
+            )
+        })
+        .collect::<Vec<_>>();
+    paths.sort_unstable();
+    let mut outer: Option<&str> = None;
+    let mut retained = HashSet::new();
+    for (path, index) in &paths {
+        if outer.is_none_or(|parent| !path.starts_with(parent)) {
+            retained.insert(*index);
+            outer = Some(path);
+        }
+    }
+    let mut index = 0;
+    items.retain(|_| {
+        let keep = retained.contains(&index);
+        index += 1;
+        keep
+    });
 }
 
 pub(crate) fn preview_parts(

@@ -228,10 +228,12 @@ pub(crate) fn trusted_plan(
         })
         .map(|t| t.path.clone())
         .collect::<BTreeSet<_>>();
+    let trusted_dirs = paths.iter().map(|p| parent(p)).collect::<Vec<_>>();
     for path in scope
         .iter()
         .filter_map(|l| l.path.as_ref())
-        .map(|p| format!("{p}\\{}", manifest::FILE_NAME))
+        .chain(trusted_dirs.iter())
+        .flat_map(|p| manifest::FILE_NAMES.map(|n| format!("{p}\\{n}")))
     {
         if std::fs::symlink_metadata(&path).is_ok() {
             paths.insert(path);
@@ -242,10 +244,10 @@ pub(crate) fn trusted_plan(
     }
     let mut value: Value = serde_json::from_str(&water_junk_rules::plan_to_json(plan))
         .map_err(|_| IpcError::new("unavailable"))?;
-    for path in paths {
-        let m = manifest::read_manifest(&path);
+    for m in load_declarations(paths, &[]) {
+        let path = &m.path;
         let trusted = settings.trusts.iter().any(|t| {
-            t.path.eq_ignore_ascii_case(&path) && m.hash.as_deref() == Some(t.hash.as_str())
+            t.path.eq_ignore_ascii_case(path) && m.hash.as_deref() == Some(t.hash.as_str())
         });
         if let Some(parsed) = &m.manifest {
             value["targets"]
@@ -258,6 +260,54 @@ pub(crate) fn trusted_plan(
     *plan = water_junk_rules::ScanPlan::from_json(&value.to_string())
         .map_err(|_| IpcError::new("unavailable"))?;
     Ok(loaded)
+}
+
+// Pair by directory before reading: scanner order may interleave directories,
+// and a truncated list must not invent a shadow row for an unreported file.
+pub(crate) fn load_declarations(
+    paths: impl IntoIterator<Item = String>,
+    previous: &[manifest::Loaded],
+) -> Vec<manifest::Loaded> {
+    let mut paths = paths
+        .into_iter()
+        .filter_map(|p| local_path(&p))
+        .map(|p| (p.to_ascii_lowercase(), p))
+        .collect::<BTreeMap<_, _>>();
+    for m in previous {
+        paths
+            .entry(m.path.to_ascii_lowercase())
+            .or_insert_with(|| m.path.clone());
+    }
+    let new_dirs = paths
+        .values()
+        .filter(|p| name(p).eq_ignore_ascii_case(manifest::FILE_NAMES[0]))
+        .map(|p| parent(p).to_ascii_lowercase())
+        .collect::<BTreeSet<_>>();
+    paths
+        .into_values()
+        .map(|path| {
+            let dir = parent(&path);
+            if name(&path).eq_ignore_ascii_case(manifest::FILE_NAMES[1])
+                && new_dirs.contains(&dir.to_ascii_lowercase())
+            {
+                manifest::Loaded {
+                    path,
+                    dir,
+                    size: 0,
+                    hash: None,
+                    manifest: None,
+                    error: Some(manifest::Invalid {
+                        code: "MANIFEST_SHADOWED".into(),
+                        pointer: String::new(),
+                    }),
+                }
+            } else if let Some(m) = previous.iter().find(|m| m.path.eq_ignore_ascii_case(&path)) {
+                m.clone()
+            } else {
+                manifest::read_manifest(&path)
+            }
+        })
+        .collect()
 }
 
 pub(crate) fn declaration_value(m: &manifest::Loaded) -> Value {
@@ -358,7 +408,7 @@ pub(crate) fn supplement(
             blocked.push("名字特殊（如 nul），这一版只能清理它所在的文件夹".into());
         } else if item.odd_count > 0 {
             messages.push(format!(
-                "里面有名为 {} 的文件，资源管理器删不掉，Water 能删",
+                "里面有名为 {} 的文件，资源管理器删不掉，Flick 能删",
                 item.odd_names
                     .first()
                     .map(String::as_str)
@@ -889,7 +939,7 @@ pub(crate) fn locations_extra(core: &Core, s: &State) -> (Vec<Value>, Vec<Value>
         let retention=protected.and_then(|id|core.rules.rule(id)).and_then(|r|r.retention_zh.as_ref());
         json!({"tool":tool,"title_zh":r.owner_zh,"retention_zh":retention,"enabled":setting.is_some_and(|x|x.enabled),"days":setting.map(|x|x.days).unwrap_or(30),"bytes":groups,"largest_bytes":largest})
     }).collect();
-    let manifests=last.as_ref().into_iter().flat_map(|r|r.saved["declarations"].as_array().into_iter().flatten()).map(|d| {
+    let manifests=last.as_ref().into_iter().flat_map(|r|r.saved["declarations"].as_array().into_iter().flatten()).filter(|d|d["error_code"]!="MANIFEST_SHADOWED").map(|d| {
         let path=d["path"].as_str().unwrap_or(""); let trust=s.settings.trusts.iter().find(|t|t.path.eq_ignore_ascii_case(path));
         let state=if d["valid"]!=true {"invalid"} else if let Some(t)=trust {if d["hash"]==t.hash {"trusted"} else {"changed"}} else {"untrusted"};
         json!({"manifest_id":manifest_id(path),"display_path":path,"project_zh":d["manifest"]["project"],"state":state,"error_zh":if state=="invalid" {Some(format!("项目声明无效（{}）",d["error_code"].as_str().unwrap_or("无法读取")))} else {None},"disposable":d["manifest"]["disposable"].as_array().into_iter().flatten().map(|v|json!({"title_zh":v["title"],"kind":v["kind"],"paths_count":v["paths"].as_array().map_or(0,Vec::len),"ask":v["ask"]})).collect::<Vec<_>>(),"protected_count":d["manifest"]["protected"].as_array().map_or(0,Vec::len),"worktree_count":d["manifest"]["worktrees"].as_array().map_or(0,Vec::len)})

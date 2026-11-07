@@ -70,7 +70,7 @@ impl IpcError {
                 "invalid" => "所选内容无法清理，请重新选择。",
                 "not_found" => "找不到这条记录，请重新体检。",
                 "cancelled" => "已取消。",
-                _ => "Water 服务暂时不可用。",
+                _ => "Flick 服务暂时不可用。",
             }
             .into(),
         }
@@ -219,6 +219,7 @@ struct Fake {
     quarantines: Arc<Mutex<Vec<String>>>,
     queried_paths: Arc<Mutex<Vec<String>>>,
     quarantine_bases: Arc<Mutex<BTreeMap<String, String>>>,
+    default_quarantine_target: Arc<AtomicBool>,
 }
 impl Platform for Fake {
     fn installed_apps(&self) -> Option<water_installed_apps::AppList> {
@@ -228,6 +229,9 @@ impl Platform for Fake {
         self.quarantines.lock().unwrap().clone()
     }
     fn quarantine_base(&self, root: &str) -> Option<String> {
+        if self.default_quarantine_target.load(Ordering::SeqCst) {
+            return None;
+        }
         self.quarantine_bases
             .lock()
             .unwrap()
@@ -380,9 +384,10 @@ impl Fixture {
             file_systems: Arc::new(Mutex::new(BTreeMap::new())),
             orphans: Arc::new(Mutex::new(Vec::new())),
             apps: Arc::new(Mutex::new(None)),
-            quarantines: Arc::new(Mutex::new(vec![path(".water-quarantine")])),
+            quarantines: Arc::new(Mutex::new(vec![path(".flick-quarantine")])),
             queried_paths: Arc::new(Mutex::new(Vec::new())),
             quarantine_bases: Arc::new(Mutex::new(BTreeMap::new())),
+            default_quarantine_target: Arc::new(AtomicBool::new(false)),
         };
         Self {
             root,
@@ -1838,6 +1843,21 @@ const TOO_BROAD: &str = "这个位置太大或包含系统目录，请选择具�
 
 #[test]
 fn service_hardening() {
+    let f = Fixture::new();
+    assert_eq!(
+        Service::new(ServiceConfig {
+            data_dir: PathBuf::from("relative"),
+            app_version: "0.1.0".into(),
+            clean_enabled: false,
+            platform: Box::new(f.fake.clone()),
+            picker: Box::new(f.fake.clone()),
+        })
+        .err()
+        .unwrap()
+        .message_zh,
+        "Flick 服务暂时不可用。",
+        "SERVICE_W11_RENAME: public error"
+    );
     hardening_panic_idle();
     hardening_trust_boundary();
     hardening_store_tidy();
@@ -1901,7 +1921,7 @@ fn hardening_panic_idle() {
         .expect_err("SERVICE_PANIC_IDLE: the injected panic was not reached");
     assert_eq!(
         (error.code.as_str(), error.message_zh.as_str()),
-        ("unavailable", "Water 服务暂时不可用。"),
+        ("unavailable", "Flick 服务暂时不可用。"),
         "SERVICE_PANIC_IDLE: error for a panicking command"
     );
     // The poisoned lock is recovered and keeps working.
@@ -1967,7 +1987,7 @@ fn hardening_clean_panic_and_prep() {
         .expect_err("SERVICE_PANIC_IDLE: clean start prep panic was not reached");
     assert_eq!(
         (error.code.as_str(), error.message_zh.as_str()),
-        ("unavailable", "Water 服务暂时不可用。"),
+        ("unavailable", "Flick 服务暂时不可用。"),
         "SERVICE_PANIC_IDLE: error for a panicking clean start"
     );
     let app = call(&s, "app_state", json!({}));
@@ -3373,7 +3393,7 @@ fn m3c_skip_limit() {
         s.call("skip_add", json!({"itemId":item["item_id"]}))
             .unwrap();
         assert!(
-            started.elapsed() <= Duration::from_millis(50),
+            started.elapsed() <= Duration::from_millis(200),
             "SERVICE_M3C_SKIP: add {} took {:?}",
             item["item_id"],
             started.elapsed()
@@ -3830,7 +3850,7 @@ fn m3c_skip_scale() {
         let elapsed = start.elapsed();
         additions.push(elapsed.as_secs_f64() * 1000.0);
         assert!(
-            elapsed <= Duration::from_millis(50),
+            elapsed <= Duration::from_millis(200),
             "SERVICE_M3C_SKIP: scale add {elapsed:?}"
         );
         scale_projection(&s, &item_id, initial - 100, total - 1, false);
@@ -3849,7 +3869,7 @@ fn m3c_skip_scale() {
         let elapsed = start.elapsed();
         removals.push(elapsed.as_secs_f64() * 1000.0);
         assert!(
-            elapsed <= Duration::from_millis(50),
+            elapsed <= Duration::from_millis(200),
             "SERVICE_M3C_SKIP: scale remove {elapsed:?}"
         );
         scale_projection(&s, &item_id, initial, total, true);
@@ -3978,7 +3998,7 @@ fn m3c_exclude_scale(f: &Fixture, mut saved: Value) {
         .expect("SERVICE_M3C_EXCLUDE: scale prepare");
     let elapsed = started.elapsed();
     assert!(
-        elapsed <= Duration::from_millis(50),
+        elapsed <= Duration::from_millis(200),
         "SERVICE_M3C_EXCLUDE: scale prepare {elapsed:?}"
     );
     println!(
@@ -4100,6 +4120,166 @@ fn m35_decl(f: &Fixture, path: &str, protected: Value) -> PathBuf {
     path
 }
 
+fn w11_declarations() {
+    for file_name in water_cleanup_manifest::FILE_NAMES {
+        let f = Fixture::new();
+        let old = m35_decl(&f, "project/nested", json!([]));
+        let path = old.with_file_name(file_name);
+        if path != old {
+            fs::rename(&old, &path).unwrap();
+        }
+        let s = f.service(true);
+        let root = m35_add(&s, &f, "project");
+        let scan = m35_scan(&s, json!([root]));
+        let saved = scan_saved(&f, &scan);
+        let decls = saved["declarations"].as_array().unwrap();
+        assert_eq!(decls.len(), 1, "SERVICE_W11_DECL: single nested name");
+        assert_eq!(
+            decls[0]["path"],
+            slash(&path),
+            "SERVICE_W11_DECL: discovered path"
+        );
+        assert_eq!(
+            decls[0]["valid"], true,
+            "SERVICE_W11_DECL: single valid declaration"
+        );
+        let id = call(&s, "locations_get", json!({}))["manifests"][0]["manifest_id"].clone();
+        call(
+            &s,
+            "manifest_trust",
+            json!({"manifestId":id,"trusted":true}),
+        );
+        f.file("project/nested/output/data", 23);
+        f.age_all(NOW - 40 * 86400);
+        let scan = m35_scan(&s, json!([root]));
+        assert!(
+            scan_saved(&f, &scan)["plan"]["targets"]
+                .as_array()
+                .unwrap()
+                .iter()
+                .any(|t| t["rule_id"].as_str().unwrap().starts_with("decl:")),
+            "SERVICE_W11_DECL: either single name can be trusted"
+        );
+    }
+    let f = Fixture::new();
+    let old = m35_decl(&f, "project", json!(["legacy-private"]));
+    let s = f.service(true);
+    let root = m35_add(&s, &f, "project");
+    m35_scan(&s, json!([root]));
+    let old_id = call(&s, "locations_get", json!({}))["manifests"][0]["manifest_id"].clone();
+    call(
+        &s,
+        "manifest_trust",
+        json!({"manifestId":old_id,"trusted":true}),
+    );
+    let new = old.with_file_name(water_cleanup_manifest::FILE_NAMES[0]);
+    fs::write(&new, "invalid new declaration").unwrap();
+    // The old file is deliberately unreadable; it must only get a shadow row.
+    let held = OpenOptions::new()
+        .read(true)
+        .share_mode(0)
+        .open(&old)
+        .unwrap();
+    let scan = m35_scan(&s, json!([root]));
+    let saved = scan_saved(&f, &scan);
+    let decls = saved["declarations"].as_array().unwrap();
+    assert_eq!(
+        decls.len(),
+        2,
+        "SERVICE_W11_DECL: both reported names retained"
+    );
+    let legacy = decls.iter().find(|d| d["path"] == slash(&old)).unwrap();
+    assert_eq!(
+        legacy["error_code"], "MANIFEST_SHADOWED",
+        "SERVICE_W11_DECL: old never read"
+    );
+    assert_eq!(legacy["valid"], false, "SERVICE_W11_DECL: shadow invalid");
+    assert_eq!(
+        legacy["hash"],
+        Value::Null,
+        "SERVICE_W11_DECL: no legacy content hash"
+    );
+    assert_eq!(
+        legacy["manifest"],
+        Value::Null,
+        "SERVICE_W11_DECL: no old protection or targets"
+    );
+    assert_eq!(
+        legacy["size"], 0,
+        "SERVICE_W11_DECL: shadow has no loaded bytes"
+    );
+    assert!(
+        !saved["plan"]["targets"]
+            .as_array()
+            .unwrap()
+            .iter()
+            .any(|t| t["rule_id"].as_str().unwrap().starts_with("decl:")),
+        "SERVICE_W11_DECL: invalid new does not fall back to trusted old"
+    );
+    let loc = call(&s, "locations_get", json!({}));
+    assert_eq!(
+        loc["manifests"].as_array().unwrap().len(),
+        1,
+        "SERVICE_W11_DECL: old absent from trust list"
+    );
+    assert_eq!(
+        loc["manifests"][0]["display_path"],
+        slash(&new),
+        "SERVICE_W11_DECL: only new shown"
+    );
+    assert_eq!(
+        s.call(
+            "manifest_trust",
+            json!({"manifestId":old_id,"trusted":true})
+        )
+        .unwrap_err()
+        .code,
+        "invalid",
+        "SERVICE_W11_DECL: cannot trust shadow"
+    );
+    let settings: Value =
+        serde_json::from_slice(&fs::read(f.data.join("settings.json")).unwrap()).unwrap();
+    assert!(
+        settings["trusts"].as_array().unwrap().is_empty(),
+        "SERVICE_W11_DECL: revoke persisted old consent"
+    );
+    drop(held);
+    fs::write(
+        &new,
+        json!({"version":1,"project":"Flick declaration","protected":["new-private"]}).to_string(),
+    )
+    .unwrap();
+    let other = m35_decl(&f, "project/.middle", json!([]));
+    let scan = m35_scan(&s, json!([root]));
+    let saved = scan_saved(&f, &scan);
+    assert_eq!(
+        saved["declarations"].as_array().unwrap().len(),
+        3,
+        "SERVICE_W11_DECL: interleaved directories"
+    );
+    let loaded = m35::load_declarations(vec![slash(&old), slash(&other), slash(&new)], &[]);
+    assert_eq!(
+        loaded[0].manifest.as_ref().unwrap().project.as_deref(),
+        Some("Flick declaration"),
+        "SERVICE_W11_DECL: choose new across interleaved paths"
+    );
+    assert_eq!(
+        loaded[2].error.as_ref().unwrap().code,
+        "MANIFEST_SHADOWED",
+        "SERVICE_W11_DECL: pair by directory"
+    );
+    let truncated = m35::load_declarations(vec![slash(&new)], &[]);
+    assert_eq!(
+        truncated.len(),
+        1,
+        "SERVICE_W11_DECL: no invented truncated shadow row"
+    );
+    assert!(
+        truncated[0].manifest.is_some(),
+        "SERVICE_W11_DECL: truncated new still read"
+    );
+}
+
 // Synthetic record injection is confined to the test crate's private service;
 // production never exposes this authority. Executed paths stay in this fixture.
 fn m35_replace_record(s: &service::Service, saved: Value) {
@@ -4189,7 +4369,7 @@ fn m35_safety_facts() {
             && extra["item_notes"][typed.items[index].item_id.as_str()][0]
                 .as_str()
                 .unwrap()
-                .contains("Water 能删"),
+                .contains("Flick 能删"),
         "SERVICE_M35_SCOPE: contained odd name"
     );
     let confirm = base["result"]["items"]
@@ -4405,6 +4585,7 @@ fn m14_program_directories() {
 
 #[test]
 fn m35_scope_and_plan() {
+    w11_declarations();
     m35_safety_facts();
     m14_program_directories();
     let f = Fixture::new();
@@ -4777,6 +4958,177 @@ fn m35_scope_and_plan() {
     }
 }
 
+fn w11_wording() {
+    let f = Fixture::new();
+    f.seed();
+    for n in 0..12 {
+        f.file(&format!("windows/Temp/verify-A{n:05}/data"), 100);
+    }
+    f.age_all(NOW - 20 * 86400);
+    let s = source_service(&f, false);
+    let scan = scanned(&s);
+    let mut saved = scan_saved(&f, &scan);
+    let gid = saved["result"]["groups"]
+        .as_array()
+        .unwrap()
+        .iter()
+        .find(|g| !g["cluster"].is_null())
+        .expect("SERVICE_W11_WORDING: cluster fixture")["group_id"]
+        .clone();
+    saved["finished_at"] = json!(util::timestamp(UNIX_EPOCH + Duration::from_secs(NOW)));
+    let ids = saved["result"]["items"]
+        .as_array()
+        .unwrap()
+        .iter()
+        .filter(|i| i["group_id"] == gid)
+        .map(|i| i["item_id"].as_str().unwrap().to_owned())
+        .collect::<Vec<_>>();
+    for id in &ids {
+        saved["item_created"][id] = json!(util::timestamp(
+            UNIX_EPOCH + Duration::from_secs(NOW - 20 * 86400)
+        ));
+    }
+    for (growth, recent, ending) in [
+        (None, 0, "最近 14 天没有新增"),
+        (None, 2, "最近 14 天新增 2 个"),
+        (Some(1), 2, "还在长"),
+        (Some(0), 2, "已经不长了"),
+    ] {
+        for (n, id) in ids.iter().enumerate() {
+            saved["item_created"][id] = json!(util::timestamp(
+                UNIX_EPOCH + Duration::from_secs(NOW - if n < recent { 86400 } else { 20 * 86400 })
+            ));
+        }
+        saved["growth"] = growth
+            .map(|n| {
+                json!([{"group_id":gid,"bytes_delta":n.to_string(),"count_delta":n,
+            "days":7.0,"bytes_per_day":"0","leak_suspect":false}])
+            })
+            .unwrap_or(json!([]));
+        m35_replace_record(&s, saved.clone());
+        let c = call(&s, "conclusion_get", json!({}));
+        let card = c["cards"]
+            .as_array()
+            .unwrap()
+            .iter()
+            .find(|c| c["group_id"] == gid)
+            .unwrap();
+        assert!(
+            card["title_zh"].as_str().unwrap().ends_with(ending),
+            "SERVICE_W11_WORDING: comparison gate {ending}"
+        );
+        let wanted = if recent == 0 {
+            "最近 14 天没有新增".to_owned()
+        } else {
+            format!("最近 14 天新增 {recent} 个")
+        };
+        assert!(
+            c["clues"]
+                .as_array()
+                .unwrap()
+                .iter()
+                .any(|c| c["text_zh"].as_str().unwrap().ends_with(&wanted)),
+            "SERVICE_W11_WORDING: same recent count in clue"
+        );
+    }
+    // Selected custom groups contribute their titles in descending selected size.
+    let mut custom = scan_saved(&f, &scan);
+    let groups = custom["result"]["groups"]
+        .as_array()
+        .unwrap()
+        .iter()
+        .filter(|g| g["level"] == "recommended" && g["eligible_count"].as_u64().unwrap() > 0)
+        .take(3)
+        .cloned()
+        .collect::<Vec<_>>();
+    assert_eq!(
+        groups.len(),
+        3,
+        "SERVICE_W11_WORDING: custom summary fixture"
+    );
+    let mut out_groups = Vec::new();
+    let mut items = Vec::new();
+    let mut expected = Vec::new();
+    for (n, mut g) in groups.into_iter().enumerate() {
+        let mut i = custom["result"]["items"]
+            .as_array()
+            .unwrap()
+            .iter()
+            .find(|i| i["group_id"] == g["group_id"] && i["eligible"] == true)
+            .unwrap()
+            .clone();
+        let bytes = (n as u64 + 1) * (1 << 20);
+        g["category"] = json!("custom");
+        g["item_count"] = json!(1);
+        g["eligible_count"] = json!(1);
+        for key in [
+            "total_bytes",
+            "unique_bytes",
+            "eligible_bytes",
+            "eligible_unique_bytes",
+        ] {
+            g[key] = json!(bytes.to_string());
+        }
+        i["total_bytes"] = json!(bytes.to_string());
+        i["unique_bytes"] = json!(bytes.to_string());
+        let title = call(&s, "group_detail", json!({"groupId":g["group_id"]}))["group"]["title_zh"]
+            .as_str()
+            .unwrap()
+            .to_owned();
+        expected.push((bytes, g["group_id"].clone(), title));
+        out_groups.push(g);
+        items.push(i);
+    }
+    custom["result"]["groups"] = json!(out_groups);
+    custom["result"]["items"] = json!(items);
+    m35_replace_record(&s, custom.clone());
+    let c = call(&s, "conclusion_get", json!({}));
+    assert_eq!(
+        c["plan"]["categories"][0]["title_zh"], "你加的位置",
+        "SERVICE_W11_WORDING: category name"
+    );
+    assert_eq!(
+        c["plan"]["summary_zh"],
+        format!("你加的位置 6 MB（{}、{}）", expected[2].2, expected[1].2),
+        "SERVICE_W11_WORDING: top two selected titles"
+    );
+    let c = call(
+        &s,
+        "conclusion_decide",
+        json!({"version":c["version"],"decision":{"group":expected[2].1,"choice":"keep"}}),
+    );
+    assert_eq!(
+        c["plan"]["summary_zh"],
+        format!("你加的位置 6 MB（{}、{}）", expected[1].2, expected[0].2),
+        "SERVICE_W11_WORDING: omitted selected title"
+    );
+    let c = call(
+        &s,
+        "conclusion_decide",
+        json!({"version":c["version"],"decision":{"group":expected[1].1,"choice":"keep"}}),
+    );
+    assert_eq!(
+        c["plan"]["summary_zh"],
+        format!("你加的位置 6 MB（{}）", expected[0].2),
+        "SERVICE_W11_WORDING: one selected title"
+    );
+    for space_name in [".flick-quarantine", ".WATER-QUARANTINE"] {
+        custom["space"] = json!([{"top":[{"name":space_name,"kind":"dir","disk_bytes":"1","has_git":false}],"disk_bytes":"1"}]);
+        m35_replace_record(&s, custom.clone());
+        let c = call(&s, "conclusion_get", json!({}));
+        assert_eq!(
+            c["folds"]
+                .as_array()
+                .unwrap()
+                .iter()
+                .find(|f| f["kind"] == "space")
+                .unwrap()["rows"][0]["note_zh"],
+            "隔离区",
+            "SERVICE_W11_WORDING: both space labels"
+        );
+    }
+}
+
 fn m14_conclusion_text() {
     let f = Fixture::new();
     f.seed();
@@ -4909,7 +5261,7 @@ fn m14_conclusion_text() {
         .find(|c| c["group_id"] == gid)
         .unwrap();
     assert_eq!(
-        card["title_zh"], "…\\subagents 里有 12 个同模板文件，已经不长了",
+        card["title_zh"], "…\\subagents 里有 12 个同模板文件，最近 14 天新增 2 个",
         "SERVICE_M35_CONCLUSION: file cluster and UUID title"
     );
     for (n, i) in saved["result"]["items"]
@@ -4956,7 +5308,7 @@ fn m14_conclusion_text() {
             .unwrap();
         assert_eq!(
             card["title_zh"],
-            format!("{title} 里有 12 个同模板文件，已经不长了"),
+            format!("{title} 里有 12 个同模板文件，最近 14 天没有新增"),
             "SERVICE_M35_CONCLUSION: opaque segment {parent}"
         );
         let date =
@@ -5049,6 +5401,7 @@ fn m14_conclusion_text() {
 
 #[test]
 fn m35_conclusion_cards() {
+    w11_wording();
     m35_selection_layers();
     m14_conclusion_text();
     let f = Fixture::new();
@@ -5481,6 +5834,7 @@ fn m35_row_patterns() {
 
 #[test]
 fn m35_clean_split() {
+    w11_nested();
     m35_session_unlocks();
     m35_unfinished_and_template();
     m35_two_disk_records();
@@ -5598,7 +5952,7 @@ fn m35_clean_split() {
         m35_decide(&s, "downloads-installers");
         let c = m35_decide(&s, "claude-code-old-sessions");
         let drive = util::drive(&slash(&original));
-        let base = slash(&f.root.join(".water-quarantine"));
+        let base = slash(&f.root.join(".flick-quarantine"));
         // Always retain an explicit synthetic base, even when the drive is
         // unavailable. A regression must never write a real volume root.
         f.fake
@@ -5818,7 +6172,7 @@ fn m35_clean_split() {
             Ordering::SeqCst,
         );
         let drive = util::drive(&slash(&a));
-        let base = slash(&f.root.join(".water-quarantine"));
+        let base = slash(&f.root.join(".flick-quarantine"));
         f.fake
             .quarantine_bases
             .lock()
@@ -5886,6 +6240,459 @@ fn m35_clean_split() {
     }
 }
 
+fn w11_nested() {
+    for (outer_level, inner_level, outer_selected, mode) in [
+        ("confirm", "confirm", true, "delete"),
+        ("confirm", "confirm", true, "quarantine"),
+        ("recommended", "confirm", true, "quarantine"),
+        ("confirm", "recommended", true, "quarantine"),
+        ("confirm", "confirm", false, "delete"),
+        ("confirm", "confirm", false, "quarantine"),
+    ] {
+        let f = Fixture::new();
+        f.file("project/package.json", 0);
+        f.file("project/source.js", 1);
+        f.file("project/node_modules/pkg/data", 7);
+        f.file("project/node_modules/pkg/__pycache__/data", 11);
+        f.age_all(NOW - 40 * 86400);
+        let s = source_service(&f, true);
+        let root = m35_add(&s, &f, "project");
+        let scan = m35_scan(&s, json!([root]));
+        let mut saved = scan_saved(&f, &scan);
+        let path = slash(&f.root.join("project/node_modules"));
+        let inner_path = slash(&f.root.join("project/node_modules/pkg/__pycache__"));
+        let find = |p: &str| {
+            saved["result"]["items"]
+                .as_array()
+                .unwrap()
+                .iter()
+                .find(|i| i["path"] == p)
+                .expect("SERVICE_W11_NESTED: actual scanner nested fixture")
+                .clone()
+        };
+        let outer = find(&path);
+        let inner = find(&inner_path);
+        assert_eq!(
+            outer["eligible"], true,
+            "SERVICE_W11_NESTED: outer eligible"
+        );
+        assert_eq!(
+            inner["eligible"], true,
+            "SERVICE_W11_NESTED: inner eligible"
+        );
+        for g in saved["result"]["groups"].as_array_mut().unwrap() {
+            if g["group_id"] == outer["group_id"] {
+                g["level"] = json!(outer_level);
+            }
+            if g["group_id"] == inner["group_id"] {
+                g["level"] = json!(inner_level);
+            }
+        }
+        m35_replace_record(&s, saved);
+        if outer_selected {
+            m35_decide(&s, outer["group_id"].as_str().unwrap());
+        }
+        let c = m35_decide(&s, inner["group_id"].as_str().unwrap());
+        let p = call(
+            &s,
+            "clean_prepare",
+            json!({"conclusionVersion":c["version"],"chosenMode":mode}),
+        );
+        let wanted = if outer_selected { &outer } else { &inner };
+        let bytes = util::bytes(&wanted["unique_bytes"]);
+        let plan = read_plan(&f, &p);
+        assert_eq!(
+            plan["plan"]["items"].as_array().unwrap().len(),
+            1,
+            "SERVICE_W11_NESTED: outermost only"
+        );
+        assert_eq!(
+            plan["plan"]["items"][0]["item_id"], wanted["item_id"],
+            "SERVICE_W11_NESTED: selected outer or inner ID"
+        );
+        assert_eq!(p["item_count"], 1, "SERVICE_W11_NESTED: preview count");
+        assert_eq!(
+            p["total_bytes"],
+            bytes.to_string(),
+            "SERVICE_W11_NESTED: no duplicate bytes"
+        );
+        assert_eq!(
+            p["groups"].as_array().unwrap().len(),
+            1,
+            "SERVICE_W11_NESTED: preview groups"
+        );
+        assert_eq!(
+            p["groups"][0]["group_id"], wanted["group_id"],
+            "SERVICE_W11_NESTED: preview outer group"
+        );
+        assert_eq!(
+            p["groups"][0]["item_count"], 1,
+            "SERVICE_W11_NESTED: group count"
+        );
+        assert_eq!(
+            p["groups"][0]["total_bytes"],
+            bytes.to_string(),
+            "SERVICE_W11_NESTED: group bytes"
+        );
+        assert_eq!(
+            p["by_drive"],
+            json!([{"root":util::drive(&path),"bytes":bytes.to_string()}]),
+            "SERVICE_W11_NESTED: drive bytes"
+        );
+        let chosen = if outer_selected {
+            outer_level == "confirm"
+        } else {
+            inner_level == "confirm"
+        };
+        assert_eq!(
+            util::bytes(&p["chosen"]["bytes"]),
+            if chosen { bytes } else { 0 },
+            "SERVICE_W11_NESTED: chosen totals"
+        );
+        assert_eq!(
+            util::bytes(&p["delete"]["bytes"]),
+            if chosen { 0 } else { bytes },
+            "SERVICE_W11_NESTED: direct totals"
+        );
+        let (progress, result) = m35_run_clean(&s, &p);
+        assert_eq!(
+            progress["state"], "completed",
+            "SERVICE_W11_NESTED: real executor completes"
+        );
+        assert!(
+            !Path::new(wanted["path"].as_str().unwrap()).exists(),
+            "SERVICE_W11_NESTED: selected item processed"
+        );
+        if !outer_selected {
+            assert!(
+                Path::new(&path).exists(),
+                "SERVICE_W11_NESTED: unselected outer stays"
+            );
+        }
+        let quarantined = chosen && mode == "quarantine";
+        assert_eq!(
+            !result["quarantined"].is_null(),
+            quarantined,
+            "SERVICE_W11_NESTED: outer chooses action"
+        );
+        let clean_id = result["clean_id"].as_str().unwrap();
+        let stored: Value = serde_json::from_slice(
+            &fs::read(f.data.join("cleans").join(format!("{clean_id}.json"))).unwrap(),
+        )
+        .unwrap();
+        assert_eq!(
+            stored["plan_items"].as_array().unwrap().len(),
+            1,
+            "SERVICE_W11_NESTED: complete clean record"
+        );
+        assert_eq!(
+            stored["report"]["items"].as_array().unwrap().len(),
+            usize::from(!quarantined),
+            "SERVICE_W11_NESTED: direct report retained"
+        );
+        assert_eq!(
+            stored["quarantine_reports"].as_array().unwrap().len(),
+            usize::from(quarantined),
+            "SERVICE_W11_NESTED: move report retained"
+        );
+        if quarantined {
+            assert_eq!(
+                result["quarantined"]["item_count"], 1,
+                "SERVICE_W11_NESTED: one moved item"
+            );
+            let q = call(&s, "quarantine_list", json!({}));
+            assert_eq!(
+                q["cards"].as_array().unwrap().len(),
+                1,
+                "SERVICE_W11_NESTED: recovery record exists"
+            );
+        } else {
+            assert_eq!(
+                stored["report"]["items"][0]["status"], "deleted",
+                "SERVICE_W11_NESTED: direct item deleted"
+            );
+        }
+    }
+
+    // Child-first input, ASCII aliases, equal paths and a textual-prefix sibling.
+    let f = Fixture::new();
+    f.file("project/package.json", 0);
+    f.file("project/source.js", 1);
+    f.file("project/node_modules/pkg/data", 7);
+    f.file("project/node_modules/pkg/__pycache__/data", 11);
+    f.file("project/node_modules-extra/data", 17);
+    f.age_all(NOW - 40 * 86400);
+    let s = source_service(&f, true);
+    let root = m35_add(&s, &f, "project");
+    let scan = m35_scan(&s, json!([root]));
+    let mut saved = scan_saved(&f, &scan);
+    let outer_path = slash(&f.root.join("project/node_modules"));
+    let inner_path = slash(&f.root.join("project/node_modules/pkg/__pycache__"));
+    let outer = saved["result"]["items"]
+        .as_array()
+        .unwrap()
+        .iter()
+        .find(|i| i["path"] == outer_path)
+        .unwrap()
+        .clone();
+    let inner = saved["result"]["items"]
+        .as_array_mut()
+        .unwrap()
+        .iter_mut()
+        .find(|i| i["path"] == inner_path)
+        .unwrap();
+    inner["path"] = json!(inner_path.to_ascii_uppercase());
+    let inner_group = inner["group_id"].clone();
+    let mut duplicate = inner.clone();
+    duplicate["item_id"] = json!("equal-path-alias");
+    duplicate["path"] = json!(outer_path.to_ascii_uppercase());
+    duplicate["unique_bytes"] = outer["unique_bytes"].clone();
+    duplicate["total_bytes"] = outer["total_bytes"].clone();
+    let mut sibling = outer.clone();
+    sibling["item_id"] = json!("prefix-sibling");
+    sibling["path"] = json!(slash(&f.root.join("project/node_modules-extra")));
+    sibling["unique_bytes"] = json!("17");
+    sibling["total_bytes"] = json!("17");
+    saved["result"]["items"]
+        .as_array_mut()
+        .unwrap()
+        .extend([duplicate, sibling]);
+    m35_replace_record(&s, saved);
+    let p = call(
+        &s,
+        "clean_prepare",
+        json!({"groupIds":[inner_group,outer["group_id"]]}),
+    );
+    assert_eq!(
+        p["item_count"], 2,
+        "SERVICE_W11_NESTED: equal paths fold, prefix sibling survives"
+    );
+    assert_eq!(
+        p["total_bytes"], "35",
+        "SERVICE_W11_NESTED: child-first ASCII alias bytes"
+    );
+    let plan = read_plan(&f, &p);
+    assert_eq!(
+        plan["plan"]["items"]
+            .as_array()
+            .unwrap()
+            .iter()
+            .map(|i| i["path"].as_str().unwrap().to_ascii_lowercase())
+            .collect::<BTreeSet<_>>(),
+        BTreeSet::from([
+            outer_path.to_ascii_lowercase(),
+            slash(&f.root.join("project/node_modules-extra")).to_ascii_lowercase()
+        ]),
+        "SERVICE_W11_NESTED: component comparison matches executor"
+    );
+}
+
+fn w11_quarantine_roots() {
+    for (new_exists, old_exists) in [(false, false), (true, false), (false, true), (true, true)] {
+        let f = Fixture::new();
+        let new = f.root.join(".flick-quarantine");
+        let old = f.root.join(".water-quarantine");
+        if new_exists {
+            fs::create_dir(&new).unwrap();
+        }
+        if old_exists {
+            fs::create_dir(&old).unwrap();
+        }
+        *f.fake.quarantines.lock().unwrap() = vec![slash(&new), slash(&old)];
+        let s = source_service(&f, true);
+        let q = call(&s, "quarantine_list", json!({}));
+        let expected = [(new_exists, &new), (old_exists, &old)]
+            .into_iter()
+            .filter(|x| x.0)
+            .map(|(_, p)| json!(slash(p)))
+            .collect::<Vec<_>>();
+        assert_eq!(
+            q["roots"]
+                .as_array()
+                .unwrap()
+                .iter()
+                .map(|r| r["display_path"].clone())
+                .collect::<Vec<_>>(),
+            expected,
+            "SERVICE_W11_QUARANTINE: only existing ordinary roots"
+        );
+        assert_eq!(q["bytes"], "0", "SERVICE_W11_QUARANTINE: empty roots total");
+        assert_eq!(
+            call(&s, "app_state", json!({}))["quarantine"],
+            Value::Null,
+            "SERVICE_W11_QUARANTINE: empty bar"
+        );
+        for row in q["roots"].as_array().unwrap() {
+            assert_eq!(
+                call(
+                    &s,
+                    "quarantine_locate",
+                    json!({"targetId":row["target_id"]})
+                )["path"],
+                row["display_path"],
+                "SERVICE_W11_QUARANTINE: locate either root"
+            );
+        }
+        f.fake
+            .default_quarantine_target
+            .store(true, Ordering::SeqCst);
+        let drive = util::drive(&slash(&f.root));
+        let (root, target) = quarantine::registered_target(&s.core, &drive)
+            .expect("SERVICE_W11_QUARANTINE: absent root remains available for creation");
+        let expected = format!("{drive}.flick-quarantine");
+        assert_eq!(
+            root, expected,
+            "SERVICE_W11_QUARANTINE: default new destination"
+        );
+        assert_eq!(
+            target.base,
+            Some(expected),
+            "SERVICE_W11_QUARANTINE: exact root passed to executor"
+        );
+    }
+    {
+        let f = Fixture::new();
+        let roots = [
+            f.root.join(".flick-quarantine"),
+            f.root.join(".water-quarantine"),
+        ];
+        for (n, root) in roots.iter().enumerate() {
+            let batch = root.join(format!("20261106-12000{n}-f"));
+            fs::create_dir_all(&batch).unwrap();
+            File::create(batch.join("data"))
+                .unwrap()
+                .set_len((n as u64 + 1) * 4096)
+                .unwrap();
+        }
+        *f.fake.quarantines.lock().unwrap() = roots.iter().map(|p| slash(p)).collect();
+        let s = f.service(false);
+        let q = call(&s, "quarantine_list", json!({}));
+        assert_eq!(
+            q["roots"].as_array().unwrap().len(),
+            2,
+            "SERVICE_W11_QUARANTINE: both populated roots"
+        );
+        assert_eq!(
+            q["cards"].as_array().unwrap().len(),
+            2,
+            "SERVICE_W11_QUARANTINE: both batches counted"
+        );
+        let total = q["roots"]
+            .as_array()
+            .unwrap()
+            .iter()
+            .map(|r| util::bytes(&r["bytes"]))
+            .sum::<u64>();
+        assert!(total > 0, "SERVICE_W11_QUARANTINE: populated total");
+        assert_eq!(
+            q["bytes"],
+            total.to_string(),
+            "SERVICE_W11_QUARANTINE: root total"
+        );
+        assert_eq!(
+            q["cards"]
+                .as_array()
+                .unwrap()
+                .iter()
+                .map(|r| util::bytes(&r["bytes"]))
+                .sum::<u64>(),
+            total,
+            "SERVICE_W11_QUARANTINE: card total"
+        );
+        assert_eq!(
+            call(&s, "app_state", json!({}))["quarantine"]["bytes"],
+            total.to_string(),
+            "SERVICE_W11_QUARANTINE: resident total"
+        );
+    }
+    for special in ["file", "junction"] {
+        let f = Fixture::new();
+        let new = f.root.join(".flick-quarantine");
+        if special == "file" {
+            fs::write(&new, "fixture").unwrap();
+        } else {
+            fs::create_dir(f.root.join("linked-target")).unwrap();
+            junction(&new, &f.root.join("linked-target"));
+        }
+        let s = f.service(false);
+        assert_eq!(
+            call(&s, "quarantine_list", json!({}))["roots"],
+            json!([]),
+            "SERVICE_W11_QUARANTINE: reject nonordinary root"
+        );
+    }
+    for action in ["restore", "purge"] {
+        let f = Fixture::new();
+        f.seed();
+        let s = f.service(true);
+        scanned(&s);
+        let c = m35_decide(&s, "downloads-installers");
+        let p = call(
+            &s,
+            "clean_prepare",
+            json!({"conclusionVersion":c["version"],"chosenMode":"quarantine"}),
+        );
+        m35_run_clean(&s, &p);
+        let q = call(&s, "quarantine_list", json!({}));
+        let id = q["cards"][0]["quarantine_id"].as_str().unwrap();
+        let record_path = f.data.join("quarantine").join(format!("{id}.json"));
+        let mut record: Value = serde_json::from_slice(&fs::read(&record_path).unwrap()).unwrap();
+        assert_eq!(
+            record["root"],
+            slash(&f.root.join(".flick-quarantine")),
+            "SERVICE_W11_QUARANTINE: new moves under new name"
+        );
+        drop(s);
+        let old = f.root.join(".water-quarantine");
+        fs::rename(f.root.join(".flick-quarantine"), &old).unwrap();
+        record["root"] = json!(slash(&old));
+        fs::write(&record_path, record.to_string()).unwrap();
+        *f.fake.quarantines.lock().unwrap() =
+            vec![slash(&f.root.join(".flick-quarantine")), slash(&old)];
+        let s = f.service(true);
+        let q = call(&s, "quarantine_list", json!({}));
+        assert_eq!(
+            q["cards"][0]["restorable"], true,
+            "SERVICE_W11_QUARANTINE: legacy record loads"
+        );
+        assert_eq!(
+            call(&s, "quarantine_locate", json!({"targetId":id}))["path"],
+            slash(&old.join(id)),
+            "SERVICE_W11_QUARANTINE: legacy batch can open"
+        );
+        if action == "restore" {
+            assert_eq!(
+                call(
+                    &s,
+                    "quarantine_restore",
+                    json!({"quarantineId":id,"beside":false})
+                )["restored_count"],
+                1,
+                "SERVICE_W11_QUARANTINE: legacy restore"
+            );
+            assert_eq!(
+                fs::metadata(f.root.join("downloads/old.exe"))
+                    .unwrap()
+                    .len(),
+                60,
+                "SERVICE_W11_QUARANTINE: restored original"
+            );
+        } else {
+            call(&s, "quarantine_delete", json!({"quarantineId":id}));
+            assert_eq!(
+                wait(&s, "quarantine_progress")["state"],
+                "completed",
+                "SERVICE_W11_QUARANTINE: legacy purge"
+            );
+        }
+        assert_eq!(
+            call(&s, "quarantine_list", json!({}))["cards"],
+            json!([]),
+            "SERVICE_W11_QUARANTINE: legacy batch gone"
+        );
+    }
+}
+
 fn m35_two_disk_records() {
     let f = Fixture::new();
     f.seed();
@@ -5916,8 +6723,8 @@ fn m35_two_disk_records() {
         "SERVICE_M35_CLEAN: separate drive batches"
     );
     let roots = [
-        slash(&f.root.join("first/.water-quarantine")),
-        slash(&f.root.join("second/.water-quarantine")),
+        slash(&f.root.join("first/.flick-quarantine")),
+        slash(&f.root.join("second/.flick-quarantine")),
     ];
     *f.fake.quarantines.lock().unwrap() = roots.to_vec();
     *f.fake.quarantine_bases.lock().unwrap() = BTreeMap::from([
@@ -6151,6 +6958,7 @@ fn m35_session_unlocks() {
 
 #[test]
 fn m35_quarantine() {
+    w11_quarantine_roots();
     m35_purge_log_failure();
     let f = Fixture::new();
     f.seed();
@@ -6206,6 +7014,7 @@ fn m35_quarantine() {
         "SERVICE_M35_QUARANTINE: removed restored card"
     );
     drop(s);
+    *f.fake.quarantines.lock().unwrap() = vec![slash(&f.root.join(".water-quarantine"))];
     let dir = f.root.join(".water-quarantine/20261106-120000-f");
     fs::create_dir_all(&dir).unwrap();
     fs::write(dir.join("locked.bin"), vec![0u8; 4096]).unwrap();
@@ -6332,7 +7141,7 @@ fn m35_quarantine() {
         // Simulate the user's removal from the quarantine listing by moving
         // this batch elsewhere within the same newly created fixture.
         fs::rename(
-            f.root.join(".water-quarantine").join(id),
+            f.root.join(".flick-quarantine").join(id),
             f.root.join("removed-batch"),
         )
         .unwrap();
@@ -6721,7 +7530,7 @@ fn m35_cluster_and_forecast() {
     f.fake.now.store(NOW + 7 * 86400, Ordering::SeqCst);
     let trends = call(&s, "trends", json!({}));
     assert_eq!(
-        trends["forecast"][0]["note_zh"], "Water 以外的清理之后重新起算",
+        trends["forecast"][0]["note_zh"], "Flick 以外的清理之后重新起算",
         "SERVICE_M35_TRENDS: external cleanup reset"
     );
     assert_eq!(

@@ -55,7 +55,7 @@ pub(crate) const CATEGORIES: [(&str, &str, &str, &str); 9] = [
     ),
     (
         "custom",
-        "自定义",
+        "你加的位置",
         "只识别带缓存标记的构建目录与测试配置",
         "",
     ),
@@ -821,7 +821,7 @@ pub(crate) fn build(
         }
         for (path, groups) in buckets {
             let bytes: u64 = groups.iter().map(|g| util::bytes(&g["total_bytes"])).sum();
-            categories.push(json!({"category":cat,"title_zh":if cat=="custom" {format!("自定义 · {path}")}else{title.into()},"subtitle_zh":subtitle,"total_bytes":bytes.to_string(),"groups":groups}));
+            categories.push(json!({"category":cat,"title_zh":if cat=="custom" {format!("你加的位置 · {path}")}else{title.into()},"subtitle_zh":subtitle,"total_bytes":bytes.to_string(),"groups":groups}));
         }
     }
     let mut growth: Vec<_> = record

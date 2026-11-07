@@ -664,12 +664,40 @@ fn view(core: &Core, s: &State, c: &Model) -> Value {
     let mut summary = categories
         .iter()
         .take(2)
-        .map(|c| {
-            format!(
+        .map(|category| {
+            let mut text = format!(
                 "{} {}",
-                c["title_zh"].as_str().unwrap(),
-                m35::amount(util::bytes(&c["bytes"]))
-            )
+                category["title_zh"].as_str().unwrap(),
+                m35::amount(util::bytes(&category["bytes"]))
+            );
+            if category["category_id"] == "custom" {
+                let mut titles = c
+                    .units
+                    .iter()
+                    .filter(|u| u.category == "custom" && u.level == Level::Recommended)
+                    .map(|u| {
+                        let bytes = u
+                            .items
+                            .iter()
+                            .filter(|id| selected.contains(*id))
+                            .filter_map(|id| item(c, id))
+                            .map(|i| util::number(&i.unique_bytes))
+                            .sum::<u64>();
+                        (bytes, &u.id, &u.title)
+                    })
+                    .filter(|(bytes, _, _)| *bytes > 0)
+                    .collect::<Vec<_>>();
+                titles.sort_by(|a, b| b.0.cmp(&a.0).then(a.1.cmp(b.1)));
+                let titles = titles
+                    .into_iter()
+                    .take(2)
+                    .map(|(_, _, title)| title.as_str())
+                    .collect::<Vec<_>>();
+                if !titles.is_empty() {
+                    text.push_str(&format!("（{}）", titles.join("、")));
+                }
+            }
+            text
         })
         .collect::<Vec<_>>();
     let delta: r#i128 = r
@@ -765,6 +793,15 @@ fn card(core: &Core, s: &State, c: &Model, u: &Unit, clues: &[Value]) -> Value {
     let rule = core.rules.rule(&first_group.rule_id);
     let mut title = format!("{} · {}", u.title, m35::amount(n));
     if let Some(cluster) = &first_group.cluster {
+        let state = if r.growth.iter().any(|g| g.group_id == first_group.group_id) {
+            if cluster_state(s, r, first_group) == "growing" {
+                "还在长".into()
+            } else {
+                "已经不长了".into()
+            }
+        } else {
+            recent_text(recent_count(r, &first_group.group_id))
+        };
         title = format!(
             "{} 里有 {} 个同模板{}，{}",
             tail2(&cluster.parent),
@@ -774,11 +811,7 @@ fn card(core: &Core, s: &State, c: &Model, u: &Unit, clues: &[Value]) -> Value {
             } else {
                 "目录"
             },
-            if cluster_state(s, r, first_group) == "growing" {
-                "还在长"
-            } else {
-                "已经不长了"
-            }
+            state
         );
     }
     if u.kind == "session" {
@@ -1658,14 +1691,35 @@ pub(crate) fn clusters(core: &Core, s: &State, r: &Record) -> Vec<Value> {
     r.result.groups.iter().filter(|g|g.rule_id=="leak-cluster").map(|g|{let growth=r.growth.iter().find(|x|x.group_id==g.group_id);let clue_id=format!("cl-{}",&util::digest(&g.group_id)[..12]);let clue=clues.iter().find(|x|x["clue_id"]==clue_id);json!({"group_id":g.group_id,"title_zh":g.cluster.as_ref().map(|c|format!("{} · {}",tail2(&c.parent),c.template)),"rate_zh":format!("每天约 +{} 个 · +{}",growth.map(|x|(x.count_delta.max(0) as f64 / x.days.max(1.0)).round() as u64).unwrap_or(0),m35::amount(growth.map(|x|util::number(&x.bytes_per_day)).unwrap_or(0))),"state":cluster_state(s,r,g),"fixed_at":s.settings.fixed_marks.iter().find(|x|x.group_id==g.group_id).map(|x|&x.fixed_at),"clue_id":clue.map(|x|x["clue_id"].clone()),"copy_text":clue.map(|x|x["copy_text"].clone())})}).collect()
 }
 
+fn recent_count(r: &Record, group_id: &str) -> usize {
+    let since = r.saved["finished_at"]
+        .as_str()
+        .and_then(util::parse_time)
+        .and_then(|at| at.checked_sub(Duration::from_secs(14 * 86400)));
+    r.result
+        .items
+        .iter()
+        .filter(|i| i.group_id == group_id)
+        .filter(|i| {
+            let at = r.saved["item_created"][&i.item_id]
+                .as_str()
+                .unwrap_or(&i.newest_activity);
+            since.is_some_and(|since| util::parse_time(at).is_some_and(|at| at >= since))
+        })
+        .count()
+}
+fn recent_text(count: usize) -> String {
+    if count == 0 {
+        "最近 14 天没有新增".into()
+    } else {
+        format!("最近 14 天新增 {count} 个")
+    }
+}
+
 fn clues(_core: &Core, _s: &State, r: &Record) -> Vec<Value> {
     let mut candidates = Vec::<(u64, String, String, String)>::new();
     let mut detached = BTreeMap::<String, Vec<&Item>>::new();
     let mut referenced = BTreeMap::<String, Vec<&Item>>::new();
-    let recent_since = r.saved["finished_at"]
-        .as_str()
-        .and_then(util::parse_time)
-        .and_then(|at| at.checked_sub(Duration::from_secs(14 * 86400)));
     for g in &r.result.groups {
         if let Some(cluster) = &g.cluster {
             let members = r
@@ -1678,18 +1732,12 @@ fn clues(_core: &Core, _s: &State, r: &Record) -> Vec<Value> {
                 continue;
             }
             let mut days = BTreeMap::<String, u64>::new();
-            let mut recent = 0;
             for i in &members {
                 let at = r.saved["item_created"][&i.item_id]
                     .as_str()
                     .unwrap_or(&i.newest_activity);
                 if let Some(day) = at.get(..10) {
                     *days.entry(day.into()).or_default() += 1;
-                }
-                if recent_since
-                    .is_some_and(|since| util::parse_time(at).is_some_and(|at| at >= since))
-                {
-                    recent += 1;
                 }
             }
             let mut root = cluster.parent.clone();
@@ -1706,14 +1754,10 @@ fn clues(_core: &Core, _s: &State, r: &Record) -> Vec<Value> {
                 cluster.parent,
                 cluster.member_count,
                 cluster.template,
-                if recent == 0 {
-                    "最近 14 天没有新增".into()
-                } else {
-                    format!("最近 14 天新增 {recent} 个")
-                }
+                recent_text(recent_count(r, &g.group_id))
             );
             let copy = format!(
-                "检查清单\n模板：{}\n数量：{}\n总量：{}\n最近 14 天创建分布：{}\n最新一个：{}\n所在仓库根：{}\n先找出生成它们的代码并修好，再清存量；修好后用 Water 标记为已修。",
+                "检查清单\n模板：{}\n数量：{}\n总量：{}\n最近 14 天创建分布：{}\n最新一个：{}\n所在仓库根：{}\n先找出生成它们的代码并修好，再清存量；修好后用 Flick 标记为已修。",
                 cluster.template,
                 cluster.member_count,
                 m35::amount(util::number(&g.unique_bytes)),
@@ -1958,7 +2002,10 @@ fn space_label(v: &Value) -> &'static str {
         .any(|s| s.eq_ignore_ascii_case(name))
     {
         "系统"
-    } else if name.eq_ignore_ascii_case(".water-quarantine") {
+    } else if [".water-quarantine", ".flick-quarantine"]
+        .iter()
+        .any(|s| s.eq_ignore_ascii_case(name))
+    {
         "隔离区"
     } else if v["kind"] == "file" {
         "文件"
