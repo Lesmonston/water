@@ -1,0 +1,372 @@
+{
+  "task": "WATER-W11-N2",
+  "kind": "host",
+  "mode": "check",
+  "finalGate": false,
+  "manifest": "docs/dispatch/wave11/manifest.json",
+  "startedAt": "2026-11-07T07:03:51.895Z",
+  "realDataRead": false,
+  "productTestsRun": false,
+  "nativeWindows": 0,
+  "directoryDialogs": 0,
+  "commands": [
+    {
+      "binary": "git",
+      "argv": [
+        "branch",
+        "--show-current"
+      ],
+      "exitCode": 0
+    },
+    {
+      "binary": "git",
+      "argv": [
+        "merge-base",
+        "--is-ancestor",
+        "ccc584b3894e28d1f6bb8f86748d03c143a38e5b",
+        "HEAD"
+      ],
+      "exitCode": 0
+    },
+    {
+      "binary": "git",
+      "argv": [
+        "diff",
+        "--no-renames",
+        "--name-only",
+        "-z",
+        "ccc584b3894e28d1f6bb8f86748d03c143a38e5b",
+        "HEAD"
+      ],
+      "exitCode": 0
+    },
+    {
+      "binary": "git",
+      "argv": [
+        "diff",
+        "--no-renames",
+        "--name-only",
+        "-z",
+        "HEAD"
+      ],
+      "exitCode": 0
+    },
+    {
+      "binary": "git",
+      "argv": [
+        "ls-files",
+        "--others",
+        "--exclude-standard",
+        "-z"
+      ],
+      "exitCode": 0
+    },
+    {
+      "binary": "git",
+      "argv": [
+        "rev-parse",
+        "HEAD"
+      ],
+      "exitCode": 0
+    },
+    {
+      "binary": "git",
+      "argv": [
+        "status",
+        "--porcelain",
+        "--untracked-files=all"
+      ],
+      "exitCode": 0
+    },
+    {
+      "binary": "C:\\Users\\37310\\.cargo\\bin\\rustup.exe",
+      "argv": [
+        "which",
+        "cargo",
+        "--toolchain",
+        "1.95.0"
+      ],
+      "exitCode": 0,
+      "error": null,
+      "log": "2026-11-07T07-03-51.893Z-12320-check-1.log"
+    },
+    {
+      "binary": "C:\\Users\\37310\\.cargo\\bin\\rustup.exe",
+      "argv": [
+        "which",
+        "rustc",
+        "--toolchain",
+        "1.95.0"
+      ],
+      "exitCode": 0,
+      "error": null,
+      "log": "2026-11-07T07-03-51.893Z-12320-check-2.log"
+    },
+    {
+      "binary": "C:\\Users\\37310\\.rustup\\toolchains\\1.95.0-x86_64-pc-windows-msvc\\bin\\rustc.exe",
+      "argv": [
+        "--version"
+      ],
+      "exitCode": 0,
+      "error": null,
+      "log": "2026-11-07T07-03-51.893Z-12320-check-3.log"
+    },
+    {
+      "binary": "C:\\Users\\37310\\.rustup\\toolchains\\1.95.0-x86_64-pc-windows-msvc\\bin\\cargo.exe",
+      "argv": [
+        "--config",
+        "source.crates-io.replace-with=\"water-cn\"",
+        "--config",
+        "source.water-cn.registry=\"sparse+https://mirrors.ustc.edu.cn/crates.io-index/\"",
+        "--config",
+        "http.multiplexing=false",
+        "--config",
+        "http.proxy=\"\"",
+        "metadata",
+        "--offline",
+        "--locked",
+        "--format-version",
+        "1",
+        "--filter-platform",
+        "x86_64-pc-windows-msvc",
+        "--manifest-path",
+        "apps/water/host/Cargo.toml"
+      ],
+      "exitCode": 0,
+      "error": null,
+      "log": "2026-11-07T07-03-51.893Z-12320-check-4.log"
+    },
+    {
+      "binary": "C:\\Users\\37310\\.rustup\\toolchains\\1.95.0-x86_64-pc-windows-msvc\\bin\\cargo.exe",
+      "argv": [
+        "fmt",
+        "--manifest-path",
+        "apps/water/host/Cargo.toml",
+        "--",
+        "--check"
+      ],
+      "exitCode": 0,
+      "error": null,
+      "log": "2026-11-07T07-03-51.893Z-12320-check-5.log"
+    },
+    {
+      "binary": "C:\\Users\\37310\\.rustup\\toolchains\\1.95.0-x86_64-pc-windows-msvc\\bin\\cargo.exe",
+      "argv": [
+        "clippy",
+        "--config",
+        "source.crates-io.replace-with=\"water-cn\"",
+        "--config",
+        "source.water-cn.registry=\"sparse+https://mirrors.ustc.edu.cn/crates.io-index/\"",
+        "--config",
+        "http.multiplexing=false",
+        "--config",
+        "http.proxy=\"\"",
+        "--offline",
+        "--locked",
+        "--manifest-path",
+        "apps/water/host/Cargo.toml",
+        "--all-targets",
+        "--",
+        "-D",
+        "warnings"
+      ],
+      "exitCode": 0,
+      "error": null,
+      "log": "2026-11-07T07-03-51.893Z-12320-check-6.log"
+    },
+    {
+      "binary": "git",
+      "argv": [
+        "branch",
+        "--show-current"
+      ],
+      "exitCode": 0
+    },
+    {
+      "binary": "git",
+      "argv": [
+        "merge-base",
+        "--is-ancestor",
+        "ccc584b3894e28d1f6bb8f86748d03c143a38e5b",
+        "HEAD"
+      ],
+      "exitCode": 0
+    },
+    {
+      "binary": "git",
+      "argv": [
+        "diff",
+        "--no-renames",
+        "--name-only",
+        "-z",
+        "ccc584b3894e28d1f6bb8f86748d03c143a38e5b",
+        "HEAD"
+      ],
+      "exitCode": 0
+    },
+    {
+      "binary": "git",
+      "argv": [
+        "diff",
+        "--no-renames",
+        "--name-only",
+        "-z",
+        "HEAD"
+      ],
+      "exitCode": 0
+    },
+    {
+      "binary": "git",
+      "argv": [
+        "ls-files",
+        "--others",
+        "--exclude-standard",
+        "-z"
+      ],
+      "exitCode": 0
+    },
+    {
+      "binary": "git",
+      "argv": [
+        "rev-parse",
+        "HEAD"
+      ],
+      "exitCode": 0
+    },
+    {
+      "binary": "git",
+      "argv": [
+        "status",
+        "--porcelain",
+        "--untracked-files=all"
+      ],
+      "exitCode": 0
+    }
+  ],
+  "changedPaths": [
+    "apps/water/host/Cargo.toml",
+    "apps/water/host/README.md",
+    "apps/water/host/icons/icon.ico",
+    "apps/water/host/src/data.rs",
+    "apps/water/host/src/lib.rs",
+    "apps/water/host/src/opener.rs",
+    "apps/water/host/src/policy.rs",
+    "apps/water/host/src/startup.rs",
+    "apps/water/host/tauri.conf.json",
+    "apps/water/host/tests/host_v1.rs"
+  ],
+  "before": {
+    "head": "ccc584b3894e28d1f6bb8f86748d03c143a38e5b",
+    "status": "M apps/water/host/Cargo.toml\n M apps/water/host/README.md\n M apps/water/host/icons/icon.ico\n M apps/water/host/src/data.rs\n M apps/water/host/src/lib.rs\n M apps/water/host/src/opener.rs\n M apps/water/host/src/policy.rs\n M apps/water/host/src/startup.rs\n M apps/water/host/tauri.conf.json\n M apps/water/host/tests/host_v1.rs"
+  },
+  "sourceState": {
+    "files": [
+      {
+        "path": "apps/water/host/Cargo.toml",
+        "snapshot": "2026-11-07T07-03-51.893Z-12320-check-source-0.txt",
+        "sha256": "2e9b7b1ba3f2a3f92beb5469a82af12885b6c88b371647840bffcb410e426e61",
+        "test": false
+      },
+      {
+        "path": "apps/water/host/Cargo.lock",
+        "snapshot": "2026-11-07T07-03-51.893Z-12320-check-source-1.txt",
+        "sha256": "9cb25ca63eb3bb29c772bd885412bb1fdffbde27beb9966d89cdb70c96b3a753",
+        "test": false
+      },
+      {
+        "path": "apps/water/host/build.rs",
+        "snapshot": "2026-11-07T07-03-51.893Z-12320-check-source-2.txt",
+        "sha256": "6aeeab41bc35efde4e3c2b644a6248f7fc06d24ae30b75c0d33491cbb0c1fa31",
+        "test": false
+      },
+      {
+        "path": "apps/water/host/tauri.conf.json",
+        "snapshot": "2026-11-07T07-03-51.893Z-12320-check-source-3.txt",
+        "sha256": "b952a59f4fa71140f1b4db3f163d09d7998c61e5b9e35f19e26b81aa2a8b3e3b",
+        "test": false
+      },
+      {
+        "path": "apps/water/host/capabilities/main.json",
+        "snapshot": "2026-11-07T07-03-51.893Z-12320-check-source-4.txt",
+        "sha256": "c730195d10a4ae97ab1d77c8af1558930c4732b15355711392f82a9f522a57c2",
+        "test": false
+      },
+      {
+        "path": "apps/water/host/README.md",
+        "snapshot": "2026-11-07T07-03-51.893Z-12320-check-source-5.txt",
+        "sha256": "b2c17ebe720721c31587f9c5be9ef5039693c9af123bd8160ab70606f2636f38",
+        "test": false
+      },
+      {
+        "path": "apps/water/host/src/commands.rs",
+        "snapshot": "2026-11-07T07-03-51.893Z-12320-check-source-6.txt",
+        "sha256": "27b67b48afceb9dac6196a399e92f3308383973623dda7fc7f2bac1251779795",
+        "test": false
+      },
+      {
+        "path": "apps/water/host/src/data.rs",
+        "snapshot": "2026-11-07T07-03-51.893Z-12320-check-source-7.txt",
+        "sha256": "b7aa5211f60491cde954b67398d3e6976f1ac676d542c07ac56c3ecc576e9ecc",
+        "test": false
+      },
+      {
+        "path": "apps/water/host/src/lib.rs",
+        "snapshot": "2026-11-07T07-03-51.893Z-12320-check-source-8.txt",
+        "sha256": "d754f056b5da1cd585a6be1ea6100b63d17e54455ee8428a0fd9c67dc21fbbe8",
+        "test": false
+      },
+      {
+        "path": "apps/water/host/src/main.rs",
+        "snapshot": "2026-11-07T07-03-51.893Z-12320-check-source-9.txt",
+        "sha256": "d51c12d67e878314ce514aa0e19213826f7458f104ab2c25ebf03d49382abc73",
+        "test": false
+      },
+      {
+        "path": "apps/water/host/src/opener.rs",
+        "snapshot": "2026-11-07T07-03-51.893Z-12320-check-source-10.txt",
+        "sha256": "4f221b67e39cc7f7b712c9f6ce428b193c78e0217054019fe9e95be9e26a55f5",
+        "test": false
+      },
+      {
+        "path": "apps/water/host/src/picker.rs",
+        "snapshot": "2026-11-07T07-03-51.893Z-12320-check-source-11.txt",
+        "sha256": "3524895df656ace4b64b5b24df3d0532cd1922d8f211a118dff6bc6ab6566c96",
+        "test": false
+      },
+      {
+        "path": "apps/water/host/src/policy.rs",
+        "snapshot": "2026-11-07T07-03-51.893Z-12320-check-source-12.txt",
+        "sha256": "77bd4966eebc5a07f84cbcd1bc39944f5726fd039a0e680f72f2a0c4de2bc0ac",
+        "test": false
+      },
+      {
+        "path": "apps/water/host/src/service.rs",
+        "snapshot": "2026-11-07T07-03-51.893Z-12320-check-source-13.txt",
+        "sha256": "b701b9a15a150c91993f375e05a1b4eac3bb78ce087b309bf250885e641b83c5",
+        "test": false
+      },
+      {
+        "path": "apps/water/host/src/startup.rs",
+        "snapshot": "2026-11-07T07-03-51.893Z-12320-check-source-14.txt",
+        "sha256": "d4b13fecbb041e7905059d07e3c9283211a1916a48f8af38e0af387e9397b304",
+        "test": false
+      },
+      {
+        "path": "apps/water/host/tests/host_v1.rs",
+        "snapshot": "2026-11-07T07-03-51.893Z-12320-check-source-15.txt",
+        "sha256": "3bbdb2ed07d10d10965b37861ad2fa5bd762abfae8a16ef7c2497107aa9d1d69",
+        "test": true
+      }
+    ],
+    "productionHash": "821ce647699e183ec15a3709a8cf3440fa1ef268bcb97434071d53d23a2e930e",
+    "testHash": "4c6cc894552f8094855a83e77c6b10519430b0d5863a116256f57e53a1d62343"
+  },
+  "registryPackages": 395,
+  "after": {
+    "head": "ccc584b3894e28d1f6bb8f86748d03c143a38e5b",
+    "status": "M apps/water/host/Cargo.toml\n M apps/water/host/README.md\n M apps/water/host/icons/icon.ico\n M apps/water/host/src/data.rs\n M apps/water/host/src/lib.rs\n M apps/water/host/src/opener.rs\n M apps/water/host/src/policy.rs\n M apps/water/host/src/startup.rs\n M apps/water/host/tauri.conf.json\n M apps/water/host/tests/host_v1.rs"
+  },
+  "status": "passed",
+  "error": null,
+  "endedAt": "2026-11-07T07:07:34.724Z"
+}
