@@ -1,0 +1,58 @@
+{
+ "p1": [
+  {
+   "label": "nc1",
+   "mode": "red-nc1",
+   "token": "CLEAN_W12_JOURNAL",
+   "file": "packages/junk-clean/src/lib.rs",
+   "old": "        if let Err(error) = journal_result {\n            if !acted {\n                return Err(error);",
+   "new": "        if let Err(error) = journal_result {\n            if acted || !acted {\n                return Err(error);",
+   "why": "ticket control replayed from worker receipt 2026-11-07T12-31-07.283Z-28864-red-nc1-result.json"
+  },
+  {
+   "label": "nc2",
+   "mode": "red-nc2",
+   "token": "CLEAN_W12_JOURNAL",
+   "file": "packages/junk-clean/src/quarantine.rs",
+   "old": "            if report.journal_error.is_some() {",
+   "new": "            if false {",
+   "why": "ticket control replayed from worker receipt 2026-11-07T12-33-23.249Z-38208-red-nc2-result.json"
+  },
+  {
+   "label": "nc3",
+   "mode": "red-nc3",
+   "token": "CLEAN_W12_JOURNAL_FIRST",
+   "file": "packages/junk-clean/src/lib.rs",
+   "old": "        if let Err(error) = intent(plan, item, journal) {",
+   "new": "        if let Err(error) = intent(plan, item, journal) && acted {",
+   "why": "ticket control replayed from worker receipt 2026-11-07T12-37-14.564Z-29016-red-nc3-result.json"
+  },
+  {
+   "label": "c1",
+   "mode": "test",
+   "token": "CLEAN_W12_JOURNAL",
+   "file": "packages/junk-clean/src/lib.rs",
+   "old": "    if report.journal_error.is_some() {\n        // On an interrupted journal",
+   "new": "    if report.journal_error.is_some() && false {\n        // On an interrupted journal",
+   "why": "execute keeps every planned volume after a journal failure, not only volumes where an action ran"
+  },
+  {
+   "label": "c2",
+   "mode": "test",
+   "token": "CLEAN_W12_JOURNAL",
+   "file": "packages/junk-clean/src/quarantine.rs",
+   "old": "                report.status = RunStatus::Stopped;\n                report.journal_error = Some(CleanError::Journal.to_string());",
+   "new": "                report.journal_error = Some(CleanError::Journal.to_string());",
+   "why": "quarantine leaves the status Completed after a journal failure"
+  },
+  {
+   "label": "c3",
+   "mode": "test",
+   "token": "CLEAN_W12_JOURNAL",
+   "file": "packages/junk-clean/src/quarantine.rs",
+   "old": "                if !acted {\n                    return Err(CleanError::Journal);",
+   "new": "                if false {\n                    return Err(CleanError::Journal);",
+   "why": "quarantine treats a result-line failure after a failed (not moved) first item as already acted"
+  }
+ ]
+}
