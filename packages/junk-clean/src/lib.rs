@@ -173,6 +173,7 @@ pub fn execute(
 ) -> Result<CleanReport, CleanError> {
     // Public Rust fields may be edited after parsing; never trust their syntax here.
     plan.validate_shape()?;
+    plan.validate_disjoint_items()?;
     // Resolve guard and protected-path identities once, following links, so that aliases
     // (junctions/symlinks) to a guarded or protected target are caught by identity.
     let guard_ids: Vec<Identity> = plan

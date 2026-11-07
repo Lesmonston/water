@@ -164,6 +164,27 @@ impl CleanPlan {
                 .ok_or(CleanError::InvalidPlan)
         })
     }
+
+    pub(crate) fn validate_disjoint_items(&self) -> Result<(), CleanError> {
+        // Appending a separator makes this a component-prefix comparison. It also keeps
+        // siblings such as `cache-extra` from sorting between `cache` and `cache\data`.
+        // Only execution rejects overlaps; JSON parsing retains its existing contract.
+        let mut paths: Vec<String> = self
+            .items
+            .iter()
+            .map(|item| {
+                format!(
+                    "{}\\",
+                    item.path.trim_end_matches('\\').to_ascii_lowercase()
+                )
+            })
+            .collect();
+        paths.sort_unstable();
+        if paths.windows(2).any(|pair| pair[1].starts_with(&pair[0])) {
+            return Err(CleanError::InvalidPlan);
+        }
+        Ok(())
+    }
 }
 
 fn decimal(s: &str) -> Result<u64, CleanError> {

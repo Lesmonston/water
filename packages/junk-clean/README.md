@@ -12,7 +12,9 @@ cannot erase an existing protection. The host owns user consent; arbitrary WebVi
 must never reach this API.
 
 quarantine performs same-volume handle-relative rename into
-.water-quarantine/<id>/<original path without drive>. It never copies across volumes or
+.flick-quarantine/<id>/<original path without drive> by default. Both .flick-quarantine and
+the legacy .water-quarantine are accepted case-insensitively for explicit roots, restore,
+purge, inspect and listing; source paths inside either are guarded. It never copies across volumes or
 replaces an existing destination. Moves do not free space. This crate writes only the caller's
 journal; the service retains quarantine records. restore checks identity, rebuilds missing
 plain parents, refuses reparse parents and existing destinations, and supports a same-volume
@@ -56,8 +58,13 @@ All 11 tests are in tests/clean_v1.rs; the original six assertions remain intact
 create private random fixtures under this worktree's .local, validate the ownership boundary,
 and remove only their own new directory. The contract has one narrow cross-volume TEMP
 exception; same-volume TEMP is reported as not applicable. The real_smoke example only observes
-the system drive and repository drive, deduplicates them, and prints aggregate states/counts
-without drive letters, paths or names. It never moves, restores or deletes real data.
+all fixed drives (discovered by a hidden, read-only PowerShell DriveInfo query) and prints each
+quarantine name's state and batch count by anonymous volume index. It never prints drive
+letters or entry names, and never moves, restores or deletes real data.
 
-Use the controller-owned WATER-W10-M10 gate for lock/check/test/real, negative controls,
+execute and quarantine reject duplicate or ancestor/descendant item paths, using ASCII
+case-insensitive path components, before resolving filesystem identities or writing a journal.
+JSON parsing and all public interfaces retain their existing contracts.
+
+Use the controller-owned WATER-W11-N3 gate for lock/check/test/real, negative controls,
 final checks and archival before submission. Independent controller review is still required.

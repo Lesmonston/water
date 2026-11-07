@@ -262,6 +262,62 @@ fn reject(value: Value) {
 
 #[test]
 fn clean_plan_contract() {
+    // CLEAN_W11_NESTED: exercise both public execution entries, including Rust callers
+    // constructing/editing public fields rather than relying on JSON validation.
+    let overlap = QFixture::new("w11-overlap");
+    let parent = overlap.dir("root/cache");
+    let child = overlap.file("root/cache/data", b"nested-must-stay");
+    let near = overlap.file("root/cache-sibling", b"sibling-must-stay");
+    for plan in overlapping_plans(&overlap.base, &parent, &child, &near) {
+        let mut log = Vec::new();
+        let observer = Observer::new();
+        let result = execute(
+            &plan,
+            &NoGuard,
+            &mut log,
+            &StopFlag::default(),
+            &observer,
+            SystemTime::now() + Duration::from_secs(2),
+        );
+        assert!(
+            matches!(result, Err(CleanError::InvalidPlan)),
+            "CLEAN_W11_NESTED: execute accepted overlapping paths: {result:?}"
+        );
+        assert!(
+            log.is_empty() && observer.0.lock().unwrap().is_empty(),
+            "CLEAN_W11_NESTED: execute wrote journal or called observer"
+        );
+        assert_eq!(
+            fs::read(&child).ok().as_deref(),
+            Some(b"nested-must-stay".as_slice()),
+            "CLEAN_W11_NESTED: execute changed nested bytes"
+        );
+        assert_eq!(
+            fs::read(&near).ok().as_deref(),
+            Some(b"sibling-must-stay".as_slice()),
+            "CLEAN_W11_NESTED: execute changed sibling bytes"
+        );
+        assert!(
+            !Path::new(&overlap.root()).exists(),
+            "CLEAN_W11_NESTED: execute created quarantine directory"
+        );
+    }
+    let disjoint = parse(plan_value(vec![
+        item(&overlap.base, &parent, "parent"),
+        item(&overlap.base, &near, "near"),
+    ]));
+    assert!(
+        execute(
+            &disjoint,
+            &NoGuard,
+            &mut Vec::new(),
+            &StopFlag::default(),
+            &Observer::new(),
+            SystemTime::now() + Duration::from_secs(2)
+        )
+        .is_ok(),
+        "CLEAN_W11_NESTED: segment-distinct sibling rejected"
+    );
     let fixture = Fixture::new();
     let root = fixture.dir("root");
     let file = fixture.file("root/cache", b"contract-data");
@@ -1623,6 +1679,32 @@ fn qrun(plan: &CleanPlan, root: &str, id: &str) -> QuarantineReport {
     )
     .unwrap()
 }
+
+fn overlapping_plans(root: &Path, parent: &Path, child: &Path, sibling: &Path) -> Vec<CleanPlan> {
+    let mut plans = Vec::new();
+    for same in [true, false] {
+        for mixed_case in [false, true] {
+            for reverse in [false, true] {
+                let first = item(root, parent, "first");
+                let mut second = item(root, if same { parent } else { child }, "second");
+                if mixed_case {
+                    second["path"] = json!(second["path"].as_str().unwrap().to_ascii_uppercase());
+                }
+                // The hyphenated sibling sorts between parent and child in a raw string
+                // sort, so an adjacent-pair check without component boundaries is caught.
+                let mut items = vec![first, item(root, sibling, "sibling"), second];
+                if reverse {
+                    items.reverse();
+                }
+                plans.push(
+                    serde_json::from_value(plan_value(items))
+                        .expect("CLEAN_W11_NESTED: construct public Rust plan"),
+                );
+            }
+        }
+    }
+    plans
+}
 fn qrequest(path: &Path, moved: &MoveReport) -> RestoreRequest {
     RestoreRequest {
         rel: s(path)[3..].into(),
@@ -1862,6 +1944,165 @@ fn quarantine_unlock_pair() {
 
 #[test]
 fn quarantine_move_contract() {
+    let renamed = QFixture::new("w11-move");
+    for (index, name) in [".flick-quarantine", ".fLiCk-QuArAnTiNe"]
+        .iter()
+        .enumerate()
+    {
+        let source = renamed.file(&format!("root/file-{index}"), b"flick-move");
+        let plan = parse(plan_value(vec![item(&renamed.base, &source, "flick")]));
+        let root = s(&renamed.base.join(name));
+        let report = quarantine(
+            &plan,
+            "new-name",
+            &QuarantineTarget {
+                base: Some(root.clone()),
+            },
+            &NoGuard,
+            &mut Vec::new(),
+            &StopFlag::default(),
+            &Observer::new(),
+            SystemTime::now() + Duration::from_secs(2),
+        )
+        .expect("CLEAN_W11_RENAME: new/mixed-case root rejected");
+        assert_eq!(
+            report.items[0].status,
+            MoveStatus::Moved,
+            "CLEAN_W11_RENAME: new root move failed"
+        );
+        assert_eq!(
+            report.moved_bytes, "10",
+            "CLEAN_W11_RENAME: move byte count"
+        );
+        assert_eq!(
+            report.items[0].identity.as_ref(),
+            Some(&plan.items[0].identity),
+            "CLEAN_W11_RENAME: moved identity changed"
+        );
+        assert_eq!(
+            report.items[0].destination,
+            Some(format!("{root}\\new-name\\{}", &s(&source)[3..])),
+            "CLEAN_W11_RENAME: new root destination"
+        );
+        assert!(!source.exists(), "CLEAN_W11_RENAME: source left after move");
+    }
+    for name in [".flick-quarantine", ".fLiCk-QuArAnTiNe"] {
+        let guarded = renamed.file(&format!("{name}/old/keep"), b"guarded-flick");
+        let plan = parse(plan_value(vec![item(
+            &renamed.base,
+            &guarded,
+            "guarded-flick",
+        )]));
+        let mut log = Vec::new();
+        let report = quarantine(
+            &plan,
+            "guarded",
+            &QuarantineTarget {
+                base: Some(renamed.root()),
+            },
+            &NoGuard,
+            &mut log,
+            &StopFlag::default(),
+            &Observer::new(),
+            SystemTime::now() + Duration::from_secs(2),
+        )
+        .expect("CLEAN_W11_RENAME: guard entry rejected plan");
+        assert_eq!(
+            report.items[0].status,
+            MoveStatus::Skipped,
+            "CLEAN_W11_RENAME: recursive source moved"
+        );
+        assert_eq!(
+            report.items[0].skip_reason,
+            Some(SkipReason::Guarded),
+            "CLEAN_W11_RENAME: missing new-name guard"
+        );
+        assert_eq!(
+            fs::read(&guarded).ok().as_deref(),
+            Some(b"guarded-flick".as_slice()),
+            "CLEAN_W11_RENAME: guarded bytes changed"
+        );
+        assert!(
+            log.is_empty() && !Path::new(&renamed.root()).exists(),
+            "CLEAN_W11_RENAME: guarded move wrote journal or created root"
+        );
+        fs::remove_file(&guarded).expect("CLEAN_W11_RENAME: fixture guard cleanup");
+    }
+    let overlap = QFixture::new("w11-nested-move");
+    let parent = overlap.dir("root/cache");
+    let child = overlap.file("root/cache/data", b"nested-must-stay");
+    let near = overlap.file("root/cache-sibling", b"sibling-must-stay");
+    for plan in overlapping_plans(&overlap.base, &parent, &child, &near) {
+        let mut log = Vec::new();
+        let observer = Observer::new();
+        let result = quarantine(
+            &plan,
+            "nested",
+            &QuarantineTarget {
+                base: Some(overlap.root()),
+            },
+            &NoGuard,
+            &mut log,
+            &StopFlag::default(),
+            &observer,
+            SystemTime::now() + Duration::from_secs(2),
+        );
+        assert!(
+            matches!(result, Err(CleanError::InvalidPlan)),
+            "CLEAN_W11_NESTED: quarantine accepted overlapping paths: {result:?}"
+        );
+        assert!(
+            log.is_empty()
+                && observer.0.lock().unwrap().is_empty()
+                && !Path::new(&overlap.root()).exists(),
+            "CLEAN_W11_NESTED: quarantine performed side effects"
+        );
+        assert_eq!(
+            fs::read(&child).ok().as_deref(),
+            Some(b"nested-must-stay".as_slice()),
+            "CLEAN_W11_NESTED: quarantine changed bytes"
+        );
+        assert_eq!(
+            fs::read(&near).ok().as_deref(),
+            Some(b"sibling-must-stay".as_slice()),
+            "CLEAN_W11_NESTED: quarantine changed sibling bytes"
+        );
+    }
+    let source = overlap.file("root/invalid-root", b"keep");
+    let plan = parse(plan_value(vec![item(
+        &overlap.base,
+        &source,
+        "invalid-root",
+    )]));
+    let invalid_root = s(&overlap.base.join(".other-quarantine"));
+    let mut log = Vec::new();
+    assert!(
+        matches!(
+            quarantine(
+                &plan,
+                "invalid",
+                &QuarantineTarget {
+                    base: Some(invalid_root.clone())
+                },
+                &NoGuard,
+                &mut log,
+                &StopFlag::default(),
+                &Observer::new(),
+                SystemTime::now()
+            ),
+            Err(CleanError::InvalidPlan)
+        ),
+        "CLEAN_W11_RENAME: unrelated root name accepted"
+    );
+    assert!(
+        log.is_empty() && !Path::new(&invalid_root).exists(),
+        "CLEAN_W11_RENAME: invalid root side effects"
+    );
+    assert_eq!(
+        fs::read(&source).ok().as_deref(),
+        Some(b"keep".as_slice()),
+        "CLEAN_W11_RENAME: invalid root changed bytes"
+    );
     // Reject DOS devices before even creating the quarantine root.
     let devices = QFixture::new("device-ids");
     let source = devices.file("root/data", b"must-stay");
@@ -2488,6 +2729,77 @@ fn quarantine_move_contract() {
 
 #[test]
 fn quarantine_restore_contract() {
+    let renamed = QFixture::new("w11-restore");
+    for (index, name) in [".flick-quarantine", ".FlIcK-QuArAnTiNe"]
+        .iter()
+        .enumerate()
+    {
+        let root = s(&renamed.base.join(name));
+        let source = renamed.file(&format!("root/rebuild-{index}/data"), b"flick-restore");
+        let plan = parse(plan_value(vec![item(
+            &renamed.base,
+            &source,
+            "restore-flick",
+        )]));
+        let moved = quarantine(
+            &plan,
+            "restore",
+            &QuarantineTarget {
+                base: Some(root.clone()),
+            },
+            &NoGuard,
+            &mut Vec::new(),
+            &StopFlag::default(),
+            &Observer::new(),
+            SystemTime::now() + Duration::from_secs(2),
+        )
+        .expect("CLEAN_W11_RENAME: restore setup move");
+        assert_eq!(
+            moved.items[0].status,
+            MoveStatus::Moved,
+            "CLEAN_W11_RENAME: restore setup status"
+        );
+        fs::remove_dir(source.parent().unwrap())
+            .expect("CLEAN_W11_RENAME: remove synthetic parent");
+        let restored = restore(
+            &format!("{root}\\restore"),
+            &[qrequest(&source, &moved.items[0])],
+            &StopFlag::default(),
+            SystemTime::now(),
+        )
+        .expect("CLEAN_W11_RENAME: restore new root rejected");
+        assert_eq!(
+            restored.items[0].status,
+            RestoreStatus::Restored,
+            "CLEAN_W11_RENAME: restore new root failed"
+        );
+        assert_eq!(
+            fs::read(&source).ok().as_deref(),
+            Some(b"flick-restore".as_slice()),
+            "CLEAN_W11_RENAME: restored bytes"
+        );
+        assert_eq!(
+            identity_of(&s(&source)).ok(),
+            Some(plan.items[0].identity.clone()),
+            "CLEAN_W11_RENAME: restored identity"
+        );
+        assert!(
+            restored.dir_removed && restored.root_removed && !Path::new(&root).exists(),
+            "CLEAN_W11_RENAME: restore retained empty skeleton"
+        );
+    }
+    assert!(
+        matches!(
+            restore(
+                &s(&renamed.base.join(".other-quarantine\\id")),
+                &[],
+                &StopFlag::default(),
+                SystemTime::now()
+            ),
+            Err(CleanError::InvalidPlan)
+        ),
+        "CLEAN_W11_RENAME: restore accepted unrelated root"
+    );
     let f = QFixture::new("restore");
     let root = f.dir("root");
     let source = f.file("root/parent/file", b"restore-exact-bytes");
@@ -2694,6 +3006,62 @@ fn qodd(f: &QFixture, prefix: &str) -> (PathBuf, u64) {
 
 #[test]
 fn quarantine_purge_contract() {
+    let renamed = QFixture::new("w11-purge");
+    for name in [".flick-quarantine", ".FLICK-QUARANTINE"] {
+        let dir = renamed.dir(&format!("{name}/purge"));
+        renamed.file(&format!("{name}/purge/data"), b"flick-purge");
+        let mut log = Vec::new();
+        let purged = purge(
+            &s(&dir),
+            &mut log,
+            &StopFlag::default(),
+            &QObserver::default(),
+            SystemTime::now(),
+        )
+        .expect("CLEAN_W11_RENAME: purge new root rejected");
+        assert_eq!(
+            purged.freed_bytes, "11",
+            "CLEAN_W11_RENAME: purge byte count"
+        );
+        assert!(
+            purged.dir_removed
+                && purged.root_removed
+                && purged.leftovers.is_empty()
+                && !dir.parent().unwrap().exists(),
+            "CLEAN_W11_RENAME: purge new root incomplete"
+        );
+        let events: Vec<Value> = log
+            .split(|b| *b == b'\n')
+            .filter(|line| !line.is_empty())
+            .map(|line| serde_json::from_slice(line).expect("CLEAN_W11_RENAME: purge journal JSON"))
+            .collect();
+        assert_eq!(
+            events
+                .iter()
+                .map(|event| event["event"].as_str().unwrap())
+                .collect::<Vec<_>>(),
+            ["intent", "done"],
+            "CLEAN_W11_RENAME: purge journal"
+        );
+    }
+    let mut log = Vec::new();
+    assert!(
+        matches!(
+            purge(
+                &s(&renamed.base.join(".other-quarantine\\id")),
+                &mut log,
+                &StopFlag::default(),
+                &QObserver::default(),
+                SystemTime::now()
+            ),
+            Err(CleanError::InvalidPlan)
+        ),
+        "CLEAN_W11_RENAME: purge accepted unrelated root"
+    );
+    assert!(
+        log.is_empty(),
+        "CLEAN_W11_RENAME: invalid purge wrote journal"
+    );
     let occupied = QFixture::new("purge-occupied-child");
     let dir = occupied.dir(".water-quarantine/occupied");
     let child = occupied.dir(".water-quarantine/occupied/terminal");
@@ -3239,6 +3607,61 @@ fn quarantine_purge_contract() {
 
 #[test]
 fn quarantine_inspect_and_list() {
+    let renamed = QFixture::new("w11-inspect");
+    for name in [".flick-quarantine", ".fLiCk-QuArAnTiNe"] {
+        let root = s(&renamed.base.join(name));
+        let absent = list_quarantines(&root).expect("CLEAN_W11_RENAME: list absent new root");
+        assert_eq!(
+            absent.state, "absent",
+            "CLEAN_W11_RENAME: absent root state"
+        );
+        let dir = renamed.dir(&format!("{name}/batch"));
+        renamed.file(&format!("{name}/batch/data"), b"flick-inspect");
+        let list = list_quarantines(&root).expect("CLEAN_W11_RENAME: list present new root");
+        assert_eq!(
+            list.state, "present",
+            "CLEAN_W11_RENAME: present root state"
+        );
+        assert_eq!(
+            list.quarantines
+                .iter()
+                .map(|q| q.quarantine_id.as_str())
+                .collect::<Vec<_>>(),
+            ["batch"],
+            "CLEAN_W11_RENAME: new root listing"
+        );
+        let info =
+            inspect(&s(&dir), &StopFlag::default()).expect("CLEAN_W11_RENAME: inspect new root");
+        assert!(
+            info.exists && info.total_bytes == "13" && info.file_count == 1 && info.dir_count == 0,
+            "CLEAN_W11_RENAME: new root inspection totals"
+        );
+        // Use the product purge so the next spelling exercises an absent root again.
+        let purged = purge(
+            &s(&dir),
+            &mut Vec::new(),
+            &StopFlag::default(),
+            &QObserver::default(),
+            SystemTime::now(),
+        )
+        .expect("CLEAN_W11_RENAME: inspection fixture purge");
+        assert!(
+            purged.root_removed,
+            "CLEAN_W11_RENAME: inspection fixture root remains"
+        );
+    }
+    let invalid = s(&renamed.base.join(".other-quarantine"));
+    assert!(
+        matches!(list_quarantines(&invalid), Err(CleanError::InvalidPlan)),
+        "CLEAN_W11_RENAME: list accepted unrelated root"
+    );
+    assert!(
+        matches!(
+            inspect(&format!("{invalid}\\id"), &StopFlag::default()),
+            Err(CleanError::InvalidPlan)
+        ),
+        "CLEAN_W11_RENAME: inspect accepted unrelated root"
+    );
     let f = QFixture::new("inspect");
     assert_eq!(
         list_quarantines(&f.root()).unwrap().state,
