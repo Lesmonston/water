@@ -1,0 +1,85 @@
+{
+  "version": 1,
+  "project": "Water（Flick）",
+  "producer": "总控与执行器",
+  "disposable": [
+    {
+      "id": "worktree-builds",
+      "title": "工作树里的 Rust 构建产物",
+      "paths": [".worktrees/*/.local/w2-target", ".worktrees/*/.local/w3-target"],
+      "kind": "build",
+      "when": "older-than-3-days",
+      "keepNewest": 0,
+      "ask": true,
+      "producer": "检查器跑 cargo 时的私有 target",
+      "fixedIn": null
+    },
+    {
+      "id": "worktree-cargo-homes",
+      "title": "工作树里复制的离线依赖",
+      "paths": [".worktrees/*/.local/w2-cargo-home", ".worktrees/*/.local/w3-cargo-home"],
+      "kind": "cache",
+      "when": "older-than-3-days",
+      "keepNewest": 0,
+      "ask": true,
+      "producer": "检查器从 .offline-cache 复制，需要时会重新复制",
+      "fixedIn": null
+    },
+    {
+      "id": "worktree-temp",
+      "title": "工作树里的临时目录",
+      "paths": [".worktrees/*/.local/w2-tmp", ".worktrees/*/.local/w3-tmp"],
+      "kind": "cache",
+      "when": "older-than-3-days",
+      "keepNewest": 0,
+      "ask": true,
+      "producer": "检查器给 cargo 与测试的 TEMP",
+      "fixedIn": null
+    },
+    {
+      "id": "worktree-test-browsers",
+      "title": "界面测试用的浏览器资料",
+      "paths": [".worktrees/*/.local/browser-lab"],
+      "kind": "test",
+      "when": "older-than-3-days",
+      "keepNewest": 0,
+      "ask": true,
+      "producer": "界面单的无头浏览器",
+      "fixedIn": null
+    },
+    {
+      "id": "worktree-fixtures",
+      "title": "整机检查的夹具与数据目录",
+      "paths": [".worktrees/*/.local/w*-native", ".worktrees/*/.local/w3-f*-fixtures", ".worktrees/*/.local/w3-f*-real"],
+      "kind": "test",
+      "when": "older-than-7-days",
+      "keepNewest": 0,
+      "ask": true,
+      "producer": "宿主与服务单的整机检查",
+      "fixedIn": null
+    },
+    {
+      "id": "worktree-receipts",
+      "title": "工作树里的检查回执",
+      "paths": [".worktrees/*/.local/checks"],
+      "kind": "test",
+      "when": "older-than-14-days",
+      "keepNewest": 0,
+      "ask": true,
+      "producer": "检查器；交回时已按原字节归档进 docs/acceptance",
+      "fixedIn": null
+    }
+  ],
+  "protected": [".offline-cache", "docs"],
+  "worktrees": [
+    { "path": ".worktrees/w11-n1", "note": "第十一波 N1 界面" },
+    { "path": ".worktrees/w11-n2", "note": "第十一波 N2 宿主" },
+    { "path": ".worktrees/w11-n3", "note": "第十一波 N3 执行器" },
+    { "path": ".worktrees/w11-n4", "note": "第十一波 N4 规则" },
+    { "path": ".worktrees/w11-n5", "note": "第十一波 N5 扫描" },
+    { "path": ".worktrees/w11-n6", "note": "第十一波 N6 项目声明" },
+    { "path": ".worktrees/w11-n7", "note": "第十一波 N7 查重" },
+    { "path": ".worktrees/integ-w8a", "note": "第八次整合 A 树" },
+    { "path": ".worktrees/integ-w8b", "note": "第八次整合 B 树" }
+  ]
+}
