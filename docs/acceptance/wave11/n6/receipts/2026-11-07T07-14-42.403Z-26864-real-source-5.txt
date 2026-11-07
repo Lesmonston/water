@@ -1,0 +1,593 @@
+#![forbid(unsafe_code)]
+use serde_json::{Value, json};
+use std::path::{Path, PathBuf};
+use water_cleanup_manifest::*;
+
+fn sample() -> Value {
+    json!({"version":1,"project":"Water","producer":"总控与执行器","disposable":[{
+        "id":"worktree-builds","title":"工作树里的构建产物","paths":[".worktrees/*/.local/target",".worktrees/*/.local/*-profile-*"],
+        "kind":"build","when":"older-than-3-days","keepNewest":0,"ask":true,
+        "producer":"cargo test 与界面冒烟","fixedIn":null}],"protected":[".offline-cache","docs"],
+        "worktrees":[{"path":".worktrees/w10-m1","note":"第十波 M1"}]})
+}
+fn parsed(v: &Value) -> Manifest {
+    parse(&serde_json::to_vec(v).unwrap()).expect("MANIFEST_FORMAT: valid fixture")
+}
+fn rejected(v: &Value, code: &str, pointer: &str) {
+    let e = parse(&serde_json::to_vec(v).unwrap()).expect_err("MANIFEST_FORMAT: reject fixture");
+    assert_eq!(
+        (e.code.as_str(), e.pointer.as_str()),
+        (code, pointer),
+        "MANIFEST_FORMAT: code/pointer"
+    );
+}
+
+#[test]
+fn manifest_parse_contract() {
+    let m = parsed(&sample());
+    assert_eq!(m.disposable.len(), 1, "MANIFEST_FORMAT: example");
+    let mut bom = vec![0xef, 0xbb, 0xbf];
+    bom.extend(serde_json::to_vec(&sample()).unwrap());
+    assert_eq!(parse(&bom), Ok(m), "MANIFEST_FORMAT: BOM");
+    let mut schema = sample();
+    schema["$schema"] = json!("local-only");
+    parsed(&schema);
+    assert_eq!(
+        parse(&[255]).unwrap_err().code,
+        "MANIFEST_ENCODING",
+        "MANIFEST_FORMAT: UTF8"
+    );
+    for bytes in [
+        b"{".as_slice(),
+        b"{\"version\":1,\"x\":[[[[]]]]}".as_slice(),
+    ] {
+        let e = parse(bytes).unwrap_err();
+        assert_eq!(
+            (e.code.as_str(), e.pointer.as_str()),
+            ("MANIFEST_JSON", ""),
+            "MANIFEST_FORMAT: JSON/depth"
+        );
+    }
+    for version in [json!(null), json!(0), json!(2), json!("1"), json!(true)] {
+        let mut v = sample();
+        v["version"] = version;
+        rejected(&v, "MANIFEST_VERSION", "/version");
+    }
+    let mut missing = sample();
+    missing.as_object_mut().unwrap().remove("version");
+    rejected(&missing, "MANIFEST_VERSION", "/version");
+    for (pointer, value, code) in [
+        ("/$schema", json!("a".repeat(257)), "MANIFEST_FIELD"),
+        ("/project", json!(""), "MANIFEST_FIELD"),
+        ("/project", json!("中".repeat(65)), "MANIFEST_FIELD"),
+        ("/producer", json!(""), "MANIFEST_FIELD"),
+        ("/producer", json!("a".repeat(201)), "MANIFEST_FIELD"),
+        ("/project", json!("bad\nname"), "MANIFEST_FIELD"),
+        ("/disposable", json!([null]), "MANIFEST_FIELD"),
+        ("/disposable", json!({}), "MANIFEST_FIELD"),
+        ("/disposable/0/id", json!(""), "MANIFEST_FIELD"),
+        ("/disposable/0/id", json!("a".repeat(49)), "MANIFEST_FIELD"),
+        ("/disposable/0/id", json!("Upper_id"), "MANIFEST_FIELD"),
+        ("/disposable/0/title", json!(""), "MANIFEST_FIELD"),
+        (
+            "/disposable/0/title",
+            json!("a".repeat(61)),
+            "MANIFEST_FIELD",
+        ),
+        ("/disposable/0/paths", json!([]), "MANIFEST_FIELD"),
+        (
+            "/disposable/0/paths",
+            json!(vec!["ok"; 17]),
+            "MANIFEST_FIELD",
+        ),
+        ("/disposable/0/paths/0", json!(42), "MANIFEST_FIELD"),
+        (
+            "/disposable/0/when",
+            json!("older-than-0-days"),
+            "MANIFEST_FIELD",
+        ),
+        (
+            "/disposable/0/when",
+            json!("older-than-01-days"),
+            "MANIFEST_FIELD",
+        ),
+        (
+            "/disposable/0/when",
+            json!("older-than-366-days"),
+            "MANIFEST_FIELD",
+        ),
+        ("/disposable/0/when", json!("never"), "MANIFEST_FIELD"),
+        ("/disposable/0/kind", json!("source"), "MANIFEST_FIELD"),
+        ("/disposable/0/keepNewest", json!(9), "MANIFEST_FIELD"),
+        ("/disposable/0/keepNewest", json!(-1), "MANIFEST_FIELD"),
+        ("/disposable/0/keepNewest", json!(1.5), "MANIFEST_FIELD"),
+        ("/disposable/0/ask", json!("true"), "MANIFEST_FIELD"),
+        (
+            "/disposable/0/producer",
+            json!("a".repeat(201)),
+            "MANIFEST_FIELD",
+        ),
+        (
+            "/disposable/0/fixedIn",
+            json!("a".repeat(201)),
+            "MANIFEST_FIELD",
+        ),
+        ("/disposable/0/fixedIn", json!(false), "MANIFEST_FIELD"),
+        ("/protected", json!(false), "MANIFEST_FIELD"),
+        ("/worktrees", json!([null]), "MANIFEST_FIELD"),
+        ("/worktrees/0/path", json!("tree/*"), "MANIFEST_PATH"),
+        (
+            "/worktrees/0/note",
+            json!("a".repeat(201)),
+            "MANIFEST_FIELD",
+        ),
+    ] {
+        let mut v = sample();
+        if pointer == "/$schema" {
+            v["$schema"] = value;
+        } else {
+            *v.pointer_mut(pointer).unwrap() = value;
+        }
+        rejected(
+            &v,
+            code,
+            if pointer == "/disposable" && v["disposable"].is_array() {
+                "/disposable/0"
+            } else if pointer == "/worktrees" {
+                "/worktrees/0"
+            } else {
+                pointer
+            },
+        );
+    }
+    for field in ["id", "title", "paths", "when"] {
+        let mut v = sample();
+        v["disposable"][0].as_object_mut().unwrap().remove(field);
+        rejected(&v, "MANIFEST_FIELD", &format!("/disposable/0/{field}"));
+    }
+    let mut v = sample();
+    v["worktrees"][0].as_object_mut().unwrap().remove("path");
+    rejected(&v, "MANIFEST_FIELD", "/worktrees/0/path");
+    for (key, ptr) in [
+        ("disposable", "/disposable"),
+        ("protected", "/protected"),
+        ("worktrees", "/worktrees"),
+    ] {
+        let mut v = sample();
+        let item = v[key][0].clone();
+        v[key] = Value::Array(vec![item; 65]);
+        rejected(&v, "MANIFEST_FIELD", ptr);
+    }
+    let mut v = sample();
+    let duplicate = v["disposable"][0].clone();
+    v["disposable"].as_array_mut().unwrap().push(duplicate);
+    rejected(&v, "MANIFEST_FIELD", "/disposable/1/id");
+    for (where_, ptr) in [
+        ("", "/bad~1~0"),
+        ("/disposable/0", "/disposable/0/bad~1~0"),
+        ("/worktrees/0", "/worktrees/0/bad~1~0"),
+    ] {
+        let mut v = sample();
+        v.pointer_mut(where_)
+            .unwrap()
+            .as_object_mut()
+            .unwrap()
+            .insert("bad/~".into(), json!(0));
+        rejected(&v, "MANIFEST_UNKNOWN_KEY", ptr);
+    }
+    for path in [
+        "",
+        ".",
+        "..",
+        "../target",
+        "/absolute",
+        "\\absolute",
+        "C:\\target",
+        "a//b",
+        "a/./b",
+        "a/../b",
+        "a/**/b",
+        "*",
+        "*/*",
+        "a/.git/b",
+        "a/.GIT/b",
+        "a/end.",
+        "a/end ",
+        "a/<bad>",
+        "a/colon:x",
+        "a/quote\"",
+        "a/pipe|",
+        "a/hash#",
+        "a/b/c/d/e/f/g/h/i",
+    ] {
+        let mut v = sample();
+        v["disposable"][0]["paths"] = json!([path]);
+        rejected(&v, "MANIFEST_PATH", "/disposable/0/paths/0");
+    }
+    for path in ["a".repeat(256), vec!["a".repeat(171); 3].join("/")] {
+        let mut v = sample();
+        v["protected"] = json!([path]);
+        rejected(&v, "MANIFEST_PATH", "/protected/0");
+    }
+    for path in [
+        "cache/*",
+        "cache/*.a*",
+        "cache/*.abcdefghijklmnopq",
+        "cache/file.",
+    ] {
+        let mut v = sample();
+        v["disposable"][0]["when"] = json!("sibling-complete-file-exists");
+        v["disposable"][0]["paths"] = json!([path]);
+        rejected(&v, "MANIFEST_PATH", "/disposable/0/paths/0");
+    }
+    let defaults = parsed(
+        &json!({"version":1,"disposable":[{"id":"x","title":"x","paths":["a?/*"],"when":"always"}]}),
+    );
+    assert_eq!(
+        (
+            defaults.disposable[0].kind.as_str(),
+            defaults.disposable[0].keep_newest,
+            defaults.disposable[0].ask
+        ),
+        ("other", 0, false),
+        "MANIFEST_FORMAT: defaults"
+    );
+    parsed(&json!({"version":1,"disposable":[],"protected":[],"worktrees":[]}));
+}
+
+#[test]
+fn manifest_targets_and_protect() {
+    let mut v = sample();
+    v["disposable"].as_array_mut().unwrap().push(json!({"id":"partial","title":"Parts","paths":["downloads/*.CrDownload"],"when":"sibling-complete-file-exists"}));
+    let m = parsed(&v);
+    let dir = "F:\\Project";
+    let key = "ca271bf72343"; // Independently calculated with .NET SHA256.
+    let mut expected = Vec::new();
+    for (i, segments) in [
+        json!([".worktrees", "*", ".local", "target"]),
+        json!([".worktrees", "*", ".local", "*-profile-*"]),
+    ]
+    .into_iter()
+    .enumerate()
+    {
+        expected.push(json!({"target_id":format!("decl:{key}:worktree-builds.{}",i+1),"group_id":format!("decl:{key}:worktree-builds"),"rule_id":"decl:worktree-builds","level":"confirm","category":"custom","match":{"kind":"pattern","base":dir,"segments":segments},"item_type":"any","min_age_hours":72,"keep_newest":0,"in_use":{"mode":"runs_from_or_references_item","processes":[]}}));
+    }
+    expected.push(json!({"target_id":format!("decl:{key}:partial.1"),"group_id":format!("decl:{key}:partial"),"rule_id":"decl:partial","level":"recommended","category":"custom","match":{"kind":"pattern","base":dir,"segments":["downloads","*.CrDownload"],"conditions":[{"kind":"sibling_without_suffix","suffixes":[".crdownload"]}]},"item_type":"any","min_age_hours":0,"keep_newest":0,"in_use":{"mode":"runs_from_or_references_item","processes":[]}}));
+    assert_eq!(
+        to_targets(&m, dir, true),
+        expected,
+        "MANIFEST_TARGETS: exact JSON"
+    );
+    assert!(
+        to_targets(&m, dir, false).is_empty(),
+        "MANIFEST_TARGETS: untrusted"
+    );
+    let max = parsed(
+        &json!({"version":1,"disposable":[{"id":"x","title":"x","paths":["cache\\*"],"when":"older-than-365-days","keepNewest":8}]}),
+    );
+    let t = to_targets(&max, dir, true);
+    assert_eq!(
+        (t[0]["min_age_hours"].as_u64(), t[0]["keep_newest"].as_u64()),
+        (Some(8760), Some(8)),
+        "MANIFEST_TARGETS: bounds"
+    );
+    let mut always = max.clone();
+    always.disposable[0].when = "always".into();
+    assert_eq!(
+        to_targets(&always, dir, true)[0]["min_age_hours"],
+        0,
+        "MANIFEST_TARGETS: always"
+    );
+    let m = parsed(&json!({"version":1,"protected":["docs/important?","cache/keep"]}));
+    let unicode = parsed(&json!({"version":1,"protected":["Ärea/keep?"]}));
+    assert_eq!(
+        protects(&unicode, "F:\\RÖOT", "f:\\röot\\ärea\\Keep中\\file"),
+        Some(0),
+        "MANIFEST_PROTECT: Unicode case and one-character wildcard"
+    );
+    for (path, result) in [
+        ("f:/project/docs/Important中/file", Some(0)),
+        ("F:\\Project\\docs", Some(0)),
+        ("F:\\Project\\else", None),
+        (dir, Some(0)),
+        ("F:\\Other\\docs", None),
+        ("F:\\Project-other\\docs", None),
+        ("F:\\Project\\cache\\keep", Some(1)),
+        ("F:\\Project\\docs\\important", None),
+    ] {
+        assert_eq!(protects(&m, dir, path), result, "MANIFEST_PROTECT: overlap");
+    }
+}
+
+struct Fixture {
+    root: PathBuf,
+    parent: PathBuf,
+    junctions: Vec<PathBuf>,
+}
+impl Fixture {
+    fn new() -> Self {
+        let parent = Path::new(env!("CARGO_MANIFEST_DIR"))
+            .ancestors()
+            .nth(2)
+            .unwrap()
+            .join(".local")
+            .canonicalize()
+            .unwrap();
+        let parent = PathBuf::from(
+            parent
+                .to_string_lossy()
+                .strip_prefix(r"\\?\")
+                .unwrap_or(&parent.to_string_lossy()),
+        );
+        let id = std::time::SystemTime::now()
+            .duration_since(std::time::UNIX_EPOCH)
+            .unwrap()
+            .as_nanos();
+        let root = parent.join(format!("water-w10-m3-{}-{id}", std::process::id()));
+        std::fs::create_dir(&root).unwrap();
+        Self {
+            root,
+            parent,
+            junctions: Vec::new(),
+        }
+    }
+    fn junction(&mut self, path: PathBuf, target: &Path) {
+        assert!(
+            path.starts_with(&self.root) && target.starts_with(&self.root),
+            "MANIFEST_READ: junction bounds"
+        );
+        let r = std::process::Command::new("cmd")
+            .args(["/c", "mklink", "/J"])
+            .arg(&path)
+            .arg(target)
+            .output()
+            .unwrap();
+        assert!(r.status.success(), "MANIFEST_READ: create junction");
+        self.junctions.push(path);
+    }
+}
+impl Drop for Fixture {
+    fn drop(&mut self) {
+        assert!(
+            self.root.parent() == Some(self.parent.as_path())
+                && self
+                    .root
+                    .file_name()
+                    .unwrap()
+                    .to_string_lossy()
+                    .starts_with("water-w10-m3-"),
+            "MANIFEST_READ: cleanup bounds"
+        );
+        for j in self.junctions.iter().rev() {
+            assert!(
+                j.starts_with(&self.root),
+                "MANIFEST_READ: junction cleanup bounds"
+            );
+            std::fs::remove_dir(j).unwrap();
+        }
+        std::fs::remove_dir_all(&self.root).unwrap();
+    }
+}
+#[test]
+fn manifest_read_files() {
+    assert_eq!(
+        FILE_NAME, ".water-cleanup.json",
+        "MANIFEST_W11_NAMES: legacy constant unchanged"
+    );
+    assert_eq!(
+        FILE_NAME_FLICK, ".flick-cleanup.json",
+        "MANIFEST_W11_NAMES: Flick constant"
+    );
+    assert_eq!(
+        FILE_NAMES,
+        [".flick-cleanup.json", ".water-cleanup.json"],
+        "MANIFEST_W11_NAMES: exact names and priority"
+    );
+    {
+        let f = Fixture::new();
+        let bytes = serde_json::to_vec(&sample()).expect("MANIFEST_W11_NAMES: content");
+        let water = f.root.join(FILE_NAME);
+        let flick = f.root.join(FILE_NAME_FLICK);
+        std::fs::write(&water, &bytes).expect("MANIFEST_W11_NAMES: write legacy fixture");
+        std::fs::write(&flick, &bytes).expect("MANIFEST_W11_NAMES: write Flick fixture");
+        let expected = read_manifest(water.to_str().unwrap());
+        assert!(
+            expected.error.is_none() && expected.manifest.is_some(),
+            "MANIFEST_W11_NAMES: valid legacy declaration"
+        );
+        for path in [flick, f.root.join(".FlIcK-ClEaNuP.JsOn")] {
+            let mut actual = read_manifest(path.to_str().unwrap());
+            assert_eq!(
+                actual.path,
+                path.to_str().unwrap(),
+                "MANIFEST_W11_NAMES: caller spelling retained"
+            );
+            actual.path = expected.path.clone();
+            assert_eq!(
+                actual, expected,
+                "MANIFEST_W11_NAMES: both names and mixed case yield the same loaded declaration"
+            );
+        }
+        for name in [".flick-cleanup.json.bak", "flick-cleanup.json"] {
+            let path = f.root.join(name);
+            std::fs::write(&path, &bytes).expect("MANIFEST_W11_NAMES: write rejected fixture");
+            let rejected = read_manifest(path.to_str().unwrap());
+            assert_eq!(
+                rejected.error.as_ref().map(|e| e.code.as_str()),
+                Some("MANIFEST_NOT_FILE"),
+                "MANIFEST_W11_NAMES: reject other filename {name}"
+            );
+            assert!(
+                rejected.hash.is_none() && rejected.manifest.is_none() && rejected.size == 0,
+                "MANIFEST_W11_NAMES: other filename rejected before reading {name}"
+            );
+        }
+    }
+    let mut f = Fixture::new();
+    let path = f.root.join(FILE_NAME);
+    let s = path.to_str().unwrap();
+    let mut bytes = b"{\"version\":1}".to_vec();
+    bytes.resize(65536, b' ');
+    std::fs::write(&path, &bytes).unwrap();
+    let loaded = read_manifest(s);
+    assert!(
+        loaded.error.is_none() && loaded.manifest.is_some() && loaded.size == 65536,
+        "MANIFEST_READ: exact limit"
+    );
+    let script = "[Console]::OutputEncoding=[System.Text.UTF8Encoding]::new($false); $sha=[System.Security.Cryptography.SHA256]::Create(); ([BitConverter]::ToString($sha.ComputeHash([IO.File]::ReadAllBytes($args[0])))).Replace('-','').ToLowerInvariant()";
+    // A literal synthetic path is passed in an environment-free argument via encoded PowerShell text.
+    let script = script.replace("$args[0]", &format!("'{}'", s.replace('\'', "''")));
+    let out = std::process::Command::new("powershell")
+        .args(["-NoProfile", "-NonInteractive", "-Command", &script])
+        .output()
+        .unwrap();
+    assert!(out.status.success(), "MANIFEST_READ: independent hash");
+    assert_eq!(
+        loaded.hash.as_deref(),
+        Some(String::from_utf8(out.stdout).unwrap().trim()),
+        "MANIFEST_READ: independent raw hash"
+    );
+    bytes.push(b' ');
+    std::fs::write(&path, &bytes).unwrap();
+    let too = read_manifest(s);
+    assert!(
+        too.error.unwrap().code == "MANIFEST_TOO_LARGE" && too.hash.is_none(),
+        "MANIFEST_READ: over limit unread"
+    );
+    std::fs::remove_file(&path).unwrap();
+    std::fs::create_dir(&path).unwrap();
+    assert_eq!(
+        read_manifest(s).error.unwrap().code,
+        "MANIFEST_NOT_FILE",
+        "MANIFEST_READ: directory"
+    );
+    std::fs::remove_dir(&path).unwrap();
+    let target = f.root.join("target");
+    std::fs::create_dir(&target).unwrap();
+    f.junction(path.clone(), &target);
+    assert_eq!(
+        read_manifest(s).error.unwrap().code,
+        "MANIFEST_REPARSE",
+        "MANIFEST_READ: junction"
+    );
+    assert_eq!(
+        read_manifest("relative/.water-cleanup.json")
+            .error
+            .unwrap()
+            .code,
+        "MANIFEST_NOT_FILE",
+        "MANIFEST_READ: absolute required"
+    );
+    assert_eq!(
+        read_manifest(f.root.join("other.json").to_str().unwrap())
+            .error
+            .unwrap()
+            .code,
+        "MANIFEST_NOT_FILE",
+        "MANIFEST_READ: exact name"
+    );
+    assert_eq!(
+        sha256_hex(b""),
+        "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+        "MANIFEST_READ: SHA empty"
+    );
+    assert_eq!(
+        sha256_hex(b"abc"),
+        "ba7816bf8f01cfea414140de5dae2223b00361a396177a9cb410ff61f20015ad",
+        "MANIFEST_READ: SHA abc"
+    );
+    assert_eq!(
+        sha256_hex(&vec![b'a'; 1_000_000]),
+        "cdc76e5c9914fb9281a1c7e284d73e67f1809a48a497200e046d39ccc7112cd0",
+        "MANIFEST_READ: SHA million"
+    );
+    let other = f.root.join("bom");
+    std::fs::create_dir(&other).unwrap();
+    let mut bom = vec![0xef, 0xbb, 0xbf];
+    bom.extend(b"{\"version\":1}");
+    let bp = other.join(FILE_NAME);
+    std::fs::write(&bp, &bom).unwrap();
+    let b = read_manifest(bp.to_str().unwrap());
+    assert!(
+        b.manifest.is_some() && b.hash == Some(sha256_hex(&bom)),
+        "MANIFEST_READ: BOM raw hash"
+    );
+}
+
+#[test]
+fn manifest_git_link() {
+    let mut f = Fixture::new();
+    let tree = f.root.join("tree");
+    let target = f.root.join("Registered");
+    std::fs::create_dir(&tree).unwrap();
+    std::fs::create_dir(&target).unwrap();
+    let p = tree.join(".git");
+    let abs = target.to_str().unwrap();
+    let absolute_dotted = format!("{abs}\\.\\");
+    std::fs::write(&p, format!("gitdir: {absolute_dotted}")).unwrap();
+    let g = read_git_link(tree.to_str().unwrap());
+    assert!(
+        g.state == "valid" && g.gitdir.as_deref() == Some(absolute_dotted.as_str()),
+        "MANIFEST_GITDIR: absolute spelling preserved"
+    );
+    let msys = format!(
+        "/{}/{}",
+        &abs[..1].to_ascii_lowercase(),
+        abs[3..].replace('\\', "/")
+    );
+    for text in [
+        "gitdir: ../Registered\r\nsecond line ignored".to_owned(),
+        format!("gitdir: {abs}"),
+        format!("gitdir: {msys}"),
+    ] {
+        std::fs::write(&p, text).unwrap();
+        let g = read_git_link(tree.to_str().unwrap());
+        assert!(
+            g.state == "valid" && g.gitdir.as_deref() == Some(abs),
+            "MANIFEST_GITDIR: path conversion"
+        );
+    }
+    std::fs::write(&p, "gitdir: ../missing").unwrap();
+    let g = read_git_link(tree.to_str().unwrap());
+    assert!(
+        g.state == "detached" && g.gitdir.is_some(),
+        "MANIFEST_GITDIR: detached"
+    );
+    for text in [
+        "gitdir: ".to_owned(),
+        "not gitdir: ../Registered".into(),
+        "Gitdir: ../Registered".into(),
+        "gitdir: \\\\server\\share".into(),
+        "gitdir: \\\\?\\C:\\target".into(),
+        "gitdir: F:relative".into(),
+        "x".repeat(1025),
+    ] {
+        std::fs::write(&p, text).unwrap();
+        let g = read_git_link(tree.to_str().unwrap());
+        assert!(
+            g.state == "invalid" && g.gitdir.is_none(),
+            "MANIFEST_GITDIR: invalid format"
+        );
+    }
+    std::fs::write(f.root.join("ordinary"), b"synthetic").unwrap();
+    std::fs::write(&p, "gitdir: ../ordinary").unwrap();
+    assert_eq!(
+        read_git_link(tree.to_str().unwrap()).state,
+        "invalid",
+        "MANIFEST_GITDIR: target not directory"
+    );
+    std::fs::remove_file(&p).unwrap();
+    std::fs::create_dir(&p).unwrap();
+    assert_eq!(
+        read_git_link(tree.to_str().unwrap()).state,
+        "invalid",
+        "MANIFEST_GITDIR: .git directory"
+    );
+    std::fs::remove_dir(&p).unwrap();
+    f.junction(p, &target);
+    assert_eq!(
+        read_git_link(tree.to_str().unwrap()).state,
+        "invalid",
+        "MANIFEST_GITDIR: .git junction"
+    );
+}
