@@ -50,5 +50,6 @@ if ($Test) { Write-Output "test installer $setup"; return }
 Compress-Archive -LiteralPath $exePath -DestinationPath $zip
 
 $lines = foreach ($p in @($setup, $zip)) { '{0}  {1}' -f (Get-FileHash -Algorithm SHA256 -LiteralPath $p).Hash.ToLowerInvariant(), (Split-Path -Leaf $p) }
-[IO.File]::WriteAllLines($sums, [string[]]$lines, (New-Object Text.UTF8Encoding($false)))
+# LF line ends, so `sha256sum -c SHA256SUMS.txt` works as is (CRLF leaves a carriage return in each file name).
+[IO.File]::WriteAllText($sums, (([string[]]$lines -join "`n") + "`n"), (New-Object Text.UTF8Encoding($false)))
 foreach ($p in $targets) { Write-Output ('{0}  {1} bytes' -f $p, (Get-Item -LiteralPath $p).Length) }

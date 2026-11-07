@@ -68,7 +68,8 @@ function Find-Target([string]$name, [string]$type, [string]$match, [string]$pick
     else { $cond = [System.Windows.Automation.Condition]::TrueCondition }
     $hits = @()
     foreach ($e in $window.FindAll([System.Windows.Automation.TreeScope]::Descendants, $cond)) {
-        $n = [string]$e.Current.Name
+        # An element can leave the page while the list is walked (W12 integration 10).
+        try { $n = [string]$e.Current.Name } catch { continue }
         if ($match -eq 'prefix') { $ok = $n.StartsWith($name, [StringComparison]::Ordinal) }
         elseif ($match -eq 'contains') { $ok = $n.Contains($name) }
         else { $ok = $n -ceq $name }
@@ -77,6 +78,19 @@ function Find-Target([string]$name, [string]$type, [string]$match, [string]$pick
     if ($hits.Count -eq 0) { return $null }
     if ($pick -eq 'last') { return $hits[$hits.Count - 1] }
     return $hits[0]
+}
+function Enabled($element) {
+    if ($null -eq $element) { return $false }
+    try { return [bool]$element.Current.IsEnabled } catch { return $false }
+}
+function Use-Control($target, [int]$index) {
+    $pattern = $null
+    # Buttons with aria-pressed (M3.5 location picks) are exposed as toggle buttons: toggle them instead.
+    if ($target.TryGetCurrentPattern([System.Windows.Automation.InvokePattern]::Pattern, [ref]$pattern)) { $pattern.Invoke() }
+    elseif ($target.TryGetCurrentPattern([System.Windows.Automation.TogglePattern]::Pattern, [ref]$pattern)) { $pattern.Toggle() }
+    # W12 integration 10: a card's menu button (aria-haspopup) is exposed only as expand/collapse; Expand clicks it.
+    elseif ($target.TryGetCurrentPattern([System.Windows.Automation.ExpandCollapsePattern]::Pattern, [ref]$pattern)) { $pattern.Expand() }
+    else { throw ('Step ' + $index + ': control has no invoke, toggle or expand pattern') }
 }
 function Shot([string]$label) {
     if ($label -notmatch '^[a-z][a-z0-9-]{0,31}$') { throw 'Bad screenshot label' }
@@ -124,18 +138,46 @@ try {
         $record['steps'] += $entry; Save-Record
         if ($step.invoke) {
             $entry['kind'] = 'invoke'
-            $limit = [DateTime]::UtcNow.AddSeconds(15); $target = $null
+            $limit = [DateTime]::UtcNow.AddSeconds(15); $entry['retries'] = 0
             # A control found while the page is still busy may be disabled for a moment: keep looking until it is enabled.
-            while (($null -eq $target -or !$target.Current.IsEnabled) -and [DateTime]::UtcNow -lt $limit -and [DateTime]::UtcNow -lt $deadline) { $target = Find-Target $step.invoke $step.type $step.match $step.pick; if ($null -eq $target -or !$target.Current.IsEnabled) { Start-Sleep -Milliseconds 200 } }
-            if ($null -eq $target) { throw ('Step ' + $index + ': control not found') }
-            if (!$target.Current.IsEnabled) { throw ('Step ' + $index + ': control disabled') }
-            $pattern = $null
-            # Buttons with aria-pressed (M3.5 location picks) are exposed as toggle buttons: toggle them instead.
-            if ($target.TryGetCurrentPattern([System.Windows.Automation.InvokePattern]::Pattern, [ref]$pattern)) { $pattern.Invoke() }
-            elseif ($target.TryGetCurrentPattern([System.Windows.Automation.TogglePattern]::Pattern, [ref]$pattern)) { $pattern.Toggle() }
-            # W12 integration 10: a card's menu button (aria-haspopup) is exposed only as expand/collapse; Expand clicks it.
-            elseif ($target.TryGetCurrentPattern([System.Windows.Automation.ExpandCollapsePattern]::Pattern, [ref]$pattern)) { $pattern.Expand() }
-            else { throw ('Step ' + $index + ': control has no invoke, toggle or expand pattern') }
+            # W12 integration 10: a navigation renders the page twice (route, then data). A control found in the first
+            # render is gone when used: UI Automation throws and nothing is clicked. Find it again and retry (same limit).
+            while ($true) {
+                $target = $null
+                while (!(Enabled $target) -and [DateTime]::UtcNow -lt $limit -and [DateTime]::UtcNow -lt $deadline) { $target = Find-Target $step.invoke $step.type $step.match $step.pick; if (!(Enabled $target)) { Start-Sleep -Milliseconds 200 } }
+                if ($null -eq $target) { throw ('Step ' + $index + ': control not found') }
+                if (!(Enabled $target)) { throw ('Step ' + $index + ': control disabled') }
+                try { Use-Control $target $index; break }
+                catch { if ([DateTime]::UtcNow -ge $limit -or [DateTime]::UtcNow -ge $deadline) { throw }; $entry['retries']++; Start-Sleep -Milliseconds 300 }
+            }
+            # W12 integration 10: "then" names a menu item to use right after the invoke opened its menu. The menu closes
+            # when focus leaves it (another window, the page rendering again), so the pair is retried together for 15 s.
+            # When the trigger is gone after an attempt, the item's action is taken as done; the next steps check its effect.
+            if ($step.then) {
+                $useLimit = [DateTime]::UtcNow.AddSeconds(15); $entry['reopened'] = 0; $entry['itemErrors'] = 0; $used = $false
+                while (!$used) {
+                    $pause = [DateTime]::UtcNow.AddSeconds(2); $item = $null
+                    while ($null -eq ($item = Named $step.then $null) -and [DateTime]::UtcNow -lt $pause) { Start-Sleep -Milliseconds 100 }
+                    if ($null -ne $item) { try { Use-Control $item $index; $used = $true; break } catch { $entry['itemErrors']++ } }
+                    if ([DateTime]::UtcNow -ge $useLimit -or [DateTime]::UtcNow -ge $deadline) { throw ('Step ' + $index + ': menu item not used') }
+                    $target = Find-Target $step.invoke $step.type $step.match $step.pick
+                    if ($null -eq $target) { $entry['assumedDone'] = $true; break }
+                    if (Enabled $target) { try { Use-Control $target $index; $entry['reopened']++ } catch { $entry['retries']++ } }
+                }
+            }
+            # W12 integration 10: "until" names a control the invoke must bring up (the next page; "untilMatch" works like
+            # "match"). If it is not shown within 3 s the control is found and used again, 15 s in all.
+            if ($step.until) {
+                $untilLimit = [DateTime]::UtcNow.AddSeconds(15); $entry['reinvoked'] = 0
+                while ($true) {
+                    $pause = [DateTime]::UtcNow.AddSeconds(3); $shown = $null
+                    while ($null -eq ($shown = Find-Target $step.until $null $step.untilMatch $null) -and [DateTime]::UtcNow -lt $pause) { Start-Sleep -Milliseconds 150 }
+                    if ($null -ne $shown) { break }
+                    if ([DateTime]::UtcNow -ge $untilLimit -or [DateTime]::UtcNow -ge $deadline) { throw ('Step ' + $index + ': invoke did not bring up the expected control') }
+                    $target = Find-Target $step.invoke $step.type $step.match $step.pick
+                    if (Enabled $target) { try { Use-Control $target $index; $entry['reinvoked']++ } catch { $entry['retries']++ } }
+                }
+            }
         } elseif ($step.wait) {
             $entry['kind'] = 'wait'
             $limit = [DateTime]::UtcNow.AddSeconds([int]$step.seconds); $found = $null
@@ -158,12 +200,16 @@ try {
     }
     $record['pageAccepted'] = $true
     # Own descendants only, selected by verified parent PID chains.
-    $ids = @($TestProcessId)
+    # W12 integration 10: Windows keeps a dead parent's id in ParentProcessId and ids are reused, so an older, unrelated
+    # process can name one of ours as its parent. A child cannot be older than its parent: those are skipped and counted.
+    $ids = @($TestProcessId); $born = @{}; $born[[int]$TestProcessId] = $process.StartTime.ToUniversalTime(); $record['olderThanParentSkipped'] = 0
     for ($depth = 0; $depth -lt 6; $depth++) {
         $next = @()
         foreach ($owner in $ids) {
             foreach ($child in @(Get-CimInstance Win32_Process -Filter ('ParentProcessId=' + $owner))) {
-                if ($child.Name -notin @('msedgewebview2.exe', 'conhost.exe')) { throw 'Unexpected desktop child process' }
+                if ($null -ne $child.CreationDate -and $born.ContainsKey([int]$owner) -and $child.CreationDate.ToUniversalTime() -lt $born[[int]$owner]) { $record['olderThanParentSkipped']++; continue }
+                if ($child.Name -notin @('msedgewebview2.exe', 'conhost.exe')) { throw ('Unexpected desktop child process: ' + $child.Name) }
+                if ($null -ne $child.CreationDate) { $born[[int]$child.ProcessId] = $child.CreationDate.ToUniversalTime() }
                 if (@($children | Where-Object { $_.processId -eq $child.ProcessId }).Count -eq 0) {
                     if ($child.CommandLine -and $child.CommandLine.IndexOf($dataFull, [StringComparison]::OrdinalIgnoreCase) -ge 0) { $record['privateWebviewObserved'] = $true }
                     $children += [ordered]@{ processId=$child.ProcessId; parentProcessId=$child.ParentProcessId; name=$child.Name }
@@ -175,7 +221,11 @@ try {
         if ($next.Count -eq 0) { break }; $ids = $next
     }
     Save-Record
-} catch { $failure = $_.Exception.Message; $record['error'] = $failure }
+} catch {
+    $failure = $_.Exception.Message; $record['error'] = $failure
+    # W12 integration 10: keep an image of the page a step failed on (best effort; the run has failed already).
+    if ($null -ne $window) { try { Shot ('failed-step-' + $index) } catch {} }
+}
 finally {
     Save-Record
     if ($null -ne $window) {

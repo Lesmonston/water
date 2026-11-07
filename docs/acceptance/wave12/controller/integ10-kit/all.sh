@@ -8,6 +8,8 @@
 #   6. read-only recheck of D: and F:\Mirasim-A with the release  -- opens a window, reads real data read-only
 #   7. archive every part.
 # Tell the user before running it (steps 3-6 open windows). Usage: bash .local/w12-integ10/all.sh <tested commit>
+# Native retry after the gates passed on the same commit: INTEG10_HOST_PARTS=host,host2 FROM=native bash all.sh <commit>
+# runs host2's lock, check and test, then its one window, and carries on from there (the archive covers every part).
 set -u
 R=/f/new/smaltalk/water; K=$R/.local/w12-integ10; H=${1:?tested commit}; cd $R || exit 2
 log() { echo "[$(date -u +%H:%M:%S)] $*" | tee -a $K/logs/all.txt; }
@@ -19,13 +21,18 @@ for t in a b; do W=.worktrees/integ-w8$t
   git -C $W checkout -q -B controller/integ10-$t $H || fail "checkout $t"; done
 node $K/make-manifests.mjs $H >> $K/logs/all.txt || fail "manifests"
 step() { local part=$1; shift; bash $K/run.sh $part "$@" | tee -a $K/logs/all.txt | grep -qE "rc=([1-9]|null)" && fail "$part $*"; return 0; }
+PARTS=${INTEG10_HOST_PARTS:-host}; HOST=${PARTS##*,}
+if [ "${FROM:-}" = native ]; then
+  log "resume at native with $HOST (gates passed earlier on $H)"; step $HOST lock check test
+else
 step exec lock check test real:final
 step rules lock check test real:final
 step ui check test browser
-step host lock check test
+step $HOST lock check test
 step svc lock check test real:final
+fi
 log "gates done"
-step host native:final
+step $HOST native:final
 log "native done"
 bash $K/picker-real.sh > $K/logs/picker-real.txt 2>&1; grep -q "driver rc=0" $K/logs/picker-real.txt || fail "picker"
 grep -c "title=Flick - Select a read-only directory" $K/logs/picker-real.txt | xargs -I{} sh -c 'echo "picker dialogs titled Flick: {}"' | tee -a $K/logs/all.txt
@@ -40,5 +47,5 @@ powershell.exe -NoProfile -Command "\$s=[ordered]@{settings_version='water.setti
 powershell.exe -NoProfile -ExecutionPolicy Bypass -File "$(cygpath -w $K/tools/m35-close-observe.ps1)" -Exe "$(cygpath -w $REL/flick.exe)" -DataDir "$(cygpath -w $RUN/data)" -OutDir "$(cygpath -w $RUN/out)" -StepsPath "$(cygpath -w $K/tools/steps-real.json)" -Title Flick > $K/logs/recheck.txt 2>&1 || fail "recheck"
 node $K/tools/summarize.cjs $RUN $RUN/summary.json > /dev/null || fail "summary"
 log "recheck $STAMP done"
-for p in exec rules ui svc; do step $p archive; done; step host archive
+for p in exec rules ui svc; do step $p archive; done; for p in ${PARTS//,/ }; do step $p archive; done
 log "ALL DONE tested=$H release=$REL recheck=$STAMP"

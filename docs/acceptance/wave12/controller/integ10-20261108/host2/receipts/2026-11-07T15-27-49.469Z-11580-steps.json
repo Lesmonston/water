@@ -1,0 +1,157 @@
+[
+  {
+    "wait": "Flick 怎么用",
+    "absent": "无法连接 Flick 服务",
+    "seconds": 45,
+    "shot": "intro"
+  },
+  {
+    "invoke": "开始",
+    "type": "Button"
+  },
+  {
+    "wait": "这次检查哪里？",
+    "absent": "无法连接 Flick 服务",
+    "seconds": 45,
+    "shot": "home"
+  },
+  {
+    "invoke": "常用位置",
+    "type": "Button",
+    "match": "contains"
+  },
+  {
+    "invoke": "-fixture",
+    "type": "Button",
+    "match": "contains"
+  },
+  {
+    "invoke": "开始体检",
+    "type": "Button"
+  },
+  {
+    "wait": "可以放心清理",
+    "fail": "体检未能完成，请重新体检。",
+    "seconds": 120,
+    "shot": "results"
+  },
+  {
+    "wait": "程序留下的旧备份菜单",
+    "seconds": 15
+  },
+  {
+    "invoke": "程序留下的旧备份菜单"
+  },
+  {
+    "invoke": "以后都跳过"
+  },
+  {
+    "gone": "程序留下的旧备份菜单",
+    "seconds": 20,
+    "shot": "skipped"
+  },
+  {
+    "invoke": "设置"
+  },
+  {
+    "invoke": "跳过名单",
+    "type": "Button"
+  },
+  {
+    "wait": "程序留下的旧备份",
+    "match": "contains",
+    "seconds": 15,
+    "shot": "skip-list"
+  },
+  {
+    "invoke": "移除",
+    "type": "Button"
+  },
+  {
+    "wait": "跳过名单为空",
+    "seconds": 15
+  },
+  {
+    "invoke": "体检"
+  },
+  {
+    "wait": "结果已过期 · 重新体检",
+    "seconds": 15
+  },
+  {
+    "invoke": "重新体检"
+  },
+  {
+    "wait": "这次检查哪里？",
+    "seconds": 15
+  },
+  {
+    "invoke": "开始体检",
+    "type": "Button"
+  },
+  {
+    "wait": "可以放心清理",
+    "fail": "体检未能完成，请重新体检。",
+    "seconds": 120
+  },
+  {
+    "wait": "程序留下的旧备份菜单",
+    "seconds": 15,
+    "shot": "restored"
+  },
+  {
+    "invoke": "清理",
+    "type": "Button"
+  },
+  {
+    "wait": "已加入清理",
+    "match": "prefix",
+    "seconds": 20
+  },
+  {
+    "invoke": "清理 ",
+    "type": "Button",
+    "match": "prefix"
+  },
+  {
+    "wait": "先放进隔离区",
+    "seconds": 30,
+    "shot": "confirm"
+  },
+  {
+    "invoke": "开始清理",
+    "type": "Button"
+  },
+  {
+    "wait": "清理完成",
+    "seconds": 90,
+    "shot": "done"
+  },
+  {
+    "invoke": "去隔离区",
+    "type": "Button"
+  },
+  {
+    "wait": "隔离区里有 1 批",
+    "seconds": 30,
+    "shot": "quarantine"
+  },
+  {
+    "invoke": "永久删除",
+    "type": "Button"
+  },
+  {
+    "wait": "不进入回收站，无法恢复。",
+    "seconds": 15
+  },
+  {
+    "invoke": "永久删除",
+    "type": "Button",
+    "pick": "last"
+  },
+  {
+    "wait": "隔离区是空的",
+    "seconds": 90,
+    "shot": "purged"
+  }
+]

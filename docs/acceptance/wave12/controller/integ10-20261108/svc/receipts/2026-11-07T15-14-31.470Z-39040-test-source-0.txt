@@ -1,0 +1,35 @@
+[package]
+name = "water-service"
+version = "0.1.0"
+edition = "2024"
+rust-version = "1.95"
+publish = false
+autobins = false
+autotests = false
+autoexamples = false
+autobenches = false
+
+[workspace]
+
+[lib]
+name = "water_service"
+path = "src/lib.rs"
+
+[[test]]
+name = "service_v1"
+path = "tests/service_v1.rs"
+
+[[example]]
+name = "service_smoke"
+path = "examples/service_smoke.rs"
+
+[dependencies]
+serde = { version = "=1.0.229", features = ["derive"] }
+serde_json = "=1.0.151"
+water-junk-rules = { path = "../junk-rules" }
+water-junk-scan = { path = "../junk-scan" }
+water-process-scan = { path = "../process-scan" }
+water-junk-clean = { path = "../junk-clean" }
+water-cleanup-manifest = { path = "../cleanup-manifest" }
+water-dup-finder = { path = "../dup-finder" }
+water-installed-apps = { path = "../installed-apps" }

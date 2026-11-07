@@ -1,0 +1,634 @@
+{
+  "schemaVersion": 1,
+  "wave": "water-wave12-main-integration-10",
+  "status": "CONTROLLER_INTEGRATION",
+  "controller": "Claude",
+  "controllerRoot": "F:/new/smaltalk/water",
+  "controllerBranch": "main",
+  "helpers": {
+    "-P1": "scripts/checkup-wave-check.mjs",
+    "-P2": "scripts/desktop-wave-check.mjs",
+    "-P3": "scripts/desktop-wave-check.mjs",
+    "-P4": "scripts/checkup-wave-check.mjs",
+    "-P5": "scripts/checkup-wave-check.mjs"
+  },
+  "baseCommit": "6fd29e342b76ff2ceecd74e66805300405ef1334",
+  "baseTag": "water-w12-p1-base-20261107 (one tag per task, all on this commit)",
+  "plan": "docs/dispatch/wave12/PLAN.md",
+  "overallPlan": "docs/PLAN-OPEN-SOURCE-20261107.md",
+  "workerRules": "docs/dispatch/W12-WORKER-RULES.md",
+  "commonRules": "docs/dispatch/WORKER-RULES.md",
+  "contract": "contracts/w12-v1/W12.md",
+  "userDecision": "2026-11-07: \"不需要收费验证啊，目前我这个是规划开源项目\" (M4 becomes open-source release v0.1); \"先看一眼计划，把计划定稿，然后你直接建公开仓库，但是先不放代码进去\" (overall plan final: wave 12 widened, lighter light gates, skip remembers the kind at the location); \"开始写第十二波\"",
+  "offlineCache": {
+    "core": "F:/new/smaltalk/water/.offline-cache/core/registry",
+    "desktop": "F:/new/smaltalk/water/.offline-cache/desktop/registry",
+    "copiedFrom": [
+      "F:/new/smaltalk/water/.worktrees/a/.local/cargo-home/registry",
+      "F:/new/smaltalk/water/.worktrees/ac/.local/desktop-cargo-home/registry"
+    ],
+    "check": "diff -rq byte-identical, 11159 files"
+  },
+  "frozenFiles": [
+    {
+      "path": "docs/decisions/ADR-018-device-junk-checkup-and-in-app-cleanup.md",
+      "sha256": "1195b17c469b3abe290f4d334628fa36583ca7f20c46349aaf1071ff839a0579"
+    },
+    {
+      "path": "docs/decisions/ADR-019-project-declarations-and-quarantine.md",
+      "sha256": "005709e26035f08e3729303c8ebed961b7c23c3b4e02ec28ab8823a36b885e97"
+    },
+    {
+      "path": "contracts/checkup-v1/MODEL.md",
+      "sha256": "fe0c9a4f5d96ce9297e8f72e75df8c6f666f9a6af440fc198aa7b3362692188b"
+    },
+    {
+      "path": "contracts/checkup-v1/IPC.md",
+      "sha256": "62f726ced5f863f1b47db261976d8b5e5183f65669b2ba09d2f85a3977161be2"
+    },
+    {
+      "path": "contracts/m3c-v1/IPC-M3C.md",
+      "sha256": "d0b6bb18a5deedc8200569cc9f3c68a544d564c8a07c45d0905e9ab01a07e6a5"
+    },
+    {
+      "path": "contracts/m35-v1/IPC-M35.md",
+      "sha256": "9605b8e6c1e25cc399d0f44e4af039c5a55ea314845b211603f91ce680446889"
+    },
+    {
+      "path": "contracts/desktop-bootstrap-mirror-v1/MIRROR.json",
+      "sha256": "494e2b42e0803ba79170ffc162e8ac4938add6284b17dfdeb1f78fb527455e0f"
+    },
+    {
+      "path": "contracts/w11-v1/RENAME-FLICK.md",
+      "sha256": "97e5c969bae70e9dd92fcbf09810ea29af6167bbc8626a023e9d191a6b4479d8"
+    },
+    {
+      "path": "contracts/w12-v1/W12.md",
+      "sha256": "0d65a0b05ef0ad9f7d4fceadde71727d596339b1b9d960644e10775af210ebe3"
+    },
+    {
+      "path": "docs/dispatch/WORKER-RULES.md",
+      "sha256": "e578f86200d3f492782f451ba84fa0a1a0b60e4806fefb36dd561504aca90a78"
+    },
+    {
+      "path": "docs/dispatch/W12-WORKER-RULES.md",
+      "sha256": "3b6ba0cc36b9c273ee1f87af6d4c2825fb3f99496c93ce450a8f521fefbc4428"
+    }
+  ],
+  "readyReport": "docs/dispatch/wave12/PLAN.md",
+  "tasks": [
+    {
+      "kind": "rust",
+      "outputRoot": "packages/junk-clean",
+      "packageName": "water-junk-clean",
+      "testTarget": "clean_v1",
+      "testFiles": [
+        "packages/junk-clean/tests/clean_v1.rs"
+      ],
+      "productionFiles": [
+        "packages/junk-clean/Cargo.toml",
+        "packages/junk-clean/Cargo.lock",
+        "packages/junk-clean/README.md",
+        "packages/junk-clean/examples/real_smoke.rs"
+      ],
+      "cargoCacheSource": "F:/new/smaltalk/water/.offline-cache/core/registry",
+      "nativeModule": "native_windows.rs",
+      "macOS": "unverified",
+      "outputRootExists": true,
+      "nativeWindowBudget": 0,
+      "nativeDirectoryDialogBudget": 0,
+      "expectedTests": [
+        "clean_plan_contract",
+        "clean_revalidation_skips",
+        "clean_no_follow",
+        "clean_partial_stop_journal",
+        "clean_report_volume",
+        "clean_handle_hardening",
+        "quarantine_unlock_pair",
+        "quarantine_move_contract",
+        "quarantine_restore_contract",
+        "quarantine_purge_contract",
+        "quarantine_inspect_and_list"
+      ],
+      "allowedModes": [
+        "baseline",
+        "lock",
+        "check",
+        "test",
+        "archive",
+        "real",
+        "red-nc1",
+        "red-nc2",
+        "red-nc3"
+      ],
+      "expectedFinalModes": [
+        "check",
+        "test",
+        "real"
+      ],
+      "forbidPatterns": [
+        [
+          "\\bstd::fs\\b",
+          "Path-based file access (std::fs) is not allowed"
+        ],
+        [
+          "\\bfs::",
+          "Path-based file access (fs::) is not allowed"
+        ],
+        [
+          "\\bPath(?:Buf)?\\b",
+          "Path objects are not allowed; file access goes through handles"
+        ],
+        [
+          "\\b(?:remove_file|remove_dir|read_dir|symlink_metadata|set_permissions|OpenOptions)\\b",
+          "Path-based file operation is not allowed"
+        ]
+      ],
+      "allowedFfi": [
+        "CreateFileW",
+        "GetFileInformationByHandleEx",
+        "SetFileInformationByHandle",
+        "GetVolumeInformationByHandleW",
+        "GetDiskFreeSpaceExW",
+        "CloseHandle",
+        "NtOpenFile",
+        "NtCreateFile",
+        "RtlNtStatusToDosError",
+        "NtSetInformationFile"
+      ],
+      "realMode": "env-only",
+      "browserBudget": 0,
+      "realDataPermission": "real --final read-only: state and numbered-folder count of <drive>:\\.flick-quarantine and <drive>:\\.water-quarantine on fixed drives; no move, restore or delete",
+      "id": "WATER-W12-ACCEPT-INTEG10-EXEC",
+      "title": "执行器：写日志失败时照样交回报告",
+      "slot": "w12-p1",
+      "worktree": "F:/new/smaltalk/water/.worktrees/integ-w8a",
+      "branch": "controller/integ10-a",
+      "baseCommit": "0daabda2c5f1b8c2dc2a6a766e121168e764a749",
+      "snapshotRef": "refs/tags/water-w12-p1-base-20261107",
+      "status": "CONTROLLER_INTEGRATION",
+      "modelAssignment": "user-arranged; report actual engine/model",
+      "purpose": "after an action, a journal failure stops the run and still returns the report with journal_error and JournalFailed items (execute and quarantine); first-intent failure stays Err(Journal); real smoke runs powershell by absolute path",
+      "report": "docs/dispatch/reports/WATER-W12-P1-REPORT.md",
+      "evidenceDir": "docs/acceptance/wave12/controller/integ10-20261108/exec/",
+      "allowedFiles": [
+        "docs/dispatch/reports/WATER-W12-P1-REPORT.md"
+      ],
+      "gate": "heavy",
+      "ticket": "docs/dispatch/tickets/WATER-W12-P1-CLEAN-20261107.md",
+      "spec": "contracts/w12-v1/W12.md",
+      "proofTargets": {
+        "nc1": "CLEAN_W12_JOURNAL",
+        "nc2": "CLEAN_W12_JOURNAL",
+        "nc3": "CLEAN_W12_JOURNAL_FIRST"
+      },
+      "modelHint": "Executor: W12 section 3; tests in clean_partial_stop_journal and quarantine_move_contract; one pre-listed old assertion (result flush failure); heavy gate.",
+      "mustRead": [
+        "docs/dispatch/WORKER-RULES.md",
+        "docs/dispatch/W12-WORKER-RULES.md",
+        "contracts/w12-v1/W12.md",
+        "contracts/m35-v1/CLEAN-M35.md",
+        "contracts/checkup-v1/CLEAN.md",
+        "packages/junk-clean/src/lib.rs",
+        "packages/junk-clean/src/quarantine.rs",
+        "packages/junk-clean/src/model.rs",
+        "packages/junk-clean/src/quarantine_model.rs",
+        "packages/junk-clean/examples/real_smoke.rs",
+        "packages/junk-clean/tests/clean_v1.rs"
+      ],
+      "frozenFiles": [
+        {
+          "path": "contracts/w12-v1/W12.md",
+          "sha256": "0d65a0b05ef0ad9f7d4fceadde71727d596339b1b9d960644e10775af210ebe3"
+        },
+        {
+          "path": "contracts/m35-v1/CLEAN-M35.md",
+          "sha256": "9a7a43d758668fc4b6da0db1ef90d6500318ba7df907d01355adfd737012dee5"
+        },
+        {
+          "path": "contracts/checkup-v1/CLEAN.md",
+          "sha256": "95b5ad120c6d7a04d427318c09df8e58ba77d6f96167cb040bc07a33e5c5a55f"
+        },
+        {
+          "path": "contracts/hardening-v1/CLEAN-HARDENING.md",
+          "sha256": "b22cfe2458d17303fd5ffde08899ef6df89c4484ba502c0d4af4139c8a18dc85"
+        },
+        {
+          "path": "docs/decisions/ADR-019-project-declarations-and-quarantine.md",
+          "sha256": "005709e26035f08e3729303c8ebed961b7c23c3b4e02ec28ab8823a36b885e97"
+        },
+        {
+          "path": "contracts/w11-v1/RENAME-FLICK.md",
+          "sha256": "97e5c969bae70e9dd92fcbf09810ea29af6167bbc8626a023e9d191a6b4479d8"
+        }
+      ],
+      "allowedPrefixes": [
+        "packages/junk-clean/",
+        "docs/acceptance/wave12/p1/",
+        "docs/acceptance/wave12/controller/integ10-20261108/"
+      ],
+      "readyOn": "2026-11-07",
+      "dispatchedAt": "2026-11-07T12:09:44Z",
+      "startedAt": null,
+      "model": "sol (user-arranged)",
+      "defaultExecutor": "sol",
+      "issuedAt": "2026-11-07T12:04:20Z",
+      "baselineStatus": "PASSED",
+      "source": "docs/dispatch/wave12/PLAN.md",
+      "baselineEvidence": "docs/acceptance/wave12/controller/preflight-20261107/p1/2026-11-07T12-04-45.392Z-22912-baseline-result.json",
+      "dispatchReportedAt": "2026-11-07T12:09:44Z",
+      "dispatchEvidence": "user 2026-11-07 after the paste lines: \"界面单是opus，其他的都是sol\"",
+      "submittedHead": "606d5c5ebffff132a153cf451d46bb82e0da5207",
+      "implementationCommit": "149602577d489fe59f3aebcc0c1aa063e186ac76",
+      "mergeCommit": "292dcbed8e125ed5a7f48bb0973982237551aebb",
+      "workerSelfReport": "Codex GPT-6",
+      "controllerReview": {
+        "report": "docs/acceptance/wave12/controller/WATER-W12-REVIEW-20261107.md",
+        "evidence": "docs/acceptance/wave12/p1/",
+        "summary": "heavy gate: audit 0 problems; fresh tree lock, check, real and test finals; three ticket controls replayed and caught; controller mutations c2 and c3 caught, c1 (keep every planned volume after a journal failure) survived as an equivalent mutant on single-volume fixtures; independent review found no high or medium issue in the executor and a wave-level service gap sent to P2 as addendum 01"
+      },
+      "carryOverLater": [
+        "volume retention after a journal failure is untested across two volumes (controller mutation c1 survived; every fixture is on one volume)",
+        "execute maps any intent error after an action to JournalFailed, not only CleanError::Journal (a time-format error would read as a journal failure; quarantine matches Journal only)",
+        "a result-line failure for an item that was not acted on keeps its real reason instead of JournalFailed; reasonable, untested",
+        "quarantine: the current JournalFailed item keeps bytes = before.bytes while later ones show 0 (cosmetic; the service filters on moved)",
+        "real_smoke: SystemRoot set but empty does not fall back to C:Windows",
+        "combined with W12-P2 the old service test SERVICE_M35_CLEAN journal failure state (quarantine closing line fails after a move) changes from failed/error to record kept; migrate it on main after P2 merges"
+      ],
+      "acceptsTask": "WATER-W12-P1",
+      "acceptsHead": "0daabda2c5f1b8c2dc2a6a766e121168e764a749"
+    },
+    {
+      "kind": "rust",
+      "outputRoot": "packages/junk-rules",
+      "packageName": "water-junk-rules",
+      "testTarget": "rules_v1",
+      "expectedTests": [
+        "rules_schema_strict",
+        "rules_protection_precedence",
+        "rules_resolve_plan",
+        "rules_seed_coverage"
+      ],
+      "productionFiles": [
+        "packages/junk-rules/Cargo.toml",
+        "packages/junk-rules/Cargo.lock",
+        "packages/junk-rules/README.md",
+        "packages/junk-rules/rules/windows.json"
+      ],
+      "testFiles": [
+        "packages/junk-rules/tests/rules_v1.rs"
+      ],
+      "allowedModes": [
+        "baseline",
+        "lock",
+        "check",
+        "test",
+        "archive",
+        "real",
+        "red-nc1",
+        "red-nc2"
+      ],
+      "expectedFinalModes": [
+        "check",
+        "test",
+        "real"
+      ],
+      "cargoCacheSource": "F:/new/smaltalk/water/.offline-cache/core/registry",
+      "realMode": "env-only",
+      "nativeModule": null,
+      "nativeWindowBudget": 0,
+      "nativeDirectoryDialogBudget": 0,
+      "browserBudget": 0,
+      "realDataPermission": "read-only metadata per ADR-018",
+      "macOS": "unverified",
+      "outputRootExists": true,
+      "id": "WATER-W12-ACCEPT-INTEG10-RULES",
+      "title": "规则：按 C 盘只读调查补认不出的大项",
+      "slot": "w12-p5",
+      "worktree": "F:/new/smaltalk/water/.worktrees/integ-w8a",
+      "branch": "controller/integ10-a",
+      "baseCommit": "0daabda2c5f1b8c2dc2a6a766e121168e764a749",
+      "snapshotRef": "refs/tags/water-w12-p5-base-20261107",
+      "status": "CONTROLLER_INTEGRATION",
+      "modelAssignment": "user-arranged; report actual engine/model",
+      "purpose": "eight new rules and gpu-shader-cache extended from the 11-07 read-only C: survey (VRChat cache, WeCom upgrade staging, npm global reify leftovers, WeChat xlog, Chromium component CRX cache, OneDrive logs, Copilot SDK runtimes, Claude Code installer downloads); data_version 2026-11-07.3",
+      "report": "docs/dispatch/reports/WATER-W12-P5-REPORT.md",
+      "evidenceDir": "docs/acceptance/wave12/controller/integ10-20261108/rules/",
+      "allowedFiles": [
+        "docs/dispatch/reports/WATER-W12-P5-REPORT.md"
+      ],
+      "gate": "light",
+      "ticket": "docs/dispatch/tickets/WATER-W12-P5-RULES-20261107.md",
+      "spec": "contracts/w12-v1/W12.md",
+      "proofTargets": {
+        "nc1": "RULES_W12_NEW",
+        "nc2": "RULES_W12_NEW"
+      },
+      "modelHint": "Rules data only: section 1 table; protected-overlap conflicts are dropped and reported; two NCs edit rules/windows.json.",
+      "mustRead": [
+        "docs/dispatch/WORKER-RULES.md",
+        "docs/dispatch/W12-WORKER-RULES.md",
+        "contracts/w12-v1/W12.md",
+        "contracts/m35-v1/RULES-M35.md",
+        "contracts/checkup-v1/RULES.md",
+        "packages/junk-rules/rules/windows.json",
+        "packages/junk-rules/tests/rules_v1.rs",
+        "packages/junk-rules/README.md"
+      ],
+      "frozenFiles": [
+        {
+          "path": "contracts/w12-v1/W12.md",
+          "sha256": "0d65a0b05ef0ad9f7d4fceadde71727d596339b1b9d960644e10775af210ebe3"
+        },
+        {
+          "path": "contracts/m35-v1/RULES-M35.md",
+          "sha256": "3dfc034799404b45dbd19b7e44f99dc1875584e7b87285cdcd53340af9193a17"
+        },
+        {
+          "path": "contracts/checkup-v1/RULES.md",
+          "sha256": "11bbc3652d4e722618875e16bdca28676553fade0fb38e754316f053ce925949"
+        },
+        {
+          "path": "contracts/checkup-v1/MODEL.md",
+          "sha256": "fe0c9a4f5d96ce9297e8f72e75df8c6f666f9a6af440fc198aa7b3362692188b"
+        },
+        {
+          "path": "contracts/m3c-v1/RULES-M3C.md",
+          "sha256": "2fe859274ca3c8c6a3ca9533d30eb4b16deb2a1801c3c1463f2f976a23e28220"
+        },
+        {
+          "path": "contracts/m3d-v1/RULES-M3D.md",
+          "sha256": "65b68ff3f3ba1f01d9b85f922c97c8c8b018494385ba38ce584166a0e549e393"
+        },
+        {
+          "path": "contracts/m35-v1/SCAN-M35.md",
+          "sha256": "89d99d991d4fcfbdde3275137bfd14406466fc0ade676057e0073fb16a8edf90"
+        }
+      ],
+      "allowedPrefixes": [
+        "packages/junk-rules/",
+        "docs/acceptance/wave12/p5/",
+        "docs/acceptance/wave12/controller/integ10-20261108/"
+      ],
+      "readyOn": "2026-11-07",
+      "dispatchedAt": "2026-11-07T12:09:44Z",
+      "startedAt": null,
+      "model": "sol (user-arranged)",
+      "defaultExecutor": "sol",
+      "negativeControlPaths": [
+        "packages/junk-rules/src",
+        "packages/junk-rules/rules/windows.json"
+      ],
+      "issuedAt": "2026-11-07T12:04:20Z",
+      "baselineStatus": "PASSED",
+      "source": "docs/dispatch/wave12/PLAN.md",
+      "baselineEvidence": "docs/acceptance/wave12/controller/preflight-20261107/p5/2026-11-07T12-05-15.211Z-12848-baseline-result.json",
+      "dispatchReportedAt": "2026-11-07T12:09:44Z",
+      "dispatchEvidence": "user 2026-11-07 after the paste lines: \"界面单是opus，其他的都是sol\"",
+      "submittedHead": "23731efd0fccfcead4c857b1d94ff3eb72fd666c",
+      "implementationCommit": "fec544ccc27349b8564cfec742f7d19fb365254e",
+      "mergeCommit": "435317be19734592acf13480b97afd4810a11499",
+      "workerSelfReport": "Codex GPT-6",
+      "controllerReview": {
+        "report": "docs/acceptance/wave12/controller/WATER-W12-REVIEW-20261107.md",
+        "evidence": "docs/acceptance/wave12/p5/",
+        "summary": "light gate: audit 0 problems; check, test and real finals on the implementation commit; two ticket controls red then green; report reviewed; 118 rules, data version 2026-11-07.3, no candidate dropped for a protected overlap"
+      },
+      "carryOverLater": [
+        "chromium-component-crx-cache uses one rule-level in_use list, so any of Chrome, Edge or Brave running skips all three locations",
+        "copilot-sdk-runtimes uses in_use none (no known process name); keep_newest 1 still protects the newest runtime",
+        "real smoke only counts known folders; the new rules have not met the real folders in a scan yet (tenth integration recheck)"
+      ],
+      "acceptsTask": "WATER-W12-P5",
+      "acceptsHead": "0daabda2c5f1b8c2dc2a6a766e121168e764a749"
+    },
+    {
+      "kind": "ui",
+      "outputRoot": "apps/water/ui",
+      "testFiles": [
+        "apps/water/ui/tests/unit.test.mjs",
+        "apps/water/ui/tests/browser.test.mjs"
+      ],
+      "unitTestFiles": [
+        "apps/water/ui/tests/unit.test.mjs"
+      ],
+      "browserTestFiles": [
+        "apps/water/ui/tests/browser.test.mjs"
+      ],
+      "expectedTests": [
+        "ui_format_bytes_time",
+        "ui_v2_view_rules",
+        "ui_ipc_boundary"
+      ],
+      "tokensSource": "docs/design/water-ui-v3/tokens.css",
+      "fixtures": "contracts/m35-v1/ui-fixtures-m35.json",
+      "browserHelper": "scripts/acceptance/native-vw-private-browser.mjs",
+      "screenshotDirEnv": "WATER_W2_SHOTS_DIR",
+      "macOS": "unverified",
+      "outputRootExists": true,
+      "nativeWindowBudget": 0,
+      "nativeDirectoryDialogBudget": 0,
+      "expectedBrowserTests": [
+        "ui_v2_home_scan",
+        "ui_v2_conclusion",
+        "ui_v2_drawer_details",
+        "ui_v2_confirm_done",
+        "ui_v2_quarantine_dedupe",
+        "ui_v2_pages_layout_a11y"
+      ],
+      "requiredScreenshots": [
+        "v3-home-1240x820.png",
+        "v3-home-new-1240x820.png",
+        "v3-scan-1240x820.png",
+        "v3-results-1240x820.png",
+        "v3-results-decided-1240x820.png",
+        "v3-results-folds-1240x820.png",
+        "v3-results-stale-1240x820.png",
+        "v3-results-empty-1240x820.png",
+        "v3-menu-1240x820.png",
+        "v3-drawer-1240x820.png",
+        "v3-drawer-big-1240x820.png",
+        "v3-details-1240x820.png",
+        "v3-confirm-1240x820.png",
+        "v3-confirm-direct-1240x820.png",
+        "v3-done-1240x820.png",
+        "v3-quarantine-1240x820.png",
+        "v3-quarantine-leftover-1240x820.png",
+        "v3-dedupe-menu-1240x820.png",
+        "v3-dedupe-intro-1240x820.png",
+        "v3-dedupe-1240x820.png",
+        "v3-trends-1240x820.png",
+        "v3-history-1240x820.png",
+        "v3-settings-1240x820.png",
+        "v3-settings-decl-1240x820.png",
+        "v3-home-narrow-1040x720.png",
+        "v3-intro-1240x820.png",
+        "v3-settings-about-1240x820.png",
+        "v3-settings-skip-1240x820.png"
+      ],
+      "browserProofs": [
+        "nc1",
+        "nc2",
+        "nc3"
+      ],
+      "allowedModes": [
+        "baseline",
+        "check",
+        "test",
+        "browser",
+        "archive",
+        "red-nc1",
+        "red-nc2",
+        "red-nc3"
+      ],
+      "expectedFinalModes": [
+        "check",
+        "test",
+        "browser"
+      ],
+      "realMode": null,
+      "browserBudget": 1,
+      "realDataPermission": "none; IPC fixtures only",
+      "id": "WATER-W12-ACCEPT-INTEG10-UI",
+      "title": "界面：整组跳过、关于与诊断、第一次打开、几处小修",
+      "slot": "w12-p4",
+      "worktree": "F:/new/smaltalk/water/.worktrees/integ-w8a",
+      "branch": "controller/integ10-a",
+      "baseCommit": "0daabda2c5f1b8c2dc2a6a766e121168e764a749",
+      "snapshotRef": "refs/tags/water-w12-p4-base-20261107",
+      "status": "CONTROLLER_INTEGRATION",
+      "modelAssignment": "user-arranged; report actual engine/model",
+      "purpose": "card and row skip by menu and skip keys, skip list display_zh, about page with version, license, homepage and copy diagnostics, first-run page once, trends new tag, heatmap and queued-click fixes, journal note on the result",
+      "report": "docs/dispatch/reports/WATER-W12-P4-REPORT.md",
+      "evidenceDir": "docs/acceptance/wave12/controller/integ10-20261108/ui/",
+      "allowedFiles": [
+        "docs/dispatch/reports/WATER-W12-P4-REPORT.md"
+      ],
+      "gate": "light",
+      "ticket": "docs/dispatch/tickets/WATER-W12-P4-UI-20261107.md",
+      "spec": "contracts/w12-v1/W12.md",
+      "proofTargets": {
+        "nc1": "UI_W12_SKIP",
+        "nc2": "UI_W12_INTRO",
+        "nc3": "UI_W12_FIXES"
+      },
+      "modelHint": "UI: W12 sections 1.4, 1.5, 1.7, 2, 4.3, 4.4; pre-listed old drawer and card assertions; three new required screenshots; light gate with browser NCs.",
+      "mustRead": [
+        "docs/dispatch/WORKER-RULES.md",
+        "docs/dispatch/W12-WORKER-RULES.md",
+        "contracts/w12-v1/W12.md",
+        "contracts/m35-v1/UI-M35.md",
+        "contracts/m35-v1/IPC-M35.md",
+        "docs/design/water-ui-v3/DESIGN.md",
+        "docs/design/flick-brand/BRAND.md",
+        "docs/dispatch/tickets/WATER-W10-M6-ADDENDUM-02-20261106.md",
+        "apps/water/ui/app.mjs",
+        "apps/water/ui/ipc.mjs",
+        "apps/water/ui/views/detail.mjs",
+        "apps/water/ui/views/locations.mjs",
+        "apps/water/ui/views/trends.mjs",
+        "apps/water/ui/views/charts.mjs",
+        "apps/water/ui/tests/unit.test.mjs",
+        "apps/water/ui/tests/browser.test.mjs"
+      ],
+      "frozenFiles": [
+        {
+          "path": "contracts/w12-v1/W12.md",
+          "sha256": "0d65a0b05ef0ad9f7d4fceadde71727d596339b1b9d960644e10775af210ebe3"
+        },
+        {
+          "path": "contracts/m35-v1/UI-M35.md",
+          "sha256": "8292e85d7327af22ee3f2304ff9953241ee3602c82f738741b8af626ad9d19e4"
+        },
+        {
+          "path": "contracts/m35-v1/IPC-M35.md",
+          "sha256": "9605b8e6c1e25cc399d0f44e4af039c5a55ea314845b211603f91ce680446889"
+        },
+        {
+          "path": "contracts/m35-v1/ui-fixtures-m35.json",
+          "sha256": "8bb75e4e7860345bbde9f0561e4b4c119891bb3219a102093a2f5c095706450c"
+        },
+        {
+          "path": "contracts/m3c-v1/IPC-M3C.md",
+          "sha256": "d0b6bb18a5deedc8200569cc9f3c68a544d564c8a07c45d0905e9ab01a07e6a5"
+        },
+        {
+          "path": "contracts/m3c-v1/ui-fixtures-m3c.json",
+          "sha256": "c01bc0cb59d3bd0d61a1410446659e032dcfc1bfc8ad3fb3635331924f23a033"
+        },
+        {
+          "path": "contracts/checkup-v1/IPC.md",
+          "sha256": "62f726ced5f863f1b47db261976d8b5e5183f65669b2ba09d2f85a3977161be2"
+        },
+        {
+          "path": "contracts/checkup-v1/ui-fixtures.json",
+          "sha256": "2dd62585cb7ca31d429af8bf5360dda44d645dd73a5d3f79542d4d23ce1840e2"
+        },
+        {
+          "path": "contracts/checkup-v1/UI.md",
+          "sha256": "dbc92ff9de2f388d94c7210541662e5c0f9052084afdf4b795805768710cb52b"
+        },
+        {
+          "path": "docs/design/water-ui-v3/DESIGN.md",
+          "sha256": "0da4340331085f9131872e95879236e67ae44ddf5aa57cef1dd517b4124e5d69"
+        },
+        {
+          "path": "docs/design/water-ui-v3/mockup.html",
+          "sha256": "96f6980ea330bbed297cc14ce59cc4d9ed29f8050fe53014689101e1f2e19ad0"
+        },
+        {
+          "path": "docs/design/water-ui-v3/tokens.css",
+          "sha256": "2850d65eb9e51eedcfc319850ce92b000184f39766499aa7d84de757223f2697"
+        },
+        {
+          "path": "docs/design/flick-brand/BRAND.md",
+          "sha256": "3cf5f070f2d2cbce0b18116e14a84b8413421f631da3f23675fc90de777b561e"
+        },
+        {
+          "path": "docs/design/flick-brand/flick-mark.svg",
+          "sha256": "92636401b781a36f623c8897fb4fcb69aafcdf74dc6c7ec975f103297edf00c7"
+        }
+      ],
+      "allowedPrefixes": [
+        "apps/water/ui/",
+        "docs/acceptance/wave12/p4/",
+        "docs/acceptance/wave12/controller/integ10-20261108/"
+      ],
+      "readyOn": "2026-11-07",
+      "dispatchedAt": "2026-11-07T12:09:44Z",
+      "startedAt": null,
+      "model": "opus (user-arranged)",
+      "defaultExecutor": "astra",
+      "issuedAt": "2026-11-07T12:04:20Z",
+      "baselineStatus": "PASSED",
+      "source": "docs/dispatch/wave12/PLAN.md",
+      "baselineEvidence": "docs/acceptance/wave12/controller/preflight-20261107/p4/2026-11-07T12-05-10.101Z-33756-baseline-result.json",
+      "dispatchReportedAt": "2026-11-07T12:09:44Z",
+      "dispatchEvidence": "user 2026-11-07 after the paste lines: \"界面单是opus，其他的都是sol\"",
+      "submittedHead": "ef7d2d7a61fec906cba4529f3019b4cbe6a319cd",
+      "implementationCommit": "5a2eccfdd120bcaa1fdebc0a90c9eebfcc573cd6",
+      "mergeCommit": "46463017b4917fd06b7d68aa22655f6c877e3516",
+      "workerSelfReport": "Claude Opus 5.5 (claude-opus-5-5)",
+      "controllerReview": {
+        "report": "docs/acceptance/wave12/controller/WATER-W12-REVIEW-20261107.md",
+        "evidence": "docs/acceptance/wave12/p4/",
+        "summary": "light gate: audit 0 problems; check, test and browser finals on the implementation commit, 28 screenshots including the first-run page, the about page and the skip list; three ticket controls red then green (second round, the first round ran browser instead of test after each red); one timing-only browser wait rerun once; report and new screenshots reviewed"
+      },
+      "carryOverLater": [
+        "the about page shows the version from app_info while the settings side card still prints a fixed product version line; check both against the real host and service in the tenth integration",
+        "the first-run card is a tall dark card with three short lines; consider a shorter card when the UI is next touched",
+        "clipboard after an awaited IPC call in the Tauri WebView is not verified (falls back to the read-only text box)",
+        "app_info or diagnostics_get failing on the about page has no dedicated test"
+      ],
+      "acceptsTask": "WATER-W12-P4",
+      "acceptsHead": "0daabda2c5f1b8c2dc2a6a766e121168e764a749"
+    }
+  ],
+  "mergeOrder": [
+    "WATER-W12-P1",
+    "WATER-W12-P2",
+    "WATER-W12-P3",
+    "WATER-W12-P4",
+    "WATER-W12-P5"
+  ]
+}

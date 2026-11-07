@@ -6,7 +6,7 @@ K=F:/new/smaltalk/water/.local/w12-integ10
 case $part in
   exec|rules|ui) tree=a; gate=checkup-wave-check.mjs; export WATER_W2_SELFTEST_MANIFEST=$K/checkup-manifest.json;;
   svc)  tree=a; gate=desktop-wave-check.mjs; export WATER_W3_OVERRIDE_MANIFEST=$K/desktop-manifest.json;;
-  host) tree=b; gate=desktop-wave-check.mjs; export WATER_W3_OVERRIDE_MANIFEST=$K/desktop-manifest.json;;
+  host|host[0-9]) tree=b; gate=desktop-wave-check.mjs; export WATER_W3_OVERRIDE_MANIFEST=$K/desktop-manifest.json;;
   *) exit 2;;
 esac
 cd /f/new/smaltalk/water/.worktrees/integ-w8$tree || exit 2
