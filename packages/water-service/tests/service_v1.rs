@@ -8050,11 +8050,20 @@ fn w12_records() {
         .lock()
         .unwrap()
         .insert(util::drive(&slash(&f.root)), root);
-    let (progress, result) = m35_run_clean(&s, &p);
+    let started = s
+        .call(
+            "clean_start",
+            json!({"planId":p["plan_id"],"confirmToken":p["confirm_token"]}),
+        )
+        .expect("SERVICE_W12_RECORD: start failed batch");
+    let progress = wait(&s, "clean_progress");
     assert_eq!(
         progress["state"], "completed",
         "SERVICE_W12_RECORD: failed batch still saves record"
     );
+    let result = s
+        .call("clean_result", json!({"cleanId":started["clean_id"]}))
+        .expect("SERVICE_W12_RECORD: failed batch result must be readable");
     let group = result["groups"]
         .as_array()
         .unwrap()
