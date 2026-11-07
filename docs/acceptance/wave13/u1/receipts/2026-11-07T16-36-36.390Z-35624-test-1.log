@@ -1,0 +1,51 @@
+{"binary":"C:\\Program Files\\nodejs\\node.exe","args":["--test","--test-concurrency=1","--test-reporter=tap","apps/water/ui/tests/unit.test.mjs"],"exitCode":1,"error":null}
+--- stdout ---
+TAP version 13
+# Subtest: ui_format_bytes_time
+ok 1 - ui_format_bytes_time
+  ---
+  duration_ms: 66.1685
+  type: 'test'
+  ...
+# Subtest: ui_v2_view_rules
+not ok 2 - ui_v2_view_rules
+  ---
+  duration_ms: 4.2412
+  type: 'test'
+  location: 'F:\\new\\smaltalk\\water\\.worktrees\\w13-u1\\apps\\water\\ui\\tests\\unit.test.mjs:75:1'
+  failureType: 'testCodeFailure'
+  error: 'UI_W13_FIXTURES: no workspace directory directly under a drive root'
+  code: 'ERR_ASSERTION'
+  name: 'AssertionError'
+  expected: true
+  actual: false
+  operator: '=='
+  stack: |-
+    checkPaths (file:///F:/new/smaltalk/water/.worktrees/w13-u1/apps/water/ui/tests/unit.test.mjs:79:7)
+    Array.forEach (<anonymous>)
+    checkPaths (file:///F:/new/smaltalk/water/.worktrees/w13-u1/apps/water/ui/tests/unit.test.mjs:83:73)
+    Array.forEach (<anonymous>)
+    checkPaths (file:///F:/new/smaltalk/water/.worktrees/w13-u1/apps/water/ui/tests/unit.test.mjs:83:73)
+    Array.forEach (<anonymous>)
+    checkPaths (file:///F:/new/smaltalk/water/.worktrees/w13-u1/apps/water/ui/tests/unit.test.mjs:83:73)
+    Array.forEach (<anonymous>)
+    checkPaths (file:///F:/new/smaltalk/water/.worktrees/w13-u1/apps/water/ui/tests/unit.test.mjs:83:73)
+    Array.forEach (<anonymous>)
+  ...
+# Subtest: ui_ipc_boundary
+ok 3 - ui_ipc_boundary
+  ---
+  duration_ms: 6.7968
+  type: 'test'
+  ...
+1..3
+# tests 3
+# suites 0
+# pass 2
+# fail 1
+# cancelled 0
+# skipped 0
+# todo 0
+# duration_ms 188.8377
+
+--- stderr ---
