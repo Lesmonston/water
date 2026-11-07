@@ -221,11 +221,7 @@ pub(crate) fn scan_in_use(result: &ScanResult, platform: &dyn Platform) -> (Valu
 const UNKNOWN_TEXT: &str = "暂时无法确认是否在运行，清理时会再次检查";
 
 pub(crate) fn skipped(item: &water_junk_scan::Item, settings: &Settings) -> bool {
-    item.eligible
-        && settings
-            .skipped
-            .iter()
-            .any(|v| v.path.eq_ignore_ascii_case(&item.path))
+    item.eligible && settings.skipped.iter().any(|v| v.matches(item))
 }
 
 fn eligible(item: &water_junk_scan::Item, settings: &Settings) -> bool {
@@ -386,10 +382,6 @@ impl Projection {
             .is_some_and(|set| !set.is_empty())
     }
 
-    pub fn has_path(&self, lower: &str) -> bool {
-        self.paths.contains_key(lower)
-    }
-
     pub fn refresh_path_lower(
         &mut self,
         record: &Record,
@@ -519,6 +511,31 @@ impl Projection {
         }).unwrap_or(Value::Null);
         self.view["categories"][ci]["groups"][gi]["in_use"] = value.clone();
         self.details.get_mut(id).expect("indexed group")["group"]["in_use"] = value;
+    }
+
+    pub fn refresh_skip(
+        &mut self,
+        record: &Record,
+        changed: &crate::service::Skipped,
+        settings: &Settings,
+        rules: &RuleSet,
+        platform: &dyn Platform,
+    ) {
+        let paths = if let Some(path) = &changed.path {
+            vec![path.to_ascii_lowercase()]
+        } else {
+            self.group_items(changed.group_id.as_deref().unwrap_or(""))
+                .iter()
+                .map(|&n| &record.result.items[n])
+                .filter(|i| changed.matches(i))
+                .map(|i| i.path.to_ascii_lowercase())
+                .collect::<BTreeSet<_>>()
+                .into_iter()
+                .collect()
+        };
+        for path in paths {
+            self.refresh_path_lower(record, &path, settings, rules, platform);
+        }
     }
 }
 

@@ -100,10 +100,10 @@ pub(crate) fn refresh_with(
         if list.state == "unavailable" {
             continue;
         }
-        seen_roots.push(root.clone());
         if !crate::storage::plain_directory(std::path::Path::new(root)) {
             continue;
         }
+        seen_roots.push(root.clone());
         let mut root_bytes = 0u64;
         for q in list.quarantines {
             // Listing is the authority for presence. Inspection failure (or a
